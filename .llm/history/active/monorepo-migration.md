@@ -416,5 +416,85 @@ It appears that in your history, the prompts written by me "Developer:" and you 
 
 ---
 
+### Session 30 - 2026-01-23
+#### Prompt (Developer)
+Is the @podverse/.cursor/plans/monorepo-migration/01-infrastructure/01a-configs.md plan completed?
+
+#### Response
+Verified plan 01a-configs.md is fully completed. All checklist items confirmed: directories, .nvmrc, package.json, tsconfig.base.json, eslint.config.mjs, .gitignore.
+
+---
+
+### Session 31 - 2026-01-23
+#### Prompt (Developer)
+It will be a common pattern to have .cursor/plans directories for features. After a plan has been completed, you should ask the dev if they would like you to mark it as completed. Update the skills.
+
+#### Key Decisions
+- Plans should be organized into `active/` and `completed/` subdirectories
+- When a plan is confirmed complete, move it from `active/` to `completed/`
+
+---
+
+### Session 32 - 2026-01-23
+#### Prompt (Agent)
+Implement the plan as specified, it is attached for your reference. Do NOT edit the plan file itself.
+
+To-do's from the plan have already been created. Do not create them again. Mark them as in_progress as you work, starting with the first one. Don't stop until you have completed all the to-dos.
+
+#### Files Created
+- .cursor/plans/active/ (directory)
+- .cursor/plans/completed/ (directory)
+
+#### Files Modified
+- .cursor/skills/global/SKILL.md (updated Plan Management section with active/completed structure and Plan Completion workflow)
+
+#### Files Moved
+- .cursor/plans/monorepo-migration/ → .cursor/plans/active/monorepo-migration/
+
+---
+
+### Session 33 - 2026-01-23
+#### Prompt (Developer)
+It appears you forgot to update the llm history. Update it, and if you need skills to be updated to remind you, update the skills.
+
+#### Key Decisions
+- Need to update skills to remind about LLM history tracking
+
+---
+
+### Session 34 - 2026-01-23
+#### Prompt (Developer)
+It is not enough for you to update the history after completing the work. You need to update the history in real-time, or else you will forget prompts due to lack of persistent memory. Do your skills, or some other feature, need to be updated, so you remember to do this continuously with prompts?
+
+#### Key Decisions
+- Identified need for real-time prompt capture (at START of response, not end)
+- Discussed challenges: tool overhead, feature identification, not all prompts need logging
+
+---
+
+### Session 35 - 2026-01-23
+#### Prompt (Developer)
+Which do you recommend?
+
+#### Key Decisions
+- Recommended selective logging with immediate capture
+- Log prompts that lead to file changes at START of response
+- Skip pure Q&A
+- Trigger rule: "If this response will modify files, log the prompt first"
+
+---
+
+### Session 36 - 2026-01-23
+#### Prompt (Agent)
+Implement the plan as specified, it is attached for your reference. Do NOT edit the plan file itself.
+
+To-do's from the plan have already been created. Do not create them again. Mark them as in_progress as you work, starting with the first one. Don't stop until you have completed all the to-dos.
+
+#### Files Modified
+- .cursorrules (updated Real-Time Capture section)
+- .cursor/skills/global/SKILL.md (updated LLM History section)
+
+---
+
 ## Outcome
 [To be filled when migration is complete]

@@ -47,12 +47,14 @@ After changes, update with:
 - `#### Prompt (Agent)` — System-generated (e.g., clicking "Build" on a plan)
 
 ### Real-Time Capture (CRITICAL)
-**Capture prompts IN REAL-TIME during each session.** Do not defer.
-- Update history file at the END of each response where work is done
-- Do not rely on reconstructing prompts later (context may be lost)
-- If session is long, update history incrementally
+**If a response will modify files, log the prompt FIRST.**
 
-End with: **LLM History**: Updated `.llm/history/active/[feature].md`
+- **Start of response**: Log prompt to `.llm/history/active/[feature].md`
+- **End of response**: Update with files changed and key decisions
+
+Skip logging for pure Q&A or explanations that don't change files.
+
+End file-modifying responses with: **LLM History**: Updated `.llm/history/active/[feature].md`
 
 ---
 
