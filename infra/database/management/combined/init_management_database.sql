@@ -1,3 +1,7 @@
+-- Combined migrations generated Sat Jan 24 13:06:14 CST 2026
+-- DO NOT EDIT - regenerate with scripts/database/combine-migrations.sh
+
+-- Including: 0000_init_helpers.sql
 -- 0000 migration
 
 -- Extensions
@@ -25,6 +29,8 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+
+-- Including: 0001_init_admin_accounts.sql
 -- 0001 migration
 
 -- Admin Account Role Lookup Table (created before admin_account since it's referenced)
@@ -69,4 +75,5 @@ CREATE TABLE admin_account_credentials (
 );
 
 CREATE INDEX idx_admin_account_credentials_admin_account_id ON admin_account_credentials(admin_account_id);
+
 

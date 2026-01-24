@@ -1735,3 +1735,36 @@ update them all to use the same unified version. we can drop the .6 and .7 etc h
 - .github/workflows/publish-alpha.yml (simplified version calculation, unified versioning)
 
 ---
+
+### Session 85 - 2026-01-24
+#### Prompt (Developer)
+begin to plan work for @podverse/.cursor/plans/active/monorepo-migration/09-database-migrations.md if it should be split into smaller more manageable plans then do so. remember to update history.
+
+#### Response
+Analyzed Phase 9 plan. Database files already migrated to `infra/database/`. Only remaining work: create unified scripts and Jenkins pipeline. Plan is small enough (~3 files) that splitting is unnecessary.
+
+---
+
+### Session 86 - 2026-01-24
+#### Prompt (Agent)
+Implement the plan as specified, it is attached for your reference. Do NOT edit the plan file itself.
+
+To-do's from the plan have already been created. Do not create them again. Mark them as in_progress as you work, starting with the first one. Don't stop until you have completed all the to-dos.
+
+#### Work
+Completed Phase 9: Database Migrations - created migration scripts and Jenkins pipeline.
+
+#### Files Created
+- scripts/database/combine-migrations.sh (unified script for both main and management databases)
+- scripts/database/apply-migration.sh (local migration tool with dry-run support)
+- pipelines/jenkins/database/apply-migration.jenkinsfile (production migration pipeline)
+
+#### Features
+- combine-migrations.sh: Combines all migrations for both databases, adds timestamps and "DO NOT EDIT" headers
+- apply-migration.sh: Supports --database (main/management), --dry-run, --help; validates migration exists
+- Jenkins pipeline: Environment selection (alpha/beta/prod), database selection, dry-run default enabled, credential management
+
+#### Result
+All Phase 9 scripts and pipeline created and verified working.
+
+---
