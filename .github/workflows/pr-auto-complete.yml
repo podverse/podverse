@@ -1,0 +1,87 @@
+name: PR Auto-Complete History
+
+on:
+  pull_request_review:
+    types: [submitted]
+
+jobs:
+  auto-complete-history:
+    if: github.event.review.state == 'approved'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          ref: ${{ github.head_ref }}
+      
+      - name: Extract feature info
+        id: feature
+        run: |
+          BRANCH="${{ github.head_ref }}"
+          FEATURE_NAME=$(echo "$BRANCH" | sed 's|^[^/]*/||')
+          echo "name=$FEATURE_NAME" >> $GITHUB_OUTPUT
+          echo "history_file=.llm/history/active/$FEATURE_NAME.md" >> $GITHUB_OUTPUT
+      
+      - name: Check if Outcome needs completion
+        id: check
+        run: |
+          HISTORY_FILE="${{ steps.feature.outputs.history_file }}"
+          if [[ -f "$HISTORY_FILE" ]] && grep -q "\[To be filled" "$HISTORY_FILE"; then
+            echo "needs_completion=true" >> $GITHUB_OUTPUT
+          else
+            echo "needs_completion=false" >> $GITHUB_OUTPUT
+          fi
+      
+      - name: Generate Outcome with Anthropic
+        if: steps.check.outputs.needs_completion == 'true'
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          HISTORY_FILE="${{ steps.feature.outputs.history_file }}"
+          
+          # Read history content and PR diff
+          HISTORY_CONTENT=$(cat "$HISTORY_FILE")
+          PR_DIFF=$(gh pr diff ${{ github.event.pull_request.number }} --repo ${{ github.repository }} | head -500)
+          
+          # Call Anthropic API to generate Outcome
+          OUTCOME=$(curl -s https://api.anthropic.com/v1/messages \
+            -H "Content-Type: application/json" \
+            -H "x-api-key: $ANTHROPIC_API_KEY" \
+            -H "anthropic-version: 2023-06-01" \
+            -d "{
+              \"model\": \"claude-sonnet-4-20250514\",
+              \"max_tokens\": 500,
+              \"messages\": [{
+                \"role\": \"user\",
+                \"content\": \"Based on this LLM history file and PR diff, generate a brief Outcome section (3-5 bullet points summarizing what was accomplished). Format as markdown bullet points starting with '- '. History:\\n$HISTORY_CONTENT\\n\\nDiff summary:\\n$PR_DIFF\"
+              }]
+            }" | jq -r '.content[0].text')
+          
+          # Escape the outcome for sed (handle special characters)
+          ESCAPED_OUTCOME=$(echo "$OUTCOME" | sed 's/[&/\]/\\&/g' | tr '\n' ' ')
+          
+          # Replace placeholder with generated outcome
+          sed -i "s/\[To be filled when feature is complete\]/$ESCAPED_OUTCOME/" "$HISTORY_FILE"
+          
+          # Update completion date
+          sed -i "s/Completed: In Progress/Completed: $(date +%Y-%m-%d)/" "$HISTORY_FILE"
+      
+      - name: Move to completed
+        if: steps.check.outputs.needs_completion == 'true'
+        run: |
+          HISTORY_FILE="${{ steps.feature.outputs.history_file }}"
+          FEATURE_NAME="${{ steps.feature.outputs.name }}"
+          DATE=$(date +%Y-%m)
+          
+          mkdir -p ".llm/history/completed/$DATE"
+          mv "$HISTORY_FILE" ".llm/history/completed/$DATE/$FEATURE_NAME.md"
+      
+      - name: Commit changes
+        if: steps.check.outputs.needs_completion == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add .llm/history/
+          git commit -m "Auto-complete LLM history for ${{ steps.feature.outputs.name }}"
+          git push

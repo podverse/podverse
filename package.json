@@ -1,0 +1,42 @@
+{
+  "name": "podverse",
+  "version": "5.2.0",
+  "private": true,
+  "description": "Podverse monorepo - podcast app infrastructure, modules, and applications",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/podverse/podverse.git"
+  },
+  "contributors": [
+    "Mitch Downey",
+    "Creon Creonopoulos",
+    "Archie Brentano",
+    "Kyle Downey"
+  ],
+  "license": "AGPL-3.0",
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "workspaces": [
+    "packages/*",
+    "apps/*",
+    "tools/*"
+  ],
+  "scripts": {
+    "prepare": "bash scripts/git-hooks/install-hooks.sh",
+    "start-feature": "bash scripts/start-feature.sh",
+    "complete-feature": "bash scripts/complete-feature.sh",
+    "build": "npm run build --workspaces --if-present",
+    "build:packages": "npm run build -w packages/helpers && npm run build -w packages/external-services && npm run build -w packages/orm && npm run build -w packages/notifications && npm run build -w packages/parser && npm run build -w packages/mq",
+    "build:apps": "npm run build --workspaces --if-present --workspace=apps/api --workspace=apps/web --workspace=apps/workers --workspace=apps/management-api --workspace=apps/management-web",
+    "clean": "npm run clean --workspaces --if-present",
+    "dev:api": "npm run dev -w apps/api",
+    "dev:web": "npm run dev -w apps/web",
+    "dev:management-api": "npm run dev -w apps/management-api",
+    "dev:management-web": "npm run dev -w apps/management-web",
+    "lint": "npm run lint --workspaces --if-present",
+    "lint:fix": "npm run lint:fix --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present",
+    "type-check": "npm run type-check --workspaces --if-present"
+  }
+}

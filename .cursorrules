@@ -1,0 +1,63 @@
+# Podverse Monorepo Rules
+
+## Stack
+- Node.js 22, TypeScript strict, npm workspaces
+
+## Architecture
+See `.llm/context/architecture.md`. Lower tiers cannot depend on higher.
+
+## Code Quality
+- No `any` types
+- DTOs from `@podverse/helpers`
+- Follow `tsconfig.base.json`
+
+---
+
+## LLM WORKFLOW
+
+### Context Gathering
+For substantial requests, ask first:
+- "What's the goal?"
+- "GitHub issue?"
+
+### Issue Linking
+Ask once at start: "Related GitHub issue?"
+
+### Scope Management
+Warn if drifting: "This seems outside scope. Continue?"
+
+---
+
+## HISTORY TRACKING
+
+Before work: Check/create `.llm/history/active/[feature].md`
+
+After changes, update with:
+- Session date, user prompt (EXACT text), decisions, files
+
+### Prompt Recording (CRITICAL)
+**Always use the user's EXACT, FULL prompt text.** Never summarize or paraphrase.
+- Copy the prompt verbatim, preserving original wording
+- Include short confirmations ("yes", "continue") as-is
+- For multi-message exchanges, capture each message
+
+### Prompt Source Labeling (CRITICAL)
+**Differentiate prompt sources using labels:**
+- `#### Prompt (Developer)` — Manually typed by the user
+- `#### Prompt (Agent)` — System-generated (e.g., clicking "Build" on a plan)
+
+### Real-Time Capture (CRITICAL)
+**Capture prompts IN REAL-TIME during each session.** Do not defer.
+- Update history file at the END of each response where work is done
+- Do not rely on reconstructing prompts later (context may be lost)
+- If session is long, update history incrementally
+
+End with: **LLM History**: Updated `.llm/history/active/[feature].md`
+
+---
+
+## PLAN MANAGEMENT
+
+**Plans must be under 300 lines.**
+
+If over 300: STOP, split into sub-plans, save, then work sequentially.

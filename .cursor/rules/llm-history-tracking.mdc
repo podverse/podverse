@@ -1,0 +1,23 @@
+---
+description: LLM history tracking for code changes
+globs:
+  - "packages/**/*.ts"
+  - "apps/**/*.ts"
+  - "apps/**/*.tsx"
+  - "tools/**/*.ts"
+alwaysApply: false
+---
+
+# History Tracking
+
+When modifying code, update `.llm/history/active/[feature].md`:
+
+```markdown
+### Session N - YYYY-MM-DD
+#### Prompt
+[Description]
+#### Files Changed
+- path/to/file.ts
+```
+
+End response with history confirmation.

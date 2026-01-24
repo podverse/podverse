@@ -40,6 +40,7 @@ Migration of 13 repos into unified monorepo.
     ├── 11-git-workflow.md
     ├── 12-dependency-management.md
     ├── 13-skills-migration.md
+    ├── 98-file-naming-audit.md
     └── 99-future-work.md
 ```
 

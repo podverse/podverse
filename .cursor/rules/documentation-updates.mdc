@@ -1,0 +1,14 @@
+---
+description: Doc updates for config changes
+globs:
+  - "package.json"
+  - "packages/*/package.json"
+  - "tsconfig.base.json"
+alwaysApply: false
+---
+
+# Documentation Updates
+
+When changing configs:
+- Update `docs/ARCHITECTURE.md` if deps changed
+- Update `.llm/context/` files
