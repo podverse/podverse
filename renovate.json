@@ -1,0 +1,87 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:base",
+    ":semanticCommits",
+    ":preserveSemverRanges"
+  ],
+
+  "labels": ["dependencies"],
+  "assignees": ["mitchdowney"],
+
+  "schedule": ["before 8am on monday"],
+  "timezone": "America/Chicago",
+
+  "prConcurrentLimit": 5,
+  "prHourlyLimit": 2,
+
+  "packageRules": [
+    {
+      "description": "Group all non-major dependencies",
+      "matchPackagePatterns": ["*"],
+      "matchUpdateTypes": ["minor", "patch"],
+      "groupName": "all-non-major",
+      "groupSlug": "all-minor-patch"
+    },
+    {
+      "description": "Group dev dependencies",
+      "matchDepTypes": ["devDependencies"],
+      "groupName": "dev-dependencies",
+      "groupSlug": "dev-deps"
+    },
+    {
+      "description": "Group TypeScript-related",
+      "matchPackagePatterns": ["^@types/", "^typescript"],
+      "groupName": "typescript",
+      "groupSlug": "typescript"
+    },
+    {
+      "description": "Group ESLint-related",
+      "matchPackagePatterns": ["eslint"],
+      "groupName": "eslint",
+      "groupSlug": "eslint"
+    },
+    {
+      "description": "Group Next.js-related",
+      "matchPackagePatterns": ["^next", "^@next/"],
+      "groupName": "nextjs",
+      "groupSlug": "nextjs"
+    },
+    {
+      "description": "Auto-merge patch updates",
+      "matchUpdateTypes": ["patch"],
+      "matchCurrentVersion": "!/^0/",
+      "automerge": true,
+      "automergeType": "pr",
+      "automergeStrategy": "squash"
+    },
+    {
+      "description": "Major updates require manual review",
+      "matchUpdateTypes": ["major"],
+      "dependencyDashboardApproval": true,
+      "labels": ["dependencies", "major"]
+    },
+    {
+      "description": "Security updates - high priority",
+      "matchPackagePatterns": ["*"],
+      "matchUpdateTypes": ["patch", "minor"],
+      "vulnerabilityAlerts": true,
+      "schedule": ["at any time"],
+      "prPriority": 10
+    }
+  ],
+
+  "vulnerabilityAlerts": {
+    "labels": ["security"],
+    "schedule": ["at any time"]
+  },
+
+  "lockFileMaintenance": {
+    "enabled": true,
+    "schedule": ["before 5am on the first day of the month"]
+  },
+
+  "ignoreDeps": [
+    "podverse-partytime"
+  ]
+}
