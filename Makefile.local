@@ -1,0 +1,125 @@
+# ==========================================
+# Local Environment
+# ==========================================
+
+# Auto-copy missing local env files from templates
+infra/config/local/db.env:
+	@echo "Missing: $@"
+	@echo "Copying from example file"
+	cp ./infra/config/env-templates/db.env.example ./$@
+
+infra/config/local/mq.env:
+	@echo "Missing: $@"
+	@echo "Copying from example file"
+	cp ./infra/config/env-templates/mq.env.example ./$@
+
+infra/config/local/keyvaldb.env:
+	@echo "Missing: $@"
+	@echo "Copying from example file"
+	cp ./infra/config/env-templates/keyvaldb.env.example ./$@
+
+infra/config/local/api.env:
+	@echo "Missing: $@"
+	@echo "Copying from example file"
+	cp ./infra/config/env-templates/api.env.example ./$@
+
+infra/config/local/workers.env:
+	@echo "Missing: $@"
+	@echo "Copying from example file"
+	cp ./infra/config/env-templates/workers.env.example ./$@
+
+infra/config/local/management-db.env:
+	@echo "Missing: $@"
+	@echo "Copying from example file"
+	cp ./infra/config/env-templates/management-db.env.example ./$@
+
+infra/config/local/management-api.env:
+	@echo "Missing: $@"
+	@echo "Copying from example file"
+	cp ./infra/config/env-templates/management-api.env.example ./$@
+
+# Docker Network
+.PHONY: local_network_create
+local_network_create:
+	docker network create podverse_local_network 2>/dev/null || true
+
+.PHONY: local_network_remove
+local_network_remove:
+	docker network rm podverse_local_network
+
+# Database
+.PHONY: local_db_up
+local_db_up: local_network_create infra/config/local/db.env
+	docker compose -f infra/docker/local/db/docker-compose.yml up podverse_local_db -d
+
+.PHONY: local_db_down
+local_db_down:
+	docker compose -f infra/docker/local/db/docker-compose.yml down --remove-orphans
+
+.PHONY: local_db_reset
+local_db_reset:
+	@echo "Dropping and recreating public schema..."
+	docker exec -i podverse_local_db psql -U postgres -d postgres -c "DROP SCHEMA public CASCADE; CREATE SCHEMA public; GRANT ALL ON SCHEMA public TO postgres; GRANT ALL ON SCHEMA public TO public;"
+
+.PHONY: local_db_init
+local_db_init: infra/config/local/db.env
+	@echo "Creating read/read_write roles (idempotent)..."
+	@set -a; . infra/config/local/db.env; set +a; \
+	docker compose -f infra/docker/local/db/docker-compose.yml exec podverse_local_db bash -c "POSTGRES_READ_PASSWORD=$$POSTGRES_READ_PASSWORD POSTGRES_READ_WRITE_PASSWORD=$$POSTGRES_READ_WRITE_PASSWORD /opt/database/init-scripts/01-create-users.sh"
+	docker exec -i podverse_local_db psql -U postgres -d postgres -f /opt/database/combined/init_database.sql
+
+# Message Queue
+.PHONY: local_mq_up
+local_mq_up: local_network_create infra/config/local/mq.env
+	docker compose -f infra/docker/local/mq/docker-compose.yml up podverse_local_mq -d
+	@./scripts/mq/provision_queues.sh podverse_local_mq infra/config/local/mq.env
+
+.PHONY: local_mq_down
+local_mq_down:
+	docker compose -f infra/docker/local/mq/docker-compose.yml down --remove-orphans
+
+# Key-Value Database
+.PHONY: local_keyvaldb_up
+local_keyvaldb_up: local_network_create infra/config/local/keyvaldb.env
+	docker compose -f infra/docker/local/keyvaldb/docker-compose.yml up podverse_local_keyvaldb -d
+	docker compose -f infra/docker/local/keyvaldb/docker-compose.yml up podverse_local_keyvaldb_gui -d
+
+.PHONY: local_keyvaldb_down
+local_keyvaldb_down:
+	docker compose -f infra/docker/local/keyvaldb/docker-compose.yml down --remove-orphans
+
+# Management Database
+.PHONY: local_management_db_up
+local_management_db_up: local_network_create infra/config/local/management-db.env
+	docker compose -f infra/docker/local/management-db/docker-compose.yml up podverse_local_management_db -d
+
+.PHONY: local_management_db_down
+local_management_db_down:
+	docker compose -f infra/docker/local/management-db/docker-compose.yml down --remove-orphans
+
+.PHONY: local_management_db_reset
+local_management_db_reset:
+	@echo "Dropping and recreating public schema..."
+	docker exec -i podverse_local_management_db psql -U postgres -d postgres -c "DROP SCHEMA public CASCADE; CREATE SCHEMA public; GRANT ALL ON SCHEMA public TO postgres; GRANT ALL ON SCHEMA public TO public;"
+
+.PHONY: local_management_db_init
+local_management_db_init: infra/config/local/management-db.env
+	@echo "Validating required environment variables..."
+	@set -a; . infra/config/local/management-db.env; set +a; \
+	: "$${SUPERUSER_EMAIL:?Missing SUPERUSER_EMAIL}" \
+	: "$${SUPERUSER_PASSWORD:?Missing SUPERUSER_PASSWORD}"
+	@echo "Creating read/read_write roles (idempotent)..."
+	@set -a; . infra/config/local/management-db.env; set +a; \
+	docker compose -f infra/docker/local/management-db/docker-compose.yml exec podverse_local_management_db bash -c "POSTGRES_READ_PASSWORD=$$POSTGRES_READ_PASSWORD POSTGRES_READ_WRITE_PASSWORD=$$POSTGRES_READ_WRITE_PASSWORD /opt/database/management/init-scripts/01-create-users.sh"
+	docker exec -i podverse_local_management_db psql -U postgres -d postgres -f /opt/database/management/init_management_database.sql
+	@echo "Creating superuser account..."
+	@set -a; . infra/config/local/management-db.env; set +a; \
+	./scripts/management/create-superuser.sh
+
+# Stop all local infrastructure services
+.PHONY: local_all_down
+local_all_down:
+	-$(MAKE) local_keyvaldb_down
+	-$(MAKE) local_mq_down
+	-$(MAKE) local_db_down
+	-$(MAKE) local_management_db_down

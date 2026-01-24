@@ -1540,3 +1540,60 @@ Implemented Phase 6: Local Development Workflow
 - build:packages starts correctly (existing ESLint environment issue unrelated to this plan)
 
 ---
+
+### Session 75 - 2026-01-24
+#### Prompt (Developer)
+begin to plan for @podverse/.cursor/plans/active/monorepo-migration/06-local-dev-workflow.md. if it should be broken into smaller plans, do so.
+
+#### Response
+Analyzed Phase 6 plan and found it ~85% complete. Main files (setup.sh, terminals-rundev.json.example, package.json scripts, package scripts) already existed. Only remaining work: add local_* Makefile targets and move plan to completed.
+
+---
+
+### Session 76 - 2026-01-24
+#### Prompt (Agent)
+Implement the plan as specified, it is attached for your reference. Do NOT edit the plan file itself.
+
+To-do's from the plan have already been created. Do not create them again. Mark them as in_progress as you work, starting with the first one. Don't stop until you have completed all the to-dos.
+
+#### Work
+Completed Phase 6 remaining work:
+- Added local_* Makefile targets (local_db_up/down, local_mq_up/down, local_keyvaldb_up/down, local_management_db_up/down/init, local_network_create/remove, local_all_down)
+- Added auto-copy rules for local env files (db.env, mq.env, keyvaldb.env, api.env, workers.env, management-db.env, management-api.env)
+- Moved 06-local-dev-workflow.md from active/ to completed/
+
+#### Files Modified
+- Makefile (added ~130 lines of local environment targets)
+
+#### Files Moved
+- .cursor/plans/active/monorepo-migration/06-local-dev-workflow.md → completed/monorepo-migration/
+
+---
+
+### Session 77 - 2026-01-24
+#### Prompt (Developer)
+for clarity, i think the Makefile should be split into Makefile and Makefile.local and Makefile.alpha
+
+#### Work
+Split monolithic Makefile into three files for clarity:
+
+#### Files Created
+- Makefile.local (126 lines) - All local_* environment targets
+- Makefile.alpha (218 lines) - All alpha_* environment targets
+
+#### Files Modified
+- Makefile (reduced to 29 lines) - Shell detection, common targets, includes for .local and .alpha
+
+---
+
+### Session 78 - 2026-01-24
+#### Prompt (Developer)
+it looks like you have @podverse/.cursor/plans/active/monorepo-migration/06-local-dev-workflow.md @podverse/.cursor/plans/completed/monorepo-migration/06-local-dev-workflow.md but there should only be one unless active is incomplete
+
+#### Work
+Removed duplicate plan file from active/ (completed copy already exists in completed/)
+
+#### Files Deleted
+- .cursor/plans/active/monorepo-migration/06-local-dev-workflow.md
+
+---
