@@ -1,6 +1,6 @@
 # Phase 3: Application Migration (Outline)
 
-**Status**: Outline - detailed plan after Phase 2
+**Status**: Expanded into sub-plans (03a-03f)
 
 ## Overview
 
@@ -39,4 +39,17 @@ npm run build -w apps/api
 
 ## Estimated Effort
 
-~10-15 hours total
+~14-21 hours total
+
+---
+
+## Sub-Plans
+
+This outline has been expanded into the following detailed sub-plans:
+
+- [03a-management-api.md](03a-management-api.md) - management-api migration (1-2 hrs)
+- [03b-management-web.md](03b-management-web.md) - management-web migration (2-3 hrs)
+- [03c-workers.md](03c-workers.md) - workers migration (2-3 hrs)
+- [03d-api.md](03d-api.md) - api migration (3-4 hrs)
+- [03e-web.md](03e-web.md) - web migration (4-6 hrs)
+- [03f-integration.md](03f-integration.md) - integration and Dockerfiles (2-3 hrs)

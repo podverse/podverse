@@ -1,23 +1,31 @@
 ---
-description: LLM history tracking for code changes
+description: LLM history tracking for code and plan changes
 globs:
   - "packages/**/*.ts"
   - "apps/**/*.ts"
   - "apps/**/*.tsx"
   - "tools/**/*.ts"
+  - ".cursor/plans/**/*.md"
+  - "scripts/**/*.sh"
+  - "scripts/**/*.ts"
+  - "infra/**/*"
 alwaysApply: false
 ---
 
 # History Tracking
 
-When modifying code, update `.llm/history/active/[feature].md`:
+When modifying files in this workspace, update `.llm/history/active/[feature].md`:
 
 ```markdown
 ### Session N - YYYY-MM-DD
-#### Prompt
-[Description]
-#### Files Changed
+#### Prompt (Developer|Agent)
+[Exact verbatim prompt]
+#### Key Decisions
+- Decision 1
+#### Files Created/Modified
 - path/to/file.ts
 ```
+
+**IMPORTANT**: This rule triggers based on file globs. If working on files NOT matched by the globs above (e.g., documentation in `docs/`), you may not receive this reminder. Always update history when making substantive changes.
 
 End response with history confirmation.

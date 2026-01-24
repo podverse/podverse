@@ -814,3 +814,44 @@ mq builds with 0 errors, 0 warnings
 | mq | ✅ 0 errors, 0 warnings |
 
 ---
+
+### Session 58 - 2026-01-24
+#### Prompt (Developer)
+We are now ready to proceed with @podverse/.cursor/plans/active/monorepo-migration/03-apps-outline.md 
+
+However it will be a lot of work, and should be broken up into smaller plans, with no more than 1 app per plan, and if there are additional steps that should be multiple plans, create those as well
+
+#### Key Decisions
+- Split Phase 3 into 6 sub-plans (one per app + integration plan)
+- Migration order: management-api → management-web → workers → api → web → integration
+- Simplest apps first to establish patterns
+
+#### Files Created
+- .cursor/plans/active/monorepo-migration/03a-management-api.md (1-2 hrs)
+- .cursor/plans/active/monorepo-migration/03b-management-web.md (2-3 hrs)
+- .cursor/plans/active/monorepo-migration/03c-workers.md (2-3 hrs)
+- .cursor/plans/active/monorepo-migration/03d-api.md (3-4 hrs)
+- .cursor/plans/active/monorepo-migration/03e-web.md (4-6 hrs)
+- .cursor/plans/active/monorepo-migration/03f-integration.md (2-3 hrs)
+
+#### Files Modified
+- .cursor/plans/active/monorepo-migration/03-apps-outline.md (updated status, added sub-plan references)
+
+---
+
+### Session 59 - 2026-01-24
+#### Prompt (Developer)
+It looks like you forgot to update the history. If there is a skill missing that should remind you to update the history, then add the skill. Also, add to documentation for devs to read that explains how the auto history system works, and explain the situations where you may not update the history, how to avoid those situations, and to be on the look out for and manually give prompts to you to update the history when you forget.
+
+#### Key Decisions
+- Identified gap: llm-history-tracking.mdc rule only triggers for code files, not plan files
+- Updated rule globs to include: `.cursor/plans/**/*.md`, `scripts/**/*.sh`, `scripts/**/*.ts`, `infra/**/*`
+- Created comprehensive documentation explaining when auto-history may not trigger
+- Added end-of-response confirmation pattern to skills
+
+#### Files Modified
+- .cursor/rules/llm-history-tracking.mdc (expanded globs, added limitation warning)
+- .llm/README.md (complete rewrite with auto-history documentation)
+- .cursor/skills/global/SKILL.md (added History Rule Limitations section)
+
+---

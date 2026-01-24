@@ -90,3 +90,20 @@ Shall I proceed with just "helpers" first?
 **If modifying files, log prompt FIRST** to `.llm/history/active/[feature].md`
 Then at end: Add files changed and key decisions.
 Skip for pure Q&A.
+
+### History Rule Limitations
+
+The auto-reminder rule (`.cursor/rules/llm-history-tracking.mdc`) is **glob-based**.
+It may NOT trigger when working on:
+- Documentation files (`docs/*.md`)
+- Root config files (`.cursorrules`, etc.)
+- Files in directories not in the glob list
+
+**Always check**: Did I update the history? If unsure, update it.
+
+### End of Response Confirmation
+
+After any substantive work, confirm:
+```
+✅ History updated: .llm/history/active/[feature].md
+```
