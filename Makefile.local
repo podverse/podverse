@@ -116,6 +116,25 @@ local_management_db_init: infra/config/local/management-db.env
 	@set -a; . infra/config/local/management-db.env; set +a; \
 	./scripts/management/create-superuser.sh
 
+# Start all local infrastructure services
+.PHONY: local_infra_up
+local_infra_up: local_db_up local_mq_up local_keyvaldb_up
+	@echo "All local infrastructure services started"
+
+# Complete local setup (infrastructure + database initialization)
+.PHONY: local_setup
+local_setup: local_infra_up local_db_init
+	@echo ""
+	@echo "============================================"
+	@echo "Local environment ready!"
+	@echo "============================================"
+	@echo ""
+	@echo "Next steps:"
+	@echo "  1. npm run build:packages"
+	@echo "  2. npm run dev:api"
+	@echo "  3. npm run dev:web (in another terminal)"
+	@echo ""
+
 # Stop all local infrastructure services
 .PHONY: local_all_down
 local_all_down:
@@ -123,3 +142,20 @@ local_all_down:
 	-$(MAKE) local_mq_down
 	-$(MAKE) local_db_down
 	-$(MAKE) local_management_db_down
+
+# Clean local environment (containers + volumes), but preserve images for faster restart
+.PHONY: local_clean
+local_clean: local_all_down
+	docker volume rm podverse_local_db_data 2>/dev/null || true
+	docker volume rm podverse_local_keyvaldb_data 2>/dev/null || true
+	docker volume rm artemis_data 2>/dev/null || true
+	-$(MAKE) local_network_remove
+	@echo "Local environment cleaned. Images preserved for faster restart."
+
+# Remove only Podverse-specific images, preserving external images (postgres, valkey, artemis)
+.PHONY: local_prune_podverse_images
+local_prune_podverse_images:
+	@echo "Removing only Podverse-specific images..."
+	docker images --filter=reference='*podverse*' -q | xargs -r docker rmi 2>/dev/null || true
+	docker images --filter=reference='ghcr.io/podverse/*' -q | xargs -r docker rmi 2>/dev/null || true
+	@echo "External images (postgres, valkey, artemis) preserved."

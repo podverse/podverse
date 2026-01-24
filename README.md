@@ -11,12 +11,25 @@ Open source podcast app with Podcasting 2.0 support.
 
 ## Quick Start
 
+**Prerequisites**: [Docker](https://docs.docker.com/get-docker/) and [Node.js 22+](https://github.com/nvm-sh/nvm)
+
 ```bash
-nvm use && npm install
+# 1. Clone and install
+git clone https://github.com/podverse/podverse.git
+cd podverse && nvm use && npm install
+
+# 2. Start infrastructure and initialize database
+make local_setup
+
+# 3. Build packages
 npm run build:packages
-npm run dev:api    # localhost:3000
-npm run dev:web    # localhost:3001
+
+# 4. Run apps (in separate terminals)
+npm run dev:api    # http://localhost:1234
+npm run dev:web    # http://localhost:3000
 ```
+
+See [docs/QUICKSTART.md](docs/QUICKSTART.md) for detailed setup instructions, verification steps, and troubleshooting.
 
 ## Directory Structure
 
@@ -60,38 +73,26 @@ docs/               # Documentation
 
 ### Setup
 
+For a complete walkthrough, see [docs/QUICKSTART.md](docs/QUICKSTART.md).
+
+**Quick version:**
 ```bash
-# Clone and install
 git clone https://github.com/podverse/podverse.git
 cd podverse && nvm use && npm install
-
-# Build packages (required before running apps)
-npm run build:packages
-
-# Start development servers
-npm run dev:api    # API at localhost:3000
-npm run dev:web    # Web at localhost:3001
+make local_setup           # Start Docker services + init database
+npm run build:packages     # Build shared packages
+npm run dev:api            # API at localhost:1234
+npm run dev:web            # Web at localhost:3000 (new terminal)
 ```
 
-### Environment Setup
+### Environment Configuration
 
-Copy environment templates from `infra/config/env-templates/`:
+Local development uses pre-configured environment files that work out of the box:
+- `apps/api/.env` - API configuration
+- `apps/web/env/local.env` - Web configuration
+- `infra/config/local/*.env` - Docker service configuration
 
-```bash
-cp infra/config/env-templates/*.example infra/config/local/
-# Edit files in infra/config/local/ with your values
-```
-
-See [docs/ENV.md](docs/ENV.md) for all environment variable documentation.
-
-### Docker Development
-
-For local services (database, cache, message queue):
-
-```bash
-cd infra/docker/local
-docker-compose up -d
-```
+For customization, see the ENV.md files in each app directory.
 
 ## Deployment
 
