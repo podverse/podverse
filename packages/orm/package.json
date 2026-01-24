@@ -1,0 +1,31 @@
+{
+  "name": "@podverse/orm",
+  "version": "5.2.0",
+  "description": "TypeORM entities and database utilities for Podverse",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist/**/*"
+  ],
+  "scripts": {
+    "build": "npm run lint && tsc",
+    "build:watch": "tsc --build --watch",
+    "lint": "eslint ./src",
+    "lint:fix": "eslint ./src --fix",
+    "clean": "rm -rf dist",
+    "type-check": "tsc --noEmit"
+  },
+  "license": "AGPL-3.0",
+  "dependencies": {
+    "@podverse/helpers": "*",
+    "async-mutex": "^0.5.0",
+    "bcrypt": "^6.0.0",
+    "nanoid": "^5.1.6",
+    "pg": "^8.16.3",
+    "typeorm": "^0.3.26",
+    "typeorm-naming-strategies": "^4.1.0"
+  },
+  "devDependencies": {
+    "@types/bcrypt": "^6.0.0"
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "name": "@podverse/external-services",
+  "version": "5.2.0",
+  "description": "External service integrations for Podverse",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist/**/*"
+  ],
+  "scripts": {
+    "build": "npm run lint && tsc",
+    "build:watch": "tsc --build --watch",
+    "lint": "eslint ./src",
+    "lint:fix": "eslint ./src --fix",
+    "clean": "rm -rf dist",
+    "type-check": "tsc --noEmit"
+  },
+  "license": "AGPL-3.0",
+  "dependencies": {
+    "@podverse/helpers": "*",
+    "crypto-js": "^4.2.0",
+    "csv-parser": "^3.2.0",
+    "firebase-admin": "^13.6.0",
+    "http-errors": "2.0.0",
+    "paypal-rest-sdk": "2.0.0-rc.2",
+    "web-push": "^3.6.7"
+  },
+  "devDependencies": {
+    "@types/crypto-js": "^4.2.2",
+    "@types/http-errors": "^2.0.5",
+    "@types/web-push": "^3.6.4"
+  }
+}

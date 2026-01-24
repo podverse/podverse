@@ -1,6 +1,6 @@
 ---
 name: podverse-global-patterns
-version: 1.0.0
+version: 1.1.0
 ---
 
 # Global Patterns
@@ -52,6 +52,38 @@ After verifying a plan is complete, ask:
 > "Would you like me to mark this plan as completed?"
 
 If yes, move the plan directory from `active/` to `completed/`.
+
+## Complexity Assessment
+
+**BEFORE executing any plan**, assess complexity. If ANY threshold exceeded, STOP and recommend breaking down the work.
+
+### Thresholds (trigger if ANY exceeded)
+- **3+ packages/modules** being modified
+- **10+ files** expected to change
+- **2+ dependency chains** (A→B→C where each depends on prior)
+- **20+ minutes** estimated execution time
+
+### Required Behavior When Exceeded
+1. **STOP** - Do not begin execution
+2. **List** the complexity factors detected
+3. **Propose** natural breakpoints (e.g., one package at a time)
+4. **Ask** developer to confirm smaller scope
+5. **Only proceed** after explicit approval of reduced scope
+
+### Example Response
+```
+⚠️ This plan exceeds complexity thresholds:
+- 6 packages to modify (threshold: 3)
+- Chained dependencies: helpers → external-services → orm → ...
+
+Recommended breakdown:
+1. helpers (standalone)
+2. external-services (depends on helpers)
+3. orm (depends on helpers)
+...
+
+Shall I proceed with just "helpers" first?
+```
 
 ## LLM History
 

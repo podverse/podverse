@@ -20,7 +20,7 @@ export default tseslint.config(
         argsIgnorePattern: '^_',
         varsIgnorePattern: '^_',
       }],
-      'semi': ['error', 'never'],
+      'semi': ['error', 'always'],
       'quotes': ['error', 'single', { avoidEscape: true }],
       'comma-dangle': ['error', 'always-multiline'],
       'no-console': ['warn', { allow: ['warn', 'error'] }],

@@ -1,0 +1,30 @@
+{
+  "name": "@podverse/mq",
+  "version": "5.2.0",
+  "description": "Message queue module for Podverse",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist/**/*"
+  ],
+  "scripts": {
+    "build": "npm run lint && tsc",
+    "build:watch": "tsc --build --watch",
+    "lint": "eslint ./src",
+    "lint:fix": "eslint ./src --fix",
+    "clean": "rm -rf dist",
+    "type-check": "tsc --noEmit"
+  },
+  "license": "AGPL-3.0",
+  "dependencies": {
+    "@podverse/external-services": "*",
+    "@podverse/helpers": "*",
+    "@podverse/orm": "*",
+    "@podverse/parser": "*",
+    "rhea": "^2.0.6",
+    "ws": "^8.18.3"
+  },
+  "devDependencies": {
+    "@types/ws": "^8.18.1"
+  }
+}

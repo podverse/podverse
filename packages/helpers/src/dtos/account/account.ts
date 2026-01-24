@@ -1,0 +1,41 @@
+import { DTOAccountAppStorePurchase } from './accountAppStorePurchase';
+import { DTOAccountCredentials } from './accountCredentials';
+import { DTOAccountEmailChangeVerification } from './accountEmailChangeVerification';
+import { DTOAccountFCMDevice } from './accountFCMDevice';
+import { DTOAccountFollowingAccount } from './accountFollowingAccount';
+import { DTOAccountFollowingAddByRSSChannel } from './accountFollowingAddByRSSChannel';
+import { DTOAccountFollowingChannel } from './accountFollowingChannel';
+import { DTOAccountFollowingPlaylist } from './accountFollowingPlaylist';
+import { DTOAccountGooglePlayPurchase } from './accountGooglePlayPurchase';
+import { DTOAccountMembershipStatus } from './accountMembershipStatus';
+import { DTOAccountNotificationChannel } from './accountNotificationChannel';
+import { DTOAccountPayPalOrder } from './accountPayPalOrder';
+import { DTOAccountProfile } from './accountProfile';
+import { DTOAccountResetPassword } from './accountResetPassword';
+import { DTOAccountSettings } from './accountSettings/accountSettings';
+import { DTOAccountUPDevice } from './accountUPDevice';
+import { DTOAccountVerification } from './accountVerification';
+
+export interface DTOAccount {
+  id: number;
+  id_text: string;
+  verified: boolean;
+  sharable_status_id?: number;
+  account_app_store_purchases?: DTOAccountAppStorePurchase[];
+  account_credentials?: DTOAccountCredentials;
+  account_email_change_verification?: DTOAccountEmailChangeVerification;
+  account_fcm_devices?: DTOAccountFCMDevice[];
+  account_following_accounts?: DTOAccountFollowingAccount[];
+  account_following_add_by_rss_channels?: DTOAccountFollowingAddByRSSChannel[];
+  account_following_channels?: DTOAccountFollowingChannel[];
+  account_following_playlists?: DTOAccountFollowingPlaylist[];
+  account_google_play_purchases?: DTOAccountGooglePlayPurchase[];
+  account_membership_status?: DTOAccountMembershipStatus;
+  account_notification_channels?: DTOAccountNotificationChannel[];
+  account_paypal_orders?: DTOAccountPayPalOrder[];
+  account_profile?: DTOAccountProfile;
+  account_reset_password?: DTOAccountResetPassword;
+  account_settings?: DTOAccountSettings;
+  account_up_devices?: DTOAccountUPDevice[];
+  account_verification?: DTOAccountVerification;
+}
