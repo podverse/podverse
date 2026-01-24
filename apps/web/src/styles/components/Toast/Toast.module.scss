@@ -1,0 +1,67 @@
+@use '../../mixins/flexbox' as *;
+
+.toast {
+  background: var(--background-color-contrast) !important;
+  color: var(--text-color-contrast) !important;
+}
+
+.toastWarning {
+  background: var(--button-warning-bg) !important;
+  color: var(--button-warning-color) !important;
+}
+
+.toastDanger {
+  background: var(--button-danger-bg) !important;
+  color: var(--button-danger-color) !important;
+}
+
+.toastCustomWrapper {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--spacing-lg);
+  padding: var(--spacing-lg);
+  border-radius: 8px;
+  max-width: 350px;
+  transition: opacity 0.2s ease-in-out;
+}
+
+.toastCustomWrapperVisible {
+  opacity: 1;
+}
+
+.toastCustomWrapperHidden {
+  opacity: 0;
+}
+
+.toastContentColumn {
+  @include flexColumn(var(--spacing-md));
+  flex: 1;
+}
+
+.toastDismissButton {
+  background: none;
+  border: none;
+  color: currentColor;
+  font-size: var(--font-size-xl);
+  line-height: 1;
+  padding: var(--spacing-none);
+  cursor: pointer;
+  opacity: 0.8;
+  transition: opacity 0.15s ease;
+  flex-shrink: 0;
+
+  &:hover {
+    opacity: 1;
+  }
+}
+
+.toastLink {
+  color: currentColor;
+  text-decoration: underline;
+  cursor: pointer;
+
+  &:hover {
+    opacity: 0.8;
+  }
+}

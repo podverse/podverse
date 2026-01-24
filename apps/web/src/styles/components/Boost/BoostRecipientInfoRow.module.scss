@@ -1,0 +1,25 @@
+.row td {
+  border-top: 1px solid var(--border-color-tertiary);
+  border-right: 1px solid var(--border-color-tertiary);
+  padding: var(--spacing-base);
+  overflow-wrap: break-word;
+  word-break: break-all;
+}
+
+.row td:last-child {
+  border-right: none;
+}
+
+.address {
+  margin-top: var(--spacing-base);
+}
+
+.percent {
+  text-align: center;
+  white-space: nowrap;
+}
+
+.amount {
+  text-align: center;
+  white-space: nowrap;
+}

@@ -1,0 +1,40 @@
+@use "../../../variables/breakpoints" as *;
+
+.controls {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  height: 100%;
+  flex: 0 0 44%;
+}
+
+.topSection {
+  display: flex;
+  font-size: var(--font-size-xl);
+  gap: var(--spacing-4xl);
+  align-items: center;
+}
+
+.topSection > button {
+  height: 2rem;
+  width: 2rem;
+}
+
+.bottomSection {
+  display: flex;
+  width: 100%;
+  justify-content: center;
+}
+
+@media (min-width: $breakpoint-lg-min) and (max-width: $breakpoint-xl-max) {
+  .topSection {
+    max-width: 304px;
+    width: 100%;
+  }
+
+  .bottomSection {
+    max-width: 440px;
+    width: 100%;
+  }
+}

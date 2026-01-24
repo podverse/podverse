@@ -1,0 +1,5 @@
+.rows {
+  padding: var(--spacing-form-input-vertical);
+  margin-top: calc(var(--spacing-sm) * -1); // Keep negative margin for layout
+  margin-bottom: calc(var(--spacing-sm) * -1); // Keep negative margin for layout
+}

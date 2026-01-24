@@ -1,0 +1,17 @@
+.form {
+  max-width: var(--form-max-width);
+}
+
+.buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--spacing-lg);
+}
+
+.bottomSection {
+  margin-top: var(--spacing-3xl);
+}
+
+.bottomSectionButtons {
+  margin: var(--spacing-3xl) var(--spacing-none);
+}

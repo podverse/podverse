@@ -1,0 +1,34 @@
+@use '../../mixins/ellipsis' as *;
+
+.header {
+  display: flex;
+  flex-direction: row;
+  margin-bottom: var(--spacing-2xl);
+}
+
+.image {
+  margin-right: var(--spacing-lg);
+}
+
+.textSection {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding-bottom: var(--spacing-sm);
+  @include ellipsisSingleLineParent;
+}
+
+.title {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-light);
+  @include ellipsisSingleLineChild;
+}
+
+.subtitle {
+  margin-top: var(--spacing-md);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-bold);
+  color: var(--text-color-accent);
+  @include ellipsisSingleLineChild;
+
+}

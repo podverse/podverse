@@ -1,0 +1,63 @@
+@mixin formHeaderRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--spacing-lg);
+}
+
+@mixin formHeaderLabel {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-light);
+}
+
+@mixin formButtonsWrapper {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--spacing-2xl);
+  margin-top: 2.25rem; // Keep specific value for form button spacing
+}
+
+/// Form input wrapper pattern used across TextInput, TextArea, and FormDropdown
+/// Provides consistent styling for form input containers
+/// @example
+///   .inputWrapper {
+///     @include formInputWrapper;
+///   }
+@mixin formInputWrapper {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  flex-direction: row;
+  border-radius: var(--border-radius);
+  border: var(--button-border-size) solid transparent;
+  padding: var(--spacing-form-input);
+  background-color: var(--background-color-tertiary);
+}
+
+/// Form info text pattern for helper/description text below form inputs
+/// Provides consistent styling for info text across form components
+/// @param {Length} $margin - Optional margin override (default: var(--spacing-lg) var(--spacing-lg) var(--spacing-none) var(--spacing-lg))
+/// @example
+///   .inputInfo {
+///     @include formInfoText;
+///   }
+@mixin formInfoText($margin: var(--spacing-lg) var(--spacing-lg) var(--spacing-none) var(--spacing-lg)) {
+  margin: $margin;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-light);
+  color: var(--text-color-secondary);
+}
+
+/// Form info error text pattern for error messages below form inputs
+/// Provides consistent styling for error text across form components
+/// @param {Length} $margin - Optional margin override (default: var(--spacing-lg) var(--spacing-lg) var(--spacing-none) var(--spacing-lg))
+/// @example
+///   .inputError {
+///     @include formInfoTextError;
+///   }
+@mixin formInfoTextError($margin: var(--spacing-lg) var(--spacing-lg) var(--spacing-none) var(--spacing-lg)) {
+  margin: $margin;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-light);
+  color: var(--text-color-danger);
+}

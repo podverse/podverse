@@ -1,0 +1,13 @@
+.playButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--button-secondary-color);
+  background: var(--button-opaque-bg);
+  border: var(--button-border-size) solid var(--border-color-primary);
+  border-radius: var(--border-radius-round);
+  height: 3rem !important;
+  width: 3rem !important;
+  font-size: var(--font-size-base);
+  padding-left: 1px; // Keep 1px for visual centering of play icon
+}

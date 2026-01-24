@@ -1,0 +1,14 @@
+.wrapper {
+  display: flex;
+  flex-direction: column;
+}
+
+.incrementButton {
+  display: flex;
+  margin-bottom: var(--spacing-xs);
+}
+
+.decrementButton {
+  display: flex;
+  margin-top: var(--spacing-xs);
+}

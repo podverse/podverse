@@ -1,0 +1,35 @@
+{
+  "compilerOptions": {
+    "composite": true,
+    "target": "ES6",
+    "module": "CommonJS",
+    "moduleResolution": "Node",
+    "lib": ["ES2022"],
+    "strict": true,
+    "noImplicitAny": true,
+    "esModuleInterop": true,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "skipLibCheck": true,
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "forceConsistentCasingInFileNames": true,
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "baseUrl": "./",
+    "paths": {
+      "@api/*": ["src/*"]
+    }
+  },
+  "include": ["./src/**/*.ts", "./src/@types/**/*.d.ts"],
+  "exclude": ["node_modules", "dist"],
+  "references": [
+    { "path": "../../packages/helpers" },
+    { "path": "../../packages/external-services" },
+    { "path": "../../packages/orm" },
+    { "path": "../../packages/mq" },
+    { "path": "../../packages/notifications" },
+    { "path": "../../packages/parser" }
+  ]
+}

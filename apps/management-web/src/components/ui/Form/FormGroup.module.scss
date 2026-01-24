@@ -1,0 +1,9 @@
+@use '../../../styles/theme/variables' as theme;
+
+.formGroup {
+  margin-bottom: theme.$spacing-md;
+
+  &:last-of-type {
+    margin-bottom: theme.$spacing-lg;
+  }
+}

@@ -1,0 +1,21 @@
+@use "breakpoints";
+@use '../../../mixins/media-queries' as *;
+
+.playerMobile {
+  flex: 1;
+  position: relative;
+  height: var(--media-player-height-mobile);
+}
+
+.infoSection {
+  display: flex;
+  padding: var(--spacing-base);
+  flex: 1;
+  box-sizing: border-box;
+}
+
+@include desktop(lg-min) {
+  .playerMobile {
+    display: none;
+  }
+}

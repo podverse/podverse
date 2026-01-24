@@ -1,0 +1,5 @@
+.rows {
+  margin-top: calc(var(--spacing-2xl) - var(--spacing-sm)); // Keep calc for precise spacing
+  padding: var(--spacing-form-input-vertical);
+  margin-bottom: calc(var(--spacing-sm) * -1); // Keep negative margin for layout
+}

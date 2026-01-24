@@ -1,0 +1,27 @@
+@use '../../../styles/theme/variables' as theme;
+
+.button {
+  width: 100%;
+  padding: theme.$spacing-sm;
+  font-size: theme.$font-size-base;
+  font-weight: theme.$font-weight-medium;
+  color: theme.$color-background;
+  background-color: theme.$color-primary;
+  border: none;
+  border-radius: theme.$border-radius-sm;
+  cursor: pointer;
+  transition: background-color theme.$transition-default;
+
+  &:disabled {
+    background-color: theme.$color-disabled;
+    cursor: not-allowed;
+  }
+
+  &:not(:disabled):hover {
+    opacity: 0.9;
+  }
+}
+
+.buttonPrimary {
+  @extend .button;
+}

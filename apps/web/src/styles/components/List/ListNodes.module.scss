@@ -1,0 +1,20 @@
+@use "breakpoints";
+@use '../../mixins/flexbox' as *;
+@use '../../mixins/media-queries' as *;
+
+.list {
+  @include flexColumn(1.25rem);
+}
+
+.listTight {
+  @include flexColumn(0.125rem);
+}
+
+.listTracks {
+  @include flexColumn(1rem);
+}
+
+.grid {
+  display: grid;
+  @include responsiveGrid((xs: 2, sm: 3, md: 3, lg: 4, xl: 5, xxl: 6), 1rem);
+}

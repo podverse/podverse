@@ -1,0 +1,41 @@
+@use "../../../variables/breakpoints" as *;
+
+.buttons {
+  display: flex;
+  flex: 0 0 28%;
+  flex-direction: row;
+}
+
+.startSection {
+  display: flex;
+  height: 36px;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--spacing-base);
+}
+
+.startSection > button {
+  height: 36px;
+  width: 36px;
+  font-size: var(--font-size-md);
+}
+
+.endSection {
+  display: flex;
+  height: 36px;
+  align-items: center;
+  justify-content: flex-end;
+  flex: 1;
+}
+
+@media (min-width: $breakpoint-lg-min) and (max-width: $breakpoint-xl-max) {
+  .buttons {
+    flex-direction: column;
+    height: 100%;
+    justify-content: space-between;
+  }
+
+  .endSection {
+    justify-content: flex-end;
+  }
+}

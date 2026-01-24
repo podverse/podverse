@@ -1,0 +1,14 @@
+@use 'breakpoints';
+@use '../../mixins/flexbox' as *;
+@use '../../mixins/media-queries' as *;
+
+.leftButtons {
+  display: flex;
+  gap: var(--spacing-base);
+}
+
+@include mobile {
+  .leftButtons {
+    display: none;
+  }
+}

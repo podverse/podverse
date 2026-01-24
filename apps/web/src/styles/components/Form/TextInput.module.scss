@@ -1,0 +1,64 @@
+@use '../../mixins/form' as *;
+@use '../../mixins/flexbox' as *;
+
+.textInput {
+  margin-bottom: var(--spacing-2xl);
+  position: relative;
+  @include flexColumn;
+  flex: 1;
+}
+
+.textInputWrapper {
+  @include formInputWrapper;
+}
+
+.textInnerInputWrapper {
+  @include flexColumn;
+  flex: 1 1;
+  justify-content: center;
+}
+
+.eyebrow {
+  color: var(--text-color-link);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-bold);
+  margin: 0 0 var(--spacing-form-label-bottom);
+}
+
+.input {
+  all: unset;
+  font-size: var(--font-size-md);
+  width: 100%;
+  padding: var(--spacing-form-input-inner);
+}
+
+.numberInput {
+  -moz-appearance: textfield;
+}
+
+.textInputInfo {
+  @include formInfoText;
+}
+
+.textInputInfoError {
+  @include formInfoTextError;
+}
+
+.button {
+  margin-left: var(--spacing-lg);
+}
+
+.buttonIcon {
+  @include flexCenter;
+  height: 28px;
+  width: 28px;
+  border-radius: 100%;
+}
+
+.buttonIconStart {
+  margin-right: var(--spacing-md);
+}
+
+.buttonIconEnd {
+  margin-left: var(--spacing-md);
+}

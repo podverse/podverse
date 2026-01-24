@@ -6,12 +6,21 @@ dist/
 .next/
 out/
 
-# Environment files
+# Environment files (contain secrets - created from .env.example or env/*.env templates)
+# Root-level
 .env
 .env.local
-.env.*.local
-*.env
-!*.env.example
+.env.production.local
+.env.development.local
+
+# App-specific (backend apps)
+apps/*/.env
+apps/*/.env.local
+
+# The following ARE committed (sanitized templates without secrets):
+# - apps/*/.env.example
+# - apps/*/env/*.env (web app environment templates)
+# - infra/config/env-templates/*.env.example
 
 # Logs
 logs/

@@ -1,0 +1,17 @@
+.upEndpointDisplay {
+  padding: var(--spacing-base) var(--spacing-lg);
+  margin: var(--spacing-md) var(--spacing-none);
+  background-color: var(--color-background-secondary);
+  border-radius: var(--border-radius-default);
+  font-size: var(--font-size-sm);
+}
+
+.upEndpointLabel {
+  color: var(--color-text-secondary);
+  margin-right: var(--spacing-md);
+}
+
+.upEndpointValue {
+  color: var(--color-text-primary);
+  word-break: break-all;
+}

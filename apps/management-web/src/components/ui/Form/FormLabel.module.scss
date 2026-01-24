@@ -1,0 +1,9 @@
+@use '../../../styles/theme/variables' as theme;
+
+.formLabel {
+  display: block;
+  margin-bottom: theme.$spacing-xs;
+  font-size: theme.$font-size-xs;
+  font-weight: theme.$font-weight-medium;
+  color: theme.$color-text-primary;
+}

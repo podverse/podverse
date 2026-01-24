@@ -1,0 +1,24 @@
+@use '../styles/theme/variables' as theme;
+
+.loginCard {
+  width: 100%;
+  max-width: 400px;
+  padding: theme.$spacing-xl;
+}
+
+.loginHeader {
+  margin-bottom: theme.$spacing-xl;
+  text-align: center;
+}
+
+.loginTitle {
+  font-size: theme.$font-size-xl;
+  font-weight: theme.$font-weight-semibold;
+  margin-bottom: theme.$spacing-xs;
+  color: theme.$color-text-primary;
+}
+
+.loginSubtitle {
+  color: theme.$color-text-secondary;
+  font-size: theme.$font-size-xs;
+}

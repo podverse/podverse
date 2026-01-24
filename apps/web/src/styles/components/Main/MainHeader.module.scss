@@ -1,0 +1,44 @@
+@use '../../mixins/lineClamp' as *;
+@use "breakpoints";
+
+.header {
+  background-color: var(--background-color-secondary);
+  padding: 0 var(--spacing-2xl);
+  display: flex;
+  align-items: center;
+}
+
+.header h1 {
+  @include line-clamp(1);
+}
+
+.headerContent {
+  display: flex;
+  align-items: center;
+  height: var(--header-desktop-height);
+  justify-content: space-between;
+  flex: 1;
+}
+
+.buttons {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-lg);
+  margin-left: var(--spacing-4xl);
+}
+
+@media (max-width: breakpoints.$breakpoint-md-max) {
+  .headerContent {
+    height: var(--header-mobile-height);
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+    text-align: left;
+    gap: var(--spacing-base);
+  }
+
+  .buttons {
+    margin-left: 0;
+    margin-bottom: 0.375rem; // Keep specific value for mobile layout
+  }
+}

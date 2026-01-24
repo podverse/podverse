@@ -1,0 +1,18 @@
+.infoWrapper {
+  padding: var(--spacing-card-padding-full);
+  background-color: var(--background-color-glow);
+  margin-bottom: var(--spacing-2xl);
+}
+
+.infoWrapper p {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-light);
+  color: var(--text-color-primary);
+}
+
+.infoWrapper a {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-light);
+  color: var(--text-color-link);
+  text-decoration: underline;
+}

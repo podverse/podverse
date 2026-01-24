@@ -1,0 +1,43 @@
+.link {
+  color: var(--text-color-link);
+
+  &:hover,
+  &:focus {
+    color: var(--text-color-link-hover);
+    text-decoration: none;
+  }
+
+  &:disabled {
+    color: var(--text-color-secondary);
+    cursor: not-allowed;
+    text-decoration: none;
+  }
+}
+
+.linkSecondary {
+  color: var(--text-color-primary);
+
+  &:hover,
+  &:focus {
+    color: var(--text-color-primary);
+    text-decoration: underline;
+  }
+
+  &:disabled {
+    color: var(--text-color-secondary);
+    cursor: not-allowed;
+    text-decoration: none;
+  }
+}
+
+.disabled {
+  color: var(--text-color-secondary);
+  cursor: not-allowed;
+  text-decoration: none;
+
+  &:hover,
+  &:focus {
+    color: var(--text-color-secondary);
+    text-decoration: none;
+  }
+}

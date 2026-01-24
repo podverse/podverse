@@ -1,0 +1,28 @@
+// @use "../../variables/breakpoints" as *;
+
+.controls {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: var(--spacing-md);
+}
+
+.topSection {
+  display: flex;
+  font-size: var(--font-size-xl);
+  gap: var(--spacing-4xl);
+  align-items: center;
+}
+
+.topSection > button {
+  height: 2rem;
+  width: 2rem;
+}
+
+.bottomSection {
+  display: flex;
+  width: 100%;
+  justify-content: center;
+  margin-top: var(--spacing-2xl);
+}

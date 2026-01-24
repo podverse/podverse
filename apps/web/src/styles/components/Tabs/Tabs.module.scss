@@ -1,0 +1,7 @@
+.tabs {
+  display: flex;
+  overflow-x: auto;
+  flex: 1;
+  margin: calc(var(--spacing-sm) * -1);
+  padding: var(--spacing-form-input-vertical);
+}

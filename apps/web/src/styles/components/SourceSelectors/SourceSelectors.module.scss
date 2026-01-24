@@ -1,0 +1,8 @@
+.sourceSelectors {
+  display: flex;
+  flex-direction: column;
+}
+
+.divider {
+  margin: 0.875rem var(--spacing-none); // Keep specific value for layout
+}

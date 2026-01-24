@@ -85,11 +85,28 @@ Recommended breakdown:
 Shall I proceed with just "helpers" first?
 ```
 
+## Code Quality
+
+**Treat warnings as errors.** Fix all lint warnings before considering a task complete:
+- Non-null assertions (`!`) → Use `??` with defaults or proper null checks
+- Console statements → Use `console.warn`/`console.error`, or add file-level `/* eslint-disable no-console */` with justification comment
+- Unused variables → Prefix with `_` or remove
+- Missing return types → Add explicit types
+
+Only use eslint-disable when:
+1. There's a documented reason (comment explaining why)
+2. The pattern is intentional (e.g., startup logging module)
+
 ## LLM History
 
-**If modifying files, log prompt FIRST** to `.llm/history/active/[feature].md`
+**Capture prompts when:**
+1. About to modify files (existing rule)
+2. Entering planning mode for a tracked feature
+3. User explicitly requests plan creation
+
+Log the prompt at the START of your response, before any tool calls.
 Then at end: Add files changed and key decisions.
-Skip for pure Q&A.
+Skip for pure Q&A conversations.
 
 ### History Rule Limitations
 

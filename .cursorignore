@@ -1,0 +1,14 @@
+# Cursor Ignore Configuration
+# This file controls what files the AI can access
+
+# Allow .env template files to be visible to Cursor
+# (These contain example/template values, not real secrets)
+!.env.example
+!*.env.example
+!env/*.env
+
+# Note: Actual .env files with secrets should remain hidden
+# The patterns below are commented out - uncomment if you want Cursor to see them
+!.env
+# !.env.local
+# !.env.*
