@@ -1,39 +1,28 @@
 # Phase 5: CI/CD & Documentation (Outline)
 
-**Status**: Outline - detailed plan after Phase 4
+**Status**: Completed (archive repos moved to Phase 97)
 
 ## Overview
 
 Set up GitHub Actions, update Jenkins, finalize docs.
 
-## GitHub Actions
+## Sub-Plans
 
-### CI Workflow (ci.yml)
-- Lint, type-check, test on PRs
+| Plan | Description | Status | Location |
+|------|-------------|--------|----------|
+| 05a-github-actions.md | CI workflow, secrets docs | **Completed** | completed/ |
+| 05b-documentation.md | README, ARCHITECTURE, CONTRIBUTING | **Completed** | completed/ |
+| 05c-archive-repos.md | Archive 13 original repos | Moved to **97-archive-repos.md** | active/ |
 
-### Publish Alpha (publish-alpha.yml)
-1. Validate job (lint, type-check, build all)
-2. Publish packages (sequential)
-3. Publish Docker images (parallel)
+## Notes
 
-## Jenkins Updates
+- **Jenkins Updates**: Completed in Phase 4D (pipelines migrated with path updates)
+- **publish-alpha.yml**: Detailed in Phase 8 (08-versioning-publishing.md)
+- **Archive Repos**: Renumbered to 97 - requires successful alpha deployments before execution
 
-- Update git repo URL
-- Update config paths (config/ → infra/config/)
-- Update Docker paths
+## Completed Work
 
-## Documentation
-
-- Finalize README, ARCHITECTURE, CONTRIBUTING
-- Complete `.llm/context/` docs
-- Update LLM history
-
-## Archive Original Repos
-
-- Add deprecation notice
-- Point to monorepo
-- Archive on GitHub
-
-## Estimated Effort
-
-~12-16 hours total
+- Created `.github/workflows/ci.yml` - PR validation workflow
+- Created `docs/modules/SECRETS.md` - GitHub secrets documentation
+- Expanded README.md, ARCHITECTURE.md, CONTRIBUTING.md
+- Expanded .llm/context/architecture.md and conventions.md
