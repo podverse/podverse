@@ -1,0 +1,38 @@
+pipeline {
+    // Maps to <assignedNode>pv-alpha-aux</assignedNode>
+    agent {
+        label 'pv-alpha-aux'
+    }
+
+    // Maps to <concurrentBuild>false</concurrentBuild>
+    options {
+        disableConcurrentBuilds()
+        timestamps()
+    }
+
+    stages {
+        stage('Stop Feed Parsers') {
+            steps {
+                script {
+                    // Maps to 'pushd /opt/podverse/infra/docker/alpha/workers'
+                    dir('/opt/podverse/infra/docker/alpha/workers') {
+                        // Avoid subshells entirely; pipe matches directly into docker commands
+                        sh """
+                                set -eux
+
+                                MATCHES_COUNT=\$(docker ps -a --format '{{.Names}}' | grep '^podverse_alpha_workers_parser_' | wc -l || true)
+                                if [ \"\$MATCHES_COUNT\" -gt 0 ]; then
+                                    echo "Stopping matching containers"
+                                    docker ps -a --format '{{.Names}}' | grep '^podverse_alpha_workers_parser_' | xargs -r docker stop || true
+                                    echo "Removing matching containers"
+                                    docker ps -a --format '{{.Names}}' | grep '^podverse_alpha_workers_parser_' | xargs -r docker rm || true
+                                else
+                                    echo "No matching containers found."
+                                fi
+                        """
+                    }
+                }
+            }
+        }
+    }
+}

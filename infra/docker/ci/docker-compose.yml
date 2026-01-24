@@ -1,0 +1,118 @@
+version: "3"
+
+services:
+
+  podverse_nginx_proxy:
+    image: jwilder/nginx-proxy
+    container_name: podverse_nginx_proxy_ci
+    ports:
+      - 80:80
+      - 443:443
+    volumes:      
+      - vhost:/etc/nginx/vhost.d
+      - html:/usr/share/nginx/html
+      - /home/user/tools/nginx_webproxy/certificats:/etc/nginx/certs:ro
+      - /var/run/docker.sock:/tmp/docker.sock:ro
+      - ./prod-proxy.conf:/etc/nginx/vhost.d/default_location:ro
+    labels:
+      - "com.github.jrcs.letsencrypt_nginx_proxy_companion.nginx_proxy"
+    networks:
+      - nginx-proxy
+    environment:
+      ENABLE_IPV6: "true"
+    logging:
+      driver: "json-file"
+      options:
+        max-file: "1"
+        max-size: "50m"
+
+  podverse_letsencrypt_nginx:
+    image: jrcs/letsencrypt-nginx-proxy-companion
+    container_name: podverse_letsencrypt_nginx_ci
+    depends_on: 
+      - podverse_nginx_proxy
+    volumes:
+      - vhost:/etc/nginx/vhost.d
+      - html:/usr/share/nginx/html
+      - /home/user/tools/nginx_webproxy/certificats:/etc/nginx/certs:rw
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - nginx-proxy
+    logging:
+      driver: "json-file"
+      options:
+        max-file: "1"
+        max-size: "50m"
+
+  podverse_jenkins_docker:
+    image: docker:dind
+    container_name: podverse_jenkins_docker
+    privileged: true
+    depends_on:
+      - podverse_nginx_proxy
+    ports:
+      - 3000:3000
+    volumes:
+      - jenkins-docker-certs:/certs/client
+      - jenkins-data:/var/jenkins_home
+      - $HOME:/home
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - nginx-proxy
+    environment:
+      DOCKER_TLS_CERTDIR: "/certs"
+    environment:
+      VIRTUAL_HOST:
+      VIRTUAL_PORT: 3000
+      LETSENCRYPT_HOST:
+      LETSENCRYPT_EMAIL:
+    logging:
+      driver: "json-file"
+      options:
+        max-file: "1"
+        max-size: "50m"
+
+  podverse_jenkins_admin:
+    image: jenkins/jenkins:lts
+    container_name: podverse_jenkins_admin
+    privileged: true
+    restart: always
+    depends_on:
+      - podverse_nginx_proxy
+    networks:
+      - nginx-proxy
+    environment:
+      DOCKER_HOST: "tcp://docker:2376"
+      DOCKER_CERT_PATH: "/certs/client"
+      DOCKER_TLS_VERIFY: 1
+    volumes:
+      - jenkins-data:/var/jenkins_home
+      - jenkins-docker-certs:/certs/client:ro
+      - $HOME:/home
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    environment:
+      JENKINS_OPTS: "--httpPort=8100"
+      VIRTUAL_HOST:
+      VIRTUAL_PORT: 8100
+      LETSENCRYPT_HOST:
+      LETSENCRYPT_EMAIL:
+    expose:
+      - 80
+      - 8100
+    ports:
+      - 8100:8080
+    logging:
+      driver: "json-file"
+      options:
+        max-file: "1"
+        max-size: "50m"
+
+networks:
+  nginx-proxy:
+    external: true
+
+volumes:
+  vhost:
+  html:
+  jenkins-docker-certs:
+  jenkins-data:

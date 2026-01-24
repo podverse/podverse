@@ -51,7 +51,23 @@ Plans organized by status:
 After verifying a plan is complete, ask:
 > "Would you like me to mark this plan as completed?"
 
-If yes, move the plan directory from `active/` to `completed/`.
+If yes, move the plan from `active/` to `completed/`.
+
+### Grouping Sub-Plans
+
+When a phase has multiple sub-plans (e.g., 04a, 04b, 04c...), group them in a subdirectory:
+```
+completed/
+└── monorepo-migration/
+    ├── 01-infrastructure/      # Group of 01a, 01b, 01c...
+    │   ├── 01a-configs.md
+    │   ├── 01b-git-hooks.md
+    │   └── index.md            # Parent outline
+    ├── 03-apps/                # Group of 03a, 03b...
+    └── 04-infra-tooling/       # Group of 04a, 04b...
+```
+
+**Pattern**: `NN-descriptive-name/` containing `NNx-*.md` files.
 
 ## Complexity Assessment
 

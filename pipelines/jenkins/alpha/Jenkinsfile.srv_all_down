@@ -1,0 +1,28 @@
+pipeline {
+    // Maps to <assignedNode>pv-alpha-srv</assignedNode>
+    agent {
+        label 'pv-alpha-srv'
+    }
+
+    // Maps to <concurrentBuild>false</concurrentBuild>
+    options {
+        disableConcurrentBuilds()
+        timestamps() 
+    }
+
+    stages {
+        stage('Stop Alpha Services') {
+            steps {
+                script {
+                    // Maps to the pushd/popd logic in the shell script.
+                    // The dir() wrapper ensures we execute inside the specific path.
+                    dir('/opt/podverse') {
+                        // Jenkins sh steps automatically handle 'set -e' behavior
+                        // (the build will fail if make returns a non-zero exit code).
+                        sh 'make alpha_all_down'
+                    }
+                }
+            }
+        }
+    }
+}

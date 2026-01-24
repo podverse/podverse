@@ -1,0 +1,36 @@
+{
+  "name": "@podverse/qa",
+  "version": "5.2.0",
+  "description": "QA tools and faker utilities for Podverse testing",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist/**/*"
+  ],
+  "scripts": {
+    "build:watch": "nodemon --watch 'src' --delay 500ms -x \"npm run build\"",
+    "build": "npm run lint && tsc",
+    "lint": "eslint ./src",
+    "lint:fix": "eslint ./src --fix",
+    "clean": "rm -rf dist",
+    "type-check": "tsc --noEmit",
+    "start": "ts-node ./dist/index.js",
+    "faker": "ts-node ./src/faker/index.ts"
+  },
+  "license": "AGPL-3.0",
+  "dependencies": {
+    "@faker-js/faker": "^10.0.0",
+    "module-alias": "^2.2.3",
+    "@podverse/external-services": "workspace:*",
+    "@podverse/helpers": "workspace:*",
+    "@podverse/orm": "workspace:*",
+    "@podverse/parser": "workspace:*"
+  },
+  "devDependencies": {
+    "@dotenvx/dotenvx": "^1.49.0",
+    "@types/node": "^24.4.0",
+    "nodemon": "^3.1.10",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.2"
+  }
+}
