@@ -597,6 +597,10 @@
       "alpha": {
         "header": "Advertencia Alpha ⚠️",
         "message": "Esta es la versión alpha del sitio web. Está incompleta, puede contener errores y tus datos alpha pueden ser restablecidos o eliminados periódicamente."
+      },
+      "local": {
+        "header": "Desarrollo Local ⚙️",
+        "message": "Está ejecutando una compilación de desarrollo local."
       }
     }
   },

@@ -5,9 +5,9 @@
   "private": true,
   "main": "dist/index.js",
   "scripts": {
-    "build": "npm run lint && tsc",
-    "build:prod": "tsc -p tsconfig.prod.json",
-    "dev": "tsc && node ./dist/index.js",
+    "build": "npm run lint && tsc && tsc-alias",
+    "build:prod": "tsc -p tsconfig.prod.json && tsc-alias -p tsconfig.prod.json",
+    "dev": "tsc && tsc-alias && node ./dist/index.js",
     "dev:watch": "tsc --build --watch & nodemon --delay 500ms --watch dist dist/index.js",
     "dev:inspect": "tsc && node --inspect ./dist/index.js",
     "dev:inspect:watch": "tsc --build --watch & nodemon --inspect --delay 500ms --watch dist dist/index.js",
@@ -60,6 +60,7 @@
     "nodemon": "^3.1.10",
     "supertest": "^7.1.4",
     "ts-jest": "^29.4.2",
-    "ts-node": "^10.9.2"
+    "ts-node": "^10.9.2",
+    "tsc-alias": "^1.8.16"
   }
 }

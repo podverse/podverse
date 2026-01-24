@@ -597,6 +597,10 @@
       "alpha": {
         "header": "Alpha Warning ⚠️",
         "message": "This is the alpha version of the website. It is unfinished, may contain bugs, and your alpha data may be periodically reset or deleted."
+      },
+      "local": {
+        "header": "Local Development ⚙️",
+        "message": "You are running a local development build."
       }
     }
   },

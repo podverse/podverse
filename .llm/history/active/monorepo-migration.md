@@ -2004,3 +2004,110 @@ npm run dev:web    # Terminal 2
 ```
 
 ---
+
+### Session 96 - 2026-01-24
+#### Prompt (Developer)
+for convenience in the podverse monorepo, the make local_setup is a great idea, but if there is a down command, it should not remove non-podverse images if it is avoidable and would be smart to keep them for later. ex. we don't want to remove and re-pull the postgres image every time we start and stop the local setup
+
+#### Key Decisions
+- Added `local_clean` target (stops containers, removes volumes, preserves images)
+- Added `local_prune_podverse_images` target (removes only podverse-specific images)
+- Added `clean:packages`, `clean:apps`, `clean:all` npm scripts for build cache cleanup
+- Updated QUICKSTART.md with new troubleshooting section for stale build caches
+
+#### Files Modified
+- Makefile.local (added local_clean, local_prune_podverse_images targets)
+- package.json (added clean:packages, clean:apps, clean:all scripts)
+- docs/QUICKSTART.md (updated Fresh Start section, added Stale Build Cache troubleshooting)
+
+---
+
+### Session 97 - 2026-01-24
+#### Prompt (Developer)
+[Build errors related to Node.js version and stale tsconfig.tsbuildinfo files]
+
+#### Key Decisions
+- Identified Node.js version mismatch (user had v16, monorepo requires v22)
+- Stale `tsconfig.tsbuildinfo` files from failed builds cause TypeScript to skip emitting declaration files
+- Created memory/skill for always using `source ~/.nvm/nvm.sh && nvm use 22` in terminal commands
+- Added `clean:packages` script to remove tsconfig.tsbuildinfo and dist folders
+
+#### Files Modified
+- packages/helpers (and other packages) - rebuilt after cleaning stale caches
+
+---
+
+### Session 98 - 2026-01-24
+#### Prompt (Developer)
+[Path alias errors - Cannot find module '@api/config']
+
+#### Key Decisions
+- TypeScript path aliases (@api/*, @workers/*, @management-api/*) not transformed by tsc
+- Added `tsc-alias` as post-build step to rewrite paths to relative imports
+- Updated build scripts: `tsc && tsc-alias`
+
+#### Files Modified
+- apps/api/package.json (added tsc-alias to build/dev scripts)
+- apps/management-api/package.json (added tsc-alias to build/dev scripts)
+- apps/workers/package.json (added tsc-alias to build script)
+
+---
+
+### Session 99 - 2026-01-24
+#### Prompt (Developer)
+[valkey container failing with permission denied]
+
+#### Key Decisions
+- valkey-entrypoint.sh and valkey-healthcheck.sh missing execute permissions
+- Fixed with `chmod +x`
+
+#### Files Modified
+- infra/scripts/keyvaldb/valkey-entrypoint.sh (chmod +x)
+- infra/scripts/keyvaldb/valkey-healthcheck.sh (chmod +x)
+
+---
+
+### Session 100 - 2026-01-24
+#### Prompt (Developer)
+Add a simple endpoint for curl http://localhost:1234/api/v2/meta so that the test returns a success message or whatever you expect to be returned
+
+#### Files Modified
+- apps/api/src/app.ts (added /api/v2/meta endpoint returning { version, status: "ok" })
+
+---
+
+### Session 101 - 2026-01-24
+#### Prompt (Developer)
+MISSING_MESSAGE: Could not resolve `disclaimers.environment_warning.local.message` in messages for locale `en-US`. [...] following the monorepo migration, these errors surface in web. is that an oversight of the migration or an pre-existing error? either way, fix the error
+
+#### Key Decisions
+- Pre-existing issue: only `alpha` environment warning was defined, not `local`
+- Code dynamically looks up translations based on `server_env`
+
+#### Files Modified
+- apps/web/i18n/compiled/en-US.json (added local environment warning)
+- apps/web/i18n/overrides/en-US.json (added local environment warning)
+- apps/web/i18n/originals/en-US.json (added local environment warning)
+- apps/web/i18n/compiled/es.json (added local environment warning in Spanish)
+- apps/web/i18n/overrides/es.json (added local environment warning in Spanish)
+- apps/web/i18n/originals/es.json (added local environment warning in Spanish)
+- apps/web/i18n/compiled/fr.json (added local environment warning in French)
+- apps/web/i18n/overrides/fr.json (added local environment warning in French)
+- apps/web/i18n/originals/fr.json (added local environment warning in French)
+- apps/web/i18n/compiled/el-GR.json (added local environment warning in Greek)
+- apps/web/i18n/overrides/el-GR.json (added local environment warning in Greek)
+- apps/web/i18n/originals/el-GR.json (added local environment warning in Greek)
+
+---
+
+### Session 102 - 2026-01-24
+#### Prompt (Developer)
+Add a skill if it will help you avoid these issues in the future [Node version, stale builds]
+
+If it would help you remember, add a skill that mentions the quickstart guide should be updated going forward if changes impacted it, and also any relevant documentation that is out of date following any changes.
+
+#### Memories Created
+- Podverse monorepo: Node.js version and build cache requirements (always use nvm use 22, clean stale builds)
+- Podverse monorepo: Update documentation after impactful changes (QUICKSTART.md, README.md, ENV.md)
+
+---

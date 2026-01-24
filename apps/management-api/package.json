@@ -5,9 +5,9 @@
   "private": true,
   "main": "dist/index.js",
   "scripts": {
-    "build": "npm run lint && tsc",
-    "build:prod": "tsc -p tsconfig.prod.json",
-    "dev": "tsc && node ./dist/index.js",
+    "build": "npm run lint && tsc && tsc-alias",
+    "build:prod": "tsc -p tsconfig.prod.json && tsc-alias -p tsconfig.prod.json",
+    "dev": "tsc && tsc-alias && node ./dist/index.js",
     "dev:watch": "tsc --build --watch & nodemon --delay 500ms --watch dist dist/index.js",
     "lint": "eslint ./src",
     "lint:fix": "eslint ./src --fix",
@@ -45,6 +45,7 @@
     "@types/passport": "^1.0.17",
     "@types/passport-jwt": "^4.0.1",
     "@types/passport-local": "^1.0.38",
-    "nodemon": "^3.1.10"
+    "nodemon": "^3.1.10",
+    "tsc-alias": "^1.8.16"
   }
 }

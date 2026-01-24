@@ -69,6 +69,13 @@ export const startApp = async () => {
       res.send(`The server is running on port ${port}`);
     });
 
+    app.get(`${baseUrl}/meta`, (req: Request, res: Response) => {
+      res.json({
+        version: config.api.version,
+        status: 'ok',
+      });
+    });
+
     app.use(accountRouter);
     app.use(accountPayPalOrderRouter);
     app.use(accountSettingsRouter);
