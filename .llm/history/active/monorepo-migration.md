@@ -1923,3 +1923,56 @@ Implemented Phase 12: Dependency Management
 Phase 12 complete - dependency management automation configured.
 
 ---
+
+### Session 24 - 2026-01-24
+#### Prompt (Developer)
+plan the @podverse/.cursor/plans/active/monorepo-migration/13-skills-migration.md work. if it should be broken into smaller plans, do so. remember to update history.
+
+Implement the plan as specified, it is attached for your reference. Do NOT edit the plan file itself.
+
+#### Key Decisions
+- Single plan sufficient (straightforward documentation migration)
+- Copy all 10 web skill files from podverse-web to monorepo
+- Update import paths: `podverse-helpers` → `@podverse/helpers`
+- Update file paths: `src/` → `apps/web/src/`
+- Create new API and ORM skill templates
+- Add cross-references in global SKILL.md
+
+#### Files Created
+- `.cursor/skills/api/SKILL.md` (API patterns skill)
+- `.cursor/skills/orm/SKILL.md` (ORM patterns skill)
+
+#### Files Modified (copied from podverse-web and updated)
+- `.cursor/skills/web/SKILL.md` (index with monorepo context)
+- `.cursor/skills/web/01-component-patterns.md`
+- `.cursor/skills/web/02-api-data-fetching.md`
+- `.cursor/skills/web/03-styling.md`
+- `.cursor/skills/web/04-configuration.md`
+- `.cursor/skills/web/05-code-quality.md`
+- `.cursor/skills/web/06-development-workflow.md`
+- `.cursor/skills/web/07-reusable-utilities.md`
+- `.cursor/skills/web/08-best-practices.md`
+- `.cursor/skills/web/09-performance-optimization.md`
+- `.cursor/skills/global/SKILL.md` (added Related Skills section)
+
+#### Path Updates Applied
+| Pattern | Replacement |
+|---------|-------------|
+| `podverse-helpers` | `@podverse/helpers` |
+| `src/app/` | `apps/web/src/app/` |
+| `src/components/` | `apps/web/src/components/` |
+| `src/contexts/` | `apps/web/src/contexts/` |
+| `src/config/` | `apps/web/src/config/` |
+| `src/constants/` | `apps/web/src/constants/` |
+| `src/styles/` | `apps/web/src/styles/` |
+| `src/utils/` | `apps/web/src/utils/` |
+| `src/providers/` | `apps/web/src/providers/` |
+| `scripts/validate-env.ts` | `apps/web/scripts/validate-env.ts` |
+| `docs/todo/improvements.md` | `apps/web/docs/todo/improvements.md` |
+| `podverse-api/src/` | `apps/api/src/` |
+| `podverse-helpers/src/` | `packages/helpers/src/` |
+
+#### Result
+Phase 13 complete - Skills migrated to monorepo with updated paths and new API/ORM skill templates.
+
+---

@@ -140,3 +140,9 @@ After any substantive work, confirm:
 ```
 ✅ History updated: .llm/history/active/[feature].md
 ```
+
+## Related Skills
+
+- **[Web Patterns](../web/SKILL.md)** - Next.js app patterns (`apps/web/`)
+- **[API Patterns](../api/SKILL.md)** - Express API patterns (`apps/api/`)
+- **[ORM Patterns](../orm/SKILL.md)** - Database patterns (`packages/orm/`)
