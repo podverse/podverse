@@ -1,10 +1,21 @@
 # Phase 10: IDE Configuration
 
-**Status**: Planned
+**Status**: Completed
 
 ## Overview
 
 Configure VS Code settings, extensions, and Terminals Manager for optimal monorepo development experience.
+
+## Sub-Plans
+
+This phase has been split into smaller plans that can run in parallel:
+
+| Sub-Plan | Description | Status |
+|----------|-------------|--------|
+| [10a-vscode-core.md](../../../completed/monorepo-migration/10-ide-configuration/10a-vscode-core.md) | VS Code settings, extensions, launch, tasks, workspace | ✅ Completed |
+| [10b-terminals-docs.md](../../../completed/monorepo-migration/10-ide-configuration/10b-terminals-docs.md) | Terminal configs and IDE documentation | ✅ Completed |
+
+**Note**: `.vscode/terminals-rundev.json.example` was already created in Phase 6.
 
 ## VS Code Settings
 

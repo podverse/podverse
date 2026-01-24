@@ -1768,3 +1768,71 @@ Completed Phase 9: Database Migrations - created migration scripts and Jenkins p
 All Phase 9 scripts and pipeline created and verified working.
 
 ---
+
+### Session 87 - 2026-01-24
+#### Prompt (Developer)
+plan the @podverse/.cursor/plans/active/monorepo-migration/10-ide-configuration.md work. if it should be broken into smaller plans, do so. remember to update history.
+
+#### Key Decisions
+- Split Phase 10 into two sub-plans for manageability
+- `.vscode/terminals-rundev.json.example` already exists from Phase 6
+- Sub-plans can run in parallel (no dependencies)
+
+#### Analysis
+- Original plan: 399 lines, 9 files to create
+- Already exists: `.vscode/terminals-rundev.json.example`
+- Remaining: 8 files split across two focused sub-plans
+
+#### Files Created
+- .cursor/plans/active/monorepo-migration/10a-vscode-core.md (VS Code settings, extensions, launch, tasks, workspace)
+- .cursor/plans/active/monorepo-migration/10b-terminals-docs.md (terminal configs, IDE documentation)
+
+#### Files Modified
+- .cursor/plans/active/monorepo-migration/10-ide-configuration.md (updated status, added sub-plan references)
+
+---
+
+### Session 88 - 2026-01-24
+#### Prompt (Developer)
+begin working on the first plan
+
+#### Work
+Implemented Phase 10A: VS Code Core Configuration
+
+#### Files Created
+- .vscode/settings.json (editor, TypeScript, search, ESLint, file watcher settings)
+- .vscode/extensions.json (13 recommended extensions: Terminals, ESLint, Prettier, TypeScript, GitLens, etc.)
+- .vscode/launch.json (3 debug configurations: API, Current File, Jest)
+- .vscode/tasks.json (7 tasks: Build All, Build Packages, Lint, Type Check, Start DB/MQ/All)
+- podverse.code-workspace (multi-root workspace with root, helpers, orm, api, web)
+
+#### Verification
+- All 5 JSON files validated successfully
+
+#### Files Moved
+- .cursor/plans/active/monorepo-migration/10a-vscode-core.md → completed/monorepo-migration/10-ide-configuration/
+
+---
+
+### Session 89 - 2026-01-24
+#### Prompt (Developer)
+begin working on the next plan
+
+#### Work
+Implemented Phase 10B: Terminal Configs & Documentation
+
+#### Files Created
+- .vscode/terminals.json.example (basic 3-terminal config: Root, Git, Docker)
+- .vscode/terminals-services.json.example (infrastructure services: Database, Message Queue, Key-Value DB)
+- docs/IDE-SETUP.md (comprehensive IDE setup guide with VS Code, Terminals Manager, debugging, troubleshooting)
+
+#### Verification
+- All JSON files validated successfully
+
+#### Files Moved
+- .cursor/plans/active/monorepo-migration/10b-terminals-docs.md → completed/monorepo-migration/10-ide-configuration/
+
+#### Result
+Phase 10 (IDE Configuration) fully complete - all sub-plans finished.
+
+---

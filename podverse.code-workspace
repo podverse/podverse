@@ -1,0 +1,12 @@
+{
+  "folders": [
+    { "path": ".", "name": "root" },
+    { "path": "packages/helpers", "name": "helpers" },
+    { "path": "packages/orm", "name": "orm" },
+    { "path": "apps/api", "name": "api" },
+    { "path": "apps/web", "name": "web" }
+  ],
+  "settings": {
+    "typescript.tsdk": "node_modules/typescript/lib"
+  }
+}
