@@ -1,6 +1,17 @@
 # Phase 8: Versioning and Publishing
 
-**Status**: Planned
+**Status**: Completed (Split into Sub-Plans)
+
+## Sub-Plans
+
+This phase has been split into smaller, manageable plans:
+
+| Sub-Plan | Status | Description |
+|----------|--------|-------------|
+| [08a-package-config-version-bump.md](08a-package-config-version-bump.md) | Planned | Add publishConfig, create bump-version.sh |
+| [08b-publish-alpha-workflow.md](08b-publish-alpha-workflow.md) | Planned | Create publish-alpha.yml workflow |
+
+**Note**: CI workflow (`.github/workflows/ci.yml`) already exists and is complete.
 
 ## Overview
 

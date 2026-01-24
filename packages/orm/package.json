@@ -16,6 +16,9 @@
     "type-check": "tsc --noEmit"
   },
   "license": "AGPL-3.0",
+  "publishConfig": {
+    "access": "public"
+  },
   "dependencies": {
     "@podverse/helpers": "*",
     "async-mutex": "^0.5.0",

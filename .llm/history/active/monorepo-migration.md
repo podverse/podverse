@@ -1637,3 +1637,101 @@ Migrated Docker service environment files from podverse-ops to monorepo.
 Phase 7 complete - all Docker service env files migrated to monorepo
 
 ---
+
+### Session 81 - 2026-01-24
+#### Prompt (Developer)
+begin to plan @podverse/.cursor/plans/active/monorepo-migration/08-versioning-publishing.md if it should be split into smaller more manageable plans, do so. remember to update history
+
+#### Key Decisions
+- Split Phase 8 into two focused sub-plans for better manageability
+- CI workflow already exists (no work needed there)
+- Packages need `publishConfig: { access: "public" }` added
+
+#### Analysis
+- Original plan is 363 lines, slightly over 300-line guideline
+- CI workflow already complete at `.github/workflows/ci.yml`
+- All 5 Dockerfiles exist and are ready for builds
+- All 6 packages missing `publishConfig` for public scoped publishing
+
+#### Files Created
+- .cursor/plans/active/monorepo-migration/08a-package-config-version-bump.md (1-2 hrs)
+  - Add publishConfig to all 6 packages
+  - Create bump-version.sh script
+- .cursor/plans/active/monorepo-migration/08b-publish-alpha-workflow.md (4-6 hrs)
+  - Create publish-alpha.yml with npm + Docker publishing
+  - Document secrets
+
+#### Files Modified
+- .cursor/plans/active/monorepo-migration/08-versioning-publishing.md (updated status, added sub-plan references)
+
+---
+
+### Session 82 - 2026-01-24
+#### Prompt (Developer)
+execute the first one
+
+#### Work
+Implemented Phase 8A: Package Config and Version Bump Script
+
+#### Files Modified
+- packages/helpers/package.json (added publishConfig)
+- packages/external-services/package.json (added publishConfig)
+- packages/orm/package.json (added publishConfig)
+- packages/notifications/package.json (added publishConfig)
+- packages/parser/package.json (added publishConfig)
+- packages/mq/package.json (added publishConfig)
+
+#### Files Created
+- scripts/publish/bump-version.sh (version bump script with validation)
+
+#### Verification
+- npm pack --dry-run succeeds for @podverse/helpers and @podverse/mq
+- Script is executable (chmod +x applied)
+
+#### Result
+Phase 8A complete - all packages configured for public npm publishing
+
+---
+
+### Session 83 - 2026-01-24
+#### Prompt (Developer)
+execute the next one
+
+#### Work
+Implemented Phase 8B: Publish Alpha Workflow
+
+#### Files Created
+- .github/workflows/publish-alpha.yml
+  - Validate job: lint, type-check, build:packages, build:apps
+  - Publish-packages job: Sequential npm publish for 6 packages in dependency order
+    - helpers → external-services → orm → notifications → parser → mq
+  - Publish-docker job: Parallel Docker builds for 5 apps using matrix strategy
+    - api, web, workers, management-api, management-web
+  - Alpha version auto-increment logic (X.Y.Z-alpha.N)
+  - Docker Buildx with GitHub Actions caching
+  - Tags both versioned and :alpha for Docker images
+
+#### Notes
+- SECRETS.md already had NPM_TOKEN documentation from Phase 5A
+- Workflow uses GITHUB_TOKEN (automatic) for GHCR push
+- Docker images tagged with both specific version and :alpha tag
+
+#### Result
+Phase 8B complete - publish-alpha.yml workflow created
+
+---
+
+### Session 84 - 2026-01-24
+#### Prompt (Developer)
+update them all to use the same unified version. we can drop the .6 and .7 etc handling at the end of the deployment, and rely on the earlier semver version numbers going forward
+
+#### Key Decisions
+- Simplified versioning: all packages use same unified version (X.Y.Z-alpha)
+- Dropped per-package alpha.N incrementing
+- Version calculated ONCE from root package.json, used for all 6 packages and 5 Docker images
+- Future releases will bump semver version (5.2.0 → 5.2.1) rather than alpha.N
+
+#### Files Modified
+- .github/workflows/publish-alpha.yml (simplified version calculation, unified versioning)
+
+---
