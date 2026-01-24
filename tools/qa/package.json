@@ -21,10 +21,10 @@
   "dependencies": {
     "@faker-js/faker": "^10.0.0",
     "module-alias": "^2.2.3",
-    "@podverse/external-services": "workspace:*",
-    "@podverse/helpers": "workspace:*",
-    "@podverse/orm": "workspace:*",
-    "@podverse/parser": "workspace:*"
+    "@podverse/external-services": "*",
+    "@podverse/helpers": "*",
+    "@podverse/orm": "*",
+    "@podverse/parser": "*"
   },
   "devDependencies": {
     "@dotenvx/dotenvx": "^1.49.0",

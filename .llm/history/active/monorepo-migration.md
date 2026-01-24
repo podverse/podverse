@@ -1508,3 +1508,35 @@ if parts of the 05 monorepo plans are complete, then mark them as complete. if p
 - .cursor/plans/active/monorepo-migration/97-archive-repos.md (renamed from 05c, updated header to Phase 97)
 
 ---
+
+### Session 73 - 2026-01-24
+#### Prompt (Developer)
+put a plan together to run plan @podverse/.cursor/plans/active/monorepo-migration/06-local-dev-workflow.md. split into shorter plans that can be run in parallel if you recommend it. remember to update history.
+
+#### Response
+Created implementation plan for Phase 6. Determined the work is simple enough (2 files to create) that splitting is unnecessary.
+
+---
+
+### Session 74 - 2026-01-24
+#### Prompt (Agent)
+Implement the plan as specified, it is attached for your reference. Do NOT edit the plan file itself.
+
+To-do's from the plan have already been created. Do not create them again. Mark them as in_progress as you work, starting with the first one. Don't stop until you have completed all the to-dos.
+
+#### Work
+Implemented Phase 6: Local Development Workflow
+
+#### Files Created
+- scripts/dev/setup.sh - Development setup script (nvm, clean, npm install, build:packages)
+- .vscode/terminals-rundev.json.example - Terminals Manager configuration adapted for monorepo
+
+#### Files Modified
+- tools/qa/package.json - Fixed workspace:* → * syntax (pnpm → npm workspaces)
+
+#### Verification
+- setup.sh runs correctly: sources nvm, switches to Node 22, cleans all workspaces, runs npm install
+- npm install completes successfully (1152 packages)
+- build:packages starts correctly (existing ESLint environment issue unrelated to this plan)
+
+---
