@@ -1,0 +1,22 @@
+# Podverse Code Owners
+# These owners will be requested for review when someone opens a pull request.
+
+# Default owners for everything in the repo
+* @podverse/maintainers
+
+# Package-specific owners
+/packages/ @podverse/maintainers
+
+# App-specific owners
+/apps/ @podverse/maintainers
+
+# Infrastructure
+/infra/ @podverse/maintainers
+/.github/ @podverse/maintainers
+/pipelines/ @podverse/maintainers
+
+# Tools
+/tools/ @podverse/maintainers
+
+# Documentation
+/docs/ @podverse/maintainers

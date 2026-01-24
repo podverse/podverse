@@ -1836,3 +1836,42 @@ Implemented Phase 10B: Terminal Configs & Documentation
 Phase 10 (IDE Configuration) fully complete - all sub-plans finished.
 
 ---
+
+### Session 90 - 2026-01-24
+#### Prompt (Developer)
+plan the @podverse/.cursor/plans/active/monorepo-migration/11-git-workflow.md work. if it should be broken into smaller plans, do so. remember to update history.
+
+#### Response
+Analyzed Phase 11 plan and found ~75% already complete from earlier phases:
+- Git hooks (pre-commit, commit-msg, pre-push) already in scripts/git-hooks/
+- CI workflow already at .github/workflows/ci.yml
+- publish-alpha.yml already configured
+
+Remaining work identified as small enough (~5 files) not requiring sub-plans:
+- PR template
+- Issue templates (bug_report, feature_request)
+- CODEOWNERS file
+- Branch protection documentation
+
+---
+
+### Session 91 - 2026-01-24
+#### Prompt (Agent)
+Implement the plan as specified, it is attached for your reference. Do NOT edit the plan file itself.
+
+To-do's from the plan have already been created. Do not create them again. Mark them as in_progress as you work, starting with the first one. Don't stop until you have completed all the to-dos.
+
+#### Work
+Completed Phase 11: Git Workflow - GitHub Templates and Documentation
+
+#### Files Created
+- .github/PULL_REQUEST_TEMPLATE.md (PR template with description, issue link, type checkboxes, checklist)
+- .github/ISSUE_TEMPLATE/bug_report.md (bug report with reproduction steps, environment)
+- .github/ISSUE_TEMPLATE/feature_request.md (feature request with problem statement, proposed solution)
+- .github/CODEOWNERS (default ownership to @podverse/maintainers)
+- docs/BRANCH-PROTECTION.md (GitHub UI configuration instructions for develop, alpha, beta, main)
+
+#### Result
+Phase 11 (Git Workflow) complete - all GitHub templates and branch protection documentation created.
+
+---
