@@ -1,0 +1,24 @@
+{
+  "autorun": false,
+  "terminals": [
+    {
+      "name": "Root",
+      "description": "Monorepo root - run commands here",
+      "cwd": ".",
+      "open": true
+    },
+    {
+      "name": "Git",
+      "description": "Git operations",
+      "cwd": ".",
+      "open": true
+    },
+    {
+      "name": "Docker",
+      "description": "Docker commands",
+      "cwd": ".",
+      "open": true,
+      "command": "docker ps"
+    }
+  ]
+}

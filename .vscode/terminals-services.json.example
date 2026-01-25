@@ -1,0 +1,26 @@
+{
+  "autorun": false,
+  "terminals": [
+    {
+      "name": "Database",
+      "description": "PostgreSQL",
+      "cwd": ".",
+      "open": true,
+      "command": "make local_db_up && docker logs -f podverse_local_db"
+    },
+    {
+      "name": "Message Queue",
+      "description": "RabbitMQ",
+      "cwd": ".",
+      "open": true,
+      "command": "make local_mq_up && docker logs -f podverse_local_mq"
+    },
+    {
+      "name": "Key-Value DB",
+      "description": "Valkey/Redis",
+      "cwd": ".",
+      "open": true,
+      "command": "make local_keyvaldb_up && docker logs -f podverse_local_keyvaldb"
+    }
+  ]
+}
