@@ -18,6 +18,8 @@ const VALID_THEMES = ['dark', 'light', 'dracula'];
 const nodeEnv = process.env.NODE_ENV || 'development';
 const cwd = process.cwd();
 
+let loadedEnvFile: string | null = null;
+
 if (nodeEnv === 'production') {
   // Production: Try .env.production first (as set in Dockerfile), then .env
   const prodPath = resolve(cwd, '.env.production');
@@ -25,8 +27,10 @@ if (nodeEnv === 'production') {
   
   if (existsSync(prodPath)) {
     config({ path: prodPath });
+    loadedEnvFile = prodPath;
   } else if (existsSync(envPath)) {
     config({ path: envPath });
+    loadedEnvFile = envPath;
   }
 } else {
   // Development: Try .env.local first (Next.js priority), then .env
@@ -35,9 +39,18 @@ if (nodeEnv === 'production') {
   
   if (existsSync(localPath)) {
     config({ path: localPath });
+    loadedEnvFile = localPath;
   } else if (existsSync(envPath)) {
     config({ path: envPath });
+    loadedEnvFile = envPath;
   }
+}
+
+// Log which env file was loaded (helpful for CI debugging)
+if (loadedEnvFile) {
+  console.log(`📁 Loaded env file: ${loadedEnvFile}`);
+} else {
+  console.log(`⚠️  No .env file found (NODE_ENV=${nodeEnv})`);
 }
 
 /**
