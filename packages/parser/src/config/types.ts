@@ -39,6 +39,6 @@ export type ParserConfig = {
   log: LogConfig;
   firebase: FirebaseConfig;
   podcastIndex: PodcastIndexConfig;
-  parser: ParserSettingsConfig;
+  parser?: ParserSettingsConfig;
   defaults: DefaultsConfig;
 };

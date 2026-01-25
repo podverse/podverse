@@ -2399,3 +2399,57 @@ Workers error: Cannot find module '@workers/commands' - ts-node not resolving pa
 - package.json (updated dev:management:all and dev:all color schemes)
 
 ---
+
+### Session 117 - 2026-01-25
+#### Prompt (Developer)
+Config files should not use `!` assertions - make config values `string | undefined` and handle at usage sites.
+
+#### Key Decisions
+- Attempted to make all config values `string | undefined` instead of using `!`
+- Updated type definitions in packages/helpers, packages/orm, packages/parser, packages/notifications, packages/external-services
+- Updated config files to not use `!` assertions
+- Added fallbacks at usage sites throughout apps
+
+#### Outcome
+- Reverted in Session 118 - approach created too much boilerplate at usage sites
+
+---
+
+### Session 118 - 2026-01-25
+#### Prompt (Developer)
+Revert the undefined config approach. Using `!` with eslint-disable at top of config files is cleaner since startup validation ensures values exist.
+
+#### Key Decisions
+- Config files ARE the one exception where `!` assertions are allowed
+- All env vars pass through startup validation before config is used
+- Config files should use `/* eslint-disable @typescript-eslint/no-non-null-assertion -- env vars validated at startup */`
+- Never set default values in config files (rule remains)
+
+#### Files Modified
+- .cursor/rules/config-type-safety.mdc (updated rule to allow `!` in config files only)
+- packages/helpers/src/lib/validation/configValidation.ts (reverted types)
+- packages/orm/src/config/types.ts (reverted types)
+- packages/parser/src/config/types.ts (reverted types)
+- packages/notifications/src/config/types.ts (reverted types)
+- packages/external-services/src/config/types.ts (reverted types)
+- apps/api/src/config/index.ts (restored `!` with eslint-disable)
+- apps/workers/src/config/index.ts (restored `!` with eslint-disable)
+- apps/management-api/src/config/index.ts (restored `!` with eslint-disable)
+- apps/web/src/config/index.ts (restored `!` with eslint-disable)
+- Reverted all consuming code changes (factories, auth, proxy, components)
+
+---
+
+### Session 119 - 2026-01-25
+#### Prompt (Developer)
+`next lint` is deprecated and will be removed in Next.js 16. Migrate to ESLint CLI.
+
+#### Key Decisions
+- Simple migration: change from `next lint` to `eslint ./src`
+- Matches pattern used by other apps in monorepo (api, workers, etc.)
+
+#### Files Modified
+- apps/web/package.json (lint scripts changed to use eslint directly)
+- apps/management-web/package.json (lint scripts changed to use eslint directly)
+
+---

@@ -145,9 +145,6 @@ process.on('SIGTERM', () => void shutdown('SIGTERM'));
           ? parseInt(process.env.PODCAST_INDEX_API_RATE_LIMIT_DELAY, 10) 
           : 0,
       },
-      parser: {
-        addRemoteItemsToMQ: process.env.PARSER_ADD_REMOTE_ITEMS_TO_MQ === 'true',
-      },
       defaults: {
         account: {
           settings: {

@@ -204,7 +204,7 @@ export const parseRSSFeedAndSaveToDatabase = async (
     }
   }
 
-  if (config.parser.addRemoteItemsToMQ) {
+  if (config.parser?.addRemoteItemsToMQ) {
     if (channel) {
       const remoteItems = await handleAllRemoteItemsFeedParsing(channel, {
         accountId: onDemandParserEvent?.accountId || null,

@@ -232,7 +232,7 @@ export type ParserConfig = {
     secretKey: string;
     rateLimitDelay?: number;
   };
-  parser: {
+  parser?: {
     addRemoteItemsToMQ: boolean;
   };
   defaults: {
