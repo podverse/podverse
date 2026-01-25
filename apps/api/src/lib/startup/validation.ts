@@ -437,9 +437,7 @@ const displayValidationResults = (summary: ValidationSummary): void => {
     ? `Passed: ${summary.passed} (${summary.defaultsUsed} using defaults)`
     : `Passed: ${summary.passed}`;
   loggerService.info(passedText);
-  if (summary.skipped > 0) {
-    loggerService.warn(`Skipped: ${summary.skipped}`);
-  }
+  loggerService.info(`Skipped: ${summary.skipped}`);
   loggerService.info(`Failed: ${summary.failed}`);
   loggerService.info(`Required Missing: ${summary.requiredMissing}`);
   
@@ -451,5 +449,12 @@ const displayValidationResults = (summary: ValidationSummary): void => {
         const requiredText = r.isRequired ? ' (required)' : ' (optional)';
         loggerService.error(`  - ${r.name}${requiredText}: ${r.message}`);
       });
+  }
+
+  if (summary.skipped > 0) {
+    loggerService.info('Skipped optional variables (not set):');
+    summary.results
+      .filter(r => !r.isRequired && !r.isSet)
+      .forEach(r => loggerService.info(`  - ${r.name}`));
   }
 };

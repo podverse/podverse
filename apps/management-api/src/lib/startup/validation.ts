@@ -69,8 +69,8 @@ const validateAllEnvironmentVariables = (): ValidationSummary => {
   const passed = results.filter(r => r.isValid && r.isSet).length;
   const failed = results.filter(r => !r.isValid).length;
   const requiredMissing = results.filter(r => r.isRequired && !r.isValid).length;
-  // Count as skipped only if not set and message is "Skipped" (exclude "Use Default" and "Blank")
-  const skipped = results.filter(r => !r.isRequired && !r.isSet && r.message === 'Skipped').length;
+  // Count as skipped all optional variables that are not set (regardless of message)
+  const skipped = results.filter(r => !r.isRequired && !r.isSet).length;
   // Count defaults used (passed validations with "Use Default" or "Blank" messages)
   const defaultsUsed = results.filter(r => r.isValid && r.isSet && (r.message.includes('Use Default') || r.message === 'Blank')).length;
 
@@ -225,9 +225,7 @@ const displayValidationResults = (summary: ValidationSummary): void => {
     ? `Passed: ${summary.passed} (${summary.defaultsUsed} using defaults)`
     : `Passed: ${summary.passed}`;
   console.log(passedText);
-  if (summary.skipped > 0) {
-    console.warn(`Skipped: ${summary.skipped}`);
-  }
+  console.log(`Skipped: ${summary.skipped}`);
   console.log(`Failed: ${summary.failed}`);
   console.log(`Required Missing: ${summary.requiredMissing}`);
   
@@ -239,5 +237,12 @@ const displayValidationResults = (summary: ValidationSummary): void => {
         const requiredText = r.isRequired ? ' (required)' : ' (optional)';
         console.error(`  - ${r.name}${requiredText}: ${r.message}`);
       });
+  }
+
+  if (summary.skipped > 0) {
+    console.log('Skipped optional variables (not set):');
+    summary.results
+      .filter(r => !r.isRequired && !r.isSet)
+      .forEach(r => console.log(`  - ${r.name}`));
   }
 };

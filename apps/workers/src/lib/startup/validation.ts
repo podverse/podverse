@@ -150,9 +150,7 @@ const displayValidationResults = (summary: ValidationSummary): void => {
     ? `Passed: ${summary.passed} (${summary.defaultsUsed} using defaults)`
     : `Passed: ${summary.passed}`;
   console.log(passedText);
-  if (summary.skipped > 0) {
-    console.warn(`Skipped: ${summary.skipped}`);
-  }
+  console.log(`Skipped: ${summary.skipped}`);
   console.log(`Failed: ${summary.failed}`);
   console.log(`Required Missing: ${summary.requiredMissing}`);
   
@@ -164,5 +162,12 @@ const displayValidationResults = (summary: ValidationSummary): void => {
         const requiredText = r.isRequired ? ' (required)' : ' (optional)';
         console.error(`  - ${r.name}${requiredText}: ${r.message}`);
       });
+  }
+
+  if (summary.skipped > 0) {
+    console.log('Skipped optional variables (not set):');
+    summary.results
+      .filter(r => !r.isRequired && !r.isSet)
+      .forEach(r => console.log(`  - ${r.name}`));
   }
 };

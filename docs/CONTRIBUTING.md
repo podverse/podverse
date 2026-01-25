@@ -124,4 +124,19 @@ If using AI assistants (Cursor, Claude, etc.), we encourage tracking your develo
 2. **Keep history updated**: Record prompts and key decisions in `.llm/history/active/`
 3. **Complete properly**: `npm run complete-feature` finalizes history before PR
 
+### 10-Session Limit
+
+History files are limited to **10 sessions maximum** to prevent context overload. When a file reaches 10 sessions:
+
+1. Rename it to `[feature]-part-01.md`
+2. Create `[feature]-part-02.md` for sessions 11+
+3. Continue numbering sessions sequentially (don't reset)
+
+Example structure:
+```
+.llm/history/active/
+  my-feature-part-01.md  (sessions 1-10)
+  my-feature-part-02.md  (sessions 11-20, current)
+```
+
 This helps maintain context for future LLM sessions and documents architectural decisions. However, it's not required - contributors can develop with or without LLM assistance and history tracking.
