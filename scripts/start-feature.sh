@@ -30,33 +30,43 @@ if [[ ! "$NAME" =~ ^[a-z][a-z0-9-]*$ ]]; then
     [[ ! $REPLY =~ ^[Yy]$ ]] && exit 1
 fi
 
-# 3. GitHub issues (supports multiple)
+# 3. Detect origin and build repo URL
+ORIGIN=$(git remote get-url origin 2>/dev/null || echo "unknown")
+IS_FORK="no"
+if [[ "$ORIGIN" != *"podverse/podverse"* ]]; then
+    IS_FORK="yes"
+fi
+
+# Extract repo URL for issue links (convert git@github.com:user/repo.git to https://github.com/user/repo)
+REPO_URL=$(echo "$ORIGIN" | sed -E 's|git@github.com:|https://github.com/|' | sed -E 's|\.git$||')
+
+# 4. GitHub issues (supports multiple)
 echo ""
 ISSUE_URLS=""
 while true; do
     if [[ -z "$ISSUE_URLS" ]]; then
-        read -p "GitHub issue URL (optional, press Enter to skip): " ISSUE_URL
+        read -p "GitHub issue number (optional, press Enter to skip): " ISSUE_NUM
     else
-        read -p "Another issue URL? (press Enter to continue): " ISSUE_URL
+        read -p "Another issue number? (press Enter to continue): " ISSUE_NUM
     fi
     
-    if [[ -z "$ISSUE_URL" ]]; then
+    if [[ -z "$ISSUE_NUM" ]]; then
         break
     fi
     
+    # Validate it's a number
+    if [[ ! "$ISSUE_NUM" =~ ^[0-9]+$ ]]; then
+        echo -e "${YELLOW}⚠️  Please enter a number (e.g., 123)${NC}"
+        continue
+    fi
+    
+    ISSUE_URL="$REPO_URL/issues/$ISSUE_NUM"
     if [[ -z "$ISSUE_URLS" ]]; then
         ISSUE_URLS="$ISSUE_URL"
     else
         ISSUE_URLS="$ISSUE_URLS, $ISSUE_URL"
     fi
 done
-
-# 4. Detect origin
-ORIGIN=$(git remote get-url origin 2>/dev/null || echo "unknown")
-IS_FORK="no"
-if [[ "$ORIGIN" != *"podverse/podverse"* ]]; then
-    IS_FORK="yes"
-fi
 
 # 5. Create branch
 BRANCH="$TYPE/$NAME"
