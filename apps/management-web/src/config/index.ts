@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-non-null-assertion -- env vars validated at build time in scripts/validate-env.ts */
-
 export const config = {
   public: {
     brand: {
