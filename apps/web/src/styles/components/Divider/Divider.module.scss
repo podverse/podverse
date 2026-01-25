@@ -1,0 +1,10 @@
+.divider {
+  border-bottom: 0;
+  border-width: 1px;
+  width: 100%;
+  border-color: var(--border-color-opaque);
+}
+
+.dividerWithSpacing {
+  margin-bottom: var(--spacing-2xl);
+}

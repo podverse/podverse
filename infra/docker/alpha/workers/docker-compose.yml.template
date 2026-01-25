@@ -1,0 +1,22 @@
+networks:
+  podverse_alpha_network:
+    external: true
+
+services:
+  
+  podverse_alpha_workers:
+    image: ghcr.io/podverse/podverse-workers/podverse-workers:REPLACE_WITH_WORKERS_VERSION
+    container_name: podverse_alpha_workers
+    env_file:
+      - ../../../config/alpha/workers.env
+    networks:
+      - podverse_alpha_network
+    volumes:
+      - ../../../config/google/firebase/firebase-admin.json:/opt/config/google/firebase/firebase-admin.json:ro
+      - ../../../../logs/workers:/opt/logs
+    logging:
+      driver: "syslog"
+      options:
+        tag: "{{.ImageName}}/{{.Name}}/{{.ID}}"
+    restart: unless-stopped
+    stop_grace_period: 5m

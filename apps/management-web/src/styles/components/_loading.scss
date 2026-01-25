@@ -1,0 +1,5 @@
+@use '../theme/variables' as theme;
+
+.loading-text {
+  color: theme.$color-text-secondary;
+}

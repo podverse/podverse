@@ -1,0 +1,49 @@
+pipeline {
+    // Maps to <assignedNode>pv-alpha-aux</assignedNode>
+    agent {
+        label 'pv-alpha-aux'
+    }
+
+    // Maps to <concurrentBuild>false</concurrentBuild>
+    options {
+        disableConcurrentBuilds()
+        timestamps()
+    }
+
+    parameters {
+        choice(
+            name: 'MQ_QUEUE_NAME', 
+            choices: ['rss-normal', 'rss-slow', 'rss-on-demand', 'rss-live'],
+            description: 'The mq queue which the feeds should be added to for parsing.'
+        )
+        
+        string(
+            name: 'PARSER_TOTAL', 
+            defaultValue: '1', 
+            description: 'The number of feed parser containers to run.'
+        )
+    }
+
+    stages {
+        stage('Launch Feed Parsers') {
+            steps {
+                script {
+                    // Maps to 'pushd /opt/podverse/infra/docker/alpha/workers'
+                    dir('/opt/podverse/infra/docker/alpha/workers') {
+                        // Compute formatted queue name and loop in Groovy to avoid shell subshells in GStrings
+                        def mqQueueNameUnderscore = params.MQ_QUEUE_NAME.toLowerCase().replace('-', '_')
+                        int total = params.PARSER_TOTAL as int
+                        for (int i = 1; i <= total; i++) {
+                            def containerName = "podverse_alpha_workers_parser_${mqQueueNameUnderscore}_${i}"
+                            sh """
+                                set -eux
+                                echo "Starting container: ${containerName}"
+                                docker compose -f docker-compose.yml run -d --name "${containerName}" podverse_alpha_workers npm run mq_rss_run_parser -- -q "${params.MQ_QUEUE_NAME}"
+                            """
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

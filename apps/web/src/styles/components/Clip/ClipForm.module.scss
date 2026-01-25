@@ -1,0 +1,23 @@
+.form {
+  max-width: var(--form-max-width);
+}
+
+.timeInputs {
+  display: flex;
+  gap: var(--spacing-2xl);
+}
+
+.buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--spacing-lg);
+  margin-top: 2.25rem; // Keep specific value for form button spacing
+}
+
+.bottomSection {
+  margin-top: var(--spacing-3xl);
+}
+
+.bottomSectionButtons {
+  margin: var(--spacing-3xl) var(--spacing-none);
+}

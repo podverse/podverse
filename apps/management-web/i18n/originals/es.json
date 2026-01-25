@@ -1,0 +1,33 @@
+{
+  "app": {
+    "name": "Gestión de Podverse",
+    "description": "Interfaz de gestión administrativa para Podverse"
+  },
+  "common": {
+    "loading": "Cargando...",
+    "error": "Ocurrió un error",
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "delete": "Eliminar",
+    "edit": "Editar",
+    "create": "Crear",
+    "search": "Buscar",
+    "back": "Atrás",
+    "submit": "Enviar",
+    "confirm": "Confirmar",
+    "yes": "Sí",
+    "no": "No"
+  },
+  "auth": {
+    "login": "Iniciar sesión",
+    "logout": "Cerrar sesión",
+    "email": "Correo electrónico",
+    "password": "Contraseña"
+  },
+  "nav": {
+    "dashboard": "Tablero",
+    "users": "Usuarios",
+    "content": "Contenido",
+    "settings": "Configuraciones"
+  }
+}

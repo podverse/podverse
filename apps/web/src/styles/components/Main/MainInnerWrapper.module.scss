@@ -1,0 +1,16 @@
+@use '../../mixins/flexbox' as *;
+
+.mainInnerWrapper {
+  display: flex;
+  flex-direction: row-reverse;
+  margin: var(--spacing-xl) var(--spacing-xl) var(--spacing-4xl) var(--spacing-xl);
+}
+
+.mainInnerWrapper > :first-child {
+  flex: 1;
+}
+
+.mainInnerWrapper > :nth-child(2) {
+  flex: 3;
+  min-width: 0;
+}

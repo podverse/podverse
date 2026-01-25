@@ -1,0 +1,9 @@
+@use '../theme/variables' as theme;
+
+.center-container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: theme.$color-background-light;
+}

@@ -1,0 +1,15 @@
+@use '../theme/variables' as theme;
+
+.alert {
+  margin-bottom: theme.$spacing-md;
+  padding: theme.$spacing-sm;
+  border-radius: theme.$border-radius-sm;
+  font-size: theme.$font-size-xs;
+}
+
+.alert-error {
+  @extend .alert;
+  background-color: theme.$color-error-bg;
+  border: theme.$border-width solid theme.$color-error-border;
+  color: theme.$color-error;
+}

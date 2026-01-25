@@ -1,0 +1,19 @@
+.dropdown {
+  position: relative;
+}
+
+.button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--button-secondary-color);
+  border-radius: var(--border-radius-round);
+  height: var(--list-item-button-size);
+  width: var(--list-item-button-size);
+}
+
+.large {
+  height: var(--large-item-size);
+  width: var(--large-item-size);
+  font-size: var(--font-size-lg);
+}

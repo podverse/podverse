@@ -1,0 +1,20 @@
+networks:
+  podverse_sandbox_network:
+    external: true
+
+services:
+
+  podverse_sandbox_api:
+    image: ghcr.io/podverse/podverse-api/podverse-api:REPLACE_WITH_API_VERSION
+    container_name: podverse_sandbox_api
+    env_file:
+      - ../../../config/sandbox/api.env
+    networks:
+      - podverse_sandbox_network
+    ports:
+      - "1234:1234"
+    command: npm start
+    logging:
+      driver: "syslog"
+      options:
+        tag: "{{.ImageName}}/{{.Name}}/{{.ID}}"

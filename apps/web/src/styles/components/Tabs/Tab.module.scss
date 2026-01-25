@@ -1,0 +1,29 @@
+@use "breakpoints";
+
+.tab {
+  position: relative;
+  margin-right: -3px; // Keep negative margin for tab overlap
+  padding: var(--spacing-md) var(--spacing-2xl);
+  color: var(--button-secondary-color);
+  font-weight: var(--font-weight-light);
+  background-color: var(--background-color-primary);
+  border: 1px solid var(--border-color-primary);
+  border-radius: 1rem 1rem 0 0;
+  z-index: 1;
+}
+
+.tab:focus {
+  box-shadow: 0 -5px 0 0 rgba(0, 116, 217, 0.4);
+}
+
+.tab.selected {
+  z-index: 10 !important;
+  font-weight: var(--font-weight-semibold);
+  border-bottom: none;
+}
+
+@media (min-width: breakpoints.$breakpoint-xl-min) {
+  .hideDesktop {
+    display: none;
+  }
+}

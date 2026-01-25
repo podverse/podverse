@@ -1,0 +1,12 @@
+.playButtonRow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--button-secondary-color);
+  background: var(--button-opaque-bg);
+  border: var(--button-border-size) solid var(--border-color-primary);
+  border-radius: var(--border-radius-round);
+  height: var(--list-item-button-size);
+  width: var(--list-item-button-size);
+  font-size: var(--font-size-xs);
+}

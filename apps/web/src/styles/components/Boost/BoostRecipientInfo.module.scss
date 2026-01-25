@@ -1,0 +1,21 @@
+.table {
+  margin-top: var(--spacing-2xl);
+  border-spacing: 0px;
+  border-collapse: separate;
+  border: 1px solid var(--border-color-tertiary);
+}
+
+.headerRow th {
+  border-right: 1px solid var(--border-color-tertiary);
+  padding: var(--spacing-md) var(--spacing-base);
+  white-space: nowrap;
+  font-weight: var(--font-weight-bold);
+}
+
+.headerRow th:first-child {
+  text-align: left;
+}
+
+.headerRow th:last-child {
+  border-right: none;
+}

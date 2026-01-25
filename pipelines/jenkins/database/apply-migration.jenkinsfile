@@ -1,0 +1,130 @@
+pipeline {
+    agent any
+
+    parameters {
+        choice(
+            name: 'ENVIRONMENT',
+            choices: ['alpha', 'beta', 'prod'],
+            description: 'Target environment'
+        )
+        choice(
+            name: 'DATABASE',
+            choices: ['main', 'management'],
+            description: 'Database to migrate'
+        )
+        string(
+            name: 'MIGRATION_FILE',
+            defaultValue: '',
+            description: 'Migration file name (e.g., 0013_add_podcast_chapters.sql)'
+        )
+        booleanParam(
+            name: 'DRY_RUN',
+            defaultValue: true,
+            description: 'Show SQL without executing'
+        )
+    }
+
+    stages {
+        stage('Validate') {
+            steps {
+                script {
+                    if (params.MIGRATION_FILE == '') {
+                        error('Migration file is required')
+                    }
+                }
+            }
+        }
+
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+
+        stage('Preview Migration') {
+            steps {
+                script {
+                    def migrationPath = getMigrationPath(params.DATABASE, params.MIGRATION_FILE)
+                    echo "=== Migration SQL Preview ==="
+                    sh "cat ${migrationPath}"
+                    echo "=== End of SQL Preview ==="
+                }
+            }
+        }
+
+        stage('Apply Migration') {
+            when {
+                expression { !params.DRY_RUN }
+            }
+            steps {
+                script {
+                    def migrationPath = getMigrationPath(params.DATABASE, params.MIGRATION_FILE)
+                    def dbHost = getDbHost(params.ENVIRONMENT, params.DATABASE)
+                    def dbCreds = getDbCredentials(params.ENVIRONMENT, params.DATABASE)
+                    def dbName = getDbName(params.DATABASE)
+
+                    withCredentials([usernamePassword(
+                        credentialsId: dbCreds,
+                        usernameVariable: 'DB_USER',
+                        passwordVariable: 'DB_PASS'
+                    )]) {
+                        sh """
+                            PGPASSWORD=\$DB_PASS psql -h ${dbHost} -U \$DB_USER -d ${dbName} -f ${migrationPath}
+                        """
+                    }
+                }
+            }
+        }
+    }
+
+    post {
+        success {
+            script {
+                if (params.DRY_RUN) {
+                    echo "DRY RUN completed. Review the SQL above and re-run with DRY_RUN=false to apply."
+                } else {
+                    echo "Migration ${params.MIGRATION_FILE} applied successfully to ${params.ENVIRONMENT} ${params.DATABASE} database"
+                }
+            }
+        }
+        failure {
+            echo "Migration failed! Check logs for details."
+        }
+    }
+}
+
+def getMigrationPath(database, migrationFile) {
+    if (database == 'management') {
+        return "infra/database/management/migrations/${migrationFile}"
+    }
+    return "infra/database/migrations/${migrationFile}"
+}
+
+def getDbHost(environment, database) {
+    def hosts = [
+        'alpha': [
+            'main': 'alpha-db.podverse.internal',
+            'management': 'alpha-management-db.podverse.internal'
+        ],
+        'beta': [
+            'main': 'beta-db.podverse.internal',
+            'management': 'beta-management-db.podverse.internal'
+        ],
+        'prod': [
+            'main': 'prod-db.podverse.internal',
+            'management': 'prod-management-db.podverse.internal'
+        ]
+    ]
+    return hosts[environment][database]
+}
+
+def getDbName(database) {
+    if (database == 'management') {
+        return 'podverse_management_db'
+    }
+    return 'podverse_db'
+}
+
+def getDbCredentials(environment, database) {
+    return "${environment}-${database}-db-credentials"
+}

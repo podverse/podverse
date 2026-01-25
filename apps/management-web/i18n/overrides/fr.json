@@ -1,0 +1,33 @@
+{
+  "app": {
+    "name": "",
+    "description": ""
+  },
+  "common": {
+    "loading": "",
+    "error": "",
+    "save": "",
+    "cancel": "",
+    "delete": "",
+    "edit": "",
+    "create": "",
+    "search": "",
+    "back": "",
+    "submit": "",
+    "confirm": "",
+    "yes": "",
+    "no": ""
+  },
+  "auth": {
+    "login": "",
+    "logout": "",
+    "email": "",
+    "password": ""
+  },
+  "nav": {
+    "dashboard": "",
+    "users": "",
+    "content": "",
+    "settings": ""
+  }
+}

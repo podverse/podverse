@@ -1,0 +1,38 @@
+---
+description: Formatting rules for .env and .env.example files
+globs:
+  - "**/.env"
+  - "**/.env.*"
+  - "**/*.env"
+alwaysApply: false
+---
+
+# Environment File Formatting
+
+## Formatting Rules
+
+1. **Non-empty values** must be surrounded with double quotation marks
+2. **Empty/unset values** should have no value after the `=` sign (no quotes, no empty string)
+
+**Correct:**
+```
+DATABASE_HOST="localhost"
+API_KEY="abc123"
+EMPTY_VALUE=
+URL_WITH_SPECIAL_CHARS="http://example.com?foo=bar&baz=qux"
+```
+
+**Incorrect:**
+```
+DATABASE_HOST=localhost
+API_KEY=abc123
+EMPTY_VALUE=""
+URL_WITH_SPECIAL_CHARS=http://example.com?foo=bar&baz=qux
+```
+
+## Rationale
+
+- Quotation marks ensure consistent parsing across different tools (dotenv, dotenvx, shell scripts)
+- Quotation marks prevent issues with special characters (spaces, `&`, `=`, `#`, etc.)
+- Empty values without quotes clearly indicate "not set" vs an intentional empty string
+- Follows the convention established in this monorepo

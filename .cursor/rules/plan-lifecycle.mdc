@@ -1,0 +1,19 @@
+---
+description: Plan lifecycle management - moving completed plans
+globs:
+  - ".cursor/plans/**/*.md"
+alwaysApply: false
+---
+
+# Plan Lifecycle
+
+When a plan's status is changed to "Complete":
+
+1. Move the file from `active/` to `completed/` (preserving subdirectory structure)
+2. Update any references in `00-master-plan.md` if needed
+
+Example:
+```bash
+mv .llm/plans/active/monorepo-migration/02-packages-outline.md \
+   .llm/plans/completed/monorepo-migration/
+```

@@ -1,0 +1,20 @@
+@use '../../../styles/theme/variables' as theme;
+
+.formInput {
+  width: 100%;
+  padding: theme.$spacing-sm;
+  font-size: theme.$font-size-base;
+  border: theme.$border-width solid theme.$color-border;
+  border-radius: theme.$border-radius-sm;
+  box-sizing: border-box;
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  &:focus {
+    outline: none;
+    border-color: theme.$color-primary;
+  }
+}

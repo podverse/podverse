@@ -1,0 +1,44 @@
+pipeline {
+    // Maps to <assignedNode>pv-alpha-aux</assignedNode>
+    agent {
+        label 'pv-alpha-aux'
+    }
+
+    // Maps to <concurrentBuild>false</concurrentBuild>
+    options {
+        disableConcurrentBuilds()
+        timestamps()
+    }
+
+    // Maps to <hudson.triggers.TimerTrigger>
+    // Runs roughly at 6 AM and 6 PM daily
+    triggers {
+        cron('H 6,18 * * *')
+    }
+
+    stages {
+        stage('Run Worker Archive') {
+            steps {
+                script {
+                    // Maps to 'pushd /opt/podverse/infra/docker/alpha/workers'
+                    dir('/opt/podverse/infra/docker/alpha/workers') {
+                        // Check for any available podverse-workers image (local or GHCR) and proceed if present
+                        def hasImage = sh(script: "docker image ls --format '{{.Repository}}:{{.Tag}}' | grep -E '(^|/)podverse-workers(:|/)|(^|/)podverse_alpha_workers(:|/\$)' >/dev/null 2>&1", returnStatus: true) == 0
+                        
+                        if (hasImage) {
+                            // We use 'set -ux' to match the XML (verbose output + unset variable checking).
+                            // Jenkins sh implies 'set -e' automatically.
+                            sh '''
+                                set -ux
+                                docker compose -f docker-compose.yml run --rm podverse_alpha_workers npm run archive_all
+                            '''
+                        } else {
+                            echo "No podverse-workers image found locally. Marking build NOT_BUILT and skipping."
+                            currentBuild.result = 'NOT_BUILT'
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

@@ -1,0 +1,18 @@
+@use '../../mixins/flexbox' as *;
+
+.message {
+  @include flexColumn(var(--spacing-lg));
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  margin: var(--spacing-4xl) var(--spacing-none);
+}
+
+.message p {
+  font-size: var(--font-size-lg);
+}
+
+.message button {
+  color: var(--text-color-link);
+  font-size: var(--font-size-lg);
+}

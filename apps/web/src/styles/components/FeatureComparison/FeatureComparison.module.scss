@@ -1,0 +1,42 @@
+.comparison {
+  margin: var(--spacing-4xl) var(--spacing-none);
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.featureHeader {
+  text-align: left;
+  padding: var(--spacing-base) var(--spacing-lg);
+  font-weight: var(--font-weight-bold);
+  border-bottom: 1px solid var(--border-color-opaque);
+}
+
+.tierHeader {
+  text-align: center;
+  padding: var(--spacing-base) var(--spacing-lg);
+  font-weight: var(--font-weight-bold);
+  border-bottom: 1px solid var(--border-color-opaque);
+}
+
+.row {
+  border-bottom: 1px solid var(--border-color-opaque);
+}
+
+.featureCell {
+  padding: var(--spacing-base) var(--spacing-lg);
+  text-align: left;
+}
+
+.tierCell {
+  padding: var(--spacing-base) var(--spacing-lg);
+  text-align: center;
+  width: 120px;
+}
+
+.checkmark {
+  color: var(--button-success-bg-hover);
+  font-size: var(--font-size-lg);
+}

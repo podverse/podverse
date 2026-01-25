@@ -1,0 +1,25 @@
+@mixin mediaPlayerButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--border-radius-round);
+  height: 36px;
+  width: 36px;
+  font-size: var(--font-size-md);
+  transition: transform 0.1s ease-out;
+
+  &.active {
+    color: var(--button-enabled-icon-color);
+  }
+
+  &:active {
+    transform: scale(0.9);
+  }
+}
+
+@mixin mediaPlayerButtonMobile {
+  @include mediaPlayerButton;
+  height: 40px;
+  width: 40px;
+  font-size: var(--font-size-md);
+}

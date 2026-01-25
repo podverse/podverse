@@ -1,0 +1,17 @@
+@use '../../../mixins/flexbox' as *;
+
+.listWrapper {
+  margin: var(--spacing-section-y);
+}
+
+.list {
+  @include flexColumn(var(--spacing-xl));
+}
+
+.listTracks {
+  @include flexColumn(var(--spacing-lg));
+}
+
+.queueList {
+  @include flexColumn(var(--spacing-2xl));
+}

@@ -1,0 +1,19 @@
+networks:
+  podverse_alpha_network:
+    external: true
+
+services:
+
+  podverse_alpha_web:
+    image: ghcr.io/podverse/podverse-web/podverse-web-deploy:REPLACE_WITH_WEB_VERSION
+    container_name: podverse_alpha_web
+    networks:
+      - podverse_alpha_network
+    ports:
+      - 127.0.0.1:3000:3000
+    command: sh -c "node server.js"
+    logging:
+      driver: "syslog"
+      options:
+        tag: "{{.ImageName}}/{{.Name}}/{{.ID}}"
+    restart: unless-stopped

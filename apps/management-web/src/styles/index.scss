@@ -1,0 +1,50 @@
+// Minimal functional styling for admin interface
+
+// Import theme variables
+@use './theme/variables' as theme;
+
+// Global Reset
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  line-height: 1.6;
+  color: theme.$color-text-primary;
+  background-color: theme.$color-background;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+// Basic utility classes
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: theme.$spacing-md;
+}
+
+.page-header {
+  margin-bottom: theme.$spacing-xl;
+  padding-bottom: theme.$spacing-md;
+  border-bottom: theme.$border-width solid theme.$color-border-light;
+}
+
+.page-title {
+  font-size: theme.$font-size-xxl;
+  font-weight: theme.$font-weight-semibold;
+  margin-bottom: theme.$spacing-xs;
+}
+
+.page-subtitle {
+  color: theme.$color-text-secondary;
+  font-size: theme.$font-size-base;
+}

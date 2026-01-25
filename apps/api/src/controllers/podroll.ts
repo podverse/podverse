@@ -1,0 +1,33 @@
+import { Request, Response } from 'express';
+import Joi from 'joi';
+import { ChannelPodrollService } from '@podverse/orm';
+import { DTOChannel, DTOItem } from '@podverse/helpers';
+import { validateParamsObject } from '@api/lib/validation';
+import { buildRemoteItemsFinalResult } from '@api/lib/remoteItems';
+import { getParamRequired } from '@api/lib/params';
+
+const getPodrollForChannelSchema = Joi.object({
+  idOrIdText: Joi.string().required(),
+});
+
+export class PodrollController {
+  private static channelPodrollService = new ChannelPodrollService();
+
+  static async getPodrollForChannel(req: Request, res: Response): Promise<void> {
+    validateParamsObject(getPodrollForChannelSchema, req, res, async () => {
+      const idOrIdText = getParamRequired(req, 'idOrIdText');
+      const result = await PodrollController
+        .channelPodrollService
+        .getPodrollForChannel(idOrIdText);
+
+      const finalResult = await buildRemoteItemsFinalResult(
+        result.podrollChannelsAdded as unknown as DTOChannel[],
+        result.podrollChannelsUnadded,
+        result.podrollItemsAdded as unknown as DTOItem[],
+        result.podrollItemsUnadded,
+      );
+
+      res.json(finalResult);
+    });
+  }
+}

@@ -1,0 +1,68 @@
+#!/bin/bash
+
+# Podverse Pre-Push Hook - Branch Naming Enforcement
+# Outputs to stderr so messages appear in GUI error dialogs
+
+YELLOW='\033[1;33m'
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+CYAN='\033[0;36m'
+NC='\033[0m'
+
+BRANCH=$(git rev-parse --abbrev-ref HEAD)
+
+# Protected branches - cannot push directly
+PROTECTED="^(main|beta|alpha|develop)$"
+if [[ "$BRANCH" =~ $PROTECTED ]]; then
+    echo "" >&2
+    echo -e "${RED}╔════════════════════════════════════════════════════════════╗${NC}" >&2
+    echo -e "${RED}║  🚫 DIRECT PUSH TO PROTECTED BRANCH                        ║${NC}" >&2
+    echo -e "${RED}╠════════════════════════════════════════════════════════════╣${NC}" >&2
+    echo -e "${RED}║  Branch '$BRANCH' is protected.                            ║${NC}" >&2
+    echo -e "${RED}║  Use a Pull Request to merge changes.                      ║${NC}" >&2
+    echo -e "${RED}╚════════════════════════════════════════════════════════════╝${NC}" >&2
+    echo "" >&2
+    exit 1
+fi
+
+# Valid branch patterns
+VALID_PATTERN="^(feature|fix|chore|docs|hotfix|release)/.*$"
+
+if [[ "$BRANCH" =~ $VALID_PATTERN ]]; then
+    echo -e "${GREEN}✓ Branch name valid: $BRANCH${NC}" >&2
+    exit 0
+fi
+
+# Invalid branch name
+echo "" >&2
+echo -e "${YELLOW}╔════════════════════════════════════════════════════════════╗${NC}" >&2
+echo -e "${YELLOW}║  ⚠️  BRANCH NAMING CONVENTION                               ║${NC}" >&2
+echo -e "${YELLOW}╠════════════════════════════════════════════════════════════╣${NC}" >&2
+echo -e "${YELLOW}║  Branch '$BRANCH' doesn't match conventions.               ║${NC}" >&2
+echo -e "${YELLOW}║                                                            ║${NC}" >&2
+echo -e "${YELLOW}║  Expected patterns:                                        ║${NC}" >&2
+echo -e "${YELLOW}║    feature/description   fix/description                   ║${NC}" >&2
+echo -e "${YELLOW}║    chore/description     docs/description                  ║${NC}" >&2
+echo -e "${YELLOW}╚════════════════════════════════════════════════════════════╝${NC}" >&2
+echo "" >&2
+
+if [ -t 0 ]; then
+    echo -e "${CYAN}Options:${NC} [o] Override and push anyway | [a] Abort" >&2
+    read -p "Choice: " -n 1 -r REPLY </dev/tty
+    echo "" >&2
+    case $REPLY in
+        [oO])
+            echo -e "${YELLOW}⚠️  Pushing with non-standard branch name...${NC}" >&2
+            exit 0
+            ;;
+        *)
+            echo "Push aborted. Rename branch with: git branch -m $BRANCH feature/your-description" >&2
+            exit 1
+            ;;
+    esac
+else
+    # Non-interactive (GUI) - block by default
+    echo "❌ Push blocked: Branch name doesn't match conventions." >&2
+    echo "   Use terminal to push with override option." >&2
+    exit 1
+fi

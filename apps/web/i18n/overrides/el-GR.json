@@ -1,0 +1,731 @@
+{
+  "media": {
+    "podcast": {
+      "audio": "",
+      "podcasting": "",
+      "podcast": "",
+      "podcasts": "",
+      "podcast_image": "",
+      "episode": "",
+      "episodes": "",
+      "episode_image": ""
+    },
+    "music": {
+      "music": "",
+      "artist": "",
+      "artists": "",
+      "artist_image": "",
+      "album": "",
+      "albums": "",
+      "album_image": "",
+      "track": "",
+      "tracks": "",
+      "track_image": "",
+      "track_go_to": ""
+    },
+    "video": {
+      "channel": "",
+      "channels": "",
+      "video": "",
+      "videos": ""
+    },
+    "livestream": {
+      "livestream": "",
+      "livestreams": "",
+      "livestream_image": "",
+      "live": "",
+      "pending": "",
+      "ended": "",
+      "no_livestreams_found": ""
+    },
+    "updated_with_date": "",
+    "image": ""
+  },
+  "features": {
+    "search": {
+      "search": "",
+      "search_by_title": ""
+    },
+    "add_feed": {
+      "add_feed": "",
+      "add_feed_explanation": "",
+      "rss_link": ""
+    },
+    "my_library": "",
+    "queue": {
+      "queue": "",
+      "queues": "",
+      "queue_next": "",
+      "queue_last": "",
+      "added_to_queue": "",
+      "add_error": "",
+      "remove_error": "",
+      "remove_from_queue": "",
+      "removed_from_queue": ""
+    },
+    "history": {
+      "history": "",
+      "delete_history": "",
+      "mark_as_played": "",
+      "marked_as_played": "",
+      "mark_as_played_error": ""
+    },
+    "playlist": {
+      "playlist": "",
+      "playlists": "",
+      "my_playlists": "",
+      "create_playlist": "",
+      "edit_playlist": "",
+      "delete_playlist": "",
+      "delete_playlist_confirm": "",
+      "add_to_playlist": "",
+      "added_to_playlist": "",
+      "add_error": "",
+      "remove_from_playlist": "",
+      "removed_from_playlist": "",
+      "remove_error": "",
+      "item_count": "",
+      "playlist_type": ""
+    },
+    "clip": {
+      "clip": "",
+      "clips": "",
+      "create_clip": "",
+      "edit_clip": "",
+      "delete_clip": "",
+      "delete_clip_confirm": "",
+      "my_clips": "",
+      "clip_created": "",
+      "clip_updated": "",
+      "link_to_clip": "",
+      "start_time": "",
+      "start_time_aria": "",
+      "start_time_play_aria": "",
+      "end_time": "",
+      "end_time_aria": "",
+      "end_time_play_aria": "",
+      "clip_time_range": ""
+    },
+    "my_clips": "",
+    "my_profile": "",
+    "profile": "",
+    "profiles": "",
+    "embed": "",
+    "copy": "",
+    "copied": "",
+    "subscribe": "",
+    "unsubscribe": "",
+    "share": "",
+    "download": {
+      "download_episode": "",
+      "downloading_episode": "",
+      "episode_downloaded": "",
+      "episode_download_error": "",
+      "download_track": "",
+      "downloading_track": "",
+      "track_downloaded": "",
+      "track_download_error": ""
+    },
+    "notifications": {
+      "enable_notifications_for_this_podcast": "",
+      "disable_notifications_for_this_podcast": "",
+      "enable_notifications_for_this_album": "",
+      "disable_notifications_for_this_album": "",
+      "enable_notifications_for_this_artist": "",
+      "disable_notifications_for_this_artist": ""
+    }
+  },
+  "info": {
+    "funding": "",
+    "website": "",
+    "rss_feed": "",
+    "about": "",
+    "summary": {
+      "summary": "",
+      "no_summary": ""
+    },
+    "podroll": "",
+    "transcript": {
+      "transcript": "",
+      "search_transcript": "",
+      "lyrics": ""
+    },
+    "credits": "",
+    "people": {
+      "people": "",
+      "person_image": "",
+      "link_to_persons_webpage": ""
+    },
+    "chapter": {
+      "chapter": "",
+      "chapters": "",
+      "chapter_image": ""
+    },
+    "soundbite": {
+      "official_clip": "",
+      "official_clips": ""
+    },
+    "time": {
+      "left": "",
+      "last": "",
+      "start": "",
+      "start_end": ""
+    }
+  },
+  "media_player": {
+    "play": "",
+    "pause": "",
+    "show_fullscreen_media_player": "",
+    "fullscreen_media_player": "",
+    "media_player_image": "",
+    "repeat": {
+      "toggle_repeat": "",
+      "repeat_enabled": "",
+      "repeat_disabled": ""
+    },
+    "shuffle": {
+      "toggle_shuffle": "",
+      "shuffle_enabled": "",
+      "shuffle_disabled": ""
+    },
+    "playback_speed": {
+      "playback_speed": "",
+      "playback_speed_with_value": "",
+      "speeds": {
+        "0-5": "",
+        "0-75": "",
+        "0-87": "",
+        "1-0": "",
+        "1-12": "",
+        "1-25": "",
+        "1-5": "",
+        "1-75": "",
+        "2-0": "",
+        "2-5": "",
+        "3-0": ""
+      }
+    },
+    "source": {
+      "source": "",
+      "source_with_format": "",
+      "select_source": "",
+      "video": "",
+      "video_with_resolution": "",
+      "video_with_ext": "",
+      "video_with_ext_resolution": "",
+      "resolution": "",
+      "audio": "",
+      "audio_with_ext": "",
+      "audio_with_bitrate_kbps": "",
+      "audio_with_bitrate_mbps": "",
+      "audio_with_ext_bitrate_kbps": "",
+      "audio_with_ext_bitrate_mbps": ""
+    }
+  },
+  "value": {
+    "boost": "",
+    "recipient": {
+      "creator_recipient": "",
+      "creator_recipients": "",
+      "app_recipient": ""
+    },
+    "total": "",
+    "message": "",
+    "types": {
+      "lightning_keysend": {
+        "label": "",
+        "denomination": ""
+      },
+      "paypal_send": {
+        "label": "",
+        "denomination": ""
+      },
+      "patreon_send": {
+        "label": "",
+        "denomination": ""
+      },
+      "buymeacoffee_send": {
+        "label": "",
+        "denomination": ""
+      }
+    },
+    "send_to": {
+      "creator": "",
+      "app": ""
+    },
+    "your_name": ""
+  },
+  "filters": {
+    "type": {
+      "global": "",
+      "all": "",
+      "subscribed": "",
+      "category": ""
+    },
+    "sort": {
+      "recent": "",
+      "oldest": "",
+      "a_z": "",
+      "top": "",
+      "random": "",
+      "forward": "",
+      "backward": ""
+    },
+    "range": {
+      "day": "",
+      "week": "",
+      "month": "",
+      "all_time": ""
+    }
+  },
+  "legal": {
+    "takedown_notice": "",
+    "spam_policy": "",
+    "spam_policy_explanation": "",
+    "archive_policy": "",
+    "archive_policy_explanation": "",
+    "takedown_policy": "",
+    "takedown_policy_explanation": ""
+  },
+  "misc": {
+    "more_info": "",
+    "info": "",
+    "items": "",
+    "increment": "",
+    "decrement": "",
+    "anonymous": "",
+    "untitled": "",
+    "optional": "",
+    "submit": "",
+    "save": "",
+    "saving": "",
+    "cancel": "",
+    "close": "",
+    "on": "",
+    "off": "",
+    "available": "",
+    "title": "",
+    "description": "",
+    "required": "",
+    "edit": "",
+    "done": "",
+    "id": "",
+    "continue": "",
+    "i_have_read_and_agree": "",
+    "unknown_date": "",
+    "redirecting": "",
+    "terms": "",
+    "mobile": "",
+    "donate": "",
+    "updates": "",
+    "sharable_status": {
+      "sharable_status": "",
+      "public": "",
+      "unlisted": "",
+      "private": ""
+    },
+    "autoscroll": {
+      "autoscroll_on": "",
+      "autoscroll_off": ""
+    },
+    "rate_limit": {
+      "generic": "",
+      "until": "",
+      "minute_remaining": "",
+      "minutes_remaining": ""
+    },
+    "try_again": "",
+    "reload_page": "",
+    "go_to_home": ""
+  },
+  "errors": {
+    "generic": "",
+    "boundary_title": "",
+    "boundary_message": "",
+    "global_title": "",
+    "global_message": "",
+    "details_development_only": "",
+    "test_page": {
+      "test_error_boundaries_title": "",
+      "test_error_boundaries_description": "",
+      "test_error_boundaries_warning": "",
+      "test_error_boundaries_section_1_title": "",
+      "test_error_boundaries_section_1_description": "",
+      "test_error_boundaries_section_2_title": "",
+      "test_error_boundaries_section_2_description": "",
+      "test_error_boundaries_section_3_title": "",
+      "test_error_boundaries_section_3_description": "",
+      "test_error_boundaries_section_4_title": "",
+      "test_error_boundaries_section_4_description": "",
+      "test_error_boundaries_section_5_title": "",
+      "test_error_boundaries_section_5_description": "",
+      "test_error_boundaries_section_6_title": "",
+      "test_error_boundaries_section_6_description": "",
+      "test_error_boundaries_trigger_render_error": "",
+      "test_error_boundaries_trigger_useeffect_error": "",
+      "test_error_boundaries_trigger_conditional_error": "",
+      "test_error_boundaries_trigger_event_handler_error": "",
+      "test_error_boundaries_trigger_route_error": "",
+      "test_error_boundaries_trigger_nested_error": "",
+      "test_error_boundaries_reset_all": "",
+      "test_error_boundaries_nested_outer_content": ""
+    }
+  },
+  "instructions": {
+    "login_required": "",
+    "login_for_subscriptions": "",
+    "login_to_create_playlists": "",
+    "login_to_create_clips": "",
+    "login_for_queues": "",
+    "login_for_history": "",
+    "login_to_add_feeds": "",
+    "login_to_refresh_feeds": "",
+    "login_to_subscribe": "",
+    "login_to_add_to_queue": "",
+    "login_to_add_to_playlist": "",
+    "login_to_mark_as_played": "",
+    "login_to_enable_notifications": "",
+    "login_to_disable_notifications": ""
+  },
+  "subscriptions": {
+    "subscriptions": "",
+    "how_to_start_message": ""
+  },
+  "authentication": {
+    "login": "",
+    "logout": "",
+    "sign_up": "",
+    "forgot_password": "",
+    "forgot_password_email_sent_message": "",
+    "reset_password": "",
+    "reset_password_complete_message": "",
+    "email": "",
+    "password": "",
+    "confirm_password": "",
+    "invalid_email_or_password": "",
+    "invalid_email": "",
+    "invalid_password": "",
+    "password_requirements": "",
+    "password_mismatch": "",
+    "account_created_message": "",
+    "account_not_verified": "",
+    "resend_verification_email": "",
+    "verification_email_sent": "",
+    "verify_email": "",
+    "verifying_email_address": "",
+    "email_verified": "",
+    "verification_failed": "",
+    "change_email_address_email": "",
+    "change_email_address_email_sent": "",
+    "change_email_verification": "",
+    "changing_email_address": "",
+    "change_email_address_email_failed": "",
+    "change_email_address_email_success": "",
+    "contact_only_text_before": ""
+  },
+  "membership": {
+    "membership": "",
+    "free": "",
+    "premium": "",
+    "intro_try_premium": "",
+    "intro_trial_days_left_one": "",
+    "intro_trial_days_left_other": "",
+    "intro_trial_hours_left_one": "",
+    "intro_trial_hours_left_other": "",
+    "intro_trial_minutes_left_one": "",
+    "intro_trial_minutes_left_other": "",
+    "intro_membership_minutes_left_one": "",
+    "intro_membership_minutes_left_other": "",
+    "intro_membership_hours_left_one": "",
+    "intro_membership_hours_left_other": "",
+    "intro_membership_days_left_one": "",
+    "intro_membership_days_left_other": "",
+    "pricing_monthly": "",
+    "pricing_annually": "",
+    "pricing_per_month": "",
+    "pricing_per_year": "",
+    "pricing_save_percent": "",
+    "contact_mode_text_before": "",
+    "cta_sign_up_text": "",
+    "cta_upgrade_text": "",
+    "buy_premium_membership": "",
+    "your_membership_expires_on": "",
+    "extend_my_membership": "",
+    "membership_expired_text_line1": "",
+    "membership_expired_text_line2": "",
+    "trial_expired_text_line1": "",
+    "trial_expired_text_line2": "",
+    "feature": "",
+    "features": "",
+    "membership_expiring_warning": "",
+    "membership_expired_danger": "",
+    "membership_link_text": "",
+    "free_trial": "",
+    "premium_membership": "",
+    "free_trial_not_allowed": ""
+  },
+  "about": {
+    "title": "",
+    "intro_text": "",
+    "download_app_store": "",
+    "download_google_play": "",
+    "download_f_droid": "",
+    "licensing_text": "",
+    "features_title": ""
+  },
+  "checkout": {
+    "checkout": "",
+    "payment_plan": "",
+    "auto_renew": "",
+    "payment_processor": "",
+    "paypal": "",
+    "stripe": "",
+    "complete_purchase": "",
+    "disabled_message": ""
+  },
+  "layouts": {
+    "change_layout_view": "",
+    "grid_view": "",
+    "grid_mini_view": "",
+    "list_view": ""
+  },
+  "settings": {
+    "settings": "",
+    "ui_theme": {
+      "theme": "",
+      "light": "",
+      "dark": "",
+      "dracula": ""
+    },
+    "feed": {
+      "check_feed_for_updates": "",
+      "check_feed_added_to_queue": ""
+    },
+    "account": {
+      "account": "",
+      "change_email": "",
+      "change_email_description": "",
+      "change_email_modal": {
+        "title": "",
+        "message": "",
+        "email_sent": ""
+      },
+      "delete_account": "",
+      "delete_account_description": "",
+      "delete_account_modal": {
+        "title": "",
+        "message": "",
+        "email_mismatch": ""
+      },
+      "download_my_data": "",
+      "download_my_data_description": "",
+      "download_my_data_loading": "",
+      "download_my_data_success": "",
+      "download_my_data_error": ""
+    },
+    "profile": {
+      "profile": "",
+      "display_name": "",
+      "display_name_description": "",
+      "bio": "",
+      "bio_placeholder": "",
+      "bio_description": "",
+      "sharable_status": "",
+      "sharable_status_public_description": "",
+      "sharable_status_unlisted_description": "",
+      "sharable_status_private_description": "",
+      "update_success": ""
+    },
+    "notifications": {
+      "notifications": "",
+      "web_push": "",
+      "web_push_help": "",
+      "unified_push": "",
+      "unified_push_help": "",
+      "up_endpoint_label": "",
+      "up_endpoint_placeholder": "",
+      "up_endpoint_info": "",
+      "up_auth_key_label": "",
+      "up_auth_key_placeholder": "",
+      "up_auth_key_info": "",
+      "up_current_endpoint": "",
+      "up_enable_error": "",
+      "cancel": "",
+      "enable": "",
+      "default_new_item": "",
+      "default_new-item_help": "",
+      "default_livestream_scheduled": "",
+      "default_livestream-scheduled_help": "",
+      "default_livestream_started": "",
+      "default_livestream-started_help": "",
+      "new_item": "",
+      "livestream_scheduled": "",
+      "livestream_started": ""
+    }
+  },
+  "contact": {
+    "contact": "",
+    "email": "",
+    "live_chat": "",
+    "report_bug": "",
+    "feature_request": "",
+    "podcast_request": "",
+    "report_content_issue": "",
+    "general": "",
+    "join_matrix_space": "",
+    "chat_discord": ""
+  },
+  "terms": {
+    "terms": "",
+    "never_sell_data": "",
+    "no_ads_without_permission": "",
+    "audio_video_hosting": "",
+    "third_party_feeds": "",
+    "clips_crowdsourced": "",
+    "clips_load_full_episode": "",
+    "reduced_size_images": ""
+  },
+  "socials": {
+    "discord": "",
+    "mastodon": "",
+    "x": "",
+    "matrix": "",
+    "github": ""
+  },
+  "disclaimers": {
+    "environment_warning": {
+      "alpha": {
+        "header": "",
+        "message": ""
+      },
+      "local": {
+        "header": "",
+        "message": ""
+      }
+    }
+  },
+  "categories": {
+    "categories": "",
+    "select_a_category": "",
+    "arts": "",
+    "business": "",
+    "comedy": "",
+    "education": "",
+    "fiction": "",
+    "government": "",
+    "history": "",
+    "healthandfitness": "",
+    "kidsandfamily": "",
+    "leisure": "",
+    "music": "",
+    "news": "",
+    "religionandspirituality": "",
+    "science": "",
+    "societyandculture": "",
+    "sports": "",
+    "technology": "",
+    "truecrime": "",
+    "tvandfilm": "",
+    "books": "",
+    "design": "",
+    "fashionandbeauty": "",
+    "food": "",
+    "performingarts": "",
+    "visualarts": "",
+    "careers": "",
+    "entrepreneurship": "",
+    "investing": "",
+    "management": "",
+    "marketing": "",
+    "nonprofit": "",
+    "comedyinterviews": "",
+    "improv": "",
+    "standup": "",
+    "courses": "",
+    "howto": "",
+    "languagelearning": "",
+    "selfimprovement": "",
+    "comedyfiction": "",
+    "drama": "",
+    "sciencefiction": "",
+    "alternativehealth": "",
+    "fitness": "",
+    "medicine": "",
+    "mentalhealth": "",
+    "nutrition": "",
+    "sexuality": "",
+    "educationforkids": "",
+    "parenting": "",
+    "petsandanimals": "",
+    "storiesforkids": "",
+    "animationandmanga": "",
+    "automotive": "",
+    "aviation": "",
+    "crafts": "",
+    "games": "",
+    "hobbies": "",
+    "homeandgarden": "",
+    "videogames": "",
+    "musiccommentary": "",
+    "musichistory": "",
+    "musicinterviews": "",
+    "businessnews": "",
+    "dailynews": "",
+    "entertainmentnews": "",
+    "newscommentary": "",
+    "politics": "",
+    "sportsnews": "",
+    "technews": "",
+    "buddhism": "",
+    "christianity": "",
+    "hinduism": "",
+    "islam": "",
+    "judaism": "",
+    "religion": "",
+    "spirituality": "",
+    "astronomy": "",
+    "chemistry": "",
+    "earthsciences": "",
+    "lifesciences": "",
+    "mathematics": "",
+    "naturalsciences": "",
+    "nature": "",
+    "physics": "",
+    "socialsciences": "",
+    "documentary": "",
+    "personaljournals": "",
+    "philosophy": "",
+    "placesandtravel": "",
+    "relationships": "",
+    "baseball": "",
+    "basketball": "",
+    "cricket": "",
+    "fantasysports": "",
+    "football": "",
+    "golf": "",
+    "hockey": "",
+    "rugby": "",
+    "running": "",
+    "soccer": "",
+    "swimming": "",
+    "tennis": "",
+    "volleyball": "",
+    "wilderness": "",
+    "wrestling": "",
+    "aftershows": "",
+    "filmhistory": "",
+    "filminterviews": "",
+    "filmreviews": "",
+    "tvreviews": ""
+  },
+  "language": {
+    "language": "",
+    "select_language": "",
+    "languages": {
+      "en-US": "",
+      "es": "",
+      "fr": "",
+      "el-GR": ""
+    }
+  }
+}

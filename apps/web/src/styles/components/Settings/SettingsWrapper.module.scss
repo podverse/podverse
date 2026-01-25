@@ -1,0 +1,11 @@
+.wrapper {
+  display: flex;
+  flex-direction: column;
+  margin: var(--spacing-4xl) var(--spacing-none) var(--spacing-none) var(--spacing-none);
+}
+
+.wrapper h3 {
+  margin-bottom: var(--spacing-base);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-light);
+}

@@ -1,0 +1,731 @@
+{
+  "media": {
+    "podcast": {
+      "audio": "Ήχος",
+      "podcasting": "Podcasting",
+      "podcast": "Podcast",
+      "podcasts": "Podcasts",
+      "podcast_image": "Εικόνα Podcast",
+      "episode": "Επεισόδιο",
+      "episodes": "Επεισόδια",
+      "episode_image": "Εικόνα Επεισοδίου"
+    },
+    "music": {
+      "music": "Μουσική",
+      "artist": "Καλλιτέχνης",
+      "artists": "Καλλιτέχνες",
+      "artist_image": "Εικόνα Καλλιτέχνη",
+      "album": "Άλμπουμ",
+      "albums": "Άλμπουμ",
+      "album_image": "Εικόνα Άλμπουμ",
+      "track": "Τραγούδι",
+      "tracks": "Τραγούδια",
+      "track_image": "Εικόνα Τραγουδιού",
+      "track_go_to": "Μετάβαση στο Τραγούδι"
+    },
+    "video": {
+      "channel": "Κανάλι",
+      "channels": "Κανάλια",
+      "video": "Βίντεο",
+      "videos": "Βίντεο"
+    },
+    "livestream": {
+      "livestream": "Ζωντανή Μετάδοση",
+      "livestreams": "Ζωντανές Μεταδόσεις",
+      "livestream_image": "Εικόνα Ζωντανής Μετάδοσης",
+      "live": "Ζωντανά",
+      "pending": "Προγραμματισμένο",
+      "ended": "Τελείωσε",
+      "no_livestreams_found": "Δεν βρέθηκαν ζωντανές μεταδόσεις."
+    },
+    "updated_with_date": "Ενημερώθηκε: {date}",
+    "image": "Εικόνα"
+  },
+  "features": {
+    "search": {
+      "search": "Αναζήτηση",
+      "search_by_title": "Αναζήτηση με τίτλο..."
+    },
+    "add_feed": {
+      "add_feed": "Προσθήκη Ροής",
+      "add_feed_explanation": "Αυτή η ροή δεν είναι στον κατάλογό μας. Αν θέλετε να την προσθέσετε, πατήστε το κουμπί \"Προσθήκη Ροής\".",
+      "rss_link": "Σύνδεσμος RSS"
+    },
+    "my_library": "Η Βιβλιοθήκη Μου",
+    "queue": {
+      "queue": "Ουρά",
+      "queues": "Ουρές",
+      "queue_next": "Ουρά: Επόμενο",
+      "queue_last": "Ουρά: Τελευταίο",
+      "added_to_queue": "Προστέθηκε στην Ουρά",
+      "add_error": "Σφάλμα κατά την προσθήκη στην Ουρά",
+      "remove_error": "Σφάλμα κατά την αφαίρεση από την Ουρά",
+      "remove_from_queue": "Αφαίρεση από την Ουρά",
+      "removed_from_queue": "Αφαιρέθηκε από την Ουρά"
+    },
+    "history": {
+      "history": "Ιστορικό",
+      "delete_history": "Διαγραφή Ιστορικού",
+      "mark_as_played": "Σημείωση ως Αναπαραγωγή",
+      "marked_as_played": "Σημειώθηκε ως Αναπαραγωγή",
+      "mark_as_played_error": "Σφάλμα κατά την επισήμανση ως αναπαραγωγή"
+    },
+    "playlist": {
+      "playlist": "Λίστα Αναπαραγωγής",
+      "playlists": "Λίστες Αναπαραγωγής",
+      "my_playlists": "Οι Λίστες Αναπαραγωγής μου",
+      "create_playlist": "Δημιουργία Λίστας Αναπαραγωγής",
+      "edit_playlist": "Επεξεργασία Λίστας Αναπαραγωγής",
+      "delete_playlist": "Διαγραφή Λίστας Αναπαραγωγής",
+      "delete_playlist_confirm": "Είστε σίγουροι ότι θέλετε να διαγράψετε αυτή τη λίστα αναπαραγωγής;",
+      "add_to_playlist": "Προσθήκη στη Λίστα Αναπαραγωγής",
+      "added_to_playlist": "Προστέθηκε στη Λίστα Αναπαραγωγής",
+      "add_error": "Σφάλμα κατά την προσθήκη στη Λίστα Αναπαραγωγής",
+      "remove_from_playlist": "Αφαίρεση από τη Λίστα Αναπαραγωγής",
+      "removed_from_playlist": "Αφαιρέθηκε από τη Λίστα Αναπαραγωγής",
+      "remove_error": "Σφάλμα κατά την αφαίρεση από τη Λίστα Αναπαραγωγής",
+      "item_count": "Αντικείμενα: {count}",
+      "playlist_type": "Τύπος Λίστας Αναπαραγωγής"
+    },
+    "clip": {
+      "clip": "Αποσπασμα",
+      "clips": "Αποσπάσματα",
+      "create_clip": "Δημιουργία Αποσπάσματος",
+      "edit_clip": "Επεξεργασία Αποσπάσματος",
+      "delete_clip": "Διαγραφή Αποσπάσματος",
+      "delete_clip_confirm": "Είστε σίγουροι ότι θέλετε να διαγράψετε αυτό το απόσπασμα;",
+      "my_clips": "Τα Αποσπάσματά μου",
+      "clip_created": "Απόσπασμα Δημιουργήθηκε",
+      "clip_updated": "Απόσπασμα Ενημερώθηκε",
+      "link_to_clip": "Σύνδεσμος στο Απόσπασμα",
+      "start_time": "Ώρα Έναρξης",
+      "start_time_aria": "Ώρα έναρξης σε ώρες, λεπτά και δευτερόλεπτα (hh:mm:ss)",
+      "start_time_play_aria": "Αναπαραγωγή από την ώρα έναρξης του αποσπάσματος",
+      "end_time": "Ώρα Λήξης",
+      "end_time_aria": "Ώρα λήξης σε ώρες, λεπτά και δευτερόλεπτα (hh:mm:ss)",
+      "end_time_play_aria": "Αναπαραγωγή από την ώρα λήξης του αποσπάσματος",
+      "clip_time_range": "{hhmmssStart} έως {hhmmssEnd}"
+    },
+    "my_clips": "Τα Αποσπάσματά μου",
+    "my_profile": "Το Προφίλ μου",
+    "profile": "Προφίλ",
+    "profiles": "Προφίλ",
+    "embed": "Ενσωμάτωσε",
+    "copy": "Αντιγραφή",
+    "copied": "Αντιγράφηκε",
+    "subscribe": "Εγγραφή",
+    "unsubscribe": "Απογραφή",
+    "share": "Κοινοποίηση",
+    "download": {
+      "download_episode": "Λήψη Επεισοδίου",
+      "downloading_episode": "Λήψη Επεισοδίου",
+      "episode_downloaded": "Το Επεισόδιο Λήφθηκε",
+      "episode_download_error": "Σφάλμα κατά τη Λήψη Επεισοδίου",
+      "download_track": "Λήψη Ύψους",
+      "downloading_track": "Λήψη Ύψους",
+      "track_downloaded": "Λήψη κομματιού",
+      "track_download_error": "Σφάλμα κατά την λήψη κομματιού"
+    },
+    "notifications": {
+      "enable_notifications_for_this_podcast": "Ενεργοποίηση ειδοποιήσεων για αυτό το podcast",
+      "disable_notifications_for_this_podcast": "Απενεργοποίηση ειδοποιήσεων για αυτό το podcast",
+      "enable_notifications_for_this_album": "Ενεργοποίηση ειδοποιήσεων για αυτό το άλμπουμ",
+      "disable_notifications_for_this_album": "Απενεργοποίηση ειδοποιήσεων για αυτό το άλμπουμ",
+      "enable_notifications_for_this_artist": "Ενεργοποίηση ειδοποιήσεων για αυτόν τον καλλιτέχνη",
+      "disable_notifications_for_this_artist": "Απενεργοποίηση ειδοποιήσεων για αυτόν τον καλλιτέχνη"
+    }
+  },
+  "info": {
+    "funding": "Χρηματοδότηση",
+    "website": "Ιστοσελίδα",
+    "rss_feed": "RSS Feed",
+    "about": "Σχετικά",
+    "summary": {
+      "summary": "Περίληψη",
+      "no_summary": "Δεν διατίθεται περίληψη"
+    },
+    "podroll": "Podroll",
+    "transcript": {
+      "transcript": "Μεταγραφή",
+      "search_transcript": "Αναζήτηση μεταγραφής...",
+      "lyrics": "Στίχοι"
+    },
+    "credits": "Δημιουργοί",
+    "people": {
+      "people": "Άτομα",
+      "person_image": "Εικόνα ατόμου",
+      "link_to_persons_webpage": "Σύνδεσμος στην ιστοσελίδα ατόμου"
+    },
+    "chapter": {
+      "chapter": "Κεφάλαιο",
+      "chapters": "Κεφάλαια",
+      "chapter_image": "Εικόνα κεφαλαίου"
+    },
+    "soundbite": {
+      "official_clip": "Επίσημο απόσπασμα",
+      "official_clips": "Επίσημα αποσπάσματα"
+    },
+    "time": {
+      "left": "{timeRemaining} απομένοντα",
+      "last": "{timePosition} τελευταίο",
+      "start": "{timeStart} αρχική ώρα",
+      "start_end": "{timeStart} έως {timeEnd}"
+    }
+  },
+  "media_player": {
+    "play": "Αναπαραγωγή",
+    "pause": "Παύση",
+    "show_fullscreen_media_player": "Εμφάνιση σε πλήρη οθόνη του μέσου αναπαραγωγής",
+    "fullscreen_media_player": "Μέσο αναπαραγωγής σε πλήρη οθόνη",
+    "media_player_image": "Εικόνα μέσου αναπαραγωγής",
+    "repeat": {
+      "toggle_repeat": "Εναλλαγή επανάληψης",
+      "repeat_enabled": "Η επανάληψη είναι ενεργοποιημένη",
+      "repeat_disabled": "Η επανάληψη είναι απενεργοποιημένη"
+    },
+    "shuffle": {
+      "toggle_shuffle": "Εναλλαγή τυχαίας αναπαραγωγής",
+      "shuffle_enabled": "Η τυχαία αναπαραγωγή είναι ενεργοποιημένη",
+      "shuffle_disabled": "Η τυχαία αναπαραγωγή είναι απενεργοποιημένη"
+    },
+    "playback_speed": {
+      "playback_speed": "Ταχύτητα αναπαραγωγής",
+      "playback_speed_with_value": "Ταχύτητα αναπαραγωγής: {speed}",
+      "speeds": {
+        "0-5": "0.5x",
+        "0-75": "0.75x",
+        "0-87": "0.87x",
+        "1-0": "1x",
+        "1-12": "1.12x",
+        "1-25": "1.25x",
+        "1-5": "1.5x",
+        "1-75": "1.75x",
+        "2-0": "2x",
+        "2-5": "2.5x",
+        "3-0": "3x"
+      }
+    },
+    "source": {
+      "source": "Πηγή",
+      "source_with_format": "Πηγή: {format}",
+      "select_source": "Επιλέξτε Μέσο",
+      "video": "Βίντεο",
+      "video_with_resolution": "Βίντεο {resolution}p",
+      "video_with_ext": "Βίντεο {ext}",
+      "video_with_ext_resolution": "Βίντεο {ext} {resolution}p",
+      "resolution": "{resolution}p",
+      "audio": "Ήχος",
+      "audio_with_ext": "Ήχος {ext}",
+      "audio_with_bitrate_kbps": "Ήχος {bitrate}kbps",
+      "audio_with_bitrate_mbps": "Ήχος {bitrate}Mbps",
+      "audio_with_ext_bitrate_kbps": "Ήχος {ext} {bitrate}kbps",
+      "audio_with_ext_bitrate_mbps": "Ήχος {ext} {bitrate}Mbps"
+    }
+  },
+  "value": {
+    "boost": "Ενίσχυση",
+    "recipient": {
+      "creator_recipient": "Παραλήπτης",
+      "creator_recipients": "Παραλήπτες",
+      "app_recipient": "Παραλήπτης Εφαρμογής"
+    },
+    "total": "Σύνολο",
+    "message": "Μήνυμα",
+    "types": {
+      "lightning_keysend": {
+        "label": "Bitcoin Lightning Keysend",
+        "denomination": "satoshis"
+      },
+      "paypal_send": {
+        "label": "PayPal",
+        "denomination": "USD"
+      },
+      "patreon_send": {
+        "label": "Patreon",
+        "denomination": "USD"
+      },
+      "buymeacoffee_send": {
+        "label": "Buy Me A Coffee",
+        "denomination": "USD"
+      }
+    },
+    "send_to": {
+      "creator": "Στείλε στον Δημιουργό",
+      "app": "Στείλε σε {brand_name}"
+    },
+    "your_name": "Το Όνομά Σου"
+  },
+  "filters": {
+    "type": {
+      "global": "Παγκόσμια",
+      "all": "Όλα",
+      "subscribed": "Εγγεγραμμένος",
+      "category": "Κατηγορία"
+    },
+    "sort": {
+      "recent": "Πρόσφατα",
+      "oldest": "Παλαιότερα",
+      "a_z": "A-Z",
+      "top": "Κορυφαία",
+      "random": "Τυχαία",
+      "forward": "Τακτοποιημένα",
+      "backward": "Αντίστροφα"
+    },
+    "range": {
+      "day": "Ημέρα",
+      "week": "Εβδομάδα",
+      "month": "Μήνας",
+      "all_time": "Όλοι οι Χρόνοι"
+    }
+  },
+  "legal": {
+    "takedown_notice": "Ειδοποίηση Αφαίρεσης",
+    "spam_policy": "Πολιτική Spam",
+    "spam_policy_explanation": "Αυτό το περιεχόμενο έχει επισημανθεί αυτόματα ως spam σύμφωνα με το σύστημά μας. Αν νομίζετε ότι αυτό είναι λάθος, παρακαλούμε επικοινωνήστε με την υποστήριξη.",
+    "archive_policy": "Πολιτική Αρχειοθέτησης",
+    "archive_policy_explanation": "Αυτό το περιεχόμενο βρίσκεται στη διαδικασία αρχειοθέτησης και αφαίρεσης. Αυτό συμβαίνει συχνά με περιεχόμενο που αλλάζει το URL του RSS feed του. Αν νομίζετε ότι αυτό είναι λάθος και θέλετε να προστεθεί αυτό το περιεχόμενο, παρακαλούμε επικοινωνήστε με την υποστήριξη.",
+    "takedown_policy": "Πολιτική Αφαίρεσης",
+    "takedown_policy_explanation": "Αυτό το περιεχόμενο έχει αφαιρεθεί σε απάντηση σε αίτημα αφαίρεσης από τον δικαιούχο πνευματικών δικαιωμάτων."
+  },
+  "misc": {
+    "more_info": "Περισσότερες Πληροφορίες",
+    "info": "Πληροφορίες",
+    "items": "Στοιχεία",
+    "increment": "Αύξηση",
+    "decrement": "Μείωση",
+    "anonymous": "Ανώνυμος",
+    "untitled": "Ανώνυμος",
+    "optional": "Προαιρετικό",
+    "submit": "Υποβολή",
+    "save": "Αποθήκευση",
+    "saving": "Αποθήκευση...",
+    "cancel": "Ακύρωση",
+    "close": "Κλείσιμο",
+    "on": "Ενεργό",
+    "off": "Ανενεργό",
+    "available": "Διαθέσιμο",
+    "title": "Τίτλος",
+    "description": "Περιγραφή",
+    "required": "Απαιτείται",
+    "edit": "Επεξεργασία",
+    "done": "Έγινε",
+    "id": "ID",
+    "continue": "Συνέχεια",
+    "i_have_read_and_agree": "Έχω διαβάσει και συμφωνώ με τους όρους.",
+    "unknown_date": "Άγνωστη Ημερομηνία",
+    "redirecting": "Ανακατεύθυνση...",
+    "terms": "Όροι",
+    "mobile": "Κινητό",
+    "donate": "Δωρεά",
+    "updates": "Ενημερώσεις",
+    "sharable_status": {
+      "sharable_status": "Κατάσταση Μοιράσματος",
+      "public": "Δημόσιο",
+      "unlisted": "Μη Καταχωρημένο",
+      "private": "Ιδιωτικό"
+    },
+    "autoscroll": {
+      "autoscroll_on": "Αυτόματη κύλιση: Ενεργό",
+      "autoscroll_off": "Αυτόματη κύλιση: Ανενεργό"
+    },
+    "rate_limit": {
+      "generic": "Περιορισμός ρυθμού: παρακαλείστε να δοκιμάσετε ξανά αργότερα.",
+      "until": "Περιορισμός ρυθμού: αυτή η ενέργεια δεν μπορεί να χρησιμοποιηθεί ξανά μέχρι {time}.",
+      "minute_remaining": "Περιορισμός ρυθμού: {minutes} λεπτό μέχρι να μπορείτε να χρησιμοποιήσετε ξανά αυτή την ενέργεια.",
+      "minutes_remaining": "Περιορισμός ρυθμού: {minutes} λεπτά μέχρι να μπορείτε να χρησιμοποιήσετε ξανά αυτή την ενέργεια."
+    },
+    "try_again": "Δοκιμάστε ξανά",
+    "reload_page": "Αναφόρτωση σελίδας",
+    "go_to_home": "Μετάβαση στην Αρχική"
+  },
+  "errors": {
+    "generic": "Κάτι πήγε στραβά. Παρακαλώ δοκιμάστε ξανά αργότερα, ή επικοινωνήστε με την υποστήριξη για βοήθεια.",
+    "boundary_title": "Κάτι πήγε στραβά",
+    "boundary_message": "Ένα απρόβλεπτο σφάλμα συνέβη. Παρακαλώ δοκιμάστε ξανά.",
+    "global_title": "Σφάλμα Εφαρμογής",
+    "global_message": "Ένα κρίσιμο σφάλμα συνέβη. Παρακαλώ ανανεώστε τη σελίδα.",
+    "details_development_only": "Λεπτομέρειες σφάλματος (μόνο για προγραμματιστές)",
+    "test_page": {
+      "test_error_boundaries_title": "Σελίδα Δοκιμής Όρων Σφαλμάτων",
+      "test_error_boundaries_description": "Αυτή η σελίδα σας επιτρέπει να δοκιμάσετε διάφορα σενάρια όρων σφαλμάτων. Κάντε κλικ στα κουμπιά παρακάτω για να προκαλέσετε διαφορετικούς τύπους σφαλμάτων.",
+      "test_error_boundaries_warning": "Αυτή η σελίδα είναι διαθέσιμη μόνο σε λειτουργία ανάπτυξης.",
+      "test_error_boundaries_section_1_title": "1. Σφάλμα απόδοσης Συστατικού (Συλληφθέν από Όρο Σφάλματος)",
+      "test_error_boundaries_section_1_description": "Αυτό το σφάλμα προκύπτει κατά την απόδοση του συστατικού και θα συλληφθεί από τον όρο σφάλματος.",
+      "test_error_boundaries_section_2_title": "2. Σφάλμα στο useEffect (Συλληφθέν από Όρο Σφάλματος)",
+      "test_error_boundaries_section_2_description": "Αυτό το σφάλμα προκύπτει στο useEffect και θα συλληφθεί από τον όρο σφάλματος.",
+      "test_error_boundaries_section_3_title": "3. Σφάλμα Ανάλογα με την Κατάσταση (Συλληφθέν από Όρο Σφάλματος)",
+      "test_error_boundaries_section_3_description": "Αυτό το σφάλμα προκύπτει αναλόγως της κατάστασης και θα συλληφθεί από τον όρο σφάλματος.",
+      "test_error_boundaries_section_4_title": "4. Σφάλμα Χειριστή Γεγονότων (ΔΕΝ Συλληφθέν από Όρο Σφάλματος)",
+      "test_error_boundaries_section_4_description": "Τα σφάλματα στους χειριστές γεγονότων ΔΕΝ συλλαμβάνονται από τους όρους σφαλμάτων. Αυτό θα εμφανιστεί στην κονσόλα.",
+      "test_error_boundaries_section_5_title": "5. Σφάλμα Επιπέδου Δρομολόγησης (Next.js error.tsx)",
+      "test_error_boundaries_section_5_description": "Αυτό θα προκαλέσει τη σελίδα σφάλματος επιπέδου δρομολόγησης του Next.js (error.tsx).",
+      "test_error_boundaries_section_6_title": "6. Ενσωματωμένοι Όροι Σφαλμάτων",
+      "test_error_boundaries_section_6_description": "Δοκιμάστε ενσωματωμένους όρους σφαλμάτων - ο εσωτερικός όρος συλλαμβάνει το σφάλμα, ο εξωτερικός συνεχίζει να λειτουργεί.",
+      "test_error_boundaries_trigger_render_error": "Προκαλέστε Σφάλμα Απόδοσης",
+      "test_error_boundaries_trigger_useeffect_error": "Προκαλέστε Σφάλμα useEffect",
+      "test_error_boundaries_trigger_conditional_error": "Προκαλέστε Σφάλμα Ανάλογα με την Κατάσταση",
+      "test_error_boundaries_trigger_event_handler_error": "Προκαλέστε Σφάλμα Χειριστή Γεγονότων (δεν συλληφθέν)",
+      "test_error_boundaries_trigger_route_error": "Προκαλέστε Σφάλμα Δρομολόγησης",
+      "test_error_boundaries_trigger_nested_error": "Προκαλέστε Ενσωματωμένο Σφάλμα",
+      "test_error_boundaries_reset_all": "Επαναφορά Όλων",
+      "test_error_boundaries_nested_outer_content": "Περιεχόμενο εξωτερικού όρου (θα πρέπει να παραμείνει ορατό)"
+    }
+  },
+  "instructions": {
+    "login_required": "Απαιτείται Σύνδεση",
+    "login_for_subscriptions": "Παρακαλώ συνδεθείτε για να δείτε τις συνδρομές σας.",
+    "login_to_create_playlists": "Παρακαλώ συνδεθείτε για να δημιουργήσετε λίστες αναπαραγωγής.",
+    "login_to_create_clips": "Παρακαλώ συνδεθείτε για να δημιουργήσετε κλιπ.",
+    "login_for_queues": "Παρακαλώ συνδεθείτε για να δείτε τις ουρές σας.",
+    "login_for_history": "Παρακαλώ συνδεθείτε για να δείτε την ιστορία σας.",
+    "login_to_add_feeds": "Παρακαλώ συνδεθείτε για να προσθέσετε ροές στον κατάλογό μας.",
+    "login_to_refresh_feeds": "Παρακαλώ συνδεθείτε για να ανανεώσετε τις ροές.",
+    "login_to_subscribe": "Παρακαλώ συνδεθείτε για να εγγραφείτε.",
+    "login_to_add_to_queue": "Παρακαλώ συνδεθείτε για να προσθέσετε στην ουρά σας.",
+    "login_to_add_to_playlist": "Παρακαλώ συνδεθείτε για να προσθέσετε στη λίστα αναπαραγωγής σας.",
+    "login_to_mark_as_played": "Παρακαλώ συνδεθείτε για να σημειώσετε τα στοιχεία ως αναπαραχθέντα.",
+    "login_to_enable_notifications": "Παρακαλώ συνδεθείτε για να ενεργοποιήσετε τις ειδοποιήσεις.",
+    "login_to_disable_notifications": "Παρακαλώ συνδεθείτε για να απενεργοποιήσετε τις ειδοποιήσεις."
+  },
+  "subscriptions": {
+    "subscriptions": "Συνδρομές",
+    "how_to_start_message": "Δοκιμάστε <searchLink>αναζητώντας</searchLink> το αγαπημένο σας περιεχόμενο, ή περιηγηθείτε σε <podcastsLink>podcasts</podcastsLink>, <videosLink>βίντεο</videosLink>, ή <musicLink>μουσική</musicLink>. Οι συνδρομές σας θα εμφανιστούν εδώ."
+  },
+  "authentication": {
+    "login": "Σύνδεση",
+    "logout": "Αποσύνδεση",
+    "sign_up": "Εγγραφή",
+    "forgot_password": "Ξεχάσατε τον Κωδικό;",
+    "forgot_password_email_sent_message": "Αν υπάρχει λογαριασμός με αυτό το email, έχει σταλεί ένα email επαναφοράς κωδικού πρόσβασης. Παρακαλώ ελέγξτε το email σας για περαιτέρω οδηγίες. Αν δεν λάβετε ένα email εντός μερικών λεπτών, παρακαλώ ελέγξτε τον φάκελο spam ή επικοινωνήστε με την υποστήριξη.",
+    "reset_password": "Επαναφορά Κωδικού Πρόσβασης",
+    "reset_password_complete_message": "Ο κωδικός πρόσβασης έχει επαναφερθεί με επιτυχία. Μπορείτε τώρα να συνδεθείτε με τον νέο σας κωδικό πρόσβασης.",
+    "email": "Email",
+    "password": "Κωδικός Πρόσβασης",
+    "confirm_password": "Επιβεβαίωση Κωδικού Πρόσβασης",
+    "invalid_email_or_password": "Μη έγκυρο email ή κωδικός πρόσβασης.",
+    "invalid_email": "Μη έγκυρο email",
+    "invalid_password": "Μη έγκυρος κωδικός πρόσβασης",
+    "password_requirements": "Ο κωδικός πρόσβασης πρέπει να είναι τουλάχιστον 8 χαρακτήρες και να περιλαμβάνει τουλάχιστον έναν χαρακτήρα που δεν είναι μικρό γράμμα.",
+    "password_mismatch": "Οι κωδικοί πρόσβασης δεν ταιριάζουν",
+    "account_created_message": "Ο λογαριασμός δημιουργήθηκε με επιτυχία. Παρακαλώ ελέγξτε το email σας για έναν σύνδεσμο επιβεβαίωσης.",
+    "account_not_verified": "Ο λογαριασμός δεν έχει επιβεβαιωθεί. Παρακαλώ ελέγξτε το email σας για έναν σύνδεσμο επιβεβαίωσης.",
+    "resend_verification_email": "Αναστολή Email Επιβεβαίωσης",
+    "verification_email_sent": "Το email επιβεβαίωσης έχει σταλεί. Αν δεν φτάσει εντός μερικών λεπτών, παρακαλώ ελέγξτε τον φάκελο spam ή επικοινωνήστε με την υποστήριξη.",
+    "verify_email": "Επιβεβαίωση Email",
+    "verifying_email_address": "Επιβεβαίωση διεύθυνσης email...",
+    "email_verified": "Το email έχει επιβεβαιωθεί με επιτυχία.",
+    "verification_failed": "Η επιβεβαίωση email απέτυχε. Ο σύνδεσμος επιβεβαίωσης μπορεί να έχει λήξει. Παρακαλώ προσπαθήστε να συνδεθείτε ξανά για να στείλετε ξανά το email επιβεβαίωσης.",
+    "change_email_address_email": "Αλλαγή Email",
+    "change_email_address_email_sent": "Ένα email επιβεβαίωσης έχει σταλεί στη νέα σας διεύθυνση email. Παρακαλώ ελέγξτε το νέο σας email για έναν σύνδεσμο επιβεβαίωσης. Αν δεν φτάσει εντός μερικών λεπτών, παρακαλώ ελέγξτε τον φάκελο spam ή επικοινωνήστε με την υποστήριξη.",
+    "change_email_verification": "Αλλαγή Επιβεβαίωσης Email",
+    "changing_email_address": "Αλλαγή διεύθυνσης email...",
+    "change_email_address_email_failed": "Αποτυχία αλλαγής email. Ο σύνδεσμος επιβεβαίωσης μπορεί να έχει λήξει. Παρακαλώ προσπαθήστε ξανά.",
+    "change_email_address_email_success": "Η διεύθυνση email άλλαξε με επιτυχία. Μπορείτε τώρα να συνδεθείτε με τη νέα σας διεύθυνση email.",
+    "contact_only_text_before": "Για να δημιουργήσετε έναν λογαριασμό, παρακαλώ επικοινωνήστε με την υποστήριξη στο"
+  },
+  "membership": {
+    "membership": "Μέλος",
+    "free": "Δωρεάν",
+    "premium": "Premium",
+    "intro_try_premium": "Δοκιμάστε το Premium δωρεάν για {days} ημέρες.",
+    "intro_trial_days_left_one": "Έχετε {days} ημέρα αριστερά στην δωρεάν δοκιμή σας.",
+    "intro_trial_days_left_other": "Έχετε {days} ημέρες αριστερά στην δωρεάν δοκιμή σας.",
+    "intro_trial_hours_left_one": "Έχετε {hours} ώρα αριστερά στην δωρεάν δοκιμή σας.",
+    "intro_trial_hours_left_other": "Έχετε {hours} ώρες αριστερά στην δωρεάν δοκιμή σας.",
+    "intro_trial_minutes_left_one": "Έχετε {minutes} λεπτό αριστερά στην δωρεάν δοκιμή σας.",
+    "intro_trial_minutes_left_other": "Έχετε {minutes} λεπτά αριστερά στην δωρεάν δοκιμή σας.",
+    "intro_membership_minutes_left_one": "Η Premium συνδρομή σας λήγει σε {minutes} λεπτό.",
+    "intro_membership_minutes_left_other": "Η Premium συνδρομή σας λήγει σε {minutes} λεπτά.",
+    "intro_membership_hours_left_one": "Η Premium συνδρομή σας λήγει σε {hours} ώρα.",
+    "intro_membership_hours_left_other": "Η Premium συνδρομή σας λήγει σε {hours} ώρες.",
+    "intro_membership_days_left_one": "Η Premium συνδρομή σας λήγει σε {days} ημέρα.",
+    "intro_membership_days_left_other": "Η Premium συνδρομή σας λήγει σε {days} ημέρες.",
+    "pricing_monthly": "Μηνιαία",
+    "pricing_annually": "Ετησίως",
+    "pricing_per_month": "/μήνα",
+    "pricing_per_year": "/έτος",
+    "pricing_save_percent": "Εξοικονομήστε {percent}%",
+    "contact_mode_text_before": "Για να αποκτήσετε μια συνδρομή, παρακαλώ επικοινωνήστε μαζί μας στο",
+    "cta_sign_up_text": "Εγγραφείτε για να ξεκινήσετε τη δωρεάν δοκιμή σας",
+    "cta_upgrade_text": "Αναβάθμιση σε Premium",
+    "buy_premium_membership": "Αγορά Ακριβής Συνδρομής",
+    "your_membership_expires_on": "Η Ακριβής σας συνδρομή λήγει στις {date}",
+    "extend_my_membership": "Επέκταση Συνδρομής Μου",
+    "membership_expired_text_line1": "Η συνδρομή σας έχει λήξει.",
+    "membership_expired_text_line2": "Παρακαλώ επεκτείνετε τη συνδρομή σας για να συνεχίσετε να απολαμβάνετε τις Premium δυνατότητες.",
+    "trial_expired_text_line1": "Η δωρεάν δοκιμή σας έχει λήξει.",
+    "trial_expired_text_line2": "Παρακαλώ επεκτείνετε τη συνδρομή σας για να συνεχίσετε να απολαμβάνετε τις Premium δυνατότητες.",
+    "feature": "Δυνατότητα",
+    "features": "Δυνατότητες",
+    "membership_expiring_warning": "Η {type} σας λήγει στις {date}. Ανανεώστε τώρα για να συνεχίσετε να απολαμβάνετε τις Premium δυνατότητες.",
+    "membership_expired_danger": "Η {type} σας έχει λήξει. Ανανεώστε τώρα για να συνεχίσετε να απολαμβάνετε τις Premium δυνατότητες.",
+    "membership_link_text": "Μεταβείτε στη Σελίδα Συνδρομής",
+    "free_trial": "δωρεάν δοκιμή",
+    "premium_membership": "Ακριβής συνδρομή",
+    "free_trial_not_allowed": "Αυτή η δυνατότητα είναι διαθέσιμη μόνο για premium λογαριασμούς και δεν είναι διαθέσιμη σε δωρεάν δοκιμές"
+  },
+  "about": {
+    "title": "Σχετικά",
+    "intro_text": "Η Podverse είναι ένα διαχειριστής podcast FOSS για iOS, Android, F-Droid και ιστοσελίδα.",
+    "download_app_store": "Λήψη από το App Store",
+    "download_google_play": "ΛΑΒΕ ΤΟ ΣΤΟ Google Play",
+    "download_f_droid": "ΛΑΒΕ ΤΟ ΣΤΟ F-Droid",
+    "licensing_text": "Όλο το λογισμικό Podverse παρέχεται υπό άδεια δωρεάν και ανοικτού κώδικα (FOSS). Δυνατότητες που απαιτούν ενημέρωση των διακομιστών μας είναι διαθέσιμες μόνο με μια Ακριβή συνδρομή. Εγγραφείτε σήμερα και αποκτήστε μια δωρεάν δοκιμή 3 μηνών. 🥳",
+    "features_title": "Δυνατότητες"
+  },
+  "checkout": {
+    "checkout": "Ολοκλήρωση Παραγγελίας",
+    "payment_plan": "Σχέδιο Πληρωμής",
+    "auto_renew": "Αυτόματη Ανανέωση",
+    "payment_processor": "Επεξεργαστής Πληρωμών",
+    "paypal": "PayPal",
+    "stripe": "Stripe",
+    "complete_purchase": "Ολοκλήρωση Αγοράς",
+    "disabled_message": "Η σελίδα ολοκλήρωσης παραγγελίας είναι απενεργοποιημένη."
+  },
+  "layouts": {
+    "change_layout_view": "Αλλαγή Ρύθμισης Διατάξεων",
+    "grid_view": "Πλέγμα Προβολής",
+    "grid_mini_view": "Μικρή Προβολή Πλέγματος",
+    "list_view": "Προβολή Λίστας"
+  },
+  "settings": {
+    "settings": "Ρυθμίσεις",
+    "ui_theme": {
+      "theme": "Θέμα",
+      "light": "☀️ Φωτεινό",
+      "dark": "🌙 Σκοτεινό",
+      "dracula": "🧛 Δράκουλας"
+    },
+    "feed": {
+      "check_feed_for_updates": "Έλεγχος Ροής για Ενημερώσεις",
+      "check_feed_added_to_queue": "Η ροή προστέθηκε στην ουρά για ανάλυση. Μπορεί να χρειαστούν μερικά λεπτά για να αναλυθεί η ροή. Παρακαλώ ελέγξτε τη λίστα για ενημερώσεις αργότερα."
+    },
+    "account": {
+      "account": "Λογαριασμός",
+      "change_email": "Αλλαγή Email",
+      "change_email_description": "Αλλάξτε τη διεύθυνση email σας. Ένα email επιβεβαίωσης θα σταλεί στη νέα διεύθυνση email σας.",
+      "change_email_modal": {
+        "title": "Αλλαγή Διεύθυνσης Email",
+        "message": "Εισάγετε τη νέα διεύθυνση email που θέλετε να χρησιμοποιήσετε. Ένα email επιβεβαίωσης θα σταλεί σε αυτή τη διεύθυνση.",
+        "email_sent": "Ένα email επιβεβαίωσης έχει σταλεί στη νέα διεύθυνση email σας. Παρακαλώ ελέγξτε το email σας για έναν σύνδεσμο επιβεβαίωσης."
+      },
+      "delete_account": "Διαγραφή Λογαριασμού",
+      "delete_account_description": "Μόνιμη διαγραφή του λογαριασμού σας και όλων των σχετικών δεδομένων. Αυτή η ενέργεια δεν μπορεί να αναιρεθεί.",
+      "delete_account_modal": {
+        "title": "Διαγραφή Λογαριασμού",
+        "message": "Αυτή η ενέργεια δεν μπορεί να αναιρεθεί. Για να επιβεβαιώσετε ότι θέλετε να διαγράψετε τον λογαριασμό σας, παρακαλώ πληκτρολογήστε τη διεύθυνση email σας παρακάτω.",
+        "email_mismatch": "Η διεύθυνση email που εισάγατε δεν αντιστοιχεί στη διεύθυνση email του λογαριασμού σας."
+      },
+      "download_my_data": "Κατεβάστε τα δεδομένα μου",
+      "download_my_data_description": "Κατεβάστε όλα τα δεδομένα του λογαριασμού σας ως αρχείο JSON",
+      "download_my_data_loading": "Για την προετοιμασία των δεδομένων σας...",
+      "download_my_data_success": "Τα δεδομένα κατέβηκαν με επιτυχία",
+      "download_my_data_error": "Αποτυχία λήψης δεδομένων"
+    },
+    "profile": {
+      "profile": "Προφίλ",
+      "display_name": "Όνομα Εμφάνισης",
+      "display_name_description": "Το όνομα εμφάνισης σας εμφανίζεται στο προφίλ σας. Αν αφεθεί κενό, θα εμφανίζεται ως Ανώνυμος.",
+      "bio": "Βιογραφικό",
+      "bio_placeholder": "Πείτε μας για τον εαυτό σας...",
+      "bio_description": "Μια σύντομη περιγραφή για τον εαυτό σας (προαιρετικά).",
+      "sharable_status": "Ορατότητα Προφίλ",
+      "sharable_status_public_description": "Το προφίλ σας είναι ορατό σε όλους και μπορεί να βρεθεί σε δημόσιες καταχωρίσεις προφίλ.",
+      "sharable_status_unlisted_description": "Το προφίλ σας είναι ορατό σε οποιονδήποτε έχει τον απευθείας σύνδεσμο, αλλά δεν θα εμφανίζεται σε δημόσιες καταχωρίσεις προφίλ.",
+      "sharable_status_private_description": "Το προφίλ σας είναι ορατό μόνο σε εσάς. Οι άλλοι δεν μπορούν να δουν το προφίλ σας ακόμη και με απευθείας σύνδεσμο.",
+      "update_success": "Το προφίλ ενημερώθηκε με επιτυχία"
+    },
+    "notifications": {
+      "notifications": "Ειδοποιήσεις",
+      "web_push": "Ειδοποιήσεις Ιστοσελίδας",
+      "web_push_help": "Λάβετε ειδοποιήσεις από τον περιηγητή για νέα επεισόδια και κομμάτια από δημιουργούς που έχετε εγγραφεί. Λειτουργεί σε συμβατούς περιηγητές.",
+      "unified_push": "Ενοποιημένη Ειδοποίηση",
+      "unified_push_help": "Χρησιμοποιήστε την Ενοποιημένη Ειδοποίηση για να λαμβάνετε ειδοποιήσεις μέσω μιας συμβατής υπηρεσίας ειδοποιήσεων (όπως το ntfy). Απαιτείται μια διεύθυνση URL του σημείου κατάληξης Ενοποιημένης Ειδοποίησης.",
+      "up_endpoint_label": "Διεύθυνση URL Σημείου Κατάληξης",
+      "up_endpoint_placeholder": "https://ntfy.sh/your-topic",
+      "up_endpoint_info": "Εισάγετε τη διεύθυνση URL σημείου κατάληξης Ενοποιημένης Ειδοποίησης. Συμβατό με ntfy και άλλες υπηρεσίες UP.",
+      "up_auth_key_label": "Διακριτικό Πρόσβασης (προαιρετικά)",
+      "up_auth_key_placeholder": "tk_...",
+      "up_auth_key_info": "Απαιτείται για ιδιωτικά/προστατευμένα θέματα. Αφήστε κενό για δημόσια θέματα.",
+      "up_current_endpoint": "Τρέχουσα διεύθυνση σημείου κατάληξης:",
+      "up_enable_error": "Αποτυχία ενεργοποίησης της Ενοποιημένης Ειδοποίησης. Παρακαλώ ελέγξτε τη διεύθυνση URL του σημείου κατάληξης.",
+      "cancel": "Ακύρωση",
+      "enable": "Ενεργοποίηση",
+      "default_new_item": "Προεπιλεγμένο νέο είδος",
+      "default_new-item_help": "Λάβετε ειδοποιήσεις όταν δημοσιεύονται νέα επεισόδια ή κομμάτια από δημιουργούς που έχετε εγγραφεί. Αυτή είναι η προεπιλεγμένη ρύθμιση ειδοποιήσεων που ισχύει για όλες τις εγγραφές σας, αλλά μπορεί να παρακαμφθεί για κάθε μία.",
+      "default_livestream_scheduled": "Προγραμματισμένη προεπιλεγμένη ζωντανή μετάδοση",
+      "default_livestream-scheduled_help": "Λάβετε ειδοποιήσεις όταν προγραμματίζονται ζωντανές μεταδόσεις από δημιουργούς που έχετε εγγραφεί. Αυτή είναι η προεπιλεγμένη ρύθμιση ειδοποιήσεων που ισχύει για όλες τις εγγραφές σας, αλλά μπορεί να παρακαμφθεί για κάθε μία.",
+      "default_livestream_started": "Ξεκίνησε προεπιλεγμένη ζωντανή μετάδοση",
+      "default_livestream-started_help": "Λάβετε ειδοποιήσεις όταν ξεκινούν ζωντανές μεταδόσεις από δημιουργούς που έχετε εγγραφεί. Αυτή είναι η προεπιλεγμένη ρύθμιση ειδοποιήσεων που ισχύει για όλες τις εγγραφές σας, αλλά μπορεί να παρακαμφθεί για κάθε μία.",
+      "new_item": "Νέο είδος",
+      "livestream_scheduled": "Ζωντανή μετάδοση προγραμματισμένη",
+      "livestream_started": "Ζωντανή μετάδοση ξεκίνησε"
+    }
+  },
+  "contact": {
+    "contact": "Επικοινωνία",
+    "email": "E-mail",
+    "live_chat": "Ζωντανή συνομιλία",
+    "report_bug": "Αναφορά σφάλματος",
+    "feature_request": "Αίτημα δυνατότητας",
+    "podcast_request": "Αίτημα podcast",
+    "report_content_issue": "Αναφορά προβλήματος περιεχομένου",
+    "general": "Γενικά",
+    "join_matrix_space": "Συμμετοχή στον χώρο Matrix μας",
+    "chat_discord": "Συνομιλήστε μαζί μας στο Discord"
+  },
+  "terms": {
+    "terms": "Όροι",
+    "never_sell_data": "Η Podverse δεν θα πουλήσει ή θα μοιραστεί ποτέ τα ιδιωτικά δεδομένα των χρηστών.",
+    "no_ads_without_permission": "Δεν θα τοποθετήσουμε ποτέ διαφημίσεις δίπλα ή μέσα στο περιεχόμενο ενός podcast χωρίς την άδεια αυτού του podcast.",
+    "audio_video_hosting": "Όλα τα αρχεία ήχου ή βίντεο που βρίσκονται στο podverse.fm φορτώνουν από τον δημόσιο διακομιστή του podcaster. Δεν φιλοξενούμε αρχεία ήχου ή βίντεο podcast εμείς οι ίδιοι.",
+    "third_party_feeds": "Φιλοξενούμε συνδέσμους podcast και περιεχόμενο από τρίτους παρόχους podcast και ιστοσελίδες. Αυτά έχουν τις δικές τους ανεξάρτητες πολιτικές απορρήτου, και δεν έχουμε καμία ευθύνη για το περιεχόμενο ή τις δραστηριότητές τους.",
+    "clips_crowdsourced": "Όλα τα κλιπ που φιλοξενούνται στο podverse.fm είναι crowdsourced και ανεπίσημα, εκτός αν αναφέρεται διαφορετικά από τον ίδιο τον podcaster.",
+    "clips_load_full_episode": "Τα κλιπ φορτώνουν μέσα στο πλήρες αρχείο πολυμέσων του επεισοδίου, έτσι ώστε ο χρήστης να έχει πάντα πρόσβαση στην πλήρη ηχογράφηση.",
+    "reduced_size_images": "Φιλοξενούμε επίσης εικόνες podcast μειωμένου μεγέθους από τις ροές των podcasters, για να εξοικονομήσουμε δεδομένα δικτύου των χρηστών και να επιταχύνουμε τους χρόνους φόρτωσης της σελίδας."
+  },
+  "socials": {
+    "discord": "Discord",
+    "mastodon": "Mastodon",
+    "x": "X",
+    "matrix": "Matrix",
+    "github": "GitHub"
+  },
+  "disclaimers": {
+    "environment_warning": {
+      "alpha": {
+        "header": "Προειδοποίηση Alpha ⚠️",
+        "message": "Αυτή είναι η alpha έκδοση της ιστοσελίδας. Είναι ανενεργή, μπορεί να περιέχει σφάλματα, και τα alpha δεδομένα σας μπορεί να επαναφέρονται ή να διαγράφονται περιοδικά."
+      },
+      "local": {
+        "header": "Τοπική Ανάπτυξη ⚙️",
+        "message": "Τρέχετε μια τοπική αναπτυξιακή έκδοση."
+      }
+    }
+  },
+  "categories": {
+    "categories": "Κατηγορίες",
+    "select_a_category": "Επιλέξτε μια Κατηγορία",
+    "arts": "Τέχνες",
+    "business": "Επιχειρήσεις",
+    "comedy": "Κωμωδία",
+    "education": "Εκπαίδευση",
+    "fiction": "Λογοτεχνία",
+    "government": "Κυβέρνηση",
+    "history": "Ιστορία",
+    "healthandfitness": "Υγεία & Ευεξία",
+    "kidsandfamily": "Παιδιά & Οικογένεια",
+    "leisure": "Ψυχαγωγία",
+    "music": "Μουσική",
+    "news": "Νέα",
+    "religionandspirituality": "Θρησκεία & Πνευματικότητα",
+    "science": "Επιστήμη",
+    "societyandculture": "Κοινωνία & Πολιτισμός",
+    "sports": "Αθλητισμός",
+    "technology": "Τεχνολογία",
+    "truecrime": "Αληθινά Εγκλήματα",
+    "tvandfilm": "Τηλεόραση & Κινηματογράφος",
+    "books": "Βιβλία",
+    "design": "Σχέδιο",
+    "fashionandbeauty": "Μόδα & Ομορφιά",
+    "food": "Φαγητό",
+    "performingarts": "Εκτελεστικές Τέχνες",
+    "visualarts": "Οπτικές Τέχνες",
+    "careers": "Καριέρες",
+    "entrepreneurship": "Επιχειρηματικότητα",
+    "investing": "Επένδυση",
+    "management": "Διοίκηση",
+    "marketing": "Μάρκετινγκ",
+    "nonprofit": "Μη Κερδοσκοπικός",
+    "comedyinterviews": "Κωμικές Συνεντεύξεις",
+    "improv": "Αυτοσχεδιασμός",
+    "standup": "Stand-Up",
+    "courses": "Μαθήματα",
+    "howto": "Πώς να",
+    "languagelearning": "Μάθηση Γλώσσας",
+    "selfimprovement": "Αυτοβελτίωση",
+    "comedyfiction": "Κωμική Φαντασία",
+    "drama": "Δράμα",
+    "sciencefiction": "Επιστημονική Φαντασία",
+    "alternativehealth": "Εναλλακτική Υγεία",
+    "fitness": "Γυμναστική",
+    "medicine": "Ιατρική",
+    "mentalhealth": "Ψυχική Υγεία",
+    "nutrition": "Διατροφή",
+    "sexuality": "Σεξουαλικότητα",
+    "educationforkids": "Εκπαίδευση για Παιδιά",
+    "parenting": "Γονείς",
+    "petsandanimals": "Κατοικίδια & Ζώα",
+    "storiesforkids": "Ιστορίες για Παιδιά",
+    "animationandmanga": "Κινουμένων Σχεδίων & Μάνγκα",
+    "automotive": "Αυτοκινητοβιομηχανία",
+    "aviation": "Αεροπορία",
+    "crafts": "Χειροτεχνίες",
+    "games": "Παιχνίδια",
+    "hobbies": "Χόμπι",
+    "homeandgarden": "Σπίτι & Κήπος",
+    "videogames": "Βιντεοπαιχνίδια",
+    "musiccommentary": "Μουσικά Σχόλια",
+    "musichistory": "Ιστορία της Μουσικής",
+    "musicinterviews": "Μουσικές Συνεντεύξεις",
+    "businessnews": "Ειδήσεις Επιχειρήσεων",
+    "dailynews": "Καθημερινές Ειδήσεις",
+    "entertainmentnews": "Ειδήσεις Ψυχαγωγίας",
+    "newscommentary": "Σχόλια Ειδήσεων",
+    "politics": "Πολιτική",
+    "sportsnews": "Αθλητικές Ειδήσεις",
+    "technews": "Τεχνολογικές Ειδήσεις",
+    "buddhism": "Βουδισμός",
+    "christianity": "Χριστιανισμός",
+    "hinduism": "Ινδουισμός",
+    "islam": "Ισλάμ",
+    "judaism": "Ιουδαϊσμός",
+    "religion": "Θρησκεία",
+    "spirituality": "Πνευματικότητα",
+    "astronomy": "Αστρονομία",
+    "chemistry": "Χημεία",
+    "earthsciences": "Γεωεπιστήμες",
+    "lifesciences": "Βιοεπιστήμες",
+    "mathematics": "Μαθηματικά",
+    "naturalsciences": "Φυσικές Επιστήμες",
+    "nature": "Φύση",
+    "physics": "Φυσική",
+    "socialsciences": "Κοινωνικές Επιστήμες",
+    "documentary": "Ντοκιμαντέρ",
+    "personaljournals": "Προσωπικά Ημερολόγια",
+    "philosophy": "Φιλοσοφία",
+    "placesandtravel": "Μέρη & Ταξίδια",
+    "relationships": "Σχέσεις",
+    "baseball": "Μπέιζμπολ",
+    "basketball": "Καλάθι",
+    "cricket": "Κρίκετ",
+    "fantasysports": "Φανταστικά Αθλήματα",
+    "football": "Ποδόσφαιρο",
+    "golf": "Γκολφ",
+    "hockey": "Χόκεϊ",
+    "rugby": "Ράγκμπι",
+    "running": "Τρέξιμο",
+    "soccer": "Ποδόσφαιρο",
+    "swimming": "Κολύμπι",
+    "tennis": "Τένις",
+    "volleyball": "Βόλεϊ",
+    "wilderness": "Άγρια Φύση",
+    "wrestling": "Πάλη",
+    "aftershows": "Μετά από Σόου",
+    "filmhistory": "Ιστορία Ταινίας",
+    "filminterviews": "Συνεντεύξεις Ταινιών",
+    "filmreviews": "Κριτικές Ταινιών",
+    "tvreviews": "Κριτικές Τηλεόρασης"
+  },
+  "language": {
+    "language": "Γλώσσα",
+    "select_language": "Επιλέξτε Γλώσσα",
+    "languages": {
+      "en-US": "Αγγλικά",
+      "es": "Ισπανικά",
+      "fr": "Γαλλικά",
+      "el-GR": "Ελληνικά"
+    }
+  }
+}

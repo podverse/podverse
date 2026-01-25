@@ -1,0 +1,37 @@
+pipeline {
+    agent {
+        label 'pv-alpha-aux'
+    }
+
+    triggers {
+        cron('0 1 * * *') // Run once a day at 1 AM
+    }
+
+    options {
+        disableConcurrentBuilds()
+        timestamps()
+    }
+
+    stages {
+        stage('Delete Outdated On Demand Parser Events') {
+            steps {
+                script {
+                    dir('/opt/podverse/infra/docker/alpha/workers') {
+                        // Check for any available podverse-workers image (local or GHCR) and proceed if present
+                        def hasImage = sh(script: "docker image ls --format '{{.Repository}}:{{.Tag}}' | grep -E '(^|/)podverse-workers(:|/)|(^|/)podverse_alpha_workers(:|/\$)' >/dev/null 2>&1", returnStatus: true) == 0
+                        
+                        if (hasImage) {
+                            sh """
+                                set -eux
+                                docker compose -f docker-compose.yml run --rm podverse_alpha_workers npm run orm_on_demand_parser_event_delete_outdated
+                            """
+                        } else {
+                            echo "No podverse-workers image found locally. Marking build NOT_BUILT and skipping."
+                            currentBuild.result = 'NOT_BUILT'
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

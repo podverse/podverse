@@ -1,0 +1,38 @@
+pipeline {
+    // Maps to <assignedNode>pv-alpha-aux</assignedNode>
+    agent {
+        label 'pv-alpha-aux'
+    }
+
+    // Maps to <concurrentBuild>false</concurrentBuild>
+    options {
+        disableConcurrentBuilds()
+        timestamps()
+    }
+
+    parameters {
+        string(
+            name: 'GIT_BRANCH_NAME', 
+            defaultValue: 'v5-develop', 
+            description: 'The git branch name to check out, before pulling the latest changes for the branch.'
+        )
+    }
+
+    stages {
+        stage('Update Ops Repo') {
+            steps {
+                script {
+                    // Maps to 'pushd /opt/podverse'
+                    dir('/opt/podverse') {
+                        // We use double quotes to interpolate the parameter ${GIT_BRANCH_NAME}
+                        sh """
+                            rm /opt/podverse/infra/docker/alpha/workers/docker-compose.yml || true
+                            git checkout ${params.GIT_BRANCH_NAME}
+                            git pull origin ${params.GIT_BRANCH_NAME}
+                        """
+                    }
+                }
+            }
+        }
+    }
+}

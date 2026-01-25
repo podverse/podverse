@@ -1,0 +1,70 @@
+{
+  "name": "podverse",
+  "version": "5.2.0",
+  "private": true,
+  "description": "Podverse monorepo - podcast app infrastructure, modules, and applications",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/podverse/podverse.git"
+  },
+  "contributors": [
+    "Mitch Downey",
+    "Creon Creonopoulos",
+    "Archie Brentano",
+    "Kyle Downey"
+  ],
+  "license": "AGPL-3.0",
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "workspaces": [
+    "packages/*",
+    "apps/*",
+    "tools/*"
+  ],
+  "devDependencies": {
+    "@eslint/js": "^9.35.0",
+    "@types/node": "^24.4.0",
+    "concurrently": "^9.2.1",
+    "eslint": "^9.35.0",
+    "globals": "^16.2.0",
+    "typescript": "^5.9.2",
+    "typescript-eslint": "^8.44.0"
+  },
+  "scripts": {
+    "prepare": "bash scripts/git-hooks/install-hooks.sh",
+    "start-feature": "bash scripts/start-feature.sh",
+    "build": "npm run build --workspaces --if-present",
+    "build:packages": "npm run build -w packages/helpers && npm run build -w packages/external-services && npm run build -w packages/orm && npm run build -w packages/notifications && npm run build -w packages/parser && npm run build -w packages/mq",
+    "build:apps": "npm run build --workspaces --if-present --workspace=apps/api --workspace=apps/web --workspace=apps/workers --workspace=apps/management-api --workspace=apps/management-web",
+    "clean": "npm run clean --workspaces --if-present",
+    "clean:packages": "find packages -name 'tsconfig.tsbuildinfo' -delete && find packages -type d -name 'dist' -exec rm -rf {} + 2>/dev/null || true",
+    "clean:apps": "find apps -name 'tsconfig.tsbuildinfo' -delete && find apps -type d -name 'dist' -exec rm -rf {} + 2>/dev/null || true",
+    "clean:all": "npm run clean:packages && npm run clean:apps",
+    "clean:node_modules": "rm -rf node_modules packages/*/node_modules apps/*/node_modules tools/*/node_modules",
+    "reinstall": "npm run clean:node_modules && rm -f package-lock.json && npm install",
+    "reinstall:full": "npm run clean:all && npm run reinstall && npm run build:packages && npm run build:apps",
+    "watch:packages": "concurrently -n helpers,ext-svc,orm,notif,parser,mq -c blue,cyan,green,blueBright,magenta,cyanBright \"npm run build:watch -w packages/helpers\" \"sleep 3 && npm run build:watch -w packages/external-services\" \"sleep 6 && npm run build:watch -w packages/orm\" \"sleep 9 && npm run build:watch -w packages/notifications\" \"sleep 12 && npm run build:watch -w packages/parser\" \"sleep 15 && npm run build:watch -w packages/mq\"",
+    "dev:api": "npm run dev -w apps/api",
+    "dev:api:watch": "npm run dev:watch -w apps/api",
+    "dev:web": "npm run dev -w apps/web",
+    "dev:web:watch": "npm run dev:watch -w apps/web",
+    "dev:management-api": "npm run dev -w apps/management-api",
+    "dev:management-api:watch": "npm run dev:watch -w apps/management-api",
+    "dev:management-web": "npm run dev -w apps/management-web",
+    "dev:workers": "npm run dev -w apps/workers",
+    "dev:main:all": "concurrently -n pkg,api,web -c gray,blue,green \"npm run watch:packages\" \"sleep 18 && npm run dev:api:watch\" \"sleep 24 && npm run dev:web\"",
+    "dev:management:all": "concurrently -n pkg,mgmt-api,mgmt-web -c gray,magentaBright,greenBright \"npm run watch:packages\" \"sleep 18 && npm run dev:management-api:watch\" \"sleep 24 && npm run dev:management-web\"",
+    "dev:all": "concurrently -n pkg,api,web,mgmt-api,mgmt-web -c gray,blue,green,magentaBright,greenBright \"npm run watch:packages\" \"sleep 18 && npm run dev:api:watch\" \"sleep 24 && npm run dev:web\" \"sleep 30 && npm run dev:management-api:watch\" \"sleep 36 && npm run dev:management-web\"",
+    "lint": "npm run lint --workspaces --if-present",
+    "lint:fix": "npm run lint:fix --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present",
+    "type-check": "npm run type-check --workspaces --if-present",
+    "db:combine": "bash scripts/database/combine-migrations.sh",
+    "db:verify": "bash scripts/database/verify-migrations-combined.sh",
+    "i18n:compile": "npm run i18n-compile -w apps/web && npm run i18n-compile -w apps/management-web",
+    "i18n:translate": "npm run i18n-llm-translations -w apps/web && npm run i18n-llm-translations -w apps/management-web",
+    "i18n:all": "npm run i18n:translate && npm run i18n:compile",
+    "i18n:validate": "npx ts-node scripts/ci/validate-i18n.ts"
+  }
+}

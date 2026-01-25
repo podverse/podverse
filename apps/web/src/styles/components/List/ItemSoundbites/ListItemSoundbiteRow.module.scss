@@ -1,0 +1,75 @@
+@use '../../../mixins/lineClamp' as *;
+@use '../../../mixins/timeText' as *;
+@use '../../../mixins/listRow' as *;
+@use 'breakpoints';
+
+.row {
+  display: flex;
+}
+
+.image {
+  object-fit: cover;
+  border-radius: var(--border-radius);
+}
+
+.imageMobile {
+  display: none;
+  object-fit: cover;
+  border-radius: var(--border-radius);
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  padding: 0 0 0 var(--spacing-xl);
+  flex: 1;
+  justify-content: space-around;
+}
+
+.topSection {
+  display: flex;
+  flex-direction: column;
+  color: var(--text-color-secondary);
+  gap: 0.375rem; // Keep specific value for content spacing
+}
+
+.subtitle {
+  @include line-clamp(1);
+  color: var(--text-color-secondary);
+  font-weight: var(--font-weight-light);
+}
+
+.bottomSection {
+  display: flex;
+  margin-top: var(--spacing-md);
+}
+
+.bottomSectionStart {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-base);
+  flex: 1;
+}
+
+.timeSection {
+  display: flex;
+  @include time-text-row();
+}
+
+.bottomSectionEnd {
+  display: flex;
+  align-items: center;
+}
+
+.editingButtons {
+  @include editingButtons();
+}
+
+@media (max-width: breakpoints.$breakpoint-sm-max) {
+  .image {
+    display: none;
+  }
+  .imageMobile {
+    display: block;
+  }
+}

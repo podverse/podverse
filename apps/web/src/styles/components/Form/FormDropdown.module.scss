@@ -1,0 +1,55 @@
+@use '../../mixins/form' as *;
+
+.wrapper {
+  position: relative;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  margin-bottom: var(--spacing-3xl);
+}
+
+.headerRow {
+  @include formHeaderRow;
+}
+
+.label {
+  @include formHeaderLabel;
+}
+
+.dropdownWrapper {
+  @include formInputWrapper;
+}
+
+.dropdownInnerWrapper {
+  display: flex;
+  flex: 1 1;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.eyebrow {
+  color: var(--text-color-link);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-bold);
+  margin: 0 0 var(--spacing-form-label-bottom);
+}
+
+.dropdownButton {
+  all: unset;
+  font-size: var(--font-size-md);
+  width: 100%;
+  padding: var(--spacing-form-input-inner);
+  cursor: pointer;
+}
+
+.dropdown {
+  display: flex;
+}
+
+.dropdownSelectedItemText {
+  flex: 1;
+}
+
+.formDropdownInfo {
+  @include formInfoText;
+}

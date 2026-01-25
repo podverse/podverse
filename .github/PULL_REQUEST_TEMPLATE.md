@@ -20,6 +20,15 @@
 - [ ] I have tested my changes
 - [ ] Documentation updated if needed
 
+## LLM Development (Optional)
+
+If you used AI assistance (Cursor, Claude, etc.) for this PR:
+
+- [ ] I kept my LLM history updated in `.llm/history/active/`
+
+> **Note**: History files are automatically moved to `completed/` when this PR is merged.
+> See [LLM Development docs](.llm/README.md) for more information.
+
 ## CI
 
 > **Note**: A maintainer will comment `/test` to run CI checks on this PR.

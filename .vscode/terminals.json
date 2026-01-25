@@ -1,0 +1,41 @@
+{
+  "autorun": false,
+  "terminals": [
+    {
+      "name": "Root",
+      "description": "General commands, git, make targets",
+      "cwd": ".",
+      "open": true
+    },
+    {
+      "name": "Dev",
+      "description": "npm run dev:main:all",
+      "cwd": ".",
+      "open": true
+    },
+    {
+      "name": "Docker",
+      "description": "Docker and make commands",
+      "cwd": ".",
+      "open": true
+    },
+    {
+      "name": "Workers",
+      "description": "Workers app development",
+      "cwd": "./apps/workers",
+      "open": true
+    },
+    {
+      "name": "partytime",
+      "description": "Partytime parser library",
+      "cwd": "../partytime",
+      "open": true
+    },
+    {
+      "name": "SSH",
+      "description": "SSH sessions",
+      "cwd": ".",
+      "open": true
+    }
+  ]
+}

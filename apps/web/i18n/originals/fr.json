@@ -1,0 +1,731 @@
+{
+  "media": {
+    "podcast": {
+      "audio": "Audio",
+      "podcasting": "Podcasting",
+      "podcast": "Podcast",
+      "podcasts": "Podcasts",
+      "podcast_image": "Image du podcast",
+      "episode": "Épisode",
+      "episodes": "Épisodes",
+      "episode_image": "Image de l'épisode"
+    },
+    "music": {
+      "music": "Musique",
+      "artist": "Artiste",
+      "artists": "Artistes",
+      "artist_image": "Image de l'artiste",
+      "album": "Album",
+      "albums": "Albums",
+      "album_image": "Image de l'album",
+      "track": "Piste",
+      "tracks": "Pistes",
+      "track_image": "Image de la piste",
+      "track_go_to": "Aller à la piste"
+    },
+    "video": {
+      "channel": "Chaîne",
+      "channels": "Chaînes",
+      "video": "Vidéo",
+      "videos": "Vidéos"
+    },
+    "livestream": {
+      "livestream": "Diffusion en direct",
+      "livestreams": "Diffusions en direct",
+      "livestream_image": "Image de la diffusion en direct",
+      "live": "En direct",
+      "pending": "Prévu",
+      "ended": "Terminé",
+      "no_livestreams_found": "Aucune diffusion en direct trouvée."
+    },
+    "updated_with_date": "Mis à jour : {date}",
+    "image": "Image"
+  },
+  "features": {
+    "search": {
+      "search": "Recherche",
+      "search_by_title": "Recherche par titre..."
+    },
+    "add_feed": {
+      "add_feed": "Ajouter un flux",
+      "add_feed_explanation": "Ce flux n'est pas dans notre annuaire. Si vous souhaitez l'ajouter, appuyez sur le bouton \"Ajouter un flux\".",
+      "rss_link": "Lien RSS"
+    },
+    "my_library": "Ma Bibliothèque",
+    "queue": {
+      "queue": "File d'attente",
+      "queues": "Files d'attente",
+      "queue_next": "File d'attente : Prochain",
+      "queue_last": "File d'attente : Dernier",
+      "added_to_queue": "Ajouté à la file d'attente",
+      "add_error": "Erreur lors de l'ajout à la file d'attente",
+      "remove_error": "Erreur lors de la suppression de la file d'attente",
+      "remove_from_queue": "Retirer de la file d'attente",
+      "removed_from_queue": "Retiré de la file d'attente"
+    },
+    "history": {
+      "history": "Historique",
+      "delete_history": "Supprimer l'historique",
+      "mark_as_played": "Marquer comme joué",
+      "marked_as_played": "Marqué comme joué",
+      "mark_as_played_error": "Erreur lors du marquage comme joué"
+    },
+    "playlist": {
+      "playlist": "Playlist",
+      "playlists": "Playlists",
+      "my_playlists": "Mes Playlists",
+      "create_playlist": "Créer une Playlist",
+      "edit_playlist": "Modifier la Playlist",
+      "delete_playlist": "Supprimer la Playlist",
+      "delete_playlist_confirm": "Êtes-vous sûr de vouloir supprimer cette playlist ?",
+      "add_to_playlist": "Ajouter à la Playlist",
+      "added_to_playlist": "Ajouté à la Playlist",
+      "add_error": "Erreur lors de l'ajout à la Playlist",
+      "remove_from_playlist": "Retirer de la Playlist",
+      "removed_from_playlist": "Retiré de la Playlist",
+      "remove_error": "Erreur lors du retrait de la Playlist",
+      "item_count": "Éléments : {count}",
+      "playlist_type": "Type de Playlist"
+    },
+    "clip": {
+      "clip": "Clip",
+      "clips": "Clips",
+      "create_clip": "Créer un Clip",
+      "edit_clip": "Modifier le Clip",
+      "delete_clip": "Supprimer le Clip",
+      "delete_clip_confirm": "Êtes-vous sûr de vouloir supprimer ce clip ?",
+      "my_clips": "Mes Clips",
+      "clip_created": "Clip Créé",
+      "clip_updated": "Clip Mis à Jour",
+      "link_to_clip": "Lien vers le Clip",
+      "start_time": "Heure de Début",
+      "start_time_aria": "Heure de début en heures, minutes et secondes (hh:mm:ss)",
+      "start_time_play_aria": "Jouer depuis l'heure de début du clip",
+      "end_time": "Heure de Fin",
+      "end_time_aria": "Heure de fin en heures, minutes et secondes (hh:mm:ss)",
+      "end_time_play_aria": "Jouer depuis l'heure de fin du clip",
+      "clip_time_range": "{hhmmssStart} à {hhmmssEnd}"
+    },
+    "my_clips": "Mes Clips",
+    "my_profile": "Mon Profil",
+    "profile": "Profil",
+    "profiles": "Profils",
+    "embed": "Intégrer",
+    "copy": "Copier",
+    "copied": "Copié",
+    "subscribe": "S'abonner",
+    "unsubscribe": "Se désabonner",
+    "share": "Partager",
+    "download": {
+      "download_episode": "Télécharger l'Épisode",
+      "downloading_episode": "Téléchargement de l'Épisode",
+      "episode_downloaded": "Épisode Téléchargé",
+      "episode_download_error": "Erreur lors du téléchargement de l'Épisode",
+      "download_track": "Télécharger le Piste",
+      "downloading_track": "Téléchargement de la Piste",
+      "track_downloaded": "Piste téléchargée",
+      "track_download_error": "Erreur de téléchargement de la piste"
+    },
+    "notifications": {
+      "enable_notifications_for_this_podcast": "Activer les notifications pour ce podcast",
+      "disable_notifications_for_this_podcast": "Désactiver les notifications pour ce podcast",
+      "enable_notifications_for_this_album": "Activer les notifications pour cet album",
+      "disable_notifications_for_this_album": "Désactiver les notifications pour cet album",
+      "enable_notifications_for_this_artist": "Activer les notifications pour cet artiste",
+      "disable_notifications_for_this_artist": "Désactiver les notifications pour cet artiste"
+    }
+  },
+  "info": {
+    "funding": "Financement",
+    "website": "Site web",
+    "rss_feed": "Flux RSS",
+    "about": "À propos",
+    "summary": {
+      "summary": "Résumé",
+      "no_summary": "Aucun résumé disponible"
+    },
+    "podroll": "Podroll",
+    "transcript": {
+      "transcript": "Transcription",
+      "search_transcript": "Rechercher dans la transcription...",
+      "lyrics": "Paroles"
+    },
+    "credits": "Crédits",
+    "people": {
+      "people": "Personnes",
+      "person_image": "Image de la personne",
+      "link_to_persons_webpage": "Lien vers la page web de la personne"
+    },
+    "chapter": {
+      "chapter": "Chapitre",
+      "chapters": "Chapitres",
+      "chapter_image": "Image du chapitre"
+    },
+    "soundbite": {
+      "official_clip": "Extrait officiel",
+      "official_clips": "Extraits officiels"
+    },
+    "time": {
+      "left": "{timeRemaining} restant",
+      "last": "{timePosition} dernier",
+      "start": "{timeStart} heure de début",
+      "start_end": "{timeStart} à {timeEnd}"
+    }
+  },
+  "media_player": {
+    "play": "Jouer",
+    "pause": "Pause",
+    "show_fullscreen_media_player": "Afficher le lecteur multimédia en plein écran",
+    "fullscreen_media_player": "Lecteur multimédia en plein écran",
+    "media_player_image": "Image du lecteur multimédia",
+    "repeat": {
+      "toggle_repeat": "Basculer la répétition",
+      "repeat_enabled": "Répétition activée",
+      "repeat_disabled": "Répétition désactivée"
+    },
+    "shuffle": {
+      "toggle_shuffle": "Basculer le mode aléatoire",
+      "shuffle_enabled": "Mode aléatoire activé",
+      "shuffle_disabled": "Mode aléatoire désactivé"
+    },
+    "playback_speed": {
+      "playback_speed": "Vitesse de lecture",
+      "playback_speed_with_value": "Vitesse de lecture : {speed}",
+      "speeds": {
+        "0-5": "0.5x",
+        "0-75": "0.75x",
+        "0-87": "0.87x",
+        "1-0": "1x",
+        "1-12": "1.12x",
+        "1-25": "1.25x",
+        "1-5": "1,5x",
+        "1-75": "1,75x",
+        "2-0": "2x",
+        "2-5": "2,5x",
+        "3-0": "3x"
+      }
+    },
+    "source": {
+      "source": "Source",
+      "source_with_format": "Source : {format}",
+      "select_source": "Sélectionner la source média",
+      "video": "Vidéo",
+      "video_with_resolution": "Vidéo {resolution}p",
+      "video_with_ext": "Vidéo {ext}",
+      "video_with_ext_resolution": "Vidéo {ext} {resolution}p",
+      "resolution": "{resolution}p",
+      "audio": "Audio",
+      "audio_with_ext": "Audio {ext}",
+      "audio_with_bitrate_kbps": "Audio {bitrate}kbps",
+      "audio_with_bitrate_mbps": "Audio {bitrate}Mbps",
+      "audio_with_ext_bitrate_kbps": "Audio {ext} {bitrate}kbps",
+      "audio_with_ext_bitrate_mbps": "Audio {ext} {bitrate}Mbps"
+    }
+  },
+  "value": {
+    "boost": "Amplifier",
+    "recipient": {
+      "creator_recipient": "Destinataire",
+      "creator_recipients": "Destinataires",
+      "app_recipient": "Destinataire de l'application"
+    },
+    "total": "Total",
+    "message": "Message",
+    "types": {
+      "lightning_keysend": {
+        "label": "Bitcoin Lightning Keysend",
+        "denomination": "satoshis"
+      },
+      "paypal_send": {
+        "label": "PayPal",
+        "denomination": "USD"
+      },
+      "patreon_send": {
+        "label": "Patreon",
+        "denomination": "USD"
+      },
+      "buymeacoffee_send": {
+        "label": "Achetez-moi un café",
+        "denomination": "USD"
+      }
+    },
+    "send_to": {
+      "creator": "Envoyer au créateur",
+      "app": "Envoyer à {brand_name}"
+    },
+    "your_name": "Votre nom"
+  },
+  "filters": {
+    "type": {
+      "global": "Global",
+      "all": "Tous",
+      "subscribed": "Abonnés",
+      "category": "Catégorie"
+    },
+    "sort": {
+      "recent": "Récents",
+      "oldest": "Les plus anciens",
+      "a_z": "A-Z",
+      "top": "Haut",
+      "random": "Aléatoire",
+      "forward": "Commandé",
+      "backward": "Inverse"
+    },
+    "range": {
+      "day": "Jour",
+      "week": "Semaine",
+      "month": "Mois",
+      "all_time": "Tout le temps"
+    }
+  },
+  "legal": {
+    "takedown_notice": "Avis de retrait",
+    "spam_policy": "Politique de spam",
+    "spam_policy_explanation": "Ce contenu a été automatiquement signalé comme spam selon notre système. Si vous pensez que c'est une erreur, veuillez contacter le support.",
+    "archive_policy": "Politique d'archivage",
+    "archive_policy_explanation": "Ce contenu est en cours d'archivage et de suppression. Cela se produit souvent avec des contenus qui changent d'URL de flux RSS. Si vous pensez que c'est une erreur et que vous souhaitez que ce contenu soit ajouté, veuillez contacter le support.",
+    "takedown_policy": "Politique de retrait",
+    "takedown_policy_explanation": "Ce contenu a été retiré suite à une demande de retrait du titulaire des droits d'auteur."
+  },
+  "misc": {
+    "more_info": "Plus d'infos",
+    "info": "Infos",
+    "items": "Articles",
+    "increment": "Incrémenter",
+    "decrement": "Décrémenter",
+    "anonymous": "Anonyme",
+    "untitled": "Sans titre",
+    "optional": "Optionnel",
+    "submit": "Soumettre",
+    "save": "Enregistrer",
+    "saving": "En cours d'enregistrement...",
+    "cancel": "Annuler",
+    "close": "Fermer",
+    "on": "Activé",
+    "off": "Désactivé",
+    "available": "Disponible",
+    "title": "Titre",
+    "description": "Description",
+    "required": "Requis",
+    "edit": "Modifier",
+    "done": "Fait",
+    "id": "ID",
+    "continue": "Continuer",
+    "i_have_read_and_agree": "J'ai lu et j'accepte les conditions.",
+    "unknown_date": "Date inconnue",
+    "redirecting": "Redirection...",
+    "terms": "Conditions",
+    "mobile": "Mobile",
+    "donate": "Faire un don",
+    "updates": "Mises à jour",
+    "sharable_status": {
+      "sharable_status": "État partageable",
+      "public": "Public",
+      "unlisted": "Non répertorié",
+      "private": "Privé"
+    },
+    "autoscroll": {
+      "autoscroll_on": "Défilement automatique : Activé",
+      "autoscroll_off": "Défilement automatique : Désactivé"
+    },
+    "rate_limit": {
+      "generic": "Limite de fréquence : veuillez réessayer plus tard.",
+      "until": "Limite de fréquence : cette action ne peut pas être utilisée à nouveau avant {time}.",
+      "minute_remaining": "Limite de fréquence : {minutes} minute avant que vous puissiez utiliser à nouveau cette action.",
+      "minutes_remaining": "Limite de fréquence : {minutes} minutes avant que vous puissiez utiliser à nouveau cette action."
+    },
+    "try_again": "Réessayez",
+    "reload_page": "Rcharger la page",
+    "go_to_home": "Aller à l'accueil"
+  },
+  "errors": {
+    "generic": "Quelque chose a mal tourné. Veuillez réessayer plus tard ou contacter le support pour obtenir de l'aide.",
+    "boundary_title": "Quelque chose a mal tourné",
+    "boundary_message": "Une erreur inattendue est survenue. Veuillez réessayer.",
+    "global_title": "Erreur d'application",
+    "global_message": "Une erreur critique est survenue. Veuillez actualiser la page.",
+    "details_development_only": "Détails de l'erreur (développement uniquement)",
+    "test_page": {
+      "test_error_boundaries_title": "Page de test des limites d'erreur",
+      "test_error_boundaries_description": "Cette page vous permet de tester divers scénarios de limites d'erreur. Cliquez sur les boutons ci-dessous pour déclencher différents types d'erreurs.",
+      "test_error_boundaries_warning": "Cette page est uniquement disponible en mode développement.",
+      "test_error_boundaries_section_1_title": "1. Erreur de rendu de composant (capturée par la limite d'erreur)",
+      "test_error_boundaries_section_1_description": "Cette erreur est déclenchée pendant le rendu du composant et sera capturée par la limite d'erreur.",
+      "test_error_boundaries_section_2_title": "2. Erreur dans useEffect (capturée par la limite d'erreur)",
+      "test_error_boundaries_section_2_description": "Cette erreur est déclenchée dans useEffect et sera capturée par la limite d'erreur.",
+      "test_error_boundaries_section_3_title": "3. Erreur conditionnelle (capturée par la limite d'erreur)",
+      "test_error_boundaries_section_3_description": "Cette erreur est déclenchée conditionnellement en fonction de l'état et sera capturée par la limite d'erreur.",
+      "test_error_boundaries_section_4_title": "4. Erreur de gestionnaire d'événement (NON capturée par la limite d'erreur)",
+      "test_error_boundaries_section_4_description": "Les erreurs dans les gestionnaires d'événements NE sont PAS capturées par les limites d'erreur. Cela s'affichera dans la console.",
+      "test_error_boundaries_section_5_title": "5. Erreur au niveau de la route (Next.js error.tsx)",
+      "test_error_boundaries_section_5_description": "Cela déclenchera la page d'erreur au niveau de la route de Next.js (error.tsx).",
+      "test_error_boundaries_section_6_title": "6. Limites d'erreur imbriquées",
+      "test_error_boundaries_section_6_description": "Tester les limites d'erreur imbriquées - la limite intérieure capture l'erreur, l'extérieur continue de fonctionner.",
+      "test_error_boundaries_trigger_render_error": "Déclencher une erreur de rendu",
+      "test_error_boundaries_trigger_useeffect_error": "Déclencher une erreur useEffect",
+      "test_error_boundaries_trigger_conditional_error": "Déclencher une erreur conditionnelle",
+      "test_error_boundaries_trigger_event_handler_error": "Déclencher une erreur de gestionnaire d'événements (non capturée)",
+      "test_error_boundaries_trigger_route_error": "Déclencher une erreur de route",
+      "test_error_boundaries_trigger_nested_error": "Déclencher une erreur imbriquée",
+      "test_error_boundaries_reset_all": "Réinitialiser tout",
+      "test_error_boundaries_nested_outer_content": "Contenu de la limite extérieure (doit rester visible)"
+    }
+  },
+  "instructions": {
+    "login_required": "Connexion requise",
+    "login_for_subscriptions": "Veuillez vous connecter pour voir vos abonnements.",
+    "login_to_create_playlists": "Veuillez vous connecter pour créer des playlists.",
+    "login_to_create_clips": "Veuillez vous connecter pour créer des extraits.",
+    "login_for_queues": "Veuillez vous connecter pour voir vos files d'attente.",
+    "login_for_history": "Veuillez vous connecter pour voir votre historique.",
+    "login_to_add_feeds": "Veuillez vous connecter pour ajouter des flux à notre annuaire.",
+    "login_to_refresh_feeds": "Veuillez vous connecter pour actualiser les flux.",
+    "login_to_subscribe": "Veuillez vous connecter pour vous abonner.",
+    "login_to_add_to_queue": "Veuillez vous connecter pour ajouter à votre file d'attente.",
+    "login_to_add_to_playlist": "Veuillez vous connecter pour ajouter à votre playlist.",
+    "login_to_mark_as_played": "Veuillez vous connecter pour marquer les éléments comme lus.",
+    "login_to_enable_notifications": "Veuillez vous connecter pour activer les notifications.",
+    "login_to_disable_notifications": "Veuillez vous connecter pour désactiver les notifications."
+  },
+  "subscriptions": {
+    "subscriptions": "Abonnements",
+    "how_to_start_message": "Essayez <searchLink>de rechercher</searchLink> votre contenu préféré, ou parcourez <podcastsLink>les podcasts</podcastsLink>, <videosLink>les vidéos</videosLink> ou <musicLink>la musique</musicLink>. Vos abonnements apparaîtront ici."
+  },
+  "authentication": {
+    "login": "Connexion",
+    "logout": "Déconnexion",
+    "sign_up": "S'inscrire",
+    "forgot_password": "Mot de passe oublié ?",
+    "forgot_password_email_sent_message": "Si un compte avec cet e-mail existe, un e-mail de réinitialisation du mot de passe a été envoyé. Veuillez vérifier votre e-mail pour des instructions supplémentaires. Si vous ne recevez pas d'e-mail dans quelques minutes, veuillez vérifier votre dossier spam ou contacter le support.",
+    "reset_password": "Réinitialiser le mot de passe",
+    "reset_password_complete_message": "Votre mot de passe a été réinitialisé avec succès. Vous pouvez maintenant vous connecter avec votre nouveau mot de passe.",
+    "email": "E-mail",
+    "password": "Mot de passe",
+    "confirm_password": "Confirmer le mot de passe",
+    "invalid_email_or_password": "E-mail ou mot de passe invalide.",
+    "invalid_email": "E-mail invalide",
+    "invalid_password": "Mot de passe invalide",
+    "password_requirements": "Le mot de passe doit comporter au moins 8 caractères et inclure au moins un caractère non minuscule.",
+    "password_mismatch": "Les mots de passe ne correspondent pas",
+    "account_created_message": "Compte créé avec succès. Veuillez vérifier votre e-mail pour un lien de vérification.",
+    "account_not_verified": "Compte non vérifié. Veuillez vérifier votre e-mail pour un lien de vérification.",
+    "resend_verification_email": "Renvoyer l'e-mail de vérification",
+    "verification_email_sent": "E-mail de vérification envoyé. S'il n'arrive pas dans quelques minutes, veuillez vérifier votre dossier spam ou contacter le support.",
+    "verify_email": "Vérifier l'e-mail",
+    "verifying_email_address": "Vérification de l'adresse e-mail...",
+    "email_verified": "E-mail vérifié avec succès.",
+    "verification_failed": "Échec de la vérification de l'e-mail. Le lien de vérification peut avoir expiré. Veuillez essayer de vous connecter à nouveau pour renvoyer l'e-mail de vérification.",
+    "change_email_address_email": "Changer l'e-mail",
+    "change_email_address_email_sent": "Un e-mail de vérification a été envoyé à votre nouvelle adresse e-mail. Veuillez vérifier votre nouvel e-mail pour un lien de confirmation. S'il n'arrive pas dans quelques minutes, veuillez vérifier votre dossier spam ou contacter le support.",
+    "change_email_verification": "Changement de vérification de l'e-mail",
+    "changing_email_address": "Changement d'adresse e-mail...",
+    "change_email_address_email_failed": "Échec du changement d'e-mail. Le lien de confirmation peut avoir expiré. Veuillez réessayer.",
+    "change_email_address_email_success": "Adresse e-mail changée avec succès. Vous pouvez maintenant vous connecter avec votre nouvelle adresse e-mail.",
+    "contact_only_text_before": "Pour créer un compte, veuillez contacter le support à"
+  },
+  "membership": {
+    "membership": "Abonnement",
+    "free": "Gratuit",
+    "premium": "Premium",
+    "intro_try_premium": "Essayez Premium gratuitement pendant {days} jours.",
+    "intro_trial_days_left_one": "Vous avez {days} jour restant dans votre essai gratuit.",
+    "intro_trial_days_left_other": "Vous avez {days} jours restants dans votre essai gratuit.",
+    "intro_trial_hours_left_one": "Vous avez {hours} heure restante dans votre essai gratuit.",
+    "intro_trial_hours_left_other": "Vous avez {hours} heures restantes dans votre essai gratuit.",
+    "intro_trial_minutes_left_one": "Vous avez {minutes} minute restante dans votre essai gratuit.",
+    "intro_trial_minutes_left_other": "Vous avez {minutes} minutes restantes dans votre essai gratuit.",
+    "intro_membership_minutes_left_one": "Votre abonnement Premium expire dans {minutes} minute.",
+    "intro_membership_minutes_left_other": "Votre abonnement Premium expire dans {minutes} minutes.",
+    "intro_membership_hours_left_one": "Votre abonnement Premium expire dans {hours} heure.",
+    "intro_membership_hours_left_other": "Votre abonnement Premium expire dans {hours} heures.",
+    "intro_membership_days_left_one": "Votre abonnement Premium expire dans {days} jour.",
+    "intro_membership_days_left_other": "Votre abonnement Premium expire dans {days} jours.",
+    "pricing_monthly": "Mensuel",
+    "pricing_annually": "Annuel",
+    "pricing_per_month": "/mois",
+    "pricing_per_year": "/an",
+    "pricing_save_percent": "Économisez {percent}%",
+    "contact_mode_text_before": "Pour obtenir un abonnement, veuillez nous contacter à",
+    "cta_sign_up_text": "Inscrivez-vous pour commencer votre essai gratuit",
+    "cta_upgrade_text": "Passer à Premium",
+    "buy_premium_membership": "Acheter un abonnement Premium",
+    "your_membership_expires_on": "Votre abonnement Premium expire le {date}",
+    "extend_my_membership": "Prolonger mon abonnement",
+    "membership_expired_text_line1": "Votre abonnement a expiré.",
+    "membership_expired_text_line2": "Veuillez prolonger votre abonnement pour continuer à profiter des fonctionnalités Premium.",
+    "trial_expired_text_line1": "Votre essai gratuit a expiré.",
+    "trial_expired_text_line2": "Veuillez prolonger votre abonnement pour continuer à profiter des fonctionnalités Premium.",
+    "feature": "Fonctionnalité",
+    "features": "Fonctionnalités",
+    "membership_expiring_warning": "Votre {type} expire le {date}. Renouvelez maintenant pour continuer à profiter des fonctionnalités Premium.",
+    "membership_expired_danger": "Votre {type} a expiré. Renouvelez maintenant pour continuer à profiter des fonctionnalités Premium.",
+    "membership_link_text": "Aller à la page d'abonnement",
+    "free_trial": "essai gratuit",
+    "premium_membership": "abonnement Premium",
+    "free_trial_not_allowed": "Cette fonctionnalité est uniquement disponible pour les comptes premium et n'est pas disponible pour les essais gratuits"
+  },
+  "about": {
+    "title": "À propos",
+    "intro_text": "Podverse est un gestionnaire de podcasts FOSS pour iOS, Android, F-Droid et le web.",
+    "download_app_store": "Télécharger sur l'App Store",
+    "download_google_play": "OBTENEZ-LE SUR Google Play",
+    "download_f_droid": "OBTENEZ-LE SUR F-Droid",
+    "licensing_text": "Tous les logiciels Podverse sont fournis sous une licence libre et open source (FOSS). Les fonctionnalités nécessitant la mise à jour de nos serveurs ne sont disponibles qu'avec un abonnement Premium. Inscrivez-vous aujourd'hui et profitez d'un essai gratuit de 3 mois. 🥳",
+    "features_title": "Fonctionnalités"
+  },
+  "checkout": {
+    "checkout": "Passer à la caisse",
+    "payment_plan": "Plan de paiement",
+    "auto_renew": "Renouvellement automatique",
+    "payment_processor": "Processeur de paiement",
+    "paypal": "PayPal",
+    "stripe": "Stripe",
+    "complete_purchase": "Finaliser l'achat",
+    "disabled_message": "La page de paiement est désactivée."
+  },
+  "layouts": {
+    "change_layout_view": "Changer l'affichage",
+    "grid_view": "Vue Grille",
+    "grid_mini_view": "Vue Mini Grille",
+    "list_view": "Vue Liste"
+  },
+  "settings": {
+    "settings": "Paramètres",
+    "ui_theme": {
+      "theme": "Thème",
+      "light": "☀️ Clair",
+      "dark": "🌙 Sombre",
+      "dracula": "🧛 Dracula"
+    },
+    "feed": {
+      "check_feed_for_updates": "Vérifier le flux pour les mises à jour",
+      "check_feed_added_to_queue": "Flux ajouté à la file d'attente pour analyse. Cela peut prendre quelques minutes pour que le flux soit analysé. Veuillez vérifier la liste pour des mises à jour plus tard."
+    },
+    "account": {
+      "account": "Compte",
+      "change_email": "Changer l'email",
+      "change_email_description": "Changez votre adresse e-mail. Un e-mail de vérification sera envoyé à votre nouvelle adresse e-mail.",
+      "change_email_modal": {
+        "title": "Changer l'adresse e-mail",
+        "message": "Entrez la nouvelle adresse e-mail que vous souhaitez utiliser. Un e-mail de vérification sera envoyé à cette adresse.",
+        "email_sent": "Un e-mail de vérification a été envoyé à votre nouvelle adresse e-mail. Veuillez vérifier vos e-mails pour un lien de confirmation."
+      },
+      "delete_account": "Supprimer le compte",
+      "delete_account_description": "Supprimez définitivement votre compte et toutes les données associées. Cette action ne peut pas être annulée.",
+      "delete_account_modal": {
+        "title": "Supprimer le compte",
+        "message": "Cette action ne peut pas être annulée. Pour confirmer que vous souhaitez supprimer votre compte, veuillez saisir votre adresse e-mail ci-dessous.",
+        "email_mismatch": "L'adresse e-mail que vous avez saisie ne correspond pas à l'adresse e-mail de votre compte."
+      },
+      "download_my_data": "Télécharger mes données",
+      "download_my_data_description": "Téléchargez toutes vos données de compte sous forme de fichier JSON",
+      "download_my_data_loading": "Préparation de vos données...",
+      "download_my_data_success": "Données téléchargées avec succès",
+      "download_my_data_error": "Échec du téléchargement des données"
+    },
+    "profile": {
+      "profile": "Profil",
+      "display_name": "Nom d'affichage",
+      "display_name_description": "Votre nom d'affichage est visible sur votre profil. S'il est laissé vide, il apparaîtra comme Anonyme.",
+      "bio": "Bio",
+      "bio_placeholder": "Parlez-nous de vous...",
+      "bio_description": "Une brève description de vous-même (facultatif).",
+      "sharable_status": "Visibilité du profil",
+      "sharable_status_public_description": "Votre profil est visible par tous et peut être trouvé dans les listes de profils publics.",
+      "sharable_status_unlisted_description": "Votre profil est visible par toute personne ayant le lien direct, mais n'apparaîtra pas dans les listes de profils publics.",
+      "sharable_status_private_description": "Votre profil est uniquement visible par vous. Les autres ne peuvent pas voir votre profil même avec un lien direct.",
+      "update_success": "Profil mis à jour avec succès"
+    },
+    "notifications": {
+      "notifications": "Notifications",
+      "web_push": "Notifications du navigateur",
+      "web_push_help": "Recevez des notifications du navigateur pour les nouveaux épisodes et pistes des créateurs auxquels vous êtes abonné. Fonctionne dans les navigateurs pris en charge.",
+      "unified_push": "Push Unifié",
+      "unified_push_help": "Utilisez Push Unifié pour recevoir des notifications via un service de notification compatible (comme ntfy). Nécessite une URL de point de terminaison Push Unifié.",
+      "up_endpoint_label": "URL de point de terminaison",
+      "up_endpoint_placeholder": "https://ntfy.sh/votre-sujet",
+      "up_endpoint_info": "Entrez votre URL de point de terminaison Push Unifié. Compatible avec ntfy et d'autres services UP.",
+      "up_auth_key_label": "Jeton d'accès (facultatif)",
+      "up_auth_key_placeholder": "tk_...",
+      "up_auth_key_info": "Requis pour les sujets privés/protégés. Laisser vide pour les sujets publics.",
+      "up_current_endpoint": "Point de terminaison actuel :",
+      "up_enable_error": "Échec de l'activation du Push Unifié. Veuillez vérifier votre URL de point de terminaison.",
+      "cancel": "Annuler",
+      "enable": "Activer",
+      "default_new_item": "Nouvel élément par défaut",
+      "default_new-item_help": "Recevez des notifications lorsque de nouveaux épisodes ou pistes sont publiés par des créateurs auxquels vous êtes abonné. C'est le paramètre de notification par défaut qui s'applique à toutes vos abonnements, mais peut être remplacé pour chacun.",
+      "default_livestream_scheduled": "Diffusion en direct planifiée par défaut",
+      "default_livestream-scheduled_help": "Recevez des notifications lorsque des diffusions en direct sont planifiées par des créateurs auxquels vous êtes abonné. C'est le paramètre de notification par défaut qui s'applique à toutes vos abonnements, mais peut être remplacé pour chacun.",
+      "default_livestream_started": "Diffusion en direct commencée par défaut",
+      "default_livestream-started_help": "Recevez des notifications lorsque des diffusions en direct commencent par des créateurs auxquels vous êtes abonné. C'est le paramètre de notification par défaut qui s'applique à toutes vos abonnements, mais peut être remplacé pour chacun.",
+      "new_item": "Nouvel élément",
+      "livestream_scheduled": "Diffusion en direct planifiée",
+      "livestream_started": "Diffusion en direct commencée"
+    }
+  },
+  "contact": {
+    "contact": "Contact",
+    "email": "E-mail",
+    "live_chat": "Chat en direct",
+    "report_bug": "Signaler un bug",
+    "feature_request": "Demande de fonctionnalité",
+    "podcast_request": "Demande de podcast",
+    "report_content_issue": "Signaler un problème de contenu",
+    "general": "Général",
+    "join_matrix_space": "Rejoignez notre espace Matrix",
+    "chat_discord": "Discutez avec nous sur Discord"
+  },
+  "terms": {
+    "terms": "Conditions",
+    "never_sell_data": "Podverse ne vendra ni ne partagera jamais les données privées des utilisateurs.",
+    "no_ads_without_permission": "Nous ne mettrons jamais de publicités à côté ou dans le contenu d'un podcast sans la permission de ce podcast.",
+    "audio_video_hosting": "Tous les fichiers audio ou vidéo trouvés sur podverse.fm proviennent du serveur public du podcasteur. Nous n'hébergeons pas nous-mêmes les fichiers audio ou vidéo de podcast.",
+    "third_party_feeds": "Nous hébergeons des liens et du contenu de podcasts provenant de flux et de sites tiers. Ceux-ci ont leurs propres politiques de confidentialité indépendantes, et nous n'avons aucune responsabilité concernant leur contenu ou leurs activités.",
+    "clips_crowdsourced": "Tous les extraits hébergés sur podverse.fm sont collectés par la foule et non officiels, sauf indication contraire du podcasteur.",
+    "clips_load_full_episode": "Les extraits se chargent dans le fichier média de l'épisode complet, donc l'utilisateur a toujours accès à l'enregistrement complet.",
+    "reduced_size_images": "Nous hébergeons également des images de podcast réduites provenant des flux de podcasteurs, pour économiser les données du réseau de l'utilisateur et accélérer les temps de chargement des pages."
+  },
+  "socials": {
+    "discord": "Discord",
+    "mastodon": "Mastodon",
+    "x": "X",
+    "matrix": "Matrix",
+    "github": "GitHub"
+  },
+  "disclaimers": {
+    "environment_warning": {
+      "alpha": {
+        "header": "Avertissement Alpha ⚠️",
+        "message": "Ceci est la version alpha du site web. Elle est inachevée, peut contenir des bugs, et vos données alpha peuvent être réinitialisées ou supprimées périodiquement."
+      },
+      "local": {
+        "header": "Développement Local ⚙️",
+        "message": "Vous exécutez une version de développement local."
+      }
+    }
+  },
+  "categories": {
+    "categories": "Catégories",
+    "select_a_category": "Sélectionnez une catégorie",
+    "arts": "Arts",
+    "business": "Affaires",
+    "comedy": "Comédie",
+    "education": "Éducation",
+    "fiction": "Fiction",
+    "government": "Gouvernement",
+    "history": "Histoire",
+    "healthandfitness": "Santé & Fitness",
+    "kidsandfamily": "Enfants & Famille",
+    "leisure": "Loisirs",
+    "music": "Musique",
+    "news": "Actualités",
+    "religionandspirituality": "Religion & Spiritualité",
+    "science": "Science",
+    "societyandculture": "Société & Culture",
+    "sports": "Sports",
+    "technology": "Technologie",
+    "truecrime": "Crime Véritable",
+    "tvandfilm": "TV & Film",
+    "books": "Livres",
+    "design": "Design",
+    "fashionandbeauty": "Mode & Beauté",
+    "food": "Nourriture",
+    "performingarts": "Arts de la Scène",
+    "visualarts": "Arts Visuels",
+    "careers": "Carrières",
+    "entrepreneurship": "Entrepreneuriat",
+    "investing": "Investissement",
+    "management": "Gestion",
+    "marketing": "Marketing",
+    "nonprofit": "Organisme à but non lucratif",
+    "comedyinterviews": "Interviews de comédie",
+    "improv": "Improvisation",
+    "standup": "Stand-up",
+    "courses": "Cours",
+    "howto": "Comment faire",
+    "languagelearning": "Apprentissage des langues",
+    "selfimprovement": "Développement personnel",
+    "comedyfiction": "Fiction comique",
+    "drama": "Drame",
+    "sciencefiction": "Science-fiction",
+    "alternativehealth": "Santé alternative",
+    "fitness": "Fitness",
+    "medicine": "Médecine",
+    "mentalhealth": "Santé mentale",
+    "nutrition": "Nutrition",
+    "sexuality": "Sexualité",
+    "educationforkids": "Éducation pour enfants",
+    "parenting": "Parentalité",
+    "petsandanimals": "Animaux de compagnie et animaux",
+    "storiesforkids": "Histoires pour enfants",
+    "animationandmanga": "Animation et Manga",
+    "automotive": "Automobile",
+    "aviation": "Aviation",
+    "crafts": "Arts et artisanat",
+    "games": "Jeux",
+    "hobbies": "Loisirs",
+    "homeandgarden": "Maison et jardin",
+    "videogames": "Jeux vidéo",
+    "musiccommentary": "Commentaire musical",
+    "musichistory": "Histoire de la musique",
+    "musicinterviews": "Interviews musicales",
+    "businessnews": "Actualités économiques",
+    "dailynews": "Actualités quotidiennes",
+    "entertainmentnews": "Actualités du divertissement",
+    "newscommentary": "Commentaire d'actualités",
+    "politics": "Politique",
+    "sportsnews": "Actualités sportives",
+    "technews": "Actualités technologiques",
+    "buddhism": "Bouddhisme",
+    "christianity": "Christianisme",
+    "hinduism": "Hindouisme",
+    "islam": "Islam",
+    "judaism": "Judaïsme",
+    "religion": "Religion",
+    "spirituality": "Spiritualité",
+    "astronomy": "Astronomie",
+    "chemistry": "Chimie",
+    "earthsciences": "Sciences de la Terre",
+    "lifesciences": "Sciences de la vie",
+    "mathematics": "Mathématiques",
+    "naturalsciences": "Sciences naturelles",
+    "nature": "Nature",
+    "physics": "Physique",
+    "socialsciences": "Sciences sociales",
+    "documentary": "Documentaire",
+    "personaljournals": "Journaux personnels",
+    "philosophy": "Philosophie",
+    "placesandtravel": "Lieux et voyages",
+    "relationships": "Relations",
+    "baseball": "Baseball",
+    "basketball": "Basketball",
+    "cricket": "Cricket",
+    "fantasysports": "Sports fantaisie",
+    "football": "Football",
+    "golf": "Golf",
+    "hockey": "Hockey",
+    "rugby": "Rugby",
+    "running": "Course",
+    "soccer": "Football",
+    "swimming": "Natation",
+    "tennis": "Tennis",
+    "volleyball": "Volley-ball",
+    "wilderness": "Sauvage",
+    "wrestling": "Lutte",
+    "aftershows": "After Shows",
+    "filmhistory": "Histoire du cinéma",
+    "filminterviews": "Interviews de films",
+    "filmreviews": "Critiques de films",
+    "tvreviews": "Critiques de séries"
+  },
+  "language": {
+    "language": "Langue",
+    "select_language": "Sélectionner la langue",
+    "languages": {
+      "en-US": "Anglais",
+      "es": "Espagnol",
+      "fr": "Français",
+      "el-GR": "Grec"
+    }
+  }
+}

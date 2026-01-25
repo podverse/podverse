@@ -1,0 +1,18 @@
+.fundingLinksList {
+  list-style: none;
+  padding: var(--spacing-none);
+  margin: var(--spacing-none);
+}
+
+.fundingLinkItem {
+  margin-bottom: var(--spacing-xl);
+}
+
+.fundingLinkItem:last-child {
+  margin-bottom: var(--spacing-sm);
+}
+
+.fundingLink {
+  font-size: var(--font-size-md);
+  font-weight: 600;
+}

@@ -1,0 +1,45 @@
+networks:
+  podverse_alpha_network:
+    external: true
+
+volumes:
+  podverse_alpha_db_data:
+
+services:
+
+  podverse_alpha_db:
+    image: postgres:18.1
+    container_name: podverse_alpha_db
+    env_file:
+      - ../../../config/alpha/db.env
+    ports:
+      - '5432:5432'
+    networks:
+      - podverse_alpha_network
+    volumes:
+      - /mnt/podverse_alpha_db_data:/var/lib/postgresql/data
+      - ../../../database/combined/init_database.sql:/opt/database/combined/init_database.sql
+      - ../../../database/init-scripts/01-create-users.sh:/opt/database/init-scripts/01-create-users.sh
+    command: >
+      postgres -c max_connections=100
+               -c superuser_reserved_connections=5
+               -c shared_buffers=256MB
+               -c effective_cache_size=2GB
+               -c maintenance_work_mem=256MB
+               -c checkpoint_completion_target=0.7
+               -c wal_buffers=8MB
+               -c default_statistics_target=100
+               -c random_page_cost=1.1
+               -c effective_io_concurrency=200
+               -c work_mem=5242kB
+               -c min_wal_size=256MB
+               -c max_wal_size=1GB
+               -c max_worker_processes=2
+               -c max_parallel_workers_per_gather=2
+               -c max_parallel_workers=2
+    restart: unless-stopped
+    shm_size: 1gb
+    logging:
+      driver: "syslog"
+      options:
+        tag: "{{.ImageName}}/{{.Name}}/{{.ID}}"

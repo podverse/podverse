@@ -1,0 +1,28 @@
+@use "breakpoints";
+
+.listHeader {
+  display: flex;
+  flex-direction: column;
+  margin: var(--spacing-none);
+}
+
+.listHeaderTop {
+  display: flex;
+  gap: var(--spacing-xl);
+}
+
+.sideButtons {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-lg);
+}
+
+.listHeaderBottom {
+  display: flex;
+}
+
+@media (max-width: breakpoints.$breakpoint-md-max) {
+  .listHeaderTop {
+    flex-direction: column;
+  }
+}
