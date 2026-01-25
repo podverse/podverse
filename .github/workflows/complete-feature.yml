@@ -6,6 +6,11 @@ on:
     types: [closed]
     branches: [develop]
 
+# Prevent concurrent pushes to target branch - queue instead of cancel
+concurrency:
+  group: push-${{ github.event.pull_request.base.ref }}
+  cancel-in-progress: false
+
 jobs:
   complete-history:
     # Only run if PR was merged (not just closed)
@@ -74,7 +79,11 @@ jobs:
           if git diff --staged --quiet; then
             echo "No changes to commit"
           else
-            git commit -m "chore: complete LLM history for ${{ steps.feature.outputs.name }}"
+            git commit -m "chore: complete LLM history for ${{ steps.feature.outputs.name }} [skip ci]"
+            
+            # Pull latest changes (in case i18n workflow pushed)
+            git pull --rebase origin ${{ github.event.pull_request.base.ref }} || true
+            
             git push
             echo "✓ Committed and pushed history completion"
           fi

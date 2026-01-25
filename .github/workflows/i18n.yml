@@ -6,6 +6,11 @@ on:
     paths:
       - "apps/*/i18n/originals/en-US.json"
 
+# Prevent concurrent pushes to develop - queue instead of cancel
+concurrency:
+  group: push-${{ github.ref_name }}
+  cancel-in-progress: false
+
 jobs:
   translate:
     runs-on: ubuntu-latest
@@ -40,11 +45,18 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
+          
           # Only commit originals and overrides (compiled is generated at build time)
           git add apps/*/i18n/originals/ apps/*/i18n/overrides/
+          
           if git diff --staged --quiet; then
             echo "No translation changes"
           else
             git commit -m "chore: auto-generate i18n translations [skip ci]"
+            
+            # Pull latest changes (in case complete-feature workflow pushed)
+            # Use rebase to put our commit on top
+            git pull --rebase origin develop || true
+            
             git push
           fi
