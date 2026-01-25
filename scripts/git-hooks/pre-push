@@ -2,9 +2,6 @@
 
 # Podverse Pre-Push Hook - Branch Naming Enforcement
 # Outputs to stderr so messages appear in GUI error dialogs
-#
-# Note: Outcome completion is NOT checked here. That is enforced
-# by the GitHub Action pr-completion-check.yml before merge.
 
 YELLOW='\033[1;33m'
 RED='\033[0;31m'

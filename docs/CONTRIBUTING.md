@@ -2,25 +2,55 @@
 
 ## Setup
 
-```bash
-git clone https://github.com/podverse/podverse.git
-cd podverse && nvm use && npm install
-npm run build:packages
-```
+See [QUICKSTART.md](QUICKSTART.md) for complete setup instructions including:
+- Prerequisites (Docker, Node.js 22+)
+- Infrastructure services (database, message queue, cache)
+- Building packages and running apps
 
-## Run Apps
+### Quick Reference
 
 ```bash
-npm run dev:api
-npm run dev:web
+npm run lint          # Run linting
+npm run build         # Build all
+npm run dev:api       # Start API (localhost:1234)
+npm run dev:web       # Start web app (localhost:3000)
 ```
 
 ## Workflow
 
-1. Branch: `git checkout -b feature/name`
-2. Code and lint: `npm run lint`
-3. Commit with issue: `Fix bug #123`
-4. Open PR
+### Starting a Feature
+
+Use the feature script to create a properly named branch with LLM history file:
+
+```bash
+npm run start-feature
+```
+
+This interactive script:
+- Prompts for feature type (feature, fix, chore, docs, hotfix, release)
+- Creates a branch with proper naming convention (e.g., `feature/add-podcast-chapters`)
+- Creates an LLM history file in `.llm/history/active/`
+- Links to GitHub issues (optional)
+
+### During Development
+
+1. Code and lint: `npm run lint`
+2. Commit with issue reference: `Fix bug #123`
+3. Keep LLM history updated if using AI assistance
+
+### Completing a Feature
+
+When ready to submit a PR:
+
+```bash
+npm run complete-feature
+```
+
+This script:
+- Updates the completion date
+- Moves history from `active/` to `completed/YYYY-MM/`
+
+Then push and open a PR.
 
 ## Testing
 
@@ -77,25 +107,12 @@ Before submitting a PR:
 
 See `pipelines/` for pipeline definitions.
 
-## LLM Development
+## LLM Development (Optional)
 
-- History auto-tracked in `.llm/history/`
-- Provide issue links when possible
-- Pre-commit hook enforces history updates for code changes
+If using AI assistants (Cursor, Claude, etc.), we encourage tracking your development history:
 
-## Non-LLM Development
+1. **Start with the script**: `npm run start-feature` creates both the branch and history file
+2. **Keep history updated**: Record prompts and key decisions in `.llm/history/active/`
+3. **Complete properly**: `npm run complete-feature` finalizes history before PR
 
-This project tracks LLM-assisted development in `.llm/history/`. The pre-commit hook checks for history updates when code changes are committed.
-
-**If you're developing WITHOUT LLM assistance:**
-
-```bash
-SKIP_HISTORY_CHECK=1 git commit -m "your message"
-```
-
-This is the expected workflow for:
-- Manual coding without AI assistance
-- Quick fixes where LLM wasn't used
-- External contributors not using Cursor/LLM tools
-
-No history entry is needed for non-LLM work.
+This helps maintain context for future LLM sessions and documents architectural decisions. However, it's not required - contributors can develop with or without LLM assistance and history tracking.

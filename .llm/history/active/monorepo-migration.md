@@ -2111,3 +2111,86 @@ If it would help you remember, add a skill that mentions the quickstart guide sh
 - Podverse monorepo: Update documentation after impactful changes (QUICKSTART.md, README.md, ENV.md)
 
 ---
+
+### Session 103 - 2026-01-25
+#### Prompt (Developer)
+I am not ready to create a PR to merge into develop branch. Is there anything I should know? Is there documentation I should be aware of for steps, standards and practices?
+
+#### Response
+Provided overview of PR documentation: CONTRIBUTING.md, BRANCH-PROTECTION.md, PR template, LLM history requirements, CI checks.
+
+---
+
+### Session 104 - 2026-01-25
+#### Prompt (Developer)
+It seems like the contributing file has steps that overlap with the QUICKSTART. if the quickstart supplants the need for those steps, then the CONTRIBUTING should cross-reference to the QUICKSTART. also, review the other documentation to determine if there is other documentation that should be updated or use cross-referencing to avoid unnecessarily separate documentation
+
+#### Key Decisions
+- CONTRIBUTING.md should cross-reference QUICKSTART.md instead of duplicating setup steps
+- README.md had duplicate setup sections and a broken ENV.md link
+- QUICKSTART.md should cross-reference IDE-SETUP.md for terminal configurations
+
+#### Files Modified
+- docs/CONTRIBUTING.md (replaced Setup/Run Apps with cross-reference to QUICKSTART.md)
+- README.md (removed duplicate Development > Setup section, fixed broken ENV.md link, improved Documentation section)
+- docs/QUICKSTART.md (added IDE-SETUP.md cross-reference in Watch Mode section)
+
+---
+
+### Session 105 - 2026-01-25
+#### Prompt (Developer)
+the contributing.md describes the workflow, which is ok, but shouldn't it guide the user to use the existing create-feature or related scripts for consistency?
+
+#### Key Decisions
+- Updated Workflow section to guide users to use `npm run start-feature` and `npm run complete-feature` scripts
+- Scripts ensure consistent branch naming, proper LLM history file creation, and proper completion workflow
+
+#### Files Modified
+- docs/CONTRIBUTING.md (rewrote Workflow section to use feature scripts, updated LLM Development section)
+
+---
+
+### Session 106 - 2026-01-25
+#### Prompt (Developer)
+I think we can get rid of the Outcome handling for the monorepo entirely. It seems like it will be tedious and prohibitive towards people creating PRs.
+
+#### Key Decisions
+- Removed Outcome section requirement to reduce friction for contributors
+- LLM history still tracks sessions, prompts, decisions, and files - just no mandatory summary
+- Deleted GitHub workflows that enforced/auto-generated Outcomes
+- ANTHROPIC_API_KEY secret no longer required
+
+#### Files Modified
+- scripts/start-feature.sh (removed ## Outcome section from template)
+- scripts/complete-feature.sh (removed Outcome checking logic)
+- docs/CONTRIBUTING.md (removed Outcome mention from workflow)
+- docs/modules/SECRETS.md (removed ANTHROPIC_API_KEY references)
+- scripts/git-hooks/pre-push (removed Outcome comment)
+
+#### Files Deleted
+- .github/workflows/pr-auto-complete.yml (no longer needed)
+- .github/workflows/pr-completion-check.yml (no longer needed)
+
+---
+
+### Session 107 - 2026-01-25
+#### Prompt (Developer)
+The pre-commit hook reminds you if code changes are committed without history updates.
+
+I think this hook may be too prohibitive as well, given that some contributors may not be using LLM for dev workflow. I think we can remove it, but it should just be encouraged in the documentation to be mindful to let LLM keep track of your prompt history for LLM driven development
+
+#### Key Decisions
+- Removed pre-commit hook that enforced LLM history updates
+- LLM history tracking now documented as optional best practice, not enforced
+- Simplified CONTRIBUTING.md to encourage rather than require history tracking
+- Contributors no longer need SKIP_HISTORY_CHECK workaround
+
+#### Files Modified
+- scripts/git-hooks/install-hooks.sh (removed pre-commit installation)
+- docs/CONTRIBUTING.md (made LLM Development optional, removed Non-LLM section)
+- docs/BRANCH-PROTECTION.md (removed pre-commit from Local Enforcement list)
+
+#### Files Deleted
+- scripts/git-hooks/pre-commit (no longer needed)
+
+---

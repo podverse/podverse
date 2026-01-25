@@ -96,6 +96,8 @@ npm run dev:watch -w apps/api
 npm run dev:web
 ```
 
+For advanced terminal configurations using VS Code Terminals Manager, see [IDE-SETUP.md](IDE-SETUP.md).
+
 ### Run Multiple Apps (dev:*:all)
 
 For focused development, use these commands to run packages in watch mode with specific app groups:

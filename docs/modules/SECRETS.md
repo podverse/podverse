@@ -7,7 +7,6 @@ This document describes the GitHub Secrets required for the monorepo's CI/CD wor
 | Secret | Used By | Purpose |
 |--------|---------|---------|
 | `NPM_TOKEN` | publish-alpha.yml | Authenticate with npm for package publishing |
-| `ANTHROPIC_API_KEY` | pr-auto-complete.yml | Generate LLM history outcomes on PR approval |
 | `GHCR_REGISTRY_TOKEN` | publish-alpha.yml | Query existing Docker image tags |
 
 ## Automatic Secrets
@@ -30,18 +29,6 @@ Used to publish packages to npm under the `@podverse` scope.
 6. In GitHub repo: **Settings** → **Secrets and variables** → **Actions**
 7. Click **New repository secret**
 8. Name: `NPM_TOKEN`, Value: (paste token)
-
-### ANTHROPIC_API_KEY
-
-Used by the pr-auto-complete workflow to generate LLM history summaries.
-
-1. Go to [console.anthropic.com](https://console.anthropic.com)
-2. Navigate to **API Keys**
-3. Create a new API key
-4. Copy the key (starts with `sk-ant-`)
-5. In GitHub repo: **Settings** → **Secrets and variables** → **Actions**
-6. Click **New repository secret**
-7. Name: `ANTHROPIC_API_KEY`, Value: (paste key)
 
 ### GHCR_REGISTRY_TOKEN
 
@@ -67,19 +54,7 @@ No secrets required. Runs on all PRs to validate:
 - Package builds
 - App builds
 
-### pr-auto-complete.yml
-
-**Secrets used**: `ANTHROPIC_API_KEY`, `GITHUB_TOKEN`
-
-Triggers when a PR is approved. Uses Anthropic API to generate the "Outcome" section of the LLM history file, then commits the update.
-
-### pr-completion-check.yml
-
-**Secrets used**: None (read-only)
-
-Checks that the LLM history Outcome section is complete before allowing merge.
-
-### publish-alpha.yml (Phase 8)
+### publish-alpha.yml
 
 **Secrets used**: `NPM_TOKEN`, `GHCR_REGISTRY_TOKEN`, `GITHUB_TOKEN`
 

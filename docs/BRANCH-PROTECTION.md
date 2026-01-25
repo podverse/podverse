@@ -80,7 +80,6 @@ In addition to GitHub branch protection, local git hooks enforce:
 - **pre-push**: Blocks direct pushes to protected branches (main, beta, alpha, develop)
 - **pre-push**: Validates branch naming conventions (feature/*, fix/*, chore/*, docs/*, hotfix/*, release/*)
 - **commit-msg**: Encourages GitHub issue references (#123) in commit messages
-- **pre-commit**: Reminds about LLM history updates for code changes
 
 See `scripts/git-hooks/` for implementation details.
 

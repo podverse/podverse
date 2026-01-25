@@ -65,26 +65,6 @@ docs/               # Documentation
 
 ## Development
 
-### Prerequisites
-
-- Node.js 22+ (use `nvm use`)
-- PostgreSQL 16+
-- Valkey/Redis (optional, for caching)
-
-### Setup
-
-For a complete walkthrough, see [docs/QUICKSTART.md](docs/QUICKSTART.md).
-
-**Quick version:**
-```bash
-git clone https://github.com/podverse/podverse.git
-cd podverse && nvm use && npm install
-make local_setup           # Start Docker services + init database
-npm run build:packages     # Build shared packages
-npm run dev:api            # API at localhost:1234
-npm run dev:web            # Web at localhost:3000 (new terminal)
-```
-
 ### Environment Configuration
 
 Local development uses pre-configured environment files that work out of the box:
@@ -103,9 +83,10 @@ Deployments are managed via Jenkins pipelines. See:
 
 ## Documentation
 
+- [Quick Start](docs/QUICKSTART.md) - Setup and running locally
 - [Architecture](docs/ARCHITECTURE.md) - System design and data flow
-- [Contributing](docs/CONTRIBUTING.md) - Development workflow
-- [Environment Variables](docs/ENV.md) - Configuration reference
+- [Contributing](docs/CONTRIBUTING.md) - Development workflow and PR guidelines
+- [IDE Setup](docs/IDE-SETUP.md) - VS Code configuration and debugging
 
 ## License
 

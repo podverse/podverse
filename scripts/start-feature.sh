@@ -113,10 +113,6 @@ cat > "$HISTORY_FILE" << EOF
 
 ---
 
-## Outcome
-
-[To be filled when feature is complete]
-
 ## Related Resources
 
 - [Link to PR]

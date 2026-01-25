@@ -49,26 +49,6 @@ if [[ ! -f "$HISTORY_FILE" ]]; then
     fi
 fi
 
-# Check if Outcome is filled
-if grep -q "\[To be filled" "$HISTORY_FILE"; then
-    echo -e "${YELLOW}The Outcome section needs to be filled.${NC}"
-    echo ""
-    read -p "Open $HISTORY_FILE for editing? [Y/n]: " -n 1 -r
-    echo ""
-    if [[ ! $REPLY =~ ^[Nn]$ ]]; then
-        ${EDITOR:-nano} "$HISTORY_FILE"
-    fi
-    
-    # Re-check after editing
-    if grep -q "\[To be filled" "$HISTORY_FILE"; then
-        echo ""
-        echo -e "${YELLOW}⚠️  Outcome section still appears incomplete.${NC}"
-        read -p "Continue anyway? [y/N]: " -n 1 -r
-        echo ""
-        [[ ! $REPLY =~ ^[Yy]$ ]] && exit 1
-    fi
-fi
-
 # Update Completed date
 if [[ "$OSTYPE" == "darwin"* ]]; then
     # macOS
