@@ -37,12 +37,7 @@ npm-debug.log*
 .idea/
 *.swp
 *.swo
-.vscode/
-!.vscode/settings.json
-!.vscode/extensions.json
-!.vscode/launch.json
-!.vscode/tasks.json
-!.vscode/terminals-*.json.example
+.vscode/terminals.json
 
 # OS
 .DS_Store
