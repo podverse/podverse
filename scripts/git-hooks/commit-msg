@@ -11,6 +11,11 @@ NC='\033[0m'
 COMMIT_MSG_FILE=$1
 COMMIT_MSG=$(cat "$COMMIT_MSG_FILE")
 
+# Allow merge commits without issue reference
+if echo "$COMMIT_MSG" | grep -qE '^Merge '; then
+    exit 0
+fi
+
 if echo "$COMMIT_MSG" | grep -qE '#[0-9]+'; then
     exit 0
 fi

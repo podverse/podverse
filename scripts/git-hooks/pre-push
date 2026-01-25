@@ -30,16 +30,6 @@ VALID_PATTERN="^(feature|fix|chore|docs|hotfix|release)/.*$"
 
 if [[ "$BRANCH" =~ $VALID_PATTERN ]]; then
     echo -e "${GREEN}✓ Branch name valid: $BRANCH${NC}" >&2
-    
-    # Informational: Check for corresponding history file
-    FEATURE_NAME=$(echo "$BRANCH" | sed 's|^[^/]*/||')
-    HISTORY_FILE=".llm/history/active/$FEATURE_NAME.md"
-    
-    if [[ ! -f "$HISTORY_FILE" ]]; then
-        echo -e "${YELLOW}ℹ️  No history file at $HISTORY_FILE${NC}" >&2
-        echo "   Consider running 'npm run start-feature' for new features." >&2
-    fi
-    
     exit 0
 fi
 
