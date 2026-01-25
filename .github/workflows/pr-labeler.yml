@@ -16,8 +16,8 @@ jobs:
         uses: actions/github-script@v7
         with:
           script: |
-            // Get changed files
-            const { data: files } = await github.rest.pulls.listFiles({
+            // Get all changed files (with pagination)
+            const files = await github.paginate(github.rest.pulls.listFiles, {
               owner: context.repo.owner,
               repo: context.repo.repo,
               pull_number: context.issue.number,
@@ -25,7 +25,8 @@ jobs:
             });
 
             const paths = files.map(f => f.filename);
-            console.log('Changed files:', paths);
+            console.log(`Found ${paths.length} changed files`);
+            console.log('Sample paths:', paths.slice(0, 20));
 
             const labels = new Set();
 
