@@ -25,34 +25,29 @@ export class ManagementApiRequestService {
   }
 
   async apiRequest<T>({ path, method = 'GET', data, config: requestConfig = {}, abort, userAgent }: ApiRequestParams): Promise<T> {
-    try {
-      const mergedConfig = {
-        ...requestConfig,
-        ...(userAgent ? { userAgent } : {}),
-        ...(this.jwt ?
-          {
-            headers: {
-              ...(requestConfig.headers || {}),
-              Cookie: `pv_mgmt_auth=${this.jwt}`,
-            },
-          }
-          : {}),
-      };
-      
-      const options =
-        method === 'GET'
-          ? { method, ...mergedConfig }
-          : { method, data, ...mergedConfig };
+    const mergedConfig = {
+      ...requestConfig,
+      ...(userAgent ? { userAgent } : {}),
+      ...(this.jwt ?
+        {
+          headers: {
+            ...(requestConfig.headers || {}),
+            Cookie: `pv_mgmt_auth=${this.jwt}`,
+          },
+        }
+        : {}),
+    };
+    
+    const options =
+      method === 'GET'
+        ? { method, ...mergedConfig }
+        : { method, data, ...mergedConfig };
 
-      const response = await request<T>(
-        `${this.apiBase}${path}`,
-        options,
-        abort,
-      );
-      return response.data;
-    } catch (error) {
-      console.error('Management API request error:', error);
-      throw error;
-    }
+    const response = await request<T>(
+      `${this.apiBase}${path}`,
+      options,
+      abort,
+    );
+    return response.data;
   }
 }

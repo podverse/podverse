@@ -21,19 +21,14 @@ export default function HomePage() {
 
   useEffect(() => {
     const checkAuth = async () => {
-      try {
-        const currentUser = await getCurrentUser();
-        if (currentUser) {
-          // User is already logged in, redirect to dashboard
-          router.push('/dashboard');
-          return;
-        }
-      } catch (error) {
-        // Not authenticated, stay on login page
-        console.error('Auth check error:', error);
-      } finally {
-        setCheckingAuth(false);
+      const currentUser = await getCurrentUser();
+      if (currentUser) {
+        // User is already logged in, redirect to dashboard
+        router.push('/dashboard');
+        return;
       }
+      // getCurrentUser returns null if not authenticated - this is expected behavior
+      setCheckingAuth(false);
     };
 
     checkAuth();
