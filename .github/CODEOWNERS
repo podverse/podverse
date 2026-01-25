@@ -2,21 +2,21 @@
 # These owners will be requested for review when someone opens a pull request.
 
 # Default owners for everything in the repo
-* @podverse/maintainers
+* @podverse/reviewers
 
 # Package-specific owners
-/packages/ @podverse/maintainers
+/packages/ @podverse/reviewers
 
 # App-specific owners
-/apps/ @podverse/maintainers
+/apps/ @podverse/reviewers
 
 # Infrastructure
-/infra/ @podverse/maintainers
-/.github/ @podverse/maintainers
-/pipelines/ @podverse/maintainers
+/infra/ @podverse/reviewers
+/.github/ @podverse/reviewers
+/pipelines/ @podverse/reviewers
 
 # Tools
-/tools/ @podverse/maintainers
+/tools/ @podverse/reviewers
 
 # Documentation
-/docs/ @podverse/maintainers
+/docs/ @podverse/reviewers

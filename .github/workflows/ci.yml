@@ -46,6 +46,7 @@ jobs:
           ref: ${{ steps.pr.outputs.head_sha }}
 
       - name: Verify database migrations combined
+        id: db-verify
         run: bash scripts/database/verify-migrations-combined.sh
 
       - name: Setup Node.js
@@ -55,40 +56,97 @@ jobs:
           cache: "npm"
 
       - name: Install dependencies
+        id: install
         run: npm ci
 
       - name: Lint
+        id: lint
         run: npm run lint
 
       - name: Type check
+        id: typecheck
         run: npm run type-check
 
       - name: Build packages
+        id: build-packages
         run: npm run build:packages
 
       - name: Build apps
+        id: build-apps
         run: npm run build:apps
 
       - name: Report success
         if: success()
         uses: actions/github-script@v7
+        env:
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         with:
           script: |
+            const body = [
+              '## ✅ CI Passed',
+              '',
+              'All checks completed successfully.',
+              '',
+              '| Check | Status |',
+              '|-------|--------|',
+              '| Database migrations synced | ✅ |',
+              '| Dependencies installed | ✅ |',
+              '| Lint | ✅ |',
+              '| Type check | ✅ |',
+              '| Build packages | ✅ |',
+              '| Build apps | ✅ |',
+              '',
+              `[View full run](${process.env.RUN_URL})`
+            ].join('\n');
+
             await github.rest.issues.createComment({
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: context.issue.number,
-              body: '✅ CI passed! All checks completed successfully.'
+              body: body
             });
 
       - name: Report failure
         if: failure()
         uses: actions/github-script@v7
+        env:
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          DB_VERIFY: ${{ steps.db-verify.outcome }}
+          INSTALL: ${{ steps.install.outcome }}
+          LINT: ${{ steps.lint.outcome }}
+          TYPECHECK: ${{ steps.typecheck.outcome }}
+          BUILD_PACKAGES: ${{ steps.build-packages.outcome }}
+          BUILD_APPS: ${{ steps.build-apps.outcome }}
         with:
           script: |
+            const status = (outcome) => {
+              if (outcome === 'success') return '✅';
+              if (outcome === 'failure') return '❌';
+              return '⏭️';
+            };
+
+            const body = [
+              '## ❌ CI Failed',
+              '',
+              'One or more checks failed. Please review and fix the issues.',
+              '',
+              '| Check | Status |',
+              '|-------|--------|',
+              `| Database migrations synced | ${status(process.env.DB_VERIFY)} |`,
+              `| Dependencies installed | ${status(process.env.INSTALL)} |`,
+              `| Lint | ${status(process.env.LINT)} |`,
+              `| Type check | ${status(process.env.TYPECHECK)} |`,
+              `| Build packages | ${status(process.env.BUILD_PACKAGES)} |`,
+              `| Build apps | ${status(process.env.BUILD_APPS)} |`,
+              '',
+              'Legend: ✅ Passed | ❌ Failed | ⏭️ Skipped',
+              '',
+              `[View full run for details](${process.env.RUN_URL})`
+            ].join('\n');
+
             await github.rest.issues.createComment({
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: context.issue.number,
-              body: '❌ CI failed. Please check the [workflow run](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}) for details.'
+              body: body
             });

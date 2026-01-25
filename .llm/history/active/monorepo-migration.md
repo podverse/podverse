@@ -2230,3 +2230,45 @@ The ci test process should also confirm that the init_database and same for mana
 - package.json (added db:combine and db:verify npm scripts)
 
 ---
+
+### Session 110 - 2026-01-25
+#### Prompt (Developer)
+do you think any reviewers, assignees, or labels should be automatically added when a pr is created?
+
+should the PR have a minimal checklist that encourages the dev to fill out reviewers or assignees or labels themselves?
+
+I created a team "@reviewers" that should be auto set as the reviewers when anyone creates a PR
+
+The corresponding github issue for the PR should be auto filled in the default PR message.
+
+Anything else you recommend?
+
+#### Key Decisions
+- Updated CODEOWNERS to use @podverse/reviewers team for auto-review requests
+- Simplified PR template: removed LLM history checkbox (now optional), added /test note
+- Created auto-labeling workflow that adds labels based on file paths changed
+- Labels: packages, apps, docs, infra, ci, scripts, tools
+
+#### Files Created
+- .github/workflows/pr-labeler.yml (auto-labels PRs based on changed files)
+
+#### Files Modified
+- .github/CODEOWNERS (changed @podverse/maintainers to @podverse/reviewers)
+- .github/PULL_REQUEST_TEMPLATE.md (simplified checklist, added CI /test note)
+
+---
+
+### Session 111 - 2026-01-25
+#### Prompt (Developer)
+the PR has checklists, but it seems odd that the code contributor could fill them in, even though the box could be checked by a github action. is that just how the convention should work? this is for the contributors reference but is not the final authority, and instead the github action should reply with a message in the PR thread, or something, to signal that all lights green in its own checklist for merge?
+
+#### Key Decisions
+- PR template checklist is for contributor guidance/self-attestation
+- CI is the actual enforcer via branch protection
+- Enhanced CI comments to show detailed status table with all checks
+- Success shows ✅ for all checks, failure shows which specific checks passed/failed/skipped
+
+#### Files Modified
+- .github/workflows/ci.yml (enhanced success/failure comments with detailed status table)
+
+---

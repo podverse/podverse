@@ -4,27 +4,26 @@
 
 ## Related Issue
 
-<!-- Link to GitHub issue: Fixes #123 -->
+<!-- Link to GitHub issue: Fixes #123 or Closes #123 -->
 
 ## Type of Change
 
-- [ ] Bug fix (non-breaking change that fixes an issue)
-- [ ] New feature (non-breaking change that adds functionality)
-- [ ] Breaking change (fix or feature that would cause existing functionality to not work as expected)
+- [ ] Bug fix
+- [ ] New feature
+- [ ] Breaking change
 - [ ] Documentation update
 
 ## Checklist
 
-- [ ] My code follows the project's style guidelines
-- [ ] I have performed a self-review of my code
-- [ ] I have added tests that prove my fix/feature works
-- [ ] I have updated documentation as needed
-- [ ] I have updated `.llm/history/active/` if this is LLM-assisted work
+- [ ] Code compiles without errors
+- [ ] Linting passes (`npm run lint`)
+- [ ] I have tested my changes
+- [ ] Documentation updated if needed
+
+## CI
+
+> **Note**: A maintainer will comment `/test` to run CI checks on this PR.
 
 ## Screenshots (if applicable)
 
 <!-- Add screenshots for UI changes -->
-
-## Additional Notes
-
-<!-- Any additional context -->
