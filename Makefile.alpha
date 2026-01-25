@@ -66,6 +66,11 @@ alpha_db_reset:
 
 .PHONY: alpha_db_init
 alpha_db_init: infra/config/alpha/podverse-alpha-db.env
+	@echo "Waiting for database to be ready..."
+	@until docker exec podverse_alpha_db pg_isready -U postgres > /dev/null 2>&1; do \
+		echo "  Database not ready, waiting..."; \
+		sleep 2; \
+	done
 	@echo "Creating read/read_write roles (idempotent)..."
 	@set -a; . infra/config/alpha/podverse-alpha-db.env; set +a; \
 	docker compose -f infra/docker/alpha/db/docker-compose.yml exec podverse_alpha_db bash -c "POSTGRES_READ_PASSWORD=$$POSTGRES_READ_PASSWORD POSTGRES_READ_WRITE_PASSWORD=$$POSTGRES_READ_WRITE_PASSWORD /opt/database/init-scripts/01-create-users.sh"
@@ -152,6 +157,38 @@ alpha_all_down:
 	-$(MAKE) alpha_management_api_down
 	-$(MAKE) alpha_management_db_down
 
+# Clean alpha environment (containers + volumes + images) for fresh restart
+.PHONY: alpha_clean
+alpha_clean:
+	docker compose -f infra/docker/alpha/db/docker-compose.yml down -v --rmi all 2>/dev/null || true
+	docker compose -f infra/docker/alpha/mq/docker-compose.yml down -v --rmi all 2>/dev/null || true
+	docker compose -f infra/docker/alpha/keyvaldb/docker-compose.yml down -v --rmi all 2>/dev/null || true
+	docker compose -f infra/docker/alpha/management-db/docker-compose.yml down -v --rmi all 2>/dev/null || true
+	-$(MAKE) alpha_web_down
+	-$(MAKE) alpha_api_down
+	-$(MAKE) alpha_workers_down
+	-$(MAKE) alpha_management_api_down
+	-$(MAKE) alpha_management_web_down
+	-$(MAKE) alpha_network_remove
+	@echo "Alpha environment cleaned."
+
+# Start all alpha infrastructure services (use this to restart after alpha_all_down)
+.PHONY: alpha_infra_up
+alpha_infra_up: alpha_db_up alpha_mq_up alpha_keyvaldb_up alpha_management_db_up
+	@echo "All alpha infrastructure services started"
+
+# Complete alpha setup (infrastructure + database initialization)
+# Only run this once for initial setup, or after alpha_clean
+.PHONY: alpha_setup
+alpha_setup: alpha_infra_up alpha_db_init alpha_management_db_init
+	@echo ""
+	@echo "============================================"
+	@echo "Alpha environment ready!"
+	@echo "============================================"
+	@echo ""
+	@echo "To restart services later: make alpha_infra_up"
+	@echo ""
+
 # ==========================================
 # Management System (Alpha)
 # ==========================================
@@ -176,6 +213,11 @@ alpha_management_db_init: infra/config/alpha/podverse-alpha-management-db.env
 	@set -a; . infra/config/alpha/podverse-alpha-management-db.env; set +a; \
 	: "$${SUPERUSER_EMAIL:?Missing SUPERUSER_EMAIL}" \
 	: "$${SUPERUSER_PASSWORD:?Missing SUPERUSER_PASSWORD}"
+	@echo "Waiting for management database to be ready..."
+	@until docker exec podverse_alpha_management_db pg_isready -U postgres > /dev/null 2>&1; do \
+		echo "  Management database not ready, waiting..."; \
+		sleep 2; \
+	done
 	@echo "Creating read/read_write roles (idempotent)..."
 	@set -a; . infra/config/alpha/podverse-alpha-management-db.env; set +a; \
 	docker compose -f infra/docker/alpha/management-db/docker-compose.yml exec podverse_alpha_management_db bash -c "POSTGRES_READ_PASSWORD=$$POSTGRES_READ_PASSWORD POSTGRES_READ_WRITE_PASSWORD=$$POSTGRES_READ_WRITE_PASSWORD /opt/database/management/init-scripts/01-create-users.sh"

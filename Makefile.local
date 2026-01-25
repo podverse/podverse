@@ -63,6 +63,11 @@ local_db_reset:
 
 .PHONY: local_db_init
 local_db_init: infra/config/local/db.env
+	@echo "Waiting for database to be ready..."
+	@until docker exec podverse_local_db pg_isready -U postgres > /dev/null 2>&1; do \
+		echo "  Database not ready, waiting..."; \
+		sleep 2; \
+	done
 	@echo "Creating read/read_write roles (idempotent)..."
 	@set -a; . infra/config/local/db.env; set +a; \
 	docker compose -f infra/docker/local/db/docker-compose.yml exec podverse_local_db bash -c "POSTGRES_READ_PASSWORD=$$POSTGRES_READ_PASSWORD POSTGRES_READ_WRITE_PASSWORD=$$POSTGRES_READ_WRITE_PASSWORD /opt/database/init-scripts/01-create-users.sh"
@@ -108,6 +113,11 @@ local_management_db_init: infra/config/local/management-db.env
 	@set -a; . infra/config/local/management-db.env; set +a; \
 	: "$${SUPERUSER_EMAIL:?Missing SUPERUSER_EMAIL}" \
 	: "$${SUPERUSER_PASSWORD:?Missing SUPERUSER_PASSWORD}"
+	@echo "Waiting for management database to be ready..."
+	@until docker exec podverse_local_management_db pg_isready -U postgres > /dev/null 2>&1; do \
+		echo "  Management database not ready, waiting..."; \
+		sleep 2; \
+	done
 	@echo "Creating read/read_write roles (idempotent)..."
 	@set -a; . infra/config/local/management-db.env; set +a; \
 	docker compose -f infra/docker/local/management-db/docker-compose.yml exec podverse_local_management_db bash -c "POSTGRES_READ_PASSWORD=$$POSTGRES_READ_PASSWORD POSTGRES_READ_WRITE_PASSWORD=$$POSTGRES_READ_WRITE_PASSWORD /opt/database/management/init-scripts/01-create-users.sh"
@@ -116,14 +126,15 @@ local_management_db_init: infra/config/local/management-db.env
 	@set -a; . infra/config/local/management-db.env; set +a; \
 	./scripts/management/create-superuser.sh
 
-# Start all local infrastructure services
+# Start all local infrastructure services (use this to restart after local_all_down)
 .PHONY: local_infra_up
-local_infra_up: local_db_up local_mq_up local_keyvaldb_up
+local_infra_up: local_db_up local_mq_up local_keyvaldb_up local_management_db_up
 	@echo "All local infrastructure services started"
 
 # Complete local setup (infrastructure + database initialization)
+# Only run this once for initial setup, or after local_clean
 .PHONY: local_setup
-local_setup: local_infra_up local_db_init
+local_setup: local_infra_up local_db_init local_management_db_init
 	@echo ""
 	@echo "============================================"
 	@echo "Local environment ready!"
@@ -131,8 +142,9 @@ local_setup: local_infra_up local_db_init
 	@echo ""
 	@echo "Next steps:"
 	@echo "  1. npm run build:packages"
-	@echo "  2. npm run dev:api"
-	@echo "  3. npm run dev:web (in another terminal)"
+	@echo "  2. npm run dev:main:all (or dev:all for everything)"
+	@echo ""
+	@echo "To restart services later: make local_infra_up"
 	@echo ""
 
 # Stop all local infrastructure services
@@ -145,10 +157,11 @@ local_all_down:
 
 # Clean local environment (containers + volumes), but preserve images for faster restart
 .PHONY: local_clean
-local_clean: local_all_down
-	docker volume rm podverse_local_db_data 2>/dev/null || true
-	docker volume rm podverse_local_keyvaldb_data 2>/dev/null || true
-	docker volume rm artemis_data 2>/dev/null || true
+local_clean:
+	docker compose -f infra/docker/local/db/docker-compose.yml down -v 2>/dev/null || true
+	docker compose -f infra/docker/local/mq/docker-compose.yml down -v 2>/dev/null || true
+	docker compose -f infra/docker/local/keyvaldb/docker-compose.yml down -v 2>/dev/null || true
+	docker compose -f infra/docker/local/management-db/docker-compose.yml down -v 2>/dev/null || true
 	-$(MAKE) local_network_remove
 	@echo "Local environment cleaned. Images preserved for faster restart."
 

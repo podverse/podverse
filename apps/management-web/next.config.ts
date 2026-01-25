@@ -6,6 +6,7 @@ const nextConfig: NextConfig = {
   sassOptions: {
     includePaths: [__dirname + '/src/styles/variables']
   },
+  transpilePackages: ['@podverse/helpers'],
   images: {
     remotePatterns: [
       {

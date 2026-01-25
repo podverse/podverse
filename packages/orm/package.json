@@ -9,7 +9,7 @@
   ],
   "scripts": {
     "build": "npm run lint && tsc",
-    "build:watch": "tsc --build --watch",
+    "build:watch": "tsc --build --watch --preserveWatchOutput",
     "lint": "eslint ./src",
     "lint:fix": "eslint ./src --fix",
     "clean": "rm -rf dist",

@@ -32,16 +32,12 @@ make local_setup
 
 This single command:
 - Creates the Docker network
-- Starts PostgreSQL database
+- Starts PostgreSQL databases (main + management)
 - Starts ActiveMQ Artemis message queue
 - Starts Valkey (Redis-compatible) cache
-- Initializes database schema and users
+- Initializes database schemas and users
 
-Alternatively, run services individually:
-```bash
-make local_db_up local_mq_up local_keyvaldb_up
-make local_db_init
-```
+**Note**: Only run `local_setup` once for initial setup. To restart services later, use `make local_infra_up`.
 
 ### 3. Build Packages
 
@@ -100,6 +96,27 @@ npm run dev:watch -w apps/api
 npm run dev:web
 ```
 
+### Run Multiple Apps (dev:*:all)
+
+For focused development, use these commands to run packages in watch mode with specific app groups:
+
+```bash
+# Main apps only (API + Web) - most common
+npm run dev:main:all
+
+# Management apps only (requires management database)
+npm run dev:management:all
+
+# All apps (requires management database)
+npm run dev:all
+```
+
+**Note**: The management database is included in `local_setup`, so all commands work out of the box.
+
+These commands start with staggered delays for readable log output:
+- Packages build sequentially (helpers → external-services → orm → notifications → parser → mq)
+- Apps start after packages are ready, spaced 6 seconds apart
+
 ### Package Development
 
 When modifying packages, rebuild them:
@@ -111,11 +128,14 @@ npm run build -w packages/helpers
 npm run build:packages
 ```
 
-### Stopping Services
+### Stopping and Restarting Services
 
 ```bash
-# Stop all infrastructure
+# Stop all infrastructure (preserves data)
 make local_all_down
+
+# Restart services (use this, NOT local_setup)
+make local_infra_up
 
 # Stop individual services
 make local_db_down
@@ -123,29 +143,26 @@ make local_mq_down
 make local_keyvaldb_down
 ```
 
-## Management Apps (Optional)
+**Important**: After `local_all_down`, use `local_infra_up` to restart. Only use `local_setup` for initial setup or after `local_clean`.
 
-The management apps provide an admin interface for Podverse operations.
+## Management Apps
 
-### Setup Management Database
+The management apps provide an admin interface for Podverse operations. The management database is included in `local_setup`.
 
-```bash
-make local_management_db_up
-make local_management_db_init
-```
+### Default Superuser Account
 
-This creates a superuser account:
 - Email: `localadmin@podverse.fm`
 - Password: `Test!1Aa`
 
 ### Run Management Apps
 
 ```bash
-# Terminal 1: Management API
-npm run dev:management-api    # http://localhost:1235
+# Combined with packages in watch mode
+npm run dev:management:all
 
-# Terminal 2: Management Web
-npm run dev:management-web    # http://localhost:3001
+# Or individually
+npm run dev:management-api    # http://localhost:1235
+npm run dev:management-web    # http://localhost:3999
 ```
 
 ## Workers (Optional)
@@ -184,6 +201,24 @@ docker ps | grep podverse_local_db
 make local_db_up
 ```
 
+### Management Database Connection Refused
+
+```
+Error: connect ECONNREFUSED 127.0.0.1:5999
+```
+
+This error occurs when the management database isn't running.
+
+**Solution**: Ensure infrastructure is running:
+```bash
+make local_infra_up
+```
+
+If this is your first time, run the full setup:
+```bash
+make local_setup
+```
+
 ### Port Already in Use
 
 ```
@@ -202,6 +237,21 @@ If you see migration errors or missing tables:
 ```bash
 make local_db_reset
 make local_db_init
+```
+
+### "Relation Already Exists" Errors
+
+If you see `relation "xxx" already exists` errors when running `local_setup`:
+
+This happens when you run `local_setup` on a database that already has data. Use the correct command:
+
+```bash
+# To restart services (data already exists):
+make local_infra_up
+
+# For a fresh start (wipes all data):
+make local_clean
+make local_setup
 ```
 
 ### Package Build Errors
@@ -223,10 +273,10 @@ This removes stale `tsconfig.tsbuildinfo` files that can cause TypeScript to ski
 
 ### Fresh Start
 
-To completely reset your local environment:
+To completely reset your local environment (wipes all data):
 ```bash
-make local_clean
-make local_setup
+make local_clean      # Stops containers and removes volumes
+make local_setup      # Starts fresh and initializes databases
 npm run build:packages
 ```
 
