@@ -1,0 +1,80 @@
+name: Complete Feature
+
+# Automatically moves LLM history from active/ to completed/ when a PR is merged
+on:
+  pull_request:
+    types: [closed]
+    branches: [develop]
+
+jobs:
+  complete-history:
+    # Only run if PR was merged (not just closed)
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.base.ref }}
+          fetch-depth: 0
+
+      - name: Extract feature name from branch
+        id: feature
+        run: |
+          BRANCH="${{ github.event.pull_request.head.ref }}"
+          # Extract feature name (remove prefix like feature/, fix/, etc.)
+          FEATURE_NAME=$(echo "$BRANCH" | sed 's|^[^/]*/||')
+          echo "name=$FEATURE_NAME" >> $GITHUB_OUTPUT
+          echo "branch=$BRANCH" >> $GITHUB_OUTPUT
+
+      - name: Check for LLM history
+        id: check
+        run: |
+          FEATURE_NAME="${{ steps.feature.outputs.name }}"
+          HISTORY_DIR=".llm/history/active/$FEATURE_NAME"
+
+          if [[ -d "$HISTORY_DIR" ]]; then
+            echo "found=true" >> $GITHUB_OUTPUT
+            echo "Found history directory: $HISTORY_DIR"
+          else
+            echo "found=false" >> $GITHUB_OUTPUT
+            echo "No LLM history found for feature: $FEATURE_NAME"
+            echo "This is normal if LLM assistance wasn't used."
+          fi
+
+      - name: Complete feature history
+        if: steps.check.outputs.found == 'true'
+        run: |
+          FEATURE_NAME="${{ steps.feature.outputs.name }}"
+          HISTORY_DIR=".llm/history/active/$FEATURE_NAME"
+          DATE=$(date +%Y-%m)
+
+          mkdir -p ".llm/history/completed/$DATE"
+
+          # Update completion date in all markdown files
+          for file in "$HISTORY_DIR"/*.md; do
+            if [[ -f "$file" ]]; then
+              sed -i "s/Completed: In Progress/Completed: $(date +%Y-%m-%d)/" "$file"
+            fi
+          done
+
+          # Move directory to completed
+          mv "$HISTORY_DIR" ".llm/history/completed/$DATE/"
+          echo "✓ Moved to .llm/history/completed/$DATE/$FEATURE_NAME/"
+
+      - name: Commit and push
+        if: steps.check.outputs.found == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          git add .llm/history/
+
+          if git diff --staged --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "chore: complete LLM history for ${{ steps.feature.outputs.name }}"
+            git push
+            echo "✓ Committed and pushed history completion"
+          fi
