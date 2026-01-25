@@ -17,7 +17,7 @@ Migration of 13 repos into unified monorepo.
 ## Directory Structure
 
 ```
-.cursor/plans/
+.llm/plans/
 ├── README.md
 └── monorepo-migration/
     ├── 00-master-plan.md

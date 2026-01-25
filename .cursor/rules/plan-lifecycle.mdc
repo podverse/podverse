@@ -14,6 +14,6 @@ When a plan's status is changed to "Complete":
 
 Example:
 ```bash
-mv .cursor/plans/active/monorepo-migration/02-packages-outline.md \
-   .cursor/plans/completed/monorepo-migration/
+mv .llm/plans/active/monorepo-migration/02-packages-outline.md \
+   .llm/plans/completed/monorepo-migration/
 ```

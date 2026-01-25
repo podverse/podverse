@@ -36,7 +36,7 @@ globs:
   - "apps/**/*.ts"
   - "apps/**/*.tsx"
   - "tools/**/*.ts"
-  - ".cursor/plans/**/*.md"
+  - ".llm/plans/**/*.md"
   - "scripts/**/*.sh"
   - "scripts/**/*.ts"
   - "infra/**/*"

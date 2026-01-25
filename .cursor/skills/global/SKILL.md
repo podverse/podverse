@@ -38,7 +38,7 @@ feature/
 
 Plans organized by status:
 ```
-.cursor/plans/
+.llm/plans/
 ├── active/
 │   └── feature-xyz/
 ├── completed/
