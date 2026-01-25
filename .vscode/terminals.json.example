@@ -3,22 +3,33 @@
   "terminals": [
     {
       "name": "Root",
-      "description": "Monorepo root - run commands here",
+      "description": "General commands, git, make targets",
       "cwd": ".",
       "open": true
     },
     {
-      "name": "Git",
-      "description": "Git operations",
+      "name": "Dev",
+      "description": "npm run dev:main:all",
       "cwd": ".",
       "open": true
     },
     {
       "name": "Docker",
-      "description": "Docker commands",
+      "description": "Docker and make commands",
       "cwd": ".",
-      "open": true,
-      "command": "docker ps"
+      "open": true
+    },
+    {
+      "name": "partytime",
+      "description": "Partytime parser library",
+      "cwd": "../partytime",
+      "open": true
+    },
+    {
+      "name": "SSH",
+      "description": "SSH sessions",
+      "cwd": ".",
+      "open": true
     }
   ]
 }
