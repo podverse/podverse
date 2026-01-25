@@ -73,13 +73,14 @@ fi
 
 git checkout -b "$BRANCH"
 
-# 6. Create history file
-HISTORY_FILE=".llm/history/active/$NAME.md"
+# 6. Create history directory and file
+HISTORY_DIR=".llm/history/active/$NAME"
+HISTORY_FILE="$HISTORY_DIR/$NAME.md"
 DATE=$(date +%Y-%m-%d)
 AUTHOR=$(git config user.name || echo "Unknown")
 
-# Ensure directory exists
-mkdir -p ".llm/history/active"
+# Create feature-specific directory
+mkdir -p "$HISTORY_DIR"
 
 cat > "$HISTORY_FILE" << EOF
 # Feature: $NAME
@@ -128,5 +129,5 @@ echo ""
 echo -e "${CYAN}Next steps:${NC}"
 echo "  1. Edit $HISTORY_FILE to add Context"
 echo "  2. Start working with your LLM"
-echo "  3. Run 'npm run complete-feature' when done"
+echo "  3. Push and open a PR when done (history is auto-completed on merge)"
 echo ""

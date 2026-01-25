@@ -34,7 +34,6 @@
   "scripts": {
     "prepare": "bash scripts/git-hooks/install-hooks.sh",
     "start-feature": "bash scripts/start-feature.sh",
-    "complete-feature": "bash scripts/complete-feature.sh",
     "build": "npm run build --workspaces --if-present",
     "build:packages": "npm run build -w packages/helpers && npm run build -w packages/external-services && npm run build -w packages/orm && npm run build -w packages/notifications && npm run build -w packages/parser && npm run build -w packages/mq",
     "build:apps": "npm run build --workspaces --if-present --workspace=apps/api --workspace=apps/web --workspace=apps/workers --workspace=apps/management-api --workspace=apps/management-web",

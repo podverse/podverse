@@ -14,7 +14,7 @@ alwaysApply: false
 
 # History Tracking
 
-When modifying files in this workspace, update `.llm/history/active/[feature].md` (or the latest part file):
+When modifying files in this workspace, update `.llm/history/active/[feature]/[feature].md` (or the latest part file):
 
 ```markdown
 ### Session N - YYYY-MM-DD
@@ -39,11 +39,16 @@ When a history file reaches 10 sessions and you need to add session 11:
 
 ### File Naming Convention
 
+Each feature has its own directory:
+
 ```
 .llm/history/active/
-  [feature]-part-01.md  (sessions 1-10)
-  [feature]-part-02.md  (sessions 11-20)
-  [feature]-part-03.md  (sessions 21-30, current)
+  simple-feature/
+    simple-feature.md                  # Single file (sessions 1-10)
+  long-feature/
+    long-feature-part-01.md            # Sessions 1-10 (renamed when split)
+    long-feature-part-02.md            # Sessions 11-20
+    long-feature-part-03.md            # Sessions 21-30, current
 ```
 
 ### Part File Structure
@@ -57,13 +62,15 @@ Each part file should include:
 
 Before (file has 10 sessions, need to add 11th):
 ```
-my-feature.md  →  rename to: my-feature-part-01.md
+.llm/history/active/my-feature/
+  my-feature.md
 ```
 
 After:
 ```
-my-feature-part-01.md  (sessions 1-10, archived)
-my-feature-part-02.md  (sessions 11+, active)
+.llm/history/active/my-feature/
+  my-feature-part-01.md  (sessions 1-10, renamed from my-feature.md)
+  my-feature-part-02.md  (sessions 11+, active)
 ```
 
 **IMPORTANT**: This rule triggers based on file globs. If working on files NOT matched by the globs above (e.g., documentation in `docs/`), you may not receive this reminder. Always update history when making substantive changes.

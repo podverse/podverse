@@ -138,7 +138,12 @@ It may NOT trigger when working on:
 
 After any substantive work, confirm:
 ```
-✅ History updated: .llm/history/active/[feature].md
+✅ History updated: .llm/history/active/[feature]/[feature].md
+```
+
+Or for multi-part features:
+```
+✅ History updated: .llm/history/active/[feature]/[feature]-part-NN.md
 ```
 
 ## Related Skills

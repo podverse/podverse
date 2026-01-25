@@ -40,17 +40,9 @@ This interactive script:
 
 ### Completing a Feature
 
-When ready to submit a PR:
+When ready to submit a PR, simply push your branch and open a PR. 
 
-```bash
-npm run complete-feature
-```
-
-This script:
-- Updates the completion date
-- Moves history from `active/` to `completed/YYYY-MM/`
-
-Then push and open a PR.
+> **Note**: LLM history files are automatically moved from `active/` to `completed/` when the PR is merged. You don't need to run any completion commands.
 
 ## Testing
 
@@ -122,21 +114,23 @@ If using AI assistants (Cursor, Claude, etc.), we encourage tracking your develo
 
 1. **Start with the script**: `npm run start-feature` creates both the branch and history file
 2. **Keep history updated**: Record prompts and key decisions in `.llm/history/active/`
-3. **Complete properly**: `npm run complete-feature` finalizes history before PR
+3. **Submit your PR**: History is automatically moved to `completed/` when merged
 
 ### 10-Session Limit
 
 History files are limited to **10 sessions maximum** to prevent context overload. When a file reaches 10 sessions:
 
-1. Rename it to `[feature]-part-01.md`
+1. Rename `[feature].md` to `[feature]-part-01.md`
 2. Create `[feature]-part-02.md` for sessions 11+
 3. Continue numbering sessions sequentially (don't reset)
 
 Example structure:
 ```
 .llm/history/active/
-  my-feature-part-01.md  (sessions 1-10)
-  my-feature-part-02.md  (sessions 11-20, current)
+  my-feature/                    # Each feature has its own directory
+    my-feature.md                # Initial file (or after split:)
+    my-feature-part-01.md        # Sessions 1-10
+    my-feature-part-02.md        # Sessions 11-20, current
 ```
 
 This helps maintain context for future LLM sessions and documents architectural decisions. However, it's not required - contributors can develop with or without LLM assistance and history tracking.

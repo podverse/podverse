@@ -14,9 +14,16 @@ This directory tracks all LLM-assisted development work on the Podverse project.
 ├── README.md              # This file
 ├── history/
 │   ├── active/            # Features currently in progress
-│   │   └── [feature].md   # One file per feature/project
+│   │   └── [feature]/     # One directory per feature
+│   │       ├── [feature].md           # Initial history file
+│   │       ├── [feature]-part-01.md   # After 10 sessions, renamed
+│   │       └── [feature]-part-02.md   # Sessions 11+
 │   └── completed/         # Archived by completion month
 │       └── YYYY-MM/
+│           └── [feature]/
+├── plans/                 # Development plans
+│   ├── active/
+│   └── completed/
 ├── context/               # Codebase summaries for LLM context
 │   ├── architecture.md    # High-level architecture overview
 │   └── conventions.md     # Coding conventions and standards
@@ -110,18 +117,31 @@ Each session should be recorded in this format:
 
 ## Creating New Feature Histories
 
-1. Copy the template from `templates/prompt-template.md`
-2. Create a new file in `history/active/[feature-name].md`
+Use the start-feature script which creates the directory structure automatically:
+
+```bash
+npm run start-feature
+```
+
+This creates:
+- `history/active/[feature-name]/[feature-name].md`
+
+If creating manually:
+1. Create directory `history/active/[feature-name]/`
+2. Copy the template from `templates/prompt-template.md`
 3. Fill in the metadata section
 4. Begin documenting sessions
 
 ## Completing Features
 
-When a feature is complete:
+When a PR is merged to `develop` or `main`, a GitHub Actions workflow automatically:
 
-1. Move the file from `history/active/` to `history/completed/YYYY-MM/`
-2. Fill in the "Outcome" section with final summary
-3. Link to any related GitHub issues or PRs
+1. Detects the feature name from the merged branch
+2. Updates the "Completed" date in the history file(s)
+3. Moves the file/directory from `history/active/` to `history/completed/YYYY-MM/`
+4. Commits the change
+
+You don't need to manually complete features - just keep your history updated while working, and it will be archived automatically on merge.
 
 ## Why This Matters
 

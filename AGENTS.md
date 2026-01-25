@@ -206,7 +206,7 @@ logger.error('Feed parsing failed', { error, feedUrl })
 
 ## LLM History Tracking
 
-When making changes, update `.llm/history/active/[feature].md`:
+When making changes, update `.llm/history/active/[feature]/[feature].md` (or the latest part file):
 
 ```markdown
 ### Session N - YYYY-MM-DD
