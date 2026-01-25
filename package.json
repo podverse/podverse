@@ -42,7 +42,7 @@
     "clean:packages": "find packages -name 'tsconfig.tsbuildinfo' -delete && find packages -type d -name 'dist' -exec rm -rf {} + 2>/dev/null || true",
     "clean:apps": "find apps -name 'tsconfig.tsbuildinfo' -delete && find apps -type d -name 'dist' -exec rm -rf {} + 2>/dev/null || true",
     "clean:all": "npm run clean:packages && npm run clean:apps",
-    "watch:packages": "concurrently -n helpers,ext-svc,orm,notif,parser,mq -c blue,cyan,green,yellow,magenta,red \"npm run build:watch -w packages/helpers\" \"sleep 3 && npm run build:watch -w packages/external-services\" \"sleep 6 && npm run build:watch -w packages/orm\" \"sleep 9 && npm run build:watch -w packages/notifications\" \"sleep 12 && npm run build:watch -w packages/parser\" \"sleep 15 && npm run build:watch -w packages/mq\"",
+    "watch:packages": "concurrently -n helpers,ext-svc,orm,notif,parser,mq -c blue,cyan,green,blueBright,magenta,cyanBright \"npm run build:watch -w packages/helpers\" \"sleep 3 && npm run build:watch -w packages/external-services\" \"sleep 6 && npm run build:watch -w packages/orm\" \"sleep 9 && npm run build:watch -w packages/notifications\" \"sleep 12 && npm run build:watch -w packages/parser\" \"sleep 15 && npm run build:watch -w packages/mq\"",
     "dev:api": "npm run dev -w apps/api",
     "dev:api:watch": "npm run dev:watch -w apps/api",
     "dev:web": "npm run dev -w apps/web",
