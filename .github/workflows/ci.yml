@@ -71,6 +71,13 @@ jobs:
         id: typecheck
         run: npm run type-check
 
+      - name: Setup env files for web apps
+        id: setup-env
+        run: |
+          cp apps/web/env/local.env apps/web/.env
+          cp apps/management-web/env/local.env apps/management-web/.env
+          echo "✓ Copied local.env files for CI build"
+
       - name: Build apps
         id: build-apps
         run: npm run build:apps
