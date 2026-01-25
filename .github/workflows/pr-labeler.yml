@@ -32,6 +32,17 @@ jobs:
             const files = JSON.parse('${{ steps.changed-files.outputs.files }}');
             const labels = new Set();
 
+            // Label definitions with colors
+            const labelConfig = {
+              'packages': { color: '1d76db', description: 'Changes to packages/' },
+              'apps': { color: '0e8a16', description: 'Changes to apps/' },
+              'docs': { color: 'fef2c0', description: 'Changes to docs/' },
+              'infra': { color: 'd93f0b', description: 'Changes to infra/ or pipelines/' },
+              'ci': { color: 'fbca04', description: 'Changes to .github/' },
+              'scripts': { color: '5319e7', description: 'Changes to scripts/' },
+              'tools': { color: 'e99695', description: 'Changes to tools/' }
+            };
+
             for (const file of files) {
               if (file.startsWith('packages/')) labels.add('packages');
               if (file.startsWith('apps/')) labels.add('apps');
@@ -43,6 +54,29 @@ jobs:
             }
 
             if (labels.size > 0) {
+              // Get existing labels in the repo
+              const { data: existingLabels } = await github.rest.issues.listLabelsForRepo({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                per_page: 100
+              });
+              const existingLabelNames = new Set(existingLabels.map(l => l.name));
+
+              // Create any missing labels
+              for (const labelName of labels) {
+                if (!existingLabelNames.has(labelName)) {
+                  console.log(`Creating label: ${labelName}`);
+                  await github.rest.issues.createLabel({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    name: labelName,
+                    color: labelConfig[labelName].color,
+                    description: labelConfig[labelName].description
+                  });
+                }
+              }
+
+              // Add labels to PR
               await github.rest.issues.addLabels({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
