@@ -1,9 +1,8 @@
-# Alternative to Renovate - use ONE or the other, not both
-# To use Dependabot instead of Renovate:
-# 1. Delete renovate.json from repo root
-# 2. Rename this file (remove the .disabled suffix if present)
+# Dependabot configuration for automated dependency updates
+# Targets develop branch - PRs will be created against develop
 #
-# Renovate is recommended for better monorepo support and grouping flexibility
+# Note: This is an alternative to Renovate - use ONE or the other, not both
+# Renovate offers better monorepo support if needed
 
 version: 2
 
@@ -13,21 +12,24 @@ registries:
     url: https://registry.npmjs.org
 
 updates:
-  # Root package.json
+  # npm dependencies
   - package-ecosystem: "npm"
     directory: "/"
+    target-branch: "develop"
     schedule:
       interval: "weekly"
       day: "monday"
       time: "08:00"
       timezone: "America/Chicago"
-    open-pull-requests-limit: 5
+    open-pull-requests-limit: 10
     labels:
       - "dependencies"
     commit-message:
       prefix: "chore(deps)"
     groups:
-      production-dependencies:
+      # Group minor/patch prod deps together
+      production-minor-patch:
+        applies-to: version-updates
         patterns:
           - "*"
         exclude-patterns:
@@ -37,7 +39,15 @@ updates:
         update-types:
           - "minor"
           - "patch"
-      development-dependencies:
+      # TypeScript ecosystem - often needs manual attention
+      typescript-ecosystem:
+        patterns:
+          - "typescript"
+          - "@types/*"
+          - "eslint*"
+      # Dev dependencies grouped separately
+      dev-dependencies:
+        applies-to: version-updates
         dependency-type: "development"
         update-types:
           - "minor"
@@ -46,6 +56,7 @@ updates:
   # Docker images
   - package-ecosystem: "docker"
     directory: "/apps/api"
+    target-branch: "develop"
     schedule:
       interval: "weekly"
     labels:
@@ -54,6 +65,7 @@ updates:
 
   - package-ecosystem: "docker"
     directory: "/apps/web"
+    target-branch: "develop"
     schedule:
       interval: "weekly"
     labels:
@@ -62,6 +74,7 @@ updates:
 
   - package-ecosystem: "docker"
     directory: "/apps/workers"
+    target-branch: "develop"
     schedule:
       interval: "weekly"
     labels:
@@ -70,6 +83,7 @@ updates:
 
   - package-ecosystem: "docker"
     directory: "/apps/management-api"
+    target-branch: "develop"
     schedule:
       interval: "weekly"
     labels:
@@ -78,6 +92,7 @@ updates:
 
   - package-ecosystem: "docker"
     directory: "/apps/management-web"
+    target-branch: "develop"
     schedule:
       interval: "weekly"
     labels:
@@ -87,6 +102,7 @@ updates:
   # GitHub Actions
   - package-ecosystem: "github-actions"
     directory: "/"
+    target-branch: "develop"
     schedule:
       interval: "weekly"
     labels:
