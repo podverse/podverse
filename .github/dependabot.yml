@@ -1,0 +1,110 @@
+# Dependabot configuration for automated dependency updates
+# Targets develop branch - PRs will be created against develop
+#
+# Note: This is an alternative to Renovate - use ONE or the other, not both
+# Renovate offers better monorepo support if needed
+
+version: 2
+
+registries:
+  npm-registry:
+    type: npm-registry
+    url: https://registry.npmjs.org
+
+updates:
+  # npm dependencies
+  - package-ecosystem: "npm"
+    directory: "/"
+    target-branch: "develop"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "08:00"
+      timezone: "America/Chicago"
+    open-pull-requests-limit: 10
+    labels:
+      - "dependencies"
+    commit-message:
+      prefix: "chore(deps)"
+    groups:
+      # Group minor/patch prod deps together
+      production-minor-patch:
+        applies-to: version-updates
+        patterns:
+          - "*"
+        exclude-patterns:
+          - "@types/*"
+          - "eslint*"
+          - "typescript"
+        update-types:
+          - "minor"
+          - "patch"
+      # TypeScript ecosystem - often needs manual attention
+      typescript-ecosystem:
+        patterns:
+          - "typescript"
+          - "@types/*"
+          - "eslint*"
+      # Dev dependencies grouped separately
+      dev-dependencies:
+        applies-to: version-updates
+        dependency-type: "development"
+        update-types:
+          - "minor"
+          - "patch"
+
+  # Docker images
+  - package-ecosystem: "docker"
+    directory: "/apps/api"
+    target-branch: "develop"
+    schedule:
+      interval: "weekly"
+    labels:
+      - "dependencies"
+      - "docker"
+
+  - package-ecosystem: "docker"
+    directory: "/apps/web"
+    target-branch: "develop"
+    schedule:
+      interval: "weekly"
+    labels:
+      - "dependencies"
+      - "docker"
+
+  - package-ecosystem: "docker"
+    directory: "/apps/workers"
+    target-branch: "develop"
+    schedule:
+      interval: "weekly"
+    labels:
+      - "dependencies"
+      - "docker"
+
+  - package-ecosystem: "docker"
+    directory: "/apps/management-api"
+    target-branch: "develop"
+    schedule:
+      interval: "weekly"
+    labels:
+      - "dependencies"
+      - "docker"
+
+  - package-ecosystem: "docker"
+    directory: "/apps/management-web"
+    target-branch: "develop"
+    schedule:
+      interval: "weekly"
+    labels:
+      - "dependencies"
+      - "docker"
+
+  # GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    target-branch: "develop"
+    schedule:
+      interval: "weekly"
+    labels:
+      - "dependencies"
+      - "github-actions"

@@ -1,0 +1,55 @@
+name: PR Labeler
+
+on:
+  pull_request_target:
+    types: [opened, synchronize]
+
+jobs:
+  label:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - name: Get changed files
+        id: changed-files
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { data: files } = await github.rest.pulls.listFiles({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.issue.number
+            });
+
+            const paths = files.map(f => f.filename);
+            core.setOutput('files', JSON.stringify(paths));
+
+      - name: Add labels
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const files = JSON.parse('${{ steps.changed-files.outputs.files }}');
+            const labels = new Set();
+
+            for (const file of files) {
+              if (file.startsWith('packages/')) labels.add('packages');
+              if (file.startsWith('apps/')) labels.add('apps');
+              if (file.startsWith('docs/')) labels.add('docs');
+              if (file.startsWith('infra/') || file.startsWith('pipelines/')) labels.add('infra');
+              if (file.startsWith('.github/')) labels.add('ci');
+              if (file.startsWith('scripts/')) labels.add('scripts');
+              if (file.startsWith('tools/')) labels.add('tools');
+            }
+
+            if (labels.size > 0) {
+              await github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                labels: Array.from(labels)
+              });
+              console.log('Added labels:', Array.from(labels));
+            } else {
+              console.log('No labels to add');
+            }
