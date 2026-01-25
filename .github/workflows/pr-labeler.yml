@@ -12,25 +12,21 @@ jobs:
       pull-requests: write
       issues: write
     steps:
-      - name: Get changed files
-        id: changed-files
+      - name: Label PR based on changed files
         uses: actions/github-script@v7
         with:
           script: |
+            // Get changed files
             const { data: files } = await github.rest.pulls.listFiles({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              pull_number: context.issue.number
+              pull_number: context.issue.number,
+              per_page: 100
             });
 
             const paths = files.map(f => f.filename);
-            core.setOutput('files', JSON.stringify(paths));
+            console.log('Changed files:', paths);
 
-      - name: Add labels
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const files = JSON.parse('${{ steps.changed-files.outputs.files }}');
             const labels = new Set();
 
             // Label definitions with colors
@@ -44,7 +40,7 @@ jobs:
               'tools': { color: 'e99695', description: 'Changes to tools/' }
             };
 
-            for (const file of files) {
+            for (const file of paths) {
               if (file.startsWith('packages/')) labels.add('packages');
               if (file.startsWith('apps/')) labels.add('apps');
               if (file.startsWith('docs/')) labels.add('docs');
@@ -54,6 +50,8 @@ jobs:
               if (file.startsWith('tools/')) labels.add('tools');
             }
 
+            console.log('Labels to add:', Array.from(labels));
+
             if (labels.size > 0) {
               // Get existing labels in the repo
               const { data: existingLabels } = await github.rest.issues.listLabelsForRepo({
@@ -62,18 +60,23 @@ jobs:
                 per_page: 100
               });
               const existingLabelNames = new Set(existingLabels.map(l => l.name));
+              console.log('Existing labels:', Array.from(existingLabelNames));
 
               // Create any missing labels
               for (const labelName of labels) {
                 if (!existingLabelNames.has(labelName)) {
                   console.log(`Creating label: ${labelName}`);
-                  await github.rest.issues.createLabel({
-                    owner: context.repo.owner,
-                    repo: context.repo.repo,
-                    name: labelName,
-                    color: labelConfig[labelName].color,
-                    description: labelConfig[labelName].description
-                  });
+                  try {
+                    await github.rest.issues.createLabel({
+                      owner: context.repo.owner,
+                      repo: context.repo.repo,
+                      name: labelName,
+                      color: labelConfig[labelName].color,
+                      description: labelConfig[labelName].description
+                    });
+                  } catch (e) {
+                    console.log(`Failed to create label ${labelName}:`, e.message);
+                  }
                 }
               }
 
@@ -84,7 +87,7 @@ jobs:
                 issue_number: context.issue.number,
                 labels: Array.from(labels)
               });
-              console.log('Added labels:', Array.from(labels));
+              console.log('Successfully added labels:', Array.from(labels));
             } else {
-              console.log('No labels to add');
+              console.log('No labels to add - no matching paths found');
             }
