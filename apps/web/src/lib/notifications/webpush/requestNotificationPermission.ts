@@ -30,7 +30,7 @@ export const requestNotificationPermission = async (): Promise<boolean> => {
     const permission = await Notification.requestPermission();
 
     if (permission !== 'granted') {
-      console.log('Notification permission not granted');
+      console.warn('Notification permission not granted');
       return false;
     }
 

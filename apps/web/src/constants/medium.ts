@@ -1,11 +1,13 @@
 import { MediumEnum } from '@podverse/helpers';
 
+type TranslationFn = (key: string) => string;
+
 export const MEDIUM = {
-  menuItems: (tMedia: any) => [
+  menuItems: (tMedia: TranslationFn) => [
     { label: tMedia('podcast.podcasts'), param: 'medium', value: `${MediumEnum.AV}` },
     { label: tMedia('music.music'), param: 'medium', value: `${MediumEnum.Music}` },
   ],
-  buttonTabs: (mediumId: number, tMedia: any, onClick: (id: number) => void) => {
+  buttonTabs: (mediumId: number, tMedia: TranslationFn, onClick: (id: number) => void) => {
     if (mediumId === MediumEnum.Music) {
       return [
         {
@@ -24,7 +26,7 @@ export const MEDIUM = {
       ];
     }
   },
-  getMediumTranslation: (mediumId: number, tMedia: any) => {
+  getMediumTranslation: (mediumId: number, tMedia: TranslationFn) => {
     if (mediumId === MediumEnum.AV) {
       return tMedia('podcast.podcasts');
     } else if (mediumId === MediumEnum.Podcast) {

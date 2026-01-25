@@ -157,22 +157,28 @@ const defaultLocalSettings: LocalSettingsState = {
   fd: {},
 };
 
-function isValidLocalSettings(settings: any): settings is LocalSettingsState {
+function isValidLocalSettings(settings: unknown): settings is LocalSettingsState {
+  const s = settings as Record<string, unknown>;
+  if (!s || typeof s !== 'object') {
+    return false;
+  }
+  const aqc = s.aqc as Record<string, unknown> | undefined;
   return (
-    settings &&
-    typeof settings.uit === 'string' &&
-    typeof settings.vs === 'string' &&
-    typeof settings.seda === 'boolean' &&
-    typeof settings.aqc === 'object' &&
-    settings.aqc !== null &&
-    typeof settings.aqc.rp === 'boolean' &&
-    typeof settings.aqc.rd === 'boolean' &&
-    (settings.fd === undefined || typeof settings.fd === 'object' && settings.fd !== null) &&
-    (settings.metd === undefined || typeof settings.metd === 'string')
+    typeof s.uit === 'string' &&
+    typeof s.vs === 'string' &&
+    typeof s.seda === 'boolean' &&
+    typeof aqc === 'object' &&
+    aqc !== null &&
+    typeof aqc.rp === 'boolean' &&
+    typeof aqc.rd === 'boolean' &&
+    (s.fd === undefined || typeof s.fd === 'object' && s.fd !== null) &&
+    (s.metd === undefined || typeof s.metd === 'string')
   );
 }
 
-export function getParsedLocalSettings(cookieStore?: any): LocalSettingsState {
+type CookieStore = { get: (name: string) => { value?: string } | undefined };
+
+export function getParsedLocalSettings(cookieStore?: CookieStore): LocalSettingsState {
   const isServer = typeof document === 'undefined';
   let raw: string | undefined;
 

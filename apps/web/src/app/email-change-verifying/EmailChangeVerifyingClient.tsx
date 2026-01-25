@@ -44,7 +44,7 @@ export function EmailChangeVerifyingClient({ token }: EmailChangeVerifyingClient
         timeoutId = setTimeout(() => {
           window.location.href = '/';
         }, 3000);
-      } catch (err: any) {
+      } catch (err: unknown) {
         const rateLimitHandled = await handleRateLimitAlert(err, locale, tMisc);
         if (!rateLimitHandled) {
           setIsError(true);

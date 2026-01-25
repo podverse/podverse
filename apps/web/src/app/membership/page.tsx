@@ -24,7 +24,7 @@ type MembershipPricingData = {
 };
 
 type RenderIntroTextParams = {
-  t: (key: string, values?: any) => string;
+  t: (key: string, values?: Record<string, string | number>) => string;
   isContactOnlyMode: boolean;
   contactEmail?: string;
   ssrLoggedInAccount: DTOAccount | null;
@@ -67,8 +67,9 @@ export default async function MembershipPage() {
   // Determine user status
   const accountMembershipStatus = ssrLoggedInAccount?.account_membership_status;
   // Handle both DTO structure (account_membership_id) and populated structure (account_membership.id)
+  type MembershipStatusWithPopulated = typeof accountMembershipStatus & { account_membership?: { id?: number } };
   const membershipId = accountMembershipStatus?.account_membership_id ?? 
-    (accountMembershipStatus as any)?.account_membership?.id;
+    (accountMembershipStatus as MembershipStatusWithPopulated)?.account_membership?.id;
   const isFreeTrial = membershipId === AccountMembershipEnum.Trial;
   const isPaidPremium = membershipId === AccountMembershipEnum.Basic;
   const membershipExpiresAt = accountMembershipStatus?.membership_expires_at;

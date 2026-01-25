@@ -31,7 +31,7 @@ export default function Providers({
   ssrLocalSettings: LocalSettingsState;
   ssrLoggedInAccount: DTOAccount | null;
   ssrQueueResourcesAbridgedIndex: QueueResourcesAbridgedIndex | null;
-  messages: Record<string, any>;
+  messages: Record<string, Record<string, string | Record<string, unknown>>>;
   categories: DTOCategory[];
 }) {
   return (

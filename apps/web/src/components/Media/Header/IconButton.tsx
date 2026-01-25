@@ -37,8 +37,8 @@ export const IconButton: React.FC<IconButtonProps> = ({
   return (
     <Link
       href={href || undefined}
-      type={type as any}
-      onClick={onClick as any}
+      type={type as 'button' | 'submit' | 'reset' | undefined}
+      onClick={onClick}
       className={classes}
       aria-label={ariaLabel}
       title={title}

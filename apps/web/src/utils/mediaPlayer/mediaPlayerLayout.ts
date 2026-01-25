@@ -1,4 +1,4 @@
-export function updateLayoutForMediaPlayer(nowPlayingItem: any) {
+export function updateLayoutForMediaPlayer(nowPlayingItem: unknown) {
   const sidebar = document.getElementById('sidebar');
   const pageWrapper = document.getElementById('page-wrapper');
   const mediaPlayer = document.getElementById('media-player');

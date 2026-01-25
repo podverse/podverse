@@ -5,7 +5,7 @@ import { InfoWrapper } from './InfoWrapper';
 import { useAccount } from '../../contexts/Account';
 
 type HowToStartInfoProps = {
-  rows: any[];
+  rows: unknown[];
   totalPages: number;
 };
 

@@ -4,7 +4,7 @@ import { ModalSourceSelector } from '../../contexts/Modals';
 type DownloadTrackWithModalParams = {
   item: DTOItem;
   setModalSourceSelector: (val: ModalSourceSelector) => void;
-  showToastPromiseWithLoading: (promise: Promise<any>, messages: {
+  showToastPromiseWithLoading: (promise: Promise<void>, messages: {
     loading: string;
     success: string;
     error: string;

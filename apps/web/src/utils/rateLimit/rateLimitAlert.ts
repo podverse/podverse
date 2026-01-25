@@ -1,28 +1,42 @@
+type ErrorWithResponse = {
+  response?: { status?: number; data?: RateLimitData };
+  status?: number;
+  code?: number;
+  data?: RateLimitData;
+  body?: RateLimitData;
+};
+
+type RateLimitData = {
+  tooManyRequests?: boolean;
+  minutesRemaining?: number;
+} | Blob;
+
 export async function handleRateLimitAlert(
   error: unknown,
   locale?: string,
-  tMisc?: (key: string, values?: Record<string, any>) => string,
+  tMisc?: (key: string, values?: Record<string, string | number>) => string,
 ): Promise<boolean> {
+  const e = error as ErrorWithResponse;
   const status =
-    (error as any)?.response?.status ??
-    (error as any)?.status ??
-    (error as any)?.code;
+    e?.response?.status ??
+    e?.status ??
+    e?.code;
 
-  let data =
-    (error as any)?.response?.data ??
-    (error as any)?.data ??
-    (error as any)?.body;
+  let data: RateLimitData | undefined =
+    e?.response?.data ??
+    e?.data ??
+    e?.body;
 
   // If data is a Blob (can happen with responseType: 'blob'), convert to JSON
   if (status === 429 && data instanceof Blob) {
     try {
       const blobText = await data.text();
-      data = JSON.parse(blobText);
+      data = JSON.parse(blobText) as RateLimitData;
       // Update the error object with parsed data for consistency
-      if ((error as any)?.response) {
-        (error as any).response.data = data;
-      } else if ((error as any)?.data) {
-        (error as any).data = data;
+      if (e?.response) {
+        e.response.data = data;
+      } else if (e && 'data' in e) {
+        e.data = data;
       }
     } catch (parseError) {
       // If parsing fails, can't handle rate limit
@@ -31,8 +45,10 @@ export async function handleRateLimitAlert(
     }
   }
 
-  if (status === 429 && data?.tooManyRequests) {
-    const minutesRemaining = data.minutesRemaining;
+  // After potential blob conversion, data should not be a Blob
+  const rateLimitData = data instanceof Blob ? undefined : data;
+  if (status === 429 && rateLimitData?.tooManyRequests) {
+    const minutesRemaining = rateLimitData.minutesRemaining;
     if (typeof minutesRemaining !== 'number' || isNaN(minutesRemaining) || minutesRemaining < 1) {
       alert(
         tMisc

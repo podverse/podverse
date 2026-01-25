@@ -82,11 +82,13 @@ export const PodcastIndexFeedInfo: React.FC<PodcastIndexFeedInfoProps> = ({ podc
         });
         
         startPollingForChannel(podcastIndexFeed.id);
-      } catch (error: any) {
+      } catch (error: unknown) {
         const rateLimitErrorHandled = await handleRateLimitAlert(error, locale, tMisc);
         if (!rateLimitErrorHandled) {
-          const errorStatus = error?.response?.status;
-          const errorData = error?.response?.data;
+          type ErrorWithResponse = { response?: { status?: number; data?: { i18nKey?: string } } };
+          const errorWithResponse = error as ErrorWithResponse;
+          const errorStatus = errorWithResponse?.response?.status;
+          const errorData = errorWithResponse?.response?.data;
           const i18nKey = errorData?.i18nKey;
           
           if (errorStatus === 403 && i18nKey) {

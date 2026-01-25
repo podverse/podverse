@@ -37,10 +37,11 @@ export const ModalAuthLogin: React.FC = () => {
       setVerificationEmailSent(false);
       await apiRequestService.reqAuthLogin({ email, password });
       window.location.reload();
-    } catch (err: any) {
+    } catch (err: unknown) {
       const rateLimitErrorHandled = await handleRateLimitAlert(err, locale, tMisc);
       if (!rateLimitErrorHandled) {
-        const responseMessage = err?.response?.data?.message;
+        type ErrorWithResponse = { response?: { data?: { message?: string } } };
+        const responseMessage = (err as ErrorWithResponse)?.response?.data?.message;
         if (responseMessage === ERROR_MESSAGES.ACCOUNT.NOT_VERIFIED) {
           setAccountNotVerified(true);
           setShowErrorMessage(false);

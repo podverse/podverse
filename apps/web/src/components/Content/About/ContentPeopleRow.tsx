@@ -9,44 +9,44 @@ type ContentPeopleRowProps = {
 }
 
 export const ContentPeopleRow = ({ channel_person, item_person }: ContentPeopleRowProps) => {
-  if (!channel_person && !item_person) {
+  const tInfo = useTranslations('info');
+  const person = item_person ?? channel_person;
+
+  if (!person) {
     return null;
   }
-
-  const tInfo = useTranslations('info');
-  const person = item_person ? item_person : channel_person;
 
   return (
     <div className={styles.row}>
       <Link
         className={styles.link}
-        href={person!.href || '#'}
+        href={person.href || '#'}
         target="_blank"
         rel="noopener noreferrer"
         aria-label={tInfo('people.link_to_persons_webpage')}
         title={tInfo('people.link_to_persons_webpage')}
         color="secondary">
         {
-          person!.img && (
+          person.img && (
             <img
               className={styles.personImage}
-              src={person!.img}
-              alt={person!.name || tInfo('people.person_image')}
+              src={person.img}
+              alt={person.name || tInfo('people.person_image')}
             />
           )
         }
         <div className={styles.textWrapper}>
           {
-            person!.name && (
+            person.name && (
               <div className={styles.name}>
-                {person!.name}
+                {person.name}
               </div>
             )
           }
           {
-            person!.role && (
+            person.role && (
               <div className={styles.role}>
-                {person!.role}
+                {person.role}
               </div>
             )
           }

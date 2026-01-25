@@ -1,5 +1,5 @@
 import { useLocale, useTranslations } from 'use-intl';
-import { DTOChannel } from '@podverse/helpers';
+import { DTOAccount, DTOChannel } from '@podverse/helpers';
 import { Button } from '../Button/Button';
 import { useAccount } from '../../contexts/Account';
 import { useModals } from '../../contexts/Modals';
@@ -41,11 +41,13 @@ export const ListChannelSettings = ({ channel }: ListChannelSettingsProps) => {
           podcast_index_id: channel.feed.podcast_index_id,
         });
         alert(tSettings('feed.check_feed_added_to_queue'));
-      } catch (error: any) {
+      } catch (error: unknown) {
         const rateLimitErrorHandled = await handleRateLimitAlert(error, locale, tMisc);
         if (!rateLimitErrorHandled) {
-          const errorStatus = error?.response?.status;
-          const errorData = error?.response?.data;
+          type ErrorWithResponse = { response?: { status?: number; data?: { i18nKey?: string } } };
+          const errorWithResponse = error as ErrorWithResponse;
+          const errorStatus = errorWithResponse?.response?.status;
+          const errorData = errorWithResponse?.response?.data;
           const i18nKey = errorData?.i18nKey;
           
           if (errorStatus === 403 && i18nKey) {
@@ -114,13 +116,13 @@ export const ListChannelSettings = ({ channel }: ListChannelSettingsProps) => {
             channel_id_text: channel.id_text,
             type,
           });
-          setLoggedInAccount(updated as any);
+          setLoggedInAccount(updated as DTOAccount);
         } else {
           const updated = await apiRequestService.reqAccountNotificationChannelTypeDelete({
             channel_id_text: channel.id_text,
             type,
           });
-          setLoggedInAccount(updated as any);
+          setLoggedInAccount(updated as DTOAccount);
         }
       } catch (e) {
         console.warn('Could not toggle channel notification type', type, e);

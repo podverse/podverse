@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-non-null-assertion -- env vars validated at startup in lib/startup/validation.ts */
 import { AccountSignupMode } from '@podverse/helpers';
 
 type SocialConfig = {

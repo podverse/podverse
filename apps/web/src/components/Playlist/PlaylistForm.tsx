@@ -10,14 +10,15 @@ import Form from '../../components/Form/Form';
 import { Divider } from '../Divider/Divider';
 import { apiRequestService } from '../../factories/apiRequestService';
 import styles from '../../styles/components/Playlist/PlaylistForm.module.scss';
+import { DropdownMenuItem } from '../Dropdown/Dropdown';
 
 export type PlaylistFormProps = {
   medium: string;
   setMedium: (val: string) => void;
-  mediumDropdownMenuItems: any[];
+  mediumDropdownMenuItems: DropdownMenuItem[];
   sharableStatus: string;
   setSharableStatus: (val: string) => void;
-  sharableStatusDropdownMenuItems: any[];
+  sharableStatusDropdownMenuItems: DropdownMenuItem[];
   title: string;
   setTitle: (val: string) => void;
   description: string;
@@ -26,8 +27,8 @@ export type PlaylistFormProps = {
   onCancel: () => void;
   onSubmit: () => void;
   isValidSubmit: () => boolean;
-  tFeatures: any;
-  tMisc: any;
+  tFeatures: (key: string) => string;
+  tMisc: (key: string) => string;
   edit_playlist_id_text: string | null;
   className?: string;
 };

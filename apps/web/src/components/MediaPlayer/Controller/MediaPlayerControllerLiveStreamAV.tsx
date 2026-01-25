@@ -1,7 +1,8 @@
 import React, { useRef, useEffect, useMemo } from 'react';
 import { DTOItem, EnclosureSelectedParams, getSelectedLabeledItemEnclosureAndSource,
   isEqual,
-  LabeledItemEnclosure } from '@podverse/helpers';
+  LabeledItemEnclosure,
+  SelectedLabeledItemEnclosureAndSource } from '@podverse/helpers';
 import videojs from 'video.js';
 import 'video.js/dist/video-js.css';
 
@@ -26,9 +27,10 @@ export const MediaPlayerControllerLiveStreamAV: React.FC<MediaPlayerControllerLi
 }) => {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const mediaElRef = useRef<HTMLVideoElement | HTMLAudioElement | null>(null);
-  const videoJsPlayerRef = useRef<any | null>(null);
+  // Using ReturnType<typeof videojs> for the video.js player instance
+  const videoJsPlayerRef = useRef<ReturnType<typeof videojs> | null>(null);
 
-  const prevSelectedRef = useRef<any>(null);
+  const prevSelectedRef = useRef<SelectedLabeledItemEnclosureAndSource | null>(null);
 
   const selectedItemEnclosureAndSource = useMemo(() => {
     const next = getSelectedLabeledItemEnclosureAndSource({
@@ -49,8 +51,8 @@ export const MediaPlayerControllerLiveStreamAV: React.FC<MediaPlayerControllerLi
     // Guard: container must exist.
     if (!containerRef.current) {return;}
 
-    const labeled = selectedItemEnclosureAndSource.labeledItemEnclosure;
-    const srcObj = selectedItemEnclosureAndSource.source;
+    const labeled = selectedItemEnclosureAndSource?.labeledItemEnclosure;
+    const srcObj = selectedItemEnclosureAndSource?.source;
 
     // If enclosure missing basic data, dispose and bail.
     if (!labeled?.enclosure?.type || !srcObj?.uri) {

@@ -9,10 +9,13 @@ type GlobalErrorProps = {
   reset: () => void;
 };
 
+type TranslationValue = string | Record<string, unknown>;
+type MiscTranslations = Record<string, TranslationValue>;
+
 // Helper to get translations for global-error (rendered outside provider tree)
-async function getGlobalErrorTranslations(): Promise<{ errors: Record<string, string>; misc: Record<string, any> }> {
+async function getGlobalErrorTranslations(): Promise<{ errors: Record<string, string>; misc: MiscTranslations }> {
   // Helper to filter out nested objects and only keep string values
-  const filterStrings = (obj: any): Record<string, string> => {
+  const filterStrings = (obj: Record<string, unknown> | undefined): Record<string, string> => {
     const result: Record<string, string> = {};
     for (const [key, value] of Object.entries(obj || {})) {
       if (typeof value === 'string') {
@@ -61,7 +64,7 @@ async function getGlobalErrorTranslations(): Promise<{ errors: Record<string, st
 }
 
 export default function GlobalError({ error, reset }: GlobalErrorProps) {
-  const [translations, setTranslations] = useState<{ errors: Record<string, string>; misc: Record<string, any> }>({
+  const [translations, setTranslations] = useState<{ errors: Record<string, string>; misc: MiscTranslations }>({
     errors: {
       global_title: 'Application Error',
       global_message: 'A critical error occurred. Please refresh the page.',

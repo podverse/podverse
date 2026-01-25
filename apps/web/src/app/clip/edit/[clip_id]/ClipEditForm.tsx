@@ -67,9 +67,14 @@ export const ClipEditForm: React.FC<ClipEditFormProps> = ({ ssrClip }) => {
     router.push(`/clip/${clip.id_text}`);
   };
 
+  const channel = ssrClip.item.channel;
+  if (!channel) {
+    return null;
+  }
+
   return (
     <ClipForm
-      channel={ssrClip.item.channel!}
+      channel={channel}
       item={ssrClip.item}
       sharableStatus={sharableStatus}
       setSharableStatus={setSharableStatus}

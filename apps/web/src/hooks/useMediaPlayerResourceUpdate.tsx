@@ -126,7 +126,9 @@ export function useMediaPlayerResourceUpdate() {
     // so that it is already loaded by the time the now playing resource is updated within the queue.
     // Else, clear the previous items current time and duration by setting to 0
     // (because they will be updated shortly after by the media audio/video controllers anyway).
-    function getAbridgedAndSet(resource: any, abridgedMap: Record<string, any>, preventSet: boolean = false) {
+    type ResourceWithId = { id: number | string } | null | undefined;
+    type AbridgedData = { p?: number | string; d?: number | string };
+    function getAbridgedAndSet(resource: ResourceWithId, abridgedMap: Record<string, AbridgedData>, preventSet: boolean = false) {
       const abridged = resource ? abridgedMap?.[resource.id] : undefined;
       const currentTime = Number(abridged?.p) || 0;
       const duration = Number(abridged?.d) || 0;

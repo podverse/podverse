@@ -80,10 +80,11 @@ export const ModalChangeEmail: React.FC<ModalChangeEmailProps> = ({
     try {
       await apiRequestService.reqAccountSendChangeEmailAddressEmail({ new_email: email });
       setIsEmailSent(true);
-    } catch (err: any) {
+    } catch (err: unknown) {
       const rateLimitErrorHandled = await handleRateLimitAlert(err, locale, tMisc);
       if (!rateLimitErrorHandled) {
-        setErrorMessage(err?.response?.data?.message || tMisc('errors.generic'));
+        type ErrorWithResponse = { response?: { data?: { message?: string } } };
+        setErrorMessage((err as ErrorWithResponse)?.response?.data?.message || tMisc('errors.generic'));
         setShowErrorMessage(true);
       }
     } finally {

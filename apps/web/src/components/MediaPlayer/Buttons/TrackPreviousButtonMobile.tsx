@@ -1,5 +1,5 @@
 import { FaBackwardStep } from 'react-icons/fa6';
-import { DTOChannel, DTOClip, DTOItem, DTOItemSoundbite } from '@podverse/helpers';
+import { DTOChannel, DTOClip, DTOItem, DTOItemSoundbite, DTOPlaylistResource } from '@podverse/helpers';
 import { EVENTS } from '../../../constants/events';
 import { useMediaPlayer } from '../../../contexts/MediaPlayer';
 import { MediumEnum } from '@podverse/helpers';
@@ -34,7 +34,6 @@ export const TrackPreviousButtonMobile = () => {
         if (autoQueueConfig.random) {
           window.dispatchEvent(new CustomEvent(EVENTS.MEDIA_PLAYER.SEEK, { detail: { time: 0 } }));
         } else {
-          let autoQueueResourcesResponse: any[] = [];
           let channel: DTOChannel | null = null;
           let clip: DTOClip | null = null;
           let item_soundbite: DTOItemSoundbite | null = null;
@@ -47,8 +46,8 @@ export const TrackPreviousButtonMobile = () => {
                 { clip_id_text: mpClip?.id_text, item_soundbite_id_text: mpItemSoundbite?.id_text, item_id_text: mpItem.id_text },
                 'backward',
               );
-            autoQueueResourcesResponse = response.data;
-            const previousRow = autoQueueResourcesResponse.length > 0 ? autoQueueResourcesResponse[0] : null;
+            const playlistResources: DTOPlaylistResource[] = response.data;
+            const previousRow = playlistResources.length > 0 ? playlistResources[0] : null;
             if (previousRow) {
               if (previousRow.clip) {
                 clip = previousRow.clip;
@@ -64,10 +63,10 @@ export const TrackPreviousButtonMobile = () => {
               }
             }
           } else {
-            autoQueueResourcesResponse = mpChannel?.medium_id === MediumEnum.Music
+            const itemsResponse: DTOItem[] = mpChannel?.medium_id === MediumEnum.Music
               ? await apiRequestService.reqItemGetManyForQueueBySeason(mpItem.id_text, 'backward')
               : await apiRequestService.reqItemGetManyForQueueByPubDate(mpItem.id_text, 'backward');
-            const previousItem = autoQueueResourcesResponse.length > 0 ? autoQueueResourcesResponse[0] : null;
+            const previousItem = itemsResponse.length > 0 ? itemsResponse[0] : null;
             item = previousItem;
             channel = previousItem?.channel || null;
             clip = null;

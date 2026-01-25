@@ -60,8 +60,9 @@ export function usePageStateCache<TParams, TData = unknown>({
       // Restore scroll after content renders
       if (scrollPos !== undefined) {
         // Use a longer delay to ensure content has rendered
+        const savedScrollPos = scrollPos;
         setTimeout(() => {
-          restoreScrollPosition(scrollPos!);
+          restoreScrollPosition(savedScrollPos);
           clearBackNavFlag();
           onRestoreCompleteRef.current?.();
         }, 100);

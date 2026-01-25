@@ -2,12 +2,20 @@
 
 import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
-import { findDTOChannelImageBySize, findDTOItemImageBySize, MediumEnum } from '@podverse/helpers';
+import { DTOChannel, DTOClip, DTOItem, DTOItemChapter, DTOItemSoundbite, findDTOChannelImageBySize, findDTOItemImageBySize, MediumEnum } from '@podverse/helpers';
 import { useMediaPlayer } from '../../../contexts/MediaPlayer';
 import { ImageNonReact } from '../../Image/ImageNonReact';
 import { Link } from '../../Link/Link';
 import { ReadableTimeRange } from '../../Time/ReadableTimeRange';
 import styles from '../../../styles/components/MediaPlayer/Modal/MediaPlayerInfoModal.module.scss';
+
+type UseLinkHelperParams = {
+  mpChannel: DTOChannel | null;
+  mpItem: DTOItem | null;
+  mpClip: DTOClip | null;
+  mpItemChapter: DTOItemChapter | null;
+  mpItemSoundbite: DTOItemSoundbite | null;
+};
 
 function useLinkHelper({
   mpChannel,
@@ -15,7 +23,7 @@ function useLinkHelper({
   mpClip,
   mpItemChapter,
   mpItemSoundbite,
-}: any) {
+}: UseLinkHelperParams) {
   let channelLinkUrl = '';
   let itemLinkUrl = '';
   let subsectionUrl = '';

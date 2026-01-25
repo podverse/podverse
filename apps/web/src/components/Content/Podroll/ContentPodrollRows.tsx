@@ -33,7 +33,10 @@ export const ContentPodrollRows = ({ remoteItemsResponse }: ContentPodrollProps)
       return null;
     }
 
-    const key = (itemUnadded as any).guid || (itemUnadded as any).id || `item-unadded-${Math.random()}`;
+    // itemUnadded can have different shapes from Podcast Index API
+    type ItemUnaddedWithId = typeof itemUnadded & { guid?: string; id?: number };
+    const itemWithId = itemUnadded as ItemUnaddedWithId;
+    const key = itemWithId.guid || itemWithId.id || `item-unadded-${Math.random()}`;
 
     return (
       <ContentPodrollItemUnaddedRow key={key} itemUnadded={itemUnadded} />

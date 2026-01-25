@@ -15,7 +15,7 @@ function CategoryListItems({
   onCategoryClick,
 }: {
   categories: DTOCategory[];
-  tCategories: any;
+  tCategories: (key: string) => string;
   onCategoryClick: (category: DTOCategory, event: React.MouseEvent<HTMLButtonElement>) => void;
 }) {
   if (!categories || categories.length === 0) {return null;}
@@ -24,7 +24,7 @@ function CategoryListItems({
       {categories.map((category) => (
         <li key={category.id}>
           <Link onClick={(e) => onCategoryClick(category, e)}>
-            {tCategories(category.mapping_key)}
+            {category.mapping_key ? tCategories(category.mapping_key) : ''}
           </Link>
           {category.children && category.children.length > 0 && (
             <CategoryListItems

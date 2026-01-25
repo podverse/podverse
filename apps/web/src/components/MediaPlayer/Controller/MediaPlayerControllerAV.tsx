@@ -7,7 +7,8 @@ import { QueueResourcesAbridgedIndex, DTOClip, DTOItem, DTOItemChapter,
   getSelectedLabeledItemEnclosureAndSource,
   isEqual,
   MediumEnum,
-  DTOChannel} from '@podverse/helpers';
+  DTOChannel,
+  SelectedLabeledItemEnclosureAndSource} from '@podverse/helpers';
 import { EVENTS } from '../../../constants/events';
 import { MoveNowPlayingToHistoryCallbackParams } from '../../../hooks/useQueueResourceMoveNowPlayingToHistory';
 import { UpdateNowPlayingParams } from '../../../hooks/useQueueResourceUpdateNowPlaying';
@@ -100,7 +101,7 @@ export const MediaPlayerControllerAV: React.FC<MediaPlayerControllerAVProps> = (
   const playbackElapsedRef = useRef(0);
   const lastPlaybackTimeRef = useRef<number | null>(null);
   
-  const prevSelectedRef = useRef<any>(null);
+  const prevSelectedRef = useRef<SelectedLabeledItemEnclosureAndSource | null>(null);
 
   const selectedItemEnclosureAndSource = useMemo(() => {
     const next = getSelectedLabeledItemEnclosureAndSource({
@@ -117,6 +118,9 @@ export const MediaPlayerControllerAV: React.FC<MediaPlayerControllerAVProps> = (
   }, [mpItemLabeledEnclosures, mpEnclosureSelectedParams]);
 
   useEffect(() => {
+    if (!selectedItemEnclosureAndSource) {
+      return;
+    }
     if (!selectedItemEnclosureAndSource.labeledItemEnclosure?.enclosure?.type) {
       return;
     }
@@ -128,7 +132,7 @@ export const MediaPlayerControllerAV: React.FC<MediaPlayerControllerAVProps> = (
     const mpItem = mpItemRef.current;
     const mpShouldPlay = mpShouldPlayRef.current;
 
-    if (media && selectedItemEnclosureAndSource) {
+    if (media) {
       const isAudioFile = checkIfIsAudioFile(selectedItemEnclosureAndSource);
       const isVideoFile = checkIfIsVideoFile(selectedItemEnclosureAndSource);
       const isLiveItem = checkIsLiveItem(mpItem);
@@ -455,7 +459,7 @@ export const MediaPlayerControllerAV: React.FC<MediaPlayerControllerAVProps> = (
     playWhenReady();
   }, [mpClip, mpItemChapter, mpItemSoundbite]);
 
-  const sourceUri = selectedItemEnclosureAndSource.source?.uri || null;
+  const sourceUri = selectedItemEnclosureAndSource?.source?.uri || null;
 
   if (mediaType === 'audio') {
     return (

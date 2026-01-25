@@ -1,6 +1,6 @@
 'use client';
 
-import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
+import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
 import { DTOPlaylist, DTOPlaylistResource, MediumEnum } from '@podverse/helpers';
 import React from 'react';
 import { ListPlaylistResourceRow } from './ListPlaylistResourceRow';
@@ -41,7 +41,7 @@ export const ListPlaylistResources: React.FC<Props> = ({
     scrollMainToTop();
   }, [resources]);
 
-  const handleDragEnd = async (result: any) => {
+  const handleDragEnd = async (result: DropResult) => {
     if (!result.destination) {return;}
     const reordered = Array.from(resources);
     const [removed] = reordered.splice(result.source.index, 1);
