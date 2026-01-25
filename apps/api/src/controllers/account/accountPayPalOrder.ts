@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import Joi from 'joi';
 import { AccountPayPalOrderService } from '@podverse/orm';
 import { handleGenericErrorResponse } from '../helpers/error';
-import { ensureAuthenticated } from '@api/lib/auth';
+import { ensureAuthenticated, getAuthenticatedUser } from '@api/lib/auth';
 import { validateBodyObject, validateParamsObject } from '@api/lib/validation';
 import { paypalService } from '@api/factories/paypalService';
 import { getParamRequired } from '@api/lib/params';
@@ -32,7 +32,7 @@ class AccountPayPalOrderController {
     validateParamsObject(getPayPalOrderSchema, req, res, async () => {
       ensureAuthenticated(req, res, async () => {
         try {
-          const jwtUser = req.user!;
+          const jwtUser = getAuthenticatedUser(req);
           const payment_id = getParamRequired(req, 'payment_id');
 
           const accountPayPalOrder = await this.accountPayPalOrderService.get(jwtUser.id, payment_id);
@@ -54,7 +54,7 @@ class AccountPayPalOrderController {
     validateBodyObject(createPayPalOrderSchema, req, res, async () => {
       ensureAuthenticated(req, res, async () => {
         try {
-          const jwtUser = req.user!;
+          const jwtUser = getAuthenticatedUser(req);
           const { payment_id, state } = req.body;
 
           const accountPayPalOrder = await this.accountPayPalOrderService.create(jwtUser.id, payment_id, state);

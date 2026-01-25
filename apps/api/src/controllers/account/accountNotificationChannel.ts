@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { ensureAuthenticated } from '@api/lib/auth';
+import { ensureAuthenticated, getAuthenticatedUser } from '@api/lib/auth';
 import { AccountNotificationChannelService } from '@podverse/orm';
 import { handleGenericErrorResponse } from '../helpers/error';
 import { validateBodyObject, validateParamsObject } from '@api/lib/validation';
@@ -25,7 +25,7 @@ class AccountNotificationChannelController {
     validateParamsObject(getByAccountAndChannelSchema, req, res, async () => {
       ensureAuthenticated(req, res, async () => {
         try {
-          const jwtUser = req.user!;
+          const jwtUser = getAuthenticatedUser(req);
           const channel_id_text = getParamRequired(req, 'channel_id_text');
           const notificationChannel = await AccountNotificationChannelController.accountNotificationChannelService.getByAccountIdAndChannelIdText(jwtUser.id, channel_id_text);
           if (!notificationChannel) {
@@ -43,7 +43,7 @@ class AccountNotificationChannelController {
   static async getAllByAccount(req: Request, res: Response): Promise<void> {
     ensureAuthenticated(req, res, async () => {
       try {
-        const jwtUser = req.user!;
+        const jwtUser = getAuthenticatedUser(req);
         const notificationChannels = await AccountNotificationChannelController.accountNotificationChannelService.getAllByAccountId(jwtUser.id);
         res.json(notificationChannels);
       } catch (err) {
@@ -56,7 +56,7 @@ class AccountNotificationChannelController {
     ensureAuthenticated(req, res, async () => {
       validateBodyObject(createNotificationChannelSchema, req, res, async () => {
         try {
-          const jwtUser = req.user!;
+          const jwtUser = getAuthenticatedUser(req);
           const { channel_id_text } = req.body;
           const notificationChannel = await AccountNotificationChannelController.accountNotificationChannelService.create(jwtUser.id, channel_id_text);
           res.status(201).json(notificationChannel);
@@ -71,7 +71,7 @@ class AccountNotificationChannelController {
     ensureAuthenticated(req, res, async () => {
       validateParamsObject(deleteNotificationChannelSchema, req, res, async () => {
         try {
-          const jwtUser = req.user!;
+          const jwtUser = getAuthenticatedUser(req);
           const channel_id_text = getParamRequired(req, 'channel_id_text');
           await AccountNotificationChannelController.accountNotificationChannelService.delete(jwtUser.id, channel_id_text);
           res.status(204).end();

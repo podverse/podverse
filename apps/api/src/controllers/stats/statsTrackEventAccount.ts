@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import Joi from 'joi';
 import { StatsTrackEventAccountService } from '@podverse/orm';
 import { handleGenericErrorResponse } from '@api/controllers/helpers/error';
-import { ensureAuthenticated } from '@api/lib/auth';
+import { ensureAuthenticated, getAuthenticatedUser } from '@api/lib/auth';
 import { validateBodyObject } from '@api/lib/validation';
 
 const createStatsTrackEventAccountSchema = Joi.object({
@@ -15,7 +15,7 @@ export class StatsTrackEventAccountController {
   static async create(req: Request, res: Response): Promise<void> {
     ensureAuthenticated(req, res, async () => {
       validateBodyObject(createStatsTrackEventAccountSchema, req, res, async () => {
-        const jwtUser = req.user!;
+        const jwtUser = getAuthenticatedUser(req);
         const { account_id_text } = req.body;
 
         try {

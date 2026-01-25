@@ -6,15 +6,15 @@
 
 export type WebPushConfig = {
   enabled: boolean;
-  vapid_public_key: string;
-  vapid_private_key: string;
-  vapid_subject: string;
+  vapid_public_key?: string | undefined; // Only required when enabled is true
+  vapid_private_key?: string | undefined; // Only required when enabled is true
+  vapid_subject?: string | undefined; // Only required when enabled is true
 };
 
 export type WebConfig = {
   protocol: string;
   host: string;
-  icon_image_path: string;
+  icon_image_path?: string | undefined;
 };
 
 export type NotificationsConfig = {

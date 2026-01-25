@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import Joi from 'joi';
 import { AccountFollowingChannelService, AccountService } from '@podverse/orm';
 import { QUERY_PARAMS_MEDIUMS, QueryParamsMedium, SharableStatusEnum } from '@podverse/helpers';
-import { ensureAuthenticated, optionalEnsureAuthenticated } from '@api/lib/auth';
+import { ensureAuthenticated, optionalEnsureAuthenticated, getAuthenticatedUser } from '@api/lib/auth';
 import { handleGenericErrorResponse } from '../helpers/error';
 import { validateBodyObject, validateParamsObject, validateQueryObject } from '@api/lib/validation';
 import { getParamRequired } from '@api/lib/params';
@@ -28,7 +28,7 @@ class AccountFollowingChannelController {
       validateQueryObject(getFollowedChannelsQuerySchema, req, res, async () => {
         optionalEnsureAuthenticated(req, res, async () => {
           try {
-            const jwtUser = req.user!;
+            const jwtUser = req.user;
             const account_id_text = getParamRequired(req, 'account_id_text');
             const { medium } = req.query as {
               medium: QueryParamsMedium;
@@ -60,7 +60,7 @@ class AccountFollowingChannelController {
   static async followChannel(req: Request, res: Response): Promise<void> {
     ensureAuthenticated(req, res, async () => {
       validateBodyObject(followChannelSchema, req, res, async () => {
-        const account = req.user!;
+        const account = getAuthenticatedUser(req);
         const { channel_id_text } = req.body;
 
         try {
@@ -77,7 +77,7 @@ class AccountFollowingChannelController {
   static async unfollowChannel(req: Request, res: Response): Promise<void> {
     ensureAuthenticated(req, res, async () => {
       validateBodyObject(followChannelSchema, req, res, async () => {
-        const account = req.user!;
+        const account = getAuthenticatedUser(req);
         const { channel_id_text } = req.body;
 
         try {

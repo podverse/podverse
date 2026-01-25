@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from 'express';
 import { QueueService } from '@podverse/orm';
-import { ensureAuthenticated } from '@api/lib/auth';
+import { ensureAuthenticated, getAuthenticatedUser } from '@api/lib/auth';
 import { handleGenericErrorResponse } from '../helpers/error';
 import Joi from 'joi';
 import { validateBodyObject, validateParamsObject } from '@api/lib/validation';
@@ -18,7 +18,7 @@ const queueService = new QueueService();
 
 export const verifyQueueOwnership = () => {
   return async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-    const account = req.user!;
+    const account = getAuthenticatedUser(req);
     const queue_id_text = getParamRequired(req, 'queue_id_text');
 
     try {
@@ -46,7 +46,7 @@ class QueueController {
   static async getAllPrivate(req: Request, res: Response): Promise<void> {
     ensureAuthenticated(req, res, async () => {
       try {
-        const account = req.user!;
+        const account = getAuthenticatedUser(req);
         const queues = await QueueController.queueService.getAllPrivate(account.id, { relations: ['medium'] });
         res.status(200).json(queues);
       } catch (err) {
@@ -60,7 +60,7 @@ class QueueController {
       verifyQueueOwnership()(req, res, async () => {
         validateParamsObject(queueIdTextParamsSchema, req, res, async () => {
           validateBodyObject(updateIsActiveQueueSchema, req, res, async () => {
-            const account = req.user!;
+            const account = getAuthenticatedUser(req);
             const queue_id_text = getParamRequired(req, 'queue_id_text');
             const { is_active_queue } = req.body;
       

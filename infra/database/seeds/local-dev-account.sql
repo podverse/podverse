@@ -1,5 +1,5 @@
 -- Seed script for local development account
--- Email: localdev@podverse.fm
+-- Email: localdev@example.com
 -- Password: Test!1Aa
 -- This account is pre-verified for convenience
 
@@ -24,7 +24,7 @@ BEGIN
     -- Check if account already exists by email
     SELECT ac.account_id INTO existing_account_id 
     FROM account_credentials ac 
-    WHERE ac.email = 'localdev@podverse.fm';
+    WHERE ac.email = 'localdev@example.com';
 
     IF existing_account_id IS NOT NULL THEN
         RAISE NOTICE 'Local dev account already exists (id: %)', existing_account_id;
@@ -45,7 +45,7 @@ BEGIN
     INSERT INTO account_credentials (account_id, email, password)
     VALUES (
         new_account_id,
-        'localdev@podverse.fm',
+        'localdev@example.com',
         '$2b$10$EhgpdpaFQooB.xrpHMdMBe.uJOBeuttpQOEcp1XG9EndaseZRoSee'
     );
 
@@ -81,5 +81,5 @@ BEGIN
         (new_account_settings_notification_id, 'new-item'),
         (new_account_settings_notification_id, 'livestream-started');
 
-    RAISE NOTICE 'Local dev account created: localdev@podverse.fm / Test!1Aa (id: %)', new_account_id;
+    RAISE NOTICE 'Local dev account created: localdev@example.com / Test!1Aa (id: %)', new_account_id;
 END $$;

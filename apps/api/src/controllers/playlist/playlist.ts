@@ -7,7 +7,7 @@ import { ApiListResponse, getQueueMediumIdFromType, QUERY_PARAMS_MEDIUMS,
   SharableStatusEnum } from '@podverse/helpers';
 import { AccountFollowingPlaylist, AccountFollowingPlaylistService, FindManyOptions, Playlist,
   PlaylistService, StatsAggregatedPlaylist, StatsAggregatedPlaylistService } from '@podverse/orm';
-import { ensureAuthenticated, optionalEnsureAuthenticated } from '@api/lib/auth';
+import { ensureAuthenticated, optionalEnsureAuthenticated, getAuthenticatedUser } from '@api/lib/auth';
 import { handleGenericErrorResponse } from '../helpers/error';
 import { validateBodyObject, validateParamsObject, validateQueryObject } from '@api/lib/validation';
 import { getPaginationParams } from '../helpers/pagination';
@@ -80,7 +80,7 @@ const playlistService = new PlaylistService();
 
 export const verifyPlaylistOwnership = () => {
   return async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-    const account = req.user!;
+    const account = getAuthenticatedUser(req);
     const playlist_id_text = getParamRequired(req, 'playlist_id_text');
 
     try {
@@ -144,7 +144,7 @@ class PlaylistController {
   static async createPlaylist(req: Request, res: Response): Promise<void> {
     ensureAuthenticated(req, res, async () => {
       validateBodyObject(createPlaylistSchema, req, res, async () => {
-        const account = req.user!;
+        const account = getAuthenticatedUser(req);
 
         const { title, description, medium, sharable_status_id } = req.body as {
           title: string;
@@ -185,7 +185,7 @@ class PlaylistController {
       validateParamsObject(playlistIdSchema, req, res, async () => {
         verifyPlaylistOwnership()(req, res, async () => {
           validateBodyObject(updatePlaylistSchema, req, res, async () => {
-            const account = req.user!;
+            const account = getAuthenticatedUser(req);
             const playlist_id_text = getParamRequired(req, 'playlist_id_text');
             
             const { title, description, medium, sharable_status_id } = req.body as {
@@ -225,7 +225,7 @@ class PlaylistController {
     ensureAuthenticated(req, res, async () => {
       validateParamsObject(playlistIdSchema, req, res, async () => {
         verifyPlaylistOwnership()(req, res, async () => {
-          const account = req.user!;
+          const account = getAuthenticatedUser(req);
           const playlist_id_text = getParamRequired(req, 'playlist_id_text');
 
           try {
@@ -274,7 +274,7 @@ class PlaylistController {
     ensureAuthenticated(req, res, async () => {
       validateQueryObject(getManyPrivateTopSchema, req, res, async () => {
         try {
-          const account = req.user!;
+          const account = getAuthenticatedUser(req);
 
           const { medium, range } = req.query as {
             medium: QueryParamsQueueMedium;
@@ -315,7 +315,7 @@ class PlaylistController {
     ensureAuthenticated(req, res, async () => {
       validateQueryObject(getManyPrivateRecentSchema, req, res, async () => {
         try {
-          const account = req.user!;
+          const account = getAuthenticatedUser(req);
           const { medium } = req.query as {
             medium: QueryParamsQueueMedium;
           };
@@ -350,7 +350,7 @@ class PlaylistController {
     ensureAuthenticated(req, res, async () => {
       validateQueryObject(getManyPrivateOldestSchema, req, res, async () => {
         try {
-          const account = req.user!;
+          const account = getAuthenticatedUser(req);
           const { medium } = req.query as {
             medium: QueryParamsQueueMedium;
           };
@@ -385,7 +385,7 @@ class PlaylistController {
     ensureAuthenticated(req, res, async () => {
       validateQueryObject(getManyPrivateAZSchema, req, res, async () => {
         try {
-          const account = req.user!;
+          const account = getAuthenticatedUser(req);
           const { medium } = req.query as {
             medium: QueryParamsQueueMedium;
           };
@@ -424,7 +424,8 @@ class PlaylistController {
           range: QueryParamsStatsRange;
           medium: QueryParamsQueueMedium;
         };
-        const account_id = req.user!.id;
+        const jwtUser = getAuthenticatedUser(req);
+        const account_id = jwtUser.id;
 
         const playlist_ids = await getFollowedPlaylistIdsPrivate(
           account_id,
@@ -463,7 +464,8 @@ class PlaylistController {
         const { medium } = req.query as {
           medium: QueryParamsQueueMedium;
         };
-        const account_id = req.user!.id;
+        const jwtUser = getAuthenticatedUser(req);
+        const account_id = jwtUser.id;
 
         const accountFollowingPlaylistService = new AccountFollowingPlaylistService();
         const config: FindManyOptions<AccountFollowingPlaylist> = {
@@ -492,7 +494,8 @@ class PlaylistController {
         const { medium } = req.query as {
           medium: QueryParamsQueueMedium;
         };
-        const account_id = req.user!.id;
+        const jwtUser = getAuthenticatedUser(req);
+        const account_id = jwtUser.id;
 
         const accountFollowingPlaylistService = new AccountFollowingPlaylistService();
         const config: FindManyOptions<AccountFollowingPlaylist> = {
@@ -521,7 +524,8 @@ class PlaylistController {
         const { medium } = req.query as {
           medium: QueryParamsQueueMedium;
         };
-        const account_id = req.user!.id;
+        const jwtUser = getAuthenticatedUser(req);
+        const account_id = jwtUser.id;
 
         const accountFollowingPlaylistService = new AccountFollowingPlaylistService();
         const config: FindManyOptions<AccountFollowingPlaylist> = {
@@ -546,7 +550,7 @@ class PlaylistController {
   static async getAllFavoritesPrivate(req: Request, res: Response): Promise<void> {
     ensureAuthenticated(req, res, async () => {
       try {
-        const account = req.user!;
+        const account = getAuthenticatedUser(req);
         const favorites = await PlaylistController.playlistService.getAllFavoritesPrivate(account.id);
         res.status(200).json(favorites);
       } catch (err) {
@@ -561,7 +565,7 @@ class PlaylistController {
         verifyPrivatePlaylistOwnershipIfNeeded()(req, res, async () => {
           try {
             const playlist_id_text = getParamRequired(req, 'playlist_id_text');
-            const account = req.user!;
+            const account = getAuthenticatedUser(req);
 
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             let playlist: any | null = null;

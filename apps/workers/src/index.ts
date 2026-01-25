@@ -5,6 +5,12 @@ if (process.env.NODE_ENV !== 'production') {
 }
 /* eslint-enable @typescript-eslint/no-require-imports */
 
+// Validate environment variables BEFORE importing config
+import { validateStartupRequirements } from './lib/startup/validation';
+validateStartupRequirements();
+
+/* eslint-disable @typescript-eslint/no-non-null-assertion -- env vars validated at startup above */
+
 import {
   validateORMConfig,
   validateExternalServicesConfig,
@@ -35,13 +41,13 @@ const runApp = async () => {
     const ormConfig = {
       nodeEnv: process.env.NODE_ENV ?? 'development',
       database: {
-        host: process.env.DB_HOST ?? '',
-        port: parseInt(process.env.DB_PORT ?? '5432', 10),
-        read_username: process.env.DB_READ_USERNAME ?? '',
-        read_password: process.env.DB_READ_PASSWORD ?? '',
-        read_write_username: process.env.DB_READ_WRITE_USERNAME ?? '',
-        read_write_password: process.env.DB_READ_WRITE_PASSWORD ?? '',
-        database: process.env.DB_DATABASE ?? '',
+        host: process.env.DB_HOST!,
+        port: parseInt(process.env.DB_PORT!, 10),
+        read_username: process.env.DB_READ_USERNAME!,
+        read_password: process.env.DB_READ_PASSWORD!,
+        read_write_username: process.env.DB_READ_WRITE_USERNAME!,
+        read_write_password: process.env.DB_READ_WRITE_PASSWORD!,
+        database: process.env.DB_DATABASE!,
         ssl_connection: process.env.DB_SSL_CONNECTION === 'true',
       },
       log: {
@@ -52,7 +58,7 @@ const runApp = async () => {
       defaults: {
         account: {
           settings: {
-            locale: process.env.DEFAULT_ACCOUNT_SETTINGS_LOCALE ?? 'en',
+            locale: process.env.DEFAULT_ACCOUNT_SETTINGS_LOCALE,
           },
         },
       },
@@ -61,27 +67,27 @@ const runApp = async () => {
     const externalServicesConfig = {
       firebase: {
         notifications_enabled: process.env.GOOGLE_FIREBASE_NOTIFICATIONS_ENABLED === 'true',
-        admin_json_key_path: process.env.GOOGLE_FIREBASE_ADMIN_JSON_KEY_PATH || '',
+        admin_json_key_path: process.env.GOOGLE_FIREBASE_ADMIN_JSON_KEY_PATH,
       },
       web: {
-        protocol: process.env.WEB_PROTOCOL || '',
-        host: process.env.WEB_DOMAIN || '',
-        icon_image_url: process.env.WEB_ICON_IMAGE_PATH || '',
+        protocol: process.env.WEB_PROTOCOL!,
+        host: process.env.WEB_DOMAIN!,
+        icon_image_url: process.env.WEB_ICON_IMAGE_PATH,
       },
     };
 
     const notificationsConfig = {
-      brandName: process.env.BRAND_NAME || '',
+      brandName: process.env.BRAND_NAME!,
       web: {
-        protocol: process.env.WEB_PROTOCOL || '',
-        host: process.env.WEB_DOMAIN || '',
-        icon_image_path: process.env.WEB_ICON_IMAGE_PATH || '',
+        protocol: process.env.WEB_PROTOCOL!,
+        host: process.env.WEB_DOMAIN!,
+        icon_image_path: process.env.WEB_ICON_IMAGE_PATH,
       },
       webpush: {
         enabled: process.env.WEBPUSH_ENABLED === 'true',
-        vapid_public_key: process.env.WEBPUSH_VAPID_PUBLIC_KEY || '',
-        vapid_private_key: process.env.WEBPUSH_VAPID_PRIVATE_KEY || '',
-        vapid_subject: process.env.WEBPUSH_VAPID_SUBJECT || '',
+        vapid_public_key: process.env.WEBPUSH_VAPID_PUBLIC_KEY,
+        vapid_private_key: process.env.WEBPUSH_VAPID_PRIVATE_KEY,
+        vapid_subject: process.env.WEBPUSH_VAPID_SUBJECT,
       },
     };
 
@@ -94,7 +100,7 @@ const runApp = async () => {
       },
       firebase: {
         notifications_enabled: process.env.GOOGLE_FIREBASE_NOTIFICATIONS_ENABLED === 'true',
-        authJsonPath: process.env.GOOGLE_FIREBASE_ADMIN_JSON_KEY_PATH ?? '',
+        authJsonPath: process.env.GOOGLE_FIREBASE_ADMIN_JSON_KEY_PATH,
       },
       podcastIndex: {
         authKey: config.podcastIndex.authKey,
@@ -110,7 +116,7 @@ const runApp = async () => {
       defaults: {
         account: {
           settings: {
-            locale: process.env.DEFAULT_ACCOUNT_SETTINGS_LOCALE ?? 'en',
+            locale: process.env.DEFAULT_ACCOUNT_SETTINGS_LOCALE,
           },
         },
       },

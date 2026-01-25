@@ -15,6 +15,18 @@ import { loggerService } from '@parser/factories/loggerService';
 import { config as projectConfig } from '@parser/config';
 import { getNotificationsContext, getFirebaseContext } from '@parser/context';
 
+/**
+ * Gets the default locale from config, throwing if not configured.
+ * This should never happen in production as the env var is validated at startup.
+ */
+const getDefaultLocale = (): string => {
+  const locale = projectConfig.defaults.account.settings.locale;
+  if (!locale) {
+    throw new Error('DEFAULT_ACCOUNT_SETTINGS_LOCALE is not configured');
+  }
+  return locale;
+};
+
 export type DeviceWithLocale = {
   fcm_token: string;
   platform: NotificationPlatform;
@@ -191,7 +203,7 @@ export async function getDevicesForNotificationType(
         accountIdsWithTypeEnabled.push(notificationChannel.account_id);
         
         // Store the locale for each account
-        const locale = notificationChannel.account?.account_settings?.account_settings_locale?.locale || projectConfig.defaults.account.settings.locale;
+        const locale = notificationChannel.account?.account_settings?.account_settings_locale?.locale || getDefaultLocale();
         accountLocaleMap.set(notificationChannel.account_id, locale);
       }
     }
@@ -223,7 +235,7 @@ export async function getDevicesForNotificationType(
   const devices: DeviceWithLocale[] = deviceResults.map(device => ({
     fcm_token: device.fcm_token,
     platform: convertPlatform(device.platform),
-    locale: device.locale || accountLocaleMap.get(device.account_id) || projectConfig.defaults.account.settings.locale,
+    locale: device.locale || accountLocaleMap.get(device.account_id) || getDefaultLocale(),
     account_id: device.account_id,
   }));
 

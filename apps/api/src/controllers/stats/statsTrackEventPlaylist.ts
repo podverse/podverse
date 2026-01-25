@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import Joi from 'joi';
 import { StatsTrackEventPlaylistService } from '@podverse/orm';
 import { handleGenericErrorResponse } from '@api/controllers/helpers/error';
-import { ensureAuthenticated } from '@api/lib/auth';
+import { ensureAuthenticated, getAuthenticatedUser } from '@api/lib/auth';
 import { validateBodyObject } from '@api/lib/validation';
 
 const createStatsTrackEventPlaylistSchema = Joi.object({
@@ -15,7 +15,7 @@ export class StatsTrackEventPlaylistController {
   static async create(req: Request, res: Response): Promise<void> {
     ensureAuthenticated(req, res, async () => {
       validateBodyObject(createStatsTrackEventPlaylistSchema, req, res, async () => {
-        const jwtUser = req.user!;
+        const jwtUser = getAuthenticatedUser(req);
         const { playlist_id_text } = req.body;
 
         try {

@@ -26,18 +26,23 @@ export function createNotificationsContext(config: NotificationsConfig): Notific
   } else {
     // Check if the VAPID keys are provided
     if (!config.webpush.vapid_public_key || config.webpush.vapid_public_key.trim() === '' ||
-        !config.webpush.vapid_private_key || config.webpush.vapid_private_key.trim() === '') {
-      console.error('Web Push Admin Initialization Failed: vapid_public_key and vapid_private_key are required when webpush is enabled');
+        !config.webpush.vapid_private_key || config.webpush.vapid_private_key.trim() === '' ||
+        !config.webpush.vapid_subject || config.webpush.vapid_subject.trim() === '') {
+      console.error('Web Push Admin Initialization Failed: vapid_public_key, vapid_private_key, and vapid_subject are required when webpush is enabled');
       webpushAdmin = null;
       isWebPushEnabled = false;
     } else {
       console.warn('Web Push notifications are enabled in the configuration.');
       
       try {
+        // Safe to use these values directly - we've validated they exist above
+        const vapidSubject = config.webpush.vapid_subject;
+        const vapidPublicKey = config.webpush.vapid_public_key;
+        const vapidPrivateKey = config.webpush.vapid_private_key;
         webpush.setVapidDetails(
-          config.webpush.vapid_subject,
-          config.webpush.vapid_public_key,
-          config.webpush.vapid_private_key,
+          vapidSubject,
+          vapidPublicKey,
+          vapidPrivateKey,
         );
         webpushAdmin = webpush;
         isWebPushEnabled = true;

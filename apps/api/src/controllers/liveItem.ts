@@ -80,13 +80,13 @@ export class LiveItemController {
     }
 
     live.sort((a: Item, b: Item) =>
-      new Date(b.live_item!.start_time).getTime() - new Date(a.live_item!.start_time).getTime(),
+      new Date(b.live_item?.start_time ?? 0).getTime() - new Date(a.live_item?.start_time ?? 0).getTime(),
     );
     pending.sort((a: Item, b: Item) =>
-      new Date(b.live_item!.start_time).getTime() - new Date(a.live_item!.start_time).getTime(),
+      new Date(b.live_item?.start_time ?? 0).getTime() - new Date(a.live_item?.start_time ?? 0).getTime(),
     );
     ended.sort((a: Item, b: Item) =>
-      new Date(b.live_item!.end_time ?? 0).getTime() - new Date(a.live_item!.end_time ?? 0).getTime(),
+      new Date(b.live_item?.end_time ?? 0).getTime() - new Date(a.live_item?.end_time ?? 0).getTime(),
     );
 
     const combined = [...live, ...pending, ...ended];

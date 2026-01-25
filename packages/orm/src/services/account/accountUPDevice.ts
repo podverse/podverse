@@ -4,7 +4,7 @@ import { AccountUPDevice } from '@orm/entities/account/accountUPDevice';
 import { BaseManyService } from '@orm/services/base/baseManyService';
 import { AccountService } from '@orm/services/account/account';
 import { AccountNotificationChannelService } from '@orm/services/account/accountNotificationChannel';
-import { config } from '@orm/config';
+import { getDefaultLocale } from '@orm/config';
 
 export class AccountUPDeviceService extends BaseManyService<AccountUPDevice, 'account'> {
   private accountService: AccountService;
@@ -23,7 +23,7 @@ export class AccountUPDeviceService extends BaseManyService<AccountUPDevice, 'ac
     }
     const { up_endpoint, up_auth_key } = params;
 
-    const locale = account.account_settings?.account_settings_locale?.locale || config.defaults.account.settings.locale;
+    const locale = account.account_settings?.account_settings_locale?.locale || getDefaultLocale();
 
     const existing = await this.repositoryRead.findOne({ where: { account_id } });
     if (existing) {
@@ -49,7 +49,7 @@ export class AccountUPDeviceService extends BaseManyService<AccountUPDevice, 'ac
     }
     const { up_endpoint, up_auth_key } = params;
 
-    const locale = account.account_settings?.account_settings_locale?.locale || config.defaults.account.settings.locale;
+    const locale = account.account_settings?.account_settings_locale?.locale || getDefaultLocale();
 
     // Since there's only one device per account, find by account_id
     const existing = await this.repositoryRead.findOne({ where: { account_id } });

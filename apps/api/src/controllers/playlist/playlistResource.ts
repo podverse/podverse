@@ -5,7 +5,7 @@ import { FindManyOptions, PlaylistResource, PlaylistResourceService } from '@pod
 import { handleGenericErrorResponse } from '../helpers/error';
 import { validateParamsObject, validateQueryObject } from '@api/lib/validation';
 import { verifyPlaylistOwnership, verifyPrivatePlaylistOwnershipIfNeeded } from './playlist';
-import { ensureAuthenticated, optionalEnsureAuthenticated } from '@api/lib/auth';
+import { ensureAuthenticated, optionalEnsureAuthenticated, getAuthenticatedUser } from '@api/lib/auth';
 import { getPaginationParams } from '../helpers/pagination';
 import { getParamRequired } from '@api/lib/params';
 
@@ -41,7 +41,8 @@ class PlaylistResourceController {
       ensureAuthenticated(req, res, async () => {
         verifyPlaylistOwnership()(req, res, async () => {
           const playlist_id_text = getParamRequired(req, 'playlist_id_text');
-          const account_id = req.user!.id;
+          const jwtUser = getAuthenticatedUser(req);
+          const account_id = jwtUser.id;
           
           try {
             const playlistResources = await PlaylistResourceController.playlistResourceService.getAllByPlaylistIdText(

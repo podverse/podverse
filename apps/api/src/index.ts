@@ -26,8 +26,9 @@ const shutdown = async (signal?: string) => {
   try {
     loggerService.info(`Shutdown initiated${signal ? ` due to ${signal}` : ''}`);
     if (serverInstance) {
+      const server = serverInstance;
       await new Promise<void>((resolve, reject) => {
-        serverInstance!.close((err) => (err ? reject(err) : resolve()));
+        server.close((err) => (err ? reject(err) : resolve()));
       });
       loggerService.info('HTTP server closed');
     }
@@ -70,6 +71,7 @@ process.on('SIGTERM', () => void shutdown('SIGTERM'));
     validateStartupRequirements();
 
     // Build module configs from app config
+    /* eslint-disable @typescript-eslint/no-non-null-assertion -- env vars validated at startup */
     const ormConfig = {
       nodeEnv: config.nodeEnv,
       database: {
@@ -90,11 +92,12 @@ process.on('SIGTERM', () => void shutdown('SIGTERM'));
       defaults: {
         account: {
           settings: {
-            locale: process.env.DEFAULT_ACCOUNT_SETTINGS_LOCALE!,
+            locale: process.env.DEFAULT_ACCOUNT_SETTINGS_LOCALE,
           },
         },
       },
     };
+    /* eslint-enable @typescript-eslint/no-non-null-assertion */
 
     const externalServicesConfig = {
       firebase: {
@@ -148,7 +151,7 @@ process.on('SIGTERM', () => void shutdown('SIGTERM'));
       defaults: {
         account: {
           settings: {
-            locale: process.env.DEFAULT_ACCOUNT_SETTINGS_LOCALE!,
+            locale: process.env.DEFAULT_ACCOUNT_SETTINGS_LOCALE,
           },
         },
       },

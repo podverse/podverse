@@ -3,7 +3,7 @@ import { Request, Response } from 'express';
 import { ACCOUNT_NOTIFICATION_TYPE_VALUES } from '@podverse/helpers';
 import { AccountSettingsNotificationTypeService } from '@podverse/orm';
 import { validateBodyObject } from '@api/lib/validation';
-import { ensureAuthenticated } from '@api/lib/auth';
+import { ensureAuthenticated, getAuthenticatedUser } from '@api/lib/auth';
 import { handleGenericErrorResponse } from '@api/controllers/helpers/error';
 
 const createAccountSettingsNotificationTypeSchema = Joi.object({
@@ -19,7 +19,8 @@ export class AccountSettingsNotificationTypeController {
     validateBodyObject(createAccountSettingsNotificationTypeSchema, req, res, async () => {
       ensureAuthenticated(req, res, async () => {
         try {
-          const account_id = req.user!.id;
+          const jwtUser = getAuthenticatedUser(req);
+          const account_id = jwtUser.id;
           const { type } = req.body;  
           const service = new AccountSettingsNotificationTypeService();
           const created = await service.create({ account_id, type });
@@ -35,7 +36,8 @@ export class AccountSettingsNotificationTypeController {
     validateBodyObject(deleteAccountSettingsNotificationTypeSchema, req, res, async () => {
       ensureAuthenticated(req, res, async () => {
         try {
-          const account_id = req.user!.id;
+          const jwtUser = getAuthenticatedUser(req);
+          const account_id = jwtUser.id;
           const { type } = req.body;
           const service = new AccountSettingsNotificationTypeService();
           await service.delete(type, account_id);

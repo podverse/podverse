@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import Joi from 'joi';
 import { MQ_QUEUES, OnDemandParserEventType } from '@podverse/helpers';
 import { mqRSSAdd } from '@podverse/mq';
-import { ensureAuthenticated } from '@api/lib/auth';
+import { ensureAuthenticated, getAuthenticatedUser } from '@api/lib/auth';
 import { validateBodyObject } from '@api/lib/validation';
 import { handleGenericErrorResponse } from '../helpers/error';
 import { activeMQArtemisService } from '@api/factories/activeMQArtemisService';
@@ -43,7 +43,7 @@ export class MQController {
                 {
                   forceParse: false,
                   onDemandParserEvent: {
-                    accountId: req.user!.id,
+                    accountId: getAuthenticatedUser(req).id,
                     remoteParentPodcastIndexId: null,
                     type: type,
                   },

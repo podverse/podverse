@@ -11,7 +11,7 @@ import {
   SharableStatusEnum,
 } from '@podverse/helpers';
 import { NextFunction, Request, Response } from 'express';
-import { ensureAuthenticated, optionalEnsureAuthenticated } from '../lib/auth';
+import { ensureAuthenticated, optionalEnsureAuthenticated, getAuthenticatedUser } from '../lib/auth';
 import Joi from 'joi';
 import { ChannelService, Clip, ClipService, FindManyOptions, ItemService, StatsAggregatedClip, StatsAggregatedClipService } from '@podverse/orm';
 import { handleGenericErrorResponse } from './helpers/error';
@@ -182,7 +182,7 @@ const clipService = new ClipService();
 
 const verifyClipOwnership = () => {
   return async (req: Request, res: Response, next: NextFunction) => {
-    const account = req.user!;
+    const account = getAuthenticatedUser(req);
     const clip_id_text = getParamRequired(req, 'clip_id_text');
 
     try {
@@ -235,7 +235,7 @@ class ClipController {
   static async createClip(req: Request, res: Response): Promise<void> {
     ensureAuthenticated(req, res, async () => {
       validateBodyObject(clipCreateSchema, req, res, async () => {
-        const account = req.user!;
+        const account = getAuthenticatedUser(req);
         const dto = req.body;
 
         const finalDto = {
@@ -262,7 +262,7 @@ class ClipController {
       validateParamsObject(clipIdSchema, req, res, () => {
         verifyClipOwnership()(req, res, () => {
           validateBodyObject(clipUpdateSchema, req, res, async () => {
-            const account = req.user!;
+            const account = getAuthenticatedUser(req);
             const clip_id_text = getParamRequired(req, 'clip_id_text');
             const dto = req.body;
 
@@ -291,7 +291,7 @@ class ClipController {
     ensureAuthenticated(req, res, async () => {
       validateParamsObject(clipIdSchema, req, res, () => {
         verifyClipOwnership()(req, res, async () => {
-          const account = req.user!;
+          const account = getAuthenticatedUser(req);
           const clip_id_text = getParamRequired(req, 'clip_id_text');
 
           try {
@@ -344,7 +344,7 @@ class ClipController {
   static async getClipsPrivate(req: Request, res: Response): Promise<void> {
     ensureAuthenticated(req, res, async () => {
       try {
-        const account = req.user!;
+        const account = getAuthenticatedUser(req);
         const clips = await clipService.getManyByAccount(account.id);
         res.status(200).json(clips);
       } catch (err) {
@@ -785,7 +785,8 @@ class ClipController {
           const { medium } = req.query as {
             medium: QueryParamsMedium;
           };
-          const account_id = req.user!.id;
+          const jwtUser = getAuthenticatedUser(req);
+          const account_id = jwtUser.id;
 
           const channel_ids = await getFollowedChannelIds(account_id, medium);
           if (!channel_ids.length) {
@@ -825,7 +826,8 @@ class ClipController {
             range: QueryParamsStatsRange;
             medium: QueryParamsMedium;
           };
-          const account_id = req.user!.id;
+          const jwtUser = getAuthenticatedUser(req);
+          const account_id = jwtUser.id;
 
           const channel_ids = await getFollowedChannelIds(account_id, medium);
           if (!channel_ids.length) {

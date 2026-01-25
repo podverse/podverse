@@ -16,7 +16,7 @@ import {
 import { handleGenericErrorResponse } from '@api/controllers/helpers/error';
 import { getPaginationParams } from '@api/controllers/helpers/pagination';
 import { validateParamsObject, validateQueryObject } from '@api/lib/validation';
-import { ensureAuthenticated } from '@api/lib/auth';
+import { ensureAuthenticated, getAuthenticatedUser } from '@api/lib/auth';
 import { getParamRequired } from '@api/lib/params';
 
 const getByAccountIdTextSchema = Joi.object({
@@ -246,7 +246,7 @@ export class ProfileContentController {
     validateQueryObject(getPaginatedSchema, req, res, async () => {
       ensureAuthenticated(req, res, async () => {
         try {
-          const account = req.user!;
+          const account = getAuthenticatedUser(req);
           const { page, limit, offset } = getPaginationParams(req);
 
           const config: FindManyOptions<AccountFollowingChannel> = {
@@ -277,7 +277,7 @@ export class ProfileContentController {
     validateQueryObject(getPaginatedSchema, req, res, async () => {
       ensureAuthenticated(req, res, async () => {
         try {
-          const account = req.user!;
+          const account = getAuthenticatedUser(req);
           const { page, limit, offset } = getPaginationParams(req);
 
           const config: FindManyOptions<Playlist> = {
@@ -307,7 +307,7 @@ export class ProfileContentController {
     validateQueryObject(getPaginatedSchema, req, res, async () => {
       ensureAuthenticated(req, res, async () => {
         try {
-          const account = req.user!;
+          const account = getAuthenticatedUser(req);
           const { page, limit, offset } = getPaginationParams(req);
 
           const config: FindManyOptions<Clip> = {
@@ -337,7 +337,7 @@ export class ProfileContentController {
     validateQueryObject(getPaginatedSchema, req, res, async () => {
       ensureAuthenticated(req, res, async () => {
         try {
-          const account = req.user!;
+          const account = getAuthenticatedUser(req);
           const { page, limit, offset } = getPaginationParams(req);
 
           const config: FindManyOptions<AccountFollowingChannel> = {

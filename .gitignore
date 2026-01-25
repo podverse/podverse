@@ -6,6 +6,9 @@ dist/
 .next/
 out/
 
+# TypeScript incremental build cache
+*.tsbuildinfo
+
 # Environment files (contain secrets - created from .env.example or env/*.env templates)
 # Root-level
 .env

@@ -1,0 +1,165 @@
+---
+description: Config and type safety rules - no defaults, no non-null assertions
+globs:
+  - "**/config/index.ts"
+  - "**/config/*.ts"
+  - "**/*.ts"
+alwaysApply: false
+---
+
+# Config and Type Safety Rules
+
+## Critical Requirements
+
+### 1. Never Set Default Values in Config Files
+
+**NEVER** set default values for environment variables in `config/index.ts` files or similar configuration files. This includes:
+- Empty strings: `process.env.VAR || ''`
+- Fallback values: `process.env.VAR || 'default'`
+- Nullish coalescing: `process.env.VAR ?? ''`
+
+**Why**: Default values hide configuration errors and allow apps to start with invalid state.
+
+**Instead**: If a value is required, add it to startup validation so the app fails fast with a clear error message.
+
+### 2. Avoid Non-Null Assertions (`!`)
+
+**NEVER** use TypeScript non-null assertions (`!`) unless it is an absolute last resort.
+
+**Preferred alternatives** (in order):
+1. Make types optional where appropriate
+2. Add values to startup validation to ensure they exist
+3. Use proper null checks or optional chaining
+4. Create helper functions that throw meaningful errors
+
+**If `!` is truly necessary**: Add an eslint-disable comment explaining why.
+
+## Approved Patterns
+
+### Backend Apps (api, workers, management-api)
+
+For apps that have runtime startup, use this pattern:
+
+1. **Create startup validation** (`lib/startup/validation.ts`):
+```typescript
+import { validateRequired, validateOptional } from '@podverse/helpers';
+
+export const validateStartupRequirements = (): void => {
+  const results = [];
+  results.push(validateRequired('DB_HOST', 'Database'));
+  results.push(validateRequired('API_PORT', 'API'));
+  // ... validate all required env vars
+  
+  if (results.some(r => !r.isValid && r.isRequired)) {
+    throw new Error('Missing required environment variables');
+  }
+};
+```
+
+2. **Call validation early in app startup** (`index.ts`):
+```typescript
+import { validateStartupRequirements } from './lib/startup/validation';
+
+// Validate BEFORE importing config
+validateStartupRequirements();
+
+// Now safe to import and use config
+import { config } from './config';
+```
+
+3. **Use `!` in config with eslint-disable** (`config/index.ts`):
+```typescript
+/* eslint-disable @typescript-eslint/no-non-null-assertion -- env vars validated at startup in lib/startup/validation.ts */
+
+export const config = {
+  dbHost: process.env.DB_HOST!,
+  apiPort: process.env.API_PORT!,
+};
+```
+
+### Next.js Apps (web, management-web)
+
+For Next.js apps, `NEXT_PUBLIC_*` env vars must be available at **build time**:
+
+1. **Create build-time validation script** (`scripts/validate-env.ts`):
+```typescript
+const requiredEnvVars = [
+  'NEXT_PUBLIC_API_HOST',
+  'NEXT_PUBLIC_API_PROTOCOL',
+  // ...
+];
+
+for (const envVar of requiredEnvVars) {
+  if (!process.env[envVar]) {
+    console.error(`Missing required env var: ${envVar}`);
+    process.exit(1);
+  }
+}
+```
+
+2. **Run validation before build** (`package.json`):
+```json
+{
+  "scripts": {
+    "prebuild": "tsx scripts/validate-env.ts",
+    "build": "next build"
+  }
+}
+```
+
+3. **Use `!` in config with eslint-disable** (`config/index.ts`):
+```typescript
+/* eslint-disable @typescript-eslint/no-non-null-assertion -- env vars validated at build time in scripts/validate-env.ts */
+
+export const config = {
+  public: {
+    api: {
+      host: process.env.NEXT_PUBLIC_API_HOST!,
+    },
+  },
+};
+```
+
+## Optional Values
+
+For truly optional values (where undefined is a valid state):
+
+1. **Make the type optional**:
+```typescript
+type Config = {
+  keyvaldb: {
+    password?: string;  // Optional - some envs don't require auth
+  };
+};
+```
+
+2. **Use conditional or undefined**:
+```typescript
+export const config: Config = {
+  keyvaldb: {
+    password: process.env.KEYVALDB_PASSWORD || undefined,
+  },
+};
+```
+
+3. **Mark as optional in validation**:
+```typescript
+results.push(validateOptional('KEYVALDB_PASSWORD', 'KeyValDB'));
+```
+
+## Common Mistakes to Avoid
+
+```typescript
+// BAD: Default value hides missing config
+userAgent: process.env.USER_AGENT || '',
+
+// BAD: Non-null assertion without validation
+apiPort: process.env.API_PORT!,
+
+// BAD: Nullish coalescing with default
+dbHost: process.env.DB_HOST ?? 'localhost',
+
+// GOOD: Validated at startup, with eslint-disable explaining why
+/* eslint-disable @typescript-eslint/no-non-null-assertion -- validated at startup */
+userAgent: process.env.USER_AGENT!,
+```

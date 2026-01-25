@@ -3,7 +3,7 @@ import Joi from 'joi';
 import { AccountWebPushDeviceService } from '@podverse/orm';
 import { handleGenericErrorResponse } from '@api/controllers/helpers/error';
 import { validateBodyObject } from '@api/lib/validation';
-import { ensureAuthenticated } from '@api/lib/auth';
+import { ensureAuthenticated, getAuthenticatedUser } from '@api/lib/auth';
 
 const createAccountWebPushDeviceSchema = Joi.object({
   endpoint: Joi.string().uri().required(),
@@ -32,7 +32,7 @@ export class AccountWebPushDeviceController {
     ensureAuthenticated(req, res, async () => {
       validateBodyObject(createAccountWebPushDeviceSchema, req, res, async () => {
         try {
-          const jwtUser = req.user!;
+          const jwtUser = getAuthenticatedUser(req);
           const { endpoint, p256dh, auth } = req.body as {
             endpoint: string;
             p256dh: string;
@@ -56,7 +56,7 @@ export class AccountWebPushDeviceController {
     ensureAuthenticated(req, res, async () => {
       validateBodyObject(updateAccountWebPushDeviceSchema, req, res, async () => {
         try {
-          const jwtUser = req.user!;
+          const jwtUser = getAuthenticatedUser(req);
           const { endpoint, p256dh, auth } = req.body as {
             endpoint: string;
             p256dh: string;
@@ -80,7 +80,7 @@ export class AccountWebPushDeviceController {
     ensureAuthenticated(req, res, async () => {
       validateBodyObject(deleteAccountWebPushDeviceSchema, req, res, async () => {
         try {
-          const jwtUser = req.user!;
+          const jwtUser = getAuthenticatedUser(req);
           const { endpoint } = req.body as {
             endpoint: string;
           };
@@ -99,7 +99,7 @@ export class AccountWebPushDeviceController {
   static async getAllForAccount(req: Request, res: Response): Promise<void> {
     ensureAuthenticated(req, res, async () => {
       try {
-        const jwtUser = req.user!;
+        const jwtUser = getAuthenticatedUser(req);
         const devices = await AccountWebPushDeviceController.accountWebPushDeviceService.getAllForAccount(jwtUser.id);
         res.json(devices);
       } catch (error) {
@@ -112,7 +112,7 @@ export class AccountWebPushDeviceController {
     ensureAuthenticated(req, res, async () => {
       validateBodyObject(updateLocaleForAccountSchema, req, res, async () => {
         try {
-          const jwtUser = req.user!;
+          const jwtUser = getAuthenticatedUser(req);
           const { locale } = req.body as { locale: string };
           await AccountWebPushDeviceController.accountWebPushDeviceService.updateLocaleForAccount(jwtUser.id, { locale });
           res.json({ message: 'Locale updated for account devices' });

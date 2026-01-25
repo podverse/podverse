@@ -12,7 +12,7 @@ export type LogConfig = {
 
 export type FirebaseConfig = {
   notifications_enabled: boolean;
-  authJsonPath?: string;
+  authJsonPath?: string | undefined;
 };
 
 export type PodcastIndexConfig = {
@@ -29,7 +29,7 @@ export type ParserSettingsConfig = {
 export type DefaultsConfig = {
   account: {
     settings: {
-      locale: string;
+      locale?: string | undefined;
     };
   };
 };

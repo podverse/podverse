@@ -4,7 +4,7 @@ import { ACCOUNT_FCM_DEVICE_PLATFORM_VALUES, AccountFCMDevicePlatformValues } fr
 import { AccountFCMDeviceService } from '@podverse/orm';
 import { handleGenericErrorResponse } from '@api/controllers/helpers/error';
 import { validateBodyObject } from '@api/lib/validation';
-import { ensureAuthenticated } from '@api/lib/auth';
+import { ensureAuthenticated, getAuthenticatedUser } from '@api/lib/auth';
 
 const createAccountFCMDeviceSchema = Joi.object({
   fcm_token: Joi.string().required(),
@@ -35,7 +35,7 @@ export class AccountFCMDeviceController {
     ensureAuthenticated(req, res, async () => {
       validateBodyObject(createAccountFCMDeviceSchema, req, res, async () => {
         try {
-          const jwtUser = req.user!;
+          const jwtUser = getAuthenticatedUser(req);
           const { fcm_token, installation_id, platform } = req.body as {
             fcm_token: string;
             installation_id: string;
@@ -59,7 +59,7 @@ export class AccountFCMDeviceController {
     ensureAuthenticated(req, res, async () => {
       validateBodyObject(updateAccountFCMDeviceSchema, req, res, async () => {
         try {
-          const jwtUser = req.user!;
+          const jwtUser = getAuthenticatedUser(req);
           const { previous_fcm_token, new_fcm_token, installation_id, platform } = req.body as {
             new_fcm_token: string;
             installation_id: string;
@@ -85,7 +85,7 @@ export class AccountFCMDeviceController {
     ensureAuthenticated(req, res, async () => {
       validateBodyObject(deleteAccountFCMDeviceSchema, req, res, async () => {
         try {
-          const jwtUser = req.user!;
+          const jwtUser = getAuthenticatedUser(req);
           const { fcm_token, installation_id } = req.body as {
             fcm_token: string | null;
             installation_id: string | null;
@@ -106,7 +106,7 @@ export class AccountFCMDeviceController {
   static async getAllForAccount(req: Request, res: Response): Promise<void> {
     ensureAuthenticated(req, res, async () => {
       try {
-        const jwtUser = req.user!;
+        const jwtUser = getAuthenticatedUser(req);
         const devices = await AccountFCMDeviceController.accountFCMDeviceService.getAllForAccount(jwtUser.id);
         res.json(devices);
       } catch (error) {
@@ -119,7 +119,7 @@ export class AccountFCMDeviceController {
     ensureAuthenticated(req, res, async () => {
       validateBodyObject(updateLocaleForAccountSchema, req, res, async () => {
         try {
-          const jwtUser = req.user!;
+          const jwtUser = getAuthenticatedUser(req);
           const { locale } = req.body as { locale: string };
           await AccountFCMDeviceController.accountFCMDeviceService.updateLocaleForAccount(jwtUser.id, { locale });
           res.json({ message: 'Locale updated for account devices' });

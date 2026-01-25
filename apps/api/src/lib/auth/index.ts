@@ -221,6 +221,18 @@ export const optionalEnsureAuthenticated = (req: Request, res: Response, next: N
   verifyTokenAndMembership(req, res, next, token, options);
 };
 
+/**
+ * Extracts the authenticated user from the request.
+ * Call this only inside ensureAuthenticated callbacks where user is guaranteed.
+ * @throws Error if user is not present (should never happen in auth context)
+ */
+export const getAuthenticatedUser = (req: Request): Express.User => {
+  if (!req.user) {
+    throw new Error('User not authenticated');
+  }
+  return req.user;
+};
+
 export const logout = (_req: Request, res: Response) => {
   // Clear possible host-only cookie (older deployments or dev)
   res.clearCookie(AuthCookieName, {

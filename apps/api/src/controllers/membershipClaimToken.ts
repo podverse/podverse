@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import Joi from 'joi';
 import { MembershipClaimTokenService } from '@podverse/orm';
 import { handleGenericErrorResponse } from '@api/controllers/helpers/error';
-import { ensureAuthenticated } from '@api/lib/auth';
+import { ensureAuthenticated, getAuthenticatedUser } from '@api/lib/auth';
 import { validateParamsObject } from '@api/lib/validation';
 import { getParamRequired } from '@api/lib/params';
 
@@ -21,7 +21,8 @@ export class MembershipClaimTokenController {
     ensureAuthenticated(req, res, async () => {
       validateParamsObject(claimSchema, req, res, async () => {
         try {
-          const account_id = req.user!.id;
+          const jwtUser = getAuthenticatedUser(req);
+          const account_id = jwtUser.id;
           const token = getParamRequired(req, 'token');
           await this.membershipClaimTokenService.claim(account_id, token);
           res.status(200).json({ message: 'Membership claim token successfully claimed' });

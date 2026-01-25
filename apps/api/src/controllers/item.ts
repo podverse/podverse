@@ -19,7 +19,7 @@ import { ApiListResponse, CATEGORY_MAPPING_KEYS, CategoryMappingKeys, emptyApiLi
   QueryParamsDirection,
   QueryParamsMedium, QueryParamsStatsRange } from '@podverse/helpers';
 import { getStatsOrder } from '@api/lib/stats';
-import { ensureAuthenticated } from '@api/lib/auth';
+import { ensureAuthenticated, getAuthenticatedUser } from '@api/lib/auth';
 import { getFollowedChannelIds } from '@api/lib/followed';
 import { getParamRequired } from '@api/lib/params';
 
@@ -310,7 +310,8 @@ export class ItemController {
             medium: QueryParamsMedium;
             liveItemType?: typeof LIVE_ITEM_STATUSES[number];
           };
-          const account_id = req.user!.id;
+          const jwtUser = getAuthenticatedUser(req);
+          const account_id = jwtUser.id;
           const itemType = liveItemTypeParam ? 'live-item' : 'normal';
           const liveItemType = liveItemTypeParam || null;
           const order = getRecentOrder(itemType);
@@ -357,7 +358,8 @@ export class ItemController {
             medium: QueryParamsMedium;
             liveItemType?: typeof LIVE_ITEM_STATUSES[number];
           };
-          const account_id = req.user!.id;
+          const jwtUser = getAuthenticatedUser(req);
+          const account_id = jwtUser.id;
           const itemType = liveItemTypeParam ? 'live-item' : 'normal';
           const liveItemType = liveItemTypeParam || null;
 

@@ -169,6 +169,9 @@ const validateAllEnvironmentVariables = (): ValidationSummary => {
   results.push(validateOptional('PAYPAL_CLIENT_ID', 'PayPal'));
   results.push(validateOptional('PAYPAL_CLIENT_SECRET', 'PayPal'));
 
+  // Defaults
+  results.push(validateRequired('DEFAULT_ACCOUNT_SETTINGS_LOCALE', 'Defaults'));
+
   // General
   results.push(validateOptional('NODE_ENV', 'General'));
   results.push(validateServerEnv());

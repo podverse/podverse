@@ -3,7 +3,7 @@ import Joi from 'joi';
 import { ApiListResponse, DTOQueueResourceAbridgedResponseData } from '@podverse/helpers';
 import { QueueResource, QueueResourceService } from '@podverse/orm';
 import { handleGenericErrorResponse } from '../helpers/error';
-import { ensureAuthenticated } from '@api/lib/auth';
+import { ensureAuthenticated, getAuthenticatedUser } from '@api/lib/auth';
 import { verifyQueueOwnership } from '@api/controllers/queue/queue';
 import { validateParamsObject } from '@api/lib/validation';
 import { getPaginationParams } from '../helpers/pagination';
@@ -18,7 +18,7 @@ class QueueResourceController {
 
   static async getAllByAccountAbridged(req: Request, res: Response): Promise<void> {
     ensureAuthenticated(req, res, async () => {
-      const account = req.user!;
+      const account = getAuthenticatedUser(req);
 
       try {
         const queueResources = await QueueResourceController

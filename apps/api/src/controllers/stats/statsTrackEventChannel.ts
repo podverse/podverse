@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import Joi from 'joi';
 import { StatsTrackEventChannelService } from '@podverse/orm';
 import { handleGenericErrorResponse } from '@api/controllers/helpers/error';
-import { ensureAuthenticated } from '@api/lib/auth';
+import { ensureAuthenticated, getAuthenticatedUser } from '@api/lib/auth';
 import { validateBodyObject } from '@api/lib/validation';
 
 const createStatsTrackEventChannelSchema = Joi.object({
@@ -15,7 +15,7 @@ export class StatsTrackEventChannelController {
   static async create(req: Request, res: Response): Promise<void> {
     ensureAuthenticated(req, res, async () => {
       validateBodyObject(createStatsTrackEventChannelSchema, req, res, async () => {
-        const jwtUser = req.user!;
+        const jwtUser = getAuthenticatedUser(req);
         const { channel_id_text } = req.body;
 
         try {

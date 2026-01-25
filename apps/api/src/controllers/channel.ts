@@ -10,7 +10,7 @@ import { handleReturnDataOrNotFound } from '@api/controllers/helpers/data';
 import { handleGenericErrorResponse } from '@api/controllers/helpers/error';
 import { getPaginationParams } from '@api/controllers/helpers/pagination';
 import { validateParamsObject, validateQueryObject } from '@api/lib/validation';
-import { ensureAuthenticated } from '@api/lib/auth';
+import { ensureAuthenticated, getAuthenticatedUser } from '@api/lib/auth';
 import { getStatsOrder } from '@api/lib/stats';
 import { getFollowedChannelIds } from '@api/lib/followed';
 import { getParamRequired } from '@api/lib/params';
@@ -240,7 +240,8 @@ export class ChannelController {
           const { medium } = req.query as {
             medium: QueryParamsMedium;
           };
-          const account_id = req.user!.id;
+          const jwtUser = getAuthenticatedUser(req);
+          const account_id = jwtUser.id;
 
           const channelIds = await getFollowedChannelIds(account_id, medium);
           let channels: Channel[] = [];
@@ -282,7 +283,8 @@ export class ChannelController {
           const { medium } = req.query as {
             medium: QueryParamsMedium;
           };
-          const account_id = req.user!.id;
+          const jwtUser = getAuthenticatedUser(req);
+          const account_id = jwtUser.id;
 
           const channelIds = await getFollowedChannelIds(account_id, medium);
           let channels: Channel[] = [];
@@ -325,7 +327,8 @@ export class ChannelController {
             range: QueryParamsStatsRange;
             medium: QueryParamsMedium;
           };
-          const account_id = req.user!.id;
+          const jwtUser = getAuthenticatedUser(req);
+          const account_id = jwtUser.id;
 
           const channelIds = await getFollowedChannelIds(account_id, medium);
           let channels: Channel[] = [];

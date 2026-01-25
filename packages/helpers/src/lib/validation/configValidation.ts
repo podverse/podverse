@@ -50,7 +50,7 @@ export type ORMConfig = {
   defaults: {
     account: {
       settings: {
-        locale: string;
+        locale?: string | undefined;
       };
     };
   };
@@ -118,13 +118,13 @@ export type NotificationsConfig = {
   web: {
     protocol: string;
     host: string;
-    icon_image_path: string;
+    icon_image_path?: string | undefined;
   };
   webpush: {
     enabled: boolean;
-    vapid_public_key: string;
-    vapid_private_key: string;
-    vapid_subject: string;
+    vapid_public_key?: string | undefined;
+    vapid_private_key?: string | undefined;
+    vapid_subject?: string | undefined;
   };
 };
 
@@ -146,9 +146,7 @@ export function validateNotificationsConfig(config: NotificationsConfig): Config
     if (!config.web.host || config.web.host.trim() === '') {
       errors.push(createError('web.host', 'Web host is required'));
     }
-    if (!config.web.icon_image_path || config.web.icon_image_path.trim() === '') {
-      errors.push(createError('web.icon_image_path', 'Web icon image path is required'));
-    }
+    // icon_image_path is optional
   }
 
   // WebPush config validation (only required fields if enabled)
@@ -176,12 +174,12 @@ export function validateNotificationsConfig(config: NotificationsConfig): Config
 export type ExternalServicesConfig = {
   firebase: {
     notifications_enabled: boolean;
-    admin_json_key_path: string;
+    admin_json_key_path?: string | undefined;
   };
   web: {
     protocol: string;
     host: string;
-    icon_image_url: string;
+    icon_image_url?: string | undefined;
   };
 };
 
@@ -205,9 +203,7 @@ export function validateExternalServicesConfig(config: ExternalServicesConfig): 
     if (!config.web.host || config.web.host.trim() === '') {
       errors.push(createError('web.host', 'Web host is required'));
     }
-    if (!config.web.icon_image_url || config.web.icon_image_url.trim() === '') {
-      errors.push(createError('web.icon_image_url', 'Web icon image URL is required'));
-    }
+    // icon_image_url is optional
   }
 
   return {
@@ -228,7 +224,7 @@ export type ParserConfig = {
   };
   firebase: {
     notifications_enabled: boolean;
-    authJsonPath?: string;
+    authJsonPath?: string | undefined;
   };
   podcastIndex: {
     authKey: string;
@@ -242,7 +238,7 @@ export type ParserConfig = {
   defaults: {
     account: {
       settings: {
-        locale: string;
+        locale?: string | undefined;
       };
     };
   };

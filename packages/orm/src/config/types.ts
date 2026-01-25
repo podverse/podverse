@@ -24,7 +24,7 @@ export type LogConfig = {
 export type DefaultsConfig = {
   account: {
     settings: {
-      locale: string;
+      locale?: string | undefined;
     };
   };
 };

@@ -3,7 +3,7 @@ import Joi from 'joi';
 import { AccountUPDeviceService } from '@podverse/orm';
 import { handleGenericErrorResponse } from '@api/controllers/helpers/error';
 import { validateBodyObject } from '@api/lib/validation';
-import { ensureAuthenticated } from '@api/lib/auth';
+import { ensureAuthenticated, getAuthenticatedUser } from '@api/lib/auth';
 
 const createAccountUPDeviceSchema = Joi.object({
   up_endpoint: Joi.string().uri().required(),
@@ -26,7 +26,7 @@ export class AccountUPDeviceController {
     ensureAuthenticated(req, res, async () => {
       validateBodyObject(createAccountUPDeviceSchema, req, res, async () => {
         try {
-          const jwtUser = req.user!;
+          const jwtUser = getAuthenticatedUser(req);
           const { up_endpoint, up_auth_key } = req.body as {
             up_endpoint: string;
             up_auth_key: string | null;
@@ -48,7 +48,7 @@ export class AccountUPDeviceController {
     ensureAuthenticated(req, res, async () => {
       validateBodyObject(updateAccountUPDeviceSchema, req, res, async () => {
         try {
-          const jwtUser = req.user!;
+          const jwtUser = getAuthenticatedUser(req);
           const { up_endpoint, up_auth_key } = req.body as {
             up_endpoint: string;
             up_auth_key: string | null;
@@ -69,7 +69,7 @@ export class AccountUPDeviceController {
   static async delete(req: Request, res: Response): Promise<void> {
     ensureAuthenticated(req, res, async () => {
       try {
-        const jwtUser = req.user!;
+        const jwtUser = getAuthenticatedUser(req);
         await AccountUPDeviceController
           .accountUPDeviceService.delete(jwtUser.id);
         res.json({ message: 'UP device deleted successfully' });
@@ -82,7 +82,7 @@ export class AccountUPDeviceController {
   static async getForAccount(req: Request, res: Response): Promise<void> {
     ensureAuthenticated(req, res, async () => {
       try {
-        const jwtUser = req.user!;
+        const jwtUser = getAuthenticatedUser(req);
         const device = await AccountUPDeviceController.accountUPDeviceService.getForAccount(jwtUser.id);
         res.json(device);
       } catch (error) {
@@ -95,7 +95,7 @@ export class AccountUPDeviceController {
     ensureAuthenticated(req, res, async () => {
       validateBodyObject(updateLocaleForAccountSchema, req, res, async () => {
         try {
-          const jwtUser = req.user!;
+          const jwtUser = getAuthenticatedUser(req);
           const { locale } = req.body as { locale: string };
           await AccountUPDeviceController.accountUPDeviceService.updateLocaleForAccount(jwtUser.id, { locale });
           res.json({ message: 'Locale updated for account devices' });
@@ -109,7 +109,7 @@ export class AccountUPDeviceController {
   static async deleteAllForAccount(req: Request, res: Response): Promise<void> {
     ensureAuthenticated(req, res, async () => {
       try {
-        const jwtUser = req.user!;
+        const jwtUser = getAuthenticatedUser(req);
         await AccountUPDeviceController.accountUPDeviceService.deleteAllForAccount(jwtUser.id);
         res.json({ message: 'All UP devices deleted successfully' });
       } catch (error) {

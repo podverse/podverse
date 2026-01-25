@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import Joi from 'joi';
 import { AccountFollowingPlaylistService, AccountService } from '@podverse/orm';
-import { ensureAuthenticated, optionalEnsureAuthenticated } from '@api/lib/auth';
+import { ensureAuthenticated, optionalEnsureAuthenticated, getAuthenticatedUser } from '@api/lib/auth';
 import { handleGenericErrorResponse } from '../helpers/error';
 import { validateBodyObject, validateParamsObject } from '@api/lib/validation';
 import { SharableStatusEnum } from '@podverse/helpers';
@@ -23,7 +23,7 @@ class AccountFollowingPlaylistController {
     validateParamsObject(getFollowedPlaylistsSchema, req, res, async () => {
       optionalEnsureAuthenticated(req, res, async () => {
         try {
-          const jwtUser = req.user!;
+          const jwtUser = req.user;
           const account_id_text = getParamRequired(req, 'account_id_text');
           const account = await AccountFollowingPlaylistController.accountService.getByIdText(account_id_text, { relations: ['sharable_status'] });
           if (!account) {
@@ -57,7 +57,7 @@ class AccountFollowingPlaylistController {
   static async followPlaylist(req: Request, res: Response): Promise<void> {
     ensureAuthenticated(req, res, async () => {
       validateBodyObject(followPlaylistSchema, req, res, async () => {
-        const account = req.user!;
+        const account = getAuthenticatedUser(req);
         const { playlist_id_text } = req.body;
 
         try {
@@ -74,7 +74,7 @@ class AccountFollowingPlaylistController {
   static async unfollowPlaylist(req: Request, res: Response): Promise<void> {
     ensureAuthenticated(req, res, async () => {
       validateBodyObject(followPlaylistSchema, req, res, async () => {
-        const account = req.user!;
+        const account = getAuthenticatedUser(req);
         const { playlist_id_text } = req.body;
 
         try {

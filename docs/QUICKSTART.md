@@ -72,6 +72,15 @@ The web app starts at **http://localhost:3000**
 
 Open http://localhost:3000 in your browser - you should see the Podverse homepage.
 
+### Local Dev Account
+
+A test account is automatically created during setup:
+
+- **Email:** `localdev@example.com`
+- **Password:** `Test!1Aa`
+
+This account is pre-verified with a trial membership (expires in 1 year).
+
 ## Verification Checklist
 
 | Component | URL | Expected |
@@ -153,7 +162,7 @@ The management apps provide an admin interface for Podverse operations. The mana
 
 ### Default Superuser Account
 
-- Email: `localadmin@podverse.fm`
+- Email: `localadmin@example.com`
 - Password: `Test!1Aa`
 
 ### Run Management Apps

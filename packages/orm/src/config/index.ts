@@ -13,3 +13,15 @@ export const config = new Proxy({} as ReturnType<typeof getORMConfig>, {
     return getORMConfig()[prop as keyof ReturnType<typeof getORMConfig>];
   },
 });
+
+/**
+ * Gets the default locale from config, throwing if not configured.
+ * This should never happen in production as the env var is validated at startup.
+ */
+export const getDefaultLocale = (): string => {
+  const locale = config.defaults.account.settings.locale;
+  if (!locale) {
+    throw new Error('DEFAULT_ACCOUNT_SETTINGS_LOCALE is not configured');
+  }
+  return locale;
+};

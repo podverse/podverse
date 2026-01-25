@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import Joi from 'joi';
 import { AccountFollowingAddByRSSChannelService, AccountService } from '@podverse/orm';
-import { ensureAuthenticated } from '@api/lib/auth';
+import { ensureAuthenticated, getAuthenticatedUser } from '@api/lib/auth';
 import { handleGenericErrorResponse } from '../helpers/error';
 import { validateBodyObject, validateParamsObject } from '@api/lib/validation';
 import { getParamRequired } from '@api/lib/params';
@@ -53,7 +53,7 @@ class AccountFollowingAddByRSSChannelController {
   static async addOrUpdateRSSChannel(req: Request, res: Response): Promise<void> {
     ensureAuthenticated(req, res, async () => {
       validateBodyObject(addRSSChannelSchema, req, res, async () => {
-        const account = req.user!;
+        const account = getAuthenticatedUser(req);
         const dto = req.body;
 
         try {
@@ -70,7 +70,7 @@ class AccountFollowingAddByRSSChannelController {
   static async removeRSSChannel(req: Request, res: Response): Promise<void> {
     ensureAuthenticated(req, res, async () => {
       validateBodyObject(removeRSSChannelSchema, req, res, async () => {
-        const account = req.user!;
+        const account = getAuthenticatedUser(req);
         const { feed_url } = req.body;
 
         try {

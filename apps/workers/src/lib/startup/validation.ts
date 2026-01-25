@@ -4,7 +4,7 @@
  * This module validates environment variables before the application starts.
  */
 
-import { isValidUUID, ValidationResult, ValidationSummary, validateRequired, validateOptional } from '@podverse/helpers';
+import { ValidationResult, ValidationSummary, validateRequired, validateOptional } from '@podverse/helpers';
 
 /**
  * Validates critical environment variables and configuration at application startup.
@@ -22,7 +22,6 @@ export const validateStartupRequirements = (): void => {
   if (summary.requiredMissing > 0) {
     const errorMessage = `FATAL: ${summary.requiredMissing} required environment variable(s) are missing or invalid. Please check the validation output above for details.`;
     console.error(errorMessage);
-    // Throw error - stack trace will be suppressed in index.ts for validation errors
     throw new Error(errorMessage);
   }
 
@@ -35,9 +34,24 @@ export const validateStartupRequirements = (): void => {
 const validateAllEnvironmentVariables = (): ValidationSummary => {
   const results: ValidationResult[] = [];
   
-  // Auth & Security
-  results.push(validateJwtSecret());
-  results.push(validateUserAgent());
+  // Config values
+  results.push(validateRequired('USER_AGENT', 'Config'));
+  results.push(validateRequired('LOG_LEVEL', 'Config'));
+  results.push(validateRequired('LOG_DIR', 'Config'));
+  results.push(validateOptional('LOG_TIMER', 'Config', 'Use Default (false)'));
+  
+  // Podcast Index
+  results.push(validateRequired('PODCAST_INDEX_AUTH_KEY', 'Podcast Index'));
+  results.push(validateRequired('PODCAST_INDEX_BASE_URL', 'Podcast Index'));
+  results.push(validateRequired('PODCAST_INDEX_SECRET_KEY', 'Podcast Index'));
+  results.push(validateOptional('PODCAST_INDEX_API_RATE_LIMIT_DELAY', 'Podcast Index', 'Use Default (0)'));
+  
+  // Message Queue
+  results.push(validateRequired('MESSAGE_QUEUE_PROTOCOL', 'Message Queue'));
+  results.push(validateRequired('MESSAGE_QUEUE_HOST', 'Message Queue'));
+  results.push(validateRequired('MESSAGE_QUEUE_USERNAME', 'Message Queue'));
+  results.push(validateRequired('MESSAGE_QUEUE_PASSWORD', 'Message Queue'));
+  results.push(validateRequired('MESSAGE_QUEUE_PORT', 'Message Queue'));
 
   // Database
   results.push(validateRequired('DB_HOST', 'Database'));
@@ -49,29 +63,37 @@ const validateAllEnvironmentVariables = (): ValidationSummary => {
   results.push(validateRequired('DB_DATABASE', 'Database'));
   results.push(validateOptional('DB_SSL_CONNECTION', 'Database', 'Use Default (false)'));
 
-  // API Configuration
-  results.push(validateRequired('API_PORT', 'API'));
-  results.push(validateRequired('API_PREFIX', 'API'));
-  results.push(validateRequired('API_VERSION', 'API'));
-  results.push(validateRequired('COOKIE_DOMAIN', 'API'));
-  results.push(validateRequired('API_ALLOWED_CORS_ORIGINS', 'API'));
+  // Defaults
+  results.push(validateRequired('DEFAULT_ACCOUNT_SETTINGS_LOCALE', 'Defaults'));
+
+  // Firebase
+  results.push(validateOptional('GOOGLE_FIREBASE_NOTIFICATIONS_ENABLED', 'Firebase', 'Use Default (false)'));
+  results.push(validateOptional('GOOGLE_FIREBASE_ADMIN_JSON_KEY_PATH', 'Firebase', 'Skipped'));
 
   // Web
   results.push(validateRequired('WEB_PROTOCOL', 'Web'));
   results.push(validateRequired('WEB_DOMAIN', 'Web'));
+  results.push(validateOptional('WEB_ICON_IMAGE_PATH', 'Web', 'Skipped'));
+
+  // Notifications
+  results.push(validateRequired('BRAND_NAME', 'Notifications'));
+  results.push(validateOptional('WEBPUSH_ENABLED', 'WebPush', 'Use Default (false)'));
+  results.push(validateOptional('WEBPUSH_VAPID_PUBLIC_KEY', 'WebPush', 'Skipped'));
+  results.push(validateOptional('WEBPUSH_VAPID_PRIVATE_KEY', 'WebPush', 'Skipped'));
+  results.push(validateOptional('WEBPUSH_VAPID_SUBJECT', 'WebPush', 'Skipped'));
+
+  // Parser
+  results.push(validateOptional('PARSER_ADD_REMOTE_ITEMS_TO_MQ', 'Parser', 'Use Default (false)'));
 
   // General
-  results.push(validateRequired('NODE_ENV', 'General'));
-  results.push(validateRequired('LOG_LEVEL', 'General'));
+  results.push(validateOptional('NODE_ENV', 'General', 'Use Default (development)'));
 
   // Calculate summary
   const total = results.length;
   const passed = results.filter(r => r.isValid && r.isSet).length;
   const failed = results.filter(r => !r.isValid).length;
   const requiredMissing = results.filter(r => r.isRequired && !r.isValid).length;
-  // Count as skipped only if not set and message is "Skipped" (exclude "Use Default" and "Blank")
-  const skipped = results.filter(r => !r.isRequired && !r.isSet && r.message === 'Skipped').length;
-  // Count defaults used (passed validations with "Use Default" or "Blank" messages)
+  const skipped = results.filter(r => !r.isRequired && !r.isSet).length;
   const defaultsUsed = results.filter(r => r.isValid && r.isSet && (r.message.includes('Use Default') || r.message === 'Blank')).length;
 
   return {
@@ -82,102 +104,6 @@ const validateAllEnvironmentVariables = (): ValidationSummary => {
     skipped,
     defaultsUsed,
     results,
-  };
-};
-
-/**
- * Validates the AUTH_JWT_SECRET environment variable.
- * The JWT secret MUST be a valid UUID to ensure secure token generation.
- */
-const validateJwtSecret = (): ValidationResult => {
-  const jwtSecret = process.env.AUTH_JWT_SECRET || '';
-
-  if (!jwtSecret) {
-    return {
-      name: 'AUTH_JWT_SECRET',
-      isSet: false,
-      isValid: false,
-      isRequired: true,
-      message: 'Missing - must be a valid UUID',
-      category: 'Auth & Security',
-    };
-  }
-
-  if (!isValidUUID(jwtSecret)) {
-    return {
-      name: 'AUTH_JWT_SECRET',
-      isSet: true,
-      isValid: false,
-      isRequired: true,
-      message: `Invalid UUID format: "${jwtSecret}"`,
-      category: 'Auth & Security',
-    };
-  }
-
-  return {
-    name: 'AUTH_JWT_SECRET',
-    isSet: true,
-    isValid: true,
-    isRequired: true,
-    message: 'Valid UUID',
-    category: 'Auth & Security',
-  };
-};
-
-/**
- * Validates the USER_AGENT environment variable.
- * The User-Agent MUST follow the format: BrandName Environment/AppName/Version
- * Example: "Podverse Bot Local/Management-API/5"
- */
-const validateUserAgent = (): ValidationResult => {
-  const userAgent = process.env.USER_AGENT || '';
-  const USER_AGENT_PATTERN = /^[^/]+\/[^/]+\/[^/]+$/;
-
-  if (!userAgent) {
-    return {
-      name: 'USER_AGENT',
-      isSet: false,
-      isValid: false,
-      isRequired: true,
-      message: 'Missing - must follow format: BrandName Bot Environment/AppName/Version',
-      category: 'Auth & Security',
-    };
-  }
-
-  const trimmedUserAgent = userAgent.trim();
-  
-  if (!USER_AGENT_PATTERN.test(trimmedUserAgent)) {
-    return {
-      name: 'USER_AGENT',
-      isSet: true,
-      isValid: false,
-      isRequired: true,
-      message: `Invalid format: "${userAgent}" - must follow format: BrandName Bot Environment/AppName/Version`,
-      category: 'Auth & Security',
-    };
-  }
-
-  // Check that "Bot" is included in the first part (before the first slash)
-  const parts = trimmedUserAgent.split('/');
-  const firstPart = parts[0];
-  if (firstPart && !firstPart.includes('Bot')) {
-    return {
-      name: 'USER_AGENT',
-      isSet: true,
-      isValid: false,
-      isRequired: true,
-      message: `Missing "Bot" in first part: "${userAgent}"`,
-      category: 'Auth & Security',
-    };
-  }
-
-  return {
-    name: 'USER_AGENT',
-    isSet: true,
-    isValid: true,
-    isRequired: true,
-    message: 'Valid format',
-    category: 'Auth & Security',
   };
 };
 
@@ -207,7 +133,6 @@ const displayValidationResults = (summary: ValidationSummary): void => {
       const status = result.isValid ? '✓' : '✗';
       const requiredText = result.isRequired ? '' : ' (optional)';
       const logMessage = `  ${status} ${result.name}${requiredText} - ${result.message}`;
-      // Log failures as errors, skipped optional vars as warn, passes as info
       if (!result.isValid) {
         console.error(logMessage);
       } else if (!result.isSet && !result.isRequired) {

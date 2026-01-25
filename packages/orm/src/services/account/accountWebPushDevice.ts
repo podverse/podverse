@@ -4,7 +4,7 @@ import { AccountWebPushDevice } from '@orm/entities/account/accountWebPushDevice
 import { BaseManyService } from '@orm/services/base/baseManyService';
 import { AccountService } from '@orm/services/account/account';
 import { AccountNotificationChannelService } from '@orm/services/account/accountNotificationChannel';
-import { config } from '@orm/config';
+import { getDefaultLocale } from '@orm/config';
 
 export class AccountWebPushDeviceService extends BaseManyService<AccountWebPushDevice, 'account'> {
   private accountService: AccountService;
@@ -23,7 +23,7 @@ export class AccountWebPushDeviceService extends BaseManyService<AccountWebPushD
     }
     const { endpoint, p256dh, auth } = params;
 
-    const locale = account.account_settings?.account_settings_locale?.locale || config.defaults.account.settings.locale;
+    const locale = account.account_settings?.account_settings_locale?.locale || getDefaultLocale();
 
     const dto: Partial<AccountWebPushDevice> = { endpoint, p256dh, auth, locale };
     return this._update(account, ['endpoint', 'p256dh', 'auth', 'locale'], dto);
@@ -39,7 +39,7 @@ export class AccountWebPushDeviceService extends BaseManyService<AccountWebPushD
     }
     const { endpoint, p256dh, auth } = params;
 
-    const locale = account.account_settings?.account_settings_locale?.locale || config.defaults.account.settings.locale;
+    const locale = account.account_settings?.account_settings_locale?.locale || getDefaultLocale();
 
     // Match by endpoint + account_id
     const existing = await this.repositoryRead.findOne({ where: { account_id, endpoint } });

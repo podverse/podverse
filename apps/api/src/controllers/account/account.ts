@@ -11,7 +11,7 @@ import { config } from '@api/config';
 import { handleReturnDataOrNotFound } from '@api/controllers/helpers/data';
 import { handleGenericErrorResponse } from '@api/controllers/helpers/error';
 import { getPaginationParams } from '@api/controllers/helpers/pagination';
-import { ensureAuthenticated, optionalEnsureAuthenticated } from '@api/lib/auth/';
+import { ensureAuthenticated, optionalEnsureAuthenticated, getAuthenticatedUser } from '@api/lib/auth/';
 import { sendVerificationEmail } from '@api/lib/mailer/sendVerificationEmail';
 import { sendResetPasswordEmail } from '@api/lib/mailer/sendResetPasswordEmail';
 import { validateBodyObject, validateParamsObject, validateQueryObject } from '@api/lib/validation';
@@ -170,7 +170,8 @@ export class AccountController {
   static async getLoggedInAccount(req: Request, res: Response): Promise<void> {
     ensureAuthenticated(req, res, async () => {
       try {
-        const account_id = req.user!.id;
+        const jwtUser = getAuthenticatedUser(req);
+        const account_id = jwtUser.id;
 
         const data = await AccountController.accountService.get(account_id, { relations: [
           ...publicRelations,
@@ -232,7 +233,8 @@ export class AccountController {
       ensureAuthenticated(req, res, async () => {
         try {
           const { page, limit, offset } = getPaginationParams(req);
-          const account_id = req.user!.id;
+          const jwtUser = getAuthenticatedUser(req);
+          const account_id = jwtUser.id;
 
           let accounts: Account[] = [];
           let count = 0;
@@ -304,7 +306,8 @@ export class AccountController {
       ensureAuthenticated(req, res, async () => {
         try {
           const { page, limit, offset } = getPaginationParams(req);
-          const account_id = req.user!.id;
+          const jwtUser = getAuthenticatedUser(req);
+          const account_id = jwtUser.id;
 
           let accounts: Account[] = [];
           let count = 0;
@@ -417,7 +420,8 @@ export class AccountController {
           const { range } = req.query as {
             range: QueryParamsStatsRange;
           };
-          const account_id = req.user!.id;
+          const jwtUser = getAuthenticatedUser(req);
+          const account_id = jwtUser.id;
 
           const accountIds = await getFollowedAccountIds(account_id);
           let accounts: Account[] = [];
@@ -484,7 +488,8 @@ export class AccountController {
     ensureAuthenticated(req, res, async () => {
       validateBodyObject(updateAccountSchema, req, res, async () => {
         try {
-          const account_id = req.user!.id;
+          const jwtUser = getAuthenticatedUser(req);
+          const account_id = jwtUser.id;
           const dto = req.body as {
             display_name: string | null;
             bio: string | null;
@@ -558,7 +563,8 @@ export class AccountController {
     ensureAuthenticated(req, res, async () => {
       validateBodyObject(sendEmailChangeVerificationSchema, req, res, async () => {
         try {
-          const account_id = req.user!.id;
+          const jwtUser = getAuthenticatedUser(req);
+          const account_id = jwtUser.id;
           const { new_email } = req.body;
 
           await AccountController.sendEmailChangeVerificationEmailHelper(account_id, new_email);
@@ -678,7 +684,8 @@ export class AccountController {
   static async delete(req: Request, res: Response): Promise<void> {
     ensureAuthenticated(req, res, async () => {
       try {
-        const account_id = req.user!.id;
+        const jwtUser = getAuthenticatedUser(req);
+        const account_id = jwtUser.id;
         await AccountController.accountService.delete(account_id);
         res.json({ message: 'Account deleted successfully' });
       } catch (error) {
@@ -690,7 +697,8 @@ export class AccountController {
   static async downloadData(req: Request, res: Response): Promise<void> {
     ensureAuthenticated(req, res, async () => {
       try {
-        const account_id = req.user!.id;
+        const jwtUser = getAuthenticatedUser(req);
+        const account_id = jwtUser.id;
         
         const exportData = await AccountController.accountDataExportService.exportUserData(account_id);
         

@@ -5,7 +5,7 @@ import { AccountFCMDevice } from '@orm/entities/account/accountFCMDevice';
 import { BaseManyService } from '@orm/services/base/baseManyService';
 import { AccountService } from '@orm/services/account/account';
 import { AccountNotificationChannelService } from '@orm/services/account/accountNotificationChannel';
-import { config } from '@orm/config';
+import { getDefaultLocale } from '@orm/config';
 
 export class AccountFCMDeviceService extends BaseManyService<AccountFCMDevice, 'account'> {
   private accountService: AccountService;
@@ -24,7 +24,7 @@ export class AccountFCMDeviceService extends BaseManyService<AccountFCMDevice, '
     }
     const { fcm_token, installation_id, platform } = params;
 
-    const locale = account.account_settings?.account_settings_locale?.locale || config.defaults.account.settings.locale;
+    const locale = account.account_settings?.account_settings_locale?.locale || getDefaultLocale();
 
     const dto: Partial<AccountFCMDevice> = { fcm_token, installation_id, platform, locale };
     return this._update(account, ['fcm_token', 'installation_id', 'platform', 'locale'], dto);
@@ -40,7 +40,7 @@ export class AccountFCMDeviceService extends BaseManyService<AccountFCMDevice, '
     }
     const { new_fcm_token, installation_id, previous_fcm_token, platform } = params;
 
-    const locale = account.account_settings?.account_settings_locale?.locale || config.defaults.account.settings.locale;
+    const locale = account.account_settings?.account_settings_locale?.locale || getDefaultLocale();
 
     // Prefer a match by installation_id + account_id
     if (installation_id) {

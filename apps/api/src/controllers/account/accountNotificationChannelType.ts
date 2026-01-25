@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import { AccountNotificationChannelTypeService } from '@podverse/orm';
 import Joi from 'joi';
 import { ACCOUNT_NOTIFICATION_TYPE_VALUES, AccountNotificationTypeEnum } from '@podverse/helpers';
-import { ensureAuthenticated } from '@api/lib/auth';
+import { ensureAuthenticated, getAuthenticatedUser } from '@api/lib/auth';
 import { handleGenericErrorResponse } from '../helpers/error';
 import { validateBodyObject, validateParamsObject } from '@api/lib/validation';
 import { getParamRequired } from '@api/lib/params';
@@ -24,7 +24,7 @@ class AccountNotificationChannelTypeController {
     ensureAuthenticated(req, res, async () => {
       validateBodyObject(createNotificationChannelTypeSchema, req, res, async () => {
         try {
-          const jwtUser = req.user!;
+          const jwtUser = getAuthenticatedUser(req);
           const { channel_id_text, type } = req.body as { channel_id_text: string; type: AccountNotificationTypeEnum };
           const notificationChannelType = await AccountNotificationChannelTypeController
             .accountNotificationChannelTypeService.create(jwtUser.id, channel_id_text, type);
@@ -40,7 +40,7 @@ class AccountNotificationChannelTypeController {
     ensureAuthenticated(req, res, async () => {
       validateParamsObject(deleteNotificationChannelTypeSchema, req, res, async () => {
         try {
-          const jwtUser = req.user!;
+          const jwtUser = getAuthenticatedUser(req);
           const channel_id_text = getParamRequired(req, 'channel_id_text');
           const type = getParamRequired(req, 'type') as AccountNotificationTypeEnum;
           await AccountNotificationChannelTypeController

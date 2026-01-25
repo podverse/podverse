@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import Joi from 'joi';
 import { AccountFollowingAccountService, AccountService } from '@podverse/orm';
-import { ensureAuthenticated, optionalEnsureAuthenticated } from '@api/lib/auth';
+import { ensureAuthenticated, optionalEnsureAuthenticated, getAuthenticatedUser } from '@api/lib/auth';
 import { handleGenericErrorResponse } from '../helpers/error';
 import { validateBodyObject, validateParamsObject } from '@api/lib/validation';
 import { SharableStatusEnum } from '@podverse/helpers';
@@ -23,7 +23,7 @@ class AccountFollowingAccountController {
     validateParamsObject(getFollowedAccountsSchema, req, res, async () => {
       optionalEnsureAuthenticated(req, res, async () => {
         try {
-          const jwtUser = req.user!;
+          const jwtUser = req.user;
           const account_id_text = getParamRequired(req, 'account_id_text');
 
           const account = await AccountFollowingAccountController.accountService.getByIdText(account_id_text, { relations: ['sharable_status'] });
@@ -59,7 +59,7 @@ class AccountFollowingAccountController {
   static async followAccount(req: Request, res: Response): Promise<void> {
     ensureAuthenticated(req, res, async () => {
       validateBodyObject(followAccountSchema, req, res, async () => {
-        const account = req.user!;
+        const account = getAuthenticatedUser(req);
         const { following_account_id_text } = req.body;
 
         try {
@@ -76,7 +76,7 @@ class AccountFollowingAccountController {
   static async unfollowAccount(req: Request, res: Response): Promise<void> {
     ensureAuthenticated(req, res, async () => {
       validateBodyObject(followAccountSchema, req, res, async () => {
-        const account = req.user!;
+        const account = getAuthenticatedUser(req);
         const { following_account_id_text } = req.body;
 
         try {
