@@ -59,6 +59,10 @@ jobs:
         id: install
         run: npm ci
 
+      - name: Build packages
+        id: build-packages
+        run: npm run build:packages
+
       - name: Lint
         id: lint
         run: npm run lint
@@ -66,10 +70,6 @@ jobs:
       - name: Type check
         id: typecheck
         run: npm run type-check
-
-      - name: Build packages
-        id: build-packages
-        run: npm run build:packages
 
       - name: Build apps
         id: build-apps
@@ -91,9 +91,9 @@ jobs:
               '|-------|--------|',
               '| Database migrations synced | ✅ |',
               '| Dependencies installed | ✅ |',
+              '| Build packages | ✅ |',
               '| Lint | ✅ |',
               '| Type check | ✅ |',
-              '| Build packages | ✅ |',
               '| Build apps | ✅ |',
               '',
               `[View full run](${process.env.RUN_URL})`
@@ -134,9 +134,9 @@ jobs:
               '|-------|--------|',
               `| Database migrations synced | ${status(process.env.DB_VERIFY)} |`,
               `| Dependencies installed | ${status(process.env.INSTALL)} |`,
+              `| Build packages | ${status(process.env.BUILD_PACKAGES)} |`,
               `| Lint | ${status(process.env.LINT)} |`,
               `| Type check | ${status(process.env.TYPECHECK)} |`,
-              `| Build packages | ${status(process.env.BUILD_PACKAGES)} |`,
               `| Build apps | ${status(process.env.BUILD_APPS)} |`,
               '',
               'Legend: ✅ Passed | ❌ Failed | ⏭️ Skipped',
