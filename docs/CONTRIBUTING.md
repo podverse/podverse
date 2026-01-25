@@ -74,13 +74,22 @@ npm run test
 - Keep PRs focused and reasonably sized
 - Include issue reference in PR description
 - Respond to feedback promptly
-- Ensure CI passes before requesting review
+- Wait for a maintainer to run CI before requesting approval
 
 ### For Reviewers
 - Review within 24-48 hours when possible
 - Be constructive and specific
 - Approve when satisfied, don't over-nitpick
 - Test locally for significant changes
+- Comment `/test` to trigger CI on external PRs
+
+### CI for External Contributors
+
+To prevent abuse of GitHub Actions, CI does not run automatically on PRs from external contributors. A maintainer must comment `/test` on the PR to trigger the CI workflow. This runs:
+- Linting
+- Type checking
+- Package builds
+- App builds
 
 ## PR Checklist
 

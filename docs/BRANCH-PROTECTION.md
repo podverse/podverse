@@ -93,3 +93,21 @@ The `validate` job is defined in `.github/workflows/ci.yml` and runs:
 4. Build apps (`npm run build:apps`)
 
 All checks must pass before a PR can be merged.
+
+## Comment-Triggered CI
+
+To prevent abuse of GitHub Actions by spam PRs, CI does not run automatically on PRs from external contributors.
+
+**Workflow:**
+1. External contributor opens PR
+2. Maintainer reviews code for obvious issues or malicious content
+3. Maintainer comments `/test` on the PR to trigger CI
+4. CI runs and posts results as a comment
+5. If CI passes, maintainer can approve the PR
+
+**Who can trigger CI:**
+- Repository owners
+- Organization members
+- Collaborators with write access
+
+The workflow adds a 🚀 reaction to the `/test` comment to confirm CI has started.

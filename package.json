@@ -57,6 +57,8 @@
     "lint": "npm run lint --workspaces --if-present",
     "lint:fix": "npm run lint:fix --workspaces --if-present",
     "test": "npm run test --workspaces --if-present",
-    "type-check": "npm run type-check --workspaces --if-present"
+    "type-check": "npm run type-check --workspaces --if-present",
+    "db:combine": "bash scripts/database/combine-migrations.sh",
+    "db:verify": "bash scripts/database/verify-migrations-combined.sh"
   }
 }

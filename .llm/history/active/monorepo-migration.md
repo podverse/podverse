@@ -2194,3 +2194,39 @@ I think this hook may be too prohibitive as well, given that some contributors m
 - scripts/git-hooks/pre-commit (no longer needed)
 
 ---
+
+### Session 108 - 2026-01-25
+#### Prompt (Developer)
+We need a github action that can verify that all the packages and modules build without failure, before a PR can be merged into the develop branch. I am unsure how to handle this action however. The build process should NOT be triggered when the PR is created, because this is an open source project, and we do not want people to be able to spam our Github actions. However, it seems like it should be a step before approval, because we can't confidently "approve" code until it is verified that everything can build.
+
+#### Key Decisions
+- Implemented comment-triggered CI using `/test` command
+- CI only runs when a maintainer (OWNER, MEMBER, COLLABORATOR) comments `/test` on a PR
+- Prevents abuse from spam PRs consuming GitHub Actions minutes
+- Workflow adds 🚀 reaction to confirm CI started, posts success/failure comment when done
+
+#### Files Modified
+- .github/workflows/ci.yml (rewrote to use issue_comment trigger with permission checks)
+- docs/CONTRIBUTING.md (added "CI for External Contributors" section explaining /test workflow)
+- docs/BRANCH-PROTECTION.md (added "Comment-Triggered CI" section with workflow details)
+
+---
+
+### Session 109 - 2026-01-25
+#### Prompt (Developer)
+The ci test process should also confirm that the init_database and same for management matches the combined result of the numbered migrations files (to ensure the combine step has not been skipped)
+
+#### Key Decisions
+- Added CI step to verify database migration files are properly combined
+- Created verification script that compares combined files with expected output (ignoring timestamps)
+- Added npm scripts: `db:combine` (run combine) and `db:verify` (check sync)
+- CI fails with helpful message if migrations are added without running combine
+
+#### Files Created
+- scripts/database/verify-migrations-combined.sh (verification script)
+
+#### Files Modified
+- .github/workflows/ci.yml (added "Verify database migrations combined" step)
+- package.json (added db:combine and db:verify npm scripts)
+
+---
