@@ -37,7 +37,6 @@ npm-debug.log*
 .idea/
 *.swp
 *.swo
-.vscode/terminals.json
 
 # OS
 .DS_Store

@@ -20,6 +20,12 @@
       "open": true
     },
     {
+      "name": "Workers",
+      "description": "Workers app development",
+      "cwd": "./apps/workers",
+      "open": true
+    },
+    {
       "name": "partytime",
       "description": "Partytime parser library",
       "cwd": "../partytime",
