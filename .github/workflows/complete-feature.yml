@@ -69,9 +69,14 @@ jobs:
 
       - name: Commit and push
         if: steps.check.outputs.found == 'true'
+        env:
+          PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          # Configure remote URL with token for authenticated push
+          git remote set-url origin https://${PAT_TOKEN}@github.com/${GITHUB_REPOSITORY}.git
 
           git add .llm/history/
 
@@ -83,6 +88,6 @@ jobs:
             # Pull latest changes (in case i18n workflow pushed)
             git pull --rebase origin ${{ github.event.pull_request.base.ref }} || true
             
-            git push
+            git push origin ${{ github.event.pull_request.base.ref }}
             echo "✓ Committed and pushed history completion"
           fi

@@ -42,9 +42,14 @@ jobs:
         run: npm run i18n:validate
 
       - name: Commit and push if changed
+        env:
+          PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          # Configure remote URL with token for authenticated push
+          git remote set-url origin https://${PAT_TOKEN}@github.com/${GITHUB_REPOSITORY}.git
 
           # Only commit originals and overrides (compiled is generated at build time)
           git add apps/*/i18n/originals/ apps/*/i18n/overrides/
@@ -58,5 +63,5 @@ jobs:
             # Use rebase to put our commit on top
             git pull --rebase origin develop || true
             
-            git push
+            git push origin develop
           fi
