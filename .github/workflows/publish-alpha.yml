@@ -118,10 +118,10 @@ jobs:
           # Web apps (with env file baked in - required by Next.js at build time)
           # Note: Next.js requires NEXT_PUBLIC_* vars at build time, so base images
           # without env vars are not possible. Self-hosters must build their own images.
-          - app: web
+          - app: web-deploy
             dockerfile: apps/web/Dockerfile
             env_file: apps/web/env/alpha.env
-          - app: management-web
+          - app: management-web-deploy
             dockerfile: apps/management-web/Dockerfile
             env_file: apps/management-web/env/alpha.env
     steps:

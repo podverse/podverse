@@ -25,10 +25,10 @@ flowchart TD
     
     subgraph parallel [Parallel Builds]
         F --> G[api]
-        F --> H[web]
+        F --> H[web-deploy]
         F --> I[workers]
         F --> J[management-api]
-        F --> K[management-web]
+        F --> K[management-web-deploy]
     end
     
     parallel --> L[Push to GHCR]
@@ -186,13 +186,15 @@ gh run view <run-id> --log-failed
 
 ### Verify Docker Images
 
+Note: web images are published as `web-deploy` and `management-web-deploy` because Next.js requires env vars at build time.
+
 ```bash
 # Pull and verify images exist
 docker pull ghcr.io/podverse/podverse/api:alpha
-docker pull ghcr.io/podverse/podverse/web:alpha
+docker pull ghcr.io/podverse/podverse/web-deploy:alpha
 docker pull ghcr.io/podverse/podverse/workers:alpha
 docker pull ghcr.io/podverse/podverse/management-api:alpha
-docker pull ghcr.io/podverse/podverse/management-web:alpha
+docker pull ghcr.io/podverse/podverse/management-web-deploy:alpha
 
 # Check image tags via GitHub API
 gh api /orgs/podverse/packages/container/podverse%2Fapi/versions --jq '.[0:3]'
