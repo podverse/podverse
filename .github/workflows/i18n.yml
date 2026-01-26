@@ -15,9 +15,16 @@ jobs:
   translate:
     runs-on: ubuntu-latest
     steps:
+      - name: Generate GitHub App token
+        id: app-token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ secrets.APP_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
+
       - uses: actions/checkout@v4
         with:
-          token: ${{ secrets.PAT_TOKEN }}
+          token: ${{ steps.app-token.outputs.token }}
           persist-credentials: false
 
       - uses: actions/setup-node@v4
@@ -44,14 +51,13 @@ jobs:
 
       - name: Commit and push if changed
         env:
-          PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-          # Configure remote URL with token for authenticated push
-          # x-access-token prefix works with both classic and fine-grained PAT tokens
-          git remote set-url origin https://x-access-token:${PAT_TOKEN}@github.com/${GITHUB_REPOSITORY}.git
+          # Configure remote URL with GitHub App token for authenticated push
+          git remote set-url origin https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git
 
           # Only commit originals and overrides (compiled is generated at build time)
           git add apps/*/i18n/originals/ apps/*/i18n/overrides/
