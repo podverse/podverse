@@ -134,17 +134,6 @@ git merge develop --ff-only
 git push origin alpha
 ```
 
-If you get a "not possible to fast-forward" error, the branches have diverged. Reset alpha to match develop:
-
-```bash
-# Force-reset alpha to match develop exactly
-git checkout alpha
-git reset --hard origin/develop
-git push --force origin alpha
-```
-
-**Note:** Force-pushing to `alpha` is safe because it's a trigger branch with no unique commits. Your GitHub user must have bypass permissions for branch protection rules.
-
 ### Step 3: Monitor the Workflow
 
 ```bash
