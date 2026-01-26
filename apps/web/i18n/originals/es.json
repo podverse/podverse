@@ -1,4 +1,7 @@
 {
+  "test": {
+    "hello_world": "Prueba de Hola Mundo 123"
+  },
   "media": {
     "podcast": {
       "audio": "Audio",

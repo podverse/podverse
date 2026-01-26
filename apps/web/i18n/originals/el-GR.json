@@ -1,4 +1,7 @@
 {
+  "test": {
+    "hello_world": "Γειά σου Κόσμε Δοκιμή 123"
+  },
   "media": {
     "podcast": {
       "audio": "Ήχος",
