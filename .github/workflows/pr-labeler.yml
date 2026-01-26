@@ -43,7 +43,8 @@ jobs:
               'infra': { color: 'd93f0b', description: 'Changes to infra/ or pipelines/' },
               'ci': { color: 'fbca04', description: 'Changes to .github/' },
               'scripts': { color: '5319e7', description: 'Changes to scripts/' },
-              'tools': { color: 'e99695', description: 'Changes to tools/' }
+              'tools': { color: 'e99695', description: 'Changes to tools/' },
+              'i18n': { color: 'c5def5', description: 'Changes to internationalization files' }
             };
 
             for (const file of paths) {
@@ -54,6 +55,7 @@ jobs:
               if (file.startsWith('.github/')) labels.add('ci');
               if (file.startsWith('scripts/')) labels.add('scripts');
               if (file.startsWith('tools/')) labels.add('tools');
+              if (file.includes('/i18n/')) labels.add('i18n');
             }
 
             console.log('Labels to add:', Array.from(labels));
