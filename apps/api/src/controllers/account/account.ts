@@ -179,8 +179,8 @@ export class AccountController {
         ] });
 
         if (data?.account_credentials) {
-          // @ts-expect-error - We intentionally remove password from response
-          delete data.account_credentials.password;
+          const { password: _password, ...credentialsWithoutPassword } = data.account_credentials;
+          data.account_credentials = credentialsWithoutPassword as typeof data.account_credentials;
         }
 
         handleReturnDataOrNotFound(res, data, 'Account');

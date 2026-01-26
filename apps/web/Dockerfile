@@ -1,23 +1,33 @@
 FROM node:22-slim AS base
 WORKDIR /opt
 
+# Build argument for environment file path (required - must be provided via --build-arg)
+ARG ENV_FILE
+
 # Stage 1: Install dependencies
 FROM base AS deps
-COPY package*.json ./
+COPY package*.json tsconfig.base.json ./
 COPY packages/ ./packages/
 COPY apps/web/package*.json ./apps/web/
 
-RUN npm install --workspaces
+# Install all dependencies (devDependencies like @types/* needed for TypeScript compilation)
+# --ignore-scripts skips the prepare script that tries to install git hooks
+RUN npm install --ignore-scripts
 
 # Stage 2: Build the app
 FROM deps AS builder
+# Redeclare ARG so it's available in this stage
+ARG ENV_FILE
 ENV NODE_ENV=production
 
 COPY packages/ ./packages/
 COPY apps/web/ ./apps/web/
 
-# Build packages first
-RUN npm run build:packages
+# Copy environment file for build-time variables
+COPY ${ENV_FILE} apps/web/.env.production
+
+# Build packages (prod = TypeScript only, no linting)
+RUN npm run build:packages:prod
 
 # Build web app
 RUN npm run build -w apps/web
@@ -29,10 +39,10 @@ ENV NODE_ENV=production
 ENV PORT=3000
 
 COPY --from=builder --chown=node:node /opt/apps/web/.next/standalone ./
-COPY --from=builder --chown=node:node /opt/apps/web/.next/static ./.next/static
-COPY --from=builder --chown=node:node /opt/apps/web/public ./public
+COPY --from=builder --chown=node:node /opt/apps/web/.next/static ./apps/web/.next/static
+COPY --from=builder --chown=node:node /opt/apps/web/public ./apps/web/public
 
 USER node
 EXPOSE 3000
 
-CMD ["node", "server.js"]
+CMD ["node", "apps/web/server.js"]

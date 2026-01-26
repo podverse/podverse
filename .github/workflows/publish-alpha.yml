@@ -146,12 +146,23 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Set build args for web apps
+        id: buildargs
+        if: matrix.app == 'web' || matrix.app == 'management-web'
+        run: |
+          if [ "${{ matrix.app }}" = "web" ]; then
+            echo "args=ENV_FILE=apps/web/env/alpha.env" >> $GITHUB_OUTPUT
+          elif [ "${{ matrix.app }}" = "management-web" ]; then
+            echo "args=ENV_FILE=apps/management-web/env/alpha.env" >> $GITHUB_OUTPUT
+          fi
+
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
           context: .
           file: apps/${{ matrix.app }}/Dockerfile
           push: true
+          build-args: ${{ steps.buildargs.outputs.args }}
           tags: |
             ghcr.io/${{ github.repository }}/${{ matrix.app }}:${{ steps.version.outputs.VERSION }}
             ghcr.io/${{ github.repository }}/${{ matrix.app }}:alpha

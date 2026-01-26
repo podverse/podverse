@@ -53,7 +53,7 @@ export const ListChannelSettings = ({ channel }: ListChannelSettingsProps) => {
           if (errorStatus === 403 && i18nKey) {
             // Extract namespace and key from i18nKey (e.g., "membership.free_trial_not_allowed")
             const [namespace, key] = i18nKey.split('.');
-            if (namespace === 'membership') {
+            if (namespace === 'membership' && key) {
               setModalLoginRequired({
                 title: null,
                 message: tMembership(key),

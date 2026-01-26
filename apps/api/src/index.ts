@@ -184,8 +184,10 @@ process.on('SIGTERM', () => void shutdown('SIGTERM'));
     }
 
     const { startApp } = await import('./app');
-    const maybeServer = await startApp();
-    if (maybeServer) {serverInstance = maybeServer;}
+    const server = await startApp();
+    if (server) {
+      serverInstance = server;
+    }
   } catch (error) {
     // For validation errors, log just the message without stack trace
     if (error instanceof Error && error.message.includes('FATAL:')) {

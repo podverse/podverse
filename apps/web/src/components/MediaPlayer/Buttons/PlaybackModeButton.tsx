@@ -2,6 +2,7 @@ import classNames from 'classnames';
 import { FaInfinity } from 'react-icons/fa6';
 import { useMediaPlayer } from '../../../contexts/MediaPlayer';
 import styles from '../../../styles/components/MediaPlayer/Buttons/PlaybackMode.module.scss';
+import { cssClass } from '../../../utils/cssModule';
 
 export const PlaybackModeButton = () => {
   const { mpPlaybackMode, setMPPlaybackMode } = useMediaPlayer();
@@ -14,7 +15,7 @@ export const PlaybackModeButton = () => {
   return (
     <button
       className={classNames(styles.playbackModeButton, {
-        [styles.active]: mpPlaybackMode === 'autoplay-next',
+        [cssClass(styles, 'active')]: mpPlaybackMode === 'autoplay-next',
       })}
       onClick={onClick}
       type="button">

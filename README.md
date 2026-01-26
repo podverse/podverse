@@ -74,6 +74,29 @@ Local development uses pre-configured environment files that work out of the box
 
 For customization, see the ENV.md files in each app directory.
 
+### Docker
+
+Build Docker images for local testing or deployment:
+
+```bash
+make local_build_all          # Build all images
+make local_test_docker_builds  # Build and verify images
+```
+
+**Note**: The web apps (`web` and `management-web`) use a DRY Dockerfile structure that requires a build argument to specify the environment file:
+
+```bash
+# Build web app for local environment
+docker build -f apps/web/Dockerfile --build-arg ENV_FILE=apps/web/env/local.env -t podverse-web:latest .
+
+# Build web app for alpha environment
+docker build -f apps/web/Dockerfile --build-arg ENV_FILE=apps/web/env/alpha.env -t podverse-web:alpha .
+```
+
+The `ENV_FILE` build argument is **required** - builds will fail if it's not provided. This ensures explicit environment selection and prevents accidental builds with the wrong configuration.
+
+See [docs/QUICKSTART.md](docs/QUICKSTART.md#docker-images) for detailed Docker instructions.
+
 ## Deployment
 
 Deployments are managed via Jenkins pipelines. See:

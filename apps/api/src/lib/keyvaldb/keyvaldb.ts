@@ -5,7 +5,7 @@ import { loggerService } from '@api/factories/loggerService';
 const keyvaldb = new Redis({
   host: config.keyvaldb.host,
   port: config.keyvaldb.port,
-  ...(config.keyvaldb.password && { password: config.keyvaldb.password }),
+  password: config.keyvaldb.password,
   retryStrategy: (times) => {
     // Stop retrying after 3 attempts to prevent endless reconnection loops
     if (times > 3) {

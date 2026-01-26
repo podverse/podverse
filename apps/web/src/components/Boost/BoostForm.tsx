@@ -164,7 +164,10 @@ export const BoostForm: React.FC<BoostFormProps> = ({ className: _className, cha
   
   React.useEffect(() => {
     if (channelValues.length > 0 && !selectedKey) {
-      setSelectedKey(`${channelValues[0].type}_${channelValues[0].method}`);
+      const firstValue = channelValues[0];
+      if (firstValue) {
+        setSelectedKey(`${firstValue.type}_${firstValue.method}`);
+      }
     }
   }, [channelValues, selectedKey]);
 

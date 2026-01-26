@@ -70,6 +70,25 @@ cd apps/workers
 npm run mq_rss_run_parser
 ```
 
+## Docker
+
+Build Docker image:
+
+```bash
+# From monorepo root
+make local_build_workers
+
+# Or directly
+docker build -f apps/workers/Dockerfile -t podverse-workers:latest .
+```
+
+Test with docker-compose (requires infrastructure running):
+
+```bash
+make local_infra_up
+make local_test_workers
+```
+
 ## Worker Types
 
 ### Message Queue Workers

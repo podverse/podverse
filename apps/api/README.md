@@ -65,6 +65,25 @@ Build for production:
 npm run build:prod -w apps/api
 ```
 
+## Docker
+
+Build Docker image:
+
+```bash
+# From monorepo root
+make local_build_api
+
+# Or directly
+docker build -f apps/api/Dockerfile -t podverse-api:latest .
+```
+
+Test with docker-compose (requires infrastructure running):
+
+```bash
+make local_infra_up
+make local_test_api
+```
+
 ## API Endpoints
 
 The API exposes endpoints at `{host}:{port}/api/v2/`:

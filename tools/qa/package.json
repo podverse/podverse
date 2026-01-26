@@ -20,14 +20,15 @@
   "license": "AGPL-3.0",
   "dependencies": {
     "@faker-js/faker": "^10.0.0",
-    "module-alias": "^2.2.3",
     "@podverse/external-services": "*",
     "@podverse/helpers": "*",
     "@podverse/orm": "*",
-    "@podverse/parser": "*"
+    "@podverse/parser": "*",
+    "module-alias": "^2.2.3"
   },
   "devDependencies": {
     "@dotenvx/dotenvx": "^1.49.0",
+    "@types/module-alias": "^2.0.4",
     "@types/node": "^24.4.0",
     "nodemon": "^3.1.10",
     "ts-node": "^10.9.2",

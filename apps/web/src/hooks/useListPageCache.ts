@@ -3,7 +3,7 @@
 import { useState, useRef } from 'react';
 import { checkBackNavFlag } from '../contexts/Navigation';
 import { usePageStateCache } from './usePageStateCache';
-import { getPageState } from '../utils/pageStateCache';
+import { getPageState, definedProps } from '../utils/pageStateCache';
 
 /**
  * Cached data structure for list pages with pagination
@@ -107,7 +107,7 @@ export function useListPageCache<TParams, TData>({
       setTotalPages(cached.totalPages);
     },
     // Pass the cached scroll position for restoration
-    cachedScrollPosition: cachedState?.scrollPosition,
+    ...definedProps({ cachedScrollPosition: cachedState?.scrollPosition }),
   });
 
   return {

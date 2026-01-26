@@ -8,7 +8,7 @@ import { useAccount } from '../../../contexts/Account';
 import { checkBackNavFlag } from '../../../contexts/Navigation';
 import { useSkipInitialEffect } from '../../../hooks/useSkipInitialEffect';
 import { usePageStateCache } from '../../../hooks/usePageStateCache';
-import { getPageState } from '../../../utils/pageStateCache';
+import { getPageState, definedProps } from '../../../utils/pageStateCache';
 import { getEpisodeFilterParams } from './EpisodeDropdownConfig';
 import { apiRequestService } from '../../../factories/apiRequestService';
 import { getTranscriptRowsFromTranscriptString } from '../../../utils/transcript';
@@ -105,7 +105,7 @@ export const EpisodeContextProvider = ({
       setTotalPages(cached.totalPages);
       setTranscriptRows(cached.transcriptRows);
     },
-    cachedScrollPosition: cachedState?.scrollPosition,
+    ...definedProps({ cachedScrollPosition: cachedState?.scrollPosition }),
   });
 
   useSkipInitialEffect(() => {

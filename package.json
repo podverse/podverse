@@ -36,6 +36,7 @@
     "start-feature": "bash scripts/start-feature.sh",
     "build": "npm run build --workspaces --if-present",
     "build:packages": "npm run build -w packages/helpers && npm run build -w packages/external-services && npm run build -w packages/orm && npm run build -w packages/notifications && npm run build -w packages/parser && npm run build -w packages/mq",
+    "build:packages:prod": "npm run build:prod -w packages/helpers && npm run build:prod -w packages/external-services && npm run build:prod -w packages/orm && npm run build:prod -w packages/notifications && npm run build:prod -w packages/parser && npm run build:prod -w packages/mq",
     "build:apps": "npm run build --workspaces --if-present --workspace=apps/api --workspace=apps/web --workspace=apps/workers --workspace=apps/management-api --workspace=apps/management-web",
     "clean": "npm run clean --workspaces --if-present",
     "clean:packages": "find packages -name 'tsconfig.tsbuildinfo' -delete && find packages -type d -name 'dist' -exec rm -rf {} + 2>/dev/null || true",

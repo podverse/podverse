@@ -8,7 +8,7 @@ import { useAccount } from '../../../contexts/Account';
 import { checkBackNavFlag } from '../../../contexts/Navigation';
 import { useSkipInitialEffect } from '../../../hooks/useSkipInitialEffect';
 import { usePageStateCache } from '../../../hooks/usePageStateCache';
-import { getPageState } from '../../../utils/pageStateCache';
+import { getPageState, definedProps } from '../../../utils/pageStateCache';
 import { getAlbumFilterParams } from './AlbumDropdownConfig';
 
 // Type for cached data
@@ -82,7 +82,7 @@ export const AlbumContextProvider = ({
       setItems(cached.items);
       setTotalPages(cached.totalPages);
     },
-    cachedScrollPosition: cachedState?.scrollPosition,
+    ...definedProps({ cachedScrollPosition: cachedState?.scrollPosition }),
   });
 
   useSkipInitialEffect(() => {

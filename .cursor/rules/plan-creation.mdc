@@ -1,0 +1,16 @@
+---
+description: Plan creation - breaking large plans into separate files
+globs:
+  - ".llm/plans/**/*.md"
+alwaysApply: true
+---
+
+# Plan Creation
+
+When creating a plan, if it is too large, **do not implement it immediately**. Instead:
+
+1. Break it into separate files
+2. Save those files in the `.llm/plans/active/` directory (or appropriate subdirectory)
+3. Wait for the user to prompt you to complete them one-by-one
+
+This ensures plans remain manageable and can be executed incrementally.

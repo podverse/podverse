@@ -24,8 +24,11 @@ export const SourceSelectors = ({ labeledItemEnclosures, actionType, itemTitle }
 
   const onClick = (enclosureIndex: number, sourceIndex: number) => {
     const labeledItemEnclosure = labeledItemEnclosures[enclosureIndex];
-    const source = labeledItemEnclosure.enclosure.item_enclosure_sources[sourceIndex];
-    if (labeledItemEnclosure && source) {
+    if (!labeledItemEnclosure) {
+      return;
+    }
+    const source = labeledItemEnclosure.enclosure.item_enclosure_sources?.[sourceIndex];
+    if (source) {
       const mediaType = labeledItemEnclosure.mediaType;
       if (actionType === 'load-in-player') {
         setMPEnclosureSelectedParams({

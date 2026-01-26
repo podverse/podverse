@@ -1,6 +1,7 @@
 import React from 'react';
 import styles from '../../styles/components/Tabs/Tab.module.scss';
 import classNames from 'classnames';
+import { cssClass } from '../../utils/cssModule';
 
 type TabProps = {
   label: string;
@@ -14,8 +15,8 @@ export const Tab: React.FC<TabProps> = ({ label, selected = false, onClick, zInd
   return (
     <button
       className={classNames(styles.tab, {
-        [styles.hideDesktop]: hideDesktop,
-        [styles.selected]: selected,
+        [cssClass(styles, 'hideDesktop')]: hideDesktop,
+        [cssClass(styles, 'selected')]: selected,
       })}
       onClick={onClick}
       type="button"

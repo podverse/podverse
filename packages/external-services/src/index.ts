@@ -1,5 +1,3 @@
-import './module-alias-config';
-
 // Config types for app-level configuration
 export * from './config';
 

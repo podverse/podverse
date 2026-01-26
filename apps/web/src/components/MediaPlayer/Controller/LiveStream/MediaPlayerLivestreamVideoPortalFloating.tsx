@@ -6,6 +6,7 @@ import classNames from 'classnames';
 import { getSelectedLabeledItemEnclosureAndSource } from '@podverse/helpers';
 import { useMediaPlayer } from '../../../../contexts/MediaPlayer';
 import styles from '../../../../styles/components/MediaPlayer/Controller/LiveStream/MediaPlayerLiveStreamVideoPortalFloating.module.scss';
+import { cssClass } from '../../../../utils/cssModule';
 
 export const MediaPlayerLivestreamVideoPortalFloating: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [mounted, setMounted] = useState(false);
@@ -35,8 +36,8 @@ export const MediaPlayerLivestreamVideoPortalFloating: React.FC<{ children: Reac
   return ReactDOM.createPortal(
     <div
       className={classNames({
-        [styles.floatingVideoPortal]: true,
-        [styles.hasMarquee]: hasMarquee,
+        [cssClass(styles, 'floatingVideoPortal')]: true,
+        [cssClass(styles, 'hasMarquee')]: hasMarquee,
       })}
       style={style}
     >

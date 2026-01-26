@@ -32,7 +32,7 @@ async function detectLocale(ssrLoggedInAccount?: DTOAccount | null) {
     }
     // Try base language match (e.g., 'en' from 'en-US')
     const baseAccountLocale = accountLocale.split('-')[0];
-    if (supportedLocales.includes(baseAccountLocale)) {
+    if (baseAccountLocale && supportedLocales.includes(baseAccountLocale)) {
       return baseAccountLocale;
     }
   }
@@ -52,13 +52,16 @@ async function detectLocale(ssrLoggedInAccount?: DTOAccount | null) {
   const hdrs = await headers();
   const acceptLanguage = hdrs.get('accept-language');
   if (acceptLanguage) {
-    const preferred = acceptLanguage.split(',').map(lang => lang.split(';')[0].trim());
+    const preferred = acceptLanguage.split(',').map(lang => {
+      const firstPart = lang.split(';')[0];
+      return firstPart ? firstPart.trim() : '';
+    }).filter(Boolean);
     for (const lang of preferred) {
       if (supportedLocales.includes(lang)) {
         return lang;
       }
       const base = lang.split('-')[0];
-      if (supportedLocales.includes(base)) {
+      if (base && supportedLocales.includes(base)) {
         return base;
       }
     }
@@ -77,6 +80,9 @@ export function setSSRAccountForLocale(account: DTOAccount | null) {
 
 export default getRequestConfig(async () => {
   const locale = await detectLocale(cachedAccount);
+  if (!locale) {
+    throw new Error('Failed to detect locale');
+  }
 
   let originals;
   try {
@@ -85,9 +91,13 @@ export default getRequestConfig(async () => {
       localeOriginals = (await import(`../../i18n/originals/${locale}.json`)).default;
     } catch {
       const base = locale.split('-')[0];
-      try {
-        localeOriginals = (await import(`../../i18n/originals/${base}.json`)).default;
-      } catch {
+      if (base) {
+        try {
+          localeOriginals = (await import(`../../i18n/originals/${base}.json`)).default;
+        } catch {
+          localeOriginals = null;
+        }
+      } else {
         localeOriginals = null;
       }
     }

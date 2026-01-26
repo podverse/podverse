@@ -1,10 +1,20 @@
+import path from 'path';
+
+import withBundleAnalyzerInit from '@next/bundle-analyzer';
 import { NextConfig } from 'next';
 import createNextIntlPlugin from 'next-intl/plugin';
 
+const withBundleAnalyzer = withBundleAnalyzerInit({
+  enabled: process.env.ANALYZE === 'true',
+  analyzerMode: 'static',
+  openAnalyzer: false,
+});
+
 const nextConfig: NextConfig = {
   output: 'standalone',
+  outputFileTracingRoot: path.join(__dirname, '../../'),
   sassOptions: {
-    includePaths: [__dirname + '/src/styles/variables']
+    includePaths: [__dirname + '/src/styles/variables'],
   },
   serverExternalPackages: ['winston'],
   transpilePackages: ['@podverse/helpers'],
@@ -34,32 +44,18 @@ const nextConfig: NextConfig = {
     ],
     localPatterns: [
       {
-        pathname: '/api/proxy'
+        pathname: '/api/proxy',
       },
       {
-        pathname: '/branding/**'
+        pathname: '/branding/**',
       },
       {
-        pathname: '/images/**'
-      }
-    ]
-  }
+        pathname: '/images/**',
+      },
+    ],
+  },
 };
 
 const withNextIntl = createNextIntlPlugin();
 
-// Conditionally add bundle analyzer when ANALYZE env var is set
-let config = withNextIntl(nextConfig);
-if (process.env.ANALYZE === 'true') {
-  const withBundleAnalyzer = require('@next/bundle-analyzer')({
-    enabled: true,
-    analyzerMode: 'static',
-    openAnalyzer: false,
-    generateStatsFile: true,
-    statsFilename: ({ name }: { name: string }) => `stats-${name}.json`,
-    reportFilename: ({ name }: { name: string }) => `${name}.html`,
-  });
-  config = withBundleAnalyzer(config);
-}
-
-export default config;
+export default withBundleAnalyzer(withNextIntl(nextConfig));

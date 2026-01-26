@@ -82,11 +82,21 @@ class PlaylistResourceController {
           }
 
           try {
+            const idTextOptions: PlaylistResourceIdTextOptions = {};
+            if (item_id_text) {
+              idTextOptions.item_id_text = item_id_text;
+            }
+            if (clip_id_text) {
+              idTextOptions.clip_id_text = clip_id_text;
+            }
+            if (item_soundbite_id_text) {
+              idTextOptions.item_soundbite_id_text = item_soundbite_id_text;
+            }
             const playlistResources = await PlaylistResourceController
               .playlistResourceService
               .getManyForQueueByListPosition(
                 playlist_id_text,
-                { item_id_text, clip_id_text, item_soundbite_id_text },
+                idTextOptions,
                 direction,
                 account_id,
               );

@@ -703,7 +703,7 @@ export class ItemService {
   }
 
   async getManyByChannels(
-    channels: Channel[],
+    channel_ids: number[],
     itemType: 'normal' | 'live-item',
     liveItemType: 'pending' | 'live' | 'ended' | null,
     options?: FindManyOptions<Item>,
@@ -712,7 +712,7 @@ export class ItemService {
 
     return this.repositoryRead.find({
       where: {
-        channel: In(channels),
+        channel: { id: In(channel_ids) },
         live_item: {
           id: itemType === 'live-item' ? Not(IsNull()) : IsNull(),
           ...(live_item_status_id ? { live_item_status_id: Equal(live_item_status_id) } : {}),

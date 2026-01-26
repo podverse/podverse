@@ -66,3 +66,23 @@ export function restoreScrollPosition(position: number, containerId = 'mainOuter
     });
   }
 }
+
+/**
+ * Returns a new object with only defined (non-undefined) properties.
+ * Useful for conditionally including properties in object spreads.
+ * 
+ * @example
+ * // Instead of: ...(value !== undefined ? { prop: value } : {})
+ * // Use: ...definedProps({ prop: value })
+ */
+export function definedProps<T extends Record<string, unknown>>(
+  obj: T,
+): Partial<T> {
+  const result: Partial<T> = {};
+  for (const key in obj) {
+    if (obj[key] !== undefined) {
+      result[key] = obj[key];
+    }
+  }
+  return result;
+}

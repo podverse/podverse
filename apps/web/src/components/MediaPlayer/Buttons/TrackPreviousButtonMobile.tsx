@@ -67,7 +67,7 @@ export const TrackPreviousButtonMobile = () => {
               ? await apiRequestService.reqItemGetManyForQueueBySeason(mpItem.id_text, 'backward')
               : await apiRequestService.reqItemGetManyForQueueByPubDate(mpItem.id_text, 'backward');
             const previousItem = itemsResponse.length > 0 ? itemsResponse[0] : null;
-            item = previousItem;
+            item = previousItem ?? null;
             channel = previousItem?.channel || null;
             clip = null;
             item_soundbite = null;

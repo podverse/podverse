@@ -3,6 +3,7 @@ import styles from '../../styles/components/Form/TextInput.module.scss';
 import { Button } from '../Button/Button';
 import { TextInputNumberIncrement } from './TextInputNumberIncrements';
 import classNames from 'classnames';
+import { cssClass } from '../../utils/cssModule';
 
 type TextInputProps = {
   value: string
@@ -87,8 +88,8 @@ export const TextInput: React.FC<TextInputProps> = ({
               styles.searchIcon,
               styles.buttonIcon,
               {
-                [styles.buttonIconStart]: true,
-                [styles.buttonIconEnd]: false,
+                [cssClass(styles, 'buttonIconStart')]: true,
+                [cssClass(styles, 'buttonIconEnd')]: false,
               },
               buttonIcon.className,
             )}
@@ -117,7 +118,7 @@ export const TextInput: React.FC<TextInputProps> = ({
             aria-label={ariaLabel}
             aria-describedby={info ? infoId : ariaDescribedBy}
             aria-required={ariaRequired}
-            className={classNames(styles.input, { [styles.numberInput]: type === 'number' })}
+            className={classNames(styles.input, { [cssClass(styles, 'numberInput')]: type === 'number' })}
             aria-invalid={ariaInvalid}
             onWheel={onWheel}
             min={min}
@@ -152,8 +153,8 @@ export const TextInput: React.FC<TextInputProps> = ({
               styles.searchIcon,
               styles.buttonIcon,
               {
-                [styles.buttonIconStart]: true,
-                [styles.buttonIconEnd]: false,
+                [cssClass(styles, 'buttonIconStart')]: true,
+                [cssClass(styles, 'buttonIconEnd')]: false,
               },
               buttonIcon.className,
             )}

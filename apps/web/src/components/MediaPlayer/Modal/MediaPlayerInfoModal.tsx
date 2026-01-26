@@ -60,21 +60,23 @@ function ClickableTitle({
   children,
   setPlayerModalIsOpen,
 }: {
-  title: string;
+  title?: string | null;
   onClick: () => void;
-  className: string;
+  className?: string;
   children?: React.ReactNode;
   setPlayerModalIsOpen: (isOpen: boolean) => void;
 }) {
+  const tMisc = useTranslations('misc');
+
   const handleOnClick = () => {
     setPlayerModalIsOpen(false);
     onClick();
   };
 
   return (
-    <div className={className}>
+    <div className={className || ''}>
       <Link onClick={handleOnClick}>
-        {children || title}
+        {children || title || tMisc('untitled')}
       </Link>
     </div>
   );
@@ -83,7 +85,6 @@ function ClickableTitle({
 export const MediaPlayerInfoModal: React.FC = () => {
   const { mpChannel, mpItem, mpClip, mpItemChapter, mpItemSoundbite, setPlayerModalIsOpen } = useMediaPlayer();
   const tMediaPlayer = useTranslations('media_player');
-  const tMisc = useTranslations('misc');
   const router = useRouter();
 
   const { channelLinkUrl, itemLinkUrl, subsectionUrl } = useLinkHelper({
@@ -109,13 +110,13 @@ export const MediaPlayerInfoModal: React.FC = () => {
     <div className={styles.info}>
       <div className={styles.titleSection}>
         <ClickableTitle
-          title={mpItem?.title || tMisc('untitled')}
+          title={mpItem?.title}
           className={styles.itemTitle}
           onClick={() => router.push(itemLinkUrl)}
           setPlayerModalIsOpen={setPlayerModalIsOpen}
         />
         <ClickableTitle
-          title={mpChannel?.title || tMisc('untitled')}
+          title={mpChannel?.title}
           className={styles.channelTitle}
           onClick={() => router.push(channelLinkUrl)}
           setPlayerModalIsOpen={setPlayerModalIsOpen}
@@ -132,7 +133,7 @@ export const MediaPlayerInfoModal: React.FC = () => {
         {mpClip && (
           <>
             <ClickableTitle
-              title={mpClip?.title || tMisc('untitled')}
+              title={mpClip.title}
               className={styles.subtitle}
               onClick={() => router.push(subsectionUrl)}
               setPlayerModalIsOpen={setPlayerModalIsOpen}
@@ -148,7 +149,7 @@ export const MediaPlayerInfoModal: React.FC = () => {
         {mpItemSoundbite && (
           <>
             <ClickableTitle
-              title={mpItemSoundbite?.title || tMisc('untitled')}
+              title={mpItemSoundbite.title}
               className={styles.subtitle}
               onClick={() => router.push(subsectionUrl)}
               setPlayerModalIsOpen={setPlayerModalIsOpen}
@@ -164,7 +165,7 @@ export const MediaPlayerInfoModal: React.FC = () => {
         {mpItemChapter && !mpClip && !mpItemSoundbite && (
           <>
             <ClickableTitle
-              title={mpItemChapter?.title || tMisc('untitled')}
+              title={mpItemChapter.title}
               className={styles.subtitle}
               onClick={() => router.push(subsectionUrl)}
               setPlayerModalIsOpen={setPlayerModalIsOpen}

@@ -26,7 +26,7 @@ export class CategoryController {
     });
   }
 
-  static async getAll(req: Request, res: Response): Promise<void> {
+  static async getAll(_req: Request, res: Response): Promise<void> {
     try {
       const categories = await CategoryController.categoryService.getAll();
       res.json({ data: categories });

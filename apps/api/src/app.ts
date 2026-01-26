@@ -65,11 +65,11 @@ export const startApp = async () => {
     const { accountSettingsRouter } = await import('./routes/accountSettings');
     const { profileContentRouter, myProfileContentRouter } = await import('./routes/profileContent');
 
-    app.get(`${baseUrl}/`, (req: Request, res: Response) => {
+    app.get(`${baseUrl}/`, (_req: Request, res: Response) => {
       res.send(`The server is running on port ${port}`);
     });
 
-    app.get(`${baseUrl}/meta`, (req: Request, res: Response) => {
+    app.get(`${baseUrl}/meta`, (_req: Request, res: Response) => {
       res.json({
         version: config.api.version,
         status: 'ok',
@@ -102,8 +102,7 @@ export const startApp = async () => {
     app.use(queueRouter);
     app.use(statsRouter);
     
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
+    app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
       loggerService.logError('API Router Error', err);
       res.status(500).json({ message: err.message });
     });
@@ -124,5 +123,6 @@ export const startApp = async () => {
     return server;
   } catch (error) {
     loggerService.logError('API Top Level Router Error', error as Error);
+    throw error;
   }
 };

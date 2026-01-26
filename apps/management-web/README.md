@@ -63,6 +63,38 @@ Start production server:
 npm run start -w apps/management-web
 ```
 
+## Docker
+
+### Building Docker Images
+
+The management-web app uses a DRY Dockerfile structure that requires the `ENV_FILE` build argument to specify which environment configuration to use:
+
+```bash
+# Build for local environment (from monorepo root)
+docker build -f apps/management-web/Dockerfile --build-arg ENV_FILE=apps/management-web/env/local.env -t podverse-management-web:latest .
+
+# Build for alpha environment
+docker build -f apps/management-web/Dockerfile --build-arg ENV_FILE=apps/management-web/env/alpha.env -t podverse-management-web:alpha .
+
+# Build for beta environment
+docker build -f apps/management-web/Dockerfile --build-arg ENV_FILE=apps/management-web/env/beta.env -t podverse-management-web:beta .
+
+# Build for production environment
+docker build -f apps/management-web/Dockerfile --build-arg ENV_FILE=apps/management-web/env/production.env -t podverse-management-web:prod .
+```
+
+**Important**: The `ENV_FILE` build argument is **required** - builds will fail if it's not provided. This ensures explicit environment selection and prevents accidental builds with the wrong configuration.
+
+The Makefile provides convenient shortcuts:
+```bash
+# From monorepo root
+make local_build_management_web  # Builds with local.env
+```
+
+### Dockerfile Structure
+
+The Dockerfile uses a single source of truth for build logic, with only the environment file path varying between environments. This DRY approach eliminates duplication while maintaining clear environment separation.
+
 ## Environment Files
 
 Environment-specific configurations are in the `env/` directory:

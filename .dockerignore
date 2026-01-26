@@ -1,0 +1,50 @@
+# Dependencies (reinstalled inside Docker)
+node_modules/
+
+# Git
+.git/
+.gitignore
+
+# Build outputs (rebuilt inside Docker)
+dist/
+.next/
+out/
+*.tsbuildinfo
+
+# Documentation
+docs/
+*.md
+AGENTS.md
+LICENSE
+
+# Infrastructure (not needed in app images)
+infra/
+pipelines/
+scripts/
+tools/
+
+# IDE and CI
+.cursor/
+.github/
+.vscode/
+*.code-workspace
+
+# LLM history and plans
+.llm/
+
+# Environment files (secrets - not needed in build)
+# Exclude all env directories, but allow .env files needed for Docker builds
+.env*
+apps/*/env/
+!apps/web/env/*.env
+!apps/management-web/env/*.env
+
+# Test files
+coverage/
+jest*.config.*
+
+# Misc
+.DS_Store
+*.log
+renovate.json
+Makefile*

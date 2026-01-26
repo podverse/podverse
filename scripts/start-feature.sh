@@ -84,8 +84,10 @@ fi
 git checkout -b "$BRANCH"
 
 # 6. Create history directory and file
+# Note: Always use -part-01 suffix to support the 10-session limit rule
+# (see .cursor/rules/llm-history-tracking.mdc)
 HISTORY_DIR=".llm/history/active/$NAME"
-HISTORY_FILE="$HISTORY_DIR/$NAME.md"
+HISTORY_FILE="$HISTORY_DIR/$NAME-part-01.md"
 DATE=$(date +%Y-%m-%d)
 AUTHOR=$(git config user.name || echo "Unknown")
 
@@ -93,9 +95,11 @@ AUTHOR=$(git config user.name || echo "Unknown")
 mkdir -p "$HISTORY_DIR"
 
 cat > "$HISTORY_FILE" << EOF
-# Feature: $NAME
+# Feature: $NAME (Part 1)
 
 > **Note**: This LLM history file is optional. If you're not using LLM assistance for development, you can delete this file and the containing directory. The history tracking system helps document LLM-assisted decisions but is not required for contributing.
+> 
+> **10-Session Limit**: Each part file is limited to 10 sessions. When adding Session 11, create \`$NAME-part-02.md\`.
 
 ## Metadata
 - Started: $DATE
