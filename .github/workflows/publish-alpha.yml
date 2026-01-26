@@ -115,16 +115,13 @@ jobs:
             dockerfile: apps/workers/Dockerfile
           - app: management-api
             dockerfile: apps/management-api/Dockerfile
-          # Base web images (no env file - for community self-hosting)
+          # Web apps (with env file baked in - required by Next.js at build time)
+          # Note: Next.js requires NEXT_PUBLIC_* vars at build time, so base images
+          # without env vars are not possible. Self-hosters must build their own images.
           - app: web
             dockerfile: apps/web/Dockerfile
-          - app: management-web
-            dockerfile: apps/management-web/Dockerfile
-          # Deploy web images (with env file baked in - for podverse.fm)
-          - app: web-deploy
-            dockerfile: apps/web/Dockerfile
             env_file: apps/web/env/alpha.env
-          - app: management-web-deploy
+          - app: management-web
             dockerfile: apps/management-web/Dockerfile
             env_file: apps/management-web/env/alpha.env
     steps:
