@@ -18,6 +18,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           token: ${{ secrets.PAT_TOKEN }}
+          persist-credentials: false
 
       - uses: actions/setup-node@v4
         with:
@@ -61,11 +62,12 @@ jobs:
           git remote get-url origin || echo "No remote URL found"
 
           # Configure remote URL with token for authenticated push
-          git remote set-url origin https://${PAT_TOKEN}@github.com/${GITHUB_REPOSITORY}.git
+          # Use x-access-token prefix for fine-grained tokens (works with classic too)
+          git remote set-url origin https://x-access-token:${PAT_TOKEN}@github.com/${GITHUB_REPOSITORY}.git
 
           # Debug: Verify remote URL was set (mask token in output)
           echo "Updated remote URL:"
-          git remote get-url origin | sed 's/:[^@]*@/:***@/' || echo "Failed to get remote URL"
+          git remote get-url origin | sed 's/x-access-token:[^@]*@/x-access-token:***@/' || echo "Failed to get remote URL"
 
           # Debug: Show current branch and status
           echo "Current branch: $(git branch --show-current)"
