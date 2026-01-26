@@ -95,6 +95,8 @@ mkdir -p "$HISTORY_DIR"
 cat > "$HISTORY_FILE" << EOF
 # Feature: $NAME
 
+> **Note**: This LLM history file is optional. If you're not using LLM assistance for development, you can delete this file and the containing directory. The history tracking system helps document LLM-assisted decisions but is not required for contributing.
+
 ## Metadata
 - Started: $DATE
 - Completed: In Progress
