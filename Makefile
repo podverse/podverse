@@ -33,7 +33,7 @@ validate:
 	@echo "============================================"
 	@echo ""
 	@echo "Step 1/6: Security audit..."
-	npm audit --audit-level=high
+	npm audit
 	@echo ""
 	@echo "Step 2/6: Linting..."
 	npm run lint

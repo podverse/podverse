@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
     inputs:
       version_override:
-        description: 'Optional version override (default: auto-increment from GHCR)'
+        description: "Optional version override (default: auto-increment from GHCR)"
         required: false
         type: string
 
@@ -28,7 +28,7 @@ jobs:
         run: npm ci
 
       - name: Security audit
-        run: npm audit --audit-level=high
+        run: npm audit
 
       - name: Lint
         run: npm run lint

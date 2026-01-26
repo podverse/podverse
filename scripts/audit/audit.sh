@@ -19,9 +19,9 @@ if [ "$1" == "--fix" ]; then
   echo ""
 fi
 
-# Run npm audit
+# Run npm audit (strict: all dependencies, all severity levels)
 echo "Running npm audit..."
-npm audit --omit=dev || true
+npm audit || true
 
 echo ""
 echo "=== Audit Complete ==="
