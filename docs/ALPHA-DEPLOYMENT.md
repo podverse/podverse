@@ -124,8 +124,8 @@ If releasing a new version:
 ### Step 2: Create PR to Alpha
 
 ```bash
-# Create PR from develop to alpha
-gh pr create --base alpha --head develop --title "Release 5.2.1" --body "Release notes here"
+# Create PR from develop to alpha (non-interactive, no description needed)
+gh pr create --base alpha --head develop --title "Release 5.2.1" --body ""
 
 # Or via GitHub UI:
 # 1. Go to https://github.com/podverse/podverse
