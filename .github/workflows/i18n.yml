@@ -52,7 +52,7 @@ jobs:
           if git diff --staged --quiet; then
             echo "No translation changes"
           else
-            git commit -m "chore: auto-generate i18n translations [skip ci]"
+            git commit --no-verify -m "chore: auto-generate i18n translations [skip ci]"
             
             # Pull latest changes (in case complete-feature workflow pushed)
             # Use rebase to put our commit on top
