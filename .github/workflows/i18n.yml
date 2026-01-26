@@ -49,30 +49,9 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-          # Debug: Check if token is set (without exposing it)
-          if [ -z "$PAT_TOKEN" ]; then
-            echo "ERROR: PAT_TOKEN is not set!"
-            exit 1
-          else
-            echo "✓ PAT_TOKEN is set (length: ${#PAT_TOKEN} characters)"
-          fi
-
-          # Debug: Show current remote URL (before change)
-          echo "Current remote URL:"
-          git remote get-url origin || echo "No remote URL found"
-
           # Configure remote URL with token for authenticated push
-          # Use x-access-token prefix for fine-grained tokens (works with classic too)
+          # x-access-token prefix works with both classic and fine-grained PAT tokens
           git remote set-url origin https://x-access-token:${PAT_TOKEN}@github.com/${GITHUB_REPOSITORY}.git
-
-          # Debug: Verify remote URL was set (mask token in output)
-          echo "Updated remote URL:"
-          git remote get-url origin | sed 's/x-access-token:[^@]*@/x-access-token:***@/' || echo "Failed to get remote URL"
-
-          # Debug: Show current branch and status
-          echo "Current branch: $(git branch --show-current)"
-          echo "Repository: ${GITHUB_REPOSITORY}"
-          echo "Actor: ${GITHUB_ACTOR}"
 
           # Only commit originals and overrides (compiled is generated at build time)
           git add apps/*/i18n/originals/ apps/*/i18n/overrides/
@@ -80,37 +59,11 @@ jobs:
           if git diff --staged --quiet; then
             echo "No translation changes"
           else
-            echo "✓ Changes detected, committing..."
             git commit --no-verify -m "chore: auto-generate i18n translations [skip ci]"
-            
-            # Debug: Show commit info
-            echo "Commit created:"
-            git log -1 --oneline
             
             # Pull latest changes (in case complete-feature workflow pushed)
             # Use rebase to put our commit on top
-            echo "Pulling latest changes..."
-            git pull --rebase origin develop || {
-              echo "WARNING: git pull --rebase failed, continuing anyway"
-              git status
-            }
+            git pull --rebase origin develop || true
             
-            # Debug: Show what we're about to push
-            echo "About to push to origin develop"
-            echo "Commits to push:"
-            git log origin/develop..HEAD --oneline || echo "No commits to push (already up to date?)"
-            
-            # Attempt push with verbose output
-            echo "Attempting push..."
-            git push origin develop 2>&1 || {
-              echo "ERROR: git push failed"
-              echo "Exit code: $?"
-              echo "Git status:"
-              git status
-              echo "Remote info:"
-              git remote -v
-              exit 1
-            }
-            
-            echo "✓ Successfully pushed to develop"
+            git push origin develop
           fi

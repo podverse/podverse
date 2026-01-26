@@ -76,67 +76,19 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-          # Debug: Check if token is set (without exposing it)
-          if [ -z "$PAT_TOKEN" ]; then
-            echo "ERROR: PAT_TOKEN is not set!"
-            exit 1
-          else
-            echo "✓ PAT_TOKEN is set (length: ${#PAT_TOKEN} characters)"
-          fi
-
-          # Debug: Show current remote URL (before change)
-          echo "Current remote URL:"
-          git remote get-url origin || echo "No remote URL found"
-
           # Configure remote URL with token for authenticated push
-          # Use x-access-token prefix for fine-grained tokens (works with classic too)
+          # x-access-token prefix works with both classic and fine-grained PAT tokens
           git remote set-url origin https://x-access-token:${PAT_TOKEN}@github.com/${GITHUB_REPOSITORY}.git
-
-          # Debug: Verify remote URL was set (mask token in output)
-          echo "Updated remote URL:"
-          git remote get-url origin | sed 's/x-access-token:[^@]*@/x-access-token:***@/' || echo "Failed to get remote URL"
-
-          # Debug: Show current branch and status
-          echo "Current branch: $(git branch --show-current)"
-          echo "Repository: ${GITHUB_REPOSITORY}"
-          echo "Actor: ${GITHUB_ACTOR}"
-          echo "Target branch: ${{ github.event.pull_request.base.ref }}"
 
           git add .llm/history/
 
           if git diff --staged --quiet; then
             echo "No changes to commit"
           else
-            echo "✓ Changes detected, committing..."
             git commit --no-verify -m "chore: complete LLM history for ${{ steps.feature.outputs.name }} [skip ci]"
             
-            # Debug: Show commit info
-            echo "Commit created:"
-            git log -1 --oneline
-            
             # Pull latest changes (in case i18n workflow pushed)
-            echo "Pulling latest changes..."
-            git pull --rebase origin ${{ github.event.pull_request.base.ref }} || {
-              echo "WARNING: git pull --rebase failed, continuing anyway"
-              git status
-            }
+            git pull --rebase origin ${{ github.event.pull_request.base.ref }} || true
             
-            # Debug: Show what we're about to push
-            echo "About to push to origin ${{ github.event.pull_request.base.ref }}"
-            echo "Commits to push:"
-            git log origin/${{ github.event.pull_request.base.ref }}..HEAD --oneline || echo "No commits to push (already up to date?)"
-            
-            # Attempt push with verbose output
-            echo "Attempting push..."
-            git push origin ${{ github.event.pull_request.base.ref }} 2>&1 || {
-              echo "ERROR: git push failed"
-              echo "Exit code: $?"
-              echo "Git status:"
-              git status
-              echo "Remote info:"
-              git remote -v
-              exit 1
-            }
-            
-            echo "✓ Committed and pushed history completion"
+            git push origin ${{ github.event.pull_request.base.ref }}
           fi
