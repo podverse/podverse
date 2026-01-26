@@ -4,6 +4,12 @@ on:
   push:
     branches:
       - alpha
+  workflow_dispatch:
+    inputs:
+      version_override:
+        description: 'Optional version override (default: auto-increment from GHCR)'
+        required: false
+        type: string
 
 jobs:
   # Step 1: Validate everything builds
@@ -33,97 +39,18 @@ jobs:
       - name: Build all packages
         run: npm run build:packages
 
+      - name: Setup env files for web apps
+        run: |
+          cp apps/web/env/alpha.env apps/web/.env
+          cp apps/management-web/env/alpha.env apps/management-web/.env
+
       - name: Build all apps
         run: npm run build:apps
 
-  # Step 2: Publish npm packages (sequential by dependency order)
-  publish-packages:
-    needs: validate
-    runs-on: ubuntu-latest
-    outputs:
-      version: ${{ steps.version.outputs.VERSION }}
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: "22"
-          registry-url: "https://registry.npmjs.org"
-          cache: "npm"
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Build packages
-        run: npm run build:packages
-
-      # Calculate unified version once for all packages
-      - name: Calculate version
-        id: version
-        run: |
-          BASE_VERSION=$(node -p "require('./package.json').version" | sed 's/-.*//')
-          UNIFIED_VERSION="$BASE_VERSION-alpha"
-          echo "Publishing all packages as $UNIFIED_VERSION"
-          echo "VERSION=$UNIFIED_VERSION" >> $GITHUB_OUTPUT
-
-      # 1. helpers (no internal deps)
-      - name: Publish helpers
-        run: |
-          cd packages/helpers
-          npm version ${{ steps.version.outputs.VERSION }} --no-git-tag-version
-          npm publish --tag alpha
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-
-      # 2. external-services (depends on helpers)
-      - name: Publish external-services
-        run: |
-          cd packages/external-services
-          npm version ${{ steps.version.outputs.VERSION }} --no-git-tag-version
-          npm publish --tag alpha
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-
-      # 3. orm (depends on helpers)
-      - name: Publish orm
-        run: |
-          cd packages/orm
-          npm version ${{ steps.version.outputs.VERSION }} --no-git-tag-version
-          npm publish --tag alpha
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-
-      # 4. notifications (depends on helpers, external-services)
-      - name: Publish notifications
-        run: |
-          cd packages/notifications
-          npm version ${{ steps.version.outputs.VERSION }} --no-git-tag-version
-          npm publish --tag alpha
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-
-      # 5. parser (depends on helpers, external-services, orm)
-      - name: Publish parser
-        run: |
-          cd packages/parser
-          npm version ${{ steps.version.outputs.VERSION }} --no-git-tag-version
-          npm publish --tag alpha
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-
-      # 6. mq (depends on all above)
-      - name: Publish mq
-        run: |
-          cd packages/mq
-          npm version ${{ steps.version.outputs.VERSION }} --no-git-tag-version
-          npm publish --tag alpha
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-
-  # Step 3: Build and publish Docker images (parallel)
+  # Step 2: Build and publish Docker images (parallel)
+  # Note: Packages are built from source inside Docker, no npm publishing needed
   publish-docker:
-    needs: publish-packages
+    needs: validate
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -131,10 +58,59 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Get version
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Determine next alpha version
         id: version
+        env:
+          GHCR_TOKEN: ${{ secrets.GHCR_REGISTRY_TOKEN }}
         run: |
-          echo "VERSION=${{ needs.publish-packages.outputs.version }}" >> $GITHUB_OUTPUT
+          # If version override is provided, use it
+          if [ -n "${{ inputs.version_override }}" ]; then
+            echo "Using version override: ${{ inputs.version_override }}"
+            echo "VERSION=${{ inputs.version_override }}" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          # Get base version from package.json (strip any existing suffix)
+          BASE_VERSION=$(node -p "require('./package.json').version" | sed 's/-.*//')
+          IMAGE_PATH="${{ github.repository }}/${{ matrix.app }}"
+
+          echo "Base version: $BASE_VERSION"
+          echo "Image path: $IMAGE_PATH"
+
+          # Query GHCR for existing tags
+          TAGS_JSON=$(curl -s -H "Authorization: Bearer $GHCR_TOKEN" \
+            "https://ghcr.io/v2/${IMAGE_PATH}/tags/list" || echo '{"tags":[]}')
+
+          echo "Raw tags JSON: $TAGS_JSON"
+
+          # Extract alpha tags for this base version
+          TAGS=$(echo "$TAGS_JSON" | jq -r '.tags[]?' 2>/dev/null | grep "^${BASE_VERSION}-alpha\." || true)
+          echo "Filtered alpha tags for ${BASE_VERSION}: $TAGS"
+
+          # Find the latest alpha version number
+          if [ -z "$TAGS" ]; then
+            echo "No existing alpha tags found for ${BASE_VERSION}. Starting at alpha.0"
+            NEXT_VERSION="${BASE_VERSION}-alpha.0"
+          else
+            # Get the highest alpha number
+            LATEST=$(echo "$TAGS" | sort -t. -k4 -n | tail -n1)
+            CURRENT_NUM=$(echo "$LATEST" | sed -En 's/.*alpha\.([0-9]+)$/\1/p')
+
+            if [ -z "$CURRENT_NUM" ]; then
+              NEXT_VERSION="${BASE_VERSION}-alpha.0"
+            else
+              NEXT_NUM=$((CURRENT_NUM + 1))
+              NEXT_VERSION="${BASE_VERSION}-alpha.${NEXT_NUM}"
+            fi
+            echo "Latest existing: $LATEST, incrementing to: $NEXT_VERSION"
+          fi
+
+          echo "VERSION=$NEXT_VERSION" >> $GITHUB_OUTPUT
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
