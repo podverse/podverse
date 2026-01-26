@@ -16,6 +16,10 @@ jobs:
         github.event.comment.author_association == 'COLLABORATOR'
       )
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+      statuses: write
     steps:
       - name: Add reaction to comment
         uses: actions/github-script@v7
@@ -113,6 +117,24 @@ jobs:
               body: body
             });
 
+      - name: Set success commit status
+        if: success()
+        uses: actions/github-script@v7
+        env:
+          HEAD_SHA: ${{ steps.pr.outputs.head_sha }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        with:
+          script: |
+            await github.rest.repos.createCommitStatus({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              sha: process.env.HEAD_SHA,
+              state: 'success',
+              context: 'validate',
+              description: 'All checks passed',
+              target_url: process.env.RUN_URL
+            });
+
       - name: Report failure
         if: failure()
         uses: actions/github-script@v7
@@ -156,4 +178,22 @@ jobs:
               repo: context.repo.repo,
               issue_number: context.issue.number,
               body: body
+            });
+
+      - name: Set failure commit status
+        if: failure()
+        uses: actions/github-script@v7
+        env:
+          HEAD_SHA: ${{ steps.pr.outputs.head_sha }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        with:
+          script: |
+            await github.rest.repos.createCommitStatus({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              sha: process.env.HEAD_SHA,
+              state: 'failure',
+              context: 'validate',
+              description: 'One or more checks failed',
+              target_url: process.env.RUN_URL
             });
