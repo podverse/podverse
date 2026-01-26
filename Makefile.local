@@ -167,10 +167,136 @@ local_clean:
 	-$(MAKE) local_network_remove
 	@echo "Local environment cleaned. Images preserved for faster restart."
 
-# Remove only Podverse-specific images, preserving external images (postgres, valkey, artemis)
+# Remove only Podverse-specific images and build cache, preserving external images (postgres, valkey, artemis)
 .PHONY: local_prune_podverse_images
 local_prune_podverse_images:
-	@echo "Removing only Podverse-specific images..."
+	@echo "Removing Podverse-specific images..."
 	docker images --filter=reference='*podverse*' -q | xargs -r docker rmi 2>/dev/null || true
 	docker images --filter=reference='ghcr.io/podverse/*' -q | xargs -r docker rmi 2>/dev/null || true
-	@echo "External images (postgres, valkey, artemis) preserved."
+	@echo "Clearing Docker build cache..."
+	docker builder prune -f 2>/dev/null || true
+	@echo "Done. External images (postgres, valkey, artemis) preserved."
+
+# ==========================================
+# Docker Image Building
+# ==========================================
+
+.PHONY: local_build_api
+local_build_api:
+	docker build -f apps/api/Dockerfile -t podverse-api:latest .
+
+.PHONY: local_build_workers
+local_build_workers:
+	docker build -f apps/workers/Dockerfile -t podverse-workers:latest .
+
+.PHONY: local_build_management_api
+local_build_management_api:
+	docker build -f apps/management-api/Dockerfile -t podverse-management-api:latest .
+
+.PHONY: local_build_web
+local_build_web:
+	docker build -f apps/web/Dockerfile --build-arg ENV_FILE=apps/web/env/local.env -t podverse-web:latest .
+
+.PHONY: local_build_management_web
+local_build_management_web:
+	docker build -f apps/management-web/Dockerfile --build-arg ENV_FILE=apps/management-web/env/local.env -t podverse-management-web:latest .
+
+.PHONY: local_build_all
+local_build_all: local_build_api local_build_workers local_build_management_api local_build_web local_build_management_web
+	@echo "All Docker images built successfully"
+
+# ==========================================
+# Docker Image Testing
+# ==========================================
+
+.PHONY: local_test_docker_builds
+local_test_docker_builds:
+	@echo "Building all Docker images..."
+	@$(MAKE) local_build_all
+	@echo ""
+	@echo "Image sizes:"
+	@docker images podverse-*:latest --format "table {{.Repository}}\t{{.Tag}}\t{{.Size}}"
+	@echo ""
+	@echo "Verifying image contents..."
+	@docker run --rm podverse-api:latest test -d /opt/packages/helpers/src && echo "ERROR: src found in API image" || echo "✓ API: No src files"
+	@docker run --rm podverse-api:latest test -d /opt/packages/helpers/dist && echo "✓ API: dist files present" || echo "ERROR: dist missing in API image"
+	@echo ""
+	@echo "All Docker builds verified!"
+
+.PHONY: local_test_api
+local_test_api: local_build_api
+	docker compose -f infra/docker/local/api/docker-compose.yml up -d
+	@echo "API started. Check logs with: docker compose -f infra/docker/local/api/docker-compose.yml logs -f"
+	@echo "Stop with: docker compose -f infra/docker/local/api/docker-compose.yml down"
+
+.PHONY: local_test_workers
+local_test_workers: local_build_workers
+	docker compose -f infra/docker/local/workers/docker-compose.yml up -d
+	@echo "Workers started. Check logs with: docker compose -f infra/docker/local/workers/docker-compose.yml logs -f"
+	@echo "Stop with: docker compose -f infra/docker/local/workers/docker-compose.yml down"
+
+.PHONY: local_test_management_api
+local_test_management_api: local_build_management_api
+	docker compose -f infra/docker/local/management-api/docker-compose.yml up -d
+	@echo "Management API started. Check logs with: docker compose -f infra/docker/local/management-api/docker-compose.yml logs -f"
+	@echo "Stop with: docker compose -f infra/docker/local/management-api/docker-compose.yml down"
+
+.PHONY: local_test_web
+local_test_web: local_build_web
+	docker compose -f infra/docker/local/web/docker-compose.yml up -d
+	@echo "Web started at http://localhost:3000"
+	@echo "Check logs with: docker compose -f infra/docker/local/web/docker-compose.yml logs -f"
+	@echo "Stop with: docker compose -f infra/docker/local/web/docker-compose.yml down"
+
+.PHONY: local_test_management_web
+local_test_management_web: local_build_management_web
+	docker compose -f infra/docker/local/management-web/docker-compose.yml up -d
+	@echo "Management Web started at http://localhost:3999"
+	@echo "Check logs with: docker compose -f infra/docker/local/management-web/docker-compose.yml logs -f"
+	@echo "Stop with: docker compose -f infra/docker/local/management-web/docker-compose.yml down"
+
+# Run all apps (api, web, management-api, management-web)
+.PHONY: local_test_all_apps
+local_test_all_apps: local_build_all
+	docker compose -f infra/docker/local/api/docker-compose.yml up -d
+	docker compose -f infra/docker/local/web/docker-compose.yml up -d
+	docker compose -f infra/docker/local/management-api/docker-compose.yml up -d
+	docker compose -f infra/docker/local/management-web/docker-compose.yml up -d
+	@echo ""
+	@echo "All apps started:"
+	@echo "  - API:            http://localhost:1234"
+	@echo "  - Web:            http://localhost:3000"
+	@echo "  - Management API: http://localhost:3998"
+	@echo "  - Management Web: http://localhost:3999"
+	@echo ""
+	@echo "Stop all with: make local_stop_all_apps"
+
+.PHONY: local_stop_all_apps
+local_stop_all_apps:
+	docker compose -f infra/docker/local/api/docker-compose.yml down --remove-orphans
+	docker compose -f infra/docker/local/web/docker-compose.yml down --remove-orphans
+	docker compose -f infra/docker/local/management-api/docker-compose.yml down --remove-orphans
+	docker compose -f infra/docker/local/management-web/docker-compose.yml down --remove-orphans
+	@echo "All apps stopped"
+
+# Start all apps (assumes images are already built)
+.PHONY: local_start_all_apps
+local_start_all_apps:
+	docker compose -f infra/docker/local/api/docker-compose.yml up -d
+	docker compose -f infra/docker/local/web/docker-compose.yml up -d
+	docker compose -f infra/docker/local/management-api/docker-compose.yml up -d
+	docker compose -f infra/docker/local/management-web/docker-compose.yml up -d
+	@echo ""
+	@echo "All apps started:"
+	@echo "  - API:            http://localhost:1234"
+	@echo "  - Web:            http://localhost:3000"
+	@echo "  - Management API: http://localhost:3998"
+	@echo "  - Management Web: http://localhost:3999"
+	@echo ""
+	@echo "Stop all with: make local_stop_all_apps"
+
+# Stop, delete images, and rebuild all apps
+.PHONY: local_rebuild_all_apps
+local_rebuild_all_apps: local_stop_all_apps local_prune_podverse_images local_build_all
+	@echo ""
+	@echo "All app images rebuilt. Start with: make local_test_all_apps"

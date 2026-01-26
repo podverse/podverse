@@ -1,4 +1,4 @@
-import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
+import axios, { AxiosRequestConfig } from 'axios';
 
 export type { AxiosRequestConfig } from 'axios';
 
@@ -24,17 +24,28 @@ export const request = async <T>(
       || requestConfig?.method?.toUpperCase() === 'PUT'
       || requestConfig?.method?.toUpperCase() === 'PATCH';
 
-    const response: AxiosResponse<T> = await axios.request<T>({
+    const config: AxiosRequestConfig = {
       url,
-      method: 'GET',
-      ...requestConfig,
+      method: requestConfig?.method || 'GET',
       withCredentials: true,
-      headers: {
-        ...(isJSONRequest ? { 'Content-Type': 'application/json' } : {}),
-        ...requestConfig?.headers,
-      },
-      signal: abort?.controller?.signal,
-    });
+      ...(requestConfig?.baseURL ? { baseURL: requestConfig.baseURL } : {}),
+      ...(requestConfig?.params ? { params: requestConfig.params } : {}),
+      ...(requestConfig?.data ? { data: requestConfig.data } : {}),
+      ...(requestConfig?.timeout ? { timeout: requestConfig.timeout } : {}),
+      ...(requestConfig?.responseType ? { responseType: requestConfig.responseType } : {}),
+      ...(abort?.controller?.signal ? { signal: abort.controller.signal } : {}),
+    };
+
+    if (isJSONRequest) {
+      config.headers = {
+        'Content-Type': 'application/json',
+        ...(requestConfig?.headers ? requestConfig.headers : {}),
+      };
+    } else if (requestConfig?.headers) {
+      config.headers = requestConfig.headers;
+    }
+
+    const response = await axios.request<T>(config);
     return { status: response.status, data: response.data };
   } finally {
     if (timeoutId) {

@@ -19,6 +19,9 @@ export const ItemTranscript = ({ rows, autoScrollOn }: ItemTranscriptProps) => {
 
   const [searchTerm, setSearchTerm] = useState<string>('');
 
+  // Ensure rows is always an array
+  const safeRows = rows ?? [];
+
   const handleRowClick = (startTime: number) => {
     window.dispatchEvent(new CustomEvent(EVENTS.MEDIA_PLAYER.SEEK, {
       detail: { time: startTime },
@@ -26,12 +29,12 @@ export const ItemTranscript = ({ rows, autoScrollOn }: ItemTranscriptProps) => {
   };
   
   const filteredRows = useMemo(() => {
-    if (!searchTerm.trim()) {return rows;}
+    if (!searchTerm.trim()) {return safeRows;}
     const lowerSearch = searchTerm.toLowerCase();
-    return rows.filter(row =>
+    return safeRows.filter(row =>
       row.body?.toLowerCase().includes(lowerSearch),
     );
-  }, [rows, searchTerm]);
+  }, [safeRows, searchTerm]);
 
   const highlightedIndex = filteredRows.findIndex(row =>
     typeof row.startTime === 'number' && typeof row.endTime === 'number' &&

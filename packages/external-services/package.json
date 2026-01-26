@@ -8,7 +8,8 @@
     "dist/**/*"
   ],
   "scripts": {
-    "build": "npm run lint && tsc",
+    "build": "npm run lint && tsc && tsc-alias",
+    "build:prod": "tsc && tsc-alias",
     "build:watch": "tsc --build --watch --preserveWatchOutput",
     "lint": "eslint ./src",
     "lint:fix": "eslint ./src --fix",
@@ -31,6 +32,7 @@
   "devDependencies": {
     "@types/crypto-js": "^4.2.2",
     "@types/http-errors": "^2.0.5",
-    "@types/web-push": "^3.6.4"
+    "@types/web-push": "^3.6.4",
+    "tsc-alias": "^1.8.16"
   }
 }

@@ -26,7 +26,7 @@ class AccountFollowingChannelController {
   static async getFollowedChannels(req: Request, res: Response): Promise<void> {
     validateParamsObject(getFollowedChannelsSchema, req, res, async () => {
       validateQueryObject(getFollowedChannelsQuerySchema, req, res, async () => {
-        optionalEnsureAuthenticated(req, res, async () => {
+        optionalEnsureAuthenticated(req, res, async (): Promise<void> => {
           try {
             const jwtUser = req.user;
             const account_id_text = getParamRequired(req, 'account_id_text');
@@ -36,12 +36,14 @@ class AccountFollowingChannelController {
             const account = await AccountFollowingChannelController.accountService.getByIdText(
               account_id_text, { relations: ['sharable_status'] });
             if (!account) {
-              return res.status(404).json({ message: 'Account not found' });
+              res.status(404).json({ message: 'Account not found' });
+              return;
             }
   
             if (account.sharable_status.id === SharableStatusEnum.Private) {
               if (!jwtUser?.id || account.id !== jwtUser.id) {
-                return res.status(404).json({ message: 'Account not found' });
+                res.status(404).json({ message: 'Account not found' });
+                return;
               }
             }
   

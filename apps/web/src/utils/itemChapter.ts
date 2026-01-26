@@ -28,10 +28,10 @@ export function getAdjacentChapter({
   if (currentIdx === -1) {return null;}
 
   if (direction === 'next' && currentIdx < sortedChapters.length - 1) {
-    return sortedChapters[currentIdx + 1];
+    return sortedChapters[currentIdx + 1] ?? null;
   }
   if (direction === 'previous' && currentIdx > 0) {
-    return sortedChapters[currentIdx - 1];
+    return sortedChapters[currentIdx - 1] ?? null;
   }
 
   return null;

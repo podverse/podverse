@@ -38,11 +38,13 @@ export async function useLocaleDetect(ssrLoggedInAccount: DTOAccount | null): Pr
       // Try base language match (e.g., 'en' from 'en-US')
       try {
         const baseAccountLocale = accountLocale.split('-')[0];
-        await import(`../../i18n/originals/${baseAccountLocale}.json`);
-        locale = baseAccountLocale;
+        if (baseAccountLocale) {
+          await import(`../../i18n/originals/${baseAccountLocale}.json`);
+          locale = baseAccountLocale;
+        }
         
         // Sync cookie with base locale if they differ
-        if (cookieLocale !== baseAccountLocale) {
+        if (baseAccountLocale && cookieLocale !== baseAccountLocale) {
           (await cookies()).set('NEXT_LOCALE', baseAccountLocale, {
             maxAge: 60 * 60 * 24 * 365, // 1 year
             path: '/',

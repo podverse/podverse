@@ -8,7 +8,7 @@ import { useAccount } from '../../../contexts/Account';
 import { checkBackNavFlag } from '../../../contexts/Navigation';
 import { useSkipInitialEffect } from '../../../hooks/useSkipInitialEffect';
 import { usePageStateCache } from '../../../hooks/usePageStateCache';
-import { getPageState } from '../../../utils/pageStateCache';
+import { getPageState, definedProps } from '../../../utils/pageStateCache';
 import { getPodcastFilterParams } from './PodcastDropdownConfig';
 
 // Type for cached data
@@ -100,7 +100,7 @@ export const PodcastContextProvider = ({
       setClips(cached.clips);
       setTotalPages(cached.totalPages);
     },
-    cachedScrollPosition: cachedState?.scrollPosition,
+    ...definedProps({ cachedScrollPosition: cachedState?.scrollPosition }),
   });
 
   useSkipInitialEffect(() => {

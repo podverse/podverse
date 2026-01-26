@@ -13,7 +13,6 @@ services:
       - podverse_local_network
     ports:
       - 127.0.0.1:1999:1999
-    command: npm start
     logging:
       driver: 'json-file'
       options:

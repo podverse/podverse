@@ -77,7 +77,7 @@ export function Settings() {
     },
   ];
 
-  const tabData = loggedInAccount ? allTabs : [allTabs[0]]; // Only show General tab for non-logged-in users
+  const tabData = loggedInAccount ? allTabs : (allTabs[0] ? [allTabs[0]] : []); // Only show General tab for non-logged-in users
 
   return (
     <div>

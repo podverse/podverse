@@ -21,7 +21,9 @@ export class ManagementApiRequestService {
     const { prefix, version } = config.public.api;
     const portPart = port ? `:${port}` : '';
     this.apiBase = `${protocol}://${host}${portPart}${prefix?.replace(/\/$/, '') || ''}${version || ''}`;
-    this.jwt = jwt;
+    if (jwt !== undefined) {
+      this.jwt = jwt;
+    }
   }
 
   async apiRequest<T>({ path, method = 'GET', data, config: requestConfig = {}, abort, userAgent }: ApiRequestParams): Promise<T> {

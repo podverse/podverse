@@ -6,7 +6,7 @@ import { apiRequestService } from '../../factories/apiRequestService';
 import { useAccount } from '../../contexts/Account';
 import { checkBackNavFlag } from '../../contexts/Navigation';
 import { usePageStateCache } from '../../hooks/usePageStateCache';
-import { getPageState } from '../../utils/pageStateCache';
+import { getPageState, definedProps } from '../../utils/pageStateCache';
 
 // Type for cached data
 interface HistoryCachedData {
@@ -74,7 +74,7 @@ export const HistoryPageContextProvider = ({
       setQueueResources(cached.queueResources);
       setTotalPages(cached.totalPages);
     },
-    cachedScrollPosition: cachedState?.scrollPosition,
+    ...definedProps({ cachedScrollPosition: cachedState?.scrollPosition }),
   });
 
   useEffect(() => {

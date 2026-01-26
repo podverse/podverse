@@ -59,9 +59,13 @@ export async function GET(req: NextRequest) {
     }
 
     // Check if Content-Type is an allowed image type
-    const contentTypeLower = contentType.toLowerCase().split(';')[0].trim();
+    const contentTypeParts = contentType.toLowerCase().split(';');
+    const contentTypeLower = contentTypeParts[0];
+    if (!contentTypeLower) {
+      return new Response('Invalid Content-Type header', { status: 400 });
+    }
     const isAllowedType = PROXY.ALLOWED_CONTENT_TYPES.some(
-      allowedType => contentTypeLower === allowedType.toLowerCase(),
+      allowedType => contentTypeLower.trim() === allowedType.toLowerCase(),
     );
 
     if (!isAllowedType) {

@@ -181,18 +181,20 @@ const itemService = new ItemService();
 const clipService = new ClipService();
 
 const verifyClipOwnership = () => {
-  return async (req: Request, res: Response, next: NextFunction) => {
+  return async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     const account = getAuthenticatedUser(req);
     const clip_id_text = getParamRequired(req, 'clip_id_text');
 
     try {
       const clip = await clipService.getByIdText(clip_id_text, { relations: ['account'] });
       if (!clip) {
-        return res.status(404).json({ message: 'Clip not found' });
+        res.status(404).json({ message: 'Clip not found' });
+        return;
       }
 
       if (clip.account.id !== account.id) {
-        return res.status(403).json({ message: 'Forbidden' });
+        res.status(403).json({ message: 'Forbidden' });
+        return;
       }
 
       next();
@@ -203,7 +205,7 @@ const verifyClipOwnership = () => {
 };
 
 const verifyPrivateClipOwnership = () => {
-  return async (req: Request, res: Response, next: NextFunction) => {
+  return async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     const account = req.user;
     const clip_id_text = getParamRequired(req, 'clip_id_text');
 
@@ -213,12 +215,14 @@ const verifyPrivateClipOwnership = () => {
       });
 
       if (!clip) {
-        return res.status(404).json({ message: 'Clip not found' });
+        res.status(404).json({ message: 'Clip not found' });
+        return;
       }
 
       if ((clip.sharable_status as unknown as { id?: number })?.id === SharableStatusEnum.Private) {
         if (!account?.id || clip.account.id !== account.id) {
-          return res.status(404).json({ message: 'Clip not found' });
+          res.status(404).json({ message: 'Clip not found' });
+          return;
         }
       }
 
@@ -327,9 +331,8 @@ class ClipController {
               },
             );
             if (clip) {
-              // @ts-expect-error - We intentionally remove id from response
-              delete clip.id;
-              res.status(200).json(clip);
+              const { id: _id, ...clipWithoutId } = clip;
+              res.status(200).json(clipWithoutId);
             } else {
               res.status(404).json({ message: 'Clip not found' });
             }
@@ -462,7 +465,7 @@ class ClipController {
 
         const category_id = getCategoryEnumValue(category);
 
-        const [clips, count] = await clipService.getManyPublic(
+        const clips = await clipService.getManyPublic(
           medium,
           category_id,
           {
@@ -474,10 +477,8 @@ class ClipController {
         );
 
         const response: ApiListResponse<Clip> = {
-          // @ts-expect-error - TODO: Fix type mismatch between getManyPublic return type
           data: clips,
-          // @ts-expect-error - TODO: Fix count type
-          meta: { page, count, limit },
+          meta: { page, count: null, limit },
         };
 
         res.status(200).json(response);
@@ -498,7 +499,7 @@ class ClipController {
 
         const category_id = getCategoryEnumValue(category);
 
-        const [clips, count] = await clipService.getManyPublic(
+        const clips = await clipService.getManyPublic(
           medium,
           category_id,
           {
@@ -510,10 +511,8 @@ class ClipController {
         );
 
         const response: ApiListResponse<Clip> = {
-          // @ts-expect-error - TODO: Fix type mismatch between getManyPublic return type
           data: clips,
-          // @ts-expect-error - TODO: Fix count type
-          meta: { page, count, limit },
+          meta: { page, count: null, limit },
         };
 
         res.status(200).json(response);
@@ -559,14 +558,15 @@ class ClipController {
 
   static async getManyByChannelPublicRecent(req: Request, res: Response): Promise<void> {
     validateParamsObject(getByChannelIdTextSchema, req, res, async () => {
-      validateQueryObject(getClipsPublicByChannelRecentSchema, req, res, async () => {
+      validateQueryObject(getClipsPublicByChannelRecentSchema, req, res, async (): Promise<void> => {
         try {
           const channel_id_text = getParamRequired(req, 'channel_id_text');
           const { page, limit, offset } = getPaginationParams(req);
 
           const channel = await channelService.getByIdText(channel_id_text);
           if (!channel) {
-            return res.status(404).json({ message: 'Channel not found' });
+            res.status(404).json({ message: 'Channel not found' });
+            return;
           }
           
           const [clips, count] = await clipService.getManyByChannelAndCountPublic(
@@ -593,14 +593,15 @@ class ClipController {
 
   static async getManyByChannelPublicOldest(req: Request, res: Response): Promise<void> {
     validateParamsObject(getByChannelIdTextSchema, req, res, async () => {
-      validateQueryObject(getClipsPublicByChannelOldestSchema, req, res, async () => {
+      validateQueryObject(getClipsPublicByChannelOldestSchema, req, res, async (): Promise<void> => {
         try {
           const channel_id_text = getParamRequired(req, 'channel_id_text');
           const { page, limit, offset } = getPaginationParams(req);
 
           const channel = await channelService.getByIdText(channel_id_text);
           if (!channel) {
-            return res.status(404).json({ message: 'Channel not found' });
+            res.status(404).json({ message: 'Channel not found' });
+            return;
           }
 
           const [clips, count] = await clipService.getManyByChannelAndCountPublic(
@@ -627,7 +628,7 @@ class ClipController {
 
   static async getManyByChannelPublicTop(req: Request, res: Response): Promise<void> {
     validateParamsObject(getByChannelIdTextSchema, req, res, async () => {
-      validateQueryObject(getClipsPublicByChannelTopSchema, req, res, async () => {
+      validateQueryObject(getClipsPublicByChannelTopSchema, req, res, async (): Promise<void> => {
         try {
           const channel_id_text = getParamRequired(req, 'channel_id_text');
           const { page, limit, offset } = getPaginationParams(req);
@@ -639,7 +640,8 @@ class ClipController {
 
           const channel = await channelService.getByIdText(channel_id_text);
           if (!channel) {
-            return res.status(404).json({ message: 'Channel not found' });
+            res.status(404).json({ message: 'Channel not found' });
+            return;
           }
 
           const results = await ClipController.statsAggregatedClipService.getManyByChannelsAndCountPublic(
@@ -669,14 +671,15 @@ class ClipController {
 
   static async getManyByItemPublicRecent(req: Request, res: Response): Promise<void> {
     validateParamsObject(getByItemIdTextSchema, req, res, async () => {
-      validateQueryObject(getClipsPublicByItemRecentSchema, req, res, async () => {
+      validateQueryObject(getClipsPublicByItemRecentSchema, req, res, async (): Promise<void> => {
         try {
           const item_id_text = getParamRequired(req, 'item_id_text');
           const { page, limit, offset } = getPaginationParams(req);
 
           const item = await itemService.getByIdText(item_id_text);
           if (!item) {
-            return res.status(404).json({ message: 'Item not found' });
+            res.status(404).json({ message: 'Item not found' });
+            return;
           }
           
           const [clips, count] = await clipService.getManyByItemAndCountPublic(
@@ -703,14 +706,15 @@ class ClipController {
 
   static async getManyByItemPublicOldest(req: Request, res: Response): Promise<void> {
     validateParamsObject(getByItemIdTextSchema, req, res, async () => {
-      validateQueryObject(getClipsPublicByItemOldestSchema, req, res, async () => {
+      validateQueryObject(getClipsPublicByItemOldestSchema, req, res, async (): Promise<void> => {
         try {
           const item_id_text = getParamRequired(req, 'item_id_text');
           const { page, limit, offset } = getPaginationParams(req);
 
           const item = await itemService.getByIdText(item_id_text);
           if (!item) {
-            return res.status(404).json({ message: 'Item not found' });
+            res.status(404).json({ message: 'Item not found' });
+            return;
           }
           
           const [clips, count] = await clipService.getManyByItemAndCountPublic(
@@ -737,7 +741,7 @@ class ClipController {
 
   static async getManyByItemPublicTop(req: Request, res: Response): Promise<void> {
     validateParamsObject(getByItemIdTextSchema, req, res, async () => {
-      validateQueryObject(getClipsPublicByItemTopSchema, req, res, async () => {
+      validateQueryObject(getClipsPublicByItemTopSchema, req, res, async (): Promise<void> => {
         try {
           const item_id_text = getParamRequired(req, 'item_id_text');
           const { page, limit, offset } = getPaginationParams(req);
@@ -749,7 +753,8 @@ class ClipController {
 
           const item = await itemService.getByIdText(item_id_text);
           if (!item) {
-            return res.status(404).json({ message: 'Item not found' });
+            res.status(404).json({ message: 'Item not found' });
+            return;
           }
 
           const results = await ClipController.statsAggregatedClipService.getManyByItemAndCountPublic(
@@ -778,8 +783,8 @@ class ClipController {
   }
 
   static async getManySubscribedPublicRecent(req: Request, res: Response): Promise<void> {
-    validateQueryObject(getManySubscribedRecentSchema, req, res, async () => {
-      ensureAuthenticated(req, res, async () => {
+    validateQueryObject(getManySubscribedRecentSchema, req, res, async (): Promise<void> => {
+      ensureAuthenticated(req, res, async (): Promise<void> => {
         try {
           const { page, limit, offset } = getPaginationParams(req);
           const { medium } = req.query as {
@@ -791,7 +796,7 @@ class ClipController {
           const channel_ids = await getFollowedChannelIds(account_id, medium);
           if (!channel_ids.length) {
             const response: ApiListResponse<Clip> = emptyApiListResponse;
-            return res.json(response);
+            res.json(response);
           }
 
           const config: FindManyOptions<Clip> = {
@@ -818,8 +823,8 @@ class ClipController {
   }
 
   static async getManySubscribedPublicTop(req: Request, res: Response): Promise<void> {
-    validateQueryObject(getManySubscribedTopSchema, req, res, async () => {
-      ensureAuthenticated(req, res, async () => {
+    validateQueryObject(getManySubscribedTopSchema, req, res, async (): Promise<void> => {
+      ensureAuthenticated(req, res, async (): Promise<void> => {
         try {
           const { page, limit, offset } = getPaginationParams(req);
           const { range, medium } = req.query as {
@@ -832,7 +837,7 @@ class ClipController {
           const channel_ids = await getFollowedChannelIds(account_id, medium);
           if (!channel_ids.length) {
             const response: ApiListResponse<Clip> = emptyApiListResponse;
-            return res.json(response);
+            res.json(response);
           }
 
           const order = getStatsOrder(range);

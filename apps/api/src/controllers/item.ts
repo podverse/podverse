@@ -5,7 +5,7 @@ import { itemGetOneRelations, itemGetManyRelations, ItemChapterService, ItemServ
   StatsAggregatedItemService, ChannelService, 
   itemGetManyRelationsWithChannel,
   subItemGetManyRelationsWithChannel, 
-  FindOptionsOrder} from '@podverse/orm';
+  FindOptionsOrder, ItemChapter} from '@podverse/orm';
 import { parseChapters } from '@podverse/parser';
 import { handleReturnDataOrNotFound } from '@api/controllers/helpers/data';
 import { handleGenericErrorResponse } from '@api/controllers/helpers/error';
@@ -302,8 +302,8 @@ export class ItemController {
   }
 
   static async getManySubscribedRecent(req: Request, res: Response): Promise<void> {
-    validateQueryObject(getManySubscribedRecentSchema, req, res, async () => {
-      ensureAuthenticated(req, res, async () => {
+    validateQueryObject(getManySubscribedRecentSchema, req, res, async (): Promise<void> => {
+      ensureAuthenticated(req, res, async (): Promise<void> => {
         try {
           const { page, limit, offset } = getPaginationParams(req);
           const { medium, liveItemType: liveItemTypeParam } = req.query as {
@@ -319,7 +319,7 @@ export class ItemController {
           const channel_ids = await getFollowedChannelIds(account_id, medium);
           if (!channel_ids.length) {
             const response: ApiListResponse<Item> = emptyApiListResponse;
-            return res.json(response);
+            res.json(response);
           }
 
           const config: FindManyOptions<Item> = {
@@ -329,7 +329,6 @@ export class ItemController {
             relations: itemGetManyRelationsWithChannel,
           };
           const items = await ItemController.itemService.getManyByChannels(
-            // @ts-expect-error - TODO: Fix type mismatch channel_ids is number[] but expects Channel[]
             channel_ids,
             itemType,
             liveItemType,
@@ -349,8 +348,8 @@ export class ItemController {
   }
 
   static async getManySubscribedTop(req: Request, res: Response): Promise<void> {
-    validateQueryObject(getManySubscribedTopSchema, req, res, async () => {
-      ensureAuthenticated(req, res, async () => {
+    validateQueryObject(getManySubscribedTopSchema, req, res, async (): Promise<void> => {
+      ensureAuthenticated(req, res, async (): Promise<void> => {
         try {
           const { page, limit, offset } = getPaginationParams(req);
           const { range, medium, liveItemType: liveItemTypeParam } = req.query as {
@@ -366,7 +365,7 @@ export class ItemController {
           const channel_ids = await getFollowedChannelIds(account_id, medium);
           if (!channel_ids.length) {
             const response: ApiListResponse<Item> = emptyApiListResponse;
-            return res.json(response);
+            res.json(response);
           }
 
           const order = getStatsOrder(range);
@@ -693,20 +692,21 @@ export class ItemController {
         );
 
         const chapters = results.results;
-        const transformed: typeof chapters = [];
+        const transformed: ItemChapter[] = [];
         // Only consider chapters with table_of_contents true for end_time assignment
         const tocChapters = chapters.filter(ch => ch.table_of_contents);
         for (let i = 0; i < chapters.length; i++) {
           const ch = chapters[i];
+          if (!ch) {
+            continue;
+          }
           if (ch.table_of_contents) {
             // Find the next toc chapter ahead
             const nextToc = tocChapters.find(toc => parseFloat(toc.start_time) > parseFloat(ch.start_time));
             if (nextToc) {
-              // @ts-expect-error - TODO: Fix ItemChapter type (spread doesn't include setIdText method)
-              transformed.push({ ...ch, end_time: nextToc.start_time });
+              transformed.push({ ...ch, end_time: nextToc.start_time } as ItemChapter);
             } else {
-              // @ts-expect-error - TODO: Fix ItemChapter type (spread doesn't include setIdText method)
-              transformed.push({ ...ch });
+              transformed.push(ch);
             }
           } else {
             // Only include if end_time is present
@@ -716,8 +716,7 @@ export class ItemController {
           }
         }
         
-        const response: ApiListResponse<Item> = {
-          // @ts-expect-error - TODO: Fix type mismatch (transformed is ItemChapter[], not Item[])
+        const response: ApiListResponse<ItemChapter> = {
           data: transformed,
           meta: { page: 1, count: transformed.length, limit: transformed.length },
         };

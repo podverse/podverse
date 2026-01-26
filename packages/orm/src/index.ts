@@ -1,5 +1,3 @@
-import './module-alias-config';
-
 export type {
   FindManyOptions,
   FindOptionsWhere,

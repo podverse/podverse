@@ -22,6 +22,9 @@ export const SourceSelectorRow = ({ labeledItemEnclosure,
 
   for (let sourceIndex = 0; sourceIndex < sources.length; sourceIndex++) {
     const source = sources[sourceIndex];
+    if (!source) {
+      continue;
+    }
     nodes.push(
       <Link
         key={`source-${sourceIndex}`}

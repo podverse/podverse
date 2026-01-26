@@ -1,6 +1,7 @@
 import classNames from 'classnames';
 import React, { RefObject } from 'react';
 import styles from '../../styles/components/Dropdown/DropdownMenu.module.scss';
+import { cssClass } from '../../utils/cssModule';
 
 interface DropdownMenuItemsWithHandlers {
   label: string;
@@ -76,8 +77,8 @@ export const DropdownMenu: React.FC<DropdownMenuProps> = ({
           role="menuitem"
           tabIndex={-1}
           className={classNames(styles.menuItem, {
-            [styles.warning]: item.variant === 'warning',
-            [styles.danger]: item.variant === 'danger',
+            [cssClass(styles, 'warning')]: item.variant === 'warning',
+            [cssClass(styles, 'danger')]: item.variant === 'danger',
           })}
           onClick={() => {
             item.onClick();

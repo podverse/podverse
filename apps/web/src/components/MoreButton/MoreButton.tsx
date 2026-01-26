@@ -6,6 +6,7 @@ import { DropdownMenu } from '../Dropdown/DropdownMenu';
 import { useDropdownKeyboardNavigation } from '../../hooks/useDropdownKeyboardNavigation';
 import styles from '../../styles/components/MoreButton/MoreButton.module.scss';
 import classNames from 'classnames';
+import { cssClass } from '../../utils/cssModule';
 
 export interface MoreButtonMenuItem {
   label: string;
@@ -44,7 +45,7 @@ export const MoreButton: React.FC<MoreButtonProps> = ({
     <div className={styles.dropdown}>
       <button
         ref={buttonRef}
-        className={classNames(styles.button, { [styles.large]: isLarge })}
+        className={classNames(styles.button, { [cssClass(styles, 'large')]: isLarge })}
         aria-haspopup="menu"
         aria-expanded={open}
         onClick={() => setOpen((v) => !v)}

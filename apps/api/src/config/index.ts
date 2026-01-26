@@ -69,7 +69,7 @@ type Config = {
   keyvaldb: {
     host: string;
     port: number;
-    password?: string;
+    password: string;
     cacheTTLSeconds: number;
   };
   resetPassword: {
@@ -160,7 +160,7 @@ export const config: Config = {
   keyvaldb: {
     host: process.env.KEYVALDB_HOST!,
     port: Number(process.env.KEYVALDB_PORT!),
-    password: process.env.KEYVALDB_PASSWORD || undefined,
+    password: process.env.KEYVALDB_PASSWORD!,
     cacheTTLSeconds: Number(process.env.KEYVALDB_CACHE_TTL_SECONDS!),
   },
   resetPassword: {

@@ -45,6 +45,10 @@ export const ListPlaylistResources: React.FC<Props> = ({
     if (!result.destination) {return;}
     const reordered = Array.from(resources);
     const [removed] = reordered.splice(result.source.index, 1);
+    if (!removed) {
+      console.warn('No resource found at source index');
+      return;
+    }
     reordered.splice(result.destination.index, 0, removed);
     setResources(reordered);
 
@@ -127,6 +131,10 @@ export const ListPlaylistResources: React.FC<Props> = ({
       if (updatedResource) {
         const updatedListPosition = updatedResource.list_position;
         const movedResource = updatedReordered[destIdx];
+
+        if (!movedResource || !removed) {
+          return;
+        }
 
         if (movedType === 'clip' && movedResource.clip_id === removed.clip_id) {
           updatedReordered[destIdx] = {

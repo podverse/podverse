@@ -5,6 +5,7 @@ import ReactDOM from 'react-dom';
 import classNames from 'classnames';
 import { useMediaPlayer } from '../../../../contexts/MediaPlayer';
 import styles from '../../../../styles/components/MediaPlayer/Controller/Video/MediaPlayerVideoPortalFloating.module.scss';
+import { cssClass } from '../../../../utils/cssModule';
 
 export const MediaPlayerVideoPortalFloating: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [mounted, setMounted] = useState(false);
@@ -20,8 +21,8 @@ export const MediaPlayerVideoPortalFloating: React.FC<{ children: React.ReactNod
   return ReactDOM.createPortal(
     <div
       className={classNames({
-        [styles.floatingVideoPortal]: true,
-        [styles.hasMarquee]: hasMarquee,
+        [cssClass(styles, 'floatingVideoPortal')]: true,
+        [cssClass(styles, 'hasMarquee')]: hasMarquee,
       })}
     >
       {children}

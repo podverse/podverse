@@ -113,7 +113,7 @@ export default async function MembershipPage() {
                   isPaidPremium,
                   membershipExpiresAt,
                   pricingData,
-                  contactLinkClassName: styles.contactLink,
+                  contactLinkClassName: styles.contactLink ?? '',
                 })}
               </p>
             </section>

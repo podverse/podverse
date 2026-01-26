@@ -80,12 +80,13 @@ export class ChannelController {
   }
 
   static async getbyPodcastIndexId(req: Request, res: Response): Promise<void> {
-    validateParamsObject(getByPodcastIndexIdSchema, req, res, async () => {
+    validateParamsObject(getByPodcastIndexIdSchema, req, res, async (): Promise<void> => {
       try {
         const podcast_index_id = getParamRequired(req, 'podcast_index_id');
         const podcastIndexId = parseInt(podcast_index_id, 10);
         if (isNaN(podcastIndexId)) {
-          return res.status(400).json({ error: 'Invalid podcast_index_id' });
+          res.status(400).json({ error: 'Invalid podcast_index_id' });
+          return;
         }
         const data: Channel | null = await ChannelController.channelService.getByPodcastIndexId(podcastIndexId, channelGetOneRelations);
         res.json(data || null);

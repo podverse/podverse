@@ -293,6 +293,83 @@ npm run build:packages
 
 Note: `local_clean` removes containers and data volumes but preserves Docker images for faster restarts.
 
+## Docker Images
+
+### Building Docker Images
+
+To build Docker images for local testing or deployment:
+
+```bash
+# Build all images
+make local_build_all
+
+# Build individual images
+make local_build_api
+make local_build_workers
+make local_build_management_api
+make local_build_web
+make local_build_management_web
+```
+
+**Web Apps Build Arguments**: The `web` and `management-web` apps use a DRY Dockerfile structure that requires the `ENV_FILE` build argument to specify which environment configuration to use. The Makefile commands handle this automatically, but if building manually:
+
+```bash
+# Build web app for local environment
+docker build -f apps/web/Dockerfile --build-arg ENV_FILE=apps/web/env/local.env -t podverse-web:latest .
+
+# Build web app for alpha environment
+docker build -f apps/web/Dockerfile --build-arg ENV_FILE=apps/web/env/alpha.env -t podverse-web:alpha .
+
+# Build management-web for local environment
+docker build -f apps/management-web/Dockerfile --build-arg ENV_FILE=apps/management-web/env/local.env -t podverse-management-web:latest .
+
+# Build management-web for alpha environment
+docker build -f apps/management-web/Dockerfile --build-arg ENV_FILE=apps/management-web/env/alpha.env -t podverse-management-web:alpha .
+```
+
+**Important**: The `ENV_FILE` build argument is **required** - builds will fail if it's not provided. This ensures explicit environment selection and prevents accidental builds with the wrong configuration. The Dockerfile uses a single source of truth for build logic, with only the environment file path varying between environments.
+
+### Testing Docker Images
+
+After building images, you can test them with docker-compose:
+
+```bash
+# Ensure infrastructure is running first
+make local_infra_up
+
+# Test API
+make local_test_api
+# Check logs: docker compose -f infra/docker/local/api/docker-compose.yml logs -f
+# Stop: docker compose -f infra/docker/local/api/docker-compose.yml down
+
+# Test Workers
+make local_test_workers
+
+# Test Management API
+make local_test_management_api
+```
+
+### Verifying Docker Builds
+
+Run the verification script to check that images are optimized:
+
+```bash
+make local_test_docker_builds
+```
+
+This will:
+- Build all images
+- Display image sizes
+- Verify that source files are excluded and only `dist/` files are present
+
+### Docker Image Optimization
+
+The Dockerfiles use multi-stage builds to minimize final image size:
+- **Builder stage**: Installs dependencies and compiles TypeScript
+- **Runner stage**: Only includes compiled `dist/` files and production dependencies
+
+Final images are ~300-500MB (vs 800MB+ with single-stage builds).
+
 ## Environment Configuration
 
 ### Pre-configured Files

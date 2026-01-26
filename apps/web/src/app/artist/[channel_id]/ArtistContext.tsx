@@ -5,7 +5,7 @@ import { QueryParamsChannelMusicArtist } from '@podverse/helpers';
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 import { checkBackNavFlag } from '../../../contexts/Navigation';
 import { usePageStateCache } from '../../../hooks/usePageStateCache';
-import { getPageState } from '../../../utils/pageStateCache';
+import { getPageState, definedProps } from '../../../utils/pageStateCache';
 
 interface ArtistContextType {
   filterParams: QueryParamsChannelMusicArtist;
@@ -45,7 +45,7 @@ export const ArtistContextProvider = ({
     routeKey,
     filterParams,
     setFilterParams,
-    cachedScrollPosition: cachedState?.scrollPosition,
+    ...definedProps({ cachedScrollPosition: cachedState?.scrollPosition }),
   });
 
   return (

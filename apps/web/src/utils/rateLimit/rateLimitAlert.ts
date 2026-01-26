@@ -13,7 +13,7 @@ type RateLimitData = {
 
 export async function handleRateLimitAlert(
   error: unknown,
-  locale?: string,
+  _locale?: string,
   tMisc?: (key: string, values?: Record<string, string | number>) => string,
 ): Promise<boolean> {
   const e = error as ErrorWithResponse;

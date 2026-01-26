@@ -222,6 +222,9 @@ export function useAutoQueueLoadResources() {
       let newKey = 0;
       for (const key of Object.keys(newAutoQueueResources).map(Number).sort((a, b) => a - b)) {
         const row = newAutoQueueResources[key];
+        if (!row) {
+          continue;
+        }
         let shouldSkip = false;
         if (row.clip) {
           if (seenClipIds.has(row.clip.id_text)) {
