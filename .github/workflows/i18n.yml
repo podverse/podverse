@@ -17,7 +17,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.PAT_TOKEN }}
 
       - uses: actions/setup-node@v4
         with:
@@ -45,10 +45,10 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          
+
           # Only commit originals and overrides (compiled is generated at build time)
           git add apps/*/i18n/originals/ apps/*/i18n/overrides/
-          
+
           if git diff --staged --quiet; then
             echo "No translation changes"
           else

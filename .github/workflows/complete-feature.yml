@@ -16,13 +16,12 @@ jobs:
     # Only run if PR was merged (not just closed)
     if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
     steps:
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.event.pull_request.base.ref }}
           fetch-depth: 0
+          token: ${{ secrets.PAT_TOKEN }}
 
       - name: Extract feature name from branch
         id: feature
