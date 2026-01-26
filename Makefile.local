@@ -279,6 +279,22 @@ local_stop_all_apps:
 	docker compose -f infra/docker/local/management-web/docker-compose.yml down --remove-orphans
 	@echo "All apps stopped"
 
+# Start all apps (assumes images are already built)
+.PHONY: local_start_all_apps
+local_start_all_apps:
+	docker compose -f infra/docker/local/api/docker-compose.yml up -d
+	docker compose -f infra/docker/local/web/docker-compose.yml up -d
+	docker compose -f infra/docker/local/management-api/docker-compose.yml up -d
+	docker compose -f infra/docker/local/management-web/docker-compose.yml up -d
+	@echo ""
+	@echo "All apps started:"
+	@echo "  - API:            http://localhost:1234"
+	@echo "  - Web:            http://localhost:3000"
+	@echo "  - Management API: http://localhost:3998"
+	@echo "  - Management Web: http://localhost:3999"
+	@echo ""
+	@echo "Stop all with: make local_stop_all_apps"
+
 # Stop, delete images, and rebuild all apps
 .PHONY: local_rebuild_all_apps
 local_rebuild_all_apps: local_stop_all_apps local_prune_podverse_images local_build_all
