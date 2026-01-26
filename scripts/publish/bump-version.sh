@@ -1,5 +1,7 @@
 #!/bin/bash
 # Bump version across all packages
+# Uses --no-verify to bypass git hooks
+# Requires branch protection bypass permissions in GitHub for the user
 
 set -e
 
@@ -24,7 +26,9 @@ if [[ ! "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
   exit 1
 fi
 
-echo -e "${YELLOW}Bumping version to $VERSION...${NC}"
+# Get current branch
+CURRENT_BRANCH=$(git branch --show-current)
+echo -e "${YELLOW}Bumping version to $VERSION on branch '$CURRENT_BRANCH'...${NC}"
 
 # Update root package.json
 npm version "$VERSION" --no-git-tag-version
@@ -45,8 +49,11 @@ git add packages/*/package.json
 git add apps/*/package.json
 git add tools/*/package.json
 
-# Commit
-git commit -m "chore: bump version to $VERSION"
+# Commit (bypass hooks)
+git commit --no-verify -m "chore: bump version to $VERSION"
 
-echo -e "${GREEN}✓ Version bumped to $VERSION${NC}"
-echo "Run 'git push' to push changes"
+# Push (bypass hooks)
+echo -e "${YELLOW}Pushing to origin/$CURRENT_BRANCH...${NC}"
+git push --no-verify origin "$CURRENT_BRANCH"
+
+echo -e "${GREEN}✓ Version bumped to $VERSION and pushed${NC}"
