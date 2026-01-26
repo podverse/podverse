@@ -12,9 +12,11 @@ on:
         type: string
 
 jobs:
-  # Step 1: Validate everything builds
+  # Step 1: Validate everything builds and calculate unified version
   validate:
     runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.VERSION }}
     steps:
       - uses: actions/checkout@v4
 
@@ -47,23 +49,7 @@ jobs:
       - name: Build all apps
         run: npm run build:apps
 
-  # Step 2: Build and publish Docker images (parallel)
-  # Note: Packages are built from source inside Docker, no npm publishing needed
-  publish-docker:
-    needs: validate
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        app: [api, web, workers, management-api, management-web]
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: "22"
-
-      - name: Determine next alpha version
+      - name: Calculate unified version
         id: version
         env:
           GHCR_TOKEN: ${{ secrets.GHCR_REGISTRY_TOKEN }}
@@ -77,10 +63,11 @@ jobs:
 
           # Get base version from package.json (strip any existing suffix)
           BASE_VERSION=$(node -p "require('./package.json').version" | sed 's/-.*//')
-          IMAGE_PATH="${{ github.repository }}/${{ matrix.app }}"
+          # Use 'api' as reference image for unified version calculation
+          IMAGE_PATH="${{ github.repository }}/api"
 
           echo "Base version: $BASE_VERSION"
-          echo "Image path: $IMAGE_PATH"
+          echo "Reference image path: $IMAGE_PATH"
 
           # Query GHCR for existing tags
           TAGS_JSON=$(curl -s -H "Authorization: Bearer $GHCR_TOKEN" \
@@ -110,7 +97,44 @@ jobs:
             echo "Latest existing: $LATEST, incrementing to: $NEXT_VERSION"
           fi
 
+          echo "Unified version for all images: $NEXT_VERSION"
           echo "VERSION=$NEXT_VERSION" >> $GITHUB_OUTPUT
+
+  # Step 2: Build and publish Docker images (parallel)
+  # Note: Packages are built from source inside Docker, no npm publishing needed
+  publish-docker:
+    needs: validate
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          # Non-web apps (no env file needed)
+          - app: api
+            dockerfile: apps/api/Dockerfile
+          - app: workers
+            dockerfile: apps/workers/Dockerfile
+          - app: management-api
+            dockerfile: apps/management-api/Dockerfile
+          # Base web images (no env file - for community self-hosting)
+          - app: web
+            dockerfile: apps/web/Dockerfile
+          - app: management-web
+            dockerfile: apps/management-web/Dockerfile
+          # Deploy web images (with env file baked in - for podverse.fm)
+          - app: web-deploy
+            dockerfile: apps/web/Dockerfile
+            env_file: apps/web/env/alpha.env
+          - app: management-web-deploy
+            dockerfile: apps/management-web/Dockerfile
+            env_file: apps/management-web/env/alpha.env
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Get unified version
+        id: version
+        run: |
+          echo "VERSION=${{ needs.validate.outputs.version }}" >> $GITHUB_OUTPUT
+          echo "Using unified version: ${{ needs.validate.outputs.version }}"
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -122,23 +146,13 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Set build args for web apps
-        id: buildargs
-        if: matrix.app == 'web' || matrix.app == 'management-web'
-        run: |
-          if [ "${{ matrix.app }}" = "web" ]; then
-            echo "args=ENV_FILE=apps/web/env/alpha.env" >> $GITHUB_OUTPUT
-          elif [ "${{ matrix.app }}" = "management-web" ]; then
-            echo "args=ENV_FILE=apps/management-web/env/alpha.env" >> $GITHUB_OUTPUT
-          fi
-
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
           context: .
-          file: apps/${{ matrix.app }}/Dockerfile
+          file: ${{ matrix.dockerfile }}
           push: true
-          build-args: ${{ steps.buildargs.outputs.args }}
+          build-args: ${{ matrix.env_file && format('ENV_FILE={0}', matrix.env_file) || '' }}
           tags: |
             ghcr.io/${{ github.repository }}/${{ matrix.app }}:${{ steps.version.outputs.VERSION }}
             ghcr.io/${{ github.repository }}/${{ matrix.app }}:alpha

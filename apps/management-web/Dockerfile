@@ -1,8 +1,10 @@
 FROM node:22-slim AS base
 WORKDIR /opt
 
-# Build argument for environment file path (required - must be provided via --build-arg)
-ARG ENV_FILE
+# Build argument for environment file path (optional)
+# - For deploy images: pass ENV_FILE=apps/management-web/env/alpha.env to bake in env vars
+# - For base images: omit ENV_FILE, app uses runtime environment variables
+ARG ENV_FILE=
 
 # Stage 1: Install dependencies
 FROM base AS deps
@@ -23,8 +25,9 @@ ENV NODE_ENV=production
 COPY packages/ ./packages/
 COPY apps/management-web/ ./apps/management-web/
 
-# Copy environment file for build-time variables
-COPY ${ENV_FILE} apps/management-web/.env.production
+# Conditionally copy env file if provided (for deploy images)
+# ENV_FILE path is relative to build context and exists in copied app folder
+RUN if [ -n "${ENV_FILE}" ]; then cp "${ENV_FILE}" apps/management-web/.env.production; fi
 
 # Build packages (prod = TypeScript only, no linting)
 RUN npm run build:packages:prod
