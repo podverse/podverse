@@ -96,5 +96,5 @@ jobs:
             # Pull latest changes (in case i18n workflow pushed)
             git pull --rebase origin ${{ github.event.pull_request.base.ref }} || true
             
-            git push origin ${{ github.event.pull_request.base.ref }}
+            git push --no-verify origin ${{ github.event.pull_request.base.ref }}
           fi

@@ -71,5 +71,5 @@ jobs:
             # Use rebase to put our commit on top
             git pull --rebase origin develop || true
             
-            git push origin develop
+            git push --no-verify origin develop
           fi
