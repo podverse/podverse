@@ -30,14 +30,14 @@ jobs:
       - name: Security audit
         run: npm audit
 
+      - name: Build all packages
+        run: npm run build:packages
+
       - name: Lint
         run: npm run lint
 
       - name: Type check
         run: npm run type-check
-
-      - name: Build all packages
-        run: npm run build:packages
 
       - name: Setup env files for web apps
         run: |
