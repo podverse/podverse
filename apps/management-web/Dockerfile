@@ -39,8 +39,8 @@ ENV NODE_ENV=production
 ENV PORT=3999
 
 COPY --from=builder --chown=node:node /opt/apps/management-web/.next/standalone ./
-COPY --from=builder --chown=node:node /opt/apps/management-web/.next/static ./.next/static
-COPY --from=builder --chown=node:node /opt/apps/management-web/public ./public
+COPY --from=builder --chown=node:node /opt/apps/management-web/.next/static ./apps/management-web/.next/static
+COPY --from=builder --chown=node:node /opt/apps/management-web/public ./apps/management-web/public
 
 USER node
 EXPOSE 3999
