@@ -6,13 +6,15 @@ This document describes how to deploy to the alpha environment for testing.
 
 The alpha environment is a pre-production testing environment. Docker images are built and pushed to GitHub Container Registry (GHCR) when:
 
-1. A PR is merged into the `alpha` branch
+1. Changes are pushed to the `alpha` branch
 2. The workflow is manually triggered via GitHub Actions UI or CLI
+
+**Important:** The `alpha` branch is a trigger branch only - it should always mirror `develop` exactly with no divergent commits.
 
 ```mermaid
 flowchart TD
     subgraph trigger [Trigger Options]
-        A[PR merged to alpha]
+        A[Push to alpha branch]
         B[Manual workflow_dispatch]
     end
     
@@ -38,7 +40,7 @@ flowchart TD
 ### GitHub Access
 
 - Write access to the podverse/podverse repository
-- Ability to create PRs and merge to `alpha` branch
+- Ability to push to the `alpha` branch (bypass branch protection if enabled)
 
 ### Required Secrets (Already Configured)
 
@@ -121,26 +123,29 @@ If releasing a new version:
 
 **Note:** This script bypasses git hooks and pushes directly. To push to protected branches like `develop`, your GitHub user must have "Allow specified actors to bypass required pull requests" permission configured in the repository's branch protection rules.
 
-### Step 2: Create PR to Alpha
+### Step 2: Push to Alpha Branch
+
+Since `alpha` is a trigger branch that should mirror `develop`, merge develop into alpha:
 
 ```bash
-# Create PR from develop to alpha (non-interactive, no description needed)
-gh pr create --base alpha --head develop --title "Release 5.2.1" --body ""
-
-# Or via GitHub UI:
-# 1. Go to https://github.com/podverse/podverse
-# 2. Click "Pull requests" > "New pull request"
-# 3. Set base: alpha, compare: develop
-# 4. Create the PR
+# Merge develop into alpha (fast-forward)
+git checkout alpha
+git merge develop --ff-only
+git push origin alpha
 ```
 
-### Step 3: Review and Merge
+If you get a "not possible to fast-forward" error, the branches have diverged. Reset alpha to match develop:
 
-1. Wait for CI checks to pass (triggered by `/test` comment if needed)
-2. Get required approvals
-3. Merge the PR (squash recommended)
+```bash
+# Force-reset alpha to match develop exactly
+git checkout alpha
+git reset --hard origin/develop
+git push --force origin alpha
+```
 
-### Step 4: Monitor the Workflow
+**Note:** Force-pushing to `alpha` is safe because it's a trigger branch with no unique commits. Your GitHub user must have bypass permissions for branch protection rules.
+
+### Step 3: Monitor the Workflow
 
 ```bash
 # Watch the workflow run
@@ -261,6 +266,7 @@ The version is determined by:
 
 | Issue | Cause | Solution |
 |-------|-------|----------|
+| "not possible to fast-forward" error | `alpha` branch diverged from `develop` | Reset alpha: `git checkout alpha && git reset --hard origin/develop && git push --force origin alpha` |
 | Workflow fails at "Security audit" | npm vulnerabilities found | Run `./scripts/audit/audit.sh --fix` locally |
 | Workflow fails at "Lint" | Linting errors | Run `npm run lint` locally to see errors |
 | Workflow fails at "Type check" | TypeScript errors | Run `npm run type-check` locally |
