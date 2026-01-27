@@ -18,7 +18,7 @@ pipeline {
                 script {
                     dir('/opt/podverse/infra/docker/alpha/workers') {
                         // Check for any available podverse-workers image (local or GHCR) and proceed if present
-                        def hasImage = sh(script: "docker image ls --format '{{.Repository}}:{{.Tag}}' | grep -E '(^|/)podverse-workers(:|/)|(^|/)podverse_alpha_workers(:|/\$)' >/dev/null 2>&1", returnStatus: true) == 0
+                        def hasImage = sh(script: "docker image ls --format '{{.Repository}}:{{.Tag}}' | grep -E '(^|/)workers(:|/)|(^|/)podverse_alpha_workers(:|/\$)' >/dev/null 2>&1", returnStatus: true) == 0
                         
                         if (hasImage) {
                             sh """
