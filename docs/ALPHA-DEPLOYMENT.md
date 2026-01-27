@@ -127,6 +127,20 @@ If releasing a new version:
 
 Since `alpha` is a trigger branch that should mirror `develop`, merge develop into alpha:
 
+**Recommended: Use the helper script** (validates state and ensures safety):
+
+```bash
+./scripts/publish/sync-develop-to-alpha.sh
+```
+
+The script will:
+- Check for uncommitted changes (prevents unexpected results)
+- Verify that alpha can fast-forward merge from develop
+- Ensure alpha is a perfect mirror of develop
+- Perform the merge and push automatically
+
+**Manual method** (if you prefer to do it manually):
+
 ```bash
 # Merge develop into alpha (fast-forward)
 git checkout alpha
