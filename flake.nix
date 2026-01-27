@@ -1,5 +1,5 @@
 {
-  description = "Podverse Kubernetes Management Environment";
+  description = "Podverse Environment";
 
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
@@ -22,24 +22,59 @@
       {
         devShells.default = pkgs.mkShell {
           buildInputs = with pkgs; [
+            # Node.js and npm (v22 for monorepo development)
+            nodejs_22
+
+            # Container and orchestration tools
             argocd
-            git
-            jq
-            k9s
             kompose
             kubectl
             kubernetes-helm
-            libuuid
+
+            # Database and cache tools
+            postgresql
+            redis
+
+            # DevOps and configuration
+            git
+            sops
+            yq
+            yamllint
+            jq
+
+            # Kubernetes utilities
+            k9s
+
+            # Development utilities
+            curl
+            gnumake
+            pkg-config
+            openssl
             moreutils
             pwgen
-            sops
-            yamllint
-            yq
-          ];
+            libuuid
+          ] ++ (if pkgs.stdenv.isLinux then [
+            docker
+            docker-compose
+          ] else [
+            # On macOS, use Docker Desktop instead
+          ]);
 
           shellHook = ''
-            echo "🛠️  Podverse Kubernetes Management Environment"
-            echo "Ensure your KUBECONFIG is set (usually ~/.kube/config or /etc/rancher/k3s/k3s.yaml)"
+            echo "🛠️  Podverse Monorepo Development Environment"
+            echo ""
+            echo "Quick Start:"
+            echo "  npm install                # Install dependencies"
+            echo "  npm run build:packages     # Build all packages"
+            echo "  npm run dev:all            # Start all services"
+            echo ""
+            echo "Services:"
+            echo "  make local_db_up           # Start PostgreSQL"
+            echo "  make local_mq_up           # Start RabbitMQ"
+            echo "  make local_keyvaldb_up     # Start Redis"
+            echo ""
+            echo "For Kubernetes management:"
+            echo "  Ensure your KUBECONFIG is set (usually ~/.kube/config or /etc/rancher/k3s/k3s.yaml)"
           '';
         };
       }
