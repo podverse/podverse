@@ -28,13 +28,20 @@ packages/name/
 
 ## Plan Management
 
+**Critical**: Plans go in `.llm/plans/` directory, **NOT** `.cursor/plans/`.
+
+The `.cursor/` directory is for IDE-specific config only (rules, skills, settings).
+
 **300 line limit.** Split large plans:
 ```
 feature/
-├── index.md
-├── 01a-part1.md
-└── 01b-part2.md
+├── 00-master-plan.md     # Index: master plan overview
+├── 01-part1.md           # Sequential implementation plans
+└── 02-part2.md
 ```
+
+**Plan index files**: Use `00-master-plan.md` (primary) or `00-overview.md` (alternative).
+Never use `README.md` or full-path names.
 
 Plans organized by status:
 ```

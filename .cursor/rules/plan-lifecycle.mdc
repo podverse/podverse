@@ -1,7 +1,7 @@
 ---
 description: Plan lifecycle management - moving completed plans
 globs:
-  - ".cursor/plans/**/*.md"
+  - ".llm/plans/**/*.md"
 alwaysApply: false
 ---
 

@@ -435,4 +435,4 @@ See the ENV.md files in each app directory for detailed variable documentation:
 
 - [Architecture Overview](ARCHITECTURE.md) - System design and data flow
 - [Contributing Guide](CONTRIBUTING.md) - Development workflow and PR guidelines
-- [API Documentation](../apps/api/README.md) - API endpoints and usage
+- [API Documentation](../apps/api/APPS-API.md) - API endpoints and usage

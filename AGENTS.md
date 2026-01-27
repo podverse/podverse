@@ -218,7 +218,7 @@ When making changes, update `.llm/history/active/[feature]/[feature].md` (or the
 - path/to/file.ts
 ```
 
-See `.llm/README.md` for full guidelines.
+See `.llm/LLM.md` for full guidelines.
 
 ## References
 
