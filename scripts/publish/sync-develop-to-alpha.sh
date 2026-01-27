@@ -129,9 +129,21 @@ fi
 
 echo -e "${GREEN}Alpha successfully merged with develop.${NC}"
 
-# Push to origin
-echo -e "${YELLOW}Pushing alpha to origin...${NC}"
-git push origin alpha
+# Push to origin (bypass hooks, similar to bump-version.sh)
+# Note: This requires "Allow specified actors to bypass required pull requests" permission
+# in GitHub branch protection rules for the alpha branch
+echo -e "${YELLOW}Pushing alpha to origin (bypassing hooks)...${NC}"
+if ! git push --no-verify origin alpha; then
+  echo -e "${RED}Error: Failed to push to origin/alpha${NC}"
+  echo -e "${YELLOW}This may be due to:${NC}"
+  echo -e "${YELLOW}  1. Missing bypass permissions for protected branch 'alpha'${NC}"
+  echo -e "${YELLOW}  2. Network/authentication issues${NC}"
+  echo -e "${YELLOW}${NC}"
+  echo -e "${YELLOW}If you don't have bypass permissions, you'll need to:${NC}"
+  echo -e "${YELLOW}  1. Create a PR from develop to alpha${NC}"
+  echo -e "${YELLOW}  2. Or request bypass permissions from a repository admin${NC}"
+  exit 1
+fi
 
 # Final verification
 echo -e "${YELLOW}Verifying alpha matches develop after push...${NC}"

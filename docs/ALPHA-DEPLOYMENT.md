@@ -139,14 +139,18 @@ The script will:
 - Ensure alpha is a perfect mirror of develop
 - Perform the merge and push automatically
 
+**Note:** The script uses `--no-verify` to bypass git hooks when pushing, similar to `bump-version.sh`. To push to the protected `alpha` branch, your GitHub user must have "Allow specified actors to bypass required pull requests" permission configured in the repository's branch protection rules. If you don't have this permission, the script will provide guidance on creating a PR instead.
+
 **Manual method** (if you prefer to do it manually):
 
 ```bash
 # Merge develop into alpha (fast-forward)
 git checkout alpha
 git merge develop --ff-only
-git push origin alpha
+git push --no-verify origin alpha
 ```
+
+**Note:** The manual method also requires bypass permissions for the protected `alpha` branch. If you don't have permissions, you'll need to create a Pull Request from `develop` to `alpha` instead.
 
 ### Step 3: Monitor the Workflow
 
