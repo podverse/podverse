@@ -1,0 +1,16 @@
+# Generated assets (images and media files)
+# Keep RSS feeds and README tracked
+assets/*.jpg
+assets/*.jpeg
+assets/*.mp3
+assets/*.mp4
+
+# But keep these files tracked:
+!assets/*.rss
+!assets/README.md
+
+# Node modules
+node_modules/
+
+# Logs
+*.log
