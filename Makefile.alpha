@@ -231,7 +231,7 @@ alpha_management_db_init: infra/config/alpha/management-db.env
 	  -e SUPERUSER_EMAIL="$$SUPERUSER_EMAIL" \
 	  -e SUPERUSER_PASSWORD="$$SUPERUSER_PASSWORD" \
 	  -e DB_HOST="podverse_alpha_management_db" \
-	  -e DB_PORT="5999" \
+	  -e DB_PORT="5432" \
 	  -e DB_DATABASE="$${POSTGRES_DB:-postgres}" \
 	  -e POSTGRES_USER="$${POSTGRES_USER:-postgres}" \
 	  -e POSTGRES_PASSWORD="$$POSTGRES_PASSWORD" \
