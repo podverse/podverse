@@ -1,0 +1,7 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - db-drop-job.yaml
+  - db-verify-account_1-job.yaml
+  - db-verify-all-accounts-job.yaml
