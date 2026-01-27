@@ -3,40 +3,40 @@
 # ==========================================
 
 .PHONY: alpha_validate_init
-alpha_validate_init: infra/config/alpha/podverse-alpha-db.env infra/config/alpha/podverse-alpha-mq.env infra/config/alpha/podverse-alpha-workers.env infra/config/alpha/podverse-alpha-api.env infra/config/alpha/podverse-alpha-web.env infra/config/alpha/podverse-alpha-management-db.env infra/config/alpha/podverse-alpha-management-api.env
+alpha_validate_init: infra/config/alpha/db.env infra/config/alpha/mq.env infra/config/alpha/workers.env infra/config/alpha/api.env infra/config/alpha/web.env infra/config/alpha/management-db.env infra/config/alpha/management-api.env
 
 # Auto-copy missing alpha env files from templates
-infra/config/alpha/podverse-alpha-db.env:
+infra/config/alpha/db.env:
 	@echo "Missing: $@"
 	@echo "Copying from example file"
 	cp ./infra/config/env-templates/db.env.example ./$@
 
-infra/config/alpha/podverse-alpha-mq.env:
+infra/config/alpha/mq.env:
 	@echo "Missing: $@"
 	@echo "Copying from example file"
 	cp ./infra/config/env-templates/mq.env.example ./$@
 
-infra/config/alpha/podverse-alpha-workers.env:
+infra/config/alpha/workers.env:
 	@echo "Missing: $@"
 	@echo "Copying from example file"
 	cp ./infra/config/env-templates/workers.env.example ./$@
 
-infra/config/alpha/podverse-alpha-api.env:
+infra/config/alpha/api.env:
 	@echo "Missing: $@"
 	@echo "Copying from example file"
 	cp ./infra/config/env-templates/api.env.example ./$@
 
-infra/config/alpha/podverse-alpha-web.env:
+infra/config/alpha/web.env:
 	@echo "Missing: $@"
 	@echo "Copying from example file"
 	cp ./infra/config/env-templates/web.env.example ./$@
 
-infra/config/alpha/podverse-alpha-management-db.env:
+infra/config/alpha/management-db.env:
 	@echo "Missing: $@"
 	@echo "Copying from example file"
 	cp ./infra/config/env-templates/management-db.env.example ./$@
 
-infra/config/alpha/podverse-alpha-management-api.env:
+infra/config/alpha/management-api.env:
 	@echo "Missing: $@"
 	@echo "Copying from example file"
 	cp ./infra/config/env-templates/management-api.env.example ./$@
@@ -52,7 +52,7 @@ alpha_network_remove:
 
 # Database
 .PHONY: alpha_db_up
-alpha_db_up: infra/config/alpha/podverse-alpha-db.env
+alpha_db_up: infra/config/alpha/db.env
 	docker compose -f infra/docker/alpha/db/docker-compose.yml up podverse_alpha_db -d
 
 .PHONY: alpha_db_down
@@ -65,22 +65,22 @@ alpha_db_reset:
 	docker exec -i podverse_alpha_db psql -U postgres -d postgres -c "DROP SCHEMA public CASCADE; CREATE SCHEMA public; GRANT ALL ON SCHEMA public TO postgres; GRANT ALL ON SCHEMA public TO public;"
 
 .PHONY: alpha_db_init
-alpha_db_init: infra/config/alpha/podverse-alpha-db.env
+alpha_db_init: infra/config/alpha/db.env
 	@echo "Waiting for database to be ready..."
 	@until docker exec podverse_alpha_db pg_isready -U postgres > /dev/null 2>&1; do \
 		echo "  Database not ready, waiting..."; \
 		sleep 2; \
 	done
 	@echo "Creating read/read_write roles (idempotent)..."
-	@set -a; . infra/config/alpha/podverse-alpha-db.env; set +a; \
+	@set -a; . infra/config/alpha/db.env; set +a; \
 	docker compose -f infra/docker/alpha/db/docker-compose.yml exec podverse_alpha_db bash -c "POSTGRES_READ_PASSWORD=$$POSTGRES_READ_PASSWORD POSTGRES_READ_WRITE_PASSWORD=$$POSTGRES_READ_WRITE_PASSWORD /opt/database/init-scripts/01-create-users.sh"
 	docker exec -i podverse_alpha_db psql -U postgres -d postgres -f /opt/database/combined/init_database.sql
 
 # Message Queue
 .PHONY: alpha_mq_up
-alpha_mq_up: infra/config/alpha/podverse-alpha-mq.env
+alpha_mq_up: infra/config/alpha/mq.env
 	docker compose -f infra/docker/alpha/mq/docker-compose.yml up podverse_alpha_mq -d
-	@./scripts/mq/provision_queues.sh podverse_alpha_mq infra/config/alpha/podverse-alpha-mq.env
+	@./scripts/mq/provision_queues.sh podverse_alpha_mq infra/config/alpha/mq.env
 
 .PHONY: alpha_mq_down
 alpha_mq_down:
@@ -88,7 +88,7 @@ alpha_mq_down:
 
 # Key-Value Database
 .PHONY: alpha_keyvaldb_up
-alpha_keyvaldb_up: infra/config/alpha/podverse-alpha-keyvaldb.env
+alpha_keyvaldb_up: infra/config/alpha/keyvaldb.env
 	docker compose -f infra/docker/alpha/keyvaldb/docker-compose.yml up podverse_alpha_keyvaldb -d
 	docker compose -f infra/docker/alpha/keyvaldb/docker-compose.yml up podverse_alpha_keyvaldb_gui -d
 
@@ -98,7 +98,7 @@ alpha_keyvaldb_down:
 
 # Workers
 .PHONY: alpha_workers_pull
-alpha_workers_pull: infra/config/alpha/podverse-alpha-workers.env
+alpha_workers_pull: infra/config/alpha/workers.env
 	docker compose -f infra/docker/alpha/workers/docker-compose.yml pull podverse_alpha_workers
 
 .PHONY: alpha_workers_down
@@ -114,7 +114,7 @@ alpha_workers_down:
 
 # API
 .PHONY: alpha_api_up
-alpha_api_up: infra/config/alpha/podverse-alpha-api.env
+alpha_api_up: infra/config/alpha/api.env
 	docker compose -f infra/docker/alpha/api/docker-compose.yml up podverse_alpha_api -d
 
 .PHONY: alpha_api_down
@@ -130,7 +130,7 @@ alpha_api_down:
 
 # Web
 .PHONY: alpha_web_up
-alpha_web_up: infra/config/alpha/podverse-alpha-web.env
+alpha_web_up: infra/config/alpha/web.env
 	docker compose -f infra/docker/alpha/web/docker-compose.yml up podverse_alpha_web -d
 
 .PHONY: alpha_web_down
@@ -195,7 +195,7 @@ alpha_setup: alpha_infra_up alpha_db_init alpha_management_db_init
 
 # Management Database
 .PHONY: alpha_management_db_up
-alpha_management_db_up: infra/config/alpha/podverse-alpha-management-db.env
+alpha_management_db_up: infra/config/alpha/management-db.env
 	docker compose -f infra/docker/alpha/management-db/docker-compose.yml up podverse_alpha_management_db -d
 
 .PHONY: alpha_management_db_down
@@ -208,9 +208,9 @@ alpha_management_db_reset:
 	docker exec -i podverse_alpha_management_db psql -U postgres -d postgres -c "DROP SCHEMA public CASCADE; CREATE SCHEMA public; GRANT ALL ON SCHEMA public TO postgres; GRANT ALL ON SCHEMA public TO public;"
 
 .PHONY: alpha_management_db_init
-alpha_management_db_init: infra/config/alpha/podverse-alpha-management-db.env
+alpha_management_db_init: infra/config/alpha/management-db.env
 	@echo "Validating required environment variables..."
-	@set -a; . infra/config/alpha/podverse-alpha-management-db.env; set +a; \
+	@set -a; . infra/config/alpha/management-db.env; set +a; \
 	: "$${SUPERUSER_EMAIL:?Missing SUPERUSER_EMAIL}" \
 	: "$${SUPERUSER_PASSWORD:?Missing SUPERUSER_PASSWORD}"
 	@echo "Waiting for management database to be ready..."
@@ -219,16 +219,16 @@ alpha_management_db_init: infra/config/alpha/podverse-alpha-management-db.env
 		sleep 2; \
 	done
 	@echo "Creating read/read_write roles (idempotent)..."
-	@set -a; . infra/config/alpha/podverse-alpha-management-db.env; set +a; \
+	@set -a; . infra/config/alpha/management-db.env; set +a; \
 	docker compose -f infra/docker/alpha/management-db/docker-compose.yml exec podverse_alpha_management_db bash -c "POSTGRES_READ_PASSWORD=$$POSTGRES_READ_PASSWORD POSTGRES_READ_WRITE_PASSWORD=$$POSTGRES_READ_WRITE_PASSWORD /opt/database/management/init-scripts/01-create-users.sh"
 	docker exec -i podverse_alpha_management_db psql -U postgres -d postgres -f /opt/database/management/init_management_database.sql
 	@echo "Creating superuser account..."
-	@set -a; . infra/config/alpha/podverse-alpha-management-db.env; set +a; \
+	@set -a; . infra/config/alpha/management-db.env; set +a; \
 	./scripts/management/create-superuser.sh
 
 # Management API
 .PHONY: alpha_management_api_up
-alpha_management_api_up: infra/config/alpha/podverse-alpha-management-api.env
+alpha_management_api_up: infra/config/alpha/management-api.env
 	docker compose -f infra/docker/alpha/management-api/docker-compose.yml up podverse_alpha_management_api -d
 
 .PHONY: alpha_management_api_down

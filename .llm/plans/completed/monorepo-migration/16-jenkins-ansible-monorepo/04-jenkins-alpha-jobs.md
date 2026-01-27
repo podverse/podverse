@@ -132,8 +132,8 @@ If you want to test the basic deployment pipeline first, create these 15 jobs in
 | 2   | `srv_network_create` | Create Docker network on srv  |
 | 3   | `aux_ops_git_pull`   | Pull latest code on aux       |
 | 4   | `srv_ops_git_pull`   | Pull latest code on srv       |
-| 5   | `aux_db_init`        | Initialize database container |
-| 6   | `aux_db_up`          | Start database                |
+| 5   | `aux_db_up`          | Start database                |
+| 6   | `aux_db_init`        | Initialize database container |
 | 7   | `aux_keyvaldb_up`    | Start Redis                   |
 | 8   | `aux_mq_up`          | Start message queue           |
 | 9   | `srv_api_up`         | Start API server              |
