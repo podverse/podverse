@@ -126,7 +126,19 @@ local_management_db_init: infra/config/local/management-db.env
 	docker exec -i podverse_local_management_db psql -U postgres -d postgres -f /opt/database/management/init_management_database.sql
 	@echo "Creating superuser account..."
 	@set -a; . infra/config/local/management-db.env; set +a; \
-	./scripts/management/create-superuser.sh
+	docker run --rm \
+	  --network podverse_local_network \
+	  -v "$(PWD)/scripts/management:/opt/scripts/management:ro" \
+	  -w /opt/scripts/management \
+	  -e SUPERUSER_EMAIL="$$SUPERUSER_EMAIL" \
+	  -e SUPERUSER_PASSWORD="$$SUPERUSER_PASSWORD" \
+	  -e DB_HOST="podverse_local_management_db" \
+	  -e DB_PORT="5999" \
+	  -e DB_DATABASE="$${POSTGRES_DB:-postgres}" \
+	  -e POSTGRES_USER="$${POSTGRES_USER:-postgres}" \
+	  -e POSTGRES_PASSWORD="$$POSTGRES_PASSWORD" \
+	  node:22-slim \
+	  sh -c "npm install --silent && node create-superuser.js"
 
 # Start all local infrastructure services (use this to restart after local_all_down)
 .PHONY: local_infra_up
