@@ -10,7 +10,7 @@ services:
     networks:
       - podverse_alpha_network
     ports:
-      - 127.0.0.1:3999:3000
+      - 127.0.0.1:3999:3999
     restart: unless-stopped
     logging:
       driver: 'json-file'
