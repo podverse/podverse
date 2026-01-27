@@ -8,7 +8,7 @@ This document provides rules and patterns for AI coding assistants working on th
 |------|-------|
 | Node.js | 22+ (see `.nvmrc`) |
 | Package Manager | npm workspaces |
-| Style | No semicolons, single quotes, 2-space indent |
+| Style | Semicolons required, single quotes, 2-space indent |
 | TypeScript | Strict mode, no `any` types |
 
 ### Essential Commands
