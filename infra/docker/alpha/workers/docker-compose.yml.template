@@ -5,7 +5,7 @@ networks:
 services:
   
   podverse_alpha_workers:
-    image: ghcr.io/podverse/podverse-workers/podverse-workers:REPLACE_WITH_WORKERS_VERSION
+    image: ghcr.io/podverse/podverse/workers:REPLACE_WITH_WORKERS_VERSION
     container_name: podverse_alpha_workers
     env_file:
       - ../../../config/alpha/workers.env

@@ -11,17 +11,17 @@ pipeline {
     }
 
     stages {
-        stage('Clear Sandbox Cache') {
+        stage('Clear Alpha Cache') {
             steps {
                 script {
-                    // Maps to 'pushd /opt/podverse/infra/docker/sandbox/workers'
-                    // CAUTION: This targets the sandbox environment, not alpha.
-                    dir('/opt/podverse/infra/docker/sandbox/workers') {
+                    // Maps to 'pushd /opt/podverse/infra/docker/alpha/workers'
+                    // CAUTION: This targets the alpha environment, not alpha.
+                    dir('/opt/podverse/infra/docker/alpha/workers') {
                         // Maps to the docker compose command.
                         // We use triple single-quotes to preserve 'set -eux' and strict shell syntax.
                         sh '''
                             set -eux
-                            docker compose -f docker-compose.yml run --rm podverse_sandbox_workers npm run podcast_index_dead_feeds_delete_cache
+                            docker compose -f docker-compose.yml run --rm podverse_alpha_workers npm run podcast_index_dead_feeds_delete_cache
                         '''
                     }
                 }

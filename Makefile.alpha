@@ -109,7 +109,7 @@ alpha_workers_down:
 		echo "docker-compose.yml not found, stopping containers directly..."; \
 		docker ps -aq --filter "name=podverse_alpha_workers" | xargs -r docker stop 2>/dev/null || true; \
 		docker ps -aq --filter "name=podverse_alpha_workers" | xargs -r docker rm 2>/dev/null || true; \
-		docker rmi $$(docker images --filter=reference='ghcr.io/podverse/podverse-workers/*' -q) 2>/dev/null || true; \
+		docker rmi $$(docker images --filter=reference='ghcr.io/podverse/podverse/workers/*' -q) 2>/dev/null || true; \
 	fi
 
 # API
@@ -125,7 +125,7 @@ alpha_api_down:
 		echo "docker-compose.yml not found, stopping container directly..."; \
 		docker stop podverse_alpha_api 2>/dev/null || true; \
 		docker rm podverse_alpha_api 2>/dev/null || true; \
-		docker rmi $$(docker images --filter=reference='ghcr.io/podverse/podverse-api/*' -q) 2>/dev/null || true; \
+		docker rmi $$(docker images --filter=reference='ghcr.io/podverse/podverse/api/*' -q) 2>/dev/null || true; \
 	fi
 
 # Web
@@ -141,7 +141,7 @@ alpha_web_down:
 		echo "docker-compose.yml not found, stopping container directly..."; \
 		docker stop podverse_alpha_web 2>/dev/null || true; \
 		docker rm podverse_alpha_web 2>/dev/null || true; \
-		docker rmi $$(docker images --filter=reference='ghcr.io/podverse/podverse-web/*' -q) 2>/dev/null || true; \
+		docker rmi $$(docker images --filter=reference='ghcr.io/podverse/podverse/web-deploy/*' -q) 2>/dev/null || true; \
 	fi
 
 # Stop all alpha services
@@ -251,7 +251,7 @@ alpha_management_api_down:
 		echo "docker-compose.yml not found, stopping container directly..."; \
 		docker stop podverse_alpha_management_api 2>/dev/null || true; \
 		docker rm podverse_alpha_management_api 2>/dev/null || true; \
-		docker rmi $$(docker images --filter=reference='ghcr.io/podverse/podverse-management-api/*' -q) 2>/dev/null || true; \
+		docker rmi $$(docker images --filter=reference='ghcr.io/podverse/podverse/management-api/*' -q) 2>/dev/null || true; \
 	fi
 
 # Management Web
@@ -267,5 +267,5 @@ alpha_management_web_down:
 		echo "docker-compose.yml not found, stopping container directly..."; \
 		docker stop podverse_alpha_management_web 2>/dev/null || true; \
 		docker rm podverse_alpha_management_web 2>/dev/null || true; \
-		docker rmi $$(docker images --filter=reference='ghcr.io/podverse/podverse-management-web/*' -q) 2>/dev/null || true; \
+		docker rmi $$(docker images --filter=reference='ghcr.io/podverse/podverse/management-web-deploy/*' -q) 2>/dev/null || true; \
 	fi

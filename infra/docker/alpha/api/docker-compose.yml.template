@@ -5,7 +5,7 @@ networks:
 services:
 
   podverse_alpha_api:
-    image: ghcr.io/podverse/podverse-api/podverse-api:REPLACE_WITH_API_VERSION
+    image: ghcr.io/podverse/podverse/api:REPLACE_WITH_API_VERSION
     container_name: podverse_alpha_api
     env_file:
       - ../../../config/alpha/api.env
