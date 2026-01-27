@@ -9,8 +9,8 @@ pipeline {
 
     parameters {
         string(
-            name: 'GIT_BRANCH_NAME', 
-            defaultValue: 'v5-develop', 
+            name: 'GIT_BRANCH_NAME',
+            defaultValue: 'develop',
             description: 'The git branch name to check out, before pulling the latest changes for the branch.'
         )
     }

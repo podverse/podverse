@@ -13,9 +13,10 @@ These Jenkins pipelines use the `podverse` monorepo with **sparse checkout** to 
 - `Makefile` and `Makefile.alpha` - Make targets for deployment
 
 The Jenkins job template (`scm-job.xml`) is configured to:
+
 - Clone from `https://github.com/podverse/podverse.git`
 - Use sparse checkout (only the paths listed above)
-- Checkout the `v5-develop` branch by default
+- Checkout the `develop` branch by default
 - Store the checkout at `/opt/podverse` on the Jenkins agent
 
 ## Prerequisites
@@ -41,6 +42,7 @@ username:api_token
 Example: `~/.jenkins-api-token`
 
 To generate an API token:
+
 1. Log into Jenkins
 2. Click your username (top right)
 3. Click "Configure"
@@ -64,16 +66,19 @@ bash ./pipelines/alpha/import.sh <credentials_file> [jenkins_url] [folder_name]
 ### Examples
 
 Basic usage with defaults:
+
 ```bash
 bash ./pipelines/alpha/import.sh ~/.jenkins-api-token
 ```
 
 With custom Jenkins URL:
+
 ```bash
 bash ./pipelines/alpha/import.sh ~/.jenkins-api-token http://jenkins.example.com:8080/
 ```
 
 With custom folder:
+
 ```bash
 bash ./pipelines/alpha/import.sh ~/.jenkins-api-token http://localhost:8080/ pipelines/alpha00
 ```
@@ -100,6 +105,7 @@ declare -a FILES=(
 The `scm-job.xml` file defines the Jenkins job configuration template. The script replaces `REPLACE_SCRIPT_PATH` with the actual Jenkinsfile path when creating jobs.
 
 To modify the job template:
+
 1. Edit `scm-job.xml`
 2. Keep the `REPLACE_SCRIPT_PATH` placeholder intact
 3. Adjust other Jenkins job settings as needed
@@ -118,17 +124,21 @@ These paths are set up by the `podverse_monorepo` Ansible role during server pro
 ## Troubleshooting
 
 **Error: Unable to access jarfile jenkins-cli.jar**
+
 - Make sure you've downloaded the Jenkins CLI jar file to `pipelines/alpha/jenkins-cli.jar`
 
 **Error: can't read scm-job.xml**
+
 - Ensure you're running the script from the repository root directory
 
 **Authentication errors**
+
 - Verify your credentials file format is correct: `username:api_token` (single line, no spaces)
 - Ensure your API token is valid and hasn't expired
 - Check that your user has permissions to create jobs in Jenkins
 
 **Pipeline fails: "file not found" errors**
+
 - Verify sparse checkout is working: check that `/opt/podverse/infra/docker/alpha/` exists on the Jenkins agent
 - Ensure the `podverse_monorepo` Ansible role has been run on the server
 - Check that the Jenkins job SCM configuration includes all required sparse checkout paths
