@@ -40,7 +40,7 @@ Takedown = 6'''
                         // We use triple double-quotes (""") to interpolate the Jenkins parameters.
                         sh """
                             set -eux
-                            docker compose -f docker-compose.yml run --rm podverse_alpha_workers npm run orm_feed_update_flag_status -- ${params.PODCAST_INDEX_ID} ${params.FEED_FLAG_STATUS_ID}
+                            docker compose -f docker-compose.yml run --rm podverse_alpha_workers node apps/workers/dist/index.js ormFeedUpdateFlagStatus ${params.PODCAST_INDEX_ID} ${params.FEED_FLAG_STATUS_ID}
                         """
                     }
                 }

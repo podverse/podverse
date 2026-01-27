@@ -47,7 +47,7 @@ pipeline {
                         if (hasImage) {
                             sh """
                                 set -eux
-                                docker compose -f docker-compose.yml run --rm --name "${containerName}" podverse_alpha_workers npm run mq_rss_add_recently_updated_feeds_from_podcast_index -- -q "${params.MQ_QUEUE_NAME}" -sr "${params.SINCE_RANGE}"
+                                docker compose -f docker-compose.yml run --rm --name "${containerName}" podverse_alpha_workers node apps/workers/dist/index.js mqRSSAddRecentlyUpdatedFeedsFromPodcastIndex -q "${params.MQ_QUEUE_NAME}" -sr "${params.SINCE_RANGE}"
                             """
                         } else {
                             echo "No podverse-workers image found locally. Marking build NOT_BUILT and skipping."

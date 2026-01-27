@@ -45,7 +45,7 @@ pipeline {
                         // 'set -eux' is preserved for verbose debugging and error handling.
                         sh """
                             set -eux
-                            docker compose -f docker-compose.yml run --rm podverse_alpha_workers npm run mq_rss_add -- -p ${params.PODCAST_INDEX_ID} -q ${params.MQ_QUEUE_NAME} ${forceParseFlag}
+                            docker compose -f docker-compose.yml run --rm podverse_alpha_workers node apps/workers/dist/index.js mqRSSAdd -p ${params.PODCAST_INDEX_ID} -q ${params.MQ_QUEUE_NAME} ${forceParseFlag}
                         """
                     }
                 }

@@ -23,7 +23,7 @@ pipeline {
                         if (hasImage) {
                             sh """
                                 set -eux
-                                docker compose -f docker-compose.yml run --rm podverse_alpha_workers npm run orm_on_demand_parser_event_generate_reports
+                                docker compose -f docker-compose.yml run --rm podverse_alpha_workers node apps/workers/dist/index.js generateOnDemandParserEventReports
                             """
                         } else {
                             echo "No podverse-workers image found locally. Marking build NOT_BUILT and skipping."

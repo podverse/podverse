@@ -22,7 +22,7 @@ pipeline {
                         // finish successfully as soon as the container starts.
                         sh '''
                             set -eux
-                            docker compose -f docker-compose.yml run -d --name podverse_alpha_workers_parser_rss_live_item_listener podverse_alpha_workers npm run mq_rss_run_live_item_listener
+                            docker compose -f docker-compose.yml run -d --name podverse_alpha_workers_parser_rss_live_item_listener podverse_alpha_workers node apps/workers/dist/index.js mqRSSRunLiveItemListener
                         '''
                     }
                 }

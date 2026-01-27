@@ -29,7 +29,7 @@ pipeline {
                         // 'set -eux' is preserved to ensure we see the output (-x) and fail on error (-e).
                         sh """
                             set -eux
-                            docker compose -f docker-compose.yml run --rm podverse_alpha_workers npm run parser_rss_parse_feed -- -p ${params.PODCAST_INDEX_ID}
+                            docker compose -f docker-compose.yml run --rm podverse_alpha_workers node apps/workers/dist/index.js parserRSSParseFeed -p ${params.PODCAST_INDEX_ID}
                         """
                     }
                 }

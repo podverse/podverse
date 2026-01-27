@@ -21,7 +21,7 @@ pipeline {
                         // We use triple single-quotes to preserve 'set -eux' and strict shell syntax.
                         sh '''
                             set -eux
-                            docker compose -f docker-compose.yml run --rm podverse_alpha_workers npm run podcast_index_dead_feeds_delete_cache
+                            docker compose -f docker-compose.yml run --rm podverse_alpha_workers node apps/workers/dist/index.js podcastIndexDeadFeedsDeleteCache
                         '''
                     }
                 }

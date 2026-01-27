@@ -38,7 +38,7 @@ pipeline {
                             sh """
                                 set -eux
                                 echo "Starting container: ${containerName}"
-                                docker compose -f docker-compose.yml run -d --name "${containerName}" podverse_alpha_workers npm run mq_rss_run_parser -- -q "${params.MQ_QUEUE_NAME}"
+                                docker compose -f docker-compose.yml run -d --name "${containerName}" podverse_alpha_workers node apps/workers/dist/index.js mqRSSRunParser -q "${params.MQ_QUEUE_NAME}"
                             """
                         }
                     }

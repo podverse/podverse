@@ -30,7 +30,7 @@ pipeline {
                             // Jenkins sh implies 'set -e' automatically.
                             sh '''
                                 set -ux
-                                docker compose -f docker-compose.yml run --rm podverse_alpha_workers npm run archive_all
+                                docker compose -f docker-compose.yml run --rm podverse_alpha_workers node apps/workers/dist/index.js archiveAll
                             '''
                         } else {
                             echo "No podverse-workers image found locally. Marking build NOT_BUILT and skipping."
