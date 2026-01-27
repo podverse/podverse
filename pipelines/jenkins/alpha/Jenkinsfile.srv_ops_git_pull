@@ -31,15 +31,15 @@ pipeline {
                         
                         // Update sparse checkout paths to match current requirements
                         sh '''
-                            cat > .git/info/sparse-checkout << 'EOF'
-                            pipelines/jenkins/
-                            infra/docker/
-                            infra/config/
-                            scripts/
-                            database/
-                            Makefile
-                            Makefile.alpha
-                            EOF
+cat > .git/info/sparse-checkout << 'EOF'
+pipelines/jenkins/
+infra/docker/
+infra/config/
+scripts/
+database/
+Makefile
+Makefile.alpha
+EOF
                         '''
                         
                         // Maps to the git commands using the parameter
