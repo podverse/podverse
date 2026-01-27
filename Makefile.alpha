@@ -226,7 +226,7 @@ alpha_management_db_init: infra/config/alpha/management-db.env
 	@set -a; . infra/config/alpha/management-db.env; set +a; \
 	docker run --rm \
 	  --network podverse_alpha_network \
-	  -v "$(PWD)/scripts/management:/opt/scripts/management:ro" \
+	  -v "$$(pwd)/scripts/management:/opt/scripts/management" \
 	  -w /opt/scripts/management \
 	  -e SUPERUSER_EMAIL="$$SUPERUSER_EMAIL" \
 	  -e SUPERUSER_PASSWORD="$$SUPERUSER_PASSWORD" \
@@ -236,7 +236,7 @@ alpha_management_db_init: infra/config/alpha/management-db.env
 	  -e POSTGRES_USER="$${POSTGRES_USER:-postgres}" \
 	  -e POSTGRES_PASSWORD="$$POSTGRES_PASSWORD" \
 	  node:22-slim \
-	  sh -c "npm install --silent && node create-superuser.js"
+	  sh -c "npm install && node create-superuser.js"
 
 # Management API
 .PHONY: alpha_management_api_up
