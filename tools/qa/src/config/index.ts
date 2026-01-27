@@ -17,7 +17,7 @@ export const config: Config = {
   userAgent: process.env.USER_AGENT!,
   log: {
     level: process.env.LOG_LEVEL!,
-    dir: process.env.LOG_DIR!,
+    dir: process.env.LOG_DIR ?? '',
     timer: process.env.LOG_TIMER === 'true',
   },
 };

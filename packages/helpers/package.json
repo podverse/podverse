@@ -28,6 +28,7 @@
     "joi": "^18.0.1",
     "uuid": "^13.0.0",
     "winston": "^3.17.0",
+    "winston-daily-rotate-file": "^5.0.0",
     "winston-transport": "^4.9.0"
   },
   "devDependencies": {

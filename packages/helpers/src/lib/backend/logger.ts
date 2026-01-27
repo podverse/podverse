@@ -1,9 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 import { createLogger, format, transports, Logger } from 'winston';
+import 'winston-daily-rotate-file';
 import * as TransportStream from 'winston-transport';
 
-const { combine, timestamp, printf, colorize } = format;
+const { combine, timestamp, printf, colorize, json } = format;
 
 const logFormat = printf(({ level, message, timestamp, stack }) => {
   return stack ? `${timestamp} [${level}]: ${message} - ${stack}` : `${timestamp} [${level}]: ${message}`;
@@ -11,6 +12,7 @@ const logFormat = printf(({ level, message, timestamp, stack }) => {
 
 export interface LoggerServiceParams {
   logLevel: string;
+  logDir?: string;
 }
 
 export interface ILoggerLike {
@@ -25,22 +27,41 @@ export interface ILoggerLike {
 export class LoggerService {
   private logger: Logger;
 
-  constructor({ logLevel }: LoggerServiceParams) {
+  constructor({ logLevel, logDir }: LoggerServiceParams) {
+    const loggerTransports: TransportStream[] = [
+      new transports.Console({
+        format: combine(
+          colorize(),
+          timestamp(),
+          logFormat,
+        ),
+      }),
+    ];
+
+    // Add file transport if logDir is provided and non-empty
+    if (logDir && logDir.trim() !== '') {
+      loggerTransports.push(
+        new transports.DailyRotateFile({
+          filename: `${logDir}/app-%DATE%.log`,
+          datePattern: 'YYYY-MM-DD',
+          format: combine(
+            timestamp(),
+            json(),
+          ),
+          zippedArchive: true,
+          maxSize: '20m',
+          maxFiles: '14d',
+        }),
+      );
+    }
+
     this.logger = createLogger({
       level: logLevel,
       format: combine(
         timestamp(),
         logFormat,
       ),
-      transports: [
-        new transports.Console({
-          format: combine(
-            colorize(),
-            timestamp(),
-            logFormat,
-          ),
-        }),
-      ],
+      transports: loggerTransports,
     });
   }
 
