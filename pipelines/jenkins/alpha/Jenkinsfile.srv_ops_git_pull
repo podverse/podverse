@@ -35,8 +35,8 @@ cat > .git/info/sparse-checkout << 'EOF'
 pipelines/jenkins/
 infra/docker/
 infra/config/
+infra/database/
 scripts/
-database/
 Makefile
 Makefile.alpha
 EOF

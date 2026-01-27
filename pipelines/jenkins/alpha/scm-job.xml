@@ -36,7 +36,7 @@
               <path>scripts/</path>
             </hudson.plugins.git.extensions.impl.SparseCheckoutPath>
             <hudson.plugins.git.extensions.impl.SparseCheckoutPath>
-              <path>database/</path>
+              <path>infra/database/</path>
             </hudson.plugins.git.extensions.impl.SparseCheckoutPath>
             <hudson.plugins.git.extensions.impl.SparseCheckoutPath>
               <path>Makefile</path>
