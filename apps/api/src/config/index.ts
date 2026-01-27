@@ -13,6 +13,7 @@ type Config = {
   userAgent: string;
   log: {
     level: string;
+    dir: string;
   };
   auth: {
     jwtSecret: string;
@@ -104,6 +105,7 @@ export const config: Config = {
   userAgent: process.env.USER_AGENT!,
   log: {
     level: process.env.LOG_LEVEL!,
+    dir: process.env.LOG_DIR ?? '',
   },
   auth: {
     jwtSecret: process.env.AUTH_JWT_SECRET!,

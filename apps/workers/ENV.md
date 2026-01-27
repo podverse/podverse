@@ -19,7 +19,12 @@ Environment variables are loaded from `.env` file in development mode (productio
 - **`LOG_LEVEL`** (Optional) - Logging level (default: `info`)
   - Valid values: `error`, `warn`, `info`, `debug`, `verbose`, `silly`, `silent`
 
-- **`LOG_DIR`** (Optional) - Log directory (default: `logs`)
+- **`LOG_DIR`** (Optional) - Log directory for file logging
+  - Leave empty or unset for localhost development (console logging only)
+  - Set to a directory path for file logging with daily rotation (e.g., `/app/logs` for Docker)
+  - When set, logs are written to files with rotation (max 20MB per file, keep 14 days, compressed)
+  - Console logs always appear in terminal regardless of this setting
+  - See [logs/LOGS.md](../../logs/LOGS.md) for comprehensive LOG_DIR documentation
 
 - **`LOG_TIMER`** (Optional) - Enable log timers (default: `false`)
   - Set to `"true"` to enable

@@ -60,6 +60,7 @@ infra/              # Infrastructure
 scripts/            # Utility scripts
 pipelines/          # Jenkins pipelines
 docs/               # Documentation
+logs/               # Log files (gitignored, see logs/LOGS.md)
 .llm/               # LLM context and history
 ```
 

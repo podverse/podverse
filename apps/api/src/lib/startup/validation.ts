@@ -176,6 +176,7 @@ const validateAllEnvironmentVariables = (): ValidationSummary => {
   results.push(validateOptional('NODE_ENV', 'General'));
   results.push(validateServerEnv());
   results.push(validateOptional('LOG_LEVEL', 'General'));
+  results.push(validateOptional('LOG_DIR', 'General', 'Optional - empty for localhost, set for file logging'));
 
   // Calculate summary
   const total = results.length;

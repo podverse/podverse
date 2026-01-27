@@ -37,7 +37,7 @@ const validateAllEnvironmentVariables = (): ValidationSummary => {
   // Config values
   results.push(validateRequired('USER_AGENT', 'Config'));
   results.push(validateRequired('LOG_LEVEL', 'Config'));
-  results.push(validateRequired('LOG_DIR', 'Config'));
+  results.push(validateOptional('LOG_DIR', 'Config', 'Optional - empty for localhost, set for file logging'));
   results.push(validateOptional('LOG_TIMER', 'Config', 'Use Default (false)'));
   
   // Podcast Index

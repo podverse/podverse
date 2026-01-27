@@ -37,9 +37,12 @@ infra/config/alpha/
 # - infra/config/test/ (test config can be committed)
 
 # Logs
-logs/
 *.log
 npm-debug.log*
+# Ignore log files in logs directory, but allow tracking directory structure
+logs/*
+!logs/.gitkeep
+!logs/LOGS.md
 
 # IDE
 .idea/

@@ -4,12 +4,13 @@ import { config } from '@workers/config';
 
 export const createDailyRotateLogger = (filename: string, level = 'info') => {
   const logDir = config.log.dir || './logs';
+  const transports: winston.transport[] = [
+    new winston.transports.Console({ level }),
+  ];
 
-  return winston.createLogger({
-    level,
-    format: winston.format.json(),
-    transports: [
-      new winston.transports.Console({ level }),
+  // Only add file transport if LOG_DIR is set and non-empty
+  if (logDir && logDir.trim() !== '') {
+    transports.push(
       new winston.transports.DailyRotateFile({
         filename: `${logDir}/${filename}-%DATE%.log`,
         datePattern: 'YYYY-MM-DD',
@@ -17,6 +18,12 @@ export const createDailyRotateLogger = (filename: string, level = 'info') => {
         maxSize: '20m',
         maxFiles: '14d',
       }),
-    ],
+    );
+  }
+
+  return winston.createLogger({
+    level,
+    format: winston.format.json(),
+    transports,
   });
 };
