@@ -24,11 +24,32 @@ pipeline {
                 script {
                     // Maps to 'pushd /opt/podverse'
                     dir('/opt/podverse') {
+                        // Ensure sparse checkout is enabled
+                        sh '''
+                            git config core.sparseCheckout true
+                        '''
+                        
+                        // Update sparse checkout paths to match current requirements
+                        sh '''
+                            cat > .git/info/sparse-checkout << 'EOF'
+                            pipelines/jenkins/
+                            infra/docker/
+                            infra/config/
+                            scripts/
+                            database/
+                            Makefile
+                            Makefile.alpha
+                            EOF
+                        '''
+                        
                         // We use double quotes to interpolate the parameter ${GIT_BRANCH_NAME}
                         sh """
                             rm /opt/podverse/infra/docker/alpha/workers/docker-compose.yml || true
                             git checkout ${params.GIT_BRANCH_NAME}
                             git pull origin ${params.GIT_BRANCH_NAME}
+                            
+                            # Reapply sparse checkout to ensure all paths are present
+                            git sparse-checkout reapply || git read-tree -mu HEAD
                         """
                     }
                 }

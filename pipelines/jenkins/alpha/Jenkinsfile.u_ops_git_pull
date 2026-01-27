@@ -26,9 +26,30 @@ pipeline {
                         script {
                             // Maps to logic from Jenkinsfile.aux_ops_git_pull
                             dir('/opt/podverse') {
+                                // Ensure sparse checkout is enabled
+                                sh '''
+                                    git config core.sparseCheckout true
+                                '''
+                                
+                                // Update sparse checkout paths to match current requirements
+                                sh '''
+                                    cat > .git/info/sparse-checkout << 'EOF'
+                                    pipelines/jenkins/
+                                    infra/docker/
+                                    infra/config/
+                                    scripts/
+                                    database/
+                                    Makefile
+                                    Makefile.alpha
+                                    EOF
+                                '''
+                                
                                 sh """
                                     git checkout ${params.GIT_BRANCH_NAME}
                                     git pull origin ${params.GIT_BRANCH_NAME}
+                                    
+                                    # Reapply sparse checkout to ensure all paths are present
+                                    git sparse-checkout reapply || git read-tree -mu HEAD
                                 """
                             }
                         }
@@ -43,9 +64,30 @@ pipeline {
                         script {
                             // Maps to logic from Jenkinsfile.srv_ops_git_pull
                             dir('/opt/podverse') {
+                                // Ensure sparse checkout is enabled
+                                sh '''
+                                    git config core.sparseCheckout true
+                                '''
+                                
+                                // Update sparse checkout paths to match current requirements
+                                sh '''
+                                    cat > .git/info/sparse-checkout << 'EOF'
+                                    pipelines/jenkins/
+                                    infra/docker/
+                                    infra/config/
+                                    scripts/
+                                    database/
+                                    Makefile
+                                    Makefile.alpha
+                                    EOF
+                                '''
+                                
                                 sh """
                                     git checkout ${params.GIT_BRANCH_NAME}
                                     git pull origin ${params.GIT_BRANCH_NAME}
+                                    
+                                    # Reapply sparse checkout to ensure all paths are present
+                                    git sparse-checkout reapply || git read-tree -mu HEAD
                                 """
                             }
                         }
