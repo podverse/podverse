@@ -51,6 +51,7 @@ apps/               # Deployable applications
 
 tools/              # Development tools
   qa/               # Test data generation
+  web-perf/         # Performance testing (Bundle Analyzer, Lighthouse)
 
 infra/              # Infrastructure
   config/           # Environment templates
@@ -104,6 +105,14 @@ Deployments are managed via Jenkins pipelines. See:
 
 - `pipelines/` - Jenkins pipeline definitions
 - Individual app `README.md` files for app-specific deployment notes
+
+## Performance Testing
+
+Performance testing tools are available in `tools/web-perf/`:
+- **Bundle Analyzer**: Analyze Next.js bundle sizes and visualize code splitting
+- **Lighthouse**: Automated performance testing with Playwright and Lighthouse
+
+See [tools/web-perf/README.md](tools/web-perf/README.md) for detailed instructions.
 
 ## Documentation
 
