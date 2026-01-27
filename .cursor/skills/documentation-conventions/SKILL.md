@@ -5,9 +5,11 @@ description: Documentation file naming conventions for the Podverse monorepo. Us
 
 # Documentation Conventions
 
-## README File Naming
+## Single-Instance Documentation Files
 
-**Critical Rule**: Only **one** `README.md` file exists in the repository (at the root).
+**Critical Rules**: These files should only exist once in the repository (at root/docs):
+- **One** `README.md` at repository root
+- **One** `QUICKSTART.md` in `docs/` directory
 
 ### Directory-Specific Documentation
 
@@ -73,6 +75,7 @@ Convert the directory path to uppercase, replacing slashes with hyphens:
 .llm/plans/active/feature-name/
 ├── 00-master-plan.md         # Primary: Master overview/index
 ├── 00-overview.md            # Alternative: Overview/guide
+├── EXECUTION.md              # Parallel execution / agent assignment guide
 ├── 01-part1.md               # Numbered sequential plans
 ├── 02-part2.md
 └── specific-task.md          # Descriptive task names
@@ -80,20 +83,26 @@ Convert the directory path to uppercase, replacing slashes with hyphens:
 
 **Plan index file naming:**
 - **Primary**: `00-master-plan.md` - For comprehensive master plans
-- **Alternative**: `00-overview.md` - For overviews and execution guides
+- **Alternative**: `00-overview.md` - For overviews and guides
 - **Legacy**: `index.md` - Acceptable but less preferred
 - **Never**: `README.md` or full-path names like `LLM-PLANS-ACTIVE-FEATURE.md`
 
-The `00-` prefix ensures the index file sorts first in directory listings.
+**Plan execution guides:**
+- Use `EXECUTION.md` for parallel execution guides, agent assignments, or running instructions
+- **Never**: `QUICK-START.md` or `QUICKSTART.md` (reserved for root `docs/QUICKSTART.md`)
+
+The `00-` prefix ensures index files sort first in directory listings.
 
 ### When Creating Documentation
 
 1. **Root-level overview?** → Update `README.md`
-2. **Directory-specific docs?** → Create `[FULL-PATH].md` in that directory
-3. **Specific topic docs?** → Use descriptive names (e.g., `MIGRATIONS.md`, `TESTING.md`)
-4. **Plan index/overview?** → Use `00-master-plan.md` or `00-overview.md`
-5. **Plan files?** → Must go in `.llm/plans/` (NOT `.cursor/plans/`)
-6. **History files?** → Must go in `.llm/history/` (NOT `.cursor/history/`)
+2. **Quick start guide?** → Update `docs/QUICKSTART.md`
+3. **Directory-specific docs?** → Create `[FULL-PATH].md` in that directory
+4. **Specific topic docs?** → Use descriptive names (e.g., `MIGRATIONS.md`, `TESTING.md`)
+5. **Plan index/overview?** → Use `00-master-plan.md` or `00-overview.md`
+6. **Plan execution guide?** → Use `EXECUTION.md` (for parallel/agent instructions)
+7. **Plan files?** → Must go in `.llm/plans/` (NOT `.cursor/plans/`)
+8. **History files?** → Must go in `.llm/history/` (NOT `.cursor/history/`)
 
 ### Plan and History Location
 
