@@ -19,10 +19,34 @@
       </branches>
       <doGenerateSubmoduleConfigurations>false</doGenerateSubmoduleConfigurations>
       <submoduleCfg class="list"/>
-      <extensions/>
+      <extensions>
+        <hudson.plugins.git.extensions.impl.CleanBeforeCheckout/>
+        <hudson.plugins.git.extensions.impl.SparseCheckoutPaths>
+          <sparseCheckoutPaths>
+            <hudson.plugins.git.extensions.impl.SparseCheckoutPath>
+              <path>pipelines/jenkins/</path>
+            </hudson.plugins.git.extensions.impl.SparseCheckoutPath>
+            <hudson.plugins.git.extensions.impl.SparseCheckoutPath>
+              <path>infra/docker/</path>
+            </hudson.plugins.git.extensions.impl.SparseCheckoutPath>
+            <hudson.plugins.git.extensions.impl.SparseCheckoutPath>
+              <path>infra/config/</path>
+            </hudson.plugins.git.extensions.impl.SparseCheckoutPath>
+            <hudson.plugins.git.extensions.impl.SparseCheckoutPath>
+              <path>scripts/</path>
+            </hudson.plugins.git.extensions.impl.SparseCheckoutPath>
+            <hudson.plugins.git.extensions.impl.SparseCheckoutPath>
+              <path>Makefile</path>
+            </hudson.plugins.git.extensions.impl.SparseCheckoutPath>
+            <hudson.plugins.git.extensions.impl.SparseCheckoutPath>
+              <path>Makefile.alpha</path>
+            </hudson.plugins.git.extensions.impl.SparseCheckoutPath>
+          </sparseCheckoutPaths>
+        </hudson.plugins.git.extensions.impl.SparseCheckoutPaths>
+      </extensions>
     </scm>
     <scriptPath>REPLACE_SCRIPT_PATH</scriptPath>
-    <lightweight>true</lightweight>
+    <lightweight>false</lightweight>
   </definition>
   <triggers/>
   <disabled>false</disabled>

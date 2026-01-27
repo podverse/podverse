@@ -85,5 +85,5 @@ validate_docker: validate
 # Include Environment-Specific Makefiles
 # ==========================================
 
-include Makefile.local
+-include Makefile.local
 include Makefile.alpha
