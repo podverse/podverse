@@ -2,6 +2,22 @@
 
 This directory contains tools for importing Jenkins pipeline jobs from this repository into a Jenkins server.
 
+## Monorepo Structure
+
+These Jenkins pipelines use the `podverse` monorepo with **sparse checkout** to minimize server disk usage. Only deployment-related directories are checked out:
+
+- `pipelines/jenkins/` - Jenkins pipeline definitions
+- `infra/docker/` - Docker Compose configurations
+- `infra/config/` - Environment configuration files
+- `scripts/` - Deployment scripts
+- `Makefile` and `Makefile.alpha` - Make targets for deployment
+
+The Jenkins job template (`scm-job.xml`) is configured to:
+- Clone from `https://github.com/podverse/podverse.git`
+- Use sparse checkout (only the paths listed above)
+- Checkout the `v5-develop` branch by default
+- Store the checkout at `/opt/podverse` on the Jenkins agent
+
 ## Prerequisites
 
 ### 1. Download Jenkins CLI
@@ -88,6 +104,17 @@ To modify the job template:
 2. Keep the `REPLACE_SCRIPT_PATH` placeholder intact
 3. Adjust other Jenkins job settings as needed
 
+## Path References
+
+All Jenkins pipelines reference paths under `/opt/podverse`:
+
+- **Docker Compose configs**: `/opt/podverse/infra/docker/alpha/`
+- **Environment configs**: `/opt/podverse/infra/config/alpha/`
+- **Scripts**: `/opt/podverse/scripts/`
+- **Makefiles**: `/opt/podverse/Makefile.alpha`
+
+These paths are set up by the `podverse_monorepo` Ansible role during server provisioning.
+
 ## Troubleshooting
 
 **Error: Unable to access jarfile jenkins-cli.jar**
@@ -100,3 +127,8 @@ To modify the job template:
 - Verify your credentials file format is correct: `username:api_token` (single line, no spaces)
 - Ensure your API token is valid and hasn't expired
 - Check that your user has permissions to create jobs in Jenkins
+
+**Pipeline fails: "file not found" errors**
+- Verify sparse checkout is working: check that `/opt/podverse/infra/docker/alpha/` exists on the Jenkins agent
+- Ensure the `podverse_monorepo` Ansible role has been run on the server
+- Check that the Jenkins job SCM configuration includes all required sparse checkout paths
