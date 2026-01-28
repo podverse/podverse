@@ -13,7 +13,7 @@ jobs:
       issues: write
     steps:
       - name: Label PR based on changed files
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           script: |
             // Get all changed files (with pagination)
