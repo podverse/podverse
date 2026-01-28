@@ -12,8 +12,10 @@ package-lock.json
 # TypeScript incremental build cache
 **/*.tsbuildinfo
 
-# i18n compiled (generated)
-apps/*/i18n/compiled/
+# i18n translation data (do not format; originals/overrides have special structure, compiled is generated)
+**/i18n/originals/**
+**/i18n/overrides/**
+**/i18n/compiled/**
 
 # Test coverage
 coverage/
