@@ -1,6 +1,6 @@
 <?xml version='1.1' encoding='UTF-8'?>
 <flow-definition plugin="workflow-job">
-  <description>Imported from Git: podverse/pipelines/jenkins/alpha</description>
+  <description>Imported from Git: podverse/infra/pipelines/jenkins/alpha</description>
   <keepDependencies>false</keepDependencies>
   <properties/>
   <definition class="org.jenkinsci.plugins.workflow.cps.CpsScmFlowDefinition" plugin="workflow-cps">
@@ -24,7 +24,7 @@
         <hudson.plugins.git.extensions.impl.SparseCheckoutPaths>
           <sparseCheckoutPaths>
             <hudson.plugins.git.extensions.impl.SparseCheckoutPath>
-              <path>pipelines/jenkins/</path>
+              <path>infra/pipelines/jenkins/</path>
             </hudson.plugins.git.extensions.impl.SparseCheckoutPath>
             <hudson.plugins.git.extensions.impl.SparseCheckoutPath>
               <path>infra/docker/</path>

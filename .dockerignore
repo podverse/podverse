@@ -19,7 +19,6 @@ LICENSE
 
 # Infrastructure (not needed in app images)
 infra/
-pipelines/
 scripts/
 tools/
 

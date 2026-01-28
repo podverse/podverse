@@ -4,7 +4,7 @@
 
 See [QUICKSTART.md](QUICKSTART.md) for complete setup instructions including:
 
-- Prerequisites (Docker, Node.js 22+)
+- Prerequisites (Docker, Node.js 22 LTS)
 - Infrastructure services (database, message queue, cache)
 - Building packages and running apps
 
@@ -93,8 +93,13 @@ This runs Prettier with the plugin only on `**/*.sh`. Use it at your discretion 
 
 ### CI for External Contributors
 
-To prevent abuse of GitHub Actions, CI does not run automatically on PRs from external contributors. A maintainer must comment `/test` on the PR to trigger the CI workflow. This runs:
+To prevent abuse of GitHub Actions, CI does not run automatically on PRs from external contributors. A maintainer must comment `/test` on the PR to trigger the CI workflow.
 
+**Exception**: Dependabot PRs run CI automatically since Dependabot is a trusted GitHub bot.
+
+The CI workflow runs:
+
+- Database migration verification
 - Linting
 - Type checking
 - Package builds
@@ -125,7 +130,7 @@ Before submitting a PR:
 2. Jenkins pipeline builds and deploys
 3. Deployment targets configured per environment
 
-See `pipelines/` for pipeline definitions.
+See `infra/pipelines/` for pipeline definitions.
 
 ## LLM Development (Optional)
 
