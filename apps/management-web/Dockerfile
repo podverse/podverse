@@ -1,4 +1,4 @@
-FROM node:22-slim AS base
+FROM node:25-slim AS base
 WORKDIR /opt
 
 # Build argument for environment file path (optional)
@@ -36,7 +36,7 @@ RUN npm run build:packages:prod
 RUN npm run build -w apps/management-web
 
 # Stage 3: Run the app
-FROM node:22-slim AS runner
+FROM node:25-slim AS runner
 WORKDIR /opt/app
 ENV NODE_ENV=production
 ENV PORT=3999
