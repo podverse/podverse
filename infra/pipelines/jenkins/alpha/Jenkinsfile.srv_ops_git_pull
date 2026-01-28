@@ -32,7 +32,7 @@ pipeline {
                         // Update sparse checkout paths to match current requirements
                         sh '''
 cat > .git/info/sparse-checkout << 'EOF'
-pipelines/jenkins/
+infra/pipelines/jenkins/
 infra/docker/
 infra/config/
 infra/database/

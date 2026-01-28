@@ -6,7 +6,7 @@ This directory contains tools for importing Jenkins pipeline jobs from this repo
 
 These Jenkins pipelines use the `podverse` monorepo with **sparse checkout** to minimize server disk usage. Only deployment-related directories are checked out:
 
-- `pipelines/jenkins/` - Jenkins pipeline definitions
+- `infra/pipelines/jenkins/` - Jenkins pipeline definitions
 - `infra/docker/` - Docker Compose configurations
 - `infra/config/` - Environment configuration files
 - `scripts/` - Deployment scripts
@@ -26,7 +26,7 @@ The Jenkins job template (`scm-job.xml`) is configured to:
 Before running the import script, you need to download the Jenkins CLI jar file:
 
 ```bash
-wget http://YOUR_JENKINS_URL/jnlpJars/jenkins-cli.jar -O pipelines/alpha/jenkins-cli.jar
+wget http://YOUR_JENKINS_URL/jnlpJars/jenkins-cli.jar -O infra/pipelines/jenkins/alpha/jenkins-cli.jar
 ```
 
 Replace `YOUR_JENKINS_URL` with your actual Jenkins server URL (e.g., `http://localhost:8080` or `https://jenkins.example.com`).
@@ -54,7 +54,7 @@ To generate an API token:
 Run the import script from the repository root:
 
 ```bash
-bash ./pipelines/alpha/import.sh [folder_name] < credentials_file > [jenkins_url]
+bash ./infra/pipelines/jenkins/alpha/import.sh [folder_name] < credentials_file > [jenkins_url]
 ```
 
 ### Parameters
@@ -68,19 +68,19 @@ bash ./pipelines/alpha/import.sh [folder_name] < credentials_file > [jenkins_url
 Basic usage with defaults:
 
 ```bash
-bash ./pipelines/alpha/import.sh ~/.jenkins-api-token
+bash ./infra/pipelines/jenkins/alpha/import.sh ~/.jenkins-api-token
 ```
 
 With custom Jenkins URL:
 
 ```bash
-bash ./pipelines/alpha/import.sh ~/.jenkins-api-token http://jenkins.example.com:8080/
+bash ./infra/pipelines/jenkins/alpha/import.sh ~/.jenkins-api-token http://jenkins.example.com:8080/
 ```
 
 With custom folder:
 
 ```bash
-bash ./pipelines/alpha/import.sh ~/.jenkins-api-token http://localhost:8080/ pipelines/alpha00
+bash ./infra/pipelines/jenkins/alpha/import.sh ~/.jenkins-api-token http://localhost:8080/ pipelines/alpha00
 ```
 
 ## Updating the Import Script
@@ -91,9 +91,9 @@ bash ./pipelines/alpha/import.sh ~/.jenkins-api-token http://localhost:8080/ pip
 
 ```bash
 declare -a FILES=(
-  "./pipelines/alpha/Jenkinsfile.aux_all_down"
-  "./pipelines/alpha/Jenkinsfile.aux_db_down"
-  "./pipelines/alpha/Jenkinsfile.your_new_job" # Add here
+  "./infra/pipelines/jenkins/alpha/Jenkinsfile.aux_all_down"
+  "./infra/pipelines/jenkins/alpha/Jenkinsfile.aux_db_down"
+  "./infra/pipelines/jenkins/alpha/Jenkinsfile.your_new_job" # Add here
   # ...
 )
 ```
@@ -125,7 +125,7 @@ These paths are set up by the `podverse_monorepo` Ansible role during server pro
 
 **Error: Unable to access jarfile jenkins-cli.jar**
 
-- Make sure you've downloaded the Jenkins CLI jar file to `pipelines/alpha/jenkins-cli.jar`
+- Make sure you've downloaded the Jenkins CLI jar file to `infra/pipelines/jenkins/alpha/jenkins-cli.jar`
 
 **Error: can't read scm-job.xml**
 

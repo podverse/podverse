@@ -11,7 +11,7 @@ Open source podcast app with Podcasting 2.0 support.
 
 ## Quick Start
 
-**Prerequisites**: [Docker](https://docs.docker.com/get-docker/) and [Node.js 22+](https://github.com/nvm-sh/nvm)
+**Prerequisites**: [Docker](https://docs.docker.com/get-docker/) and [Node.js 22 LTS](https://github.com/nvm-sh/nvm)
 
 ```bash
 # 1. Clone and install
@@ -57,9 +57,9 @@ infra/              # Infrastructure
   config/           # Environment templates
   database/         # Migrations and seeds
   docker/           # Docker compose files
+  pipelines/        # Jenkins pipelines
 
 scripts/            # Utility scripts
-pipelines/          # Jenkins pipelines
 docs/               # Documentation
 logs/               # Log files (gitignored, see logs/LOGS.md)
 .llm/               # LLM context and history
@@ -104,7 +104,7 @@ See [docs/QUICKSTART.md](docs/QUICKSTART.md#docker-images) for detailed Docker i
 
 Deployments are managed via Jenkins pipelines. See:
 
-- `pipelines/` - Jenkins pipeline definitions
+- `infra/pipelines/` - Jenkins pipeline definitions
 - Individual app `README.md` files for app-specific deployment notes
 
 ## Performance Testing
