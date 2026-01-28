@@ -4,12 +4,11 @@ This document describes the GitHub Secrets required for the monorepo's CI/CD wor
 
 ## Required Secrets
 
-| Secret                | Used By                        | Purpose                                                   |
-| --------------------- | ------------------------------ | --------------------------------------------------------- |
-| `GHCR_REGISTRY_TOKEN` | publish-alpha.yml              | Query existing Docker image tags for version incrementing |
-| `OPENAI_API_KEY`      | i18n.yml                       | Auto-generate translations after merge to develop         |
-| `APP_ID`              | complete-feature.yml, i18n.yml | GitHub App authentication for protected branch pushes     |
-| `APP_PRIVATE_KEY`     | complete-feature.yml, i18n.yml | GitHub App authentication for protected branch pushes     |
+| Secret                | Used By            | Purpose                                           |
+| --------------------- | ------------------ | ------------------------------------------------- |
+| `NPM_TOKEN`           | publish-alpha.yml  | Authenticate with npm for package publishing      |
+| `GHCR_REGISTRY_TOKEN` | publish-alpha.yml  | Query existing Docker image tags                  |
+| `OPENAI_API_KEY`      | i18n-translate.yml | Auto-generate translations after merge to develop |
 
 ## Automatic Secrets
 
@@ -93,7 +92,6 @@ Used by GitHub App for pushing to protected branches (e.g., automated commits to
 
 No secrets required. Runs on `/test` comment to validate:
 
-- Database migrations synced
 - Linting
 - Type checking
 - Package builds
@@ -103,16 +101,13 @@ No secrets required. Runs on `/test` comment to validate:
 
 **Secrets used**: `GHCR_REGISTRY_TOKEN`, `GITHUB_TOKEN` (automatic)
 
-Triggers on push to `alpha` branch or manual `workflow_dispatch`:
+Triggers on push to `alpha` branch:
 
-1. Validates build (lint, type-check, security audit)
-2. Queries GHCR for existing tags to calculate next alpha version (e.g., `5.2.0-alpha.3`)
-3. Builds Docker images from source (packages included in build context)
-4. Pushes Docker images to GHCR with incrementing version tag and `alpha` rolling tag
+1. Validates build
+2. Publishes npm packages to `@alpha` tag
+3. Builds and pushes Docker images to GHCR
 
-**Note**: npm packages are NOT published to npm registry. Docker images contain packages built from source.
-
-### i18n.yml
+### i18n-translate.yml
 
 **Secrets used**: `OPENAI_API_KEY`, `APP_ID`, `APP_PRIVATE_KEY`, `GITHUB_TOKEN`
 
@@ -122,19 +117,9 @@ Triggers on push to `develop` when `en-US.json` files change:
 2. Compiles translation files
 3. Commits and pushes generated translations to `develop`
 
-### complete-feature.yml
-
-**Secrets used**: `APP_ID`, `APP_PRIVATE_KEY`, `GITHUB_TOKEN`
-
-Triggers when PR is merged to `develop`:
-
-1. Moves LLM history from `active/` to `completed/`
-2. Commits changes to `develop` branch
-
 ## Security Notes
 
 - Never commit secrets to the repository
 - Rotate tokens periodically
 - Use fine-grained permissions where possible
 - `GITHUB_TOKEN` is automatically scoped to the repository
-- GitHub App tokens are short-lived and automatically expire

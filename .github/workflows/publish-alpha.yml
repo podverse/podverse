@@ -32,14 +32,14 @@ jobs:
       - name: Security audit
         run: npm audit
 
-      - name: Build all packages
-        run: npm run build:packages
-
       - name: Lint
         run: npm run lint
 
       - name: Type check
         run: npm run type-check
+
+      - name: Build all packages
+        run: npm run build:packages
 
       - name: Setup env files for web apps
         run: |
@@ -129,6 +129,8 @@ jobs:
 
       - name: Get unified version
         id: version
+        env:
+          GHCR_TOKEN: ${{ secrets.GHCR_REGISTRY_TOKEN }}
         run: |
           echo "VERSION=${{ needs.validate.outputs.version }}" >> $GITHUB_OUTPUT
           echo "Using unified version: ${{ needs.validate.outputs.version }}"

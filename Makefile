@@ -33,16 +33,16 @@ validate:
 	@echo "============================================"
 	@echo ""
 	@echo "Step 1/6: Security audit..."
-	npm audit
+	npm audit --audit-level=high
 	@echo ""
-	@echo "Step 2/6: Building packages..."
-	npm run build:packages
-	@echo ""
-	@echo "Step 3/6: Linting..."
+	@echo "Step 2/6: Linting..."
 	npm run lint
 	@echo ""
-	@echo "Step 4/6: Type checking..."
+	@echo "Step 3/6: Type checking..."
 	npm run type-check
+	@echo ""
+	@echo "Step 4/6: Building packages..."
+	npm run build:packages
 	@echo ""
 	@echo "Step 5/6: Setting up env files for web apps..."
 	cp apps/web/env/local.env apps/web/.env
