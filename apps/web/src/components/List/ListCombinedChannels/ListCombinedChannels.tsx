@@ -15,16 +15,21 @@ type ListCombinedChannelsProps = {
   setPage: (page: number) => void;
   channels: DTOChannel[];
   totalPages: number;
-  filterMedium: QueryParamsMedium
+  filterMedium: QueryParamsMedium;
   viewSelected: ViewSelectedOption;
 };
 
 export const ListCombinedChannels: React.FC<ListCombinedChannelsProps> = ({
-  page, setPage, channels, totalPages, filterMedium, viewSelected }) => {
-  
+  page,
+  setPage,
+  channels,
+  totalPages,
+  filterMedium,
+  viewSelected,
+}) => {
   // Track if we should skip scroll on the first effect run (back navigation case)
   const skipScrollOnceRef = useRef(checkBackNavFlag());
-  
+
   useSkipInitialEffect(() => {
     // Skip scroll-to-top once if this is a back navigation
     if (skipScrollOnceRef.current) {
@@ -33,7 +38,7 @@ export const ListCombinedChannels: React.FC<ListCombinedChannelsProps> = ({
     }
     scrollMainToTop();
   }, [channels]);
-  
+
   const listNodes = ListCombinedChannelNodes({ channels, viewSelected, filterMedium });
 
   return (
@@ -41,7 +46,8 @@ export const ListCombinedChannels: React.FC<ListCombinedChannelsProps> = ({
       currentPage={page}
       totalPages={totalPages}
       setPage={setPage}
-      paginationControlsClassName={styles.paginationControls}>
+      paginationControlsClassName={styles.paginationControls}
+    >
       {listNodes}
     </Pagination>
   );

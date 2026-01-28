@@ -10,10 +10,7 @@ export const ModalLoginRequired: React.FC = () => {
   const tInstructions = useTranslations('instructions');
   const tAuthentication = useTranslations('authentication');
   const header = tInstructions('login_required');
-  const {
-    modalLoginRequired, setModalLoginRequired,
-    setModalAuthLogin,
-  } = useModals();
+  const { modalLoginRequired, setModalLoginRequired, setModalAuthLogin } = useModals();
 
   const clearModalLoginRequired = () => {
     setModalLoginRequired({
@@ -26,14 +23,15 @@ export const ModalLoginRequired: React.FC = () => {
     clearModalLoginRequired();
     setModalAuthLogin({ isOpen: true });
   };
-  
+
   return (
     <Modal
       isOpen={!!modalLoginRequired.message}
       onClose={clearModalLoginRequired}
       header={header}
       ariaLabel={header}
-      modalContentMaxWidth={500}>
+      modalContentMaxWidth={500}
+    >
       <CallToActionMessage
         message={modalLoginRequired.message || ''}
         buttonLabel={tAuthentication('login')}

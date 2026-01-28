@@ -43,7 +43,7 @@ export class QueueService extends BaseManyService<Queue, 'account'> {
 
     let results = await this._getAll(account, config);
 
-    const existingMediums = new Set(results.map(q => Number(q.medium_id)));
+    const existingMediums = new Set(results.map((q) => Number(q.medium_id)));
 
     const missingMediums: number[] = [];
     for (const mediumKey of Object.keys(supportedQueueMediums)) {
@@ -63,12 +63,16 @@ export class QueueService extends BaseManyService<Queue, 'account'> {
     return results;
   }
 
-  async updateIsActiveQueue(account_id: number, queue_id_text: string, is_active_queue: boolean): Promise<void> {
+  async updateIsActiveQueue(
+    account_id: number,
+    queue_id_text: string,
+    is_active_queue: boolean
+  ): Promise<void> {
     const queues = await this.getAllPrivate(account_id);
 
-    const currentActiveQueue = queues.find(q => q.is_active_queue);
+    const currentActiveQueue = queues.find((q) => q.is_active_queue);
 
-    const targetQueue = queues.find(q => q.id_text === queue_id_text);
+    const targetQueue = queues.find((q) => q.id_text === queue_id_text);
 
     if (!targetQueue) {
       throw new Error(`Queue with id_text ${queue_id_text} not found for account ${account_id}`);
@@ -79,7 +83,10 @@ export class QueueService extends BaseManyService<Queue, 'account'> {
     }
 
     if (currentActiveQueue && currentActiveQueue.id_text !== queue_id_text) {
-      await this.repositoryReadWrite.update({ id: currentActiveQueue.id }, { is_active_queue: false });
+      await this.repositoryReadWrite.update(
+        { id: currentActiveQueue.id },
+        { is_active_queue: false }
+      );
     }
 
     if (targetQueue.is_active_queue !== is_active_queue) {

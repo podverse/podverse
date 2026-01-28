@@ -5,76 +5,69 @@ import styles from '../../styles/components/Toast/Toast.module.scss';
 
 const duration = 4000;
 
-export function showToast(
-	message: string,
-  type: 'success' | 'error' | 'warning' | 'danger',
-) {
-	if (type === 'success') {
-		toast.success(message, { duration, className: styles.toast });
-	} else if (type === 'error') {
-		toast.error(message, { duration, className: styles.toastDanger });
-	}
+export function showToast(message: string, type: 'success' | 'error' | 'warning' | 'danger') {
+  if (type === 'success') {
+    toast.success(message, { duration, className: styles.toast });
+  } else if (type === 'error') {
+    toast.error(message, { duration, className: styles.toastDanger });
+  }
 }
 
 export interface CustomToastProps {
-	message: React.ReactNode;
-	linkText: string;
-	linkHref: string;
-	onLinkClick?: () => void;
-	onDismiss?: () => void;
+  message: React.ReactNode;
+  linkText: string;
+  linkHref: string;
+  onLinkClick?: () => void;
+  onDismiss?: () => void;
 }
 
 export function showToastCustom(
-	props: CustomToastProps,
-	type: 'warning' | 'danger',
-	options?: ToastOptions,
+  props: CustomToastProps,
+  type: 'warning' | 'danger',
+  options?: ToastOptions
 ): string {
-	const { message, linkText, linkHref, onLinkClick, onDismiss } = props;
-	const toastClassName = type === 'warning' ? styles.toastWarning : styles.toastDanger;
+  const { message, linkText, linkHref, onLinkClick, onDismiss } = props;
+  const toastClassName = type === 'warning' ? styles.toastWarning : styles.toastDanger;
 
-	return toast.custom(
-		(t: ToastType) => {
-			const handleDismiss = () => {
-				toast.dismiss(t.id);
-				onDismiss?.();
-			};
+  return toast.custom(
+    (t: ToastType) => {
+      const handleDismiss = () => {
+        toast.dismiss(t.id);
+        onDismiss?.();
+      };
 
-			const handleLinkClick = (_e: React.MouseEvent<HTMLAnchorElement>) => {
-				onLinkClick?.();
-			};
+      const handleLinkClick = (_e: React.MouseEvent<HTMLAnchorElement>) => {
+        onLinkClick?.();
+      };
 
-			return (
-				<div
-					className={`${toastClassName} ${styles.toastCustomWrapper} ${t.visible ? styles.toastCustomWrapperVisible : styles.toastCustomWrapperHidden}`}
-				>
-					<div className={styles.toastContentColumn}>
-						<div>{message}</div>
-						<div>
-							<NextLink
-								href={linkHref}
-								onClick={handleLinkClick}
-								className={styles.toastLink}
-							>
-								{linkText}
-							</NextLink>
-						</div>
-					</div>
-					<button
-						type="button"
-						onClick={handleDismiss}
-						className={styles.toastDismissButton}
-						aria-label="Dismiss"
-					>
-						×
-					</button>
-				</div>
-			);
-		},
-		{
-			duration: Infinity,
-			...options,
-		},
-	);
+      return (
+        <div
+          className={`${toastClassName} ${styles.toastCustomWrapper} ${t.visible ? styles.toastCustomWrapperVisible : styles.toastCustomWrapperHidden}`}
+        >
+          <div className={styles.toastContentColumn}>
+            <div>{message}</div>
+            <div>
+              <NextLink href={linkHref} onClick={handleLinkClick} className={styles.toastLink}>
+                {linkText}
+              </NextLink>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={handleDismiss}
+            className={styles.toastDismissButton}
+            aria-label="Dismiss"
+          >
+            ×
+          </button>
+        </div>
+      );
+    },
+    {
+      duration: Infinity,
+      ...options,
+    }
+  );
 }
 
 export function showToastPromiseWithLoading<T>(
@@ -84,7 +77,7 @@ export function showToastPromiseWithLoading<T>(
     success: string;
     error: string;
   },
-  options?: ToastOptions,
+  options?: ToastOptions
 ) {
   const p = typeof promise === 'function' ? promise() : promise;
 
@@ -110,7 +103,7 @@ export function showToastPromiseWithLoading<T>(
         className: styles.toast,
         duration,
       });
-    },
+    }
   );
   return p;
 }
@@ -121,7 +114,7 @@ export function showToastPromise<T>(
     success: string;
     error: string;
   },
-  options?: ToastOptions,
+  options?: ToastOptions
 ) {
   const p = typeof promise === 'function' ? promise() : promise;
 
@@ -139,7 +132,7 @@ export function showToastPromise<T>(
         className: styles.toast,
         duration,
       });
-    },
+    }
   );
   return p;
 }
@@ -164,13 +157,13 @@ export function dismissToast(toastId: string): void {
 }
 
 export const Toast: React.FC = () => (
-	<Toaster
-		position="top-right"
-		reverseOrder={false}
-		gutter={8}
-		toastOptions={{
+  <Toaster
+    position="top-right"
+    reverseOrder={false}
+    gutter={8}
+    toastOptions={{
       duration,
-			className: styles.toast,
-		}}
-	/>
+      className: styles.toast,
+    }}
+  />
 );

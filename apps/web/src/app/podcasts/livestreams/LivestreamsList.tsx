@@ -15,12 +15,20 @@ import { useAccount } from '../../../contexts/Account';
 import styles from '../../../styles/app/podcasts/livestreams/LivestreamsList.module.scss';
 
 type LivestreamsListProps = {
-  medium: 'av' | 'music'
+  medium: 'av' | 'music';
 };
 
 export const LivestreamsList: React.FC<LivestreamsListProps> = ({ medium }) => {
-  const { filterParams, setFilterParams, items, totalPages, isLoading,
-    showSubscribeMessage, showCategoriesModal, setShowCategoriesModal } = useLivestreamsContext();
+  const {
+    filterParams,
+    setFilterParams,
+    items,
+    totalPages,
+    isLoading,
+    showSubscribeMessage,
+    showCategoriesModal,
+    setShowCategoriesModal,
+  } = useLivestreamsContext();
   const { viewSelected } = useLocalSettings();
   const { page } = filterParams;
   const router = useRouter();
@@ -56,21 +64,13 @@ export const LivestreamsList: React.FC<LivestreamsListProps> = ({ medium }) => {
       onClick: () => setFilterParams({ ...filterParams, page: 1, liveItemType: 'ended' }),
     },
   ];
-      
+
   return (
     <>
-      {
-        filterParams.type === 'subscribed' && !loggedInAccount && (
-          <HowToStartInfo
-            rows={items}
-            totalPages={totalPages}
-          />
-        )
-      }
-      <ButtonTabs
-        buttonTabs={buttonTabs}
-        selectedKey={filterParams.liveItemType}
-      />
+      {filterParams.type === 'subscribed' && !loggedInAccount && (
+        <HowToStartInfo rows={items} totalPages={totalPages} />
+      )}
+      <ButtonTabs buttonTabs={buttonTabs} selectedKey={filterParams.liveItemType} />
       <div className={styles.listWrapper}>
         <ListLiveItems
           page={page}

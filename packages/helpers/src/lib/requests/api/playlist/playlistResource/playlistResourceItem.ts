@@ -5,7 +5,7 @@ import { BetweenParams } from '../../../../../dtos/betweenParams';
 export async function reqPlaylistResourceItemAddFirst(
   api: ApiRequestService,
   playlist_id_text: string,
-  item_id_text: string,
+  item_id_text: string
 ) {
   return api.apiRequest<DTOPlaylistResource>({
     path: `/playlist/${playlist_id_text}/item/${item_id_text}/first`,
@@ -20,7 +20,7 @@ export async function reqPlaylistResourceItemAddBetween(
   api: ApiRequestService,
   playlist_id_text: string,
   item_id_text: string,
-  params: BetweenParams,
+  params: BetweenParams
 ) {
   return api.apiRequest<DTOPlaylistResource>({
     path: `/playlist/${playlist_id_text}/item/${item_id_text}/between`,
@@ -35,9 +35,9 @@ export async function reqPlaylistResourceItemAddBetween(
 export async function reqPlaylistResourceItemAddLast(
   api: ApiRequestService,
   playlist_id_text: string,
-  item_id_text: string,
+  item_id_text: string
 ) {
-  return api.apiRequest<DTOPlaylistResource>({  
+  return api.apiRequest<DTOPlaylistResource>({
     path: `/playlist/${playlist_id_text}/item/${item_id_text}/last`,
     method: 'POST',
     config: {
@@ -49,7 +49,7 @@ export async function reqPlaylistResourceItemAddLast(
 export async function reqPlaylistResourceItemDelete(
   api: ApiRequestService,
   playlist_id_text: string,
-  item_id_text: string,
+  item_id_text: string
 ) {
   return api.apiRequest<void>({
     path: `/playlist/${playlist_id_text}/item/${item_id_text}`,

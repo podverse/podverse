@@ -63,7 +63,7 @@ Create `@podverse/helpers-browser` package for browser-specific utilities (not u
 **Create `packages/helpers-browser/src/index.ts`:**
 
 ```typescript
-export * from "./clipboard";
+export * from './clipboard';
 ```
 
 ### 3. Build Package

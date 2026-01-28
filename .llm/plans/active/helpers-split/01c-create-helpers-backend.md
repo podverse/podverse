@@ -13,6 +13,7 @@ Create `@podverse/helpers-backend` package for backend-only utilities (logging, 
 ### 1. Create Package Structure
 
 **`packages/helpers-backend/package.json`:**
+
 ```json
 {
   "name": "@podverse/helpers-backend",
@@ -20,9 +21,7 @@ Create `@podverse/helpers-backend` package for backend-only utilities (logging, 
   "description": "Backend utilities for Podverse applications",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
-  "files": [
-    "dist/**/*"
-  ],
+  "files": ["dist/**/*"],
   "scripts": {
     "build": "npm run lint && tsc",
     "build:prod": "tsc",
@@ -50,6 +49,7 @@ Create `@podverse/helpers-backend` package for backend-only utilities (logging, 
 ```
 
 **`packages/helpers-backend/tsconfig.json`:**
+
 ```json
 {
   "extends": "../../tsconfig.base.json",
@@ -57,23 +57,24 @@ Create `@podverse/helpers-backend` package for backend-only utilities (logging, 
     "outDir": "./dist",
     "rootDir": "./src"
   },
-  "include": [
-    "src/**/*"
-  ]
+  "include": ["src/**/*"]
 }
 ```
 
 ### 2. Copy Backend Code
 
 **Copy from `packages/helpers/src/lib/backend/`** to `packages/helpers-backend/src/`:
+
 - `logger.ts`
 - `logTimer.ts`
 - `os.ts`
 
 **Copy from `packages/helpers/src/lib/`** to `packages/helpers-backend/src/`:
+
 - `playlistResource.ts` (uses BigNumber)
 
 **Create `packages/helpers-backend/src/index.ts`:**
+
 ```typescript
 export * from './logger';
 export * from './logTimer';

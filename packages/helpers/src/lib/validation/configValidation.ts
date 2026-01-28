@@ -1,9 +1,9 @@
 /**
  * Configuration validation utilities for podverse modules.
- * 
+ *
  * These functions validate configuration objects that are passed to module factories.
  * They should be called at app startup BEFORE creating module contexts.
- * 
+ *
  * @example
  * ```typescript
  * const ormConfig: ORMConfig = { database: {...}, log: {...}, defaults: {...} };
@@ -76,10 +76,14 @@ export function validateORMConfig(config: ORMConfig): ConfigValidationResult {
       errors.push(createError('database.read_password', 'Database read password is required'));
     }
     if (!config.database.read_write_username || config.database.read_write_username.trim() === '') {
-      errors.push(createError('database.read_write_username', 'Database read-write username is required'));
+      errors.push(
+        createError('database.read_write_username', 'Database read-write username is required')
+      );
     }
     if (!config.database.read_write_password) {
-      errors.push(createError('database.read_write_password', 'Database read-write password is required'));
+      errors.push(
+        createError('database.read_write_password', 'Database read-write password is required')
+      );
     }
     if (!config.database.database || config.database.database.trim() === '') {
       errors.push(createError('database.database', 'Database name is required'));
@@ -100,7 +104,9 @@ export function validateORMConfig(config: ORMConfig): ConfigValidationResult {
     errors.push(createError('defaults', 'Defaults configuration is required'));
   } else {
     if (!config.defaults.account?.settings?.locale) {
-      errors.push(createError('defaults.account.settings.locale', 'Default account locale is required'));
+      errors.push(
+        createError('defaults.account.settings.locale', 'Default account locale is required')
+      );
     }
   }
 
@@ -152,13 +158,25 @@ export function validateNotificationsConfig(config: NotificationsConfig): Config
   // WebPush config validation (only required fields if enabled)
   if (config.webpush?.enabled) {
     if (!config.webpush.vapid_public_key || config.webpush.vapid_public_key.trim() === '') {
-      errors.push(createError('webpush.vapid_public_key', 'VAPID public key is required when WebPush is enabled'));
+      errors.push(
+        createError(
+          'webpush.vapid_public_key',
+          'VAPID public key is required when WebPush is enabled'
+        )
+      );
     }
     if (!config.webpush.vapid_private_key || config.webpush.vapid_private_key.trim() === '') {
-      errors.push(createError('webpush.vapid_private_key', 'VAPID private key is required when WebPush is enabled'));
+      errors.push(
+        createError(
+          'webpush.vapid_private_key',
+          'VAPID private key is required when WebPush is enabled'
+        )
+      );
     }
     if (!config.webpush.vapid_subject || config.webpush.vapid_subject.trim() === '') {
-      errors.push(createError('webpush.vapid_subject', 'VAPID subject is required when WebPush is enabled'));
+      errors.push(
+        createError('webpush.vapid_subject', 'VAPID subject is required when WebPush is enabled')
+      );
     }
   }
 
@@ -183,13 +201,20 @@ export type ExternalServicesConfig = {
   };
 };
 
-export function validateExternalServicesConfig(config: ExternalServicesConfig): ConfigValidationResult {
+export function validateExternalServicesConfig(
+  config: ExternalServicesConfig
+): ConfigValidationResult {
   const errors: ConfigValidationError[] = [];
 
   // Firebase config validation (only required fields if enabled)
   if (config.firebase?.notifications_enabled) {
     if (!config.firebase.admin_json_key_path || config.firebase.admin_json_key_path.trim() === '') {
-      errors.push(createError('firebase.admin_json_key_path', 'Firebase admin JSON key path is required when Firebase is enabled'));
+      errors.push(
+        createError(
+          'firebase.admin_json_key_path',
+          'Firebase admin JSON key path is required when Firebase is enabled'
+        )
+      );
     }
   }
 
@@ -264,7 +289,12 @@ export function validateParserConfig(config: ParserConfig): ConfigValidationResu
   // Firebase config validation (only required fields if enabled)
   if (config.firebase?.notifications_enabled) {
     if (!config.firebase.authJsonPath || config.firebase.authJsonPath.trim() === '') {
-      errors.push(createError('firebase.authJsonPath', 'Firebase auth JSON path is required when Firebase is enabled'));
+      errors.push(
+        createError(
+          'firebase.authJsonPath',
+          'Firebase auth JSON path is required when Firebase is enabled'
+        )
+      );
     }
   }
 
@@ -288,7 +318,9 @@ export function validateParserConfig(config: ParserConfig): ConfigValidationResu
     errors.push(createError('defaults', 'Defaults configuration is required'));
   } else {
     if (!config.defaults.account?.settings?.locale) {
-      errors.push(createError('defaults.account.settings.locale', 'Default account locale is required'));
+      errors.push(
+        createError('defaults.account.settings.locale', 'Default account locale is required')
+      );
     }
   }
 
@@ -303,7 +335,7 @@ export function validateParserConfig(config: ParserConfig): ConfigValidationResu
  */
 export function assertConfigValid(result: ConfigValidationResult, configName: string): void {
   if (!result.valid) {
-    const errorMessages = result.errors.map(e => `  - ${e.field}: ${e.message}`).join('\n');
+    const errorMessages = result.errors.map((e) => `  - ${e.field}: ${e.message}`).join('\n');
     throw new Error(`FATAL: ${configName} validation failed:\n${errorMessages}`);
   }
 }

@@ -158,6 +158,7 @@ These variables are used when signup mode is 'sign-up' but are not required:
 ### Numeric Validation
 
 Variables containing `PORT`, `EXPIRATION`, or `CACHE_TTL` are automatically validated to ensure they are valid positive numbers:
+
 - `DB_PORT`
 - `API_PORT`
 - `MESSAGE_QUEUE_PORT`
@@ -177,6 +178,7 @@ Variables containing `PORT`, `EXPIRATION`, or `CACHE_TTL` are automatically vali
 ## Validation Output
 
 During startup, the validation displays:
+
 - A categorized list of all environment variables
 - Status indicator (✓ for valid, ✗ for invalid)
 - Whether the variable is required or optional
@@ -185,6 +187,7 @@ During startup, the validation displays:
 - A summary with totals and counts
 
 Example output:
+
 ```
 === Environment Variable Validation ===
 

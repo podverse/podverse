@@ -6,7 +6,7 @@ import { handleParsedOneData } from '../base/handleParsedOneData';
 export const handleParsedItemLicense = async (
   parsedItem: Episode,
   item: Item,
-  transactionalEntityManager?: EntityManager,
+  transactionalEntityManager?: EntityManager
 ) => {
   const itemLicenseService = new ItemLicenseService(transactionalEntityManager);
   const itemLicenseDto = compatItemLicenseDto(parsedItem);

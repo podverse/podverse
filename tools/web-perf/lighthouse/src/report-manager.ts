@@ -50,7 +50,7 @@ export class ReportManager {
     try {
       const files = fs.readdirSync(this.reportsDir);
       const reports: string[] = [];
-      
+
       for (const file of files) {
         if (file.startsWith('report-') && file.endsWith('.json')) {
           // Extract report ID from filename: report-{id}.json
@@ -58,7 +58,7 @@ export class ReportManager {
           reports.push(reportId);
         }
       }
-      
+
       return reports.sort();
     } catch (error) {
       console.error('Error reading reports directory:', error);
@@ -73,7 +73,7 @@ export class ReportManager {
       newReport: reportId,
       testChannelIds: ['lhtest-chan-1'],
       testItemIds: [],
-      scenarios: results
+      scenarios: results,
     };
 
     const reportPath = this.getReportPath(reportId);
@@ -82,7 +82,7 @@ export class ReportManager {
 
   loadReport(reportId: string): LighthouseReport | null {
     const reportPath = this.getReportPath(reportId);
-    
+
     if (!fs.existsSync(reportPath)) {
       return null;
     }

@@ -1,4 +1,11 @@
-import { EntityManager, FindManyOptions, FindOneOptions, FindOptionsWhere, ObjectLiteral, Repository } from 'typeorm';
+import {
+  EntityManager,
+  FindManyOptions,
+  FindOneOptions,
+  FindOptionsWhere,
+  ObjectLiteral,
+  Repository,
+} from 'typeorm';
 import { getDataSourceRead, getDataSourceReadWrite, getLoggerService } from '@orm/context';
 import { applyProperties } from '@orm/lib/applyProperties';
 import { hasDifferentValues } from '@orm/lib/hasDifferentValues';
@@ -10,11 +17,17 @@ export class BaseManyService<T extends ObjectLiteral, K extends keyof T> {
   protected targetEntity: { new (): T };
   private transactionalEntityManager?: EntityManager;
 
-  constructor(targetEntity: { new (): T }, parentEntityKey: K, transactionalEntityManager?: EntityManager) {
+  constructor(
+    targetEntity: { new (): T },
+    parentEntityKey: K,
+    transactionalEntityManager?: EntityManager
+  ) {
     this.targetEntity = targetEntity;
     this.parentEntityKey = parentEntityKey;
     this.repositoryRead = getDataSourceRead().getRepository(targetEntity) as Repository<T>;
-    this.repositoryReadWrite = getDataSourceReadWrite().getRepository(targetEntity) as Repository<T>;
+    this.repositoryReadWrite = getDataSourceReadWrite().getRepository(
+      targetEntity
+    ) as Repository<T>;
     if (transactionalEntityManager !== undefined) {
       this.transactionalEntityManager = transactionalEntityManager;
     }
@@ -29,18 +42,29 @@ export class BaseManyService<T extends ObjectLiteral, K extends keyof T> {
 
   public async _getAll(parentEntity: T[K], config?: FindManyOptions<T>): Promise<T[]> {
     const parentWhereValue = this.getParentWhereValue(parentEntity);
-    const where: FindOptionsWhere<T> = { [this.parentEntityKey]: parentWhereValue } as FindOptionsWhere<T>;
+    const where: FindOptionsWhere<T> = {
+      [this.parentEntityKey]: parentWhereValue,
+    } as FindOptionsWhere<T>;
     return this.repositoryRead.find({ where, ...config });
   }
 
-  public async _getAllWithCount(parentEntity: T[K], config?: FindManyOptions<T>): Promise<{ count: number; results: T[] }> {
+  public async _getAllWithCount(
+    parentEntity: T[K],
+    config?: FindManyOptions<T>
+  ): Promise<{ count: number; results: T[] }> {
     const parentWhereValue = this.getParentWhereValue(parentEntity);
-    const where: FindOptionsWhere<T> = { [this.parentEntityKey]: parentWhereValue } as FindOptionsWhere<T>;
+    const where: FindOptionsWhere<T> = {
+      [this.parentEntityKey]: parentWhereValue,
+    } as FindOptionsWhere<T>;
     const [results, count] = await this.repositoryRead.findAndCount({ where, ...config });
     return { count, results };
   }
 
-  public async _get(parentEntity: T[K], whereKeyValues: Record<string,unknown>, config?: FindOneOptions<T>): Promise<T | null> {
+  public async _get(
+    parentEntity: T[K],
+    whereKeyValues: Record<string, unknown>,
+    config?: FindOneOptions<T>
+  ): Promise<T | null> {
     const parentWhereValue = this.getParentWhereValue(parentEntity);
     const where: FindOptionsWhere<T> = {
       [this.parentEntityKey]: parentWhereValue,
@@ -54,17 +78,17 @@ export class BaseManyService<T extends ObjectLiteral, K extends keyof T> {
     whereKeys: (keyof T)[], // If whereKeys is empty, it will always create a new entity
     dto: Partial<T>,
     config?: FindOneOptions<T>,
-    existingEntity?: T,
-  ) : Promise<T> {
+    existingEntity?: T
+  ): Promise<T> {
     const whereObject: Partial<T> = {};
-    whereKeys.forEach(key => {
+    whereKeys.forEach((key) => {
       if (key in dto) {
         whereObject[key as keyof T] = dto[key];
       }
     });
 
     let entity: T | null = existingEntity || null;
-    
+
     if (!entity && Object.keys(whereObject).length > 0) {
       entity = await this._get(parentEntity, whereObject, config);
     }
@@ -81,15 +105,16 @@ export class BaseManyService<T extends ObjectLiteral, K extends keyof T> {
     loggerService.debug(`Updating entity ${JSON.stringify(entity)}`);
     loggerService.debug(`With DTO ${JSON.stringify(dto)}`);
 
-    return (this.transactionalEntityManager as EntityManager
-      ?? this.repositoryReadWrite).save(entity);
+    return ((this.transactionalEntityManager as EntityManager) ?? this.repositoryReadWrite).save(
+      entity
+    );
   }
 
   public async _updateMany(
     parentEntity: T[K],
     whereKeys: (keyof T)[],
     dtos: Partial<T>[],
-    config?: FindOneOptions<T>,
+    config?: FindOneOptions<T>
   ): Promise<T[]> {
     const existingEntities = await this._getAll(parentEntity);
 
@@ -100,14 +125,14 @@ export class BaseManyService<T extends ObjectLiteral, K extends keyof T> {
       }
       return identifier;
     });
-    
+
     const updatedEntities: T[] = [];
 
     // This prevents entries with duplicate unique constraint values
     // from attempting to be saved (which would cause a whole transaction to rollback).
     const uniqueIdentifiers = new Set<string>();
-    const uniqueDtos = dtos.filter(dto => {
-      const identifier = whereKeys.map(key => dto[key]).join('|');
+    const uniqueDtos = dtos.filter((dto) => {
+      const identifier = whereKeys.map((key) => dto[key]).join('|');
       if (uniqueIdentifiers.has(identifier)) {
         return false;
       } else {
@@ -117,30 +142,40 @@ export class BaseManyService<T extends ObjectLiteral, K extends keyof T> {
     });
 
     for (const uniqueDto of uniqueDtos) {
-      const matchingEntity = existingEntities.find(entity => 
-        whereKeys.every(key => entity[key] === uniqueDto[key]),
+      const matchingEntity = existingEntities.find((entity) =>
+        whereKeys.every((key) => entity[key] === uniqueDto[key])
       );
 
-      const updatedEntity = await this._update(parentEntity, whereKeys, uniqueDto, config, matchingEntity);
+      const updatedEntity = await this._update(
+        parentEntity,
+        whereKeys,
+        uniqueDto,
+        config,
+        matchingEntity
+      );
       updatedEntities.push(updatedEntity);
     }
-    
-    await (this.transactionalEntityManager as EntityManager
-      ?? this.repositoryReadWrite).save(updatedEntities);
-  
-    const entitiesToDelete = existingEntities.filter(existingEntity => {
+
+    await ((this.transactionalEntityManager as EntityManager) ?? this.repositoryReadWrite).save(
+      updatedEntities
+    );
+
+    const entitiesToDelete = existingEntities.filter((existingEntity) => {
       const identifier: Partial<T> = {};
       for (const whereKey of whereKeys) {
         identifier[whereKey] = existingEntity[whereKey];
       }
-      return !existingIdentifiers.some(existingIdentifier => JSON.stringify(existingIdentifier) === JSON.stringify(identifier));
+      return !existingIdentifiers.some(
+        (existingIdentifier) => JSON.stringify(existingIdentifier) === JSON.stringify(identifier)
+      );
     });
 
     if (entitiesToDelete.length > 0) {
-      await (this.transactionalEntityManager as EntityManager
-        ?? this.repositoryReadWrite).remove(entitiesToDelete);
+      await ((this.transactionalEntityManager as EntityManager) ?? this.repositoryReadWrite).remove(
+        entitiesToDelete
+      );
     }
-  
+
     return updatedEntities;
   }
 
@@ -149,20 +184,22 @@ export class BaseManyService<T extends ObjectLiteral, K extends keyof T> {
       [this.parentEntityKey]: parentEntity,
       ...whereKeyValues,
     } as FindOptionsWhere<T>;
-  
+
     const rowToDelete = await this.repositoryRead.findOne({ where });
-  
+
     if (rowToDelete) {
-      await (this.transactionalEntityManager as EntityManager
-        ?? this.repositoryReadWrite).remove(rowToDelete);
+      await ((this.transactionalEntityManager as EntityManager) ?? this.repositoryReadWrite).remove(
+        rowToDelete
+      );
     }
   }
 
   public async _deleteAll(value: T[K]): Promise<void> {
     const rowsToDelete = await this._getAll(value);
     if (rowsToDelete) {
-      await (this.transactionalEntityManager as EntityManager
-        ?? this.repositoryReadWrite).remove(rowsToDelete);
+      await ((this.transactionalEntityManager as EntityManager) ?? this.repositoryReadWrite).remove(
+        rowsToDelete
+      );
     }
   }
 }

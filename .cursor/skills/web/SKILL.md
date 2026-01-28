@@ -33,6 +33,7 @@ The patterns are organized into the following subject areas:
 ## Quick Start
 
 For the most critical patterns, see:
+
 - **[Best Practices Summary](08-best-practices.md)** - Quick reference checklist
 - **[Translation Requirements](08-best-practices.md#translation-requirements-critical)** - CRITICAL: Always use translations
 - **[Component Patterns](01-component-patterns.md)** - How to create pages, components, modals, lists
@@ -41,6 +42,7 @@ For the most critical patterns, see:
 ## Pattern Files
 
 ### [01-component-patterns.md](01-component-patterns.md)
+
 - Creating a New Page with SSR
 - Creating a Client Component with Translations
 - Creating a New Context Provider
@@ -49,14 +51,17 @@ For the most critical patterns, see:
 - Server/Client Component Split Pattern
 
 ### [02-api-data-fetching.md](02-api-data-fetching.md)
+
 - Adding a New API Endpoint Call (Client & Server patterns)
 - API error handling
 
 ### [03-styling.md](03-styling.md)
+
 - Styling with SCSS Modules
 - SCSS file structure patterns
 
 ### [04-configuration.md](04-configuration.md)
+
 - Using Constants Instead of Hardcoded Values
 - Environment Variables and Configuration
 - Using Config Object Instead of process.env
@@ -65,24 +70,29 @@ For the most critical patterns, see:
 - User-Agent String Pattern
 
 ### [05-code-quality.md](05-code-quality.md)
+
 - Error Handling (Catch Block Pattern, API Error Handling)
 - Type Safety with podverse-helpers
 - Translation Pattern
 
 ### [06-development-workflow.md](06-development-workflow.md)
+
 - Code Improvement and Optimization Guidelines
 - Plan Mode vs Agent Mode
 - Documenting Out-of-Scope Improvements
 
 ### [07-reusable-utilities.md](07-reusable-utilities.md)
+
 - When to Put Utilities in @podverse/helpers
 - Pattern: Moving Utilities to @podverse/helpers
 
 ### [08-best-practices.md](08-best-practices.md)
+
 - Best Practices Summary (Quick Reference Checklist)
 - Translation Requirements (CRITICAL)
 
 ### [09-performance-optimization.md](09-performance-optimization.md)
+
 - Performance Optimization Principles
 - Code Splitting Patterns
 - Memoization Patterns (React.memo, useMemo, useCallback)

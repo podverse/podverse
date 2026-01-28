@@ -32,10 +32,14 @@ export type ValidationSummary = {
  */
 export function validateRequired(varName: string, category: string): ValidationResult {
   const value = process.env[varName];
-  const isSet = value !== undefined && value !== null && typeof value === 'string' && value.trim() !== '';
-  
+  const isSet =
+    value !== undefined && value !== null && typeof value === 'string' && value.trim() !== '';
+
   // Additional validation for numeric values
-  if (isSet && (varName.includes('PORT') || varName.includes('EXPIRATION') || varName.includes('CACHE_TTL'))) {
+  if (
+    isSet &&
+    (varName.includes('PORT') || varName.includes('EXPIRATION') || varName.includes('CACHE_TTL'))
+  ) {
     const numValue = Number(value);
     if (isNaN(numValue) || numValue <= 0) {
       return {
@@ -51,7 +55,10 @@ export function validateRequired(varName: string, category: string): ValidationR
 
   // Additional validation for API_ALLOWED_CORS_ORIGINS (should not be empty)
   if (varName === 'API_ALLOWED_CORS_ORIGINS' && isSet) {
-    const origins = value.split(',').map(origin => origin.trim()).filter(origin => origin !== '');
+    const origins = value
+      .split(',')
+      .map((origin) => origin.trim())
+      .filter((origin) => origin !== '');
     if (origins.length === 0) {
       return {
         name: varName,
@@ -81,12 +88,19 @@ export function validateRequired(varName: string, category: string): ValidationR
  * @param defaultMessage - Optional message to display when variable is not set (defaults to "Skipped")
  * @returns ValidationResult indicating whether the variable is set and valid (optional vars are always valid even if not set)
  */
-export function validateOptional(varName: string, category: string, defaultMessage: string = 'Skipped'): ValidationResult {
+export function validateOptional(
+  varName: string,
+  category: string,
+  defaultMessage: string = 'Skipped'
+): ValidationResult {
   const value = process.env[varName] || '';
   const isSet = value !== '';
 
   // Additional validation for numeric values if set
-  if (isSet && (varName.includes('PORT') || varName.includes('EXPIRATION') || varName.includes('CACHE_TTL'))) {
+  if (
+    isSet &&
+    (varName.includes('PORT') || varName.includes('EXPIRATION') || varName.includes('CACHE_TTL'))
+  ) {
     const numValue = Number(value);
     if (isNaN(numValue) || numValue <= 0) {
       return {
@@ -117,7 +131,10 @@ export function validateOptional(varName: string, category: string, defaultMessa
  * @param category - The category/group this variable belongs to (for display purposes)
  * @returns ValidationResult if variable is set, null otherwise
  */
-export function validateConditionalOptional(varName: string, category: string): ValidationResult | null {
+export function validateConditionalOptional(
+  varName: string,
+  category: string
+): ValidationResult | null {
   const value = process.env[varName] || '';
   const isSet = value !== '';
 
@@ -172,20 +189,23 @@ export function displayValidationResultsSilent(summary: ValidationSummary): void
   }
 
   // Group results by category
-  const byCategory = summary.results.reduce((acc, result) => {
-    const categoryResults = acc[result.category];
-    if (!categoryResults) {
-      acc[result.category] = [];
-    }
-    acc[result.category]?.push(result);
-    return acc;
-  }, {} as Record<string, ValidationResult[]>);
+  const byCategory = summary.results.reduce(
+    (acc, result) => {
+      const categoryResults = acc[result.category];
+      if (!categoryResults) {
+        acc[result.category] = [];
+      }
+      acc[result.category]?.push(result);
+      return acc;
+    },
+    {} as Record<string, ValidationResult[]>
+  );
 
   // Display failures by category
   const categories = Object.keys(byCategory).sort();
   for (const category of categories) {
     const categoryResults = byCategory[category];
-    const failures = categoryResults?.filter(r => !r.isValid) ?? [];
+    const failures = categoryResults?.filter((r) => !r.isValid) ?? [];
     if (failures.length > 0) {
       console.error(`[${category}]`);
       for (const result of failures) {
@@ -200,12 +220,12 @@ export function displayValidationResultsSilent(summary: ValidationSummary): void
     console.error('\n=== Validation Failures ===');
     console.error(`Failed: ${summary.failed}`);
     console.error(`Required Missing: ${summary.requiredMissing}`);
-    
+
     if (summary.requiredMissing > 0) {
       console.error('\nThe following required environment variables are missing or invalid:');
       summary.results
-        .filter(r => r.isRequired && !r.isValid)
-        .forEach(r => {
+        .filter((r) => r.isRequired && !r.isValid)
+        .forEach((r) => {
           console.error(`  - ${r.name}: ${r.message}`);
         });
     }
@@ -219,7 +239,11 @@ export function displayValidationResultsSilent(summary: ValidationSummary): void
  * @param isRequired - Whether the variable is required (default: true)
  * @returns ValidationResult indicating whether the locale is valid
  */
-export function validateLocale(varName: string, category: string, isRequired: boolean = true): ValidationResult {
+export function validateLocale(
+  varName: string,
+  category: string,
+  isRequired: boolean = true
+): ValidationResult {
   const value = process.env[varName] || '';
   const isSet = value !== '';
 
@@ -229,15 +253,13 @@ export function validateLocale(varName: string, category: string, isRequired: bo
       isSet: false,
       isValid: !isRequired,
       isRequired,
-      message: isRequired 
-        ? `Missing - must be one of: ${SUPPORTED_LOCALES.join(', ')}`
-        : 'Skipped',
+      message: isRequired ? `Missing - must be one of: ${SUPPORTED_LOCALES.join(', ')}` : 'Skipped',
       category,
     };
   }
 
   const trimmedValue = value.trim();
-  if (!SUPPORTED_LOCALES.includes(trimmedValue as typeof SUPPORTED_LOCALES[number])) {
+  if (!SUPPORTED_LOCALES.includes(trimmedValue as (typeof SUPPORTED_LOCALES)[number])) {
     return {
       name: varName,
       isSet: true,
@@ -265,7 +287,10 @@ export function validateLocale(varName: string, category: string, isRequired: bo
  * @param category - The category/group this variable belongs to (for display purposes)
  * @returns ValidationResult indicating whether the supported locales list is valid
  */
-export function validateSupportedLocalesList(varName: string = 'NEXT_PUBLIC_FEATURES_SUPPORTED_LOCALES', category: string): ValidationResult {
+export function validateSupportedLocalesList(
+  varName: string = 'NEXT_PUBLIC_FEATURES_SUPPORTED_LOCALES',
+  category: string
+): ValidationResult {
   const value = process.env[varName] || '';
   const isSet = value !== '';
 
@@ -295,8 +320,11 @@ export function validateSupportedLocalesList(varName: string = 'NEXT_PUBLIC_FEAT
   }
 
   // Validate comma-delimited list of locales
-  const locales = trimmedValue.split(',').map(l => l.trim()).filter(Boolean);
-  
+  const locales = trimmedValue
+    .split(',')
+    .map((l) => l.trim())
+    .filter(Boolean);
+
   if (locales.length === 0) {
     return {
       name: varName,
@@ -309,7 +337,9 @@ export function validateSupportedLocalesList(varName: string = 'NEXT_PUBLIC_FEAT
   }
 
   // Check that all locales are valid
-  const invalidLocales = locales.filter(locale => !SUPPORTED_LOCALES.includes(locale as typeof SUPPORTED_LOCALES[number]));
+  const invalidLocales = locales.filter(
+    (locale) => !SUPPORTED_LOCALES.includes(locale as (typeof SUPPORTED_LOCALES)[number])
+  );
   if (invalidLocales.length > 0) {
     return {
       name: varName,
@@ -331,8 +361,6 @@ export function validateSupportedLocalesList(varName: string = 'NEXT_PUBLIC_FEAT
   };
 }
 
-
-
 /**
  * Validates an optional environment variable - if set, must not be empty
  * @param varName - The name of the environment variable to validate
@@ -341,7 +369,7 @@ export function validateSupportedLocalesList(varName: string = 'NEXT_PUBLIC_FEAT
  */
 export function validateOptionalNonEmpty(varName: string, category: string): ValidationResult {
   const value = process.env[varName];
-  
+
   // If not set at all (undefined), it's valid (optional)
   if (value === undefined || value === null) {
     return {
@@ -353,7 +381,7 @@ export function validateOptionalNonEmpty(varName: string, category: string): Val
       category,
     };
   }
-  
+
   // If set but empty or only whitespace, it's invalid
   if (typeof value === 'string' && value.trim() === '') {
     return {
@@ -365,7 +393,7 @@ export function validateOptionalNonEmpty(varName: string, category: string): Val
       category,
     };
   }
-  
+
   // If set and has a value, it's valid
   return {
     name: varName,
@@ -385,9 +413,15 @@ export function validateOptionalNonEmpty(varName: string, category: string): Val
  * @param defaultValue - Optional default value message if not set (e.g., "Use Default (false)")
  * @returns ValidationResult indicating whether the boolean value is valid
  */
-export function validateBoolean(varName: string, category: string, isRequired: boolean = false, defaultValue?: string): ValidationResult {
+export function validateBoolean(
+  varName: string,
+  category: string,
+  isRequired: boolean = false,
+  defaultValue?: string
+): ValidationResult {
   const value = process.env[varName];
-  const isSet = value !== undefined && value !== null && typeof value === 'string' && value.trim() !== '';
+  const isSet =
+    value !== undefined && value !== null && typeof value === 'string' && value.trim() !== '';
 
   if (!isSet) {
     return {
@@ -429,9 +463,14 @@ export function validateBoolean(varName: string, category: string, isRequired: b
  * @param isRequired - Whether the variable is required (default: false)
  * @returns ValidationResult indicating whether the protocol is valid
  */
-export function validateWebProtocol(varName: string = 'WEB_PROTOCOL', category: string, isRequired: boolean = false): ValidationResult {
+export function validateWebProtocol(
+  varName: string = 'WEB_PROTOCOL',
+  category: string,
+  isRequired: boolean = false
+): ValidationResult {
   const value = process.env[varName];
-  const isSet = value !== undefined && value !== null && typeof value === 'string' && value.trim() !== '';
+  const isSet =
+    value !== undefined && value !== null && typeof value === 'string' && value.trim() !== '';
 
   if (!isSet) {
     return {
@@ -478,10 +517,11 @@ export function validateLogLevel(
   varName: string = 'LOG_LEVEL',
   category: string,
   isRequired: boolean = true,
-  validLevels: string[] = ['error', 'warn', 'info', 'debug', 'verbose', 'silly', 'silent'],
+  validLevels: string[] = ['error', 'warn', 'info', 'debug', 'verbose', 'silly', 'silent']
 ): ValidationResult {
   const value = process.env[varName];
-  const isSet = value !== undefined && value !== null && typeof value === 'string' && value.trim() !== '';
+  const isSet =
+    value !== undefined && value !== null && typeof value === 'string' && value.trim() !== '';
 
   if (!isSet) {
     return {
@@ -489,7 +529,9 @@ export function validateLogLevel(
       isSet: false,
       isValid: !isRequired,
       isRequired,
-      message: isRequired ? `Missing or empty - must be a valid log level (${validLevels.join(', ')})` : 'Skipped',
+      message: isRequired
+        ? `Missing or empty - must be a valid log level (${validLevels.join(', ')})`
+        : 'Skipped',
       category,
     };
   }
@@ -530,10 +572,11 @@ export function validatePositiveNumber(
   category: string,
   isRequired: boolean = false,
   min: number = 1,
-  max?: number,
+  max?: number
 ): ValidationResult {
   const value = process.env[varName];
-  const isSet = value !== undefined && value !== null && typeof value === 'string' && value.trim() !== '';
+  const isSet =
+    value !== undefined && value !== null && typeof value === 'string' && value.trim() !== '';
 
   if (!isSet) {
     return {
@@ -541,7 +584,9 @@ export function validatePositiveNumber(
       isSet: false,
       isValid: !isRequired,
       isRequired,
-      message: isRequired ? `Missing - must be a positive number${min > 1 ? ` (min: ${min})` : ''}${max ? ` (max: ${max})` : ''}` : 'Skipped',
+      message: isRequired
+        ? `Missing - must be a positive number${min > 1 ? ` (min: ${min})` : ''}${max ? ` (max: ${max})` : ''}`
+        : 'Skipped',
       category,
     };
   }

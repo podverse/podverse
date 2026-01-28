@@ -34,12 +34,17 @@ const podcastIndexTrendingPodcastsGet = async (args: CommandLineArgs) => {
 
     const { feeds } = await podcastIndexService.trendingGetPodcasts(max, since, lang, cat);
 
-    loggerService.info(`[podcastIndex/trending/podcastsGet] Fetched ${feeds.length} trending feeds.`);
+    loggerService.info(
+      `[podcastIndex/trending/podcastsGet] Fetched ${feeds.length} trending feeds.`
+    );
     loggerService.info('[podcastIndex/trending/podcastsGet] Example feeds:', feeds.slice(0, 3));
 
     return feeds;
   } catch (error) {
-    loggerService.error('[podcastIndex/trending/podcastsGet] Error fetching trending podcasts:', error);
+    loggerService.error(
+      '[podcastIndex/trending/podcastsGet] Error fetching trending podcasts:',
+      error
+    );
     throw error;
   }
 };

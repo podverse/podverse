@@ -23,12 +23,18 @@ type Props = {
   viewSelected: ViewSelectedOption;
 };
 
-export const ListArtists: React.FC<Props> = ({ page, setPage,
-  channels, totalPages, showSubscribeMessage, viewSelected }) => {
+export const ListArtists: React.FC<Props> = ({
+  page,
+  setPage,
+  channels,
+  totalPages,
+  showSubscribeMessage,
+  viewSelected,
+}) => {
   const tInstructions = useTranslations('instructions');
   const tAuthentication = useTranslations('authentication');
   const { setModalAuthLogin } = useModals();
-  
+
   // Track if we should skip scroll on the first effect run (back navigation case)
   const skipScrollOnceRef = useRef(checkBackNavFlag());
 
@@ -40,7 +46,7 @@ export const ListArtists: React.FC<Props> = ({ page, setPage,
     }
     scrollMainToTop();
   }, [channels]);
-  
+
   const showCallToAction = showSubscribeMessage;
   const showPagination = !showSubscribeMessage;
 
@@ -55,17 +61,16 @@ export const ListArtists: React.FC<Props> = ({ page, setPage,
           onButtonClick={() => setModalAuthLogin({ isOpen: true })}
         />
       )}
-      {
-        showPagination && (
-          <Pagination
-            currentPage={page}
-            totalPages={totalPages}
-            setPage={setPage}
-            paginationControlsClassName={styles.paginationControls}>
-            {listNodes}
-          </Pagination>
-        )
-      }
+      {showPagination && (
+        <Pagination
+          currentPage={page}
+          totalPages={totalPages}
+          setPage={setPage}
+          paginationControlsClassName={styles.paginationControls}
+        >
+          {listNodes}
+        </Pagination>
+      )}
     </>
   );
 };

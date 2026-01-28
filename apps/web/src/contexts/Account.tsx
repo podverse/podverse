@@ -17,10 +17,7 @@ type AccountProviderProps = {
   ssrLoggedInAccount?: DTOAccount | null;
 };
 
-export const AccountProvider = ({
-  children,
-  ssrLoggedInAccount = null,
-}: AccountProviderProps) => {
+export const AccountProvider = ({ children, ssrLoggedInAccount = null }: AccountProviderProps) => {
   const [loggedInAccount, setLoggedInAccount] = useState<DTOAccount | null>(ssrLoggedInAccount);
 
   return (
@@ -32,6 +29,8 @@ export const AccountProvider = ({
 
 export function useAccount() {
   const ctx = useContext(AccountContext);
-  if (!ctx) {throw new Error('useAccount must be used within an AccountProvider');}
+  if (!ctx) {
+    throw new Error('useAccount must be used within an AccountProvider');
+  }
   return ctx;
 }

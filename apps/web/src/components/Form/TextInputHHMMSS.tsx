@@ -4,19 +4,19 @@ import { FaPlay } from 'react-icons/fa6';
 import { formatInputToHHMMSS } from '@podverse/helpers';
 
 type TextInputHHMMSSProps = {
-  value: string
-  onChange: (val: string) => void
-  eyebrow?: string
-  className?: string
-  name: string
-  placeholder: string
-  onButtonClick: () => void
-  buttonAriaLabel: string
-  'aria-label': string
-  'aria-describedby'?: string
-  'aria-required'?: AriaAttributes['aria-required']
-  'aria-invalid'?: AriaAttributes['aria-invalid']
-}
+  value: string;
+  onChange: (val: string) => void;
+  eyebrow?: string;
+  className?: string;
+  name: string;
+  placeholder: string;
+  onButtonClick: () => void;
+  buttonAriaLabel: string;
+  'aria-label': string;
+  'aria-describedby'?: string;
+  'aria-required'?: AriaAttributes['aria-required'];
+  'aria-invalid'?: AriaAttributes['aria-invalid'];
+};
 
 export const TextInputHHMMSS: React.FC<TextInputHHMMSSProps> = ({
   value,
@@ -59,13 +59,8 @@ export const TextInputHHMMSS: React.FC<TextInputHHMMSSProps> = ({
             aria-invalid={ariaInvalid}
           />
         </div>
-        <button
-          className={styles.buttonWrapper}
-          type="button"
-          aria-label={buttonAriaLabel}>
-          <FaPlay
-            className={styles.playIcon}
-            onClick={onButtonClick} />
+        <button className={styles.buttonWrapper} type="button" aria-label={buttonAriaLabel}>
+          <FaPlay className={styles.playIcon} onClick={onButtonClick} />
         </button>
       </div>
     </div>

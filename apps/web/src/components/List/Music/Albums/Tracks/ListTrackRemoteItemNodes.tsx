@@ -18,39 +18,56 @@ interface Params {
   showChannelInfo?: boolean;
 }
 
-export function ListTrackRemoteItemNodes({ itemsAdded, itemsUnadded, viewSelected, showChannelInfo }: Params): React.ReactNode {
+export function ListTrackRemoteItemNodes({
+  itemsAdded,
+  itemsUnadded,
+  viewSelected,
+  showChannelInfo,
+}: Params): React.ReactNode {
   // Filter out items without channels
-  const itemsWithChannels = itemsAdded.filter(item => item.channel !== null && item.channel !== undefined);
+  const itemsWithChannels = itemsAdded.filter(
+    (item) => item.channel !== null && item.channel !== undefined
+  );
 
   if (viewSelected === 'rows') {
     return (
       <div key="list" className={styles.listTracks}>
-        {
-          itemsWithChannels.map((itemAdded, idx) => {
-            const rowChannel = itemAdded.channel;
-            if (!rowChannel) {
-              return null;
-            }
-            return (
-              <React.Fragment key={itemAdded.id}>
-                {itemAdded.live_item ? (
-                  <ListLiveItemRow channel={rowChannel} item={itemAdded} live_item={itemAdded.live_item} showChannelInfo={showChannelInfo} showLiveItemStatus />
-                ) : (
-                  <ListTrackRow channel={rowChannel} item={itemAdded} showChannelInfo={showChannelInfo} playlist_id_text={null} />
-                )}
-                {idx < itemsWithChannels.length - 1 && <Divider />}
-              </React.Fragment>
-            );
-          })
-        }
-        {
-          itemsUnadded.map((itemUnadded, idx) => (
-            <React.Fragment key={itemUnadded.guid}>
-              <ListTrackRowRemoteItemUnadded itemUnadded={itemUnadded} showChannelInfo={showChannelInfo} />
-              {idx < itemsUnadded.length - 1 && <Divider />}
-            </React.Fragment>           
-          ))
-        }
+        {itemsWithChannels.map((itemAdded, idx) => {
+          const rowChannel = itemAdded.channel;
+          if (!rowChannel) {
+            return null;
+          }
+          return (
+            <React.Fragment key={itemAdded.id}>
+              {itemAdded.live_item ? (
+                <ListLiveItemRow
+                  channel={rowChannel}
+                  item={itemAdded}
+                  live_item={itemAdded.live_item}
+                  showChannelInfo={showChannelInfo}
+                  showLiveItemStatus
+                />
+              ) : (
+                <ListTrackRow
+                  channel={rowChannel}
+                  item={itemAdded}
+                  showChannelInfo={showChannelInfo}
+                  playlist_id_text={null}
+                />
+              )}
+              {idx < itemsWithChannels.length - 1 && <Divider />}
+            </React.Fragment>
+          );
+        })}
+        {itemsUnadded.map((itemUnadded, idx) => (
+          <React.Fragment key={itemUnadded.guid}>
+            <ListTrackRowRemoteItemUnadded
+              itemUnadded={itemUnadded}
+              showChannelInfo={showChannelInfo}
+            />
+            {idx < itemsUnadded.length - 1 && <Divider />}
+          </React.Fragment>
+        ))}
       </div>
     );
   }
@@ -58,7 +75,7 @@ export function ListTrackRemoteItemNodes({ itemsAdded, itemsUnadded, viewSelecte
   if (viewSelected === 'grid') {
     return (
       <div key="grid" className={styles.grid}>
-        {itemsWithChannels.map(itemAdded => {
+        {itemsWithChannels.map((itemAdded) => {
           const rowChannel = itemAdded.channel;
           if (!rowChannel) {
             return null;
@@ -72,7 +89,7 @@ export function ListTrackRemoteItemNodes({ itemsAdded, itemsUnadded, viewSelecte
             />
           );
         })}
-        {itemsUnadded.map(itemUnadded => {
+        {itemsUnadded.map((itemUnadded) => {
           return (
             <ListTrackGridNodeUnadded
               key={itemUnadded.guid}

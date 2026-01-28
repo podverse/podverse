@@ -7,7 +7,7 @@ import { DTOPlaylist } from '@podverse/helpers';
 
 type PlaylistListProps = {
   ssrPlaylist: DTOPlaylist;
-}
+};
 
 export const PlaylistList: React.FC<PlaylistListProps> = ({ ssrPlaylist }) => {
   const { playlistResources, totalPages, filterParams, setFilterParams } = usePlaylistContext();

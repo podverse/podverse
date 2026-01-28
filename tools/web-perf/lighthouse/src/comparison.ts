@@ -68,7 +68,7 @@ export class ComparisonEngine {
         base: baseScore,
         new: newScore,
         delta,
-        percentChange
+        percentChange,
       });
     }
 
@@ -76,7 +76,7 @@ export class ComparisonEngine {
     const coreWebVitals = [
       { id: 'largest-contentful-paint', name: 'LCP' },
       { id: 'first-input-delay', name: 'FID' },
-      { id: 'cumulative-layout-shift', name: 'CLS' }
+      { id: 'cumulative-layout-shift', name: 'CLS' },
     ];
 
     for (const metric of coreWebVitals) {
@@ -84,13 +84,14 @@ export class ComparisonEngine {
       const newValue = this.extractMetricValue(newLhr, metric.id);
       if (baseValue !== null || newValue !== null) {
         const delta = baseValue !== null && newValue !== null ? newValue - baseValue : null;
-        const percentChange = baseValue !== null && delta !== null ? (delta / baseValue) * 100 : null;
+        const percentChange =
+          baseValue !== null && delta !== null ? (delta / baseValue) * 100 : null;
         metrics.push({
           name: metric.name,
           base: baseValue,
           new: newValue,
           delta,
-          percentChange
+          percentChange,
         });
       }
     }
@@ -99,14 +100,16 @@ export class ComparisonEngine {
     const baseLoadTime = this.extractMetricValue(baseLhr, 'page-load-time');
     const newLoadTime = this.extractMetricValue(newLhr, 'page-load-time');
     if (baseLoadTime !== null || newLoadTime !== null) {
-      const delta = baseLoadTime !== null && newLoadTime !== null ? newLoadTime - baseLoadTime : null;
-      const percentChange = baseLoadTime !== null && delta !== null ? (delta / baseLoadTime) * 100 : null;
+      const delta =
+        baseLoadTime !== null && newLoadTime !== null ? newLoadTime - baseLoadTime : null;
+      const percentChange =
+        baseLoadTime !== null && delta !== null ? (delta / baseLoadTime) * 100 : null;
       metrics.push({
         name: 'Page Load Time (ms)',
         base: baseLoadTime,
         new: newLoadTime,
         delta,
-        percentChange
+        percentChange,
       });
     }
 
@@ -117,11 +120,8 @@ export class ComparisonEngine {
     const scenarios: ScenarioComparison[] = [];
 
     // Compare logged out scenarios
-    const loggedOutPages = [
-      'homepage',
-      'podcastChannelPage'
-    ] as const;
-    
+    const loggedOutPages = ['homepage', 'podcastChannelPage'] as const;
+
     for (const page of loggedOutPages) {
       const base = baseReport.scenarios.loggedOut[page];
       const newLhr = newReport.scenarios.loggedOut[page];
@@ -129,7 +129,7 @@ export class ComparisonEngine {
       if (metrics.length > 0) {
         scenarios.push({
           scenario: `Logged Out - ${page}`,
-          metrics
+          metrics,
         });
       }
     }
@@ -184,15 +184,19 @@ export class ComparisonEngine {
       summary: {
         regressions,
         improvements,
-        neutral
+        neutral,
       },
-      analysis
+      analysis,
     };
   }
 
-  generateAnalysis(scenarios: ScenarioComparison[], regressions: number, improvements: number): string {
+  generateAnalysis(
+    scenarios: ScenarioComparison[],
+    regressions: number,
+    improvements: number
+  ): string {
     let analysis = `## Performance Comparison Analysis\n\n`;
-    
+
     if (improvements > regressions) {
       analysis += `✅ **Overall: Performance has improved** (${improvements} improvements vs ${regressions} regressions)\n\n`;
     } else if (regressions > improvements) {
@@ -207,13 +211,21 @@ export class ComparisonEngine {
       analysis += `#### ${scenario.scenario}\n\n`;
       for (const metric of scenario.metrics) {
         if (metric.delta === null) continue;
-        
-        const isGood = (metric.name === 'Performance Score' && metric.percentChange! > 0) ||
-                      (metric.name !== 'Performance Score' && metric.name !== 'CLS' && metric.percentChange! < 0) ||
-                      (metric.name === 'CLS' && metric.percentChange! < 0);
-        
-        const indicator = isGood ? '✅' : metric.percentChange! < -this.THRESHOLD_PERCENT || metric.percentChange! > this.THRESHOLD_PERCENT ? '⚠️' : '➡️';
-        
+
+        const isGood =
+          (metric.name === 'Performance Score' && metric.percentChange! > 0) ||
+          (metric.name !== 'Performance Score' &&
+            metric.name !== 'CLS' &&
+            metric.percentChange! < 0) ||
+          (metric.name === 'CLS' && metric.percentChange! < 0);
+
+        const indicator = isGood
+          ? '✅'
+          : metric.percentChange! < -this.THRESHOLD_PERCENT ||
+              metric.percentChange! > this.THRESHOLD_PERCENT
+            ? '⚠️'
+            : '➡️';
+
         analysis += `${indicator} **${metric.name}**: `;
         if (metric.base !== null && metric.new !== null) {
           analysis += `${metric.base} → ${metric.new} `;

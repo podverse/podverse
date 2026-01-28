@@ -7,7 +7,9 @@ export class ItemEnclosureIntegrity {
   @PrimaryGeneratedColumn()
   id!: number;
 
-  @OneToOne(() => ItemEnclosure, itemEnclosureSource => itemEnclosureSource.id, { onDelete: 'CASCADE' })
+  @OneToOne(() => ItemEnclosure, (itemEnclosureSource) => itemEnclosureSource.id, {
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'item_enclosure_id' })
   item_enclosure!: ItemEnclosure;
 

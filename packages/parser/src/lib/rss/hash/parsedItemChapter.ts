@@ -2,7 +2,9 @@ import { getMd5Hash } from '@podverse/helpers';
 import { PIChapter } from '@parser/lib/compat/chapters/chapters';
 
 function stripUrlParams(url: string | null): string | null {
-  if (!url) {return url;}
+  if (!url) {
+    return url;
+  }
   try {
     return new URL(url).origin + new URL(url).pathname;
   } catch {
@@ -11,14 +13,7 @@ function stripUrlParams(url: string | null): string | null {
 }
 
 export const getPIChapterMd5Hash = (piChapter: PIChapter): string => {
-  const {
-    startTime,
-    endTime,
-    title,
-    img,
-    url,
-    toc,
-  } = piChapter;
+  const { startTime, endTime, title, img, url, toc } = piChapter;
 
   const imgNoParams = stripUrlParams(img);
   const urlNoParams = stripUrlParams(url);

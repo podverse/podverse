@@ -12,6 +12,7 @@ Verify that the 6-package split was successful, all apps build correctly, and fr
 ### 1. Clean and Rebuild All Packages
 
 From workspace root:
+
 ```bash
 # Clean all packages
 npm run clean
@@ -21,6 +22,7 @@ npm run build:packages
 ```
 
 **Expected build order:**
+
 1. helpers (core)
 2. helpers-validation
 3. helpers-requests
@@ -36,6 +38,7 @@ npm run build:packages
 ### 2. Verify Package Dependencies
 
 **Check each new package built:**
+
 ```bash
 ls -la packages/helpers-validation/dist
 ls -la packages/helpers-requests/dist
@@ -49,18 +52,21 @@ All should have compiled output.
 ### 3. Verify Frontend Bundle Size Reduction
 
 **Check web app node_modules:**
+
 ```bash
 cd apps/web
 ls node_modules/ | grep -E "winston|bignumber"
 ```
 
 **Expected**: Should see NONE of these (moved to backend):
+
 - winston
 - winston-daily-rotate-file
 - winston-transport
 - bignumber.js
 
 **What SHOULD be present:**
+
 - date-fns
 - he
 - uuid
@@ -180,6 +186,7 @@ ANALYZE=true npm run build
 ```
 
 **Look for:**
+
 - Winston NOT in client bundle
 - BigNumber NOT in client bundle
 - Joi size is acceptable (form validation)
@@ -207,12 +214,12 @@ All must be true:
 
 Document actual savings:
 
-| App | Before | After | Savings |
-|-----|--------|-------|---------|
-| web (frontend) | | | |
-| web (server) | | | |
-| api | | | |
-| workers | | | |
+| App            | Before | After | Savings |
+| -------------- | ------ | ----- | ------- |
+| web (frontend) |        |       |         |
+| web (server)   |        |       |         |
+| api            |        |       |         |
+| workers        |        |       |         |
 
 ## Rollback Plan
 
@@ -248,6 +255,7 @@ npm run build:packages
 ### Option 3: Keep New Packages, Fix Issues
 
 If the split is good but specific imports are broken:
+
 1. Fix the import paths
 2. Verify the package builds
 3. Test again
@@ -265,13 +273,13 @@ After successful verification:
 
 This split creates 6 specialized packages:
 
-| Package | Purpose | Size | Platform |
-|---------|---------|------|----------|
-| helpers | Core DTOs, types | ~570KB | Universal |
-| helpers-validation | Form/URL validation | ~200KB | Universal |
-| helpers-requests | API client | ~500KB | Web + Mobile |
-| helpers-backend | Logging, BigNumber | ~2.3MB | Backend only |
-| helpers-config | Config/env validation | ~0KB (no deps) | Backend only |
-| helpers-browser | Clipboard, etc. | minimal | Browser only |
+| Package            | Purpose               | Size           | Platform     |
+| ------------------ | --------------------- | -------------- | ------------ |
+| helpers            | Core DTOs, types      | ~570KB         | Universal    |
+| helpers-validation | Form/URL validation   | ~200KB         | Universal    |
+| helpers-requests   | API client            | ~500KB         | Web + Mobile |
+| helpers-backend    | Logging, BigNumber    | ~2.3MB         | Backend only |
+| helpers-config     | Config/env validation | ~0KB (no deps) | Backend only |
+| helpers-browser    | Clipboard, etc.       | minimal        | Browser only |
 
 **Frontend savings**: ~2.4MB (winston + bignumber removed)

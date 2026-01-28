@@ -1,4 +1,3 @@
-
 'use client';
 
 import { DTOPlaylist } from '@podverse/helpers';
@@ -12,7 +11,7 @@ import { PlaylistList } from './PlaylistList';
 import { SideContent } from '../../../components/SideContent/SideContent';
 
 interface PlaylistClientProps {
-  ssrPlaylist: DTOPlaylist
+  ssrPlaylist: DTOPlaylist;
 }
 
 export function PlaylistClient({ ssrPlaylist }: PlaylistClientProps) {

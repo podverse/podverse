@@ -13,6 +13,7 @@ Update project documentation to reflect the new 6-package helpers structure with
 ### 1. Update README.md
 
 **Add to packages section:**
+
 ```markdown
 ### Helper Packages
 
@@ -24,12 +25,10 @@ Podverse uses a modular helpers architecture for optimal bundle sizes and platfo
   - Dependencies: date-fns, he, uuid (~570KB)
   - Platform: Browser, React Native, Node.js
   - Used by: All apps and packages
-  
 - **@podverse/helpers-validation** - Email, password, and URL validation
   - Dependencies: joi (~200KB)
   - Platform: Browser, React Native, Node.js
   - Used by: web (frontend forms), orm (backend validation), parser (URL validation), mobile (future)
-  
 - **@podverse/helpers-requests** - API client utilities
   - Dependencies: axios (~500KB)
   - Platform: Browser, React Native
@@ -41,37 +40,36 @@ Podverse uses a modular helpers architecture for optimal bundle sizes and platfo
   - Dependencies: winston (~2.2MB), bignumber.js (~100KB)
   - Platform: Node.js only
   - Used by: api, workers, management-api, orm, parser, mq
-  
 - **@podverse/helpers-config** - Configuration and startup validation
   - Dependencies: none (uses @podverse/helpers)
   - Platform: Node.js only (uses process.env)
   - Used by: api, workers, management-api, web/management-web build scripts
-  
+
 #### Platform-Specific Packages
 
 - **@podverse/helpers-browser** - Browser-specific utilities
   - Dependencies: none
   - Platform: Browser only (uses navigator, document APIs)
   - Used by: web, management-web (Next.js)
-  
 - **@podverse/helpers-mobile** - React Native utilities (future)
   - Platform: React Native only
   - Used by: Mobile apps (iOS/Android)
 
 ### Platform Compatibility Matrix
 
-| Package | Web | Mobile | Backend | Build Scripts |
-|---------|-----|--------|---------|---------------|
-| helpers | ✅ | ✅ | ✅ | ✅ |
-| helpers-validation | ✅ | ✅ | ✅ | ✅ |
-| helpers-requests | ✅ | ✅ | ❌ | ❌ |
-| helpers-backend | ❌ | ❌ | ✅ | ❌ |
-| helpers-config | ❌ | ❌ | ✅ | ✅ |
-| helpers-browser | ✅ | ❌ | ❌ | ❌ |
-| helpers-mobile (future) | ❌ | ✅ | ❌ | ❌ |
+| Package                 | Web | Mobile | Backend | Build Scripts |
+| ----------------------- | --- | ------ | ------- | ------------- |
+| helpers                 | ✅  | ✅     | ✅      | ✅            |
+| helpers-validation      | ✅  | ✅     | ✅      | ✅            |
+| helpers-requests        | ✅  | ✅     | ❌      | ❌            |
+| helpers-backend         | ❌  | ❌     | ✅      | ❌            |
+| helpers-config          | ❌  | ❌     | ✅      | ✅            |
+| helpers-browser         | ✅  | ❌     | ❌      | ❌            |
+| helpers-mobile (future) | ❌  | ✅     | ❌      | ❌            |
 ```
 
 **Update build order:**
+
 ```markdown
 ### Package Build Order
 
@@ -83,14 +81,14 @@ Podverse uses a modular helpers architecture for optimal bundle sizes and platfo
 6. helpers-browser (browser only)
 7. external-services
 8. orm
-...
+   ...
 ```
 
 ### 2. Update AGENTS.md
 
 **Update import examples:**
 
-```markdown
+````markdown
 ### Helpers Package Architecture
 
 Podverse uses 6 specialized helpers packages optimized for bundle size and platform compatibility.
@@ -99,11 +97,9 @@ Podverse uses 6 specialized helpers packages optimized for bundle size and platf
 
 1. **@podverse/helpers** - Core DTOs, types, utilities
    - Works in: Browser, React Native, Node.js
-   
 2. **@podverse/helpers-validation** - Email/password/URL validation
    - Works in: Browser, React Native, Node.js
    - Uses joi for email/password, standard URL API for URL validation
-   
 3. **@podverse/helpers-requests** - API client
    - Works in: Browser, React Native
    - Uses axios
@@ -128,27 +124,29 @@ Podverse uses 6 specialized helpers packages optimized for bundle size and platf
 
 ```typescript
 // Core types (all platforms)
-import { DTOAccount, MediumEnum } from '@podverse/helpers'
+import { DTOAccount, MediumEnum } from '@podverse/helpers';
 
 // Validation (all platforms)
-import { validateEmail, isValidHttpUrl } from '@podverse/helpers-validation'
+import { validateEmail, isValidHttpUrl } from '@podverse/helpers-validation';
 
 // API requests (web + mobile)
-import { requestAccount } from '@podverse/helpers-requests'
+import { requestAccount } from '@podverse/helpers-requests';
 
 // Backend logging (Node.js only)
-import { LoggerService, TimerManager } from '@podverse/helpers-backend'
+import { LoggerService, TimerManager } from '@podverse/helpers-backend';
 
 // Config validation (Node.js only)
-import { validateRequired, validateORMConfig } from '@podverse/helpers-config'
+import { validateRequired, validateORMConfig } from '@podverse/helpers-config';
 
 // Browser utilities (browser only)
-import { copyToClipboard } from '@podverse/helpers-browser'
+import { copyToClipboard } from '@podverse/helpers-browser';
 ```
+````
 
 ### Mobile App Considerations
 
 When adding React Native mobile apps:
+
 - ✅ Use `@podverse/helpers` (core DTOs, types, utilities)
 - ✅ Use `@podverse/helpers-validation` (form validation, URL validation)
 - ✅ Use `@podverse/helpers-requests` (API client - axios works in RN)
@@ -156,20 +154,22 @@ When adding React Native mobile apps:
 - ❌ Don't use `@podverse/helpers-config` (uses process.env)
 - ❌ Don't use `@podverse/helpers-browser` (browser APIs won't work)
 - ➕ Create `@podverse/helpers-mobile` for React Native-specific utilities
-```
+
+````
 
 ### 3. Check for Other Documentation
 
 Search for references to helpers:
 ```bash
 grep -r "@podverse/helpers" docs/ README.md AGENTS.md .cursor/
-```
+````
 
 Update any outdated references to use new package names.
 
 ### 4. Update tsconfig.base.json Paths (if exists)
 
 **If workspace uses path mappings**, add:
+
 ```json
 {
   "compilerOptions": {

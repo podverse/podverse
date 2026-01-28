@@ -10,7 +10,7 @@ import styles from '../../../styles/app/podcast/PodcastList.module.scss';
 
 type TrackListProps = {
   ssrItem: DTOItem;
-}
+};
 
 export const TrackList: React.FC<TrackListProps> = ({ ssrItem }) => {
   const { filterParams, isLoading, transcriptRows, autoScrollOn } = useTrackContext();
@@ -18,18 +18,10 @@ export const TrackList: React.FC<TrackListProps> = ({ ssrItem }) => {
 
   return (
     <div className={styles.list}>
-      {
-        type === 'summary' && (
-          <EpisodeSummary description={ssrItem.item_description?.value} />
-        )
-      }
-      {
-        type === 'transcript' && (
-          <ItemTranscript
-            autoScrollOn={autoScrollOn}
-            rows={transcriptRows} />
-        )
-      }
+      {type === 'summary' && <EpisodeSummary description={ssrItem.item_description?.value} />}
+      {type === 'transcript' && (
+        <ItemTranscript autoScrollOn={autoScrollOn} rows={transcriptRows} />
+      )}
       <LoadingSpinnerOverlay isLoading={isLoading} />
     </div>
   );

@@ -39,7 +39,7 @@ function buildChunkSummary(stats: Record<string, unknown>, topN: number): Bundle
   const topChunks = chunks
     .map((chunk) => ({
       chunk,
-      size: (chunk as { size?: number }).size
+      size: (chunk as { size?: number }).size,
     }))
     .filter((entry) => typeof entry.size === 'number')
     .sort((a, b) => (b.size as number) - (a.size as number))
@@ -50,7 +50,7 @@ function buildChunkSummary(stats: Record<string, unknown>, topN: number): Bundle
       return {
         name: getChunkName(chunk),
         size: entry.size as number,
-        files
+        files,
       };
     });
 
@@ -58,7 +58,7 @@ function buildChunkSummary(stats: Record<string, unknown>, topN: number): Bundle
     totalChunks: chunks.length,
     totalAssets: assets.length,
     totalAssetSize,
-    topChunks
+    topChunks,
   };
 }
 

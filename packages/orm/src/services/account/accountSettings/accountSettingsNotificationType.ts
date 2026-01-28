@@ -14,13 +14,18 @@ export class AccountSettingsNotificationTypeService {
   protected repositoryRead: Repository<AccountSettingsNotificationType>;
 
   constructor() {
-    this.repositoryReadWrite = AppDataSourceReadWrite.getRepository(AccountSettingsNotificationType);
+    this.repositoryReadWrite = AppDataSourceReadWrite.getRepository(
+      AccountSettingsNotificationType
+    );
     this.repositoryRead = AppDataSourceRead.getRepository(AccountSettingsNotificationType);
   }
 
   async create(dto: CreateDto): Promise<AccountSettingsNotificationType> {
     const accountSettingsRepo = AppDataSourceRead.getRepository(AccountSettings);
-    const accountSettings = await accountSettingsRepo.findOne({ where: { account_id: dto.account_id }, relations: ['account_settings_notification'] });
+    const accountSettings = await accountSettingsRepo.findOne({
+      where: { account_id: dto.account_id },
+      relations: ['account_settings_notification'],
+    });
     if (!accountSettings || !accountSettings.account_settings_notification) {
       throw new Error('AccountSettingsNotification not found for account');
     }
@@ -37,7 +42,10 @@ export class AccountSettingsNotificationTypeService {
 
   async delete(type: AccountNotificationTypeValues, account_id: number): Promise<void> {
     const accountSettingsRepo = AppDataSourceRead.getRepository(AccountSettings);
-    const accountSettings = await accountSettingsRepo.findOne({ where: { account_id }, relations: ['account_settings_notification'] });
+    const accountSettings = await accountSettingsRepo.findOne({
+      where: { account_id },
+      relations: ['account_settings_notification'],
+    });
 
     if (!accountSettings || !accountSettings.account_settings_notification) {
       throw new Error('AccountSettingsNotification not found for account');

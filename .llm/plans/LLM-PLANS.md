@@ -49,6 +49,7 @@ Migration of 13 repos into unified monorepo.
 ### Plan Size
 
 **Aim for plans under 300 lines.** This is a guideline, not a hard rule. Use judgment:
+
 - Simple, sequential steps can go longer
 - Complex, interdependent steps should be split
 - If a plan feels overwhelming to follow, split it
@@ -56,7 +57,7 @@ Migration of 13 repos into unified monorepo.
 ### Naming
 
 - `00-` master plans
-- `01-`, `02-` phases  
+- `01-`, `02-` phases
 - `01a-`, `01b-` sub-plans
 - `-outline` for future detail
 - `99-` backlog/reference documents
@@ -64,6 +65,7 @@ Migration of 13 repos into unified monorepo.
 ### LLM Behavior
 
 If plan exceeds 300 lines:
+
 1. STOP - don't implement
 2. Split into sub-plans
 3. Save all files

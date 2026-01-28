@@ -92,7 +92,7 @@ export class AssetServer {
             const mimeType = this.getMimeType(filePath);
             res.writeHead(200, {
               'Content-Type': mimeType,
-              'Content-Length': data.length
+              'Content-Length': data.length,
             });
             res.end(data);
           });

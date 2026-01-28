@@ -9,13 +9,13 @@ interface LivestreamContextType {
   setFilterParams: (params: QueryParamsLiveItem) => void;
   isLoading: boolean;
   setIsLoading: (isLoading: boolean) => void;
-};
+}
 
 const LivestreamContext = createContext<LivestreamContextType | undefined>(undefined);
 
 interface LivestreamContextProviderProps {
-  children: ReactNode,
-  initialQueryParams: QueryParamsLiveItem,
+  children: ReactNode;
+  initialQueryParams: QueryParamsLiveItem;
 }
 
 export const LivestreamContextProvider = ({
@@ -25,17 +25,20 @@ export const LivestreamContextProvider = ({
   const params = useParams();
   const [filterParams, setFilterParams] = useState<QueryParamsLiveItem>(initialQueryParams);
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  
+
   if (!params.item_id) {
     return null;
   }
 
   return (
-    <LivestreamContext.Provider value={{
-      filterParams,
-      setFilterParams,
-      isLoading, setIsLoading,
-    }}>
+    <LivestreamContext.Provider
+      value={{
+        filterParams,
+        setFilterParams,
+        isLoading,
+        setIsLoading,
+      }}
+    >
       {children}
     </LivestreamContext.Provider>
   );
@@ -43,6 +46,8 @@ export const LivestreamContextProvider = ({
 
 export const useLivestreamContext = () => {
   const ctx = useContext(LivestreamContext);
-  if (!ctx) {throw new Error('useLivestreamContext must be used within an LivestreamContextProvider');}
+  if (!ctx) {
+    throw new Error('useLivestreamContext must be used within an LivestreamContextProvider');
+  }
   return ctx;
 };

@@ -106,7 +106,7 @@ jobs:
           PACKAGE_NAME=$(node -p "require('./package.json').name")
           BASE_VERSION=$(node -p "require('./package.json').version" | sed 's/-.*//')
           ALPHA_VERSION=$(npm dist-tag ls "$PACKAGE_NAME" 2>/dev/null | grep -w alpha | awk '{print $2}' || echo "")
-          
+
           if [[ -z "$ALPHA_VERSION" ]]; then
             NEXT_VERSION="$BASE_VERSION-alpha.0"
           else
@@ -118,7 +118,7 @@ jobs:
               NEXT_VERSION="$BASE_VERSION-alpha.0"
             fi
           fi
-          
+
           npm version $NEXT_VERSION --no-git-tag-version
           npm publish --tag alpha
         env:
@@ -175,10 +175,10 @@ jobs:
 
 Add to `docs/modules/SECRETS.md`:
 
-| Secret | Purpose | How to Create |
-|--------|---------|---------------|
-| `NPM_TOKEN` | npm publish authentication | npm.com → Access Tokens → Generate New Token (Automation) |
-| `GITHUB_TOKEN` | GHCR push (automatic) | Provided by GitHub Actions automatically |
+| Secret         | Purpose                    | How to Create                                             |
+| -------------- | -------------------------- | --------------------------------------------------------- |
+| `NPM_TOKEN`    | npm publish authentication | npm.com → Access Tokens → Generate New Token (Automation) |
+| `GITHUB_TOKEN` | GHCR push (automatic)      | Provided by GitHub Actions automatically                  |
 
 ## Package Publish Order (Dependency Chain)
 
@@ -192,6 +192,7 @@ Add to `docs/modules/SECRETS.md`:
 ## Docker Build Context
 
 All Dockerfiles use the monorepo root as build context:
+
 - Copy `package*.json` and `packages/` for workspace setup
 - Copy specific app directory
 - Run `npm install --workspaces`
@@ -200,12 +201,14 @@ All Dockerfiles use the monorepo root as build context:
 ## Verification
 
 1. **Workflow syntax validation:**
+
    ```bash
    # Install act for local testing (optional)
    act -n push -e .github/test-events/push-alpha.json
    ```
 
 2. **Manual npm publish test:**
+
    ```bash
    cd packages/helpers
    npm pack --dry-run

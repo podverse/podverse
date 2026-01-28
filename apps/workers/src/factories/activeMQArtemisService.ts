@@ -10,4 +10,7 @@ const activeMQArtemisParams: ActiveMQArtemisServiceParams = {
   password: config.queue.password,
 };
 
-export const activeMQArtemisService = new ActiveMQArtemisService(activeMQArtemisParams, loggerService);
+export const activeMQArtemisService = new ActiveMQArtemisService(
+  activeMQArtemisParams,
+  loggerService
+);

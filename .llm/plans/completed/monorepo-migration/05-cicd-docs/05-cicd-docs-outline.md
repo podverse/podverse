@@ -8,11 +8,11 @@ Set up GitHub Actions, update Jenkins, finalize docs.
 
 ## Sub-Plans
 
-| Plan | Description | Status | Location |
-|------|-------------|--------|----------|
-| 05a-github-actions.md | CI workflow, secrets docs | **Completed** | completed/ |
-| 05b-documentation.md | README, ARCHITECTURE, CONTRIBUTING | **Completed** | completed/ |
-| 05c-archive-repos.md | Archive 13 original repos | Moved to **97-archive-repos.md** | active/ |
+| Plan                  | Description                        | Status                           | Location   |
+| --------------------- | ---------------------------------- | -------------------------------- | ---------- |
+| 05a-github-actions.md | CI workflow, secrets docs          | **Completed**                    | completed/ |
+| 05b-documentation.md  | README, ARCHITECTURE, CONTRIBUTING | **Completed**                    | completed/ |
+| 05c-archive-repos.md  | Archive 13 original repos          | Moved to **97-archive-repos.md** | active/    |
 
 ## Notes
 

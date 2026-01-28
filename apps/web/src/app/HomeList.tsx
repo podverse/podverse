@@ -16,22 +16,17 @@ export const HomeList: React.FC = () => {
 
   return (
     <>
-      <HowToStartInfo
-        rows={channels}
-        totalPages={totalPages}
-      />
-      {
-        (loggedInAccount && channels.length !== 0) && (
-          <ListCombinedChannels
-            page={page}
-            setPage={(page) => setFilterParams({ ...filterParams, page })}
-            channels={channels}
-            totalPages={totalPages}
-            filterMedium={medium}
-            viewSelected={viewSelected}
-          />
-        )
-      }
+      <HowToStartInfo rows={channels} totalPages={totalPages} />
+      {loggedInAccount && channels.length !== 0 && (
+        <ListCombinedChannels
+          page={page}
+          setPage={(page) => setFilterParams({ ...filterParams, page })}
+          channels={channels}
+          totalPages={totalPages}
+          filterMedium={medium}
+          viewSelected={viewSelected}
+        />
+      )}
       <LoadingSpinnerOverlay isLoading={isLoading} />
     </>
   );

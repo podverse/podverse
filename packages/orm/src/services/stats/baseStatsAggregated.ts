@@ -6,7 +6,7 @@ export type UpdateHistoricalOptions = {
   daily: boolean;
   weekly: boolean;
   monthly: boolean;
-}
+};
 
 interface BaseAggregatedStats extends ObjectLiteral {
   id: number;
@@ -61,14 +61,28 @@ export abstract class BaseStatsAggregatedService<T extends BaseAggregatedStats, 
 
   protected abstract getIdFieldName(): string;
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  async _updateAggregatedStats(entity_id: ID, statsTrackEventService: any, updateAllTime: boolean = false): Promise<void> {
-    const eventCountDay = await statsTrackEventService._getCountWithinTimeFrame(entity_id, TIME_CONSTANTS.ONE_DAY_IN_MINUTES);
-    const eventCountWeek = await statsTrackEventService._getCountWithinTimeFrame(entity_id, TIME_CONSTANTS.ONE_WEEK_IN_MINUTES);
-    const eventCountMonth = await statsTrackEventService._getCountWithinTimeFrame(entity_id, TIME_CONSTANTS.ONE_MONTH_IN_MINUTES);
+  async _updateAggregatedStats(
+    entity_id: ID,
+    statsTrackEventService: any,
+    updateAllTime: boolean = false
+  ): Promise<void> {
+    const eventCountDay = await statsTrackEventService._getCountWithinTimeFrame(
+      entity_id,
+      TIME_CONSTANTS.ONE_DAY_IN_MINUTES
+    );
+    const eventCountWeek = await statsTrackEventService._getCountWithinTimeFrame(
+      entity_id,
+      TIME_CONSTANTS.ONE_WEEK_IN_MINUTES
+    );
+    const eventCountMonth = await statsTrackEventService._getCountWithinTimeFrame(
+      entity_id,
+      TIME_CONSTANTS.ONE_MONTH_IN_MINUTES
+    );
 
     const idFieldName = this.getIdFieldName();
-    let aggregatedStats = await this.repositoryRead.findOne({ where: { [idFieldName]: entity_id } as FindOptionsWhere<T> });
+    let aggregatedStats = await this.repositoryRead.findOne({
+      where: { [idFieldName]: entity_id } as FindOptionsWhere<T>,
+    });
 
     if (!aggregatedStats) {
       aggregatedStats = this.repositoryReadWrite.create({ [idFieldName]: entity_id } as T);
@@ -79,18 +93,27 @@ export abstract class BaseStatsAggregatedService<T extends BaseAggregatedStats, 
     aggregatedStats.month_current_count = eventCountMonth ?? 0;
 
     if (updateAllTime) {
-      aggregatedStats.all_time_count = (aggregatedStats.all_time_count ?? 0) + (aggregatedStats.day_current_count ?? 0);
+      aggregatedStats.all_time_count =
+        (aggregatedStats.all_time_count ?? 0) + (aggregatedStats.day_current_count ?? 0);
     }
 
     await this.repositoryReadWrite.save(aggregatedStats);
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  async _updateAggregatedStatsRolling(entity_id: ID, statsTrackEventService: any, updateHistoricalOptions: UpdateHistoricalOptions): Promise<void> {
-    const eventCount = await statsTrackEventService._getCountWithinTimeFrame(entity_id, TIME_CONSTANTS.ONE_DAY_IN_MINUTES);
+  async _updateAggregatedStatsRolling(
+    entity_id: ID,
+    statsTrackEventService: any,
+    updateHistoricalOptions: UpdateHistoricalOptions
+  ): Promise<void> {
+    const eventCount = await statsTrackEventService._getCountWithinTimeFrame(
+      entity_id,
+      TIME_CONSTANTS.ONE_DAY_IN_MINUTES
+    );
 
     const idFieldName = this.getIdFieldName();
-    let aggregatedStats = await this.repositoryRead.findOne({ where: { [idFieldName]: entity_id } as FindOptionsWhere<T> });
+    let aggregatedStats = await this.repositoryRead.findOne({
+      where: { [idFieldName]: entity_id } as FindOptionsWhere<T>,
+    });
 
     if (!aggregatedStats) {
       aggregatedStats = this.repositoryReadWrite.create({ [idFieldName]: entity_id } as T);
@@ -98,7 +121,11 @@ export abstract class BaseStatsAggregatedService<T extends BaseAggregatedStats, 
 
     aggregatedStats.day_current_count = eventCount ?? 0;
 
-    if (updateHistoricalOptions.daily || updateHistoricalOptions.weekly || updateHistoricalOptions.monthly) {
+    if (
+      updateHistoricalOptions.daily ||
+      updateHistoricalOptions.weekly ||
+      updateHistoricalOptions.monthly
+    ) {
       aggregatedStats.day_8_count = aggregatedStats.day_7_count ?? 0;
       aggregatedStats.day_7_count = aggregatedStats.day_6_count ?? 0;
       aggregatedStats.day_6_count = aggregatedStats.day_5_count ?? 0;
@@ -108,7 +135,8 @@ export abstract class BaseStatsAggregatedService<T extends BaseAggregatedStats, 
       aggregatedStats.day_2_count = aggregatedStats.day_1_count ?? 0;
       aggregatedStats.day_1_count = aggregatedStats.day_current_count ?? 0;
 
-      aggregatedStats.all_time_count = (aggregatedStats.all_time_count ?? 0) + (aggregatedStats.day_current_count ?? 0);
+      aggregatedStats.all_time_count =
+        (aggregatedStats.all_time_count ?? 0) + (aggregatedStats.day_current_count ?? 0);
     }
 
     if (updateHistoricalOptions.weekly || updateHistoricalOptions.monthly) {
@@ -122,33 +150,33 @@ export abstract class BaseStatsAggregatedService<T extends BaseAggregatedStats, 
       aggregatedStats.month_1_count = aggregatedStats.month_current_count ?? 0;
     }
 
-    aggregatedStats.week_current_count = 
-      (!aggregatedStats.day_1_count
-        && !aggregatedStats.day_2_count
-        && !aggregatedStats.day_3_count
-        && !aggregatedStats.day_4_count
-        && !aggregatedStats.day_5_count
-        && !aggregatedStats.day_6_count
-        && !aggregatedStats.day_7_count)
+    aggregatedStats.week_current_count =
+      !aggregatedStats.day_1_count &&
+      !aggregatedStats.day_2_count &&
+      !aggregatedStats.day_3_count &&
+      !aggregatedStats.day_4_count &&
+      !aggregatedStats.day_5_count &&
+      !aggregatedStats.day_6_count &&
+      !aggregatedStats.day_7_count
         ? aggregatedStats.day_current_count
-        : ((aggregatedStats.day_1_count ?? 0)
-          + (aggregatedStats.day_2_count ?? 0)
-          + (aggregatedStats.day_3_count ?? 0)
-          + (aggregatedStats.day_4_count ?? 0)
-          + (aggregatedStats.day_5_count ?? 0)
-          + (aggregatedStats.day_6_count ?? 0)
-          + (aggregatedStats.day_7_count ?? 0));
+        : (aggregatedStats.day_1_count ?? 0) +
+          (aggregatedStats.day_2_count ?? 0) +
+          (aggregatedStats.day_3_count ?? 0) +
+          (aggregatedStats.day_4_count ?? 0) +
+          (aggregatedStats.day_5_count ?? 0) +
+          (aggregatedStats.day_6_count ?? 0) +
+          (aggregatedStats.day_7_count ?? 0);
 
-    aggregatedStats.month_current_count = 
-        (!aggregatedStats.week_1_count
-          && !aggregatedStats.week_2_count
-          && !aggregatedStats.week_3_count
-          && !aggregatedStats.week_4_count)
-          ? aggregatedStats.week_current_count
-          : ((aggregatedStats.week_1_count ?? 0)
-            + (aggregatedStats.week_2_count ?? 0)
-            + (aggregatedStats.week_3_count ?? 0)
-            + (aggregatedStats.week_4_count ?? 0));
+    aggregatedStats.month_current_count =
+      !aggregatedStats.week_1_count &&
+      !aggregatedStats.week_2_count &&
+      !aggregatedStats.week_3_count &&
+      !aggregatedStats.week_4_count
+        ? aggregatedStats.week_current_count
+        : (aggregatedStats.week_1_count ?? 0) +
+          (aggregatedStats.week_2_count ?? 0) +
+          (aggregatedStats.week_3_count ?? 0) +
+          (aggregatedStats.week_4_count ?? 0);
 
     await this.repositoryReadWrite.save(aggregatedStats);
   }

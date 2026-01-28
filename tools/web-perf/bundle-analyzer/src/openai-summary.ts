@@ -37,8 +37,12 @@ function extractBundleMetrics(report: BundleReport): {
     timestamp: report.timestamp,
     serverBundleSize: formatBytes(report.serverBundleSize),
     clientBundleSize: formatBytes(report.clientBundleSize),
-    serverChunkSummary: report.serverChunkSummary ? formatChunkSummary(report.serverChunkSummary) : undefined,
-    clientChunkSummary: report.clientChunkSummary ? formatChunkSummary(report.clientChunkSummary) : undefined
+    serverChunkSummary: report.serverChunkSummary
+      ? formatChunkSummary(report.serverChunkSummary)
+      : undefined,
+    clientChunkSummary: report.clientChunkSummary
+      ? formatChunkSummary(report.clientChunkSummary)
+      : undefined,
   };
 }
 
@@ -50,8 +54,8 @@ function formatChunkSummary(summary: BundleChunkSummary) {
     topChunks: summary.topChunks.map((chunk) => ({
       name: chunk.name,
       size: formatBytes(chunk.size),
-      files: chunk.files
-    }))
+      files: chunk.files,
+    })),
   };
 }
 
@@ -70,30 +74,46 @@ function formatChunkComparison(
     base: metric.base !== null ? metric.base : null,
     new: metric.new !== null ? metric.new : null,
     delta: metric.delta !== null ? metric.delta : null,
-    percentChange: metric.percentChange !== null ? `${metric.percentChange >= 0 ? '+' : ''}${metric.percentChange.toFixed(2)}%` : null
+    percentChange:
+      metric.percentChange !== null
+        ? `${metric.percentChange >= 0 ? '+' : ''}${metric.percentChange.toFixed(2)}%`
+        : null,
   });
 
-  const formatBundle = (bundle: NonNullable<BundleComparisonResult['chunkSummary']>[keyof NonNullable<BundleComparisonResult['chunkSummary']>]) => ({
+  const formatBundle = (
+    bundle: NonNullable<BundleComparisonResult['chunkSummary']>[keyof NonNullable<
+      BundleComparisonResult['chunkSummary']
+    >]
+  ) => ({
     totalChunks: formatMetric(bundle.totalChunks),
     totalAssets: formatMetric(bundle.totalAssets),
     totalAssetSize: {
       base: bundle.totalAssetSize.base !== null ? formatBytes(bundle.totalAssetSize.base) : null,
       new: bundle.totalAssetSize.new !== null ? formatBytes(bundle.totalAssetSize.new) : null,
-      delta: bundle.totalAssetSize.delta !== null ? formatBytes(Math.abs(bundle.totalAssetSize.delta)) : null,
-      percentChange: bundle.totalAssetSize.percentChange !== null ? `${bundle.totalAssetSize.percentChange >= 0 ? '+' : ''}${bundle.totalAssetSize.percentChange.toFixed(2)}%` : null
+      delta:
+        bundle.totalAssetSize.delta !== null
+          ? formatBytes(Math.abs(bundle.totalAssetSize.delta))
+          : null,
+      percentChange:
+        bundle.totalAssetSize.percentChange !== null
+          ? `${bundle.totalAssetSize.percentChange >= 0 ? '+' : ''}${bundle.totalAssetSize.percentChange.toFixed(2)}%`
+          : null,
     },
     topChunks: bundle.topChunks.map((chunk) => ({
       name: chunk.name,
       base: chunk.base !== null ? formatBytes(chunk.base) : null,
       new: chunk.new !== null ? formatBytes(chunk.new) : null,
       delta: chunk.delta !== null ? formatBytes(Math.abs(chunk.delta)) : null,
-      percentChange: chunk.percentChange !== null ? `${chunk.percentChange >= 0 ? '+' : ''}${chunk.percentChange.toFixed(2)}%` : null
-    }))
+      percentChange:
+        chunk.percentChange !== null
+          ? `${chunk.percentChange >= 0 ? '+' : ''}${chunk.percentChange.toFixed(2)}%`
+          : null,
+    })),
   });
 
   return {
     ...(comparison.server ? { server: formatBundle(comparison.server) } : {}),
-    ...(comparison.client ? { client: formatBundle(comparison.client) } : {})
+    ...(comparison.client ? { client: formatBundle(comparison.client) } : {}),
   };
 }
 
@@ -107,7 +127,7 @@ export async function generateComparisonSummary(
   }
 
   const openai = new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY
+    apiKey: process.env.OPENAI_API_KEY,
   });
 
   const payload = {
@@ -115,15 +135,18 @@ export async function generateComparisonSummary(
     newReport: extractBundleMetrics(newReport),
     comparison: {
       summary: comparison.summary,
-      metrics: comparison.metrics.map(m => ({
+      metrics: comparison.metrics.map((m) => ({
         name: m.name,
         base: m.base !== null ? formatBytes(m.base) : null,
         new: m.new !== null ? formatBytes(m.new) : null,
         delta: m.delta !== null ? formatBytes(Math.abs(m.delta)) : null,
-        percentChange: m.percentChange !== null ? `${m.percentChange >= 0 ? '+' : ''}${m.percentChange.toFixed(2)}%` : null
+        percentChange:
+          m.percentChange !== null
+            ? `${m.percentChange >= 0 ? '+' : ''}${m.percentChange.toFixed(2)}%`
+            : null,
       })),
-      chunkSummary: formatChunkComparison(comparison.chunkSummary)
-    }
+      chunkSummary: formatChunkComparison(comparison.chunkSummary),
+    },
   };
 
   const systemPrompt = [
@@ -146,15 +169,18 @@ export async function generateComparisonSummary(
     '- Mention specific bundle types (server vs client) when discussing changes.',
     '- If chunk summary is present, call out notable top chunk size changes.',
     '- Focus on actionable optimization opportunities.',
-    '- If data is insufficient for a section, say "None observed".'
+    '- If data is insufficient for a section, say "None observed".',
   ].join('\n');
 
   const chat = await openai.chat.completions.create({
     model: MODEL,
     messages: [
       { role: 'system', content: systemPrompt },
-      { role: 'user', content: `Analyze this bundle comparison JSON:\n\n${JSON.stringify(payload, null, 2)}` }
-    ]
+      {
+        role: 'user',
+        content: `Analyze this bundle comparison JSON:\n\n${JSON.stringify(payload, null, 2)}`,
+      },
+    ],
   });
 
   return chat.choices[0].message.content?.trim() ?? '';

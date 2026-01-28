@@ -22,12 +22,14 @@ Analyzes Next.js bundle sizes and generates interactive visualizations.
 **Location**: `bundle-analyzer/`
 
 **Key Features:**
+
 - Automated Next.js production build analysis
 - Interactive HTML reports for server and client bundles
 - Report comparison with OpenAI-powered insights
 - Historical report tracking
 
 **Run**:
+
 ```bash
 cd tools/web-perf/bundle-analyzer
 npm install
@@ -45,6 +47,7 @@ Automated Lighthouse performance testing with Playwright browser automation.
 **Location**: `lighthouse/`
 
 **Key Features:**
+
 - Automated test environment setup (database, API, web app, asset server)
 - Browser automation with Playwright
 - Lighthouse performance testing for multiple scenarios
@@ -52,6 +55,7 @@ Automated Lighthouse performance testing with Playwright browser automation.
 - Test fixture management
 
 **Run**:
+
 ```bash
 cd tools/web-perf/lighthouse
 npm install
@@ -59,6 +63,7 @@ npm test
 ```
 
 **Prerequisites**:
+
 - Docker running
 - `podverse-ops` repo available as a sibling to the monorepo (for test database)
 - Chrome/Chromium browser
@@ -70,12 +75,14 @@ See `lighthouse/TOOLS-WEB-PERF-LIGHTHOUSE.md` for detailed documentation.
 ## Supported Applications
 
 These tools can test:
+
 - `apps/web` - Main Podverse web application
 - `apps/management-web` - Admin dashboard (future)
 
 ## Reports Directory
 
 Generated reports are stored in `reports/` subdirectories:
+
 - `reports/bundle-analyzer/` - Bundle analysis reports
 - `reports/lighthouse/` - Lighthouse performance reports
 

@@ -18,7 +18,7 @@ type FeatureComparisonProps = {
 export const FeatureComparison: React.FC<FeatureComparisonProps> = ({ features }) => {
   const t = useTranslations('membership');
   const tMisc = useTranslations('misc');
-  
+
   return (
     <div className={styles.comparison}>
       <table className={styles.table}>

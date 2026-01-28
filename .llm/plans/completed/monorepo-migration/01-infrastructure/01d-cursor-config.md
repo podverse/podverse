@@ -16,12 +16,15 @@ Set up `.cursorrules` and `.cursor/` rules and skills.
 # Podverse Monorepo Rules
 
 ## Stack
+
 - Node.js 22, TypeScript strict, npm workspaces
 
 ## Architecture
+
 See `.llm/context/architecture.md`. Lower tiers cannot depend on higher.
 
 ## Code Quality
+
 - No `any` types
 - DTOs from `@podverse/helpers`
 - Follow `tsconfig.base.json`
@@ -31,14 +34,18 @@ See `.llm/context/architecture.md`. Lower tiers cannot depend on higher.
 ## LLM WORKFLOW
 
 ### Context Gathering
+
 For substantial requests, ask first:
+
 - "What's the goal?"
 - "GitHub issue?"
 
 ### Issue Linking
+
 Ask once at start: "Related GitHub issue?"
 
 ### Scope Management
+
 Warn if drifting: "This seems outside scope. Continue?"
 
 ---
@@ -48,6 +55,7 @@ Warn if drifting: "This seems outside scope. Continue?"
 Before work: Check/create `.llm/history/active/[feature].md`
 
 After changes, update with:
+
 - Session date, prompt summary, decisions, files
 
 End with: **LLM History**: Updated `.llm/history/active/[feature].md`
@@ -65,14 +73,14 @@ If over 300: STOP, split into sub-plans, save, then work sequentially.
 
 ## Step 2: Create `.cursor/rules/llm-history-tracking.mdc`
 
-```markdown
+````markdown
 ---
 description: LLM history tracking for code changes
 globs:
-  - "packages/**/*.ts"
-  - "apps/**/*.ts"
-  - "apps/**/*.tsx"
-  - "tools/**/*.ts"
+  - 'packages/**/*.ts'
+  - 'apps/**/*.ts'
+  - 'apps/**/*.tsx'
+  - 'tools/**/*.ts'
 alwaysApply: false
 ---
 
@@ -82,14 +90,20 @@ When modifying code, update `.llm/history/active/[feature].md`:
 
 ```markdown
 ### Session N - YYYY-MM-DD
+
 #### Prompt
+
 [Description]
+
 #### Files Changed
+
 - path/to/file.ts
 ```
+````
 
 End response with history confirmation.
-```
+
+````
 
 ---
 
@@ -110,13 +124,13 @@ alwaysApply: false
 When changing configs:
 - Update `docs/ARCHITECTURE.md` if deps changed
 - Update `.llm/context/` files
-```
+````
 
 ---
 
 ## Step 4: Create `.cursor/skills/global/SKILL.md`
 
-```markdown
+````markdown
 ---
 name: podverse-global-patterns
 version: 1.0.0
@@ -125,19 +139,24 @@ version: 1.0.0
 # Global Patterns
 
 ## Dependencies
+
 Tier 1 → Tier 2 → ... → Tier 5. Only depend on lower tiers.
 
 ## Workspace Deps
+
 ```json
 { "dependencies": { "@podverse/helpers": "workspace:*" } }
 ```
+````
 
 ## TypeScript Config
+
 ```json
 { "extends": "../../tsconfig.base.json" }
 ```
 
 ## Package Structure
+
 ```
 packages/name/
 ├── src/index.ts
@@ -148,6 +167,7 @@ packages/name/
 ## Plan Management
 
 **300 line limit.** Split large plans:
+
 ```
 feature/
 ├── index.md
@@ -156,12 +176,14 @@ feature/
 ```
 
 Plans organized by project:
+
 ```
 .cursor/plans/
 ├── monorepo-migration/
 ├── feature-xyz/
 └── README.md
 ```
+
 ```
 
 ---
@@ -178,3 +200,4 @@ Plans organized by project:
 ## Next
 
 Proceed to [01e-docs-verify.md](01e-docs-verify.md)
+```

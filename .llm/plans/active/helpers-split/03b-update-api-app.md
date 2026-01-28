@@ -13,6 +13,7 @@ Update the API app to import backend and config utilities from the new specializ
 ### 1. Update package.json Dependencies
 
 **In `apps/api/package.json`**, add to dependencies:
+
 ```json
 "@podverse/helpers-backend": "*",
 "@podverse/helpers-config": "*"
@@ -21,6 +22,7 @@ Update the API app to import backend and config utilities from the new specializ
 ### 2. Update LoggerService Import
 
 **`apps/api/src/factories/loggerService.ts`:**
+
 ```diff
 -import { LoggerService } from '@podverse/helpers/dist/lib/backend/logger';
 +import { LoggerService } from '@podverse/helpers-backend';
@@ -29,6 +31,7 @@ Update the API app to import backend and config utilities from the new specializ
 ### 3. Update Config Validation Imports
 
 **`apps/api/src/index.ts`** (or wherever config validation is used):
+
 ```diff
 -import { validateORMConfig, assertConfigValid } from '@podverse/helpers';
 +import { validateORMConfig, assertConfigValid } from '@podverse/helpers-config';
@@ -37,6 +40,7 @@ Update the API app to import backend and config utilities from the new specializ
 ### 4. Update Startup Validation Imports
 
 **`apps/api/src/lib/startup/validation.ts`:**
+
 ```diff
 -import { validateRequired, validateOptional, validateBoolean, ... } from '@podverse/helpers';
 +import { validateRequired, validateOptional, validateBoolean, ... } from '@podverse/helpers-config';

@@ -21,6 +21,7 @@ cp -r ../podverse-web/public apps/web/
 ```
 
 **Source structure:**
+
 - `src/app/` - Next.js App Router pages (50+ page directories)
 - `src/components/` - React components (285 files)
   - `Auth/`, `Head/`, `MediaPlayer/`, `NavBar/`, `SideBar/`, etc.
@@ -38,6 +39,7 @@ cp -r ../podverse-web/public apps/web/
 - `src/utils/` - Utility functions (27 files)
 
 **Supporting files:**
+
 - `i18n/originals/` - Original translation files (el-GR, en-US, es, fr)
 - `i18n/overrides/` - Override translations
 - `i18n/compiled/` - Compiled output (generated)
@@ -154,12 +156,7 @@ Create `apps/web/package.json`:
       }
     ]
   },
-  "include": [
-    "src/**/*.ts",
-    "src/**/*.tsx",
-    "next-env.d.ts",
-    ".next/types/**/*.ts"
-  ],
+  "include": ["src/**/*.ts", "src/**/*.tsx", "next-env.d.ts", ".next/types/**/*.ts"],
   "exclude": ["node_modules"]
 }
 ```
@@ -187,6 +184,7 @@ Create `apps/web/package.json`:
 Update imports to use workspace packages:
 
 **In `src/app/layout.tsx`:**
+
 ```typescript
 // Before
 import { generateQueueResourceAbridgedIndex, QueueResourcesAbridgedIndex } from 'podverse-helpers';
@@ -196,15 +194,37 @@ import { generateQueueResourceAbridgedIndex, QueueResourcesAbridgedIndex } from 
 ```
 
 **In `scripts/validate-env.ts`:**
+
 ```typescript
 // Before
-import { ValidationResult, ValidationSummary, validateRequired, validateOptional, getAllAvailableOrListMessage, validateSupportedLocalesList, validateLocale, SERVER_ENV_VALUES, isValidServerEnv } from 'podverse-helpers';
+import {
+  ValidationResult,
+  ValidationSummary,
+  validateRequired,
+  validateOptional,
+  getAllAvailableOrListMessage,
+  validateSupportedLocalesList,
+  validateLocale,
+  SERVER_ENV_VALUES,
+  isValidServerEnv,
+} from 'podverse-helpers';
 
 // After
-import { ValidationResult, ValidationSummary, validateRequired, validateOptional, getAllAvailableOrListMessage, validateSupportedLocalesList, validateLocale, SERVER_ENV_VALUES, isValidServerEnv } from '@podverse/helpers';
+import {
+  ValidationResult,
+  ValidationSummary,
+  validateRequired,
+  validateOptional,
+  getAllAvailableOrListMessage,
+  validateSupportedLocalesList,
+  validateLocale,
+  SERVER_ENV_VALUES,
+  isValidServerEnv,
+} from '@podverse/helpers';
 ```
 
 **Search and replace across all files:**
+
 - `from 'podverse-helpers'` → `from '@podverse/helpers'`
 
 ---
@@ -264,15 +284,15 @@ npm run build -w apps/web
 
 ## Key Features to Verify
 
-| Feature | Files | Verification |
-|---------|-------|--------------|
-| i18n | `i18n/`, `src/i18n/` | Multiple languages load correctly |
-| Media Player | `src/components/MediaPlayer/` | Audio/video playback works |
-| Themes | `src/styles/`, `src/utils/localSettings/` | Dark/light/dracula themes switch |
-| Authentication | `src/utils/auth/`, `src/components/Auth/` | Login/logout works |
-| Push Notifications | `public/webpush-sw.js`, `src/lib/notifications/` | Service worker registers |
-| SSR | `src/app/layout.tsx` | Server-side data fetching works |
-| Contexts | `src/contexts/` | State management works |
+| Feature            | Files                                            | Verification                      |
+| ------------------ | ------------------------------------------------ | --------------------------------- |
+| i18n               | `i18n/`, `src/i18n/`                             | Multiple languages load correctly |
+| Media Player       | `src/components/MediaPlayer/`                    | Audio/video playback works        |
+| Themes             | `src/styles/`, `src/utils/localSettings/`        | Dark/light/dracula themes switch  |
+| Authentication     | `src/utils/auth/`, `src/components/Auth/`        | Login/logout works                |
+| Push Notifications | `public/webpush-sw.js`, `src/lib/notifications/` | Service worker registers          |
+| SSR                | `src/app/layout.tsx`                             | Server-side data fetching works   |
+| Contexts           | `src/contexts/`                                  | State management works            |
 
 ---
 

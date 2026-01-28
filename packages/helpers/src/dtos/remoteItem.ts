@@ -14,7 +14,7 @@ export type RemoteItemGeneric = {
   feed_guid: string;
   feed_url: string | null;
   item_guid: string | null;
-}
+};
 
 export interface PublisherRemoteItemsResponse {
   channel: DTOChannel;

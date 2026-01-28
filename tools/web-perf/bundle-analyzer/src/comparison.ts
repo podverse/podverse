@@ -57,14 +57,16 @@ export class BundleComparisonEngine {
     const baseServerSize = baseReport.serverBundleSize ?? null;
     const newServerSize = newReport.serverBundleSize ?? null;
     if (baseServerSize !== null || newServerSize !== null) {
-      const delta = baseServerSize !== null && newServerSize !== null ? newServerSize - baseServerSize : null;
-      const percentChange = baseServerSize !== null && delta !== null ? (delta / baseServerSize) * 100 : null;
+      const delta =
+        baseServerSize !== null && newServerSize !== null ? newServerSize - baseServerSize : null;
+      const percentChange =
+        baseServerSize !== null && delta !== null ? (delta / baseServerSize) * 100 : null;
       metrics.push({
         name: 'Server Bundle Size',
         base: baseServerSize,
         new: newServerSize,
         delta,
-        percentChange
+        percentChange,
       });
     }
 
@@ -72,14 +74,16 @@ export class BundleComparisonEngine {
     const baseClientSize = baseReport.clientBundleSize ?? null;
     const newClientSize = newReport.clientBundleSize ?? null;
     if (baseClientSize !== null || newClientSize !== null) {
-      const delta = baseClientSize !== null && newClientSize !== null ? newClientSize - baseClientSize : null;
-      const percentChange = baseClientSize !== null && delta !== null ? (delta / baseClientSize) * 100 : null;
+      const delta =
+        baseClientSize !== null && newClientSize !== null ? newClientSize - baseClientSize : null;
+      const percentChange =
+        baseClientSize !== null && delta !== null ? (delta / baseClientSize) * 100 : null;
       metrics.push({
         name: 'Client Bundle Size',
         base: baseClientSize,
         new: newClientSize,
         delta,
-        percentChange
+        percentChange,
       });
     }
 
@@ -115,10 +119,10 @@ export class BundleComparisonEngine {
       summary: {
         regressions,
         improvements,
-        neutral
+        neutral,
       },
       analysis,
-      chunkSummary
+      chunkSummary,
     };
   }
 
@@ -126,8 +130,14 @@ export class BundleComparisonEngine {
     baseReport: BundleReport,
     newReport: BundleReport
   ): BundleComparisonResult['chunkSummary'] | undefined {
-    const server = this.buildChunkComparison(baseReport.serverChunkSummary, newReport.serverChunkSummary);
-    const client = this.buildChunkComparison(baseReport.clientChunkSummary, newReport.clientChunkSummary);
+    const server = this.buildChunkComparison(
+      baseReport.serverChunkSummary,
+      newReport.serverChunkSummary
+    );
+    const client = this.buildChunkComparison(
+      baseReport.clientChunkSummary,
+      newReport.clientChunkSummary
+    );
 
     if (!server && !client) {
       return undefined;
@@ -135,7 +145,7 @@ export class BundleComparisonEngine {
 
     return {
       ...(server ? { server } : {}),
-      ...(client ? { client } : {})
+      ...(client ? { client } : {}),
     };
   }
 
@@ -183,11 +193,15 @@ export class BundleComparisonEngine {
       totalChunks,
       totalAssets,
       totalAssetSize,
-      topChunks
+      topChunks,
     };
   }
 
-  private buildMetricComparison(name: string, base: number | null, next: number | null): MetricComparison {
+  private buildMetricComparison(
+    name: string,
+    base: number | null,
+    next: number | null
+  ): MetricComparison {
     const delta = base !== null && next !== null ? next - base : null;
     const percentChange = base !== null && delta !== null ? (delta / base) * 100 : null;
     return {
@@ -195,7 +209,7 @@ export class BundleComparisonEngine {
       base,
       new: next,
       delta,
-      percentChange
+      percentChange,
     };
   }
 
@@ -207,7 +221,7 @@ export class BundleComparisonEngine {
       base,
       new: next,
       delta,
-      percentChange
+      percentChange,
     };
   }
 
@@ -218,7 +232,7 @@ export class BundleComparisonEngine {
     chunkSummary?: BundleComparisonResult['chunkSummary']
   ): string {
     let analysis = `## Bundle Size Comparison Analysis\n\n`;
-    
+
     if (improvements > regressions) {
       analysis += `✅ **Overall: Bundle sizes have improved** (${improvements} improvements vs ${regressions} regressions)\n\n`;
     } else if (regressions > improvements) {
@@ -231,11 +245,16 @@ export class BundleComparisonEngine {
 
     for (const metric of metrics) {
       if (metric.delta === null) continue;
-      
+
       // For bundle sizes, decrease is good
       const isGood = metric.percentChange! < 0;
-      const indicator = isGood ? '✅' : metric.percentChange! < -this.THRESHOLD_PERCENT || metric.percentChange! > this.THRESHOLD_PERCENT ? '⚠️' : '➡️';
-      
+      const indicator = isGood
+        ? '✅'
+        : metric.percentChange! < -this.THRESHOLD_PERCENT ||
+            metric.percentChange! > this.THRESHOLD_PERCENT
+          ? '⚠️'
+          : '➡️';
+
       analysis += `${indicator} **${metric.name}**: `;
       if (metric.base !== null && metric.new !== null) {
         analysis += `${this.formatBytes(metric.base)} → ${this.formatBytes(metric.new)} `;
@@ -267,15 +286,9 @@ export class BundleComparisonEngine {
   private formatChunkSummary(label: string, summary: BundleChunkComparison): string {
     const lines: string[] = [];
     lines.push(`**${label} Bundles**`);
-    lines.push(
-      `- Total chunks: ${this.formatMetric(summary.totalChunks)}`
-    );
-    lines.push(
-      `- Total assets: ${this.formatMetric(summary.totalAssets)}`
-    );
-    lines.push(
-      `- Total asset size: ${this.formatMetric(summary.totalAssetSize, true)}`
-    );
+    lines.push(`- Total chunks: ${this.formatMetric(summary.totalChunks)}`);
+    lines.push(`- Total assets: ${this.formatMetric(summary.totalAssets)}`);
+    lines.push(`- Total asset size: ${this.formatMetric(summary.totalAssetSize, true)}`);
 
     const topChanges = summary.topChunks
       .filter((chunk) => chunk.delta !== null)
@@ -289,9 +302,7 @@ export class BundleComparisonEngine {
         const sizeNew = chunk.new !== null ? this.formatBytes(chunk.new) : 'N/A';
         const delta = chunk.delta !== null ? this.formatBytes(Math.abs(chunk.delta)) : 'N/A';
         const sign = chunk.delta !== null && chunk.delta >= 0 ? '+' : '-';
-        lines.push(
-          `  - ${chunk.name}: ${sizeBase} → ${sizeNew} (${sign}${delta})`
-        );
+        lines.push(`  - ${chunk.name}: ${sizeBase} → ${sizeNew} (${sign}${delta})`);
       }
     }
 
@@ -299,13 +310,21 @@ export class BundleComparisonEngine {
   }
 
   private formatMetric(metric: MetricComparison, useBytes = false): string {
-    const base = metric.base === null ? 'N/A' : useBytes ? this.formatBytes(metric.base) : metric.base.toString();
-    const next = metric.new === null ? 'N/A' : useBytes ? this.formatBytes(metric.new) : metric.new.toString();
+    const base =
+      metric.base === null
+        ? 'N/A'
+        : useBytes
+          ? this.formatBytes(metric.base)
+          : metric.base.toString();
+    const next =
+      metric.new === null ? 'N/A' : useBytes ? this.formatBytes(metric.new) : metric.new.toString();
     if (metric.delta === null || metric.percentChange === null) {
       return `${base} → ${next}`;
     }
     const sign = metric.delta >= 0 ? '+' : '';
-    const delta = useBytes ? this.formatBytes(Math.abs(metric.delta)) : Math.abs(metric.delta).toString();
+    const delta = useBytes
+      ? this.formatBytes(Math.abs(metric.delta))
+      : Math.abs(metric.delta).toString();
     return `${base} → ${next} (${sign}${delta}, ${sign}${metric.percentChange.toFixed(2)}%)`;
   }
 }

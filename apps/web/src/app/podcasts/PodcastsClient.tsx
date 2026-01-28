@@ -1,4 +1,3 @@
-
 'use client';
 
 import { DTOChannel, QueryParamsGetMany } from '@podverse/helpers';
@@ -18,7 +17,7 @@ interface PodcastsClientProps {
 
 export function PodcastsClient(props: PodcastsClientProps) {
   const { initialQueryParams, ssrChannels, ssrTotalPages } = props;
-  
+
   return (
     <PodcastsContextProvider
       initialQueryParams={initialQueryParams}

@@ -4,9 +4,7 @@ import { config } from '@workers/config';
 
 export const createDailyRotateLogger = (filename: string, level = 'info') => {
   const logDir = config.log.dir || './logs';
-  const transports: winston.transport[] = [
-    new winston.transports.Console({ level }),
-  ];
+  const transports: winston.transport[] = [new winston.transports.Console({ level })];
 
   // Only add file transport if LOG_DIR is set and non-empty
   if (logDir && logDir.trim() !== '') {
@@ -17,7 +15,7 @@ export const createDailyRotateLogger = (filename: string, level = 'info') => {
         zippedArchive: true,
         maxSize: '20m',
         maxFiles: '14d',
-      }),
+      })
     );
   }
 

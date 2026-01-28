@@ -13,6 +13,7 @@ Update the Management Web app to import from the new specialized helpers package
 ### 1. Update package.json Dependencies
 
 **In `apps/management-web/package.json`**, add to dependencies:
+
 ```json
 "@podverse/helpers-config": "*"
 ```
@@ -26,6 +27,7 @@ grep -r "validateRequired\|validateOptional\|validateBoolean" scripts/
 ```
 
 **Update imports:**
+
 ```diff
 -import { validateRequired, validateOptional } from '@podverse/helpers';
 +import { validateRequired, validateOptional } from '@podverse/helpers-config';

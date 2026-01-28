@@ -7,7 +7,7 @@ export function getTotalPages(
   count: number | null,
   limit: number,
   currentPageItemCount: number,
-  currentPage: number,
+  currentPage: number
 ): number {
   if (count === null) {
     if (currentPageItemCount < limit) {
@@ -16,7 +16,9 @@ export function getTotalPages(
     return PAGINATION.MAX_COUNT;
   }
 
-  if (!limit || limit <= 0) {return 1;}
+  if (!limit || limit <= 0) {
+    return 1;
+  }
   return Math.max(1, Math.ceil(count / limit)); // ensure at least 1
 }
 

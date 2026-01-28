@@ -4,13 +4,16 @@ import { Link } from '../Link/Link';
 import styles from '../../styles/components/SourceSelectors/SourceSelectorRow.module.scss';
 
 type SourceSelectorRowProps = {
-  labeledItemEnclosure: LabeledItemEnclosure
+  labeledItemEnclosure: LabeledItemEnclosure;
   labeledItemEnclosureIndex: number;
-  onClick: (enclosureIndex: number, sourceIndex: number) => void
-}
+  onClick: (enclosureIndex: number, sourceIndex: number) => void;
+};
 
-export const SourceSelectorRow = ({ labeledItemEnclosure,
-  labeledItemEnclosureIndex, onClick }: SourceSelectorRowProps) => {
+export const SourceSelectorRow = ({
+  labeledItemEnclosure,
+  labeledItemEnclosureIndex,
+  onClick,
+}: SourceSelectorRowProps) => {
   const enclosureLabel = useEnclosureLabel(labeledItemEnclosure);
 
   if (!labeledItemEnclosure) {
@@ -32,25 +35,15 @@ export const SourceSelectorRow = ({ labeledItemEnclosure,
         onClick={() => onClick(labeledItemEnclosureIndex, sourceIndex)}
       >
         <div className={styles.textWrapper}>
-          {
-            labeledItemEnclosure.enclosure.title && (
-              <div className={styles.enclosureLabel}>
-                {labeledItemEnclosure.enclosure.title}
-              </div>
-            )
-          }
+          {labeledItemEnclosure.enclosure.title && (
+            <div className={styles.enclosureLabel}>{labeledItemEnclosure.enclosure.title}</div>
+          )}
           <div className={styles.enclosureLabel}>
-            {
-              !labeledItemEnclosure.enclosure.title && (
-                enclosureLabel
-              )
-            }
+            {!labeledItemEnclosure.enclosure.title && enclosureLabel}
           </div>
-          <div className={styles.sourceUri}>
-            {source.uri}
-          </div>
+          <div className={styles.sourceUri}>{source.uri}</div>
         </div>
-      </Link>,
+      </Link>
     );
   }
 

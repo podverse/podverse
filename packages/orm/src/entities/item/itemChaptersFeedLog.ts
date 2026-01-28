@@ -6,7 +6,9 @@ export class ItemChaptersFeedLog {
   @PrimaryGeneratedColumn()
   id!: number;
 
-  @OneToOne(() => ItemChaptersFeed, item_chapters_feed => item_chapters_feed.id, { onDelete: 'CASCADE' })
+  @OneToOne(() => ItemChaptersFeed, (item_chapters_feed) => item_chapters_feed.id, {
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'item_chapters_feed_id' })
   item_chapters_feed!: ItemChaptersFeed;
 

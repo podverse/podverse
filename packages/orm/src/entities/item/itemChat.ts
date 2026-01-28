@@ -7,7 +7,7 @@ export class ItemChat {
   @PrimaryGeneratedColumn()
   id!: number;
 
-  @OneToOne(() => Item, item => item.id, { onDelete: 'CASCADE' })
+  @OneToOne(() => Item, (item) => item.id, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'item_id' })
   item!: Item;
 

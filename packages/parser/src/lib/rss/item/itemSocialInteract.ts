@@ -6,7 +6,7 @@ import { handleParsedManyData } from '../base/handleParsedManyData';
 export const handleParsedItemSocialInteract = async (
   parsedItem: Episode,
   item: Item,
-  transactionalEntityManager?: EntityManager,
+  transactionalEntityManager?: EntityManager
 ) => {
   const itemSocialInteractService = new ItemSocialInteractService(transactionalEntityManager);
   const itemSocialInteractDtos = compatItemSocialInteractDtos(parsedItem);

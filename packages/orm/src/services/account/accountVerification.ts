@@ -4,9 +4,9 @@ import { AccountVerification } from '@orm/entities/account/accountVerification';
 import { BaseOneService } from '@orm/services/base/baseOneService';
 
 export type AccountVerificationDto = {
-  verification_token: string
-  verification_token_expires_at: Date
-}
+  verification_token: string;
+  verification_token_expires_at: Date;
+};
 
 export class AccountVerificationService extends BaseOneService<AccountVerification, 'account'> {
   constructor(transactionalEntityManager?: EntityManager) {

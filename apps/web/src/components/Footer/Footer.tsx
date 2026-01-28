@@ -31,23 +31,55 @@ export const Footer: React.FC = () => {
           <Link href={ROUTES.TERMS}>{tMisc('terms')}</Link>
           <Link href={ROUTES.MEMBERSHIP}>{tMembership('premium')}</Link>
           {/* <Link disabled href={ROUTES.MOBILE_APP}>{tMisc("mobile")}</Link> */}
-          <Link disabled href={ROUTES.EMBED}>{tFeatures('embed')}</Link>
+          <Link disabled href={ROUTES.EMBED}>
+            {tFeatures('embed')}
+          </Link>
           {/* <Link href={ROUTES.UPDATES}>{tMisc("updates")}</Link> */}
         </div>
         <div className={styles.footerSocialLinks}>
-          <Link href={SOCIALS.DISCORD} color="secondary" target="_blank" rel="noopener noreferrer" aria-label={tSocials('discord')}>
+          <Link
+            href={SOCIALS.DISCORD}
+            color="secondary"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label={tSocials('discord')}
+          >
             <FaDiscord />
           </Link>
-          <Link href={SOCIALS.ACTIVITY_PUB} color="secondary" target="_blank" rel="noopener noreferrer" aria-label={tSocials('mastodon')}>
+          <Link
+            href={SOCIALS.ACTIVITY_PUB}
+            color="secondary"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label={tSocials('mastodon')}
+          >
             <FaMastodon />
           </Link>
-          <Link href={SOCIALS.X} color="secondary" target="_blank" rel="noopener noreferrer" aria-label={tSocials('x')}>
+          <Link
+            href={SOCIALS.X}
+            color="secondary"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label={tSocials('x')}
+          >
             <FaXTwitter />
           </Link>
-          <Link href={SOCIALS.MATRIX} color="secondary" target="_blank" rel="noopener noreferrer" aria-label={tSocials('matrix')}>
+          <Link
+            href={SOCIALS.MATRIX}
+            color="secondary"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label={tSocials('matrix')}
+          >
             <SiMatrix />
           </Link>
-          <Link href={SOCIALS.GITHUB} color="secondary" target="_blank" rel="noopener noreferrer" aria-label={tSocials('github')}>
+          <Link
+            href={SOCIALS.GITHUB}
+            color="secondary"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label={tSocials('github')}
+          >
             <FaGithub />
           </Link>
         </div>

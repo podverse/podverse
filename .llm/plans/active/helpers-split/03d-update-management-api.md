@@ -22,6 +22,7 @@ grep -r "validateRequired\|validateOptional\|validateORMConfig" src/
 ### 2. Update package.json (if imports found)
 
 **If backend or config imports exist**, add to `apps/management-api/package.json`:
+
 ```json
 "@podverse/helpers-backend": "*",
 "@podverse/helpers-config": "*"
@@ -37,6 +38,7 @@ grep -r "validateRequired\|validateOptional\|validateORMConfig" src/
 ### 4. Update Startup Validation Imports
 
 **`apps/management-api/src/lib/startup/validation.ts`:**
+
 ```diff
 -import { validateRequired, validateOptional, validateBoolean, ... } from '@podverse/helpers';
 +import { validateRequired, validateOptional, validateBoolean, ... } from '@podverse/helpers-config';

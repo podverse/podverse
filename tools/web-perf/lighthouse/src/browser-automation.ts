@@ -12,8 +12,8 @@ export const TEST_FIXTURES = {
     id: 'lhtest-chan-1',
     url: '/podcast/lhtest-chan-1',
     itemId: 'lhtest-item-1',
-    itemUrl: '/episode/lhtest-item-1'
-  }
+    itemUrl: '/episode/lhtest-item-1',
+  },
 };
 
 export class BrowserAutomation {
@@ -25,13 +25,12 @@ export class BrowserAutomation {
   private readonly contextOptions = {
     viewport: { width: 1366, height: 768 },
     deviceScaleFactor: 1,
-    serviceWorkers: 'block' as const
+    serviceWorkers: 'block' as const,
   };
 
   constructor(baseUrl: string = 'http://localhost:3000') {
     this.baseUrl = baseUrl;
   }
-
 
   async initialize(): Promise<void> {
     // Use a fixed viewport/device scale for determinism and expose CDP port for Lighthouse
@@ -45,8 +44,8 @@ export class BrowserAutomation {
         '--no-sandbox',
         '--disable-background-timer-throttling',
         '--disable-backgrounding-occluded-windows',
-        '--disable-renderer-backgrounding'
-      ]
+        '--disable-renderer-backgrounding',
+      ],
     });
     this.context = await this.browser.newContext(this.contextOptions);
     this.page = await this.context.newPage();
@@ -155,13 +154,13 @@ export class BrowserAutomation {
     try {
       // Wait for modal dialog to appear first
       const modal = this.page.locator('[role="dialog"]').first();
-      
+
       // Check if modal exists in DOM
       const modalCount = await modal.count();
       if (modalCount === 0) {
         return;
       }
-      
+
       // Wait for modal to be attached and visible
       try {
         await modal.waitFor({ state: 'attached', timeout: 10000 });
@@ -169,20 +168,24 @@ export class BrowserAutomation {
       } catch (error: any) {
         return;
       }
-      
+
       // Look for checkbox within the modal
-      const checkbox = modal.locator('input[type="checkbox"][name="disclaimer-checkbox"][value="agree"]').first();
+      const checkbox = modal
+        .locator('input[type="checkbox"][name="disclaimer-checkbox"][value="agree"]')
+        .first();
       const checkboxCount = await checkbox.count();
-      
+
       if (checkboxCount === 0) {
         // Try searching in entire page as fallback
-        const checkboxPage = this.page.locator('input[type="checkbox"][name="disclaimer-checkbox"][value="agree"]').first();
+        const checkboxPage = this.page
+          .locator('input[type="checkbox"][name="disclaimer-checkbox"][value="agree"]')
+          .first();
         const checkboxPageCount = await checkboxPage.count();
         if (checkboxPageCount === 0) {
           return;
         }
       }
-      
+
       // Wait for checkbox to be attached and visible
       try {
         await checkbox.waitFor({ state: 'attached', timeout: 10000 });
@@ -190,31 +193,35 @@ export class BrowserAutomation {
       } catch (error: any) {
         return;
       }
-      
+
       // Double-check visibility
       const finalCheckboxVisible = await checkbox.isVisible({ timeout: 1000 }).catch(() => false);
       if (!finalCheckboxVisible) {
         return;
       }
-      
+
       // Wait for checkbox to be visible and attached
       await checkbox.waitFor({ state: 'visible', timeout: 10000 });
       await checkbox.waitFor({ state: 'attached', timeout: 10000 });
-        
+
       // Find the Continue button within the modal
       let continueButton = modal.locator('button').first();
       let buttonCount = await continueButton.count();
-      
+
       if (buttonCount === 0) {
         // Try finding button by text content
-        continueButton = this.page.locator('button:has-text("Continue"), button:has-text("OK"), button:has-text("Continuar"), button:has-text("Continuer")').first();
+        continueButton = this.page
+          .locator(
+            'button:has-text("Continue"), button:has-text("OK"), button:has-text("Continuar"), button:has-text("Continuer")'
+          )
+          .first();
         buttonCount = await continueButton.count();
       }
-      
+
       if (buttonCount === 0) {
         return;
       }
-      
+
       // Wait for button to be attached and visible
       try {
         await continueButton.waitFor({ state: 'attached', timeout: 10000 });
@@ -222,28 +229,32 @@ export class BrowserAutomation {
       } catch (error: any) {
         return;
       }
-        
+
       // Check current state of button
       let isButtonDisabled = true;
-      
+
       try {
         isButtonDisabled = await continueButton.isDisabled();
       } catch (error: any) {
         return;
       }
-        
+
       // If button is disabled, click checkbox to enable it
       // IMPORTANT: Use .click() instead of .check() to trigger React's onChange handler
       if (isButtonDisabled) {
         // Try clicking the label first (better for accessibility and more reliable)
-        const label = modal.locator('label:has(input[name="disclaimer-checkbox"][value="agree"])').first();
+        const label = modal
+          .locator('label:has(input[name="disclaimer-checkbox"][value="agree"])')
+          .first();
         let labelCount = await label.count();
-        
+
         if (labelCount === 0) {
           // Try page-level search
-          const labelPage = this.page.locator('label:has(input[name="disclaimer-checkbox"][value="agree"])').first();
+          const labelPage = this.page
+            .locator('label:has(input[name="disclaimer-checkbox"][value="agree"])')
+            .first();
           labelCount = await labelPage.count();
-          
+
           if (labelCount > 0) {
             try {
               await labelPage.waitFor({ state: 'visible', timeout: 5000 });
@@ -264,10 +275,10 @@ export class BrowserAutomation {
             await checkbox.click({ timeout: 10000 });
           }
         }
-          
+
         // Wait a moment for React to process the click
         await this.page.waitForTimeout(500);
-        
+
         // Wait for React to update the button's disabled state
         // Poll until button is enabled (React needs to re-render after state change)
         let buttonBecameEnabled = false;
@@ -275,7 +286,7 @@ export class BrowserAutomation {
           try {
             await continueButton.waitFor({ state: 'visible', timeout: 500 });
             const buttonDisabled = await continueButton.isDisabled({ timeout: 500 });
-            
+
             if (!buttonDisabled) {
               buttonBecameEnabled = true;
               break;
@@ -283,13 +294,15 @@ export class BrowserAutomation {
           } catch (error: any) {
             // Continue polling
           }
-          
+
           // Every few attempts, re-click the checkbox if needed
           if (attempt > 0 && attempt % 5 === 0) {
             const stillChecked = await checkbox.isChecked().catch(() => false);
             if (!stillChecked) {
               // Try clicking label again
-              const labelRetry = modal.locator('label:has(input[name="disclaimer-checkbox"][value="agree"])').first();
+              const labelRetry = modal
+                .locator('label:has(input[name="disclaimer-checkbox"][value="agree"])')
+                .first();
               const labelRetryCount = await labelRetry.count();
               if (labelRetryCount > 0) {
                 await labelRetry.click({ timeout: 2000 }).catch(() => {
@@ -301,10 +314,10 @@ export class BrowserAutomation {
               await this.page.waitForTimeout(500);
             }
           }
-          
+
           await this.page.waitForTimeout(300);
         }
-        
+
         if (!buttonBecameEnabled) {
           // Final state check
           const finalButtonDisabled = await continueButton.isDisabled().catch(() => true);
@@ -313,20 +326,22 @@ export class BrowserAutomation {
           }
         }
       }
-      
+
       // Click the Continue button
       try {
         await continueButton.click({ timeout: 10000 });
       } catch (error: any) {
         return;
       }
-      
+
       // Wait for modal to close
       await checkbox.waitFor({ state: 'hidden', timeout: 10000 }).catch(async (error: any) => {
         // If checkbox still exists, try alternative: wait for modal dialog to disappear
         if (this.page) {
           const modalCheck = this.page.locator('[role="dialog"]').first();
-          const modalStillVisible = await modalCheck.isVisible({ timeout: 2000 }).catch(() => false);
+          const modalStillVisible = await modalCheck
+            .isVisible({ timeout: 2000 })
+            .catch(() => false);
           if (modalStillVisible) {
             await modalCheck.waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {
               // Modal didn't close, but continue anyway
@@ -334,7 +349,7 @@ export class BrowserAutomation {
           }
         }
       });
-      
+
       // Brief wait for modal dismissal to complete
       await this.page.waitForTimeout(500);
     } catch (error: any) {
@@ -362,7 +377,7 @@ export class BrowserAutomation {
 
   async waitBetweenActions(): Promise<void> {
     // Brief pause between actions to allow e2e processes to complete
-    await new Promise(resolve => setTimeout(resolve, 300));
+    await new Promise((resolve) => setTimeout(resolve, 300));
   }
 
   async reloadPage(): Promise<void> {
@@ -423,17 +438,16 @@ export class BrowserAutomation {
     return this.page.evaluate(() => {
       const localStorageItems = Object.keys(window.localStorage).map((key) => ({
         key,
-        value: window.localStorage.getItem(key) ?? ''
+        value: window.localStorage.getItem(key) ?? '',
       }));
       const sessionStorageItems = Object.keys(window.sessionStorage).map((key) => ({
         key,
-        value: window.sessionStorage.getItem(key) ?? ''
+        value: window.sessionStorage.getItem(key) ?? '',
       }));
       return {
         localStorage: localStorageItems,
-        sessionStorage: sessionStorageItems
+        sessionStorage: sessionStorageItems,
       };
     });
   }
-
 }

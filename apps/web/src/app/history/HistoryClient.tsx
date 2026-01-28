@@ -1,4 +1,3 @@
-
 'use client';
 
 import { DTOQueue, QueryParamsHistory } from '@podverse/helpers';
@@ -21,10 +20,7 @@ export function HistoryClient(props: HistoryClientProps) {
   const { initialQueryParams, ssrQueues } = props;
 
   return (
-    <HistoryPageContextProvider
-      initialQueryParams={initialQueryParams}
-      ssrQueues={ssrQueues}
-    >
+    <HistoryPageContextProvider initialQueryParams={initialQueryParams} ssrQueues={ssrQueues}>
       <HistoryHeader />
       <MainWrapper>
         <MainInnerWrapper>

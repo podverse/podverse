@@ -14,9 +14,7 @@ export const MainWrapper: React.FC<MainWrapperProps> = ({ children, emptyStateCo
       {React.Children.count(children) > 0 ? (
         children
       ) : emptyStateComponent ? (
-        <div className={styles.emptyStateWrapper}>
-          {emptyStateComponent}
-        </div>
+        <div className={styles.emptyStateWrapper}>{emptyStateComponent}</div>
       ) : null}
     </main>
     <Divider />

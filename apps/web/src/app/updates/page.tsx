@@ -6,7 +6,5 @@ export default function UpdatesPage() {
   const changelogPath = path.join(process.cwd(), 'CHANGELOG.md');
   const changelogContent = fs.readFileSync(changelogPath, 'utf8');
 
-  return (
-    <UpdatesClient markdownContent={changelogContent} />
-  );
+  return <UpdatesClient markdownContent={changelogContent} />;
 }

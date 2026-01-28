@@ -1,5 +1,6 @@
-import { QueryParamsStatsRange,
-  CategoryMappingKeys, 
+import {
+  QueryParamsStatsRange,
+  CategoryMappingKeys,
   getValidQueryParam,
   QUERY_PARAMS_GLOBAL_SORT_VALUES,
   QueryParamsSubscribedFullSort,
@@ -10,22 +11,28 @@ import { QueryParamsStatsRange,
 import { getRangeDropdownItems } from '../../utils/dropdownMenuItems';
 import { DropdownMenuItem } from '../../components/Dropdown/Dropdown';
 
-export function getEpisodesDropdownConfig({ type, sort, tFilters, medium }: {
-  sort: QueryParamsSubscribedFullSort,
-  type: QueryParamsSubscribedType,
-  tFilters: (key: string) => string,
-  medium?: 'av' | 'music'
+export function getEpisodesDropdownConfig({
+  type,
+  sort,
+  tFilters,
+  medium,
+}: {
+  sort: QueryParamsSubscribedFullSort;
+  type: QueryParamsSubscribedType;
+  tFilters: (key: string) => string;
+  medium?: 'av' | 'music';
 }) {
-
   const typeDropdownMenuItems: DropdownMenuItem[] = [
     { label: tFilters('type.global'), param: 'type', value: 'global' },
     { label: tFilters('type.subscribed'), param: 'type', value: 'subscribed' },
   ];
 
   if (!medium || medium === 'av') {
-    typeDropdownMenuItems.push(
-      { label: tFilters('type.category'), param: 'type', value: 'category' },
-    );
+    typeDropdownMenuItems.push({
+      label: tFilters('type.category'),
+      param: 'type',
+      value: 'category',
+    });
   }
 
   let sortDropdownMenuItems: DropdownMenuItem[] = [];
@@ -67,7 +74,7 @@ type EpisodesDropdownConfigParams = {
   range: QueryParamsStatsRange | null;
   category: CategoryMappingKeys | null;
   page: number;
-}
+};
 
 export type EpisodesDropdownConfigCurrentParams = {
   currentType: QueryParamsSubscribedType;
@@ -75,11 +82,11 @@ export type EpisodesDropdownConfigCurrentParams = {
   currentRange: QueryParamsStatsRange | null;
   currentCategory: CategoryMappingKeys | null;
   currentPage: number;
-}
+};
 
 export function getEpisodesFilterParams(
   { type, sort, range, category, page }: EpisodesDropdownConfigParams,
-  isValidAuthSession: boolean,
+  isValidAuthSession: boolean
 ): EpisodesDropdownConfigCurrentParams {
   let currentType = type;
   let currentSort = sort;
@@ -89,48 +96,28 @@ export function getEpisodesFilterParams(
 
   if (category) {
     currentType = 'category';
-    currentSort = getValidQueryParam(
-      QUERY_PARAMS_GLOBAL_SORT_VALUES,
-      currentSort,
-      'recent',
-    );
+    currentSort = getValidQueryParam(QUERY_PARAMS_GLOBAL_SORT_VALUES, currentSort, 'recent');
   } else if (type === 'global') {
     currentType = 'global';
-    currentSort = getValidQueryParam(
-      QUERY_PARAMS_GLOBAL_SORT_VALUES,
-      currentSort,
-      'recent',
-    );
+    currentSort = getValidQueryParam(QUERY_PARAMS_GLOBAL_SORT_VALUES, currentSort, 'recent');
   } else if (type === 'subscribed') {
     currentType = 'subscribed';
-    currentSort = getValidQueryParam(
-      QUERY_PARAMS_SUBSCRIBED_PARTIAL_SORT,
-      currentSort,
-      'recent',
-    );
+    currentSort = getValidQueryParam(QUERY_PARAMS_SUBSCRIBED_PARTIAL_SORT, currentSort, 'recent');
   } else {
     if (isValidAuthSession) {
       currentType = 'subscribed';
-      currentSort = getValidQueryParam(
-        QUERY_PARAMS_SUBSCRIBED_PARTIAL_SORT,
-        currentSort,
-        'recent',
-      );
+      currentSort = getValidQueryParam(QUERY_PARAMS_SUBSCRIBED_PARTIAL_SORT, currentSort, 'recent');
       currentRange = null;
       currentCategory = null;
       currentPage = 1;
     } else {
       currentType = 'global';
-      currentSort = getValidQueryParam(
-        QUERY_PARAMS_GLOBAL_SORT_VALUES,
-        currentSort,
-        'recent',
-      );
+      currentSort = getValidQueryParam(QUERY_PARAMS_GLOBAL_SORT_VALUES, currentSort, 'recent');
       currentRange = null;
       currentCategory = null;
       currentPage = 1;
     }
-  } 
+  }
 
   return { currentType, currentSort, currentRange, currentCategory, currentPage };
 }

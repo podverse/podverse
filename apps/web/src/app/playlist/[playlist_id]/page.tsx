@@ -9,7 +9,7 @@ export type PlaylistPageProps = {
 export default async function PlaylistPage({ params }: PlaylistPageProps) {
   const { playlist_id } = await params;
   const { ssrApiRequestService } = await getSSRAuthService();
-  
+
   let ssrPlaylist;
   try {
     ssrPlaylist = await ssrApiRequestService.reqPlaylistGet(playlist_id);
@@ -20,7 +20,5 @@ export default async function PlaylistPage({ params }: PlaylistPageProps) {
     return notFound();
   }
 
-  return (
-    <PlaylistClient ssrPlaylist={ssrPlaylist} />
-  );
+  return <PlaylistClient ssrPlaylist={ssrPlaylist} />;
 }

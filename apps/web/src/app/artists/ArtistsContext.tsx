@@ -22,15 +22,15 @@ interface ArtistsContextType {
   setShowSubscribeMessage: (show: boolean) => void;
   showCategoriesModal: boolean;
   setShowCategoriesModal: (show: boolean) => void;
-};
+}
 
 const ArtistsContext = createContext<ArtistsContextType | undefined>(undefined);
 
 interface ArtistsContextProviderProps {
-  children: ReactNode,
-  initialQueryParams: QueryParamsGetManyMusic,
-  ssrChannels: DTOChannel[],
-  ssrTotalPages: number
+  children: ReactNode;
+  initialQueryParams: QueryParamsGetManyMusic;
+  ssrChannels: DTOChannel[];
+  ssrTotalPages: number;
 }
 
 export const ArtistsContextProvider = ({
@@ -41,9 +41,12 @@ export const ArtistsContextProvider = ({
 }: ArtistsContextProviderProps) => {
   // Use the list page cache hook for back navigation caching
   const {
-    filterParams, setFilterParams,
-    data: channels, setData: setChannels,
-    totalPages, setTotalPages,
+    filterParams,
+    setFilterParams,
+    data: channels,
+    setData: setChannels,
+    totalPages,
+    setTotalPages,
     shouldSkipFetch,
   } = useListPageCache<QueryParamsGetManyMusic, DTOChannel[]>({
     routeKey: 'artists',
@@ -76,13 +79,16 @@ export const ArtistsContextProvider = ({
       }
 
       setIsLoading(true);
-      
-      const { currentSort, currentRange, currentType } = getArtistsFilterParams({
-        page: filterParams.page,
-        type: filterParams.type,
-        sort: filterParams.sort,
-        range: filterParams.range,
-      }, !!loggedInAccount);
+
+      const { currentSort, currentRange, currentType } = getArtistsFilterParams(
+        {
+          page: filterParams.page,
+          type: filterParams.type,
+          sort: filterParams.sort,
+          range: filterParams.range,
+        },
+        !!loggedInAccount
+      );
 
       const response = await apiRequestService.reqChannelGetMany({
         page: filterParams.page,
@@ -93,7 +99,12 @@ export const ArtistsContextProvider = ({
         category: null,
       });
 
-      const totalPages = getTotalPages(response.meta.count, response.meta.limit, response.data.length, filterParams.page);
+      const totalPages = getTotalPages(
+        response.meta.count,
+        response.meta.limit,
+        response.data.length,
+        filterParams.page
+      );
       setTotalPages(totalPages);
       setChannels(response.data);
       setShowSubscribeMessage(false);
@@ -103,14 +114,22 @@ export const ArtistsContextProvider = ({
   }, [filterParams, loggedInAccount]);
 
   return (
-    <ArtistsContext.Provider value={{
-      filterParams, setFilterParams,
-      channels, setChannels,
-      totalPages, setTotalPages,
-      isLoading, setIsLoading,
-      showSubscribeMessage, setShowSubscribeMessage,
-      showCategoriesModal, setShowCategoriesModal,
-    }}>
+    <ArtistsContext.Provider
+      value={{
+        filterParams,
+        setFilterParams,
+        channels,
+        setChannels,
+        totalPages,
+        setTotalPages,
+        isLoading,
+        setIsLoading,
+        showSubscribeMessage,
+        setShowSubscribeMessage,
+        showCategoriesModal,
+        setShowCategoriesModal,
+      }}
+    >
       {children}
     </ArtistsContext.Provider>
   );
@@ -118,6 +137,8 @@ export const ArtistsContextProvider = ({
 
 export const useArtistsContext = () => {
   const ctx = useContext(ArtistsContext);
-  if (!ctx) {throw new Error('useArtistsContext must be used within a ArtistsContextProvider');}
+  if (!ctx) {
+    throw new Error('useArtistsContext must be used within a ArtistsContextProvider');
+  }
   return ctx;
 };

@@ -13,20 +13,24 @@ type ModalCategoriesSelectProps = {
 };
 
 export const ModalCategoriesSelect: React.FC<ModalCategoriesSelectProps> = ({
-  isOpen, setIsOpen, onCategoryClick }) => {
+  isOpen,
+  setIsOpen,
+  onCategoryClick,
+}) => {
   const tCategories = useTranslations('categories');
 
   const clearModalCategoriesSelect = () => {
     setIsOpen(false);
   };
-  
+
   return (
     <Modal
       isOpen={isOpen}
       onClose={clearModalCategoriesSelect}
       header={tCategories('categories')}
       ariaLabel={tCategories('categories')}
-      modalContentMaxWidth={500}>
+      modalContentMaxWidth={500}
+    >
       <CategoriesList onCategoryClick={onCategoryClick} />
     </Modal>
   );

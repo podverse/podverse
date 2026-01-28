@@ -29,8 +29,11 @@ export const SettingsLocaleSelector: React.FC = () => {
   // Filter to only supported locales
   let languages = allLanguages;
   if (supportedLocalesConfig !== 'all-available') {
-    const supportedLocales = supportedLocalesConfig.split(',').map(l => l.trim()).filter(Boolean);
-    languages = allLanguages.filter(l => supportedLocales.includes(l.value));
+    const supportedLocales = supportedLocalesConfig
+      .split(',')
+      .map((l) => l.trim())
+      .filter(Boolean);
+    languages = allLanguages.filter((l) => supportedLocales.includes(l.value));
   }
 
   const menuItems: DropdownMenuItem[] = languages.map((l) => ({
@@ -40,7 +43,9 @@ export const SettingsLocaleSelector: React.FC = () => {
   }));
 
   const handleChange = async (value: string) => {
-    if (!value || value === locale) {return;}
+    if (!value || value === locale) {
+      return;
+    }
 
     // Persist the chosen locale in a cookie
     try {

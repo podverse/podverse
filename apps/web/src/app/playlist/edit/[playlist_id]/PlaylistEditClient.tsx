@@ -1,4 +1,3 @@
-
 'use client';
 
 import { DTOPlaylist } from '@podverse/helpers';
@@ -15,7 +14,7 @@ import { SideContent } from '../../../../components/SideContent/SideContent';
 
 type PlaylistEditClientProps = {
   ssrPlaylist: DTOPlaylist;
-}
+};
 
 export function PlaylistEditClient({ ssrPlaylist }: PlaylistEditClientProps) {
   return (

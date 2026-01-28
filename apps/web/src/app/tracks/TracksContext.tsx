@@ -20,15 +20,15 @@ interface TracksContextType {
   setIsLoading: (isLoading: boolean) => void;
   showSubscribeMessage: boolean;
   setShowSubscribeMessage: (show: boolean) => void;
-};
+}
 
 const TracksContext = createContext<TracksContextType | undefined>(undefined);
 
 interface TracksContextProviderProps {
-  children: ReactNode,
-  initialQueryParams: QueryParamsGetManyPartialMusic,
-  ssrItems: DTOItem[],
-  ssrTotalPages: number
+  children: ReactNode;
+  initialQueryParams: QueryParamsGetManyPartialMusic;
+  ssrItems: DTOItem[];
+  ssrTotalPages: number;
 }
 
 export const TracksContextProvider = ({
@@ -39,9 +39,12 @@ export const TracksContextProvider = ({
 }: TracksContextProviderProps) => {
   // Use the list page cache hook for back navigation caching
   const {
-    filterParams, setFilterParams,
-    data: items, setData: setItems,
-    totalPages, setTotalPages,
+    filterParams,
+    setFilterParams,
+    data: items,
+    setData: setItems,
+    totalPages,
+    setTotalPages,
     shouldSkipFetch,
   } = useListPageCache<QueryParamsGetManyPartialMusic, DTOItem[]>({
     routeKey: 'tracks',
@@ -74,13 +77,16 @@ export const TracksContextProvider = ({
       }
 
       setIsLoading(true);
-      
-      const { currentSort, currentRange, currentType } = getTracksFilterParams({
-        page: filterParams.page,
-        type: filterParams.type,
-        sort: filterParams.sort,
-        range: filterParams.range,
-      }, !!loggedInAccount);
+
+      const { currentSort, currentRange, currentType } = getTracksFilterParams(
+        {
+          page: filterParams.page,
+          type: filterParams.type,
+          sort: filterParams.sort,
+          range: filterParams.range,
+        },
+        !!loggedInAccount
+      );
 
       const response = await apiRequestService.reqItemGetMany({
         page: filterParams.page,
@@ -91,7 +97,12 @@ export const TracksContextProvider = ({
         category: null,
       });
 
-      const totalPages = getTotalPages(response.meta.count, response.meta.limit, response.data.length, filterParams.page);
+      const totalPages = getTotalPages(
+        response.meta.count,
+        response.meta.limit,
+        response.data.length,
+        filterParams.page
+      );
       setTotalPages(totalPages);
       setItems(response.data);
       setShowSubscribeMessage(false);
@@ -101,13 +112,20 @@ export const TracksContextProvider = ({
   }, [filterParams, loggedInAccount]);
 
   return (
-    <TracksContext.Provider value={{
-      filterParams, setFilterParams,
-      items, setItems,
-      totalPages, setTotalPages,
-      isLoading, setIsLoading,
-      showSubscribeMessage, setShowSubscribeMessage,
-    }}>
+    <TracksContext.Provider
+      value={{
+        filterParams,
+        setFilterParams,
+        items,
+        setItems,
+        totalPages,
+        setTotalPages,
+        isLoading,
+        setIsLoading,
+        showSubscribeMessage,
+        setShowSubscribeMessage,
+      }}
+    >
       {children}
     </TracksContext.Provider>
   );
@@ -115,6 +133,8 @@ export const TracksContextProvider = ({
 
 export const useTracksContext = () => {
   const ctx = useContext(TracksContext);
-  if (!ctx) {throw new Error('useTracksContext must be used within a TracksContextProvider');}
+  if (!ctx) {
+    throw new Error('useTracksContext must be used within a TracksContextProvider');
+  }
   return ctx;
 };

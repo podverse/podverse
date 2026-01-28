@@ -21,6 +21,7 @@ grep -r "LoggerService\|TimerManager" src/
 ### 2. Update package.json (if needed)
 
 **If backend imports found**, add to `packages/mq/package.json`:
+
 ```json
 "@podverse/helpers-backend": "*"
 ```
@@ -28,6 +29,7 @@ grep -r "LoggerService\|TimerManager" src/
 ### 3. Update Imports (if needed)
 
 Update any LoggerService or backend utility imports:
+
 ```diff
 -import { LoggerService } from '@podverse/helpers/dist/lib/backend/logger';
 +import { LoggerService } from '@podverse/helpers-backend';

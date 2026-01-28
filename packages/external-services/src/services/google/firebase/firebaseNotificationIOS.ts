@@ -14,9 +14,11 @@ type IOSPayload = {
 export async function sendFirebaseNotificationBatchIOS(
   ctx: FirebaseContext,
   tokens: string[],
-  payload: Omit<IOSPayload, 'fcmToken'>,
+  payload: Omit<IOSPayload, 'fcmToken'>
 ) {
-  if (!ctx.firebaseAdmin) {throw new Error('Firebase Admin is not initialized');}
+  if (!ctx.firebaseAdmin) {
+    throw new Error('Firebase Admin is not initialized');
+  }
 
   const chunks = chunkArray(tokens, 500);
   const results: unknown[] = [];
@@ -41,8 +43,9 @@ export async function sendFirebaseNotificationBatchIOS(
     };
 
     try {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const resp = await ctx.firebaseAdmin.messaging().sendEachForMulticast(multicastMessage as any);
+      const resp = await ctx.firebaseAdmin
+        .messaging()
+        .sendEachForMulticast(multicastMessage as any);
       results.push(resp);
     } catch (err) {
       console.error('sendFirebaseNotificationBatchIOS chunk error:', err);

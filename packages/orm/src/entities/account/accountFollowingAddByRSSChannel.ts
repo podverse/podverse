@@ -10,7 +10,7 @@ export class AccountFollowingAddByRSSChannel {
   @PrimaryColumn({ type: 'varchar', length: DATABASE_CONSTANTS.varchar_url })
   feed_url!: string;
 
-  @ManyToOne(() => Account, account => account.id, { onDelete: 'CASCADE' })
+  @ManyToOne(() => Account, (account) => account.id, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'account_id' })
   account!: Account;
 

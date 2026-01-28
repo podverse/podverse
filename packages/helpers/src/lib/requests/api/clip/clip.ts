@@ -1,10 +1,18 @@
 import { DTOClip } from '../../../../dtos';
 import { ApiRequestService } from '../_request';
 import { ApiListResponse, emptyApiListResponse } from '../_response';
-import { QueryParamsCategoryRecent, QueryParamsCategoryTop, QueryParamsGetManyPartial,
-  QueryParamsGlobalRecent, QueryParamsGlobalTop, QueryParamsIndividualList,
-  QueryParamsPage, QueryParamsPageRange, QueryParamsSubscribedRecent, 
-  QueryParamsSubscribedTop } from '../queryParams';
+import {
+  QueryParamsCategoryRecent,
+  QueryParamsCategoryTop,
+  QueryParamsGetManyPartial,
+  QueryParamsGlobalRecent,
+  QueryParamsGlobalTop,
+  QueryParamsIndividualList,
+  QueryParamsPage,
+  QueryParamsPageRange,
+  QueryParamsSubscribedRecent,
+  QueryParamsSubscribedTop,
+} from '../queryParams';
 
 export type ReqClipCreateParams = {
   item_id_text: string;
@@ -13,7 +21,7 @@ export type ReqClipCreateParams = {
   description?: string | null;
   start_time: string;
   end_time?: string | null;
-}
+};
 
 export async function reqClipCreate(api: ApiRequestService, params: ReqClipCreateParams) {
   return api.apiRequest<DTOClip>({
@@ -29,7 +37,7 @@ export async function reqClipCreate(api: ApiRequestService, params: ReqClipCreat
 export async function reqClipUpdate(
   api: ApiRequestService,
   clip_id_text: string,
-  params: ReqClipCreateParams,
+  params: ReqClipCreateParams
 ) {
   return api.apiRequest<DTOClip>({
     path: `/clip/${clip_id_text}`,
@@ -41,10 +49,7 @@ export async function reqClipUpdate(
   });
 }
 
-export async function reqClipDelete(
-  api: ApiRequestService,
-  clip_id_text: string,
-) {
+export async function reqClipDelete(api: ApiRequestService, clip_id_text: string) {
   return api.apiRequest<{ success: boolean }>({
     path: `/clip/${clip_id_text}`,
     method: 'DELETE',
@@ -66,7 +71,7 @@ export async function reqClipGet(api: ApiRequestService, clip_id_text: string) {
 
 export async function reqClipGetManyPublicRecent(
   api: ApiRequestService,
-  params: QueryParamsGlobalRecent,
+  params: QueryParamsGlobalRecent
 ) {
   return api.apiRequest<ApiListResponse<DTOClip>>({
     path: '/clip/public/recent/',
@@ -82,7 +87,7 @@ export async function reqClipGetManyPublicRecent(
 
 export async function reqClipGetManyPublicOldest(
   api: ApiRequestService,
-  params: QueryParamsGlobalRecent,
+  params: QueryParamsGlobalRecent
 ) {
   return api.apiRequest<ApiListResponse<DTOClip>>({
     path: '/clip/public/oldest/',
@@ -98,7 +103,7 @@ export async function reqClipGetManyPublicOldest(
 
 export async function reqClipGetManyPublicTop(
   api: ApiRequestService,
-  params: QueryParamsGlobalTop,
+  params: QueryParamsGlobalTop
 ) {
   return api.apiRequest<ApiListResponse<DTOClip>>({
     path: '/clip/public/top/',
@@ -115,7 +120,7 @@ export async function reqClipGetManyPublicTop(
 
 export async function reqClipGetManyByCategoryPublicRecent(
   api: ApiRequestService,
-  params: QueryParamsCategoryRecent,
+  params: QueryParamsCategoryRecent
 ) {
   return api.apiRequest<ApiListResponse<DTOClip>>({
     path: '/clip/public/category/recent/',
@@ -132,7 +137,7 @@ export async function reqClipGetManyByCategoryPublicRecent(
 
 export async function reqClipGetManyByCategoryPublicOldest(
   api: ApiRequestService,
-  params: QueryParamsCategoryRecent,
+  params: QueryParamsCategoryRecent
 ) {
   return api.apiRequest<ApiListResponse<DTOClip>>({
     path: '/clip/public/category/oldest/',
@@ -149,7 +154,7 @@ export async function reqClipGetManyByCategoryPublicOldest(
 
 export async function reqClipGetManyByCategoryPublicTop(
   api: ApiRequestService,
-  params: QueryParamsCategoryTop,
+  params: QueryParamsCategoryTop
 ) {
   return api.apiRequest<ApiListResponse<DTOClip>>({
     path: '/clip/public/category/top/',
@@ -167,7 +172,7 @@ export async function reqClipGetManyByCategoryPublicTop(
 
 export async function reqClipGetManySubscribedPublicRecent(
   api: ApiRequestService,
-  params: QueryParamsSubscribedRecent,
+  params: QueryParamsSubscribedRecent
 ) {
   return api.apiRequest<ApiListResponse<DTOClip>>({
     path: '/clip/public/subscribed/recent',
@@ -181,7 +186,7 @@ export async function reqClipGetManySubscribedPublicRecent(
 
 export async function reqClipGetManySubscribedPublicTop(
   api: ApiRequestService,
-  params: QueryParamsSubscribedTop,
+  params: QueryParamsSubscribedTop
 ) {
   return api.apiRequest<ApiListResponse<DTOClip>>({
     path: '/clip/public/subscribed/top',
@@ -195,85 +200,61 @@ export async function reqClipGetManySubscribedPublicTop(
 
 export async function reqClipGetManyPublic(
   api: ApiRequestService,
-  params: QueryParamsGetManyPartial,
+  params: QueryParamsGetManyPartial
 ) {
   const { type, sort, range, category, page, medium } = params;
 
   if (type === 'category' && category) {
     if (sort === 'recent') {
-      return reqClipGetManyByCategoryPublicRecent(
-        api,
-        {
-          page,
-          medium,
-          category,
-        },
-      );
+      return reqClipGetManyByCategoryPublicRecent(api, {
+        page,
+        medium,
+        category,
+      });
     } else if (sort === 'oldest') {
-      return reqClipGetManyByCategoryPublicOldest(
-        api,
-        {
-          page,
-          medium,
-          category,
-        },
-      );
+      return reqClipGetManyByCategoryPublicOldest(api, {
+        page,
+        medium,
+        category,
+      });
     } else if (sort === 'top' && range) {
-      return reqClipGetManyByCategoryPublicTop(
-        api,
-        {
-          page,
-          medium,
-          range,
-          category,
-        },
-      );
+      return reqClipGetManyByCategoryPublicTop(api, {
+        page,
+        medium,
+        range,
+        category,
+      });
     }
   } else if (type === 'global') {
     if (sort === 'recent') {
-      return reqClipGetManyPublicRecent(
-        api,
-        {
-          page,
-          medium,
-        },
-      );
+      return reqClipGetManyPublicRecent(api, {
+        page,
+        medium,
+      });
     } else if (sort === 'oldest') {
-      return reqClipGetManyPublicOldest(
-        api,
-        {
-          page,
-          medium,
-        },
-      );
+      return reqClipGetManyPublicOldest(api, {
+        page,
+        medium,
+      });
     } else if (sort === 'top' && range) {
-      return reqClipGetManyPublicTop(
-        api,
-        {
-          page,
-          medium,
-          range,
-        },
-      );
+      return reqClipGetManyPublicTop(api, {
+        page,
+        medium,
+        range,
+      });
     }
   } else if (type === 'subscribed') {
     if (sort === 'recent') {
-      return reqClipGetManySubscribedPublicRecent(
-        api,
-        {
-          page,
-          medium,
-        },
-      );
+      return reqClipGetManySubscribedPublicRecent(api, {
+        page,
+        medium,
+      });
     } else if (sort === 'top' && range) {
-      return reqClipGetManySubscribedPublicTop(
-        api,
-        {
-          page,
-          medium,
-          range,
-        },
-      );
+      return reqClipGetManySubscribedPublicTop(api, {
+        page,
+        medium,
+        range,
+      });
     }
   }
 
@@ -283,7 +264,7 @@ export async function reqClipGetManyPublic(
 export async function reqClipGetManyByChannelPublicRecent(
   api: ApiRequestService,
   channel_id_text: string,
-  params: QueryParamsPage,
+  params: QueryParamsPage
 ) {
   return api.apiRequest<ApiListResponse<DTOClip>>({
     path: `/clip/public/channel/recent/${channel_id_text}`,
@@ -299,7 +280,7 @@ export async function reqClipGetManyByChannelPublicRecent(
 export async function reqClipGetManyByChannelPublicOldest(
   api: ApiRequestService,
   channel_id_text: string,
-  params: QueryParamsPage,
+  params: QueryParamsPage
 ) {
   return api.apiRequest<ApiListResponse<DTOClip>>({
     path: `/clip/public/channel/oldest/${channel_id_text}`,
@@ -315,7 +296,7 @@ export async function reqClipGetManyByChannelPublicOldest(
 export async function reqClipGetManyByChannelPublicTop(
   api: ApiRequestService,
   channel_id_text: string,
-  params: QueryParamsPageRange,
+  params: QueryParamsPageRange
 ) {
   return api.apiRequest<ApiListResponse<DTOClip>>({
     path: `/clip/public/channel/top/${channel_id_text}`,
@@ -330,35 +311,23 @@ export async function reqClipGetManyByChannelPublicTop(
 
 export async function reqClipGetManyByChannelPublic(
   api: ApiRequestService,
-  params: QueryParamsIndividualList,
+  params: QueryParamsIndividualList
 ) {
   const { idOrIdText, sort, range, page } = params;
 
   if (sort === 'recent') {
-    return reqClipGetManyByChannelPublicRecent(
-      api,
-      idOrIdText,
-      {
-        page,
-      },
-    );
+    return reqClipGetManyByChannelPublicRecent(api, idOrIdText, {
+      page,
+    });
   } else if (sort === 'oldest') {
-    return reqClipGetManyByChannelPublicOldest(
-      api,
-      idOrIdText,
-      {
-        page,
-      },
-    );
+    return reqClipGetManyByChannelPublicOldest(api, idOrIdText, {
+      page,
+    });
   } else if (sort === 'top' && range) {
-    return reqClipGetManyByChannelPublicTop(
-      api,
-      idOrIdText,
-      {
-        page,
-        range,
-      },
-    );
+    return reqClipGetManyByChannelPublicTop(api, idOrIdText, {
+      page,
+      range,
+    });
   }
 
   return Promise.resolve(emptyApiListResponse);
@@ -367,7 +336,7 @@ export async function reqClipGetManyByChannelPublic(
 export async function reqClipGetManyByItemPublicRecent(
   api: ApiRequestService,
   item_id_text: string,
-  params: QueryParamsPage,
+  params: QueryParamsPage
 ) {
   return api.apiRequest<ApiListResponse<DTOClip>>({
     path: `/clip/public/item/recent/${item_id_text}`,
@@ -383,7 +352,7 @@ export async function reqClipGetManyByItemPublicRecent(
 export async function reqClipGetManyByItemPublicOldest(
   api: ApiRequestService,
   item_id_text: string,
-  params: QueryParamsPage,
+  params: QueryParamsPage
 ) {
   return api.apiRequest<ApiListResponse<DTOClip>>({
     path: `/clip/public/item/oldest/${item_id_text}`,
@@ -399,7 +368,7 @@ export async function reqClipGetManyByItemPublicOldest(
 export async function reqClipGetManyByItemPublicTop(
   api: ApiRequestService,
   item_id_text: string,
-  params: QueryParamsPageRange,
+  params: QueryParamsPageRange
 ) {
   return api.apiRequest<ApiListResponse<DTOClip>>({
     path: `/clip/public/item/top/${item_id_text}`,
@@ -414,35 +383,23 @@ export async function reqClipGetManyByItemPublicTop(
 
 export async function reqClipGetManyByItemPublic(
   api: ApiRequestService,
-  params: QueryParamsIndividualList,
+  params: QueryParamsIndividualList
 ) {
   const { idOrIdText, sort, range, page } = params;
 
   if (sort === 'recent') {
-    return reqClipGetManyByItemPublicRecent(
-      api,
-      idOrIdText,
-      {
-        page,
-      },
-    );
+    return reqClipGetManyByItemPublicRecent(api, idOrIdText, {
+      page,
+    });
   } else if (sort === 'oldest') {
-    return reqClipGetManyByItemPublicOldest(
-      api,
-      idOrIdText,
-      {
-        page,
-      },
-    );
+    return reqClipGetManyByItemPublicOldest(api, idOrIdText, {
+      page,
+    });
   } else if (sort === 'top' && range) {
-    return reqClipGetManyByItemPublicTop(
-      api,
-      idOrIdText,
-      {
-        page,
-        range,
-      },
-    );
+    return reqClipGetManyByItemPublicTop(api, idOrIdText, {
+      page,
+      range,
+    });
   }
 
   return Promise.resolve(emptyApiListResponse);

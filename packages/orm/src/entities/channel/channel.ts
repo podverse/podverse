@@ -1,5 +1,17 @@
 import { DATABASE_CONSTANTS, MediumEnum } from '@podverse/helpers';
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, Unique, Index, OneToOne, JoinColumn, BeforeInsert, BeforeUpdate, OneToMany } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  Unique,
+  Index,
+  OneToOne,
+  JoinColumn,
+  BeforeInsert,
+  BeforeUpdate,
+  OneToMany,
+} from 'typeorm';
 import { ChannelAbout } from '@orm/entities/channel/channelAbout';
 import { ChannelCategory } from '@orm/entities/channel/channelCategory';
 import { ChannelChat } from '@orm/entities/channel/channelChat';
@@ -18,7 +30,7 @@ import { ChannelSocialInteract } from '@orm/entities/channel/channelSocialIntera
 import { ChannelTrailer } from '@orm/entities/channel/channelTrailer';
 import { ChannelTxt } from '@orm/entities/channel/channelTxt';
 import { ChannelValue } from '@orm/entities/channel/channelValue';
-import { Feed } from '@orm/entities/feed/feed'; 
+import { Feed } from '@orm/entities/feed/feed';
 import { Medium } from '@orm/entities/medium';
 import { Item } from '../item/item';
 import { generateRandomIdText } from '@orm/lib/nanoid';
@@ -53,7 +65,7 @@ export class Channel {
   @Column({ type: 'varchar', nullable: true, length: DATABASE_CONSTANTS.varchar_short })
   sortable_title!: string | null;
 
-  @ManyToOne(() => Medium, medium => medium.id, { nullable: false })
+  @ManyToOne(() => Medium, (medium) => medium.id, { nullable: false })
   @JoinColumn({ name: 'medium_id' })
   medium!: MediumEnum;
 
@@ -65,62 +77,68 @@ export class Channel {
 
   @Column({ type: 'boolean', default: false })
   has_value_time_splits!: boolean;
-  
-  @OneToOne(() => ChannelAbout, channel_about => channel_about.channel)
+
+  @OneToOne(() => ChannelAbout, (channel_about) => channel_about.channel)
   channel_about!: ChannelAbout;
 
-  @OneToMany(() => ChannelCategory, channel_category => channel_category.channel)
+  @OneToMany(() => ChannelCategory, (channel_category) => channel_category.channel)
   channel_categories!: ChannelCategory[];
 
-  @OneToOne(() => ChannelChat, channel_chat => channel_chat.channel)
-  channel_chat!: ChannelChat;  
+  @OneToOne(() => ChannelChat, (channel_chat) => channel_chat.channel)
+  channel_chat!: ChannelChat;
 
-  @OneToOne(() => ChannelDescription, channel_description => channel_description.channel)
-  channel_description!: ChannelDescription;  
+  @OneToOne(() => ChannelDescription, (channel_description) => channel_description.channel)
+  channel_description!: ChannelDescription;
 
-  @OneToMany(() => ChannelFunding, channel_funding => channel_funding.channel)
+  @OneToMany(() => ChannelFunding, (channel_funding) => channel_funding.channel)
   channel_fundings!: ChannelFunding[];
 
-  @OneToMany(() => ChannelImage, channel_image => channel_image.channel)
+  @OneToMany(() => ChannelImage, (channel_image) => channel_image.channel)
   channel_images!: ChannelImage[];
 
-  @OneToOne(() => ChannelInternalSettings, channel_internal_settings => channel_internal_settings.channel)
+  @OneToOne(
+    () => ChannelInternalSettings,
+    (channel_internal_settings) => channel_internal_settings.channel
+  )
   channel_internal_settings!: ChannelInternalSettings;
 
-  @OneToOne(() => ChannelLicense, channel_license => channel_license.channel)
+  @OneToOne(() => ChannelLicense, (channel_license) => channel_license.channel)
   channel_license!: ChannelLicense;
 
-  @OneToOne(() => ChannelLocation, channel_location => channel_location.channel)
+  @OneToOne(() => ChannelLocation, (channel_location) => channel_location.channel)
   channel_location!: ChannelLocation;
 
-  @OneToMany(() => ChannelPerson, channel_person => channel_person.channel)
+  @OneToMany(() => ChannelPerson, (channel_person) => channel_person.channel)
   channel_persons!: ChannelPerson[];
 
-  @OneToOne(() => ChannelPodroll, channel_podroll => channel_podroll.channel)
+  @OneToOne(() => ChannelPodroll, (channel_podroll) => channel_podroll.channel)
   channel_podroll!: ChannelPodroll;
 
-  @OneToOne(() => ChannelPublisher, channel_publisher => channel_publisher.channel)
+  @OneToOne(() => ChannelPublisher, (channel_publisher) => channel_publisher.channel)
   channel_publisher!: ChannelPublisher;
 
-  @OneToMany((() => ChannelRemoteItem), channel_remote_item => channel_remote_item.channel)
+  @OneToMany(() => ChannelRemoteItem, (channel_remote_item) => channel_remote_item.channel)
   channel_remote_items!: ChannelRemoteItem[];
 
-  @OneToMany(() => ChannelSeason, channel_season => channel_season.channel)
+  @OneToMany(() => ChannelSeason, (channel_season) => channel_season.channel)
   channel_seasons!: ChannelSeason[];
 
-  @OneToMany(() => ChannelSocialInteract, channel_social_interact => channel_social_interact.channel)
+  @OneToMany(
+    () => ChannelSocialInteract,
+    (channel_social_interact) => channel_social_interact.channel
+  )
   channel_social_interacts!: ChannelSocialInteract[];
 
-  @OneToMany(() => ChannelTrailer, channel_trailer => channel_trailer.channel)
+  @OneToMany(() => ChannelTrailer, (channel_trailer) => channel_trailer.channel)
   channel_trailers!: ChannelTrailer[];
 
-  @OneToMany(() => ChannelTxt, channel_txt => channel_txt.channel)
+  @OneToMany(() => ChannelTxt, (channel_txt) => channel_txt.channel)
   channel_txts!: ChannelTxt[];
 
-  @OneToMany(() => ChannelValue, channel_value => channel_value.channel)
+  @OneToMany(() => ChannelValue, (channel_value) => channel_value.channel)
   channel_values!: ChannelValue[];
 
-  @OneToMany(() => Item, item => item.channel)
+  @OneToMany(() => Item, (item) => item.channel)
   items!: Item[];
 
   @BeforeInsert()

@@ -13,6 +13,7 @@ Update the Parser package to import from the new specialized helpers packages.
 ### 1. Update package.json Dependencies
 
 **In `packages/parser/package.json`**, add to dependencies:
+
 ```json
 "@podverse/helpers-backend": "*",
 "@podverse/helpers-validation": "*"
@@ -24,6 +25,7 @@ Update the Parser package to import from the new specialized helpers packages.
 Check if it imports LoggerService and update if needed.
 
 Search for backend imports:
+
 ```bash
 cd packages/parser
 grep -r "from '@podverse/helpers/dist/lib/backend" src/
@@ -39,12 +41,14 @@ grep -r "isValidHttpUrl\|validateHttpsUrl" src/
 ```
 
 **Update imports:**
+
 ```diff
 -import { isValidHttpUrl } from '@podverse/helpers';
 +import { isValidHttpUrl } from '@podverse/helpers-validation';
 ```
 
 **Known files using URL validation:**
+
 - `src/lib/compat/partytime/value.ts`
 - `src/lib/compat/partytime/liveItem.ts`
 - `src/lib/compat/partytime/item.ts`

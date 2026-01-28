@@ -33,9 +33,11 @@ npm install
 ## Setup
 
 1.  **Configure environment variables**:
+
     ```bash
     cp .env.example .env
     ```
+
     Then edit `.env` with your test database connection details. **Important**: The test database runs on port **5111** (separate from the development database on port 5432). The `.env.example` file is pre-configured for the test database.
 
 2.  **Test Database Setup**: The test suite uses a separate test database that is automatically managed:
@@ -66,6 +68,7 @@ npm run test
 ```
 
 The CLI will prompt you to:
+
 1. Optionally compare against an existing report (if any exist)
 2. Select a base report from existing reports (if comparison desired)
 3. Enter a name for the new test report (any identifier, e.g., "v1.0", "before-optimization", etc.)
@@ -76,6 +79,7 @@ The CLI will prompt you to:
 The system comprehensively tests all media types and user states:
 
 **Logged-Out Tests:**
+
 1. Homepage load
 2. Podcast channel page load (`/podcast/lhtest-chan-1`)
 3. Video channel page load (`/podcast/lhtest-chan-2`)
@@ -91,20 +95,24 @@ The system comprehensively tests all media types and user states:
 13. Music track reload (tests history-based loading)
 
 **Logged-In Tests:**
+
 - Same comprehensive flow as logged-out, but after logging in with a freshly created test user
 - A new test user is created before each test run and deleted afterward to ensure clean, consistent state
 
 **Timing:**
+
 - At least 1 second delay between all actions to ensure e2e processes complete
 - Focuses on page rendering performance, not media file loading latency (which is variable)
 
 **Report Generation:**
+
 - Generates and saves reports to `reports/report-{identifier}.json`
 - Compares with base report (if provided) and displays analysis
 
 ## Report Structure
 
 Reports are stored in `tools/web-perf/reports/lighthouse/report-{identifier}.json` where `{identifier}` is the name you provide. The identifier is sanitized to be filesystem-safe (only alphanumeric characters, hyphens, and underscores allowed). For example:
+
 - `report-v1.0.json`
 - `report-before-optimization.json`
 - `report-after-changes.json`
@@ -120,8 +128,12 @@ Each report has the following structure:
   "testItemIds": [],
   "scenarios": {
     "loggedOut": {
-      "homepage": { /* lighthouse results */ },
-      "podcastChannelPage": { /* lighthouse results */ }
+      "homepage": {
+        /* lighthouse results */
+      },
+      "podcastChannelPage": {
+        /* lighthouse results */
+      }
     }
   }
 }
@@ -139,12 +151,14 @@ Potential scenarios to restore later:
 ## Comparison Analysis
 
 The comparison engine analyzes:
+
 - Performance scores
 - Core Web Vitals (LCP, FID, CLS)
 - Page load times
 - Resource counts
 
 It identifies:
+
 - ✅ Improvements (significant positive changes)
 - ⚠️ Regressions (significant negative changes)
 - ➡️ Neutral (changes within threshold)
@@ -154,9 +168,11 @@ Threshold: 5% change is considered significant.
 ## Configuration
 
 ### Base URL
+
 The test suite starts the web app automatically on `http://localhost:3111` (test port). The system reads configuration from `apps/web/env/local.env` when available.
 
 ### Consistency Controls
+
 You can tune run determinism with these environment variables:
 
 - `LIGHTHOUSE_MEDIAN_RUNS` (default: `5`): number of runs per scenario; median is used.
@@ -165,7 +181,9 @@ You can tune run determinism with these environment variables:
   - `single`: reuse a single context per scenario and clear cache between runs.
 
 ### Database
+
 The test suite uses a **separate test database** (port 5111) that is isolated from the development database (port 5432). This ensures:
+
 - Clean, consistent test conditions
 - No interference with development data
 - Automatic reset before each test run
@@ -175,6 +193,7 @@ The test database is managed via Docker and make commands in `podverse-ops`. The
 ## Test Fixtures
 
 The system expects test fixtures to be available:
+
 - Channel: `lhtest-chan-1` (Podcast)
 - Episode: `lhtest-item-1` (Podcast episode)
 
@@ -183,6 +202,7 @@ These should be seeded in the database using the seed script (see Database Setup
 ## Database Setup
 
 Test fixtures must be seeded in the local database. The seed script should create:
+
 - Test feeds with podcast_index_id values 2147483640-2147483642
 - Test channels (Podcast, Video, Music)
 - Test items (one per channel)
@@ -192,14 +212,17 @@ The test database is automatically initialized from `podverse-ops` (sibling repo
 ## Troubleshooting
 
 **Tests fail with "Page not found":**
+
 - Ensure test fixtures are seeded in the database
 - Verify the web app is running on the expected URL
 
 **Lighthouse fails:**
+
 - Ensure Chrome/Chromium is installed
 - Check that the web app is accessible from the test environment
 
 **Login fails:**
+
 - Verify database connection is configured correctly in `.env`
 - Check that the test database is running: `docker ps | grep podverse_test_db`
 - Ensure the test database is on port 5111 (not 5432)
@@ -207,6 +230,7 @@ The test database is automatically initialized from `podverse-ops` (sibling repo
 - Ensure podverse-orm can connect to the database
 
 **Database connection fails:**
+
 - Verify the test database container is running: `make test_db_up` (from podverse-ops sibling repo)
 - Check that `.env` has the correct port (5111) and credentials
 - Ensure `podverse-ops` is a sibling directory to the monorepo (for automatic database setup)
@@ -221,6 +245,7 @@ The test database is automatically initialized from `podverse-ops` (sibling repo
 ## Development
 
 The system consists of:
+
 - `browser-automation.ts`: Playwright automation logic
 - `lighthouse-runner.ts`: Lighthouse test execution
 - `report-manager.ts`: Report storage and retrieval

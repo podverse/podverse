@@ -6,10 +6,10 @@
 
 This phase has been split into smaller, manageable plans:
 
-| Sub-Plan | Status | Description |
-|----------|--------|-------------|
+| Sub-Plan                                                                 | Status  | Description                               |
+| ------------------------------------------------------------------------ | ------- | ----------------------------------------- |
 | [08a-package-config-version-bump.md](08a-package-config-version-bump.md) | Planned | Add publishConfig, create bump-version.sh |
-| [08b-publish-alpha-workflow.md](08b-publish-alpha-workflow.md) | Planned | Create publish-alpha.yml workflow |
+| [08b-publish-alpha-workflow.md](08b-publish-alpha-workflow.md)           | Planned | Create publish-alpha.yml workflow         |
 
 **Note**: CI workflow (`.github/workflows/ci.yml`) already exists and is complete.
 
@@ -354,19 +354,19 @@ Each publishable package needs:
 
 ## Secrets Required
 
-| Secret | Purpose |
-|--------|---------|
-| `NPM_TOKEN` | npm publish authentication |
-| `GITHUB_TOKEN` | GHCR push (automatic) |
+| Secret                | Purpose                    |
+| --------------------- | -------------------------- |
+| `NPM_TOKEN`           | npm publish authentication |
+| `GITHUB_TOKEN`        | GHCR push (automatic)      |
 | `GHCR_REGISTRY_TOKEN` | Query existing Docker tags |
 
 ## Files to Create
 
-| File | Purpose |
-|------|---------|
-| `scripts/publish/bump-version.sh` | Version bump script |
-| `.github/workflows/ci.yml` | PR validation |
-| `.github/workflows/publish-alpha.yml` | Alpha release |
+| File                                  | Purpose             |
+| ------------------------------------- | ------------------- |
+| `scripts/publish/bump-version.sh`     | Version bump script |
+| `.github/workflows/ci.yml`            | PR validation       |
+| `.github/workflows/publish-alpha.yml` | Alpha release       |
 
 ## Estimated Effort
 

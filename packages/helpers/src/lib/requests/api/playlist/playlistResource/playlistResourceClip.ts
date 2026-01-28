@@ -4,7 +4,7 @@ import { ApiRequestService } from '../../_request';
 export async function reqPlaylistResourceClipAddFirst(
   api: ApiRequestService,
   playlist_id_text: string,
-  clip_id_text: string,
+  clip_id_text: string
 ) {
   return api.apiRequest<DTOPlaylistResource>({
     path: `/playlist/${playlist_id_text}/clip/${clip_id_text}/first`,
@@ -19,7 +19,7 @@ export async function reqPlaylistResourceClipAddBetween(
   api: ApiRequestService,
   playlist_id_text: string,
   clip_id_text: string,
-  params: BetweenParams,
+  params: BetweenParams
 ) {
   return api.apiRequest<DTOPlaylistResource>({
     path: `/playlist/${playlist_id_text}/clip/${clip_id_text}/between`,
@@ -34,7 +34,7 @@ export async function reqPlaylistResourceClipAddBetween(
 export async function reqPlaylistResourceClipAddLast(
   api: ApiRequestService,
   playlist_id_text: string,
-  clip_id_text: string,
+  clip_id_text: string
 ) {
   return api.apiRequest<DTOPlaylistResource>({
     path: `/playlist/${playlist_id_text}/clip/${clip_id_text}/last`,
@@ -48,7 +48,7 @@ export async function reqPlaylistResourceClipAddLast(
 export async function reqPlaylistResourceClipDelete(
   api: ApiRequestService,
   playlist_id_text: string,
-  clip_id_text: string,
+  clip_id_text: string
 ) {
   return api.apiRequest<void>({
     path: `/playlist/${playlist_id_text}/clip/${clip_id_text}`,

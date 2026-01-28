@@ -66,7 +66,7 @@ export class BuildManager {
 
         // Bundle analyzer generates HTML files in .next/analyze/ directory
         const analyzeDir = path.join(this.podverseWebPath, '.next', 'analyze');
-        
+
         let serverHtml: string | undefined;
         let clientHtml: string | undefined;
         let serverStatsJson: string | undefined;
@@ -74,12 +74,12 @@ export class BuildManager {
 
         if (fs.existsSync(analyzeDir)) {
           const files = fs.readdirSync(analyzeDir);
-          const jsonFiles = files.filter(file => file.endsWith('.json'));
+          const jsonFiles = files.filter((file) => file.endsWith('.json'));
           const unlabeledJsonFiles: Array<{ file: string; content: string }> = [];
-          
+
           // Look for server and client bundle HTML files
           // @next/bundle-analyzer may output files with various naming patterns
-          const htmlFiles = files.filter(file => file.endsWith('.html'));
+          const htmlFiles = files.filter((file) => file.endsWith('.html'));
 
           for (const file of files) {
             const filePath = path.join(analyzeDir, file);
@@ -89,7 +89,7 @@ export class BuildManager {
               // Check for server bundle (common patterns: server.html, server-bundle.html, etc.)
               if (lowerFile.includes('server') && !serverHtml) {
                 serverHtml = fs.readFileSync(filePath, 'utf-8');
-              } 
+              }
               // Check for client bundle (common patterns: client.html, client-bundle.html, etc.)
               else if (lowerFile.includes('client') && !clientHtml) {
                 clientHtml = fs.readFileSync(filePath, 'utf-8');
@@ -121,7 +121,9 @@ export class BuildManager {
             }
           }
         } else {
-          console.warn('⚠️  Bundle analyzer output directory not found. Reports may not have been generated.');
+          console.warn(
+            '⚠️  Bundle analyzer output directory not found. Reports may not have been generated.'
+          );
         }
 
         resolve({ serverHtml, clientHtml, serverStatsJson, clientStatsJson });

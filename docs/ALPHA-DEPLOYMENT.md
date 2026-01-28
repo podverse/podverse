@@ -17,12 +17,12 @@ flowchart TD
         A[Push to alpha branch]
         B[Manual workflow_dispatch]
     end
-    
+
     trigger --> C[Validate Job]
     C --> D{Passes?}
     D -->|No| E[Fail - Check Logs]
     D -->|Yes| F[Build Docker Images]
-    
+
     subgraph parallel [Parallel Builds]
         F --> G[api]
         F --> H[web-deploy]
@@ -30,7 +30,7 @@ flowchart TD
         F --> J[management-api]
         F --> K[management-web-deploy]
     end
-    
+
     parallel --> L[Push to GHCR]
     L --> M[Deploy to Alpha Server]
 ```
@@ -134,6 +134,7 @@ Since `alpha` is a trigger branch that should mirror `develop`, merge develop in
 ```
 
 The script will:
+
 - Check for uncommitted changes (prevents unexpected results)
 - Verify that alpha can fast-forward merge from develop
 - Ensure alpha is a perfect mirror of develop
@@ -273,17 +274,17 @@ The version is determined by:
 
 ## Troubleshooting
 
-| Issue | Cause | Solution |
-|-------|-------|----------|
+| Issue                                | Cause                                  | Solution                                                                                              |
+| ------------------------------------ | -------------------------------------- | ----------------------------------------------------------------------------------------------------- |
 | "not possible to fast-forward" error | `alpha` branch diverged from `develop` | Reset alpha: `git checkout alpha && git reset --hard origin/develop && git push --force origin alpha` |
-| Workflow fails at "Security audit" | npm vulnerabilities found | Run `./scripts/audit/audit.sh --fix` locally |
-| Workflow fails at "Lint" | Linting errors | Run `npm run lint` locally to see errors |
-| Workflow fails at "Type check" | TypeScript errors | Run `npm run type-check` locally |
-| Workflow fails at "Build all apps" | Build errors | Run `npm run build:apps` locally |
-| Docker build fails | Dockerfile or dependency issue | Build locally with `docker build -f apps/<app>/Dockerfile .` |
-| GHCR push fails | Permission issue | Verify GITHUB_TOKEN has `packages:write` scope |
-| Version conflict | Tag already exists | Use `version_override` with a different version |
-| Images not updating on server | Docker cache | Run `docker pull` with `--no-cache` or prune images |
+| Workflow fails at "Security audit"   | npm vulnerabilities found              | Run `./scripts/audit/audit.sh --fix` locally                                                          |
+| Workflow fails at "Lint"             | Linting errors                         | Run `npm run lint` locally to see errors                                                              |
+| Workflow fails at "Type check"       | TypeScript errors                      | Run `npm run type-check` locally                                                                      |
+| Workflow fails at "Build all apps"   | Build errors                           | Run `npm run build:apps` locally                                                                      |
+| Docker build fails                   | Dockerfile or dependency issue         | Build locally with `docker build -f apps/<app>/Dockerfile .`                                          |
+| GHCR push fails                      | Permission issue                       | Verify GITHUB_TOKEN has `packages:write` scope                                                        |
+| Version conflict                     | Tag already exists                     | Use `version_override` with a different version                                                       |
+| Images not updating on server        | Docker cache                           | Run `docker pull` with `--no-cache` or prune images                                                   |
 
 ### Viewing Detailed Logs
 

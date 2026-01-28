@@ -10,16 +10,12 @@ import styles from '../../../styles/components/MediaPlayer/Modal/MediaPlayerButt
 export const MediaPlayerButtonsModal = () => {
   const { activeQueue } = useQueues();
   const medium_id = activeQueue?.medium_id || MediumEnum.AV;
-  
+
   return (
     <div className={styles.buttons}>
       <div className={styles.startSection}>
         <PlaylistAddToButton />
-        {
-          medium_id === MediumEnum.AV && (
-            <ClipButton />
-          )
-        }
+        {medium_id === MediumEnum.AV && <ClipButton />}
         <RepeatButton />
         <ShuffleButton />
         <SettingsButton />

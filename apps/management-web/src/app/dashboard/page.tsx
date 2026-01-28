@@ -56,9 +56,7 @@ export default function DashboardPage() {
       </div>
       <main>
         <Card variant="bordered" className={styles.placeholderCard}>
-          <p className={styles.placeholderText}>
-            This is a placeholder dashboard page.
-          </p>
+          <p className={styles.placeholderText}>This is a placeholder dashboard page.</p>
         </Card>
       </main>
     </div>

@@ -2,7 +2,12 @@
 
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
-import { DTOClip, getTotalPages, QueryParamsGetManyPartial, removeQueryParamByPattern } from '@podverse/helpers';
+import {
+  DTOClip,
+  getTotalPages,
+  QueryParamsGetManyPartial,
+  removeQueryParamByPattern,
+} from '@podverse/helpers';
 import { apiRequestService } from '../../factories/apiRequestService';
 import { useAccount } from '../../contexts/Account';
 import { useSkipInitialEffect } from '../../hooks/useSkipInitialEffect';
@@ -24,15 +29,15 @@ interface ClipsContextType {
   setShowSubscribeMessage: (show: boolean) => void;
   showCategoriesModal: boolean;
   setShowCategoriesModal: (show: boolean) => void;
-};
+}
 
 const ClipsContext = createContext<ClipsContextType | undefined>(undefined);
 
 interface ClipsContextProviderProps {
-  children: ReactNode,
-  initialQueryParams: QueryParamsGetManyPartial,
-  ssrClips: DTOClip[],
-  ssrTotalPages: number
+  children: ReactNode;
+  initialQueryParams: QueryParamsGetManyPartial;
+  ssrClips: DTOClip[];
+  ssrTotalPages: number;
 }
 
 export const ClipsContextProvider = ({
@@ -42,12 +47,15 @@ export const ClipsContextProvider = ({
   ssrTotalPages,
 }: ClipsContextProviderProps) => {
   const router = useRouter();
-  
+
   // Use the list page cache hook for back navigation caching
   const {
-    filterParams, setFilterParams,
-    data: clips, setData: setClips,
-    totalPages, setTotalPages,
+    filterParams,
+    setFilterParams,
+    data: clips,
+    setData: setClips,
+    totalPages,
+    setTotalPages,
     shouldSkipFetch,
   } = useListPageCache<QueryParamsGetManyPartial, DTOClip[]>({
     routeKey: 'clips',
@@ -80,14 +88,17 @@ export const ClipsContextProvider = ({
       }
 
       setIsLoading(true);
-      
-      const { currentSort, currentRange, currentType } = getEpisodesFilterParams({
-        page: filterParams.page,
-        type: filterParams.type,
-        sort: filterParams.sort,
-        range: filterParams.range,
-        category: filterParams.category,
-      }, !!loggedInAccount);
+
+      const { currentSort, currentRange, currentType } = getEpisodesFilterParams(
+        {
+          page: filterParams.page,
+          type: filterParams.type,
+          sort: filterParams.sort,
+          range: filterParams.range,
+          category: filterParams.category,
+        },
+        !!loggedInAccount
+      );
 
       const response = await apiRequestService.reqClipGetManyPublic({
         page: filterParams.page,
@@ -102,7 +113,12 @@ export const ClipsContextProvider = ({
         router.replace(removeQueryParamByPattern(ROUTES.CLIPS, 'category'));
       }
 
-      const totalPages = getTotalPages(response.meta.count, response.meta.limit, response.data.length, filterParams.page);
+      const totalPages = getTotalPages(
+        response.meta.count,
+        response.meta.limit,
+        response.data.length,
+        filterParams.page
+      );
       setTotalPages(totalPages);
       setClips(response.data);
       setShowSubscribeMessage(false);
@@ -112,14 +128,22 @@ export const ClipsContextProvider = ({
   }, [filterParams, loggedInAccount]);
 
   return (
-    <ClipsContext.Provider value={{
-      filterParams, setFilterParams,
-      clips, setClips,
-      totalPages, setTotalPages,
-      isLoading, setIsLoading,
-      showSubscribeMessage, setShowSubscribeMessage,
-      showCategoriesModal, setShowCategoriesModal,
-    }}>
+    <ClipsContext.Provider
+      value={{
+        filterParams,
+        setFilterParams,
+        clips,
+        setClips,
+        totalPages,
+        setTotalPages,
+        isLoading,
+        setIsLoading,
+        showSubscribeMessage,
+        setShowSubscribeMessage,
+        showCategoriesModal,
+        setShowCategoriesModal,
+      }}
+    >
       {children}
     </ClipsContext.Provider>
   );
@@ -127,6 +151,8 @@ export const ClipsContextProvider = ({
 
 export const useClipsContext = () => {
   const ctx = useContext(ClipsContext);
-  if (!ctx) {throw new Error('useClipsContext must be used within a ClipsContextProvider');}
+  if (!ctx) {
+    throw new Error('useClipsContext must be used within a ClipsContextProvider');
+  }
   return ctx;
 };

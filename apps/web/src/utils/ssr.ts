@@ -1,3 +1,3 @@
 export const checkIfSSR = () => {
-  return typeof window === 'undefined';  
+  return typeof window === 'undefined';
 };

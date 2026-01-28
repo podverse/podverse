@@ -1,5 +1,3 @@
- 
-
 export async function copyToClipboard(text: string): Promise<boolean> {
   if (typeof window === 'undefined' || typeof document === 'undefined') {
     return false;

@@ -3,11 +3,11 @@ import path from 'path';
 
 /**
  * i18n Compile Script
- * 
+ *
  * This script:
  * 1. Syncs override files to have the same structure as originals (with empty string defaults)
  * 2. Compiles originals + overrides into final compiled files
- * 
+ *
  * Logic:
  * - en-US: No override file (source language) - just copy originals to compiled
  * - Other locales:
@@ -100,9 +100,10 @@ if (!fs.existsSync(compiledDir)) {
 }
 
 // Get all locale files from originals
-const locales = fs.readdirSync(originalsDir)
-  .filter(f => f.endsWith('.json'))
-  .map(f => f.replace('.json', ''));
+const locales = fs
+  .readdirSync(originalsDir)
+  .filter((f) => f.endsWith('.json'))
+  .map((f) => f.replace('.json', ''));
 
 for (const locale of locales) {
   const originalsPath = path.join(originalsDir, `${locale}.json`);
@@ -129,7 +130,7 @@ for (const locale of locales) {
     // Merge originals + overrides for compiled output
     const compiled = mergeForCompiled(originals, syncedOverrides);
     fs.writeFileSync(compiledPath, JSON.stringify(compiled, null, 2), 'utf8');
-    
+
     console.info(`Compiled ${locale}.json`);
   }
 }

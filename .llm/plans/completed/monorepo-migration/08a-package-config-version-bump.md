@@ -21,6 +21,7 @@ Each of the 6 publishable packages needs `publishConfig` for scoped public publi
 ```
 
 **Files to modify:**
+
 - [ ] `packages/helpers/package.json`
 - [ ] `packages/external-services/package.json`
 - [ ] `packages/orm/package.json`
@@ -33,6 +34,7 @@ Each of the 6 publishable packages needs `publishConfig` for scoped public publi
 **File**: `scripts/publish/bump-version.sh`
 
 Script requirements:
+
 - Accept version as argument or prompt for it
 - Validate version format (X.Y.Z)
 - Update root `package.json` version
@@ -102,10 +104,12 @@ echo "Run 'git push' to push changes"
 After completing the tasks:
 
 1. **Verify publishConfig works:**
+
    ```bash
    cd packages/helpers
    npm pack --dry-run
    ```
+
    Should show package name without errors about access.
 
 2. **Test bump script:**

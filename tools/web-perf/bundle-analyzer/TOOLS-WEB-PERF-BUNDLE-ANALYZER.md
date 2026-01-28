@@ -44,11 +44,13 @@ npm run analyze
 ```
 
 The CLI will prompt you to:
+
 1. Enter a name for the bundle analysis report (e.g., "v1.0", "before-optimization", "after-lazy-loading", etc.)
 
 ### Report Generation
 
 The system will:
+
 1. Build the Next.js app in production mode with bundle analyzer enabled
 2. Generate HTML reports for server and client bundles
 3. Generate stats JSON files for server and client bundles
@@ -62,6 +64,7 @@ The system will:
 ### Viewing Reports
 
 Open the generated HTML files in your browser to view interactive bundle visualizations:
+
 - **Treemap view**: Shows the relative size of each module
 - **Zoom and filter**: Explore specific packages and modules
 - **Size information**: See both parsed and gzipped sizes
@@ -71,10 +74,12 @@ Open the generated HTML files in your browser to view interactive bundle visuali
 Reports are stored in `tools/web-perf/reports/bundle-analyzer/` with the following structure:
 
 **HTML Reports:**
+
 - `bundle-report-{name}-{timestamp}-server.html` - Interactive server bundle visualization
 - `bundle-report-{name}-{timestamp}-client.html` - Interactive client bundle visualization
 
 **JSON Metadata:**
+
 - `bundle-report-{name}-{timestamp}.json` - Contains:
   ```json
   {
@@ -90,17 +95,13 @@ Reports are stored in `tools/web-perf/reports/bundle-analyzer/` with the followi
       "totalChunks": 42,
       "totalAssets": 120,
       "totalAssetSize": 3456789,
-      "topChunks": [
-        { "name": "main", "size": 123456, "files": ["static/chunks/main.js"] }
-      ]
+      "topChunks": [{ "name": "main", "size": 123456, "files": ["static/chunks/main.js"] }]
     },
     "clientChunkSummary": {
       "totalChunks": 50,
       "totalAssets": 140,
       "totalAssetSize": 4567890,
-      "topChunks": [
-        { "name": "app", "size": 234567, "files": ["static/chunks/app.js"] }
-      ]
+      "topChunks": [{ "name": "app", "size": 234567, "files": ["static/chunks/app.js"] }]
     }
   }
   ```
@@ -108,6 +109,7 @@ Reports are stored in `tools/web-perf/reports/bundle-analyzer/` with the followi
 ## Integration with Next.js
 
 The bundle analyzer works by:
+
 1. Setting `ANALYZE=true` environment variable
 2. Running `npm run build` in the `apps/web` directory
 3. `@next/bundle-analyzer` generates HTML reports in `apps/web/.next/analyze/`
@@ -118,6 +120,7 @@ The bundle analyzer works by:
 ## Comparison Between Builds
 
 To compare bundle sizes between different builds:
+
 1. Run the analyzer with different report names (e.g., "before" and "after")
 2. Open the HTML reports side-by-side in your browser
 3. Compare the visualizations to see what changed
@@ -126,23 +129,27 @@ To compare bundle sizes between different builds:
 ## Troubleshooting
 
 **Build fails:**
+
 - Ensure all dependencies are installed in the monorepo root: `npm install`
 - Ensure packages are built: `npm run build:packages`
 - Check that `@next/bundle-analyzer` is installed in `apps/web`
 - Verify `apps/web/next.config.ts` is properly configured
 
 **No reports generated:**
+
 - Check that `ANALYZE=true` is being set (the tool sets this automatically)
 - Verify the build completed successfully
 - Check `apps/web/.next/analyze/` directory for generated files
 
 **Reports directory not found:**
+
 - The tool automatically creates `tools/web-perf/reports/bundle-analyzer/` if it doesn't exist
 - Ensure you have write permissions in the tools directory
 
 ## Development
 
 The system consists of:
+
 - `build-manager.ts`: Handles building the Next.js app with analyzer enabled
 - `bundle-analyzer.ts`: Core analyzer logic and report generation
 - `report-manager.ts`: Report storage, retrieval, and file management

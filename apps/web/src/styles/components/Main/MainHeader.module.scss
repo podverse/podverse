@@ -1,5 +1,5 @@
 @use '../../mixins/lineClamp' as *;
-@use "breakpoints";
+@use 'breakpoints';
 
 .header {
   background-color: var(--background-color-secondary);

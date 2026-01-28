@@ -56,49 +56,51 @@ export class AccountDevicesGenerator {
   private fcmIdCounter = 1;
   private upIdCounter = 1;
   private webPushIdCounter = 1;
-  
+
   generateFCMDevices(account: GeneratedAccount): GeneratedAccountFCMDevice[] {
     // 40% of accounts have FCM devices
     if (!faker.datatype.boolean({ probability: 0.4 })) return [];
-    
+
     const count = faker.number.int({ min: 1, max: 3 });
     const createdAt = faker.date.past({ years: 1 });
-    
+
     return Array.from({ length: count }, () => ({
       id: this.fcmIdCounter++,
       account_id: account.id,
       fcm_token: faker.string.alphanumeric(152).slice(0, DATABASE_CONSTANTS.varchar_fcm_token),
       device_type: faker.helpers.arrayElement(['ios', 'android']),
       created_at: createdAt,
-      updated_at: faker.date.between({ from: createdAt, to: new Date() })
+      updated_at: faker.date.between({ from: createdAt, to: new Date() }),
     }));
   }
-  
+
   generateUPDevices(account: GeneratedAccount): GeneratedAccountUPDevice[] {
     // 10% of accounts have UP devices
     if (!faker.datatype.boolean({ probability: 0.1 })) return [];
-    
-    return [{
-      id: this.upIdCounter++,
-      account_id: account.id,
-      endpoint: faker.internet.url() + '/up/push',
-      created_at: faker.date.past({ years: 1 })
-    }];
+
+    return [
+      {
+        id: this.upIdCounter++,
+        account_id: account.id,
+        endpoint: faker.internet.url() + '/up/push',
+        created_at: faker.date.past({ years: 1 }),
+      },
+    ];
   }
-  
+
   generateWebPushDevices(account: GeneratedAccount): GeneratedAccountWebPushDevice[] {
     // 30% of accounts have web push devices
     if (!faker.datatype.boolean({ probability: 0.3 })) return [];
-    
+
     const count = faker.number.int({ min: 1, max: 2 });
-    
+
     return Array.from({ length: count }, () => ({
       id: this.webPushIdCounter++,
       account_id: account.id,
       endpoint: `https://fcm.googleapis.com/fcm/send/${faker.string.alphanumeric(152)}`,
       p256dh: faker.string.alphanumeric(87),
       auth: faker.string.alphanumeric(22),
-      created_at: faker.date.past({ years: 1 })
+      created_at: faker.date.past({ years: 1 }),
     }));
   }
 }
@@ -129,7 +131,7 @@ export interface GeneratedAccountNotificationChannelType {
 export class AccountNotificationChannelGenerator {
   private notificationIdCounter = 1;
   private typeIdCounter = 1;
-  
+
   generate(
     account: GeneratedAccount,
     followedChannelIds: number[]
@@ -139,43 +141,43 @@ export class AccountNotificationChannelGenerator {
   } {
     const notifications: GeneratedAccountNotificationChannel[] = [];
     const types: GeneratedAccountNotificationChannelType[] = [];
-    
+
     // Subscribe to notifications for 30% of followed channels
-    const subscribedChannels = followedChannelIds.filter(
-      () => faker.datatype.boolean({ probability: 0.3 })
+    const subscribedChannels = followedChannelIds.filter(() =>
+      faker.datatype.boolean({ probability: 0.3 })
     );
-    
+
     for (const channelId of subscribedChannels) {
       const notificationId = this.notificationIdCounter++;
-      
+
       notifications.push({
         id: notificationId,
         account_id: account.id,
         channel_id: channelId,
-        created_at: faker.date.past({ years: 1 })
+        created_at: faker.date.past({ years: 1 }),
       });
-      
+
       // Add notification types (at least one)
       const notificationTypes = this.getRandomNotificationTypes();
       for (const type of notificationTypes) {
         types.push({
           id: this.typeIdCounter++,
           account_notification_channel_id: notificationId,
-          type
+          type,
         });
       }
     }
-    
+
     return { notifications, types };
   }
-  
+
   private getRandomNotificationTypes(): string[] {
     const allTypes = [
       AccountNotificationTypeEnum.NewItem,
       AccountNotificationTypeEnum.LivestreamScheduled,
-      AccountNotificationTypeEnum.LivestreamStarting
+      AccountNotificationTypeEnum.LivestreamStarting,
     ];
-    
+
     // Always include at least one, potentially all
     const count = faker.number.int({ min: 1, max: 3 });
     return faker.helpers.arrayElements(allTypes, count);
@@ -228,7 +230,7 @@ export class AccountPurchasesGenerator {
   private appStoreIdCounter = 1;
   private googlePlayIdCounter = 1;
   private payPalIdCounter = 1;
-  
+
   generateAppStorePurchase(
     account: GeneratedAccount,
     membershipStatus: { account_membership_id: number; membership_expires_at: Date | null }
@@ -236,9 +238,9 @@ export class AccountPurchasesGenerator {
     // Only for basic members, 30% chance
     if (membershipStatus.account_membership_id !== AccountMembershipEnum.Basic) return null;
     if (!faker.datatype.boolean({ probability: 0.3 })) return null;
-    
+
     const purchaseDate = faker.date.past({ years: 1 });
-    
+
     return {
       id: this.appStoreIdCounter++,
       account_id: account.id,
@@ -246,10 +248,10 @@ export class AccountPurchasesGenerator {
       original_transaction_id: faker.string.numeric(15),
       product_id: 'com.podverse.premium.monthly',
       purchase_date: purchaseDate,
-      expires_date: membershipStatus.membership_expires_at
+      expires_date: membershipStatus.membership_expires_at,
     };
   }
-  
+
   generateGooglePlayPurchase(
     account: GeneratedAccount,
     membershipStatus: { account_membership_id: number; membership_expires_at: Date | null }
@@ -257,7 +259,7 @@ export class AccountPurchasesGenerator {
     // Only for basic members, 30% chance
     if (membershipStatus.account_membership_id !== AccountMembershipEnum.Basic) return null;
     if (!faker.datatype.boolean({ probability: 0.3 })) return null;
-    
+
     return {
       id: this.googlePlayIdCounter++,
       account_id: account.id,
@@ -265,10 +267,10 @@ export class AccountPurchasesGenerator {
       purchase_token: faker.string.alphanumeric(164),
       product_id: 'premium_monthly',
       purchase_time: faker.date.past({ years: 1 }),
-      expiry_time: membershipStatus.membership_expires_at
+      expiry_time: membershipStatus.membership_expires_at,
     };
   }
-  
+
   generatePayPalOrder(
     account: GeneratedAccount,
     membershipStatus: { account_membership_id: number }
@@ -276,9 +278,9 @@ export class AccountPurchasesGenerator {
     // Only for basic members, 30% chance
     if (membershipStatus.account_membership_id !== AccountMembershipEnum.Basic) return null;
     if (!faker.datatype.boolean({ probability: 0.3 })) return null;
-    
+
     const createdAt = faker.date.past({ years: 1 });
-    
+
     return {
       id: this.payPalIdCounter++,
       account_id: account.id,
@@ -288,7 +290,7 @@ export class AccountPurchasesGenerator {
       amount: '9.99',
       currency: 'USD',
       created_at: createdAt,
-      updated_at: createdAt
+      updated_at: createdAt,
     };
   }
 }
@@ -296,13 +298,13 @@ export class AccountPurchasesGenerator {
 
 ## Summary
 
-| Entity | Count for baseCount=100 |
-|--------|------------------------|
-| AccountFCMDevice | ~124 (40% have 1-3) |
-| AccountUPDevice | ~10 (10% have 1) |
-| AccountWebPushDevice | ~47 (30% have 1-2) |
-| AccountNotificationChannel | ~62 (30% of followed channels) |
-| AccountNotificationChannelType | ~93 (1-3 per notification) |
-| AccountAppStorePurchase | ~9 (30% of basic members) |
-| AccountGooglePlayPurchase | ~9 (30% of basic members) |
-| AccountPayPalOrder | ~9 (30% of basic members) |
+| Entity                         | Count for baseCount=100        |
+| ------------------------------ | ------------------------------ |
+| AccountFCMDevice               | ~124 (40% have 1-3)            |
+| AccountUPDevice                | ~10 (10% have 1)               |
+| AccountWebPushDevice           | ~47 (30% have 1-2)             |
+| AccountNotificationChannel     | ~62 (30% of followed channels) |
+| AccountNotificationChannelType | ~93 (1-3 per notification)     |
+| AccountAppStorePurchase        | ~9 (30% of basic members)      |
+| AccountGooglePlayPurchase      | ~9 (30% of basic members)      |
+| AccountPayPalOrder             | ~9 (30% of basic members)      |

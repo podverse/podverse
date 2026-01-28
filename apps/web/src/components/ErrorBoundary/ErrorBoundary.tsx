@@ -34,7 +34,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     console.error('ErrorBoundary caught an error:', error, errorInfo);
-    
+
     if (this.props.onError) {
       this.props.onError(error, errorInfo);
     }
@@ -76,15 +76,13 @@ const ErrorBoundaryFallback: React.FC<ErrorBoundaryFallbackProps> = ({ error, re
   return (
     <div className={styles.errorBoundary}>
       <div className={styles.errorBoundaryContent}>
-        <h2 className={styles.errorBoundaryTitle}>
-          {tErrors('boundary_title')}
-        </h2>
-        <p className={styles.errorBoundaryMessage}>
-          {tErrors('boundary_message')}
-        </p>
+        <h2 className={styles.errorBoundaryTitle}>{tErrors('boundary_title')}</h2>
+        <p className={styles.errorBoundaryMessage}>{tErrors('boundary_message')}</p>
         {process.env.NODE_ENV === 'development' && (
           <details className={styles.errorDetails}>
-            <summary className={styles.errorDetailsSummary}>{tErrors('details_development_only')}</summary>
+            <summary className={styles.errorDetailsSummary}>
+              {tErrors('details_development_only')}
+            </summary>
             <pre className={styles.errorDetailsContent}>
               {error.toString()}
               {error.stack && `\n\n${error.stack}`}

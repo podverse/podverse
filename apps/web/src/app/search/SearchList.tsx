@@ -5,7 +5,7 @@ import { ListSearchResultsPodcastIndexFeeds } from '../../components/List/Search
 
 export const SearchList: React.FC = () => {
   const { searchResultFeeds, isLoading } = useSearchContext();
-  
+
   return (
     <>
       <ListSearchResultsPodcastIndexFeeds searchResultPodcastIndexFeeds={searchResultFeeds} />

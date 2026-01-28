@@ -11,13 +11,21 @@ export class AccountSettings {
   @Column({ name: 'account_id', unique: true })
   account_id!: number;
 
-  @OneToOne(() => Account, account => account.account_settings, { onDelete: 'CASCADE' })
+  @OneToOne(() => Account, (account) => account.account_settings, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'account_id' })
   account!: Account;
 
-  @OneToOne(() => AccountSettingsLocale, accountSettingsLocale => accountSettingsLocale.account_settings, { cascade: ['insert'] })
+  @OneToOne(
+    () => AccountSettingsLocale,
+    (accountSettingsLocale) => accountSettingsLocale.account_settings,
+    { cascade: ['insert'] }
+  )
   account_settings_locale!: AccountSettingsLocale;
 
-  @OneToOne(() => AccountSettingsNotification, accountSettingsNotification => accountSettingsNotification.account_settings, { cascade: ['insert'] })
+  @OneToOne(
+    () => AccountSettingsNotification,
+    (accountSettingsNotification) => accountSettingsNotification.account_settings,
+    { cascade: ['insert'] }
+  )
   account_settings_notification!: AccountSettingsNotification;
 }

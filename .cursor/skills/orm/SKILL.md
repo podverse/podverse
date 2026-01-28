@@ -16,10 +16,10 @@ This skill provides quick reference for common patterns used in the podverse-orm
 
 ## Key Dependencies
 
-| Package | Purpose |
-|---------|---------|
+| Package             | Purpose        |
+| ------------------- | -------------- |
 | `@podverse/helpers` | Types and DTOs |
-| `typeorm` | ORM framework |
+| `typeorm`           | ORM framework  |
 
 ## Patterns
 
@@ -27,34 +27,41 @@ This skill provides quick reference for common patterns used in the podverse-orm
 
 ```typescript
 // packages/orm/src/entities/Podcast.ts
-import { Entity, PrimaryGeneratedColumn, Column, OneToMany, CreateDateColumn, UpdateDateColumn } from 'typeorm'
-import { Episode } from './Episode'
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  OneToMany,
+  CreateDateColumn,
+  UpdateDateColumn,
+} from 'typeorm';
+import { Episode } from './Episode';
 
 @Entity('podcast')
 export class Podcast {
   @PrimaryGeneratedColumn('uuid')
-  id: string
+  id: string;
 
   @Column()
-  title: string
+  title: string;
 
   @Column({ nullable: true })
-  description?: string
+  description?: string;
 
   @Column({ unique: true })
-  feedUrl: string
+  feedUrl: string;
 
   @Column({ nullable: true })
-  imageUrl?: string
+  imageUrl?: string;
 
   @OneToMany(() => Episode, (episode) => episode.podcast)
-  episodes: Episode[]
+  episodes: Episode[];
 
   @CreateDateColumn()
-  createdAt: Date
+  createdAt: Date;
 
   @UpdateDateColumn()
-  updatedAt: Date
+  updatedAt: Date;
 }
 ```
 
@@ -62,37 +69,37 @@ export class Podcast {
 
 ```typescript
 // packages/orm/src/services/PodcastService.ts
-import { getRepository } from 'typeorm'
-import { Podcast } from '../entities/Podcast'
+import { getRepository } from 'typeorm';
+import { Podcast } from '../entities/Podcast';
 
 export const PodcastService = {
   async getById(id: string): Promise<Podcast | null> {
-    const repo = getRepository(Podcast)
-    return repo.findOne({ where: { id } })
+    const repo = getRepository(Podcast);
+    return repo.findOne({ where: { id } });
   },
 
   async getByFeedUrl(feedUrl: string): Promise<Podcast | null> {
-    const repo = getRepository(Podcast)
-    return repo.findOne({ where: { feedUrl } })
+    const repo = getRepository(Podcast);
+    return repo.findOne({ where: { feedUrl } });
   },
 
   async create(data: Partial<Podcast>): Promise<Podcast> {
-    const repo = getRepository(Podcast)
-    const podcast = repo.create(data)
-    return repo.save(podcast)
+    const repo = getRepository(Podcast);
+    const podcast = repo.create(data);
+    return repo.save(podcast);
   },
 
   async update(id: string, data: Partial<Podcast>): Promise<Podcast | null> {
-    const repo = getRepository(Podcast)
-    await repo.update(id, data)
-    return this.getById(id)
+    const repo = getRepository(Podcast);
+    await repo.update(id, data);
+    return this.getById(id);
   },
 
   async delete(id: string): Promise<void> {
-    const repo = getRepository(Podcast)
-    await repo.delete(id)
-  }
-}
+    const repo = getRepository(Podcast);
+    await repo.delete(id);
+  },
+};
 ```
 
 ### Query Builder Pattern
@@ -154,19 +161,22 @@ npm run typeorm migration:create -- -n MigrationName
 
 ```typescript
 // infra/database/main/migrations/YYYYMMDDHHMMSS-AddPodcastCategory.ts
-import { MigrationInterface, QueryRunner, TableColumn } from 'typeorm'
+import { MigrationInterface, QueryRunner, TableColumn } from 'typeorm';
 
 export class AddPodcastCategory1234567890123 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.addColumn('podcast', new TableColumn({
-      name: 'category',
-      type: 'varchar',
-      isNullable: true
-    }))
+    await queryRunner.addColumn(
+      'podcast',
+      new TableColumn({
+        name: 'category',
+        type: 'varchar',
+        isNullable: true,
+      })
+    );
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.dropColumn('podcast', 'category')
+    await queryRunner.dropColumn('podcast', 'category');
   }
 }
 ```

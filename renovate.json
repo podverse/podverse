@@ -1,10 +1,6 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": [
-    "config:base",
-    ":semanticCommits",
-    ":preserveSemverRanges"
-  ],
+  "extends": ["config:base", ":semanticCommits", ":preserveSemverRanges"],
 
   "labels": ["dependencies"],
   "assignees": ["mitchdowney"],
@@ -81,7 +77,5 @@
     "schedule": ["before 5am on the first day of the month"]
   },
 
-  "ignoreDeps": [
-    "podverse-partytime"
-  ]
+  "ignoreDeps": ["podverse-partytime"]
 }

@@ -15,13 +15,13 @@ export type ORMContext = {
 /**
  * Creates an ORM context with the provided configuration.
  * This is the factory function that should be called from the app level.
- * 
+ *
  * The DataSources are NOT initialized - call dataSourceRead.initialize() and
  * dataSourceReadWrite.initialize() after creating the context.
- * 
+ *
  * This function also sets the module-level context so that services can access
  * the DataSources and logger without needing to pass them explicitly.
- * 
+ *
  * @param config - The ORM configuration (from app-level env vars)
  * @returns ORMContext with DataSources and logger (not yet initialized)
  */

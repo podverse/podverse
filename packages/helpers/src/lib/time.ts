@@ -10,9 +10,7 @@ export function formatHHMMSS(sec: number) {
   const seconds = Math.floor(sec % 60);
 
   if (hours > 0) {
-    return `${hours}:${minutes.toString().padStart(2, '0')}:${seconds
-      .toString()
-      .padStart(2, '0')}`;
+    return `${hours}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
   }
   return `${minutes}:${seconds.toString().padStart(2, '0')}`;
 }
@@ -24,9 +22,7 @@ export function formatNumericToHHMMSS(sec: string): string {
   const seconds = totalSeconds % 60;
 
   if (hours > 0) {
-    return `${hours}:${minutes.toString().padStart(2, '0')}:${seconds
-      .toString()
-      .padStart(2, '0')}`;
+    return `${hours}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
   }
   return `${minutes}:${seconds.toString().padStart(2, '0')}`;
 }
@@ -35,9 +31,13 @@ export function formatInputToHHMMSS(input: string): string {
   const sanitized = input.replace(/[^0-9:]/g, '');
   const digits = sanitized.replace(/:/g, '');
 
-  if (digits.length === 0) {return '';}
+  if (digits.length === 0) {
+    return '';
+  }
 
-  if (digits.length <= 2) {return digits;}
+  if (digits.length <= 2) {
+    return digits;
+  }
 
   if (digits.length <= 4) {
     const minutes = digits.slice(0, digits.length - 2);
@@ -53,22 +53,38 @@ export function formatInputToHHMMSS(input: string): string {
 }
 
 export function hhmmssToSecondsNumeric(time: string): string {
-  if (!time) {return '0.00';}
+  if (!time) {
+    return '0.00';
+  }
   const parts = time.split(':').map(Number).reverse();
   let seconds = 0;
-  if (parts.length > 0 && parts[0] !== undefined) {seconds += parts[0];}
-  if (parts.length > 1 && parts[1] !== undefined) {seconds += parts[1] * 60;}
-  if (parts.length > 2 && parts[2] !== undefined) {seconds += parts[2] * 3600;}
+  if (parts.length > 0 && parts[0] !== undefined) {
+    seconds += parts[0];
+  }
+  if (parts.length > 1 && parts[1] !== undefined) {
+    seconds += parts[1] * 60;
+  }
+  if (parts.length > 2 && parts[2] !== undefined) {
+    seconds += parts[2] * 3600;
+  }
   return `${seconds.toFixed(2)}`;
 }
 
 export function hhmmssToSecondsNumber(time: string): number {
-  if (!time) {return 0.00;}
+  if (!time) {
+    return 0.0;
+  }
   const parts = time.split(':').map(Number).reverse();
   let seconds = 0;
-  if (parts.length > 0 && parts[0] !== undefined) {seconds += parts[0];}
-  if (parts.length > 1 && parts[1] !== undefined) {seconds += parts[1] * 60;}
-  if (parts.length > 2 && parts[2] !== undefined) {seconds += parts[2] * 3600;}
+  if (parts.length > 0 && parts[0] !== undefined) {
+    seconds += parts[0];
+  }
+  if (parts.length > 1 && parts[1] !== undefined) {
+    seconds += parts[1] * 60;
+  }
+  if (parts.length > 2 && parts[2] !== undefined) {
+    seconds += parts[2] * 3600;
+  }
   return Number(seconds.toFixed(2));
 }
 
@@ -84,12 +100,12 @@ export type TimeRemaining = {
  * - If less than 1 hour: sets minutes only
  * - If less than 24 hours: sets hours only
  * - If 24 hours or more: sets days only
- * 
+ *
  * @param expirationDate - The expiration date as a Date object or ISO string
  * @returns Object with daysLeft, hoursLeft, and minutesLeft
  */
 export function calculateTimeRemaining(
-  expirationDate: Date | string | null | undefined,
+  expirationDate: Date | string | null | undefined
 ): TimeRemaining {
   const result: TimeRemaining = {
     daysLeft: null,

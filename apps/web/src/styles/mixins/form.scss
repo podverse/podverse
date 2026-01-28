@@ -41,7 +41,9 @@
 ///   .inputInfo {
 ///     @include formInfoText;
 ///   }
-@mixin formInfoText($margin: var(--spacing-lg) var(--spacing-lg) var(--spacing-none) var(--spacing-lg)) {
+@mixin formInfoText(
+  $margin: var(--spacing-lg) var(--spacing-lg) var(--spacing-none) var(--spacing-lg)
+) {
   margin: $margin;
   font-size: var(--font-size-sm);
   font-weight: var(--font-weight-light);
@@ -55,7 +57,9 @@
 ///   .inputError {
 ///     @include formInfoTextError;
 ///   }
-@mixin formInfoTextError($margin: var(--spacing-lg) var(--spacing-lg) var(--spacing-none) var(--spacing-lg)) {
+@mixin formInfoTextError(
+  $margin: var(--spacing-lg) var(--spacing-lg) var(--spacing-none) var(--spacing-lg)
+) {
   margin: $margin;
   font-size: var(--font-size-sm);
   font-weight: var(--font-weight-light);

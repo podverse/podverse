@@ -1,7 +1,13 @@
 import { Episode } from 'podverse-partytime';
 import { hasValidFeedUuid } from '@podverse/helpers';
-import { EntityManager, Item, ItemValueService, ItemValueRecipientService, ItemValueTimeSplitService,
-  ItemValueTimeSplitRecipientService, ItemValueTimeSplitRemoteItemService,
+import {
+  EntityManager,
+  Item,
+  ItemValueService,
+  ItemValueRecipientService,
+  ItemValueTimeSplitService,
+  ItemValueTimeSplitRecipientService,
+  ItemValueTimeSplitRemoteItemService,
   ChannelService,
   Channel,
 } from '@podverse/orm';
@@ -11,14 +17,18 @@ export const handleParsedItemValue = async (
   parsedItem: Episode,
   item: Item,
   channel: Channel,
-  transactionalEntityManager?: EntityManager,
+  transactionalEntityManager?: EntityManager
 ) => {
   const itemValueService = new ItemValueService(transactionalEntityManager);
   const itemValueDtos = compatItemValueDtos(parsedItem);
   const itemValueRecipientService = new ItemValueRecipientService(transactionalEntityManager);
   const itemValueTimeSplitService = new ItemValueTimeSplitService(transactionalEntityManager);
-  const itemValueTimeSplitRecipientService = new ItemValueTimeSplitRecipientService(transactionalEntityManager);
-  const itemValueTimeSplitRemoteItemService = new ItemValueTimeSplitRemoteItemService(transactionalEntityManager);
+  const itemValueTimeSplitRecipientService = new ItemValueTimeSplitRecipientService(
+    transactionalEntityManager
+  );
+  const itemValueTimeSplitRemoteItemService = new ItemValueTimeSplitRemoteItemService(
+    transactionalEntityManager
+  );
 
   if (itemValueDtos.length > 0) {
     for (const itemValueDto of itemValueDtos) {
@@ -45,23 +55,34 @@ export const handleParsedItemValue = async (
         }
 
         for (const itemValueTimeSplitDto of itemValueTimeSplitDtos) {
-          const item_value_time_split = await itemValueTimeSplitService.update(item_value, itemValueTimeSplitDto.meta);
+          const item_value_time_split = await itemValueTimeSplitService.update(
+            item_value,
+            itemValueTimeSplitDto.meta
+          );
 
-          const itemValueTimeSplitRecipientDtos = itemValueTimeSplitDto.item_value_time_splits_recipients;
+          const itemValueTimeSplitRecipientDtos =
+            itemValueTimeSplitDto.item_value_time_splits_recipients;
           if (itemValueTimeSplitRecipientDtos.length > 0) {
             for (const itemValueTimeSplitRecipientDto of itemValueTimeSplitRecipientDtos) {
-              await itemValueTimeSplitRecipientService.update(item_value_time_split, itemValueTimeSplitRecipientDto);
+              await itemValueTimeSplitRecipientService.update(
+                item_value_time_split,
+                itemValueTimeSplitRecipientDto
+              );
             }
           } else {
             await itemValueTimeSplitRecipientService.deleteAll(item_value_time_split);
           }
 
-          const itemValueTimeSplitRemoteItemDto = itemValueTimeSplitDto.item_value_time_splits_remote_item;
+          const itemValueTimeSplitRemoteItemDto =
+            itemValueTimeSplitDto.item_value_time_splits_remote_item;
           if (itemValueTimeSplitRemoteItemDto) {
             if (!hasValidFeedUuid(itemValueTimeSplitRemoteItemDto)) {
               continue;
             }
-            await itemValueTimeSplitRemoteItemService.update(item_value_time_split, itemValueTimeSplitRemoteItemDto);
+            await itemValueTimeSplitRemoteItemService.update(
+              item_value_time_split,
+              itemValueTimeSplitRemoteItemDto
+            );
           } else {
             await itemValueTimeSplitRemoteItemService.deleteAll(item_value_time_split);
           }

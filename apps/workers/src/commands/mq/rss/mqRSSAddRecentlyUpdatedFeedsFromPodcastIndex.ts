@@ -1,22 +1,25 @@
 import { MQ_QUEUES, MQQueueNameParamKey, validMQQueueNamesParamKeys } from '@podverse/helpers';
-import { mqRSSAddRecentlyUpdatedFeedsFromPodcastIndex as mqRSSAddRecentlyUpdatedFeedsFromPodcastIndexFunction,
-} from '@podverse/mq';
+import { mqRSSAddRecentlyUpdatedFeedsFromPodcastIndex as mqRSSAddRecentlyUpdatedFeedsFromPodcastIndexFunction } from '@podverse/mq';
 import { CommandLineArgs } from '@workers/commands';
 import { podcastIndexService } from '@workers/factories/podcastIndexService';
 import { activeMQArtemisService } from '@workers/factories/activeMQArtemisService';
 
 export const mqRSSAddRecentlyUpdatedFeedsFromPodcastIndex = async (args: CommandLineArgs) => {
-  const mqQueueNameParamKey = (Array.isArray(args.q) ? args.q[0] : args.q) as MQQueueNameParamKey | undefined;
+  const mqQueueNameParamKey = (Array.isArray(args.q) ? args.q[0] : args.q) as
+    | MQQueueNameParamKey
+    | undefined;
   if (!mqQueueNameParamKey) {
     throw new Error('queueName (-q) parameter is required');
   }
 
   if (!validMQQueueNamesParamKeys.includes(mqQueueNameParamKey)) {
-    throw new Error(`Invalid queueName. Allowed values are: ${validMQQueueNamesParamKeys.join(', ')}`);
+    throw new Error(
+      `Invalid queueName. Allowed values are: ${validMQQueueNamesParamKeys.join(', ')}`
+    );
   }
 
   let sinceRange: number | undefined;
-  const sinceRangeArg = 'sinceRange' in args ? args.sinceRange : ('sr' in args ? args.sr : undefined);
+  const sinceRangeArg = 'sinceRange' in args ? args.sinceRange : 'sr' in args ? args.sr : undefined;
   if (sinceRangeArg !== undefined) {
     const rawValue = Array.isArray(sinceRangeArg) ? sinceRangeArg[0] : sinceRangeArg;
     const parsedSinceRange = parseInt(rawValue ?? '', 10);
@@ -46,6 +49,6 @@ export const mqRSSAddRecentlyUpdatedFeedsFromPodcastIndex = async (args: Command
         type: null,
         remoteParentPodcastIndexId: null,
       },
-    },
+    }
   );
 };

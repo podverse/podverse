@@ -10,11 +10,11 @@ export class AccountFollowingChannel {
   @PrimaryColumn()
   channel_id!: number;
 
-  @ManyToOne(() => Account, account => account.id, { onDelete: 'CASCADE' })
+  @ManyToOne(() => Account, (account) => account.id, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'account_id' })
   account!: Account;
 
-  @ManyToOne(() => Channel, channel => channel.id, { onDelete: 'CASCADE' })
+  @ManyToOne(() => Channel, (channel) => channel.id, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'channel_id' })
   channel!: Channel;
 }

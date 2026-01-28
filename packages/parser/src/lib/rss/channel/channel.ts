@@ -1,5 +1,11 @@
 import { FeedObject } from 'podverse-partytime';
-import { AppDataSourceReadWrite, Channel, ChannelService, ChannelSeasonIndex, EntityManager } from '@podverse/orm';
+import {
+  AppDataSourceReadWrite,
+  Channel,
+  ChannelService,
+  ChannelSeasonIndex,
+  EntityManager,
+} from '@podverse/orm';
 import { compatChannelDto } from '@parser/lib/compat/partytime/channel';
 import { handleParsedChannelAbout } from '@parser/lib/rss/channel/channelAbout';
 import { handleParsedChannelCategory } from '@parser/lib/rss/channel/channelCategory';
@@ -19,18 +25,27 @@ import { handleParsedChannelTxt } from '@parser/lib/rss/channel/channelTxt';
 import { handleParsedChannelValue } from '@parser/lib/rss/channel/channelValue';
 import { timerManager } from '@parser/factories/timerManager';
 
-export const handleParsedChannel = async (parsedFeed: FeedObject, channel: Channel, channelSeasonIndex: ChannelSeasonIndex) => {
+export const handleParsedChannel = async (
+  parsedFeed: FeedObject,
+  channel: Channel,
+  channelSeasonIndex: ChannelSeasonIndex
+) => {
   timerManager.start('handleParsedChannel');
 
   const channelService = new ChannelService();
   const channelDto = compatChannelDto(parsedFeed);
   await channelService.update(channel.id, channelDto);
-  
+
   if (timerManager.shouldLogTimer) {
     await handleParsingTables(parsedFeed, channel, channelSeasonIndex);
   } else {
-    await AppDataSourceReadWrite.manager.transaction(async transactionalEntityManager => {
-      await handleParsingTables(parsedFeed, channel, channelSeasonIndex, transactionalEntityManager);
+    await AppDataSourceReadWrite.manager.transaction(async (transactionalEntityManager) => {
+      await handleParsingTables(
+        parsedFeed,
+        channel,
+        channelSeasonIndex,
+        transactionalEntityManager
+      );
     });
   }
 
@@ -41,7 +56,7 @@ const handleParsingTables = async (
   parsedFeed: FeedObject,
   channel: Channel,
   channelSeasonIndex: ChannelSeasonIndex,
-  transactionalEntityManager?: EntityManager,
+  transactionalEntityManager?: EntityManager
 ) => {
   await handleParsedChannelAbout(parsedFeed, channel, transactionalEntityManager);
   await handleParsedChannelCategory(parsedFeed, channel, transactionalEntityManager);
@@ -56,7 +71,12 @@ const handleParsingTables = async (
   await handleParsedChannelPublisher(parsedFeed, channel, transactionalEntityManager);
   await handleParsedChannelRemoteItem(parsedFeed, channel, transactionalEntityManager);
   await handleParsedChannelSocialInteract(parsedFeed, channel, transactionalEntityManager);
-  await handleParsedChannelTrailer(parsedFeed, channel, channelSeasonIndex, transactionalEntityManager);
+  await handleParsedChannelTrailer(
+    parsedFeed,
+    channel,
+    channelSeasonIndex,
+    transactionalEntityManager
+  );
   await handleParsedChannelTxt(parsedFeed, channel, transactionalEntityManager);
   await handleParsedChannelValue(parsedFeed, channel, transactionalEntityManager);
 };

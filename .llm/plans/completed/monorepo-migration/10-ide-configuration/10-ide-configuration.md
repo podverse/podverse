@@ -10,10 +10,10 @@ Configure VS Code settings, extensions, and Terminals Manager for optimal monore
 
 This phase has been split into smaller plans that can run in parallel:
 
-| Sub-Plan | Description | Status |
-|----------|-------------|--------|
-| [10a-vscode-core.md](../../../completed/monorepo-migration/10-ide-configuration/10a-vscode-core.md) | VS Code settings, extensions, launch, tasks, workspace | ✅ Completed |
-| [10b-terminals-docs.md](../../../completed/monorepo-migration/10-ide-configuration/10b-terminals-docs.md) | Terminal configs and IDE documentation | ✅ Completed |
+| Sub-Plan                                                                                                  | Description                                            | Status       |
+| --------------------------------------------------------------------------------------------------------- | ------------------------------------------------------ | ------------ |
+| [10a-vscode-core.md](../../../completed/monorepo-migration/10-ide-configuration/10a-vscode-core.md)       | VS Code settings, extensions, launch, tasks, workspace | ✅ Completed |
+| [10b-terminals-docs.md](../../../completed/monorepo-migration/10-ide-configuration/10b-terminals-docs.md) | Terminal configs and IDE documentation                 | ✅ Completed |
 
 **Note**: `.vscode/terminals-rundev.json.example` was already created in Phase 6.
 
@@ -349,7 +349,7 @@ For multi-root workspace (if opening individual packages):
 
 ### docs/IDE-SETUP.md
 
-```markdown
+````markdown
 # IDE Setup Guide
 
 ## VS Code (Recommended)
@@ -363,6 +363,7 @@ For multi-root workspace (if opening individual packages):
    ```bash
    cp .vscode/terminals-rundev.json.example .vscode/terminals.json
    ```
+````
 
 ### Terminals Manager
 
@@ -374,6 +375,7 @@ The Terminals Manager extension opens multiple terminals with predefined command
 ### Debugging
 
 Use the launch configurations in `.vscode/launch.json`:
+
 - Debug API: Launch API with debugger attached
 - Debug Jest: Run tests with debugging
 
@@ -388,6 +390,7 @@ Use the launch configurations in `.vscode/launch.json`:
 ### Cursor
 
 Works same as VS Code. All `.vscode/` configurations apply.
+
 ```
 
 ## Files to Create
@@ -407,3 +410,4 @@ Works same as VS Code. All `.vscode/` configurations apply.
 ## Estimated Effort
 
 ~2-3 hours
+```

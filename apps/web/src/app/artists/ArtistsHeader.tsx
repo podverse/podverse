@@ -23,8 +23,8 @@ export const ArtistsHeader: React.FC = () => {
   const { type, sort, range } = filterParams;
   const tMedia = useTranslations('media');
   const tFilters = useTranslations('filters');
-  const { typeMenuItems, sortMenuItems, rangeMenuItems, showRangeDropdown,
-    } = getArtistsDropdownConfig({ type, sort, tFilters });
+  const { typeMenuItems, sortMenuItems, rangeMenuItems, showRangeDropdown } =
+    getArtistsDropdownConfig({ type, sort, tFilters });
 
   const medium = 'publisher-music';
 
@@ -96,18 +96,8 @@ export const ArtistsHeader: React.FC = () => {
 
   const buttonsNode = (
     <>
-      <Dropdown
-        key="type"
-        value={type}
-        menuItems={typeMenuItems}
-        onChange={handleTypeChange}
-      />
-      <Dropdown
-        key="sort"
-        value={sort}
-        menuItems={sortMenuItems}
-        onChange={handleSortChange}
-      />
+      <Dropdown key="type" value={type} menuItems={typeMenuItems} onChange={handleTypeChange} />
+      <Dropdown key="sort" value={sort} menuItems={sortMenuItems} onChange={handleSortChange} />
       {showRangeDropdown && range && (
         <Dropdown
           key="range"
@@ -116,19 +106,11 @@ export const ArtistsHeader: React.FC = () => {
           onChange={handleRangeChange}
         />
       )}
-      <ViewSelector
-        viewSelected={viewSelected}
-        setViewSelected={setViewSelected}
-      />
+      <ViewSelector viewSelected={viewSelected} setViewSelected={setViewSelected} />
     </>
   );
 
   const headerTitle = tMedia('music.artists');
 
-  return (
-    <MainHeader
-      title={headerTitle}
-      buttonsNode={buttonsNode}
-    />
-  );
+  return <MainHeader title={headerTitle} buttonsNode={buttonsNode} />;
 };

@@ -24,7 +24,9 @@ export class OnDemandParserEventService {
     const newEvent = this.repositoryReadWrite.create({
       account: dto.account,
       podcastIndexId: dto.podcastIndexId,
-      ...(dto.remoteParentPodcastIndexId !== null && { remoteParentPodcastIndexId: dto.remoteParentPodcastIndexId }),
+      ...(dto.remoteParentPodcastIndexId !== null && {
+        remoteParentPodcastIndexId: dto.remoteParentPodcastIndexId,
+      }),
       type: dto.type,
     });
 
@@ -32,7 +34,8 @@ export class OnDemandParserEventService {
   }
 
   async getAggregateCount(type: OnDemandParserEventType): Promise<{ [accountId: number]: number }> {
-    const results = await this.repositoryRead.createQueryBuilder('event')
+    const results = await this.repositoryRead
+      .createQueryBuilder('event')
       .select('event.account_id', 'accountId')
       .addSelect('COUNT(event.id)', 'count')
       .where('event.type = :type', { type })
@@ -57,7 +60,11 @@ export class OnDemandParserEventService {
     });
   }
 
-  async getCountByAccountIdAndTypeSince(accountId: number, type: OnDemandParserEventType, since: Date): Promise<number> {
+  async getCountByAccountIdAndTypeSince(
+    accountId: number,
+    type: OnDemandParserEventType,
+    since: Date
+  ): Promise<number> {
     return this.repositoryRead.count({
       where: {
         account: { id: accountId },

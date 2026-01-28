@@ -15,7 +15,7 @@ import { useLocalSettings } from '../../contexts/LocalSettings';
 
 export const Modals: React.FC = () => {
   const { serverEnvironmentDisclaimerAccepted } = useLocalSettings();
-  
+
   return (
     <>
       <ModalAuthLogin />

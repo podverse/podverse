@@ -51,6 +51,7 @@ Validation occurs in `scripts/validate-env.ts` before the build process. The val
 ### Numeric Validation
 
 Variables containing `PORT` are validated to ensure they are valid positive numbers if set:
+
 - `NEXT_PUBLIC_API_PORT` (Optional - must be a valid number if set)
 
 ### Format Validation
@@ -61,6 +62,7 @@ Variables containing `PORT` are validated to ensure they are valid positive numb
 ## Validation Output
 
 During build, the validation displays:
+
 - A categorized list of all environment variables
 - Status indicator (✓ for valid, ✗ for invalid)
 - Whether the variable is required or optional
@@ -68,6 +70,7 @@ During build, the validation displays:
 - A summary with totals and counts
 
 Example output:
+
 ```
 === Environment Variable Validation ===
 

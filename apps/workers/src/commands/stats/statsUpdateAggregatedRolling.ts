@@ -30,7 +30,10 @@ export const statsUpdateAggregatedRolling = async (args: CommandLineArgs) => {
   for (const channelId of channelsToUpdate) {
     const channelTimerLabel = `Channel ${channelId} update`;
     timerManager.start(channelTimerLabel);
-    await statsAggregatedChannelService.updateAggregatedStatsRolling(channelId, shouldUpdateHistoricalOptions);
+    await statsAggregatedChannelService.updateAggregatedStatsRolling(
+      channelId,
+      shouldUpdateHistoricalOptions
+    );
     timerManager.end(channelTimerLabel);
   }
   timerManager.end(timerLabel2);
@@ -40,4 +43,3 @@ export const statsUpdateAggregatedRolling = async (args: CommandLineArgs) => {
 
   timerManager.end(timerFullRunLabel);
 };
-

@@ -6,9 +6,7 @@ interface Props {
 }
 
 const SideBarHeader: React.FC<Props> = ({ children }) => (
-  <div className={styles.header}>
-    {children}
-  </div>
+  <div className={styles.header}>{children}</div>
 );
 
 export default SideBarHeader;

@@ -153,7 +153,7 @@ export class UserManager {
       // Set to Trial membership (account_membership_id = 1 for Trial)
       const membershipExpires = new Date();
       membershipExpires.setMonth(membershipExpires.getMonth() + 3);
-      
+
       await manager.query(
         `INSERT INTO account_membership_status (account_id, account_membership_id, membership_expires_at)
          VALUES ($1, 1, $2)`,
@@ -196,10 +196,9 @@ export class UserManager {
     try {
       // Delete in correct order (respecting foreign key constraints)
       // account_credentials references account
-      await this.dataSource.query(
-        `DELETE FROM account_credentials WHERE account_id = $1`,
-        [user.accountId]
-      );
+      await this.dataSource.query(`DELETE FROM account_credentials WHERE account_id = $1`, [
+        user.accountId,
+      ]);
 
       // account_settings_locale references account_settings
       await this.dataSource.query(
@@ -209,28 +208,22 @@ export class UserManager {
       );
 
       // account_settings references account
-      await this.dataSource.query(
-        `DELETE FROM account_settings WHERE account_id = $1`,
-        [user.accountId]
-      );
+      await this.dataSource.query(`DELETE FROM account_settings WHERE account_id = $1`, [
+        user.accountId,
+      ]);
 
       // account_profile references account
-      await this.dataSource.query(
-        `DELETE FROM account_profile WHERE account_id = $1`,
-        [user.accountId]
-      );
+      await this.dataSource.query(`DELETE FROM account_profile WHERE account_id = $1`, [
+        user.accountId,
+      ]);
 
       // account_membership_status references account
-      await this.dataSource.query(
-        `DELETE FROM account_membership_status WHERE account_id = $1`,
-        [user.accountId]
-      );
+      await this.dataSource.query(`DELETE FROM account_membership_status WHERE account_id = $1`, [
+        user.accountId,
+      ]);
 
       // Finally delete account
-      await this.dataSource.query(
-        `DELETE FROM account WHERE id = $1`,
-        [user.accountId]
-      );
+      await this.dataSource.query(`DELETE FROM account WHERE id = $1`, [user.accountId]);
     } catch (error) {
       console.error(`Error deleting test user ${user.email}:`, error);
       // Don't throw - continue even if deletion fails

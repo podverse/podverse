@@ -10,13 +10,19 @@ type ContentAbout = {
   item_persons?: DTOItemPerson[];
   defaultOpen?: boolean;
   isAccordion?: boolean;
-}
+};
 
-export const ContentAbout = ({ description, channel_persons, item_persons, defaultOpen, isAccordion }: ContentAbout) => {
+export const ContentAbout = ({
+  description,
+  channel_persons,
+  item_persons,
+  defaultOpen,
+  isAccordion,
+}: ContentAbout) => {
   if (!description) {
     return null;
   }
-  
+
   if (isAccordion) {
     return (
       <ContentAboutAccordion
@@ -30,10 +36,7 @@ export const ContentAbout = ({ description, channel_persons, item_persons, defau
     return (
       <div className={styles.listView}>
         <ContentAboutDescription description={description} />
-        <ContentPeopleRows
-          channel_persons={channel_persons}
-          item_persons={item_persons}
-        />
+        <ContentPeopleRows channel_persons={channel_persons} item_persons={item_persons} />
       </div>
     );
   }

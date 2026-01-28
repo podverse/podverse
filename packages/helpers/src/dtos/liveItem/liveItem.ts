@@ -13,5 +13,5 @@ export interface DTOLiveItem {
 export enum LiveItemStatusEnum {
   Pending = 1,
   Live = 2,
-  Ended = 3
+  Ended = 3,
 }

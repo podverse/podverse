@@ -13,6 +13,7 @@ Update the core `@podverse/helpers` package by removing code that was moved to s
 ### 1. Update package.json Dependencies
 
 **In `packages/helpers/package.json`**, remove these dependencies:
+
 ```json
 "axios": "^1.12.2",          // moved to helpers-requests
 "bignumber.js": "^9.3.1",    // moved to helpers-backend
@@ -23,6 +24,7 @@ Update the core `@podverse/helpers` package by removing code that was moved to s
 ```
 
 **Keep these dependencies** (all platform-agnostic):
+
 ```json
 "date-fns": "^4.1.0",    // Works in browser, React Native, Node.js
 "he": "^1.2.0",          // Works everywhere
@@ -32,6 +34,7 @@ Update the core `@podverse/helpers` package by removing code that was moved to s
 ### 2. Remove Moved Code
 
 **Delete these files/directories:**
+
 ```bash
 # Backend utilities (moved to helpers-backend)
 rm -rf packages/helpers/src/lib/backend/
@@ -52,6 +55,7 @@ rm packages/helpers/src/lib/playlistResource.ts
 ### 3. Update src/index.ts
 
 **In `packages/helpers/src/index.ts`**, remove these lines:
+
 ```diff
 -export * from './lib/backend';
 -export * from './lib/web';
@@ -73,6 +77,7 @@ npm run build
 ## Platform Compatibility
 
 After this step, `@podverse/helpers` will be **universal** (works everywhere):
+
 - ✅ Browser (Next.js web apps)
 - ✅ React Native (mobile apps - future)
 - ✅ Node.js (backend apps)
@@ -104,6 +109,7 @@ All remaining utilities use only standard JavaScript/TypeScript features or univ
 ## Notes
 
 After this step, core helpers will contain ONLY:
+
 - DTOs (data transfer objects)
 - Enums (MediumEnum, etc.)
 - Constants (supported locales, etc.)

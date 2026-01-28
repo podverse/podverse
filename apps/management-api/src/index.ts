@@ -50,7 +50,11 @@ process.on('SIGTERM', () => void shutdown('SIGTERM'));
     }
   } catch (error) {
     // For validation errors, log just the message without stack trace
-    if (error instanceof Error && error.message.includes('FATAL:') && error.message.includes('required environment variable')) {
+    if (
+      error instanceof Error &&
+      error.message.includes('FATAL:') &&
+      error.message.includes('required environment variable')
+    ) {
       // Validation error - message already logged in validation.ts, just exit
       process.exit(1);
     } else {

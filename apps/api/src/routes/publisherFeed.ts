@@ -7,6 +7,9 @@ const router = Router();
 
 router.use(`${config.api.prefix}${config.api.version}/publisher-feed`, router);
 
-router.get('/channel/:idOrIdText', asyncHandler(PublisherFeedController.getPublisherFeedRemoteItemsForChannel));
+router.get(
+  '/channel/:idOrIdText',
+  asyncHandler(PublisherFeedController.getPublisherFeedRemoteItemsForChannel)
+);
 
 export const publisherFeedRouter = router;

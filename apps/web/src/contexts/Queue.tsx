@@ -23,20 +23,24 @@ type QueuesProviderProps = {
   children: ReactNode;
 };
 
-export const QueuesProvider = ({
-  children,
-}: QueuesProviderProps) => {
+export const QueuesProvider = ({ children }: QueuesProviderProps) => {
   const [queues, setQueues] = useState<DTOQueue[]>([]);
   const [activeQueue, setActiveQueue] = useState<DTOQueue | null>(null);
-  const [activeQueueUpcomingResources, setActiveQueueUpcomingResources] = useState<DTOQueueResource[]>([]);
+  const [activeQueueUpcomingResources, setActiveQueueUpcomingResources] = useState<
+    DTOQueueResource[]
+  >([]);
 
   return (
     <QueuesContext.Provider
       value={{
-        queues, setQueues,
-        activeQueue, setActiveQueue,
-        activeQueueUpcomingResources, setActiveQueueUpcomingResources,
-      }}>
+        queues,
+        setQueues,
+        activeQueue,
+        setActiveQueue,
+        activeQueueUpcomingResources,
+        setActiveQueueUpcomingResources,
+      }}
+    >
       {children}
     </QueuesContext.Provider>
   );
@@ -44,6 +48,8 @@ export const QueuesProvider = ({
 
 export function useQueues() {
   const ctx = useContext(QueuesContext);
-  if (!ctx) {throw new Error('useQueues must be used within a QueuesProvider');}
+  if (!ctx) {
+    throw new Error('useQueues must be used within a QueuesProvider');
+  }
   return ctx;
 }

@@ -9,9 +9,12 @@ import styles from '../../../../styles/components/Media/Podcast/PodcastHeaderVie
 type AlbumHeaderViewDesktopProps = {
   channel: DTOChannel;
   item?: DTOItem;
-}
+};
 
-export const AlbumHeaderViewDesktop: React.FC<AlbumHeaderViewDesktopProps> = ({ channel, item }) => {
+export const AlbumHeaderViewDesktop: React.FC<AlbumHeaderViewDesktopProps> = ({
+  channel,
+  item,
+}) => {
   return (
     <div className={styles.contentDesktop}>
       <AlbumHeaderImage channel={channel} item={item} />

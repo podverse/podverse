@@ -70,6 +70,7 @@ logs/               # Log files (gitignored, see logs/LOGS.md)
 ### Environment Configuration
 
 Local development uses pre-configured environment files that work out of the box:
+
 - `apps/api/.env` - API configuration
 - `apps/web/env/local.env` - Web configuration
 - `infra/config/local/*.env` - Docker service configuration
@@ -109,6 +110,7 @@ Deployments are managed via Jenkins pipelines. See:
 ## Performance Testing
 
 Performance testing tools are available in `tools/web-perf/`:
+
 - **Bundle Analyzer**: Analyze Next.js bundle sizes and visualize code splitting
 - **Lighthouse**: Automated performance testing with Playwright and Lighthouse
 

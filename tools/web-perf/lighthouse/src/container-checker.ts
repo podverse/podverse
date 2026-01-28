@@ -43,7 +43,7 @@ export class ContainerChecker {
     for (const container of this.requiredContainers) {
       const isRunning = await this.checkContainerRunning(container.name);
       let portOk = false;
-      
+
       if (isRunning) {
         portOk = await this.checkContainerPort(container.name, container.port);
       }
@@ -55,23 +55,25 @@ export class ContainerChecker {
       });
     }
 
-    const allRunning = statuses.every(s => s.isRunning);
+    const allRunning = statuses.every((s) => s.isRunning);
 
     return { allRunning, statuses };
   }
 
   async validateRequiredContainers(): Promise<void> {
     console.log('🔍 Checking required Docker containers...\n');
-    
+
     const { allRunning, statuses } = await this.checkAllContainers();
 
     for (const status of statuses) {
-      const container = this.requiredContainers.find(c => c.name === status.name)!;
+      const container = this.requiredContainers.find((c) => c.name === status.name)!;
       if (status.isRunning) {
         if (status.port) {
           console.log(`   ✅ ${container.name} is running on port ${status.port}`);
         } else {
-          console.log(`   ⚠️  ${container.name} is running but port ${container.port} may not be exposed`);
+          console.log(
+            `   ⚠️  ${container.name} is running but port ${container.port} may not be exposed`
+          );
         }
       } else {
         console.log(`   ❌ ${container.name} is not running`);
@@ -82,24 +84,24 @@ export class ContainerChecker {
 
     if (!allRunning) {
       const missingContainers = statuses
-        .filter(s => !s.isRunning)
-        .map(s => {
-          const container = this.requiredContainers.find(c => c.name === s.name)!;
+        .filter((s) => !s.isRunning)
+        .map((s) => {
+          const container = this.requiredContainers.find((c) => c.name === s.name)!;
           return `   - ${container.name} (${container.description}) on port ${container.port}`;
         })
         .join('\n');
 
       throw new Error(
         `Required Docker containers are not running. Please start the following containers:\n\n${missingContainers}\n\n` +
-        `You can start them using make commands from podverse-ops:\n` +
-        `  cd podverse-ops\n` +
-        `  make local_mq_up          # Start message queue (port 5672)\n` +
-        `  make local_keyvaldb_up    # Start keyvaldb/redis (port 6379)\n` +
-        `\nOr using docker-compose directly:\n` +
-        `  cd podverse-ops\n` +
-        `  docker compose -f docker-compose/local/mq/docker-compose.yml up -d\n` +
-        `  docker compose -f docker-compose/local/keyvaldb/docker-compose.yml up -d\n` +
-        `\nThen run the tests again.`
+          `You can start them using make commands from podverse-ops:\n` +
+          `  cd podverse-ops\n` +
+          `  make local_mq_up          # Start message queue (port 5672)\n` +
+          `  make local_keyvaldb_up    # Start keyvaldb/redis (port 6379)\n` +
+          `\nOr using docker-compose directly:\n` +
+          `  cd podverse-ops\n` +
+          `  docker compose -f docker-compose/local/mq/docker-compose.yml up -d\n` +
+          `  docker compose -f docker-compose/local/keyvaldb/docker-compose.yml up -d\n` +
+          `\nThen run the tests again.`
       );
     }
   }

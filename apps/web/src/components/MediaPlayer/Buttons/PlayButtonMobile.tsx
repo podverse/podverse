@@ -11,10 +11,7 @@ export const PlayButtonMobile = () => {
   };
 
   return (
-    <button
-      className={styles.playButtonMobile}
-      onClick={handleClick}
-      type="button">
+    <button className={styles.playButtonMobile} onClick={handleClick} type="button">
       {icon}
     </button>
   );

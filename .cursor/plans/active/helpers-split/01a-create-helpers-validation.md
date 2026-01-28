@@ -68,11 +68,11 @@ Create `@podverse/helpers-validation` package for email/password validation shar
 **Create `packages/helpers-validation/src/index.ts`:**
 
 ```typescript
-export * from "./databaseConstants";
-export * from "./email";
-export * from "./password";
-export * from "./signUpValidation";
-export * from "./url";
+export * from './databaseConstants';
+export * from './email';
+export * from './password';
+export * from './signUpValidation';
+export * from './url';
 ```
 
 ### 3. Build Package

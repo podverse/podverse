@@ -13,6 +13,7 @@ Create `@podverse/helpers-requests` package for API client utilities used exclus
 ### 1. Create Package Structure
 
 **`packages/helpers-requests/package.json`:**
+
 ```json
 {
   "name": "@podverse/helpers-requests",
@@ -20,9 +21,7 @@ Create `@podverse/helpers-requests` package for API client utilities used exclus
   "description": "API client utilities for Podverse web application",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
-  "files": [
-    "dist/**/*"
-  ],
+  "files": ["dist/**/*"],
   "scripts": {
     "build": "npm run lint && tsc",
     "build:prod": "tsc",
@@ -44,6 +43,7 @@ Create `@podverse/helpers-requests` package for API client utilities used exclus
 ```
 
 **`packages/helpers-requests/tsconfig.json`:**
+
 ```json
 {
   "extends": "../../tsconfig.base.json",
@@ -51,20 +51,20 @@ Create `@podverse/helpers-requests` package for API client utilities used exclus
     "outDir": "./dist",
     "rootDir": "./src"
   },
-  "include": [
-    "src/**/*"
-  ]
+  "include": ["src/**/*"]
 }
 ```
 
 ### 2. Copy Request Code
 
 **Copy entire directory** from `packages/helpers/src/lib/requests/` to `packages/helpers-requests/src/`:
+
 - `_request.ts`
 - `api/` (entire directory)
 - `index.ts`
 
 **Verify structure:**
+
 ```
 packages/helpers-requests/src/
   _request.ts

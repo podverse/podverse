@@ -5,7 +5,7 @@ import { mqRSSAdd } from './add';
 
 export const mqRSSRunParser = async (
   activeMQArtemisService: ActiveMQArtemisService,
-  queueName: MQQueueName,
+  queueName: MQQueueName
 ) => {
   await activeMQArtemisService.initialize();
 
@@ -18,11 +18,26 @@ export const mqRSSRunParser = async (
       if (url || podcast_index_id) {
         const result = await parseRSSFeedAndSaveToDatabase(url, podcast_index_id, options);
 
-        if (result && Array.isArray(result.remoteItemsToParse) && result.remoteItemsToParse.length > 0) {
+        if (
+          result &&
+          Array.isArray(result.remoteItemsToParse) &&
+          result.remoteItemsToParse.length > 0
+        ) {
           const mqConfig = MQ_QUEUES['rss-slow'];
           for (const item of result.remoteItemsToParse) {
             try {
-              await mqRSSAdd(activeMQArtemisService, { queueName: mqConfig.queueName, dedupeCacheTimeMS: mqConfig.dedupeCacheTimeMS, priority: mqConfig.priority, closeAfterSend: false, feedUrl: item.url, podcast_index_id: item.podcast_index_id }, item.options);
+              await mqRSSAdd(
+                activeMQArtemisService,
+                {
+                  queueName: mqConfig.queueName,
+                  dedupeCacheTimeMS: mqConfig.dedupeCacheTimeMS,
+                  priority: mqConfig.priority,
+                  closeAfterSend: false,
+                  feedUrl: item.url,
+                  podcast_index_id: item.podcast_index_id,
+                },
+                item.options
+              );
             } catch (err) {
               console.error('Error enqueueing remote item', err as Error);
             }

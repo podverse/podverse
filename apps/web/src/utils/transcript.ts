@@ -4,7 +4,7 @@ import { TimestampFormatter } from 'transcriptator/timestamp';
 
 export const getTranscriptRowsFromTranscriptString = async (data?: string | null) => {
   let parsedTranscript = [] as TranscriptRow[];
-  
+
   if (!data) {
     return parsedTranscript;
   }

@@ -3,7 +3,7 @@ export function updateLayoutForMediaPlayer(nowPlayingItem: unknown) {
   const pageWrapper = document.getElementById('page-wrapper');
   const mediaPlayer = document.getElementById('media-player');
   const activeClass = 'media-player-active';
-  
+
   if (nowPlayingItem) {
     if (sidebar && !sidebar.classList.contains(activeClass)) {
       sidebar.classList.add(activeClass);

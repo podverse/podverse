@@ -1,5 +1,13 @@
 import { DATABASE_CONSTANTS } from '@podverse/helpers';
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, OneToMany, OneToOne } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  JoinColumn,
+  OneToMany,
+  OneToOne,
+} from 'typeorm';
 import { Item } from '@orm/entities/item/item';
 import { ItemEnclosureSource } from '@orm/entities/item/itemEnclosureSource';
 import { ItemEnclosureIntegrity } from '@orm/entities/item/itemEnclosureIntegrity';
@@ -9,7 +17,7 @@ export class ItemEnclosure {
   @PrimaryGeneratedColumn()
   id!: number;
 
-  @ManyToOne(() => Item, item => item.id, { onDelete: 'CASCADE' })
+  @ManyToOne(() => Item, (item) => item.id, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'item_id' })
   item!: Item;
 
@@ -40,9 +48,12 @@ export class ItemEnclosure {
   @Column({ type: 'boolean', default: false })
   item_enclosure_default!: boolean;
 
-  @OneToOne(() => ItemEnclosureIntegrity, itemEnclosureIntegrity => itemEnclosureIntegrity.item_enclosure)
+  @OneToOne(
+    () => ItemEnclosureIntegrity,
+    (itemEnclosureIntegrity) => itemEnclosureIntegrity.item_enclosure
+  )
   item_enclosure_integrity!: ItemEnclosureIntegrity;
 
-  @OneToMany(() => ItemEnclosureSource, itemEnclosureSource => itemEnclosureSource.item_enclosure)
+  @OneToMany(() => ItemEnclosureSource, (itemEnclosureSource) => itemEnclosureSource.item_enclosure)
   item_enclosure_sources!: ItemEnclosureSource[];
 }

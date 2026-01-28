@@ -5,6 +5,7 @@ This directory contains plans for splitting `@podverse/helpers` into 6 optimized
 ## Goal
 
 Split helpers into specialized packages to:
+
 - Reduce frontend bundle size by ~2.4MB
 - Improve code organization
 - Support future React Native mobile apps
@@ -56,20 +57,22 @@ Split helpers into specialized packages to:
 
 ## Platform Compatibility
 
-| Package | Web | Mobile (RN) | Backend | Build Scripts |
-|---------|-----|-------------|---------|---------------|
-| helpers | ✅ | ✅ | ✅ | ✅ |
-| helpers-validation | ✅ | ✅ | ✅ | ✅ |
-| helpers-requests | ✅ | ✅ | ❌ | ❌ |
-| helpers-backend | ❌ | ❌ | ✅ | ❌ |
-| helpers-config | ❌ | ❌ | ✅ | ✅ |
-| helpers-browser | ✅ | ❌ | ❌ | ❌ |
-| helpers-mobile (future) | ❌ | ✅ | ❌ | ❌ |
+| Package                 | Web | Mobile (RN) | Backend | Build Scripts |
+| ----------------------- | --- | ----------- | ------- | ------------- |
+| helpers                 | ✅  | ✅          | ✅      | ✅            |
+| helpers-validation      | ✅  | ✅          | ✅      | ✅            |
+| helpers-requests        | ✅  | ✅          | ❌      | ❌            |
+| helpers-backend         | ❌  | ❌          | ✅      | ❌            |
+| helpers-config          | ❌  | ❌          | ✅      | ✅            |
+| helpers-browser         | ✅  | ❌          | ❌      | ❌            |
+| helpers-mobile (future) | ❌  | ✅          | ❌      | ❌            |
 
 ## Execution Order
 
 ### Phase 1: Create New Packages (Parallel)
+
 **Run simultaneously:**
+
 - `01a-create-helpers-validation.md` - Validation package
 - `01b-create-helpers-requests.md` - API client package
 - `01c-create-helpers-backend.md` - Backend utilities package
@@ -77,11 +80,15 @@ Split helpers into specialized packages to:
 - `01e-create-helpers-config.md` - Config/startup validation package
 
 ### Phase 2: Update Core Helpers (Sequential)
+
 **Run after ALL Phase 1 completes:**
+
 - `02-update-helpers-core.md` - Remove moved code, update deps
 
 ### Phase 3: Update All Imports (Parallel)
+
 **Run simultaneously after Phase 2 completes:**
+
 - `03a-update-web-app.md` - Web app imports
 - `03b-update-api-app.md` - API app imports
 - `03c-update-workers-app.md` - Workers app imports
@@ -94,7 +101,9 @@ Split helpers into specialized packages to:
 - `03j-update-management-web.md` - Management Web imports
 
 ### Phase 4: Verification (Sequential)
+
 **Run after ALL Phase 3 completes:**
+
 - `04-verification.md` - Build all, test, verify bundle sizes
 
 ## Dependency Flow
@@ -108,11 +117,11 @@ graph TD
         P1D[01d browser]
         P1E[01e config]
     end
-    
+
     subgraph Phase2 [Phase 2: Update Core]
         P2[02 update helpers]
     end
-    
+
     subgraph Phase3 [Phase 3: Update Imports - Parallel]
         P3A[03a web app]
         P3B[03b api app]
@@ -125,17 +134,17 @@ graph TD
         P3I[03i docs]
         P3J[03j mgmt-web]
     end
-    
+
     subgraph Phase4 [Phase 4: Verify]
         P4[04 verification]
     end
-    
+
     P1A --> P2
     P1B --> P2
     P1C --> P2
     P1D --> P2
     P1E --> P2
-    
+
     P2 --> P3A
     P2 --> P3B
     P2 --> P3C
@@ -146,7 +155,7 @@ graph TD
     P2 --> P3H
     P2 --> P3I
     P2 --> P3J
-    
+
     P3A --> P4
     P3B --> P4
     P3C --> P4
@@ -180,15 +189,16 @@ graph TD
 
 ## Bundle Size Impact
 
-| App | Before | After | Savings |
-|-----|--------|-------|---------|
-| web (frontend) | ~3.5MB | ~1.1MB | ~2.4MB |
-| web (server) | ~3.5MB | ~1.5MB | ~2MB |
-| api/workers | ~3.5MB | ~3MB | ~0.5MB |
+| App            | Before | After  | Savings |
+| -------------- | ------ | ------ | ------- |
+| web (frontend) | ~3.5MB | ~1.1MB | ~2.4MB  |
+| web (server)   | ~3.5MB | ~1.5MB | ~2MB    |
+| api/workers    | ~3.5MB | ~3MB   | ~0.5MB  |
 
 ## Mobile App Future
 
 When adding React Native mobile apps:
+
 - ✅ They will use `helpers`, `helpers-validation`, `helpers-requests`
 - ❌ They will NOT use `helpers-backend`, `helpers-config`, `helpers-browser`
 - ➕ You may create `helpers-mobile` for React Native-specific utilities

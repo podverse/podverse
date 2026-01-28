@@ -8,8 +8,9 @@ type ListSearchResultsPodcastIndexFeedsProps = {
   searchResultPodcastIndexFeeds: SearchPodcastsFeed[];
 };
 
-export const ListSearchResultsPodcastIndexFeeds: React.FC<ListSearchResultsPodcastIndexFeedsProps> = ({
-  searchResultPodcastIndexFeeds }) => {
+export const ListSearchResultsPodcastIndexFeeds: React.FC<
+  ListSearchResultsPodcastIndexFeedsProps
+> = ({ searchResultPodcastIndexFeeds }) => {
   return (
     <>
       {searchResultPodcastIndexFeeds.map((searchResultPodcastIndexFeed) => (

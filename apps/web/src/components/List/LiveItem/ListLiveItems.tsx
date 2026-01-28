@@ -37,7 +37,7 @@ export const ListLiveItems: React.FC<Props> = ({
   const tAuthentication = useTranslations('authentication');
   const tMedia = useTranslations('media');
   const { setModalAuthLogin } = useModals();
-  
+
   // Track if we should skip scroll on the first effect run (back navigation case)
   const skipScrollOnceRef = useRef(checkBackNavFlag());
 
@@ -55,14 +55,12 @@ export const ListLiveItems: React.FC<Props> = ({
 
   const listNodes = ListLiveItemNodes({ items, viewSelected, showChannelInfo });
 
-  const showNoContentFound = page <= 1 && items.length === 0; 
+  const showNoContentFound = page <= 1 && items.length === 0;
 
   if (showNoContentFound) {
     return (
       <InfoWrapper>
-        <p>
-          {tMedia('livestream.no_livestreams_found')}
-        </p>
+        <p>{tMedia('livestream.no_livestreams_found')}</p>
       </InfoWrapper>
     );
   }

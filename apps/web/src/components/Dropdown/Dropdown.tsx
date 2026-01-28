@@ -18,41 +18,29 @@ export interface DropdownProps {
   onChange: (value: string) => void;
   position?: 'left' | 'right';
   fullWidth?: boolean;
-};
+}
 
-const Dropdown: React.FC<DropdownProps> = ({
-  menuItems,
-  value,
-  onChange,
-  position,
-  fullWidth,
-}) => {
+const Dropdown: React.FC<DropdownProps> = ({ menuItems, value, onChange, position, fullWidth }) => {
   const buttonRef = useRef<HTMLButtonElement>(null);
   const menuRef = useRef<HTMLUListElement>(null);
 
   const currentSelectedItem = useMemo(() => {
-    return menuItems.find(item => item.value === value) || menuItems[0];
+    return menuItems.find((item) => item.value === value) || menuItems[0];
   }, [menuItems, value]);
 
   const menuItemsWithHandlers = menuItems.map((item) => ({
     label: item.label,
     onClick: () => onChange(item.value),
   }));
-  
-  const {
-    open,
-    setOpen,
-    focusedIndex,
-    setFocusedIndex,
-    handleButtonKeyDown,
-    handleMenuKeyDown,
-  } = useDropdownKeyboardNavigation({
-    itemCount: menuItemsWithHandlers.length,
-    onItemSelect: (idx) => menuItemsWithHandlers[idx]?.onClick(),
-    onClose: () => setOpen(false),
-    buttonRef,
-    menuRef,
-  });
+
+  const { open, setOpen, focusedIndex, setFocusedIndex, handleButtonKeyDown, handleMenuKeyDown } =
+    useDropdownKeyboardNavigation({
+      itemCount: menuItemsWithHandlers.length,
+      onItemSelect: (idx) => menuItemsWithHandlers[idx]?.onClick(),
+      onClose: () => setOpen(false),
+      buttonRef,
+      menuRef,
+    });
 
   const hasMoreThanOneOption = menuItemsWithHandlers.length > 1;
 
@@ -63,7 +51,7 @@ const Dropdown: React.FC<DropdownProps> = ({
         aria-haspopup="menu"
         aria-expanded={open}
         onClick={() => hasMoreThanOneOption && setOpen((v) => !v)}
-        onKeyDown={e => hasMoreThanOneOption && handleButtonKeyDown(e)}
+        onKeyDown={(e) => hasMoreThanOneOption && handleButtonKeyDown(e)}
         type="button"
         variant="mini"
         isDropdownButton={hasMoreThanOneOption}

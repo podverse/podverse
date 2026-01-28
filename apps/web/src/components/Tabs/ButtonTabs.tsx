@@ -15,7 +15,11 @@ type ButtonTabsProps = {
   style?: React.CSSProperties;
 };
 
-export const ButtonTabs: React.FC<ButtonTabsProps> = ({ buttonTabs, selectedKey, className = '' }) => {
+export const ButtonTabs: React.FC<ButtonTabsProps> = ({
+  buttonTabs,
+  selectedKey,
+  className = '',
+}) => {
   return (
     <div className={`${styles.buttonTabs} ${className}`}>
       {buttonTabs.map((buttonTab) => (

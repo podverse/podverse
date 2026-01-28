@@ -6,7 +6,9 @@ function isDebugMode(): boolean {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const anyLogger: any = loggerService as any;
     const cfgLevel = anyLogger?.config?.log?.level ?? anyLogger?.level;
-    if (typeof cfgLevel === 'string') {return cfgLevel === 'debug';}
+    if (typeof cfgLevel === 'string') {
+      return cfgLevel === 'debug';
+    }
   } catch {
     // ignore and fallthrough to env checks
   }
@@ -25,7 +27,7 @@ function isObjectWithId(value: any): value is { id: number } {
 
 function hasDifferentValuesNoLogs<T>(entity: T, dto: Partial<T>): boolean {
   const keys = Object.keys(dto);
-  return keys.some(key => {
+  return keys.some((key) => {
     const entityValue = entity[key as keyof T];
     const dtoValue = dto[key as keyof T];
 
@@ -69,37 +71,49 @@ export function hasDifferentValues<T>(entity: T, dto: Partial<T>): boolean {
     }
   };
 
-  return keys.some(key => {
+  return keys.some((key) => {
     const entityValue = entity[key as keyof T];
     const dtoValue = dto[key as keyof T];
 
-    loggerService.debug(`Checking key="${key}" — entityValue=${safeStringify(entityValue)}, dtoValue=${safeStringify(dtoValue)}`);
+    loggerService.debug(
+      `Checking key="${key}" — entityValue=${safeStringify(entityValue)}, dtoValue=${safeStringify(dtoValue)}`
+    );
 
     const normalizedEntityValue = isNumeric(entityValue) ? Number(entityValue) : entityValue;
     const normalizedDtoValue = isNumeric(dtoValue) ? Number(dtoValue) : dtoValue;
 
-    loggerService.debug(`Normalized key="${key}" — normalizedEntityValue=${safeStringify(normalizedEntityValue)}, normalizedDtoValue=${safeStringify(normalizedDtoValue)}`);
+    loggerService.debug(
+      `Normalized key="${key}" — normalizedEntityValue=${safeStringify(normalizedEntityValue)}, normalizedDtoValue=${safeStringify(normalizedDtoValue)}`
+    );
 
     if (isObjectWithId(normalizedEntityValue) && isNumeric(normalizedDtoValue)) {
       const diff = normalizedEntityValue.id !== normalizedDtoValue;
-      loggerService.debug(`Branch: entity is objectWithId, dto is numeric — entity.id=${normalizedEntityValue.id}, dto=${normalizedDtoValue}, different=${diff}`);
+      loggerService.debug(
+        `Branch: entity is objectWithId, dto is numeric — entity.id=${normalizedEntityValue.id}, dto=${normalizedDtoValue}, different=${diff}`
+      );
       return diff;
     }
 
     if (isObjectWithId(dtoValue) && isNumeric(normalizedEntityValue)) {
       const diff = dtoValue.id !== normalizedEntityValue;
-      loggerService.debug(`Branch: dto is objectWithId, entity is numeric — dto.id=${dtoValue.id}, entity=${normalizedEntityValue}, different=${diff}`);
+      loggerService.debug(
+        `Branch: dto is objectWithId, entity is numeric — dto.id=${dtoValue.id}, entity=${normalizedEntityValue}, different=${diff}`
+      );
       return diff;
     }
 
     if (isObjectWithId(normalizedEntityValue) && isObjectWithId(normalizedDtoValue)) {
       const diff = normalizedEntityValue.id !== normalizedDtoValue.id;
-      loggerService.debug(`Branch: both objectWithId — entity.id=${normalizedEntityValue.id}, dto.id=${normalizedDtoValue.id}, different=${diff}`);
+      loggerService.debug(
+        `Branch: both objectWithId — entity.id=${normalizedEntityValue.id}, dto.id=${normalizedDtoValue.id}, different=${diff}`
+      );
       return diff;
     }
 
     const diff = normalizedEntityValue !== normalizedDtoValue;
-    loggerService.debug(`Branch: primitive/other compare — entity=${safeStringify(normalizedEntityValue)}, dto=${safeStringify(normalizedDtoValue)}, different=${diff}`);
+    loggerService.debug(
+      `Branch: primitive/other compare — entity=${safeStringify(normalizedEntityValue)}, dto=${safeStringify(normalizedDtoValue)}, different=${diff}`
+    );
     return diff;
   });
 }

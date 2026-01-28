@@ -9,7 +9,7 @@ import styles from '../../../../styles/components/Media/Podcast/PodcastHeaderVie
 type AlbumHeaderViewTabletProps = {
   channel: DTOChannel;
   item?: DTOItem;
-}
+};
 
 export const AlbumHeaderViewTablet: React.FC<AlbumHeaderViewTabletProps> = ({ channel, item }) => {
   return (

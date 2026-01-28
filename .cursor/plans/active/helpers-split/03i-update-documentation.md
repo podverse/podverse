@@ -124,22 +124,22 @@ Podverse uses 6 specialized helpers packages optimized for bundle size and platf
 
 ```typescript
 // Core types (all platforms)
-import { DTOAccount, MediumEnum } from "@podverse/helpers";
+import { DTOAccount, MediumEnum } from '@podverse/helpers';
 
 // Validation (all platforms)
-import { validateEmail, isValidHttpUrl } from "@podverse/helpers-validation";
+import { validateEmail, isValidHttpUrl } from '@podverse/helpers-validation';
 
 // API requests (web + mobile)
-import { requestAccount } from "@podverse/helpers-requests";
+import { requestAccount } from '@podverse/helpers-requests';
 
 // Backend logging (Node.js only)
-import { LoggerService, TimerManager } from "@podverse/helpers-backend";
+import { LoggerService, TimerManager } from '@podverse/helpers-backend';
 
 // Config validation (Node.js only)
-import { validateRequired, validateORMConfig } from "@podverse/helpers-config";
+import { validateRequired, validateORMConfig } from '@podverse/helpers-config';
 
 // Browser utilities (browser only)
-import { copyToClipboard } from "@podverse/helpers-browser";
+import { copyToClipboard } from '@podverse/helpers-browser';
 ```
 ````
 

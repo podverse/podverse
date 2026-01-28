@@ -20,7 +20,7 @@ export function ProfileClient(props: ProfileClientProps) {
   const { ssrAccount } = props;
   const { loggedInAccount } = useAccount();
   const router = useRouter();
-  
+
   const isOwnProfile = loggedInAccount?.id === ssrAccount.id;
 
   useEffect(() => {

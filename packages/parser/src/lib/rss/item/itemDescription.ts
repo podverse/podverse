@@ -6,7 +6,7 @@ import { handleParsedOneData } from '../base/handleParsedOneData';
 export const handleParsedItemDescription = async (
   parsedItem: Episode,
   item: Item,
-  transactionalEntityManager?: EntityManager,
+  transactionalEntityManager?: EntityManager
 ) => {
   const itemDescriptionService = new ItemDescriptionService(transactionalEntityManager);
   const itemDescriptionDto = compatItemDescriptionDto(parsedItem);

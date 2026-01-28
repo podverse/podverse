@@ -57,8 +57,10 @@ let assetServer: AssetServer | null = null;
 
 // Setup signal handlers for cleanup (at module level)
 const cleanup = async (signal?: string) => {
-  console.log(`\n\n🛑 ${signal ? `Shutdown signal (${signal}) received` : 'Shutting down'}, cleaning up...`);
-  
+  console.log(
+    `\n\n🛑 ${signal ? `Shutdown signal (${signal}) received` : 'Shutting down'}, cleaning up...`
+  );
+
   if (webAppManager) {
     try {
       await webAppManager.stop();
@@ -66,7 +68,7 @@ const cleanup = async (signal?: string) => {
       console.error('   ⚠️  Error stopping web app:', error);
     }
   }
-  
+
   if (apiManager) {
     try {
       await apiManager.stop();
@@ -74,7 +76,7 @@ const cleanup = async (signal?: string) => {
       console.error('   ⚠️  Error stopping API server:', error);
     }
   }
-  
+
   if (assetServer) {
     try {
       await assetServer.stop();
@@ -82,7 +84,7 @@ const cleanup = async (signal?: string) => {
       console.error('   ⚠️  Error stopping asset server:', error);
     }
   }
-  
+
   // Also try killing by port in case process references are lost
   try {
     await killProcessOnPort(3111); // Web app port
@@ -124,7 +126,7 @@ process.on('unhandledRejection', async (reason, promise) => {
 
 async function main() {
   console.log('🚀 Lighthouse QA System for Podverse Web\n');
-  
+
   // Clean up any existing processes on test ports at startup
   console.log('🔍 Checking for existing processes on test ports...');
   try {
@@ -147,7 +149,10 @@ async function main() {
     await containerChecker.validateRequiredContainers();
     console.log('✅ All required containers are running\n');
   } catch (error) {
-    console.error('❌ Container validation failed:', error instanceof Error ? error.message : error);
+    console.error(
+      '❌ Container validation failed:',
+      error instanceof Error ? error.message : error
+    );
     process.exit(1);
   }
 
@@ -164,7 +169,9 @@ async function main() {
       console.error(errorStack);
     }
     if (errorMessage.includes('ffmpeg-static') || errorMessage.includes('npm install')) {
-      console.error('\n💡 Hint: Run "npm install" in the qa/lighthouse directory to install required dependencies.');
+      console.error(
+        '\n💡 Hint: Run "npm install" in the qa/lighthouse directory to install required dependencies.'
+      );
     }
     process.exit(1);
   }
@@ -234,7 +241,7 @@ async function main() {
   console.log('📋 Checking for existing reports...');
   const existingReports = reportManager.getAllReports();
   console.log(`   Found ${existingReports.length} existing report(s)\n`);
-  
+
   // Prompt for base report (required if any exist)
   console.log('💬 Prompting for report selection...');
   let baseReport: string | undefined;
@@ -246,8 +253,8 @@ async function main() {
         type: 'list',
         name: 'selectedBaseReport',
         message: 'Select the base report to compare against:',
-        choices: existingReports.map(report => ({ name: report, value: report }))
-      }
+        choices: existingReports.map((report) => ({ name: report, value: report })),
+      },
     ]);
     baseReport = selectedBaseReport as string;
   }
@@ -267,8 +274,8 @@ async function main() {
           return 'Report name must be 50 characters or less';
         }
         return true;
-      }
-    }
+      },
+    },
   ]);
 
   const trimmedReportId = newReport.trim();
@@ -284,8 +291,8 @@ async function main() {
         type: 'confirm',
         name: 'overwrite',
         message: `Report "${trimmedReportId}" already exists. Overwrite it?`,
-        default: false
-      }
+        default: false,
+      },
     ]);
 
     if (!overwrite) {
@@ -323,29 +330,31 @@ async function main() {
     console.log('   → Launching browser...');
     await automation.initialize();
     console.log('✅ Browser ready\n');
-    
+
     console.log('🧪 Starting Lighthouse test suite...\n');
     const results = await lighthouseRunner.runAllTests(automation);
-    
+
     console.log('\n✅ All tests completed!\n');
 
     // Save new report
     console.log(`💾 Saving report "${trimmedReportId}"...`);
     reportManager.saveReport(trimmedReportId, results, baseReport);
-    console.log(`✅ Report saved to reports/report-${reportManager.sanitizeReportId(trimmedReportId)}.json\n`);
+    console.log(
+      `✅ Report saved to reports/report-${reportManager.sanitizeReportId(trimmedReportId)}.json\n`
+    );
 
     // Compare if base report exists
     if (baseReport && baseReportData) {
       console.log('📊 Comparing reports...\n');
       const newReportData = reportManager.loadReport(trimmedReportId);
       if (newReportData) {
-      const comparison = comparisonEngine.compareReports(baseReportData, newReportData);
-      
-      console.log('='.repeat(60));
-      console.log('COMPARISON RESULTS');
-      console.log('='.repeat(60));
-      console.log(`Base Report: ${comparison.baseReport}`);
-      console.log(`New Report: ${comparison.newReport}`);
+        const comparison = comparisonEngine.compareReports(baseReportData, newReportData);
+
+        console.log('='.repeat(60));
+        console.log('COMPARISON RESULTS');
+        console.log('='.repeat(60));
+        console.log(`Base Report: ${comparison.baseReport}`);
+        console.log(`New Report: ${comparison.newReport}`);
         console.log(`\nSummary:`);
         console.log(`  ✅ Improvements: ${comparison.summary.improvements}`);
         console.log(`  ⚠️  Regressions: ${comparison.summary.regressions}`);
@@ -355,7 +364,11 @@ async function main() {
 
         try {
           console.log('\n🧠 Generating OpenAI summary...');
-          const summary = await generateComparisonSummary(baseReportData, newReportData, comparison);
+          const summary = await generateComparisonSummary(
+            baseReportData,
+            newReportData,
+            comparison
+          );
           const summaryPath = path.join(
             path.dirname(reportManager.getReportPath(trimmedReportId)),
             `report-${reportManager.sanitizeReportId(trimmedReportId)}-summary.md`
@@ -376,7 +389,7 @@ async function main() {
     throw error;
   } finally {
     console.log('🧹 Cleaning up...');
-    
+
     // Stop browser automation
     try {
       await automation.cleanup();
@@ -414,7 +427,7 @@ async function main() {
       }
     }
   }
-  
+
   // Explicitly exit after successful completion
   console.log('\n✅ All processes completed. Exiting...\n');
   process.exit(0);

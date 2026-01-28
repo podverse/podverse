@@ -37,7 +37,7 @@ export function CheckoutClient({ pricingData, isContactOnlyMode }: CheckoutClien
   const handleCompletePurchase = () => {
     const autoRenewText = autoRenew ? 'yes' : 'no';
     alert(
-      `Payment Plan: ${paymentPlan}, Auto-renew: ${autoRenewText}, Processor: ${paymentProcessor}`,
+      `Payment Plan: ${paymentPlan}, Auto-renew: ${autoRenewText}, Processor: ${paymentProcessor}`
     );
   };
 
@@ -66,26 +66,18 @@ export function CheckoutClient({ pricingData, isContactOnlyMode }: CheckoutClien
             {!isContactOnlyMode && pricingData && (
               <section className={styles.pricingSection}>
                 <div className={styles.pricingPlan}>
-                  <h3 className={styles.planTitle}>
-                    {tMembership('pricing_monthly')}
-                  </h3>
+                  <h3 className={styles.planTitle}>{tMembership('pricing_monthly')}</h3>
                   <div className={styles.planPrice}>
                     ${pricingData.costMonthly}
-                    <span className={styles.planPeriod}>
-                      {tMembership('pricing_per_month')}
-                    </span>
+                    <span className={styles.planPeriod}>{tMembership('pricing_per_month')}</span>
                   </div>
                 </div>
                 <div className={styles.pricingPlan}>
-                  <h3 className={styles.planTitle}>
-                    {tMembership('pricing_annually')}
-                  </h3>
+                  <h3 className={styles.planTitle}>{tMembership('pricing_annually')}</h3>
                   <div className={styles.planPriceContainer}>
                     <div className={styles.planPrice}>
                       ${pricingData.costAnnually}
-                      <span className={styles.planPeriod}>
-                        {tMembership('pricing_per_year')}
-                      </span>
+                      <span className={styles.planPeriod}>{tMembership('pricing_per_year')}</span>
                     </div>
                     {pricingData.annuallySavingsPercent > 0 && (
                       <div className={styles.savingsBadge}>

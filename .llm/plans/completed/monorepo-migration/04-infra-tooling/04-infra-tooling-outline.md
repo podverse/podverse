@@ -8,13 +8,13 @@ Split podverse-ops and migrate QA to the monorepo. This phase is divided into 5 
 
 ## Detailed Plans
 
-| Part | Plan File | Description | Effort |
-|------|-----------|-------------|--------|
-| A | [04a-config-database-proxy.md](04a-config-database-proxy.md) | Config, database, proxy files | 1-2h |
-| B | [04b-docker-compose.md](04b-docker-compose.md) | Docker compose with path updates | 2-3h |
-| C | [04c-scripts.md](04c-scripts.md) | Utility scripts migration | 2-4h |
-| D | [04d-jenkins-pipelines.md](04d-jenkins-pipelines.md) | Jenkins pipelines (server coord) | 2-3h |
-| E | [04e-qa-migration.md](04e-qa-migration.md) | QA tool workspace migration | 1-2h |
+| Part | Plan File                                                    | Description                      | Effort |
+| ---- | ------------------------------------------------------------ | -------------------------------- | ------ |
+| A    | [04a-config-database-proxy.md](04a-config-database-proxy.md) | Config, database, proxy files    | 1-2h   |
+| B    | [04b-docker-compose.md](04b-docker-compose.md)               | Docker compose with path updates | 2-3h   |
+| C    | [04c-scripts.md](04c-scripts.md)                             | Utility scripts migration        | 2-4h   |
+| D    | [04d-jenkins-pipelines.md](04d-jenkins-pipelines.md)         | Jenkins pipelines (server coord) | 2-3h   |
+| E    | [04e-qa-migration.md](04e-qa-migration.md)                   | QA tool workspace migration      | 1-2h   |
 
 ## Execution Order
 
@@ -35,14 +35,14 @@ Part D (depends on all, requires server coordination)
 
 ### podverse-ops Breakdown
 
-| From | To |
-|------|-----|
-| config/ | infra/config/ |
-| database/ | infra/database/ |
-| docker-compose/ | infra/docker/ |
-| proxy/ | infra/proxy/ |
-| scripts/ | scripts/ |
-| pipelines/ | pipelines/jenkins/ |
+| From            | To                 |
+| --------------- | ------------------ |
+| config/         | infra/config/      |
+| database/       | infra/database/    |
+| docker-compose/ | infra/docker/      |
+| proxy/          | infra/proxy/       |
+| scripts/        | scripts/           |
+| pipelines/      | pipelines/jenkins/ |
 
 ### podverse-qa Migration
 

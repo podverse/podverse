@@ -39,7 +39,7 @@ if [[ -n "$CODE_CHANGES" || -n "$INFRA_CHANGES" ]]; then
         echo -e "${YELLOW}║  - docs/ or .llm/context/ (documentation)                  ║${NC}"
         echo -e "${YELLOW}╚════════════════════════════════════════════════════════════╝${NC}"
         echo ""
-        
+
         if [ -t 0 ]; then
             echo -e "${CYAN}Options:${NC} [Enter] Continue | [d] Checklist | [a] Abort"
             read -p "Choice: " -n 1 -r REPLY

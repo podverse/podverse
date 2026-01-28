@@ -1,4 +1,9 @@
-import { DTOChannel, DTOItem, QueryParamsLiveItem, QueryParamsQueueMedium } from '@podverse/helpers';
+import {
+  DTOChannel,
+  DTOItem,
+  QueryParamsLiveItem,
+  QueryParamsQueueMedium,
+} from '@podverse/helpers';
 import React from 'react';
 import { MainWrapper } from '../../../../components/Main/MainWrapper';
 import { LivestreamContextProvider } from './LivestreamContext';
@@ -27,7 +32,7 @@ export function LivestreamClient(props: LivestreamClientProps) {
         <MainInnerWrapper>
           <SideContent />
           <MainInnerContentWrapper>
-            <LivestreamHeader channel={ssrChannel} item={ssrItem} medium={medium}  />
+            <LivestreamHeader channel={ssrChannel} item={ssrItem} medium={medium} />
             <LivestreamListHeader />
             <LivestreamList ssrItem={ssrItem} />
           </MainInnerContentWrapper>

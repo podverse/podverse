@@ -1,0 +1,41 @@
+# Dependencies
+node_modules/
+
+# Build outputs
+**/dist/
+**/.next/
+out/
+
+# Lockfiles
+package-lock.json
+
+# TypeScript incremental build cache
+**/*.tsbuildinfo
+
+# i18n compiled (generated)
+apps/*/i18n/compiled/
+
+# Test coverage
+coverage/
+
+# Logs
+*.log
+npm-debug.log*
+logs/*
+
+# Infra config (secrets)
+infra/config/local/
+infra/config/alpha/
+
+# Pre-existing invalid YAML (duplicate keys)
+infra/docker/ci/docker-compose.yml
+
+# Env files (secrets)
+.env
+.env.*
+**/.env
+**/.env.*
+
+# Misc
+*.tgz
+.cache/

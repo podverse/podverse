@@ -6,7 +6,7 @@ import { ContentPodroll } from '../../../components/Content/Podroll/ContentPodro
 type ArtistSideContentProps = {
   channel: DTOChannel;
   podroll: RemoteItemsResponse | null;
-}
+};
 
 export const ArtistSideContent = ({ channel, podroll }: ArtistSideContentProps) => {
   return (
@@ -17,11 +17,7 @@ export const ArtistSideContent = ({ channel, podroll }: ArtistSideContentProps) 
         isAccordion={true}
         defaultOpen={true}
       />
-      <ContentPodroll
-        remoteItemsResponse={podroll}
-        isAccordion={true}
-        defaultOpen={true}
-      />
+      <ContentPodroll remoteItemsResponse={podroll} isAccordion={true} defaultOpen={true} />
     </SideContent>
   );
 };

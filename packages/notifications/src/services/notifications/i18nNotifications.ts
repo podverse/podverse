@@ -1,14 +1,19 @@
-export type NotificationMessageType = 'new'
-  | 'new-episode' | 'new-podcast'
-  | 'new-video' | 'new-video-channel'
-  | 'new-track' | 'new-album'
-  | 'livestream-started' | 'livestream-scheduled';
+export type NotificationMessageType =
+  | 'new'
+  | 'new-episode'
+  | 'new-podcast'
+  | 'new-video'
+  | 'new-video-channel'
+  | 'new-track'
+  | 'new-album'
+  | 'livestream-started'
+  | 'livestream-scheduled';
 
 export type NotificationLocaleMap = Record<NotificationMessageType, string>;
 
 export const i18nNotifications: Record<string, NotificationLocaleMap> = {
   'en-US': {
-    'new': '',
+    new: '',
     'new-episode': '',
     'new-podcast': '',
     'new-video': '',
@@ -18,8 +23,8 @@ export const i18nNotifications: Record<string, NotificationLocaleMap> = {
     'livestream-started': 'Live: ',
     'livestream-scheduled': 'Live Scheduled: ',
   },
-  'es': {
-    'new': '',
+  es: {
+    new: '',
     'new-episode': '',
     'new-podcast': '',
     'new-video': '',
@@ -29,8 +34,8 @@ export const i18nNotifications: Record<string, NotificationLocaleMap> = {
     'livestream-started': 'En vivo: ',
     'livestream-scheduled': 'En vivo programado: ',
   },
-  'fr': {
-    'new': '',
+  fr: {
+    new: '',
     'new-episode': '',
     'new-podcast': '',
     'new-video': '',
@@ -41,7 +46,7 @@ export const i18nNotifications: Record<string, NotificationLocaleMap> = {
     'livestream-scheduled': 'En direct programmé: ',
   },
   'el-GR': {
-    'new': '',
+    new: '',
     'new-episode': '',
     'new-podcast': '',
     'new-video': '',

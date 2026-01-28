@@ -7,7 +7,9 @@ export class ItemValueTimeSplitRecipient {
   @PrimaryGeneratedColumn()
   id!: number;
 
-  @ManyToOne(() => ItemValueTimeSplit, itemValueTimeSplit => itemValueTimeSplit.id, { onDelete: 'CASCADE' })
+  @ManyToOne(() => ItemValueTimeSplit, (itemValueTimeSplit) => itemValueTimeSplit.id, {
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'item_value_time_split_id' })
   item_value_time_split!: ItemValueTimeSplit;
 

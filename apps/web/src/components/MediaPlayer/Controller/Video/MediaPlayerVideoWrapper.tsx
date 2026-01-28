@@ -12,7 +12,7 @@ export function MediaPlayerVideoWrapper() {
 
   if (!mpItem || mpItem.live_item) {
     return null;
-  };
+  }
 
   const selectedItemEnclosureAndSource = getSelectedLabeledItemEnclosureAndSource({
     labeledItemEnclosures: mpItemLabeledItemEnclosures,
@@ -33,6 +33,6 @@ export function MediaPlayerVideoWrapper() {
       );
     }
   }
-  
+
   return null;
 }

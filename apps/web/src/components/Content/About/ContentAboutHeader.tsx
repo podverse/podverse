@@ -6,7 +6,5 @@ import styles from '../../../styles/components/Content/About/ContentAboutHeader.
 export const ContentAboutHeader = () => {
   const tInfo = useTranslations('info');
 
-  return (
-    <h3 className={styles.header}>{tInfo('about')}</h3>
-  );
+  return <h3 className={styles.header}>{tInfo('about')}</h3>;
 };

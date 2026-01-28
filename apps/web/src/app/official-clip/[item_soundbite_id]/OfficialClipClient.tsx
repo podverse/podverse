@@ -22,7 +22,11 @@ export function OfficialClipClient(props: OfficialClipClientProps) {
       <MainInnerWrapper>
         <SideContent />
         <MainInnerContentWrapper>
-          <ItemSoundbiteHeader channel={ssrChannel} item={ssrItem} item_soundbite={ssrItemSoundbite} />
+          <ItemSoundbiteHeader
+            channel={ssrChannel}
+            item={ssrItem}
+            item_soundbite={ssrItemSoundbite}
+          />
         </MainInnerContentWrapper>
       </MainInnerWrapper>
     </MainWrapper>

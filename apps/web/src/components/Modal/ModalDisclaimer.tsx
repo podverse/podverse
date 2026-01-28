@@ -12,7 +12,7 @@ import styles from '../../styles/components/Modal/ModalDisclaimer.module.scss';
 
 type ModalDisclaimerProps = {
   isOpen: boolean;
-}
+};
 
 export const ModalDisclaimer: React.FC<ModalDisclaimerProps> = ({ isOpen }) => {
   const server_env = config?.public?.server_env;
@@ -30,15 +30,13 @@ export const ModalDisclaimer: React.FC<ModalDisclaimerProps> = ({ isOpen }) => {
   useEffect(() => {
     setModalDisclaimer({ isOpen });
   }, []);
-  
+
   const handleContinue = () => {
     setServerEnvironmentDisclaimerAccepted(true);
     setModalDisclaimer({ isOpen: false });
   };
 
-  const checkboxOptions = [
-    { label: tMisc('i_have_read_and_agree'), value: 'agree' },
-  ];
+  const checkboxOptions = [{ label: tMisc('i_have_read_and_agree'), value: 'agree' }];
 
   return (
     <Modal
@@ -48,7 +46,9 @@ export const ModalDisclaimer: React.FC<ModalDisclaimerProps> = ({ isOpen }) => {
       modalContentMaxWidth={500}
     >
       <div>
-        <p className={styles.message}>{tDisclaimers(`environment_warning.${server_env}.message`)}</p>
+        <p className={styles.message}>
+          {tDisclaimers(`environment_warning.${server_env}.message`)}
+        </p>
         <TextCheckboxes
           name="disclaimer-checkbox"
           options={checkboxOptions}

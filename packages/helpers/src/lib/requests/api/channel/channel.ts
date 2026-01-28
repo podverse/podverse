@@ -1,13 +1,20 @@
 import { ApiRequestService } from '../_request';
 import { ApiListResponse, emptyApiListResponse } from '../_response';
 import { DTOChannel } from '../../../../dtos';
-import { QueryParamsCategoryRecent, QueryParamsCategoryTop, QueryParamsGetMany,
-  QueryParamsGlobalRecent, QueryParamsGlobalTop, QueryParamsSubscribedAZ,
-  QueryParamsSubscribedRecent, QueryParamsSubscribedTop } from '../queryParams';
+import {
+  QueryParamsCategoryRecent,
+  QueryParamsCategoryTop,
+  QueryParamsGetMany,
+  QueryParamsGlobalRecent,
+  QueryParamsGlobalTop,
+  QueryParamsSubscribedAZ,
+  QueryParamsSubscribedRecent,
+  QueryParamsSubscribedTop,
+} from '../queryParams';
 
 export async function reqChannelGetByIdOrIdText(
   api: ApiRequestService,
-  idOrIdText: number | string,
+  idOrIdText: number | string
 ) {
   return api.apiRequest<DTOChannel>({
     path: `/channel/${idOrIdText}`,
@@ -17,7 +24,7 @@ export async function reqChannelGetByIdOrIdText(
 
 export async function reqChannelGetByPodcastIndexId(
   api: ApiRequestService,
-  podcast_index_id: number | string,
+  podcast_index_id: number | string
 ) {
   return api.apiRequest<DTOChannel>({
     path: `/channel/podcast-index/${podcast_index_id}`,
@@ -27,7 +34,7 @@ export async function reqChannelGetByPodcastIndexId(
 
 export async function reqChannelGetManyGlobalRecent(
   api: ApiRequestService,
-  params: QueryParamsGlobalRecent,
+  params: QueryParamsGlobalRecent
 ) {
   return api.apiRequest<ApiListResponse<DTOChannel>>({
     path: '/channel/global/recent',
@@ -40,7 +47,7 @@ export async function reqChannelGetManyGlobalRecent(
 
 export async function reqChannelGetManyGlobalTop(
   api: ApiRequestService,
-  params: QueryParamsGlobalTop,
+  params: QueryParamsGlobalTop
 ) {
   return api.apiRequest<ApiListResponse<DTOChannel>>({
     path: '/channel/global/top',
@@ -53,7 +60,7 @@ export async function reqChannelGetManyGlobalTop(
 
 export async function reqChannelGetManyCategoryRecent(
   api: ApiRequestService,
-  params: QueryParamsCategoryRecent,
+  params: QueryParamsCategoryRecent
 ) {
   return api.apiRequest<ApiListResponse<DTOChannel>>({
     path: '/channel/category/recent',
@@ -66,7 +73,7 @@ export async function reqChannelGetManyCategoryRecent(
 
 export async function reqChannelGetManyCategoryTop(
   api: ApiRequestService,
-  params: QueryParamsCategoryTop,
+  params: QueryParamsCategoryTop
 ) {
   return api.apiRequest<ApiListResponse<DTOChannel>>({
     path: '/channel/category/top',
@@ -79,7 +86,7 @@ export async function reqChannelGetManyCategoryTop(
 
 export async function reqChannelGetManySubscribedAZ(
   api: ApiRequestService,
-  params: QueryParamsSubscribedAZ,
+  params: QueryParamsSubscribedAZ
 ) {
   return api.apiRequest<ApiListResponse<DTOChannel>>({
     path: '/channel/subscribed/az',
@@ -93,7 +100,7 @@ export async function reqChannelGetManySubscribedAZ(
 
 export async function reqChannelGetManySubscribedRecent(
   api: ApiRequestService,
-  params: QueryParamsSubscribedRecent,
+  params: QueryParamsSubscribedRecent
 ) {
   return api.apiRequest<ApiListResponse<DTOChannel>>({
     path: '/channel/subscribed/recent',
@@ -107,7 +114,7 @@ export async function reqChannelGetManySubscribedRecent(
 
 export async function reqChannelGetManySubscribedTop(
   api: ApiRequestService,
-  params: QueryParamsSubscribedTop,
+  params: QueryParamsSubscribedTop
 ) {
   return api.apiRequest<ApiListResponse<DTOChannel>>({
     path: '/channel/subscribed/top',
@@ -119,78 +126,54 @@ export async function reqChannelGetManySubscribedTop(
   });
 }
 
-export async function reqChannelGetMany(
-  api: ApiRequestService,
-  params: QueryParamsGetMany,
-) {
+export async function reqChannelGetMany(api: ApiRequestService, params: QueryParamsGetMany) {
   const { type, sort, range, category, page, medium } = params;
 
   if (type === 'category' && category) {
     if (sort === 'recent') {
-      return reqChannelGetManyCategoryRecent(
-        api,
-        {
-          page,
-          medium,
-          category,
-        },
-      );
+      return reqChannelGetManyCategoryRecent(api, {
+        page,
+        medium,
+        category,
+      });
     } else if (sort === 'top' && range) {
-      return reqChannelGetManyCategoryTop(
-        api,
-        {
-          page,
-          medium,
-          range,
-          category,
-        },
-      );
+      return reqChannelGetManyCategoryTop(api, {
+        page,
+        medium,
+        range,
+        category,
+      });
     }
   } else if (type === 'global') {
     if (sort === 'recent') {
-      return reqChannelGetManyGlobalRecent(
-        api,
-        {
-          page,
-          medium,
-        },
-      );
+      return reqChannelGetManyGlobalRecent(api, {
+        page,
+        medium,
+      });
     } else if (sort === 'top' && range) {
-      return reqChannelGetManyGlobalTop(
-        api,
-        {
-          page,
-          medium,
-          range,
-        },
-      );
+      return reqChannelGetManyGlobalTop(api, {
+        page,
+        medium,
+        range,
+      });
     }
   } else if (type === 'subscribed') {
     if (sort === 'a_z') {
-      return reqChannelGetManySubscribedAZ(
-        api,
-        {
-          page,
-          medium,
-        },
-      );
+      return reqChannelGetManySubscribedAZ(api, {
+        page,
+        medium,
+      });
     } else if (sort === 'recent') {
-      return reqChannelGetManySubscribedRecent(
-        api,
-        {
-          page,
-          medium,
-        },
-      );
+      return reqChannelGetManySubscribedRecent(api, {
+        page,
+        medium,
+      });
     } else if (sort === 'top' && range) {
-      return reqChannelGetManySubscribedTop(
-        api,
-        {
-          page,
-          medium,
-          range,
-        },
-      );
+      return reqChannelGetManySubscribedTop(api, {
+        page,
+        medium,
+        range,
+      });
     }
   }
 

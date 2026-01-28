@@ -16,7 +16,9 @@ export class MembershipClaimToken {
   @Column()
   account_membership_id!: number;
 
-  @ManyToOne(() => AccountMembership, accountMembership => accountMembership.id, { onDelete: 'CASCADE' })
+  @ManyToOne(() => AccountMembership, (accountMembership) => accountMembership.id, {
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'account_membership_id' })
   account_membership!: AccountMembershipEnum;
 }

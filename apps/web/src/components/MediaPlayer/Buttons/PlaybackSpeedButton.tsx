@@ -12,10 +12,7 @@ export const PlaybackSpeedButton = () => {
   };
 
   return (
-    <button
-      className={styles.playbackSpeedButton}
-      onClick={onClick}
-      type="button">
+    <button className={styles.playbackSpeedButton} onClick={onClick} type="button">
       {tMediaPlayer(`playback_speed.speeds.${getPlaybackTranslationKey(mpPlaybackSpeed)}`)}
     </button>
   );

@@ -9,6 +9,9 @@ export class AccountMembership {
   @Column({ type: 'text', unique: true })
   tier!: 'trial' | 'basic';
 
-  @OneToMany(() => AccountMembershipStatus, accountMembershipStatus => accountMembershipStatus.account_membership)
+  @OneToMany(
+    () => AccountMembershipStatus,
+    (accountMembershipStatus) => accountMembershipStatus.account_membership
+  )
   account_membership_status!: AccountMembershipStatus[];
 }

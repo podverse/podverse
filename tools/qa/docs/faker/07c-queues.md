@@ -39,11 +39,16 @@ export interface GeneratedQueue {
 export class QueueGenerator {
   private idCounter = 1;
   private activeQueuesCreated: Map<number, Set<number>> = new Map(); // account_id -> Set<medium_id>
-  
+
   generate(accounts: GeneratedAccount[]): GeneratedQueue[] {
     const queues: GeneratedQueue[] = [];
-    const supportedMediums = [MediumEnum.Podcast, MediumEnum.Video, MediumEnum.Music, MediumEnum.AV];
-    
+    const supportedMediums = [
+      MediumEnum.Podcast,
+      MediumEnum.Video,
+      MediumEnum.Music,
+      MediumEnum.AV,
+    ];
+
     for (const account of accounts) {
       // Each account gets one queue per supported medium
       for (const mediumId of supportedMediums) {
@@ -52,23 +57,23 @@ export class QueueGenerator {
         if (!this.activeQueuesCreated.has(account.id)) {
           this.activeQueuesCreated.set(account.id, new Set());
         }
-        
+
         const accountActiveQueues = this.activeQueuesCreated.get(account.id)!;
         if (!accountActiveQueues.has(mediumId)) {
           isActive = true;
           accountActiveQueues.add(mediumId);
         }
-        
+
         queues.push({
           id: this.idCounter++,
           id_text: generateRandomIdText(),
           account_id: account.id,
           medium_id: mediumId,
-          is_active_queue: isActive
+          is_active_queue: isActive,
         });
       }
     }
-    
+
     return queues;
   }
 }
@@ -102,7 +107,7 @@ export interface GeneratedQueueResource {
 
 export class QueueResourceGenerator {
   private idCounter = 1;
-  
+
   generate(
     queues: GeneratedQueue[],
     clips: GeneratedClip[],
@@ -110,19 +115,19 @@ export class QueueResourceGenerator {
     soundbiteIds: number[]
   ): GeneratedQueueResource[] {
     const resources: GeneratedQueueResource[] = [];
-    
+
     for (const queue of queues) {
       // Each queue has 0-15 items
       const resourceCount = faker.number.int({ min: 0, max: 15 });
-      
+
       for (let i = 0; i < resourceCount; i++) {
         // Mostly items in queue, occasionally clips
         const isClip = clips.length > 0 && faker.datatype.boolean({ probability: 0.1 });
-        
+
         const duration = faker.number.float({ min: 300, max: 7200 });
         const playbackPosition = faker.number.float({ min: 0, max: duration });
         const completed = playbackPosition >= duration * 0.95;
-        
+
         resources.push({
           id: this.idCounter++,
           queue_id: queue.id,
@@ -134,11 +139,11 @@ export class QueueResourceGenerator {
           item_id: !isClip ? faker.helpers.arrayElement(items).id : null,
           item_soundbite_id: null,
           add_by_rss_hash_id: null,
-          add_by_rss_resource_data: null
+          add_by_rss_resource_data: null,
         });
       }
     }
-    
+
     return resources;
   }
 }
@@ -146,7 +151,7 @@ export class QueueResourceGenerator {
 
 ## Summary
 
-| Entity | Count for baseCount=100 |
-|--------|------------------------|
-| Queue | ~416 (4 per account × 104 accounts) |
-| QueueResource | ~3120 (0-15 per queue) |
+| Entity        | Count for baseCount=100             |
+| ------------- | ----------------------------------- |
+| Queue         | ~416 (4 per account × 104 accounts) |
+| QueueResource | ~3120 (0-15 per queue)              |

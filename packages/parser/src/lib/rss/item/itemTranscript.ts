@@ -6,7 +6,7 @@ import { handleParsedManyData } from '../base/handleParsedManyData';
 export const handleParsedItemTranscript = async (
   parsedItem: Episode,
   item: Item,
-  transactionalEntityManager?: EntityManager,
+  transactionalEntityManager?: EntityManager
 ) => {
   const itemTranscriptService = new ItemTranscriptService(transactionalEntityManager);
   const itemTranscriptDtos = compatItemTranscriptDtos(parsedItem);

@@ -13,7 +13,10 @@ type LivestreamHeaderProps = {
 };
 
 export const LivestreamHeader: React.FC<LivestreamHeaderProps> = ({ item, channel, medium }) => {
-  const link = medium === 'av' ? `${ROUTES.PODCAST_LIVESTREAM}/${item.id_text}` : `${ROUTES.MUSIC_LIVESTREAM}/${item.id_text}`;
+  const link =
+    medium === 'av'
+      ? `${ROUTES.PODCAST_LIVESTREAM}/${item.id_text}`
+      : `${ROUTES.MUSIC_LIVESTREAM}/${item.id_text}`;
   return (
     <header>
       <Link href={link}>

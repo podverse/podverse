@@ -5,14 +5,13 @@ import styles from '../../../styles/components/MediaPlayer/Buttons/IncrementForw
 
 export const IncrementForwardButton = () => {
   const handleClick = () => {
-    window.dispatchEvent(new CustomEvent(EVENTS.MEDIA_PLAYER.JUMP_FORWARD, { detail: { seconds: 1 } }));
+    window.dispatchEvent(
+      new CustomEvent(EVENTS.MEDIA_PLAYER.JUMP_FORWARD, { detail: { seconds: 1 } })
+    );
   };
-  
+
   return (
-    <button
-      className={styles.incrementForwardButton}
-      onClick={handleClick}
-      type="button">
+    <button className={styles.incrementForwardButton} onClick={handleClick} type="button">
       <FaChevronRight />
     </button>
   );

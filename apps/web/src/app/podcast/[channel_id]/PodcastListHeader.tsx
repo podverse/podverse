@@ -22,7 +22,10 @@ type PodcastListHeaderProps = {
   ssrHasItemSoundbites?: boolean;
 };
 
-export const PodcastListHeader: React.FC<PodcastListHeaderProps> = ({ ssrHasPodroll, ssrHasItemSoundbites }) => {
+export const PodcastListHeader: React.FC<PodcastListHeaderProps> = ({
+  ssrHasPodroll,
+  ssrHasItemSoundbites,
+}) => {
   const { filterParams, setFilterParams } = usePodcastContext();
   const { type, sort, range } = filterParams;
   const tFilters = useTranslations('filters');
@@ -32,8 +35,11 @@ export const PodcastListHeader: React.FC<PodcastListHeaderProps> = ({ ssrHasPodr
   const tSettings = useTranslations('settings');
   const { loggedInAccount } = useAccount();
 
-  const { sortMenuItems, rangeMenuItems, showRangeDropdown,
-    } = getPodcastDropdownConfig({ sort, tFilters, tMedia });
+  const { sortMenuItems, rangeMenuItems, showRangeDropdown } = getPodcastDropdownConfig({
+    sort,
+    tFilters,
+    tMedia,
+  });
 
   function isChannelType(val: string): val is QueryParamsChannelType {
     return QUERY_PARAMS_CHANNEL_TYPE_VALUES.includes(val as QueryParamsChannelType);
@@ -67,13 +73,15 @@ export const PodcastListHeader: React.FC<PodcastListHeaderProps> = ({ ssrHasPodr
     }
   };
 
-  const tabData = [{
-    key: 'episodes',
-    label: tMedia('podcast.episodes'),
-    onClick: () => handleTypeChange('episodes'),
-    hideDesktop: false,
-    zIndex: 6,
-  }];
+  const tabData = [
+    {
+      key: 'episodes',
+      label: tMedia('podcast.episodes'),
+      onClick: () => handleTypeChange('episodes'),
+      hideDesktop: false,
+      zIndex: 6,
+    },
+  ];
 
   if (ssrHasItemSoundbites) {
     tabData.push({
@@ -85,15 +93,13 @@ export const PodcastListHeader: React.FC<PodcastListHeaderProps> = ({ ssrHasPodr
     });
   }
 
-  tabData.push(
-    {
-      key: 'clips',
-      label: tFeatures('clip.clips'),
-      onClick: () => handleTypeChange('clips'),
-      hideDesktop: false,
-      zIndex: 4,
-    },
-  );
+  tabData.push({
+    key: 'clips',
+    label: tFeatures('clip.clips'),
+    onClick: () => handleTypeChange('clips'),
+    hideDesktop: false,
+    zIndex: 4,
+  });
 
   tabData.push({
     key: 'about',
@@ -134,29 +140,22 @@ export const PodcastListHeader: React.FC<PodcastListHeaderProps> = ({ ssrHasPodr
           onChange={handleSortChange}
           position="right"
         />
-        {
-          showRangeDropdown && (
-            <Dropdown
-              key="range"
-              value={range ?? ''}
-              menuItems={rangeMenuItems}
-              onChange={handleRangeChange}
-              position="right"
-            />
-          )
-        }
+        {showRangeDropdown && (
+          <Dropdown
+            key="range"
+            value={range ?? ''}
+            menuItems={rangeMenuItems}
+            onChange={handleRangeChange}
+            position="right"
+          />
+        )}
       </>
     );
   }
 
   return (
     <ListHeader
-      tabs={
-        <Tabs
-          tabData={tabData}
-          selectedKey={type ?? ''}
-        />
-      }
+      tabs={<Tabs tabData={tabData} selectedKey={type ?? ''} />}
       sideButtons={sideButtons}
     />
   );

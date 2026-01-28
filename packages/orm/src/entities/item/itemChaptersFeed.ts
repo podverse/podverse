@@ -9,7 +9,7 @@ export class ItemChaptersFeed {
   @PrimaryGeneratedColumn()
   id!: number;
 
-  @OneToOne(() => Item, item => item.item_chapters_feed, { onDelete: 'CASCADE' })
+  @OneToOne(() => Item, (item) => item.item_chapters_feed, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'item_id' })
   item!: Item;
 
@@ -19,9 +19,12 @@ export class ItemChaptersFeed {
   @Column({ type: 'varchar', name: 'type', length: DATABASE_CONSTANTS.varchar_short })
   type!: string;
 
-  @OneToMany(() => ItemChapter, item_chapter => item_chapter.item_chapters_feed)
+  @OneToMany(() => ItemChapter, (item_chapter) => item_chapter.item_chapters_feed)
   item_chapters!: ItemChapter[];
 
-  @OneToOne(() => ItemChaptersFeedLog, item_chapters_feed_log => item_chapters_feed_log.item_chapters_feed)
+  @OneToOne(
+    () => ItemChaptersFeedLog,
+    (item_chapters_feed_log) => item_chapters_feed_log.item_chapters_feed
+  )
   item_chapters_feed_log!: ItemChaptersFeedLog;
 }

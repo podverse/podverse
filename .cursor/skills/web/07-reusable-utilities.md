@@ -5,6 +5,7 @@
 **CRITICAL**: If a utility function could be useful in other Podverse applications (React Native mobile app, other Next.js apps, API services, etc.), it should be placed in the `@podverse/helpers` package (`packages/helpers/`), not in the web app.
 
 **Examples of utilities that belong in @podverse/helpers:**
+
 - URL validation and SSRF protection functions
 - Date/time formatting utilities
 - String manipulation helpers
@@ -15,6 +16,7 @@
 - Security-related utilities (SSRF protection, input sanitization, etc.)
 
 **Examples of utilities that stay in apps/web:**
+
 - Next.js-specific utilities (SSR helpers, Next.js API route helpers)
 - React/Next.js component-specific utilities
 - Web-specific UI utilities
@@ -24,7 +26,7 @@
 ## Pattern: Moving Utilities to @podverse/helpers
 
 1. **Identify reusable utilities**: Ask "Could this be useful in React Native or other apps?"
-2. **Place in appropriate @podverse/helpers location**: 
+2. **Place in appropriate @podverse/helpers location**:
    - Validation functions → `packages/helpers/src/lib/validation/`
    - URL utilities → `packages/helpers/src/lib/validation/url.ts` or `packages/helpers/src/lib/url.ts`
    - Date utilities → `packages/helpers/src/lib/date/` or similar
@@ -52,13 +54,13 @@ export function validateUrlForSSRF(url: string, options?: {...}): {...} {
 
 ```typescript
 // ✅ Good: In apps/web/src/utils/proxy/urlValidator.ts
-import { validateHttpOrHttpsUrl, validateUrlForSSRF } from "@podverse/helpers";
+import { validateHttpOrHttpsUrl, validateUrlForSSRF } from '@podverse/helpers';
 
 // Thin wrapper with proxy-specific defaults
 export function validateProxyUrl(url: string | null) {
   const urlValidation = validateHttpOrHttpsUrl(url);
   if (!urlValidation.isValid) return urlValidation;
-  
+
   return validateUrlForSSRF(url, {
     allowPrivateIPs: false,
     allowLocalhost: false,

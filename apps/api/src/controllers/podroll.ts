@@ -16,15 +16,13 @@ export class PodrollController {
   static async getPodrollForChannel(req: Request, res: Response): Promise<void> {
     validateParamsObject(getPodrollForChannelSchema, req, res, async () => {
       const idOrIdText = getParamRequired(req, 'idOrIdText');
-      const result = await PodrollController
-        .channelPodrollService
-        .getPodrollForChannel(idOrIdText);
+      const result = await PodrollController.channelPodrollService.getPodrollForChannel(idOrIdText);
 
       const finalResult = await buildRemoteItemsFinalResult(
         result.podrollChannelsAdded as unknown as DTOChannel[],
         result.podrollChannelsUnadded,
         result.podrollItemsAdded as unknown as DTOItem[],
-        result.podrollItemsUnadded,
+        result.podrollItemsUnadded
       );
 
       res.json(finalResult);

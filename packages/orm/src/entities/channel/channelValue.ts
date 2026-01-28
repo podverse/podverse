@@ -8,7 +8,7 @@ export class ChannelValue {
   @PrimaryGeneratedColumn()
   id!: number;
 
-  @ManyToOne(() => Channel, channel => channel.id, { onDelete: 'CASCADE' })
+  @ManyToOne(() => Channel, (channel) => channel.id, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'channel_id' })
   channel!: Channel;
 
@@ -21,6 +21,9 @@ export class ChannelValue {
   @Column({ type: 'float', name: 'suggested', nullable: true })
   suggested!: number | null;
 
-  @OneToMany(() => ChannelValueRecipient, channel_value_recipient => channel_value_recipient.channel_value)
+  @OneToMany(
+    () => ChannelValueRecipient,
+    (channel_value_recipient) => channel_value_recipient.channel_value
+  )
   channel_value_recipients!: ChannelValueRecipient[];
 }

@@ -72,9 +72,9 @@ Create `packages/helpers-backend/` directory with:
 **Create `packages/helpers-backend/src/index.ts`:**
 
 ```typescript
-export * from "./logger";
-export * from "./logTimer";
-export * from "./os";
+export * from './logger';
+export * from './logTimer';
+export * from './os';
 ```
 
 ### 3. Update helpers Package
@@ -90,7 +90,7 @@ export * from "./os";
 **In `packages/helpers/src/index.ts`**, remove line:
 
 ```typescript
-export * from "./lib/backend";
+export * from './lib/backend';
 ```
 
 **Delete** the now-empty directory:

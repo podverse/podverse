@@ -10,7 +10,7 @@ import styles from '../../styles/components/Footer/FooterBrand.module.scss';
 
 const FooterBrand: React.FC = () => {
   const { uiTheme } = useLocalSettings();
-  
+
   return (
     <Link href="/" className={styles.brand}>
       <Image

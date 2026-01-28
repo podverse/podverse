@@ -4,12 +4,18 @@ import { ItemValueTimeSplit } from '@orm/entities/item/itemValueTimeSplit';
 import { ItemValueTimeSplitRemoteItem } from '@orm/entities/item/itemValueTimeSplitRemoteItem';
 import { BaseRemoteItemsService } from '@orm/services/base/baseRemoteItemsService';
 
-export class ItemValueTimeSplitRemoteItemService extends BaseRemoteItemsService<ItemValueTimeSplitRemoteItem, 'item_value_time_split'> {
+export class ItemValueTimeSplitRemoteItemService extends BaseRemoteItemsService<
+  ItemValueTimeSplitRemoteItem,
+  'item_value_time_split'
+> {
   constructor(transactionalEntityManager?: EntityManager) {
     super(ItemValueTimeSplitRemoteItem, 'item_value_time_split', transactionalEntityManager);
   }
 
-  async update(item_value_time_split: ItemValueTimeSplit, dto: RemoteItemDto): Promise<ItemValueTimeSplitRemoteItem> {
+  async update(
+    item_value_time_split: ItemValueTimeSplit,
+    dto: RemoteItemDto
+  ): Promise<ItemValueTimeSplitRemoteItem> {
     return super.update(item_value_time_split, dto);
   }
 

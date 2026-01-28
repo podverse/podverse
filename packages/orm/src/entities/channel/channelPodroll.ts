@@ -7,10 +7,10 @@ export class ChannelPodroll {
   @PrimaryGeneratedColumn()
   id!: number;
 
-  @OneToOne(() => Channel, channel => channel.id, { onDelete: 'CASCADE' })
+  @OneToOne(() => Channel, (channel) => channel.id, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'channel_id' })
   channel!: Channel;
 
-  @OneToMany(() => ChannelPodrollRemoteItem, remoteItem => remoteItem.channel_podroll)
+  @OneToMany(() => ChannelPodrollRemoteItem, (remoteItem) => remoteItem.channel_podroll)
   channel_podroll_remote_items!: ChannelPodrollRemoteItem[];
 }

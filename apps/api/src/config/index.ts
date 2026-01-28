@@ -38,11 +38,11 @@ type Config = {
   emailChangeVerification: {
     pagePath: string;
     tokenExpiration: number;
-  },
+  };
   legal: {
     name: string;
     address: string;
-  },
+  };
   mailer: {
     disabled: boolean;
     host: string;
@@ -117,7 +117,9 @@ export const config: Config = {
     cookie: {
       domain: process.env.COOKIE_DOMAIN!,
     },
-    allowedCORSOrigins: process.env.API_ALLOWED_CORS_ORIGINS!.split(',').map(origin => origin.trim()),
+    allowedCORSOrigins: process.env
+      .API_ALLOWED_CORS_ORIGINS!.split(',')
+      .map((origin) => origin.trim()),
   },
   email: {
     styles: {

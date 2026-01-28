@@ -3,6 +3,7 @@
 ## Setup
 
 See [QUICKSTART.md](QUICKSTART.md) for complete setup instructions including:
+
 - Prerequisites (Docker, Node.js 22+)
 - Infrastructure services (database, message queue, cache)
 - Building packages and running apps
@@ -27,6 +28,7 @@ npm run start-feature
 ```
 
 This interactive script:
+
 - Prompts for feature type (feature, fix, chore, docs, hotfix, release)
 - Creates a branch with proper naming convention (e.g., `feature/add-podcast-chapters`)
 - Creates an LLM history file in `.llm/history/active/`
@@ -40,7 +42,7 @@ This interactive script:
 
 ### Completing a Feature
 
-When ready to submit a PR, simply push your branch and open a PR. 
+When ready to submit a PR, simply push your branch and open a PR.
 
 > **Note**: LLM history files are automatically moved from `active/` to `completed/` when the PR is merged. You don't need to run any completion commands.
 
@@ -63,12 +65,14 @@ npm run test
 ## Code Review Guidelines
 
 ### For Authors
+
 - Keep PRs focused and reasonably sized
 - Include issue reference in PR description
 - Respond to feedback promptly
 - Wait for a maintainer to run CI before requesting approval
 
 ### For Reviewers
+
 - Review within 24-48 hours when possible
 - Be constructive and specific
 - Approve when satisfied, don't over-nitpick
@@ -78,6 +82,7 @@ npm run test
 ### CI for External Contributors
 
 To prevent abuse of GitHub Actions, CI does not run automatically on PRs from external contributors. A maintainer must comment `/test` on the PR to trigger the CI workflow. This runs:
+
 - Linting
 - Type checking
 - Package builds
@@ -97,11 +102,13 @@ Before submitting a PR:
 ## Release/Deployment Process
 
 ### Packages
+
 1. Update version in `package.json`
 2. Build package: `npm run build -w packages/<name>`
 3. Publish via Jenkins pipeline
 
 ### Applications
+
 1. Merge to main branch
 2. Jenkins pipeline builds and deploys
 3. Deployment targets configured per environment
@@ -125,6 +132,7 @@ History files are limited to **10 sessions maximum** to prevent context overload
 3. Continue numbering sessions sequentially (don't reset)
 
 Example structure:
+
 ```
 .llm/history/active/
   my-feature/                    # Each feature has its own directory

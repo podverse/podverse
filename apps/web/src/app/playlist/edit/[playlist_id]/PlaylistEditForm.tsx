@@ -12,17 +12,26 @@ import { MEDIUM } from '../../../../constants/medium';
 
 type PlaylistEditFormProps = {
   ssrPlaylist: DTOPlaylist;
-}
+};
 
 export const PlaylistEditForm: React.FC<PlaylistEditFormProps> = ({ ssrPlaylist }) => {
   const tMedia = useTranslations('media');
   const tFeatures = useTranslations('features');
   const tMisc = useTranslations('misc');
   const router = useRouter();
-  const { medium, setMedium, title, setTitle, description, setDescription,
-    sharableStatus, setSharableStatus, isUpdating, setIsUpdating,
+  const {
+    medium,
+    setMedium,
+    title,
+    setTitle,
+    description,
+    setDescription,
+    sharableStatus,
+    setSharableStatus,
+    isUpdating,
+    setIsUpdating,
     tabSelectedKey,
-   } = usePlaylistEditContext();
+  } = usePlaylistEditContext();
 
   if (tabSelectedKey !== 'info') {
     return null;
@@ -34,7 +43,7 @@ export const PlaylistEditForm: React.FC<PlaylistEditFormProps> = ({ ssrPlaylist 
   const onCancel = () => {
     router.push('/');
   };
-  
+
   const onSubmit = async () => {
     setIsUpdating(true);
 

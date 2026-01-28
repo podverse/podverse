@@ -7,7 +7,9 @@ import * as TransportStream from 'winston-transport';
 const { combine, timestamp, printf, colorize, json } = format;
 
 const logFormat = printf(({ level, message, timestamp, stack }) => {
-  return stack ? `${timestamp} [${level}]: ${message} - ${stack}` : `${timestamp} [${level}]: ${message}`;
+  return stack
+    ? `${timestamp} [${level}]: ${message} - ${stack}`
+    : `${timestamp} [${level}]: ${message}`;
 });
 
 export interface LoggerServiceParams {
@@ -30,11 +32,7 @@ export class LoggerService {
   constructor({ logLevel, logDir }: LoggerServiceParams) {
     const loggerTransports: TransportStream[] = [
       new transports.Console({
-        format: combine(
-          colorize(),
-          timestamp(),
-          logFormat,
-        ),
+        format: combine(colorize(), timestamp(), logFormat),
       }),
     ];
 
@@ -44,23 +42,17 @@ export class LoggerService {
         new transports.DailyRotateFile({
           filename: `${logDir}/app-%DATE%.log`,
           datePattern: 'YYYY-MM-DD',
-          format: combine(
-            timestamp(),
-            json(),
-          ),
+          format: combine(timestamp(), json()),
           zippedArchive: true,
           maxSize: '20m',
           maxFiles: '14d',
-        }),
+        })
       );
     }
 
     this.logger = createLogger({
       level: logLevel,
-      format: combine(
-        timestamp(),
-        logFormat,
-      ),
+      format: combine(timestamp(), logFormat),
       transports: loggerTransports,
     });
   }

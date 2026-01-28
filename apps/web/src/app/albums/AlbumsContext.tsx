@@ -22,15 +22,15 @@ interface AlbumsContextType {
   setShowSubscribeMessage: (show: boolean) => void;
   showCategoriesModal: boolean;
   setShowCategoriesModal: (show: boolean) => void;
-};
+}
 
 const AlbumsContext = createContext<AlbumsContextType | undefined>(undefined);
 
 interface AlbumsContextProviderProps {
-  children: ReactNode,
-  initialQueryParams: QueryParamsGetManyMusic,
-  ssrChannels: DTOChannel[],
-  ssrTotalPages: number
+  children: ReactNode;
+  initialQueryParams: QueryParamsGetManyMusic;
+  ssrChannels: DTOChannel[];
+  ssrTotalPages: number;
 }
 
 export const AlbumsContextProvider = ({
@@ -41,9 +41,12 @@ export const AlbumsContextProvider = ({
 }: AlbumsContextProviderProps) => {
   // Use the list page cache hook for back navigation caching
   const {
-    filterParams, setFilterParams,
-    data: channels, setData: setChannels,
-    totalPages, setTotalPages,
+    filterParams,
+    setFilterParams,
+    data: channels,
+    setData: setChannels,
+    totalPages,
+    setTotalPages,
     shouldSkipFetch,
   } = useListPageCache<QueryParamsGetManyMusic, DTOChannel[]>({
     routeKey: 'albums',
@@ -76,13 +79,16 @@ export const AlbumsContextProvider = ({
       }
 
       setIsLoading(true);
-      
-      const { currentSort, currentRange, currentType } = getAlbumsFilterParams({
-        page: filterParams.page,
-        type: filterParams.type,
-        sort: filterParams.sort,
-        range: filterParams.range,
-      }, !!loggedInAccount);
+
+      const { currentSort, currentRange, currentType } = getAlbumsFilterParams(
+        {
+          page: filterParams.page,
+          type: filterParams.type,
+          sort: filterParams.sort,
+          range: filterParams.range,
+        },
+        !!loggedInAccount
+      );
 
       const response = await apiRequestService.reqChannelGetMany({
         page: filterParams.page,
@@ -93,7 +99,12 @@ export const AlbumsContextProvider = ({
         category: null,
       });
 
-      const totalPages = getTotalPages(response.meta.count, response.meta.limit, response.data.length, filterParams.page);
+      const totalPages = getTotalPages(
+        response.meta.count,
+        response.meta.limit,
+        response.data.length,
+        filterParams.page
+      );
       setTotalPages(totalPages);
       setChannels(response.data);
       setShowSubscribeMessage(false);
@@ -103,14 +114,22 @@ export const AlbumsContextProvider = ({
   }, [filterParams, loggedInAccount]);
 
   return (
-    <AlbumsContext.Provider value={{
-      filterParams, setFilterParams,
-      channels, setChannels,
-      totalPages, setTotalPages,
-      isLoading, setIsLoading,
-      showSubscribeMessage, setShowSubscribeMessage,
-      showCategoriesModal, setShowCategoriesModal,
-    }}>
+    <AlbumsContext.Provider
+      value={{
+        filterParams,
+        setFilterParams,
+        channels,
+        setChannels,
+        totalPages,
+        setTotalPages,
+        isLoading,
+        setIsLoading,
+        showSubscribeMessage,
+        setShowSubscribeMessage,
+        showCategoriesModal,
+        setShowCategoriesModal,
+      }}
+    >
       {children}
     </AlbumsContext.Provider>
   );
@@ -118,6 +137,8 @@ export const AlbumsContextProvider = ({
 
 export const useAlbumsContext = () => {
   const ctx = useContext(AlbumsContext);
-  if (!ctx) {throw new Error('useAlbumsContext must be used within a AlbumsContextProvider');}
+  if (!ctx) {
+    throw new Error('useAlbumsContext must be used within a AlbumsContextProvider');
+  }
   return ctx;
 };

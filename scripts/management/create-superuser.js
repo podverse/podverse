@@ -8,7 +8,9 @@ async function createSuperuser() {
   const password = process.env.SUPERUSER_PASSWORD;
 
   if (!email || !password) {
-    console.error('ERROR: SUPERUSER_EMAIL and SUPERUSER_PASSWORD environment variables are required');
+    console.error(
+      'ERROR: SUPERUSER_EMAIL and SUPERUSER_PASSWORD environment variables are required'
+    );
     process.exit(1);
   }
 
@@ -32,7 +34,9 @@ async function createSuperuser() {
 
     if (existingCheck.rows.length > 0) {
       const adminAccountId = existingCheck.rows[0].admin_account_id;
-      console.log(`Superuser account already exists with email: ${email} (admin_account_id: ${adminAccountId})`);
+      console.log(
+        `Superuser account already exists with email: ${email} (admin_account_id: ${adminAccountId})`
+      );
       await client.end();
       return;
     }
@@ -65,7 +69,9 @@ async function createSuperuser() {
       // Commit transaction
       await client.query('COMMIT');
 
-      console.log(`Superuser account created successfully: ${email} (admin_account_id: ${adminAccountId})`);
+      console.log(
+        `Superuser account created successfully: ${email} (admin_account_id: ${adminAccountId})`
+      );
     } catch (error) {
       await client.query('ROLLBACK');
       throw error;

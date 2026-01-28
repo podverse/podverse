@@ -40,8 +40,8 @@ Build packages in this order (dependencies must be built first):
 
 ```typescript
 // BAD - hides configuration errors
-dbHost: process.env.DB_HOST || "localhost";
-dbHost: process.env.DB_HOST ?? "";
+dbHost: process.env.DB_HOST || 'localhost';
+dbHost: process.env.DB_HOST ?? '';
 
 // GOOD - fails fast if not configured
 dbHost: process.env.DB_HOST!;
@@ -75,14 +75,14 @@ EMPTY_VALUE=""
 Organize imports with blank lines between groups:
 
 ```typescript
-import path from "path"; // 1. Node built-ins
+import path from 'path'; // 1. Node built-ins
 
-import express from "express"; // 2. External packages
+import express from 'express'; // 2. External packages
 
-import { logger } from "@podverse/helpers"; // 3. Workspace packages
-import { Podcast } from "@podverse/orm";
+import { logger } from '@podverse/helpers'; // 3. Workspace packages
+import { Podcast } from '@podverse/orm';
 
-import { config } from "./config"; // 4. Relative imports
+import { config } from './config'; // 4. Relative imports
 ```
 
 ## Architecture
@@ -138,11 +138,11 @@ export class PodcastService {
 Use the centralized logger from `@podverse/helpers`:
 
 ```typescript
-import { logger } from "@podverse/helpers";
+import { logger } from '@podverse/helpers';
 
-logger.info("Processing feed", { feedUrl, podcastId });
-logger.warn("Retrying request", { attempt, maxAttempts });
-logger.error("Feed parsing failed", { error, feedUrl });
+logger.info('Processing feed', { feedUrl, podcastId });
+logger.warn('Retrying request', { attempt, maxAttempts });
+logger.error('Feed parsing failed', { error, feedUrl });
 ```
 
 ### Error Handling

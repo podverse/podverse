@@ -31,7 +31,10 @@ export const IconButton: React.FC<IconButtonProps> = ({
   rel,
   children,
 }) => {
-  const classes = [styles.button, isGold ? styles.buttonGold : null, className].filter(Boolean).join(' ').trim();
+  const classes = [styles.button, isGold ? styles.buttonGold : null, className]
+    .filter(Boolean)
+    .join(' ')
+    .trim();
 
   // Use Link component for consistent handling of anchor and button semantics
   return (

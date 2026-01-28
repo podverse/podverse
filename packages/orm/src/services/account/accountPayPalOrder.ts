@@ -15,7 +15,11 @@ export class AccountPayPalOrderService extends BaseManyService<AccountPayPalOrde
     this.accountMembershipStatusService = new AccountMembershipStatusService();
   }
 
-  async get(account_id: number, payment_id: string, config?: FindOneOptions<AccountPayPalOrder>): Promise<AccountPayPalOrder | null> {
+  async get(
+    account_id: number,
+    payment_id: string,
+    config?: FindOneOptions<AccountPayPalOrder>
+  ): Promise<AccountPayPalOrder | null> {
     const account = await this.accountService.get(account_id);
     if (!account) {
       throw new Error('Account not found.');
@@ -43,7 +47,7 @@ export class AccountPayPalOrderService extends BaseManyService<AccountPayPalOrde
       where: { payment_id },
       relations: ['account', 'account_membership_status'],
     });
-      
+
     if (!accountPayPalOrder) {
       throw new Error('PayPal Order not found.');
     }
@@ -57,9 +61,15 @@ export class AccountPayPalOrderService extends BaseManyService<AccountPayPalOrde
     const accountMembershipStatus = accountPayPalOrder.account.account_membership_status;
 
     const currentDate = new Date();
-    const newExpirationDate = accountMembershipStatus?.membership_expires_at && accountMembershipStatus.membership_expires_at > currentDate
-      ? new Date(accountMembershipStatus.membership_expires_at.setFullYear(accountMembershipStatus.membership_expires_at.getFullYear() + 1))
-      : new Date(currentDate.setFullYear(currentDate.getFullYear() + 1));
+    const newExpirationDate =
+      accountMembershipStatus?.membership_expires_at &&
+      accountMembershipStatus.membership_expires_at > currentDate
+        ? new Date(
+            accountMembershipStatus.membership_expires_at.setFullYear(
+              accountMembershipStatus.membership_expires_at.getFullYear() + 1
+            )
+          )
+        : new Date(currentDate.setFullYear(currentDate.getFullYear() + 1));
 
     const successState = isV2 ? 'completed' : 'approved';
     if (state === successState) {

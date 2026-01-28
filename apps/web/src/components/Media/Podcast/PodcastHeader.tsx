@@ -12,11 +12,29 @@ type PodcastHeaderProps = {
   item_chapter?: DTOItemChapter;
 };
 
-export const PodcastHeader: React.FC<PodcastHeaderProps> = ({ channel, item, clip, item_soundbite, item_chapter }) => {
+export const PodcastHeader: React.FC<PodcastHeaderProps> = ({
+  channel,
+  item,
+  clip,
+  item_soundbite,
+  item_chapter,
+}) => {
   return (
     <header className={styles.header}>
-      <PodcastHeaderViewDesktop channel={channel} item={item} clip={clip} item_soundbite={item_soundbite} item_chapter={item_chapter} />
-      <PodcastHeaderViewTablet channel={channel} item={item} clip={clip} item_soundbite={item_soundbite} item_chapter={item_chapter} />
+      <PodcastHeaderViewDesktop
+        channel={channel}
+        item={item}
+        clip={clip}
+        item_soundbite={item_soundbite}
+        item_chapter={item_chapter}
+      />
+      <PodcastHeaderViewTablet
+        channel={channel}
+        item={item}
+        clip={clip}
+        item_soundbite={item_soundbite}
+        item_chapter={item_chapter}
+      />
     </header>
   );
 };

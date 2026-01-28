@@ -1,12 +1,18 @@
 import { ApiRequestService } from '../_request';
 import { ApiListResponse } from '../_response';
 import { DTOAccount } from '../../../../dtos/account/account';
-import { QueryParamsAccountGlobalTop, QueryParamsAccountSubscribedTop,
-  QueryParamsSubscribedType, QueryParamsSubscribedFullSort, QueryParamsStatsRange, QueryParamsPage } from '../queryParams';
+import {
+  QueryParamsAccountGlobalTop,
+  QueryParamsAccountSubscribedTop,
+  QueryParamsSubscribedType,
+  QueryParamsSubscribedFullSort,
+  QueryParamsStatsRange,
+  QueryParamsPage,
+} from '../queryParams';
 
 export async function reqAccountGetManyPublicRecent(
   api: ApiRequestService,
-  params: QueryParamsPage,
+  params: QueryParamsPage
 ): Promise<ApiListResponse<DTOAccount>> {
   return api.apiRequest<ApiListResponse<DTOAccount>>({
     path: '/account/recent',
@@ -17,7 +23,7 @@ export async function reqAccountGetManyPublicRecent(
 
 export async function reqAccountGetManySubscribedAZ(
   api: ApiRequestService,
-  params: QueryParamsPage,
+  params: QueryParamsPage
 ): Promise<ApiListResponse<DTOAccount>> {
   return api.apiRequest<ApiListResponse<DTOAccount>>({
     path: '/account/subscribed/az',
@@ -31,7 +37,7 @@ export async function reqAccountGetManySubscribedAZ(
 
 export async function reqAccountGetManySubscribedRecent(
   api: ApiRequestService,
-  params: QueryParamsPage,
+  params: QueryParamsPage
 ): Promise<ApiListResponse<DTOAccount>> {
   return api.apiRequest<ApiListResponse<DTOAccount>>({
     path: '/account/subscribed/recent',
@@ -45,7 +51,7 @@ export async function reqAccountGetManySubscribedRecent(
 
 export async function reqAccountGetByIdText(
   api: ApiRequestService,
-  params: { id_text: string },
+  params: { id_text: string }
 ): Promise<DTOAccount> {
   return api.apiRequest<DTOAccount>({
     path: `/account/${params.id_text}`,
@@ -55,7 +61,7 @@ export async function reqAccountGetByIdText(
 
 export async function reqAccountCreate(
   api: ApiRequestService,
-  params: { email: string; password: string, locale: string },
+  params: { email: string; password: string; locale: string }
 ): Promise<{ message: string }> {
   return api.apiRequest<{ message: string }>({
     path: '/account',
@@ -66,7 +72,7 @@ export async function reqAccountCreate(
 
 export async function reqAccountSendVerificationEmail(
   api: ApiRequestService,
-  params: { email: string },
+  params: { email: string }
 ): Promise<{ message: string }> {
   return api.apiRequest<{ message: string }>({
     path: '/account/send-verification-email',
@@ -77,7 +83,7 @@ export async function reqAccountSendVerificationEmail(
 
 export async function reqAccountVerifyEmail(
   api: ApiRequestService,
-  params: { token: string },
+  params: { token: string }
 ): Promise<{ message: string }> {
   return api.apiRequest<{ message: string }>({
     path: '/account/verify-email',
@@ -88,7 +94,7 @@ export async function reqAccountVerifyEmail(
 
 export async function reqAccountSendResetPasswordEmail(
   api: ApiRequestService,
-  params: { email: string },
+  params: { email: string }
 ): Promise<{ message: string }> {
   return api.apiRequest<{ message: string }>({
     path: '/account/send-reset-password-email',
@@ -99,7 +105,7 @@ export async function reqAccountSendResetPasswordEmail(
 
 export async function reqAccountResetPassword(
   api: ApiRequestService,
-  params: { token: string; password: string },
+  params: { token: string; password: string }
 ): Promise<{ message: string }> {
   return api.apiRequest<{ message: string }>({
     path: '/account/reset-password',
@@ -110,7 +116,7 @@ export async function reqAccountResetPassword(
 
 export async function reqAccountSendChangeEmailAddressEmail(
   api: ApiRequestService,
-  params: { new_email: string },
+  params: { new_email: string }
 ): Promise<{ message: string }> {
   return api.apiRequest<{ message: string }>({
     path: '/account/send-change-email-address-email',
@@ -122,7 +128,7 @@ export async function reqAccountSendChangeEmailAddressEmail(
 
 export async function reqAccountChangeEmailAddress(
   api: ApiRequestService,
-  params: { token: string },
+  params: { token: string }
 ): Promise<{ message: string }> {
   return api.apiRequest<{ message: string }>({
     path: '/account/verify-email-change',
@@ -133,7 +139,12 @@ export async function reqAccountChangeEmailAddress(
 
 export async function reqAccountUpdate(
   api: ApiRequestService,
-  params: { display_name: string | null; bio: string | null; sharable_status: number; locale: string },
+  params: {
+    display_name: string | null;
+    bio: string | null;
+    sharable_status: number;
+    locale: string;
+  }
 ): Promise<DTOAccount> {
   return api.apiRequest<DTOAccount>({
     path: '/account',
@@ -143,9 +154,7 @@ export async function reqAccountUpdate(
   });
 }
 
-export async function reqAccountDelete(
-  api: ApiRequestService,
-): Promise<{ message: string }> {
+export async function reqAccountDelete(api: ApiRequestService): Promise<{ message: string }> {
   return api.apiRequest<{ message: string }>({
     path: '/account/delete',
     method: 'DELETE',
@@ -153,13 +162,11 @@ export async function reqAccountDelete(
   });
 }
 
-export async function reqAccountDownloadData(
-  api: ApiRequestService,
-): Promise<Blob> {
+export async function reqAccountDownloadData(api: ApiRequestService): Promise<Blob> {
   const result = await api.apiRequest<Blob>({
     path: '/account/download-data',
     method: 'GET',
-    config: { 
+    config: {
       withCredentials: true,
       responseType: 'blob',
     },
@@ -170,7 +177,7 @@ export async function reqAccountDownloadData(
 
 export async function reqAccountGetManyPublicTop(
   api: ApiRequestService,
-  params: QueryParamsAccountGlobalTop,
+  params: QueryParamsAccountGlobalTop
 ): Promise<ApiListResponse<DTOAccount>> {
   return api.apiRequest<ApiListResponse<DTOAccount>>({
     path: '/account/top',
@@ -183,7 +190,7 @@ export async function reqAccountGetManyPublicTop(
 
 export async function reqAccountGetManySubscribedTop(
   api: ApiRequestService,
-  params: QueryParamsAccountSubscribedTop,
+  params: QueryParamsAccountSubscribedTop
 ): Promise<ApiListResponse<DTOAccount>> {
   return api.apiRequest<ApiListResponse<DTOAccount>>({
     path: '/account/subscribed/top',
@@ -213,52 +220,37 @@ const emptyApiListResponse = {
 
 export async function reqAccountGetMany(
   api: ApiRequestService,
-  params: QueryParamsGetManyProfiles,
+  params: QueryParamsGetManyProfiles
 ): Promise<ApiListResponse<DTOAccount>> {
   const { type, sort, range, page } = params;
 
   if (type === 'global') {
     if (sort === 'top' && range) {
-      return reqAccountGetManyPublicTop(
-        api,
-        {
-          page,
-          range,
-        },
-      );
+      return reqAccountGetManyPublicTop(api, {
+        page,
+        range,
+      });
     } else {
       // Recent or default
-      return reqAccountGetManyPublicRecent(
-        api,
-        {
-          page,
-        },
-      );
+      return reqAccountGetManyPublicRecent(api, {
+        page,
+      });
     }
   } else if (type === 'subscribed') {
     if (sort === 'top' && range) {
-      return reqAccountGetManySubscribedTop(
-        api,
-        {
-          page,
-          range,
-        },
-      );
+      return reqAccountGetManySubscribedTop(api, {
+        page,
+        range,
+      });
     } else if (sort === 'a_z') {
-      return reqAccountGetManySubscribedAZ(
-        api,
-        {
-          page,
-        },
-      );
+      return reqAccountGetManySubscribedAZ(api, {
+        page,
+      });
     } else {
       // Recent or default
-      return reqAccountGetManySubscribedRecent(
-        api,
-        {
-          page,
-        },
-      );
+      return reqAccountGetManySubscribedRecent(api, {
+        page,
+      });
     }
   }
 

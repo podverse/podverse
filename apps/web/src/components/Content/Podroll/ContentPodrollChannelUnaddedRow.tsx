@@ -8,22 +8,25 @@ import styles from '../../../styles/components/Content/Podroll/ContentPodrollCha
 
 type ContentPodrollChannelUnaddedRowProps = {
   channelUnadded: PodcastBatchByFeedGuidResponse['feeds'][number];
-}
+};
 
-export const ContentPodrollChannelUnaddedRow = ({ channelUnadded }: ContentPodrollChannelUnaddedRowProps) => {
+export const ContentPodrollChannelUnaddedRow = ({
+  channelUnadded,
+}: ContentPodrollChannelUnaddedRowProps) => {
   if (!channelUnadded) {
     return null;
   }
 
   const tMedia = useTranslations('media');
   const tMisc = useTranslations('misc');
-  
+
   return (
     <div className={styles.row}>
       <Link
         className={styles.link}
         href={`${WEB.origin}/podcast-index/feed/${channelUnadded.id}`}
-        color="secondary">
+        color="secondary"
+      >
         <Image
           className={styles.image}
           src={channelUnadded.image}
@@ -32,9 +35,7 @@ export const ContentPodrollChannelUnaddedRow = ({ channelUnadded }: ContentPodro
           height={IMAGES.PODROLL.SQUARE.SIZE}
         />
         <div className={styles.textWrapper}>
-          <div className={styles.title}>
-            {channelUnadded.title || tMisc('untitled') }
-          </div>
+          <div className={styles.title}>{channelUnadded.title || tMisc('untitled')}</div>
         </div>
       </Link>
     </div>

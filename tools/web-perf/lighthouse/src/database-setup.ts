@@ -21,13 +21,15 @@ export class DatabaseSetup {
     const currentDir = __dirname;
     const monorepoRoot = path.resolve(currentDir, '../../..');
     const opsRoot = path.resolve(monorepoRoot, '../podverse-ops');
-    
+
     this.podverseOpsPath = opsRoot;
   }
 
   async checkContainerRunning(): Promise<boolean> {
     try {
-      const { stdout } = await execAsync('docker ps -a --filter "name=podverse_test_db" --format "{{.Names}}"');
+      const { stdout } = await execAsync(
+        'docker ps -a --filter "name=podverse_test_db" --format "{{.Names}}"'
+      );
       return stdout.trim() === 'podverse_test_db';
     } catch (error) {
       return false;
@@ -36,7 +38,9 @@ export class DatabaseSetup {
 
   async checkContainerUp(): Promise<boolean> {
     try {
-      const { stdout } = await execAsync('docker ps --filter "name=podverse_test_db" --format "{{.Names}}"');
+      const { stdout } = await execAsync(
+        'docker ps --filter "name=podverse_test_db" --format "{{.Names}}"'
+      );
       return stdout.trim() === 'podverse_test_db';
     } catch (error) {
       return false;
@@ -47,12 +51,14 @@ export class DatabaseSetup {
     const networkName = 'podverse_test_network';
     try {
       // Check if network exists
-      const { stdout } = await execAsync(`docker network ls --filter "name=${networkName}" --format "{{.Name}}"`);
+      const { stdout } = await execAsync(
+        `docker network ls --filter "name=${networkName}" --format "{{.Name}}"`
+      );
       if (stdout.trim() === networkName) {
         console.log(`   ✅ Network ${networkName} already exists`);
         return;
       }
-      
+
       // Network doesn't exist, create it
       console.log(`   → Creating Docker network ${networkName}...`);
       await execAsync(`docker network create ${networkName}`);
@@ -70,21 +76,21 @@ export class DatabaseSetup {
   async ensureTestDatabaseUp(): Promise<void> {
     // Ensure the Docker network exists first
     await this.ensureNetworkExists();
-    
+
     const containerExists = await this.checkContainerRunning();
-    
+
     if (!containerExists) {
       console.log('📦 Test database container not found. Starting it...');
       await this.runMakeCommand('test_db_up');
       // Wait a bit for container to be ready
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      await new Promise((resolve) => setTimeout(resolve, 1500));
     } else {
       const isUp = await this.checkContainerUp();
       if (!isUp) {
         console.log('📦 Test database container exists but is not running. Starting it...');
         await this.runMakeCommand('test_db_up');
         // Wait a bit for container to be ready
-        await new Promise(resolve => setTimeout(resolve, 1500));
+        await new Promise((resolve) => setTimeout(resolve, 1500));
       } else {
         console.log('✅ Test database container is running');
       }
@@ -100,9 +106,9 @@ export class DatabaseSetup {
       console.error('❌ Failed to reset test database:', error);
       throw new Error(
         'Failed to reset test database. Please ensure:\n' +
-        '1. Docker is running\n' +
-        '2. You can run "make test_db_reinit" manually from podverse-ops directory\n' +
-        '3. The test database container is accessible'
+          '1. Docker is running\n' +
+          '2. You can run "make test_db_reinit" manually from podverse-ops directory\n' +
+          '3. The test database container is accessible'
       );
     }
   }
@@ -111,26 +117,23 @@ export class DatabaseSetup {
     if (!fs.existsSync(this.podverseOpsPath)) {
       throw new Error(
         `podverse-ops directory not found at: ${this.podverseOpsPath}\n` +
-        'Please ensure podverse-ops is a sibling directory to podverse-web'
+          'Please ensure podverse-ops is a sibling directory to podverse-web'
       );
     }
 
     console.log(`   → Running: make ${target} (in ${this.podverseOpsPath})`);
-    
+
     try {
-      const { stdout, stderr } = await execAsync(
-        `make ${target}`,
-        {
-          cwd: this.podverseOpsPath,
-          env: { ...process.env },
-          maxBuffer: 10 * 1024 * 1024 // 10MB buffer for large outputs
-        }
-      );
+      const { stdout, stderr } = await execAsync(`make ${target}`, {
+        cwd: this.podverseOpsPath,
+        env: { ...process.env },
+        maxBuffer: 10 * 1024 * 1024, // 10MB buffer for large outputs
+      });
 
       // Output stdout if present (make commands often output useful info)
       if (stdout && stdout.trim()) {
         const lines = stdout.trim().split('\n');
-        lines.forEach(line => {
+        lines.forEach((line) => {
           if (line.trim()) {
             console.log(`      ${line}`);
           }
@@ -140,9 +143,17 @@ export class DatabaseSetup {
       if (stderr && !stderr.includes('WARNING')) {
         // Some make commands output to stderr but are successful
         // Only treat as error if it's not a warning
-        if (!stderr.includes('Creating') && !stderr.includes('Starting') && !stderr.includes('Up')) {
+        if (
+          !stderr.includes('Creating') &&
+          !stderr.includes('Starting') &&
+          !stderr.includes('Up')
+        ) {
           console.warn('   ⚠️  Make command stderr:', stderr);
-        } else if (stderr.includes('Creating') || stderr.includes('Starting') || stderr.includes('Up')) {
+        } else if (
+          stderr.includes('Creating') ||
+          stderr.includes('Starting') ||
+          stderr.includes('Up')
+        ) {
           console.log(`      ${stderr.trim()}`);
         }
       }

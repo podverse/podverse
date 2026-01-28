@@ -1,7 +1,10 @@
 import { DTOItemSoundbite } from '../../../../dtos';
 import { ApiRequestService } from '../_request';
 import { ApiListResponse } from '../_response';
-import { QueryParamsItemSoundbitesByChannel, QueryParamsItemSoundbitesByItem } from '../queryParams';
+import {
+  QueryParamsItemSoundbitesByChannel,
+  QueryParamsItemSoundbitesByItem,
+} from '../queryParams';
 
 export type ReqClipCreateParams = {
   item_id_text: string;
@@ -10,7 +13,7 @@ export type ReqClipCreateParams = {
   description?: string | null;
   start_time: string;
   end_time?: string | null;
-}
+};
 
 export async function reqItemSoundbiteGet(api: ApiRequestService, item_soundbite_id_text: string) {
   return api.apiRequest<DTOItemSoundbite>({
@@ -22,7 +25,7 @@ export async function reqItemSoundbiteGet(api: ApiRequestService, item_soundbite
 export async function reqItemSoundbiteGetManyByChannelIdText(
   api: ApiRequestService,
   channel_id_text: string,
-  params: QueryParamsItemSoundbitesByChannel,
+  params: QueryParamsItemSoundbitesByChannel
 ) {
   return api.apiRequest<ApiListResponse<DTOItemSoundbite>>({
     path: `/item-soundbite/channel/${channel_id_text}`,
@@ -39,7 +42,7 @@ export async function reqItemSoundbiteGetManyByChannelIdText(
 export async function reqItemSoundbiteGetManyByItemIdText(
   api: ApiRequestService,
   item_id_text: string,
-  params: QueryParamsItemSoundbitesByItem,
+  params: QueryParamsItemSoundbitesByItem
 ) {
   return api.apiRequest<ApiListResponse<DTOItemSoundbite>>({
     path: `/item-soundbite/item/${item_id_text}`,

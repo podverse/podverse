@@ -1,5 +1,8 @@
-import { OnDemandParserEventType, ON_DEMAND_REMOTE_ITEM_PARSER_LIMIT,
-  getOnDemandParserEventDateRange } from '@podverse/helpers';
+import {
+  OnDemandParserEventType,
+  ON_DEMAND_REMOTE_ITEM_PARSER_LIMIT,
+  getOnDemandParserEventDateRange,
+} from '@podverse/helpers';
 import {
   Channel,
   ChannelPodrollRemoteItemService,
@@ -20,27 +23,30 @@ import { config } from '@parser/config';
 type PIFeedWithPodcastGuidData = {
   id: number;
   url: string;
-}
+};
 
 export type OnDemandParserRemoteItemParams = {
   accountId: number | null;
   remoteParentPodcastIndexId: number;
-}
+};
 
 type RemoteItemsQueueMessage = {
   url: string;
   podcast_index_id: number;
   options: ParseRSSFeedAndSaveToDatabaseOptions;
-}
+};
 
-const handleRemoteItemsFeedParsing = async (feedGuidsToParse: string[], params: OnDemandParserRemoteItemParams): Promise<RemoteItemsQueueMessage[]> => {
+const handleRemoteItemsFeedParsing = async (
+  feedGuidsToParse: string[],
+  params: OnDemandParserRemoteItemParams
+): Promise<RemoteItemsQueueMessage[]> => {
   const { accountId, remoteParentPodcastIndexId } = params;
   if (accountId) {
     const onDemandParserEventService = new OnDemandParserEventService();
     const count = await onDemandParserEventService.getCountByAccountIdAndTypeSince(
       accountId,
       OnDemandParserEventType.REMOTE_ITEM,
-      getOnDemandParserEventDateRange(),
+      getOnDemandParserEventDateRange()
     );
     if (count >= ON_DEMAND_REMOTE_ITEM_PARSER_LIMIT) {
       throw new Error('Monthly on-demand remote item feed parser limit reached');
@@ -52,7 +58,10 @@ const handleRemoteItemsFeedParsing = async (feedGuidsToParse: string[], params: 
     const pvExistingFeed = await feedService.getByPodcastGuid(feedGuid);
 
     if (!pvExistingFeed) {
-      const piFeedDataResponse = await podcastIndexService.podcastGetByGuid(feedGuid, config.podcastIndex.rateLimitDelay);
+      const piFeedDataResponse = await podcastIndexService.podcastGetByGuid(
+        feedGuid,
+        config.podcastIndex.rateLimitDelay
+      );
       if (piFeedDataResponse?.feed?.id && piFeedDataResponse?.feed?.url) {
         const piFeedData: PIFeedWithPodcastGuidData = {
           id: piFeedDataResponse.feed.id,
@@ -70,7 +79,7 @@ const handleRemoteItemsFeedParsing = async (feedGuidsToParse: string[], params: 
       url: piFeedData.url,
       podcast_index_id: piFeedData.id,
     });
-    
+
     if (!feed) {
       loggerService.info(`handleRemoteItemsFeedParsing: ${piFeedData.url} ${piFeedData.id}`);
       queueMessages.push({
@@ -91,7 +100,10 @@ const handleRemoteItemsFeedParsing = async (feedGuidsToParse: string[], params: 
   return queueMessages;
 };
 
-export const handleAllRemoteItemsFeedParsing = async (channel: Channel, params: OnDemandParserRemoteItemParams): Promise<RemoteItemsQueueMessage[]> => {
+export const handleAllRemoteItemsFeedParsing = async (
+  channel: Channel,
+  params: OnDemandParserRemoteItemParams
+): Promise<RemoteItemsQueueMessage[]> => {
   const channelService = new ChannelService();
   const latestChannel = await channelService.get(channel.id);
   if (!latestChannel) {
@@ -107,40 +119,53 @@ export const handleAllRemoteItemsFeedParsing = async (channel: Channel, params: 
   return results;
 };
 
-const handleRemoteItemsPodrollParsing = async (channel: Channel, params: OnDemandParserRemoteItemParams): Promise<RemoteItemsQueueMessage[]> => {
+const handleRemoteItemsPodrollParsing = async (
+  channel: Channel,
+  params: OnDemandParserRemoteItemParams
+): Promise<RemoteItemsQueueMessage[]> => {
   const channelPodrollService = new ChannelPodrollService();
   const channelPodroll = await channelPodrollService.get(channel);
   if (channelPodroll) {
     const channelPodrollRemoteItemService = new ChannelPodrollRemoteItemService();
     const channelPodrollRemoteItems = await channelPodrollRemoteItemService.getAll(channelPodroll);
-    const feedGuidsToParse = channelPodrollRemoteItems.map(remoteItem => remoteItem.feed_guid);
+    const feedGuidsToParse = channelPodrollRemoteItems.map((remoteItem) => remoteItem.feed_guid);
     return await handleRemoteItemsFeedParsing(feedGuidsToParse, params);
   }
 
   return [];
 };
 
-const handleRemoteItemsPublisherParsing = async (channel: Channel, params: OnDemandParserRemoteItemParams): Promise<RemoteItemsQueueMessage[]> => {
+const handleRemoteItemsPublisherParsing = async (
+  channel: Channel,
+  params: OnDemandParserRemoteItemParams
+): Promise<RemoteItemsQueueMessage[]> => {
   const channelPublisherService = new ChannelPublisherService();
   const channelPublisher = await channelPublisherService.get(channel);
   if (channelPublisher) {
     const channelPublisherRemoteItemService = new ChannelPublisherRemoteItemService();
-    const channelPublisherRemoteItems = await channelPublisherRemoteItemService.getAll(channelPublisher);
-    const feedGuidsToParse = channelPublisherRemoteItems.map(remoteItem => remoteItem.feed_guid);
+    const channelPublisherRemoteItems =
+      await channelPublisherRemoteItemService.getAll(channelPublisher);
+    const feedGuidsToParse = channelPublisherRemoteItems.map((remoteItem) => remoteItem.feed_guid);
     return await handleRemoteItemsFeedParsing(feedGuidsToParse, params);
   }
 
   return [];
 };
 
-const handleRemoteItemsChannelParsing = async (channel: Channel, params: OnDemandParserRemoteItemParams): Promise<RemoteItemsQueueMessage[]> => {
+const handleRemoteItemsChannelParsing = async (
+  channel: Channel,
+  params: OnDemandParserRemoteItemParams
+): Promise<RemoteItemsQueueMessage[]> => {
   const channelRemoteItemService = new ChannelRemoteItemService();
   const channelRemoteItems = await channelRemoteItemService.getAll(channel);
-  const feedGuidsToParse = channelRemoteItems.map(remoteItem => remoteItem.feed_guid);
+  const feedGuidsToParse = channelRemoteItems.map((remoteItem) => remoteItem.feed_guid);
   return await handleRemoteItemsFeedParsing(feedGuidsToParse, params);
 };
 
-const handleRemoteItemsItemValueTimeSplitParsing = async (channel: Channel, params: OnDemandParserRemoteItemParams): Promise<RemoteItemsQueueMessage[]> => {
+const handleRemoteItemsItemValueTimeSplitParsing = async (
+  channel: Channel,
+  params: OnDemandParserRemoteItemParams
+): Promise<RemoteItemsQueueMessage[]> => {
   if (channel.has_value_time_splits) {
     const itemService = new ItemService();
     const items = await itemService.getManyByChannel(channel, {
@@ -169,7 +194,7 @@ const handleRemoteItemsItemValueTimeSplitParsing = async (channel: Channel, para
             }
           }
         }
-      }   
+      }
     }
 
     return results;

@@ -5,9 +5,5 @@ type MainInnerWrapperProps = {
 };
 
 export const MainInnerWrapper = ({ children }: MainInnerWrapperProps) => {
-  return (
-    <div className={styles.mainInnerWrapper}>
-      {children}
-    </div>
-  );
+  return <div className={styles.mainInnerWrapper}>{children}</div>;
 };

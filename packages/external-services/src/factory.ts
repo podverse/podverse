@@ -12,7 +12,7 @@ export type FirebaseContext = {
 /**
  * Creates a Firebase context with the provided configuration.
  * This is the factory function that should be called from the app level.
- * 
+ *
  * @param config - The external services configuration (from app-level env vars)
  * @returns FirebaseContext with initialized Firebase admin and helper functions
  */
@@ -27,12 +27,13 @@ export function createFirebaseContext(config: ExternalServicesConfig): FirebaseC
 
     // Check if the admin JSON key path is provided
     if (!config.firebase.admin_json_key_path || config.firebase.admin_json_key_path.trim() === '') {
-      console.error('Firebase Admin Initialization Failed: admin_json_key_path is required when firebase notifications are enabled');
+      console.error(
+        'Firebase Admin Initialization Failed: admin_json_key_path is required when firebase notifications are enabled'
+      );
       firebaseAdminInstance = null;
       isFirebaseEnabled = false;
     } else {
       try {
-         
         // eslint-disable-next-line @typescript-eslint/no-require-imports
         const settings = require(config.firebase.admin_json_key_path);
         const serviceAccount = settings as admin.ServiceAccount;

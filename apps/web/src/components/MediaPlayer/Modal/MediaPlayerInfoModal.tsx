@@ -2,7 +2,16 @@
 
 import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
-import { DTOChannel, DTOClip, DTOItem, DTOItemChapter, DTOItemSoundbite, findDTOChannelImageBySize, findDTOItemImageBySize, MediumEnum } from '@podverse/helpers';
+import {
+  DTOChannel,
+  DTOClip,
+  DTOItem,
+  DTOItemChapter,
+  DTOItemSoundbite,
+  findDTOChannelImageBySize,
+  findDTOItemImageBySize,
+  MediumEnum,
+} from '@podverse/helpers';
 import { useMediaPlayer } from '../../../contexts/MediaPlayer';
 import { ImageNonReact } from '../../Image/ImageNonReact';
 import { Link } from '../../Link/Link';
@@ -75,15 +84,14 @@ function ClickableTitle({
 
   return (
     <div className={className || ''}>
-      <Link onClick={handleOnClick}>
-        {children || title || tMisc('untitled')}
-      </Link>
+      <Link onClick={handleOnClick}>{children || title || tMisc('untitled')}</Link>
     </div>
   );
 }
 
 export const MediaPlayerInfoModal: React.FC = () => {
-  const { mpChannel, mpItem, mpClip, mpItemChapter, mpItemSoundbite, setPlayerModalIsOpen } = useMediaPlayer();
+  const { mpChannel, mpItem, mpClip, mpItemChapter, mpItemSoundbite, setPlayerModalIsOpen } =
+    useMediaPlayer();
   const tMediaPlayer = useTranslations('media_player');
   const router = useRouter();
 
@@ -99,7 +107,7 @@ export const MediaPlayerInfoModal: React.FC = () => {
   const item_image = findDTOItemImageBySize(mpItem?.item_images, 'largest');
   const defaultImageUrl = item_image?.url || channel_image?.url || undefined;
   let imageUrl = '';
-  
+
   if (mpItemChapter) {
     imageUrl = mpItemChapter.img || defaultImageUrl || '';
   } else {
@@ -139,10 +147,7 @@ export const MediaPlayerInfoModal: React.FC = () => {
               setPlayerModalIsOpen={setPlayerModalIsOpen}
             />
             <div className={styles.timeRange}>
-              <ReadableTimeRange
-                startTime={mpClip?.start_time}
-                endTime={mpClip?.end_time}
-              />
+              <ReadableTimeRange startTime={mpClip?.start_time} endTime={mpClip?.end_time} />
             </div>
           </>
         )}

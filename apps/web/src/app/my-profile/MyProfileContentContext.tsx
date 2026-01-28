@@ -12,35 +12,35 @@ interface MyProfileContentContextType {
   account: DTOAccount;
   selectedTab: MyProfileContentTab;
   setSelectedTab: (tab: MyProfileContentTab) => void;
-  
+
   // Podcasts
   podcasts: DTOChannel[];
   podcastsPage: number;
   setPodcastsPage: (page: number) => void;
   podcastsTotalPages: number;
   podcastsLoaded: boolean;
-  
+
   // Albums
   albums: DTOChannel[];
   albumsPage: number;
   setAlbumsPage: (page: number) => void;
   albumsTotalPages: number;
   albumsLoaded: boolean;
-  
+
   // Playlists
   playlists: DTOPlaylist[];
   playlistsPage: number;
   setPlaylistsPage: (page: number) => void;
   playlistsTotalPages: number;
   playlistsLoaded: boolean;
-  
+
   // Clips
   clips: DTOClip[];
   clipsPage: number;
   setClipsPage: (page: number) => void;
   clipsTotalPages: number;
   clipsLoaded: boolean;
-  
+
   isLoading: boolean;
 }
 
@@ -57,49 +57,55 @@ export const MyProfileContentContextProvider = ({
 }: MyProfileContentContextProviderProps) => {
   const searchParams = useSearchParams();
   const router = useRouter();
-  
+
   // Check for tab query param on mount
   const tabFromQuery = searchParams.get('tab');
-  const isValidTab = tabFromQuery === 'podcasts' || tabFromQuery === 'albums' || 
-                     tabFromQuery === 'playlists' || tabFromQuery === 'clips';
+  const isValidTab =
+    tabFromQuery === 'podcasts' ||
+    tabFromQuery === 'albums' ||
+    tabFromQuery === 'playlists' ||
+    tabFromQuery === 'clips';
   const initialTab = (isValidTab ? tabFromQuery : 'podcasts') as MyProfileContentTab;
-  
+
   const [selectedTab, setSelectedTabState] = useState<MyProfileContentTab>(initialTab);
-  
+
   // Wrapper to clear query params when tab changes
-  const setSelectedTab = useCallback((tab: MyProfileContentTab) => {
-    setSelectedTabState(tab);
-    // Clear query params when user clicks a tab
-    const params = new URLSearchParams(searchParams.toString());
-    params.delete('tab');
-    const newPath = `/my-profile${params.toString() ? `?${params.toString()}` : ''}`;
-    router.replace(newPath);
-  }, [searchParams, router]);
-  
+  const setSelectedTab = useCallback(
+    (tab: MyProfileContentTab) => {
+      setSelectedTabState(tab);
+      // Clear query params when user clicks a tab
+      const params = new URLSearchParams(searchParams.toString());
+      params.delete('tab');
+      const newPath = `/my-profile${params.toString() ? `?${params.toString()}` : ''}`;
+      router.replace(newPath);
+    },
+    [searchParams, router]
+  );
+
   // Podcasts state
   const [podcasts, setPodcasts] = useState<DTOChannel[]>([]);
   const [podcastsPage, setPodcastsPage] = useState(1);
   const [podcastsTotalPages, setPodcastsTotalPages] = useState(1);
   const [podcastsLoaded, setPodcastsLoaded] = useState(false);
-  
+
   // Albums state
   const [albums, setAlbums] = useState<DTOChannel[]>([]);
   const [albumsPage, setAlbumsPage] = useState(1);
   const [albumsTotalPages, setAlbumsTotalPages] = useState(1);
   const [albumsLoaded, setAlbumsLoaded] = useState(false);
-  
+
   // Playlists state
   const [playlists, setPlaylists] = useState<DTOPlaylist[]>([]);
   const [playlistsPage, setPlaylistsPage] = useState(1);
   const [playlistsTotalPages, setPlaylistsTotalPages] = useState(1);
   const [playlistsLoaded, setPlaylistsLoaded] = useState(false);
-  
+
   // Clips state
   const [clips, setClips] = useState<DTOClip[]>([]);
   const [clipsPage, setClipsPage] = useState(1);
   const [clipsTotalPages, setClipsTotalPages] = useState(1);
   const [clipsLoaded, setClipsLoaded] = useState(false);
-  
+
   // Initialize loading state to true since we'll fetch data on mount for the default tab
   const [isLoading, setIsLoading] = useState(true);
 
@@ -108,7 +114,9 @@ export const MyProfileContentContextProvider = ({
     try {
       const response = await apiRequestService.reqMyProfilePodcastsAZ({ page });
       setPodcasts(response.data);
-      setPodcastsTotalPages(getTotalPages(response.meta.count, response.meta.limit, response.data.length, page));
+      setPodcastsTotalPages(
+        getTotalPages(response.meta.count, response.meta.limit, response.data.length, page)
+      );
       setPodcastsLoaded(true);
     } catch (error) {
       console.error('Error fetching my profile podcasts:', error);
@@ -122,7 +130,9 @@ export const MyProfileContentContextProvider = ({
     try {
       const response = await apiRequestService.reqMyProfilePlaylistsAZ({ page });
       setPlaylists(response.data);
-      setPlaylistsTotalPages(getTotalPages(response.meta.count, response.meta.limit, response.data.length, page));
+      setPlaylistsTotalPages(
+        getTotalPages(response.meta.count, response.meta.limit, response.data.length, page)
+      );
       setPlaylistsLoaded(true);
     } catch (error) {
       console.error('Error fetching my profile playlists:', error);
@@ -136,7 +146,9 @@ export const MyProfileContentContextProvider = ({
     try {
       const response = await apiRequestService.reqMyProfileAlbumsAZ({ page });
       setAlbums(response.data);
-      setAlbumsTotalPages(getTotalPages(response.meta.count, response.meta.limit, response.data.length, page));
+      setAlbumsTotalPages(
+        getTotalPages(response.meta.count, response.meta.limit, response.data.length, page)
+      );
       setAlbumsLoaded(true);
     } catch (error) {
       console.error('Error fetching my profile albums:', error);
@@ -150,7 +162,9 @@ export const MyProfileContentContextProvider = ({
     try {
       const response = await apiRequestService.reqMyProfileClipsRecent({ page });
       setClips(response.data);
-      setClipsTotalPages(getTotalPages(response.meta.count, response.meta.limit, response.data.length, page));
+      setClipsTotalPages(
+        getTotalPages(response.meta.count, response.meta.limit, response.data.length, page)
+      );
       setClipsLoaded(true);
     } catch (error) {
       console.error('Error fetching my profile clips:', error);
@@ -211,32 +225,34 @@ export const MyProfileContentContextProvider = ({
   }, [clipsPage]);
 
   return (
-    <MyProfileContentContext.Provider value={{
-      account,
-      selectedTab,
-      setSelectedTab,
-      podcasts,
-      podcastsPage,
-      setPodcastsPage,
-      podcastsTotalPages,
-      podcastsLoaded,
-      albums,
-      albumsPage,
-      setAlbumsPage,
-      albumsTotalPages,
-      albumsLoaded,
-      playlists,
-      playlistsPage,
-      setPlaylistsPage,
-      playlistsTotalPages,
-      playlistsLoaded,
-      clips,
-      clipsPage,
-      setClipsPage,
-      clipsTotalPages,
-      clipsLoaded,
-      isLoading,
-    }}>
+    <MyProfileContentContext.Provider
+      value={{
+        account,
+        selectedTab,
+        setSelectedTab,
+        podcasts,
+        podcastsPage,
+        setPodcastsPage,
+        podcastsTotalPages,
+        podcastsLoaded,
+        albums,
+        albumsPage,
+        setAlbumsPage,
+        albumsTotalPages,
+        albumsLoaded,
+        playlists,
+        playlistsPage,
+        setPlaylistsPage,
+        playlistsTotalPages,
+        playlistsLoaded,
+        clips,
+        clipsPage,
+        setClipsPage,
+        clipsTotalPages,
+        clipsLoaded,
+        isLoading,
+      }}
+    >
       {children}
     </MyProfileContentContext.Provider>
   );
@@ -244,6 +260,10 @@ export const MyProfileContentContextProvider = ({
 
 export const useMyProfileContentContext = () => {
   const ctx = useContext(MyProfileContentContext);
-  if (!ctx) {throw new Error('useMyProfileContentContext must be used within a MyProfileContentContextProvider');}
+  if (!ctx) {
+    throw new Error(
+      'useMyProfileContentContext must be used within a MyProfileContentContextProvider'
+    );
+  }
   return ctx;
 };

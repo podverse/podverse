@@ -1,87 +1,208 @@
 import { QueueExtraParams } from '../../../dtos/queueExtraParams';
 import { BetweenParams } from '../../../dtos/betweenParams';
 import { request } from '../_request';
-import { reqAccountChangeEmailAddress, reqAccountCreate, reqAccountDelete, reqAccountDownloadData, reqAccountGetByIdText, reqAccountGetMany,
-  reqAccountResetPassword, reqAccountUpdate, reqAccountSendChangeEmailAddressEmail, reqAccountSendResetPasswordEmail,
-  reqAccountSendVerificationEmail, reqAccountVerifyEmail, QueryParamsGetManyProfiles } from './account/account';
+import {
+  reqAccountChangeEmailAddress,
+  reqAccountCreate,
+  reqAccountDelete,
+  reqAccountDownloadData,
+  reqAccountGetByIdText,
+  reqAccountGetMany,
+  reqAccountResetPassword,
+  reqAccountUpdate,
+  reqAccountSendChangeEmailAddressEmail,
+  reqAccountSendResetPasswordEmail,
+  reqAccountSendVerificationEmail,
+  reqAccountVerifyEmail,
+  QueryParamsGetManyProfiles,
+} from './account/account';
 import { reqAccountFollowChannel, reqAccountUnfollowChannel } from './account/follow/channel';
 import { reqAccountFollowAccount, reqAccountUnfollowAccount } from './account/follow/account';
 import { reqAccountFollowPlaylist, reqAccountUnfollowPlaylist } from './account/follow/playlist';
 import { reqAuthCheckSession, reqAuthLogin, reqAuthLogout, reqAuthMe } from './auth/auth';
 import { reqCategoryGetAll } from './category/category';
-import { reqChannelGetByIdOrIdText, reqChannelGetByPodcastIndexId, reqChannelGetMany } from './channel/channel';
-import { reqClipCreate, ReqClipCreateParams, reqClipDelete, reqClipGet,
-  reqClipGetManyByChannelPublic, reqClipGetManyByItemPublic, reqClipGetManyPublic,
-  reqClipUpdate } from './clip/clip';
-import { reqItemGetByIdOrIdText, reqItemGetMany, reqItemGetManyByChannel, reqItemGetManyByChannelBySeason,
-  reqItemGetManyByChannelShuffle, reqItemGetManyForQueueByPubDate, reqItemGetManyForQueueBySeason,
-  reqItemParseAndGetChapters } from './item/item';
-import { reqPlaylistCreate, ReqPlaylistCreateParams, reqPlaylistDelete, reqPlaylistEdit, ReqPlaylistEditParams,
-  reqPlaylistGet, reqPlaylistGetAllFavoritesPrivate, reqPlaylistGetMany } from './playlist/playlist';
-import { reqPlaylistResourceClipAddBetween, reqPlaylistResourceClipAddFirst, reqPlaylistResourceClipAddLast,
-  reqPlaylistResourceClipDelete } from './playlist/playlistResource/playlistResourceClip';
-import { reqPlaylistResourceItemAddFirst, reqPlaylistResourceItemAddBetween,
-  reqPlaylistResourceItemAddLast, 
-  reqPlaylistResourceItemDelete} from './playlist/playlistResource/playlistResourceItem';
+import {
+  reqChannelGetByIdOrIdText,
+  reqChannelGetByPodcastIndexId,
+  reqChannelGetMany,
+} from './channel/channel';
+import {
+  reqClipCreate,
+  ReqClipCreateParams,
+  reqClipDelete,
+  reqClipGet,
+  reqClipGetManyByChannelPublic,
+  reqClipGetManyByItemPublic,
+  reqClipGetManyPublic,
+  reqClipUpdate,
+} from './clip/clip';
+import {
+  reqItemGetByIdOrIdText,
+  reqItemGetMany,
+  reqItemGetManyByChannel,
+  reqItemGetManyByChannelBySeason,
+  reqItemGetManyByChannelShuffle,
+  reqItemGetManyForQueueByPubDate,
+  reqItemGetManyForQueueBySeason,
+  reqItemParseAndGetChapters,
+} from './item/item';
+import {
+  reqPlaylistCreate,
+  ReqPlaylistCreateParams,
+  reqPlaylistDelete,
+  reqPlaylistEdit,
+  ReqPlaylistEditParams,
+  reqPlaylistGet,
+  reqPlaylistGetAllFavoritesPrivate,
+  reqPlaylistGetMany,
+} from './playlist/playlist';
+import {
+  reqPlaylistResourceClipAddBetween,
+  reqPlaylistResourceClipAddFirst,
+  reqPlaylistResourceClipAddLast,
+  reqPlaylistResourceClipDelete,
+} from './playlist/playlistResource/playlistResourceClip';
+import {
+  reqPlaylistResourceItemAddFirst,
+  reqPlaylistResourceItemAddBetween,
+  reqPlaylistResourceItemAddLast,
+  reqPlaylistResourceItemDelete,
+} from './playlist/playlistResource/playlistResourceItem';
 import { reqPodrollGetForChannel } from './podroll/podroll';
-import { QueryDirection, QueryParamsGetMany, QueryParamsGetManyPartial, QueryParamsIndividualList,
+import {
+  QueryDirection,
+  QueryParamsGetMany,
+  QueryParamsGetManyPartial,
+  QueryParamsIndividualList,
   QueryParamsIndividualListMusic,
-  QueryParamsItemSoundbitesByChannel, QueryParamsItemSoundbitesByItem, QueryParamsPlaylistResources,
-  QueryParamsPlaylists, QueryParamsShuffle } from './queryParams';
+  QueryParamsItemSoundbitesByChannel,
+  QueryParamsItemSoundbitesByItem,
+  QueryParamsPlaylistResources,
+  QueryParamsPlaylists,
+  QueryParamsShuffle,
+} from './queryParams';
 import { reqQueueGetAllForAccountPrivate, reqQueueUpdateIsActiveQueue } from './queue/queue';
-import { reqQueueResourceItemAddBetween, reqQueueResourceItemAddHistory,
-  reqQueueResourceItemAddLast, reqQueueResourceItemAddNext,
-  reqQueueResourceItemAddNowPlaying, reqQueueResourceItemDelete } from './queue/queueResource/queueResourceItem';
-import { reqQueueResourceClipAddBetween, reqQueueResourceClipAddHistory,
-  reqQueueResourceClipAddLast, reqQueueResourceClipAddNext,
-  reqQueueResourceClipAddNowPlaying, reqQueueResourceClipDelete } from './queue/queueResource/queueResourceClip';
-import { reqQueueResourceItemAddByRSSAddBetween, reqQueueResourceItemAddByRSSAddHistory,
-  reqQueueResourceItemAddByRSSAddLast, reqQueueResourceItemAddByRSSAddNext,
-  reqQueueResourceItemAddByRSSAddNowPlaying, reqQueueResourceItemAddByRSSDelete,
+import {
+  reqQueueResourceItemAddBetween,
+  reqQueueResourceItemAddHistory,
+  reqQueueResourceItemAddLast,
+  reqQueueResourceItemAddNext,
+  reqQueueResourceItemAddNowPlaying,
+  reqQueueResourceItemDelete,
+} from './queue/queueResource/queueResourceItem';
+import {
+  reqQueueResourceClipAddBetween,
+  reqQueueResourceClipAddHistory,
+  reqQueueResourceClipAddLast,
+  reqQueueResourceClipAddNext,
+  reqQueueResourceClipAddNowPlaying,
+  reqQueueResourceClipDelete,
+} from './queue/queueResource/queueResourceClip';
+import {
+  reqQueueResourceItemAddByRSSAddBetween,
+  reqQueueResourceItemAddByRSSAddHistory,
+  reqQueueResourceItemAddByRSSAddLast,
+  reqQueueResourceItemAddByRSSAddNext,
+  reqQueueResourceItemAddByRSSAddNowPlaying,
+  reqQueueResourceItemAddByRSSDelete,
 } from './queue/queueResource/queueResourceItemAddByRSS';
-import { reqQueueResourceItemSoundbiteAddBetween, reqQueueResourceItemSoundbiteAddHistory,
-  reqQueueResourceItemSoundbiteAddLast, reqQueueResourceItemSoundbiteAddNext,
-  reqQueueResourceItemSoundbiteAddNowPlaying, reqQueueResourceItemSoundbiteDelete,
+import {
+  reqQueueResourceItemSoundbiteAddBetween,
+  reqQueueResourceItemSoundbiteAddHistory,
+  reqQueueResourceItemSoundbiteAddLast,
+  reqQueueResourceItemSoundbiteAddNext,
+  reqQueueResourceItemSoundbiteAddNowPlaying,
+  reqQueueResourceItemSoundbiteDelete,
 } from './queue/queueResource/queueResourceItemSoundbite';
-import { reqItemSoundbiteGet, reqItemSoundbiteGetManyByChannelIdText,
-  reqItemSoundbiteGetManyByItemIdText } from './itemSoundbite/itemSoundbite';
+import {
+  reqItemSoundbiteGet,
+  reqItemSoundbiteGetManyByChannelIdText,
+  reqItemSoundbiteGetManyByItemIdText,
+} from './itemSoundbite/itemSoundbite';
 import { reqItemTranscriptGet } from './itemTranscript/itemTranscript';
-import { reqQueueResourcesGetAllByAccountAbridged, reqQueueResourcesGetAllUpcomingByQueueIdText,
-  reqQueueResourcesGetHistoryByQueueIdTextPaginated, reqQueueResourcesGetNowPlayingByQueueIdText,
+import {
+  reqQueueResourcesGetAllByAccountAbridged,
+  reqQueueResourcesGetAllUpcomingByQueueIdText,
+  reqQueueResourcesGetHistoryByQueueIdTextPaginated,
+  reqQueueResourcesGetNowPlayingByQueueIdText,
 } from './queue/queueResource/queueResource';
 import { reqItemChapterGetByIdText } from './itemChapter/itemChapter';
-import { reqPlaylistResourceItemSoundbiteAddFirst, reqPlaylistResourceItemSoundbiteAddLast,
-  reqPlaylistResourceItemSoundbiteAddBetween, 
-  reqPlaylistResourceItemSoundbiteDelete } from './playlist/playlistResource/playlistResourceItemSoundbite';
-import { reqPlaylistResourceGetAllByPlaylistIdTextPrivate,
-  reqPlaylistResourceGetManyByPlaylistIdText, 
-  reqPlaylistResourceGetManyByShuffle, 
-  reqPlaylistResourceGetManyForQueueByListPosition} from './playlist/playlistResource/playlistResource';
+import {
+  reqPlaylistResourceItemSoundbiteAddFirst,
+  reqPlaylistResourceItemSoundbiteAddLast,
+  reqPlaylistResourceItemSoundbiteAddBetween,
+  reqPlaylistResourceItemSoundbiteDelete,
+} from './playlist/playlistResource/playlistResourceItemSoundbite';
+import {
+  reqPlaylistResourceGetAllByPlaylistIdTextPrivate,
+  reqPlaylistResourceGetManyByPlaylistIdText,
+  reqPlaylistResourceGetManyByShuffle,
+  reqPlaylistResourceGetManyForQueueByListPosition,
+} from './playlist/playlistResource/playlistResource';
 import { reqLiveItemGetMany, reqLiveItemGetManyByChannel } from './liveItem/liveItem';
 import { reqMembershipGetPricing } from './membership/membership';
-import { reqPodcastIndexFeedById, reqPodcastIndexSearchPodcasts } from './externalServices/podcastIndex';
+import {
+  reqPodcastIndexFeedById,
+  reqPodcastIndexSearchPodcasts,
+} from './externalServices/podcastIndex';
 import { reqMQRSSAddOnDemand, reqMQRSSRefreshOnDemand } from './mq/mq';
 import { reqFeedGetByPodcastIndexId } from './feed/feed';
-import { CreateAccountFCMDeviceParams, DeleteAccountFCMDeviceParams, LiveItemStatus, PlaylistResourceIdTextOptions, UpdateAccountFCMDeviceParams,
-  CreateAccountWebPushDeviceParams, UpdateAccountWebPushDeviceParams, DeleteAccountWebPushDeviceParams,
-  CreateAccountUPDeviceParams, UpdateAccountUPDeviceParams, DeleteAccountUPDeviceParams } from 'src';
-import { reqAccountNotificationChannelCreate, reqAccountNotificationChannelDelete } from './account/notification/channel';
-import { reqAccountNotificationChannelTypeCreate, reqAccountNotificationChannelTypeDelete } from './account/notification/channelType';
-import { 
+import {
+  CreateAccountFCMDeviceParams,
+  DeleteAccountFCMDeviceParams,
+  LiveItemStatus,
+  PlaylistResourceIdTextOptions,
+  UpdateAccountFCMDeviceParams,
+  CreateAccountWebPushDeviceParams,
+  UpdateAccountWebPushDeviceParams,
+  DeleteAccountWebPushDeviceParams,
+  CreateAccountUPDeviceParams,
+  UpdateAccountUPDeviceParams,
+  DeleteAccountUPDeviceParams,
+} from 'src';
+import {
+  reqAccountNotificationChannelCreate,
+  reqAccountNotificationChannelDelete,
+} from './account/notification/channel';
+import {
+  reqAccountNotificationChannelTypeCreate,
+  reqAccountNotificationChannelTypeDelete,
+} from './account/notification/channelType';
+import {
   reqAccountSettingsLocaleUpdate,
-  reqAccountSettingsNotificationTypeCreate, 
-  reqAccountSettingsNotificationTypeDelete, 
+  reqAccountSettingsNotificationTypeCreate,
+  reqAccountSettingsNotificationTypeDelete,
 } from './accountSettings/accountSettings';
-import { reqAccountFCMDeviceCreate, reqAccountFCMDeviceUpdate, reqAccountFCMDeviceDelete,
-  reqAccountFCMDeviceGetAllForAccount } from './account/fcm/fcm';
-import { reqAccountWebPushDeviceCreate, reqAccountWebPushDeviceUpdate, reqAccountWebPushDeviceDelete,
-  reqAccountWebPushDeviceGetAllForAccount } from './account/webpush/webpush';
-import { reqAccountUPDeviceCreate, reqAccountUPDeviceUpdate, reqAccountUPDeviceDelete,
-  reqAccountUPDeviceGetForAccount } from './account/unifiedpush/unifiedpush';
+import {
+  reqAccountFCMDeviceCreate,
+  reqAccountFCMDeviceUpdate,
+  reqAccountFCMDeviceDelete,
+  reqAccountFCMDeviceGetAllForAccount,
+} from './account/fcm/fcm';
+import {
+  reqAccountWebPushDeviceCreate,
+  reqAccountWebPushDeviceUpdate,
+  reqAccountWebPushDeviceDelete,
+  reqAccountWebPushDeviceGetAllForAccount,
+} from './account/webpush/webpush';
+import {
+  reqAccountUPDeviceCreate,
+  reqAccountUPDeviceUpdate,
+  reqAccountUPDeviceDelete,
+  reqAccountUPDeviceGetForAccount,
+} from './account/unifiedpush/unifiedpush';
 import { reqPublisherFeedGetRemoteItemsForChannel } from './publisherFeed/publisherFeed';
-import { reqProfilePodcastsAZ, reqProfilePlaylistsAZ, reqProfileClipsRecent, reqProfileAlbumsAZ,
-  reqMyProfilePodcastsAZ, reqMyProfilePlaylistsAZ, reqMyProfileClipsRecent, reqMyProfileAlbumsAZ,
-  QueryParamsProfileContent } from './profile/profile';
+import {
+  reqProfilePodcastsAZ,
+  reqProfilePlaylistsAZ,
+  reqProfileClipsRecent,
+  reqProfileAlbumsAZ,
+  reqMyProfilePodcastsAZ,
+  reqMyProfilePlaylistsAZ,
+  reqMyProfileClipsRecent,
+  reqMyProfileAlbumsAZ,
+  QueryParamsProfileContent,
+} from './profile/profile';
 
 export type AbortOpts = { controller: AbortController; timeoutMs: number };
 
@@ -115,34 +236,35 @@ export class ApiRequestService {
     }
   }
 
-  async apiRequest<T>({ path, method = 'GET', data, config = {}, abort, userAgent }: ApiRequestParams): Promise<T> {
+  async apiRequest<T>({
+    path,
+    method = 'GET',
+    data,
+    config = {},
+    abort,
+    userAgent,
+  }: ApiRequestParams): Promise<T> {
     // Store responseType for error handling
     const responseType = (config as { responseType?: string })?.responseType;
-    
+
     try {
       const mergedConfig = {
         ...config,
         ...(userAgent ? { userAgent } : {}),
-        ...(this.jwt ?
-          {
-            headers: {
-              ...(config.headers || {}),
-              Cookie: `jwt=${this.jwt}`,
-            },
-          }
+        ...(this.jwt
+          ? {
+              headers: {
+                ...(config.headers || {}),
+                Cookie: `jwt=${this.jwt}`,
+              },
+            }
           : {}),
       };
-      
-      const options =
-        method === 'GET'
-          ? { method, ...mergedConfig }
-          : { method, data, ...mergedConfig };
 
-      const response = await request<T>(
-        `${this.apiBase}${path}`,
-        options,
-        abort,
-      );
+      const options =
+        method === 'GET' ? { method, ...mergedConfig } : { method, data, ...mergedConfig };
+
+      const response = await request<T>(`${this.apiBase}${path}`, options, abort);
       return response.data;
     } catch (error: unknown) {
       // Extract useful debugging information from the error
@@ -155,7 +277,14 @@ export class ApiRequestService {
       } = {};
 
       // Type guard for error with response property (AxiosError)
-      const isAxiosError = (err: unknown): err is { response?: { status: number; data?: unknown }; config?: { url?: string; method?: string; responseType?: string }; request?: unknown; message?: string } => {
+      const isAxiosError = (
+        err: unknown
+      ): err is {
+        response?: { status: number; data?: unknown };
+        config?: { url?: string; method?: string; responseType?: string };
+        request?: unknown;
+        message?: string;
+      } => {
         return typeof err === 'object' && err !== null;
       };
 
@@ -167,7 +296,7 @@ export class ApiRequestService {
           if (error.config?.method) {
             errorInfo.method = error.config.method.toUpperCase();
           }
-          
+
           // If responseType is 'blob' and we have an error response, convert blob to JSON
           if (responseType === 'blob' && error.response.data instanceof Blob) {
             try {
@@ -183,7 +312,7 @@ export class ApiRequestService {
           } else {
             errorInfo.responseData = error.response.data;
           }
-          
+
           const responseData = error.response.data as { message?: string } | undefined;
           errorInfo.message = responseData?.message || error.message || 'Request failed';
         } else if (error.request) {
@@ -207,7 +336,7 @@ export class ApiRequestService {
         ...errorInfo,
         path: `${method} ${path}`,
       });
-      
+
       throw error;
     }
   }
@@ -222,7 +351,7 @@ export class ApiRequestService {
     return reqAccountGetByIdText(this, params);
   }
 
-  reqAccountCreate(params: { email: string; password: string, locale: string }) {
+  reqAccountCreate(params: { email: string; password: string; locale: string }) {
     return reqAccountCreate(this, params);
   }
 
@@ -250,7 +379,12 @@ export class ApiRequestService {
     return reqAccountChangeEmailAddress(this, params);
   }
 
-  reqAccountUpdate(params: { display_name: string | null; bio: string | null; sharable_status: number; locale: string }) {
+  reqAccountUpdate(params: {
+    display_name: string | null;
+    bio: string | null;
+    sharable_status: number;
+    locale: string;
+  }) {
     return reqAccountUpdate(this, params);
   }
 
@@ -325,7 +459,7 @@ export class ApiRequestService {
   reqAccountUnfollowChannel(params: { channel_id_text: string }) {
     return reqAccountUnfollowChannel(this, params);
   }
-  
+
   /* ACCOUNT > FOLLOW > ACCOUNT */
 
   reqAccountFollowAccount(params: { following_account_id_text: string }) {
@@ -335,7 +469,7 @@ export class ApiRequestService {
   reqAccountUnfollowAccount(params: { following_account_id_text: string }) {
     return reqAccountUnfollowAccount(this, params);
   }
-  
+
   /* ACCOUNT > FOLLOW > PLAYLIST */
 
   reqAccountFollowPlaylist(params: { playlist_id_text: string }) {
@@ -384,11 +518,7 @@ export class ApiRequestService {
 
   /* AUTH */
 
-  reqAuthLogin(params: {
-    email: string;
-    password: string;
-    includeTokenInResponseBody?: boolean;
-  }) {
+  reqAuthLogin(params: { email: string; password: string; includeTokenInResponseBody?: boolean }) {
     return reqAuthLogin(this, params);
   }
 
@@ -405,7 +535,7 @@ export class ApiRequestService {
   }
 
   /* CATEGORY */
-  
+
   reqCategoryGetAll() {
     return reqCategoryGetAll(this);
   }
@@ -460,7 +590,7 @@ export class ApiRequestService {
     return reqPodcastIndexFeedById(this, podcast_index_id);
   }
 
-  reqPodcastIndexSearchPodcasts(options: { q: string; }) {
+  reqPodcastIndexSearchPodcasts(options: { q: string }) {
     return reqPodcastIndexSearchPodcasts(this, options);
   }
 
@@ -516,11 +646,17 @@ export class ApiRequestService {
     return reqItemSoundbiteGet(this, item_soundbite_id_text);
   }
 
-  reqItemSoundbiteGetManyByChannelIdText(channel_id_text: string, params: QueryParamsItemSoundbitesByChannel) {
+  reqItemSoundbiteGetManyByChannelIdText(
+    channel_id_text: string,
+    params: QueryParamsItemSoundbitesByChannel
+  ) {
     return reqItemSoundbiteGetManyByChannelIdText(this, channel_id_text, params);
   }
 
-  reqItemSoundbiteGetManyByItemIdText(item_id_text: string, params: QueryParamsItemSoundbitesByItem) {
+  reqItemSoundbiteGetManyByItemIdText(
+    item_id_text: string,
+    params: QueryParamsItemSoundbitesByItem
+  ) {
     return reqItemSoundbiteGetManyByItemIdText(this, item_id_text, params);
   }
 
@@ -535,7 +671,7 @@ export class ApiRequestService {
   reqLiveItemGetMany(params: QueryParamsGetManyPartial, liveItemType: LiveItemStatus) {
     return reqLiveItemGetMany(this, params, liveItemType);
   }
-  
+
   reqLiveItemGetManyByChannel(channelIdOrIdText: string) {
     return reqLiveItemGetManyByChannel(this, channelIdOrIdText);
   }
@@ -548,17 +684,11 @@ export class ApiRequestService {
 
   /* MQ */
 
-  reqMQRSSAddOnDemand(params: {
-    url: string;
-    podcast_index_id: number;
-  }) {
+  reqMQRSSAddOnDemand(params: { url: string; podcast_index_id: number }) {
     return reqMQRSSAddOnDemand(this, params);
   }
 
-  reqMQRSSRefreshOnDemand(params: {
-    url: string;
-    podcast_index_id: number;
-  }) {
+  reqMQRSSRefreshOnDemand(params: { url: string; podcast_index_id: number }) {
     return reqMQRSSRefreshOnDemand(this, params);
   }
 
@@ -594,12 +724,24 @@ export class ApiRequestService {
     return reqPlaylistResourceGetAllByPlaylistIdTextPrivate(this, playlist_id_text);
   }
 
-  reqPlaylistResourceGetManyByPlaylistIdText(playlist_id_text: string, params: QueryParamsPlaylistResources) {
+  reqPlaylistResourceGetManyByPlaylistIdText(
+    playlist_id_text: string,
+    params: QueryParamsPlaylistResources
+  ) {
     return reqPlaylistResourceGetManyByPlaylistIdText(this, playlist_id_text, params);
   }
 
-  reqPlaylistResourceGetManyForQueueByListPosition(playlist_id_text: string, idTextOptions: PlaylistResourceIdTextOptions, direction: 'forward' | 'backward') {
-    return reqPlaylistResourceGetManyForQueueByListPosition(this, playlist_id_text, idTextOptions, direction);
+  reqPlaylistResourceGetManyForQueueByListPosition(
+    playlist_id_text: string,
+    idTextOptions: PlaylistResourceIdTextOptions,
+    direction: 'forward' | 'backward'
+  ) {
+    return reqPlaylistResourceGetManyForQueueByListPosition(
+      this,
+      playlist_id_text,
+      idTextOptions,
+      direction
+    );
   }
 
   reqPlaylistResourceGetManyByShuffle(playlist_id_text: string, shuffleHash: string, page: number) {
@@ -612,7 +754,11 @@ export class ApiRequestService {
     return reqPlaylistResourceClipAddFirst(this, playlist_id_text, clip_id_text);
   }
 
-  reqPlaylistResourceClipAddBetween(playlist_id_text: string, clip_id_text: string, params: BetweenParams) {
+  reqPlaylistResourceClipAddBetween(
+    playlist_id_text: string,
+    clip_id_text: string,
+    params: BetweenParams
+  ) {
     return reqPlaylistResourceClipAddBetween(this, playlist_id_text, clip_id_text, params);
   }
 
@@ -630,7 +776,11 @@ export class ApiRequestService {
     return reqPlaylistResourceItemAddFirst(this, playlist_id_text, item_id_text);
   }
 
-  reqPlaylistResourceItemAddBetween(playlist_id_text: string, item_id_text: string, params: BetweenParams) {
+  reqPlaylistResourceItemAddBetween(
+    playlist_id_text: string,
+    item_id_text: string,
+    params: BetweenParams
+  ) {
     return reqPlaylistResourceItemAddBetween(this, playlist_id_text, item_id_text, params);
   }
 
@@ -644,15 +794,30 @@ export class ApiRequestService {
 
   /* PLAYLIST RESOURCE > ITEM SOUNDBITE */
 
-  reqPlaylistResourceItemSoundbiteAddFirst(playlist_id_text: string, item_soundbite_id_text: string) {
+  reqPlaylistResourceItemSoundbiteAddFirst(
+    playlist_id_text: string,
+    item_soundbite_id_text: string
+  ) {
     return reqPlaylistResourceItemSoundbiteAddFirst(this, playlist_id_text, item_soundbite_id_text);
   }
 
-  reqPlaylistResourceItemSoundbiteAddBetween(playlist_id_text: string, item_soundbite_id_text: string, params: BetweenParams) {
-    return reqPlaylistResourceItemSoundbiteAddBetween(this, playlist_id_text, item_soundbite_id_text, params);
+  reqPlaylistResourceItemSoundbiteAddBetween(
+    playlist_id_text: string,
+    item_soundbite_id_text: string,
+    params: BetweenParams
+  ) {
+    return reqPlaylistResourceItemSoundbiteAddBetween(
+      this,
+      playlist_id_text,
+      item_soundbite_id_text,
+      params
+    );
   }
 
-  reqPlaylistResourceItemSoundbiteAddLast(playlist_id_text: string, item_soundbite_id_text: string) {
+  reqPlaylistResourceItemSoundbiteAddLast(
+    playlist_id_text: string,
+    item_soundbite_id_text: string
+  ) {
     return reqPlaylistResourceItemSoundbiteAddLast(this, playlist_id_text, item_soundbite_id_text);
   }
 
@@ -693,7 +858,10 @@ export class ApiRequestService {
   }
 
   reqQueueResourcesGetHistoryByQueueIdTextPaginated(queue_id_text: string, page?: number) {
-    return reqQueueResourcesGetHistoryByQueueIdTextPaginated(this, { queue_id_text, ...(page !== undefined ? { page } : {}) });
+    return reqQueueResourcesGetHistoryByQueueIdTextPaginated(this, {
+      queue_id_text,
+      ...(page !== undefined ? { page } : {}),
+    });
   }
 
   reqQueueResourcesGetAllByAccountAbridged() {
@@ -701,8 +869,12 @@ export class ApiRequestService {
   }
 
   /* QUEUE RESOURCE > CLIP */
-  
-  reqQueueResourceClipAddNowPlaying(queue_id_text: string, clip_id_text: string, params?: QueueExtraParams) {
+
+  reqQueueResourceClipAddNowPlaying(
+    queue_id_text: string,
+    clip_id_text: string,
+    params?: QueueExtraParams
+  ) {
     return reqQueueResourceClipAddNowPlaying(this, queue_id_text, clip_id_text, params);
   }
 
@@ -710,7 +882,11 @@ export class ApiRequestService {
     return reqQueueResourceClipAddNext(this, queue_id_text, clip_id_text);
   }
 
-  reqQueueResourceClipAddBetween(queue_id_text: string, clip_id_text: string, params: BetweenParams) {
+  reqQueueResourceClipAddBetween(
+    queue_id_text: string,
+    clip_id_text: string,
+    params: BetweenParams
+  ) {
     return reqQueueResourceClipAddBetween(this, queue_id_text, clip_id_text, params);
   }
 
@@ -718,7 +894,11 @@ export class ApiRequestService {
     return reqQueueResourceClipAddLast(this, queue_id_text, clip_id_text);
   }
 
-  reqQueueResourceClipAddHistory(queue_id_text: string, clip_id_text: string, params?: QueueExtraParams) {
+  reqQueueResourceClipAddHistory(
+    queue_id_text: string,
+    clip_id_text: string,
+    params?: QueueExtraParams
+  ) {
     return reqQueueResourceClipAddHistory(this, queue_id_text, clip_id_text, params);
   }
 
@@ -728,7 +908,11 @@ export class ApiRequestService {
 
   /* QUEUE RESOURCE > ITEM */
 
-  reqQueueResourceItemAddNowPlaying(queue_id_text: string, item_id_text: string, params?: QueueExtraParams) {
+  reqQueueResourceItemAddNowPlaying(
+    queue_id_text: string,
+    item_id_text: string,
+    params?: QueueExtraParams
+  ) {
     return reqQueueResourceItemAddNowPlaying(this, queue_id_text, item_id_text, params);
   }
 
@@ -736,7 +920,11 @@ export class ApiRequestService {
     return reqQueueResourceItemAddNext(this, queue_id_text, item_id_text);
   }
 
-  reqQueueResourceItemAddBetween(queue_id_text: string, item_id_text: string, params: BetweenParams) {
+  reqQueueResourceItemAddBetween(
+    queue_id_text: string,
+    item_id_text: string,
+    params: BetweenParams
+  ) {
     return reqQueueResourceItemAddBetween(this, queue_id_text, item_id_text, params);
   }
 
@@ -744,7 +932,11 @@ export class ApiRequestService {
     return reqQueueResourceItemAddLast(this, queue_id_text, item_id_text);
   }
 
-  reqQueueResourceItemAddHistory(queue_id_text: string, item_id_text: string, params?: QueueExtraParams) {
+  reqQueueResourceItemAddHistory(
+    queue_id_text: string,
+    item_id_text: string,
+    params?: QueueExtraParams
+  ) {
     return reqQueueResourceItemAddHistory(this, queue_id_text, item_id_text, params);
   }
 
@@ -754,23 +946,38 @@ export class ApiRequestService {
 
   /* QUEUE RESOURCE > ITEM ADD BY RSS */
 
-  reqQueueResourceItemAddByRSSAddNowPlaying(queue_id_text: string, params: QueueExtraParams & { add_by_rss_resource_data: object }) {
+  reqQueueResourceItemAddByRSSAddNowPlaying(
+    queue_id_text: string,
+    params: QueueExtraParams & { add_by_rss_resource_data: object }
+  ) {
     return reqQueueResourceItemAddByRSSAddNowPlaying(this, queue_id_text, params);
   }
 
-  reqQueueResourceItemAddByRSSAddNext(queue_id_text: string, params: { add_by_rss_resource_data: object }) {
+  reqQueueResourceItemAddByRSSAddNext(
+    queue_id_text: string,
+    params: { add_by_rss_resource_data: object }
+  ) {
     return reqQueueResourceItemAddByRSSAddNext(this, queue_id_text, params);
   }
 
-  reqQueueResourceItemAddByRSSAddBetween(queue_id_text: string, params: BetweenParams & { add_by_rss_resource_data: object }) {
+  reqQueueResourceItemAddByRSSAddBetween(
+    queue_id_text: string,
+    params: BetweenParams & { add_by_rss_resource_data: object }
+  ) {
     return reqQueueResourceItemAddByRSSAddBetween(this, queue_id_text, params);
   }
 
-  reqQueueResourceItemAddByRSSAddLast(queue_id_text: string, params: { add_by_rss_resource_data: object }) {
+  reqQueueResourceItemAddByRSSAddLast(
+    queue_id_text: string,
+    params: { add_by_rss_resource_data: object }
+  ) {
     return reqQueueResourceItemAddByRSSAddLast(this, queue_id_text, params);
   }
 
-  reqQueueResourceItemAddByRSSAddHistory(queue_id_text: string, params: QueueExtraParams & { add_by_rss_resource_data: object }) {
+  reqQueueResourceItemAddByRSSAddHistory(
+    queue_id_text: string,
+    params: QueueExtraParams & { add_by_rss_resource_data: object }
+  ) {
     return reqQueueResourceItemAddByRSSAddHistory(this, queue_id_text, params);
   }
 
@@ -780,24 +987,51 @@ export class ApiRequestService {
 
   /* QUEUE RESOURCE > ITEM SOUNDBITE */
 
-  reqQueueResourceItemSoundbiteAddNowPlaying(queue_id_text: string, item_soundbite_id_text: string, params?: QueueExtraParams) {
-    return reqQueueResourceItemSoundbiteAddNowPlaying(this, queue_id_text, item_soundbite_id_text, params);
+  reqQueueResourceItemSoundbiteAddNowPlaying(
+    queue_id_text: string,
+    item_soundbite_id_text: string,
+    params?: QueueExtraParams
+  ) {
+    return reqQueueResourceItemSoundbiteAddNowPlaying(
+      this,
+      queue_id_text,
+      item_soundbite_id_text,
+      params
+    );
   }
 
   reqQueueResourceItemSoundbiteAddNext(queue_id_text: string, item_soundbite_id_text: string) {
     return reqQueueResourceItemSoundbiteAddNext(this, queue_id_text, item_soundbite_id_text);
   }
 
-  reqQueueResourceItemSoundbiteAddBetween(queue_id_text: string, item_soundbite_id_text: string, params: BetweenParams) {
-    return reqQueueResourceItemSoundbiteAddBetween(this, queue_id_text, item_soundbite_id_text, params);
+  reqQueueResourceItemSoundbiteAddBetween(
+    queue_id_text: string,
+    item_soundbite_id_text: string,
+    params: BetweenParams
+  ) {
+    return reqQueueResourceItemSoundbiteAddBetween(
+      this,
+      queue_id_text,
+      item_soundbite_id_text,
+      params
+    );
   }
 
   reqQueueResourceItemSoundbiteAddLast(queue_id_text: string, item_soundbite_id_text: string) {
     return reqQueueResourceItemSoundbiteAddLast(this, queue_id_text, item_soundbite_id_text);
   }
 
-  reqQueueResourceItemSoundbiteAddHistory(queue_id_text: string, item_soundbite_id_text: string, params?: QueueExtraParams) {
-    return reqQueueResourceItemSoundbiteAddHistory(this, queue_id_text, item_soundbite_id_text, params);
+  reqQueueResourceItemSoundbiteAddHistory(
+    queue_id_text: string,
+    item_soundbite_id_text: string,
+    params?: QueueExtraParams
+  ) {
+    return reqQueueResourceItemSoundbiteAddHistory(
+      this,
+      queue_id_text,
+      item_soundbite_id_text,
+      params
+    );
   }
 
   reqQueueResourceItemSoundbiteDelete(queue_id_text: string, item_soundbite_id_text: string) {
@@ -839,9 +1073,10 @@ export class ApiRequestService {
   reqMyProfileClipsRecent(params: { page: number }) {
     return reqMyProfileClipsRecent(this, params);
   }
-
 }
 
 export type ApiRequestServiceMethod = {
-  [K in keyof ApiRequestService]: ApiRequestService[K] extends (...args: unknown[]) => unknown ? ApiRequestService[K] : never;
+  [K in keyof ApiRequestService]: ApiRequestService[K] extends (...args: unknown[]) => unknown
+    ? ApiRequestService[K]
+    : never;
 }[keyof ApiRequestService];

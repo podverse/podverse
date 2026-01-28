@@ -64,7 +64,7 @@ export class BundleReportManager {
     try {
       const files = fs.readdirSync(this.reportsDir);
       const reports: string[] = [];
-      
+
       for (const file of files) {
         if (file.startsWith('bundle-report-') && file.endsWith('.json')) {
           // Extract report name from filename: bundle-report-{name}-{timestamp}.json
@@ -77,7 +77,7 @@ export class BundleReportManager {
           }
         }
       }
-      
+
       return reports.sort();
     } catch (error) {
       console.error('Error reading reports directory:', error);
@@ -116,7 +116,11 @@ export class BundleReportManager {
     try {
       const files = fs.readdirSync(this.reportsDir);
       const matchingFiles = files
-        .filter(file => file.startsWith(`bundle-report-${this.sanitizeReportName(reportName)}-`) && file.endsWith('.json'))
+        .filter(
+          (file) =>
+            file.startsWith(`bundle-report-${this.sanitizeReportName(reportName)}-`) &&
+            file.endsWith('.json')
+        )
         .sort()
         .reverse(); // Most recent first
 

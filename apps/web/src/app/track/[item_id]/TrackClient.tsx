@@ -23,14 +23,12 @@ export function TrackClient(props: TrackClientProps) {
   return (
     <TrackContextProvider initialQueryParams={initialQueryParams}>
       <MainWrapper>
-        <AlbumHeader channel={ssrChannel} item={ssrItem}  />
+        <AlbumHeader channel={ssrChannel} item={ssrItem} />
         <MainInnerWrapper>
           <SideContent />
           <MainInnerContentWrapper>
-            <TrackHeader channel={ssrChannel} item={ssrItem}  />
-            <TrackListHeader
-              ssrHasTranscripts={ssrHasTranscripts}
-            />
+            <TrackHeader channel={ssrChannel} item={ssrItem} />
+            <TrackListHeader ssrHasTranscripts={ssrHasTranscripts} />
             <TrackList ssrItem={ssrItem} />
           </MainInnerContentWrapper>
         </MainInnerWrapper>

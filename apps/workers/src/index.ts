@@ -106,8 +106,8 @@ const runApp = async () => {
         authKey: config.podcastIndex.authKey,
         baseUrl: config.podcastIndex.baseUrl,
         secretKey: config.podcastIndex.secretKey,
-        rateLimitDelay: process.env.PODCAST_INDEX_API_RATE_LIMIT_DELAY 
-          ? parseInt(process.env.PODCAST_INDEX_API_RATE_LIMIT_DELAY, 10) 
+        rateLimitDelay: process.env.PODCAST_INDEX_API_RATE_LIMIT_DELAY
+          ? parseInt(process.env.PODCAST_INDEX_API_RATE_LIMIT_DELAY, 10)
           : 0,
       },
       parser: {
@@ -124,7 +124,10 @@ const runApp = async () => {
 
     // Validate all module configs
     assertConfigValid(validateORMConfig(ormConfig), 'podverse-orm');
-    assertConfigValid(validateExternalServicesConfig(externalServicesConfig), 'podverse-external-services');
+    assertConfigValid(
+      validateExternalServicesConfig(externalServicesConfig),
+      'podverse-external-services'
+    );
     assertConfigValid(validateParserConfig(parserConfig), 'podverse-parser');
 
     // Create module contexts

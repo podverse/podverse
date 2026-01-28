@@ -23,7 +23,10 @@ export async function getSSRLoggedInAccount(): Promise<DTOAccount | null> {
   }
 }
 
-export async function getSSRAuthService(): Promise<{ isValidAuthSession: boolean; ssrApiRequestService: typeof ssrApiRequestService }> {
+export async function getSSRAuthService(): Promise<{
+  isValidAuthSession: boolean;
+  ssrApiRequestService: typeof ssrApiRequestService;
+}> {
   const jwt = await getSSRJwtFromCookies();
   const ssrApiRequestService = getSSRApiRequestService(jwt);
   if (jwt) {

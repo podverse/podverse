@@ -20,21 +20,21 @@ From master plan, archive only after:
 
 ## Repositories to Archive
 
-| Repository | Package/App | Status |
-|------------|-------------|--------|
-| podverse-helpers | @podverse/helpers | Pending |
-| podverse-external-services | @podverse/external-services | Pending |
-| podverse-orm | @podverse/orm | Pending |
-| podverse-notifications | @podverse/notifications | Pending |
-| podverse-parser | @podverse/parser | Pending |
-| podverse-mq | @podverse/mq | Pending |
-| podverse-api | apps/api | Pending |
-| podverse-web | apps/web | Pending |
-| podverse-workers | apps/workers | Pending |
-| podverse-management-api | apps/management-api | Pending |
-| podverse-management-web | apps/management-web | Pending |
-| podverse-qa | tools/qa | Pending |
-| podverse-ops | infra/, scripts/, pipelines/ | Pending |
+| Repository                 | Package/App                  | Status  |
+| -------------------------- | ---------------------------- | ------- |
+| podverse-helpers           | @podverse/helpers            | Pending |
+| podverse-external-services | @podverse/external-services  | Pending |
+| podverse-orm               | @podverse/orm                | Pending |
+| podverse-notifications     | @podverse/notifications      | Pending |
+| podverse-parser            | @podverse/parser             | Pending |
+| podverse-mq                | @podverse/mq                 | Pending |
+| podverse-api               | apps/api                     | Pending |
+| podverse-web               | apps/web                     | Pending |
+| podverse-workers           | apps/workers                 | Pending |
+| podverse-management-api    | apps/management-api          | Pending |
+| podverse-management-web    | apps/management-web          | Pending |
+| podverse-qa                | tools/qa                     | Pending |
+| podverse-ops               | infra/, scripts/, pipelines/ | Pending |
 
 ## Tasks
 
@@ -42,7 +42,7 @@ From master plan, archive only after:
 
 **File**: `docs/DEPRECATION-TEMPLATE.md`
 
-```markdown
+````markdown
 # ⚠️ DEPRECATED
 
 This repository has been merged into the [Podverse Monorepo](https://github.com/podverse/podverse).
@@ -50,6 +50,7 @@ This repository has been merged into the [Podverse Monorepo](https://github.com/
 ## Migration Guide
 
 The code from this repository is now located at:
+
 - **Package**: `packages/{name}/` in the monorepo
 - **App**: `apps/{name}/` in the monorepo
 
@@ -62,6 +63,7 @@ npm install podverse-{name}
 # New
 npm install @podverse/{name}
 ```
+````
 
 ## Development
 
@@ -76,7 +78,8 @@ nvm use && npm install
 ## Questions?
 
 Open an issue in the [monorepo](https://github.com/podverse/podverse/issues).
-```
+
+````
 
 ### 2. Archive Process (Per Repo)
 
@@ -105,13 +108,14 @@ For published packages, update npm description:
 
 ```bash
 npm deprecate podverse-helpers "This package has moved to @podverse/helpers"
-```
+````
 
 Note: This shows a warning when users install the old package.
 
 ### 4. Verify No Breaking Links
 
 Check for:
+
 - Links from external documentation
 - Links from npm package pages
 - Links from other Podverse repos (mobile apps)
@@ -143,6 +147,7 @@ Check for:
 ## Rollback
 
 If issues arise after archiving:
+
 1. Unarchive the repository (GitHub Settings)
 2. Remove deprecation notice
 3. Resume development on original repo

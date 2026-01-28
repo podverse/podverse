@@ -4,16 +4,16 @@ import { ItemEnclosure } from '@orm/entities/item/itemEnclosure';
 import { BaseManyService } from '@orm/services/base/baseManyService';
 
 type ItemEnclosureDto = {
-  type: string
-  length: number | null
-  bitrate: number | null
-  height: number | null
-  language: string | null
-  title: string | null
-  rel: string | null
-  codecs: string | null
-  item_enclosure_default: boolean
-}
+  type: string;
+  length: number | null;
+  bitrate: number | null;
+  height: number | null;
+  language: string | null;
+  title: string | null;
+  rel: string | null;
+  codecs: string | null;
+  item_enclosure_default: boolean;
+};
 
 export class ItemEnclosureService extends BaseManyService<ItemEnclosure, 'item'> {
   constructor(transactionalEntityManager?: EntityManager) {

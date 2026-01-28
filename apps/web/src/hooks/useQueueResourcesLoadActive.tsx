@@ -14,7 +14,8 @@ import { autoQueueIncrementActiveRow, useAutoQueue } from '../contexts/AutoQueue
 
 export function useQueueResourcesLoadActive() {
   const { loggedInAccount } = useAccount();
-  const { autoQueueActiveRow, setAutoQueueActiveRow, autoQueueResources, autoQueueConfig } = useAutoQueue();
+  const { autoQueueActiveRow, setAutoQueueActiveRow, autoQueueResources, autoQueueConfig } =
+    useAutoQueue();
   const { setQueues, setActiveQueue, setActiveQueueUpcomingResources } = useQueues();
 
   const loggedInAccountRef = useRef(loggedInAccount);
@@ -52,10 +53,10 @@ export function useQueueResourcesLoadActive() {
     const queueData = await apiRequestService.reqQueueGetAllForAccountPrivate();
     setQueues(queueData);
 
-    let activeQueue = queueData.find(queue => queue.is_active_queue);
+    let activeQueue = queueData.find((queue) => queue.is_active_queue);
 
     if (!activeQueue) {
-      activeQueue = queueData.find(queue => queue.medium_id === MediumEnum.AV);
+      activeQueue = queueData.find((queue) => queue.medium_id === MediumEnum.AV);
     }
 
     if (activeQueue) {
@@ -63,11 +64,11 @@ export function useQueueResourcesLoadActive() {
 
       const combinedQueueResources: DTOQueueResource[] = [];
 
-      const nowPlayingResource = await apiRequestService
-        .reqQueueResourcesGetNowPlayingByQueueIdText(activeQueue.id_text);
-      
-      const upcomingQueueResources = await apiRequestService
-        .reqQueueResourcesGetAllUpcomingByQueueIdText(activeQueue.id_text);
+      const nowPlayingResource =
+        await apiRequestService.reqQueueResourcesGetNowPlayingByQueueIdText(activeQueue.id_text);
+
+      const upcomingQueueResources =
+        await apiRequestService.reqQueueResourcesGetAllUpcomingByQueueIdText(activeQueue.id_text);
 
       if (nowPlayingResource) {
         combinedQueueResources.push(nowPlayingResource, ...upcomingQueueResources);

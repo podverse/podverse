@@ -6,10 +6,10 @@ import { LiveItemStatusEnum } from '@orm/entities/liveItem/liveItemStatus';
 import { BaseOneService } from '@orm/services/base/baseOneService';
 
 type LiveItemDto = {
-  live_item_status: LiveItemStatusEnum
-  start_time: Date
-  end_time: Date | null
-}
+  live_item_status: LiveItemStatusEnum;
+  start_time: Date;
+  end_time: Date | null;
+};
 
 export class LiveItemService extends BaseOneService<LiveItem, 'item'> {
   constructor() {
@@ -22,11 +22,14 @@ export class LiveItemService extends BaseOneService<LiveItem, 'item'> {
       end_time: dto.end_time,
       live_item_status_id: dto.live_item_status,
     };
-    
+
     return super._update(item, finalDto);
   }
 
-  async getManyByChannel(channel: Channel, config?: FindManyOptions<LiveItem>): Promise<LiveItem[]> {
+  async getManyByChannel(
+    channel: Channel,
+    config?: FindManyOptions<LiveItem>
+  ): Promise<LiveItem[]> {
     return this.repositoryRead.find({
       where: { item: { channel } },
       ...config,

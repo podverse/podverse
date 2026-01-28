@@ -2,7 +2,10 @@ import { AppDataSourceRead } from '@orm/db';
 import { FeedFlagStatus, FeedFlagStatusStatusEnum } from '@orm/entities/feed/feedFlagStatus';
 
 export const checkIfFeedFlagStatusShouldParse = (status: FeedFlagStatusStatusEnum) => {
-  if (status === FeedFlagStatusStatusEnum.Active || status === FeedFlagStatusStatusEnum.AlwaysParse) {
+  if (
+    status === FeedFlagStatusStatusEnum.Active ||
+    status === FeedFlagStatusStatusEnum.AlwaysParse
+  ) {
     return true;
   }
   return false;
@@ -12,8 +15,9 @@ export const checkIfFeedFlagStatusShouldParse = (status: FeedFlagStatusStatusEnu
 export const checkIfSpamFeed = (parsedFeed: any) => {
   const spamLimit = 10000;
 
-  return parsedFeed?.items?.length >= spamLimit
-    || parsedFeed?.podcastLiveItems?.length >= spamLimit;
+  return (
+    parsedFeed?.items?.length >= spamLimit || parsedFeed?.podcastLiveItems?.length >= spamLimit
+  );
 };
 
 export class FeedFlagStatusService {

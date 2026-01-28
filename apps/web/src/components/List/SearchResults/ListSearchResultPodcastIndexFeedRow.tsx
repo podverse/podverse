@@ -19,15 +19,17 @@ interface Props {
 const ListSearchResultPodcastIndexFeedRow: React.FC<Props> = ({ searchResultPodcastIndexFeed }) => {
   const router = useRouter();
   const imageUrl = searchResultPodcastIndexFeed.image || searchResultPodcastIndexFeed.artwork;
-  const description = searchResultPodcastIndexFeed.description || ''; 
+  const description = searchResultPodcastIndexFeed.description || '';
   const lastPubDate = searchResultPodcastIndexFeed.newestItemPubdate || null;
   const author = searchResultPodcastIndexFeed.author || null;
   const tMedia = useTranslations('media');
   const locale = useLocale();
-  
+
   const handleClick = async (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
-    const ssrChannel = await apiRequestService.reqChannelGetByPodcastIndexId(searchResultPodcastIndexFeed.id);
+    const ssrChannel = await apiRequestService.reqChannelGetByPodcastIndexId(
+      searchResultPodcastIndexFeed.id
+    );
     if (ssrChannel?.medium_id) {
       redirectToChannelPageByMediumClient(router)(ssrChannel.medium_id, ssrChannel.id_text);
     } else {
@@ -48,29 +50,15 @@ const ListSearchResultPodcastIndexFeedRow: React.FC<Props> = ({ searchResultPodc
         />
         <div className={styles.content}>
           <h3 className={styles.title}>{searchResultPodcastIndexFeed.title}</h3>
-          {
-            author && (
-              <div className={styles.author}>
-                {author}
-              </div>
-            )
-          }
-          {
-            lastPubDate && (
-              <span className={styles.lastPubDate}>
-                {tMedia('updated_with_date', {
-                  date: formatDateAbbrev(lastPubDate, locale),
-                })}
-              </span>
-            )
-          }
-          {
-            description && (
-              <div className={styles.description}>
-                {description}
-              </div>
-            )
-          }
+          {author && <div className={styles.author}>{author}</div>}
+          {lastPubDate && (
+            <span className={styles.lastPubDate}>
+              {tMedia('updated_with_date', {
+                date: formatDateAbbrev(lastPubDate, locale),
+              })}
+            </span>
+          )}
+          {description && <div className={styles.description}>{description}</div>}
         </div>
       </div>
     </Link>

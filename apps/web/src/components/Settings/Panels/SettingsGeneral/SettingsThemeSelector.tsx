@@ -19,7 +19,9 @@ export const SettingsThemeSelector: React.FC = () => {
   }));
 
   const handleChange = (value: string) => {
-    if (!value || value === uiTheme) {return;}
+    if (!value || value === uiTheme) {
+      return;
+    }
     setUITheme(value as UITheme);
   };
 

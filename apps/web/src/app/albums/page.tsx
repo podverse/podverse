@@ -1,6 +1,6 @@
 import {
   QUERY_PARAMS_STATS_RANGE_VALUES,
-  getTotalPages, 
+  getTotalPages,
   QueryParamsMedium,
   QUERY_PARAMS_SUBSCRIBED_FULL_SORT,
   ApiListResponse,
@@ -13,16 +13,23 @@ import { AlbumsClient } from './AlbumsClient';
 import { getSSRAuthService } from '../../utils/auth/ssrAuth';
 import { guardSubscribedSsrFilter, safeSsrListRequest } from '../../utils/filters/ssrFilterGuards';
 import { AlbumsDropdownConfigCurrentParams, getAlbumsFilterParams } from './AlbumsDropdownConfig';
-import { AlbumsFilterDefaults, getParsedLocalSettings } from '../../utils/localSettings/localSettings';
+import {
+  AlbumsFilterDefaults,
+  getParsedLocalSettings,
+} from '../../utils/localSettings/localSettings';
 
 const searchParamsSchema = z.object({
-  page: z.string().transform((v) => parseInt(v, 10)).optional().default('1'),
+  page: z
+    .string()
+    .transform((v) => parseInt(v, 10))
+    .optional()
+    .default('1'),
   type: z.enum(QUERY_PARAMS_SUBSCRIBED_MUSIC_TYPE).optional().nullable().default(null),
   sort: z.enum(QUERY_PARAMS_SUBSCRIBED_FULL_SORT).optional().nullable().default(null),
   range: z.enum(QUERY_PARAMS_STATS_RANGE_VALUES).optional().nullable().default(null),
 });
 
-type SearchParams = z.infer<typeof searchParamsSchema>
+type SearchParams = z.infer<typeof searchParamsSchema>;
 
 export type AlbumsPageProps = {
   searchParams: Promise<SearchParams>;
@@ -36,9 +43,12 @@ export default async function AlbumsPage({ searchParams }: AlbumsPageProps) {
   const ssrFilterDefaults = ssrLocalSettings.fd?.albums;
 
   const queryParams = await searchParams;
-  const { currentType, currentSort, currentRange, currentPage } =
-    await parseSearchParams(queryParams, isValidAuthSession, ssrFilterDefaults);
-  
+  const { currentType, currentSort, currentRange, currentPage } = await parseSearchParams(
+    queryParams,
+    isValidAuthSession,
+    ssrFilterDefaults
+  );
+
   const medium: QueryParamsMedium = 'music';
   const response: ApiListResponse<DTOChannel> = await safeSsrListRequest(
     () =>
@@ -50,12 +60,17 @@ export default async function AlbumsPage({ searchParams }: AlbumsPageProps) {
         range: currentRange,
         category: null,
       }),
-    currentPage,
+    currentPage
   );
 
   const ssrChannels = response.data;
-  const ssrTotalPages = getTotalPages(response.meta.count, response.meta.limit, response.data.length, currentPage);
-  
+  const ssrTotalPages = getTotalPages(
+    response.meta.count,
+    response.meta.limit,
+    response.data.length,
+    currentPage
+  );
+
   return (
     <AlbumsClient
       initialQueryParams={{
@@ -74,7 +89,7 @@ export default async function AlbumsPage({ searchParams }: AlbumsPageProps) {
 function parseSearchParams(
   queryParams: SearchParams,
   isAuthenticated: boolean,
-  cookieDefaults?: AlbumsFilterDefaults,
+  cookieDefaults?: AlbumsFilterDefaults
 ): AlbumsDropdownConfigCurrentParams {
   const parsed = searchParamsSchema.safeParse(queryParams);
 
@@ -117,10 +132,13 @@ function parseSearchParams(
     },
   });
 
-  return getAlbumsFilterParams({
-    page: guarded.page,
-    type: guarded.type ?? 'global',
-    sort: guarded.sort ?? 'recent',
-    range: guarded.range,
-  }, isAuthenticated);
+  return getAlbumsFilterParams(
+    {
+      page: guarded.page,
+      type: guarded.type ?? 'global',
+      sort: guarded.sort ?? 'recent',
+      range: guarded.range,
+    },
+    isAuthenticated
+  );
 }

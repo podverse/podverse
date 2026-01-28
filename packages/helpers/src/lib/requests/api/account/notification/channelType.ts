@@ -9,7 +9,7 @@ type ReqAccountNotificationChannelTypeParams = {
 
 export async function reqAccountNotificationChannelTypeCreate(
   api: ApiRequestService,
-  params: ReqAccountNotificationChannelTypeParams,
+  params: ReqAccountNotificationChannelTypeParams
 ): Promise<DTOAccount> {
   await api.apiRequest({
     path: '/account/notification/channel/type',
@@ -28,7 +28,7 @@ export async function reqAccountNotificationChannelTypeCreate(
 
 export async function reqAccountNotificationChannelTypeDelete(
   api: ApiRequestService,
-  params: ReqAccountNotificationChannelTypeParams,
+  params: ReqAccountNotificationChannelTypeParams
 ): Promise<DTOAccount> {
   await api.apiRequest({
     path: `/account/notification/channel/${params.channel_id_text}/type/${params.type}`,

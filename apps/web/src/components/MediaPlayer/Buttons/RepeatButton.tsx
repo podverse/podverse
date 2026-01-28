@@ -6,8 +6,8 @@ import styles from '../../../styles/components/MediaPlayer/Buttons/RepeatButton.
 
 export const RepeatButton = () => {
   const tMediaPlayer = useTranslations('media_player');
-  const { autoQueueConfig, setAutoQueueConfig, setAutoQueueResources,
-    setAutoQueueActiveRow } = useAutoQueue();
+  const { autoQueueConfig, setAutoQueueConfig, setAutoQueueResources, setAutoQueueActiveRow } =
+    useAutoQueue();
   const autoQueueLoadResources = useAutoQueueLoadResources();
 
   const onClick = () => {
@@ -29,7 +29,12 @@ export const RepeatButton = () => {
       onClick={onClick}
       type="button"
       aria-label={tMediaPlayer('repeat.toggle_repeat')}
-      title={autoQueueConfig.repeat ? tMediaPlayer('repeat.repeat_enabled') : tMediaPlayer('repeat.repeat_disabled')}>
+      title={
+        autoQueueConfig.repeat
+          ? tMediaPlayer('repeat.repeat_enabled')
+          : tMediaPlayer('repeat.repeat_disabled')
+      }
+    >
       <FaRepeat />
     </button>
   );

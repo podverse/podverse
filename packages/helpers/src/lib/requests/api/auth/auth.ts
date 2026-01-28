@@ -12,10 +12,7 @@ type AuthLoginResponse = ApiMessageResponse & {
   token?: string;
 };
 
-export async function reqAuthLogin(
-  api: ApiRequestService,
-  params: ReqAuthLoginParams,
-) {
+export async function reqAuthLogin(api: ApiRequestService, params: ReqAuthLoginParams) {
   return api.apiRequest<AuthLoginResponse>({
     path: '/auth/login',
     method: 'POST',
@@ -38,7 +35,7 @@ export async function reqAuthLogout(api: ApiRequestService) {
 
 export async function reqAuthMe(
   api: ApiRequestService,
-  options?: { headers?: Record<string, string> },
+  options?: { headers?: Record<string, string> }
 ) {
   return api.apiRequest<DTOAccount>({
     path: '/auth/me',
@@ -52,7 +49,7 @@ export async function reqAuthMe(
 
 export async function reqAuthCheckSession(
   api: ApiRequestService,
-  options?: { headers?: Record<string, string> },
+  options?: { headers?: Record<string, string> }
 ) {
   return api.apiRequest<ApiMessageResponse>({
     path: '/auth/check-session',

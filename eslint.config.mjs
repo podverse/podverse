@@ -1,6 +1,7 @@
 import eslint from '@eslint/js';
 import tseslint from 'typescript-eslint';
 import globals from 'globals';
+import eslintConfigPrettier from 'eslint-config-prettier/flat';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 
@@ -24,16 +25,16 @@ export default tseslint.config(
     },
     rules: {
       'no-unused-vars': 'off',
-      '@typescript-eslint/no-unused-vars': ['error', { 
-        argsIgnorePattern: '^_',
-        varsIgnorePattern: '^_',
-      }],
-      'semi': ['error', 'always'],
-      'quotes': ['error', 'single', { avoidEscape: true }],
-      'comma-dangle': ['error', 'always-multiline'],
+      '@typescript-eslint/no-unused-vars': [
+        'error',
+        {
+          argsIgnorePattern: '^_',
+          varsIgnorePattern: '^_',
+        },
+      ],
       'no-console': ['warn', { allow: ['warn', 'error'] }],
-      'eqeqeq': ['error', 'always'],
-      'curly': ['error', 'all'],
+      eqeqeq: ['error', 'always'],
+      curly: ['error', 'all'],
       '@typescript-eslint/explicit-function-return-type': 'off',
       '@typescript-eslint/explicit-module-boundary-types': 'off',
       '@typescript-eslint/no-explicit-any': 'warn',
@@ -41,11 +42,7 @@ export default tseslint.config(
     },
   },
   {
-    ignores: [
-      '**/dist/**',
-      '**/node_modules/**',
-      '**/*.js',
-      '**/*.d.ts',
-    ],
+    ignores: ['**/dist/**', '**/node_modules/**', '**/*.js', '**/*.d.ts'],
   },
+  eslintConfigPrettier
 );

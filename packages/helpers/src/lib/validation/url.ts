@@ -20,7 +20,7 @@ export function validateHttpsUrl(url?: string | null): { isValid: boolean; error
   // Check for valid URL format
   try {
     const parsed = new URL(trimmedUrl);
-    
+
     // Must be HTTPS
     if (parsed.protocol !== 'https:') {
       return { isValid: false, error: 'URL must use HTTPS' };
@@ -50,7 +50,7 @@ export function validateHttpOrHttpsUrl(url?: string | null): { isValid: boolean;
 
   try {
     const parsed = new URL(trimmedUrl);
-    
+
     if (parsed.protocol !== 'https:' && parsed.protocol !== 'http:') {
       return { isValid: false, error: 'URL must use HTTP or HTTPS' };
     }
@@ -68,7 +68,7 @@ export function validateHttpOrHttpsUrl(url?: string | null): { isValid: boolean;
 /**
  * Checks if an IP address is in a private IP range.
  * Useful for SSRF protection in any application.
- * 
+ *
  * @param ip - The IP address to check (IPv4 format)
  * @returns true if the IP is in a private range, false otherwise
  */
@@ -78,34 +78,34 @@ export function isPrivateIP(ip: string): boolean {
   if (/^10\./.test(ip)) {
     return true;
   }
-  
+
   // 172.16.0.0/12 (172.16.0.0 - 172.31.255.255)
   if (/^172\.(1[6-9]|2[0-9]|3[0-1])\./.test(ip)) {
     return true;
   }
-  
+
   // 192.168.0.0/16
   if (/^192\.168\./.test(ip)) {
     return true;
   }
-  
+
   // 127.0.0.0/8 (localhost)
   if (/^127\./.test(ip)) {
     return true;
   }
-  
+
   // 169.254.0.0/16 (link-local)
   if (/^169\.254\./.test(ip)) {
     return true;
   }
-  
+
   return false;
 }
 
 /**
  * Checks if a hostname is a localhost variant.
  * Useful for SSRF protection in any application.
- * 
+ *
  * @param hostname - The hostname to check
  * @returns true if the hostname is a localhost variant, false otherwise
  */
@@ -128,7 +128,7 @@ export function isLocalhost(hostname: string): boolean {
  * Validates a URL for SSRF (Server-Side Request Forgery) vulnerabilities.
  * Checks for private IPs, localhost, and dangerous protocols.
  * Useful for any application that needs to validate external URLs.
- * 
+ *
  * @param url - The URL to validate
  * @param options - Optional configuration
  * @param options.allowPrivateIPs - If true, allows private IP addresses (default: false)
@@ -142,7 +142,7 @@ export function validateUrlForSSRF(
     allowPrivateIPs?: boolean;
     allowLocalhost?: boolean;
     allowedProtocols?: string[];
-  } = {},
+  } = {}
 ): { isValid: boolean; error?: string } {
   if (!url) {
     return { isValid: false, error: 'URL is required' };
@@ -156,22 +156,22 @@ export function validateUrlForSSRF(
 
   try {
     const parsedUrl = new URL(url);
-    
+
     // Check protocol
     if (!allowedProtocols.includes(parsedUrl.protocol)) {
       return { isValid: false, error: `Protocol ${parsedUrl.protocol} is not allowed` };
     }
-    
+
     // Block file:// and data: protocols by default
     if (parsedUrl.protocol === 'file:' || parsedUrl.protocol === 'data:') {
       return { isValid: false, error: 'Invalid protocol' };
     }
-    
+
     // Check for localhost variants
     if (!allowLocalhost && isLocalhost(parsedUrl.hostname)) {
       return { isValid: false, error: 'Localhost URLs are not allowed' };
     }
-    
+
     // Check for private IP addresses
     if (!allowPrivateIPs) {
       // Check if hostname is an IP address
@@ -181,23 +181,25 @@ export function validateUrlForSSRF(
           return { isValid: false, error: 'Private IP addresses are not allowed' };
         }
       }
-      
+
       // Also check hostname string directly (in case it's not a valid IP format but still private)
       if (isPrivateIP(parsedUrl.hostname)) {
         return { isValid: false, error: 'Private IP addresses are not allowed' };
       }
-      
+
       // Check for IPv6 localhost addresses
       if (parsedUrl.hostname.includes(':')) {
-        if (parsedUrl.hostname.startsWith('::1') || 
-            parsedUrl.hostname.startsWith('[::1]') ||
-            parsedUrl.hostname.startsWith('fe80:') ||
-            parsedUrl.hostname.startsWith('[fe80:')) {
+        if (
+          parsedUrl.hostname.startsWith('::1') ||
+          parsedUrl.hostname.startsWith('[::1]') ||
+          parsedUrl.hostname.startsWith('fe80:') ||
+          parsedUrl.hostname.startsWith('[fe80:')
+        ) {
           return { isValid: false, error: 'Localhost IPv6 addresses are not allowed' };
         }
       }
     }
-    
+
     return { isValid: true };
   } catch {
     return { isValid: false, error: 'Invalid URL format' };

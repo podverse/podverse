@@ -4,9 +4,9 @@ import { ItemTranscript } from '@orm/entities/item/itemTranscript';
 import { BaseManyService } from '@orm/services/base/baseManyService';
 
 type ItemTranscriptDto = {
-  url: string
-  title?: string | null
-}
+  url: string;
+  title?: string | null;
+};
 
 export class ItemTranscriptService extends BaseManyService<ItemTranscript, 'item'> {
   constructor(transactionalEntityManager?: EntityManager) {

@@ -32,15 +32,16 @@ export const QueueResourcesAbridgedIndexProvider = ({
     add_by_rss_resource_datas: {},
   };
 
-  const [queueResourcesAbridgedIndex, setQueueResourcesAbridgedIndex] = useState<QueueResourcesAbridgedIndex>(
-    ssrQueueResourcesAbridgedIndex || defaultIndex,
-  );
+  const [queueResourcesAbridgedIndex, setQueueResourcesAbridgedIndex] =
+    useState<QueueResourcesAbridgedIndex>(ssrQueueResourcesAbridgedIndex || defaultIndex);
 
   return (
     <QueueResourcesAbridgedIndexContext.Provider
       value={{
-        queueResourcesAbridgedIndex, setQueueResourcesAbridgedIndex,
-      }}>
+        queueResourcesAbridgedIndex,
+        setQueueResourcesAbridgedIndex,
+      }}
+    >
       {children}
     </QueueResourcesAbridgedIndexContext.Provider>
   );
@@ -48,6 +49,10 @@ export const QueueResourcesAbridgedIndexProvider = ({
 
 export function useQueueResourcesAbridgedIndex() {
   const ctx = useContext(QueueResourcesAbridgedIndexContext);
-  if (!ctx) {throw new Error('useQueueResourcesAbridgedIndex must be used within a QueueResourcesAbridgedIndexProvider');}
+  if (!ctx) {
+    throw new Error(
+      'useQueueResourcesAbridgedIndex must be used within a QueueResourcesAbridgedIndexProvider'
+    );
+  }
   return ctx;
 }

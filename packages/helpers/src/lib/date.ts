@@ -1,17 +1,10 @@
 import { format, Locale } from 'date-fns';
 import { enUS, es, fr, el } from 'date-fns/locale';
 
-export const formatDateAbbrev = (
-  date: Date | number | string,
-  localeString: string,
-): string => {
+export const formatDateAbbrev = (date: Date | number | string, localeString: string): string => {
   const d =
     typeof date === 'string' || typeof date === 'number'
-      ? new Date(
-        typeof date === 'number' && date < 1e12
-          ? date * 1000
-          : date,
-      )
+      ? new Date(typeof date === 'number' && date < 1e12 ? date * 1000 : date)
       : date;
   const locale = getDateFnsLocale(localeString);
   return format(d, 'MMM d yyyy', { locale });

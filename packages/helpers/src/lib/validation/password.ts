@@ -14,12 +14,16 @@ export const validatePassword = (password: string) => {
 };
 
 export function getPasswordErrorKey(password: string): string | undefined {
-  if (!password) {return 'invalid_password';}
+  if (!password) {
+    return 'invalid_password';
+  }
   return validatePassword(password) ? undefined : 'invalid_password';
 }
 
 export function getPassword2ErrorKey(password1: string, password2: string): string | undefined {
-  if (!password2) {return 'password_mismatch';}
+  if (!password2) {
+    return 'password_mismatch';
+  }
   return password1 === password2 ? undefined : 'password_mismatch';
 }
 

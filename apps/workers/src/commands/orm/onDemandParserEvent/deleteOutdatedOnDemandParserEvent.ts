@@ -19,6 +19,8 @@ export const deleteOutdatedOnDemandParserEvent = async (args: CommandLineArgs) =
     await service.deleteOutdatedEvents(days);
     logger.info(`Successfully deleted OnDemandParserEvent records older than ${days} days.`);
   } catch (error) {
-    logger.error(`Error deleting outdated OnDemandParserEvent records: ${(error as Error).message}`);
+    logger.error(
+      `Error deleting outdated OnDemandParserEvent records: ${(error as Error).message}`
+    );
   }
 };

@@ -96,11 +96,13 @@ make local_db_up
 ### Adding a New Migration
 
 1. Create new migration file:
+
    ```bash
    touch infra/database/main/migrations/0013_add_podcast_chapters.sql
    ```
 
 2. Write migration SQL:
+
    ```sql
    -- Migration: 0013_add_podcast_chapters
    -- Description: Add chapters table for podcast episodes
@@ -120,6 +122,7 @@ make local_db_up
    ```
 
 3. Regenerate combined file:
+
    ```bash
    ./scripts/database/combine-migrations.sh
    ```
@@ -332,13 +335,13 @@ When applying a production migration:
 
 ## Files to Migrate
 
-| Source | Destination |
-|--------|-------------|
-| `podverse-ops/database/migrations/` | `infra/database/main/migrations/` |
-| `podverse-ops/database/combined/` | `infra/database/main/combined/` |
+| Source                                | Destination                         |
+| ------------------------------------- | ----------------------------------- |
+| `podverse-ops/database/migrations/`   | `infra/database/main/migrations/`   |
+| `podverse-ops/database/combined/`     | `infra/database/main/combined/`     |
 | `podverse-ops/database/init-scripts/` | `infra/database/main/init-scripts/` |
 | `podverse-ops/database/seed-scripts/` | `infra/database/main/seed-scripts/` |
-| `podverse-ops/database/management/` | `infra/database/management/` |
+| `podverse-ops/database/management/`   | `infra/database/management/`        |
 
 ## Estimated Effort
 

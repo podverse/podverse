@@ -18,7 +18,9 @@ function CategoryListItems({
   tCategories: (key: string) => string;
   onCategoryClick: (category: DTOCategory, event: React.MouseEvent<HTMLButtonElement>) => void;
 }) {
-  if (!categories || categories.length === 0) {return null;}
+  if (!categories || categories.length === 0) {
+    return null;
+  }
   return (
     <ul className={styles.categoryList}>
       {categories.map((category) => (

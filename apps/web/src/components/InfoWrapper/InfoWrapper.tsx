@@ -8,9 +8,5 @@ type InfoWrapperProps = {
 };
 
 export const InfoWrapper: React.FC<InfoWrapperProps> = ({ children }) => {
-  return (
-    <div className={styles.infoWrapper}>
-      {children}
-    </div>
-  );
+  return <div className={styles.infoWrapper}>{children}</div>;
 };

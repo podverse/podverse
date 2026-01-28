@@ -15,10 +15,14 @@ interface Props {
 
 export const ListPodcastRow: React.FC<Props> = ({ channel }) => {
   const url = `${ROUTES.PODCAST}/${channel.id_text}`;
-  const channel_image = findDTOChannelImageBySize(channel.channel_images, IMAGES.LIST.PODCASTS.SIZE_FIND_TARGET, 'lesser');
+  const channel_image = findDTOChannelImageBySize(
+    channel.channel_images,
+    IMAGES.LIST.PODCASTS.SIZE_FIND_TARGET,
+    'lesser'
+  );
   const tMedia = useTranslations('media');
   const locale = useLocale();
-  
+
   return (
     <Link href={url} className={styles.link}>
       <div className={styles.listItem}>
@@ -31,13 +35,11 @@ export const ListPodcastRow: React.FC<Props> = ({ channel }) => {
         />
         <div className={styles.content}>
           <h3 className={styles.title}>{channel.title}</h3>
-          {
-            channel.channel_about?.last_pub_date && (
-              <span className={styles.lastPubDate}>
-                {formatDateAbbrev(channel.channel_about.last_pub_date, locale)}
-              </span>
-            )
-          }
+          {channel.channel_about?.last_pub_date && (
+            <span className={styles.lastPubDate}>
+              {formatDateAbbrev(channel.channel_about.last_pub_date, locale)}
+            </span>
+          )}
         </div>
       </div>
     </Link>

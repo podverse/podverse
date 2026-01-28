@@ -1,5 +1,12 @@
 import { getMediumIdArrayFromType, MediumEnum, QueryParamsMedium } from '@podverse/helpers';
-import { FindManyOptions, FindOptionsRelations, FindOptionsWhere, In, Repository, Equal } from 'typeorm';
+import {
+  FindManyOptions,
+  FindOptionsRelations,
+  FindOptionsWhere,
+  In,
+  Repository,
+  Equal,
+} from 'typeorm';
 import { Channel } from '@orm/entities/channel/channel';
 import { Feed } from '@orm/entities/feed/feed';
 import { applyProperties } from '@orm/lib/applyProperties';
@@ -18,14 +25,14 @@ import { ChannelValueRecipientService } from './channelValueRecipient';
 import { FeedFlagStatusStatusEnum } from '@orm/entities/feed/feedFlagStatus';
 
 type ChannelDto = {
-  slug?: string | null
-  podcast_guid?: string | null
-  title?: string | null
-  sortable_title?: string | null
-  medium_id: MediumEnum
-  has_podcast_index_value?: boolean
-  has_value_time_splits?: boolean
-}
+  slug?: string | null;
+  podcast_guid?: string | null;
+  title?: string | null;
+  sortable_title?: string | null;
+  medium_id: MediumEnum;
+  has_podcast_index_value?: boolean;
+  has_value_time_splits?: boolean;
+};
 
 export const channelGetManyRelations = [
   'channel_about',
@@ -94,10 +101,14 @@ const getChannelOneToOneRelations = (relations: FindOptionsRelations<Channel>) =
     ...(relations.channel_internal_settings ? { channel_internal_settings: true } : {}),
     ...(relations.channel_license ? { channel_license: true } : {}),
     ...(relations.channel_location ? { channel_location: true } : {}),
-    ...(relations.channel_podroll ? { channel_podroll: { channel_podroll_remote_items: true } } : {}),
-    ...(relations.channel_publisher ? { channel_publisher: { channel_publisher_remote_items: true } } : {}),
+    ...(relations.channel_podroll
+      ? { channel_podroll: { channel_podroll_remote_items: true } }
+      : {}),
+    ...(relations.channel_publisher
+      ? { channel_publisher: { channel_publisher_remote_items: true } }
+      : {}),
   };
-   
+
   return oneToOneRelations;
 };
 
@@ -116,10 +127,10 @@ export class ChannelService {
 
   async getChannelWithRelations(
     where: FindOptionsWhere<Channel>,
-    relations: FindOptionsRelations<Channel>,
+    relations: FindOptionsRelations<Channel>
   ): Promise<Channel | null> {
     const oneToOneRelations = getChannelOneToOneRelations(relations);
-    
+
     const channels = await this.repositoryRead.find({
       where,
       relations: oneToOneRelations,
@@ -196,10 +207,12 @@ export class ChannelService {
         const channel_value_recipients = await channelValueRecipientsService._getAll(channel_value);
         if (channel_value_recipients) {
           channel_value.channel_value_recipients = channel_value_recipients;
-        };
+        }
       }
 
-      if (channel_values) {channel.channel_values = channel_values;}
+      if (channel_values) {
+        channel.channel_values = channel_values;
+      }
     }
 
     if (relations.feed) {
@@ -222,14 +235,20 @@ export class ChannelService {
     return this.getChannelWithRelations({ id }, relations);
   }
 
-  async getByIdText(id_text: string, relations: FindOptionsRelations<Channel> = {}): Promise<Channel | null> {
+  async getByIdText(
+    id_text: string,
+    relations: FindOptionsRelations<Channel> = {}
+  ): Promise<Channel | null> {
     if (!id_text) {
       return null;
     }
     return this.getChannelWithRelations({ id_text }, relations);
   }
 
-  async getByIdOrIdText(idOrIdText: string, relations: FindOptionsRelations<Channel> = {}): Promise<Channel | null> {
+  async getByIdOrIdText(
+    idOrIdText: string,
+    relations: FindOptionsRelations<Channel> = {}
+  ): Promise<Channel | null> {
     let channel = null;
 
     if (isNaN(Number(idOrIdText))) {
@@ -242,7 +261,10 @@ export class ChannelService {
     return channel;
   }
 
-  async getByPodcastIndexId(podcast_index_id: number, relations: FindOptionsRelations<Channel> = {}) {
+  async getByPodcastIndexId(
+    podcast_index_id: number,
+    relations: FindOptionsRelations<Channel> = {}
+  ) {
     return this.repositoryRead.findOne({
       where: { feed: { podcast_index_id } },
       relations,
@@ -252,14 +274,17 @@ export class ChannelService {
   async getMany(
     config: FindManyOptions<Channel>,
     mediumType: QueryParamsMedium,
-    category_id: number | null,
+    category_id: number | null
   ): Promise<Channel[]> {
     const medium_ids = mediumType ? getMediumIdArrayFromType(mediumType) : null;
 
     return this.repositoryRead.find({
       where: {
         feed: {
-          feed_flag_status: In([FeedFlagStatusStatusEnum.Active, FeedFlagStatusStatusEnum.AlwaysParse]),
+          feed_flag_status: In([
+            FeedFlagStatusStatusEnum.Active,
+            FeedFlagStatusStatusEnum.AlwaysParse,
+          ]),
         },
         ...(medium_ids ? { medium_id: In(medium_ids) } : {}),
         ...(category_id ? { channel_categories: { category_id: Equal(category_id) } } : {}),
@@ -272,7 +297,10 @@ export class ChannelService {
     return this.repositoryRead.count({
       where: {
         feed: {
-          feed_flag_status: In([FeedFlagStatusStatusEnum.Active, FeedFlagStatusStatusEnum.AlwaysParse]),
+          feed_flag_status: In([
+            FeedFlagStatusStatusEnum.Active,
+            FeedFlagStatusStatusEnum.AlwaysParse,
+          ]),
         },
       },
       ...config,
@@ -281,7 +309,7 @@ export class ChannelService {
 
   async getAllByPodcastGuids(
     config: FindManyOptions<Channel>,
-    podcast_guids: string[],
+    podcast_guids: string[]
   ): Promise<Channel[]> {
     return this.repositoryRead.find({
       where: {

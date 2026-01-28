@@ -12,14 +12,10 @@ export interface LighthouseTestResults {
 }
 
 export class LighthouseRunner {
-  private readonly medianRuns = Math.max(
-    1,
-    Number(process.env.LIGHTHOUSE_MEDIAN_RUNS || 5)
-  );
+  private readonly medianRuns = Math.max(1, Number(process.env.LIGHTHOUSE_MEDIAN_RUNS || 5));
   private readonly contextMode = (process.env.LIGHTHOUSE_CONTEXT_MODE || 'fresh').toLowerCase();
 
-  constructor() {
-  }
+  constructor() {}
 
   async runLighthouseOnPage(url: string, port: number): Promise<LighthouseResult> {
     const result = await lighthouse(url, {
@@ -42,10 +38,10 @@ export class LighthouseRunner {
         requestLatencyMs: 150,
         downloadThroughputKbps: 1638.4,
         uploadThroughputKbps: 768,
-        cpuSlowdownMultiplier: 4
+        cpuSlowdownMultiplier: 4,
       },
       disableStorageReset: true,
-      skipAudits: []
+      skipAudits: [],
     });
 
     if (!result?.lhr) {
@@ -55,15 +51,12 @@ export class LighthouseRunner {
     return result.lhr;
   }
 
-  private async prepareContext(
-    automation: BrowserAutomation,
-    url: string
-  ) {
+  private async prepareContext(automation: BrowserAutomation, url: string) {
     const browser = automation.getBrowser();
     const context = await browser.newContext(automation.getContextOptions());
     await context.setExtraHTTPHeaders({
       'Cache-Control': 'no-cache',
-      Pragma: 'no-cache'
+      Pragma: 'no-cache',
     });
     const cookies = await automation.exportCookies();
     if (cookies.length > 0) {
@@ -84,7 +77,7 @@ export class LighthouseRunner {
       const headers = {
         ...route.request().headers(),
         'Cache-Control': 'no-store',
-        Pragma: 'no-cache'
+        Pragma: 'no-cache',
       };
       await route.continue({ headers });
     });
@@ -146,7 +139,7 @@ export class LighthouseRunner {
       'unused-javascript',
       'render-blocking-resources',
       'network-requests',
-      'network-rtt'
+      'network-rtt',
     ];
 
     for (const auditId of auditIds) {
@@ -204,13 +197,21 @@ export class LighthouseRunner {
       await automation.navigateToHomepage();
       await automation.waitBetweenActions();
       console.log('         Running Lighthouse audit...');
-      results.homepage = await this.runWithMedian(automation, await automation.getCurrentUrl(), port);
+      results.homepage = await this.runWithMedian(
+        automation,
+        await automation.getCurrentUrl(),
+        port
+      );
       console.log('         ✅ Homepage test complete');
 
       // Podcast channel page
       await automation.navigateToChannel('lhtest-chan-1', false);
       await automation.waitBetweenActions();
-      results.podcastChannelPage = await this.runWithMedian(automation, await automation.getCurrentUrl(), port);
+      results.podcastChannelPage = await this.runWithMedian(
+        automation,
+        await automation.getCurrentUrl(),
+        port
+      );
 
       // Potential scenarios (currently disabled):
       // - Logged out: podcast episode, podcast after play, podcast after reload
@@ -231,7 +232,7 @@ export class LighthouseRunner {
     const loggedOut = await this.testLoggedOut(automation);
 
     return {
-      loggedOut
+      loggedOut,
     };
   }
 }

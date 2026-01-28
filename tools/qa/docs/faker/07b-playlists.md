@@ -45,10 +45,10 @@ export interface GeneratedPlaylist {
 export class PlaylistGenerator {
   private idCounter = 1;
   private defaultFavoritesCreated: Set<string> = new Set(); // account_id-medium_id
-  
+
   generate(accounts: GeneratedAccount[], count: number): GeneratedPlaylist[] {
     const playlists: GeneratedPlaylist[] = [];
-    
+
     // First, create default favorites playlists for each account (one per medium)
     for (const account of accounts) {
       // Default favorites for AV medium (main supported playlist medium)
@@ -64,16 +64,16 @@ export class PlaylistGenerator {
           is_default_favorites: true,
           item_count: 0, // Will be updated when resources are added
           last_updated: faker.date.past({ years: 1 }),
-          medium_id: MediumEnum.AV
+          medium_id: MediumEnum.AV,
         });
         this.defaultFavoritesCreated.add(key);
       }
     }
-    
+
     // Then create additional regular playlists
     for (let i = 0; i < count; i++) {
       const account = faker.helpers.arrayElement(accounts);
-      
+
       playlists.push({
         id: this.idCounter++,
         id_text: generateRandomIdText(),
@@ -81,7 +81,7 @@ export class PlaylistGenerator {
         sharable_status_id: faker.helpers.weightedArrayElement([
           { value: SharableStatusEnum.Public, weight: 4 },
           { value: SharableStatusEnum.Unlisted, weight: 4 },
-          { value: SharableStatusEnum.Private, weight: 2 }
+          { value: SharableStatusEnum.Private, weight: 2 },
         ]),
         title: faker.lorem.words({ min: 2, max: 5 }).slice(0, DATABASE_CONSTANTS.varchar_normal),
         description: faker.datatype.boolean({ probability: 0.5 })
@@ -90,10 +90,10 @@ export class PlaylistGenerator {
         is_default_favorites: false,
         item_count: 0, // Will be updated
         last_updated: faker.date.past({ years: 1 }),
-        medium_id: MediumEnum.AV // Playlists use AV medium
+        medium_id: MediumEnum.AV, // Playlists use AV medium
       });
     }
-    
+
     return playlists;
   }
 }
@@ -124,7 +124,7 @@ export interface GeneratedPlaylistResource {
 
 export class PlaylistResourceGenerator {
   private idCounter = 1;
-  
+
   generate(
     playlists: GeneratedPlaylist[],
     clips: GeneratedClip[],
@@ -132,7 +132,7 @@ export class PlaylistResourceGenerator {
     soundbiteIds: number[]
   ): GeneratedPlaylistResource[] {
     const resources: GeneratedPlaylistResource[] = [];
-    
+
     for (const playlist of playlists) {
       // Skip default favorites playlists for now, or add minimal items
       if (playlist.is_default_favorites) {
@@ -148,27 +148,27 @@ export class PlaylistResourceGenerator {
             item_id: item.id,
             item_soundbite_id: null,
             add_by_rss_hash_id: null,
-            add_by_rss_resource_data: null
+            add_by_rss_resource_data: null,
           });
         }
         continue;
       }
-      
+
       // Add 2-10 resources to regular playlists
       const resourceCount = faker.number.int({ min: 2, max: 10 });
-      
+
       for (let i = 0; i < resourceCount; i++) {
         // Decide resource type: 50% items, 30% clips, 20% soundbites
         const resourceType = faker.helpers.weightedArrayElement([
           { value: 'item', weight: 5 },
           { value: 'clip', weight: 3 },
-          { value: 'soundbite', weight: 2 }
+          { value: 'soundbite', weight: 2 },
         ]);
-        
+
         let clipId: number | null = null;
         let itemId: number | null = null;
         let soundbiteId: number | null = null;
-        
+
         if (resourceType === 'clip' && clips.length > 0) {
           clipId = faker.helpers.arrayElement(clips).id;
         } else if (resourceType === 'soundbite' && soundbiteIds.length > 0) {
@@ -176,7 +176,7 @@ export class PlaylistResourceGenerator {
         } else {
           itemId = faker.helpers.arrayElement(items).id;
         }
-        
+
         resources.push({
           id: this.idCounter++,
           playlist_id: playlist.id,
@@ -185,11 +185,11 @@ export class PlaylistResourceGenerator {
           item_id: itemId,
           item_soundbite_id: soundbiteId,
           add_by_rss_hash_id: null,
-          add_by_rss_resource_data: null
+          add_by_rss_resource_data: null,
         });
       }
     }
-    
+
     return resources;
   }
 }
@@ -197,7 +197,7 @@ export class PlaylistResourceGenerator {
 
 ## Summary
 
-| Entity | Count for baseCount=100 |
-|--------|------------------------|
-| Playlist | ~204 (104 default favorites + 100 regular) |
+| Entity           | Count for baseCount=100                    |
+| ---------------- | ------------------------------------------ |
+| Playlist         | ~204 (104 default favorites + 100 regular) |
 | PlaylistResource | ~812 (0-3 per favorites, 2-10 per regular) |

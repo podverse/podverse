@@ -7,6 +7,7 @@ This checklist should be completed before considering the migration complete. It
 ### Ansible Configuration
 
 - [ ] Verify `podverse_monorepo` role syntax:
+
   ```bash
   cd podverse-ansible
   ansible-playbook --syntax-check podverse-alpha-srv.yaml
@@ -14,6 +15,7 @@ This checklist should be completed before considering the migration complete. It
   ```
 
 - [ ] Verify all alpha config role file paths exist:
+
   ```bash
   # From podverse-ansible directory:
   find roles/podverse_alpha_*/files/opt/podverse/infra/config/alpha -type f
@@ -29,6 +31,7 @@ This checklist should be completed before considering the migration complete. It
 ### Jenkins Configuration
 
 - [ ] Verify `scm-job.xml` has sparse checkout configured:
+
   ```bash
   # From podverse-ansible directory:
   grep -A 10 "SparseCheckoutPaths" ../podverse/pipelines/jenkins/alpha/scm-job.xml
@@ -50,19 +53,23 @@ This checklist should be completed before considering the migration complete. It
 ### Step 1: Ansible Playbook Dry-Run
 
 - [ ] Run alpha-srv playbook in check mode:
+
   ```bash
   # From podverse-ansible directory:
   ansible-playbook --check --diff podverse-alpha-srv.yaml
   ```
+
   - Verify it would create `/opt/podverse` directory
   - Verify it would clone monorepo with sparse checkout
   - Verify it would deploy configs to `/opt/podverse/infra/config/alpha/`
 
 - [ ] Run alpha-aux playbook in check mode:
+
   ```bash
   # From podverse-ansible directory:
   ansible-playbook --check --diff podverse-alpha-aux.yaml
   ```
+
   - Verify it would create `/opt/podverse` directory
   - Verify it would clone monorepo with sparse checkout
   - Verify it would deploy configs to `/opt/podverse/infra/config/alpha/`
@@ -72,6 +79,7 @@ This checklist should be completed before considering the migration complete. It
 After running playbooks (or on existing server):
 
 - [ ] SSH to alpha-srv and verify sparse checkout:
+
   ```bash
   ssh alpha-srv
   ls -la /opt/podverse/
@@ -80,6 +88,7 @@ After running playbooks (or on existing server):
   ```
 
 - [ ] Verify sparse checkout paths:
+
   ```bash
   cat /opt/podverse/.git/info/sparse-checkout
   # Should list: pipelines/jenkins/, infra/docker/, infra/config/, scripts/, Makefile, Makefile.alpha
@@ -94,6 +103,7 @@ After running playbooks (or on existing server):
 ### Step 3: Jenkins Job Testing
 
 - [ ] Import Jenkins jobs (if not already done):
+
   ```bash
   # From podverse-ansible directory:
   cd ../podverse/pipelines/jenkins/alpha
@@ -116,6 +126,7 @@ After running playbooks (or on existing server):
 ### Step 4: Makefile Target Testing
 
 - [ ] Test Makefile.alpha targets can find configs:
+
   ```bash
   ssh alpha-srv
   cd /opt/podverse
@@ -142,11 +153,12 @@ After running playbooks (or on existing server):
   - Verify all services start successfully
 
 - [ ] Verify services are running:
+
   ```bash
   # On alpha-srv
   docker ps | grep podverse-api
   docker ps | grep podverse-web
-  
+
   # On alpha-aux
   docker ps | grep podverse-db
   docker ps | grep podverse-mq
@@ -162,6 +174,7 @@ After running playbooks (or on existing server):
 ### Step 6: Verify No Production Impact
 
 - [ ] Confirm production/sandbox unchanged:
+
   ```bash
   # Production should still use /opt/podverse-ops
   ssh prod-srv

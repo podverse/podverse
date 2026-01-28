@@ -10,17 +10,22 @@ type PlayButtonRowProps = {
   item_soundbite?: DTOItemSoundbite;
   item_chapter?: DTOItemChapter;
   onClick: () => void;
-}
+};
 
 export const PlayButtonRow: React.FC<PlayButtonRowProps> = ({
-  clip, item, item_chapter, item_soundbite, onClick }) => {
+  clip,
+  item,
+  item_chapter,
+  item_soundbite,
+  onClick,
+}) => {
   const { mpIsPlaying, mpItem, mpItemChapter, mpItemSoundbite, mpClip } = useMediaPlayer();
   const tMediaPlayer = useTranslations('media_player');
 
   if (!item) {
     return null;
   }
-  
+
   let isCurrentlyInPlayer = false;
   if (item_chapter) {
     isCurrentlyInPlayer = mpItemChapter?.id_text === item_chapter.id_text;
@@ -37,11 +42,7 @@ export const PlayButtonRow: React.FC<PlayButtonRowProps> = ({
   const icon = isPlaying ? <FaPause /> : <FaPlay />;
 
   return (
-    <button
-      className={styles.playButtonRow}
-      aria-label={label}
-      onClick={onClick}
-      type="button">
+    <button className={styles.playButtonRow} aria-label={label} onClick={onClick} type="button">
       {icon}
     </button>
   );

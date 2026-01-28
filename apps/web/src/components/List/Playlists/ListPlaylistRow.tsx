@@ -9,7 +9,7 @@ import styles from '../../../styles/components/List/Playlists/ListPlaylistRow.mo
 
 interface Props {
   playlist: DTOPlaylist;
-  showCreator?: boolean
+  showCreator?: boolean;
   onClick?: () => void;
 }
 
@@ -20,30 +20,20 @@ export const ListPlaylistRow: React.FC<Props> = ({ playlist, showCreator, onClic
   const creator = playlist?.account?.account_profile?.display_name || tMisc('anonymous');
 
   return (
-    <Link
-      href={!onClick ? url : undefined}
-      className={styles.link}
-      onClick={onClick}
-    >
+    <Link href={!onClick ? url : undefined} className={styles.link} onClick={onClick}>
       <div className={styles.listItem}>
         <div className={styles.content}>
           <div className={styles.title}>{playlist.title}</div>
           <div className={styles.subtitleWrapper}>
             <span>{tFeatures('playlist.item_count', { count: playlist.item_count })}</span>
-            {
-              playlist.description && (
-                <>
-                  <span> – </span>
-                  <span>{playlist.description}</span>
-                </>
-              )
-            }
+            {playlist.description && (
+              <>
+                <span> – </span>
+                <span>{playlist.description}</span>
+              </>
+            )}
           </div>
-          {
-            showCreator && (
-              <div className={styles.creator}>{creator}</div>
-            )
-          }
+          {showCreator && <div className={styles.creator}>{creator}</div>}
         </div>
       </div>
     </Link>

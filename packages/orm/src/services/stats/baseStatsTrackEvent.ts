@@ -32,7 +32,7 @@ export abstract class BaseStatsTrackEventService<T> {
 
     const existingEntity = await this.readWriteEntityManager.query(
       `SELECT * FROM ${this.entityName} WHERE account_guid = $1 AND ${this.entityIdField} = $2`,
-      [accountGuid.account_guid, entity.id],
+      [accountGuid.account_guid, entity.id]
     );
     if (existingEntity.length > 0) {
       return;
@@ -45,7 +45,7 @@ export abstract class BaseStatsTrackEventService<T> {
     };
     await this.readWriteEntityManager.query(
       `INSERT INTO ${this.entityName} (account_guid, ${this.entityIdField}, created_at) VALUES ($1, $2, $3)`,
-      [newEntity.account_guid, newEntity[this.entityIdField], newEntity.created_at],
+      [newEntity.account_guid, newEntity[this.entityIdField], newEntity.created_at]
     );
   }
 
@@ -69,7 +69,7 @@ export abstract class BaseStatsTrackEventService<T> {
        GROUP BY ${this.entityIdField}
        ORDER BY event_count DESC
        LIMIT $1`,
-      [limit],
+      [limit]
     );
 
     return result.map((row: { [key: string]: number }) => row[this.entityIdField]);
@@ -88,12 +88,12 @@ export abstract class BaseStatsTrackEventService<T> {
 
     const existingEntity = await this.readWriteEntityManager.query(
       `SELECT * FROM ${this.entityName} WHERE account_guid = $1 AND ${this.entityIdField} = $2`,
-      [accountGuid.account_guid, entity.id],
+      [accountGuid.account_guid, entity.id]
     );
     if (existingEntity.length > 0) {
       await this.readWriteEntityManager.query(
         `DELETE FROM ${this.entityName} WHERE account_guid = $1 AND ${this.entityIdField} = $2`,
-        [accountGuid.account_guid, entity.id],
+        [accountGuid.account_guid, entity.id]
       );
     }
   }

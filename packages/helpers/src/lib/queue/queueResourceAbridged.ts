@@ -1,6 +1,8 @@
 import { DTOQueueResourceAbridgedResponseData, QueueResourcesAbridgedIndex } from '../../dtos';
 
-export const generateQueueResourceAbridgedIndex = (queueResourcesAbridged: DTOQueueResourceAbridgedResponseData[]) => {
+export const generateQueueResourceAbridgedIndex = (
+  queueResourcesAbridged: DTOQueueResourceAbridgedResponseData[]
+) => {
   const index: QueueResourcesAbridgedIndex = {
     items: {},
     clips: {},
@@ -8,7 +10,7 @@ export const generateQueueResourceAbridgedIndex = (queueResourcesAbridged: DTOQu
     add_by_rss_resource_datas: {},
   };
 
-  queueResourcesAbridged.forEach(resource => {
+  queueResourcesAbridged.forEach((resource) => {
     if (resource.c) {
       index.clips[resource.c] = resource;
     } else if (resource.s) {
@@ -28,25 +30,25 @@ type QueueResourceAbridgedUpdate = {
   p: string; // playback_position
   d: string; // media_file_duration
   z: boolean; // completed
-}
+};
 
 type QueueResourceAbridgedUpdateRSS = {
   a: string; // add_by_rss_hash_id
   p: string; // playback_position
   d: string; // media_file_duration
   z: boolean; // completed
-}
+};
 
 export type QueueResourceAbridgedUpdates = {
-  item: QueueResourceAbridgedUpdate | null,
-  clip: QueueResourceAbridgedUpdate | null,
-  item_soundbite: QueueResourceAbridgedUpdate | null,
-  add_by_rss_resource_data: QueueResourceAbridgedUpdateRSS | null
+  item: QueueResourceAbridgedUpdate | null;
+  clip: QueueResourceAbridgedUpdate | null;
+  item_soundbite: QueueResourceAbridgedUpdate | null;
+  add_by_rss_resource_data: QueueResourceAbridgedUpdateRSS | null;
 };
 
 export const updateQueueResourceAbridgedIndex = (
   index: QueueResourcesAbridgedIndex,
-  updates: QueueResourceAbridgedUpdates,
+  updates: QueueResourceAbridgedUpdates
 ): QueueResourcesAbridgedIndex => {
   const updatedIndex = { ...index };
 

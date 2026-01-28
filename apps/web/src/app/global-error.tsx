@@ -13,7 +13,10 @@ type TranslationValue = string | Record<string, unknown>;
 type MiscTranslations = Record<string, TranslationValue>;
 
 // Helper to get translations for global-error (rendered outside provider tree)
-async function getGlobalErrorTranslations(): Promise<{ errors: Record<string, string>; misc: MiscTranslations }> {
+async function getGlobalErrorTranslations(): Promise<{
+  errors: Record<string, string>;
+  misc: MiscTranslations;
+}> {
   // Helper to filter out nested objects and only keep string values
   const filterStrings = (obj: Record<string, unknown> | undefined): Record<string, string> => {
     const result: Record<string, string> = {};
@@ -27,11 +30,12 @@ async function getGlobalErrorTranslations(): Promise<{ errors: Record<string, st
 
   try {
     // Try to get locale from cookie
-    const localeCookie = document.cookie
-      .split('; ')
-      .find(row => row.startsWith('NEXT_LOCALE='))
-      ?.split('=')[1] || 'en-US';
-    
+    const localeCookie =
+      document.cookie
+        .split('; ')
+        .find((row) => row.startsWith('NEXT_LOCALE='))
+        ?.split('=')[1] || 'en-US';
+
     // Load translation file
     const messages = await import(`../../i18n/originals/${localeCookie}.json`);
     return {
@@ -64,7 +68,10 @@ async function getGlobalErrorTranslations(): Promise<{ errors: Record<string, st
 }
 
 export default function GlobalError({ error, reset }: GlobalErrorProps) {
-  const [translations, setTranslations] = useState<{ errors: Record<string, string>; misc: MiscTranslations }>({
+  const [translations, setTranslations] = useState<{
+    errors: Record<string, string>;
+    misc: MiscTranslations;
+  }>({
     errors: {
       global_title: 'Application Error',
       global_message: 'A critical error occurred. Please refresh the page.',
@@ -99,15 +106,13 @@ export default function GlobalError({ error, reset }: GlobalErrorProps) {
       <body>
         <div className={styles.errorBoundary}>
           <div className={styles.errorBoundaryContent}>
-            <h2 className={styles.errorBoundaryTitle}>
-              {tErrors('global_title')}
-            </h2>
-            <p className={styles.errorBoundaryMessage}>
-              {tErrors('global_message')}
-            </p>
+            <h2 className={styles.errorBoundaryTitle}>{tErrors('global_title')}</h2>
+            <p className={styles.errorBoundaryMessage}>{tErrors('global_message')}</p>
             {process.env.NODE_ENV === 'development' && (
               <details className={styles.errorDetails}>
-                <summary className={styles.errorDetailsSummary}>{tErrors('details_development_only')}</summary>
+                <summary className={styles.errorDetailsSummary}>
+                  {tErrors('details_development_only')}
+                </summary>
                 <pre className={styles.errorDetailsContent}>
                   {error.toString()}
                   {error.stack && `\n\n${error.stack}`}

@@ -13,18 +13,26 @@ export class StatsTrackEventPlaylistController {
   private static statsTrackEventPlaylistService = new StatsTrackEventPlaylistService();
 
   static async create(req: Request, res: Response): Promise<void> {
-    ensureAuthenticated(req, res, async () => {
-      validateBodyObject(createStatsTrackEventPlaylistSchema, req, res, async () => {
-        const jwtUser = getAuthenticatedUser(req);
-        const { playlist_id_text } = req.body;
+    ensureAuthenticated(
+      req,
+      res,
+      async () => {
+        validateBodyObject(createStatsTrackEventPlaylistSchema, req, res, async () => {
+          const jwtUser = getAuthenticatedUser(req);
+          const { playlist_id_text } = req.body;
 
-        try {
-          await StatsTrackEventPlaylistController.statsTrackEventPlaylistService._create(jwtUser.id, playlist_id_text);
-          res.status(201).json({ message: 'Event logged successfully' });
-        } catch (error) {
-          handleGenericErrorResponse(res, error);
-        }
-      });
-    }, { skipMembershipStatus: false });
+          try {
+            await StatsTrackEventPlaylistController.statsTrackEventPlaylistService._create(
+              jwtUser.id,
+              playlist_id_text
+            );
+            res.status(201).json({ message: 'Event logged successfully' });
+          } catch (error) {
+            handleGenericErrorResponse(res, error);
+          }
+        });
+      },
+      { skipMembershipStatus: false }
+    );
   }
 }

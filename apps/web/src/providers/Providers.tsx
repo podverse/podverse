@@ -41,7 +41,9 @@ export default function Providers({
           <AccountProvider ssrLoggedInAccount={ssrLoggedInAccount}>
             <NotificationsProvider>
               <QueuesProvider>
-                <QueueResourcesAbridgedIndexProvider ssrQueueResourcesAbridgedIndex={ssrQueueResourcesAbridgedIndex}>
+                <QueueResourcesAbridgedIndexProvider
+                  ssrQueueResourcesAbridgedIndex={ssrQueueResourcesAbridgedIndex}
+                >
                   <PlaylistsFavoritesProvider>
                     <MediaPlayerCurrentTimeProvider>
                       <MediaPlayerProvider>

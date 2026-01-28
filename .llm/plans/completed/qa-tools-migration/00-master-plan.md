@@ -8,12 +8,14 @@
 ## Overview
 
 Migrate two performance testing tools from `podverse-web/qa/` to the monorepo at `tools/web-perf/`:
+
 - **Bundle Analyzer**: Next.js bundle size analysis with visualizations
 - **Lighthouse**: Performance testing with Playwright browser automation
 
 ## Current vs Target State
 
 **Current (podverse-web):**
+
 ```
 podverse-web/
   qa/
@@ -23,6 +25,7 @@ podverse-web/
 ```
 
 **Target (monorepo):**
+
 ```
 podverse/
   tools/
@@ -47,11 +50,11 @@ podverse/
 
 ## Sub-Plans
 
-| Plan | File | Complexity | Status |
-|------|------|------------|--------|
-| Bundle Analyzer Migration | [01-bundle-analyzer-migration.md](./01-bundle-analyzer-migration.md) | Moderate | Complete |
-| Lighthouse Migration | [02-lighthouse-migration.md](./02-lighthouse-migration.md) | High | Complete |
-| Integration & Documentation | [03-integration-documentation.md](./03-integration-documentation.md) | Low | Complete |
+| Plan                        | File                                                                 | Complexity | Status   |
+| --------------------------- | -------------------------------------------------------------------- | ---------- | -------- |
+| Bundle Analyzer Migration   | [01-bundle-analyzer-migration.md](./01-bundle-analyzer-migration.md) | Moderate   | Complete |
+| Lighthouse Migration        | [02-lighthouse-migration.md](./02-lighthouse-migration.md)           | High       | Complete |
+| Integration & Documentation | [03-integration-documentation.md](./03-integration-documentation.md) | Low        | Complete |
 
 ## Key Path Transformations
 
@@ -78,10 +81,12 @@ Both tools currently use `path.resolve(__dirname, '../../../')` to find podverse
 ## External Dependencies
 
 ### Bundle Analyzer
+
 - `apps/web`: Next.js with `@next/bundle-analyzer` in next.config.ts
 - Environment: `apps/web/env/local.env` or `apps/web/.env`
 
 ### Lighthouse
+
 - `apps/web`: Web app for testing (port 3111)
 - `apps/api`: API server (port 1111)
 - `podverse-ops` (sibling repo): Database setup via Make commands

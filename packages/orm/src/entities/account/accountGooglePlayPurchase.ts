@@ -9,7 +9,7 @@ export class AccountGooglePlayPurchase {
   @Column()
   account_id!: number;
 
-  @ManyToOne(() => Account, account => account.id, { onDelete: 'CASCADE' })
+  @ManyToOne(() => Account, (account) => account.id, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'account_id' })
   account!: Account;
 

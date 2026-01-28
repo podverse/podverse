@@ -17,7 +17,7 @@ export const ListAlbumRowRemoteItemUnadded: React.FC<Props> = ({ channelUnadded 
   const url = `${ROUTES.PODCAST_INDEX}/feed/${channelUnadded.id}`;
   const tMedia = useTranslations('media');
   const tMisc = useTranslations('misc');
-  
+
   return (
     <Link href={url} className={styles.link}>
       <div className={styles.listItem}>
@@ -30,13 +30,9 @@ export const ListAlbumRowRemoteItemUnadded: React.FC<Props> = ({ channelUnadded 
         />
         <div className={styles.content}>
           <h3 className={styles.title}>{channelUnadded.title}</h3>
-          {
-            channelUnadded.author && (
-              <span className={styles.lastPubDate}>
-                {channelUnadded.author || tMisc('untitled')}
-              </span>
-            )
-          }
+          {channelUnadded.author && (
+            <span className={styles.lastPubDate}>{channelUnadded.author || tMisc('untitled')}</span>
+          )}
         </div>
       </div>
     </Link>

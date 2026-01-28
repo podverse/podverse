@@ -13,6 +13,7 @@ Create `@podverse/helpers-config` package for application startup and configurat
 ### 1. Create Package Structure
 
 **`packages/helpers-config/package.json`:**
+
 ```json
 {
   "name": "@podverse/helpers-config",
@@ -20,9 +21,7 @@ Create `@podverse/helpers-config` package for application startup and configurat
   "description": "Configuration and startup validation utilities for Podverse backend applications",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
-  "files": [
-    "dist/**/*"
-  ],
+  "files": ["dist/**/*"],
   "scripts": {
     "build": "npm run lint && tsc",
     "build:prod": "tsc",
@@ -46,6 +45,7 @@ Create `@podverse/helpers-config` package for application startup and configurat
 ```
 
 **`packages/helpers-config/tsconfig.json`:**
+
 ```json
 {
   "extends": "../../tsconfig.base.json",
@@ -53,19 +53,19 @@ Create `@podverse/helpers-config` package for application startup and configurat
     "outDir": "./dist",
     "rootDir": "./src"
   },
-  "include": [
-    "src/**/*"
-  ]
+  "include": ["src/**/*"]
 }
 ```
 
 ### 2. Copy Config Validation Code
 
 **Copy from `packages/helpers/src/lib/validation/`** to `packages/helpers-config/src/`:
+
 - `configValidation.ts` (~310 lines) - ORM, Parser, Notifications config validators
 - `startupValidation.ts` (~571 lines) - Environment variable validation utilities
 
 **Create `packages/helpers-config/src/index.ts`:**
+
 ```typescript
 export * from './configValidation';
 export * from './startupValidation';
@@ -82,10 +82,12 @@ npm run build
 ## Platform Notes
 
 **Node.js only**: This package uses `process.env` and is intended for:
+
 - Backend app startup validation (api, workers, management-api)
 - Build scripts (web/management-web validate-env.ts)
 
 **NOT compatible with**:
+
 - Browser runtime
 - React Native runtime
 
@@ -110,6 +112,7 @@ npm run build
 This package exports:
 
 **From configValidation.ts:**
+
 - `validateORMConfig`
 - `validateNotificationsConfig`
 - `validateExternalServicesConfig`
@@ -118,6 +121,7 @@ This package exports:
 - Type definitions: `ORMConfig`, `NotificationsConfig`, `ExternalServicesConfig`, `ParserConfig`
 
 **From startupValidation.ts:**
+
 - `validateRequired`
 - `validateOptional`
 - `validateConditionalOptional`

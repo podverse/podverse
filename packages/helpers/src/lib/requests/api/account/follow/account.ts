@@ -8,7 +8,7 @@ type ReqAccountFollowParams = {
 
 export async function reqAccountFollowAccount(
   api: ApiRequestService,
-  params: ReqAccountFollowParams,
+  params: ReqAccountFollowParams
 ): Promise<DTOAccount> {
   await api.apiRequest({
     path: '/account/follow/account',
@@ -24,7 +24,7 @@ export async function reqAccountFollowAccount(
 
 export async function reqAccountUnfollowAccount(
   api: ApiRequestService,
-  params: ReqAccountFollowParams,
+  params: ReqAccountFollowParams
 ): Promise<DTOAccount> {
   await api.apiRequest({
     path: '/account/unfollow/account',

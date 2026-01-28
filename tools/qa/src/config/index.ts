@@ -1,5 +1,5 @@
-/* eslint-disable @typescript-eslint/no-non-null-assertion -- 
- * This is a library/tool used by other apps. 
+/* eslint-disable @typescript-eslint/no-non-null-assertion --
+ * This is a library/tool used by other apps.
  * Env vars should be set by the consuming app before importing this module.
  * Accessing this config without setting env vars will throw at runtime.
  */

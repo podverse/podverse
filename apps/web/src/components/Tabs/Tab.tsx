@@ -11,7 +11,13 @@ type TabProps = {
   hideDesktop?: boolean;
 };
 
-export const Tab: React.FC<TabProps> = ({ label, selected = false, onClick, zIndex, hideDesktop }) => {
+export const Tab: React.FC<TabProps> = ({
+  label,
+  selected = false,
+  onClick,
+  zIndex,
+  hideDesktop,
+}) => {
   return (
     <button
       className={classNames(styles.tab, {

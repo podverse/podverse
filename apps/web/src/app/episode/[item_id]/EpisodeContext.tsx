@@ -1,8 +1,14 @@
 'use client';
 
 import { useParams } from 'next/navigation';
-import { DTOClip, DTOItemChapter, DTOItemSoundbite, getTotalPages,
-  QueryParamsItem, TranscriptRow } from '@podverse/helpers';
+import {
+  DTOClip,
+  DTOItemChapter,
+  DTOItemSoundbite,
+  getTotalPages,
+  QueryParamsItem,
+  TranscriptRow,
+} from '@podverse/helpers';
 import React, { createContext, useContext, useState, ReactNode, useRef } from 'react';
 import { useAccount } from '../../../contexts/Account';
 import { checkBackNavFlag } from '../../../contexts/Navigation';
@@ -39,13 +45,13 @@ interface EpisodeContextType {
   setAutoScrollOn: (autoScrollOn: boolean) => void;
   isLoading: boolean;
   setIsLoading: (isLoading: boolean) => void;
-};
+}
 
 const EpisodeContext = createContext<EpisodeContextType | undefined>(undefined);
 
 interface EpisodeContextProviderProps {
-  children: ReactNode,
-  initialQueryParams: QueryParamsItem,
+  children: ReactNode;
+  initialQueryParams: QueryParamsItem;
 }
 
 export const EpisodeContextProvider = ({
@@ -53,41 +59,35 @@ export const EpisodeContextProvider = ({
   initialQueryParams,
 }: EpisodeContextProviderProps) => {
   const params = useParams();
-  
+
   if (!params.item_id) {
     return null;
   }
 
   const item_id = params.item_id as string;
   const routeKey = `episode-${item_id}`;
-  
+
   // Use synchronous sessionStorage check instead of async React state
   const isBackNav = checkBackNavFlag();
-  
+
   // Check for cached state on back navigation
-  const cachedState = isBackNav 
-    ? getPageState<QueryParamsItem, EpisodeCachedData>(routeKey) 
-    : null;
+  const cachedState = isBackNav ? getPageState<QueryParamsItem, EpisodeCachedData>(routeKey) : null;
   const restoredFromCacheRef = useRef(!!cachedState?.data);
-  
+
   const [filterParams, setFilterParams] = useState<QueryParamsItem>(
-    cachedState?.filterParams ?? initialQueryParams,
+    cachedState?.filterParams ?? initialQueryParams
   );
   const [itemChapters, setItemChapters] = useState<DTOItemChapter[]>(
-    cachedState?.data?.itemChapters ?? [],
+    cachedState?.data?.itemChapters ?? []
   );
   const [itemSoundbites, setItemSoundbites] = useState<DTOItemSoundbite[]>(
-    cachedState?.data?.itemSoundbites ?? [],
+    cachedState?.data?.itemSoundbites ?? []
   );
-  const [clips, setClips] = useState<DTOClip[]>(
-    cachedState?.data?.clips ?? [],
-  );
-  const [totalPages, setTotalPages] = useState<number>(
-    cachedState?.data?.totalPages ?? 1,
-  );
+  const [clips, setClips] = useState<DTOClip[]>(cachedState?.data?.clips ?? []);
+  const [totalPages, setTotalPages] = useState<number>(cachedState?.data?.totalPages ?? 1);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [transcriptRows, setTranscriptRows] = useState<TranscriptRow[]>(
-    cachedState?.data?.transcriptRows ?? [],
+    cachedState?.data?.transcriptRows ?? []
   );
   const [autoScrollOn, setAutoScrollOn] = useState<boolean>(true);
   const { loggedInAccount } = useAccount();
@@ -122,10 +122,17 @@ export const EpisodeContextProvider = ({
     async function fetchItemChapters() {
       const response = await apiRequestService.reqItemParseAndGetChapters(item_id);
 
-      const totalPages = getTotalPages(response.meta.count, response.meta.limit, response.data.length, 1);
+      const totalPages = getTotalPages(
+        response.meta.count,
+        response.meta.limit,
+        response.data.length,
+        1
+      );
       setTotalPages(totalPages);
-      
-      const tocChapters = response.data.filter((ch: DTOItemChapter) => ch.table_of_contents !== false);
+
+      const tocChapters = response.data.filter(
+        (ch: DTOItemChapter) => ch.table_of_contents !== false
+      );
       setItemChapters(tocChapters);
     }
 
@@ -137,15 +144,17 @@ export const EpisodeContextProvider = ({
         range: filterParams.range,
       });
 
-      const response = await apiRequestService.reqItemSoundbiteGetManyByItemIdText(
-        item_id,
-        {
-          page: filterParams.page,
-          sort: currentSort === 'oldest' ? 'oldest' : 'recent',
-        },
-      );
+      const response = await apiRequestService.reqItemSoundbiteGetManyByItemIdText(item_id, {
+        page: filterParams.page,
+        sort: currentSort === 'oldest' ? 'oldest' : 'recent',
+      });
 
-      const totalPages = getTotalPages(response.meta.count, response.meta.limit, response.data.length, filterParams.page);
+      const totalPages = getTotalPages(
+        response.meta.count,
+        response.meta.limit,
+        response.data.length,
+        filterParams.page
+      );
       setTotalPages(totalPages);
       setItemSoundbites(response.data);
     }
@@ -158,16 +167,19 @@ export const EpisodeContextProvider = ({
         range: filterParams.range,
       });
 
-      const response = await apiRequestService.reqClipGetManyByItemPublic(
-        {
-          idOrIdText: item_id,
-          page: filterParams.page,
-          sort: currentSort,
-          range: currentRange,
-        },
-      );
+      const response = await apiRequestService.reqClipGetManyByItemPublic({
+        idOrIdText: item_id,
+        page: filterParams.page,
+        sort: currentSort,
+        range: currentRange,
+      });
 
-      const totalPages = getTotalPages(response.meta.count, response.meta.limit, response.data.length, filterParams.page);
+      const totalPages = getTotalPages(
+        response.meta.count,
+        response.meta.limit,
+        response.data.length,
+        filterParams.page
+      );
       setTotalPages(totalPages);
       setClips(response.data);
     }
@@ -177,7 +189,7 @@ export const EpisodeContextProvider = ({
       const rows = await getTranscriptRowsFromTranscriptString(response.data);
       setTranscriptRows(rows);
     }
-    
+
     async function fetchData() {
       setIsLoading(true);
 
@@ -193,22 +205,31 @@ export const EpisodeContextProvider = ({
 
       setIsLoading(false);
     }
-    
+
     fetchData();
   }, [filterParams, loggedInAccount]);
 
   return (
-    <EpisodeContext.Provider value={{
-      filterParams,
-      setFilterParams,
-      itemChapters, setItemChapters,
-      itemSoundbites, setItemSoundbites,
-      clips, setClips,
-      totalPages, setTotalPages,
-      transcriptRows, setTranscriptRows,
-      autoScrollOn, setAutoScrollOn,
-      isLoading, setIsLoading,
-    }}>
+    <EpisodeContext.Provider
+      value={{
+        filterParams,
+        setFilterParams,
+        itemChapters,
+        setItemChapters,
+        itemSoundbites,
+        setItemSoundbites,
+        clips,
+        setClips,
+        totalPages,
+        setTotalPages,
+        transcriptRows,
+        setTranscriptRows,
+        autoScrollOn,
+        setAutoScrollOn,
+        isLoading,
+        setIsLoading,
+      }}
+    >
       {children}
     </EpisodeContext.Provider>
   );
@@ -216,6 +237,8 @@ export const EpisodeContextProvider = ({
 
 export const useEpisodeContext = () => {
   const ctx = useContext(EpisodeContext);
-  if (!ctx) {throw new Error('useEpisodeContext must be used within an EpisodeContextProvider');}
+  if (!ctx) {
+    throw new Error('useEpisodeContext must be used within an EpisodeContextProvider');
+  }
   return ctx;
 };

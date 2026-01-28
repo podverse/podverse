@@ -45,17 +45,17 @@ npm run build -w apps/workers
 
 ## Available Commands
 
-| Script | Description |
-|--------|-------------|
-| `npm run archive_all` | Archive all feeds |
-| `npm run mq_rss_add` | Add single feed to message queue |
-| `npm run mq_rss_add_all` | Add all feeds to message queue |
-| `npm run mq_rss_run_parser` | Run RSS parser worker |
-| `npm run mq_rss_run_dlq_consumer` | Process dead letter queue |
-| `npm run parser_rss_parse_feed -- --feedUrl URL` | Parse single RSS feed |
-| `npm run podcast_index_trending_podcasts_get` | Get trending podcasts |
-| `npm run podcast_index_value_update_all` | Update all value blocks |
-| `npm run stats_update_aggregated` | Update aggregated statistics |
+| Script                                           | Description                      |
+| ------------------------------------------------ | -------------------------------- |
+| `npm run archive_all`                            | Archive all feeds                |
+| `npm run mq_rss_add`                             | Add single feed to message queue |
+| `npm run mq_rss_add_all`                         | Add all feeds to message queue   |
+| `npm run mq_rss_run_parser`                      | Run RSS parser worker            |
+| `npm run mq_rss_run_dlq_consumer`                | Process dead letter queue        |
+| `npm run parser_rss_parse_feed -- --feedUrl URL` | Parse single RSS feed            |
+| `npm run podcast_index_trending_podcasts_get`    | Get trending podcasts            |
+| `npm run podcast_index_value_update_all`         | Update all value blocks          |
+| `npm run stats_update_aggregated`                | Update aggregated statistics     |
 
 Run commands from the monorepo root with workspace flag:
 

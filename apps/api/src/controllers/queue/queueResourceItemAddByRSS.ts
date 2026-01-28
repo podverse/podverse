@@ -32,84 +32,129 @@ class QueueResourceItemAddByRSSController {
 
   static async addItemAddByRSSToQueueNext(req: Request, res: Response): Promise<void> {
     validateParamsObject(queueIdSchema, req, res, async () => {
-      ensureAuthenticated(req, res, async () => {
-        verifyQueueOwnership()(req, res, async () => {
-          validateBodyObject(addItemToQueueSchema, req, res, async () => {
-            const queue_id_text = getParamRequired(req, 'queue_id_text');
-            const { add_by_rss_resource_data } = req.body;
-            try {
-              const queueResource = await QueueResourceItemAddByRSSController.queueResourceService.addItemAddByRSSToQueueNext(queue_id_text, add_by_rss_resource_data);
-              res.status(201).json(queueResource);
-            } catch (err) {
-              handleGenericErrorResponse(res, err);
-            }
+      ensureAuthenticated(
+        req,
+        res,
+        async () => {
+          verifyQueueOwnership()(req, res, async () => {
+            validateBodyObject(addItemToQueueSchema, req, res, async () => {
+              const queue_id_text = getParamRequired(req, 'queue_id_text');
+              const { add_by_rss_resource_data } = req.body;
+              try {
+                const queueResource =
+                  await QueueResourceItemAddByRSSController.queueResourceService.addItemAddByRSSToQueueNext(
+                    queue_id_text,
+                    add_by_rss_resource_data
+                  );
+                res.status(201).json(queueResource);
+              } catch (err) {
+                handleGenericErrorResponse(res, err);
+              }
+            });
           });
-        });
-      }, { skipMembershipStatus: false });
+        },
+        { skipMembershipStatus: false }
+      );
     });
   }
 
   static async addItemAddByRSSToQueueLast(req: Request, res: Response): Promise<void> {
     validateParamsObject(queueIdSchema, req, res, async () => {
-      ensureAuthenticated(req, res, async () => {
-        verifyQueueOwnership()(req, res, async () => {
-          validateBodyObject(addItemToQueueSchema, req, res, async () => {
-            const queue_id_text = getParamRequired(req, 'queue_id_text');
-            const { add_by_rss_resource_data } = req.body;
-            try {
-              const queueResource = await QueueResourceItemAddByRSSController.queueResourceService.addItemAddByRSSToQueueLast(queue_id_text, add_by_rss_resource_data);
-              res.status(201).json(queueResource);
-            } catch (err) {
-              handleGenericErrorResponse(res, err);
-            }
+      ensureAuthenticated(
+        req,
+        res,
+        async () => {
+          verifyQueueOwnership()(req, res, async () => {
+            validateBodyObject(addItemToQueueSchema, req, res, async () => {
+              const queue_id_text = getParamRequired(req, 'queue_id_text');
+              const { add_by_rss_resource_data } = req.body;
+              try {
+                const queueResource =
+                  await QueueResourceItemAddByRSSController.queueResourceService.addItemAddByRSSToQueueLast(
+                    queue_id_text,
+                    add_by_rss_resource_data
+                  );
+                res.status(201).json(queueResource);
+              } catch (err) {
+                handleGenericErrorResponse(res, err);
+              }
+            });
           });
-        });
-      }, { skipMembershipStatus: false });
+        },
+        { skipMembershipStatus: false }
+      );
     });
   }
 
   static async addItemAddByRSSToQueueBetween(req: Request, res: Response): Promise<void> {
     validateParamsObject(queueIdSchema, req, res, async () => {
-      ensureAuthenticated(req, res, async () => {
-        verifyQueueOwnership()(req, res, async () => {
-          validateBodyObject(addItemToQueueBetweenSchema, req, res, async () => {
-            const queue_id_text = getParamRequired(req, 'queue_id_text');
-            const { add_by_rss_resource_data, position1, position2 } = req.body;
-            try {
-              const queueResource = await QueueResourceItemAddByRSSController.queueResourceService.addItemAddByRSSToQueueBetween(queue_id_text, add_by_rss_resource_data, position1, position2);
-              res.status(201).json(queueResource);
-            } catch (err) {
-              handleGenericErrorResponse(res, err);
-            }
+      ensureAuthenticated(
+        req,
+        res,
+        async () => {
+          verifyQueueOwnership()(req, res, async () => {
+            validateBodyObject(addItemToQueueBetweenSchema, req, res, async () => {
+              const queue_id_text = getParamRequired(req, 'queue_id_text');
+              const { add_by_rss_resource_data, position1, position2 } = req.body;
+              try {
+                const queueResource =
+                  await QueueResourceItemAddByRSSController.queueResourceService.addItemAddByRSSToQueueBetween(
+                    queue_id_text,
+                    add_by_rss_resource_data,
+                    position1,
+                    position2
+                  );
+                res.status(201).json(queueResource);
+              } catch (err) {
+                handleGenericErrorResponse(res, err);
+              }
+            });
           });
-        });
-      }, { skipMembershipStatus: false });
+        },
+        { skipMembershipStatus: false }
+      );
     });
   }
 
   static async addItemAddByRSSToNowPlaying(req: Request, res: Response): Promise<void> {
     validateParamsObject(queueIdSchema, req, res, async () => {
       validateBodyObject(queueResourceNowPlayingSchema, req, res, async () => {
-        ensureAuthenticated(req, res, async () => {
-          verifyQueueOwnership()(req, res, async () => {
-            const queue_id_text = getParamRequired(req, 'queue_id_text');
-            const { add_by_rss_resource_data, playback_position, media_file_duration, completed } = req.body;
+        ensureAuthenticated(
+          req,
+          res,
+          async () => {
+            verifyQueueOwnership()(req, res, async () => {
+              const queue_id_text = getParamRequired(req, 'queue_id_text');
+              const {
+                add_by_rss_resource_data,
+                playback_position,
+                media_file_duration,
+                completed,
+              } = req.body;
 
-            const dto = {
-              add_by_rss_resource_data,
-              ...((playback_position || playback_position === 0) ? { playback_position } : {}),
-              ...((media_file_duration || media_file_duration === 0) ? { media_file_duration } : {}),
-              ...(completed ? { completed } : {}),
-            };
+              const dto = {
+                add_by_rss_resource_data,
+                ...(playback_position || playback_position === 0 ? { playback_position } : {}),
+                ...(media_file_duration || media_file_duration === 0
+                  ? { media_file_duration }
+                  : {}),
+                ...(completed ? { completed } : {}),
+              };
 
-            try {
-              const queueResource = await QueueResourceItemAddByRSSController.queueResourceService.addItemAddByRSSToNowPlaying(queue_id_text, dto);
-              res.status(201).json(queueResource);
-            } catch (err) {
-              handleGenericErrorResponse(res, err);
-            }
-          });
-        }, { skipMembershipStatus: false });
+              try {
+                const queueResource =
+                  await QueueResourceItemAddByRSSController.queueResourceService.addItemAddByRSSToNowPlaying(
+                    queue_id_text,
+                    dto
+                  );
+                res.status(201).json(queueResource);
+              } catch (err) {
+                handleGenericErrorResponse(res, err);
+              }
+            });
+          },
+          { skipMembershipStatus: false }
+        );
       });
     });
   }
@@ -117,44 +162,68 @@ class QueueResourceItemAddByRSSController {
   static async addItemAddByRSSToHistory(req: Request, res: Response): Promise<void> {
     validateParamsObject(queueIdSchema, req, res, async () => {
       validateBodyObject(queueResourceNowPlayingSchema, req, res, async () => {
-        ensureAuthenticated(req, res, async () => {
-          verifyQueueOwnership()(req, res, async () => {
-            const queue_id_text = getParamRequired(req, 'queue_id_text');
-            const { add_by_rss_resource_data, playback_position, media_file_duration, completed } = req.body;
+        ensureAuthenticated(
+          req,
+          res,
+          async () => {
+            verifyQueueOwnership()(req, res, async () => {
+              const queue_id_text = getParamRequired(req, 'queue_id_text');
+              const {
+                add_by_rss_resource_data,
+                playback_position,
+                media_file_duration,
+                completed,
+              } = req.body;
 
-            const dto = {
-              add_by_rss_resource_data,
-              ...((playback_position || playback_position === 0) ? { playback_position } : {}),
-              ...((media_file_duration || media_file_duration === 0) ? { media_file_duration } : {}),
-              ...(completed ? { completed } : {}),
-            };
+              const dto = {
+                add_by_rss_resource_data,
+                ...(playback_position || playback_position === 0 ? { playback_position } : {}),
+                ...(media_file_duration || media_file_duration === 0
+                  ? { media_file_duration }
+                  : {}),
+                ...(completed ? { completed } : {}),
+              };
 
-            try {
-              const queueResource = await QueueResourceItemAddByRSSController.queueResourceService.addItemAddByRSSToHistory(queue_id_text, dto);
-              res.status(201).json(queueResource);
-            } catch (err) {
-              handleGenericErrorResponse(res, err);
-            }
-          });
-        }, { skipMembershipStatus: false });
+              try {
+                const queueResource =
+                  await QueueResourceItemAddByRSSController.queueResourceService.addItemAddByRSSToHistory(
+                    queue_id_text,
+                    dto
+                  );
+                res.status(201).json(queueResource);
+              } catch (err) {
+                handleGenericErrorResponse(res, err);
+              }
+            });
+          },
+          { skipMembershipStatus: false }
+        );
       });
     });
   }
 
   static async removeItemAddByRSSFromQueue(req: Request, res: Response): Promise<void> {
     validateParamsObject(queueAndRSSHashIdSchema, req, res, async () => {
-      ensureAuthenticated(req, res, async () => {
-        verifyQueueOwnership()(req, res, async () => {
-          const queue_id_text = getParamRequired(req, 'queue_id_text');
-          const add_by_rss_hash_id = getParamRequired(req, 'add_by_rss_hash_id');
-          try {
-            await QueueResourceItemAddByRSSController.queueResourceService.removeItemAddByRSSFromQueue(queue_id_text, add_by_rss_hash_id);
-            res.status(204).end();
-          } catch (err) {
-            handleGenericErrorResponse(res, err);
-          }
-        });
-      }, { skipMembershipStatus: true });
+      ensureAuthenticated(
+        req,
+        res,
+        async () => {
+          verifyQueueOwnership()(req, res, async () => {
+            const queue_id_text = getParamRequired(req, 'queue_id_text');
+            const add_by_rss_hash_id = getParamRequired(req, 'add_by_rss_hash_id');
+            try {
+              await QueueResourceItemAddByRSSController.queueResourceService.removeItemAddByRSSFromQueue(
+                queue_id_text,
+                add_by_rss_hash_id
+              );
+              res.status(204).end();
+            } catch (err) {
+              handleGenericErrorResponse(res, err);
+            }
+          });
+        },
+        { skipMembershipStatus: true }
+      );
     });
   }
 }

@@ -3,7 +3,7 @@ import { ApiRequestService } from '../_request';
 
 export async function reqFeedGetByPodcastIndexId(
   api: ApiRequestService,
-  idOrIdText: number | string,
+  idOrIdText: number | string
 ) {
   return api.apiRequest<DTOFeed>({
     path: `/feed/${idOrIdText}`,

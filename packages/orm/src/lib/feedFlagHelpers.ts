@@ -6,7 +6,7 @@ type ActiveFeedWhere = {
   channel_ids: number[] | null;
   mediumType: QueryParamsMedium | null;
   category_id: number | null;
-}
+};
 
 export function getActiveFeedWhere({ channel_ids, mediumType, category_id }: ActiveFeedWhere) {
   const medium_ids = getMediumIdArrayFromType(mediumType);
@@ -16,7 +16,10 @@ export function getActiveFeedWhere({ channel_ids, mediumType, category_id }: Act
       ...(medium_ids ? { medium_id: In(medium_ids) } : {}),
       ...(category_id ? { channel_categories: { category_id: Equal(category_id) } } : {}),
       feed: {
-        feed_flag_status: In([FeedFlagStatusStatusEnum.Active, FeedFlagStatusStatusEnum.AlwaysParse]),
+        feed_flag_status: In([
+          FeedFlagStatusStatusEnum.Active,
+          FeedFlagStatusStatusEnum.AlwaysParse,
+        ]),
       },
     },
   };

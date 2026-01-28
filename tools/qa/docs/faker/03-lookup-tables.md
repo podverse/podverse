@@ -13,13 +13,14 @@ The fake data generator must reference these existing rows by their IDs rather t
 **Table:** `sharable_status`
 **Location:** `podverse-orm/src/entities/sharableStatus.ts`
 
-| ID | Status |
-|----|--------|
-| 1 | public |
-| 2 | unlisted |
-| 3 | private |
+| ID  | Status   |
+| --- | -------- |
+| 1   | public   |
+| 2   | unlisted |
+| 3   | private  |
 
 **Used by:**
+
 - Account (sharable_status_id)
 - Clip (sharable_status_id)
 - Playlist (sharable_status_id)
@@ -39,7 +40,7 @@ const getRandomSharableStatus = (): number => {
   const statuses = [
     SharableStatusEnum.Public,
     SharableStatusEnum.Unlisted,
-    SharableStatusEnum.Private
+    SharableStatusEnum.Private,
   ];
   return faker.helpers.arrayElement(statuses);
 };
@@ -52,12 +53,13 @@ const getRandomSharableStatus = (): number => {
 **Table:** `account_membership`
 **Location:** `podverse-orm/src/entities/account/accountMembership.ts`
 
-| ID | Tier |
-|----|------|
-| 1 | trial |
-| 2 | basic |
+| ID  | Tier  |
+| --- | ----- |
+| 1   | trial |
+| 2   | basic |
 
 **Used by:**
+
 - AccountMembershipStatus (account_membership_id)
 - MembershipClaimToken (account_membership_id)
 
@@ -75,7 +77,7 @@ const SPECIAL_ACCOUNT_MEMBERSHIP_MAP = {
   'basic-valid@example.com': AccountMembershipEnum.Basic,
   'trial-valid@example.com': AccountMembershipEnum.Trial,
   'trial-expired@example.com': AccountMembershipEnum.Trial,
-  'basic-expired@example.com': AccountMembershipEnum.Basic
+  'basic-expired@example.com': AccountMembershipEnum.Basic,
 };
 ```
 
@@ -86,16 +88,17 @@ const SPECIAL_ACCOUNT_MEMBERSHIP_MAP = {
 **Table:** `feed_flag_status`
 **Location:** `podverse-orm/src/entities/feed/feedFlagStatus.ts`
 
-| ID | Status |
-|----|--------|
-| 1 | Active |
-| 2 | AlwaysParse |
-| 3 | Spam |
-| 4 | PendingArchive |
-| 5 | Archived |
-| 6 | Takedown |
+| ID  | Status         |
+| --- | -------------- |
+| 1   | Active         |
+| 2   | AlwaysParse    |
+| 3   | Spam           |
+| 4   | PendingArchive |
+| 5   | Archived       |
+| 6   | Takedown       |
 
 **Used by:**
+
 - Feed (feed_flag_status_id)
 
 **Helper Enum:** `FeedFlagStatusStatusEnum` from `podverse-orm`
@@ -115,7 +118,7 @@ const getRandomFeedFlagStatus = (): number => {
     FeedFlagStatusStatusEnum.Active,
     FeedFlagStatusStatusEnum.Active,
     FeedFlagStatusStatusEnum.Active,
-    FeedFlagStatusStatusEnum.AlwaysParse
+    FeedFlagStatusStatusEnum.AlwaysParse,
   ];
   return faker.helpers.arrayElement(statuses);
 };
@@ -128,14 +131,15 @@ const getRandomFeedFlagStatus = (): number => {
 **Table:** `item_flag_status`
 **Location:** `podverse-orm/src/entities/item/itemFlagStatus.ts`
 
-| ID | Status |
-|----|--------|
-| 1 | Active |
-| 2 | PendingArchive |
-| 3 | Archived |
-| 4 | PendingDelete |
+| ID  | Status         |
+| --- | -------------- |
+| 1   | Active         |
+| 2   | PendingArchive |
+| 3   | Archived       |
+| 4   | PendingDelete  |
 
 **Used by:**
+
 - Item (item_flag_status_id)
 
 **Helper Enum:** `ItemFlagStatusStatusEnum` from `podverse-orm`
@@ -154,13 +158,14 @@ const itemFlagStatusId = ItemFlagStatusStatusEnum.Active; // 1
 **Table:** `live_item_status`
 **Location:** `podverse-orm/src/entities/liveItem/liveItemStatus.ts`
 
-| ID | Status |
-|----|--------|
-| 1 | pending |
-| 2 | live |
-| 3 | ended |
+| ID  | Status  |
+| --- | ------- |
+| 1   | pending |
+| 2   | live    |
+| 3   | ended   |
 
 **Used by:**
+
 - LiveItem (live_item_status_id)
 
 **Helper Enum:** `LiveItemStatusEnum` from `podverse-orm`
@@ -178,7 +183,7 @@ const getRandomLiveItemStatus = (): number => {
   return faker.helpers.arrayElement([
     LiveItemStatusEnum.Pending,
     LiveItemStatusEnum.Live,
-    LiveItemStatusEnum.Ended
+    LiveItemStatusEnum.Ended,
   ]);
 };
 ```
@@ -190,12 +195,13 @@ const getRandomLiveItemStatus = (): number => {
 **Table:** `channel_itunes_type`
 **Location:** `podverse-orm/src/entities/channel/channelItunesType.ts`
 
-| ID | iTunes Type |
-|----|-------------|
-| 1 | episodic |
-| 2 | serial |
+| ID  | iTunes Type |
+| --- | ----------- |
+| 1   | episodic    |
+| 2   | serial      |
 
 **Used by:**
+
 - ChannelAbout (itunes_type via relation)
 
 **Helper Enum:** `ChannelItunesTypeItunesTypeEnum` from `podverse-orm`
@@ -211,7 +217,7 @@ const itunesType = ChannelItunesTypeItunesTypeEnum.Serial; // 2
 const getRandomItunesType = (): number => {
   return faker.helpers.weightedArrayElement([
     { value: ChannelItunesTypeItunesTypeEnum.Episodic, weight: 4 },
-    { value: ChannelItunesTypeItunesTypeEnum.Serial, weight: 1 }
+    { value: ChannelItunesTypeItunesTypeEnum.Serial, weight: 1 },
   ]);
 };
 ```
@@ -223,13 +229,14 @@ const getRandomItunesType = (): number => {
 **Table:** `item_itunes_episode_type`
 **Location:** `podverse-orm/src/entities/item/itemItunesEpisodeType.ts`
 
-| ID | Episode Type |
-|----|--------------|
-| 1 | full |
-| 2 | trailer |
-| 3 | bonus |
+| ID  | Episode Type |
+| --- | ------------ |
+| 1   | full         |
+| 2   | trailer      |
+| 3   | bonus        |
 
 **Used by:**
+
 - ItemAbout (item_itunes_episode_type via relation)
 
 **Helper Enum:** `ItemItunesEpisodeTypeEnum` from `podverse-orm`
@@ -247,7 +254,7 @@ const getRandomEpisodeType = (): number => {
   return faker.helpers.weightedArrayElement([
     { value: ItemItunesEpisodeTypeEnum.Full, weight: 8 },
     { value: ItemItunesEpisodeTypeEnum.Trailer, weight: 1 },
-    { value: ItemItunesEpisodeTypeEnum.Bonus, weight: 1 }
+    { value: ItemItunesEpisodeTypeEnum.Bonus, weight: 1 },
   ]);
 };
 ```
@@ -259,39 +266,40 @@ const getRandomEpisodeType = (): number => {
 **Table:** `medium`
 **Location:** `podverse-orm/src/entities/medium.ts`
 
-| ID | Value | Description |
-|----|-------|-------------|
-| 1 | Publisher | Publisher feed |
-| 2 | Podcast | Standard podcast |
-| 3 | Music | Music feed |
-| 4 | Video | Video podcast |
-| 5 | Film | Film content |
-| 6 | Audiobook | Audiobook feed |
-| 7 | Newsletter | Newsletter feed |
-| 8 | Blog | Blog feed |
-| 9 | Course | Educational course |
-| 10 | Mixed | Mixed content |
-| 11 | PodcastL | Podcast (list) |
-| 12 | MusicL | Music (list) |
-| 13 | VideoL | Video (list) |
-| 14 | FilmL | Film (list) |
-| 15 | AudiobookL | Audiobook (list) |
-| 16 | NewsletterL | Newsletter (list) |
-| 17 | BlogL | Blog (list) |
-| 18 | PublisherL | Publisher (list) |
-| 19 | CourseL | Course (list) |
-| 20 | AV | Audio/Video |
-| 21 | PublisherAV | Publisher A/V |
-| 22 | PublisherPodcast | Publisher Podcast |
-| 23 | PublisherMusic | Publisher Music |
-| 24 | PublisherVideo | Publisher Video |
-| 25 | PublisherFilm | Publisher Film |
-| 26 | PublisherAudiobook | Publisher Audiobook |
-| 27 | PublisherNewsletter | Publisher Newsletter |
-| 28 | PublisherBlog | Publisher Blog |
-| 29 | PublisherCourse | Publisher Course |
+| ID  | Value               | Description          |
+| --- | ------------------- | -------------------- |
+| 1   | Publisher           | Publisher feed       |
+| 2   | Podcast             | Standard podcast     |
+| 3   | Music               | Music feed           |
+| 4   | Video               | Video podcast        |
+| 5   | Film                | Film content         |
+| 6   | Audiobook           | Audiobook feed       |
+| 7   | Newsletter          | Newsletter feed      |
+| 8   | Blog                | Blog feed            |
+| 9   | Course              | Educational course   |
+| 10  | Mixed               | Mixed content        |
+| 11  | PodcastL            | Podcast (list)       |
+| 12  | MusicL              | Music (list)         |
+| 13  | VideoL              | Video (list)         |
+| 14  | FilmL               | Film (list)          |
+| 15  | AudiobookL          | Audiobook (list)     |
+| 16  | NewsletterL         | Newsletter (list)    |
+| 17  | BlogL               | Blog (list)          |
+| 18  | PublisherL          | Publisher (list)     |
+| 19  | CourseL             | Course (list)        |
+| 20  | AV                  | Audio/Video          |
+| 21  | PublisherAV         | Publisher A/V        |
+| 22  | PublisherPodcast    | Publisher Podcast    |
+| 23  | PublisherMusic      | Publisher Music      |
+| 24  | PublisherVideo      | Publisher Video      |
+| 25  | PublisherFilm       | Publisher Film       |
+| 26  | PublisherAudiobook  | Publisher Audiobook  |
+| 27  | PublisherNewsletter | Publisher Newsletter |
+| 28  | PublisherBlog       | Publisher Blog       |
+| 29  | PublisherCourse     | Publisher Course     |
 
 **Used by:**
+
 - Channel (medium_id)
 - Playlist (medium_id)
 - Queue (medium_id)
@@ -303,10 +311,10 @@ import { MediumEnum } from '@podverse/helpers';
 
 // Common mediums for faker
 const COMMON_MEDIUMS = [
-  MediumEnum.Podcast,    // 2
-  MediumEnum.Music,      // 3
-  MediumEnum.Video,      // 4
-  MediumEnum.Audiobook   // 6
+  MediumEnum.Podcast, // 2
+  MediumEnum.Music, // 3
+  MediumEnum.Video, // 4
+  MediumEnum.Audiobook, // 6
 ];
 
 // Weighted selection - podcasts most common
@@ -315,13 +323,18 @@ const getRandomMedium = (): number => {
     { value: MediumEnum.Podcast, weight: 6 },
     { value: MediumEnum.Video, weight: 2 },
     { value: MediumEnum.Music, weight: 1 },
-    { value: MediumEnum.Audiobook, weight: 1 }
+    { value: MediumEnum.Audiobook, weight: 1 },
   ]);
 };
 
 // For playlists and queues
 const SUPPORTED_PLAYLIST_MEDIUMS = [MediumEnum.AV];
-const SUPPORTED_QUEUE_MEDIUMS = [MediumEnum.Podcast, MediumEnum.Music, MediumEnum.Video, MediumEnum.AV];
+const SUPPORTED_QUEUE_MEDIUMS = [
+  MediumEnum.Podcast,
+  MediumEnum.Music,
+  MediumEnum.Video,
+  MediumEnum.AV,
+];
 ```
 
 ---
@@ -333,20 +346,21 @@ const SUPPORTED_QUEUE_MEDIUMS = [MediumEnum.Podcast, MediumEnum.Music, MediumEnu
 
 The Category table contains 105 iTunes podcast categories with parent-child relationships.
 
-| ID | Display Name | Parent ID | Mapping Key |
-|----|--------------|-----------|-------------|
-| 1 | Arts | null | arts |
-| 2 | Business | null | business |
-| 3 | Comedy | null | comedy |
-| 4 | Education | null | education |
-| 5 | Fiction | null | fiction |
-| ... | ... | ... | ... |
-| 20 | Books | 1 | books |
-| 21 | Design | 1 | design |
-| 22 | Fashion & Beauty | 1 | fashionandbeauty |
-| ... | ... | ... | ... |
+| ID  | Display Name     | Parent ID | Mapping Key      |
+| --- | ---------------- | --------- | ---------------- |
+| 1   | Arts             | null      | arts             |
+| 2   | Business         | null      | business         |
+| 3   | Comedy           | null      | comedy           |
+| 4   | Education        | null      | education        |
+| 5   | Fiction          | null      | fiction          |
+| ... | ...              | ...       | ...              |
+| 20  | Books            | 1         | books            |
+| 21  | Design           | 1         | design           |
+| 22  | Fashion & Beauty | 1         | fashionandbeauty |
+| ... | ...              | ...       | ...              |
 
 **Used by:**
+
 - ChannelCategory (category_id)
 
 **Helper Enum:** `CategoryEnum` from `podverse-helpers`
@@ -356,37 +370,37 @@ import { CategoryEnum } from '@podverse/helpers';
 
 // Top-level categories (parent_id = null)
 const TOP_LEVEL_CATEGORIES = [
-  CategoryEnum.Arts,            // 1
-  CategoryEnum.Business,        // 2
-  CategoryEnum.Comedy,          // 3
-  CategoryEnum.Education,       // 4
-  CategoryEnum.Fiction,         // 5
-  CategoryEnum.Government,      // 6
-  CategoryEnum.History,         // 7
-  CategoryEnum.HealthAndFitness,// 8
-  CategoryEnum.KidsAndFamily,   // 9
-  CategoryEnum.Leisure,         // 10
-  CategoryEnum.Music,           // 11
-  CategoryEnum.News,            // 12
+  CategoryEnum.Arts, // 1
+  CategoryEnum.Business, // 2
+  CategoryEnum.Comedy, // 3
+  CategoryEnum.Education, // 4
+  CategoryEnum.Fiction, // 5
+  CategoryEnum.Government, // 6
+  CategoryEnum.History, // 7
+  CategoryEnum.HealthAndFitness, // 8
+  CategoryEnum.KidsAndFamily, // 9
+  CategoryEnum.Leisure, // 10
+  CategoryEnum.Music, // 11
+  CategoryEnum.News, // 12
   CategoryEnum.ReligionAndSpirituality, // 13
-  CategoryEnum.Science,         // 14
+  CategoryEnum.Science, // 14
   CategoryEnum.SocietyAndCulture, // 15
-  CategoryEnum.Sports,          // 16
-  CategoryEnum.Technology,      // 17
-  CategoryEnum.TrueCrime,       // 18
-  CategoryEnum.TVAndFilm        // 19
+  CategoryEnum.Sports, // 16
+  CategoryEnum.Technology, // 17
+  CategoryEnum.TrueCrime, // 18
+  CategoryEnum.TVAndFilm, // 19
 ];
 
 // Random category selection
 const getRandomCategory = (): number => {
   // Use all CategoryEnum values (1-105)
-  const categories = Object.values(CategoryEnum).filter(v => typeof v === 'number');
+  const categories = Object.values(CategoryEnum).filter((v) => typeof v === 'number');
   return faker.helpers.arrayElement(categories as number[]);
 };
 
 // Get 2 unique random categories for a channel
 const getRandomCategories = (count: number = 2): number[] => {
-  const categories = Object.values(CategoryEnum).filter(v => typeof v === 'number');
+  const categories = Object.values(CategoryEnum).filter((v) => typeof v === 'number');
   return faker.helpers.arrayElements(categories as number[], count);
 };
 ```
@@ -399,11 +413,11 @@ const getRandomCategories = (count: number = 2): number[] => {
 
 **Enum Values:** `AccountNotificationTypeEnum` from `podverse-helpers`
 
-| Value | Description |
-|-------|-------------|
-| new-item | New episode notification |
+| Value                | Description                       |
+| -------------------- | --------------------------------- |
+| new-item             | New episode notification          |
 | livestream-scheduled | Livestream scheduled notification |
-| livestream-started | Livestream starting notification |
+| livestream-started   | Livestream starting notification  |
 
 ```typescript
 import { AccountNotificationTypeEnum } from '@podverse/helpers';
@@ -429,14 +443,14 @@ import {
   MediumEnum,
   CategoryEnum,
   AccountMembershipEnum,
-  AccountNotificationTypeEnum
+  AccountNotificationTypeEnum,
 } from '@podverse/helpers';
 import {
   FeedFlagStatusStatusEnum,
   ItemFlagStatusStatusEnum,
   LiveItemStatusEnum,
   ChannelItunesTypeItunesTypeEnum,
-  ItemItunesEpisodeTypeEnum
+  ItemItunesEpisodeTypeEnum,
 } from '@podverse/orm';
 
 export const LookupTables = {
@@ -445,25 +459,22 @@ export const LookupTables = {
     PUBLIC: SharableStatusEnum.Public,
     UNLISTED: SharableStatusEnum.Unlisted,
     PRIVATE: SharableStatusEnum.Private,
-    getRandom: () => faker.helpers.arrayElement([
-      SharableStatusEnum.Public,
-      SharableStatusEnum.Unlisted,
-      SharableStatusEnum.Private
-    ]),
-    getRandomPublicOrUnlisted: () => faker.helpers.arrayElement([
-      SharableStatusEnum.Public,
-      SharableStatusEnum.Unlisted
-    ])
+    getRandom: () =>
+      faker.helpers.arrayElement([
+        SharableStatusEnum.Public,
+        SharableStatusEnum.Unlisted,
+        SharableStatusEnum.Private,
+      ]),
+    getRandomPublicOrUnlisted: () =>
+      faker.helpers.arrayElement([SharableStatusEnum.Public, SharableStatusEnum.Unlisted]),
   },
 
   // Account Membership
   accountMembership: {
     TRIAL: AccountMembershipEnum.Trial,
     BASIC: AccountMembershipEnum.Basic,
-    getRandom: () => faker.helpers.arrayElement([
-      AccountMembershipEnum.Trial,
-      AccountMembershipEnum.Basic
-    ])
+    getRandom: () =>
+      faker.helpers.arrayElement([AccountMembershipEnum.Trial, AccountMembershipEnum.Basic]),
   },
 
   // Feed Flag Status
@@ -474,10 +485,11 @@ export const LookupTables = {
     PENDING_ARCHIVE: FeedFlagStatusStatusEnum.PendingArchive,
     ARCHIVED: FeedFlagStatusStatusEnum.Archived,
     TAKEDOWN: FeedFlagStatusStatusEnum.Takedown,
-    getRandom: () => faker.helpers.weightedArrayElement([
-      { value: FeedFlagStatusStatusEnum.Active, weight: 9 },
-      { value: FeedFlagStatusStatusEnum.AlwaysParse, weight: 1 }
-    ])
+    getRandom: () =>
+      faker.helpers.weightedArrayElement([
+        { value: FeedFlagStatusStatusEnum.Active, weight: 9 },
+        { value: FeedFlagStatusStatusEnum.AlwaysParse, weight: 1 },
+      ]),
   },
 
   // Item Flag Status
@@ -486,7 +498,7 @@ export const LookupTables = {
     PENDING_ARCHIVE: ItemFlagStatusStatusEnum.PendingArchive,
     ARCHIVED: ItemFlagStatusStatusEnum.Archived,
     PENDING_DELETE: ItemFlagStatusStatusEnum.PendingDelete,
-    getRandom: () => ItemFlagStatusStatusEnum.Active // Almost always Active
+    getRandom: () => ItemFlagStatusStatusEnum.Active, // Almost always Active
   },
 
   // Live Item Status
@@ -494,21 +506,23 @@ export const LookupTables = {
     PENDING: LiveItemStatusEnum.Pending,
     LIVE: LiveItemStatusEnum.Live,
     ENDED: LiveItemStatusEnum.Ended,
-    getRandom: () => faker.helpers.arrayElement([
-      LiveItemStatusEnum.Pending,
-      LiveItemStatusEnum.Live,
-      LiveItemStatusEnum.Ended
-    ])
+    getRandom: () =>
+      faker.helpers.arrayElement([
+        LiveItemStatusEnum.Pending,
+        LiveItemStatusEnum.Live,
+        LiveItemStatusEnum.Ended,
+      ]),
   },
 
   // Channel iTunes Type
   channelItunesType: {
     EPISODIC: ChannelItunesTypeItunesTypeEnum.Episodic,
     SERIAL: ChannelItunesTypeItunesTypeEnum.Serial,
-    getRandom: () => faker.helpers.weightedArrayElement([
-      { value: ChannelItunesTypeItunesTypeEnum.Episodic, weight: 4 },
-      { value: ChannelItunesTypeItunesTypeEnum.Serial, weight: 1 }
-    ])
+    getRandom: () =>
+      faker.helpers.weightedArrayElement([
+        { value: ChannelItunesTypeItunesTypeEnum.Episodic, weight: 4 },
+        { value: ChannelItunesTypeItunesTypeEnum.Serial, weight: 1 },
+      ]),
   },
 
   // Item iTunes Episode Type
@@ -516,11 +530,12 @@ export const LookupTables = {
     FULL: ItemItunesEpisodeTypeEnum.Full,
     TRAILER: ItemItunesEpisodeTypeEnum.Trailer,
     BONUS: ItemItunesEpisodeTypeEnum.Bonus,
-    getRandom: () => faker.helpers.weightedArrayElement([
-      { value: ItemItunesEpisodeTypeEnum.Full, weight: 8 },
-      { value: ItemItunesEpisodeTypeEnum.Trailer, weight: 1 },
-      { value: ItemItunesEpisodeTypeEnum.Bonus, weight: 1 }
-    ])
+    getRandom: () =>
+      faker.helpers.weightedArrayElement([
+        { value: ItemItunesEpisodeTypeEnum.Full, weight: 8 },
+        { value: ItemItunesEpisodeTypeEnum.Trailer, weight: 1 },
+        { value: ItemItunesEpisodeTypeEnum.Bonus, weight: 1 },
+      ]),
   },
 
   // Medium
@@ -530,54 +545,57 @@ export const LookupTables = {
     VIDEO: MediumEnum.Video,
     AUDIOBOOK: MediumEnum.Audiobook,
     AV: MediumEnum.AV,
-    getRandom: () => faker.helpers.weightedArrayElement([
-      { value: MediumEnum.Podcast, weight: 6 },
-      { value: MediumEnum.Video, weight: 2 },
-      { value: MediumEnum.Music, weight: 1 },
-      { value: MediumEnum.Audiobook, weight: 1 }
-    ]),
+    getRandom: () =>
+      faker.helpers.weightedArrayElement([
+        { value: MediumEnum.Podcast, weight: 6 },
+        { value: MediumEnum.Video, weight: 2 },
+        { value: MediumEnum.Music, weight: 1 },
+        { value: MediumEnum.Audiobook, weight: 1 },
+      ]),
     getForPlaylist: () => MediumEnum.AV,
-    getForQueue: () => faker.helpers.arrayElement([
-      MediumEnum.Podcast,
-      MediumEnum.Video,
-      MediumEnum.Music,
-      MediumEnum.AV
-    ])
+    getForQueue: () =>
+      faker.helpers.arrayElement([
+        MediumEnum.Podcast,
+        MediumEnum.Video,
+        MediumEnum.Music,
+        MediumEnum.AV,
+      ]),
   },
 
   // Category
   category: {
-    getAll: () => Object.values(CategoryEnum).filter(v => typeof v === 'number') as number[],
+    getAll: () => Object.values(CategoryEnum).filter((v) => typeof v === 'number') as number[],
     getRandom: () => {
-      const categories = Object.values(CategoryEnum).filter(v => typeof v === 'number');
+      const categories = Object.values(CategoryEnum).filter((v) => typeof v === 'number');
       return faker.helpers.arrayElement(categories as number[]);
     },
     getRandomMultiple: (count: number) => {
-      const categories = Object.values(CategoryEnum).filter(v => typeof v === 'number');
+      const categories = Object.values(CategoryEnum).filter((v) => typeof v === 'number');
       return faker.helpers.arrayElements(categories as number[], count);
     },
     // Top-level categories only
-    getRandomTopLevel: () => faker.helpers.arrayElement([
-      CategoryEnum.Arts,
-      CategoryEnum.Business,
-      CategoryEnum.Comedy,
-      CategoryEnum.Education,
-      CategoryEnum.Fiction,
-      CategoryEnum.Government,
-      CategoryEnum.History,
-      CategoryEnum.HealthAndFitness,
-      CategoryEnum.KidsAndFamily,
-      CategoryEnum.Leisure,
-      CategoryEnum.Music,
-      CategoryEnum.News,
-      CategoryEnum.ReligionAndSpirituality,
-      CategoryEnum.Science,
-      CategoryEnum.SocietyAndCulture,
-      CategoryEnum.Sports,
-      CategoryEnum.Technology,
-      CategoryEnum.TrueCrime,
-      CategoryEnum.TVAndFilm
-    ])
+    getRandomTopLevel: () =>
+      faker.helpers.arrayElement([
+        CategoryEnum.Arts,
+        CategoryEnum.Business,
+        CategoryEnum.Comedy,
+        CategoryEnum.Education,
+        CategoryEnum.Fiction,
+        CategoryEnum.Government,
+        CategoryEnum.History,
+        CategoryEnum.HealthAndFitness,
+        CategoryEnum.KidsAndFamily,
+        CategoryEnum.Leisure,
+        CategoryEnum.Music,
+        CategoryEnum.News,
+        CategoryEnum.ReligionAndSpirituality,
+        CategoryEnum.Science,
+        CategoryEnum.SocietyAndCulture,
+        CategoryEnum.Sports,
+        CategoryEnum.Technology,
+        CategoryEnum.TrueCrime,
+        CategoryEnum.TVAndFilm,
+      ]),
   },
 
   // Notification Types
@@ -588,14 +606,15 @@ export const LookupTables = {
     getAll: () => [
       AccountNotificationTypeEnum.NewItem,
       AccountNotificationTypeEnum.LivestreamScheduled,
-      AccountNotificationTypeEnum.LivestreamStarting
+      AccountNotificationTypeEnum.LivestreamStarting,
     ],
-    getRandom: () => faker.helpers.arrayElement([
-      AccountNotificationTypeEnum.NewItem,
-      AccountNotificationTypeEnum.LivestreamScheduled,
-      AccountNotificationTypeEnum.LivestreamStarting
-    ])
-  }
+    getRandom: () =>
+      faker.helpers.arrayElement([
+        AccountNotificationTypeEnum.NewItem,
+        AccountNotificationTypeEnum.LivestreamScheduled,
+        AccountNotificationTypeEnum.LivestreamStarting,
+      ]),
+  },
 };
 
 export default LookupTables;
@@ -690,23 +709,21 @@ export async function validateLookupTables(dataSource: DataSource): Promise<void
     { name: 'channel_itunes_type', minRows: 2 },
     { name: 'item_itunes_episode_type', minRows: 3 },
     { name: 'medium', minRows: 29 },
-    { name: 'category', minRows: 100 }
+    { name: 'category', minRows: 100 },
   ];
 
   for (const table of requiredTables) {
-    const result = await dataSource.query(
-      `SELECT COUNT(*) as count FROM ${table.name}`
-    );
+    const result = await dataSource.query(`SELECT COUNT(*) as count FROM ${table.name}`);
     const count = parseInt(result[0].count, 10);
-    
+
     if (count < table.minRows) {
       throw new Error(
         `Lookup table '${table.name}' has ${count} rows, expected at least ${table.minRows}. ` +
-        `Please run database migrations first.`
+          `Please run database migrations first.`
       );
     }
   }
-  
+
   console.log('✓ All lookup tables validated');
 }
 ```

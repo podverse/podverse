@@ -12,6 +12,7 @@ After code migration is complete, audit all files to ensure naming follows conve
 **Files: kebab-case**
 
 Examples:
+
 - ✓ `account-service.ts`
 - ✓ `podcast-controller.ts`
 - ✓ `rss-parser.ts`
@@ -22,11 +23,13 @@ Examples:
 ## Scope
 
 Directories to audit:
+
 - `packages/*/src/**/*.ts`
 - `apps/*/src/**/*.ts`
 - `tools/*/src/**/*.ts`
 
 Exclude:
+
 - `node_modules/`
 - `dist/`
 - Config files (package.json, tsconfig.json, etc.)
@@ -47,14 +50,14 @@ find packages apps tools -name "*.ts" -type f | \
 
 ## Common Patterns to Check
 
-| Pattern | Convention | Example |
-|---------|------------|---------|
-| Service files | `*-service.ts` | `account-service.ts` |
-| Controller files | `*-controller.ts` | `podcast-controller.ts` |
-| Utility files | `*-utils.ts` or `*-helpers.ts` | `date-utils.ts` |
-| Type files | `*-types.ts` or `*.types.ts` | `api-types.ts` |
-| Test files | `*.test.ts` or `*.spec.ts` | `account-service.test.ts` |
-| Index files | `index.ts` | `index.ts` |
+| Pattern          | Convention                     | Example                   |
+| ---------------- | ------------------------------ | ------------------------- |
+| Service files    | `*-service.ts`                 | `account-service.ts`      |
+| Controller files | `*-controller.ts`              | `podcast-controller.ts`   |
+| Utility files    | `*-utils.ts` or `*-helpers.ts` | `date-utils.ts`           |
+| Type files       | `*-types.ts` or `*.types.ts`   | `api-types.ts`            |
+| Test files       | `*.test.ts` or `*.spec.ts`     | `account-service.test.ts` |
+| Index files      | `index.ts`                     | `index.ts`                |
 
 ## When to Execute
 

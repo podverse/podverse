@@ -4,9 +4,9 @@ import { ItemLicense } from '@orm/entities/item/itemLicense';
 import { BaseOneService } from '@orm/services/base/baseOneService';
 
 type ItemLicenseDto = {
-  identifier: string
-  url: string | null
-}
+  identifier: string;
+  url: string | null;
+};
 
 export class ItemLicenseService extends BaseOneService<ItemLicense, 'item'> {
   constructor(transactionalEntityManager?: EntityManager) {

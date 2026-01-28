@@ -5,10 +5,22 @@ import React from 'react';
 import styles from './SafeHtmlDescription.module.scss';
 
 const ALLOWED_TAGS = [
-  'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
-  'p', 'a',
-  'b', 'strong', 'i', 'em', 'u',
-  'ul', 'ol', 'li',
+  'h1',
+  'h2',
+  'h3',
+  'h4',
+  'h5',
+  'h6',
+  'p',
+  'a',
+  'b',
+  'strong',
+  'i',
+  'em',
+  'u',
+  'ul',
+  'ol',
+  'li',
   'br',
 ];
 const ALLOWED_ATTR = ['href', 'title', 'target', 'rel'];
@@ -28,10 +40,7 @@ export function SafeHtmlDescription({ html }: { html: string }) {
   }, [html]);
 
   return (
-    <div
-      className={styles.safeHtmlDescription}
-      dangerouslySetInnerHTML={{ __html: cleanHtml }}
-    />
+    <div className={styles.safeHtmlDescription} dangerouslySetInnerHTML={{ __html: cleanHtml }} />
   );
 }
 

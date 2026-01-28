@@ -41,7 +41,11 @@ export class ApiManager {
     }
   }
 
-  private async waitForServerReady(url: string, maxAttempts: number = 120, delay: number = 1000): Promise<boolean> {
+  private async waitForServerReady(
+    url: string,
+    maxAttempts: number = 120,
+    delay: number = 1000
+  ): Promise<boolean> {
     for (let i = 0; i < maxAttempts; i++) {
       try {
         const response = await fetch(url);
@@ -52,14 +56,14 @@ export class ApiManager {
       } catch {
         // Server not ready yet
       }
-      await new Promise(resolve => setTimeout(resolve, delay));
+      await new Promise((resolve) => setTimeout(resolve, delay));
     }
     return false;
   }
 
   private async ensureNpmLinks(): Promise<void> {
     const linkScriptPath = path.join(this.podverseOpsPath, 'scripts/dev/npm-link-modules.sh');
-    
+
     if (!fs.existsSync(linkScriptPath)) {
       console.log('   ⚠️  npm-link-modules.sh not found, skipping npm link setup');
       return;
@@ -124,7 +128,7 @@ export class ApiManager {
       // KeyvalDB configuration (use existing podverse_local_keyvaldb)
       KEYVALDB_HOST: '127.0.0.1',
       KEYVALDB_PORT: '6379',
-      KEYVALDB_PASSWORD: "mysecretpw",
+      KEYVALDB_PASSWORD: 'mysecretpw',
       // Log level
       LOG_LEVEL: process.env.LOG_LEVEL || 'info',
     };
@@ -156,7 +160,12 @@ export class ApiManager {
       const text = data.toString();
       output += text;
       // Only log important messages to avoid spam
-      if (text.includes('running on port') || text.includes('Connected to') || text.includes('error') || text.includes('Error')) {
+      if (
+        text.includes('running on port') ||
+        text.includes('Connected to') ||
+        text.includes('error') ||
+        text.includes('Error')
+      ) {
         console.log(`   [api] ${text.trim()}`);
       }
     });
@@ -165,7 +174,12 @@ export class ApiManager {
       const text = data.toString();
       errorOutput += text;
       // Only log errors
-      if (text.includes('error') || text.includes('Error') || text.includes('EADDRINUSE') || text.includes('FATAL')) {
+      if (
+        text.includes('error') ||
+        text.includes('Error') ||
+        text.includes('EADDRINUSE') ||
+        text.includes('FATAL')
+      ) {
         console.error(`   [api error] ${text.trim()}`);
       }
     });
@@ -236,8 +250,8 @@ export class ApiManager {
         : `API server failed to start on port ${TEST_API_PORT} within 3 minutes.\n`;
       throw new Error(
         errorMessage +
-        `Last output:\n${output.slice(-500)}\n` +
-        `Last errors:\n${errorOutput.slice(-500)}`
+          `Last output:\n${output.slice(-500)}\n` +
+          `Last errors:\n${errorOutput.slice(-500)}`
       );
     }
 

@@ -12,18 +12,18 @@ export const ModalFunding: React.FC = () => {
   const header = tInfo('funding');
   const { modalFunding, setModalFunding } = useModals();
 
-  const isOpen = (
-    (modalFunding.channel_fundings && modalFunding.channel_fundings.length > 0)
-    || (modalFunding.item_fundings && modalFunding.item_fundings.length > 0)
-  );
-  
+  const isOpen =
+    (modalFunding.channel_fundings && modalFunding.channel_fundings.length > 0) ||
+    (modalFunding.item_fundings && modalFunding.item_fundings.length > 0);
+
   return (
     <Modal
       isOpen={isOpen}
       onClose={() => setModalFunding({ channel_fundings: [], item_fundings: [] })}
       header={header}
       ariaLabel={header}
-      modalContentMaxWidth={420}>
+      modalContentMaxWidth={420}
+    >
       <ul className={styles.fundingLinksList}>
         {modalFunding.channel_fundings?.map((channel_funding, idx) => (
           <li key={idx} className={styles.fundingLinkItem}>

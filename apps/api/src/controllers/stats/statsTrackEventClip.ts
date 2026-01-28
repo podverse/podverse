@@ -13,18 +13,26 @@ export class StatsTrackEventClipController {
   private static statsTrackEventClipService = new StatsTrackEventClipService();
 
   static async create(req: Request, res: Response): Promise<void> {
-    ensureAuthenticated(req, res, async () => {
-      validateBodyObject(createStatsTrackEventClipSchema, req, res, async () => {
-        const jwtUser = getAuthenticatedUser(req);
-        const { clip_id_text } = req.body;
+    ensureAuthenticated(
+      req,
+      res,
+      async () => {
+        validateBodyObject(createStatsTrackEventClipSchema, req, res, async () => {
+          const jwtUser = getAuthenticatedUser(req);
+          const { clip_id_text } = req.body;
 
-        try {
-          await StatsTrackEventClipController.statsTrackEventClipService._create(jwtUser.id, clip_id_text);
-          res.status(201).json({ message: 'Event logged successfully' });
-        } catch (error) {
-          handleGenericErrorResponse(res, error);
-        }
-      });
-    }, { skipMembershipStatus: false });
+          try {
+            await StatsTrackEventClipController.statsTrackEventClipService._create(
+              jwtUser.id,
+              clip_id_text
+            );
+            res.status(201).json({ message: 'Event logged successfully' });
+          } catch (error) {
+            handleGenericErrorResponse(res, error);
+          }
+        });
+      },
+      { skipMembershipStatus: false }
+    );
   }
 }

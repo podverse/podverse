@@ -4,17 +4,23 @@ import csv from 'csv-parser';
 import fs from 'fs';
 import path from 'path';
 import { request } from '@podverse/helpers';
-import type { PodcastBatchByFeedGuidResponse, PodcastByGuidResponse, PodcastIndexSearchPodcastsResponse,
-  PodcastsByTagResponse, EpisodeByGuidResponse, EpisodeByGuidSecondaryParams } from '@podverse/helpers';
+import type {
+  PodcastBatchByFeedGuidResponse,
+  PodcastByGuidResponse,
+  PodcastIndexSearchPodcastsResponse,
+  PodcastsByTagResponse,
+  EpisodeByGuidResponse,
+  EpisodeByGuidSecondaryParams,
+} from '@podverse/helpers';
 import { ILoggerLike } from '@podverse/helpers';
 
 type Constructor = {
-  userAgent: string
-  authKey: string
-  baseUrl: string
-  secretKey: string
-  loggerService: ILoggerLike
-}
+  userAgent: string;
+  authKey: string;
+  baseUrl: string;
+  secretKey: string;
+  loggerService: ILoggerLike;
+};
 
 /*
   NOTE!!!
@@ -23,14 +29,14 @@ type Constructor = {
   encoded once again before sending the request to PI API.
 */
 
-export class PodcastIndexService  {
+export class PodcastIndexService {
   declare userAgent: string;
   declare authKey: string;
   declare baseUrl: string;
   declare secretKey: string;
   declare loggerService: ILoggerLike;
 
-  constructor ({ userAgent, authKey, baseUrl, secretKey, loggerService }: Constructor) {
+  constructor({ userAgent, authKey, baseUrl, secretKey, loggerService }: Constructor) {
     this.userAgent = userAgent;
     this.authKey = authKey;
     this.baseUrl = baseUrl;
@@ -40,13 +46,16 @@ export class PodcastIndexService  {
 
   // Request handler
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  podcastIndexAPIRequest = async (url: string, config?: any, extraParams?: { delayMs?: number }) => {
+  podcastIndexAPIRequest = async (
+    url: string,
+    config?: any,
+    extraParams?: { delayMs?: number }
+  ) => {
     const apiHeaderTime = Math.floor(Date.now() / 1000);
     const hash = sha1(this.authKey + this.secretKey + apiHeaderTime).toString(encHex);
 
     if (extraParams?.delayMs && extraParams.delayMs > 0) {
-      await new Promise(resolve => setTimeout(resolve, extraParams.delayMs));
+      await new Promise((resolve) => setTimeout(resolve, extraParams.delayMs));
     }
 
     try {
@@ -62,7 +71,7 @@ export class PodcastIndexService  {
       });
 
       return response?.data;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       const errorDetails = {
         url,
@@ -71,14 +80,18 @@ export class PodcastIndexService  {
         errorResponse: error?.response?.data,
         errorStatus: error?.response?.status,
       };
-      this.loggerService.logError(`[PodcastIndex] Request failed: ${JSON.stringify(errorDetails, null, 2)}`);
+      this.loggerService.logError(
+        `[PodcastIndex] Request failed: ${JSON.stringify(errorDetails, null, 2)}`
+      );
       throw error;
     }
   };
 
   // Dead Feeds
 
-  deadFeedsDownloadAndExtractCSV = async (resolveHandler: (row: string[]) => void): Promise<void> => {
+  deadFeedsDownloadAndExtractCSV = async (
+    resolveHandler: (row: string[]) => void
+  ): Promise<void> => {
     const url = 'https://public.podcastindex.org/podcastindex_dead_feeds.csv';
     const tmpDir = path.join(__dirname, 'tmp');
     const filePath = path.join(tmpDir, 'podcastindex_dead_feeds.csv');
@@ -98,8 +111,7 @@ export class PodcastIndexService  {
     });
 
     await new Promise<void>((resolve, reject) => {
-      const stream = fs.createReadStream(filePath)
-        .pipe(csv({ headers: false, skipLines: 0 }));
+      const stream = fs.createReadStream(filePath).pipe(csv({ headers: false, skipLines: 0 }));
 
       stream.on('data', async (row: string[]) => {
         stream.pause();
@@ -210,10 +222,15 @@ export class PodcastIndexService  {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   podcastGetById = async (podcast_index_id: number): Promise<any | null> => {
     // Check if this is a test podcast_index_id (only in non-production)
-    if (process.env.NODE_ENV !== 'production' && podcast_index_id >= this.TEST_PODCAST_INDEX_ID_MIN) {
+    if (
+      process.env.NODE_ENV !== 'production' &&
+      podcast_index_id >= this.TEST_PODCAST_INDEX_ID_MIN
+    ) {
       const mockFeed = this.getMockTestFeed(podcast_index_id);
       if (mockFeed) {
-        this.loggerService.info(`[PodcastIndex] Returning mock data for test podcast_index_id: ${podcast_index_id}`);
+        this.loggerService.info(
+          `[PodcastIndex] Returning mock data for test podcast_index_id: ${podcast_index_id}`
+        );
         return mockFeed;
       }
     }
@@ -227,7 +244,10 @@ export class PodcastIndexService  {
     }
   };
 
-  podcastGetByGuid = async (podcastGuid: string, delayMs?: number): Promise<PodcastByGuidResponse | null> => {
+  podcastGetByGuid = async (
+    podcastGuid: string,
+    delayMs?: number
+  ): Promise<PodcastByGuidResponse | null> => {
     // Check if this is a test feed URL (only in non-production)
     if (process.env.NODE_ENV !== 'production') {
       if (podcastGuid.includes('/test-assets/feed-1.rss')) {
@@ -243,7 +263,11 @@ export class PodcastIndexService  {
     let podcastIndexPodcast: PodcastByGuidResponse | null = null;
 
     try {
-      const data = await this.podcastIndexAPIRequest(url, undefined, delayMs !== undefined ? { delayMs } : undefined);
+      const data = await this.podcastIndexAPIRequest(
+        url,
+        undefined,
+        delayMs !== undefined ? { delayMs } : undefined
+      );
       podcastIndexPodcast = data;
     } catch {
       // assume a 404
@@ -259,7 +283,9 @@ export class PodcastIndexService  {
     return response.feeds || [];
   };
 
-  podcastsBatchByFeedGuid = async (feedGuids: string[]): Promise<PodcastBatchByFeedGuidResponse> => {
+  podcastsBatchByFeedGuid = async (
+    feedGuids: string[]
+  ): Promise<PodcastBatchByFeedGuidResponse> => {
     const url = `${this.baseUrl}/podcasts/batch/byguid`;
     const response = await this.podcastIndexAPIRequest(url, {
       method: 'POST',
@@ -282,22 +308,24 @@ export class PodcastIndexService  {
       const response = await this.podcastIndexAPIRequest(url);
       const updatedFeeds = response.data.feeds;
       const nextSince = response.nextSince;
-  
+
       allData = allData.concat(updatedFeeds);
 
       if (nextSince && nextSince <= currentTimeInSeconds) {
         if (nextSince <= since) {
-          this.loggerService.info(`nextSince (${nextSince}) is not greater than since (${since}). Exiting to avoid infinite loop.`);
+          this.loggerService.info(
+            `nextSince (${nextSince}) is not greater than since (${since}). Exiting to avoid infinite loop.`
+          );
           return allData;
         }
         const timeLeft = currentTimeInSeconds - nextSince;
         this.loggerService.info(`Time remaining: ${timeLeft} seconds`);
         return fetchData(nextSince, allData);
       }
-  
+
       return allData;
     };
-  
+
     return fetchData(sinceTimeInSeconds);
   };
 
@@ -306,44 +334,43 @@ export class PodcastIndexService  {
   searchPodcasts = async (
     term: string,
     options: {
-      max?: number
-      val?: 'any' | 'lightning' | 'hive' | 'webmonetization'
-      aponly?: boolean
-      clean?: boolean
-      similar?: boolean
-      fulltext?: boolean
-      pretty?: boolean
-    } = {},
+      max?: number;
+      val?: 'any' | 'lightning' | 'hive' | 'webmonetization';
+      aponly?: boolean;
+      clean?: boolean;
+      similar?: boolean;
+      fulltext?: boolean;
+      pretty?: boolean;
+    } = {}
   ): Promise<PodcastIndexSearchPodcastsResponse | null> => {
-    const {
-      max = 25,
-      val,
-      aponly,
-      clean,
-      similar,
-      fulltext,
-      pretty,
-    } = options;
+    const { max = 25, val, aponly, clean, similar, fulltext, pretty } = options;
 
     const safeMax = Math.min(Math.max(max, 1), 1000);
-    const params: string[] = [
-      `q=${encodeURIComponent(term)}`,
-      `max=${safeMax}`,
-    ];
+    const params: string[] = [`q=${encodeURIComponent(term)}`, `max=${safeMax}`];
 
     if (val) {
       params.push(`val=${encodeURIComponent(val)}`);
     }
     // Boolean flags: if true, include param name without value per Podcast Index docs
-    if (aponly) {params.push('aponly');}
-    if (clean) {params.push('clean');}
-    if (similar) {params.push('similar');}
-    if (fulltext) {params.push('fulltext');}
-    if (pretty) {params.push('pretty');}
+    if (aponly) {
+      params.push('aponly');
+    }
+    if (clean) {
+      params.push('clean');
+    }
+    if (similar) {
+      params.push('similar');
+    }
+    if (fulltext) {
+      params.push('fulltext');
+    }
+    if (pretty) {
+      params.push('pretty');
+    }
 
     const query = params.join('&');
     const url = `${this.baseUrl}/search/byterm?${query}`;
-    
+
     try {
       const response = await this.podcastIndexAPIRequest(url);
       return response || [];
@@ -359,8 +386,8 @@ export class PodcastIndexService  {
     max: number = 25,
     since?: number,
     lang?: string,
-    cat?: string,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    cat?: string
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
   ): Promise<{ feeds: any[]; nextSince?: number }> => {
     const safeMax = Math.min(max, 1000);
     let url = `${this.baseUrl}/podcasts/trending?max=${safeMax}`;
@@ -374,9 +401,11 @@ export class PodcastIndexService  {
       url += `&cat=${encodeURIComponent(cat)}`;
     }
 
-    this.loggerService.info(`[PodcastIndex] Fetching trending feeds (max: ${safeMax}, since: ${since}, lang: ${lang}, cat: ${cat})`);
+    this.loggerService.info(
+      `[PodcastIndex] Fetching trending feeds (max: ${safeMax}, since: ${since}, lang: ${lang}, cat: ${cat})`
+    );
     const response = await this.podcastIndexAPIRequest(url);
-    
+
     return {
       feeds: response.feeds || [],
       nextSince: response.nextSince,
@@ -385,7 +414,10 @@ export class PodcastIndexService  {
 
   // Episodes
 
-  episodeGetByGuid = async (guid: string, secondaryGuid: EpisodeByGuidSecondaryParams): Promise<EpisodeByGuidResponse | null> => {
+  episodeGetByGuid = async (
+    guid: string,
+    secondaryGuid: EpisodeByGuidSecondaryParams
+  ): Promise<EpisodeByGuidResponse | null> => {
     let url = `${this.baseUrl}/episodes/byguid?guid=${guid}`;
 
     if (secondaryGuid) {
@@ -394,7 +426,10 @@ export class PodcastIndexService  {
       const feedurl = secondaryGuid.feedurl;
 
       if (!feedid && !podcastguid && !feedurl) {
-        this.loggerService.logError('[PodcastIndex] episodeGetByGuid called with invalid secondaryGuid', { secondaryGuid });
+        this.loggerService.logError(
+          '[PodcastIndex] episodeGetByGuid called with invalid secondaryGuid',
+          { secondaryGuid }
+        );
         return null;
       }
 
@@ -421,24 +456,32 @@ export class PodcastIndexService  {
   valueGetByPodcastIds = async (): Promise<number[]> => {
     const accumulatedPodcastIndexIds: number[] = [];
     const nextStartAt = 1;
-    const podcast_index_ids = await this.valueGetByPodcastIdsRecursively(accumulatedPodcastIndexIds, nextStartAt);
-  
+    const podcast_index_ids = await this.valueGetByPodcastIdsRecursively(
+      accumulatedPodcastIndexIds,
+      nextStartAt
+    );
+
     return podcast_index_ids;
   };
 
   valueGetByPodcastIdsRecursively = async (
-    accumulatedPodcastIndexIds: number[], startAt = 1): Promise<number[]> => {
+    accumulatedPodcastIndexIds: number[],
+    startAt = 1
+  ): Promise<number[]> => {
     const url = `${this.baseUrl}/podcasts/bytag?podcast-valueTimeSplit=true&max=5000&start_at=${startAt}`;
-    const data = await this.podcastIndexAPIRequest(url) as PodcastsByTagResponse;
-  
+    const data = (await this.podcastIndexAPIRequest(url)) as PodcastsByTagResponse;
+
     for (const feed of data.feeds) {
       accumulatedPodcastIndexIds.push(feed.id);
     }
-  
+
     if (data.nextStartAt) {
-      return await this.valueGetByPodcastIdsRecursively(accumulatedPodcastIndexIds, data.nextStartAt);
+      return await this.valueGetByPodcastIdsRecursively(
+        accumulatedPodcastIndexIds,
+        data.nextStartAt
+      );
     }
-  
+
     return accumulatedPodcastIndexIds;
   };
 }

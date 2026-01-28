@@ -17,23 +17,26 @@ type ListItemChaptersProps = {
 };
 
 export const ListItemChapters: React.FC<ListItemChaptersProps> = ({
-  page, setPage, channel, item, item_chapters, totalPages }) => {
-
+  page,
+  setPage,
+  channel,
+  item,
+  item_chapters,
+  totalPages,
+}) => {
   useSkipInitialEffect(() => {
     scrollMainToTop();
   }, [item_chapters]);
 
   return (
-    <Pagination
-      currentPage={page}
-      totalPages={totalPages}
-      setPage={setPage}>
+    <Pagination currentPage={page} totalPages={totalPages} setPage={setPage}>
       {item_chapters.map((item_chapter) => (
         <ListItemChapterRow
           key={item_chapter.id}
           channel={channel}
           item={item}
-          item_chapter={item_chapter} />
+          item_chapter={item_chapter}
+        />
       ))}
     </Pagination>
   );

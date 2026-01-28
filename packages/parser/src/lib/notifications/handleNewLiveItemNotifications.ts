@@ -19,7 +19,7 @@ import {
  */
 export async function handleNewLiveItemNotifications(
   channel: Channel,
-  parsedLiveItemsResult: HandleParsedLiveItemsResult,
+  parsedLiveItemsResult: HandleParsedLiveItemsResult
 ): Promise<void> {
   try {
     const { pendingItemGuids, liveItemGuids } = parsedLiveItemsResult;
@@ -39,7 +39,7 @@ export async function handleNewLiveItemNotifications(
         pendingItemGuids,
         channelImages,
         'livestream-scheduled',
-        AccountNotificationTypeEnum.LivestreamScheduled,
+        AccountNotificationTypeEnum.LivestreamScheduled
       );
     }
 
@@ -50,7 +50,7 @@ export async function handleNewLiveItemNotifications(
         liveItemGuids,
         channelImages,
         'livestream-started',
-        AccountNotificationTypeEnum.LivestreamStarting,
+        AccountNotificationTypeEnum.LivestreamStarting
       );
     }
   } catch (error) {
@@ -66,13 +66,10 @@ async function sendLiveItemNotificationsForStatus(
   itemGuids: string[],
   channelImages: ChannelImage[],
   messageType: NotificationMessageType,
-  notificationType: AccountNotificationTypeEnum,
+  notificationType: AccountNotificationTypeEnum
 ): Promise<void> {
   // Get devices for accounts that have this notification type enabled
-  const devicesResult = await getDevicesForNotificationType(
-    channel.id_text,
-    notificationType,
-  );
+  const devicesResult = await getDevicesForNotificationType(channel.id_text, notificationType);
 
   if (!devicesResult) {
     return;
@@ -95,18 +92,22 @@ async function sendLiveItemNotificationsForStatus(
   const sortedItems = [...items]
     .sort((a, b) => {
       // Use live_item start_time if available, otherwise fall back to pub_date
-      const dateA = a.live_item?.start_time 
-        ? new Date(a.live_item.start_time).getTime() 
-        : (a.pub_date ? new Date(a.pub_date).getTime() : 0);
-      const dateB = b.live_item?.start_time 
-        ? new Date(b.live_item.start_time).getTime() 
-        : (b.pub_date ? new Date(b.pub_date).getTime() : 0);
+      const dateA = a.live_item?.start_time
+        ? new Date(a.live_item.start_time).getTime()
+        : a.pub_date
+          ? new Date(a.pub_date).getTime()
+          : 0;
+      const dateB = b.live_item?.start_time
+        ? new Date(b.live_item.start_time).getTime()
+        : b.pub_date
+          ? new Date(b.pub_date).getTime()
+          : 0;
       return dateB - dateA;
     })
     .slice(0, 3);
 
   // Prepare notification data for each item (limited to 3 most recent)
-  const itemNotifications: ItemNotificationData[] = sortedItems.map(item => ({
+  const itemNotifications: ItemNotificationData[] = sortedItems.map((item) => ({
     itemTitle: item.title || '',
     channelTitle: channel.title || '',
     imageUrl: getBestImageUrl(item, channelImages),
@@ -120,5 +121,10 @@ async function sendLiveItemNotificationsForStatus(
   const groupedDevices = groupDevicesByLocaleAndPlatform(allDevices);
 
   // Send notifications
-  await sendItemNotifications(itemNotifications, groupedDevices, webPushSubscriptions, upSubscriptions);
+  await sendItemNotifications(
+    itemNotifications,
+    groupedDevices,
+    webPushSubscriptions,
+    upSubscriptions
+  );
 }

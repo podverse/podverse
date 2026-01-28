@@ -55,19 +55,22 @@ export class ItemEnclosureGenerator {
   private integrityIdCounter = 1;
   private sourceIdCounter = 1;
   private mediaServerBase = 'http://localhost:2111';
-  
+
   private audioTypes = [
     { type: 'audio/mpeg', ext: 'mp3', bitrates: [64, 128, 192, 256, 320] },
     { type: 'audio/ogg', ext: 'ogg', bitrates: [96, 128, 192] },
-    { type: 'audio/opus', ext: 'opus', bitrates: [48, 96, 128] }
+    { type: 'audio/opus', ext: 'opus', bitrates: [48, 96, 128] },
   ];
-  
+
   private videoTypes = [
     { type: 'video/mp4', ext: 'mp4', heights: [360, 480, 720, 1080] },
-    { type: 'video/webm', ext: 'webm', heights: [360, 480, 720, 1080] }
+    { type: 'video/webm', ext: 'webm', heights: [360, 480, 720, 1080] },
   ];
-  
-  generate(item: GeneratedItem, count: number = 2): {
+
+  generate(
+    item: GeneratedItem,
+    count: number = 2
+  ): {
     enclosures: GeneratedItemEnclosure[];
     integrities: GeneratedItemEnclosureIntegrity[];
     sources: GeneratedItemEnclosureSource[];
@@ -75,19 +78,17 @@ export class ItemEnclosureGenerator {
     const enclosures: GeneratedItemEnclosure[] = [];
     const integrities: GeneratedItemEnclosureIntegrity[] = [];
     const sources: GeneratedItemEnclosureSource[] = [];
-    
+
     // Determine if audio or video based on item index
     const isVideo = faker.datatype.boolean({ probability: 0.2 });
     const mediaTypes = isVideo ? this.videoTypes : this.audioTypes;
-    
+
     for (let i = 0; i < count; i++) {
       const isDefault = i === 0;
-      const mediaType = isDefault 
-        ? mediaTypes[0] 
-        : faker.helpers.arrayElement(mediaTypes);
-      
+      const mediaType = isDefault ? mediaTypes[0] : faker.helpers.arrayElement(mediaTypes);
+
       const enclosureId = this.enclosureIdCounter++;
-      
+
       // Create enclosure
       const enclosure: GeneratedItemEnclosure = {
         id: enclosureId,
@@ -99,27 +100,28 @@ export class ItemEnclosureGenerator {
         language: faker.datatype.boolean({ probability: 0.3 })
           ? faker.helpers.arrayElement(['en', 'es', 'de', 'fr'])
           : null,
-        title: !isDefault && faker.datatype.boolean({ probability: 0.5 })
-          ? faker.lorem.words({ min: 2, max: 4 }).slice(0, DATABASE_CONSTANTS.varchar_short)
-          : null,
+        title:
+          !isDefault && faker.datatype.boolean({ probability: 0.5 })
+            ? faker.lorem.words({ min: 2, max: 4 }).slice(0, DATABASE_CONSTANTS.varchar_short)
+            : null,
         rel: !isDefault ? faker.helpers.arrayElement(['alternate', null]) : null,
         codecs: faker.datatype.boolean({ probability: 0.3 })
           ? (isVideo ? 'avc1.64001f' : 'mp3').slice(0, DATABASE_CONSTANTS.varchar_short)
           : null,
-        item_enclosure_default: isDefault
+        item_enclosure_default: isDefault,
       };
       enclosures.push(enclosure);
-      
+
       // Create integrity (30% of non-default enclosures)
       if (!isDefault && faker.datatype.boolean({ probability: 0.3 })) {
         integrities.push({
           id: this.integrityIdCounter++,
           item_enclosure_id: enclosureId,
           type: 'sri',
-          value: `sha384-${faker.string.alphanumeric(64)}`
+          value: `sha384-${faker.string.alphanumeric(64)}`,
         });
       }
-      
+
       // Create sources (1-3 per enclosure)
       const sourceCount = isDefault ? 1 : faker.number.int({ min: 1, max: 3 });
       for (let j = 0; j < sourceCount; j++) {
@@ -127,14 +129,20 @@ export class ItemEnclosureGenerator {
         sources.push({
           id: this.sourceIdCounter++,
           item_enclosure_id: enclosureId,
-          uri: `${this.mediaServerBase}/${isVideo ? 'video' : 'audio'}/item-${item.id}-enc-${i}-src-${j}.${ext}`.slice(0, DATABASE_CONSTANTS.varchar_uri),
-          content_type: j > 0 
-            ? faker.helpers.arrayElement(mediaTypes).type.slice(0, DATABASE_CONSTANTS.varchar_short)
-            : null
+          uri: `${this.mediaServerBase}/${isVideo ? 'video' : 'audio'}/item-${item.id}-enc-${i}-src-${j}.${ext}`.slice(
+            0,
+            DATABASE_CONSTANTS.varchar_uri
+          ),
+          content_type:
+            j > 0
+              ? faker.helpers
+                  .arrayElement(mediaTypes)
+                  .type.slice(0, DATABASE_CONSTANTS.varchar_short)
+              : null,
         });
       }
     }
-    
+
     return { enclosures, integrities, sources };
   }
 }
@@ -142,8 +150,8 @@ export class ItemEnclosureGenerator {
 
 ## Summary
 
-| Entity | Count for baseCount=100 |
-|--------|------------------------|
-| ItemEnclosure | 400 (2 per item) |
+| Entity                 | Count for baseCount=100             |
+| ---------------------- | ----------------------------------- |
+| ItemEnclosure          | 400 (2 per item)                    |
 | ItemEnclosureIntegrity | ~60 (30% of non-default enclosures) |
-| ItemEnclosureSource | ~600 (1-3 per enclosure) |
+| ItemEnclosureSource    | ~600 (1-3 per enclosure)            |

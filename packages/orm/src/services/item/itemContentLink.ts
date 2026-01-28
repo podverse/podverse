@@ -3,9 +3,9 @@ import { ItemContentLink } from '@orm/entities/item/itemContentLink';
 import { BaseManyService } from '@orm/services/base/baseManyService';
 
 type ItemContentLinkDto = {
-  url: string
-  title?: string | null
-}
+  url: string;
+  title?: string | null;
+};
 
 export class ItemContentLinkService extends BaseManyService<ItemContentLink, 'item'> {
   constructor() {

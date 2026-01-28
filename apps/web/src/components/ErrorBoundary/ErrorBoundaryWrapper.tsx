@@ -8,9 +8,5 @@ type ErrorBoundaryWrapperProps = {
 };
 
 export const ErrorBoundaryWrapper: React.FC<ErrorBoundaryWrapperProps> = ({ children }) => {
-  return (
-    <ErrorBoundary>
-      {children}
-    </ErrorBoundary>
-  );
+  return <ErrorBoundary>{children}</ErrorBoundary>;
 };

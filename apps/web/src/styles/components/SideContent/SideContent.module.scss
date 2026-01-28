@@ -1,7 +1,8 @@
 @use 'breakpoints';
 
 .sideContent {
-  margin: calc(var(--spacing-xs) * -1) calc(var(--spacing-sm) * -1) var(--spacing-none) var(--spacing-3xl);
+  margin: calc(var(--spacing-xs) * -1) calc(var(--spacing-sm) * -1) var(--spacing-none)
+    var(--spacing-3xl);
   padding: var(--spacing-sm);
   display: flex;
   flex-direction: column;

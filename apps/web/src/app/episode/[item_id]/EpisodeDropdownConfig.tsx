@@ -1,9 +1,12 @@
 import { QueryParamsStatsRange, QueryParamsItemType, QueryParamsItemSort } from '@podverse/helpers';
 import { getRangeDropdownItems } from '../../../utils/dropdownMenuItems';
 
-export function getEpisodeDropdownConfig({ sort, tFilters }: {
-  sort: QueryParamsItemSort,
-  tFilters: (key: string) => string
+export function getEpisodeDropdownConfig({
+  sort,
+  tFilters,
+}: {
+  sort: QueryParamsItemSort;
+  tFilters: (key: string) => string;
 }) {
   const sortDropdownMenuItems = [
     { label: tFilters('sort.recent'), param: 'sort', value: 'recent' },
@@ -12,8 +15,8 @@ export function getEpisodeDropdownConfig({ sort, tFilters }: {
   ];
 
   const rangeDropdownMenuItems = getRangeDropdownItems(tFilters);
-  
-  const showRangeDropdown = sort === 'top';  
+
+  const showRangeDropdown = sort === 'top';
 
   return {
     sortMenuItems: sortDropdownMenuItems,
@@ -27,16 +30,21 @@ type EpisodeDropdownConfigParams = {
   sort: QueryParamsItemSort;
   range: QueryParamsStatsRange | null;
   page: number;
-}
+};
 
 export type EpisodeDropdownConfigCurrentParams = {
   currentType: QueryParamsItemType;
   currentSort: QueryParamsItemSort;
   currentRange: QueryParamsStatsRange | null;
   currentPage: number;
-}
+};
 
-export function getEpisodeFilterParams({ type, sort, range, page }: EpisodeDropdownConfigParams): EpisodeDropdownConfigCurrentParams {
+export function getEpisodeFilterParams({
+  type,
+  sort,
+  range,
+  page,
+}: EpisodeDropdownConfigParams): EpisodeDropdownConfigCurrentParams {
   let currentSort = sort;
   const currentRange = range;
   const currentType = type;

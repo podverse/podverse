@@ -9,7 +9,7 @@ import styles from '../../../../styles/app/podcast/PodcastList.module.scss';
 
 type LivestreamListProps = {
   ssrItem: DTOItem;
-}
+};
 
 export const LivestreamList: React.FC<LivestreamListProps> = ({ ssrItem }) => {
   const { filterParams, isLoading } = useLivestreamContext();
@@ -17,11 +17,7 @@ export const LivestreamList: React.FC<LivestreamListProps> = ({ ssrItem }) => {
 
   return (
     <div className={styles.list}>
-      {
-        type === 'summary' && (
-          <EpisodeSummary description={ssrItem.item_description?.value} />
-        )
-      }
+      {type === 'summary' && <EpisodeSummary description={ssrItem.item_description?.value} />}
       <LoadingSpinnerOverlay isLoading={isLoading} />
     </div>
   );

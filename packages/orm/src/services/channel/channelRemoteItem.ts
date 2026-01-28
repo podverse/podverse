@@ -17,7 +17,7 @@ export class ChannelRemoteItemService extends BaseRemoteItemsService<ChannelRemo
     return super.update(channel, dto);
   }
 
-  async updateMany(channel: Channel, dtos: RemoteItemDto[]): Promise<ChannelRemoteItem[]> { 
+  async updateMany(channel: Channel, dtos: RemoteItemDto[]): Promise<ChannelRemoteItem[]> {
     const filteredDtos = filterInvalidFeedUuids(dtos);
     return super.updateMany(channel, filteredDtos);
   }

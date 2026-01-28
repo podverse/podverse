@@ -23,11 +23,19 @@ type Props = {
   onClick?: (playlist: DTOPlaylist) => void;
 };
 
-export const ListPlaylists: React.FC<Props> = ({ page, setPage, playlists, totalPages, showLoginMessage, showCreator, onClick }) => {
+export const ListPlaylists: React.FC<Props> = ({
+  page,
+  setPage,
+  playlists,
+  totalPages,
+  showLoginMessage,
+  showCreator,
+  onClick,
+}) => {
   const tInstructions = useTranslations('instructions');
   const tAuthentication = useTranslations('authentication');
   const { setModalAuthLogin } = useModals();
-  
+
   // Track if we should skip scroll on the first effect run (back navigation case)
   const skipScrollOnceRef = useRef(checkBackNavFlag());
 
@@ -52,26 +60,25 @@ export const ListPlaylists: React.FC<Props> = ({ page, setPage, playlists, total
           onButtonClick={() => setModalAuthLogin({ isOpen: true })}
         />
       )}
-      {
-        showPagination && (
-          <div className={styles.listWrapper}>
-            <Pagination
-              currentPage={page}
-              totalPages={totalPages}
-              setPage={setPage}
-              paginationControlsClassName={styles.paginationControls}>
-              {playlists.map((playlist) => (
-                <ListPlaylistRow
-                  key={playlist.id_text}
-                  playlist={playlist}
-                  showCreator={showCreator}
-                  onClick={onClick ? () => onClick(playlist) : undefined}
-                />
-              ))}
-            </Pagination>
-          </div>
-        )
-      }
+      {showPagination && (
+        <div className={styles.listWrapper}>
+          <Pagination
+            currentPage={page}
+            totalPages={totalPages}
+            setPage={setPage}
+            paginationControlsClassName={styles.paginationControls}
+          >
+            {playlists.map((playlist) => (
+              <ListPlaylistRow
+                key={playlist.id_text}
+                playlist={playlist}
+                showCreator={showCreator}
+                onClick={onClick ? () => onClick(playlist) : undefined}
+              />
+            ))}
+          </Pagination>
+        </div>
+      )}
     </>
   );
 };

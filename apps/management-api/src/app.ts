@@ -19,10 +19,12 @@ if (config.nodeEnv === 'production') {
   app.set('trust proxy', 1);
 }
 
-app.use(cors({
-  origin: config.api.allowedCORSOrigins,
-  credentials: true,
-}));
+app.use(
+  cors({
+    origin: config.api.allowedCORSOrigins,
+    credentials: true,
+  })
+);
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));

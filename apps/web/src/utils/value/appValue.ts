@@ -5,7 +5,7 @@ type GetAppValueRecipientParams = {
   type: string;
   method: string;
   final_amount: number;
-}
+};
 
 export const getAppValueRecipient = ({
   type,

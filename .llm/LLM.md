@@ -3,6 +3,7 @@
 ## Overview
 
 This directory tracks all LLM-assisted development work on the Podverse project. It serves as:
+
 - A historical record of what was built and why
 - Context for future LLM sessions
 - Documentation of architectural decisions
@@ -39,14 +40,14 @@ The LLM is reminded to update history via a Cursor rule defined in `.cursor/rule
 
 ```yaml
 globs:
-  - "packages/**/*.ts"
-  - "apps/**/*.ts"
-  - "apps/**/*.tsx"
-  - "tools/**/*.ts"
-  - ".llm/plans/**/*.md"
-  - "scripts/**/*.sh"
-  - "scripts/**/*.ts"
-  - "infra/**/*"
+  - 'packages/**/*.ts'
+  - 'apps/**/*.ts'
+  - 'apps/**/*.tsx'
+  - 'tools/**/*.ts'
+  - '.llm/plans/**/*.md'
+  - 'scripts/**/*.sh'
+  - 'scripts/**/*.ts'
+  - 'infra/**/*'
 ```
 
 ### When Auto-Tracking MAY NOT Trigger
@@ -83,13 +84,13 @@ A pre-commit hook in `scripts/git-hooks/pre-commit` checks if `.llm/history/` ha
 
 ### Common Situations Requiring Manual Prompts
 
-| Situation | What to Say |
-|-----------|-------------|
-| After plan creation | "Update the history with the plans we created" |
-| After documentation work | "Update the history - we modified docs" |
-| After config changes | "Update the history with these config changes" |
-| Complex multi-file work | "Before we continue, update the history" |
-| End of session | "Summarize this session in the history" |
+| Situation                | What to Say                                    |
+| ------------------------ | ---------------------------------------------- |
+| After plan creation      | "Update the history with the plans we created" |
+| After documentation work | "Update the history - we modified docs"        |
+| After config changes     | "Update the history with these config changes" |
+| Complex multi-file work  | "Before we continue, update the history"       |
+| End of session           | "Summarize this session in the history"        |
 
 ## History Entry Format
 
@@ -97,21 +98,27 @@ Each session should be recorded in this format:
 
 ```markdown
 ### Session N - YYYY-MM-DD
+
 #### Prompt (Developer|Agent)
+
 [Exact verbatim prompt from user]
 
 #### Key Decisions
+
 - Decision or outcome 1
 - Decision or outcome 2
 
 #### Files Created
+
 - path/to/new-file.ts
 
 #### Files Modified
+
 - path/to/existing-file.ts
 ```
 
 ### Labels
+
 - `#### Prompt (Developer)` - Manually typed by the user
 - `#### Prompt (Agent)` - System-generated (e.g., clicking "Build" on a plan)
 
@@ -124,9 +131,11 @@ npm run start-feature
 ```
 
 This creates:
+
 - `history/active/[feature-name]/[feature-name].md`
 
 If creating manually:
+
 1. Create directory `history/active/[feature-name]/`
 2. Copy the template from `templates/prompt-template.md`
 3. Fill in the metadata section

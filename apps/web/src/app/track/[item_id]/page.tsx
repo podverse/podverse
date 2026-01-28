@@ -1,6 +1,4 @@
-import { 
-  QUERY_PARAMS_ITEM_MUSIC_TYPE_VALUES,
-} from '@podverse/helpers';
+import { QUERY_PARAMS_ITEM_MUSIC_TYPE_VALUES } from '@podverse/helpers';
 import { z } from 'zod';
 import { getSSRAuthService } from '../../../utils/auth/ssrAuth';
 import { TrackClient } from './TrackClient';
@@ -20,16 +18,15 @@ export type TrackPageProps = {
 export default async function TrackPage({ params, searchParams }: TrackPageProps) {
   const { item_id } = await params;
   const queryParams = await searchParams;
-  
+
   const { ssrApiRequestService } = await getSSRAuthService();
-    
+
   const { currentType } = parseSearchParams(queryParams);
 
   const ssrItem = await ssrApiRequestService.reqItemGetByIdOrIdText(item_id);
   const ssrChannel = await ssrApiRequestService.reqChannelGetByIdOrIdText(ssrItem.channel_id);
 
-  const ssrHasTranscripts = ssrItem.item_transcripts
-    && ssrItem.item_transcripts.length > 0;
+  const ssrHasTranscripts = ssrItem.item_transcripts && ssrItem.item_transcripts.length > 0;
 
   return (
     <TrackClient

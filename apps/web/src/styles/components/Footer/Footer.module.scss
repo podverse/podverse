@@ -1,4 +1,4 @@
-@use "breakpoints";
+@use 'breakpoints';
 
 .footer {
   margin: var(--header-padding);
@@ -29,7 +29,8 @@
   flex-wrap: wrap;
 }
 
-.footerLinks a, .footerLinks span {
+.footerLinks a,
+.footerLinks span {
   padding: var(--spacing-base) var(--spacing-none);
 }
 

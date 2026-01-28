@@ -4,14 +4,17 @@ import { ChannelSocialInteract } from '@orm/entities/channel/channelSocialIntera
 import { BaseManyService } from '@orm/services/base/baseManyService';
 
 type ChannelSocialInteractDto = {
-  protocol: string
-  uri: string
-  account_id: string | null
-  account_url: string | null
-  priority: number | null
-}
+  protocol: string;
+  uri: string;
+  account_id: string | null;
+  account_url: string | null;
+  priority: number | null;
+};
 
-export class ChannelSocialInteractService extends BaseManyService<ChannelSocialInteract, 'channel'> {
+export class ChannelSocialInteractService extends BaseManyService<
+  ChannelSocialInteract,
+  'channel'
+> {
   constructor(transactionalEntityManager?: EntityManager) {
     super(ChannelSocialInteract, 'channel', transactionalEntityManager);
   }
@@ -21,7 +24,10 @@ export class ChannelSocialInteractService extends BaseManyService<ChannelSocialI
     return super._update(channel, whereKeys, dto);
   }
 
-  async updateMany(channel: Channel, dtos: ChannelSocialInteractDto[]): Promise<ChannelSocialInteract[]> {
+  async updateMany(
+    channel: Channel,
+    dtos: ChannelSocialInteractDto[]
+  ): Promise<ChannelSocialInteract[]> {
     const whereKeys = ['uri'] as (keyof ChannelSocialInteract)[];
     return super._updateMany(channel, whereKeys, dtos);
   }

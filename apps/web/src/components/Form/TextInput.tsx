@@ -6,45 +6,45 @@ import classNames from 'classnames';
 import { cssClass } from '../../utils/cssModule';
 
 type TextInputProps = {
-  value: string
-  onChange?: (event: React.ChangeEvent<HTMLInputElement>) => void
-  onBlur?: (event: React.FocusEvent<HTMLInputElement>) => void
-  eyebrow?: string
-  info?: string
-  infoError?: string
-  placeholder?: string
-  type?: string
-  disabled?: boolean
-  readOnly?: boolean
-  className?: string
-  style?: React.CSSProperties
-  id?: string
-  name?: string
-  autoFocus?: boolean
-  tabIndex?: number
-  'aria-label'?: string
-  'aria-describedby'?: string
-  'aria-required'?: AriaAttributes['aria-required']
-  'aria-invalid'?: AriaAttributes['aria-invalid']
-  button?: TextInputButton
-  buttonIcon?: TextInputButtonIcon
-  onWheel?: (event: React.WheelEvent<HTMLInputElement>) => void
-  min?: number
-  max?: number
-  step?: number
-}
+  value: string;
+  onChange?: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  onBlur?: (event: React.FocusEvent<HTMLInputElement>) => void;
+  eyebrow?: string;
+  info?: string;
+  infoError?: string;
+  placeholder?: string;
+  type?: string;
+  disabled?: boolean;
+  readOnly?: boolean;
+  className?: string;
+  style?: React.CSSProperties;
+  id?: string;
+  name?: string;
+  autoFocus?: boolean;
+  tabIndex?: number;
+  'aria-label'?: string;
+  'aria-describedby'?: string;
+  'aria-required'?: AriaAttributes['aria-required'];
+  'aria-invalid'?: AriaAttributes['aria-invalid'];
+  button?: TextInputButton;
+  buttonIcon?: TextInputButtonIcon;
+  onWheel?: (event: React.WheelEvent<HTMLInputElement>) => void;
+  min?: number;
+  max?: number;
+  step?: number;
+};
 
 export type TextInputButton = {
-  label: string
-  onClick: () => void
-}
+  label: string;
+  onClick: () => void;
+};
 
 export type TextInputButtonIcon = {
-  position: 'start' | 'end'
-  icon: React.ReactNode
-  className?: string
-  onClick: () => void
-}
+  position: 'start' | 'end';
+  icon: React.ReactNode;
+  className?: string;
+  onClick: () => void;
+};
 
 export const TextInput: React.FC<TextInputProps> = ({
   value,
@@ -91,9 +91,10 @@ export const TextInput: React.FC<TextInputProps> = ({
                 [cssClass(styles, 'buttonIconStart')]: true,
                 [cssClass(styles, 'buttonIconEnd')]: false,
               },
-              buttonIcon.className,
+              buttonIcon.className
             )}
-            onClick={buttonIcon.onClick}>
+            onClick={buttonIcon.onClick}
+          >
             {buttonIcon.icon}
           </button>
         )}
@@ -118,7 +119,9 @@ export const TextInput: React.FC<TextInputProps> = ({
             aria-label={ariaLabel}
             aria-describedby={info ? infoId : ariaDescribedBy}
             aria-required={ariaRequired}
-            className={classNames(styles.input, { [cssClass(styles, 'numberInput')]: type === 'number' })}
+            className={classNames(styles.input, {
+              [cssClass(styles, 'numberInput')]: type === 'number',
+            })}
             aria-invalid={ariaInvalid}
             onWheel={onWheel}
             min={min}
@@ -139,11 +142,7 @@ export const TextInput: React.FC<TextInputProps> = ({
           />
         )}
         {button && (
-          <Button
-            className={styles.button}
-            onClick={button.onClick}
-            variant='mini'
-          >
+          <Button className={styles.button} onClick={button.onClick} variant="mini">
             {button.label}
           </Button>
         )}
@@ -156,9 +155,10 @@ export const TextInput: React.FC<TextInputProps> = ({
                 [cssClass(styles, 'buttonIconStart')]: true,
                 [cssClass(styles, 'buttonIconEnd')]: false,
               },
-              buttonIcon.className,
+              buttonIcon.className
             )}
-            onClick={buttonIcon.onClick}>
+            onClick={buttonIcon.onClick}
+          >
             {buttonIcon.icon}
           </button>
         )}

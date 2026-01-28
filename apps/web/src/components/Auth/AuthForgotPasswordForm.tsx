@@ -52,50 +52,50 @@ export const AuthForgotPasswordForm: React.FC = () => {
     setEmailTouched(value !== '');
     if (emailErrorKey) {
       const key = getEmailErrorKey(value);
-      if (!key) {setEmailErrorKey(undefined);}
+      if (!key) {
+        setEmailErrorKey(undefined);
+      }
     }
-    if (value === '') {setEmailErrorKey(undefined);}
+    if (value === '') {
+      setEmailErrorKey(undefined);
+    }
   };
 
   const isFormValid = !getEmailErrorKey(email) && !!email;
 
   return (
     <div className={styles.authForgotPasswordForm}>
-      {
-        !isEmailSent && (
-          <Form onSubmit={handleSubmit}>
-            <TextInput
-              type="email"
-              name="email"
-              value={email}
-              onChange={e => onEmailChange(e.target.value)}
-              onBlur={handleEmailBlur}
-              autoFocus
-              placeholder={tAuthentication('email')}
-              eyebrow={tAuthentication('email')}
-              infoError={emailErrorKey ? tAuthentication(emailErrorKey) : undefined}
-            />
-            <div className={styles.buttons}>
-              <Button type="button" onClick={() => router.push('/')} variant="secondary">
-                {tMisc('cancel')}
-              </Button>
-              <Button
-                type="submit"
-                variant="primary"
-                disabled={!isFormValid || isLoading}
-                isLoading={isLoading}
-              >
-                {tMisc('submit')}
-              </Button>
-            </div>
-          </Form>
-        )
-      }
-      {
-        isEmailSent && (
-          <FormInfoMessageText message={tAuthentication('forgot_password_email_sent_message')} />
-        )
-      }
+      {!isEmailSent && (
+        <Form onSubmit={handleSubmit}>
+          <TextInput
+            type="email"
+            name="email"
+            value={email}
+            onChange={(e) => onEmailChange(e.target.value)}
+            onBlur={handleEmailBlur}
+            autoFocus
+            placeholder={tAuthentication('email')}
+            eyebrow={tAuthentication('email')}
+            infoError={emailErrorKey ? tAuthentication(emailErrorKey) : undefined}
+          />
+          <div className={styles.buttons}>
+            <Button type="button" onClick={() => router.push('/')} variant="secondary">
+              {tMisc('cancel')}
+            </Button>
+            <Button
+              type="submit"
+              variant="primary"
+              disabled={!isFormValid || isLoading}
+              isLoading={isLoading}
+            >
+              {tMisc('submit')}
+            </Button>
+          </div>
+        </Form>
+      )}
+      {isEmailSent && (
+        <FormInfoMessageText message={tAuthentication('forgot_password_email_sent_message')} />
+      )}
     </div>
   );
 };

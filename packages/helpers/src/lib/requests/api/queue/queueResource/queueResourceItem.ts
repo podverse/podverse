@@ -7,7 +7,7 @@ export async function reqQueueResourceItemAddNowPlaying(
   api: ApiRequestService,
   queue_id_text: string,
   item_id_text: string,
-  params?: QueueExtraParams,
+  params?: QueueExtraParams
 ) {
   return api.apiRequest<DTOQueueResource>({
     path: `/queue/${queue_id_text}/item/${item_id_text}/now-playing`,
@@ -22,7 +22,7 @@ export async function reqQueueResourceItemAddNowPlaying(
 export async function reqQueueResourceItemAddNext(
   api: ApiRequestService,
   queue_id_text: string,
-  item_id_text: string,
+  item_id_text: string
 ) {
   return api.apiRequest<DTOQueueResource>({
     path: `/queue/${queue_id_text}/item/${item_id_text}/next`,
@@ -37,7 +37,7 @@ export async function reqQueueResourceItemAddBetween(
   api: ApiRequestService,
   queue_id_text: string,
   item_id_text: string,
-  params: BetweenParams,
+  params: BetweenParams
 ) {
   return api.apiRequest<DTOQueueResource>({
     path: `/queue/${queue_id_text}/item/${item_id_text}/between`,
@@ -52,7 +52,7 @@ export async function reqQueueResourceItemAddBetween(
 export async function reqQueueResourceItemAddLast(
   api: ApiRequestService,
   queue_id_text: string,
-  item_id_text: string,
+  item_id_text: string
 ) {
   return api.apiRequest<DTOQueueResource>({
     path: `/queue/${queue_id_text}/item/${item_id_text}/last`,
@@ -67,7 +67,7 @@ export async function reqQueueResourceItemAddHistory(
   api: ApiRequestService,
   queue_id_text: string,
   item_id_text: string,
-  params?: QueueExtraParams,
+  params?: QueueExtraParams
 ) {
   return api.apiRequest<DTOQueueResource>({
     path: `/queue/${queue_id_text}/item/${item_id_text}/history`,
@@ -77,12 +77,12 @@ export async function reqQueueResourceItemAddHistory(
     },
     data: params,
   });
-};
+}
 
 export async function reqQueueResourceItemDelete(
   api: ApiRequestService,
   queue_id_text: string,
-  item_id_text: string,
+  item_id_text: string
 ) {
   return api.apiRequest<void>({
     path: `/queue/${queue_id_text}/item/${item_id_text}`,

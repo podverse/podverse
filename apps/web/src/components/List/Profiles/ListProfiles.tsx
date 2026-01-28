@@ -21,12 +21,17 @@ type Props = {
   type: QueryParamsSubscribedType | null;
 };
 
-export const ListProfiles: React.FC<Props> = ({ page, setPage,
-  accounts, totalPages, showSubscribeMessage }) => {
+export const ListProfiles: React.FC<Props> = ({
+  page,
+  setPage,
+  accounts,
+  totalPages,
+  showSubscribeMessage,
+}) => {
   const tInstructions = useTranslations('instructions');
   const tAuthentication = useTranslations('authentication');
   const { setModalAuthLogin } = useModals();
-  
+
   // Track if we should skip scroll on the first effect run (back navigation case)
   const skipScrollOnceRef = useRef(checkBackNavFlag());
 
@@ -38,7 +43,7 @@ export const ListProfiles: React.FC<Props> = ({ page, setPage,
     }
     scrollMainToTop();
   }, [accounts]);
-  
+
   const showCallToAction = showSubscribeMessage;
   const showPagination = !showSubscribeMessage;
 
@@ -53,17 +58,16 @@ export const ListProfiles: React.FC<Props> = ({ page, setPage,
           onButtonClick={() => setModalAuthLogin({ isOpen: true })}
         />
       )}
-      {
-        showPagination && (
-          <Pagination
-            currentPage={page}
-            totalPages={totalPages}
-            setPage={setPage}
-            paginationControlsClassName={styles.paginationControls}>
-            {listNodes}
-          </Pagination>
-        )
-      }
+      {showPagination && (
+        <Pagination
+          currentPage={page}
+          totalPages={totalPages}
+          setPage={setPage}
+          paginationControlsClassName={styles.paginationControls}
+        >
+          {listNodes}
+        </Pagination>
+      )}
     </>
   );
 };

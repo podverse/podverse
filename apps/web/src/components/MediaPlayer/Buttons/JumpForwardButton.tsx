@@ -4,14 +4,13 @@ import styles from '../../../styles/components/MediaPlayer/Buttons/JumpForwardBu
 
 export const JumpForwardButton = () => {
   const handleClick = () => {
-    window.dispatchEvent(new CustomEvent(EVENTS.MEDIA_PLAYER.JUMP_FORWARD, { detail: { seconds: 30 } }));
+    window.dispatchEvent(
+      new CustomEvent(EVENTS.MEDIA_PLAYER.JUMP_FORWARD, { detail: { seconds: 30 } })
+    );
   };
-  
+
   return (
-    <button
-      className={styles.jumpForwardButton}
-      onClick={handleClick}
-      type="button">
+    <button className={styles.jumpForwardButton} onClick={handleClick} type="button">
       <FaRotateRight />
     </button>
   );

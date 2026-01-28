@@ -56,6 +56,7 @@ tools/qa/
 ## Current Dependencies
 
 From `podverse-qa/package.json`:
+
 ```json
 {
   "dependencies": {
@@ -114,9 +115,7 @@ Create `tools/qa/package.json`:
   "description": "QA tools and faker utilities for Podverse testing",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
-  "files": [
-    "dist/**/*"
-  ],
+  "files": ["dist/**/*"],
   "scripts": {
     "build:watch": "nodemon --watch 'src' --delay 500ms -x \"npm run build\"",
     "build": "npm run lint && tsc",
@@ -151,16 +150,18 @@ Create `tools/qa/package.json`:
 **src/factories/loggerService.ts**
 
 Before:
+
 ```typescript
 import { LoggerService } from 'podverse-helpers/dist/lib/backend/logger';
 ```
 
 After:
+
 ```typescript
 import { LoggerService } from '@podverse/helpers/dist/lib/backend/logger';
 ```
 
-**Any other files with podverse-* imports** need similar updates.
+**Any other files with podverse-\* imports** need similar updates.
 
 ### Task 4: Update tsconfig.json
 
@@ -185,9 +186,7 @@ Ensure tsconfig.json references the workspace base config:
     "rootDir": "./src",
     "baseUrl": "./"
   },
-  "include": [
-    "./src/**/*.ts"
-  ],
+  "include": ["./src/**/*.ts"],
   "exclude": ["node_modules", "dist"]
 }
 ```
@@ -198,11 +197,7 @@ The root package.json already includes `"tools/*"` in workspaces:
 
 ```json
 {
-  "workspaces": [
-    "packages/*",
-    "apps/*",
-    "tools/*"
-  ]
+  "workspaces": ["packages/*", "apps/*", "tools/*"]
 }
 ```
 
@@ -222,12 +217,12 @@ If you want a dedicated QA build script:
 
 ## Import Path Changes
 
-| Old Import | New Import |
-|------------|------------|
-| `podverse-helpers` | `@podverse/helpers` |
+| Old Import                   | New Import                    |
+| ---------------------------- | ----------------------------- |
+| `podverse-helpers`           | `@podverse/helpers`           |
 | `podverse-external-services` | `@podverse/external-services` |
-| `podverse-orm` | `@podverse/orm` |
-| `podverse-parser` | `@podverse/parser` |
+| `podverse-orm`               | `@podverse/orm`               |
+| `podverse-parser`            | `@podverse/parser`            |
 
 ## Module Alias Update
 

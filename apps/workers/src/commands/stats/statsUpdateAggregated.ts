@@ -1,5 +1,16 @@
 import { TIME_CONSTANTS } from '@podverse/helpers';
-import { StatsAggregatedChannelService, StatsAggregatedAccountService, StatsAggregatedClipService, StatsAggregatedItemService, StatsAggregatedPlaylistService, StatsTrackEventAccountService, StatsTrackEventChannelService, StatsTrackEventClipService, StatsTrackEventItemService, StatsTrackEventPlaylistService } from '@podverse/orm';
+import {
+  StatsAggregatedChannelService,
+  StatsAggregatedAccountService,
+  StatsAggregatedClipService,
+  StatsAggregatedItemService,
+  StatsAggregatedPlaylistService,
+  StatsTrackEventAccountService,
+  StatsTrackEventChannelService,
+  StatsTrackEventClipService,
+  StatsTrackEventItemService,
+  StatsTrackEventPlaylistService,
+} from '@podverse/orm';
 import { CommandLineArgs } from '@workers/commands';
 import { timerManager } from '@workers/factories/timerManager';
 
@@ -10,7 +21,7 @@ const updateStats = async (
   getTopEntities: (limit: number) => Promise<number[]>,
   updateAggregatedStats: (id: number, shouldUpdateAllTime: boolean) => Promise<void>,
   deleteOldEvents: (time: number) => Promise<void>,
-  shouldUpdateAllTime: boolean,
+  shouldUpdateAllTime: boolean
 ) => {
   const timerLabelGet = `${entityName} track events - get top ${entityName}s`;
   timerManager.start(timerLabelGet);
@@ -38,44 +49,61 @@ export const statsUpdateAggregated = async (args: CommandLineArgs) => {
 
   await updateStats(
     'Account',
-    new StatsTrackEventAccountService()._getTopEntitiesByEventCount.bind(new StatsTrackEventAccountService()),
-    new StatsAggregatedAccountService().updateAggregatedStats.bind(new StatsAggregatedAccountService()),
+    new StatsTrackEventAccountService()._getTopEntitiesByEventCount.bind(
+      new StatsTrackEventAccountService()
+    ),
+    new StatsAggregatedAccountService().updateAggregatedStats.bind(
+      new StatsAggregatedAccountService()
+    ),
     new StatsTrackEventAccountService()._deleteOldEvents.bind(new StatsTrackEventAccountService()),
-    shouldUpdateAllTime,
+    shouldUpdateAllTime
   );
 
   await updateStats(
     'Channel',
-    new StatsTrackEventChannelService()._getTopEntitiesByEventCount.bind(new StatsTrackEventChannelService()),
-    new StatsAggregatedChannelService().updateAggregatedStats.bind(new StatsAggregatedChannelService()),
+    new StatsTrackEventChannelService()._getTopEntitiesByEventCount.bind(
+      new StatsTrackEventChannelService()
+    ),
+    new StatsAggregatedChannelService().updateAggregatedStats.bind(
+      new StatsAggregatedChannelService()
+    ),
     new StatsTrackEventChannelService()._deleteOldEvents.bind(new StatsTrackEventChannelService()),
-    shouldUpdateAllTime,
+    shouldUpdateAllTime
   );
 
   await updateStats(
     'Clip',
-    new StatsTrackEventClipService()._getTopEntitiesByEventCount.bind(new StatsTrackEventClipService()),
+    new StatsTrackEventClipService()._getTopEntitiesByEventCount.bind(
+      new StatsTrackEventClipService()
+    ),
     new StatsAggregatedClipService().updateAggregatedStats.bind(new StatsAggregatedClipService()),
     new StatsTrackEventClipService()._deleteOldEvents.bind(new StatsTrackEventClipService()),
-    shouldUpdateAllTime,
+    shouldUpdateAllTime
   );
 
   await updateStats(
     'Item',
-    new StatsTrackEventItemService()._getTopEntitiesByEventCount.bind(new StatsTrackEventItemService()),
+    new StatsTrackEventItemService()._getTopEntitiesByEventCount.bind(
+      new StatsTrackEventItemService()
+    ),
     new StatsAggregatedItemService().updateAggregatedStats.bind(new StatsAggregatedItemService()),
     new StatsTrackEventItemService()._deleteOldEvents.bind(new StatsTrackEventItemService()),
-    shouldUpdateAllTime,
+    shouldUpdateAllTime
   );
 
   await updateStats(
     'Playlist',
-    new StatsTrackEventPlaylistService()._getTopEntitiesByEventCount.bind(new StatsTrackEventPlaylistService()),
-    new StatsAggregatedPlaylistService().updateAggregatedStats.bind(new StatsAggregatedPlaylistService()),
-    new StatsTrackEventPlaylistService()._deleteOldEvents.bind(new StatsTrackEventPlaylistService()),
-    shouldUpdateAllTime,
+    new StatsTrackEventPlaylistService()._getTopEntitiesByEventCount.bind(
+      new StatsTrackEventPlaylistService()
+    ),
+    new StatsAggregatedPlaylistService().updateAggregatedStats.bind(
+      new StatsAggregatedPlaylistService()
+    ),
+    new StatsTrackEventPlaylistService()._deleteOldEvents.bind(
+      new StatsTrackEventPlaylistService()
+    ),
+    shouldUpdateAllTime
   );
 
   timerManager.end(timerFullRunLabel);
 };
-

@@ -1,4 +1,3 @@
-
 import { mqRSSSetupDlqConsumers, createActiveMQShutdown } from '@podverse/mq';
 import { activeMQArtemisService } from '@workers/factories/activeMQArtemisService';
 import { logger } from '@workers/factories/logger';
@@ -26,14 +25,12 @@ export const mqRSSRunDlqConsumer = async () => {
 
   let keepRunning = true;
 
-  const { unregister } = createActiveMQShutdown(
-    activeMQArtemisService,
-    logger,
-    () => { keepRunning = false; },
-  );
+  const { unregister } = createActiveMQShutdown(activeMQArtemisService, logger, () => {
+    keepRunning = false;
+  });
 
   while (keepRunning) {
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    await new Promise((resolve) => setTimeout(resolve, 1000));
   }
 
   unregister();

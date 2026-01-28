@@ -1,7 +1,17 @@
 import { getMediumIdArrayFromType, PAGINATION, QueryParamsMedium } from '@podverse/helpers';
-import { FindManyOptions, FindOptionsRelations, FindOptionsWhere,
-  In, IsNull, Not, Repository, MoreThan, LessThan, 
-  Equal, Brackets} from 'typeorm';
+import {
+  FindManyOptions,
+  FindOptionsRelations,
+  FindOptionsWhere,
+  In,
+  IsNull,
+  Not,
+  Repository,
+  MoreThan,
+  LessThan,
+  Equal,
+  Brackets,
+} from 'typeorm';
 import { Channel } from '@orm/entities/channel/channel';
 import { Item } from '@orm/entities/item/item';
 import { applyProperties } from '@orm/lib/applyProperties';
@@ -27,22 +37,24 @@ import { ItemFlagStatusStatusEnum } from '@orm/entities/item/itemFlagStatus';
 import { getLiveItemStatusEnumValue } from '@orm/entities/liveItem/liveItemStatus';
 
 type ItemDto = {
-  title: string | null
-  pub_date: Date | null
-  guid: string | null
-  guid_enclosure_url: string | null
-}
+  title: string | null;
+  pub_date: Date | null;
+  guid: string | null;
+  guid_enclosure_url: string | null;
+};
 
 type ItemGetByDto = {
-  guid: string | null
-  guid_enclosure_url: string | null
-}
+  guid: string | null;
+  guid_enclosure_url: string | null;
+};
 
 const itemQueueListRelations = [
   'item_about',
-  'item_enclosures', 'item_enclosures.item_enclosure_sources',
+  'item_enclosures',
+  'item_enclosures.item_enclosure_sources',
   'item_images',
-  'channel', 'channel.channel_images',
+  'channel',
+  'channel.channel_images',
 ];
 
 export class ItemService {
@@ -56,7 +68,7 @@ export class ItemService {
 
   async getItemWithRelations(
     where: FindOptionsWhere<Item>,
-    relations: FindOptionsRelations<Item>,
+    relations: FindOptionsRelations<Item>
   ): Promise<Item | null> {
     const oneToOneRelations = getItemOneToOneRelations(relations);
 
@@ -74,13 +86,17 @@ export class ItemService {
       const item_chapters_feed = await itemChaptersFeedService._get(item, {
         relations: ['item_chapters_feed_log'],
       });
-      if (item_chapters_feed) {item.item_chapters_feed = item_chapters_feed;}
+      if (item_chapters_feed) {
+        item.item_chapters_feed = item_chapters_feed;
+      }
     }
 
     if (relations.item_content_links) {
       const itemContentLinkService = new ItemContentLinkService();
       const item_content_links = await itemContentLinkService._getAll(item);
-      if (item_content_links) {item.item_content_links = item_content_links;}
+      if (item_content_links) {
+        item.item_content_links = item_content_links;
+      }
     }
 
     if (relations.item_enclosures) {
@@ -88,31 +104,41 @@ export class ItemService {
       const item_enclosures = await itemEnclosureService._getAll(item, {
         relations: ['item_enclosure_integrity', 'item_enclosure_sources'],
       });
-      if (item_enclosures) {item.item_enclosures = item_enclosures;}
+      if (item_enclosures) {
+        item.item_enclosures = item_enclosures;
+      }
     }
 
     if (relations.item_fundings) {
       const itemFundingService = new ItemFundingService();
       const item_fundings = await itemFundingService._getAll(item);
-      if (item_fundings) {item.item_fundings = item_fundings;}
+      if (item_fundings) {
+        item.item_fundings = item_fundings;
+      }
     }
 
     if (relations.item_images) {
       const itemImageService = new ItemImageService();
       const item_images = await itemImageService._getAll(item);
-      if (item_images) {item.item_images = item_images;}
+      if (item_images) {
+        item.item_images = item_images;
+      }
     }
 
     if (relations.item_persons) {
       const itemPersonService = new ItemPersonService();
       const item_persons = await itemPersonService._getAll(item);
-      if (item_persons) {item.item_persons = item_persons;}
+      if (item_persons) {
+        item.item_persons = item_persons;
+      }
     }
 
     if (relations.item_social_interacts) {
       const itemSocialInteractService = new ItemSocialInteractService();
       const item_social_interacts = await itemSocialInteractService._getAll(item);
-      if (item_social_interacts) {item.item_social_interacts = item_social_interacts;}
+      if (item_social_interacts) {
+        item.item_social_interacts = item_social_interacts;
+      }
     }
 
     if (relations.item_soundbites) {
@@ -124,13 +150,17 @@ export class ItemService {
     if (relations.item_transcripts) {
       const itemTranscriptService = new ItemTranscriptService();
       const item_transcripts = await itemTranscriptService._getAll(item);
-      if (item_transcripts) {item.item_transcripts = item_transcripts;}
+      if (item_transcripts) {
+        item.item_transcripts = item_transcripts;
+      }
     }
 
     if (relations.item_txts) {
       const itemTxtService = new ItemTxtService();
       const item_txts = await itemTxtService._getAll(item);
-      if (item_txts) {item.item_txts = item_txts;}
+      if (item_txts) {
+        item.item_txts = item_txts;
+      }
     }
 
     if (relations.item_values) {
@@ -142,7 +172,7 @@ export class ItemService {
         const item_value_recipients = await itemValueRecipientsService._getAll(item_value);
         if (item_value_recipients) {
           item_value.item_value_recipients = item_value_recipients;
-        };
+        }
 
         const itemValueTimeSplitService = new ItemValueTimeSplitService();
         const item_value_time_splits = await itemValueTimeSplitService._getAll(item_value);
@@ -150,15 +180,19 @@ export class ItemService {
         const final_item_value_time_splits: ItemValueTimeSplit[] = [];
         for (const item_value_time_split of item_value_time_splits) {
           const itemValueTimeSplitRecipientsService = new ItemValueTimeSplitRecipientService();
-          const item_value_time_split_recipients = await itemValueTimeSplitRecipientsService._getAll(item_value_time_split);
+          const item_value_time_split_recipients =
+            await itemValueTimeSplitRecipientsService._getAll(item_value_time_split);
           if (item_value_time_split_recipients) {
-            item_value_time_split.item_value_time_split_recipients = item_value_time_split_recipients;
+            item_value_time_split.item_value_time_split_recipients =
+              item_value_time_split_recipients;
           }
 
           const itemValueTimeSplitRemoteItemService = new ItemValueTimeSplitRemoteItemService();
-          const item_value_time_split_remote_items = await itemValueTimeSplitRemoteItemService._getAll(item_value_time_split);
+          const item_value_time_split_remote_items =
+            await itemValueTimeSplitRemoteItemService._getAll(item_value_time_split);
           if (item_value_time_split_remote_items?.[0]) {
-            item_value_time_split.item_value_time_split_remote_item = item_value_time_split_remote_items[0];
+            item_value_time_split.item_value_time_split_remote_item =
+              item_value_time_split_remote_items[0];
           }
           final_item_value_time_splits.push(item_value_time_split);
         }
@@ -168,7 +202,9 @@ export class ItemService {
         }
       }
 
-      if (item_values) {item.item_values = item_values;}
+      if (item_values) {
+        item.item_values = item_values;
+      }
     }
 
     return item;
@@ -182,7 +218,10 @@ export class ItemService {
     return this.getItemWithRelations({ id }, relations);
   }
 
-  async getByIdText(id_text: string, relations: FindOptionsRelations<Item> = {}): Promise<Item | null> {
+  async getByIdText(
+    id_text: string,
+    relations: FindOptionsRelations<Item> = {}
+  ): Promise<Item | null> {
     if (!id_text) {
       return null;
     }
@@ -190,7 +229,10 @@ export class ItemService {
     return this.getItemWithRelations({ id_text }, relations);
   }
 
-  async getByIdOrIdText(idOrIdText: string, relations: FindOptionsRelations<Item> = {}): Promise<Item | null> {
+  async getByIdOrIdText(
+    idOrIdText: string,
+    relations: FindOptionsRelations<Item> = {}
+  ): Promise<Item | null> {
     let item = null;
 
     if (isNaN(Number(idOrIdText))) {
@@ -204,7 +246,8 @@ export class ItemService {
   }
 
   async getRandomItem(medium_id: number): Promise<Item | null> {
-    const query = this.repositoryRead.createQueryBuilder('item')
+    const query = this.repositoryRead
+      .createQueryBuilder('item')
       .innerJoin('item.channel', 'channel');
 
     const items = await query
@@ -221,11 +264,11 @@ export class ItemService {
     mediumType: QueryParamsMedium | null,
     category_id: number | null,
     itemType: 'normal' | 'live-item',
-    liveItemType: 'pending' | 'live' | 'ended' | null,
+    liveItemType: 'pending' | 'live' | 'ended' | null
   ): Promise<Item[]> {
     const medium_ids = mediumType ? getMediumIdArrayFromType(mediumType) : null;
     const live_item_status_id = getLiveItemStatusEnumValue(liveItemType);
-    
+
     return this.repositoryRead.find({
       ...config,
       where: {
@@ -247,10 +290,15 @@ export class ItemService {
     });
   }
 
-  async getManyByPodcastGuidAndItemGuid(params: { podcast_guid: string, item_guid: string }[], options?: FindManyOptions<Item>): Promise<Item[]> {
-    if (!params.length) {return [];}
+  async getManyByPodcastGuidAndItemGuid(
+    params: { podcast_guid: string; item_guid: string }[],
+    options?: FindManyOptions<Item>
+  ): Promise<Item[]> {
+    if (!params.length) {
+      return [];
+    }
 
-    const where = params.map(param => ({
+    const where = params.map((param) => ({
       guid: param.item_guid,
       channel: {
         podcast_guid: param.podcast_guid,
@@ -272,7 +320,7 @@ export class ItemService {
     if (dto.guid) {
       item = await this.getByGuid(channel, dto.guid);
     }
-    
+
     if (!item && dto.guid_enclosure_url) {
       item = await this.getByEnclosureUrl(channel, dto.guid_enclosure_url);
     }
@@ -298,7 +346,11 @@ export class ItemService {
     });
   }
 
-  async getManyByGuid(channel: Channel, guids: string[], options?: FindManyOptions<Item>): Promise<Item[]> {
+  async getManyByGuid(
+    channel: Channel,
+    guids: string[],
+    options?: FindManyOptions<Item>
+  ): Promise<Item[]> {
     return this.repositoryRead.find({
       where: {
         channel,
@@ -311,7 +363,11 @@ export class ItemService {
     });
   }
 
-  async getManyByGuidEnclosureUrl(channel: Channel, guidEnclosureUrls: string[], options?: FindManyOptions<Item>): Promise<Item[]> {
+  async getManyByGuidEnclosureUrl(
+    channel: Channel,
+    guidEnclosureUrls: string[],
+    options?: FindManyOptions<Item>
+  ): Promise<Item[]> {
     return this.repositoryRead.find({
       where: {
         channel,
@@ -341,7 +397,7 @@ export class ItemService {
 
   async getManyForQueueByPubDate(
     item_id_text: string,
-    order: 'forward' | 'backward',
+    order: 'forward' | 'backward'
   ): Promise<Item[]> {
     const item = await this.repositoryRead.findOne({
       where: { id_text: item_id_text },
@@ -352,16 +408,10 @@ export class ItemService {
       return [];
     }
 
-    const pubDateOperator =
-      order === 'forward'
-        ? MoreThan(item.pub_date)
-        : LessThan(item.pub_date);
+    const pubDateOperator = order === 'forward' ? MoreThan(item.pub_date) : LessThan(item.pub_date);
 
-    const pubDateSort =
-      order === 'forward'
-        ? 'ASC'
-        : 'DESC';
-    
+    const pubDateSort = order === 'forward' ? 'ASC' : 'DESC';
+
     return this.repositoryRead.find({
       where: {
         channel: item.channel,
@@ -383,7 +433,7 @@ export class ItemService {
 
   async getManyForQueueBySeason(
     item_id_text: string,
-    order: 'forward' | 'backward',
+    order: 'forward' | 'backward'
   ): Promise<Item[]> {
     const item = await this.repositoryRead.findOne({
       where: { id_text: item_id_text },
@@ -405,7 +455,8 @@ export class ItemService {
 
     // Helper function to create base query builder with all relations
     const createBaseQueryBuilder = () => {
-      return this.repositoryRead.createQueryBuilder('item')
+      return this.repositoryRead
+        .createQueryBuilder('item')
         .leftJoinAndSelect('item.item_about', 'item_about')
         .leftJoinAndSelect('item_about.item_itunes_episode_type', 'item_itunes_episode_type')
         .leftJoinAndSelect('item.item_enclosures', 'item_enclosures')
@@ -428,33 +479,41 @@ export class ItemService {
     if (currentSeasonNumber !== -1) {
       // Current item has an actual season number
       // Query for items with actual season numbers
-      const seasonedQuery = createBaseQueryBuilder()
-        .andWhere('cs.number IS NOT NULL');
+      const seasonedQuery = createBaseQueryBuilder().andWhere('cs.number IS NOT NULL');
 
       if (order === 'forward') {
         seasonedQuery
-          .andWhere(new Brackets(qb => {
-            qb.where('cs.number > :seasonNum', { seasonNum: currentSeasonNumber })
-              .orWhere(
-                new Brackets(qb2 => {
-                  qb2.where('cs.number = :seasonNum', { seasonNum: currentSeasonNumber })
-                    .andWhere('item_season_episode.number > :episodeNum', { episodeNum: currentEpisodeNumber });
-                }),
+          .andWhere(
+            new Brackets((qb) => {
+              qb.where('cs.number > :seasonNum', { seasonNum: currentSeasonNumber }).orWhere(
+                new Brackets((qb2) => {
+                  qb2
+                    .where('cs.number = :seasonNum', { seasonNum: currentSeasonNumber })
+                    .andWhere('item_season_episode.number > :episodeNum', {
+                      episodeNum: currentEpisodeNumber,
+                    });
+                })
               );
-          }))
+            })
+          )
           .orderBy('cs.number', 'ASC')
           .addOrderBy('item_season_episode.number', 'ASC');
-      } else { // backward
+      } else {
+        // backward
         seasonedQuery
-          .andWhere(new Brackets(qb => {
-            qb.where('cs.number < :seasonNum', { seasonNum: currentSeasonNumber })
-              .orWhere(
-                new Brackets(qb2 => {
-                  qb2.where('cs.number = :seasonNum', { seasonNum: currentSeasonNumber })
-                    .andWhere('item_season_episode.number < :episodeNum', { episodeNum: currentEpisodeNumber });
-                }),
+          .andWhere(
+            new Brackets((qb) => {
+              qb.where('cs.number < :seasonNum', { seasonNum: currentSeasonNumber }).orWhere(
+                new Brackets((qb2) => {
+                  qb2
+                    .where('cs.number = :seasonNum', { seasonNum: currentSeasonNumber })
+                    .andWhere('item_season_episode.number < :episodeNum', {
+                      episodeNum: currentEpisodeNumber,
+                    });
+                })
               );
-          }))
+            })
+          )
           .orderBy('cs.number', 'DESC')
           .addOrderBy('item_season_episode.number', 'DESC');
       }
@@ -487,9 +546,7 @@ export class ItemService {
           unseasonedQuery.andWhere('item.pub_date < :currentPubDate', { currentPubDate });
         }
 
-        unseasonedQuery
-          .orderBy('item.pub_date', 'DESC')
-          .limit(LIMIT);
+        unseasonedQuery.orderBy('item.pub_date', 'DESC').limit(LIMIT);
 
         const unseasonedResults = (await unseasonedQuery.getRawAndEntities()).entities;
         finalResults = unseasonedResults;
@@ -506,7 +563,8 @@ export class ItemService {
           const seasonedResults = (await seasonedQuery.getRawAndEntities()).entities;
           finalResults = [...finalResults, ...seasonedResults];
         }
-      } else { // backward
+      } else {
+        // backward
         // Only query -1 items
         const unseasonedQuery = createBaseQueryBuilder()
           .andWhere('cs.number IS NULL')
@@ -516,9 +574,7 @@ export class ItemService {
           unseasonedQuery.andWhere('item.pub_date > :currentPubDate', { currentPubDate });
         }
 
-        unseasonedQuery
-          .orderBy('item.pub_date', 'ASC')
-          .limit(LIMIT);
+        unseasonedQuery.orderBy('item.pub_date', 'ASC').limit(LIMIT);
 
         const unseasonedResults = (await unseasonedQuery.getRawAndEntities()).entities;
         finalResults = unseasonedResults;
@@ -531,7 +587,7 @@ export class ItemService {
   async getManyByChannelShuffle(
     channel: Channel,
     shuffleHash: string,
-    options?: FindManyOptions<Item>,
+    options?: FindManyOptions<Item>
   ): Promise<Item[]> {
     if (!channel) {
       return [];
@@ -545,7 +601,8 @@ export class ItemService {
     const take = options?.take ?? PAGINATION.DEFAULT_LIMIT;
 
     const createBaseQueryBuilder = () => {
-      return this.repositoryRead.createQueryBuilder('item')
+      return this.repositoryRead
+        .createQueryBuilder('item')
         .leftJoinAndSelect('item.item_about', 'item_about')
         .leftJoinAndSelect('item_about.item_itunes_episode_type', 'item_itunes_episode_type')
         .leftJoinAndSelect('item.item_enclosures', 'item_enclosures')
@@ -577,7 +634,7 @@ export class ItemService {
   async getManyByChannelBySeason(
     channel: Channel,
     order: 'forward' | 'backward',
-    options?: FindManyOptions<Item>,
+    options?: FindManyOptions<Item>
   ): Promise<Item[]> {
     if (!channel) {
       return [];
@@ -587,7 +644,8 @@ export class ItemService {
     const take = options?.take ?? PAGINATION.DEFAULT_LIMIT;
 
     const createBaseQueryBuilder = () => {
-      return this.repositoryRead.createQueryBuilder('item')
+      return this.repositoryRead
+        .createQueryBuilder('item')
         .leftJoinAndSelect('item.item_about', 'item_about')
         .leftJoinAndSelect('item_about.item_itunes_episode_type', 'item_itunes_episode_type')
         .leftJoinAndSelect('item.item_enclosures', 'item_enclosures')
@@ -621,7 +679,8 @@ export class ItemService {
 
       if (finalResults.length < take) {
         const remaining = take - finalResults.length;
-        const unseasonedCount = await this.repositoryRead.createQueryBuilder('item')
+        const unseasonedCount = await this.repositoryRead
+          .createQueryBuilder('item')
           .leftJoin('item.item_season', 'item_season')
           .leftJoin('item_season.channel_season', 'cs')
           .leftJoin('item.live_item', 'live_item')
@@ -659,7 +718,8 @@ export class ItemService {
 
       if (finalResults.length < take) {
         const remaining = take - finalResults.length;
-        const seasonedCount = await this.repositoryRead.createQueryBuilder('item')
+        const seasonedCount = await this.repositoryRead
+          .createQueryBuilder('item')
           .leftJoin('item.item_season', 'item_season')
           .leftJoin('item_season.channel_season', 'cs')
           .leftJoin('item.live_item', 'live_item')
@@ -687,7 +747,10 @@ export class ItemService {
     return finalResults;
   }
 
-  async getManyByChannelWithLiveItem(channel: Channel, options?: FindManyOptions<Item>): Promise<Item[]> {
+  async getManyByChannelWithLiveItem(
+    channel: Channel,
+    options?: FindManyOptions<Item>
+  ): Promise<Item[]> {
     return this.repositoryRead.find({
       where: {
         channel,
@@ -706,7 +769,7 @@ export class ItemService {
     channel_ids: number[],
     itemType: 'normal' | 'live-item',
     liveItemType: 'pending' | 'live' | 'ended' | null,
-    options?: FindManyOptions<Item>,
+    options?: FindManyOptions<Item>
   ): Promise<Item[]> {
     const live_item_status_id = getLiveItemStatusEnumValue(liveItemType);
 
@@ -725,7 +788,10 @@ export class ItemService {
     });
   }
 
-  async getManyByChannelsWithLiveItem(channels: Channel[], options?: FindManyOptions<Item>): Promise<Item[]> {
+  async getManyByChannelsWithLiveItem(
+    channels: Channel[],
+    options?: FindManyOptions<Item>
+  ): Promise<Item[]> {
     return this.repositoryRead.find({
       where: {
         channel: In(channels),
@@ -740,7 +806,11 @@ export class ItemService {
     });
   }
 
-  async update(channel: Channel, item_flag_status_id: ItemFlagStatusStatusEnum, dto: ItemDto): Promise<Item> {
+  async update(
+    channel: Channel,
+    item_flag_status_id: ItemFlagStatusStatusEnum,
+    dto: ItemDto
+  ): Promise<Item> {
     let item = await this.getBy(channel, {
       guid_enclosure_url: dto.guid_enclosure_url,
       guid: dto.guid,
@@ -751,7 +821,7 @@ export class ItemService {
     if (!item_flag_status) {
       throw new Error(`ItemService.update: item status ${item_flag_status_id} not found`);
     }
-    
+
     if (!item) {
       item = new Item();
       item.guid = dto.guid;
@@ -771,28 +841,33 @@ export class ItemService {
   async updateFlagStatus(item: Item, item_flag_status_id: ItemFlagStatusStatusEnum): Promise<Item> {
     const itemFlagStatusService = new ItemFlagStatusService();
     const item_flag_status = await itemFlagStatusService.get(item_flag_status_id);
-  
+
     if (!item_flag_status) {
       throw new Error(`ItemService.updateFlagStatus: item status ${item_flag_status_id} not found`);
     }
-  
+
     item.item_flag_status = item_flag_status;
-  
+
     return this.repositoryReadWrite.save(item);
   }
 
-  async updateManyFlagStatus(items: Item[], item_flag_status_id: ItemFlagStatusStatusEnum): Promise<Item[]> {
+  async updateManyFlagStatus(
+    items: Item[],
+    item_flag_status_id: ItemFlagStatusStatusEnum
+  ): Promise<Item[]> {
     const itemFlagStatusService = new ItemFlagStatusService();
     const item_flag_status = await itemFlagStatusService.get(item_flag_status_id);
-  
+
     if (!item_flag_status) {
-      throw new Error(`ItemService.updateManyFlagStatus: item status ${item_flag_status_id} not found`);
+      throw new Error(
+        `ItemService.updateManyFlagStatus: item status ${item_flag_status_id} not found`
+      );
     }
-  
+
     for (const item of items) {
       item.item_flag_status = item_flag_status;
     }
-  
+
     return this.repositoryReadWrite.save(items);
   }
 
@@ -871,7 +946,7 @@ export type ItemGetManyRelationsWithChannel =
   | ItemGetManyRelations
   | 'channel'
   | 'channel.channel_images'
-  | 'channel.channel_about'
+  | 'channel.channel_about';
 
 export const itemGetManyRelationsWithChannel: ItemGetManyRelationsWithChannel[] = [
   ...itemGetManyRelations,
@@ -922,6 +997,6 @@ const getItemOneToOneRelations = (relations: FindOptionsRelations<Item>) => {
     ...(relations.item_season ? { item_season: { channel_season: true } } : {}),
     ...(relations.live_item ? { live_item: true } : {}),
   };
-   
+
   return oneToOneRelations;
 };

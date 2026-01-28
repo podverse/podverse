@@ -80,7 +80,7 @@ Services-only configuration for running infrastructure:
 
 ### 3. `docs/IDE-SETUP.md`
 
-```markdown
+````markdown
 # IDE Setup Guide
 
 ## VS Code (Recommended)
@@ -94,6 +94,7 @@ Services-only configuration for running infrastructure:
    ```bash
    cp .vscode/terminals-rundev.json.example .vscode/terminals.json
    ```
+````
 
 ### Recommended Extensions
 
@@ -116,13 +117,14 @@ The Terminals Manager extension opens multiple terminals with predefined command
 
 1. Install extension: `fabiospampinato.vscode-terminals`
 2. Copy your preferred configuration:
+
    ```bash
    # For full development (all packages + apps)
    cp .vscode/terminals-rundev.json.example .vscode/terminals.json
-   
+
    # For services only (database, message queue, etc.)
    cp .vscode/terminals-services.json.example .vscode/terminals.json
-   
+
    # For basic terminals
    cp .vscode/terminals.json.example .vscode/terminals.json
    ```
@@ -135,11 +137,11 @@ The Terminals Manager extension opens multiple terminals with predefined command
 
 #### Available Configurations
 
-| File | Purpose |
-|------|---------|
-| `terminals-rundev.json.example` | Full development with all packages in watch mode |
-| `terminals-services.json.example` | Infrastructure services only |
-| `terminals.json.example` | Basic terminals for general use |
+| File                              | Purpose                                          |
+| --------------------------------- | ------------------------------------------------ |
+| `terminals-rundev.json.example`   | Full development with all packages in watch mode |
+| `terminals-services.json.example` | Infrastructure services only                     |
+| `terminals.json.example`          | Basic terminals for general use                  |
 
 ### Debugging
 
@@ -187,6 +189,7 @@ Works same as VS Code. All `.vscode/` configurations apply.
 ### ESLint not working
 
 Ensure you have ESLint extension installed and the workspace is properly loaded:
+
 ```bash
 npm install  # Ensure dependencies are installed
 ```
@@ -202,6 +205,7 @@ npm install  # Ensure dependencies are installed
 1. Ensure Terminals Manager extension is installed
 2. Copy a template to `.vscode/terminals.json`
 3. Reload VS Code window
+
 ```
 
 ## Checklist
@@ -210,3 +214,4 @@ npm install  # Ensure dependencies are installed
 - [x] Create `.vscode/terminals-services.json.example`
 - [x] Create `docs/IDE-SETUP.md`
 - [x] Verify all files are valid
+```

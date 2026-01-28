@@ -13,20 +13,20 @@ export async function killProcessOnPort(port: number): Promise<boolean> {
     // Find process ID(s) using the port
     const { stdout: pids } = await execAsync(`lsof -ti:${port} || echo ""`);
     const pidList = pids.trim();
-    
+
     if (!pidList) {
       return false; // No process using this port
     }
 
     // Kill all processes using this port
-    const pidsArray = pidList.split('\n').filter(pid => pid.trim());
+    const pidsArray = pidList.split('\n').filter((pid) => pid.trim());
     if (pidsArray.length === 0) {
       return false;
     }
 
     console.log(`   → Found process(es) on port ${port}: ${pidsArray.join(', ')}`);
     console.log(`   → Killing process(es)...`);
-    
+
     // Try graceful kill first (SIGTERM)
     for (const pid of pidsArray) {
       try {
@@ -42,12 +42,15 @@ export async function killProcessOnPort(port: number): Promise<boolean> {
     }
 
     // Wait a moment for processes to exit
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    await new Promise((resolve) => setTimeout(resolve, 1000));
 
     // Verify port is now free (try SIGKILL if still in use)
     const { stdout: remainingPids } = await execAsync(`lsof -ti:${port} || echo ""`);
     if (remainingPids.trim()) {
-      const remaining = remainingPids.trim().split('\n').filter(pid => pid.trim());
+      const remaining = remainingPids
+        .trim()
+        .split('\n')
+        .filter((pid) => pid.trim());
       console.log(`   → Force killing remaining process(es): ${remaining.join(', ')}`);
       for (const pid of remaining) {
         try {
@@ -57,7 +60,7 @@ export async function killProcessOnPort(port: number): Promise<boolean> {
         }
       }
       // Wait again
-      await new Promise(resolve => setTimeout(resolve, 500));
+      await new Promise((resolve) => setTimeout(resolve, 500));
     }
 
     console.log(`   ✅ Port ${port} is now free`);

@@ -16,7 +16,7 @@ export class ArchiverService {
   private clipRepository = AppDataSourceRead.getRepository(Clip);
 
   // TODO: check if archived items no longer have clip or playlist resource relationships
-  
+
   // TODO: handle spam items
 
   async getItemsPendingArchive(): Promise<Item[]> {
@@ -95,13 +95,14 @@ export class ArchiverService {
       });
 
       if (items.length > 0) {
-        const activeOrPendingItems = items.filter(item =>
-          [ItemFlagStatusStatusEnum.Active, ItemFlagStatusStatusEnum.PendingArchive]
-            .includes(item.item_flag_status.id),
+        const activeOrPendingItems = items.filter((item) =>
+          [ItemFlagStatusStatusEnum.Active, ItemFlagStatusStatusEnum.PendingArchive].includes(
+            item.item_flag_status.id
+          )
         );
         await this.processItems(activeOrPendingItems, archivedStatus);
       }
-      
+
       feed.feed_flag_status = { ...feed.feed_flag_status, id: FeedFlagStatusStatusEnum.Archived };
       feed.last_parsed_file_hash = null;
       await this.feedRepositoryReadWrite.save(feed);
@@ -138,7 +139,7 @@ export class ArchiverService {
       if (!channel || !channel.items || channel.items.length === 0) {
         continue;
       }
-      const itemIds = channel.items.map(item => item.id);
+      const itemIds = channel.items.map((item) => item.id);
       if (itemIds.length > 0) {
         await this.itemRepositoryReadWrite.delete(itemIds);
       }

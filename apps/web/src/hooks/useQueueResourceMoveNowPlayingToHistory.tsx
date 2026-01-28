@@ -10,7 +10,7 @@ export type MoveNowPlayingToHistoryCallbackParams = {
   mpClip: DTOClip | null;
   mpItem: DTOItem | null;
   mpItemSoundbite: DTOItemSoundbite | null;
-}
+};
 
 export function useQueueResourcesMoveNowPlayingToHistory() {
   const { loggedInAccount } = useAccount();
@@ -20,8 +20,12 @@ export function useQueueResourcesMoveNowPlayingToHistory() {
   const activeQueueRef = useRef(activeQueue);
   const loggedInAccountRef = useRef(loggedInAccount);
 
-  useEffect(() => { activeQueueRef.current = activeQueue; }, [activeQueue]);
-  useEffect(() => { loggedInAccountRef.current = loggedInAccount; }, [loggedInAccount]);
+  useEffect(() => {
+    activeQueueRef.current = activeQueue;
+  }, [activeQueue]);
+  useEffect(() => {
+    loggedInAccountRef.current = loggedInAccount;
+  }, [loggedInAccount]);
 
   return useCallback(async (params: MoveNowPlayingToHistoryCallbackParams) => {
     const activeQueue = activeQueueRef.current;
@@ -36,14 +40,10 @@ export function useQueueResourcesMoveNowPlayingToHistory() {
     updateAbridgedIndex(completed);
 
     if (mpClip) {
-      await apiRequestService.reqQueueResourceClipAddHistory(
-        activeQueue.id_text,
-        mpClip.id_text,
-        {
-          playback_position: mpClip.start_time,
-          ...(completed !== undefined ? { completed } : {}),
-        },
-      );
+      await apiRequestService.reqQueueResourceClipAddHistory(activeQueue.id_text, mpClip.id_text, {
+        playback_position: mpClip.start_time,
+        ...(completed !== undefined ? { completed } : {}),
+      });
     } else if (mpItemSoundbite) {
       await apiRequestService.reqQueueResourceItemSoundbiteAddHistory(
         activeQueue.id_text,
@@ -51,17 +51,13 @@ export function useQueueResourcesMoveNowPlayingToHistory() {
         {
           playback_position: mpItemSoundbite.start_time,
           ...(completed !== undefined ? { completed } : {}),
-        },
+        }
       );
     } else if (mpItem) {
-      await apiRequestService.reqQueueResourceItemAddHistory(
-        activeQueue.id_text,
-        mpItem.id_text,
-        {
-          ...(completed ? { playback_position: '0' } : {}),
-          ...(completed !== undefined ? { completed } : {}),
-        },
-      );
+      await apiRequestService.reqQueueResourceItemAddHistory(activeQueue.id_text, mpItem.id_text, {
+        ...(completed ? { playback_position: '0' } : {}),
+        ...(completed !== undefined ? { completed } : {}),
+      });
     }
   }, []);
 }

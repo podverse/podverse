@@ -21,7 +21,7 @@ type AlbumListHeaderProps = {
   ssrHasPodroll?: boolean;
 };
 
-export const AlbumListHeader: React.FC<AlbumListHeaderProps> = ({ ssrHasPodroll } ) => {
+export const AlbumListHeader: React.FC<AlbumListHeaderProps> = ({ ssrHasPodroll }) => {
   const { filterParams, setFilterParams } = useAlbumContext();
   const { type, sort, range } = filterParams;
   const tFilters = useTranslations('filters');
@@ -30,14 +30,21 @@ export const AlbumListHeader: React.FC<AlbumListHeaderProps> = ({ ssrHasPodroll 
   const tSettings = useTranslations('settings');
   const { loggedInAccount } = useAccount();
 
-  const { sortMenuItems, rangeMenuItems, showRangeDropdown,
-    } = getAlbumDropdownConfig({ sort, tFilters, tMedia });
+  const { sortMenuItems, rangeMenuItems, showRangeDropdown } = getAlbumDropdownConfig({
+    sort,
+    tFilters,
+    tMedia,
+  });
 
   function isChannelType(val: string): val is QueryParamsChannelMusicAlbumType {
-    return QUERY_PARAMS_CHANNEL_MUSIC_ALBUM_TYPE_VALUES.includes(val as QueryParamsChannelMusicAlbumType);
+    return QUERY_PARAMS_CHANNEL_MUSIC_ALBUM_TYPE_VALUES.includes(
+      val as QueryParamsChannelMusicAlbumType
+    );
   }
   function isChannelSort(val: string): val is QueryParamsChannelMusicAlbumSort {
-    return QUERY_PARAMS_CHANNEL_MUSIC_ALBUM_SORT_VALUES.includes(val as QueryParamsChannelMusicAlbumSort);
+    return QUERY_PARAMS_CHANNEL_MUSIC_ALBUM_SORT_VALUES.includes(
+      val as QueryParamsChannelMusicAlbumSort
+    );
   }
   function isStatsRange(val: string): val is QueryParamsStatsRange {
     return QUERY_PARAMS_STATS_RANGE_VALUES.includes(val as QueryParamsStatsRange);
@@ -65,13 +72,15 @@ export const AlbumListHeader: React.FC<AlbumListHeaderProps> = ({ ssrHasPodroll 
     }
   };
 
-  const tabData = [{
-    key: 'tracks',
-    label: tMedia('music.tracks'),
-    onClick: () => handleTypeChange('tracks'),
-    hideDesktop: false,
-    zIndex: 6,
-  }];
+  const tabData = [
+    {
+      key: 'tracks',
+      label: tMedia('music.tracks'),
+      onClick: () => handleTypeChange('tracks'),
+      hideDesktop: false,
+      zIndex: 6,
+    },
+  ];
 
   tabData.push({
     key: 'about',
@@ -112,29 +121,22 @@ export const AlbumListHeader: React.FC<AlbumListHeaderProps> = ({ ssrHasPodroll 
           onChange={handleSortChange}
           position="right"
         />
-        {
-          showRangeDropdown && (
-            <Dropdown
-              key="range"
-              value={range ?? ''}
-              menuItems={rangeMenuItems}
-              onChange={handleRangeChange}
-              position="right"
-            />
-          )
-        }
+        {showRangeDropdown && (
+          <Dropdown
+            key="range"
+            value={range ?? ''}
+            menuItems={rangeMenuItems}
+            onChange={handleRangeChange}
+            position="right"
+          />
+        )}
       </>
     );
   }
 
   return (
     <ListHeader
-      tabs={
-        <Tabs
-          tabData={tabData}
-          selectedKey={type ?? ''}
-        />
-      }
+      tabs={<Tabs tabData={tabData} selectedKey={type ?? ''} />}
       sideButtons={sideButtons}
     />
   );

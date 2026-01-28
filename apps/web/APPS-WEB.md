@@ -80,6 +80,7 @@ docker build -f apps/web/Dockerfile --build-arg ENV_FILE=apps/web/env/alpha.env 
 **Important**: The `ENV_FILE` build argument is **required** - builds will fail if it's not provided. This ensures explicit environment selection and prevents accidental builds with the wrong configuration.
 
 The Makefile provides convenient shortcuts:
+
 ```bash
 # From monorepo root
 make local_build_web  # Builds with local.env
@@ -93,10 +94,10 @@ The Dockerfile uses a single source of truth for build logic, with only the envi
 
 Environment-specific configurations are in the `env/` directory:
 
-| File | Environment |
-|------|-------------|
+| File            | Environment       |
+| --------------- | ----------------- |
 | `env/local.env` | Local development |
-| `env/alpha.env` | Alpha/staging |
+| `env/alpha.env` | Alpha/staging     |
 
 Copy the appropriate file to `.env.local` for your environment.
 

@@ -39,8 +39,9 @@
 }
 
 @include mobile {
-  .sidebar, .stickyTop {
-    display: none;   
+  .sidebar,
+  .stickyTop {
+    display: none;
   }
   .sidebar {
     position: absolute;

@@ -10,20 +10,25 @@ import { useAutoQueue } from '../../../../contexts/AutoQueue';
 
 type ClipEditFormProps = {
   ssrClip: DTOClip;
-}
+};
 
 export const ClipEditForm: React.FC<ClipEditFormProps> = ({ ssrClip }) => {
   const router = useRouter();
   const {
-    sharableStatus, setSharableStatus,
-    title, setTitle,
-    startTimeString, setStartTimeString,
-    endTimeString, setEndTimeString,
-    isUpdating, setIsUpdating,
-   } = useClipEditContext();
+    sharableStatus,
+    setSharableStatus,
+    title,
+    setTitle,
+    startTimeString,
+    setStartTimeString,
+    endTimeString,
+    setEndTimeString,
+    isUpdating,
+    setIsUpdating,
+  } = useClipEditContext();
 
-   const { setAutoQueueConfig, autoQueueConfig } = useAutoQueue();
-  
+  const { setAutoQueueConfig, autoQueueConfig } = useAutoQueue();
+
   const onCancel = () => {
     setAutoQueueConfig({
       playlist_id_text: autoQueueConfig.playlist_id_text,
@@ -35,7 +40,7 @@ export const ClipEditForm: React.FC<ClipEditFormProps> = ({ ssrClip }) => {
     });
     router.push('/');
   };
-  
+
   const onSubmit = async () => {
     setIsUpdating(true);
 

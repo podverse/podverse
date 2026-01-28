@@ -21,13 +21,11 @@ export function SettingsProfile() {
   const [isSaving, setIsSaving] = useState(false);
 
   const [displayName, setDisplayName] = useState(
-    loggedInAccount?.account_profile?.display_name || '',
+    loggedInAccount?.account_profile?.display_name || ''
   );
-  const [bio, setBio] = useState(
-    loggedInAccount?.account_profile?.bio || '',
-  );
+  const [bio, setBio] = useState(loggedInAccount?.account_profile?.bio || '');
   const [sharableStatus, setSharableStatus] = useState<string>(
-    `${loggedInAccount?.sharable_status_id || SharableStatusEnum.Private}`,
+    `${loggedInAccount?.sharable_status_id || SharableStatusEnum.Private}`
   );
 
   // Update sharableStatus state when loggedInAccount changes
@@ -51,7 +49,9 @@ export function SettingsProfile() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!loggedInAccount) {return;}
+    if (!loggedInAccount) {
+      return;
+    }
 
     setIsSaving(true);
 
@@ -62,7 +62,7 @@ export function SettingsProfile() {
         sharable_status: Number(sharableStatus),
         locale: loggedInAccount.account_settings?.account_settings_locale?.locale || locale,
       });
-      
+
       setLoggedInAccount(updatedAccount);
       showToast(tSettings('profile.update_success'), 'success');
     } catch (error) {
@@ -106,11 +106,7 @@ export function SettingsProfile() {
         />
       </SettingsSection>
       <SettingsSection>
-        <Button
-          type="submit"
-          variant="primary"
-          disabled={isSaving}
-        >
+        <Button type="submit" variant="primary" disabled={isSaving}>
           {isSaving ? tMisc('saving') : tMisc('save')}
         </Button>
       </SettingsSection>

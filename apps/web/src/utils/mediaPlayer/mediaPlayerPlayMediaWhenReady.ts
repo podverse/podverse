@@ -1,4 +1,8 @@
-export function waitForSourceUri(media: HTMLMediaElement | null, maxWaitMs = 1000, intervalMs = 50): Promise<string | null> {
+export function waitForSourceUri(
+  media: HTMLMediaElement | null,
+  maxWaitMs = 1000,
+  intervalMs = 50
+): Promise<string | null> {
   return new Promise((resolve) => {
     const start = Date.now();
     const check = () => {
@@ -16,14 +20,21 @@ export function waitForSourceUri(media: HTMLMediaElement | null, maxWaitMs = 100
 }
 
 export function playMediaWhenReady(media: HTMLMediaElement | null, onPlayed?: () => void) {
-  if (!media) {return;}
-  if (media.readyState >= 2) { // HAVE_CURRENT_DATA
+  if (!media) {
+    return;
+  }
+  if (media.readyState >= 2) {
+    // HAVE_CURRENT_DATA
     media.play().catch(() => {});
-    if (onPlayed) {onPlayed();}
+    if (onPlayed) {
+      onPlayed();
+    }
   } else {
     const onCanPlay = () => {
       media.play().catch(() => {});
-      if (onPlayed) {onPlayed();}
+      if (onPlayed) {
+        onPlayed();
+      }
       media.removeEventListener('canplay', onCanPlay);
     };
     media.addEventListener('canplay', onCanPlay);

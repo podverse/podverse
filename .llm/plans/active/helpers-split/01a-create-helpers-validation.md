@@ -13,6 +13,7 @@ Create `@podverse/helpers-validation` package for email/password validation shar
 ### 1. Create Package Structure
 
 **`packages/helpers-validation/package.json`:**
+
 ```json
 {
   "name": "@podverse/helpers-validation",
@@ -20,9 +21,7 @@ Create `@podverse/helpers-validation` package for email/password validation shar
   "description": "Email and password validation utilities for Podverse",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
-  "files": [
-    "dist/**/*"
-  ],
+  "files": ["dist/**/*"],
   "scripts": {
     "build": "npm run lint && tsc",
     "build:prod": "tsc",
@@ -44,6 +43,7 @@ Create `@podverse/helpers-validation` package for email/password validation shar
 ```
 
 **`packages/helpers-validation/tsconfig.json`:**
+
 ```json
 {
   "extends": "../../tsconfig.base.json",
@@ -51,15 +51,14 @@ Create `@podverse/helpers-validation` package for email/password validation shar
     "outDir": "./dist",
     "rootDir": "./src"
   },
-  "include": [
-    "src/**/*"
-  ]
+  "include": ["src/**/*"]
 }
 ```
 
 ### 2. Copy Validation Code
 
 **Copy from `packages/helpers/src/lib/validation/`** to `packages/helpers-validation/src/`:
+
 - `email.ts` - Email validation with joi
 - `password.ts` - Password validation with joi
 - `databaseConstants.ts` - Database constants (used by password.ts)
@@ -67,6 +66,7 @@ Create `@podverse/helpers-validation` package for email/password validation shar
 - `url.ts` - URL validation utilities (cross-platform, uses standard URL API)
 
 **Create `packages/helpers-validation/src/index.ts`:**
+
 ```typescript
 export * from './databaseConstants';
 export * from './email';
@@ -86,6 +86,7 @@ npm run build
 ## Platform Notes
 
 **Cross-platform**: This package works in:
+
 - Browser (Next.js web apps)
 - React Native (mobile apps)
 - Node.js (backend apps)
@@ -115,23 +116,28 @@ npm run build
 This package exports:
 
 **From email.ts:**
+
 - `validateEmail`
 - `getEmailErrorKey`
 
 **From password.ts:**
+
 - `validatePassword`
 - `getPasswordErrorKey`
 - `getPassword2ErrorKey`
 - `getPasswordRequirementsInfoKey`
 
 **From databaseConstants.ts:**
+
 - `DATABASE_CONSTANTS`
 
 **From signUpValidation.ts:**
+
 - `validateSignUpFields`
 - Type: `SignUpValidationResult`
 
 **From url.ts:**
+
 - `isValidHttpUrl`
 - `validateHttpsUrl`
 - `validateHttpOrHttpsUrl`

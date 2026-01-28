@@ -51,8 +51,10 @@ let bundleAnalyzer: BundleAnalyzer | null = null;
 
 // Setup signal handlers for cleanup (at module level)
 const cleanup = async (signal?: string) => {
-  console.log(`\n\n🛑 ${signal ? `Shutdown signal (${signal}) received` : 'Shutting down'}, cleaning up...`);
-  
+  console.log(
+    `\n\n🛑 ${signal ? `Shutdown signal (${signal}) received` : 'Shutting down'}, cleaning up...`
+  );
+
   if (bundleAnalyzer) {
     try {
       await bundleAnalyzer.cleanup();
@@ -108,9 +110,9 @@ async function main() {
         message: 'Select a previous report to compare against (or "Skip comparison"):',
         choices: [
           { name: 'Skip comparison', value: null },
-          ...existingReports.map(report => ({ name: report, value: report }))
-        ]
-      }
+          ...existingReports.map((report) => ({ name: report, value: report })),
+        ],
+      },
     ]);
     selectedBaseReport = selection.selectedBaseReport;
     if (selectedBaseReport) {
@@ -135,8 +137,8 @@ async function main() {
           return 'Report name must be 50 characters or less';
         }
         return true;
-      }
-    }
+      },
+    },
   ]);
 
   const trimmedReportName = reportName.trim();
@@ -172,12 +174,16 @@ async function main() {
         console.log(`   Client Bundle Size: ${sizeKB} KB (${sizeMB} MB)`);
       }
     }
-    console.log('\n💡 Tip: Open the HTML files in your browser to view interactive bundle visualizations.\n');
+    console.log(
+      '\n💡 Tip: Open the HTML files in your browser to view interactive bundle visualizations.\n'
+    );
 
     // Load the new report from disk
     const newReportData = reportManager.loadReport(trimmedReportName);
     if (!newReportData) {
-      console.error(`❌ Could not load new report "${trimmedReportName}" for comparison. Exiting...`);
+      console.error(
+        `❌ Could not load new report "${trimmedReportName}" for comparison. Exiting...`
+      );
       process.exit(1);
     }
 
@@ -186,13 +192,15 @@ async function main() {
       console.log(`📖 Loading base report "${selectedBaseReport}"...`);
       const baseReportData = reportManager.loadReport(selectedBaseReport);
       if (!baseReportData) {
-        console.error(`❌ Could not load base report "${selectedBaseReport}". Skipping comparison.\n`);
+        console.error(
+          `❌ Could not load base report "${selectedBaseReport}". Skipping comparison.\n`
+        );
       } else {
         console.log(`✅ Loaded base report: "${selectedBaseReport}"\n`);
-        
+
         console.log('📊 Comparing reports...\n');
         const comparison = comparisonEngine.compareReports(baseReportData, newReportData);
-        
+
         console.log('='.repeat(60));
         console.log('COMPARISON RESULTS');
         console.log('='.repeat(60));
@@ -207,7 +215,11 @@ async function main() {
 
         try {
           console.log('\n🧠 Generating OpenAI summary...');
-          const summary = await generateComparisonSummary(baseReportData, newReportData, comparison);
+          const summary = await generateComparisonSummary(
+            baseReportData,
+            newReportData,
+            comparison
+          );
           if (!summary || summary.trim().length === 0) {
             console.error('⚠️  OpenAI summary was empty or null');
           } else {
@@ -232,7 +244,9 @@ async function main() {
             console.error('   Stack trace:', errorStack);
           }
           console.error('   This might be due to missing OPENAI_API_KEY in .env.openai file');
-          console.error(`   Expected location: ${path.resolve(__dirname, '../../../.env.openai')}\n`);
+          console.error(
+            `   Expected location: ${path.resolve(__dirname, '../../../.env.openai')}\n`
+          );
         }
       }
     } else if (selectedBaseReport === trimmedReportName) {

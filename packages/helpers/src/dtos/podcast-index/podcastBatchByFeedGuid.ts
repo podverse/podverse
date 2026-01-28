@@ -71,4 +71,4 @@ export type PodcastBatchByFeedGuidResponse = {
   found: number;
   feeds: Feed[];
   description: string;
-}
+};

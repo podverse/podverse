@@ -1,8 +1,15 @@
-import { DTOAccountUPDevice, CreateAccountUPDeviceParams, UpdateAccountUPDeviceParams,
-  DeleteAccountUPDeviceParams } from 'src/dtos';
+import {
+  DTOAccountUPDevice,
+  CreateAccountUPDeviceParams,
+  UpdateAccountUPDeviceParams,
+  DeleteAccountUPDeviceParams,
+} from 'src/dtos';
 import { ApiRequestService } from '../../_request';
 
-export async function reqAccountUPDeviceCreate(api: ApiRequestService, params: CreateAccountUPDeviceParams) {
+export async function reqAccountUPDeviceCreate(
+  api: ApiRequestService,
+  params: CreateAccountUPDeviceParams
+) {
   return api.apiRequest<DTOAccountUPDevice>({
     path: '/account/up-device/create',
     method: 'POST',
@@ -11,7 +18,10 @@ export async function reqAccountUPDeviceCreate(api: ApiRequestService, params: C
   });
 }
 
-export async function reqAccountUPDeviceUpdate(api: ApiRequestService, params: UpdateAccountUPDeviceParams) {
+export async function reqAccountUPDeviceUpdate(
+  api: ApiRequestService,
+  params: UpdateAccountUPDeviceParams
+) {
   return api.apiRequest<DTOAccountUPDevice>({
     path: '/account/up-device/update',
     method: 'PUT',
@@ -20,7 +30,10 @@ export async function reqAccountUPDeviceUpdate(api: ApiRequestService, params: U
   });
 }
 
-export async function reqAccountUPDeviceDelete(api: ApiRequestService, params: DeleteAccountUPDeviceParams) {
+export async function reqAccountUPDeviceDelete(
+  api: ApiRequestService,
+  params: DeleteAccountUPDeviceParams
+) {
   return api.apiRequest<void>({
     path: '/account/up-device/delete',
     method: 'DELETE',

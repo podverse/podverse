@@ -1,11 +1,21 @@
-import { isValidUUID, AccountSignupMode, ValidationResult, ValidationSummary, validateRequired, validateOptional, validateConditionalOptional, SERVER_ENV_VALUES, isValidServerEnv } from '@podverse/helpers';
+import {
+  isValidUUID,
+  AccountSignupMode,
+  ValidationResult,
+  ValidationSummary,
+  validateRequired,
+  validateOptional,
+  validateConditionalOptional,
+  SERVER_ENV_VALUES,
+  isValidServerEnv,
+} from '@podverse/helpers';
 import { loggerService } from '@api/factories/loggerService';
 
 /**
  * Validates critical environment variables and configuration at application startup.
  * This function runs early in the initialization process to catch configuration errors
  * before the application attempts to start serving requests.
- * 
+ *
  * @throws Error if any critical validation fails
  */
 export const validateStartupRequirements = (): void => {
@@ -13,7 +23,7 @@ export const validateStartupRequirements = (): void => {
 
   const summary = validateAllEnvironmentVariables();
   displayValidationResults(summary);
-  
+
   if (summary.requiredMissing > 0) {
     const errorMessage = `FATAL: ${summary.requiredMissing} required environment variable(s) are missing or invalid. Please check the validation output above for details.`;
     loggerService.error(errorMessage);
@@ -29,11 +39,11 @@ export const validateStartupRequirements = (): void => {
  */
 const validateAllEnvironmentVariables = (): ValidationSummary => {
   const results: ValidationResult[] = [];
-  
+
   // Validate signup mode first (required) before using it to determine conditional requirements
   const signupModeResult = validateSignupMode();
   results.push(signupModeResult);
-  
+
   // Get signup mode to determine conditional requirements
   // If validation fails, we'll still check the env var (validation error will be caught later)
   // This allows us to properly validate conditional requirements based on the actual value
@@ -98,15 +108,25 @@ const validateAllEnvironmentVariables = (): ValidationSummary => {
     results.push(validateRequired('MAILER_FROM', 'Mailer'));
   } else {
     const mailerHost = validateConditionalOptional('MAILER_HOST', 'Mailer');
-    if (mailerHost) {results.push(mailerHost);}
+    if (mailerHost) {
+      results.push(mailerHost);
+    }
     const mailerPort = validateConditionalOptional('MAILER_PORT', 'Mailer');
-    if (mailerPort) {results.push(mailerPort);}
+    if (mailerPort) {
+      results.push(mailerPort);
+    }
     const mailerUsername = validateConditionalOptional('MAILER_USERNAME', 'Mailer');
-    if (mailerUsername) {results.push(mailerUsername);}
+    if (mailerUsername) {
+      results.push(mailerUsername);
+    }
     const mailerPassword = validateConditionalOptional('MAILER_PASSWORD', 'Mailer');
-    if (mailerPassword) {results.push(mailerPassword);}
+    if (mailerPassword) {
+      results.push(mailerPassword);
+    }
     const mailerFrom = validateConditionalOptional('MAILER_FROM', 'Mailer');
-    if (mailerFrom) {results.push(mailerFrom);}
+    if (mailerFrom) {
+      results.push(mailerFrom);
+    }
   }
   results.push(validateOptional('MAILER_DISABLED', 'Mailer', 'Use Default (false)'));
 
@@ -118,13 +138,24 @@ const validateAllEnvironmentVariables = (): ValidationSummary => {
     results.push(validateRequired('LEGAL_ADDRESS', 'Email Config'));
   } else {
     const emailBrandColor = validateConditionalOptional('EMAIL_BRAND_COLOR', 'Email Config');
-    if (emailBrandColor) {results.push(emailBrandColor);}
-    const emailHeaderImageUrl = validateConditionalOptional('EMAIL_HEADER_IMAGE_URL', 'Email Config');
-    if (emailHeaderImageUrl) {results.push(emailHeaderImageUrl);}
+    if (emailBrandColor) {
+      results.push(emailBrandColor);
+    }
+    const emailHeaderImageUrl = validateConditionalOptional(
+      'EMAIL_HEADER_IMAGE_URL',
+      'Email Config'
+    );
+    if (emailHeaderImageUrl) {
+      results.push(emailHeaderImageUrl);
+    }
     const legalName = validateConditionalOptional('LEGAL_NAME', 'Email Config');
-    if (legalName) {results.push(legalName);}
+    if (legalName) {
+      results.push(legalName);
+    }
     const legalAddress = validateConditionalOptional('LEGAL_ADDRESS', 'Email Config');
-    if (legalAddress) {results.push(legalAddress);}
+    if (legalAddress) {
+      results.push(legalAddress);
+    }
   }
 
   // Social Media (optional - used when signup mode is 'sign-up' but not required)
@@ -140,15 +171,32 @@ const validateAllEnvironmentVariables = (): ValidationSummary => {
   // Token Expiration (conditionally required when signup mode is 'sign-up')
   if (isSignupModeEnabled) {
     results.push(validateRequired('VERIFY_EMAIL_TOKEN_EXPIRATION', 'Token Expiration'));
-    results.push(validateRequired('EMAIL_CHANGE_VERIFICATION_TOKEN_EXPIRATION', 'Token Expiration'));
+    results.push(
+      validateRequired('EMAIL_CHANGE_VERIFICATION_TOKEN_EXPIRATION', 'Token Expiration')
+    );
     results.push(validateRequired('RESET_PASSWORD_TOKEN_EXPIRATION', 'Token Expiration'));
   } else {
-    const verifyEmailTokenExp = validateConditionalOptional('VERIFY_EMAIL_TOKEN_EXPIRATION', 'Token Expiration');
-    if (verifyEmailTokenExp) {results.push(verifyEmailTokenExp);}
-    const emailChangeTokenExp = validateConditionalOptional('EMAIL_CHANGE_VERIFICATION_TOKEN_EXPIRATION', 'Token Expiration');
-    if (emailChangeTokenExp) {results.push(emailChangeTokenExp);}
-    const resetPasswordTokenExp = validateConditionalOptional('RESET_PASSWORD_TOKEN_EXPIRATION', 'Token Expiration');
-    if (resetPasswordTokenExp) {results.push(resetPasswordTokenExp);}
+    const verifyEmailTokenExp = validateConditionalOptional(
+      'VERIFY_EMAIL_TOKEN_EXPIRATION',
+      'Token Expiration'
+    );
+    if (verifyEmailTokenExp) {
+      results.push(verifyEmailTokenExp);
+    }
+    const emailChangeTokenExp = validateConditionalOptional(
+      'EMAIL_CHANGE_VERIFICATION_TOKEN_EXPIRATION',
+      'Token Expiration'
+    );
+    if (emailChangeTokenExp) {
+      results.push(emailChangeTokenExp);
+    }
+    const resetPasswordTokenExp = validateConditionalOptional(
+      'RESET_PASSWORD_TOKEN_EXPIRATION',
+      'Token Expiration'
+    );
+    if (resetPasswordTokenExp) {
+      results.push(resetPasswordTokenExp);
+    }
   }
 
   // Page Paths (conditionally required when signup mode is 'sign-up')
@@ -158,11 +206,23 @@ const validateAllEnvironmentVariables = (): ValidationSummary => {
     results.push(validateRequired('RESET_PASSWORD_PAGE_PATH', 'Page Paths'));
   } else {
     const verifyEmailPagePath = validateConditionalOptional('VERIFY_EMAIL_PAGE_PATH', 'Page Paths');
-    if (verifyEmailPagePath) {results.push(verifyEmailPagePath);}
-    const emailChangePagePath = validateConditionalOptional('EMAIL_CHANGE_VERIFICATION_PAGE_PATH', 'Page Paths');
-    if (emailChangePagePath) {results.push(emailChangePagePath);}
-    const resetPasswordPagePath = validateConditionalOptional('RESET_PASSWORD_PAGE_PATH', 'Page Paths');
-    if (resetPasswordPagePath) {results.push(resetPasswordPagePath);}
+    if (verifyEmailPagePath) {
+      results.push(verifyEmailPagePath);
+    }
+    const emailChangePagePath = validateConditionalOptional(
+      'EMAIL_CHANGE_VERIFICATION_PAGE_PATH',
+      'Page Paths'
+    );
+    if (emailChangePagePath) {
+      results.push(emailChangePagePath);
+    }
+    const resetPasswordPagePath = validateConditionalOptional(
+      'RESET_PASSWORD_PAGE_PATH',
+      'Page Paths'
+    );
+    if (resetPasswordPagePath) {
+      results.push(resetPasswordPagePath);
+    }
   }
 
   // PayPal (optional, but validated)
@@ -176,17 +236,21 @@ const validateAllEnvironmentVariables = (): ValidationSummary => {
   results.push(validateOptional('NODE_ENV', 'General'));
   results.push(validateServerEnv());
   results.push(validateOptional('LOG_LEVEL', 'General'));
-  results.push(validateOptional('LOG_DIR', 'General', 'Optional - empty for localhost, set for file logging'));
+  results.push(
+    validateOptional('LOG_DIR', 'General', 'Optional - empty for localhost, set for file logging')
+  );
 
   // Calculate summary
   const total = results.length;
-  const passed = results.filter(r => r.isValid && r.isSet).length;
-  const failed = results.filter(r => !r.isValid).length;
-  const requiredMissing = results.filter(r => r.isRequired && !r.isValid).length;
+  const passed = results.filter((r) => r.isValid && r.isSet).length;
+  const failed = results.filter((r) => !r.isValid).length;
+  const requiredMissing = results.filter((r) => r.isRequired && !r.isValid).length;
   // Count as skipped all optional variables that are not set (regardless of message)
-  const skipped = results.filter(r => !r.isRequired && !r.isSet).length;
+  const skipped = results.filter((r) => !r.isRequired && !r.isSet).length;
   // Count defaults used (passed validations with "Use Default" or "Blank" messages)
-  const defaultsUsed = results.filter(r => r.isValid && r.isSet && (r.message.includes('Use Default') || r.message === 'Blank')).length;
+  const defaultsUsed = results.filter(
+    (r) => r.isValid && r.isSet && (r.message.includes('Use Default') || r.message === 'Blank')
+  ).length;
 
   return {
     total,
@@ -259,7 +323,7 @@ const validateUserAgent = (): ValidationResult => {
   }
 
   const trimmedUserAgent = userAgent.trim();
-  
+
   if (!USER_AGENT_PATTERN.test(trimmedUserAgent)) {
     return {
       name: 'USER_AGENT',
@@ -300,10 +364,12 @@ const validateUserAgent = (): ValidationResult => {
  */
 const validateServerEnv = (): ValidationResult => {
   const serverEnv = process.env.SERVER_ENV || '';
-  
+
   // Fallback values in case import fails (should match podverse-helpers)
   const validEnvs = SERVER_ENV_VALUES || ['prod', 'beta', 'alpha', 'local'];
-  const validateEnv = isValidServerEnv || ((value: string) => validEnvs.includes(value as typeof validEnvs[number]));
+  const validateEnv =
+    isValidServerEnv ||
+    ((value: string) => validEnvs.includes(value as (typeof validEnvs)[number]));
 
   if (!serverEnv) {
     return {
@@ -352,7 +418,7 @@ const validateSignupMode = (): ValidationResult => {
       isSet: false,
       isValid: false,
       isRequired: true,
-      message: `Missing - must be one of: ${validModes.map(m => `"${m}"`).join(' or ')}`,
+      message: `Missing - must be one of: ${validModes.map((m) => `"${m}"`).join(' or ')}`,
       category: 'Premium/Membership',
     };
   }
@@ -363,7 +429,7 @@ const validateSignupMode = (): ValidationResult => {
       isSet: true,
       isValid: false,
       isRequired: true,
-      message: `Invalid value: "${signupMode}" - must be one of: ${validModes.map(m => `"${m}"`).join(' or ')}`,
+      message: `Invalid value: "${signupMode}" - must be one of: ${validModes.map((m) => `"${m}"`).join(' or ')}`,
       category: 'Premium/Membership',
     };
   }
@@ -383,7 +449,7 @@ const validateSignupMode = (): ValidationResult => {
  */
 const displayValidationResults = (summary: ValidationSummary): void => {
   loggerService.info('=== Environment Variable Validation ===');
-  
+
   // Group results by category
   const byCategory = summary.results.reduce<Record<string, ValidationResult[]>>((acc, result) => {
     const category = result.category;
@@ -396,11 +462,21 @@ const displayValidationResults = (summary: ValidationSummary): void => {
 
   // List of conditionally required variables (required when signup mode is 'sign-up')
   const conditionallyRequiredVars = [
-    'MAILER_HOST', 'MAILER_PORT', 'MAILER_USERNAME', 'MAILER_PASSWORD', 'MAILER_FROM',
-    'EMAIL_BRAND_COLOR', 'EMAIL_HEADER_IMAGE_URL', 'LEGAL_NAME', 'LEGAL_ADDRESS',
-    'VERIFY_EMAIL_TOKEN_EXPIRATION', 'EMAIL_CHANGE_VERIFICATION_TOKEN_EXPIRATION',
-    'RESET_PASSWORD_TOKEN_EXPIRATION', 'VERIFY_EMAIL_PAGE_PATH',
-    'EMAIL_CHANGE_VERIFICATION_PAGE_PATH', 'RESET_PASSWORD_PAGE_PATH',
+    'MAILER_HOST',
+    'MAILER_PORT',
+    'MAILER_USERNAME',
+    'MAILER_PASSWORD',
+    'MAILER_FROM',
+    'EMAIL_BRAND_COLOR',
+    'EMAIL_HEADER_IMAGE_URL',
+    'LEGAL_NAME',
+    'LEGAL_ADDRESS',
+    'VERIFY_EMAIL_TOKEN_EXPIRATION',
+    'EMAIL_CHANGE_VERIFICATION_TOKEN_EXPIRATION',
+    'RESET_PASSWORD_TOKEN_EXPIRATION',
+    'VERIFY_EMAIL_PAGE_PATH',
+    'EMAIL_CHANGE_VERIFICATION_PAGE_PATH',
+    'RESET_PASSWORD_PAGE_PATH',
   ];
 
   // Display by category
@@ -413,7 +489,7 @@ const displayValidationResults = (summary: ValidationSummary): void => {
       let requiredText = '';
       if (result.isRequired) {
         if (conditionallyRequiredVars.includes(result.name)) {
-          requiredText = ' (required when signup mode is \'sign-up\')';
+          requiredText = " (required when signup mode is 'sign-up')";
         }
         // No text for always-required vars - lack of parentheses indicates required
       } else {
@@ -434,19 +510,20 @@ const displayValidationResults = (summary: ValidationSummary): void => {
   // Display summary
   loggerService.info('=== Validation Summary ===');
   loggerService.info(`Total: ${summary.total}`);
-  const passedText = summary.defaultsUsed > 0 
-    ? `Passed: ${summary.passed} (${summary.defaultsUsed} using defaults)`
-    : `Passed: ${summary.passed}`;
+  const passedText =
+    summary.defaultsUsed > 0
+      ? `Passed: ${summary.passed} (${summary.defaultsUsed} using defaults)`
+      : `Passed: ${summary.passed}`;
   loggerService.info(passedText);
   loggerService.info(`Skipped: ${summary.skipped}`);
   loggerService.info(`Failed: ${summary.failed}`);
   loggerService.info(`Required Missing: ${summary.requiredMissing}`);
-  
+
   if (summary.failed > 0) {
     loggerService.error('The following environment variables failed validation:');
     summary.results
-      .filter(r => !r.isValid)
-      .forEach(r => {
+      .filter((r) => !r.isValid)
+      .forEach((r) => {
         const requiredText = r.isRequired ? ' (required)' : ' (optional)';
         loggerService.error(`  - ${r.name}${requiredText}: ${r.message}`);
       });
@@ -455,7 +532,7 @@ const displayValidationResults = (summary: ValidationSummary): void => {
   if (summary.skipped > 0) {
     loggerService.info('Skipped optional variables (not set):');
     summary.results
-      .filter(r => !r.isRequired && !r.isSet)
-      .forEach(r => loggerService.info(`  - ${r.name}`));
+      .filter((r) => !r.isRequired && !r.isSet)
+      .forEach((r) => loggerService.info(`  - ${r.name}`));
   }
 };

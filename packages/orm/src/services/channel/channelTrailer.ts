@@ -5,13 +5,13 @@ import { ChannelTrailer } from '@orm/entities/channel/channelTrailer';
 import { BaseManyService } from '@orm/services/base/baseManyService';
 
 export type ChannelTrailerDto = {
-  url: string
-  pub_date: Date
-  title: string | null
-  length: number | null
-  type: string | null
-  channel_season: ChannelSeason | null
-}
+  url: string;
+  pub_date: Date;
+  title: string | null;
+  length: number | null;
+  type: string | null;
+  channel_season: ChannelSeason | null;
+};
 
 export class ChannelTrailerService extends BaseManyService<ChannelTrailer, 'channel'> {
   constructor(transactionalEntityManager?: EntityManager) {

@@ -13,6 +13,7 @@ Update the ORM package to import from the new specialized helpers packages.
 ### 1. Update package.json Dependencies
 
 **In `packages/orm/package.json`**, add to dependencies:
+
 ```json
 "@podverse/helpers-backend": "*",
 "@podverse/helpers-validation": "*"
@@ -24,6 +25,7 @@ Update the ORM package to import from the new specialized helpers packages.
 Check if it imports LoggerService and update if needed.
 
 Search for backend imports:
+
 ```bash
 cd packages/orm
 grep -r "from '@podverse/helpers/dist/lib/backend" src/
@@ -33,12 +35,14 @@ grep -r "LoggerService" src/
 ### 3. Update Validation Imports
 
 **`packages/orm/src/services/account/account.ts`:**
+
 ```diff
 -import { validateEmail, validatePassword } from '@podverse/helpers';
 +import { validateEmail, validatePassword } from '@podverse/helpers-validation';
 ```
 
 Search for other validation usage:
+
 ```bash
 grep -r "validateEmail\|validatePassword\|DATABASE_CONSTANTS" src/
 ```

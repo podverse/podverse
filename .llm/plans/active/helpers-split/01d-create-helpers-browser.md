@@ -13,6 +13,7 @@ Create `@podverse/helpers-browser` package for browser-specific utilities (not u
 ### 1. Create Package Structure
 
 **`packages/helpers-browser/package.json`:**
+
 ```json
 {
   "name": "@podverse/helpers-browser",
@@ -20,9 +21,7 @@ Create `@podverse/helpers-browser` package for browser-specific utilities (not u
   "description": "Browser-specific utilities for Podverse web applications",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
-  "files": [
-    "dist/**/*"
-  ],
+  "files": ["dist/**/*"],
   "scripts": {
     "build": "npm run lint && tsc",
     "build:prod": "tsc",
@@ -43,6 +42,7 @@ Create `@podverse/helpers-browser` package for browser-specific utilities (not u
 ```
 
 **`packages/helpers-browser/tsconfig.json`:**
+
 ```json
 {
   "extends": "../../tsconfig.base.json",
@@ -50,18 +50,18 @@ Create `@podverse/helpers-browser` package for browser-specific utilities (not u
     "outDir": "./dist",
     "rootDir": "./src"
   },
-  "include": [
-    "src/**/*"
-  ]
+  "include": ["src/**/*"]
 }
 ```
 
 ### 2. Copy Browser Code
 
 **Copy from `packages/helpers/src/lib/web/`** to `packages/helpers-browser/src/`:
+
 - `clipboard.ts` (uses `navigator.clipboard`, `document` - browser-only)
 
 **Create `packages/helpers-browser/src/index.ts`:**
+
 ```typescript
 export * from './clipboard';
 ```
@@ -77,6 +77,7 @@ npm run build
 ## Platform Notes
 
 **Browser-specific**: This package uses browser APIs (`navigator`, `document`) and will NOT work in:
+
 - React Native (mobile apps)
 - Node.js (backend)
 

@@ -6,21 +6,16 @@ import { useLocalSettings } from '../../contexts/LocalSettings';
 import { HowToStartInfo } from '../../components/InfoWrapper/HowToStartInfo';
 
 export const AlbumsList: React.FC = () => {
-  const { filterParams, setFilterParams, channels, totalPages, isLoading,
-    showSubscribeMessage } = useAlbumsContext();
+  const { filterParams, setFilterParams, channels, totalPages, isLoading, showSubscribeMessage } =
+    useAlbumsContext();
   const { viewSelected } = useLocalSettings();
   const { page, type } = filterParams;
 
   return (
     <>
-      {
-        filterParams.type === 'subscribed' && (
-          <HowToStartInfo
-            rows={channels}
-            totalPages={totalPages}
-          />
-        )
-      }
+      {filterParams.type === 'subscribed' && (
+        <HowToStartInfo rows={channels} totalPages={totalPages} />
+      )}
       <ListAlbums
         page={page}
         setPage={(page) => setFilterParams({ ...filterParams, page })}

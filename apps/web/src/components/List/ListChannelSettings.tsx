@@ -12,7 +12,7 @@ import styles from '../../styles/components/List/ListChannelSettings.module.scss
 
 type ListChannelSettingsProps = {
   channel: DTOChannel;
-}
+};
 
 export const ListChannelSettings = ({ channel }: ListChannelSettingsProps) => {
   const tInfo = useTranslations('info');
@@ -49,7 +49,7 @@ export const ListChannelSettings = ({ channel }: ListChannelSettingsProps) => {
           const errorStatus = errorWithResponse?.response?.status;
           const errorData = errorWithResponse?.response?.data;
           const i18nKey = errorData?.i18nKey;
-          
+
           if (errorStatus === 403 && i18nKey) {
             // Extract namespace and key from i18nKey (e.g., "membership.free_trial_not_allowed")
             const [namespace, key] = i18nKey.split('.');
@@ -79,14 +79,14 @@ export const ListChannelSettings = ({ channel }: ListChannelSettingsProps) => {
 
   const getAccountNotificationChannel = () => {
     return loggedInAccount?.account_notification_channels?.find(
-      (anc) => anc.channel_id === channel.id,
+      (anc) => anc.channel_id === channel.id
     );
   };
 
   const isTypeEnabled = (type: string) => {
     const accountNotificationChannel = getAccountNotificationChannel();
     return !!accountNotificationChannel?.account_notification_channel_types?.find(
-      (t) => t.type === type,
+      (t) => t.type === type
     );
   };
 
@@ -97,7 +97,9 @@ export const ListChannelSettings = ({ channel }: ListChannelSettingsProps) => {
     if (!loggedInAccount) {
       setModalLoginRequired({
         title: null,
-        message: tInstructions(next ? 'login_to_enable_notifications' : 'login_to_disable_notifications'),
+        message: tInstructions(
+          next ? 'login_to_enable_notifications' : 'login_to_disable_notifications'
+        ),
       });
       setLoadingFor(loadingKey, false);
       return;
@@ -137,17 +139,14 @@ export const ListChannelSettings = ({ channel }: ListChannelSettingsProps) => {
   return (
     <div className={styles.wrapper}>
       <h3>{tInfo('rss_feed')}</h3>
-      <Button
-        variant="primary"
-        onClick={checkFeedForUpdates}
-      >
+      <Button variant="primary" onClick={checkFeedForUpdates}>
         {tSettings('feed.check_feed_for_updates')}
       </Button>
       {hasNotificationChannel && (
         <>
           <Divider />
           <h3>{tSettings('notifications.notifications')}</h3>
-          {notificationTypes.map(nt => (
+          {notificationTypes.map((nt) => (
             <SwitchButton
               key={nt.key}
               id={`channel-notification-${nt.key}`}

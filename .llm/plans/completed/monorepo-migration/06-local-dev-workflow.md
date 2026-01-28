@@ -11,6 +11,7 @@ Replace the multi-repo npm link workflow with npm workspaces. Maintain the same 
 ### Before (Multi-Repo)
 
 From `npm-link-modules.sh`:
+
 1. `npm link` each package globally
 2. `npm link <package-name>` in each consumer
 3. Build each package in dependency order
@@ -28,6 +29,7 @@ From `npm-link-modules.sh`:
 ```
 
 Benefits:
+
 - Single `npm install` at root
 - Automatic local resolution
 - No symlink management
@@ -182,16 +184,16 @@ Adapted from `podverse-ops/.vscode/terminals-rundev.json.example` for monorepo p
 
 The `sleep N` delays ensure packages build in dependency order:
 
-| Delay | Package | Depends On |
-|-------|---------|------------|
-| 2s | helpers | (none) |
-| 4s | external-services | helpers |
-| 6s | notifications | helpers, external-services |
-| 8s | orm | helpers |
-| 10s | parser | helpers, external-services, orm, notifications |
-| 12s | mq | helpers, external-services, orm, parser |
-| 14s | api | all packages |
-| 16s | web | helpers |
+| Delay | Package           | Depends On                                     |
+| ----- | ----------------- | ---------------------------------------------- |
+| 2s    | helpers           | (none)                                         |
+| 4s    | external-services | helpers                                        |
+| 6s    | notifications     | helpers, external-services                     |
+| 8s    | orm               | helpers                                        |
+| 10s   | parser            | helpers, external-services, orm, notifications |
+| 12s   | mq                | helpers, external-services, orm, parser        |
+| 14s   | api               | all packages                                   |
+| 16s   | web               | helpers                                        |
 
 ## Common Development Tasks
 
@@ -263,8 +265,8 @@ Apps may have additional scripts:
 ```json
 {
   "scripts": {
-    "dev": "next dev",           // web apps
-    "dev:watch": "nodemon",      // api apps
+    "dev": "next dev", // web apps
+    "dev:watch": "nodemon", // api apps
     "build:dev": "tsc",
     "build:prod": "tsc -p tsconfig.prod.json"
   }
@@ -299,10 +301,10 @@ npm run build -w packages/external-services
 
 ## Files to Create
 
-| File | Purpose |
-|------|---------|
-| `scripts/dev/setup.sh` | Initial development setup |
-| `.vscode/terminals-rundev.json.example` | Terminals Manager config |
+| File                                    | Purpose                   |
+| --------------------------------------- | ------------------------- |
+| `scripts/dev/setup.sh`                  | Initial development setup |
+| `.vscode/terminals-rundev.json.example` | Terminals Manager config  |
 
 ## Estimated Effort
 

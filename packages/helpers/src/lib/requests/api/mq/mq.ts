@@ -6,7 +6,7 @@ export async function reqMQRSSAddOnDemand(
   params: {
     url: string;
     podcast_index_id: number;
-  },
+  }
 ) {
   return api.apiRequest<ApiMessageResponse>({
     path: '/mq/rss/add/on-demand',
@@ -26,7 +26,7 @@ export async function reqMQRSSRefreshOnDemand(
   params: {
     url: string;
     podcast_index_id: number;
-  },
+  }
 ) {
   return api.apiRequest<ApiMessageResponse>({
     path: '/mq/rss/refresh/on-demand',

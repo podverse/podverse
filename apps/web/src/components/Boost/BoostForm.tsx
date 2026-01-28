@@ -158,10 +158,11 @@ export const BoostForm: React.FC<BoostFormProps> = ({ className: _className, cha
   const [message, setMessage] = useState<string>('');
 
   // Use mock data only if channel.channel_values is missing or empty
-  const channelValues = channel.channel_values && channel.channel_values.length > 0
-    ? MOCK_CHANNEL_VALUES
-    : MOCK_CHANNEL_VALUES;
-  
+  const channelValues =
+    channel.channel_values && channel.channel_values.length > 0
+      ? MOCK_CHANNEL_VALUES
+      : MOCK_CHANNEL_VALUES;
+
   React.useEffect(() => {
     if (channelValues.length > 0 && !selectedKey) {
       const firstValue = channelValues[0];
@@ -172,15 +173,15 @@ export const BoostForm: React.FC<BoostFormProps> = ({ className: _className, cha
   }, [channelValues, selectedKey]);
 
   const selectedChannelValue = channelValues.find(
-    (cv) => `${cv.type}_${cv.method}` === selectedKey,
+    (cv) => `${cv.type}_${cv.method}` === selectedKey
   );
 
   const channel_value_recipients = selectedChannelValue?.channel_value_recipients;
   const item_value_recipients = item?.item_values?.[0]?.item_value_recipients;
 
   if (
-    (!channel_value_recipients || channel_value_recipients.length === 0)
-    && (!item_value_recipients || item_value_recipients.length === 0)
+    (!channel_value_recipients || channel_value_recipients.length === 0) &&
+    (!item_value_recipients || item_value_recipients.length === 0)
   ) {
     return null;
   }
@@ -191,35 +192,41 @@ export const BoostForm: React.FC<BoostFormProps> = ({ className: _className, cha
     onClick: () => setSelectedKey(`${cv.type}_${cv.method}`),
   }));
 
-  const selectedValueKey = selectedChannelValue ? `${selectedChannelValue.type}_${selectedChannelValue.method}` : null;
+  const selectedValueKey = selectedChannelValue
+    ? `${selectedChannelValue.type}_${selectedChannelValue.method}`
+    : null;
 
-  const appValueRecipient = selectedChannelValue ? getAppValueRecipient({
-    type: selectedChannelValue.type,
-    method: selectedChannelValue.method,
-    final_amount: totalAmountToApp,
-  }) : null;
+  const appValueRecipient = selectedChannelValue
+    ? getAppValueRecipient({
+        type: selectedChannelValue.type,
+        method: selectedChannelValue.method,
+        final_amount: totalAmountToApp,
+      })
+    : null;
 
   return (
     <div>
       <MediaHeaderMini channel={channel} item={item} />
-      <ButtonTabs
-        buttonTabs={buttonTabs}
-        selectedKey={selectedKey}
-      />
-      <Form className={styles.form} onSubmit={(e) => { e.preventDefault(); }}>
+      <ButtonTabs buttonTabs={buttonTabs} selectedKey={selectedKey} />
+      <Form
+        className={styles.form}
+        onSubmit={(e) => {
+          e.preventDefault();
+        }}
+      >
         <div className={styles.boostAmountInputs}>
           <TextInputNumber
             eyebrow={tValue('send_to.creator')}
             value={totalAmountToCreator}
             min={0}
-            onChange={e => setTotalAmountToCreator(Number(e.target.value))}
+            onChange={(e) => setTotalAmountToCreator(Number(e.target.value))}
             sideText={tValue(`types.${selectedValueKey}.denomination`)}
           />
           <TextInputNumber
             eyebrow={tValue('send_to.app', { brand_name: config.public.brand.name })}
             value={totalAmountToApp}
             min={0}
-            onChange={e => setTotalAmountToApp(Number(e.target.value))}
+            onChange={(e) => setTotalAmountToApp(Number(e.target.value))}
             sideText={tValue(`types.${selectedValueKey}.denomination`)}
           />
         </div>
@@ -227,20 +234,18 @@ export const BoostForm: React.FC<BoostFormProps> = ({ className: _className, cha
           eyebrow={tValue('your_name')}
           value={yourName}
           placeholder={tMisc('anonymous')}
-          onChange={e => setYourName(e.target.value)}
+          onChange={(e) => setYourName(e.target.value)}
         />
         <TextArea
           eyebrow={tValue('message')}
           value={message}
           placeholder={tMisc('optional')}
-          onChange={e => setMessage(e.target.value)}
+          onChange={(e) => setMessage(e.target.value)}
           maxLength={500}
         />
       </Form>
       <div className={styles.buttons}>
-        <Button onClick={() => alert('Handle boost submit')}>
-          {tMisc('submit')}
-        </Button>
+        <Button onClick={() => alert('Handle boost submit')}>{tMisc('submit')}</Button>
       </div>
       <div className={styles.moreInfo}>
         <Accordion

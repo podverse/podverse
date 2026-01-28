@@ -36,7 +36,11 @@ export class WebAppManager {
     }
   }
 
-  private async waitForServerReady(url: string, maxAttempts: number = 60, delay: number = 1000): Promise<boolean> {
+  private async waitForServerReady(
+    url: string,
+    maxAttempts: number = 60,
+    delay: number = 1000
+  ): Promise<boolean> {
     for (let i = 0; i < maxAttempts; i++) {
       try {
         const response = await fetch(url);
@@ -47,7 +51,7 @@ export class WebAppManager {
       } catch {
         // Server not ready yet
       }
-      await new Promise(resolve => setTimeout(resolve, delay));
+      await new Promise((resolve) => setTimeout(resolve, delay));
     }
     return false;
   }
@@ -117,7 +121,7 @@ export class WebAppManager {
     const buildResult = await execAsync('npm run build', {
       cwd: this.podverseWebPath,
       env,
-      maxBuffer: 10 * 1024 * 1024
+      maxBuffer: 10 * 1024 * 1024,
     });
     if (buildResult.stderr && buildResult.stderr.trim()) {
       console.warn(`   ⚠️  Build stderr: ${buildResult.stderr.trim()}`);
@@ -172,8 +176,8 @@ export class WebAppManager {
       await this.stop();
       throw new Error(
         `Web app failed to start on port ${TEST_PORT} within 2 minutes.\n` +
-        `Last output:\n${output.slice(-500)}\n` +
-        `Last errors:\n${errorOutput.slice(-500)}`
+          `Last output:\n${output.slice(-500)}\n` +
+          `Last errors:\n${errorOutput.slice(-500)}`
       );
     }
 

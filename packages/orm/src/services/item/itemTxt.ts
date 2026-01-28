@@ -4,9 +4,9 @@ import { ItemTxt } from '@orm/entities/item/itemTxt';
 import { BaseManyService } from '@orm/services/base/baseManyService';
 
 type ItemTxtDto = {
-  purpose: string | null
-  value: string
-}
+  purpose: string | null;
+  value: string;
+};
 
 export class ItemTxtService extends BaseManyService<ItemTxt, 'item'> {
   constructor(transactionalEntityManager?: EntityManager) {

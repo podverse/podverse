@@ -4,11 +4,11 @@ import { usePlaylistsContext } from './PlaylistsContext';
 import LoadingSpinnerOverlay from '../../components/LoadingSpinner/LoadingSpinnerOverlay';
 
 export const PlaylistsList: React.FC = () => {
-  const { filterParams, setFilterParams, playlists, totalPages, isLoading, showLoginMessage } = usePlaylistsContext();
+  const { filterParams, setFilterParams, playlists, totalPages, isLoading, showLoginMessage } =
+    usePlaylistsContext();
   const { page, type } = filterParams;
 
-  const showCreator = filterParams.type === 'public'
-    || filterParams.type === 'private_followed';
+  const showCreator = filterParams.type === 'public' || filterParams.type === 'private_followed';
 
   return (
     <>

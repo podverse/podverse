@@ -67,8 +67,8 @@ Create `@podverse/helpers-config` package for application startup and configurat
 **Create `packages/helpers-config/src/index.ts`:**
 
 ```typescript
-export * from "./configValidation";
-export * from "./startupValidation";
+export * from './configValidation';
+export * from './startupValidation';
 ```
 
 ### 3. Build Package

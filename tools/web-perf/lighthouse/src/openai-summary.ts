@@ -16,13 +16,10 @@ config({ path: envPath });
 
 const MODEL = 'gpt-4o-mini';
 
-const scenarioPages = [
-  'homepage',
-  'podcastChannelPage'
-] as const;
+const scenarioPages = ['homepage', 'podcastChannelPage'] as const;
 
 type ScenarioMetrics = Record<
-  typeof scenarioPages[number],
+  (typeof scenarioPages)[number],
   {
     performanceScore: number | null;
     lcpMs: number | null;
@@ -48,7 +45,7 @@ function extractScenarioMetrics(report: LighthouseReport): {
       lcpElement: comparisonEngine.extractLcpElement(loggedOutLhr),
       fidMs: comparisonEngine.extractMetricValue(loggedOutLhr, 'first-input-delay'),
       cls: comparisonEngine.extractMetricValue(loggedOutLhr, 'cumulative-layout-shift'),
-      pageLoadTimeMs: comparisonEngine.extractMetricValue(loggedOutLhr, 'page-load-time')
+      pageLoadTimeMs: comparisonEngine.extractMetricValue(loggedOutLhr, 'page-load-time'),
     };
   }
 
@@ -65,24 +62,24 @@ export async function generateComparisonSummary(
   }
 
   const openai = new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY
+    apiKey: process.env.OPENAI_API_KEY,
   });
 
   const payload = {
     baseReport: {
       id: baseReport.newReport,
       timestamp: baseReport.timestamp,
-      scenarios: extractScenarioMetrics(baseReport)
+      scenarios: extractScenarioMetrics(baseReport),
     },
     newReport: {
       id: newReport.newReport,
       timestamp: newReport.timestamp,
-      scenarios: extractScenarioMetrics(newReport)
+      scenarios: extractScenarioMetrics(newReport),
     },
     comparison: {
       summary: comparison.summary,
-      scenarios: comparison.scenarios
-    }
+      scenarios: comparison.scenarios,
+    },
   };
 
   const systemPrompt = [
@@ -103,15 +100,15 @@ export async function generateComparisonSummary(
     '- Highlight only significant deltas; treat <=5% as no-change unless user impact is likely.',
     '- Use units (ms, score, CLS) and indicate direction clearly.',
     '- Mention specific LCP elements provided in the data (e.g., "div.hero-image") when discussing LCP changes.',
-    '- If data is insufficient for a section, say \"None observed\".'
+    '- If data is insufficient for a section, say \"None observed\".',
   ].join('\n');
 
   const chat = await openai.chat.completions.create({
     model: MODEL,
     messages: [
       { role: 'system', content: systemPrompt },
-      { role: 'user', content: `Analyze this comparison JSON:\n\n${JSON.stringify(payload)}` }
-    ]
+      { role: 'user', content: `Analyze this comparison JSON:\n\n${JSON.stringify(payload)}` },
+    ],
   });
 
   return chat.choices[0].message.content?.trim() ?? '';

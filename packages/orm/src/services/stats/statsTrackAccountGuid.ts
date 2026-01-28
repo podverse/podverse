@@ -19,7 +19,10 @@ export class StatsTrackAccountGuidService {
     let entity = await this.repositoryRead.findOne({ where: { account: { id: account_id } } });
     if (!entity) {
       entity = await this.create(account_id);
-    } else if (entity && new Date().getTime() - new Date(entity.updated_at).getTime() > 7 * 24 * 60 * 60 * 1000) {
+    } else if (
+      entity &&
+      new Date().getTime() - new Date(entity.updated_at).getTime() > 7 * 24 * 60 * 60 * 1000
+    ) {
       entity.account_guid = generateGuidV4();
       entity = await this.repositoryReadWrite.save(entity);
     }
@@ -37,7 +40,9 @@ export class StatsTrackAccountGuidService {
   }
 
   async delete(account_id: number): Promise<void> {
-    const entity = await this.repositoryReadWrite.findOne({ where: { account: { id: account_id } } });
+    const entity = await this.repositoryReadWrite.findOne({
+      where: { account: { id: account_id } },
+    });
     if (entity) {
       await this.repositoryReadWrite.remove(entity);
     }

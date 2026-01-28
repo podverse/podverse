@@ -31,7 +31,8 @@ export const ProfilesHeader: React.FC = () => {
     return QUERY_PARAMS_STATS_RANGE_VALUES.includes(val as QueryParamsStatsRange);
   }
 
-  const { typeMenuItems, sortMenuItems, rangeMenuItems, showRangeDropdown } = getProfilesDropdownConfig({ type, sort, tFilters });
+  const { typeMenuItems, sortMenuItems, rangeMenuItems, showRangeDropdown } =
+    getProfilesDropdownConfig({ type, sort, tFilters });
 
   const handleTypeChange = (value: string) => {
     if (isProfileType(value)) {
@@ -86,18 +87,8 @@ export const ProfilesHeader: React.FC = () => {
 
   const buttonsNode = (
     <>
-      <Dropdown
-        key="type"
-        value={type}
-        menuItems={typeMenuItems}
-        onChange={handleTypeChange}
-      />
-      <Dropdown
-        key="sort"
-        value={sort}
-        menuItems={sortMenuItems}
-        onChange={handleSortChange}
-      />
+      <Dropdown key="type" value={type} menuItems={typeMenuItems} onChange={handleTypeChange} />
+      <Dropdown key="sort" value={sort} menuItems={sortMenuItems} onChange={handleSortChange} />
       {showRangeDropdown && range && (
         <Dropdown
           key="range"
@@ -109,10 +100,5 @@ export const ProfilesHeader: React.FC = () => {
     </>
   );
 
-  return (
-    <MainHeader
-      title={tFeatures('profiles')}
-      buttonsNode={buttonsNode}
-    />
-  );
+  return <MainHeader title={tFeatures('profiles')} buttonsNode={buttonsNode} />;
 };

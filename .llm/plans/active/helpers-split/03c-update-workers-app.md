@@ -13,6 +13,7 @@ Update the Workers app to import backend and config utilities from the new speci
 ### 1. Update package.json Dependencies
 
 **In `apps/workers/package.json`**, add to dependencies:
+
 ```json
 "@podverse/helpers-backend": "*",
 "@podverse/helpers-config": "*"
@@ -21,6 +22,7 @@ Update the Workers app to import backend and config utilities from the new speci
 ### 2. Update LoggerService Import
 
 **`apps/workers/src/factories/loggerService.ts`:**
+
 ```diff
 -import { LoggerService } from '@podverse/helpers/dist/lib/backend/logger';
 +import { LoggerService } from '@podverse/helpers-backend';
@@ -29,6 +31,7 @@ Update the Workers app to import backend and config utilities from the new speci
 ### 3. Update TimerManager Import
 
 **`apps/workers/src/factories/timerManager.ts`:**
+
 ```diff
 -import { TimerManager } from '@podverse/helpers/dist/lib/backend/logTimer';
 +import { TimerManager } from '@podverse/helpers-backend';
@@ -37,6 +40,7 @@ Update the Workers app to import backend and config utilities from the new speci
 ### 4. Update Config Validation Imports
 
 **`apps/workers/src/index.ts`** (or wherever config validation is used):
+
 ```diff
 -import { validateORMConfig, validateParserConfig, assertConfigValid } from '@podverse/helpers';
 +import { validateORMConfig, validateParserConfig, assertConfigValid } from '@podverse/helpers-config';
@@ -45,6 +49,7 @@ Update the Workers app to import backend and config utilities from the new speci
 ### 5. Update Startup Validation Imports
 
 **`apps/workers/src/lib/startup/validation.ts`:**
+
 ```diff
 -import { validateRequired, validateOptional, validateBoolean, ... } from '@podverse/helpers';
 +import { validateRequired, validateOptional, validateBoolean, ... } from '@podverse/helpers-config';

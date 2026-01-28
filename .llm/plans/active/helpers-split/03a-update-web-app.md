@@ -13,6 +13,7 @@ Update the web app to import from the new specialized helpers packages.
 ### 1. Update package.json Dependencies
 
 **In `apps/web/package.json`**, add to dependencies:
+
 ```json
 "@podverse/helpers-validation": "*",
 "@podverse/helpers-requests": "*",
@@ -32,12 +33,14 @@ grep -r "getEmailErrorKey\|getPasswordErrorKey\|getPassword2ErrorKey\|getPasswor
 ```
 
 **Update imports:**
+
 ```diff
 -import { getEmailErrorKey, getPasswordErrorKey } from '@podverse/helpers';
 +import { getEmailErrorKey, getPasswordErrorKey } from '@podverse/helpers-validation';
 ```
 
 **Files to update (approximately):**
+
 - `src/components/Settings/Panels/SettingsAccount/ModalChangeEmail.tsx`
 - `src/components/Auth/AuthSignUpForm.tsx`
 - `src/components/Auth/AuthResetPasswordForm.tsx`
@@ -53,22 +56,26 @@ grep -r "isValidHttpUrl\|validateHttpsUrl\|validateUrlForSSRF\|isPrivateIP" src/
 ```
 
 **If found, update:**
+
 ```diff
 -import { validateUrlForSSRF } from '@podverse/helpers';
 +import { validateUrlForSSRF } from '@podverse/helpers-validation';
 ```
 
 **Known file:**
+
 - `src/utils/proxy/urlValidator.ts` - Uses URL validation
 
 ### 4. Update Browser Utility Imports
 
 Search for clipboard imports:
+
 ```bash
 grep -r "clipboard\|copyToClipboard" src/
 ```
 
 **If found, update:**
+
 ```diff
 -import { copyToClipboard } from '@podverse/helpers';
 +import { copyToClipboard } from '@podverse/helpers-browser';
@@ -83,6 +90,7 @@ grep -r "validateRequired\|validateOptional\|validateBoolean" scripts/
 ```
 
 **Update imports:**
+
 ```diff
 -import { validateRequired, validateOptional } from '@podverse/helpers';
 +import { validateRequired, validateOptional } from '@podverse/helpers-config';

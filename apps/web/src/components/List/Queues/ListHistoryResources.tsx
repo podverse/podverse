@@ -21,11 +21,16 @@ type Props = {
 };
 
 export const ListHistoryResources: React.FC<Props> = ({
-  queueResources, showLoginMessage, page, setPage, totalPages }) => {
+  queueResources,
+  showLoginMessage,
+  page,
+  setPage,
+  totalPages,
+}) => {
   const tInstructions = useTranslations('instructions');
   const tAuthentication = useTranslations('authentication');
   const { setModalAuthLogin } = useModals();
-  
+
   // Track if we should skip scroll on the first effect run (back navigation case)
   const skipScrollOnceRef = useRef(checkBackNavFlag());
 
@@ -50,26 +55,21 @@ export const ListHistoryResources: React.FC<Props> = ({
           onButtonClick={() => setModalAuthLogin({ isOpen: true })}
         />
       )}
-      {
-        showPagination && (
-          <div className={styles.listWrapper}>
-            <Pagination
-              currentPage={page}
-              totalPages={totalPages}
-              setPage={setPage}>
-              <div className={styles.list}>
-                {queueResources.map((queueResource) => (
-                  <ListQueueResourceRow
-                    key={queueResource.id}
-                    queueResource={queueResource}
-                    isEditModeQueue={false}
-                  />
-                ))}
-              </div>
-            </Pagination>
-          </div>
-        )
-      }
+      {showPagination && (
+        <div className={styles.listWrapper}>
+          <Pagination currentPage={page} totalPages={totalPages} setPage={setPage}>
+            <div className={styles.list}>
+              {queueResources.map((queueResource) => (
+                <ListQueueResourceRow
+                  key={queueResource.id}
+                  queueResource={queueResource}
+                  isEditModeQueue={false}
+                />
+              ))}
+            </div>
+          </Pagination>
+        </div>
+      )}
     </>
   );
 };

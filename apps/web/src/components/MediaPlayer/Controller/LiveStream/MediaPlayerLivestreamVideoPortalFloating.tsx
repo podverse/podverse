@@ -8,12 +8,19 @@ import { useMediaPlayer } from '../../../../contexts/MediaPlayer';
 import styles from '../../../../styles/components/MediaPlayer/Controller/LiveStream/MediaPlayerLiveStreamVideoPortalFloating.module.scss';
 import { cssClass } from '../../../../utils/cssModule';
 
-export const MediaPlayerLivestreamVideoPortalFloating: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const MediaPlayerLivestreamVideoPortalFloating: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
 
-  const { mpItemLabeledItemEnclosures, mpEnclosureSelectedParams, mpItemSoundbite,
-    mpClip, mpItemChapter } = useMediaPlayer();
+  const {
+    mpItemLabeledItemEnclosures,
+    mpEnclosureSelectedParams,
+    mpItemSoundbite,
+    mpClip,
+    mpItemChapter,
+  } = useMediaPlayer();
   const hasMarquee = !!mpItemSoundbite || !!mpClip || !!mpItemChapter;
 
   if (!mounted || typeof document === 'undefined') {
@@ -43,6 +50,6 @@ export const MediaPlayerLivestreamVideoPortalFloating: React.FC<{ children: Reac
     >
       {children}
     </div>,
-    document.body,
+    document.body
   );
 };

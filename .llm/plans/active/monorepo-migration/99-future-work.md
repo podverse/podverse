@@ -13,6 +13,7 @@ Items noted during planning that should be addressed after core migration is com
 **Context**: `podverse-ops` uses Makefiles for convenience commands.
 
 **Current files**:
+
 - `Makefile.local` - local development
 - `Makefile.alpha` - alpha deployment
 - `Makefile.certs` - certificate management
@@ -20,6 +21,7 @@ Items noted during planning that should be addressed after core migration is com
 - `Makefile.test` - test commands
 
 **Task**: Create root `Makefile` in monorepo with equivalent commands:
+
 ```makefile
 local_db_up:
 	docker compose -f infra/docker/local/docker-compose.yml up -d podverse_local_db
@@ -40,6 +42,7 @@ local_keyvaldb_up:
 **Context**: Dockerfiles use `COPY` commands that need updated paths in monorepo.
 
 **Example change needed**:
+
 ```dockerfile
 # Before (standalone repo)
 COPY package*.json ./
@@ -79,6 +82,7 @@ COPY packages/helpers/dist ./node_modules/@podverse/helpers/dist
 **Context**: Workers has multiple job types with different configurations.
 
 **Current jobs** (from podverse-workers):
+
 - RSS feed parsing
 - Notification sending
 - Stats aggregation
@@ -95,12 +99,14 @@ COPY packages/helpers/dist ./node_modules/@podverse/helpers/dist
 **Context**: No comprehensive testing plan yet.
 
 **Scope**:
+
 - Unit tests (Jest)
 - Integration tests (API endpoints)
 - E2E tests (web flows)
 - Shared test utilities in `tools/qa`
 
 **Task**: Create testing plan document covering:
+
 - Test runner configuration
 - Coverage thresholds
 - CI integration
@@ -115,11 +121,13 @@ COPY packages/helpers/dist ./node_modules/@podverse/helpers/dist
 **Context**: Phase 9 covers applying migrations, but not generating them.
 
 **Current workflow**:
+
 1. Modify entity in `packages/orm`
 2. Run TypeORM CLI to generate migration
 3. Move migration to `infra/database/migrations/`
 
 **Task**: Document migration generation workflow for monorepo:
+
 ```bash
 npm run typeorm -- migration:generate -d packages/orm/src/data-source.ts
 ```
@@ -133,6 +141,7 @@ npm run typeorm -- migration:generate -d packages/orm/src/data-source.ts
 **Context**: Plans focus on alpha deployment. Beta and production follow similar patterns but aren't detailed.
 
 **Task**: After alpha workflow is proven, document:
+
 - Beta deployment trigger (alpha → beta branch merge)
 - Production deployment trigger (beta → main branch merge)
 - Additional approvals/checks for production
@@ -148,6 +157,7 @@ npm run typeorm -- migration:generate -d packages/orm/src/data-source.ts
 **Context**: GitHub Actions secrets, npm tokens, Docker registry tokens mentioned but not centrally documented.
 
 **Required secrets**:
+
 - `NPM_TOKEN` - npm publish
 - `GHCR_REGISTRY_TOKEN` - Docker image queries
 - `GITHUB_TOKEN` - automatic
@@ -166,6 +176,7 @@ npm run typeorm -- migration:generate -d packages/orm/src/data-source.ts
 **Current**: Each app has its own logging setup.
 
 **Task**: Consider:
+
 - Shared logging configuration from `@podverse/helpers`
 - Log aggregation strategy
 - Error tracking (Sentry or similar)
@@ -179,6 +190,7 @@ npm run typeorm -- migration:generate -d packages/orm/src/data-source.ts
 **Context**: Web apps have internationalization files.
 
 **Files**:
+
 - `podverse-web/i18n/` - translation files
 - `podverse-management-web/i18n/` - admin translations
 
@@ -195,6 +207,7 @@ npm run typeorm -- migration:generate -d packages/orm/src/data-source.ts
 **Optimization**: Only build/test affected packages based on changed files.
 
 **Approach options**:
+
 - GitHub Actions path filters
 - Nx/Turborepo (if added later)
 - Custom script to detect changes
@@ -217,16 +230,16 @@ From `00-master-plan.md`:
 
 ## Tracking
 
-| Item | Priority | Addressed In | Status |
-|------|----------|--------------|--------|
-| Makefile commands | High | Phase 4/6 | Pending |
-| Docker build contexts | High | Phase 3 | Pending |
-| Valkey setup | High | Phase 4 | Pending |
-| Workers job config | Medium | Post-migration | Pending |
-| Testing strategy | Medium | Post-migration | Pending |
-| TypeORM migration gen | Medium | Phase 9 | Pending |
-| Beta/prod deployment | Medium | Post-alpha | Pending |
-| Secrets documentation | Low | Phase 5 | Pending |
-| Monitoring/logging | Low | Post-migration | Pending |
-| i18n migration | Low | Phase 3 | Pending |
-| Selective CI | Low | Post-migration | Pending |
+| Item                  | Priority | Addressed In   | Status  |
+| --------------------- | -------- | -------------- | ------- |
+| Makefile commands     | High     | Phase 4/6      | Pending |
+| Docker build contexts | High     | Phase 3        | Pending |
+| Valkey setup          | High     | Phase 4        | Pending |
+| Workers job config    | Medium   | Post-migration | Pending |
+| Testing strategy      | Medium   | Post-migration | Pending |
+| TypeORM migration gen | Medium   | Phase 9        | Pending |
+| Beta/prod deployment  | Medium   | Post-alpha     | Pending |
+| Secrets documentation | Low      | Phase 5        | Pending |
+| Monitoring/logging    | Low      | Post-migration | Pending |
+| i18n migration        | Low      | Phase 3        | Pending |
+| Selective CI          | Low      | Post-migration | Pending |

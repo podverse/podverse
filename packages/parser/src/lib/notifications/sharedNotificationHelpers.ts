@@ -1,4 +1,8 @@
-import { AccountFCMDevicePlatformEnum, AccountNotificationTypeEnum, hasValidMembership } from '@podverse/helpers';
+import {
+  AccountFCMDevicePlatformEnum,
+  AccountNotificationTypeEnum,
+  hasValidMembership,
+} from '@podverse/helpers';
 import {
   AccountFCMDeviceService,
   AccountNotificationChannelService,
@@ -10,7 +14,13 @@ import {
   ChannelService,
   Item,
 } from '@podverse/orm';
-import { NotificationMessageType, NotificationPlatform, notificationOrchestrator, WebPushSubscription, UPSubscription } from '@podverse/notifications';
+import {
+  NotificationMessageType,
+  NotificationPlatform,
+  notificationOrchestrator,
+  WebPushSubscription,
+  UPSubscription,
+} from '@podverse/notifications';
 import { loggerService } from '@parser/factories/loggerService';
 import { config as projectConfig } from '@parser/config';
 import { getNotificationsContext, getFirebaseContext } from '@parser/context';
@@ -41,7 +51,7 @@ export type ItemNotificationData = {
   itemIdText: string;
   channelIdText: string;
   messageType: NotificationMessageType;
-  mediumId: number;  // For constructing medium-specific links (e.g., /podcast/livestream vs /music/livestream)
+  mediumId: number; // For constructing medium-specific links (e.g., /podcast/livestream vs /music/livestream)
 };
 
 // Minimum acceptable image size for notifications (in pixels)
@@ -55,7 +65,7 @@ const NOTIFICATION_IMAGE_IDEAL_SIZE = 512;
  * Falls back to largest available if none meet minimum.
  */
 export function selectBestImage<T extends { url: string; image_width_size?: number | null }>(
-  images: T[],
+  images: T[]
 ): string | null {
   if (!images || images.length === 0) {
     return null;
@@ -63,7 +73,7 @@ export function selectBestImage<T extends { url: string; image_width_size?: numb
 
   // Filter images that meet the minimum size requirement
   const adequateImages = images.filter(
-    img => (img.image_width_size || 0) >= NOTIFICATION_IMAGE_MIN_SIZE,
+    (img) => (img.image_width_size || 0) >= NOTIFICATION_IMAGE_MIN_SIZE
   );
 
   if (adequateImages.length > 0) {
@@ -83,8 +93,8 @@ export function selectBestImage<T extends { url: string; image_width_size?: numb
   }
 
   // No images meet minimum size - fall back to largest available
-  const sortedBySize = [...images].sort((a, b) => 
-    (b.image_width_size || 0) - (a.image_width_size || 0),
+  const sortedBySize = [...images].sort(
+    (a, b) => (b.image_width_size || 0) - (a.image_width_size || 0)
   );
   const largest = sortedBySize[0];
   return largest?.url ?? null;
@@ -115,21 +125,23 @@ export function getBestImageUrl(item: Item, channelImages: ChannelImage[]): stri
  */
 export function convertPlatform(platform: AccountFCMDevicePlatformEnum): NotificationPlatform {
   switch (platform) {
-  case AccountFCMDevicePlatformEnum.Web:
-    return 'web';
-  case AccountFCMDevicePlatformEnum.Android:
-    return 'android';
-  case AccountFCMDevicePlatformEnum.iOS:
-    return 'ios';
-  default:
-    return 'web';
+    case AccountFCMDevicePlatformEnum.Web:
+      return 'web';
+    case AccountFCMDevicePlatformEnum.Android:
+      return 'android';
+    case AccountFCMDevicePlatformEnum.iOS:
+      return 'ios';
+    default:
+      return 'web';
   }
 }
 
 /**
  * Groups devices by locale and platform for batch notification sending
  */
-export function groupDevicesByLocaleAndPlatform(devices: DeviceWithLocale[]): Map<string, Map<NotificationPlatform, string[]>> {
+export function groupDevicesByLocaleAndPlatform(
+  devices: DeviceWithLocale[]
+): Map<string, Map<NotificationPlatform, string[]>> {
   const localeMap = new Map<string, Map<NotificationPlatform, string[]>>();
 
   for (const device of devices) {
@@ -137,7 +149,7 @@ export function groupDevicesByLocaleAndPlatform(devices: DeviceWithLocale[]): Ma
       localeMap.set(device.locale, new Map());
     }
     const platformMap = localeMap.get(device.locale) ?? new Map();
-    
+
     if (!platformMap.has(device.platform)) {
       platformMap.set(device.platform, []);
     }
@@ -154,7 +166,7 @@ export async function loadChannelImages(channel: Channel): Promise<ChannelImage[
   if (channel.channel_images) {
     return channel.channel_images;
   }
-  
+
   const channelService = new ChannelService();
   const channelWithImages = await channelService.getByIdText(channel.id_text, {
     channel_images: true,
@@ -167,8 +179,13 @@ export async function loadChannelImages(channel: Channel): Promise<ChannelImage[
  */
 export async function getDevicesForNotificationType(
   channelIdText: string,
-  notificationType: AccountNotificationTypeEnum,
-): Promise<{ devices: DeviceWithLocale[]; webPushSubscriptions: Map<string, WebPushSubscription[]>; upSubscriptions: Map<string, UPSubscription[]>; accountLocaleMap: Map<number, string> } | null> {
+  notificationType: AccountNotificationTypeEnum
+): Promise<{
+  devices: DeviceWithLocale[];
+  webPushSubscriptions: Map<string, WebPushSubscription[]>;
+  upSubscriptions: Map<string, UPSubscription[]>;
+  accountLocaleMap: Map<number, string>;
+} | null> {
   // Get all account notification channels for this channel with their types
   const accountNotificationChannelService = new AccountNotificationChannelService();
   const notificationChannels = await accountNotificationChannelService.getAllByChannelIdText(
@@ -183,7 +200,7 @@ export async function getDevicesForNotificationType(
           account_membership_status: true,
         },
       },
-    },
+    }
   );
 
   // Filter to only accounts that have the specified notification type enabled
@@ -192,18 +209,20 @@ export async function getDevicesForNotificationType(
 
   for (const notificationChannel of notificationChannels) {
     const hasType = notificationChannel.account_notification_channel_types?.some(
-      (type: AccountNotificationChannelType) => type.type === notificationType,
+      (type: AccountNotificationChannelType) => type.type === notificationType
     );
 
     if (hasType) {
       // Check if account has a valid, non-expired membership
       const membershipStatus = notificationChannel.account?.account_membership_status;
-      
+
       if (hasValidMembership(membershipStatus)) {
         accountIdsWithTypeEnabled.push(notificationChannel.account_id);
-        
+
         // Store the locale for each account
-        const locale = notificationChannel.account?.account_settings?.account_settings_locale?.locale || getDefaultLocale();
+        const locale =
+          notificationChannel.account?.account_settings?.account_settings_locale?.locale ||
+          getDefaultLocale();
         accountLocaleMap.set(notificationChannel.account_id, locale);
       }
     }
@@ -216,23 +235,30 @@ export async function getDevicesForNotificationType(
 
   // Get all FCM devices for the filtered account IDs in a single batch query
   const accountFCMDeviceService = new AccountFCMDeviceService();
-  const deviceResults = await accountFCMDeviceService.getAllForAccountIds(accountIdsWithTypeEnabled);
+  const deviceResults =
+    await accountFCMDeviceService.getAllForAccountIds(accountIdsWithTypeEnabled);
 
   // Get all Web Push devices for the filtered account IDs in a single batch query
   const accountWebPushDeviceService = new AccountWebPushDeviceService();
-  const webPushDeviceResults = await accountWebPushDeviceService.getAllForAccountIds(accountIdsWithTypeEnabled);
+  const webPushDeviceResults =
+    await accountWebPushDeviceService.getAllForAccountIds(accountIdsWithTypeEnabled);
 
   // Get all Unified Push devices for the filtered account IDs in a single batch query
   const accountUPDeviceService = new AccountUPDeviceService();
-  const upDeviceResults = await accountUPDeviceService.getAllForAccountIds(accountIdsWithTypeEnabled);
+  const upDeviceResults =
+    await accountUPDeviceService.getAllForAccountIds(accountIdsWithTypeEnabled);
 
   // Early return if no devices to send to (FCM, Web Push, or UP)
-  if (deviceResults.length === 0 && webPushDeviceResults.length === 0 && upDeviceResults.length === 0) {
+  if (
+    deviceResults.length === 0 &&
+    webPushDeviceResults.length === 0 &&
+    upDeviceResults.length === 0
+  ) {
     return null;
   }
 
   // Map FCM devices to DeviceWithLocale format
-  const devices: DeviceWithLocale[] = deviceResults.map(device => ({
+  const devices: DeviceWithLocale[] = deviceResults.map((device) => ({
     fcm_token: device.fcm_token,
     platform: convertPlatform(device.platform),
     locale: device.locale || accountLocaleMap.get(device.account_id) || getDefaultLocale(),
@@ -278,7 +304,7 @@ export async function sendItemNotifications(
   itemNotifications: ItemNotificationData[],
   groupedDevices: Map<string, Map<NotificationPlatform, string[]>>,
   webPushSubscriptions: Map<string, WebPushSubscription[]>,
-  upSubscriptions: Map<string, UPSubscription[]>,
+  upSubscriptions: Map<string, UPSubscription[]>
 ): Promise<void> {
   for (const itemNotification of itemNotifications) {
     const messageText = itemNotification.itemTitle;
@@ -310,12 +336,12 @@ export async function sendItemNotifications(
           });
 
           loggerService.info(
-            `Sent ${itemNotification.messageType} notification to ${tokens.length} ${platform} devices (${locale}) for item: ${itemNotification.itemIdText}`,
+            `Sent ${itemNotification.messageType} notification to ${tokens.length} ${platform} devices (${locale}) for item: ${itemNotification.itemIdText}`
           );
         } catch (error) {
           loggerService.logError(
             `Failed to send notification for item ${itemNotification.itemIdText} to ${platform} devices (${locale})`,
-            error as Error,
+            error as Error
           );
         }
       }
@@ -343,12 +369,12 @@ export async function sendItemNotifications(
           });
 
           loggerService.info(
-            `Sent ${itemNotification.messageType} Web Push notification to ${subscriptions.length} subscription(s) (${locale}) for item: ${itemNotification.itemIdText}`,
+            `Sent ${itemNotification.messageType} Web Push notification to ${subscriptions.length} subscription(s) (${locale}) for item: ${itemNotification.itemIdText}`
           );
         } catch (error) {
           loggerService.logError(
             `Failed to send Web Push notification for item ${itemNotification.itemIdText} to ${subscriptions.length} subscription(s) (${locale})`,
-            error as Error,
+            error as Error
           );
         }
       }
@@ -376,12 +402,12 @@ export async function sendItemNotifications(
           });
 
           loggerService.info(
-            `Sent ${itemNotification.messageType} Unified Push notification to ${subscriptions.length} subscription(s) (${locale}) for item: ${itemNotification.itemIdText}`,
+            `Sent ${itemNotification.messageType} Unified Push notification to ${subscriptions.length} subscription(s) (${locale}) for item: ${itemNotification.itemIdText}`
           );
         } catch (error) {
           loggerService.logError(
             `Failed to send Unified Push notification for item ${itemNotification.itemIdText} to ${subscriptions.length} subscription(s) (${locale})`,
-            error as Error,
+            error as Error
           );
         }
       }

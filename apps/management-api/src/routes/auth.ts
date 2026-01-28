@@ -22,7 +22,7 @@ router.get(`${baseUrl}/auth/me`, ensureAuthenticated, async (req, res) => {
 
     const adminAccountService = new AdminAccountService();
     const adminAccount = await adminAccountService.get(userId);
-    
+
     if (!adminAccount) {
       return res.status(404).json({ message: 'Admin account not found' });
     }

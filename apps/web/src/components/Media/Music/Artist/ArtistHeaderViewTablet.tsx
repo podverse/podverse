@@ -8,7 +8,7 @@ import styles from '../../../../styles/components/Media/Podcast/PodcastHeaderVie
 
 type ArtistHeaderViewTabletProps = {
   channel: DTOChannel;
-}
+};
 
 export const ArtistHeaderViewTablet: React.FC<ArtistHeaderViewTabletProps> = ({ channel }) => {
   return (

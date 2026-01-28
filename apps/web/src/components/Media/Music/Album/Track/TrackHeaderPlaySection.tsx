@@ -25,7 +25,10 @@ type TrackHeaderPlaySectionProps = {
   channel: DTOChannel;
 };
 
-export const TrackHeaderPlaySection: React.FC<TrackHeaderPlaySectionProps> = ({ item, channel }) => {
+export const TrackHeaderPlaySection: React.FC<TrackHeaderPlaySectionProps> = ({
+  item,
+  channel,
+}) => {
   const tFeatures = useTranslations('features');
   const tMediaPlayer = useTranslations('media_player');
   const tInstructions = useTranslations('instructions');
@@ -38,7 +41,7 @@ export const TrackHeaderPlaySection: React.FC<TrackHeaderPlaySectionProps> = ({ 
   const { durationStr } = getDurationAndPositionStr(item, queueResourcesAbridgedIndex);
   const positionStr = null;
   const { autoQueueConfig } = useAutoQueue();
-  
+
   const playButtonOnClick = () => {
     if (item.id === mpItem?.id) {
       setMPIsPlaying(!mpIsPlaying);
@@ -78,13 +81,10 @@ export const TrackHeaderPlaySection: React.FC<TrackHeaderPlaySectionProps> = ({ 
 
     const queue = getQueueForMedium(queues, channel.medium_id);
     if (queue) {
-      showToastPromise(
-        apiRequestService.reqQueueResourceItemAddNext(queue.id_text, item.id_text),
-        {
-          success: tFeatures('queue.added_to_queue'),
-          error: tFeatures('queue.add_error'),
-        },
-      );
+      showToastPromise(apiRequestService.reqQueueResourceItemAddNext(queue.id_text, item.id_text), {
+        success: tFeatures('queue.added_to_queue'),
+        error: tFeatures('queue.add_error'),
+      });
     }
   };
 
@@ -99,13 +99,10 @@ export const TrackHeaderPlaySection: React.FC<TrackHeaderPlaySectionProps> = ({ 
 
     const queue = getQueueForMedium(queues, channel.medium_id);
     if (queue) {
-      showToastPromise(
-        apiRequestService.reqQueueResourceItemAddLast(queue.id_text, item.id_text),
-        {
-          success: tFeatures('queue.added_to_queue'),
-          error: tFeatures('queue.add_error'),
-        },
-      );
+      showToastPromise(apiRequestService.reqQueueResourceItemAddLast(queue.id_text, item.id_text), {
+        success: tFeatures('queue.added_to_queue'),
+        error: tFeatures('queue.add_error'),
+      });
     }
   };
 
@@ -162,23 +159,15 @@ export const TrackHeaderPlaySection: React.FC<TrackHeaderPlaySectionProps> = ({ 
   return (
     <div className={styles.playSection}>
       <div className={styles.sectionStart}>
-        <PlayButtonLarge
-          item={item}
-          onClick={playButtonOnClick}
-        />
+        <PlayButtonLarge item={item} onClick={playButtonOnClick} />
         <div className={styles.timeSection}>
           <ReadableDate date={item.pub_date} />
           {item.item_about?.duration ? ' • ' : null}
-          <ReadableDuration
-            durationStr={durationStr}
-            positionStr={positionStr}
-          />
+          <ReadableDuration durationStr={durationStr} positionStr={positionStr} />
         </div>
       </div>
       <div className={styles.sectionEnd}>
-        <MoreButton
-          moreButtonMenuItems={moreButtonMenuItems}
-          isLarge />
+        <MoreButton moreButtonMenuItems={moreButtonMenuItems} isLarge />
       </div>
     </div>
   );

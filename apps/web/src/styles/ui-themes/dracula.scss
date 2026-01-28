@@ -1,4 +1,4 @@
-[data-ui-theme="dracula"] {
+[data-ui-theme='dracula'] {
   --background-color-primary: #282a36;
   --background-color-secondary: #1e1f29;
   --background-color-tertiary: #343746;
@@ -33,9 +33,13 @@
   --progress-bar-highlighted: rgba(189, 147, 249, 0.5);
 }
 
-[data-ui-theme="dracula"] {
-  --background-gradient-primary: linear-gradient(90deg, rgba(98, 114, 164, 0.6) -3%, var(--background-color-tertiary));
-  
+[data-ui-theme='dracula'] {
+  --background-gradient-primary: linear-gradient(
+    90deg,
+    rgba(98, 114, 164, 0.6) -3%,
+    var(--background-color-tertiary)
+  );
+
   --button-primary-bg: var(--border-color-primary);
   --button-primary-color: var(--text-color-tertiary);
   --button-primary-bg-hover: #caa8fc;

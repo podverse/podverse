@@ -6,11 +6,7 @@ interface WindowWrapperProps {
 }
 
 const WindowWrapper: React.FC<WindowWrapperProps> = ({ children }) => {
-  return (
-    <div className={styles['window-wrapper']}>
-      {children}
-    </div>
-  );
+  return <div className={styles['window-wrapper']}>{children}</div>;
 };
 
 export default WindowWrapper;

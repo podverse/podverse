@@ -1,7 +1,11 @@
 import { Request, Response } from 'express';
 import Joi from 'joi';
 import { AccountFollowingAccountService, AccountService } from '@podverse/orm';
-import { ensureAuthenticated, optionalEnsureAuthenticated, getAuthenticatedUser } from '@api/lib/auth';
+import {
+  ensureAuthenticated,
+  optionalEnsureAuthenticated,
+  getAuthenticatedUser,
+} from '@api/lib/auth';
 import { handleGenericErrorResponse } from '../helpers/error';
 import { validateBodyObject, validateParamsObject } from '@api/lib/validation';
 import { SharableStatusEnum } from '@podverse/helpers';
@@ -21,74 +25,99 @@ class AccountFollowingAccountController {
 
   static async getFollowedAccounts(req: Request, res: Response): Promise<void> {
     validateParamsObject(getFollowedAccountsSchema, req, res, async () => {
-      optionalEnsureAuthenticated(req, res, async (): Promise<void> => {
-        try {
-          const jwtUser = req.user;
-          const account_id_text = getParamRequired(req, 'account_id_text');
+      optionalEnsureAuthenticated(
+        req,
+        res,
+        async (): Promise<void> => {
+          try {
+            const jwtUser = req.user;
+            const account_id_text = getParamRequired(req, 'account_id_text');
 
-          const account = await AccountFollowingAccountController.accountService.getByIdText(account_id_text, { relations: ['sharable_status'] });
+            const account = await AccountFollowingAccountController.accountService.getByIdText(
+              account_id_text,
+              { relations: ['sharable_status'] }
+            );
 
-          if (!account) {
-            res.status(404).json({ message: 'Account not found' });
-            return;
-          }
-
-          if (account.sharable_status.id === SharableStatusEnum.Private) {
-            if (!jwtUser?.id || account.id !== jwtUser.id) {
+            if (!account) {
               res.status(404).json({ message: 'Account not found' });
               return;
             }
-          }
 
-          if (account.id === jwtUser?.id) {
-            const followedPlaylists = await AccountFollowingAccountController
-              .accountFollowingAccountService
-              .getFollowedAccountsPrivate(account.id);
-            res.json(followedPlaylists);
-          } else {
-            const followedPlaylists = await AccountFollowingAccountController
-              .accountFollowingAccountService
-              .getFollowedAccountsPublic(account.id);
-            res.json(followedPlaylists);
+            if (account.sharable_status.id === SharableStatusEnum.Private) {
+              if (!jwtUser?.id || account.id !== jwtUser.id) {
+                res.status(404).json({ message: 'Account not found' });
+                return;
+              }
+            }
+
+            if (account.id === jwtUser?.id) {
+              const followedPlaylists =
+                await AccountFollowingAccountController.accountFollowingAccountService.getFollowedAccountsPrivate(
+                  account.id
+                );
+              res.json(followedPlaylists);
+            } else {
+              const followedPlaylists =
+                await AccountFollowingAccountController.accountFollowingAccountService.getFollowedAccountsPublic(
+                  account.id
+                );
+              res.json(followedPlaylists);
+            }
+          } catch (err) {
+            handleGenericErrorResponse(res, err);
           }
-        } catch (err) {
-          handleGenericErrorResponse(res, err);
-        }
-      }, { skipMembershipStatus: true });
+        },
+        { skipMembershipStatus: true }
+      );
     });
   }
 
   static async followAccount(req: Request, res: Response): Promise<void> {
-    ensureAuthenticated(req, res, async () => {
-      validateBodyObject(followAccountSchema, req, res, async () => {
-        const account = getAuthenticatedUser(req);
-        const { following_account_id_text } = req.body;
+    ensureAuthenticated(
+      req,
+      res,
+      async () => {
+        validateBodyObject(followAccountSchema, req, res, async () => {
+          const account = getAuthenticatedUser(req);
+          const { following_account_id_text } = req.body;
 
-        try {
-          await AccountFollowingAccountController.accountFollowingAccountService.followAccount(account.id, { following_account_id_text });
-          res.status(201)
-            .json({ message: 'Successfully followed account' });
-        } catch (err) {
-          handleGenericErrorResponse(res, err);
-        }
-      });
-    }, { skipMembershipStatus: false });
+          try {
+            await AccountFollowingAccountController.accountFollowingAccountService.followAccount(
+              account.id,
+              { following_account_id_text }
+            );
+            res.status(201).json({ message: 'Successfully followed account' });
+          } catch (err) {
+            handleGenericErrorResponse(res, err);
+          }
+        });
+      },
+      { skipMembershipStatus: false }
+    );
   }
 
   static async unfollowAccount(req: Request, res: Response): Promise<void> {
-    ensureAuthenticated(req, res, async () => {
-      validateBodyObject(followAccountSchema, req, res, async () => {
-        const account = getAuthenticatedUser(req);
-        const { following_account_id_text } = req.body;
+    ensureAuthenticated(
+      req,
+      res,
+      async () => {
+        validateBodyObject(followAccountSchema, req, res, async () => {
+          const account = getAuthenticatedUser(req);
+          const { following_account_id_text } = req.body;
 
-        try {
-          await AccountFollowingAccountController.accountFollowingAccountService.unfollowAccount(account.id, { following_account_id_text });
-          res.status(204).end();
-        } catch (err) {
-          handleGenericErrorResponse(res, err);
-        }
-      });
-    }, { skipMembershipStatus: true });
+          try {
+            await AccountFollowingAccountController.accountFollowingAccountService.unfollowAccount(
+              account.id,
+              { following_account_id_text }
+            );
+            res.status(204).end();
+          } catch (err) {
+            handleGenericErrorResponse(res, err);
+          }
+        });
+      },
+      { skipMembershipStatus: true }
+    );
   }
 }
 
