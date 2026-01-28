@@ -54,22 +54,22 @@ Convert the directory path to uppercase, replacing slashes with hyphens:
 
 ### Examples
 
-| Directory                  | Documentation File           |
-| -------------------------- | ---------------------------- |
-| Root                       | `README.md` (the only one)   |
-| `apps/api/`                | `APPS-API.md`                |
-| `apps/web/`                | `APPS-WEB.md`                |
-| `apps/workers/`            | `APPS-WORKERS.md`            |
-| `apps/management-api/`     | `APPS-MANAGEMENT-API.md`     |
-| `apps/management-web/`     | `APPS-MANAGEMENT-WEB.md`     |
-| `tools/qa/`                | `TOOLS-QA.md`                |
-| `tools/web-perf/`          | `TOOLS-WEB-PERF.md`          |
-| `packages/helpers/`        | `PACKAGES-HELPERS.md`        |
-| `packages/orm/`            | `PACKAGES-ORM.md`            |
-| `infra/docker/ci/`         | `INFRA-DOCKER-CI.md`         |
-| `pipelines/jenkins/alpha/` | `PIPELINES-JENKINS-ALPHA.md` |
-| `.llm/`                    | `LLM.md`                     |
-| `.llm/plans/`              | `LLM-PLANS.md`               |
+| Directory                        | Documentation File                 |
+| -------------------------------- | ---------------------------------- |
+| Root                             | `README.md` (the only one)         |
+| `apps/api/`                      | `APPS-API.md`                      |
+| `apps/web/`                      | `APPS-WEB.md`                      |
+| `apps/workers/`                  | `APPS-WORKERS.md`                  |
+| `apps/management-api/`           | `APPS-MANAGEMENT-API.md`           |
+| `apps/management-web/`           | `APPS-MANAGEMENT-WEB.md`           |
+| `tools/qa/`                      | `TOOLS-QA.md`                      |
+| `tools/web-perf/`                | `TOOLS-WEB-PERF.md`                |
+| `packages/helpers/`              | `PACKAGES-HELPERS.md`              |
+| `packages/orm/`                  | `PACKAGES-ORM.md`                  |
+| `infra/docker/ci/`               | `INFRA-DOCKER-CI.md`               |
+| `infra/pipelines/jenkins/alpha/` | `INFRA-PIPELINES-JENKINS-ALPHA.md` |
+| `.llm/`                          | `LLM.md`                           |
+| `.llm/plans/`                    | `LLM-PLANS.md`                     |
 
 ### Special Cases
 

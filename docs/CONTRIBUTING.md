@@ -125,7 +125,7 @@ Before submitting a PR:
 2. Jenkins pipeline builds and deploys
 3. Deployment targets configured per environment
 
-See `pipelines/` for pipeline definitions.
+See `infra/pipelines/` for pipeline definitions.
 
 ## LLM Development (Optional)
 
