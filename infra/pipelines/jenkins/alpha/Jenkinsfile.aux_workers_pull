@@ -44,7 +44,11 @@ pipeline {
                         // as environment variables automatically.
                         def workersVersion
                         if (params.IMAGE_VERSION == 'alpha') {
-                                workersVersion = sh(script: '/opt/podverse/scripts/ghcr/getLatestAlphaTag.sh', returnStdout: true).trim()
+                                withEnv(["GHCR_IMAGE_PATH=${params.GHCR_IMAGE_PATH}"]) {
+                                    withCredentials([string(credentialsId: params.GHCR_REGISTRY_TOKEN, variable: 'GHCR_REGISTRY_TOKEN')]) {
+                                        workersVersion = sh(script: '/opt/podverse/scripts/ghcr/getLatestAlphaTag.sh', returnStdout: true).trim()
+                                    }
+                                }
                                 if (!workersVersion) {
                                         error('ERROR: No alpha tag found from getLatestAlphaTag.sh')
                                 }
