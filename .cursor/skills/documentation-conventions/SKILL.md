@@ -8,6 +8,7 @@ description: Documentation file naming conventions for the Podverse monorepo. Us
 ## Single-Instance Documentation Files
 
 **Critical Rules**: These files should only exist once in the repository (at root/docs):
+
 - **One** `README.md` at repository root
 - **One** `QUICKSTART.md` in `docs/` directory
 
@@ -33,6 +34,7 @@ tools/qa/README.md
 ### Rationale
 
 Multiple `README.md` files:
+
 - Create ambiguity in navigation
 - Confuse search results
 - Break expectations about repository entry points
@@ -45,32 +47,34 @@ Multiple `README.md` files:
 ```
 
 Convert the directory path to uppercase, replacing slashes with hyphens:
+
 - `apps/api/` → `APPS-API.md`
 - `packages/orm/` → `PACKAGES-ORM.md`
 - `.llm/plans/active/` → `LLM-PLANS-ACTIVE.md`
 
 ### Examples
 
-| Directory | Documentation File |
-|-----------|-------------------|
-| Root | `README.md` (the only one) |
-| `apps/api/` | `APPS-API.md` |
-| `apps/web/` | `APPS-WEB.md` |
-| `apps/workers/` | `APPS-WORKERS.md` |
-| `apps/management-api/` | `APPS-MANAGEMENT-API.md` |
-| `apps/management-web/` | `APPS-MANAGEMENT-WEB.md` |
-| `tools/qa/` | `TOOLS-QA.md` |
-| `tools/web-perf/` | `TOOLS-WEB-PERF.md` |
-| `packages/helpers/` | `PACKAGES-HELPERS.md` |
-| `packages/orm/` | `PACKAGES-ORM.md` |
-| `infra/docker/ci/` | `INFRA-DOCKER-CI.md` |
+| Directory                  | Documentation File           |
+| -------------------------- | ---------------------------- |
+| Root                       | `README.md` (the only one)   |
+| `apps/api/`                | `APPS-API.md`                |
+| `apps/web/`                | `APPS-WEB.md`                |
+| `apps/workers/`            | `APPS-WORKERS.md`            |
+| `apps/management-api/`     | `APPS-MANAGEMENT-API.md`     |
+| `apps/management-web/`     | `APPS-MANAGEMENT-WEB.md`     |
+| `tools/qa/`                | `TOOLS-QA.md`                |
+| `tools/web-perf/`          | `TOOLS-WEB-PERF.md`          |
+| `packages/helpers/`        | `PACKAGES-HELPERS.md`        |
+| `packages/orm/`            | `PACKAGES-ORM.md`            |
+| `infra/docker/ci/`         | `INFRA-DOCKER-CI.md`         |
 | `pipelines/jenkins/alpha/` | `PIPELINES-JENKINS-ALPHA.md` |
-| `.llm/` | `LLM.md` |
-| `.llm/plans/` | `LLM-PLANS.md` |
+| `.llm/`                    | `LLM.md`                     |
+| `.llm/plans/`              | `LLM-PLANS.md`               |
 
 ### Special Cases
 
 **Plan directories** use a special convention:
+
 ```
 .llm/plans/active/feature-name/
 ├── 00-master-plan.md         # Primary: Master overview/index
@@ -82,12 +86,14 @@ Convert the directory path to uppercase, replacing slashes with hyphens:
 ```
 
 **Plan index file naming:**
+
 - **Primary**: `00-master-plan.md` - For comprehensive master plans
 - **Alternative**: `00-overview.md` - For overviews and guides
 - **Legacy**: `index.md` - Acceptable but less preferred
 - **Never**: `README.md` or full-path names like `LLM-PLANS-ACTIVE-FEATURE.md`
 
 **Plan execution guides:**
+
 - Use `EXECUTION.md` for parallel execution guides, agent assignments, or running instructions
 - **Never**: `QUICK-START.md` or `QUICKSTART.md` (reserved for root `docs/QUICKSTART.md`)
 

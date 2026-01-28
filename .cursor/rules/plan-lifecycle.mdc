@@ -13,6 +13,7 @@ When a plan's status is changed to "Complete":
 2. Update any references in `00-master-plan.md` if needed
 
 Example:
+
 ```bash
 mv .llm/plans/active/monorepo-migration/02-packages-outline.md \
    .llm/plans/completed/monorepo-migration/
