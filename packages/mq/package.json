@@ -25,7 +25,7 @@
     "@podverse/helpers": "*",
     "@podverse/orm": "*",
     "@podverse/parser": "*",
-    "rhea": "^2.0.6",
+    "rhea": "^3.0.4",
     "ws": "^8.18.3"
   },
   "devDependencies": {
