@@ -382,7 +382,7 @@ Then `env/local.env` and `env/alpha.env` should have:
 # Example: Podverse Bot Local/Web-API/5
 # Required: Yes (validated before build)
 # Note: The first part must include "Bot" (e.g., "Podverse Bot Local")
-NEXT_PUBLIC_PROXY_USER_AGENT="Podverse Bot Local/Web-API/5"  # (or "Podverse Bot Alpha/Web-API/5" for alpha)
+NEXT_PUBLIC_PROXY_USER_AGENT="Podverse Bot Local/Web-API/5" # (or "Podverse Bot Alpha/Web-API/5" for alpha)
 ```
 
 **Keep comments synchronized**: When updating comments in `.env.example`, update them in all `env/*.env` files as well.
