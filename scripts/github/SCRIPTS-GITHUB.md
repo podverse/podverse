@@ -6,7 +6,7 @@ Helper scripts for GitHub repository setup and maintenance.
 
 ### `setup-all-labels.sh` ⭐ Primary Script
 
-**Creates the complete 21-label system** for the Podverse repository.
+**Creates the complete 23-label system** for the Podverse repository.
 
 **When to run:**
 
@@ -25,15 +25,16 @@ gh auth login
 ./scripts/github/setup-all-labels.sh
 ```
 
-**What it creates (21 labels):**
+**What it creates (23 labels):**
 
 | Category            | Count | Labels                                                          |
 | ------------------- | ----- | --------------------------------------------------------------- |
 | **GitHub Defaults** | 6     | bug, duplicate, enhancement, invalid, question, wontfix         |
+| **Custom Type**     | 1     | technical-improvement                                           |
 | **Code Areas**      | 8     | apps, packages, docs, infra, ci, scripts, tools, i18n           |
 | **Workflow**        | 1     | blocked                                                         |
 | **Security**        | 1     | security                                                        |
-| **Dependencies**    | 1     | dependencies                                                    |
+| **Dependencies**    | 2     | dependencies, docker                                            |
 | **Priority**        | 4     | priority:critical, priority:high, priority:medium, priority:low |
 
 The script is **idempotent** and **comprehensive**:
@@ -96,7 +97,7 @@ The script will prompt for confirmation before deleting anything.
 
 ## Complete Label System
 
-The repository uses **21 carefully selected labels**:
+The repository uses **23 carefully selected labels**:
 
 ### Design Principles
 

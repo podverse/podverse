@@ -18,7 +18,7 @@ cd "$REPO_ROOT"
 echo "🏷️  GitHub Labels - Complete Setup"
 echo "===================================="
 echo ""
-echo "This script creates all 22 labels for the Podverse repository"
+echo "This script creates all 23 labels for the Podverse repository"
 echo ""
 
 # Check if gh CLI is available
@@ -63,6 +63,9 @@ LABELS=(
   "invalid|999999|This issue is invalid"
   "question|9900FF|A question for the maintainers or community"
   "wontfix|999999|This will not be worked on"
+  
+  # === TYPE - CUSTOM (1) ===
+  "technical-improvement|0075ca|Code quality, refactoring, optimization, and architecture improvements"
   
   # === CODE AREAS (8) - Monorepo structure ===
   "apps|0e8a16|Changes to apps/"

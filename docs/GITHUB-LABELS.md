@@ -1,6 +1,6 @@
 # GitHub Labels Reference
 
-This document lists all 22 labels in the Podverse repository for consistent issue and PR management.
+This document lists all 23 labels in the Podverse repository for consistent issue and PR management.
 
 **Labels can be programmatically recreated** using `./scripts/github/setup-all-labels.sh`
 
@@ -24,6 +24,12 @@ This document lists all 22 labels in the Podverse repository for consistent issu
 | `duplicate`   | ![#888888](https://via.placeholder.com/15/888888/888888.png) `#888888` | This issue or pull request already exists   | GitHub default |
 | `invalid`     | ![#999999](https://via.placeholder.com/15/999999/999999.png) `#999999` | This issue is invalid                       | GitHub default |
 | `wontfix`     | ![#999999](https://via.placeholder.com/15/999999/999999.png) `#999999` | This will not be worked on                  | GitHub default |
+
+## Category: Type (Custom)
+
+| Label                   | Color                                                                  | Description                                                            | Origin |
+| ----------------------- | ---------------------------------------------------------------------- | ---------------------------------------------------------------------- | ------ |
+| `technical-improvement` | ![#0075ca](https://via.placeholder.com/15/0075ca/0075ca.png) `#0075ca` | Code quality, refactoring, optimization, and architecture improvements | Custom |
 
 ## Category: Dependencies
 
@@ -70,10 +76,21 @@ See [DEPENDABOT.md](DEPENDABOT.md) for complete Dependabot configuration and Nod
 
 - `apps`, `packages`, `docs`, `infra`, `ci`, `scripts`, `tools`, `i18n` - Auto-applied based on changed files
 
+### Issue Templates
+
+Issue templates auto-apply labels when users create issues:
+
+- **Bug Report** → `bug`
+- **Feature Request** → `enhancement`
+- **Technical Improvement** → `technical-improvement`
+- **Infrastructure** → `infra`
+- **Documentation** → `docs`
+
 ### Manual Use
 
-- `bug`, `enhancement`, `question`, `duplicate`, `invalid`, `wontfix` - Applied by maintainers
+- `question`, `duplicate`, `invalid`, `wontfix` - Applied by maintainers
 - `blocked` - Applied when work is blocked by another issue
+- `technical-improvement` - Can also be manually applied to existing issues
 
 ## Label Conventions
 
@@ -92,7 +109,7 @@ See [DEPENDABOT.md](DEPENDABOT.md) for complete Dependabot configuration and Nod
 - **Orange** (`#eb6420`, `#d93f0b`): High priority, infrastructure
 - **Yellow** (`#fbca04`, `#fef2c0`): CI, documentation
 - **Green** (`#0e8a16`, `#00FF99`): Apps, enhancements
-- **Blue** (`#1d76db`, `#0366d6`, `#c5def5`): Packages, dependencies, i18n
+- **Blue** (`#0075ca`, `#1d76db`, `#0366d6`, `#c5def5`): Technical improvements, packages, dependencies, i18n
 - **Blue-Gray** (`#384d54`): Docker containers
 - **Purple** (`#9900FF`, `#d4c5f9`, `#990099`, `#5319e7`): Questions, medium priority, blocked, scripts
 - **Teal** (`#1f8b84`): Low priority
@@ -101,7 +118,7 @@ See [DEPENDABOT.md](DEPENDABOT.md) for complete Dependabot configuration and Nod
 
 **Design Principles**:
 
-- 22 distinct colors, no duplicates
+- 23 distinct colors, no duplicates
 - Context-appropriate color selection
 - Clear visual hierarchy for priorities
 - Good contrast for accessibility
@@ -152,7 +169,7 @@ gh auth login
 # 2. Remove old labels (if needed)
 ./scripts/github/remove-old-labels.sh
 
-# 3. Create all 21 labels
+# 3. Create all 23 labels
 ./scripts/github/setup-all-labels.sh
 ```
 
@@ -192,11 +209,12 @@ is:issue is:open label:"good first issue"
 
 ## Label System Design
 
-### Total: 22 Labels
+### Total: 23 Labels
 
 | Category            | Count | Purpose                    |
 | ------------------- | ----- | -------------------------- |
 | GitHub Defaults     | 6     | Standard issue types       |
+| Custom Type         | 1     | Technical improvements     |
 | Code Areas          | 8     | Monorepo structure mapping |
 | Workflow            | 1     | Work blocking              |
 | Security & Priority | 5     | Vulnerability tracking     |
@@ -216,6 +234,7 @@ is:issue is:open label:"good first issue"
 
 **Custom Labels:**
 
+- **Technical improvement**: Distinguish developer-facing improvements from user-facing features
 - **Code areas**: Match monorepo structure for automatic PR labeling
 - **Priority system**: Required for vulnerability scanner
 - **Dependencies**: Centralize dependency-related issues
@@ -238,4 +257,4 @@ This document should be updated whenever:
 
 **Source of truth**: `scripts/github/setup-all-labels.sh`
 
-Last updated: 2026-01-28
+Last updated: 2026-01-29

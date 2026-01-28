@@ -84,6 +84,20 @@ completed/
 
 **Pattern**: `NN-descriptive-name/` containing `NNx-*.md` files.
 
+## GitHub Workflows
+
+**Issue Templates & Labels**: [docs/GITHUB-LABELS.md](../../../docs/GITHUB-LABELS.md)
+
+The repository uses 23 carefully curated labels and 5 issue templates. When creating issues or discussing GitHub workflows, refer to the label documentation.
+
+**Available issue templates**:
+
+- Bug Report → `bug` label
+- Feature Request → `enhancement` label
+- Technical Improvement → `technical-improvement` label
+- Infrastructure → `infra` label
+- Documentation → `docs` label
+
 ## Complexity Assessment
 
 **BEFORE executing any plan**, assess complexity. If ANY threshold exceeded, STOP and recommend breaking down the work.

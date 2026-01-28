@@ -23,6 +23,18 @@
 - Include issue refs (#123)
 - Branches: feature/, fix/, chore/
 
+## GitHub Issues
+
+**Templates**: Use appropriate templates for different work types
+
+- Bug Report: `bug` label
+- Feature Request: `enhancement` label
+- Technical Improvement: `technical-improvement` label (refactoring, optimization)
+- Infrastructure: `infra` label (hosting, deployment, CI/CD)
+- Documentation: `docs` label
+
+**Labels**: See [docs/GITHUB-LABELS.md](../../docs/GITHUB-LABELS.md) for complete reference
+
 ## Import Order
 
 Organize imports in this order, separated by blank lines:
