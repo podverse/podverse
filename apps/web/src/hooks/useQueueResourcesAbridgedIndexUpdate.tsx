@@ -9,7 +9,8 @@ export function useQueueResourcesAbridgedIndexUpdate() {
   const { mpClip, mpItemSoundbite, mpItem, mpDuration } = useMediaPlayer();
   const { loggedInAccount } = useAccount();
   const { mpCurrentTime } = useMediaPlayerCurrentTime();
-  const { queueResourcesAbridgedIndex, setQueueResourcesAbridgedIndex } = useQueueResourcesAbridgedIndex();
+  const { queueResourcesAbridgedIndex, setQueueResourcesAbridgedIndex } =
+    useQueueResourcesAbridgedIndex();
 
   const mpClipRef = useRef(mpClip);
   const mpItemSoundbiteRef = useRef(mpItemSoundbite);
@@ -18,12 +19,24 @@ export function useQueueResourcesAbridgedIndexUpdate() {
   const mpCurrentTimeRef = useRef(mpCurrentTime);
   const queueResourcesAbridgedIndexRef = useRef(queueResourcesAbridgedIndex);
 
-  useEffect(() => { mpClipRef.current = mpClip; }, [mpClip]);
-  useEffect(() => { mpItemSoundbiteRef.current = mpItemSoundbite; }, [mpItemSoundbite]);
-  useEffect(() => { mpItemRef.current = mpItem; }, [mpItem]);
-  useEffect(() => { mpDurationRef.current = mpDuration; }, [mpDuration]);
-  useEffect(() => { mpCurrentTimeRef.current = mpCurrentTime; }, [mpCurrentTime]);
-  useEffect(() => { queueResourcesAbridgedIndexRef.current = queueResourcesAbridgedIndex; }, [queueResourcesAbridgedIndex]);
+  useEffect(() => {
+    mpClipRef.current = mpClip;
+  }, [mpClip]);
+  useEffect(() => {
+    mpItemSoundbiteRef.current = mpItemSoundbite;
+  }, [mpItemSoundbite]);
+  useEffect(() => {
+    mpItemRef.current = mpItem;
+  }, [mpItem]);
+  useEffect(() => {
+    mpDurationRef.current = mpDuration;
+  }, [mpDuration]);
+  useEffect(() => {
+    mpCurrentTimeRef.current = mpCurrentTime;
+  }, [mpCurrentTime]);
+  useEffect(() => {
+    queueResourcesAbridgedIndexRef.current = queueResourcesAbridgedIndex;
+  }, [queueResourcesAbridgedIndex]);
 
   return useCallback((completed?: boolean) => {
     if (!loggedInAccount) {
@@ -36,7 +49,7 @@ export function useQueueResourcesAbridgedIndexUpdate() {
     const mpDuration = mpDurationRef.current;
     const mpCurrentTime = mpCurrentTimeRef.current;
 
-    const progressValue = completed ? '0' : mpCurrentTime?.toString() ?? '0';
+    const progressValue = completed ? '0' : (mpCurrentTime?.toString() ?? '0');
 
     const updates: QueueResourceAbridgedUpdates = {
       clip: clip
@@ -44,7 +57,10 @@ export function useQueueResourcesAbridgedIndexUpdate() {
             i: clip.id,
             p: progressValue,
             d: mpDuration?.toString() ?? '0',
-            z: completed !== undefined ? completed : queueResourcesAbridgedIndexRef.current.clips[clip.id]?.z === true,
+            z:
+              completed !== undefined
+                ? completed
+                : queueResourcesAbridgedIndexRef.current.clips[clip.id]?.z === true,
           }
         : null,
       item_soundbite: itemSoundbite
@@ -52,7 +68,11 @@ export function useQueueResourcesAbridgedIndexUpdate() {
             i: itemSoundbite.id,
             p: progressValue,
             d: mpDuration?.toString() ?? '0',
-            z: completed !== undefined ? completed : queueResourcesAbridgedIndexRef.current.item_soundbites[itemSoundbite.id]?.z === true,
+            z:
+              completed !== undefined
+                ? completed
+                : queueResourcesAbridgedIndexRef.current.item_soundbites[itemSoundbite.id]?.z ===
+                  true,
           }
         : null,
       item: item
@@ -60,13 +80,19 @@ export function useQueueResourcesAbridgedIndexUpdate() {
             i: item.id,
             p: progressValue,
             d: mpDuration?.toString() ?? '0',
-            z: completed !== undefined ? completed : queueResourcesAbridgedIndexRef.current.items[item.id]?.z === true,
+            z:
+              completed !== undefined
+                ? completed
+                : queueResourcesAbridgedIndexRef.current.items[item.id]?.z === true,
           }
         : null,
       add_by_rss_resource_data: null,
     };
 
-    const updatedIndex = updateQueueResourceAbridgedIndex(queueResourcesAbridgedIndexRef.current, updates);
+    const updatedIndex = updateQueueResourceAbridgedIndex(
+      queueResourcesAbridgedIndexRef.current,
+      updates
+    );
     setQueueResourcesAbridgedIndex(updatedIndex);
   }, []);
 }

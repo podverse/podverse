@@ -14,6 +14,7 @@
 ### Performance Budgets
 
 **Recommended targets for podverse-web**:
+
 - **Initial JS bundle**: < 200KB gzipped
 - **Total JS bundle**: < 500KB gzipped
 - **Individual chunks**: < 100KB gzipped
@@ -36,6 +37,7 @@
 **When to use**: For heavy components that aren't needed immediately or on every page.
 
 **Pattern**:
+
 ```typescript
 import dynamic from 'next/dynamic';
 
@@ -55,12 +57,14 @@ const Modal = dynamic(() => import('../components/Modal/Modal'), {
 ```
 
 **Best practices**:
+
 - Use `ssr: false` for components that require browser APIs
 - Provide loading states for better UX
 - Lazy load components that are below the fold
 - Lazy load route-specific components
 
 **Components to lazy load in podverse-web**:
+
 - `MediaPlayer` (large component, not needed immediately)
 - `Modals` (all modals loaded together)
 - Settings pages
@@ -93,7 +97,7 @@ const VideoPlayer = dynamic(() => import('../components/VideoPlayer'), {
 
 export default function EpisodePage() {
   const [showPlayer, setShowPlayer] = useState(false);
-  
+
   return (
     <>
       <EpisodeInfo />
@@ -108,12 +112,14 @@ export default function EpisodePage() {
 ### When to Use React.memo
 
 **Use `React.memo` when**:
+
 - Component receives props that change frequently but component output doesn't need to update
 - Component is rendered in a list with many items
 - Component is expensive to render (complex calculations, many DOM nodes)
 - Parent re-renders frequently but props are stable
 
 **Pattern**:
+
 ```typescript
 // ✅ Good: Memoize list items
 export const ListPodcastRow = React.memo<ListPodcastRowProps>(({ podcast, onSelect }) => {
@@ -125,7 +131,7 @@ export const ListPodcastRow = React.memo<ListPodcastRowProps>(({ podcast, onSele
   );
 }, (prevProps, nextProps) => {
   // Custom comparison - only re-render if podcast data actually changed
-  return prevProps.podcast.id === nextProps.podcast.id && 
+  return prevProps.podcast.id === nextProps.podcast.id &&
          prevProps.podcast.updatedAt === nextProps.podcast.updatedAt;
 });
 
@@ -136,6 +142,7 @@ export const SimpleText = React.memo(({ text }: { text: string }) => {
 ```
 
 **High-priority components to memoize**:
+
 - List row components (`ListPodcastRow`, `ListEpisodeRow`, `ListClipRow`)
 - Form input components
 - Media player components
@@ -144,31 +151,37 @@ export const SimpleText = React.memo(({ text }: { text: string }) => {
 ### When to Use useMemo
 
 **Use `useMemo` when**:
+
 - Computing expensive values (filtering, sorting, transformations)
 - Creating objects/arrays that are used as dependencies
 - Preventing unnecessary recalculations
 
 **Pattern**:
+
 ```typescript
 // ✅ Good: Expensive computation
 const sortedEpisodes = useMemo(() => {
   return episodes
-    .filter(ep => ep.publishedAt)
+    .filter((ep) => ep.publishedAt)
     .sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime());
 }, [episodes]);
 
 // ✅ Good: Stable object reference
-const filterConfig = useMemo(() => ({
-  type: 'podcast',
-  sort: 'recent',
-  limit: 50
-}), []); // Empty deps - object never changes
+const filterConfig = useMemo(
+  () => ({
+    type: 'podcast',
+    sort: 'recent',
+    limit: 50,
+  }),
+  []
+); // Empty deps - object never changes
 
 // ❌ Bad: Simple computation
 const doubled = useMemo(() => count * 2, [count]); // Overhead not worth it
 ```
 
 **Common pitfalls**:
+
 - Memoizing simple computations (overhead > benefit)
 - Missing dependencies (causes stale values)
 - Memoizing values that change frequently anyway
@@ -176,17 +189,22 @@ const doubled = useMemo(() => count * 2, [count]); // Overhead not worth it
 ### When to Use useCallback
 
 **Use `useCallback` when**:
+
 - Passing functions as props to memoized children
 - Functions are dependencies of other hooks
 - Creating stable function references for context providers
 
 **Pattern**:
+
 ```typescript
 // ✅ Good: Stable handler for memoized child
-const handleSelect = useCallback((id: string) => {
-  setSelectedId(id);
-  onItemSelect?.(id);
-}, [onItemSelect]); // Include all dependencies
+const handleSelect = useCallback(
+  (id: string) => {
+    setSelectedId(id);
+    onItemSelect?.(id);
+  },
+  [onItemSelect]
+); // Include all dependencies
 
 // ✅ Good: Function in dependency array
 const handleSubmit = useCallback(() => {
@@ -206,6 +224,7 @@ const handleClick = useCallback(() => {
 ```
 
 **Best practices**:
+
 - Only use when function is passed to memoized component
 - Include all dependencies in dependency array
 - Don't use for simple inline handlers
@@ -215,6 +234,7 @@ const handleClick = useCallback(() => {
 ### Next.js Image Component Best Practices
 
 **Pattern**:
+
 ```typescript
 import NextImage from 'next/image';
 
@@ -252,12 +272,14 @@ import NextImage from 'next/image';
 ### Priority Prop Usage
 
 **Use `priority` for**:
+
 - Hero images (above the fold)
 - Logo images
 - First image in a list/grid
 - Images that are part of LCP (Largest Contentful Paint)
 
 **Don't use `priority` for**:
+
 - Images below the fold
 - Images in modals
 - Images in tabs/accordions that aren't initially visible
@@ -266,6 +288,7 @@ import NextImage from 'next/image';
 ### Responsive Images with sizes
 
 **Pattern**:
+
 ```typescript
 // Single column on mobile, 2 columns on tablet, 3 on desktop
 <NextImage
@@ -287,6 +310,7 @@ import NextImage from 'next/image';
 ### Placeholder Strategies
 
 **Options**:
+
 - `placeholder="blur"` with `blurDataURL` - Best UX, requires base64 blur image
 - `placeholder="empty"` - Default, no placeholder
 - Custom placeholder component - For complex loading states
@@ -302,7 +326,7 @@ import NextImage from 'next/image';
 export default async function PodcastPage({ params }: { params: { id: string } }) {
   const { ssrApiRequestService } = await getSSRAuthService();
   const podcast = await ssrApiRequestService.reqPodcastGet({ id: params.id });
-  
+
   return <PodcastClient podcast={podcast.data} />;
 }
 
@@ -310,13 +334,13 @@ export default async function PodcastPage({ params }: { params: { id: string } }
 "use client";
 export default function PodcastPage({ params }: { params: { id: string } }) {
   const [podcast, setPodcast] = useState(null);
-  
+
   useEffect(() => {
     apiRequestService.reqPodcastGet({ id: params.id }).then(res => {
       setPodcast(res.data);
     });
   }, [params.id]);
-  
+
   // ...
 }
 ```
@@ -328,26 +352,28 @@ export default function PodcastPage({ params }: { params: { id: string } }) {
 ```typescript
 // Cache for 1 hour
 const data = await fetch(url, {
-  next: { revalidate: 3600 }
+  next: { revalidate: 3600 },
 });
 
 // Cache indefinitely (until manually revalidated)
 const data = await fetch(url, {
-  next: { revalidate: false }
+  next: { revalidate: false },
 });
 
 // No cache (always fresh)
 const data = await fetch(url, {
-  cache: 'no-store'
+  cache: 'no-store',
 });
 ```
 
 **When to cache**:
+
 - Static/semi-static data (categories, podcast metadata)
 - Data that changes infrequently
 - Public data that's the same for all users
 
 **When not to cache**:
+
 - User-specific data that changes frequently
 - Real-time data
 - Data that must be fresh
@@ -370,13 +396,13 @@ const data2 = await fetch('https://api.example.com/podcasts');
 ```typescript
 const handleLike = async (episodeId: string) => {
   // Optimistic update
-  setLikedEpisodes(prev => [...prev, episodeId]);
-  
+  setLikedEpisodes((prev) => [...prev, episodeId]);
+
   try {
     await apiRequestService.reqEpisodeLike({ id: episodeId });
   } catch (error) {
     // Rollback on error
-    setLikedEpisodes(prev => prev.filter(id => id !== episodeId));
+    setLikedEpisodes((prev) => prev.filter((id) => id !== episodeId));
     // Show error message
   }
 };
@@ -387,6 +413,7 @@ const handleLike = async (episodeId: string) => {
 ### Server Components vs Client Components
 
 **Use Server Components for**:
+
 - Data fetching
 - Accessing backend resources
 - Large dependencies that should be excluded from client bundle
@@ -394,6 +421,7 @@ const handleLike = async (episodeId: string) => {
 - SEO-critical content
 
 **Use Client Components for**:
+
 - Interactivity (onClick, onChange, etc.)
 - Browser APIs (localStorage, window, etc.)
 - React hooks (useState, useEffect, useContext, etc.)
@@ -403,6 +431,7 @@ const handleLike = async (episodeId: string) => {
 ### Avoiding Unnecessary Re-renders
 
 **Patterns**:
+
 ```typescript
 // ✅ Good: Stable props
 const MemoizedChild = React.memo(Child);
@@ -412,14 +441,14 @@ function Parent() {
   const handleClick = useCallback(() => {
     // stable function
   }, []);
-  
+
   return <MemoizedChild onClick={handleClick} />;
 }
 
 // ❌ Bad: Unstable props
 function Parent() {
   const [count, setCount] = useState(0);
-  
+
   return <MemoizedChild onClick={() => {}} />; // New function every render
 }
 ```
@@ -445,11 +474,12 @@ const ThemeContext = createContext({ theme: 'dark' });
 ```
 
 **Use context selectors** (if needed):
+
 ```typescript
 // Consider using use-context-selector for large contexts
 import { useContextSelector } from 'use-context-selector';
 
-const user = useContextSelector(UserContext, state => state.user);
+const user = useContextSelector(UserContext, (state) => state.user);
 // Only re-renders when user changes, not other context values
 ```
 
@@ -475,6 +505,7 @@ const ListItem = React.memo(({ item }: { item: Item }) => {
 ```
 
 **When to virtualize**:
+
 - Lists with >50 items
 - Long scrollable lists
 - Lists that re-render frequently
@@ -496,11 +527,13 @@ import * as library from 'large-library';
 ### Dependency Analysis
 
 **Tools**:
+
 - `@next/bundle-analyzer` - Visualize bundle composition
 - `webpack-bundle-analyzer` - Alternative analyzer
 - `source-map-explorer` - Analyze bundle sizes
 
 **Pattern**:
+
 ```typescript
 // next.config.ts
 const withBundleAnalyzer = require('@next/bundle-analyzer')({
@@ -513,11 +546,13 @@ module.exports = withBundleAnalyzer(nextConfig);
 ### Bundle Size Budgets
 
 **Set budgets**:
+
 - Initial JS: < 200KB gzipped
 - Total JS: < 500KB gzipped
 - Individual chunks: < 100KB gzipped
 
 **Monitor in CI/CD**:
+
 ```json
 // package.json
 {
@@ -563,6 +598,7 @@ export function reportWebVitals() {
 ### Performance Budgets
 
 **Set targets**:
+
 - LCP: < 2.5s
 - FID/INP: < 100ms
 - CLS: < 0.1

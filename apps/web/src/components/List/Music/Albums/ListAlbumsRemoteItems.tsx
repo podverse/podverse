@@ -11,7 +11,11 @@ type Props = {
   viewSelected: ViewSelectedOption;
 };
 
-export const ListAlbumsRemoteItems: React.FC<Props> = ({ channelsAdded, channelsUnadded, viewSelected }) => {
+export const ListAlbumsRemoteItems: React.FC<Props> = ({
+  channelsAdded,
+  channelsUnadded,
+  viewSelected,
+}) => {
   const listNodes = ListAlbumRemoteItemNodes({ channelsAdded, channelsUnadded, viewSelected });
   return listNodes;
 };

@@ -4,8 +4,7 @@ import { Feed, FeedService } from '@podverse/orm';
 import WebSocket from 'ws';
 import { mqRSSAdd } from './add';
 
-export const mqRSSRunLiveItemListener = (
-  activeMQArtemisService: ActiveMQArtemisService) => {
+export const mqRSSRunLiveItemListener = (activeMQArtemisService: ActiveMQArtemisService) => {
   console.warn('starting runLiveItemListener v2');
 
   const feedService = new FeedService();
@@ -35,7 +34,9 @@ export const mqRSSRunLiveItemListener = (
       client.on('open', () => {
         connectionId = connectionIdCount + 1;
         connectionIdCount++;
-        console.warn(`WEBSOCKET_OPEN: client connected to server at ${url}, connectionId: ${connectionId}`);
+        console.warn(
+          `WEBSOCKET_OPEN: client connected to server at ${url}, connectionId: ${connectionId}`
+        );
         openedSocket = true;
         resolve(openedSocket);
       });
@@ -46,7 +47,9 @@ export const mqRSSRunLiveItemListener = (
           const msg = JSON.parse(data);
 
           // If the hiveBlock was already processed by our listener, then skip the message.
-          if (hiveBlocksHandled[msg.n]) {return;}
+          if (hiveBlocksHandled[msg.n]) {
+            return;
+          }
 
           const prodPodpingLiveIdRegex = new RegExp('^pp_(.*)_(live|liveEnd)$', 'i');
 
@@ -58,8 +61,10 @@ export const mqRSSRunLiveItemListener = (
                 p.p.reason &&
                 (p.p.reason.toLowerCase() === 'live' || p.p.reason.toLowerCase() === 'liveend')
               ) {
-                console.warn(`p.p ${JSON.stringify(p.p)}, p.n Hive block number ${p.n}, connectionId: ${connectionId}`);
-                const addRSSObjs: { url: string, podcast_index_id: number }[] = [];
+                console.warn(
+                  `p.p ${JSON.stringify(p.p)}, p.n Hive block number ${p.n}, connectionId: ${connectionId}`
+                );
+                const addRSSObjs: { url: string; podcast_index_id: number }[] = [];
                 for (const url of p.p.iris) {
                   try {
                     if (url?.startsWith('http')) {
@@ -67,12 +72,14 @@ export const mqRSSRunLiveItemListener = (
                       try {
                         feed = await feedService.getByUrl({ url });
                       } catch (error) {
-                        console.warn(`p.p.iris error ${error}, connectionId: ${connectionId}`);                        
+                        console.warn(`p.p.iris error ${error}, connectionId: ${connectionId}`);
                       }
                       if (feed) {
                         const { podcast_index_id } = feed;
                         const numPodcastIndexId = Number(podcast_index_id);
-                        if (podcast_index_id) {addRSSObjs.push({ url, podcast_index_id: numPodcastIndexId });}
+                        if (podcast_index_id) {
+                          addRSSObjs.push({ url, podcast_index_id: numPodcastIndexId });
+                        }
                       } else {
                         console.warn('feed url not found');
                       }
@@ -101,7 +108,7 @@ export const mqRSSRunLiveItemListener = (
                         remoteParentPodcastIndexId: null,
                         type: null,
                       },
-                    },
+                    }
                   );
                 }
               }
@@ -119,7 +126,9 @@ export const mqRSSRunLiveItemListener = (
       });
 
       client.on('error', (err) => {
-        console.warn(`WEBSOCKET_ERROR: Error ${new Error(err.message)}, connectionId: ${connectionId}`);
+        console.warn(
+          `WEBSOCKET_ERROR: Error ${new Error(err.message)}, connectionId: ${connectionId}`
+        );
         openedSocket = false;
         reject(err);
       });

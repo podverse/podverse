@@ -39,19 +39,19 @@ flowchart LR
 
 ### Endpoint Structure
 
-| Path Pattern | Content-Type | Description |
-|--------------|--------------|-------------|
-| `/images/{id}.png` | `image/png` | Generated PNG images |
-| `/images/{id}.jpg` | `image/jpeg` | Generated JPEG images |
-| `/audio/{id}.mp3` | `audio/mpeg` | Generated MP3 audio files |
-| `/audio/{id}.ogg` | `audio/ogg` | Generated OGG audio files |
-| `/audio/{id}.wav` | `audio/wav` | Generated WAV audio files |
-| `/video/{id}.mp4` | `video/mp4` | Generated MP4 video files |
-| `/video/{id}.webm` | `video/webm` | Generated WebM video files |
-| `/rss/{feedId}.xml` | `application/rss+xml` | Generated RSS feeds |
-| `/chapters/{itemId}.json` | `application/json` | Podcast chapters JSON |
-| `/transcripts/{itemId}.vtt` | `text/vtt` | WebVTT transcript files |
-| `/transcripts/{itemId}.srt` | `text/srt` | SRT transcript files |
+| Path Pattern                | Content-Type          | Description                |
+| --------------------------- | --------------------- | -------------------------- |
+| `/images/{id}.png`          | `image/png`           | Generated PNG images       |
+| `/images/{id}.jpg`          | `image/jpeg`          | Generated JPEG images      |
+| `/audio/{id}.mp3`           | `audio/mpeg`          | Generated MP3 audio files  |
+| `/audio/{id}.ogg`           | `audio/ogg`           | Generated OGG audio files  |
+| `/audio/{id}.wav`           | `audio/wav`           | Generated WAV audio files  |
+| `/video/{id}.mp4`           | `video/mp4`           | Generated MP4 video files  |
+| `/video/{id}.webm`          | `video/webm`          | Generated WebM video files |
+| `/rss/{feedId}.xml`         | `application/rss+xml` | Generated RSS feeds        |
+| `/chapters/{itemId}.json`   | `application/json`    | Podcast chapters JSON      |
+| `/transcripts/{itemId}.vtt` | `text/vtt`            | WebVTT transcript files    |
+| `/transcripts/{itemId}.srt` | `text/srt`            | SRT transcript files       |
 
 ### Base URL Configuration
 
@@ -59,22 +59,21 @@ flowchart LR
 const MEDIA_SERVER_BASE_URL = 'http://localhost:2111';
 
 // URL builders for generators
-export const buildImageUrl = (id: string, format: 'png' | 'jpg' = 'png') => 
+export const buildImageUrl = (id: string, format: 'png' | 'jpg' = 'png') =>
   `${MEDIA_SERVER_BASE_URL}/images/${id}.${format}`;
 
-export const buildAudioUrl = (id: string, format: 'mp3' | 'ogg' | 'wav' = 'mp3') => 
+export const buildAudioUrl = (id: string, format: 'mp3' | 'ogg' | 'wav' = 'mp3') =>
   `${MEDIA_SERVER_BASE_URL}/audio/${id}.${format}`;
 
-export const buildVideoUrl = (id: string, format: 'mp4' | 'webm' = 'mp4') => 
+export const buildVideoUrl = (id: string, format: 'mp4' | 'webm' = 'mp4') =>
   `${MEDIA_SERVER_BASE_URL}/video/${id}.${format}`;
 
-export const buildRssUrl = (feedId: number) => 
-  `${MEDIA_SERVER_BASE_URL}/rss/${feedId}.xml`;
+export const buildRssUrl = (feedId: number) => `${MEDIA_SERVER_BASE_URL}/rss/${feedId}.xml`;
 
-export const buildChaptersUrl = (itemId: string) => 
+export const buildChaptersUrl = (itemId: string) =>
   `${MEDIA_SERVER_BASE_URL}/chapters/${itemId}.json`;
 
-export const buildTranscriptUrl = (itemId: string, format: 'vtt' | 'srt' = 'vtt') => 
+export const buildTranscriptUrl = (itemId: string, format: 'vtt' | 'srt' = 'vtt') =>
   `${MEDIA_SERVER_BASE_URL}/transcripts/${itemId}.${format}`;
 ```
 
@@ -99,9 +98,9 @@ interface MediaServerConfig {
 class MediaServer {
   private server: http.Server | null = null;
   private cache: Map<string, { data: Buffer; contentType: string }> = new Map();
-  
+
   constructor(private config: MediaServerConfig) {}
-  
+
   async start(): Promise<void> {
     return new Promise((resolve, reject) => {
       this.server = http.createServer(async (req, res) => {
@@ -113,16 +112,16 @@ class MediaServer {
           res.end('Internal Server Error');
         }
       });
-      
+
       this.server.listen(this.config.port, this.config.host, () => {
         console.log(`Media server running at http://${this.config.host}:${this.config.port}`);
         resolve();
       });
-      
+
       this.server.on('error', reject);
     });
   }
-  
+
   async stop(): Promise<void> {
     return new Promise((resolve) => {
       if (this.server) {
@@ -132,14 +131,11 @@ class MediaServer {
       }
     });
   }
-  
-  private async handleRequest(
-    req: http.IncomingMessage,
-    res: http.ServerResponse
-  ): Promise<void> {
+
+  private async handleRequest(req: http.IncomingMessage, res: http.ServerResponse): Promise<void> {
     const url = new URL(req.url || '/', `http://${req.headers.host}`);
     const path = url.pathname;
-    
+
     // Check cache first
     const cached = this.cache.get(path);
     if (cached) {
@@ -147,10 +143,10 @@ class MediaServer {
       res.end(cached.data);
       return;
     }
-    
+
     // Route to appropriate generator
     let result: { data: Buffer; contentType: string } | null = null;
-    
+
     if (path.startsWith('/images/')) {
       result = await imageGenerator.generate(path);
     } else if (path.startsWith('/audio/')) {
@@ -164,11 +160,11 @@ class MediaServer {
     } else if (path.startsWith('/transcripts/')) {
       result = await transcriptGenerator.generate(path);
     }
-    
+
     if (result) {
       // Cache the result
       this.cache.set(path, result);
-      
+
       res.writeHead(200, { 'Content-Type': result.contentType });
       res.end(result.data);
     } else {
@@ -176,7 +172,7 @@ class MediaServer {
       res.end('Not Found');
     }
   }
-  
+
   clearCache(): void {
     this.cache.clear();
   }
@@ -185,7 +181,7 @@ class MediaServer {
 export const createMediaServer = (config?: Partial<MediaServerConfig>) => {
   return new MediaServer({
     port: config?.port || 2111,
-    host: config?.host || 'localhost'
+    host: config?.host || 'localhost',
   });
 };
 ```
@@ -197,10 +193,10 @@ import { createMediaServer } from './server';
 
 async function main() {
   const server = createMediaServer({ port: 2111 });
-  
+
   await server.start();
   console.log('Media server running on http://localhost:2111');
-  
+
   // Server will now respond to requests like:
   // - http://localhost:2111/images/abc123.png
   // - http://localhost:2111/audio/episode-1.mp3
@@ -208,7 +204,7 @@ async function main() {
   // - http://localhost:2111/rss/1.xml
   // - http://localhost:2111/chapters/ep1.json
   // - http://localhost:2111/transcripts/ep1.vtt
-  
+
   // Stop server when done
   // await server.stop();
 }

@@ -18,6 +18,7 @@ cp -r ../podverse-workers/src apps/workers/
 ```
 
 **Source structure:**
+
 - `src/index.ts` - Entry point with command dispatcher
 - `src/config/index.ts` - Configuration
 - `src/module-alias-config.ts` - **Will be removed**
@@ -146,6 +147,7 @@ Create `apps/workers/tsconfig.json`:
 Delete `src/module-alias-config.ts` and update `src/index.ts`:
 
 **Before:**
+
 ```typescript
 import './module-alias-config';
 
@@ -155,6 +157,7 @@ if (process.env.NODE_ENV !== 'production') {
 ```
 
 **After:**
+
 ```typescript
 if (process.env.NODE_ENV !== 'production') {
   require('@dotenvx/dotenvx').config({ path: '.env' });
@@ -168,13 +171,14 @@ if (process.env.NODE_ENV !== 'production') {
 Update all package imports to use workspace scopes:
 
 **In `src/index.ts`:**
+
 ```typescript
 // Before
 import {
   validateORMConfig,
   validateExternalServicesConfig,
   validateParserConfig,
-  assertConfigValid
+  assertConfigValid,
 } from 'podverse-helpers';
 import { createORMContext } from 'podverse-orm';
 import { createFirebaseContext } from 'podverse-external-services';
@@ -186,7 +190,7 @@ import {
   validateORMConfig,
   validateExternalServicesConfig,
   validateParserConfig,
-  assertConfigValid
+  assertConfigValid,
 } from '@podverse/helpers';
 import { createORMContext } from '@podverse/orm';
 import { createFirebaseContext } from '@podverse/external-services';
@@ -195,6 +199,7 @@ import { createParserContext } from '@podverse/parser';
 ```
 
 **In `src/factories/loggerService.ts`:**
+
 ```typescript
 // Before
 import { LoggerService } from 'podverse-helpers/dist/lib/backend/logger';
@@ -204,6 +209,7 @@ import { LoggerService } from '@podverse/helpers/dist/lib/backend/logger';
 ```
 
 **Search and replace in all command files under `src/commands/`:**
+
 - `from 'podverse-helpers'` → `from '@podverse/helpers'`
 - `from 'podverse-orm'` → `from '@podverse/orm'`
 - `from 'podverse-mq'` → `from '@podverse/mq'`
@@ -257,24 +263,24 @@ npm run parser_rss_parse_feed -w apps/workers -- --feedUrl https://example.com/f
 
 ## Available Commands
 
-| Script | Command | Description |
-|--------|---------|-------------|
-| `archive_all` | `archiveAll` | Archive all feeds |
-| `mq_rss_add` | `mqRSSAdd` | Add single feed to MQ |
-| `mq_rss_add_all` | `mqRSSAddAll` | Add all feeds to MQ |
+| Script                                                 | Command                                        | Description                |
+| ------------------------------------------------------ | ---------------------------------------------- | -------------------------- |
+| `archive_all`                                          | `archiveAll`                                   | Archive all feeds          |
+| `mq_rss_add`                                           | `mqRSSAdd`                                     | Add single feed to MQ      |
+| `mq_rss_add_all`                                       | `mqRSSAddAll`                                  | Add all feeds to MQ        |
 | `mq_rss_add_recently_updated_feeds_from_podcast_index` | `mqRSSAddRecentlyUpdatedFeedsFromPodcastIndex` | Add recently updated feeds |
-| `mq_rss_run_live_item_listener` | `mqRSSRunLiveItemListener` | Run live item listener |
-| `mq_rss_run_parser` | `mqRSSRunParser` | Run RSS parser worker |
-| `mq_rss_run_dlq_consumer` | `mqRSSRunDlqConsumer` | Process dead letter queue |
-| `orm_feed_update_flag_status` | `ormFeedUpdateFlagStatus` | Update feed flag status |
-| `orm_on_demand_parser_event_delete_outdated` | `deleteOutdatedOnDemandParserEvent` | Clean up old parser events |
-| `orm_on_demand_parser_event_generate_reports` | `generateOnDemandParserEventReports` | Generate parser reports |
-| `parser_rss_parse_feed` | `parserRSSParseFeed` | Parse single RSS feed |
-| `podcast_index_dead_feeds_delete_cache` | `podcastIndexDeadFeedsDeleteCache` | Clear dead feeds cache |
-| `podcast_index_dead_feeds_flag_and_merge` | `podcastIndexDeadFeedsFlagAndMerge` | Flag and merge dead feeds |
-| `podcast_index_trending_podcasts_get` | `podcastIndexTrendingPodcastsGet` | Get trending podcasts |
-| `podcast_index_value_update_all` | `podcastIndexValueUpdateAll` | Update all value blocks |
-| `stats_update_aggregated` | `statsUpdateAggregated` | Update aggregated stats |
+| `mq_rss_run_live_item_listener`                        | `mqRSSRunLiveItemListener`                     | Run live item listener     |
+| `mq_rss_run_parser`                                    | `mqRSSRunParser`                               | Run RSS parser worker      |
+| `mq_rss_run_dlq_consumer`                              | `mqRSSRunDlqConsumer`                          | Process dead letter queue  |
+| `orm_feed_update_flag_status`                          | `ormFeedUpdateFlagStatus`                      | Update feed flag status    |
+| `orm_on_demand_parser_event_delete_outdated`           | `deleteOutdatedOnDemandParserEvent`            | Clean up old parser events |
+| `orm_on_demand_parser_event_generate_reports`          | `generateOnDemandParserEventReports`           | Generate parser reports    |
+| `parser_rss_parse_feed`                                | `parserRSSParseFeed`                           | Parse single RSS feed      |
+| `podcast_index_dead_feeds_delete_cache`                | `podcastIndexDeadFeedsDeleteCache`             | Clear dead feeds cache     |
+| `podcast_index_dead_feeds_flag_and_merge`              | `podcastIndexDeadFeedsFlagAndMerge`            | Flag and merge dead feeds  |
+| `podcast_index_trending_podcasts_get`                  | `podcastIndexTrendingPodcastsGet`              | Get trending podcasts      |
+| `podcast_index_value_update_all`                       | `podcastIndexValueUpdateAll`                   | Update all value blocks    |
+| `stats_update_aggregated`                              | `statsUpdateAggregated`                        | Update aggregated stats    |
 
 ---
 

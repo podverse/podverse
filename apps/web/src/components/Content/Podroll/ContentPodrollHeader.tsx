@@ -6,7 +6,5 @@ import styles from '../../../styles/components/Content/Podroll/ContentPodrollHea
 export const ContentPodrollHeader = () => {
   const tInfo = useTranslations('info');
 
-  return (
-    <h3 className={styles.header}>{tInfo('podroll')}</h3>
-  );
+  return <h3 className={styles.header}>{tInfo('podroll')}</h3>;
 };

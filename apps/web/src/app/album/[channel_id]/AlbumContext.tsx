@@ -26,16 +26,16 @@ interface AlbumContextType {
   setTotalPages: (totalPages: number) => void;
   isLoading: boolean;
   setIsLoading: (isLoading: boolean) => void;
-};
+}
 
 const AlbumContext = createContext<AlbumContextType | undefined>(undefined);
 
 interface AlbumContextProviderProps {
-  children: ReactNode,
-  initialQueryParams: QueryParamsChannelMusicAlbum,
-  ssrItemsWithLiveItem: DTOItem[],
-  ssrItems: DTOItem[],
-  ssrTotalPages: number
+  children: ReactNode;
+  initialQueryParams: QueryParamsChannelMusicAlbum;
+  ssrItemsWithLiveItem: DTOItem[];
+  ssrItems: DTOItem[];
+  ssrTotalPages: number;
 }
 
 export const AlbumContextProvider = ({
@@ -46,28 +46,28 @@ export const AlbumContextProvider = ({
   ssrTotalPages,
 }: AlbumContextProviderProps) => {
   const params = useParams();
-  
-  if (!params.channel_id) {return;}
+
+  if (!params.channel_id) {
+    return;
+  }
   const channel_id = params.channel_id as string;
   const routeKey = `album-${channel_id}`;
-  
+
   // Use synchronous sessionStorage check instead of async React state
   const isBackNav = checkBackNavFlag();
-  
+
   // Check for cached state on back navigation
-  const cachedState = isBackNav 
-    ? getPageState<QueryParamsChannelMusicAlbum, AlbumCachedData>(routeKey) 
+  const cachedState = isBackNav
+    ? getPageState<QueryParamsChannelMusicAlbum, AlbumCachedData>(routeKey)
     : null;
   const restoredFromCacheRef = useRef(!!cachedState?.data);
-  
+
   const [filterParams, setFilterParams] = useState<QueryParamsChannelMusicAlbum>(
-    cachedState?.filterParams ?? initialQueryParams,
+    cachedState?.filterParams ?? initialQueryParams
   );
-  const [items, setItems] = useState<DTOItem[]>(
-    cachedState?.data?.items ?? ssrItems ?? [],
-  );
+  const [items, setItems] = useState<DTOItem[]>(cachedState?.data?.items ?? ssrItems ?? []);
   const [totalPages, setTotalPages] = useState<number>(
-    cachedState?.data?.totalPages ?? ssrTotalPages ?? 1,
+    cachedState?.data?.totalPages ?? ssrTotalPages ?? 1
   );
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const { loggedInAccount } = useAccount();
@@ -104,24 +104,28 @@ export const AlbumContextProvider = ({
         range: filterParams.range,
       });
 
-      const response = await apiRequestService.reqItemGetManyByChannelBySeason(
-        {
-          idOrIdText: channel_id,
-          page: currentPage,
-          sort: currentSort,
-          range: currentRange,
-        },
+      const response = await apiRequestService.reqItemGetManyByChannelBySeason({
+        idOrIdText: channel_id,
+        page: currentPage,
+        sort: currentSort,
+        range: currentRange,
+      });
+
+      const items =
+        ssrItemsWithLiveItem.length > 0 && filterParams.page === 1
+          ? [...ssrItemsWithLiveItem, ...response.data]
+          : response.data;
+
+      const totalPages = getTotalPages(
+        response.meta.count,
+        response.meta.limit,
+        response.data.length,
+        currentPage
       );
-
-      const items = ssrItemsWithLiveItem.length > 0 && filterParams.page === 1
-        ? [...ssrItemsWithLiveItem, ...response.data]
-        : response.data;
-
-      const totalPages = getTotalPages(response.meta.count, response.meta.limit, response.data.length, currentPage);
       setTotalPages(totalPages);
       setItems(items);
     }
-    
+
     async function fetchData() {
       setIsLoading(true);
 
@@ -131,18 +135,23 @@ export const AlbumContextProvider = ({
 
       setIsLoading(false);
     }
-    
+
     fetchData();
   }, [filterParams, loggedInAccount]);
 
   return (
-    <AlbumContext.Provider value={{
-      filterParams,
-      setFilterParams,
-      items, setItems,
-      totalPages, setTotalPages,
-      isLoading, setIsLoading,
-    }}>
+    <AlbumContext.Provider
+      value={{
+        filterParams,
+        setFilterParams,
+        items,
+        setItems,
+        totalPages,
+        setTotalPages,
+        isLoading,
+        setIsLoading,
+      }}
+    >
       {children}
     </AlbumContext.Provider>
   );
@@ -150,6 +159,8 @@ export const AlbumContextProvider = ({
 
 export const useAlbumContext = () => {
   const ctx = useContext(AlbumContext);
-  if (!ctx) {throw new Error('useAlbumContext must be used within a AlbumContextProvider');}
+  if (!ctx) {
+    throw new Error('useAlbumContext must be used within a AlbumContextProvider');
+  }
   return ctx;
 };

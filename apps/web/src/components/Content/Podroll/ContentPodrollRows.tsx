@@ -7,13 +7,11 @@ import styles from '../../../styles/components/Content/Podroll/ContentPodroll.mo
 
 type ContentPodrollProps = {
   remoteItemsResponse: RemoteItemsResponse;
-}
+};
 
 export const ContentPodrollRows = ({ remoteItemsResponse }: ContentPodrollProps) => {
   const channelAddedNodes = remoteItemsResponse?.channelsAdded?.map((channel) => {
-    return (
-      <ContentPodrollChannelRow key={channel.id} channel={channel} />
-    );
+    return <ContentPodrollChannelRow key={channel.id} channel={channel} />;
   });
 
   const channelUnaddedNodes = remoteItemsResponse?.channelsUnadded?.map((channelUnadded) => {
@@ -23,9 +21,7 @@ export const ContentPodrollRows = ({ remoteItemsResponse }: ContentPodrollProps)
   });
 
   const itemAddedNodes = remoteItemsResponse?.itemsAdded?.map((item) => {
-    return (
-      <ContentPodrollItemRow key={item.id} item={item} />
-    );
+    return <ContentPodrollItemRow key={item.id} item={item} />;
   });
 
   const itemUnaddedNodes = remoteItemsResponse?.itemsUnadded?.map((itemUnadded) => {
@@ -38,9 +34,7 @@ export const ContentPodrollRows = ({ remoteItemsResponse }: ContentPodrollProps)
     const itemWithId = itemUnadded as ItemUnaddedWithId;
     const key = itemWithId.guid || itemWithId.id || `item-unadded-${Math.random()}`;
 
-    return (
-      <ContentPodrollItemUnaddedRow key={key} itemUnadded={itemUnadded} />
-    );
+    return <ContentPodrollItemUnaddedRow key={key} itemUnadded={itemUnadded} />;
   });
 
   return (

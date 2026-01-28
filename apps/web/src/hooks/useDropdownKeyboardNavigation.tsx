@@ -19,7 +19,9 @@ export function useDropdownKeyboardNavigation({
   const [focusedIndex, setFocusedIndex] = useState<number>(-1);
 
   useEffect(() => {
-    if (!open) {return;}
+    if (!open) {
+      return;
+    }
 
     function handleClickOutside(event: MouseEvent) {
       const target = event.target as Node;

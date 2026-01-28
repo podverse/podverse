@@ -1,7 +1,13 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { AppValueRecipient, DTOChannelValueRecipient, DTOItemValueRecipient, normalizeChannelValueRecipients, normalizeItemValueRecipients } from '@podverse/helpers';
+import {
+  AppValueRecipient,
+  DTOChannelValueRecipient,
+  DTOItemValueRecipient,
+  normalizeChannelValueRecipients,
+  normalizeItemValueRecipients,
+} from '@podverse/helpers';
 import styles from '../../styles/components/Boost/BoostRecipientInfo.module.scss';
 import { BoostRecipientInfoRow } from './BoostRecipientInfoRow';
 
@@ -24,22 +30,23 @@ export const BoostRecipientInfo = ({
 
   let rows: React.ReactNode[] = [];
 
-  const normalized_channel_value_recipients = channel_value_recipients ? normalizeChannelValueRecipients(channel_value_recipients, totalAmountToCreator) : [];
-  const normalized_item_value_recipients = item_value_recipients ? normalizeItemValueRecipients(item_value_recipients, totalAmountToCreator) : [];
+  const normalized_channel_value_recipients = channel_value_recipients
+    ? normalizeChannelValueRecipients(channel_value_recipients, totalAmountToCreator)
+    : [];
+  const normalized_item_value_recipients = item_value_recipients
+    ? normalizeItemValueRecipients(item_value_recipients, totalAmountToCreator)
+    : [];
 
   if (normalized_channel_value_recipients && normalized_item_value_recipients.length > 0) {
     rows = normalized_item_value_recipients.map((recipient, index) => (
-      <BoostRecipientInfoRow
-        key={index}
-        normalized_item_value_recipient={recipient}
-      />
+      <BoostRecipientInfoRow key={index} normalized_item_value_recipient={recipient} />
     ));
-  } else if (normalized_channel_value_recipients && normalized_channel_value_recipients.length > 0) {
+  } else if (
+    normalized_channel_value_recipients &&
+    normalized_channel_value_recipients.length > 0
+  ) {
     rows = normalized_channel_value_recipients.map((recipient, index) => (
-      <BoostRecipientInfoRow
-        key={index}
-        normalized_channel_value_recipient={recipient}
-      />
+      <BoostRecipientInfoRow key={index} normalized_channel_value_recipient={recipient} />
     ));
   }
 
@@ -47,7 +54,10 @@ export const BoostRecipientInfo = ({
     return null;
   }
 
-  const creatorHeaderLabel = rows.length > 1 ? tValue('recipient.creator_recipients') : tValue('recipient.creator_recipient');
+  const creatorHeaderLabel =
+    rows.length > 1
+      ? tValue('recipient.creator_recipients')
+      : tValue('recipient.creator_recipient');
 
   return (
     <>
@@ -59,26 +69,22 @@ export const BoostRecipientInfo = ({
             <th>{tValue('total')}</th>
           </tr>
         </thead>
-        <tbody>
-          {rows}
-        </tbody>
+        <tbody>{rows}</tbody>
       </table>
-      {
-        app_value_recipient && totalAmountToApp > 0 && (
-          <table className={styles.table}>
-            <thead>
-              <tr className={styles.headerRow}>
-                <th>{tValue('recipient.app_recipient')}</th>
-                <th>%</th>
-                <th>{tValue('total')}</th>
-              </tr>
-            </thead>
-            <tbody>
-              <BoostRecipientInfoRow app_value_recipient={app_value_recipient} />
-            </tbody>
-          </table>
-        )
-      }
+      {app_value_recipient && totalAmountToApp > 0 && (
+        <table className={styles.table}>
+          <thead>
+            <tr className={styles.headerRow}>
+              <th>{tValue('recipient.app_recipient')}</th>
+              <th>%</th>
+              <th>{tValue('total')}</th>
+            </tr>
+          </thead>
+          <tbody>
+            <BoostRecipientInfoRow app_value_recipient={app_value_recipient} />
+          </tbody>
+        </table>
+      )}
     </>
   );
 };

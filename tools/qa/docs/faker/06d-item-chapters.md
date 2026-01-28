@@ -62,8 +62,11 @@ export class ItemChapterGenerator {
   private feedIdCounter = 1;
   private feedLogIdCounter = 1;
   private mediaServerBase = 'http://localhost:2111';
-  
-  generate(item: GeneratedItem, duration: number): {
+
+  generate(
+    item: GeneratedItem,
+    duration: number
+  ): {
     chapters: GeneratedItemChapter[];
     locations: GeneratedItemChapterLocation[];
     chaptersFeed: GeneratedItemChaptersFeed | null;
@@ -73,19 +76,19 @@ export class ItemChapterGenerator {
     if (!faker.datatype.boolean({ probability: 0.4 })) {
       return { chapters: [], locations: [], chaptersFeed: null, chaptersFeedLog: null };
     }
-    
+
     const chapters: GeneratedItemChapter[] = [];
     const locations: GeneratedItemChapterLocation[] = [];
-    
+
     // Generate 3-12 chapters
     const chapterCount = faker.number.int({ min: 3, max: 12 });
     let currentTime = 0;
     const avgChapterLength = duration / chapterCount;
-    
+
     for (let i = 0; i < chapterCount; i++) {
       const chapterId = this.chapterIdCounter++;
       const isLast = i === chapterCount - 1;
-      
+
       chapters.push({
         id: chapterId,
         item_id: item.id,
@@ -97,46 +100,52 @@ export class ItemChapterGenerator {
         url: faker.datatype.boolean({ probability: 0.2 })
           ? faker.internet.url().slice(0, DATABASE_CONSTANTS.varchar_url)
           : null,
-        toc: true
+        toc: true,
       });
-      
+
       // 10% of chapters have location
       if (faker.datatype.boolean({ probability: 0.1 })) {
         locations.push({
           id: this.locationIdCounter++,
           item_chapter_id: chapterId,
-          geo: `geo:${faker.location.latitude()},${faker.location.longitude()}`.slice(0, DATABASE_CONSTANTS.varchar_normal),
+          geo: `geo:${faker.location.latitude()},${faker.location.longitude()}`.slice(
+            0,
+            DATABASE_CONSTANTS.varchar_normal
+          ),
           osm: faker.datatype.boolean({ probability: 0.5 })
-            ? `R${faker.number.int({ min: 1000000, max: 9999999 })}`.slice(0, DATABASE_CONSTANTS.varchar_normal)
+            ? `R${faker.number.int({ min: 1000000, max: 9999999 })}`.slice(
+                0,
+                DATABASE_CONSTANTS.varchar_normal
+              )
             : null,
-          name: faker.location.city().slice(0, DATABASE_CONSTANTS.varchar_normal)
+          name: faker.location.city().slice(0, DATABASE_CONSTANTS.varchar_normal),
         });
       }
-      
+
       // Advance time
-      const chapterLength = isLast 
-        ? duration - currentTime 
+      const chapterLength = isLast
+        ? duration - currentTime
         : avgChapterLength * (0.5 + Math.random());
       currentTime += chapterLength;
     }
-    
+
     // Generate chapters feed (for external chapter files)
     const feedId = this.feedIdCounter++;
     const chaptersFeed: GeneratedItemChaptersFeed = {
       id: feedId,
       item_id: item.id,
       url: `${this.mediaServerBase}/chapters/${item.id_text}.json`,
-      type: 'application/json+chapters'.slice(0, DATABASE_CONSTANTS.varchar_short)
+      type: 'application/json+chapters'.slice(0, DATABASE_CONSTANTS.varchar_short),
     };
-    
+
     const chaptersFeedLog: GeneratedItemChaptersFeedLog = {
       id: this.feedLogIdCounter++,
       item_chapters_feed_id: feedId,
       last_http_status: 200,
       last_parse_time: faker.date.recent({ days: 7 }),
-      last_error_message: null
+      last_error_message: null,
     };
-    
+
     return { chapters, locations, chaptersFeed, chaptersFeedLog };
   }
 }
@@ -144,9 +153,9 @@ export class ItemChapterGenerator {
 
 ## Summary
 
-| Entity | Count for baseCount=100 |
-|--------|------------------------|
-| ItemChapter | ~480 (40% have 3-12 chapters) |
-| ItemChapterLocation | ~48 (10% of chapters) |
-| ItemChaptersFeed | ~80 (40% of items with chapters) |
-| ItemChaptersFeedLog | ~80 (1 per chapters feed) |
+| Entity              | Count for baseCount=100          |
+| ------------------- | -------------------------------- |
+| ItemChapter         | ~480 (40% have 3-12 chapters)    |
+| ItemChapterLocation | ~48 (10% of chapters)            |
+| ItemChaptersFeed    | ~80 (40% of items with chapters) |
+| ItemChaptersFeedLog | ~80 (1 per chapters feed)        |

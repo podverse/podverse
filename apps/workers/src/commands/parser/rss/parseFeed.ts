@@ -20,28 +20,28 @@ export const parserRSSParseFeed = async (args: CommandLineArgs) => {
   if (!feedUrl) {
     throw new Error(`No feedUrl found for podcast_index_id ${podcast_index_id}`);
   }
-  
-  const hasForceParse = (
-    typeof args.f !== 'undefined' || typeof args.forceParse !== 'undefined'
-  );
-  const options = hasForceParse ? {
-    forceParse: true,
-    onDemandParserEvent: {
-      accountId: null,
-      type: null,
-      remoteParentPodcastIndexId: null,
-    },
-  } : {
-    forceParse: false,
-    onDemandParserEvent: {
-      accountId: null,
-      type: null,
-      remoteParentPodcastIndexId: null,
-    },
-  };
+
+  const hasForceParse = typeof args.f !== 'undefined' || typeof args.forceParse !== 'undefined';
+  const options = hasForceParse
+    ? {
+        forceParse: true,
+        onDemandParserEvent: {
+          accountId: null,
+          type: null,
+          remoteParentPodcastIndexId: null,
+        },
+      }
+    : {
+        forceParse: false,
+        onDemandParserEvent: {
+          accountId: null,
+          type: null,
+          remoteParentPodcastIndexId: null,
+        },
+      };
 
   const result = await parseRSSFeedAndSaveToDatabase(feedUrl, Number(podcast_index_id), options);
-  
+
   if (result && Array.isArray(result.remoteItemsToParse) && result.remoteItemsToParse.length > 0) {
     const mqConfig = MQ_QUEUES['rss-slow'];
     for (let i = 0; i < result.remoteItemsToParse.length; i++) {
@@ -53,8 +53,13 @@ export const parserRSSParseFeed = async (args: CommandLineArgs) => {
       try {
         await mqRSSAddFunction(
           activeMQArtemisService,
-          { ...mqConfig, closeAfterSend: isLast, feedUrl: item.url, podcast_index_id: item.podcast_index_id },
-          item.options,
+          {
+            ...mqConfig,
+            closeAfterSend: isLast,
+            feedUrl: item.url,
+            podcast_index_id: item.podcast_index_id,
+          },
+          item.options
         );
       } catch (err) {
         console.error('Error enqueueing remote item', err as Error);

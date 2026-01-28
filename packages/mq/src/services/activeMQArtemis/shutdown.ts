@@ -10,11 +10,13 @@ export const createActiveMQShutdown = (
   activeMQService: { close: () => Promise<void> },
   logger: LoggerLike = console,
   onShutdown?: () => void,
-  exitOnShutdown = true,
+  exitOnShutdown = true
 ) => {
   const shutdown = async (signal?: string) => {
     try {
-      if (onShutdown) {onShutdown();}
+      if (onShutdown) {
+        onShutdown();
+      }
       logger.info?.(`Shutting down${signal ? ` due to ${signal}` : ''}`);
     } catch {
       // ignore errors from onShutdown
@@ -27,7 +29,9 @@ export const createActiveMQShutdown = (
       logger.error?.('Error during Artemis shutdown', err as Error);
     }
 
-    if (exitOnShutdown) {process.exit(0);}
+    if (exitOnShutdown) {
+      process.exit(0);
+    }
   };
 
   const handler = (sig: string) => void shutdown(sig);

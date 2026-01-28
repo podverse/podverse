@@ -10,12 +10,18 @@ type PlayButtonLargeProps = {
   item_chapter?: DTOItemChapter;
   item_soundbite?: DTOItemSoundbite;
   onClick: () => void;
-}
+};
 
-export const PlayButtonLarge: React.FC<PlayButtonLargeProps> = ({ clip, item, item_chapter, item_soundbite, onClick }) => {
+export const PlayButtonLarge: React.FC<PlayButtonLargeProps> = ({
+  clip,
+  item,
+  item_chapter,
+  item_soundbite,
+  onClick,
+}) => {
   const { mpIsPlaying, mpItem, mpClip, mpItemSoundbite, mpItemChapter } = useMediaPlayer();
   const tMediaPlayer = useTranslations('media_player');
-  
+
   let isCurrentlyInPlayer = false;
   if (clip) {
     isCurrentlyInPlayer = mpClip?.id_text === clip.id_text;
@@ -32,11 +38,7 @@ export const PlayButtonLarge: React.FC<PlayButtonLargeProps> = ({ clip, item, it
   const icon = isPlaying ? <FaPause /> : <FaPlay />;
 
   return (
-    <button
-      className={styles.playButtonLarge}
-      aria-label={label}
-      onClick={onClick}
-      type="button">
+    <button className={styles.playButtonLarge} aria-label={label} onClick={onClick} type="button">
       {icon}
     </button>
   );

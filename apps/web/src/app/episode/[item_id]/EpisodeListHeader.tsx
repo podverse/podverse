@@ -24,17 +24,21 @@ type EpisodeListHeaderProps = {
 };
 
 export const EpisodeListHeader: React.FC<EpisodeListHeaderProps> = ({
-  ssrHasChapters, ssrHasSoundbites, ssrHasTranscripts }) => {
-  const { filterParams, setFilterParams, autoScrollOn,
-    setAutoScrollOn } = useEpisodeContext();
+  ssrHasChapters,
+  ssrHasSoundbites,
+  ssrHasTranscripts,
+}) => {
+  const { filterParams, setFilterParams, autoScrollOn, setAutoScrollOn } = useEpisodeContext();
   const { type, sort, range } = filterParams;
   const tFilters = useTranslations('filters');
   const tInfo = useTranslations('info');
   const tFeatures = useTranslations('features');
   const tMisc = useTranslations('misc');
 
-  const { sortMenuItems, rangeMenuItems, showRangeDropdown,
-    } = getEpisodeDropdownConfig({ sort, tFilters });
+  const { sortMenuItems, rangeMenuItems, showRangeDropdown } = getEpisodeDropdownConfig({
+    sort,
+    tFilters,
+  });
 
   function isItemType(val: string): val is QueryParamsItemType {
     return QUERY_PARAMS_ITEM_TYPE_VALUES.includes(val as QueryParamsItemType);
@@ -68,12 +72,14 @@ export const EpisodeListHeader: React.FC<EpisodeListHeaderProps> = ({
     }
   };
 
-  const tabData = [{
-    key: 'summary',
-    label: tInfo('summary.summary'),
-    onClick: () => handleTypeChange('summary'),
-    zIndex: 5,
-  }];
+  const tabData = [
+    {
+      key: 'summary',
+      label: tInfo('summary.summary'),
+      onClick: () => handleTypeChange('summary'),
+      zIndex: 5,
+    },
+  ];
 
   if (ssrHasChapters) {
     tabData.push({
@@ -83,7 +89,7 @@ export const EpisodeListHeader: React.FC<EpisodeListHeaderProps> = ({
       zIndex: 4,
     });
   }
-  
+
   if (ssrHasSoundbites) {
     tabData.push({
       key: 'soundbites',
@@ -120,42 +126,30 @@ export const EpisodeListHeader: React.FC<EpisodeListHeaderProps> = ({
           onChange={handleSortChange}
           position="right"
         />
-        {
-          showRangeDropdown && (
-            <Dropdown
-              key="range"
-              value={range ?? ''}
-              menuItems={rangeMenuItems}
-              onChange={handleRangeChange}
-              position="right"
-            />
-          )
-        }
+        {showRangeDropdown && (
+          <Dropdown
+            key="range"
+            value={range ?? ''}
+            menuItems={rangeMenuItems}
+            onChange={handleRangeChange}
+            position="right"
+          />
+        )}
       </>
     );
   }
 
   if (type === 'transcript') {
     sideButtons = (
-      <Button
-        onClick={() => setAutoScrollOn(!autoScrollOn)}
-        variant="mini"
-      >
-        {autoScrollOn
-          ? tMisc('autoscroll.autoscroll_on')
-          : tMisc('autoscroll.autoscroll_off')}
+      <Button onClick={() => setAutoScrollOn(!autoScrollOn)} variant="mini">
+        {autoScrollOn ? tMisc('autoscroll.autoscroll_on') : tMisc('autoscroll.autoscroll_off')}
       </Button>
     );
   }
 
   return (
     <ListHeader
-      tabs={
-        <Tabs
-          tabData={tabData}
-          selectedKey={type ?? ''}
-        />
-      }
+      tabs={<Tabs tabData={tabData} selectedKey={type ?? ''} />}
       sideButtons={sideButtons}
     />
   );

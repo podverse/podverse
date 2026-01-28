@@ -8,8 +8,14 @@ const router = Router();
 
 router.use(`${config.api.prefix}${config.api.version}/mq`, router);
 
-router.post('/rss/add/on-demand', asyncHandler(MQController.rssAddToOnDemandMQ(OnDemandParserEventType.ADD)));
+router.post(
+  '/rss/add/on-demand',
+  asyncHandler(MQController.rssAddToOnDemandMQ(OnDemandParserEventType.ADD))
+);
 
-router.post('/rss/refresh/on-demand', asyncHandler(MQController.rssAddToOnDemandMQ(OnDemandParserEventType.REFRESH)));
+router.post(
+  '/rss/refresh/on-demand',
+  asyncHandler(MQController.rssAddToOnDemandMQ(OnDemandParserEventType.REFRESH))
+);
 
 export const mqRouter = router;

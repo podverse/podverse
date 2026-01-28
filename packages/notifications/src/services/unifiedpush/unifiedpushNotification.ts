@@ -5,7 +5,7 @@ import { UPSubscription } from './unifiedpushHelpers';
 type UPPayload = {
   title: string;
   body?: string;
-  image?: string;  // Item/channel artwork for X-Attach
+  image?: string; // Item/channel artwork for X-Attach
   link?: string;
   data?: Record<string, unknown>;
 };
@@ -18,16 +18,16 @@ type UPResult = {
 
 /**
  * Sends a notification to a Unified Push endpoint.
- * 
+ *
  * Unified Push is a simple protocol - just POST the notification data to the endpoint.
  * The endpoint is typically a service like ntfy.sh that the user has configured.
- * 
+ *
  * @see https://unifiedpush.org/spec/android/
  */
 export async function sendUPNotificationBatch(
   ctx: NotificationsContext,
   subscriptions: UPSubscription[],
-  payload: UPPayload,
+  payload: UPPayload
 ): Promise<UPResult[]> {
   const chunks = chunkArray(subscriptions, 100);
   const allResults: UPResult[] = [];
@@ -43,7 +43,7 @@ export async function sendUPNotificationBatch(
             'X-Title': payload.title,
             'X-Tags': ctx.config.brandName,
             'X-Click': payload.link ? ctx.getWebBaseUrlWithPath(payload.link) : ctx.getWebBaseUrl(),
-            'X-Icon': ctx.getWebIconImageUrl(),  // Always use app icon for branding
+            'X-Icon': ctx.getWebIconImageUrl(), // Always use app icon for branding
           };
 
           // Add item/channel artwork as image attachment for preview
@@ -67,7 +67,9 @@ export async function sendUPNotificationBatch(
 
           if (!response.ok) {
             const errorText = await response.text().catch(() => 'Unknown error');
-            console.error(`UP send failed for ${subscription.up_endpoint}: ${response.status} - ${errorText}`);
+            console.error(
+              `UP send failed for ${subscription.up_endpoint}: ${response.status} - ${errorText}`
+            );
             return {
               success: false,
               endpoint: subscription.up_endpoint,
@@ -85,7 +87,7 @@ export async function sendUPNotificationBatch(
             error: errorMessage,
           };
         }
-      }),
+      })
     );
 
     for (const result of chunkResults) {

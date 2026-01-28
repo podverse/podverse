@@ -2,7 +2,12 @@
 
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
 import { useTranslations } from 'next-intl';
-import { DTOQueueResource, getQueueMediumIdFromType, MediumEnum, QueryParamsQueueMedium } from '@podverse/helpers';
+import {
+  DTOQueueResource,
+  getQueueMediumIdFromType,
+  MediumEnum,
+  QueryParamsQueueMedium,
+} from '@podverse/helpers';
 import React from 'react';
 import { CallToActionMessage } from '../../CallToActionMessage/CallToActionMessage';
 import { useModals } from '../../../contexts/Modals';
@@ -19,7 +24,11 @@ type Props = {
   showLoginMessage: boolean;
 };
 
-export const ListQueueResources: React.FC<Props> = ({ queueMedium, queueResources, showLoginMessage }) => {
+export const ListQueueResources: React.FC<Props> = ({
+  queueMedium,
+  queueResources,
+  showLoginMessage,
+}) => {
   const tInstructions = useTranslations('instructions');
   const tAuthentication = useTranslations('authentication');
   const { setModalAuthLogin } = useModals();
@@ -37,7 +46,9 @@ export const ListQueueResources: React.FC<Props> = ({ queueMedium, queueResource
   const showPagination = !showLoginMessage;
 
   const handleDragEnd = async (result: DropResult) => {
-    if (!result.destination) {return;}
+    if (!result.destination) {
+      return;
+    }
     const reordered = Array.from(resources);
     const [removed] = reordered.splice(result.source.index, 1);
     if (!removed) {
@@ -54,16 +65,28 @@ export const ListQueueResources: React.FC<Props> = ({ queueMedium, queueResource
     }
 
     function getIdText(resource: DTOQueueResource) {
-      if (resource.clip) {return resource.clip.id_text;}
-      if (resource.item_soundbite) {return resource.item_soundbite.id_text;}
-      if (resource.item) {return resource.item.id_text;}
+      if (resource.clip) {
+        return resource.clip.id_text;
+      }
+      if (resource.item_soundbite) {
+        return resource.item_soundbite.id_text;
+      }
+      if (resource.item) {
+        return resource.item.id_text;
+      }
       return undefined;
     }
-    
+
     function getType(resource: DTOQueueResource) {
-      if (resource.clip) {return 'clip';}
-      if (resource.item_soundbite) {return 'item_soundbite';}
-      if (resource.item) {return 'item';}
+      if (resource.clip) {
+        return 'clip';
+      }
+      if (resource.item_soundbite) {
+        return 'item_soundbite';
+      }
+      if (resource.item) {
+        return 'item';
+      }
       return undefined;
     }
 
@@ -84,19 +107,37 @@ export const ListQueueResources: React.FC<Props> = ({ queueMedium, queueResource
       let updatedResource: DTOQueueResource | null = null;
       if (destIdx === 0) {
         if (movedType === 'item') {
-          updatedResource = await apiRequestService.reqQueueResourceItemAddNext(queue_id_text, movedIdText);
+          updatedResource = await apiRequestService.reqQueueResourceItemAddNext(
+            queue_id_text,
+            movedIdText
+          );
         } else if (movedType === 'clip') {
-          updatedResource = await apiRequestService.reqQueueResourceClipAddNext(queue_id_text, movedIdText);
+          updatedResource = await apiRequestService.reqQueueResourceClipAddNext(
+            queue_id_text,
+            movedIdText
+          );
         } else if (movedType === 'item_soundbite') {
-          updatedResource = await apiRequestService.reqQueueResourceItemSoundbiteAddNext(queue_id_text, movedIdText);
+          updatedResource = await apiRequestService.reqQueueResourceItemSoundbiteAddNext(
+            queue_id_text,
+            movedIdText
+          );
         }
       } else if (destIdx === reordered.length - 1) {
         if (movedType === 'item') {
-          updatedResource = await apiRequestService.reqQueueResourceItemAddLast(queue_id_text, movedIdText);
+          updatedResource = await apiRequestService.reqQueueResourceItemAddLast(
+            queue_id_text,
+            movedIdText
+          );
         } else if (movedType === 'clip') {
-          updatedResource = await apiRequestService.reqQueueResourceClipAddLast(queue_id_text, movedIdText);
+          updatedResource = await apiRequestService.reqQueueResourceClipAddLast(
+            queue_id_text,
+            movedIdText
+          );
         } else if (movedType === 'item_soundbite') {
-          updatedResource = await apiRequestService.reqQueueResourceItemSoundbiteAddLast(queue_id_text, movedIdText);
+          updatedResource = await apiRequestService.reqQueueResourceItemSoundbiteAddLast(
+            queue_id_text,
+            movedIdText
+          );
         }
       } else {
         const prevPosition = prevResource ? prevResource.list_position : undefined;
@@ -104,23 +145,32 @@ export const ListQueueResources: React.FC<Props> = ({ queueMedium, queueResource
         if (movedType === 'item' && prevPosition !== undefined && nextPosition !== undefined) {
           updatedResource = await apiRequestService.reqQueueResourceItemAddBetween(
             queue_id_text,
-            movedIdText, { position1: String(prevPosition), position2: String(nextPosition) },
+            movedIdText,
+            { position1: String(prevPosition), position2: String(nextPosition) }
           );
-        } else if (movedType === 'clip' && prevPosition !== undefined && nextPosition !== undefined) {
+        } else if (
+          movedType === 'clip' &&
+          prevPosition !== undefined &&
+          nextPosition !== undefined
+        ) {
           updatedResource = await apiRequestService.reqQueueResourceClipAddBetween(
             queue_id_text,
             movedIdText,
-            { position1: String(prevPosition), position2: String(nextPosition) },
+            { position1: String(prevPosition), position2: String(nextPosition) }
           );
-        } else if (movedType === 'item_soundbite' && prevPosition !== undefined && nextPosition !== undefined) {
+        } else if (
+          movedType === 'item_soundbite' &&
+          prevPosition !== undefined &&
+          nextPosition !== undefined
+        ) {
           updatedResource = await apiRequestService.reqQueueResourceItemSoundbiteAddBetween(
             queue_id_text,
             movedIdText,
-            { position1: String(prevPosition), position2: String(nextPosition) },
+            { position1: String(prevPosition), position2: String(nextPosition) }
           );
         }
       }
-      
+
       const updatedReordered = [...reordered];
       if (updatedResource) {
         const updatedListPosition = updatedResource.list_position;
@@ -135,7 +185,10 @@ export const ListQueueResources: React.FC<Props> = ({ queueMedium, queueResource
             ...movedResource,
             list_position: updatedListPosition,
           };
-        } else if (movedType === 'item_soundbite' && movedResource.item_soundbite_id === removed.item_soundbite_id) {
+        } else if (
+          movedType === 'item_soundbite' &&
+          movedResource.item_soundbite_id === removed.item_soundbite_id
+        ) {
           updatedReordered[destIdx] = {
             ...movedResource,
             list_position: updatedListPosition,
@@ -157,7 +210,8 @@ export const ListQueueResources: React.FC<Props> = ({ queueMedium, queueResource
     setIsLoading(false);
   };
 
-  const listWrapperClassName = getQueueMediumIdFromType(queueMedium) === MediumEnum.Music ? styles.listTracks : styles.list;
+  const listWrapperClassName =
+    getQueueMediumIdFromType(queueMedium) === MediumEnum.Music ? styles.listTracks : styles.list;
 
   return (
     <>
@@ -174,9 +228,17 @@ export const ListQueueResources: React.FC<Props> = ({ queueMedium, queueResource
             <DragDropContext onDragEnd={handleDragEnd}>
               <Droppable droppableId="queue-list">
                 {(provided) => (
-                  <div ref={provided.innerRef} className={styles.queueList} {...provided.droppableProps}>
+                  <div
+                    ref={provided.innerRef}
+                    className={styles.queueList}
+                    {...provided.droppableProps}
+                  >
                     {resources.map((queueResource, idx) => (
-                      <Draggable key={queueResource.id} draggableId={String(queueResource.id)} index={idx}>
+                      <Draggable
+                        key={queueResource.id}
+                        draggableId={String(queueResource.id)}
+                        index={idx}
+                      >
                         {(providedDraggable) => (
                           <div
                             ref={providedDraggable.innerRef}
@@ -186,7 +248,9 @@ export const ListQueueResources: React.FC<Props> = ({ queueMedium, queueResource
                             <ListQueueResourceRow
                               queueResource={queueResource}
                               removeFromQueue={() => {
-                                const updatedResources = resources.filter((res) => res.id !== queueResource.id);
+                                const updatedResources = resources.filter(
+                                  (res) => res.id !== queueResource.id
+                                );
                                 setResources(updatedResources);
                               }}
                               isEditModeQueue={true}

@@ -11,8 +11,16 @@ import { ListEpisodes } from '../../components/List/Podcasts/Episodes/ListEpisod
 import { HowToStartInfo } from '../../components/InfoWrapper/HowToStartInfo';
 
 export const EpisodesList: React.FC = () => {
-  const { filterParams, setFilterParams, items, totalPages, isLoading,
-    showSubscribeMessage, showCategoriesModal, setShowCategoriesModal } = useEpisodesContext();
+  const {
+    filterParams,
+    setFilterParams,
+    items,
+    totalPages,
+    isLoading,
+    showSubscribeMessage,
+    showCategoriesModal,
+    setShowCategoriesModal,
+  } = useEpisodesContext();
   const { viewSelected } = useLocalSettings();
   const { page, type } = filterParams;
   const router = useRouter();
@@ -30,14 +38,7 @@ export const EpisodesList: React.FC = () => {
 
   return (
     <>
-      {
-        type === 'subscribed' && (
-          <HowToStartInfo
-            rows={items}
-            totalPages={totalPages}
-          />
-        )
-      }
+      {type === 'subscribed' && <HowToStartInfo rows={items} totalPages={totalPages} />}
       <ListEpisodes
         page={page}
         setPage={(page) => setFilterParams({ ...filterParams, page })}

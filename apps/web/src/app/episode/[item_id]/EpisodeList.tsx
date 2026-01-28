@@ -14,65 +14,60 @@ import { ItemTranscript } from '../../../components/ItemTranscript/ItemTranscrip
 type EpisodeListProps = {
   ssrChannel: DTOChannel;
   ssrItem: DTOItem;
-}
+};
 
 export const EpisodeList: React.FC<EpisodeListProps> = ({ ssrChannel, ssrItem }) => {
-  const { filterParams, setFilterParams, isLoading, clips, itemChapters,
-    itemSoundbites, totalPages, transcriptRows, autoScrollOn } = useEpisodeContext();
+  const {
+    filterParams,
+    setFilterParams,
+    isLoading,
+    clips,
+    itemChapters,
+    itemSoundbites,
+    totalPages,
+    transcriptRows,
+    autoScrollOn,
+  } = useEpisodeContext();
   const { page, type } = filterParams;
 
   return (
     <div className={styles.list}>
-      {
-        type === 'summary' && (
-          <EpisodeSummary description={ssrItem.item_description?.value} />
-        )
-      }
-      {
-        type === 'chapters' && (
-          <ListItemChapters
-            page={page}
-            setPage={(page) => setFilterParams({ ...filterParams, page })}
-            item_chapters={itemChapters}
-            channel={ssrChannel}
-            item={ssrItem}
-            totalPages={totalPages}
-          />
-        )
-      }
-      {
-        type === 'soundbites' && (
-          <ListItemSoundbites
-            page={page}
-            setPage={(page) => setFilterParams({ ...filterParams, page })}
-            itemSoundbites={itemSoundbites}
-            channel={ssrChannel}
-            item={ssrItem}
-            totalPages={totalPages}
-            showSubscribeMessage={false}
-          />
-        )
-      }
-      {
-        type === 'clips' && (
-          <ListClips
-            page={page}
-            setPage={(page) => setFilterParams({ ...filterParams, page })}
-            clips={clips}
-            channel={ssrChannel}
-            item={ssrItem}
-            totalPages={totalPages}
-            showSubscribeMessage={false}
-          />
-        )
-      }
-      {
-        type === 'transcript' && (
-          <ItemTranscript
-            autoScrollOn={autoScrollOn}
-            rows={transcriptRows} />
-        )
-      }
+      {type === 'summary' && <EpisodeSummary description={ssrItem.item_description?.value} />}
+      {type === 'chapters' && (
+        <ListItemChapters
+          page={page}
+          setPage={(page) => setFilterParams({ ...filterParams, page })}
+          item_chapters={itemChapters}
+          channel={ssrChannel}
+          item={ssrItem}
+          totalPages={totalPages}
+        />
+      )}
+      {type === 'soundbites' && (
+        <ListItemSoundbites
+          page={page}
+          setPage={(page) => setFilterParams({ ...filterParams, page })}
+          itemSoundbites={itemSoundbites}
+          channel={ssrChannel}
+          item={ssrItem}
+          totalPages={totalPages}
+          showSubscribeMessage={false}
+        />
+      )}
+      {type === 'clips' && (
+        <ListClips
+          page={page}
+          setPage={(page) => setFilterParams({ ...filterParams, page })}
+          clips={clips}
+          channel={ssrChannel}
+          item={ssrItem}
+          totalPages={totalPages}
+          showSubscribeMessage={false}
+        />
+      )}
+      {type === 'transcript' && (
+        <ItemTranscript autoScrollOn={autoScrollOn} rows={transcriptRows} />
+      )}
       <LoadingSpinnerOverlay isLoading={isLoading} />
     </div>
   );

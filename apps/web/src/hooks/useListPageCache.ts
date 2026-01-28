@@ -39,7 +39,7 @@ interface UseListPageCacheResult<TParams, TData> {
  * - Setting up usePageStateCache for saving state
  * - Providing shouldSkipFetch ref to skip unnecessary fetches
  * - Providing isRestoredFromCache ref for list components to skip scroll-to-top
- * 
+ *
  * Usage:
  * ```
  * const {
@@ -54,7 +54,7 @@ interface UseListPageCacheResult<TParams, TData> {
  *   ssrData: ssrChannels,
  *   ssrTotalPages,
  * });
- * 
+ *
  * useSkipInitialEffect(() => {
  *   if (shouldSkipFetch.current) {
  *     shouldSkipFetch.current = false;
@@ -73,27 +73,23 @@ export function useListPageCache<TParams, TData>({
   // Use synchronous sessionStorage check instead of async React state
   // This ensures we detect back navigation on the first render
   const isBackNav = checkBackNavFlag();
-  
+
   // Check for cached state on back navigation
-  const cachedState = isBackNav 
-    ? getPageState<TParams, ListPageCachedData<TData>>(routeKey) 
-    : null;
-  
+  const cachedState = isBackNav ? getPageState<TParams, ListPageCachedData<TData>>(routeKey) : null;
+
   // Track if we restored from cache to skip fetch
   const shouldSkipFetch = useRef(!!cachedState?.data);
-  
+
   // Track if this render is from cache restoration (for list components to skip scroll-to-top)
   const isRestoredFromCache = useRef(!!cachedState?.data);
-  
+
   // Initialize state from cache or SSR
   const [filterParams, setFilterParams] = useState<TParams>(
-    cachedState?.filterParams ?? initialParams,
+    cachedState?.filterParams ?? initialParams
   );
-  const [data, setData] = useState<TData>(
-    cachedState?.data?.data ?? ssrData,
-  );
+  const [data, setData] = useState<TData>(cachedState?.data?.data ?? ssrData);
   const [totalPages, setTotalPages] = useState<number>(
-    cachedState?.data?.totalPages ?? ssrTotalPages ?? 1,
+    cachedState?.data?.totalPages ?? ssrTotalPages ?? 1
   );
 
   // Set up caching for saves and scroll restoration

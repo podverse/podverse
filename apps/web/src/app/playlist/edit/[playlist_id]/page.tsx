@@ -4,12 +4,12 @@ import { PlaylistEditClient } from './PlaylistEditClient';
 
 type PlaylistEditPageProps = {
   params: Promise<{ playlist_id: string }>;
-}
+};
 
 export default async function PlaylistEditPage({ params }: PlaylistEditPageProps) {
   const { playlist_id } = await params;
   const { ssrApiRequestService } = await getSSRAuthService();
-  
+
   let ssrPlaylist;
   try {
     ssrPlaylist = await ssrApiRequestService.reqPlaylistGet(playlist_id);
@@ -20,7 +20,5 @@ export default async function PlaylistEditPage({ params }: PlaylistEditPageProps
     return notFound();
   }
 
-  return (
-    <PlaylistEditClient ssrPlaylist={ssrPlaylist} />
-  );
+  return <PlaylistEditClient ssrPlaylist={ssrPlaylist} />;
 }

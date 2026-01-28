@@ -1,4 +1,3 @@
-
 'use client';
 
 import { DTOQueue, QueryParamsQueues } from '@podverse/helpers';
@@ -21,10 +20,7 @@ export function QueuesClient(props: QueuesClientProps) {
   const { initialQueryParams, ssrQueues } = props;
 
   return (
-    <QueuesPageContextProvider
-      initialQueryParams={initialQueryParams}
-      ssrQueues={ssrQueues}
-    >
+    <QueuesPageContextProvider initialQueryParams={initialQueryParams} ssrQueues={ssrQueues}>
       <QueuesHeader />
       <MainWrapper>
         <MainInnerWrapper>

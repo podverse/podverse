@@ -13,7 +13,9 @@ export const ModalClip: React.FC = () => {
   const header = tFeatures('clip.create_clip');
   const { modalClip, setModalClip, setModalClipCreated } = useModals();
 
-  const [sharableStatus, setSharableStatus] = React.useState<string>(`${SharableStatusEnum.Private}`);
+  const [sharableStatus, setSharableStatus] = React.useState<string>(
+    `${SharableStatusEnum.Private}`
+  );
   const [title, setTitle] = React.useState<string>('');
   const [startTimeString, setStartTimeString] = React.useState<string>('');
   const [endTimeString, setEndTimeString] = React.useState<string>('');
@@ -37,7 +39,7 @@ export const ModalClip: React.FC = () => {
   const onSubmit = async () => {
     if (modalClip.item?.id_text) {
       setIsUpdating(true);
-      
+
       const finalTitle = title?.trim();
       const finalSharableStatusId = parseInt(sharableStatus, 10);
       const finalStartTime = hhmmssToSecondsNumeric(startTimeString);
@@ -50,7 +52,7 @@ export const ModalClip: React.FC = () => {
         start_time: finalStartTime,
         end_time: finalEndTime,
       });
-  
+
       setIsUpdating(false);
       clearModalClip();
       setModalClipCreated({ clip });
@@ -63,7 +65,8 @@ export const ModalClip: React.FC = () => {
       onClose={clearModalClip}
       header={header}
       ariaLabel={header}
-      modalContentMaxWidth={500}>
+      modalContentMaxWidth={500}
+    >
       <ClipForm
         channel={modalClip.channel}
         item={modalClip.item}

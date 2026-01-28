@@ -3,7 +3,6 @@ networks:
     external: true
 
 services:
-
   podverse_local_workers:
     image: podverse-workers:latest
     container_name: podverse_local_workers

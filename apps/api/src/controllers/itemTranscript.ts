@@ -23,8 +23,7 @@ export class ItemTranscriptController {
           },
         },
       };
-      const result = await ItemTranscriptController
-        .itemTranscriptService.getMany(options);
+      const result = await ItemTranscriptController.itemTranscriptService.getMany(options);
 
       const item_transcript = result.length > 0 ? result[0] : null;
 

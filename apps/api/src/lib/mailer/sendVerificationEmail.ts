@@ -3,7 +3,11 @@ import { loggerService } from '@api/factories/loggerService';
 import { emailTemplate } from '@api/lib/mailer/emailTemplate';
 import { createTransporter } from '@api/lib/mailer/transporter';
 
-export const sendVerificationEmail = async (email: string, _name: string, token: string): Promise<void> => {
+export const sendVerificationEmail = async (
+  email: string,
+  _name: string,
+  token: string
+): Promise<void> => {
   if (config.mailer.disabled) {
     loggerService.info('Mailer has been disabled, verification email will be skipped');
     return Promise.resolve();

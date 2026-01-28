@@ -10,16 +10,8 @@ const NavBarLeftButtons: React.FC = () => {
 
   return (
     <div className={styles.leftButtons}>
-      <NavArrowButton
-        direction="left"
-        onClick={router.back}
-        ariaLabel="Back"
-      />
-      <NavArrowButton
-        direction="right"
-        onClick={router.forward}
-        ariaLabel="Forward"
-      />
+      <NavArrowButton direction="left" onClick={router.back} ariaLabel="Back" />
+      <NavArrowButton direction="right" onClick={router.forward} ariaLabel="Forward" />
     </div>
   );
 };

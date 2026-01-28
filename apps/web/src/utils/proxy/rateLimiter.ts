@@ -18,14 +18,14 @@ const CLEANUP_INTERVAL_MS = 5 * 60 * 1000; // 5 minutes
  */
 function cleanupExpiredEntries(): void {
   const now = Date.now();
-  
+
   // Only cleanup if enough time has passed since last cleanup
   if (now - lastCleanupTime < CLEANUP_INTERVAL_MS) {
     return;
   }
-  
+
   lastCleanupTime = now;
-  
+
   // Remove expired entries
   for (const [ip, entry] of rateLimitMap.entries()) {
     if (now >= entry.resetTime) {
@@ -41,7 +41,7 @@ function getClientIP(req: NextRequest): string {
   // Check X-Forwarded-For header (first IP in chain)
   const forwardedFor = req.headers.get('x-forwarded-for');
   if (forwardedFor) {
-    const ips = forwardedFor.split(',').map(ip => ip.trim());
+    const ips = forwardedFor.split(',').map((ip) => ip.trim());
     return ips[0] || 'unknown';
   }
 
@@ -67,12 +67,12 @@ export function checkRateLimit(req: NextRequest): {
 } {
   // Perform lazy cleanup of expired entries
   cleanupExpiredEntries();
-  
+
   const ip = getClientIP(req);
   const now = Date.now();
-  
+
   let entry = rateLimitMap.get(ip);
-  
+
   // If entry doesn't exist or has expired, create a new one
   if (!entry || now >= entry.resetTime) {
     entry = {
@@ -81,10 +81,10 @@ export function checkRateLimit(req: NextRequest): {
     };
     rateLimitMap.set(ip, entry);
   }
-  
+
   // Increment count
   entry.count++;
-  
+
   // Check if limit exceeded
   if (entry.count > PROXY.RATE_LIMIT.MAX_REQUESTS) {
     return {
@@ -93,7 +93,7 @@ export function checkRateLimit(req: NextRequest): {
       resetTime: entry.resetTime,
     };
   }
-  
+
   return {
     allowed: true,
     remaining: PROXY.RATE_LIMIT.MAX_REQUESTS - entry.count,

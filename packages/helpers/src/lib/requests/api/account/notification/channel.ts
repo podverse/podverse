@@ -8,7 +8,7 @@ type ReqGetByAccountAndChannelParams = {
 
 export async function reqAccountNotificationChannelCreate(
   api: ApiRequestService,
-  params: ReqGetByAccountAndChannelParams,
+  params: ReqGetByAccountAndChannelParams
 ): Promise<DTOAccount> {
   await api.apiRequest({
     path: '/account/notification/channel',
@@ -26,7 +26,7 @@ export async function reqAccountNotificationChannelCreate(
 
 export async function reqAccountNotificationChannelDelete(
   api: ApiRequestService,
-  params: ReqGetByAccountAndChannelParams,
+  params: ReqGetByAccountAndChannelParams
 ): Promise<DTOAccount> {
   await api.apiRequest({
     path: `/account/notification/channel/${params.channel_id_text}`,

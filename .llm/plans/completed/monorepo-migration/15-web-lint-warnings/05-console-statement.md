@@ -9,6 +9,7 @@ Fix 1 `no-console` warning.
 ## File to Modify
 
 ### `src/lib/notifications/webpush/requestNotificationPermission.ts`
+
 - Line 33:7 - `console.log` statement
 
 ## Approach

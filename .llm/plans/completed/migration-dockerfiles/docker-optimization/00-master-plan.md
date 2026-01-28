@@ -3,6 +3,7 @@
 ## Overview
 
 Optimize Docker builds to reduce image size and build times by:
+
 1. Adding `.dockerignore` to exclude unnecessary files from build context
 2. Converting single-stage Dockerfiles to multi-stage builds
 3. Adding Makefile targets for building and testing Docker images
@@ -23,16 +24,17 @@ Optimize Docker builds to reduce image size and build times by:
 
 ## Expected Benefits
 
-| Metric | Before | After |
-|--------|--------|-------|
-| Build context size | ~1GB+ | ~50MB |
-| Final image (api) | ~800MB | ~300MB |
-| Build speed | Slow (copies node_modules) | Fast |
-| Security | Contains source code | Only compiled JS |
+| Metric             | Before                     | After            |
+| ------------------ | -------------------------- | ---------------- |
+| Build context size | ~1GB+                      | ~50MB            |
+| Final image (api)  | ~800MB                     | ~300MB           |
+| Build speed        | Slow (copies node_modules) | Fast             |
+| Security           | Contains source code       | Only compiled JS |
 
 ## Completed Work
 
 ### Files Created/Modified
+
 - `.dockerignore` - Excludes node_modules, docs, infra, etc.
 - `apps/api/Dockerfile` - Multi-stage build
 - `apps/workers/Dockerfile` - Multi-stage build

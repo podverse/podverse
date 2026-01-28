@@ -10,8 +10,16 @@ import { useClipsContext } from './ClipsContext';
 import { HowToStartInfo } from '../../components/InfoWrapper/HowToStartInfo';
 
 export const ClipsList: React.FC = () => {
-  const { filterParams, setFilterParams, clips, totalPages, isLoading,
-    showSubscribeMessage, showCategoriesModal, setShowCategoriesModal } = useClipsContext();
+  const {
+    filterParams,
+    setFilterParams,
+    clips,
+    totalPages,
+    isLoading,
+    showSubscribeMessage,
+    showCategoriesModal,
+    setShowCategoriesModal,
+  } = useClipsContext();
   const { page, type, category } = filterParams;
   const router = useRouter();
 
@@ -28,14 +36,9 @@ export const ClipsList: React.FC = () => {
 
   return (
     <>
-      {
-        filterParams.type === 'subscribed' && (
-          <HowToStartInfo
-            rows={clips}
-            totalPages={totalPages}
-          />
-        )
-      }
+      {filterParams.type === 'subscribed' && (
+        <HowToStartInfo rows={clips} totalPages={totalPages} />
+      )}
       <ListClips
         page={page}
         setPage={(page) => setFilterParams({ ...filterParams, page })}

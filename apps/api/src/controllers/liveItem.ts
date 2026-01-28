@@ -2,12 +2,20 @@ import { Request, Response } from 'express';
 import { getParamRequired } from '@api/lib/params';
 import Joi from 'joi';
 import { LIVE_ITEM_STATUSES } from '@podverse/helpers';
-import { ChannelService, Item, itemGetManyRelations, ItemService, LiveItemStatusEnum } from '@podverse/orm';
+import {
+  ChannelService,
+  Item,
+  itemGetManyRelations,
+  ItemService,
+  LiveItemStatusEnum,
+} from '@podverse/orm';
 import { validateQueryObject } from '@api/lib/validation';
 import { ItemController } from '@api/controllers/item';
 
 export const getManyLiveSchema = Joi.object({
-  liveItemType: Joi.string().valid(...LIVE_ITEM_STATUSES).required(),
+  liveItemType: Joi.string()
+    .valid(...LIVE_ITEM_STATUSES)
+    .required(),
 }).unknown(true);
 
 export class LiveItemController {
@@ -69,7 +77,9 @@ export class LiveItemController {
 
     for (const item of items) {
       const status = item.live_item?.live_item_status;
-      if (!status) { continue; }
+      if (!status) {
+        continue;
+      }
       if (status.id === LiveItemStatusEnum.Live) {
         live.push(item);
       } else if (status.id === LiveItemStatusEnum.Pending) {
@@ -79,14 +89,20 @@ export class LiveItemController {
       }
     }
 
-    live.sort((a: Item, b: Item) =>
-      new Date(b.live_item?.start_time ?? 0).getTime() - new Date(a.live_item?.start_time ?? 0).getTime(),
+    live.sort(
+      (a: Item, b: Item) =>
+        new Date(b.live_item?.start_time ?? 0).getTime() -
+        new Date(a.live_item?.start_time ?? 0).getTime()
     );
-    pending.sort((a: Item, b: Item) =>
-      new Date(b.live_item?.start_time ?? 0).getTime() - new Date(a.live_item?.start_time ?? 0).getTime(),
+    pending.sort(
+      (a: Item, b: Item) =>
+        new Date(b.live_item?.start_time ?? 0).getTime() -
+        new Date(a.live_item?.start_time ?? 0).getTime()
     );
-    ended.sort((a: Item, b: Item) =>
-      new Date(b.live_item?.end_time ?? 0).getTime() - new Date(a.live_item?.end_time ?? 0).getTime(),
+    ended.sort(
+      (a: Item, b: Item) =>
+        new Date(b.live_item?.end_time ?? 0).getTime() -
+        new Date(a.live_item?.end_time ?? 0).getTime()
     );
 
     const combined = [...live, ...pending, ...ended];

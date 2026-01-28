@@ -11,7 +11,7 @@ export type QueryParamsProfileContent = QueryParamsPage & {
 
 export async function reqProfilePodcastsAZ(
   api: ApiRequestService,
-  params: QueryParamsProfileContent,
+  params: QueryParamsProfileContent
 ): Promise<ApiListResponse<DTOChannel>> {
   const { account_id_text, page } = params;
   return api.apiRequest<ApiListResponse<DTOChannel>>({
@@ -25,7 +25,7 @@ export async function reqProfilePodcastsAZ(
 
 export async function reqProfileAlbumsAZ(
   api: ApiRequestService,
-  params: QueryParamsProfileContent,
+  params: QueryParamsProfileContent
 ): Promise<ApiListResponse<DTOChannel>> {
   const { account_id_text, page } = params;
   return api.apiRequest<ApiListResponse<DTOChannel>>({
@@ -39,7 +39,7 @@ export async function reqProfileAlbumsAZ(
 
 export async function reqProfilePlaylistsAZ(
   api: ApiRequestService,
-  params: QueryParamsProfileContent,
+  params: QueryParamsProfileContent
 ): Promise<ApiListResponse<DTOPlaylist>> {
   const { account_id_text, page } = params;
   return api.apiRequest<ApiListResponse<DTOPlaylist>>({
@@ -53,7 +53,7 @@ export async function reqProfilePlaylistsAZ(
 
 export async function reqProfileClipsRecent(
   api: ApiRequestService,
-  params: QueryParamsProfileContent,
+  params: QueryParamsProfileContent
 ): Promise<ApiListResponse<DTOClip>> {
   const { account_id_text, page } = params;
   return api.apiRequest<ApiListResponse<DTOClip>>({
@@ -69,7 +69,7 @@ export async function reqProfileClipsRecent(
 
 export async function reqMyProfilePodcastsAZ(
   api: ApiRequestService,
-  params: QueryParamsPage,
+  params: QueryParamsPage
 ): Promise<ApiListResponse<DTOChannel>> {
   return api.apiRequest<ApiListResponse<DTOChannel>>({
     path: '/my-profile/podcasts/az',
@@ -83,7 +83,7 @@ export async function reqMyProfilePodcastsAZ(
 
 export async function reqMyProfileAlbumsAZ(
   api: ApiRequestService,
-  params: QueryParamsPage,
+  params: QueryParamsPage
 ): Promise<ApiListResponse<DTOChannel>> {
   return api.apiRequest<ApiListResponse<DTOChannel>>({
     path: '/my-profile/albums/az',
@@ -97,7 +97,7 @@ export async function reqMyProfileAlbumsAZ(
 
 export async function reqMyProfilePlaylistsAZ(
   api: ApiRequestService,
-  params: QueryParamsPage,
+  params: QueryParamsPage
 ): Promise<ApiListResponse<DTOPlaylist>> {
   return api.apiRequest<ApiListResponse<DTOPlaylist>>({
     path: '/my-profile/playlists/az',
@@ -111,7 +111,7 @@ export async function reqMyProfilePlaylistsAZ(
 
 export async function reqMyProfileClipsRecent(
   api: ApiRequestService,
-  params: QueryParamsPage,
+  params: QueryParamsPage
 ): Promise<ApiListResponse<DTOClip>> {
   return api.apiRequest<ApiListResponse<DTOClip>>({
     path: '/my-profile/clips/recent',

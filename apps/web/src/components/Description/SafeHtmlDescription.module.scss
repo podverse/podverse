@@ -66,11 +66,13 @@
   text-decoration: underline;
 }
 
-.safeHtmlDescription strong, .safeHtmlDescription b {
+.safeHtmlDescription strong,
+.safeHtmlDescription b {
   font-weight: var(--font-weight-medium);
 }
 
-.safeHtmlDescription i, .safeHtmlDescription em {
+.safeHtmlDescription i,
+.safeHtmlDescription em {
   font-style: italic;
 }
 

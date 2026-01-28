@@ -1,5 +1,13 @@
 import { DATABASE_CONSTANTS } from '@podverse/helpers';
-import { Entity, Column, ManyToOne, JoinColumn, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import {
+  Entity,
+  Column,
+  ManyToOne,
+  JoinColumn,
+  PrimaryGeneratedColumn,
+  CreateDateColumn,
+  UpdateDateColumn,
+} from 'typeorm';
 import { Account } from '@orm/entities/account/account';
 
 @Entity('account_up_device')
@@ -25,7 +33,7 @@ export class AccountUPDevice {
   @UpdateDateColumn({ name: 'updated_at', type: 'timestamp' })
   updated_at!: Date;
 
-  @ManyToOne(() => Account, account => account.id, { onDelete: 'CASCADE' })
+  @ManyToOne(() => Account, (account) => account.id, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'account_id' })
   account!: Account;
 }

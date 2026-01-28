@@ -3,7 +3,6 @@ networks:
     external: true
 
 services:
-
   podverse_local_web:
     image: podverse-web:latest
     container_name: podverse_local_web

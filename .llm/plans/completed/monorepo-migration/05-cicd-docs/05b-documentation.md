@@ -22,55 +22,62 @@ Current: 23 lines (minimal quick start)
 Open source podcast app with Podcasting 2.0 support.
 
 ## Features
+
 - Value4Value / Lightning payments
 - Chapters, transcripts, soundbites
 - Cross-platform (iOS, Android, F-Droid, Web)
 - Self-hostable
 
 ## Quick Start
+
 [existing content]
 
 ## Directory Structure
-packages/       # Publishable npm packages (@podverse/*)
-  helpers/      # Shared utilities, types, DTOs
-  external-services/  # Third-party integrations
-  orm/          # Database entities and services
-  notifications/  # Push notification services
-  parser/       # RSS/Podcast feed parsing
-  mq/           # Message queue operations
 
-apps/           # Deployable applications
-  api/          # REST API (Express)
-  web/          # Web app (Next.js)
-  workers/      # Background job processors
-  management-api/   # Admin API
-  management-web/   # Admin dashboard
+packages/ # Publishable npm packages (@podverse/\*)
+helpers/ # Shared utilities, types, DTOs
+external-services/ # Third-party integrations
+orm/ # Database entities and services
+notifications/ # Push notification services
+parser/ # RSS/Podcast feed parsing
+mq/ # Message queue operations
 
-tools/          # Development tools
-  qa/           # Test data generation
+apps/ # Deployable applications
+api/ # REST API (Express)
+web/ # Web app (Next.js)
+workers/ # Background job processors
+management-api/ # Admin API
+management-web/ # Admin dashboard
 
-infra/          # Infrastructure
-  config/       # Environment templates
-  database/     # Migrations and seeds
-  docker/       # Docker compose files
+tools/ # Development tools
+qa/ # Test data generation
 
-scripts/        # Utility scripts
-pipelines/      # Jenkins pipelines
-docs/           # Documentation
-.llm/           # LLM context and history
+infra/ # Infrastructure
+config/ # Environment templates
+database/ # Migrations and seeds
+docker/ # Docker compose files
+
+scripts/ # Utility scripts
+pipelines/ # Jenkins pipelines
+docs/ # Documentation
+.llm/ # LLM context and history
 
 ## Development
+
 [expanded setup instructions]
 
 ## Deployment
+
 [overview pointing to Jenkins/CI docs]
 
 ## Documentation
+
 - [Architecture](docs/ARCHITECTURE.md)
 - [Contributing](docs/CONTRIBUTING.md)
 - [Environment Variables](docs/ENV.md)
 
 ## License
+
 AGPL-3.0
 ```
 
@@ -95,18 +102,18 @@ flowchart TD
         API[API Server]
         WORKERS[Workers]
     end
-    
+
     subgraph data [Data Layer]
         DB[(PostgreSQL)]
         REDIS[(Valkey/Redis)]
         MQ[ActiveMQ Artemis]
     end
-    
+
     subgraph external [External]
         PI[Podcast Index]
         FIREBASE[Firebase]
     end
-    
+
     WEB --> API
     API --> DB
     API --> REDIS

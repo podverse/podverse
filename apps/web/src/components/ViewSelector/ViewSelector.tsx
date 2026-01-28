@@ -30,20 +30,14 @@ export function ViewSelector({ viewSelected, setViewSelected }: ViewSelectorProp
     onClick: () => setViewSelected(key),
   }));
 
-  const {
-    open,
-    setOpen,
-    focusedIndex,
-    setFocusedIndex,
-    handleButtonKeyDown,
-    handleMenuKeyDown,
-  } = useDropdownKeyboardNavigation({
-    itemCount: menuItems.length,
-    onItemSelect: (idx) => menuItems[idx]?.onClick(),
-    onClose: () => setOpen(false),
-    buttonRef,
-    menuRef,
-  });
+  const { open, setOpen, focusedIndex, setFocusedIndex, handleButtonKeyDown, handleMenuKeyDown } =
+    useDropdownKeyboardNavigation({
+      itemCount: menuItems.length,
+      onItemSelect: (idx) => menuItems[idx]?.onClick(),
+      onClose: () => setOpen(false),
+      buttonRef,
+      menuRef,
+    });
 
   return (
     <div className={styles.viewSelectorWrapper}>

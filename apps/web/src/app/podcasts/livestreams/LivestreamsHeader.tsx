@@ -18,7 +18,7 @@ import { useLivestreamsContext } from './LivestreamsContext';
 import { getEpisodesDropdownConfig } from '../../episodes/EpisodesDropdownConfig';
 
 type LivestreamsHeaderProps = {
-  medium: 'av' | 'music'
+  medium: 'av' | 'music';
 };
 
 export const LivestreamsHeader: React.FC<LivestreamsHeaderProps> = ({ medium }) => {
@@ -28,8 +28,8 @@ export const LivestreamsHeader: React.FC<LivestreamsHeaderProps> = ({ medium }) 
   const tMedia = useTranslations('media');
   const tFilters = useTranslations('filters');
   const tCategories = useTranslations('categories');
-  const { typeMenuItems, sortMenuItems, rangeMenuItems, showRangeDropdown,
-    } = getEpisodesDropdownConfig({ type, sort, tFilters, medium });
+  const { typeMenuItems, sortMenuItems, rangeMenuItems, showRangeDropdown } =
+    getEpisodesDropdownConfig({ type, sort, tFilters, medium });
 
   function isItemType(val: string): val is QueryParamsSubscribedType {
     return QUERY_PARAMS_SUBSCRIBED_TYPE.includes(val as QueryParamsSubscribedType);
@@ -111,18 +111,8 @@ export const LivestreamsHeader: React.FC<LivestreamsHeaderProps> = ({ medium }) 
 
   const buttonsNode = (
     <>
-      <Dropdown
-        key="type"
-        value={type}
-        menuItems={typeMenuItems}
-        onChange={handleTypeChange}
-      />
-      <Dropdown
-        key="sort"
-        value={sort}
-        menuItems={sortMenuItems}
-        onChange={handleSortChange}
-      />
+      <Dropdown key="type" value={type} menuItems={typeMenuItems} onChange={handleTypeChange} />
+      <Dropdown key="sort" value={sort} menuItems={sortMenuItems} onChange={handleSortChange} />
       {showRangeDropdown && range && (
         <Dropdown
           key="range"
@@ -131,21 +121,13 @@ export const LivestreamsHeader: React.FC<LivestreamsHeaderProps> = ({ medium }) 
           onChange={handleRangeChange}
         />
       )}
-      <ViewSelector
-        viewSelected={viewSelected}
-        setViewSelected={setViewSelected}
-      />
+      <ViewSelector viewSelected={viewSelected} setViewSelected={setViewSelected} />
     </>
   );
 
-  const headerTitle = filterParams.category ?
-    `${tMedia('livestream.livestreams')} > ${tCategories(filterParams.category)}` :
-    tMedia('livestream.livestreams');
+  const headerTitle = filterParams.category
+    ? `${tMedia('livestream.livestreams')} > ${tCategories(filterParams.category)}`
+    : tMedia('livestream.livestreams');
 
-  return (
-    <MainHeader
-      title={headerTitle}
-      buttonsNode={buttonsNode}
-    />
-  );
+  return <MainHeader title={headerTitle} buttonsNode={buttonsNode} />;
 };

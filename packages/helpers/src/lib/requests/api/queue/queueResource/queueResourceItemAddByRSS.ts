@@ -6,7 +6,7 @@ import { QueueExtraParams } from '../../../../../dtos/queueExtraParams';
 export async function reqQueueResourceItemAddByRSSAddNowPlaying(
   api: ApiRequestService,
   queue_id_text: string,
-  params: QueueExtraParams & { add_by_rss_resource_data: object },
+  params: QueueExtraParams & { add_by_rss_resource_data: object }
 ) {
   return api.apiRequest<DTOQueueResource>({
     path: `/queue/${queue_id_text}/item-add-by-rss/now-playing`,
@@ -21,7 +21,7 @@ export async function reqQueueResourceItemAddByRSSAddNowPlaying(
 export async function reqQueueResourceItemAddByRSSAddNext(
   api: ApiRequestService,
   queue_id_text: string,
-  params: { add_by_rss_resource_data: object },
+  params: { add_by_rss_resource_data: object }
 ) {
   return api.apiRequest<DTOQueueResource>({
     path: `/queue/${queue_id_text}/item-add-by-rss/next`,
@@ -36,7 +36,7 @@ export async function reqQueueResourceItemAddByRSSAddNext(
 export async function reqQueueResourceItemAddByRSSAddBetween(
   api: ApiRequestService,
   queue_id_text: string,
-  params: BetweenParams & { add_by_rss_resource_data: object },
+  params: BetweenParams & { add_by_rss_resource_data: object }
 ) {
   return api.apiRequest<DTOQueueResource>({
     path: `/queue/${queue_id_text}/item-add-by-rss/between`,
@@ -51,7 +51,7 @@ export async function reqQueueResourceItemAddByRSSAddBetween(
 export async function reqQueueResourceItemAddByRSSAddLast(
   api: ApiRequestService,
   queue_id_text: string,
-  params: { add_by_rss_resource_data: object },
+  params: { add_by_rss_resource_data: object }
 ) {
   return api.apiRequest<DTOQueueResource>({
     path: `/queue/${queue_id_text}/item-add-by-rss/last`,
@@ -66,7 +66,7 @@ export async function reqQueueResourceItemAddByRSSAddLast(
 export async function reqQueueResourceItemAddByRSSAddHistory(
   api: ApiRequestService,
   queue_id_text: string,
-  params: QueueExtraParams & { add_by_rss_resource_data: object },
+  params: QueueExtraParams & { add_by_rss_resource_data: object }
 ) {
   return api.apiRequest<DTOQueueResource>({
     path: `/queue/${queue_id_text}/item-add-by-rss/history`,
@@ -81,7 +81,7 @@ export async function reqQueueResourceItemAddByRSSAddHistory(
 export async function reqQueueResourceItemAddByRSSDelete(
   api: ApiRequestService,
   queue_id_text: string,
-  add_by_rss_hash_id: string,
+  add_by_rss_hash_id: string
 ) {
   return api.apiRequest<void>({
     path: `/queue/${queue_id_text}/item-add-by-rss/${add_by_rss_hash_id}`,

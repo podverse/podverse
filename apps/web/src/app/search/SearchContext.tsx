@@ -7,7 +7,7 @@ import { useSkipInitialEffect } from '../../hooks/useSkipInitialEffect';
 
 type SearchParams = {
   q: string;
-}
+};
 
 interface SearchContextType {
   searchParams: SearchParams;
@@ -16,21 +16,19 @@ interface SearchContextType {
   setSearchResultFeeds: (feeds: SearchPodcastsFeed[]) => void;
   isLoading: boolean;
   setIsLoading: (isLoading: boolean) => void;
-};
+}
 
 const SearchContext = createContext<SearchContextType | undefined>(undefined);
 
 interface SearchContextProviderProps {
-  children: ReactNode,
+  children: ReactNode;
 }
 
-export const SearchContextProvider = ({
-  children,
-}: SearchContextProviderProps) => {
+export const SearchContextProvider = ({ children }: SearchContextProviderProps) => {
   const [searchParams, setSearchParams] = useState<SearchParams>({ q: '' });
   const [searchResultFeeds, setSearchResultFeeds] = useState<SearchPodcastsFeed[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  
+
   useSkipInitialEffect(() => {
     async function fetchSearchResults() {
       const trimmedQ = searchParams.q.trim();
@@ -54,11 +52,16 @@ export const SearchContextProvider = ({
   }, [searchParams]);
 
   return (
-    <SearchContext.Provider value={{
-      searchParams, setSearchParams,
-      searchResultFeeds, setSearchResultFeeds,
-      isLoading, setIsLoading,
-    }}>
+    <SearchContext.Provider
+      value={{
+        searchParams,
+        setSearchParams,
+        searchResultFeeds,
+        setSearchResultFeeds,
+        isLoading,
+        setIsLoading,
+      }}
+    >
       {children}
     </SearchContext.Provider>
   );
@@ -66,6 +69,8 @@ export const SearchContextProvider = ({
 
 export const useSearchContext = () => {
   const ctx = useContext(SearchContext);
-  if (!ctx) {throw new Error('useSearchContext must be used within a SearchContextProvider');}
+  if (!ctx) {
+    throw new Error('useSearchContext must be used within a SearchContextProvider');
+  }
   return ctx;
 };

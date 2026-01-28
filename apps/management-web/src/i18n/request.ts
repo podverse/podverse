@@ -7,8 +7,13 @@ function getSupportedLocales(): string[] {
   if (supportedLocalesEnv === 'all-available') {
     return [...SUPPORTED_LOCALES];
   }
-  const requested = supportedLocalesEnv.split(',').map(l => l.trim()).filter(Boolean);
-  return requested.filter(l => SUPPORTED_LOCALES.includes(l as typeof SUPPORTED_LOCALES[number]));
+  const requested = supportedLocalesEnv
+    .split(',')
+    .map((l) => l.trim())
+    .filter(Boolean);
+  return requested.filter((l) =>
+    SUPPORTED_LOCALES.includes(l as (typeof SUPPORTED_LOCALES)[number])
+  );
 }
 
 function getDefaultLocale(): string {
@@ -19,10 +24,10 @@ async function detectLocale(ssrLoggedInAccount?: DTOAccount | null) {
   const supportedLocales = getSupportedLocales();
   const defaultLocale = getDefaultLocale();
   const cookieStore = await cookies();
-  
+
   // 1. HIGHEST PRIORITY: Check account settings locale (if user is logged in)
   const accountLocale = ssrLoggedInAccount?.account_settings?.account_settings_locale?.locale;
-  
+
   if (accountLocale) {
     // Try exact match first
     if (supportedLocales.includes(accountLocale)) {
@@ -34,7 +39,7 @@ async function detectLocale(ssrLoggedInAccount?: DTOAccount | null) {
       return baseAccountLocale;
     }
   }
-  
+
   // 2. Check if cookie locale is supported (explicit user choice)
   const cookieLocale = cookieStore.get('NEXT_LOCALE')?.value;
   if (cookieLocale && supportedLocales.includes(cookieLocale)) {
@@ -50,10 +55,13 @@ async function detectLocale(ssrLoggedInAccount?: DTOAccount | null) {
   const hdrs = await headers();
   const acceptLanguage = hdrs.get('accept-language');
   if (acceptLanguage) {
-    const preferred = acceptLanguage.split(',').map(lang => {
-      const firstPart = lang.split(';')[0];
-      return firstPart ? firstPart.trim() : '';
-    }).filter(Boolean);
+    const preferred = acceptLanguage
+      .split(',')
+      .map((lang) => {
+        const firstPart = lang.split(';')[0];
+        return firstPart ? firstPart.trim() : '';
+      })
+      .filter(Boolean);
     for (const lang of preferred) {
       if (supportedLocales.includes(lang)) {
         return lang;
@@ -105,7 +113,7 @@ export default getRequestConfig(async () => {
   } catch {
     originals = (await import('../../i18n/originals/en-US.json')).default;
   }
-  
+
   return {
     locale,
     messages: originals,

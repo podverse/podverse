@@ -6,26 +6,22 @@ type ErrorWithResponse = {
   body?: RateLimitData;
 };
 
-type RateLimitData = {
-  tooManyRequests?: boolean;
-  minutesRemaining?: number;
-} | Blob;
+type RateLimitData =
+  | {
+      tooManyRequests?: boolean;
+      minutesRemaining?: number;
+    }
+  | Blob;
 
 export async function handleRateLimitAlert(
   error: unknown,
   _locale?: string,
-  tMisc?: (key: string, values?: Record<string, string | number>) => string,
+  tMisc?: (key: string, values?: Record<string, string | number>) => string
 ): Promise<boolean> {
   const e = error as ErrorWithResponse;
-  const status =
-    e?.response?.status ??
-    e?.status ??
-    e?.code;
+  const status = e?.response?.status ?? e?.status ?? e?.code;
 
-  let data: RateLimitData | undefined =
-    e?.response?.data ??
-    e?.data ??
-    e?.body;
+  let data: RateLimitData | undefined = e?.response?.data ?? e?.data ?? e?.body;
 
   // If data is a Blob (can happen with responseType: 'blob'), convert to JSON
   if (status === 429 && data instanceof Blob) {
@@ -50,20 +46,14 @@ export async function handleRateLimitAlert(
   if (status === 429 && rateLimitData?.tooManyRequests) {
     const minutesRemaining = rateLimitData.minutesRemaining;
     if (typeof minutesRemaining !== 'number' || isNaN(minutesRemaining) || minutesRemaining < 1) {
-      alert(
-        tMisc
-          ? tMisc('rate_limit.generic')
-          : 'Rate limited: please try again later.',
-      );
+      alert(tMisc ? tMisc('rate_limit.generic') : 'Rate limited: please try again later.');
       return true;
     }
 
     let message: string;
     if (tMisc) {
       const key =
-        minutesRemaining === 1
-          ? 'rate_limit.minute_remaining'
-          : 'rate_limit.minutes_remaining';
+        minutesRemaining === 1 ? 'rate_limit.minute_remaining' : 'rate_limit.minutes_remaining';
       const templated = tMisc(key, { minutes: minutesRemaining });
       if (!templated || templated.includes(key)) {
         // Fallback to generic if translation missing

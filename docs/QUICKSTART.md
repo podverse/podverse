@@ -9,6 +9,7 @@ Get the Podverse monorepo running locally in 5 steps.
 - **Git**
 
 Verify Docker is running:
+
 ```bash
 docker info
 ```
@@ -31,6 +32,7 @@ make local_setup
 ```
 
 This single command:
+
 - Creates the Docker network
 - Starts PostgreSQL databases (main + management)
 - Starts ActiveMQ Artemis message queue
@@ -57,6 +59,7 @@ npm run dev:api
 The API starts at **http://localhost:1234**
 
 Verify it's running:
+
 ```bash
 curl http://localhost:1234/api/v2/meta
 ```
@@ -64,6 +67,7 @@ curl http://localhost:1234/api/v2/meta
 ### 5. Start the Web App
 
 In a new terminal:
+
 ```bash
 npm run dev:web
 ```
@@ -83,13 +87,13 @@ This account is pre-verified with a trial membership (expires in 1 year).
 
 ## Verification Checklist
 
-| Component | URL | Expected |
-|-----------|-----|----------|
-| API | http://localhost:1234/api/v2/meta | JSON response with version info |
-| Web | http://localhost:3000 | Podverse homepage loads |
-| Database | `docker ps \| grep podverse_local_db` | Container running |
-| Message Queue | http://localhost:8161 | Artemis console (user/mysecretpw) |
-| Cache | http://localhost:8001 | RedisInsight GUI |
+| Component     | URL                                   | Expected                          |
+| ------------- | ------------------------------------- | --------------------------------- |
+| API           | http://localhost:1234/api/v2/meta     | JSON response with version info   |
+| Web           | http://localhost:3000                 | Podverse homepage loads           |
+| Database      | `docker ps \| grep podverse_local_db` | Container running                 |
+| Message Queue | http://localhost:8161                 | Artemis console (user/mysecretpw) |
+| Cache         | http://localhost:8001                 | RedisInsight GUI                  |
 
 ## Development Workflow
 
@@ -107,7 +111,7 @@ npm run dev:web
 
 For advanced terminal configurations using VS Code Terminals Manager, see [IDE-SETUP.md](IDE-SETUP.md).
 
-### Run Multiple Apps (dev:*:all)
+### Run Multiple Apps (dev:\*:all)
 
 For focused development, use these commands to run packages in watch mode with specific app groups:
 
@@ -125,12 +129,14 @@ npm run dev:all
 **Note**: The management database is included in `local_setup`, so all commands work out of the box.
 
 These commands start with staggered delays for readable log output:
+
 - Packages build sequentially (helpers → external-services → orm → notifications → parser → mq)
 - Apps start after packages are ready, spaced 6 seconds apart
 
 ### Package Development
 
 When modifying packages, rebuild them:
+
 ```bash
 # Rebuild a specific package
 npm run build -w packages/helpers
@@ -172,8 +178,8 @@ The management apps provide an admin interface for Podverse operations. The mana
 npm run dev:management:all
 
 # Or individually
-npm run dev:management-api    # http://localhost:1235
-npm run dev:management-web    # http://localhost:3999
+npm run dev:management-api # http://localhost:1235
+npm run dev:management-web # http://localhost:3999
 ```
 
 ## Workers (Optional)
@@ -195,6 +201,7 @@ Error: network podverse_local_network not found
 ```
 
 **Solution**: Create the network manually:
+
 ```bash
 make local_network_create
 ```
@@ -206,6 +213,7 @@ Error: connect ECONNREFUSED 127.0.0.1:5432
 ```
 
 **Solution**: Ensure the database is running:
+
 ```bash
 docker ps | grep podverse_local_db
 # If not running:
@@ -221,11 +229,13 @@ Error: connect ECONNREFUSED 127.0.0.1:5999
 This error occurs when the management database isn't running.
 
 **Solution**: Ensure infrastructure is running:
+
 ```bash
 make local_infra_up
 ```
 
 If this is your first time, run the full setup:
+
 ```bash
 make local_setup
 ```
@@ -237,6 +247,7 @@ Error: listen EADDRINUSE: address already in use :::1234
 ```
 
 **Solution**: Find and stop the process using the port:
+
 ```bash
 lsof -i :1234
 kill -9 <PID>
@@ -245,6 +256,7 @@ kill -9 <PID>
 ### Database Not Initialized
 
 If you see migration errors or missing tables:
+
 ```bash
 make local_db_reset
 make local_db_init
@@ -268,6 +280,7 @@ make local_setup
 ### Package Build Errors
 
 If you see "Cannot find module '@podverse/helpers'":
+
 ```bash
 npm run build:packages
 ```
@@ -275,6 +288,7 @@ npm run build:packages
 ### Stale Build Cache
 
 If you see "Could not find a declaration file for module '@podverse/...'" errors after switching Node versions or after a failed build:
+
 ```bash
 npm run clean:all
 npm run build:packages
@@ -285,9 +299,10 @@ This removes stale `tsconfig.tsbuildinfo` files that can cause TypeScript to ski
 ### Fresh Start
 
 To completely reset your local environment (wipes all data):
+
 ```bash
-make local_clean      # Stops containers and removes volumes
-make local_setup      # Starts fresh and initializes databases
+make local_clean # Stops containers and removes volumes
+make local_setup # Starts fresh and initializes databases
 npm run build:packages
 ```
 
@@ -358,6 +373,7 @@ make local_test_docker_builds
 ```
 
 This will:
+
 - Build all images
 - Display image sizes
 - Verify that source files are excluded and only `dist/` files are present
@@ -365,6 +381,7 @@ This will:
 ### Docker Image Optimization
 
 The Dockerfiles use multi-stage builds to minimize final image size:
+
 - **Builder stage**: Installs dependencies and compiles TypeScript
 - **Runner stage**: Only includes compiled `dist/` files and production dependencies
 
@@ -376,17 +393,18 @@ Final images are ~300-500MB (vs 800MB+ with single-stage builds).
 
 Local development uses pre-configured environment files:
 
-| App | Config File |
-|-----|-------------|
-| API | `apps/api/.env` |
-| Web | `apps/web/env/local.env` |
-| Workers | `apps/workers/.env` |
-| Management API | `apps/management-api/.env` |
+| App            | Config File                         |
+| -------------- | ----------------------------------- |
+| API            | `apps/api/.env`                     |
+| Web            | `apps/web/env/local.env`            |
+| Workers        | `apps/workers/.env`                 |
+| Management API | `apps/management-api/.env`          |
 | Management Web | `apps/management-web/env/local.env` |
 
 ### Infrastructure Config
 
 Docker services use configs in `infra/config/local/`:
+
 - `db.env` - PostgreSQL settings
 - `mq.env` - ActiveMQ Artemis settings
 - `keyvaldb.env` - Valkey/Redis settings
@@ -395,6 +413,7 @@ Docker services use configs in `infra/config/local/`:
 ### Customizing Configuration
 
 See the ENV.md files in each app directory for detailed variable documentation:
+
 - [apps/api/ENV.md](../apps/api/ENV.md)
 - [apps/web/ENV.md](../apps/web/ENV.md)
 - [apps/workers/ENV.md](../apps/workers/ENV.md)
@@ -435,4 +454,4 @@ See the ENV.md files in each app directory for detailed variable documentation:
 
 - [Architecture Overview](ARCHITECTURE.md) - System design and data flow
 - [Contributing Guide](CONTRIBUTING.md) - Development workflow and PR guidelines
-- [API Documentation](../apps/api/README.md) - API endpoints and usage
+- [API Documentation](../apps/api/APPS-API.md) - API endpoints and usage

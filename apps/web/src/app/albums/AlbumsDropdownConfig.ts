@@ -1,4 +1,5 @@
-import { QueryParamsStatsRange,
+import {
+  QueryParamsStatsRange,
   getValidQueryParam,
   QUERY_PARAMS_GLOBAL_SORT_VALUES,
   QUERY_PARAMS_SUBSCRIBED_FULL_SORT,
@@ -8,12 +9,15 @@ import { QueryParamsStatsRange,
 import { getRangeDropdownItems } from '../../utils/dropdownMenuItems';
 import { DropdownMenuItem } from '../../components/Dropdown/Dropdown';
 
-export function getAlbumsDropdownConfig({ type, sort, tFilters }: {
-  sort: QueryParamsSubscribedFullSort,
-  type: QueryParamsSubscribedMusicType,
-  tFilters: (key: string) => string
+export function getAlbumsDropdownConfig({
+  type,
+  sort,
+  tFilters,
+}: {
+  sort: QueryParamsSubscribedFullSort;
+  type: QueryParamsSubscribedMusicType;
+  tFilters: (key: string) => string;
 }) {
-
   const typeDropdownMenuItems: DropdownMenuItem[] = [
     { label: tFilters('type.global'), param: 'type', value: 'global' },
     { label: tFilters('type.subscribed'), param: 'type', value: 'subscribed' },
@@ -52,18 +56,18 @@ type AlbumsDropdownConfigParams = {
   sort: QueryParamsSubscribedFullSort | null;
   range: QueryParamsStatsRange | null;
   page: number;
-}
+};
 
 export type AlbumsDropdownConfigCurrentParams = {
   currentType: QueryParamsSubscribedMusicType;
   currentSort: QueryParamsSubscribedFullSort;
   currentRange: QueryParamsStatsRange | null;
   currentPage: number;
-}
+};
 
 export function getAlbumsFilterParams(
   { type, sort, range, page }: AlbumsDropdownConfigParams,
-  isValidAuthSession: boolean,
+  isValidAuthSession: boolean
 ): AlbumsDropdownConfigCurrentParams {
   let currentType = type;
   let currentSort = sort;
@@ -72,39 +76,23 @@ export function getAlbumsFilterParams(
 
   if (type === 'global') {
     currentType = 'global';
-    currentSort = getValidQueryParam(
-      QUERY_PARAMS_GLOBAL_SORT_VALUES,
-      currentSort,
-      'recent',
-    );
+    currentSort = getValidQueryParam(QUERY_PARAMS_GLOBAL_SORT_VALUES, currentSort, 'recent');
   } else if (type === 'subscribed') {
     currentType = 'subscribed';
-    currentSort = getValidQueryParam(
-      QUERY_PARAMS_SUBSCRIBED_FULL_SORT,
-      currentSort,
-      'a_z',
-    );
+    currentSort = getValidQueryParam(QUERY_PARAMS_SUBSCRIBED_FULL_SORT, currentSort, 'a_z');
   } else {
     if (isValidAuthSession) {
       currentType = 'subscribed';
-      currentSort = getValidQueryParam(
-        QUERY_PARAMS_SUBSCRIBED_FULL_SORT,
-        currentSort,
-        'a_z',
-      );
+      currentSort = getValidQueryParam(QUERY_PARAMS_SUBSCRIBED_FULL_SORT, currentSort, 'a_z');
       currentRange = null;
       currentPage = 1;
     } else {
       currentType = 'global';
-      currentSort = getValidQueryParam(
-        QUERY_PARAMS_GLOBAL_SORT_VALUES,
-        currentSort,
-        'recent',
-      );
+      currentSort = getValidQueryParam(QUERY_PARAMS_GLOBAL_SORT_VALUES, currentSort, 'recent');
       currentRange = null;
       currentPage = 1;
     }
-  } 
+  }
 
   return { currentType, currentSort, currentRange, currentPage };
 }

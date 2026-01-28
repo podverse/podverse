@@ -21,6 +21,7 @@ cp -r ../podverse-management-web/public apps/management-web/
 ```
 
 **Source structure:**
+
 - `src/app/` - Next.js app router pages
 - `src/components/` - React components (Head, ui/)
 - `src/config/` - Configuration
@@ -30,6 +31,7 @@ cp -r ../podverse-management-web/public apps/management-web/
 - `src/styles/` - SCSS stylesheets
 
 **Supporting files:**
+
 - `i18n/originals/` - Original translation files
 - `i18n/overrides/` - Override translations
 - `i18n/compiled/` - Compiled output (generated)
@@ -140,12 +142,7 @@ Create `apps/management-web/package.json`:
       }
     ]
   },
-  "include": [
-    "src/**/*.ts",
-    "src/**/*.tsx",
-    "next-env.d.ts",
-    ".next/types/**/*.ts"
-  ],
+  "include": ["src/**/*.ts", "src/**/*.tsx", "next-env.d.ts", ".next/types/**/*.ts"],
   "exclude": ["node_modules"]
 }
 ```
@@ -174,10 +171,26 @@ Update `scripts/validate-env.ts` to use workspace package:
 
 ```typescript
 // Before
-import { ValidationResult, ValidationSummary, validateRequired, validateOptional, getAllAvailableOrListMessage, validateSupportedLocalesList, validateLocale } from 'podverse-helpers';
+import {
+  ValidationResult,
+  ValidationSummary,
+  validateRequired,
+  validateOptional,
+  getAllAvailableOrListMessage,
+  validateSupportedLocalesList,
+  validateLocale,
+} from 'podverse-helpers';
 
 // After
-import { ValidationResult, ValidationSummary, validateRequired, validateOptional, getAllAvailableOrListMessage, validateSupportedLocalesList, validateLocale } from '@podverse/helpers';
+import {
+  ValidationResult,
+  ValidationSummary,
+  validateRequired,
+  validateOptional,
+  getAllAvailableOrListMessage,
+  validateSupportedLocalesList,
+  validateLocale,
+} from '@podverse/helpers';
 ```
 
 ---

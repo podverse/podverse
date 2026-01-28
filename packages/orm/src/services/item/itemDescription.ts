@@ -4,8 +4,8 @@ import { ItemDescription } from '@orm/entities/item/itemDescription';
 import { BaseOneService } from '@orm/services/base/baseOneService';
 
 type ItemDescriptionDto = {
-  value: string
-}
+  value: string;
+};
 
 export class ItemDescriptionService extends BaseOneService<ItemDescription, 'item'> {
   constructor(transactionalEntityManager?: EntityManager) {

@@ -1,4 +1,3 @@
-
 'use client';
 
 import { DTOItem, QueryParamsGetManyLivestreams } from '@podverse/helpers';
@@ -19,7 +18,7 @@ interface LivestreamsClientProps {
 
 export function LivestreamsClient(props: LivestreamsClientProps) {
   const { initialQueryParams, ssrItems, ssrTotalPages, medium } = props;
-  
+
   return (
     <LivestreamsContextProvider
       initialQueryParams={initialQueryParams}

@@ -1,8 +1,12 @@
 'use client';
 
 import { useLocale, useTranslations } from 'next-intl';
-import { getEmailErrorKey, getPasswordErrorKey, getPassword2ErrorKey,
-  getPasswordRequirementsInfoKey } from '@podverse/helpers';
+import {
+  getEmailErrorKey,
+  getPasswordErrorKey,
+  getPassword2ErrorKey,
+  getPasswordRequirementsInfoKey,
+} from '@podverse/helpers';
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '../Button/Button';
@@ -78,9 +82,13 @@ export const AuthSignUpForm: React.FC = () => {
     setEmailTouched(value !== '');
     if (emailErrorKey) {
       const key = getEmailErrorKey(value);
-      if (!key) {setEmailErrorKey(undefined);}
+      if (!key) {
+        setEmailErrorKey(undefined);
+      }
     }
-    if (value === '') {setEmailErrorKey(undefined);}
+    if (value === '') {
+      setEmailErrorKey(undefined);
+    }
   };
 
   const onPassword1Change = (value: string) => {
@@ -88,12 +96,20 @@ export const AuthSignUpForm: React.FC = () => {
     setPassword1Touched(value !== '');
     if (password1ErrorKey) {
       const key = getPasswordErrorKey(value);
-      if (!key) {setPassword1ErrorKey(undefined);}
+      if (!key) {
+        setPassword1ErrorKey(undefined);
+      }
     }
-    if (value === '') {setPassword1ErrorKey(undefined);}
+    if (value === '') {
+      setPassword1ErrorKey(undefined);
+    }
     if (password2Touched && password2) {
       const pwd2Key = getPassword2ErrorKey(value, password2);
-      if (!pwd2Key) {setPassword2ErrorKey(undefined);} else {setPassword2ErrorKey(pwd2Key);}
+      if (!pwd2Key) {
+        setPassword2ErrorKey(undefined);
+      } else {
+        setPassword2ErrorKey(pwd2Key);
+      }
     }
   };
 
@@ -102,73 +118,81 @@ export const AuthSignUpForm: React.FC = () => {
     setPassword2Touched(value !== '');
     if (password2ErrorKey) {
       const key = getPassword2ErrorKey(password1, value);
-      if (!key) {setPassword2ErrorKey(undefined);} else {setPassword2ErrorKey(key);}
+      if (!key) {
+        setPassword2ErrorKey(undefined);
+      } else {
+        setPassword2ErrorKey(key);
+      }
     }
-    if (value === '') {setPassword2ErrorKey(undefined);}
+    if (value === '') {
+      setPassword2ErrorKey(undefined);
+    }
   };
 
-  const isFormValid = !getEmailErrorKey(email) && !getPasswordErrorKey(password1) && !getPassword2ErrorKey(password1, password2) && !!email && !!password1 && !!password2;
+  const isFormValid =
+    !getEmailErrorKey(email) &&
+    !getPasswordErrorKey(password1) &&
+    !getPassword2ErrorKey(password1, password2) &&
+    !!email &&
+    !!password1 &&
+    !!password2;
 
   return (
     <div className={styles.authSignUpForm}>
-      {
-        !isAccountCreated && (
-          <Form onSubmit={handleSubmit}>
-            <TextInput
-              type="email"
-              name="email"
-              value={email}
-              onChange={e => onEmailChange(e.target.value)}
-              onBlur={handleEmailBlur}
-              autoFocus
-              placeholder={tAuthentication('email')}
-              eyebrow={tAuthentication('email')}
-              infoError={emailErrorKey ? tAuthentication(emailErrorKey) : undefined}
-            />
-            <TextInput
-              type="password"
-              name="password1"
-              value={password1}
-              onChange={e => onPassword1Change(e.target.value)}
-              onBlur={handlePassword1Blur}
-              placeholder={tAuthentication('password')}
-              eyebrow={tAuthentication('password')}
-              infoError={password1ErrorKey ? tAuthentication(password1ErrorKey) : undefined}
-            />
-            <TextInput
-              type="password"
-              name="password2"
-              value={password2}
-              onChange={e => onPassword2Change(e.target.value)}
-              onBlur={handlePassword2Blur}
-              placeholder={tAuthentication('password')}
-              eyebrow={tAuthentication('confirm_password')}
-              infoError={password2ErrorKey ? tAuthentication(password2ErrorKey) : undefined}
-            />
-            <div className={styles.passwordInfo}>
-              {tAuthentication(getPasswordRequirementsInfoKey())}
-            </div>
-            <div className={styles.buttons}>
-              <Button type="button" onClick={() => router.push('/')} variant="secondary">
-                {tMisc('cancel')}
-              </Button>
-              <Button
-                type="submit"
-                variant="primary"
-                disabled={!isFormValid || isLoading}
-                isLoading={isLoading}
-              >
-                {tMisc('submit')}
-              </Button>
-            </div>
-          </Form>
-        )
-      }
-      {
-        isAccountCreated && (
-          <FormInfoMessageText message={tAuthentication('account_created_message')} />
-        )
-      }
+      {!isAccountCreated && (
+        <Form onSubmit={handleSubmit}>
+          <TextInput
+            type="email"
+            name="email"
+            value={email}
+            onChange={(e) => onEmailChange(e.target.value)}
+            onBlur={handleEmailBlur}
+            autoFocus
+            placeholder={tAuthentication('email')}
+            eyebrow={tAuthentication('email')}
+            infoError={emailErrorKey ? tAuthentication(emailErrorKey) : undefined}
+          />
+          <TextInput
+            type="password"
+            name="password1"
+            value={password1}
+            onChange={(e) => onPassword1Change(e.target.value)}
+            onBlur={handlePassword1Blur}
+            placeholder={tAuthentication('password')}
+            eyebrow={tAuthentication('password')}
+            infoError={password1ErrorKey ? tAuthentication(password1ErrorKey) : undefined}
+          />
+          <TextInput
+            type="password"
+            name="password2"
+            value={password2}
+            onChange={(e) => onPassword2Change(e.target.value)}
+            onBlur={handlePassword2Blur}
+            placeholder={tAuthentication('password')}
+            eyebrow={tAuthentication('confirm_password')}
+            infoError={password2ErrorKey ? tAuthentication(password2ErrorKey) : undefined}
+          />
+          <div className={styles.passwordInfo}>
+            {tAuthentication(getPasswordRequirementsInfoKey())}
+          </div>
+          <div className={styles.buttons}>
+            <Button type="button" onClick={() => router.push('/')} variant="secondary">
+              {tMisc('cancel')}
+            </Button>
+            <Button
+              type="submit"
+              variant="primary"
+              disabled={!isFormValid || isLoading}
+              isLoading={isLoading}
+            >
+              {tMisc('submit')}
+            </Button>
+          </div>
+        </Form>
+      )}
+      {isAccountCreated && (
+        <FormInfoMessageText message={tAuthentication('account_created_message')} />
+      )}
     </div>
   );
 };

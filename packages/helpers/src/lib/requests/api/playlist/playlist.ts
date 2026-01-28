@@ -2,12 +2,13 @@ import { QueryParamsQueueMedium } from 'src/lib/medium';
 import { ApiListResponse, emptyApiListResponse } from '../..';
 import { DTOPlaylist, DTOPlaylistFavorites } from '../../../../dtos';
 import { ApiRequestService } from '../_request';
-import { QueryParamsGlobalRecent, QueryParamsGlobalTop, QueryParamsPlaylists } from '../queryParams';
+import {
+  QueryParamsGlobalRecent,
+  QueryParamsGlobalTop,
+  QueryParamsPlaylists,
+} from '../queryParams';
 
-export async function reqPlaylistGet(
-  api: ApiRequestService,
-  id_text: string,
-) {
+export async function reqPlaylistGet(api: ApiRequestService, id_text: string) {
   return api.apiRequest<DTOPlaylist>({
     path: `/playlist/${id_text}`,
     method: 'GET',
@@ -19,7 +20,7 @@ export async function reqPlaylistGet(
 
 export async function reqPlaylistGetManyPublicTop(
   api: ApiRequestService,
-  params: QueryParamsGlobalTop,
+  params: QueryParamsGlobalTop
 ) {
   return api.apiRequest<ApiListResponse<DTOPlaylist>>({
     path: '/playlist/public/top',
@@ -32,7 +33,7 @@ export async function reqPlaylistGetManyPublicTop(
 
 export async function reqPlaylistGetManyPrivateTop(
   api: ApiRequestService,
-  params: QueryParamsGlobalTop,
+  params: QueryParamsGlobalTop
 ) {
   return api.apiRequest<ApiListResponse<DTOPlaylist>>({
     path: '/playlist/private/top',
@@ -46,7 +47,7 @@ export async function reqPlaylistGetManyPrivateTop(
 
 export async function reqPlaylistGetManyPrivateRecent(
   api: ApiRequestService,
-  params: QueryParamsGlobalRecent,
+  params: QueryParamsGlobalRecent
 ) {
   return api.apiRequest<ApiListResponse<DTOPlaylist>>({
     path: '/playlist/private/recent',
@@ -60,7 +61,7 @@ export async function reqPlaylistGetManyPrivateRecent(
 
 export async function reqPlaylistGetManyPrivateOldest(
   api: ApiRequestService,
-  params: QueryParamsGlobalRecent,
+  params: QueryParamsGlobalRecent
 ) {
   return api.apiRequest<ApiListResponse<DTOPlaylist>>({
     path: '/playlist/private/oldest',
@@ -74,7 +75,7 @@ export async function reqPlaylistGetManyPrivateOldest(
 
 export async function reqPlaylistGetManyPrivateAZ(
   api: ApiRequestService,
-  params: QueryParamsGlobalRecent,
+  params: QueryParamsGlobalRecent
 ) {
   return api.apiRequest<ApiListResponse<DTOPlaylist>>({
     path: '/playlist/private/az',
@@ -88,7 +89,7 @@ export async function reqPlaylistGetManyPrivateAZ(
 
 export async function reqPlaylistGetManyPrivateFollowedTop(
   api: ApiRequestService,
-  params: QueryParamsGlobalTop,
+  params: QueryParamsGlobalTop
 ) {
   return api.apiRequest<ApiListResponse<DTOPlaylist>>({
     path: '/playlist/private/followed/top',
@@ -102,7 +103,7 @@ export async function reqPlaylistGetManyPrivateFollowedTop(
 
 export async function reqPlaylistGetManyPrivateFollowedRecent(
   api: ApiRequestService,
-  params: QueryParamsGlobalRecent,
+  params: QueryParamsGlobalRecent
 ) {
   return api.apiRequest<ApiListResponse<DTOPlaylist>>({
     path: '/playlist/private/followed/recent',
@@ -116,7 +117,7 @@ export async function reqPlaylistGetManyPrivateFollowedRecent(
 
 export async function reqPlaylistGetManyPrivateFollowedOldest(
   api: ApiRequestService,
-  params: QueryParamsGlobalRecent,
+  params: QueryParamsGlobalRecent
 ) {
   return api.apiRequest<ApiListResponse<DTOPlaylist>>({
     path: '/playlist/private/followed/oldest',
@@ -130,7 +131,7 @@ export async function reqPlaylistGetManyPrivateFollowedOldest(
 
 export async function reqPlaylistGetManyPrivateFollowedAZ(
   api: ApiRequestService,
-  params: QueryParamsGlobalRecent,
+  params: QueryParamsGlobalRecent
 ) {
   return api.apiRequest<ApiListResponse<DTOPlaylist>>({
     path: '/playlist/private/followed/az',
@@ -142,10 +143,7 @@ export async function reqPlaylistGetManyPrivateFollowedAZ(
   });
 }
 
-export async function reqPlaylistGetMany(
-  api: ApiRequestService,
-  params: QueryParamsPlaylists,
-) {
+export async function reqPlaylistGetMany(api: ApiRequestService, params: QueryParamsPlaylists) {
   if (params.type === 'public') {
     return reqPlaylistGetManyPublicTop(api, {
       page: params.page,
@@ -200,7 +198,7 @@ export async function reqPlaylistGetMany(
     }
   }
 
-  return emptyApiListResponse;  
+  return emptyApiListResponse;
 }
 
 export async function reqPlaylistGetAllFavoritesPrivate(api: ApiRequestService) {
@@ -218,7 +216,7 @@ export type ReqPlaylistCreateParams = {
   description?: string;
   medium: QueryParamsQueueMedium;
   sharable_status_id: number;
-}
+};
 
 export async function reqPlaylistCreate(api: ApiRequestService, params: ReqPlaylistCreateParams) {
   return api.apiRequest<DTOPlaylist>({
@@ -237,7 +235,7 @@ export type ReqPlaylistEditParams = {
   description?: string;
   medium: QueryParamsQueueMedium;
   sharable_status_id: number;
-}
+};
 
 export async function reqPlaylistEdit(api: ApiRequestService, params: ReqPlaylistEditParams) {
   return api.apiRequest<DTOPlaylist>({

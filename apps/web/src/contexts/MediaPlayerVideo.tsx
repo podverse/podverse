@@ -3,7 +3,7 @@ import React, { createContext, useContext, useState, ReactNode } from 'react';
 type Location = 'embedded' | 'full-modal' | 'floating' | null;
 
 type MediaPlayerVideoType = {
-  videoLocation: Location
+  videoLocation: Location;
   setVideoLocation: (val: Location) => void;
 };
 
@@ -25,6 +25,8 @@ export const MediaPlayerVideoProvider = ({ children }: MediaPlayerVideoProviderP
 
 export function useMediaPlayerVideo() {
   const ctx = useContext(MediaPlayerVideoContext);
-  if (!ctx) {throw new Error('useMediaPlayerVideo must be used within a MediaPlayerVideoProvider');}
+  if (!ctx) {
+    throw new Error('useMediaPlayerVideo must be used within a MediaPlayerVideoProvider');
+  }
   return ctx;
 }

@@ -39,10 +39,7 @@ const clipRelations = [
   'sharable_status',
 ];
 
-const playlistRelations = [
-  'account',
-  'account.account_profile',
-];
+const playlistRelations = ['account', 'account.account_profile'];
 
 export class ProfileContentController {
   private static accountService = new AccountService();
@@ -62,7 +59,7 @@ export class ProfileContentController {
           // Check if account exists and is public/unlisted
           const account = await ProfileContentController.accountService.getByIdText(
             account_id_text,
-            { relations: ['sharable_status'] },
+            { relations: ['sharable_status'] }
           );
 
           if (!account) {
@@ -83,9 +80,13 @@ export class ProfileContentController {
             order: { channel: { sortable_title: 'ASC' } },
           };
 
-          const { results, count } = await ProfileContentController.accountFollowingChannelService
-            .getFollowedChannelsByAccountIdTextWithCount(account_id_text, 'av', config);
-          
+          const { results, count } =
+            await ProfileContentController.accountFollowingChannelService.getFollowedChannelsByAccountIdTextWithCount(
+              account_id_text,
+              'av',
+              config
+            );
+
           const channels = results.map((f: AccountFollowingChannel) => f.channel).filter(Boolean);
 
           const response: ApiListResponse<Channel> = {
@@ -110,7 +111,7 @@ export class ProfileContentController {
           // Check if account exists and is public/unlisted
           const account = await ProfileContentController.accountService.getByIdText(
             account_id_text,
-            { relations: ['sharable_status'] },
+            { relations: ['sharable_status'] }
           );
 
           if (!account) {
@@ -131,8 +132,11 @@ export class ProfileContentController {
             order: { title: 'ASC' },
           };
 
-          const [playlists, count] = await ProfileContentController.playlistService
-            .getManyByAccountIdTextPublicAndCount(account_id_text, config);
+          const [playlists, count] =
+            await ProfileContentController.playlistService.getManyByAccountIdTextPublicAndCount(
+              account_id_text,
+              config
+            );
 
           const response: ApiListResponse<Playlist> = {
             data: playlists,
@@ -156,7 +160,7 @@ export class ProfileContentController {
           // Check if account exists and is public/unlisted
           const account = await ProfileContentController.accountService.getByIdText(
             account_id_text,
-            { relations: ['sharable_status'] },
+            { relations: ['sharable_status'] }
           );
 
           if (!account) {
@@ -177,8 +181,11 @@ export class ProfileContentController {
             order: { created_at: 'DESC' },
           };
 
-          const [clips, count] = await ProfileContentController.clipService
-            .getManyByAccountIdTextPublicAndCount(account_id_text, config);
+          const [clips, count] =
+            await ProfileContentController.clipService.getManyByAccountIdTextPublicAndCount(
+              account_id_text,
+              config
+            );
 
           const response: ApiListResponse<Clip> = {
             data: clips,
@@ -202,7 +209,7 @@ export class ProfileContentController {
           // Check if account exists and is public/unlisted
           const account = await ProfileContentController.accountService.getByIdText(
             account_id_text,
-            { relations: ['sharable_status'] },
+            { relations: ['sharable_status'] }
           );
 
           if (!account) {
@@ -223,9 +230,13 @@ export class ProfileContentController {
             order: { channel: { sortable_title: 'ASC' } },
           };
 
-          const { results, count } = await ProfileContentController.accountFollowingChannelService
-            .getFollowedChannelsByAccountIdTextWithCount(account_id_text, 'music', config);
-          
+          const { results, count } =
+            await ProfileContentController.accountFollowingChannelService.getFollowedChannelsByAccountIdTextWithCount(
+              account_id_text,
+              'music',
+              config
+            );
+
           const channels = results.map((f: AccountFollowingChannel) => f.channel).filter(Boolean);
 
           const response: ApiListResponse<Channel> = {
@@ -244,123 +255,157 @@ export class ProfileContentController {
 
   static async getMyProfilePodcastsAZ(req: Request, res: Response): Promise<void> {
     validateQueryObject(getPaginatedSchema, req, res, async () => {
-      ensureAuthenticated(req, res, async () => {
-        try {
-          const account = getAuthenticatedUser(req);
-          const { page, limit, offset } = getPaginationParams(req);
+      ensureAuthenticated(
+        req,
+        res,
+        async () => {
+          try {
+            const account = getAuthenticatedUser(req);
+            const { page, limit, offset } = getPaginationParams(req);
 
-          const config: FindManyOptions<AccountFollowingChannel> = {
-            skip: offset,
-            take: limit,
-            relations: subChannelGetManyRelations,
-            order: { channel: { sortable_title: 'ASC' } },
-          };
+            const config: FindManyOptions<AccountFollowingChannel> = {
+              skip: offset,
+              take: limit,
+              relations: subChannelGetManyRelations,
+              order: { channel: { sortable_title: 'ASC' } },
+            };
 
-          const { results, count } = await ProfileContentController.accountFollowingChannelService
-            .getFollowedChannelsWithCount(account.id, 'av', config);
-          
-          const channels = results.map((f: AccountFollowingChannel) => f.channel).filter(Boolean);
+            const { results, count } =
+              await ProfileContentController.accountFollowingChannelService.getFollowedChannelsWithCount(
+                account.id,
+                'av',
+                config
+              );
 
-          const response: ApiListResponse<Channel> = {
-            data: channels,
-            meta: { page, count, limit },
-          };
-          res.json(response);
-        } catch (error) {
-          handleGenericErrorResponse(res, error);
-        }
-      }, { skipMembershipStatus: true });
+            const channels = results.map((f: AccountFollowingChannel) => f.channel).filter(Boolean);
+
+            const response: ApiListResponse<Channel> = {
+              data: channels,
+              meta: { page, count, limit },
+            };
+            res.json(response);
+          } catch (error) {
+            handleGenericErrorResponse(res, error);
+          }
+        },
+        { skipMembershipStatus: true }
+      );
     });
   }
 
   static async getMyProfilePlaylistsAZ(req: Request, res: Response): Promise<void> {
     validateQueryObject(getPaginatedSchema, req, res, async () => {
-      ensureAuthenticated(req, res, async () => {
-        try {
-          const account = getAuthenticatedUser(req);
-          const { page, limit, offset } = getPaginationParams(req);
+      ensureAuthenticated(
+        req,
+        res,
+        async () => {
+          try {
+            const account = getAuthenticatedUser(req);
+            const { page, limit, offset } = getPaginationParams(req);
 
-          const config: FindManyOptions<Playlist> = {
-            skip: offset,
-            take: limit,
-            relations: playlistRelations,
-            order: { title: 'ASC' },
-          };
+            const config: FindManyOptions<Playlist> = {
+              skip: offset,
+              take: limit,
+              relations: playlistRelations,
+              order: { title: 'ASC' },
+            };
 
-          // My-profile should return all playlists regardless of sharable status
-          const [playlists, count] = await ProfileContentController.playlistService
-            .getManyByAccountIdTextAndCount(account.id_text, config);
+            // My-profile should return all playlists regardless of sharable status
+            const [playlists, count] =
+              await ProfileContentController.playlistService.getManyByAccountIdTextAndCount(
+                account.id_text,
+                config
+              );
 
-          const response: ApiListResponse<Playlist> = {
-            data: playlists,
-            meta: { page, count, limit },
-          };
-          res.json(response);
-        } catch (error) {
-          handleGenericErrorResponse(res, error);
-        }
-      }, { skipMembershipStatus: true });
+            const response: ApiListResponse<Playlist> = {
+              data: playlists,
+              meta: { page, count, limit },
+            };
+            res.json(response);
+          } catch (error) {
+            handleGenericErrorResponse(res, error);
+          }
+        },
+        { skipMembershipStatus: true }
+      );
     });
   }
 
   static async getMyProfileClipsRecent(req: Request, res: Response): Promise<void> {
     validateQueryObject(getPaginatedSchema, req, res, async () => {
-      ensureAuthenticated(req, res, async () => {
-        try {
-          const account = getAuthenticatedUser(req);
-          const { page, limit, offset } = getPaginationParams(req);
+      ensureAuthenticated(
+        req,
+        res,
+        async () => {
+          try {
+            const account = getAuthenticatedUser(req);
+            const { page, limit, offset } = getPaginationParams(req);
 
-          const config: FindManyOptions<Clip> = {
-            skip: offset,
-            take: limit,
-            relations: clipRelations,
-            order: { created_at: 'DESC' },
-          };
+            const config: FindManyOptions<Clip> = {
+              skip: offset,
+              take: limit,
+              relations: clipRelations,
+              order: { created_at: 'DESC' },
+            };
 
-          // My-profile should return all clips regardless of sharable status
-          const [clips, count] = await ProfileContentController.clipService
-            .getManyByAccountIdTextAndCount(account.id_text, config);
+            // My-profile should return all clips regardless of sharable status
+            const [clips, count] =
+              await ProfileContentController.clipService.getManyByAccountIdTextAndCount(
+                account.id_text,
+                config
+              );
 
-          const response: ApiListResponse<Clip> = {
-            data: clips,
-            meta: { page, count, limit },
-          };
-          res.json(response);
-        } catch (error) {
-          handleGenericErrorResponse(res, error);
-        }
-      }, { skipMembershipStatus: true });
+            const response: ApiListResponse<Clip> = {
+              data: clips,
+              meta: { page, count, limit },
+            };
+            res.json(response);
+          } catch (error) {
+            handleGenericErrorResponse(res, error);
+          }
+        },
+        { skipMembershipStatus: true }
+      );
     });
   }
 
   static async getMyProfileAlbumsAZ(req: Request, res: Response): Promise<void> {
     validateQueryObject(getPaginatedSchema, req, res, async () => {
-      ensureAuthenticated(req, res, async () => {
-        try {
-          const account = getAuthenticatedUser(req);
-          const { page, limit, offset } = getPaginationParams(req);
+      ensureAuthenticated(
+        req,
+        res,
+        async () => {
+          try {
+            const account = getAuthenticatedUser(req);
+            const { page, limit, offset } = getPaginationParams(req);
 
-          const config: FindManyOptions<AccountFollowingChannel> = {
-            skip: offset,
-            take: limit,
-            relations: subChannelGetManyRelations,
-            order: { channel: { sortable_title: 'ASC' } },
-          };
+            const config: FindManyOptions<AccountFollowingChannel> = {
+              skip: offset,
+              take: limit,
+              relations: subChannelGetManyRelations,
+              order: { channel: { sortable_title: 'ASC' } },
+            };
 
-          const { results, count } = await ProfileContentController.accountFollowingChannelService
-            .getFollowedChannelsWithCount(account.id, 'music', config);
-          
-          const channels = results.map((f: AccountFollowingChannel) => f.channel).filter(Boolean);
+            const { results, count } =
+              await ProfileContentController.accountFollowingChannelService.getFollowedChannelsWithCount(
+                account.id,
+                'music',
+                config
+              );
 
-          const response: ApiListResponse<Channel> = {
-            data: channels,
-            meta: { page, count, limit },
-          };
-          res.json(response);
-        } catch (error) {
-          handleGenericErrorResponse(res, error);
-        }
-      }, { skipMembershipStatus: true });
+            const channels = results.map((f: AccountFollowingChannel) => f.channel).filter(Boolean);
+
+            const response: ApiListResponse<Channel> = {
+              data: channels,
+              meta: { page, count, limit },
+            };
+            res.json(response);
+          } catch (error) {
+            handleGenericErrorResponse(res, error);
+          }
+        },
+        { skipMembershipStatus: true }
+      );
     });
   }
 }

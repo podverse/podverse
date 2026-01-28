@@ -1,26 +1,33 @@
-import { PodcastBatchByFeedGuidResponse, EpisodeByGuidResponse, DTOChannel,
-  DTOItem, RemoteItemGeneric } from '@podverse/helpers';
+import {
+  PodcastBatchByFeedGuidResponse,
+  EpisodeByGuidResponse,
+  DTOChannel,
+  DTOItem,
+  RemoteItemGeneric,
+} from '@podverse/helpers';
 import { podcastIndexService } from '@api/factories/podcastIndexService';
 import { cacheGetJson, cacheSetJson } from '@api/lib/keyvaldb/keyvaldb';
 import { config } from '@api/config';
 
 export type FinalRemoteItemsResult = {
-	channelsAdded: DTOChannel[];
-	channelsUnadded: PodcastBatchByFeedGuidResponse['feeds'];
-	itemsAdded: DTOItem[];
-	itemsUnadded: EpisodeByGuidResponse['episode'][];
+  channelsAdded: DTOChannel[];
+  channelsUnadded: PodcastBatchByFeedGuidResponse['feeds'];
+  itemsAdded: DTOItem[];
+  itemsUnadded: EpisodeByGuidResponse['episode'][];
 };
 
 export async function buildRemoteItemsFinalResult(
   originalChannelsAdded: DTOChannel[],
   originalChannelsUnadded: RemoteItemGeneric[],
   originalItemsAdded: DTOItem[],
-  originalItemsUnadded: RemoteItemGeneric[],
+  originalItemsUnadded: RemoteItemGeneric[]
 ): Promise<FinalRemoteItemsResult> {
   const feedGuids: string[] = [];
   if (originalChannelsUnadded && Array.isArray(originalChannelsUnadded)) {
     for (const r of originalChannelsUnadded) {
-      if (r.feed_guid) {feedGuids.push(r.feed_guid);}
+      if (r.feed_guid) {
+        feedGuids.push(r.feed_guid);
+      }
     }
   }
 
@@ -43,14 +50,18 @@ export async function buildRemoteItemsFinalResult(
       let fetchedFeeds: PodcastBatchByFeedGuidResponse['feeds'] = [];
       if (missingGuids.length) {
         const piResponse = await podcastIndexService.podcastsBatchByFeedGuid(missingGuids);
-        fetchedFeeds = (piResponse && Array.isArray(piResponse.feeds)) ? piResponse.feeds : [];
+        fetchedFeeds = piResponse && Array.isArray(piResponse.feeds) ? piResponse.feeds : [];
 
         for (const f of fetchedFeeds) {
           try {
             const feedGuid = f.podcastGuid ? f.podcastGuid : null;
             if (feedGuid) {
               const key = `pi:feed:${feedGuid}`;
-              await cacheSetJson<PodcastBatchByFeedGuidResponse['feeds'][number]>(key, f, config.keyvaldb.cacheTTLSeconds);
+              await cacheSetJson<PodcastBatchByFeedGuidResponse['feeds'][number]>(
+                key,
+                f,
+                config.keyvaldb.cacheTTLSeconds
+              );
             }
           } catch {
             // swallow
@@ -62,11 +73,15 @@ export async function buildRemoteItemsFinalResult(
       const byGuid = new Map<string, PodcastBatchByFeedGuidResponse['feeds'][number]>();
       for (const f of [...cachedFeeds, ...fetchedFeeds]) {
         const feedGuid = f.podcastGuid ? f.podcastGuid : null;
-        if (feedGuid) {byGuid.set(feedGuid, f);}
+        if (feedGuid) {
+          byGuid.set(feedGuid, f);
+        }
       }
       for (const guid of feedGuids) {
         const f = byGuid.get(guid);
-        if (f) {merged.push(f);}
+        if (f) {
+          merged.push(f);
+        }
       }
 
       channelsUnaddedFromPI = merged;
@@ -96,11 +111,17 @@ export async function buildRemoteItemsFinalResult(
 
     for (const mi of missingItems) {
       try {
-        const response = await podcastIndexService.episodeGetByGuid(mi.item_guid, { podcastguid: mi.feed_guid });
+        const response = await podcastIndexService.episodeGetByGuid(mi.item_guid, {
+          podcastguid: mi.feed_guid,
+        });
         if (response?.episode) {
           itemsUnaddedFromPI.push(response.episode);
           const key = `pi:episode:${mi.item_guid}:${mi.feed_guid}`;
-          await cacheSetJson<NonNullable<EpisodeByGuidResponse['episode']>>(key, response.episode, config.keyvaldb.cacheTTLSeconds);
+          await cacheSetJson<NonNullable<EpisodeByGuidResponse['episode']>>(
+            key,
+            response.episode,
+            config.keyvaldb.cacheTTLSeconds
+          );
         }
       } catch {
         // swallow

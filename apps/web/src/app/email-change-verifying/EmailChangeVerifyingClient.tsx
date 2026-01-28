@@ -55,7 +55,9 @@ export function EmailChangeVerifyingClient({ token }: EmailChangeVerifyingClient
     };
     verify();
     return () => {
-      if (timeoutId) {clearTimeout(timeoutId);}
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
     };
   }, []);
 
@@ -74,13 +76,17 @@ export function EmailChangeVerifyingClient({ token }: EmailChangeVerifyingClient
               )}
               {!isVerifying && isSuccess && (
                 <div className={styles.messageSection}>
-                  <FormInfoMessageText message={tAuthentication('change_email_address_email_success')} />
+                  <FormInfoMessageText
+                    message={tAuthentication('change_email_address_email_success')}
+                  />
                   <FormInfoMessageText message={tMisc('redirecting')} />
                 </div>
               )}
               {!isVerifying && isError && (
                 <div className={styles.messageSection}>
-                  <FormErrorMessageText message={tAuthentication('change_email_address_email_failed')} />
+                  <FormErrorMessageText
+                    message={tAuthentication('change_email_address_email_failed')}
+                  />
                 </div>
               )}
             </div>

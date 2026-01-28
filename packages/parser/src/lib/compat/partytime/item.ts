@@ -6,14 +6,15 @@ import { compatItemValue } from '@parser/lib/compat/partytime/value';
 
 type CompatItemDtoOptions = {
   isLiveItem?: boolean;
-}
+};
 
 export const compatItemDto = (parsedItem: Episode, options?: CompatItemDtoOptions) => ({
   guid: parsedItem.guid?.slice(0, DATABASE_CONSTANTS.varchar_url) || null,
-  guid_enclosure_url: !options?.isLiveItem
-    && isValidHttpUrl(parsedItem.enclosure.url)
-    && formatGuidEnclosureUrl(parsedItem.enclosure.url)
-    || null,
+  guid_enclosure_url:
+    (!options?.isLiveItem &&
+      isValidHttpUrl(parsedItem.enclosure.url) &&
+      formatGuidEnclosureUrl(parsedItem.enclosure.url)) ||
+    null,
   pub_date: parsedItem.pubDate || null,
   title: parsedItem.title?.slice(0, DATABASE_CONSTANTS.varchar_normal) || null,
 });
@@ -21,15 +22,22 @@ export const compatItemDto = (parsedItem: Episode, options?: CompatItemDtoOption
 export const compatItemAboutDto = (parsedItem: Episode) => ({
   duration: parsedItem.duration?.toFixed(2) || null,
   explicit: parsedItem.explicit || false,
-  website_link_url: isValidHttpUrl(parsedItem.link) && parsedItem.link?.slice(0, DATABASE_CONSTANTS.varchar_url) || null,
-  item_itunes_episode_type: getItemItunesEpisodeTypeEnumValue(parsedItem.itunesEpisodeType || 'full'),
+  website_link_url:
+    (isValidHttpUrl(parsedItem.link) &&
+      parsedItem.link?.slice(0, DATABASE_CONSTANTS.varchar_url)) ||
+    null,
+  item_itunes_episode_type: getItemItunesEpisodeTypeEnumValue(
+    parsedItem.itunesEpisodeType || 'full'
+  ),
 });
 
 export const compatItemChaptersFeedDto = (parsedItem: Episode) => {
   const chaptersUrl = parsedItem.podcastChapters?.url;
   const chaptersType = parsedItem.podcastChapters?.type;
-  if (!chaptersUrl || !isValidHttpUrl(chaptersUrl) || !chaptersType) {return null;}
-  
+  if (!chaptersUrl || !isValidHttpUrl(chaptersUrl) || !chaptersType) {
+    return null;
+  }
+
   return {
     url: chaptersUrl.slice(0, DATABASE_CONSTANTS.varchar_url),
     type: chaptersType.slice(0, DATABASE_CONSTANTS.varchar_short),
@@ -75,12 +83,14 @@ export const compatItemEnclosureDtos = (parsedItem: Episode) => {
     };
 
     const item_enclosure_integrity = null;
-      
-    const item_enclosure_sources = [{
-      uri: parsedItem.enclosure.url.slice(0, DATABASE_CONSTANTS.varchar_uri),
-      content_type: null,
-    }];
-    
+
+    const item_enclosure_sources = [
+      {
+        uri: parsedItem.enclosure.url.slice(0, DATABASE_CONSTANTS.varchar_uri),
+        content_type: null,
+      },
+    ];
+
     const formattedDto = {
       item_enclosure,
       item_enclosure_integrity,
@@ -112,8 +122,8 @@ export const compatItemEnclosureDtos = (parsedItem: Episode) => {
       */
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const item_enclosure_integrity = (alternativeEnclosure.integrity as any) || null;
-      
-      const item_enclosure_sources = alternativeEnclosure.source.map(source => ({
+
+      const item_enclosure_sources = alternativeEnclosure.source.map((source) => ({
         uri: source.uri.slice(0, DATABASE_CONSTANTS.varchar_uri),
         content_type: source.contentType.slice(0, DATABASE_CONSTANTS.varchar_short),
       }));
@@ -127,7 +137,7 @@ export const compatItemEnclosureDtos = (parsedItem: Episode) => {
       dtos.push(formattedDto);
     }
   }
-  
+
   return dtos;
 };
 
@@ -169,7 +179,10 @@ export const compatItemLicenseDto = (parsedItem: Episode) => {
   }
   return {
     identifier: parsedItem.license.identifier.slice(0, DATABASE_CONSTANTS.varchar_normal),
-    url: isValidHttpUrl(parsedItem.license.url) && parsedItem.license.url?.slice(0, DATABASE_CONSTANTS.varchar_url) || null,
+    url:
+      (isValidHttpUrl(parsedItem.license.url) &&
+        parsedItem.license.url?.slice(0, DATABASE_CONSTANTS.varchar_url)) ||
+      null,
   };
 };
 
@@ -194,9 +207,11 @@ export const compatItemPersonDtos = (parsedItem: Episode) => {
         dtos.push({
           name: p.name.slice(0, DATABASE_CONSTANTS.varchar_normal),
           role: p.role?.toLowerCase()?.slice(0, DATABASE_CONSTANTS.varchar_normal) || null,
-          person_group: p.group?.toLowerCase()?.slice(0, DATABASE_CONSTANTS.varchar_normal) || 'cast',
-          img: isValidHttpUrl(p.img) && p.img?.slice(0, DATABASE_CONSTANTS.varchar_url) || null,
-          href: isValidHttpUrl(p.href) && p.href?.slice(0, DATABASE_CONSTANTS.varchar_url) || null,
+          person_group:
+            p.group?.toLowerCase()?.slice(0, DATABASE_CONSTANTS.varchar_normal) || 'cast',
+          img: (isValidHttpUrl(p.img) && p.img?.slice(0, DATABASE_CONSTANTS.varchar_url)) || null,
+          href:
+            (isValidHttpUrl(p.href) && p.href?.slice(0, DATABASE_CONSTANTS.varchar_url)) || null,
         });
       }
     }
@@ -238,7 +253,10 @@ export const compatItemSocialInteractDtos = (parsedItem: Episode) => {
         protocol: ps.platform.slice(0, DATABASE_CONSTANTS.varchar_short),
         uri: ps.url.slice(0, DATABASE_CONSTANTS.varchar_uri),
         account_id: ps.id?.slice(0, DATABASE_CONSTANTS.varchar_normal) || null,
-        account_url: isValidHttpUrl(ps.profileUrl) && ps.profileUrl?.slice(0, DATABASE_CONSTANTS.varchar_url) || null,
+        account_url:
+          (isValidHttpUrl(ps.profileUrl) &&
+            ps.profileUrl?.slice(0, DATABASE_CONSTANTS.varchar_url)) ||
+          null,
         priority: ps.priority || null,
       });
     }

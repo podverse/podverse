@@ -7,6 +7,7 @@ This plan fixes 18 TypeScript errors related to computed property names when acc
 When accessing CSS module classes dynamically (e.g., `styles[variant]`), TypeScript can't guarantee the property exists. We need to add type assertions to tell TypeScript these are valid keys.
 
 **Pattern to fix:**
+
 ```typescript
 // Before (error)
 styles[variant]
@@ -20,54 +21,63 @@ styles[variant as keyof typeof styles]
 ## Files to Fix
 
 ### 1. Button Component
+
 - **File**: [`apps/web/src/components/Button/Button.tsx`](apps/web/src/components/Button/Button.tsx)
 - **Lines**: 76, 93
 - **Issue**: `styles[variant]` and `styles.invisible` in computed property names
 - **Fix**: Add `as keyof typeof styles` assertions
 
 ### 2. Divider Component
+
 - **File**: [`apps/web/src/components/Divider/Divider.tsx`](apps/web/src/components/Divider/Divider.tsx)
 - **Line**: 12
 - **Issue**: `styles.dividerWithSpacing` in computed property name
 - **Fix**: Add type assertion
 
 ### 3. DropdownMenu Component
+
 - **File**: [`apps/web/src/components/Dropdown/DropdownMenu.tsx`](apps/web/src/components/Dropdown/DropdownMenu.tsx)
 - **Lines**: 79, 80
 - **Issue**: Dynamic class name access
 - **Fix**: Add type assertions
 
 ### 4. TextInput Component
+
 - **File**: [`apps/web/src/components/Form/TextInput.tsx`](apps/web/src/components/Form/TextInput.tsx)
 - **Lines**: 90, 91, 120, 155, 156
 - **Issue**: Multiple computed property names for CSS classes
 - **Fix**: Add type assertions for all dynamic class access
 
 ### 5. PlaybackModeButton Component
+
 - **File**: [`apps/web/src/components/MediaPlayer/Buttons/PlaybackModeButton.tsx`](apps/web/src/components/MediaPlayer/Buttons/PlaybackModeButton.tsx)
 - **Line**: 17
 - **Issue**: Dynamic class name access
 - **Fix**: Add type assertion
 
 ### 6. MediaPlayerLivestreamVideoPortalFloating Component
+
 - **File**: [`apps/web/src/components/MediaPlayer/Controller/LiveStream/MediaPlayerLivestreamVideoPortalFloating.tsx`](apps/web/src/components/MediaPlayer/Controller/LiveStream/MediaPlayerLivestreamVideoPortalFloating.tsx)
 - **Lines**: 38, 39
 - **Issue**: Dynamic class name access
 - **Fix**: Add type assertions
 
 ### 7. MediaPlayerVideoPortalFloating Component
+
 - **File**: [`apps/web/src/components/MediaPlayer/Controller/Video/MediaPlayerVideoPortalFloating.tsx`](apps/web/src/components/MediaPlayer/Controller/Video/MediaPlayerVideoPortalFloating.tsx)
 - **Lines**: 23, 24
 - **Issue**: Dynamic class name access
 - **Fix**: Add type assertions
 
 ### 8. MoreButton Component
+
 - **File**: [`apps/web/src/components/MoreButton/MoreButton.tsx`](apps/web/src/components/MoreButton/MoreButton.tsx)
 - **Line**: 47
 - **Issue**: Dynamic class name access
 - **Fix**: Add type assertion
 
 ### 9. Tab Component
+
 - **File**: [`apps/web/src/components/Tabs/Tab.tsx`](apps/web/src/components/Tabs/Tab.tsx)
 - **Lines**: 17, 18
 - **Issue**: Dynamic class name access
@@ -108,7 +118,7 @@ Or a type helper:
 type StyleKey<T> = keyof T & string;
 
 // Usage:
-styles[variant as StyleKey<typeof styles>]
+styles[variant as StyleKey<typeof styles>];
 ```
 
 This reduces repetition while maintaining type safety.
@@ -116,6 +126,7 @@ This reduces repetition while maintaining type safety.
 ## Verification
 
 After fixing each file:
+
 ```bash
 cd apps/web && npx tsc --noEmit
 ```

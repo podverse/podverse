@@ -9,7 +9,7 @@
     "build:prod": "tsc -p tsconfig.prod.json && tsc-alias -p tsconfig.prod.json",
     "dev": "tsc && tsc-alias && node ./dist/index.js",
     "dev:watch": "tsc --build --watch --preserveWatchOutput & tsc-alias --watch & nodemon --delay 1000ms --watch dist --watch ../../packages/helpers/dist --watch ../../packages/external-services/dist --watch ../../packages/orm/dist --watch ../../packages/notifications/dist --watch ../../packages/parser/dist --watch ../../packages/mq/dist dist/index.js",
-    "lint": "eslint ./src",
+    "lint": "eslint ./src --max-warnings 0",
     "lint:fix": "eslint ./src --fix",
     "start": "node ./dist/index.js",
     "clean": "rm -rf dist",

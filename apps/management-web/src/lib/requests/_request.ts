@@ -6,23 +6,22 @@ export const request = async <T>(
   url: string,
   requestConfig?: AxiosRequestConfig,
   abort?: {
-    controller: AbortController
-    timeoutMs: number
-  },
+    controller: AbortController;
+    timeoutMs: number;
+  }
 ): Promise<{ status: number; data: T }> => {
-   
   let timeoutId: NodeJS.Timeout | undefined;
   if (abort) {
     timeoutId = setTimeout(() => {
       abort.controller.abort();
     }, abort.timeoutMs);
   }
-  
+
   try {
     const isJSONRequest =
-      requestConfig?.method?.toUpperCase() === 'POST'
-      || requestConfig?.method?.toUpperCase() === 'PUT'
-      || requestConfig?.method?.toUpperCase() === 'PATCH';
+      requestConfig?.method?.toUpperCase() === 'POST' ||
+      requestConfig?.method?.toUpperCase() === 'PUT' ||
+      requestConfig?.method?.toUpperCase() === 'PATCH';
 
     const config: AxiosRequestConfig = {
       url,

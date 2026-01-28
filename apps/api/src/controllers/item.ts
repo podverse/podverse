@@ -1,23 +1,40 @@
 import { Request, Response } from 'express';
 import Joi from 'joi';
-import { itemGetOneRelations, itemGetManyRelations, ItemChapterService, ItemService, Item,
-  StatsAggregatedItem, FindManyOptions, subItemGetManyRelations,
-  StatsAggregatedItemService, ChannelService, 
+import {
+  itemGetOneRelations,
+  itemGetManyRelations,
+  ItemChapterService,
+  ItemService,
+  Item,
+  StatsAggregatedItem,
+  FindManyOptions,
+  subItemGetManyRelations,
+  StatsAggregatedItemService,
+  ChannelService,
   itemGetManyRelationsWithChannel,
-  subItemGetManyRelationsWithChannel, 
-  FindOptionsOrder, ItemChapter} from '@podverse/orm';
+  subItemGetManyRelationsWithChannel,
+  FindOptionsOrder,
+  ItemChapter,
+} from '@podverse/orm';
 import { parseChapters } from '@podverse/parser';
 import { handleReturnDataOrNotFound } from '@api/controllers/helpers/data';
 import { handleGenericErrorResponse } from '@api/controllers/helpers/error';
 import { getPaginationParams } from '@api/controllers/helpers/pagination';
 import { validateParamsObject, validateQueryObject } from '@api/lib/validation';
-import { ApiListResponse, CATEGORY_MAPPING_KEYS, CategoryMappingKeys, emptyApiListResponse, getCategoryEnumValue,
+import {
+  ApiListResponse,
+  CATEGORY_MAPPING_KEYS,
+  CategoryMappingKeys,
+  emptyApiListResponse,
+  getCategoryEnumValue,
   LIVE_ITEM_STATUSES,
   QUERY_PARAMS_DIRECTION_VALUES,
   QUERY_PARAMS_MEDIUMS,
   QUERY_PARAMS_STATS_RANGE_VALUES,
   QueryParamsDirection,
-  QueryParamsMedium, QueryParamsStatsRange } from '@podverse/helpers';
+  QueryParamsMedium,
+  QueryParamsStatsRange,
+} from '@podverse/helpers';
 import { getStatsOrder } from '@api/lib/stats';
 import { ensureAuthenticated, getAuthenticatedUser } from '@api/lib/auth';
 import { getFollowedChannelIds } from '@api/lib/followed';
@@ -28,44 +45,78 @@ const getByIdOrIdTextSchema = Joi.object({
 });
 
 const getManyGlobalRecentSchema = Joi.object({
-  medium: Joi.string().valid(...QUERY_PARAMS_MEDIUMS).required(),
+  medium: Joi.string()
+    .valid(...QUERY_PARAMS_MEDIUMS)
+    .required(),
   page: Joi.number().integer().min(1).required(),
-  liveItemType: Joi.string().valid(...LIVE_ITEM_STATUSES).optional(),
+  liveItemType: Joi.string()
+    .valid(...LIVE_ITEM_STATUSES)
+    .optional(),
 });
 
 const getManyGlobalTopSchema = Joi.object({
-  medium: Joi.string().valid(...QUERY_PARAMS_MEDIUMS).required(),
-  range: Joi.string().valid(...QUERY_PARAMS_STATS_RANGE_VALUES).required(),
+  medium: Joi.string()
+    .valid(...QUERY_PARAMS_MEDIUMS)
+    .required(),
+  range: Joi.string()
+    .valid(...QUERY_PARAMS_STATS_RANGE_VALUES)
+    .required(),
   page: Joi.number().integer().min(1).required(),
-  liveItemType: Joi.string().valid(...LIVE_ITEM_STATUSES).optional(),
+  liveItemType: Joi.string()
+    .valid(...LIVE_ITEM_STATUSES)
+    .optional(),
 });
 
 const getManyCategoryRecentSchema = Joi.object({
-  medium: Joi.string().valid(...QUERY_PARAMS_MEDIUMS).required(),
-  category: Joi.string().valid(...CATEGORY_MAPPING_KEYS).required(),
+  medium: Joi.string()
+    .valid(...QUERY_PARAMS_MEDIUMS)
+    .required(),
+  category: Joi.string()
+    .valid(...CATEGORY_MAPPING_KEYS)
+    .required(),
   page: Joi.number().integer().min(1).required(),
-  liveItemType: Joi.string().valid(...LIVE_ITEM_STATUSES).optional(),
+  liveItemType: Joi.string()
+    .valid(...LIVE_ITEM_STATUSES)
+    .optional(),
 });
 
 const getManyCategoryTopSchema = Joi.object({
-  medium: Joi.string().valid(...QUERY_PARAMS_MEDIUMS).required(),
-  category: Joi.string().valid(...CATEGORY_MAPPING_KEYS).required(),
-  range: Joi.string().valid(...QUERY_PARAMS_STATS_RANGE_VALUES).required(),
+  medium: Joi.string()
+    .valid(...QUERY_PARAMS_MEDIUMS)
+    .required(),
+  category: Joi.string()
+    .valid(...CATEGORY_MAPPING_KEYS)
+    .required(),
+  range: Joi.string()
+    .valid(...QUERY_PARAMS_STATS_RANGE_VALUES)
+    .required(),
   page: Joi.number().integer().min(1).required(),
-  liveItemType: Joi.string().valid(...LIVE_ITEM_STATUSES).optional(),
+  liveItemType: Joi.string()
+    .valid(...LIVE_ITEM_STATUSES)
+    .optional(),
 });
 
 const getManySubscribedRecentSchema = Joi.object({
-  medium: Joi.string().valid(...QUERY_PARAMS_MEDIUMS).required(),
+  medium: Joi.string()
+    .valid(...QUERY_PARAMS_MEDIUMS)
+    .required(),
   page: Joi.number().integer().min(1).required(),
-  liveItemType: Joi.string().valid(...LIVE_ITEM_STATUSES).optional(),
+  liveItemType: Joi.string()
+    .valid(...LIVE_ITEM_STATUSES)
+    .optional(),
 });
 
 const getManySubscribedTopSchema = Joi.object({
-  medium: Joi.string().valid(...QUERY_PARAMS_MEDIUMS).required(),
-  range: Joi.string().valid(...QUERY_PARAMS_STATS_RANGE_VALUES).required(),
+  medium: Joi.string()
+    .valid(...QUERY_PARAMS_MEDIUMS)
+    .required(),
+  range: Joi.string()
+    .valid(...QUERY_PARAMS_STATS_RANGE_VALUES)
+    .required(),
   page: Joi.number().integer().min(1).required(),
-  liveItemType: Joi.string().valid(...LIVE_ITEM_STATUSES).optional(),
+  liveItemType: Joi.string()
+    .valid(...LIVE_ITEM_STATUSES)
+    .optional(),
 });
 
 const getManyByChannelParmsSchema = Joi.object({
@@ -90,7 +141,9 @@ const getManyByChannelShuffleQuerySchema = Joi.object({
 });
 
 const getManyByChannelTopQuerySchema = Joi.object({
-  range: Joi.string().valid(...QUERY_PARAMS_STATS_RANGE_VALUES).required(),
+  range: Joi.string()
+    .valid(...QUERY_PARAMS_STATS_RANGE_VALUES)
+    .required(),
   page: Joi.number().integer().min(1).required(),
 });
 
@@ -99,7 +152,9 @@ const getManyForQueueByPubDateParamsSchema = Joi.object({
 });
 
 const getManyForQueueByPubDateQuerySchema = Joi.object({
-  direction: Joi.string().valid(...QUERY_PARAMS_DIRECTION_VALUES).required(),
+  direction: Joi.string()
+    .valid(...QUERY_PARAMS_DIRECTION_VALUES)
+    .required(),
 });
 
 const getManyForQueueBySeasonParamsSchema = Joi.object({
@@ -107,7 +162,9 @@ const getManyForQueueBySeasonParamsSchema = Joi.object({
 });
 
 const getManyForQueueBySeasonQuerySchema = Joi.object({
-  direction: Joi.string().valid(...QUERY_PARAMS_DIRECTION_VALUES).required(),
+  direction: Joi.string()
+    .valid(...QUERY_PARAMS_DIRECTION_VALUES)
+    .required(),
 });
 
 const parseAndGetChaptersSchema = Joi.object({
@@ -125,13 +182,17 @@ export class ItemController {
   private static itemService: ItemService = new ItemService();
   private static itemChapterService: ItemChapterService = new ItemChapterService();
   private static channelService: ChannelService = new ChannelService();
-  private static statsAggregatedItemService: StatsAggregatedItemService = new StatsAggregatedItemService();
+  private static statsAggregatedItemService: StatsAggregatedItemService =
+    new StatsAggregatedItemService();
 
   static async getByIdOrIdText(req: Request, res: Response): Promise<void> {
     validateParamsObject(getByIdOrIdTextSchema, req, res, async () => {
       try {
         const idOrIdText = getParamRequired(req, 'idOrIdText');
-        const data = await ItemController.itemService.getByIdOrIdText(idOrIdText, itemGetOneRelations);
+        const data = await ItemController.itemService.getByIdOrIdText(
+          idOrIdText,
+          itemGetOneRelations
+        );
         handleReturnDataOrNotFound(res, data, 'Item');
       } catch (error) {
         handleGenericErrorResponse(res, error);
@@ -145,7 +206,7 @@ export class ItemController {
         const { page, limit, offset } = getPaginationParams(req);
         const { medium, liveItemType: liveItemTypeParam } = req.query as {
           medium: QueryParamsMedium;
-          liveItemType?: typeof LIVE_ITEM_STATUSES[number];
+          liveItemType?: (typeof LIVE_ITEM_STATUSES)[number];
         };
         const category_id = null;
         const itemType = liveItemTypeParam ? 'live-item' : 'normal';
@@ -164,7 +225,7 @@ export class ItemController {
           medium,
           category_id,
           itemType,
-          liveItemType,
+          liveItemType
         );
 
         const response: ApiListResponse<Item> = {
@@ -182,15 +243,19 @@ export class ItemController {
     validateQueryObject(getManyGlobalTopSchema, req, res, async () => {
       try {
         const { page, limit, offset } = getPaginationParams(req);
-        const { range, medium, liveItemType: liveItemTypeParam } = req.query as {
+        const {
+          range,
+          medium,
+          liveItemType: liveItemTypeParam,
+        } = req.query as {
           range: QueryParamsStatsRange;
           medium: QueryParamsMedium;
-          liveItemType?: typeof LIVE_ITEM_STATUSES[number];
+          liveItemType?: (typeof LIVE_ITEM_STATUSES)[number];
         };
         const category_id = null;
         const itemType = liveItemTypeParam ? 'live-item' : 'normal';
         const liveItemType = liveItemTypeParam || null;
-        
+
         const order = getStatsOrder(range);
         const config: FindManyOptions<StatsAggregatedItem> = {
           order: { [order]: 'DESC' },
@@ -204,7 +269,7 @@ export class ItemController {
           medium,
           category_id,
           itemType,
-          liveItemType,
+          liveItemType
         );
 
         const items = statsResults.map((stat: { item: Item }) => stat.item).filter(Boolean);
@@ -223,10 +288,14 @@ export class ItemController {
     validateQueryObject(getManyCategoryRecentSchema, req, res, async () => {
       try {
         const { page, limit, offset } = getPaginationParams(req);
-        const { category, medium, liveItemType: liveItemTypeParam } = req.query as {
+        const {
+          category,
+          medium,
+          liveItemType: liveItemTypeParam,
+        } = req.query as {
           category: CategoryMappingKeys;
           medium: QueryParamsMedium;
-          liveItemType?: typeof LIVE_ITEM_STATUSES[number];
+          liveItemType?: (typeof LIVE_ITEM_STATUSES)[number];
         };
         const category_id = getCategoryEnumValue(category);
         const itemType = liveItemTypeParam ? 'live-item' : 'normal';
@@ -244,7 +313,7 @@ export class ItemController {
           medium,
           category_id,
           itemType,
-          liveItemType,
+          liveItemType
         );
         const items = recentResults.filter(Boolean);
 
@@ -263,16 +332,21 @@ export class ItemController {
     validateQueryObject(getManyCategoryTopSchema, req, res, async () => {
       try {
         const { page, limit, offset } = getPaginationParams(req);
-        const { category, range, medium, liveItemType: liveItemTypeParam } = req.query as {
+        const {
+          category,
+          range,
+          medium,
+          liveItemType: liveItemTypeParam,
+        } = req.query as {
           category: CategoryMappingKeys;
           range: QueryParamsStatsRange;
           medium: QueryParamsMedium;
-          liveItemType?: typeof LIVE_ITEM_STATUSES[number];
+          liveItemType?: (typeof LIVE_ITEM_STATUSES)[number];
         };
         const category_id = getCategoryEnumValue(category);
         const itemType = liveItemTypeParam ? 'live-item' : 'normal';
         const liveItemType = liveItemTypeParam || null;
-        
+
         const order = getStatsOrder(range);
         const config: FindManyOptions<StatsAggregatedItem> = {
           order: { [order]: 'DESC' },
@@ -286,7 +360,7 @@ export class ItemController {
           medium,
           category_id,
           itemType,
-          liveItemType,
+          liveItemType
         );
 
         const items = statsResults.map((stat: { item: Item }) => stat.item).filter(Boolean);
@@ -303,97 +377,112 @@ export class ItemController {
 
   static async getManySubscribedRecent(req: Request, res: Response): Promise<void> {
     validateQueryObject(getManySubscribedRecentSchema, req, res, async (): Promise<void> => {
-      ensureAuthenticated(req, res, async (): Promise<void> => {
-        try {
-          const { page, limit, offset } = getPaginationParams(req);
-          const { medium, liveItemType: liveItemTypeParam } = req.query as {
-            medium: QueryParamsMedium;
-            liveItemType?: typeof LIVE_ITEM_STATUSES[number];
-          };
-          const jwtUser = getAuthenticatedUser(req);
-          const account_id = jwtUser.id;
-          const itemType = liveItemTypeParam ? 'live-item' : 'normal';
-          const liveItemType = liveItemTypeParam || null;
-          const order = getRecentOrder(itemType);
+      ensureAuthenticated(
+        req,
+        res,
+        async (): Promise<void> => {
+          try {
+            const { page, limit, offset } = getPaginationParams(req);
+            const { medium, liveItemType: liveItemTypeParam } = req.query as {
+              medium: QueryParamsMedium;
+              liveItemType?: (typeof LIVE_ITEM_STATUSES)[number];
+            };
+            const jwtUser = getAuthenticatedUser(req);
+            const account_id = jwtUser.id;
+            const itemType = liveItemTypeParam ? 'live-item' : 'normal';
+            const liveItemType = liveItemTypeParam || null;
+            const order = getRecentOrder(itemType);
 
-          const channel_ids = await getFollowedChannelIds(account_id, medium);
-          if (!channel_ids.length) {
-            const response: ApiListResponse<Item> = emptyApiListResponse;
+            const channel_ids = await getFollowedChannelIds(account_id, medium);
+            if (!channel_ids.length) {
+              const response: ApiListResponse<Item> = emptyApiListResponse;
+              res.json(response);
+            }
+
+            const config: FindManyOptions<Item> = {
+              order,
+              skip: offset,
+              take: limit,
+              relations: itemGetManyRelationsWithChannel,
+            };
+            const items = await ItemController.itemService.getManyByChannels(
+              channel_ids,
+              itemType,
+              liveItemType,
+              config
+            );
+
+            const response: ApiListResponse<Item> = {
+              data: items,
+              meta: { page, count: null, limit },
+            };
             res.json(response);
+          } catch (error) {
+            handleGenericErrorResponse(res, error);
           }
-
-          const config: FindManyOptions<Item> = {
-            order,
-            skip: offset,
-            take: limit,
-            relations: itemGetManyRelationsWithChannel,
-          };
-          const items = await ItemController.itemService.getManyByChannels(
-            channel_ids,
-            itemType,
-            liveItemType,
-            config,
-          );
-
-          const response: ApiListResponse<Item> = {
-            data: items,
-            meta: { page, count: null, limit },
-          };
-          res.json(response);
-        } catch (error) {
-          handleGenericErrorResponse(res, error);
-        }
-      }, { skipMembershipStatus: true });
+        },
+        { skipMembershipStatus: true }
+      );
     });
   }
 
   static async getManySubscribedTop(req: Request, res: Response): Promise<void> {
     validateQueryObject(getManySubscribedTopSchema, req, res, async (): Promise<void> => {
-      ensureAuthenticated(req, res, async (): Promise<void> => {
-        try {
-          const { page, limit, offset } = getPaginationParams(req);
-          const { range, medium, liveItemType: liveItemTypeParam } = req.query as {
-            range: QueryParamsStatsRange;
-            medium: QueryParamsMedium;
-            liveItemType?: typeof LIVE_ITEM_STATUSES[number];
-          };
-          const jwtUser = getAuthenticatedUser(req);
-          const account_id = jwtUser.id;
-          const itemType = liveItemTypeParam ? 'live-item' : 'normal';
-          const liveItemType = liveItemTypeParam || null;
+      ensureAuthenticated(
+        req,
+        res,
+        async (): Promise<void> => {
+          try {
+            const { page, limit, offset } = getPaginationParams(req);
+            const {
+              range,
+              medium,
+              liveItemType: liveItemTypeParam,
+            } = req.query as {
+              range: QueryParamsStatsRange;
+              medium: QueryParamsMedium;
+              liveItemType?: (typeof LIVE_ITEM_STATUSES)[number];
+            };
+            const jwtUser = getAuthenticatedUser(req);
+            const account_id = jwtUser.id;
+            const itemType = liveItemTypeParam ? 'live-item' : 'normal';
+            const liveItemType = liveItemTypeParam || null;
 
-          const channel_ids = await getFollowedChannelIds(account_id, medium);
-          if (!channel_ids.length) {
-            const response: ApiListResponse<Item> = emptyApiListResponse;
+            const channel_ids = await getFollowedChannelIds(account_id, medium);
+            if (!channel_ids.length) {
+              const response: ApiListResponse<Item> = emptyApiListResponse;
+              res.json(response);
+            }
+
+            const order = getStatsOrder(range);
+            const config: FindManyOptions<StatsAggregatedItem> = {
+              order: { [order]: 'DESC' },
+              skip: offset,
+              take: limit,
+              relations: subItemGetManyRelationsWithChannel,
+            };
+            const results =
+              await ItemController.statsAggregatedItemService.getManyByChannelsAndCount(
+                config,
+                channel_ids,
+                itemType,
+                liveItemType
+              );
+            const statsResults = results[0];
+            const count = results[1];
+            const items = statsResults.map((stat: { item: Item }) => stat.item).filter(Boolean);
+
+            const response: ApiListResponse<Item> = {
+              data: items,
+              meta: { page, count, limit },
+            };
             res.json(response);
+          } catch (error) {
+            handleGenericErrorResponse(res, error);
           }
-
-          const order = getStatsOrder(range);
-          const config: FindManyOptions<StatsAggregatedItem> = {
-            order: { [order]: 'DESC' },
-            skip: offset,
-            take: limit,
-            relations: subItemGetManyRelationsWithChannel,
-          };
-          const results = await ItemController.statsAggregatedItemService.getManyByChannelsAndCount(
-            config,
-            channel_ids,
-            itemType,
-            liveItemType,
-          );
-          const statsResults = results[0];
-          const count = results[1];
-          const items = statsResults.map((stat: { item: Item }) => stat.item).filter(Boolean);
-
-          const response: ApiListResponse<Item> = {
-            data: items,
-            meta: { page, count, limit },
-          };
-          res.json(response);
-        } catch (error) {
-          handleGenericErrorResponse(res, error);
-        }
-      }, { skipMembershipStatus: true });
+        },
+        { skipMembershipStatus: true }
+      );
     });
   }
 
@@ -404,10 +493,9 @@ export class ItemController {
           const { page, limit, offset } = getPaginationParams(req);
           const channelIdOrIdText = getParamRequired(req, 'channelIdOrIdText');
 
-          const channel = await ItemController.channelService.getByIdOrIdText(
-            channelIdOrIdText,
-            { channel_about: true },
-          );
+          const channel = await ItemController.channelService.getByIdOrIdText(channelIdOrIdText, {
+            channel_about: true,
+          });
 
           if (!channel) {
             res.status(404).json({ message: 'Channel not found' });
@@ -422,7 +510,10 @@ export class ItemController {
           };
           const items = await ItemController.itemService.getManyByChannel(channel, config);
 
-          res.json({ data: items, meta: { page, count: channel.channel_about.episode_count, limit } });
+          res.json({
+            data: items,
+            meta: { page, count: channel.channel_about.episode_count, limit },
+          });
         } catch (error) {
           handleGenericErrorResponse(res, error);
         }
@@ -437,10 +528,9 @@ export class ItemController {
           const { page, limit, offset } = getPaginationParams(req);
           const channelIdOrIdText = getParamRequired(req, 'channelIdOrIdText');
 
-          const channel = await ItemController.channelService.getByIdOrIdText(
-            channelIdOrIdText,
-            { channel_about: true },
-          );
+          const channel = await ItemController.channelService.getByIdOrIdText(channelIdOrIdText, {
+            channel_about: true,
+          });
 
           if (!channel) {
             res.status(404).json({ message: 'Channel not found' });
@@ -455,7 +545,10 @@ export class ItemController {
           };
           const items = await ItemController.itemService.getManyByChannel(channel, config);
 
-          res.json({ data: items, meta: { page, count: channel.channel_about.episode_count, limit } });
+          res.json({
+            data: items,
+            meta: { page, count: channel.channel_about.episode_count, limit },
+          });
         } catch (error) {
           handleGenericErrorResponse(res, error);
         }
@@ -477,10 +570,9 @@ export class ItemController {
           const itemType = 'normal';
           const liveItemType = null;
 
-          const channel = await ItemController.channelService.getByIdOrIdText(
-            channelIdOrIdText,
-            { channel_about: true },
-          );
+          const channel = await ItemController.channelService.getByIdOrIdText(channelIdOrIdText, {
+            channel_about: true,
+          });
 
           if (!channel) {
             res.status(404).json({ message: 'Channel not found' });
@@ -493,18 +585,21 @@ export class ItemController {
             skip: offset,
             take: limit,
             relations: subItemGetManyRelations,
-            where: { item: { channel: { id: channel.id} } },
+            where: { item: { channel: { id: channel.id } } },
           };
           const statsResults = await ItemController.statsAggregatedItemService.getMany(
             config,
             medium,
             category_id,
             itemType,
-            liveItemType,
+            liveItemType
           );
           const items = statsResults.map((stat: { item: Item }) => stat.item).filter(Boolean);
 
-          res.json({ data: items, meta: { page, count: channel.channel_about.episode_count, limit } });
+          res.json({
+            data: items,
+            meta: { page, count: channel.channel_about.episode_count, limit },
+          });
         } catch (error) {
           handleGenericErrorResponse(res, error);
         }
@@ -519,10 +614,9 @@ export class ItemController {
           const { page, limit, offset } = getPaginationParams(req);
           const channelIdOrIdText = getParamRequired(req, 'channelIdOrIdText');
 
-          const channel = await ItemController.channelService.getByIdOrIdText(
-            channelIdOrIdText,
-            { channel_about: true },
-          );
+          const channel = await ItemController.channelService.getByIdOrIdText(channelIdOrIdText, {
+            channel_about: true,
+          });
 
           if (!channel) {
             res.status(404).json({ message: 'Channel not found' });
@@ -533,9 +627,16 @@ export class ItemController {
             skip: offset,
             take: limit,
           };
-          const items = await ItemController.itemService.getManyByChannelBySeason(channel, 'forward', config);
+          const items = await ItemController.itemService.getManyByChannelBySeason(
+            channel,
+            'forward',
+            config
+          );
 
-          res.json({ data: items, meta: { page, count: channel.channel_about.episode_count, limit } });
+          res.json({
+            data: items,
+            meta: { page, count: channel.channel_about.episode_count, limit },
+          });
         } catch (error) {
           handleGenericErrorResponse(res, error);
         }
@@ -550,10 +651,9 @@ export class ItemController {
           const { page, limit, offset } = getPaginationParams(req);
           const channelIdOrIdText = getParamRequired(req, 'channelIdOrIdText');
 
-          const channel = await ItemController.channelService.getByIdOrIdText(
-            channelIdOrIdText,
-            { channel_about: true },
-          );
+          const channel = await ItemController.channelService.getByIdOrIdText(channelIdOrIdText, {
+            channel_about: true,
+          });
 
           if (!channel) {
             res.status(404).json({ message: 'Channel not found' });
@@ -564,9 +664,16 @@ export class ItemController {
             skip: offset,
             take: limit,
           };
-          const items = await ItemController.itemService.getManyByChannelBySeason(channel, 'backward', config);
+          const items = await ItemController.itemService.getManyByChannelBySeason(
+            channel,
+            'backward',
+            config
+          );
 
-          res.json({ data: items, meta: { page, count: channel.channel_about.episode_count, limit } });
+          res.json({
+            data: items,
+            meta: { page, count: channel.channel_about.episode_count, limit },
+          });
         } catch (error) {
           handleGenericErrorResponse(res, error);
         }
@@ -582,10 +689,9 @@ export class ItemController {
           const channelIdOrIdText = getParamRequired(req, 'channelIdOrIdText');
           const { shuffleHash } = req.query as { shuffleHash: string };
 
-          const channel = await ItemController.channelService.getByIdOrIdText(
-            channelIdOrIdText,
-            { channel_about: true },
-          );
+          const channel = await ItemController.channelService.getByIdOrIdText(channelIdOrIdText, {
+            channel_about: true,
+          });
 
           if (!channel) {
             res.status(404).json({ message: 'Channel not found' });
@@ -596,9 +702,16 @@ export class ItemController {
             skip: offset,
             take: limit,
           };
-          const items = await ItemController.itemService.getManyByChannelShuffle(channel, shuffleHash, config);
+          const items = await ItemController.itemService.getManyByChannelShuffle(
+            channel,
+            shuffleHash,
+            config
+          );
 
-          res.json({ data: items, meta: { page, count: channel.channel_about.episode_count, limit } });
+          res.json({
+            data: items,
+            meta: { page, count: channel.channel_about.episode_count, limit },
+          });
         } catch (error) {
           handleGenericErrorResponse(res, error);
         }
@@ -612,13 +725,11 @@ export class ItemController {
         try {
           const { direction } = req.query as QueryParamsDirection;
 
-          const items = await ItemController
-            .itemService
-            .getManyForQueueByPubDate(
-              getParamRequired(req, 'idText'),
-              direction,
-            );
-          
+          const items = await ItemController.itemService.getManyForQueueByPubDate(
+            getParamRequired(req, 'idText'),
+            direction
+          );
+
           res.json(items);
         } catch (error) {
           handleGenericErrorResponse(res, error);
@@ -633,12 +744,10 @@ export class ItemController {
         try {
           const { direction } = req.query as QueryParamsDirection;
 
-          const items = await ItemController
-            .itemService
-            .getManyForQueueBySeason(
-              getParamRequired(req, 'idText'),
-              direction,
-            );
+          const items = await ItemController.itemService.getManyForQueueBySeason(
+            getParamRequired(req, 'idText'),
+            direction
+          );
           res.json(items);
         } catch (error) {
           handleGenericErrorResponse(res, error);
@@ -651,8 +760,10 @@ export class ItemController {
     validateParamsObject(parseAndGetChaptersSchema, req, res, async () => {
       const item_id_text = getParamRequired(req, 'item_id_text');
       try {
-        const item = await ItemController
-          .itemService.getByIdOrIdText(item_id_text, itemGetOneRelations);
+        const item = await ItemController.itemService.getByIdOrIdText(
+          item_id_text,
+          itemGetOneRelations
+        );
 
         if (!item) {
           res.status(404).json({ message: 'Item not found' });
@@ -664,7 +775,8 @@ export class ItemController {
           return;
         }
 
-        const lastFinished = item?.item_chapters_feed?.item_chapters_feed_log?.last_finished_parse_time;
+        const lastFinished =
+          item?.item_chapters_feed?.item_chapters_feed_log?.last_finished_parse_time;
 
         if (lastFinished) {
           const last = new Date(lastFinished).getTime();
@@ -677,24 +789,27 @@ export class ItemController {
           await parseChapters(item);
         }
 
-        const updatedItem = await ItemController
-          .itemService.getByIdOrIdText(item_id_text, itemGetOneRelations) as Item | null;
-        
+        const updatedItem = (await ItemController.itemService.getByIdOrIdText(
+          item_id_text,
+          itemGetOneRelations
+        )) as Item | null;
+
         if (!updatedItem || !updatedItem.item_chapters_feed) {
           res.status(404).json({ message: 'Item or Item Chapters Feed not found after parsing' });
           return;
         }
 
         const results = await ItemController.itemChapterService.getAllWithCount(
-          updatedItem.item_chapters_feed, {
+          updatedItem.item_chapters_feed,
+          {
             order: { start_time: 'ASC' },
-          },
+          }
         );
 
         const chapters = results.results;
         const transformed: ItemChapter[] = [];
         // Only consider chapters with table_of_contents true for end_time assignment
-        const tocChapters = chapters.filter(ch => ch.table_of_contents);
+        const tocChapters = chapters.filter((ch) => ch.table_of_contents);
         for (let i = 0; i < chapters.length; i++) {
           const ch = chapters[i];
           if (!ch) {
@@ -702,7 +817,9 @@ export class ItemController {
           }
           if (ch.table_of_contents) {
             // Find the next toc chapter ahead
-            const nextToc = tocChapters.find(toc => parseFloat(toc.start_time) > parseFloat(ch.start_time));
+            const nextToc = tocChapters.find(
+              (toc) => parseFloat(toc.start_time) > parseFloat(ch.start_time)
+            );
             if (nextToc) {
               transformed.push({ ...ch, end_time: nextToc.start_time } as ItemChapter);
             } else {
@@ -715,7 +832,7 @@ export class ItemController {
             }
           }
         }
-        
+
         const response: ApiListResponse<ItemChapter> = {
           data: transformed,
           meta: { page: 1, count: transformed.length, limit: transformed.length },

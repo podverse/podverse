@@ -2,6 +2,7 @@
   "recommendations": [
     "fabiospampinato.vscode-terminals",
     "dbaeumer.vscode-eslint",
+    "esbenp.prettier-vscode",
     "ms-vscode.vscode-typescript-next",
     "eamodio.gitlens",
     "mhutchie.git-graph",

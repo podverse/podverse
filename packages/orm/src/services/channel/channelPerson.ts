@@ -4,12 +4,12 @@ import { ChannelPerson } from '@orm/entities/channel/channelPerson';
 import { BaseManyService } from '@orm/services/base/baseManyService';
 
 type ChannelPersonDto = {
-  name: string
-  role: string | null
-  person_group: string | 'cast'
-  img: string | null
-  href: string | null
-}
+  name: string;
+  role: string | null;
+  person_group: string | 'cast';
+  img: string | null;
+  href: string | null;
+};
 
 export class ChannelPersonService extends BaseManyService<ChannelPerson, 'channel'> {
   constructor(transactionalEntityManager?: EntityManager) {

@@ -11,9 +11,12 @@ type ProfileHeaderViewDesktopProps = {
   isOwnProfile: boolean;
 };
 
-export const ProfileHeaderViewDesktop: React.FC<ProfileHeaderViewDesktopProps> = ({ account, isOwnProfile }) => {
+export const ProfileHeaderViewDesktop: React.FC<ProfileHeaderViewDesktopProps> = ({
+  account,
+  isOwnProfile,
+}) => {
   const tMisc = useTranslations('misc');
-  
+
   const displayName = account.account_profile?.display_name?.trim() || tMisc('anonymous');
   const bio = account.account_profile?.bio?.trim() || null;
 
@@ -21,9 +24,7 @@ export const ProfileHeaderViewDesktop: React.FC<ProfileHeaderViewDesktopProps> =
     <div className={styles.contentDesktop}>
       <div className={styles.textSection}>
         <h1 className={styles.title}>{displayName}</h1>
-        {bio && (
-          <p className={styles.bio}>{bio}</p>
-        )}
+        {bio && <p className={styles.bio}>{bio}</p>}
         <div className={styles.bottomSection}>
           <ProfileHeaderButtons account={account} isOwnProfile={isOwnProfile} />
         </div>

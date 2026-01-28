@@ -1,5 +1,13 @@
 import { DATABASE_CONSTANTS } from '@podverse/helpers';
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, BeforeInsert, BeforeUpdate } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  JoinColumn,
+  BeforeInsert,
+  BeforeUpdate,
+} from 'typeorm';
 import { Item } from './item';
 
 @Entity()
@@ -7,7 +15,7 @@ export class ItemPerson {
   @PrimaryGeneratedColumn()
   id!: number;
 
-  @ManyToOne(() => Item, item => item.id, { onDelete: 'CASCADE' })
+  @ManyToOne(() => Item, (item) => item.id, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'item_id' })
   item!: Item;
 

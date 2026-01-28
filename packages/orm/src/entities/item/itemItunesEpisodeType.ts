@@ -3,7 +3,7 @@ import { Entity, PrimaryGeneratedColumn, Column, Unique, Check } from 'typeorm';
 export enum ItemItunesEpisodeTypeEnum {
   Full = 1,
   Trailer = 2,
-  Bonus = 3
+  Bonus = 3,
 }
 
 export function getItemItunesEpisodeTypeEnumValue(input: string): ItemItunesEpisodeTypeEnum {
@@ -23,7 +23,7 @@ export function getItemItunesEpisodeTypeEnumValue(input: string): ItemItunesEpis
 
 @Entity()
 @Unique(['itunes_episode_type'])
-@Check('"itunes_episode_type" IN (\'full\', \'trailer\', \'bonus\')')
+@Check("\"itunes_episode_type\" IN ('full', 'trailer', 'bonus')")
 export class ItemItunesEpisodeType {
   @PrimaryGeneratedColumn()
   id!: number;

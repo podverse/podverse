@@ -12,7 +12,9 @@ type ReadableTimeRangeProps = {
 export const ReadableTimeRange: React.FC<ReadableTimeRangeProps> = ({ startTime, endTime }) => {
   const tFeatures = useTranslations('features');
 
-  if (!startTime) {return null;}
+  if (!startTime) {
+    return null;
+  }
 
   const readableStartTime = formatHHMMSS(Number(startTime));
   const readableEndTime = endTime ? formatHHMMSS(Number(endTime)) : null;

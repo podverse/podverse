@@ -7,7 +7,7 @@ export const _request = async <T>(
   abort?: {
     controller: AbortController;
     timeoutMs: number;
-  },
+  }
 ): Promise<{ status: number; data: T }> => {
   const headers = {
     ...requestConfig?.headers,

@@ -1,8 +1,12 @@
 import React, { useRef, useEffect, useMemo } from 'react';
-import { DTOItem, EnclosureSelectedParams, getSelectedLabeledItemEnclosureAndSource,
+import {
+  DTOItem,
+  EnclosureSelectedParams,
+  getSelectedLabeledItemEnclosureAndSource,
   isEqual,
   LabeledItemEnclosure,
-  SelectedLabeledItemEnclosureAndSource } from '@podverse/helpers';
+  SelectedLabeledItemEnclosureAndSource,
+} from '@podverse/helpers';
 import videojs from 'video.js';
 import 'video.js/dist/video-js.css';
 
@@ -16,7 +20,9 @@ export interface MediaPlayerControllerLiveStreamAVProps {
   mpIsPlaying: boolean;
 }
 
-export const MediaPlayerControllerLiveStreamAV: React.FC<MediaPlayerControllerLiveStreamAVProps> = ({
+export const MediaPlayerControllerLiveStreamAV: React.FC<
+  MediaPlayerControllerLiveStreamAVProps
+> = ({
   mediaType,
   mpItem,
   mpItemLabeledEnclosures,
@@ -49,7 +55,9 @@ export const MediaPlayerControllerLiveStreamAV: React.FC<MediaPlayerControllerLi
   // Recreate player whenever mpItem (or source) changes.
   useEffect(() => {
     // Guard: container must exist.
-    if (!containerRef.current) {return;}
+    if (!containerRef.current) {
+      return;
+    }
 
     const labeled = selectedItemEnclosureAndSource?.labeledItemEnclosure;
     const srcObj = selectedItemEnclosureAndSource?.source;
@@ -101,8 +109,7 @@ export const MediaPlayerControllerLiveStreamAV: React.FC<MediaPlayerControllerLi
     mediaElRef.current = null;
 
     // Create new media element (not controlled by React).
-    const el =
-      document.createElement(mediaType === 'video' ? 'video' : 'audio');
+    const el = document.createElement(mediaType === 'video' ? 'video' : 'audio');
     el.className = 'video-js vjs-default-skin';
     el.style.width = '100%';
     el.setAttribute('playsinline', '');
@@ -139,9 +146,14 @@ export const MediaPlayerControllerLiveStreamAV: React.FC<MediaPlayerControllerLi
   // Play / pause sync.
   useEffect(() => {
     const p = videoJsPlayerRef.current;
-    if (!p || p.isDisposed()) {return;}
-    if (mpIsPlaying) {p.play();}
-    else {p.pause();}
+    if (!p || p.isDisposed()) {
+      return;
+    }
+    if (mpIsPlaying) {
+      p.play();
+    } else {
+      p.pause();
+    }
   }, [mpIsPlaying]);
 
   const hiddenCommon = hidden || mediaType === 'audio';

@@ -18,7 +18,7 @@ interface ProfilesClientProps {
 
 export function ProfilesClient(props: ProfilesClientProps) {
   const { initialQueryParams, ssrAccounts, ssrTotalPages } = props;
-  
+
   return (
     <ProfilesContextProvider
       initialQueryParams={initialQueryParams}

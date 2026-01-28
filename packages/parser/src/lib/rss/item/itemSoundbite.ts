@@ -6,7 +6,7 @@ import { handleParsedManyData } from '../base/handleParsedManyData';
 export const handleParsedItemSoundbite = async (
   parsedItem: Episode,
   item: Item,
-  transactionalEntityManager?: EntityManager,
+  transactionalEntityManager?: EntityManager
 ) => {
   const itemSoundbiteService = new ItemSoundbiteService(transactionalEntityManager);
   const itemSoundbiteDtos = compatItemSoundbiteDtos(parsedItem);

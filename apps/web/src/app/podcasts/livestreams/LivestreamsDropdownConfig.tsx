@@ -1,5 +1,6 @@
-import { QueryParamsStatsRange,
-  CategoryMappingKeys, 
+import {
+  QueryParamsStatsRange,
+  CategoryMappingKeys,
   getValidQueryParam,
   QUERY_PARAMS_GLOBAL_SORT_VALUES,
   QueryParamsSubscribedFullSort,
@@ -11,12 +12,15 @@ import { QueryParamsStatsRange,
 import { getRangeDropdownItems } from '../../../utils/dropdownMenuItems';
 import { DropdownMenuItem } from '../../../components/Dropdown/Dropdown';
 
-export function getLivestreamsDropdownConfig({ type, sort, tFilters }: {
-  sort: QueryParamsSubscribedFullSort,
-  type: QueryParamsSubscribedType,
-  tFilters: (key: string) => string
+export function getLivestreamsDropdownConfig({
+  type,
+  sort,
+  tFilters,
+}: {
+  sort: QueryParamsSubscribedFullSort;
+  type: QueryParamsSubscribedType;
+  tFilters: (key: string) => string;
 }) {
-
   const typeDropdownMenuItems: DropdownMenuItem[] = [
     { label: tFilters('type.global'), param: 'type', value: 'global' },
     { label: tFilters('type.subscribed'), param: 'type', value: 'subscribed' },
@@ -62,7 +66,7 @@ type LivestreamsDropdownConfigParams = {
   category: CategoryMappingKeys | null;
   page: number;
   liveItemType: LiveItemStatus;
-}
+};
 
 export type LivestreamsDropdownConfigCurrentParams = {
   currentType: QueryParamsSubscribedType;
@@ -71,11 +75,11 @@ export type LivestreamsDropdownConfigCurrentParams = {
   currentCategory: CategoryMappingKeys | null;
   currentPage: number;
   currentLiveItemType: LiveItemStatus;
-}
+};
 
 export function getLivestreamsFilterParams(
   { type, sort, range, category, page, liveItemType }: LivestreamsDropdownConfigParams,
-  isValidAuthSession: boolean,
+  isValidAuthSession: boolean
 ): LivestreamsDropdownConfigCurrentParams {
   let currentType = type;
   let currentSort = sort;
@@ -86,48 +90,35 @@ export function getLivestreamsFilterParams(
 
   if (category) {
     currentType = 'category';
-    currentSort = getValidQueryParam(
-      QUERY_PARAMS_GLOBAL_SORT_VALUES,
-      currentSort,
-      'recent',
-    );
+    currentSort = getValidQueryParam(QUERY_PARAMS_GLOBAL_SORT_VALUES, currentSort, 'recent');
   } else if (type === 'global') {
     currentType = 'global';
-    currentSort = getValidQueryParam(
-      QUERY_PARAMS_GLOBAL_SORT_VALUES,
-      currentSort,
-      'recent',
-    );
+    currentSort = getValidQueryParam(QUERY_PARAMS_GLOBAL_SORT_VALUES, currentSort, 'recent');
   } else if (type === 'subscribed') {
     currentType = 'subscribed';
-    currentSort = getValidQueryParam(
-      QUERY_PARAMS_SUBSCRIBED_PARTIAL_SORT,
-      currentSort,
-      'recent',
-    );
+    currentSort = getValidQueryParam(QUERY_PARAMS_SUBSCRIBED_PARTIAL_SORT, currentSort, 'recent');
   } else {
     if (isValidAuthSession) {
       currentType = 'subscribed';
-      currentSort = getValidQueryParam(
-        QUERY_PARAMS_SUBSCRIBED_PARTIAL_SORT,
-        currentSort,
-        'recent',
-      );
+      currentSort = getValidQueryParam(QUERY_PARAMS_SUBSCRIBED_PARTIAL_SORT, currentSort, 'recent');
       currentRange = null;
       currentCategory = null;
       currentPage = 1;
     } else {
       currentType = 'global';
-      currentSort = getValidQueryParam(
-        QUERY_PARAMS_GLOBAL_SORT_VALUES,
-        currentSort,
-        'recent',
-      );
+      currentSort = getValidQueryParam(QUERY_PARAMS_GLOBAL_SORT_VALUES, currentSort, 'recent');
       currentRange = null;
       currentCategory = null;
       currentPage = 1;
     }
-  } 
+  }
 
-  return { currentType, currentSort, currentRange, currentCategory, currentPage, currentLiveItemType };
+  return {
+    currentType,
+    currentSort,
+    currentRange,
+    currentCategory,
+    currentPage,
+    currentLiveItemType,
+  };
 }

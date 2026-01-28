@@ -11,6 +11,7 @@ Evaluate and migrate utility scripts from podverse-ops. Many scripts become obso
 ## Script Inventory
 
 ### Source Scripts (podverse-ops/scripts/)
+
 ```
 scripts/
 ├── audit/
@@ -44,38 +45,39 @@ scripts/
 
 ### Scripts to Migrate (Minimal Changes)
 
-| Script | Destination | Changes Needed |
-|--------|-------------|----------------|
-| `keyvaldb/valkey-entrypoint.sh` | `scripts/keyvaldb/` | None |
-| `keyvaldb/valkey-healthcheck.sh` | `scripts/keyvaldb/` | None |
-| `mq/provision_queues.sh` | `scripts/mq/` | Update env file paths |
-| `ghcr/getLatestAlphaTag.sh` | `scripts/ghcr/` | None |
-| `dev/local-utils/` | `scripts/dev/local-utils/` | None |
+| Script                           | Destination                | Changes Needed        |
+| -------------------------------- | -------------------------- | --------------------- |
+| `keyvaldb/valkey-entrypoint.sh`  | `scripts/keyvaldb/`        | None                  |
+| `keyvaldb/valkey-healthcheck.sh` | `scripts/keyvaldb/`        | None                  |
+| `mq/provision_queues.sh`         | `scripts/mq/`              | Update env file paths |
+| `ghcr/getLatestAlphaTag.sh`      | `scripts/ghcr/`            | None                  |
+| `dev/local-utils/`               | `scripts/dev/local-utils/` | None                  |
 
 ### Scripts to Migrate (Significant Rewrite)
 
-| Script | Destination | Changes Needed |
-|--------|-------------|----------------|
-| `management/create-superuser.*` | `scripts/management/` | Update for monorepo structure |
-| `audit/audit-all-repos.sh` | `scripts/audit/audit.sh` | Rewrite for workspaces (single repo) |
-| `podcastIndex/getFeedUrlDump.sh` | `scripts/podcast-index/` | Path updates |
+| Script                           | Destination              | Changes Needed                       |
+| -------------------------------- | ------------------------ | ------------------------------------ |
+| `management/create-superuser.*`  | `scripts/management/`    | Update for monorepo structure        |
+| `audit/audit-all-repos.sh`       | `scripts/audit/audit.sh` | Rewrite for workspaces (single repo) |
+| `podcastIndex/getFeedUrlDump.sh` | `scripts/podcast-index/` | Path updates                         |
 
 ### Scripts to NOT Migrate (Obsolete)
 
-| Script | Reason |
-|--------|--------|
-| `dev/npm-link-modules.sh` | npm workspaces handle this automatically |
-| `dev/pull-all-repos-v5-develop.sh` | Single repo now, standard git pull |
-| `dev/commit-package-files.sh` | Single repo workflow |
-| `dev/commit-package-lock-files.sh` | Single repo workflow |
-| `publish/alpha-publish-all-packages.sh` | Replaced by monorepo publish workflow |
-| `publish/v5-develop-update-version-all.sh` | Replaced by unified versioning |
+| Script                                     | Reason                                   |
+| ------------------------------------------ | ---------------------------------------- |
+| `dev/npm-link-modules.sh`                  | npm workspaces handle this automatically |
+| `dev/pull-all-repos-v5-develop.sh`         | Single repo now, standard git pull       |
+| `dev/commit-package-files.sh`              | Single repo workflow                     |
+| `dev/commit-package-lock-files.sh`         | Single repo workflow                     |
+| `publish/alpha-publish-all-packages.sh`    | Replaced by monorepo publish workflow    |
+| `publish/v5-develop-update-version-all.sh` | Replaced by unified versioning           |
 
 ## Detailed Migration Tasks
 
 ### Task 1: Keyvaldb Scripts (No changes needed)
 
 Copy directly:
+
 ```
 podverse-ops/scripts/keyvaldb/valkey-entrypoint.sh
   -> scripts/keyvaldb/valkey-entrypoint.sh
@@ -89,11 +91,13 @@ podverse-ops/scripts/keyvaldb/valkey-healthcheck.sh
 **provision_queues.sh** - Update env file path parameter handling:
 
 Current usage:
+
 ```bash
 ./provision_queues.sh podverse_local_mq ../../../config/podverse-local-mq.env
 ```
 
 New usage:
+
 ```bash
 ./provision_queues.sh podverse_local_mq ../../infra/config/local/mq.env
 ```
@@ -101,6 +105,7 @@ New usage:
 ### Task 3: GHCR Scripts (No changes needed)
 
 Copy directly:
+
 ```
 podverse-ops/scripts/ghcr/getLatestAlphaTag.sh
   -> scripts/ghcr/getLatestAlphaTag.sh
@@ -109,6 +114,7 @@ podverse-ops/scripts/ghcr/getLatestAlphaTag.sh
 ### Task 4: Management Scripts
 
 **create-superuser.sh** and **create-superuser.js**:
+
 - Copy entire `management/` directory
 - Update any hardcoded paths (none found)
 - These are standalone Node.js scripts with their own package.json
@@ -123,6 +129,7 @@ podverse-ops/scripts/management/
 The multi-repo audit script becomes a single workspace audit:
 
 **Before (multi-repo):**
+
 ```bash
 # Loops through sibling directories
 for repo in podverse-helpers podverse-orm ...; do
@@ -132,6 +139,7 @@ done
 ```
 
 **After (monorepo):**
+
 ```bash
 #!/bin/bash
 # Simple workspace audit
@@ -144,12 +152,14 @@ New location: `scripts/audit/audit.sh`
 ### Task 6: Dev Local Utils
 
 Copy the password hash generator utility:
+
 ```
 podverse-ops/scripts/dev/local-utils/
   -> scripts/dev/local-utils/
 ```
 
 Contains:
+
 - `generate-password-hash.js`
 - `package.json`
 - `package-lock.json`
@@ -157,6 +167,7 @@ Contains:
 ### Task 7: Podcast Index Script
 
 Copy and update paths:
+
 ```
 podverse-ops/scripts/podcastIndex/getFeedUrlDump.sh
   -> scripts/podcast-index/get-feed-url-dump.sh
@@ -165,6 +176,7 @@ podverse-ops/scripts/podcastIndex/getFeedUrlDump.sh
 ## New Script: Audit for Workspaces
 
 Create `scripts/audit/audit.sh`:
+
 ```bash
 #!/bin/bash
 # Audit all workspaces for npm vulnerabilities
@@ -185,6 +197,7 @@ echo "Audit complete."
 ## Monorepo Already Has
 
 The monorepo already has these scripts (do NOT overwrite):
+
 - `scripts/start-feature.sh` - LLM history feature branching
 - `scripts/complete-feature.sh` - Feature completion
 - `scripts/git-hooks/` - Pre-commit, pre-push hooks

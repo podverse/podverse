@@ -4,7 +4,7 @@ import { ApiRequestService } from '../../_request';
 export async function reqPlaylistResourceItemSoundbiteAddFirst(
   api: ApiRequestService,
   playlist_id_text: string,
-  item_soundbite_id_text: string,
+  item_soundbite_id_text: string
 ) {
   return api.apiRequest<DTOPlaylistResource>({
     path: `/playlist/${playlist_id_text}/item-soundbite/${item_soundbite_id_text}/first`,
@@ -19,7 +19,7 @@ export async function reqPlaylistResourceItemSoundbiteAddBetween(
   api: ApiRequestService,
   playlist_id_text: string,
   item_soundbite_id_text: string,
-  params: BetweenParams,
+  params: BetweenParams
 ) {
   return api.apiRequest<DTOPlaylistResource>({
     path: `/playlist/${playlist_id_text}/item-soundbite/${item_soundbite_id_text}/between`,
@@ -34,7 +34,7 @@ export async function reqPlaylistResourceItemSoundbiteAddBetween(
 export async function reqPlaylistResourceItemSoundbiteAddLast(
   api: ApiRequestService,
   playlist_id_text: string,
-  item_soundbite_id_text: string,
+  item_soundbite_id_text: string
 ) {
   return api.apiRequest<DTOPlaylistResource>({
     path: `/playlist/${playlist_id_text}/item-soundbite/${item_soundbite_id_text}/last`,
@@ -48,7 +48,7 @@ export async function reqPlaylistResourceItemSoundbiteAddLast(
 export async function reqPlaylistResourceItemSoundbiteDelete(
   api: ApiRequestService,
   playlist_id_text: string,
-  item_soundbite_id_text: string,
+  item_soundbite_id_text: string
 ) {
   return api.apiRequest<void>({
     path: `/playlist/${playlist_id_text}/item-soundbite/${item_soundbite_id_text}`,

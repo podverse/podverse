@@ -1,16 +1,23 @@
 import { ApiRequestService } from '../_request';
 import { ApiListResponse, emptyApiListResponse } from '../_response';
 import { DTOItem, DTOItemChapter, DTOItemQueueItem } from '../../../../dtos';
-import { QueryDirection, QueryParamsCategoryRecent, QueryParamsCategoryTop,
-  QueryParamsGetManyPartial, QueryParamsGlobalRecent, QueryParamsGlobalTop,
-  QueryParamsIndividualList, QueryParamsIndividualListMusic, QueryParamsPage, QueryParamsPageRange,
+import {
+  QueryDirection,
+  QueryParamsCategoryRecent,
+  QueryParamsCategoryTop,
+  QueryParamsGetManyPartial,
+  QueryParamsGlobalRecent,
+  QueryParamsGlobalTop,
+  QueryParamsIndividualList,
+  QueryParamsIndividualListMusic,
+  QueryParamsPage,
+  QueryParamsPageRange,
   QueryParamsShuffle,
-  QueryParamsSubscribedRecent, QueryParamsSubscribedTop } from '../queryParams';
+  QueryParamsSubscribedRecent,
+  QueryParamsSubscribedTop,
+} from '../queryParams';
 
-export async function reqItemGetByIdOrIdText(
-  api: ApiRequestService,
-  idOrIdText: string,
-) {
+export async function reqItemGetByIdOrIdText(api: ApiRequestService, idOrIdText: string) {
   return api.apiRequest<DTOItem>({
     path: `/item/${idOrIdText}`,
     method: 'GET',
@@ -19,7 +26,7 @@ export async function reqItemGetByIdOrIdText(
 
 export async function reqItemGetManyGlobalRecent(
   api: ApiRequestService,
-  params: QueryParamsGlobalRecent,
+  params: QueryParamsGlobalRecent
 ) {
   return api.apiRequest<ApiListResponse<DTOItem>>({
     path: '/item/global/recent',
@@ -32,7 +39,7 @@ export async function reqItemGetManyGlobalRecent(
 
 export async function reqItemGetManyGlobalTop(
   api: ApiRequestService,
-  params: QueryParamsGlobalTop,
+  params: QueryParamsGlobalTop
 ) {
   return api.apiRequest<ApiListResponse<DTOItem>>({
     path: '/item/global/top',
@@ -45,7 +52,7 @@ export async function reqItemGetManyGlobalTop(
 
 export async function reqItemGetManyCategoryRecent(
   api: ApiRequestService,
-  params: QueryParamsCategoryRecent,
+  params: QueryParamsCategoryRecent
 ) {
   return api.apiRequest<ApiListResponse<DTOItem>>({
     path: '/item/category/recent',
@@ -58,7 +65,7 @@ export async function reqItemGetManyCategoryRecent(
 
 export async function reqItemGetManyCategoryTop(
   api: ApiRequestService,
-  params: QueryParamsCategoryTop,
+  params: QueryParamsCategoryTop
 ) {
   return api.apiRequest<ApiListResponse<DTOItem>>({
     path: '/item/category/top',
@@ -71,7 +78,7 @@ export async function reqItemGetManyCategoryTop(
 
 export async function reqItemGetManySubscribedRecent(
   api: ApiRequestService,
-  params: QueryParamsSubscribedRecent,
+  params: QueryParamsSubscribedRecent
 ) {
   return api.apiRequest<ApiListResponse<DTOItem>>({
     path: '/item/subscribed/recent',
@@ -85,7 +92,7 @@ export async function reqItemGetManySubscribedRecent(
 
 export async function reqItemGetManySubscribedTop(
   api: ApiRequestService,
-  params: QueryParamsSubscribedTop,
+  params: QueryParamsSubscribedTop
 ) {
   return api.apiRequest<ApiListResponse<DTOItem>>({
     path: '/item/subscribed/top',
@@ -97,70 +104,49 @@ export async function reqItemGetManySubscribedTop(
   });
 }
 
-export async function reqItemGetMany(
-  api: ApiRequestService,
-  params: QueryParamsGetManyPartial,
-) {
+export async function reqItemGetMany(api: ApiRequestService, params: QueryParamsGetManyPartial) {
   const { type, sort, range, category, page, medium } = params;
 
   if (type === 'category' && category) {
     if (sort === 'recent') {
-      return reqItemGetManyCategoryRecent(
-        api,
-        {
-          page,
-          medium,
-          category,
-        },
-      );
+      return reqItemGetManyCategoryRecent(api, {
+        page,
+        medium,
+        category,
+      });
     } else if (sort === 'top' && range) {
-      return reqItemGetManyCategoryTop(
-        api,
-        {
-          page,
-          medium,
-          range,
-          category,
-        },
-      );
+      return reqItemGetManyCategoryTop(api, {
+        page,
+        medium,
+        range,
+        category,
+      });
     }
   } else if (type === 'global') {
     if (sort === 'recent') {
-      return reqItemGetManyGlobalRecent(
-        api,
-        {
-          page,
-          medium,
-        },
-      );
+      return reqItemGetManyGlobalRecent(api, {
+        page,
+        medium,
+      });
     } else if (sort === 'top' && range) {
-      return reqItemGetManyGlobalTop(
-        api,
-        {
-          page,
-          medium,
-          range,
-        },
-      );
+      return reqItemGetManyGlobalTop(api, {
+        page,
+        medium,
+        range,
+      });
     }
   } else if (type === 'subscribed') {
     if (sort === 'recent') {
-      return reqItemGetManySubscribedRecent(
-        api,
-        {
-          page,
-          medium,
-        },
-      );
+      return reqItemGetManySubscribedRecent(api, {
+        page,
+        medium,
+      });
     } else if (sort === 'top' && range) {
-      return reqItemGetManySubscribedTop(
-        api,
-        {
-          page,
-          medium,
-          range,
-        },
-      );
+      return reqItemGetManySubscribedTop(api, {
+        page,
+        medium,
+        range,
+      });
     }
   }
 
@@ -170,7 +156,7 @@ export async function reqItemGetMany(
 export async function reqItemGetManyByChannelRecent(
   api: ApiRequestService,
   channelIdOrIdText: string,
-  params: QueryParamsPage,
+  params: QueryParamsPage
 ) {
   return api.apiRequest<ApiListResponse<DTOItem>>({
     path: `/item/channel/recent/${channelIdOrIdText}`,
@@ -184,7 +170,7 @@ export async function reqItemGetManyByChannelRecent(
 export async function reqItemGetManyByChannelOldest(
   api: ApiRequestService,
   channelIdOrIdText: string,
-  params: QueryParamsPage,
+  params: QueryParamsPage
 ) {
   return api.apiRequest<ApiListResponse<DTOItem>>({
     path: `/item/channel/oldest/${channelIdOrIdText}`,
@@ -198,7 +184,7 @@ export async function reqItemGetManyByChannelOldest(
 export async function reqItemGetManyByChannelTop(
   api: ApiRequestService,
   channelIdOrIdText: string,
-  params: QueryParamsPageRange,
+  params: QueryParamsPageRange
 ) {
   return api.apiRequest<ApiListResponse<DTOItem>>({
     path: `/item/channel/top/${channelIdOrIdText}`,
@@ -211,35 +197,23 @@ export async function reqItemGetManyByChannelTop(
 
 export async function reqItemGetManyByChannel(
   api: ApiRequestService,
-  params: QueryParamsIndividualList,
+  params: QueryParamsIndividualList
 ) {
   const { idOrIdText, sort, range, page } = params;
 
   if (sort === 'recent') {
-    return reqItemGetManyByChannelRecent(
-      api,
-      idOrIdText,
-      {
-        page,
-      },
-    );
+    return reqItemGetManyByChannelRecent(api, idOrIdText, {
+      page,
+    });
   } else if (sort === 'oldest') {
-    return reqItemGetManyByChannelOldest(
-      api,
-      idOrIdText,
-      {
-        page,
-      },
-    );
+    return reqItemGetManyByChannelOldest(api, idOrIdText, {
+      page,
+    });
   } else if (sort === 'top' && range) {
-    return reqItemGetManyByChannelTop(
-      api,
-      idOrIdText,
-      {
-        page,
-        range,
-      },
-    );
+    return reqItemGetManyByChannelTop(api, idOrIdText, {
+      page,
+      range,
+    });
   }
 
   return Promise.resolve(emptyApiListResponse);
@@ -248,7 +222,7 @@ export async function reqItemGetManyByChannel(
 export async function reqItemGetManyByChannelBySeasonForward(
   api: ApiRequestService,
   channelIdOrIdText: string,
-  params: QueryParamsPage,
+  params: QueryParamsPage
 ) {
   return api.apiRequest<ApiListResponse<DTOItem>>({
     path: `/item/channel/season/forward/${channelIdOrIdText}`,
@@ -262,7 +236,7 @@ export async function reqItemGetManyByChannelBySeasonForward(
 export async function reqItemGetManyByChannelBySeasonBackward(
   api: ApiRequestService,
   channelIdOrIdText: string,
-  params: QueryParamsPage,
+  params: QueryParamsPage
 ) {
   return api.apiRequest<ApiListResponse<DTOItem>>({
     path: `/item/channel/season/backward/${channelIdOrIdText}`,
@@ -275,35 +249,23 @@ export async function reqItemGetManyByChannelBySeasonBackward(
 
 export async function reqItemGetManyByChannelBySeason(
   api: ApiRequestService,
-  params: QueryParamsIndividualListMusic,
+  params: QueryParamsIndividualListMusic
 ) {
   const { idOrIdText, sort, range, page } = params;
 
   if (sort === 'forward') {
-    return reqItemGetManyByChannelBySeasonForward(
-      api,
-      idOrIdText,
-      {
-        page,
-      },
-    );
+    return reqItemGetManyByChannelBySeasonForward(api, idOrIdText, {
+      page,
+    });
   } else if (sort === 'backward') {
-    return reqItemGetManyByChannelBySeasonBackward(
-      api,
-      idOrIdText,
-      {
-        page,
-      },
-    );
+    return reqItemGetManyByChannelBySeasonBackward(api, idOrIdText, {
+      page,
+    });
   } else if (sort === 'top' && range) {
-    return reqItemGetManyByChannelTop(
-      api,
-      idOrIdText,
-      {
-        page,
-        range,
-      },
-    );
+    return reqItemGetManyByChannelTop(api, idOrIdText, {
+      page,
+      range,
+    });
   }
 
   return Promise.resolve(emptyApiListResponse);
@@ -312,7 +274,7 @@ export async function reqItemGetManyByChannelBySeason(
 export async function reqItemGetManyByChannelShuffle(
   api: ApiRequestService,
   channelIdOrIdText: string,
-  params: QueryParamsShuffle,
+  params: QueryParamsShuffle
 ) {
   return api.apiRequest<ApiListResponse<DTOItem>>({
     path: `/item/channel/shuffle/${channelIdOrIdText}`,
@@ -326,7 +288,7 @@ export async function reqItemGetManyByChannelShuffle(
 export async function reqItemGetManyForQueueByPubDate(
   api: ApiRequestService,
   idText: string,
-  direction: QueryDirection,
+  direction: QueryDirection
 ) {
   return api.apiRequest<DTOItemQueueItem[]>({
     path: `/item/queue/pub-date/${idText}`,
@@ -342,7 +304,7 @@ export async function reqItemGetManyForQueueByPubDate(
 export async function reqItemGetManyForQueueBySeason(
   api: ApiRequestService,
   idText: string,
-  direction: QueryDirection,
+  direction: QueryDirection
 ) {
   return api.apiRequest<DTOItemQueueItem[]>({
     path: `/item/queue/season/${idText}`,
@@ -355,10 +317,7 @@ export async function reqItemGetManyForQueueBySeason(
   });
 }
 
-export async function reqItemParseAndGetChapters(
-  api: ApiRequestService,
-  item_id_text: string,
-) {
+export async function reqItemParseAndGetChapters(api: ApiRequestService, item_id_text: string) {
   return api.apiRequest<ApiListResponse<DTOItemChapter>>({
     path: `/item/chapters/${item_id_text}/`,
     method: 'GET',

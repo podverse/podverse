@@ -22,10 +22,10 @@ export type CreateParserContextParams = {
 /**
  * Creates a parser context with the provided configuration.
  * This is the factory function that should be called from the app level.
- * 
+ *
  * NOTE: This requires createORMContext() to be called first, as the parser
  * uses ORM services internally.
- * 
+ *
  * @param params - The parser configuration and external contexts
  * @returns ParserContext with initialized services
  */

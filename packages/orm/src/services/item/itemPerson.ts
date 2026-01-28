@@ -4,12 +4,12 @@ import { ItemPerson } from '@orm/entities/item/itemPerson';
 import { BaseManyService } from '@orm/services/base/baseManyService';
 
 type ItemPersonDto = {
-  name: string
-  role: string | null
-  person_group: string | 'cast'
-  img: string | null
-  href: string | null
-}
+  name: string;
+  role: string | null;
+  person_group: string | 'cast';
+  img: string | null;
+  href: string | null;
+};
 
 export class ItemPersonService extends BaseManyService<ItemPerson, 'item'> {
   constructor(transactionalEntityManager?: EntityManager) {

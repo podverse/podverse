@@ -10,31 +10,29 @@ import { IMAGES } from '../../../../constants/images';
 import styles from '../../../../styles/components/List/ListGridNode.module.scss';
 
 interface Props {
-	channelUnadded: PodcastBatchByFeedGuidResponse['feeds'][number];
+  channelUnadded: PodcastBatchByFeedGuidResponse['feeds'][number];
 }
 
 export const ListAlbumGridNodeUnadded: React.FC<Props> = ({ channelUnadded }) => {
-	const url = `${ROUTES.PODCAST_INDEX}/feed/${channelUnadded.id}`;
-	const tMedia = useTranslations('media');
-	const tMisc = useTranslations('misc');
+  const url = `${ROUTES.PODCAST_INDEX}/feed/${channelUnadded.id}`;
+  const tMedia = useTranslations('media');
+  const tMisc = useTranslations('misc');
 
-	return (
-		<Link href={url} className={styles.link}>
-			<div className={styles.gridNode}>
-				<Image
-					src={channelUnadded.image}
-					alt={channelUnadded.title || tMedia('music.album_image')}
-					width={IMAGES.LIST.GRID.SIZE}
-					height={IMAGES.LIST.GRID.SIZE}
-					className={styles.image}
-				/>
+  return (
+    <Link href={url} className={styles.link}>
+      <div className={styles.gridNode}>
+        <Image
+          src={channelUnadded.image}
+          alt={channelUnadded.title || tMedia('music.album_image')}
+          width={IMAGES.LIST.GRID.SIZE}
+          height={IMAGES.LIST.GRID.SIZE}
+          className={styles.image}
+        />
         <div className={styles.title}>{channelUnadded.title}</div>
-				{channelUnadded.author && (
-					<span className={styles.lastPubDate}>
-						{channelUnadded.author || tMisc('untitled')}
-					</span>
-				)}
-			</div>
-		</Link>
-	);
+        {channelUnadded.author && (
+          <span className={styles.lastPubDate}>{channelUnadded.author || tMisc('untitled')}</span>
+        )}
+      </div>
+    </Link>
+  );
 };

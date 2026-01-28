@@ -18,6 +18,7 @@ cp -r ../podverse-api/src apps/api/
 ```
 
 **Source structure:**
+
 - `src/@types/express.d.ts` - Express type augmentation
 - `src/app.ts` - Express app setup with all routes
 - `src/config/index.ts` - Comprehensive configuration
@@ -170,6 +171,7 @@ Create `apps/api/package.json`:
 Delete `src/module-alias-config.ts` and update `src/index.ts`:
 
 **Before:**
+
 ```typescript
 import './module-alias-config';
 
@@ -179,6 +181,7 @@ if (process.env.NODE_ENV !== 'production') {
 ```
 
 **After:**
+
 ```typescript
 if (process.env.NODE_ENV !== 'production') {
   require('@dotenvx/dotenvx').config({ path: '.env' });
@@ -192,6 +195,7 @@ if (process.env.NODE_ENV !== 'production') {
 Update all package imports to use workspace scopes:
 
 **In `src/index.ts`:**
+
 ```typescript
 // Before
 import {
@@ -199,12 +203,12 @@ import {
   validateNotificationsConfig,
   validateExternalServicesConfig,
   validateParserConfig,
-  assertConfigValid
+  assertConfigValid,
 } from 'podverse-helpers';
-import { createORMContext, getDataSourceRead, getDataSourceReadWrite } from "podverse-orm";
-import { createFirebaseContext } from "podverse-external-services";
-import { createNotificationsContext } from "podverse-notifications";
-import { createParserContext } from "podverse-parser";
+import { createORMContext, getDataSourceRead, getDataSourceReadWrite } from 'podverse-orm';
+import { createFirebaseContext } from 'podverse-external-services';
+import { createNotificationsContext } from 'podverse-notifications';
+import { createParserContext } from 'podverse-parser';
 
 // After
 import {
@@ -212,15 +216,16 @@ import {
   validateNotificationsConfig,
   validateExternalServicesConfig,
   validateParserConfig,
-  assertConfigValid
+  assertConfigValid,
 } from '@podverse/helpers';
-import { createORMContext, getDataSourceRead, getDataSourceReadWrite } from "@podverse/orm";
-import { createFirebaseContext } from "@podverse/external-services";
-import { createNotificationsContext } from "@podverse/notifications";
-import { createParserContext } from "@podverse/parser";
+import { createORMContext, getDataSourceRead, getDataSourceReadWrite } from '@podverse/orm';
+import { createFirebaseContext } from '@podverse/external-services';
+import { createNotificationsContext } from '@podverse/notifications';
+import { createParserContext } from '@podverse/parser';
 ```
 
 **In `src/config/index.ts`:**
+
 ```typescript
 // Before
 import { AccountSignupMode } from 'podverse-helpers';
@@ -230,15 +235,17 @@ import { AccountSignupMode } from '@podverse/helpers';
 ```
 
 **In `src/app.ts`:**
+
 ```typescript
 // Before
-import { CategoryService } from "podverse-orm";
+import { CategoryService } from 'podverse-orm';
 
 // After
-import { CategoryService } from "@podverse/orm";
+import { CategoryService } from '@podverse/orm';
 ```
 
 **Search and replace across all files:**
+
 - `from 'podverse-helpers'` → `from '@podverse/helpers'`
 - `from 'podverse-orm'` → `from '@podverse/orm'`
 - `from 'podverse-mq'` → `from '@podverse/mq'`
@@ -294,7 +301,9 @@ npm run dev:api
 ## Migration Notes (2026-01-24)
 
 ### TypeScript Configuration
+
 The `tsconfig.json` was configured with relaxed strictness settings to accommodate pre-existing type issues:
+
 - `strict: false`
 - `noImplicitAny: false`
 - `noUnusedLocals: false`
@@ -303,7 +312,9 @@ The `tsconfig.json` was configured with relaxed strictness settings to accommoda
 - `noUncheckedIndexedAccess: false`
 
 ### Type Issues Suppressed with @ts-expect-error
+
 Several type incompatibilities between the API controllers and ORM entities were temporarily suppressed:
+
 1. `ormConfig` and `parserConfig` type mismatches with validation functions (index.ts)
 2. `buildRemoteItemsFinalResult` expects Channel[] but receives DTOChannel[] (podroll.ts, publisherFeed.ts)
 3. `ApiListResponse<Clip>` getManyPublic return type mismatches (clip.ts)
@@ -315,32 +326,32 @@ Several type incompatibilities between the API controllers and ORM entities were
 
 ## Key Routes
 
-| Route File | Purpose |
-|------------|---------|
-| `account.ts` | User account CRUD |
-| `accountSettings.ts` | User preferences |
-| `auth.ts` | Login/logout/JWT |
-| `category.ts` | Podcast categories |
-| `channel.ts` | Podcast channels |
-| `clip.ts` | Audio clips |
-| `externalServices.ts` | Podcast Index integration |
-| `feed.ts` | RSS feed management |
-| `item.ts` | Podcast episodes |
-| `itemChapter.ts` | Episode chapters |
-| `itemSoundbite.ts` | Soundbite clips |
-| `itemTranscript.ts` | Transcripts |
-| `liveItem.ts` | Live streaming |
-| `medium.ts` | Media types |
-| `membership.ts` | Premium subscriptions |
-| `membershipClaimToken.ts` | Membership tokens |
-| `mq.ts` | Message queue status |
-| `paypal.ts` | Payment processing |
-| `playlist.ts` | User playlists |
-| `podroll.ts` | Podcast recommendations |
-| `profileContent.ts` | User profile data |
-| `publisherFeed.ts` | Publisher management |
-| `queue.ts` | User play queue |
-| `stats.ts` | Analytics/stats |
+| Route File                | Purpose                   |
+| ------------------------- | ------------------------- |
+| `account.ts`              | User account CRUD         |
+| `accountSettings.ts`      | User preferences          |
+| `auth.ts`                 | Login/logout/JWT          |
+| `category.ts`             | Podcast categories        |
+| `channel.ts`              | Podcast channels          |
+| `clip.ts`                 | Audio clips               |
+| `externalServices.ts`     | Podcast Index integration |
+| `feed.ts`                 | RSS feed management       |
+| `item.ts`                 | Podcast episodes          |
+| `itemChapter.ts`          | Episode chapters          |
+| `itemSoundbite.ts`        | Soundbite clips           |
+| `itemTranscript.ts`       | Transcripts               |
+| `liveItem.ts`             | Live streaming            |
+| `medium.ts`               | Media types               |
+| `membership.ts`           | Premium subscriptions     |
+| `membershipClaimToken.ts` | Membership tokens         |
+| `mq.ts`                   | Message queue status      |
+| `paypal.ts`               | Payment processing        |
+| `playlist.ts`             | User playlists            |
+| `podroll.ts`              | Podcast recommendations   |
+| `profileContent.ts`       | User profile data         |
+| `publisherFeed.ts`        | Publisher management      |
+| `queue.ts`                | User play queue           |
+| `stats.ts`                | Analytics/stats           |
 
 ---
 

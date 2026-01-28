@@ -8,7 +8,7 @@ export async function GET(req: NextRequest) {
   // Rate limiting check
   const rateLimitResult = checkRateLimit(req);
   if (!rateLimitResult.allowed) {
-    return new Response('Rate limit exceeded', { 
+    return new Response('Rate limit exceeded', {
       status: 429,
       headers: {
         'Retry-After': Math.ceil((rateLimitResult.resetTime - Date.now()) / 1000).toString(),
@@ -22,7 +22,7 @@ export async function GET(req: NextRequest) {
   // Extract URL from query parameters
   const { searchParams } = new URL(req.url);
   const url = searchParams.get('url');
-  
+
   if (!url) {
     return new Response('Missing url parameter', { status: 400 });
   }
@@ -65,7 +65,7 @@ export async function GET(req: NextRequest) {
       return new Response('Invalid Content-Type header', { status: 400 });
     }
     const isAllowedType = PROXY.ALLOWED_CONTENT_TYPES.some(
-      allowedType => contentTypeLower.trim() === allowedType.toLowerCase(),
+      (allowedType) => contentTypeLower.trim() === allowedType.toLowerCase()
     );
 
     if (!isAllowedType) {
@@ -84,25 +84,25 @@ export async function GET(req: NextRequest) {
     try {
       while (true) {
         const { done, value } = await reader.read();
-        
+
         if (done) {
           break;
         }
 
         if (value) {
           totalSize += value.length;
-          
+
           // Check size limit
           if (totalSize > PROXY.SIZE_LIMITS.MAX_RESPONSE_SIZE_BYTES) {
             reader.cancel();
-            return new Response('Response too large', { 
+            return new Response('Response too large', {
               status: 413,
               headers: {
                 'X-Max-Size': PROXY.SIZE_LIMITS.MAX_RESPONSE_SIZE_BYTES.toString(),
               },
             });
           }
-          
+
           chunks.push(value);
         }
       }
@@ -121,7 +121,7 @@ export async function GET(req: NextRequest) {
 
     // Return response with rate limit headers
     return new Response(Buffer.from(combined), {
-      headers: { 
+      headers: {
         'Content-Type': contentType,
         'X-RateLimit-Limit': '1000',
         'X-RateLimit-Remaining': rateLimitResult.remaining.toString(),
@@ -130,12 +130,12 @@ export async function GET(req: NextRequest) {
     });
   } catch (error) {
     clearTimeout(timeoutId);
-    
+
     // Handle timeout
     if (error instanceof Error && error.name === 'AbortError') {
       return new Response('Request timeout', { status: 504 });
     }
-    
+
     // Handle other fetch errors
     return new Response('Image fetch failed', { status: 500 });
   }

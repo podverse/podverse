@@ -1,13 +1,21 @@
 import { ApiRequestService } from '../_request';
 import { DTOItem, LiveItemStatus } from '../../../../dtos';
-import { ApiListResponse, emptyApiListResponse, QueryParamsCategoryRecent,
-  QueryParamsCategoryTop, QueryParamsGetManyPartial, QueryParamsGlobalRecent,
-  QueryParamsGlobalTop, QueryParamsSubscribedRecent, QueryParamsSubscribedTop } from '../..';
+import {
+  ApiListResponse,
+  emptyApiListResponse,
+  QueryParamsCategoryRecent,
+  QueryParamsCategoryTop,
+  QueryParamsGetManyPartial,
+  QueryParamsGlobalRecent,
+  QueryParamsGlobalTop,
+  QueryParamsSubscribedRecent,
+  QueryParamsSubscribedTop,
+} from '../..';
 
 export async function reqLiveItemGetManyGlobalRecent(
   api: ApiRequestService,
   params: QueryParamsGlobalRecent,
-  liveItemType: LiveItemStatus,
+  liveItemType: LiveItemStatus
 ) {
   return api.apiRequest<ApiListResponse<DTOItem>>({
     path: '/live-item/global/recent',
@@ -24,7 +32,7 @@ export async function reqLiveItemGetManyGlobalRecent(
 export async function reqLiveItemGetManyGlobalTop(
   api: ApiRequestService,
   params: QueryParamsGlobalTop,
-  liveItemType: LiveItemStatus,
+  liveItemType: LiveItemStatus
 ) {
   return api.apiRequest<ApiListResponse<DTOItem>>({
     path: '/live-item/global/top',
@@ -41,7 +49,7 @@ export async function reqLiveItemGetManyGlobalTop(
 export async function reqLiveItemGetManyCategoryRecent(
   api: ApiRequestService,
   params: QueryParamsCategoryRecent,
-  liveItemType: LiveItemStatus,
+  liveItemType: LiveItemStatus
 ) {
   return api.apiRequest<ApiListResponse<DTOItem>>({
     path: '/live-item/category/recent',
@@ -58,7 +66,7 @@ export async function reqLiveItemGetManyCategoryRecent(
 export async function reqLiveItemGetManyCategoryTop(
   api: ApiRequestService,
   params: QueryParamsCategoryTop,
-  liveItemType: LiveItemStatus,
+  liveItemType: LiveItemStatus
 ) {
   return api.apiRequest<ApiListResponse<DTOItem>>({
     path: '/live-item/category/top',
@@ -75,7 +83,7 @@ export async function reqLiveItemGetManyCategoryTop(
 export async function reqLiveItemGetManySubscribedRecent(
   api: ApiRequestService,
   params: QueryParamsSubscribedRecent,
-  liveItemType: LiveItemStatus,
+  liveItemType: LiveItemStatus
 ) {
   return api.apiRequest<ApiListResponse<DTOItem>>({
     path: '/live-item/subscribed/recent',
@@ -93,7 +101,7 @@ export async function reqLiveItemGetManySubscribedRecent(
 export async function reqLiveItemGetManySubscribedTop(
   api: ApiRequestService,
   params: QueryParamsSubscribedTop,
-  liveItemType: LiveItemStatus,
+  liveItemType: LiveItemStatus
 ) {
   return api.apiRequest<ApiListResponse<DTOItem>>({
     path: '/live-item/subscribed/top',
@@ -111,7 +119,7 @@ export async function reqLiveItemGetManySubscribedTop(
 export async function reqLiveItemGetMany(
   api: ApiRequestService,
   params: QueryParamsGetManyPartial,
-  liveItemType: LiveItemStatus,
+  liveItemType: LiveItemStatus
 ) {
   const { type, sort, range, category, page, medium } = params;
 
@@ -124,7 +132,7 @@ export async function reqLiveItemGetMany(
           medium,
           category,
         },
-        liveItemType,
+        liveItemType
       );
     } else if (sort === 'top' && range) {
       return reqLiveItemGetManyCategoryTop(
@@ -135,7 +143,7 @@ export async function reqLiveItemGetMany(
           range,
           category,
         },
-        liveItemType,
+        liveItemType
       );
     }
   } else if (type === 'global') {
@@ -146,7 +154,7 @@ export async function reqLiveItemGetMany(
           page,
           medium,
         },
-        liveItemType,
+        liveItemType
       );
     } else if (sort === 'top' && range) {
       return reqLiveItemGetManyGlobalTop(
@@ -156,7 +164,7 @@ export async function reqLiveItemGetMany(
           medium,
           range,
         },
-        liveItemType,
+        liveItemType
       );
     }
   } else if (type === 'subscribed') {
@@ -167,7 +175,7 @@ export async function reqLiveItemGetMany(
           page,
           medium,
         },
-        liveItemType,
+        liveItemType
       );
     } else if (sort === 'top' && range) {
       return reqLiveItemGetManySubscribedTop(
@@ -177,7 +185,7 @@ export async function reqLiveItemGetMany(
           medium,
           range,
         },
-        liveItemType,
+        liveItemType
       );
     }
   }
@@ -187,7 +195,7 @@ export async function reqLiveItemGetMany(
 
 export async function reqLiveItemGetManyByChannel(
   api: ApiRequestService,
-  channelIdOrIdText: string,
+  channelIdOrIdText: string
 ) {
   return api.apiRequest<DTOItem[]>({
     path: `/live-item/channel/${channelIdOrIdText}`,

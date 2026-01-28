@@ -4,16 +4,16 @@ export async function disableNotificationPermission(): Promise<void> {
   try {
     // Get the current push subscription
     const registration = await navigator.serviceWorker.getRegistration('/webpush-sw.js');
-    
+
     if (registration) {
       const subscription = await registration.pushManager.getSubscription();
-      
+
       if (subscription) {
         const endpoint = subscription.endpoint;
-        
+
         // Unsubscribe from push
         await subscription.unsubscribe();
-        
+
         // Tell the server to delete the subscription
         if (endpoint) {
           try {
@@ -25,7 +25,7 @@ export async function disableNotificationPermission(): Promise<void> {
           }
         }
       }
-      
+
       // Unregister the service worker
       try {
         await registration.unregister();

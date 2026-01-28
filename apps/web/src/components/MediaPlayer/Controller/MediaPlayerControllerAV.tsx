@@ -1,18 +1,28 @@
 'use client';
 
 import React, { useRef, useEffect, useMemo } from 'react';
-import { QueueResourcesAbridgedIndex, DTOClip, DTOItem, DTOItemChapter,
-  DTOItemSoundbite, LabeledItemEnclosure,
+import {
+  QueueResourcesAbridgedIndex,
+  DTOClip,
+  DTOItem,
+  DTOItemChapter,
+  DTOItemSoundbite,
+  LabeledItemEnclosure,
   EnclosureSelectedParams,
   getSelectedLabeledItemEnclosureAndSource,
   isEqual,
   MediumEnum,
   DTOChannel,
-  SelectedLabeledItemEnclosureAndSource} from '@podverse/helpers';
+  SelectedLabeledItemEnclosureAndSource,
+} from '@podverse/helpers';
 import { EVENTS } from '../../../constants/events';
 import { MoveNowPlayingToHistoryCallbackParams } from '../../../hooks/useQueueResourceMoveNowPlayingToHistory';
 import { UpdateNowPlayingParams } from '../../../hooks/useQueueResourceUpdateNowPlaying';
-import { checkIfIsAudioFile, checkIfIsVideoFile, checkIsLiveItem } from '../../../utils/mediaPlayer/mediaPlayerItemEnclosureType';
+import {
+  checkIfIsAudioFile,
+  checkIfIsVideoFile,
+  checkIsLiveItem,
+} from '../../../utils/mediaPlayer/mediaPlayerItemEnclosureType';
 import { playMediaWhenReady } from '../../../utils/mediaPlayer/mediaPlayerPlayMediaWhenReady';
 import { waitForSourceUri } from '../../../utils/mediaPlayer/mediaPlayerPlayMediaWhenReady';
 
@@ -58,19 +68,25 @@ export const MediaPlayerControllerAV: React.FC<MediaPlayerControllerAVProps> = (
     style,
     hidden,
     mpChannel,
-    mpClip, setMPClip,
+    mpClip,
+    setMPClip,
     mpItem,
     mpItemLabeledEnclosures,
     mpEnclosureSelectedParams,
-    mpItemChapter, setMPItemChapter,
+    mpItemChapter,
+    setMPItemChapter,
     mpItemChapters,
-    mpItemChapterShouldSeek, setMPItemChapterShouldSeek,
-    mpItemSoundbite, setMPItemSoundbite,
-    mpIsPlaying, setMPIsPlaying,
+    mpItemChapterShouldSeek,
+    setMPItemChapterShouldSeek,
+    mpItemSoundbite,
+    setMPItemSoundbite,
+    mpIsPlaying,
+    setMPIsPlaying,
     mpPlaybackSpeed,
     mpVolume,
     mpIsMuted,
-    mpShouldPlay, setMPShouldPlay,
+    mpShouldPlay,
+    setMPShouldPlay,
     setMPDuration,
     setMPCurrentTime,
     updateNowPlaying,
@@ -82,25 +98,41 @@ export const MediaPlayerControllerAV: React.FC<MediaPlayerControllerAVProps> = (
   const mediaRef = useRef<HTMLAudioElement & HTMLVideoElement>(null);
 
   const mpChannelRef = useRef<typeof mpChannel>(null);
-  useEffect(() => { mpChannelRef.current = mpChannel; }, [mpChannel]);
+  useEffect(() => {
+    mpChannelRef.current = mpChannel;
+  }, [mpChannel]);
   const mpClipRef = useRef<typeof mpClip>(null);
-  useEffect(() => { mpClipRef.current = mpClip; }, [mpClip]);
+  useEffect(() => {
+    mpClipRef.current = mpClip;
+  }, [mpClip]);
   const mpItemRef = useRef<typeof mpItem>(null);
-  useEffect(() => { mpItemRef.current = mpItem; }, [mpItem]);
+  useEffect(() => {
+    mpItemRef.current = mpItem;
+  }, [mpItem]);
   const mpItemSoundbiteRef = useRef<typeof mpItemSoundbite>(null);
-  useEffect(() => { mpItemSoundbiteRef.current = mpItemSoundbite; }, [mpItemSoundbite]);
+  useEffect(() => {
+    mpItemSoundbiteRef.current = mpItemSoundbite;
+  }, [mpItemSoundbite]);
   const mpItemChapterRef = useRef<typeof mpItemChapter>(null);
-  useEffect(() => { mpItemChapterRef.current = mpItemChapter; }, [mpItemChapter]);
+  useEffect(() => {
+    mpItemChapterRef.current = mpItemChapter;
+  }, [mpItemChapter]);
   const mpItemChaptersRef = useRef<typeof mpItemChapters>(null);
-  useEffect(() => { mpItemChaptersRef.current = mpItemChapters; }, [mpItemChapters]);
+  useEffect(() => {
+    mpItemChaptersRef.current = mpItemChapters;
+  }, [mpItemChapters]);
   const mpShouldPlayRef = useRef<typeof mpShouldPlay>(null);
-  useEffect(() => { mpShouldPlayRef.current = mpShouldPlay; }, [mpShouldPlay]);
+  useEffect(() => {
+    mpShouldPlayRef.current = mpShouldPlay;
+  }, [mpShouldPlay]);
   const queueResourcesAbridgedIndexRef = useRef(queueResourcesAbridgedIndex);
-  useEffect(() => { queueResourcesAbridgedIndexRef.current = queueResourcesAbridgedIndex; }, [queueResourcesAbridgedIndex]);
+  useEffect(() => {
+    queueResourcesAbridgedIndexRef.current = queueResourcesAbridgedIndex;
+  }, [queueResourcesAbridgedIndex]);
 
   const playbackElapsedRef = useRef(0);
   const lastPlaybackTimeRef = useRef<number | null>(null);
-  
+
   const prevSelectedRef = useRef<SelectedLabeledItemEnclosureAndSource | null>(null);
 
   const selectedItemEnclosureAndSource = useMemo(() => {
@@ -178,7 +210,7 @@ export const MediaPlayerControllerAV: React.FC<MediaPlayerControllerAVProps> = (
       ) {
         media.currentTime = Math.min(
           media.currentTime + customEvent.detail.seconds,
-          media.duration,
+          media.duration
         );
       }
     };
@@ -205,7 +237,9 @@ export const MediaPlayerControllerAV: React.FC<MediaPlayerControllerAVProps> = (
 
   useEffect(() => {
     const media = mediaRef?.current;
-    if (!media) {return;}
+    if (!media) {
+      return;
+    }
 
     const handleLoadedMetadata = () => {
       const newDuration = media.duration;
@@ -225,7 +259,8 @@ export const MediaPlayerControllerAV: React.FC<MediaPlayerControllerAVProps> = (
         if (mpChannelRef.current?.medium_id === MediumEnum.Music) {
           newCurrentTime = 0;
         } else {
-          const queueResourceAbridged = queueResourcesAbridgedIndexRef.current.items[mpItemRef.current.id];
+          const queueResourceAbridged =
+            queueResourcesAbridgedIndexRef.current.items[mpItemRef.current.id];
           if (Number(queueResourceAbridged?.p) > 0) {
             newCurrentTime = Number(queueResourceAbridged?.p);
           } else {
@@ -314,7 +349,8 @@ export const MediaPlayerControllerAV: React.FC<MediaPlayerControllerAVProps> = (
       }
 
       if (clip && clip.end_time) {
-        const endTimeNum = typeof clip.end_time === 'string' ? parseFloat(clip.end_time) : clip.end_time;
+        const endTimeNum =
+          typeof clip.end_time === 'string' ? parseFloat(clip.end_time) : clip.end_time;
         const endTimeNumAdjusted = endTimeNum + 1;
         if (!isNaN(endTimeNumAdjusted) && newCurrentTime >= endTimeNumAdjusted) {
           setMPClip(null);
@@ -324,8 +360,14 @@ export const MediaPlayerControllerAV: React.FC<MediaPlayerControllerAVProps> = (
       }
 
       if (itemSoundbite && itemSoundbite.duration) {
-        const startNum = typeof itemSoundbite.start_time === 'string' ? parseFloat(itemSoundbite.start_time) : itemSoundbite.start_time;
-        const durationNum = typeof itemSoundbite.duration === 'string' ? parseFloat(itemSoundbite.duration) : itemSoundbite.duration;
+        const startNum =
+          typeof itemSoundbite.start_time === 'string'
+            ? parseFloat(itemSoundbite.start_time)
+            : itemSoundbite.start_time;
+        const durationNum =
+          typeof itemSoundbite.duration === 'string'
+            ? parseFloat(itemSoundbite.duration)
+            : itemSoundbite.duration;
         const endTimeNum = startNum + durationNum;
         const endTimeNumAdjusted = endTimeNum + 1;
         if (!isNaN(endTimeNumAdjusted) && newCurrentTime >= endTimeNumAdjusted) {
@@ -335,23 +377,25 @@ export const MediaPlayerControllerAV: React.FC<MediaPlayerControllerAVProps> = (
         }
       }
 
-      if (
-        !itemSoundbite &&
-        !clip &&
-        Array.isArray(chapters) &&
-        chapters.length > 0
-      ) {
-        const matchingChapters = chapters.filter(ch => {
-          const start = typeof ch.start_time === 'string' ? parseFloat(ch.start_time) : ch.start_time;
+      if (!itemSoundbite && !clip && Array.isArray(chapters) && chapters.length > 0) {
+        const matchingChapters = chapters.filter((ch) => {
+          const start =
+            typeof ch.start_time === 'string' ? parseFloat(ch.start_time) : ch.start_time;
           const end = typeof ch.end_time === 'string' ? parseFloat(ch.end_time) : ch.end_time;
-          if (typeof end !== 'number' || isNaN(end)) {return false;}
+          if (typeof end !== 'number' || isNaN(end)) {
+            return false;
+          }
           return newCurrentTime >= start && newCurrentTime < end;
         });
         let selectedChapter = null;
         if (matchingChapters.length > 0) {
-          selectedChapter = matchingChapters.find(ch => ch.table_of_contents === false) || matchingChapters[0];
+          selectedChapter =
+            matchingChapters.find((ch) => ch.table_of_contents === false) || matchingChapters[0];
         }
-        if (selectedChapter && (!mpItemChapterRef.current || mpItemChapterRef.current.id !== selectedChapter.id)) {
+        if (
+          selectedChapter &&
+          (!mpItemChapterRef.current || mpItemChapterRef.current.id !== selectedChapter.id)
+        ) {
           setMPItemChapter(selectedChapter);
         }
       }
@@ -385,7 +429,9 @@ export const MediaPlayerControllerAV: React.FC<MediaPlayerControllerAVProps> = (
 
   useEffect(() => {
     const media = mediaRef?.current;
-    if (!media) {return;}
+    if (!media) {
+      return;
+    }
     if (mpIsPlaying) {
       playMediaWhenReady(media);
     } else {
@@ -395,19 +441,25 @@ export const MediaPlayerControllerAV: React.FC<MediaPlayerControllerAVProps> = (
 
   useEffect(() => {
     const media = mediaRef?.current;
-    if (!media) {return;}
+    if (!media) {
+      return;
+    }
     media.volume = mpVolume;
   }, [mpVolume]);
 
   useEffect(() => {
     const media = mediaRef?.current;
-    if (!media) {return;}
+    if (!media) {
+      return;
+    }
     media.muted = mpIsMuted;
   }, [mpIsMuted]);
 
   useEffect(() => {
     const media = mediaRef?.current;
-    if (!media) {return;}
+    if (!media) {
+      return;
+    }
     media.playbackRate = mpPlaybackSpeed;
   }, [mpPlaybackSpeed]);
 

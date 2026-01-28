@@ -1,4 +1,3 @@
-
 const SIZE_BASE = {
   SIZE: 112,
   SIZE_FIND_TARGET: 224,

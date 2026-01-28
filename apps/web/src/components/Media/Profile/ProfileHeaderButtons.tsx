@@ -12,7 +12,10 @@ type ProfileHeaderButtonsProps = {
   isOwnProfile: boolean;
 };
 
-export const ProfileHeaderButtons: React.FC<ProfileHeaderButtonsProps> = ({ account, isOwnProfile }) => {
+export const ProfileHeaderButtons: React.FC<ProfileHeaderButtonsProps> = ({
+  account,
+  isOwnProfile,
+}) => {
   const router = useRouter();
 
   const handleEditClick = () => {
@@ -21,9 +24,9 @@ export const ProfileHeaderButtons: React.FC<ProfileHeaderButtonsProps> = ({ acco
 
   return (
     <div className={styles.buttons}>
-      <SubscribeButton 
-        entity={account} 
-        kind="profile" 
+      <SubscribeButton
+        entity={account}
+        kind="profile"
         onEdit={isOwnProfile ? handleEditClick : undefined}
       />
     </div>

@@ -27,11 +27,12 @@ export enum MediumEnum {
   PublisherAudiobook = 26,
   PublisherNewsletter = 27,
   PublisherBlog = 28,
-  PublisherCourse = 29
+  PublisherCourse = 29,
 }
 
 export function getMediumEnumValue(input: string | null): MediumEnum {
-  const sanitizedInput = input?.toLowerCase()
+  const sanitizedInput = input
+    ?.toLowerCase()
     .replace(/\s+/g, '')
     .replace(/[^a-z0-9]/g, '');
 
@@ -81,108 +82,117 @@ export const supportedQueueMediums: { [key: number]: boolean } = {
 };
 
 export const QUERY_PARAMS_MEDIUMS = [
-  'all', 'podcasts', 'videos', 'music', 'av',
-  'publisher-podcasts', 'publisher-videos', 'publisher-music', 'publisher-av',
+  'all',
+  'podcasts',
+  'videos',
+  'music',
+  'av',
+  'publisher-podcasts',
+  'publisher-videos',
+  'publisher-music',
+  'publisher-av',
 ] as const;
-export type QueryParamsMedium = typeof QUERY_PARAMS_MEDIUMS[number];
+export type QueryParamsMedium = (typeof QUERY_PARAMS_MEDIUMS)[number];
 
 export const QUERY_PARAMS_QUEUE_MEDIUMS = ['all', 'av', 'music'] as const;
-export type QueryParamsQueueMedium = typeof QUERY_PARAMS_QUEUE_MEDIUMS[number];
+export type QueryParamsQueueMedium = (typeof QUERY_PARAMS_QUEUE_MEDIUMS)[number];
 
 export const getMediumFromQueryParam = (val: QueryParamsMedium): MediumEnum | null => {
   switch (val) {
-  case 'podcasts':
-    return MediumEnum.Podcast;
-  case 'videos':
-    return MediumEnum.Video;
-  case 'av':
-    return MediumEnum.AV;
-  case 'music':
-    return MediumEnum.Music;
-  case 'publisher-podcasts':
-    return MediumEnum.PublisherPodcast;
-  case 'publisher-videos':
-    return MediumEnum.PublisherVideo;
-  case 'publisher-music':
-    return MediumEnum.PublisherMusic;
-  case 'publisher-av':
-    return MediumEnum.PublisherAV;
-  case 'all':
-  default:
-    return null;
+    case 'podcasts':
+      return MediumEnum.Podcast;
+    case 'videos':
+      return MediumEnum.Video;
+    case 'av':
+      return MediumEnum.AV;
+    case 'music':
+      return MediumEnum.Music;
+    case 'publisher-podcasts':
+      return MediumEnum.PublisherPodcast;
+    case 'publisher-videos':
+      return MediumEnum.PublisherVideo;
+    case 'publisher-music':
+      return MediumEnum.PublisherMusic;
+    case 'publisher-av':
+      return MediumEnum.PublisherAV;
+    case 'all':
+    default:
+      return null;
   }
 };
 
 export const getQueryParamFromMediumId = (mediumId: number | null): QueryParamsMedium => {
   switch (mediumId) {
-  case MediumEnum.Podcast:
-    return 'podcasts';
-  case MediumEnum.Video:
-    return 'videos';
-  case MediumEnum.AV:
-    return 'av';
-  case MediumEnum.Music:
-    return 'music';
-  case MediumEnum.PublisherPodcast:
-    return 'publisher-podcasts';
-  case MediumEnum.PublisherVideo:
-    return 'publisher-videos';
-  case MediumEnum.PublisherMusic:
-    return 'publisher-music';
-  case MediumEnum.PublisherAV:
-    return 'publisher-av';
-  default:
-    return 'all';
+    case MediumEnum.Podcast:
+      return 'podcasts';
+    case MediumEnum.Video:
+      return 'videos';
+    case MediumEnum.AV:
+      return 'av';
+    case MediumEnum.Music:
+      return 'music';
+    case MediumEnum.PublisherPodcast:
+      return 'publisher-podcasts';
+    case MediumEnum.PublisherVideo:
+      return 'publisher-videos';
+    case MediumEnum.PublisherMusic:
+      return 'publisher-music';
+    case MediumEnum.PublisherAV:
+      return 'publisher-av';
+    default:
+      return 'all';
   }
 };
 
 export const getQueryParamFromQueueMediumId = (mediumId: number | null): QueryParamsQueueMedium => {
   switch (mediumId) {
-  case MediumEnum.AV:
-    return 'av';
-  case MediumEnum.Podcast:
-    return 'av';
-  case MediumEnum.Video:
-    return 'av';
-  case MediumEnum.Music:
-    return 'music';
-  default:
-    return 'all';
+    case MediumEnum.AV:
+      return 'av';
+    case MediumEnum.Podcast:
+      return 'av';
+    case MediumEnum.Video:
+      return 'av';
+    case MediumEnum.Music:
+      return 'music';
+    default:
+      return 'all';
   }
 };
 
 export const getMediumIdArrayFromType = (type: QueryParamsMedium | null): number[] | null => {
   switch (type) {
-  case 'podcasts':
-    return [MediumEnum.Podcast];
-  case 'videos':
-    return [MediumEnum.Video];
-  case 'music':
-    return [MediumEnum.Music];
-  case 'av':
-    return [MediumEnum.Podcast, MediumEnum.Video];
-  case 'publisher-podcasts':
-    return [MediumEnum.PublisherPodcast];
-  case 'publisher-videos':
-    return [MediumEnum.PublisherVideo];
-  case 'publisher-music':
-    return [MediumEnum.PublisherMusic];
-  case 'publisher-av':
-    return [MediumEnum.PublisherPodcast, MediumEnum.PublisherVideo];
-  case 'all':
-  default:
-    return null;
+    case 'podcasts':
+      return [MediumEnum.Podcast];
+    case 'videos':
+      return [MediumEnum.Video];
+    case 'music':
+      return [MediumEnum.Music];
+    case 'av':
+      return [MediumEnum.Podcast, MediumEnum.Video];
+    case 'publisher-podcasts':
+      return [MediumEnum.PublisherPodcast];
+    case 'publisher-videos':
+      return [MediumEnum.PublisherVideo];
+    case 'publisher-music':
+      return [MediumEnum.PublisherMusic];
+    case 'publisher-av':
+      return [MediumEnum.PublisherPodcast, MediumEnum.PublisherVideo];
+    case 'all':
+    default:
+      return null;
   }
 };
 
-export const getQueueMediumIdFromType = (type: QueryParamsQueueMedium | null): MediumEnum | null => {
+export const getQueueMediumIdFromType = (
+  type: QueryParamsQueueMedium | null
+): MediumEnum | null => {
   switch (type) {
-  case 'av':
-    return MediumEnum.AV;
-  case 'music':
-    return MediumEnum.Music;
-  default:
-    return null;
+    case 'av':
+      return MediumEnum.AV;
+    case 'music':
+      return MediumEnum.Music;
+    default:
+      return null;
   }
 };
 

@@ -22,6 +22,6 @@ export const ListCombinedChannelGridNode: React.FC<Props> = ({ channel, filterMe
   if (filterMedium === 'music') {
     return <ListAlbumGridNode channel={channel} />;
   }
-  
+
   return <ListPodcastGridNode channel={channel} />;
 };

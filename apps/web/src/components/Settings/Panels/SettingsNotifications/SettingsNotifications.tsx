@@ -14,14 +14,19 @@ import { useLoadingMap } from '../../../../hooks/useLoadingMap';
 import { Divider } from '../../../../components/Divider/Divider';
 import { TextInput } from '../../../../components/Form/TextInput';
 import { Button } from '../../../../components/Button/Button';
-import { InlineForm, InlineFormInfo, InlineFormButtons, InlineFormFieldGroup } from '../../../../components/Form/InlineForm';
+import {
+  InlineForm,
+  InlineFormInfo,
+  InlineFormButtons,
+  InlineFormFieldGroup,
+} from '../../../../components/Form/InlineForm';
 import { SettingsSection } from '../../SettingsSection';
 import styles from '../../../../styles/components/Settings/Panels/SettingsNotifications/SettingsNotifications.module.scss';
 
 export function SettingsNotifications() {
-  const { 
-    setPermission, 
-    registered, 
+  const {
+    setPermission,
+    registered,
     setRegistered,
     upRegistered,
     setUPRegistered,
@@ -51,7 +56,7 @@ export function SettingsNotifications() {
       setLoadingFor('webpush', false);
       return;
     }
-    
+
     try {
       // Disable UP first if it's enabled (mutual exclusivity)
       if (upRegistered) {
@@ -73,7 +78,7 @@ export function SettingsNotifications() {
               const subscription = await registration.pushManager.getSubscription();
               if (subscription) {
                 const devices = await apiRequestService.reqAccountWebPushDeviceGetAllForAccount();
-                const match = devices.find(d => d.endpoint === subscription.endpoint);
+                const match = devices.find((d) => d.endpoint === subscription.endpoint);
                 setRegistered(!!match);
               } else {
                 setRegistered(false);
@@ -119,7 +124,9 @@ export function SettingsNotifications() {
     if (!loggedInAccount) {
       setModalLoginRequired({
         title: null,
-        message: tInstructions(next ? 'login_to_enable_notifications' : 'login_to_disable_notifications'),
+        message: tInstructions(
+          next ? 'login_to_enable_notifications' : 'login_to_disable_notifications'
+        ),
       });
       return;
     }
@@ -154,7 +161,7 @@ export function SettingsNotifications() {
       }
 
       await withLoading('unifiedpush', async () => {
-        await apiRequestService.reqAccountUPDeviceCreate({ 
+        await apiRequestService.reqAccountUPDeviceCreate({
           up_endpoint: endpoint,
           up_auth_key: authKey,
         });
@@ -185,7 +192,7 @@ export function SettingsNotifications() {
         if (upEndpoint) {
           await apiRequestService.reqAccountUPDeviceDelete({ up_endpoint: upEndpoint });
         }
-        
+
         const upDevice = await apiRequestService.reqAccountUPDeviceGetForAccount();
         if (upDevice) {
           setUPRegistered(true);
@@ -222,7 +229,12 @@ export function SettingsNotifications() {
   const toggleDefaultType = async (type: string, next: boolean) => {
     setLoadingFor(`notifications.${type}`, true);
     if (!loggedInAccount) {
-      setModalLoginRequired({ title: null, message: tInstructions(next ? 'login_to_enable_notifications' : 'login_to_disable_notifications') });
+      setModalLoginRequired({
+        title: null,
+        message: tInstructions(
+          next ? 'login_to_enable_notifications' : 'login_to_disable_notifications'
+        ),
+      });
       setLoadingFor(`notifications.${type}`, false);
       return;
     }
@@ -230,10 +242,14 @@ export function SettingsNotifications() {
     await withLoading(`notifications.${type}`, async () => {
       try {
         if (next) {
-          const updated = await apiRequestService.reqAccountSettingsNotificationTypeCreate({ type });
+          const updated = await apiRequestService.reqAccountSettingsNotificationTypeCreate({
+            type,
+          });
           setLoggedInAccount(updated as unknown as typeof loggedInAccount);
         } else {
-          const updated = await apiRequestService.reqAccountSettingsNotificationTypeDelete({ type });
+          const updated = await apiRequestService.reqAccountSettingsNotificationTypeDelete({
+            type,
+          });
           setLoggedInAccount(updated as unknown as typeof loggedInAccount);
         }
       } catch (e) {
@@ -265,7 +281,7 @@ export function SettingsNotifications() {
         helpText={tSettings('notifications.web_push_help')}
         aria-describedby="webpush-help"
       />
-      
+
       <Divider withSpacing />
 
       {/* Unified Push (Secondary) */}
@@ -283,9 +299,7 @@ export function SettingsNotifications() {
         {/* UP Form - shown when toggle is clicked to enable */}
         {showUPForm && !upRegistered && (
           <InlineForm>
-            <InlineFormInfo>
-              {tSettings('notifications.up_endpoint_info')}
-            </InlineFormInfo>
+            <InlineFormInfo>{tSettings('notifications.up_endpoint_info')}</InlineFormInfo>
             <TextInput
               id="up-endpoint"
               value={upEndpointInput}
@@ -299,9 +313,7 @@ export function SettingsNotifications() {
               aria-invalid={!!upEndpointError}
             />
             <InlineFormFieldGroup>
-              <InlineFormInfo>
-                {tSettings('notifications.up_auth_key_info')}
-              </InlineFormInfo>
+              <InlineFormInfo>{tSettings('notifications.up_auth_key_info')}</InlineFormInfo>
               <TextInput
                 id="up-auth-key"
                 value={upAuthKeyInput}
@@ -315,8 +327,8 @@ export function SettingsNotifications() {
               <Button variant="secondary" onClick={cancelUPForm}>
                 {tSettings('notifications.cancel')}
               </Button>
-              <Button 
-                variant="primary" 
+              <Button
+                variant="primary"
                 onClick={validateAndEnableUP}
                 disabled={!upEndpointInput.trim()}
               >
@@ -329,7 +341,9 @@ export function SettingsNotifications() {
         {/* Show current UP endpoint when registered */}
         {upRegistered && upEndpoint && (
           <div className={styles.upEndpointDisplay}>
-            <span className={styles.upEndpointLabel}>{tSettings('notifications.up_current_endpoint')}</span>
+            <span className={styles.upEndpointLabel}>
+              {tSettings('notifications.up_current_endpoint')}
+            </span>
             <span className={styles.upEndpointValue}>{upEndpoint}</span>
           </div>
         )}
@@ -340,13 +354,15 @@ export function SettingsNotifications() {
         <>
           <Divider withSpacing />
           <SettingsSection>
-            {defaultTypes.map(dt => (
+            {defaultTypes.map((dt) => (
               <SwitchButton
                 key={dt.key}
                 id={`notifications-${dt.key}`}
                 label={dt.label}
                 checked={
-                  !!loggedInAccount?.account_settings?.account_settings_notification?.account_settings_notification_types?.find(t => t.type === dt.key)
+                  !!loggedInAccount?.account_settings?.account_settings_notification?.account_settings_notification_types?.find(
+                    (t) => t.type === dt.key
+                  )
                 }
                 onChange={async (next) => await toggleDefaultType(dt.key, next)}
                 loading={!!loadingMap[`notifications.${dt.key}`]}

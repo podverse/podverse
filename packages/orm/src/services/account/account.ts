@@ -1,5 +1,12 @@
-import { AccountMembershipEnum, SharableStatusEnum, validateEmail, validatePassword,
-  AccountNotificationTypeEnum, ERROR_MESSAGES, getSharableStatusIdsForProfileType } from '@podverse/helpers';
+import {
+  AccountMembershipEnum,
+  SharableStatusEnum,
+  validateEmail,
+  validatePassword,
+  AccountNotificationTypeEnum,
+  ERROR_MESSAGES,
+  getSharableStatusIdsForProfileType,
+} from '@podverse/helpers';
 import { FindManyOptions, FindOneOptions, Repository, In, Not, IsNull } from 'typeorm';
 import { Account } from '@orm/entities/account/account';
 import { AppDataSourceRead, AppDataSourceReadWrite } from '@orm/db';
@@ -18,10 +25,10 @@ import { AccountSettingsNotificationType } from '@orm/entities/account/accountSe
 import { getDefaultLocale } from '@orm/config';
 
 type CreateAccountDto = {
-  email: string
-  password: string
-  locale: string
-}
+  email: string;
+  password: string;
+  locale: string;
+};
 
 type UpdateAccountDto = {
   display_name: string | null;
@@ -50,7 +57,7 @@ export class AccountService {
     if (!id) {
       return null;
     }
-    
+
     let mergedRelations: string[];
     if (config?.relations && Array.isArray(config.relations)) {
       mergedRelations = Array.from(new Set([...config.relations, ...requiredRelations]));
@@ -58,8 +65,14 @@ export class AccountService {
       mergedRelations = requiredRelations;
     }
 
-    const account = await this.repositoryRead.findOne({ where: { id }, ...(config || {}), relations: mergedRelations });
-    if (!account) {return null;}
+    const account = await this.repositoryRead.findOne({
+      where: { id },
+      ...(config || {}),
+      relations: mergedRelations,
+    });
+    if (!account) {
+      return null;
+    }
 
     await this.ensureAccountSettings(account, { alwaysCreate: false, locale: getDefaultLocale() });
 
@@ -101,11 +114,14 @@ export class AccountService {
     });
   }
 
-  async getManySubscribed(accountIds: number[], config: FindManyOptions<Account>): Promise<Account[]> {
+  async getManySubscribed(
+    accountIds: number[],
+    config: FindManyOptions<Account>
+  ): Promise<Account[]> {
     if (accountIds.length === 0) {
       return [];
     }
-    
+
     const sharableStatusIds = getSharableStatusIdsForProfileType('subscribed');
     return this.repositoryRead.find({
       ...config,
@@ -124,17 +140,19 @@ export class AccountService {
     if (!validateEmail(dto.email)) {
       throw new Error('Invalid email');
     }
-    
+
     if (!validatePassword(dto.password)) {
       throw new Error('Invalid password');
     }
 
     const sharableStatusRepository = AppDataSourceRead.getRepository(SharableStatus);
-    const sharableStatus = await sharableStatusRepository.findOne({ where: { id: SharableStatusEnum.Private } });
+    const sharableStatus = await sharableStatusRepository.findOne({
+      where: { id: SharableStatusEnum.Private },
+    });
     if (!sharableStatus) {
       throw new Error('SharableStatus not found');
     }
-    
+
     const accountCredentialsService = new AccountCredentialsService();
     const accountCredentials = await accountCredentialsService.getByEmail(dto.email);
 
@@ -149,7 +167,7 @@ export class AccountService {
     const account = await this.repositoryReadWrite.save(accountObj);
 
     await this.ensureAccountSettings(account, { alwaysCreate: true, locale: dto.locale });
-    
+
     // Create account_profile row with null display_name and bio
     const accountProfileRepo = AppDataSourceReadWrite.getRepository(AccountProfile);
     const accountProfile = new AccountProfile();
@@ -157,9 +175,9 @@ export class AccountService {
     accountProfile.display_name = null;
     accountProfile.bio = null;
     await accountProfileRepo.save(accountProfile);
-    
+
     const saltedPassword = await hashPassword(dto.password);
-    
+
     await accountCredentialsService.update(account, {
       email: dto.email,
       password: saltedPassword,
@@ -175,12 +193,15 @@ export class AccountService {
   }
 
   async update(account_id: number, dto: UpdateAccountDto): Promise<Account | null> {
-    const account = await this.repositoryReadWrite.findOne({ where: { id: account_id }, relations: ['sharable_status'] });
-  
+    const account = await this.repositoryReadWrite.findOne({
+      where: { id: account_id },
+      relations: ['sharable_status'],
+    });
+
     if (!account) {
       throw new Error('Account not found');
     }
-  
+
     // Always update account profile
     const accountProfileService = new AccountProfileService();
     const accountProfileDto = {
@@ -188,10 +209,12 @@ export class AccountService {
       bio: dto.bio,
     };
     await accountProfileService.update(account, accountProfileDto);
-  
+
     // Always update sharable status
     const sharableStatusRepository = AppDataSourceRead.getRepository(SharableStatus);
-    const sharableStatus = await sharableStatusRepository.findOne({ where: { id: dto.sharable_status } });
+    const sharableStatus = await sharableStatusRepository.findOne({
+      where: { id: dto.sharable_status },
+    });
     if (!sharableStatus) {
       throw new Error('SharableStatus not found');
     }
@@ -203,14 +226,17 @@ export class AccountService {
       where: { account_id },
       relations: ['account_settings_locale'],
     });
-    
+
     if (accountSettings?.account_settings_locale) {
       const localeRepo = AppDataSourceReadWrite.getRepository(AccountSettingsLocale);
       accountSettings.account_settings_locale.locale = dto.locale;
       await localeRepo.save(accountSettings.account_settings_locale);
     }
-  
-    return this.repositoryReadWrite.findOne({ where: { id: account_id }, relations: ['account_profile', 'sharable_status'] });
+
+    return this.repositoryReadWrite.findOne({
+      where: { id: account_id },
+      relations: ['account_profile', 'sharable_status'],
+    });
   }
 
   async verifyEmail(id: number): Promise<void> {
@@ -255,7 +281,10 @@ export class AccountService {
     await this.repositoryReadWrite.remove(account);
   }
 
-  private async ensureAccountSettings(account: Account, params: { alwaysCreate: boolean; locale: string }): Promise<void> {
+  private async ensureAccountSettings(
+    account: Account,
+    params: { alwaysCreate: boolean; locale: string }
+  ): Promise<void> {
     const accountSettingsRepo = AppDataSourceReadWrite.getRepository(AccountSettings);
     const localeRepo = AppDataSourceReadWrite.getRepository(AccountSettingsLocale);
     const notificationRepo = AppDataSourceReadWrite.getRepository(AccountSettingsNotification);
@@ -285,10 +314,12 @@ export class AccountService {
       const t2 = new AccountSettingsNotificationType();
       t2.account_settings_notification_id = notification.id;
       t2.type = AccountNotificationTypeEnum.LivestreamStarting;
-      
-      const notificationTypeRepo = AppDataSourceReadWrite.getRepository(AccountSettingsNotificationType);
+
+      const notificationTypeRepo = AppDataSourceReadWrite.getRepository(
+        AccountSettingsNotificationType
+      );
       await notificationTypeRepo.save([t1, t2]);
-      
+
       return;
     }
 
@@ -311,7 +342,11 @@ export class AccountService {
       t2.type = AccountNotificationTypeEnum.LivestreamStarting;
       notification.account_settings_notification_types = [t1, t2];
       await notificationRepo.save(notification);
-    } else if (!existingSettings.account_settings_notification.account_settings_notification_types || existingSettings.account_settings_notification.account_settings_notification_types.length === 0) {
+    } else if (
+      !existingSettings.account_settings_notification.account_settings_notification_types ||
+      existingSettings.account_settings_notification.account_settings_notification_types.length ===
+        0
+    ) {
       // add default types if missing
       const notification = existingSettings.account_settings_notification;
       const t1 = new AccountSettingsNotificationType();

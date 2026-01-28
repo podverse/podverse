@@ -26,23 +26,25 @@ export interface DTOPlaylistFavorites {
 export interface PlaylistFavoritesIndexRows {
   item_ids: {
     [item_id: number]: boolean;
-  }
+  };
   clip_ids: {
     [clip_id: number]: boolean;
-  }
+  };
   item_soundbite_ids: {
     [item_soundbite_id: number]: boolean;
-  }
+  };
   add_by_rss_hash_ids: {
     [add_by_rss_hash_id: string]: boolean;
-  }
+  };
 }
 
 export interface PlaylistFavoritesIndex {
   [medium_id: number]: PlaylistFavoritesIndexRows;
 }
 
-export const generatePlaylistFavoritesIndex = (playlists: DTOPlaylistFavorites[]): PlaylistFavoritesIndex => {
+export const generatePlaylistFavoritesIndex = (
+  playlists: DTOPlaylistFavorites[]
+): PlaylistFavoritesIndex => {
   const index: PlaylistFavoritesIndex = {};
 
   for (const playlist of playlists) {

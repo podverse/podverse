@@ -12,9 +12,15 @@ type PodcastHeaderViewDesktopProps = {
   clip?: DTOClip;
   item_soundbite?: DTOItemSoundbite;
   item_chapter?: DTOItemChapter;
-}
+};
 
-export const PodcastHeaderViewDesktop: React.FC<PodcastHeaderViewDesktopProps> = ({ channel, item, clip, item_soundbite, item_chapter }) => {
+export const PodcastHeaderViewDesktop: React.FC<PodcastHeaderViewDesktopProps> = ({
+  channel,
+  item,
+  clip,
+  item_soundbite,
+  item_chapter,
+}) => {
   return (
     <div className={styles.contentDesktop}>
       <PodcastHeaderImage channel={channel} item={item} />
@@ -24,7 +30,13 @@ export const PodcastHeaderViewDesktop: React.FC<PodcastHeaderViewDesktopProps> =
         </Link>
         <div className={styles.bottomSection}>
           <PodcastHeaderSubtitle channel={channel} />
-          <PodcastHeaderButtons channel={channel} item={item} clip={clip} item_soundbite={item_soundbite} item_chapter={item_chapter} />
+          <PodcastHeaderButtons
+            channel={channel}
+            item={item}
+            clip={clip}
+            item_soundbite={item_soundbite}
+            item_chapter={item_chapter}
+          />
         </div>
       </div>
     </div>

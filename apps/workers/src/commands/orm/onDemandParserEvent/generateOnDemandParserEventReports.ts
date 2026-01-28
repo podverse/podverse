@@ -11,7 +11,9 @@ export const generateOnDemandParserEventReports = async () => {
     const types = Object.values(OnDemandParserEventType);
 
     for (const type of types) {
-      const reportLogger = createDailyRotateLogger(`onDemandParserEvent/on-demand-parser-event-report-${type}`);
+      const reportLogger = createDailyRotateLogger(
+        `onDemandParserEvent/on-demand-parser-event-report-${type}`
+      );
       const counts = await service.getAggregateCount(type);
       reportLogger.log({
         level: 'info',

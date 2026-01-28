@@ -1,7 +1,10 @@
 import { QUERY_PARAMS_LIVE_ITEM_TYPE_VALUES } from '@podverse/helpers';
 import { z } from 'zod';
 import { getSSRAuthService } from '../../../../utils/auth/ssrAuth';
-import { getLivestreamFilterParams, LivestreamDropdownConfigCurrentParams } from '../../../podcast/livestream/[item_id]/LivestreamDropdownConfig';
+import {
+  getLivestreamFilterParams,
+  LivestreamDropdownConfigCurrentParams,
+} from '../../../podcast/livestream/[item_id]/LivestreamDropdownConfig';
 import { LivestreamClient } from '../../../podcast/livestream/[item_id]/LivestreamClient';
 
 const searchParamsSchema = z.object({
@@ -18,9 +21,9 @@ export type LivestreamPageProps = {
 export default async function MusicLivestreamPage({ params, searchParams }: LivestreamPageProps) {
   const { item_id } = await params;
   const queryParams = await searchParams;
-  
+
   const { ssrApiRequestService } = await getSSRAuthService();
-    
+
   const { currentType } = parseSearchParams(queryParams);
 
   const ssrItem = await ssrApiRequestService.reqItemGetByIdOrIdText(item_id);

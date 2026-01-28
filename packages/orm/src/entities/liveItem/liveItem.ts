@@ -7,11 +7,11 @@ export class LiveItem {
   @PrimaryGeneratedColumn()
   id!: number;
 
-  @OneToOne(() => Item, item => item.live_item, { onDelete: 'CASCADE' })
+  @OneToOne(() => Item, (item) => item.live_item, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'item_id' })
   item!: Item;
 
-  @ManyToOne(() => LiveItemStatus, liveItemStatus => liveItemStatus.id)
+  @ManyToOne(() => LiveItemStatus, (liveItemStatus) => liveItemStatus.id)
   @JoinColumn({ name: 'live_item_status_id' })
   live_item_status!: LiveItemStatus;
 

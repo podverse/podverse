@@ -8,7 +8,13 @@ type EmailTemplateParams = {
   unsubscribeLink?: string;
 };
 
-export const emailTemplate = ({ buttonLink, buttonText, headerText, paragraphText, unsubscribeLink }: EmailTemplateParams) => `
+export const emailTemplate = ({
+  buttonLink,
+  buttonText,
+  headerText,
+  paragraphText,
+  unsubscribeLink,
+}: EmailTemplateParams) => `
   <!doctype html>
   <html lang="en-US">
     <head>
@@ -35,30 +41,48 @@ export const emailTemplate = ({ buttonLink, buttonText, headerText, paragraphTex
   </html>
 `;
 
-const addressSection = config.legal.name || config.legal.address ? `
+const addressSection =
+  config.legal.name || config.legal.address
+    ? `
   <div class="address" style="color: #555; font-size: 14px; line-height: 20px; margin: 0; text-align: center;">
     ${config.legal.name}
     ${config.legal.name && config.legal.address ? '<br />' : ''}
     ${config.legal.address}
   </div>
-` : '';
+`
+    : '';
 
-const socialIconTemplate = (imageUrl: string, pageUrl: string) => imageUrl && pageUrl ? `
+const socialIconTemplate = (imageUrl: string, pageUrl: string) =>
+  imageUrl && pageUrl
+    ? `
   <a class="social-icon" href="${pageUrl}" style="display: inline-block; height: 32px; margin: 0 16px; width: 32px;">
     <img src="${imageUrl}" style="height: 32px; width: 32px;" />
   </a>
-` : '';
+`
+    : '';
 
-const facebookIcon = socialIconTemplate(config.social.facebook.imageUrl, config.social.facebook.pageUrl);
+const facebookIcon = socialIconTemplate(
+  config.social.facebook.imageUrl,
+  config.social.facebook.pageUrl
+);
 const githubIcon = socialIconTemplate(config.social.github.imageUrl, config.social.github.pageUrl);
 const redditIcon = socialIconTemplate(config.social.reddit.imageUrl, config.social.reddit.pageUrl);
-const twitterIcon = socialIconTemplate(config.social.twitter.imageUrl, config.social.twitter.pageUrl);
+const twitterIcon = socialIconTemplate(
+  config.social.twitter.imageUrl,
+  config.social.twitter.pageUrl
+);
 
-const socialIcons = config.social.facebook.pageUrl || config.social.github.pageUrl || config.social.reddit.pageUrl || config.social.twitter.pageUrl ? `
+const socialIcons =
+  config.social.facebook.pageUrl ||
+  config.social.github.pageUrl ||
+  config.social.reddit.pageUrl ||
+  config.social.twitter.pageUrl
+    ? `
   <div class="social-icons" style="margin: 36px 32px 28px 32px; text-align: center;">
     ${facebookIcon}
     ${githubIcon}
     ${redditIcon}
     ${twitterIcon}
   </div>
-` : '';
+`
+    : '';

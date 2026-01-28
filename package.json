@@ -27,9 +27,16 @@
     "@types/node": "^24.4.0",
     "concurrently": "^9.2.1",
     "eslint": "^9.35.0",
+    "eslint-config-prettier": "^10.1.8",
     "globals": "^16.2.0",
+    "lint-staged": "^16.2.7",
+    "prettier": "^3.4.2",
+    "prettier-plugin-sh": "^0.18.0",
     "typescript": "^5.9.2",
     "typescript-eslint": "^8.44.0"
+  },
+  "lint-staged": {
+    "*.{ts,tsx,js,mjs,cjs,json,md,yml,yaml,scss,css}": "prettier --write"
   },
   "scripts": {
     "prepare": "bash scripts/git-hooks/install-hooks.sh",
@@ -57,8 +64,11 @@
     "dev:main:all": "concurrently -n pkg,api,web -c gray,blue,green \"npm run watch:packages\" \"sleep 18 && npm run dev:api:watch\" \"sleep 24 && npm run dev:web\"",
     "dev:management:all": "concurrently -n pkg,mgmt-api,mgmt-web -c gray,magentaBright,greenBright \"npm run watch:packages\" \"sleep 18 && npm run dev:management-api:watch\" \"sleep 24 && npm run dev:management-web\"",
     "dev:all": "concurrently -n pkg,api,web,mgmt-api,mgmt-web -c gray,blue,green,magentaBright,greenBright \"npm run watch:packages\" \"sleep 18 && npm run dev:api:watch\" \"sleep 24 && npm run dev:web\" \"sleep 30 && npm run dev:management-api:watch\" \"sleep 36 && npm run dev:management-web\"",
-    "lint": "npm run lint --workspaces --if-present",
-    "lint:fix": "npm run lint:fix --workspaces --if-present",
+    "lint": "npm run lint --workspaces --if-present && npm run prettier:check",
+    "lint:fix": "npm run lint:fix --workspaces --if-present && npm run prettier:write",
+    "prettier:check": "prettier --check .",
+    "prettier:write": "prettier --write .",
+    "format:shell": "prettier --write \"**/*.sh\" --plugin prettier-plugin-sh",
     "test": "npm run test --workspaces --if-present",
     "type-check": "npm run type-check --workspaces --if-present",
     "db:combine": "bash scripts/database/combine-migrations.sh",

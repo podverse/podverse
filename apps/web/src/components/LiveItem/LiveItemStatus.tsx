@@ -5,7 +5,7 @@ import styles from '../../styles/components/LiveItem/LiveItemStatus.module.scss'
 
 type LiveItemStatusProps = {
   live_item: DTOLiveItem;
-}
+};
 
 export const LiveItemStatus = ({ live_item }: LiveItemStatusProps) => {
   const tMedia = useTranslations('media');
@@ -22,10 +22,7 @@ export const LiveItemStatus = ({ live_item }: LiveItemStatusProps) => {
   }
 
   return (
-    <Button
-      className={styles.button}
-      variant={variant}
-      tabIndex={-1}>
+    <Button className={styles.button} variant={variant} tabIndex={-1}>
       {statusText}
     </Button>
   );

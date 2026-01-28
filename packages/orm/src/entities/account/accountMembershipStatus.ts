@@ -7,11 +7,11 @@ export class AccountMembershipStatus {
   @PrimaryGeneratedColumn()
   id!: number;
 
-  @OneToOne(() => Account, account => account.id, { onDelete: 'CASCADE' })
+  @OneToOne(() => Account, (account) => account.id, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'account_id' })
   account!: Account;
 
-  @ManyToOne(() => AccountMembership, accountMembership => accountMembership.id)
+  @ManyToOne(() => AccountMembership, (accountMembership) => accountMembership.id)
   @JoinColumn({ name: 'account_membership_id' })
   account_membership!: AccountMembership;
 

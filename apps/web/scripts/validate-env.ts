@@ -6,7 +6,17 @@
 import { config } from 'dotenv';
 import { resolve } from 'path';
 import { existsSync } from 'fs';
-import { ValidationResult, ValidationSummary, validateRequired, validateOptional, getAllAvailableOrListMessage, validateSupportedLocalesList, validateLocale, SERVER_ENV_VALUES, isValidServerEnv } from '@podverse/helpers';
+import {
+  ValidationResult,
+  ValidationSummary,
+  validateRequired,
+  validateOptional,
+  getAllAvailableOrListMessage,
+  validateSupportedLocalesList,
+  validateLocale,
+  SERVER_ENV_VALUES,
+  isValidServerEnv,
+} from '@podverse/helpers';
 
 // Valid themes for theme validation
 const VALID_THEMES = ['dark', 'light', 'dracula'];
@@ -24,7 +34,7 @@ if (nodeEnv === 'production') {
   // Production: Try .env.production first (as set in Dockerfile), then .env
   const prodPath = resolve(cwd, '.env.production');
   const envPath = resolve(cwd, '.env');
-  
+
   if (existsSync(prodPath)) {
     config({ path: prodPath });
     loadedEnvFile = prodPath;
@@ -36,7 +46,7 @@ if (nodeEnv === 'production') {
   // Development: Try .env.local first (Next.js priority), then .env
   const localPath = resolve(cwd, '.env.local');
   const envPath = resolve(cwd, '.env');
-  
+
   if (existsSync(localPath)) {
     config({ path: localPath });
     loadedEnvFile = localPath;
@@ -58,7 +68,7 @@ if (loadedEnvFile) {
  */
 const validateAllEnvironmentVariables = (): ValidationSummary => {
   const results: ValidationResult[] = [];
-  
+
   // Proxy Configuration
   results.push(validateProxyUserAgent());
 
@@ -81,17 +91,41 @@ const validateAllEnvironmentVariables = (): ValidationSummary => {
   // Brand & Features
   results.push(validateOptional('NEXT_PUBLIC_BRAND_NAME', 'Brand & Features', 'Blank'));
   results.push(validatePollingInterval());
-  results.push(validateSupportedLocalesList('NEXT_PUBLIC_FEATURES_SUPPORTED_LOCALES', 'Brand & Features'));
+  results.push(
+    validateSupportedLocalesList('NEXT_PUBLIC_FEATURES_SUPPORTED_LOCALES', 'Brand & Features')
+  );
   results.push(validateLocale('NEXT_PUBLIC_FEATURES_DEFAULT_LOCALE', 'Brand & Features', true));
   results.push(validateSupportedThemes());
   results.push(validateThemeDefault());
 
   // Lightning Keysend
-  results.push(validateOptional('NEXT_PUBLIC_APP_VALUE_LIGHTNING_KEYSEND_NAME', 'Lightning Keysend', 'Blank'));
-  results.push(validateOptional('NEXT_PUBLIC_APP_VALUE_LIGHTNING_KEYSEND_TYPE', 'Lightning Keysend', 'Blank'));
-  results.push(validateOptional('NEXT_PUBLIC_APP_VALUE_LIGHTNING_KEYSEND_ADDRESS', 'Lightning Keysend', 'Blank'));
-  results.push(validateOptional('NEXT_PUBLIC_APP_VALUE_LIGHTNING_KEYSEND_CUSTOM_KEY', 'Lightning Keysend', 'Blank'));
-  results.push(validateOptional('NEXT_PUBLIC_APP_VALUE_LIGHTNING_KEYSEND_CUSTOM_VALUE', 'Lightning Keysend', 'Blank'));
+  results.push(
+    validateOptional('NEXT_PUBLIC_APP_VALUE_LIGHTNING_KEYSEND_NAME', 'Lightning Keysend', 'Blank')
+  );
+  results.push(
+    validateOptional('NEXT_PUBLIC_APP_VALUE_LIGHTNING_KEYSEND_TYPE', 'Lightning Keysend', 'Blank')
+  );
+  results.push(
+    validateOptional(
+      'NEXT_PUBLIC_APP_VALUE_LIGHTNING_KEYSEND_ADDRESS',
+      'Lightning Keysend',
+      'Blank'
+    )
+  );
+  results.push(
+    validateOptional(
+      'NEXT_PUBLIC_APP_VALUE_LIGHTNING_KEYSEND_CUSTOM_KEY',
+      'Lightning Keysend',
+      'Blank'
+    )
+  );
+  results.push(
+    validateOptional(
+      'NEXT_PUBLIC_APP_VALUE_LIGHTNING_KEYSEND_CUSTOM_VALUE',
+      'Lightning Keysend',
+      'Blank'
+    )
+  );
 
   // Notifications
   results.push(validateOptional('NEXT_PUBLIC_WEBPUSH_VAPID_PUBLIC_KEY', 'Notifications', 'Blank'));
@@ -112,13 +146,15 @@ const validateAllEnvironmentVariables = (): ValidationSummary => {
 
   // Calculate summary
   const total = results.length;
-  const passed = results.filter(r => r.isValid && r.isSet).length;
-  const failed = results.filter(r => !r.isValid).length;
-  const requiredMissing = results.filter(r => r.isRequired && !r.isValid).length;
+  const passed = results.filter((r) => r.isValid && r.isSet).length;
+  const failed = results.filter((r) => !r.isValid).length;
+  const requiredMissing = results.filter((r) => r.isRequired && !r.isValid).length;
   // Count as skipped all optional variables that are not set (regardless of message)
-  const skipped = results.filter(r => !r.isRequired && !r.isSet).length;
+  const skipped = results.filter((r) => !r.isRequired && !r.isSet).length;
   // Count defaults used (passed validations with "Use Default" or "Blank" messages)
-  const defaultsUsed = results.filter(r => r.isValid && r.isSet && (r.message.includes('Use Default') || r.message === 'Blank')).length;
+  const defaultsUsed = results.filter(
+    (r) => r.isValid && r.isSet && (r.message.includes('Use Default') || r.message === 'Blank')
+  ).length;
 
   return {
     total,
@@ -127,7 +163,7 @@ const validateAllEnvironmentVariables = (): ValidationSummary => {
     requiredMissing,
     skipped,
     defaultsUsed,
-    results
+    results,
   };
 };
 
@@ -147,12 +183,12 @@ const validateProxyUserAgent = (): ValidationResult => {
       isValid: false,
       isRequired: true,
       message: 'Missing - must follow format: BrandName Bot Environment/AppName/Version',
-      category: 'Proxy Configuration'
+      category: 'Proxy Configuration',
     };
   }
 
   const trimmedUserAgent = userAgent.trim();
-  
+
   if (!USER_AGENT_PATTERN.test(trimmedUserAgent)) {
     return {
       name: 'NEXT_PUBLIC_PROXY_USER_AGENT',
@@ -160,7 +196,7 @@ const validateProxyUserAgent = (): ValidationResult => {
       isValid: false,
       isRequired: true,
       message: `Invalid format: "${userAgent}" - must follow format: BrandName Bot Environment/AppName/Version`,
-      category: 'Proxy Configuration'
+      category: 'Proxy Configuration',
     };
   }
 
@@ -173,7 +209,7 @@ const validateProxyUserAgent = (): ValidationResult => {
       isValid: false,
       isRequired: true,
       message: `Missing "Bot" in first part: "${userAgent}"`,
-      category: 'Proxy Configuration'
+      category: 'Proxy Configuration',
     };
   }
 
@@ -183,7 +219,7 @@ const validateProxyUserAgent = (): ValidationResult => {
     isValid: true,
     isRequired: true,
     message: 'Valid format',
-    category: 'Proxy Configuration'
+    category: 'Proxy Configuration',
   };
 };
 
@@ -201,7 +237,7 @@ const validateSSRApiPort = (): ValidationResult => {
       isValid: true,
       isRequired: false,
       message: 'Blank',
-      category: 'API Configuration (SSR)'
+      category: 'API Configuration (SSR)',
     };
   }
 
@@ -213,7 +249,7 @@ const validateSSRApiPort = (): ValidationResult => {
       isValid: false,
       isRequired: false,
       message: `Invalid number: "${value}"`,
-      category: 'API Configuration (SSR)'
+      category: 'API Configuration (SSR)',
     };
   }
 
@@ -223,7 +259,7 @@ const validateSSRApiPort = (): ValidationResult => {
     isValid: true,
     isRequired: false,
     message: 'Set',
-    category: 'API Configuration (SSR)'
+    category: 'API Configuration (SSR)',
   };
 };
 
@@ -241,7 +277,7 @@ const validateApiPort = (): ValidationResult => {
       isValid: true,
       isRequired: false,
       message: 'Blank',
-      category: 'API Configuration (Client)'
+      category: 'API Configuration (Client)',
     };
   }
 
@@ -253,7 +289,7 @@ const validateApiPort = (): ValidationResult => {
       isValid: false,
       isRequired: false,
       message: `Invalid number: "${value}"`,
-      category: 'API Configuration (Client)'
+      category: 'API Configuration (Client)',
     };
   }
 
@@ -263,7 +299,7 @@ const validateApiPort = (): ValidationResult => {
     isValid: true,
     isRequired: false,
     message: 'Set',
-    category: 'API Configuration (Client)'
+    category: 'API Configuration (Client)',
   };
 };
 
@@ -281,7 +317,7 @@ const validatePollingInterval = (): ValidationResult => {
       isValid: true,
       isRequired: false,
       message: 'Use Default (3000)',
-      category: 'Brand & Features'
+      category: 'Brand & Features',
     };
   }
 
@@ -293,7 +329,7 @@ const validatePollingInterval = (): ValidationResult => {
       isValid: false,
       isRequired: false,
       message: `Invalid number: "${value}"`,
-      category: 'Brand & Features'
+      category: 'Brand & Features',
     };
   }
 
@@ -303,10 +339,9 @@ const validatePollingInterval = (): ValidationResult => {
     isValid: true,
     isRequired: false,
     message: 'Set',
-    category: 'Brand & Features'
+    category: 'Brand & Features',
   };
 };
-
 
 /**
  * Validates NEXT_PUBLIC_SUPPORTED_THEMES
@@ -323,7 +358,7 @@ const validateSupportedThemes = (): ValidationResult => {
       isValid: false,
       isRequired: true,
       message: `Missing - ${getAllAvailableOrListMessage(VALID_THEMES)}`,
-      category: 'Brand & Features'
+      category: 'Brand & Features',
     };
   }
 
@@ -337,13 +372,16 @@ const validateSupportedThemes = (): ValidationResult => {
       isValid: true,
       isRequired: true,
       message: 'Set to "all-available"',
-      category: 'Brand & Features'
+      category: 'Brand & Features',
     };
   }
 
   // Validate comma-delimited list of themes
-  const themes = trimmedValue.split(',').map(t => t.trim().toLowerCase()).filter(Boolean);
-  
+  const themes = trimmedValue
+    .split(',')
+    .map((t) => t.trim().toLowerCase())
+    .filter(Boolean);
+
   if (themes.length === 0) {
     return {
       name: 'NEXT_PUBLIC_SUPPORTED_THEMES',
@@ -351,12 +389,12 @@ const validateSupportedThemes = (): ValidationResult => {
       isValid: false,
       isRequired: true,
       message: `Empty after parsing - ${getAllAvailableOrListMessage(VALID_THEMES)}`,
-      category: 'Brand & Features'
+      category: 'Brand & Features',
     };
   }
 
   // Check that all themes are valid
-  const invalidThemes = themes.filter(theme => !VALID_THEMES.includes(theme));
+  const invalidThemes = themes.filter((theme) => !VALID_THEMES.includes(theme));
   if (invalidThemes.length > 0) {
     return {
       name: 'NEXT_PUBLIC_SUPPORTED_THEMES',
@@ -364,7 +402,7 @@ const validateSupportedThemes = (): ValidationResult => {
       isValid: false,
       isRequired: true,
       message: `Invalid theme(s): ${invalidThemes.join(', ')}. Valid themes: ${VALID_THEMES.join(', ')}`,
-      category: 'Brand & Features'
+      category: 'Brand & Features',
     };
   }
 
@@ -374,7 +412,7 @@ const validateSupportedThemes = (): ValidationResult => {
     isValid: true,
     isRequired: true,
     message: `Valid themes: ${themes.join(', ')}`,
-    category: 'Brand & Features'
+    category: 'Brand & Features',
   };
 };
 
@@ -392,7 +430,7 @@ const validateServerEnv = (): ValidationResult => {
       isValid: false,
       isRequired: true,
       message: `Missing - must be one of: ${SERVER_ENV_VALUES.join(', ')}`,
-      category: 'General'
+      category: 'General',
     };
   }
 
@@ -403,7 +441,7 @@ const validateServerEnv = (): ValidationResult => {
       isValid: false,
       isRequired: true,
       message: `Invalid value: "${serverEnv}" - must be one of: ${SERVER_ENV_VALUES.join(', ')}`,
-      category: 'General'
+      category: 'General',
     };
   }
 
@@ -413,7 +451,7 @@ const validateServerEnv = (): ValidationResult => {
     isValid: true,
     isRequired: true,
     message: `Set to "${serverEnv}"`,
-    category: 'General'
+    category: 'General',
   };
 };
 
@@ -432,7 +470,7 @@ const validateThemeDefault = (): ValidationResult => {
       isValid: false,
       isRequired: true,
       message: `Missing - must be one of: ${VALID_THEMES.join(', ')}`,
-      category: 'Brand & Features'
+      category: 'Brand & Features',
     };
   }
 
@@ -445,7 +483,7 @@ const validateThemeDefault = (): ValidationResult => {
       isValid: false,
       isRequired: true,
       message: `Invalid theme: "${value}". Valid themes: ${VALID_THEMES.join(', ')}`,
-      category: 'Brand & Features'
+      category: 'Brand & Features',
     };
   }
 
@@ -455,7 +493,7 @@ const validateThemeDefault = (): ValidationResult => {
     isValid: true,
     isRequired: true,
     message: `Valid theme: ${trimmedValue}`,
-    category: 'Brand & Features'
+    category: 'Brand & Features',
   };
 };
 
@@ -474,8 +512,8 @@ const validateAccountSignupMode = (): ValidationResult => {
       isSet: false,
       isValid: false,
       isRequired: true,
-      message: `Missing - must be one of: ${validModes.map(m => `"${m}"`).join(' or ')}`,
-      category: 'Account'
+      message: `Missing - must be one of: ${validModes.map((m) => `"${m}"`).join(' or ')}`,
+      category: 'Account',
     };
   }
 
@@ -485,8 +523,8 @@ const validateAccountSignupMode = (): ValidationResult => {
       isSet: true,
       isValid: false,
       isRequired: true,
-      message: `Invalid value: "${signupMode}" - must be one of: ${validModes.map(m => `"${m}"`).join(' or ')}`,
-      category: 'Account'
+      message: `Invalid value: "${signupMode}" - must be one of: ${validModes.map((m) => `"${m}"`).join(' or ')}`,
+      category: 'Account',
     };
   }
 
@@ -496,7 +534,7 @@ const validateAccountSignupMode = (): ValidationResult => {
     isValid: true,
     isRequired: true,
     message: `Set to "${signupMode}"`,
-    category: 'Account'
+    category: 'Account',
   };
 };
 
@@ -505,15 +543,18 @@ const validateAccountSignupMode = (): ValidationResult => {
  */
 const displayValidationResults = (summary: ValidationSummary): void => {
   console.log('\n=== Environment Variable Validation ===');
-  
+
   // Group results by category
-  const byCategory = summary.results.reduce((acc, result) => {
-    if (!acc[result.category]) {
-      acc[result.category] = [];
-    }
-    acc[result.category].push(result);
-    return acc;
-  }, {} as Record<string, ValidationResult[]>);
+  const byCategory = summary.results.reduce(
+    (acc, result) => {
+      if (!acc[result.category]) {
+        acc[result.category] = [];
+      }
+      acc[result.category].push(result);
+      return acc;
+    },
+    {} as Record<string, ValidationResult[]>
+  );
 
   // Display by category
   const categories = Object.keys(byCategory).sort();
@@ -537,19 +578,20 @@ const displayValidationResults = (summary: ValidationSummary): void => {
   // Display summary
   console.log('\n=== Validation Summary ===');
   console.log(`Total: ${summary.total}`);
-  const passedText = summary.defaultsUsed > 0 
-    ? `Passed: ${summary.passed} (${summary.defaultsUsed} using defaults)`
-    : `Passed: ${summary.passed}`;
+  const passedText =
+    summary.defaultsUsed > 0
+      ? `Passed: ${summary.passed} (${summary.defaultsUsed} using defaults)`
+      : `Passed: ${summary.passed}`;
   console.log(passedText);
   console.log(`Skipped: ${summary.skipped}`);
   console.log(`Failed: ${summary.failed}`);
   console.log(`Required Missing: ${summary.requiredMissing}`);
-  
+
   if (summary.failed > 0) {
     console.error('\nThe following environment variables failed validation:');
     summary.results
-      .filter(r => !r.isValid)
-      .forEach(r => {
+      .filter((r) => !r.isValid)
+      .forEach((r) => {
         const requiredText = r.isRequired ? ' (required)' : ' (optional)';
         console.error(`  - ${r.name}${requiredText}: ${r.message}`);
       });
@@ -558,10 +600,10 @@ const displayValidationResults = (summary: ValidationSummary): void => {
   if (summary.skipped > 0) {
     console.log('Skipped optional variables (not set):');
     summary.results
-      .filter(r => !r.isRequired && !r.isSet)
-      .forEach(r => console.log(`  - ${r.name}`));
+      .filter((r) => !r.isRequired && !r.isSet)
+      .forEach((r) => console.log(`  - ${r.name}`));
   }
-  
+
   if (summary.requiredMissing > 0) {
     console.error('\n❌ Build aborted: Required environment variables are missing or invalid.');
     console.error('Please set these variables in your .env file or environment.\n');
@@ -576,7 +618,7 @@ const validateEnvVars = (): void => {
 
   const summary = validateAllEnvironmentVariables();
   displayValidationResults(summary);
-  
+
   if (summary.requiredMissing > 0) {
     process.exit(1);
   }

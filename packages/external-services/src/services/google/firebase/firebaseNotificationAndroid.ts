@@ -13,9 +13,11 @@ type AndroidPayload = {
 export async function sendFirebaseNotificationBatchAndroid(
   ctx: FirebaseContext,
   tokens: string[],
-  payload: Omit<AndroidPayload, 'fcmToken'>,
+  payload: Omit<AndroidPayload, 'fcmToken'>
 ) {
-  if (!ctx.firebaseAdmin) {throw new Error('Firebase Admin is not initialized');}
+  if (!ctx.firebaseAdmin) {
+    throw new Error('Firebase Admin is not initialized');
+  }
 
   const chunks = chunkArray(tokens, 500);
   const results: unknown[] = [];

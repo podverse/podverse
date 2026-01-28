@@ -1,4 +1,10 @@
-import { FindManyOptions, FindOneOptions, FindOptionsWhere, ObjectLiteral, Repository } from 'typeorm';
+import {
+  FindManyOptions,
+  FindOneOptions,
+  FindOptionsWhere,
+  ObjectLiteral,
+  Repository,
+} from 'typeorm';
 import { getDataSourceRead } from '@orm/context';
 
 interface EntityWithId extends ObjectLiteral {

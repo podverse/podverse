@@ -2,10 +2,12 @@ import { Entity, PrimaryGeneratedColumn, Column, Unique, Check } from 'typeorm';
 
 export enum ChannelItunesTypeItunesTypeEnum {
   Episodic = 1,
-  Serial = 2
+  Serial = 2,
 }
 
-export function getChannelItunesTypeItunesTypeEnumValue(input: string): ChannelItunesTypeItunesTypeEnum {
+export function getChannelItunesTypeItunesTypeEnumValue(
+  input: string
+): ChannelItunesTypeItunesTypeEnum {
   const sanitizedInput = input
     .toLowerCase()
     .replace(/\s+/g, '')
@@ -21,7 +23,7 @@ export function getChannelItunesTypeItunesTypeEnumValue(input: string): ChannelI
 
 @Entity()
 @Unique(['itunes_type'])
-@Check('itunes_type IN (\'episodic\', \'serial\')')
+@Check("itunes_type IN ('episodic', 'serial')")
 export class ChannelItunesType {
   @PrimaryGeneratedColumn()
   id!: number;

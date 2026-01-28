@@ -50,7 +50,7 @@ export const ModalAuthLogin: React.FC = () => {
         }
       }
     }
-      setIsSubmitting(false);
+    setIsSubmitting(false);
   };
 
   const handleResendVerificationEmail = async () => {
@@ -83,7 +83,7 @@ export const ModalAuthLogin: React.FC = () => {
           type="email"
           name="email"
           value={email}
-          onChange={e => setEmail(e.target.value)}
+          onChange={(e) => setEmail(e.target.value)}
           autoFocus
           placeholder={tAuthentication('email')}
           eyebrow={tAuthentication('email')}
@@ -92,7 +92,7 @@ export const ModalAuthLogin: React.FC = () => {
           type="password"
           name="password"
           value={password}
-          onChange={e => setPassword(e.target.value)}
+          onChange={(e) => setPassword(e.target.value)}
           placeholder={tAuthentication('password')}
           eyebrow={tAuthentication('password')}
         />
@@ -101,11 +101,7 @@ export const ModalAuthLogin: React.FC = () => {
             {!verificationEmailSent ? (
               <>
                 <FormInfoMessageText message={tAuthentication('account_not_verified')} />
-                <Button
-                  type="button"
-                  variant="link"
-                  onClick={handleResendVerificationEmail}
-                >
+                <Button type="button" variant="link" onClick={handleResendVerificationEmail}>
                   {tAuthentication('resend_verification_email')}
                 </Button>
               </>
@@ -118,7 +114,11 @@ export const ModalAuthLogin: React.FC = () => {
           <FormErrorMessageText message={tAuthentication('invalid_email_or_password')} />
         )}
         <div className={styles.buttons}>
-          <Button type="button" onClick={() => setModalAuthLogin({ isOpen: false })} variant="secondary">
+          <Button
+            type="button"
+            onClick={() => setModalAuthLogin({ isOpen: false })}
+            variant="secondary"
+          >
             {tMisc('cancel')}
           </Button>
           <Button type="submit" variant="primary" disabled={isSubmitting}>
@@ -126,10 +126,14 @@ export const ModalAuthLogin: React.FC = () => {
           </Button>
         </div>
         <div className={styles.links}>
-          <Button type='button' variant='link' onClick={() => handleNavAndClose('/forgot-password')}>
+          <Button
+            type="button"
+            variant="link"
+            onClick={() => handleNavAndClose('/forgot-password')}
+          >
             {tAuthentication('forgot_password')}
           </Button>
-          <Button type='button' variant='link' onClick={() => handleNavAndClose('/sign-up')}>
+          <Button type="button" variant="link" onClick={() => handleNavAndClose('/sign-up')}>
             {tAuthentication('sign_up')}
           </Button>
         </div>

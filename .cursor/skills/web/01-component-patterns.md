@@ -32,15 +32,15 @@ export type MyFeaturePageProps = {
 export default async function MyFeaturePage({ searchParams }: MyFeaturePageProps) {
   const queryParams = await searchParams;
   const { ssrApiRequestService } = await getSSRAuthService();
-  
+
   // Parse and validate search params
   const parsed = searchParamsSchema.safeParse(queryParams);
   const { page, sort } = parsed.success ? parsed.data : { page: 1, sort: "recent" };
-  
+
   // Fetch data
   const response = await ssrApiRequestService.reqSomeEndpoint({ page, sort });
   const data = response.data;
-  
+
   // Pass to client component
   return <MyFeatureClient ssrData={data} initialPage={page} initialSort={sort} />;
 }
@@ -81,7 +81,7 @@ type MyComponentProps = {
 export const MyComponent: React.FC<MyComponentProps> = ({ title, onAction }) => {
   const tFeatures = useTranslations("features");
   const tMisc = useTranslations("misc");
-  
+
   return (
     <div className={styles.container}>
       <h2>{title}</h2>
@@ -134,10 +134,10 @@ type MyFeatureContextType = {
 
 const MyFeatureContext = createContext<MyFeatureContextType | undefined>(undefined);
 
-export const MyFeatureProvider = ({ 
+export const MyFeatureProvider = ({
   children,
-  ssrInitialData 
-}: { 
+  ssrInitialData
+}: {
   children: ReactNode;
   ssrInitialData: DTOMyType | null;
 }) => {
@@ -209,11 +209,11 @@ import styles from "../../styles/components/Modal/ModalMyFeature.module.scss";
 export const ModalMyFeature: React.FC = () => {
   const { modalMyFeature, setModalMyFeature } = useModals();
   const tMisc = useTranslations("misc");
-  
+
   const handleClose = () => {
     setModalMyFeature({ isOpen: false });
   };
-  
+
   return (
     <Modal
       isOpen={modalMyFeature.isOpen}
@@ -243,7 +243,7 @@ type ModalsContextType = {
 export const ModalsProvider = ({ children }: { children: ReactNode }) => {
   // ... existing state ...
   const [modalMyFeature, setModalMyFeature] = useState<ModalBasic>({ isOpen: false });
-  
+
   return (
     <ModalsContext.Provider value={{
       // ... existing values ...
@@ -316,15 +316,15 @@ export const ListMyFeature: React.FC<ListMyFeatureProps> = ({
   onPageChange
 }) => {
   const [viewMode, setViewMode] = useState<"list" | "grid">("list");
-  
+
   if (items.length === 0) {
     return <NoResults />;
   }
-  
+
   return (
     <div className={styles.listWrapper}>
       <ViewSelector viewMode={viewMode} onViewModeChange={setViewMode} />
-      
+
       <div className={styles.list}>
         {items.map((item) => (
           viewMode === "list" ? (
@@ -334,7 +334,7 @@ export const ListMyFeature: React.FC<ListMyFeatureProps> = ({
           )
         ))}
       </div>
-      
+
       {totalPages > 1 && (
         <Pagination
           currentPage={currentPage}

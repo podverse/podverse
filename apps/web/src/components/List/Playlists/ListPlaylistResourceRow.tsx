@@ -1,6 +1,11 @@
 'use client';
 
-import { DTOPlaylist, DTOPlaylistResource, getQueueMediumIdForChannelMediumId, MediumEnum } from '@podverse/helpers';
+import {
+  DTOPlaylist,
+  DTOPlaylistResource,
+  getQueueMediumIdForChannelMediumId,
+  MediumEnum,
+} from '@podverse/helpers';
 import React from 'react';
 import ListEpisodeRow from '../Podcasts/Episodes/ListEpisodeRow';
 import { ListClipRow } from '../Clips/ListClipRow';
@@ -14,12 +19,16 @@ interface Props {
   isEditModePlaylist: boolean;
 }
 
-export const ListPlaylistResourceRow: React.FC<Props> = ({ playlist,
-  playlistResource, removeFromPlaylist, isEditModePlaylist }) => {
+export const ListPlaylistResourceRow: React.FC<Props> = ({
+  playlist,
+  playlistResource,
+  removeFromPlaylist,
+  isEditModePlaylist,
+}) => {
   const item = playlistResource.item;
   const clip = playlistResource.clip;
   const item_soundbite = playlistResource.item_soundbite;
-  
+
   if (item) {
     const channel = item.channel;
 

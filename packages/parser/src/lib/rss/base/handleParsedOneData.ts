@@ -6,7 +6,7 @@ interface Service<T, P> {
 export const handleParsedOneData = async <T, P>(
   parentEntity: P,
   service: Service<T, P>,
-  dto: Partial<T> | null,
+  dto: Partial<T> | null
 ) => {
   if (dto) {
     await service.update(parentEntity, dto);
@@ -14,4 +14,3 @@ export const handleParsedOneData = async <T, P>(
     await service._delete(parentEntity);
   }
 };
-

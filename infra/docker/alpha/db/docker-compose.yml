@@ -6,7 +6,6 @@ volumes:
   podverse_alpha_db_data:
 
 services:
-
   podverse_alpha_db:
     image: postgres:18.1
     container_name: podverse_alpha_db
@@ -40,6 +39,6 @@ services:
     restart: unless-stopped
     shm_size: 1gb
     logging:
-      driver: "syslog"
+      driver: 'syslog'
       options:
-        tag: "{{.ImageName}}/{{.Name}}/{{.ID}}"
+        tag: '{{.ImageName}}/{{.Name}}/{{.ID}}'

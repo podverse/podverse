@@ -14,24 +14,25 @@ interface Props {
   showChannelInfo?: boolean;
 }
 
-export const ListTrackRowRemoteItemUnadded: React.FC<Props> = ({ itemUnadded, showChannelInfo }) => {
+export const ListTrackRowRemoteItemUnadded: React.FC<Props> = ({
+  itemUnadded,
+  showChannelInfo,
+}) => {
   const url = `${ROUTES.PODCAST_INDEX}/feed/${itemUnadded.feedId}`;
   const tMedia = useTranslations('media');
   const tMisc = useTranslations('misc');
 
   return (
     <div className={styles.trackRow}>
-      <Link
-        href={url}
-        className={styles.trackClickable}>
-        <Image 
+      <Link href={url} className={styles.trackClickable}>
+        <Image
           src={itemUnadded.image || itemUnadded.feedImage}
           alt={itemUnadded.title || tMedia('music.track_image')}
           width={IMAGES.LIST.TRACKS.DESKTOP.SIZE}
           height={IMAGES.LIST.TRACKS.DESKTOP.SIZE}
           className={styles.image}
         />
-        <Image 
+        <Image
           src={itemUnadded.image || itemUnadded.feedImage}
           alt={itemUnadded.title || tMedia('music.track_image')}
           width={IMAGES.LIST.TRACKS.MOBILE.SIZE}
@@ -42,13 +43,11 @@ export const ListTrackRowRemoteItemUnadded: React.FC<Props> = ({ itemUnadded, sh
           <div className={styles.trackContent}>
             <div className={styles.trackTextWrapper}>
               <h3 className={styles.trackTitle}>{itemUnadded.title}</h3>
-              {
-                showChannelInfo && (
-                  <div className={styles.trackArtist}>
-                    {itemUnadded.feedTitle || tMisc('untitled')}
-                  </div>
-                )
-              }
+              {showChannelInfo && (
+                <div className={styles.trackArtist}>
+                  {itemUnadded.feedTitle || tMisc('untitled')}
+                </div>
+              )}
             </div>
           </div>
         </div>

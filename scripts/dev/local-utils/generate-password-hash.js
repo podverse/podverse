@@ -12,7 +12,7 @@ if (!password) {
 
 const saltRounds = 10;
 
-bcrypt.hash(password, saltRounds).then(hash => {
+bcrypt.hash(password, saltRounds).then((hash) => {
   console.log('\nPassword:', password);
   console.log('Bcrypt hash (cost 10):');
   console.log(hash);

@@ -6,7 +6,10 @@ import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
 import { AccountMembershipEnum } from '@podverse/helpers';
 import { useAccount } from '../../contexts/Account';
-import { getParsedLocalSettings, handleLocalSettingsUpdate } from '../../utils/localSettings/localSettings';
+import {
+  getParsedLocalSettings,
+  handleLocalSettingsUpdate,
+} from '../../utils/localSettings/localSettings';
 import { ROUTES } from '../../constants/routes';
 import { showToastCustom } from './Toast';
 
@@ -50,12 +53,14 @@ export function MembershipExpirationToast() {
     const expirationDate = new Date(membershipExpiresAt);
     const now = new Date();
     const isExpired = expirationDate.getTime() < now.getTime();
-    const daysUntilExpiration = Math.ceil((expirationDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+    const daysUntilExpiration = Math.ceil(
+      (expirationDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)
+    );
     const isExpiringSoon = daysUntilExpiration <= 14 && daysUntilExpiration > 0;
 
     const localSettings = getParsedLocalSettings();
     const dismissedTimestamp = localSettings.metd;
-    
+
     // Check if warning toast was dismissed within the past 24 hours
     let wasDismissedWithin24Hours = false;
     if (dismissedTimestamp) {
@@ -111,14 +116,17 @@ export function MembershipExpirationToast() {
       }
       const expiredMessage = t('membership_expired_danger', { type: membershipType });
       const linkText = t('membership_link_text');
-      
-      toastIdRef.current = showToastCustom({
-        message: expiredMessage,
-        linkText,
-        linkHref: ROUTES.MEMBERSHIP,
-        onLinkClick: handleLinkClickDanger,
-        onDismiss: handleDismissDanger,
-      }, 'danger');
+
+      toastIdRef.current = showToastCustom(
+        {
+          message: expiredMessage,
+          linkText,
+          linkHref: ROUTES.MEMBERSHIP,
+          onLinkClick: handleLinkClickDanger,
+          onDismiss: handleDismissDanger,
+        },
+        'danger'
+      );
       return;
     }
 
@@ -127,16 +135,22 @@ export function MembershipExpirationToast() {
       if (toastIdRef.current) {
         toast.dismiss(toastIdRef.current);
       }
-      const warningMessage = t('membership_expiring_warning', { type: membershipType, date: expirationDateFormatted });
+      const warningMessage = t('membership_expiring_warning', {
+        type: membershipType,
+        date: expirationDateFormatted,
+      });
       const linkText = t('membership_link_text');
-      
-      toastIdRef.current = showToastCustom({
-        message: warningMessage,
-        linkText,
-        linkHref: ROUTES.MEMBERSHIP,
-        onLinkClick: handleLinkClickWarning,
-        onDismiss: handleDismissWarning,
-      }, 'warning');
+
+      toastIdRef.current = showToastCustom(
+        {
+          message: warningMessage,
+          linkText,
+          linkHref: ROUTES.MEMBERSHIP,
+          onLinkClick: handleLinkClickWarning,
+          onDismiss: handleDismissWarning,
+        },
+        'warning'
+      );
       return;
     }
 

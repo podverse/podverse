@@ -1,0 +1,8 @@
+# Ignore generated reports
+*.html
+*.json
+*.md
+
+# Keep structure files
+!.gitkeep
+!.gitignore

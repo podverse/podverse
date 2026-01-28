@@ -8,7 +8,7 @@ import styles from '../../../styles/components/Content/Podroll/ContentPodrollIte
 
 type ContentPodrollItemRowProps = {
   item: DTOItem;
-}
+};
 
 export const ContentPodrollItemRow = ({ item }: ContentPodrollItemRowProps) => {
   if (!item || !item.channel) {
@@ -16,14 +16,19 @@ export const ContentPodrollItemRow = ({ item }: ContentPodrollItemRowProps) => {
   }
 
   const tMedia = useTranslations('media');
-  const item_image = findDTOItemImageBySize(item.item_images, IMAGES.PODROLL.SQUARE.SIZE_FIND_TARGET, 'greater');
+  const item_image = findDTOItemImageBySize(
+    item.item_images,
+    IMAGES.PODROLL.SQUARE.SIZE_FIND_TARGET,
+    'greater'
+  );
 
   return (
     <div className={styles.row}>
       <Link
         className={styles.link}
         href={`${WEB.origin}/episode/${item.id_text}`}
-        color="secondary">
+        color="secondary"
+      >
         <Image
           className={styles.image}
           src={item_image?.url}
@@ -32,12 +37,8 @@ export const ContentPodrollItemRow = ({ item }: ContentPodrollItemRowProps) => {
           height={IMAGES.PODROLL.SQUARE.SIZE}
         />
         <div className={styles.textWrapper}>
-          <div className={styles.title}>
-            {item.channel.title}
-          </div>
-          <div className={styles.subtitle}>
-            {item.title}
-          </div>
+          <div className={styles.title}>{item.channel.title}</div>
+          <div className={styles.subtitle}>{item.title}</div>
         </div>
       </Link>
     </div>

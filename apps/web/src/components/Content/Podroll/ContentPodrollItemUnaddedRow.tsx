@@ -8,9 +8,11 @@ import styles from '../../../styles/components/Content/Podroll/ContentPodrollIte
 
 type ContentPodrollItemUnaddedRowProps = {
   itemUnadded: EpisodeByGuidResponse['episode'];
-}
+};
 
-export const ContentPodrollItemUnaddedRow = ({ itemUnadded }: ContentPodrollItemUnaddedRowProps) => {
+export const ContentPodrollItemUnaddedRow = ({
+  itemUnadded,
+}: ContentPodrollItemUnaddedRowProps) => {
   if (!itemUnadded) {
     return null;
   }
@@ -23,7 +25,8 @@ export const ContentPodrollItemUnaddedRow = ({ itemUnadded }: ContentPodrollItem
       <Link
         className={styles.link}
         href={`${WEB.origin}/podcast-index/feed/${itemUnadded.feedId}`}
-        color="secondary">
+        color="secondary"
+      >
         <Image
           className={styles.image}
           src={itemUnadded.image}
@@ -32,12 +35,8 @@ export const ContentPodrollItemUnaddedRow = ({ itemUnadded }: ContentPodrollItem
           height={IMAGES.PODROLL.SQUARE.SIZE}
         />
         <div className={styles.textWrapper}>
-          <div className={styles.title}>
-            {itemUnadded.feedTitle || tMisc('untitled') }
-          </div>
-          <div className={styles.subtitle}>
-            {itemUnadded.title || tMisc('untitled') }
-          </div>
+          <div className={styles.title}>{itemUnadded.feedTitle || tMisc('untitled')}</div>
+          <div className={styles.subtitle}>{itemUnadded.title || tMisc('untitled')}</div>
         </div>
       </Link>
     </div>

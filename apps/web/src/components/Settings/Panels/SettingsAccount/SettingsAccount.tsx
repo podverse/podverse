@@ -25,13 +25,13 @@ export function SettingsAccount() {
 
   const handleDownloadData = async () => {
     setIsDownloading(true);
-    
+
     // Show loading toast
     const loadingToastId = showToastLoading(tSettings('account.download_my_data_loading'));
-    
+
     try {
       const blob: Blob = await apiRequestService.reqAccountDownloadData();
-      
+
       // Download zip file
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
@@ -41,7 +41,7 @@ export function SettingsAccount() {
       link.click();
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
-      
+
       // Dismiss loading toast and show success
       dismissToast(loadingToastId);
       showToast(tSettings('account.download_my_data_success'), 'success');
@@ -49,7 +49,7 @@ export function SettingsAccount() {
       console.error('[SettingsAccount.downloadData] Error:', error);
       // Dismiss loading toast
       dismissToast(loadingToastId);
-      
+
       const rateLimitErrorHandled = await handleRateLimitAlert(error, locale, tMisc);
       if (!rateLimitErrorHandled) {
         // Rate limit not handled, show error toast

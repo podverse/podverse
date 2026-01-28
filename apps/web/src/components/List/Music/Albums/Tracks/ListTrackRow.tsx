@@ -2,9 +2,14 @@
 
 import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
-import { DTOChannel, DTOItem, findDTOChannelImageBySize, findDTOItemImageBySize,
-  getQueueForMedium, 
-  getShuffleHash} from '@podverse/helpers';
+import {
+  DTOChannel,
+  DTOItem,
+  findDTOChannelImageBySize,
+  findDTOItemImageBySize,
+  getQueueForMedium,
+  getShuffleHash,
+} from '@podverse/helpers';
 import React from 'react';
 import { FaGripLines } from 'react-icons/fa6';
 import { Image } from '../../../../Image/Image';
@@ -35,13 +40,24 @@ interface Props {
   playlist_id_text: string | null;
 }
 
-export const ListTrackRow: React.FC<Props> = ({ channel, isEditModeQueue, item,
-  showChannelInfo, removeFromQueue, isEditModePlaylist, removeFromPlaylist,
-  playlist_id_text }) => {
+export const ListTrackRow: React.FC<Props> = ({
+  channel,
+  isEditModeQueue,
+  item,
+  showChannelInfo,
+  removeFromQueue,
+  isEditModePlaylist,
+  removeFromPlaylist,
+  playlist_id_text,
+}) => {
   const router = useRouter();
   const url = `${ROUTES.TRACK}/${item.id_text}`;
   const imageSizeTarget = IMAGES.LIST.TRACKS.DESKTOP.SIZE_FIND_TARGET;
-  const channel_image = findDTOChannelImageBySize(channel.channel_images, imageSizeTarget, 'lesser');
+  const channel_image = findDTOChannelImageBySize(
+    channel.channel_images,
+    imageSizeTarget,
+    'lesser'
+  );
   const item_image = findDTOItemImageBySize(item.item_images, imageSizeTarget, 'lesser');
   const tFeatures = useTranslations('features');
   const tMedia = useTranslations('media');
@@ -93,13 +109,10 @@ export const ListTrackRow: React.FC<Props> = ({ channel, isEditModeQueue, item,
 
     const queue = getQueueForMedium(queues, channel.medium_id);
     if (queue) {
-      showToastPromise(
-        apiRequestService.reqQueueResourceItemAddNext(queue.id_text, item.id_text),
-        {
-          success: tFeatures('queue.added_to_queue'),
-          error: tFeatures('queue.add_error'),
-        },
-      );
+      showToastPromise(apiRequestService.reqQueueResourceItemAddNext(queue.id_text, item.id_text), {
+        success: tFeatures('queue.added_to_queue'),
+        error: tFeatures('queue.add_error'),
+      });
     }
   };
 
@@ -114,13 +127,10 @@ export const ListTrackRow: React.FC<Props> = ({ channel, isEditModeQueue, item,
 
     const queue = getQueueForMedium(queues, channel.medium_id);
     if (queue) {
-      showToastPromise(
-        apiRequestService.reqQueueResourceItemAddLast(queue.id_text, item.id_text),
-        {
-          success: tFeatures('queue.added_to_queue'),
-          error: tFeatures('queue.add_error'),
-        },
-      );
+      showToastPromise(apiRequestService.reqQueueResourceItemAddLast(queue.id_text, item.id_text), {
+        success: tFeatures('queue.added_to_queue'),
+        error: tFeatures('queue.add_error'),
+      });
     }
   };
 
@@ -158,37 +168,31 @@ export const ListTrackRow: React.FC<Props> = ({ channel, isEditModeQueue, item,
   const removeFromQueueOnClick = async () => {
     const queue = getQueueForMedium(queues, channel.medium_id);
 
-    async function handler () {
+    async function handler() {
       if (queue) {
         await apiRequestService.reqQueueResourceItemDelete(queue.id_text, item.id_text);
         removeFromQueue?.();
       }
     }
 
-    showToastPromise(
-      handler,
-      {
-        success: tFeatures('queue.removed_from_queue'),
-        error: tFeatures('queue.remove_error'),
-      },
-    );
+    showToastPromise(handler, {
+      success: tFeatures('queue.removed_from_queue'),
+      error: tFeatures('queue.remove_error'),
+    });
   };
 
   const removeFromPlaylistOnClick = async () => {
-    async function handler () {
+    async function handler() {
       if (playlist_id_text) {
         await apiRequestService.reqPlaylistResourceItemDelete(playlist_id_text, item.id_text);
         removeFromPlaylist?.();
       }
     }
 
-    showToastPromise(
-      handler,
-      {
-        success: tFeatures('playlist.removed_from_playlist'),
-        error: tFeatures('playlist.remove_error'),
-      },
-    );
+    showToastPromise(handler, {
+      success: tFeatures('playlist.removed_from_playlist'),
+      error: tFeatures('playlist.remove_error'),
+    });
   };
 
   const moreButtonMenuItems: MoreButtonMenuItem[] = [
@@ -236,25 +240,20 @@ export const ListTrackRow: React.FC<Props> = ({ channel, isEditModeQueue, item,
 
   return (
     <div className={styles.trackRow}>
-      {
-        (isEditModeQueue || isEditModePlaylist) && (
-          <div className={styles.editingButtons}>
-            <FaGripLines />
-          </div>
-        )
-      }
-      <Button
-        variant="unstyled"
-        onClick={playButtonOnClick}
-        className={styles.trackClickable}>
-        <Image 
+      {(isEditModeQueue || isEditModePlaylist) && (
+        <div className={styles.editingButtons}>
+          <FaGripLines />
+        </div>
+      )}
+      <Button variant="unstyled" onClick={playButtonOnClick} className={styles.trackClickable}>
+        <Image
           src={item_image?.url || channel_image?.url}
           alt={item.title || tMedia('music.track_image')}
           width={IMAGES.LIST.TRACKS.DESKTOP.SIZE}
           height={IMAGES.LIST.TRACKS.DESKTOP.SIZE}
           className={styles.image}
         />
-        <Image 
+        <Image
           src={item_image?.url || channel_image?.url}
           alt={item.title || tMedia('music.track_image')}
           width={IMAGES.LIST.TRACKS.MOBILE.SIZE}
@@ -265,13 +264,7 @@ export const ListTrackRow: React.FC<Props> = ({ channel, isEditModeQueue, item,
           <div className={styles.trackContent}>
             <div className={styles.trackTextWrapper}>
               <h3 className={styles.trackTitle}>{item.title}</h3>
-              {
-                showChannelInfo && (
-                  <div className={styles.trackArtist}>
-                    {channel.title}
-                  </div>
-                )
-              }
+              {showChannelInfo && <div className={styles.trackArtist}>{channel.title}</div>}
             </div>
           </div>
         </div>

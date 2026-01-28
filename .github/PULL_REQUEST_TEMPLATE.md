@@ -27,7 +27,7 @@ If you used AI assistance (Cursor, Claude, etc.) for this PR:
 - [ ] I kept my LLM history updated in `.llm/history/active/`
 
 > **Note**: History files are automatically moved to `completed/` when this PR is merged.
-> See [LLM Development docs](.llm/README.md) for more information.
+> See [LLM Development docs](.llm/LLM.md) for more information.
 
 ## CI
 

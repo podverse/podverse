@@ -8,7 +8,7 @@ type ReqAuthLoginParams = {
 
 export async function reqAccountFollowChannel(
   api: ApiRequestService,
-  params: ReqAuthLoginParams,
+  params: ReqAuthLoginParams
 ): Promise<DTOAccount> {
   await api.apiRequest({
     path: '/account/follow/channel',
@@ -24,7 +24,7 @@ export async function reqAccountFollowChannel(
 
 export async function reqAccountUnfollowChannel(
   api: ApiRequestService,
-  params: ReqAuthLoginParams,
+  params: ReqAuthLoginParams
 ): Promise<DTOAccount> {
   await api.apiRequest({
     path: '/account/unfollow/channel',

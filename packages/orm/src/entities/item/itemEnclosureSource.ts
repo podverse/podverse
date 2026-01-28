@@ -7,7 +7,7 @@ export class ItemEnclosureSource {
   @PrimaryGeneratedColumn()
   id!: number;
 
-  @ManyToOne(() => ItemEnclosure, itemEnclosure => itemEnclosure.id, { onDelete: 'CASCADE' })
+  @ManyToOne(() => ItemEnclosure, (itemEnclosure) => itemEnclosure.id, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'item_enclosure_id' })
   item_enclosure!: ItemEnclosure;
 

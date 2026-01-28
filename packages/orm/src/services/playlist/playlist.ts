@@ -1,5 +1,9 @@
-import { getQueueMediumIdFromType, MediumEnum, QueryParamsQueueMedium,
-  SharableStatusEnum } from '@podverse/helpers';
+import {
+  getQueueMediumIdFromType,
+  MediumEnum,
+  QueryParamsQueueMedium,
+  SharableStatusEnum,
+} from '@podverse/helpers';
 import { EntityManager, Equal, FindManyOptions, FindOneOptions, Not } from 'typeorm';
 import { Playlist } from '@orm/entities/playlist/playlist';
 import { BaseManyService } from '@orm/services/base/baseManyService';
@@ -70,7 +74,10 @@ export class PlaylistService extends BaseManyService<Playlist, 'account'> {
     return this._delete(account, { id_text: playlist_id_text });
   }
 
-  async getByIdText(playlist_id_text: string, options?: FindOneOptions<Playlist>): Promise<Playlist | null> {
+  async getByIdText(
+    playlist_id_text: string,
+    options?: FindOneOptions<Playlist>
+  ): Promise<Playlist | null> {
     return this.repositoryRead.findOne({
       where: { id_text: playlist_id_text },
       ...options,
@@ -90,10 +97,10 @@ export class PlaylistService extends BaseManyService<Playlist, 'account'> {
   async getManyPrivate(
     account_id: number,
     queueMediumType: QueryParamsQueueMedium | null,
-    options?: FindManyOptions<Playlist>,
-  ): Promise<[Playlist[], number] > {
+    options?: FindManyOptions<Playlist>
+  ): Promise<[Playlist[], number]> {
     const medium_id = getQueueMediumIdFromType(queueMediumType);
-    
+
     return this.repositoryRead.findAndCount({
       ...options,
       where: {
@@ -106,7 +113,10 @@ export class PlaylistService extends BaseManyService<Playlist, 'account'> {
     });
   }
 
-  async getOnePublic(playlist_id_text: string, options?: FindOneOptions<Playlist>): Promise<Playlist | null> {
+  async getOnePublic(
+    playlist_id_text: string,
+    options?: FindOneOptions<Playlist>
+  ): Promise<Playlist | null> {
     return this.repositoryRead.findOne({
       where: {
         ...options?.where,
@@ -118,7 +128,11 @@ export class PlaylistService extends BaseManyService<Playlist, 'account'> {
     });
   }
 
-  async getOnePrivate(account_id_text: string, playlist_id_text: string, options?: FindOneOptions<Playlist>): Promise<Playlist | null> {
+  async getOnePrivate(
+    account_id_text: string,
+    playlist_id_text: string,
+    options?: FindOneOptions<Playlist>
+  ): Promise<Playlist | null> {
     return this.repositoryRead.findOne({
       where: {
         ...options?.where,
@@ -155,7 +169,7 @@ export class PlaylistService extends BaseManyService<Playlist, 'account'> {
 
   async getManyByAccountIdTextAndCount(
     account_id_text: string,
-    options?: FindManyOptions<Playlist>,
+    options?: FindManyOptions<Playlist>
   ): Promise<[Playlist[], number]> {
     return this.repositoryRead.findAndCount({
       ...options,
@@ -170,7 +184,7 @@ export class PlaylistService extends BaseManyService<Playlist, 'account'> {
 
   async getManyByAccountIdTextPublicAndCount(
     account_id_text: string,
-    options?: FindManyOptions<Playlist>,
+    options?: FindManyOptions<Playlist>
   ): Promise<[Playlist[], number]> {
     return this.repositoryRead.findAndCount({
       ...options,

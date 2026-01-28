@@ -16,7 +16,7 @@ export const handleGetRSSFeed = async (url: string, podcast_index_id: number): P
     url,
     podcast_index_id,
   });
-  
+
   if (!feed) {
     feed = await feedService.getByPodcastIndexId(podcast_index_id);
     if (feed) {
@@ -46,7 +46,7 @@ export const handleRequestRSSFeed = async (feed: Feed): Promise<FeedObject> => {
   timerManager.start('handleRequestRSSFeed');
   const feedLogService = new FeedLogService();
   let parsedFeed: FeedObject | null = null;
-  
+
   try {
     parsedFeed = await getAndParseRSSFeed(feed.url);
     await feedLogService.update(feed, {
@@ -66,7 +66,7 @@ export const handleRequestRSSFeed = async (feed: Feed): Promise<FeedObject> => {
     }
     return throwRequestError(error);
   }
-  
+
   if (!parsedFeed) {
     const feedLog = await feedLogService.get(feed);
     await feedLogService.update(feed, {
@@ -84,23 +84,20 @@ export const handleRequestRSSFeed = async (feed: Feed): Promise<FeedObject> => {
 
 type HandleParsedFeedOptions = {
   forceParse?: boolean;
-}
+};
 
 export const handleParsedFeed = async (
   parsedFeed: FeedObject,
   feed: Feed,
-  options: HandleParsedFeedOptions = {},
+  options: HandleParsedFeedOptions = {}
 ): Promise<Feed> => {
   const currentFeedFileHash = getParsedFeedMd5Hash(parsedFeed);
-  
+
   checkIfFeedIsParsing(feed);
-  if (
-    !options.forceParse &&
-    feed.last_parsed_file_hash === currentFeedFileHash
-  ) {
+  if (!options.forceParse && feed.last_parsed_file_hash === currentFeedFileHash) {
     throw new FeedNoChangesSinceLastParsedError(feed.id);
   }
-  
+
   const feedService = new FeedService();
   return feedService.update(feed.id, { last_parsed_file_hash: null });
 };
@@ -110,7 +107,7 @@ const checkIfFeedIsParsing = (feed: Feed): void => {
     const parsingDate = new Date(feed.is_parsing);
     const currentDate = new Date();
     const timeDifference = (currentDate.getTime() - parsingDate.getTime()) / (1000 * 60);
-    
+
     if (timeDifference <= 15) {
       throw new FeedIsParsingError(feed.id);
     }

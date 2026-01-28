@@ -1,4 +1,3 @@
-
 import { DTOAccount } from 'src/dtos';
 import { ApiRequestService } from '../_request';
 import { reqAuthMe } from '../auth/auth';
@@ -8,12 +7,12 @@ type ReqLocaleParams = {
 };
 
 type ReqNotificationTypeParams = {
-	type: string;
+  type: string;
 };
 
 export async function reqAccountSettingsLocaleUpdate(
   api: ApiRequestService,
-  params: ReqLocaleParams,
+  params: ReqLocaleParams
 ): Promise<DTOAccount> {
   await api.apiRequest({
     path: '/account-settings/locale',
@@ -31,7 +30,7 @@ export async function reqAccountSettingsLocaleUpdate(
 
 export async function reqAccountSettingsNotificationTypeCreate(
   api: ApiRequestService,
-  params: ReqNotificationTypeParams,
+  params: ReqNotificationTypeParams
 ): Promise<DTOAccount> {
   await api.apiRequest({
     path: '/account-settings/notification-type',
@@ -49,7 +48,7 @@ export async function reqAccountSettingsNotificationTypeCreate(
 
 export async function reqAccountSettingsNotificationTypeDelete(
   api: ApiRequestService,
-  params: ReqNotificationTypeParams,
+  params: ReqNotificationTypeParams
 ): Promise<DTOAccount> {
   await api.apiRequest({
     path: '/account-settings/notification-type',

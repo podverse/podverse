@@ -18,10 +18,7 @@ type PopoverPosition = {
   arrowLeft: number;
 };
 
-export const PopoverIcon: React.FC<PopoverIconProps> = ({
-  text,
-  ariaLabel,
-}) => {
+export const PopoverIcon: React.FC<PopoverIconProps> = ({ text, ariaLabel }) => {
   const tMisc = useTranslations('misc');
   const defaultAriaLabel = ariaLabel || tMisc('show_help_information');
   const [isOpen, setIsOpen] = useState(false);
@@ -39,7 +36,9 @@ export const PopoverIcon: React.FC<PopoverIconProps> = ({
     }
 
     const calculatePosition = () => {
-      if (!buttonRef.current) {return;}
+      if (!buttonRef.current) {
+        return;
+      }
 
       const buttonRect = buttonRef.current.getBoundingClientRect();
       const viewportWidth = window.innerWidth;
@@ -50,7 +49,7 @@ export const PopoverIcon: React.FC<PopoverIconProps> = ({
       // Calculate available space
       const spaceToLeft = buttonRect.left;
       const spaceToRight = viewportWidth - buttonRect.right;
-      const totalAvailableSpace = spaceToLeft + spaceToRight - (viewportPadding * 2);
+      const totalAvailableSpace = spaceToLeft + spaceToRight - viewportPadding * 2;
 
       // Determine optimal width
       let popoverWidth = Math.min(maxWidth, Math.max(minWidth, totalAvailableSpace));
@@ -93,7 +92,7 @@ export const PopoverIcon: React.FC<PopoverIconProps> = ({
       const arrowPadding = 20;
       const clampedArrowLeft = Math.max(
         arrowPadding,
-        Math.min(popoverWidth - arrowPadding, arrowLeft),
+        Math.min(popoverWidth - arrowPadding, arrowLeft)
       );
 
       // Calculate vertical position (above the button)
@@ -135,7 +134,9 @@ export const PopoverIcon: React.FC<PopoverIconProps> = ({
 
   // Handle click outside to close (only if pinned)
   useEffect(() => {
-    if (!isOpen || !isPinned) {return;}
+    if (!isOpen || !isPinned) {
+      return;
+    }
 
     function handleClickOutside(event: MouseEvent) {
       const target = event.target as Node;
@@ -198,12 +199,14 @@ export const PopoverIcon: React.FC<PopoverIconProps> = ({
           ref={popoverRef}
           className={styles.popover}
           role="tooltip"
-          style={{
-            top: `${position.top}px`,
-            left: `${position.left}px`,
-            width: `${position.width}px`,
-            '--arrow-left': `${position.arrowLeft}px`,
-          } as React.CSSProperties & { '--arrow-left': string }}
+          style={
+            {
+              top: `${position.top}px`,
+              left: `${position.left}px`,
+              width: `${position.width}px`,
+              '--arrow-left': `${position.arrowLeft}px`,
+            } as React.CSSProperties & { '--arrow-left': string }
+          }
         >
           {text}
         </div>

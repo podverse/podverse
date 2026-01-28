@@ -1,6 +1,4 @@
-import { 
-  QUERY_PARAMS_CHANNEL_MUSIC_ARTIST_TYPE_VALUES,
-} from '@podverse/helpers';
+import { QUERY_PARAMS_CHANNEL_MUSIC_ARTIST_TYPE_VALUES } from '@podverse/helpers';
 import { z } from 'zod';
 import { getArtistFilterParams, ArtistDropdownConfigCurrentParams } from './ArtistDropdownConfig';
 import { ArtistClient } from './ArtistClient';
@@ -20,9 +18,9 @@ export type ArtistPageProps = {
 export default async function ArtistPage({ params, searchParams }: ArtistPageProps) {
   const { channel_id } = await params;
   const queryParams = await searchParams;
-  
+
   const { ssrApiRequestService } = await getSSRAuthService();
-    
+
   const { currentType } = await parseSearchParams(queryParams);
 
   const response = await ssrApiRequestService.reqPublisherFeedGetRemoteItemsForChannel(channel_id);

@@ -3,7 +3,13 @@ import { useAccount } from '../contexts/Account';
 import { useQueues } from '../contexts/Queue';
 import { apiRequestService } from '../factories/apiRequestService';
 import { useQueueResourcesAbridgedIndexUpdate } from './useQueueResourcesAbridgedIndexUpdate';
-import { DTOChannel, DTOClip, DTOItem, DTOItemSoundbite, getQueueMediumIdFromMediumId } from '@podverse/helpers';
+import {
+  DTOChannel,
+  DTOClip,
+  DTOItem,
+  DTOItemSoundbite,
+  getQueueMediumIdFromMediumId,
+} from '@podverse/helpers';
 
 export type UpdateNowPlayingParams = {
   mpChannel: DTOChannel | null;
@@ -12,7 +18,7 @@ export type UpdateNowPlayingParams = {
   mpItemSoundbite: DTOItemSoundbite | null;
   mpDuration?: number;
   mpCurrentTime?: number;
-}
+};
 
 export function useQueueResourcesUpdateNowPlaying() {
   const { loggedInAccount } = useAccount();
@@ -22,17 +28,23 @@ export function useQueueResourcesUpdateNowPlaying() {
   const queuesRef = useRef(queues);
   const loggedInAccountRef = useRef(loggedInAccount);
 
-  useEffect(() => { queuesRef.current = queues; }, [queues]);
-  useEffect(() => { loggedInAccountRef.current = loggedInAccount; }, [loggedInAccount]);
+  useEffect(() => {
+    queuesRef.current = queues;
+  }, [queues]);
+  useEffect(() => {
+    loggedInAccountRef.current = loggedInAccount;
+  }, [loggedInAccount]);
 
   return useCallback(async (params: UpdateNowPlayingParams) => {
     const loggedInAccount = loggedInAccountRef.current;
     const queues = queuesRef.current;
 
-    const { mpChannel, mpClip, mpItem, mpItemSoundbite, mpDuration,  mpCurrentTime } = params;
-    
-    const activeQueue = queues.find(q => {
-      return q.medium_id === (mpChannel?.medium_id && getQueueMediumIdFromMediumId(mpChannel?.medium_id));
+    const { mpChannel, mpClip, mpItem, mpItemSoundbite, mpDuration, mpCurrentTime } = params;
+
+    const activeQueue = queues.find((q) => {
+      return (
+        q.medium_id === (mpChannel?.medium_id && getQueueMediumIdFromMediumId(mpChannel?.medium_id))
+      );
     });
 
     if (!loggedInAccount || !activeQueue) {
@@ -41,10 +53,7 @@ export function useQueueResourcesUpdateNowPlaying() {
 
     updateAbridgedIndex();
 
-    apiRequestService.reqQueueUpdateIsActiveQueue(
-      activeQueue.id_text,
-      true,
-    );
+    apiRequestService.reqQueueUpdateIsActiveQueue(activeQueue.id_text, true);
     setActiveQueue({
       ...activeQueue,
       is_active_queue: true,
@@ -57,7 +66,7 @@ export function useQueueResourcesUpdateNowPlaying() {
         {
           playback_position: mpCurrentTime?.toString(),
           media_file_duration: mpDuration?.toString(),
-        },
+        }
       );
     } else if (mpItemSoundbite) {
       await apiRequestService.reqQueueResourceItemSoundbiteAddNowPlaying(
@@ -66,7 +75,7 @@ export function useQueueResourcesUpdateNowPlaying() {
         {
           playback_position: mpCurrentTime?.toString(),
           media_file_duration: mpDuration?.toString(),
-        },
+        }
       );
     } else if (mpItem) {
       await apiRequestService.reqQueueResourceItemAddNowPlaying(
@@ -75,7 +84,7 @@ export function useQueueResourcesUpdateNowPlaying() {
         {
           playback_position: mpCurrentTime?.toString(),
           media_file_duration: mpDuration?.toString(),
-        },
+        }
       );
     }
   }, []);

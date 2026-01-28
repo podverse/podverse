@@ -10,11 +10,11 @@ export class AccountFollowingPlaylist {
   @PrimaryColumn()
   playlist_id!: number;
 
-  @ManyToOne(() => Account, account => account.id, { onDelete: 'CASCADE' })
+  @ManyToOne(() => Account, (account) => account.id, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'account_id' })
   account!: Account;
 
-  @ManyToOne(() => Playlist, playlist => playlist.id, { onDelete: 'CASCADE' })
+  @ManyToOne(() => Playlist, (playlist) => playlist.id, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'playlist_id' })
   playlist!: Playlist;
 }

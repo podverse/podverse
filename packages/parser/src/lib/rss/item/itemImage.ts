@@ -6,7 +6,7 @@ import { handleParsedManyData } from '../base/handleParsedManyData';
 export const handleParsedItemImage = async (
   parsedItem: Episode,
   item: Item,
-  transactionalEntityManager?: EntityManager,
+  transactionalEntityManager?: EntityManager
 ) => {
   const itemImageService = new ItemImageService(transactionalEntityManager);
   const itemImageDtos = compatItemImageDtos(parsedItem);

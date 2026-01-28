@@ -12,12 +12,12 @@ export interface DTOAccountFCMDevice {
 export enum AccountFCMDevicePlatformEnum {
   Web = 'web',
   Android = 'android',
-  iOS = 'ios'
+  iOS = 'ios',
 }
 
 export const ACCOUNT_FCM_DEVICE_PLATFORM_VALUES = Object.values(AccountFCMDevicePlatformEnum);
 
-export type AccountFCMDevicePlatformValues = typeof ACCOUNT_FCM_DEVICE_PLATFORM_VALUES[number];
+export type AccountFCMDevicePlatformValues = (typeof ACCOUNT_FCM_DEVICE_PLATFORM_VALUES)[number];
 
 export type CreateAccountFCMDeviceParams = {
   fcm_token: string;

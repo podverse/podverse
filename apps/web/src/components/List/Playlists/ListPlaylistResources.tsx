@@ -42,7 +42,9 @@ export const ListPlaylistResources: React.FC<Props> = ({
   }, [resources]);
 
   const handleDragEnd = async (result: DropResult) => {
-    if (!result.destination) {return;}
+    if (!result.destination) {
+      return;
+    }
     const reordered = Array.from(resources);
     const [removed] = reordered.splice(result.source.index, 1);
     if (!removed) {
@@ -59,16 +61,28 @@ export const ListPlaylistResources: React.FC<Props> = ({
     }
 
     function getIdText(resource: DTOPlaylistResource) {
-      if (resource.clip) {return resource.clip.id_text;}
-      if (resource.item_soundbite) {return resource.item_soundbite.id_text;}
-      if (resource.item) {return resource.item.id_text;}
+      if (resource.clip) {
+        return resource.clip.id_text;
+      }
+      if (resource.item_soundbite) {
+        return resource.item_soundbite.id_text;
+      }
+      if (resource.item) {
+        return resource.item.id_text;
+      }
       return undefined;
     }
-    
+
     function getType(resource: DTOPlaylistResource) {
-      if (resource.clip) {return 'clip';}
-      if (resource.item_soundbite) {return 'item_soundbite';}
-      if (resource.item) {return 'item';}
+      if (resource.clip) {
+        return 'clip';
+      }
+      if (resource.item_soundbite) {
+        return 'item_soundbite';
+      }
+      if (resource.item) {
+        return 'item';
+      }
       return undefined;
     }
 
@@ -89,19 +103,37 @@ export const ListPlaylistResources: React.FC<Props> = ({
       let updatedResource: DTOPlaylistResource | null = null;
       if (destIdx === 0) {
         if (movedType === 'item') {
-          updatedResource = await apiRequestService.reqPlaylistResourceItemAddFirst(playlist_id_text, movedIdText);
+          updatedResource = await apiRequestService.reqPlaylistResourceItemAddFirst(
+            playlist_id_text,
+            movedIdText
+          );
         } else if (movedType === 'clip') {
-          updatedResource = await apiRequestService.reqPlaylistResourceClipAddFirst(playlist_id_text, movedIdText);
+          updatedResource = await apiRequestService.reqPlaylistResourceClipAddFirst(
+            playlist_id_text,
+            movedIdText
+          );
         } else if (movedType === 'item_soundbite') {
-          updatedResource = await apiRequestService.reqPlaylistResourceItemSoundbiteAddFirst(playlist_id_text, movedIdText);
+          updatedResource = await apiRequestService.reqPlaylistResourceItemSoundbiteAddFirst(
+            playlist_id_text,
+            movedIdText
+          );
         }
       } else if (destIdx === reordered.length - 1) {
         if (movedType === 'item') {
-          updatedResource = await apiRequestService.reqPlaylistResourceItemAddLast(playlist_id_text, movedIdText);
+          updatedResource = await apiRequestService.reqPlaylistResourceItemAddLast(
+            playlist_id_text,
+            movedIdText
+          );
         } else if (movedType === 'clip') {
-          updatedResource = await apiRequestService.reqPlaylistResourceClipAddLast(playlist_id_text, movedIdText);
+          updatedResource = await apiRequestService.reqPlaylistResourceClipAddLast(
+            playlist_id_text,
+            movedIdText
+          );
         } else if (movedType === 'item_soundbite') {
-          updatedResource = await apiRequestService.reqPlaylistResourceItemSoundbiteAddLast(playlist_id_text, movedIdText);
+          updatedResource = await apiRequestService.reqPlaylistResourceItemSoundbiteAddLast(
+            playlist_id_text,
+            movedIdText
+          );
         }
       } else {
         const prevPosition = prevResource ? prevResource.list_position : undefined;
@@ -110,23 +142,31 @@ export const ListPlaylistResources: React.FC<Props> = ({
           updatedResource = await apiRequestService.reqPlaylistResourceItemAddBetween(
             playlist_id_text,
             movedIdText,
-            { position1: String(prevPosition), position2: String(nextPosition) },
+            { position1: String(prevPosition), position2: String(nextPosition) }
           );
-        } else if (movedType === 'clip' && prevPosition !== undefined && nextPosition !== undefined) {
+        } else if (
+          movedType === 'clip' &&
+          prevPosition !== undefined &&
+          nextPosition !== undefined
+        ) {
           updatedResource = await apiRequestService.reqPlaylistResourceClipAddBetween(
             playlist_id_text,
             movedIdText,
-            { position1: String(prevPosition), position2: String(nextPosition) },
+            { position1: String(prevPosition), position2: String(nextPosition) }
           );
-        } else if (movedType === 'item_soundbite' && prevPosition !== undefined && nextPosition !== undefined) {
+        } else if (
+          movedType === 'item_soundbite' &&
+          prevPosition !== undefined &&
+          nextPosition !== undefined
+        ) {
           updatedResource = await apiRequestService.reqPlaylistResourceItemSoundbiteAddBetween(
             playlist_id_text,
             movedIdText,
-            { position1: String(prevPosition), position2: String(nextPosition) },
+            { position1: String(prevPosition), position2: String(nextPosition) }
           );
         }
       }
-      
+
       const updatedReordered = [...reordered];
       if (updatedResource) {
         const updatedListPosition = updatedResource.list_position;
@@ -141,7 +181,10 @@ export const ListPlaylistResources: React.FC<Props> = ({
             ...movedResource,
             list_position: updatedListPosition,
           };
-        } else if (movedType === 'item_soundbite' && movedResource.item_soundbite_id === removed.item_soundbite_id) {
+        } else if (
+          movedType === 'item_soundbite' &&
+          movedResource.item_soundbite_id === removed.item_soundbite_id
+        ) {
           updatedReordered[destIdx] = {
             ...movedResource,
             list_position: updatedListPosition,
@@ -161,7 +204,8 @@ export const ListPlaylistResources: React.FC<Props> = ({
     setIsLoading(false);
   };
 
-  const listWrapperClassName = playlist.medium_id === MediumEnum.Music ? styles.listTracks : styles.list;
+  const listWrapperClassName =
+    playlist.medium_id === MediumEnum.Music ? styles.listTracks : styles.list;
 
   if (isEditMode) {
     return (
@@ -173,7 +217,11 @@ export const ListPlaylistResources: React.FC<Props> = ({
                 {(provided) => (
                   <div ref={provided.innerRef} className={styles.list} {...provided.droppableProps}>
                     {resources.map((playlistResource, idx) => (
-                      <Draggable key={playlistResource.id} draggableId={String(playlistResource.id)} index={idx}>
+                      <Draggable
+                        key={playlistResource.id}
+                        draggableId={String(playlistResource.id)}
+                        index={idx}
+                      >
                         {(providedDraggable) => (
                           <div
                             ref={providedDraggable.innerRef}
@@ -183,7 +231,9 @@ export const ListPlaylistResources: React.FC<Props> = ({
                             <ListPlaylistResourceRow
                               playlistResource={playlistResource}
                               removeFromPlaylist={() => {
-                                const updatedResources = resources.filter((res) => res.id !== playlistResource.id);
+                                const updatedResources = resources.filter(
+                                  (res) => res.id !== playlistResource.id
+                                );
                                 setResources(updatedResources);
                               }}
                               isEditModePlaylist
@@ -207,30 +257,26 @@ export const ListPlaylistResources: React.FC<Props> = ({
     if (setPage === undefined) {
       return null;
     }
-    
+
     return (
       <>
-      <div className={styles.listWrapper}>
-        <Pagination
-          currentPage={page ?? 1}
-          totalPages={totalPages ?? 1}
-          setPage={setPage}
-        >
-          <div className={styles.list}>
-            {resources.map((playlistResource, idx) => (
-              <React.Fragment key={playlistResource.id}>
-                <ListPlaylistResourceRow
-                  playlistResource={playlistResource}
-                  removeFromPlaylist={() => {}}
-                  isEditModePlaylist={false}
-                  playlist={playlist}
-                />
-                {idx < resources.length - 1 && <Divider />}
-              </React.Fragment>
-            ))}
-          </div>
-        </Pagination>
-      </div>
+        <div className={styles.listWrapper}>
+          <Pagination currentPage={page ?? 1} totalPages={totalPages ?? 1} setPage={setPage}>
+            <div className={styles.list}>
+              {resources.map((playlistResource, idx) => (
+                <React.Fragment key={playlistResource.id}>
+                  <ListPlaylistResourceRow
+                    playlistResource={playlistResource}
+                    removeFromPlaylist={() => {}}
+                    isEditModePlaylist={false}
+                    playlist={playlist}
+                  />
+                  {idx < resources.length - 1 && <Divider />}
+                </React.Fragment>
+              ))}
+            </div>
+          </Pagination>
+        </div>
         <LoadingSpinnerOverlay isLoading={isLoading} />
       </>
     );

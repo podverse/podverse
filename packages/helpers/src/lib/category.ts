@@ -108,7 +108,7 @@ export enum CategoryEnum {
   FilmHistory = 107,
   FilmInterviews = 108,
   FilmReviews = 109,
-  TVReviews = 110
+  TVReviews = 110,
 }
 
 const mapping: { [key: string]: CategoryEnum } = {
@@ -225,7 +225,8 @@ const mapping: { [key: string]: CategoryEnum } = {
 };
 
 export function getCategoryEnumValue(input: string | null): CategoryEnum | null {
-  const sanitizedInput = input?.toLowerCase()
+  const sanitizedInput = input
+    ?.toLowerCase()
     .replace(/\s+/g, '')
     .replace(/[^a-z0-9]/g, '');
 
@@ -234,4 +235,4 @@ export function getCategoryEnumValue(input: string | null): CategoryEnum | null 
 
 export const CATEGORY_MAPPING_KEYS = Object.keys(mapping);
 
-export type CategoryMappingKeys = typeof CATEGORY_MAPPING_KEYS[number];
+export type CategoryMappingKeys = (typeof CATEGORY_MAPPING_KEYS)[number];

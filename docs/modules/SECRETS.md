@@ -4,17 +4,17 @@ This document describes the GitHub Secrets required for the monorepo's CI/CD wor
 
 ## Required Secrets
 
-| Secret | Used By | Purpose |
-|--------|---------|---------|
-| `GHCR_REGISTRY_TOKEN` | publish-alpha.yml | Query existing Docker image tags for version incrementing |
-| `OPENAI_API_KEY` | i18n.yml | Auto-generate translations after merge to develop |
-| `APP_ID` | complete-feature.yml, i18n.yml | GitHub App authentication for protected branch pushes |
-| `APP_PRIVATE_KEY` | complete-feature.yml, i18n.yml | GitHub App authentication for protected branch pushes |
+| Secret                | Used By                        | Purpose                                                   |
+| --------------------- | ------------------------------ | --------------------------------------------------------- |
+| `GHCR_REGISTRY_TOKEN` | publish-alpha.yml              | Query existing Docker image tags for version incrementing |
+| `OPENAI_API_KEY`      | i18n.yml                       | Auto-generate translations after merge to develop         |
+| `APP_ID`              | complete-feature.yml, i18n.yml | GitHub App authentication for protected branch pushes     |
+| `APP_PRIVATE_KEY`     | complete-feature.yml, i18n.yml | GitHub App authentication for protected branch pushes     |
 
 ## Automatic Secrets
 
-| Secret | Provided By | Purpose |
-|--------|-------------|---------|
+| Secret         | Provided By    | Purpose                            |
+| -------------- | -------------- | ---------------------------------- |
 | `GITHUB_TOKEN` | GitHub Actions | GHCR push, PR operations, checkout |
 
 ## Setup Instructions
@@ -92,6 +92,7 @@ Used by GitHub App for pushing to protected branches (e.g., automated commits to
 ### ci.yml
 
 No secrets required. Runs on `/test` comment to validate:
+
 - Database migrations synced
 - Linting
 - Type checking
@@ -103,6 +104,7 @@ No secrets required. Runs on `/test` comment to validate:
 **Secrets used**: `GHCR_REGISTRY_TOKEN`, `GITHUB_TOKEN` (automatic)
 
 Triggers on push to `alpha` branch or manual `workflow_dispatch`:
+
 1. Validates build (lint, type-check, security audit)
 2. Queries GHCR for existing tags to calculate next alpha version (e.g., `5.2.0-alpha.3`)
 3. Builds Docker images from source (packages included in build context)
@@ -115,6 +117,7 @@ Triggers on push to `alpha` branch or manual `workflow_dispatch`:
 **Secrets used**: `OPENAI_API_KEY`, `APP_ID`, `APP_PRIVATE_KEY`, `GITHUB_TOKEN`
 
 Triggers on push to `develop` when `en-US.json` files change:
+
 1. Runs LLM translations for all non-English locales
 2. Compiles translation files
 3. Commits and pushes generated translations to `develop`
@@ -124,6 +127,7 @@ Triggers on push to `develop` when `en-US.json` files change:
 **Secrets used**: `APP_ID`, `APP_PRIVATE_KEY`, `GITHUB_TOKEN`
 
 Triggers when PR is merged to `develop`:
+
 1. Moves LLM history from `active/` to `completed/`
 2. Commits changes to `develop` branch
 

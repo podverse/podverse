@@ -1,7 +1,13 @@
 import { FeedObject, Phase4Medium } from 'podverse-partytime';
 import { Phase4PodcastImage } from 'podverse-partytime/dist/parser/phase/phase-4';
-import { createSortableTitle, DATABASE_CONSTANTS, getBooleanOrNull, getCategoryEnumValue,
-  getMediumEnumValue, isValidHttpUrl } from '@podverse/helpers';
+import {
+  createSortableTitle,
+  DATABASE_CONSTANTS,
+  getBooleanOrNull,
+  getCategoryEnumValue,
+  getMediumEnumValue,
+  isValidHttpUrl,
+} from '@podverse/helpers';
 import { getChannelItunesTypeItunesTypeEnumValue } from '@podverse/orm';
 import { compatChannelValue } from '@parser/lib/compat/partytime/value';
 import { detectDuckTypedPublisherMediumId } from './publisher';
@@ -9,32 +15,43 @@ import { detectDuckTypedPublisherMediumId } from './publisher';
 export const compatChannelDto = (parsedFeed: FeedObject) => {
   let medium_id = getMediumEnumValue(parsedFeed.medium ?? Phase4Medium.Podcast);
   const detected = detectDuckTypedPublisherMediumId(parsedFeed);
-  if (detected !== null) {medium_id = detected;}
+  if (detected !== null) {
+    medium_id = detected;
+  }
 
   return {
     podcast_guid: parsedFeed.guid?.slice(0, DATABASE_CONSTANTS.varchar_guid) || null,
     title: parsedFeed.title?.slice(0, DATABASE_CONSTANTS.varchar_normal) || null,
-    sortable_title: createSortableTitle(parsedFeed.title)?.slice(0, DATABASE_CONSTANTS.varchar_short) || null,
+    sortable_title:
+      createSortableTitle(parsedFeed.title)?.slice(0, DATABASE_CONSTANTS.varchar_short) || null,
     medium_id,
   };
 };
 
 export const compatChannelAboutDto = (parsedFeed: FeedObject) => ({
-  author: (
+  author:
     (Array.isArray(parsedFeed.author)
       ? parsedFeed.author
-      : parsedFeed.author 
-        ? [parsedFeed.author] : []
-    )?.join(', '))?.slice(0, DATABASE_CONSTANTS.varchar_normal) || null,
+      : parsedFeed.author
+        ? [parsedFeed.author]
+        : []
+    )
+      ?.join(', ')
+      ?.slice(0, DATABASE_CONSTANTS.varchar_normal) || null,
   explicit: getBooleanOrNull(parsedFeed.explicit),
   language: parsedFeed.language?.slice(0, DATABASE_CONSTANTS.varchar_short) || null,
-  website_link_url: isValidHttpUrl(parsedFeed.link) && parsedFeed.link?.slice(0, DATABASE_CONSTANTS.varchar_url) || null,
+  website_link_url:
+    (isValidHttpUrl(parsedFeed.link) &&
+      parsedFeed.link?.slice(0, DATABASE_CONSTANTS.varchar_url)) ||
+    null,
   itunes_type: getChannelItunesTypeItunesTypeEnumValue(parsedFeed.itunesType || 'episodic'),
   episode_count: parsedFeed.items?.length || 0,
   last_pub_date: (() => {
-    const itemsWithPubDate = parsedFeed.items?.filter(item => !!item.pubDate) || [];
+    const itemsWithPubDate = parsedFeed.items?.filter((item) => !!item.pubDate) || [];
     const firstItem = itemsWithPubDate[0];
-    if (itemsWithPubDate.length === 0 || !firstItem || !firstItem.pubDate) {return null;}
+    if (itemsWithPubDate.length === 0 || !firstItem || !firstItem.pubDate) {
+      return null;
+    }
     const latestDate = itemsWithPubDate.reduce((latest, item) => {
       const itemDate = new Date(item.pubDate ?? '');
       return itemDate > latest ? itemDate : latest;
@@ -44,15 +61,22 @@ export const compatChannelAboutDto = (parsedFeed: FeedObject) => ({
 });
 
 export const compatChannelCategoryDtos = (parsedFeed: FeedObject) => {
-  return parsedFeed.itunesCategory?.map((category) => {
-    let processedCategory = category.toLowerCase();
-    if (processedCategory.includes('>')) {
-      processedCategory = (processedCategory.split('>').pop() ?? '').trim();
-    }
-    processedCategory = processedCategory.replace(/&amp;|&/g, 'and').replace(/-/g, '').replace(/\s+/g, '');
-    const category_id = getCategoryEnumValue(processedCategory);
-    return category_id ? { category_id } : null;
-  }).filter(category => category !== null) || [];
+  return (
+    parsedFeed.itunesCategory
+      ?.map((category) => {
+        let processedCategory = category.toLowerCase();
+        if (processedCategory.includes('>')) {
+          processedCategory = (processedCategory.split('>').pop() ?? '').trim();
+        }
+        processedCategory = processedCategory
+          .replace(/&amp;|&/g, 'and')
+          .replace(/-/g, '')
+          .replace(/\s+/g, '');
+        const category_id = getCategoryEnumValue(processedCategory);
+        return category_id ? { category_id } : null;
+      })
+      .filter((category) => category !== null) || []
+  );
 };
 
 export const compatChannelChatDto = (parsedFeed: FeedObject) => {
@@ -131,7 +155,10 @@ export const compatChannelLicenseDto = (parsedFeed: FeedObject) => {
   }
   return {
     identifier: parsedFeed.license.identifier.slice(0, DATABASE_CONSTANTS.varchar_normal),
-    url: isValidHttpUrl(parsedFeed.license.url) && parsedFeed.license.url?.slice(0, DATABASE_CONSTANTS.varchar_url) || null,
+    url:
+      (isValidHttpUrl(parsedFeed.license.url) &&
+        parsedFeed.license.url?.slice(0, DATABASE_CONSTANTS.varchar_url)) ||
+      null,
   };
 };
 
@@ -156,9 +183,11 @@ export const compatChannelPersonDtos = (parsedFeed: FeedObject) => {
         dtos.push({
           name: p.name.slice(0, DATABASE_CONSTANTS.varchar_normal),
           role: p.role?.toLowerCase()?.slice(0, DATABASE_CONSTANTS.varchar_normal) || null,
-          person_group: p.group?.toLowerCase()?.slice(0, DATABASE_CONSTANTS.varchar_normal) || 'cast',
-          img: isValidHttpUrl(p.img) && p.img?.slice(0, DATABASE_CONSTANTS.varchar_url) || null,
-          href: isValidHttpUrl(p.href) && p.href?.slice(0, DATABASE_CONSTANTS.varchar_url) || null,
+          person_group:
+            p.group?.toLowerCase()?.slice(0, DATABASE_CONSTANTS.varchar_normal) || 'cast',
+          img: (isValidHttpUrl(p.img) && p.img?.slice(0, DATABASE_CONSTANTS.varchar_url)) || null,
+          href:
+            (isValidHttpUrl(p.href) && p.href?.slice(0, DATABASE_CONSTANTS.varchar_url)) || null,
         });
       }
     }
@@ -174,7 +203,9 @@ export const compatChannelPodrollRemoteItemDtos = (parsedFeed: FeedObject) => {
       if (ri.feedGuid) {
         dtos.push({
           feed_guid: ri.feedGuid.slice(0, DATABASE_CONSTANTS.varchar_guid),
-          feed_url: isValidHttpUrl(ri.feedUrl) && ri.feedUrl?.slice(0, DATABASE_CONSTANTS.varchar_url) || null,
+          feed_url:
+            (isValidHttpUrl(ri.feedUrl) && ri.feedUrl?.slice(0, DATABASE_CONSTANTS.varchar_url)) ||
+            null,
           item_guid: null,
           title: /* PTDO: ri.title || */ null,
         });
@@ -191,7 +222,10 @@ export const compatChannelPublisherRemoteItemDtos = (parsedFeed: FeedObject) => 
   if (publisherRemoteItem?.feedGuid) {
     dtos.push({
       feed_guid: publisherRemoteItem.feedGuid.slice(0, DATABASE_CONSTANTS.varchar_guid),
-      feed_url: isValidHttpUrl(publisherRemoteItem.feedUrl) && publisherRemoteItem.feedUrl?.slice(0, DATABASE_CONSTANTS.varchar_url) || null,
+      feed_url:
+        (isValidHttpUrl(publisherRemoteItem.feedUrl) &&
+          publisherRemoteItem.feedUrl?.slice(0, DATABASE_CONSTANTS.varchar_url)) ||
+        null,
       item_guid: null,
       title: /* PTDO: ri.title || */ null,
     });
@@ -208,7 +242,9 @@ export const compatChannelRemoteItemDtos = (parsedFeed: FeedObject) => {
       if (ri.feedGuid) {
         dtos.push({
           feed_guid: ri.feedGuid.slice(0, DATABASE_CONSTANTS.varchar_guid),
-          feed_url: isValidHttpUrl(ri.feedUrl) && ri.feedUrl?.slice(0, DATABASE_CONSTANTS.varchar_url) || null,
+          feed_url:
+            (isValidHttpUrl(ri.feedUrl) && ri.feedUrl?.slice(0, DATABASE_CONSTANTS.varchar_url)) ||
+            null,
           item_guid: null,
           title: /* PTDO: ri.title || */ null,
         });
@@ -229,7 +265,8 @@ export const compatChannelSocialInteractDtos = (parsedFeed: FeedObject) => {
         protocol: ps.platform.slice(0, DATABASE_CONSTANTS.varchar_short),
         uri: ps.url.slice(0, DATABASE_CONSTANTS.varchar_uri),
         account_id: ps.id?.slice(0, DATABASE_CONSTANTS.varchar_normal) || null,
-        account_url: isValidHttpUrl(ps.url) && ps.url?.slice(0, DATABASE_CONSTANTS.varchar_url) || null,
+        account_url:
+          (isValidHttpUrl(ps.url) && ps.url?.slice(0, DATABASE_CONSTANTS.varchar_url)) || null,
         priority: ps.priority || null,
       });
     }

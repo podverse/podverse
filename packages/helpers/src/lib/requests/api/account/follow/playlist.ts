@@ -8,7 +8,7 @@ type ReqAuthLoginParams = {
 
 export async function reqAccountFollowPlaylist(
   api: ApiRequestService,
-  params: ReqAuthLoginParams,
+  params: ReqAuthLoginParams
 ): Promise<DTOAccount> {
   await api.apiRequest({
     path: '/account/follow/playlist',
@@ -24,7 +24,7 @@ export async function reqAccountFollowPlaylist(
 
 export async function reqAccountUnfollowPlaylist(
   api: ApiRequestService,
-  params: ReqAuthLoginParams,
+  params: ReqAuthLoginParams
 ): Promise<DTOAccount> {
   await api.apiRequest({
     path: '/account/unfollow/playlist',

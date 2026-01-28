@@ -13,6 +13,7 @@ type Config = {
   userAgent: string;
   log: {
     level: string;
+    dir: string;
   };
   auth: {
     jwtSecret: string;
@@ -37,11 +38,11 @@ type Config = {
   emailChangeVerification: {
     pagePath: string;
     tokenExpiration: number;
-  },
+  };
   legal: {
     name: string;
     address: string;
-  },
+  };
   mailer: {
     disabled: boolean;
     host: string;
@@ -104,6 +105,7 @@ export const config: Config = {
   userAgent: process.env.USER_AGENT!,
   log: {
     level: process.env.LOG_LEVEL!,
+    dir: process.env.LOG_DIR ?? '',
   },
   auth: {
     jwtSecret: process.env.AUTH_JWT_SECRET!,
@@ -115,7 +117,9 @@ export const config: Config = {
     cookie: {
       domain: process.env.COOKIE_DOMAIN!,
     },
-    allowedCORSOrigins: process.env.API_ALLOWED_CORS_ORIGINS!.split(',').map(origin => origin.trim()),
+    allowedCORSOrigins: process.env
+      .API_ALLOWED_CORS_ORIGINS!.split(',')
+      .map((origin) => origin.trim()),
   },
   email: {
     styles: {

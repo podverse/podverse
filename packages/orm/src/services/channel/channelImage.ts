@@ -5,9 +5,9 @@ import { filterDtosByHighestWidth } from '@orm/lib/filterImageDtosByHighestWidth
 import { BaseManyService } from '@orm/services/base/baseManyService';
 
 type ChannelImageDto = {
-  url: string
-  image_width_size: number | null
-}
+  url: string;
+  image_width_size: number | null;
+};
 
 export class ChannelImageService extends BaseManyService<ChannelImage, 'channel'> {
   constructor(transactionalEntityManager?: EntityManager) {
@@ -21,7 +21,7 @@ export class ChannelImageService extends BaseManyService<ChannelImage, 'channel'
 
   async updateMany(channel: Channel, dtos: ChannelImageDto[]): Promise<ChannelImage[]> {
     // TODO: adding image shrinking if an image < 500px is not found
-    
+
     const filteredDtos = filterDtosByHighestWidth(dtos);
     const whereKeys = ['url'] as (keyof ChannelImage)[];
     return super._updateMany(channel, whereKeys, filteredDtos);

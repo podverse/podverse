@@ -18,17 +18,23 @@ export function Settings() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const { loggedInAccount } = useAccount();
-  
+
   // Check for tab query param on mount
   const tabFromQuery = searchParams.get('tab');
   // For non-logged-in users, default to 'general' even if query param specifies a restricted tab
   const initialTab = loggedInAccount
-    ? (tabFromQuery === 'profile' ? 'profile' : 
-       tabFromQuery === 'account' ? 'account' :
-       tabFromQuery === 'notifications' ? 'notifications' : 'general') as 'account'|'general'|'notifications'|'profile'
+    ? ((tabFromQuery === 'profile'
+        ? 'profile'
+        : tabFromQuery === 'account'
+          ? 'account'
+          : tabFromQuery === 'notifications'
+            ? 'notifications'
+            : 'general') as 'account' | 'general' | 'notifications' | 'profile')
     : 'general';
-  
-  const [tab, setTab] = React.useState<'account'|'general'|'notifications'|'profile'>(initialTab);
+
+  const [tab, setTab] = React.useState<'account' | 'general' | 'notifications' | 'profile'>(
+    initialTab
+  );
 
   // Redirect non-logged-in users to 'general' tab if they try to access restricted tabs
   React.useEffect(() => {
@@ -41,7 +47,7 @@ export function Settings() {
     }
   }, [loggedInAccount, tab, searchParams, router]);
 
-  const handleTabChange = (newTab: 'account'|'general'|'notifications'|'profile') => {
+  const handleTabChange = (newTab: 'account' | 'general' | 'notifications' | 'profile') => {
     setTab(newTab);
     // Remove tab query param when user clicks a tab
     const params = new URLSearchParams(searchParams.toString());
@@ -77,18 +83,11 @@ export function Settings() {
     },
   ];
 
-  const tabData = loggedInAccount ? allTabs : (allTabs[0] ? [allTabs[0]] : []); // Only show General tab for non-logged-in users
+  const tabData = loggedInAccount ? allTabs : allTabs[0] ? [allTabs[0]] : []; // Only show General tab for non-logged-in users
 
   return (
     <div>
-      <ListHeader
-        tabs={
-          <Tabs
-            tabData={tabData}
-            selectedKey={tab}
-          />
-        }
-      />
+      <ListHeader tabs={<Tabs tabData={tabData} selectedKey={tab} />} />
       <SettingsWrapper>
         {tab === 'general' && <SettingsGeneral />}
         {loggedInAccount && tab === 'account' && <SettingsAccount />}

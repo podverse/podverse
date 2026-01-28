@@ -12,15 +12,13 @@ const itemChapterByIdTextSchema = Joi.object({
 const itemChapterService = new ItemChapterService();
 
 export class ItemChapterController {
-
   static async getItemChapterByIdText(req: Request, res: Response): Promise<void> {
     validateParamsObject(itemChapterByIdTextSchema, req, res, async () => {
       try {
         const item_chapter_id_text = getParamRequired(req, 'item_chapter_id_text');
-        const itemChapter = await itemChapterService.getByIdText(
-          item_chapter_id_text,
-          { relations: ['item_chapters_feed', 'item_chapters_feed.item'] },
-        );
+        const itemChapter = await itemChapterService.getByIdText(item_chapter_id_text, {
+          relations: ['item_chapters_feed', 'item_chapters_feed.item'],
+        });
         if (itemChapter) {
           res.status(200).json(itemChapter);
         } else {
@@ -31,5 +29,4 @@ export class ItemChapterController {
       }
     });
   }
-
 }

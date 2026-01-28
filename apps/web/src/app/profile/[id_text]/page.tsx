@@ -7,7 +7,7 @@ export type ProfilePageProps = {
 
 export default async function ProfilePage({ params }: ProfilePageProps) {
   const { id_text } = await params;
-  
+
   const { isValidAuthSession, ssrApiRequestService } = await getSSRAuthService();
 
   try {
@@ -22,7 +22,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
     // Check if user is viewing their own profile
     if (isValidAuthSession) {
       const ssrLoggedInAccount = await ssrApiRequestService.reqAuthMe();
-      
+
       if (ssrLoggedInAccount) {
         if (ssrLoggedInAccount.id === ssrAccount.id) {
           // Redirect to my-profile if user views their own profile via public link
@@ -35,9 +35,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
     // Import ProfileClient dynamically to avoid circular dependencies
     const { ProfileClient } = await import('./ProfileClient');
 
-    return (
-      <ProfileClient ssrAccount={ssrAccount} />
-    );
+    return <ProfileClient ssrAccount={ssrAccount} />;
   } catch (error) {
     // Check if this is a Next.js redirect error - if so, re-throw it
     if (error && typeof error === 'object' && 'digest' in error) {
@@ -46,7 +44,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
         throw error;
       }
     }
-    
+
     // Account not found or error accessing account
     redirect('/profiles');
   }

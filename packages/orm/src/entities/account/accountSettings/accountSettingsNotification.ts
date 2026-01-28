@@ -10,14 +10,19 @@ export class AccountSettingsNotification {
   @Column({ name: 'account_settings_id' })
   account_settings_id!: number;
 
-  @OneToOne(() => AccountSettings, accountSettings => accountSettings.account_settings_notification, { onDelete: 'CASCADE' })
+  @OneToOne(
+    () => AccountSettings,
+    (accountSettings) => accountSettings.account_settings_notification,
+    { onDelete: 'CASCADE' }
+  )
   @JoinColumn({ name: 'account_settings_id' })
   account_settings!: AccountSettings;
 
   @OneToMany(
     () => AccountSettingsNotificationType,
-    accountSettingsNotificationType => accountSettingsNotificationType.account_settings_notification,
-    { cascade: ['insert'] },
+    (accountSettingsNotificationType) =>
+      accountSettingsNotificationType.account_settings_notification,
+    { cascade: ['insert'] }
   )
   account_settings_notification_types!: AccountSettingsNotificationType[];
 }

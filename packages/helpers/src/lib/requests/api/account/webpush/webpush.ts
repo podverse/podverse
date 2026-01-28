@@ -1,8 +1,15 @@
-import { DTOAccountWebPushDevice, CreateAccountWebPushDeviceParams, UpdateAccountWebPushDeviceParams,
-  DeleteAccountWebPushDeviceParams } from 'src/dtos';
+import {
+  DTOAccountWebPushDevice,
+  CreateAccountWebPushDeviceParams,
+  UpdateAccountWebPushDeviceParams,
+  DeleteAccountWebPushDeviceParams,
+} from 'src/dtos';
 import { ApiRequestService } from '../../_request';
 
-export async function reqAccountWebPushDeviceCreate(api: ApiRequestService, params: CreateAccountWebPushDeviceParams) {
+export async function reqAccountWebPushDeviceCreate(
+  api: ApiRequestService,
+  params: CreateAccountWebPushDeviceParams
+) {
   return api.apiRequest<DTOAccountWebPushDevice>({
     path: '/account/webpush-device/create',
     method: 'POST',
@@ -11,7 +18,10 @@ export async function reqAccountWebPushDeviceCreate(api: ApiRequestService, para
   });
 }
 
-export async function reqAccountWebPushDeviceUpdate(api: ApiRequestService, params: UpdateAccountWebPushDeviceParams) {
+export async function reqAccountWebPushDeviceUpdate(
+  api: ApiRequestService,
+  params: UpdateAccountWebPushDeviceParams
+) {
   return api.apiRequest<DTOAccountWebPushDevice>({
     path: '/account/webpush-device/update',
     method: 'PUT',
@@ -20,7 +30,10 @@ export async function reqAccountWebPushDeviceUpdate(api: ApiRequestService, para
   });
 }
 
-export async function reqAccountWebPushDeviceDelete(api: ApiRequestService, params: DeleteAccountWebPushDeviceParams) {
+export async function reqAccountWebPushDeviceDelete(
+  api: ApiRequestService,
+  params: DeleteAccountWebPushDeviceParams
+) {
   return api.apiRequest<void>({
     path: '/account/webpush-device/delete',
     method: 'DELETE',

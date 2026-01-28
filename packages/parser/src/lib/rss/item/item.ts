@@ -65,24 +65,24 @@ type ItemTimerAccumulator = {
 };
 
 type HandleParsedItemBatch = {
-  parsedItemBatch: Episode[]
-  channel: Channel
-  channelSeasonIndex: ChannelSeasonIndex
+  parsedItemBatch: Episode[];
+  channel: Channel;
+  channelSeasonIndex: ChannelSeasonIndex;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  transactionalEntityManager?: any
-  updatedItemIds: number[]
-  timerAccumulator: ItemTimerAccumulator
+  transactionalEntityManager?: any;
+  updatedItemIds: number[];
+  timerAccumulator: ItemTimerAccumulator;
 };
 
 type HandleParsedItem = {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  parsedItem: any
-  channel: Channel
-  channelSeasonIndex: ChannelSeasonIndex
+  parsedItem: any;
+  channel: Channel;
+  channelSeasonIndex: ChannelSeasonIndex;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  transactionalEntityManager?: any
-  timerAccumulator: ItemTimerAccumulator
-  isLiveItem?: boolean
+  transactionalEntityManager?: any;
+  timerAccumulator: ItemTimerAccumulator;
+  isLiveItem?: boolean;
 };
 
 export const createItemTimerAccumulator = (): ItemTimerAccumulator => {
@@ -109,27 +109,37 @@ export const createItemTimerAccumulator = (): ItemTimerAccumulator => {
 };
 
 export type HandleParsedItemsResult = {
-  newItemGuids: string[]
-  newItemGuidEnclosureUrls: string[]
-}
+  newItemGuids: string[];
+  newItemGuidEnclosureUrls: string[];
+};
 
-export const handleParsedItems = async (parsedItems: Episode[], channel: Channel, channelSeasonIndex: ChannelSeasonIndex): Promise<HandleParsedItemsResult> => {
+export const handleParsedItems = async (
+  parsedItems: Episode[],
+  channel: Channel,
+  channelSeasonIndex: ChannelSeasonIndex
+): Promise<HandleParsedItemsResult> => {
   const itemService = new ItemService();
 
   timerManager.start('getManyByChannel');
-  const existingItems = await itemService.getManyByChannel(channel, { select: ['id', 'guid', 'guid_enclosure_url'] });
+  const existingItems = await itemService.getManyByChannel(channel, {
+    select: ['id', 'guid', 'guid_enclosure_url'],
+  });
   timerManager.end('getManyByChannel');
 
   timerManager.start('existingItemIds');
-  const existingItemIds: number[] = existingItems.map(item => item.id);
-  const existingItemGuids = new Set(existingItems.map(item => item.guid).filter((g): g is string => g !== null));
-  const existingItemGuidEnclosureUrls = new Set(existingItems.map(item => item.guid_enclosure_url).filter((g): g is string => g !== null));
+  const existingItemIds: number[] = existingItems.map((item) => item.id);
+  const existingItemGuids = new Set(
+    existingItems.map((item) => item.guid).filter((g): g is string => g !== null)
+  );
+  const existingItemGuidEnclosureUrls = new Set(
+    existingItems.map((item) => item.guid_enclosure_url).filter((g): g is string => g !== null)
+  );
   const updatedItemIds: number[] = [];
   const newItemGuids: string[] = [];
   const newItemGuidEnclosureUrls: string[] = [];
 
   const uniqueParsedItems = removeInvalidItems(parsedItems);
-    
+
   const parsedItemBatchs = chunkArray(uniqueParsedItems, 100);
 
   const timerAccumulator = createItemTimerAccumulator();
@@ -150,7 +160,7 @@ export const handleParsedItems = async (parsedItems: Episode[], channel: Channel
         existingItemGuidEnclosureUrls,
       });
     } else {
-      await AppDataSourceReadWrite.manager.transaction(async transactionalEntityManager => {
+      await AppDataSourceReadWrite.manager.transaction(async (transactionalEntityManager) => {
         await handleParsedItemBatch({
           parsedItemBatch,
           channel,
@@ -173,11 +183,11 @@ export const handleParsedItems = async (parsedItems: Episode[], channel: Channel
       loggerService.info(`${key} took ${value}ms`);
     });
   }
-  
-  const itemIdsToDelete = existingItemIds.filter(id => !updatedItemIds.includes(id));
-  const itemsToDelete = existingItems.filter(item => itemIdsToDelete.includes(item.id));
+
+  const itemIdsToDelete = existingItemIds.filter((id) => !updatedItemIds.includes(id));
+  const itemsToDelete = existingItems.filter((item) => itemIdsToDelete.includes(item.id));
   await itemService.updateManyFlagStatus(itemsToDelete, ItemFlagStatusStatusEnum.PendingArchive);
-  
+
   return {
     newItemGuids,
     newItemGuidEnclosureUrls,
@@ -196,10 +206,10 @@ const handleParsedItemBatch = async ({
   existingItemGuids,
   existingItemGuidEnclosureUrls,
 }: HandleParsedItemBatch & {
-  newItemGuids: string[],
-  newItemGuidEnclosureUrls: string[],
-  existingItemGuids: Set<string>,
-  existingItemGuidEnclosureUrls: Set<string>
+  newItemGuids: string[];
+  newItemGuidEnclosureUrls: string[];
+  existingItemGuids: Set<string>;
+  existingItemGuidEnclosureUrls: Set<string>;
 }) => {
   for (const parsedItem of parsedItemBatch) {
     const item = await handleParsedItem({
@@ -232,7 +242,7 @@ export const handleParsedItem = async ({
 }: HandleParsedItem) => {
   const itemService = new ItemService();
   const itemDto = compatItemDto(parsedItem, { isLiveItem: isLiveItem ?? false });
-  
+
   timerManager.start('updateItem');
   const item = await itemService.update(channel, ItemFlagStatusStatusEnum.Active, itemDto);
   timerAccumulator.updateItem = timerManager.end('updateItem', true) + timerAccumulator.updateItem;
@@ -241,15 +251,21 @@ export const handleParsedItem = async ({
 
   timerManager.start('handleParsedItemAbout');
   await handleParsedItemAbout(parsedItem, item, transactionalEntityManager);
-  timerAccumulator.handleParsedItemAbout = timerManager.end('handleParsedItemAbout', preventTimerLog) + timerAccumulator.handleParsedItemAbout;
+  timerAccumulator.handleParsedItemAbout =
+    timerManager.end('handleParsedItemAbout', preventTimerLog) +
+    timerAccumulator.handleParsedItemAbout;
 
   timerManager.start('handleParsedItemChapterFeed');
   await handleParsedItemChaptersFeed(parsedItem, item, transactionalEntityManager);
-  timerAccumulator.handleParsedItemChaptersFeed = timerManager.end('handleParsedItemChapterFeed', preventTimerLog) + timerAccumulator.handleParsedItemChaptersFeed;
+  timerAccumulator.handleParsedItemChaptersFeed =
+    timerManager.end('handleParsedItemChapterFeed', preventTimerLog) +
+    timerAccumulator.handleParsedItemChaptersFeed;
 
   timerManager.start('handleParsedItemChat');
   await handleParsedItemChat(parsedItem, item, transactionalEntityManager);
-  timerAccumulator.handleParsedItemChat = timerManager.end('handleParsedItemChat', preventTimerLog) + timerAccumulator.handleParsedItemChat;
+  timerAccumulator.handleParsedItemChat =
+    timerManager.end('handleParsedItemChat', preventTimerLog) +
+    timerAccumulator.handleParsedItemChat;
 
   // // PTDO: add itemContentLinkService support after partytime adds chat support
   // const itemContentLinkService = new ItemContentLinkService();
@@ -262,55 +278,80 @@ export const handleParsedItem = async ({
 
   timerManager.start('handleParsedItemDescription');
   await handleParsedItemDescription(parsedItem, item, transactionalEntityManager);
-  timerAccumulator.handleParsedItemDescription = timerManager.end('handleParsedItemDescription', preventTimerLog) + timerAccumulator.handleParsedItemDescription;
+  timerAccumulator.handleParsedItemDescription =
+    timerManager.end('handleParsedItemDescription', preventTimerLog) +
+    timerAccumulator.handleParsedItemDescription;
 
   timerManager.start('handleParsedItemEnclosure');
   await handleParsedItemEnclosure(parsedItem, item, transactionalEntityManager);
-  timerAccumulator.handleParsedItemEnclosure = timerManager.end('handleParsedItemEnclosure', preventTimerLog) + timerAccumulator.handleParsedItemEnclosure;
+  timerAccumulator.handleParsedItemEnclosure =
+    timerManager.end('handleParsedItemEnclosure', preventTimerLog) +
+    timerAccumulator.handleParsedItemEnclosure;
 
   timerManager.start('handleParsedItemImage');
   await handleParsedItemImage(parsedItem, item, transactionalEntityManager);
-  timerAccumulator.handleParsedItemImage = timerManager.end('handleParsedItemImage', preventTimerLog) + timerAccumulator.handleParsedItemImage;
+  timerAccumulator.handleParsedItemImage =
+    timerManager.end('handleParsedItemImage', preventTimerLog) +
+    timerAccumulator.handleParsedItemImage;
 
   timerManager.start('handleParsedItemLicense');
   await handleParsedItemLicense(parsedItem, item, transactionalEntityManager);
-  timerAccumulator.handleParsedItemLicense = timerManager.end('handleParsedItemLicense', preventTimerLog) + timerAccumulator.handleParsedItemLicense;
+  timerAccumulator.handleParsedItemLicense =
+    timerManager.end('handleParsedItemLicense', preventTimerLog) +
+    timerAccumulator.handleParsedItemLicense;
 
   timerManager.start('handleParsedItemLocation');
   await handleParsedItemLocation(parsedItem, item, transactionalEntityManager);
-  timerAccumulator.handleParsedItemLocation = timerManager.end('handleParsedItemLocation', preventTimerLog) + timerAccumulator.handleParsedItemLocation;
+  timerAccumulator.handleParsedItemLocation =
+    timerManager.end('handleParsedItemLocation', preventTimerLog) +
+    timerAccumulator.handleParsedItemLocation;
 
   timerManager.start('handleParsedItemPerson');
   await handleParsedItemPerson(parsedItem, item, transactionalEntityManager);
-  timerAccumulator.handleParsedItemPerson = timerManager.end('handleParsedItemPerson', preventTimerLog) + timerAccumulator.handleParsedItemPerson;
-  
+  timerAccumulator.handleParsedItemPerson =
+    timerManager.end('handleParsedItemPerson', preventTimerLog) +
+    timerAccumulator.handleParsedItemPerson;
+
   timerManager.start('handleParsedItemSeason');
   await handleParsedItemSeason(parsedItem, item, channelSeasonIndex, transactionalEntityManager);
-  timerAccumulator.handleParsedItemSeason = timerManager.end('handleParsedItemSeason', preventTimerLog) + timerAccumulator.handleParsedItemSeason;
-  
+  timerAccumulator.handleParsedItemSeason =
+    timerManager.end('handleParsedItemSeason', preventTimerLog) +
+    timerAccumulator.handleParsedItemSeason;
+
   timerManager.start('handleParsedItemSeasonEpisode');
   await handleParsedItemSeasonEpisode(parsedItem, item, transactionalEntityManager);
-  timerAccumulator.handleParsedItemSeasonEpisode = timerManager.end('handleParsedItemSeasonEpisode', preventTimerLog) + timerAccumulator.handleParsedItemSeasonEpisode;
+  timerAccumulator.handleParsedItemSeasonEpisode =
+    timerManager.end('handleParsedItemSeasonEpisode', preventTimerLog) +
+    timerAccumulator.handleParsedItemSeasonEpisode;
 
   timerManager.start('handleParsedItemSocialInteract');
   await handleParsedItemSocialInteract(parsedItem, item, transactionalEntityManager);
-  timerAccumulator.handleParsedItemSocialInteract = timerManager.end('handleParsedItemSocialInteract', preventTimerLog) + timerAccumulator.handleParsedItemSocialInteract;
+  timerAccumulator.handleParsedItemSocialInteract =
+    timerManager.end('handleParsedItemSocialInteract', preventTimerLog) +
+    timerAccumulator.handleParsedItemSocialInteract;
 
   timerManager.start('handleParsedItemSoundbite');
   await handleParsedItemSoundbite(parsedItem, item, transactionalEntityManager);
-  timerAccumulator.handleParsedItemSoundbite = timerManager.end('handleParsedItemSoundbite', preventTimerLog) + timerAccumulator.handleParsedItemSoundbite;
+  timerAccumulator.handleParsedItemSoundbite =
+    timerManager.end('handleParsedItemSoundbite', preventTimerLog) +
+    timerAccumulator.handleParsedItemSoundbite;
 
   timerManager.start('handleParsedItemTranscript');
   await handleParsedItemTranscript(parsedItem, item, transactionalEntityManager);
-  timerAccumulator.handleParsedItemTranscript = timerManager.end('handleParsedItemTranscript', preventTimerLog) + timerAccumulator.handleParsedItemTranscript;
+  timerAccumulator.handleParsedItemTranscript =
+    timerManager.end('handleParsedItemTranscript', preventTimerLog) +
+    timerAccumulator.handleParsedItemTranscript;
 
   timerManager.start('handleParsedItemTxt');
   await handleParsedItemTxt(parsedItem, item, transactionalEntityManager);
-  timerAccumulator.handleParsedItemTxt = timerManager.end('handleParsedItemTxt', preventTimerLog) + timerAccumulator.handleParsedItemTxt;
+  timerAccumulator.handleParsedItemTxt =
+    timerManager.end('handleParsedItemTxt', preventTimerLog) + timerAccumulator.handleParsedItemTxt;
 
   timerManager.start('handleParsedItemValue');
   await handleParsedItemValue(parsedItem, item, channel, transactionalEntityManager);
-  timerAccumulator.handleParsedItemValue = timerManager.end('handleParsedItemValue', preventTimerLog) + timerAccumulator.handleParsedItemValue;
+  timerAccumulator.handleParsedItemValue =
+    timerManager.end('handleParsedItemValue', preventTimerLog) +
+    timerAccumulator.handleParsedItemValue;
 
   return item;
 };

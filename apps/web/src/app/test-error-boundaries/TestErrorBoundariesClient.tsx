@@ -7,7 +7,9 @@ import { ErrorBoundary } from '../../components/ErrorBoundary/ErrorBoundary';
 import styles from '../../styles/app/test-error-boundaries/TestErrorBoundaries.module.scss';
 
 // Component that throws an error when rendered
-const ErrorComponent: React.FC<{ message?: string }> = ({ message = 'Test error from component' }) => {
+const ErrorComponent: React.FC<{ message?: string }> = ({
+  message = 'Test error from component',
+}) => {
   throw new Error(message);
 };
 
@@ -33,7 +35,11 @@ const EventHandlerErrorComponent: React.FC = () => {
   const handleClick = () => {
     throw new Error('Error in event handler - not caught by error boundary');
   };
-  return <Button onClick={handleClick}>{tTestPage('test_error_boundaries_trigger_event_handler_error')}</Button>;
+  return (
+    <Button onClick={handleClick}>
+      {tTestPage('test_error_boundaries_trigger_event_handler_error')}
+    </Button>
+  );
 };
 
 // Component that throws an error during render (for route-level error testing)
@@ -54,32 +60,26 @@ export const TestErrorBoundariesClient: React.FC = () => {
     setTriggerMountError(false);
     setTriggerConditionalError(false);
     setTriggerRouteError(false);
-    setErrorKey(prev => prev + 1);
+    setErrorKey((prev) => prev + 1);
   };
 
   return (
     <div className={styles.container}>
       <div className={styles.header}>
         <h1 className={styles.title}>{tTestPage('test_error_boundaries_title')}</h1>
-        <p className={styles.description}>
-          {tTestPage('test_error_boundaries_description')}
-        </p>
-        <p className={styles.warning}>
-          ⚠️ {tTestPage('test_error_boundaries_warning')}
-        </p>
+        <p className={styles.description}>{tTestPage('test_error_boundaries_description')}</p>
+        <p className={styles.warning}>⚠️ {tTestPage('test_error_boundaries_warning')}</p>
       </div>
 
       <div className={styles.section}>
-        <h2 className={styles.sectionTitle}>{tTestPage('test_error_boundaries_section_1_title')}</h2>
+        <h2 className={styles.sectionTitle}>
+          {tTestPage('test_error_boundaries_section_1_title')}
+        </h2>
         <p className={styles.sectionDescription}>
           {tTestPage('test_error_boundaries_section_1_description')}
         </p>
         <div className={styles.buttonGroup}>
-          <Button 
-            onClick={() => setTriggerError(true)} 
-            variant="danger"
-            disabled={triggerError}
-          >
+          <Button onClick={() => setTriggerError(true)} variant="danger" disabled={triggerError}>
             {tTestPage('test_error_boundaries_trigger_render_error')}
           </Button>
           <Button onClick={handleReset} variant="secondary">
@@ -94,13 +94,15 @@ export const TestErrorBoundariesClient: React.FC = () => {
       </div>
 
       <div className={styles.section}>
-        <h2 className={styles.sectionTitle}>{tTestPage('test_error_boundaries_section_2_title')}</h2>
+        <h2 className={styles.sectionTitle}>
+          {tTestPage('test_error_boundaries_section_2_title')}
+        </h2>
         <p className={styles.sectionDescription}>
           {tTestPage('test_error_boundaries_section_2_description')}
         </p>
         <div className={styles.buttonGroup}>
-          <Button 
-            onClick={() => setTriggerMountError(true)} 
+          <Button
+            onClick={() => setTriggerMountError(true)}
             variant="danger"
             disabled={triggerMountError}
           >
@@ -118,13 +120,15 @@ export const TestErrorBoundariesClient: React.FC = () => {
       </div>
 
       <div className={styles.section}>
-        <h2 className={styles.sectionTitle}>{tTestPage('test_error_boundaries_section_3_title')}</h2>
+        <h2 className={styles.sectionTitle}>
+          {tTestPage('test_error_boundaries_section_3_title')}
+        </h2>
         <p className={styles.sectionDescription}>
           {tTestPage('test_error_boundaries_section_3_description')}
         </p>
         <div className={styles.buttonGroup}>
-          <Button 
-            onClick={() => setTriggerConditionalError(true)} 
+          <Button
+            onClick={() => setTriggerConditionalError(true)}
             variant="danger"
             disabled={triggerConditionalError}
           >
@@ -142,7 +146,9 @@ export const TestErrorBoundariesClient: React.FC = () => {
       </div>
 
       <div className={styles.section}>
-        <h2 className={styles.sectionTitle}>{tTestPage('test_error_boundaries_section_4_title')}</h2>
+        <h2 className={styles.sectionTitle}>
+          {tTestPage('test_error_boundaries_section_4_title')}
+        </h2>
         <p className={styles.sectionDescription}>
           {tTestPage('test_error_boundaries_section_4_description')}
         </p>
@@ -152,12 +158,14 @@ export const TestErrorBoundariesClient: React.FC = () => {
       </div>
 
       <div className={styles.section}>
-        <h2 className={styles.sectionTitle}>{tTestPage('test_error_boundaries_section_5_title')}</h2>
+        <h2 className={styles.sectionTitle}>
+          {tTestPage('test_error_boundaries_section_5_title')}
+        </h2>
         <p className={styles.sectionDescription}>
           {tTestPage('test_error_boundaries_section_5_description')}
         </p>
         <div className={styles.buttonGroup}>
-          <Button 
+          <Button
             onClick={() => setTriggerRouteError(true)}
             variant="danger"
             disabled={triggerRouteError}
@@ -168,22 +176,18 @@ export const TestErrorBoundariesClient: React.FC = () => {
             {tTestPage('test_error_boundaries_reset_all')}
           </Button>
         </div>
-        {triggerRouteError && (
-          <RouteErrorComponent />
-        )}
+        {triggerRouteError && <RouteErrorComponent />}
       </div>
 
       <div className={styles.section}>
-        <h2 className={styles.sectionTitle}>{tTestPage('test_error_boundaries_section_6_title')}</h2>
+        <h2 className={styles.sectionTitle}>
+          {tTestPage('test_error_boundaries_section_6_title')}
+        </h2>
         <p className={styles.sectionDescription}>
           {tTestPage('test_error_boundaries_section_6_description')}
         </p>
         <div className={styles.buttonGroup}>
-          <Button 
-            onClick={() => setTriggerError(true)} 
-            variant="danger"
-            disabled={triggerError}
-          >
+          <Button onClick={() => setTriggerError(true)} variant="danger" disabled={triggerError}>
             {tTestPage('test_error_boundaries_trigger_nested_error')}
           </Button>
           <Button onClick={handleReset} variant="secondary">

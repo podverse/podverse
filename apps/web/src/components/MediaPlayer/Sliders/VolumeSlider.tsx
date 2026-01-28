@@ -8,7 +8,9 @@ export const VolumeSlider: React.FC = () => {
   const isDragging = useRef(false);
 
   const setVolumeFromEvent = (e: MouseEvent | React.MouseEvent<HTMLDivElement>) => {
-    if (!barRef.current) {return;}
+    if (!barRef.current) {
+      return;
+    }
     const rect = barRef.current.getBoundingClientRect();
     const x = (e instanceof MouseEvent ? e.clientX : e.nativeEvent.clientX) - rect.left;
     const percent = Math.min(Math.max(x / rect.width, 0), 1);
@@ -18,7 +20,7 @@ export const VolumeSlider: React.FC = () => {
   const handleBarClick = (e: React.MouseEvent<HTMLDivElement>) => {
     setVolumeFromEvent(e);
   };
-  
+
   const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
     setMPIsMuted(false);
     isDragging.current = true;

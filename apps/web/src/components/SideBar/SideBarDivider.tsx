@@ -6,10 +6,7 @@ type SideBarDividerProps = {
 };
 
 const SideBarDivider: React.FC<SideBarDividerProps> = ({ noMarginTop }) => (
-  <hr
-    className={styles.divider}
-    style={noMarginTop ? { marginTop: 0 } : undefined}
-  />
+  <hr className={styles.divider} style={noMarginTop ? { marginTop: 0 } : undefined} />
 );
 
 export default SideBarDivider;

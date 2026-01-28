@@ -7,7 +7,7 @@ export class Category {
   @PrimaryGeneratedColumn()
   id!: number;
 
-  @ManyToOne(() => Category, category => category.id, { onDelete: 'CASCADE', nullable: true })
+  @ManyToOne(() => Category, (category) => category.id, { onDelete: 'CASCADE', nullable: true })
   @JoinColumn({ name: 'parent_id' })
   parent_id!: number | null;
 

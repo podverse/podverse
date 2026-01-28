@@ -5,20 +5,15 @@ import LoadingSpinnerOverlay from '../../components/LoadingSpinner/LoadingSpinne
 import { HowToStartInfo } from '../../components/InfoWrapper/HowToStartInfo';
 
 export const ProfilesList: React.FC = () => {
-  const { filterParams, setFilterParams, accounts, totalPages, isLoading,
-    showSubscribeMessage } = useProfilesContext();
+  const { filterParams, setFilterParams, accounts, totalPages, isLoading, showSubscribeMessage } =
+    useProfilesContext();
   const { page, type } = filterParams;
 
   return (
     <>
-      {
-        filterParams.type === 'subscribed' && (
-          <HowToStartInfo
-            rows={accounts}
-            totalPages={totalPages}
-          />
-        )
-      }
+      {filterParams.type === 'subscribed' && (
+        <HowToStartInfo rows={accounts} totalPages={totalPages} />
+      )}
       <ListProfiles
         page={page}
         setPage={(page) => setFilterParams({ ...filterParams, page })}

@@ -7,8 +7,8 @@ export enum FeedFlagStatusStatusEnum {
   Spam = 3,
   PendingArchive = 4,
   Archived = 5,
-  Takedown = 6
-};
+  Takedown = 6,
+}
 
 @Entity('feed_flag_status')
 export class FeedFlagStatus {
@@ -22,6 +22,6 @@ export class FeedFlagStatus {
   })
   status!: FeedFlagStatusStatusEnum;
 
-  @OneToMany(() => Feed, feed => feed.feed_flag_status)
+  @OneToMany(() => Feed, (feed) => feed.feed_flag_status)
   feeds!: Feed[];
 }

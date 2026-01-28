@@ -1,5 +1,9 @@
-import { DTOChannel, getTotalPages, QUERY_PARAMS_HOME_SORT_VALUES,
-  QUERY_PARAMS_MEDIUMS } from '@podverse/helpers';
+import {
+  DTOChannel,
+  getTotalPages,
+  QUERY_PARAMS_HOME_SORT_VALUES,
+  QUERY_PARAMS_MEDIUMS,
+} from '@podverse/helpers';
 import React from 'react';
 import { cookies } from 'next/headers';
 import z from 'zod';
@@ -9,12 +13,16 @@ import { getHomeFilterParams, HomeDropdownConfigCurrentParams } from './HomeDrop
 import { getParsedLocalSettings, HomeFilterDefaults } from '../utils/localSettings/localSettings';
 
 const searchParamsSchema = z.object({
-  page: z.string().transform((v) => parseInt(v, 10)).optional().default('1'),
+  page: z
+    .string()
+    .transform((v) => parseInt(v, 10))
+    .optional()
+    .default('1'),
   medium: z.enum(QUERY_PARAMS_MEDIUMS).optional().default('all'),
   sort: z.enum(QUERY_PARAMS_HOME_SORT_VALUES).optional().default('recent'),
 });
 
-type SearchParams = z.infer<typeof searchParamsSchema>
+type SearchParams = z.infer<typeof searchParamsSchema>;
 
 export type HomePageProps = {
   searchParams: Promise<SearchParams>;
@@ -28,12 +36,14 @@ export default async function HomePage({ searchParams }: HomePageProps) {
   const ssrFilterDefaults = ssrLocalSettings.fd?.home;
 
   const queryParams = await searchParams;
-  const { currentPage, currentMedium, currentSort } = await parseSearchParams(queryParams, ssrFilterDefaults);
-  
+  const { currentPage, currentMedium, currentSort } = await parseSearchParams(
+    queryParams,
+    ssrFilterDefaults
+  );
 
   let ssrChannels: DTOChannel[] = [];
   let ssrTotalPages = 1;
-  
+
   if (isValidAuthSession) {
     const response = await ssrApiRequestService.reqChannelGetMany({
       page: currentPage,
@@ -44,9 +54,14 @@ export default async function HomePage({ searchParams }: HomePageProps) {
       category: null,
     });
     ssrChannels = response.data;
-    ssrTotalPages = getTotalPages(response.meta.count, response.meta.limit, response.data.length, currentPage);
+    ssrTotalPages = getTotalPages(
+      response.meta.count,
+      response.meta.limit,
+      response.data.length,
+      currentPage
+    );
   }
-  
+
   return (
     <HomeClient
       isValidAuthSession={isValidAuthSession}
@@ -61,7 +76,10 @@ export default async function HomePage({ searchParams }: HomePageProps) {
   );
 }
 
-function parseSearchParams(queryParams: SearchParams, cookieDefaults?: HomeFilterDefaults): HomeDropdownConfigCurrentParams {
+function parseSearchParams(
+  queryParams: SearchParams,
+  cookieDefaults?: HomeFilterDefaults
+): HomeDropdownConfigCurrentParams {
   const parsed = searchParamsSchema.safeParse(queryParams);
 
   if (!parsed.success) {

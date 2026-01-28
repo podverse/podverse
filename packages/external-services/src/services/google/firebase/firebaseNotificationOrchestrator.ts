@@ -10,8 +10,8 @@ type OrchestratorParams = {
   finalText: string;
   platform: NotificationPlatform;
   // spread of any platform-specific options
-  body?: string;  // Secondary text (e.g., channel title)
-  image?: string;  // Item/channel artwork for large preview
+  body?: string; // Secondary text (e.g., channel title)
+  image?: string; // Item/channel artwork for large preview
   link?: string;
   channelId?: string;
   badge?: number;
@@ -21,10 +21,10 @@ type OrchestratorParams = {
 
 export async function firebaseNotificationBatchOrchestrator(
   ctx: FirebaseContext,
-  params: OrchestratorParams,
+  params: OrchestratorParams
 ) {
   const { tokens, finalText, platform } = params;
-  
+
   switch (platform) {
     case 'web': {
       const payload = {

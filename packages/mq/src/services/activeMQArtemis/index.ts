@@ -19,13 +19,14 @@ type MQRSSMessage = {
 type Message = MQRSSMessage;
 
 type SendMessageParams = {
-  queueName: MQQueueName
-  message: Message
-  priority: 'normal' | 'slow'
-  dedupeCacheTimeMS: number | null
-}
+  queueName: MQQueueName;
+  message: Message;
+  priority: 'normal' | 'slow';
+  dedupeCacheTimeMS: number | null;
+};
 
-export interface ActiveMQArtemisServiceParams { // Keeping same name for external compatibility
+export interface ActiveMQArtemisServiceParams {
+  // Keeping same name for external compatibility
   protocol: string;
   host: string;
   username: string;
@@ -33,7 +34,8 @@ export interface ActiveMQArtemisServiceParams { // Keeping same name for externa
   port: number;
 }
 
-export class ActiveMQArtemisService { // Name preserved
+export class ActiveMQArtemisService {
+  // Name preserved
   private connection: Connection | null = null;
   private senders: Map<MQQueueName, Sender> = new Map();
   private receivers: Map<MQQueueName, Receiver> = new Map();
@@ -44,7 +46,7 @@ export class ActiveMQArtemisService { // Name preserved
   private readonly tcpKeepAliveMs: number = 30000;
   private readonly idleTimeOutMs: number = 60000;
   private keepAliveApplied = false;
-  private readonly enableAmqpPing: boolean = (process.env.ARTEMIS_DISABLE_AMQP_PING !== '1');
+  private readonly enableAmqpPing: boolean = process.env.ARTEMIS_DISABLE_AMQP_PING !== '1';
   private heartbeatSender: Sender | null = null;
   private heartbeatInterval: ReturnType<typeof setInterval> | null = null;
 
@@ -63,7 +65,9 @@ export class ActiveMQArtemisService { // Name preserved
   }
 
   private async connect() {
-    if (this.connection || this.connecting) {return;}
+    if (this.connection || this.connecting) {
+      return;
+    }
     this.connecting = true;
     return new Promise<void>((resolve, reject) => {
       // Debug info about imported rhea module
@@ -77,19 +81,25 @@ export class ActiveMQArtemisService { // Name preserved
           reconnect_limit?: number;
           [k: string]: unknown;
         }
-        interface RheaLike { connect?: (options: RheaConnectOptions) => Connection; [k: string]: unknown }
-        const rheaLike: RheaLike = (rhea as unknown as RheaLike);
+        interface RheaLike {
+          connect?: (options: RheaConnectOptions) => Connection;
+          [k: string]: unknown;
+        }
+        const rheaLike: RheaLike = rhea as unknown as RheaLike;
         // Log a minimal snapshot of the rhea import for troubleshooting
         if (typeof rheaLike.connect !== 'function') {
-          const err = new TypeError('rhea.connect is not a function – possible ESM/CJS import mismatch');
+          const err = new TypeError(
+            'rhea.connect is not a function – possible ESM/CJS import mismatch'
+          );
           this.logger.logError('Artemis connect failed early', err);
           this.connecting = false; // allow retry attempts later
           return reject(err);
         }
         const idleTimeOut = this.idleTimeOutMs;
-        const baseId = process.env.CONTAINER_ID
-          || process.env.HOSTNAME
-          || `podverse-mq-${crypto.randomBytes(4).toString('hex')}`;
+        const baseId =
+          process.env.CONTAINER_ID ||
+          process.env.HOSTNAME ||
+          `podverse-mq-${crypto.randomBytes(4).toString('hex')}`;
         const containerId = `${baseId}${getContainerIpPart()}`;
 
         const connection = rheaLike.connect({
@@ -134,18 +144,27 @@ export class ActiveMQArtemisService { // Name preserved
               if (!this.keepAliveApplied) {
                 sock.setKeepAlive(true, this.tcpKeepAliveMs);
                 this.keepAliveApplied = true;
-                this.logger.info(`Enabled TCP keepalive on Artemis socket (${this.tcpKeepAliveMs}ms)`);
+                this.logger.info(
+                  `Enabled TCP keepalive on Artemis socket (${this.tcpKeepAliveMs}ms)`
+                );
               } else {
                 this.logger.info('TCP keepalive already applied to Artemis socket');
               }
               // Start optional AMQP-level pings if enabled
               if (this.enableAmqpPing) {
                 try {
-                  const hbSender = connection.open_sender({ target: { address: 'podverse.keepalive' } });
+                  const hbSender = connection.open_sender({
+                    target: { address: 'podverse.keepalive' },
+                  });
                   hbSender.on('sender_open', () => {
                     this.heartbeatSender = hbSender;
-                    if (this.heartbeatInterval) {clearInterval(this.heartbeatInterval);}
-                    const heartbeatMs = Number(process.env.ARTEMIS_AMQP_PING_MS ?? Math.max(1000, Math.floor(this.idleTimeOutMs / 2)));
+                    if (this.heartbeatInterval) {
+                      clearInterval(this.heartbeatInterval);
+                    }
+                    const heartbeatMs = Number(
+                      process.env.ARTEMIS_AMQP_PING_MS ??
+                        Math.max(1000, Math.floor(this.idleTimeOutMs / 2))
+                    );
                     this.heartbeatInterval = setInterval(() => {
                       try {
                         if (this.heartbeatSender) {
@@ -157,7 +176,10 @@ export class ActiveMQArtemisService { // Name preserved
                     }, heartbeatMs);
                   });
                   hbSender.on('sender_error', (ctx) => {
-                    this.logger.logError('AMQP heartbeat sender_error', (ctx && (ctx.error || ctx)) as Error);
+                    this.logger.logError(
+                      'AMQP heartbeat sender_error',
+                      (ctx && (ctx.error || ctx)) as Error
+                    );
                   });
                   hbSender.on('sender_close', () => {
                     if (this.heartbeatInterval) {
@@ -167,11 +189,16 @@ export class ActiveMQArtemisService { // Name preserved
                     this.heartbeatSender = null;
                   });
                 } catch (err) {
-                  this.logger.logError('Failed to start optional AMQP heartbeat sender', err as Error);
+                  this.logger.logError(
+                    'Failed to start optional AMQP heartbeat sender',
+                    err as Error
+                  );
                 }
               }
             } else {
-              this.logger.info('Could not find underlying socket to enable TCP keepalive (non-fatal)');
+              this.logger.info(
+                'Could not find underlying socket to enable TCP keepalive (non-fatal)'
+              );
             }
           } catch (err) {
             this.logger.logError('Failed to enable TCP keepalive on Artemis socket', err as Error);
@@ -188,9 +215,14 @@ export class ActiveMQArtemisService { // Name preserved
           // Provide the disconnect reason if available — this helps determine whether
           // the broker closed the AMQP link due to AMQP-level idle timeout or network issues.
           try {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const reason = (context && (context.error || (context as any).disconnect_reason)) || undefined;
-            this.logger.info('Artemis connection disconnected – will attempt reconnect', { reason });
+            const reason =
+              (context &&
+                (context.error ||
+                  (context as EventContext & { disconnect_reason?: unknown }).disconnect_reason)) ||
+              undefined;
+            this.logger.info('Artemis connection disconnected – will attempt reconnect', {
+              reason,
+            });
           } catch {
             this.logger.info('Artemis connection disconnected – will attempt reconnect');
           }
@@ -204,7 +236,9 @@ export class ActiveMQArtemisService { // Name preserved
             }
             try {
               if (this.heartbeatSender) {
-                try { this.heartbeatSender.close(); } catch {
+                try {
+                  this.heartbeatSender.close();
+                } catch {
                   // swallow
                 }
                 this.heartbeatSender = null;
@@ -224,9 +258,15 @@ export class ActiveMQArtemisService { // Name preserved
 
   private async ensureSender(queueName: MQQueueName): Promise<Sender> {
     const existingSender = this.senders.get(queueName);
-    if (existingSender) {return existingSender;}
-    if (!this.connection) {await this.connect();}
-    if (!this.connection) {throw new Error('Connection not established');}
+    if (existingSender) {
+      return existingSender;
+    }
+    if (!this.connection) {
+      await this.connect();
+    }
+    if (!this.connection) {
+      throw new Error('Connection not established');
+    }
     const sender = this.connection.open_sender({ target: { address: queueName } });
     return new Promise((resolve) => {
       sender.on('sender_open', () => {
@@ -239,10 +279,19 @@ export class ActiveMQArtemisService { // Name preserved
 
   private async ensureReceiver(queueName: MQQueueName): Promise<Receiver> {
     const existingReceiver = this.receivers.get(queueName);
-    if (existingReceiver) {return existingReceiver;}
-    if (!this.connection) {await this.connect();}
-    if (!this.connection) {throw new Error('Connection not established');}
-    const receiver = this.connection.open_receiver({ source: { address: queueName }, credit_window: 0 });
+    if (existingReceiver) {
+      return existingReceiver;
+    }
+    if (!this.connection) {
+      await this.connect();
+    }
+    if (!this.connection) {
+      throw new Error('Connection not established');
+    }
+    const receiver = this.connection.open_receiver({
+      source: { address: queueName },
+      credit_window: 0,
+    });
     return new Promise((resolve) => {
       receiver.on('receiver_open', () => {
         this.logger.info(`Receiver ready for queue ${queueName}`);
@@ -253,9 +302,18 @@ export class ActiveMQArtemisService { // Name preserved
     });
   }
 
-  private computeDuplicateId(queueName: MQQueueName, message: Message, dedupeCacheTimeMS: number | null): string | null {
-    if (!dedupeCacheTimeMS || dedupeCacheTimeMS <= 0) {return null;}
-    const baseHash = crypto.createHash('sha256').update(JSON.stringify(message.podcast_index_id)).digest('hex');
+  private computeDuplicateId(
+    queueName: MQQueueName,
+    message: Message,
+    dedupeCacheTimeMS: number | null
+  ): string | null {
+    if (!dedupeCacheTimeMS || dedupeCacheTimeMS <= 0) {
+      return null;
+    }
+    const baseHash = crypto
+      .createHash('sha256')
+      .update(JSON.stringify(message.podcast_index_id))
+      .digest('hex');
     const now = Date.now();
     const bucketStart = Math.floor(now / dedupeCacheTimeMS) * dedupeCacheTimeMS;
     return `${queueName}:${bucketStart}:${baseHash}`;
@@ -274,9 +332,7 @@ export class ActiveMQArtemisService { // Name preserved
           durable: true,
           priority: priorityValue,
           content_type: 'application/json',
-          ...(duplicateId
-            ? { application_properties: { _AMQ_DUPL_ID: duplicateId } }
-            : {}), // omit property when no dedupe
+          ...(duplicateId ? { application_properties: { _AMQ_DUPL_ID: duplicateId } } : {}), // omit property when no dedupe
         });
         const onAccepted = (context: EventContext) => {
           if (context.delivery === delivery) {
@@ -298,7 +354,10 @@ export class ActiveMQArtemisService { // Name preserved
         sender.on('rejected', onRejected);
       });
     } catch (error) {
-      this.logger.logError(`sendMessage: Error sending message to queue ${queueName}`, error as Error);
+      this.logger.logError(
+        `sendMessage: Error sending message to queue ${queueName}`,
+        error as Error
+      );
     }
   }
 
@@ -310,16 +369,20 @@ export class ActiveMQArtemisService { // Name preserved
   async sendSampleToDLQ(
     queueName: MQQueueName,
     sample: Record<string, unknown>,
-    failureDescription = 'Sample DLQ message for debugging',
+    failureDescription = 'Sample DLQ message for debugging'
   ): Promise<void> {
     try {
-      if (!this.connection) {await this.connect();}
+      if (!this.connection) {
+        await this.connect();
+      }
 
       // Choose target based on what exists in your broker
       const dlqTargets: MQQueueName[] = [`DLQ.${queueName}` as MQQueueName];
 
       for (const dlqQueue of dlqTargets) {
-        if (!this.connection) {throw new Error('Connection not established');}
+        if (!this.connection) {
+          throw new Error('Connection not established');
+        }
         const sender = this.connection.open_sender({ target: { address: dlqQueue } });
         await new Promise<void>((resolve) => sender.once('sender_open', () => resolve()));
 
@@ -364,12 +427,17 @@ export class ActiveMQArtemisService { // Name preserved
     }
   }
 
-  async consumeMessages(queueName: MQQueueName, processMessage: (context: EventContext, receiver: Receiver) => Promise<void> | void) {
+  async consumeMessages(
+    queueName: MQQueueName,
+    processMessage: (context: EventContext, receiver: Receiver) => Promise<void> | void
+  ) {
     try {
       const receiver = await this.ensureReceiver(queueName);
 
       receiver.on('message', async (context: EventContext) => {
-        if (context.receiver !== receiver) {return;}
+        if (context.receiver !== receiver) {
+          return;
+        }
         try {
           // The processing function is now responsible for accepting/rejecting and adding credit.
           await processMessage(context, receiver);
@@ -396,13 +464,14 @@ export class ActiveMQArtemisService { // Name preserved
   }
 
   async close(): Promise<void> {
-    if (this.isShuttingDown) {return;}
+    if (this.isShuttingDown) {
+      return;
+    }
     this.isShuttingDown = true;
     this.logger.info('Closing ActiveMQ Artemis connection...');
     const closeTimeoutMs = 10000;
 
     const doClose = async () => {
-    
       // Close all receivers first to stop accepting new messages
       for (const [queueName, receiver] of this.receivers.entries()) {
         try {
@@ -441,11 +510,15 @@ export class ActiveMQArtemisService { // Name preserved
               }
               // some rhea versions expose internal options or flags we can defensively set
               if (connAny.options && typeof connAny.options.reconnect !== 'undefined') {
-                try { connAny.options.reconnect = false; } catch {
+                try {
+                  connAny.options.reconnect = false;
+                } catch {
                   // swallow
                 }
               }
-              try { connAny.reconnect = false; } catch {
+              try {
+                connAny.reconnect = false;
+              } catch {
                 // swallow
               }
             }
@@ -468,7 +541,9 @@ export class ActiveMQArtemisService { // Name preserved
           }
           try {
             if (this.heartbeatSender) {
-              try { this.heartbeatSender.close(); } catch {
+              try {
+                this.heartbeatSender.close();
+              } catch {
                 // swallow
               }
               this.heartbeatSender = null;
@@ -492,7 +567,9 @@ export class ActiveMQArtemisService { // Name preserved
     try {
       await Promise.race([doClose(), timeoutPromise]);
     } finally {
-      if (timer) {clearTimeout(timer);}
+      if (timer) {
+        clearTimeout(timer);
+      }
     }
   }
 }

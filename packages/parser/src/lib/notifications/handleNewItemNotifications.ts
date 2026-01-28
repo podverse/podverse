@@ -17,26 +17,26 @@ import {
  */
 function getMessageTypeFromMedium(medium_id: number): NotificationMessageType {
   switch (medium_id) {
-  case MediumEnum.Podcast:
-    return 'new-episode';
-  case MediumEnum.PodcastL:
-    return 'new-episode';
-  case MediumEnum.PublisherPodcast:
-    return 'new-podcast';
-  case MediumEnum.Video:
-    return 'new-video';
-  case MediumEnum.VideoL:
-    return 'new-video';
-  case MediumEnum.PublisherVideo:
-    return 'new-video-channel';
-  case MediumEnum.Music:
-    return 'new-track';
-  case MediumEnum.MusicL:
-    return 'new-track';
-  case MediumEnum.PublisherMusic:
-    return 'new-album';
-  default:
-    return 'new';
+    case MediumEnum.Podcast:
+      return 'new-episode';
+    case MediumEnum.PodcastL:
+      return 'new-episode';
+    case MediumEnum.PublisherPodcast:
+      return 'new-podcast';
+    case MediumEnum.Video:
+      return 'new-video';
+    case MediumEnum.VideoL:
+      return 'new-video';
+    case MediumEnum.PublisherVideo:
+      return 'new-video-channel';
+    case MediumEnum.Music:
+      return 'new-track';
+    case MediumEnum.MusicL:
+      return 'new-track';
+    case MediumEnum.PublisherMusic:
+      return 'new-album';
+    default:
+      return 'new';
   }
 }
 
@@ -45,7 +45,7 @@ function getMessageTypeFromMedium(medium_id: number): NotificationMessageType {
  */
 export async function handleNewItemNotifications(
   channel: Channel,
-  parsedItemsResult: HandleParsedItemsResult,
+  parsedItemsResult: HandleParsedItemsResult
 ): Promise<void> {
   try {
     const { newItemGuids, newItemGuidEnclosureUrls } = parsedItemsResult;
@@ -58,7 +58,7 @@ export async function handleNewItemNotifications(
     // Get devices for accounts that have new-item notifications enabled
     const devicesResult = await getDevicesForNotificationType(
       channel.id_text,
-      AccountNotificationTypeEnum.NewItem,
+      AccountNotificationTypeEnum.NewItem
     );
 
     if (!devicesResult) {
@@ -81,9 +81,13 @@ export async function handleNewItemNotifications(
 
     // Get items by guid_enclosure_urls in batch
     if (newItemGuidEnclosureUrls.length > 0) {
-      const itemsByEnclosureUrl = await itemService.getManyByGuidEnclosureUrl(channel, newItemGuidEnclosureUrls, {
-        relations: { item_images: true },
-      });
+      const itemsByEnclosureUrl = await itemService.getManyByGuidEnclosureUrl(
+        channel,
+        newItemGuidEnclosureUrls,
+        {
+          relations: { item_images: true },
+        }
+      );
       items.push(...itemsByEnclosureUrl);
     }
 
@@ -108,7 +112,7 @@ export async function handleNewItemNotifications(
     const messageType = getMessageTypeFromMedium(channel.medium_id);
 
     // Prepare notification data for each item (limited to 3 most recent)
-    const itemNotifications: ItemNotificationData[] = sortedItems.map(item => ({
+    const itemNotifications: ItemNotificationData[] = sortedItems.map((item) => ({
       itemTitle: item.title || '',
       channelTitle: channel.title || '',
       imageUrl: getBestImageUrl(item, channelImages),
@@ -122,9 +126,17 @@ export async function handleNewItemNotifications(
     const groupedDevices = groupDevicesByLocaleAndPlatform(allDevices);
 
     // Send notifications
-    await sendItemNotifications(itemNotifications, groupedDevices, webPushSubscriptions, upSubscriptions);
+    await sendItemNotifications(
+      itemNotifications,
+      groupedDevices,
+      webPushSubscriptions,
+      upSubscriptions
+    );
   } catch (error) {
     loggerService.logError('handleNewItemNotifications', error as Error);
-    loggerService.logError(`handleNewItemNotifications: Error details - Channel: ${channel.id_text}, Error: ${(error as Error).message}`, error as Error);
+    loggerService.logError(
+      `handleNewItemNotifications: Error details - Channel: ${channel.id_text}, Error: ${(error as Error).message}`,
+      error as Error
+    );
   }
 }

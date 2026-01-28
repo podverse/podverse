@@ -21,32 +21,32 @@ echo ""
 
 # Check for history directory
 if [[ ! -d "$HISTORY_DIR" ]]; then
-    echo -e "${YELLOW}No LLM history directory found at $HISTORY_DIR${NC}"
-    echo "This is normal if LLM assistance wasn't used for this feature."
+  echo -e "${YELLOW}No LLM history directory found at $HISTORY_DIR${NC}"
+  echo "This is normal if LLM assistance wasn't used for this feature."
+  echo ""
+
+  # Check for any active history directories
+  ACTIVE_DIRS=$(ls -1d .llm/history/active/*/ 2> /dev/null | head -10)
+  if [[ -n "$ACTIVE_DIRS" ]]; then
+    echo "Active history directories found:"
+    echo "$ACTIVE_DIRS"
     echo ""
-    
-    # Check for any active history directories
-    ACTIVE_DIRS=$(ls -1d .llm/history/active/*/ 2>/dev/null | head -10)
-    if [[ -n "$ACTIVE_DIRS" ]]; then
-        echo "Active history directories found:"
-        echo "$ACTIVE_DIRS"
-        echo ""
-        read -p "Enter the correct feature name (or press Enter to skip): " CORRECT_NAME
-        if [[ -n "$CORRECT_NAME" ]]; then
-            HISTORY_DIR=".llm/history/active/$CORRECT_NAME"
-            FEATURE_NAME="$CORRECT_NAME"
-            if [[ ! -d "$HISTORY_DIR" ]]; then
-                echo -e "${RED}❌ Directory not found: $HISTORY_DIR${NC}"
-                exit 1
-            fi
-        else
-            echo "Skipping history completion."
-            exit 0
-        fi
+    read -p "Enter the correct feature name (or press Enter to skip): " CORRECT_NAME
+    if [[ -n "$CORRECT_NAME" ]]; then
+      HISTORY_DIR=".llm/history/active/$CORRECT_NAME"
+      FEATURE_NAME="$CORRECT_NAME"
+      if [[ ! -d "$HISTORY_DIR" ]]; then
+        echo -e "${RED}❌ Directory not found: $HISTORY_DIR${NC}"
+        exit 1
+      fi
     else
-        echo "No active history directories found."
-        exit 0
+      echo "Skipping history completion."
+      exit 0
     fi
+  else
+    echo "No active history directories found."
+    exit 0
+  fi
 fi
 
 # Create destination directory
@@ -55,13 +55,13 @@ mkdir -p ".llm/history/completed/$DATE"
 # Update completion date in all markdown files
 echo -e "${CYAN}Updating completion date in history files...${NC}"
 for file in "$HISTORY_DIR"/*.md; do
-    if [[ -f "$file" ]]; then
-        if [[ "$OSTYPE" == "darwin"* ]]; then
-            sed -i '' "s/Completed: In Progress/Completed: $(date +%Y-%m-%d)/" "$file"
-        else
-            sed -i "s/Completed: In Progress/Completed: $(date +%Y-%m-%d)/" "$file"
-        fi
+  if [[ -f "$file" ]]; then
+    if [[ "$OSTYPE" == "darwin"* ]]; then
+      sed -i '' "s/Completed: In Progress/Completed: $(date +%Y-%m-%d)/" "$file"
+    else
+      sed -i "s/Completed: In Progress/Completed: $(date +%Y-%m-%d)/" "$file"
     fi
+  fi
 done
 
 # Move directory to completed

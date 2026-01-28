@@ -1,5 +1,10 @@
 import { throwRequestError } from '@podverse/helpers';
-import { Item, ItemChaptersFeed, ItemChapterService, ItemChaptersFeedLogService } from '@podverse/orm';
+import {
+  Item,
+  ItemChaptersFeed,
+  ItemChapterService,
+  ItemChaptersFeedLogService,
+} from '@podverse/orm';
 import { compatParsedChapters, PIChapter } from '@parser/lib/compat/chapters/chapters';
 import { _request } from '../_request';
 
@@ -46,8 +51,10 @@ export const parseChapters = async (item: Item): Promise<void> => {
 
   const itemChapterService = new ItemChapterService();
 
-  const existingChapters = await itemChapterService.getAll(item_chapters_feed, { select: ['id', 'data_hash'] });
-  const existingChaptersDataHashes = existingChapters.map(item_chapter => item_chapter.data_hash);
+  const existingChapters = await itemChapterService.getAll(item_chapters_feed, {
+    select: ['id', 'data_hash'],
+  });
+  const existingChaptersDataHashes = existingChapters.map((item_chapter) => item_chapter.data_hash);
   const updatedChaptersDataHashes: string[] = [];
 
   for (const parsedChapter of parsedChapters) {
@@ -57,11 +64,15 @@ export const parseChapters = async (item: Item): Promise<void> => {
     }
   }
 
-  const dataHashesToDelete = existingChaptersDataHashes.filter(hash => !updatedChaptersDataHashes.includes(hash));
+  const dataHashesToDelete = existingChaptersDataHashes.filter(
+    (hash) => !updatedChaptersDataHashes.includes(hash)
+  );
   if (dataHashesToDelete.length > 0) {
     await itemChapterService.deleteManyByDataHash(item_chapters_feed, dataHashesToDelete);
   }
 
   const itemChaptersFeedLogService = new ItemChaptersFeedLogService();
-  await itemChaptersFeedLogService.update(item_chapters_feed, { last_finished_parse_time: new Date() });
+  await itemChaptersFeedLogService.update(item_chapters_feed, {
+    last_finished_parse_time: new Date(),
+  });
 };

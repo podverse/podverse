@@ -1,12 +1,11 @@
 import { formatDuration, intervalToDuration } from 'date-fns';
 import { enUS, es, el } from 'date-fns/locale';
 
-export function formatSecondsToReadableDuration(
-  input: string,
-  lang: string = 'en-US',
-): string {
+export function formatSecondsToReadableDuration(input: string, lang: string = 'en-US'): string {
   let seconds = Math.floor(parseFloat(input));
-  if (isNaN(seconds) || seconds < 0) {seconds = 0;}
+  if (isNaN(seconds) || seconds < 0) {
+    seconds = 0;
+  }
   let duration = intervalToDuration({ start: 0, end: seconds * 1000 });
 
   if (
@@ -22,17 +21,17 @@ export function formatSecondsToReadableDuration(
 
   let locale;
   switch (lang) {
-  case 'es':
-    locale = es;
-    break;
-  case 'el':
-  case 'el-GR':
-    locale = el;
-    break;
-  case 'en-US':
-  default:
-    locale = enUS;
-    break;
+    case 'es':
+      locale = es;
+      break;
+    case 'el':
+    case 'el-GR':
+      locale = el;
+      break;
+    case 'en-US':
+    default:
+      locale = enUS;
+      break;
   }
 
   // If under 60 seconds, only show seconds

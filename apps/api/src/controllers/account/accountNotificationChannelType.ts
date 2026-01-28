@@ -9,48 +9,73 @@ import { getParamRequired } from '@api/lib/params';
 
 const createNotificationChannelTypeSchema = Joi.object({
   channel_id_text: Joi.string().required(),
-  type: Joi.string().valid(...ACCOUNT_NOTIFICATION_TYPE_VALUES).required(),
+  type: Joi.string()
+    .valid(...ACCOUNT_NOTIFICATION_TYPE_VALUES)
+    .required(),
 });
 
 const deleteNotificationChannelTypeSchema = Joi.object({
   channel_id_text: Joi.string().required(),
-  type: Joi.string().valid(...ACCOUNT_NOTIFICATION_TYPE_VALUES).required(),
+  type: Joi.string()
+    .valid(...ACCOUNT_NOTIFICATION_TYPE_VALUES)
+    .required(),
 });
 
 class AccountNotificationChannelTypeController {
-  private static accountNotificationChannelTypeService = new AccountNotificationChannelTypeService();
+  private static accountNotificationChannelTypeService =
+    new AccountNotificationChannelTypeService();
 
   static async create(req: Request, res: Response): Promise<void> {
-    ensureAuthenticated(req, res, async () => {
-      validateBodyObject(createNotificationChannelTypeSchema, req, res, async () => {
-        try {
-          const jwtUser = getAuthenticatedUser(req);
-          const { channel_id_text, type } = req.body as { channel_id_text: string; type: AccountNotificationTypeEnum };
-          const notificationChannelType = await AccountNotificationChannelTypeController
-            .accountNotificationChannelTypeService.create(jwtUser.id, channel_id_text, type);
-          res.status(201).json(notificationChannelType);
-        } catch (err) {
-          handleGenericErrorResponse(res, err);
-        }
-      });
-    }, { skipMembershipStatus: false });
+    ensureAuthenticated(
+      req,
+      res,
+      async () => {
+        validateBodyObject(createNotificationChannelTypeSchema, req, res, async () => {
+          try {
+            const jwtUser = getAuthenticatedUser(req);
+            const { channel_id_text, type } = req.body as {
+              channel_id_text: string;
+              type: AccountNotificationTypeEnum;
+            };
+            const notificationChannelType =
+              await AccountNotificationChannelTypeController.accountNotificationChannelTypeService.create(
+                jwtUser.id,
+                channel_id_text,
+                type
+              );
+            res.status(201).json(notificationChannelType);
+          } catch (err) {
+            handleGenericErrorResponse(res, err);
+          }
+        });
+      },
+      { skipMembershipStatus: false }
+    );
   }
 
   static async delete(req: Request, res: Response): Promise<void> {
-    ensureAuthenticated(req, res, async () => {
-      validateParamsObject(deleteNotificationChannelTypeSchema, req, res, async () => {
-        try {
-          const jwtUser = getAuthenticatedUser(req);
-          const channel_id_text = getParamRequired(req, 'channel_id_text');
-          const type = getParamRequired(req, 'type') as AccountNotificationTypeEnum;
-          await AccountNotificationChannelTypeController
-            .accountNotificationChannelTypeService.delete(jwtUser.id, channel_id_text, type);
-          res.status(204).end();
-        } catch (err) {
-          handleGenericErrorResponse(res, err);
-        }
-      });
-    }, { skipMembershipStatus: true });
+    ensureAuthenticated(
+      req,
+      res,
+      async () => {
+        validateParamsObject(deleteNotificationChannelTypeSchema, req, res, async () => {
+          try {
+            const jwtUser = getAuthenticatedUser(req);
+            const channel_id_text = getParamRequired(req, 'channel_id_text');
+            const type = getParamRequired(req, 'type') as AccountNotificationTypeEnum;
+            await AccountNotificationChannelTypeController.accountNotificationChannelTypeService.delete(
+              jwtUser.id,
+              channel_id_text,
+              type
+            );
+            res.status(204).end();
+          } catch (err) {
+            handleGenericErrorResponse(res, err);
+          }
+        });
+      },
+      { skipMembershipStatus: true }
+    );
   }
 }
 

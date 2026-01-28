@@ -15,7 +15,6 @@ type HomeClientProps = {
 };
 
 export function HomeClient({ initialQueryParams, ssrChannels, ssrTotalPages }: HomeClientProps) {
-
   return (
     <HomeContextProvider
       initialQueryParams={initialQueryParams}

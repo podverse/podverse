@@ -3,9 +3,9 @@ import { ItemFunding } from '@orm/entities/item/itemFunding';
 import { BaseManyService } from '@orm/services/base/baseManyService';
 
 type ItemFundingDto = {
-  url: string
-  title: string | null
-}
+  url: string;
+  title: string | null;
+};
 
 export class ItemFundingService extends BaseManyService<ItemFunding, 'item'> {
   constructor() {

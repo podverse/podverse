@@ -1,4 +1,3 @@
-
 'use client';
 
 import { DTOChannel, QueryParamsGetManyMusic } from '@podverse/helpers';
@@ -18,7 +17,7 @@ interface AlbumsClientProps {
 
 export function AlbumsClient(props: AlbumsClientProps) {
   const { initialQueryParams, ssrChannels, ssrTotalPages } = props;
-  
+
   return (
     <AlbumsContextProvider
       initialQueryParams={initialQueryParams}

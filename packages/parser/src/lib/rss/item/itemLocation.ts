@@ -6,7 +6,7 @@ import { handleParsedOneData } from '../base/handleParsedOneData';
 export const handleParsedItemLocation = async (
   parsedItem: Episode,
   item: Item,
-  transactionalEntityManager?: EntityManager,
+  transactionalEntityManager?: EntityManager
 ) => {
   const itemLocationService = new ItemLocationService(transactionalEntityManager);
   const itemLocationDto = compatItemLocationDto(parsedItem);

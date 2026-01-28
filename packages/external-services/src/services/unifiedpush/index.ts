@@ -1,6 +1,6 @@
 // import { getUPDevicesForPodcastId, UPEndpointData } from 'podverse-orm'
 // import { promiseAllSkippingErrors } from 'podverse-shared'
-// import { SendNotificationOptions } from '../notifications' 
+// import { SendNotificationOptions } from '../notifications'
 
 // const webpush = require('web-push')
 
@@ -12,12 +12,12 @@
 //     const episodeTitle = options.episodeTitle || 'Untitled Episode'
 //     const title = podcastTitle
 //     const body = episodeTitle
-  
+
 //     // NOTE: Only allow shrunk image urls to be used, in case large image sizes
 //     // cause issues with UnifiedPush distributors.
 //     const finalPodcastImageUrl = podcastShrunkImageUrl
 //     const finalEpisodeImageUrl = ''
-  
+
 //     return this.sendUPNotification(
 //       upDevices,
 //       title,
@@ -39,12 +39,12 @@
 //     const episodeTitle = options.episodeTitle || 'Livestream starting'
 //     const title = `LIVE: ${podcastTitle}`
 //     const body = episodeTitle
-  
+
 //     // NOTE: Only allow shrunk image urls to be used, in case large image sizes
 //     // cause issues with UnifiedPush distributors.
 //     const finalPodcastImageUrl = podcastShrunkImageUrl
 //     const finalEpisodeImageUrl = ''
-  
+
 //     return this.sendUPNotification(
 //       upDevices,
 //       title,
@@ -72,13 +72,13 @@
 //     episodeId?: string
 //   ) => {
 //     if (!upDevices || upDevices.length === 0) return
-  
+
 //     const upDeviceBatches: UPEndpointData[][] = []
 //     const size = 100
 //     for (let i = 0; i < upDevices.length; i += size) {
 //       upDeviceBatches.push(upDevices.slice(i, i + size))
 //     }
-  
+
 //     const data = {
 //       body,
 //       title,
@@ -91,7 +91,7 @@
 //       image: episodeImage || podcastImage
 //     }
 //     const jsonPayload = JSON.stringify(data)
-  
+
 //     for (const upDeviceBatch of upDeviceBatches) {
 //       if (upDeviceBatch?.length > 0) {
 //         try {

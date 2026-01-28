@@ -7,7 +7,7 @@ import { DTOPlaylist } from '@podverse/helpers';
 
 type PlaylistEditListProps = {
   ssrPlaylist: DTOPlaylist;
-}
+};
 
 export const PlaylistEditList: React.FC<PlaylistEditListProps> = ({ ssrPlaylist }) => {
   const { playlistResources, tabSelectedKey } = usePlaylistEditContext();

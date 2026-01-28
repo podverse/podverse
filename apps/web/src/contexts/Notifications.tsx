@@ -30,9 +30,7 @@ type NotificationsProviderProps = {
   children: ReactNode;
 };
 
-export const NotificationsProvider = ({
-  children,
-}: NotificationsProviderProps) => {
+export const NotificationsProvider = ({ children }: NotificationsProviderProps) => {
   const [permission, setPermission] = useState<NotificationPermission>('default');
   const [registered, setRegistered] = useState<boolean>(false);
   const [upRegistered, setUPRegistered] = useState<boolean>(false);
@@ -72,15 +70,17 @@ export const NotificationsProvider = ({
     if (!loggedInAccount) {
       return;
     }
-    
-    if (typeof window === 'undefined' || !('Notification' in window)) {return;}
+
+    if (typeof window === 'undefined' || !('Notification' in window)) {
+      return;
+    }
 
     const vapidPublicKey = config.public.notifications.webpush.vapidPublicKey;
 
     const init = async () => {
       const p = Notification.permission;
       setPermission(p);
-      
+
       try {
         const upDevice = await apiRequestService.reqAccountUPDeviceGetForAccount();
         if (upDevice) {
@@ -111,7 +111,7 @@ export const NotificationsProvider = ({
               if (subscription) {
                 const endpoint = subscription.endpoint;
                 // Check if our current subscription endpoint matches any device
-                const match = devices.find(d => d.endpoint === endpoint);
+                const match = devices.find((d) => d.endpoint === endpoint);
                 if (match) {
                   setRegistered(true);
                 } else {
@@ -148,11 +148,16 @@ export const NotificationsProvider = ({
   return (
     <NotificationsContext.Provider
       value={{
-        permission, setPermission,
-        registered, setRegistered,
-        upRegistered, setUPRegistered,
-        upEndpoint, setUPEndpoint,
-      }}>
+        permission,
+        setPermission,
+        registered,
+        setRegistered,
+        upRegistered,
+        setUPRegistered,
+        upEndpoint,
+        setUPEndpoint,
+      }}
+    >
       {children}
     </NotificationsContext.Provider>
   );
@@ -160,6 +165,8 @@ export const NotificationsProvider = ({
 
 export function useNotifications() {
   const ctx = useContext(NotificationsContext);
-  if (!ctx) {throw new Error('useNotifications must be used within a NotificationsProvider');}
+  if (!ctx) {
+    throw new Error('useNotifications must be used within a NotificationsProvider');
+  }
   return ctx;
 }

@@ -5,7 +5,11 @@ import { FindManyOptions, PlaylistResource, PlaylistResourceService } from '@pod
 import { handleGenericErrorResponse } from '../helpers/error';
 import { validateParamsObject, validateQueryObject } from '@api/lib/validation';
 import { verifyPlaylistOwnership, verifyPrivatePlaylistOwnershipIfNeeded } from './playlist';
-import { ensureAuthenticated, optionalEnsureAuthenticated, getAuthenticatedUser } from '@api/lib/auth';
+import {
+  ensureAuthenticated,
+  optionalEnsureAuthenticated,
+  getAuthenticatedUser,
+} from '@api/lib/auth';
 import { getPaginationParams } from '../helpers/pagination';
 import { getParamRequired } from '@api/lib/params';
 
@@ -38,73 +42,81 @@ class PlaylistResourceController {
 
   static async getAllByPlaylistIdTextPrivate(req: Request, res: Response): Promise<void> {
     validateParamsObject(playlistIdSchema, req, res, async () => {
-      ensureAuthenticated(req, res, async () => {
-        verifyPlaylistOwnership()(req, res, async () => {
-          const playlist_id_text = getParamRequired(req, 'playlist_id_text');
-          const jwtUser = getAuthenticatedUser(req);
-          const account_id = jwtUser.id;
-          
-          try {
-            const playlistResources = await PlaylistResourceController.playlistResourceService.getAllByPlaylistIdText(
-              playlist_id_text,
-              account_id,
-            );
-            res.status(200).json(playlistResources);
-          } catch (err) {
-            handleGenericErrorResponse(res, err);
-          }
-        });
-      }, { skipMembershipStatus: true });
+      ensureAuthenticated(
+        req,
+        res,
+        async () => {
+          verifyPlaylistOwnership()(req, res, async () => {
+            const playlist_id_text = getParamRequired(req, 'playlist_id_text');
+            const jwtUser = getAuthenticatedUser(req);
+            const account_id = jwtUser.id;
+
+            try {
+              const playlistResources =
+                await PlaylistResourceController.playlistResourceService.getAllByPlaylistIdText(
+                  playlist_id_text,
+                  account_id
+                );
+              res.status(200).json(playlistResources);
+            } catch (err) {
+              handleGenericErrorResponse(res, err);
+            }
+          });
+        },
+        { skipMembershipStatus: true }
+      );
     });
   }
 
   static async getManyForQueueByListPosition(req: Request, res: Response): Promise<void> {
     validateParamsObject(getManyForQueueByListPositionParamsSchema, req, res, async () => {
       validateQueryObject(getManyForQueueByListPositionQuerySchema, req, res, async () => {
-        optionalEnsureAuthenticated(req, res, async () => {
-          const playlist_id_text = getParamRequired(req, 'playlist_id_text');
-          const {
-            item_id_text,
-            clip_id_text,
-            item_soundbite_id_text,
-            direction,
-          } = req.query as {
-            item_id_text?: PlaylistResourceIdTextOptions['item_id_text'];
-            clip_id_text?: PlaylistResourceIdTextOptions['clip_id_text'];
-            item_soundbite_id_text?: PlaylistResourceIdTextOptions['item_soundbite_id_text'];
-            direction: 'forward' | 'backward';
-          };
-          const account_id = req.user?.id || null;
+        optionalEnsureAuthenticated(
+          req,
+          res,
+          async () => {
+            const playlist_id_text = getParamRequired(req, 'playlist_id_text');
+            const { item_id_text, clip_id_text, item_soundbite_id_text, direction } = req.query as {
+              item_id_text?: PlaylistResourceIdTextOptions['item_id_text'];
+              clip_id_text?: PlaylistResourceIdTextOptions['clip_id_text'];
+              item_soundbite_id_text?: PlaylistResourceIdTextOptions['item_soundbite_id_text'];
+              direction: 'forward' | 'backward';
+            };
+            const account_id = req.user?.id || null;
 
-          if (!item_id_text && !clip_id_text && !item_soundbite_id_text) {
-            res.status(400).json({ message: 'One of item_id_text, clip_id_text, or item_soundbite_id_text must be provided' });
-            return;
-          }
+            if (!item_id_text && !clip_id_text && !item_soundbite_id_text) {
+              res.status(400).json({
+                message:
+                  'One of item_id_text, clip_id_text, or item_soundbite_id_text must be provided',
+              });
+              return;
+            }
 
-          try {
-            const idTextOptions: PlaylistResourceIdTextOptions = {};
-            if (item_id_text) {
-              idTextOptions.item_id_text = item_id_text;
+            try {
+              const idTextOptions: PlaylistResourceIdTextOptions = {};
+              if (item_id_text) {
+                idTextOptions.item_id_text = item_id_text;
+              }
+              if (clip_id_text) {
+                idTextOptions.clip_id_text = clip_id_text;
+              }
+              if (item_soundbite_id_text) {
+                idTextOptions.item_soundbite_id_text = item_soundbite_id_text;
+              }
+              const playlistResources =
+                await PlaylistResourceController.playlistResourceService.getManyForQueueByListPosition(
+                  playlist_id_text,
+                  idTextOptions,
+                  direction,
+                  account_id
+                );
+              res.json({ data: playlistResources });
+            } catch (err) {
+              handleGenericErrorResponse(res, err);
             }
-            if (clip_id_text) {
-              idTextOptions.clip_id_text = clip_id_text;
-            }
-            if (item_soundbite_id_text) {
-              idTextOptions.item_soundbite_id_text = item_soundbite_id_text;
-            }
-            const playlistResources = await PlaylistResourceController
-              .playlistResourceService
-              .getManyForQueueByListPosition(
-                playlist_id_text,
-                idTextOptions,
-                direction,
-                account_id,
-              );
-            res.json({ data: playlistResources });
-          } catch (err) {
-            handleGenericErrorResponse(res, err);
-          }
-        }, { skipMembershipStatus: true });
+          },
+          { skipMembershipStatus: true }
+        );
       });
     });
   }
@@ -112,25 +124,73 @@ class PlaylistResourceController {
   static async getManyByPlaylistShuffle(req: Request, res: Response): Promise<void> {
     validateParamsObject(getManyByPlaylistShuffleParamsSchema, req, res, async () => {
       validateQueryObject(getManyByPlaylistShuffleQuerySchema, req, res, async () => {
-        optionalEnsureAuthenticated(req, res, async () => {
+        optionalEnsureAuthenticated(
+          req,
+          res,
+          async () => {
+            verifyPrivatePlaylistOwnershipIfNeeded()(req, res, async () => {
+              const playlist_id_text = getParamRequired(req, 'playlist_id_text');
+              const { page, limit, offset } = getPaginationParams(req);
+              const { shuffleHash } = req.query as { shuffleHash: string };
+              const account_id = req.user?.id || null;
+
+              try {
+                const config: FindManyOptions<PlaylistResource> = {
+                  skip: offset,
+                  take: limit,
+                };
+                const playlistResources =
+                  await PlaylistResourceController.playlistResourceService.getManyByPlaylistShuffle(
+                    playlist_id_text,
+                    shuffleHash,
+                    account_id,
+                    config
+                  );
+                const totalCount =
+                  await PlaylistResourceController.playlistResourceService.getAllByPlaylistIdTextCount(
+                    playlist_id_text
+                  );
+
+                res.status(200).json({
+                  data: playlistResources,
+                  meta: { page, count: totalCount, limit },
+                });
+              } catch (err) {
+                handleGenericErrorResponse(res, err);
+              }
+            });
+          },
+          { skipMembershipStatus: true }
+        );
+      });
+    });
+  }
+
+  static async getManyByPlaylistIdText(req: Request, res: Response): Promise<void> {
+    validateParamsObject(playlistIdSchema, req, res, async () => {
+      optionalEnsureAuthenticated(
+        req,
+        res,
+        async () => {
           verifyPrivatePlaylistOwnershipIfNeeded()(req, res, async () => {
             const playlist_id_text = getParamRequired(req, 'playlist_id_text');
             const { page, limit, offset } = getPaginationParams(req);
-            const { shuffleHash } = req.query as { shuffleHash: string };
             const account_id = req.user?.id || null;
 
             try {
-              const config: FindManyOptions<PlaylistResource> = {
-                skip: offset,
-                take: limit,
-              };
-              const playlistResources = await PlaylistResourceController.playlistResourceService.getManyByPlaylistShuffle(
-                playlist_id_text,
-                shuffleHash,
-                account_id,
-                config,
-              );
-              const totalCount = await PlaylistResourceController.playlistResourceService.getAllByPlaylistIdTextCount(playlist_id_text);
+              const playlistResources =
+                await PlaylistResourceController.playlistResourceService.getManyByPlaylistIdText(
+                  playlist_id_text,
+                  account_id,
+                  {
+                    skip: offset,
+                    take: limit,
+                  }
+                );
+              const totalCount =
+                await PlaylistResourceController.playlistResourceService.getAllByPlaylistIdTextCount(
+                  playlist_id_text
+                );
 
               res.status(200).json({
                 data: playlistResources,
@@ -140,41 +200,9 @@ class PlaylistResourceController {
               handleGenericErrorResponse(res, err);
             }
           });
-        }, { skipMembershipStatus: true });
-      });
-    });
-  }
-
-  static async getManyByPlaylistIdText(req: Request, res: Response): Promise<void> {
-    validateParamsObject(playlistIdSchema, req, res, async () => {
-      optionalEnsureAuthenticated(req, res, async () => {
-        verifyPrivatePlaylistOwnershipIfNeeded()(req, res, async () => {
-          const playlist_id_text = getParamRequired(req, 'playlist_id_text');
-          const { page, limit, offset } = getPaginationParams(req);
-          const account_id = req.user?.id || null;
-          
-          try {
-            const playlistResources = await PlaylistResourceController
-              .playlistResourceService.getManyByPlaylistIdText(
-                playlist_id_text,
-                account_id,
-                {
-                  skip: offset,
-                  take: limit,
-                },
-              );
-            const totalCount = await PlaylistResourceController
-              .playlistResourceService.getAllByPlaylistIdTextCount(playlist_id_text);
-
-            res.status(200).json({
-              data: playlistResources,
-              meta: { page, count: totalCount, limit },
-            });
-          } catch (err) {
-            handleGenericErrorResponse(res, err);
-          }
-        });
-      }, { skipMembershipStatus: true });
+        },
+        { skipMembershipStatus: true }
+      );
     });
   }
 }

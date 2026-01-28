@@ -12,7 +12,10 @@ export class CategoryService {
     if (!id) {
       return null;
     }
-    const categoryRaw = await this.repositoryRead.findOne({ where: { id }, relations: ['parent_id'] });
+    const categoryRaw = await this.repositoryRead.findOne({
+      where: { id },
+      relations: ['parent_id'],
+    });
     const parsedCategory = {
       ...categoryRaw,
       parent: categoryRaw?.parent_id || null,
@@ -37,11 +40,11 @@ export class CategoryService {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const categoryMap = new Map<number, any>();
 
-    parsedCategories.forEach(category => {
+    parsedCategories.forEach((category) => {
       categoryMap.set(category.id, category);
     });
 
-    parsedCategories.forEach(category => {
+    parsedCategories.forEach((category) => {
       if (category.parent_id) {
         const parentCategory = categoryMap.get(category.parent_id);
         if (parentCategory) {
@@ -57,7 +60,7 @@ export class CategoryService {
       }
     });
 
-    const finalCategories = parsedCategories.filter(category => !category.parent_id);
+    const finalCategories = parsedCategories.filter((category) => !category.parent_id);
 
     allCategories = finalCategories;
   }

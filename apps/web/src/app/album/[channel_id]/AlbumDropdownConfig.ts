@@ -1,10 +1,17 @@
-import { QueryParamsStatsRange, QueryParamsChannelMusicAlbumSort, QueryParamsChannelMusicAlbumType } from '@podverse/helpers';
+import {
+  QueryParamsStatsRange,
+  QueryParamsChannelMusicAlbumSort,
+  QueryParamsChannelMusicAlbumType,
+} from '@podverse/helpers';
 import { getRangeDropdownItems } from '../../../utils/dropdownMenuItems';
 
-export function getAlbumDropdownConfig({ sort, tFilters }: {
-  sort: QueryParamsChannelMusicAlbumSort,
-  tFilters: (key: string) => string,
-  tMedia: (key: string) => string
+export function getAlbumDropdownConfig({
+  sort,
+  tFilters,
+}: {
+  sort: QueryParamsChannelMusicAlbumSort;
+  tFilters: (key: string) => string;
+  tMedia: (key: string) => string;
 }) {
   const sortDropdownMenuItems = [
     { label: tFilters('sort.forward'), param: 'sort', value: 'forward' },
@@ -13,8 +20,8 @@ export function getAlbumDropdownConfig({ sort, tFilters }: {
   ];
 
   const rangeDropdownMenuItems = getRangeDropdownItems(tFilters);
-  
-  const showRangeDropdown = sort === 'top';  
+
+  const showRangeDropdown = sort === 'top';
 
   return {
     sortMenuItems: sortDropdownMenuItems,
@@ -28,16 +35,21 @@ type AlbumDropdownConfigParams = {
   sort: QueryParamsChannelMusicAlbumSort;
   range: QueryParamsStatsRange | null;
   page: number;
-}
+};
 
 export type AlbumDropdownConfigCurrentParams = {
   currentType: QueryParamsChannelMusicAlbumType;
   currentSort: QueryParamsChannelMusicAlbumSort;
   currentRange: QueryParamsStatsRange | null;
   currentPage: number;
-}
+};
 
-export function getAlbumFilterParams({ type, sort, range, page }: AlbumDropdownConfigParams): AlbumDropdownConfigCurrentParams {
+export function getAlbumFilterParams({
+  type,
+  sort,
+  range,
+  page,
+}: AlbumDropdownConfigParams): AlbumDropdownConfigCurrentParams {
   const currentType = type;
   const currentSort = sort;
   const currentRange = range;

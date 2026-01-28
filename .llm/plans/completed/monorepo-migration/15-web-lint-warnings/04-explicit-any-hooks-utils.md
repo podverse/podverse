@@ -9,6 +9,7 @@ Fix 30 `@typescript-eslint/no-explicit-any` warnings in hooks/, utils/, constant
 ## Files to Modify
 
 ### Constants (4 warnings)
+
 1. `src/constants/medium.ts`
    - Line 4:23
    - Line 8:42
@@ -18,6 +19,7 @@ Fix 30 `@typescript-eslint/no-explicit-any` warnings in hooks/, utils/, constant
    - Line 4:22
 
 ### Hooks (7 warnings)
+
 3. `src/hooks/useAutoQueueLoadResources.tsx`
    - Line 56:37
 
@@ -34,10 +36,12 @@ Fix 30 `@typescript-eslint/no-explicit-any` warnings in hooks/, utils/, constant
    - Line 3:79
 
 ### Providers (1 warning)
+
 7. `src/providers/Providers.tsx`
    - Line 34:28
 
 ### Utils (18 warnings)
+
 8. `src/utils/categories.ts`
    - Line 5:29
    - Line 6:17

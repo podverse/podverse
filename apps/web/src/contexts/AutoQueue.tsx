@@ -1,4 +1,10 @@
-import { DTOChannel, DTOClip, DTOItemQueueItem, DTOItemSoundbite, getShuffleHash } from '@podverse/helpers';
+import {
+  DTOChannel,
+  DTOClip,
+  DTOItemQueueItem,
+  DTOItemSoundbite,
+  getShuffleHash,
+} from '@podverse/helpers';
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { LocalSettingsState } from '../utils/localSettings/localSettings';
 import { useLocalSettings } from './LocalSettings';
@@ -10,7 +16,7 @@ export type AutoQueueResourcesMapRow = {
   channel: DTOChannel | null;
 };
 
-export type AutoQueueResourcesMap = {[key: number]: AutoQueueResourcesMapRow};
+export type AutoQueueResourcesMap = { [key: number]: AutoQueueResourcesMapRow };
 
 export type AutoQueueConfig = {
   playlist_id_text: string | null;
@@ -23,19 +29,23 @@ export type AutoQueueConfig = {
 
 export function checkIsActiveRowHighestKey(
   autoQueueActiveRow: number | null,
-  autoQueueResources: AutoQueueResourcesMap,
+  autoQueueResources: AutoQueueResourcesMap
 ): boolean {
-  if (autoQueueActiveRow === null) {return false;}
+  if (autoQueueActiveRow === null) {
+    return false;
+  }
   const keys = Object.keys(autoQueueResources).map(Number);
-  if (keys.length === 0) {return false;}
+  if (keys.length === 0) {
+    return false;
+  }
   const highestKey = Math.max(...keys);
   return autoQueueActiveRow === highestKey;
 }
 
-export function autoQueueIncrementActiveRow(
-  autoQueueActiveRow: number | null,
-) {
-  if (autoQueueActiveRow === null || autoQueueActiveRow < 1) {return 1;}
+export function autoQueueIncrementActiveRow(autoQueueActiveRow: number | null) {
+  if (autoQueueActiveRow === null || autoQueueActiveRow < 1) {
+    return 1;
+  }
   return autoQueueActiveRow + 1;
 }
 
@@ -71,10 +81,7 @@ type AutoQueueProviderProps = {
   ssrLocalSettings: LocalSettingsState;
 };
 
-export const AutoQueueProvider = ({
-  children,
-  ssrLocalSettings,
-}: AutoQueueProviderProps) => {
+export const AutoQueueProvider = ({ children, ssrLocalSettings }: AutoQueueProviderProps) => {
   const { setLSAutoQueueConfig } = useLocalSettings();
   const initialAutoQueueConfig: AutoQueueConfig = {
     ...defaultAutoQueueConfig,
@@ -86,7 +93,7 @@ export const AutoQueueProvider = ({
   const [autoQueueActiveRow, setAutoQueueActiveRow] = useState<number>(0);
 
   useEffect(() => {
-    setLSAutoQueueConfig(prev => ({
+    setLSAutoQueueConfig((prev) => ({
       ...prev,
       rd: autoQueueConfig.random || false,
       rp: autoQueueConfig.repeat || false,
@@ -96,10 +103,14 @@ export const AutoQueueProvider = ({
   return (
     <AutoQueueContext.Provider
       value={{
-        autoQueueResources, setAutoQueueResources,
-        autoQueueConfig, setAutoQueueConfig,
-        autoQueueActiveRow, setAutoQueueActiveRow,
-      }}>
+        autoQueueResources,
+        setAutoQueueResources,
+        autoQueueConfig,
+        setAutoQueueConfig,
+        autoQueueActiveRow,
+        setAutoQueueActiveRow,
+      }}
+    >
       {children}
     </AutoQueueContext.Provider>
   );
@@ -107,6 +118,8 @@ export const AutoQueueProvider = ({
 
 export function useAutoQueue() {
   const ctx = useContext(AutoQueueContext);
-  if (!ctx) {throw new Error('useAutoQueue must be used within a AutoQueueProvider');}
+  if (!ctx) {
+    throw new Error('useAutoQueue must be used within a AutoQueueProvider');
+  }
   return ctx;
 }

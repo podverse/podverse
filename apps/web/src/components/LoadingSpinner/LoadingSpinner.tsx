@@ -16,11 +16,7 @@ type Props = {
   style?: React.CSSProperties;
 };
 
-const LoadingSpinner: React.FC<Props> = ({
-  size = 'medium',
-  className = '',
-  style = {},
-}) => (
+const LoadingSpinner: React.FC<Props> = ({ size = 'medium', className = '', style = {} }) => (
   <FaSpinner
     className={`${styles.spinner} ${className}`}
     style={style}

@@ -2,7 +2,12 @@
 
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
-import { DTOItem, getTotalPages, QueryParamsGetManyPartial, removeQueryParamByPattern } from '@podverse/helpers';
+import {
+  DTOItem,
+  getTotalPages,
+  QueryParamsGetManyPartial,
+  removeQueryParamByPattern,
+} from '@podverse/helpers';
 import { apiRequestService } from '../../factories/apiRequestService';
 import { useAccount } from '../../contexts/Account';
 import { useSkipInitialEffect } from '../../hooks/useSkipInitialEffect';
@@ -24,15 +29,15 @@ interface EpisodesContextType {
   setShowSubscribeMessage: (show: boolean) => void;
   showCategoriesModal: boolean;
   setShowCategoriesModal: (show: boolean) => void;
-};
+}
 
 const EpisodesContext = createContext<EpisodesContextType | undefined>(undefined);
 
 interface EpisodesContextProviderProps {
-  children: ReactNode,
-  initialQueryParams: QueryParamsGetManyPartial,
-  ssrItems: DTOItem[],
-  ssrTotalPages: number
+  children: ReactNode;
+  initialQueryParams: QueryParamsGetManyPartial;
+  ssrItems: DTOItem[];
+  ssrTotalPages: number;
 }
 
 export const EpisodesContextProvider = ({
@@ -42,12 +47,15 @@ export const EpisodesContextProvider = ({
   ssrTotalPages,
 }: EpisodesContextProviderProps) => {
   const router = useRouter();
-  
+
   // Use the list page cache hook for back navigation caching
   const {
-    filterParams, setFilterParams,
-    data: items, setData: setItems,
-    totalPages, setTotalPages,
+    filterParams,
+    setFilterParams,
+    data: items,
+    setData: setItems,
+    totalPages,
+    setTotalPages,
     shouldSkipFetch,
   } = useListPageCache<QueryParamsGetManyPartial, DTOItem[]>({
     routeKey: 'episodes',
@@ -81,14 +89,17 @@ export const EpisodesContextProvider = ({
       }
 
       setIsLoading(true);
-      
-      const { currentSort, currentRange, currentType } = getEpisodesFilterParams({
-        page: filterParams.page,
-        type: filterParams.type,
-        sort: filterParams.sort,
-        range: filterParams.range,
-        category: filterParams.category,
-      }, !!loggedInAccount);
+
+      const { currentSort, currentRange, currentType } = getEpisodesFilterParams(
+        {
+          page: filterParams.page,
+          type: filterParams.type,
+          sort: filterParams.sort,
+          range: filterParams.range,
+          category: filterParams.category,
+        },
+        !!loggedInAccount
+      );
 
       const response = await apiRequestService.reqItemGetMany({
         page: filterParams.page,
@@ -103,7 +114,12 @@ export const EpisodesContextProvider = ({
         router.replace(removeQueryParamByPattern(ROUTES.EPISODES, 'category'));
       }
 
-      const totalPages = getTotalPages(response.meta.count, response.meta.limit, response.data.length, filterParams.page);
+      const totalPages = getTotalPages(
+        response.meta.count,
+        response.meta.limit,
+        response.data.length,
+        filterParams.page
+      );
       setTotalPages(totalPages);
       setItems(response.data);
       setShowSubscribeMessage(false);
@@ -113,14 +129,22 @@ export const EpisodesContextProvider = ({
   }, [filterParams, loggedInAccount]);
 
   return (
-    <EpisodesContext.Provider value={{
-      filterParams, setFilterParams,
-      items, setItems,
-      totalPages, setTotalPages,
-      isLoading, setIsLoading,
-      showSubscribeMessage, setShowSubscribeMessage,
-      showCategoriesModal, setShowCategoriesModal,
-    }}>
+    <EpisodesContext.Provider
+      value={{
+        filterParams,
+        setFilterParams,
+        items,
+        setItems,
+        totalPages,
+        setTotalPages,
+        isLoading,
+        setIsLoading,
+        showSubscribeMessage,
+        setShowSubscribeMessage,
+        showCategoriesModal,
+        setShowCategoriesModal,
+      }}
+    >
       {children}
     </EpisodesContext.Provider>
   );
@@ -128,6 +152,8 @@ export const EpisodesContextProvider = ({
 
 export const useEpisodesContext = () => {
   const ctx = useContext(EpisodesContext);
-  if (!ctx) {throw new Error('useEpisodesContext must be used within a EpisodesContextProvider');}
+  if (!ctx) {
+    throw new Error('useEpisodesContext must be used within a EpisodesContextProvider');
+  }
   return ctx;
 };

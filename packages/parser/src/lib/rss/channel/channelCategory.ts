@@ -6,12 +6,12 @@ import { timerManager } from '@parser/factories/timerManager';
 export const handleParsedChannelCategory = async (
   parsedFeed: FeedObject,
   channel: Channel,
-  transactionalEntityManager?: EntityManager,
+  transactionalEntityManager?: EntityManager
 ) => {
   timerManager.start('handleParsedChannelCategory');
   const channelCategoryService = new ChannelCategoryService(transactionalEntityManager);
-  const channelCategoryDtos =  compatChannelCategoryDtos(parsedFeed);
-  
+  const channelCategoryDtos = compatChannelCategoryDtos(parsedFeed);
+
   if (channelCategoryDtos.length > 0) {
     await channelCategoryService.updateMany(channel, channelCategoryDtos);
   } else {

@@ -9,7 +9,10 @@ export type AccountFollowingAddByRSSChannelDto = {
   image_url?: string | null;
 };
 
-export class AccountFollowingAddByRSSChannelService extends BaseManyService<AccountFollowingAddByRSSChannel, 'account'> {
+export class AccountFollowingAddByRSSChannelService extends BaseManyService<
+  AccountFollowingAddByRSSChannel,
+  'account'
+> {
   private accountService: AccountService;
 
   constructor(transactionalEntityManager?: EntityManager) {
@@ -17,7 +20,10 @@ export class AccountFollowingAddByRSSChannelService extends BaseManyService<Acco
     this.accountService = new AccountService();
   }
 
-  async getFollowedAddByRSSChannels(account_id: number, config?: FindManyOptions<AccountFollowingAddByRSSChannel>): Promise<AccountFollowingAddByRSSChannel[]> {
+  async getFollowedAddByRSSChannels(
+    account_id: number,
+    config?: FindManyOptions<AccountFollowingAddByRSSChannel>
+  ): Promise<AccountFollowingAddByRSSChannel[]> {
     const account = await this.accountService.get(account_id);
     if (!account) {
       throw new Error('Account not found.');
@@ -26,17 +32,16 @@ export class AccountFollowingAddByRSSChannelService extends BaseManyService<Acco
     return this._getAll(account, config);
   }
 
-  async addOrUpdateRSSChannel(account_id: number, dto: AccountFollowingAddByRSSChannelDto): Promise<AccountFollowingAddByRSSChannel> {
+  async addOrUpdateRSSChannel(
+    account_id: number,
+    dto: AccountFollowingAddByRSSChannelDto
+  ): Promise<AccountFollowingAddByRSSChannel> {
     const account = await this.accountService.get(account_id);
     if (!account) {
       throw new Error('Account not found.');
     }
 
-    return this._update(
-      account,
-      ['account_id', 'feed_url'],
-      dto,
-    );
+    return this._update(account, ['account_id', 'feed_url'], dto);
   }
 
   async removeRSSChannel(account_id: number, feed_url: string): Promise<void> {

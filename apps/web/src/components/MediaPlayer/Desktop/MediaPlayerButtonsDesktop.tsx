@@ -17,11 +17,7 @@ export const MediaPlayerButtonsDesktop = () => {
     <div className={styles.buttons}>
       <div className={styles.startSection}>
         <PlaylistAddToButton />
-        {
-          medium_id === MediumEnum.AV && (
-            <ClipButton />
-          )
-        }
+        {medium_id === MediumEnum.AV && <ClipButton />}
         <RepeatButton />
         <ShuffleButton />
         <SettingsButton />

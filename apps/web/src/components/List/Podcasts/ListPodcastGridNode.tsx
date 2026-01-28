@@ -10,32 +10,36 @@ import { IMAGES } from '../../../constants/images';
 import styles from '../../../styles/components/List/ListGridNode.module.scss';
 
 interface Props {
-	channel: DTOChannel;
+  channel: DTOChannel;
 }
 
 export const ListPodcastGridNode: React.FC<Props> = ({ channel }) => {
-	const url = `${ROUTES.PODCAST}/${channel.id_text}`;
-	const channel_image = findDTOChannelImageBySize(channel.channel_images, IMAGES.LIST.PODCASTS.SIZE_FIND_TARGET, 'lesser');
-	const tMedia = useTranslations('media');
-	const locale = useLocale();
+  const url = `${ROUTES.PODCAST}/${channel.id_text}`;
+  const channel_image = findDTOChannelImageBySize(
+    channel.channel_images,
+    IMAGES.LIST.PODCASTS.SIZE_FIND_TARGET,
+    'lesser'
+  );
+  const tMedia = useTranslations('media');
+  const locale = useLocale();
 
-	return (
-		<Link href={url} className={styles.link}>
-			<div className={styles.gridNode}>
-				<Image
-					src={channel_image?.url}
-					alt={channel.title || tMedia('podcast.podcast_image')}
-					width={IMAGES.LIST.GRID.SIZE}
-					height={IMAGES.LIST.GRID.SIZE}
-					className={styles.image}
-				/>
+  return (
+    <Link href={url} className={styles.link}>
+      <div className={styles.gridNode}>
+        <Image
+          src={channel_image?.url}
+          alt={channel.title || tMedia('podcast.podcast_image')}
+          width={IMAGES.LIST.GRID.SIZE}
+          height={IMAGES.LIST.GRID.SIZE}
+          className={styles.image}
+        />
         <div className={styles.title}>{channel.title}</div>
-				{channel.channel_about?.last_pub_date && (
-					<span className={styles.lastPubDate}>
-						{formatDateAbbrev(channel.channel_about.last_pub_date, locale)}
-					</span>
-				)}
-			</div>
-		</Link>
-	);
+        {channel.channel_about?.last_pub_date && (
+          <span className={styles.lastPubDate}>
+            {formatDateAbbrev(channel.channel_about.last_pub_date, locale)}
+          </span>
+        )}
+      </div>
+    </Link>
+  );
 };

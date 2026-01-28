@@ -5,13 +5,17 @@ type MediaPlayerCurrentTimeContextType = {
   setMPCurrentTime: (val: number) => void;
 };
 
-export const MediaPlayerCurrentTimeContext = createContext<MediaPlayerCurrentTimeContextType | undefined>(undefined);
+export const MediaPlayerCurrentTimeContext = createContext<
+  MediaPlayerCurrentTimeContextType | undefined
+>(undefined);
 
 type MediaPlayerCurrentTimeProviderProps = {
   children: ReactNode;
 };
 
-export const MediaPlayerCurrentTimeProvider = ({ children }: MediaPlayerCurrentTimeProviderProps) => {
+export const MediaPlayerCurrentTimeProvider = ({
+  children,
+}: MediaPlayerCurrentTimeProviderProps) => {
   const [mpCurrentTime, setMPCurrentTime] = useState<number>(0);
 
   return (
@@ -23,6 +27,10 @@ export const MediaPlayerCurrentTimeProvider = ({ children }: MediaPlayerCurrentT
 
 export function useMediaPlayerCurrentTime() {
   const ctx = useContext(MediaPlayerCurrentTimeContext);
-  if (!ctx) {throw new Error('useMediaPlayerCurrentTime must be used within a MediaPlayerCurrentTimeProvider');}
+  if (!ctx) {
+    throw new Error(
+      'useMediaPlayerCurrentTime must be used within a MediaPlayerCurrentTimeProvider'
+    );
+  }
   return ctx;
 }

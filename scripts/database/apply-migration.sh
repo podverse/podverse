@@ -26,15 +26,15 @@ MIGRATION_FILE=""
 # Parse arguments
 while [[ $# -gt 0 ]]; do
   case $1 in
-    -d|--database)
+    -d | --database)
       DATABASE="$2"
       shift 2
       ;;
-    -n|--dry-run)
+    -n | --dry-run)
       DRY_RUN=true
       shift
       ;;
-    -h|--help)
+    -h | --help)
       head -20 "$0" | tail -18
       exit 0
       ;;
@@ -75,7 +75,7 @@ if [ ! -f "$MIGRATION_PATH" ]; then
   echo "Error: Migration file not found: $MIGRATION_PATH"
   echo ""
   echo "Available migrations:"
-  ls -1 "$MIGRATIONS_DIR"/*.sql 2>/dev/null | xargs -n1 basename
+  ls -1 "$MIGRATIONS_DIR"/*.sql 2> /dev/null | xargs -n1 basename
   exit 1
 fi
 

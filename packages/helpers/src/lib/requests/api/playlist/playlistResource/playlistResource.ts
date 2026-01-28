@@ -5,7 +5,7 @@ import { QueryParamsPlaylistResources } from '../../queryParams';
 
 export async function reqPlaylistResourceGetAllByPlaylistIdTextPrivate(
   api: ApiRequestService,
-  playlist_id_text: string,
+  playlist_id_text: string
 ) {
   return api.apiRequest<DTOPlaylistResource[]>({
     path: `/playlist/${playlist_id_text}/resources/private-all`,
@@ -19,7 +19,7 @@ export async function reqPlaylistResourceGetAllByPlaylistIdTextPrivate(
 export async function reqPlaylistResourceGetManyByPlaylistIdText(
   api: ApiRequestService,
   playlist_id_text: string,
-  params: QueryParamsPlaylistResources,
+  params: QueryParamsPlaylistResources
 ) {
   return api.apiRequest<ApiListResponse<DTOPlaylistResource>>({
     path: `/playlist/${playlist_id_text}/resources`,
@@ -35,7 +35,7 @@ export async function reqPlaylistResourceGetManyForQueueByListPosition(
   api: ApiRequestService,
   playlist_id_text: string,
   idTextOptions: PlaylistResourceIdTextOptions,
-  direction: 'forward' | 'backward',
+  direction: 'forward' | 'backward'
 ) {
   return api.apiRequest<ApiListResponse<DTOPlaylistResource>>({
     path: `/playlist/${playlist_id_text}/resources/queue-by-list-position`,
@@ -54,7 +54,7 @@ export async function reqPlaylistResourceGetManyByShuffle(
   api: ApiRequestService,
   playlist_id_text: string,
   shuffleHash: string,
-  page: number,
+  page: number
 ) {
   return api.apiRequest<ApiListResponse<DTOPlaylistResource>>({
     path: `/playlist/${playlist_id_text}/resources/shuffle`,

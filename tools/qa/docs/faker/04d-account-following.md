@@ -51,74 +51,65 @@ export class AccountFollowingGenerator {
   private channelIdCounter = 1;
   private playlistIdCounter = 1;
   private accountIdCounter = 1;
-  
+
   generateChannelFollowing(
     account: GeneratedAccount,
     channelIds: number[]
   ): GeneratedAccountFollowingChannel[] {
     // Each account follows 2-10 random channels
-    const followCount = Math.min(
-      faker.number.int({ min: 2, max: 10 }),
-      channelIds.length
-    );
-    
+    const followCount = Math.min(faker.number.int({ min: 2, max: 10 }), channelIds.length);
+
     const selectedChannels = faker.helpers.arrayElements(channelIds, followCount);
-    
-    return selectedChannels.map(channelId => ({
+
+    return selectedChannels.map((channelId) => ({
       id: this.channelIdCounter++,
       account_id: account.id,
       channel_id: channelId,
-      added_at: faker.date.past({ years: 2 })
+      added_at: faker.date.past({ years: 2 }),
     }));
   }
-  
+
   generatePlaylistFollowing(
     account: GeneratedAccount,
     playlistIds: number[]
   ): GeneratedAccountFollowingPlaylist[] {
     // Each account follows 0-5 playlists
-    const followCount = Math.min(
-      faker.number.int({ min: 0, max: 5 }),
-      playlistIds.length
-    );
-    
+    const followCount = Math.min(faker.number.int({ min: 0, max: 5 }), playlistIds.length);
+
     if (followCount === 0) return [];
-    
+
     const selectedPlaylists = faker.helpers.arrayElements(playlistIds, followCount);
-    
-    return selectedPlaylists.map(playlistId => ({
+
+    return selectedPlaylists.map((playlistId) => ({
       id: this.playlistIdCounter++,
       account_id: account.id,
       playlist_id: playlistId,
-      added_at: faker.date.past({ years: 1 })
+      added_at: faker.date.past({ years: 1 }),
     }));
   }
-  
+
   generateAccountFollowing(
     account: GeneratedAccount,
     otherAccountIds: number[]
   ): GeneratedAccountFollowingAccount[] {
     // Filter out self-following
-    const validAccountIds = otherAccountIds.filter(id => id !== account.id);
-    
+    const validAccountIds = otherAccountIds.filter((id) => id !== account.id);
+
     // Each account follows 0-5 other accounts
-    const followCount = Math.min(
-      faker.number.int({ min: 0, max: 5 }),
-      validAccountIds.length
-    );
-    
+    const followCount = Math.min(faker.number.int({ min: 0, max: 5 }), validAccountIds.length);
+
     if (followCount === 0) return [];
-    
+
     const selectedAccounts = faker.helpers.arrayElements(validAccountIds, followCount);
-    
-    return selectedAccounts.map(followingId => ({
+
+    return selectedAccounts.map((followingId) => ({
       id: this.accountIdCounter++,
       account_id: account.id,
       following_account_id: followingId,
-      added_at: faker.date.past({ years: 1 })
+      added_at: faker.date.past({ years: 1 }),
     }));
   }
-  
+
   // NOTE: generateAddByRSSFollowing() is EXCLUDED from initial implementation
   // AccountFollowingAddByRSSChannel will be added in a separate phase
 }
@@ -126,10 +117,10 @@ export class AccountFollowingGenerator {
 
 ## Summary
 
-| Entity | Count for baseCount=100 |
-|--------|------------------------|
-| AccountFollowingChannel | ~624 (2-10 per account) |
-| AccountFollowingPlaylist | ~260 (0-5 per account) |
-| AccountFollowingAccount | ~260 (0-5 per account) |
+| Entity                   | Count for baseCount=100 |
+| ------------------------ | ----------------------- |
+| AccountFollowingChannel  | ~624 (2-10 per account) |
+| AccountFollowingPlaylist | ~260 (0-5 per account)  |
+| AccountFollowingAccount  | ~260 (0-5 per account)  |
 
 > **Excluded:** `AccountFollowingAddByRSSChannel` - deferred to separate implementation phase

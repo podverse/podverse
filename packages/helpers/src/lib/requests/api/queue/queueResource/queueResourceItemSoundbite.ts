@@ -7,7 +7,7 @@ export async function reqQueueResourceItemSoundbiteAddNowPlaying(
   api: ApiRequestService,
   queue_id_text: string,
   item_soundbite_id_text: string,
-  params?: QueueExtraParams,
+  params?: QueueExtraParams
 ) {
   return api.apiRequest<DTOQueueResource>({
     path: `/queue/${queue_id_text}/item-soundbite/${item_soundbite_id_text}/now-playing`,
@@ -22,7 +22,7 @@ export async function reqQueueResourceItemSoundbiteAddNowPlaying(
 export async function reqQueueResourceItemSoundbiteAddNext(
   api: ApiRequestService,
   queue_id_text: string,
-  item_soundbite_id_text: string,
+  item_soundbite_id_text: string
 ) {
   return api.apiRequest<DTOQueueResource>({
     path: `/queue/${queue_id_text}/item-soundbite/${item_soundbite_id_text}/next`,
@@ -37,7 +37,7 @@ export async function reqQueueResourceItemSoundbiteAddBetween(
   api: ApiRequestService,
   queue_id_text: string,
   item_soundbite_id_text: string,
-  params: BetweenParams,
+  params: BetweenParams
 ) {
   return api.apiRequest<DTOQueueResource>({
     path: `/queue/${queue_id_text}/item-soundbite/${item_soundbite_id_text}/between`,
@@ -52,7 +52,7 @@ export async function reqQueueResourceItemSoundbiteAddBetween(
 export async function reqQueueResourceItemSoundbiteAddLast(
   api: ApiRequestService,
   queue_id_text: string,
-  item_soundbite_id_text: string,
+  item_soundbite_id_text: string
 ) {
   return api.apiRequest<DTOQueueResource>({
     path: `/queue/${queue_id_text}/item-soundbite/${item_soundbite_id_text}/last`,
@@ -67,7 +67,7 @@ export async function reqQueueResourceItemSoundbiteAddHistory(
   api: ApiRequestService,
   queue_id_text: string,
   item_soundbite_id_text: string,
-  params?: QueueExtraParams,
+  params?: QueueExtraParams
 ) {
   return api.apiRequest<DTOQueueResource>({
     path: `/queue/${queue_id_text}/item-soundbite/${item_soundbite_id_text}/history`,
@@ -82,7 +82,7 @@ export async function reqQueueResourceItemSoundbiteAddHistory(
 export async function reqQueueResourceItemSoundbiteDelete(
   api: ApiRequestService,
   queue_id_text: string,
-  item_soundbite_id_text: string,
+  item_soundbite_id_text: string
 ) {
   return api.apiRequest<void>({
     path: `/queue/${queue_id_text}/item-soundbite/${item_soundbite_id_text}`,

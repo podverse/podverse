@@ -4,9 +4,9 @@ import { ChannelFunding } from '@orm/entities/channel/channelFunding';
 import { BaseManyService } from '@orm/services/base/baseManyService';
 
 type ChannelFundingDto = {
-  url: string
-  title: string | null
-}
+  url: string;
+  title: string | null;
+};
 
 export class ChannelFundingService extends BaseManyService<ChannelFunding, 'channel'> {
   constructor(transactionalEntityManager?: EntityManager) {

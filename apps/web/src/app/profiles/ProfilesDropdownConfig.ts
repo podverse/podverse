@@ -9,10 +9,14 @@ import {
 import { getRangeDropdownItems } from '../../utils/dropdownMenuItems';
 import { DropdownMenuItem } from '../../components/Dropdown/Dropdown';
 
-export function getProfilesDropdownConfig({ type, sort, tFilters }: {
-  sort: QueryParamsSubscribedFullSort,
-  type: QueryParamsSubscribedType,
-  tFilters: (key: string) => string
+export function getProfilesDropdownConfig({
+  type,
+  sort,
+  tFilters,
+}: {
+  sort: QueryParamsSubscribedFullSort;
+  type: QueryParamsSubscribedType;
+  tFilters: (key: string) => string;
 }) {
   const typeDropdownMenuItems: DropdownMenuItem[] = [
     { label: tFilters('type.global'), param: 'type', value: 'global' },
@@ -52,18 +56,18 @@ type ProfilesDropdownConfigParams = {
   sort: QueryParamsSubscribedFullSort | null;
   range: QueryParamsStatsRange | null;
   page: number;
-}
+};
 
 export type ProfilesDropdownConfigCurrentParams = {
   currentType: QueryParamsSubscribedType;
   currentSort: QueryParamsSubscribedFullSort;
   currentRange: QueryParamsStatsRange | null;
   currentPage: number;
-}
+};
 
 export function getProfilesFilterParams(
   { type, sort, range, page }: ProfilesDropdownConfigParams,
-  isValidAuthSession: boolean,
+  isValidAuthSession: boolean
 ): ProfilesDropdownConfigCurrentParams {
   let currentType = type;
   let currentSort = sort;
@@ -72,35 +76,19 @@ export function getProfilesFilterParams(
 
   if (type === 'global') {
     currentType = 'global';
-    currentSort = getValidQueryParam(
-      QUERY_PARAMS_GLOBAL_SORT_VALUES,
-      currentSort,
-      'recent',
-    );
+    currentSort = getValidQueryParam(QUERY_PARAMS_GLOBAL_SORT_VALUES, currentSort, 'recent');
   } else if (type === 'subscribed') {
     currentType = 'subscribed';
-    currentSort = getValidQueryParam(
-      QUERY_PARAMS_SUBSCRIBED_FULL_SORT,
-      currentSort,
-      'a_z',
-    );
+    currentSort = getValidQueryParam(QUERY_PARAMS_SUBSCRIBED_FULL_SORT, currentSort, 'a_z');
   } else {
     if (isValidAuthSession) {
       currentType = 'subscribed';
-      currentSort = getValidQueryParam(
-        QUERY_PARAMS_SUBSCRIBED_FULL_SORT,
-        currentSort,
-        'a_z',
-      );
+      currentSort = getValidQueryParam(QUERY_PARAMS_SUBSCRIBED_FULL_SORT, currentSort, 'a_z');
       currentRange = null;
       currentPage = 1;
     } else {
       currentType = 'global';
-      currentSort = getValidQueryParam(
-        QUERY_PARAMS_GLOBAL_SORT_VALUES,
-        currentSort,
-        'recent',
-      );
+      currentSort = getValidQueryParam(QUERY_PARAMS_GLOBAL_SORT_VALUES, currentSort, 'recent');
       currentRange = null;
       currentPage = 1;
     }

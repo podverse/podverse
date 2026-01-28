@@ -20,6 +20,7 @@
 ## Translation Requirements (CRITICAL)
 
 **MANDATORY**: Every string that users can see must use translations:
+
 - Button labels: `{tMisc("submit")}` NOT `"Submit"`
 - Error messages: `{tMisc("error_message")}` NOT `"Error occurred"`
 - Placeholder text: `{tFeatures("search_placeholder")}` NOT `"Search..."`
@@ -27,11 +28,13 @@
 - Even in error pages: Use translations (with fallback for global-error.tsx)
 
 **If you see hardcoded English strings in user-facing code, you MUST:**
+
 1. Add the translation key to `i18n/originals/en-US.json` **ONLY** - Do NOT add translations to override files or other language files. The i18n translation script handles generating overrides and alternate languages automatically.
 2. Replace the hardcoded string with `useTranslations()` call
 3. This applies to ALL components, pages, error boundaries, etc.
 
 **CRITICAL**: When adding new translation keys:
+
 - **Only edit `i18n/originals/en-US.json`** - This is the source of truth
 - **Do NOT edit** override files (e.g., `i18n/overrides/en-US.json`) or other language files
 - The `i18n-compile` script automatically processes `originals/en-US.json` and generates all necessary translation files

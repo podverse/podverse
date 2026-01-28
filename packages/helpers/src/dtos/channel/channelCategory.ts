@@ -7,5 +7,5 @@ export interface DTOChannelCategory {
     display_name: string;
     slug: string;
     mapping_key: string;
-  }
+  };
 }

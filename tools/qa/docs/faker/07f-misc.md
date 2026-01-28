@@ -30,7 +30,7 @@ export interface GeneratedMembershipClaimToken {
 export class MembershipClaimTokenGenerator {
   generate(count: number): GeneratedMembershipClaimToken[] {
     const tokens: GeneratedMembershipClaimToken[] = [];
-    
+
     for (let i = 0; i < count; i++) {
       tokens.push({
         id: faker.string.uuid(),
@@ -38,11 +38,11 @@ export class MembershipClaimTokenGenerator {
         months_to_add: faker.helpers.arrayElement([1, 3, 6, 12]),
         account_membership_id: faker.helpers.arrayElement([
           AccountMembershipEnum.Trial,
-          AccountMembershipEnum.Basic
-        ])
+          AccountMembershipEnum.Basic,
+        ]),
       });
     }
-    
+
     return tokens;
   }
 }
@@ -68,35 +68,36 @@ export interface GeneratedOnDemandParserEvent {
 
 export class OnDemandParserEventGenerator {
   private idCounter = 1;
-  
+
   generate(
     accounts: GeneratedAccount[],
     podcastIndexIds: number[],
     count: number
   ): GeneratedOnDemandParserEvent[] {
     const events: GeneratedOnDemandParserEvent[] = [];
-    
+
     for (let i = 0; i < count; i++) {
       const account = faker.helpers.arrayElement(accounts);
       const podcastIndexId = faker.helpers.arrayElement(podcastIndexIds);
       const eventType = faker.helpers.arrayElement([
         OnDemandParserEventType.ADD,
         OnDemandParserEventType.REFRESH,
-        OnDemandParserEventType.REMOTE_ITEM
+        OnDemandParserEventType.REMOTE_ITEM,
       ]);
-      
+
       events.push({
         id: this.idCounter++,
         podcast_index_id: podcastIndexId,
-        remote_parent_podcast_index_id: eventType === OnDemandParserEventType.REMOTE_ITEM
-          ? faker.helpers.arrayElement(podcastIndexIds)
-          : null,
+        remote_parent_podcast_index_id:
+          eventType === OnDemandParserEventType.REMOTE_ITEM
+            ? faker.helpers.arrayElement(podcastIndexIds)
+            : null,
         type: eventType,
         created_at: faker.date.past({ years: 1 }),
-        account_id: account.id
+        account_id: account.id,
       });
     }
-    
+
     return events;
   }
 }
@@ -104,15 +105,15 @@ export class OnDemandParserEventGenerator {
 
 ## Event Types
 
-| Type | Description |
-|------|-------------|
-| ADD | User added a new podcast |
-| REFRESH | User requested feed refresh |
-| REMOTE_ITEM | Remote item lookup |
+| Type        | Description                 |
+| ----------- | --------------------------- |
+| ADD         | User added a new podcast    |
+| REFRESH     | User requested feed refresh |
+| REMOTE_ITEM | Remote item lookup          |
 
 ## Summary
 
-| Entity | Count for baseCount=100 |
-|--------|------------------------|
-| MembershipClaimToken | ~50 |
-| OnDemandParserEvent | ~100 |
+| Entity               | Count for baseCount=100 |
+| -------------------- | ----------------------- |
+| MembershipClaimToken | ~50                     |
+| OnDemandParserEvent  | ~100                    |

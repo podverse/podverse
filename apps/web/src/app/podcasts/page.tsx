@@ -1,7 +1,7 @@
 import {
   CATEGORY_MAPPING_KEYS,
   QUERY_PARAMS_STATS_RANGE_VALUES,
-  getTotalPages, 
+  getTotalPages,
   QueryParamsMedium,
   QUERY_PARAMS_SUBSCRIBED_TYPE,
   QUERY_PARAMS_SUBSCRIBED_FULL_SORT,
@@ -11,20 +11,34 @@ import {
 import { cookies } from 'next/headers';
 import { z } from 'zod';
 import { PodcastsClient } from './PodcastsClient';
-import { getPodcastsFilterParams, PodcastsDropdownConfigCurrentParams } from './PodcastsDropdownConfig';
+import {
+  getPodcastsFilterParams,
+  PodcastsDropdownConfigCurrentParams,
+} from './PodcastsDropdownConfig';
 import { getSSRAuthService } from '../../utils/auth/ssrAuth';
 import { guardSubscribedSsrFilter, safeSsrListRequest } from '../../utils/filters/ssrFilterGuards';
-import { getParsedLocalSettings, PodcastsFilterDefaults } from '../../utils/localSettings/localSettings';
+import {
+  getParsedLocalSettings,
+  PodcastsFilterDefaults,
+} from '../../utils/localSettings/localSettings';
 
 const searchParamsSchema = z.object({
-  page: z.string().transform((v) => parseInt(v, 10)).optional().default('1'),
+  page: z
+    .string()
+    .transform((v) => parseInt(v, 10))
+    .optional()
+    .default('1'),
   type: z.enum(QUERY_PARAMS_SUBSCRIBED_TYPE).optional().nullable().default(null),
   sort: z.enum(QUERY_PARAMS_SUBSCRIBED_FULL_SORT).optional().nullable().default(null),
   range: z.enum(QUERY_PARAMS_STATS_RANGE_VALUES).optional().nullable().default(null),
-  category: z.enum(CATEGORY_MAPPING_KEYS as [string, ...string[]]).optional().nullable().default(null),
+  category: z
+    .enum(CATEGORY_MAPPING_KEYS as [string, ...string[]])
+    .optional()
+    .nullable()
+    .default(null),
 });
 
-type SearchParams = z.infer<typeof searchParamsSchema>
+type SearchParams = z.infer<typeof searchParamsSchema>;
 
 export type PodcastsPageProps = {
   searchParams: Promise<SearchParams>;
@@ -40,24 +54,29 @@ export default async function PodcastsPage({ searchParams }: PodcastsPageProps) 
   const queryParams = await searchParams;
   const { currentType, currentSort, currentRange, currentCategory, currentPage } =
     await parseSearchParams(queryParams, isValidAuthSession, ssrFilterDefaults);
-  
+
   const medium: QueryParamsMedium = 'av';
   const response: ApiListResponse<DTOChannel> = await safeSsrListRequest(
     () =>
-    ssrApiRequestService.reqChannelGetMany({
-      page: currentPage,
-      medium,
-      type: currentType,
-      sort: currentSort,
-      range: currentRange,
-      category: currentCategory,
-    }),
-    currentPage,
+      ssrApiRequestService.reqChannelGetMany({
+        page: currentPage,
+        medium,
+        type: currentType,
+        sort: currentSort,
+        range: currentRange,
+        category: currentCategory,
+      }),
+    currentPage
   );
 
   const ssrChannels = response.data;
-  const ssrTotalPages = getTotalPages(response.meta.count, response.meta.limit, response.data.length, currentPage);
-  
+  const ssrTotalPages = getTotalPages(
+    response.meta.count,
+    response.meta.limit,
+    response.data.length,
+    currentPage
+  );
+
   return (
     <PodcastsClient
       initialQueryParams={{
@@ -77,7 +96,7 @@ export default async function PodcastsPage({ searchParams }: PodcastsPageProps) 
 function parseSearchParams(
   queryParams: SearchParams,
   isAuthenticated: boolean,
-  cookieDefaults?: PodcastsFilterDefaults,
+  cookieDefaults?: PodcastsFilterDefaults
 ): PodcastsDropdownConfigCurrentParams {
   const parsed = searchParamsSchema.safeParse(queryParams);
 
@@ -125,11 +144,14 @@ function parseSearchParams(
     },
   });
 
-  return getPodcastsFilterParams({
-    page: guarded.page,
-    type: guarded.type ?? 'global',
-    sort: guarded.sort ?? 'recent',
-    range: guarded.range,
-    category: guarded.category,
-  }, isAuthenticated);
+  return getPodcastsFilterParams(
+    {
+      page: guarded.page,
+      type: guarded.type ?? 'global',
+      sort: guarded.sort ?? 'recent',
+      range: guarded.range,
+      category: guarded.category,
+    },
+    isAuthenticated
+  );
 }

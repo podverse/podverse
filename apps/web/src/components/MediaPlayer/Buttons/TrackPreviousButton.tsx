@@ -1,5 +1,11 @@
 import { FaBackwardStep } from 'react-icons/fa6';
-import { DTOChannel, DTOClip, DTOItem, DTOItemSoundbite, DTOPlaylistResource } from '@podverse/helpers';
+import {
+  DTOChannel,
+  DTOClip,
+  DTOItem,
+  DTOItemSoundbite,
+  DTOPlaylistResource,
+} from '@podverse/helpers';
 import { EVENTS } from '../../../constants/events';
 import { useMediaPlayer } from '../../../contexts/MediaPlayer';
 import { MediumEnum } from '@podverse/helpers';
@@ -10,12 +16,13 @@ import { useMediaPlayerCurrentTime } from '../../../contexts/MediaPlayerCurrentT
 import styles from '../../../styles/components/MediaPlayer/Buttons/TrackPreviousButton.module.scss';
 
 export const TrackPreviousButton = () => {
-  const { mpChannel, mpItem, mpClip, mpItemSoundbite, setMPShouldPlay, mpIsPlaying } = useMediaPlayer();
+  const { mpChannel, mpItem, mpClip, mpItemSoundbite, setMPShouldPlay, mpIsPlaying } =
+    useMediaPlayer();
   const { mpCurrentTime } = useMediaPlayerCurrentTime();
 
   const mediaPlayerResourceUpdate = useMediaPlayerResourceUpdate();
   const { autoQueueConfig, autoQueueActiveRow, setAutoQueueActiveRow } = useAutoQueue();
-  
+
   const onClick = async () => {
     if (mpChannel && mpItem) {
       const isRestartThreshold = 3;
@@ -40,11 +47,15 @@ export const TrackPreviousButton = () => {
           let item: DTOItem | null = null;
 
           if (autoQueueConfig.playlist_id_text) {
-            const response = await apiRequestService
-              .reqPlaylistResourceGetManyForQueueByListPosition(
+            const response =
+              await apiRequestService.reqPlaylistResourceGetManyForQueueByListPosition(
                 autoQueueConfig.playlist_id_text,
-                { clip_id_text: mpClip?.id_text, item_soundbite_id_text: mpItemSoundbite?.id_text, item_id_text: mpItem.id_text },
-                'backward',
+                {
+                  clip_id_text: mpClip?.id_text,
+                  item_soundbite_id_text: mpItemSoundbite?.id_text,
+                  item_id_text: mpItem.id_text,
+                },
+                'backward'
               );
             const playlistResources: DTOPlaylistResource[] = response.data;
             const previousRow = playlistResources.length > 0 ? playlistResources[0] : null;
@@ -63,9 +74,13 @@ export const TrackPreviousButton = () => {
               }
             }
           } else {
-            const itemsResponse: DTOItem[] = mpChannel?.medium_id === MediumEnum.Music
-              ? await apiRequestService.reqItemGetManyForQueueBySeason(mpItem.id_text, 'backward')
-              : await apiRequestService.reqItemGetManyForQueueByPubDate(mpItem.id_text, 'backward');
+            const itemsResponse: DTOItem[] =
+              mpChannel?.medium_id === MediumEnum.Music
+                ? await apiRequestService.reqItemGetManyForQueueBySeason(mpItem.id_text, 'backward')
+                : await apiRequestService.reqItemGetManyForQueueByPubDate(
+                    mpItem.id_text,
+                    'backward'
+                  );
             const previousItem = itemsResponse.length > 0 ? itemsResponse[0] : null;
             item = previousItem ?? null;
             channel = previousItem?.channel || null;
@@ -96,7 +111,9 @@ export const TrackPreviousButton = () => {
               autoQueueShouldClear: true,
             });
           } else {
-            window.dispatchEvent(new CustomEvent(EVENTS.MEDIA_PLAYER.SEEK, { detail: { time: 0 } }));
+            window.dispatchEvent(
+              new CustomEvent(EVENTS.MEDIA_PLAYER.SEEK, { detail: { time: 0 } })
+            );
           }
         }
       }
@@ -104,10 +121,7 @@ export const TrackPreviousButton = () => {
   };
 
   return (
-    <button
-      className={styles.trackPreviousButton}
-      onClick={onClick}
-      type="button">
+    <button className={styles.trackPreviousButton} onClick={onClick} type="button">
       <FaBackwardStep />
     </button>
   );

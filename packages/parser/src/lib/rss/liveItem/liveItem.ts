@@ -1,6 +1,15 @@
 import { Phase4PodcastLiveItem } from 'podverse-partytime/dist/parser/phase/phase-4';
 import { chunkArray } from '@podverse/helpers';
-import { AppDataSourceReadWrite, Channel, ChannelSeasonIndex, getLiveItemStatusEnumValue, ItemService, LiveItemService, LiveItemStatusEnum, LiveItem } from '@podverse/orm';
+import {
+  AppDataSourceReadWrite,
+  Channel,
+  ChannelSeasonIndex,
+  getLiveItemStatusEnumValue,
+  ItemService,
+  LiveItemService,
+  LiveItemStatusEnum,
+  LiveItem,
+} from '@podverse/orm';
 import { compatLiveItemsDtos } from '@parser/lib/compat/partytime/liveItem';
 import { createItemTimerAccumulator, handleParsedItem } from '@parser/lib/rss/item/item';
 import { ItemFlagStatusStatusEnum } from '@podverse/orm';
@@ -30,14 +39,14 @@ const processLiveItemBatch = async (
   pendingItemGuids: string[],
   liveItemGuids: string[],
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  transactionalEntityManager: any, 
+  transactionalEntityManager: any,
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   timerAccumulator: any,
-  liveItemService: LiveItemService,
+  liveItemService: LiveItemService
 ) => {
   for (const liveItemObjDto of liveItemObjDtosBatch) {
     const itemDto = liveItemObjDto.item;
-    
+
     const item = await handleParsedItem({
       parsedItem: itemDto,
       channel,
@@ -89,17 +98,19 @@ const logTimerAccumulator = (timerAccumulator: Record<string, number>) => {
 export const handleParsedLiveItems = async (
   parsedLiveItems: Phase4PodcastLiveItem[],
   channel: Channel,
-  channelSeasonIndex: ChannelSeasonIndex,
+  channelSeasonIndex: ChannelSeasonIndex
 ): Promise<HandleParsedLiveItemsResult> => {
   const itemService = new ItemService();
   const liveItemService = new LiveItemService();
-  const existingLiveItems = await liveItemService.getManyByChannel(channel, { relations: ['item', 'live_item_status'] });
+  const existingLiveItems = await liveItemService.getManyByChannel(channel, {
+    relations: ['item', 'live_item_status'],
+  });
   const existingLiveItemMap: Map<string, LiveItem> = new Map(
     existingLiveItems
-      .filter(live_item => live_item.item.guid !== null)
-      .map(live_item => [live_item.item.guid ?? '', live_item]),
+      .filter((live_item) => live_item.item.guid !== null)
+      .map((live_item) => [live_item.item.guid ?? '', live_item])
   );
-  const existingLiveItemItemIds = existingLiveItems.map(live_item => live_item.item.id);
+  const existingLiveItemItemIds = existingLiveItems.map((live_item) => live_item.item.id);
   const updatedLiveItemItemIds: number[] = [];
   const pendingItemGuids: string[] = [];
   const liveItemGuids: string[] = [];
@@ -109,7 +120,7 @@ export const handleParsedLiveItems = async (
 
   const liveItemObjDtosBatchs = chunkArray(liveItemObjDtos, 50);
   for (const liveItemObjDtosBatch of liveItemObjDtosBatchs) {
-    await AppDataSourceReadWrite.manager.transaction(async transactionalEntityManager => {
+    await AppDataSourceReadWrite.manager.transaction(async (transactionalEntityManager) => {
       await processLiveItemBatch(
         liveItemObjDtosBatch,
         channel,
@@ -120,17 +131,19 @@ export const handleParsedLiveItems = async (
         liveItemGuids,
         transactionalEntityManager,
         timerAccumulator,
-        liveItemService,
+        liveItemService
       );
     });
   }
 
   logTimerAccumulator(timerAccumulator);
 
-  const itemIdsToDelete = existingLiveItemItemIds.filter(id => !updatedLiveItemItemIds.includes(id));
+  const itemIdsToDelete = existingLiveItemItemIds.filter(
+    (id) => !updatedLiveItemItemIds.includes(id)
+  );
   const itemsToDelete = existingLiveItems
-    .filter(liveItem => itemIdsToDelete.includes(liveItem.item.id))
-    .map(liveItem => liveItem.item);
+    .filter((liveItem) => itemIdsToDelete.includes(liveItem.item.id))
+    .map((liveItem) => liveItem.item);
   await itemService.updateManyFlagStatus(itemsToDelete, ItemFlagStatusStatusEnum.PendingArchive);
 
   return { pendingItemGuids, liveItemGuids };

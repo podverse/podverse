@@ -43,23 +43,24 @@ export interface GeneratedItem {
 export class ItemGenerator {
   private idCounter = 1;
   private mediaServerBase = 'http://localhost:2111';
-  
+
   generate(channel: GeneratedChannel, itemsPerChannel: number = 2): GeneratedItem[] {
     const items: GeneratedItem[] = [];
-    
+
     for (let i = 0; i < itemsPerChannel; i++) {
       const enclosureUrl = `${this.mediaServerBase}/audio/item-${channel.id}-${i}.mp3`;
       const guid = faker.string.uuid();
       const title = this.generateEpisodeTitle(i);
-      
+
       // Generate slug (40% of items have slugs)
       const slug = faker.datatype.boolean({ probability: 0.4 })
-        ? title.toLowerCase()
+        ? title
+            .toLowerCase()
             .replace(/[^a-z0-9]+/g, '-')
             .replace(/^-|-$/g, '')
             .slice(0, DATABASE_CONSTANTS.varchar_slug)
         : null;
-      
+
       items.push({
         id: this.idCounter++,
         id_text: generateRandomIdText(),
@@ -70,38 +71,40 @@ export class ItemGenerator {
         pub_date: faker.date.past({ years: 2, refDate: new Date() }),
         title: title.slice(0, DATABASE_CONSTANTS.varchar_normal),
         item_flag_status_id: ItemFlagStatusStatusEnum.Active,
-        channelHasValueTimeSplits: channel.has_value_time_splits
+        channelHasValueTimeSplits: channel.has_value_time_splits,
       });
     }
-    
+
     // Sort by pub_date descending (newest first)
     items.sort((a, b) => (b.pub_date?.getTime() || 0) - (a.pub_date?.getTime() || 0));
-    
+
     return items;
   }
-  
+
   private generateEpisodeTitle(index: number): string {
     const formats = [
-      () => `Episode ${faker.number.int({ min: 1, max: 500 })}: ${faker.lorem.sentence({ min: 3, max: 8 })}`,
-      () => `#${faker.number.int({ min: 1, max: 500 })} - ${faker.lorem.sentence({ min: 3, max: 6 })}`,
+      () =>
+        `Episode ${faker.number.int({ min: 1, max: 500 })}: ${faker.lorem.sentence({ min: 3, max: 8 })}`,
+      () =>
+        `#${faker.number.int({ min: 1, max: 500 })} - ${faker.lorem.sentence({ min: 3, max: 6 })}`,
       () => faker.lorem.sentence({ min: 4, max: 10 }),
       () => `${faker.person.fullName()} on ${faker.lorem.words({ min: 2, max: 4 })}`,
-      () => `The ${faker.lorem.words({ min: 2, max: 4 })} Episode`
+      () => `The ${faker.lorem.words({ min: 2, max: 4 })} Episode`,
     ];
-    
+
     return faker.helpers.arrayElement(formats)();
   }
-  
+
   toSQL(item: GeneratedItem): string {
     const slug = item.slug ? `'${item.slug}'` : 'NULL';
     const guid = item.guid ? `'${item.guid}'` : 'NULL';
     const guidEnclosureUrl = item.guid_enclosure_url ? `'${item.guid_enclosure_url}'` : 'NULL';
     const pubDate = item.pub_date ? `'${item.pub_date.toISOString()}'` : 'NULL';
     const title = item.title ? `'${this.escapeSQL(item.title)}'` : 'NULL';
-    
+
     return `INSERT INTO item (id, id_text, slug, channel_id, guid, guid_enclosure_url, pub_date, title, item_flag_status_id) VALUES (${item.id}, '${item.id_text}', ${slug}, ${item.channel_id}, ${guid}, ${guidEnclosureUrl}, ${pubDate}, ${title}, ${item.item_flag_status_id});`;
   }
-  
+
   private escapeSQL(str: string): string {
     return str.replace(/'/g, "''");
   }
@@ -129,11 +132,11 @@ export interface GeneratedItemAbout {
 
 export class ItemAboutGenerator {
   private idCounter = 1;
-  
+
   generate(item: GeneratedItem): GeneratedItemAbout {
     // Duration between 5 minutes and 3 hours
     const durationSeconds = faker.number.int({ min: 300, max: 10800 });
-    
+
     return {
       id: this.idCounter++,
       item_id: item.id,
@@ -145,8 +148,8 @@ export class ItemAboutGenerator {
       item_itunes_episode_type: faker.helpers.weightedArrayElement([
         { value: ItemItunesEpisodeTypeEnum.Full, weight: 8 },
         { value: ItemItunesEpisodeTypeEnum.Trailer, weight: 1 },
-        { value: ItemItunesEpisodeTypeEnum.Bonus, weight: 1 }
-      ])
+        { value: ItemItunesEpisodeTypeEnum.Bonus, weight: 1 },
+      ]),
     };
   }
 }
@@ -169,16 +172,16 @@ export interface GeneratedItemDescription {
 
 export class ItemDescriptionGenerator {
   private idCounter = 1;
-  
+
   generate(item: GeneratedItem): GeneratedItemDescription {
     // Generate HTML-like description with show notes style
     const paragraphs = faker.number.int({ min: 1, max: 4 });
     let description = '';
-    
+
     for (let i = 0; i < paragraphs; i++) {
       description += `<p>${faker.lorem.paragraph()}</p>\n`;
     }
-    
+
     // Add some show notes elements
     if (faker.datatype.boolean({ probability: 0.5 })) {
       description += '<h3>Links mentioned:</h3>\n<ul>\n';
@@ -188,11 +191,11 @@ export class ItemDescriptionGenerator {
       }
       description += '</ul>\n';
     }
-    
+
     return {
       id: this.idCounter++,
       item_id: item.id,
-      value: description.slice(0, DATABASE_CONSTANTS.varchar_long)
+      value: description.slice(0, DATABASE_CONSTANTS.varchar_long),
     };
   }
 }
@@ -200,8 +203,8 @@ export class ItemDescriptionGenerator {
 
 ## Summary
 
-| Entity | Count for baseCount=100 |
-|--------|------------------------|
-| Item | 200 (2 per channel) |
-| ItemAbout | 200 (1 per item) |
-| ItemDescription | 200 (1 per item) |
+| Entity          | Count for baseCount=100 |
+| --------------- | ----------------------- |
+| Item            | 200 (2 per channel)     |
+| ItemAbout       | 200 (1 per item)        |
+| ItemDescription | 200 (1 per item)        |

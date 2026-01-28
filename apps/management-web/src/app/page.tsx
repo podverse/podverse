@@ -41,7 +41,7 @@ export default function HomePage() {
 
     try {
       await login({ email, password });
-      
+
       // The cookie is set automatically by the API response via Set-Cookie header
       // Redirect to dashboard on success
       router.push('/dashboard');
@@ -76,23 +76,15 @@ export default function HomePage() {
     <CenterContainer>
       <Card className={styles.loginCard}>
         <div className={styles.loginHeader}>
-          <h1 className={styles.loginTitle}>
-            Podverse Management
-          </h1>
-          <p className={styles.loginSubtitle}>
-            Please sign in to continue
-          </p>
+          <h1 className={styles.loginTitle}>Podverse Management</h1>
+          <p className={styles.loginSubtitle}>Please sign in to continue</p>
         </div>
 
         <form onSubmit={handleSubmit}>
-          {error && (
-            <Alert variant="error">{error}</Alert>
-          )}
+          {error && <Alert variant="error">{error}</Alert>}
 
           <FormGroup>
-            <FormLabel htmlFor="email">
-              Username / Email
-            </FormLabel>
+            <FormLabel htmlFor="email">Username / Email</FormLabel>
             <FormInput
               id="email"
               type="text"
@@ -104,9 +96,7 @@ export default function HomePage() {
           </FormGroup>
 
           <FormGroup>
-            <FormLabel htmlFor="password">
-              Password
-            </FormLabel>
+            <FormLabel htmlFor="password">Password</FormLabel>
             <FormInput
               id="password"
               type="password"

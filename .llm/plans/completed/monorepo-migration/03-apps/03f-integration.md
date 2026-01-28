@@ -243,6 +243,7 @@ npm run build:apps
 ```
 
 Verify each app can import from:
+
 - `@podverse/helpers`
 - `@podverse/orm`
 - `@podverse/external-services`
@@ -271,6 +272,7 @@ npm run dev:management-web
 ```
 
 Verify no port conflicts (configure different ports as needed):
+
 - API: default port from .env
 - Web: 3000
 - Management API: from .env
@@ -308,6 +310,7 @@ Create/update migration documentation:
 ### `docs/monorepo-migration.md`
 
 Document:
+
 - Migration completed
 - New project structure
 - How to run applications
@@ -319,17 +322,21 @@ Document:
 ## Verification Checklist
 
 ### Build Verification
+
 - [ ] `npm run build:packages` succeeds
 - [ ] `npm run build:apps` succeeds
 - [ ] `npm run build` (all workspaces) succeeds
 
 ### Lint Verification
+
 - [ ] `npm run lint` passes for all workspaces
 
 ### Type Check Verification
+
 - [ ] `npm run type-check` passes for all workspaces
 
 ### Dev Server Verification
+
 - [ ] `npm run dev:api` starts successfully
 - [ ] `npm run dev:web` starts successfully
 - [ ] `npm run dev:workers` (individual commands work)
@@ -337,6 +344,7 @@ Document:
 - [ ] `npm run dev:management-web` starts successfully
 
 ### Docker Verification
+
 - [ ] API Docker image builds
 - [ ] Web Docker image builds
 - [ ] Workers Docker image builds
@@ -344,6 +352,7 @@ Document:
 - [ ] Management Web Docker image builds
 
 ### Runtime Verification
+
 - [ ] API responds to requests
 - [ ] Web pages load correctly
 - [ ] Worker commands execute

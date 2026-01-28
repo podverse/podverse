@@ -7,10 +7,12 @@ import styles from '../../../styles/components/Content/Podroll/ContentPodrollAcc
 type ContentPodrollAccordionProps = {
   remoteItemsResponse: RemoteItemsResponse;
   defaultOpen?: boolean;
-}
+};
 
 export const ContentPodrollAccordion: React.FC<ContentPodrollAccordionProps> = ({
-  remoteItemsResponse, defaultOpen }) => {
+  remoteItemsResponse,
+  defaultOpen,
+}) => {
   return (
     <Accordion
       contentClass={styles.accordion}

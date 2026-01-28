@@ -6,12 +6,12 @@ import { ParseRSSFeedAndSaveToDatabaseOptions } from '@podverse/parser';
 type MQRSSAddOptions = MQQueueConfigFunctionParams & {
   feedUrl: string;
   podcast_index_id: number;
-}
+};
 
 export const mqRSSAdd = async (
   activeMQArtemisService: ActiveMQArtemisService,
   options: MQRSSAddOptions,
-  msgOptions: ParseRSSFeedAndSaveToDatabaseOptions,
+  msgOptions: ParseRSSFeedAndSaveToDatabaseOptions
 ) => {
   await activeMQArtemisService.initialize();
 

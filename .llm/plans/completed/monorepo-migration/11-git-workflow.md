@@ -22,15 +22,15 @@ feature/* | fix/* | chore/*
 
 ### Branch Descriptions
 
-| Branch | Purpose | Deploys To |
-|--------|---------|------------|
-| `main` | Production releases | Production servers |
-| `beta` | Beta testing | Beta servers |
-| `alpha` | Alpha testing | Alpha servers |
-| `develop` | Main development | (none - CI only) |
-| `feature/*` | New features | (none - CI only) |
-| `fix/*` | Bug fixes | (none - CI only) |
-| `chore/*` | Maintenance | (none - CI only) |
+| Branch      | Purpose             | Deploys To         |
+| ----------- | ------------------- | ------------------ |
+| `main`      | Production releases | Production servers |
+| `beta`      | Beta testing        | Beta servers       |
+| `alpha`     | Alpha testing       | Alpha servers      |
+| `develop`   | Main development    | (none - CI only)   |
+| `feature/*` | New features        | (none - CI only)   |
+| `fix/*`     | Bug fixes           | (none - CI only)   |
+| `chore/*`   | Maintenance         | (none - CI only)   |
 
 ### Branch Naming
 
@@ -55,17 +55,17 @@ Follow Conventional Commits:
 
 ### Types
 
-| Type | Description |
-|------|-------------|
-| `feat` | New feature |
-| `fix` | Bug fix |
-| `docs` | Documentation only |
-| `style` | Formatting, no code change |
+| Type       | Description                             |
+| ---------- | --------------------------------------- |
+| `feat`     | New feature                             |
+| `fix`      | Bug fix                                 |
+| `docs`     | Documentation only                      |
+| `style`    | Formatting, no code change              |
 | `refactor` | Code change that neither fixes nor adds |
-| `perf` | Performance improvement |
-| `test` | Adding tests |
-| `chore` | Maintenance tasks |
-| `ci` | CI/CD changes |
+| `perf`     | Performance improvement                 |
+| `test`     | Adding tests                            |
+| `chore`    | Maintenance tasks                       |
+| `ci`       | CI/CD changes                           |
 
 ### Examples
 
@@ -156,7 +156,7 @@ required_pull_request_reviews:
 required_status_checks:
   strict: true
   contexts:
-    - "validate"
+    - 'validate'
 restrictions: null
 allow_force_pushes: false
 allow_deletions: false
@@ -171,10 +171,10 @@ required_pull_request_reviews:
 required_status_checks:
   strict: true
   contexts:
-    - "validate"
+    - 'validate'
 restrictions:
   users: []
-  teams: ["maintainers"]
+  teams: ['maintainers']
 allow_force_pushes: false
 ```
 
@@ -188,10 +188,10 @@ required_pull_request_reviews:
 required_status_checks:
   strict: true
   contexts:
-    - "validate"
+    - 'validate'
 restrictions:
   users: []
-  teams: ["maintainers"]
+  teams: ['maintainers']
 allow_force_pushes: false
 require_linear_history: true
 ```
@@ -343,7 +343,7 @@ git checkout feature/issue-123-description
 git rebase develop
 
 # Squash commits before PR
-git rebase -i HEAD~3  # squash last 3 commits
+git rebase -i HEAD~3 # squash last 3 commits
 
 # Push with force (after rebase)
 git push --force-with-lease
@@ -351,21 +351,21 @@ git push --force-with-lease
 
 ### PR Merge Strategy
 
-| Target Branch | Merge Method |
-|---------------|--------------|
-| `develop` | Squash and merge |
-| `alpha` | Merge commit |
-| `beta` | Merge commit |
-| `main` | Merge commit |
+| Target Branch | Merge Method     |
+| ------------- | ---------------- |
+| `develop`     | Squash and merge |
+| `alpha`       | Merge commit     |
+| `beta`        | Merge commit     |
+| `main`        | Merge commit     |
 
 ## Files to Create
 
-| File | Purpose |
-|------|---------|
-| `.github/PULL_REQUEST_TEMPLATE.md` | PR template |
-| `.github/ISSUE_TEMPLATE/bug_report.md` | Bug template |
+| File                                        | Purpose          |
+| ------------------------------------------- | ---------------- |
+| `.github/PULL_REQUEST_TEMPLATE.md`          | PR template      |
+| `.github/ISSUE_TEMPLATE/bug_report.md`      | Bug template     |
 | `.github/ISSUE_TEMPLATE/feature_request.md` | Feature template |
-| `.github/CODEOWNERS` | Code ownership |
+| `.github/CODEOWNERS`                        | Code ownership   |
 
 ## GitHub Settings to Configure
 

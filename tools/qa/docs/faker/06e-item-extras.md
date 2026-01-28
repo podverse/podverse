@@ -41,17 +41,19 @@ export interface GeneratedItemChat {
 
 export class ItemChatGenerator {
   private idCounter = 1;
-  
+
   generate(item: GeneratedItem): GeneratedItemChat | null {
     if (!faker.datatype.boolean({ probability: 0.05 })) return null;
-    
+
     return {
       id: this.idCounter++,
       item_id: item.id,
       server: `chat.${faker.internet.domainName()}`.slice(0, DATABASE_CONSTANTS.varchar_fqdn),
-      protocol: faker.helpers.arrayElement(['irc', 'xmpp', 'matrix']).slice(0, DATABASE_CONSTANTS.varchar_short),
+      protocol: faker.helpers
+        .arrayElement(['irc', 'xmpp', 'matrix'])
+        .slice(0, DATABASE_CONSTANTS.varchar_short),
       account_id: faker.string.alphanumeric(20).slice(0, DATABASE_CONSTANTS.varchar_normal),
-      space: `#${faker.lorem.word()}-${item.id}`.slice(0, DATABASE_CONSTANTS.varchar_normal)
+      space: `#${faker.lorem.word()}-${item.id}`.slice(0, DATABASE_CONSTANTS.varchar_normal),
     };
   }
 }
@@ -72,18 +74,18 @@ export class ItemLicenseGenerator {
   private licenses = [
     { identifier: 'CC-BY-4.0', url: 'https://creativecommons.org/licenses/by/4.0/' },
     { identifier: 'CC-BY-SA-4.0', url: 'https://creativecommons.org/licenses/by-sa/4.0/' },
-    { identifier: 'CC-BY-NC-4.0', url: 'https://creativecommons.org/licenses/by-nc/4.0/' }
+    { identifier: 'CC-BY-NC-4.0', url: 'https://creativecommons.org/licenses/by-nc/4.0/' },
   ];
-  
+
   generate(item: GeneratedItem): GeneratedItemLicense | null {
     if (!faker.datatype.boolean({ probability: 0.1 })) return null;
-    
+
     const license = faker.helpers.arrayElement(this.licenses);
     return {
       id: this.idCounter++,
       item_id: item.id,
       identifier: license.identifier.slice(0, DATABASE_CONSTANTS.varchar_normal),
-      url: license.url.slice(0, DATABASE_CONSTANTS.varchar_url)
+      url: license.url.slice(0, DATABASE_CONSTANTS.varchar_url),
     };
   }
 }
@@ -102,18 +104,24 @@ export interface GeneratedItemLocation {
 
 export class ItemLocationGenerator {
   private idCounter = 1;
-  
+
   generate(item: GeneratedItem): GeneratedItemLocation | null {
     if (!faker.datatype.boolean({ probability: 0.1 })) return null;
-    
+
     return {
       id: this.idCounter++,
       item_id: item.id,
-      geo: `geo:${faker.location.latitude()},${faker.location.longitude()}`.slice(0, DATABASE_CONSTANTS.varchar_normal),
+      geo: `geo:${faker.location.latitude()},${faker.location.longitude()}`.slice(
+        0,
+        DATABASE_CONSTANTS.varchar_normal
+      ),
       osm: faker.datatype.boolean({ probability: 0.5 })
-        ? `R${faker.number.int({ min: 1000000, max: 9999999 })}`.slice(0, DATABASE_CONSTANTS.varchar_normal)
+        ? `R${faker.number.int({ min: 1000000, max: 9999999 })}`.slice(
+            0,
+            DATABASE_CONSTANTS.varchar_normal
+          )
         : null,
-      name: faker.location.city().slice(0, DATABASE_CONSTANTS.varchar_normal)
+      name: faker.location.city().slice(0, DATABASE_CONSTANTS.varchar_normal),
     };
   }
 }
@@ -131,17 +139,17 @@ export interface GeneratedItemSeason {
 
 export class ItemSeasonGenerator {
   private idCounter = 1;
-  
+
   generate(item: GeneratedItem, maxSeason: number = 5): GeneratedItemSeason | null {
     if (!faker.datatype.boolean({ probability: 0.3 })) return null;
-    
+
     return {
       id: this.idCounter++,
       item_id: item.id,
       number: faker.number.int({ min: 1, max: maxSeason }),
       title: faker.datatype.boolean({ probability: 0.4 })
         ? faker.lorem.words({ min: 2, max: 4 }).slice(0, DATABASE_CONSTANTS.varchar_normal)
-        : null
+        : null,
     };
   }
 }
@@ -155,10 +163,10 @@ export interface GeneratedItemSeasonEpisode {
 
 export class ItemSeasonEpisodeGenerator {
   private idCounter = 1;
-  
+
   generate(item: GeneratedItem): GeneratedItemSeasonEpisode | null {
     if (!faker.datatype.boolean({ probability: 0.4 })) return null;
-    
+
     const number = faker.number.int({ min: 1, max: 100 });
     return {
       id: this.idCounter++,
@@ -166,7 +174,7 @@ export class ItemSeasonEpisodeGenerator {
       display: faker.datatype.boolean({ probability: 0.3 })
         ? `E${number}`.slice(0, DATABASE_CONSTANTS.varchar_short)
         : null,
-      number
+      number,
     };
   }
 }
@@ -184,18 +192,20 @@ export interface GeneratedItemFunding {
 
 export class ItemFundingGenerator {
   private idCounter = 1;
-  
+
   generate(item: GeneratedItem): GeneratedItemFunding[] {
     if (!faker.datatype.boolean({ probability: 0.2 })) return [];
-    
-    return [{
-      id: this.idCounter++,
-      item_id: item.id,
-      url: (faker.internet.url() + '/support').slice(0, DATABASE_CONSTANTS.varchar_url),
-      title: faker.datatype.boolean({ probability: 0.7 })
-        ? 'Support this episode'.slice(0, DATABASE_CONSTANTS.varchar_normal)
-        : null
-    }];
+
+    return [
+      {
+        id: this.idCounter++,
+        item_id: item.id,
+        url: (faker.internet.url() + '/support').slice(0, DATABASE_CONSTANTS.varchar_url),
+        title: faker.datatype.boolean({ probability: 0.7 })
+          ? 'Support this episode'.slice(0, DATABASE_CONSTANTS.varchar_normal)
+          : null,
+      },
+    ];
   }
 }
 ```
@@ -215,19 +225,19 @@ export interface GeneratedItemTranscript {
 export class ItemTranscriptGenerator {
   private idCounter = 1;
   private mediaServerBase = 'http://localhost:2111';
-  
+
   generate(item: GeneratedItem): GeneratedItemTranscript[] {
     if (!faker.datatype.boolean({ probability: 0.3 })) return [];
-    
+
     const transcripts: GeneratedItemTranscript[] = [];
     const types = [
       { type: 'text/vtt', ext: 'vtt' },
-      { type: 'application/srt', ext: 'srt' }
+      { type: 'application/srt', ext: 'srt' },
     ];
-    
+
     const count = faker.number.int({ min: 1, max: 2 });
     const selected = faker.helpers.arrayElements(types, count);
-    
+
     for (const t of selected) {
       transcripts.push({
         id: this.idCounter++,
@@ -237,10 +247,10 @@ export class ItemTranscriptGenerator {
         language: faker.datatype.boolean({ probability: 0.7 })
           ? faker.helpers.arrayElement(['en', 'es', 'de', 'fr'])
           : null,
-        rel: faker.datatype.boolean({ probability: 0.2 }) ? 'captions' : null
+        rel: faker.datatype.boolean({ probability: 0.2 }) ? 'captions' : null,
       });
     }
-    
+
     return transcripts;
   }
 }
@@ -259,17 +269,17 @@ export interface GeneratedItemSoundbite {
 
 export class ItemSoundbiteGenerator {
   private idCounter = 1;
-  
+
   generate(item: GeneratedItem, itemDuration: number): GeneratedItemSoundbite[] {
     if (!faker.datatype.boolean({ probability: 0.2 })) return [];
-    
+
     const count = faker.number.int({ min: 1, max: 3 });
     const soundbites: GeneratedItemSoundbite[] = [];
-    
+
     for (let i = 0; i < count; i++) {
       const startTime = faker.number.float({ min: 0, max: itemDuration - 60 });
       const duration = faker.number.float({ min: 15, max: 60 });
-      
+
       soundbites.push({
         id: this.idCounter++,
         item_id: item.id,
@@ -277,10 +287,10 @@ export class ItemSoundbiteGenerator {
         duration: duration.toFixed(2),
         title: faker.datatype.boolean({ probability: 0.6 })
           ? faker.lorem.sentence({ min: 2, max: 6 }).slice(0, DATABASE_CONSTANTS.varchar_normal)
-          : null
+          : null,
       });
     }
-    
+
     return soundbites;
   }
 }
@@ -298,16 +308,20 @@ export interface GeneratedItemTxt {
 
 export class ItemTxtGenerator {
   private idCounter = 1;
-  
+
   generate(item: GeneratedItem): GeneratedItemTxt[] {
     if (!faker.datatype.boolean({ probability: 0.05 })) return [];
-    
-    return [{
-      id: this.idCounter++,
-      item_id: item.id,
-      purpose: faker.helpers.arrayElement(['verify', null]),
-      value: faker.string.alphanumeric({ length: { min: 20, max: 50 } }).slice(0, DATABASE_CONSTANTS.varchar_long)
-    }];
+
+    return [
+      {
+        id: this.idCounter++,
+        item_id: item.id,
+        purpose: faker.helpers.arrayElement(['verify', null]),
+        value: faker.string
+          .alphanumeric({ length: { min: 20, max: 50 } })
+          .slice(0, DATABASE_CONSTANTS.varchar_long),
+      },
+    ];
   }
 }
 
@@ -323,19 +337,23 @@ export interface GeneratedItemSocialInteract {
 
 export class ItemSocialInteractGenerator {
   private idCounter = 1;
-  
+
   generate(item: GeneratedItem): GeneratedItemSocialInteract[] {
     if (!faker.datatype.boolean({ probability: 0.15 })) return [];
-    
-    return [{
-      id: this.idCounter++,
-      item_id: item.id,
-      protocol: faker.helpers.arrayElement(['activitypub', 'twitter']).slice(0, DATABASE_CONSTANTS.varchar_short),
-      uri: faker.internet.url().slice(0, DATABASE_CONSTANTS.varchar_uri),
-      account_id: faker.internet.username().slice(0, DATABASE_CONSTANTS.varchar_normal),
-      account_url: faker.internet.url().slice(0, DATABASE_CONSTANTS.varchar_url),
-      priority: 1
-    }];
+
+    return [
+      {
+        id: this.idCounter++,
+        item_id: item.id,
+        protocol: faker.helpers
+          .arrayElement(['activitypub', 'twitter'])
+          .slice(0, DATABASE_CONSTANTS.varchar_short),
+        uri: faker.internet.url().slice(0, DATABASE_CONSTANTS.varchar_uri),
+        account_id: faker.internet.username().slice(0, DATABASE_CONSTANTS.varchar_normal),
+        account_url: faker.internet.url().slice(0, DATABASE_CONSTANTS.varchar_url),
+        priority: 1,
+      },
+    ];
   }
 }
 
@@ -348,16 +366,16 @@ export interface GeneratedItemContentLink {
 
 export class ItemContentLinkGenerator {
   private idCounter = 1;
-  
+
   generate(item: GeneratedItem): GeneratedItemContentLink[] {
     if (!faker.datatype.boolean({ probability: 0.2 })) return [];
-    
+
     const count = faker.number.int({ min: 1, max: 3 });
     return Array.from({ length: count }, () => ({
       id: this.idCounter++,
       item_id: item.id,
       href: faker.internet.url().slice(0, DATABASE_CONSTANTS.varchar_url),
-      title: faker.lorem.words({ min: 2, max: 5 }).slice(0, DATABASE_CONSTANTS.varchar_normal)
+      title: faker.lorem.words({ min: 2, max: 5 }).slice(0, DATABASE_CONSTANTS.varchar_normal),
     }));
   }
 }
@@ -365,16 +383,16 @@ export class ItemContentLinkGenerator {
 
 ## Summary
 
-| Entity | Count for baseCount=100 |
-|--------|------------------------|
-| ItemChat | ~10 (5% have chat) |
-| ItemLicense | ~20 (10% have license) |
-| ItemLocation | ~20 (10% have location) |
-| ItemSeason | ~60 (30% have season) |
-| ItemSeasonEpisode | ~80 (40% have episode) |
-| ItemFunding | ~40 (20% have funding) |
-| ItemTranscript | ~90 (30% have 1-2) |
-| ItemSoundbite | ~60 (20% have 1-3) |
-| ItemTxt | ~10 (5% have txt) |
-| ItemSocialInteract | ~30 (15% have social) |
-| ItemContentLink | ~60 (20% have 1-3) |
+| Entity             | Count for baseCount=100 |
+| ------------------ | ----------------------- |
+| ItemChat           | ~10 (5% have chat)      |
+| ItemLicense        | ~20 (10% have license)  |
+| ItemLocation       | ~20 (10% have location) |
+| ItemSeason         | ~60 (30% have season)   |
+| ItemSeasonEpisode  | ~80 (40% have episode)  |
+| ItemFunding        | ~40 (20% have funding)  |
+| ItemTranscript     | ~90 (30% have 1-2)      |
+| ItemSoundbite      | ~60 (20% have 1-3)      |
+| ItemTxt            | ~10 (5% have txt)       |
+| ItemSocialInteract | ~30 (15% have social)   |
+| ItemContentLink    | ~60 (20% have 1-3)      |

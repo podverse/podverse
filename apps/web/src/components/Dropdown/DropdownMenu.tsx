@@ -34,14 +34,12 @@ export const DropdownMenu: React.FC<DropdownMenuProps> = ({
   fullWidth,
   verticalPosition = 'below',
 }) => {
-  if (!open) {return null;}
+  if (!open) {
+    return null;
+  }
 
   const positionStyle =
-    position === 'left'
-      ? { left: 0 }
-      : position === 'right'
-      ? { right: 0 }
-      : { right: 0 };
+    position === 'left' ? { left: 0 } : position === 'right' ? { right: 0 } : { right: 0 };
 
   const fullWidthStyle = fullWidth ? { width: '100%' } : {};
 

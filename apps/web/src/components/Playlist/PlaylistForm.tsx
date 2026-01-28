@@ -55,10 +55,7 @@ export const PlaylistForm: React.FC<PlaylistFormProps> = ({
   const router = useRouter();
 
   const handleDelete = async () => {
-    if (
-      edit_playlist_id_text &&
-      window.confirm(tFeatures('playlist.delete_playlist_confirm'))
-    ) {
+    if (edit_playlist_id_text && window.confirm(tFeatures('playlist.delete_playlist_confirm'))) {
       await apiRequestService.reqPlaylistDelete(edit_playlist_id_text);
       router.push('/playlists');
     }
@@ -109,11 +106,7 @@ export const PlaylistForm: React.FC<PlaylistFormProps> = ({
         rows={3}
       />
       <div className={styles.buttons}>
-        <Button
-          variant="secondary"
-          type="button"
-          onClick={onCancel}
-        >
+        <Button variant="secondary" type="button" onClick={onCancel}>
           {tMisc('cancel')}
         </Button>
         <Button
@@ -126,22 +119,16 @@ export const PlaylistForm: React.FC<PlaylistFormProps> = ({
           {tMisc('submit')}
         </Button>
       </div>
-      {
-        edit_playlist_id_text && (
-          <div className={styles.bottomSection}>
-            <Divider />
-            <div className={styles.bottomSectionButtons}>
-              <Button
-                variant="danger"
-                type="button"
-                onClick={handleDelete}
-              >
-                {tFeatures('playlist.delete_playlist')}
-              </Button>
-            </div>
+      {edit_playlist_id_text && (
+        <div className={styles.bottomSection}>
+          <Divider />
+          <div className={styles.bottomSectionButtons}>
+            <Button variant="danger" type="button" onClick={handleDelete}>
+              {tFeatures('playlist.delete_playlist')}
+            </Button>
           </div>
-        )
-      }
+        </div>
+      )}
     </Form>
   );
 };

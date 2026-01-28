@@ -4,9 +4,9 @@ import { AccountCredentials } from '@orm/entities/account/accountCredentials';
 import { BaseOneService } from '@orm/services/base/baseOneService';
 
 export type AccountCredentialsDto = {
-  email?: string
-  password?: string
-}
+  email?: string;
+  password?: string;
+};
 
 export class AccountCredentialsService extends BaseOneService<AccountCredentials, 'account'> {
   constructor(transactionalEntityManager?: EntityManager) {

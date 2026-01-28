@@ -18,18 +18,23 @@ export class MembershipClaimTokenController {
   }
 
   async claim(req: Request, res: Response): Promise<void> {
-    ensureAuthenticated(req, res, async () => {
-      validateParamsObject(claimSchema, req, res, async () => {
-        try {
-          const jwtUser = getAuthenticatedUser(req);
-          const account_id = jwtUser.id;
-          const token = getParamRequired(req, 'token');
-          await this.membershipClaimTokenService.claim(account_id, token);
-          res.status(200).json({ message: 'Membership claim token successfully claimed' });
-        } catch (error) {
-          handleGenericErrorResponse(res, error);
-        }
-      });
-    }, { skipMembershipStatus: true });
+    ensureAuthenticated(
+      req,
+      res,
+      async () => {
+        validateParamsObject(claimSchema, req, res, async () => {
+          try {
+            const jwtUser = getAuthenticatedUser(req);
+            const account_id = jwtUser.id;
+            const token = getParamRequired(req, 'token');
+            await this.membershipClaimTokenService.claim(account_id, token);
+            res.status(200).json({ message: 'Membership claim token successfully claimed' });
+          } catch (error) {
+            handleGenericErrorResponse(res, error);
+          }
+        });
+      },
+      { skipMembershipStatus: true }
+    );
   }
 }

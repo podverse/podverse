@@ -6,7 +6,7 @@ export class FeedLog {
   @PrimaryGeneratedColumn()
   id!: number;
 
-  @OneToOne(() => Feed, feed => feed.feed_log, { onDelete: 'CASCADE' })
+  @OneToOne(() => Feed, (feed) => feed.feed_log, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'feed_id' })
   feed!: Feed;
 

@@ -1,4 +1,11 @@
-import { DTOChannel, DTOItem, EpisodeByGuidResponse, PodcastBatchByFeedGuidResponse, QueryParamsChannelMusicArtist, RemoteItemsResponse } from '@podverse/helpers';
+import {
+  DTOChannel,
+  DTOItem,
+  EpisodeByGuidResponse,
+  PodcastBatchByFeedGuidResponse,
+  QueryParamsChannelMusicArtist,
+  RemoteItemsResponse,
+} from '@podverse/helpers';
 import React from 'react';
 import { MainWrapper } from '../../../components/Main/MainWrapper';
 import { ArtistContextProvider } from './ArtistContext';
@@ -20,22 +27,26 @@ interface ArtistClientProps {
 }
 
 export function ArtistClient(props: ArtistClientProps) {
-  const { initialQueryParams, ssrChannel, ssrChannelsAdded, ssrChannelsUnadded, ssrItemsAdded,
-    ssrItemsUnadded, ssrPodroll } = props;
+  const {
+    initialQueryParams,
+    ssrChannel,
+    ssrChannelsAdded,
+    ssrChannelsUnadded,
+    ssrItemsAdded,
+    ssrItemsUnadded,
+    ssrPodroll,
+  } = props;
   const ssrHasAlbums = ssrChannelsAdded.length > 0 || ssrChannelsUnadded.length > 0;
   const ssrHasTracks = ssrItemsAdded.length > 0 || ssrItemsUnadded.length > 0;
   const ssrHasDescription = !!ssrChannel.channel_description;
   const ssrHasPodroll = !!ssrPodroll;
-  
+
   return (
     <ArtistContextProvider initialQueryParams={initialQueryParams}>
       <MainWrapper>
         <ArtistHeader channel={ssrChannel} />
         <MainInnerWrapper>
-          <ArtistSideContent
-            channel={ssrChannel}
-            podroll={ssrPodroll}
-          />
+          <ArtistSideContent channel={ssrChannel} podroll={ssrPodroll} />
           <MainInnerContentWrapper>
             <ArtistListHeader
               ssrHasAlbums={ssrHasAlbums}
@@ -49,7 +60,8 @@ export function ArtistClient(props: ArtistClientProps) {
               ssrChannelsUnadded={ssrChannelsUnadded}
               ssrItemsAdded={ssrItemsAdded}
               ssrItemsUnadded={ssrItemsUnadded}
-              podroll={ssrPodroll} />
+              podroll={ssrPodroll}
+            />
           </MainInnerContentWrapper>
         </MainInnerWrapper>
       </MainWrapper>

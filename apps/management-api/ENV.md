@@ -63,6 +63,7 @@ Validation occurs in `src/lib/startup/validation.ts` during application startup.
 ### Numeric Validation
 
 Variables containing `PORT` are automatically validated to ensure they are valid positive numbers:
+
 - `DB_PORT`
 - `API_PORT`
 
@@ -75,6 +76,7 @@ Variables containing `PORT` are automatically validated to ensure they are valid
 ## Validation Output
 
 During startup, the validation displays:
+
 - A categorized list of all environment variables
 - Status indicator (✓ for valid, ✗ for invalid)
 - Whether the variable is required or optional
@@ -82,6 +84,7 @@ During startup, the validation displays:
 - A summary with totals and counts
 
 Example output:
+
 ```
 === Environment Variable Validation ===
 

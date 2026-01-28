@@ -9,11 +9,7 @@ type Props = {
 };
 
 const SideBarLink: React.FC<Props> = ({ href, children, disabled }) => (
-  <Link
-    href={href}
-    className={styles.link}
-    disabled={disabled}
-    color="secondary">
+  <Link href={href} className={styles.link} disabled={disabled} color="secondary">
     {children}
   </Link>
 );

@@ -13,13 +13,13 @@ router.get(`${baseUrl}/admin-account/:id`, ensureAuthenticated, async (req, res)
     const adminAccountService = new AdminAccountService();
     const idParam = getParamRequired(req, 'id');
     const id = parseInt(idParam, 10);
-    
+
     if (isNaN(id)) {
       return res.status(400).json({ message: 'Invalid id' });
     }
 
     const adminAccount = await adminAccountService.get(id);
-    
+
     if (!adminAccount) {
       return res.status(404).json({ message: 'Admin account not found' });
     }

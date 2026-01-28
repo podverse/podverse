@@ -43,8 +43,9 @@ export const ProfileContentList: React.FC = () => {
     }
 
     // Show no results only if data has been loaded and there are no results
-    const showNoResults = podcastsLoaded && !isLoading && podcastsPage <= 1 && podcasts.length === 0;
-    
+    const showNoResults =
+      podcastsLoaded && !isLoading && podcastsPage <= 1 && podcasts.length === 0;
+
     if (showNoResults) {
       return <NoResults />;
     }
@@ -74,7 +75,7 @@ export const ProfileContentList: React.FC = () => {
 
     // Show no results only if data has been loaded and there are no results
     const showNoResults = albumsLoaded && !isLoading && albumsPage <= 1 && albums.length === 0;
-    
+
     if (showNoResults) {
       return <NoResults />;
     }
@@ -102,8 +103,9 @@ export const ProfileContentList: React.FC = () => {
     }
 
     // Show no results only if data has been loaded and there are no results
-    const showNoResults = playlistsLoaded && !isLoading && playlistsPage <= 1 && playlists.length === 0;
-    
+    const showNoResults =
+      playlistsLoaded && !isLoading && playlistsPage <= 1 && playlists.length === 0;
+
     if (showNoResults) {
       return <NoResults />;
     }
@@ -131,7 +133,7 @@ export const ProfileContentList: React.FC = () => {
 
     // Show no results only if data has been loaded and there are no results
     const showNoResults = clipsLoaded && !isLoading && clipsPage <= 1 && clips.length === 0;
-    
+
     if (showNoResults) {
       return <NoResults />;
     }

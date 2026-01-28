@@ -10,13 +10,13 @@ Sets up the monorepo foundation: directory structure, configs, LLM tooling, and 
 
 Complete in order:
 
-| Plan | Description | Est. Time | Lines |
-|------|-------------|-----------|-------|
-| [01a-configs.md](01a-configs.md) | Directories, package.json, tsconfig, eslint | 30-45 min | ~180 |
-| [01b-git-hooks.md](01b-git-hooks.md) | Pre-commit and commit-msg hooks | 15-20 min | ~165 |
-| [01c-llm-infra.md](01c-llm-infra.md) | `.llm/` directory, templates, context | 20-30 min | ~180 |
-| [01d-cursor-config.md](01d-cursor-config.md) | `.cursorrules`, rules, skills | 25-35 min | ~240 |
-| [01e-docs-verify.md](01e-docs-verify.md) | docs/, README, verification | 20-30 min | ~215 |
+| Plan                                         | Description                                 | Est. Time | Lines |
+| -------------------------------------------- | ------------------------------------------- | --------- | ----- |
+| [01a-configs.md](01a-configs.md)             | Directories, package.json, tsconfig, eslint | 30-45 min | ~180  |
+| [01b-git-hooks.md](01b-git-hooks.md)         | Pre-commit and commit-msg hooks             | 15-20 min | ~165  |
+| [01c-llm-infra.md](01c-llm-infra.md)         | `.llm/` directory, templates, context       | 20-30 min | ~180  |
+| [01d-cursor-config.md](01d-cursor-config.md) | `.cursorrules`, rules, skills               | 25-35 min | ~240  |
+| [01e-docs-verify.md](01e-docs-verify.md)     | docs/, README, verification                 | 20-30 min | ~215  |
 
 ## What Gets Created
 

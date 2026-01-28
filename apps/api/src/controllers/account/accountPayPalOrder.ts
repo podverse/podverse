@@ -30,67 +30,89 @@ class AccountPayPalOrderController {
 
   static async get(req: Request, res: Response): Promise<void> {
     validateParamsObject(getPayPalOrderSchema, req, res, async () => {
-      ensureAuthenticated(req, res, async () => {
-        try {
-          const jwtUser = getAuthenticatedUser(req);
-          const payment_id = getParamRequired(req, 'payment_id');
+      ensureAuthenticated(
+        req,
+        res,
+        async () => {
+          try {
+            const jwtUser = getAuthenticatedUser(req);
+            const payment_id = getParamRequired(req, 'payment_id');
 
-          const accountPayPalOrder = await this.accountPayPalOrderService.get(jwtUser.id, payment_id);
+            const accountPayPalOrder = await this.accountPayPalOrderService.get(
+              jwtUser.id,
+              payment_id
+            );
 
-          if (!accountPayPalOrder) {
-            res.status(404).json({ error: 'PayPal Order not found' });
-            return;
+            if (!accountPayPalOrder) {
+              res.status(404).json({ error: 'PayPal Order not found' });
+              return;
+            }
+
+            res.status(200).json(accountPayPalOrder);
+          } catch (err) {
+            handleGenericErrorResponse(res, err);
           }
-
-          res.status(200).json(accountPayPalOrder);
-        } catch (err) {
-          handleGenericErrorResponse(res, err);
-        }
-      }, { skipMembershipStatus: true });
+        },
+        { skipMembershipStatus: true }
+      );
     });
   }
 
   static async create(req: Request, res: Response): Promise<void> {
     validateBodyObject(createPayPalOrderSchema, req, res, async () => {
-      ensureAuthenticated(req, res, async () => {
-        try {
-          const jwtUser = getAuthenticatedUser(req);
-          const { payment_id, state } = req.body;
+      ensureAuthenticated(
+        req,
+        res,
+        async () => {
+          try {
+            const jwtUser = getAuthenticatedUser(req);
+            const { payment_id, state } = req.body;
 
-          const accountPayPalOrder = await this.accountPayPalOrderService.create(jwtUser.id, payment_id, state);
-          res.status(201).json(accountPayPalOrder);
-        } catch (err) {
-          handleGenericErrorResponse(res, err);
-        }
-      }, { skipMembershipStatus: false });
+            const accountPayPalOrder = await this.accountPayPalOrderService.create(
+              jwtUser.id,
+              payment_id,
+              state
+            );
+            res.status(201).json(accountPayPalOrder);
+          } catch (err) {
+            handleGenericErrorResponse(res, err);
+          }
+        },
+        { skipMembershipStatus: false }
+      );
     });
   }
 
   static async completePayPalOrder(req: Request, res: Response): Promise<void> {
     validateBodyObject(completePayPalOrderSchema, req, res, async () => {
-      ensureAuthenticated(req, res, async () => {
-        try {
-          const { event_version, resource, resource_version } = req.body;
+      ensureAuthenticated(
+        req,
+        res,
+        async () => {
+          try {
+            const { event_version, resource, resource_version } = req.body;
 
-          if (resource_version === '2.0') {
-            const paymentID = resource.id;
-            const capture = await paypalService.getCaptureInfo(paymentID);
-            const { state } = capture;
-            const isV2 = true;
-            await this.accountPayPalOrderService.completePayPalOrder(paymentID, state, isV2);
-          } else if (event_version === '1.0') {
-            const paymentID = resource.parent_payment;
-            const order = await paypalService.getPaymentInfo(paymentID);
-            const { state } = order;
-            const isV2 = false;
-            await this.accountPayPalOrderService.completePayPalOrder(paymentID, state, isV2);
+            if (resource_version === '2.0') {
+              const paymentID = resource.id;
+              const capture = await paypalService.getCaptureInfo(paymentID);
+              const { state } = capture;
+              const isV2 = true;
+              await this.accountPayPalOrderService.completePayPalOrder(paymentID, state, isV2);
+            } else if (event_version === '1.0') {
+              const paymentID = resource.parent_payment;
+              const order = await paypalService.getPaymentInfo(paymentID);
+              const { state } = order;
+              const isV2 = false;
+              await this.accountPayPalOrderService.completePayPalOrder(paymentID, state, isV2);
+            }
+
+            res.status(200).json({ message: 'Payment completed successfully' });
+          } catch (err) {
+            handleGenericErrorResponse(res, err);
           }
-
-          res.status(200).json({ message: 'Payment completed successfully' });
-        } catch (err) {
-          handleGenericErrorResponse(res, err);
-        }
-      }, { skipMembershipStatus: true });
+        },
+        { skipMembershipStatus: true }
+      );
     });
   }
 }

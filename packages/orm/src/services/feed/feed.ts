@@ -5,17 +5,17 @@ import { FeedFlagStatusService } from './feedFlagStatus';
 import { applyProperties } from '@orm/lib/applyProperties';
 
 type FeedCreateDto = {
-  url: string,
-  podcast_index_id: number
-}
+  url: string;
+  podcast_index_id: number;
+};
 
 type FeedUpdateDto = {
-  url?: string
-  is_parsing?: Date | null
-  parsing_priority?: number
-  last_parsed_file_hash?: string | null
-  container_id?: string | null
-}
+  url?: string;
+  is_parsing?: Date | null;
+  parsing_priority?: number;
+  last_parsed_file_hash?: string | null;
+  container_id?: string | null;
+};
 
 export class FeedService {
   private repositoryRead = AppDataSourceRead.getRepository(Feed);
@@ -56,7 +56,9 @@ export class FeedService {
       },
       relations: ['channel', 'feed_flag_status', 'feed_log'],
     });
-    if (httpsFeed) {return httpsFeed;}
+    if (httpsFeed) {
+      return httpsFeed;
+    }
 
     const httpFeed = await this.repositoryRead.findOne({
       where: {
@@ -64,13 +66,20 @@ export class FeedService {
       },
       relations: ['channel', 'feed_flag_status', 'feed_log'],
     });
-    if (httpFeed) {return httpFeed;}
+    if (httpFeed) {
+      return httpFeed;
+    }
 
     return null;
   }
 
-  async getByUrlAndPodcastIndexId({ url, podcast_index_id }: {
-    url: string, podcast_index_id: number }): Promise<Feed | null> {
+  async getByUrlAndPodcastIndexId({
+    url,
+    podcast_index_id,
+  }: {
+    url: string;
+    podcast_index_id: number;
+  }): Promise<Feed | null> {
     return this.repositoryRead.findOne({
       where: {
         url,
@@ -79,7 +88,7 @@ export class FeedService {
       relations: ['channel', 'feed_flag_status', 'feed_log'],
     });
   }
-  
+
   async getByPodcastIndexId(podcast_index_id: number): Promise<Feed | null> {
     return this.repositoryRead.findOne({
       where: {
@@ -110,7 +119,9 @@ export class FeedService {
     const feedFlagStatusService = new FeedFlagStatusService();
     const feed_flag_status = await feedFlagStatusService.get(FeedFlagStatusStatusEnum.Active);
     if (!feed_flag_status) {
-      throw new Error(`FeedService.create: feed status ${FeedFlagStatusStatusEnum.Active} not found`);
+      throw new Error(
+        `FeedService.create: feed status ${FeedFlagStatusStatusEnum.Active} not found`
+      );
     } else {
       feed.feed_flag_status = feed_flag_status;
     }
@@ -137,13 +148,13 @@ export class FeedService {
   async updateFlagStatus(feed: Feed, feed_flag_status_id: FeedFlagStatusStatusEnum): Promise<Feed> {
     const feedFlagStatusService = new FeedFlagStatusService();
     const feed_flag_status = await feedFlagStatusService.get(feed_flag_status_id);
-  
+
     if (!feed_flag_status) {
       throw new Error(`FeedService.updateFlagStatus: feed status ${feed_flag_status_id} not found`);
     }
-  
+
     feed.feed_flag_status = feed_flag_status;
-  
+
     return this.repositoryReadWrite.save(feed);
   }
 }

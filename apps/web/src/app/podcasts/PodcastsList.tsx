@@ -11,8 +11,16 @@ import { useRouter } from 'next/navigation';
 import { HowToStartInfo } from '../../components/InfoWrapper/HowToStartInfo';
 
 export const PodcastsList: React.FC = () => {
-  const { filterParams, setFilterParams, channels, totalPages, isLoading,
-    showSubscribeMessage, showCategoriesModal, setShowCategoriesModal } = usePodcastsContext();
+  const {
+    filterParams,
+    setFilterParams,
+    channels,
+    totalPages,
+    isLoading,
+    showSubscribeMessage,
+    showCategoriesModal,
+    setShowCategoriesModal,
+  } = usePodcastsContext();
   const { viewSelected } = useLocalSettings();
   const { page, type, category } = filterParams;
   const router = useRouter();
@@ -30,14 +38,9 @@ export const PodcastsList: React.FC = () => {
 
   return (
     <>
-      {
-        filterParams.type === 'subscribed' && (
-          <HowToStartInfo
-            rows={channels}
-            totalPages={totalPages}
-          />
-        )
-      }
+      {filterParams.type === 'subscribed' && (
+        <HowToStartInfo rows={channels} totalPages={totalPages} />
+      )}
       <ListPodcasts
         page={page}
         setPage={(page) => setFilterParams({ ...filterParams, page })}

@@ -1,8 +1,11 @@
-
 export type MQQueueNameParamKey = 'rss-slow' | 'rss-normal' | 'rss-on-demand' | 'rss-live';
 
-export const validMQQueueNamesParamKeys: MQQueueNameParamKey[]
-  = ['rss-slow', 'rss-normal', 'rss-on-demand', 'rss-live'];
+export const validMQQueueNamesParamKeys: MQQueueNameParamKey[] = [
+  'rss-slow',
+  'rss-normal',
+  'rss-on-demand',
+  'rss-live',
+];
 
 type MQQueueName = 'rss-normal' | 'rss-on-demand' | 'rss-live';
 
@@ -10,19 +13,19 @@ export type MQQueueConfig = {
   queueName: MQQueueName;
   dedupeCacheTimeMS: number | null;
   priority: 'normal' | 'slow';
-}
+};
 
 export type MQQueueConfigFunctionParams = MQQueueConfig & {
   closeAfterSend: boolean;
-}
+};
 
 export const MQ_QUEUES: Record<MQQueueNameParamKey, MQQueueConfig> = {
-  'rss-slow':{
+  'rss-slow': {
     queueName: 'rss-normal',
     dedupeCacheTimeMS: 15 * 60 * 1000,
     priority: 'slow',
   },
-  'rss-normal':{
+  'rss-normal': {
     queueName: 'rss-normal',
     dedupeCacheTimeMS: 5 * 60 * 1000,
     priority: 'normal',

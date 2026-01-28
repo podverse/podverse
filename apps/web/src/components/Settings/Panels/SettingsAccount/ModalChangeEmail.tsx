@@ -13,14 +13,11 @@ import { apiRequestService } from '../../../../factories/apiRequestService';
 import { handleRateLimitAlert } from '../../../../utils/rateLimit/rateLimitAlert';
 
 type ModalChangeEmailProps = {
-  isOpen: boolean
-  onClose: () => void
-}
+  isOpen: boolean;
+  onClose: () => void;
+};
 
-export const ModalChangeEmail: React.FC<ModalChangeEmailProps> = ({
-  isOpen,
-  onClose,
-}) => {
+export const ModalChangeEmail: React.FC<ModalChangeEmailProps> = ({ isOpen, onClose }) => {
   const tSettings = useTranslations('settings');
   const tAuthentication = useTranslations('authentication');
   const tMisc = useTranslations('misc');
@@ -44,9 +41,13 @@ export const ModalChangeEmail: React.FC<ModalChangeEmailProps> = ({
     setEmailTouched(value !== '');
     if (emailErrorKey) {
       const key = getEmailErrorKey(value);
-      if (!key) {setEmailErrorKey(undefined);}
+      if (!key) {
+        setEmailErrorKey(undefined);
+      }
     }
-    if (value === '') {setEmailErrorKey(undefined);}
+    if (value === '') {
+      setEmailErrorKey(undefined);
+    }
     setShowErrorMessage(false);
     setErrorMessage('');
   };
@@ -84,7 +85,9 @@ export const ModalChangeEmail: React.FC<ModalChangeEmailProps> = ({
       const rateLimitErrorHandled = await handleRateLimitAlert(err, locale, tMisc);
       if (!rateLimitErrorHandled) {
         type ErrorWithResponse = { response?: { data?: { message?: string } } };
-        setErrorMessage((err as ErrorWithResponse)?.response?.data?.message || tMisc('errors.generic'));
+        setErrorMessage(
+          (err as ErrorWithResponse)?.response?.data?.message || tMisc('errors.generic')
+        );
         setShowErrorMessage(true);
       }
     } finally {
@@ -114,14 +117,12 @@ export const ModalChangeEmail: React.FC<ModalChangeEmailProps> = ({
       <div className={styles.content}>
         {!isEmailSent && (
           <>
-            <p className={styles.message}>
-              {tSettings('account.change_email_modal.message')}
-            </p>
+            <p className={styles.message}>{tSettings('account.change_email_modal.message')}</p>
             <TextInput
               type="email"
               name="email"
               value={email}
-              onChange={e => onEmailChange(e.target.value)}
+              onChange={(e) => onEmailChange(e.target.value)}
               onBlur={handleEmailBlur}
               placeholder={tAuthentication('email')}
               eyebrow={tAuthentication('email')}
@@ -130,12 +131,7 @@ export const ModalChangeEmail: React.FC<ModalChangeEmailProps> = ({
               autoFocus
             />
             <div className={styles.buttons}>
-              <Button
-                type="button"
-                onClick={handleClose}
-                variant="secondary"
-                disabled={isLoading}
-              >
+              <Button type="button" onClick={handleClose} variant="secondary" disabled={isLoading}>
                 {tMisc('cancel')}
               </Button>
               <Button

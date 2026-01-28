@@ -13,13 +13,16 @@ export const ModalSourceSelector: React.FC = () => {
     <Modal
       header={tMediaPlayer('source.select_source')}
       isOpen={isOpen}
-      onClose={() => setModalSourceSelector({
-        labeledItemEnclosures: [],
-        actionType: null,
-        itemTitle: null,
-      })}
+      onClose={() =>
+        setModalSourceSelector({
+          labeledItemEnclosures: [],
+          actionType: null,
+          itemTitle: null,
+        })
+      }
       ariaLabel={tMediaPlayer('source.select_source')}
-      modalContentMaxWidth={500}>
+      modalContentMaxWidth={500}
+    >
       <SourceSelectors
         labeledItemEnclosures={modalSourceSelector.labeledItemEnclosures}
         actionType={modalSourceSelector.actionType}

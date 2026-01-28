@@ -11,13 +11,18 @@ export class ChannelSeason {
   @Column({ type: 'integer', name: 'channel_id' })
   channel_id!: number;
 
-  @ManyToOne(() => Channel, channel => channel.id, { onDelete: 'CASCADE' })
+  @ManyToOne(() => Channel, (channel) => channel.id, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'channel_id' })
   channel!: Channel;
 
   @Column({ type: 'integer', name: 'number' })
   number!: number;
 
-  @Column({ type: 'varchar', name: 'name', nullable: true, length: DATABASE_CONSTANTS.varchar_normal })
+  @Column({
+    type: 'varchar',
+    name: 'name',
+    nullable: true,
+    length: DATABASE_CONSTANTS.varchar_normal,
+  })
   name!: string | null;
 }

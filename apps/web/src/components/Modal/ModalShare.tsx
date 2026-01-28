@@ -21,16 +21,20 @@ export const ModalShare: React.FC = () => {
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   const { modalShare, setModalShare } = useModals();
-  
+
   React.useEffect(() => {
     return () => {
-      if (timeoutRef.current) {clearTimeout(timeoutRef.current);}
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
     };
   }, []);
 
   const isOpen = !!modalShare.channel;
 
-  if (!modalShare.channel) {return null;}
+  if (!modalShare.channel) {
+    return null;
+  }
 
   const handleCopy = (value: string, idx: number) => {
     copyToClipboard(value);
@@ -44,10 +48,13 @@ export const ModalShare: React.FC = () => {
       setCopiedIndex(null);
     }, 2000);
   };
-  
+
   const shareInputs: ModalShareInput[] = [];
 
-  if (modalShare.channel.medium_id === MediumEnum.Podcast || modalShare.channel.medium_id === MediumEnum.Video) {
+  if (
+    modalShare.channel.medium_id === MediumEnum.Podcast ||
+    modalShare.channel.medium_id === MediumEnum.Video
+  ) {
     shareInputs.push({
       name: 'podcast',
       value: `${WEB.origin}/podcast/${modalShare.channel.id_text}`,
@@ -106,14 +113,23 @@ export const ModalShare: React.FC = () => {
     value: 'TODO: add embed code here',
     eyebrow: tFeatures('embed'),
   });
-  
+
   return (
     <Modal
       header={tFeatures('share')}
       isOpen={isOpen}
-      onClose={() => setModalShare({ channel: null, item: null, clip: null, item_chapter: null, item_soundbite: null })}
+      onClose={() =>
+        setModalShare({
+          channel: null,
+          item: null,
+          clip: null,
+          item_chapter: null,
+          item_soundbite: null,
+        })
+      }
       ariaLabel={tFeatures('share')}
-      modalContentMaxWidth={500}>
+      modalContentMaxWidth={500}
+    >
       {shareInputs.map((input, idx) => (
         <TextInput
           key={input.name}

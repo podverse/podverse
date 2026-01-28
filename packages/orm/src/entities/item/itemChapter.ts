@@ -1,5 +1,12 @@
 import { DATABASE_CONSTANTS } from '@podverse/helpers';
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, BeforeInsert } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  JoinColumn,
+  BeforeInsert,
+} from 'typeorm';
 import { ItemChaptersFeed } from './itemChaptersFeed';
 import { generateRandomIdText } from '@orm/lib/nanoid';
 
@@ -11,7 +18,9 @@ export class ItemChapter {
   @Column({ type: 'varchar', unique: true })
   id_text!: string;
 
-  @ManyToOne(() => ItemChaptersFeed, item_chapters_feed => item_chapters_feed.id, { onDelete: 'CASCADE' })
+  @ManyToOne(() => ItemChaptersFeed, (item_chapters_feed) => item_chapters_feed.id, {
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'item_chapters_feed_id' })
   item_chapters_feed!: ItemChaptersFeed;
 

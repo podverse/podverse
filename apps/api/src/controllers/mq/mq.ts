@@ -21,41 +21,46 @@ export class MQController {
 
   static rssAddToOnDemandMQ(type: OnDemandParserEventType) {
     return async (req: Request, res: Response): Promise<void> => {
-      ensureAuthenticated(req, res, async () => {
-        MQController.rssOnDemandMiddleware(req, res, () => {
-          validateBodyObject(addToOnDemandMQSchema, req, res, async () => {
-            const dto = req.body;
-            const finalDto = {
-              url: dto.url,
-              podcast_index_id: dto.podcast_index_id,
-            };
+      ensureAuthenticated(
+        req,
+        res,
+        async () => {
+          MQController.rssOnDemandMiddleware(req, res, () => {
+            validateBodyObject(addToOnDemandMQSchema, req, res, async () => {
+              const dto = req.body;
+              const finalDto = {
+                url: dto.url,
+                podcast_index_id: dto.podcast_index_id,
+              };
 
-            try {
-              const mqConstantMessageOptions = MQ_QUEUES['rss-on-demand'];
-              await mqRSSAdd(
-                activeMQArtemisService,
-                {
-                  ...mqConstantMessageOptions,
-                  feedUrl: finalDto.url,
-                  podcast_index_id: finalDto.podcast_index_id,
-                  closeAfterSend: false,
-                },
-                {
-                  forceParse: false,
-                  onDemandParserEvent: {
-                    accountId: getAuthenticatedUser(req).id,
-                    remoteParentPodcastIndexId: null,
-                    type: type,
+              try {
+                const mqConstantMessageOptions = MQ_QUEUES['rss-on-demand'];
+                await mqRSSAdd(
+                  activeMQArtemisService,
+                  {
+                    ...mqConstantMessageOptions,
+                    feedUrl: finalDto.url,
+                    podcast_index_id: finalDto.podcast_index_id,
+                    closeAfterSend: false,
                   },
-                },
-              );
-              res.status(201).json({ message: 'Feed added to on-demand queue successfully.' });
-            } catch (err) {
-              handleGenericErrorResponse(res, err);
-            }
+                  {
+                    forceParse: false,
+                    onDemandParserEvent: {
+                      accountId: getAuthenticatedUser(req).id,
+                      remoteParentPodcastIndexId: null,
+                      type: type,
+                    },
+                  }
+                );
+                res.status(201).json({ message: 'Feed added to on-demand queue successfully.' });
+              } catch (err) {
+                handleGenericErrorResponse(res, err);
+              }
+            });
           });
-        });
-      }, { skipMembershipStatus: false, noFreeTrial: true });
+        },
+        { skipMembershipStatus: false, noFreeTrial: true }
+      );
     };
   }
 }

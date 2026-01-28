@@ -5,9 +5,9 @@ import { BaseOneService } from '../base/baseOneService';
 import { ChannelSeason } from '@orm/entities/channel/channelSeason';
 
 export type ItemSeasonDto = {
-  title: string | null
-  channel_season: ChannelSeason
-}
+  title: string | null;
+  channel_season: ChannelSeason;
+};
 
 export class ItemSeasonService extends BaseOneService<ItemSeason, 'item'> {
   constructor(transactionalEntityManager?: EntityManager) {

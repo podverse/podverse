@@ -32,7 +32,9 @@ export const SideBar: React.FC = () => {
               <SideBarLink href={ROUTES.PODCASTS}>{tMedia('podcast.podcasts')}</SideBarLink>
               <SideBarLink href={ROUTES.EPISODES}>{tMedia('podcast.episodes')}</SideBarLink>
               <SideBarLink href={ROUTES.CLIPS}>{tFeatures('clip.clips')}</SideBarLink>
-              <SideBarLink href={ROUTES.PODCASTS_LIVESTREAMS}>{tMedia('livestream.livestreams')}</SideBarLink>
+              <SideBarLink href={ROUTES.PODCASTS_LIVESTREAMS}>
+                {tMedia('livestream.livestreams')}
+              </SideBarLink>
             </>
           }
           color="link"
@@ -48,7 +50,9 @@ export const SideBar: React.FC = () => {
               <SideBarLink href={ROUTES.ARTISTS}>{tMedia('music.artists')}</SideBarLink>
               <SideBarLink href={ROUTES.ALBUMS}>{tMedia('music.albums')}</SideBarLink>
               <SideBarLink href={ROUTES.TRACKS}>{tMedia('music.tracks')}</SideBarLink>
-              <SideBarLink href={ROUTES.MUSIC_LIVESTREAMS}>{tMedia('livestream.livestreams')}</SideBarLink>
+              <SideBarLink href={ROUTES.MUSIC_LIVESTREAMS}>
+                {tMedia('livestream.livestreams')}
+              </SideBarLink>
             </>
           }
           color="link"
@@ -64,7 +68,9 @@ export const SideBar: React.FC = () => {
               <SideBarLink href={ROUTES.QUEUES}>{tFeatures('queue.queues')}</SideBarLink>
               <SideBarLink href={ROUTES.HISTORY}>{tFeatures('history.history')}</SideBarLink>
               <SideBarLink href={ROUTES.PLAYLISTS}>{tFeatures('playlist.playlists')}</SideBarLink>
-              <SideBarLink href={`${ROUTES.MY_PROFILE}?tab=clips`}>{tFeatures('my_clips')}</SideBarLink>
+              <SideBarLink href={`${ROUTES.MY_PROFILE}?tab=clips`}>
+                {tFeatures('my_clips')}
+              </SideBarLink>
               <SideBarLink href={ROUTES.PROFILES}>{tFeatures('profiles')}</SideBarLink>
             </>
           }

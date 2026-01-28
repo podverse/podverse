@@ -1,14 +1,17 @@
 import { DATABASE_CONSTANTS } from '@podverse/helpers';
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, OneToOne } from 'typeorm';
 import { Channel } from '@orm/entities/channel/channel';
-import { ChannelItunesType, ChannelItunesTypeItunesTypeEnum } from '@orm/entities/channel/channelItunesType';
+import {
+  ChannelItunesType,
+  ChannelItunesTypeItunesTypeEnum,
+} from '@orm/entities/channel/channelItunesType';
 
 @Entity()
 export class ChannelAbout {
   @PrimaryGeneratedColumn()
   id!: number;
 
-  @OneToOne(() => Channel, channel => channel.id, { onDelete: 'CASCADE' })
+  @OneToOne(() => Channel, (channel) => channel.id, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'channel_id' })
   channel!: Channel;
 
@@ -21,7 +24,9 @@ export class ChannelAbout {
   @Column({ type: 'boolean', nullable: true })
   explicit!: boolean | null;
 
-  @ManyToOne(() => ChannelItunesType, channelItunesType => channelItunesType.id, { nullable: true })
+  @ManyToOne(() => ChannelItunesType, (channelItunesType) => channelItunesType.id, {
+    nullable: true,
+  })
   @JoinColumn({ name: 'itunes_type_id' })
   itunes_type!: ChannelItunesTypeItunesTypeEnum | ChannelItunesType | null;
 
@@ -34,7 +39,7 @@ export class ChannelAbout {
   @Column({ type: 'varchar', nullable: true, length: DATABASE_CONSTANTS.varchar_url })
   website_link_url!: string | null;
 
-  @OneToOne(() => Channel, channel => channel.channel_about, { onDelete: 'CASCADE' })
+  @OneToOne(() => Channel, (channel) => channel.channel_about, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'channel_id' })
   item!: Channel;
 }

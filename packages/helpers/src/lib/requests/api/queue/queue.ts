@@ -13,7 +13,7 @@ export async function reqQueueGetAllForAccountPrivate(api: ApiRequestService) {
 
 export async function reqQueueUpdateIsActiveQueue(
   api: ApiRequestService,
-  params: { queue_id_text: string; is_active_queue: boolean; },
+  params: { queue_id_text: string; is_active_queue: boolean }
 ) {
   return api.apiRequest<DTOQueue>({
     path: `/queue/${params.queue_id_text}/update-is-active`,

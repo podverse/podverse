@@ -4,17 +4,20 @@ import { ItemSoundbite } from '@orm/entities/item/itemSoundbite';
 import { BaseManyService } from '@orm/services/base/baseManyService';
 
 type ItemSoundbiteDto = {
-  start_time: string
-  duration: string
-  title: string | null
-}
+  start_time: string;
+  duration: string;
+  title: string | null;
+};
 
 export class ItemSoundbiteService extends BaseManyService<ItemSoundbite, 'item'> {
   constructor(transactionalEntityManager?: EntityManager) {
     super(ItemSoundbite, 'item', transactionalEntityManager);
   }
 
-  async getByIdText(item_soundbite_id_text: string, config?: FindOneOptions<ItemSoundbite>): Promise<ItemSoundbite | null> {
+  async getByIdText(
+    item_soundbite_id_text: string,
+    config?: FindOneOptions<ItemSoundbite>
+  ): Promise<ItemSoundbite | null> {
     const options: FindOneOptions<ItemSoundbite> = {
       where: { id_text: item_soundbite_id_text },
       ...config,
@@ -42,7 +45,9 @@ export class ItemSoundbiteService extends BaseManyService<ItemSoundbite, 'item'>
     return this.repositoryRead.find(options);
   }
 
-  async getManyAndCount(options?: FindManyOptions<ItemSoundbite>): Promise<[ItemSoundbite[], number]> {
+  async getManyAndCount(
+    options?: FindManyOptions<ItemSoundbite>
+  ): Promise<[ItemSoundbite[], number]> {
     return this.repositoryRead.findAndCount(options);
   }
 

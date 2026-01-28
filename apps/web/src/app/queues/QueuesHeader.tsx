@@ -7,7 +7,5 @@ import { MainHeader } from '../../components/Main/MainHeader';
 export const QueuesHeader: React.FC = () => {
   const tFeatures = useTranslations('features');
 
-  return (
-    <MainHeader title={tFeatures('queue.queues')} />
-  );
+  return <MainHeader title={tFeatures('queue.queues')} />;
 };

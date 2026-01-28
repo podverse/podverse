@@ -7,7 +7,9 @@ import { useMediaPlayer } from '../../../../contexts/MediaPlayer';
 import styles from '../../../../styles/components/MediaPlayer/Controller/Video/MediaPlayerVideoPortalFloating.module.scss';
 import { cssClass } from '../../../../utils/cssModule';
 
-export const MediaPlayerVideoPortalFloating: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const MediaPlayerVideoPortalFloating: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
 
@@ -17,7 +19,7 @@ export const MediaPlayerVideoPortalFloating: React.FC<{ children: React.ReactNod
   if (!mounted || typeof document === 'undefined') {
     return null;
   }
-  
+
   return ReactDOM.createPortal(
     <div
       className={classNames({
@@ -27,6 +29,6 @@ export const MediaPlayerVideoPortalFloating: React.FC<{ children: React.ReactNod
     >
       {children}
     </div>,
-    document.body,
+    document.body
   );
 };

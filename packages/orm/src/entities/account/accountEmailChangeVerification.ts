@@ -7,7 +7,7 @@ export class AccountEmailChangeVerification {
   @PrimaryGeneratedColumn()
   id!: number;
 
-  @OneToOne(() => Account, account => account.id, { onDelete: 'CASCADE' })
+  @OneToOne(() => Account, (account) => account.id, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'account_id' })
   account!: Account;
 

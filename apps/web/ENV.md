@@ -130,6 +130,7 @@ These variables are used for client-side API requests:
 ### Numeric Validation
 
 Variables containing `PORT` or `INTERVAL` are validated to ensure they are valid positive numbers if set:
+
 - `NEXT_PUBLIC_SSR_API_PORT` (Optional - must be a valid number if set)
 - `NEXT_PUBLIC_API_PORT` (Optional - must be a valid number if set)
 - `NEXT_PUBLIC_POLLING_INTERVAL_MS` (Optional - must be a valid number if set)
@@ -145,6 +146,7 @@ Variables containing `PORT` or `INTERVAL` are validated to ensure they are valid
 ## Validation Output
 
 During build, the validation displays:
+
 - A categorized list of all environment variables
 - Status indicator (✓ for valid, ✗ for invalid)
 - Whether the variable is required or optional
@@ -152,6 +154,7 @@ During build, the validation displays:
 - A summary with totals and counts
 
 Example output:
+
 ```
 === Environment Variable Validation ===
 

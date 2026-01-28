@@ -11,7 +11,7 @@ import { useTranslations } from "next-intl";
 
 const MyComponent: React.FC = () => {
   const tMisc = useTranslations("misc");
-  
+
   const handleApiCall = async () => {
     try {
       const response = await apiRequestService.reqMyNewEndpoint({ param: "value" });
@@ -22,7 +22,7 @@ const MyComponent: React.FC = () => {
       }
     }
   };
-  
+
   return <button onClick={handleApiCall}>Call API</button>;
 };
 ```
@@ -34,7 +34,7 @@ import { getSSRAuthService } from "../../utils/auth/ssrAuth";
 
 export default async function MyPage() {
   const { ssrApiRequestService } = await getSSRAuthService();
-  
+
   try {
     const response = await ssrApiRequestService.reqMyNewEndpoint({ param: "value" });
     const data = response.data;
@@ -65,19 +65,22 @@ When implementing rate limiting on an endpoint, use the rate limiter utilities f
 import { rateLimitAuthEndpoint, rateLimitEndpoint } from '@api/lib/rateLimiter';
 
 // For authenticated endpoints (per-user rate limiting)
-router.get('/download-data', 
-  rateLimitAuthEndpoint({ windowMs: 24 * 60 * 60 * 1000, max: 3 }), 
+router.get(
+  '/download-data',
+  rateLimitAuthEndpoint({ windowMs: 24 * 60 * 60 * 1000, max: 3 }),
   asyncHandler(AccountController.downloadData)
 );
 
 // For public endpoints (IP-based rate limiting)
-router.post('/create', 
-  rateLimitEndpoint({ windowMs: 10 * 60 * 1000, max: 3 }), 
+router.post(
+  '/create',
+  rateLimitEndpoint({ windowMs: 10 * 60 * 1000, max: 3 }),
   asyncHandler(AccountController.create)
 );
 ```
 
 The rate limiter automatically:
+
 - Returns a 429 status code when the limit is exceeded
 - Includes a JSON response with `tooManyRequests: true` and `minutesRemaining` properties
 - Calculates the time until the rate limit resets
@@ -87,13 +90,13 @@ The rate limiter automatically:
 The client must handle rate limit errors using `handleRateLimitAlert()`:
 
 ```typescript
-import { handleRateLimitAlert } from "../../utils/rateLimit/rateLimitAlert";
-import { useTranslations, useLocale } from "next-intl";
+import { handleRateLimitAlert } from '../../utils/rateLimit/rateLimitAlert';
+import { useTranslations, useLocale } from 'next-intl';
 
 const MyComponent: React.FC = () => {
-  const tMisc = useTranslations("misc");
+  const tMisc = useTranslations('misc');
   const locale = useLocale();
-  
+
   const handleAction = async () => {
     try {
       await apiRequestService.reqSomeEndpoint();
@@ -102,7 +105,7 @@ const MyComponent: React.FC = () => {
       const rateLimitHandled = await handleRateLimitAlert(error, locale, tMisc);
       if (!rateLimitHandled) {
         // Handle other errors only if rate limit wasn't handled
-        console.error("Error:", error);
+        console.error('Error:', error);
       }
     }
   };
@@ -110,6 +113,7 @@ const MyComponent: React.FC = () => {
 ```
 
 **Important Notes**:
+
 - `handleRateLimitAlert()` is **async** - always use `await`
 - It displays an alert to the user with the time remaining until the rate limit resets
 - It returns `true` if it handled a rate limit error, `false` otherwise

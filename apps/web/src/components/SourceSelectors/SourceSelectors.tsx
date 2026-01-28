@@ -9,15 +9,23 @@ import { showToastPromiseWithLoading } from '../Toast/Toast';
 import { downloadAndSaveFile } from '../../utils/fileDownloader';
 import styles from '../../styles/components/SourceSelectors/SourceSelectors.module.scss';
 
-export type SourceSelectorActionType = 'load-in-player' | 'download-episode' | 'download-track' | null;
+export type SourceSelectorActionType =
+  | 'load-in-player'
+  | 'download-episode'
+  | 'download-track'
+  | null;
 
 type SourceSelectorsProps = {
   labeledItemEnclosures: LabeledItemEnclosure[];
   actionType: SourceSelectorActionType;
   itemTitle: string | null;
-}
+};
 
-export const SourceSelectors = ({ labeledItemEnclosures, actionType, itemTitle }: SourceSelectorsProps ) => {
+export const SourceSelectors = ({
+  labeledItemEnclosures,
+  actionType,
+  itemTitle,
+}: SourceSelectorsProps) => {
   const tFeatures = useTranslations('features');
   const { setMPEnclosureSelectedParams } = useMediaPlayer();
   const { setModalSourceSelector } = useModals();
@@ -52,7 +60,7 @@ export const SourceSelectors = ({ labeledItemEnclosures, actionType, itemTitle }
             loading: tFeatures('download.downloading_episode'),
             success: tFeatures('download.episode_downloaded'),
             error: tFeatures('download.episode_download_error'),
-          },
+          }
         );
       } else if (actionType === 'download-track') {
         const selectedItemEnclosureAndSource = getSelectedLabeledItemEnclosureAndSource({
@@ -70,7 +78,7 @@ export const SourceSelectors = ({ labeledItemEnclosures, actionType, itemTitle }
             loading: tFeatures('download.downloading_track'),
             success: tFeatures('download.track_downloaded'),
             error: tFeatures('download.track_download_error'),
-          },
+          }
         );
       }
     }

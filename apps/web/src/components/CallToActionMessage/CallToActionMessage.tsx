@@ -14,9 +14,7 @@ export const CallToActionMessage: React.FC<CallToActionMessageProps> = ({
 }) => (
   <div className={styles.message}>
     <p>{message}</p>
-    <button
-      onClick={onButtonClick}
-      type="button">
+    <button onClick={onButtonClick} type="button">
       {buttonLabel}
     </button>
   </div>

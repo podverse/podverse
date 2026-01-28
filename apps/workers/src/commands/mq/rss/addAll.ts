@@ -4,13 +4,17 @@ import { CommandLineArgs } from '@workers/commands';
 import { activeMQArtemisService } from '@workers/factories/activeMQArtemisService';
 
 export const mqRSSAddAll = async (args: CommandLineArgs) => {
-  const mqQueueNameParamKey = (Array.isArray(args.q) ? args.q[0] : args.q) as MQQueueNameParamKey | undefined;
+  const mqQueueNameParamKey = (Array.isArray(args.q) ? args.q[0] : args.q) as
+    | MQQueueNameParamKey
+    | undefined;
   if (!mqQueueNameParamKey) {
     throw new Error('queueName (-q) parameter is required');
   }
 
   if (!validMQQueueNamesParamKeys.includes(mqQueueNameParamKey)) {
-    throw new Error(`Invalid queueName. Allowed values are: ${validMQQueueNamesParamKeys.join(', ')}`);
+    throw new Error(
+      `Invalid queueName. Allowed values are: ${validMQQueueNamesParamKeys.join(', ')}`
+    );
   }
 
   const forceParse = args.f === '';
@@ -29,6 +33,6 @@ export const mqRSSAddAll = async (args: CommandLineArgs) => {
         type: null,
         remoteParentPodcastIndexId: null,
       },
-    },
+    }
   );
 };

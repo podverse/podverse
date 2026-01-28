@@ -12,8 +12,13 @@ type PodcastHeaderButtonsProps = {
   item_soundbite?: DTOItemSoundbite;
 };
 
-export const PodcastHeaderButtons: React.FC<PodcastHeaderButtonsProps> = ({ channel,
-  item = null, clip = null, item_chapter = null, item_soundbite = null }) => {
+export const PodcastHeaderButtons: React.FC<PodcastHeaderButtonsProps> = ({
+  channel,
+  item = null,
+  clip = null,
+  item_chapter = null,
+  item_soundbite = null,
+}) => {
   return (
     <HeaderButtons
       channel={channel}
@@ -22,4 +27,3 @@ export const PodcastHeaderButtons: React.FC<PodcastHeaderButtonsProps> = ({ chan
     />
   );
 };
-

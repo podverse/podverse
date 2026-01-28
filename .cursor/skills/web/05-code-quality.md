@@ -57,7 +57,7 @@ try {
   await apiRequestService.reqSomeEndpoint();
 } catch (error) {
   if (!handleRateLimitAlert(error, undefined, tMisc)) {
-    console.error("Error:", error);
+    console.error('Error:', error);
   }
 }
 ```
@@ -65,13 +65,13 @@ try {
 ### API Error Handling
 
 ```typescript
-import { handleRateLimitAlert } from "../../utils/rateLimit/rateLimitAlert";
-import { useTranslations, useLocale } from "next-intl";
+import { handleRateLimitAlert } from '../../utils/rateLimit/rateLimitAlert';
+import { useTranslations, useLocale } from 'next-intl';
 
 const MyComponent: React.FC = () => {
-  const tMisc = useTranslations("misc");
+  const tMisc = useTranslations('misc');
   const locale = useLocale();
-  
+
   const handleAction = async () => {
     try {
       await apiRequestService.reqSomeEndpoint();
@@ -80,7 +80,7 @@ const MyComponent: React.FC = () => {
       const rateLimitHandled = await handleRateLimitAlert(error, locale, tMisc);
       if (!rateLimitHandled) {
         // Handle other errors only if rate limit wasn't handled
-        console.error("Error:", error);
+        console.error('Error:', error);
       }
     }
   };
@@ -90,6 +90,7 @@ const MyComponent: React.FC = () => {
 **CRITICAL: Rate Limits Require Both API and Client Handling**
 
 Rate limits are a special case that must be handled on both the API and client sides:
+
 - **API side**: Must use `rateLimitAuthEndpoint()` or `rateLimitEndpoint()` from `apps/api/src/lib/rateLimiter.ts` to return 429 with structured JSON (`tooManyRequests`, `minutesRemaining`)
 - **Client side**: Must use `await handleRateLimitAlert()` to detect and display rate limit errors to users
 
@@ -98,7 +99,7 @@ See [API & Data Fetching Patterns - Rate Limit Handling](../02-api-data-fetching
 ## Type Safety with @podverse/helpers
 
 ```typescript
-import { DTOAccount, DTOChannel, DTOItem } from "@podverse/helpers";
+import { DTOAccount, DTOChannel, DTOItem } from '@podverse/helpers';
 
 type MyComponentProps = {
   account: DTOAccount;
@@ -122,6 +123,7 @@ const tInstructions = useTranslations("instructions");
 ### Adding New Translation Keys
 
 **CRITICAL**: When adding new translation keys, **only add them to `i18n/originals/en-US.json`**:
+
 - Do NOT add translations to override files (e.g., `i18n/overrides/en-US.json`)
 - Do NOT add translations to other language files
 - The `i18n-compile` script automatically processes `originals/en-US.json` and generates all necessary translation files, overrides, and alternate languages

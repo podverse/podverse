@@ -7,11 +7,7 @@ export const MuteButton = () => {
   const button = mpIsMuted ? <FaVolumeXmark /> : <FaVolumeHigh />;
 
   return (
-    <button
-      className={styles.muteButton}
-      onClick={() => setMPIsMuted(!mpIsMuted)}
-      type="button"
-    >
+    <button className={styles.muteButton} onClick={() => setMPIsMuted(!mpIsMuted)} type="button">
       {button}
     </button>
   );

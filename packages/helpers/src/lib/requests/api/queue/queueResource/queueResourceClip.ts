@@ -7,7 +7,7 @@ export async function reqQueueResourceClipAddNowPlaying(
   api: ApiRequestService,
   queue_id_text: string,
   clip_id_text: string,
-  params?: QueueExtraParams,
+  params?: QueueExtraParams
 ) {
   return api.apiRequest<DTOQueueResource>({
     path: `/queue/${queue_id_text}/clip/${clip_id_text}/now-playing`,
@@ -22,7 +22,7 @@ export async function reqQueueResourceClipAddNowPlaying(
 export async function reqQueueResourceClipAddNext(
   api: ApiRequestService,
   queue_id_text: string,
-  clip_id_text: string,
+  clip_id_text: string
 ) {
   return api.apiRequest<DTOQueueResource>({
     path: `/queue/${queue_id_text}/clip/${clip_id_text}/next`,
@@ -37,7 +37,7 @@ export async function reqQueueResourceClipAddBetween(
   api: ApiRequestService,
   queue_id_text: string,
   clip_id_text: string,
-  params: BetweenParams,
+  params: BetweenParams
 ) {
   return api.apiRequest<DTOQueueResource>({
     path: `/queue/${queue_id_text}/clip/${clip_id_text}/between`,
@@ -52,7 +52,7 @@ export async function reqQueueResourceClipAddBetween(
 export async function reqQueueResourceClipAddLast(
   api: ApiRequestService,
   queue_id_text: string,
-  clip_id_text: string,
+  clip_id_text: string
 ) {
   return api.apiRequest<DTOQueueResource>({
     path: `/queue/${queue_id_text}/clip/${clip_id_text}/last`,
@@ -67,7 +67,7 @@ export async function reqQueueResourceClipAddHistory(
   api: ApiRequestService,
   queue_id_text: string,
   clip_id_text: string,
-  params?: QueueExtraParams,
+  params?: QueueExtraParams
 ) {
   return api.apiRequest<DTOQueueResource>({
     path: `/queue/${queue_id_text}/clip/${clip_id_text}/history`,
@@ -82,7 +82,7 @@ export async function reqQueueResourceClipAddHistory(
 export async function reqQueueResourceClipDelete(
   api: ApiRequestService,
   queue_id_text: string,
-  clip_id_text: string,
+  clip_id_text: string
 ) {
   return api.apiRequest<void>({
     path: `/queue/${queue_id_text}/clip/${clip_id_text}`,

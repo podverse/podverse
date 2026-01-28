@@ -13,7 +13,11 @@ interface Props {
   isEditModeQueue: boolean;
 }
 
-export const ListQueueResourceRow: React.FC<Props> = ({ queueResource, removeFromQueue, isEditModeQueue }) => {
+export const ListQueueResourceRow: React.FC<Props> = ({
+  queueResource,
+  removeFromQueue,
+  isEditModeQueue,
+}) => {
   const item = queueResource.item;
   const clip = queueResource.clip;
   const item_soundbite = queueResource.item_soundbite;
@@ -87,5 +91,4 @@ export const ListQueueResourceRow: React.FC<Props> = ({ queueResource, removeFro
   }
 
   return null;
-
 };

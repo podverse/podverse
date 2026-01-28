@@ -1,4 +1,14 @@
-import { Entity, PrimaryGeneratedColumn, Column, OneToOne, ManyToOne, JoinColumn, BeforeInsert, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  OneToOne,
+  ManyToOne,
+  JoinColumn,
+  BeforeInsert,
+  CreateDateColumn,
+  UpdateDateColumn,
+} from 'typeorm';
 import { AdminAccountCredentials } from './adminAccountCredentials';
 import { AdminAccountRole } from './adminAccountRole';
 import { generateRandomIdText } from '@podverse/orm';
@@ -11,7 +21,7 @@ export class AdminAccount {
   @Column({ type: 'varchar', unique: true, length: 15 })
   id_text!: string;
 
-  @ManyToOne(() => AdminAccountRole, adminAccountRole => adminAccountRole.admin_accounts)
+  @ManyToOne(() => AdminAccountRole, (adminAccountRole) => adminAccountRole.admin_accounts)
   @JoinColumn({ name: 'admin_account_role_id' })
   admin_account_role!: AdminAccountRole;
 
@@ -24,7 +34,10 @@ export class AdminAccount {
   @UpdateDateColumn({ type: 'timestamp', default: () => 'NOW()' })
   updated_at!: Date;
 
-  @OneToOne(() => AdminAccountCredentials, adminAccountCredentials => adminAccountCredentials.admin_account)
+  @OneToOne(
+    () => AdminAccountCredentials,
+    (adminAccountCredentials) => adminAccountCredentials.admin_account
+  )
   admin_account_credentials!: AdminAccountCredentials;
 
   @BeforeInsert()
