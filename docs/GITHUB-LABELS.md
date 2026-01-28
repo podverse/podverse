@@ -1,6 +1,6 @@
 # GitHub Labels Reference
 
-This document lists all 21 labels in the Podverse repository for consistent issue and PR management.
+This document lists all 22 labels in the Podverse repository for consistent issue and PR management.
 
 **Labels can be programmatically recreated** using `./scripts/github/setup-all-labels.sh`
 
@@ -30,6 +30,7 @@ This document lists all 21 labels in the Podverse repository for consistent issu
 | Label          | Color                                                                  | Description                            | Origin                                     |
 | -------------- | ---------------------------------------------------------------------- | -------------------------------------- | ------------------------------------------ |
 | `dependencies` | ![#0366d6](https://via.placeholder.com/15/0366d6/0366d6.png) `#0366d6` | Dependency updates and security issues | Custom (vulnerability scanner, dependabot) |
+| `docker`       | ![#384d54](https://via.placeholder.com/15/384d54/384d54.png) `#384d54` | Docker image and container updates     | Custom (dependabot)                        |
 
 ## Category: Workflow
 
@@ -58,6 +59,13 @@ This document lists all 21 labels in the Podverse repository for consistent issu
 - `dependencies` - Applied to all dependency-related vulnerabilities
 - `priority:critical`, `priority:high`, `priority:medium`, `priority:low` - Applied by severity
 
+### Dependabot (`dependabot.yml`)
+
+- `dependencies` - Applied to all dependency PRs
+- `docker` - Applied to Docker image updates (Node.js LTS versions only)
+
+See [DEPENDABOT.md](DEPENDABOT.md) for complete Dependabot configuration and Node.js LTS policy.
+
 ### PR Labeler (`pr-labeler.yml`)
 
 - `apps`, `packages`, `docs`, `infra`, `ci`, `scripts`, `tools`, `i18n` - Auto-applied based on changed files
@@ -85,6 +93,7 @@ This document lists all 21 labels in the Podverse repository for consistent issu
 - **Yellow** (`#fbca04`, `#fef2c0`): CI, documentation
 - **Green** (`#0e8a16`, `#00FF99`): Apps, enhancements
 - **Blue** (`#1d76db`, `#0366d6`, `#c5def5`): Packages, dependencies, i18n
+- **Blue-Gray** (`#384d54`): Docker containers
 - **Purple** (`#9900FF`, `#d4c5f9`, `#990099`, `#5319e7`): Questions, medium priority, blocked, scripts
 - **Teal** (`#1f8b84`): Low priority
 - **Pink** (`#e99695`): Tools
@@ -92,7 +101,7 @@ This document lists all 21 labels in the Podverse repository for consistent issu
 
 **Design Principles**:
 
-- 21 distinct colors, no duplicates
+- 22 distinct colors, no duplicates
 - Context-appropriate color selection
 - Clear visual hierarchy for priorities
 - Good contrast for accessibility
@@ -183,7 +192,7 @@ is:issue is:open label:"good first issue"
 
 ## Label System Design
 
-### Total: 21 Labels
+### Total: 22 Labels
 
 | Category            | Count | Purpose                    |
 | ------------------- | ----- | -------------------------- |
@@ -191,7 +200,7 @@ is:issue is:open label:"good first issue"
 | Code Areas          | 8     | Monorepo structure mapping |
 | Workflow            | 1     | Work blocking              |
 | Security & Priority | 5     | Vulnerability tracking     |
-| Dependencies        | 1     | Dependency management      |
+| Dependencies        | 2     | Dependency management      |
 
 ### Why These Labels?
 

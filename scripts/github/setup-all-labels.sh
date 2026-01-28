@@ -18,7 +18,7 @@ cd "$REPO_ROOT"
 echo "🏷️  GitHub Labels - Complete Setup"
 echo "===================================="
 echo ""
-echo "This script creates all 21 labels for the Podverse repository"
+echo "This script creates all 22 labels for the Podverse repository"
 echo ""
 
 # Check if gh CLI is available
@@ -78,8 +78,9 @@ LABELS=(
   "blocked|990099|The work on this issue is blocked by another issue"
   "security|550000|Security vulnerabilities"
   
-  # === DEPENDENCIES & PRIORITY (5) ===
+  # === DEPENDENCIES & PRIORITY (6) ===
   "dependencies|0366d6|Dependency updates and security issues"
+  "docker|384d54|Docker image and container updates"
   "priority:critical|e11d21|Critical priority issues requiring immediate attention"
   "priority:high|eb6420|High priority issues"
   "priority:medium|d4c5f9|Medium priority issues"

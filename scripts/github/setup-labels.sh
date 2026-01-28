@@ -58,8 +58,9 @@ echo ""
 # Note: PR labeler workflow uses existing labels (apps, packages, docs, etc.)
 # This script only creates NEW labels that don't exist yet
 LABELS=(
-  # Dependencies label (used by vulnerability-scanner.yml and dependabot)
+  # Dependencies labels (used by vulnerability-scanner.yml and dependabot)
   "dependencies|0366d6|Dependency updates and security issues"
+  "docker|384d54|Docker image and container updates"
   
   # Priority labels (used by vulnerability-scanner.yml)
   # Color progression: critical (bright red) → high (orange) → medium (purple) → low (teal)

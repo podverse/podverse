@@ -57,6 +57,10 @@ updates:
     labels:
       - 'dependencies'
       - 'docker'
+    # Ignore non-LTS Node.js versions (odd-numbered: 19, 21, 23, 25, 27...)
+    ignore:
+      - dependency-name: 'node'
+        versions: ['19.x', '21.x', '23.x', '25.x', '27.x', '29.x']
 
   - package-ecosystem: 'docker'
     directory: '/apps/web'
@@ -66,6 +70,10 @@ updates:
     labels:
       - 'dependencies'
       - 'docker'
+    # Ignore non-LTS Node.js versions (odd-numbered: 19, 21, 23, 25, 27...)
+    ignore:
+      - dependency-name: 'node'
+        versions: ['19.x', '21.x', '23.x', '25.x', '27.x', '29.x']
 
   - package-ecosystem: 'docker'
     directory: '/apps/workers'
@@ -75,6 +83,10 @@ updates:
     labels:
       - 'dependencies'
       - 'docker'
+    # Ignore non-LTS Node.js versions (odd-numbered: 19, 21, 23, 25, 27...)
+    ignore:
+      - dependency-name: 'node'
+        versions: ['19.x', '21.x', '23.x', '25.x', '27.x', '29.x']
 
   - package-ecosystem: 'docker'
     directory: '/apps/management-api'
@@ -84,6 +96,10 @@ updates:
     labels:
       - 'dependencies'
       - 'docker'
+    # Ignore non-LTS Node.js versions (odd-numbered: 19, 21, 23, 25, 27...)
+    ignore:
+      - dependency-name: 'node'
+        versions: ['19.x', '21.x', '23.x', '25.x', '27.x', '29.x']
 
   - package-ecosystem: 'docker'
     directory: '/apps/management-web'
@@ -93,6 +109,10 @@ updates:
     labels:
       - 'dependencies'
       - 'docker'
+    # Ignore non-LTS Node.js versions (odd-numbered: 19, 21, 23, 25, 27...)
+    ignore:
+      - dependency-name: 'node'
+        versions: ['19.x', '21.x', '23.x', '25.x', '27.x', '29.x']
 
   # GitHub Actions
   - package-ecosystem: 'github-actions'
@@ -102,4 +122,3 @@ updates:
       interval: 'weekly'
     labels:
       - 'dependencies'
-      - 'github-actions'

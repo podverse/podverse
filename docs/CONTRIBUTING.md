@@ -4,7 +4,7 @@
 
 See [QUICKSTART.md](QUICKSTART.md) for complete setup instructions including:
 
-- Prerequisites (Docker, Node.js 22+)
+- Prerequisites (Docker, Node.js 22 LTS)
 - Infrastructure services (database, message queue, cache)
 - Building packages and running apps
 
