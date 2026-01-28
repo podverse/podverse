@@ -189,8 +189,8 @@ Developer quick start simplified to:
 git clone && cd podverse && nvm use && npm install
 make local_setup
 npm run build:packages
-npm run dev:api    # Terminal 1
-npm run dev:web    # Terminal 2
+npm run dev:api # Terminal 1
+npm run dev:web # Terminal 2
 ```
 
 ---
