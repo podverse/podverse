@@ -5,7 +5,7 @@ set -e
 : "${POSTGRES_READ_PASSWORD:?Missing POSTGRES_READ_PASSWORD}"
 : "${POSTGRES_READ_WRITE_PASSWORD:?Missing POSTGRES_READ_WRITE_PASSWORD}"
 
-psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" <<SQL
+psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" << SQL
 DO \$\$
 BEGIN
     IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = 'read') THEN

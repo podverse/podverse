@@ -312,9 +312,11 @@ export class AccountController {
               order,
             };
 
-            const { results: followedResults, count: followedCount } = await (
-              AccountController.accountFollowingAccountService as any
-            )._getAllWithCount(account, config);
+            const { results: followedResults, count: followedCount } =
+              await AccountController.accountFollowingAccountService._getAllWithCount(
+                account,
+                config
+              );
 
             count = followedCount;
             accounts = followedResults
@@ -395,9 +397,11 @@ export class AccountController {
               order,
             };
 
-            const { results: followedResults, count: followedCount } = await (
-              AccountController.accountFollowingAccountService as any
-            )._getAllWithCount(account, config);
+            const { results: followedResults, count: followedCount } =
+              await AccountController.accountFollowingAccountService._getAllWithCount(
+                account,
+                config
+              );
 
             count = followedCount;
             accounts = followedResults

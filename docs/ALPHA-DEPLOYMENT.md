@@ -163,7 +163,7 @@ gh run watch
 gh run list --workflow=publish-alpha.yml
 
 # View specific run logs
-gh run view <run-id> --log
+gh run view < run-id > --log
 ```
 
 ## Manual Trigger (Emergency/Testing)
@@ -197,10 +197,10 @@ gh run watch
 gh run list --workflow=publish-alpha.yml
 
 # View detailed logs for a run
-gh run view <run-id> --log
+gh run view < run-id > --log
 
 # View failed job logs only
-gh run view <run-id> --log-failed
+gh run view < run-id > --log-failed
 ```
 
 ### Verify Docker Images

@@ -83,7 +83,7 @@ The Makefile provides convenient shortcuts:
 
 ```bash
 # From monorepo root
-make local_build_web  # Builds with local.env
+make local_build_web # Builds with local.env
 ```
 
 ### Dockerfile Structure

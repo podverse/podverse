@@ -178,8 +178,8 @@ The management apps provide an admin interface for Podverse operations. The mana
 npm run dev:management:all
 
 # Or individually
-npm run dev:management-api    # http://localhost:1235
-npm run dev:management-web    # http://localhost:3999
+npm run dev:management-api # http://localhost:1235
+npm run dev:management-web # http://localhost:3999
 ```
 
 ## Workers (Optional)
@@ -301,8 +301,8 @@ This removes stale `tsconfig.tsbuildinfo` files that can cause TypeScript to ski
 To completely reset your local environment (wipes all data):
 
 ```bash
-make local_clean      # Stops containers and removes volumes
-make local_setup      # Starts fresh and initializes databases
+make local_clean # Stops containers and removes volumes
+make local_setup # Starts fresh and initializes databases
 npm run build:packages
 ```
 

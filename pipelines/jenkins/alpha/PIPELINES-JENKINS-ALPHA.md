@@ -54,7 +54,7 @@ To generate an API token:
 Run the import script from the repository root:
 
 ```bash
-bash ./pipelines/alpha/import.sh <credentials_file> [jenkins_url] [folder_name]
+bash ./pipelines/alpha/import.sh [folder_name] < credentials_file > [jenkins_url]
 ```
 
 ### Parameters
@@ -91,10 +91,10 @@ bash ./pipelines/alpha/import.sh ~/.jenkins-api-token http://localhost:8080/ pip
 
 ```bash
 declare -a FILES=(
-    "./pipelines/alpha/Jenkinsfile.aux_all_down"
-    "./pipelines/alpha/Jenkinsfile.aux_db_down"
-    "./pipelines/alpha/Jenkinsfile.your_new_job"  # Add here
-    # ...
+  "./pipelines/alpha/Jenkinsfile.aux_all_down"
+  "./pipelines/alpha/Jenkinsfile.aux_db_down"
+  "./pipelines/alpha/Jenkinsfile.your_new_job" # Add here
+  # ...
 )
 ```
 

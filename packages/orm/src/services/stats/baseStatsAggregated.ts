@@ -8,6 +8,10 @@ export type UpdateHistoricalOptions = {
   monthly: boolean;
 };
 
+export interface IStatsTrackEventServiceLike<ID = number> {
+  _getCountWithinTimeFrame(entity_id: ID, minutes: number): Promise<number>;
+}
+
 interface BaseAggregatedStats extends ObjectLiteral {
   id: number;
   day_current_count: number;
@@ -63,7 +67,7 @@ export abstract class BaseStatsAggregatedService<T extends BaseAggregatedStats, 
 
   async _updateAggregatedStats(
     entity_id: ID,
-    statsTrackEventService: any,
+    statsTrackEventService: IStatsTrackEventServiceLike<ID>,
     updateAllTime: boolean = false
   ): Promise<void> {
     const eventCountDay = await statsTrackEventService._getCountWithinTimeFrame(
@@ -102,7 +106,7 @@ export abstract class BaseStatsAggregatedService<T extends BaseAggregatedStats, 
 
   async _updateAggregatedStatsRolling(
     entity_id: ID,
-    statsTrackEventService: any,
+    statsTrackEventService: IStatsTrackEventServiceLike<ID>,
     updateHistoricalOptions: UpdateHistoricalOptions
   ): Promise<void> {
     const eventCount = await statsTrackEventService._getCountWithinTimeFrame(

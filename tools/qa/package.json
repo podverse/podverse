@@ -10,7 +10,7 @@
   "scripts": {
     "build:watch": "nodemon --watch 'src' --delay 500ms -x \"npm run build\"",
     "build": "npm run lint && tsc",
-    "lint": "eslint ./src",
+    "lint": "eslint ./src --max-warnings 0",
     "lint:fix": "eslint ./src --fix",
     "clean": "rm -rf dist",
     "type-check": "tsc --noEmit",

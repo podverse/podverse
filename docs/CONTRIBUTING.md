@@ -11,10 +11,10 @@ See [QUICKSTART.md](QUICKSTART.md) for complete setup instructions including:
 ### Quick Reference
 
 ```bash
-npm run lint          # Run linting
-npm run build         # Build all
-npm run dev:api       # Start API (localhost:1234)
-npm run dev:web       # Start web app (localhost:3000)
+npm run lint    # Run linting
+npm run build   # Build all
+npm run dev:api # Start API (localhost:1234)
+npm run dev:web # Start web app (localhost:3000)
 ```
 
 ## Workflow
@@ -61,6 +61,18 @@ npm run lint
 # Run tests (when available)
 npm run test
 ```
+
+### Shell script formatting (optional)
+
+We keep `prettier-plugin-sh` installed for formatting `.sh` scripts, but it is **not** part of `npm run lint` or CI. When used over the full repo, the plugin’s Go/WASM runtime can emit `panic: reflect: unimplemented: AssignableTo with interface` to stderr (the run still completes successfully). To avoid that in standard validation, the plugin is excluded from the default Prettier config.
+
+To format shell scripts on demand, run:
+
+```bash
+npm run format:shell
+```
+
+This runs Prettier with the plugin only on `**/*.sh`. Use it at your discretion when you want to tidy shell scripts.
 
 ## Code Review Guidelines
 

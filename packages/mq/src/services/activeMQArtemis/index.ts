@@ -216,7 +216,10 @@ export class ActiveMQArtemisService {
           // the broker closed the AMQP link due to AMQP-level idle timeout or network issues.
           try {
             const reason =
-              (context && (context.error || (context as any).disconnect_reason)) || undefined;
+              (context &&
+                (context.error ||
+                  (context as EventContext & { disconnect_reason?: unknown }).disconnect_reason)) ||
+              undefined;
             this.logger.info('Artemis connection disconnected – will attempt reconnect', {
               reason,
             });

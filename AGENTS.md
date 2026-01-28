@@ -14,11 +14,11 @@ This document provides rules and patterns for AI coding assistants working on th
 ### Essential Commands
 
 ```bash
-npm run build:packages    # Build packages (required before apps)
-npm run lint              # Lint all packages and apps
-npm run dev:api           # Start API (localhost:1234)
-npm run dev:web           # Start web app (localhost:3000)
-npm run dev:all           # Start everything with watch mode
+npm run build:packages # Build packages (required before apps)
+npm run lint           # Lint all packages and apps
+npm run dev:api        # Start API (localhost:1234)
+npm run dev:web        # Start web app (localhost:3000)
+npm run dev:all        # Start everything with watch mode
 ```
 
 ### Package Build Order

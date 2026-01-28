@@ -47,9 +47,9 @@ npm install
     - You can manually manage the test database using make commands from `podverse-ops` (sibling repo):
       ```bash
       cd ../podverse-ops
-      make test_db_up          # Start the test database container
-      make test_db_reinit     # Reset and reinitialize with test fixtures
-      make test_db_down       # Stop and remove the test database container
+      make test_db_up     # Start the test database container
+      make test_db_reinit # Reset and reinitialize with test fixtures
+      make test_db_down   # Stop and remove the test database container
       ```
     - The test suite will automatically ensure the database is up and reset before running tests
 

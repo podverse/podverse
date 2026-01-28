@@ -25,8 +25,8 @@ make local_setup
 npm run build:packages
 
 # 4. Run apps (in separate terminals)
-npm run dev:api    # http://localhost:1234
-npm run dev:web    # http://localhost:3000
+npm run dev:api # http://localhost:1234
+npm run dev:web # http://localhost:3000
 ```
 
 See [docs/QUICKSTART.md](docs/QUICKSTART.md) for detailed setup instructions, verification steps, and troubleshooting.
@@ -83,7 +83,7 @@ Build Docker images for local testing or deployment:
 
 ```bash
 make local_build_all          # Build all images
-make local_test_docker_builds  # Build and verify images
+make local_test_docker_builds # Build and verify images
 ```
 
 **Note**: The web apps (`web` and `management-web`) use a DRY Dockerfile structure that requires a build argument to specify the environment file:

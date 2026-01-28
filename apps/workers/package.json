@@ -7,7 +7,7 @@
   "scripts": {
     "build": "npm run lint && tsc && tsc-alias",
     "build:prod": "tsc && tsc-alias",
-    "lint": "eslint ./src",
+    "lint": "eslint ./src --max-warnings 0",
     "lint:fix": "eslint ./src --fix",
     "clean": "rm -rf dist",
     "type-check": "tsc --noEmit",

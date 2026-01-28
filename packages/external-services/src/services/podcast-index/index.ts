@@ -3,7 +3,7 @@ import encHex from 'crypto-js/enc-hex';
 import csv from 'csv-parser';
 import fs from 'fs';
 import path from 'path';
-import { request } from '@podverse/helpers';
+import { request, type AxiosRequestConfig } from '@podverse/helpers';
 import type {
   PodcastBatchByFeedGuidResponse,
   PodcastByGuidResponse,
@@ -48,7 +48,7 @@ export class PodcastIndexService {
 
   podcastIndexAPIRequest = async (
     url: string,
-    config?: any,
+    config?: AxiosRequestConfig,
     extraParams?: { delayMs?: number }
   ) => {
     const apiHeaderTime = Math.floor(Date.now() / 1000);

@@ -27,9 +27,6 @@ logs/*
 infra/config/local/
 infra/config/alpha/
 
-# Pre-existing invalid YAML (duplicate keys)
-infra/docker/ci/docker-compose.yml
-
 # Env files (secrets)
 .env
 .env.*
