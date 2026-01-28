@@ -227,7 +227,7 @@ echo ""
 echo "=== Audit Complete ==="
 
 # Summary
-VULNS=$(npm audit --json 2>/dev/null | jq '.metadata.vulnerabilities.total' || echo "0")
+VULNS=$(npm audit --json 2> /dev/null | jq '.metadata.vulnerabilities.total' || echo "0")
 if [ "$VULNS" != "0" ] && [ "$VULNS" != "null" ]; then
   echo ""
   echo "⚠️  Found $VULNS vulnerabilities"

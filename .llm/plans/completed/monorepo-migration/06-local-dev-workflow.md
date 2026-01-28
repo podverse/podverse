@@ -64,7 +64,7 @@ nvm use
 
 # Clean previous builds
 echo "Cleaning previous builds..."
-npm run clean --workspaces --if-present 2>/dev/null || true
+npm run clean --workspaces --if-present 2> /dev/null || true
 rm -rf node_modules
 
 # Install all dependencies
@@ -231,17 +231,17 @@ npm run dev:management-web
 ### Building Everything
 
 ```bash
-npm run build           # All packages and apps
-npm run build:packages  # Just packages (in order)
-npm run build:apps      # Just apps
+npm run build          # All packages and apps
+npm run build:packages # Just packages (in order)
+npm run build:apps     # Just apps
 ```
 
 ### Cleaning
 
 ```bash
-npm run clean           # Remove all dist/ directories
-rm -rf node_modules     # Full reset
-npm install             # Reinstall
+npm run clean       # Remove all dist/ directories
+rm -rf node_modules # Full reset
+npm install         # Reinstall
 ```
 
 ## Package Scripts

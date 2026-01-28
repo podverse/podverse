@@ -125,7 +125,7 @@ ls .git/hooks/pre-commit     # Should exist
 ### Test Workspaces
 
 ```bash
-npm install                   # Should succeed
+npm install # Should succeed
 ```
 
 ### Test Hooks
@@ -134,7 +134,7 @@ npm install                   # Should succeed
 # Test pre-commit
 echo "x" > packages/helpers/test.ts
 git add packages/helpers/test.ts
-git commit -m "test"          # Should show reminder
+git commit -m "test" # Should show reminder
 # Abort and cleanup
 ```
 

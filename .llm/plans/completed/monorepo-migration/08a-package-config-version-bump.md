@@ -116,8 +116,8 @@ After completing the tasks:
    ```bash
    # Dry run - don't actually commit
    ./scripts/publish/bump-version.sh 5.2.1
-   git diff  # Review changes
-   git reset --hard HEAD  # Undo if testing
+   git diff              # Review changes
+   git reset --hard HEAD # Undo if testing
    ```
 
 ## Checklist

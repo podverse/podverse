@@ -178,8 +178,8 @@ After running playbooks (or on existing server):
   ```bash
   # Production should still use /opt/podverse-ops
   ssh prod-srv
-  ls -la /opt/podverse-ops  # Should exist
-  ls -la /opt/podverse      # Should NOT exist (or be different)
+  ls -la /opt/podverse-ops # Should exist
+  ls -la /opt/podverse     # Should NOT exist (or be different)
   ```
 
 - [ ] Verify production playbooks unchanged:

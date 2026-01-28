@@ -9,6 +9,7 @@ Optional follow-ups from the Prettier lint plan. Skip either or both if not need
 1. **Install**: `npm i -D prettier-plugin-sh` at root.
 
 2. **Config**: In [.prettierrc.json](../../../../.prettierrc.json), add:
+
    ```json
    "plugins": ["prettier-plugin-sh"]
    ```
@@ -26,11 +27,13 @@ The repo uses custom git hooks ([scripts/git-hooks/](../../../../scripts/git-hoo
 1. **Install**: `npm i -D lint-staged` at root.
 
 2. **Config**: In root [package.json](../../../../package.json), add a `"lint-staged"` key, e.g.:
+
    ```json
    "lint-staged": {
      "*.{ts,tsx,js,mjs,cjs,json,md,yml,yaml,scss,css}": "prettier --write"
    }
    ```
+
    Add `"*.sh"` if you use prettier-plugin-sh. Adjust globs to match what you format.
 
 3. **Run on commit**: Wire lint-staged into the commit flow:

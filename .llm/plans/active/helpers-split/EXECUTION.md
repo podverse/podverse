@@ -29,9 +29,9 @@ Agent 6: 02-update-helpers-core.md
 ### Phase 3: Update Imports (10 agents in parallel)
 
 ```bash
-Agent 7:  03a-update-web-app.md
-Agent 8:  03b-update-api-app.md
-Agent 9:  03c-update-workers-app.md
+Agent 7: 03a-update-web-app.md
+Agent 8: 03b-update-api-app.md
+Agent 9: 03c-update-workers-app.md
 Agent 10: 03d-update-management-api.md
 Agent 11: 03e-update-orm-package.md
 Agent 12: 03f-update-parser-package.md

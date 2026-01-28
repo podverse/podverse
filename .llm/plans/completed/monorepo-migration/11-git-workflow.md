@@ -343,7 +343,7 @@ git checkout feature/issue-123-description
 git rebase develop
 
 # Squash commits before PR
-git rebase -i HEAD~3  # squash last 3 commits
+git rebase -i HEAD~3 # squash last 3 commits
 
 # Push with force (after rebase)
 git push --force-with-lease

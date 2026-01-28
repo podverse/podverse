@@ -191,7 +191,7 @@ Works same as VS Code. All `.vscode/` configurations apply.
 Ensure you have ESLint extension installed and the workspace is properly loaded:
 
 ```bash
-npm install  # Ensure dependencies are installed
+npm install # Ensure dependencies are installed
 ```
 
 ### TypeScript errors not showing

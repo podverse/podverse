@@ -38,7 +38,7 @@ Update `DB_PORT` in the management-api environment file to use `5432` (the inter
 Change line 39 in `infra/config/local/management-api.env`:
 
 ```bash
-DB_PORT="5432"  # Changed from "5999" - use internal Docker port, not host-mapped port
+DB_PORT="5432" # Changed from "5999" - use internal Docker port, not host-mapped port
 ```
 
 ## Notes

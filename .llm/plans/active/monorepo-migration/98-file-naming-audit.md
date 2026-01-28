@@ -39,11 +39,11 @@ Exclude:
 
 ```bash
 # Find files not matching kebab-case
-find packages apps tools -name "*.ts" -type f | \
-  grep -v node_modules | \
-  grep -v dist | \
-  grep -v "\.d\.ts$" | \
-  while read f; do
+find packages apps tools -name "*.ts" -type f \
+  | grep -v node_modules \
+  | grep -v dist \
+  | grep -v "\.d\.ts$" \
+  | while read f; do
     basename "$f" | grep -qE '^[a-z][a-z0-9-]*\.ts$' || echo "$f"
   done
 ```

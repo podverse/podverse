@@ -12,12 +12,12 @@ Run in sequence:
 ```bash
 # After 01:
 npm install
-npm run lint        # may fail until format
-npm run lint:fix    # formats everything
+npm run lint     # may fail until format
+npm run lint:fix # formats everything
 
 # After 02 (one-time format PR, then):
-npm run lint        # passes
-npm run lint:fix    # no-op if already formatted
+npm run lint     # passes
+npm run lint:fix # no-op if already formatted
 ```
 
 ## Agent Assignment

@@ -29,27 +29,34 @@ HISTORY_UPDATED=$(echo "$STAGED_FILES" | grep -E '^\.llm/history/' || true)
 DOCS_UPDATED=$(echo "$STAGED_FILES" | grep -E '^(docs/|\.llm/context/)' || true)
 
 if [[ -n "$CODE_CHANGES" || -n "$INFRA_CHANGES" ]]; then
-    if [[ -z "$HISTORY_UPDATED" && -z "$DOCS_UPDATED" ]]; then
-        echo ""
-        echo -e "${YELLOW}╔════════════════════════════════════════════════════════════╗${NC}"
-        echo -e "${YELLOW}║  📝 DOCUMENTATION REMINDER                                  ║${NC}"
-        echo -e "${YELLOW}╠════════════════════════════════════════════════════════════╣${NC}"
-        echo -e "${YELLOW}║  You're committing code changes without updating:          ║${NC}"
-        echo -e "${YELLOW}║  - .llm/history/active/*.md (LLM session history)          ║${NC}"
-        echo -e "${YELLOW}║  - docs/ or .llm/context/ (documentation)                  ║${NC}"
-        echo -e "${YELLOW}╚════════════════════════════════════════════════════════════╝${NC}"
-        echo ""
+  if [[ -z "$HISTORY_UPDATED" && -z "$DOCS_UPDATED" ]]; then
+    echo ""
+    echo -e "${YELLOW}╔════════════════════════════════════════════════════════════╗${NC}"
+    echo -e "${YELLOW}║  📝 DOCUMENTATION REMINDER                                  ║${NC}"
+    echo -e "${YELLOW}╠════════════════════════════════════════════════════════════╣${NC}"
+    echo -e "${YELLOW}║  You're committing code changes without updating:          ║${NC}"
+    echo -e "${YELLOW}║  - .llm/history/active/*.md (LLM session history)          ║${NC}"
+    echo -e "${YELLOW}║  - docs/ or .llm/context/ (documentation)                  ║${NC}"
+    echo -e "${YELLOW}╚════════════════════════════════════════════════════════════╝${NC}"
+    echo ""
 
-        if [ -t 0 ]; then
-            echo -e "${CYAN}Options:${NC} [Enter] Continue | [d] Checklist | [a] Abort"
-            read -p "Choice: " -n 1 -r REPLY
-            echo ""
-            case $REPLY in
-                [dD]) echo "□ .llm/history/active/[feature].md"; echo "□ docs/"; exit 1 ;;
-                [aA]) echo "Aborted."; exit 1 ;;
-            esac
-        fi
+    if [ -t 0 ]; then
+      echo -e "${CYAN}Options:${NC} [Enter] Continue | [d] Checklist | [a] Abort"
+      read -p "Choice: " -n 1 -r REPLY
+      echo ""
+      case $REPLY in
+        [dD])
+          echo "□ .llm/history/active/[feature].md"
+          echo "□ docs/"
+          exit 1
+          ;;
+        [aA])
+          echo "Aborted."
+          exit 1
+          ;;
+      esac
     fi
+  fi
 fi
 exit 0
 ```
@@ -72,7 +79,7 @@ COMMIT_MSG_FILE=$1
 COMMIT_MSG=$(cat "$COMMIT_MSG_FILE")
 
 if echo "$COMMIT_MSG" | grep -qE '#[0-9]+'; then
-    exit 0
+  exit 0
 fi
 
 echo ""
@@ -83,18 +90,22 @@ echo -e "${CYAN}Message:${NC} $COMMIT_MSG"
 echo ""
 
 if [ -t 0 ]; then
-    echo -e "${CYAN}Options:${NC} [Enter] Continue | [e] Add issue | [a] Abort"
-    read -p "Choice: " -n 1 -r REPLY </dev/tty
-    echo ""
-    case $REPLY in
-        [eE])
-            echo -e "${CYAN}Issue number(s):${NC}"
-            read -r ISSUE_REFS </dev/tty
-            [[ -n "$ISSUE_REFS" ]] && echo -e "\n$ISSUE_REFS" >> "$COMMIT_MSG_FILE"
-            exit 0 ;;
-        [aA]) echo "Aborted."; exit 1 ;;
-        *) exit 0 ;;
-    esac
+  echo -e "${CYAN}Options:${NC} [Enter] Continue | [e] Add issue | [a] Abort"
+  read -p "Choice: " -n 1 -r REPLY < /dev/tty
+  echo ""
+  case $REPLY in
+    [eE])
+      echo -e "${CYAN}Issue number(s):${NC}"
+      read -r ISSUE_REFS < /dev/tty
+      [[ -n "$ISSUE_REFS" ]] && echo -e "\n$ISSUE_REFS" >> "$COMMIT_MSG_FILE"
+      exit 0
+      ;;
+    [aA])
+      echo "Aborted."
+      exit 1
+      ;;
+    *) exit 0 ;;
+  esac
 fi
 exit 0
 ```

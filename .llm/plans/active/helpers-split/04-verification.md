@@ -169,12 +169,12 @@ npm run dev
 
 ```bash
 cd packages
-du -sh helpers/node_modules 2>/dev/null || echo "helpers: uses workspace"
-du -sh helpers-validation/node_modules 2>/dev/null || echo "helpers-validation: uses workspace"
-du -sh helpers-requests/node_modules 2>/dev/null || echo "helpers-requests: uses workspace"
-du -sh helpers-backend/node_modules 2>/dev/null || echo "helpers-backend: uses workspace"
-du -sh helpers-config/node_modules 2>/dev/null || echo "helpers-config: uses workspace"
-du -sh helpers-browser/node_modules 2>/dev/null || echo "helpers-browser: uses workspace"
+du -sh helpers/node_modules 2> /dev/null || echo "helpers: uses workspace"
+du -sh helpers-validation/node_modules 2> /dev/null || echo "helpers-validation: uses workspace"
+du -sh helpers-requests/node_modules 2> /dev/null || echo "helpers-requests: uses workspace"
+du -sh helpers-backend/node_modules 2> /dev/null || echo "helpers-backend: uses workspace"
+du -sh helpers-config/node_modules 2> /dev/null || echo "helpers-config: uses workspace"
+du -sh helpers-browser/node_modules 2> /dev/null || echo "helpers-browser: uses workspace"
 ```
 
 ### 10. Optional: Bundle Analysis

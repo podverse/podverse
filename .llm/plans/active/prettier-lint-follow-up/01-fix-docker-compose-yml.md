@@ -7,6 +7,7 @@ The `podverse_jenkins_docker` service in [infra/docker/ci/docker-compose.yml](..
 In `infra/docker/ci/docker-compose.yml`, under `podverse_jenkins_docker`:
 
 - **Current** (invalid):
+
   ```yaml
     environment:
       DOCKER_TLS_CERTDIR: "/certs"
@@ -19,12 +20,12 @@ In `infra/docker/ci/docker-compose.yml`, under `podverse_jenkins_docker`:
 
 - **Fix**: Use a single `environment:` block with all keys:
   ```yaml
-    environment:
-      DOCKER_TLS_CERTDIR: "/certs"
-      VIRTUAL_HOST:
-      VIRTUAL_PORT: 3000
-      LETSENCRYPT_HOST:
-      LETSENCRYPT_EMAIL:
+  environment:
+    DOCKER_TLS_CERTDIR: '/certs'
+    VIRTUAL_HOST:
+    VIRTUAL_PORT: 3000
+    LETSENCRYPT_HOST:
+    LETSENCRYPT_EMAIL:
   ```
 
 ## 2. Remove from .prettierignore
