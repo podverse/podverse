@@ -6,11 +6,6 @@
 
 version: 2
 
-registries:
-  npm-registry:
-    type: npm-registry
-    url: https://registry.npmjs.org
-
 updates:
   # npm dependencies
   - package-ecosystem: 'npm'
