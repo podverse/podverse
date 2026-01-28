@@ -21,7 +21,7 @@
     "access": "public"
   },
   "dependencies": {
-    "axios": "^1.12.2",
+    "axios": "^1.13.4",
     "bignumber.js": "^9.3.1",
     "date-fns": "^4.1.0",
     "he": "^1.2.0",
