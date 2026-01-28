@@ -23,12 +23,10 @@ pipeline {
             description: 'The path to the image hosted in GHCR.'
         )
 
-        credentials(
+        string(
             name: 'GHCR_REGISTRY_TOKEN',
             defaultValue: 'ghcr_pat_read_only_packages',
-            credentialType: 'SecretText',
-            required: true,
-            description: 'The GHCR PAT'
+            description: 'The Jenkins credential ID containing the GHCR PAT'
         )
     }
 
@@ -44,7 +42,11 @@ pipeline {
                         // are automatically injected as environment variables.
                         def webVersion
                         if (params.IMAGE_VERSION == 'alpha') {
-                                webVersion = sh(script: '/opt/podverse/scripts/ghcr/getLatestAlphaTag.sh', returnStdout: true).trim()
+                                withEnv(["GHCR_IMAGE_PATH=${params.GHCR_IMAGE_PATH}"]) {
+                                    withCredentials([string(credentialsId: params.GHCR_REGISTRY_TOKEN, variable: 'GHCR_REGISTRY_TOKEN')]) {
+                                        webVersion = sh(script: '/opt/podverse/scripts/ghcr/getLatestAlphaTag.sh', returnStdout: true).trim()
+                                    }
+                                }
                                 if (!webVersion) {
                                         error('ERROR: No alpha tag found from getLatestAlphaTag.sh')
                                 }
