@@ -7,6 +7,7 @@
     { "path": "apps/web", "name": "web" },
   ],
   "settings": {
-    "typescript.tsdk": "node_modules/typescript/lib",
-  },
+    "editor.wordWrap": "off",
+    "typescript.tsdk": "node_modules/typescript/lib"
+  }
 }
