@@ -93,8 +93,13 @@ This runs Prettier with the plugin only on `**/*.sh`. Use it at your discretion 
 
 ### CI for External Contributors
 
-To prevent abuse of GitHub Actions, CI does not run automatically on PRs from external contributors. A maintainer must comment `/test` on the PR to trigger the CI workflow. This runs:
+To prevent abuse of GitHub Actions, CI does not run automatically on PRs from external contributors. A maintainer must comment `/test` on the PR to trigger the CI workflow.
 
+**Exception**: Dependabot PRs run CI automatically since Dependabot is a trusted GitHub bot.
+
+The CI workflow runs:
+
+- Database migration verification
 - Linting
 - Type checking
 - Package builds
