@@ -23,12 +23,10 @@ pipeline {
             description: 'The path to the image hosted in GHCR.'
         )
 
-        credentials(
+        string(
             name: 'GHCR_REGISTRY_TOKEN',
             defaultValue: 'ghcr_pat_read_only_packages',
-            credentialType: 'SecretText',
-            required: true,
-            description: 'The GHCR PAT'
+            description: 'The Jenkins credential ID containing the GHCR PAT'
         )
     }
 
