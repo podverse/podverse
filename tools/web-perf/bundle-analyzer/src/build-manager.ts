@@ -3,20 +3,22 @@ import * as path from 'path';
 import * as fs from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
+import { getAppEnvironment } from './env-config.js';
 
 // ES modules __dirname equivalent
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 export class BuildManager {
-  private podverseWebPath: string;
+  private appPath: string;
+  private appName: string;
   private buildProcess: ChildProcess | null = null;
 
-  constructor() {
-    // Calculate path to apps/web root (3 levels up from tools/web-perf/bundle-analyzer/src)
-    const currentDir = __dirname;
-    const webRoot = path.resolve(currentDir, '../../../apps/web');
-    this.podverseWebPath = webRoot;
+  constructor(appPath: string, appName: string) {
+    // Calculate absolute path to app from monorepo root (4 levels up to reach root)
+    const monorepoRoot = path.resolve(__dirname, '../../../../');
+    this.appPath = path.join(monorepoRoot, appPath);
+    this.appName = appName;
   }
 
   async buildWithAnalyzer(): Promise<{
@@ -26,18 +28,21 @@ export class BuildManager {
     clientStatsJson?: string;
   }> {
     console.log('🔨 Building Next.js app with bundle analyzer...');
-    console.log(`   Working directory: ${this.podverseWebPath}`);
+    console.log(`   Working directory: ${this.appPath}`);
 
-    // Set environment variable to enable bundle analyzer
+    // Set environment variables for the build
+    // Hard-coded app environment variables override any .env files
+    const appEnv = getAppEnvironment(this.appName);
     const env = {
       ...process.env,
+      ...appEnv, // Inject hard-coded environment variables
       ANALYZE: 'true',
       NODE_ENV: 'production',
     };
 
     return new Promise((resolve, reject) => {
       const buildProcess = spawn('npm', ['run', 'build'], {
-        cwd: this.podverseWebPath,
+        cwd: this.appPath,
         env,
         stdio: ['inherit', 'pipe', 'pipe'],
         shell: true,
@@ -65,7 +70,7 @@ export class BuildManager {
         }
 
         // Bundle analyzer generates HTML files in .next/analyze/ directory
-        const analyzeDir = path.join(this.podverseWebPath, '.next', 'analyze');
+        const analyzeDir = path.join(this.appPath, '.next', 'analyze');
 
         let serverHtml: string | undefined;
         let clientHtml: string | undefined;

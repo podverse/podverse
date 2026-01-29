@@ -111,7 +111,7 @@ The system comprehensively tests all media types and user states:
 
 ## Report Structure
 
-Reports are stored in `tools/web-perf/reports/lighthouse/report-{identifier}.json` where `{identifier}` is the name you provide. The identifier is sanitized to be filesystem-safe (only alphanumeric characters, hyphens, and underscores allowed). For example:
+Reports are stored in `tools/web-perf/lighthouse/reports/{app}/report-{identifier}.json` where `{app}` is the application being tested (currently only 'web' is supported) and `{identifier}` is the name you provide. The identifier is sanitized to be filesystem-safe (only alphanumeric characters, hyphens, and underscores allowed). For example:
 
 - `report-v1.0.json`
 - `report-before-optimization.json`

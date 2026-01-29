@@ -1,11 +1,12 @@
 {
   "name": "podverse-bundle-analyzer",
   "version": "1.0.0",
-  "description": "Bundle size analysis for podverse-web",
+  "description": "Bundle size analysis for Podverse web applications",
   "private": true,
   "type": "module",
   "scripts": {
-    "analyze": "tsx src/index.ts"
+    "analyze:web": "tsx src/index.ts web",
+    "analyze:management-web": "tsx src/index.ts management-web"
   },
   "devDependencies": {
     "@next/bundle-analyzer": "^15.1.6",

@@ -1,7 +1,8 @@
 import { BuildManager } from './build-manager.js';
 import { BundleReportManager, BundleReport, BundleChunkSummary } from './report-manager.js';
+import { AppConfig } from './app-config.js';
 
-const DEFAULT_TOP_CHUNKS = Math.max(1, Number(process.env.BUNDLE_ANALYZER_TOP_N || 20));
+const DEFAULT_TOP_CHUNKS = 20; // Hard-coded for local development
 
 function parseStatsJson(jsonContent: string): Record<string, unknown> | null {
   try {
@@ -65,14 +66,16 @@ function buildChunkSummary(stats: Record<string, unknown>, topN: number): Bundle
 export class BundleAnalyzer {
   private buildManager: BuildManager;
   private reportManager: BundleReportManager;
+  private appConfig: AppConfig;
 
-  constructor() {
-    this.buildManager = new BuildManager();
-    this.reportManager = new BundleReportManager();
+  constructor(appConfig: AppConfig) {
+    this.appConfig = appConfig;
+    this.buildManager = new BuildManager(appConfig.path, appConfig.name);
+    this.reportManager = new BundleReportManager(appConfig.reportsSubdir);
   }
 
   async analyze(reportName: string): Promise<BundleReport> {
-    console.log(`\n📊 Starting bundle analysis: ${reportName}\n`);
+    console.log(`\n📊 Starting bundle analysis for ${this.appConfig.displayName}: ${reportName}\n`);
 
     // Build the app with analyzer enabled
     const { serverHtml, clientHtml, serverStatsJson, clientStatsJson } =
@@ -122,6 +125,7 @@ export class BundleAnalyzer {
     const report: BundleReport = {
       timestamp: new Date().toISOString(),
       reportName,
+      appTarget: this.appConfig.name,
       serverBundlePath,
       clientBundlePath,
       serverBundleSize,
