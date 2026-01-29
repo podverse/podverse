@@ -22,10 +22,12 @@ This skill provides guidelines for maintaining LLM development history in the Po
 
 ```
 .llm/history/active/[feature-name]/
-  [feature-name].md              # Sessions 1-10 (if not split yet)
-  [feature-name]-part-01.md      # Sessions 1-10 (after splitting)
-  [feature-name]-part-02.md      # Sessions 11-20 (current)
+  [feature-name]-part-01.md      # Sessions 1-10 (always start with part-01)
+  [feature-name]-part-02.md      # Sessions 11-20
+  [feature-name]-part-03.md      # Sessions 21-30
 ```
+
+**Always use the `-part-01` suffix from the beginning, even for the first file.**
 
 ## When to Split
 
@@ -33,7 +35,6 @@ This skill provides guidelines for maintaining LLM development history in the Po
 
 1. Count sessions in current file
 2. If file has 10 sessions and you're about to add session 11:
-   - Rename current file to add `-part-01` suffix
    - Create new file with `-part-02` suffix
    - Add session 11 to the new part file
 
@@ -43,14 +44,14 @@ This skill provides guidelines for maintaining LLM development history in the Po
 
 ```
 .llm/history/active/my-feature/
-  my-feature.md  (sessions 1-10)
+  my-feature-part-01.md  (sessions 1-10)
 ```
 
 **After (adding session 11):**
 
 ```
 .llm/history/active/my-feature/
-  my-feature-part-01.md  (sessions 1-10, renamed)
+  my-feature-part-01.md  (sessions 1-10, unchanged)
   my-feature-part-02.md  (session 11+, active)
 ```
 
@@ -117,10 +118,10 @@ Before updating history, always:
 
 ```bash
 # Quick check
-grep -c "^### Session" .llm/history/active/feature-name/feature-name.md
+grep -c "^### Session" .llm/history/active/feature-name/feature-name-part-01.md
 ```
 
-If output is `10`, split the file before adding session 11.
+If output is `10`, create a new `-part-02.md` file before adding session 11.
 
 ## Response Ending
 
@@ -135,12 +136,14 @@ Always end file-modifying responses with:
 ❌ **Don't** exceed 10 sessions per file  
 ❌ **Don't** reset session numbers when splitting  
 ❌ **Don't** summarize or paraphrase user prompts  
-❌ **Don't** forget to split before adding session 11
+❌ **Don't** forget to split before adding session 11  
+❌ **Don't** create history files without the `-part-01` suffix
 
 ✅ **Do** count sessions before updating  
 ✅ **Do** split files at exactly 10 sessions  
 ✅ **Do** use continuous session numbering  
-✅ **Do** capture exact user prompts verbatim
+✅ **Do** capture exact user prompts verbatim  
+✅ **Do** always start with `-part-01` suffix
 
 ## Quick Reference
 

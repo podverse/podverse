@@ -18,6 +18,8 @@ Use this approach when:
 
 ## Core Principles
 
+> **🚀 AGENT BEHAVIOR**: When a copy-pasta prompt is pasted, execute it immediately. The act of pasting IS the instruction to execute. See "Executing Copy-Pasta Prompts" section below for details.
+
 ### 1. Dependency Analysis
 
 Before creating plans, identify:
@@ -365,6 +367,49 @@ You've done this well when:
 - All verification steps included
 
 **User should never wonder**: "Can I start Phase 2 while Phase 1 is running?" Answer must be obvious: NO.
+
+## Executing Copy-Pasta Prompts
+
+**CRITICAL BEHAVIOR**: When a copy-pasta prompt from `migration-COPY-PASTA.md` is pasted into an agent:
+
+### Immediate Execution Rule
+
+- **Execute immediately** - Do NOT ask for confirmation or additional instructions
+- **Prompt is self-contained** - All necessary context is included in the prompt
+- **No explanation needed** - User pasting = user requesting execution
+
+### Recognition Pattern
+
+If the pasted message:
+
+1. References a plan file (e.g., "Read and execute .llm/plans/active/...")
+2. Comes from the copy-pasta file structure
+3. Contains no additional user instructions beyond the prompt itself
+
+**Then**: Execute the prompt immediately without requesting clarification.
+
+### Example Scenarios
+
+**User pastes**:
+
+```
+Read and execute .llm/plans/active/helpers-split/migration-08-podcast-pages.md
+
+Follow all instructions to update 5 podcast-related files.
+
+Core rule: Move QueryParams to @podverse/helpers-browser
+```
+
+**Agent should**: Immediately read the plan file and begin execution.
+
+**Agent should NOT**: Ask "Would you like me to execute this?" or wait for additional confirmation.
+
+### Why This Matters
+
+- Copy-pasta prompts are designed for efficient parallel execution
+- User has already made the decision to execute by pasting the prompt
+- Asking for confirmation adds unnecessary friction and delay
+- The prompt structure itself IS the user's instruction
 
 ## Related Skills
 
