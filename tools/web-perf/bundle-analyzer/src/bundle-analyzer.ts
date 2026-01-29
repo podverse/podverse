@@ -16,11 +16,11 @@ function parseStatsJson(jsonContent: string): Record<string, unknown> | null {
 function getChunkName(chunk: Record<string, unknown>): string {
   const names = chunk.names as string[] | undefined;
   if (Array.isArray(names) && names.length > 0) {
-    return names[0];
+    return names[0] ?? 'unknown';
   }
   const files = chunk.files as string[] | undefined;
   if (Array.isArray(files) && files.length > 0) {
-    return files[0];
+    return files[0] ?? 'unknown';
   }
   if (typeof chunk.id === 'string' || typeof chunk.id === 'number') {
     return `chunk-${chunk.id}`;
@@ -93,13 +93,11 @@ export class BundleAnalyzer {
 
     if (serverHtml) {
       serverBundlePath = this.reportManager.saveHtmlReport(reportName, serverHtml, 'server');
-      serverBundleSize = Buffer.byteLength(serverHtml, 'utf8');
       console.log(`✅ Server bundle report saved: ${serverBundlePath}`);
     }
 
     if (clientHtml) {
       clientBundlePath = this.reportManager.saveHtmlReport(reportName, clientHtml, 'client');
-      clientBundleSize = Buffer.byteLength(clientHtml, 'utf8');
       console.log(`✅ Client bundle report saved: ${clientBundlePath}`);
     }
 
@@ -108,6 +106,9 @@ export class BundleAnalyzer {
       const parsedStats = parseStatsJson(serverStatsJson);
       if (parsedStats) {
         serverChunkSummary = buildChunkSummary(parsedStats, DEFAULT_TOP_CHUNKS);
+        serverBundleSize =
+          serverChunkSummary.totalAssetSize ??
+          (serverHtml ? Buffer.byteLength(serverHtml, 'utf8') : undefined);
       }
       console.log(`✅ Server stats report saved: ${serverStatsPath}`);
     }
@@ -117,8 +118,19 @@ export class BundleAnalyzer {
       const parsedStats = parseStatsJson(clientStatsJson);
       if (parsedStats) {
         clientChunkSummary = buildChunkSummary(parsedStats, DEFAULT_TOP_CHUNKS);
+        clientBundleSize =
+          clientChunkSummary.totalAssetSize ??
+          (clientHtml ? Buffer.byteLength(clientHtml, 'utf8') : undefined);
       }
       console.log(`✅ Client stats report saved: ${clientStatsPath}`);
+    }
+
+    // Fallback to HTML size when stats are missing (e.g. only HTML produced)
+    if (serverBundleSize === undefined && serverHtml) {
+      serverBundleSize = Buffer.byteLength(serverHtml, 'utf8');
+    }
+    if (clientBundleSize === undefined && clientHtml) {
+      clientBundleSize = Buffer.byteLength(clientHtml, 'utf8');
     }
 
     // Create and save JSON report
