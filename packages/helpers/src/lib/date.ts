@@ -1,5 +1,26 @@
-import { format, Locale } from 'date-fns';
-import { enUS, es, fr, el } from 'date-fns/locale';
+import { format } from 'date-fns/format';
+import type { Locale } from 'date-fns';
+import { enUS } from 'date-fns/locale/en-US';
+import { es } from 'date-fns/locale/es';
+import { fr } from 'date-fns/locale/fr';
+import { el } from 'date-fns/locale/el';
+
+import { SUPPORTED_LOCALES } from './constants/locales';
+
+/** date-fns locale module ids for SUPPORTED_LOCALES (en-US, es, fr, el for el-GR). Use for bundle restriction (e.g. Webpack ContextReplacementPlugin). */
+export const DATE_FNS_LOCALE_IDS: readonly string[] = SUPPORTED_LOCALES.map((loc) =>
+  loc === 'el-GR' ? 'el' : loc
+);
+
+const dateFnsLocales: Record<string, Locale> = {
+  'en-US': enUS,
+  en: enUS,
+  es,
+  fr,
+  'el-GR': el,
+};
+
+export const dateFnsLocaleMap: Record<string, Locale> = dateFnsLocales;
 
 export const formatDateAbbrev = (date: Date | number | string, localeString: string): string => {
   const d =
@@ -15,13 +36,6 @@ export const convertSecondsToDaysText = (seconds: string) => {
   return `${totalDays > 1 ? `${totalDays} days` : '24 hours'}`;
 };
 
-export const dateFnsLocaleMap: Record<string, Locale> = {
-  en: enUS,
-  es: es,
-  fr: fr,
-  'el-GR': el,
-};
-
 export function getDateFnsLocale(appLocale: string): Locale {
-  return dateFnsLocaleMap[appLocale] || enUS;
+  return dateFnsLocaleMap[appLocale] ?? enUS;
 }

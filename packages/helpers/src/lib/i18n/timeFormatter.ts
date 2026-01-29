@@ -1,5 +1,7 @@
-import { formatDuration, intervalToDuration } from 'date-fns';
-import { enUS, es, el } from 'date-fns/locale';
+import { formatDuration } from 'date-fns/formatDuration';
+import { intervalToDuration } from 'date-fns/intervalToDuration';
+
+import { getDateFnsLocale } from '../date';
 
 export function formatSecondsToReadableDuration(input: string, lang: string = 'en-US'): string {
   let seconds = Math.floor(parseFloat(input));
@@ -19,20 +21,7 @@ export function formatSecondsToReadableDuration(input: string, lang: string = 'e
     duration = { ...duration, seconds: 0 };
   }
 
-  let locale;
-  switch (lang) {
-    case 'es':
-      locale = es;
-      break;
-    case 'el':
-    case 'el-GR':
-      locale = el;
-      break;
-    case 'en-US':
-    default:
-      locale = enUS;
-      break;
-  }
+  const locale = getDateFnsLocale(lang);
 
   // If under 60 seconds, only show seconds
   if (seconds < 60) {
