@@ -12,12 +12,19 @@ const withBundleAnalyzer = withBundleAnalyzerInit({
 
 const nextConfig: NextConfig = {
   output: 'standalone',
-  outputFileTracingRoot: path.join(__dirname, '../../'),
-  sassOptions: {
-    includePaths: [__dirname + '/src/styles/variables'],
-  },
+  outputFileTracingRoot: path.join(import.meta.dirname, '../../'),
   serverExternalPackages: ['winston'],
   transpilePackages: ['@podverse/helpers'],
+  // Turbopack config for development (Next.js 16 default bundler)
+  turbopack: {
+    resolveAlias: {
+      fs: { browser: './turbopack-empty.ts' },
+      net: { browser: './turbopack-empty.ts' },
+      tls: { browser: './turbopack-empty.ts' },
+      dgram: { browser: './turbopack-empty.ts' },
+    },
+  },
+  // Webpack config for production builds (using --webpack flag)
   webpack: (config, { isServer }) => {
     if (!isServer) {
       // Polyfill or ignore Node.js modules for client-side

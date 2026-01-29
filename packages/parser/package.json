@@ -10,7 +10,7 @@
   "scripts": {
     "build": "npm run lint && tsc && tsc-alias",
     "build:prod": "tsc && tsc-alias",
-    "build:watch": "tsc --build --watch --preserveWatchOutput",
+    "build:watch": "tsc --build --watch --preserveWatchOutput & tsc-alias --watch",
     "lint": "eslint ./src --max-warnings 0",
     "lint:fix": "eslint ./src --fix",
     "clean": "rm -rf dist",
