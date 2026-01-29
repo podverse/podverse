@@ -1,11 +1,30 @@
 # QueryParams Migration - Copy-Pasta Prompts for Parallel Execution
 
+## ⚠️ CRITICAL: Execution Rules
+
+**SEQUENTIAL PHASES** - Each phase must COMPLETE before the next phase starts:
+
+```
+Phase 1 → WAIT FOR COMPLETION → Phase 2 → WAIT FOR COMPLETION → Phase 3 → WAIT FOR COMPLETION → Verify
+```
+
+**DO NOT** run phases simultaneously:
+
+- ❌ Cannot start Phase 2 while Phase 1 is running
+- ❌ Cannot start Phase 3 while Phase 2 is running
+- ❌ Cannot start Verify while Phase 3 is running
+
+**DO** run agents within each phase simultaneously:
+
+- ✅ Phase 2: Run all 4 agents (2A, 2B, 2C, 2D) at the same time
+- ✅ Phase 3: Run both agents (3A, 3B) at the same time
+
 ## How to Use This File
 
-1. **Phase 1**: Copy the Phase 1 prompt → paste into Cursor agent → execute
-2. **Phase 2**: Open 4 agents → paste Phase 2A-D prompts (one per agent) → execute all simultaneously
-3. **Phase 3**: Open 2 agents → paste Phase 3A-B prompts (one per agent) → execute both simultaneously
-4. **Verify**: Copy verification prompt → paste into agent → execute
+1. **Phase 1**: Copy prompt → paste into 1 agent → execute → **WAIT FOR COMPLETION**
+2. **Phase 2**: Open 4 agents → paste prompts 2A-D (one per agent) → execute all 4 simultaneously → **WAIT FOR ALL TO COMPLETE**
+3. **Phase 3**: Open 2 agents → paste prompts 3A-B (one per agent) → execute both simultaneously → **WAIT FOR BOTH TO COMPLETE**
+4. **Verify**: Copy prompt → paste into 1 agent → execute
 
 Each prompt references the detailed plan files for full context.
 
@@ -165,12 +184,14 @@ All should complete without QueryParams import errors. Report any errors found.
 
 ## 🎯 Quick Execution Checklist
 
-- [ ] Phase 1: Paste prompt into 1 agent → Execute → Wait for completion
-- [ ] Phase 2: Paste 4 prompts into 4 agents → Execute all → Wait for completion
-- [ ] Phase 3: Paste 2 prompts into 2 agents → Execute both → Wait for completion
-- [ ] Verify: Paste verification prompt into 1 agent → Execute → Confirm all passes
+- [ ] **Phase 1**: Paste prompt into 1 agent → Execute → ⏸️ **WAIT FOR COMPLETION**
+- [ ] **Phase 2**: Paste 4 prompts into 4 agents → Execute all 4 simultaneously → ⏸️ **WAIT FOR ALL TO COMPLETE**
+- [ ] **Phase 3**: Paste 2 prompts into 2 agents → Execute both simultaneously → ⏸️ **WAIT FOR BOTH TO COMPLETE**
+- [ ] **Verify**: Paste verification prompt into 1 agent → Execute → Confirm all passes
 
-**Maximum parallelization**: 4 agents simultaneously in Phase 2!
+**Parallelization**:
+- ✅ Within phases: Up to 4 agents simultaneously
+- ❌ Between phases: MUST be sequential (wait for each phase to complete)
 
 ## 📁 Referenced Plan Files
 

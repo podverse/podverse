@@ -22,9 +22,14 @@ Use this approach when:
 
 Before creating plans, identify:
 
-- **Sequential dependencies**: Task B requires Task A completion
-- **Parallel opportunities**: Tasks can execute simultaneously
+- **Sequential dependencies**: Task B requires Task A completion (phases must run in order)
+- **Parallel opportunities**: Tasks can execute simultaneously (agents within a phase)
 - **Shared resources**: Files modified by multiple tasks (requires coordination)
+
+**Critical distinction**:
+
+- **Phases**: Run sequentially (Phase 1 completes → Phase 2 starts → Phase 3 starts)
+- **Agents within a phase**: Run in parallel (all Phase 2 agents execute simultaneously)
 
 ### 2. Plan Hierarchy
 
@@ -145,14 +150,26 @@ Update QueryParams imports in podcast-related pages.
 
 File: `migration-COPY-PASTA.md`
 
+**CRITICAL**: Make execution rules clear at the top:
+- Phases are SEQUENTIAL (must wait for each to complete)
+- Agents WITHIN phases run in PARALLEL
+
 Structure:
 ```markdown
 # [Feature] - Copy-Pasta Prompts for Parallel Execution
 
+## ⚠️ CRITICAL: Execution Rules
+
+**SEQUENTIAL PHASES** - Each phase must COMPLETE before the next:
+- Phase 1 → WAIT → Phase 2 → WAIT → Phase 3 → WAIT → Verify
+
+**DO NOT** run phases simultaneously
+**DO** run agents within each phase simultaneously
+
 ## How to Use
-1. Phase 1: Copy prompt → paste → execute (single agent)
-2. Phase 2: Copy 4 prompts → paste into 4 agents → execute all
-3. Phase 3: Copy 2 prompts → paste into 2 agents → execute both
+1. Phase 1: Copy prompt → paste → execute (1 agent) → **WAIT FOR COMPLETION**
+2. Phase 2: Copy 4 prompts → paste into 4 agents → execute all → **WAIT FOR ALL TO COMPLETE**
+3. Phase 3: Copy 2 prompts → paste into 2 agents → execute both → **WAIT FOR BOTH TO COMPLETE**
 
 ---
 
@@ -337,13 +354,17 @@ Before finalizing plans:
 
 You've done this well when:
 
-- User can copy-paste 4-6 prompts and execute in parallel
+- **Execution rules are at the top** - User immediately understands phase sequencing
+- **Phase dependencies are crystal clear** - "WAIT FOR COMPLETION" explicit between phases
+- User can copy-paste 4-6 prompts and execute in parallel **within each phase**
 - Each prompt is 3-5 lines (references detailed plan)
 - Detailed plans are comprehensive (50-100+ lines each)
 - No redundant information across files
-- Clear phase dependencies
+- Clear phase dependencies (sequential) vs agent parallelization (within phase)
 - Measurable time savings from parallelization
 - All verification steps included
+
+**User should never wonder**: "Can I start Phase 2 while Phase 1 is running?" Answer must be obvious: NO.
 
 ## Related Skills
 
