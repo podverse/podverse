@@ -4,7 +4,7 @@ Copy and paste this entire prompt to execute the helpers-split plan unattended.
 
 ---
 
-Execute the complete helpers-split refactoring plan located at .llm/plans/active/helpers-split/00-overview.md. This is a critical refactoring that must complete fully without interruption.
+Execute the complete helpers-split refactoring plan located at .llm/plans/completed/helpers-split/00-overview.md. This is a critical refactoring that must complete fully without interruption.
 
 ## EXECUTION REQUIREMENTS
 

@@ -72,7 +72,7 @@ Based on previous exploration, expect to find imports in:
 
 ## Status
 
-⏳ Pending - requires comprehensive search first
+✅ Completed (2026-01-29) - Comprehensive scan confirmed no remaining files; all QueryParams (except Medium/QueueMedium) import from `@podverse/helpers-requests`. Scope fully covered by migrations 08-13.
 
 ## Notes
 

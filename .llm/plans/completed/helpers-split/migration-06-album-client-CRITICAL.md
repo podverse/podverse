@@ -62,4 +62,4 @@ Should complete without the `QueryParamsChannelMusicAlbum` error.
 
 ## Status
 
-⏳ Pending execution
+✅ Superseded by migration-11 (2026-01-29) - AlbumClient.tsx fix already applied via migration-11; no code change needed

@@ -78,4 +78,4 @@ npm run lint -- apps/web/src/utils
 
 ## Status
 
-⏳ Ready to execute
+✅ Completed (2026-01-29) - Both utility files already had split imports

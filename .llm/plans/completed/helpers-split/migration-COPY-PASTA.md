@@ -35,7 +35,7 @@ Each prompt references the detailed plan files for full context.
 ### Agent 1: Critical Album Client Fix
 
 ````
-Read and execute the critical fix from .llm/plans/active/helpers-split/migration-11-music-album-artist.md
+Read and execute the critical fix from .llm/plans/completed/helpers-split/migration-11-music-album-artist.md
 
 Execute ONLY item #2 (AlbumClient.tsx) from that plan.
 
@@ -56,7 +56,7 @@ cd apps/web && npx tsc --noEmit
 
 ```
 
-Read and execute .llm/plans/active/helpers-split/migration-08-podcast-pages.md
+Read and execute .llm/plans/completed/helpers-split/migration-08-podcast-pages.md
 
 Follow all instructions to update 5 podcast-related files.
 
@@ -68,7 +68,7 @@ Core rule: QueryParamsQueueMedium stays in @podverse/helpers. All other QueryPar
 
 ```
 
-Read and execute .llm/plans/active/helpers-split/migration-09-episodes-clips-contexts.md
+Read and execute .llm/plans/completed/helpers-split/migration-09-episodes-clips-contexts.md
 
 Follow all instructions to update 4 episode/clip context files.
 
@@ -80,7 +80,7 @@ Core pattern: DTOs and utilities stay in @podverse/helpers, QueryParams move to 
 
 ```
 
-Read and execute .llm/plans/active/helpers-split/migration-10-queues-history-home.md
+Read and execute .llm/plans/completed/helpers-split/migration-10-queues-history-home.md
 
 Follow all instructions to update 4 queue/history/home/profile files.
 
@@ -92,7 +92,7 @@ Core rule: QueryParamsMedium stays in @podverse/helpers. All other QueryParams m
 
 ```
 
-Read and execute .llm/plans/active/helpers-split/migration-11-music-album-artist.md
+Read and execute .llm/plans/completed/helpers-split/migration-11-music-album-artist.md
 
 Execute items #1, #3, and #4 from that plan (skip #2 - already completed in Phase 1).
 
@@ -108,7 +108,7 @@ Update album dropdown config and artist pages.
 
 ```
 
-Read and execute .llm/plans/active/helpers-split/migration-12-playlists-components.md
+Read and execute .llm/plans/completed/helpers-split/migration-12-playlists-components.md
 
 Follow all instructions to update 3 playlist/list component files.
 
@@ -120,7 +120,7 @@ Note: Plan mentions some files don't need changes (they only use QueryParamsQueu
 
 ```
 
-Read and execute .llm/plans/active/helpers-split/migration-13-utils.md
+Read and execute .llm/plans/completed/helpers-split/migration-13-utils.md
 
 Follow all instructions to update 2 utility files.
 
@@ -196,9 +196,9 @@ All should complete without QueryParams import errors. Report any errors found.
 ## 📁 Referenced Plan Files
 
 All detailed instructions are in:
-- `.llm/plans/active/helpers-split/migration-00-EXECUTION-ORDER.md` - Master guide
-- `.llm/plans/active/helpers-split/migration-00-SUMMARY.md` - Complete scope
-- `.llm/plans/active/helpers-split/migration-08-*.md` through `migration-13-*.md` - Execution plans
+- `.llm/plans/completed/helpers-split/migration-00-EXECUTION-ORDER.md` - Master guide
+- `.llm/plans/completed/helpers-split/migration-00-SUMMARY.md` - Complete scope
+- `.llm/plans/completed/helpers-split/migration-08-*.md` through `migration-13-*.md` - Execution plans
 
 ## ⚡ Efficiency Notes
 
