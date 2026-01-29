@@ -26,8 +26,8 @@ export function SettingsAccount() {
   const handleDownloadData = async () => {
     setIsDownloading(true);
 
-    // Show loading toast
-    const loadingToastId = showToastLoading(tSettings('account.download_my_data_loading'));
+    // Show loading toast (lazy-loaded toast module)
+    const loadingToastId = await showToastLoading(tSettings('account.download_my_data_loading'));
 
     try {
       const blob: Blob = await apiRequestService.reqAccountDownloadData();

@@ -3,7 +3,6 @@
 import { useEffect, useRef } from 'react';
 import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
-import toast from 'react-hot-toast';
 import { AccountMembershipEnum } from '@podverse/helpers';
 import { useAccount } from '../../contexts/Account';
 import {
@@ -11,7 +10,7 @@ import {
   handleLocalSettingsUpdate,
 } from '../../utils/localSettings/localSettings';
 import { ROUTES } from '../../constants/routes';
-import { showToastCustom } from './Toast';
+import { showToastCustom, dismissToast } from './Toast';
 
 export function MembershipExpirationToast() {
   const { loggedInAccount } = useAccount();
@@ -22,7 +21,7 @@ export function MembershipExpirationToast() {
   useEffect(() => {
     if (!loggedInAccount) {
       if (toastIdRef.current) {
-        toast.dismiss(toastIdRef.current);
+        dismissToast(toastIdRef.current);
         toastIdRef.current = null;
       }
       return;
@@ -31,7 +30,7 @@ export function MembershipExpirationToast() {
     const accountMembershipStatus = loggedInAccount?.account_membership_status;
     if (!accountMembershipStatus) {
       if (toastIdRef.current) {
-        toast.dismiss(toastIdRef.current);
+        dismissToast(toastIdRef.current);
         toastIdRef.current = null;
       }
       return;
@@ -40,7 +39,7 @@ export function MembershipExpirationToast() {
     const membershipExpiresAt = accountMembershipStatus.membership_expires_at;
     if (!membershipExpiresAt) {
       if (toastIdRef.current) {
-        toast.dismiss(toastIdRef.current);
+        dismissToast(toastIdRef.current);
         toastIdRef.current = null;
       }
       return;
@@ -80,7 +79,7 @@ export function MembershipExpirationToast() {
     // Handler for danger toast: just dismisses, doesn't store timestamp (so it always shows on next load)
     const handleDismissDanger = () => {
       if (toastIdRef.current) {
-        toast.dismiss(toastIdRef.current);
+        dismissToast(toastIdRef.current);
         toastIdRef.current = null;
       }
     };
@@ -94,7 +93,7 @@ export function MembershipExpirationToast() {
         metd: now.toISOString(),
       });
       if (toastIdRef.current) {
-        toast.dismiss(toastIdRef.current);
+        dismissToast(toastIdRef.current);
         toastIdRef.current = null;
       }
     };
@@ -112,12 +111,12 @@ export function MembershipExpirationToast() {
     // Danger toast: Always show if expired (ignores dismissed timestamp, always shows on window load)
     if (isExpired) {
       if (toastIdRef.current) {
-        toast.dismiss(toastIdRef.current);
+        dismissToast(toastIdRef.current);
       }
       const expiredMessage = t('membership_expired_danger', { type: membershipType });
       const linkText = t('membership_link_text');
 
-      toastIdRef.current = showToastCustom(
+      showToastCustom(
         {
           message: expiredMessage,
           linkText,
@@ -126,14 +125,16 @@ export function MembershipExpirationToast() {
           onDismiss: handleDismissDanger,
         },
         'danger'
-      );
+      ).then((id) => {
+        toastIdRef.current = id;
+      });
       return;
     }
 
     // Warning toast: Show if expiring soon, not auto-renew, and not dismissed within past 24 hours
     if (isExpiringSoon && !autoRenew && !wasDismissedWithin24Hours) {
       if (toastIdRef.current) {
-        toast.dismiss(toastIdRef.current);
+        dismissToast(toastIdRef.current);
       }
       const warningMessage = t('membership_expiring_warning', {
         type: membershipType,
@@ -141,7 +142,7 @@ export function MembershipExpirationToast() {
       });
       const linkText = t('membership_link_text');
 
-      toastIdRef.current = showToastCustom(
+      showToastCustom(
         {
           message: warningMessage,
           linkText,
@@ -150,13 +151,15 @@ export function MembershipExpirationToast() {
           onDismiss: handleDismissWarning,
         },
         'warning'
-      );
+      ).then((id) => {
+        toastIdRef.current = id;
+      });
       return;
     }
 
     // If not showing toast, dismiss any existing one
     if (toastIdRef.current) {
-      toast.dismiss(toastIdRef.current);
+      dismissToast(toastIdRef.current);
       toastIdRef.current = null;
     }
   }, [loggedInAccount, t, router]);

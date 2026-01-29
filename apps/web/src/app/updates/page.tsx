@@ -1,6 +1,11 @@
 import fs from 'fs';
 import path from 'path';
-import { UpdatesClient } from './UpdatesClient';
+import dynamic from 'next/dynamic';
+
+const UpdatesClient = dynamic(
+  () => import('./UpdatesClient').then((mod) => ({ default: mod.UpdatesClient })),
+  { ssr: true }
+);
 
 export default function UpdatesPage() {
   const changelogPath = path.join(process.cwd(), 'CHANGELOG.md');

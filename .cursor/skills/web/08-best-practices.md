@@ -7,7 +7,7 @@
 3. **Server components by default** - Add `"use client"` only when needed
 4. **SCSS Modules for styling** - Never Tailwind or CSS-in-JS
 5. **Proper error handling** - Use `handleRateLimitAlert()` for API errors
-6. **Accessibility first** - Include ARIA labels and semantic HTML
+6. **Accessibility first** - Include ARIA labels (use i18n for all aria-label text) and semantic HTML; use Font Awesome icons (e.g. FaXmark) instead of symbol characters (e.g. ×) for close/dismiss
 7. **Follow existing patterns** - Look at similar components for reference (agent mode)
 8. **Recommend improvements** - Propose better patterns when evaluating (plan mode)
 9. **Type safety** - Use types from helper packages (`@podverse/helpers`, `@podverse/helpers-requests`, etc.)
@@ -39,3 +39,18 @@
 - **Only edit `i18n/originals/en-US.json`** - This is the source of truth
 - **Do NOT edit** override files (e.g., `i18n/overrides/en-US.json`) or other language files
 - The `i18n-compile` script automatically processes `originals/en-US.json` and generates all necessary translation files
+
+## Accessibility: ARIA Labels and Icons
+
+**ARIA labels are user-facing** — screen readers announce them, so they must use translations:
+
+- Use `useTranslations()` for all `aria-label` values: `aria-label={tMisc('dismiss')}` NOT `aria-label="Dismiss"`
+- Apply to buttons, links, and any element that has `aria-label`, `aria-labelledby`, or similar
+- Add missing keys to `i18n/originals/en-US.json` (e.g. `misc.dismiss`, `misc.loading`) and use the hook in the component
+
+**Use Font Awesome icons instead of symbol characters** for close/dismiss and other actions:
+
+- Use icons from `react-icons/fa6` (e.g. `FaXmark` for close/dismiss) instead of typing `×` or other Unicode symbols
+- Follow existing patterns: see `Modal.tsx` (close button uses `FaTimes`), `NavBarMoreButton.tsx` (uses `FaXmark`)
+- Import only the icon you need: `import { FaXmark } from 'react-icons/fa6';`
+- Pair the icon with a translated `aria-label` so screen reader users get the same meaning

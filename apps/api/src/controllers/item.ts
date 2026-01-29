@@ -782,15 +782,18 @@ export class ItemController {
         const lastFinished =
           item?.item_chapters_feed?.item_chapters_feed_log?.last_finished_parse_time;
 
+        let chaptersAvailable = true;
         if (lastFinished) {
           const last = new Date(lastFinished).getTime();
           const now = Date.now();
           const diffMs = now - last;
           if (diffMs >= 1000 * 60 * 60) {
-            await parseChapters(item);
+            const parseResult = await parseChapters(item);
+            chaptersAvailable = parseResult.parsed;
           }
         } else {
-          await parseChapters(item);
+          const parseResult = await parseChapters(item);
+          chaptersAvailable = parseResult.parsed;
         }
 
         const updatedItem = (await ItemController.itemService.getByIdOrIdText(
@@ -839,7 +842,12 @@ export class ItemController {
 
         const response: ApiListResponse<ItemChapter> = {
           data: transformed,
-          meta: { page: 1, count: transformed.length, limit: transformed.length },
+          meta: {
+            page: 1,
+            count: transformed.length,
+            limit: transformed.length,
+            chaptersAvailable,
+          },
         };
 
         res.json(response);

@@ -1,9 +1,21 @@
 'use client';
 
+import dynamic from 'next/dynamic';
 import React from 'react';
+import { LazyLoadPlaceholder } from '../../components/LazyLoadPlaceholder/LazyLoadPlaceholder';
 import LoadingSpinnerOverlay from '../../components/LoadingSpinner/LoadingSpinnerOverlay';
-import { ListQueueResources } from '../../components/List/Queues/ListQueueResources';
 import { useQueuesPageContext } from './QueuesPageContext';
+
+const ListQueueResources = dynamic(
+  () =>
+    import('../../components/List/Queues/ListQueueResources').then((m) => ({
+      default: m.ListQueueResources,
+    })),
+  {
+    ssr: false,
+    loading: () => <LazyLoadPlaceholder />,
+  }
+);
 
 export const QueuesList: React.FC = () => {
   const { filterParams, queueResources, isLoading, showLoginMessage } = useQueuesPageContext();

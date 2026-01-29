@@ -8,6 +8,8 @@ export interface ApiListResponse<T> {
     page: number;
     count: number | null;
     limit: number;
+    /** Present on GET /item/chapters/:id when chapters feed was fetched this request. */
+    chaptersAvailable?: boolean;
   };
 }
 
