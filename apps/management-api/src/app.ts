@@ -46,7 +46,10 @@ export const startApp = async (): Promise<import('http').Server | undefined> => 
 
     app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
       console.error('API Router Error:', err);
-      res.status(500).json({ message: err.message });
+
+      if (!res.headersSent) {
+        res.status(500).json({ message: err.message });
+      }
     });
 
     const server = app.listen(port, () => {

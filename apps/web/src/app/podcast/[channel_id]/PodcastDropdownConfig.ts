@@ -3,7 +3,7 @@ import {
   QueryParamsChannelSort,
   QueryParamsStatsRange,
   QueryParamsGlobalSort,
-} from '@podverse/helpers';
+} from '@podverse/helpers-requests';
 import { getRangeDropdownItems } from '../../../utils/dropdownMenuItems';
 
 export function getPodcastDropdownConfig({

@@ -1,10 +1,5 @@
-import {
-  DTOChannel,
-  DTOClip,
-  DTOItemQueueItem,
-  DTOItemSoundbite,
-  getShuffleHash,
-} from '@podverse/helpers';
+import { DTOChannel, DTOClip, DTOItemQueueItem, DTOItemSoundbite } from '@podverse/helpers';
+import { getShuffleHash } from '@podverse/helpers-requests';
 import { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { LocalSettingsState } from '../utils/localSettings/localSettings';
 import { useLocalSettings } from './LocalSettings';

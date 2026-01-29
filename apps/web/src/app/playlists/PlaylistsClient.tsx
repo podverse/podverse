@@ -1,6 +1,7 @@
 'use client';
 
-import { DTOPlaylist, QueryParamsPlaylists } from '@podverse/helpers';
+import { DTOPlaylist } from '@podverse/helpers';
+import { QueryParamsPlaylists } from '@podverse/helpers-requests';
 import { PlaylistsContextProvider } from './PlaylistsContext';
 import { MainWrapper } from '../../components/Main/MainWrapper';
 import { PlaylistsHeader } from './PlaylistsHeader';

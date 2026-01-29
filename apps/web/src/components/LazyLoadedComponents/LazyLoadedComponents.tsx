@@ -18,6 +18,18 @@ const LazyModals = dynamic(
   }
 );
 
+const LazyToast = dynamic(() => import('../Toast/Toast').then((m) => ({ default: m.Toast })), {
+  ssr: false,
+});
+
+const LazyMembershipExpirationToast = dynamic(
+  () =>
+    import('../Toast/MembershipExpirationToast').then((m) => ({
+      default: m.MembershipExpirationToast,
+    })),
+  { ssr: false }
+);
+
 export function LazyLoadedComponents() {
   return (
     <>
@@ -27,6 +39,8 @@ export function LazyLoadedComponents() {
       <ErrorBoundaryWrapper>
         <LazyModals />
       </ErrorBoundaryWrapper>
+      <LazyToast />
+      <LazyMembershipExpirationToast />
     </>
   );
 }

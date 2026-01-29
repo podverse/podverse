@@ -1,0 +1,40 @@
+{
+  "name": "@podverse/helpers-validation",
+  "version": "5.2.2",
+  "sideEffects": false,
+  "description": "Email and password validation utilities for Podverse",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./client": {
+      "types": "./dist/client.d.ts",
+      "default": "./dist/client.js"
+    }
+  },
+  "files": [
+    "dist/**/*",
+    "client.js",
+    "client.d.ts"
+  ],
+  "scripts": {
+    "build": "npm run lint && tsc",
+    "build:prod": "tsc",
+    "build:watch": "tsc --build --watch --preserveWatchOutput",
+    "lint": "eslint ./src --max-warnings 0",
+    "lint:fix": "eslint ./src --fix",
+    "clean": "rm -rf dist",
+    "type-check": "tsc --noEmit"
+  },
+  "license": "AGPL-3.0",
+  "publishConfig": {
+    "access": "public"
+  },
+  "dependencies": {
+    "@podverse/helpers": "*",
+    "joi": "^18.0.1"
+  }
+}

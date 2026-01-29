@@ -3,9 +3,9 @@ import {
   DTOItem,
   EpisodeByGuidResponse,
   PodcastBatchByFeedGuidResponse,
-  QueryParamsChannelMusicArtist,
   RemoteItemsResponse,
 } from '@podverse/helpers';
+import { QueryParamsChannelMusicArtist } from '@podverse/helpers-requests';
 import { MainWrapper } from '../../../components/Main/MainWrapper';
 import { ArtistContextProvider } from './ArtistContext';
 import { ArtistListHeader } from './ArtistListHeader';

@@ -53,7 +53,7 @@ export class BundleComparisonEngine {
   compareReports(baseReport: BundleReport, newReport: BundleReport): BundleComparisonResult {
     const metrics: MetricComparison[] = [];
 
-    // Compare server bundle size
+    // Compare server bundle size (client/server total asset size from stats when available)
     const baseServerSize = baseReport.serverBundleSize ?? null;
     const newServerSize = newReport.serverBundleSize ?? null;
     if (baseServerSize !== null || newServerSize !== null) {
@@ -70,7 +70,7 @@ export class BundleComparisonEngine {
       });
     }
 
-    // Compare client bundle size
+    // Compare client bundle size (client/server total asset size from stats when available)
     const baseClientSize = baseReport.clientBundleSize ?? null;
     const newClientSize = newReport.clientBundleSize ?? null;
     if (baseClientSize !== null || newClientSize !== null) {

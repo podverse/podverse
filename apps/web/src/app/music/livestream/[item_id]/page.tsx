@@ -1,4 +1,4 @@
-import { QUERY_PARAMS_LIVE_ITEM_TYPE_VALUES } from '@podverse/helpers';
+import { QUERY_PARAMS_LIVE_ITEM_TYPE_VALUES } from '@podverse/helpers-requests';
 import { z } from 'zod';
 import { getSSRAuthService } from '../../../../utils/auth/ssrAuth';
 import {

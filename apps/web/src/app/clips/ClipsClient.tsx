@@ -1,6 +1,7 @@
 'use client';
 
-import { DTOClip, QueryParamsGetManyPartial } from '@podverse/helpers';
+import { DTOClip } from '@podverse/helpers';
+import { QueryParamsGetManyPartial } from '@podverse/helpers-requests';
 import { MainWrapper } from '../../components/Main/MainWrapper';
 import { MainInnerWrapper } from '../../components/Main/MainInnerWrapper';
 import { MainInnerContentWrapper } from '../../components/Main/MainInnerContentWrapper';

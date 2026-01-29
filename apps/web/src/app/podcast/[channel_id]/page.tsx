@@ -1,13 +1,10 @@
+import { DTOItem, DTOClip, getTotalPages, DTOItemSoundbite } from '@podverse/helpers';
 import {
   QUERY_PARAMS_STATS_RANGE_VALUES,
   QUERY_PARAMS_CHANNEL_TYPE_VALUES,
   QUERY_PARAMS_CHANNEL_SORT_VALUES,
-  DTOItem,
-  DTOClip,
   ApiListResponse,
-  getTotalPages,
-  DTOItemSoundbite,
-} from '@podverse/helpers';
+} from '@podverse/helpers-requests';
 import { z } from 'zod';
 import {
   getPodcastFilterParams,

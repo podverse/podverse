@@ -2,12 +2,8 @@
 
 import { createContext, useContext, useState, ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
-import {
-  DTOItem,
-  getTotalPages,
-  QueryParamsGetManyPartial,
-  removeQueryParamByPattern,
-} from '@podverse/helpers';
+import { DTOItem, getTotalPages, removeQueryParamByPattern } from '@podverse/helpers';
+import { QueryParamsGetManyPartial } from '@podverse/helpers-requests';
 import { apiRequestService } from '../../factories/apiRequestService';
 import { useAccount } from '../../contexts/Account';
 import { useSkipInitialEffect } from '../../hooks/useSkipInitialEffect';

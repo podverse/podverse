@@ -8,8 +8,8 @@ import {
   findDTOChannelImageBySize,
   findDTOItemImageBySize,
   getQueueForMedium,
-  getShuffleHash,
 } from '@podverse/helpers';
+import { getShuffleHash } from '@podverse/helpers-requests';
 import React from 'react';
 import { FaGripLines } from 'react-icons/fa6';
 import { Image } from '../../../../Image/Image';

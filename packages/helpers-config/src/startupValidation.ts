@@ -1,0 +1,616 @@
+import { SUPPORTED_LOCALES } from '@podverse/helpers';
+
+/**
+ * Types and functions for validating environment variables at application startup.
+ * These utilities can be used across different projects to validate required and optional environment variables.
+ */
+
+export type ValidationResult = {
+  name: string;
+  isSet: boolean;
+  isValid: boolean;
+  isRequired: boolean;
+  message: string;
+  category: string;
+};
+
+export type ValidationSummary = {
+  total: number;
+  passed: number;
+  failed: number;
+  requiredMissing: number;
+  skipped: number;
+  defaultsUsed: number;
+  results: ValidationResult[];
+};
+
+/**
+ * Validates a required environment variable
+ * @param varName - The name of the environment variable to validate
+ * @param category - The category/group this variable belongs to (for display purposes)
+ * @returns ValidationResult indicating whether the variable is set and valid
+ */
+export function validateRequired(varName: string, category: string): ValidationResult {
+  const value = process.env[varName];
+  const isSet =
+    value !== undefined && value !== null && typeof value === 'string' && value.trim() !== '';
+
+  // Additional validation for numeric values
+  if (
+    isSet &&
+    (varName.includes('PORT') || varName.includes('EXPIRATION') || varName.includes('CACHE_TTL'))
+  ) {
+    const numValue = Number(value);
+    if (isNaN(numValue) || numValue <= 0) {
+      return {
+        name: varName,
+        isSet: true,
+        isValid: false,
+        isRequired: true,
+        message: `Invalid number: "${value}"`,
+        category,
+      };
+    }
+  }
+
+  // Additional validation for API_ALLOWED_CORS_ORIGINS (should not be empty)
+  if (varName === 'API_ALLOWED_CORS_ORIGINS' && isSet) {
+    const origins = value
+      .split(',')
+      .map((origin) => origin.trim())
+      .filter((origin) => origin !== '');
+    if (origins.length === 0) {
+      return {
+        name: varName,
+        isSet: true,
+        isValid: false,
+        isRequired: true,
+        message: 'Empty - must contain at least one origin',
+        category,
+      };
+    }
+  }
+
+  return {
+    name: varName,
+    isSet,
+    isValid: isSet,
+    isRequired: true,
+    message: isSet ? 'Set' : 'Missing or empty',
+    category,
+  };
+}
+
+/**
+ * Validates an optional environment variable
+ * @param varName - The name of the environment variable to validate
+ * @param category - The category/group this variable belongs to (for display purposes)
+ * @param defaultMessage - Optional message to display when variable is not set (defaults to "Skipped")
+ * @returns ValidationResult indicating whether the variable is set and valid (optional vars are always valid even if not set)
+ */
+export function validateOptional(
+  varName: string,
+  category: string,
+  defaultMessage: string = 'Skipped'
+): ValidationResult {
+  const value = process.env[varName] || '';
+  const isSet = value !== '';
+
+  // Additional validation for numeric values if set
+  if (
+    isSet &&
+    (varName.includes('PORT') || varName.includes('EXPIRATION') || varName.includes('CACHE_TTL'))
+  ) {
+    const numValue = Number(value);
+    if (isNaN(numValue) || numValue <= 0) {
+      return {
+        name: varName,
+        isSet: true,
+        isValid: false,
+        isRequired: false,
+        message: `Invalid number: "${value}"`,
+        category,
+      };
+    }
+  }
+
+  return {
+    name: varName,
+    isSet,
+    isValid: true, // Optional vars are always valid (even if not set)
+    isRequired: false,
+    message: isSet ? 'Set' : defaultMessage,
+    category,
+  };
+}
+
+/**
+ * Validates a conditionally optional environment variable (only logs if set but not needed)
+ * Returns null if variable is not set (so it won't be included in results)
+ * @param varName - The name of the environment variable to validate
+ * @param category - The category/group this variable belongs to (for display purposes)
+ * @returns ValidationResult if variable is set, null otherwise
+ */
+export function validateConditionalOptional(
+  varName: string,
+  category: string
+): ValidationResult | null {
+  const value = process.env[varName] || '';
+  const isSet = value !== '';
+
+  // Only validate if the variable is set (if not set, don't include in results)
+  if (!isSet) {
+    return null;
+  }
+
+  // Additional validation for numeric values if set
+  if (varName.includes('PORT') || varName.includes('EXPIRATION') || varName.includes('CACHE_TTL')) {
+    const numValue = Number(value);
+    if (isNaN(numValue) || numValue <= 0) {
+      return {
+        name: varName,
+        isSet: true,
+        isValid: false,
+        isRequired: false,
+        message: `Invalid number: "${value}"`,
+        category,
+      };
+    }
+  }
+
+  return {
+    name: varName,
+    isSet: true,
+    isValid: true,
+    isRequired: false,
+    message: 'Set (not needed when signup mode is disabled)',
+    category,
+  };
+}
+
+/**
+ * Generates a validation error message for variables that accept "all-available" or comma-delimited list
+ * @param validValues - Array of valid values that can be used in the comma-delimited list
+ * @returns Error message string
+ */
+export function getAllAvailableOrListMessage(validValues: string[]): string {
+  return `must be "all-available" or comma-delimited list (valid values: ${validValues.join(', ')})`;
+}
+
+/**
+ * Displays validation results silently - only logs failures.
+ * This is intended for modules (not apps) that should not show validation output unless there are errors.
+ * @param summary - The validation summary to display
+ */
+export function displayValidationResultsSilent(summary: ValidationSummary): void {
+  // Only log if there are failures
+  if (summary.failed === 0 && summary.requiredMissing === 0) {
+    return;
+  }
+
+  // Group results by category
+  const byCategory = summary.results.reduce(
+    (acc, result) => {
+      const categoryResults = acc[result.category];
+      if (!categoryResults) {
+        acc[result.category] = [];
+      }
+      acc[result.category]?.push(result);
+      return acc;
+    },
+    {} as Record<string, ValidationResult[]>
+  );
+
+  // Display failures by category
+  const categories = Object.keys(byCategory).sort();
+  for (const category of categories) {
+    const categoryResults = byCategory[category];
+    const failures = categoryResults?.filter((r) => !r.isValid) ?? [];
+    if (failures.length > 0) {
+      console.error(`[${category}]`);
+      for (const result of failures) {
+        const requiredText = result.isRequired ? ' (required)' : ' (optional)';
+        console.error(`  ✗ ${result.name}${requiredText} - ${result.message}`);
+      }
+    }
+  }
+
+  // Display summary of failures
+  if (summary.failed > 0) {
+    console.error('\n=== Validation Failures ===');
+    console.error(`Failed: ${summary.failed}`);
+    console.error(`Required Missing: ${summary.requiredMissing}`);
+
+    if (summary.requiredMissing > 0) {
+      console.error('\nThe following required environment variables are missing or invalid:');
+      summary.results
+        .filter((r) => r.isRequired && !r.isValid)
+        .forEach((r) => {
+          console.error(`  - ${r.name}: ${r.message}`);
+        });
+    }
+  }
+}
+
+/**
+ * Validates a single locale value against supported locales
+ * @param varName - The name of the environment variable to validate
+ * @param category - The category/group this variable belongs to (for display purposes)
+ * @param isRequired - Whether the variable is required (default: true)
+ * @returns ValidationResult indicating whether the locale is valid
+ */
+export function validateLocale(
+  varName: string,
+  category: string,
+  isRequired: boolean = true
+): ValidationResult {
+  const value = process.env[varName] || '';
+  const isSet = value !== '';
+
+  if (!isSet) {
+    return {
+      name: varName,
+      isSet: false,
+      isValid: !isRequired,
+      isRequired,
+      message: isRequired ? `Missing - must be one of: ${SUPPORTED_LOCALES.join(', ')}` : 'Skipped',
+      category,
+    };
+  }
+
+  const trimmedValue = value.trim();
+  if (!SUPPORTED_LOCALES.includes(trimmedValue as (typeof SUPPORTED_LOCALES)[number])) {
+    return {
+      name: varName,
+      isSet: true,
+      isValid: false,
+      isRequired,
+      message: `Invalid locale: "${value}". Valid locales: ${SUPPORTED_LOCALES.join(', ')}`,
+      category,
+    };
+  }
+
+  return {
+    name: varName,
+    isSet: true,
+    isValid: true,
+    isRequired,
+    message: `Valid locale: ${trimmedValue}`,
+    category,
+  };
+}
+
+/**
+ * Validates NEXT_PUBLIC_FEATURES_SUPPORTED_LOCALES
+ * Must be "all-available" or comma-delimited list of valid locales
+ * @param varName - The name of the environment variable to validate (defaults to 'NEXT_PUBLIC_FEATURES_SUPPORTED_LOCALES')
+ * @param category - The category/group this variable belongs to (for display purposes)
+ * @returns ValidationResult indicating whether the supported locales list is valid
+ */
+export function validateSupportedLocalesList(
+  varName: string = 'NEXT_PUBLIC_FEATURES_SUPPORTED_LOCALES',
+  category: string
+): ValidationResult {
+  const value = process.env[varName] || '';
+  const isSet = value !== '';
+
+  if (!isSet || value.trim() === '') {
+    return {
+      name: varName,
+      isSet: false,
+      isValid: false,
+      isRequired: true,
+      message: `Missing - ${getAllAvailableOrListMessage(SUPPORTED_LOCALES)}`,
+      category,
+    };
+  }
+
+  const trimmedValue = value.trim();
+
+  // Allow "all-available" as a special value
+  if (trimmedValue === 'all-available') {
+    return {
+      name: varName,
+      isSet: true,
+      isValid: true,
+      isRequired: true,
+      message: 'Set to "all-available"',
+      category,
+    };
+  }
+
+  // Validate comma-delimited list of locales
+  const locales = trimmedValue
+    .split(',')
+    .map((l) => l.trim())
+    .filter(Boolean);
+
+  if (locales.length === 0) {
+    return {
+      name: varName,
+      isSet: true,
+      isValid: false,
+      isRequired: true,
+      message: `Empty after parsing - ${getAllAvailableOrListMessage(SUPPORTED_LOCALES)}`,
+      category,
+    };
+  }
+
+  // Check that all locales are valid
+  const invalidLocales = locales.filter(
+    (locale) => !SUPPORTED_LOCALES.includes(locale as (typeof SUPPORTED_LOCALES)[number])
+  );
+  if (invalidLocales.length > 0) {
+    return {
+      name: varName,
+      isSet: true,
+      isValid: false,
+      isRequired: true,
+      message: `Invalid locale(s): ${invalidLocales.join(', ')}. Valid locales: ${SUPPORTED_LOCALES.join(', ')}`,
+      category,
+    };
+  }
+
+  return {
+    name: varName,
+    isSet: true,
+    isValid: true,
+    isRequired: true,
+    message: `Valid locales: ${locales.join(', ')}`,
+    category,
+  };
+}
+
+/**
+ * Validates an optional environment variable - if set, must not be empty
+ * @param varName - The name of the environment variable to validate
+ * @param category - The category/group this variable belongs to (for display purposes)
+ * @returns ValidationResult indicating whether the variable is valid (optional, but if set must not be empty)
+ */
+export function validateOptionalNonEmpty(varName: string, category: string): ValidationResult {
+  const value = process.env[varName];
+
+  // If not set at all (undefined), it's valid (optional)
+  if (value === undefined || value === null) {
+    return {
+      name: varName,
+      isSet: false,
+      isValid: true,
+      isRequired: false,
+      message: 'Skipped',
+      category,
+    };
+  }
+
+  // If set but empty or only whitespace, it's invalid
+  if (typeof value === 'string' && value.trim() === '') {
+    return {
+      name: varName,
+      isSet: true,
+      isValid: false,
+      isRequired: false,
+      message: 'Empty - if set, must not be empty',
+      category,
+    };
+  }
+
+  // If set and has a value, it's valid
+  return {
+    name: varName,
+    isSet: true,
+    isValid: true,
+    isRequired: false,
+    message: 'Set',
+    category,
+  };
+}
+
+/**
+ * Validates a boolean environment variable - must be "true" or "false" if set
+ * @param varName - The name of the environment variable to validate
+ * @param category - The category/group this variable belongs to (for display purposes)
+ * @param isRequired - Whether the variable is required (default: false)
+ * @param defaultValue - Optional default value message if not set (e.g., "Use Default (false)")
+ * @returns ValidationResult indicating whether the boolean value is valid
+ */
+export function validateBoolean(
+  varName: string,
+  category: string,
+  isRequired: boolean = false,
+  defaultValue?: string
+): ValidationResult {
+  const value = process.env[varName];
+  const isSet =
+    value !== undefined && value !== null && typeof value === 'string' && value.trim() !== '';
+
+  if (!isSet) {
+    return {
+      name: varName,
+      isSet: false,
+      isValid: !isRequired,
+      isRequired,
+      message: defaultValue || (isRequired ? 'Missing - must be "true" or "false"' : 'Skipped'),
+      category,
+    };
+  }
+
+  const lowerValue = value.toLowerCase().trim();
+  if (lowerValue !== 'true' && lowerValue !== 'false') {
+    return {
+      name: varName,
+      isSet: true,
+      isValid: false,
+      isRequired,
+      message: `Invalid value: "${value}" - must be "true" or "false"`,
+      category,
+    };
+  }
+
+  return {
+    name: varName,
+    isSet: true,
+    isValid: true,
+    isRequired,
+    message: `Set to ${lowerValue}`,
+    category,
+  };
+}
+
+/**
+ * Validates WEB_PROTOCOL - must be "http" or "https" if set
+ * @param varName - The name of the environment variable to validate (defaults to 'WEB_PROTOCOL')
+ * @param category - The category/group this variable belongs to (for display purposes)
+ * @param isRequired - Whether the variable is required (default: false)
+ * @returns ValidationResult indicating whether the protocol is valid
+ */
+export function validateWebProtocol(
+  varName: string = 'WEB_PROTOCOL',
+  category: string,
+  isRequired: boolean = false
+): ValidationResult {
+  const value = process.env[varName];
+  const isSet =
+    value !== undefined && value !== null && typeof value === 'string' && value.trim() !== '';
+
+  if (!isSet) {
+    return {
+      name: varName,
+      isSet: false,
+      isValid: !isRequired,
+      isRequired,
+      message: isRequired ? 'Missing - must be "http" or "https"' : 'Skipped',
+      category,
+    };
+  }
+
+  const lowerValue = value.toLowerCase().trim();
+  if (lowerValue !== 'http' && lowerValue !== 'https') {
+    return {
+      name: varName,
+      isSet: true,
+      isValid: false,
+      isRequired,
+      message: `Invalid protocol: "${value}" - must be "http" or "https"`,
+      category,
+    };
+  }
+
+  return {
+    name: varName,
+    isSet: true,
+    isValid: true,
+    isRequired,
+    message: `Set to ${lowerValue}`,
+    category,
+  };
+}
+
+/**
+ * Validates LOG_LEVEL - must be a valid winston log level
+ * @param varName - The name of the environment variable to validate (defaults to 'LOG_LEVEL')
+ * @param category - The category/group this variable belongs to (for display purposes)
+ * @param isRequired - Whether the variable is required (default: true)
+ * @param validLevels - Optional array of valid log levels (defaults to winston levels)
+ * @returns ValidationResult indicating whether the log level is valid
+ */
+export function validateLogLevel(
+  varName: string = 'LOG_LEVEL',
+  category: string,
+  isRequired: boolean = true,
+  validLevels: string[] = ['error', 'warn', 'info', 'debug', 'verbose', 'silly', 'silent']
+): ValidationResult {
+  const value = process.env[varName];
+  const isSet =
+    value !== undefined && value !== null && typeof value === 'string' && value.trim() !== '';
+
+  if (!isSet) {
+    return {
+      name: varName,
+      isSet: false,
+      isValid: !isRequired,
+      isRequired,
+      message: isRequired
+        ? `Missing or empty - must be a valid log level (${validLevels.join(', ')})`
+        : 'Skipped',
+      category,
+    };
+  }
+
+  const lowerValue = value.toLowerCase().trim();
+  if (!validLevels.includes(lowerValue)) {
+    return {
+      name: varName,
+      isSet: true,
+      isValid: false,
+      isRequired,
+      message: `Invalid log level: "${value}" - must be one of: ${validLevels.join(', ')}`,
+      category,
+    };
+  }
+
+  return {
+    name: varName,
+    isSet: true,
+    isValid: true,
+    isRequired,
+    message: `Valid log level: ${lowerValue}`,
+    category,
+  };
+}
+
+/**
+ * Validates a positive number environment variable
+ * @param varName - The name of the environment variable to validate
+ * @param category - The category/group this variable belongs to (for display purposes)
+ * @param isRequired - Whether the variable is required (default: false)
+ * @param min - Optional minimum value (default: 1)
+ * @param max - Optional maximum value (no limit if not specified)
+ * @returns ValidationResult indicating whether the number is valid
+ */
+export function validatePositiveNumber(
+  varName: string,
+  category: string,
+  isRequired: boolean = false,
+  min: number = 1,
+  max?: number
+): ValidationResult {
+  const value = process.env[varName];
+  const isSet =
+    value !== undefined && value !== null && typeof value === 'string' && value.trim() !== '';
+
+  if (!isSet) {
+    return {
+      name: varName,
+      isSet: false,
+      isValid: !isRequired,
+      isRequired,
+      message: isRequired
+        ? `Missing - must be a positive number${min > 1 ? ` (min: ${min})` : ''}${max ? ` (max: ${max})` : ''}`
+        : 'Skipped',
+      category,
+    };
+  }
+
+  const numValue = Number(value);
+  if (isNaN(numValue) || numValue < min || (max !== undefined && numValue > max)) {
+    const rangeMsg = max !== undefined ? ` between ${min} and ${max}` : ` >= ${min}`;
+    return {
+      name: varName,
+      isSet: true,
+      isValid: false,
+      isRequired,
+      message: `Invalid number: "${value}" - must be a positive number${rangeMsg}`,
+      category,
+    };
+  }
+
+  const rangeMsg = max !== undefined ? ` (${min}-${max})` : ` (min: ${min})`;
+  return {
+    name: varName,
+    isSet: true,
+    isValid: true,
+    isRequired,
+    message: `Valid number: ${numValue}${rangeMsg}`,
+    category,
+  };
+}

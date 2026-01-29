@@ -1,6 +1,7 @@
 'use client';
 
-import { DTOPlaylist, getTotalPages, QueryParamsPlaylists } from '@podverse/helpers';
+import { DTOPlaylist, getTotalPages } from '@podverse/helpers';
+import { QueryParamsPlaylists } from '@podverse/helpers-requests';
 import { createContext, useContext, useState, ReactNode } from 'react';
 import { apiRequestService } from '../../factories/apiRequestService';
 import { useAccount } from '../../contexts/Account';

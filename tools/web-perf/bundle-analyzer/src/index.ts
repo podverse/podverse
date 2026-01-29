@@ -6,6 +6,7 @@ import { BundleAnalyzer } from './bundle-analyzer.js';
 import { BundleReportManager } from './report-manager.js';
 import { BundleComparisonEngine } from './comparison.js';
 import { generateComparisonSummary } from './openai-summary.js';
+import { AppTarget, getAppConfig } from './app-config.js';
 import dotenv from 'dotenv';
 import path from 'path';
 import fs from 'fs';
@@ -16,38 +17,57 @@ import { dirname } from 'path';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
+// Parse command line arguments
+const appTarget = (process.argv[2] as AppTarget) || 'web';
+const validTargets: AppTarget[] = ['web', 'management-web'];
+
+if (!validTargets.includes(appTarget)) {
+  console.error(`❌ Invalid app target: ${appTarget}`);
+  console.error(`   Valid targets: ${validTargets.join(', ')}`);
+  process.exit(1);
+}
+
+const appConfig = getAppConfig(appTarget);
+
 console.log('📦 All modules loaded successfully\n');
 
-// Load environment variables - first from tools/web-perf/bundle-analyzer/.env, then from apps/web/env/local.env
-console.log('🔧 Loading environment variables...');
-const localEnvPath = path.join(__dirname, '../.env');
-if (fs.existsSync(localEnvPath)) {
-  console.log(`   → Loading from: ${localEnvPath}`);
-  dotenv.config({ path: localEnvPath });
-} else {
-  console.log(`   ⚠️  No .env file found at: ${localEnvPath}`);
-}
-
-const webEnvPath = path.join(__dirname, '../../../apps/web/env/local.env');
-if (fs.existsSync(webEnvPath)) {
-  console.log(`   → Loading from: ${webEnvPath}`);
-  dotenv.config({ path: webEnvPath });
-} else {
-  console.log(`   ⚠️  No env file found at: ${webEnvPath}`);
-}
-
-// Also load .env.openai for OpenAI API key
-const openaiEnvPath = path.join(__dirname, '../../../.env.openai');
+// Load OpenAI API key from monorepo root
+console.log('🔧 Loading OpenAI API key...');
+const openaiEnvPath = path.join(__dirname, '../../../../.env.openai');
 if (fs.existsSync(openaiEnvPath)) {
   console.log(`   → Loading from: ${openaiEnvPath}`);
   dotenv.config({ path: openaiEnvPath });
 } else {
   console.log(`   ⚠️  No .env.openai file found at: ${openaiEnvPath}`);
+  console.log('   ⚠️  OpenAI summary generation will not be available');
 }
 console.log('✅ Environment variables loaded\n');
 
 // Store analyzer in module scope for cleanup handlers
 let bundleAnalyzer: BundleAnalyzer | null = null;
+
+/**
+ * Determines the next report number by examining existing reports.
+ * Returns a 3-digit number with leading zeros (e.g., "001", "002").
+ */
+function getNextReportNumber(existingReports: string[]): string {
+  if (existingReports.length === 0) {
+    return '001';
+  }
+
+  // Extract numbers from existing report names
+  const numbers = existingReports
+    .map((name) => {
+      const match = name.match(/^(\d+)-/);
+      return match && match[1] ? parseInt(match[1], 10) : 0;
+    })
+    .filter((num) => !isNaN(num));
+
+  const maxNumber = numbers.length > 0 ? Math.max(...numbers) : 0;
+  const nextNumber = maxNumber + 1;
+
+  return nextNumber.toString().padStart(3, '0');
+}
 
 // Setup signal handlers for cleanup (at module level)
 const cleanup = async (signal?: string) => {
@@ -86,12 +106,12 @@ process.on('unhandledRejection', async (reason, promise) => {
 });
 
 async function main() {
-  console.log('🚀 Bundle Analyzer QA System for Podverse Web\n');
+  console.log(`🚀 Bundle Analyzer QA System for ${appConfig.displayName}\n`);
 
   console.log('📂 Initializing components...');
-  const reportManager = new BundleReportManager();
+  const reportManager = new BundleReportManager(appConfig.reportsSubdir);
   const comparisonEngine = new BundleComparisonEngine();
-  bundleAnalyzer = new BundleAnalyzer();
+  bundleAnalyzer = new BundleAnalyzer(appConfig);
   console.log('   ✅ BundleAnalyzer and ComparisonEngine initialized\n');
 
   // Prompt to select a previous report for comparison before running analysis
@@ -122,27 +142,31 @@ async function main() {
     }
   }
 
+  // Determine next report number
+  const nextNumber = getNextReportNumber(existingReports);
+
   // Prompt for new test report identifier
   console.log('💬 Prompting for report name...');
+  console.log(`   → Next report will be prefixed with: ${nextNumber}-`);
   const { reportName } = await inquirer.prompt([
     {
       type: 'input',
       name: 'reportName',
-      message: 'Enter a name for the new bundle analysis report:',
+      message: `Enter a description for report ${nextNumber} (number will be prefixed automatically):`,
       validate: (input: string) => {
         if (!input || input.trim().length === 0) {
-          return 'Report name cannot be empty';
+          return 'Report description cannot be empty';
         }
         if (input.length > 50) {
-          return 'Report name must be 50 characters or less';
+          return 'Report description must be 50 characters or less';
         }
         return true;
       },
     },
   ]);
 
-  const trimmedReportName = reportName.trim();
-  console.log(`   ✅ Report name entered: "${trimmedReportName}"\n`);
+  const trimmedReportName = `${nextNumber}-${reportName.trim()}`;
+  console.log(`   ✅ Report name: "${trimmedReportName}"\n`);
 
   try {
     console.log(`\n🧪 Running bundle analysis...`);
@@ -223,8 +247,11 @@ async function main() {
           if (!summary || summary.trim().length === 0) {
             console.error('⚠️  OpenAI summary was empty or null');
           } else {
-            // Use the same reports directory as the report manager
-            const reportsDir = path.join(__dirname, '../reports/bundle-analyzer');
+            // Use the same reports directory as the report manager (with app subdirectory)
+            const baseReportsDir = path.join(__dirname, '../reports');
+            const reportsDir = appConfig.reportsSubdir
+              ? path.join(baseReportsDir, appConfig.reportsSubdir)
+              : baseReportsDir;
             // Ensure directory exists
             if (!fs.existsSync(reportsDir)) {
               fs.mkdirSync(reportsDir, { recursive: true });
@@ -245,7 +272,7 @@ async function main() {
           }
           console.error('   This might be due to missing OPENAI_API_KEY in .env.openai file');
           console.error(
-            `   Expected location: ${path.resolve(__dirname, '../../../.env.openai')}\n`
+            `   Expected location: ${path.resolve(__dirname, '../../../../.env.openai')}\n`
           );
         }
       }

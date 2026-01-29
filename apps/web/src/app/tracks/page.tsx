@@ -1,13 +1,11 @@
 import z from 'zod';
+import { DTOItem, getTotalPages, QueryParamsMedium } from '@podverse/helpers';
 import {
   ApiListResponse,
-  DTOItem,
-  getTotalPages,
   QUERY_PARAMS_STATS_RANGE_VALUES,
   QUERY_PARAMS_SUBSCRIBED_MUSIC_TYPE,
   QUERY_PARAMS_SUBSCRIBED_PARTIAL_SORT,
-  QueryParamsMedium,
-} from '@podverse/helpers';
+} from '@podverse/helpers-requests';
 import { cookies } from 'next/headers';
 import { getSSRAuthService } from '../../utils/auth/ssrAuth';
 import { guardSubscribedSsrFilter, safeSsrListRequest } from '../../utils/filters/ssrFilterGuards';

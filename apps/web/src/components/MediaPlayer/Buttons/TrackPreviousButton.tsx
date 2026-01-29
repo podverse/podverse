@@ -3,6 +3,7 @@ import {
   DTOChannel,
   DTOClip,
   DTOItem,
+  DTOItemQueueItem,
   DTOItemSoundbite,
   DTOPlaylistResource,
 } from '@podverse/helpers';
@@ -74,7 +75,7 @@ export const TrackPreviousButton = () => {
               }
             }
           } else {
-            const itemsResponse: DTOItem[] =
+            const itemsResponse: DTOItemQueueItem[] =
               mpChannel?.medium_id === MediumEnum.Music
                 ? await apiRequestService.reqItemGetManyForQueueBySeason(mpItem.id_text, 'backward')
                 : await apiRequestService.reqItemGetManyForQueueByPubDate(
@@ -82,7 +83,7 @@ export const TrackPreviousButton = () => {
                     'backward'
                   );
             const previousItem = itemsResponse.length > 0 ? itemsResponse[0] : null;
-            item = previousItem ?? null;
+            item = (previousItem ?? null) as DTOItem | null;
             channel = previousItem?.channel || null;
             clip = null;
             item_soundbite = null;

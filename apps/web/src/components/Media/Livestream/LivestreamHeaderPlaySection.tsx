@@ -1,6 +1,7 @@
 'use client';
 
-import { DTOChannel, DTOItem, getShuffleHash } from '@podverse/helpers';
+import { DTOChannel, DTOItem } from '@podverse/helpers';
+import { getShuffleHash } from '@podverse/helpers-requests';
 import React from 'react';
 import { PlayButtonLarge } from '../../MediaPlayer/Buttons/PlayButtonLarge';
 import { useMediaPlayer } from '../../../contexts/MediaPlayer';

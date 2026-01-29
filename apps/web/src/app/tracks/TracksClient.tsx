@@ -1,6 +1,7 @@
 'use client';
 
-import { DTOItem, QueryParamsGetManyPartialMusic } from '@podverse/helpers';
+import { DTOItem } from '@podverse/helpers';
+import { QueryParamsGetManyPartialMusic } from '@podverse/helpers-requests';
 import { MainWrapper } from '../../components/Main/MainWrapper';
 import { MainInnerWrapper } from '../../components/Main/MainInnerWrapper';
 import { MainInnerContentWrapper } from '../../components/Main/MainInnerContentWrapper';

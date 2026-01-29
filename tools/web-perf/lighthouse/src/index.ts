@@ -50,6 +50,29 @@ console.log('✅ Environment variables loaded\n');
 // Base URL will be set by WebAppManager (localhost:3111 for tests)
 let BASE_URL = 'http://localhost:3111';
 
+/**
+ * Determines the next report number by examining existing reports.
+ * Returns a 3-digit number with leading zeros (e.g., "001", "002").
+ */
+function getNextReportNumber(existingReports: string[]): string {
+  if (existingReports.length === 0) {
+    return '001';
+  }
+
+  // Extract numbers from existing report names
+  const numbers = existingReports
+    .map((name) => {
+      const match = name.match(/^(\d+)-/);
+      return match && match[1] ? parseInt(match[1], 10) : 0;
+    })
+    .filter((num) => !isNaN(num));
+
+  const maxNumber = numbers.length > 0 ? Math.max(...numbers) : 0;
+  const nextNumber = maxNumber + 1;
+
+  return nextNumber.toString().padStart(3, '0');
+}
+
 // Store managers in module scope for cleanup handlers
 let webAppManager: WebAppManager | null = null;
 let apiManager: ApiManager | null = null;
@@ -233,7 +256,7 @@ async function main() {
   console.log(`   Environment: ${process.env.NODE_ENV || 'development'}\n`);
 
   console.log('📂 Initializing components...');
-  const reportManager = new ReportManager();
+  const reportManager = new ReportManager('web');
   const comparisonEngine = new ComparisonEngine();
   console.log('   ✅ ReportManager and ComparisonEngine initialized\n');
 
@@ -259,27 +282,31 @@ async function main() {
     baseReport = selectedBaseReport as string;
   }
 
+  // Determine next report number
+  const nextNumber = getNextReportNumber(existingReports);
+
   // Prompt for new test report identifier
   console.log('   → Asking for new report name...');
+  console.log(`   → Next report will be prefixed with: ${nextNumber}-`);
   const { newReport } = await inquirer.prompt([
     {
       type: 'input',
       name: 'newReport',
-      message: 'Enter a name for the new test report:',
+      message: `Enter a description for report ${nextNumber} (number will be prefixed automatically):`,
       validate: (input: string) => {
         if (!input || input.trim().length === 0) {
-          return 'Report name cannot be empty';
+          return 'Report description cannot be empty';
         }
         if (input.length > 50) {
-          return 'Report name must be 50 characters or less';
+          return 'Report description must be 50 characters or less';
         }
         return true;
       },
     },
   ]);
 
-  const trimmedReportId = newReport.trim();
-  console.log(`   ✅ Report name entered: "${trimmedReportId}"\n`);
+  const trimmedReportId = `${nextNumber}-${newReport.trim()}`;
+  console.log(`   ✅ Report name: "${trimmedReportId}"\n`);
 
   // Check if new report already exists
   console.log(`🔍 Checking if report "${trimmedReportId}" already exists...`);

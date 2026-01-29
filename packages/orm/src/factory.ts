@@ -1,6 +1,6 @@
 import { DataSource, DataSourceOptions } from 'typeorm';
 import { SnakeNamingStrategy } from 'typeorm-naming-strategies';
-import { LoggerService } from '@podverse/helpers';
+import { LoggerService } from '@podverse/helpers-backend';
 import { ORMConfig } from './config/types';
 import { entities } from './db/entities';
 import { setORMContext } from './context';

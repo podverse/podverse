@@ -6,6 +6,7 @@
 import { config } from 'dotenv';
 import { resolve } from 'path';
 import { existsSync } from 'fs';
+import { SERVER_ENV_VALUES, isValidServerEnv } from '@podverse/helpers';
 import {
   ValidationResult,
   ValidationSummary,
@@ -14,9 +15,7 @@ import {
   getAllAvailableOrListMessage,
   validateSupportedLocalesList,
   validateLocale,
-  SERVER_ENV_VALUES,
-  isValidServerEnv,
-} from '@podverse/helpers';
+} from '@podverse/helpers-config';
 
 // Valid themes for theme validation
 const VALID_THEMES = ['dark', 'light', 'dracula'];

@@ -10,6 +10,12 @@
       "options": {
         "singleQuote": false
       }
+    },
+    {
+      "files": ["*.d.ts"],
+      "options": {
+        "singleQuote": false
+      }
     }
   ]
 }

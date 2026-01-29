@@ -23,6 +23,9 @@
   "dependencies": {
     "@podverse/external-services": "*",
     "@podverse/helpers": "*",
+    "@podverse/helpers-backend": "*",
+    "@podverse/helpers-requests": "*",
+    "@podverse/helpers-validation": "*",
     "@podverse/orm": "*",
     "@podverse/parser": "*",
     "rhea": "^3.0.4",

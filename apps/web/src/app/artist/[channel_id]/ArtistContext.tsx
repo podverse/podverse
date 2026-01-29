@@ -1,7 +1,7 @@
 'use client';
 
 import { useParams } from 'next/navigation';
-import { QueryParamsChannelMusicArtist } from '@podverse/helpers';
+import { QueryParamsChannelMusicArtist } from '@podverse/helpers-requests';
 import { createContext, useContext, useState, ReactNode } from 'react';
 import { checkBackNavFlag } from '../../../contexts/Navigation';
 import { usePageStateCache } from '../../../hooks/usePageStateCache';

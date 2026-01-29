@@ -1,7 +1,8 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { DTOPlaylist, QueryParamsPlaylistsType } from '@podverse/helpers';
+import { DTOPlaylist } from '@podverse/helpers';
+import { QueryParamsPlaylistsType } from '@podverse/helpers-requests';
 import React, { useRef } from 'react';
 import { CallToActionMessage } from '../../CallToActionMessage/CallToActionMessage';
 import Pagination from '../../Pagination/Pagination';

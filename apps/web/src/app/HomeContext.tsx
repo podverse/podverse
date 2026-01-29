@@ -1,7 +1,8 @@
 'use client';
 
 import { createContext, useContext, useState, ReactNode } from 'react';
-import { DTOChannel, getTotalPages, QueryParamsHome } from '@podverse/helpers';
+import { DTOChannel, getTotalPages } from '@podverse/helpers';
+import { QueryParamsHome } from '@podverse/helpers-requests';
 import { apiRequestService } from '../factories/apiRequestService';
 import { useAccount } from '../contexts/Account';
 import { useSkipInitialEffect } from '../hooks/useSkipInitialEffect';

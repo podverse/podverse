@@ -11,21 +11,21 @@ This skill provides quick reference for common patterns used in the podverse-api
 ## Monorepo Context
 
 - **API app location**: `apps/api/`
-- **Shared helpers**: `@podverse/helpers` (from `packages/helpers/`)
+- **Helper packages** (from `packages/helpers*/`): `@podverse/helpers`, `@podverse/helpers-validation`, `@podverse/helpers-requests`, `@podverse/helpers-backend`, `@podverse/helpers-config`
 - **ORM entities**: `@podverse/orm` (from `packages/orm/`)
 - **Message queue**: `@podverse/mq` (from `packages/mq/`)
 - **Feed parsing**: `@podverse/parser` (from `packages/parser/`)
 
 ## Key Dependencies
 
-| Package                       | Purpose                          |
-| ----------------------------- | -------------------------------- |
-| `@podverse/helpers`           | Types, DTOs, utilities           |
-| `@podverse/orm`               | Database entities and services   |
-| `@podverse/mq`                | Message queue operations         |
-| `@podverse/parser`            | Feed parsing                     |
-| `@podverse/external-services` | Third-party service integrations |
-| `@podverse/notifications`     | Push notifications               |
+| Package                       | Purpose                                    |
+| ----------------------------- | ------------------------------------------ |
+| Helper packages               | Types, DTOs, utilities, validation, config |
+| `@podverse/orm`               | Database entities and services             |
+| `@podverse/mq`                | Message queue operations                   |
+| `@podverse/parser`            | Feed parsing                               |
+| `@podverse/external-services` | Third-party service integrations           |
+| `@podverse/notifications`     | Push notifications                         |
 
 ## Patterns
 
@@ -53,23 +53,100 @@ import { Request, Response } from 'express';
 import { PodcastService } from '@podverse/orm';
 
 export const PodcastController = {
-  async getById(req: Request, res: Response) {
-    const { id } = req.params;
-    const podcast = await PodcastService.getById(id);
+  async getById(req: Request, res: Response): Promise<void> {
+    try {
+      const { id } = req.params;
+      const podcast = await PodcastService.getById(id);
 
-    if (!podcast) {
-      return res.status(404).json({ error: 'Podcast not found' });
+      if (!podcast) {
+        res.status(404).json({ error: 'Podcast not found' });
+        return;
+      }
+
+      res.json(podcast);
+    } catch (error) {
+      console.error('Error getting podcast:', error);
+      res.status(500).json({ error: 'Internal server error' });
+      return;
     }
-
-    res.json(podcast);
   },
 
-  async create(req: Request, res: Response) {
-    const data = req.body;
-    const podcast = await PodcastService.create(data);
-    res.status(201).json(podcast);
+  async create(req: Request, res: Response): Promise<void> {
+    try {
+      const data = req.body;
+      const podcast = await PodcastService.create(data);
+      res.status(201).json(podcast);
+    } catch (error) {
+      console.error('Error creating podcast:', error);
+      res.status(500).json({ error: 'Internal server error' });
+      return;
+    }
   },
 };
+```
+
+### TypeScript Express Patterns
+
+#### Route Handler Return Values
+
+Express route handlers should be typed as `Promise<void>` (or `void` for sync). Since `res.json()` returns a `Response` object, avoid using `return` with response methods.
+
+**Correct patterns:**
+
+```typescript
+// Early exit with status (use return for control flow)
+if (!item) {
+  res.status(404).json({ error: 'Not found' });
+  return; // Return void, not Response
+}
+
+// Success response (no return needed)
+res.json(data);
+```
+
+**Incorrect pattern:**
+
+```typescript
+// DON'T do this - returns Response instead of void
+return res.json(data);
+return res.status(404).json({ error: 'Not found' });
+```
+
+#### Exception: Early Exit Convenience
+
+The `return` keyword is acceptable for early exits when combined with response methods for single-line control flow:
+
+```typescript
+if (!user) {
+  res.status(401).json({ error: 'Unauthorized' });
+  return;
+}
+```
+
+#### Catch Block Returns
+
+Always return explicitly in catch blocks to satisfy TypeScript's `noImplicitReturns`:
+
+```typescript
+try {
+  // ... handler logic
+  res.json(result);
+} catch (error) {
+  handleError(res, error);
+  return; // Required even though handleError sends response
+}
+```
+
+**With conditional response:**
+
+```typescript
+} catch (error) {
+  console.error('Error:', error);
+  if (!res.headersSent) {
+    res.status(500).json({ error: 'Internal error' });
+  }
+  return;  // Required for all code paths
+}
 ```
 
 ### Rate Limiting

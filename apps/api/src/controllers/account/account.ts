@@ -5,9 +5,8 @@ import {
   ERROR_MESSAGES,
   SharableStatusEnum,
   getSharableStatusIdsForProfileType,
-  QueryParamsStatsRange,
-  QUERY_PARAMS_STATS_RANGE_VALUES,
 } from '@podverse/helpers';
+import { QueryParamsStatsRange, QUERY_PARAMS_STATS_RANGE_VALUES } from '@podverse/helpers-requests';
 import {
   AccountCredentialsService,
   AccountEmailChangeVerificationService,

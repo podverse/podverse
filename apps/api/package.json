@@ -41,7 +41,10 @@
     "passport-jwt": "^4.0.1",
     "passport-local": "^1.0.0",
     "reflect-metadata": "^0.2.2",
-    "uuid": "^13.0.0"
+    "uuid": "^13.0.0",
+    "@podverse/helpers-backend": "*",
+    "@podverse/helpers-config": "*",
+    "@podverse/helpers-requests": "*"
   },
   "devDependencies": {
     "@dotenvx/dotenvx": "^1.49.0",

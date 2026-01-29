@@ -1,4 +1,4 @@
-import 'express'; // Import express types
+import "express"; // Import express types
 
 declare global {
   namespace Express {

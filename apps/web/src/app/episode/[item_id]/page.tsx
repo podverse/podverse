@@ -2,7 +2,7 @@ import {
   QUERY_PARAMS_STATS_RANGE_VALUES,
   QUERY_PARAMS_ITEM_TYPE_VALUES,
   QUERY_PARAMS_ITEM_SORT_VALUES,
-} from '@podverse/helpers';
+} from '@podverse/helpers-requests';
 import { z } from 'zod';
 import { getSSRAuthService } from '../../../utils/auth/ssrAuth';
 import { EpisodeClient } from './EpisodeClient';

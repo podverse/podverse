@@ -4,13 +4,13 @@
  * This module validates environment variables before the application starts.
  */
 
+import { isValidUUID } from '@podverse/helpers';
 import {
-  isValidUUID,
   ValidationResult,
   ValidationSummary,
   validateRequired,
   validateOptional,
-} from '@podverse/helpers';
+} from '@podverse/helpers-config';
 
 /**
  * Validates critical environment variables and configuration at application startup.

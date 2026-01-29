@@ -3,7 +3,7 @@ import encHex from 'crypto-js/enc-hex';
 import csv from 'csv-parser';
 import fs from 'fs';
 import path from 'path';
-import { request, type AxiosRequestConfig } from '@podverse/helpers';
+import { request, type AxiosRequestConfig } from '@podverse/helpers-requests';
 import type {
   PodcastBatchByFeedGuidResponse,
   PodcastByGuidResponse,
@@ -12,7 +12,7 @@ import type {
   EpisodeByGuidResponse,
   EpisodeByGuidSecondaryParams,
 } from '@podverse/helpers';
-import { ILoggerLike } from '@podverse/helpers';
+import { ILoggerLike } from '@podverse/helpers-backend';
 
 type Constructor = {
   userAgent: string;

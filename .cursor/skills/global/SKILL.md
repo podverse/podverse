@@ -12,8 +12,23 @@ Tier 1 → Tier 2 → ... → Tier 5. Only depend on lower tiers.
 ## Workspace Deps
 
 ```json
-{ "dependencies": { "@podverse/helpers": "workspace:*" } }
+{
+  "dependencies": {
+    "@podverse/helpers": "workspace:*",
+    "@podverse/helpers-validation": "workspace:*",
+    "@podverse/helpers-requests": "workspace:*"
+  }
+}
 ```
+
+**Helper packages available:**
+
+- `@podverse/helpers` - Core utilities, types, DTOs
+- `@podverse/helpers-validation` - Validation utilities
+- `@podverse/helpers-requests` - API request utilities
+- `@podverse/helpers-backend` - Backend utilities
+- `@podverse/helpers-browser` - Browser utilities
+- `@podverse/helpers-config` - Config validation
 
 ## TypeScript Config
 
@@ -149,6 +164,12 @@ Only use eslint-disable when:
 
 ## LLM History
 
+**Critical: 10-Session Maximum Per File**
+
+Each history file is limited to **10 sessions maximum**. When adding session 11, split the file first.
+
+See **[LLM History Skill](../llm-history/SKILL.md)** for complete guidelines.
+
 **Capture prompts when:**
 
 1. About to modify files (existing rule)
@@ -158,6 +179,15 @@ Only use eslint-disable when:
 Log the prompt at the START of your response, before any tool calls.
 Then at end: Add files changed and key decisions.
 Skip for pure Q&A conversations.
+
+### Before Updating History
+
+**Always count sessions first:**
+
+1. Read the current active history file
+2. Count `### Session` headers
+3. If count = 10, split before adding session 11
+4. If count < 10, append to current file
 
 ### History Rule Limitations
 
@@ -175,18 +205,21 @@ It may NOT trigger when working on:
 After any substantive work, confirm:
 
 ```
-✅ History updated: .llm/history/active/[feature]/[feature].md
+✅ History updated: .llm/history/active/[feature]/[feature].md (Session N)
 ```
 
 Or for multi-part features:
 
 ```
-✅ History updated: .llm/history/active/[feature]/[feature]-part-NN.md
+✅ History updated: .llm/history/active/[feature]/[feature]-part-NN.md (Session N)
 ```
 
 ## Related Skills
 
+- **[LLM History](../llm-history/SKILL.md)** - History tracking and 10-session split rule
 - **[GitHub Workflows](../github/SKILL.md)** - PR/issue management and GitHub CLI usage
 - **[Web Patterns](../web/SKILL.md)** - Next.js app patterns (`apps/web/`)
+- **[Bundle Optimization](../bundle-optimization/SKILL.md)** - Bundle size awareness when adding deps, changing helpers, or heavy UI
 - **[API Patterns](../api/SKILL.md)** - Express API patterns (`apps/api/`)
+- **[Management API Patterns](../management-api/SKILL.md)** - Management API Express patterns
 - **[ORM Patterns](../orm/SKILL.md)** - Database patterns (`packages/orm/`)

@@ -1,12 +1,11 @@
 import {
   AccountMembershipEnum,
   SharableStatusEnum,
-  validateEmail,
-  validatePassword,
   AccountNotificationTypeEnum,
   ERROR_MESSAGES,
   getSharableStatusIdsForProfileType,
 } from '@podverse/helpers';
+import { validateEmail, validatePassword } from '@podverse/helpers-validation';
 import { FindManyOptions, FindOneOptions, Repository, In, Not, IsNull } from 'typeorm';
 import { Account } from '@orm/entities/account/account';
 import { AppDataSourceRead, AppDataSourceReadWrite } from '@orm/db';

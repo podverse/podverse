@@ -9,10 +9,10 @@ import {
   findDTOChannelImageBySize,
   findDTOItemImageBySize,
   getQueryParamFromQueueMediumId,
-  getShuffleHash,
   LiveItemStatusEnum,
   stripAndDecodeHtml,
 } from '@podverse/helpers';
+import { getShuffleHash } from '@podverse/helpers-requests';
 import React from 'react';
 import { Image } from '../../Image/Image';
 import { LiveItemStatus } from '../../LiveItem/LiveItemStatus';

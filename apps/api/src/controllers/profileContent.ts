@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import Joi from 'joi';
-import { ApiListResponse, getSharableStatusIdsForProfileType } from '@podverse/helpers';
+import { getSharableStatusIdsForProfileType } from '@podverse/helpers';
+import { ApiListResponse } from '@podverse/helpers-requests';
 import {
   AccountFollowingChannel,
   AccountFollowingChannelService,

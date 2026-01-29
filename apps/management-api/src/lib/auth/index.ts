@@ -133,12 +133,16 @@ const verifyToken = (req: Request, res: Response, next: NextFunction, token: str
     async (err: jwt.VerifyErrors | null, decoded: unknown) => {
       if (err) {
         console.error('[verifyToken] JWT verification error:', err);
-        res.status(401).json({ message: 'Unauthorized' });
+        if (!res.headersSent) {
+          res.status(401).json({ message: 'Unauthorized' });
+        }
         return;
       }
       if (!decoded) {
         console.error('[verifyToken] No decoded JWT payload');
-        res.status(401).json({ message: 'Unauthorized' });
+        if (!res.headersSent) {
+          res.status(401).json({ message: 'Unauthorized' });
+        }
         return;
       }
       const payload = decoded as DecodedToken;
@@ -146,14 +150,18 @@ const verifyToken = (req: Request, res: Response, next: NextFunction, token: str
 
       if (!req?.user?.id) {
         console.error('[verifyToken] Decoded JWT missing user id');
-        res.status(401).json({ message: 'Unauthorized' });
+        if (!res.headersSent) {
+          res.status(401).json({ message: 'Unauthorized' });
+        }
         return;
       }
 
       const adminAccount = await adminAccountService.get(req.user.id);
       if (!adminAccount) {
         console.error('[verifyToken] No admin account found for user id:', req.user.id);
-        res.status(401).json({ message: 'Unauthorized' });
+        if (!res.headersSent) {
+          res.status(401).json({ message: 'Unauthorized' });
+        }
         return;
       }
 
@@ -165,7 +173,9 @@ const verifyToken = (req: Request, res: Response, next: NextFunction, token: str
 export const ensureAuthenticated = (req: Request, res: Response, next: NextFunction): void => {
   const token = req.cookies[ADMIN_AUTH_COOKIE_NAME] || req.headers.authorization?.split(' ')[1];
   if (!token) {
-    res.status(401).json({ message: 'Unauthorized' });
+    if (!res.headersSent) {
+      res.status(401).json({ message: 'Unauthorized' });
+    }
     return;
   }
   verifyToken(req, res, next, token);

@@ -1,4 +1,4 @@
-import { QueryParamsItemMusicType } from '@podverse/helpers';
+import { QueryParamsItemMusicType } from '@podverse/helpers-requests';
 
 type TrackDropdownConfigParams = {
   type: QueryParamsItemMusicType;

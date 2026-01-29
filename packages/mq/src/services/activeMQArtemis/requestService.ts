@@ -1,4 +1,4 @@
-import { request } from '@podverse/helpers';
+import { request } from '@podverse/helpers-requests';
 import { ActiveMQArtemisServiceParams } from '.';
 
 export class ActiveMQArtemisRequestService {

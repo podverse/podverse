@@ -8,7 +8,7 @@ import {
   QUERY_PARAMS_CHANNEL_TYPE_VALUES,
   QueryParamsChannelSort,
   QUERY_PARAMS_CHANNEL_SORT_VALUES,
-} from '@podverse/helpers';
+} from '@podverse/helpers-requests';
 import React from 'react';
 import Dropdown from '../../../components/Dropdown/Dropdown';
 import { ListHeader } from '../../../components/List/ListHeader';

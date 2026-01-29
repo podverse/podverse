@@ -4,7 +4,7 @@ import { useTranslations } from 'next-intl';
 import {
   QUERY_PARAMS_CHANNEL_MUSIC_ARTIST_TYPE_VALUES,
   QueryParamsChannelMusicArtistType,
-} from '@podverse/helpers';
+} from '@podverse/helpers-requests';
 import React from 'react';
 import { ListHeader } from '../../../components/List/ListHeader';
 import { useArtistContext } from './ArtistContext';

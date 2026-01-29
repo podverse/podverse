@@ -1,7 +1,8 @@
 import { BuildManager } from './build-manager.js';
 import { BundleReportManager, BundleReport, BundleChunkSummary } from './report-manager.js';
+import { AppConfig } from './app-config.js';
 
-const DEFAULT_TOP_CHUNKS = Math.max(1, Number(process.env.BUNDLE_ANALYZER_TOP_N || 20));
+const DEFAULT_TOP_CHUNKS = 20; // Hard-coded for local development
 
 function parseStatsJson(jsonContent: string): Record<string, unknown> | null {
   try {
@@ -15,11 +16,11 @@ function parseStatsJson(jsonContent: string): Record<string, unknown> | null {
 function getChunkName(chunk: Record<string, unknown>): string {
   const names = chunk.names as string[] | undefined;
   if (Array.isArray(names) && names.length > 0) {
-    return names[0];
+    return names[0] ?? 'unknown';
   }
   const files = chunk.files as string[] | undefined;
   if (Array.isArray(files) && files.length > 0) {
-    return files[0];
+    return files[0] ?? 'unknown';
   }
   if (typeof chunk.id === 'string' || typeof chunk.id === 'number') {
     return `chunk-${chunk.id}`;
@@ -65,14 +66,16 @@ function buildChunkSummary(stats: Record<string, unknown>, topN: number): Bundle
 export class BundleAnalyzer {
   private buildManager: BuildManager;
   private reportManager: BundleReportManager;
+  private appConfig: AppConfig;
 
-  constructor() {
-    this.buildManager = new BuildManager();
-    this.reportManager = new BundleReportManager();
+  constructor(appConfig: AppConfig) {
+    this.appConfig = appConfig;
+    this.buildManager = new BuildManager(appConfig.path, appConfig.name);
+    this.reportManager = new BundleReportManager(appConfig.reportsSubdir);
   }
 
   async analyze(reportName: string): Promise<BundleReport> {
-    console.log(`\n📊 Starting bundle analysis: ${reportName}\n`);
+    console.log(`\n📊 Starting bundle analysis for ${this.appConfig.displayName}: ${reportName}\n`);
 
     // Build the app with analyzer enabled
     const { serverHtml, clientHtml, serverStatsJson, clientStatsJson } =
@@ -90,13 +93,11 @@ export class BundleAnalyzer {
 
     if (serverHtml) {
       serverBundlePath = this.reportManager.saveHtmlReport(reportName, serverHtml, 'server');
-      serverBundleSize = Buffer.byteLength(serverHtml, 'utf8');
       console.log(`✅ Server bundle report saved: ${serverBundlePath}`);
     }
 
     if (clientHtml) {
       clientBundlePath = this.reportManager.saveHtmlReport(reportName, clientHtml, 'client');
-      clientBundleSize = Buffer.byteLength(clientHtml, 'utf8');
       console.log(`✅ Client bundle report saved: ${clientBundlePath}`);
     }
 
@@ -105,6 +106,9 @@ export class BundleAnalyzer {
       const parsedStats = parseStatsJson(serverStatsJson);
       if (parsedStats) {
         serverChunkSummary = buildChunkSummary(parsedStats, DEFAULT_TOP_CHUNKS);
+        serverBundleSize =
+          serverChunkSummary.totalAssetSize ??
+          (serverHtml ? Buffer.byteLength(serverHtml, 'utf8') : undefined);
       }
       console.log(`✅ Server stats report saved: ${serverStatsPath}`);
     }
@@ -114,14 +118,26 @@ export class BundleAnalyzer {
       const parsedStats = parseStatsJson(clientStatsJson);
       if (parsedStats) {
         clientChunkSummary = buildChunkSummary(parsedStats, DEFAULT_TOP_CHUNKS);
+        clientBundleSize =
+          clientChunkSummary.totalAssetSize ??
+          (clientHtml ? Buffer.byteLength(clientHtml, 'utf8') : undefined);
       }
       console.log(`✅ Client stats report saved: ${clientStatsPath}`);
+    }
+
+    // Fallback to HTML size when stats are missing (e.g. only HTML produced)
+    if (serverBundleSize === undefined && serverHtml) {
+      serverBundleSize = Buffer.byteLength(serverHtml, 'utf8');
+    }
+    if (clientBundleSize === undefined && clientHtml) {
+      clientBundleSize = Buffer.byteLength(clientHtml, 'utf8');
     }
 
     // Create and save JSON report
     const report: BundleReport = {
       timestamp: new Date().toISOString(),
       reportName,
+      appTarget: this.appConfig.name,
       serverBundlePath,
       clientBundlePath,
       serverBundleSize,

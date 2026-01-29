@@ -1,14 +1,16 @@
-import { throwRequestError } from '@podverse/helpers';
 import {
   Item,
   ItemChaptersFeed,
   ItemChapterService,
   ItemChaptersFeedLogService,
 } from '@podverse/orm';
+import type { ItemChapterDto } from '@podverse/orm';
 import { compatParsedChapters, PIChapter } from '@parser/lib/compat/chapters/chapters';
 import { _request } from '../_request';
 
-const getParsedChapters = async (item_chapters_feed: ItemChaptersFeed) => {
+const getParsedChapters = async (
+  item_chapters_feed: ItemChaptersFeed
+): Promise<ItemChapterDto[] | null> => {
   const itemChaptersFeedLogService = new ItemChaptersFeedLogService();
   try {
     const response = await _request(item_chapters_feed.url);
@@ -26,9 +28,9 @@ const getParsedChapters = async (item_chapters_feed: ItemChaptersFeed) => {
       throw new Error('No chapters found in feed');
     }
   } catch (error) {
-    // TODO: how to handle errors?
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const statusCode = (error as any).statusCode as number;
+    const err = error as any;
+    const statusCode = (err.response?.status ?? err.statusCode) as number | undefined;
     const item_chapters_feed_log = await itemChaptersFeedLogService.get(item_chapters_feed);
     if (statusCode) {
       await itemChaptersFeedLogService.update(item_chapters_feed, {
@@ -36,18 +38,22 @@ const getParsedChapters = async (item_chapters_feed: ItemChaptersFeed) => {
         parse_errors: (item_chapters_feed_log?.parse_errors || 0) + 1,
       });
     }
-    return throwRequestError(error);
+    return null;
   }
 };
 
-export const parseChapters = async (item: Item): Promise<void> => {
+export const parseChapters = async (item: Item): Promise<{ parsed: boolean }> => {
   const item_chapters_feed = item.item_chapters_feed;
 
   if (!item_chapters_feed) {
-    return;
+    return { parsed: false };
   }
 
   const parsedChapters = await getParsedChapters(item_chapters_feed);
+
+  if (parsedChapters === null) {
+    return { parsed: false };
+  }
 
   const itemChapterService = new ItemChapterService();
 
@@ -75,4 +81,6 @@ export const parseChapters = async (item: Item): Promise<void> => {
   await itemChaptersFeedLogService.update(item_chapters_feed, {
     last_finished_parse_time: new Date(),
   });
+
+  return { parsed: true };
 };

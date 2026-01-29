@@ -1,8 +1,10 @@
 import path from 'path';
 
 import withBundleAnalyzerInit from '@next/bundle-analyzer';
+import { DATE_FNS_LOCALE_IDS } from '@podverse/helpers';
 import { NextConfig } from 'next';
 import createNextIntlPlugin from 'next-intl/plugin';
+import webpack from 'webpack';
 
 const withBundleAnalyzer = withBundleAnalyzerInit({
   enabled: process.env.ANALYZE === 'true',
@@ -26,6 +28,14 @@ const nextConfig: NextConfig = {
   },
   // Webpack config for production builds (using --webpack flag)
   webpack: (config, { isServer }) => {
+    // Restrict date-fns/locale to SUPPORTED_LOCALES only (en-US, es, fr, el)
+    config.plugins = config.plugins ?? [];
+    config.plugins.push(
+      new webpack.ContextReplacementPlugin(
+        /date-fns[\/\\]locale/,
+        new RegExp(`(${[...DATE_FNS_LOCALE_IDS].join('|')})`)
+      )
+    );
     if (!isServer) {
       // Polyfill or ignore Node.js modules for client-side
       config.resolve.fallback = {

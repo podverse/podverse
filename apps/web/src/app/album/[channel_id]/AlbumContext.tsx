@@ -1,7 +1,8 @@
 'use client';
 
 import { useParams } from 'next/navigation';
-import { DTOItem, getTotalPages, QueryParamsChannelMusicAlbum } from '@podverse/helpers';
+import { DTOItem, getTotalPages } from '@podverse/helpers';
+import { QueryParamsChannelMusicAlbum } from '@podverse/helpers-requests';
 import { createContext, useContext, useState, ReactNode, useRef } from 'react';
 import { apiRequestService } from '../../../factories/apiRequestService';
 import { useAccount } from '../../../contexts/Account';

@@ -1,7 +1,8 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { DTOChannel, QueryParamsSubscribedMusicType } from '@podverse/helpers';
+import { DTOChannel } from '@podverse/helpers';
+import { QueryParamsSubscribedMusicType } from '@podverse/helpers-requests';
 import React, { useRef } from 'react';
 import { ListAlbumNodes } from './ListAlbumNodes';
 import { CallToActionMessage } from '../../../CallToActionMessage/CallToActionMessage';

@@ -22,19 +22,21 @@ import { handleGenericErrorResponse } from '@api/controllers/helpers/error';
 import { getPaginationParams } from '@api/controllers/helpers/pagination';
 import { validateParamsObject, validateQueryObject } from '@api/lib/validation';
 import {
-  ApiListResponse,
   CATEGORY_MAPPING_KEYS,
   CategoryMappingKeys,
-  emptyApiListResponse,
   getCategoryEnumValue,
   LIVE_ITEM_STATUSES,
-  QUERY_PARAMS_DIRECTION_VALUES,
   QUERY_PARAMS_MEDIUMS,
+  QueryParamsMedium,
+} from '@podverse/helpers';
+import {
+  ApiListResponse,
+  emptyApiListResponse,
+  QUERY_PARAMS_DIRECTION_VALUES,
   QUERY_PARAMS_STATS_RANGE_VALUES,
   QueryParamsDirection,
-  QueryParamsMedium,
   QueryParamsStatsRange,
-} from '@podverse/helpers';
+} from '@podverse/helpers-requests';
 import { getStatsOrder } from '@api/lib/stats';
 import { ensureAuthenticated, getAuthenticatedUser } from '@api/lib/auth';
 import { getFollowedChannelIds } from '@api/lib/followed';
@@ -397,6 +399,7 @@ export class ItemController {
             if (!channel_ids.length) {
               const response: ApiListResponse<Item> = emptyApiListResponse;
               res.json(response);
+              return;
             }
 
             const config: FindManyOptions<Item> = {
@@ -452,6 +455,7 @@ export class ItemController {
             if (!channel_ids.length) {
               const response: ApiListResponse<Item> = emptyApiListResponse;
               res.json(response);
+              return;
             }
 
             const order = getStatsOrder(range);
@@ -778,15 +782,18 @@ export class ItemController {
         const lastFinished =
           item?.item_chapters_feed?.item_chapters_feed_log?.last_finished_parse_time;
 
+        let chaptersAvailable = true;
         if (lastFinished) {
           const last = new Date(lastFinished).getTime();
           const now = Date.now();
           const diffMs = now - last;
           if (diffMs >= 1000 * 60 * 60) {
-            await parseChapters(item);
+            const parseResult = await parseChapters(item);
+            chaptersAvailable = parseResult.parsed;
           }
         } else {
-          await parseChapters(item);
+          const parseResult = await parseChapters(item);
+          chaptersAvailable = parseResult.parsed;
         }
 
         const updatedItem = (await ItemController.itemService.getByIdOrIdText(
@@ -835,7 +842,12 @@ export class ItemController {
 
         const response: ApiListResponse<ItemChapter> = {
           data: transformed,
-          meta: { page: 1, count: transformed.length, limit: transformed.length },
+          meta: {
+            page: 1,
+            count: transformed.length,
+            limit: transformed.length,
+            chaptersAvailable,
+          },
         };
 
         res.json(response);

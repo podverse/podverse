@@ -2,7 +2,6 @@ import { useCallback, useEffect, useRef } from 'react';
 import {
   DTOChannel,
   DTOClip,
-  DTOItem,
   DTOItemQueueItem,
   DTOItemSoundbite,
   DTOPlaylistResource,
@@ -75,7 +74,7 @@ export function useAutoQueueLoadResources() {
     }
 
     let playlistResourcesResponse: DTOPlaylistResource[] = [];
-    let itemsResponse: DTOItem[] = [];
+    let itemsResponse: DTOItemQueueItem[] = [];
 
     if (autoQueueConfig.playlist_id_text) {
       if (autoQueueConfig.random) {

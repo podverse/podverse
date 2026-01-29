@@ -1,12 +1,12 @@
 import {
-  QueryParamsStatsRange,
   getValidQueryParam,
+  QueryParamsStatsRange,
   QUERY_PARAMS_GLOBAL_SORT_VALUES,
   QueryParamsSubscribedFullSort,
   QueryParamsSubscribedPartialSort,
   QUERY_PARAMS_SUBSCRIBED_PARTIAL_SORT,
   QueryParamsSubscribedMusicType,
-} from '@podverse/helpers';
+} from '@podverse/helpers-requests';
 import { getRangeDropdownItems } from '../../utils/dropdownMenuItems';
 import { DropdownMenuItem } from '../../components/Dropdown/Dropdown';
 

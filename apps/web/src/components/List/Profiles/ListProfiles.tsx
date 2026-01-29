@@ -1,7 +1,8 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { DTOAccount, QueryParamsSubscribedType } from '@podverse/helpers';
+import { DTOAccount } from '@podverse/helpers';
+import { QueryParamsSubscribedType } from '@podverse/helpers-requests';
 import React, { useRef } from 'react';
 import { ListProfileNodes } from './ListProfileNodes';
 import { CallToActionMessage } from '../../CallToActionMessage/CallToActionMessage';

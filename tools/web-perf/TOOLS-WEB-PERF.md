@@ -36,7 +36,7 @@ npm install
 npm run analyze
 ```
 
-**Output**: HTML visualizations and JSON stats in `reports/bundle-analyzer/`
+**Output**: HTML visualizations and JSON stats in `bundle-analyzer/reports/{app}/`
 
 See `bundle-analyzer/TOOLS-WEB-PERF-BUNDLE-ANALYZER.md` for detailed documentation.
 
@@ -68,7 +68,7 @@ npm test
 - `podverse-ops` repo available as a sibling to the monorepo (for test database)
 - Chrome/Chromium browser
 
-**Output**: JSON reports and comparison summaries in `reports/lighthouse/`
+**Output**: JSON reports and comparison summaries in `lighthouse/reports/{app}/`
 
 See `lighthouse/TOOLS-WEB-PERF-LIGHTHOUSE.md` for detailed documentation.
 
@@ -83,8 +83,8 @@ These tools can test:
 
 Generated reports are stored in `reports/` subdirectories:
 
-- `reports/bundle-analyzer/` - Bundle analysis reports
-- `reports/lighthouse/` - Lighthouse performance reports
+- `bundle-analyzer/reports/{app}/` - Bundle analysis reports organized by app
+- `lighthouse/reports/{app}/` - Lighthouse performance reports organized by app
 
 Reports are gitignored and generated on demand.
 

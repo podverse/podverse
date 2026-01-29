@@ -1,11 +1,10 @@
+import { getTotalPages, DTOAccount } from '@podverse/helpers';
 import {
   QUERY_PARAMS_STATS_RANGE_VALUES,
-  getTotalPages,
   QUERY_PARAMS_SUBSCRIBED_TYPE,
   QUERY_PARAMS_SUBSCRIBED_FULL_SORT,
   QueryParamsSubscribedFullSort,
-  DTOAccount,
-} from '@podverse/helpers';
+} from '@podverse/helpers-requests';
 import { cookies } from 'next/headers';
 import { z } from 'zod';
 import { ProfilesClient } from './ProfilesClient';

@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import Joi from 'joi';
-import { ApiListResponse, DTOQueueResourceAbridgedResponseData } from '@podverse/helpers';
+import { DTOQueueResourceAbridgedResponseData } from '@podverse/helpers';
+import { ApiListResponse } from '@podverse/helpers-requests';
 import { QueueResource, QueueResourceService } from '@podverse/orm';
 import { handleGenericErrorResponse } from '../helpers/error';
 import { ensureAuthenticated, getAuthenticatedUser } from '@api/lib/auth';

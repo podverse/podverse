@@ -4,7 +4,7 @@ A bundle size analysis tool for podverse-web that generates visual reports of yo
 
 ## Overview
 
-This system uses `@next/bundle-analyzer` to analyze the production build of podverse-web, generating interactive HTML reports that show the size and composition of server and client bundles. Reports are saved to `tools/web-perf/reports/bundle-analyzer/` for easy tracking and comparison.
+This system uses `@next/bundle-analyzer` to analyze the production build of podverse web applications, generating interactive HTML reports that show the size and composition of server and client bundles. Reports are saved to `tools/web-perf/bundle-analyzer/reports/{app}/` where `{app}` is the application being tested (web or management-web).
 
 ## Features
 
@@ -54,7 +54,7 @@ The system will:
 1. Build the Next.js app in production mode with bundle analyzer enabled
 2. Generate HTML reports for server and client bundles
 3. Generate stats JSON files for server and client bundles
-4. Save reports to `tools/web-perf/reports/bundle-analyzer/` with the following naming:
+4. Save reports to `tools/web-perf/bundle-analyzer/reports/{app}/` with the following naming:
    - `bundle-report-{name}-{timestamp}-server.html` - Server bundle visualization
    - `bundle-report-{name}-{timestamp}-client.html` - Client bundle visualization
    - `bundle-report-{name}-{timestamp}-server-stats.json` - Server stats export
@@ -71,7 +71,7 @@ Open the generated HTML files in your browser to view interactive bundle visuali
 
 ## Report Structure
 
-Reports are stored in `tools/web-perf/reports/bundle-analyzer/` with the following structure:
+Reports are stored in `tools/web-perf/bundle-analyzer/reports/{app}/` with the following structure:
 
 **HTML Reports:**
 
@@ -113,7 +113,7 @@ The bundle analyzer works by:
 1. Setting `ANALYZE=true` environment variable
 2. Running `npm run build` in the `apps/web` directory
 3. `@next/bundle-analyzer` generates HTML reports in `apps/web/.next/analyze/`
-4. The tool copies these reports to `tools/web-perf/reports/bundle-analyzer/` with proper naming
+4. The tool copies these reports to `tools/web-perf/bundle-analyzer/reports/{app}/` with proper naming
 
 **Note**: You may need to update `next.config.ts` in `apps/web` to include bundle analyzer configuration. The analyzer will work automatically if `@next/bundle-analyzer` is properly configured.
 
@@ -143,7 +143,7 @@ To compare bundle sizes between different builds:
 
 **Reports directory not found:**
 
-- The tool automatically creates `tools/web-perf/reports/bundle-analyzer/` if it doesn't exist
+- The tool automatically creates `tools/web-perf/bundle-analyzer/reports/{app}/` if it doesn't exist
 - Ensure you have write permissions in the tools directory
 
 ## Development

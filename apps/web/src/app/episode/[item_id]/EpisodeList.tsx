@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import dynamic from 'next/dynamic';
 import { useEpisodeContext } from './EpisodeContext';
 import LoadingSpinnerOverlay from '../../../components/LoadingSpinner/LoadingSpinnerOverlay';
 import styles from '../../../styles/app/podcast/PodcastList.module.scss';
@@ -9,7 +10,17 @@ import { ListClips } from '../../../components/List/Clips/ListClips';
 import { DTOChannel, DTOItem } from '@podverse/helpers';
 import { ListItemSoundbites } from '../../../components/List/ItemSoundbites/ListItemSoundbites';
 import { ListItemChapters } from '../../../components/List/ItemChapters/ListItemChapters';
-import { ItemTranscript } from '../../../components/ItemTranscript/ItemTranscript';
+
+const ItemTranscript = dynamic(
+  () =>
+    import('../../../components/ItemTranscript/ItemTranscript').then((m) => ({
+      default: m.ItemTranscript,
+    })),
+  {
+    ssr: false,
+    loading: () => <div aria-label="Loading transcript" style={{ minHeight: 400 }} />,
+  }
+);
 
 type EpisodeListProps = {
   ssrChannel: DTOChannel;
