@@ -17,6 +17,9 @@ package-lock.json
 **/i18n/overrides/**
 **/i18n/compiled/**
 
+# Generated reports (bundle analyzer, etc.)
+**/reports/
+
 # Test coverage
 coverage/
 
