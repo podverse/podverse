@@ -93,10 +93,6 @@ jobs:
         id: lint
         run: npm run lint
 
-      - name: Type check
-        id: typecheck
-        run: npm run type-check
-
       - name: Setup env files for web apps
         id: setup-env
         run: |
@@ -126,8 +122,7 @@ jobs:
               '| Database migrations synced | ✅ |',
               '| Dependencies installed | ✅ |',
               '| Build packages | ✅ |',
-              '| Lint | ✅ |',
-              '| Type check | ✅ |',
+              '| Lint (type-check, ESLint, Prettier) | ✅ |',
               '| Build apps | ✅ |',
               '',
               `[View full run](${process.env.RUN_URL})`
@@ -167,7 +162,6 @@ jobs:
           DB_VERIFY: ${{ steps.db-verify.outcome }}
           INSTALL: ${{ steps.install.outcome }}
           LINT: ${{ steps.lint.outcome }}
-          TYPECHECK: ${{ steps.typecheck.outcome }}
           BUILD_PACKAGES: ${{ steps.build-packages.outcome }}
           BUILD_APPS: ${{ steps.build-apps.outcome }}
         with:
@@ -188,8 +182,7 @@ jobs:
               `| Database migrations synced | ${status(process.env.DB_VERIFY)} |`,
               `| Dependencies installed | ${status(process.env.INSTALL)} |`,
               `| Build packages | ${status(process.env.BUILD_PACKAGES)} |`,
-              `| Lint | ${status(process.env.LINT)} |`,
-              `| Type check | ${status(process.env.TYPECHECK)} |`,
+              `| Lint (type-check, ESLint, Prettier) | ${status(process.env.LINT)} |`,
               `| Build apps | ${status(process.env.BUILD_APPS)} |`,
               '',
               'Legend: ✅ Passed | ❌ Failed | ⏭️ Skipped',
