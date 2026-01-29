@@ -67,7 +67,7 @@ jobs:
           echo "head_sha=${{ github.event.pull_request.head.sha }}" >> $GITHUB_OUTPUT
           echo "pr_number=${{ github.event.pull_request.number }}" >> $GITHUB_OUTPUT
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           ref: ${{ steps.pr-comment.outputs.head_sha || steps.pr-direct.outputs.head_sha }}
 
