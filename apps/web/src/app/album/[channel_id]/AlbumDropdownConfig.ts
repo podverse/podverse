@@ -2,7 +2,7 @@ import {
   QueryParamsStatsRange,
   QueryParamsChannelMusicAlbumSort,
   QueryParamsChannelMusicAlbumType,
-} from '@podverse/helpers';
+} from '@podverse/helpers-requests';
 import { getRangeDropdownItems } from '../../../utils/dropdownMenuItems';
 
 export function getAlbumDropdownConfig({

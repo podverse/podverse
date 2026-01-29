@@ -1,11 +1,10 @@
+import { DTOItem, getTotalPages } from '@podverse/helpers';
 import {
   QUERY_PARAMS_STATS_RANGE_VALUES,
   QUERY_PARAMS_CHANNEL_MUSIC_ALBUM_TYPE_VALUES,
   QUERY_PARAMS_CHANNEL_MUSIC_ALBUM_SORT_VALUES,
-  DTOItem,
   ApiListResponse,
-  getTotalPages,
-} from '@podverse/helpers';
+} from '@podverse/helpers-requests';
 import { z } from 'zod';
 import { getAlbumFilterParams, AlbumDropdownConfigCurrentParams } from './AlbumDropdownConfig';
 import { AlbumClient } from './AlbumClient';

@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { validateHttpsUrl } from '@podverse/helpers';
+import { validateHttpsUrl } from '@podverse/helpers-validation';
 import { requestNotificationPermission } from '../../../../lib/notifications/webpush/requestNotificationPermission';
 import { disableNotificationPermission } from '../../../../lib/notifications/webpush/disableNotificationPermission';
 import { apiRequestService } from '../../../../factories/apiRequestService';

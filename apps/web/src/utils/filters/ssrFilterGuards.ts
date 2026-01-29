@@ -1,4 +1,4 @@
-import { ApiListResponse } from '@podverse/helpers';
+import { ApiListResponse } from '@podverse/helpers-requests';
 
 type GuardSubscribedFilterParams<
   TType extends string,

@@ -1,9 +1,5 @@
-import {
-  DTOChannel,
-  DTOItem,
-  QueryParamsChannelMusicAlbum,
-  RemoteItemsResponse,
-} from '@podverse/helpers';
+import { DTOChannel, DTOItem, RemoteItemsResponse } from '@podverse/helpers';
+import { QueryParamsChannelMusicAlbum } from '@podverse/helpers-requests';
 import { MainWrapper } from '../../../components/Main/MainWrapper';
 import { AlbumContextProvider } from './AlbumContext';
 import { AlbumListHeader } from './AlbumListHeader';

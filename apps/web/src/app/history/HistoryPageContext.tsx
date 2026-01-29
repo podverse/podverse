@@ -5,8 +5,8 @@ import {
   DTOQueueResource,
   getQueueMediumIdFromType,
   getTotalPages,
-  QueryParamsHistory,
 } from '@podverse/helpers';
+import { QueryParamsHistory } from '@podverse/helpers-requests';
 import { createContext, useContext, useState, ReactNode, useEffect, useRef } from 'react';
 import { apiRequestService } from '../../factories/apiRequestService';
 import { useAccount } from '../../contexts/Account';

@@ -6,9 +6,9 @@ import {
   DTOItemChapter,
   DTOItemSoundbite,
   getTotalPages,
-  QueryParamsItem,
   TranscriptRow,
 } from '@podverse/helpers';
+import { QueryParamsItem } from '@podverse/helpers-requests';
 import { createContext, useContext, useState, ReactNode, useRef } from 'react';
 import { useAccount } from '../../../contexts/Account';
 import { checkBackNavFlag } from '../../../contexts/Navigation';

@@ -1,12 +1,7 @@
 'use client';
 
-import {
-  CategoryMappingKeys,
-  DTOChannel,
-  DTOItem,
-  DTOItemSoundbite,
-  QueryParamsItemsType,
-} from '@podverse/helpers';
+import { CategoryMappingKeys, DTOChannel, DTOItem, DTOItemSoundbite } from '@podverse/helpers';
+import { QueryParamsItemsType } from '@podverse/helpers-requests';
 import React from 'react';
 import { ListItemSoundbiteRow } from './ListItemSoundbiteRow';
 import Pagination from '../../Pagination/Pagination';
