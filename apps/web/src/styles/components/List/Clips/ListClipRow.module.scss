@@ -1,7 +1,7 @@
 @use '../../../mixins/lineClamp' as *;
 @use '../../../mixins/timeText' as *;
 @use '../../../mixins/listRow' as *;
-@use 'breakpoints';
+@use '../../../variables/breakpoints';
 
 .row {
   display: flex;

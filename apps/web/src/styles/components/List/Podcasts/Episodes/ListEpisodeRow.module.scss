@@ -3,7 +3,7 @@
 @use '../../../../mixins/listRow' as *;
 @use '../../../../mixins/flexbox' as *;
 @use '../../../../mixins/media-queries' as *;
-@use 'breakpoints';
+@use '../../../../variables/breakpoints';
 
 .row {
   display: flex;

@@ -1,4 +1,4 @@
-@use 'breakpoints';
+@use '../../variables/breakpoints';
 
 .sideContent {
   margin: calc(var(--spacing-xs) * -1) calc(var(--spacing-sm) * -1) var(--spacing-none)
