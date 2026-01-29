@@ -219,6 +219,7 @@ Or for multi-part features:
 - **[LLM History](../llm-history/SKILL.md)** - History tracking and 10-session split rule
 - **[GitHub Workflows](../github/SKILL.md)** - PR/issue management and GitHub CLI usage
 - **[Web Patterns](../web/SKILL.md)** - Next.js app patterns (`apps/web/`)
+- **[Bundle Optimization](../bundle-optimization/SKILL.md)** - Bundle size awareness when adding deps, changing helpers, or heavy UI
 - **[API Patterns](../api/SKILL.md)** - Express API patterns (`apps/api/`)
 - **[Management API Patterns](../management-api/SKILL.md)** - Management API Express patterns
 - **[ORM Patterns](../orm/SKILL.md)** - Database patterns (`packages/orm/`)

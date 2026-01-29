@@ -16,6 +16,7 @@
 12. **CRITICAL: Always use constants for image paths** - All image paths from the public directory must be defined in `apps/web/src/constants/images.ts` under the `IMAGES` object. Never hardcode image paths like `"/images/..."` in components. Use `IMAGES.MOBILE.APP_STORES.APP_STORE` instead of `"/images/mobile/app-stores/..."`. See `04-configuration.md` for examples.
 13. **CRITICAL: Reusable utilities go to helper packages** - If a utility function could be useful in React Native, other Next.js apps, or any other Podverse application, it belongs in the appropriate helper package (validation → `@podverse/helpers-validation`, requests → `@podverse/helpers-requests`, etc.), not in the web app. See `07-reusable-utilities.md` for package selection guidance.
 14. **CRITICAL: Always use config object for environment variables** - Import and use `config` from `apps/web/src/config/index.ts` instead of accessing `process.env` directly. Update `.env.example` and all env files in `env/` directory when adding new variables
+15. **Bundle awareness** - When adding deps, changing helpers, or adding heavy UI: measure with bundle analyzer (real JS size), prefer `sideEffects: false` in helpers, use subpath/named imports for heavy libs (e.g. date-fns), lazy-load below-the-fold UI, and do not import `@podverse/helpers-backend` or `@podverse/helpers-config` in client code. See [09-performance-optimization](09-performance-optimization.md) and [bundle-optimization skill](../bundle-optimization/SKILL.md).
 
 ## Translation Requirements (CRITICAL)
 

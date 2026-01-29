@@ -108,3 +108,7 @@ For the most critical patterns, see:
 - Bundle Optimization
 - Performance Monitoring
 - Common Anti-Patterns
+
+## Related Skills
+
+- **[Bundle Optimization](../bundle-optimization/SKILL.md)** — Keep bundle size in mind when adding deps, changing helpers, or adding heavy UI.

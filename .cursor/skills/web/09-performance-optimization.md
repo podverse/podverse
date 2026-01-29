@@ -512,25 +512,49 @@ const ListItem = React.memo(({ item }: { item: Item }) => {
 
 ## Bundle Optimization
 
+**See also**: [bundle-optimization skill](../bundle-optimization/SKILL.md) — when adding deps, changing helpers, or adding heavy UI.
+
+### Measure Real JS Size
+
+**Use actual client bundle size** (e.g. `totalAssetSize` from bundle analyzer stats), not the HTML report file size. The `tools/web-perf/bundle-analyzer` reports and comparisons should use **total asset size** from stats JSON when available.
+
+- Run: `cd tools/web-perf/bundle-analyzer && npm run analyze`
+- Compare reports to measure impact of changes; ensure the metric is real JS size.
+
 ### Tree Shaking
 
-**Pattern**: Use ES module imports:
+**Pattern**: Use ES module imports and prefer subpaths for heavy libraries:
 
 ```typescript
 // ✅ Good: Tree-shakeable
 import { specificFunction } from 'large-library';
 
+// ✅ Good: Subpath import (e.g. date-fns)
+import format from 'date-fns/format';
+
 // ❌ Bad: Imports entire library
 import * as library from 'large-library';
 ```
+
+**Helper packages**: Add `"sideEffects": false` to `package.json` for `@podverse/helpers`, `@podverse/helpers-requests`, `@podverse/helpers-validation`, `@podverse/helpers-browser` so bundlers can drop unused exports.
+
+### Heavy Dependencies (date-fns, etc.)
+
+- **date-fns**: Use **subpath imports** (`date-fns/format`, `date-fns/formatDuration`, `date-fns/intervalToDuration`) and **only the locales you need** (e.g. `date-fns/locale/en-US`). Avoid `import { … } from 'date-fns'` or importing all locales.
+- **axios**: Used by `@podverse/helpers-requests`; avoid adding it elsewhere in client code.
+- Prefer small, focused libraries over all-in-one bundles when adding deps.
+
+### Client vs Backend Helpers
+
+- **Do not** import `@podverse/helpers-backend` or `@podverse/helpers-config` in client code (`apps/web`). They are for API, workers, and build scripts only.
+- Import only what you need from `@podverse/helpers` and `@podverse/helpers-requests`; avoid pulling unrelated DTOs or request helpers.
 
 ### Dependency Analysis
 
 **Tools**:
 
-- `@next/bundle-analyzer` - Visualize bundle composition
-- `webpack-bundle-analyzer` - Alternative analyzer
-- `source-map-explorer` - Analyze bundle sizes
+- `tools/web-perf/bundle-analyzer` — Run `npm run analyze` for `apps/web`; use client treemap to find largest chunks.
+- `@next/bundle-analyzer` — Wired via `ANALYZE=true`; analyzer builds the app and produces reports.
 
 **Pattern**:
 
@@ -551,17 +575,14 @@ module.exports = withBundleAnalyzer(nextConfig);
 - Total JS: < 500KB gzipped
 - Individual chunks: < 100KB gzipped
 
-**Monitor in CI/CD**:
+**Monitor**: Use bundle analyzer reports and comparison (based on real JS size) before/after changes.
 
-```json
-// package.json
-{
-  "scripts": {
-    "analyze": "ANALYZE=true npm run build",
-    "build:analyze": "npm run build && npm run analyze"
-  }
-}
-```
+### Bundle Optimization Plans
+
+Planned improvements live in `.llm/plans/active/bundle-optimizations/`:
+
+- Fix measurement (use `totalAssetSize`), `sideEffects`, date-fns optimization, lazy-load heavy UI, optional ESM/audit.
+- Use `migration-COPY-PASTA.md` in that directory for execution prompts, or open the plan files directly.
 
 ## Performance Monitoring
 
@@ -683,5 +704,5 @@ When implementing new features or optimizing existing code:
 - [ ] Cache API responses when appropriate
 - [ ] Virtualize long lists (>50 items)
 - [ ] Split contexts to prevent unnecessary re-renders
-- [ ] Monitor bundle size
+- [ ] **Bundle**: Measure with analyzer (real JS size); use `sideEffects: false` in helpers; prefer subpath/named imports for heavy deps (e.g. date-fns); do not import backend-only helpers in client
 - [ ] Track Web Vitals in production
