@@ -388,6 +388,47 @@ make the changes you planned
 
 ---
 
+### Session 19 - 2026-01-29
+
+#### Prompt (Agent)
+
+Read and execute .llm/plans/active/helpers-split/migration-13-utils.md
+
+Follow all instructions to update 2 utility files.
+
+Special note: utils/localSettings/localSettings.ts imports 9 QueryParams types - the most complex file!
+
+Core rule: QueryParamsMedium and QueryParamsQueueMedium stay in @podverse/helpers. All others move to @podverse/helpers-requests.
+
+#### Key Decisions
+
+- Updated QueryParams imports in 2 utility files as part of Agent 3B parallel execution task
+- `utils/localSettings/localSettings.ts` was the most complex file with 9 QueryParams type imports
+- Split imports according to platform: Medium/QueueMedium stay in core helpers, all other QueryParams move to helpers-requests
+- Both files passed linting successfully after migration
+
+#### Files Changed (2 files)
+
+**apps/web/src/utils/categories.ts:**
+
+- Split import: kept `DTOCategory` in `@podverse/helpers`
+- Moved `QUERY_PARAMS_GLOBAL_SORT_VALUES` and `QueryParamsGlobalSort` to `@podverse/helpers-requests`
+
+**apps/web/src/utils/localSettings/localSettings.ts:**
+
+- Split large import block (11 total imports) into two separate imports
+- Kept in `@podverse/helpers`: `CategoryMappingKeys`, `LiveItemStatus`, `QueryParamsMedium`, `QueryParamsQueueMedium`
+- Moved to `@podverse/helpers-requests`: `QueryParamsHomeSort`, `QueryParamsPlaylistsType`, `QueryParamsStatsRange`, `QueryParamsSubscribedFullSort`, `QueryParamsSubscribedMusicType`, `QueryParamsSubscribedPartialSort`, `QueryParamsSubscribedType`
+
+#### Result
+
+- ✅ Both utility files migrated successfully
+- ✅ Linting passed with no errors or warnings
+- ✅ QueryParams types correctly distributed between core helpers and helpers-requests packages
+- ✅ Agent 3B task completed as specified in migration-COPY-PASTA.md
+
+---
+
 ## Related Resources
 
 - [Link to PR]

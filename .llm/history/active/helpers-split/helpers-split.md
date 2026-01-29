@@ -51,3 +51,63 @@ This migration moves all QueryParams types from the core `@podverse/helpers` pac
 - `apps/web/src/app/podcast/livestream/[item_id]/LivestreamClient.tsx` - Split imports: DTOs/QueryParamsQueueMedium in helpers, QueryParamsLiveItem in helpers-requests
 - `apps/web/src/app/podcasts/PodcastsContext.tsx` - Split imports: DTOs/utilities in helpers, QueryParamsGetMany in helpers-requests
 - `.llm/plans/active/helpers-split/migration-08-podcast-pages.md` (marked as completed)
+
+---
+
+### Session 3 - 2026-01-29
+
+#### Prompt (Developer)
+
+complete the remaining migrations
+
+#### Key Decisions
+
+- Marked migration-10, migration-11, migration-13 as completed (source files already had split imports from prior work)
+- Updated migration-00-EXECUTION-ORDER.md Current Status to all phases complete
+- No code changes required; verified with lint
+
+#### Files Modified
+
+- `.llm/plans/active/helpers-split/migration-10-queues-history-home.md` (Status → ✅ Completed)
+- `.llm/plans/active/helpers-split/migration-11-music-album-artist.md` (Status → ✅ Completed)
+- `.llm/plans/active/helpers-split/migration-13-utils.md` (Status → ✅ Completed)
+- `.llm/plans/active/helpers-split/migration-00-EXECUTION-ORDER.md` (Current Status → all phases complete)
+
+---
+
+### Session 4 - 2026-01-29
+
+#### Prompt (Developer)
+
+complete the remaining migrations for helpers-split
+
+#### Key Decisions
+
+- migration-06: Marked as superseded by migration-11 (AlbumClient fix already applied)
+- migration-07: Ran comprehensive scan; no remaining files import non-Medium/QueueMedium QueryParams from helpers; marked completed
+- All helpers-split plan files are now complete
+
+#### Files Modified
+
+- `.llm/plans/active/helpers-split/migration-06-album-client-CRITICAL.md` (Status → ✅ Superseded by migration-11)
+- `.llm/plans/active/helpers-split/migration-07-remaining-files.md` (Status → ✅ Completed)
+
+---
+
+### Session 5 - 2026-01-29
+
+#### Prompt (Developer)
+
+if the work for helpers-splits is complete, handle the plans as complete
+
+#### Key Decisions
+
+- Moved all helpers-split plans from `.llm/plans/active/helpers-split/` to `.llm/plans/completed/helpers-split/` per plan lifecycle.
+- Updated internal path references in migration-COPY-PASTA.md and MEGA-PROMPT.md to `completed/helpers-split`.
+- History remains in `.llm/history/active/helpers-split/` as the record of the work.
+
+#### Files Modified
+
+- Moved: `.llm/plans/active/helpers-split/` → `.llm/plans/completed/helpers-split/`
+- `.llm/plans/completed/helpers-split/migration-COPY-PASTA.md` (path refs updated)
+- `.llm/plans/completed/helpers-split/MEGA-PROMPT.md` (path refs updated)
