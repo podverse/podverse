@@ -43,7 +43,7 @@ The following files are automatically generated or provided:
 
 ## Generation
 
-Assets are automatically generated when you run `npm run test` in the `qa/lighthouse` directory. The asset generator creates:
+Assets are automatically generated when you run `npm run lighthouse` in the `tools/web-perf/lighthouse` directory. The asset generator creates:
 
 - Minimal valid JPEG images
 - Valid MP3 audio files (5 minutes of silence or minimal content)

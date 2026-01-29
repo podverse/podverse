@@ -46,22 +46,6 @@ When ready to submit a PR, simply push your branch and open a PR.
 
 > **Note**: LLM history files are automatically moved from `active/` to `completed/` when the PR is merged. You don't need to run any completion commands.
 
-## Testing
-
-Testing strategy is evolving. Current state:
-
-- **Unit tests**: Limited coverage, expanding
-- **E2E tests**: Available in `apps/api/tests/` and `apps/web/qa/`
-- **Test data**: Use `tools/qa` for generating test fixtures
-
-```bash
-# Run linting
-npm run lint
-
-# Run tests (when available)
-npm run test
-```
-
 ### Shell script formatting (optional)
 
 We keep `prettier-plugin-sh` installed for formatting `.sh` scripts, but it is **not** part of `npm run lint` or CI. When used over the full repo, the plugin’s Go/WASM runtime can emit `panic: reflect: unimplemented: AssignableTo with interface` to stderr (the run still completes successfully). To avoid that in standard validation, the plugin is excluded from the default Prettier config.

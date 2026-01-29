@@ -69,7 +69,6 @@
     "prettier:check": "prettier --check .",
     "prettier:write": "prettier --write .",
     "format:shell": "prettier --write \"**/*.sh\" --plugin prettier-plugin-sh",
-    "test": "npm run test --workspaces --if-present",
     "type-check": "npm run type-check --workspaces --if-present",
     "db:combine": "bash scripts/database/combine-migrations.sh",
     "db:verify": "bash scripts/database/verify-migrations-combined.sh",

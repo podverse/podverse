@@ -53,7 +53,7 @@ npm install
       ```
     - The test suite will automatically ensure the database is up and reset before running tests
 
-3.  **Test Assets**: Test assets (images, media files, and RSS feeds) are located in `tools/web-perf/lighthouse/assets/`. The test suite automatically generates missing image and media files when you run `npm test`. RSS feed files are source controlled. Assets are served via a local HTTP server on `localhost:2111`. See `tools/web-perf/lighthouse/assets/README.md` for details.
+3.  **Test Assets**: Test assets (images, media files, and RSS feeds) are located in `tools/web-perf/lighthouse/assets/`. The tool automatically generates missing image and media files when you run `npm run lighthouse`. RSS feed files are source controlled. Assets are served via a local HTTP server on `localhost:2111`. See `tools/web-perf/lighthouse/assets/README.md` for details.
 
 4.  **Podcast Index API Override**: The `@podverse/external-services` package needs to be updated to include the Podcast Index API override logic. This ensures that test `podcast_index_id` values and feed URLs return mock data instead of querying the real API. This override is only active in non-production environments (`NODE_ENV !== 'production'`).
 
@@ -61,10 +61,10 @@ npm install
 
 ## Usage
 
-Run the testing system:
+Run the Lighthouse performance tool (from `tools/web-perf/lighthouse`):
 
 ```bash
-npm run test
+npm run lighthouse
 ```
 
 The CLI will prompt you to:
