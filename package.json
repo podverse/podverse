@@ -37,7 +37,7 @@
     "prettier": "^3.4.2",
     "prettier-plugin-sh": "^0.18.0",
     "typescript": "^5.9.2",
-    "typescript-eslint": "^8.44.0"
+    "typescript-eslint": "^8.54.0"
   },
   "lint-staged": {
     "*.{ts,tsx,js,mjs,cjs,json,md,yml,yaml,scss,css}": "prettier --write"
@@ -51,8 +51,9 @@
     "build:apps": "npm run build --workspaces --if-present --workspace=apps/api --workspace=apps/web --workspace=apps/workers --workspace=apps/management-api --workspace=apps/management-web",
     "clean": "npm run clean --workspaces --if-present",
     "clean:packages": "find packages -name 'tsconfig.tsbuildinfo' -delete && find packages -type d -name 'dist' -exec rm -rf {} + 2>/dev/null || true",
-    "clean:apps": "find apps -name 'tsconfig.tsbuildinfo' -delete && find apps -type d -name 'dist' -exec rm -rf {} + 2>/dev/null || true",
+    "clean:apps": "find apps -name 'tsconfig.tsbuildinfo' -delete && find apps -type d \\( -name 'dist' -o -name '.next' -o -name '.cache' -o -name 'compiled' \\) -exec rm -rf {} + 2>/dev/null || true",
     "clean:all": "npm run clean:packages && npm run clean:apps",
+    "clean:cache": "find . -type d \\( -name '.next' -o -name '.cache' -o -name '.turbo' \\) -not -path '*/node_modules/*' -exec rm -rf {} + 2>/dev/null || true",
     "clean:node_modules": "rm -rf node_modules packages/*/node_modules apps/*/node_modules tools/*/node_modules",
     "reinstall": "npm run clean:node_modules && rm -f package-lock.json && npm install",
     "reinstall:full": "npm run clean:all && npm run reinstall && npm run build:packages && npm run build:apps",
