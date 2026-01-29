@@ -10,11 +10,11 @@
 6. **Accessibility first** - Include ARIA labels and semantic HTML
 7. **Follow existing patterns** - Look at similar components for reference (agent mode)
 8. **Recommend improvements** - Propose better patterns when evaluating (plan mode)
-9. **Type safety** - Use types from `@podverse/helpers` package
+9. **Type safety** - Use types from helper packages (`@podverse/helpers`, `@podverse/helpers-requests`, etc.)
 10. **Document out-of-scope improvements** - Add to `apps/web/docs/todo/improvements.md` automatically
 11. **Use constants instead of hardcoded values** - Define named constants in separate files for magic numbers, timeouts, limits, and configuration values
 12. **CRITICAL: Always use constants for image paths** - All image paths from the public directory must be defined in `apps/web/src/constants/images.ts` under the `IMAGES` object. Never hardcode image paths like `"/images/..."` in components. Use `IMAGES.MOBILE.APP_STORES.APP_STORE` instead of `"/images/mobile/app-stores/..."`. See `04-configuration.md` for examples.
-13. **CRITICAL: Reusable utilities go to @podverse/helpers** - If a utility function could be useful in React Native, other Next.js apps, or any other Podverse application, it belongs in `@podverse/helpers` (`packages/helpers/`), not in the web app
+13. **CRITICAL: Reusable utilities go to helper packages** - If a utility function could be useful in React Native, other Next.js apps, or any other Podverse application, it belongs in the appropriate helper package (validation → `@podverse/helpers-validation`, requests → `@podverse/helpers-requests`, etc.), not in the web app. See `07-reusable-utilities.md` for package selection guidance.
 14. **CRITICAL: Always use config object for environment variables** - Import and use `config` from `apps/web/src/config/index.ts` instead of accessing `process.env` directly. Update `.env.example` and all env files in `env/` directory when adding new variables
 
 ## Translation Requirements (CRITICAL)

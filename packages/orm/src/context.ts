@@ -1,5 +1,5 @@
 import { DataSource } from 'typeorm';
-import { ILoggerLike } from '@podverse/helpers';
+import { ILoggerLike } from '@podverse/helpers-backend';
 import { ORMConfig } from './config/types';
 
 /**

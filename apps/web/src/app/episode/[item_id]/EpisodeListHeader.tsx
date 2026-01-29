@@ -8,7 +8,7 @@ import {
   QUERY_PARAMS_ITEM_TYPE_VALUES,
   QueryParamsItemSort,
   QUERY_PARAMS_ITEM_SORT_VALUES,
-} from '@podverse/helpers';
+} from '@podverse/helpers-requests';
 import React from 'react';
 import Dropdown from '../../../components/Dropdown/Dropdown';
 import { ListHeader } from '../../../components/List/ListHeader';

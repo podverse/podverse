@@ -1,7 +1,8 @@
 'use client';
 
 import { createContext, useContext, useState, ReactNode } from 'react';
-import { DTOItem, getTotalPages, QueryParamsGetManyPartialMusic } from '@podverse/helpers';
+import { DTOItem, getTotalPages } from '@podverse/helpers';
+import { QueryParamsGetManyPartialMusic } from '@podverse/helpers-requests';
 import { apiRequestService } from '../../factories/apiRequestService';
 import { useAccount } from '../../contexts/Account';
 import { useSkipInitialEffect } from '../../hooks/useSkipInitialEffect';

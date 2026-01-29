@@ -1,6 +1,7 @@
 'use client';
 
-import { DTOChannel, QueryParamsGetManyMusic } from '@podverse/helpers';
+import { DTOChannel } from '@podverse/helpers';
+import { QueryParamsGetManyMusic } from '@podverse/helpers-requests';
 import { AlbumsContextProvider } from './AlbumsContext';
 import { MainWrapper } from '../../components/Main/MainWrapper';
 import { AlbumsHeader } from './AlbumsHeader';

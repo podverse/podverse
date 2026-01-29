@@ -8,7 +8,7 @@ import {
   QueryParamsStatsRange,
   QueryParamsSubscribedFullSort,
   QueryParamsSubscribedMusicType,
-} from '@podverse/helpers';
+} from '@podverse/helpers-requests';
 import React from 'react';
 import Dropdown from '../../components/Dropdown/Dropdown';
 import { MainHeader } from '../../components/Main/MainHeader';

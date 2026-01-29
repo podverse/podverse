@@ -8,7 +8,7 @@ import {
   QueryParamsPlaylistsType,
   QueryParamsSubscribedFullSort,
   QUERY_PARAMS_SUBSCRIBED_FULL_SORT,
-} from '@podverse/helpers';
+} from '@podverse/helpers-requests';
 import React from 'react';
 import Dropdown from '../../components/Dropdown/Dropdown';
 import { ListHeader } from '../../components/List/ListHeader';

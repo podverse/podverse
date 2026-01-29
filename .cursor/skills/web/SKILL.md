@@ -11,8 +11,14 @@ This skill provides quick reference for common patterns used in the podverse-web
 ## Monorepo Context
 
 - **Web app location**: `apps/web/`
-- **Shared helpers**: `@podverse/helpers` (from `packages/helpers/`)
-- **API client**: Uses `@podverse/helpers` DTOs
+- **Helper packages** (from `packages/helpers*/`):
+  - `@podverse/helpers` - Core utilities, types, DTOs
+  - `@podverse/helpers-validation` - Validation utilities
+  - `@podverse/helpers-requests` - API request utilities
+  - `@podverse/helpers-backend` - Backend utilities (not typically used in web)
+  - `@podverse/helpers-browser` - Browser utilities
+  - `@podverse/helpers-config` - Config validation (not typically used in web)
+- **API client**: Uses helper package DTOs and types
 - **Environment files**: `apps/web/env/`
 - **Translations**: `apps/web/i18n/originals/en-US.json`
 

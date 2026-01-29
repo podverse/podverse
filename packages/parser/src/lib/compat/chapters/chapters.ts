@@ -1,5 +1,5 @@
 import { getPIChapterMd5Hash } from '@parser/lib/rss/hash/parsedItemChapter';
-import { isValidHttpUrl } from '@podverse/helpers';
+import { isValidHttpUrl } from '@podverse/helpers-validation';
 import { ItemChapterDto } from '@podverse/orm';
 
 export type PIChapter = {

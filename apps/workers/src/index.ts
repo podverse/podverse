@@ -16,7 +16,7 @@ import {
   validateExternalServicesConfig,
   validateParserConfig,
   assertConfigValid,
-} from '@podverse/helpers';
+} from '@podverse/helpers-config';
 import { createORMContext } from '@podverse/orm';
 import { createFirebaseContext } from '@podverse/external-services';
 import { createNotificationsContext } from '@podverse/notifications';

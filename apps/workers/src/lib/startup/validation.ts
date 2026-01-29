@@ -9,7 +9,7 @@ import {
   ValidationSummary,
   validateRequired,
   validateOptional,
-} from '@podverse/helpers';
+} from '@podverse/helpers-config';
 
 /**
  * Validates critical environment variables and configuration at application startup.

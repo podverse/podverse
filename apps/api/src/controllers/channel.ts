@@ -3,13 +3,15 @@ import Joi from 'joi';
 import {
   getCategoryEnumValue,
   CATEGORY_MAPPING_KEYS,
-  QUERY_PARAMS_STATS_RANGE_VALUES,
-  ApiListResponse,
   CategoryMappingKeys,
-  QueryParamsStatsRange,
   QueryParamsMedium,
   QUERY_PARAMS_MEDIUMS,
 } from '@podverse/helpers';
+import {
+  QUERY_PARAMS_STATS_RANGE_VALUES,
+  ApiListResponse,
+  QueryParamsStatsRange,
+} from '@podverse/helpers-requests';
 import {
   channelGetOneRelations,
   channelGetManyRelations,

@@ -6,8 +6,8 @@ import {
   getBooleanOrNull,
   getCategoryEnumValue,
   getMediumEnumValue,
-  isValidHttpUrl,
 } from '@podverse/helpers';
+import { isValidHttpUrl } from '@podverse/helpers-validation';
 import { getChannelItunesTypeItunesTypeEnumValue } from '@podverse/orm';
 import { compatChannelValue } from '@parser/lib/compat/partytime/value';
 import { detectDuckTypedPublisherMediumId } from './publisher';

@@ -1,4 +1,5 @@
-import { DTOQueue, QUERY_PARAMS_QUEUE_MEDIUMS, QueryParamsQueueMedium } from '@podverse/helpers';
+import { DTOQueue } from '@podverse/helpers';
+import { QUERY_PARAMS_QUEUE_MEDIUMS, QueryParamsQueueMedium } from '@podverse/helpers-requests';
 import { z } from 'zod';
 import { HistoryClient } from './HistoryClient';
 import { getSSRAuthService } from '../../utils/auth/ssrAuth';

@@ -1,7 +1,10 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { QueryParamsItemMusicType, QUERY_PARAMS_ITEM_MUSIC_TYPE_VALUES } from '@podverse/helpers';
+import {
+  QueryParamsItemMusicType,
+  QUERY_PARAMS_ITEM_MUSIC_TYPE_VALUES,
+} from '@podverse/helpers-requests';
 import React from 'react';
 import { ListHeader } from '../../../components/List/ListHeader';
 import { useTrackContext } from './TrackContext';

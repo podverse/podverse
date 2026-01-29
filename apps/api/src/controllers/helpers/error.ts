@@ -8,6 +8,10 @@ export function handleGenericErrorResponse(res: Response, error: any) {
   if (config.nodeEnv !== 'production') {
     loggerService.logError('Internal server error', error as Error);
   }
-  // res.status(500).json({ error: ERROR_MESSAGES.INTERNAL_SERVER_ERROR });
-  res.status(500).json({ message: error.message });
+
+  // Don't attempt to send response if headers already sent
+  if (!res.headersSent) {
+    // res.status(500).json({ error: ERROR_MESSAGES.INTERNAL_SERVER_ERROR });
+    res.status(500).json({ message: error.message });
+  }
 }

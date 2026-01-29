@@ -23,7 +23,9 @@
   "dependencies": {
     "@podverse/external-services": "*",
     "@podverse/helpers": "*",
-    "web-push": "^3.6.7"
+    "web-push": "^3.6.7",
+    "@podverse/helpers-backend": "*",
+    "@podverse/helpers-validation": "*"
   },
   "devDependencies": {
     "@types/web-push": "^3.6.4"

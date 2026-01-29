@@ -13,7 +13,7 @@ import {
   validateOptional,
   validateSupportedLocalesList,
   validateLocale,
-} from '@podverse/helpers';
+} from '@podverse/helpers-config';
 
 // Load .env file based on NODE_ENV
 // Next.js loads .env files automatically, but this script runs standalone via ts-node

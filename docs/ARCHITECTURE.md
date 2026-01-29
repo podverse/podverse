@@ -66,38 +66,47 @@ sequenceDiagram
 
 ## Module Dependency Order
 
-| Tier | Packages                         | Depends On                              |
-| ---- | -------------------------------- | --------------------------------------- |
-| 1    | helpers                          | (none)                                  |
-| 2    | external-services, orm           | helpers                                 |
-| 3    | notifications, parser            | helpers, external-services, orm         |
-| 4    | mq                               | helpers, external-services, orm, parser |
-| 5    | api, web, workers, management-\* | various                                 |
-| 6    | qa                               | helpers, external-services, orm, parser |
+| Tier | Packages                                                                               | Depends On                                          |
+| ---- | -------------------------------------------------------------------------------------- | --------------------------------------------------- |
+| 1    | helpers                                                                                | (none)                                              |
+| 2    | helpers-validation, helpers-requests, helpers-backend, helpers-browser, helpers-config | helpers                                             |
+| 3    | external-services, orm                                                                 | helpers, helpers-\*                                 |
+| 4    | notifications, parser                                                                  | helpers, helpers-\*, external-services, orm         |
+| 5    | mq                                                                                     | helpers, helpers-\*, external-services, orm, parser |
+| 6    | api, web, workers, management-\*                                                       | various                                             |
+| 7    | qa                                                                                     | helpers, helpers-\*, external-services, orm, parser |
 
 ## Build Order
 
 ```
 1. helpers
-2. external-services
-3. orm
-4. notifications
-5. parser
-6. mq
-7. apps (parallel)
-8. qa
+2. helpers-validation, helpers-requests, helpers-backend, helpers-browser, helpers-config (parallel)
+3. external-services
+4. orm
+5. notifications
+6. parser
+7. mq
+8. apps (parallel)
+9. qa
 ```
+
+**Note:** The 5 specialized helper packages can build in parallel with each other because they only depend on core `helpers`, not on each other.
 
 ## Directory Structure
 
 ```
-packages/           # Publishable npm packages (@podverse/*)
-  helpers/          # Utilities, types, DTOs, logging
-  external-services/  # Third-party API integrations
-  orm/              # Database entities, services, migrations
-  notifications/    # Push notification services (Firebase)
-  parser/           # RSS/Podcast feed parsing
-  mq/               # Message queue operations
+packages/                 # Publishable npm packages (@podverse/*)
+  helpers/                # Core utilities, types, DTOs, mediums
+  helpers-validation/     # Validation utilities (email, password, URL, etc.)
+  helpers-requests/       # API request types, query params, ApiRequestService
+  helpers-backend/        # Backend-specific utilities (logger, timers, OS)
+  helpers-browser/        # Browser-specific utilities (clipboard)
+  helpers-config/         # Configuration validation utilities
+  external-services/      # Third-party API integrations
+  orm/                    # Database entities, services, migrations
+  notifications/          # Push notification services (Firebase)
+  parser/                 # RSS/Podcast feed parsing
+  mq/                     # Message queue operations
 
 apps/               # Deployable applications
   api/              # REST API (Express)

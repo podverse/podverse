@@ -1,13 +1,9 @@
 export * from './dtos';
 
 export * from './lib/auth';
-export * from './lib/backend';
 export * from './lib/error';
 export * from './lib/i18n';
-export * from './lib/requests';
-export * from './lib/validation';
 export * from './lib/constants';
-export * from './lib/web';
 export * from './lib/accountMembership';
 export * from './lib/accountSignupMode';
 export * from './lib/accountNotificationType';
@@ -29,7 +25,6 @@ export * from './lib/medium';
 export * from './lib/mq/mqConstants';
 export * from './lib/onDemandParserEvent';
 export * from './lib/pagination';
-export * from './lib/playlistResource';
 export * from './lib/queue/queue';
 export * from './lib/queue/queueResourceAbridged';
 export * from './lib/remoteItem';

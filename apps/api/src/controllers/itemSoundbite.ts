@@ -4,7 +4,7 @@ import {
   ApiListResponse,
   QueryParamsItemSoundbitesByChannelSort,
   QueryParamsItemSoundbitesByItemSort,
-} from '@podverse/helpers';
+} from '@podverse/helpers-requests';
 import { ItemSoundbite, ItemSoundbiteService } from '@podverse/orm';
 import { handleGenericErrorResponse } from './helpers/error';
 import { validateParamsObject, validateQueryObject } from '@api/lib/validation';

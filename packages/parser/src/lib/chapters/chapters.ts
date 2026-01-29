@@ -1,4 +1,4 @@
-import { throwRequestError } from '@podverse/helpers';
+import { throwRequestError } from '@podverse/helpers-requests';
 import {
   Item,
   ItemChaptersFeed,

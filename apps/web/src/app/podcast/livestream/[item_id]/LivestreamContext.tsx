@@ -1,7 +1,7 @@
 'use client';
 
 import { useParams } from 'next/navigation';
-import { QueryParamsLiveItem } from '@podverse/helpers';
+import { QueryParamsLiveItem } from '@podverse/helpers-requests';
 import { createContext, useContext, useState, ReactNode } from 'react';
 
 interface LivestreamContextType {

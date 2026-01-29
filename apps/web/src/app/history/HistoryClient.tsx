@@ -1,6 +1,7 @@
 'use client';
 
-import { DTOQueue, QueryParamsHistory } from '@podverse/helpers';
+import { DTOQueue } from '@podverse/helpers';
+import { QueryParamsHistory } from '@podverse/helpers-requests';
 import { MainWrapper } from '../../components/Main/MainWrapper';
 import { HistoryPageContextProvider } from './HistoryPageContext';
 import { HistoryHeader } from './HistoryHeader';

@@ -1,12 +1,10 @@
+import { getTotalPages, QueryParamsMedium, DTOChannel } from '@podverse/helpers';
 import {
   QUERY_PARAMS_STATS_RANGE_VALUES,
-  getTotalPages,
-  QueryParamsMedium,
   QUERY_PARAMS_SUBSCRIBED_FULL_SORT,
   ApiListResponse,
-  DTOChannel,
   QUERY_PARAMS_SUBSCRIBED_MUSIC_TYPE,
-} from '@podverse/helpers';
+} from '@podverse/helpers-requests';
 import { cookies } from 'next/headers';
 import { z } from 'zod';
 import { ArtistsClient } from './ArtistsClient';

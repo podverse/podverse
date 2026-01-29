@@ -12,14 +12,14 @@ This skill provides quick reference for common patterns used in the podverse-orm
 
 - **ORM package location**: `packages/orm/`
 - **Database migrations**: `infra/database/main/migrations/`
-- **Shared helpers**: `@podverse/helpers` (from `packages/helpers/`)
+- **Helper packages** (from `packages/helpers*/`): `@podverse/helpers`, `@podverse/helpers-validation`, `@podverse/helpers-config`
 
 ## Key Dependencies
 
-| Package             | Purpose        |
-| ------------------- | -------------- |
-| `@podverse/helpers` | Types and DTOs |
-| `typeorm`           | ORM framework  |
+| Package         | Purpose                         |
+| --------------- | ------------------------------- |
+| Helper packages | Types, DTOs, validation, config |
+| `typeorm`       | ORM framework                   |
 
 ## Patterns
 

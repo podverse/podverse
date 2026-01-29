@@ -1,4 +1,4 @@
-import { ILoggerLike, TimerManager } from '@podverse/helpers';
+import { ILoggerLike, TimerManager } from '@podverse/helpers-backend';
 import { PodcastIndexService, FirebaseContext } from '@podverse/external-services';
 import { NotificationsContext } from '@podverse/notifications';
 import { ParserConfig } from './config/types';

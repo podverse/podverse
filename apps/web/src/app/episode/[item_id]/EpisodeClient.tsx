@@ -1,4 +1,5 @@
-import { DTOChannel, DTOItem, QueryParamsItem } from '@podverse/helpers';
+import { DTOChannel, DTOItem } from '@podverse/helpers';
+import { QueryParamsItem } from '@podverse/helpers-requests';
 import { MainWrapper } from '../../../components/Main/MainWrapper';
 import { EpisodeContextProvider } from './EpisodeContext';
 import { EpisodeList } from './EpisodeList';

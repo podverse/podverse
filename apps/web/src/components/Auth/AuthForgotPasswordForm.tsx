@@ -1,7 +1,7 @@
 'use client';
 
 import { useLocale, useTranslations } from 'next-intl';
-import { getEmailErrorKey } from '@podverse/helpers';
+import { getEmailErrorKey } from '@podverse/helpers-validation';
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '../Button/Button';

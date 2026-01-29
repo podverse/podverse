@@ -25,12 +25,20 @@ npm run dev:all        # Start everything with watch mode
 
 Build packages in this order (dependencies must be built first):
 
-1. `helpers`
-2. `external-services`
-3. `orm`
-4. `notifications`
-5. `parser`
-6. `mq`
+1. `helpers` (core utilities, types, DTOs) — **MUST build first**
+2. Then in parallel:
+   - `helpers-validation` (validation utilities)
+   - `helpers-requests` (API request types and utilities)
+   - `helpers-backend` (backend-specific utilities)
+   - `helpers-browser` (browser-specific utilities)
+   - `helpers-config` (configuration validation)
+3. `external-services`
+4. `orm`
+5. `notifications`
+6. `parser`
+7. `mq`
+
+**Note:** The 5 specialized helper packages (validation, requests, backend, browser, config) all depend on core `@podverse/helpers` but don't depend on each other, so they can build in parallel after `helpers` completes.
 
 ## Critical Rules
 

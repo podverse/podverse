@@ -8,8 +8,8 @@ import {
   DTOItemChapter,
   findDTOChannelImageBySize,
   findDTOItemImageBySize,
-  getShuffleHash,
 } from '@podverse/helpers';
+import { getShuffleHash } from '@podverse/helpers-requests';
 import React from 'react';
 import { Image } from '../../Image/Image';
 import { ROUTES } from '../../../constants/routes';

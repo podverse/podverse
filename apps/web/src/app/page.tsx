@@ -1,9 +1,5 @@
-import {
-  DTOChannel,
-  getTotalPages,
-  QUERY_PARAMS_HOME_SORT_VALUES,
-  QUERY_PARAMS_MEDIUMS,
-} from '@podverse/helpers';
+import { DTOChannel, getTotalPages, QUERY_PARAMS_MEDIUMS } from '@podverse/helpers';
+import { QUERY_PARAMS_HOME_SORT_VALUES } from '@podverse/helpers-requests';
 import { cookies } from 'next/headers';
 import z from 'zod';
 import { HomeClient } from './HomeClient';

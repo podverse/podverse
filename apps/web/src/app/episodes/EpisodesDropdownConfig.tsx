@@ -1,13 +1,13 @@
+import { CategoryMappingKeys } from '@podverse/helpers';
 import {
-  QueryParamsStatsRange,
-  CategoryMappingKeys,
   getValidQueryParam,
+  QueryParamsStatsRange,
   QUERY_PARAMS_GLOBAL_SORT_VALUES,
   QueryParamsSubscribedFullSort,
   QueryParamsSubscribedType,
   QueryParamsSubscribedPartialSort,
   QUERY_PARAMS_SUBSCRIBED_PARTIAL_SORT,
-} from '@podverse/helpers';
+} from '@podverse/helpers-requests';
 import { getRangeDropdownItems } from '../../utils/dropdownMenuItems';
 import { DropdownMenuItem } from '../../components/Dropdown/Dropdown';
 

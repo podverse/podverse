@@ -1,6 +1,7 @@
 'use client';
 
-import { DTOItem, QueryParamsGetManyLivestreams } from '@podverse/helpers';
+import { DTOItem } from '@podverse/helpers';
+import { QueryParamsGetManyLivestreams } from '@podverse/helpers-requests';
 import { LivestreamsContextProvider } from './LivestreamsContext';
 import { LivestreamsHeader } from './LivestreamsHeader';
 import { LivestreamsList } from './LivestreamsList';

@@ -1,4 +1,4 @@
-import { AxiosRequestConfig, request } from '@podverse/helpers';
+import { AxiosRequestConfig, request } from '@podverse/helpers-requests';
 import { config } from '../config';
 
 export const _request = async <T>(

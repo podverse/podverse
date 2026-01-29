@@ -6,7 +6,7 @@ import {
   getPasswordErrorKey,
   getPassword2ErrorKey,
   getPasswordRequirementsInfoKey,
-} from '@podverse/helpers';
+} from '@podverse/helpers-validation';
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '../Button/Button';

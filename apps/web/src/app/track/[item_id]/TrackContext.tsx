@@ -1,7 +1,8 @@
 'use client';
 
 import { useParams } from 'next/navigation';
-import { QueryParamsItemMusic, TranscriptRow } from '@podverse/helpers';
+import { TranscriptRow } from '@podverse/helpers';
+import { QueryParamsItemMusic } from '@podverse/helpers-requests';
 import { createContext, useContext, useState, ReactNode } from 'react';
 import { useAccount } from '../../../contexts/Account';
 import { useSkipInitialEffect } from '../../../hooks/useSkipInitialEffect';

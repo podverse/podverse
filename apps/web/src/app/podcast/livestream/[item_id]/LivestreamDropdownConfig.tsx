@@ -1,4 +1,4 @@
-import { QueryParamsLiveItemType } from '@podverse/helpers';
+import { QueryParamsLiveItemType } from '@podverse/helpers-requests';
 
 type LivestreamDropdownConfigParams = {
   type: QueryParamsLiveItemType;

@@ -5,7 +5,7 @@ import {
   QueryParamsStatsRange,
   QueryParamsSubscribedFullSort,
   QueryParamsSubscribedType,
-} from '@podverse/helpers';
+} from '@podverse/helpers-requests';
 import { getRangeDropdownItems } from '../../utils/dropdownMenuItems';
 import { DropdownMenuItem } from '../../components/Dropdown/Dropdown';
 

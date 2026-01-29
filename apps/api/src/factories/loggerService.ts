@@ -1,5 +1,5 @@
 import { config } from '@api/config';
-import { LoggerService } from '@podverse/helpers/dist/lib/backend/logger';
+import { LoggerService } from '@podverse/helpers-backend';
 
 export const loggerService = new LoggerService({
   logLevel: config.log.level,

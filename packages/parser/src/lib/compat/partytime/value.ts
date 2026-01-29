@@ -1,5 +1,6 @@
 import { Phase4Value, Phase4ValueRecipient } from 'podverse-partytime';
-import { DATABASE_CONSTANTS, isValidHttpUrl } from '@podverse/helpers';
+import { DATABASE_CONSTANTS } from '@podverse/helpers';
+import { isValidHttpUrl } from '@podverse/helpers-validation';
 
 export const compatChannelValue = (value: Phase4Value) => {
   return {

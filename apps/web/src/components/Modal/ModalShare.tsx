@@ -1,7 +1,8 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { copyToClipboard, MediumEnum } from '@podverse/helpers';
+import { MediumEnum } from '@podverse/helpers';
+import { copyToClipboard } from '@podverse/helpers-browser';
 import React, { useRef, useState } from 'react';
 import { Modal } from './Modal';
 import { TextInput } from '../Form/TextInput';

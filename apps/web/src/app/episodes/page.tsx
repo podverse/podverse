@@ -1,14 +1,16 @@
 import z from 'zod';
 import {
-  ApiListResponse,
   CATEGORY_MAPPING_KEYS,
   DTOItem,
   getTotalPages,
+  QueryParamsMedium,
+} from '@podverse/helpers';
+import {
+  ApiListResponse,
   QUERY_PARAMS_STATS_RANGE_VALUES,
   QUERY_PARAMS_SUBSCRIBED_PARTIAL_SORT,
   QUERY_PARAMS_SUBSCRIBED_TYPE,
-  QueryParamsMedium,
-} from '@podverse/helpers';
+} from '@podverse/helpers-requests';
 import { cookies } from 'next/headers';
 import { getSSRAuthService } from '../../utils/auth/ssrAuth';
 import { guardSubscribedSsrFilter, safeSsrListRequest } from '../../utils/filters/ssrFilterGuards';

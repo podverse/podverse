@@ -1,4 +1,5 @@
-import { DTOChannel, DTOItem, QueryParamsItemMusic } from '@podverse/helpers';
+import { DTOChannel, DTOItem } from '@podverse/helpers';
+import { QueryParamsItemMusic } from '@podverse/helpers-requests';
 import { MainWrapper } from '../../../components/Main/MainWrapper';
 import { TrackContextProvider } from './TrackContext';
 import { TrackList } from './TrackList';

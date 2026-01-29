@@ -1,5 +1,5 @@
 import { FeedObject } from 'podverse-partytime';
-import { throwRequestError } from '@podverse/helpers';
+import { throwRequestError } from '@podverse/helpers-requests';
 import { Feed, FeedService, FeedLogService } from '@podverse/orm';
 import { getParsedFeedMd5Hash } from '../hash/parsedFeed';
 import { getAndParseRSSFeed } from '../parser';
