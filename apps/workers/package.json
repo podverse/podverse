@@ -1,6 +1,6 @@
 {
   "name": "@podverse/workers",
-  "version": "5.2.2",
+  "version": "5.2.3",
   "description": "Background workers and CLI tools for Podverse",
   "private": true,
   "main": "dist/index.js",
