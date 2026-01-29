@@ -16,8 +16,6 @@ import AuthSessionChecker from '../components/Auth/AuthSessionChecker';
 import { getSSRApiRequestService } from '../factories/apiRequestService';
 import { config } from '../config';
 import { MediaPlayerController } from '../components/MediaPlayer/Controller/MediaPlayerController';
-import { Toast } from '../components/Toast/Toast';
-import { MembershipExpirationToast } from '../components/Toast/MembershipExpirationToast';
 import { QueueController } from '../components/Queue/QueueController';
 import { QueueResourcesAbridgedController } from '../components/Queue/QueueResourcesAbridgedController';
 import { getParsedLocalSettings } from '../utils/localSettings/localSettings';
@@ -96,8 +94,6 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             <MediaPlayerController />
             <QueueController />
             <QueueResourcesAbridgedController />
-            <Toast />
-            <MembershipExpirationToast />
           </Providers>
         )}
       </body>

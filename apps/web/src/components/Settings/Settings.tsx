@@ -5,12 +5,20 @@ import { useTranslations } from 'next-intl';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { ListHeader } from '../List/ListHeader';
 import { SettingsWrapper } from './SettingsWrapper';
-import { SettingsAccount } from './Panels/SettingsAccount/SettingsAccount';
-import { SettingsGeneral } from './Panels/SettingsGeneral/SettingsGeneral';
-import { SettingsNotifications } from './Panels/SettingsNotifications/SettingsNotifications';
-import { SettingsProfile } from './Panels/SettingsProfile/SettingsProfile';
 import { Tabs } from '../Tabs/Tabs';
 import { useAccount } from '../../contexts/Account';
+import { SettingsGeneral } from './Panels/SettingsGeneral/SettingsGeneral';
+import { SettingsAccount } from './Panels/SettingsAccount/SettingsAccount';
+import { SettingsProfile } from './Panels/SettingsProfile/SettingsProfile';
+import { SettingsNotifications } from './Panels/SettingsNotifications/SettingsNotifications';
+
+type TabKey = 'account' | 'general' | 'notifications' | 'profile';
+
+function tabFromQueryParam(value: string | null): TabKey | null {
+  if (value === 'account' || value === 'profile' || value === 'notifications') return value;
+  if (value === 'general') return 'general';
+  return null;
+}
 
 export function Settings() {
   const tSettings = useTranslations('settings');
@@ -19,71 +27,64 @@ export function Settings() {
   const router = useRouter();
   const { loggedInAccount } = useAccount();
 
-  // Check for tab query param on mount
-  const tabFromQuery = searchParams.get('tab');
-  // For non-logged-in users, default to 'general' even if query param specifies a restricted tab
-  const initialTab = loggedInAccount
-    ? ((tabFromQuery === 'profile'
-        ? 'profile'
-        : tabFromQuery === 'account'
-          ? 'account'
-          : tabFromQuery === 'notifications'
-            ? 'notifications'
-            : 'general') as 'account' | 'general' | 'notifications' | 'profile')
-    : 'general';
+  const tabParam = searchParams.get('tab');
+  const tabFromQuery = tabFromQueryParam(tabParam);
 
-  const [tab, setTab] = React.useState<'account' | 'general' | 'notifications' | 'profile'>(
-    initialTab
-  );
+  const [tab, setTab] = React.useState<TabKey>(() => {
+    if (!loggedInAccount) return 'general';
+    return tabFromQuery ?? 'general';
+  });
 
-  // Redirect non-logged-in users to 'general' tab if they try to access restricted tabs
+  // Sync tab from URL when URL changes (e.g. back/forward or direct link)
   React.useEffect(() => {
-    if (!loggedInAccount && tab !== 'general') {
-      setTab('general');
-      // Update URL to remove tab param
-      const params = new URLSearchParams(searchParams.toString());
-      params.delete('tab');
-      router.replace(`/settings${params.toString() ? `?${params.toString()}` : ''}`);
+    const urlTab = tabFromQueryParam(tabParam);
+    if (urlTab !== null) {
+      setTab(urlTab);
     }
-  }, [loggedInAccount, tab, searchParams, router]);
+  }, [tabParam]);
 
-  const handleTabChange = (newTab: 'account' | 'general' | 'notifications' | 'profile') => {
+  // Redirect non-logged-in users away from restricted tabs
+  React.useEffect(() => {
+    if (loggedInAccount) return;
+    if (tabFromQuery === null || tabFromQuery === 'general') return;
+    setTab('general');
+    router.replace('/settings');
+  }, [loggedInAccount, tabFromQuery, router]);
+
+  const handleTabChange = (newTab: TabKey) => {
     setTab(newTab);
-    // Remove tab query param when user clicks a tab
-    const params = new URLSearchParams(searchParams.toString());
-    params.delete('tab');
-    router.replace(`/settings${params.toString() ? `?${params.toString()}` : ''}`);
+    const path = newTab === 'general' ? '/settings' : `/settings?tab=${newTab}`;
+    router.replace(path);
   };
 
-  // Filter tabs based on login status
   const allTabs = [
     {
-      key: 'general',
+      key: 'general' as const,
       label: tContact('general'),
       onClick: () => handleTabChange('general'),
       zIndex: 10,
     },
     {
-      key: 'account',
+      key: 'account' as const,
       label: tSettings('account.account'),
       onClick: () => handleTabChange('account'),
       zIndex: 9,
     },
     {
-      key: 'profile',
+      key: 'profile' as const,
       label: tSettings('profile.profile'),
       onClick: () => handleTabChange('profile'),
       zIndex: 8,
     },
     {
-      key: 'notifications',
+      key: 'notifications' as const,
       label: tSettings('notifications.notifications'),
       onClick: () => handleTabChange('notifications'),
       zIndex: 7,
     },
   ];
 
-  const tabData = loggedInAccount ? allTabs : allTabs[0] ? [allTabs[0]] : []; // Only show General tab for non-logged-in users
+  const tabData = loggedInAccount ? allTabs : allTabs[0] ? [allTabs[0]] : [];
 
   return (
     <div>
