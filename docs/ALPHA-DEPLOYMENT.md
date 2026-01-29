@@ -117,8 +117,8 @@ If releasing a new version:
 
 ```bash
 # On develop branch
-./scripts/publish/bump-version.sh 5.2.1
-# Script automatically commits and pushes with --no-verify
+./scripts/publish/bump-version.sh
+# Script shows current version, prompts for next version, then commits and pushes with --no-verify
 ```
 
 **Note:** This script bypasses git hooks and pushes directly. To push to protected branches like `develop`, your GitHub user must have "Allow specified actors to bypass required pull requests" permission configured in the repository's branch protection rules.
