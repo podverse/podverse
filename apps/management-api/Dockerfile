@@ -1,4 +1,4 @@
-FROM node:22-slim AS base
+FROM node:24-slim AS base
 WORKDIR /opt
 
 # Stage 1: Install dependencies
@@ -24,7 +24,7 @@ RUN npm run build:packages:prod
 RUN npm run build:prod -w apps/management-api
 
 # Stage 3: Production runner
-FROM node:22-slim AS runner
+FROM node:24-slim AS runner
 WORKDIR /opt
 
 # Copy only what's needed for runtime

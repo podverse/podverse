@@ -13,7 +13,7 @@ services:
     ports:
       - 127.0.0.1:1999:1999
     logging:
-      driver: 'json-file'
+      driver: "json-file"
       options:
-        max-file: '1'
-        max-size: '50m'
+        max-file: "1"
+        max-size: "50m"

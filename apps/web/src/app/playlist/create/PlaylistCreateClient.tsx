@@ -1,6 +1,5 @@
 'use client';
 
-import React from 'react';
 import { PlaylistCreateContextProvider } from './PlaylistCreateContext';
 import { MainWrapper } from '../../../components/Main/MainWrapper';
 import { MainInnerWrapper } from '../../../components/Main/MainInnerWrapper';

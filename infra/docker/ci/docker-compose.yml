@@ -1,4 +1,4 @@
-version: '3'
+version: "3"
 
 services:
   podverse_nginx_proxy:
@@ -14,16 +14,16 @@ services:
       - /var/run/docker.sock:/tmp/docker.sock:ro
       - ./prod-proxy.conf:/etc/nginx/vhost.d/default_location:ro
     labels:
-      - 'com.github.jrcs.letsencrypt_nginx_proxy_companion.nginx_proxy'
+      - "com.github.jrcs.letsencrypt_nginx_proxy_companion.nginx_proxy"
     networks:
       - nginx-proxy
     environment:
-      ENABLE_IPV6: 'true'
+      ENABLE_IPV6: "true"
     logging:
-      driver: 'json-file'
+      driver: "json-file"
       options:
-        max-file: '1'
-        max-size: '50m'
+        max-file: "1"
+        max-size: "50m"
 
   podverse_letsencrypt_nginx:
     image: jrcs/letsencrypt-nginx-proxy-companion
@@ -38,10 +38,10 @@ services:
     networks:
       - nginx-proxy
     logging:
-      driver: 'json-file'
+      driver: "json-file"
       options:
-        max-file: '1'
-        max-size: '50m'
+        max-file: "1"
+        max-size: "50m"
 
   podverse_jenkins_docker:
     image: docker:dind
@@ -59,16 +59,16 @@ services:
     networks:
       - nginx-proxy
     environment:
-      DOCKER_TLS_CERTDIR: '/certs'
+      DOCKER_TLS_CERTDIR: "/certs"
       VIRTUAL_HOST:
       VIRTUAL_PORT: 3000
       LETSENCRYPT_HOST:
       LETSENCRYPT_EMAIL:
     logging:
-      driver: 'json-file'
+      driver: "json-file"
       options:
-        max-file: '1'
-        max-size: '50m'
+        max-file: "1"
+        max-size: "50m"
 
   podverse_jenkins_admin:
     image: jenkins/jenkins:lts
@@ -80,10 +80,10 @@ services:
     networks:
       - nginx-proxy
     environment:
-      DOCKER_HOST: 'tcp://docker:2376'
-      DOCKER_CERT_PATH: '/certs/client'
+      DOCKER_HOST: "tcp://docker:2376"
+      DOCKER_CERT_PATH: "/certs/client"
       DOCKER_TLS_VERIFY: 1
-      JENKINS_OPTS: '--httpPort=8100'
+      JENKINS_OPTS: "--httpPort=8100"
       VIRTUAL_HOST:
       VIRTUAL_PORT: 8100
       LETSENCRYPT_HOST:
@@ -99,10 +99,10 @@ services:
     ports:
       - 8100:8080
     logging:
-      driver: 'json-file'
+      driver: "json-file"
       options:
-        max-file: '1'
-        max-size: '50m'
+        max-file: "1"
+        max-size: "50m"
 
 networks:
   nginx-proxy:

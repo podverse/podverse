@@ -1,7 +1,6 @@
 'use client';
 
 import { DTOChannel, QueryParamsGetMany } from '@podverse/helpers';
-import React from 'react';
 import { PodcastsContextProvider } from './PodcastsContext';
 import { MainWrapper } from '../../components/Main/MainWrapper';
 import { PodcastsHeader } from './PodcastsHeader';

@@ -10,10 +10,10 @@
   "devDependencies": {
     "@next/bundle-analyzer": "^15.1.6",
     "@types/inquirer": "^8.2.10",
-    "@types/node": "^24.5.0",
+    "@types/node": "^25.0.10",
     "dotenv": "^17.2.2",
     "inquirer": "^8.2.6",
-    "openai": "^5.20.3",
+    "openai": "^6.16.0",
     "tsx": "^4.19.2",
     "typescript": "^5.9.2"
   }

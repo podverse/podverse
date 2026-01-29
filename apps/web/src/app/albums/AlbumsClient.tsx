@@ -1,7 +1,6 @@
 'use client';
 
 import { DTOChannel, QueryParamsGetManyMusic } from '@podverse/helpers';
-import React from 'react';
 import { AlbumsContextProvider } from './AlbumsContext';
 import { MainWrapper } from '../../components/Main/MainWrapper';
 import { AlbumsHeader } from './AlbumsHeader';

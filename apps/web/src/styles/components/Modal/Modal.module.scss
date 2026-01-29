@@ -1,6 +1,6 @@
-@use 'breakpoints';
-@use '../mixins/flexbox' as *;
-@use '../mixins/layout' as *;
+@use '../../variables/breakpoints';
+@use '../../mixins/flexbox' as *;
+@use '../../mixins/layout' as *;
 
 .modalRoot {
   position: fixed;

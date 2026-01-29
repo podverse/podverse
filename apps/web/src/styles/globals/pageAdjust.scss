@@ -1,4 +1,4 @@
-@use 'breakpoints';
+@use '../variables/breakpoints';
 
 #sidebar.media-player-active {
   min-height: calc(100vh - var(--media-player-height-mobile) - var(--navbar-mobile-height));

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { MainHeader } from '../../components/Main/MainHeader';
 import { MainWrapper } from '../../components/Main/MainWrapper';

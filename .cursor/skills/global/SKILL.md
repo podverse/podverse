@@ -186,6 +186,7 @@ Or for multi-part features:
 
 ## Related Skills
 
+- **[GitHub Workflows](../github/SKILL.md)** - PR/issue management and GitHub CLI usage
 - **[Web Patterns](../web/SKILL.md)** - Next.js app patterns (`apps/web/`)
 - **[API Patterns](../api/SKILL.md)** - Express API patterns (`apps/api/`)
 - **[ORM Patterns](../orm/SKILL.md)** - Database patterns (`packages/orm/`)

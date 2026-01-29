@@ -5,7 +5,7 @@ import {
   DTOItemSoundbite,
   getShuffleHash,
 } from '@podverse/helpers';
-import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
+import { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { LocalSettingsState } from '../utils/localSettings/localSettings';
 import { useLocalSettings } from './LocalSettings';
 

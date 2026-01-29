@@ -1,6 +1,5 @@
 'use client';
 
-import React from 'react';
 import { PodcastIndexFeedHeader } from './PodcastIndexFeedHeader';
 import { MainWrapper } from '../../../../components/Main/MainWrapper';
 import { MainInnerWrapper } from '../../../../components/Main/MainInnerWrapper';

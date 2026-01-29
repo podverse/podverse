@@ -1,4 +1,3 @@
-import React from 'react';
 import { DTOChannel, QueryParamsHome } from '@podverse/helpers';
 import { MainWrapper } from '../components/Main/MainWrapper';
 import { MainInnerWrapper } from '../components/Main/MainInnerWrapper';

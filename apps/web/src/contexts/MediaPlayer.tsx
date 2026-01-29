@@ -9,7 +9,7 @@ import {
   PlaybackMode,
   PlaybackSpeedValue,
 } from '@podverse/helpers';
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import { createContext, useContext, useState, ReactNode } from 'react';
 
 type MediaPlayerContextType = {
   mpChannel: DTOChannel | null;

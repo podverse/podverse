@@ -1,5 +1,4 @@
 import { DTOChannel, DTOItem, DTOItemSoundbite } from '@podverse/helpers';
-import React from 'react';
 import { MainWrapper } from '../../../components/Main/MainWrapper';
 import { MainInnerWrapper } from '../../../components/Main/MainInnerWrapper';
 import { MainInnerContentWrapper } from '../../../components/Main/MainInnerContentWrapper';

@@ -1,7 +1,7 @@
 'use client';
 
 import { DTOPlaylist, DTOPlaylistResource } from '@podverse/helpers';
-import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
+import { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { apiRequestService } from '../../../../factories/apiRequestService';
 
 interface PlaylistEditContextType {

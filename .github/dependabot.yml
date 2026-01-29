@@ -8,117 +8,117 @@ version: 2
 
 updates:
   # npm dependencies
-  - package-ecosystem: 'npm'
-    directory: '/'
-    target-branch: 'develop'
+  - package-ecosystem: "npm"
+    directory: "/"
+    target-branch: "develop"
     schedule:
-      interval: 'weekly'
-      day: 'monday'
-      time: '08:00'
-      timezone: 'America/Chicago'
+      interval: "weekly"
+      day: "monday"
+      time: "08:00"
+      timezone: "America/Chicago"
     open-pull-requests-limit: 10
     labels:
-      - 'dependencies'
+      - "dependencies"
     commit-message:
-      prefix: 'chore(deps)'
+      prefix: "chore(deps)"
     groups:
       # Group minor/patch prod deps together
       production-minor-patch:
         applies-to: version-updates
         patterns:
-          - '*'
+          - "*"
         exclude-patterns:
-          - '@types/*'
-          - 'eslint*'
-          - 'typescript'
+          - "@types/*"
+          - "eslint*"
+          - "typescript"
         update-types:
-          - 'minor'
-          - 'patch'
+          - "minor"
+          - "patch"
       # TypeScript ecosystem - often needs manual attention
       typescript-ecosystem:
         patterns:
-          - 'typescript'
-          - '@types/*'
-          - 'eslint*'
+          - "typescript"
+          - "@types/*"
+          - "eslint*"
       # Dev dependencies grouped separately
       dev-dependencies:
         applies-to: version-updates
-        dependency-type: 'development'
+        dependency-type: "development"
         update-types:
-          - 'minor'
-          - 'patch'
+          - "minor"
+          - "patch"
 
   # Docker images
-  - package-ecosystem: 'docker'
-    directory: '/apps/api'
-    target-branch: 'develop'
+  - package-ecosystem: "docker"
+    directory: "/apps/api"
+    target-branch: "develop"
     schedule:
-      interval: 'weekly'
+      interval: "weekly"
     labels:
-      - 'dependencies'
-      - 'docker'
+      - "dependencies"
+      - "docker"
     # Ignore non-LTS Node.js versions (odd-numbered: 19, 21, 23, 25, 27...)
     ignore:
-      - dependency-name: 'node'
-        versions: ['19.x', '21.x', '23.x', '25.x', '27.x', '29.x']
+      - dependency-name: "node"
+        versions: ["19.x", "21.x", "23.x", "25.x", "27.x", "29.x"]
 
-  - package-ecosystem: 'docker'
-    directory: '/apps/web'
-    target-branch: 'develop'
+  - package-ecosystem: "docker"
+    directory: "/apps/web"
+    target-branch: "develop"
     schedule:
-      interval: 'weekly'
+      interval: "weekly"
     labels:
-      - 'dependencies'
-      - 'docker'
+      - "dependencies"
+      - "docker"
     # Ignore non-LTS Node.js versions (odd-numbered: 19, 21, 23, 25, 27...)
     ignore:
-      - dependency-name: 'node'
-        versions: ['19.x', '21.x', '23.x', '25.x', '27.x', '29.x']
+      - dependency-name: "node"
+        versions: ["19.x", "21.x", "23.x", "25.x", "27.x", "29.x"]
 
-  - package-ecosystem: 'docker'
-    directory: '/apps/workers'
-    target-branch: 'develop'
+  - package-ecosystem: "docker"
+    directory: "/apps/workers"
+    target-branch: "develop"
     schedule:
-      interval: 'weekly'
+      interval: "weekly"
     labels:
-      - 'dependencies'
-      - 'docker'
+      - "dependencies"
+      - "docker"
     # Ignore non-LTS Node.js versions (odd-numbered: 19, 21, 23, 25, 27...)
     ignore:
-      - dependency-name: 'node'
-        versions: ['19.x', '21.x', '23.x', '25.x', '27.x', '29.x']
+      - dependency-name: "node"
+        versions: ["19.x", "21.x", "23.x", "25.x", "27.x", "29.x"]
 
-  - package-ecosystem: 'docker'
-    directory: '/apps/management-api'
-    target-branch: 'develop'
+  - package-ecosystem: "docker"
+    directory: "/apps/management-api"
+    target-branch: "develop"
     schedule:
-      interval: 'weekly'
+      interval: "weekly"
     labels:
-      - 'dependencies'
-      - 'docker'
+      - "dependencies"
+      - "docker"
     # Ignore non-LTS Node.js versions (odd-numbered: 19, 21, 23, 25, 27...)
     ignore:
-      - dependency-name: 'node'
-        versions: ['19.x', '21.x', '23.x', '25.x', '27.x', '29.x']
+      - dependency-name: "node"
+        versions: ["19.x", "21.x", "23.x", "25.x", "27.x", "29.x"]
 
-  - package-ecosystem: 'docker'
-    directory: '/apps/management-web'
-    target-branch: 'develop'
+  - package-ecosystem: "docker"
+    directory: "/apps/management-web"
+    target-branch: "develop"
     schedule:
-      interval: 'weekly'
+      interval: "weekly"
     labels:
-      - 'dependencies'
-      - 'docker'
+      - "dependencies"
+      - "docker"
     # Ignore non-LTS Node.js versions (odd-numbered: 19, 21, 23, 25, 27...)
     ignore:
-      - dependency-name: 'node'
-        versions: ['19.x', '21.x', '23.x', '25.x', '27.x', '29.x']
+      - dependency-name: "node"
+        versions: ["19.x", "21.x", "23.x", "25.x", "27.x", "29.x"]
 
   # GitHub Actions
-  - package-ecosystem: 'github-actions'
-    directory: '/'
-    target-branch: 'develop'
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    target-branch: "develop"
     schedule:
-      interval: 'weekly'
+      interval: "weekly"
     labels:
-      - 'dependencies'
+      - "dependencies"

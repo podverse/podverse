@@ -1,7 +1,6 @@
 'use client';
 
 import { DTOPlaylist, QueryParamsPlaylists } from '@podverse/helpers';
-import React from 'react';
 import { PlaylistsContextProvider } from './PlaylistsContext';
 import { MainWrapper } from '../../components/Main/MainWrapper';
 import { PlaylistsHeader } from './PlaylistsHeader';

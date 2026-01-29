@@ -1,5 +1,5 @@
 import { DTOPlaylist /*, generatePlaylistFavoritesIndex */ } from '@podverse/helpers';
-import React, { createContext, useState, ReactNode, useEffect } from 'react';
+import { createContext, useState, ReactNode, useEffect } from 'react';
 import { useContext } from 'react';
 // import { apiRequestService } from "../factories/apiRequestService";
 import { useAccount } from './Account';

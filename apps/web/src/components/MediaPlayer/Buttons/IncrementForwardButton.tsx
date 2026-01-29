@@ -1,5 +1,4 @@
 import { FaChevronRight } from 'react-icons/fa6';
-import React from 'react';
 import { EVENTS } from '../../../constants/events';
 import styles from '../../../styles/components/MediaPlayer/Buttons/IncrementForwardButton.module.scss';
 

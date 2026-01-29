@@ -1,6 +1,5 @@
 'use client';
 
-import React from 'react';
 import { SearchContextProvider } from './SearchContext';
 import { SearchHeader } from './SearchHeader';
 import { MainWrapper } from '../../components/Main/MainWrapper';

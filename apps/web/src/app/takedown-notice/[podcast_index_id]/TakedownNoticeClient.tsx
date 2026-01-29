@@ -1,5 +1,5 @@
 'use client';
-import React, { useEffect, useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import { MainHeader } from '../../../components/Main/MainHeader';
 import { MainWrapper } from '../../../components/Main/MainWrapper';
 import { useTranslations } from 'next-intl';

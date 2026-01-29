@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { validateHttpsUrl } from '@podverse/helpers';
 import { requestNotificationPermission } from '../../../../lib/notifications/webpush/requestNotificationPermission';
