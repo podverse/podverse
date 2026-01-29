@@ -1,4 +1,4 @@
-import { validateHttpOrHttpsUrl, validateUrlForSSRF } from '@podverse/helpers-validation';
+import { validateHttpOrHttpsUrl, validateUrlForSSRF } from '@podverse/helpers-validation/client';
 
 /**
  * Validates a URL for proxy use, checking both basic URL format and SSRF vulnerabilities.

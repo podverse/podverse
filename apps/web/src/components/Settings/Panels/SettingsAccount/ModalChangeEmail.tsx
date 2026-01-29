@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { useLocale } from 'next-intl';
-import { getEmailErrorKey } from '@podverse/helpers-validation';
+import { getEmailErrorKey } from '@podverse/helpers-validation/client';
 import { Modal } from '../../../Modal/Modal';
 import { TextInput } from '../../../Form/TextInput';
 import { Button } from '../../../Button/Button';

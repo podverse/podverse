@@ -5,8 +5,20 @@
   "description": "Email and password validation utilities for Podverse",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./client": {
+      "types": "./dist/client.d.ts",
+      "default": "./dist/client.js"
+    }
+  },
   "files": [
-    "dist/**/*"
+    "dist/**/*",
+    "client.js",
+    "client.d.ts"
   ],
   "scripts": {
     "build": "npm run lint && tsc",
