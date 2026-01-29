@@ -1,7 +1,6 @@
 import { EVENTS } from '../../../constants/events';
 import styles from '../../../styles/components/MediaPlayer/Buttons/JumpBackButtonMobile.module.scss';
 import { FaRotateLeft } from 'react-icons/fa6';
-import React from 'react';
 
 export const JumpBackButtonMobile = () => {
   const handleClick = () => {

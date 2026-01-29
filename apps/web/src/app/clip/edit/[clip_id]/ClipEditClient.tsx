@@ -1,7 +1,6 @@
 'use client';
 
 import { DTOClip } from '@podverse/helpers';
-import React from 'react';
 import { ClipEditContextProvider } from './ClipEditContext';
 import { ClipEditForm } from './ClipEditForm';
 import { ClipEditHeader } from './ClipEditHeader';

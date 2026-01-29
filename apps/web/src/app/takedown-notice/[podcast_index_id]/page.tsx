@@ -1,4 +1,3 @@
-import React from 'react';
 import { TakedownNoticeClient } from './TakedownNoticeClient';
 import { getSSRAuthService } from '../../../utils/auth/ssrAuth';
 

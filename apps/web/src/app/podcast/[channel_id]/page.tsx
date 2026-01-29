@@ -21,7 +21,7 @@ const searchParamsSchema = z.object({
     .string()
     .transform((v) => parseInt(v, 10))
     .optional()
-    .default('1'),
+    .default(1),
   type: z.enum(QUERY_PARAMS_CHANNEL_TYPE_VALUES).optional().default('episodes'),
   sort: z.enum(QUERY_PARAMS_CHANNEL_SORT_VALUES).optional().default('recent'),
   range: z.enum(QUERY_PARAMS_STATS_RANGE_VALUES).optional().nullable().default(null),

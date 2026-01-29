@@ -1,4 +1,3 @@
-import React from 'react';
 import { TestErrorBoundariesClient } from './TestErrorBoundariesClient';
 
 export default function TestErrorBoundariesPage() {

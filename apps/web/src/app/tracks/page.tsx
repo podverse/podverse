@@ -1,4 +1,3 @@
-import React from 'react';
 import z from 'zod';
 import {
   ApiListResponse,
@@ -24,7 +23,7 @@ const searchParamsSchema = z.object({
     .string()
     .transform((v) => parseInt(v, 10))
     .optional()
-    .default('1'),
+    .default(1),
   type: z.enum(QUERY_PARAMS_SUBSCRIBED_MUSIC_TYPE).optional().nullable().default(null),
   sort: z.enum(QUERY_PARAMS_SUBSCRIBED_PARTIAL_SORT).optional().nullable().default(null),
   range: z.enum(QUERY_PARAMS_STATS_RANGE_VALUES).optional().nullable().default(null),

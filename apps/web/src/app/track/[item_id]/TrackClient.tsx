@@ -1,5 +1,4 @@
 import { DTOChannel, DTOItem, QueryParamsItemMusic } from '@podverse/helpers';
-import React from 'react';
 import { MainWrapper } from '../../../components/Main/MainWrapper';
 import { TrackContextProvider } from './TrackContext';
 import { TrackList } from './TrackList';

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import { createContext, useContext, useState, ReactNode } from 'react';
 import { DTOChannel, getTotalPages, QueryParamsHome } from '@podverse/helpers';
 import { apiRequestService } from '../factories/apiRequestService';
 import { useAccount } from '../contexts/Account';

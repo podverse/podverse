@@ -16,7 +16,7 @@ const searchParamsSchema = z.object({
     .string()
     .transform((v) => parseInt(v, 10))
     .optional()
-    .default('1'),
+    .default(1),
   type: z.enum(QUERY_PARAMS_CHANNEL_MUSIC_ALBUM_TYPE_VALUES).optional().default('tracks'),
   sort: z.enum(QUERY_PARAMS_CHANNEL_MUSIC_ALBUM_SORT_VALUES).optional().default('forward'),
   range: z.enum(QUERY_PARAMS_STATS_RANGE_VALUES).optional().nullable().default(null),

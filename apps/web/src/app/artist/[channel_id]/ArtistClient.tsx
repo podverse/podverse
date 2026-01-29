@@ -6,7 +6,6 @@ import {
   QueryParamsChannelMusicArtist,
   RemoteItemsResponse,
 } from '@podverse/helpers';
-import React from 'react';
 import { MainWrapper } from '../../../components/Main/MainWrapper';
 import { ArtistContextProvider } from './ArtistContext';
 import { ArtistListHeader } from './ArtistListHeader';

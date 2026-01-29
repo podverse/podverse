@@ -2,7 +2,7 @@
 
 import { useParams } from 'next/navigation';
 import { QueryParamsItemMusic, TranscriptRow } from '@podverse/helpers';
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import { createContext, useContext, useState, ReactNode } from 'react';
 import { useAccount } from '../../../contexts/Account';
 import { useSkipInitialEffect } from '../../../hooks/useSkipInitialEffect';
 import { apiRequestService } from '../../../factories/apiRequestService';

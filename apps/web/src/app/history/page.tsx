@@ -9,7 +9,7 @@ const searchParamsSchema = z.object({
     .string()
     .transform((v) => parseInt(v, 10))
     .optional()
-    .default('1'),
+    .default(1),
 });
 
 type SearchParams = z.infer<typeof searchParamsSchema>;

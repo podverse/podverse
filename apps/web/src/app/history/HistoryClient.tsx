@@ -1,7 +1,6 @@
 'use client';
 
 import { DTOQueue, QueryParamsHistory } from '@podverse/helpers';
-import React from 'react';
 import { MainWrapper } from '../../components/Main/MainWrapper';
 import { HistoryPageContextProvider } from './HistoryPageContext';
 import { HistoryHeader } from './HistoryHeader';

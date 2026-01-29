@@ -4,7 +4,6 @@ import {
   QueryParamsChannelMusicAlbum,
   RemoteItemsResponse,
 } from '@podverse/helpers';
-import React from 'react';
 import { MainWrapper } from '../../../components/Main/MainWrapper';
 import { AlbumContextProvider } from './AlbumContext';
 import { AlbumListHeader } from './AlbumListHeader';

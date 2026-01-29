@@ -2,7 +2,7 @@
 
 import { useParams } from 'next/navigation';
 import { QueryParamsLiveItem } from '@podverse/helpers';
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import { createContext, useContext, useState, ReactNode } from 'react';
 
 interface LivestreamContextType {
   filterParams: QueryParamsLiveItem;

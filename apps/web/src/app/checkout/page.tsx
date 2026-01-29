@@ -1,4 +1,3 @@
-import React from 'react';
 import { getSSRApiRequestService } from '../../factories/apiRequestService';
 import { config } from '../../config';
 import { CheckoutClient } from './CheckoutClient';

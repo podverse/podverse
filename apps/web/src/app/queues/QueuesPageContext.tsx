@@ -7,7 +7,7 @@ import {
   MediumEnum,
   QueryParamsQueues,
 } from '@podverse/helpers';
-import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
+import { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { apiRequestService } from '../../factories/apiRequestService';
 import { useAccount } from '../../contexts/Account';
 

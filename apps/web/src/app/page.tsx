@@ -4,7 +4,6 @@ import {
   QUERY_PARAMS_HOME_SORT_VALUES,
   QUERY_PARAMS_MEDIUMS,
 } from '@podverse/helpers';
-import React from 'react';
 import { cookies } from 'next/headers';
 import z from 'zod';
 import { HomeClient } from './HomeClient';
@@ -17,7 +16,7 @@ const searchParamsSchema = z.object({
     .string()
     .transform((v) => parseInt(v, 10))
     .optional()
-    .default('1'),
+    .default(1),
   medium: z.enum(QUERY_PARAMS_MEDIUMS).optional().default('all'),
   sort: z.enum(QUERY_PARAMS_HOME_SORT_VALUES).optional().default('recent'),
 });

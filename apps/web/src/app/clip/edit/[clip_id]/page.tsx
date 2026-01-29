@@ -7,7 +7,7 @@ const searchParamsSchema = z.object({
   ers: z
     .string()
     .transform((v) => parseInt(v, 10))
-    .refine((v) => !Number.isNaN(v) && v >= 0, { message: 'ers must be integer >= 0' })
+    .refine((v) => !Number.isNaN(v) && v >= 0, { error: 'ers must be integer >= 0' })
     .optional(),
   ets: z.enum(['default', 'audio', 'video']).optional(),
 });

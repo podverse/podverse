@@ -4,7 +4,6 @@ import {
   QueryParamsLiveItem,
   QueryParamsQueueMedium,
 } from '@podverse/helpers';
-import React from 'react';
 import { MainWrapper } from '../../../../components/Main/MainWrapper';
 import { LivestreamContextProvider } from './LivestreamContext';
 import { LivestreamList } from './LivestreamList';

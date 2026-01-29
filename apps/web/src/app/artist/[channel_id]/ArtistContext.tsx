@@ -2,7 +2,7 @@
 
 import { useParams } from 'next/navigation';
 import { QueryParamsChannelMusicArtist } from '@podverse/helpers';
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import { createContext, useContext, useState, ReactNode } from 'react';
 import { checkBackNavFlag } from '../../../contexts/Navigation';
 import { usePageStateCache } from '../../../hooks/usePageStateCache';
 import { getPageState, definedProps } from '../../../utils/pageStateCache';

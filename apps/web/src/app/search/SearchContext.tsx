@@ -1,7 +1,7 @@
 'use client';
 
 import { SearchPodcastsFeed } from '@podverse/helpers';
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import { createContext, useContext, useState, ReactNode } from 'react';
 import { apiRequestService } from '../../factories/apiRequestService';
 import { useSkipInitialEffect } from '../../hooks/useSkipInitialEffect';
 

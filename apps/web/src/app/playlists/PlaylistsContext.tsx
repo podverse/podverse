@@ -1,7 +1,7 @@
 'use client';
 
 import { DTOPlaylist, getTotalPages, QueryParamsPlaylists } from '@podverse/helpers';
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import { createContext, useContext, useState, ReactNode } from 'react';
 import { apiRequestService } from '../../factories/apiRequestService';
 import { useAccount } from '../../contexts/Account';
 import { useSkipInitialEffect } from '../../hooks/useSkipInitialEffect';

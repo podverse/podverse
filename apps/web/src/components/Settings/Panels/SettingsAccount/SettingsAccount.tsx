@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useTranslations, useLocale } from 'next-intl';
 import { useAccount } from '../../../../contexts/Account';
 import { Button } from '../../../Button/Button';

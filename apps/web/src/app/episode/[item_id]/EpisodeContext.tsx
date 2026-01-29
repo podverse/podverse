@@ -9,7 +9,7 @@ import {
   QueryParamsItem,
   TranscriptRow,
 } from '@podverse/helpers';
-import React, { createContext, useContext, useState, ReactNode, useRef } from 'react';
+import { createContext, useContext, useState, ReactNode, useRef } from 'react';
 import { useAccount } from '../../../contexts/Account';
 import { checkBackNavFlag } from '../../../contexts/Navigation';
 import { useSkipInitialEffect } from '../../../hooks/useSkipInitialEffect';

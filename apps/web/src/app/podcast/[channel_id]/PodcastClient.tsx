@@ -6,7 +6,6 @@ import {
   QueryParamsChannel,
   RemoteItemsResponse,
 } from '@podverse/helpers';
-import React from 'react';
 import { MainWrapper } from '../../../components/Main/MainWrapper';
 import { PodcastContextProvider } from './PodcastContext';
 import { PodcastListHeader } from './PodcastListHeader';

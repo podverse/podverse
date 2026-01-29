@@ -8,7 +8,7 @@ import {
   DTOItemSoundbite,
   LabeledItemEnclosure,
 } from '@podverse/helpers';
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import { createContext, useContext, useState, ReactNode } from 'react';
 import { SourceSelectorActionType } from '../components/SourceSelectors/SourceSelectors';
 
 type ModalBasic = {

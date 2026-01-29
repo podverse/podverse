@@ -1,4 +1,3 @@
-import React from 'react';
 import ReactMarkdown from 'react-markdown';
 import { MainWrapper } from '../../components/Main/MainWrapper';
 import { MainInnerWrapper } from '../../components/Main/MainInnerWrapper';

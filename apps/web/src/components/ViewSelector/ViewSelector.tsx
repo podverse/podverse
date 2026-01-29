@@ -3,7 +3,7 @@
 import { FaGear } from 'react-icons/fa6';
 import styles from '../../styles/components/ViewSelector/ViewSelector.module.scss';
 import { useTranslations } from 'next-intl';
-import React, { useRef } from 'react';
+import { useRef } from 'react';
 import { DropdownMenu } from '../Dropdown/DropdownMenu';
 import { useDropdownKeyboardNavigation } from '../../hooks/useDropdownKeyboardNavigation';
 

@@ -1,5 +1,4 @@
 import { DTOChannel, DTOItem, QueryParamsItem } from '@podverse/helpers';
-import React from 'react';
 import { MainWrapper } from '../../../components/Main/MainWrapper';
 import { EpisodeContextProvider } from './EpisodeContext';
 import { EpisodeList } from './EpisodeList';

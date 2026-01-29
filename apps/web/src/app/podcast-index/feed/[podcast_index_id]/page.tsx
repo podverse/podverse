@@ -1,5 +1,4 @@
 import { notFound } from 'next/navigation';
-import React from 'react';
 import { PodcastIndexFeedClient } from './PodcastIndexFeedClient';
 import { redirectToChannelPageByMediumServer } from '../../../../utils/redirect/redirectToChannelPageByMedium';
 import { getSSRAuthService } from '../../../../utils/auth/ssrAuth';
