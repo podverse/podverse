@@ -12,7 +12,7 @@ services:
     env_file:
       - ../../../config/local/db.env
     ports:
-      - '5432:5432'
+      - "5432:5432"
     networks:
       - podverse_local_network
     volumes:
@@ -40,7 +40,7 @@ services:
     restart: unless-stopped
     shm_size: 1gb
     logging:
-      driver: 'json-file'
+      driver: "json-file"
       options:
-        max-file: '1'
-        max-size: '50m'
+        max-file: "1"
+        max-size: "50m"

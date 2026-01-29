@@ -12,7 +12,7 @@ services:
     env_file:
       - ../../../config/alpha/management-db.env
     ports:
-      - '5999:5432'
+      - "5999:5432"
     networks:
       - podverse_alpha_network
     volumes:
@@ -39,7 +39,7 @@ services:
     restart: unless-stopped
     shm_size: 256mb
     logging:
-      driver: 'json-file'
+      driver: "json-file"
       options:
-        max-file: '1'
-        max-size: '50m'
+        max-file: "1"
+        max-size: "50m"
