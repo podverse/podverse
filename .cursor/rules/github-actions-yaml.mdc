@@ -1,4 +1,12 @@
-# GitHub Actions YAML Best Practices, glob pattern(s) for applicable files: .github/workflows/*.yml, .github/workflows/*.yaml
+# GitHub Actions YAML Best Practices, glob pattern(s) for applicable files: .github/workflows/_.yml, .github/workflows/_.yaml
+
+## Quote Style in YAML Files
+
+YAML files use **double quotes** for strings (configured via override in `.prettierrc.json`).
+
+- JavaScript/TypeScript use single quotes
+- YAML files use double quotes
+- This is enforced consistently by both IDE save and `npm run lint:fix`
 
 ## Critical Rules
 
@@ -7,6 +15,7 @@
 When a `run:` block contains shell scripts that generate strings with markdown or special characters, use heredocs instead of quoted strings.
 
 **Problem:**
+
 ```yaml
 run: |
   BODY="## Title
@@ -14,6 +23,7 @@ run: |
 ```
 
 **Solution:**
+
 ```yaml
 run: |
   BODY=$(cat <<EOF

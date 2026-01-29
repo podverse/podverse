@@ -1,29 +1,44 @@
 # Podverse Monorepo Rules
 
 ## Stack
-- Node.js 22, TypeScript strict, npm workspaces
+
+- Node.js 24, TypeScript strict, npm workspaces
 
 ## Architecture
+
 See `.llm/context/architecture.md`. Lower tiers cannot depend on higher.
 
 ## Code Quality
+
 - No `any` types
 - DTOs from `@podverse/helpers`
 - Follow `tsconfig.base.json`
+
+## Formatting Rules
+
+### Quote Styles
+
+- **JavaScript/TypeScript/JSON/CSS**: Single quotes (`singleQuote: true`)
+- **YAML files**: Double quotes (override in `.prettierrc.json`)
+- Run `npm run lint:fix` or `npm run prettier:write` to auto-fix
 
 ---
 
 ## LLM WORKFLOW
 
 ### Context Gathering
+
 For substantial requests, ask first:
+
 - "What's the goal?"
 - "GitHub issue?"
 
 ### Issue Linking
+
 Ask once at start: "Related GitHub issue?"
 
 ### Scope Management
+
 Warn if drifting: "This seems outside scope. Continue?"
 
 ---
@@ -33,20 +48,26 @@ Warn if drifting: "This seems outside scope. Continue?"
 Before work: Check/create `.llm/history/active/[feature].md`
 
 After changes, update with:
+
 - Session date, user prompt (EXACT text), decisions, files
 
 ### Prompt Recording (CRITICAL)
+
 **Always use the user's EXACT, FULL prompt text.** Never summarize or paraphrase.
+
 - Copy the prompt verbatim, preserving original wording
 - Include short confirmations ("yes", "continue") as-is
 - For multi-message exchanges, capture each message
 
 ### Prompt Source Labeling (CRITICAL)
+
 **Differentiate prompt sources using labels:**
+
 - `#### Prompt (Developer)` — Manually typed by the user
 - `#### Prompt (Agent)` — System-generated (e.g., clicking "Build" on a plan)
 
 ### Real-Time Capture (CRITICAL)
+
 **If a response will modify files, log the prompt FIRST.**
 
 - **Start of response**: Log prompt to `.llm/history/active/[feature].md`
@@ -71,13 +92,16 @@ If over 300: STOP, split into sub-plans, save, then work sequentially.
 **BEFORE executing any plan, assess complexity.**
 
 ### Thresholds (STOP if ANY exceeded)
+
 - 3+ packages/modules being modified
 - 10+ files expected to change
 - 2+ dependency chains (A→B→C)
 - 20+ minutes estimated execution
 
 ### Required Behavior
+
 If thresholds exceeded:
+
 1. **STOP** — Do not begin execution
 2. **List** complexity factors detected
 3. **Propose** natural breakpoints (one package at a time)

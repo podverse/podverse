@@ -1,4 +1,4 @@
-FROM node:22-slim AS base
+FROM node:24-slim AS base
 WORKDIR /opt
 
 # Stage 1: Install dependencies
@@ -24,7 +24,7 @@ RUN npm run build:packages:prod
 RUN npm run build:prod -w apps/workers
 
 # Stage 3: Production runner
-FROM node:22-slim AS runner
+FROM node:24-slim AS runner
 WORKDIR /opt
 
 # Copy only what's needed for runtime
@@ -48,20 +48,3 @@ COPY --from=builder /opt/apps/workers/dist/ ./apps/workers/dist/
 RUN npm install --workspaces --omit=dev --ignore-scripts
 
 USER node
-nly, no linting)
-RUN npm run build:prod -w apps/workers
-
-# Stage 3: Production runner
-FROM node:22-slim AS runner
-WORKDIR /opt
-
-# Copy only what's needed for runtime
-COPY --from=builder /opt/package*.json ./
-COPY --from=builder /opt/packages/helpers/package.json ./packages/helpers/
-COPY --from=builder /opt/packages/helpers/dist/ ./packages/helpers/dist/
-COPY --from=builder /opt/packages/external-services/package.json ./packages/external-services/
-COPY --from=builder /opt/packages/external-services/dist/ ./packages/external-services/dist/
-COPY --from=builder /opt/packages/orm/package.json ./packages/orm/
-COPY --from=builder /opt/packages/orm/dist/ ./packages/orm/dist/
-COPY --from=builder /opt/packages/notifications/package.json ./packages/notifications/
-COPY --from=builder /opt/packages/notifications/dist/ ./packages/notifications/dist/
