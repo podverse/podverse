@@ -1,8 +1,8 @@
 import { MQ_QUEUES, MQQueueNameParamKey, validMQQueueNamesParamKeys } from '@podverse/helpers';
 import { mqRSSAddRecentlyUpdatedFeedsFromPodcastIndex as mqRSSAddRecentlyUpdatedFeedsFromPodcastIndexFunction } from '@podverse/mq';
 import { CommandLineArgs } from '@workers/commands';
-import { podcastIndexService } from '@workers/factories/podcastIndexService';
-import { activeMQArtemisService } from '@workers/factories/activeMQArtemisService';
+import { getPodcastIndexService } from '@workers/factories/podcastIndexService';
+import { getActiveMQArtemisService } from '@workers/factories/activeMQArtemisService';
 
 export const mqRSSAddRecentlyUpdatedFeedsFromPodcastIndex = async (args: CommandLineArgs) => {
   const mqQueueNameParamKey = (Array.isArray(args.q) ? args.q[0] : args.q) as
@@ -35,8 +35,8 @@ export const mqRSSAddRecentlyUpdatedFeedsFromPodcastIndex = async (args: Command
   const mqConstantMessageOptions = MQ_QUEUES[mqQueueNameParamKey];
 
   await mqRSSAddRecentlyUpdatedFeedsFromPodcastIndexFunction(
-    activeMQArtemisService,
-    podcastIndexService,
+    getActiveMQArtemisService(),
+    getPodcastIndexService(),
     {
       ...mqConstantMessageOptions,
       sinceRange,

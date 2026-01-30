@@ -1,8 +1,9 @@
 import { StatsAggregatedChannelService, StatsTrackEventChannelService } from '@podverse/orm';
 import { CommandLineArgs } from '@workers/commands';
-import { timerManager } from '@workers/factories/timerManager';
+import { getTimerManager } from '@workers/factories/timerManager';
 
 export const statsUpdateAggregatedRolling = async (args: CommandLineArgs) => {
+  const timerManager = getTimerManager();
   const timerFullRunLabel = 'statsUpdateAggregatedRolling full run';
   timerManager.start(timerFullRunLabel);
 

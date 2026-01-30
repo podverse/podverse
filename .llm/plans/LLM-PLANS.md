@@ -4,6 +4,15 @@ Plans for significant development work, organized by project.
 
 ## Current Projects
 
+### [workers-env-validation/](active/workers-env-validation/)
+
+Per-job env validation and lazy config/context for the workers app (single env file; per-job validators; docs and skill).
+
+- [workers-env-00-SUMMARY.md](active/workers-env-validation/workers-env-00-SUMMARY.md) — Scope and file inventory
+- [workers-env-00-EXECUTION-ORDER.md](active/workers-env-validation/workers-env-00-EXECUTION-ORDER.md) — Phases and parallelization
+- [workers-env-COPY-PASTA.md](active/workers-env-validation/workers-env-COPY-PASTA.md) — Copy-pasta prompts for agents
+- Phase 1: 01-command-first-validation | Phase 2 (parallel): 02-config-lazy-context, 04-workers-skill | Phase 3 (parallel): 03-documentation, 05-tests
+
 ### [monorepo-migration/](monorepo-migration/)
 
 Migration of 13 repos into unified monorepo.

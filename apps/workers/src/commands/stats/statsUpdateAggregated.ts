@@ -12,7 +12,7 @@ import {
   StatsTrackEventPlaylistService,
 } from '@podverse/orm';
 import { CommandLineArgs } from '@workers/commands';
-import { timerManager } from '@workers/factories/timerManager';
+import { getTimerManager } from '@workers/factories/timerManager';
 
 const limit = 500;
 
@@ -24,6 +24,7 @@ const updateStats = async (
   shouldUpdateAllTime: boolean
 ) => {
   const timerLabelGet = `${entityName} track events - get top ${entityName}s`;
+  const timerManager = getTimerManager();
   timerManager.start(timerLabelGet);
   const entitiesToUpdate = await getTopEntities(limit);
   timerManager.end(timerLabelGet);
@@ -43,7 +44,7 @@ const updateStats = async (
 
 export const statsUpdateAggregated = async (args: CommandLineArgs) => {
   const timerFullRunLabel = 'statsUpdateAggregated full run';
-  timerManager.start(timerFullRunLabel);
+  getTimerManager().start(timerFullRunLabel);
 
   const shouldUpdateAllTime = 'at' in args;
 
@@ -105,5 +106,5 @@ export const statsUpdateAggregated = async (args: CommandLineArgs) => {
     shouldUpdateAllTime
   );
 
-  timerManager.end(timerFullRunLabel);
+  getTimerManager().end(timerFullRunLabel);
 };

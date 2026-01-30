@@ -2,8 +2,8 @@ import { MQ_QUEUES } from '@podverse/helpers';
 import { mqRSSAdd as mqRSSAddFunction } from '@podverse/mq';
 import { parseRSSFeedAndSaveToDatabase } from '@podverse/parser';
 import { CommandLineArgs } from '@workers/commands';
-import { podcastIndexService } from '@workers/factories/podcastIndexService';
-import { activeMQArtemisService } from '@workers/factories/activeMQArtemisService';
+import { getPodcastIndexService } from '@workers/factories/podcastIndexService';
+import { getActiveMQArtemisService } from '@workers/factories/activeMQArtemisService';
 
 export const parserRSSParseFeed = async (args: CommandLineArgs) => {
   const podcast_index_id = Array.isArray(args.p) ? args.p[0] : args.p;
@@ -15,7 +15,7 @@ export const parserRSSParseFeed = async (args: CommandLineArgs) => {
     throw new Error('podcast_index_id (-p) must be a number');
   }
 
-  const feedData = await podcastIndexService.podcastGetById(Number(podcast_index_id));
+  const feedData = await getPodcastIndexService().podcastGetById(Number(podcast_index_id));
   const feedUrl = feedData?.feed?.url;
   if (!feedUrl) {
     throw new Error(`No feedUrl found for podcast_index_id ${podcast_index_id}`);
@@ -52,7 +52,7 @@ export const parserRSSParseFeed = async (args: CommandLineArgs) => {
       const isLast = i === result.remoteItemsToParse.length - 1;
       try {
         await mqRSSAddFunction(
-          activeMQArtemisService,
+          getActiveMQArtemisService(),
           {
             ...mqConfig,
             closeAfterSend: isLast,

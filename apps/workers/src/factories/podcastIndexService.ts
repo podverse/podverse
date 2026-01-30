@@ -1,16 +1,16 @@
 import { PodcastIndexService } from '@podverse/external-services';
-import { config } from '@workers/config';
-import { loggerService } from './loggerService';
 
-const userAgent = config.userAgent || '';
-const authKey = config.podcastIndex.authKey || '';
-const baseUrl = config.podcastIndex.baseUrl || '';
-const secretKey = config.podcastIndex.secretKey || '';
+let instance: PodcastIndexService | null = null;
 
-export const podcastIndexService = new PodcastIndexService({
-  userAgent,
-  authKey,
-  baseUrl,
-  secretKey,
-  loggerService,
-});
+export function setPodcastIndexService(service: PodcastIndexService): void {
+  instance = service;
+}
+
+export function getPodcastIndexService(): PodcastIndexService {
+  if (instance === null) {
+    throw new Error(
+      'PodcastIndexService not initialized; call setPodcastIndexService from runApp first'
+    );
+  }
+  return instance;
+}

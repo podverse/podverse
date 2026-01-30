@@ -1,10 +1,10 @@
 import { OnDemandParserEventType } from '@podverse/helpers';
 import { OnDemandParserEventService } from '@podverse/orm';
 import { createDailyRotateLogger } from '@workers/lib/winston';
-import { logger } from '@workers/factories/logger';
+import { getLogger } from '@workers/factories/logger';
 
 export const generateOnDemandParserEventReports = async () => {
-  logger.info('Generating OnDemandParserEvent reports...');
+  getLogger().info('Generating OnDemandParserEvent reports...');
 
   try {
     const service = new OnDemandParserEventService();
@@ -22,8 +22,8 @@ export const generateOnDemandParserEventReports = async () => {
       });
     }
 
-    logger.info('Successfully generated OnDemandParserEvent reports.');
+    getLogger().info('Successfully generated OnDemandParserEvent reports.');
   } catch (error) {
-    logger.error(`Error generating OnDemandParserEvent reports: ${(error as Error).message}`);
+    getLogger().error(`Error generating OnDemandParserEvent reports: ${(error as Error).message}`);
   }
 };

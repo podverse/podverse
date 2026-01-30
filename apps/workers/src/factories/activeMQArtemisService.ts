@@ -1,16 +1,16 @@
-import { ActiveMQArtemisService, ActiveMQArtemisServiceParams } from '@podverse/mq';
-import { loggerService } from './loggerService';
-import { config } from '@workers/config';
+import { ActiveMQArtemisService } from '@podverse/mq';
 
-const activeMQArtemisParams: ActiveMQArtemisServiceParams = {
-  protocol: config.queue.protocol,
-  host: config.queue.host,
-  port: config.queue.port,
-  username: config.queue.username,
-  password: config.queue.password,
-};
+let instance: ActiveMQArtemisService | null = null;
 
-export const activeMQArtemisService = new ActiveMQArtemisService(
-  activeMQArtemisParams,
-  loggerService
-);
+export function setActiveMQArtemisService(service: ActiveMQArtemisService): void {
+  instance = service;
+}
+
+export function getActiveMQArtemisService(): ActiveMQArtemisService {
+  if (instance === null) {
+    throw new Error(
+      'ActiveMQArtemisService not initialized; call setActiveMQArtemisService from runApp first'
+    );
+  }
+  return instance;
+}

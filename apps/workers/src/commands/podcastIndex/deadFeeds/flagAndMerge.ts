@@ -1,4 +1,4 @@
-import { podcastIndexService } from '@workers/factories/podcastIndexService';
+import { getPodcastIndexService } from '@workers/factories/podcastIndexService';
 import { DeduplicatorService } from '@workers/lib/deduplicator';
 import fs from 'fs';
 
@@ -46,7 +46,7 @@ export const podcastIndexDeadFeedsFlagAndMerge = async () => {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   async function resolveHandler(data: any) {
     itemCount++;
-    const parsedData = podcastIndexService.deadFeedsExtractRow(data);
+    const parsedData = getPodcastIndexService().deadFeedsExtractRow(data);
     const { id_to_archive, duplicate_id_to_keep } = parsedData;
 
     if (cache.has(id_to_archive)) {
@@ -71,6 +71,6 @@ export const podcastIndexDeadFeedsFlagAndMerge = async () => {
     }
   }
 
-  await podcastIndexService.deadFeedsDownloadAndExtractCSV(resolveHandler);
+  await getPodcastIndexService().deadFeedsDownloadAndExtractCSV(resolveHandler);
   saveCache(cache);
 };

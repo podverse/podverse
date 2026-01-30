@@ -57,6 +57,7 @@ Validation occurs in `src/lib/startup/validation.ts` during application startup.
 
 - **`NODE_ENV`** (Optional) - Node environment (`development`, `production`, etc.)
 - **`LOG_LEVEL`** (Optional) - Logging level (`error`, `warn`, `info`, `debug`, `verbose`, `silly`, `silent`)
+- **`LOG_DIR`** (Optional) - Log directory for file logging. **No default.** Leave empty for console-only; when set in Docker with a log volume, use the container path (e.g. `/opt/logs`). See [logs/LOGS.md](../../logs/LOGS.md).
 
 ## Validation Rules
 

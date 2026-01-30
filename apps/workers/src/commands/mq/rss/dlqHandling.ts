@@ -1,11 +1,12 @@
 import { mqRSSSetupDlqConsumers, createActiveMQShutdown } from '@podverse/mq';
-import { activeMQArtemisService } from '@workers/factories/activeMQArtemisService';
-import { logger } from '@workers/factories/logger';
+import { getActiveMQArtemisService } from '@workers/factories/activeMQArtemisService';
+import { getLogger } from '@workers/factories/logger';
 import { createDailyRotateLogger } from '@workers/lib/winston';
 
 export const mqRSSRunDlqConsumer = async () => {
-  logger.info('DLQ consumer process started.');
+  getLogger().info('DLQ consumer process started.');
 
+  const activeMQArtemisService = getActiveMQArtemisService();
   await activeMQArtemisService.initialize();
 
   const dlqLogger = createDailyRotateLogger('dlq/dlq');
@@ -21,11 +22,11 @@ export const mqRSSRunDlqConsumer = async () => {
 
   await mqRSSSetupDlqConsumers(activeMQArtemisService, loggerFunc);
 
-  logger.info('DLQ consumers are running. Press Ctrl+C to exit.');
+  getLogger().info('DLQ consumers are running. Press Ctrl+C to exit.');
 
   let keepRunning = true;
 
-  const { unregister } = createActiveMQShutdown(activeMQArtemisService, logger, () => {
+  const { unregister } = createActiveMQShutdown(activeMQArtemisService, getLogger(), () => {
     keepRunning = false;
   });
 
