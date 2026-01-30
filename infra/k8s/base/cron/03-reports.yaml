@@ -14,7 +14,7 @@ spec:
         spec:
           containers:
           - name: worker
-            image: ghcr.io/podverse/podverse-workers/podverse-workers
+            image: ghcr.io/podverse/podverse/workers
             command: ["npm", "run", "orm_on_demand_parser_event_generate_reports"]
             securityContext:
               runAsUser: 1000

@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: worker
-          image: ghcr.io/podverse/podverse-workers/podverse-workers
+          image: ghcr.io/podverse/podverse/workers
           command: ["npm", "run", "mq_rss_run_dlq_consumer"]
           # TODO: The worker process currently needs to run as root. Address
           # this in the podverse-worker repo so images can run without root.

@@ -26,7 +26,7 @@ spec:
       containers:
       - name: api
         # UPDATE: Tag removed. Kustomize will inject the version defined in kustomization.yaml
-        image: ghcr.io/podverse/podverse-api/podverse-api
+        image: ghcr.io/podverse/podverse/api
         command: ["npm", "start"]
         ports:
         - containerPort: 1234
