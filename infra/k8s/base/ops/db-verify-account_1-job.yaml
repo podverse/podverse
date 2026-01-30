@@ -15,30 +15,30 @@ spec:
       template:
         spec:
           containers:
-          - name: psql
-            image: postgres
-            command: 
-              - "psql"
-              - "-h"
-              - "podverse-db"
-              - "-U"
-              - "postgres"
-              - "-d"
-              - "postgres"
-              - "-c"
-              - "UPDATE account SET verified = true where id = 1;"
-            
-            # Load all vars (optional, but good for debugging)
-            envFrom:
-            - secretRef:
-                name: podverse-db-opaque
-            
-            # CRITICAL FIX: Map the secret key to PGPASSWORD for psql
-            env:
-            - name: PGPASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: podverse-db-opaque
-                  key: POSTGRES_PASSWORD
+            - name: psql
+              image: postgres
+              command:
+                - "psql"
+                - "-h"
+                - "podverse-db"
+                - "-U"
+                - "postgres"
+                - "-d"
+                - "postgres"
+                - "-c"
+                - "UPDATE account SET verified = true where id = 1;"
+
+              # Load all vars (optional, but good for debugging)
+              envFrom:
+                - secretRef:
+                    name: podverse-db-opaque
+
+              # CRITICAL FIX: Map the secret key to PGPASSWORD for psql
+              env:
+                - name: PGPASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: podverse-db-opaque
+                      key: POSTGRES_PASSWORD
 
           restartPolicy: Never

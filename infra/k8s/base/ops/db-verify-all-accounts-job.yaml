@@ -42,4 +42,3 @@ spec:
                       key: POSTGRES_PASSWORD
 
           restartPolicy: Never
-

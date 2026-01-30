@@ -7,7 +7,7 @@ metadata:
   name: ops-db-drop-everything
 spec:
   schedule: "* * * * *"
-  suspend: true          # <--- PREVENTS AUTOMATIC EXECUTION
+  suspend: true # <--- PREVENTS AUTOMATIC EXECUTION
   concurrencyPolicy: Forbid
   jobTemplate:
     spec:
@@ -15,20 +15,21 @@ spec:
       template:
         spec:
           containers:
-          - name: psql
-            image: postgres
-            command: ["psql", "-h", "podverse-db", "-U", "postgres", "-d", "postgres", "-c", "DROP SCHEMA public CASCADE; CREATE SCHEMA public;"]
-            
-            envFrom:
-            - secretRef:
-                name: podverse-db-opaque
+            - name: psql
+              image: postgres
+              command:
+                ["psql", "-h", "podverse-db", "-U", "postgres", "-d", "postgres", "-c", "DROP SCHEMA public CASCADE; CREATE SCHEMA public;"]
 
-            # CRITICAL FIX: Map the secret key to PGPASSWORD for psql
-            env:
-            - name: PGPASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: podverse-db-opaque
-                  key: POSTGRES_PASSWORD
+              envFrom:
+                - secretRef:
+                    name: podverse-db-opaque
+
+              # CRITICAL FIX: Map the secret key to PGPASSWORD for psql
+              env:
+                - name: PGPASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: podverse-db-opaque
+                      key: POSTGRES_PASSWORD
 
           restartPolicy: Never

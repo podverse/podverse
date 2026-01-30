@@ -16,7 +16,7 @@
 - `packages/` - Publishable npm packages
 - `apps/` - Deployable applications
 - `tools/` - Development tools
-- `infra/` - Docker, database, configs
+- `infra/` - Docker, database, configs, K8s manifests
 
 ## Technologies
 
@@ -77,6 +77,7 @@ Use `@podverse/helpers` logger. Import and use: `logger.info('message', { contex
 | Environment templates | `infra/config/env-templates/` |
 | Docker configs        | `infra/docker/`               |
 | Database migrations   | `infra/database/migrations/`  |
+| K8s manifests         | `infra/k8s/`                  |
 
 ## Troubleshooting Tips
 
@@ -100,3 +101,15 @@ Use `@podverse/helpers` logger. Import and use: `logger.info('message', { contex
 
 - Clear `.next` cache if seeing stale content
 - Rebuild packages if type errors persist
+
+## Deployment
+
+Alpha environment runs on K3s with GitOps via ArgoCD:
+
+- **Base manifests:** `infra/k8s/base/` (shared resources for all environments)
+- **Alpha overlays:** `infra/k8s/alpha/` (environment-specific config, image tags)
+- **ArgoCD:** App of Apps pattern; root app syncs `alpha/apps/` which deploys all components
+- **Kustomize:** Used for overlays; requires `--load-restrictor LoadRestrictionsNone`
+- **Secrets:** SOPS-encrypted in `k8s/secrets/`; scripts in `infra/k8s/scripts/`
+
+See `infra/k8s/README.md` and `.cursor/skills/k8s/SKILL.md` for details.

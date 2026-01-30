@@ -15,7 +15,7 @@ labels:
   - pairs:
       app: podverse-ops
       environment: alpha
-    # This ensures the labels are also applied to the selectors, 
+    # This ensures the labels are also applied to the selectors,
     # so the Service correctly finds the Pods.
     includeSelectors: true
 

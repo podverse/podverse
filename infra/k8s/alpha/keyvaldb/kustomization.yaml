@@ -20,14 +20,14 @@ labels:
   - pairs:
       app: podverse-keyvaldb
       environment: alpha
-    # This ensures the labels are also applied to the selectors, 
+    # This ensures the labels are also applied to the selectors,
     # so the Service correctly finds the Pods.
     includeSelectors: true
 
 # 3. Image Variables
 # Change the 'newTag' here to update versions across all files.
 images:
-  - name: valkey/valkey         # The placeholder used in 02-deployments.yaml
-    newTag: "9.0.1"             # The actual version to deploy
+  - name: valkey/valkey # The placeholder used in 02-deployments.yaml
+    newTag: "9.0.1" # The actual version to deploy
   - name: redislabs/redisinsight
     newTag: "latest"

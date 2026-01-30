@@ -15,14 +15,14 @@ data:
   #####
   NODE_ENV: "development"
   USER_AGENT: "Podverse Bot Alpha/Workers/5" # in prod change to "Podverse Bot/Workers/5", in alpha change to "Podverse Bot Alpha/Workers/5", etc.
-  
+
   #####
   ##### Logs
   #####
   LOG_LEVEL: "info"
   LOG_DIR: ""
   LOG_TIMER: "true"
-  
+
   #####
   ##### Postgres
   #####
@@ -45,7 +45,7 @@ data:
 
   #####
   ##### Message Queue
-  #####  
+  #####
   MESSAGE_QUEUE_HOST: "podverse-mq"
   MESSAGE_QUEUE_PORT: "5672"
   #MESSAGE_QUEUE_USERNAME: "admin"  # in secrets
@@ -65,7 +65,7 @@ data:
   ### not the internal Docker service network or private IP addresses.
   ### These are used by some services, e.g. Firebase Cloud Messaging, Unified Push.
   WEB_PROTOCOL: "https"
-  WEB_DOMAIN: "web.example.com"  # Override in environment kustomization.yaml
+  WEB_DOMAIN: "web.example.com" # Override in environment kustomization.yaml
   WEB_ICON_IMAGE_PATH: "/favicon/web-app-manifest-192x192.png"
 
   #####
@@ -77,7 +77,7 @@ data:
   #####
   ##### Parser
   #####
-  
+
   # IMPORTANT
   # When true, the parser will add remote items to the message queue for processing.
   # The parser will recursively follow all remote items, and their remote items, until it runs out.

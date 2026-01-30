@@ -17,26 +17,26 @@ spec:
     spec:
       restartPolicy: OnFailure
       containers:
-      - name: provisioner
-        image: apache/activemq-artemis:2.37.0
-        # RUN WITH BASH EXPLICITLY to avoid "Permission denied" on the script execution
-        command: ["/bin/bash", "/scripts/provision-queues.sh"]
-        
-        envFrom:
-        - secretRef:
-            name: podverse-mq-opaque
-        
-        volumeMounts:
-        - name: scripts
-          mountPath: /scripts
-        # MOUNT WRITABLE DIR: The CLI tool needs to write logs/locks here
-        - name: scratch-data
-          mountPath: /var/lib/artemis-instance
-      
+        - name: provisioner
+          image: apache/activemq-artemis:2.37.0
+          # RUN WITH BASH EXPLICITLY to avoid "Permission denied" on the script execution
+          command: ["/bin/bash", "/scripts/provision-queues.sh"]
+
+          envFrom:
+            - secretRef:
+                name: podverse-mq-opaque
+
+          volumeMounts:
+            - name: scripts
+              mountPath: /scripts
+            # MOUNT WRITABLE DIR: The CLI tool needs to write logs/locks here
+            - name: scratch-data
+              mountPath: /var/lib/artemis-instance
+
       volumes:
-      - name: scripts
-        configMap:
-          name: podverse-mq-scripts
-          defaultMode: 0755
-      - name: scratch-data
-        emptyDir: {}
+        - name: scripts
+          configMap:
+            name: podverse-mq-scripts
+            defaultMode: 0755
+        - name: scratch-data
+          emptyDir: {}

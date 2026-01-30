@@ -13,14 +13,14 @@ data:
     # Configuration
     BROKER_URL="tcp://podverse-mq:61616"
     QUEUES=("rss-normal" "rss-on-demand" "rss-live")
-    
+
     if [[ -z "$ARTEMIS_USER" || -z "$ARTEMIS_PASSWORD" ]]; then
       echo "Error: ARTEMIS_USER or ARTEMIS_PASSWORD environment variables are missing."
       exit 1
     fi
 
     echo "[provision] Waiting for broker at $BROKER_URL..."
-    
+
     # Use global 'artemis' command
     for i in $(seq 1 30); do
       if artemis producer --url "$BROKER_URL" --user "$ARTEMIS_USER" --password "$ARTEMIS_PASSWORD" --message-count 0 --silent >/dev/null 2>&1; then

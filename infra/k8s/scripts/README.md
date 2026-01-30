@@ -49,6 +49,7 @@ The `db-connect.sh` script provides an easy way to connect to the PostgreSQL dat
 ## Exiting
 
 To exit the database connection:
+
 - Press `Ctrl+D`
 - Type `\q` and press Enter
 

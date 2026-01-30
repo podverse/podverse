@@ -10,7 +10,7 @@ metadata:
     argocd.argoproj.io/managed-by: "argocd"
     argocd.argoproj.io/compare-options: "IgnoreExtraneous"
     # This is the endpoint that will show up as a clickable link in ArgoCD UI
-    link.argocd.argoproj.io/external-link: https://web.example.com/  # Override in environment overlay
+    link.argocd.argoproj.io/external-link: https://web.example.com/ # Override in environment overlay
 spec:
   progressDeadlineSeconds: 600
   # replicas: 2
@@ -30,60 +30,60 @@ spec:
         environment: alpha
     spec:
       containers:
-      - name: web
-        image: ghcr.io/podverse/podverse/web-deploy
-        imagePullPolicy: Always
-        env:
-        - name: NODE_ENV
-          value: "production"
-        envFrom:
-        - configMapRef:
-            name: podverse-web-config
-        # Container security hardening
-        securityContext:
-          readOnlyRootFilesystem: true
-          allowPrivilegeEscalation: false
-          # Explicitly set UID/GID to satisfy runAsNonRoot when image user is named (node)
-          runAsUser: 1000
-          runAsGroup: 1000
-          runAsNonRoot: true
-        resources:
-          requests:
-            memory: "512Mi"
-            cpu: "250m"
-          limits:
-            memory: "1Gi"
-            cpu: "1000m"
-        ports:
-        - containerPort: 3000
-          name: http
-          protocol: TCP
-        volumeMounts:
-        - name: nextjs-cache
-          mountPath: /opt/app/.next/cache
-        livenessProbe:
-          httpGet:
-            path: /
-            port: 3000
-            scheme: HTTP
-          initialDelaySeconds: 10
-          periodSeconds: 20
-          successThreshold: 1
-          failureThreshold: 3
-          timeoutSeconds: 5
-        readinessProbe:
-          httpGet:
-            path: /
-            port: 3000
-            scheme: HTTP
-          initialDelaySeconds: 5
-          periodSeconds: 10
-          successThreshold: 1
-          failureThreshold: 3
-          timeoutSeconds: 5
+        - name: web
+          image: ghcr.io/podverse/podverse/web-deploy
+          imagePullPolicy: Always
+          env:
+            - name: NODE_ENV
+              value: "production"
+          envFrom:
+            - configMapRef:
+                name: podverse-web-config
+          # Container security hardening
+          securityContext:
+            readOnlyRootFilesystem: true
+            allowPrivilegeEscalation: false
+            # Explicitly set UID/GID to satisfy runAsNonRoot when image user is named (node)
+            runAsUser: 1000
+            runAsGroup: 1000
+            runAsNonRoot: true
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "250m"
+            limits:
+              memory: "1Gi"
+              cpu: "1000m"
+          ports:
+            - containerPort: 3000
+              name: http
+              protocol: TCP
+          volumeMounts:
+            - name: nextjs-cache
+              mountPath: /opt/app/.next/cache
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 3000
+              scheme: HTTP
+            initialDelaySeconds: 10
+            periodSeconds: 20
+            successThreshold: 1
+            failureThreshold: 3
+            timeoutSeconds: 5
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 3000
+              scheme: HTTP
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            successThreshold: 1
+            failureThreshold: 3
+            timeoutSeconds: 5
       volumes:
-      - name: nextjs-cache
-        emptyDir: {}
+        - name: nextjs-cache
+          emptyDir: {}
       dnsPolicy: ClusterFirst
       restartPolicy: Always
       terminationGracePeriodSeconds: 30

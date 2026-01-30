@@ -10,7 +10,7 @@ metadata:
   namespace: podverse-alpha
 spec:
   minVersion: VersionTLS12 # Enforce TLS 1.2 or higher (1.3 is preferred)
-  
+
   # HSTS (Strict Transport Security) and SNI strictness
   # This must be a direct field of 'spec'
   # CORRECTION: The valid CRD field is 'sniStrict', not 'strictSNI'

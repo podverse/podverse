@@ -125,6 +125,9 @@ apps/               # Deployable applications
 | Feed parsing          | `packages/parser/src/`        |
 | Web pages             | `apps/web/src/app/`           |
 | Environment templates | `infra/config/env-templates/` |
+| K8s manifests         | `infra/k8s/`                  |
+| Jenkins pipelines     | `infra/pipelines/jenkins/`    |
+| GitHub Actions        | `.github/workflows/`          |
 
 ## Coding Patterns
 

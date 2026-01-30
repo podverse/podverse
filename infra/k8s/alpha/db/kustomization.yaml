@@ -20,7 +20,7 @@ labels:
   - pairs:
       app: podverse-db
       environment: alpha
-    # This ensures the labels are applied to selectors in Services/Deployments too, 
+    # This ensures the labels are applied to selectors in Services/Deployments too,
     # ensuring they connect correctly.
     includeSelectors: true
 
