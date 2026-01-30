@@ -32,6 +32,9 @@ logs/*
 infra/config/local/
 infra/config/alpha/
 
+# K8s manifests (formatting preferred manually; Prettier reformats arrays/line breaks)
+infra/k8s/
+
 # Env files (secrets)
 .env
 .env.*
