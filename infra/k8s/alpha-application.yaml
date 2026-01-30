@@ -13,23 +13,23 @@ spec:
   # The project within ArgoCD for grouping apps
   project: podverse
   source:
-    repoURL: https://github.com/podverse/podverse-ops.git
+    repoURL: https://github.com/podverse/podverse.git
     targetRevision: feature/k3s02
-    
+
     # This path points to where the "Child" App manifests are stored
     path: k8s/alpha/apps
-    
+
     directory:
       recurse: true
-      
+
   destination:
     server: https://kubernetes.default.svc
     namespace: podverse-alpha
-  
+
   # Sync Policy: Automated means ArgoCD will watch Git and apply changes immediately.
   syncPolicy:
     automated:
-      prune: true     # Deletes resources in K8s if they are removed from Git
-      selfHeal: true  # Overwrites manual 'kubectl edit' changes to match Git
+      prune: true # Deletes resources in K8s if they are removed from Git
+      selfHeal: true # Overwrites manual 'kubectl edit' changes to match Git
     syncOptions:
       - CreateNamespace=true

@@ -10,7 +10,7 @@ metadata:
 spec:
   project: podverse
   source:
-    repoURL: https://github.com/podverse/podverse-ops.git
+    repoURL: https://github.com/podverse/podverse.git
     targetRevision: feature/k3s02
     path: k8s/alpha/ops
   destination:

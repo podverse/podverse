@@ -11,7 +11,7 @@ spec:
   project: podverse
   source:
     # Points to your git repository
-    repoURL: https://github.com/podverse/podverse-ops.git
+    repoURL: https://github.com/podverse/podverse.git
     targetRevision: feature/k3s02
 
     # Path to the Workers manifests (Deployments, ConfigMap, Kustomization)
