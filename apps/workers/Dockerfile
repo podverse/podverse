@@ -31,6 +31,14 @@ WORKDIR /opt
 COPY --from=builder /opt/package*.json ./
 COPY --from=builder /opt/packages/helpers/package.json ./packages/helpers/
 COPY --from=builder /opt/packages/helpers/dist/ ./packages/helpers/dist/
+COPY --from=builder /opt/packages/helpers-validation/package.json ./packages/helpers-validation/
+COPY --from=builder /opt/packages/helpers-validation/dist/ ./packages/helpers-validation/dist/
+COPY --from=builder /opt/packages/helpers-requests/package.json ./packages/helpers-requests/
+COPY --from=builder /opt/packages/helpers-requests/dist/ ./packages/helpers-requests/dist/
+COPY --from=builder /opt/packages/helpers-backend/package.json ./packages/helpers-backend/
+COPY --from=builder /opt/packages/helpers-backend/dist/ ./packages/helpers-backend/dist/
+COPY --from=builder /opt/packages/helpers-config/package.json ./packages/helpers-config/
+COPY --from=builder /opt/packages/helpers-config/dist/ ./packages/helpers-config/dist/
 COPY --from=builder /opt/packages/external-services/package.json ./packages/external-services/
 COPY --from=builder /opt/packages/external-services/dist/ ./packages/external-services/dist/
 COPY --from=builder /opt/packages/orm/package.json ./packages/orm/

@@ -274,17 +274,49 @@ The version is determined by:
 
 ## Troubleshooting
 
-| Issue                                | Cause                                  | Solution                                                                                              |
-| ------------------------------------ | -------------------------------------- | ----------------------------------------------------------------------------------------------------- |
-| "not possible to fast-forward" error | `alpha` branch diverged from `develop` | Reset alpha: `git checkout alpha && git reset --hard origin/develop && git push --force origin alpha` |
-| Workflow fails at "Security audit"   | npm vulnerabilities found              | Run `./scripts/audit/audit.sh --fix` locally                                                          |
-| Workflow fails at "Lint"             | Linting errors                         | Run `npm run lint` locally to see errors                                                              |
-| Workflow fails at "Type check"       | TypeScript errors                      | Run `npm run type-check` locally                                                                      |
-| Workflow fails at "Build all apps"   | Build errors                           | Run `npm run build:apps` locally                                                                      |
-| Docker build fails                   | Dockerfile or dependency issue         | Build locally with `docker build -f apps/<app>/Dockerfile .`                                          |
-| GHCR push fails                      | Permission issue                       | Verify GITHUB_TOKEN has `packages:write` scope                                                        |
-| Version conflict                     | Tag already exists                     | Use `version_override` with a different version                                                       |
-| Images not updating on server        | Docker cache                           | Run `docker pull` with `--no-cache` or prune images                                                   |
+| Issue                                       | Cause                                  | Solution                                                                                              |
+| ------------------------------------------- | -------------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| "not possible to fast-forward" error        | `alpha` branch diverged from `develop` | Reset alpha: `git checkout alpha && git reset --hard origin/develop && git push --force origin alpha` |
+| Workflow fails at "Security audit"          | npm vulnerabilities found              | Run `./scripts/audit/audit.sh --fix` locally                                                          |
+| Workflow fails at "Lint"                    | Linting errors                         | Run `npm run lint` locally to see errors                                                              |
+| Workflow fails at "Type check"              | TypeScript errors                      | Run `npm run type-check` locally                                                                      |
+| Workflow fails at "Build all apps"          | Build errors                           | Run `npm run build:apps` locally                                                                      |
+| Docker build fails                          | Dockerfile or dependency issue         | Build locally with `docker build -f apps/<app>/Dockerfile .`                                          |
+| Container fails at start (MODULE_NOT_FOUND) | Workspace package missing from image   | See [Reproducing runtime errors locally](#reproducing-runtime-errors-locally) below                   |
+| GHCR push fails                             | Permission issue                       | Verify GITHUB_TOKEN has `packages:write` scope                                                        |
+| Version conflict                            | Tag already exists                     | Use `version_override` with a different version                                                       |
+| Images not updating on server               | Docker cache                           | Run `docker pull` with `--no-cache` or prune images                                                   |
+
+### Reproducing runtime errors locally
+
+If api or management-api fail on the server with `Cannot find module '@podverse/helpers-config'` (or
+similar), reproduce and debug locally:
+
+1. **Build the same images locally** (from repo root):
+
+   ```bash
+   make validate_docker
+   ```
+
+   This runs `make validate` then builds all five Docker images (api, web, workers, management-api,
+   management-web). If the runner stage is missing a workspace package, the image still builds; the
+   error appears only when the container starts.
+
+2. **Run the API container** to test startup (replace with your env path or use a minimal env):
+
+   ```bash
+   docker run --rm -e NODE_ENV=production \
+     -e DATABASE_URL="postgres://user:pass@host:5432/db" \
+     podverse-api:test node apps/api/dist/index.js
+   ```
+
+   Use the same for management-api: `podverse-management-api:test` and
+   `apps/management-api/dist/index.js`. You should see the same `MODULE_NOT_FOUND` if a package is
+   missing from the Dockerfile runner stage.
+
+3. **Fix**: Ensure every workspace package the app (and its copied packages) require is copied in the
+   Dockerfile’s final stage (see `COPY --from=builder /opt/packages/...`). Rebuild with
+   `make validate_docker` and run the container again to confirm.
 
 ### Viewing Detailed Logs
 
