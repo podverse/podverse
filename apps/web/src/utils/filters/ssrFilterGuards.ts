@@ -1,6 +1,11 @@
-import { ApiListResponse } from '@podverse/helpers';
+import { ApiListResponse } from '@podverse/helpers-requests';
 
-type GuardSubscribedFilterParams<TType extends string, TSort extends string, TRange extends string, TCategory extends string> = {
+type GuardSubscribedFilterParams<
+  TType extends string,
+  TSort extends string,
+  TRange extends string,
+  TCategory extends string,
+> = {
   isAuthenticated: boolean;
   type: TType | null;
   sort?: TSort | null;
@@ -16,7 +21,12 @@ type GuardSubscribedFilterParams<TType extends string, TSort extends string, TRa
   };
 };
 
-type GuardedFilterParams<TType extends string, TSort extends string, TRange extends string, TCategory extends string> = {
+type GuardedFilterParams<
+  TType extends string,
+  TSort extends string,
+  TRange extends string,
+  TCategory extends string,
+> = {
   type: TType | null;
   sort: TSort | null;
   range: TRange | null;
@@ -28,8 +38,10 @@ export function guardSubscribedSsrFilter<
   TType extends string,
   TSort extends string,
   TRange extends string,
-  TCategory extends string
->(params: GuardSubscribedFilterParams<TType, TSort, TRange, TCategory>): GuardedFilterParams<TType, TSort, TRange, TCategory> {
+  TCategory extends string,
+>(
+  params: GuardSubscribedFilterParams<TType, TSort, TRange, TCategory>
+): GuardedFilterParams<TType, TSort, TRange, TCategory> {
   if (!params.isAuthenticated && params.type === 'subscribed') {
     return {
       type: params.fallback.type,
@@ -51,7 +63,7 @@ export function guardSubscribedSsrFilter<
 
 export async function safeSsrListRequest<T>(
   request: () => Promise<ApiListResponse<T>>,
-  fallbackPage = 1,
+  fallbackPage = 1
 ): Promise<ApiListResponse<T>> {
   try {
     return await request();

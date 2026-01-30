@@ -1,7 +1,8 @@
 'use client';
 
-import React, { createContext, useContext, useState, ReactNode } from 'react';
-import { DTOChannel, getTotalPages, QueryParamsHome } from '@podverse/helpers';
+import { createContext, useContext, useState, ReactNode } from 'react';
+import { DTOChannel, getTotalPages } from '@podverse/helpers';
+import { QueryParamsHome } from '@podverse/helpers-requests';
 import { apiRequestService } from '../factories/apiRequestService';
 import { useAccount } from '../contexts/Account';
 import { useSkipInitialEffect } from '../hooks/useSkipInitialEffect';
@@ -18,15 +19,15 @@ interface HomeContextType {
   setTotalPages: (totalPages: number) => void;
   isLoading: boolean;
   setIsLoading: (isLoading: boolean) => void;
-};
+}
 
 const HomeContext = createContext<HomeContextType | undefined>(undefined);
 
 interface HomeContextProviderProps {
-  children: ReactNode,
-  initialQueryParams: QueryParamsHome,
-  ssrChannels: DTOChannel[],
-  ssrTotalPages: number
+  children: ReactNode;
+  initialQueryParams: QueryParamsHome;
+  ssrChannels: DTOChannel[];
+  ssrTotalPages: number;
 }
 
 export const HomeContextProvider = ({
@@ -37,9 +38,12 @@ export const HomeContextProvider = ({
 }: HomeContextProviderProps) => {
   // Use the list page cache hook for back navigation caching
   const {
-    filterParams, setFilterParams,
-    data: channels, setData: setChannels,
-    totalPages, setTotalPages,
+    filterParams,
+    setFilterParams,
+    data: channels,
+    setData: setChannels,
+    totalPages,
+    setTotalPages,
     shouldSkipFetch,
   } = useListPageCache<QueryParamsHome, DTOChannel[]>({
     routeKey: 'home',
@@ -67,13 +71,13 @@ export const HomeContextProvider = ({
       }
 
       setIsLoading(true);
-      
+
       const { currentSort, currentMedium, currentPage } = getHomeFilterParams({
         page: filterParams.page,
         medium: filterParams.medium,
         sort: filterParams.sort,
       });
-      
+
       const response = await apiRequestService.reqChannelGetMany({
         page: currentPage,
         medium: currentMedium,
@@ -83,22 +87,33 @@ export const HomeContextProvider = ({
         category: null,
       });
 
-      const totalPages = getTotalPages(response.meta.count, response.meta.limit, response.data.length, currentPage);
+      const totalPages = getTotalPages(
+        response.meta.count,
+        response.meta.limit,
+        response.data.length,
+        currentPage
+      );
       setTotalPages(totalPages);
       setChannels(response.data);
       setIsLoading(false);
     }
-    
+
     fetchChannels();
   }, [filterParams, loggedInAccount]);
 
   return (
-    <HomeContext.Provider value={{
-      filterParams, setFilterParams,
-      channels, setChannels,
-      totalPages, setTotalPages,
-      isLoading, setIsLoading,
-    }}>
+    <HomeContext.Provider
+      value={{
+        filterParams,
+        setFilterParams,
+        channels,
+        setChannels,
+        totalPages,
+        setTotalPages,
+        isLoading,
+        setIsLoading,
+      }}
+    >
       {children}
     </HomeContext.Provider>
   );
@@ -106,6 +121,8 @@ export const HomeContextProvider = ({
 
 export const useHomeContext = () => {
   const ctx = useContext(HomeContext);
-  if (!ctx) {throw new Error('useHomeContext must be used within a HomeContextProvider');}
+  if (!ctx) {
+    throw new Error('useHomeContext must be used within a HomeContextProvider');
+  }
   return ctx;
 };

@@ -1,8 +1,9 @@
 'use client';
 
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import { createContext, useContext, useState, ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
-import { DTOChannel, getTotalPages, QueryParamsGetMany, removeQueryParamByPattern } from '@podverse/helpers';
+import { DTOChannel, getTotalPages, removeQueryParamByPattern } from '@podverse/helpers';
+import { QueryParamsGetMany } from '@podverse/helpers-requests';
 import { apiRequestService } from '../../factories/apiRequestService';
 import { useAccount } from '../../contexts/Account';
 import { useSkipInitialEffect } from '../../hooks/useSkipInitialEffect';
@@ -24,15 +25,15 @@ interface PodcastsContextType {
   setShowSubscribeMessage: (show: boolean) => void;
   showCategoriesModal: boolean;
   setShowCategoriesModal: (show: boolean) => void;
-};
+}
 
 const PodcastsContext = createContext<PodcastsContextType | undefined>(undefined);
 
 interface PodcastsContextProviderProps {
-  children: ReactNode,
-  initialQueryParams: QueryParamsGetMany,
-  ssrChannels: DTOChannel[],
-  ssrTotalPages: number
+  children: ReactNode;
+  initialQueryParams: QueryParamsGetMany;
+  ssrChannels: DTOChannel[];
+  ssrTotalPages: number;
 }
 
 export const PodcastsContextProvider = ({
@@ -42,12 +43,15 @@ export const PodcastsContextProvider = ({
   ssrTotalPages,
 }: PodcastsContextProviderProps) => {
   const router = useRouter();
-  
+
   // Use the list page cache hook for back navigation caching
   const {
-    filterParams, setFilterParams,
-    data: channels, setData: setChannels,
-    totalPages, setTotalPages,
+    filterParams,
+    setFilterParams,
+    data: channels,
+    setData: setChannels,
+    totalPages,
+    setTotalPages,
     shouldSkipFetch,
   } = useListPageCache<QueryParamsGetMany, DTOChannel[]>({
     routeKey: 'podcasts',
@@ -81,14 +85,17 @@ export const PodcastsContextProvider = ({
       }
 
       setIsLoading(true);
-      
-      const { currentSort, currentRange, currentType } = getPodcastsFilterParams({
-        page: filterParams.page,
-        type: filterParams.type,
-        sort: filterParams.sort,
-        range: filterParams.range,
-        category: filterParams.category,
-      }, !!loggedInAccount);
+
+      const { currentSort, currentRange, currentType } = getPodcastsFilterParams(
+        {
+          page: filterParams.page,
+          type: filterParams.type,
+          sort: filterParams.sort,
+          range: filterParams.range,
+          category: filterParams.category,
+        },
+        !!loggedInAccount
+      );
 
       const response = await apiRequestService.reqChannelGetMany({
         page: filterParams.page,
@@ -103,7 +110,12 @@ export const PodcastsContextProvider = ({
         router.replace(removeQueryParamByPattern(ROUTES.PODCASTS, 'category'));
       }
 
-      const totalPages = getTotalPages(response.meta.count, response.meta.limit, response.data.length, filterParams.page);
+      const totalPages = getTotalPages(
+        response.meta.count,
+        response.meta.limit,
+        response.data.length,
+        filterParams.page
+      );
       setTotalPages(totalPages);
       setChannels(response.data);
       setShowSubscribeMessage(false);
@@ -113,14 +125,22 @@ export const PodcastsContextProvider = ({
   }, [filterParams, loggedInAccount]);
 
   return (
-    <PodcastsContext.Provider value={{
-      filterParams, setFilterParams,
-      channels, setChannels,
-      totalPages, setTotalPages,
-      isLoading, setIsLoading,
-      showSubscribeMessage, setShowSubscribeMessage,
-      showCategoriesModal, setShowCategoriesModal,
-    }}>
+    <PodcastsContext.Provider
+      value={{
+        filterParams,
+        setFilterParams,
+        channels,
+        setChannels,
+        totalPages,
+        setTotalPages,
+        isLoading,
+        setIsLoading,
+        showSubscribeMessage,
+        setShowSubscribeMessage,
+        showCategoriesModal,
+        setShowCategoriesModal,
+      }}
+    >
       {children}
     </PodcastsContext.Provider>
   );
@@ -128,6 +148,8 @@ export const PodcastsContextProvider = ({
 
 export const usePodcastsContext = () => {
   const ctx = useContext(PodcastsContext);
-  if (!ctx) {throw new Error('usePodcastsContext must be used within a PodcastsContextProvider');}
+  if (!ctx) {
+    throw new Error('usePodcastsContext must be used within a PodcastsContextProvider');
+  }
   return ctx;
 };

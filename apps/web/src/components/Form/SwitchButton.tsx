@@ -5,15 +5,15 @@ import { PopoverIcon } from '../PopoverIcon/PopoverIcon';
 import styles from '../../styles/components/Form/SwitchButton.module.scss';
 
 type SwitchButtonProps = {
-  id?: string
-  label: string
-  checked: boolean
-  onChange: (next: boolean) => void
-  loading?: boolean
-  className?: string
-  helpText?: string
-  'aria-describedby'?: string
-}
+  id?: string;
+  label: string;
+  checked: boolean;
+  onChange: (next: boolean) => void;
+  loading?: boolean;
+  className?: string;
+  helpText?: string;
+  'aria-describedby'?: string;
+};
 
 export const SwitchButton: React.FC<SwitchButtonProps> = ({
   id,
@@ -26,7 +26,9 @@ export const SwitchButton: React.FC<SwitchButtonProps> = ({
   'aria-describedby': ariaDescribedBy,
 }) => {
   const handleToggle = () => {
-    if (loading) {return;}
+    if (loading) {
+      return;
+    }
     onChange(!checked);
   };
   const tMisc = useTranslations('misc');
@@ -38,9 +40,7 @@ export const SwitchButton: React.FC<SwitchButtonProps> = ({
           <label htmlFor={id} className={styles.label}>
             {label}
           </label>
-          {helpText && (
-            <PopoverIcon text={helpText} ariaLabel={`Help for ${label}`} />
-          )}
+          {helpText && <PopoverIcon text={helpText} ariaLabel={`Help for ${label}`} />}
         </div>
       </div>
 

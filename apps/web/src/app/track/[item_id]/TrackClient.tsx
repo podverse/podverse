@@ -1,5 +1,5 @@
-import { DTOChannel, DTOItem, QueryParamsItemMusic } from '@podverse/helpers';
-import React from 'react';
+import { DTOChannel, DTOItem } from '@podverse/helpers';
+import { QueryParamsItemMusic } from '@podverse/helpers-requests';
 import { MainWrapper } from '../../../components/Main/MainWrapper';
 import { TrackContextProvider } from './TrackContext';
 import { TrackList } from './TrackList';
@@ -23,14 +23,12 @@ export function TrackClient(props: TrackClientProps) {
   return (
     <TrackContextProvider initialQueryParams={initialQueryParams}>
       <MainWrapper>
-        <AlbumHeader channel={ssrChannel} item={ssrItem}  />
+        <AlbumHeader channel={ssrChannel} item={ssrItem} />
         <MainInnerWrapper>
           <SideContent />
           <MainInnerContentWrapper>
-            <TrackHeader channel={ssrChannel} item={ssrItem}  />
-            <TrackListHeader
-              ssrHasTranscripts={ssrHasTranscripts}
-            />
+            <TrackHeader channel={ssrChannel} item={ssrItem} />
+            <TrackListHeader ssrHasTranscripts={ssrHasTranscripts} />
             <TrackList ssrItem={ssrItem} />
           </MainInnerContentWrapper>
         </MainInnerWrapper>

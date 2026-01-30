@@ -20,10 +20,12 @@ if (config.nodeEnv === 'production') {
   app.set('trust proxy', 1);
 }
 
-app.use(cors({
-  origin: config.api.allowedCORSOrigins,
-  credentials: true,
-}));
+app.use(
+  cors({
+    origin: config.api.allowedCORSOrigins,
+    credentials: true,
+  })
+);
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -63,7 +65,8 @@ export const startApp = async () => {
     const { feedRouter } = await import('./routes/feed');
     const { publisherFeedRouter } = await import('./routes/publisherFeed');
     const { accountSettingsRouter } = await import('./routes/accountSettings');
-    const { profileContentRouter, myProfileContentRouter } = await import('./routes/profileContent');
+    const { profileContentRouter, myProfileContentRouter } =
+      await import('./routes/profileContent');
 
     app.get(`${baseUrl}/`, (_req: Request, res: Response) => {
       res.send(`The server is running on port ${port}`);
@@ -101,7 +104,7 @@ export const startApp = async () => {
     app.use(publisherFeedRouter);
     app.use(queueRouter);
     app.use(statsRouter);
-    
+
     app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
       loggerService.logError('API Router Error', err);
       res.status(500).json({ message: err.message });

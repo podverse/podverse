@@ -12,10 +12,13 @@ import { requestNotificationPermission } from '../../../lib/notifications/webpus
 type NotificationIconButtonProps = {
   channel: DTOChannel;
   kind: 'podcast' | 'artist' | 'album' | 'playlist';
-}
+};
 
-export const NotificationIconButton: React.FC<NotificationIconButtonProps> = ({ channel, kind }) => {
-  if ((kind === 'playlist')) {
+export const NotificationIconButton: React.FC<NotificationIconButtonProps> = ({
+  channel,
+  kind,
+}) => {
+  if (kind === 'playlist') {
     return null;
   }
 
@@ -23,9 +26,9 @@ export const NotificationIconButton: React.FC<NotificationIconButtonProps> = ({ 
   const tInstructions = useTranslations('instructions');
   const { loggedInAccount, setLoggedInAccount } = useAccount();
   const { setModalLoginRequired } = useModals();
-  
+
   const isSubscribed = loggedInAccount?.account_notification_channels?.some(
-    account_notification_channel => account_notification_channel.channel_id === channel.id,
+    (account_notification_channel) => account_notification_channel.channel_id === channel.id
   );
 
   const toggleNotification = async () => {
@@ -38,11 +41,14 @@ export const NotificationIconButton: React.FC<NotificationIconButtonProps> = ({ 
     }
 
     if (isSubscribed) {
-      const updatedAccount = await apiRequestService.reqAccountNotificationChannelDelete({ channel_id_text: channel.id_text });
+      const updatedAccount = await apiRequestService.reqAccountNotificationChannelDelete({
+        channel_id_text: channel.id_text,
+      });
       await setLoggedInAccount(updatedAccount);
     } else {
       // Read permission into a fresh variable to avoid TypeScript narrowing issues
-      const permissionBefore = (typeof Notification !== 'undefined') ? Notification.permission : undefined;
+      const permissionBefore =
+        typeof Notification !== 'undefined' ? Notification.permission : undefined;
 
       if (permissionBefore !== 'granted') {
         // Request permission first
@@ -50,12 +56,15 @@ export const NotificationIconButton: React.FC<NotificationIconButtonProps> = ({ 
       }
 
       // Re-read permission after the async call
-      const permissionAfterRequest = (typeof Notification !== 'undefined') ? Notification.permission : undefined;
+      const permissionAfterRequest =
+        typeof Notification !== 'undefined' ? Notification.permission : undefined;
       if (permissionAfterRequest !== 'granted') {
         return;
       }
 
-      const updatedAccount = await apiRequestService.reqAccountNotificationChannelCreate({ channel_id_text: channel.id_text });
+      const updatedAccount = await apiRequestService.reqAccountNotificationChannelCreate({
+        channel_id_text: channel.id_text,
+      });
       await setLoggedInAccount(updatedAccount);
     }
   };

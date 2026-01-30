@@ -2,11 +2,9 @@ import { mqRSSRunLiveItemListener as mqRSSRunLiveItemListenerFunction } from '@p
 import { activeMQArtemisService } from '@workers/factories/activeMQArtemisService';
 
 export const mqRSSRunLiveItemListener = async () => {
-  await mqRSSRunLiveItemListenerFunction(
-    activeMQArtemisService,
-  );
+  await mqRSSRunLiveItemListenerFunction(activeMQArtemisService);
 
   while (true) {
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    await new Promise((resolve) => setTimeout(resolve, 1000));
   }
 };

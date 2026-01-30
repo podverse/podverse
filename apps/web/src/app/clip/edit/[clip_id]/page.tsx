@@ -4,9 +4,10 @@ import { getSSRAuthService } from '../../../../utils/auth/ssrAuth';
 import { ClipEditClient } from './ClipEditClient';
 
 const searchParamsSchema = z.object({
-  ers: z.string()
+  ers: z
+    .string()
     .transform((v) => parseInt(v, 10))
-    .refine((v) => !Number.isNaN(v) && v >= 0, { message: 'ers must be integer >= 0' })
+    .refine((v) => !Number.isNaN(v) && v >= 0, { error: 'ers must be integer >= 0' })
     .optional(),
   ets: z.enum(['default', 'audio', 'video']).optional(),
 });
@@ -14,7 +15,7 @@ const searchParamsSchema = z.object({
 type ClipEditPageProps = {
   params: Promise<{ clip_id: string }>;
   searchParams?: Promise<Record<string, string | string[]>>;
-}
+};
 
 type ParsedClipEditParams = {
   ssrEnclosureTypeSelected: 'default' | 'audio' | 'video';
@@ -46,10 +47,16 @@ export default async function ClipEditPage({ params, searchParams }: ClipEditPag
   );
 }
 
-function parseSearchParams(raw: Record<string, string | string[] | undefined>): ParsedClipEditParams {
+function parseSearchParams(
+  raw: Record<string, string | string[] | undefined>
+): ParsedClipEditParams {
   const normalized: Record<string, string | undefined> = {};
   Object.entries(raw).forEach(([k, v]) => {
-    if (Array.isArray(v)) {normalized[k] = v[0];} else {normalized[k] = v;}
+    if (Array.isArray(v)) {
+      normalized[k] = v[0];
+    } else {
+      normalized[k] = v;
+    }
   });
   const result = searchParamsSchema.safeParse(normalized);
   let ssrEnclosureTypeSelected: 'default' | 'audio' | 'video' = 'default';

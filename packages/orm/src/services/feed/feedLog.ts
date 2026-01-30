@@ -3,11 +3,11 @@ import { FeedLog } from '@orm/entities/feed/feedLog';
 import { BaseOneService } from '@orm/services/base/baseOneService';
 
 type FeedLogDto = {
-  last_http_status?: number | null
-  last_good_http_status_time?: Date | null
-  last_finished_parse_time?: Date | null
-  parse_errors?: number
-}
+  last_http_status?: number | null;
+  last_good_http_status_time?: Date | null;
+  last_finished_parse_time?: Date | null;
+  parse_errors?: number;
+};
 
 export class FeedLogService extends BaseOneService<FeedLog, 'feed'> {
   constructor() {

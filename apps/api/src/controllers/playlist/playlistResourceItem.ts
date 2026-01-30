@@ -22,73 +22,110 @@ class PlaylistResourceItemController {
 
   static async addItemToPlaylistFirst(req: Request, res: Response): Promise<void> {
     validateParamsObject(playlistAndItemIdSchema, req, res, async () => {
-      ensureAuthenticated(req, res, async () => {
-        verifyPlaylistOwnership()(req, res, async () => {
-          const playlist_id_text = getParamRequired(req, 'playlist_id_text');
-          const item_id_text = getParamRequired(req, 'item_id_text');
-
-          try {
-            const playlistResource = await PlaylistResourceItemController.playlistResourceService.addItemToPlaylistFirst(playlist_id_text, item_id_text);
-            res.status(201).json(playlistResource);
-          } catch (err) {
-            handleGenericErrorResponse(res, err);
-          }
-        });
-      }, { skipMembershipStatus: false });
-    });
-  }
-
-  static async addItemToPlaylistLast(req: Request, res: Response): Promise<void> {
-    validateParamsObject(playlistAndItemIdSchema, req, res, async () => {
-      ensureAuthenticated(req, res, async () => {
-        verifyPlaylistOwnership()(req, res, async () => {
-          try {
+      ensureAuthenticated(
+        req,
+        res,
+        async () => {
+          verifyPlaylistOwnership()(req, res, async () => {
             const playlist_id_text = getParamRequired(req, 'playlist_id_text');
-          const item_id_text = getParamRequired(req, 'item_id_text');
-            const playlistResource = await PlaylistResourceItemController.playlistResourceService.addItemToPlaylistLast(playlist_id_text, item_id_text);
-            res.status(201).json(playlistResource);
-          } catch (err) {
-            handleGenericErrorResponse(res, err);
-          }
-        });
-      }, { skipMembershipStatus: false });
-    });
-  }
+            const item_id_text = getParamRequired(req, 'item_id_text');
 
-  static async addItemToPlaylistBetween(req: Request, res: Response): Promise<void> {
-    validateParamsObject(playlistAndItemIdSchema, req, res, async () => {
-      ensureAuthenticated(req, res, async () => {
-        verifyPlaylistOwnership()(req, res, async () => {
-          validateBodyObject(addItemToPlaylistBetweenSchema, req, res, async () => {
             try {
-              const playlist_id_text = getParamRequired(req, 'playlist_id_text');
-          const item_id_text = getParamRequired(req, 'item_id_text');
-              const { position1, position2 } = req.body;
-              const playlistResource = await PlaylistResourceItemController.playlistResourceService.addItemToPlaylistBetween(playlist_id_text, item_id_text, position1, position2);
+              const playlistResource =
+                await PlaylistResourceItemController.playlistResourceService.addItemToPlaylistFirst(
+                  playlist_id_text,
+                  item_id_text
+                );
               res.status(201).json(playlistResource);
             } catch (err) {
               handleGenericErrorResponse(res, err);
             }
           });
-        });
-      }, { skipMembershipStatus: false });
+        },
+        { skipMembershipStatus: false }
+      );
+    });
+  }
+
+  static async addItemToPlaylistLast(req: Request, res: Response): Promise<void> {
+    validateParamsObject(playlistAndItemIdSchema, req, res, async () => {
+      ensureAuthenticated(
+        req,
+        res,
+        async () => {
+          verifyPlaylistOwnership()(req, res, async () => {
+            try {
+              const playlist_id_text = getParamRequired(req, 'playlist_id_text');
+              const item_id_text = getParamRequired(req, 'item_id_text');
+              const playlistResource =
+                await PlaylistResourceItemController.playlistResourceService.addItemToPlaylistLast(
+                  playlist_id_text,
+                  item_id_text
+                );
+              res.status(201).json(playlistResource);
+            } catch (err) {
+              handleGenericErrorResponse(res, err);
+            }
+          });
+        },
+        { skipMembershipStatus: false }
+      );
+    });
+  }
+
+  static async addItemToPlaylistBetween(req: Request, res: Response): Promise<void> {
+    validateParamsObject(playlistAndItemIdSchema, req, res, async () => {
+      ensureAuthenticated(
+        req,
+        res,
+        async () => {
+          verifyPlaylistOwnership()(req, res, async () => {
+            validateBodyObject(addItemToPlaylistBetweenSchema, req, res, async () => {
+              try {
+                const playlist_id_text = getParamRequired(req, 'playlist_id_text');
+                const item_id_text = getParamRequired(req, 'item_id_text');
+                const { position1, position2 } = req.body;
+                const playlistResource =
+                  await PlaylistResourceItemController.playlistResourceService.addItemToPlaylistBetween(
+                    playlist_id_text,
+                    item_id_text,
+                    position1,
+                    position2
+                  );
+                res.status(201).json(playlistResource);
+              } catch (err) {
+                handleGenericErrorResponse(res, err);
+              }
+            });
+          });
+        },
+        { skipMembershipStatus: false }
+      );
     });
   }
 
   static async removeItemFromPlaylist(req: Request, res: Response): Promise<void> {
     validateParamsObject(playlistAndItemIdSchema, req, res, async () => {
-      ensureAuthenticated(req, res, async () => {
-        verifyPlaylistOwnership()(req, res, async () => {
-          try {
-            const playlist_id_text = getParamRequired(req, 'playlist_id_text');
-          const item_id_text = getParamRequired(req, 'item_id_text');
-            await PlaylistResourceItemController.playlistResourceService.removeItemFromPlaylist(playlist_id_text, item_id_text);
-            res.status(204).end();
-          } catch (err) {
-            handleGenericErrorResponse(res, err);
-          }
-        });
-      }, { skipMembershipStatus: true });
+      ensureAuthenticated(
+        req,
+        res,
+        async () => {
+          verifyPlaylistOwnership()(req, res, async () => {
+            try {
+              const playlist_id_text = getParamRequired(req, 'playlist_id_text');
+              const item_id_text = getParamRequired(req, 'item_id_text');
+              await PlaylistResourceItemController.playlistResourceService.removeItemFromPlaylist(
+                playlist_id_text,
+                item_id_text
+              );
+              res.status(204).end();
+            } catch (err) {
+              handleGenericErrorResponse(res, err);
+            }
+          });
+        },
+        { skipMembershipStatus: true }
+      );
     });
   }
 

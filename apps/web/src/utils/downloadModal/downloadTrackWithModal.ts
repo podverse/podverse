@@ -1,14 +1,21 @@
-import { buildLabeledItemEnclosures, DTOItem, getSelectedLabeledItemEnclosureAndSource } from '@podverse/helpers';
+import {
+  buildLabeledItemEnclosures,
+  DTOItem,
+  getSelectedLabeledItemEnclosureAndSource,
+} from '@podverse/helpers';
 import { ModalSourceSelector } from '../../contexts/Modals';
 
 type DownloadTrackWithModalParams = {
   item: DTOItem;
   setModalSourceSelector: (val: ModalSourceSelector) => void;
-  showToastPromiseWithLoading: (promise: Promise<void>, messages: {
-    loading: string;
-    success: string;
-    error: string;
-  }) => void;
+  showToastPromiseWithLoading: (
+    promise: Promise<void>,
+    messages: {
+      loading: string;
+      success: string;
+      error: string;
+    }
+  ) => void;
   downloadAndSaveFile: (url: string, filename: string) => Promise<void>;
   tFeatures: (key: string) => string;
 };
@@ -44,7 +51,7 @@ export const downloadTrackWithModal = async ({
           loading: tFeatures('download.downloading_track'),
           success: tFeatures('download.track_downloaded'),
           error: tFeatures('download.track_download_error'),
-        },
+        }
       );
     }
   }

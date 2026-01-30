@@ -7,7 +7,7 @@ export class ChannelSocialInteract {
   @PrimaryGeneratedColumn()
   id!: number;
 
-  @ManyToOne(() => Channel, channel => channel.id, { onDelete: 'CASCADE' })
+  @ManyToOne(() => Channel, (channel) => channel.id, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'channel_id' })
   channel!: Channel;
 
@@ -17,10 +17,20 @@ export class ChannelSocialInteract {
   @Column({ type: 'varchar', name: 'uri', length: DATABASE_CONSTANTS.varchar_uri })
   uri!: string;
 
-  @Column({ type: 'varchar', name: 'account_id', nullable: true, length: DATABASE_CONSTANTS.varchar_normal })
+  @Column({
+    type: 'varchar',
+    name: 'account_id',
+    nullable: true,
+    length: DATABASE_CONSTANTS.varchar_normal,
+  })
   account_id!: string | null;
 
-  @Column({ type: 'varchar', name: 'account_url', nullable: true, length: DATABASE_CONSTANTS.varchar_url })
+  @Column({
+    type: 'varchar',
+    name: 'account_url',
+    nullable: true,
+    length: DATABASE_CONSTANTS.varchar_url,
+  })
   account_url!: string | null;
 
   @Column({ type: 'integer', name: 'priority', nullable: true })

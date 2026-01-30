@@ -3,11 +3,12 @@ import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
 export enum LiveItemStatusEnum {
   Pending = 1,
   Live = 2,
-  Ended = 3
+  Ended = 3,
 }
 
 export function getLiveItemStatusEnumValue(input: string | null): LiveItemStatusEnum | null {
-  const sanitizedInput = input?.toLowerCase()
+  const sanitizedInput = input
+    ?.toLowerCase()
     .replace(/\s+/g, '')
     .replace(/[^a-z0-9]/g, '');
 

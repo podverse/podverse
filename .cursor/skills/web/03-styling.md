@@ -23,11 +23,11 @@ export const MyComponent: React.FC<{ variant?: "primary" | "secondary" }> = ({ v
 // apps/web/src/styles/components/MyComponent/MyComponent.module.scss
 .container {
   padding: 1rem;
-  
+
   &.primary {
     background: var(--color-primary);
   }
-  
+
   &.secondary {
     background: var(--color-secondary);
   }

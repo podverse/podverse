@@ -18,6 +18,7 @@ cp -r ../podverse-management-api/src apps/management-api/
 ```
 
 Files to copy:
+
 - `src/@types/express.d.ts` - Express type augmentation
 - `src/app.ts` - Express app setup
 - `src/config/index.ts` - Configuration
@@ -118,10 +119,7 @@ Create `apps/management-api/tsconfig.json`:
   },
   "include": ["./src/**/*.ts", "./src/@types/**/*.d.ts"],
   "exclude": ["node_modules", "dist"],
-  "references": [
-    { "path": "../../packages/helpers" },
-    { "path": "../../packages/orm" }
-  ]
+  "references": [{ "path": "../../packages/helpers" }, { "path": "../../packages/orm" }]
 }
 ```
 
@@ -141,6 +139,7 @@ Create `apps/management-api/tsconfig.prod.json`:
 Delete `src/module-alias-config.ts` and update `src/index.ts`:
 
 **Before:**
+
 ```typescript
 import './module-alias-config';
 
@@ -150,6 +149,7 @@ if (process.env.NODE_ENV !== 'production') {
 ```
 
 **After:**
+
 ```typescript
 if (process.env.NODE_ENV !== 'production') {
   require('@dotenvx/dotenvx').config({ path: '.env' });
@@ -163,6 +163,7 @@ The `@mgmt-api/*` paths are now handled by `tsconfig.json` paths configuration.
 ## Step 5: Update Imports
 
 All imports using `@mgmt-api/*` should work with tsconfig paths. No changes needed to:
+
 - `src/app.ts`
 - `src/lib/auth/index.ts`
 - `src/orm/db/index.ts`
@@ -171,15 +172,29 @@ All imports using `@mgmt-api/*` should work with tsconfig paths. No changes need
 Update workspace package imports:
 
 **In `src/lib/startup/validation.ts`:**
+
 ```typescript
 // Before
-import { isValidUUID, ValidationResult, ValidationSummary, validateRequired, validateOptional } from 'podverse-helpers';
+import {
+  isValidUUID,
+  ValidationResult,
+  ValidationSummary,
+  validateRequired,
+  validateOptional,
+} from 'podverse-helpers';
 
 // After
-import { isValidUUID, ValidationResult, ValidationSummary, validateRequired, validateOptional } from '@podverse/helpers';
+import {
+  isValidUUID,
+  ValidationResult,
+  ValidationSummary,
+  validateRequired,
+  validateOptional,
+} from '@podverse/helpers';
 ```
 
 **In `src/orm/entities/adminAccount.ts`:**
+
 ```typescript
 // Before
 import { generateRandomIdText } from 'podverse-orm';

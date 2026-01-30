@@ -17,14 +17,12 @@ export function ListAlbumNodes({ channels, viewSelected }: Params): React.ReactN
   if (viewSelected === 'rows') {
     return (
       <div key="list" className={styles.listTight}>
-        {
-          channels.map((channel, idx) => (
-            <React.Fragment key={channel.id}>
-              <ListAlbumRow channel={channel} />
-              {idx < channels.length - 1 && <Divider />}
-            </React.Fragment>
-          ))
-        }
+        {channels.map((channel, idx) => (
+          <React.Fragment key={channel.id}>
+            <ListAlbumRow channel={channel} />
+            {idx < channels.length - 1 && <Divider />}
+          </React.Fragment>
+        ))}
       </div>
     );
   }
@@ -32,7 +30,7 @@ export function ListAlbumNodes({ channels, viewSelected }: Params): React.ReactN
   if (viewSelected === 'grid') {
     return (
       <div key="grid" className={styles.grid}>
-        {channels.map(channel => (
+        {channels.map((channel) => (
           <ListAlbumGridNode key={channel.id} channel={channel} />
         ))}
       </div>

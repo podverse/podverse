@@ -1,8 +1,7 @@
-
 'use client';
 
-import { DTOItem, QueryParamsGetManyPartial } from '@podverse/helpers';
-import React from 'react';
+import { DTOItem } from '@podverse/helpers';
+import { QueryParamsGetManyPartial } from '@podverse/helpers-requests';
 import { MainWrapper } from '../../components/Main/MainWrapper';
 import { MainInnerWrapper } from '../../components/Main/MainInnerWrapper';
 import { MainInnerContentWrapper } from '../../components/Main/MainInnerContentWrapper';
@@ -18,7 +17,7 @@ interface EpisodesClientProps {
 
 export function EpisodesClient(props: EpisodesClientProps) {
   const { initialQueryParams, ssrItems, ssrTotalPages } = props;
-  
+
   return (
     <EpisodesContextProvider
       initialQueryParams={initialQueryParams}

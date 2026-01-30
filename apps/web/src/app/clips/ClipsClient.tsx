@@ -1,8 +1,7 @@
-
 'use client';
 
-import { DTOClip, QueryParamsGetManyPartial } from '@podverse/helpers';
-import React from 'react';
+import { DTOClip } from '@podverse/helpers';
+import { QueryParamsGetManyPartial } from '@podverse/helpers-requests';
 import { MainWrapper } from '../../components/Main/MainWrapper';
 import { MainInnerWrapper } from '../../components/Main/MainInnerWrapper';
 import { MainInnerContentWrapper } from '../../components/Main/MainInnerContentWrapper';
@@ -18,7 +17,7 @@ interface ClipsClientProps {
 
 export function ClipsClient(props: ClipsClientProps) {
   const { initialQueryParams, ssrClips, ssrTotalPages } = props;
-  
+
   return (
     <ClipsContextProvider
       initialQueryParams={initialQueryParams}

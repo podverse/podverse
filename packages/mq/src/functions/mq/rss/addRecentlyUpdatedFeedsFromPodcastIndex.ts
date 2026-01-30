@@ -7,17 +7,17 @@ import { ParseRSSFeedAndSaveToDatabaseOptions } from '@podverse/parser';
 
 type MQRSSAddAllRecentlyUpdatedFeedsOptions = MQQueueConfigFunctionParams & {
   sinceRange: number;
-}
+};
 
 export const mqRSSAddRecentlyUpdatedFeedsFromPodcastIndex = async (
   activeMQArtemisService: ActiveMQArtemisService,
   podcastIndexService: PodcastIndexService,
   options: MQRSSAddAllRecentlyUpdatedFeedsOptions,
-  msgOptions: ParseRSSFeedAndSaveToDatabaseOptions,
+  msgOptions: ParseRSSFeedAndSaveToDatabaseOptions
 ) => {
   const sinceRange = options.sinceRange;
   const recentlyUpdatedFeeds = await podcastIndexService.recentGetData(sinceRange);
-  
+
   await activeMQArtemisService.initialize();
 
   try {
@@ -33,7 +33,7 @@ export const mqRSSAddRecentlyUpdatedFeedsFromPodcastIndex = async (
           podcast_index_id: feed.feedId,
           options: msgOptions,
         };
-  
+
         await activeMQArtemisService.sendMessage({
           queueName: options.queueName,
           message,

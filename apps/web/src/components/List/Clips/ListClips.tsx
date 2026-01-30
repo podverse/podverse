@@ -1,7 +1,8 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { CategoryMappingKeys, DTOChannel, DTOClip, DTOItem, QueryParamsItemsType } from '@podverse/helpers';
+import { CategoryMappingKeys, DTOChannel, DTOClip, DTOItem } from '@podverse/helpers';
+import { QueryParamsItemsType } from '@podverse/helpers-requests';
 import React, { useRef } from 'react';
 import { ListClipRow } from './ListClipRow';
 import { CallToActionMessage } from '../../CallToActionMessage/CallToActionMessage';
@@ -24,12 +25,20 @@ type Props = {
   showItemInfo?: boolean;
 };
 
-export const ListClips: React.FC<Props> = ({ page, setPage,
-  channel, item, clips, totalPages, showSubscribeMessage, showItemInfo }) => {
+export const ListClips: React.FC<Props> = ({
+  page,
+  setPage,
+  channel,
+  item,
+  clips,
+  totalPages,
+  showSubscribeMessage,
+  showItemInfo,
+}) => {
   const tInstructions = useTranslations('instructions');
   const tAuthentication = useTranslations('authentication');
   const { setModalAuthLogin } = useModals();
-  
+
   // Track if we should skip scroll on the first effect run (back navigation case)
   const skipScrollOnceRef = useRef(checkBackNavFlag());
 
@@ -41,7 +50,7 @@ export const ListClips: React.FC<Props> = ({ page, setPage,
     }
     scrollMainToTop();
   }, [clips]);
-  
+
   const showCallToAction = showSubscribeMessage;
   const showPagination = !showSubscribeMessage;
 
@@ -54,25 +63,20 @@ export const ListClips: React.FC<Props> = ({ page, setPage,
           onButtonClick={() => setModalAuthLogin({ isOpen: true })}
         />
       )}
-      {
-        showPagination && (
-          <Pagination
-            currentPage={page}
-            totalPages={totalPages}
-            setPage={setPage}>
-            {clips.map((clip) => (
-              <ListClipRow
-                key={clip.id}
-                channel={channel}
-                item={item}
-                clip={clip}
-                showItemInfo={showItemInfo}
-                playlist_id_text={null}
-              />
-            ))}
-          </Pagination>
-        )
-      }
+      {showPagination && (
+        <Pagination currentPage={page} totalPages={totalPages} setPage={setPage}>
+          {clips.map((clip) => (
+            <ListClipRow
+              key={clip.id}
+              channel={channel}
+              item={item}
+              clip={clip}
+              showItemInfo={showItemInfo}
+              playlist_id_text={null}
+            />
+          ))}
+        </Pagination>
+      )}
     </>
   );
 };

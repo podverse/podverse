@@ -13,18 +13,26 @@ export class StatsTrackEventChannelController {
   private static statsTrackEventChannelService = new StatsTrackEventChannelService();
 
   static async create(req: Request, res: Response): Promise<void> {
-    ensureAuthenticated(req, res, async () => {
-      validateBodyObject(createStatsTrackEventChannelSchema, req, res, async () => {
-        const jwtUser = getAuthenticatedUser(req);
-        const { channel_id_text } = req.body;
+    ensureAuthenticated(
+      req,
+      res,
+      async () => {
+        validateBodyObject(createStatsTrackEventChannelSchema, req, res, async () => {
+          const jwtUser = getAuthenticatedUser(req);
+          const { channel_id_text } = req.body;
 
-        try {
-          await StatsTrackEventChannelController.statsTrackEventChannelService._create(jwtUser.id, channel_id_text);
-          res.status(201).json({ message: 'Event logged successfully' });
-        } catch (error) {
-          handleGenericErrorResponse(res, error);
-        }
-      });
-    }, { skipMembershipStatus: false });
+          try {
+            await StatsTrackEventChannelController.statsTrackEventChannelService._create(
+              jwtUser.id,
+              channel_id_text
+            );
+            res.status(201).json({ message: 'Event logged successfully' });
+          } catch (error) {
+            handleGenericErrorResponse(res, error);
+          }
+        });
+      },
+      { skipMembershipStatus: false }
+    );
   }
 }

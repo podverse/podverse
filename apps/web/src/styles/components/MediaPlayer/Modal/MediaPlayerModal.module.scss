@@ -1,4 +1,4 @@
-@use "breakpoints";
+@use '../../../variables/breakpoints';
 
 .mediaPlayerModal {
   max-height: calc(100vh - 3rem);
@@ -14,7 +14,6 @@
   min-height: 0;
   height: 100%;
 }
-
 
 @media (min-width: breakpoints.$breakpoint-lg-min) {
   .mediaPlayerModal {

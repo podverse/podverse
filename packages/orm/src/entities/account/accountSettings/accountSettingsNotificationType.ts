@@ -12,8 +12,9 @@ export class AccountSettingsNotificationType {
 
   @ManyToOne(
     () => AccountSettingsNotification,
-    accountSettingsNotification => accountSettingsNotification.account_settings_notification_types,
-    { onDelete: 'CASCADE' },
+    (accountSettingsNotification) =>
+      accountSettingsNotification.account_settings_notification_types,
+    { onDelete: 'CASCADE' }
   )
   @JoinColumn({ name: 'account_settings_notification_id' })
   account_settings_notification!: AccountSettingsNotification;

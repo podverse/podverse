@@ -1,6 +1,7 @@
 'use client';
 
-import { DTOChannel, DTOItem, getShuffleHash } from '@podverse/helpers';
+import { DTOChannel, DTOItem } from '@podverse/helpers';
+import { getShuffleHash } from '@podverse/helpers-requests';
 import React from 'react';
 import { PlayButtonLarge } from '../../MediaPlayer/Buttons/PlayButtonLarge';
 import { useMediaPlayer } from '../../../contexts/MediaPlayer';
@@ -16,17 +17,16 @@ type LivestreamHeaderPlaySectionProps = {
   channel: DTOChannel;
 };
 
-export const LivestreamHeaderPlaySection: React.FC<LivestreamHeaderPlaySectionProps> = ({ item, channel }) => {
+export const LivestreamHeaderPlaySection: React.FC<LivestreamHeaderPlaySectionProps> = ({
+  item,
+  channel,
+}) => {
   const { mpItem, mpClip, mpItemSoundbite, mpIsPlaying, setMPIsPlaying } = useMediaPlayer();
   const mediaPlayerResourceUpdate = useMediaPlayerResourceUpdate();
   const { autoQueueConfig } = useAutoQueue();
-  
+
   const playButtonOnClick = () => {
-    if (
-      item.id === mpItem?.id
-      && !mpClip
-      && !mpItemSoundbite
-    ) {
+    if (item.id === mpItem?.id && !mpClip && !mpItemSoundbite) {
       setMPIsPlaying(!mpIsPlaying);
     } else {
       mediaPlayerResourceUpdate({
@@ -56,24 +56,20 @@ export const LivestreamHeaderPlaySection: React.FC<LivestreamHeaderPlaySectionPr
   return (
     <div className={styles.playSection}>
       <div className={styles.sectionStart}>
-        <PlayButtonLarge
-          item={item}
-          onClick={playButtonOnClick}
-        />
-        {
-          item.live_item && (
-            <>
-              <LiveItemStatus live_item={item.live_item} />
-              <div className={styles.timeSection}>
-                <ReadableDate date={item.live_item.start_time} />
-                {' • '}
-                <ReadableTime
-                  start={item.live_item.start_time}
-                  end={item.live_item.end_time || null} />
-              </div>
-            </>
-          )
-        }
+        <PlayButtonLarge item={item} onClick={playButtonOnClick} />
+        {item.live_item && (
+          <>
+            <LiveItemStatus live_item={item.live_item} />
+            <div className={styles.timeSection}>
+              <ReadableDate date={item.live_item.start_time} />
+              {' • '}
+              <ReadableTime
+                start={item.live_item.start_time}
+                end={item.live_item.end_time || null}
+              />
+            </div>
+          </>
+        )}
       </div>
     </div>
   );

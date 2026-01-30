@@ -1,23 +1,33 @@
-import React from 'react';
 import z from 'zod';
-import { ApiListResponse, DTOItem, getTotalPages,
-  QUERY_PARAMS_STATS_RANGE_VALUES, QUERY_PARAMS_SUBSCRIBED_MUSIC_TYPE, QUERY_PARAMS_SUBSCRIBED_PARTIAL_SORT,
-  QueryParamsMedium } from '@podverse/helpers';
-  import { cookies } from 'next/headers';
+import { DTOItem, getTotalPages, QueryParamsMedium } from '@podverse/helpers';
+import {
+  ApiListResponse,
+  QUERY_PARAMS_STATS_RANGE_VALUES,
+  QUERY_PARAMS_SUBSCRIBED_MUSIC_TYPE,
+  QUERY_PARAMS_SUBSCRIBED_PARTIAL_SORT,
+} from '@podverse/helpers-requests';
+import { cookies } from 'next/headers';
 import { getSSRAuthService } from '../../utils/auth/ssrAuth';
 import { guardSubscribedSsrFilter, safeSsrListRequest } from '../../utils/filters/ssrFilterGuards';
 import { TracksDropdownConfigCurrentParams, getTracksFilterParams } from './TracksDropdownConfig';
 import { TracksClient } from './TracksClient';
-import { getParsedLocalSettings, TracksFilterDefaults } from '../../utils/localSettings/localSettings';
+import {
+  getParsedLocalSettings,
+  TracksFilterDefaults,
+} from '../../utils/localSettings/localSettings';
 
 const searchParamsSchema = z.object({
-  page: z.string().transform((v) => parseInt(v, 10)).optional().default('1'),
+  page: z
+    .string()
+    .transform((v) => parseInt(v, 10))
+    .optional()
+    .default(1),
   type: z.enum(QUERY_PARAMS_SUBSCRIBED_MUSIC_TYPE).optional().nullable().default(null),
   sort: z.enum(QUERY_PARAMS_SUBSCRIBED_PARTIAL_SORT).optional().nullable().default(null),
   range: z.enum(QUERY_PARAMS_STATS_RANGE_VALUES).optional().nullable().default(null),
 });
 
-type SearchParams = z.infer<typeof searchParamsSchema>
+type SearchParams = z.infer<typeof searchParamsSchema>;
 
 export type TracksPageProps = {
   searchParams: Promise<SearchParams>;
@@ -31,9 +41,12 @@ export default async function TracksPage({ searchParams }: TracksPageProps) {
   const ssrFilterDefaults = ssrLocalSettings.fd?.tracks;
 
   const queryParams = await searchParams;
-  const { currentType, currentSort, currentRange, currentPage } =
-    await parseSearchParams(queryParams, isValidAuthSession, ssrFilterDefaults);
-  
+  const { currentType, currentSort, currentRange, currentPage } = await parseSearchParams(
+    queryParams,
+    isValidAuthSession,
+    ssrFilterDefaults
+  );
+
   const medium: QueryParamsMedium = 'music';
   const response: ApiListResponse<DTOItem> = await safeSsrListRequest(
     () =>
@@ -45,12 +58,17 @@ export default async function TracksPage({ searchParams }: TracksPageProps) {
         range: currentRange,
         category: null,
       }),
-    currentPage,
+    currentPage
   );
 
   const ssrItems = response.data;
-  const ssrTotalPages = getTotalPages(response.meta.count, response.meta.limit, response.data.length, currentPage);
-  
+  const ssrTotalPages = getTotalPages(
+    response.meta.count,
+    response.meta.limit,
+    response.data.length,
+    currentPage
+  );
+
   return (
     <TracksClient
       initialQueryParams={{
@@ -69,7 +87,7 @@ export default async function TracksPage({ searchParams }: TracksPageProps) {
 function parseSearchParams(
   queryParams: SearchParams,
   isAuthenticated: boolean,
-  cookieDefaults?: TracksFilterDefaults,
+  cookieDefaults?: TracksFilterDefaults
 ): TracksDropdownConfigCurrentParams {
   const parsed = searchParamsSchema.safeParse(queryParams);
 
@@ -112,11 +130,13 @@ function parseSearchParams(
     },
   });
 
-  return getTracksFilterParams({
-    page: guarded.page,
-    type: guarded.type ?? 'global',
-    sort: guarded.sort ?? 'recent',
-    range: guarded.range,
-  }, isAuthenticated);
+  return getTracksFilterParams(
+    {
+      page: guarded.page,
+      type: guarded.type ?? 'global',
+      sort: guarded.sort ?? 'recent',
+      range: guarded.range,
+    },
+    isAuthenticated
+  );
 }
-

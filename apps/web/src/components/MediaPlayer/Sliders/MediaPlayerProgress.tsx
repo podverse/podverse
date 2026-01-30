@@ -36,7 +36,9 @@ export const MediaPlayerProgress: React.FC<MediaPlayerProgressProps> = ({
   });
 
   const setProgressFromEvent = (e: MouseEvent | React.MouseEvent<HTMLDivElement>) => {
-    if (!barRef.current || mpDuration === 0) {return;}
+    if (!barRef.current || mpDuration === 0) {
+      return;
+    }
     const rect = barRef.current.getBoundingClientRect();
     const x = (e instanceof MouseEvent ? e.clientX : e.nativeEvent.clientX) - rect.left;
     const percent = Math.min(Math.max(x / rect.width, 0), 1);
@@ -80,36 +82,30 @@ export const MediaPlayerProgress: React.FC<MediaPlayerProgressProps> = ({
         tabIndex={0}
       >
         <div className={styles.customProgressBarInner}>
-          <div
-            className={styles.progressLevel}
-            style={{ width: `${progress * 100}%` }}
-          />
-          <div
-            className={styles.progressRemaining}
-            style={{ width: `${(1 - progress) * 100}%` }}
-          />
+          <div className={styles.progressLevel} style={{ width: `${progress * 100}%` }} />
+          <div className={styles.progressRemaining} style={{ width: `${(1 - progress) * 100}%` }} />
         </div>
-        {
-          (highlightStartPosition !== null && highlightEndPosition !== null) && (
-            <div
-              className={styles.highlightedSection}
-              style={{
-                left: `${highlightStartPosition * 100}%`,
-                width: `${(highlightEndPosition - highlightStartPosition) * 100}%`,
-              }}
-            />
-          )
-        }
+        {highlightStartPosition !== null && highlightEndPosition !== null && (
+          <div
+            className={styles.highlightedSection}
+            style={{
+              left: `${highlightStartPosition * 100}%`,
+              width: `${(highlightEndPosition - highlightStartPosition) * 100}%`,
+            }}
+          />
+        )}
       </div>
       <span className={styles.mediaPlayerProgressDuration}>{formatHHMMSS(mpDuration)}</span>
-      {
-        includeMobileTime && (
-          <div className={styles.mobileTimeWrapper}>
-            <span className={styles.mediaPlayerProgressTimeMobile}>{formatHHMMSS(mpCurrentTime)}</span>
-            <span className={styles.mediaPlayerProgressDurationMobile}>{formatHHMMSS(mpDuration)}</span>
-          </div>
-        )
-      }
+      {includeMobileTime && (
+        <div className={styles.mobileTimeWrapper}>
+          <span className={styles.mediaPlayerProgressTimeMobile}>
+            {formatHHMMSS(mpCurrentTime)}
+          </span>
+          <span className={styles.mediaPlayerProgressDurationMobile}>
+            {formatHHMMSS(mpDuration)}
+          </span>
+        </div>
+      )}
     </div>
   );
 };
@@ -123,13 +119,13 @@ function getHighlightPositions({
   mpItemSoundbite,
   mpItemChapter,
 }: {
-  mpDuration?: number,
-  isClipForm?: boolean,
-  overrideHighlightStartTime?: number | null,
-  overrideHighlightEndTime?: number | null,
-  mpClip?: DTOClip | null,
-  mpItemSoundbite?: { start_time: string | number, duration: string | number } | null,
-  mpItemChapter?: { start_time: string | number, end_time?: string | number | null } | null
+  mpDuration?: number;
+  isClipForm?: boolean;
+  overrideHighlightStartTime?: number | null;
+  overrideHighlightEndTime?: number | null;
+  mpClip?: DTOClip | null;
+  mpItemSoundbite?: { start_time: string | number; duration: string | number } | null;
+  mpItemChapter?: { start_time: string | number; end_time?: string | number | null } | null;
 }) {
   let highlightStartPosition = null;
   let highlightEndPosition = null;

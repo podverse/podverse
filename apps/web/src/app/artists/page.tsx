@@ -1,28 +1,36 @@
+import { getTotalPages, QueryParamsMedium, DTOChannel } from '@podverse/helpers';
 import {
   QUERY_PARAMS_STATS_RANGE_VALUES,
-  getTotalPages, 
-  QueryParamsMedium,
   QUERY_PARAMS_SUBSCRIBED_FULL_SORT,
   ApiListResponse,
-  DTOChannel,
   QUERY_PARAMS_SUBSCRIBED_MUSIC_TYPE,
-} from '@podverse/helpers';
+} from '@podverse/helpers-requests';
 import { cookies } from 'next/headers';
 import { z } from 'zod';
 import { ArtistsClient } from './ArtistsClient';
 import { getSSRAuthService } from '../../utils/auth/ssrAuth';
 import { guardSubscribedSsrFilter, safeSsrListRequest } from '../../utils/filters/ssrFilterGuards';
-import { ArtistsDropdownConfigCurrentParams, getArtistsFilterParams } from './ArtistsDropdownConfig';
-import { getParsedLocalSettings, ArtistsFilterDefaults } from '../../utils/localSettings/localSettings';
+import {
+  ArtistsDropdownConfigCurrentParams,
+  getArtistsFilterParams,
+} from './ArtistsDropdownConfig';
+import {
+  getParsedLocalSettings,
+  ArtistsFilterDefaults,
+} from '../../utils/localSettings/localSettings';
 
 const searchParamsSchema = z.object({
-  page: z.string().transform((v) => parseInt(v, 10)).optional().default('1'),
+  page: z
+    .string()
+    .transform((v) => parseInt(v, 10))
+    .optional()
+    .default(1),
   type: z.enum(QUERY_PARAMS_SUBSCRIBED_MUSIC_TYPE).optional().nullable().default(null),
   sort: z.enum(QUERY_PARAMS_SUBSCRIBED_FULL_SORT).optional().nullable().default(null),
   range: z.enum(QUERY_PARAMS_STATS_RANGE_VALUES).optional().nullable().default(null),
 });
 
-type SearchParams = z.infer<typeof searchParamsSchema>
+type SearchParams = z.infer<typeof searchParamsSchema>;
 
 export type ArtistsPageProps = {
   searchParams: Promise<SearchParams>;
@@ -36,9 +44,12 @@ export default async function ArtistsPage({ searchParams }: ArtistsPageProps) {
   const ssrFilterDefaults = ssrLocalSettings.fd?.artists;
 
   const queryParams = await searchParams;
-  const { currentType, currentSort, currentRange, currentPage } =
-    await parseSearchParams(queryParams, isValidAuthSession, ssrFilterDefaults);
-  
+  const { currentType, currentSort, currentRange, currentPage } = await parseSearchParams(
+    queryParams,
+    isValidAuthSession,
+    ssrFilterDefaults
+  );
+
   const medium: QueryParamsMedium = 'publisher-music';
   const response: ApiListResponse<DTOChannel> = await safeSsrListRequest(
     () =>
@@ -50,12 +61,17 @@ export default async function ArtistsPage({ searchParams }: ArtistsPageProps) {
         range: currentRange,
         category: null,
       }),
-    currentPage,
+    currentPage
   );
 
   const ssrChannels = response.data;
-  const ssrTotalPages = getTotalPages(response.meta.count, response.meta.limit, response.data.length, currentPage);
-  
+  const ssrTotalPages = getTotalPages(
+    response.meta.count,
+    response.meta.limit,
+    response.data.length,
+    currentPage
+  );
+
   return (
     <ArtistsClient
       initialQueryParams={{
@@ -74,7 +90,7 @@ export default async function ArtistsPage({ searchParams }: ArtistsPageProps) {
 function parseSearchParams(
   queryParams: SearchParams,
   isAuthenticated: boolean,
-  cookieDefaults?: ArtistsFilterDefaults,
+  cookieDefaults?: ArtistsFilterDefaults
 ): ArtistsDropdownConfigCurrentParams {
   const parsed = searchParamsSchema.safeParse(queryParams);
 
@@ -117,10 +133,13 @@ function parseSearchParams(
     },
   });
 
-  return getArtistsFilterParams({
-    page: guarded.page,
-    type: guarded.type ?? 'global',
-    sort: guarded.sort ?? 'recent',
-    range: guarded.range,
-  }, isAuthenticated);
+  return getArtistsFilterParams(
+    {
+      page: guarded.page,
+      type: guarded.type ?? 'global',
+      sort: guarded.sort ?? 'recent',
+      range: guarded.range,
+    },
+    isAuthenticated
+  );
 }

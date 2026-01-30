@@ -10,9 +10,14 @@ type ContentAboutAccordion = {
   description?: string;
   channel_persons?: DTOChannelPerson[];
   item_persons?: DTOItemPerson[];
-}
+};
 
-export const ContentAboutAccordion = ({ defaultOpen, description, channel_persons, item_persons }: ContentAboutAccordion) => {
+export const ContentAboutAccordion = ({
+  defaultOpen,
+  description,
+  channel_persons,
+  item_persons,
+}: ContentAboutAccordion) => {
   const content = (
     <div className={styles.wrapper}>
       <ContentAboutDescription description={description} />

@@ -1,10 +1,21 @@
-import { getQueueMediumIdFromType, QueryParamsQueueMedium, SharableStatusEnum } from '@podverse/helpers';
+import {
+  getQueueMediumIdFromType,
+  QueryParamsQueueMedium,
+  SharableStatusEnum,
+} from '@podverse/helpers';
 import { Equal, FindManyOptions, In } from 'typeorm';
 import { StatsAggregatedPlaylist } from '@orm/entities/stats/statsAggregatedPlaylist';
 import { StatsTrackEventPlaylistService } from './statsTrackEventPlaylist';
-import { BaseStatsAggregatedService, STATS_AGGREGATED_SELECT_ALL, UpdateHistoricalOptions } from './baseStatsAggregated';
+import {
+  BaseStatsAggregatedService,
+  STATS_AGGREGATED_SELECT_ALL,
+  UpdateHistoricalOptions,
+} from './baseStatsAggregated';
 
-export class StatsAggregatedPlaylistService extends BaseStatsAggregatedService<StatsAggregatedPlaylist, number> {
+export class StatsAggregatedPlaylistService extends BaseStatsAggregatedService<
+  StatsAggregatedPlaylist,
+  number
+> {
   private statsTrackEventPlaylistService: StatsTrackEventPlaylistService;
 
   constructor() {
@@ -16,7 +27,9 @@ export class StatsAggregatedPlaylistService extends BaseStatsAggregatedService<S
     return 'playlist_id';
   }
 
-  async getMany(config: FindManyOptions<StatsAggregatedPlaylist>): Promise<StatsAggregatedPlaylist[]> {
+  async getMany(
+    config: FindManyOptions<StatsAggregatedPlaylist>
+  ): Promise<StatsAggregatedPlaylist[]> {
     return this.repositoryRead.find(config);
   }
 
@@ -26,7 +39,7 @@ export class StatsAggregatedPlaylistService extends BaseStatsAggregatedService<S
 
   async getManyPublic(
     config: FindManyOptions<StatsAggregatedPlaylist>,
-    queueMediumType: QueryParamsQueueMedium | null,
+    queueMediumType: QueryParamsQueueMedium | null
   ): Promise<StatsAggregatedPlaylist[]> {
     const medium_id = getQueueMediumIdFromType(queueMediumType);
 
@@ -67,7 +80,7 @@ export class StatsAggregatedPlaylistService extends BaseStatsAggregatedService<S
   async getManyPrivate(
     config: FindManyOptions<StatsAggregatedPlaylist>,
     account_id: number,
-    queueMediumType: QueryParamsQueueMedium | null,
+    queueMediumType: QueryParamsQueueMedium | null
   ): Promise<[StatsAggregatedPlaylist[], number]> {
     const medium_id = getQueueMediumIdFromType(queueMediumType);
 
@@ -105,7 +118,10 @@ export class StatsAggregatedPlaylistService extends BaseStatsAggregatedService<S
     });
   }
 
-  async getManyPrivateByPlaylists(playlist_ids: number[], config: FindManyOptions<StatsAggregatedPlaylist>): Promise<[StatsAggregatedPlaylist[], number]> {
+  async getManyPrivateByPlaylists(
+    playlist_ids: number[],
+    config: FindManyOptions<StatsAggregatedPlaylist>
+  ): Promise<[StatsAggregatedPlaylist[], number]> {
     return this.repositoryRead.findAndCount({
       ...config,
       where: {
@@ -118,10 +134,21 @@ export class StatsAggregatedPlaylistService extends BaseStatsAggregatedService<S
   }
 
   async updateAggregatedStats(playlist_id: number, updateAllTime: boolean = false): Promise<void> {
-    await this._updateAggregatedStats(playlist_id, this.statsTrackEventPlaylistService, updateAllTime);
+    await this._updateAggregatedStats(
+      playlist_id,
+      this.statsTrackEventPlaylistService,
+      updateAllTime
+    );
   }
 
-  async updateAggregatedStatsRolling(playlist_id: number, updateHistoricalOptions: UpdateHistoricalOptions): Promise<void> {
-    await this._updateAggregatedStatsRolling(playlist_id, this.statsTrackEventPlaylistService, updateHistoricalOptions);
+  async updateAggregatedStatsRolling(
+    playlist_id: number,
+    updateHistoricalOptions: UpdateHistoricalOptions
+  ): Promise<void> {
+    await this._updateAggregatedStatsRolling(
+      playlist_id,
+      this.statsTrackEventPlaylistService,
+      updateHistoricalOptions
+    );
   }
 }

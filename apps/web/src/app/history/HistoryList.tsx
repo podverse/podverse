@@ -4,8 +4,8 @@ import { useHistoryPageContext } from './HistoryPageContext';
 import { ListHistoryResources } from '../../components/List/Queues/ListHistoryResources';
 
 export const HistoryList: React.FC = () => {
-  const { filterParams, setFilterParams, queueResources, isLoading, showLoginMessage,
-    totalPages } = useHistoryPageContext();
+  const { filterParams, setFilterParams, queueResources, isLoading, showLoginMessage, totalPages } =
+    useHistoryPageContext();
   const { page } = filterParams;
 
   return (

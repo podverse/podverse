@@ -1,7 +1,8 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { DTOChannel, DTOItem, DTOItemSoundbite, getQueueForMedium, getShuffleHash } from '@podverse/helpers';
+import { DTOChannel, DTOItem, DTOItemSoundbite, getQueueForMedium } from '@podverse/helpers';
+import { getShuffleHash } from '@podverse/helpers-requests';
 import React from 'react';
 import { PlayButtonLarge } from '../../MediaPlayer/Buttons/PlayButtonLarge';
 import { useMediaPlayer } from '../../../contexts/MediaPlayer';
@@ -25,7 +26,11 @@ type ItemSoundbiteHeaderPlaySectionProps = {
   item_soundbite: DTOItemSoundbite;
 };
 
-export const ItemSoundbiteHeaderPlaySection: React.FC<ItemSoundbiteHeaderPlaySectionProps> = ({ item_soundbite, item, channel }) => {
+export const ItemSoundbiteHeaderPlaySection: React.FC<ItemSoundbiteHeaderPlaySectionProps> = ({
+  item_soundbite,
+  item,
+  channel,
+}) => {
   const tFeatures = useTranslations('features');
   const tMediaPlayer = useTranslations('media_player');
   const tInstructions = useTranslations('instructions');
@@ -38,7 +43,7 @@ export const ItemSoundbiteHeaderPlaySection: React.FC<ItemSoundbiteHeaderPlaySec
 
   const startTime = item_soundbite.start_time;
   const endTime = `${Number(item_soundbite.start_time) + Number(item_soundbite.duration)}`;
-  
+
   const playButtonOnClick = () => {
     if (item_soundbite.id_text === mpItemSoundbite?.id_text) {
       setMPIsPlaying(!mpIsPlaying);
@@ -79,11 +84,14 @@ export const ItemSoundbiteHeaderPlaySection: React.FC<ItemSoundbiteHeaderPlaySec
     const queue = getQueueForMedium(queues, channel.medium_id);
     if (queue) {
       showToastPromise(
-        apiRequestService.reqQueueResourceItemSoundbiteAddNext(queue.id_text, item_soundbite.id_text),
+        apiRequestService.reqQueueResourceItemSoundbiteAddNext(
+          queue.id_text,
+          item_soundbite.id_text
+        ),
         {
           success: tFeatures('queue.added_to_queue'),
           error: tFeatures('queue.add_error'),
-        },
+        }
       );
     }
   };
@@ -100,11 +108,14 @@ export const ItemSoundbiteHeaderPlaySection: React.FC<ItemSoundbiteHeaderPlaySec
     const queue = getQueueForMedium(queues, channel.medium_id);
     if (queue) {
       showToastPromise(
-        apiRequestService.reqQueueResourceItemSoundbiteAddLast(queue.id_text, item_soundbite.id_text),
+        apiRequestService.reqQueueResourceItemSoundbiteAddLast(
+          queue.id_text,
+          item_soundbite.id_text
+        ),
         {
           success: tFeatures('queue.added_to_queue'),
           error: tFeatures('queue.add_error'),
-        },
+        }
       );
     }
   };
@@ -140,14 +151,15 @@ export const ItemSoundbiteHeaderPlaySection: React.FC<ItemSoundbiteHeaderPlaySec
       showToastPromise(
         apiRequestService.reqQueueResourceItemSoundbiteAddHistory(
           queue.id_text,
-          item_soundbite.id_text, {
+          item_soundbite.id_text,
+          {
             completed: true,
-          },
+          }
         ),
         {
           success: tFeatures('history.marked_as_played'),
           error: tFeatures('history.mark_as_played_error'),
-        },
+        }
       );
     }
   };
@@ -192,23 +204,15 @@ export const ItemSoundbiteHeaderPlaySection: React.FC<ItemSoundbiteHeaderPlaySec
   return (
     <div className={styles.playSection}>
       <div className={styles.sectionStart}>
-        <PlayButtonLarge
-          item_soundbite={item_soundbite}
-          onClick={playButtonOnClick}
-        />
+        <PlayButtonLarge item_soundbite={item_soundbite} onClick={playButtonOnClick} />
         <div className={styles.timeSection}>
           <ReadableDate date={item.pub_date} />
           {item.item_about?.duration ? ' • ' : null}
-          <ReadableTimeRange
-            startTime={startTime}
-            endTime={endTime}
-          />
+          <ReadableTimeRange startTime={startTime} endTime={endTime} />
         </div>
       </div>
       <div className={styles.sectionEnd}>
-        <MoreButton
-          moreButtonMenuItems={moreButtonMenuItems}
-          isLarge />
+        <MoreButton moreButtonMenuItems={moreButtonMenuItems} isLarge />
       </div>
     </div>
   );

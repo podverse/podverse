@@ -6,7 +6,9 @@ export class MembershipController {
   static async getPricing(_req: Request, res: Response): Promise<void> {
     try {
       if (config.premium.signupMode !== 'sign-up') {
-        res.status(400).json({ message: 'Paid premium memberships are not enabled for this server' });
+        res
+          .status(400)
+          .json({ message: 'Paid premium memberships are not enabled for this server' });
         return;
       }
 
@@ -15,7 +17,9 @@ export class MembershipController {
       const costMonthly = config.premium.costMonthly;
       const costAnnually = config.premium.costAnnually;
       const monthlyEquivalentAnnually = costMonthly * 12;
-      const annuallySavingsPercent = Math.floor(((monthlyEquivalentAnnually - costAnnually) / monthlyEquivalentAnnually) * 100);
+      const annuallySavingsPercent = Math.floor(
+        ((monthlyEquivalentAnnually - costAnnually) / monthlyEquivalentAnnually) * 100
+      );
 
       const data = {
         costMonthly,

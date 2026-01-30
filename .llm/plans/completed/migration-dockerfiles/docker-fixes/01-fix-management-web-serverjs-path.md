@@ -3,6 +3,7 @@
 ## Problem
 
 The `management-web` container fails to start with:
+
 ```
 Error: Cannot find module '/opt/app/server.js'
 ```
@@ -24,6 +25,7 @@ Update the `CMD` in `apps/management-web/Dockerfile` to use the correct path for
 ## Implementation
 
 Change line 48 in `apps/management-web/Dockerfile`:
+
 ```dockerfile
 CMD ["node", "apps/management-web/server.js"]
 ```

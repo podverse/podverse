@@ -13,8 +13,5 @@
   },
   "include": ["./src/**/*.ts"],
   "exclude": ["node_modules", "dist"],
-  "references": [
-    { "path": "../helpers" },
-    { "path": "../external-services" }
-  ]
+  "references": [{ "path": "../helpers" }, { "path": "../external-services" }]
 }

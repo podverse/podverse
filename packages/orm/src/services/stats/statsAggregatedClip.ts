@@ -5,14 +5,17 @@ import { BaseStatsAggregatedService, UpdateHistoricalOptions } from './baseStats
 import { FindManyOptions } from 'typeorm';
 import { getActiveFeedWhere } from '@orm/lib/feedFlagHelpers';
 
-export class StatsAggregatedClipService extends BaseStatsAggregatedService<StatsAggregatedClip, number> {
+export class StatsAggregatedClipService extends BaseStatsAggregatedService<
+  StatsAggregatedClip,
+  number
+> {
   private statsTrackEventClipService: StatsTrackEventClipService;
 
   constructor() {
     super(StatsAggregatedClip);
     this.statsTrackEventClipService = new StatsTrackEventClipService();
   }
-  
+
   protected getIdFieldName(): string {
     return 'clip_id';
   }
@@ -20,7 +23,7 @@ export class StatsAggregatedClipService extends BaseStatsAggregatedService<Stats
   async getManyPublic(
     config: FindManyOptions<StatsAggregatedClip>,
     mediumType: QueryParamsMedium | null,
-    category_id: number | null,
+    category_id: number | null
   ): Promise<StatsAggregatedClip[]> {
     return this.repositoryRead.find({
       where: {
@@ -42,7 +45,7 @@ export class StatsAggregatedClipService extends BaseStatsAggregatedService<Stats
   async getManyAndCountPublic(
     config: FindManyOptions<StatsAggregatedClip>,
     mediumType: QueryParamsMedium | null,
-    category_id: number | null,
+    category_id: number | null
   ): Promise<[StatsAggregatedClip[], number]> {
     return this.repositoryRead.findAndCount({
       where: {
@@ -63,7 +66,7 @@ export class StatsAggregatedClipService extends BaseStatsAggregatedService<Stats
 
   async getManyByChannelsAndCountPublic(
     channel_ids: number[],
-    config: FindManyOptions<StatsAggregatedClip>,
+    config: FindManyOptions<StatsAggregatedClip>
   ): Promise<[StatsAggregatedClip[], number]> {
     return this.repositoryRead.findAndCount({
       where: {
@@ -84,7 +87,7 @@ export class StatsAggregatedClipService extends BaseStatsAggregatedService<Stats
 
   async getManyByItemAndCountPublic(
     item_id: number,
-    config: FindManyOptions<StatsAggregatedClip>,
+    config: FindManyOptions<StatsAggregatedClip>
   ): Promise<[StatsAggregatedClip[], number]> {
     return this.repositoryRead.findAndCount({
       where: {
@@ -108,7 +111,14 @@ export class StatsAggregatedClipService extends BaseStatsAggregatedService<Stats
     await this._updateAggregatedStats(clip_id, this.statsTrackEventClipService, updateAllTime);
   }
 
-  async updateAggregatedStatsRolling(clip_id: number, updateHistoricalOptions: UpdateHistoricalOptions): Promise<void> {
-    await this._updateAggregatedStatsRolling(clip_id, this.statsTrackEventClipService, updateHistoricalOptions);
+  async updateAggregatedStatsRolling(
+    clip_id: number,
+    updateHistoricalOptions: UpdateHistoricalOptions
+  ): Promise<void> {
+    await this._updateAggregatedStatsRolling(
+      clip_id,
+      this.statsTrackEventClipService,
+      updateHistoricalOptions
+    );
   }
 }

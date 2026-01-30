@@ -108,7 +108,7 @@ export class ClipService extends BaseManyService<Clip, 'account'> {
   async getManyPublic(
     mediumType: QueryParamsMedium | null,
     category_id: number | null,
-    config: FindManyOptions<Clip>,
+    config: FindManyOptions<Clip>
   ): Promise<Clip[]> {
     const medium_ids = mediumType ? getMediumIdArrayFromType(mediumType) : null;
     return this.repositoryRead.find({
@@ -117,7 +117,10 @@ export class ClipService extends BaseManyService<Clip, 'account'> {
         item: {
           channel: {
             feed: {
-              feed_flag_status: In([FeedFlagStatusStatusEnum.Active, FeedFlagStatusStatusEnum.AlwaysParse]),
+              feed_flag_status: In([
+                FeedFlagStatusStatusEnum.Active,
+                FeedFlagStatusStatusEnum.AlwaysParse,
+              ]),
             },
             ...(medium_ids ? { medium_id: In(medium_ids) } : {}),
             ...(category_id ? { channel_categories: { category_id: Equal(category_id) } } : {}),
@@ -130,7 +133,7 @@ export class ClipService extends BaseManyService<Clip, 'account'> {
 
   async getManyByChannels(
     channel_ids: number[],
-    config: FindManyOptions<Clip>,
+    config: FindManyOptions<Clip>
   ): Promise<[Clip[], number]> {
     return this.repositoryRead.findAndCount({
       where: {
@@ -139,7 +142,10 @@ export class ClipService extends BaseManyService<Clip, 'account'> {
           channel: {
             id: In(channel_ids),
             feed: {
-              feed_flag_status: In([FeedFlagStatusStatusEnum.Active, FeedFlagStatusStatusEnum.AlwaysParse]),
+              feed_flag_status: In([
+                FeedFlagStatusStatusEnum.Active,
+                FeedFlagStatusStatusEnum.AlwaysParse,
+              ]),
             },
           },
         },
@@ -150,7 +156,7 @@ export class ClipService extends BaseManyService<Clip, 'account'> {
 
   async getManyByChannelAndCountPublic(
     channel_id_text: string,
-    config: FindManyOptions<Clip>,
+    config: FindManyOptions<Clip>
   ): Promise<[Clip[], number]> {
     return this.repositoryRead.findAndCount({
       where: {
@@ -158,7 +164,10 @@ export class ClipService extends BaseManyService<Clip, 'account'> {
         item: {
           channel: {
             feed: {
-              feed_flag_status: In([FeedFlagStatusStatusEnum.Active, FeedFlagStatusStatusEnum.AlwaysParse]),
+              feed_flag_status: In([
+                FeedFlagStatusStatusEnum.Active,
+                FeedFlagStatusStatusEnum.AlwaysParse,
+              ]),
             },
             id_text: channel_id_text,
           },
@@ -170,7 +179,7 @@ export class ClipService extends BaseManyService<Clip, 'account'> {
 
   async getManyByItemAndCountPublic(
     item_id_text: string,
-    config: FindManyOptions<Clip>,
+    config: FindManyOptions<Clip>
   ): Promise<[Clip[], number]> {
     return this.repositoryRead.findAndCount({
       where: {
@@ -179,7 +188,10 @@ export class ClipService extends BaseManyService<Clip, 'account'> {
           id_text: item_id_text,
           channel: {
             feed: {
-              feed_flag_status: In([FeedFlagStatusStatusEnum.Active, FeedFlagStatusStatusEnum.AlwaysParse]),
+              feed_flag_status: In([
+                FeedFlagStatusStatusEnum.Active,
+                FeedFlagStatusStatusEnum.AlwaysParse,
+              ]),
             },
           },
         },
@@ -199,7 +211,7 @@ export class ClipService extends BaseManyService<Clip, 'account'> {
 
   async getManyByAccountIdTextAndCount(
     account_id_text: string,
-    config: FindManyOptions<Clip>,
+    config: FindManyOptions<Clip>
   ): Promise<[Clip[], number]> {
     return this.repositoryRead.findAndCount({
       where: {
@@ -209,7 +221,10 @@ export class ClipService extends BaseManyService<Clip, 'account'> {
         item: {
           channel: {
             feed: {
-              feed_flag_status: In([FeedFlagStatusStatusEnum.Active, FeedFlagStatusStatusEnum.AlwaysParse]),
+              feed_flag_status: In([
+                FeedFlagStatusStatusEnum.Active,
+                FeedFlagStatusStatusEnum.AlwaysParse,
+              ]),
             },
           },
         },
@@ -220,7 +235,7 @@ export class ClipService extends BaseManyService<Clip, 'account'> {
 
   async getManyByAccountIdTextPublicAndCount(
     account_id_text: string,
-    config: FindManyOptions<Clip>,
+    config: FindManyOptions<Clip>
   ): Promise<[Clip[], number]> {
     return this.repositoryRead.findAndCount({
       where: {
@@ -231,7 +246,10 @@ export class ClipService extends BaseManyService<Clip, 'account'> {
         item: {
           channel: {
             feed: {
-              feed_flag_status: In([FeedFlagStatusStatusEnum.Active, FeedFlagStatusStatusEnum.AlwaysParse]),
+              feed_flag_status: In([
+                FeedFlagStatusStatusEnum.Active,
+                FeedFlagStatusStatusEnum.AlwaysParse,
+              ]),
             },
           },
         },
@@ -241,7 +259,8 @@ export class ClipService extends BaseManyService<Clip, 'account'> {
   }
 
   async getRandomClip(medium_id: number): Promise<Clip | null> {
-    const query = this.repositoryRead.createQueryBuilder('clip')
+    const query = this.repositoryRead
+      .createQueryBuilder('clip')
       .innerJoin('clip.item', 'item')
       .innerJoin('item.channel', 'channel');
 

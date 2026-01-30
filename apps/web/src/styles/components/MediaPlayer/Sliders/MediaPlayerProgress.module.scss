@@ -1,4 +1,4 @@
-@use "breakpoints";
+@use '../../../variables/breakpoints';
 
 .mediaPlayerProgress {
   display: flex;
@@ -8,14 +8,16 @@
   margin-bottom: var(--spacing-xs);
 }
 
-.mediaPlayerProgressTime, .mediaPlayerProgressTimeMobile {
+.mediaPlayerProgressTime,
+.mediaPlayerProgressTimeMobile {
   color: var(--text-color-primary);
   font-size: var(--font-size-sm);
   min-width: 40px;
   text-align: right;
 }
 
-.mediaPlayerProgressDuration, .mediaPlayerProgressDurationMobile {
+.mediaPlayerProgressDuration,
+.mediaPlayerProgressDurationMobile {
   color: var(--text-color-primary);
   font-size: var(--font-size-sm);
   min-width: 40px;
@@ -66,7 +68,8 @@
     flex-direction: column;
   }
 
-  .mediaPlayerProgressTime, .mediaPlayerProgressDuration {
+  .mediaPlayerProgressTime,
+  .mediaPlayerProgressDuration {
     display: none;
   }
 
@@ -85,7 +88,7 @@
     display: flex;
     justify-content: flex-start;
   }
-  
+
   .mediaPlayerProgressDurationMobile {
     display: flex;
     justify-content: flex-end;

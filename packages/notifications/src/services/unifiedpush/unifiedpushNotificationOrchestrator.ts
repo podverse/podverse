@@ -5,15 +5,15 @@ import { UPSubscription } from './unifiedpushHelpers';
 type UPOrchestratorParams = {
   subscriptions: UPSubscription[];
   finalText: string;
-  body?: string;  // Secondary text (e.g., channel title)
-  image?: string;  // Item/channel artwork for X-Attach
+  body?: string; // Secondary text (e.g., channel title)
+  image?: string; // Item/channel artwork for X-Attach
   link?: string;
   data?: Record<string, unknown>;
 };
 
 export async function unifiedpushNotificationBatchOrchestrator(
   ctx: NotificationsContext,
-  params: UPOrchestratorParams,
+  params: UPOrchestratorParams
 ) {
   const { subscriptions, finalText, body, image, link, data } = params;
 
@@ -25,7 +25,9 @@ export async function unifiedpushNotificationBatchOrchestrator(
     ...(data !== undefined ? { data } : {}),
   };
 
-  console.warn(`[unifiedpushNotificationBatchOrchestrator] Sending to ${subscriptions.length} subscriptions`);
+  console.warn(
+    `[unifiedpushNotificationBatchOrchestrator] Sending to ${subscriptions.length} subscriptions`
+  );
 
   return await sendUPNotificationBatch(ctx, subscriptions, payload);
 }

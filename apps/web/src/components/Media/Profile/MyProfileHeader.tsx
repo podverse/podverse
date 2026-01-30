@@ -25,11 +25,7 @@ export const MyProfileHeader: React.FC<MyProfileHeaderProps> = ({ account }) => 
     <div className={styles.wrapper}>
       <ProfileHeader account={account} />
       <div className={styles.editButtonContainer}>
-        <Button
-          variant="miniGlowWarning"
-          className={styles.editButton}
-          onClick={handleEditClick}
-        >
+        <Button variant="miniGlowWarning" className={styles.editButton} onClick={handleEditClick}>
           {tMisc('edit')}
         </Button>
       </div>

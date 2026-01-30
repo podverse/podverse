@@ -4,9 +4,9 @@ import { ChannelTxt } from '@orm/entities/channel/channelTxt';
 import { BaseManyService } from '@orm/services/base/baseManyService';
 
 type ChannelTxtDto = {
-  purpose: string | null
-  value: string
-}
+  purpose: string | null;
+  value: string;
+};
 
 export class ChannelTxtService extends BaseManyService<ChannelTxt, 'channel'> {
   constructor(transactionalEntityManager?: EntityManager) {

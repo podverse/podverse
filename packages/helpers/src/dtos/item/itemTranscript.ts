@@ -8,11 +8,11 @@ export interface DTOItemTranscript {
 }
 
 export interface TranscriptRow {
-  line?: number
-  startTime: number
-  startTimeFormatted: string | null
-  endTime: number
-  endTimeFormatted: string | null
-  body: string
-  speaker?: string
+  line?: number;
+  startTime: number;
+  startTimeFormatted: string | null;
+  endTime: number;
+  endTimeFormatted: string | null;
+  body: string;
+  speaker?: string;
 }

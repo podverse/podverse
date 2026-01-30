@@ -1,4 +1,3 @@
-import React from 'react';
 import { getTranslations } from 'next-intl/server';
 import { MainHeader } from '../../components/Main/MainHeader';
 import { MainWrapper } from '../../components/Main/MainWrapper';

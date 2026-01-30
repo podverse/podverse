@@ -1,6 +1,5 @@
 'use client';
 
-import React from 'react';
 import { useTranslations } from 'next-intl';
 import { Button } from '../components/Button/Button';
 import styles from '../styles/components/ErrorBoundary/ErrorBoundary.module.scss';
@@ -26,15 +25,13 @@ export default function Error({ error, reset }: ErrorPageProps) {
   return (
     <div className={styles.errorBoundary}>
       <div className={styles.errorBoundaryContent}>
-        <h2 className={styles.errorBoundaryTitle}>
-          {tErrors('boundary_title')}
-        </h2>
-        <p className={styles.errorBoundaryMessage}>
-          {tErrors('boundary_message')}
-        </p>
+        <h2 className={styles.errorBoundaryTitle}>{tErrors('boundary_title')}</h2>
+        <p className={styles.errorBoundaryMessage}>{tErrors('boundary_message')}</p>
         {process.env.NODE_ENV === 'development' && (
           <details className={styles.errorDetails}>
-            <summary className={styles.errorDetailsSummary}>{tErrors('details_development_only')}</summary>
+            <summary className={styles.errorDetailsSummary}>
+              {tErrors('details_development_only')}
+            </summary>
             <pre className={styles.errorDetailsContent}>
               {error.toString()}
               {error.stack && `\n\n${error.stack}`}

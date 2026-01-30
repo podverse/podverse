@@ -18,7 +18,8 @@ export const PlaybackModeButton = () => {
         [cssClass(styles, 'active')]: mpPlaybackMode === 'autoplay-next',
       })}
       onClick={onClick}
-      type="button">
+      type="button"
+    >
       <FaInfinity />
     </button>
   );

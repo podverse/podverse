@@ -20,7 +20,7 @@ export class FeedController {
         const podcast_index_id = getParamRequired(req, 'podcast_index_id');
         const numericId = parseInt(podcast_index_id, 10);
         const data = await FeedController.feedService.getByPodcastIndexId(numericId);
-        
+
         res.json(data || null);
       } catch (error) {
         handleGenericErrorResponse(res, error);

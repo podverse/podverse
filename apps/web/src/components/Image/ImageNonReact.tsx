@@ -13,12 +13,7 @@ interface ImageNonReactProps {
   skipProxy?: boolean;
 }
 
-export const ImageNonReact: React.FC<ImageNonReactProps> = ({
-  src,
-  alt,
-  className,
-  skipProxy,
-}) => {
+export const ImageNonReact: React.FC<ImageNonReactProps> = ({ src, alt, className, skipProxy }) => {
   const [imageError, setImageError] = useState(false);
 
   if (!src || imageError) {
@@ -33,12 +28,5 @@ export const ImageNonReact: React.FC<ImageNonReactProps> = ({
 
   const finalSrc = skipProxy ? src : PROXY.PATH + encodeURIComponent(src);
 
-  return (
-    <img
-      src={finalSrc}
-      alt={alt}
-      className={className}
-      onError={() => setImageError(true)}
-    />
-  );
+  return <img src={finalSrc} alt={alt} className={className} onError={() => setImageError(true)} />;
 };

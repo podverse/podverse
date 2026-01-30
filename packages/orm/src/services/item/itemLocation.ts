@@ -4,10 +4,10 @@ import { ItemLocation } from '@orm/entities/item/itemLocation';
 import { BaseOneService } from '@orm/services/base/baseOneService';
 
 type ItemLocationDto = {
-  geo: string | null
-  osm: string | null
-  name: string | null
-}
+  geo: string | null;
+  osm: string | null;
+  name: string | null;
+};
 
 export class ItemLocationService extends BaseOneService<ItemLocation, 'item'> {
   constructor(transactionalEntityManager?: EntityManager) {

@@ -15,31 +15,22 @@ type ShareArgs = {
   clip?: DTOClip | null;
   item_chapter?: DTOItemChapter | null;
   item_soundbite?: DTOItemSoundbite | null;
-}
+};
 
 type HeaderButtonsProps = {
   channel: DTOChannel;
   shareArgs?: ShareArgs;
   kind: 'podcast' | 'artist' | 'album' | 'playlist';
-}
+};
 
 export const HeaderButtons: React.FC<HeaderButtonsProps> = ({ channel, shareArgs = {}, kind }) => {
   const tFeatures = useTranslations('features');
   const tInfo = useTranslations('info');
   const tValue = useTranslations('value');
 
-  const {
-    setModalShare,
-    setModalFunding,
-    setModalBoost,
-  } = useModals();
+  const { setModalShare, setModalFunding, setModalBoost } = useModals();
 
-  const {
-    item = null,
-    clip = null,
-    item_chapter = null,
-    item_soundbite = null,
-  } = shareArgs;
+  const { item = null, clip = null, item_chapter = null, item_soundbite = null } = shareArgs;
 
   return (
     <div className={styles.buttons}>
@@ -81,7 +72,9 @@ export const HeaderButtons: React.FC<HeaderButtonsProps> = ({ channel, shareArgs
       {(channel?.channel_fundings?.length ?? 0) > 0 && (
         <IconButton
           type="button"
-          onClick={() => setModalFunding({ channel_fundings: channel.channel_fundings || [], item_fundings: [] })}
+          onClick={() =>
+            setModalFunding({ channel_fundings: channel.channel_fundings || [], item_fundings: [] })
+          }
           ariaLabel={tInfo('funding')}
           title={tInfo('funding')}
           color="secondary"

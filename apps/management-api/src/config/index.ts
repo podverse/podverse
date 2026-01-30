@@ -50,7 +50,9 @@ export const config: Config = {
     cookie: {
       domain: process.env.COOKIE_DOMAIN!,
     },
-    allowedCORSOrigins: process.env.API_ALLOWED_CORS_ORIGINS!.split(',').map(origin => origin.trim()),
+    allowedCORSOrigins: process.env
+      .API_ALLOWED_CORS_ORIGINS!.split(',')
+      .map((origin) => origin.trim()),
   },
   database: {
     host: process.env.DB_HOST!,

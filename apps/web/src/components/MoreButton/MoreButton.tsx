@@ -17,29 +17,20 @@ export interface MoreButtonMenuItem {
 export interface MoreButtonProps {
   moreButtonMenuItems: MoreButtonMenuItem[];
   isLarge?: boolean;
-};
+}
 
-export const MoreButton: React.FC<MoreButtonProps> = ({
-  moreButtonMenuItems,
-  isLarge = false,
-}) => {
+export const MoreButton: React.FC<MoreButtonProps> = ({ moreButtonMenuItems, isLarge = false }) => {
   const buttonRef = useRef<HTMLButtonElement>(null);
   const menuRef = useRef<HTMLUListElement>(null);
 
-  const {
-    open,
-    setOpen,
-    focusedIndex,
-    setFocusedIndex,
-    handleButtonKeyDown,
-    handleMenuKeyDown,
-  } = useDropdownKeyboardNavigation({
-    itemCount: moreButtonMenuItems.length,
-    onItemSelect: (idx) => moreButtonMenuItems[idx]?.onClick(),
-    onClose: () => setOpen(false),
-    buttonRef,
-    menuRef,
-  });
+  const { open, setOpen, focusedIndex, setFocusedIndex, handleButtonKeyDown, handleMenuKeyDown } =
+    useDropdownKeyboardNavigation({
+      itemCount: moreButtonMenuItems.length,
+      onItemSelect: (idx) => moreButtonMenuItems[idx]?.onClick(),
+      onClose: () => setOpen(false),
+      buttonRef,
+      menuRef,
+    });
 
   return (
     <div className={styles.dropdown}>
@@ -49,7 +40,7 @@ export const MoreButton: React.FC<MoreButtonProps> = ({
         aria-haspopup="menu"
         aria-expanded={open}
         onClick={() => setOpen((v) => !v)}
-        onKeyDown={e => handleButtonKeyDown(e)}
+        onKeyDown={(e) => handleButtonKeyDown(e)}
         type="button"
       >
         <FaEllipsis />

@@ -9,14 +9,14 @@ export class ItemValue {
   @PrimaryGeneratedColumn()
   id!: number;
 
-  @ManyToOne(() => Item, item => item.id, { onDelete: 'CASCADE' })
+  @ManyToOne(() => Item, (item) => item.id, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'item_id' })
   item!: Item;
 
-  @OneToMany(() => ItemValueRecipient, item_value_recipient => item_value_recipient.item_value)
+  @OneToMany(() => ItemValueRecipient, (item_value_recipient) => item_value_recipient.item_value)
   item_value_recipients!: ItemValueRecipient[];
 
-  @OneToMany(() => ItemValueTimeSplit, item_value_time_split => item_value_time_split.item_value)
+  @OneToMany(() => ItemValueTimeSplit, (item_value_time_split) => item_value_time_split.item_value)
   item_value_time_splits!: ItemValueTimeSplit[];
 
   @Column({ type: 'varchar', length: DATABASE_CONSTANTS.varchar_short })

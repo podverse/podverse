@@ -1,10 +1,14 @@
 import { DTOItem, SelectedLabeledItemEnclosureAndSource } from '@podverse/helpers';
 
-export const checkIfIsAudioFile = (selectedItemEnclosureAndSource: SelectedLabeledItemEnclosureAndSource): boolean => {
+export const checkIfIsAudioFile = (
+  selectedItemEnclosureAndSource: SelectedLabeledItemEnclosureAndSource
+): boolean => {
   return selectedItemEnclosureAndSource.labeledItemEnclosure?.mediaType === 'audio';
 };
 
-export const checkIfIsVideoFile = (selectedItemEnclosureAndSource: SelectedLabeledItemEnclosureAndSource): boolean => {
+export const checkIfIsVideoFile = (
+  selectedItemEnclosureAndSource: SelectedLabeledItemEnclosureAndSource
+): boolean => {
   return selectedItemEnclosureAndSource.labeledItemEnclosure?.mediaType === 'video';
 };
 

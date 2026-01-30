@@ -1,176 +1,70 @@
-import React from 'react';
-import toast, { Toaster, ToastOptions, Toast as ToastType } from 'react-hot-toast';
-import NextLink from 'next/link';
-import styles from '../../styles/components/Toast/Toast.module.scss';
+'use client';
 
-const duration = 4000;
+import React, { useEffect, useState } from 'react';
 
-export function showToast(
-	message: string,
-  type: 'success' | 'error' | 'warning' | 'danger',
-) {
-	if (type === 'success') {
-		toast.success(message, { duration, className: styles.toast });
-	} else if (type === 'error') {
-		toast.error(message, { duration, className: styles.toastDanger });
-	}
+export type { CustomToastProps, ToastOptions } from './ToastImpl';
+
+let implPromise: Promise<typeof import('./ToastImpl')> | null = null;
+
+function getImpl(): Promise<typeof import('./ToastImpl')> {
+  if (!implPromise) {
+    implPromise = import('./ToastImpl');
+  }
+  return implPromise;
 }
 
-export interface CustomToastProps {
-	message: React.ReactNode;
-	linkText: string;
-	linkHref: string;
-	onLinkClick?: () => void;
-	onDismiss?: () => void;
+export function showToast(message: string, type: 'success' | 'error' | 'warning' | 'danger'): void {
+  getImpl().then((m) => m.showToast(message, type));
 }
 
 export function showToastCustom(
-	props: CustomToastProps,
-	type: 'warning' | 'danger',
-	options?: ToastOptions,
-): string {
-	const { message, linkText, linkHref, onLinkClick, onDismiss } = props;
-	const toastClassName = type === 'warning' ? styles.toastWarning : styles.toastDanger;
-
-	return toast.custom(
-		(t: ToastType) => {
-			const handleDismiss = () => {
-				toast.dismiss(t.id);
-				onDismiss?.();
-			};
-
-			const handleLinkClick = (_e: React.MouseEvent<HTMLAnchorElement>) => {
-				onLinkClick?.();
-			};
-
-			return (
-				<div
-					className={`${toastClassName} ${styles.toastCustomWrapper} ${t.visible ? styles.toastCustomWrapperVisible : styles.toastCustomWrapperHidden}`}
-				>
-					<div className={styles.toastContentColumn}>
-						<div>{message}</div>
-						<div>
-							<NextLink
-								href={linkHref}
-								onClick={handleLinkClick}
-								className={styles.toastLink}
-							>
-								{linkText}
-							</NextLink>
-						</div>
-					</div>
-					<button
-						type="button"
-						onClick={handleDismiss}
-						className={styles.toastDismissButton}
-						aria-label="Dismiss"
-					>
-						×
-					</button>
-				</div>
-			);
-		},
-		{
-			duration: Infinity,
-			...options,
-		},
-	);
+  props: import('./ToastImpl').CustomToastProps,
+  type: 'warning' | 'danger',
+  options?: import('./ToastImpl').ToastOptions
+): Promise<string> {
+  return getImpl().then((m) => m.showToastCustom(props, type, options));
 }
 
 export function showToastPromiseWithLoading<T>(
   promise: Promise<T> | (() => Promise<T>),
-  msgs: {
-    loading: string;
-    success: string;
-    error: string;
-  },
-  options?: ToastOptions,
-) {
-  const p = typeof promise === 'function' ? promise() : promise;
-
-  const toastId = toast.loading(msgs.loading, {
-    ...options,
-    className: styles.toast,
-    duration: Infinity,
-  });
-
-  p.then(
-    () => {
-      toast.dismiss(toastId as string);
-      toast.success(msgs.success, {
-        ...options,
-        className: styles.toast,
-        duration,
-      });
-    },
-    () => {
-      toast.dismiss(toastId as string);
-      toast.error(msgs.error, {
-        ...options,
-        className: styles.toast,
-        duration,
-      });
-    },
-  );
-  return p;
+  msgs: { loading: string; success: string; error: string },
+  options?: import('./ToastImpl').ToastOptions
+): Promise<T> {
+  return getImpl().then(async (m) => await m.showToastPromiseWithLoading(promise, msgs, options));
 }
 
 export function showToastPromise<T>(
   promise: Promise<T> | (() => Promise<T>),
-  msgs: {
-    success: string;
-    error: string;
-  },
-  options?: ToastOptions,
-) {
-  const p = typeof promise === 'function' ? promise() : promise;
-
-  p.then(
-    () => {
-      toast.success(msgs.success, {
-        ...options,
-        className: styles.toast,
-        duration,
-      });
-    },
-    () => {
-      toast.error(msgs.error, {
-        ...options,
-        className: styles.toast,
-        duration,
-      });
-    },
-  );
-  return p;
+  msgs: { success: string; error: string },
+  options?: import('./ToastImpl').ToastOptions
+): Promise<T> {
+  return getImpl().then(async (m) => await m.showToastPromise(promise, msgs, options));
 }
 
-/**
- * Shows a loading toast that persists until manually dismissed.
- * Returns the toast ID for later dismissal.
- */
-export function showToastLoading(message: string, options?: ToastOptions): string {
-  return toast.loading(message, {
-    ...options,
-    className: styles.toast,
-    duration: Infinity,
+export function showToastLoading(
+  message: string,
+  options?: import('./ToastImpl').ToastOptions
+): Promise<string> {
+  return getImpl().then((m) => m.showToastLoading(message, options));
+}
+
+export function dismissToast(toastId: string | Promise<string>): void {
+  getImpl().then(async (m) => {
+    const id = await Promise.resolve(toastId);
+    m.dismissToast(id);
   });
 }
 
 /**
- * Dismisses a toast by its ID.
+ * Lazy-loaded Toaster. Renders the real Toaster from ToastImpl after dynamic import.
+ * Keeps react-hot-toast out of the main bundle.
  */
-export function dismissToast(toastId: string): void {
-  toast.dismiss(toastId);
-}
+export function Toast(): React.ReactElement | null {
+  const [ToastImplComponent, setToastImplComponent] = useState<React.FC | null>(null);
 
-export const Toast: React.FC = () => (
-	<Toaster
-		position="top-right"
-		reverseOrder={false}
-		gutter={8}
-		toastOptions={{
-      duration,
-			className: styles.toast,
-		}}
-	/>
-);
+  useEffect(() => {
+    getImpl().then((m) => setToastImplComponent(() => m.Toast));
+  }, []);
+
+  return ToastImplComponent ? <ToastImplComponent /> : null;
+}

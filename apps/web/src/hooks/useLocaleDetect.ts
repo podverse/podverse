@@ -8,14 +8,14 @@ import { DTOAccount } from '@podverse/helpers';
  * 1. Account locale (if user is logged in and has a preference)
  * 2. Cookie locale (if explicitly set by user)
  * 3. Detected locale (from Accept-Language header or default)
- * 
+ *
  * Also syncs the cookie with account locale if they differ.
  */
 export async function useLocaleDetect(ssrLoggedInAccount: DTOAccount | null): Promise<string> {
   const cookieStore = await cookies();
   const detectedLocale = await getLocale();
   let locale = detectedLocale;
-  
+
   const cookieLocale = cookieStore.get('NEXT_LOCALE')?.value;
   const accountLocale = ssrLoggedInAccount?.account_settings?.account_settings_locale?.locale;
 
@@ -25,7 +25,7 @@ export async function useLocaleDetect(ssrLoggedInAccount: DTOAccount | null): Pr
       // Try exact match first
       await import(`../../i18n/originals/${accountLocale}.json`);
       locale = accountLocale;
-      
+
       // Sync cookie with account locale if they differ
       if (cookieLocale !== accountLocale) {
         (await cookies()).set('NEXT_LOCALE', accountLocale, {
@@ -42,7 +42,7 @@ export async function useLocaleDetect(ssrLoggedInAccount: DTOAccount | null): Pr
           await import(`../../i18n/originals/${baseAccountLocale}.json`);
           locale = baseAccountLocale;
         }
-        
+
         // Sync cookie with base locale if they differ
         if (baseAccountLocale && cookieLocale !== baseAccountLocale) {
           (await cookies()).set('NEXT_LOCALE', baseAccountLocale, {

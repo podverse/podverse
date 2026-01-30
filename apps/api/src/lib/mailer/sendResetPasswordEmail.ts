@@ -4,7 +4,11 @@ import { emailTemplate } from '@api/lib/mailer/emailTemplate';
 import { createTransporter } from '@api/lib/mailer/transporter';
 import { loggerService } from '@api/factories/loggerService';
 
-export const sendResetPasswordEmail = async (email: string, _name: string, token: string): Promise<void> => {
+export const sendResetPasswordEmail = async (
+  email: string,
+  _name: string,
+  token: string
+): Promise<void> => {
   if (config.mailer.disabled) {
     loggerService.info('Mailer has been disabled, password reset email will be skipped');
     return Promise.resolve();

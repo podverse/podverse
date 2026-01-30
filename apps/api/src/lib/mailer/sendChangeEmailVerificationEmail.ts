@@ -3,14 +3,19 @@ import { loggerService } from '@api/factories/loggerService';
 import { emailTemplate } from '@api/lib/mailer/emailTemplate';
 import { createTransporter } from '@api/lib/mailer/transporter';
 
-export const sendEmailChangeVerificationEmail = async (pending_email_address: string, token: string): Promise<void> => {
+export const sendEmailChangeVerificationEmail = async (
+  pending_email_address: string,
+  token: string
+): Promise<void> => {
   if (config.mailer.disabled) {
     loggerService.info('Mailer has been disabled, email change verification email will be skipped');
     return;
   }
 
   if (!config.mailer.host) {
-    loggerService.logError('Mailer host is not configured, email change verification email will be skipped');
+    loggerService.logError(
+      'Mailer host is not configured, email change verification email will be skipped'
+    );
     return;
   }
 

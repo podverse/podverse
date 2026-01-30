@@ -28,7 +28,7 @@ export const PodcastIndexFeedInfo: React.FC<PodcastIndexFeedInfoProps> = ({ podc
   const tMembership = useTranslations('membership');
   const [isLoading, setIsLoading] = useState(false);
   const imageUrl = podcastIndexFeed.image || podcastIndexFeed.artwork || null;
-  const description = podcastIndexFeed.description || ''; 
+  const description = podcastIndexFeed.description || '';
   const lastUpdateTime = podcastIndexFeed.lastUpdateTime || null;
   const author = podcastIndexFeed.author || null;
   const locale = useLocale();
@@ -41,20 +41,28 @@ export const PodcastIndexFeedInfo: React.FC<PodcastIndexFeedInfoProps> = ({ podc
 
   useEffect(() => {
     return () => {
-      if (pollIntervalRef.current) {clearInterval(pollIntervalRef.current);}
+      if (pollIntervalRef.current) {
+        clearInterval(pollIntervalRef.current);
+      }
     };
   }, []);
 
   const startPollingForChannel = (podcast_index_id: string | number) => {
-    if (pollIntervalRef.current) {clearInterval(pollIntervalRef.current);}
+    if (pollIntervalRef.current) {
+      clearInterval(pollIntervalRef.current);
+    }
     const idText = String(podcast_index_id);
     pollIntervalRef.current = setInterval(async () => {
-      if (hasRedirectedRef.current) {return;}
+      if (hasRedirectedRef.current) {
+        return;
+      }
       try {
         const ssrChannel = await apiRequestService.reqChannelGetByPodcastIndexId(idText);
         if (ssrChannel?.medium_id && ssrChannel?.id_text) {
           hasRedirectedRef.current = true;
-          if (pollIntervalRef.current) {clearInterval(pollIntervalRef.current);}
+          if (pollIntervalRef.current) {
+            clearInterval(pollIntervalRef.current);
+          }
           redirectToChannel(ssrChannel.medium_id, ssrChannel.id_text);
         }
       } catch {
@@ -71,7 +79,7 @@ export const PodcastIndexFeedInfo: React.FC<PodcastIndexFeedInfoProps> = ({ podc
       });
       return;
     }
-    
+
     setIsLoading(true);
 
     if (podcastIndexFeed?.url && podcastIndexFeed?.id) {
@@ -80,7 +88,7 @@ export const PodcastIndexFeedInfo: React.FC<PodcastIndexFeedInfoProps> = ({ podc
           url: podcastIndexFeed.url,
           podcast_index_id: podcastIndexFeed.id,
         });
-        
+
         startPollingForChannel(podcastIndexFeed.id);
       } catch (error: unknown) {
         const rateLimitErrorHandled = await handleRateLimitAlert(error, locale, tMisc);
@@ -90,7 +98,7 @@ export const PodcastIndexFeedInfo: React.FC<PodcastIndexFeedInfoProps> = ({ podc
           const errorStatus = errorWithResponse?.response?.status;
           const errorData = errorWithResponse?.response?.data;
           const i18nKey = errorData?.i18nKey;
-          
+
           if (errorStatus === 403 && i18nKey) {
             // Extract namespace and key from i18nKey (e.g., "membership.free_trial_not_allowed")
             const [namespace, key] = i18nKey.split('.');
@@ -117,9 +125,7 @@ export const PodcastIndexFeedInfo: React.FC<PodcastIndexFeedInfoProps> = ({ podc
   return (
     <div>
       <div className={styles.header}>
-        <div className={styles.explanation}>
-          {tFeatures('add_feed.add_feed_explanation')}
-        </div>
+        <div className={styles.explanation}>{tFeatures('add_feed.add_feed_explanation')}</div>
         <div className={styles.buttonRow}>
           <Button
             variant="primary"
@@ -143,42 +149,26 @@ export const PodcastIndexFeedInfo: React.FC<PodcastIndexFeedInfoProps> = ({ podc
           </a>
         </div>
       </div>
-      {
-        imageUrl && (
-          <Image
-            src={imageUrl}
-            alt={podcastIndexFeed.title || tMedia('podcast.podcast_image')}
-            width={IMAGES.ADD_FEED.SQUARE.SIZE}
-            height={IMAGES.ADD_FEED.SQUARE.SIZE}
-            className={styles.image}
-          />
-        )
-      }
+      {imageUrl && (
+        <Image
+          src={imageUrl}
+          alt={podcastIndexFeed.title || tMedia('podcast.podcast_image')}
+          width={IMAGES.ADD_FEED.SQUARE.SIZE}
+          height={IMAGES.ADD_FEED.SQUARE.SIZE}
+          className={styles.image}
+        />
+      )}
       <h2 className={styles.title}>{podcastIndexFeed.title}</h2>
       <div className={styles.content}>
-        {
-          author && (
-            <div className={styles.author}>
-              {podcastIndexFeed.author}
-            </div>
-          )
-        }
-        {
-          lastUpdateTime && (
-            <span className={styles.lastUpdateTime}>
-              {tMedia('updated_with_date', {
-                date: formatDateAbbrev(lastUpdateTime, locale),
-              })}
-            </span>
-          )
-        }
-        {
-          description && (
-            <div className={styles.description}>
-              {description}
-            </div>
-          )
-        }
+        {author && <div className={styles.author}>{podcastIndexFeed.author}</div>}
+        {lastUpdateTime && (
+          <span className={styles.lastUpdateTime}>
+            {tMedia('updated_with_date', {
+              date: formatDateAbbrev(lastUpdateTime, locale),
+            })}
+          </span>
+        )}
+        {description && <div className={styles.description}>{description}</div>}
       </div>
     </div>
   );

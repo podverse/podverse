@@ -1,4 +1,4 @@
-@use "breakpoints";
+@use '../../../variables/breakpoints';
 @use '../../../mixins/media-queries' as *;
 
 .playerMobile {

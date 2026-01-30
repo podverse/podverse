@@ -14,18 +14,20 @@ interface Params {
   filterMedium: QueryParamsMedium;
 }
 
-export function ListCombinedChannelNodes({ channels, viewSelected, filterMedium }: Params): React.ReactNode {
+export function ListCombinedChannelNodes({
+  channels,
+  viewSelected,
+  filterMedium,
+}: Params): React.ReactNode {
   if (viewSelected === 'rows') {
     return (
       <div key="list" className={styles.listTight}>
-        {
-          channels.map((channel, idx) => (
-            <React.Fragment key={channel.id}>
-              <ListCombinedChannelRow channel={channel} filterMedium={filterMedium} />
-              {idx < channels.length - 1 && <Divider />}
-            </React.Fragment>
-          ))
-        }
+        {channels.map((channel, idx) => (
+          <React.Fragment key={channel.id}>
+            <ListCombinedChannelRow channel={channel} filterMedium={filterMedium} />
+            {idx < channels.length - 1 && <Divider />}
+          </React.Fragment>
+        ))}
       </div>
     );
   }
@@ -33,8 +35,12 @@ export function ListCombinedChannelNodes({ channels, viewSelected, filterMedium 
   if (viewSelected === 'grid') {
     return (
       <div key="grid" className={styles.grid}>
-        {channels.map(channel => (
-          <ListCombinedChannelGridNode key={channel.id} channel={channel} filterMedium={filterMedium} />
+        {channels.map((channel) => (
+          <ListCombinedChannelGridNode
+            key={channel.id}
+            channel={channel}
+            filterMedium={filterMedium}
+          />
         ))}
       </div>
     );

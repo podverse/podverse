@@ -15,7 +15,7 @@ echo ""
 # 1. Feature type
 echo -e "${CYAN}Select feature type:${NC}"
 select TYPE in feature fix chore docs hotfix release; do
-    [[ -n "$TYPE" ]] && break
+  [[ -n "$TYPE" ]] && break
 done
 
 # 2. Short name
@@ -24,17 +24,17 @@ read -p "Short name (kebab-case, e.g., add-podcast-chapters): " NAME
 
 # Validate kebab-case
 if [[ ! "$NAME" =~ ^[a-z][a-z0-9-]*$ ]]; then
-    echo -e "${YELLOW}⚠️  Name should be kebab-case (lowercase letters, numbers, hyphens)${NC}"
-    read -p "Continue anyway? [y/N]: " -n 1 -r
-    echo ""
-    [[ ! $REPLY =~ ^[Yy]$ ]] && exit 1
+  echo -e "${YELLOW}⚠️  Name should be kebab-case (lowercase letters, numbers, hyphens)${NC}"
+  read -p "Continue anyway? [y/N]: " -n 1 -r
+  echo ""
+  [[ ! $REPLY =~ ^[Yy]$ ]] && exit 1
 fi
 
 # 3. Detect origin and build repo URL
-ORIGIN=$(git remote get-url origin 2>/dev/null || echo "unknown")
+ORIGIN=$(git remote get-url origin 2> /dev/null || echo "unknown")
 IS_FORK="no"
 if [[ "$ORIGIN" != *"podverse/podverse"* ]]; then
-    IS_FORK="yes"
+  IS_FORK="yes"
 fi
 
 # Extract repo URL for issue links (convert git@github.com:user/repo.git to https://github.com/user/repo)
@@ -44,28 +44,28 @@ REPO_URL=$(echo "$ORIGIN" | sed -E 's|git@github.com:|https://github.com/|' | se
 echo ""
 ISSUE_URLS=""
 while true; do
-    if [[ -z "$ISSUE_URLS" ]]; then
-        read -p "GitHub issue number (optional, press Enter to skip): " ISSUE_NUM
-    else
-        read -p "Another issue number? (press Enter to continue): " ISSUE_NUM
-    fi
-    
-    if [[ -z "$ISSUE_NUM" ]]; then
-        break
-    fi
-    
-    # Validate it's a number
-    if [[ ! "$ISSUE_NUM" =~ ^[0-9]+$ ]]; then
-        echo -e "${YELLOW}⚠️  Please enter a number (e.g., 123)${NC}"
-        continue
-    fi
-    
-    ISSUE_URL="$REPO_URL/issues/$ISSUE_NUM"
-    if [[ -z "$ISSUE_URLS" ]]; then
-        ISSUE_URLS="$ISSUE_URL"
-    else
-        ISSUE_URLS="$ISSUE_URLS, $ISSUE_URL"
-    fi
+  if [[ -z "$ISSUE_URLS" ]]; then
+    read -p "GitHub issue number (optional, press Enter to skip): " ISSUE_NUM
+  else
+    read -p "Another issue number? (press Enter to continue): " ISSUE_NUM
+  fi
+
+  if [[ -z "$ISSUE_NUM" ]]; then
+    break
+  fi
+
+  # Validate it's a number
+  if [[ ! "$ISSUE_NUM" =~ ^[0-9]+$ ]]; then
+    echo -e "${YELLOW}⚠️  Please enter a number (e.g., 123)${NC}"
+    continue
+  fi
+
+  ISSUE_URL="$REPO_URL/issues/$ISSUE_NUM"
+  if [[ -z "$ISSUE_URLS" ]]; then
+    ISSUE_URLS="$ISSUE_URL"
+  else
+    ISSUE_URLS="$ISSUE_URLS, $ISSUE_URL"
+  fi
 done
 
 # 5. Create branch
@@ -74,11 +74,11 @@ BRANCH="$TYPE/$NAME"
 # Check if already on a feature branch with uncommitted changes
 CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
 if [[ "$CURRENT_BRANCH" != "develop" && "$CURRENT_BRANCH" != "main" ]]; then
-    echo ""
-    echo -e "${YELLOW}⚠️  You're currently on branch: $CURRENT_BRANCH${NC}"
-    read -p "Create new branch from here? [Y/n]: " -n 1 -r
-    echo ""
-    [[ $REPLY =~ ^[Nn]$ ]] && exit 1
+  echo ""
+  echo -e "${YELLOW}⚠️  You're currently on branch: $CURRENT_BRANCH${NC}"
+  read -p "Create new branch from here? [Y/n]: " -n 1 -r
+  echo ""
+  [[ $REPLY =~ ^[Nn]$ ]] && exit 1
 fi
 
 git checkout -b "$BRANCH"

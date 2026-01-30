@@ -1,14 +1,13 @@
 version: "3"
 
 services:
-
   podverse_nginx_proxy:
     image: jwilder/nginx-proxy
     container_name: podverse_nginx_proxy_ci
     ports:
       - 80:80
       - 443:443
-    volumes:      
+    volumes:
       - vhost:/etc/nginx/vhost.d
       - html:/usr/share/nginx/html
       - /home/user/tools/nginx_webproxy/certificats:/etc/nginx/certs:ro
@@ -29,7 +28,7 @@ services:
   podverse_letsencrypt_nginx:
     image: jrcs/letsencrypt-nginx-proxy-companion
     container_name: podverse_letsencrypt_nginx_ci
-    depends_on: 
+    depends_on:
       - podverse_nginx_proxy
     volumes:
       - vhost:/etc/nginx/vhost.d
@@ -61,7 +60,6 @@ services:
       - nginx-proxy
     environment:
       DOCKER_TLS_CERTDIR: "/certs"
-    environment:
       VIRTUAL_HOST:
       VIRTUAL_PORT: 3000
       LETSENCRYPT_HOST:
@@ -85,17 +83,16 @@ services:
       DOCKER_HOST: "tcp://docker:2376"
       DOCKER_CERT_PATH: "/certs/client"
       DOCKER_TLS_VERIFY: 1
-    volumes:
-      - jenkins-data:/var/jenkins_home
-      - jenkins-docker-certs:/certs/client:ro
-      - $HOME:/home
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-    environment:
       JENKINS_OPTS: "--httpPort=8100"
       VIRTUAL_HOST:
       VIRTUAL_PORT: 8100
       LETSENCRYPT_HOST:
       LETSENCRYPT_EMAIL:
+    volumes:
+      - jenkins-data:/var/jenkins_home
+      - jenkins-docker-certs:/certs/client:ro
+      - $HOME:/home
+      - /var/run/docker.sock:/var/run/docker.sock:ro
     expose:
       - 80
       - 8100

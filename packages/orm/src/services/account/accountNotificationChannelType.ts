@@ -12,7 +12,9 @@ export class AccountNotificationChannelTypeService {
     if (transactionalEntityManager !== undefined) {
       this.transactionalEntityManager = transactionalEntityManager;
     }
-    this.accountNotificationChannelService = new AccountNotificationChannelService(transactionalEntityManager);
+    this.accountNotificationChannelService = new AccountNotificationChannelService(
+      transactionalEntityManager
+    );
   }
 
   private get repository() {
@@ -23,7 +25,7 @@ export class AccountNotificationChannelTypeService {
 
   async getAllByAccountNotificationChannelId(
     account_notification_channel_id: number,
-    config?: FindManyOptions<AccountNotificationChannelType>,
+    config?: FindManyOptions<AccountNotificationChannelType>
   ): Promise<AccountNotificationChannelType[]> {
     return this.repository.find({
       where: { account_notification_channel: { id: account_notification_channel_id } },
@@ -34,11 +36,14 @@ export class AccountNotificationChannelTypeService {
   async create(
     account_id: number,
     channel_id_text: string,
-    type: AccountNotificationTypeEnum,
+    type: AccountNotificationTypeEnum
   ): Promise<AccountNotificationChannelType> {
-    const accountNotificationChannel = await this.accountNotificationChannelService
-      .getByAccountIdAndChannelIdText(account_id, channel_id_text);
-    
+    const accountNotificationChannel =
+      await this.accountNotificationChannelService.getByAccountIdAndChannelIdText(
+        account_id,
+        channel_id_text
+      );
+
     if (!accountNotificationChannel) {
       throw new Error('Account notification channel not found.');
     }
@@ -64,11 +69,14 @@ export class AccountNotificationChannelTypeService {
   async delete(
     account_id: number,
     channel_id_text: string,
-    type: AccountNotificationTypeEnum,
+    type: AccountNotificationTypeEnum
   ): Promise<void> {
-    const accountNotificationChannel = await this.accountNotificationChannelService
-      .getByAccountIdAndChannelIdText(account_id, channel_id_text);
-    
+    const accountNotificationChannel =
+      await this.accountNotificationChannelService.getByAccountIdAndChannelIdText(
+        account_id,
+        channel_id_text
+      );
+
     if (!accountNotificationChannel) {
       throw new Error('Account notification channel not found.');
     }

@@ -3,10 +3,10 @@ interface Service<T, P> {
   deleteAll(parentEntity: P): Promise<void>;
 }
 
-export const handleParsedManyData = async<T, P> (
+export const handleParsedManyData = async <T, P>(
   parentEntity: P,
   service: Service<T, P>,
-  dtos: Partial<T>[],
+  dtos: Partial<T>[]
 ) => {
   if (dtos.length > 0) {
     await service.updateMany(parentEntity, dtos);

@@ -1,4 +1,8 @@
-import { CreateAccountWebPushDeviceParams, UpdateAccountWebPushDeviceParams, DeleteAccountWebPushDeviceParams } from '@podverse/helpers';
+import {
+  CreateAccountWebPushDeviceParams,
+  UpdateAccountWebPushDeviceParams,
+  DeleteAccountWebPushDeviceParams,
+} from '@podverse/helpers';
 import { In } from 'typeorm';
 import { AccountWebPushDevice } from '@orm/entities/account/accountWebPushDevice';
 import { BaseManyService } from '@orm/services/base/baseManyService';
@@ -16,7 +20,10 @@ export class AccountWebPushDeviceService extends BaseManyService<AccountWebPushD
     this.accountNotificationChannelService = new AccountNotificationChannelService();
   }
 
-  async create(account_id: number, params: CreateAccountWebPushDeviceParams): Promise<AccountWebPushDevice> {
+  async create(
+    account_id: number,
+    params: CreateAccountWebPushDeviceParams
+  ): Promise<AccountWebPushDevice> {
     const account = await this.accountService.get(account_id);
     if (!account) {
       throw new Error('Account not found.');
@@ -31,7 +38,7 @@ export class AccountWebPushDeviceService extends BaseManyService<AccountWebPushD
 
   async update(
     account_id: number,
-    params: UpdateAccountWebPushDeviceParams,
+    params: UpdateAccountWebPushDeviceParams
   ): Promise<AccountWebPushDevice> {
     const account = await this.accountService.get(account_id);
     if (!account) {
@@ -45,7 +52,13 @@ export class AccountWebPushDeviceService extends BaseManyService<AccountWebPushD
     const existing = await this.repositoryRead.findOne({ where: { account_id, endpoint } });
     if (existing) {
       const dto: Partial<AccountWebPushDevice> = { account, endpoint, p256dh, auth, locale };
-      return this._update(account, ['endpoint', 'p256dh', 'auth', 'locale'], dto, undefined, existing);
+      return this._update(
+        account,
+        ['endpoint', 'p256dh', 'auth', 'locale'],
+        dto,
+        undefined,
+        existing
+      );
     }
 
     throw new Error('WebPush Device not found for update.');
@@ -66,16 +79,25 @@ export class AccountWebPushDeviceService extends BaseManyService<AccountWebPushD
     throw new Error('WebPush Device not found for deletion.');
   }
 
-  async getWebPushSubscriptionsByChannelIdText(channel_id_text: string): Promise<Array<{
-    endpoint: string;
-    keys: { p256dh: string; auth: string };
-    locale: string;
-  }>> {
-    const notificationChannels = await this.accountNotificationChannelService.getAllByChannelIdText(channel_id_text);
-    const subscriptions: Array<{ endpoint: string; keys: { p256dh: string; auth: string }; locale: string }> = [];
+  async getWebPushSubscriptionsByChannelIdText(channel_id_text: string): Promise<
+    Array<{
+      endpoint: string;
+      keys: { p256dh: string; auth: string };
+      locale: string;
+    }>
+  > {
+    const notificationChannels =
+      await this.accountNotificationChannelService.getAllByChannelIdText(channel_id_text);
+    const subscriptions: Array<{
+      endpoint: string;
+      keys: { p256dh: string; auth: string };
+      locale: string;
+    }> = [];
 
     for (const notificationChannel of notificationChannels) {
-      const webPushDevices = await this.repositoryRead.find({ where: { account_id: notificationChannel.account_id } });
+      const webPushDevices = await this.repositoryRead.find({
+        where: { account_id: notificationChannel.account_id },
+      });
       for (const device of webPushDevices) {
         subscriptions.push({
           endpoint: device.endpoint,
@@ -96,7 +118,9 @@ export class AccountWebPushDeviceService extends BaseManyService<AccountWebPushD
   }
 
   async getAllForAccountIds(account_ids: number[]): Promise<AccountWebPushDevice[]> {
-    if (account_ids.length === 0) {return [];}
+    if (account_ids.length === 0) {
+      return [];
+    }
     return this.repositoryRead.find({ where: { account_id: In(account_ids) } });
   }
 
@@ -108,7 +132,8 @@ export class AccountWebPushDeviceService extends BaseManyService<AccountWebPushD
 
     const { locale } = params;
 
-    await this.repositoryRead.createQueryBuilder()
+    await this.repositoryRead
+      .createQueryBuilder()
       .update(AccountWebPushDevice)
       .set({ locale })
       .where('account_id = :account_id', { account_id })

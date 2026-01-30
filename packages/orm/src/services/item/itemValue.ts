@@ -4,10 +4,10 @@ import { ItemValue } from '../../entities/item/itemValue';
 import { BaseManyService } from '../base/baseManyService';
 
 type ItemValueDto = {
-  type: string
-  method: string
-  suggested: number | null
-}
+  type: string;
+  method: string;
+  suggested: number | null;
+};
 
 export class ItemValueService extends BaseManyService<ItemValue, 'item'> {
   constructor(transactionalEntityManager?: EntityManager) {

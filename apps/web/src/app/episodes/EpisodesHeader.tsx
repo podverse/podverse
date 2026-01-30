@@ -8,7 +8,7 @@ import {
   QueryParamsStatsRange,
   QueryParamsSubscribedPartialSort,
   QueryParamsSubscribedType,
-} from '@podverse/helpers';
+} from '@podverse/helpers-requests';
 import React from 'react';
 import Dropdown from '../../components/Dropdown/Dropdown';
 import { MainHeader } from '../../components/Main/MainHeader';
@@ -24,8 +24,8 @@ export const EpisodesHeader: React.FC = () => {
   const tMedia = useTranslations('media');
   const tFilters = useTranslations('filters');
   const tCategories = useTranslations('categories');
-  const { typeMenuItems, sortMenuItems, rangeMenuItems, showRangeDropdown,
-    } = getEpisodesDropdownConfig({ type, sort, tFilters });
+  const { typeMenuItems, sortMenuItems, rangeMenuItems, showRangeDropdown } =
+    getEpisodesDropdownConfig({ type, sort, tFilters });
   const medium = 'av';
 
   function isItemType(val: string): val is QueryParamsSubscribedType {
@@ -103,18 +103,8 @@ export const EpisodesHeader: React.FC = () => {
 
   const buttonsNode = (
     <>
-      <Dropdown
-        key="type"
-        value={type}
-        menuItems={typeMenuItems}
-        onChange={handleTypeChange}
-      />
-      <Dropdown
-        key="sort"
-        value={sort}
-        menuItems={sortMenuItems}
-        onChange={handleSortChange}
-      />
+      <Dropdown key="type" value={type} menuItems={typeMenuItems} onChange={handleTypeChange} />
+      <Dropdown key="sort" value={sort} menuItems={sortMenuItems} onChange={handleSortChange} />
       {showRangeDropdown && range && (
         <Dropdown
           key="range"
@@ -123,21 +113,13 @@ export const EpisodesHeader: React.FC = () => {
           onChange={handleRangeChange}
         />
       )}
-      <ViewSelector
-        viewSelected={viewSelected}
-        setViewSelected={setViewSelected}
-      />
+      <ViewSelector viewSelected={viewSelected} setViewSelected={setViewSelected} />
     </>
   );
 
-  const headerTitle = filterParams.category ?
-    `${tMedia('podcast.episodes')} > ${tCategories(filterParams.category)}` :
-    tMedia('podcast.episodes');
+  const headerTitle = filterParams.category
+    ? `${tMedia('podcast.episodes')} > ${tCategories(filterParams.category)}`
+    : tMedia('podcast.episodes');
 
-  return (
-    <MainHeader
-      title={headerTitle}
-      buttonsNode={buttonsNode}
-    />
-  );
+  return <MainHeader title={headerTitle} buttonsNode={buttonsNode} />;
 };

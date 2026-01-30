@@ -12,15 +12,13 @@ export default async function MyProfilePage() {
 
   try {
     const ssrAccount = await ssrApiRequestService.reqAuthMe();
-    
+
     if (!ssrAccount) {
       redirect('/');
       return;
     }
 
-  return (
-      <MyProfileClient ssrAccount={ssrAccount} />
-  );
+    return <MyProfileClient ssrAccount={ssrAccount} />;
   } catch {
     redirect('/');
   }

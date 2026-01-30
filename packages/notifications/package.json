@@ -1,6 +1,6 @@
 {
   "name": "@podverse/notifications",
-  "version": "5.2.2",
+  "version": "5.2.3",
   "description": "Push notification helper module for Podverse use cases",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -11,7 +11,7 @@
     "build": "npm run lint && tsc",
     "build:prod": "tsc",
     "build:watch": "tsc --build --watch --preserveWatchOutput",
-    "lint": "eslint ./src",
+    "lint": "eslint ./src --max-warnings 0",
     "lint:fix": "eslint ./src --fix",
     "clean": "rm -rf dist",
     "type-check": "tsc --noEmit"
@@ -23,7 +23,9 @@
   "dependencies": {
     "@podverse/external-services": "*",
     "@podverse/helpers": "*",
-    "web-push": "^3.6.7"
+    "web-push": "^3.6.7",
+    "@podverse/helpers-backend": "*",
+    "@podverse/helpers-validation": "*"
   },
   "devDependencies": {
     "@types/web-push": "^3.6.4"

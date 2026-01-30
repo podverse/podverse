@@ -1,6 +1,6 @@
 {
   "name": "@podverse/parser",
-  "version": "5.2.2",
+  "version": "5.2.3",
   "description": "RSS/Atom feed parser for Podverse",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -10,8 +10,8 @@
   "scripts": {
     "build": "npm run lint && tsc && tsc-alias",
     "build:prod": "tsc && tsc-alias",
-    "build:watch": "tsc --build --watch --preserveWatchOutput",
-    "lint": "eslint ./src",
+    "build:watch": "tsc --build --watch --preserveWatchOutput & tsc-alias --watch",
+    "lint": "eslint ./src --max-warnings 0",
     "lint:fix": "eslint ./src --fix",
     "clean": "rm -rf dist",
     "type-check": "tsc --noEmit"
@@ -23,6 +23,9 @@
   "dependencies": {
     "@podverse/external-services": "*",
     "@podverse/helpers": "*",
+    "@podverse/helpers-backend": "*",
+    "@podverse/helpers-requests": "*",
+    "@podverse/helpers-validation": "*",
     "@podverse/orm": "*",
     "podverse-partytime": "^5.0.0"
   },

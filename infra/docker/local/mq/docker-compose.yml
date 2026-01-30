@@ -6,20 +6,19 @@ networks:
     external: true
 
 services:
-
   podverse_local_mq:
     image: apache/activemq-artemis:2.37.0
     container_name: podverse_local_mq
     env_file:
       - ../../../config/local/mq.env
     ports:
-      - 127.0.0.1:5672:5672   # AMQP 1.0
-      - 127.0.0.1:8161:8161   # Web console
+      - 127.0.0.1:5672:5672 # AMQP 1.0
+      - 127.0.0.1:8161:8161 # Web console
     networks:
       - podverse_local_network
     restart: unless-stopped
     logging:
-      driver: 'json-file'
+      driver: "json-file"
       options:
-        max-file: '1'
-        max-size: '50m'
+        max-file: "1"
+        max-size: "50m"

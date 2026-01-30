@@ -9,11 +9,13 @@ The web app is running and serving pages at `localhost:3000`, but all CSS files 
 The issue is likely related to how Next.js standalone builds handle static files when using `outputFileTracingRoot` in a monorepo structure.
 
 Current Dockerfile structure:
+
 - Copies `.next/standalone` to `/opt/app/`
 - Copies `.next/static` to `/opt/app/.next/static` (separate COPY command)
 - Runs `node apps/web/server.js`
 
 With `outputFileTracingRoot: path.join(__dirname, '../../')` in `next.config.ts`, the standalone build structure includes:
+
 - `apps/web/server.js` (the server entry point)
 - Static files should be relative to where the server runs
 
@@ -62,6 +64,7 @@ The fix will depend on the actual structure of the standalone build output.
 ## Testing
 
 After fixing, verify:
+
 - CSS files load correctly (check browser Network tab)
 - All static assets (JS, CSS, images) are accessible
 - Page renders with proper styling

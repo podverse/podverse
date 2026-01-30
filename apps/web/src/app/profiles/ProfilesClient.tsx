@@ -1,7 +1,6 @@
 'use client';
 
 import { DTOAccount } from '@podverse/helpers';
-import React from 'react';
 import { ProfilesContextProvider, ProfilesQueryParams } from './ProfilesContext';
 import { MainWrapper } from '../../components/Main/MainWrapper';
 import { ProfilesHeader } from './ProfilesHeader';
@@ -18,7 +17,7 @@ interface ProfilesClientProps {
 
 export function ProfilesClient(props: ProfilesClientProps) {
   const { initialQueryParams, ssrAccounts, ssrTotalPages } = props;
-  
+
   return (
     <ProfilesContextProvider
       initialQueryParams={initialQueryParams}

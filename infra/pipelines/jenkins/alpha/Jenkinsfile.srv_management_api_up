@@ -1,0 +1,77 @@
+pipeline {
+    // Maps to <assignedNode>pv-alpha-srv</assignedNode>
+    agent {
+        label 'pv-alpha-srv'
+    }
+
+    // Maps to <concurrentBuild>false</concurrentBuild>
+    options {
+        disableConcurrentBuilds()
+        timestamps()
+    }
+
+    parameters {
+        string(
+            name: 'IMAGE_VERSION', 
+            defaultValue: 'alpha', 
+            description: 'Specify the podverse_management_api alpha docker image version.'
+        )
+        
+        choice(
+            name: 'GHCR_IMAGE_PATH', 
+            choices: ['podverse/podverse/management-api'], 
+            description: 'The GHCR path the images are hosted at.'
+        )
+
+        string(
+            name: 'GHCR_REGISTRY_TOKEN',
+            defaultValue: 'ghcr_pat_read_only_packages',
+            description: 'The Jenkins credential ID containing the GHCR PAT'
+        )
+    }
+
+    stages {
+        stage('Prepare Configuration') {
+            steps {
+                script {
+                    // Maps to 'pushd /opt/podverse/infra/docker/alpha/management-api'
+                    dir('/opt/podverse/infra/docker/alpha/management-api') {
+                        // We use a multi-line shell script to preserve the logic from the XML
+                        def apiVersion
+                        if (params.IMAGE_VERSION == 'alpha') {
+                            withEnv(["GHCR_IMAGE_PATH=${params.GHCR_IMAGE_PATH}"]) {
+                                withCredentials([string(credentialsId: params.GHCR_REGISTRY_TOKEN, variable: 'GHCR_REGISTRY_TOKEN')]) {
+                                    apiVersion = sh(script: '/opt/podverse/scripts/ghcr/getLatestAlphaTag.sh', returnStdout: true).trim()
+                                }
+                            }
+                            if (!apiVersion) {
+                                error('ERROR: No alpha tag found from getLatestAlphaTag.sh')
+                            }
+                        } else {
+                            apiVersion = params.IMAGE_VERSION
+                        }
+
+                        echo "Using MANAGEMENT_API_VERSION=${apiVersion}"
+
+                        sh '''#!/bin/bash
+                            set -euo pipefail
+                            sed -e "s|REPLACE_WITH_MANAGEMENT_API_VERSION|''' + apiVersion + '''|g" docker-compose.yml.template > docker-compose.yml
+                        '''
+                    }
+                }
+            }
+        }
+
+        stage('Start Alpha Management API') {
+            steps {
+                script {
+                    // Maps to 'pushd /opt/podverse'
+                    dir('/opt/podverse') {
+                        // Maps to 'make alpha_management_api_up'
+                        sh 'make alpha_management_api_up'
+                    }
+                }
+            }
+        }
+    }
+}

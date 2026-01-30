@@ -10,8 +10,10 @@ export const ModalBoost: React.FC = () => {
   const { modalBoost, setModalBoost } = useModals();
   const tValue = useTranslations('value');
   const header = tValue('boost');
-  
-  if (!modalBoost.channel) {return null;}
+
+  if (!modalBoost.channel) {
+    return null;
+  }
   const isOpen = !!modalBoost.channel;
 
   return (
@@ -20,11 +22,9 @@ export const ModalBoost: React.FC = () => {
       onClose={() => setModalBoost({ channel: null, item: null })}
       header={header}
       ariaLabel={header}
-      modalContentMaxWidth={500}>
-      <BoostForm
-        channel={modalBoost.channel}
-        item={modalBoost.item}
-      />
+      modalContentMaxWidth={500}
+    >
+      <BoostForm channel={modalBoost.channel} item={modalBoost.item} />
     </Modal>
   );
 };

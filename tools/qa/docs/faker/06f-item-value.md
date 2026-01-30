@@ -81,8 +81,11 @@ export class ItemValueGenerator {
   private timeSplitRecipientIdCounter = 1;
   private timeSplitRemoteItemIdCounter = 1;
   private mediaServerBase = 'http://localhost:2111';
-  
-  generate(item: GeneratedItem, itemDuration: number): {
+
+  generate(
+    item: GeneratedItem,
+    itemDuration: number
+  ): {
     value: GeneratedItemValue | null;
     recipients: GeneratedItemValueRecipient[];
     timeSplits: GeneratedItemValueTimeSplit[];
@@ -91,17 +94,17 @@ export class ItemValueGenerator {
   } {
     // 30% of items have value
     if (!faker.datatype.boolean({ probability: 0.3 })) {
-      return { 
-        value: null, 
-        recipients: [], 
-        timeSplits: [], 
-        timeSplitRecipients: [], 
-        timeSplitRemoteItems: [] 
+      return {
+        value: null,
+        recipients: [],
+        timeSplits: [],
+        timeSplitRecipients: [],
+        timeSplitRemoteItems: [],
       };
     }
-    
+
     const valueId = this.valueIdCounter++;
-    
+
     const value: GeneratedItemValue = {
       id: valueId,
       item_id: item.id,
@@ -109,36 +112,40 @@ export class ItemValueGenerator {
       method: 'keysend',
       suggested: faker.datatype.boolean({ probability: 0.5 })
         ? faker.number.float({ min: 0.00001, max: 0.001, fractionDigits: 8 })
-        : null
+        : null,
     };
-    
+
     // Generate recipients
     const recipients = this.generateRecipients(valueId);
-    
+
     // Generate time splits if channel supports it
     const timeSplits: GeneratedItemValueTimeSplit[] = [];
     const timeSplitRecipients: GeneratedItemValueTimeSplitRecipient[] = [];
     const timeSplitRemoteItems: GeneratedItemValueTimeSplitRemoteItem[] = [];
-    
+
     if (item.channelHasValueTimeSplits && faker.datatype.boolean({ probability: 0.5 })) {
       // Generate 1-3 time splits
       const splitCount = faker.number.int({ min: 1, max: 3 });
       let currentTime = faker.number.float({ min: 0, max: itemDuration / 4 });
-      
+
       for (let i = 0; i < splitCount; i++) {
         const timeSplitId = this.timeSplitIdCounter++;
         const splitDuration = faker.number.float({ min: 30, max: 300 });
         const isRemoteItem = faker.datatype.boolean({ probability: 0.5 });
-        
+
         timeSplits.push({
           id: timeSplitId,
           item_value_id: valueId,
           start_time: currentTime.toFixed(2),
           duration: splitDuration.toFixed(2),
-          remote_start_time: isRemoteItem ? faker.number.float({ min: 0, max: 60 }).toFixed(2) : '0.00',
-          remote_percentage: isRemoteItem ? faker.number.float({ min: 50, max: 100 }).toFixed(2) : '100.00'
+          remote_start_time: isRemoteItem
+            ? faker.number.float({ min: 0, max: 60 }).toFixed(2)
+            : '0.00',
+          remote_percentage: isRemoteItem
+            ? faker.number.float({ min: 50, max: 100 }).toFixed(2)
+            : '100.00',
         });
-        
+
         if (isRemoteItem) {
           // Add remote item reference
           timeSplitRemoteItems.push({
@@ -147,35 +154,35 @@ export class ItemValueGenerator {
             feed_guid: faker.string.uuid().slice(0, DATABASE_CONSTANTS.varchar_url),
             feed_url: `${this.mediaServerBase}/rss/${faker.number.int({ min: 1, max: 1000 })}.xml`,
             item_guid: faker.string.uuid().slice(0, DATABASE_CONSTANTS.varchar_normal),
-            title: null
+            title: null,
           });
         } else {
           // Add split recipients
           const splitRecipients = this.generateTimeSplitRecipients(timeSplitId);
           timeSplitRecipients.push(...splitRecipients);
         }
-        
+
         currentTime += splitDuration + faker.number.float({ min: 60, max: itemDuration / 4 });
         if (currentTime > itemDuration) break;
       }
     }
-    
+
     return { value, recipients, timeSplits, timeSplitRecipients, timeSplitRemoteItems };
   }
-  
+
   private generateRecipients(valueId: number): GeneratedItemValueRecipient[] {
     const recipients: GeneratedItemValueRecipient[] = [];
     const count = faker.number.int({ min: 2, max: 5 });
     let remainingSplit = 100;
-    
+
     for (let i = 0; i < count; i++) {
       const isLast = i === count - 1;
-      const split = isLast 
-        ? remainingSplit 
+      const split = isLast
+        ? remainingSplit
         : faker.number.int({ min: 5, max: Math.min(50, remainingSplit - (count - i - 1) * 5) });
-      
+
       remainingSplit -= split;
-      
+
       recipients.push({
         id: this.recipientIdCounter++,
         item_value_id: valueId,
@@ -185,32 +192,30 @@ export class ItemValueGenerator {
         name: faker.datatype.boolean({ probability: 0.7 })
           ? faker.person.fullName().slice(0, DATABASE_CONSTANTS.varchar_normal)
           : null,
-        custom_key: faker.datatype.boolean({ probability: 0.2 })
-          ? faker.string.numeric(8)
-          : null,
+        custom_key: faker.datatype.boolean({ probability: 0.2 }) ? faker.string.numeric(8) : null,
         custom_value: faker.datatype.boolean({ probability: 0.2 })
           ? faker.string.alphanumeric(20)
           : null,
-        fee: i === 0 && faker.datatype.boolean({ probability: 0.2 })
+        fee: i === 0 && faker.datatype.boolean({ probability: 0.2 }),
       });
     }
-    
+
     return recipients;
   }
-  
+
   private generateTimeSplitRecipients(timeSplitId: number): GeneratedItemValueTimeSplitRecipient[] {
     const recipients: GeneratedItemValueTimeSplitRecipient[] = [];
     const count = faker.number.int({ min: 1, max: 3 });
     let remainingSplit = 100;
-    
+
     for (let i = 0; i < count; i++) {
       const isLast = i === count - 1;
-      const split = isLast 
-        ? remainingSplit 
+      const split = isLast
+        ? remainingSplit
         : faker.number.int({ min: 20, max: Math.min(60, remainingSplit - (count - i - 1) * 20) });
-      
+
       remainingSplit -= split;
-      
+
       recipients.push({
         id: this.timeSplitRecipientIdCounter++,
         item_value_time_split_id: timeSplitId,
@@ -222,10 +227,10 @@ export class ItemValueGenerator {
           : null,
         custom_key: null,
         custom_value: null,
-        fee: false
+        fee: false,
       });
     }
-    
+
     return recipients;
   }
 }
@@ -233,10 +238,10 @@ export class ItemValueGenerator {
 
 ## Summary
 
-| Entity | Count for baseCount=100 |
-|--------|------------------------|
-| ItemValue | ~60 (30% have value) |
-| ItemValueRecipient | ~180 (2-5 per value) |
-| ItemValueTimeSplit | ~45 (50% of value items have 1-3) |
-| ItemValueTimeSplitRecipient | ~45 (1-3 per non-remote split) |
-| ItemValueTimeSplitRemoteItem | ~22 (50% of splits are remote) |
+| Entity                       | Count for baseCount=100           |
+| ---------------------------- | --------------------------------- |
+| ItemValue                    | ~60 (30% have value)              |
+| ItemValueRecipient           | ~180 (2-5 per value)              |
+| ItemValueTimeSplit           | ~45 (50% of value items have 1-3) |
+| ItemValueTimeSplitRecipient  | ~45 (1-3 per non-remote split)    |
+| ItemValueTimeSplitRemoteItem | ~22 (50% of splits are remote)    |

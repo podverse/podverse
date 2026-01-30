@@ -1,8 +1,9 @@
 'use client';
 
 import { useParams } from 'next/navigation';
-import { DTOClip, DTOItem, DTOItemSoundbite, getTotalPages, QueryParamsChannel } from '@podverse/helpers';
-import React, { createContext, useContext, useState, ReactNode, useRef } from 'react';
+import { DTOClip, DTOItem, DTOItemSoundbite, getTotalPages } from '@podverse/helpers';
+import { QueryParamsChannel } from '@podverse/helpers-requests';
+import { createContext, useContext, useState, ReactNode, useRef } from 'react';
 import { apiRequestService } from '../../../factories/apiRequestService';
 import { useAccount } from '../../../contexts/Account';
 import { checkBackNavFlag } from '../../../contexts/Navigation';
@@ -27,23 +28,23 @@ interface PodcastContextType {
   itemSoundbites: DTOItemSoundbite[];
   setItemSoundbites: (itemSoundbites: DTOItemSoundbite[]) => void;
   clips: DTOClip[];
-  setClips: (clips: DTOClip[]) => void;  
+  setClips: (clips: DTOClip[]) => void;
   totalPages: number;
   setTotalPages: (totalPages: number) => void;
   isLoading: boolean;
   setIsLoading: (isLoading: boolean) => void;
-};
+}
 
 const PodcastContext = createContext<PodcastContextType | undefined>(undefined);
 
 interface PodcastContextProviderProps {
-  children: ReactNode,
-  initialQueryParams: QueryParamsChannel,
-  ssrItemsWithLiveItem: DTOItem[],
-  ssrItemSoundbites?: DTOItemSoundbite[],
-  ssrItems: DTOItem[],
-  ssrClips: DTOClip[],
-  ssrTotalPages: number
+  children: ReactNode;
+  initialQueryParams: QueryParamsChannel;
+  ssrItemsWithLiveItem: DTOItem[];
+  ssrItemSoundbites?: DTOItemSoundbite[];
+  ssrItems: DTOItem[];
+  ssrClips: DTOClip[];
+  ssrTotalPages: number;
 }
 
 export const PodcastContextProvider = ({
@@ -56,34 +57,32 @@ export const PodcastContextProvider = ({
   ssrTotalPages,
 }: PodcastContextProviderProps) => {
   const params = useParams();
-  
-  if (!params.channel_id) {return;}
+
+  if (!params.channel_id) {
+    return;
+  }
   const channel_id = params.channel_id as string;
   const routeKey = `podcast-${channel_id}`;
-  
+
   // Use synchronous sessionStorage check instead of async React state
   const isBackNav = checkBackNavFlag();
-  
+
   // Check for cached state on back navigation
-  const cachedState = isBackNav 
-    ? getPageState<QueryParamsChannel, PodcastCachedData>(routeKey) 
+  const cachedState = isBackNav
+    ? getPageState<QueryParamsChannel, PodcastCachedData>(routeKey)
     : null;
   const restoredFromCacheRef = useRef(!!cachedState?.data);
-  
+
   const [filterParams, setFilterParams] = useState<QueryParamsChannel>(
-    cachedState?.filterParams ?? initialQueryParams,
+    cachedState?.filterParams ?? initialQueryParams
   );
-  const [items, setItems] = useState<DTOItem[]>(
-    cachedState?.data?.items ?? ssrItems ?? [],
-  );
+  const [items, setItems] = useState<DTOItem[]>(cachedState?.data?.items ?? ssrItems ?? []);
   const [itemSoundbites, setItemSoundbites] = useState<DTOItemSoundbite[]>(
-    cachedState?.data?.itemSoundbites ?? ssrItemSoundbites ?? [],
+    cachedState?.data?.itemSoundbites ?? ssrItemSoundbites ?? []
   );
-  const [clips, setClips] = useState<DTOClip[]>(
-    cachedState?.data?.clips ?? ssrClips ?? [],
-  );
+  const [clips, setClips] = useState<DTOClip[]>(cachedState?.data?.clips ?? ssrClips ?? []);
   const [totalPages, setTotalPages] = useState<number>(
-    cachedState?.data?.totalPages ?? ssrTotalPages ?? 1,
+    cachedState?.data?.totalPages ?? ssrTotalPages ?? 1
   );
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const { loggedInAccount } = useAccount();
@@ -122,20 +121,24 @@ export const PodcastContextProvider = ({
         range: filterParams.range,
       });
 
-      const response = await apiRequestService.reqItemGetManyByChannel(
-        {
-          idOrIdText: channel_id,
-          page: currentPage,
-          sort: currentSort,
-          range: currentRange,
-        },
+      const response = await apiRequestService.reqItemGetManyByChannel({
+        idOrIdText: channel_id,
+        page: currentPage,
+        sort: currentSort,
+        range: currentRange,
+      });
+
+      const items =
+        ssrItemsWithLiveItem.length > 0 && filterParams.page === 1
+          ? [...ssrItemsWithLiveItem, ...response.data]
+          : response.data;
+
+      const totalPages = getTotalPages(
+        response.meta.count,
+        response.meta.limit,
+        response.data.length,
+        currentPage
       );
-
-      const items = ssrItemsWithLiveItem.length > 0 && filterParams.page === 1
-        ? [...ssrItemsWithLiveItem, ...response.data]
-        : response.data;
-
-      const totalPages = getTotalPages(response.meta.count, response.meta.limit, response.data.length, currentPage);
       setTotalPages(totalPages);
       setItems(items);
     }
@@ -148,15 +151,17 @@ export const PodcastContextProvider = ({
         range: filterParams.range,
       });
 
-      const response = await apiRequestService.reqItemSoundbiteGetManyByChannelIdText(
-        channel_id,
-        {
-          page: filterParams.page,
-          sort: currentSort !== 'top' ? currentSort : 'recent',
-        },
-      );
+      const response = await apiRequestService.reqItemSoundbiteGetManyByChannelIdText(channel_id, {
+        page: filterParams.page,
+        sort: currentSort !== 'top' ? currentSort : 'recent',
+      });
 
-      const totalPages = getTotalPages(response.meta.count, response.meta.limit, response.data.length, filterParams.page);
+      const totalPages = getTotalPages(
+        response.meta.count,
+        response.meta.limit,
+        response.data.length,
+        filterParams.page
+      );
       setTotalPages(totalPages);
       setItemSoundbites(response.data);
     }
@@ -169,20 +174,23 @@ export const PodcastContextProvider = ({
         range: filterParams.range,
       });
 
-      const response = await apiRequestService.reqClipGetManyByChannelPublic(
-        {
-          idOrIdText: channel_id,
-          page: currentPage,
-          sort: currentSort,
-          range: currentRange,
-        },
-      );
+      const response = await apiRequestService.reqClipGetManyByChannelPublic({
+        idOrIdText: channel_id,
+        page: currentPage,
+        sort: currentSort,
+        range: currentRange,
+      });
 
-      const totalPages = getTotalPages(response.meta.count, response.meta.limit, response.data.length, currentPage);
+      const totalPages = getTotalPages(
+        response.meta.count,
+        response.meta.limit,
+        response.data.length,
+        currentPage
+      );
       setTotalPages(totalPages);
       setClips(response.data);
     }
-    
+
     async function fetchData() {
       setIsLoading(true);
 
@@ -196,20 +204,27 @@ export const PodcastContextProvider = ({
 
       setIsLoading(false);
     }
-    
+
     fetchData();
   }, [filterParams, loggedInAccount]);
 
   return (
-    <PodcastContext.Provider value={{
-      filterParams,
-      setFilterParams,
-      items, setItems,
-      itemSoundbites, setItemSoundbites,
-      clips, setClips,
-      totalPages, setTotalPages,
-      isLoading, setIsLoading,
-    }}>
+    <PodcastContext.Provider
+      value={{
+        filterParams,
+        setFilterParams,
+        items,
+        setItems,
+        itemSoundbites,
+        setItemSoundbites,
+        clips,
+        setClips,
+        totalPages,
+        setTotalPages,
+        isLoading,
+        setIsLoading,
+      }}
+    >
       {children}
     </PodcastContext.Provider>
   );
@@ -217,6 +232,8 @@ export const PodcastContextProvider = ({
 
 export const usePodcastContext = () => {
   const ctx = useContext(PodcastContext);
-  if (!ctx) {throw new Error('usePodcastContext must be used within a PodcastContextProvider');}
+  if (!ctx) {
+    throw new Error('usePodcastContext must be used within a PodcastContextProvider');
+  }
   return ctx;
 };

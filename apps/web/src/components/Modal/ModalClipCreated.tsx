@@ -1,7 +1,7 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { copyToClipboard } from '@podverse/helpers';
+import { copyToClipboard } from '@podverse/helpers-browser';
 import React, { useRef, useState } from 'react';
 import { Modal } from './Modal';
 import { useModals } from '../../contexts/Modals';
@@ -13,13 +13,13 @@ export const ModalClipCreated: React.FC = () => {
   const [isCopied, setIsCopied] = useState<boolean>(false);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   const { modalClipCreated, setModalClipCreated } = useModals();
-  
+
   const header = tFeatures('clip.clip_created');
-  
+
   if (!modalClipCreated.clip) {
     return null;
   }
-  
+
   const clipUrl = `${WEB.origin}/clip/${modalClipCreated.clip.id_text}`;
 
   const clearModalClipCreated = () => {
@@ -47,7 +47,8 @@ export const ModalClipCreated: React.FC = () => {
       onClose={clearModalClipCreated}
       header={header}
       ariaLabel={header}
-      modalContentMaxWidth={500}>
+      modalContentMaxWidth={500}
+    >
       <TextInput
         key="clip_url"
         type="text"

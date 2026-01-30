@@ -1,27 +1,36 @@
+import { getTotalPages, DTOAccount } from '@podverse/helpers';
 import {
   QUERY_PARAMS_STATS_RANGE_VALUES,
-  getTotalPages,
   QUERY_PARAMS_SUBSCRIBED_TYPE,
   QUERY_PARAMS_SUBSCRIBED_FULL_SORT,
   QueryParamsSubscribedFullSort,
-  DTOAccount,
-} from '@podverse/helpers';
+} from '@podverse/helpers-requests';
 import { cookies } from 'next/headers';
 import { z } from 'zod';
 import { ProfilesClient } from './ProfilesClient';
-import { getProfilesFilterParams, ProfilesDropdownConfigCurrentParams } from './ProfilesDropdownConfig';
+import {
+  getProfilesFilterParams,
+  ProfilesDropdownConfigCurrentParams,
+} from './ProfilesDropdownConfig';
 import { getSSRAuthService } from '../../utils/auth/ssrAuth';
 import { guardSubscribedSsrFilter, safeSsrListRequest } from '../../utils/filters/ssrFilterGuards';
-import { getParsedLocalSettings, ProfilesFilterDefaults } from '../../utils/localSettings/localSettings';
+import {
+  getParsedLocalSettings,
+  ProfilesFilterDefaults,
+} from '../../utils/localSettings/localSettings';
 
 const searchParamsSchema = z.object({
-  page: z.string().transform((v) => parseInt(v, 10)).optional().default('1'),
+  page: z
+    .string()
+    .transform((v) => parseInt(v, 10))
+    .optional()
+    .default(1),
   type: z.enum(QUERY_PARAMS_SUBSCRIBED_TYPE).optional().nullable().default(null),
   sort: z.enum(QUERY_PARAMS_SUBSCRIBED_FULL_SORT).optional().nullable().default(null),
   range: z.enum(QUERY_PARAMS_STATS_RANGE_VALUES).optional().nullable().default(null),
 });
 
-type SearchParams = z.infer<typeof searchParamsSchema>
+type SearchParams = z.infer<typeof searchParamsSchema>;
 
 export type ProfilesPageProps = {
   searchParams: Promise<SearchParams>;
@@ -35,9 +44,12 @@ export default async function ProfilesPage({ searchParams }: ProfilesPageProps) 
   const ssrFilterDefaults = ssrLocalSettings.fd?.profiles;
 
   const queryParams = await searchParams;
-  const { currentType, currentSort, currentRange, currentPage } =
-    await parseSearchParams(queryParams, isValidAuthSession, ssrFilterDefaults);
-  
+  const { currentType, currentSort, currentRange, currentPage } = await parseSearchParams(
+    queryParams,
+    isValidAuthSession,
+    ssrFilterDefaults
+  );
+
   const response = await safeSsrListRequest<DTOAccount>(
     () =>
       ssrApiRequestService.reqAccountGetMany({
@@ -46,12 +58,17 @@ export default async function ProfilesPage({ searchParams }: ProfilesPageProps) 
         range: currentRange,
         page: currentPage,
       }),
-    currentPage,
+    currentPage
   );
 
   const ssrAccounts = response.data;
-  const ssrTotalPages = getTotalPages(response.meta.count || response.data.length, response.meta.limit || 50, response.data.length, currentPage);
-  
+  const ssrTotalPages = getTotalPages(
+    response.meta.count || response.data.length,
+    response.meta.limit || 50,
+    response.data.length,
+    currentPage
+  );
+
   return (
     <ProfilesClient
       initialQueryParams={{
@@ -69,7 +86,7 @@ export default async function ProfilesPage({ searchParams }: ProfilesPageProps) 
 function parseSearchParams(
   queryParams: SearchParams,
   isAuthenticated: boolean,
-  cookieDefaults?: ProfilesFilterDefaults,
+  cookieDefaults?: ProfilesFilterDefaults
 ): ProfilesDropdownConfigCurrentParams {
   const parsed = searchParamsSchema.safeParse(queryParams);
 
@@ -99,8 +116,9 @@ function parseSearchParams(
   const data = parsed.data;
 
   // Determine the type
-  const resolvedType = data.type ?? cookieDefaults?.type ?? (isAuthenticated ? 'subscribed' : 'global');
-  
+  const resolvedType =
+    data.type ?? cookieDefaults?.type ?? (isAuthenticated ? 'subscribed' : 'global');
+
   // For sort: if type is explicitly "subscribed" in URL and sort is null, don't use cookie default
   // Let getProfilesFilterParams default to "a_z" for subscribed type
   let resolvedSort: QueryParamsSubscribedFullSort | null;
@@ -126,10 +144,13 @@ function parseSearchParams(
     },
   });
 
-  return getProfilesFilterParams({
-    page: guarded.page,
-    type: guarded.type ?? 'global',
-    sort: guarded.sort ?? 'recent',
-    range: guarded.range,
-  }, isAuthenticated);
+  return getProfilesFilterParams(
+    {
+      page: guarded.page,
+      type: guarded.type ?? 'global',
+      sort: guarded.sort ?? 'recent',
+      range: guarded.range,
+    },
+    isAuthenticated
+  );
 }

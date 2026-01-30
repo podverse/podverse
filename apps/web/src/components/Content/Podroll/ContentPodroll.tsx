@@ -7,22 +7,27 @@ type ContentPodrollProps = {
   remoteItemsResponse: RemoteItemsResponse | null;
   defaultOpen?: boolean;
   isAccordion?: boolean;
-}
+};
 
-export const ContentPodroll = ({ remoteItemsResponse, defaultOpen, isAccordion }: ContentPodrollProps) => {
+export const ContentPodroll = ({
+  remoteItemsResponse,
+  defaultOpen,
+  isAccordion,
+}: ContentPodrollProps) => {
   if (!remoteItemsResponse) {
     return null;
   }
 
   if (
-    remoteItemsResponse.channelsAdded.length === 0
-    && remoteItemsResponse.channelsUnadded.length === 0
-    && remoteItemsResponse.itemsAdded.length === 0
-    && remoteItemsResponse.itemsUnadded && remoteItemsResponse.itemsUnadded.length === 0
+    remoteItemsResponse.channelsAdded.length === 0 &&
+    remoteItemsResponse.channelsUnadded.length === 0 &&
+    remoteItemsResponse.itemsAdded.length === 0 &&
+    remoteItemsResponse.itemsUnadded &&
+    remoteItemsResponse.itemsUnadded.length === 0
   ) {
     return null;
   }
-  
+
   if (isAccordion) {
     return (
       <ContentPodrollAccordion

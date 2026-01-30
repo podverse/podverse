@@ -5,11 +5,11 @@ import { ItemItunesEpisodeTypeEnum } from '@orm/entities/item/itemItunesEpisodeT
 import { BaseOneService } from '@orm/services/base/baseOneService';
 
 type ItemAboutDto = {
-  duration: string | null
-  explicit: boolean | null
-  website_link_url: string | null
-  item_itunes_episode_type: ItemItunesEpisodeTypeEnum
-}
+  duration: string | null;
+  explicit: boolean | null;
+  website_link_url: string | null;
+  item_itunes_episode_type: ItemItunesEpisodeTypeEnum;
+};
 
 export class ItemAboutService extends BaseOneService<ItemAbout, 'item'> {
   constructor(transactionalEntityManager?: EntityManager) {

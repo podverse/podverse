@@ -24,7 +24,9 @@ const NavigationContext = createContext<NavigationContextType>({
  * The flag is NOT cleared by this function - call clearBackNavFlag() after restoration is complete.
  */
 export function checkBackNavFlag(): boolean {
-  if (typeof window === 'undefined') {return false;}
+  if (typeof window === 'undefined') {
+    return false;
+  }
   return sessionStorage.getItem(BACK_NAV_FLAG_KEY) === 'true';
 }
 
@@ -33,7 +35,9 @@ export function checkBackNavFlag(): boolean {
  * Call this after scroll restoration is complete.
  */
 export function clearBackNavFlag(): void {
-  if (typeof window === 'undefined') {return;}
+  if (typeof window === 'undefined') {
+    return;
+  }
   sessionStorage.removeItem(BACK_NAV_FLAG_KEY);
 }
 
@@ -61,11 +65,13 @@ export function NavigationProvider({ children }: { children: React.ReactNode }) 
   }, []);
 
   return (
-    <NavigationContext.Provider value={{ 
-      navigationType, 
-      isBackNavigation, 
-      clearBackNavigationFlag, 
-    }}>
+    <NavigationContext.Provider
+      value={{
+        navigationType,
+        isBackNavigation,
+        clearBackNavigationFlag,
+      }}
+    >
       {children}
     </NavigationContext.Provider>
   );

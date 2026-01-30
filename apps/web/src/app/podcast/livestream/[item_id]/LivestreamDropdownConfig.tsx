@@ -1,14 +1,16 @@
-import { QueryParamsLiveItemType } from '@podverse/helpers';
+import { QueryParamsLiveItemType } from '@podverse/helpers-requests';
 
 type LivestreamDropdownConfigParams = {
   type: QueryParamsLiveItemType;
-}
+};
 
 export type LivestreamDropdownConfigCurrentParams = {
   currentType: QueryParamsLiveItemType;
-}
+};
 
-export function getLivestreamFilterParams({ type }: LivestreamDropdownConfigParams): LivestreamDropdownConfigCurrentParams {
+export function getLivestreamFilterParams({
+  type,
+}: LivestreamDropdownConfigParams): LivestreamDropdownConfigCurrentParams {
   const currentType = type;
 
   return { currentType };

@@ -38,23 +38,19 @@ const NavBarDropdownButton: React.FC = () => {
       : { label: tAuthentication('login'), onClick: () => setModalAuthLogin({ isOpen: true }) },
   ];
 
-  const {
-    open,
-    setOpen,
-    focusedIndex,
-    setFocusedIndex,
-    handleButtonKeyDown,
-    handleMenuKeyDown,
-  } = useDropdownKeyboardNavigation({
-    itemCount: menuItems.length,
-    onItemSelect: (idx) => menuItems[idx]?.onClick(),
-    onClose: () => setOpen(false),
-    buttonRef,
-    menuRef,
-  });
+  const { open, setOpen, focusedIndex, setFocusedIndex, handleButtonKeyDown, handleMenuKeyDown } =
+    useDropdownKeyboardNavigation({
+      itemCount: menuItems.length,
+      onItemSelect: (idx) => menuItems[idx]?.onClick(),
+      onClose: () => setOpen(false),
+      buttonRef,
+      menuRef,
+    });
 
-  const displayName = loggedInAccount?.account_profile?.display_name
-    || loggedInAccount?.account_credentials?.email || '';
+  const displayName =
+    loggedInAccount?.account_profile?.display_name ||
+    loggedInAccount?.account_credentials?.email ||
+    '';
 
   return (
     <div className={styles.dropdownWrapper}>

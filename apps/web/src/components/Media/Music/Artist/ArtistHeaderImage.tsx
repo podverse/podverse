@@ -13,9 +13,21 @@ type ArtistHeaderImageProps = {
 export const ArtistHeaderImage = ({ channel }: ArtistHeaderImageProps) => {
   const tMedia = useTranslations('media');
 
-  const imageMobile = findDTOChannelImageBySize(channel.channel_images, IMAGES.HEADER.MOBILE.SQUARE.SIZE_FIND_TARGET, 'greater');
-  const imageTablet = findDTOChannelImageBySize(channel.channel_images, IMAGES.HEADER.TABLET.SQUARE.SIZE_FIND_TARGET, 'greater');
-  const imageDesktop = findDTOChannelImageBySize(channel.channel_images, IMAGES.HEADER.DESKTOP.SQUARE.SIZE_FIND_TARGET, 'greater');
+  const imageMobile = findDTOChannelImageBySize(
+    channel.channel_images,
+    IMAGES.HEADER.MOBILE.SQUARE.SIZE_FIND_TARGET,
+    'greater'
+  );
+  const imageTablet = findDTOChannelImageBySize(
+    channel.channel_images,
+    IMAGES.HEADER.TABLET.SQUARE.SIZE_FIND_TARGET,
+    'greater'
+  );
+  const imageDesktop = findDTOChannelImageBySize(
+    channel.channel_images,
+    IMAGES.HEADER.DESKTOP.SQUARE.SIZE_FIND_TARGET,
+    'greater'
+  );
 
   return (
     <div className={styles.headerImageWrapper}>

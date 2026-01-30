@@ -3,7 +3,6 @@ networks:
     external: true
 
 services:
-
   podverse_local_api:
     image: podverse-api:latest
     container_name: podverse_local_api
@@ -14,7 +13,7 @@ services:
     ports:
       - 127.0.0.1:1234:1234
     logging:
-      driver: 'json-file'
+      driver: "json-file"
       options:
-        max-file: '1'
-        max-size: '50m'
+        max-file: "1"
+        max-size: "50m"

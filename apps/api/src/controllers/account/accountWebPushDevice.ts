@@ -29,97 +29,127 @@ export class AccountWebPushDeviceController {
   private static accountWebPushDeviceService = new AccountWebPushDeviceService();
 
   static async create(req: Request, res: Response): Promise<void> {
-    ensureAuthenticated(req, res, async () => {
-      validateBodyObject(createAccountWebPushDeviceSchema, req, res, async () => {
-        try {
-          const jwtUser = getAuthenticatedUser(req);
-          const { endpoint, p256dh, auth } = req.body as {
-            endpoint: string;
-            p256dh: string;
-            auth: string;
-          };
-          const accountWebPushDevice = await AccountWebPushDeviceController
-            .accountWebPushDeviceService.create(jwtUser.id, {
-              endpoint,
-              p256dh,
-              auth,
-            });
-          res.json(accountWebPushDevice);
-        } catch (error) {
-          handleGenericErrorResponse(res, error);
-        }
-      });
-    }, { skipMembershipStatus: false });
+    ensureAuthenticated(
+      req,
+      res,
+      async () => {
+        validateBodyObject(createAccountWebPushDeviceSchema, req, res, async () => {
+          try {
+            const jwtUser = getAuthenticatedUser(req);
+            const { endpoint, p256dh, auth } = req.body as {
+              endpoint: string;
+              p256dh: string;
+              auth: string;
+            };
+            const accountWebPushDevice =
+              await AccountWebPushDeviceController.accountWebPushDeviceService.create(jwtUser.id, {
+                endpoint,
+                p256dh,
+                auth,
+              });
+            res.json(accountWebPushDevice);
+          } catch (error) {
+            handleGenericErrorResponse(res, error);
+          }
+        });
+      },
+      { skipMembershipStatus: false }
+    );
   }
 
   static async update(req: Request, res: Response): Promise<void> {
-    ensureAuthenticated(req, res, async () => {
-      validateBodyObject(updateAccountWebPushDeviceSchema, req, res, async () => {
-        try {
-          const jwtUser = getAuthenticatedUser(req);
-          const { endpoint, p256dh, auth } = req.body as {
-            endpoint: string;
-            p256dh: string;
-            auth: string;
-          };
-          const accountWebPushDevice = await AccountWebPushDeviceController
-            .accountWebPushDeviceService.update(jwtUser.id, {
-              endpoint,
-              p256dh,
-              auth,
-            });
-          res.json(accountWebPushDevice);
-        } catch (error) {
-          handleGenericErrorResponse(res, error);
-        }
-      });
-    }, { skipMembershipStatus: false });
+    ensureAuthenticated(
+      req,
+      res,
+      async () => {
+        validateBodyObject(updateAccountWebPushDeviceSchema, req, res, async () => {
+          try {
+            const jwtUser = getAuthenticatedUser(req);
+            const { endpoint, p256dh, auth } = req.body as {
+              endpoint: string;
+              p256dh: string;
+              auth: string;
+            };
+            const accountWebPushDevice =
+              await AccountWebPushDeviceController.accountWebPushDeviceService.update(jwtUser.id, {
+                endpoint,
+                p256dh,
+                auth,
+              });
+            res.json(accountWebPushDevice);
+          } catch (error) {
+            handleGenericErrorResponse(res, error);
+          }
+        });
+      },
+      { skipMembershipStatus: false }
+    );
   }
 
   static async delete(req: Request, res: Response): Promise<void> {
-    ensureAuthenticated(req, res, async () => {
-      validateBodyObject(deleteAccountWebPushDeviceSchema, req, res, async () => {
-        try {
-          const jwtUser = getAuthenticatedUser(req);
-          const { endpoint } = req.body as {
-            endpoint: string;
-          };
-          await AccountWebPushDeviceController
-            .accountWebPushDeviceService.delete(jwtUser.id, {
+    ensureAuthenticated(
+      req,
+      res,
+      async () => {
+        validateBodyObject(deleteAccountWebPushDeviceSchema, req, res, async () => {
+          try {
+            const jwtUser = getAuthenticatedUser(req);
+            const { endpoint } = req.body as {
+              endpoint: string;
+            };
+            await AccountWebPushDeviceController.accountWebPushDeviceService.delete(jwtUser.id, {
               endpoint,
             });
-          res.json({ message: 'WebPush device deleted successfully' });
-        } catch (error) {
-          handleGenericErrorResponse(res, error);
-        }
-      });
-    }, { skipMembershipStatus: true });
+            res.json({ message: 'WebPush device deleted successfully' });
+          } catch (error) {
+            handleGenericErrorResponse(res, error);
+          }
+        });
+      },
+      { skipMembershipStatus: true }
+    );
   }
 
   static async getAllForAccount(req: Request, res: Response): Promise<void> {
-    ensureAuthenticated(req, res, async () => {
-      try {
-        const jwtUser = getAuthenticatedUser(req);
-        const devices = await AccountWebPushDeviceController.accountWebPushDeviceService.getAllForAccount(jwtUser.id);
-        res.json(devices);
-      } catch (error) {
-        handleGenericErrorResponse(res, error);
-      }
-    }, { skipMembershipStatus: true });
-  }
-
-  static async updateLocaleForAccount(req: Request, res: Response): Promise<void> {
-    ensureAuthenticated(req, res, async () => {
-      validateBodyObject(updateLocaleForAccountSchema, req, res, async () => {
+    ensureAuthenticated(
+      req,
+      res,
+      async () => {
         try {
           const jwtUser = getAuthenticatedUser(req);
-          const { locale } = req.body as { locale: string };
-          await AccountWebPushDeviceController.accountWebPushDeviceService.updateLocaleForAccount(jwtUser.id, { locale });
-          res.json({ message: 'Locale updated for account devices' });
+          const devices =
+            await AccountWebPushDeviceController.accountWebPushDeviceService.getAllForAccount(
+              jwtUser.id
+            );
+          res.json(devices);
         } catch (error) {
           handleGenericErrorResponse(res, error);
         }
-      });
-    }, { skipMembershipStatus: true });
+      },
+      { skipMembershipStatus: true }
+    );
+  }
+
+  static async updateLocaleForAccount(req: Request, res: Response): Promise<void> {
+    ensureAuthenticated(
+      req,
+      res,
+      async () => {
+        validateBodyObject(updateLocaleForAccountSchema, req, res, async () => {
+          try {
+            const jwtUser = getAuthenticatedUser(req);
+            const { locale } = req.body as { locale: string };
+            await AccountWebPushDeviceController.accountWebPushDeviceService.updateLocaleForAccount(
+              jwtUser.id,
+              { locale }
+            );
+            res.json({ message: 'Locale updated for account devices' });
+          } catch (error) {
+            handleGenericErrorResponse(res, error);
+          }
+        });
+      },
+      { skipMembershipStatus: true }
+    );
   }
 }

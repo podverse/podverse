@@ -9,7 +9,11 @@ import { useMediaPlayerCurrentTime } from '../../../contexts/MediaPlayerCurrentT
 import { apiRequestService } from '../../../factories/apiRequestService';
 import { useQueues } from '../../../contexts/Queue';
 import { useMediaPlayerResourceUpdate } from '../../../hooks/useMediaPlayerResourceUpdate';
-import { AutoQueueResourcesMapRow, checkIsActiveRowHighestKey, useAutoQueue } from '../../../contexts/AutoQueue';
+import {
+  AutoQueueResourcesMapRow,
+  checkIsActiveRowHighestKey,
+  useAutoQueue,
+} from '../../../contexts/AutoQueue';
 import { updateLayoutForMediaPlayer } from '../../../utils/mediaPlayer/mediaPlayerLayout';
 import { useAutoQueueLoadResources } from '../../../hooks/useAutoQueueLoadResources';
 import { MediaPlayerVideoWrapper } from './Video/MediaPlayerVideoWrapper';
@@ -17,8 +21,15 @@ import { MediaPlayerLiveStreamVideoWrapper } from './LiveStream/MediaPlayerLiveS
 import { MediaPlayerControllerLiveStreamAudio } from './LiveStream/MediaPlayerControllerLiveStreamAudio';
 
 export const MediaPlayerController: React.FC = () => {
-  const { mpChannel, mpItem, mpClip, mpItemSoundbite, mpDuration,
-    setMPItemChapters, setMPItemLabeledItemEnclosures } = useMediaPlayer();
+  const {
+    mpChannel,
+    mpItem,
+    mpClip,
+    mpItemSoundbite,
+    mpDuration,
+    setMPItemChapters,
+    setMPItemLabeledItemEnclosures,
+  } = useMediaPlayer();
   const mediaPlayerResourceUpdate = useMediaPlayerResourceUpdate();
   const { mpCurrentTime } = useMediaPlayerCurrentTime();
   const { activeQueueUpcomingResources } = useQueues();
@@ -42,22 +53,22 @@ export const MediaPlayerController: React.FC = () => {
 
   const handleKeyDown = (e: KeyboardEvent | React.KeyboardEvent<HTMLDivElement>) => {
     const target = e.target as HTMLElement;
-    if (
-      target.tagName === 'INPUT' ||
-      target.tagName === 'TEXTAREA' ||
-      target.isContentEditable
-    ) {
+    if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) {
       return;
     }
 
     if (e.key === 'ArrowLeft') {
       const newTime = Math.max(0, mpCurrentTime - 10);
-      window.dispatchEvent(new CustomEvent(EVENTS.MEDIA_PLAYER.SEEK, { detail: { time: newTime } }));
+      window.dispatchEvent(
+        new CustomEvent(EVENTS.MEDIA_PLAYER.SEEK, { detail: { time: newTime } })
+      );
       e.preventDefault();
     }
     if (e.key === 'ArrowRight') {
       const newTime = Math.min(mpDuration, mpCurrentTime + 10);
-      window.dispatchEvent(new CustomEvent(EVENTS.MEDIA_PLAYER.SEEK, { detail: { time: newTime } }));
+      window.dispatchEvent(
+        new CustomEvent(EVENTS.MEDIA_PLAYER.SEEK, { detail: { time: newTime } })
+      );
       e.preventDefault();
     }
   };
@@ -75,9 +86,7 @@ export const MediaPlayerController: React.FC = () => {
   useEffect(() => {
     const fetchItemChapters = async () => {
       if (mpItem?.id_text) {
-        const response = await apiRequestService.reqItemParseAndGetChapters(
-          mpItem.id_text,
-        );
+        const response = await apiRequestService.reqItemParseAndGetChapters(mpItem.id_text);
         setMPItemChapters(response.data);
       }
     };
@@ -88,13 +97,10 @@ export const MediaPlayerController: React.FC = () => {
 
       const isActiveRowHighestKey = checkIsActiveRowHighestKey(
         autoQueueActiveRow,
-        autoQueueResources,
+        autoQueueResources
       );
 
-      const isAutoQueueResourcesEmpty = Object
-        .keys(autoQueueResources)
-        .map(Number)
-        .length === 0;
+      const isAutoQueueResourcesEmpty = Object.keys(autoQueueResources).map(Number).length === 0;
 
       if (isActiveRowHighestKey || isAutoQueueResourcesEmpty) {
         if (mpItem?.id_text) {
@@ -175,7 +181,9 @@ export const MediaPlayerController: React.FC = () => {
       if (fullClip) {
         const fullItem = await apiRequestService.reqItemGetByIdOrIdText(fullClip.item.id_text);
         if (fullItem) {
-          const fullChannel = await apiRequestService.reqChannelGetByIdOrIdText(fullItem.channel_id);
+          const fullChannel = await apiRequestService.reqChannelGetByIdOrIdText(
+            fullItem.channel_id
+          );
           if (fullChannel) {
             mediaPlayerResourceUpdate({
               channel: fullChannel,
@@ -203,12 +211,21 @@ export const MediaPlayerController: React.FC = () => {
   }
 
   async function handleLoadQueueItemSoundbite(nextResource: DTOQueueResource) {
-    if (nextResource?.item_soundbite && nextResource?.item_soundbite?.id_text !== mpItemSoundbite?.id_text) {
-      const fullItemSoundbite = await apiRequestService.reqItemSoundbiteGet(nextResource.item_soundbite.id_text);
+    if (
+      nextResource?.item_soundbite &&
+      nextResource?.item_soundbite?.id_text !== mpItemSoundbite?.id_text
+    ) {
+      const fullItemSoundbite = await apiRequestService.reqItemSoundbiteGet(
+        nextResource.item_soundbite.id_text
+      );
       if (fullItemSoundbite?.item) {
-        const fullItem = await apiRequestService.reqItemGetByIdOrIdText(fullItemSoundbite.item.id_text);
+        const fullItem = await apiRequestService.reqItemGetByIdOrIdText(
+          fullItemSoundbite.item.id_text
+        );
         if (fullItem) {
-          const fullChannel = await apiRequestService.reqChannelGetByIdOrIdText(fullItem.channel_id);
+          const fullChannel = await apiRequestService.reqChannelGetByIdOrIdText(
+            fullItem.channel_id
+          );
           if (fullChannel) {
             mediaPlayerResourceUpdate({
               channel: fullChannel,

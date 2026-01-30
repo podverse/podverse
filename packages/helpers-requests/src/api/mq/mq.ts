@@ -1,0 +1,42 @@
+import { ApiRequestService } from '../_request';
+import { ApiMessageResponse } from '../_response';
+
+export async function reqMQRSSAddOnDemand(
+  api: ApiRequestService,
+  params: {
+    url: string;
+    podcast_index_id: number;
+  }
+) {
+  return api.apiRequest<ApiMessageResponse>({
+    path: '/mq/rss/add/on-demand',
+    method: 'POST',
+    config: {
+      withCredentials: true,
+    },
+    data: {
+      url: params.url,
+      podcast_index_id: params.podcast_index_id,
+    },
+  });
+}
+
+export async function reqMQRSSRefreshOnDemand(
+  api: ApiRequestService,
+  params: {
+    url: string;
+    podcast_index_id: number;
+  }
+) {
+  return api.apiRequest<ApiMessageResponse>({
+    path: '/mq/rss/refresh/on-demand',
+    method: 'POST',
+    config: {
+      withCredentials: true,
+    },
+    data: {
+      url: params.url,
+      podcast_index_id: params.podcast_index_id,
+    },
+  });
+}

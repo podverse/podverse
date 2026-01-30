@@ -5,7 +5,7 @@ import FavIcons from '../components/Head/FavIcons';
 import FontPreloads from '../components/Head/FontPreloads';
 import Manifest from '../components/Head/Manifest';
 import { AppWrapper } from '../components/App/AppWrapper';
-import NavBar from '../components/NavBar/NavBar';;
+import NavBar from '../components/NavBar/NavBar';
 import PageWrapper from '../components/PageWrapper/PageWrapper';
 import { SideBar } from '../components/SideBar/SideBar';
 import WindowWrapper from '../components/Window/WindowWrapper';
@@ -16,8 +16,6 @@ import AuthSessionChecker from '../components/Auth/AuthSessionChecker';
 import { getSSRApiRequestService } from '../factories/apiRequestService';
 import { config } from '../config';
 import { MediaPlayerController } from '../components/MediaPlayer/Controller/MediaPlayerController';
-import { Toast } from '../components/Toast/Toast';
-import { MembershipExpirationToast } from '../components/Toast/MembershipExpirationToast';
 import { QueueController } from '../components/Queue/QueueController';
 import { QueueResourcesAbridgedController } from '../components/Queue/QueueResourcesAbridgedController';
 import { getParsedLocalSettings } from '../utils/localSettings/localSettings';
@@ -50,10 +48,10 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 
   if (jwt) {
     try {
-      const ssrQueueResourcesAbridgedIndexResponseData = await ssrApiRequestService
-        .reqQueueResourcesGetAllByAccountAbridged();
+      const ssrQueueResourcesAbridgedIndexResponseData =
+        await ssrApiRequestService.reqQueueResourcesGetAllByAccountAbridged();
       ssrQueueResourcesAbridgedIndex = generateQueueResourceAbridgedIndex(
-        ssrQueueResourcesAbridgedIndexResponseData,
+        ssrQueueResourcesAbridgedIndexResponseData
       );
     } catch {
       // do nothing
@@ -73,38 +71,31 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <Manifest />
       </head>
       <body>
-        {
-          ssrShouldLogout && (
-            <AuthSessionChecker ssrShouldLogout={ssrShouldLogout} />
-          )
-        }
-        {
-          !ssrShouldLogout && (
-            <Providers
-              locale={locale}
-              ssrLoggedInAccount={ssrLoggedInAccount}
-              ssrLocalSettings={ssrLocalSettings}
-              ssrQueueResourcesAbridgedIndex={ssrQueueResourcesAbridgedIndex}
-              messages={messages}
-              categories={categories}>
-              <WindowWrapper>
-                <AppWrapper>
-                  <SideBar />
-                  <PageWrapper>
-                    <NavBar />
-                    {children}
-                  </PageWrapper>
-                </AppWrapper>
-                <LazyLoadedComponents />
-              </WindowWrapper>
-              <MediaPlayerController />
-              <QueueController />
-              <QueueResourcesAbridgedController />
-              <Toast />
-              <MembershipExpirationToast />
-            </Providers>
-          )
-        }
+        {ssrShouldLogout && <AuthSessionChecker ssrShouldLogout={ssrShouldLogout} />}
+        {!ssrShouldLogout && (
+          <Providers
+            locale={locale}
+            ssrLoggedInAccount={ssrLoggedInAccount}
+            ssrLocalSettings={ssrLocalSettings}
+            ssrQueueResourcesAbridgedIndex={ssrQueueResourcesAbridgedIndex}
+            messages={messages}
+            categories={categories}
+          >
+            <WindowWrapper>
+              <AppWrapper>
+                <SideBar />
+                <PageWrapper>
+                  <NavBar />
+                  {children}
+                </PageWrapper>
+              </AppWrapper>
+              <LazyLoadedComponents />
+            </WindowWrapper>
+            <MediaPlayerController />
+            <QueueController />
+            <QueueResourcesAbridgedController />
+          </Providers>
+        )}
       </body>
     </html>
   );

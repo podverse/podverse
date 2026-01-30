@@ -55,7 +55,9 @@ export function VerifyEmailClient({ token }: VerifyEmailClientProps) {
     };
     verify();
     return () => {
-      if (timeoutId) {clearTimeout(timeoutId);}
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
     };
   }, []);
 

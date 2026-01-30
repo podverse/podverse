@@ -1,0 +1,84 @@
+pipeline {
+    // Maps to <assignedNode>pv-alpha-aux</assignedNode>
+    agent {
+        label 'pv-alpha-aux'
+    }
+
+    // Maps to <concurrentBuild>false</concurrentBuild>
+    options {
+        disableConcurrentBuilds()
+        timestamps()
+    }
+
+    parameters {
+        string(
+            name: 'IMAGE_VERSION',
+            defaultValue: 'alpha',
+            description: 'Specify the podverse_workers alpha docker image version.'
+        )
+
+        choice(
+            name: 'GHCR_IMAGE_PATH',
+            choices: ['podverse/podverse/workers'],
+            description: 'The path to the image hosted in GHCR.'
+        )
+
+        string(
+            name: 'GHCR_REGISTRY_TOKEN',
+            defaultValue: 'ghcr_pat_read_only_packages',
+            description: 'The Jenkins credential ID containing the GHCR PAT'
+        )
+    }
+
+    stages {
+        stage('Prepare Configuration') {
+            steps {
+                script {
+                    // Maps to 'pushd /opt/podverse/infra/docker/alpha/workers'
+                    dir('/opt/podverse/infra/docker/alpha/workers') {
+                        // Maps to the templating logic.
+                        // We use triple single-quotes (''') so that shell variables (like $WORKERS_VERSION)
+                        // are handled by Bash. Parameters (like $IMAGE_VERSION) are injected 
+                        // as environment variables automatically.
+                        def workersVersion
+                        if (params.IMAGE_VERSION == 'alpha') {
+                                withEnv(["GHCR_IMAGE_PATH=${params.GHCR_IMAGE_PATH}"]) {
+                                    withCredentials([string(credentialsId: params.GHCR_REGISTRY_TOKEN, variable: 'GHCR_REGISTRY_TOKEN')]) {
+                                        workersVersion = sh(script: '/opt/podverse/scripts/ghcr/getLatestAlphaTag.sh', returnStdout: true).trim()
+                                    }
+                                }
+                                if (!workersVersion) {
+                                        error('ERROR: No alpha tag found from getLatestAlphaTag.sh')
+                                }
+                        } else {
+                                workersVersion = params.IMAGE_VERSION
+                        }
+
+                        echo "Using WORKERS_VERSION=${workersVersion}"
+
+                        sh '''#!/bin/bash
+                            set -euo pipefail
+                            sed -e "s|REPLACE_WITH_WORKERS_VERSION|''' + workersVersion + '''|g" docker-compose.yml.template > docker-compose.yml
+                        '''
+                    }
+                }
+            }
+        }
+
+        stage('Start Alpha Workers') {
+            steps {
+                script {
+                    // Maps to 'pushd /opt/podverse'
+                    dir('/opt/podverse') {
+                        // Maps to 'make alpha_workers_pull'
+                        // Preserving 'set -eux' from the XML for verbose output
+                        sh '''
+                            set -eux
+                            make alpha_workers_pull
+                        '''
+                    }
+                }
+            }
+        }
+    }
+}

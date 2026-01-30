@@ -12,10 +12,10 @@ import { useAccount } from '../../../../contexts/Account';
 import { handleRateLimitAlert } from '../../../../utils/rateLimit/rateLimitAlert';
 
 type ModalDeleteAccountProps = {
-  isOpen: boolean
-  onClose: () => void
-  userEmail: string
-}
+  isOpen: boolean;
+  onClose: () => void;
+  userEmail: string;
+};
 
 export const ModalDeleteAccount: React.FC<ModalDeleteAccountProps> = ({
   isOpen,
@@ -34,7 +34,7 @@ export const ModalDeleteAccount: React.FC<ModalDeleteAccountProps> = ({
   const [hasBlurred, setHasBlurred] = useState(false);
 
   const emailMatches = emailInput.toLowerCase().trim() === userEmail.toLowerCase().trim();
-  
+
   // Determine error message to display (API error takes precedence)
   // Email mismatch error only shows after blur
   // Don't show any errors while submitting
@@ -80,7 +80,9 @@ export const ModalDeleteAccount: React.FC<ModalDeleteAccountProps> = ({
       const rateLimitErrorHandled = await handleRateLimitAlert(err, locale, tMisc);
       if (!rateLimitErrorHandled) {
         type ErrorWithResponse = { response?: { data?: { message?: string } } };
-        setErrorMessage((err as ErrorWithResponse)?.response?.data?.message || tMisc('errors.generic'));
+        setErrorMessage(
+          (err as ErrorWithResponse)?.response?.data?.message || tMisc('errors.generic')
+        );
         setShowErrorMessage(true);
       }
       setIsSubmitting(false);
@@ -105,14 +107,12 @@ export const ModalDeleteAccount: React.FC<ModalDeleteAccountProps> = ({
       modalContentMaxWidth={500}
     >
       <div className={styles.content}>
-        <p className={styles.message}>
-          {tSettings('account.delete_account_modal.message')}
-        </p>
+        <p className={styles.message}>{tSettings('account.delete_account_modal.message')}</p>
         <TextInput
           type="email"
           name="email"
           value={emailInput}
-          onChange={e => setEmailInput(e.target.value)}
+          onChange={(e) => setEmailInput(e.target.value)}
           onBlur={() => setHasBlurred(true)}
           placeholder={tAuthentication('email')}
           eyebrow={tAuthentication('email')}
@@ -121,12 +121,7 @@ export const ModalDeleteAccount: React.FC<ModalDeleteAccountProps> = ({
           autoFocus
         />
         <div className={styles.buttons}>
-          <Button
-            type="button"
-            onClick={handleClose}
-            variant="secondary"
-            disabled={isSubmitting}
-          >
+          <Button type="button" onClick={handleClose} variant="secondary" disabled={isSubmitting}>
             {tMisc('cancel')}
           </Button>
           <Button

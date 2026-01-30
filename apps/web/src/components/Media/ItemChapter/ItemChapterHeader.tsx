@@ -11,7 +11,11 @@ type ItemChapterHeaderProps = {
   item_chapter: DTOItemChapter;
 };
 
-export const ItemChapterHeader: React.FC<ItemChapterHeaderProps> = ({ item_chapter, item, channel }) => {
+export const ItemChapterHeader: React.FC<ItemChapterHeaderProps> = ({
+  item_chapter,
+  item,
+  channel,
+}) => {
   return (
     <header>
       <Link href={`${ROUTES.EPISODE}/${item.id_text}`}>

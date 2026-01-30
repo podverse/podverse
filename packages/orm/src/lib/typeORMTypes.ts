@@ -1,5 +1,3 @@
 import { EntityManager } from 'typeorm';
 
-export {
-  EntityManager,
-};
+export { EntityManager };

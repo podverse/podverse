@@ -1,7 +1,11 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { DTOItem, formatSecondsToReadableDuration, QueueResourcesAbridgedIndex } from '@podverse/helpers';
+import {
+  DTOItem,
+  formatSecondsToReadableDuration,
+  QueueResourcesAbridgedIndex,
+} from '@podverse/helpers';
 import React from 'react';
 
 type ReadableDurationProps = {
@@ -11,8 +15,8 @@ type ReadableDurationProps = {
 
 export function getDurationAndPositionStr(
   item: DTOItem,
-  queueResourcesAbridgedIndex: QueueResourcesAbridgedIndex,
-): { durationStr: string | null, positionStr: string } {
+  queueResourcesAbridgedIndex: QueueResourcesAbridgedIndex
+): { durationStr: string | null; positionStr: string } {
   const queueResourceAbridged = queueResourcesAbridgedIndex.items?.[item.id];
   let durationStr = item.item_about?.duration ? item.item_about.duration.toString() : null;
   let positionStr = '';

@@ -15,7 +15,9 @@ export const PlaylistHeaderInfo = ({ playlist }: PlaylistHeaderInfoProps) => {
   const tMisc = useTranslations('misc');
   const locale = useLocale();
 
-  const lastUpdated = tMedia('updated_with_date', { date: formatDateAbbrev(playlist.last_updated, locale) });
+  const lastUpdated = tMedia('updated_with_date', {
+    date: formatDateAbbrev(playlist.last_updated, locale),
+  });
   const itemCount = tFeatures('playlist.item_count', { count: playlist.item_count });
   const displayName = playlist.account?.account_profile?.display_name || tMisc('anonymous');
   const info = `${itemCount} • ${lastUpdated}`;
@@ -24,12 +26,8 @@ export const PlaylistHeaderInfo = ({ playlist }: PlaylistHeaderInfoProps) => {
 
   return (
     <>
-      <div className={styles.creator}>
-        {displayName}
-      </div>
-      <div className={styles.info}>
-        {info}
-      </div>
+      <div className={styles.creator}>{displayName}</div>
+      <div className={styles.info}>{info}</div>
       <div className={styles.description}>{description}</div>
     </>
   );

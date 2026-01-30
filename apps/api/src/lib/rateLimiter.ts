@@ -53,13 +53,18 @@ export function rateLimitAuthEndpoint(options: { windowMs: number; max: number }
   };
   const limiter = createLimiter({ ...options, keyGenerator });
   return (req: Request, res: Response, next: NextFunction) => {
-    ensureAuthenticated(req, res, () => {
-      try {
-        limiter(req, res, next);
-      } catch {
-        res.status(401).json({ error: 'Authentication required' });
-      }
-    }, { skipMembershipStatus: true });
+    ensureAuthenticated(
+      req,
+      res,
+      () => {
+        try {
+          limiter(req, res, next);
+        } catch {
+          res.status(401).json({ error: 'Authentication required' });
+        }
+      },
+      { skipMembershipStatus: true }
+    );
   };
 }
 

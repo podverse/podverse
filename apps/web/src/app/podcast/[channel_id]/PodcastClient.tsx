@@ -1,5 +1,11 @@
-import { DTOChannel, DTOClip, DTOItem, DTOItemSoundbite, QueryParamsChannel, RemoteItemsResponse } from '@podverse/helpers';
-import React from 'react';
+import {
+  DTOChannel,
+  DTOClip,
+  DTOItem,
+  DTOItemSoundbite,
+  RemoteItemsResponse,
+} from '@podverse/helpers';
+import { QueryParamsChannel } from '@podverse/helpers-requests';
 import { MainWrapper } from '../../../components/Main/MainWrapper';
 import { PodcastContextProvider } from './PodcastContext';
 import { PodcastListHeader } from './PodcastListHeader';
@@ -22,8 +28,17 @@ interface PodcastClientProps {
 }
 
 export function PodcastClient(props: PodcastClientProps) {
-  const { initialQueryParams, ssrChannel, ssrItemsWithLiveItem, ssrItems,
-    ssrClips, ssrItemSoundbites, ssrHasItemSoundbites, ssrTotalPages, ssrPodroll } = props;
+  const {
+    initialQueryParams,
+    ssrChannel,
+    ssrItemsWithLiveItem,
+    ssrItems,
+    ssrClips,
+    ssrItemSoundbites,
+    ssrHasItemSoundbites,
+    ssrTotalPages,
+    ssrPodroll,
+  } = props;
 
   return (
     <PodcastContextProvider
@@ -37,18 +52,13 @@ export function PodcastClient(props: PodcastClientProps) {
       <MainWrapper>
         <PodcastHeader channel={ssrChannel} />
         <MainInnerWrapper>
-          <PodcastSideContent
-            channel={ssrChannel}
-            podroll={ssrPodroll}
-          />
+          <PodcastSideContent channel={ssrChannel} podroll={ssrPodroll} />
           <MainInnerContentWrapper>
             <PodcastListHeader
               ssrHasPodroll={!!ssrPodroll}
               ssrHasItemSoundbites={ssrHasItemSoundbites}
             />
-            <PodcastList
-              ssrChannel={ssrChannel}
-              podroll={ssrPodroll} />
+            <PodcastList ssrChannel={ssrChannel} podroll={ssrPodroll} />
           </MainInnerContentWrapper>
         </MainInnerWrapper>
       </MainWrapper>

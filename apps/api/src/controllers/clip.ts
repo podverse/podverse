@@ -1,19 +1,33 @@
 import {
-  ApiListResponse,
   CATEGORY_MAPPING_KEYS,
   CategoryMappingKeys,
-  emptyApiListResponse,
   getCategoryEnumValue,
   QUERY_PARAMS_MEDIUMS,
-  QUERY_PARAMS_STATS_RANGE_VALUES,
   QueryParamsMedium,
-  QueryParamsStatsRange,
   SharableStatusEnum,
 } from '@podverse/helpers';
+import {
+  ApiListResponse,
+  emptyApiListResponse,
+  QUERY_PARAMS_STATS_RANGE_VALUES,
+  QueryParamsStatsRange,
+} from '@podverse/helpers-requests';
 import { NextFunction, Request, Response } from 'express';
-import { ensureAuthenticated, optionalEnsureAuthenticated, getAuthenticatedUser } from '../lib/auth';
+import {
+  ensureAuthenticated,
+  optionalEnsureAuthenticated,
+  getAuthenticatedUser,
+} from '../lib/auth';
 import Joi from 'joi';
-import { ChannelService, Clip, ClipService, FindManyOptions, ItemService, StatsAggregatedClip, StatsAggregatedClipService } from '@podverse/orm';
+import {
+  ChannelService,
+  Clip,
+  ClipService,
+  FindManyOptions,
+  ItemService,
+  StatsAggregatedClip,
+  StatsAggregatedClipService,
+} from '@podverse/orm';
 import { handleGenericErrorResponse } from './helpers/error';
 import { validateBodyObject, validateParamsObject, validateQueryObject } from '@api/lib/validation';
 import { getPaginationParams } from './helpers/pagination';
@@ -53,37 +67,59 @@ const getByItemIdTextSchema = Joi.object({
 
 const getClipsPublicManyRecentSchema = Joi.object({
   page: Joi.number().integer().min(1).required(),
-  medium: Joi.string().valid(...QUERY_PARAMS_MEDIUMS).required(),
+  medium: Joi.string()
+    .valid(...QUERY_PARAMS_MEDIUMS)
+    .required(),
 });
 
 const getClipsPublicManyOldestSchema = Joi.object({
   page: Joi.number().integer().min(1).required(),
-  medium: Joi.string().valid(...QUERY_PARAMS_MEDIUMS).required(),
+  medium: Joi.string()
+    .valid(...QUERY_PARAMS_MEDIUMS)
+    .required(),
 });
 
 const getClipsPublicTopSchema = Joi.object({
   page: Joi.number().integer().min(1).required(),
-  medium: Joi.string().valid(...QUERY_PARAMS_MEDIUMS).required(),
-  range: Joi.string().valid(...QUERY_PARAMS_STATS_RANGE_VALUES).required(),
+  medium: Joi.string()
+    .valid(...QUERY_PARAMS_MEDIUMS)
+    .required(),
+  range: Joi.string()
+    .valid(...QUERY_PARAMS_STATS_RANGE_VALUES)
+    .required(),
 });
 
 const getClipsPublicManyCategoryRecentSchema = Joi.object({
   page: Joi.number().integer().min(1).required(),
-  medium: Joi.string().valid(...QUERY_PARAMS_MEDIUMS).required(),
-  category: Joi.string().valid(...CATEGORY_MAPPING_KEYS).required(),
+  medium: Joi.string()
+    .valid(...QUERY_PARAMS_MEDIUMS)
+    .required(),
+  category: Joi.string()
+    .valid(...CATEGORY_MAPPING_KEYS)
+    .required(),
 });
 
 const getClipsPublicManyCategoryOldestSchema = Joi.object({
   page: Joi.number().integer().min(1).required(),
-  medium: Joi.string().valid(...QUERY_PARAMS_MEDIUMS).required(),
-  category: Joi.string().valid(...CATEGORY_MAPPING_KEYS).required(),
+  medium: Joi.string()
+    .valid(...QUERY_PARAMS_MEDIUMS)
+    .required(),
+  category: Joi.string()
+    .valid(...CATEGORY_MAPPING_KEYS)
+    .required(),
 });
 
 const getClipsPublicManyCategoryTopSchema = Joi.object({
   page: Joi.number().integer().min(1).required(),
-  medium: Joi.string().valid(...QUERY_PARAMS_MEDIUMS).required(),
-  range: Joi.string().valid(...QUERY_PARAMS_STATS_RANGE_VALUES).required(),
-  category: Joi.string().valid(...CATEGORY_MAPPING_KEYS).required(),
+  medium: Joi.string()
+    .valid(...QUERY_PARAMS_MEDIUMS)
+    .required(),
+  range: Joi.string()
+    .valid(...QUERY_PARAMS_STATS_RANGE_VALUES)
+    .required(),
+  category: Joi.string()
+    .valid(...CATEGORY_MAPPING_KEYS)
+    .required(),
 });
 
 const getClipsPublicByChannelRecentSchema = Joi.object({
@@ -96,7 +132,9 @@ const getClipsPublicByChannelOldestSchema = Joi.object({
 
 const getClipsPublicByChannelTopSchema = Joi.object({
   page: Joi.number().integer().min(1).required(),
-  range: Joi.string().valid(...QUERY_PARAMS_STATS_RANGE_VALUES).required(),
+  range: Joi.string()
+    .valid(...QUERY_PARAMS_STATS_RANGE_VALUES)
+    .required(),
 });
 
 const getClipsPublicByItemRecentSchema = Joi.object({
@@ -109,17 +147,25 @@ const getClipsPublicByItemOldestSchema = Joi.object({
 
 const getClipsPublicByItemTopSchema = Joi.object({
   page: Joi.number().integer().min(1).required(),
-  range: Joi.string().valid(...QUERY_PARAMS_STATS_RANGE_VALUES).required(),
+  range: Joi.string()
+    .valid(...QUERY_PARAMS_STATS_RANGE_VALUES)
+    .required(),
 });
 
 const getManySubscribedRecentSchema = Joi.object({
-  medium: Joi.string().valid(...QUERY_PARAMS_MEDIUMS).required(),
+  medium: Joi.string()
+    .valid(...QUERY_PARAMS_MEDIUMS)
+    .required(),
   page: Joi.number().integer().min(1).required(),
 });
 
 const getManySubscribedTopSchema = Joi.object({
-  medium: Joi.string().valid(...QUERY_PARAMS_MEDIUMS).required(),
-  range: Joi.string().valid(...QUERY_PARAMS_STATS_RANGE_VALUES).required(),
+  medium: Joi.string()
+    .valid(...QUERY_PARAMS_MEDIUMS)
+    .required(),
+  range: Joi.string()
+    .valid(...QUERY_PARAMS_STATS_RANGE_VALUES)
+    .required(),
   page: Joi.number().integer().min(1).required(),
 });
 
@@ -143,10 +189,7 @@ const clipPublicManyChannelRelations = [
   'sharable_status',
 ];
 
-const clipPublicManyItemRelations = [
-  'account',
-  'sharable_status',
-];
+const clipPublicManyItemRelations = ['account', 'sharable_status'];
 
 const statsAggregationRelations = [
   'clip',
@@ -170,11 +213,7 @@ const statsAggregationChannelRelations = [
   'clip.sharable_status',
 ];
 
-const statsAggregationItemRelations = [
-  'clip',
-  'clip.account',
-  'clip.sharable_status',
-];
+const statsAggregationItemRelations = ['clip', 'clip.account', 'clip.sharable_status'];
 
 const channelService = new ChannelService();
 const itemService = new ItemService();
@@ -237,87 +276,103 @@ class ClipController {
   private static statsAggregatedClipService = new StatsAggregatedClipService();
 
   static async createClip(req: Request, res: Response): Promise<void> {
-    ensureAuthenticated(req, res, async () => {
-      validateBodyObject(clipCreateSchema, req, res, async () => {
-        const account = getAuthenticatedUser(req);
-        const dto = req.body;
+    ensureAuthenticated(
+      req,
+      res,
+      async () => {
+        validateBodyObject(clipCreateSchema, req, res, async () => {
+          const account = getAuthenticatedUser(req);
+          const dto = req.body;
 
-        const finalDto = {
-          title: dto.title || null,
-          description: dto.description || null,
-          start_time: dto.start_time,
-          end_time: dto.end_time || null,
-          item_id_text: dto.item_id_text,
-          sharable_status_id: dto.sharable_status_id,
-        };
+          const finalDto = {
+            title: dto.title || null,
+            description: dto.description || null,
+            start_time: dto.start_time,
+            end_time: dto.end_time || null,
+            item_id_text: dto.item_id_text,
+            sharable_status_id: dto.sharable_status_id,
+          };
 
-        try {
-          const clip = await clipService.create(account.id, finalDto);
-          res.status(201).json(clip);
-        } catch (err) {
-          handleGenericErrorResponse(res, err);
-        }
-      });
-    }, { skipMembershipStatus: false });
+          try {
+            const clip = await clipService.create(account.id, finalDto);
+            res.status(201).json(clip);
+          } catch (err) {
+            handleGenericErrorResponse(res, err);
+          }
+        });
+      },
+      { skipMembershipStatus: false }
+    );
   }
 
   static async updateClip(req: Request, res: Response): Promise<void> {
-    ensureAuthenticated(req, res, async () => {
-      validateParamsObject(clipIdSchema, req, res, () => {
-        verifyClipOwnership()(req, res, () => {
-          validateBodyObject(clipUpdateSchema, req, res, async () => {
+    ensureAuthenticated(
+      req,
+      res,
+      async () => {
+        validateParamsObject(clipIdSchema, req, res, () => {
+          verifyClipOwnership()(req, res, () => {
+            validateBodyObject(clipUpdateSchema, req, res, async () => {
+              const account = getAuthenticatedUser(req);
+              const clip_id_text = getParamRequired(req, 'clip_id_text');
+              const dto = req.body;
+
+              const finalDto = {
+                title: dto.title || null,
+                description: dto.description || null,
+                start_time: dto.start_time,
+                end_time: dto.end_time || null,
+                item_id_text: dto.item_id_text,
+                sharable_status_id: dto.sharable_status_id,
+              };
+
+              try {
+                const clip = await clipService.update(account.id, clip_id_text, finalDto);
+                res.status(200).json(clip);
+              } catch (err) {
+                handleGenericErrorResponse(res, err);
+              }
+            });
+          });
+        });
+      },
+      { skipMembershipStatus: false }
+    );
+  }
+
+  static async deleteClip(req: Request, res: Response): Promise<void> {
+    ensureAuthenticated(
+      req,
+      res,
+      async () => {
+        validateParamsObject(clipIdSchema, req, res, () => {
+          verifyClipOwnership()(req, res, async () => {
             const account = getAuthenticatedUser(req);
             const clip_id_text = getParamRequired(req, 'clip_id_text');
-            const dto = req.body;
-
-            const finalDto = {
-              title: dto.title || null,
-              description: dto.description || null,
-              start_time: dto.start_time,
-              end_time: dto.end_time || null,
-              item_id_text: dto.item_id_text,
-              sharable_status_id: dto.sharable_status_id,
-            };
 
             try {
-              const clip = await clipService.update(account.id, clip_id_text, finalDto);
-              res.status(200).json(clip);
+              await clipService.delete(account.id, clip_id_text);
+              res.status(204).end();
             } catch (err) {
               handleGenericErrorResponse(res, err);
             }
           });
         });
-      });
-    }, { skipMembershipStatus: false });
-  }
-
-  static async deleteClip(req: Request, res: Response): Promise<void> {
-    ensureAuthenticated(req, res, async () => {
-      validateParamsObject(clipIdSchema, req, res, () => {
-        verifyClipOwnership()(req, res, async () => {
-          const account = getAuthenticatedUser(req);
-          const clip_id_text = getParamRequired(req, 'clip_id_text');
-
-          try {
-            await clipService.delete(account.id, clip_id_text);
-            res.status(204).end();
-          } catch (err) {
-            handleGenericErrorResponse(res, err);
-          }
-        });
-      });
-    }, { skipMembershipStatus: false });
+      },
+      { skipMembershipStatus: false }
+    );
   }
 
   static async getClipByIdText(req: Request, res: Response): Promise<void> {
     validateParamsObject(clipIdSchema, req, res, () => {
-      optionalEnsureAuthenticated(req, res, () => {
-        verifyPrivateClipOwnership()(req, res, async () => {
-          try {
-            const clip_id_text = getParamRequired(req, 'clip_id_text');
-            const clip = await clipService.getByIdText(
-              clip_id_text,
-              {
+      optionalEnsureAuthenticated(
+        req,
+        res,
+        () => {
+          verifyPrivateClipOwnership()(req, res, async () => {
+            try {
+              const clip_id_text = getParamRequired(req, 'clip_id_text');
+              const clip = await clipService.getByIdText(clip_id_text, {
                 relations: [
                   'item',
                   'item.item_enclosures',
@@ -328,32 +383,38 @@ class ClipController {
                   'account',
                   'sharable_status',
                 ],
-              },
-            );
-            if (clip) {
-              const { id: _id, ...clipWithoutId } = clip;
-              res.status(200).json(clipWithoutId);
-            } else {
-              res.status(404).json({ message: 'Clip not found' });
+              });
+              if (clip) {
+                const { id: _id, ...clipWithoutId } = clip;
+                res.status(200).json(clipWithoutId);
+              } else {
+                res.status(404).json({ message: 'Clip not found' });
+              }
+            } catch (err) {
+              handleGenericErrorResponse(res, err);
             }
-          } catch (err) {
-            handleGenericErrorResponse(res, err);
-          }
-        });
-      }, { skipMembershipStatus: true });
+          });
+        },
+        { skipMembershipStatus: true }
+      );
     });
   }
 
   static async getClipsPrivate(req: Request, res: Response): Promise<void> {
-    ensureAuthenticated(req, res, async () => {
-      try {
-        const account = getAuthenticatedUser(req);
-        const clips = await clipService.getManyByAccount(account.id);
-        res.status(200).json(clips);
-      } catch (err) {
-        handleGenericErrorResponse(res, err);
-      }
-    }, { skipMembershipStatus: true });
+    ensureAuthenticated(
+      req,
+      res,
+      async () => {
+        try {
+          const account = getAuthenticatedUser(req);
+          const clips = await clipService.getManyByAccount(account.id);
+          res.status(200).json(clips);
+        } catch (err) {
+          handleGenericErrorResponse(res, err);
+        }
+      },
+      { skipMembershipStatus: true }
+    );
   }
 
   static async getManyPublicRecent(req: Request, res: Response): Promise<void> {
@@ -364,17 +425,13 @@ class ClipController {
           medium: QueryParamsMedium;
         };
         const category_id = null;
- 
-        const clips = await clipService.getManyPublic(
-          medium,
-          category_id,
-          {
-            order: { created_at: 'DESC' },
-            skip: offset,
-            take: limit,
-            relations: clipPublicManyRelations,
-          },
-        );
+
+        const clips = await clipService.getManyPublic(medium, category_id, {
+          order: { created_at: 'DESC' },
+          skip: offset,
+          take: limit,
+          relations: clipPublicManyRelations,
+        });
 
         const response: ApiListResponse<Clip> = {
           data: clips,
@@ -396,17 +453,13 @@ class ClipController {
           medium: QueryParamsMedium;
         };
         const category_id = null;
- 
-        const clips = await clipService.getManyPublic(
-          medium,
-          category_id,
-          {
-            order: { created_at: 'ASC' },
-            skip: offset,
-            take: limit,
-            relations: clipPublicManyRelations,
-          },
-        );
+
+        const clips = await clipService.getManyPublic(medium, category_id, {
+          order: { created_at: 'ASC' },
+          skip: offset,
+          take: limit,
+          relations: clipPublicManyRelations,
+        });
 
         const response: ApiListResponse<Clip> = {
           data: clips,
@@ -438,8 +491,11 @@ class ClipController {
           take: limit,
           relations: statsAggregationRelations,
         };
-        const statsResults = await ClipController
-          .statsAggregatedClipService.getManyPublic(config, medium, category_id);
+        const statsResults = await ClipController.statsAggregatedClipService.getManyPublic(
+          config,
+          medium,
+          category_id
+        );
         const clips = statsResults.map((stat: { clip: Clip }) => stat.clip).filter(Boolean);
 
         const response: ApiListResponse<Clip> = {
@@ -447,7 +503,7 @@ class ClipController {
           meta: { page, count: null, limit },
         };
 
-        res.status(200).json(response);  
+        res.status(200).json(response);
       } catch (err) {
         handleGenericErrorResponse(res, err);
       }
@@ -465,16 +521,12 @@ class ClipController {
 
         const category_id = getCategoryEnumValue(category);
 
-        const clips = await clipService.getManyPublic(
-          medium,
-          category_id,
-          {
-            order: { created_at: 'DESC' },
-            skip: offset,
-            take: limit,
-            relations: clipPublicManyRelations,
-          },
-        );
+        const clips = await clipService.getManyPublic(medium, category_id, {
+          order: { created_at: 'DESC' },
+          skip: offset,
+          take: limit,
+          relations: clipPublicManyRelations,
+        });
 
         const response: ApiListResponse<Clip> = {
           data: clips,
@@ -499,16 +551,12 @@ class ClipController {
 
         const category_id = getCategoryEnumValue(category);
 
-        const clips = await clipService.getManyPublic(
-          medium,
-          category_id,
-          {
-            order: { created_at: 'ASC' },
-            skip: offset,
-            take: limit,
-            relations: clipPublicManyRelations,
-          },
-        );
+        const clips = await clipService.getManyPublic(medium, category_id, {
+          order: { created_at: 'ASC' },
+          skip: offset,
+          take: limit,
+          relations: clipPublicManyRelations,
+        });
 
         const response: ApiListResponse<Clip> = {
           data: clips,
@@ -540,8 +588,12 @@ class ClipController {
           take: limit,
           relations: statsAggregationRelations,
         };
-        const [statsResults, count] = await ClipController
-          .statsAggregatedClipService.getManyAndCountPublic(config, medium, category_id);
+        const [statsResults, count] =
+          await ClipController.statsAggregatedClipService.getManyAndCountPublic(
+            config,
+            medium,
+            category_id
+          );
         const clips = statsResults.map((stat: { clip: Clip }) => stat.clip).filter(Boolean);
 
         const response: ApiListResponse<Clip> = {
@@ -549,7 +601,7 @@ class ClipController {
           meta: { page, count, limit },
         };
 
-        res.status(200).json(response);  
+        res.status(200).json(response);
       } catch (err) {
         handleGenericErrorResponse(res, err);
       }
@@ -558,71 +610,81 @@ class ClipController {
 
   static async getManyByChannelPublicRecent(req: Request, res: Response): Promise<void> {
     validateParamsObject(getByChannelIdTextSchema, req, res, async () => {
-      validateQueryObject(getClipsPublicByChannelRecentSchema, req, res, async (): Promise<void> => {
-        try {
-          const channel_id_text = getParamRequired(req, 'channel_id_text');
-          const { page, limit, offset } = getPaginationParams(req);
+      validateQueryObject(
+        getClipsPublicByChannelRecentSchema,
+        req,
+        res,
+        async (): Promise<void> => {
+          try {
+            const channel_id_text = getParamRequired(req, 'channel_id_text');
+            const { page, limit, offset } = getPaginationParams(req);
 
-          const channel = await channelService.getByIdText(channel_id_text);
-          if (!channel) {
-            res.status(404).json({ message: 'Channel not found' });
-            return;
+            const channel = await channelService.getByIdText(channel_id_text);
+            if (!channel) {
+              res.status(404).json({ message: 'Channel not found' });
+              return;
+            }
+
+            const [clips, count] = await clipService.getManyByChannelAndCountPublic(
+              channel_id_text,
+              {
+                order: { created_at: 'DESC' },
+                skip: offset,
+                take: limit,
+                relations: clipPublicManyChannelRelations,
+              }
+            );
+
+            const response: ApiListResponse<Clip> = {
+              data: clips,
+              meta: { page, count, limit },
+            };
+            res.json(response);
+          } catch (err) {
+            handleGenericErrorResponse(res, err);
           }
-          
-          const [clips, count] = await clipService.getManyByChannelAndCountPublic(
-            channel_id_text,
-            {
-              order: { created_at: 'DESC' },
-              skip: offset,
-              take: limit,
-              relations: clipPublicManyChannelRelations,
-            },
-          );
-          
-          const response: ApiListResponse<Clip> = {
-            data: clips,
-            meta: { page, count, limit },
-          };
-          res.json(response);
-        } catch (err) {
-          handleGenericErrorResponse(res, err);
         }
-      });
+      );
     });
   }
 
   static async getManyByChannelPublicOldest(req: Request, res: Response): Promise<void> {
     validateParamsObject(getByChannelIdTextSchema, req, res, async () => {
-      validateQueryObject(getClipsPublicByChannelOldestSchema, req, res, async (): Promise<void> => {
-        try {
-          const channel_id_text = getParamRequired(req, 'channel_id_text');
-          const { page, limit, offset } = getPaginationParams(req);
+      validateQueryObject(
+        getClipsPublicByChannelOldestSchema,
+        req,
+        res,
+        async (): Promise<void> => {
+          try {
+            const channel_id_text = getParamRequired(req, 'channel_id_text');
+            const { page, limit, offset } = getPaginationParams(req);
 
-          const channel = await channelService.getByIdText(channel_id_text);
-          if (!channel) {
-            res.status(404).json({ message: 'Channel not found' });
-            return;
+            const channel = await channelService.getByIdText(channel_id_text);
+            if (!channel) {
+              res.status(404).json({ message: 'Channel not found' });
+              return;
+            }
+
+            const [clips, count] = await clipService.getManyByChannelAndCountPublic(
+              channel_id_text,
+              {
+                order: { created_at: 'ASC' },
+                skip: offset,
+                take: limit,
+                relations: clipPublicManyChannelRelations,
+              }
+            );
+
+            const response: ApiListResponse<Clip> = {
+              data: clips,
+              meta: { page, count, limit },
+            };
+            res.json(response);
+          } catch (err) {
+            handleGenericErrorResponse(res, err);
           }
-
-          const [clips, count] = await clipService.getManyByChannelAndCountPublic(
-            channel_id_text,
-            {
-              order: { created_at: 'ASC' },
-              skip: offset,
-              take: limit,
-              relations: clipPublicManyChannelRelations,
-            },
-          );
-          
-          const response: ApiListResponse<Clip> = {
-            data: clips,
-            meta: { page, count, limit },
-          };
-          res.json(response);
-        } catch (err) {
-          handleGenericErrorResponse(res, err);
         }
-      });
+      );
     });
   }
 
@@ -644,15 +706,16 @@ class ClipController {
             return;
           }
 
-          const results = await ClipController.statsAggregatedClipService.getManyByChannelsAndCountPublic(
-            [channel.id],
-            {
-              order: { [order]: 'DESC' },
-              skip: offset,
-              take: limit,
-              relations: statsAggregationChannelRelations,
-            },
-          );
+          const results =
+            await ClipController.statsAggregatedClipService.getManyByChannelsAndCountPublic(
+              [channel.id],
+              {
+                order: { [order]: 'DESC' },
+                skip: offset,
+                take: limit,
+                relations: statsAggregationChannelRelations,
+              }
+            );
           const statsResults = results[0];
           const count = results[1];
           const clips = statsResults.map((s: { clip: Clip }) => s.clip).filter(Boolean);
@@ -681,17 +744,14 @@ class ClipController {
             res.status(404).json({ message: 'Item not found' });
             return;
           }
-          
-          const [clips, count] = await clipService.getManyByItemAndCountPublic(
-            item_id_text,
-            {
-              order: { created_at: 'DESC' },
-              skip: offset,
-              take: limit,
-              relations: clipPublicManyItemRelations,
-            },
-          );
-          
+
+          const [clips, count] = await clipService.getManyByItemAndCountPublic(item_id_text, {
+            order: { created_at: 'DESC' },
+            skip: offset,
+            take: limit,
+            relations: clipPublicManyItemRelations,
+          });
+
           const response: ApiListResponse<Clip> = {
             data: clips,
             meta: { page, count, limit },
@@ -716,17 +776,14 @@ class ClipController {
             res.status(404).json({ message: 'Item not found' });
             return;
           }
-          
-          const [clips, count] = await clipService.getManyByItemAndCountPublic(
-            item_id_text,
-            {
-              order: { created_at: 'ASC' },
-              skip: offset,
-              take: limit,
-              relations: clipPublicManyItemRelations,
-            },
-          );
-          
+
+          const [clips, count] = await clipService.getManyByItemAndCountPublic(item_id_text, {
+            order: { created_at: 'ASC' },
+            skip: offset,
+            take: limit,
+            relations: clipPublicManyItemRelations,
+          });
+
           const response: ApiListResponse<Clip> = {
             data: clips,
             meta: { page, count, limit },
@@ -757,15 +814,13 @@ class ClipController {
             return;
           }
 
-          const results = await ClipController.statsAggregatedClipService.getManyByItemAndCountPublic(
-            item.id,
-            {
+          const results =
+            await ClipController.statsAggregatedClipService.getManyByItemAndCountPublic(item.id, {
               order: { [order]: 'DESC' },
               skip: offset,
               take: limit,
               relations: statsAggregationItemRelations,
-            },
-          );
+            });
           const statsResults = results[0];
           const count = results[1];
           const clips = statsResults.map((s: { clip: Clip }) => s.clip).filter(Boolean);
@@ -784,89 +839,99 @@ class ClipController {
 
   static async getManySubscribedPublicRecent(req: Request, res: Response): Promise<void> {
     validateQueryObject(getManySubscribedRecentSchema, req, res, async (): Promise<void> => {
-      ensureAuthenticated(req, res, async (): Promise<void> => {
-        try {
-          const { page, limit, offset } = getPaginationParams(req);
-          const { medium } = req.query as {
-            medium: QueryParamsMedium;
-          };
-          const jwtUser = getAuthenticatedUser(req);
-          const account_id = jwtUser.id;
+      ensureAuthenticated(
+        req,
+        res,
+        async (): Promise<void> => {
+          try {
+            const { page, limit, offset } = getPaginationParams(req);
+            const { medium } = req.query as {
+              medium: QueryParamsMedium;
+            };
+            const jwtUser = getAuthenticatedUser(req);
+            const account_id = jwtUser.id;
 
-          const channel_ids = await getFollowedChannelIds(account_id, medium);
-          if (!channel_ids.length) {
-            const response: ApiListResponse<Clip> = emptyApiListResponse;
+            const channel_ids = await getFollowedChannelIds(account_id, medium);
+            if (!channel_ids.length) {
+              const response: ApiListResponse<Clip> = emptyApiListResponse;
+              res.json(response);
+            }
+
+            const config: FindManyOptions<Clip> = {
+              order: { created_at: 'DESC' },
+              skip: offset,
+              take: limit,
+              relations: clipPublicManyRelations,
+            };
+
+            const results = await clipService.getManyByChannels(channel_ids, config);
+            const clips = results[0];
+            const count = results[1];
+
+            const response: ApiListResponse<Clip> = {
+              data: clips,
+              meta: { page, count, limit },
+            };
             res.json(response);
+          } catch (error) {
+            handleGenericErrorResponse(res, error);
           }
-
-          const config: FindManyOptions<Clip> = {
-            order: { created_at: 'DESC' },
-            skip: offset,
-            take: limit,
-            relations: clipPublicManyRelations,
-          };
-
-          const results = await clipService.getManyByChannels(channel_ids, config);
-          const clips = results[0];
-          const count = results[1];
-
-          const response: ApiListResponse<Clip> = {
-            data: clips,
-            meta: { page, count, limit },
-          };
-          res.json(response);
-        } catch (error) {
-          handleGenericErrorResponse(res, error);
-        }
-      }, { skipMembershipStatus: true });
+        },
+        { skipMembershipStatus: true }
+      );
     });
   }
 
   static async getManySubscribedPublicTop(req: Request, res: Response): Promise<void> {
     validateQueryObject(getManySubscribedTopSchema, req, res, async (): Promise<void> => {
-      ensureAuthenticated(req, res, async (): Promise<void> => {
-        try {
-          const { page, limit, offset } = getPaginationParams(req);
-          const { range, medium } = req.query as {
-            range: QueryParamsStatsRange;
-            medium: QueryParamsMedium;
-          };
-          const jwtUser = getAuthenticatedUser(req);
-          const account_id = jwtUser.id;
+      ensureAuthenticated(
+        req,
+        res,
+        async (): Promise<void> => {
+          try {
+            const { page, limit, offset } = getPaginationParams(req);
+            const { range, medium } = req.query as {
+              range: QueryParamsStatsRange;
+              medium: QueryParamsMedium;
+            };
+            const jwtUser = getAuthenticatedUser(req);
+            const account_id = jwtUser.id;
 
-          const channel_ids = await getFollowedChannelIds(account_id, medium);
-          if (!channel_ids.length) {
-            const response: ApiListResponse<Clip> = emptyApiListResponse;
+            const channel_ids = await getFollowedChannelIds(account_id, medium);
+            if (!channel_ids.length) {
+              const response: ApiListResponse<Clip> = emptyApiListResponse;
+              res.json(response);
+            }
+
+            const order = getStatsOrder(range);
+            const config: FindManyOptions<StatsAggregatedClip> = {
+              order: { [order]: 'DESC' },
+              skip: offset,
+              take: limit,
+              relations: statsAggregationRelations,
+            };
+            const results =
+              await ClipController.statsAggregatedClipService.getManyByChannelsAndCountPublic(
+                channel_ids,
+                config
+              );
+            const statsResults = results[0];
+            const count = results[1];
+            const clips = statsResults.map((stat: { clip: Clip }) => stat.clip).filter(Boolean);
+
+            const response: ApiListResponse<Clip> = {
+              data: clips,
+              meta: { page, count, limit },
+            };
             res.json(response);
+          } catch (error) {
+            handleGenericErrorResponse(res, error);
           }
-
-          const order = getStatsOrder(range);
-          const config: FindManyOptions<StatsAggregatedClip> = {
-            order: { [order]: 'DESC' },
-            skip: offset,
-            take: limit,
-            relations: statsAggregationRelations,
-          };
-          const results = await ClipController.statsAggregatedClipService.getManyByChannelsAndCountPublic(
-            channel_ids,
-            config,
-          );
-          const statsResults = results[0];
-          const count = results[1];
-          const clips = statsResults.map((stat: { clip: Clip }) => stat.clip).filter(Boolean);
-
-          const response: ApiListResponse<Clip> = {
-            data: clips,
-            meta: { page, count, limit },
-          };
-          res.json(response);
-        } catch (error) {
-          handleGenericErrorResponse(res, error);
-        }
-      }, { skipMembershipStatus: true });
+        },
+        { skipMembershipStatus: true }
+      );
     });
   }
-
 }
 
 export { ClipController };

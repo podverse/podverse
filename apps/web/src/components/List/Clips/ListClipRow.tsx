@@ -2,7 +2,15 @@
 
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';
-import { DTOChannel, DTOClip, DTOItem, findDTOChannelImageBySize, findDTOItemImageBySize, getQueueForMedium, getShuffleHash } from '@podverse/helpers';
+import {
+  DTOChannel,
+  DTOClip,
+  DTOItem,
+  findDTOChannelImageBySize,
+  findDTOItemImageBySize,
+  getQueueForMedium,
+} from '@podverse/helpers';
+import { getShuffleHash } from '@podverse/helpers-requests';
 import React from 'react';
 import { FaGripLines } from 'react-icons/fa6';
 import { Image } from '../../Image/Image';
@@ -35,9 +43,18 @@ interface Props {
   playlist_id_text: string | null;
 }
 
-export const ListClipRow: React.FC<Props> = ({ channel, isEditModeQueue,
-  item, clip, showChannelInfo, showItemInfo, removeFromQueue,
-  isEditModePlaylist, removeFromPlaylist, playlist_id_text }) => {
+export const ListClipRow: React.FC<Props> = ({
+  channel,
+  isEditModeQueue,
+  item,
+  clip,
+  showChannelInfo,
+  showItemInfo,
+  removeFromQueue,
+  isEditModePlaylist,
+  removeFromPlaylist,
+  playlist_id_text,
+}) => {
   const url = `${ROUTES.CLIP}/${clip.id_text}`;
 
   channel = clip.item?.channel || item?.channel || channel || null;
@@ -46,8 +63,16 @@ export const ListClipRow: React.FC<Props> = ({ channel, isEditModeQueue,
   const channel_images = channel?.channel_images;
   const item_images = item?.item_images;
 
-  const channel_image = findDTOChannelImageBySize(channel_images, IMAGES.LIST.CLIPS.SIZE_FIND_TARGET, 'lesser');
-  const item_image = findDTOItemImageBySize(item_images, IMAGES.LIST.CLIPS.SIZE_FIND_TARGET, 'lesser');
+  const channel_image = findDTOChannelImageBySize(
+    channel_images,
+    IMAGES.LIST.CLIPS.SIZE_FIND_TARGET,
+    'lesser'
+  );
+  const item_image = findDTOItemImageBySize(
+    item_images,
+    IMAGES.LIST.CLIPS.SIZE_FIND_TARGET,
+    'lesser'
+  );
 
   const tFeatures = useTranslations('features');
   const tMedia = useTranslations('media');
@@ -111,7 +136,7 @@ export const ListClipRow: React.FC<Props> = ({ channel, isEditModeQueue,
           {
             success: tFeatures('queue.added_to_queue'),
             error: tFeatures('queue.add_error'),
-          },
+          }
         );
       }
     }
@@ -134,7 +159,7 @@ export const ListClipRow: React.FC<Props> = ({ channel, isEditModeQueue,
           {
             success: tFeatures('queue.added_to_queue'),
             error: tFeatures('queue.add_error'),
-          },
+          }
         );
       }
     }
@@ -185,31 +210,25 @@ export const ListClipRow: React.FC<Props> = ({ channel, isEditModeQueue,
           removeFromQueue?.();
         }
       }
-      showToastPromise(
-        handler,
-        {
-          success: tFeatures('queue.removed_from_queue'),
-          error: tFeatures('queue.remove_error'),
-        },
-      );
+      showToastPromise(handler, {
+        success: tFeatures('queue.removed_from_queue'),
+        error: tFeatures('queue.remove_error'),
+      });
     }
   };
 
   const removeFromPlaylistOnClick = async () => {
-    async function handler () {
+    async function handler() {
       if (playlist_id_text) {
         await apiRequestService.reqPlaylistResourceClipDelete(playlist_id_text, clip.id_text);
         removeFromPlaylist?.();
       }
     }
 
-    showToastPromise(
-      handler,
-      {
-        success: tFeatures('playlist.removed_from_playlist'),
-        error: tFeatures('playlist.remove_error'),
-      },
-    );
+    showToastPromise(handler, {
+      success: tFeatures('playlist.removed_from_playlist'),
+      error: tFeatures('playlist.remove_error'),
+    });
   };
 
   if (isEditModeQueue) {
@@ -239,22 +258,20 @@ export const ListClipRow: React.FC<Props> = ({ channel, isEditModeQueue,
 
   return (
     <div className={styles.row}>
-      {
-        (isEditModeQueue || isEditModePlaylist) && (
-          <div className={styles.editingButtons}>
-            <FaGripLines />
-          </div>
-        )
-      }
+      {(isEditModeQueue || isEditModePlaylist) && (
+        <div className={styles.editingButtons}>
+          <FaGripLines />
+        </div>
+      )}
       <Link href={url} tabIndex={-1}>
-        <Image 
+        <Image
           src={item_image?.url || channel_image?.url}
           alt={itemTitle || tMedia('podcast.episode_image')}
           width={IMAGES.LIST.CLIPS.SIZE}
           height={IMAGES.LIST.CLIPS.SIZE}
           className={styles.image}
         />
-        <Image 
+        <Image
           src={item_image?.url || channel_image?.url}
           alt={itemTitle || tMedia('podcast.episode_image')}
           width={IMAGES.LIST.CLIPS.SIZE}
@@ -277,23 +294,15 @@ export const ListClipRow: React.FC<Props> = ({ channel, isEditModeQueue,
         </Link>
         <div className={styles.bottomSection}>
           <div className={styles.bottomSectionStart}>
-            <PlayButtonRow
-              clip={clip}
-              item={item || clip.item}
-              onClick={playButtonOnClick}
-            />
+            <PlayButtonRow clip={clip} item={item || clip.item} onClick={playButtonOnClick} />
             <div className={styles.timeSection}>
-              {
-                showItemInfo && (
-                  <>
-                    <ReadableDate date={itemPubDate} />
-                    {' • '}
-                  </>
-                )
-              }
-              <ReadableTimeRange
-                startTime={clip.start_time}
-                endTime={clip.end_time} />
+              {showItemInfo && (
+                <>
+                  <ReadableDate date={itemPubDate} />
+                  {' • '}
+                </>
+              )}
+              <ReadableTimeRange startTime={clip.start_time} endTime={clip.end_time} />
             </div>
           </div>
           <div className={styles.bottomSectionEnd}>

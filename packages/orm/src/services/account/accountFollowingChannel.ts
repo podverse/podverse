@@ -6,7 +6,10 @@ import { AccountService } from '@orm/services/account/account';
 import { ChannelService } from '../channel/channel';
 import { FeedFlagStatusStatusEnum } from '@orm/entities/feed/feedFlagStatus';
 
-export class AccountFollowingChannelService extends BaseManyService<AccountFollowingChannel, 'account'> {
+export class AccountFollowingChannelService extends BaseManyService<
+  AccountFollowingChannel,
+  'account'
+> {
   private accountService: AccountService;
   private channelService: ChannelService;
 
@@ -16,8 +19,11 @@ export class AccountFollowingChannelService extends BaseManyService<AccountFollo
     this.channelService = new ChannelService();
   }
 
-  async getFollowedChannels(account_id: number, mediumType: QueryParamsMedium | null,
-    config?: FindManyOptions<AccountFollowingChannel>): Promise<AccountFollowingChannel[]> {
+  async getFollowedChannels(
+    account_id: number,
+    mediumType: QueryParamsMedium | null,
+    config?: FindManyOptions<AccountFollowingChannel>
+  ): Promise<AccountFollowingChannel[]> {
     const medium_ids = mediumType ? getMediumIdArrayFromType(mediumType) : null;
 
     const account = await this.accountService.get(account_id);
@@ -27,22 +33,29 @@ export class AccountFollowingChannelService extends BaseManyService<AccountFollo
 
     const finalConfig = {
       ...config,
-      ...(medium_ids ? {
-        where: {
-          ...config?.where,
-          channel: {
-            medium_id: In(medium_ids),
-          },
-        },
-      } : {}),
+      ...(medium_ids
+        ? {
+            where: {
+              ...config?.where,
+              channel: {
+                medium_id: In(medium_ids),
+              },
+            },
+          }
+        : {}),
     };
 
     return this._getAll(account, finalConfig);
   }
 
-  async getFollowedChannelsWithCount(account_id: number, mediumType: QueryParamsMedium | null,
-    config?: FindManyOptions<AccountFollowingChannel>): Promise<{
-      count: number; results: AccountFollowingChannel[] }> {
+  async getFollowedChannelsWithCount(
+    account_id: number,
+    mediumType: QueryParamsMedium | null,
+    config?: FindManyOptions<AccountFollowingChannel>
+  ): Promise<{
+    count: number;
+    results: AccountFollowingChannel[];
+  }> {
     const medium_ids = mediumType ? getMediumIdArrayFromType(mediumType) : null;
 
     const account = await this.accountService.get(account_id);
@@ -54,7 +67,10 @@ export class AccountFollowingChannelService extends BaseManyService<AccountFollo
       account_id: Equal(account.id),
       channel: {
         feed: {
-          feed_flag_status: In([FeedFlagStatusStatusEnum.Active, FeedFlagStatusStatusEnum.AlwaysParse]),
+          feed_flag_status: In([
+            FeedFlagStatusStatusEnum.Active,
+            FeedFlagStatusStatusEnum.AlwaysParse,
+          ]),
         },
         ...(medium_ids ? { medium_id: In(medium_ids) } : {}),
       },
@@ -68,7 +84,10 @@ export class AccountFollowingChannelService extends BaseManyService<AccountFollo
     return this._getAllWithCount(account, finalConfig);
   }
 
-  async followChannel(account_id: number, channel_id_text: string): Promise<AccountFollowingChannel> {
+  async followChannel(
+    account_id: number,
+    channel_id_text: string
+  ): Promise<AccountFollowingChannel> {
     const account = await this.accountService.get(account_id);
     if (!account) {
       throw new Error('Account not found.');
@@ -81,11 +100,7 @@ export class AccountFollowingChannelService extends BaseManyService<AccountFollo
 
     const dto = { channel_id: channel.id };
 
-    return this._update(
-      account,
-      ['account_id', 'channel_id'],
-      dto,
-    );
+    return this._update(account, ['account_id', 'channel_id'], dto);
   }
 
   async unfollowChannel(account_id: number, channel_id_text: string): Promise<void> {
@@ -105,7 +120,7 @@ export class AccountFollowingChannelService extends BaseManyService<AccountFollo
   async getFollowedChannelsByAccountIdTextWithCount(
     account_id_text: string,
     mediumType: QueryParamsMedium | null = null,
-    config?: FindManyOptions<AccountFollowingChannel>,
+    config?: FindManyOptions<AccountFollowingChannel>
   ): Promise<{ count: number; results: AccountFollowingChannel[] }> {
     const medium_ids = mediumType ? getMediumIdArrayFromType(mediumType) : null;
 
@@ -118,7 +133,10 @@ export class AccountFollowingChannelService extends BaseManyService<AccountFollo
       account_id: Equal(account.id),
       channel: {
         feed: {
-          feed_flag_status: In([FeedFlagStatusStatusEnum.Active, FeedFlagStatusStatusEnum.AlwaysParse]),
+          feed_flag_status: In([
+            FeedFlagStatusStatusEnum.Active,
+            FeedFlagStatusStatusEnum.AlwaysParse,
+          ]),
         },
         ...(medium_ids ? { medium_id: In(medium_ids) } : {}),
       },

@@ -8,7 +8,7 @@ import {
   QueryParamsPlaylistsType,
   QueryParamsSubscribedFullSort,
   QUERY_PARAMS_SUBSCRIBED_FULL_SORT,
-} from '@podverse/helpers';
+} from '@podverse/helpers-requests';
 import React from 'react';
 import Dropdown from '../../components/Dropdown/Dropdown';
 import { ListHeader } from '../../components/List/ListHeader';
@@ -24,8 +24,11 @@ export const PlaylistsListHeader: React.FC = () => {
   const tFilters = useTranslations('filters');
   const tMedia = useTranslations('media');
   const tFeatures = useTranslations('features');
-  const { sortMenuItems, rangeMenuItems, showRangeDropdown,
-    } = getPlaylistsDropdownConfig({ type, sort, tFilters });
+  const { sortMenuItems, rangeMenuItems, showRangeDropdown } = getPlaylistsDropdownConfig({
+    type,
+    sort,
+    tFilters,
+  });
 
   function isPlaylistType(val: string): val is QueryParamsPlaylistsType {
     return QUERY_PARAMS_PLAYLISTS_TYPE_VALUES.includes(val as QueryParamsPlaylistsType);
@@ -34,7 +37,7 @@ export const PlaylistsListHeader: React.FC = () => {
   function isPlaylistSort(val: string): val is QueryParamsSubscribedFullSort {
     return QUERY_PARAMS_SUBSCRIBED_FULL_SORT.includes(val as QueryParamsSubscribedFullSort);
   }
-  
+
   function isStatsRange(val: string): val is QueryParamsStatsRange {
     return QUERY_PARAMS_STATS_RANGE_VALUES.includes(val as QueryParamsStatsRange);
   }
@@ -97,17 +100,15 @@ export const PlaylistsListHeader: React.FC = () => {
         onChange={handleSortChange}
         position="right"
       />
-      {
-        showRangeDropdown && (
-          <Dropdown
-            key="range"
-            value={range ?? ''}
-            menuItems={rangeMenuItems}
-            onChange={handleRangeChange}
-            position="right"
-          />
-        )
-      }
+      {showRangeDropdown && (
+        <Dropdown
+          key="range"
+          value={range ?? ''}
+          menuItems={rangeMenuItems}
+          onChange={handleRangeChange}
+          position="right"
+        />
+      )}
     </div>
   );
 
@@ -126,24 +127,15 @@ export const PlaylistsListHeader: React.FC = () => {
 
   return (
     <ListHeader
-      tabs={
-        <Tabs
-          tabData={tabData}
-          selectedKey={type ?? ''}
-        />
-      }
-      
-      belowButtons={(
+      tabs={<Tabs tabData={tabData} selectedKey={type ?? ''} />}
+      belowButtons={
         <div className={styles.belowButtonsWrapper}>
           <div className={styles.tabsWrapper}>
-            <ButtonTabs
-              buttonTabs={belowButtons}
-              selectedKey={filterParams.medium ?? 'av'}
-            />
+            <ButtonTabs buttonTabs={belowButtons} selectedKey={filterParams.medium ?? 'av'} />
           </div>
           {sideButtons}
         </div>
-      )}
+      }
     />
   );
 };

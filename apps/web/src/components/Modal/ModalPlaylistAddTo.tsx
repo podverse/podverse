@@ -1,8 +1,12 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { getQueryParamFromQueueMediumId, getQueueMediumIdForChannelMediumId, MediumEnum,
-  QueryParamsQueueMedium } from '@podverse/helpers';
+import {
+  getQueryParamFromQueueMediumId,
+  getQueueMediumIdForChannelMediumId,
+  MediumEnum,
+  QueryParamsQueueMedium,
+} from '@podverse/helpers';
 import React from 'react';
 import { Modal } from './Modal';
 import { MEDIUM } from '../../constants/medium';
@@ -20,15 +24,17 @@ import { CallToActionMessage } from '../CallToActionMessage/CallToActionMessage'
 type FilterParams = {
   medium: QueryParamsQueueMedium | null;
   page: number;
-}
+};
 
 const getCurrentMediumId = (
   filterParams: FilterParams,
-  modalPlaylistAddTo: ModalPlaylistAddToState,
+  modalPlaylistAddTo: ModalPlaylistAddToState
 ) => {
-  return filterParams.medium
-    || getQueryParamFromQueueMediumId(modalPlaylistAddTo?.channel?.medium_id || null)
-    || getQueryParamFromQueueMediumId(MediumEnum.AV);
+  return (
+    filterParams.medium ||
+    getQueryParamFromQueueMediumId(modalPlaylistAddTo?.channel?.medium_id || null) ||
+    getQueryParamFromQueueMediumId(MediumEnum.AV)
+  );
 };
 
 export const ModalPlaylistAddTo: React.FC = () => {
@@ -41,7 +47,7 @@ export const ModalPlaylistAddTo: React.FC = () => {
   const [playlists, setPlaylists] = React.useState<DTOPlaylist[]>([]);
   const [totalPages, setTotalPages] = React.useState(0);
   const { loggedInAccount } = useAccount();
-  
+
   const [filterParams, setFilterParams] = React.useState<FilterParams>({
     medium: null,
     page: 1,
@@ -57,13 +63,21 @@ export const ModalPlaylistAddTo: React.FC = () => {
     });
     return {
       playlists: response.data,
-      totalPages: getTotalPages(response.meta?.count, response.meta?.limit, response.data.length, page),
+      totalPages: getTotalPages(
+        response.meta?.count,
+        response.meta?.limit,
+        response.data.length,
+        page
+      ),
     };
   };
 
   useSkipInitialEffect(() => {
     const handleFetch = async () => {
-      const { playlists, totalPages } = await fetchPlaylists(1, getCurrentMediumId(filterParams, modalPlaylistAddTo));
+      const { playlists, totalPages } = await fetchPlaylists(
+        1,
+        getCurrentMediumId(filterParams, modalPlaylistAddTo)
+      );
       setPlaylists(playlists);
       setTotalPages(totalPages);
     };
@@ -75,7 +89,10 @@ export const ModalPlaylistAddTo: React.FC = () => {
 
   useSkipInitialEffect(() => {
     const handleFetch = async () => {
-      const { playlists, totalPages } = await fetchPlaylists(filterParams.page, getCurrentMediumId(filterParams, modalPlaylistAddTo));
+      const { playlists, totalPages } = await fetchPlaylists(
+        filterParams.page,
+        getCurrentMediumId(filterParams, modalPlaylistAddTo)
+      );
       setPlaylists(playlists);
       setTotalPages(totalPages);
     };
@@ -98,7 +115,8 @@ export const ModalPlaylistAddTo: React.FC = () => {
   const buttonTabs = MEDIUM.buttonTabs(
     getQueueMediumIdForChannelMediumId(modalPlaylistAddTo?.channel?.medium_id) ?? MediumEnum.AV,
     tMedia,
-    (mediumId: number) => setFilterParams({ medium: getQueryParamFromQueueMediumId(mediumId), page: 1 }),
+    (mediumId: number) =>
+      setFilterParams({ medium: getQueryParamFromQueueMediumId(mediumId), page: 1 })
   );
 
   const onClick = async (playlist: DTOPlaylist) => {
@@ -109,15 +127,18 @@ export const ModalPlaylistAddTo: React.FC = () => {
         {
           success: tFeatures('playlist.added_to_playlist'),
           error: tFeatures('playlist.add_error'),
-        },
+        }
       );
     } else if (item_soundbite) {
       showToastPromise(
-        apiRequestService.reqPlaylistResourceItemSoundbiteAddFirst(playlist.id_text, item_soundbite.id_text),
+        apiRequestService.reqPlaylistResourceItemSoundbiteAddFirst(
+          playlist.id_text,
+          item_soundbite.id_text
+        ),
         {
           success: tFeatures('playlist.added_to_playlist'),
           error: tFeatures('playlist.add_error'),
-        },
+        }
       );
     } else if (item) {
       showToastPromise(
@@ -125,7 +146,7 @@ export const ModalPlaylistAddTo: React.FC = () => {
         {
           success: tFeatures('playlist.added_to_playlist'),
           error: tFeatures('playlist.add_error'),
-        },
+        }
       );
     }
 
@@ -134,7 +155,7 @@ export const ModalPlaylistAddTo: React.FC = () => {
 
   if (!modalPlaylistAddTo.channel) {
     return null;
-  };
+  }
 
   return (
     <Modal
@@ -142,42 +163,39 @@ export const ModalPlaylistAddTo: React.FC = () => {
       onClose={clearModalPlaylistAddTo}
       header={header}
       ariaLabel={header}
-      modalContentMaxWidth={500}>
-      {
-        !loggedInAccount && (
-          <CallToActionMessage
-            message={tInstructions('login_to_create_playlists')}
-            buttonLabel={tAuthentication('login')}
-            onButtonClick={() => {
-              setModalPlaylistAddTo({ channel: null, item: null, clip: null, item_soundbite: null });
-              setModalAuthLogin({ isOpen: true });
-            }}
+      modalContentMaxWidth={500}
+    >
+      {!loggedInAccount && (
+        <CallToActionMessage
+          message={tInstructions('login_to_create_playlists')}
+          buttonLabel={tAuthentication('login')}
+          onButtonClick={() => {
+            setModalPlaylistAddTo({ channel: null, item: null, clip: null, item_soundbite: null });
+            setModalAuthLogin({ isOpen: true });
+          }}
+        />
+      )}
+      {loggedInAccount && (
+        <>
+          <MediaHeaderMini
+            channel={modalPlaylistAddTo.channel}
+            item={modalPlaylistAddTo.item}
+            item_soundbite={modalPlaylistAddTo.item_soundbite}
           />
-        )
-      }
-      {
-        loggedInAccount && (
-          <>
-            <MediaHeaderMini
-              channel={modalPlaylistAddTo.channel}
-              item={modalPlaylistAddTo.item}
-              item_soundbite={modalPlaylistAddTo.item_soundbite}
-            />
-            <ButtonTabs
-              buttonTabs={buttonTabs}
-              selectedKey={getCurrentMediumId(filterParams, modalPlaylistAddTo)}
-            />
-            <ListPlaylists
-              page={filterParams.page}
-              setPage={(page: number) => setFilterParams({ ...filterParams, page })}
-              playlists={playlists}
-              totalPages={totalPages}
-              showLoginMessage={false}
-              onClick={onClick}
-            />
-          </>
-        )
-      }
+          <ButtonTabs
+            buttonTabs={buttonTabs}
+            selectedKey={getCurrentMediumId(filterParams, modalPlaylistAddTo)}
+          />
+          <ListPlaylists
+            page={filterParams.page}
+            setPage={(page: number) => setFilterParams({ ...filterParams, page })}
+            playlists={playlists}
+            totalPages={totalPages}
+            showLoginMessage={false}
+            onClick={onClick}
+          />
+        </>
+      )}
     </Modal>
   );
 };

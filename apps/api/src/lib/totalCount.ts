@@ -10,7 +10,7 @@ export async function calculateTotalCountWithIds<T>(
   getManyFn: (ids: number[] | [], config: any) => Promise<T[]>,
   config: any,
   offset: number,
-  limit: number,
+  limit: number
 ): Promise<number | null> {
   const results = await getManyFn([], config);
   if (results.length < limit) {
@@ -22,7 +22,7 @@ export async function calculateTotalCountWithIds<T>(
       take: limit * 2,
     };
     const nextResults = await getManyFn([], nextConfig);
-    if (nextResults.length < (limit * 2)) {
+    if (nextResults.length < limit * 2) {
       return offset + results.length + nextResults.length;
     }
   }
@@ -33,7 +33,7 @@ export async function calculateTotalCount<T>(
   getManyFn: (config: any) => Promise<T[]>,
   config: any,
   offset: number,
-  limit: number,
+  limit: number
 ): Promise<number | null> {
   const results = await getManyFn(config);
   if (results.length < limit) {
@@ -45,7 +45,7 @@ export async function calculateTotalCount<T>(
       take: limit * 2,
     };
     const nextResults = await getManyFn(nextConfig);
-    if (nextResults.length < (limit * 2)) {
+    if (nextResults.length < limit * 2) {
       return offset + results.length + nextResults.length;
     }
   }

@@ -141,16 +141,17 @@ The CLI provides the main interface for running the fake data generator.
 
 ```typescript
 interface CLIOptions {
-  baseCount: number;        // Required: base number of rows to generate
-  seed?: number;            // Optional: random seed for reproducibility
-  output?: 'sql' | 'json';  // Optional: output format (default: sql)
-  dryRun?: boolean;         // Optional: generate without inserting
-  startServer?: boolean;    // Optional: start media server (default: true)
-  serverPort?: number;      // Optional: media server port (default: 2111)
+  baseCount: number; // Required: base number of rows to generate
+  seed?: number; // Optional: random seed for reproducibility
+  output?: 'sql' | 'json'; // Optional: output format (default: sql)
+  dryRun?: boolean; // Optional: generate without inserting
+  startServer?: boolean; // Optional: start media server (default: true)
+  serverPort?: number; // Optional: media server port (default: 2111)
 }
 ```
 
 **Usage:**
+
 ```bash
 # Generate 100 base rows
 npm run faker -- --baseCount 100
@@ -173,21 +174,21 @@ Centralized configuration management:
 export interface FakerConfig {
   // Base counts
   baseCount: number;
-  
+
   // Relationship multipliers
-  itemsPerChannel: number;      // Default: 2
-  imagesPerEntity: number;      // Default: 2
-  personsPerEntity: number;     // Default: 2
+  itemsPerChannel: number; // Default: 2
+  imagesPerEntity: number; // Default: 2
+  personsPerEntity: number; // Default: 2
   categoriesPerChannel: number; // Default: 2
-  enclosuresPerItem: number;    // Default: 2
-  
+  enclosuresPerItem: number; // Default: 2
+
   // Media server
-  mediaServerPort: number;      // Default: 2111
-  mediaServerHost: string;      // Default: 'localhost'
-  
+  mediaServerPort: number; // Default: 2111
+  mediaServerHost: string; // Default: 'localhost'
+
   // Special accounts
   specialAccounts: SpecialAccount[];
-  
+
   // Database constants (from podverse-helpers)
   databaseConstants: typeof DATABASE_CONSTANTS;
 }
@@ -200,10 +201,10 @@ The orchestrator manages the generation process:
 ```typescript
 class DataOrchestrator {
   constructor(config: FakerConfig);
-  
+
   // Main generation method
   async generate(): Promise<GenerationResult>;
-  
+
   // Generation phases (in order)
   private async generateAccounts(): Promise<Account[]>;
   private async generateFeeds(): Promise<Feed[]>;
@@ -211,7 +212,7 @@ class DataOrchestrator {
   private async generateItems(channels: Channel[]): Promise<Item[]>;
   private async generateUserContent(accounts: Account[], items: Item[]): Promise<void>;
   private async generateStats(channels: Channel[], items: Item[]): Promise<void>;
-  
+
   // Utility methods
   private async startMediaServer(): Promise<void>;
   private async stopMediaServer(): Promise<void>;
@@ -226,15 +227,15 @@ Ensures reproducible data generation:
 class SeedManager {
   private seed: number;
   private faker: Faker;
-  
+
   constructor(seed?: number);
-  
+
   // Get seeded faker instance
   getFaker(): Faker;
-  
+
   // Reset to initial seed state
   reset(): void;
-  
+
   // Get deterministic ID for entity
   getEntityId(entityType: string, index: number): string;
 }
@@ -248,19 +249,19 @@ Tracks relationships between generated entities:
 class RelationshipManager {
   // Store generated entities
   private entities: Map<string, Map<number, any>>;
-  
+
   // Register a generated entity
   register(type: string, id: number, entity: any): void;
-  
+
   // Get entity by type and id
   get<T>(type: string, id: number): T | undefined;
-  
+
   // Get all entities of a type
   getAll<T>(type: string): T[];
-  
+
   // Get random entity of a type
   getRandom<T>(type: string): T;
-  
+
   // Get random N entities of a type
   getRandomN<T>(type: string, count: number): T[];
 }
@@ -357,14 +358,14 @@ The data must be generated in a specific order to satisfy foreign key constraint
 ```json
 {
   "dependencies": {
-    "@faker-js/faker": "^10.0.0",        // Already installed
-    "podverse-orm": "^5.0.5",            // Already installed
-    "podverse-helpers": "^5.1.0",        // Already installed
-    "sharp": "^0.33.0",                  // For image generation
-    "commander": "^12.0.0"               // CLI argument parsing
+    "@faker-js/faker": "^10.0.0", // Already installed
+    "podverse-orm": "^5.0.5", // Already installed
+    "podverse-helpers": "^5.1.0", // Already installed
+    "sharp": "^0.33.0", // For image generation
+    "commander": "^12.0.0" // CLI argument parsing
   },
   "devDependencies": {
-    "@types/node": "^24.4.0"             // Already installed
+    "@types/node": "^24.4.0" // Already installed
   }
 }
 ```
@@ -380,24 +381,24 @@ The data must be generated in a specific order to satisfy foreign key constraint
 
 Given `baseCount = N`:
 
-| Entity Type | Count Formula | Example (N=100) |
-|-------------|---------------|-----------------|
-| Special Accounts | 4 | 4 |
-| Random Accounts | N | 100 |
-| **Total Accounts** | **4 + N** | **104** |
-| Feeds | N | 100 |
-| Channels | N | 100 |
-| Items | N × 2 | 200 |
-| Channel Images | N × 2 | 200 |
-| Channel Persons | N × 2 | 200 |
-| Channel Categories | N × 2 | 200 |
-| Item Enclosures | N × 2 × 2 | 400 |
-| Item Images | N × 2 × 2 | 400 |
-| Item Persons | N × 2 × 2 | 400 |
-| Clips | N | 100 |
-| Playlists | N | 100 |
-| Queues | 4 + N | 104 |
-| Live Items | N × 0.1 (10%) | 10 |
+| Entity Type        | Count Formula | Example (N=100) |
+| ------------------ | ------------- | --------------- |
+| Special Accounts   | 4             | 4               |
+| Random Accounts    | N             | 100             |
+| **Total Accounts** | **4 + N**     | **104**         |
+| Feeds              | N             | 100             |
+| Channels           | N             | 100             |
+| Items              | N × 2         | 200             |
+| Channel Images     | N × 2         | 200             |
+| Channel Persons    | N × 2         | 200             |
+| Channel Categories | N × 2         | 200             |
+| Item Enclosures    | N × 2 × 2     | 400             |
+| Item Images        | N × 2 × 2     | 400             |
+| Item Persons       | N × 2 × 2     | 400             |
+| Clips              | N             | 100             |
+| Playlists          | N             | 100             |
+| Queues             | 4 + N         | 104             |
+| Live Items         | N × 0.1 (10%) | 10              |
 
 ## Error Handling
 
@@ -445,6 +446,7 @@ try {
 ## Next Steps
 
 See the following documentation files for detailed implementation:
+
 - [02-media-server.md](./02-media-server.md) - Media server implementation
 - [03-lookup-tables.md](./03-lookup-tables.md) - Lookup table reference
 - [04-account-generators.md](./04-account-generators.md) - Account generation

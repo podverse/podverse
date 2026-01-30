@@ -1,7 +1,13 @@
 'use client';
 
-import { DTOQueue, DTOQueueResource, getQueueMediumIdFromType, getTotalPages, QueryParamsHistory } from '@podverse/helpers';
-import React, { createContext, useContext, useState, ReactNode, useEffect, useRef } from 'react';
+import {
+  DTOQueue,
+  DTOQueueResource,
+  getQueueMediumIdFromType,
+  getTotalPages,
+} from '@podverse/helpers';
+import { QueryParamsHistory } from '@podverse/helpers-requests';
+import { createContext, useContext, useState, ReactNode, useEffect, useRef } from 'react';
 import { apiRequestService } from '../../factories/apiRequestService';
 import { useAccount } from '../../contexts/Account';
 import { checkBackNavFlag } from '../../contexts/Navigation';
@@ -25,15 +31,15 @@ interface HistoryPageContextType {
   setShowLoginMessage: (show: boolean) => void;
   totalPages: number;
   setTotalPages: (totalPages: number) => void;
-};
+}
 
 const HistoryPageContext = createContext<HistoryPageContextType | undefined>(undefined);
 
 interface HistoryPageContextProviderProps {
-  children: ReactNode,
-  initialQueryParams: QueryParamsHistory,
-  ssrQueues: DTOQueue[],
-  ssrQueueResources?: DTOQueueResource[]
+  children: ReactNode;
+  initialQueryParams: QueryParamsHistory;
+  ssrQueues: DTOQueue[];
+  ssrQueueResources?: DTOQueueResource[];
 }
 
 export const HistoryPageContextProvider = ({
@@ -44,23 +50,21 @@ export const HistoryPageContextProvider = ({
 }: HistoryPageContextProviderProps) => {
   // Use synchronous sessionStorage check instead of async React state
   const isBackNav = checkBackNavFlag();
-  
+
   // Check for cached state on back navigation
-  const cachedState = isBackNav 
-    ? getPageState<QueryParamsHistory, HistoryCachedData>('history') 
+  const cachedState = isBackNav
+    ? getPageState<QueryParamsHistory, HistoryCachedData>('history')
     : null;
   const restoredFromCacheRef = useRef(!!cachedState?.data);
-  
+
   const [filterParams, setFilterParams] = useState<QueryParamsHistory>(
-    cachedState?.filterParams ?? initialQueryParams,
+    cachedState?.filterParams ?? initialQueryParams
   );
   const [queueResources, setQueueResources] = useState<DTOQueueResource[]>(
-    cachedState?.data?.queueResources ?? ssrQueueResources ?? [],
+    cachedState?.data?.queueResources ?? ssrQueueResources ?? []
   );
   const [isLoading, setIsLoading] = useState<boolean>(!cachedState?.data); // Not loading if restored from cache
-  const [totalPages, setTotalPages] = useState<number>(
-    cachedState?.data?.totalPages ?? 1,
-  );
+  const [totalPages, setTotalPages] = useState<number>(cachedState?.data?.totalPages ?? 1);
   const [showLoginMessage, setShowLoginMessage] = useState<boolean>(false);
   const { loggedInAccount } = useAccount();
 
@@ -91,17 +95,24 @@ export const HistoryPageContextProvider = ({
         setIsLoading(false);
         return;
       }
-      
+
       setIsLoading(true);
-      
+
       const currentMediumId = getQueueMediumIdFromType(filterParams.medium);
-      const currentQueue = ssrQueues.find(q => q.medium_id === currentMediumId);
-      
+      const currentQueue = ssrQueues.find((q) => q.medium_id === currentMediumId);
+
       if (currentQueue) {
-        const response = await apiRequestService
-          .reqQueueResourcesGetHistoryByQueueIdTextPaginated(currentQueue.id_text, filterParams.page);
+        const response = await apiRequestService.reqQueueResourcesGetHistoryByQueueIdTextPaginated(
+          currentQueue.id_text,
+          filterParams.page
+        );
         setQueueResources(response.data);
-        const totalPages = getTotalPages(response.meta.count, response.meta.limit, response.data.length, filterParams.page);
+        const totalPages = getTotalPages(
+          response.meta.count,
+          response.meta.limit,
+          response.data.length,
+          filterParams.page
+        );
         setTotalPages(totalPages);
       }
 
@@ -113,13 +124,20 @@ export const HistoryPageContextProvider = ({
   }, [filterParams, loggedInAccount]);
 
   return (
-    <HistoryPageContext.Provider value={{
-      filterParams, setFilterParams,
-      queueResources, setQueueResources,
-      isLoading, setIsLoading,
-      showLoginMessage, setShowLoginMessage,
-      totalPages, setTotalPages,
-    }}>
+    <HistoryPageContext.Provider
+      value={{
+        filterParams,
+        setFilterParams,
+        queueResources,
+        setQueueResources,
+        isLoading,
+        setIsLoading,
+        showLoginMessage,
+        setShowLoginMessage,
+        totalPages,
+        setTotalPages,
+      }}
+    >
       {children}
     </HistoryPageContext.Provider>
   );
@@ -127,6 +145,8 @@ export const HistoryPageContextProvider = ({
 
 export const useHistoryPageContext = () => {
   const ctx = useContext(HistoryPageContext);
-  if (!ctx) {throw new Error('useHistoryPageContext must be used within a HistoryPageContextProvider');}
+  if (!ctx) {
+    throw new Error('useHistoryPageContext must be used within a HistoryPageContextProvider');
+  }
   return ctx;
 };

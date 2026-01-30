@@ -1,4 +1,4 @@
-import { request, AxiosRequestConfig } from '@podverse/helpers';
+import { request, AxiosRequestConfig } from '@podverse/helpers-requests';
 import { config } from '../config';
 
 export const _request = async <T>(
@@ -7,7 +7,7 @@ export const _request = async <T>(
   abort?: {
     controller: AbortController;
     timeoutMs: number;
-  },
+  }
 ): Promise<{ status: number; data: T }> => {
   const headers = {
     ...requestConfig?.headers,

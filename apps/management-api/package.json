@@ -1,6 +1,6 @@
 {
   "name": "@podverse/management-api",
-  "version": "5.2.2",
+  "version": "5.2.3",
   "description": "Management API for Podverse administration",
   "private": true,
   "main": "dist/index.js",
@@ -9,7 +9,7 @@
     "build:prod": "tsc -p tsconfig.prod.json && tsc-alias -p tsconfig.prod.json",
     "dev": "tsc && tsc-alias && node ./dist/index.js",
     "dev:watch": "tsc --build --watch --preserveWatchOutput & tsc-alias --watch & nodemon --delay 1000ms --watch dist --watch ../../packages/helpers/dist --watch ../../packages/external-services/dist --watch ../../packages/orm/dist --watch ../../packages/notifications/dist --watch ../../packages/parser/dist --watch ../../packages/mq/dist dist/index.js",
-    "lint": "eslint ./src",
+    "lint": "eslint ./src --max-warnings 0",
     "lint:fix": "eslint ./src --fix",
     "start": "node ./dist/index.js",
     "clean": "rm -rf dist",
@@ -34,7 +34,9 @@
     "pg": "^8.16.3",
     "reflect-metadata": "^0.2.2",
     "typeorm": "^0.3.26",
-    "typeorm-naming-strategies": "^4.1.0"
+    "typeorm-naming-strategies": "^4.1.0",
+    "@podverse/helpers-backend": "*",
+    "@podverse/helpers-config": "*"
   },
   "devDependencies": {
     "@dotenvx/dotenvx": "^1.49.0",
@@ -42,7 +44,7 @@
     "@types/cookie-parser": "^1.4.9",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.3",
-    "@types/node": "^24.4.0",
+    "@types/node": "^25.0.10",
     "@types/passport": "^1.0.17",
     "@types/passport-jwt": "^4.0.1",
     "@types/passport-local": "^1.0.38",

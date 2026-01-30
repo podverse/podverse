@@ -4,33 +4,41 @@ This document provides rules and patterns for AI coding assistants working on th
 
 ## Quick Reference
 
-| Item | Value |
-|------|-------|
-| Node.js | 22+ (see `.nvmrc`) |
-| Package Manager | npm workspaces |
-| Style | Semicolons required, single quotes, 2-space indent |
-| TypeScript | Strict mode, no `any` types |
+| Item            | Value                                        |
+| --------------- | -------------------------------------------- |
+| Node.js         | 22+ (see `.nvmrc`)                           |
+| Package Manager | npm workspaces                               |
+| Style           | No semicolons, single quotes, 2-space indent |
+| TypeScript      | Strict mode, no `any` types                  |
 
 ### Essential Commands
 
 ```bash
-npm run build:packages    # Build packages (required before apps)
-npm run lint              # Lint all packages and apps
-npm run dev:api           # Start API (localhost:1234)
-npm run dev:web           # Start web app (localhost:3000)
-npm run dev:all           # Start everything with watch mode
+npm run build:packages # Build packages (required before apps)
+npm run lint           # Lint all packages and apps
+npm run dev:api        # Start API (localhost:1234)
+npm run dev:web        # Start web app (localhost:3000)
+npm run dev:all        # Start everything with watch mode
 ```
 
 ### Package Build Order
 
 Build packages in this order (dependencies must be built first):
 
-1. `helpers`
-2. `external-services`
-3. `orm`
-4. `notifications`
-5. `parser`
-6. `mq`
+1. `helpers` (core utilities, types, DTOs) — **MUST build first**
+2. Then in parallel:
+   - `helpers-validation` (validation utilities)
+   - `helpers-requests` (API request types and utilities)
+   - `helpers-backend` (backend-specific utilities)
+   - `helpers-browser` (browser-specific utilities)
+   - `helpers-config` (configuration validation)
+3. `external-services`
+4. `orm`
+5. `notifications`
+6. `parser`
+7. `mq`
+
+**Note:** The 5 specialized helper packages (validation, requests, backend, browser, config) all depend on core `@podverse/helpers` but don't depend on each other, so they can build in parallel after `helpers` completes.
 
 ## Critical Rules
 
@@ -40,11 +48,11 @@ Build packages in this order (dependencies must be built first):
 
 ```typescript
 // BAD - hides configuration errors
-dbHost: process.env.DB_HOST || 'localhost'
-dbHost: process.env.DB_HOST ?? ''
+dbHost: process.env.DB_HOST || 'localhost';
+dbHost: process.env.DB_HOST ?? '';
 
 // GOOD - fails fast if not configured
-dbHost: process.env.DB_HOST!
+dbHost: process.env.DB_HOST!;
 ```
 
 Config files are the ONE exception where `!` assertions are allowed because validation runs at startup before config is used. Add this eslint-disable at the top:
@@ -56,6 +64,7 @@ Config files are the ONE exception where `!` assertions are allowed because vali
 ### Environment File Formatting
 
 In `.env` files:
+
 - **Non-empty values**: Use double quotes
 - **Empty/unset values**: No value after `=`
 
@@ -74,14 +83,14 @@ EMPTY_VALUE=""
 Organize imports with blank lines between groups:
 
 ```typescript
-import path from 'path'                    // 1. Node built-ins
+import path from 'path'; // 1. Node built-ins
 
-import express from 'express'              // 2. External packages
+import express from 'express'; // 2. External packages
 
-import { logger } from '@podverse/helpers' // 3. Workspace packages
-import { Podcast } from '@podverse/orm'
+import { logger } from '@podverse/helpers'; // 3. Workspace packages
+import { Podcast } from '@podverse/orm';
 
-import { config } from './config'          // 4. Relative imports
+import { config } from './config'; // 4. Relative imports
 ```
 
 ## Architecture
@@ -107,14 +116,14 @@ apps/               # Deployable applications
 
 ### Where to Find Things
 
-| Looking for... | Location |
-|----------------|----------|
-| API routes | `apps/api/src/routes/` |
-| Database entities | `packages/orm/src/entities/` |
-| Database services | `packages/orm/src/services/` |
-| Shared types/DTOs | `packages/helpers/src/dto/` |
-| Feed parsing | `packages/parser/src/` |
-| Web pages | `apps/web/src/app/` |
+| Looking for...        | Location                      |
+| --------------------- | ----------------------------- |
+| API routes            | `apps/api/src/routes/`        |
+| Database entities     | `packages/orm/src/entities/`  |
+| Database services     | `packages/orm/src/services/`  |
+| Shared types/DTOs     | `packages/helpers/src/dto/`   |
+| Feed parsing          | `packages/parser/src/`        |
+| Web pages             | `apps/web/src/app/`           |
 | Environment templates | `infra/config/env-templates/` |
 
 ## Coding Patterns
@@ -137,11 +146,11 @@ export class PodcastService {
 Use the centralized logger from `@podverse/helpers`:
 
 ```typescript
-import { logger } from '@podverse/helpers'
+import { logger } from '@podverse/helpers';
 
-logger.info('Processing feed', { feedUrl, podcastId })
-logger.warn('Retrying request', { attempt, maxAttempts })
-logger.error('Feed parsing failed', { error, feedUrl })
+logger.info('Processing feed', { feedUrl, podcastId });
+logger.warn('Retrying request', { attempt, maxAttempts });
+logger.error('Feed parsing failed', { error, feedUrl });
 ```
 
 ### Error Handling
@@ -210,15 +219,21 @@ When making changes, update `.llm/history/active/[feature]/[feature].md` (or the
 
 ```markdown
 ### Session N - YYYY-MM-DD
+
 #### Prompt (Developer)
+
 [What was requested]
+
 #### Key Decisions
+
 - Decision 1
+
 #### Files Modified
+
 - path/to/file.ts
 ```
 
-See `.llm/README.md` for full guidelines.
+See `.llm/LLM.md` for full guidelines.
 
 ## References
 

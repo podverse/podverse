@@ -26,6 +26,12 @@
       "open": true
     },
     {
+      "name": "Tools",
+      "description": "Tools development",
+      "cwd": "./tools",
+      "open": true
+    },
+    {
       "name": "partytime",
       "description": "Partytime parser library",
       "cwd": "../partytime",

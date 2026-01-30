@@ -19,10 +19,12 @@ if (config.nodeEnv === 'production') {
   app.set('trust proxy', 1);
 }
 
-app.use(cors({
-  origin: config.api.allowedCORSOrigins,
-  credentials: true,
-}));
+app.use(
+  cors({
+    origin: config.api.allowedCORSOrigins,
+    credentials: true,
+  })
+);
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -44,7 +46,10 @@ export const startApp = async (): Promise<import('http').Server | undefined> => 
 
     app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
       console.error('API Router Error:', err);
-      res.status(500).json({ message: err.message });
+
+      if (!res.headersSent) {
+        res.status(500).json({ message: err.message });
+      }
     });
 
     const server = app.listen(port, () => {

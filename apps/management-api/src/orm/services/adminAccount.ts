@@ -19,7 +19,8 @@ export class AdminAccountService {
     this.repositoryRead = AppDataSourceRead.getRepository(AdminAccount);
     this.repositoryReadWrite = AppDataSourceReadWrite.getRepository(AdminAccount);
     this.credentialsRepositoryRead = AppDataSourceRead.getRepository(AdminAccountCredentials);
-    this.credentialsRepositoryReadWrite = AppDataSourceReadWrite.getRepository(AdminAccountCredentials);
+    this.credentialsRepositoryReadWrite =
+      AppDataSourceReadWrite.getRepository(AdminAccountCredentials);
   }
 
   async get(id: number, config?: FindOneOptions<AdminAccount>): Promise<AdminAccount | null> {
@@ -29,12 +30,15 @@ export class AdminAccountService {
     return this.repositoryRead.findOne({ where: { id }, ...config });
   }
 
-  async getByEmail(email: string, config?: FindOneOptions<AdminAccount>): Promise<AdminAccount | null> {
-    const credentials = await this.credentialsRepositoryRead.findOne({ 
+  async getByEmail(
+    email: string,
+    config?: FindOneOptions<AdminAccount>
+  ): Promise<AdminAccount | null> {
+    const credentials = await this.credentialsRepositoryRead.findOne({
       where: { email },
       relations: ['admin_account'],
     });
-    
+
     if (!credentials) {
       return null;
     }
@@ -42,7 +46,10 @@ export class AdminAccountService {
     return this.get(credentials.admin_account_id, config);
   }
 
-  async getByIdText(id_text: string, config?: FindOneOptions<AdminAccount>): Promise<AdminAccount | null> {
+  async getByIdText(
+    id_text: string,
+    config?: FindOneOptions<AdminAccount>
+  ): Promise<AdminAccount | null> {
     if (!id_text) {
       return null;
     }

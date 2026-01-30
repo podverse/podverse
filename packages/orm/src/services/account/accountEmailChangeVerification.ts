@@ -9,7 +9,10 @@ export type AccountEmailChangeVerificationDto = {
   pending_email_address: string;
 };
 
-export class AccountEmailChangeVerificationService extends BaseOneService<AccountEmailChangeVerification, 'account'> {
+export class AccountEmailChangeVerificationService extends BaseOneService<
+  AccountEmailChangeVerification,
+  'account'
+> {
   constructor(transactionalEntityManager?: EntityManager) {
     super(AccountEmailChangeVerification, 'account', transactionalEntityManager);
   }
@@ -25,7 +28,10 @@ export class AccountEmailChangeVerificationService extends BaseOneService<Accoun
     });
   }
 
-  async create(account: Account, dto: AccountEmailChangeVerificationDto): Promise<AccountEmailChangeVerification> {
+  async create(
+    account: Account,
+    dto: AccountEmailChangeVerificationDto
+  ): Promise<AccountEmailChangeVerification> {
     const accountEmailChangeVerification = this.repositoryReadWrite.create(dto);
     return super._update(account, accountEmailChangeVerification);
   }

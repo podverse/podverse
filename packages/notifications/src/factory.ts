@@ -13,7 +13,7 @@ export type NotificationsContext = {
 /**
  * Creates a notifications context with the provided configuration.
  * This is the factory function that should be called from the app level.
- * 
+ *
  * @param config - The notifications configuration (from app-level env vars)
  * @returns NotificationsContext with initialized services and helper functions
  */
@@ -25,25 +25,28 @@ export function createNotificationsContext(config: NotificationsConfig): Notific
     console.warn('Web Push notifications are disabled in the configuration.');
   } else {
     // Check if the VAPID keys are provided
-    if (!config.webpush.vapid_public_key || config.webpush.vapid_public_key.trim() === '' ||
-        !config.webpush.vapid_private_key || config.webpush.vapid_private_key.trim() === '' ||
-        !config.webpush.vapid_subject || config.webpush.vapid_subject.trim() === '') {
-      console.error('Web Push Admin Initialization Failed: vapid_public_key, vapid_private_key, and vapid_subject are required when webpush is enabled');
+    if (
+      !config.webpush.vapid_public_key ||
+      config.webpush.vapid_public_key.trim() === '' ||
+      !config.webpush.vapid_private_key ||
+      config.webpush.vapid_private_key.trim() === '' ||
+      !config.webpush.vapid_subject ||
+      config.webpush.vapid_subject.trim() === ''
+    ) {
+      console.error(
+        'Web Push Admin Initialization Failed: vapid_public_key, vapid_private_key, and vapid_subject are required when webpush is enabled'
+      );
       webpushAdmin = null;
       isWebPushEnabled = false;
     } else {
       console.warn('Web Push notifications are enabled in the configuration.');
-      
+
       try {
         // Safe to use these values directly - we've validated they exist above
         const vapidSubject = config.webpush.vapid_subject;
         const vapidPublicKey = config.webpush.vapid_public_key;
         const vapidPrivateKey = config.webpush.vapid_private_key;
-        webpush.setVapidDetails(
-          vapidSubject,
-          vapidPublicKey,
-          vapidPrivateKey,
-        );
+        webpush.setVapidDetails(vapidSubject, vapidPublicKey, vapidPrivateKey);
         webpushAdmin = webpush;
         isWebPushEnabled = true;
         console.warn('Web Push Admin Initialized Successfully');

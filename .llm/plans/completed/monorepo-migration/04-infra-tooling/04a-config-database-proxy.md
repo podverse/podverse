@@ -11,6 +11,7 @@ Migrate static configuration files, database schemas/migrations, and proxy confi
 ## Current State
 
 **Monorepo already has** (in `infra/config/env-templates/`):
+
 - `api.env.example`
 - `management-api.env.example`
 - `management-web.env.example`
@@ -18,6 +19,7 @@ Migrate static configuration files, database schemas/migrations, and proxy confi
 - `workers.env.example`
 
 **Missing infrastructure env templates**:
+
 - `db.env.example` - PostgreSQL configuration
 - `keyvaldb.env.example` - Valkey/Redis configuration
 - `mq.env.example` - ActiveMQ Artemis configuration
@@ -29,11 +31,11 @@ Migrate static configuration files, database schemas/migrations, and proxy confi
 
 Copy from `podverse-ops/config/` to `infra/config/env-templates/`:
 
-| Source File | Destination |
-|-------------|-------------|
-| `podverse-db.env.example` | `db.env.example` |
-| `podverse-keyvaldb.env.example` | `keyvaldb.env.example` |
-| `podverse-mq.env.example` | `mq.env.example` |
+| Source File                          | Destination                 |
+| ------------------------------------ | --------------------------- |
+| `podverse-db.env.example`            | `db.env.example`            |
+| `podverse-keyvaldb.env.example`      | `keyvaldb.env.example`      |
+| `podverse-mq.env.example`            | `mq.env.example`            |
 | `podverse-management-db.env.example` | `management-db.env.example` |
 
 ### Task 2: Migrate Google/Firebase Config
@@ -47,23 +49,23 @@ podverse-ops/config/google/firebase/firebase-admin.json.example
 
 #### Main Database
 
-| Source | Destination |
-|--------|-------------|
-| `database/combined/init_database.sql` | `infra/database/combined/init_database.sql` |
-| `database/init-scripts/01-create-users.sh` | `infra/database/init-scripts/01-create-users.sh` |
-| `database/migrations/*.sql` (13 files) | `infra/database/migrations/` |
-| `database/seed-scripts/*.sql` (2 files) | `infra/database/seeds/` |
+| Source                                       | Destination                                        |
+| -------------------------------------------- | -------------------------------------------------- |
+| `database/combined/init_database.sql`        | `infra/database/combined/init_database.sql`        |
+| `database/init-scripts/01-create-users.sh`   | `infra/database/init-scripts/01-create-users.sh`   |
+| `database/migrations/*.sql` (13 files)       | `infra/database/migrations/`                       |
+| `database/seed-scripts/*.sql` (2 files)      | `infra/database/seeds/`                            |
 | `database/scripts/combine_all_migrations.sh` | `infra/database/scripts/combine_all_migrations.sh` |
 
 #### Management Database
 
-| Source | Destination |
-|--------|-------------|
-| `database/management/combined/` | `infra/database/management/combined/` |
+| Source                              | Destination                               |
+| ----------------------------------- | ----------------------------------------- |
+| `database/management/combined/`     | `infra/database/management/combined/`     |
 | `database/management/init-scripts/` | `infra/database/management/init-scripts/` |
-| `database/management/migrations/` | `infra/database/management/migrations/` |
-| `database/management/scripts/` | `infra/database/management/scripts/` |
-| `database/management/seed-scripts/` | `infra/database/management/seeds/` |
+| `database/management/migrations/`   | `infra/database/management/migrations/`   |
+| `database/management/scripts/`      | `infra/database/management/scripts/`      |
+| `database/management/seed-scripts/` | `infra/database/management/seeds/`        |
 
 ### Task 4: Migrate Proxy Configuration
 
@@ -74,6 +76,7 @@ podverse-ops/proxy/proxy.conf -> infra/proxy/proxy.conf
 ## File Inventory
 
 ### Config Files (4 new + 1 google)
+
 - `db.env.example` (7 lines)
 - `keyvaldb.env.example` (5 lines)
 - `mq.env.example` (2 lines)
@@ -81,6 +84,7 @@ podverse-ops/proxy/proxy.conf -> infra/proxy/proxy.conf
 - `google/firebase/firebase-admin.json.example`
 
 ### Database Files (Main - 17 files)
+
 - `combined/init_database.sql` (~1844 lines)
 - `init-scripts/01-create-users.sh`
 - `migrations/0000_init_helpers.sql` through `0012_account_settings.sql` (13 files)
@@ -89,6 +93,7 @@ podverse-ops/proxy/proxy.conf -> infra/proxy/proxy.conf
 - `scripts/combine_all_migrations.sh`
 
 ### Database Files (Management - 6 files)
+
 - `combined/init_management_database.sql`
 - `init-scripts/01-create-users.sh`
 - `migrations/0000_init_helpers.sql`
@@ -96,6 +101,7 @@ podverse-ops/proxy/proxy.conf -> infra/proxy/proxy.conf
 - `scripts/combine_all_migrations.sh`
 
 ### Proxy Files (1 file)
+
 - `proxy.conf` (23 lines)
 
 ## Verification Steps

@@ -39,10 +39,7 @@ export class AccountUPDeviceService extends BaseManyService<AccountUPDevice, 'ac
     return this.repositoryReadWrite.save(newDevice);
   }
 
-  async update(
-    account_id: number,
-    params: UpdateAccountUPDeviceParams,
-  ): Promise<AccountUPDevice> {
+  async update(account_id: number, params: UpdateAccountUPDeviceParams): Promise<AccountUPDevice> {
     const account = await this.accountService.get(account_id);
     if (!account) {
       throw new Error('Account not found.');
@@ -72,17 +69,26 @@ export class AccountUPDeviceService extends BaseManyService<AccountUPDevice, 'ac
     await this.repositoryReadWrite.delete({ account_id });
   }
 
-  async getUPSubscriptionsByChannelIdText(channel_id_text: string): Promise<Array<{
-    up_endpoint: string;
-    up_auth_key: string | null;
-    locale: string;
-  }>> {
-    const notificationChannels = await this.accountNotificationChannelService.getAllByChannelIdText(channel_id_text);
-    const subscriptions: Array<{ up_endpoint: string; up_auth_key: string | null; locale: string }> = [];
+  async getUPSubscriptionsByChannelIdText(channel_id_text: string): Promise<
+    Array<{
+      up_endpoint: string;
+      up_auth_key: string | null;
+      locale: string;
+    }>
+  > {
+    const notificationChannels =
+      await this.accountNotificationChannelService.getAllByChannelIdText(channel_id_text);
+    const subscriptions: Array<{
+      up_endpoint: string;
+      up_auth_key: string | null;
+      locale: string;
+    }> = [];
 
     for (const notificationChannel of notificationChannels) {
       // Since there's only one device per account, use findOne
-      const device = await this.repositoryRead.findOne({ where: { account_id: notificationChannel.account_id } });
+      const device = await this.repositoryRead.findOne({
+        where: { account_id: notificationChannel.account_id },
+      });
       if (device) {
         subscriptions.push({
           up_endpoint: device.up_endpoint,
@@ -100,7 +106,9 @@ export class AccountUPDeviceService extends BaseManyService<AccountUPDevice, 'ac
   }
 
   async getAllForAccountIds(account_ids: number[]): Promise<AccountUPDevice[]> {
-    if (account_ids.length === 0) {return [];}
+    if (account_ids.length === 0) {
+      return [];
+    }
     return this.repositoryRead.find({ where: { account_id: In(account_ids) } });
   }
 
@@ -112,7 +120,8 @@ export class AccountUPDeviceService extends BaseManyService<AccountUPDevice, 'ac
 
     const { locale } = params;
 
-    await this.repositoryRead.createQueryBuilder()
+    await this.repositoryRead
+      .createQueryBuilder()
       .update(AccountUPDevice)
       .set({ locale })
       .where('account_id = :account_id', { account_id })
@@ -125,7 +134,8 @@ export class AccountUPDeviceService extends BaseManyService<AccountUPDevice, 'ac
       throw new Error('Account not found.');
     }
 
-    await this.repositoryRead.createQueryBuilder()
+    await this.repositoryRead
+      .createQueryBuilder()
       .delete()
       .from(AccountUPDevice)
       .where('account_id = :account_id', { account_id })

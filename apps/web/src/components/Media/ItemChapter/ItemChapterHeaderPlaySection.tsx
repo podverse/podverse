@@ -1,7 +1,8 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { DTOChannel, DTOItem, DTOItemChapter, getShuffleHash } from '@podverse/helpers';
+import { DTOChannel, DTOItem, DTOItemChapter } from '@podverse/helpers';
+import { getShuffleHash } from '@podverse/helpers-requests';
 import React from 'react';
 import { PlayButtonLarge } from '../../MediaPlayer/Buttons/PlayButtonLarge';
 import { useMediaPlayer } from '../../../contexts/MediaPlayer';
@@ -22,7 +23,11 @@ type ItemChapterHeaderPlaySectionProps = {
   item_chapter: DTOItemChapter;
 };
 
-export const ItemChapterHeaderPlaySection: React.FC<ItemChapterHeaderPlaySectionProps> = ({ item_chapter, item, channel }) => {
+export const ItemChapterHeaderPlaySection: React.FC<ItemChapterHeaderPlaySectionProps> = ({
+  item_chapter,
+  item,
+  channel,
+}) => {
   const tFeatures = useTranslations('features');
   const tMediaPlayer = useTranslations('media_player');
   const { mpItemChapter, mpIsPlaying, setMPIsPlaying } = useMediaPlayer();
@@ -82,23 +87,15 @@ export const ItemChapterHeaderPlaySection: React.FC<ItemChapterHeaderPlaySection
   return (
     <div className={styles.playSection}>
       <div className={styles.sectionStart}>
-        <PlayButtonLarge
-          item_chapter={item_chapter}
-          onClick={playButtonOnClick}
-        />
+        <PlayButtonLarge item_chapter={item_chapter} onClick={playButtonOnClick} />
         <div className={styles.timeSection}>
           <ReadableDate date={item.pub_date} />
           {item.item_about?.duration ? ' • ' : null}
-          <ReadableTimeRange
-            startTime={item_chapter.start_time}
-            endTime={item_chapter.end_time}
-          />
+          <ReadableTimeRange startTime={item_chapter.start_time} endTime={item_chapter.end_time} />
         </div>
       </div>
       <div className={styles.sectionEnd}>
-        <MoreButton
-          moreButtonMenuItems={moreButtonMenuItems}
-          isLarge />
+        <MoreButton moreButtonMenuItems={moreButtonMenuItems} isLarge />
       </div>
     </div>
   );

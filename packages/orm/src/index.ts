@@ -1,8 +1,4 @@
-export type {
-  FindManyOptions,
-  FindOptionsWhere,
-  FindOptionsOrder,
-} from 'typeorm';
+export type { FindManyOptions, FindOptionsWhere, FindOptionsOrder } from 'typeorm';
 
 // Config types for app-level configuration
 export * from './config';
@@ -12,7 +8,12 @@ export { createORMContext } from './factory';
 export type { ORMContext } from './factory';
 
 // Context accessors for advanced use cases
-export { getDataSourceRead, getDataSourceReadWrite, getLoggerService, getORMConfig } from './context';
+export {
+  getDataSourceRead,
+  getDataSourceReadWrite,
+  getLoggerService,
+  getORMConfig,
+} from './context';
 
 // DB exports (proxies to context for backwards compatibility)
 export * from './db';

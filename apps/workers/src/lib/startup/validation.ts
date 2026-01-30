@@ -4,13 +4,18 @@
  * This module validates environment variables before the application starts.
  */
 
-import { ValidationResult, ValidationSummary, validateRequired, validateOptional } from '@podverse/helpers';
+import {
+  ValidationResult,
+  ValidationSummary,
+  validateRequired,
+  validateOptional,
+} from '@podverse/helpers-config';
 
 /**
  * Validates critical environment variables and configuration at application startup.
  * This function runs early in the initialization process to catch configuration errors
  * before the application attempts to start serving requests.
- * 
+ *
  * @throws Error if any critical validation fails
  */
 export const validateStartupRequirements = (): void => {
@@ -18,7 +23,7 @@ export const validateStartupRequirements = (): void => {
 
   const summary = validateAllEnvironmentVariables();
   displayValidationResults(summary);
-  
+
   if (summary.requiredMissing > 0) {
     const errorMessage = `FATAL: ${summary.requiredMissing} required environment variable(s) are missing or invalid. Please check the validation output above for details.`;
     console.error(errorMessage);
@@ -33,19 +38,23 @@ export const validateStartupRequirements = (): void => {
  */
 const validateAllEnvironmentVariables = (): ValidationSummary => {
   const results: ValidationResult[] = [];
-  
+
   // Config values
   results.push(validateRequired('USER_AGENT', 'Config'));
   results.push(validateRequired('LOG_LEVEL', 'Config'));
-  results.push(validateRequired('LOG_DIR', 'Config'));
+  results.push(
+    validateOptional('LOG_DIR', 'Config', 'Optional - empty for localhost, set for file logging')
+  );
   results.push(validateOptional('LOG_TIMER', 'Config', 'Use Default (false)'));
-  
+
   // Podcast Index
   results.push(validateRequired('PODCAST_INDEX_AUTH_KEY', 'Podcast Index'));
   results.push(validateRequired('PODCAST_INDEX_BASE_URL', 'Podcast Index'));
   results.push(validateRequired('PODCAST_INDEX_SECRET_KEY', 'Podcast Index'));
-  results.push(validateOptional('PODCAST_INDEX_API_RATE_LIMIT_DELAY', 'Podcast Index', 'Use Default (0)'));
-  
+  results.push(
+    validateOptional('PODCAST_INDEX_API_RATE_LIMIT_DELAY', 'Podcast Index', 'Use Default (0)')
+  );
+
   // Message Queue
   results.push(validateRequired('MESSAGE_QUEUE_PROTOCOL', 'Message Queue'));
   results.push(validateRequired('MESSAGE_QUEUE_HOST', 'Message Queue'));
@@ -67,7 +76,9 @@ const validateAllEnvironmentVariables = (): ValidationSummary => {
   results.push(validateRequired('DEFAULT_ACCOUNT_SETTINGS_LOCALE', 'Defaults'));
 
   // Firebase
-  results.push(validateOptional('GOOGLE_FIREBASE_NOTIFICATIONS_ENABLED', 'Firebase', 'Use Default (false)'));
+  results.push(
+    validateOptional('GOOGLE_FIREBASE_NOTIFICATIONS_ENABLED', 'Firebase', 'Use Default (false)')
+  );
   results.push(validateOptional('GOOGLE_FIREBASE_ADMIN_JSON_KEY_PATH', 'Firebase', 'Skipped'));
 
   // Web
@@ -90,11 +101,13 @@ const validateAllEnvironmentVariables = (): ValidationSummary => {
 
   // Calculate summary
   const total = results.length;
-  const passed = results.filter(r => r.isValid && r.isSet).length;
-  const failed = results.filter(r => !r.isValid).length;
-  const requiredMissing = results.filter(r => r.isRequired && !r.isValid).length;
-  const skipped = results.filter(r => !r.isRequired && !r.isSet).length;
-  const defaultsUsed = results.filter(r => r.isValid && r.isSet && (r.message.includes('Use Default') || r.message === 'Blank')).length;
+  const passed = results.filter((r) => r.isValid && r.isSet).length;
+  const failed = results.filter((r) => !r.isValid).length;
+  const requiredMissing = results.filter((r) => r.isRequired && !r.isValid).length;
+  const skipped = results.filter((r) => !r.isRequired && !r.isSet).length;
+  const defaultsUsed = results.filter(
+    (r) => r.isValid && r.isSet && (r.message.includes('Use Default') || r.message === 'Blank')
+  ).length;
 
   return {
     total,
@@ -112,7 +125,7 @@ const validateAllEnvironmentVariables = (): ValidationSummary => {
  */
 const displayValidationResults = (summary: ValidationSummary): void => {
   console.log('=== Environment Variable Validation ===');
-  
+
   // Group results by category
   const byCategory: Record<string, ValidationResult[]> = {};
   for (const result of summary.results) {
@@ -146,19 +159,20 @@ const displayValidationResults = (summary: ValidationSummary): void => {
   // Display summary
   console.log('=== Validation Summary ===');
   console.log(`Total: ${summary.total}`);
-  const passedText = summary.defaultsUsed > 0 
-    ? `Passed: ${summary.passed} (${summary.defaultsUsed} using defaults)`
-    : `Passed: ${summary.passed}`;
+  const passedText =
+    summary.defaultsUsed > 0
+      ? `Passed: ${summary.passed} (${summary.defaultsUsed} using defaults)`
+      : `Passed: ${summary.passed}`;
   console.log(passedText);
   console.log(`Skipped: ${summary.skipped}`);
   console.log(`Failed: ${summary.failed}`);
   console.log(`Required Missing: ${summary.requiredMissing}`);
-  
+
   if (summary.failed > 0) {
     console.error('The following environment variables failed validation:');
     summary.results
-      .filter(r => !r.isValid)
-      .forEach(r => {
+      .filter((r) => !r.isValid)
+      .forEach((r) => {
         const requiredText = r.isRequired ? ' (required)' : ' (optional)';
         console.error(`  - ${r.name}${requiredText}: ${r.message}`);
       });
@@ -167,7 +181,7 @@ const displayValidationResults = (summary: ValidationSummary): void => {
   if (summary.skipped > 0) {
     console.log('Skipped optional variables (not set):');
     summary.results
-      .filter(r => !r.isRequired && !r.isSet)
-      .forEach(r => console.log(`  - ${r.name}`));
+      .filter((r) => !r.isRequired && !r.isSet)
+      .forEach((r) => console.log(`  - ${r.name}`));
   }
 };

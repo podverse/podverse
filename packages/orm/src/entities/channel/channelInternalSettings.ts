@@ -6,7 +6,7 @@ export class ChannelInternalSettings {
   @PrimaryGeneratedColumn()
   id!: number;
 
-  @ManyToOne(() => Channel, channel => channel.id, { onDelete: 'CASCADE' })
+  @ManyToOne(() => Channel, (channel) => channel.id, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'channel_id' })
   channel!: Channel;
 

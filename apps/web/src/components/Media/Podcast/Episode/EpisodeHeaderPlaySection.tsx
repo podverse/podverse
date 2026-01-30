@@ -1,6 +1,7 @@
 'use client';
 
-import { DTOChannel, DTOItem, getQueueForMedium, getShuffleHash } from '@podverse/helpers';
+import { DTOChannel, DTOItem, getQueueForMedium } from '@podverse/helpers';
+import { getShuffleHash } from '@podverse/helpers-requests';
 import React from 'react';
 import { PlayButtonLarge } from '../../../MediaPlayer/Buttons/PlayButtonLarge';
 import { useMediaPlayer } from '../../../../contexts/MediaPlayer';
@@ -25,7 +26,10 @@ type EpisodeHeaderPlaySectionProps = {
   channel: DTOChannel;
 };
 
-export const EpisodeHeaderPlaySection: React.FC<EpisodeHeaderPlaySectionProps> = ({ item, channel }) => {
+export const EpisodeHeaderPlaySection: React.FC<EpisodeHeaderPlaySectionProps> = ({
+  item,
+  channel,
+}) => {
   const tFeatures = useTranslations('features');
   const tMediaPlayer = useTranslations('media_player');
   const tInstructions = useTranslations('instructions');
@@ -37,13 +41,9 @@ export const EpisodeHeaderPlaySection: React.FC<EpisodeHeaderPlaySectionProps> =
   const { queueResourcesAbridgedIndex } = useQueueResourcesAbridgedIndex();
   const { durationStr, positionStr } = getDurationAndPositionStr(item, queueResourcesAbridgedIndex);
   const { autoQueueConfig } = useAutoQueue();
-  
+
   const playButtonOnClick = () => {
-    if (
-      item.id === mpItem?.id
-      && !mpClip
-      && !mpItemSoundbite
-    ) {
+    if (item.id === mpItem?.id && !mpClip && !mpItemSoundbite) {
       setMPIsPlaying(!mpIsPlaying);
     } else {
       mediaPlayerResourceUpdate({
@@ -81,13 +81,10 @@ export const EpisodeHeaderPlaySection: React.FC<EpisodeHeaderPlaySectionProps> =
 
     const queue = getQueueForMedium(queues, channel.medium_id);
     if (queue) {
-      showToastPromise(
-        apiRequestService.reqQueueResourceItemAddNext(queue.id_text, item.id_text),
-        {
-          success: tFeatures('queue.added_to_queue'),
-          error: tFeatures('queue.add_error'),
-        },
-      );
+      showToastPromise(apiRequestService.reqQueueResourceItemAddNext(queue.id_text, item.id_text), {
+        success: tFeatures('queue.added_to_queue'),
+        error: tFeatures('queue.add_error'),
+      });
     }
   };
 
@@ -102,13 +99,10 @@ export const EpisodeHeaderPlaySection: React.FC<EpisodeHeaderPlaySectionProps> =
 
     const queue = getQueueForMedium(queues, channel.medium_id);
     if (queue) {
-      showToastPromise(
-        apiRequestService.reqQueueResourceItemAddLast(queue.id_text, item.id_text),
-        {
-          success: tFeatures('queue.added_to_queue'),
-          error: tFeatures('queue.add_error'),
-        },
-      );
+      showToastPromise(apiRequestService.reqQueueResourceItemAddLast(queue.id_text, item.id_text), {
+        success: tFeatures('queue.added_to_queue'),
+        error: tFeatures('queue.add_error'),
+      });
     }
   };
 
@@ -141,16 +135,13 @@ export const EpisodeHeaderPlaySection: React.FC<EpisodeHeaderPlaySectionProps> =
     const queue = getQueueForMedium(queues, channel.medium_id);
     if (queue) {
       showToastPromise(
-        apiRequestService.reqQueueResourceItemAddHistory(
-          queue.id_text,
-          item.id_text, {
-            completed: true,
-          },
-        ),
+        apiRequestService.reqQueueResourceItemAddHistory(queue.id_text, item.id_text, {
+          completed: true,
+        }),
         {
           success: tFeatures('history.marked_as_played'),
           error: tFeatures('history.mark_as_played_error'),
-        },
+        }
       );
     }
   };
@@ -195,23 +186,15 @@ export const EpisodeHeaderPlaySection: React.FC<EpisodeHeaderPlaySectionProps> =
   return (
     <div className={styles.playSection}>
       <div className={styles.sectionStart}>
-        <PlayButtonLarge
-          item={item}
-          onClick={playButtonOnClick}
-        />
+        <PlayButtonLarge item={item} onClick={playButtonOnClick} />
         <div className={styles.timeSection}>
           <ReadableDate date={item.pub_date} />
           {item.item_about?.duration ? ' • ' : null}
-          <ReadableDuration
-            durationStr={durationStr}
-            positionStr={positionStr}
-          />
+          <ReadableDuration durationStr={durationStr} positionStr={positionStr} />
         </div>
       </div>
       <div className={styles.sectionEnd}>
-        <MoreButton
-          moreButtonMenuItems={moreButtonMenuItems}
-          isLarge />
+        <MoreButton moreButtonMenuItems={moreButtonMenuItems} isLarge />
       </div>
     </div>
   );

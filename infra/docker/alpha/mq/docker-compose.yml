@@ -6,16 +6,15 @@ networks:
     external: true
 
 services:
-
   podverse_alpha_mq:
     image: apache/activemq-artemis:2.37.0
     container_name: podverse_alpha_mq
     env_file:
       - ../../../config/alpha/mq.env
     ports:
-      - '5672:5672'   # AMQP 1.0
-      - 100.108.65.23:8161:8161   # Web console Tailscale ip address
-      - 127.0.0.1:8162:8161   # Web console Tailscale ip address
+      - "5672:5672" # AMQP 1.0
+      - 100.108.65.23:8161:8161 # Web console Tailscale ip address
+      - 127.0.0.1:8162:8161 # Web console Tailscale ip address
 
     networks:
       - podverse_alpha_network

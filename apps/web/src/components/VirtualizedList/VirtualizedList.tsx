@@ -11,8 +11,13 @@ interface VirtualizedListProps<T> {
   autoScrollOn?: boolean;
 }
 
-export function VirtualizedList<T>({ items, height, renderItem, highlightedIndex, autoScrollOn }: VirtualizedListProps<T>) {
-
+export function VirtualizedList<T>({
+  items,
+  height,
+  renderItem,
+  highlightedIndex,
+  autoScrollOn,
+}: VirtualizedListProps<T>) {
   const virtuosoRef = useRef<VirtuosoHandle>(null);
 
   // Ensure items is always an array
@@ -20,18 +25,19 @@ export function VirtualizedList<T>({ items, height, renderItem, highlightedIndex
   const itemCount = safeItems.length;
 
   // Check if the highlighted index is valid (within bounds of items array)
-  const isValidIndex = itemCount > 0 &&
+  const isValidIndex =
+    itemCount > 0 &&
     highlightedIndex !== undefined &&
     highlightedIndex >= 0 &&
     highlightedIndex < itemCount;
 
   useEffect(() => {
-    if (
-      autoScrollOn &&
-      virtuosoRef.current &&
-      isValidIndex
-    ) {
-      virtuosoRef.current.scrollToIndex({ index: highlightedIndex, align: 'start', behavior: 'smooth' });
+    if (autoScrollOn && virtuosoRef.current && isValidIndex) {
+      virtuosoRef.current.scrollToIndex({
+        index: highlightedIndex,
+        align: 'start',
+        behavior: 'smooth',
+      });
     }
   }, [highlightedIndex, autoScrollOn, isValidIndex]);
 

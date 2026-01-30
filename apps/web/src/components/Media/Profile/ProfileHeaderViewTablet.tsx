@@ -11,9 +11,12 @@ type ProfileHeaderViewTabletProps = {
   isOwnProfile: boolean;
 };
 
-export const ProfileHeaderViewTablet: React.FC<ProfileHeaderViewTabletProps> = ({ account, isOwnProfile }) => {
+export const ProfileHeaderViewTablet: React.FC<ProfileHeaderViewTabletProps> = ({
+  account,
+  isOwnProfile,
+}) => {
   const tMisc = useTranslations('misc');
-  
+
   const displayName = account.account_profile?.display_name?.trim() || tMisc('anonymous');
   const bio = account.account_profile?.bio?.trim() || null;
 
@@ -24,9 +27,7 @@ export const ProfileHeaderViewTablet: React.FC<ProfileHeaderViewTabletProps> = (
       </div>
       <div className={styles.bottomSection}>
         <div className={styles.textSection}>
-          {bio && (
-            <p className={styles.bio}>{bio}</p>
-          )}
+          {bio && <p className={styles.bio}>{bio}</p>}
           <ProfileHeaderButtons account={account} isOwnProfile={isOwnProfile} />
         </div>
       </div>

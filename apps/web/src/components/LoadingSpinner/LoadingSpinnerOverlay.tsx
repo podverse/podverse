@@ -9,8 +9,15 @@ type Props = {
   isLoading?: boolean;
 };
 
-const LoadingSpinnerOverlay: React.FC<Props> = ({ size = 'large', className = '', style = {}, isLoading = false }) => {
-  if (!isLoading) {return null;}
+const LoadingSpinnerOverlay: React.FC<Props> = ({
+  size = 'large',
+  className = '',
+  style = {},
+  isLoading = false,
+}) => {
+  if (!isLoading) {
+    return null;
+  }
 
   return (
     <div className={`${styles.overlay} ${className}`} style={style}>

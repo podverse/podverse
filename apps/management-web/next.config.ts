@@ -7,7 +7,7 @@ const nextConfig: NextConfig = {
   output: 'standalone',
   outputFileTracingRoot: path.join(__dirname, '../../'),
   sassOptions: {
-    includePaths: [__dirname + '/src/styles/variables']
+    includePaths: [__dirname + '/src/styles/variables'],
   },
   transpilePackages: ['@podverse/helpers'],
   images: {
@@ -23,16 +23,16 @@ const nextConfig: NextConfig = {
     ],
     localPatterns: [
       {
-        pathname: '/api/proxy'
+        pathname: '/api/proxy',
       },
       {
-        pathname: '/branding/**'
+        pathname: '/branding/**',
       },
       {
-        pathname: '/images/**'
-      }
-    ]
-  }
+        pathname: '/images/**',
+      },
+    ],
+  },
 };
 
 const withNextIntl = createNextIntlPlugin();

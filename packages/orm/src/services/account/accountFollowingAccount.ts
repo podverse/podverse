@@ -8,7 +8,10 @@ export type AccountFollowingAccountDto = {
   following_account_id_text: string;
 };
 
-export class AccountFollowingAccountService extends BaseManyService<AccountFollowingAccount, 'account'> {
+export class AccountFollowingAccountService extends BaseManyService<
+  AccountFollowingAccount,
+  'account'
+> {
   private accountService: AccountService;
 
   constructor(transactionalEntityManager?: EntityManager) {
@@ -16,7 +19,10 @@ export class AccountFollowingAccountService extends BaseManyService<AccountFollo
     this.accountService = new AccountService();
   }
 
-  async getFollowedAccountsPrivate(account_id: number, config?: FindManyOptions<AccountFollowingAccount>): Promise<AccountFollowingAccount[]> {
+  async getFollowedAccountsPrivate(
+    account_id: number,
+    config?: FindManyOptions<AccountFollowingAccount>
+  ): Promise<AccountFollowingAccount[]> {
     const account = await this.accountService.get(account_id);
     if (!account) {
       throw new Error('Account not found.');
@@ -25,7 +31,10 @@ export class AccountFollowingAccountService extends BaseManyService<AccountFollo
     return this._getAll(account, config);
   }
 
-  async getFollowedAccountsPublic(account_id: number, config?: FindManyOptions<AccountFollowingAccount>): Promise<AccountFollowingAccount[]> {
+  async getFollowedAccountsPublic(
+    account_id: number,
+    config?: FindManyOptions<AccountFollowingAccount>
+  ): Promise<AccountFollowingAccount[]> {
     const account = await this.accountService.get(account_id);
     if (!account) {
       throw new Error('Account not found.');
@@ -45,7 +54,10 @@ export class AccountFollowingAccountService extends BaseManyService<AccountFollo
     return this.repositoryRead.find(publicConfig);
   }
 
-  async followAccount(account_id: number, dto: AccountFollowingAccountDto): Promise<AccountFollowingAccount> {
+  async followAccount(
+    account_id: number,
+    dto: AccountFollowingAccountDto
+  ): Promise<AccountFollowingAccount> {
     const account = await this.accountService.get(account_id);
     if (!account) {
       throw new Error('Account not found.');
@@ -64,11 +76,7 @@ export class AccountFollowingAccountService extends BaseManyService<AccountFollo
       following_account_id: accountToFollow.id,
     };
 
-    return this._update(
-      account,
-      ['account_id', 'following_account_id'],
-      finalDto,
-    );
+    return this._update(account, ['account_id', 'following_account_id'], finalDto);
   }
 
   async unfollowAccount(account_id: number, dto: AccountFollowingAccountDto): Promise<void> {

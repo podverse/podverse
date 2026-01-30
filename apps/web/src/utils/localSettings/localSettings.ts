@@ -4,16 +4,18 @@ import { clearCookie, readCookie, writeCookie } from '../cookie';
 import {
   CategoryMappingKeys,
   LiveItemStatus,
-  QueryParamsHomeSort,
   QueryParamsMedium,
-  QueryParamsPlaylistsType,
   QueryParamsQueueMedium,
+} from '@podverse/helpers';
+import {
+  QueryParamsHomeSort,
+  QueryParamsPlaylistsType,
   QueryParamsStatsRange,
   QueryParamsSubscribedFullSort,
   QueryParamsSubscribedMusicType,
   QueryParamsSubscribedPartialSort,
   QueryParamsSubscribedType,
-} from '@podverse/helpers';
+} from '@podverse/helpers-requests';
 
 /*
 
@@ -28,8 +30,18 @@ LocalSettingsState Legend:
   - metd = membershipExpirationToastDismissed (ISO date string of last dismissal)
 */
 
-export type FilterDefaultsPage = 'home' | 'playlists' | 'podcasts' | 'podcasts-livestreams'
-  | 'music-livestreams' | 'episodes' | 'tracks' | 'albums' | 'artists' | 'clips' | 'profiles';
+export type FilterDefaultsPage =
+  | 'home'
+  | 'playlists'
+  | 'podcasts'
+  | 'podcasts-livestreams'
+  | 'music-livestreams'
+  | 'episodes'
+  | 'tracks'
+  | 'albums'
+  | 'artists'
+  | 'clips'
+  | 'profiles';
 
 export interface HomeFilterDefaults {
   medium: QueryParamsMedium;
@@ -118,32 +130,34 @@ export interface FilterDefaults {
 }
 
 export interface LocalSettingsState {
-	uit: UITheme;
-	vs: ViewSelectedOption;
+  uit: UITheme;
+  vs: ViewSelectedOption;
   seda: boolean;
   aqc: {
     rp: boolean;
     rd: boolean;
-  }
+  };
   fd?: Partial<FilterDefaults>;
   metd?: string; // membershipExpirationToastDismissed (ISO date string of last dismissal)
 }
 
 export function handleLocalSettingsUpdate(newState: LocalSettingsState) {
-	if (typeof document === 'undefined') {return;}
+  if (typeof document === 'undefined') {
+    return;
+  }
 
-	const prev = getParsedLocalSettings();
+  const prev = getParsedLocalSettings();
 
-	if (prev.uit) {
-		prev.uit = toUITheme(prev.uit);
-	}
+  if (prev.uit) {
+    prev.uit = toUITheme(prev.uit);
+  }
 
-	if (!prev.uit || prev.uit !== newState.uit) {
-		setUIThemeOnDocument(newState.uit);
-	}
+  if (!prev.uit || prev.uit !== newState.uit) {
+    setUIThemeOnDocument(newState.uit);
+  }
 
-	const serialized = encodeURIComponent(JSON.stringify(newState));
-	writeCookie('local-settings', serialized);
+  const serialized = encodeURIComponent(JSON.stringify(newState));
+  writeCookie('local-settings', serialized);
 }
 
 const defaultLocalSettings: LocalSettingsState = {
@@ -171,7 +185,7 @@ function isValidLocalSettings(settings: unknown): settings is LocalSettingsState
     aqc !== null &&
     typeof aqc.rp === 'boolean' &&
     typeof aqc.rd === 'boolean' &&
-    (s.fd === undefined || typeof s.fd === 'object' && s.fd !== null) &&
+    (s.fd === undefined || (typeof s.fd === 'object' && s.fd !== null)) &&
     (s.metd === undefined || typeof s.metd === 'string')
   );
 }
@@ -214,27 +228,36 @@ export function getParsedLocalSettings(cookieStore?: CookieStore): LocalSettings
   }
 }
 
-export type FilterDefaultsForPage<T extends FilterDefaultsPage> =
-  T extends 'home' ? HomeFilterDefaults :
-  T extends 'playlists' ? PlaylistsFilterDefaults :
-  T extends 'podcasts' ? PodcastsFilterDefaults :
-  T extends 'podcasts-livestreams' ? PodcastsLivestreamsFilterDefaults :
-  T extends 'music-livestreams' ? MusicLivestreamsFilterDefaults :
-  T extends 'episodes' ? EpisodesFilterDefaults :
-  T extends 'tracks' ? TracksFilterDefaults :
-  T extends 'albums' ? AlbumsFilterDefaults :
-  T extends 'artists' ? ArtistsFilterDefaults :
-  T extends 'clips' ? ClipsFilterDefaults :
-  never;
+export type FilterDefaultsForPage<T extends FilterDefaultsPage> = T extends 'home'
+  ? HomeFilterDefaults
+  : T extends 'playlists'
+    ? PlaylistsFilterDefaults
+    : T extends 'podcasts'
+      ? PodcastsFilterDefaults
+      : T extends 'podcasts-livestreams'
+        ? PodcastsLivestreamsFilterDefaults
+        : T extends 'music-livestreams'
+          ? MusicLivestreamsFilterDefaults
+          : T extends 'episodes'
+            ? EpisodesFilterDefaults
+            : T extends 'tracks'
+              ? TracksFilterDefaults
+              : T extends 'albums'
+                ? AlbumsFilterDefaults
+                : T extends 'artists'
+                  ? ArtistsFilterDefaults
+                  : T extends 'clips'
+                    ? ClipsFilterDefaults
+                    : never;
 
 export function updateFilterDefaults<T extends FilterDefaultsPage>(
   page: T,
-  filters: FilterDefaultsForPage<T>,
+  filters: FilterDefaultsForPage<T>
 ) {
   const settings = getParsedLocalSettings();
   // Create a shallow copy to avoid mutating the reference
   const newSettings = { ...settings };
-  
+
   if (!newSettings.fd) {
     newSettings.fd = {};
   }

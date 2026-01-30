@@ -4,9 +4,9 @@ import { ChannelLicense } from '@orm/entities/channel/channelLicense';
 import { BaseOneService } from '@orm/services/base/baseOneService';
 
 type ChannelLicenseDto = {
-  identifier: string
-  url: string | null
-}
+  identifier: string;
+  url: string | null;
+};
 
 export class ChannelLicenseService extends BaseOneService<ChannelLicense, 'channel'> {
   constructor(transactionalEntityManager?: EntityManager) {

@@ -50,11 +50,13 @@ export const MyProfileContentListHeader: React.FC = () => {
   };
 
   // Single item dropdown (informational only)
-  const sortMenuItems = [{
-    label: getSortLabel(),
-    param: 'sort',
-    value: selectedTab === 'clips' ? 'recent' : 'a_z',
-  }];
+  const sortMenuItems = [
+    {
+      label: getSortLabel(),
+      param: 'sort',
+      value: selectedTab === 'clips' ? 'recent' : 'a_z',
+    },
+  ];
 
   const sideButtons = (
     <Dropdown
@@ -69,12 +71,7 @@ export const MyProfileContentListHeader: React.FC = () => {
   return (
     <div className={styles.listHeaderWrapper}>
       <ListHeader
-        tabs={
-          <Tabs
-            tabData={tabData}
-            selectedKey={selectedTab}
-          />
-        }
+        tabs={<Tabs tabData={tabData} selectedKey={selectedTab} />}
         sideButtons={sideButtons}
       />
     </div>

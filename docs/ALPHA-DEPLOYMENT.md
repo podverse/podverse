@@ -17,12 +17,12 @@ flowchart TD
         A[Push to alpha branch]
         B[Manual workflow_dispatch]
     end
-    
+
     trigger --> C[Validate Job]
     C --> D{Passes?}
     D -->|No| E[Fail - Check Logs]
     D -->|Yes| F[Build Docker Images]
-    
+
     subgraph parallel [Parallel Builds]
         F --> G[api]
         F --> H[web-deploy]
@@ -30,7 +30,7 @@ flowchart TD
         F --> J[management-api]
         F --> K[management-web-deploy]
     end
-    
+
     parallel --> L[Push to GHCR]
     L --> M[Deploy to Alpha Server]
 ```
@@ -117,8 +117,8 @@ If releasing a new version:
 
 ```bash
 # On develop branch
-./scripts/publish/bump-version.sh 5.2.1
-# Script automatically commits and pushes with --no-verify
+./scripts/publish/bump-version.sh
+# Script shows current version, prompts for next version, then commits and pushes with --no-verify
 ```
 
 **Note:** This script bypasses git hooks and pushes directly. To push to protected branches like `develop`, your GitHub user must have "Allow specified actors to bypass required pull requests" permission configured in the repository's branch protection rules.
@@ -134,6 +134,7 @@ Since `alpha` is a trigger branch that should mirror `develop`, merge develop in
 ```
 
 The script will:
+
 - Check for uncommitted changes (prevents unexpected results)
 - Verify that alpha can fast-forward merge from develop
 - Ensure alpha is a perfect mirror of develop
@@ -162,7 +163,7 @@ gh run watch
 gh run list --workflow=publish-alpha.yml
 
 # View specific run logs
-gh run view <run-id> --log
+gh run view < run-id > --log
 ```
 
 ## Manual Trigger (Emergency/Testing)
@@ -196,10 +197,10 @@ gh run watch
 gh run list --workflow=publish-alpha.yml
 
 # View detailed logs for a run
-gh run view <run-id> --log
+gh run view < run-id > --log
 
 # View failed job logs only
-gh run view <run-id> --log-failed
+gh run view < run-id > --log-failed
 ```
 
 ### Verify Docker Images
@@ -273,17 +274,49 @@ The version is determined by:
 
 ## Troubleshooting
 
-| Issue | Cause | Solution |
-|-------|-------|----------|
-| "not possible to fast-forward" error | `alpha` branch diverged from `develop` | Reset alpha: `git checkout alpha && git reset --hard origin/develop && git push --force origin alpha` |
-| Workflow fails at "Security audit" | npm vulnerabilities found | Run `./scripts/audit/audit.sh --fix` locally |
-| Workflow fails at "Lint" | Linting errors | Run `npm run lint` locally to see errors |
-| Workflow fails at "Type check" | TypeScript errors | Run `npm run type-check` locally |
-| Workflow fails at "Build all apps" | Build errors | Run `npm run build:apps` locally |
-| Docker build fails | Dockerfile or dependency issue | Build locally with `docker build -f apps/<app>/Dockerfile .` |
-| GHCR push fails | Permission issue | Verify GITHUB_TOKEN has `packages:write` scope |
-| Version conflict | Tag already exists | Use `version_override` with a different version |
-| Images not updating on server | Docker cache | Run `docker pull` with `--no-cache` or prune images |
+| Issue                                       | Cause                                  | Solution                                                                                              |
+| ------------------------------------------- | -------------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| "not possible to fast-forward" error        | `alpha` branch diverged from `develop` | Reset alpha: `git checkout alpha && git reset --hard origin/develop && git push --force origin alpha` |
+| Workflow fails at "Security audit"          | npm vulnerabilities found              | Run `./scripts/audit/audit.sh --fix` locally                                                          |
+| Workflow fails at "Lint"                    | Linting errors                         | Run `npm run lint` locally to see errors                                                              |
+| Workflow fails at "Type check"              | TypeScript errors                      | Run `npm run type-check` locally                                                                      |
+| Workflow fails at "Build all apps"          | Build errors                           | Run `npm run build:apps` locally                                                                      |
+| Docker build fails                          | Dockerfile or dependency issue         | Build locally with `docker build -f apps/<app>/Dockerfile .`                                          |
+| Container fails at start (MODULE_NOT_FOUND) | Workspace package missing from image   | See [Reproducing runtime errors locally](#reproducing-runtime-errors-locally) below                   |
+| GHCR push fails                             | Permission issue                       | Verify GITHUB_TOKEN has `packages:write` scope                                                        |
+| Version conflict                            | Tag already exists                     | Use `version_override` with a different version                                                       |
+| Images not updating on server               | Docker cache                           | Run `docker pull` with `--no-cache` or prune images                                                   |
+
+### Reproducing runtime errors locally
+
+If api or management-api fail on the server with `Cannot find module '@podverse/helpers-config'` (or
+similar), reproduce and debug locally:
+
+1. **Build the same images locally** (from repo root):
+
+   ```bash
+   make validate_docker
+   ```
+
+   This runs `make validate` then builds all five Docker images (api, web, workers, management-api,
+   management-web). If the runner stage is missing a workspace package, the image still builds; the
+   error appears only when the container starts.
+
+2. **Run the API container** to test startup (replace with your env path or use a minimal env):
+
+   ```bash
+   docker run --rm -e NODE_ENV=production \
+     -e DATABASE_URL="postgres://user:pass@host:5432/db" \
+     podverse-api:test node apps/api/dist/index.js
+   ```
+
+   Use the same for management-api: `podverse-management-api:test` and
+   `apps/management-api/dist/index.js`. You should see the same `MODULE_NOT_FOUND` if a package is
+   missing from the Dockerfile runner stage.
+
+3. **Fix**: Ensure every workspace package the app (and its copied packages) require is copied in the
+   Dockerfile’s final stage (see `COPY --from=builder /opt/packages/...`). Rebuild with
+   `make validate_docker` and run the container again to confirm.
 
 ### Viewing Detailed Logs
 

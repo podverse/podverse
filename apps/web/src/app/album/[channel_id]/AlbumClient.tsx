@@ -1,5 +1,5 @@
-import { DTOChannel, DTOItem, QueryParamsChannelMusicAlbum, RemoteItemsResponse } from '@podverse/helpers';
-import React from 'react';
+import { DTOChannel, DTOItem, RemoteItemsResponse } from '@podverse/helpers';
+import { QueryParamsChannelMusicAlbum } from '@podverse/helpers-requests';
 import { MainWrapper } from '../../../components/Main/MainWrapper';
 import { AlbumContextProvider } from './AlbumContext';
 import { AlbumListHeader } from './AlbumListHeader';
@@ -19,8 +19,14 @@ interface AlbumClientProps {
 }
 
 export function AlbumClient(props: AlbumClientProps) {
-  const { initialQueryParams, ssrChannel, ssrItemsWithLiveItem, ssrItems,
-    ssrTotalPages, ssrPodroll } = props;
+  const {
+    initialQueryParams,
+    ssrChannel,
+    ssrItemsWithLiveItem,
+    ssrItems,
+    ssrTotalPages,
+    ssrPodroll,
+  } = props;
 
   return (
     <AlbumContextProvider
@@ -32,15 +38,10 @@ export function AlbumClient(props: AlbumClientProps) {
       <MainWrapper>
         <AlbumHeader channel={ssrChannel} />
         <MainInnerWrapper>
-          <AlbumSideContent
-            channel={ssrChannel}
-            podroll={ssrPodroll}
-          />
+          <AlbumSideContent channel={ssrChannel} podroll={ssrPodroll} />
           <MainInnerContentWrapper>
             <AlbumListHeader ssrHasPodroll={!!ssrPodroll} />
-            <AlbumList
-              ssrChannel={ssrChannel}
-              podroll={ssrPodroll} />
+            <AlbumList ssrChannel={ssrChannel} podroll={ssrPodroll} />
           </MainInnerContentWrapper>
         </MainInnerWrapper>
       </MainWrapper>

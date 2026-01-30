@@ -1,5 +1,12 @@
 import { DATABASE_CONSTANTS } from '@podverse/helpers';
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, BeforeInsert } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  JoinColumn,
+  BeforeInsert,
+} from 'typeorm';
 import { Item } from '@orm/entities/item/item';
 import { generateRandomIdText } from '@orm/lib/nanoid';
 
@@ -11,7 +18,7 @@ export class ItemSoundbite {
   @Column({ type: 'varchar', unique: true })
   id_text!: string;
 
-  @ManyToOne(() => Item, item => item.id, { onDelete: 'CASCADE' })
+  @ManyToOne(() => Item, (item) => item.id, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'item_id' })
   item!: Item;
 

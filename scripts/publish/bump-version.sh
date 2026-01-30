@@ -15,14 +15,19 @@ REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 
 cd "$REPO_ROOT"
 
-# Validate version argument
-VERSION="$1"
+# Show current version from root package.json and prompt for next
+CURRENT_VERSION=$(node -p "require('./package.json').version")
+echo -e "Current version (root package.json): ${GREEN}$CURRENT_VERSION${NC}"
+echo ""
+read -p "Enter next version (e.g., 5.2.3): " VERSION
+
 if [[ -z "$VERSION" ]]; then
-  read -p "Enter version number (e.g., 5.2.1): " VERSION
+  echo -e "${RED}Error: No version entered. Aborting.${NC}"
+  exit 1
 fi
 
 if [[ ! "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-  echo -e "${RED}Error: Invalid version format. Expected: X.Y.Z${NC}"
+  echo -e "${RED}Error: Invalid version format. Expected: X.Y.Z (e.g., 5.2.3)${NC}"
   exit 1
 fi
 

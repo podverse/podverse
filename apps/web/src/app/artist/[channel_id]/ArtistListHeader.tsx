@@ -4,7 +4,7 @@ import { useTranslations } from 'next-intl';
 import {
   QUERY_PARAMS_CHANNEL_MUSIC_ARTIST_TYPE_VALUES,
   QueryParamsChannelMusicArtistType,
-} from '@podverse/helpers';
+} from '@podverse/helpers-requests';
 import React from 'react';
 import { ListHeader } from '../../../components/List/ListHeader';
 import { useArtistContext } from './ArtistContext';
@@ -19,7 +19,11 @@ type ArtistListHeaderProps = {
 };
 
 export const ArtistListHeader: React.FC<ArtistListHeaderProps> = ({
-  ssrHasPodroll, ssrHasAlbums, ssrHasTracks, ssrHasDescription } ) => {
+  ssrHasPodroll,
+  ssrHasAlbums,
+  ssrHasTracks,
+  ssrHasDescription,
+}) => {
   const { filterParams, setFilterParams } = useArtistContext();
   const { type } = filterParams;
   const tMedia = useTranslations('media');
@@ -28,7 +32,9 @@ export const ArtistListHeader: React.FC<ArtistListHeaderProps> = ({
   const { loggedInAccount } = useAccount();
 
   function isChannelType(val: string): val is QueryParamsChannelMusicArtistType {
-    return QUERY_PARAMS_CHANNEL_MUSIC_ARTIST_TYPE_VALUES.includes(val as QueryParamsChannelMusicArtistType);
+    return QUERY_PARAMS_CHANNEL_MUSIC_ARTIST_TYPE_VALUES.includes(
+      val as QueryParamsChannelMusicArtistType
+    );
   }
 
   const handleTypeChange = (value: string) => {
@@ -36,7 +42,7 @@ export const ArtistListHeader: React.FC<ArtistListHeaderProps> = ({
       setFilterParams({ ...filterParams, type: value });
     }
   };
-  
+
   const tabData = [];
 
   if (ssrHasAlbums) {
@@ -89,14 +95,5 @@ export const ArtistListHeader: React.FC<ArtistListHeaderProps> = ({
     });
   }
 
-  return (
-    <ListHeader
-      tabs={
-        <Tabs
-          tabData={tabData}
-          selectedKey={type ?? ''}
-        />
-      }
-    />
-  );
+  return <ListHeader tabs={<Tabs tabData={tabData} selectedKey={type ?? ''} />} />;
 };

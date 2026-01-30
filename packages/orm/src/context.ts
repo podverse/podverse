@@ -1,11 +1,11 @@
 import { DataSource } from 'typeorm';
-import { ILoggerLike } from '@podverse/helpers';
+import { ILoggerLike } from '@podverse/helpers-backend';
 import { ORMConfig } from './config/types';
 
 /**
  * Module-level context holder for the ORM.
  * This is set by createORMContext() and used by services.
- * 
+ *
  * This pattern allows us to:
  * 1. Remove process.env from the module
  * 2. Keep the factory pattern (config comes from app)

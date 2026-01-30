@@ -22,76 +22,113 @@ class PlaylistResourceItemSoundbiteController {
 
   static async addItemSoundbiteToPlaylistFirst(req: Request, res: Response): Promise<void> {
     validateParamsObject(playlistAndSoundbiteIdSchema, req, res, async () => {
-      ensureAuthenticated(req, res, async () => {
-        verifyPlaylistOwnership()(req, res, async () => {
-          const playlist_id_text = getParamRequired(req, 'playlist_id_text');
-          const soundbite_id_text = getParamRequired(req, 'soundbite_id_text');
-
-          try {
-            const playlistResource = await PlaylistResourceItemSoundbiteController.playlistResourceService.addItemSoundbiteToPlaylistFirst(playlist_id_text, soundbite_id_text);
-            res.status(201).json(playlistResource);
-          } catch (err) {
-            handleGenericErrorResponse(res, err);
-          }
-        });
-      }, { skipMembershipStatus: false });
-    });
-  }
-
-  static async addItemSoundbiteToPlaylistLast(req: Request, res: Response): Promise<void> {
-    validateParamsObject(playlistAndSoundbiteIdSchema, req, res, async () => {
-      ensureAuthenticated(req, res, async () => {
-        verifyPlaylistOwnership()(req, res, async () => {
-          const playlist_id_text = getParamRequired(req, 'playlist_id_text');
-          const soundbite_id_text = getParamRequired(req, 'soundbite_id_text');
-
-          try {
-            const playlistResource = await PlaylistResourceItemSoundbiteController.playlistResourceService.addItemSoundbiteToPlaylistLast(playlist_id_text, soundbite_id_text);
-            res.status(201).json(playlistResource);
-          } catch (err) {
-            handleGenericErrorResponse(res, err);
-          }
-        });
-      }, { skipMembershipStatus: false });
-    });
-  }
-
-  static async addItemSoundbiteToPlaylistBetween(req: Request, res: Response): Promise<void> {
-    validateParamsObject(playlistAndSoundbiteIdSchema, req, res, async () => {
-      ensureAuthenticated(req, res, async () => {
-        verifyPlaylistOwnership()(req, res, async () => {
-          validateBodyObject(addItemSoundbiteToPlaylistBetweenSchema, req, res, async () => {
+      ensureAuthenticated(
+        req,
+        res,
+        async () => {
+          verifyPlaylistOwnership()(req, res, async () => {
             const playlist_id_text = getParamRequired(req, 'playlist_id_text');
-          const soundbite_id_text = getParamRequired(req, 'soundbite_id_text');
-            const { position1, position2 } = req.body;
+            const soundbite_id_text = getParamRequired(req, 'soundbite_id_text');
 
             try {
-              const playlistResource = await PlaylistResourceItemSoundbiteController.playlistResourceService.addItemSoundbiteToPlaylistBetween(playlist_id_text, soundbite_id_text, position1, position2);
+              const playlistResource =
+                await PlaylistResourceItemSoundbiteController.playlistResourceService.addItemSoundbiteToPlaylistFirst(
+                  playlist_id_text,
+                  soundbite_id_text
+                );
               res.status(201).json(playlistResource);
             } catch (err) {
               handleGenericErrorResponse(res, err);
             }
           });
-        });
-      }, { skipMembershipStatus: false });
+        },
+        { skipMembershipStatus: false }
+      );
+    });
+  }
+
+  static async addItemSoundbiteToPlaylistLast(req: Request, res: Response): Promise<void> {
+    validateParamsObject(playlistAndSoundbiteIdSchema, req, res, async () => {
+      ensureAuthenticated(
+        req,
+        res,
+        async () => {
+          verifyPlaylistOwnership()(req, res, async () => {
+            const playlist_id_text = getParamRequired(req, 'playlist_id_text');
+            const soundbite_id_text = getParamRequired(req, 'soundbite_id_text');
+
+            try {
+              const playlistResource =
+                await PlaylistResourceItemSoundbiteController.playlistResourceService.addItemSoundbiteToPlaylistLast(
+                  playlist_id_text,
+                  soundbite_id_text
+                );
+              res.status(201).json(playlistResource);
+            } catch (err) {
+              handleGenericErrorResponse(res, err);
+            }
+          });
+        },
+        { skipMembershipStatus: false }
+      );
+    });
+  }
+
+  static async addItemSoundbiteToPlaylistBetween(req: Request, res: Response): Promise<void> {
+    validateParamsObject(playlistAndSoundbiteIdSchema, req, res, async () => {
+      ensureAuthenticated(
+        req,
+        res,
+        async () => {
+          verifyPlaylistOwnership()(req, res, async () => {
+            validateBodyObject(addItemSoundbiteToPlaylistBetweenSchema, req, res, async () => {
+              const playlist_id_text = getParamRequired(req, 'playlist_id_text');
+              const soundbite_id_text = getParamRequired(req, 'soundbite_id_text');
+              const { position1, position2 } = req.body;
+
+              try {
+                const playlistResource =
+                  await PlaylistResourceItemSoundbiteController.playlistResourceService.addItemSoundbiteToPlaylistBetween(
+                    playlist_id_text,
+                    soundbite_id_text,
+                    position1,
+                    position2
+                  );
+                res.status(201).json(playlistResource);
+              } catch (err) {
+                handleGenericErrorResponse(res, err);
+              }
+            });
+          });
+        },
+        { skipMembershipStatus: false }
+      );
     });
   }
 
   static async removeItemSoundbiteFromPlaylist(req: Request, res: Response): Promise<void> {
     validateParamsObject(playlistAndSoundbiteIdSchema, req, res, async () => {
-      ensureAuthenticated(req, res, async () => {
-        verifyPlaylistOwnership()(req, res, async () => {
-          const playlist_id_text = getParamRequired(req, 'playlist_id_text');
-          const soundbite_id_text = getParamRequired(req, 'soundbite_id_text');
+      ensureAuthenticated(
+        req,
+        res,
+        async () => {
+          verifyPlaylistOwnership()(req, res, async () => {
+            const playlist_id_text = getParamRequired(req, 'playlist_id_text');
+            const soundbite_id_text = getParamRequired(req, 'soundbite_id_text');
 
-          try {
-            await PlaylistResourceItemSoundbiteController.playlistResourceService.removeItemSoundbiteFromPlaylist(playlist_id_text, soundbite_id_text);
-            res.status(204).end();
-          } catch (err) {
-            handleGenericErrorResponse(res, err);
-          }
-        });
-      }, { skipMembershipStatus: true });
+            try {
+              await PlaylistResourceItemSoundbiteController.playlistResourceService.removeItemSoundbiteFromPlaylist(
+                playlist_id_text,
+                soundbite_id_text
+              );
+              res.status(204).end();
+            } catch (err) {
+              handleGenericErrorResponse(res, err);
+            }
+          });
+        },
+        { skipMembershipStatus: true }
+      );
     });
   }
 

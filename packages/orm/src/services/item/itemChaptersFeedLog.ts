@@ -3,13 +3,16 @@ import { ItemChaptersFeedLog } from '@orm/entities/item/itemChaptersFeedLog';
 import { BaseOneService } from '@orm/services/base/baseOneService';
 
 type ItemChaptersFeedLogDto = {
-  last_http_status?: number | null
-  last_good_http_status_time?: Date | null
-  last_finished_parse_time?: Date | null
-  parse_errors?: number
-}
+  last_http_status?: number | null;
+  last_good_http_status_time?: Date | null;
+  last_finished_parse_time?: Date | null;
+  parse_errors?: number;
+};
 
-export class ItemChaptersFeedLogService extends BaseOneService<ItemChaptersFeedLog, 'item_chapters_feed'> {
+export class ItemChaptersFeedLogService extends BaseOneService<
+  ItemChaptersFeedLog,
+  'item_chapters_feed'
+> {
   constructor() {
     super(ItemChaptersFeedLog, 'item_chapters_feed');
   }
@@ -18,7 +21,10 @@ export class ItemChaptersFeedLogService extends BaseOneService<ItemChaptersFeedL
     return super._get(item_chapters_feed);
   }
 
-  async update(item_chapters_feed: ItemChaptersFeed, dto: ItemChaptersFeedLogDto): Promise<ItemChaptersFeedLog> {
+  async update(
+    item_chapters_feed: ItemChaptersFeed,
+    dto: ItemChaptersFeedLogDto
+  ): Promise<ItemChaptersFeedLog> {
     return super._update(item_chapters_feed, dto);
   }
 }

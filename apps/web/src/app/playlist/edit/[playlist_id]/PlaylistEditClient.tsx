@@ -1,8 +1,6 @@
-
 'use client';
 
 import { DTOPlaylist } from '@podverse/helpers';
-import React from 'react';
 import { PlaylistEditContextProvider } from './PlaylistEditContext';
 import { PlaylistEditForm } from './PlaylistEditForm';
 import { PlaylistEditHeader } from './PlaylistEditHeader';
@@ -15,7 +13,7 @@ import { SideContent } from '../../../../components/SideContent/SideContent';
 
 type PlaylistEditClientProps = {
   ssrPlaylist: DTOPlaylist;
-}
+};
 
 export function PlaylistEditClient({ ssrPlaylist }: PlaylistEditClientProps) {
   return (

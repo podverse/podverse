@@ -4,7 +4,7 @@
  */
 export const SERVER_ENV_VALUES = ['prod', 'beta', 'alpha', 'local'] as const;
 
-export type ServerEnv = typeof SERVER_ENV_VALUES[number];
+export type ServerEnv = (typeof SERVER_ENV_VALUES)[number];
 
 /**
  * Validates if a string is a valid server environment value.

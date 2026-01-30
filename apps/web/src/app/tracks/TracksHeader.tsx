@@ -8,7 +8,7 @@ import {
   QueryParamsSubscribedPartialSort,
   QueryParamsSubscribedMusicType,
   QUERY_PARAMS_SUBSCRIBED_MUSIC_TYPE,
-} from '@podverse/helpers';
+} from '@podverse/helpers-requests';
 import React from 'react';
 import Dropdown from '../../components/Dropdown/Dropdown';
 import { MainHeader } from '../../components/Main/MainHeader';
@@ -23,8 +23,8 @@ export const TracksHeader: React.FC = () => {
   const { type, sort, range } = filterParams;
   const tMedia = useTranslations('media');
   const tFilters = useTranslations('filters');
-  const { typeMenuItems, sortMenuItems, rangeMenuItems, showRangeDropdown,
-    } = getTracksDropdownConfig({ type, sort, tFilters });
+  const { typeMenuItems, sortMenuItems, rangeMenuItems, showRangeDropdown } =
+    getTracksDropdownConfig({ type, sort, tFilters });
   const medium = 'music';
 
   function isItemType(val: string): val is QueryParamsSubscribedMusicType {
@@ -95,18 +95,8 @@ export const TracksHeader: React.FC = () => {
 
   const buttonsNode = (
     <>
-      <Dropdown
-        key="type"
-        value={type}
-        menuItems={typeMenuItems}
-        onChange={handleTypeChange}
-      />
-      <Dropdown
-        key="sort"
-        value={sort}
-        menuItems={sortMenuItems}
-        onChange={handleSortChange}
-      />
+      <Dropdown key="type" value={type} menuItems={typeMenuItems} onChange={handleTypeChange} />
+      <Dropdown key="sort" value={sort} menuItems={sortMenuItems} onChange={handleSortChange} />
       {showRangeDropdown && range && (
         <Dropdown
           key="range"
@@ -115,19 +105,11 @@ export const TracksHeader: React.FC = () => {
           onChange={handleRangeChange}
         />
       )}
-      <ViewSelector
-        viewSelected={viewSelected}
-        setViewSelected={setViewSelected}
-      />
+      <ViewSelector viewSelected={viewSelected} setViewSelected={setViewSelected} />
     </>
   );
 
   const headerTitle = tMedia('music.tracks');
 
-  return (
-    <MainHeader
-      title={headerTitle}
-      buttonsNode={buttonsNode}
-    />
-  );
+  return <MainHeader title={headerTitle} buttonsNode={buttonsNode} />;
 };

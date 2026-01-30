@@ -6,21 +6,16 @@ import { HowToStartInfo } from '../../components/InfoWrapper/HowToStartInfo';
 import { useArtistsContext } from './ArtistsContext';
 
 export const ArtistsList: React.FC = () => {
-  const { filterParams, setFilterParams, channels, totalPages, isLoading,
-    showSubscribeMessage } = useArtistsContext();
+  const { filterParams, setFilterParams, channels, totalPages, isLoading, showSubscribeMessage } =
+    useArtistsContext();
   const { viewSelected } = useLocalSettings();
   const { page, type } = filterParams;
 
   return (
     <>
-      {
-        filterParams.type === 'subscribed' && (
-          <HowToStartInfo
-            rows={channels}
-            totalPages={totalPages}
-          />
-        )
-      }
+      {filterParams.type === 'subscribed' && (
+        <HowToStartInfo rows={channels} totalPages={totalPages} />
+      )}
       <ListArtists
         page={page}
         setPage={(page) => setFilterParams({ ...filterParams, page })}

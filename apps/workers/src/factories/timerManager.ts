@@ -1,4 +1,4 @@
-import { TimerManager } from '@podverse/helpers/dist/lib/backend/logTimer';
+import { TimerManager } from '@podverse/helpers-backend';
 import { loggerService } from './loggerService';
 import { config } from '@workers/config';
 

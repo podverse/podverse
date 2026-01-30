@@ -22,7 +22,7 @@ nvm use
 
 # Clean previous builds
 echo "Cleaning previous builds..."
-npm run clean --workspaces --if-present 2>/dev/null || true
+npm run clean --workspaces --if-present 2> /dev/null || true
 rm -rf node_modules
 
 # Install all dependencies

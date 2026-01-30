@@ -1,8 +1,6 @@
-
 'use client';
 
 import { DTOClip } from '@podverse/helpers';
-import React from 'react';
 import { ClipEditContextProvider } from './ClipEditContext';
 import { ClipEditForm } from './ClipEditForm';
 import { ClipEditHeader } from './ClipEditHeader';
@@ -14,14 +12,19 @@ type ClipEditClientProps = {
   ssrClip: DTOClip;
   ssrEnclosureTypeSelected: 'default' | 'audio' | 'video';
   ssrEnclosureRowSelected: number;
-}
+};
 
-export function ClipEditClient({ ssrClip, ssrEnclosureTypeSelected, ssrEnclosureRowSelected }: ClipEditClientProps) {
+export function ClipEditClient({
+  ssrClip,
+  ssrEnclosureTypeSelected,
+  ssrEnclosureRowSelected,
+}: ClipEditClientProps) {
   return (
     <ClipEditContextProvider
       ssrClip={ssrClip}
       ssrEnclosureTypeSelected={ssrEnclosureTypeSelected}
-      ssrEnclosureRowSelected={ssrEnclosureRowSelected}>
+      ssrEnclosureRowSelected={ssrEnclosureRowSelected}
+    >
       <ClipEditHeader />
       <MainWrapper>
         <MainInnerWrapper>

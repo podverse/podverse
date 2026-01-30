@@ -5,7 +5,10 @@ import { StatsTrackEventChannelService } from './statsTrackEventChannel';
 import { BaseStatsAggregatedService, UpdateHistoricalOptions } from './baseStatsAggregated';
 import { getActiveFeedWhere } from '@orm/lib/feedFlagHelpers';
 
-export class StatsAggregatedChannelService extends BaseStatsAggregatedService<StatsAggregatedChannel, number> {
+export class StatsAggregatedChannelService extends BaseStatsAggregatedService<
+  StatsAggregatedChannel,
+  number
+> {
   private statsTrackEventChannelService: StatsTrackEventChannelService;
 
   constructor() {
@@ -24,7 +27,7 @@ export class StatsAggregatedChannelService extends BaseStatsAggregatedService<St
   async getMany(
     config: FindManyOptions<StatsAggregatedChannel>,
     mediumType: QueryParamsMedium | null,
-    category_id: number | null,
+    category_id: number | null
   ): Promise<StatsAggregatedChannel[]> {
     const feedWhere = getActiveFeedWhere({
       channel_ids: null,
@@ -39,7 +42,7 @@ export class StatsAggregatedChannelService extends BaseStatsAggregatedService<St
 
   async getManyByChannelsAndCount(
     channel_ids: number[],
-    config: FindManyOptions<StatsAggregatedChannel>,
+    config: FindManyOptions<StatsAggregatedChannel>
   ): Promise<[StatsAggregatedChannel[], number]> {
     const feedWhere = getActiveFeedWhere({
       channel_ids,
@@ -53,10 +56,21 @@ export class StatsAggregatedChannelService extends BaseStatsAggregatedService<St
   }
 
   async updateAggregatedStats(channel_id: number, updateAllTime: boolean = false): Promise<void> {
-    await this._updateAggregatedStats(channel_id, this.statsTrackEventChannelService, updateAllTime);
+    await this._updateAggregatedStats(
+      channel_id,
+      this.statsTrackEventChannelService,
+      updateAllTime
+    );
   }
 
-  async updateAggregatedStatsRolling(channel_id: number, updateHistoricalOptions: UpdateHistoricalOptions): Promise<void> {
-    await this._updateAggregatedStatsRolling(channel_id, this.statsTrackEventChannelService, updateHistoricalOptions);
+  async updateAggregatedStatsRolling(
+    channel_id: number,
+    updateHistoricalOptions: UpdateHistoricalOptions
+  ): Promise<void> {
+    await this._updateAggregatedStatsRolling(
+      channel_id,
+      this.statsTrackEventChannelService,
+      updateHistoricalOptions
+    );
   }
 }

@@ -12,27 +12,13 @@
    cp .vscode/terminals-rundev.json.example .vscode/terminals.json
    ```
 
-### Code Formatting
-
-This project uses **ESLint only** for both linting and formatting. No Prettier required.
-
-**How it works:**
-- On save, ESLint automatically fixes formatting issues (quotes, semicolons, etc.)
-- The setting `"source.fixAll.eslint": "explicit"` in `.vscode/settings.json` enables this
-- All formatting rules are defined in `eslint.config.mjs`
-
-**Style rules:**
-- Single quotes
-- Semicolons required
-- Trailing commas in multiline
-- 2-space indentation
-
 ### Recommended Extensions
 
 When you open the project, VS Code will prompt you to install recommended extensions. Accept to install:
 
 - **Terminals Manager** - Multi-terminal workflow
-- **ESLint** - Code linting and formatting
+- **ESLint** - Code linting
+- **Prettier** - Code formatting
 - **TypeScript Next** - Enhanced TypeScript support
 - **GitLens** - Git blame and history
 - **Git Graph** - Visual git history
@@ -47,13 +33,14 @@ The Terminals Manager extension opens multiple terminals with predefined command
 
 1. Install extension: `fabiospampinato.vscode-terminals`
 2. Copy your preferred configuration:
+
    ```bash
    # For full development (all packages + apps)
    cp .vscode/terminals-rundev.json.example .vscode/terminals.json
-   
+
    # For services only (database, message queue, etc.)
    cp .vscode/terminals-services.json.example .vscode/terminals.json
-   
+
    # For basic terminals
    cp .vscode/terminals.json.example .vscode/terminals.json
    ```
@@ -66,11 +53,11 @@ The Terminals Manager extension opens multiple terminals with predefined command
 
 #### Available Configurations
 
-| File | Purpose |
-|------|---------|
-| `terminals-rundev.json.example` | Full development with all packages in watch mode |
-| `terminals-services.json.example` | Infrastructure services only |
-| `terminals.json.example` | Basic terminals for general use |
+| File                              | Purpose                                          |
+| --------------------------------- | ------------------------------------------------ |
+| `terminals-rundev.json.example`   | Full development with all packages in watch mode |
+| `terminals-services.json.example` | Infrastructure services only                     |
+| `terminals.json.example`          | Basic terminals for general use                  |
 
 ### Debugging
 
@@ -118,15 +105,10 @@ Works same as VS Code. All `.vscode/` configurations apply.
 ### ESLint not working
 
 Ensure you have ESLint extension installed and the workspace is properly loaded:
+
 ```bash
-npm install  # Ensure dependencies are installed
+npm install # Ensure dependencies are installed
 ```
-
-### ESLint not auto-fixing on save
-
-1. Check that `dbaeumer.vscode-eslint` extension is installed
-2. Verify `.vscode/settings.json` has `"source.fixAll.eslint": "explicit"`
-3. Reload VS Code window (`Cmd+Shift+P` > "Developer: Reload Window")
 
 ### TypeScript errors not showing
 

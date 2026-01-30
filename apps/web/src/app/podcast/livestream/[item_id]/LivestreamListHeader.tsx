@@ -4,7 +4,7 @@ import { useTranslations } from 'next-intl';
 import {
   QueryParamsLiveItemType,
   QUERY_PARAMS_LIVE_ITEM_TYPE_VALUES,
-} from '@podverse/helpers';
+} from '@podverse/helpers-requests';
 import React from 'react';
 import { ListHeader } from '../../../../components/List/ListHeader';
 import { useLivestreamContext } from './LivestreamContext';
@@ -25,21 +25,14 @@ export const LivestreamListHeader: React.FC = () => {
     }
   };
 
-  const tabData = [{
-    key: 'summary',
-    label: tInfo('summary.summary'),
-    onClick: () => handleTypeChange('summary'),
-    zIndex: 5,
-  }];
+  const tabData = [
+    {
+      key: 'summary',
+      label: tInfo('summary.summary'),
+      onClick: () => handleTypeChange('summary'),
+      zIndex: 5,
+    },
+  ];
 
-  return (
-    <ListHeader
-      tabs={
-        <Tabs
-          tabData={tabData}
-          selectedKey={type ?? ''}
-        />
-      }
-    />
-  );
+  return <ListHeader tabs={<Tabs tabData={tabData} selectedKey={type ?? ''} />} />;
 };

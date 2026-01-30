@@ -3,14 +3,14 @@ import { FaTimes } from 'react-icons/fa';
 import styles from '../../styles/components/Modal/Modal.module.scss';
 
 type ModalProps = {
-  isOpen: boolean
-  onClose?: () => void
-  ariaLabel: string
-  children: ReactNode
-  header?: string
-  modalContentMaxWidth?: number
-  contentTransparent?: boolean
-}
+  isOpen: boolean;
+  onClose?: () => void;
+  ariaLabel: string;
+  children: ReactNode;
+  header?: string;
+  modalContentMaxWidth?: number;
+  contentTransparent?: boolean;
+};
 
 export const Modal = ({
   isOpen,
@@ -21,16 +21,20 @@ export const Modal = ({
   modalContentMaxWidth,
   contentTransparent,
 }: ModalProps) => {
-  if (!isOpen) {return null;}
+  if (!isOpen) {
+    return null;
+  }
 
   const modalContentStyle: React.CSSProperties = {
     ...(modalContentMaxWidth ? { maxWidth: modalContentMaxWidth } : {}),
-    ...(contentTransparent ? {
-      background: 'transparent',
-      height: '100%',
-      minHeight: '100%',
-      justifyContent: 'center',
-    } : {}),
+    ...(contentTransparent
+      ? {
+          background: 'transparent',
+          height: '100%',
+          minHeight: '100%',
+          justifyContent: 'center',
+        }
+      : {}),
   };
 
   const modalChildrenStyle: React.CSSProperties = {
@@ -45,34 +49,22 @@ export const Modal = ({
       tabIndex={-1}
       className={styles.modalRoot}
     >
-      <div
-        className={styles.modalBackdrop}
-        aria-hidden="true"
-        onClick={onClose}
-      />
-      <div
-        className={styles.modalContent}
-        style={modalContentStyle}
-      >
+      <div className={styles.modalBackdrop} aria-hidden="true" onClick={onClose} />
+      <div className={styles.modalContent} style={modalContentStyle}>
         {(header || header === '') && (
           <div className={styles.modalHeader}>
-            <span
-              className={styles.modalHeaderText}
-              title={header}
-            >
+            <span className={styles.modalHeaderText} title={header}>
               {header}
             </span>
-            {
-              onClose && (
-                <button
-                  onClick={onClose}
-                  aria-label="Close modal"
-                  className={styles.modalCloseButton}
-                >
-                  <FaTimes />
-                </button>
-              )
-            }
+            {onClose && (
+              <button
+                onClick={onClose}
+                aria-label="Close modal"
+                className={styles.modalCloseButton}
+              >
+                <FaTimes />
+              </button>
+            )}
           </div>
         )}
         {!header && (

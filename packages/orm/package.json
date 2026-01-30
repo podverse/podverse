@@ -1,6 +1,6 @@
 {
   "name": "@podverse/orm",
-  "version": "5.2.2",
+  "version": "5.2.3",
   "description": "TypeORM entities and database utilities for Podverse",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -10,8 +10,8 @@
   "scripts": {
     "build": "npm run lint && tsc && tsc-alias",
     "build:prod": "tsc && tsc-alias",
-    "build:watch": "tsc --build --watch --preserveWatchOutput",
-    "lint": "eslint ./src",
+    "build:watch": "tsc --build --watch --preserveWatchOutput & tsc-alias --watch",
+    "lint": "eslint ./src --max-warnings 0",
     "lint:fix": "eslint ./src --fix",
     "clean": "rm -rf dist",
     "type-check": "tsc --noEmit"
@@ -27,7 +27,9 @@
     "nanoid": "^5.1.6",
     "pg": "^8.16.3",
     "typeorm": "^0.3.26",
-    "typeorm-naming-strategies": "^4.1.0"
+    "typeorm-naming-strategies": "^4.1.0",
+    "@podverse/helpers-backend": "*",
+    "@podverse/helpers-validation": "*"
   },
   "devDependencies": {
     "@types/bcrypt": "^6.0.0",

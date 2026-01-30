@@ -1,0 +1,56 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<flow-definition plugin="workflow-job">
+  <description>Imported from Git: podverse/infra/pipelines/jenkins/alpha</description>
+  <keepDependencies>false</keepDependencies>
+  <properties/>
+  <definition class="org.jenkinsci.plugins.workflow.cps.CpsScmFlowDefinition" plugin="workflow-cps">
+    <scm class="hudson.plugins.git.GitSCM" plugin="git">
+      <configVersion>2</configVersion>
+      <userRemoteConfigs>
+        <hudson.plugins.git.UserRemoteConfig>
+          <url>https://github.com/podverse/podverse.git</url>
+          <credentialsId>d793d818-3df6-4f30-b137-c849b43ce6fe</credentialsId>
+          </hudson.plugins.git.UserRemoteConfig>
+      </userRemoteConfigs>
+      <branches>
+        <hudson.plugins.git.BranchSpec>
+          <name>*/develop</name>
+        </hudson.plugins.git.BranchSpec>
+      </branches>
+      <doGenerateSubmoduleConfigurations>false</doGenerateSubmoduleConfigurations>
+      <submoduleCfg class="list"/>
+      <extensions>
+        <hudson.plugins.git.extensions.impl.CleanBeforeCheckout/>
+        <hudson.plugins.git.extensions.impl.SparseCheckoutPaths>
+          <sparseCheckoutPaths>
+            <hudson.plugins.git.extensions.impl.SparseCheckoutPath>
+              <path>infra/pipelines/jenkins/</path>
+            </hudson.plugins.git.extensions.impl.SparseCheckoutPath>
+            <hudson.plugins.git.extensions.impl.SparseCheckoutPath>
+              <path>infra/docker/</path>
+            </hudson.plugins.git.extensions.impl.SparseCheckoutPath>
+            <hudson.plugins.git.extensions.impl.SparseCheckoutPath>
+              <path>infra/config/</path>
+            </hudson.plugins.git.extensions.impl.SparseCheckoutPath>
+            <hudson.plugins.git.extensions.impl.SparseCheckoutPath>
+              <path>scripts/</path>
+            </hudson.plugins.git.extensions.impl.SparseCheckoutPath>
+            <hudson.plugins.git.extensions.impl.SparseCheckoutPath>
+              <path>infra/database/</path>
+            </hudson.plugins.git.extensions.impl.SparseCheckoutPath>
+            <hudson.plugins.git.extensions.impl.SparseCheckoutPath>
+              <path>Makefile</path>
+            </hudson.plugins.git.extensions.impl.SparseCheckoutPath>
+            <hudson.plugins.git.extensions.impl.SparseCheckoutPath>
+              <path>Makefile.alpha</path>
+            </hudson.plugins.git.extensions.impl.SparseCheckoutPath>
+          </sparseCheckoutPaths>
+        </hudson.plugins.git.extensions.impl.SparseCheckoutPaths>
+      </extensions>
+    </scm>
+    <scriptPath>REPLACE_SCRIPT_PATH</scriptPath>
+    <lightweight>false</lightweight>
+  </definition>
+  <triggers/>
+  <disabled>false</disabled>
+</flow-definition>

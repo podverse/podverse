@@ -1,7 +1,15 @@
-import { DTOChannel, DTOClip, DTOItem, DTOItemChapter, DTOItemSoundbite,
-  EnclosureSelectedParams, LabeledItemEnclosure, PlaybackMode,
-  PlaybackSpeedValue } from '@podverse/helpers';
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import {
+  DTOChannel,
+  DTOClip,
+  DTOItem,
+  DTOItemChapter,
+  DTOItemSoundbite,
+  EnclosureSelectedParams,
+  LabeledItemEnclosure,
+  PlaybackMode,
+  PlaybackSpeedValue,
+} from '@podverse/helpers';
+import { createContext, useContext, useState, ReactNode } from 'react';
 
 type MediaPlayerContextType = {
   mpChannel: DTOChannel | null;
@@ -49,12 +57,15 @@ type MediaPlayerProviderProps = {
 export const MediaPlayerProvider = ({ children }: MediaPlayerProviderProps) => {
   const [mpChannel, setMPChannel] = useState<DTOChannel | null>(null);
   const [mpItem, setMPItem] = useState<DTOItem | null>(null);
-  const [mpItemLabeledItemEnclosures, setMPItemLabeledItemEnclosures] = useState<LabeledItemEnclosure[]>([]);
-  const [mpEnclosureSelectedParams, setMPEnclosureSelectedParams] = useState<EnclosureSelectedParams>({
-    type: 'default',
-    enclosureRowSelected: null,
-    sourceRowSelected: null,
-  });
+  const [mpItemLabeledItemEnclosures, setMPItemLabeledItemEnclosures] = useState<
+    LabeledItemEnclosure[]
+  >([]);
+  const [mpEnclosureSelectedParams, setMPEnclosureSelectedParams] =
+    useState<EnclosureSelectedParams>({
+      type: 'default',
+      enclosureRowSelected: null,
+      sourceRowSelected: null,
+    });
   const [mpClip, setMPClip] = useState<DTOClip | null>(null);
   const [mpItemChapter, setMPItemChapter] = useState<DTOItemChapter | null>(null);
   const [mpItemChapters, setMPItemChapters] = useState<DTOItemChapter[] | null>(null);
@@ -70,25 +81,44 @@ export const MediaPlayerProvider = ({ children }: MediaPlayerProviderProps) => {
   const [mpShouldPlay, setMPShouldPlay] = useState<boolean>(false);
 
   return (
-    <MediaPlayerContext.Provider value={{
-      mpChannel, setMPChannel,
-      mpItem, setMPItem,
-      mpItemLabeledItemEnclosures, setMPItemLabeledItemEnclosures,
-      mpEnclosureSelectedParams, setMPEnclosureSelectedParams,
-      mpClip, setMPClip,
-      mpItemChapter, setMPItemChapter,
-      mpItemChapters, setMPItemChapters,
-      mpItemChapterShouldSeek, setMPItemChapterShouldSeek,
-      mpItemSoundbite, setMPItemSoundbite,
-      mpIsPlaying, setMPIsPlaying,
-      mpPlaybackMode, setMPPlaybackMode,
-      mpPlaybackSpeed, setMPPlaybackSpeed,
-      mpIsMuted, setMPIsMuted,
-      mpVolume, setMPVolume,
-      mpDuration, setMPDuration,
-      playerModalIsOpen, setPlayerModalIsOpen,
-      mpShouldPlay, setMPShouldPlay,
-    }}>
+    <MediaPlayerContext.Provider
+      value={{
+        mpChannel,
+        setMPChannel,
+        mpItem,
+        setMPItem,
+        mpItemLabeledItemEnclosures,
+        setMPItemLabeledItemEnclosures,
+        mpEnclosureSelectedParams,
+        setMPEnclosureSelectedParams,
+        mpClip,
+        setMPClip,
+        mpItemChapter,
+        setMPItemChapter,
+        mpItemChapters,
+        setMPItemChapters,
+        mpItemChapterShouldSeek,
+        setMPItemChapterShouldSeek,
+        mpItemSoundbite,
+        setMPItemSoundbite,
+        mpIsPlaying,
+        setMPIsPlaying,
+        mpPlaybackMode,
+        setMPPlaybackMode,
+        mpPlaybackSpeed,
+        setMPPlaybackSpeed,
+        mpIsMuted,
+        setMPIsMuted,
+        mpVolume,
+        setMPVolume,
+        mpDuration,
+        setMPDuration,
+        playerModalIsOpen,
+        setPlayerModalIsOpen,
+        mpShouldPlay,
+        setMPShouldPlay,
+      }}
+    >
       {children}
     </MediaPlayerContext.Provider>
   );
@@ -96,6 +126,8 @@ export const MediaPlayerProvider = ({ children }: MediaPlayerProviderProps) => {
 
 export function useMediaPlayer() {
   const ctx = useContext(MediaPlayerContext);
-  if (!ctx) {throw new Error('useMediaPlayer must be used within a MediaPlayerProvider');}
+  if (!ctx) {
+    throw new Error('useMediaPlayer must be used within a MediaPlayerProvider');
+  }
   return ctx;
 }

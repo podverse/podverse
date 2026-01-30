@@ -1,13 +1,31 @@
 import { NextFunction, Request, Response } from 'express';
 import Joi from 'joi';
-import { ApiListResponse, getQueueMediumIdFromType, QUERY_PARAMS_MEDIUMS,
+import {
+  getQueueMediumIdFromType,
+  QUERY_PARAMS_MEDIUMS,
   QUERY_PARAMS_QUEUE_MEDIUMS,
+  QueryParamsQueueMedium,
+  SharableStatusEnum,
+} from '@podverse/helpers';
+import {
+  ApiListResponse,
   QUERY_PARAMS_STATS_RANGE_VALUES,
-  QueryParamsQueueMedium, QueryParamsStatsRange,
-  SharableStatusEnum } from '@podverse/helpers';
-import { AccountFollowingPlaylist, AccountFollowingPlaylistService, FindManyOptions, Playlist,
-  PlaylistService, StatsAggregatedPlaylist, StatsAggregatedPlaylistService } from '@podverse/orm';
-import { ensureAuthenticated, optionalEnsureAuthenticated, getAuthenticatedUser } from '@api/lib/auth';
+  QueryParamsStatsRange,
+} from '@podverse/helpers-requests';
+import {
+  AccountFollowingPlaylist,
+  AccountFollowingPlaylistService,
+  FindManyOptions,
+  Playlist,
+  PlaylistService,
+  StatsAggregatedPlaylist,
+  StatsAggregatedPlaylistService,
+} from '@podverse/orm';
+import {
+  ensureAuthenticated,
+  optionalEnsureAuthenticated,
+  getAuthenticatedUser,
+} from '@api/lib/auth';
 import { handleGenericErrorResponse } from '../helpers/error';
 import { validateBodyObject, validateParamsObject, validateQueryObject } from '@api/lib/validation';
 import { getPaginationParams } from '../helpers/pagination';
@@ -18,7 +36,9 @@ import { getParamRequired } from '@api/lib/params';
 const createPlaylistSchema = Joi.object({
   title: Joi.string().allow(null, ''),
   description: Joi.string().allow(null, ''),
-  medium: Joi.string().valid(...QUERY_PARAMS_QUEUE_MEDIUMS).required(),
+  medium: Joi.string()
+    .valid(...QUERY_PARAMS_QUEUE_MEDIUMS)
+    .required(),
   sharable_status_id: Joi.number().min(1).required(),
 });
 
@@ -29,50 +49,74 @@ const playlistIdSchema = Joi.object({
 });
 
 const getManyPublicTopSchema = Joi.object({
-  medium: Joi.string().valid(...QUERY_PARAMS_MEDIUMS).required(),
-  range: Joi.string().valid(...QUERY_PARAMS_STATS_RANGE_VALUES).required(),
+  medium: Joi.string()
+    .valid(...QUERY_PARAMS_MEDIUMS)
+    .required(),
+  range: Joi.string()
+    .valid(...QUERY_PARAMS_STATS_RANGE_VALUES)
+    .required(),
   page: Joi.number().integer().min(1).required(),
 });
 
 const getManyPrivateRecentSchema = Joi.object({
-  medium: Joi.string().valid(...QUERY_PARAMS_MEDIUMS).required(),
+  medium: Joi.string()
+    .valid(...QUERY_PARAMS_MEDIUMS)
+    .required(),
   page: Joi.number().integer().min(1).required(),
 });
 
 const getManyPrivateOldestSchema = Joi.object({
-  medium: Joi.string().valid(...QUERY_PARAMS_MEDIUMS).required(),
+  medium: Joi.string()
+    .valid(...QUERY_PARAMS_MEDIUMS)
+    .required(),
   page: Joi.number().integer().min(1).required(),
 });
 
 const getManyPrivateAZSchema = Joi.object({
-  medium: Joi.string().valid(...QUERY_PARAMS_MEDIUMS).required(),
+  medium: Joi.string()
+    .valid(...QUERY_PARAMS_MEDIUMS)
+    .required(),
   page: Joi.number().integer().min(1).required(),
 });
 
 const getManyPrivateTopSchema = Joi.object({
-  medium: Joi.string().valid(...QUERY_PARAMS_MEDIUMS).required(),
+  medium: Joi.string()
+    .valid(...QUERY_PARAMS_MEDIUMS)
+    .required(),
   page: Joi.number().integer().min(1).required(),
-  range: Joi.string().valid(...QUERY_PARAMS_STATS_RANGE_VALUES).required(),
+  range: Joi.string()
+    .valid(...QUERY_PARAMS_STATS_RANGE_VALUES)
+    .required(),
 });
 
 const getManyPrivateFollowedTopSchema = Joi.object({
-  medium: Joi.string().valid(...QUERY_PARAMS_MEDIUMS).required(),
+  medium: Joi.string()
+    .valid(...QUERY_PARAMS_MEDIUMS)
+    .required(),
   page: Joi.number().integer().min(1).required(),
-  range: Joi.string().valid(...QUERY_PARAMS_STATS_RANGE_VALUES).required(),
+  range: Joi.string()
+    .valid(...QUERY_PARAMS_STATS_RANGE_VALUES)
+    .required(),
 });
 
 const getManyPrivateFollowedRecentSchema = Joi.object({
-  medium: Joi.string().valid(...QUERY_PARAMS_MEDIUMS).required(),
+  medium: Joi.string()
+    .valid(...QUERY_PARAMS_MEDIUMS)
+    .required(),
   page: Joi.number().integer().min(1).required(),
 });
 
 const getManyPrivateFollowedOldestSchema = Joi.object({
-  medium: Joi.string().valid(...QUERY_PARAMS_MEDIUMS).required(),
+  medium: Joi.string()
+    .valid(...QUERY_PARAMS_MEDIUMS)
+    .required(),
   page: Joi.number().integer().min(1).required(),
 });
 
 const getManyPrivateFollowedAZSchema = Joi.object({
-  medium: Joi.string().valid(...QUERY_PARAMS_MEDIUMS).required(),
+  medium: Joi.string()
+    .valid(...QUERY_PARAMS_MEDIUMS)
+    .required(),
   page: Joi.number().integer().min(1).required(),
 });
 
@@ -84,7 +128,9 @@ export const verifyPlaylistOwnership = () => {
     const playlist_id_text = getParamRequired(req, 'playlist_id_text');
 
     try {
-      const playlist = await playlistService.getByIdText(playlist_id_text, { relations: ['account'] });
+      const playlist = await playlistService.getByIdText(playlist_id_text, {
+        relations: ['account'],
+      });
       if (!playlist) {
         res.status(404).json({ message: 'Playlist not found' });
         return;
@@ -116,13 +162,14 @@ export const verifyPrivatePlaylistOwnershipIfNeeded = () => {
         res.status(404).json({ message: 'Playlist not found' });
         return;
       }
-      
+
       const isOwner = !!account?.id && playlist.account.id === account.id;
 
       // sharable_status can be either a numeric enum value or a relation object with an id property
-      const sharableStatusId = typeof playlist.sharable_status === 'number' 
-        ? playlist.sharable_status 
-        : (playlist.sharable_status as unknown as { id: number })?.id;
+      const sharableStatusId =
+        typeof playlist.sharable_status === 'number'
+          ? playlist.sharable_status
+          : (playlist.sharable_status as unknown as { id: number })?.id;
       if (sharableStatusId === SharableStatusEnum.Private) {
         if (!isOwner) {
           res.status(404).json({ message: 'Playlist not found' });
@@ -142,101 +189,117 @@ class PlaylistController {
   private static statsAggregatedPlaylistService = new StatsAggregatedPlaylistService();
 
   static async createPlaylist(req: Request, res: Response): Promise<void> {
-    ensureAuthenticated(req, res, async () => {
-      validateBodyObject(createPlaylistSchema, req, res, async () => {
-        const account = getAuthenticatedUser(req);
+    ensureAuthenticated(
+      req,
+      res,
+      async () => {
+        validateBodyObject(createPlaylistSchema, req, res, async () => {
+          const account = getAuthenticatedUser(req);
 
-        const { title, description, medium, sharable_status_id } = req.body as {
-          title: string;
-          description: string;
-          medium: QueryParamsQueueMedium;
-          sharable_status_id: number;
-        };
+          const { title, description, medium, sharable_status_id } = req.body as {
+            title: string;
+            description: string;
+            medium: QueryParamsQueueMedium;
+            sharable_status_id: number;
+          };
 
-        const medium_id = getQueueMediumIdFromType(medium);
+          const medium_id = getQueueMediumIdFromType(medium);
 
-        if (!medium_id) {
-          res.status(400).json({ message: 'Invalid medium type' });
-          return;
-        }
+          if (!medium_id) {
+            res.status(400).json({ message: 'Invalid medium type' });
+            return;
+          }
 
-        const dto = {
-          title,
-          description,
-          medium_id,
-          sharable_status_id,
-        };
+          const dto = {
+            title,
+            description,
+            medium_id,
+            sharable_status_id,
+          };
 
-        try {
-          const playlist = await PlaylistController.playlistService.create(
-            account.id,
-            dto,
-          );
-          res.status(201).json(playlist);
-        } catch (err) {
-          handleGenericErrorResponse(res, err);
-        }
-      });
-    }, { skipMembershipStatus: false });
+          try {
+            const playlist = await PlaylistController.playlistService.create(account.id, dto);
+            res.status(201).json(playlist);
+          } catch (err) {
+            handleGenericErrorResponse(res, err);
+          }
+        });
+      },
+      { skipMembershipStatus: false }
+    );
   }
 
   static async updatePlaylist(req: Request, res: Response): Promise<void> {
-    ensureAuthenticated(req, res, async () => {
-      validateParamsObject(playlistIdSchema, req, res, async () => {
-        verifyPlaylistOwnership()(req, res, async () => {
-          validateBodyObject(updatePlaylistSchema, req, res, async () => {
+    ensureAuthenticated(
+      req,
+      res,
+      async () => {
+        validateParamsObject(playlistIdSchema, req, res, async () => {
+          verifyPlaylistOwnership()(req, res, async () => {
+            validateBodyObject(updatePlaylistSchema, req, res, async () => {
+              const account = getAuthenticatedUser(req);
+              const playlist_id_text = getParamRequired(req, 'playlist_id_text');
+
+              const { title, description, medium, sharable_status_id } = req.body as {
+                title: string;
+                description: string;
+                medium: QueryParamsQueueMedium;
+                sharable_status_id: number;
+              };
+
+              const medium_id = getQueueMediumIdFromType(medium);
+
+              if (!medium_id) {
+                res.status(400).json({ message: 'Invalid medium type' });
+                return;
+              }
+
+              const dto = {
+                title,
+                description,
+                medium_id,
+                sharable_status_id,
+              };
+
+              try {
+                const playlist = await PlaylistController.playlistService.update(
+                  account.id,
+                  playlist_id_text,
+                  dto
+                );
+                res.status(200).json(playlist);
+              } catch (err) {
+                handleGenericErrorResponse(res, err);
+              }
+            });
+          });
+        });
+      },
+      { skipMembershipStatus: false }
+    );
+  }
+
+  static async deletePlaylist(req: Request, res: Response): Promise<void> {
+    ensureAuthenticated(
+      req,
+      res,
+      async () => {
+        validateParamsObject(playlistIdSchema, req, res, async () => {
+          verifyPlaylistOwnership()(req, res, async () => {
             const account = getAuthenticatedUser(req);
             const playlist_id_text = getParamRequired(req, 'playlist_id_text');
-            
-            const { title, description, medium, sharable_status_id } = req.body as {
-              title: string;
-              description: string;
-              medium: QueryParamsQueueMedium;
-              sharable_status_id: number;
-            };
-
-            const medium_id = getQueueMediumIdFromType(medium);
-
-            if (!medium_id) {
-              res.status(400).json({ message: 'Invalid medium type' });
-              return;
-            }
-
-            const dto = {
-              title,
-              description,
-              medium_id,
-              sharable_status_id,
-            };
 
             try {
-              const playlist = await PlaylistController.playlistService.update(account.id, playlist_id_text, dto);
-              res.status(200).json(playlist);
+              await PlaylistController.playlistService.delete(account.id, playlist_id_text);
+              res.status(204).end();
             } catch (err) {
               handleGenericErrorResponse(res, err);
             }
           });
         });
-      });
-    }, { skipMembershipStatus: false });
-  }
-
-  static async deletePlaylist(req: Request, res: Response): Promise<void> {
-    ensureAuthenticated(req, res, async () => {
-      validateParamsObject(playlistIdSchema, req, res, async () => {
-        verifyPlaylistOwnership()(req, res, async () => {
-          const account = getAuthenticatedUser(req);
-          const playlist_id_text = getParamRequired(req, 'playlist_id_text');
-
-          try {
-            await PlaylistController.playlistService.delete(account.id, playlist_id_text);
-            res.status(204).end();
-          } catch (err) {
-            handleGenericErrorResponse(res, err);
-          }
-        });
-      });
-    }, { skipMembershipStatus: true });
+      },
+      { skipMembershipStatus: true }
+    );
   }
 
   static async getManyPublicTop(req: Request, res: Response): Promise<void> {
@@ -244,10 +307,10 @@ class PlaylistController {
       try {
         const { medium, range } = req.query as {
           medium: QueryParamsQueueMedium;
-          range: QueryParamsStatsRange
+          range: QueryParamsStatsRange;
         };
         const { page, limit, offset } = getPaginationParams(req);
-        
+
         const order = getStatsOrder(range);
         const config: FindManyOptions<StatsAggregatedPlaylist> = {
           order: { [order]: 'DESC' },
@@ -255,10 +318,13 @@ class PlaylistController {
           take: limit,
         };
 
-        const statsResults = await PlaylistController
-          .statsAggregatedPlaylistService.getManyPublic(config, medium);
+        const statsResults = await PlaylistController.statsAggregatedPlaylistService.getManyPublic(
+          config,
+          medium
+        );
         const playlists = statsResults
-          .map((stat: { playlist: Playlist }) => stat.playlist).filter(Boolean);
+          .map((stat: { playlist: Playlist }) => stat.playlist)
+          .filter(Boolean);
 
         res.status(200).json({
           data: playlists,
@@ -271,328 +337,413 @@ class PlaylistController {
   }
 
   static async getManyPrivateTop(req: Request, res: Response): Promise<void> {
-    ensureAuthenticated(req, res, async () => {
-      validateQueryObject(getManyPrivateTopSchema, req, res, async () => {
-        try {
-          const account = getAuthenticatedUser(req);
+    ensureAuthenticated(
+      req,
+      res,
+      async () => {
+        validateQueryObject(getManyPrivateTopSchema, req, res, async () => {
+          try {
+            const account = getAuthenticatedUser(req);
 
-          const { medium, range } = req.query as {
-            medium: QueryParamsQueueMedium;
-            range: QueryParamsStatsRange;
-          };
+            const { medium, range } = req.query as {
+              medium: QueryParamsQueueMedium;
+              range: QueryParamsStatsRange;
+            };
 
+            const { page, limit, offset } = getPaginationParams(req);
+
+            const order = getStatsOrder(range);
+            const config: FindManyOptions<StatsAggregatedPlaylist> = {
+              order: { [order]: 'DESC' },
+              skip: offset,
+              take: limit,
+            };
+
+            const statsResults =
+              await PlaylistController.statsAggregatedPlaylistService.getManyPrivate(
+                config,
+                account.id,
+                medium
+              );
+            const data = statsResults[0]
+              .map((stat: { playlist: Playlist }) => stat.playlist)
+              .filter(Boolean);
+            const count = statsResults[1];
+
+            const response: ApiListResponse<Playlist> = {
+              data: data,
+              meta: { page, count, limit },
+            };
+
+            res.status(200).json(response);
+          } catch (err) {
+            handleGenericErrorResponse(res, err);
+          }
+        });
+      },
+      { skipMembershipStatus: true }
+    );
+  }
+
+  static async getManyPrivateRecent(req: Request, res: Response): Promise<void> {
+    ensureAuthenticated(
+      req,
+      res,
+      async () => {
+        validateQueryObject(getManyPrivateRecentSchema, req, res, async () => {
+          try {
+            const account = getAuthenticatedUser(req);
+            const { medium } = req.query as {
+              medium: QueryParamsQueueMedium;
+            };
+            const { page, limit, offset } = getPaginationParams(req);
+
+            const config: FindManyOptions<Playlist> = {
+              skip: offset,
+              take: limit,
+              order: { last_updated: 'DESC' },
+            };
+
+            const results = await PlaylistController.playlistService.getManyPrivate(
+              account.id,
+              medium,
+              config
+            );
+
+            const response: ApiListResponse<Playlist> = {
+              data: results[0],
+              meta: { page, count: results[1], limit },
+            };
+
+            res.status(200).json(response);
+          } catch (err) {
+            handleGenericErrorResponse(res, err);
+          }
+        });
+      },
+      { skipMembershipStatus: true }
+    );
+  }
+
+  static async getManyPrivateOldest(req: Request, res: Response): Promise<void> {
+    ensureAuthenticated(
+      req,
+      res,
+      async () => {
+        validateQueryObject(getManyPrivateOldestSchema, req, res, async () => {
+          try {
+            const account = getAuthenticatedUser(req);
+            const { medium } = req.query as {
+              medium: QueryParamsQueueMedium;
+            };
+            const { page, limit, offset } = getPaginationParams(req);
+
+            const config: FindManyOptions<Playlist> = {
+              skip: offset,
+              take: limit,
+              order: { last_updated: 'ASC' },
+            };
+
+            const results = await PlaylistController.playlistService.getManyPrivate(
+              account.id,
+              medium,
+              config
+            );
+
+            const response: ApiListResponse<Playlist> = {
+              data: results[0],
+              meta: { page, count: results[1], limit },
+            };
+
+            res.status(200).json(response);
+          } catch (err) {
+            handleGenericErrorResponse(res, err);
+          }
+        });
+      },
+      { skipMembershipStatus: true }
+    );
+  }
+
+  static async getManyPrivateAZ(req: Request, res: Response): Promise<void> {
+    ensureAuthenticated(
+      req,
+      res,
+      async () => {
+        validateQueryObject(getManyPrivateAZSchema, req, res, async () => {
+          try {
+            const account = getAuthenticatedUser(req);
+            const { medium } = req.query as {
+              medium: QueryParamsQueueMedium;
+            };
+            const { page, limit, offset } = getPaginationParams(req);
+
+            const config: FindManyOptions<Playlist> = {
+              skip: offset,
+              take: limit,
+              order: { title: 'ASC' },
+            };
+
+            const results = await PlaylistController.playlistService.getManyPrivate(
+              account.id,
+              medium,
+              config
+            );
+
+            const response: ApiListResponse<Playlist> = {
+              data: results[0],
+              meta: { page, count: results[1], limit },
+            };
+
+            res.status(200).json(response);
+          } catch (err) {
+            handleGenericErrorResponse(res, err);
+          }
+        });
+      },
+      { skipMembershipStatus: true }
+    );
+  }
+
+  static async getManyFollowedPrivateTop(req: Request, res: Response): Promise<void> {
+    ensureAuthenticated(
+      req,
+      res,
+      async () => {
+        validateQueryObject(getManyPrivateFollowedTopSchema, req, res, async () => {
           const { page, limit, offset } = getPaginationParams(req);
+          const { range, medium } = req.query as {
+            range: QueryParamsStatsRange;
+            medium: QueryParamsQueueMedium;
+          };
+          const jwtUser = getAuthenticatedUser(req);
+          const account_id = jwtUser.id;
 
+          const playlist_ids = await getFollowedPlaylistIdsPrivate(account_id, medium);
           const order = getStatsOrder(range);
           const config: FindManyOptions<StatsAggregatedPlaylist> = {
             order: { [order]: 'DESC' },
             skip: offset,
             take: limit,
+            relations: ['playlist', 'playlist.account', 'playlist.account.account_profile'],
           };
+          const statsResults =
+            await PlaylistController.statsAggregatedPlaylistService.getManyPrivateByPlaylists(
+              playlist_ids,
+              config
+            );
 
-          const statsResults = await PlaylistController.statsAggregatedPlaylistService.getManyPrivate(
-            config,
-            account.id,
-            medium,
-          );
-          const data = statsResults[0].map((stat: { playlist: Playlist }) => stat.playlist).filter(Boolean);
+          const playlists = statsResults[0]
+            .map((stat: { playlist: Playlist }) => stat.playlist)
+            .filter(Boolean);
           const count = statsResults[1];
 
           const response: ApiListResponse<Playlist> = {
-            data: data,
+            data: playlists,
             meta: { page, count, limit },
           };
-
-          res.status(200).json(response);
-        } catch (err) {
-          handleGenericErrorResponse(res, err);
-        }
-      });
-    }, { skipMembershipStatus: true });
+          res.json(response);
+        });
+      },
+      { skipMembershipStatus: true }
+    );
   }
-
-  static async getManyPrivateRecent(req: Request, res: Response): Promise<void> {
-    ensureAuthenticated(req, res, async () => {
-      validateQueryObject(getManyPrivateRecentSchema, req, res, async () => {
-        try {
-          const account = getAuthenticatedUser(req);
-          const { medium } = req.query as {
-            medium: QueryParamsQueueMedium;
-          };
-          const { page, limit, offset } = getPaginationParams(req);
-
-          const config: FindManyOptions<Playlist> = {
-            skip: offset,
-            take: limit,
-            order: { last_updated: 'DESC' },
-          };
-
-          const results = await PlaylistController.playlistService.getManyPrivate(
-            account.id,
-            medium,
-            config,
-          );
-
-          const response: ApiListResponse<Playlist> = {
-            data: results[0],
-            meta: { page, count: results[1], limit },
-          };
-
-          res.status(200).json(response);
-        } catch (err) {
-          handleGenericErrorResponse(res, err);
-        }
-      });
-    }, { skipMembershipStatus: true });
-  }
-
-  static async getManyPrivateOldest(req: Request, res: Response): Promise<void> {
-    ensureAuthenticated(req, res, async () => {
-      validateQueryObject(getManyPrivateOldestSchema, req, res, async () => {
-        try {
-          const account = getAuthenticatedUser(req);
-          const { medium } = req.query as {
-            medium: QueryParamsQueueMedium;
-          };
-          const { page, limit, offset } = getPaginationParams(req);
-
-          const config: FindManyOptions<Playlist> = {
-            skip: offset,
-            take: limit,
-            order: { last_updated: 'ASC' },
-          };
-
-          const results = await PlaylistController.playlistService.getManyPrivate(
-            account.id,
-            medium,
-            config,
-          );
-
-          const response: ApiListResponse<Playlist> = {
-            data: results[0],
-            meta: { page, count: results[1], limit },
-          };
-
-          res.status(200).json(response);
-        } catch (err) {
-          handleGenericErrorResponse(res, err);
-        }
-      });
-    }, { skipMembershipStatus: true });
-  }
-
-  static async getManyPrivateAZ(req: Request, res: Response): Promise<void> {
-    ensureAuthenticated(req, res, async () => {
-      validateQueryObject(getManyPrivateAZSchema, req, res, async () => {
-        try {
-          const account = getAuthenticatedUser(req);
-          const { medium } = req.query as {
-            medium: QueryParamsQueueMedium;
-          };
-          const { page, limit, offset } = getPaginationParams(req);
-
-          const config: FindManyOptions<Playlist> = {
-            skip: offset,
-            take: limit,
-            order: { title: 'ASC' },
-          };
-
-          const results = await PlaylistController.playlistService.getManyPrivate(
-            account.id,
-            medium,
-            config,
-          );
-
-          const response: ApiListResponse<Playlist> = {
-            data: results[0],
-            meta: { page, count: results[1], limit },
-          };
-
-          res.status(200).json(response);
-        } catch (err) {
-          handleGenericErrorResponse(res, err);
-        }
-      });
-    }, { skipMembershipStatus: true });
-  }
-
-  static async getManyFollowedPrivateTop(req: Request, res: Response): Promise<void> {
-    ensureAuthenticated(req, res, async () => {
-      validateQueryObject(getManyPrivateFollowedTopSchema, req, res, async () => {
-        const { page, limit, offset } = getPaginationParams(req);
-        const { range, medium } = req.query as {
-          range: QueryParamsStatsRange;
-          medium: QueryParamsQueueMedium;
-        };
-        const jwtUser = getAuthenticatedUser(req);
-        const account_id = jwtUser.id;
-
-        const playlist_ids = await getFollowedPlaylistIdsPrivate(
-          account_id,
-          medium,
-        );
-        const order = getStatsOrder(range);
-        const config: FindManyOptions<StatsAggregatedPlaylist> = {
-          order: { [order]: 'DESC' },
-          skip: offset,
-          take: limit,
-          relations: ['playlist', 'playlist.account', 'playlist.account.account_profile'],
-        };
-        const statsResults = await PlaylistController
-          .statsAggregatedPlaylistService
-          .getManyPrivateByPlaylists(
-            playlist_ids,
-            config,
-          );
-
-        const playlists = statsResults[0].map((stat: { playlist: Playlist }) => stat.playlist).filter(Boolean);
-        const count = statsResults[1];
-
-        const response: ApiListResponse<Playlist> = {
-          data: playlists,
-          meta: { page, count, limit },
-        };
-        res.json(response);
-      });
-    }, { skipMembershipStatus: true });
-  };
 
   static async getManyFollowedPrivateRecent(req: Request, res: Response): Promise<void> {
-    ensureAuthenticated(req, res, async () => {
-      validateQueryObject(getManyPrivateFollowedRecentSchema, req, res, async () => {
-        const { page, limit, offset } = getPaginationParams(req);
-        const { medium } = req.query as {
-          medium: QueryParamsQueueMedium;
-        };
-        const jwtUser = getAuthenticatedUser(req);
-        const account_id = jwtUser.id;
+    ensureAuthenticated(
+      req,
+      res,
+      async () => {
+        validateQueryObject(getManyPrivateFollowedRecentSchema, req, res, async () => {
+          const { page, limit, offset } = getPaginationParams(req);
+          const { medium } = req.query as {
+            medium: QueryParamsQueueMedium;
+          };
+          const jwtUser = getAuthenticatedUser(req);
+          const account_id = jwtUser.id;
 
-        const accountFollowingPlaylistService = new AccountFollowingPlaylistService();
-        const config: FindManyOptions<AccountFollowingPlaylist> = {
-          skip: offset,
-          take: limit,
-          relations: ['playlist', 'playlist.account', 'playlist.account.account_profile'],
-          order: { playlist: { last_updated: 'DESC' } },
-        };
-        const results = await accountFollowingPlaylistService.getFollowedPlaylistsPrivateWithCount(account_id, medium, config);
-        const playlists = results[0].map((account_following_playlist: { playlist: Playlist }) => account_following_playlist.playlist).filter(Boolean);
-        const count = results[1];
+          const accountFollowingPlaylistService = new AccountFollowingPlaylistService();
+          const config: FindManyOptions<AccountFollowingPlaylist> = {
+            skip: offset,
+            take: limit,
+            relations: ['playlist', 'playlist.account', 'playlist.account.account_profile'],
+            order: { playlist: { last_updated: 'DESC' } },
+          };
+          const results =
+            await accountFollowingPlaylistService.getFollowedPlaylistsPrivateWithCount(
+              account_id,
+              medium,
+              config
+            );
+          const playlists = results[0]
+            .map(
+              (account_following_playlist: { playlist: Playlist }) =>
+                account_following_playlist.playlist
+            )
+            .filter(Boolean);
+          const count = results[1];
 
-        const response: ApiListResponse<Playlist> = {
-          data: playlists,
-          meta: { page, count, limit },
-        };
-        res.json(response);
-      });
-    }, { skipMembershipStatus: true });
-  };
+          const response: ApiListResponse<Playlist> = {
+            data: playlists,
+            meta: { page, count, limit },
+          };
+          res.json(response);
+        });
+      },
+      { skipMembershipStatus: true }
+    );
+  }
 
   static async getManyFollowedPrivateOldest(req: Request, res: Response): Promise<void> {
-    ensureAuthenticated(req, res, async () => {
-      validateQueryObject(getManyPrivateFollowedOldestSchema, req, res, async () => {
-        const { page, limit, offset } = getPaginationParams(req);
-        const { medium } = req.query as {
-          medium: QueryParamsQueueMedium;
-        };
-        const jwtUser = getAuthenticatedUser(req);
-        const account_id = jwtUser.id;
+    ensureAuthenticated(
+      req,
+      res,
+      async () => {
+        validateQueryObject(getManyPrivateFollowedOldestSchema, req, res, async () => {
+          const { page, limit, offset } = getPaginationParams(req);
+          const { medium } = req.query as {
+            medium: QueryParamsQueueMedium;
+          };
+          const jwtUser = getAuthenticatedUser(req);
+          const account_id = jwtUser.id;
 
-        const accountFollowingPlaylistService = new AccountFollowingPlaylistService();
-        const config: FindManyOptions<AccountFollowingPlaylist> = {
-          skip: offset,
-          take: limit,
-          relations: ['playlist', 'playlist.account', 'playlist.account.account_profile'],
-          order: { playlist: { last_updated: 'ASC' } },
-        };
-        const results = await accountFollowingPlaylistService.getFollowedPlaylistsPrivateWithCount(account_id, medium, config);
-        const playlists = results[0].map((account_following_playlist: { playlist: Playlist }) => account_following_playlist.playlist).filter(Boolean);
-        const count = results[1];
+          const accountFollowingPlaylistService = new AccountFollowingPlaylistService();
+          const config: FindManyOptions<AccountFollowingPlaylist> = {
+            skip: offset,
+            take: limit,
+            relations: ['playlist', 'playlist.account', 'playlist.account.account_profile'],
+            order: { playlist: { last_updated: 'ASC' } },
+          };
+          const results =
+            await accountFollowingPlaylistService.getFollowedPlaylistsPrivateWithCount(
+              account_id,
+              medium,
+              config
+            );
+          const playlists = results[0]
+            .map(
+              (account_following_playlist: { playlist: Playlist }) =>
+                account_following_playlist.playlist
+            )
+            .filter(Boolean);
+          const count = results[1];
 
-        const response: ApiListResponse<Playlist> = {
-          data: playlists,
-          meta: { page, count, limit },
-        };
-        res.json(response);
-      });
-    }, { skipMembershipStatus: true });
-  };
+          const response: ApiListResponse<Playlist> = {
+            data: playlists,
+            meta: { page, count, limit },
+          };
+          res.json(response);
+        });
+      },
+      { skipMembershipStatus: true }
+    );
+  }
 
   static async getManyFollowedPrivateAZ(req: Request, res: Response): Promise<void> {
-    ensureAuthenticated(req, res, async () => {
-      validateQueryObject(getManyPrivateFollowedAZSchema, req, res, async () => {
-        const { page, limit, offset } = getPaginationParams(req);
-        const { medium } = req.query as {
-          medium: QueryParamsQueueMedium;
-        };
-        const jwtUser = getAuthenticatedUser(req);
-        const account_id = jwtUser.id;
+    ensureAuthenticated(
+      req,
+      res,
+      async () => {
+        validateQueryObject(getManyPrivateFollowedAZSchema, req, res, async () => {
+          const { page, limit, offset } = getPaginationParams(req);
+          const { medium } = req.query as {
+            medium: QueryParamsQueueMedium;
+          };
+          const jwtUser = getAuthenticatedUser(req);
+          const account_id = jwtUser.id;
 
-        const accountFollowingPlaylistService = new AccountFollowingPlaylistService();
-        const config: FindManyOptions<AccountFollowingPlaylist> = {
-          skip: offset,
-          take: limit,
-          relations: ['playlist', 'playlist.account', 'playlist.account.account_profile'],
-          order: { playlist: { title: 'ASC' } },
-        };
-        const results = await accountFollowingPlaylistService.getFollowedPlaylistsPrivateWithCount(account_id, medium, config);
-        const playlists = results[0].map((account_following_playlist: { playlist: Playlist }) => account_following_playlist.playlist).filter(Boolean);
-        const count = results[1];
+          const accountFollowingPlaylistService = new AccountFollowingPlaylistService();
+          const config: FindManyOptions<AccountFollowingPlaylist> = {
+            skip: offset,
+            take: limit,
+            relations: ['playlist', 'playlist.account', 'playlist.account.account_profile'],
+            order: { playlist: { title: 'ASC' } },
+          };
+          const results =
+            await accountFollowingPlaylistService.getFollowedPlaylistsPrivateWithCount(
+              account_id,
+              medium,
+              config
+            );
+          const playlists = results[0]
+            .map(
+              (account_following_playlist: { playlist: Playlist }) =>
+                account_following_playlist.playlist
+            )
+            .filter(Boolean);
+          const count = results[1];
 
-        const response: ApiListResponse<Playlist> = {
-          data: playlists,
-          meta: { page, count, limit },
-        };
-        res.json(response);
-      });
-    }, { skipMembershipStatus: true });
-  };
+          const response: ApiListResponse<Playlist> = {
+            data: playlists,
+            meta: { page, count, limit },
+          };
+          res.json(response);
+        });
+      },
+      { skipMembershipStatus: true }
+    );
+  }
 
   static async getAllFavoritesPrivate(req: Request, res: Response): Promise<void> {
-    ensureAuthenticated(req, res, async () => {
-      try {
-        const account = getAuthenticatedUser(req);
-        const favorites = await PlaylistController.playlistService.getAllFavoritesPrivate(account.id);
-        res.status(200).json(favorites);
-      } catch (err) {
-        handleGenericErrorResponse(res, err);
-      }
-    }, { skipMembershipStatus: true });
+    ensureAuthenticated(
+      req,
+      res,
+      async () => {
+        try {
+          const account = getAuthenticatedUser(req);
+          const favorites = await PlaylistController.playlistService.getAllFavoritesPrivate(
+            account.id
+          );
+          res.status(200).json(favorites);
+        } catch (err) {
+          handleGenericErrorResponse(res, err);
+        }
+      },
+      { skipMembershipStatus: true }
+    );
   }
 
   static async getPlaylistById(req: Request, res: Response): Promise<void> {
     validateParamsObject(playlistIdSchema, req, res, async () => {
-      optionalEnsureAuthenticated(req, res, async () => {
-        verifyPrivatePlaylistOwnershipIfNeeded()(req, res, async () => {
-          try {
-            const playlist_id_text = getParamRequired(req, 'playlist_id_text');
-            const account = getAuthenticatedUser(req);
+      optionalEnsureAuthenticated(
+        req,
+        res,
+        async () => {
+          verifyPrivatePlaylistOwnershipIfNeeded()(req, res, async () => {
+            try {
+              const playlist_id_text = getParamRequired(req, 'playlist_id_text');
+              const account = getAuthenticatedUser(req);
 
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            let playlist: any | null = null;
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              let playlist: any | null = null;
 
-            if (account) {
-              playlist = await PlaylistController.playlistService.getOnePrivate(account.id_text, playlist_id_text);
-            } else {
-              playlist = await PlaylistController.playlistService.getOnePublic(playlist_id_text);
-            }
+              if (account) {
+                playlist = await PlaylistController.playlistService.getOnePrivate(
+                  account.id_text,
+                  playlist_id_text
+                );
+              } else {
+                playlist = await PlaylistController.playlistService.getOnePublic(playlist_id_text);
+              }
 
-            if (playlist?.account?.id) {
-              delete playlist.account.id;
+              if (playlist?.account?.id) {
+                delete playlist.account.id;
+              }
+
+              if (playlist) {
+                res.status(200).json(playlist);
+              } else {
+                res.status(404).json({ message: 'Playlist not found' });
+              }
+            } catch (err) {
+              handleGenericErrorResponse(res, err);
             }
-            
-            if (playlist) {
-              res.status(200).json(playlist);
-            } else {
-              res.status(404).json({ message: 'Playlist not found' });
-            }
-          } catch (err) {
-            handleGenericErrorResponse(res, err);
-          }
-        });
-      }, { skipMembershipStatus: true });
+          });
+        },
+        { skipMembershipStatus: true }
+      );
     });
   }
-
 }
 
 export { PlaylistController };

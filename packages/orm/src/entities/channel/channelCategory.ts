@@ -10,11 +10,11 @@ export class ChannelCategory {
   @Column({ type: 'int', name: 'category_id' })
   category_id!: number;
 
-  @ManyToOne(() => Channel, channel => channel.id, { onDelete: 'CASCADE' })
+  @ManyToOne(() => Channel, (channel) => channel.id, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'channel_id' })
   channel!: Channel;
 
-  @ManyToOne(() => Category, category => category.id)
+  @ManyToOne(() => Category, (category) => category.id)
   @JoinColumn({ name: 'category_id' })
   category!: Category;
 }

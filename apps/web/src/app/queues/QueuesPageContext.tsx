@@ -1,7 +1,13 @@
 'use client';
 
-import { DTOQueue, DTOQueueResource, getQueueMediumIdFromType, MediumEnum, QueryParamsQueues } from '@podverse/helpers';
-import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
+import {
+  DTOQueue,
+  DTOQueueResource,
+  getQueueMediumIdFromType,
+  MediumEnum,
+} from '@podverse/helpers';
+import { QueryParamsQueues } from '@podverse/helpers-requests';
+import { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { apiRequestService } from '../../factories/apiRequestService';
 import { useAccount } from '../../contexts/Account';
 
@@ -14,15 +20,15 @@ interface QueuesPageContextType {
   setIsLoading: (isLoading: boolean) => void;
   showLoginMessage: boolean;
   setShowLoginMessage: (show: boolean) => void;
-};
+}
 
 const QueuesPageContext = createContext<QueuesPageContextType | undefined>(undefined);
 
 interface QueuesPageContextProviderProps {
-  children: ReactNode,
-  initialQueryParams: QueryParamsQueues,
-  ssrQueues: DTOQueue[],
-  ssrQueueResources?: DTOQueueResource[]
+  children: ReactNode;
+  initialQueryParams: QueryParamsQueues;
+  ssrQueues: DTOQueue[];
+  ssrQueueResources?: DTOQueueResource[];
 }
 
 export const QueuesPageContextProvider = ({
@@ -45,29 +51,33 @@ export const QueuesPageContextProvider = ({
         setIsLoading(false);
         return;
       }
-      
+
       setIsLoading(true);
-      
+
       const currentMediumId = getQueueMediumIdFromType(filterParams.medium) || MediumEnum.AV;
-      const currentQueue = ssrQueues.find(q => q.medium_id === currentMediumId);
-      
+      const currentQueue = ssrQueues.find((q) => q.medium_id === currentMediumId);
+
       const queueData = await apiRequestService.reqQueueGetAllForAccountPrivate();
-      const activeQueue = queueData.find(queue => queue.is_active_queue);
+      const activeQueue = queueData.find((queue) => queue.is_active_queue);
 
       if (currentQueue) {
         const combinedQueueResources: DTOQueueResource[] = [];
 
         if (activeQueue?.id_text !== currentQueue.id_text) {
-          const nowPlayingResource = await apiRequestService
-            .reqQueueResourcesGetNowPlayingByQueueIdText(currentQueue.id_text);
-          
+          const nowPlayingResource =
+            await apiRequestService.reqQueueResourcesGetNowPlayingByQueueIdText(
+              currentQueue.id_text
+            );
+
           if (nowPlayingResource) {
             combinedQueueResources.push(nowPlayingResource);
           }
         }
 
-        const upcomingQueueResources = await apiRequestService
-          .reqQueueResourcesGetAllUpcomingByQueueIdText(currentQueue.id_text);
+        const upcomingQueueResources =
+          await apiRequestService.reqQueueResourcesGetAllUpcomingByQueueIdText(
+            currentQueue.id_text
+          );
         combinedQueueResources.push(...upcomingQueueResources);
 
         setQueueResources(combinedQueueResources);
@@ -81,12 +91,18 @@ export const QueuesPageContextProvider = ({
   }, [filterParams, loggedInAccount]);
 
   return (
-    <QueuesPageContext.Provider value={{
-      filterParams, setFilterParams,
-      queueResources, setQueueResources,
-      isLoading, setIsLoading,
-      showLoginMessage, setShowLoginMessage,
-    }}>
+    <QueuesPageContext.Provider
+      value={{
+        filterParams,
+        setFilterParams,
+        queueResources,
+        setQueueResources,
+        isLoading,
+        setIsLoading,
+        showLoginMessage,
+        setShowLoginMessage,
+      }}
+    >
       {children}
     </QueuesPageContext.Provider>
   );
@@ -94,6 +110,8 @@ export const QueuesPageContextProvider = ({
 
 export const useQueuesPageContext = () => {
   const ctx = useContext(QueuesPageContext);
-  if (!ctx) {throw new Error('useQueuesPageContext must be used within a QueuesPageContextProvider');}
+  if (!ctx) {
+    throw new Error('useQueuesPageContext must be used within a QueuesPageContextProvider');
+  }
   return ctx;
 };

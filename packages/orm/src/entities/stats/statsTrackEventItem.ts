@@ -1,4 +1,11 @@
-import { Entity, PrimaryGeneratedColumn, CreateDateColumn, ManyToOne, JoinColumn, Column } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  CreateDateColumn,
+  ManyToOne,
+  JoinColumn,
+  Column,
+} from 'typeorm';
 import { StatsTrackAccountGuid } from '@orm/entities/stats/statsTrackAccountGuid';
 import { Item } from '@orm/entities/item/item';
 

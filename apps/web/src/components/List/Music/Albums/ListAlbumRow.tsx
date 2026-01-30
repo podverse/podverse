@@ -15,10 +15,14 @@ interface Props {
 
 export const ListAlbumRow: React.FC<Props> = ({ channel }) => {
   const url = `${ROUTES.ALBUM}/${channel.id_text}`;
-  const channel_image = findDTOChannelImageBySize(channel.channel_images, IMAGES.LIST.PODCASTS.SIZE_FIND_TARGET, 'lesser');
+  const channel_image = findDTOChannelImageBySize(
+    channel.channel_images,
+    IMAGES.LIST.PODCASTS.SIZE_FIND_TARGET,
+    'lesser'
+  );
   const tMedia = useTranslations('media');
   const tMisc = useTranslations('misc');
-  
+
   return (
     <Link href={url} className={styles.link}>
       <div className={styles.listItem}>
@@ -31,13 +35,11 @@ export const ListAlbumRow: React.FC<Props> = ({ channel }) => {
         />
         <div className={styles.content}>
           <h3 className={styles.title}>{channel.title}</h3>
-          {
-            channel.channel_about?.author && (
-              <span className={styles.lastPubDate}>
-                {channel.channel_about.author || tMisc('untitled')}
-              </span>
-            )
-          }
+          {channel.channel_about?.author && (
+            <span className={styles.lastPubDate}>
+              {channel.channel_about.author || tMisc('untitled')}
+            </span>
+          )}
         </div>
       </div>
     </Link>

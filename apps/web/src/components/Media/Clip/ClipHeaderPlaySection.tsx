@@ -1,7 +1,8 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { DTOChannel, DTOClip, DTOItem, getQueueForMedium, getShuffleHash } from '@podverse/helpers';
+import { DTOChannel, DTOClip, DTOItem, getQueueForMedium } from '@podverse/helpers';
+import { getShuffleHash } from '@podverse/helpers-requests';
 import React from 'react';
 import { PlayButtonLarge } from '../../MediaPlayer/Buttons/PlayButtonLarge';
 import { useMediaPlayer } from '../../../contexts/MediaPlayer';
@@ -25,7 +26,11 @@ type ClipHeaderPlaySectionProps = {
   channel: DTOChannel;
 };
 
-export const ClipHeaderPlaySection: React.FC<ClipHeaderPlaySectionProps> = ({ clip, item, channel }) => {
+export const ClipHeaderPlaySection: React.FC<ClipHeaderPlaySectionProps> = ({
+  clip,
+  item,
+  channel,
+}) => {
   const tFeatures = useTranslations('features');
   const tMediaPlayer = useTranslations('media_player');
   const tInstructions = useTranslations('instructions');
@@ -35,7 +40,7 @@ export const ClipHeaderPlaySection: React.FC<ClipHeaderPlaySectionProps> = ({ cl
   const { mpClip, mpIsPlaying, setMPIsPlaying } = useMediaPlayer();
   const mediaPlayerResourceUpdate = useMediaPlayerResourceUpdate();
   const { autoQueueConfig } = useAutoQueue();
-  
+
   const playButtonOnClick = () => {
     if (clip.id_text === mpClip?.id_text) {
       setMPIsPlaying(!mpIsPlaying);
@@ -75,13 +80,10 @@ export const ClipHeaderPlaySection: React.FC<ClipHeaderPlaySectionProps> = ({ cl
 
     const queue = getQueueForMedium(queues, channel.medium_id);
     if (queue) {
-      showToastPromise(
-        apiRequestService.reqQueueResourceClipAddNext(queue.id_text, clip.id_text),
-        {
-          success: tFeatures('queue.added_to_queue'),
-          error: tFeatures('queue.add_error'),
-        },
-      );
+      showToastPromise(apiRequestService.reqQueueResourceClipAddNext(queue.id_text, clip.id_text), {
+        success: tFeatures('queue.added_to_queue'),
+        error: tFeatures('queue.add_error'),
+      });
     }
   };
 
@@ -96,13 +98,10 @@ export const ClipHeaderPlaySection: React.FC<ClipHeaderPlaySectionProps> = ({ cl
 
     const queue = getQueueForMedium(queues, channel.medium_id);
     if (queue) {
-      showToastPromise(
-        apiRequestService.reqQueueResourceClipAddLast(queue.id_text, clip.id_text),
-        {
-          success: tFeatures('queue.added_to_queue'),
-          error: tFeatures('queue.add_error'),
-        },
-      );
+      showToastPromise(apiRequestService.reqQueueResourceClipAddLast(queue.id_text, clip.id_text), {
+        success: tFeatures('queue.added_to_queue'),
+        error: tFeatures('queue.add_error'),
+      });
     }
   };
 
@@ -135,16 +134,13 @@ export const ClipHeaderPlaySection: React.FC<ClipHeaderPlaySectionProps> = ({ cl
     const queue = getQueueForMedium(queues, channel.medium_id);
     if (queue) {
       showToastPromise(
-        apiRequestService.reqQueueResourceClipAddHistory(
-          queue.id_text,
-          clip.id_text, {
-            completed: true,
-          },
-        ),
+        apiRequestService.reqQueueResourceClipAddHistory(queue.id_text, clip.id_text, {
+          completed: true,
+        }),
         {
           success: tFeatures('history.marked_as_played'),
           error: tFeatures('history.mark_as_played_error'),
-        },
+        }
       );
     }
   };
@@ -189,23 +185,15 @@ export const ClipHeaderPlaySection: React.FC<ClipHeaderPlaySectionProps> = ({ cl
   return (
     <div className={styles.playSection}>
       <div className={styles.sectionStart}>
-        <PlayButtonLarge
-          clip={clip}
-          onClick={playButtonOnClick}
-        />
+        <PlayButtonLarge clip={clip} onClick={playButtonOnClick} />
         <div className={styles.timeSection}>
           <ReadableDate date={item.pub_date} />
           {item.item_about?.duration ? ' • ' : null}
-          <ReadableTimeRange
-            startTime={clip.start_time}
-            endTime={clip.end_time}
-          />
+          <ReadableTimeRange startTime={clip.start_time} endTime={clip.end_time} />
         </div>
       </div>
       <div className={styles.sectionEnd}>
-        <MoreButton
-          moreButtonMenuItems={moreButtonMenuItems}
-          isLarge />
+        <MoreButton moreButtonMenuItems={moreButtonMenuItems} isLarge />
       </div>
     </div>
   );

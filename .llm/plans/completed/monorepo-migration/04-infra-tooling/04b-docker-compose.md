@@ -11,6 +11,7 @@ Migrate all Docker Compose files from podverse-ops to the monorepo, updating rel
 ## Directory Structure
 
 ### Source (podverse-ops)
+
 ```
 docker-compose/
 ├── alpha/          (9 files - 5 templates, 4 static)
@@ -21,6 +22,7 @@ docker-compose/
 ```
 
 ### Target (monorepo)
+
 ```
 infra/docker/
 ├── alpha/
@@ -34,81 +36,82 @@ infra/docker/
 
 ### From `infra/docker/local/api/` (3 levels up to infra/)
 
-| Old Path | New Path |
-|----------|----------|
-| `../../../config/podverse-local-api.env` | `../../config/local/api.env` |
-| `../../../config/google/firebase/` | `../../config/google/firebase/` |
-| `../../../database/combined/` | `../../database/combined/` |
-| `../../../database/init-scripts/` | `../../database/init-scripts/` |
-| `../../../database/seed-scripts/` | `../../database/seeds/` |
-| `../../../logs/` | `../../../../logs/` (stays at repo root) |
+| Old Path                                 | New Path                                 |
+| ---------------------------------------- | ---------------------------------------- |
+| `../../../config/podverse-local-api.env` | `../../config/local/api.env`             |
+| `../../../config/google/firebase/`       | `../../config/google/firebase/`          |
+| `../../../database/combined/`            | `../../database/combined/`               |
+| `../../../database/init-scripts/`        | `../../database/init-scripts/`           |
+| `../../../database/seed-scripts/`        | `../../database/seeds/`                  |
+| `../../../logs/`                         | `../../../../logs/` (stays at repo root) |
 
 ### Config File Renaming Convention
 
-| Old Name | New Name |
-|----------|----------|
-| `podverse-local-api.env` | `local/api.env` |
-| `podverse-local-db.env` | `local/db.env` |
+| Old Name                     | New Name            |
+| ---------------------------- | ------------------- |
+| `podverse-local-api.env`     | `local/api.env`     |
+| `podverse-local-db.env`      | `local/db.env`      |
 | `podverse-local-workers.env` | `local/workers.env` |
-| `podverse-alpha-api.env` | `alpha/api.env` |
-| `podverse-test-db.env` | `test/db.env` |
+| `podverse-alpha-api.env`     | `alpha/api.env`     |
+| `podverse-test-db.env`       | `test/db.env`       |
 
 ## Files to Migrate
 
 ### Local Environment (9 files)
 
-| Service | Source | Path Updates Needed |
-|---------|--------|---------------------|
-| api | `local/api/docker-compose.yml` | env_file |
-| db | `local/db/docker-compose.yml` | env_file, database volumes |
-| keyvaldb | `local/keyvaldb/docker-compose.yml` | env_file |
-| management-api | `local/management-api/docker-compose.yml` | env_file |
-| management-db | `local/management-db/docker-compose.yml` | env_file, database volumes |
-| management-web | `local/management-web/docker-compose.yml` | env_file |
-| mq | `local/mq/docker-compose.yml` | env_file |
-| web | `local/web/docker-compose.yml` | env_file |
-| workers | `local/workers/docker-compose.yml` | env_file, firebase, logs |
+| Service        | Source                                    | Path Updates Needed        |
+| -------------- | ----------------------------------------- | -------------------------- |
+| api            | `local/api/docker-compose.yml`            | env_file                   |
+| db             | `local/db/docker-compose.yml`             | env_file, database volumes |
+| keyvaldb       | `local/keyvaldb/docker-compose.yml`       | env_file                   |
+| management-api | `local/management-api/docker-compose.yml` | env_file                   |
+| management-db  | `local/management-db/docker-compose.yml`  | env_file, database volumes |
+| management-web | `local/management-web/docker-compose.yml` | env_file                   |
+| mq             | `local/mq/docker-compose.yml`             | env_file                   |
+| web            | `local/web/docker-compose.yml`            | env_file                   |
+| workers        | `local/workers/docker-compose.yml`        | env_file, firebase, logs   |
 
 ### Alpha Environment (9 files - templates)
 
-| Service | Source | Path Updates Needed |
-|---------|--------|---------------------|
-| api | `alpha/api/docker-compose.yml.template` | env_file |
-| db | `alpha/db/docker-compose.yml` | env_file, database volumes |
-| keyvaldb | `alpha/keyvaldb/docker-compose.yml` | env_file |
-| management-api | `alpha/management-api/docker-compose.yml.template` | env_file |
-| management-db | `alpha/management-db/docker-compose.yml` | env_file, database volumes |
-| management-web | `alpha/management-web/docker-compose.yml.template` | env_file |
-| mq | `alpha/mq/docker-compose.yml` | env_file |
-| web | `alpha/web/docker-compose.yml.template` | env_file |
-| workers | `alpha/workers/docker-compose.yml.template` | env_file, firebase, logs |
+| Service        | Source                                             | Path Updates Needed        |
+| -------------- | -------------------------------------------------- | -------------------------- |
+| api            | `alpha/api/docker-compose.yml.template`            | env_file                   |
+| db             | `alpha/db/docker-compose.yml`                      | env_file, database volumes |
+| keyvaldb       | `alpha/keyvaldb/docker-compose.yml`                | env_file                   |
+| management-api | `alpha/management-api/docker-compose.yml.template` | env_file                   |
+| management-db  | `alpha/management-db/docker-compose.yml`           | env_file, database volumes |
+| management-web | `alpha/management-web/docker-compose.yml.template` | env_file                   |
+| mq             | `alpha/mq/docker-compose.yml`                      | env_file                   |
+| web            | `alpha/web/docker-compose.yml.template`            | env_file                   |
+| workers        | `alpha/workers/docker-compose.yml.template`        | env_file, firebase, logs   |
 
 ### Sandbox Environment (6 files)
 
-| Service | Source | Path Updates Needed |
-|---------|--------|---------------------|
-| api | `sandbox/api/docker-compose.yml.template` | env_file |
-| db | `sandbox/db/docker-compose.yml` | env_file, database volumes |
-| keyvaldb | `sandbox/keyvaldb/docker-compose.yml` | env_file |
-| mq | `sandbox/mq/docker-compose.yml` | env_file |
-| web | `sandbox/web/docker-compose.yml.template` | env_file |
-| workers | `sandbox/workers/docker-compose.yml.template` | env_file, firebase, logs |
+| Service  | Source                                        | Path Updates Needed        |
+| -------- | --------------------------------------------- | -------------------------- |
+| api      | `sandbox/api/docker-compose.yml.template`     | env_file                   |
+| db       | `sandbox/db/docker-compose.yml`               | env_file, database volumes |
+| keyvaldb | `sandbox/keyvaldb/docker-compose.yml`         | env_file                   |
+| mq       | `sandbox/mq/docker-compose.yml`               | env_file                   |
+| web      | `sandbox/web/docker-compose.yml.template`     | env_file                   |
+| workers  | `sandbox/workers/docker-compose.yml.template` | env_file, firebase, logs   |
 
 ### Test Environment (1 file)
 
-| Service | Source | Path Updates Needed |
-|---------|--------|---------------------|
-| db | `test/db/docker-compose.yml` | env_file, database volumes |
+| Service | Source                       | Path Updates Needed        |
+| ------- | ---------------------------- | -------------------------- |
+| db      | `test/db/docker-compose.yml` | env_file, database volumes |
 
 ### CI Environment (1 file)
 
-| Service | Source | Notes |
-|---------|--------|-------|
-| ci | `ci/docker-compose.yml` | Jenkins setup - may need different handling |
+| Service | Source                  | Notes                                       |
+| ------- | ----------------------- | ------------------------------------------- |
+| ci      | `ci/docker-compose.yml` | Jenkins setup - may need different handling |
 
 ## Example Path Updates
 
 ### Before (local/db/docker-compose.yml)
+
 ```yaml
 env_file:
   - ../../../config/podverse-local-db.env
@@ -119,6 +122,7 @@ volumes:
 ```
 
 ### After (infra/docker/local/db/docker-compose.yml)
+
 ```yaml
 env_file:
   - ../../config/local/db.env
@@ -129,6 +133,7 @@ volumes:
 ```
 
 ### Before (local/workers/docker-compose.yml)
+
 ```yaml
 env_file:
   - ../../../config/podverse-local-workers.env
@@ -138,6 +143,7 @@ volumes:
 ```
 
 ### After (infra/docker/local/workers/docker-compose.yml)
+
 ```yaml
 env_file:
   - ../../config/local/workers.env
@@ -171,26 +177,32 @@ infra/config/
 ## Tasks
 
 ### Task 1: Create config subdirectory structure
+
 - Create `infra/config/local/`, `infra/config/alpha/`, `infra/config/test/`
 - Update `.gitignore` to ignore `infra/config/local/*` and `infra/config/alpha/*`
 
 ### Task 2: Migrate local docker-compose files
+
 - Copy all 9 files from `docker-compose/local/`
 - Update all path references
 
 ### Task 3: Migrate alpha docker-compose files
+
 - Copy all 9 files from `docker-compose/alpha/`
 - Update all path references
 
 ### Task 4: Migrate sandbox docker-compose files
+
 - Copy all 6 files from `docker-compose/sandbox/`
 - Update all path references
 
 ### Task 5: Migrate test docker-compose files
+
 - Copy 1 file from `docker-compose/test/`
 - Update all path references
 
 ### Task 6: Evaluate CI docker-compose
+
 - Review `ci/docker-compose.yml` (Jenkins setup)
 - Decide if it belongs in monorepo or stays separate
 

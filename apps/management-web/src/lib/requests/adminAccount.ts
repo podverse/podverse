@@ -6,10 +6,7 @@ export type AdminAccount = {
   created_at: string;
 };
 
-export async function getAdminAccountById(
-  id: number,
-  jwt?: string,
-): Promise<AdminAccount> {
+export async function getAdminAccountById(id: number, jwt?: string): Promise<AdminAccount> {
   const service = new ManagementApiRequestService(jwt);
   return service.apiRequest<AdminAccount>({
     path: `/admin-account/${id}`,

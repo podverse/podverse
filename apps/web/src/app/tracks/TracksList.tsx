@@ -6,21 +6,14 @@ import { ListTracks } from '../../components/List/Music/Albums/Tracks/ListTracks
 import { HowToStartInfo } from '../../components/InfoWrapper/HowToStartInfo';
 
 export const TracksList: React.FC = () => {
-  const { filterParams, setFilterParams, items, totalPages, isLoading,
-    showSubscribeMessage } = useTracksContext();
+  const { filterParams, setFilterParams, items, totalPages, isLoading, showSubscribeMessage } =
+    useTracksContext();
   const { viewSelected } = useLocalSettings();
   const { page, type } = filterParams;
 
   return (
     <>
-      {
-        type === 'subscribed' && (
-          <HowToStartInfo
-            rows={items}
-            totalPages={totalPages}
-          />
-        )
-      }
+      {type === 'subscribed' && <HowToStartInfo rows={items} totalPages={totalPages} />}
       <ListTracks
         page={page}
         setPage={(page) => setFilterParams({ ...filterParams, page })}

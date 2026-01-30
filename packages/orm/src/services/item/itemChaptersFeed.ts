@@ -4,9 +4,9 @@ import { ItemChaptersFeed } from '@orm/entities/item/itemChaptersFeed';
 import { BaseOneService } from '@orm/services/base/baseOneService';
 
 type ItemChaptersFeedDto = {
-  url: string
-  type: string
-}
+  url: string;
+  type: string;
+};
 
 export class ItemChaptersFeedService extends BaseOneService<ItemChaptersFeed, 'item'> {
   constructor(transactionalEntityManager?: EntityManager) {

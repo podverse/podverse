@@ -7,7 +7,7 @@ import { timerManager } from '@parser/factories/timerManager';
 export const handleParsedChannelDescription = async (
   parsedFeed: FeedObject,
   channel: Channel,
-  transactionalEntityManager?: EntityManager,
+  transactionalEntityManager?: EntityManager
 ) => {
   timerManager.start('handleParsedChannelDescription');
   const channelDescriptionService = new ChannelDescriptionService(transactionalEntityManager);

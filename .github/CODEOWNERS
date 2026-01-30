@@ -13,7 +13,6 @@
 # Infrastructure
 /infra/ @podverse/reviewers
 /.github/ @podverse/reviewers
-/pipelines/ @podverse/reviewers
 
 # Tools
 /tools/ @podverse/reviewers

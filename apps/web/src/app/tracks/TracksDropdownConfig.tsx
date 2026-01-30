@@ -1,20 +1,24 @@
-import { QueryParamsStatsRange,
+import {
   getValidQueryParam,
+  QueryParamsStatsRange,
   QUERY_PARAMS_GLOBAL_SORT_VALUES,
   QueryParamsSubscribedFullSort,
   QueryParamsSubscribedPartialSort,
   QUERY_PARAMS_SUBSCRIBED_PARTIAL_SORT,
   QueryParamsSubscribedMusicType,
-} from '@podverse/helpers';
+} from '@podverse/helpers-requests';
 import { getRangeDropdownItems } from '../../utils/dropdownMenuItems';
 import { DropdownMenuItem } from '../../components/Dropdown/Dropdown';
 
-export function getTracksDropdownConfig({ type, sort, tFilters }: {
-  sort: QueryParamsSubscribedFullSort,
-  type: QueryParamsSubscribedMusicType,
-  tFilters: (key: string) => string
+export function getTracksDropdownConfig({
+  type,
+  sort,
+  tFilters,
+}: {
+  sort: QueryParamsSubscribedFullSort;
+  type: QueryParamsSubscribedMusicType;
+  tFilters: (key: string) => string;
 }) {
-
   const typeDropdownMenuItems: DropdownMenuItem[] = [
     { label: tFilters('type.global'), param: 'type', value: 'global' },
     { label: tFilters('type.subscribed'), param: 'type', value: 'subscribed' },
@@ -52,18 +56,18 @@ type TracksDropdownConfigParams = {
   sort: QueryParamsSubscribedPartialSort | null;
   range: QueryParamsStatsRange | null;
   page: number;
-}
+};
 
 export type TracksDropdownConfigCurrentParams = {
   currentType: QueryParamsSubscribedMusicType;
   currentSort: QueryParamsSubscribedPartialSort;
   currentRange: QueryParamsStatsRange | null;
   currentPage: number;
-}
+};
 
 export function getTracksFilterParams(
   { type, sort, range, page }: TracksDropdownConfigParams,
-  isValidAuthSession: boolean,
+  isValidAuthSession: boolean
 ): TracksDropdownConfigCurrentParams {
   let currentType = type;
   let currentSort = sort;
@@ -72,39 +76,23 @@ export function getTracksFilterParams(
 
   if (type === 'global') {
     currentType = 'global';
-    currentSort = getValidQueryParam(
-      QUERY_PARAMS_GLOBAL_SORT_VALUES,
-      currentSort,
-      'recent',
-    );
+    currentSort = getValidQueryParam(QUERY_PARAMS_GLOBAL_SORT_VALUES, currentSort, 'recent');
   } else if (type === 'subscribed') {
     currentType = 'subscribed';
-    currentSort = getValidQueryParam(
-      QUERY_PARAMS_SUBSCRIBED_PARTIAL_SORT,
-      currentSort,
-      'recent',
-    );
+    currentSort = getValidQueryParam(QUERY_PARAMS_SUBSCRIBED_PARTIAL_SORT, currentSort, 'recent');
   } else {
     if (isValidAuthSession) {
       currentType = 'subscribed';
-      currentSort = getValidQueryParam(
-        QUERY_PARAMS_SUBSCRIBED_PARTIAL_SORT,
-        currentSort,
-        'recent',
-      );
+      currentSort = getValidQueryParam(QUERY_PARAMS_SUBSCRIBED_PARTIAL_SORT, currentSort, 'recent');
       currentRange = null;
       currentPage = 1;
     } else {
       currentType = 'global';
-      currentSort = getValidQueryParam(
-        QUERY_PARAMS_GLOBAL_SORT_VALUES,
-        currentSort,
-        'recent',
-      );
+      currentSort = getValidQueryParam(QUERY_PARAMS_GLOBAL_SORT_VALUES, currentSort, 'recent');
       currentRange = null;
       currentPage = 1;
     }
-  } 
+  }
 
   return { currentType, currentSort, currentRange, currentPage };
 }

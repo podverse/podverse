@@ -1,8 +1,11 @@
 'use client';
 
 import { useLocale, useTranslations } from 'next-intl';
-import { getPasswordErrorKey, getPassword2ErrorKey, getPasswordRequirementsInfoKey,
-  } from '@podverse/helpers';
+import {
+  getPasswordErrorKey,
+  getPassword2ErrorKey,
+  getPasswordRequirementsInfoKey,
+} from '@podverse/helpers-validation/client';
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '../Button/Button';
@@ -39,7 +42,9 @@ export const AuthResetPasswordForm: React.FC<AuthResetPasswordFormProps> = ({ to
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!token) {return;} // safety
+    if (!token) {
+      return;
+    } // safety
     if (isFormValid) {
       setIsLoading(true);
       try {
@@ -76,12 +81,20 @@ export const AuthResetPasswordForm: React.FC<AuthResetPasswordFormProps> = ({ to
     setPassword1Touched(value !== '');
     if (password1ErrorKey) {
       const key = getPasswordErrorKey(value);
-      if (!key) {setPassword1ErrorKey(undefined);}
+      if (!key) {
+        setPassword1ErrorKey(undefined);
+      }
     }
-    if (value === '') {setPassword1ErrorKey(undefined);}
+    if (value === '') {
+      setPassword1ErrorKey(undefined);
+    }
     if (password2Touched && password2) {
       const pwd2Key = getPassword2ErrorKey(value, password2);
-      if (!pwd2Key) {setPassword2ErrorKey(undefined);} else {setPassword2ErrorKey(pwd2Key);}
+      if (!pwd2Key) {
+        setPassword2ErrorKey(undefined);
+      } else {
+        setPassword2ErrorKey(pwd2Key);
+      }
     }
   };
 
@@ -90,64 +103,73 @@ export const AuthResetPasswordForm: React.FC<AuthResetPasswordFormProps> = ({ to
     setPassword2Touched(value !== '');
     if (password2ErrorKey) {
       const key = getPassword2ErrorKey(password1, value);
-      if (!key) {setPassword2ErrorKey(undefined);} else {setPassword2ErrorKey(key);}
+      if (!key) {
+        setPassword2ErrorKey(undefined);
+      } else {
+        setPassword2ErrorKey(key);
+      }
     }
-    if (value === '') {setPassword2ErrorKey(undefined);}
+    if (value === '') {
+      setPassword2ErrorKey(undefined);
+    }
   };
 
-  const isFormValid = !!token && !getPasswordErrorKey(password1) && !getPassword2ErrorKey(password1, password2) && !!password1 && !!password2;
-  
-  if (!token) {return null;}
+  const isFormValid =
+    !!token &&
+    !getPasswordErrorKey(password1) &&
+    !getPassword2ErrorKey(password1, password2) &&
+    !!password1 &&
+    !!password2;
+
+  if (!token) {
+    return null;
+  }
 
   return (
     <div className={styles.authResetPasswordForm}>
-      {
-        !isPasswordResetComplete && (
-          <Form onSubmit={handleSubmit}>
-            <TextInput
-              type="password"
-              name="password1"
-              value={password1}
-              onChange={e => onPassword1Change(e.target.value)}
-              onBlur={handlePassword1Blur}
-              placeholder={tAuthentication('password')}
-              eyebrow={tAuthentication('password')}
-              infoError={password1ErrorKey ? tAuthentication(password1ErrorKey) : undefined}
-            />
-            <TextInput
-              type="password"
-              name="password2"
-              value={password2}
-              onChange={e => onPassword2Change(e.target.value)}
-              onBlur={handlePassword2Blur}
-              placeholder={tAuthentication('password')}
-              eyebrow={tAuthentication('confirm_password')}
-              infoError={password2ErrorKey ? tAuthentication(password2ErrorKey) : undefined}
-            />
-            <div className={styles.passwordInfo}>
-              {tAuthentication(getPasswordRequirementsInfoKey())}
-            </div>
-            <div className={styles.buttons}>
-              <Button type="button" onClick={() => router.push('/')} variant="secondary">
-                {tMisc('cancel')}
-              </Button>
-              <Button
-                type="submit"
-                variant="primary"
-                disabled={!isFormValid || isLoading}
-                isLoading={isLoading}
-              >
-                {tMisc('submit')}
-              </Button>
-            </div>
-          </Form>
-        )
-      }
-      {
-        isPasswordResetComplete && (
-          <FormInfoMessageText message={tAuthentication('reset_password_complete_message')} />
-        )
-      }
+      {!isPasswordResetComplete && (
+        <Form onSubmit={handleSubmit}>
+          <TextInput
+            type="password"
+            name="password1"
+            value={password1}
+            onChange={(e) => onPassword1Change(e.target.value)}
+            onBlur={handlePassword1Blur}
+            placeholder={tAuthentication('password')}
+            eyebrow={tAuthentication('password')}
+            infoError={password1ErrorKey ? tAuthentication(password1ErrorKey) : undefined}
+          />
+          <TextInput
+            type="password"
+            name="password2"
+            value={password2}
+            onChange={(e) => onPassword2Change(e.target.value)}
+            onBlur={handlePassword2Blur}
+            placeholder={tAuthentication('password')}
+            eyebrow={tAuthentication('confirm_password')}
+            infoError={password2ErrorKey ? tAuthentication(password2ErrorKey) : undefined}
+          />
+          <div className={styles.passwordInfo}>
+            {tAuthentication(getPasswordRequirementsInfoKey())}
+          </div>
+          <div className={styles.buttons}>
+            <Button type="button" onClick={() => router.push('/')} variant="secondary">
+              {tMisc('cancel')}
+            </Button>
+            <Button
+              type="submit"
+              variant="primary"
+              disabled={!isFormValid || isLoading}
+              isLoading={isLoading}
+            >
+              {tMisc('submit')}
+            </Button>
+          </div>
+        </Form>
+      )}
+      {isPasswordResetComplete && (
+        <FormInfoMessageText message={tAuthentication('reset_password_complete_message')} />
+      )}
     </div>
   );
 };

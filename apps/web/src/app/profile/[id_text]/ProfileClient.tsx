@@ -1,7 +1,7 @@
 'use client';
 
 import { DTOAccount } from '@podverse/helpers';
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { MainWrapper } from '../../../components/Main/MainWrapper';
 import { MainInnerWrapper } from '../../../components/Main/MainInnerWrapper';
@@ -20,7 +20,7 @@ export function ProfileClient(props: ProfileClientProps) {
   const { ssrAccount } = props;
   const { loggedInAccount } = useAccount();
   const router = useRouter();
-  
+
   const isOwnProfile = loggedInAccount?.id === ssrAccount.id;
 
   useEffect(() => {

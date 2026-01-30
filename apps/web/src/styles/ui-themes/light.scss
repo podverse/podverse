@@ -1,4 +1,4 @@
-[data-ui-theme="light"] {
+[data-ui-theme='light'] {
   --background-color-primary: #f5f5f7;
   --background-color-secondary: #ffffff;
   --background-color-tertiary: #e8e8ed;
@@ -33,9 +33,13 @@
   --progress-bar-highlighted: rgba(0, 113, 227, 0.4);
 }
 
-[data-ui-theme="light"] {
-  --background-gradient-primary: linear-gradient(90deg, rgba(200, 220, 255, 0.8) -3%, var(--background-color-tertiary));
-  
+[data-ui-theme='light'] {
+  --background-gradient-primary: linear-gradient(
+    90deg,
+    rgba(200, 220, 255, 0.8) -3%,
+    var(--background-color-tertiary)
+  );
+
   --button-primary-bg: var(--border-color-primary);
   --button-primary-color: var(--text-color-tertiary);
   --button-primary-bg-hover: var(--text-color-link-hover);

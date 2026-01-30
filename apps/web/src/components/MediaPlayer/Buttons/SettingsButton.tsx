@@ -1,6 +1,10 @@
 'use client';
 
-import { getNextPlaybackSpeed, getPlaybackTranslationKey, getSelectedLabeledItemEnclosureAndSource } from '@podverse/helpers';
+import {
+  getNextPlaybackSpeed,
+  getPlaybackTranslationKey,
+  getSelectedLabeledItemEnclosureAndSource,
+} from '@podverse/helpers';
 import { useRef } from 'react';
 import { FaGear } from 'react-icons/fa6';
 import { useTranslations } from 'next-intl';
@@ -14,8 +18,13 @@ import { useModals } from '../../../contexts/Modals';
 export const SettingsButton = () => {
   const buttonRef = useRef<HTMLButtonElement>(null);
   const menuRef = useRef<HTMLUListElement>(null);
-  const { mpPlaybackSpeed, setMPPlaybackSpeed, mpEnclosureSelectedParams,
-    mpItemLabeledItemEnclosures, mpItem } = useMediaPlayer();
+  const {
+    mpPlaybackSpeed,
+    setMPPlaybackSpeed,
+    mpEnclosureSelectedParams,
+    mpItemLabeledItemEnclosures,
+    mpItem,
+  } = useMediaPlayer();
   const { setModalSourceSelector } = useModals();
   const tMediaPlayer = useTranslations('media_player');
 
@@ -48,27 +57,20 @@ export const SettingsButton = () => {
   }
 
   menuItems.push({
-    label: tMediaPlayer(
-      'playback_speed.playback_speed_with_value',
-      { speed: tMediaPlayer(`playback_speed.speeds.${getPlaybackTranslationKey(mpPlaybackSpeed)}`) },
-    ),
+    label: tMediaPlayer('playback_speed.playback_speed_with_value', {
+      speed: tMediaPlayer(`playback_speed.speeds.${getPlaybackTranslationKey(mpPlaybackSpeed)}`),
+    }),
     onClick: playbackSpeedOnClick,
   });
 
-  const {
-    open,
-    setOpen,
-    focusedIndex,
-    setFocusedIndex,
-    handleButtonKeyDown,
-    handleMenuKeyDown,
-  } = useDropdownKeyboardNavigation({
-    itemCount: menuItems.length,
-    onItemSelect: (idx) => menuItems[idx]?.onClick(),
-    onClose: () => setOpen(false),
-    buttonRef,
-    menuRef,
-  });
+  const { open, setOpen, focusedIndex, setFocusedIndex, handleButtonKeyDown, handleMenuKeyDown } =
+    useDropdownKeyboardNavigation({
+      itemCount: menuItems.length,
+      onItemSelect: (idx) => menuItems[idx]?.onClick(),
+      onClose: () => setOpen(false),
+      buttonRef,
+      menuRef,
+    });
 
   return (
     <div className={styles.settingsDropdownWrapper}>
@@ -79,7 +81,8 @@ export const SettingsButton = () => {
         aria-expanded={open}
         onClick={() => setOpen((v) => !v)}
         onKeyDown={handleButtonKeyDown}
-        type="button">
+        type="button"
+      >
         <FaGear />
       </button>
       <DropdownMenu

@@ -13,6 +13,8 @@ services:
       - podverse_alpha_network
     ports:
       - 127.0.0.1:1999:1999
+    volumes:
+      - ../../../../logs/management-api:/opt/logs
     command: npm start -w apps/management-api
     restart: unless-stopped
     logging:

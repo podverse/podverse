@@ -7,45 +7,59 @@ import { ensureAuthenticated, getAuthenticatedUser } from '@api/lib/auth';
 import { handleGenericErrorResponse } from '@api/controllers/helpers/error';
 
 const createAccountSettingsNotificationTypeSchema = Joi.object({
-  type: Joi.string().valid(...ACCOUNT_NOTIFICATION_TYPE_VALUES).required(),
+  type: Joi.string()
+    .valid(...ACCOUNT_NOTIFICATION_TYPE_VALUES)
+    .required(),
 });
 
 const deleteAccountSettingsNotificationTypeSchema = Joi.object({
-  type: Joi.string().valid(...ACCOUNT_NOTIFICATION_TYPE_VALUES).required(),
+  type: Joi.string()
+    .valid(...ACCOUNT_NOTIFICATION_TYPE_VALUES)
+    .required(),
 });
 
 export class AccountSettingsNotificationTypeController {
   static async create(req: Request, res: Response): Promise<void> {
     validateBodyObject(createAccountSettingsNotificationTypeSchema, req, res, async () => {
-      ensureAuthenticated(req, res, async () => {
-        try {
-          const jwtUser = getAuthenticatedUser(req);
-          const account_id = jwtUser.id;
-          const { type } = req.body;  
-          const service = new AccountSettingsNotificationTypeService();
-          const created = await service.create({ account_id, type });
-          res.json({ data: created });
-        } catch (error) {
-          handleGenericErrorResponse(res, error);
-        }
-      }, { skipMembershipStatus: false });
+      ensureAuthenticated(
+        req,
+        res,
+        async () => {
+          try {
+            const jwtUser = getAuthenticatedUser(req);
+            const account_id = jwtUser.id;
+            const { type } = req.body;
+            const service = new AccountSettingsNotificationTypeService();
+            const created = await service.create({ account_id, type });
+            res.json({ data: created });
+          } catch (error) {
+            handleGenericErrorResponse(res, error);
+          }
+        },
+        { skipMembershipStatus: false }
+      );
     });
   }
 
   static async delete(req: Request, res: Response): Promise<void> {
     validateBodyObject(deleteAccountSettingsNotificationTypeSchema, req, res, async () => {
-      ensureAuthenticated(req, res, async () => {
-        try {
-          const jwtUser = getAuthenticatedUser(req);
-          const account_id = jwtUser.id;
-          const { type } = req.body;
-          const service = new AccountSettingsNotificationTypeService();
-          await service.delete(type, account_id);
-          res.json({ message: 'Deleted' });
-        } catch (error) {
-          handleGenericErrorResponse(res, error);
-        }
-      }, { skipMembershipStatus: true });
+      ensureAuthenticated(
+        req,
+        res,
+        async () => {
+          try {
+            const jwtUser = getAuthenticatedUser(req);
+            const account_id = jwtUser.id;
+            const { type } = req.body;
+            const service = new AccountSettingsNotificationTypeService();
+            await service.delete(type, account_id);
+            res.json({ message: 'Deleted' });
+          } catch (error) {
+            handleGenericErrorResponse(res, error);
+          }
+        },
+        { skipMembershipStatus: true }
+      );
     });
   }
 }

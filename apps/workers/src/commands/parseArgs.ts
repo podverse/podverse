@@ -3,7 +3,7 @@ export function parseArgs() {
   const parsedArgs: { [key: string]: string | string[] } = { _: [] };
   let currentKey: string | null = null;
 
-  args.forEach(arg => {
+  args.forEach((arg) => {
     if (arg.startsWith('-')) {
       currentKey = arg.replace(/^-+/, ''); // Remove leading dashes
       parsedArgs[currentKey] = '';

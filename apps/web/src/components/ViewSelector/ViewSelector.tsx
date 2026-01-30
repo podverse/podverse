@@ -3,7 +3,7 @@
 import { FaGear } from 'react-icons/fa6';
 import styles from '../../styles/components/ViewSelector/ViewSelector.module.scss';
 import { useTranslations } from 'next-intl';
-import React, { useRef } from 'react';
+import { useRef } from 'react';
 import { DropdownMenu } from '../Dropdown/DropdownMenu';
 import { useDropdownKeyboardNavigation } from '../../hooks/useDropdownKeyboardNavigation';
 
@@ -30,20 +30,14 @@ export function ViewSelector({ viewSelected, setViewSelected }: ViewSelectorProp
     onClick: () => setViewSelected(key),
   }));
 
-  const {
-    open,
-    setOpen,
-    focusedIndex,
-    setFocusedIndex,
-    handleButtonKeyDown,
-    handleMenuKeyDown,
-  } = useDropdownKeyboardNavigation({
-    itemCount: menuItems.length,
-    onItemSelect: (idx) => menuItems[idx]?.onClick(),
-    onClose: () => setOpen(false),
-    buttonRef,
-    menuRef,
-  });
+  const { open, setOpen, focusedIndex, setFocusedIndex, handleButtonKeyDown, handleMenuKeyDown } =
+    useDropdownKeyboardNavigation({
+      itemCount: menuItems.length,
+      onItemSelect: (idx) => menuItems[idx]?.onClick(),
+      onClose: () => setOpen(false),
+      buttonRef,
+      menuRef,
+    });
 
   return (
     <div className={styles.viewSelectorWrapper}>

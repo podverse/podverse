@@ -21,7 +21,10 @@ export class MembershipClaimTokenService {
     this.accountMembershipStatusService = new AccountMembershipStatusService();
   }
 
-  async create(account_membership_id: AccountMembershipEnum, months_to_add: number): Promise<MembershipClaimToken> {
+  async create(
+    account_membership_id: AccountMembershipEnum,
+    months_to_add: number
+  ): Promise<MembershipClaimToken> {
     if (!Number.isInteger(months_to_add) || months_to_add < 1) {
       throw new Error('months_to_add must be an integer 1 or larger');
     }
@@ -37,7 +40,7 @@ export class MembershipClaimTokenService {
       months_to_add,
       claimed: false,
     });
-    
+
     return this.repositoryReadWrite.save(membershipClaimToken);
   }
 
@@ -47,7 +50,9 @@ export class MembershipClaimTokenService {
       throw new Error('Account not found');
     }
 
-    const membershipClaimToken = await this.repositoryReadWrite.findOneBy({ id: membership_claim_token_id });
+    const membershipClaimToken = await this.repositoryReadWrite.findOneBy({
+      id: membership_claim_token_id,
+    });
     if (!membershipClaimToken) {
       throw new Error('MembershipClaimToken not found');
     }
@@ -58,7 +63,7 @@ export class MembershipClaimTokenService {
 
     const accountMembershipStatus = await this.accountMembershipStatusService._get(account);
     const currentDate = new Date();
-    const newExpirationDate = accountMembershipStatus?.membership_expires_at 
+    const newExpirationDate = accountMembershipStatus?.membership_expires_at
       ? new Date(accountMembershipStatus.membership_expires_at)
       : currentDate;
 

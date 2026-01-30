@@ -1,0 +1,6 @@
+#!/bin/bash
+
+# Podverse Pre-Commit Hook - Format staged files with Prettier
+# Runs lint-staged (prettier --write on staged files)
+
+npx lint-staged

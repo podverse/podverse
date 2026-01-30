@@ -1,7 +1,8 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { CategoryMappingKeys, DTOChannel, QueryParamsSubscribedType } from '@podverse/helpers';
+import { CategoryMappingKeys, DTOChannel } from '@podverse/helpers';
+import { QueryParamsSubscribedType } from '@podverse/helpers-requests';
 import React, { useRef } from 'react';
 import { ListPodcastNodes } from './ListPodcastNodes';
 import { CallToActionMessage } from '../../CallToActionMessage/CallToActionMessage';
@@ -24,12 +25,18 @@ type Props = {
   viewSelected: ViewSelectedOption;
 };
 
-export const ListPodcasts: React.FC<Props> = ({ page, setPage,
-  channels, totalPages, showSubscribeMessage, viewSelected }) => {
+export const ListPodcasts: React.FC<Props> = ({
+  page,
+  setPage,
+  channels,
+  totalPages,
+  showSubscribeMessage,
+  viewSelected,
+}) => {
   const tInstructions = useTranslations('instructions');
   const tAuthentication = useTranslations('authentication');
   const { setModalAuthLogin } = useModals();
-  
+
   // Track if we should skip scroll on the first effect run (back navigation case)
   // Check synchronously during render to capture the flag before it's cleared
   const skipScrollOnceRef = useRef(checkBackNavFlag());
@@ -42,7 +49,7 @@ export const ListPodcasts: React.FC<Props> = ({ page, setPage,
     }
     scrollMainToTop();
   }, [channels]);
-  
+
   const showCallToAction = showSubscribeMessage;
   const showPagination = !showSubscribeMessage;
 
@@ -57,17 +64,16 @@ export const ListPodcasts: React.FC<Props> = ({ page, setPage,
           onButtonClick={() => setModalAuthLogin({ isOpen: true })}
         />
       )}
-      {
-        showPagination && (
-          <Pagination
-            currentPage={page}
-            totalPages={totalPages}
-            setPage={setPage}
-            paginationControlsClassName={styles.paginationControls}>
-            {listNodes}
-          </Pagination>
-        )
-      }
+      {showPagination && (
+        <Pagination
+          currentPage={page}
+          totalPages={totalPages}
+          setPage={setPage}
+          paginationControlsClassName={styles.paginationControls}
+        >
+          {listNodes}
+        </Pagination>
+      )}
     </>
   );
 };

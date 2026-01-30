@@ -86,67 +86,55 @@ Move common validation logic to `@podverse/helpers`:
 // packages/helpers/src/lib/validation/env.ts
 
 export interface EnvValidationResult {
-  isValid: boolean
-  errors: string[]
-  warnings: string[]
+  isValid: boolean;
+  errors: string[];
+  warnings: string[];
 }
 
-export function validateRequired(
-  name: string,
-  value: string | undefined
-): EnvValidationResult {
+export function validateRequired(name: string, value: string | undefined): EnvValidationResult {
   if (!value || value.trim() === '') {
     return {
       isValid: false,
       errors: [`${name} is required but not set`],
       warnings: [],
-    }
+    };
   }
-  return { isValid: true, errors: [], warnings: [] }
+  return { isValid: true, errors: [], warnings: [] };
 }
 
-export function validateNumeric(
-  name: string,
-  value: string | undefined
-): EnvValidationResult {
+export function validateNumeric(name: string, value: string | undefined): EnvValidationResult {
   if (!value) {
-    return { isValid: true, errors: [], warnings: [] }
+    return { isValid: true, errors: [], warnings: [] };
   }
-  const num = parseInt(value, 10)
+  const num = parseInt(value, 10);
   if (isNaN(num) || num < 0) {
     return {
       isValid: false,
       errors: [`${name} must be a valid positive number`],
       warnings: [],
-    }
+    };
   }
-  return { isValid: true, errors: [], warnings: [] }
+  return { isValid: true, errors: [], warnings: [] };
 }
 
-export function validateUUID(
-  name: string,
-  value: string | undefined
-): EnvValidationResult {
+export function validateUUID(name: string, value: string | undefined): EnvValidationResult {
   if (!value) {
-    return { isValid: true, errors: [], warnings: [] }
+    return { isValid: true, errors: [], warnings: [] };
   }
-  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
   if (!uuidRegex.test(value)) {
     return {
       isValid: false,
       errors: [`${name} must be a valid UUID`],
       warnings: [],
-    }
+    };
   }
-  return { isValid: true, errors: [], warnings: [] }
+  return { isValid: true, errors: [], warnings: [] };
 }
 
-export function validateUserAgent(
-  name: string,
-  value: string | undefined
-): EnvValidationResult {
+export function validateUserAgent(name: string, value: string | undefined): EnvValidationResult {
   if (!value) {
-    return { isValid: true, errors: [], warnings: [] }
+    return { isValid: true, errors: [], warnings: [] };
   }
   // Format: BrandName Bot Environment/AppName/Version
   if (!value.includes('Bot') || !value.includes('/')) {
@@ -154,21 +142,21 @@ export function validateUserAgent(
       isValid: false,
       errors: [`${name} must follow format: BrandName Bot Environment/AppName/Version`],
       warnings: [],
-    }
+    };
   }
-  return { isValid: true, errors: [], warnings: [] }
+  return { isValid: true, errors: [], warnings: [] };
 }
 
 export function printValidationSummary(
   results: Map<string, EnvValidationResult>,
   category: string
 ): void {
-  console.log(`\n[${category}]`)
+  console.log(`\n[${category}]`);
   for (const [name, result] of results) {
-    const status = result.isValid ? '✓' : '✗'
-    console.log(`  ${status} ${name}`)
+    const status = result.isValid ? '✓' : '✗';
+    console.log(`  ${status} ${name}`);
     for (const error of result.errors) {
-      console.log(`      ${error}`)
+      console.log(`      ${error}`);
     }
   }
 }
@@ -198,27 +186,30 @@ services:
 
 ### Shared Across Apps
 
-| Variable | Used By | Description |
-|----------|---------|-------------|
-| `DB_HOST` | api, workers, management-api | Database hostname |
-| `DB_PORT` | api, workers, management-api | Database port |
-| `MESSAGE_QUEUE_*` | api, workers | RabbitMQ connection |
-| `KEYVALDB_*` | api, workers | Valkey/Redis connection |
+| Variable          | Used By                      | Description             |
+| ----------------- | ---------------------------- | ----------------------- |
+| `DB_HOST`         | api, workers, management-api | Database hostname       |
+| `DB_PORT`         | api, workers, management-api | Database port           |
+| `MESSAGE_QUEUE_*` | api, workers                 | RabbitMQ connection     |
+| `KEYVALDB_*`      | api, workers                 | Valkey/Redis connection |
 
 ### App-Specific
 
 **api**:
+
 - `API_PORT`, `API_PREFIX`, `API_VERSION`
 - `AUTH_JWT_SECRET`
 - `MAILER_*` (conditional)
 - `PAYPAL_*` (optional)
 
 **web**:
+
 - `NEXT_PUBLIC_*` (all public)
 - `NEXT_PUBLIC_API_*` (API connection)
 - `NEXT_PUBLIC_SSR_API_*` (SSR API)
 
 **workers**:
+
 - `PODCAST_INDEX_*`
 - Worker-specific job configs
 
@@ -233,30 +224,30 @@ import {
   validateUUID,
   validateUserAgent,
   printValidationSummary,
-} from '@podverse/helpers'
+} from '@podverse/helpers';
 
 export function validateAllEnvironmentVariables(): void {
-  const results = new Map<string, EnvValidationResult>()
-  let hasErrors = false
+  const results = new Map<string, EnvValidationResult>();
+  let hasErrors = false;
 
   // Auth & Security
-  results.set('AUTH_JWT_SECRET', validateUUID('AUTH_JWT_SECRET', process.env.AUTH_JWT_SECRET))
-  results.set('USER_AGENT', validateUserAgent('USER_AGENT', process.env.USER_AGENT))
+  results.set('AUTH_JWT_SECRET', validateUUID('AUTH_JWT_SECRET', process.env.AUTH_JWT_SECRET));
+  results.set('USER_AGENT', validateUserAgent('USER_AGENT', process.env.USER_AGENT));
 
   // Database
-  results.set('DB_HOST', validateRequired('DB_HOST', process.env.DB_HOST))
-  results.set('DB_PORT', validateNumeric('DB_PORT', process.env.DB_PORT))
+  results.set('DB_HOST', validateRequired('DB_HOST', process.env.DB_HOST));
+  results.set('DB_PORT', validateNumeric('DB_PORT', process.env.DB_PORT));
   // ... etc
 
-  printValidationSummary(results, 'Environment Variables')
+  printValidationSummary(results, 'Environment Variables');
 
   for (const result of results.values()) {
-    if (!result.isValid) hasErrors = true
+    if (!result.isValid) hasErrors = true;
   }
 
   if (hasErrors) {
-    console.error('\n❌ Environment validation failed. Aborting startup.')
-    process.exit(1)
+    console.error('\n❌ Environment validation failed. Aborting startup.');
+    process.exit(1);
   }
 }
 ```
@@ -270,6 +261,7 @@ Similar pattern but runs before `next build`.
 ### Local Development
 
 1. Copy templates to app directories:
+
    ```bash
    cp infra/config/env-templates/podverse-api.env.example apps/api/.env
    cp infra/config/env-templates/podverse-web.env.example apps/web/.env
@@ -292,12 +284,12 @@ Similar pattern but runs before `next build`.
 
 ## Files to Create/Migrate
 
-| Source | Destination |
-|--------|-------------|
-| `podverse-ops/config/*.env*` | `infra/config/` |
-| `podverse-api/ENV.md` | `apps/api/ENV.md` |
-| `podverse-web/ENV.md` | `apps/web/ENV.md` |
-| New | `packages/helpers/src/lib/validation/env.ts` |
+| Source                       | Destination                                  |
+| ---------------------------- | -------------------------------------------- |
+| `podverse-ops/config/*.env*` | `infra/config/`                              |
+| `podverse-api/ENV.md`        | `apps/api/ENV.md`                            |
+| `podverse-web/ENV.md`        | `apps/web/ENV.md`                            |
+| New                          | `packages/helpers/src/lib/validation/env.ts` |
 
 ## Estimated Effort
 

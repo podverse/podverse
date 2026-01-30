@@ -5,14 +5,14 @@ import styles from '../../styles/components/Form/TextInputNumberIncrements.modul
 import { useTranslations } from 'next-intl';
 
 type NumberStepperProps = {
-  value: string
-  onChange?: (event: React.ChangeEvent<HTMLInputElement>) => void
-  min?: number
-  max?: number
-  step?: number
-  disabled: boolean
-  readOnly: boolean
-}
+  value: string;
+  onChange?: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  min?: number;
+  max?: number;
+  step?: number;
+  disabled: boolean;
+  readOnly: boolean;
+};
 
 export const TextInputNumberIncrement: React.FC<NumberStepperProps> = ({
   value,
@@ -26,12 +26,18 @@ export const TextInputNumberIncrement: React.FC<NumberStepperProps> = ({
   const tMisc = useTranslations('misc');
 
   const handleStep = (direction: 1 | -1) => {
-    if (!onChange) {return;}
+    if (!onChange) {
+      return;
+    }
     const current = value === '' ? 0 : Number(value);
     let next = current + (step || 1) * direction;
-    if (typeof min === 'number') {next = Math.max(next, min);}
-    if (typeof max === 'number') {next = Math.min(next, max);}
-    
+    if (typeof min === 'number') {
+      next = Math.max(next, min);
+    }
+    if (typeof max === 'number') {
+      next = Math.min(next, max);
+    }
+
     const event = {
       ...({} as React.ChangeEvent<HTMLInputElement>),
       target: {

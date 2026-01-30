@@ -13,11 +13,7 @@ const commonConfig: DataSourceOptions = {
   cache: false,
   synchronize: false,
   logging: false,
-  entities: [
-    AdminAccount,
-    AdminAccountCredentials,
-    AdminAccountRole,
-  ],
+  entities: [AdminAccount, AdminAccountCredentials, AdminAccountRole],
   migrations: [],
   subscribers: [],
   namingStrategy: new SnakeNamingStrategy(),

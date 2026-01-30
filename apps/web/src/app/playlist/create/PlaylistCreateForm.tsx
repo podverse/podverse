@@ -15,9 +15,18 @@ export const PlaylistCreateForm: React.FC = () => {
   const tFeatures = useTranslations('features');
   const tMisc = useTranslations('misc');
   const router = useRouter();
-  const { medium, setMedium, title, setTitle, description, setDescription,
-    sharableStatus, setSharableStatus, isUpdating, setIsUpdating,
-   } = usePlaylistCreateContext();
+  const {
+    medium,
+    setMedium,
+    title,
+    setTitle,
+    description,
+    setDescription,
+    sharableStatus,
+    setSharableStatus,
+    isUpdating,
+    setIsUpdating,
+  } = usePlaylistCreateContext();
 
   const mediumDropdownMenuItems = MEDIUM.menuItems(tMedia);
   const sharableStatusDropdownMenuItems = SHARABLE_STATUS.menuItems(tMisc);

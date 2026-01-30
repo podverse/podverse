@@ -22,28 +22,14 @@ const Accordion: React.FC<AccordionProps> = ({
   size = 'large',
   open = false,
 }) => (
-  <details
-    className={classNames(
-      styles.accordion,
-      styles[color],
-      styles[size],
-    )}
-    open={open}
-  >
+  <details className={classNames(styles.accordion, styles[color], styles[size])} open={open}>
     <summary className={classNames(styles.accordionHeader, headerClass)}>
-      <span
-        className={classNames(
-          styles.headerIcon,
-          styles[color],
-        )}
-      >
+      <span className={classNames(styles.headerIcon, styles[color])}>
         <FaChevronRight />
       </span>
       {header}
     </summary>
-    <div className={classNames(styles.accordionContent, contentClass)}>
-      {content}
-    </div>
+    <div className={classNames(styles.accordionContent, contentClass)}>{content}</div>
   </details>
 );
 

@@ -9,7 +9,9 @@
  *   against both the key and the key=value pair.
  */
 export function removeQueryParamByPattern(path: string, pattern: string): string {
-  if (!path) {return path;}
+  if (!path) {
+    return path;
+  }
 
   const isFullUrl = /^[a-zA-Z][a-zA-Z0-9+.-]*:\/\//.test(path);
   // Use a dummy base for relative paths so URL parsing works.
@@ -29,9 +31,7 @@ export function removeQueryParamByPattern(path: string, pattern: string): string
   url.searchParams.forEach((value, key) => {
     const pair = `${key}=${value}`;
     const matches =
-      (regex && (regex.test(key) || regex.test(pair))) ||
-      key === pattern ||
-      pair === pattern;
+      (regex && (regex.test(key) || regex.test(pair))) || key === pattern || pair === pattern;
     if (matches) {
       toDelete.push(key);
     }

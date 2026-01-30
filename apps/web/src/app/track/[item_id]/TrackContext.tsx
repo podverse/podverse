@@ -1,8 +1,9 @@
 'use client';
 
 import { useParams } from 'next/navigation';
-import { QueryParamsItemMusic, TranscriptRow } from '@podverse/helpers';
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import { TranscriptRow } from '@podverse/helpers';
+import { QueryParamsItemMusic } from '@podverse/helpers-requests';
+import { createContext, useContext, useState, ReactNode } from 'react';
 import { useAccount } from '../../../contexts/Account';
 import { useSkipInitialEffect } from '../../../hooks/useSkipInitialEffect';
 import { apiRequestService } from '../../../factories/apiRequestService';
@@ -17,13 +18,13 @@ interface TrackContextType {
   setAutoScrollOn: (autoScrollOn: boolean) => void;
   isLoading: boolean;
   setIsLoading: (isLoading: boolean) => void;
-};
+}
 
 const TrackContext = createContext<TrackContextType | undefined>(undefined);
 
 interface TrackContextProviderProps {
-  children: ReactNode,
-  initialQueryParams: QueryParamsItemMusic,
+  children: ReactNode;
+  initialQueryParams: QueryParamsItemMusic;
 }
 
 export const TrackContextProvider = ({
@@ -36,7 +37,7 @@ export const TrackContextProvider = ({
   const [transcriptRows, setTranscriptRows] = useState<TranscriptRow[]>([]);
   const [autoScrollOn, setAutoScrollOn] = useState<boolean>(true);
   const { loggedInAccount } = useAccount();
-  
+
   if (!params.item_id) {
     return null;
   }
@@ -53,7 +54,7 @@ export const TrackContextProvider = ({
       const rows = await getTranscriptRowsFromTranscriptString(response.data);
       setTranscriptRows(rows);
     }
-    
+
     async function fetchData() {
       setIsLoading(true);
 
@@ -63,17 +64,23 @@ export const TrackContextProvider = ({
 
       setIsLoading(false);
     }
-    
+
     fetchData();
   }, [filterParams, loggedInAccount]);
 
   return (
-    <TrackContext.Provider value={{
-      filterParams, setFilterParams,
-      transcriptRows, setTranscriptRows,
-      autoScrollOn, setAutoScrollOn,
-      isLoading, setIsLoading,
-    }}>
+    <TrackContext.Provider
+      value={{
+        filterParams,
+        setFilterParams,
+        transcriptRows,
+        setTranscriptRows,
+        autoScrollOn,
+        setAutoScrollOn,
+        isLoading,
+        setIsLoading,
+      }}
+    >
       {children}
     </TrackContext.Provider>
   );
@@ -81,6 +88,8 @@ export const TrackContextProvider = ({
 
 export const useTrackContext = () => {
   const ctx = useContext(TrackContext);
-  if (!ctx) {throw new Error('useTrackContext must be used within a TrackContextProvider');}
+  if (!ctx) {
+    throw new Error('useTrackContext must be used within a TrackContextProvider');
+  }
   return ctx;
 };

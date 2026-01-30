@@ -1,6 +1,7 @@
 'use client';
 
-import { CategoryMappingKeys, DTOChannel, DTOItem, DTOItemSoundbite, QueryParamsItemsType } from '@podverse/helpers';
+import { CategoryMappingKeys, DTOChannel, DTOItem, DTOItemSoundbite } from '@podverse/helpers';
+import { QueryParamsItemsType } from '@podverse/helpers-requests';
 import React from 'react';
 import { ListItemSoundbiteRow } from './ListItemSoundbiteRow';
 import Pagination from '../../Pagination/Pagination';
@@ -20,36 +21,38 @@ type Props = {
   showItemInfo?: boolean;
 };
 
-export const ListItemSoundbites: React.FC<Props> = ({ page, setPage,
-  channel, item, itemSoundbites, totalPages, showSubscribeMessage, showItemInfo }) => {
-
+export const ListItemSoundbites: React.FC<Props> = ({
+  page,
+  setPage,
+  channel,
+  item,
+  itemSoundbites,
+  totalPages,
+  showSubscribeMessage,
+  showItemInfo,
+}) => {
   useSkipInitialEffect(() => {
     scrollMainToTop();
   }, [itemSoundbites]);
-  
+
   const showPagination = !showSubscribeMessage;
 
   return (
     <>
-      {
-        showPagination && (
-          <Pagination
-            currentPage={page}
-            totalPages={totalPages}
-            setPage={setPage}>
-            {itemSoundbites.map((item_soundbite) => (
-              <ListItemSoundbiteRow
-                key={item_soundbite.id}
-                channel={channel}
-                item={item}
-                item_soundbite={item_soundbite}
-                showItemInfo={showItemInfo}
-                playlist_id_text={null}
-              />
-            ))}
-          </Pagination>
-        )
-      }
+      {showPagination && (
+        <Pagination currentPage={page} totalPages={totalPages} setPage={setPage}>
+          {itemSoundbites.map((item_soundbite) => (
+            <ListItemSoundbiteRow
+              key={item_soundbite.id}
+              channel={channel}
+              item={item}
+              item_soundbite={item_soundbite}
+              showItemInfo={showItemInfo}
+              playlist_id_text={null}
+            />
+          ))}
+        </Pagination>
+      )}
     </>
   );
 };

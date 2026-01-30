@@ -17,24 +17,29 @@ router.get(`${baseUrl}/auth/me`, ensureAuthenticated, async (req, res) => {
   try {
     const userId = req.user?.id;
     if (!userId) {
-      return res.status(401).json({ message: 'Unauthorized' });
+      res.status(401).json({ message: 'Unauthorized' });
+      return;
     }
 
     const adminAccountService = new AdminAccountService();
     const adminAccount = await adminAccountService.get(userId);
-    
+
     if (!adminAccount) {
-      return res.status(404).json({ message: 'Admin account not found' });
+      res.status(404).json({ message: 'Admin account not found' });
+      return;
     }
 
-    return res.json({
+    res.json({
       id: adminAccount.id,
       id_text: adminAccount.id_text,
       created_at: adminAccount.created_at,
     });
   } catch (error) {
     console.error('Error getting current user:', error);
-    return res.status(500).json({ message: 'Internal server error' });
+    if (!res.headersSent) {
+      res.status(500).json({ message: 'Internal server error' });
+    }
+    return;
   }
 });
 

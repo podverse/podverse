@@ -4,36 +4,45 @@ import { FaChevronDown, FaSpinner } from 'react-icons/fa';
 import styles from '../../styles/components/Button/Button.module.scss';
 import { cssClass } from '../../utils/cssModule';
 
-export type ButtonVariant = 'primary' | 'secondary' | 'warning' | 'success' | 'danger'
-  | 'outline' | 'link'
-  | 'mini' | 'miniSelected'
-  | 'miniGlow' | 'miniGlowWarning' | 'miniGlowDanger'
+export type ButtonVariant =
+  | 'primary'
+  | 'secondary'
+  | 'warning'
+  | 'success'
+  | 'danger'
+  | 'outline'
+  | 'link'
+  | 'mini'
+  | 'miniSelected'
+  | 'miniGlow'
+  | 'miniGlowWarning'
+  | 'miniGlowDanger'
   | 'unstyled';
 
 type ButtonProps = {
-  children: React.ReactNode
-  onClick?: (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => void
-  onKeyDown?: (event: React.KeyboardEvent<HTMLButtonElement>) => void
-  type?: 'button' | 'submit' | 'reset'
-  disabled?: boolean
-  className?: string
-  style?: React.CSSProperties
-  variant?: ButtonVariant
-  'aria-label'?: string
-  'aria-describedby'?: string
-  'aria-pressed'?: AriaAttributes['aria-pressed']
-  'aria-haspopup'?: AriaAttributes['aria-haspopup']
-  'aria-expanded'?: AriaAttributes['aria-expanded']
-  tabIndex?: number
-  autoFocus?: boolean
-  id?: string
-  name?: string
-  title?: string
-  role?: string
-  isDropdownButton?: boolean
-  isLoading?: boolean
-  description?: string
-}
+  children: React.ReactNode;
+  onClick?: (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => void;
+  onKeyDown?: (event: React.KeyboardEvent<HTMLButtonElement>) => void;
+  type?: 'button' | 'submit' | 'reset';
+  disabled?: boolean;
+  className?: string;
+  style?: React.CSSProperties;
+  variant?: ButtonVariant;
+  'aria-label'?: string;
+  'aria-describedby'?: string;
+  'aria-pressed'?: AriaAttributes['aria-pressed'];
+  'aria-haspopup'?: AriaAttributes['aria-haspopup'];
+  'aria-expanded'?: AriaAttributes['aria-expanded'];
+  tabIndex?: number;
+  autoFocus?: boolean;
+  id?: string;
+  name?: string;
+  title?: string;
+  role?: string;
+  isDropdownButton?: boolean;
+  isLoading?: boolean;
+  description?: string;
+};
 
 export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   (
@@ -62,7 +71,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       description,
       ...rest
     },
-    ref,
+    ref
   ) => {
     const buttonElement = (
       <button
@@ -75,7 +84,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
           styles.button,
           cssClass(styles, variant),
           { [cssClass(styles, 'disabled')]: disabled || isLoading },
-          className,
+          className
         )}
         style={style}
         aria-label={ariaLabel}
@@ -91,7 +100,11 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         role={role}
         {...rest}
       >
-        <span className={classNames(styles.buttonContent, { [cssClass(styles, 'invisible')]: isLoading })}>
+        <span
+          className={classNames(styles.buttonContent, {
+            [cssClass(styles, 'invisible')]: isLoading,
+          })}
+        >
           {children}
           {isDropdownButton && <FaChevronDown className={styles.chevronIcon} />}
         </span>
@@ -113,5 +126,5 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     }
 
     return buttonElement;
-  },
+  }
 );

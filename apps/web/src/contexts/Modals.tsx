@@ -1,24 +1,33 @@
-import { DTOChannel, DTOChannelFunding, DTOClip, DTOItem, DTOItemChapter, DTOItemFunding, DTOItemSoundbite, LabeledItemEnclosure } from '@podverse/helpers';
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import {
+  DTOChannel,
+  DTOChannelFunding,
+  DTOClip,
+  DTOItem,
+  DTOItemChapter,
+  DTOItemFunding,
+  DTOItemSoundbite,
+  LabeledItemEnclosure,
+} from '@podverse/helpers';
+import { createContext, useContext, useState, ReactNode } from 'react';
 import { SourceSelectorActionType } from '../components/SourceSelectors/SourceSelectors';
 
 type ModalBasic = {
   isOpen: boolean;
-}
+};
 
 type ModalMessage = {
   title: string | null;
   message: string | null;
-}
+};
 
 type ModalClip = {
   channel: DTOChannel | null;
   item: DTOItem | null;
-}
+};
 
 type ModalClipCreated = {
   clip: DTOClip | null;
-}
+};
 
 type ModalShare = {
   channel: DTOChannel | null;
@@ -26,30 +35,30 @@ type ModalShare = {
   clip: DTOClip | null;
   item_chapter: DTOItemChapter | null;
   item_soundbite: DTOItemSoundbite | null;
-}
+};
 
 type ModalFunding = {
   channel_fundings: DTOChannelFunding[];
   item_fundings: DTOItemFunding[];
-}
+};
 
 type ModalBoost = {
   channel: DTOChannel | null;
   item: DTOItem | null;
-}
+};
 
 export type ModalSourceSelector = {
   labeledItemEnclosures: LabeledItemEnclosure[];
   actionType: SourceSelectorActionType;
   itemTitle: string | null;
-}
+};
 
 export type ModalPlaylistAddToState = {
   channel: DTOChannel | null;
   item: DTOItem | null;
   clip: DTOClip | null;
   item_soundbite: DTOItemSoundbite | null;
-}
+};
 
 type ModalsContextType = {
   modalAuthLogin: ModalBasic;
@@ -76,7 +85,7 @@ type ModalsContextType = {
   setModalLoginRequired: (val: ModalMessage) => void;
   modalDisclaimer: ModalBasic;
   setModalDisclaimer: (val: ModalBasic) => void;
-}
+};
 
 const ModalsContext = createContext<ModalsContextType | undefined>(undefined);
 
@@ -128,32 +137,51 @@ const defaultModalLoginRequired = {
 export const ModalsProvider = ({ children }: { children: ReactNode }) => {
   const [modalAuthLogin, setModalAuthLogin] = useState<ModalBasic>({ isOpen: false });
   const [modalSignUp, setModalSignUp] = useState<ModalBasic>({ isOpen: false });
-  const [modalPlaylistAddTo, setModalPlaylistAddTo] = useState<ModalPlaylistAddToState>(defaultModalPlaylistAddTo);
+  const [modalPlaylistAddTo, setModalPlaylistAddTo] =
+    useState<ModalPlaylistAddToState>(defaultModalPlaylistAddTo);
   const [modalClip, setModalClip] = useState<ModalClip>(defaultModalClip);
-  const [modalClipCreated, setModalClipCreated] = useState<ModalClipCreated>(defaultModalClipCreated);
+  const [modalClipCreated, setModalClipCreated] =
+    useState<ModalClipCreated>(defaultModalClipCreated);
   const [modalMediaPlayerIsOpen, setModalMediaPlayerIsOpen] = useState<boolean>(false);
   const [modalShare, setModalShare] = useState<ModalShare>(defaultModalShare);
   const [modalFunding, setModalFunding] = useState<ModalFunding>(defaultModalFunding);
-  const [modalSourceSelector, setModalSourceSelector] = useState<ModalSourceSelector>(defaultModalSourceSelector);
+  const [modalSourceSelector, setModalSourceSelector] = useState<ModalSourceSelector>(
+    defaultModalSourceSelector
+  );
   const [modalBoost, setModalBoost] = useState<ModalBoost>(defaultModalBoost);
-  const [modalLoginRequired, setModalLoginRequired] = useState<ModalMessage>(defaultModalLoginRequired);
+  const [modalLoginRequired, setModalLoginRequired] =
+    useState<ModalMessage>(defaultModalLoginRequired);
   const [modalDisclaimer, setModalDisclaimer] = useState<ModalBasic>({ isOpen: false });
 
   return (
-    <ModalsContext.Provider value={{
-      modalAuthLogin, setModalAuthLogin,
-      modalSignUp, setModalSignUp,
-      modalPlaylistAddTo, setModalPlaylistAddTo,
-      modalClip, setModalClip,
-      modalClipCreated, setModalClipCreated,
-      modalMediaPlayerIsOpen, setModalMediaPlayerIsOpen,
-      modalShare, setModalShare,
-      modalFunding, setModalFunding,
-      modalSourceSelector, setModalSourceSelector,
-      modalBoost, setModalBoost,
-      modalLoginRequired, setModalLoginRequired,
-      modalDisclaimer, setModalDisclaimer,
-    }}>
+    <ModalsContext.Provider
+      value={{
+        modalAuthLogin,
+        setModalAuthLogin,
+        modalSignUp,
+        setModalSignUp,
+        modalPlaylistAddTo,
+        setModalPlaylistAddTo,
+        modalClip,
+        setModalClip,
+        modalClipCreated,
+        setModalClipCreated,
+        modalMediaPlayerIsOpen,
+        setModalMediaPlayerIsOpen,
+        modalShare,
+        setModalShare,
+        modalFunding,
+        setModalFunding,
+        modalSourceSelector,
+        setModalSourceSelector,
+        modalBoost,
+        setModalBoost,
+        modalLoginRequired,
+        setModalLoginRequired,
+        modalDisclaimer,
+        setModalDisclaimer,
+      }}
+    >
       {children}
     </ModalsContext.Provider>
   );
@@ -161,6 +189,8 @@ export const ModalsProvider = ({ children }: { children: ReactNode }) => {
 
 export const useModals = () => {
   const context = useContext(ModalsContext);
-  if (!context) {throw new Error('useModals must be used within a ModalsProvider');}
+  if (!context) {
+    throw new Error('useModals must be used within a ModalsProvider');
+  }
   return context;
 };

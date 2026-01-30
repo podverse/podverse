@@ -22,6 +22,6 @@ export const ListCombinedChannelRow: React.FC<Props> = ({ channel, filterMedium 
   if (filterMedium === 'music') {
     return <ListAlbumRow channel={channel} />;
   }
-  
+
   return <ListPodcastRow channel={channel} />;
 };

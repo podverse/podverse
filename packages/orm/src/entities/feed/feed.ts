@@ -15,11 +15,11 @@ export class Feed {
   @Column({ type: 'int', unique: true })
   podcast_index_id!: number;
 
-  @ManyToOne(() => FeedFlagStatus, feed_flag_status => feed_flag_status.id)
+  @ManyToOne(() => FeedFlagStatus, (feed_flag_status) => feed_flag_status.id)
   @JoinColumn({ name: 'feed_flag_status_id' })
   feed_flag_status!: FeedFlagStatus;
 
-  @OneToOne(() => FeedLog, feed_log => feed_log.feed)
+  @OneToOne(() => FeedLog, (feed_log) => feed_log.feed)
   feed_log!: FeedLog;
 
   @Column({ type: 'timestamp', nullable: true })
@@ -34,7 +34,7 @@ export class Feed {
   @Column({ type: 'varchar', nullable: true, length: 12 })
   container_id!: string | null;
 
-  @OneToOne(() => Channel, channel => channel.feed)
+  @OneToOne(() => Channel, (channel) => channel.feed)
   channel!: Channel;
 
   @Column({ type: 'timestamp' })

@@ -23,63 +23,97 @@ class AccountNotificationChannelController {
 
   static async getByAccountAndChannel(req: Request, res: Response): Promise<void> {
     validateParamsObject(getByAccountAndChannelSchema, req, res, async () => {
-      ensureAuthenticated(req, res, async () => {
-        try {
-          const jwtUser = getAuthenticatedUser(req);
-          const channel_id_text = getParamRequired(req, 'channel_id_text');
-          const notificationChannel = await AccountNotificationChannelController.accountNotificationChannelService.getByAccountIdAndChannelIdText(jwtUser.id, channel_id_text);
-          if (!notificationChannel) {
-            res.status(404).json({ message: 'Notification channel not found' });
-            return;
+      ensureAuthenticated(
+        req,
+        res,
+        async () => {
+          try {
+            const jwtUser = getAuthenticatedUser(req);
+            const channel_id_text = getParamRequired(req, 'channel_id_text');
+            const notificationChannel =
+              await AccountNotificationChannelController.accountNotificationChannelService.getByAccountIdAndChannelIdText(
+                jwtUser.id,
+                channel_id_text
+              );
+            if (!notificationChannel) {
+              res.status(404).json({ message: 'Notification channel not found' });
+              return;
+            }
+            res.json(notificationChannel);
+          } catch (err) {
+            handleGenericErrorResponse(res, err);
           }
-          res.json(notificationChannel);
-        } catch (err) {
-          handleGenericErrorResponse(res, err);
-        }
-      }, { skipMembershipStatus: true });
+        },
+        { skipMembershipStatus: true }
+      );
     });
   }
 
   static async getAllByAccount(req: Request, res: Response): Promise<void> {
-    ensureAuthenticated(req, res, async () => {
-      try {
-        const jwtUser = getAuthenticatedUser(req);
-        const notificationChannels = await AccountNotificationChannelController.accountNotificationChannelService.getAllByAccountId(jwtUser.id);
-        res.json(notificationChannels);
-      } catch (err) {
-        handleGenericErrorResponse(res, err);
-      }
-    }, { skipMembershipStatus: true });
+    ensureAuthenticated(
+      req,
+      res,
+      async () => {
+        try {
+          const jwtUser = getAuthenticatedUser(req);
+          const notificationChannels =
+            await AccountNotificationChannelController.accountNotificationChannelService.getAllByAccountId(
+              jwtUser.id
+            );
+          res.json(notificationChannels);
+        } catch (err) {
+          handleGenericErrorResponse(res, err);
+        }
+      },
+      { skipMembershipStatus: true }
+    );
   }
 
   static async create(req: Request, res: Response): Promise<void> {
-    ensureAuthenticated(req, res, async () => {
-      validateBodyObject(createNotificationChannelSchema, req, res, async () => {
-        try {
-          const jwtUser = getAuthenticatedUser(req);
-          const { channel_id_text } = req.body;
-          const notificationChannel = await AccountNotificationChannelController.accountNotificationChannelService.create(jwtUser.id, channel_id_text);
-          res.status(201).json(notificationChannel);
-        } catch (err) {
-          handleGenericErrorResponse(res, err);
-        }
-      });
-    }, { skipMembershipStatus: false });
+    ensureAuthenticated(
+      req,
+      res,
+      async () => {
+        validateBodyObject(createNotificationChannelSchema, req, res, async () => {
+          try {
+            const jwtUser = getAuthenticatedUser(req);
+            const { channel_id_text } = req.body;
+            const notificationChannel =
+              await AccountNotificationChannelController.accountNotificationChannelService.create(
+                jwtUser.id,
+                channel_id_text
+              );
+            res.status(201).json(notificationChannel);
+          } catch (err) {
+            handleGenericErrorResponse(res, err);
+          }
+        });
+      },
+      { skipMembershipStatus: false }
+    );
   }
 
   static async delete(req: Request, res: Response): Promise<void> {
-    ensureAuthenticated(req, res, async () => {
-      validateParamsObject(deleteNotificationChannelSchema, req, res, async () => {
-        try {
-          const jwtUser = getAuthenticatedUser(req);
-          const channel_id_text = getParamRequired(req, 'channel_id_text');
-          await AccountNotificationChannelController.accountNotificationChannelService.delete(jwtUser.id, channel_id_text);
-          res.status(204).end();
-        } catch (err) {
-          handleGenericErrorResponse(res, err);
-        }
-      });
-    }, { skipMembershipStatus: true });
+    ensureAuthenticated(
+      req,
+      res,
+      async () => {
+        validateParamsObject(deleteNotificationChannelSchema, req, res, async () => {
+          try {
+            const jwtUser = getAuthenticatedUser(req);
+            const channel_id_text = getParamRequired(req, 'channel_id_text');
+            await AccountNotificationChannelController.accountNotificationChannelService.delete(
+              jwtUser.id,
+              channel_id_text
+            );
+            res.status(204).end();
+          } catch (err) {
+            handleGenericErrorResponse(res, err);
+          }
+        });
+      },
+      { skipMembershipStatus: true }
+    );
   }
 }
 

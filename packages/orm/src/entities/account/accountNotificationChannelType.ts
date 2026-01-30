@@ -12,8 +12,8 @@ export class AccountNotificationChannelType {
 
   @ManyToOne(
     () => AccountNotificationChannel,
-    accountNotificationChannel => accountNotificationChannel.account_notification_channel_types,
-    { onDelete: 'CASCADE' },
+    (accountNotificationChannel) => accountNotificationChannel.account_notification_channel_types,
+    { onDelete: 'CASCADE' }
   )
   @JoinColumn({ name: 'account_notification_channel_id' })
   account_notification_channel!: AccountNotificationChannel;

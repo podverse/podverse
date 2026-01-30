@@ -55,12 +55,12 @@ jobs:
 
 Document required secrets for all workflows:
 
-| Secret | Used By | Purpose |
-|--------|---------|---------|
-| `NPM_TOKEN` | publish-alpha.yml | npm package publishing |
-| `ANTHROPIC_API_KEY` | pr-auto-complete.yml | LLM history generation |
-| `GHCR_REGISTRY_TOKEN` | publish-alpha.yml | Query existing Docker tags |
-| `GITHUB_TOKEN` | (automatic) | GHCR push, PR operations |
+| Secret                | Used By              | Purpose                    |
+| --------------------- | -------------------- | -------------------------- |
+| `NPM_TOKEN`           | publish-alpha.yml    | npm package publishing     |
+| `ANTHROPIC_API_KEY`   | pr-auto-complete.yml | LLM history generation     |
+| `GHCR_REGISTRY_TOKEN` | publish-alpha.yml    | Query existing Docker tags |
+| `GITHUB_TOKEN`        | (automatic)          | GHCR push, PR operations   |
 
 Include setup instructions for each secret.
 
@@ -74,6 +74,7 @@ The following workflows already exist and should be verified:
 ### 4. Test Workflow
 
 Options:
+
 - Create a test PR to trigger the workflow
 - Use `act` locally to simulate GitHub Actions
 

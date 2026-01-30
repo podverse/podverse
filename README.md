@@ -11,7 +11,7 @@ Open source podcast app with Podcasting 2.0 support.
 
 ## Quick Start
 
-**Prerequisites**: [Docker](https://docs.docker.com/get-docker/) and [Node.js 22+](https://github.com/nvm-sh/nvm)
+**Prerequisites**: [Docker](https://docs.docker.com/get-docker/) and [Node.js 22 LTS](https://github.com/nvm-sh/nvm)
 
 ```bash
 # 1. Clone and install
@@ -25,8 +25,8 @@ make local_setup
 npm run build:packages
 
 # 4. Run apps (in separate terminals)
-npm run dev:api    # http://localhost:1234
-npm run dev:web    # http://localhost:3000
+npm run dev:api # http://localhost:1234
+npm run dev:web # http://localhost:3000
 ```
 
 See [docs/QUICKSTART.md](docs/QUICKSTART.md) for detailed setup instructions, verification steps, and troubleshooting.
@@ -51,15 +51,17 @@ apps/               # Deployable applications
 
 tools/              # Development tools
   qa/               # Test data generation
+  web-perf/         # Performance testing (Bundle Analyzer, Lighthouse)
 
 infra/              # Infrastructure
   config/           # Environment templates
   database/         # Migrations and seeds
   docker/           # Docker compose files
+  pipelines/        # Jenkins pipelines
 
 scripts/            # Utility scripts
-pipelines/          # Jenkins pipelines
 docs/               # Documentation
+logs/               # Log files (gitignored, see logs/LOGS.md)
 .llm/               # LLM context and history
 ```
 
@@ -68,6 +70,7 @@ docs/               # Documentation
 ### Environment Configuration
 
 Local development uses pre-configured environment files that work out of the box:
+
 - `apps/api/.env` - API configuration
 - `apps/web/env/local.env` - Web configuration
 - `infra/config/local/*.env` - Docker service configuration
@@ -80,7 +83,7 @@ Build Docker images for local testing or deployment:
 
 ```bash
 make local_build_all          # Build all images
-make local_test_docker_builds  # Build and verify images
+make local_test_docker_builds # Build and verify images
 ```
 
 **Note**: The web apps (`web` and `management-web`) use a DRY Dockerfile structure that requires a build argument to specify the environment file:
@@ -101,8 +104,17 @@ See [docs/QUICKSTART.md](docs/QUICKSTART.md#docker-images) for detailed Docker i
 
 Deployments are managed via Jenkins pipelines. See:
 
-- `pipelines/` - Jenkins pipeline definitions
+- `infra/pipelines/` - Jenkins pipeline definitions
 - Individual app `README.md` files for app-specific deployment notes
+
+## Performance Testing
+
+Performance testing tools are available in `tools/web-perf/`:
+
+- **Bundle Analyzer**: Analyze Next.js bundle sizes and visualize code splitting
+- **Lighthouse**: Automated performance testing with Playwright and Lighthouse
+
+See [tools/web-perf/README.md](tools/web-perf/README.md) for detailed instructions.
 
 ## Documentation
 

@@ -10,6 +10,7 @@
   flex-shrink: 0;
 }
 
-.buttonGold:hover, .buttonGold:focus {
+.buttonGold:hover,
+.buttonGold:focus {
   color: var(--button-highlight-bg) !important;
 }

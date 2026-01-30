@@ -8,7 +8,7 @@ type AlbumHeaderSubtitleProps = {
 export const AlbumHeaderSubtitle: React.FC<AlbumHeaderSubtitleProps> = ({ channel }) => {
   const channel_about = channel.channel_about;
   const author = channel_about?.author;
-  
+
   return (
     <div>
       <span>{author}</span>

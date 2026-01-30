@@ -6,7 +6,7 @@ export class AdminAccountCredentials {
   @PrimaryGeneratedColumn()
   id!: number;
 
-  @OneToOne(() => AdminAccount, adminAccount => adminAccount.id, { onDelete: 'CASCADE' })
+  @OneToOne(() => AdminAccount, (adminAccount) => adminAccount.id, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'admin_account_id' })
   admin_account!: AdminAccount;
 

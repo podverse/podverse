@@ -6,9 +6,11 @@ import { Link } from '../../../components/Link/Link';
 
 type PodcastHeaderCategoriesProps = {
   channel_categories?: DTOChannelCategory[];
-}
+};
 
-export const PodcastHeaderCategories: React.FC<PodcastHeaderCategoriesProps> = ({ channel_categories }) => {
+export const PodcastHeaderCategories: React.FC<PodcastHeaderCategoriesProps> = ({
+  channel_categories,
+}) => {
   const tCategories = useTranslations('categories');
 
   return channel_categories?.map((channel_category, index) => (
@@ -16,10 +18,11 @@ export const PodcastHeaderCategories: React.FC<PodcastHeaderCategoriesProps> = (
       <Link
         key={channel_category.id}
         href={`/podcasts?category=${channel_category.category.mapping_key}`}
-        color="secondary">
+        color="secondary"
+      >
         {tCategories(channel_category.category.mapping_key)}
       </Link>
-      {index < (channel_categories.length - 1) && ', '}
+      {index < channel_categories.length - 1 && ', '}
     </span>
   ));
 };

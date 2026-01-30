@@ -4,7 +4,7 @@ import { useTranslations } from 'next-intl';
 import {
   QueryParamsItemMusicType,
   QUERY_PARAMS_ITEM_MUSIC_TYPE_VALUES,
-} from '@podverse/helpers';
+} from '@podverse/helpers-requests';
 import React from 'react';
 import { ListHeader } from '../../../components/List/ListHeader';
 import { useTrackContext } from './TrackContext';
@@ -16,8 +16,7 @@ type TrackListHeaderProps = {
 };
 
 export const TrackListHeader: React.FC<TrackListHeaderProps> = ({ ssrHasTranscripts }) => {
-  const { filterParams, setFilterParams, autoScrollOn,
-    setAutoScrollOn } = useTrackContext();
+  const { filterParams, setFilterParams, autoScrollOn, setAutoScrollOn } = useTrackContext();
   const { type } = filterParams;
   const tInfo = useTranslations('info');
   const tMisc = useTranslations('misc');
@@ -32,12 +31,14 @@ export const TrackListHeader: React.FC<TrackListHeaderProps> = ({ ssrHasTranscri
     }
   };
 
-  const tabData = [{
-    key: 'summary',
-    label: tInfo('summary.summary'),
-    onClick: () => handleTypeChange('summary'),
-    zIndex: 5,
-  }];
+  const tabData = [
+    {
+      key: 'summary',
+      label: tInfo('summary.summary'),
+      onClick: () => handleTypeChange('summary'),
+      zIndex: 5,
+    },
+  ];
 
   if (ssrHasTranscripts) {
     tabData.push({
@@ -52,25 +53,15 @@ export const TrackListHeader: React.FC<TrackListHeaderProps> = ({ ssrHasTranscri
 
   if (type === 'transcript') {
     sideButtons = (
-      <Button
-        onClick={() => setAutoScrollOn(!autoScrollOn)}
-        variant="mini"
-      >
-        {autoScrollOn
-          ? tMisc('autoscroll.autoscroll_on')
-          : tMisc('autoscroll.autoscroll_off')}
+      <Button onClick={() => setAutoScrollOn(!autoScrollOn)} variant="mini">
+        {autoScrollOn ? tMisc('autoscroll.autoscroll_on') : tMisc('autoscroll.autoscroll_off')}
       </Button>
     );
   }
 
   return (
     <ListHeader
-      tabs={
-        <Tabs
-          tabData={tabData}
-          selectedKey={type ?? ''}
-        />
-      }
+      tabs={<Tabs tabData={tabData} selectedKey={type ?? ''} />}
       sideButtons={sideButtons}
     />
   );

@@ -1,4 +1,4 @@
-FROM node:22-slim AS base
+FROM node:24-slim AS base
 WORKDIR /opt
 
 # Stage 1: Install dependencies
@@ -24,13 +24,21 @@ RUN npm run build:packages:prod
 RUN npm run build:prod -w apps/api
 
 # Stage 3: Production runner
-FROM node:22-slim AS runner
+FROM node:24-slim AS runner
 WORKDIR /opt
 
 # Copy only what's needed for runtime
 COPY --from=builder /opt/package*.json ./
 COPY --from=builder /opt/packages/helpers/package.json ./packages/helpers/
 COPY --from=builder /opt/packages/helpers/dist/ ./packages/helpers/dist/
+COPY --from=builder /opt/packages/helpers-validation/package.json ./packages/helpers-validation/
+COPY --from=builder /opt/packages/helpers-validation/dist/ ./packages/helpers-validation/dist/
+COPY --from=builder /opt/packages/helpers-requests/package.json ./packages/helpers-requests/
+COPY --from=builder /opt/packages/helpers-requests/dist/ ./packages/helpers-requests/dist/
+COPY --from=builder /opt/packages/helpers-backend/package.json ./packages/helpers-backend/
+COPY --from=builder /opt/packages/helpers-backend/dist/ ./packages/helpers-backend/dist/
+COPY --from=builder /opt/packages/helpers-config/package.json ./packages/helpers-config/
+COPY --from=builder /opt/packages/helpers-config/dist/ ./packages/helpers-config/dist/
 COPY --from=builder /opt/packages/external-services/package.json ./packages/external-services/
 COPY --from=builder /opt/packages/external-services/dist/ ./packages/external-services/dist/
 COPY --from=builder /opt/packages/orm/package.json ./packages/orm/

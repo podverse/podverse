@@ -7,7 +7,7 @@ type TabData = {
   label: string;
   onClick: () => void;
   zIndex: number;
-  hideDesktop?: boolean
+  hideDesktop?: boolean;
 };
 
 type TabsProps = {
@@ -29,9 +29,5 @@ export const Tabs: React.FC<TabsProps> = ({ tabData, selectedKey }) => {
     );
   });
 
-  return (
-    <div className={styles.tabs}>
-      {tabNodes}
-    </div>
-  );
+  return <div className={styles.tabs}>{tabNodes}</div>;
 };

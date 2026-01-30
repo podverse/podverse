@@ -9,14 +9,21 @@ import { getAdjacentChapter } from '../../../utils/itemChapter';
 
 export const MediaPlayerMarqueeMobile = () => {
   const tMisc = useTranslations('misc');
-  const { mpClip, mpItemChapter, mpItemChapters, mpItemSoundbite,
-    setMPItemChapter, setMPItemChapterShouldSeek } = useMediaPlayer();
+  const {
+    mpClip,
+    mpItemChapter,
+    mpItemChapters,
+    mpItemSoundbite,
+    setMPItemChapter,
+    setMPItemChapterShouldSeek,
+  } = useMediaPlayer();
 
   if (!mpClip && !mpItemSoundbite && !mpItemChapter) {
     return null;
   }
 
-  const title = mpClip?.title || mpItemSoundbite?.title || mpItemChapter?.title || tMisc('untitled');
+  const title =
+    mpClip?.title || mpItemSoundbite?.title || mpItemChapter?.title || tMisc('untitled');
 
   const showButtons = !mpClip && !mpItemSoundbite;
 
@@ -27,7 +34,7 @@ export const MediaPlayerMarqueeMobile = () => {
         chapters: mpItemChapters,
         direction: 'previous',
       });
-  
+
       if (previousChapter) {
         setMPItemChapter(previousChapter);
         setMPItemChapterShouldSeek(true);
@@ -52,33 +59,21 @@ export const MediaPlayerMarqueeMobile = () => {
 
   return (
     <div className={styles.marquee}>
-      {
-        showButtons && (
-          <div className={styles.prevChapter}>
-            <button
-              className={styles.prevChapterButton}
-              onClick={loadPreviousChapter}
-              type="button">
-              <FaArrowLeft />
-            </button>
-          </div>
-        )
-      }
-      <div className={styles.marqueeText}>
-        {title}
-      </div>
-      {
-        showButtons && (
-          <div className={styles.nextChapter}>
-            <button
-              className={styles.nextChapterButton}
-              onClick={loadNextChapter}
-              type="button">
-              <FaArrowRight />
-            </button>
-          </div>
-        )
-      }
+      {showButtons && (
+        <div className={styles.prevChapter}>
+          <button className={styles.prevChapterButton} onClick={loadPreviousChapter} type="button">
+            <FaArrowLeft />
+          </button>
+        </div>
+      )}
+      <div className={styles.marqueeText}>{title}</div>
+      {showButtons && (
+        <div className={styles.nextChapter}>
+          <button className={styles.nextChapterButton} onClick={loadNextChapter} type="button">
+            <FaArrowRight />
+          </button>
+        </div>
+      )}
     </div>
   );
 };

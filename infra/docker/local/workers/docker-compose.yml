@@ -3,7 +3,6 @@ networks:
     external: true
 
 services:
-
   podverse_local_workers:
     image: podverse-workers:latest
     container_name: podverse_local_workers
@@ -12,10 +11,10 @@ services:
     networks:
       - podverse_local_network
     logging:
-      driver: 'json-file'
+      driver: "json-file"
       options:
-        max-file: '1'
-        max-size: '50m'
+        max-file: "1"
+        max-size: "50m"
     volumes:
       - ../../../config/google/firebase/firebase-admin.json:/opt/config/google/firebase/firebase-admin.json:ro
       - ../../../../logs/workers:/opt/logs

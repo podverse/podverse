@@ -1,4 +1,4 @@
-import { ApiRequestService } from '@podverse/helpers';
+import { ApiRequestService } from '@podverse/helpers-requests';
 import { config } from '../config';
 
 export function getSSRApiRequestService(jwt?: string | null): ApiRequestService {

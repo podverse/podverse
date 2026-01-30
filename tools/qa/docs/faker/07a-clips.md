@@ -39,25 +39,19 @@ export interface GeneratedClip {
 
 export class ClipGenerator {
   private idCounter = 1;
-  
-  generate(
-    accounts: GeneratedAccount[],
-    items: GeneratedItem[],
-    count: number
-  ): GeneratedClip[] {
+
+  generate(accounts: GeneratedAccount[], items: GeneratedItem[], count: number): GeneratedClip[] {
     const clips: GeneratedClip[] = [];
-    
+
     for (let i = 0; i < count; i++) {
       const account = faker.helpers.arrayElement(accounts);
       const item = faker.helpers.arrayElement(items);
-      
+
       // Generate start/end times within a reasonable duration
       const startTime = faker.number.float({ min: 0, max: 3000 });
       const hasEndTime = faker.datatype.boolean({ probability: 0.7 });
-      const endTime = hasEndTime 
-        ? startTime + faker.number.float({ min: 10, max: 300 })
-        : null;
-      
+      const endTime = hasEndTime ? startTime + faker.number.float({ min: 10, max: 300 }) : null;
+
       clips.push({
         id: this.idCounter++,
         id_text: generateRandomIdText(),
@@ -75,22 +69,22 @@ export class ClipGenerator {
         sharable_status_id: faker.helpers.weightedArrayElement([
           { value: SharableStatusEnum.Public, weight: 6 },
           { value: SharableStatusEnum.Unlisted, weight: 3 },
-          { value: SharableStatusEnum.Private, weight: 1 }
-        ])
+          { value: SharableStatusEnum.Private, weight: 1 },
+        ]),
       });
     }
-    
+
     return clips;
   }
-  
+
   toSQL(clip: GeneratedClip): string {
     const endTime = clip.end_time ? `'${clip.end_time}'` : 'NULL';
     const title = clip.title ? `'${this.escapeSQL(clip.title)}'` : 'NULL';
     const description = clip.description ? `'${this.escapeSQL(clip.description)}'` : 'NULL';
-    
+
     return `INSERT INTO clip (id, id_text, account_id, item_id, start_time, end_time, title, description, created_at, sharable_status_id) VALUES (${clip.id}, '${clip.id_text}', ${clip.account_id}, ${clip.item_id}, '${clip.start_time}', ${endTime}, ${title}, ${description}, '${clip.created_at.toISOString()}', ${clip.sharable_status_id});`;
   }
-  
+
   private escapeSQL(str: string): string {
     return str.replace(/'/g, "''");
   }
@@ -100,5 +94,5 @@ export class ClipGenerator {
 ## Summary
 
 | Entity | Count for baseCount=100 |
-|--------|------------------------|
-| Clip | 100 |
+| ------ | ----------------------- |
+| Clip   | 100                     |

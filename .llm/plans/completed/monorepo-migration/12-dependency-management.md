@@ -8,14 +8,14 @@ Set up automated dependency updates using Renovate for security patches and vers
 
 ## Why Renovate over Dependabot?
 
-| Feature | Renovate | Dependabot |
-|---------|----------|------------|
-| Monorepo support | Excellent | Limited |
-| Grouping updates | Flexible | Basic |
-| Scheduling | Highly configurable | Limited |
-| Auto-merge | Configurable | Requires Actions |
-| Custom rules | Extensive | Limited |
-| npm workspaces | Native support | Partial |
+| Feature          | Renovate            | Dependabot       |
+| ---------------- | ------------------- | ---------------- |
+| Monorepo support | Excellent           | Limited          |
+| Grouping updates | Flexible            | Basic            |
+| Scheduling       | Highly configurable | Limited          |
+| Auto-merge       | Configurable        | Requires Actions |
+| Custom rules     | Extensive           | Limited          |
+| npm workspaces   | Native support      | Partial          |
 
 ## Renovate Configuration
 
@@ -24,11 +24,7 @@ Set up automated dependency updates using Renovate for security patches and vers
 ```json
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": [
-    "config:base",
-    ":semanticCommits",
-    ":preserveSemverRanges"
-  ],
+  "extends": ["config:base", ":semanticCommits", ":preserveSemverRanges"],
 
   "labels": ["dependencies"],
   "assignees": ["mitchelldowney"],
@@ -105,9 +101,7 @@ Set up automated dependency updates using Renovate for security patches and vers
     "schedule": ["before 5am on the first day of the month"]
   },
 
-  "ignoreDeps": [
-    "podverse-partytime"
-  ]
+  "ignoreDeps": ["podverse-partytime"]
 }
 ```
 
@@ -127,60 +121,60 @@ registries:
 
 updates:
   # Root package.json
-  - package-ecosystem: "npm"
-    directory: "/"
+  - package-ecosystem: 'npm'
+    directory: '/'
     schedule:
-      interval: "weekly"
-      day: "monday"
-      time: "08:00"
-      timezone: "America/Chicago"
+      interval: 'weekly'
+      day: 'monday'
+      time: '08:00'
+      timezone: 'America/Chicago'
     open-pull-requests-limit: 5
     labels:
-      - "dependencies"
+      - 'dependencies'
     commit-message:
-      prefix: "chore(deps)"
+      prefix: 'chore(deps)'
     groups:
       production-dependencies:
         patterns:
-          - "*"
+          - '*'
         exclude-patterns:
-          - "@types/*"
-          - "eslint*"
-          - "typescript"
+          - '@types/*'
+          - 'eslint*'
+          - 'typescript'
         update-types:
-          - "minor"
-          - "patch"
+          - 'minor'
+          - 'patch'
       development-dependencies:
-        dependency-type: "development"
+        dependency-type: 'development'
         update-types:
-          - "minor"
-          - "patch"
+          - 'minor'
+          - 'patch'
 
   # Docker images
-  - package-ecosystem: "docker"
-    directory: "/apps/api"
+  - package-ecosystem: 'docker'
+    directory: '/apps/api'
     schedule:
-      interval: "weekly"
+      interval: 'weekly'
     labels:
-      - "dependencies"
-      - "docker"
+      - 'dependencies'
+      - 'docker'
 
-  - package-ecosystem: "docker"
-    directory: "/apps/web"
+  - package-ecosystem: 'docker'
+    directory: '/apps/web'
     schedule:
-      interval: "weekly"
+      interval: 'weekly'
     labels:
-      - "dependencies"
-      - "docker"
+      - 'dependencies'
+      - 'docker'
 
   # GitHub Actions
-  - package-ecosystem: "github-actions"
-    directory: "/"
+  - package-ecosystem: 'github-actions'
+    directory: '/'
     schedule:
-      interval: "weekly"
+      interval: 'weekly'
     labels:
-      - "dependencies"
-      - "github-actions"
+      - 'dependencies'
+      - 'github-actions'
 ```
 
 ## Dependency Update Workflow
@@ -233,7 +227,7 @@ echo ""
 echo "=== Audit Complete ==="
 
 # Summary
-VULNS=$(npm audit --json 2>/dev/null | jq '.metadata.vulnerabilities.total' || echo "0")
+VULNS=$(npm audit --json 2> /dev/null | jq '.metadata.vulnerabilities.total' || echo "0")
 if [ "$VULNS" != "0" ] && [ "$VULNS" != "null" ]; then
   echo ""
   echo "⚠️  Found $VULNS vulnerabilities"
@@ -267,9 +261,9 @@ jobs:
 ```json
 {
   "dependencies": {
-    "next": "15.0.0",           // Exact - major framework
-    "express": "^5.0.0",        // Minor allowed
-    "lodash": "^4.17.21"        // Patch allowed
+    "next": "15.0.0", // Exact - major framework
+    "express": "^5.0.0", // Minor allowed
+    "lodash": "^4.17.21" // Patch allowed
   }
 }
 ```
@@ -300,6 +294,7 @@ jobs:
 ### Dependency Dashboard (Renovate)
 
 Renovate creates an issue titled "Dependency Dashboard" that shows:
+
 - Pending updates
 - Awaiting approval
 - Rate-limited PRs
@@ -313,11 +308,11 @@ Renovate creates an issue titled "Dependency Dashboard" that shows:
 
 ## Files to Create
 
-| File | Purpose |
-|------|---------|
-| `renovate.json` | Renovate configuration |
-| `.github/dependabot.yml` | Alternative (if not using Renovate) |
-| `scripts/audit/audit-all.sh` | Manual audit script |
+| File                         | Purpose                             |
+| ---------------------------- | ----------------------------------- |
+| `renovate.json`              | Renovate configuration              |
+| `.github/dependabot.yml`     | Alternative (if not using Renovate) |
+| `scripts/audit/audit-all.sh` | Manual audit script                 |
 
 ## Setup Steps
 

@@ -1,7 +1,8 @@
 'use client';
 
-import { DTOPlaylist, DTOPlaylistResource, getTotalPages, QueryParamsPlaylistResources } from '@podverse/helpers';
-import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
+import { DTOPlaylist, DTOPlaylistResource, getTotalPages } from '@podverse/helpers';
+import { QueryParamsPlaylistResources } from '@podverse/helpers-requests';
+import { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { apiRequestService } from '../../../factories/apiRequestService';
 
 interface PlaylistContextType {
@@ -11,17 +12,19 @@ interface PlaylistContextType {
   setPlaylistResources: (playlistResources: DTOPlaylistResource[]) => void;
   totalPages: number;
   setTotalPages: (totalPages: number) => void;
-};
+}
 
 const PlaylistContext = createContext<PlaylistContextType | undefined>(undefined);
 
 interface PlaylistContextProviderProps {
-  children: ReactNode,
-  ssrPlaylist: DTOPlaylist
+  children: ReactNode;
+  ssrPlaylist: DTOPlaylist;
 }
 
-export const PlaylistContextProvider = (
-  { children, ssrPlaylist }: PlaylistContextProviderProps) => {
+export const PlaylistContextProvider = ({
+  children,
+  ssrPlaylist,
+}: PlaylistContextProviderProps) => {
   const [filterParams, setFilterParams] = useState<QueryParamsPlaylistResources>({ page: 1 });
   const [playlistResources, setPlaylistResources] = useState<DTOPlaylistResource[]>([]);
   const [totalPages, setTotalPages] = useState<number>(1);
@@ -32,10 +35,15 @@ export const PlaylistContextProvider = (
         ssrPlaylist.id_text,
         {
           page: filterParams.page,
-        },
+        }
       );
-      
-      const totalPages = getTotalPages(response.meta.count, response.meta.limit, response.data.length, filterParams.page);
+
+      const totalPages = getTotalPages(
+        response.meta.count,
+        response.meta.limit,
+        response.data.length,
+        filterParams.page
+      );
       setTotalPages(totalPages);
       setPlaylistResources(response.data);
     }
@@ -44,11 +52,16 @@ export const PlaylistContextProvider = (
   }, [filterParams]);
 
   return (
-    <PlaylistContext.Provider value={{
-      filterParams, setFilterParams,
-      playlistResources, setPlaylistResources,
-      totalPages, setTotalPages,
-    }}>
+    <PlaylistContext.Provider
+      value={{
+        filterParams,
+        setFilterParams,
+        playlistResources,
+        setPlaylistResources,
+        totalPages,
+        setTotalPages,
+      }}
+    >
       {children}
     </PlaylistContext.Provider>
   );
@@ -56,6 +69,8 @@ export const PlaylistContextProvider = (
 
 export const usePlaylistContext = () => {
   const ctx = useContext(PlaylistContext);
-  if (!ctx) {throw new Error('usePlaylistContext must be used within a PlaylistContextProvider');}
+  if (!ctx) {
+    throw new Error('usePlaylistContext must be used within a PlaylistContextProvider');
+  }
   return ctx;
 };

@@ -1,6 +1,13 @@
 import { useEffect, useRef } from 'react';
-import { DTOChannel, DTOClip, DTOItem, DTOItemChapter, DTOItemSoundbite,
-  EnclosureSelectedParams, MediumEnum } from '@podverse/helpers';
+import {
+  DTOChannel,
+  DTOClip,
+  DTOItem,
+  DTOItemChapter,
+  DTOItemSoundbite,
+  EnclosureSelectedParams,
+  MediumEnum,
+} from '@podverse/helpers';
 import { useMediaPlayer } from '../contexts/MediaPlayer';
 import { useQueueResourcesUpdateNowPlaying } from './useQueueResourceUpdateNowPlaying';
 import { useMediaPlayerCurrentTime } from '../contexts/MediaPlayerCurrentTime';
@@ -20,8 +27,8 @@ export function useMediaPlayerResourceUpdate() {
     setMPEnclosureSelectedParams,
     setMPIsPlaying,
   } = useMediaPlayer();
-  const { autoQueueConfig, setAutoQueueConfig, setAutoQueueResources,
-    setAutoQueueActiveRow } = useAutoQueue();
+  const { autoQueueConfig, setAutoQueueConfig, setAutoQueueResources, setAutoQueueActiveRow } =
+    useAutoQueue();
   const { mpEnclosureSelectedParams, mpItem } = useMediaPlayer();
   const { setMPCurrentTime } = useMediaPlayerCurrentTime();
   const updateNowPlaying = useQueueResourcesUpdateNowPlaying();
@@ -62,20 +69,20 @@ export function useMediaPlayerResourceUpdate() {
     newAutoQueueConfig,
     autoQueueShouldClear,
   }: {
-    shouldPlay?: boolean
-    channel: DTOChannel | null,
-    clip: DTOClip | null,
-    item: DTOItem | null,
-    itemChapter: DTOItemChapter | null,
-    itemChapterShouldSeek: boolean,
-    itemSoundbite: DTOItemSoundbite | null,
-    enclosureSelectedParams: EnclosureSelectedParams | 'use-active-item-or-default',
-    mpDuration?: number,
-    mpCurrentTime?: number,
-    isPlaying?: boolean,
-    skipMoveNowPlayingToHistory: boolean,
-    newAutoQueueConfig: AutoQueueConfig,
-    autoQueueShouldClear: boolean
+    shouldPlay?: boolean;
+    channel: DTOChannel | null;
+    clip: DTOClip | null;
+    item: DTOItem | null;
+    itemChapter: DTOItemChapter | null;
+    itemChapterShouldSeek: boolean;
+    itemSoundbite: DTOItemSoundbite | null;
+    enclosureSelectedParams: EnclosureSelectedParams | 'use-active-item-or-default';
+    mpDuration?: number;
+    mpCurrentTime?: number;
+    isPlaying?: boolean;
+    skipMoveNowPlayingToHistory: boolean;
+    newAutoQueueConfig: AutoQueueConfig;
+    autoQueueShouldClear: boolean;
   }) => {
     const previousItemId = mpItemRef.current?.id;
 
@@ -95,7 +102,7 @@ export function useMediaPlayerResourceUpdate() {
     if (shouldPlay !== undefined) {
       setMPShouldPlay(shouldPlay);
     }
-    
+
     setMPChannel(channel);
     setMPClip(clip);
     setMPItem(item);
@@ -128,7 +135,11 @@ export function useMediaPlayerResourceUpdate() {
     // (because they will be updated shortly after by the media audio/video controllers anyway).
     type ResourceWithId = { id: number | string } | null | undefined;
     type AbridgedData = { p?: number | string; d?: number | string };
-    function getAbridgedAndSet(resource: ResourceWithId, abridgedMap: Record<string, AbridgedData>, preventSet: boolean = false) {
+    function getAbridgedAndSet(
+      resource: ResourceWithId,
+      abridgedMap: Record<string, AbridgedData>,
+      preventSet: boolean = false
+    ) {
       const abridged = resource ? abridgedMap?.[resource.id] : undefined;
       const currentTime = Number(abridged?.p) || 0;
       const duration = Number(abridged?.d) || 0;
@@ -145,13 +156,20 @@ export function useMediaPlayerResourceUpdate() {
     if (clip) {
       timeData = getAbridgedAndSet(clip, queueResourcesAbridgedIndexRef.current.clips);
     } else if (itemSoundbite) {
-      timeData = getAbridgedAndSet(itemSoundbite, queueResourcesAbridgedIndexRef.current.item_soundbites);
+      timeData = getAbridgedAndSet(
+        itemSoundbite,
+        queueResourcesAbridgedIndexRef.current.item_soundbites
+      );
     } else if (item) {
       if (channel?.medium_id === MediumEnum.Podcast || channel?.medium_id === MediumEnum.Video) {
         timeData = getAbridgedAndSet(item, queueResourcesAbridgedIndexRef.current.items);
       } else {
         const preventSet = true;
-        const tempTimeData = getAbridgedAndSet(item, queueResourcesAbridgedIndexRef.current.items, preventSet);
+        const tempTimeData = getAbridgedAndSet(
+          item,
+          queueResourcesAbridgedIndexRef.current.items,
+          preventSet
+        );
         timeData = { currentTime: 0, duration: tempTimeData.duration };
         setMPCurrentTime(0);
       }

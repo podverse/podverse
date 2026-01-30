@@ -13,44 +13,32 @@ import styles from '../../../styles/app/podcast/PodcastList.module.scss';
 type AlbumListProps = {
   podroll: RemoteItemsResponse | null;
   ssrChannel: DTOChannel;
-}
+};
 
 export const AlbumList: React.FC<AlbumListProps> = ({ podroll, ssrChannel }) => {
   const { filterParams, setFilterParams, items, totalPages, isLoading } = useAlbumContext();
   const { page, type } = filterParams;
-  
+
   return (
     <div className={styles.list}>
-      {
-        type === 'tracks' && (
-          <ListTracks
-            page={page}
-            setPage={(page) => setFilterParams({ ...filterParams, page })}
-            channel={ssrChannel}
-            items={items}
-            totalPages={totalPages}
-            viewSelected="rows"
-          />
-        )
-      }
-      {
-        type === 'about' && (
-          <ContentAbout
-            description={ssrChannel.channel_description?.value}
-            channel_persons={ssrChannel.channel_persons}
-          />
-        )
-      }
-      {
-        type === 'podroll' && (
-          <ContentPodroll remoteItemsResponse={podroll} />
-        )
-      }
-      {
-        type === 'settings' && (
-          <ListChannelSettings channel={ssrChannel} />
-        )
-      }
+      {type === 'tracks' && (
+        <ListTracks
+          page={page}
+          setPage={(page) => setFilterParams({ ...filterParams, page })}
+          channel={ssrChannel}
+          items={items}
+          totalPages={totalPages}
+          viewSelected="rows"
+        />
+      )}
+      {type === 'about' && (
+        <ContentAbout
+          description={ssrChannel.channel_description?.value}
+          channel_persons={ssrChannel.channel_persons}
+        />
+      )}
+      {type === 'podroll' && <ContentPodroll remoteItemsResponse={podroll} />}
+      {type === 'settings' && <ListChannelSettings channel={ssrChannel} />}
       <LoadingSpinnerOverlay isLoading={isLoading} />
     </div>
   );

@@ -15,7 +15,7 @@ export interface FormDropdownProps {
   value: string;
   onChange: (value: string) => void;
   info?: string;
-};
+}
 
 export const FormDropdown: React.FC<FormDropdownProps> = ({
   eyebrow,
@@ -31,7 +31,7 @@ export const FormDropdown: React.FC<FormDropdownProps> = ({
   const infoId = info ? `${id}-info` : undefined;
 
   const currentSelectedItem = useMemo(() => {
-    return menuItems.find(item => item.value === value) || menuItems[0];
+    return menuItems.find((item) => item.value === value) || menuItems[0];
   }, [menuItems, value]);
 
   const menuItemsWithHandlers = menuItems.map((item) => ({
@@ -42,40 +42,28 @@ export const FormDropdown: React.FC<FormDropdownProps> = ({
       }
     },
   }));
-  
-  const {
-    open,
-    setOpen,
-    focusedIndex,
-    setFocusedIndex,
-    handleButtonKeyDown,
-    handleMenuKeyDown,
-  } = useDropdownKeyboardNavigation({
-    itemCount: menuItemsWithHandlers.length,
-    onItemSelect: (idx) => menuItemsWithHandlers[idx]?.onClick(),
-    onClose: () => setOpen(false),
-    buttonRef,
-    menuRef,
-  });
+
+  const { open, setOpen, focusedIndex, setFocusedIndex, handleButtonKeyDown, handleMenuKeyDown } =
+    useDropdownKeyboardNavigation({
+      itemCount: menuItemsWithHandlers.length,
+      onItemSelect: (idx) => menuItemsWithHandlers[idx]?.onClick(),
+      onClose: () => setOpen(false),
+      buttonRef,
+      menuRef,
+    });
 
   return (
     <div className={styles.wrapper}>
-      {
-        label && (
-          <div className={styles.headerRow}>
-            <label htmlFor={id} className={styles.label}>
-              {label}
-            </label>
-          </div>
-        )
-      }
+      {label && (
+        <div className={styles.headerRow}>
+          <label htmlFor={id} className={styles.label}>
+            {label}
+          </label>
+        </div>
+      )}
       <div className={styles.dropdownWrapper}>
         <div className={styles.dropdownInnerWrapper}>
-          {eyebrow && (
-            <label className={styles.eyebrow}>
-              {eyebrow}
-            </label>
-          )}
+          {eyebrow && <label className={styles.eyebrow}>{eyebrow}</label>}
           <button
             ref={buttonRef}
             id={id}
@@ -83,10 +71,10 @@ export const FormDropdown: React.FC<FormDropdownProps> = ({
             aria-haspopup="menu"
             aria-expanded={open}
             aria-describedby={info ? infoId : undefined}
-            onClick={() => setOpen(v => !v)}
-            onKeyDown={e => handleButtonKeyDown(e)}
+            onClick={() => setOpen((v) => !v)}
+            onKeyDown={(e) => handleButtonKeyDown(e)}
             type="button"
-            >
+          >
             <div className={styles.dropdown}>
               <span className={styles.dropdownSelectedItemText}>{currentSelectedItem?.label}</span>
               <FaChevronDown />

@@ -1,5 +1,5 @@
 import { DTOCategory } from '@podverse/helpers';
-import React, { createContext, useState, ReactNode } from 'react';
+import { createContext, useState, ReactNode } from 'react';
 import { useContext } from 'react';
 
 type CategoriesContextType = {
@@ -15,21 +15,16 @@ type CategoriesProviderProps = {
   ssrCategories?: DTOCategory[];
 };
 
-export const CategoriesProvider = ({
-  children,
-  ssrCategories = [],
-}: CategoriesProviderProps) => {
+export const CategoriesProvider = ({ children, ssrCategories = [] }: CategoriesProviderProps) => {
   const [categories] = useState<DTOCategory[]>(ssrCategories);
 
-  return (
-    <CategoriesContext.Provider value={{ categories }}>
-      {children}
-    </CategoriesContext.Provider>
-  );
+  return <CategoriesContext.Provider value={{ categories }}>{children}</CategoriesContext.Provider>;
 };
 
 export function useCategories() {
   const ctx = useContext(CategoriesContext);
-  if (!ctx) {throw new Error('useCategories must be used within a CategoriesProvider');}
+  if (!ctx) {
+    throw new Error('useCategories must be used within a CategoriesProvider');
+  }
   return ctx;
 }

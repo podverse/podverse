@@ -11,7 +11,7 @@ export const PodcastHeaderSubtitle: React.FC<PodcastHeaderSubtitleProps> = ({ ch
   const author = channel_about?.author;
   const channel_categories = channel.channel_categories;
   const hasChannelCategories = channel_categories && channel_categories.length > 0;
-  
+
   return (
     <div>
       <span>{author}</span>

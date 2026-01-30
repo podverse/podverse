@@ -16,27 +16,43 @@ interface Params {
   showChannelInfo?: boolean;
 }
 
-export function ListEpisodeNodes({ channel, items, viewSelected, showChannelInfo }: Params): React.ReactNode {
-  const filteredItems = items.filter((item): item is DTOItem & { channel: DTOChannel } => (channel ? true : !!item.channel));
+export function ListEpisodeNodes({
+  channel,
+  items,
+  viewSelected,
+  showChannelInfo,
+}: Params): React.ReactNode {
+  const filteredItems = items.filter((item): item is DTOItem & { channel: DTOChannel } =>
+    channel ? true : !!item.channel
+  );
 
   if (viewSelected === 'rows') {
     return (
       <div key="list" className={styles.list}>
-        {
-          filteredItems.map((item, idx) => {
-            const rowChannel = channel || item.channel;
-            return (
-              <React.Fragment key={item.id}>
-                {item.live_item ? (
-                  <ListLiveItemRow channel={rowChannel} item={item} live_item={item.live_item} showChannelInfo={showChannelInfo} showLiveItemStatus />
-                ) : (
-                  <ListEpisodeRow channel={rowChannel} item={item} showChannelInfo={showChannelInfo} playlist_id_text={null} />
-                )}
-                {idx < items.length - 1 && <Divider />}
-              </React.Fragment>
-            );
-          })
-        }
+        {filteredItems.map((item, idx) => {
+          const rowChannel = channel || item.channel;
+          return (
+            <React.Fragment key={item.id}>
+              {item.live_item ? (
+                <ListLiveItemRow
+                  channel={rowChannel}
+                  item={item}
+                  live_item={item.live_item}
+                  showChannelInfo={showChannelInfo}
+                  showLiveItemStatus
+                />
+              ) : (
+                <ListEpisodeRow
+                  channel={rowChannel}
+                  item={item}
+                  showChannelInfo={showChannelInfo}
+                  playlist_id_text={null}
+                />
+              )}
+              {idx < items.length - 1 && <Divider />}
+            </React.Fragment>
+          );
+        })}
       </div>
     );
   }
@@ -44,7 +60,7 @@ export function ListEpisodeNodes({ channel, items, viewSelected, showChannelInfo
   if (viewSelected === 'grid') {
     return (
       <div key="grid" className={styles.grid}>
-        {filteredItems.map(item => {
+        {filteredItems.map((item) => {
           const rowChannel = channel || item.channel;
           return (
             <ListEpisodeGridNode

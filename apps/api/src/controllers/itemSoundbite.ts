@@ -1,7 +1,10 @@
 import { Request, Response } from 'express';
 import Joi from 'joi';
-import { ApiListResponse, QueryParamsItemSoundbitesByChannelSort,
-  QueryParamsItemSoundbitesByItemSort } from '@podverse/helpers';
+import {
+  ApiListResponse,
+  QueryParamsItemSoundbitesByChannelSort,
+  QueryParamsItemSoundbitesByItemSort,
+} from '@podverse/helpers-requests';
 import { ItemSoundbite, ItemSoundbiteService } from '@podverse/orm';
 import { handleGenericErrorResponse } from './helpers/error';
 import { validateParamsObject, validateQueryObject } from '@api/lib/validation';
@@ -33,15 +36,13 @@ const getByItemIdTextSchema = Joi.object({
 const itemSoundbiteService = new ItemSoundbiteService();
 
 export class ItemSoundbiteController {
-
   static async getItemSoundbiteById(req: Request, res: Response): Promise<void> {
     validateParamsObject(itemSoundbiteIdTextSchema, req, res, async () => {
       try {
         const item_soundbite_id_text = getParamRequired(req, 'item_soundbite_id_text');
-        const itemSoundbite = await itemSoundbiteService.getByIdText(
-          item_soundbite_id_text,
-          { relations: ['item'] },
-        );
+        const itemSoundbite = await itemSoundbiteService.getByIdText(item_soundbite_id_text, {
+          relations: ['item'],
+        });
         if (itemSoundbite) {
           res.status(200).json(itemSoundbite);
         } else {

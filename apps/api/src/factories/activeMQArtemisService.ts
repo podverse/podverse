@@ -10,7 +10,10 @@ const activeMQArtemisParams: ActiveMQArtemisServiceParams = {
   password: config.activeMQArtemis.password,
 };
 
-export const activeMQArtemisService = new ActiveMQArtemisService(activeMQArtemisParams, loggerService);
+export const activeMQArtemisService = new ActiveMQArtemisService(
+  activeMQArtemisParams,
+  loggerService
+);
 
 activeMQArtemisService.initialize().catch((error) => {
   loggerService.error('Failed to initialize ActiveMQArtemisService:', error);

@@ -1,8 +1,7 @@
-
 'use client';
 
-import { DTOItem, QueryParamsGetManyPartialMusic } from '@podverse/helpers';
-import React from 'react';
+import { DTOItem } from '@podverse/helpers';
+import { QueryParamsGetManyPartialMusic } from '@podverse/helpers-requests';
 import { MainWrapper } from '../../components/Main/MainWrapper';
 import { MainInnerWrapper } from '../../components/Main/MainInnerWrapper';
 import { MainInnerContentWrapper } from '../../components/Main/MainInnerContentWrapper';
@@ -18,7 +17,7 @@ interface TracksClientProps {
 
 export function TracksClient(props: TracksClientProps) {
   const { initialQueryParams, ssrItems, ssrTotalPages } = props;
-  
+
   return (
     <TracksContextProvider
       initialQueryParams={initialQueryParams}

@@ -1,7 +1,11 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { UITheme, toUITheme } from '../utils/localSettings/uiTheme';
 import { ViewSelectedOption } from '../components/ViewSelector/ViewSelector';
-import { handleLocalSettingsUpdate, LocalSettingsState, getParsedLocalSettings } from '../utils/localSettings/localSettings';
+import {
+  handleLocalSettingsUpdate,
+  LocalSettingsState,
+  getParsedLocalSettings,
+} from '../utils/localSettings/localSettings';
 
 type LocalSettingsContextType = {
   uiTheme: UITheme;
@@ -16,8 +20,8 @@ type LocalSettingsContextType = {
 
 type LocalSettingsProps = {
   ssrLocalSettings: LocalSettingsState;
-  children: React.ReactNode
-}
+  children: React.ReactNode;
+};
 
 const LocalSettingsContext = createContext<LocalSettingsContextType | undefined>(undefined);
 
@@ -29,8 +33,10 @@ export const LocalSettingsProvider: React.FC<LocalSettingsProps> = ({
   const [viewSelected, setViewSelected] = useState<ViewSelectedOption>(ssrLocalSettings.vs);
   const [serverEnvironmentDisclaimerAccepted, setServerEnvironmentDisclaimerAccepted] =
     useState<boolean>(ssrLocalSettings.seda);
-  const [lsAutoQueueConfig, setLSAutoQueueConfig] = useState(ssrLocalSettings.aqc || { rp: false, rd: false });
-  
+  const [lsAutoQueueConfig, setLSAutoQueueConfig] = useState(
+    ssrLocalSettings.aqc || { rp: false, rd: false }
+  );
+
   useEffect(() => {
     const existingSettings = getParsedLocalSettings();
     // Remember to update this when new properties are added to the LocalSettingsState
@@ -46,12 +52,18 @@ export const LocalSettingsProvider: React.FC<LocalSettingsProps> = ({
   }, [uiTheme, viewSelected, serverEnvironmentDisclaimerAccepted, lsAutoQueueConfig]);
 
   return (
-    <LocalSettingsContext.Provider value={{
-      uiTheme, setUITheme,
-      viewSelected, setViewSelected, 
-      serverEnvironmentDisclaimerAccepted, setServerEnvironmentDisclaimerAccepted,
-      lsAutoQueueConfig, setLSAutoQueueConfig,
-    }}>
+    <LocalSettingsContext.Provider
+      value={{
+        uiTheme,
+        setUITheme,
+        viewSelected,
+        setViewSelected,
+        serverEnvironmentDisclaimerAccepted,
+        setServerEnvironmentDisclaimerAccepted,
+        lsAutoQueueConfig,
+        setLSAutoQueueConfig,
+      }}
+    >
       {children}
     </LocalSettingsContext.Provider>
   );
@@ -59,6 +71,8 @@ export const LocalSettingsProvider: React.FC<LocalSettingsProps> = ({
 
 export function useLocalSettings() {
   const ctx = useContext(LocalSettingsContext);
-  if (!ctx) {throw new Error('useLocalSettings must be used within a LocalSettingsProvider');}
+  if (!ctx) {
+    throw new Error('useLocalSettings must be used within a LocalSettingsProvider');
+  }
   return ctx;
 }

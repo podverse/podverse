@@ -50,21 +50,12 @@ mkdir -p tools/qa
     "type": "git",
     "url": "https://github.com/podverse/podverse.git"
   },
-  "contributors": [
-    "Mitch Downey",
-    "Creon Creonopoulos",
-    "Archie Brentano",
-    "Kyle Downey"
-  ],
+  "contributors": ["Mitch Downey", "Creon Creonopoulos", "Archie Brentano", "Kyle Downey"],
   "license": "AGPL-3.0",
   "engines": {
     "node": ">=22.0.0"
   },
-  "workspaces": [
-    "packages/*",
-    "apps/*",
-    "tools/*"
-  ],
+  "workspaces": ["packages/*", "apps/*", "tools/*"],
   "scripts": {
     "prepare": "bash scripts/git-hooks/install-hooks.sh",
     "build": "npm run build --workspaces --if-present",
@@ -138,16 +129,19 @@ export default tseslint.config(
     },
     rules: {
       'no-unused-vars': 'off',
-      '@typescript-eslint/no-unused-vars': ['error', { 
-        argsIgnorePattern: '^_',
-        varsIgnorePattern: '^_',
-      }],
-      'semi': ['error', 'never'],
-      'quotes': ['error', 'single', { avoidEscape: true }],
+      '@typescript-eslint/no-unused-vars': [
+        'error',
+        {
+          argsIgnorePattern: '^_',
+          varsIgnorePattern: '^_',
+        },
+      ],
+      semi: ['error', 'never'],
+      quotes: ['error', 'single', { avoidEscape: true }],
       'comma-dangle': ['error', 'always-multiline'],
       'no-console': ['warn', { allow: ['warn', 'error'] }],
-      'eqeqeq': ['error', 'always'],
-      'curly': ['error', 'all'],
+      eqeqeq: ['error', 'always'],
+      curly: ['error', 'all'],
       '@typescript-eslint/explicit-function-return-type': 'off',
       '@typescript-eslint/explicit-module-boundary-types': 'off',
       '@typescript-eslint/no-explicit-any': 'warn',
@@ -155,12 +149,7 @@ export default tseslint.config(
     },
   },
   {
-    ignores: [
-      '**/dist/**',
-      '**/node_modules/**',
-      '**/*.js',
-      '**/*.d.ts',
-    ],
+    ignores: ['**/dist/**', '**/node_modules/**', '**/*.js', '**/*.d.ts'],
   }
 );
 ```

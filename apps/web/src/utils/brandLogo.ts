@@ -1,7 +1,7 @@
 import { ASSETS } from '../constants/assets';
 import { UITheme } from './localSettings/uiTheme';
 
-export const getBrandLogoSrc = ((uiTheme: UITheme) => {
+export const getBrandLogoSrc = (uiTheme: UITheme) => {
   switch (uiTheme) {
     case 'dark':
       return ASSETS.IMAGES.BRANDING.BRAND.WHITE;
@@ -12,4 +12,4 @@ export const getBrandLogoSrc = ((uiTheme: UITheme) => {
     default:
       return ASSETS.IMAGES.BRANDING.BRAND.WHITE;
   }
-});
+};

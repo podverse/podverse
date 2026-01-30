@@ -16,26 +16,26 @@ interface Params {
   viewSelected: ViewSelectedOption;
 }
 
-export function ListAlbumRemoteItemNodes({ channelsAdded, channelsUnadded, viewSelected }: Params): React.ReactNode {  
+export function ListAlbumRemoteItemNodes({
+  channelsAdded,
+  channelsUnadded,
+  viewSelected,
+}: Params): React.ReactNode {
   if (viewSelected === 'rows') {
     return (
       <div key="list" className={styles.listTight}>
-        {
-          channelsAdded.map((channelAdded, idx) => (
-            <React.Fragment key={channelAdded.id}>
-              <ListAlbumRow channel={channelAdded} />
-              {idx < channelsAdded.length - 1 && <Divider />}
-            </React.Fragment>
-          ))
-        }
-        {
-          channelsUnadded.map((channelUnadded, idx) => (
-            <React.Fragment key={channelUnadded.id}>
-              <ListAlbumRowRemoteItemUnadded channelUnadded={channelUnadded} />
-              {idx < channelsUnadded.length - 1 && <Divider />}
-            </React.Fragment>
-          ))
-        }
+        {channelsAdded.map((channelAdded, idx) => (
+          <React.Fragment key={channelAdded.id}>
+            <ListAlbumRow channel={channelAdded} />
+            {idx < channelsAdded.length - 1 && <Divider />}
+          </React.Fragment>
+        ))}
+        {channelsUnadded.map((channelUnadded, idx) => (
+          <React.Fragment key={channelUnadded.id}>
+            <ListAlbumRowRemoteItemUnadded channelUnadded={channelUnadded} />
+            {idx < channelsUnadded.length - 1 && <Divider />}
+          </React.Fragment>
+        ))}
       </div>
     );
   }
@@ -43,16 +43,12 @@ export function ListAlbumRemoteItemNodes({ channelsAdded, channelsUnadded, viewS
   if (viewSelected === 'grid') {
     return (
       <div key="grid" className={styles.grid}>
-        {
-          channelsAdded.map(channelAdded => (
-            <ListAlbumGridNode key={channelAdded.id} channel={channelAdded} />
-          ))
-        }
-        {
-          channelsUnadded.map(channelUnadded => (
-            <ListAlbumGridNodeUnadded key={channelUnadded.id} channelUnadded={channelUnadded} />
-          ))
-        }
+        {channelsAdded.map((channelAdded) => (
+          <ListAlbumGridNode key={channelAdded.id} channel={channelAdded} />
+        ))}
+        {channelsUnadded.map((channelUnadded) => (
+          <ListAlbumGridNodeUnadded key={channelUnadded.id} channelUnadded={channelUnadded} />
+        ))}
       </div>
     );
   }

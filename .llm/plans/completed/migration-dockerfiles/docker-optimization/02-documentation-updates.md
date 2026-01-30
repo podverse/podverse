@@ -10,7 +10,7 @@ Update documentation files to include Docker build and testing instructions.
 
 Add a new section after "Troubleshooting" and before "Environment Configuration":
 
-```markdown
+````markdown
 ## Docker Images
 
 ### Building Docker Images
@@ -28,6 +28,7 @@ make local_build_management_api
 make local_build_web
 make local_build_management_web
 ```
+````
 
 ### Testing Docker Images
 
@@ -58,6 +59,7 @@ make local_test_docker_builds
 ```
 
 This will:
+
 - Build all images
 - Display image sizes
 - Verify that source files are excluded and only `dist/` files are present
@@ -65,11 +67,13 @@ This will:
 ### Docker Image Optimization
 
 The Dockerfiles use multi-stage builds to minimize final image size:
+
 - **Builder stage**: Installs dependencies and compiles TypeScript
 - **Runner stage**: Only includes compiled `dist/` files and production dependencies
 
 Final images are ~300-500MB (vs 800MB+ with single-stage builds).
-```
+
+````
 
 ### 2. [README.md](README.md)
 
@@ -83,10 +87,11 @@ Build Docker images for local testing or deployment:
 ```bash
 make local_build_all          # Build all images
 make local_test_docker_builds  # Build and verify images
-```
+````
 
 See [docs/QUICKSTART.md](docs/QUICKSTART.md#docker-images) for detailed Docker instructions.
-```
+
+````
 
 ### 3. [apps/api/README.md](apps/api/README.md)
 
@@ -103,7 +108,7 @@ make local_build_api
 
 # Or directly
 docker build -f apps/api/Dockerfile -t podverse-api:latest .
-```
+````
 
 Test with docker-compose (requires infrastructure running):
 
@@ -111,7 +116,8 @@ Test with docker-compose (requires infrastructure running):
 make local_infra_up
 make local_test_api
 ```
-```
+
+````
 
 ### 4. [apps/workers/README.md](apps/workers/README.md)
 
@@ -128,7 +134,7 @@ make local_build_workers
 
 # Or directly
 docker build -f apps/workers/Dockerfile -t podverse-workers:latest .
-```
+````
 
 Test with docker-compose (requires infrastructure running):
 
@@ -136,6 +142,7 @@ Test with docker-compose (requires infrastructure running):
 make local_infra_up
 make local_test_workers
 ```
+
 ```
 
 ## Testing
@@ -152,3 +159,4 @@ After updating documentation:
 - `README.md` - Add Docker section
 - `apps/api/README.md` - Add Docker section
 - `apps/workers/README.md` - Add Docker section
+```

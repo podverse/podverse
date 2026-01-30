@@ -15,72 +15,56 @@ import styles from '../../../styles/app/podcast/PodcastList.module.scss';
 type PodcastListProps = {
   podroll: RemoteItemsResponse | null;
   ssrChannel: DTOChannel;
-}
+};
 
 export const PodcastList: React.FC<PodcastListProps> = ({ podroll, ssrChannel }) => {
-  const { filterParams, setFilterParams, items, itemSoundbites, clips,
-    totalPages, isLoading } = usePodcastContext();
+  const { filterParams, setFilterParams, items, itemSoundbites, clips, totalPages, isLoading } =
+    usePodcastContext();
   const { page } = filterParams;
 
   const { type } = filterParams;
 
   return (
     <div className={styles.list}>
-      {
-        type === 'episodes' && (
-          <ListEpisodes
-            page={page}
-            setPage={(page) => setFilterParams({ ...filterParams, page })}
-            channel={ssrChannel}
-            items={items}
-            totalPages={totalPages}
-            viewSelected="rows"
-          />
-        )
-      }
-      {
-        type === 'soundbites' && (
-          <ListItemSoundbites
-            page={page}
-            setPage={(page) => setFilterParams({ ...filterParams, page })}
-            channel={ssrChannel}
-            item={null}
-            itemSoundbites={itemSoundbites}
-            totalPages={totalPages}
-            showItemInfo
-          />
-        )
-      }
-      {
-        type === 'clips' && (
-          <ListClips
-            page={page}
-            setPage={(page) => setFilterParams({ ...filterParams, page })}
-            clips={clips}
-            channel={ssrChannel}
-            totalPages={totalPages}
-            showItemInfo
-          />
-        )
-      }
-      {
-        type === 'about' && (
-          <ContentAbout
-            description={ssrChannel.channel_description?.value}
-            channel_persons={ssrChannel.channel_persons}
-          />
-        )
-      }
-      {
-        type === 'podroll' && (
-          <ContentPodroll remoteItemsResponse={podroll} />
-        )
-      }
-      {
-        type === 'settings' && (
-          <ListChannelSettings channel={ssrChannel} />
-        )
-      }
+      {type === 'episodes' && (
+        <ListEpisodes
+          page={page}
+          setPage={(page) => setFilterParams({ ...filterParams, page })}
+          channel={ssrChannel}
+          items={items}
+          totalPages={totalPages}
+          viewSelected="rows"
+        />
+      )}
+      {type === 'soundbites' && (
+        <ListItemSoundbites
+          page={page}
+          setPage={(page) => setFilterParams({ ...filterParams, page })}
+          channel={ssrChannel}
+          item={null}
+          itemSoundbites={itemSoundbites}
+          totalPages={totalPages}
+          showItemInfo
+        />
+      )}
+      {type === 'clips' && (
+        <ListClips
+          page={page}
+          setPage={(page) => setFilterParams({ ...filterParams, page })}
+          clips={clips}
+          channel={ssrChannel}
+          totalPages={totalPages}
+          showItemInfo
+        />
+      )}
+      {type === 'about' && (
+        <ContentAbout
+          description={ssrChannel.channel_description?.value}
+          channel_persons={ssrChannel.channel_persons}
+        />
+      )}
+      {type === 'podroll' && <ContentPodroll remoteItemsResponse={podroll} />}
+      {type === 'settings' && <ListChannelSettings channel={ssrChannel} />}
       <LoadingSpinnerOverlay isLoading={isLoading} />
     </div>
   );

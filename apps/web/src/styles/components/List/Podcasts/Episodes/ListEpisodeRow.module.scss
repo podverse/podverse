@@ -3,7 +3,7 @@
 @use '../../../../mixins/listRow' as *;
 @use '../../../../mixins/flexbox' as *;
 @use '../../../../mixins/media-queries' as *;
-@use 'breakpoints';
+@use '../../../../variables/breakpoints';
 
 .row {
   display: flex;
@@ -122,7 +122,6 @@
   font-size: var(--font-size-sm);
   margin: var(--spacing-sm) var(--spacing-none) var(--spacing-sm) var(--spacing-none);
 }
-
 
 @include mobile {
   .image {

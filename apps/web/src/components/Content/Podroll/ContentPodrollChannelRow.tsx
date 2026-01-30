@@ -8,7 +8,7 @@ import styles from '../../../styles/components/Content/Podroll/ContentPodrollCha
 
 type ContentPodrollChannelRowProps = {
   channel: DTOChannel;
-}
+};
 
 export const ContentPodrollChannelRow = ({ channel }: ContentPodrollChannelRowProps) => {
   if (!channel) {
@@ -16,14 +16,19 @@ export const ContentPodrollChannelRow = ({ channel }: ContentPodrollChannelRowPr
   }
 
   const tMedia = useTranslations('media');
-  const channel_image = findDTOChannelImageBySize(channel.channel_images, IMAGES.PODROLL.SQUARE.SIZE_FIND_TARGET, 'greater');
-  
+  const channel_image = findDTOChannelImageBySize(
+    channel.channel_images,
+    IMAGES.PODROLL.SQUARE.SIZE_FIND_TARGET,
+    'greater'
+  );
+
   return (
     <div className={styles.row}>
       <Link
         className={styles.link}
         href={`${WEB.origin}/podcast/${channel.id_text}`}
-        color="secondary">
+        color="secondary"
+      >
         <Image
           className={styles.image}
           src={channel_image?.url}
@@ -32,9 +37,7 @@ export const ContentPodrollChannelRow = ({ channel }: ContentPodrollChannelRowPr
           height={IMAGES.PODROLL.SQUARE.SIZE}
         />
         <div className={styles.textWrapper}>
-          <div className={styles.title}>
-            {channel.title}
-          </div>
+          <div className={styles.title}>{channel.title}</div>
         </div>
       </Link>
     </div>

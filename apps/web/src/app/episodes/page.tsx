@@ -1,24 +1,46 @@
-import React from 'react';
 import z from 'zod';
-import { ApiListResponse, CATEGORY_MAPPING_KEYS, DTOItem, getTotalPages,
-  QUERY_PARAMS_STATS_RANGE_VALUES, QUERY_PARAMS_SUBSCRIBED_PARTIAL_SORT,
-  QUERY_PARAMS_SUBSCRIBED_TYPE, QueryParamsMedium} from '@podverse/helpers';
-  import { cookies } from 'next/headers';
+import {
+  CATEGORY_MAPPING_KEYS,
+  DTOItem,
+  getTotalPages,
+  QueryParamsMedium,
+} from '@podverse/helpers';
+import {
+  ApiListResponse,
+  QUERY_PARAMS_STATS_RANGE_VALUES,
+  QUERY_PARAMS_SUBSCRIBED_PARTIAL_SORT,
+  QUERY_PARAMS_SUBSCRIBED_TYPE,
+} from '@podverse/helpers-requests';
+import { cookies } from 'next/headers';
 import { getSSRAuthService } from '../../utils/auth/ssrAuth';
 import { guardSubscribedSsrFilter, safeSsrListRequest } from '../../utils/filters/ssrFilterGuards';
-import { EpisodesDropdownConfigCurrentParams, getEpisodesFilterParams } from './EpisodesDropdownConfig';
+import {
+  EpisodesDropdownConfigCurrentParams,
+  getEpisodesFilterParams,
+} from './EpisodesDropdownConfig';
 import { EpisodesClient } from './EpisodesClient';
-import { getParsedLocalSettings, EpisodesFilterDefaults } from '../../utils/localSettings/localSettings';
+import {
+  getParsedLocalSettings,
+  EpisodesFilterDefaults,
+} from '../../utils/localSettings/localSettings';
 
 const searchParamsSchema = z.object({
-  page: z.string().transform((v) => parseInt(v, 10)).optional().default('1'),
+  page: z
+    .string()
+    .transform((v) => parseInt(v, 10))
+    .optional()
+    .default(1),
   type: z.enum(QUERY_PARAMS_SUBSCRIBED_TYPE).optional().nullable().default(null),
   sort: z.enum(QUERY_PARAMS_SUBSCRIBED_PARTIAL_SORT).optional().nullable().default(null),
   range: z.enum(QUERY_PARAMS_STATS_RANGE_VALUES).optional().nullable().default(null),
-  category: z.enum(CATEGORY_MAPPING_KEYS as [string, ...string[]]).optional().nullable().default(null),
+  category: z
+    .enum(CATEGORY_MAPPING_KEYS as [string, ...string[]])
+    .optional()
+    .nullable()
+    .default(null),
 });
 
-type SearchParams = z.infer<typeof searchParamsSchema>
+type SearchParams = z.infer<typeof searchParamsSchema>;
 
 export type EpisodesPageProps = {
   searchParams: Promise<SearchParams>;
@@ -34,7 +56,7 @@ export default async function EpisodesPage({ searchParams }: EpisodesPageProps) 
   const queryParams = await searchParams;
   const { currentType, currentSort, currentRange, currentCategory, currentPage } =
     await parseSearchParams(queryParams, isValidAuthSession, ssrFilterDefaults);
-  
+
   const medium: QueryParamsMedium = 'av';
   const response: ApiListResponse<DTOItem> = await safeSsrListRequest(
     () =>
@@ -46,12 +68,17 @@ export default async function EpisodesPage({ searchParams }: EpisodesPageProps) 
         range: currentRange,
         category: currentCategory,
       }),
-    currentPage,
+    currentPage
   );
 
   const ssrItems = response.data;
-  const ssrTotalPages = getTotalPages(response.meta.count, response.meta.limit, response.data.length, currentPage);
-  
+  const ssrTotalPages = getTotalPages(
+    response.meta.count,
+    response.meta.limit,
+    response.data.length,
+    currentPage
+  );
+
   return (
     <EpisodesClient
       initialQueryParams={{
@@ -71,7 +98,7 @@ export default async function EpisodesPage({ searchParams }: EpisodesPageProps) 
 function parseSearchParams(
   queryParams: SearchParams,
   isAuthenticated: boolean,
-  cookieDefaults?: EpisodesFilterDefaults,
+  cookieDefaults?: EpisodesFilterDefaults
 ): EpisodesDropdownConfigCurrentParams {
   const parsed = searchParamsSchema.safeParse(queryParams);
 
@@ -119,12 +146,14 @@ function parseSearchParams(
     },
   });
 
-  return getEpisodesFilterParams({
-    page: guarded.page,
-    type: guarded.type ?? 'global',
-    sort: guarded.sort ?? 'recent',
-    range: guarded.range,
-    category: guarded.category,
-  }, isAuthenticated);
+  return getEpisodesFilterParams(
+    {
+      page: guarded.page,
+      type: guarded.type ?? 'global',
+      sort: guarded.sort ?? 'recent',
+      range: guarded.range,
+      category: guarded.category,
+    },
+    isAuthenticated
+  );
 }
-

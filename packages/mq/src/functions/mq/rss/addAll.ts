@@ -9,11 +9,11 @@ type MQRSSAddAllConfig = MQQueueConfigFunctionParams;
 export const mqRSSAddAll = async (
   activeMQArtemisService: ActiveMQArtemisService,
   options: MQRSSAddAllConfig,
-  msgOptions: ParseRSSFeedAndSaveToDatabaseOptions,
+  msgOptions: ParseRSSFeedAndSaveToDatabaseOptions
 ) => {
-  const feedService = new FeedService();  
+  const feedService = new FeedService();
   const feeds = await feedService.getAll();
-  
+
   await activeMQArtemisService.initialize();
 
   try {

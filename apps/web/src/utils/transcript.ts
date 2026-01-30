@@ -1,29 +1,21 @@
-import { formatHHMMSS, TranscriptRow } from '@podverse/helpers';
-import { convertFile } from 'transcriptator';
-import { TimestampFormatter } from 'transcriptator/timestamp';
+import { TranscriptRow } from '@podverse/helpers';
 
-export const getTranscriptRowsFromTranscriptString = async (data?: string | null) => {
-  let parsedTranscript = [] as TranscriptRow[];
-  
+/**
+ * Parses transcript string into rows. Transcriptator (he, xmldom, etc.) is
+ * loaded only when this is first called (transcript tab), not in the main bundle.
+ */
+export const getTranscriptRowsFromTranscriptString = async (
+  data?: string | null
+): Promise<TranscriptRow[]> => {
   if (!data) {
-    return parsedTranscript;
+    return [];
   }
 
   try {
-    TimestampFormatter.registerCustomFormatter(formatHHMMSS);
-    parsedTranscript = convertFile(data);
-
-    let previousSpeaker = '';
-    for (const row of parsedTranscript) {
-      if (row?.speaker && previousSpeaker === row.speaker) {
-        row.speaker = '';
-      } else if (row?.speaker) {
-        previousSpeaker = row.speaker;
-      }
-    }
+    const { parseTranscriptRows } = await import('./transcriptParser');
+    return parseTranscriptRows(data) ?? [];
   } catch (error) {
     console.error('getParsedTranscript error:', error);
+    return [];
   }
-
-  return parsedTranscript || [];
 };

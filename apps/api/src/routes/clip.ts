@@ -14,12 +14,27 @@ router.get('/public/category/recent', asyncHandler(ClipController.getManyByCateg
 router.get('/public/category/oldest', asyncHandler(ClipController.getManyByCategoryPublicOldest));
 router.get('/public/category/top', asyncHandler(ClipController.getManyByCategoryPublicTop));
 
-router.get('/public/channel/recent/:channel_id_text', asyncHandler(ClipController.getManyByChannelPublicRecent));
-router.get('/public/channel/oldest/:channel_id_text', asyncHandler(ClipController.getManyByChannelPublicOldest));
-router.get('/public/channel/top/:channel_id_text', asyncHandler(ClipController.getManyByChannelPublicTop));
+router.get(
+  '/public/channel/recent/:channel_id_text',
+  asyncHandler(ClipController.getManyByChannelPublicRecent)
+);
+router.get(
+  '/public/channel/oldest/:channel_id_text',
+  asyncHandler(ClipController.getManyByChannelPublicOldest)
+);
+router.get(
+  '/public/channel/top/:channel_id_text',
+  asyncHandler(ClipController.getManyByChannelPublicTop)
+);
 
-router.get('/public/item/recent/:item_id_text', asyncHandler(ClipController.getManyByItemPublicRecent));
-router.get('/public/item/oldest/:item_id_text', asyncHandler(ClipController.getManyByItemPublicOldest));
+router.get(
+  '/public/item/recent/:item_id_text',
+  asyncHandler(ClipController.getManyByItemPublicRecent)
+);
+router.get(
+  '/public/item/oldest/:item_id_text',
+  asyncHandler(ClipController.getManyByItemPublicOldest)
+);
 router.get('/public/item/top/:item_id_text', asyncHandler(ClipController.getManyByItemPublicTop));
 
 router.get('/public/subscribed/recent', asyncHandler(ClipController.getManySubscribedPublicRecent));

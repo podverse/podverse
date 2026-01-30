@@ -48,7 +48,7 @@ export default async function MembershipPage() {
   const signupMode = config.public.account.signupMode;
   const contactEmail = config.public.account.contactEmail;
   const isContactOnlyMode = signupMode === 'contact-only';
-  
+
   let pricingData: MembershipPricingData | null = null;
   let errorMessage: string | null = null;
   if (!isContactOnlyMode) {
@@ -67,20 +67,23 @@ export default async function MembershipPage() {
   // Determine user status
   const accountMembershipStatus = ssrLoggedInAccount?.account_membership_status;
   // Handle both DTO structure (account_membership_id) and populated structure (account_membership.id)
-  type MembershipStatusWithPopulated = typeof accountMembershipStatus & { account_membership?: { id?: number } };
-  const membershipId = accountMembershipStatus?.account_membership_id ?? 
+  type MembershipStatusWithPopulated = typeof accountMembershipStatus & {
+    account_membership?: { id?: number };
+  };
+  const membershipId =
+    accountMembershipStatus?.account_membership_id ??
     (accountMembershipStatus as MembershipStatusWithPopulated)?.account_membership?.id;
   const isFreeTrial = membershipId === AccountMembershipEnum.Trial;
   const isPaidPremium = membershipId === AccountMembershipEnum.Basic;
   const membershipExpiresAt = accountMembershipStatus?.membership_expires_at;
-  
+
   // Check if membership has expired
-  const isMembershipExpired = membershipExpiresAt 
+  const isMembershipExpired = membershipExpiresAt
     ? new Date(membershipExpiresAt).getTime() < new Date().getTime()
     : false;
 
   // Calculate time left in membership if active
-  const { daysLeft, hoursLeft, minutesLeft } = 
+  const { daysLeft, hoursLeft, minutesLeft } =
     membershipExpiresAt && !isMembershipExpired
       ? calculateTimeRemaining(membershipExpiresAt)
       : { daysLeft: null, hoursLeft: null, minutesLeft: null };
@@ -120,28 +123,28 @@ export default async function MembershipPage() {
 
             {!isContactOnlyMode && pricingData && (
               <section className={styles.pricingSection}>
-                  <div className={styles.pricingPlan}>
-                    <h3 className={styles.planTitle}>{t('pricing_monthly')}</h3>
+                <div className={styles.pricingPlan}>
+                  <h3 className={styles.planTitle}>{t('pricing_monthly')}</h3>
+                  <div className={styles.planPrice}>
+                    ${pricingData.costMonthly}
+                    <span className={styles.planPeriod}>{t('pricing_per_month')}</span>
+                  </div>
+                </div>
+                <div className={styles.pricingPlan}>
+                  <h3 className={styles.planTitle}>{t('pricing_annually')}</h3>
+                  <div className={styles.planPriceContainer}>
                     <div className={styles.planPrice}>
-                      ${pricingData.costMonthly}
-                      <span className={styles.planPeriod}>{t('pricing_per_month')}</span>
+                      ${pricingData.costAnnually}
+                      <span className={styles.planPeriod}>{t('pricing_per_year')}</span>
                     </div>
-                  </div>
-                  <div className={styles.pricingPlan}>
-                    <h3 className={styles.planTitle}>{t('pricing_annually')}</h3>
-                    <div className={styles.planPriceContainer}>
-                      <div className={styles.planPrice}>
-                        ${pricingData.costAnnually}
-                        <span className={styles.planPeriod}>{t('pricing_per_year')}</span>
+                    {pricingData.annuallySavingsPercent > 0 && (
+                      <div className={styles.savingsBadge}>
+                        {t('pricing_save_percent', { percent: pricingData.annuallySavingsPercent })}
                       </div>
-                      {pricingData.annuallySavingsPercent > 0 && (
-                        <div className={styles.savingsBadge}>
-                          {t('pricing_save_percent', { percent: pricingData.annuallySavingsPercent })}
-                        </div>
-                      )}
-                    </div>
+                    )}
                   </div>
-                </section>
+                </div>
+              </section>
             )}
 
             {!isContactOnlyMode && (
@@ -207,10 +210,14 @@ function renderIntroText({
 
   if (minutesLeft !== null) {
     if (isFreeTrial) {
-      const key = minutesLeft === 1 ? 'intro_trial_minutes_left_one' : 'intro_trial_minutes_left_other';
+      const key =
+        minutesLeft === 1 ? 'intro_trial_minutes_left_one' : 'intro_trial_minutes_left_other';
       return t(key, { minutes: minutesLeft });
     } else {
-      const key = minutesLeft === 1 ? 'intro_membership_minutes_left_one' : 'intro_membership_minutes_left_other';
+      const key =
+        minutesLeft === 1
+          ? 'intro_membership_minutes_left_one'
+          : 'intro_membership_minutes_left_other';
       return t(key, { minutes: minutesLeft });
     }
   }
@@ -220,7 +227,8 @@ function renderIntroText({
       const key = hoursLeft === 1 ? 'intro_trial_hours_left_one' : 'intro_trial_hours_left_other';
       return t(key, { hours: hoursLeft });
     } else {
-      const key = hoursLeft === 1 ? 'intro_membership_hours_left_one' : 'intro_membership_hours_left_other';
+      const key =
+        hoursLeft === 1 ? 'intro_membership_hours_left_one' : 'intro_membership_hours_left_other';
       return t(key, { hours: hoursLeft });
     }
   }
@@ -230,7 +238,8 @@ function renderIntroText({
       const key = daysLeft === 1 ? 'intro_trial_days_left_one' : 'intro_trial_days_left_other';
       return t(key, { days: daysLeft });
     } else {
-      const key = daysLeft === 1 ? 'intro_membership_days_left_one' : 'intro_membership_days_left_other';
+      const key =
+        daysLeft === 1 ? 'intro_membership_days_left_one' : 'intro_membership_days_left_other';
       return t(key, { days: daysLeft });
     }
   }
@@ -240,7 +249,9 @@ function renderIntroText({
   }
 
   if (isPaidPremium && membershipExpiresAt) {
-    return t('your_membership_expires_on', { date: new Date(membershipExpiresAt).toLocaleDateString() });
+    return t('your_membership_expires_on', {
+      date: new Date(membershipExpiresAt).toLocaleDateString(),
+    });
   }
 
   if (pricingData) {

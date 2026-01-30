@@ -1,4 +1,3 @@
-
 import { MediaPlayerButtonsMobile } from './MediaPlayerButtonsMobile';
 import { MediaPlayerControlsMobile } from './MediaPlayerControlsMobile';
 import { MediaPlayerInfoMobile } from './MediaPlayerInfoMobile';

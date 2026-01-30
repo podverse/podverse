@@ -1,6 +1,5 @@
 'use client';
 
-import React from 'react';
 import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import { Button } from '../../components/Button/Button';
@@ -30,47 +29,32 @@ export function MembershipCTA({
     <section className={styles.ctaSection}>
       {!ssrLoggedInAccount && (
         <div className={styles.cta}>
-          <Button
-            variant="primary"
-            onClick={() => router.push(ROUTES.SIGN_UP)}
-          >
+          <Button variant="primary" onClick={() => router.push(ROUTES.SIGN_UP)}>
             {tAuth('sign_up')}
           </Button>
         </div>
       )}
       {ssrLoggedInAccount && isMembershipExpired && (
         <div className={styles.cta}>
-          <Button
-            variant="primary"
-            onClick={() => router.push(ROUTES.CHECKOUT)}
-          >
+          <Button variant="primary" onClick={() => router.push(ROUTES.CHECKOUT)}>
             {t('extend_my_membership')}
           </Button>
         </div>
       )}
       {ssrLoggedInAccount && !isMembershipExpired && isFreeTrial && (
         <div className={styles.cta}>
-          <Button
-            variant="primary"
-            onClick={() => router.push(ROUTES.CHECKOUT)}
-          >
+          <Button variant="primary" onClick={() => router.push(ROUTES.CHECKOUT)}>
             {t('buy_premium_membership')}
           </Button>
         </div>
       )}
-      {ssrLoggedInAccount &&
-        !isMembershipExpired &&
-        isPaidPremium &&
-        membershipExpiresAt && (
-          <div className={styles.cta}>
-            <Button
-              variant="primary"
-              onClick={() => router.push(ROUTES.CHECKOUT)}
-            >
-              {t('extend_my_membership')}
-            </Button>
-          </div>
-        )}
+      {ssrLoggedInAccount && !isMembershipExpired && isPaidPremium && membershipExpiresAt && (
+        <div className={styles.cta}>
+          <Button variant="primary" onClick={() => router.push(ROUTES.CHECKOUT)}>
+            {t('extend_my_membership')}
+          </Button>
+        </div>
+      )}
     </section>
   );
 }

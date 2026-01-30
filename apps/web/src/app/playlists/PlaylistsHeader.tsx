@@ -14,20 +14,12 @@ export const PlaylistsHeader: React.FC = () => {
 
   const buttonsNode = (
     <>
-      <Button
-        variant="mini"
-        onClick={() => router.push('/playlist/create')}
-      >
+      <Button variant="mini" onClick={() => router.push('/playlist/create')}>
         {tFeatures('playlist.create_playlist')}
         <FaPlus className={styles.icon} />
       </Button>
     </>
   );
 
-  return (
-    <MainHeader
-      title={tFeatures('playlist.playlists')}
-      buttonsNode={buttonsNode}
-    />
-  );
+  return <MainHeader title={tFeatures('playlist.playlists')} buttonsNode={buttonsNode} />;
 };

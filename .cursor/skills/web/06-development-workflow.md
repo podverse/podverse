@@ -7,24 +7,28 @@
 When operating in **plan mode**, actively identify and recommend code improvements and optimizations:
 
 **Performance Optimizations:**
+
 - Identify opportunities for code splitting, lazy loading, or memoization
 - Suggest database query optimizations or API response caching strategies
 - Recommend bundle size reductions or tree-shaking improvements
 - Propose rendering optimizations (e.g., virtual scrolling, pagination improvements)
 
 **Code Quality Improvements:**
+
 - Suggest better error handling patterns
 - Recommend improved type safety where gaps exist
 - Propose better component composition patterns
 - Identify opportunities for code reuse and DRY principles
 
 **Pattern Alternatives:**
+
 - **Be bold** in suggesting better patterns, even if they deviate significantly from current project patterns
 - If you identify a pattern that would be better (e.g., state management, data fetching, component architecture), recommend it
 - Consider modern React patterns, Next.js best practices, or industry standards that might improve the codebase
 - Don't be constrained by "how things are currently done" - focus on "how they should be done"
 
 **When Evaluating Patterns:**
+
 - Current pattern: What is the codebase currently using?
 - Better pattern: What would be a superior approach?
 - Benefits: Why would the new pattern be better? (performance, maintainability, developer experience, etc.)
@@ -36,24 +40,28 @@ When operating in **plan mode**, actively identify and recommend code improvemen
 When operating in **agent mode**, follow existing patterns unless explicitly directed otherwise:
 
 **Follow Established Patterns:**
+
 - Use the patterns documented in this skill file and `.cursorrules`
 - Match the style and structure of similar existing code
 - Don't introduce new patterns unless explicitly asked
 - Complete tasks using the current codebase conventions
 
 **Do NOT Automatically Implement Pattern Deviations:**
+
 - Even if you notice a better pattern exists, do not automatically refactor to use it
 - Do not migrate existing code to new patterns without explicit approval
 - Do not make dramatic architectural changes unless explicitly requested
 - Complete the requested task using current patterns
 
 **When You Identify Better Patterns:**
+
 - Acknowledge that a better pattern might exist
 - Suggest that plan mode could evaluate this as a future improvement
 - Continue implementing using the current established patterns
 - Only deviate if the user explicitly requests it or plan mode has approved it
 
 **Exception: Following Approved Plans:**
+
 - If plan mode has recommended a new pattern and the user approved it in the plan, implement it
 - Follow the plan's recommendations exactly
 - Update documentation if new patterns are being adopted
@@ -61,6 +69,7 @@ When operating in **agent mode**, follow existing patterns unless explicitly dir
 ### Examples
 
 **Plan Mode Recommendation:**
+
 ```markdown
 **Recommendation: Consider Using React Server Components More Extensively**
 
@@ -68,7 +77,8 @@ Current Pattern: Many components are client components that fetch data client-si
 
 Better Pattern: Move data fetching to server components and pass data down as props.
 
-Benefits: 
+Benefits:
+
 - Reduced JavaScript bundle size
 - Faster initial page loads
 - Better SEO
@@ -80,9 +90,10 @@ This could be evaluated for future work.
 ```
 
 **Agent Mode Behavior:**
+
 ```markdown
-I notice that this could be implemented as a server component for better performance. 
-However, I'll implement it as a client component following the existing pattern in similar features. 
+I notice that this could be implemented as a server component for better performance.
+However, I'll implement it as a client component following the existing pattern in similar features.
 Plan mode could evaluate server component optimization as a future improvement.
 ```
 
@@ -93,6 +104,7 @@ Plan mode could evaluate server component optimization as a future improvement.
 When working on a task and you identify potential improvements that are **outside the scope** of the current work, you should automatically document them in `apps/web/docs/todo/improvements.md`.
 
 **Document improvements when:**
+
 - They would improve code quality, performance, or maintainability
 - They are not part of the current task/plan
 - They would require separate work to implement
@@ -100,6 +112,7 @@ When working on a task and you identify potential improvements that are **outsid
 - They are security, accessibility, or performance optimizations
 
 **Do NOT document:**
+
 - Improvements that are part of the current task (implement them instead)
 - Trivial style preferences
 - Improvements you're already implementing
@@ -112,6 +125,7 @@ When working on a task and you identify potential improvements that are **outsid
 
 ```markdown
 ### [Number]. [Title]
+
 **Status**: Pending  
 **Priority**: [Critical/High/Medium/Low]  
 **Severity**: [High/Medium/Low]
@@ -119,6 +133,7 @@ When working on a task and you identify potential improvements that are **outsid
 **Issue**: [Clear description of the problem or opportunity]
 
 **Recommendation**: [Specific actionable recommendation]
+
 - [Specific action item 1]
 - [Specific action item 2]
 
@@ -139,6 +154,7 @@ When working on a task and you identify potential improvements that are **outsid
 
 ```markdown
 ### 20. Memoize ListRow Components
+
 **Status**: Pending  
 **Priority**: Medium  
 **Severity**: Medium
@@ -146,11 +162,13 @@ When working on a task and you identify potential improvements that are **outsid
 **Issue**: `ListPodcastRow` component re-renders on every parent update, even when its props haven't changed. This causes unnecessary re-renders in long lists.
 
 **Recommendation**: Wrap frequently-rendered list row components with `React.memo`:
+
 - Add `React.memo` to `ListPodcastRow`, `ListEpisodeRow`, `ListClipRow`
 - Ensure props are stable (use `useCallback` for handlers)
 - Add custom comparison function if needed
 
-**Files affected**: 
+**Files affected**:
+
 - `apps/web/src/components/List/Podcasts/ListPodcastRow.tsx`
 - `apps/web/src/components/List/Podcasts/Episodes/ListEpisodeRow.tsx`
 - `apps/web/src/components/List/Clips/ListClipRow.tsx`
@@ -161,6 +179,7 @@ When working on a task and you identify potential improvements that are **outsid
 ### Updating Status
 
 When you start working on a documented improvement:
+
 1. Change **Status** from "Pending" to "In Progress"
 2. **When completed, remove the entire item from the document** - Do not mark as "Completed" or keep completed items in the document
 3. Update the numbers (starting from 1) on todo items when others are completed.
@@ -168,12 +187,14 @@ When you start working on a documented improvement:
 ### Integration with Plan Mode
 
 In **plan mode**, when recommending improvements:
+
 - If the improvement is part of the current plan → include it in the plan
 - If the improvement is outside scope → document it in `apps/web/docs/todo/improvements.md` and mention it in the plan summary
 
 ### Integration with Agent Mode
 
 In **agent mode**, when you notice improvements:
+
 - If it's a quick fix related to your task → implement it
 - If it's outside scope → document it in `apps/web/docs/todo/improvements.md` and continue with your task
 - Don't let improvement documentation distract from completing the assigned work

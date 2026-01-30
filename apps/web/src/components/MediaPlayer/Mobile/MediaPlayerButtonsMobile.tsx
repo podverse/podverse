@@ -13,26 +13,22 @@ import styles from '../../../styles/components/MediaPlayer/Mobile/MediaPlayerBut
 export const MediaPlayerButtonsMobile = () => {
   const { activeQueue } = useQueues();
   const medium_id = activeQueue?.medium_id || MediumEnum.AV;
-  
+
   return (
     <div className={styles.buttons}>
       <SettingsButton />
-      {
-        medium_id === MediumEnum.AV && (
-          <>
-            <JumpBackButtonMobile />
-            <JumpForwardButtonMobile />
-          </>
-        )
-      }
-      {
-        medium_id === MediumEnum.Music && (
-          <>
-            <TrackPreviousButtonMobile />
-            <TrackNextButtonMobile />
-          </>
-        )
-      }
+      {medium_id === MediumEnum.AV && (
+        <>
+          <JumpBackButtonMobile />
+          <JumpForwardButtonMobile />
+        </>
+      )}
+      {medium_id === MediumEnum.Music && (
+        <>
+          <TrackPreviousButtonMobile />
+          <TrackNextButtonMobile />
+        </>
+      )}
       <PlayButtonMobile />
     </div>
   );

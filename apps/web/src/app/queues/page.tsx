@@ -7,7 +7,7 @@ const searchParamsSchema = z.object({
   medium: z.enum(QUERY_PARAMS_QUEUE_MEDIUMS).optional().default('av'),
 });
 
-type SearchParams = z.infer<typeof searchParamsSchema>
+type SearchParams = z.infer<typeof searchParamsSchema>;
 
 export type QueuePageProps = {
   searchParams: Promise<SearchParams>;
@@ -15,7 +15,7 @@ export type QueuePageProps = {
 
 export default async function QueuesPage({ searchParams }: QueuePageProps) {
   const { isValidAuthSession, ssrApiRequestService } = await getSSRAuthService();
-    
+
   const queryParams = await searchParams;
   const { currentMedium } = await parseSearchParams(queryParams);
 
@@ -26,17 +26,12 @@ export default async function QueuesPage({ searchParams }: QueuePageProps) {
     ssrQueues = response;
   }
 
-  return (
-    <QueuesClient
-      initialQueryParams={{ medium: currentMedium }}
-      ssrQueues={ssrQueues}
-    />
-  );
+  return <QueuesClient initialQueryParams={{ medium: currentMedium }} ssrQueues={ssrQueues} />;
 }
 
 type ParseSearchParams = {
   currentMedium: QueryParamsQueueMedium;
-}
+};
 
 function parseSearchParams(queryParams: SearchParams): ParseSearchParams {
   const parsed = searchParamsSchema.safeParse(queryParams);

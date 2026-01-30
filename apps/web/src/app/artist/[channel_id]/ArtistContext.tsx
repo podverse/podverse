@@ -1,8 +1,8 @@
 'use client';
 
 import { useParams } from 'next/navigation';
-import { QueryParamsChannelMusicArtist } from '@podverse/helpers';
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import { QueryParamsChannelMusicArtist } from '@podverse/helpers-requests';
+import { createContext, useContext, useState, ReactNode } from 'react';
 import { checkBackNavFlag } from '../../../contexts/Navigation';
 import { usePageStateCache } from '../../../hooks/usePageStateCache';
 import { getPageState, definedProps } from '../../../utils/pageStateCache';
@@ -10,13 +10,13 @@ import { getPageState, definedProps } from '../../../utils/pageStateCache';
 interface ArtistContextType {
   filterParams: QueryParamsChannelMusicArtist;
   setFilterParams: (params: QueryParamsChannelMusicArtist) => void;
-};
+}
 
 const ArtistContext = createContext<ArtistContextType | undefined>(undefined);
 
 interface ArtistContextProviderProps {
-  children: ReactNode,
-  initialQueryParams: QueryParamsChannelMusicArtist
+  children: ReactNode;
+  initialQueryParams: QueryParamsChannelMusicArtist;
 }
 
 export const ArtistContextProvider = ({
@@ -24,20 +24,18 @@ export const ArtistContextProvider = ({
   initialQueryParams,
 }: ArtistContextProviderProps) => {
   const params = useParams();
-  
+
   const channel_id = params.channel_id as string;
   const routeKey = `artist-${channel_id}`;
-  
+
   // Use synchronous sessionStorage check instead of async React state
   const isBackNav = checkBackNavFlag();
-  
+
   // Check for cached state on back navigation
-  const cachedState = isBackNav 
-    ? getPageState<QueryParamsChannelMusicArtist>(routeKey) 
-    : null;
-  
+  const cachedState = isBackNav ? getPageState<QueryParamsChannelMusicArtist>(routeKey) : null;
+
   const [filterParams, setFilterParams] = useState<QueryParamsChannelMusicArtist>(
-    cachedState?.filterParams ?? initialQueryParams,
+    cachedState?.filterParams ?? initialQueryParams
   );
 
   // Hook to save/restore page state for back navigation (filterParams only)
@@ -49,10 +47,12 @@ export const ArtistContextProvider = ({
   });
 
   return (
-    <ArtistContext.Provider value={{
-      filterParams,
-      setFilterParams,
-    }}>
+    <ArtistContext.Provider
+      value={{
+        filterParams,
+        setFilterParams,
+      }}
+    >
       {children}
     </ArtistContext.Provider>
   );
@@ -60,6 +60,8 @@ export const ArtistContextProvider = ({
 
 export const useArtistContext = () => {
   const ctx = useContext(ArtistContext);
-  if (!ctx) {throw new Error('useArtistContext must be used within a ArtistContextProvider');}
+  if (!ctx) {
+    throw new Error('useArtistContext must be used within a ArtistContextProvider');
+  }
   return ctx;
 };

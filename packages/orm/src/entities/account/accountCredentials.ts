@@ -7,7 +7,7 @@ export class AccountCredentials {
   @PrimaryGeneratedColumn()
   id!: number;
 
-  @OneToOne(() => Account, account => account.id, { onDelete: 'CASCADE' })
+  @OneToOne(() => Account, (account) => account.id, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'account_id' })
   account!: Account;
 
@@ -17,6 +17,6 @@ export class AccountCredentials {
   @Column({ type: 'varchar', unique: true, length: DATABASE_CONSTANTS.varchar_email })
   email!: string;
 
-  @Column({ type: 'varchar', length : DATABASE_CONSTANTS.varchar_password })
+  @Column({ type: 'varchar', length: DATABASE_CONSTANTS.varchar_password })
   password!: string;
 }

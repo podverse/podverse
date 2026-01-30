@@ -1,10 +1,11 @@
 import { notFound } from 'next/navigation';
-import React from 'react';
 import { PodcastIndexFeedClient } from './PodcastIndexFeedClient';
 import { redirectToChannelPageByMediumServer } from '../../../../utils/redirect/redirectToChannelPageByMedium';
 import { getSSRAuthService } from '../../../../utils/auth/ssrAuth';
 
-export default async function PodcastIndexFeedPage(props: { params: Promise<{ podcast_index_id: string }> }) {
+export default async function PodcastIndexFeedPage(props: {
+  params: Promise<{ podcast_index_id: string }>;
+}) {
   const { podcast_index_id } = await props.params;
   const { ssrApiRequestService } = await getSSRAuthService();
   const podcastIndexResponse = await ssrApiRequestService.reqPodcastIndexFeedById(podcast_index_id);
@@ -22,7 +23,5 @@ export default async function PodcastIndexFeedPage(props: { params: Promise<{ po
     redirectToChannelPageByMediumServer(ssrChannel.medium_id, ssrChannel.id_text);
   }
 
-  return (
-    <PodcastIndexFeedClient ssrFeed={ssrFeed} />
-  );
+  return <PodcastIndexFeedClient ssrFeed={ssrFeed} />;
 }

@@ -22,9 +22,9 @@ export const MediaPlayerModal: React.FC = () => {
     >
       <div className={styles.mediaPlayerModal}>
         <div className={styles.mediaPlayerModalContent}>
-         <MediaPlayerInfoModal />
-         <MediaPlayerControlsModal />
-         <MediaPlayerButtonsModal />
+          <MediaPlayerInfoModal />
+          <MediaPlayerControlsModal />
+          <MediaPlayerButtonsModal />
         </div>
       </div>
     </Modal>

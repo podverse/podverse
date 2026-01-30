@@ -25,10 +25,10 @@ export class AccountSettingsLocaleService {
 
   async create(dto: CreateDto): Promise<AccountSettingsLocale> {
     const accountSettingsRepo = AppDataSourceRead.getRepository(AccountSettings);
-    const accountSettings = await accountSettingsRepo.findOne({ 
+    const accountSettings = await accountSettingsRepo.findOne({
       where: { account_id: dto.account_id },
     });
-    
+
     if (!accountSettings) {
       throw new Error('AccountSettings not found for account');
     }
@@ -47,11 +47,11 @@ export class AccountSettingsLocaleService {
 
   async update(dto: UpdateDto): Promise<AccountSettingsLocale> {
     const accountSettingsRepo = AppDataSourceRead.getRepository(AccountSettings);
-    const accountSettings = await accountSettingsRepo.findOne({ 
+    const accountSettings = await accountSettingsRepo.findOne({
       where: { account_id: dto.account_id },
       relations: ['account_settings_locale'],
     });
-    
+
     if (!accountSettings) {
       throw new Error('AccountSettings not found for account');
     }

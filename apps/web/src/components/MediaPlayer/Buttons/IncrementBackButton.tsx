@@ -1,18 +1,16 @@
-import React from 'react';
 import { FaChevronLeft } from 'react-icons/fa6';
 import { EVENTS } from '../../../constants/events';
 import styles from '../../../styles/components/MediaPlayer/Buttons/IncrementBackButton.module.scss';
 
 export const IncrementBackButton = () => {
   const handleClick = () => {
-    window.dispatchEvent(new CustomEvent(EVENTS.MEDIA_PLAYER.JUMP_BACK, { detail: { seconds: 1 } }));
+    window.dispatchEvent(
+      new CustomEvent(EVENTS.MEDIA_PLAYER.JUMP_BACK, { detail: { seconds: 1 } })
+    );
   };
-  
+
   return (
-    <button
-      className={styles.incrementBackButton}
-      onClick={handleClick}
-      type="button">
+    <button className={styles.incrementBackButton} onClick={handleClick} type="button">
       <FaChevronLeft />
     </button>
   );

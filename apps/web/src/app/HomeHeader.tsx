@@ -1,12 +1,8 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { 
-  QUERY_PARAMS_HOME_SORT_VALUES,
-  QueryParamsHomeSort,
-  QueryParamsMedium,
-  QUERY_PARAMS_MEDIUMS,
-} from '@podverse/helpers';
+import { QueryParamsMedium, QUERY_PARAMS_MEDIUMS } from '@podverse/helpers';
+import { QUERY_PARAMS_HOME_SORT_VALUES, QueryParamsHomeSort } from '@podverse/helpers-requests';
 import React from 'react';
 import Dropdown from '../components/Dropdown/Dropdown';
 import { MainHeader } from '../components/Main/MainHeader';
@@ -22,7 +18,12 @@ export const HomeHeader: React.FC = () => {
   const tMedia = useTranslations('media');
   const tFilters = useTranslations('filters');
   const tSubscriptions = useTranslations('subscriptions');
-  const { mediumMenuItems, sortMenuItems } = getHomeDropdownConfig({ medium, sort, tFilters, tMedia });
+  const { mediumMenuItems, sortMenuItems } = getHomeDropdownConfig({
+    medium,
+    sort,
+    tFilters,
+    tMedia,
+  });
 
   function isMedium(val: string): val is QueryParamsMedium {
     return QUERY_PARAMS_MEDIUMS.includes(val as QueryParamsMedium);
@@ -33,7 +34,7 @@ export const HomeHeader: React.FC = () => {
 
   const handleMediumChange = (value: string) => {
     if (isMedium(value)) {
-      setFilterParams({ ...filterParams, medium: value, page: 1  });
+      setFilterParams({ ...filterParams, medium: value, page: 1 });
     }
   };
 
@@ -57,17 +58,9 @@ export const HomeHeader: React.FC = () => {
         menuItems={sortMenuItems}
         onChange={handleSortChange}
       />
-      <ViewSelector
-        viewSelected={viewSelected}
-        setViewSelected={setViewSelected}
-      />
+      <ViewSelector viewSelected={viewSelected} setViewSelected={setViewSelected} />
     </>
   );
 
-  return (
-    <MainHeader
-      title={tSubscriptions('subscriptions')}
-      buttonsNode={buttonsNode}
-    />
-  );
+  return <MainHeader title={tSubscriptions('subscriptions')} buttonsNode={buttonsNode} />;
 };

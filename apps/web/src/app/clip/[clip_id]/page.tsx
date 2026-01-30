@@ -27,11 +27,5 @@ export default async function ClipPage({ params }: ClipPageProps) {
     return notFound();
   }
 
-  return (
-    <ClipClient
-      ssrChannel={ssrChannel}
-      ssrItem={ssrItem}
-      ssrClip={ssrClip}
-    />
-  );
+  return <ClipClient ssrChannel={ssrChannel} ssrItem={ssrItem} ssrClip={ssrClip} />;
 }

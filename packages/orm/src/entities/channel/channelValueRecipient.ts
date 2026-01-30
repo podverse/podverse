@@ -7,7 +7,7 @@ export class ChannelValueRecipient {
   @PrimaryGeneratedColumn()
   id!: number;
 
-  @ManyToOne(() => ChannelValue, channelValue => channelValue.id, { onDelete: 'CASCADE' })
+  @ManyToOne(() => ChannelValue, (channelValue) => channelValue.id, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'channel_value_id' })
   channel_value!: ChannelValue;
 
@@ -20,13 +20,28 @@ export class ChannelValueRecipient {
   @Column({ type: 'float', name: 'split' })
   split!: number;
 
-  @Column({ type: 'varchar', name: 'name', nullable: true, length: DATABASE_CONSTANTS.varchar_normal })
+  @Column({
+    type: 'varchar',
+    name: 'name',
+    nullable: true,
+    length: DATABASE_CONSTANTS.varchar_normal,
+  })
   name!: string | null;
 
-  @Column({ type: 'varchar', name: 'custom_key', nullable: true, length: DATABASE_CONSTANTS.varchar_long })
+  @Column({
+    type: 'varchar',
+    name: 'custom_key',
+    nullable: true,
+    length: DATABASE_CONSTANTS.varchar_long,
+  })
   custom_key!: string | null;
 
-  @Column({ type: 'varchar', name: 'custom_value', nullable: true, length: DATABASE_CONSTANTS.varchar_long })
+  @Column({
+    type: 'varchar',
+    name: 'custom_value',
+    nullable: true,
+    length: DATABASE_CONSTANTS.varchar_long,
+  })
   custom_value!: string | null;
 
   @Column({ type: 'boolean', name: 'fee', default: false })

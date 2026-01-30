@@ -4,8 +4,8 @@ import { ChannelDescription } from '@orm/entities/channel/channelDescription';
 import { BaseOneService } from '@orm/services/base/baseOneService';
 
 type ChannelDescriptionDto = {
-  value: string
-}
+  value: string;
+};
 
 export class ChannelDescriptionService extends BaseOneService<ChannelDescription, 'channel'> {
   constructor(transactionalEntityManager?: EntityManager) {

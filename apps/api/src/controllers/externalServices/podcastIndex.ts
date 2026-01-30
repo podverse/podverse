@@ -13,42 +13,37 @@ const podcastIndexSearchPodcastsQuerySchema = Joi.object({
 }).unknown(false);
 
 interface PodcastIndexSearchPodcastsQuery {
-  q: string
+  q: string;
 }
 
 export class PodcastIndexController {
-
   static async podcastById(req: Request, res: Response): Promise<void> {
-    validateParamsObject(podcastIndexFeedParamsSchema, req, res,
-      async () => {
-        const podcast_index_id_str = getParamRequired(req, 'podcast_index_id');
-        const podcast_index_id = parseInt(podcast_index_id_str, 10);
-        const result = await podcastIndexService.podcastGetById(podcast_index_id);
+    validateParamsObject(podcastIndexFeedParamsSchema, req, res, async () => {
+      const podcast_index_id_str = getParamRequired(req, 'podcast_index_id');
+      const podcast_index_id = parseInt(podcast_index_id_str, 10);
+      const result = await podcastIndexService.podcastGetById(podcast_index_id);
 
-        if (!result) {
-          res.status(500).json({ error: 'Failed to fetch podcast from Podcast Index' });
-          return;
-        }
+      if (!result) {
+        res.status(500).json({ error: 'Failed to fetch podcast from Podcast Index' });
+        return;
+      }
 
-        res.json(result);
-      },
-    );
+      res.json(result);
+    });
   }
 
   static async searchPodcasts(req: Request, res: Response): Promise<void> {
-    validateQueryObject(podcastIndexSearchPodcastsQuerySchema, req, res,
-      async () => {
-        const { q } = req.query as unknown as PodcastIndexSearchPodcastsQuery;
-        const options = { max: 50 };
-        const results = await podcastIndexService.searchPodcasts(q, options);
+    validateQueryObject(podcastIndexSearchPodcastsQuerySchema, req, res, async () => {
+      const { q } = req.query as unknown as PodcastIndexSearchPodcastsQuery;
+      const options = { max: 50 };
+      const results = await podcastIndexService.searchPodcasts(q, options);
 
-        if (!results) {
-          res.status(500).json({ error: 'Failed to fetch search results from Podcast Index' });
-          return;
-        }
+      if (!results) {
+        res.status(500).json({ error: 'Failed to fetch search results from Podcast Index' });
+        return;
+      }
 
-        res.json(results);
-      },
-    );
+      res.json(results);
+    });
   }
 }

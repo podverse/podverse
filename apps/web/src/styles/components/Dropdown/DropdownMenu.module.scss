@@ -23,7 +23,7 @@
   color: var(--text-color-primary);
 
   &:hover,
-  &[aria-selected="true"],
+  &[aria-selected='true'],
   &:focus {
     background: var(--background-color-opaque);
     outline: none;

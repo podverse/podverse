@@ -4,12 +4,12 @@ import { ItemSocialInteract } from '@orm/entities/item/itemSocialInteract';
 import { BaseManyService } from '@orm/services/base/baseManyService';
 
 type ItemSocialInteractDto = {
-  protocol: string
-  uri: string
-  account_id: string | null
-  account_url: string | null
-  priority: number | null
-}
+  protocol: string;
+  uri: string;
+  account_id: string | null;
+  account_url: string | null;
+  priority: number | null;
+};
 
 export class ItemSocialInteractService extends BaseManyService<ItemSocialInteract, 'item'> {
   constructor(transactionalEntityManager?: EntityManager) {

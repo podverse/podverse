@@ -1,0 +1,43 @@
+# Dependencies
+node_modules/
+
+# Build outputs
+**/dist/
+**/.next/
+out/
+
+# Lockfiles
+package-lock.json
+
+# TypeScript incremental build cache
+**/*.tsbuildinfo
+
+# i18n translation data (do not format; originals/overrides have special structure, compiled is generated)
+**/i18n/originals/**
+**/i18n/overrides/**
+**/i18n/compiled/**
+
+# Generated reports (bundle analyzer, etc.)
+**/reports/
+
+# Test coverage
+coverage/
+
+# Logs
+*.log
+npm-debug.log*
+logs/*
+
+# Infra config (secrets)
+infra/config/local/
+infra/config/alpha/
+
+# Env files (secrets)
+.env
+.env.*
+**/.env
+**/.env.*
+
+# Misc
+*.tgz
+.cache/

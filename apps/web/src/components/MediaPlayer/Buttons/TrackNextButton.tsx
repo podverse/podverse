@@ -20,10 +20,7 @@ export const TrackNextButton = () => {
   };
 
   return (
-    <button
-      className={styles.trackNextButton}
-      onClick={onClick}
-      type="button">
+    <button className={styles.trackNextButton} onClick={onClick} type="button">
       <FaForwardStep />
     </button>
   );

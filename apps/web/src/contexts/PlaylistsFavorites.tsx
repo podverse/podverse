@@ -1,5 +1,5 @@
 import { DTOPlaylist /*, generatePlaylistFavoritesIndex */ } from '@podverse/helpers';
-import React, { createContext, useState, ReactNode, useEffect } from 'react';
+import { createContext, useState, ReactNode, useEffect } from 'react';
 import { useContext } from 'react';
 // import { apiRequestService } from "../factories/apiRequestService";
 import { useAccount } from './Account';
@@ -18,9 +18,7 @@ type PlaylistsFavoritesProviderProps = {
   children: ReactNode;
 };
 
-export const PlaylistsFavoritesProvider = ({
-  children,
-}: PlaylistsFavoritesProviderProps) => {
+export const PlaylistsFavoritesProvider = ({ children }: PlaylistsFavoritesProviderProps) => {
   const [playlistsFavorites, setPlaylistsFavorites] = useState<DTOPlaylist[]>([]);
   const { loggedInAccount } = useAccount();
 
@@ -30,15 +28,14 @@ export const PlaylistsFavoritesProvider = ({
         setPlaylistsFavorites([]);
         return;
       }
-      
-      // const data = await apiRequestService.reqPlaylistGetAllFavoritesPrivate();      
+
+      // const data = await apiRequestService.reqPlaylistGetAllFavoritesPrivate();
       // const index = generatePlaylistFavoritesIndex(data);
     })();
   }, []);
 
   return (
-    <PlaylistsFavoritesContext.Provider
-      value={{ playlistsFavorites, setPlaylistsFavorites }}>
+    <PlaylistsFavoritesContext.Provider value={{ playlistsFavorites, setPlaylistsFavorites }}>
       {children}
     </PlaylistsFavoritesContext.Provider>
   );
@@ -46,6 +43,8 @@ export const PlaylistsFavoritesProvider = ({
 
 export function usePlaylistsFavorites() {
   const ctx = useContext(PlaylistsFavoritesContext);
-  if (!ctx) {throw new Error('usePlaylistsFavorites must be used within a PlaylistsFavoritesProvider');}
+  if (!ctx) {
+    throw new Error('usePlaylistsFavorites must be used within a PlaylistsFavoritesProvider');
+  }
   return ctx;
 }

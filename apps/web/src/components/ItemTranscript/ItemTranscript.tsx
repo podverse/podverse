@@ -23,22 +23,27 @@ export const ItemTranscript = ({ rows, autoScrollOn }: ItemTranscriptProps) => {
   const safeRows = rows ?? [];
 
   const handleRowClick = (startTime: number) => {
-    window.dispatchEvent(new CustomEvent(EVENTS.MEDIA_PLAYER.SEEK, {
-      detail: { time: startTime },
-    }));
-  };
-  
-  const filteredRows = useMemo(() => {
-    if (!searchTerm.trim()) {return safeRows;}
-    const lowerSearch = searchTerm.toLowerCase();
-    return safeRows.filter(row =>
-      row.body?.toLowerCase().includes(lowerSearch),
+    window.dispatchEvent(
+      new CustomEvent(EVENTS.MEDIA_PLAYER.SEEK, {
+        detail: { time: startTime },
+      })
     );
+  };
+
+  const filteredRows = useMemo(() => {
+    if (!searchTerm.trim()) {
+      return safeRows;
+    }
+    const lowerSearch = searchTerm.toLowerCase();
+    return safeRows.filter((row) => row.body?.toLowerCase().includes(lowerSearch));
   }, [safeRows, searchTerm]);
 
-  const highlightedIndex = filteredRows.findIndex(row =>
-    typeof row.startTime === 'number' && typeof row.endTime === 'number' &&
-    mpCurrentTime >= row.startTime && mpCurrentTime < row.endTime,
+  const highlightedIndex = filteredRows.findIndex(
+    (row) =>
+      typeof row.startTime === 'number' &&
+      typeof row.endTime === 'number' &&
+      mpCurrentTime >= row.startTime &&
+      mpCurrentTime < row.endTime
   );
 
   return (
@@ -59,8 +64,10 @@ export const ItemTranscript = ({ rows, autoScrollOn }: ItemTranscriptProps) => {
             key={row.line ?? idx}
             row={row}
             highlight={
-              typeof row.startTime === 'number' && typeof row.endTime === 'number' &&
-              mpCurrentTime >= row.startTime && mpCurrentTime < row.endTime
+              typeof row.startTime === 'number' &&
+              typeof row.endTime === 'number' &&
+              mpCurrentTime >= row.startTime &&
+              mpCurrentTime < row.endTime
             }
             onClick={() => handleRowClick(row.startTime)}
           />

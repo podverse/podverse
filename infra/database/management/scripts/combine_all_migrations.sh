@@ -15,8 +15,7 @@ mkdir -p "$DEST_DIR"
 > "$DEST_FILE"
 
 # Iterate over all .sql files in the source directory
-for file in "$SOURCE_DIR"/*.sql; 
-do
+for file in "$SOURCE_DIR"/*.sql; do
   # Append the contents of each .sql file to the destination file
   cat "$file" >> "$DEST_FILE"
   # Add a newline for separation

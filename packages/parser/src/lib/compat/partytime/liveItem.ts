@@ -4,10 +4,11 @@ import { getLiveItemStatusEnumValue, LiveItemStatusEnum } from '@podverse/orm';
 
 export const compatLiveItemsDtos = (parsedLiveItems: Phase4PodcastLiveItem[]) => {
   const dtos = [];
-  for (const parsedLiveItem of parsedLiveItems) {    
+  for (const parsedLiveItem of parsedLiveItems) {
     dtos.push({
       liveItem: {
-        live_item_status: getLiveItemStatusEnumValue(parsedLiveItem.status) ?? LiveItemStatusEnum.Pending,
+        live_item_status:
+          getLiveItemStatusEnumValue(parsedLiveItem.status) ?? LiveItemStatusEnum.Pending,
         start_time: parsedLiveItem.start,
         end_time: parsedLiveItem.end || null,
         /*

@@ -24,11 +24,7 @@ export const PROXY = {
     MAX_RESPONSE_SIZE_BYTES: 10 * 1024 * 1024, // 10 MB
   },
   TIMEOUT_MS: 10 * 1000, // 10 seconds
-  ALLOWED_CONTENT_TYPES: [
-    'image/jpeg',
-    'image/png',
-    'image/gif',
-  ],
+  ALLOWED_CONTENT_TYPES: ['image/jpeg', 'image/png', 'image/gif'],
 } as const;
 ```
 
@@ -36,7 +32,7 @@ export const PROXY = {
 
 ```typescript
 // apps/web/src/app/api/proxy/route.ts
-import { PROXY } from "../../utils/proxy/constants";
+import { PROXY } from '../../utils/proxy/constants';
 
 // Instead of: if (count > 1000) { ... }
 if (count > PROXY.RATE_LIMIT.MAX_REQUESTS) {
@@ -88,15 +84,15 @@ All image paths should be defined in `apps/web/src/constants/images.ts` under th
 // apps/web/src/constants/images.ts
 export const IMAGES = {
   SRC: {
-    PLACEHOLDER: "/images/placeholder-image.png"
+    PLACEHOLDER: '/images/placeholder-image.png',
   },
   MOBILE: {
     APP_STORES: {
-      APP_STORE: "/images/mobile/app-stores/download-badge-download-on-the-app-store.svg",
-      GOOGLE_PLAY: "/images/mobile/app-stores/download-badge-get-it-on-google-play.png",
-      F_DROID: "/images/mobile/app-stores/download-badge-get-it-on-fdroid.png"
-    }
-  }
+      APP_STORE: '/images/mobile/app-stores/download-badge-download-on-the-app-store.svg',
+      GOOGLE_PLAY: '/images/mobile/app-stores/download-badge-get-it-on-google-play.png',
+      F_DROID: '/images/mobile/app-stores/download-badge-get-it-on-fdroid.png',
+    },
+  },
 } as const;
 ```
 
@@ -193,19 +189,22 @@ import { PROXY_RATE_LIMIT, PROXY_SIZE_LIMITS, PROXY_TIMEOUT_MS } from "./constan
 ### Steps for Adding New Environment Variables
 
 **In Plan Mode**: Before adding a new environment variable, you MUST ask:
+
 - "Should this new environment variable be required (added to validation script) or optional?"
 
 1. **Add to config object** (`apps/web/src/config/index.ts`):
+
    ```typescript
    export const config = {
      // ... existing config ...
      newFeature: {
-       setting: process.env.NEXT_PUBLIC_NEW_FEATURE_SETTING || "default"
-     }
+       setting: process.env.NEXT_PUBLIC_NEW_FEATURE_SETTING || 'default',
+     },
    };
    ```
 
 2. **If required**: Add to validation script (`apps/web/scripts/validate-env.ts`):
+
    ```typescript
    const REQUIRED_ENV_VARS = [
      'NEXT_PUBLIC_PROXY_USER_AGENT',
@@ -225,11 +224,12 @@ import { PROXY_RATE_LIMIT, PROXY_SIZE_LIMITS, PROXY_TIMEOUT_MS } from "./constan
    - Add the variable with environment-appropriate values
 
 5. **Use config object in code**:
+
    ```typescript
    // ✅ Good: Use config object
-   import { config } from "../../config";
+   import { config } from '../../config';
    const value = config.newFeature.setting;
-   
+
    // ❌ Bad: Direct process.env access
    const value = process.env.NEXT_PUBLIC_NEW_FEATURE_SETTING;
    ```
@@ -257,27 +257,27 @@ import { PROXY_RATE_LIMIT, PROXY_SIZE_LIMITS, PROXY_TIMEOUT_MS } from "./constan
 export const config = {
   // ... existing config ...
   proxy: {
-    userAgent: process.env.NEXT_PUBLIC_PROXY_USER_AGENT || "Podverse Bot Local/Web-API/5"
-  }
+    userAgent: process.env.NEXT_PUBLIC_PROXY_USER_AGENT || 'Podverse Bot Local/Web-API/5',
+  },
 };
 
 // ✅ Good: In code
-import { config } from "../../config";
+import { config } from '../../config';
 const response = await fetch(url, {
   headers: {
-    "User-Agent": config.proxy.userAgent
-  }
+    'User-Agent': config.proxy.userAgent,
+  },
 });
 
 // ❌ Bad: Direct process.env
 const response = await fetch(url, {
   headers: {
-    "User-Agent": process.env.NEXT_PUBLIC_PROXY_USER_AGENT || "Podverse Bot Local/Web-API/5"
-  }
+    'User-Agent': process.env.NEXT_PUBLIC_PROXY_USER_AGENT || 'Podverse Bot Local/Web-API/5',
+  },
 });
 
 // ❌ Bad: Missing NEXT_PUBLIC_ prefix (even for server-only vars in podverse-web)
-userAgent: process.env.PROXY_USER_AGENT || "Podverse Bot Local/Web-API/5"
+userAgent: process.env.PROXY_USER_AGENT || 'Podverse Bot Local/Web-API/5';
 ```
 
 ### Environment Variable Validation
@@ -285,21 +285,24 @@ userAgent: process.env.PROXY_USER_AGENT || "Podverse Bot Local/Web-API/5"
 **CRITICAL**: A validation script (`apps/web/scripts/validate-env.ts`) runs before every build to ensure required environment variables are set and properly formatted. If any required variables are missing or invalid, the build will abort.
 
 **Required Environment Variables**:
+
 - `NEXT_PUBLIC_PROXY_USER_AGENT` - User-Agent string for proxy requests
   - **Format**: `BrandName Bot Environment/AppName/Version` (3 parts separated by slashes)
-  - **Requirements**: 
+  - **Requirements**:
     - Must have exactly 3 parts: `[first part]/[second part]/[third part]`
     - First part must include "Bot" (e.g., "Podverse Bot Local")
     - Example: `"Podverse Bot Local/Web-API/5"`
   - **Validation**: The script validates both the format pattern and the "Bot" requirement
 
 **Adding a new required variable**:
+
 1. Add the variable name to the `REQUIRED_ENV_VARS` array in `apps/web/scripts/validate-env.ts`
 2. If format validation is needed, add a validation function (see `validateUserAgentFormat` as an example)
 3. The validation script will automatically check it before build
 4. Update `.env.example` and all environment files in `env/` directory
 
 **In Plan Mode**: When planning to add a new environment variable, you MUST ask the user:
+
 - "Should this new environment variable be required (added to validation script) or optional?"
 
 #### NODE_ENV and Environment File Loading
@@ -307,15 +310,18 @@ userAgent: process.env.PROXY_USER_AGENT || "Podverse Bot Local/Web-API/5"
 **CRITICAL**: The validation script handles different `NODE_ENV` values differently, matching Next.js's behavior:
 
 **Production (`NODE_ENV=production`)**:
+
 - In Docker builds, environment files from `env/` directory are copied to `.env.production` (see Dockerfile)
 - Validation script loads `.env.production` first, then falls back to `.env`
 - This matches Next.js's automatic loading of `.env.production` when `NODE_ENV=production`
 
 **Development (`NODE_ENV=development` or unset)**:
+
 - Validation script loads `.env.local` first (if exists), then falls back to `.env`
 - This matches Next.js's priority order for development
 
 **Pattern for validation scripts**:
+
 ```typescript
 // Always check NODE_ENV and load appropriate .env file
 const nodeEnv = process.env.NODE_ENV || 'development';
@@ -338,6 +344,7 @@ if (nodeEnv === 'production') {
 ```
 
 **Docker Build Context**:
+
 - Dockerfiles copy environment-specific files from `env/` directory to `.env.production` during build
 - Example: `COPY ./env/alpha.env ./.env.production`
 - The validation script must account for this when running in production build context
@@ -349,6 +356,7 @@ if (nodeEnv === 'production') {
 **CRITICAL**: `.env.example` and all files in the `env/` directory should mirror each other closely in terms of comments and structure, only differing in values.
 
 When adding a new environment variable:
+
 1. **If required**: Add to `REQUIRED_ENV_VARS` in `apps/web/scripts/validate-env.ts`
 2. Add to `.env.example` with full documentation (format, examples, required status, etc.)
 3. Add to all environment-specific files in `env/` directory with the **same comments** as `.env.example`, only changing the values
@@ -356,6 +364,7 @@ When adding a new environment variable:
 5. Group related variables together with section headers
 
 **Example**: If `.env.example` has:
+
 ```env
 # User-Agent string sent when proxying external image requests
 # Format: BrandName Bot Environment/AppName/Version
@@ -366,13 +375,14 @@ NEXT_PUBLIC_PROXY_USER_AGENT="Podverse Bot Local/Web-API/5"
 ```
 
 Then `env/local.env` and `env/alpha.env` should have:
+
 ```env
 # User-Agent string sent when proxying external image requests
 # Format: BrandName Bot Environment/AppName/Version
 # Example: Podverse Bot Local/Web-API/5
 # Required: Yes (validated before build)
 # Note: The first part must include "Bot" (e.g., "Podverse Bot Local")
-NEXT_PUBLIC_PROXY_USER_AGENT="Podverse Bot Local/Web-API/5"  # (or "Podverse Bot Alpha/Web-API/5" for alpha)
+NEXT_PUBLIC_PROXY_USER_AGENT="Podverse Bot Local/Web-API/5" # (or "Podverse Bot Alpha/Web-API/5" for alpha)
 ```
 
 **Keep comments synchronized**: When updating comments in `.env.example`, update them in all `env/*.env` files as well.
@@ -384,11 +394,13 @@ NEXT_PUBLIC_PROXY_USER_AGENT="Podverse Bot Local/Web-API/5"  # (or "Podverse Bot
 **Pattern**: `BrandName Bot Environment/AppName/Version`
 
 **Components**:
+
 - `BrandName Bot Environment` - First part (before first slash), must include "Bot" (e.g., "Podverse Bot Local", "Podverse Bot Alpha")
 - `AppName` - Application identifier (e.g., "Web-API", "API", "Management-API")
 - `Version` - Version number (e.g., `5`)
 
 **Format Rules**:
+
 - Must have exactly 3 parts separated by forward slashes (`/`)
 - First part must include the word "Bot" (e.g., "Podverse Bot Local", not "Podverse Local")
 - First part can contain spaces (e.g., "Podverse Bot Local")
@@ -396,6 +408,7 @@ NEXT_PUBLIC_PROXY_USER_AGENT="Podverse Bot Local/Web-API/5"  # (or "Podverse Bot
 - Third part is the version number (e.g., "5")
 
 **Examples**:
+
 - `"Podverse Bot Local/Web-API/5"` - Local development, Web API (podverse-web)
 - `"Podverse Bot Alpha/Web-API/5"` - Alpha environment, Web API (podverse-web)
 - `"Podverse Bot Local/API/5"` - Local development, API (podverse-api)
@@ -403,12 +416,14 @@ NEXT_PUBLIC_PROXY_USER_AGENT="Podverse Bot Local/Web-API/5"  # (or "Podverse Bot
 - `"Podverse Bot/Web-API/5"` - Production, Web API (no environment in first part for prod)
 
 **Validation**:
+
 - The validation script (`apps/web/scripts/validate-env.ts`) enforces this format
 - Must match pattern: `/^[^/]+\/[^/]+\/[^/]+$/` (3 parts separated by slashes)
 - First part must include "Bot"
 - Build will fail if format is incorrect
 
 **When to use**:
+
 - HTTP User-Agent headers for external requests
 - API client identification
 - Service-to-service communication

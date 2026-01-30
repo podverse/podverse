@@ -1,5 +1,5 @@
-import React from 'react';
-import { DTOChannel, QueryParamsHome } from '@podverse/helpers';
+import { DTOChannel } from '@podverse/helpers';
+import { QueryParamsHome } from '@podverse/helpers-requests';
 import { MainWrapper } from '../components/Main/MainWrapper';
 import { MainInnerWrapper } from '../components/Main/MainInnerWrapper';
 import { MainInnerContentWrapper } from '../components/Main/MainInnerContentWrapper';
@@ -15,7 +15,6 @@ type HomeClientProps = {
 };
 
 export function HomeClient({ initialQueryParams, ssrChannels, ssrTotalPages }: HomeClientProps) {
-
   return (
     <HomeContextProvider
       initialQueryParams={initialQueryParams}

@@ -1,5 +1,14 @@
 import { DATABASE_CONSTANTS, MediumEnum, SharableStatusEnum } from '@podverse/helpers';
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, BeforeInsert, Unique, OneToMany } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  JoinColumn,
+  BeforeInsert,
+  Unique,
+  OneToMany,
+} from 'typeorm';
 import { Account } from '@orm/entities/account/account';
 import { SharableStatus } from '@orm/entities/sharableStatus';
 import { Medium } from '@orm/entities/medium';
@@ -15,11 +24,11 @@ export class Playlist {
   @Column({ type: 'varchar', unique: true })
   id_text!: string;
 
-  @ManyToOne(() => Account, account => account.id, { onDelete: 'CASCADE' })
+  @ManyToOne(() => Account, (account) => account.id, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'account_id' })
   account!: Account;
 
-  @ManyToOne(() => SharableStatus, sharableStatus => sharableStatus.id)
+  @ManyToOne(() => SharableStatus, (sharableStatus) => sharableStatus.id)
   @JoinColumn({ name: 'sharable_status_id' })
   sharable_status!: SharableStatusEnum;
 
@@ -45,7 +54,7 @@ export class Playlist {
   @Column({ type: 'timestamp' })
   last_updated!: Date;
 
-  @ManyToOne(() => Medium, medium => medium.id)
+  @ManyToOne(() => Medium, (medium) => medium.id)
   @JoinColumn({ name: 'medium_id' })
   medium!: MediumEnum;
 
@@ -56,7 +65,7 @@ export class Playlist {
   @Column({ name: 'medium_id', type: 'int', nullable: true })
   medium_id?: number | null;
 
-  @OneToMany(() => PlaylistResource, playlistResource => playlistResource.playlist)
+  @OneToMany(() => PlaylistResource, (playlistResource) => playlistResource.playlist)
   playlist_resources!: PlaylistResource[];
 
   @BeforeInsert()

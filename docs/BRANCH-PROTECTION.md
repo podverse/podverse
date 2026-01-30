@@ -10,75 +10,75 @@ GitHub Repository > Settings > Branches > Add branch protection rule
 
 **Pattern**: `develop`
 
-| Setting | Value |
-|---------|-------|
-| Require a pull request before merging | Yes |
-| Required approving reviews | 1 |
-| Dismiss stale pull request approvals | Yes |
-| Require status checks to pass | Yes |
-| Required status checks | `validate` |
-| Require branches to be up to date | Yes |
-| Allow force pushes | No |
-| Allow deletions | No |
+| Setting                               | Value      |
+| ------------------------------------- | ---------- |
+| Require a pull request before merging | Yes        |
+| Required approving reviews            | 1          |
+| Dismiss stale pull request approvals  | Yes        |
+| Require status checks to pass         | Yes        |
+| Required status checks                | `validate` |
+| Require branches to be up to date     | Yes        |
+| Allow force pushes                    | No         |
+| Allow deletions                       | No         |
 
 ## Branch: `alpha`
 
 **Pattern**: `alpha`
 
-| Setting | Value |
-|---------|-------|
-| Require a pull request before merging | Yes |
-| Required approving reviews | 2 |
-| Dismiss stale pull request approvals | Yes |
-| Require status checks to pass | Yes |
-| Required status checks | `validate` |
-| Require branches to be up to date | Yes |
-| Restrict who can push | @podverse/maintainers |
-| Allow force pushes | No |
-| Allow deletions | No |
+| Setting                               | Value                 |
+| ------------------------------------- | --------------------- |
+| Require a pull request before merging | Yes                   |
+| Required approving reviews            | 2                     |
+| Dismiss stale pull request approvals  | Yes                   |
+| Require status checks to pass         | Yes                   |
+| Required status checks                | `validate`            |
+| Require branches to be up to date     | Yes                   |
+| Restrict who can push                 | @podverse/maintainers |
+| Allow force pushes                    | No                    |
+| Allow deletions                       | No                    |
 
 ## Branch: `beta`
 
 **Pattern**: `beta`
 
-| Setting | Value |
-|---------|-------|
-| Require a pull request before merging | Yes |
-| Required approving reviews | 2 |
-| Dismiss stale pull request approvals | Yes |
-| Require review from Code Owners | Yes |
-| Require status checks to pass | Yes |
-| Required status checks | `validate` |
-| Require branches to be up to date | Yes |
-| Restrict who can push | @podverse/maintainers |
-| Require linear history | Yes |
-| Allow force pushes | No |
-| Allow deletions | No |
+| Setting                               | Value                 |
+| ------------------------------------- | --------------------- |
+| Require a pull request before merging | Yes                   |
+| Required approving reviews            | 2                     |
+| Dismiss stale pull request approvals  | Yes                   |
+| Require review from Code Owners       | Yes                   |
+| Require status checks to pass         | Yes                   |
+| Required status checks                | `validate`            |
+| Require branches to be up to date     | Yes                   |
+| Restrict who can push                 | @podverse/maintainers |
+| Require linear history                | Yes                   |
+| Allow force pushes                    | No                    |
+| Allow deletions                       | No                    |
 
 ## Branch: `main`
 
 **Pattern**: `main`
 
-| Setting | Value |
-|---------|-------|
-| Require a pull request before merging | Yes |
-| Required approving reviews | 2 |
-| Dismiss stale pull request approvals | Yes |
-| Require review from Code Owners | Yes |
-| Require status checks to pass | Yes |
-| Required status checks | `validate` |
-| Require branches to be up to date | Yes |
-| Restrict who can push | @podverse/maintainers |
-| Require linear history | Yes |
-| Allow force pushes | No |
-| Allow deletions | No |
+| Setting                               | Value                 |
+| ------------------------------------- | --------------------- |
+| Require a pull request before merging | Yes                   |
+| Required approving reviews            | 2                     |
+| Dismiss stale pull request approvals  | Yes                   |
+| Require review from Code Owners       | Yes                   |
+| Require status checks to pass         | Yes                   |
+| Required status checks                | `validate`            |
+| Require branches to be up to date     | Yes                   |
+| Restrict who can push                 | @podverse/maintainers |
+| Require linear history                | Yes                   |
+| Allow force pushes                    | No                    |
+| Allow deletions                       | No                    |
 
 ## Local Enforcement
 
 In addition to GitHub branch protection, local git hooks enforce:
 
 - **pre-push**: Blocks direct pushes to protected branches (main, beta, alpha, develop)
-- **pre-push**: Validates branch naming conventions (feature/*, fix/*, chore/*, docs/*, hotfix/*, release/*)
+- **pre-push**: Validates branch naming conventions (feature/_, fix/_, chore/_, docs/_, hotfix/_, release/_)
 - **commit-msg**: Encourages GitHub issue references (#123) in commit messages
 
 See `scripts/git-hooks/` for implementation details.
@@ -99,6 +99,7 @@ All checks must pass before a PR can be merged.
 To prevent abuse of GitHub Actions by spam PRs, CI does not run automatically on PRs from external contributors.
 
 **Workflow:**
+
 1. External contributor opens PR
 2. Maintainer reviews code for obvious issues or malicious content
 3. Maintainer comments `/test` on the PR to trigger CI
@@ -106,6 +107,7 @@ To prevent abuse of GitHub Actions by spam PRs, CI does not run automatically on
 5. If CI passes, maintainer can approve the PR
 
 **Who can trigger CI:**
+
 - Repository owners
 - Organization members
 - Collaborators with write access

@@ -9,7 +9,7 @@ import {
   validateExternalServicesConfig,
   validateParserConfig,
   assertConfigValid,
-} from '@podverse/helpers';
+} from '@podverse/helpers-config';
 import { createORMContext, getDataSourceRead, getDataSourceReadWrite } from '@podverse/orm';
 import { createFirebaseContext } from '@podverse/external-services';
 import { createNotificationsContext } from '@podverse/notifications';
@@ -141,8 +141,8 @@ process.on('SIGTERM', () => void shutdown('SIGTERM'));
         authKey: config.podcastIndex.authKey,
         baseUrl: config.podcastIndex.baseUrl,
         secretKey: config.podcastIndex.secretKey,
-        rateLimitDelay: process.env.PODCAST_INDEX_API_RATE_LIMIT_DELAY 
-          ? parseInt(process.env.PODCAST_INDEX_API_RATE_LIMIT_DELAY, 10) 
+        rateLimitDelay: process.env.PODCAST_INDEX_API_RATE_LIMIT_DELAY
+          ? parseInt(process.env.PODCAST_INDEX_API_RATE_LIMIT_DELAY, 10)
           : 0,
       },
       defaults: {
@@ -156,7 +156,10 @@ process.on('SIGTERM', () => void shutdown('SIGTERM'));
 
     // Validate all module configs
     assertConfigValid(validateORMConfig(ormConfig), 'podverse-orm');
-    assertConfigValid(validateExternalServicesConfig(externalServicesConfig), 'podverse-external-services');
+    assertConfigValid(
+      validateExternalServicesConfig(externalServicesConfig),
+      'podverse-external-services'
+    );
     assertConfigValid(validateNotificationsConfig(notificationsConfig), 'podverse-notifications');
     assertConfigValid(validateParserConfig(parserConfig), 'podverse-parser');
 

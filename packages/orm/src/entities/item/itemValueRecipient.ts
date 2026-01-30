@@ -7,7 +7,7 @@ export class ItemValueRecipient {
   @PrimaryGeneratedColumn()
   id!: number;
 
-  @ManyToOne(() => ItemValue, itemValue => itemValue.id, { onDelete: 'CASCADE' })
+  @ManyToOne(() => ItemValue, (itemValue) => itemValue.id, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'item_value_id' })
   item_value!: ItemValue;
 

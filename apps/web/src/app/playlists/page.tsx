@@ -1,28 +1,41 @@
-import { QUERY_PARAMS_STATS_RANGE_VALUES, QUERY_PARAMS_PLAYLISTS_TYPE_VALUES,
-  getTotalPages, DTOPlaylist,
-  QueryParamsPlaylistsType, QueryParamsStatsRange,
-  QUERY_PARAMS_SUBSCRIBED_FULL_SORT,
-  QueryParamsSubscribedFullSort,
+import {
+  getTotalPages,
+  DTOPlaylist,
   QUERY_PARAMS_QUEUE_MEDIUMS,
   QueryParamsQueueMedium,
 } from '@podverse/helpers';
+import {
+  QUERY_PARAMS_STATS_RANGE_VALUES,
+  QUERY_PARAMS_PLAYLISTS_TYPE_VALUES,
+  QueryParamsPlaylistsType,
+  QueryParamsStatsRange,
+  QUERY_PARAMS_SUBSCRIBED_FULL_SORT,
+  QueryParamsSubscribedFullSort,
+} from '@podverse/helpers-requests';
 import { cookies } from 'next/headers';
 import { z } from 'zod';
 import { PlaylistsClient } from './PlaylistsClient';
 import { getPlaylistsFilterParams } from './PlaylistsDropdownConfig';
 import { getSSRAuthService } from '../../utils/auth/ssrAuth';
 import { guardSubscribedSsrFilter, safeSsrListRequest } from '../../utils/filters/ssrFilterGuards';
-import { getParsedLocalSettings, PlaylistsFilterDefaults } from '../../utils/localSettings/localSettings';
+import {
+  getParsedLocalSettings,
+  PlaylistsFilterDefaults,
+} from '../../utils/localSettings/localSettings';
 
 const searchParamsSchema = z.object({
-  page: z.string().transform((v) => parseInt(v, 10)).optional().default('1'),
+  page: z
+    .string()
+    .transform((v) => parseInt(v, 10))
+    .optional()
+    .default(1),
   type: z.enum(QUERY_PARAMS_PLAYLISTS_TYPE_VALUES).optional().nullable().default(null),
   sort: z.enum(QUERY_PARAMS_SUBSCRIBED_FULL_SORT).optional().nullable().default(null),
   range: z.enum(QUERY_PARAMS_STATS_RANGE_VALUES).optional().nullable().default(null),
   medium: z.enum(QUERY_PARAMS_QUEUE_MEDIUMS).optional().nullable().default(null),
 });
 
-type SearchParams = z.infer<typeof searchParamsSchema>
+type SearchParams = z.infer<typeof searchParamsSchema>;
 
 export type PlaylistsPageProps = {
   searchParams: Promise<SearchParams>;
@@ -36,9 +49,9 @@ export default async function PlaylistsPage({ searchParams }: PlaylistsPageProps
   const ssrFilterDefaults = ssrLocalSettings.fd?.playlists;
 
   const queryParams = await searchParams;
-  const { currentType, currentSort, currentRange, currentMedium,
-    currentPage } = await parseSearchParams(queryParams, isValidAuthSession, ssrFilterDefaults);
-  
+  const { currentType, currentSort, currentRange, currentMedium, currentPage } =
+    await parseSearchParams(queryParams, isValidAuthSession, ssrFilterDefaults);
+
   const response = await safeSsrListRequest<DTOPlaylist>(
     () =>
       ssrApiRequestService.reqPlaylistGetMany({
@@ -48,11 +61,16 @@ export default async function PlaylistsPage({ searchParams }: PlaylistsPageProps
         range: currentRange,
         medium: currentMedium,
       }),
-    currentPage,
+    currentPage
   );
 
   const ssrPlaylists: DTOPlaylist[] = response.data;
-  const ssrTotalPages = getTotalPages(response.meta.count, response.meta.limit, response.data.length, currentPage);
+  const ssrTotalPages = getTotalPages(
+    response.meta.count,
+    response.meta.limit,
+    response.data.length,
+    currentPage
+  );
 
   return (
     <PlaylistsClient
@@ -75,13 +93,13 @@ type ParseSearchParams = {
   currentSort: QueryParamsSubscribedFullSort;
   currentRange: QueryParamsStatsRange | null;
   currentMedium: QueryParamsQueueMedium;
-}
+};
 
 function parseSearchParams(
   queryParams: SearchParams,
   isAuthenticated: boolean,
-  cookieDefaults?: PlaylistsFilterDefaults,
-): ParseSearchParams  {
+  cookieDefaults?: PlaylistsFilterDefaults
+): ParseSearchParams {
   const parsed = searchParamsSchema.safeParse(queryParams);
 
   if (!parsed.success) {
@@ -124,11 +142,14 @@ function parseSearchParams(
     },
   });
 
-  return getPlaylistsFilterParams({
-    page: guarded.page,
-    type: guarded.type ?? 'public',
-    sort: guarded.sort ?? 'top',
-    range: guarded.range,
-    medium: data.medium ?? cookieDefaults?.medium ?? 'av',
-  }, isAuthenticated);
+  return getPlaylistsFilterParams(
+    {
+      page: guarded.page,
+      type: guarded.type ?? 'public',
+      sort: guarded.sort ?? 'top',
+      range: guarded.range,
+      medium: data.medium ?? cookieDefaults?.medium ?? 'av',
+    },
+    isAuthenticated
+  );
 }

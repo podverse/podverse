@@ -15,10 +15,7 @@ export const ClipButton = () => {
   };
 
   return (
-    <button
-      className={styles.clipButton}
-      onClick={onClick}
-      type="button">
+    <button className={styles.clipButton} onClick={onClick} type="button">
       <FaScissors />
     </button>
   );

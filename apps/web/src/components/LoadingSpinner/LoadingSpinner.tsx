@@ -1,3 +1,6 @@
+'use client';
+
+import { useTranslations } from 'next-intl';
 import React from 'react';
 import { FaSpinner } from 'react-icons/fa6';
 import styles from '../../styles/components/LoadingSpinner/LoadingSpinner.module.scss';
@@ -16,17 +19,16 @@ type Props = {
   style?: React.CSSProperties;
 };
 
-const LoadingSpinner: React.FC<Props> = ({
-  size = 'medium',
-  className = '',
-  style = {},
-}) => (
-  <FaSpinner
-    className={`${styles.spinner} ${className}`}
-    style={style}
-    size={sizeMap[size]}
-    aria-label="Loading"
-  />
-);
+const LoadingSpinner: React.FC<Props> = ({ size = 'medium', className = '', style = {} }) => {
+  const tMisc = useTranslations('misc');
+  return (
+    <FaSpinner
+      className={`${styles.spinner} ${className}`}
+      style={style}
+      size={sizeMap[size]}
+      aria-label={tMisc('loading')}
+    />
+  );
+};
 
 export default LoadingSpinner;
