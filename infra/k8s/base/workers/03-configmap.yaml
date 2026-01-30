@@ -14,7 +14,7 @@ data:
   ##### General
   #####
   NODE_ENV: "development"
-  USER_AGENT: "Podverse/Ser/2/Worker" # change to Alpha, Beta, Production
+  USER_AGENT: "Podverse Bot Alpha/Workers/5" # in prod change to "Podverse Bot/Workers/5", in alpha change to "Podverse Bot Alpha/Workers/5", etc.
   
   #####
   ##### Logs
