@@ -15,6 +15,13 @@ REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 
 cd "$REPO_ROOT"
 
+echo -e "${YELLOW}Running security audit...${NC}"
+if ! npm audit; then
+  echo -e "${RED}Error: npm audit found vulnerabilities. Fix them before bumping version.${NC}"
+  exit 1
+fi
+echo ""
+
 # Show current version from root package.json and prompt for next
 CURRENT_VERSION=$(node -p "require('./package.json').version")
 echo -e "Current version (root package.json): ${GREEN}$CURRENT_VERSION${NC}"

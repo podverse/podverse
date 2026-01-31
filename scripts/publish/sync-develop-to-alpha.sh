@@ -77,6 +77,14 @@ if [ "$DEVELOP_COMMIT" != "$ORIGIN_DEVELOP_COMMIT" ]; then
   exit 1
 fi
 
+echo -e "${YELLOW}Running security audit on develop...${NC}"
+npm ci
+if ! npm audit; then
+  echo -e "${RED}Error: npm audit found vulnerabilities in develop. Fix them before syncing to alpha.${NC}"
+  exit 1
+fi
+echo ""
+
 # Checkout alpha and update it
 echo -e "${YELLOW}Updating local alpha to match origin/alpha...${NC}"
 git checkout alpha
