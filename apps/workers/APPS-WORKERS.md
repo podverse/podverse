@@ -107,16 +107,22 @@ One-off commands typically run via cron:
 - `podcast_index_*` - Podcast Index integrations
 - `orm_*` - Database maintenance tasks
 
-## Environment Configuration
+## Environment configuration
 
-See [ENV.md](ENV.md) for complete documentation of all environment variables.
+**Required env vars are per-job.** When you run a specific command, only the env vars needed for that
+command are validated. You see **job-specific validation output** when vars are missing (a FATAL
+message and the list of missing vars for that job). See [ENV.md](ENV.md) for the full list of vars
+per command and which are required vs optional.
 
-Key configuration:
+Each job validates only what it needs. For example, an ORM-only cron job (e.g. `stats_update_aggregated`) does not require MQ or Podcast Index vars; a message-queue worker (e.g. `mq_rss_run_parser`) validates Base, ORM, MQ, Parser, Podcast Index, and Web/Notifications.
 
-- Database connection settings
-- Message queue (RabbitMQ) settings
-- Podcast Index API credentials
-- Optional: Firebase and WebPush for notifications
+Key configuration (by category):
+
+- Base: USER_AGENT, LOG_LEVEL, optional LOG_DIR, LOG_TIMER, NODE_ENV
+- Database (ORM): DB\_\*, DEFAULT_ACCOUNT_SETTINGS_LOCALE
+- Message queue: MESSAGE*QUEUE*\* (for MQ commands only)
+- Podcast Index: PODCAST*INDEX*\* (for commands that call Podcast Index)
+- Optional: Firebase and WebPush for notifications (Web/Notifications category)
 
 ## License
 

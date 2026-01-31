@@ -2,13 +2,41 @@
 
 ## Overview
 
-The `podverse-workers` application uses environment variables to configure various services and modules. Unlike other application repos, this repo does not have a dedicated validation file, but it uses environment variables that are consumed by the module factories (ORM, Parser, External Services, Notifications).
+The `podverse-workers` application uses environment variables to configure various services and modules. Environment variables are loaded from `.env` in development (production expects them in the environment). This repo consumes multiple modules (ORM, Parser, External Services, Notifications); the variables below are used to build the configuration objects passed to those module factories.
 
-Environment variables are loaded from `.env` file in development mode (production mode expects them to be set in the environment).
+## Per-command validation
 
-**Note**: This repo consumes multiple modules (podverse-orm, podverse-parser, podverse-external-services, podverse-notifications) which have their own configuration requirements. The environment variables listed here are used to build the configuration objects passed to those module factories.
+The workers app validates environment variables **per command**. Each job only validates (and only requires) the env vars it actually uses. When you run a command, you see **job-specific validation output**; if required vars for that job are missing, the FATAL message lists them. Not all variables in this document are required for every job—only those for the command you run.
 
-## General Configuration
+**Source of truth**: Required and optional vars per category are implemented in
+`apps/workers/src/lib/startup/validation.ts`; command → category mapping is in
+`apps/workers/src/lib/startup/categoriesForCommand.ts`.
+
+### Command groups and env categories
+
+| Command group                   | Categories validated                     | Commands (examples)                                         |
+| ------------------------------- | ---------------------------------------- | ----------------------------------------------------------- |
+| Base only                       | Base                                     | podcastIndexDeadFeedsDeleteCache                            |
+| Base + ORM only                 | Base, ORM                                | archiveAll, statsUpdateAggregated, orm\*                    |
+| Base + Podcast Index            | Base, PodcastIndex                       | podcastIndexTrendingPodcastsGet, podcastIndexValueUpdateAll |
+| Base + ORM + Podcast Index      | Base, ORM, PodcastIndex                  | podcastIndexDeadFeedsFlagAndMerge                           |
+| Base + ORM + MQ                 | Base, ORM, MQ                            | mqRSSRunDlqConsumer, mqRSSAddAll                            |
+| Base + ORM + MQ + Podcast Index | Base, ORM, MQ, PodcastIndex              | mqRSSAdd                                                    |
+| Base + ORM + Parser + PI + Web  | Base, ORM, Parser, PodcastIndex, Web     | parserRSSParseFeed                                          |
+| Full stack                      | Base, ORM, MQ, Parser, PodcastIndex, Web | mqRSSRunParser, mqRSSRunLiveItemListener                    |
+
+Within each category, vars are required or optional as listed in the sections below. Only the categories for your command are validated.
+
+### Adding a new command
+
+When you add a new worker command: (1) add it to `KNOWN_COMMANDS` in
+[commandNames.ts](src/commands/commandNames.ts), (2) add it to the right group in
+[categoriesForCommand.ts](src/lib/startup/categoriesForCommand.ts) so validation runs the right
+env checks for that command, (3) update this doc's "Command groups and env categories" table or
+examples if needed. For the full checklist (including index.ts and new categories), see the
+[validation.ts](src/lib/startup/validation.ts) JSDoc and the workers skill.
+
+## General Configuration (Base — every command)
 
 - **`USER_AGENT`** (Required)
   - Format: `BrandName Bot Environment/AppName/Version`
@@ -16,15 +44,15 @@ Environment variables are loaded from `.env` file in development mode (productio
   - Example: `Podverse Bot Local/Workers/5`
   - Used for external API requests
 
-- **`LOG_LEVEL`** (Optional) - Logging level (default: `info`)
+- **`LOG_LEVEL`** (Required) - Logging level
   - Valid values: `error`, `warn`, `info`, `debug`, `verbose`, `silly`, `silent`
 
-- **`LOG_DIR`** (Optional) - Log directory for file logging
-  - Leave empty or unset for localhost development (console logging only)
-  - Set to a directory path for file logging with daily rotation (e.g., `/app/logs` for Docker)
-  - When set, logs are written to files with rotation (max 20MB per file, keep 14 days, compressed)
-  - Console logs always appear in terminal regardless of this setting
-  - See [logs/LOGS.md](../../logs/LOGS.md) for comprehensive LOG_DIR documentation
+- **`LOG_DIR`** (Optional) - Log directory for file logging. **No default** in any app.
+  - Leave empty or unset for console-only logging (e.g. localhost or container without file logging).
+  - When set, logs are written to files with daily rotation (max 20MB per file, keep 14 days, compressed).
+  - When using Docker with a log volume, set to the container path that matches the mount (e.g. `/opt/logs` for workers local compose).
+  - Console logs always appear in terminal regardless of this setting.
+  - See [logs/LOGS.md](../../logs/LOGS.md) for LOG_DIR rules across the monorepo.
 
 - **`LOG_TIMER`** (Optional) - Enable log timers (default: `false`)
   - Set to `"true"` to enable
@@ -38,13 +66,13 @@ Environment variables are loaded from `.env` file in development mode (productio
 - **`PODCAST_INDEX_SECRET_KEY`** (Required) - Podcast Index API secret key
 - **`PODCAST_INDEX_API_RATE_LIMIT_DELAY`** (Optional) - Rate limit delay in milliseconds for Podcast Index API requests
 
-## Message Queue
+## Message Queue (commands that use MQ)
 
-- **`MESSAGE_QUEUE_PROTOCOL`** (Optional) - Message queue protocol (default: `amqp`)
-- **`MESSAGE_QUEUE_HOST`** (Optional) - Message queue hostname (default: `localhost`)
-- **`MESSAGE_QUEUE_USERNAME`** (Optional) - Message queue username (default: `user`)
-- **`MESSAGE_QUEUE_PASSWORD`** (Optional) - Message queue password (default: `mysecretpw`)
-- **`MESSAGE_QUEUE_PORT`** (Optional) - Message queue port (default: `5672`)
+- **`MESSAGE_QUEUE_PROTOCOL`** (Required) - Message queue protocol (e.g. `amqp`)
+- **`MESSAGE_QUEUE_HOST`** (Required) - Message queue hostname
+- **`MESSAGE_QUEUE_USERNAME`** (Required) - Message queue username
+- **`MESSAGE_QUEUE_PASSWORD`** (Required) - Message queue password
+- **`MESSAGE_QUEUE_PORT`** (Required) - Message queue port
 
 ## Database (for ORM Module)
 
@@ -106,15 +134,12 @@ These variables are used to build the Parser configuration:
 - **`PARSER_ADD_REMOTE_ITEMS_TO_MQ`** (Optional) - Add remote items to message queue (default: `false`)
   - Set to `"true"` to enable
 
-## Module Configuration Validation
+## Module configuration validation
 
-While this repo doesn't have its own validation file, the module factories perform validation:
-
-- **ORM Module**: Validates database configuration via `validateORMConfig()` from `podverse-helpers`
-- **External Services Module**: Validates Firebase and Web configuration via `validateExternalServicesConfig()` from `podverse-helpers`
-- **Parser Module**: Validates parser configuration via `validateParserConfig()` from `podverse-helpers`
-
-If any module configuration is invalid, the application will abort with a clear error message.
+Startup validation runs **per command** before config or modules load. The validator in
+`src/lib/startup/validation.ts` checks only the env vars for the categories used by that command
+(see "Command groups and env categories" above). Output matches api/management-api style: categories,
+checkmarks, summary, and a FATAL message with the list of missing required vars if validation fails.
 
 ## Important Notes
 
@@ -130,7 +155,7 @@ If any module configuration is invalid, the application will abort with a clear 
 
 - **Conditional requirements**: Some variables are only required when certain features are enabled (e.g., Firebase or WebPush notifications).
 
-## Adding New Environment Variables
+## Adding new environment variables
 
 When adding a new environment variable:
 
@@ -140,9 +165,14 @@ When adding a new environment variable:
 2. **Add to configuration building in `src/index.ts`** (if it's used by a module):
    - Add the variable to the appropriate module config object
 
-3. **Update this file**:
+3. **Update startup validation** (`src/lib/startup/validation.ts`):
+   - Add `validateRequired` or `validateOptional` in the correct category function
+   - If the var is only needed by certain commands, ensure `categoriesForCommand.ts` maps those
+     commands to the right category
+
+4. **Update this file**:
    - Add the variable to the appropriate section above
    - Document any special requirements (format, type, conditional logic)
 
-4. **Update `.env.example`** (if applicable):
+5. **Update `.env.example`** (if applicable):
    - Add the variable with a comment explaining its purpose

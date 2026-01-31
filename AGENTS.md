@@ -116,18 +116,19 @@ apps/               # Deployable applications
 
 ### Where to Find Things
 
-| Looking for...        | Location                      |
-| --------------------- | ----------------------------- |
-| API routes            | `apps/api/src/routes/`        |
-| Database entities     | `packages/orm/src/entities/`  |
-| Database services     | `packages/orm/src/services/`  |
-| Shared types/DTOs     | `packages/helpers/src/dto/`   |
-| Feed parsing          | `packages/parser/src/`        |
-| Web pages             | `apps/web/src/app/`           |
-| Environment templates | `infra/config/env-templates/` |
-| K8s manifests         | `infra/k8s/`                  |
-| Jenkins pipelines     | `infra/pipelines/jenkins/`    |
-| GitHub Actions        | `.github/workflows/`          |
+| Looking for...             | Location                                                                         |
+| -------------------------- | -------------------------------------------------------------------------------- |
+| API routes                 | `apps/api/src/routes/`                                                           |
+| Database entities          | `packages/orm/src/entities/`                                                     |
+| Database services          | `packages/orm/src/services/`                                                     |
+| Shared types/DTOs          | `packages/helpers/src/dto/`                                                      |
+| Feed parsing               | `packages/parser/src/`                                                           |
+| Web pages                  | `apps/web/src/app/`                                                              |
+| Environment templates      | `infra/config/env-templates/`                                                    |
+| Workers startup validation | `apps/workers/src/lib/startup/validation.ts` (see [ENV.md](apps/workers/ENV.md)) |
+| K8s manifests              | `infra/k8s/`                                                                     |
+| Jenkins pipelines          | `infra/pipelines/jenkins/`                                                       |
+| GitHub Actions             | `.github/workflows/`                                                             |
 
 ## Coding Patterns
 
@@ -183,6 +184,7 @@ logger.error('Feed parsing failed', { error, feedUrl });
 ### Configuration
 
 - ❌ Set default values in `config/index.ts`
+- ❌ Set a default for LOG_DIR in any app (empty = console-only; see logging skill or [logs/LOGS.md](logs/LOGS.md))
 - ❌ Use `!` assertions outside of config files
 - ❌ Add env vars without updating validation scripts (`lib/startup/validation.ts`)
 

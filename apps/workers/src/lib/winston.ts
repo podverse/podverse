@@ -1,9 +1,9 @@
 import * as winston from 'winston';
 import 'winston-daily-rotate-file';
-import { config } from '@workers/config';
+import { getBaseConfig } from '@workers/config';
 
 export const createDailyRotateLogger = (filename: string, level = 'info') => {
-  const logDir = config.log.dir || './logs';
+  const logDir = getBaseConfig().log.dir ?? '';
   const transports: winston.transport[] = [new winston.transports.Console({ level })];
 
   // Only add file transport if LOG_DIR is set and non-empty

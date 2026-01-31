@@ -1,7 +1,7 @@
 import { MQ_QUEUES, MQQueueNameParamKey, validMQQueueNamesParamKeys } from '@podverse/helpers';
 import { mqRSSAddAll as mqRSSAddAllFunction } from '@podverse/mq';
 import { CommandLineArgs } from '@workers/commands';
-import { activeMQArtemisService } from '@workers/factories/activeMQArtemisService';
+import { getActiveMQArtemisService } from '@workers/factories/activeMQArtemisService';
 
 export const mqRSSAddAll = async (args: CommandLineArgs) => {
   const mqQueueNameParamKey = (Array.isArray(args.q) ? args.q[0] : args.q) as
@@ -21,7 +21,7 @@ export const mqRSSAddAll = async (args: CommandLineArgs) => {
 
   const mqConstantMessageOptions = MQ_QUEUES[mqQueueNameParamKey];
   await mqRSSAddAllFunction(
-    activeMQArtemisService,
+    getActiveMQArtemisService(),
     {
       ...mqConstantMessageOptions,
       closeAfterSend: true,

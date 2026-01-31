@@ -1,8 +1,8 @@
 import { MQ_QUEUES, MQQueueNameParamKey, validMQQueueNamesParamKeys } from '@podverse/helpers';
 import { mqRSSAdd as mqRSSAddFunction } from '@podverse/mq';
 import { CommandLineArgs } from '@workers/commands';
-import { activeMQArtemisService } from '@workers/factories/activeMQArtemisService';
-import { podcastIndexService } from '@workers/factories/podcastIndexService';
+import { getActiveMQArtemisService } from '@workers/factories/activeMQArtemisService';
+import { getPodcastIndexService } from '@workers/factories/podcastIndexService';
 
 export const mqRSSAdd = async (args: CommandLineArgs) => {
   const mqQueueNameParamKey = (Array.isArray(args.q) ? args.q[0] : args.q) as
@@ -28,7 +28,7 @@ export const mqRSSAdd = async (args: CommandLineArgs) => {
     throw new Error('podcast_index_id (-p) must be a number');
   }
 
-  const feedData = await podcastIndexService.podcastGetById(podcast_index_id);
+  const feedData = await getPodcastIndexService().podcastGetById(podcast_index_id);
   const feedUrl = feedData?.feed?.url;
   if (!feedUrl) {
     throw new Error(`No feedUrl found for podcast_index_id ${podcast_index_id}`);
@@ -39,7 +39,7 @@ export const mqRSSAdd = async (args: CommandLineArgs) => {
   const mqConstantMessageOptions = MQ_QUEUES[mqQueueNameParamKey];
 
   await mqRSSAddFunction(
-    activeMQArtemisService,
+    getActiveMQArtemisService(),
     {
       ...mqConstantMessageOptions,
       feedUrl,

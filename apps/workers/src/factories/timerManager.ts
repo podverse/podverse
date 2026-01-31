@@ -1,7 +1,16 @@
 import { TimerManager } from '@podverse/helpers-backend';
-import { loggerService } from './loggerService';
-import { config } from '@workers/config';
+import { getLoggerService } from './loggerService';
+import type { BaseConfig } from '@workers/config';
 
-const shouldLogTimer = config.log.timer;
+let instance: TimerManager | null = null;
 
-export const timerManager = new TimerManager(shouldLogTimer, loggerService);
+export function setTimerManager(baseConfig: BaseConfig): void {
+  instance = new TimerManager(baseConfig.log.timer, getLoggerService());
+}
+
+export function getTimerManager(): TimerManager {
+  if (instance === null) {
+    throw new Error('TimerManager not initialized; call setTimerManager from runApp first');
+  }
+  return instance;
+}

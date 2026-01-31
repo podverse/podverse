@@ -1,7 +1,14 @@
-import { config } from '@workers/config';
 import { LoggerService } from '@podverse/helpers-backend';
 
-export const loggerService = new LoggerService({
-  logLevel: config.log.level,
-  logDir: config.log.dir,
-});
+let instance: LoggerService | null = null;
+
+export function setLoggerService(service: LoggerService): void {
+  instance = service;
+}
+
+export function getLoggerService(): LoggerService {
+  if (instance === null) {
+    throw new Error('LoggerService not initialized; call setLoggerService from runApp first');
+  }
+  return instance;
+}

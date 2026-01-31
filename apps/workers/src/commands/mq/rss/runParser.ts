@@ -1,5 +1,5 @@
 import { CommandLineArgs } from '@workers/commands';
-import { activeMQArtemisService } from '@workers/factories/activeMQArtemisService';
+import { getActiveMQArtemisService } from '@workers/factories/activeMQArtemisService';
 import { MQ_QUEUES, MQQueueNameParamKey, validMQQueueNamesParamKeys } from '@podverse/helpers';
 import { mqRSSRunParser as mqRSSRunParserFunction, createActiveMQShutdown } from '@podverse/mq';
 
@@ -19,6 +19,7 @@ export const mqRSSRunParser = async (args: CommandLineArgs) => {
 
   const mqConstantMessageOptions = MQ_QUEUES[mqQueueNameParamKey];
 
+  const activeMQArtemisService = getActiveMQArtemisService();
   await mqRSSRunParserFunction(activeMQArtemisService, mqConstantMessageOptions.queueName);
 
   let keepRunning = true;
