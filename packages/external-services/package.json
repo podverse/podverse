@@ -1,6 +1,6 @@
 {
   "name": "@podverse/external-services",
-  "version": "5.2.3",
+  "version": "5.2.4",
   "description": "External service integrations for Podverse",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

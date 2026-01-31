@@ -12,6 +12,14 @@
       }
     },
     {
+      "files": ["infra/k8s/**/*.yml", "infra/k8s/**/*.yaml"],
+      "options": {
+        "singleQuote": false,
+        "tabWidth": 2,
+        "printWidth": 140
+      }
+    },
+    {
       "files": ["*.d.ts"],
       "options": {
         "singleQuote": false

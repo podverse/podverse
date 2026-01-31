@@ -62,3 +62,9 @@ coverage/
 # Misc
 *.tgz
 .cache/
+
+
+
+.direnv
+
+secrets
