@@ -67,6 +67,7 @@ Convert the directory path to uppercase, replacing slashes with hyphens:
 | `packages/helpers/`              | `PACKAGES-HELPERS.md`              |
 | `packages/orm/`                  | `PACKAGES-ORM.md`                  |
 | `infra/docker/ci/`               | `INFRA-DOCKER-CI.md`               |
+| `infra/k8s/`                     | `INFRA-K8S.md` or `README.md`      |
 | `infra/pipelines/jenkins/alpha/` | `INFRA-PIPELINES-JENKINS-ALPHA.md` |
 | `.llm/`                          | `LLM.md`                           |
 | `.llm/plans/`                    | `LLM-PLANS.md`                     |
