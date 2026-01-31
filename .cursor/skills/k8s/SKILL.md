@@ -180,7 +180,7 @@ Child applications in `alpha/apps/<component>.yaml` define:
 - `metadata.name`: e.g., `podverse-alpha-api`
 - `spec.project`: `podverse`
 - `spec.source.repoURL`: GitHub repo URL
-- `spec.source.targetRevision`: branch name (e.g., `feature/k3s02`)
+- `spec.source.targetRevision`: branch name (e.g., `alpha`)
 - `spec.source.path`: path to overlay (e.g., `k8s/alpha/api`)
 - `spec.destination.namespace`: `podverse-alpha`
 - `spec.syncPolicy.automated`: `prune: true`, `selfHeal: true`

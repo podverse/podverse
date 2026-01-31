@@ -12,7 +12,7 @@ spec:
   source:
     # Points to your git repository
     repoURL: https://github.com/podverse/podverse.git
-    targetRevision: feature/k3s02
+    targetRevision: alpha
 
     # Path to the database manifests (StatefulSet, Service, etc.)
     path: k8s/alpha/db
