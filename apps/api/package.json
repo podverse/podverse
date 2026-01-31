@@ -1,6 +1,6 @@
 {
   "name": "@podverse/api",
-  "version": "5.2.3",
+  "version": "5.2.4",
   "description": "Data API, database migration scripts, and backend services for Podverse",
   "private": true,
   "main": "dist/index.js",
