@@ -14,7 +14,7 @@ K8s YAML is formatted with Prettier using **k8s-specific overrides** (see root `
 
 - **Double quotes** for string values (`singleQuote: false`)
 - **2-space indentation** (`tabWidth: 2`)
-- **120-character line width** (`printWidth: 140`) - wider than repo default to avoid wrapping long env values and list items
+- **140-character line width** (`printWidth: 140`) - wider than repo default to avoid wrapping long env values and list items
 
 **Do not** add `infra/k8s/` to `.prettierignore`. K8s files are intentionally formatted with these overrides.
 
