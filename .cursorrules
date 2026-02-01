@@ -87,6 +87,7 @@ If over 300: STOP, split into sub-plans, save, then work sequentially.
 
 ---
 
+<!--
 ## COMPLEXITY ASSESSMENT (CRITICAL)
 
 **BEFORE executing any plan, assess complexity.**
@@ -109,3 +110,4 @@ If thresholds exceeded:
 5. **Proceed only** after explicit approval of reduced scope
 
 This prevents cognitive overload from causing missed auxiliary tasks (like history updates).
+-->
