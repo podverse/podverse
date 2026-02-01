@@ -35,7 +35,7 @@ ENVIRONMENT="${ENVIRONMENT:-alpha}"
 
 SECRET_NAME="podverse-mq-opaque"
 NAMESPACE="podverse-${ENVIRONMENT}"
-OUTPUT_FILE="./k8s/secrets/podverse-${ENVIRONMENT}-mq-opaque.enc.yaml"
+OUTPUT_FILE="./infra/k8s/secrets/podverse-${ENVIRONMENT}-mq-opaque.enc.yaml"
 
 # ------------------------------------------------------------------
 # INPUTS
@@ -66,7 +66,9 @@ fi
 mkdir -p "$(dirname "$OUTPUT_FILE")"
 echo "Generating and encrypting secret..."
 
-TMP_FILE="$(mktemp -t "${SECRET_NAME}.XXXXXX.yaml")"
+TMP_FILE_BASE="$(mktemp -t "${SECRET_NAME}.XXXXXX")"
+TMP_FILE="${TMP_FILE_BASE}.yaml"
+mv "$TMP_FILE_BASE" "$TMP_FILE"
 kubectl create secret generic "${SECRET_NAME}" \
     --namespace "${NAMESPACE}" \
     --from-literal=ARTEMIS_USER="${MQ_USER}" \

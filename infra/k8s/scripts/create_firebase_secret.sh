@@ -28,7 +28,7 @@ ENVIRONMENT="${ENVIRONMENT:-alpha}"
 
 SECRET_NAME="podverse-workers-firebase-opaque"
 NAMESPACE="podverse-${ENVIRONMENT}"
-OUTPUT_FILE="./k8s/secrets/podverse-${ENVIRONMENT}-workers-firebase-opaque.enc.yaml"
+OUTPUT_FILE="./infra/k8s/secrets/podverse-${ENVIRONMENT}-workers-firebase-opaque.enc.yaml"
 
 # ------------------------------------------------------------------
 # INPUTS
@@ -68,7 +68,9 @@ mkdir -p "$(dirname "$OUTPUT_FILE")"
 echo "Reading file and encrypting secret..."
 
 # We use --from-file to load the entire JSON content
-TMP_FILE="$(mktemp -t "${SECRET_NAME}.XXXXXX.yaml")"
+TMP_FILE_BASE="$(mktemp -t "${SECRET_NAME}.XXXXXX")"
+TMP_FILE="${TMP_FILE_BASE}.yaml"
+mv "$TMP_FILE_BASE" "$TMP_FILE"
 kubectl create secret generic "${SECRET_NAME}" \
     --namespace "${NAMESPACE}" \
     --from-file=firebase-key.json="${FILE_PATH}" \
