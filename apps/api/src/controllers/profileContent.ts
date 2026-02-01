@@ -16,17 +16,14 @@ import {
 } from '@podverse/orm';
 import { handleGenericErrorResponse } from '@api/controllers/helpers/error';
 import { getPaginationParams } from '@api/controllers/helpers/pagination';
-import { validateParamsObject, validateQueryObject } from '@api/lib/validation';
+import {
+  accountIdTextParamSchema,
+  pageQuerySchema,
+  validateParamsObject,
+  validateQueryObject,
+} from '@api/lib/validation';
 import { ensureAuthenticated, getAuthenticatedUser } from '@api/lib/auth';
 import { getParamRequired } from '@api/lib/params';
-
-const getByAccountIdTextSchema = Joi.object({
-  account_id_text: Joi.string().required(),
-});
-
-const getPaginatedSchema = Joi.object({
-  page: Joi.number().integer().min(1).required(),
-});
 
 const clipRelations = [
   'item',
@@ -51,8 +48,8 @@ export class ProfileContentController {
   // Public profile routes - require account_id_text param
 
   static async getProfilePodcastsAZ(req: Request, res: Response): Promise<void> {
-    validateParamsObject(getByAccountIdTextSchema, req, res, async () => {
-      validateQueryObject(getPaginatedSchema, req, res, async () => {
+    validateParamsObject(Joi.object(accountIdTextParamSchema), req, res, async () => {
+      validateQueryObject(Joi.object(pageQuerySchema), req, res, async () => {
         try {
           const account_id_text = getParamRequired(req, 'account_id_text');
           const { page, limit, offset } = getPaginationParams(req);
@@ -103,8 +100,8 @@ export class ProfileContentController {
   }
 
   static async getProfilePlaylistsAZ(req: Request, res: Response): Promise<void> {
-    validateParamsObject(getByAccountIdTextSchema, req, res, async () => {
-      validateQueryObject(getPaginatedSchema, req, res, async () => {
+    validateParamsObject(Joi.object(accountIdTextParamSchema), req, res, async () => {
+      validateQueryObject(Joi.object(pageQuerySchema), req, res, async () => {
         try {
           const account_id_text = getParamRequired(req, 'account_id_text');
           const { page, limit, offset } = getPaginationParams(req);
@@ -152,8 +149,8 @@ export class ProfileContentController {
   }
 
   static async getProfileClipsRecent(req: Request, res: Response): Promise<void> {
-    validateParamsObject(getByAccountIdTextSchema, req, res, async () => {
-      validateQueryObject(getPaginatedSchema, req, res, async () => {
+    validateParamsObject(Joi.object(accountIdTextParamSchema), req, res, async () => {
+      validateQueryObject(Joi.object(pageQuerySchema), req, res, async () => {
         try {
           const account_id_text = getParamRequired(req, 'account_id_text');
           const { page, limit, offset } = getPaginationParams(req);
@@ -201,8 +198,8 @@ export class ProfileContentController {
   }
 
   static async getProfileAlbumsAZ(req: Request, res: Response): Promise<void> {
-    validateParamsObject(getByAccountIdTextSchema, req, res, async () => {
-      validateQueryObject(getPaginatedSchema, req, res, async () => {
+    validateParamsObject(Joi.object(accountIdTextParamSchema), req, res, async () => {
+      validateQueryObject(Joi.object(pageQuerySchema), req, res, async () => {
         try {
           const account_id_text = getParamRequired(req, 'account_id_text');
           const { page, limit, offset } = getPaginationParams(req);
@@ -255,7 +252,7 @@ export class ProfileContentController {
   // My profile routes - use JWT for account
 
   static async getMyProfilePodcastsAZ(req: Request, res: Response): Promise<void> {
-    validateQueryObject(getPaginatedSchema, req, res, async () => {
+    validateQueryObject(Joi.object(pageQuerySchema), req, res, async () => {
       ensureAuthenticated(
         req,
         res,
@@ -295,7 +292,7 @@ export class ProfileContentController {
   }
 
   static async getMyProfilePlaylistsAZ(req: Request, res: Response): Promise<void> {
-    validateQueryObject(getPaginatedSchema, req, res, async () => {
+    validateQueryObject(Joi.object(pageQuerySchema), req, res, async () => {
       ensureAuthenticated(
         req,
         res,
@@ -333,7 +330,7 @@ export class ProfileContentController {
   }
 
   static async getMyProfileClipsRecent(req: Request, res: Response): Promise<void> {
-    validateQueryObject(getPaginatedSchema, req, res, async () => {
+    validateQueryObject(Joi.object(pageQuerySchema), req, res, async () => {
       ensureAuthenticated(
         req,
         res,
@@ -371,7 +368,7 @@ export class ProfileContentController {
   }
 
   static async getMyProfileAlbumsAZ(req: Request, res: Response): Promise<void> {
-    validateQueryObject(getPaginatedSchema, req, res, async () => {
+    validateQueryObject(Joi.object(pageQuerySchema), req, res, async () => {
       ensureAuthenticated(
         req,
         res,

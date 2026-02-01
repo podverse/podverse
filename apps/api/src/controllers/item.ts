@@ -20,20 +20,28 @@ import { parseChapters } from '@podverse/parser';
 import { handleReturnDataOrNotFound } from '@api/controllers/helpers/data';
 import { handleGenericErrorResponse } from '@api/controllers/helpers/error';
 import { getPaginationParams } from '@api/controllers/helpers/pagination';
-import { validateParamsObject, validateQueryObject } from '@api/lib/validation';
 import {
-  CATEGORY_MAPPING_KEYS,
+  idOrIdTextParamSchema,
+  itemIdTextParamSchema,
+  mediumCategoryPageQuerySchema,
+  mediumCategoryPageRangeQuerySchema,
+  mediumPageQuerySchema,
+  mediumPageRangeQuerySchema,
+  pageQuerySchema,
+  pageRangeQuerySchema,
+  validateParamsObject,
+  validateQueryObject,
+} from '@api/lib/validation';
+import {
   CategoryMappingKeys,
   getCategoryEnumValue,
   LIVE_ITEM_STATUSES,
-  QUERY_PARAMS_MEDIUMS,
   QueryParamsMedium,
 } from '@podverse/helpers';
 import {
   ApiListResponse,
   emptyApiListResponse,
   QUERY_PARAMS_DIRECTION_VALUES,
-  QUERY_PARAMS_STATS_RANGE_VALUES,
   QueryParamsDirection,
   QueryParamsStatsRange,
 } from '@podverse/helpers-requests';
@@ -41,137 +49,6 @@ import { getStatsOrder } from '@api/lib/stats';
 import { ensureAuthenticated, getAuthenticatedUser } from '@api/lib/auth';
 import { getFollowedChannelIds } from '@api/lib/followed';
 import { getParamRequired } from '@api/lib/params';
-
-const getByIdOrIdTextSchema = Joi.object({
-  idOrIdText: Joi.string().required(),
-});
-
-const getManyGlobalRecentSchema = Joi.object({
-  medium: Joi.string()
-    .valid(...QUERY_PARAMS_MEDIUMS)
-    .required(),
-  page: Joi.number().integer().min(1).required(),
-  liveItemType: Joi.string()
-    .valid(...LIVE_ITEM_STATUSES)
-    .optional(),
-});
-
-const getManyGlobalTopSchema = Joi.object({
-  medium: Joi.string()
-    .valid(...QUERY_PARAMS_MEDIUMS)
-    .required(),
-  range: Joi.string()
-    .valid(...QUERY_PARAMS_STATS_RANGE_VALUES)
-    .required(),
-  page: Joi.number().integer().min(1).required(),
-  liveItemType: Joi.string()
-    .valid(...LIVE_ITEM_STATUSES)
-    .optional(),
-});
-
-const getManyCategoryRecentSchema = Joi.object({
-  medium: Joi.string()
-    .valid(...QUERY_PARAMS_MEDIUMS)
-    .required(),
-  category: Joi.string()
-    .valid(...CATEGORY_MAPPING_KEYS)
-    .required(),
-  page: Joi.number().integer().min(1).required(),
-  liveItemType: Joi.string()
-    .valid(...LIVE_ITEM_STATUSES)
-    .optional(),
-});
-
-const getManyCategoryTopSchema = Joi.object({
-  medium: Joi.string()
-    .valid(...QUERY_PARAMS_MEDIUMS)
-    .required(),
-  category: Joi.string()
-    .valid(...CATEGORY_MAPPING_KEYS)
-    .required(),
-  range: Joi.string()
-    .valid(...QUERY_PARAMS_STATS_RANGE_VALUES)
-    .required(),
-  page: Joi.number().integer().min(1).required(),
-  liveItemType: Joi.string()
-    .valid(...LIVE_ITEM_STATUSES)
-    .optional(),
-});
-
-const getManySubscribedRecentSchema = Joi.object({
-  medium: Joi.string()
-    .valid(...QUERY_PARAMS_MEDIUMS)
-    .required(),
-  page: Joi.number().integer().min(1).required(),
-  liveItemType: Joi.string()
-    .valid(...LIVE_ITEM_STATUSES)
-    .optional(),
-});
-
-const getManySubscribedTopSchema = Joi.object({
-  medium: Joi.string()
-    .valid(...QUERY_PARAMS_MEDIUMS)
-    .required(),
-  range: Joi.string()
-    .valid(...QUERY_PARAMS_STATS_RANGE_VALUES)
-    .required(),
-  page: Joi.number().integer().min(1).required(),
-  liveItemType: Joi.string()
-    .valid(...LIVE_ITEM_STATUSES)
-    .optional(),
-});
-
-const getManyByChannelParmsSchema = Joi.object({
-  channelIdOrIdText: Joi.string().required(),
-});
-
-const getManyByChannelQuerySchemaRecent = Joi.object({
-  page: Joi.number().integer().min(1).required(),
-});
-
-const getManyByChannelQuerySchemaOldest = Joi.object({
-  page: Joi.number().integer().min(1).required(),
-});
-
-const getManyByChannelBySeasonQuerySchema = Joi.object({
-  page: Joi.number().integer().min(1).required(),
-});
-
-const getManyByChannelShuffleQuerySchema = Joi.object({
-  page: Joi.number().integer().min(1).required(),
-  shuffleHash: Joi.string().required(),
-});
-
-const getManyByChannelTopQuerySchema = Joi.object({
-  range: Joi.string()
-    .valid(...QUERY_PARAMS_STATS_RANGE_VALUES)
-    .required(),
-  page: Joi.number().integer().min(1).required(),
-});
-
-const getManyForQueueByPubDateParamsSchema = Joi.object({
-  idText: Joi.string().required(),
-});
-
-const getManyForQueueByPubDateQuerySchema = Joi.object({
-  direction: Joi.string()
-    .valid(...QUERY_PARAMS_DIRECTION_VALUES)
-    .required(),
-});
-
-const getManyForQueueBySeasonParamsSchema = Joi.object({
-  idText: Joi.string().required(),
-});
-
-const getManyForQueueBySeasonQuerySchema = Joi.object({
-  direction: Joi.string()
-    .valid(...QUERY_PARAMS_DIRECTION_VALUES)
-    .required(),
-});
-
-const parseAndGetChaptersSchema = Joi.object({
-  item_id_text: Joi.string().required(),
-});
 
 const getRecentOrder = (itemType: 'normal' | 'live-item'): FindOptionsOrder<Item> => {
   if (itemType === 'live-item') {
@@ -188,7 +65,7 @@ export class ItemController {
     new StatsAggregatedItemService();
 
   static async getByIdOrIdText(req: Request, res: Response): Promise<void> {
-    validateParamsObject(getByIdOrIdTextSchema, req, res, async () => {
+    validateParamsObject(Joi.object(idOrIdTextParamSchema), req, res, async () => {
       try {
         const idOrIdText = getParamRequired(req, 'idOrIdText');
         const data = await ItemController.itemService.getByIdOrIdText(
@@ -203,7 +80,14 @@ export class ItemController {
   }
 
   static async getManyGlobalRecent(req: Request, res: Response): Promise<void> {
-    validateQueryObject(getManyGlobalRecentSchema, req, res, async () => {
+    const schema = Joi.object({
+      ...mediumPageQuerySchema,
+      liveItemType: Joi.string()
+        .valid(...LIVE_ITEM_STATUSES)
+        .optional(),
+    });
+
+    validateQueryObject(schema, req, res, async () => {
       try {
         const { page, limit, offset } = getPaginationParams(req);
         const { medium, liveItemType: liveItemTypeParam } = req.query as {
@@ -242,7 +126,14 @@ export class ItemController {
   }
 
   static async getManyGlobalTop(req: Request, res: Response): Promise<void> {
-    validateQueryObject(getManyGlobalTopSchema, req, res, async () => {
+    const schema = Joi.object({
+      ...mediumPageRangeQuerySchema,
+      liveItemType: Joi.string()
+        .valid(...LIVE_ITEM_STATUSES)
+        .optional(),
+    });
+
+    validateQueryObject(schema, req, res, async () => {
       try {
         const { page, limit, offset } = getPaginationParams(req);
         const {
@@ -287,7 +178,14 @@ export class ItemController {
   }
 
   static async getManyCategoryRecent(req: Request, res: Response): Promise<void> {
-    validateQueryObject(getManyCategoryRecentSchema, req, res, async () => {
+    const schema = Joi.object({
+      ...mediumCategoryPageQuerySchema,
+      liveItemType: Joi.string()
+        .valid(...LIVE_ITEM_STATUSES)
+        .optional(),
+    });
+
+    validateQueryObject(schema, req, res, async () => {
       try {
         const { page, limit, offset } = getPaginationParams(req);
         const {
@@ -331,7 +229,14 @@ export class ItemController {
   }
 
   static async getManyCategoryTop(req: Request, res: Response): Promise<void> {
-    validateQueryObject(getManyCategoryTopSchema, req, res, async () => {
+    const schema = Joi.object({
+      ...mediumCategoryPageRangeQuerySchema,
+      liveItemType: Joi.string()
+        .valid(...LIVE_ITEM_STATUSES)
+        .optional(),
+    });
+
+    validateQueryObject(schema, req, res, async () => {
       try {
         const { page, limit, offset } = getPaginationParams(req);
         const {
@@ -378,7 +283,14 @@ export class ItemController {
   }
 
   static async getManySubscribedRecent(req: Request, res: Response): Promise<void> {
-    validateQueryObject(getManySubscribedRecentSchema, req, res, async (): Promise<void> => {
+    const schema = Joi.object({
+      ...mediumPageQuerySchema,
+      liveItemType: Joi.string()
+        .valid(...LIVE_ITEM_STATUSES)
+        .optional(),
+    });
+
+    validateQueryObject(schema, req, res, async (): Promise<void> => {
       ensureAuthenticated(
         req,
         res,
@@ -430,7 +342,14 @@ export class ItemController {
   }
 
   static async getManySubscribedTop(req: Request, res: Response): Promise<void> {
-    validateQueryObject(getManySubscribedTopSchema, req, res, async (): Promise<void> => {
+    const schema = Joi.object({
+      ...mediumPageRangeQuerySchema,
+      liveItemType: Joi.string()
+        .valid(...LIVE_ITEM_STATUSES)
+        .optional(),
+    });
+
+    validateQueryObject(schema, req, res, async (): Promise<void> => {
       ensureAuthenticated(
         req,
         res,
@@ -491,8 +410,12 @@ export class ItemController {
   }
 
   static async getManyByChannelRecent(req: Request, res: Response): Promise<void> {
-    validateParamsObject(getManyByChannelParmsSchema, req, res, async () => {
-      validateQueryObject(getManyByChannelQuerySchemaRecent, req, res, async () => {
+    const paramsSchema = Joi.object({
+      channelIdOrIdText: Joi.string().required(),
+    });
+
+    validateParamsObject(paramsSchema, req, res, async () => {
+      validateQueryObject(Joi.object(pageQuerySchema), req, res, async () => {
         try {
           const { page, limit, offset } = getPaginationParams(req);
           const channelIdOrIdText = getParamRequired(req, 'channelIdOrIdText');
@@ -526,8 +449,12 @@ export class ItemController {
   }
 
   static async getManyByChannelOldest(req: Request, res: Response): Promise<void> {
-    validateParamsObject(getManyByChannelParmsSchema, req, res, async () => {
-      validateQueryObject(getManyByChannelQuerySchemaOldest, req, res, async () => {
+    const paramsSchema = Joi.object({
+      channelIdOrIdText: Joi.string().required(),
+    });
+
+    validateParamsObject(paramsSchema, req, res, async () => {
+      validateQueryObject(Joi.object(pageQuerySchema), req, res, async () => {
         try {
           const { page, limit, offset } = getPaginationParams(req);
           const channelIdOrIdText = getParamRequired(req, 'channelIdOrIdText');
@@ -561,8 +488,13 @@ export class ItemController {
   }
 
   static async getManyByChannelTop(req: Request, res: Response): Promise<void> {
-    validateParamsObject(getManyByChannelParmsSchema, req, res, async () => {
-      validateQueryObject(getManyByChannelTopQuerySchema, req, res, async () => {
+    const paramsSchema = Joi.object({
+      channelIdOrIdText: Joi.string().required(),
+    });
+    const querySchema = Joi.object(pageRangeQuerySchema);
+
+    validateParamsObject(paramsSchema, req, res, async () => {
+      validateQueryObject(querySchema, req, res, async () => {
         try {
           const { page, limit, offset } = getPaginationParams(req);
           const channelIdOrIdText = getParamRequired(req, 'channelIdOrIdText');
@@ -612,8 +544,12 @@ export class ItemController {
   }
 
   static async getManyByChannelBySeasonForward(req: Request, res: Response): Promise<void> {
-    validateParamsObject(getManyByChannelParmsSchema, req, res, async () => {
-      validateQueryObject(getManyByChannelBySeasonQuerySchema, req, res, async () => {
+    const paramsSchema = Joi.object({
+      channelIdOrIdText: Joi.string().required(),
+    });
+
+    validateParamsObject(paramsSchema, req, res, async () => {
+      validateQueryObject(Joi.object(pageQuerySchema), req, res, async () => {
         try {
           const { page, limit, offset } = getPaginationParams(req);
           const channelIdOrIdText = getParamRequired(req, 'channelIdOrIdText');
@@ -649,8 +585,12 @@ export class ItemController {
   }
 
   static async getManyByChannelBySeasonBackward(req: Request, res: Response): Promise<void> {
-    validateParamsObject(getManyByChannelParmsSchema, req, res, async () => {
-      validateQueryObject(getManyByChannelBySeasonQuerySchema, req, res, async () => {
+    const paramsSchema = Joi.object({
+      channelIdOrIdText: Joi.string().required(),
+    });
+
+    validateParamsObject(paramsSchema, req, res, async () => {
+      validateQueryObject(Joi.object(pageQuerySchema), req, res, async () => {
         try {
           const { page, limit, offset } = getPaginationParams(req);
           const channelIdOrIdText = getParamRequired(req, 'channelIdOrIdText');
@@ -686,8 +626,16 @@ export class ItemController {
   }
 
   static async getManyByChannelShuffle(req: Request, res: Response): Promise<void> {
-    validateParamsObject(getManyByChannelParmsSchema, req, res, async () => {
-      validateQueryObject(getManyByChannelShuffleQuerySchema, req, res, async () => {
+    const paramsSchema = Joi.object({
+      channelIdOrIdText: Joi.string().required(),
+    });
+    const querySchema = Joi.object({
+      ...pageQuerySchema,
+      shuffleHash: Joi.string().required(),
+    });
+
+    validateParamsObject(paramsSchema, req, res, async () => {
+      validateQueryObject(querySchema, req, res, async () => {
         try {
           const { page, limit, offset } = getPaginationParams(req);
           const channelIdOrIdText = getParamRequired(req, 'channelIdOrIdText');
@@ -724,8 +672,17 @@ export class ItemController {
   }
 
   static async getManyForQueueByPubDate(req: Request, res: Response): Promise<void> {
-    validateParamsObject(getManyForQueueByPubDateParamsSchema, req, res, async () => {
-      validateQueryObject(getManyForQueueByPubDateQuerySchema, req, res, async () => {
+    const paramsSchema = Joi.object({
+      idText: Joi.string().required(),
+    });
+    const querySchema = Joi.object({
+      direction: Joi.string()
+        .valid(...QUERY_PARAMS_DIRECTION_VALUES)
+        .required(),
+    });
+
+    validateParamsObject(paramsSchema, req, res, async () => {
+      validateQueryObject(querySchema, req, res, async () => {
         try {
           const { direction } = req.query as QueryParamsDirection;
 
@@ -743,8 +700,17 @@ export class ItemController {
   }
 
   static async getManyForQueueBySeason(req: Request, res: Response): Promise<void> {
-    validateParamsObject(getManyForQueueBySeasonParamsSchema, req, res, async () => {
-      validateQueryObject(getManyForQueueBySeasonQuerySchema, req, res, async () => {
+    const paramsSchema = Joi.object({
+      idText: Joi.string().required(),
+    });
+    const querySchema = Joi.object({
+      direction: Joi.string()
+        .valid(...QUERY_PARAMS_DIRECTION_VALUES)
+        .required(),
+    });
+
+    validateParamsObject(paramsSchema, req, res, async () => {
+      validateQueryObject(querySchema, req, res, async () => {
         try {
           const { direction } = req.query as QueryParamsDirection;
 
@@ -761,7 +727,7 @@ export class ItemController {
   }
 
   static async parseAndGetChapters(req: Request, res: Response): Promise<void> {
-    validateParamsObject(parseAndGetChaptersSchema, req, res, async () => {
+    validateParamsObject(Joi.object(itemIdTextParamSchema), req, res, async () => {
       const item_id_text = getParamRequired(req, 'item_id_text');
       try {
         const item = await ItemController.itemService.getByIdOrIdText(

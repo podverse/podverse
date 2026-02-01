@@ -8,30 +8,28 @@ import {
   getAuthenticatedUser,
 } from '@api/lib/auth';
 import { handleGenericErrorResponse } from '../helpers/error';
-import { validateBodyObject, validateParamsObject, validateQueryObject } from '@api/lib/validation';
+import {
+  accountIdTextParamSchema,
+  channelIdTextParamSchema,
+  validateBodyObject,
+  validateParamsObject,
+  validateQueryObject,
+} from '@api/lib/validation';
 import { getParamRequired } from '@api/lib/params';
-
-const followChannelSchema = Joi.object({
-  channel_id_text: Joi.string().required(),
-});
-
-const getFollowedChannelsSchema = Joi.object({
-  account_id_text: Joi.string().required(),
-});
-
-const getFollowedChannelsQuerySchema = Joi.object({
-  medium: Joi.string()
-    .valid(...QUERY_PARAMS_MEDIUMS)
-    .required(),
-});
 
 class AccountFollowingChannelController {
   private static accountFollowingChannelService = new AccountFollowingChannelService();
   private static accountService = new AccountService();
 
   static async getFollowedChannels(req: Request, res: Response): Promise<void> {
-    validateParamsObject(getFollowedChannelsSchema, req, res, async () => {
-      validateQueryObject(getFollowedChannelsQuerySchema, req, res, async () => {
+    const querySchema = Joi.object({
+      medium: Joi.string()
+        .valid(...QUERY_PARAMS_MEDIUMS)
+        .required(),
+    });
+
+    validateParamsObject(Joi.object(accountIdTextParamSchema), req, res, async () => {
+      validateQueryObject(querySchema, req, res, async () => {
         optionalEnsureAuthenticated(
           req,
           res,
@@ -80,7 +78,7 @@ class AccountFollowingChannelController {
       req,
       res,
       async () => {
-        validateBodyObject(followChannelSchema, req, res, async () => {
+        validateBodyObject(Joi.object(channelIdTextParamSchema), req, res, async () => {
           const account = getAuthenticatedUser(req);
           const { channel_id_text } = req.body;
 
@@ -104,7 +102,7 @@ class AccountFollowingChannelController {
       req,
       res,
       async () => {
-        validateBodyObject(followChannelSchema, req, res, async () => {
+        validateBodyObject(Joi.object(channelIdTextParamSchema), req, res, async () => {
           const account = getAuthenticatedUser(req);
           const { channel_id_text } = req.body;
 

@@ -5,10 +5,6 @@ import { handleGenericErrorResponse } from '@api/controllers/helpers/error';
 import { ensureAuthenticated, getAuthenticatedUser } from '@api/lib/auth';
 import { validateBodyObject } from '@api/lib/validation';
 
-const createStatsTrackEventItemSchema = Joi.object({
-  item_id_text: Joi.string().required(),
-});
-
 export class StatsTrackEventItemController {
   private static statsTrackEventItemService = new StatsTrackEventItemService();
 
@@ -17,7 +13,11 @@ export class StatsTrackEventItemController {
       req,
       res,
       async () => {
-        validateBodyObject(createStatsTrackEventItemSchema, req, res, async () => {
+        const bodySchema = Joi.object({
+          item_id_text: Joi.string().required(),
+        });
+
+        validateBodyObject(bodySchema, req, res, async () => {
           const jwtUser = getAuthenticatedUser(req);
           const { item_id_text } = req.body;
 

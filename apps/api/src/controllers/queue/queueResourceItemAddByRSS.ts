@@ -5,39 +5,29 @@ import { QueueResourceService } from '@podverse/orm';
 import { handleGenericErrorResponse } from '@api/controllers/helpers/error';
 import { ensureAuthenticated } from '@api/lib/auth';
 import { verifyQueueOwnership } from '@api/controllers/queue/queue';
-import { validateBodyObject, validateParamsObject } from '@api/lib/validation';
+import {
+  positionBetweenBodySchema,
+  queueIdTextParamSchema,
+  validateBodyObject,
+  validateParamsObject,
+} from '@api/lib/validation';
 import { getParamRequired } from '@api/lib/params';
-
-const addItemToQueueSchema = Joi.object({
-  add_by_rss_resource_data: Joi.object().required(),
-});
-
-const addItemToQueueBetweenSchema = Joi.object({
-  add_by_rss_resource_data: Joi.object().required(),
-  position1: Joi.number().min(0).required(),
-  position2: Joi.number().min(Joi.ref('position1')).required(),
-}).with('position1', 'position2');
-
-const queueAndRSSHashIdSchema = Joi.object({
-  queue_id_text: Joi.string().required(),
-  add_by_rss_hash_id: Joi.string().required(),
-});
-
-const queueIdSchema = Joi.object({
-  queue_id_text: Joi.string().required(),
-});
 
 class QueueResourceItemAddByRSSController {
   private static queueResourceService = new QueueResourceService();
 
   static async addItemAddByRSSToQueueNext(req: Request, res: Response): Promise<void> {
-    validateParamsObject(queueIdSchema, req, res, async () => {
+    const bodySchema = Joi.object({
+      add_by_rss_resource_data: Joi.object().required(),
+    });
+
+    validateParamsObject(Joi.object(queueIdTextParamSchema), req, res, async () => {
       ensureAuthenticated(
         req,
         res,
         async () => {
           verifyQueueOwnership()(req, res, async () => {
-            validateBodyObject(addItemToQueueSchema, req, res, async () => {
+            validateBodyObject(bodySchema, req, res, async () => {
               const queue_id_text = getParamRequired(req, 'queue_id_text');
               const { add_by_rss_resource_data } = req.body;
               try {
@@ -59,13 +49,17 @@ class QueueResourceItemAddByRSSController {
   }
 
   static async addItemAddByRSSToQueueLast(req: Request, res: Response): Promise<void> {
-    validateParamsObject(queueIdSchema, req, res, async () => {
+    const bodySchema = Joi.object({
+      add_by_rss_resource_data: Joi.object().required(),
+    });
+
+    validateParamsObject(Joi.object(queueIdTextParamSchema), req, res, async () => {
       ensureAuthenticated(
         req,
         res,
         async () => {
           verifyQueueOwnership()(req, res, async () => {
-            validateBodyObject(addItemToQueueSchema, req, res, async () => {
+            validateBodyObject(bodySchema, req, res, async () => {
               const queue_id_text = getParamRequired(req, 'queue_id_text');
               const { add_by_rss_resource_data } = req.body;
               try {
@@ -87,13 +81,18 @@ class QueueResourceItemAddByRSSController {
   }
 
   static async addItemAddByRSSToQueueBetween(req: Request, res: Response): Promise<void> {
-    validateParamsObject(queueIdSchema, req, res, async () => {
+    const bodySchema = Joi.object({
+      add_by_rss_resource_data: Joi.object().required(),
+      ...positionBetweenBodySchema,
+    });
+
+    validateParamsObject(Joi.object(queueIdTextParamSchema), req, res, async () => {
       ensureAuthenticated(
         req,
         res,
         async () => {
           verifyQueueOwnership()(req, res, async () => {
-            validateBodyObject(addItemToQueueBetweenSchema, req, res, async () => {
+            validateBodyObject(bodySchema, req, res, async () => {
               const queue_id_text = getParamRequired(req, 'queue_id_text');
               const { add_by_rss_resource_data, position1, position2 } = req.body;
               try {
@@ -117,7 +116,7 @@ class QueueResourceItemAddByRSSController {
   }
 
   static async addItemAddByRSSToNowPlaying(req: Request, res: Response): Promise<void> {
-    validateParamsObject(queueIdSchema, req, res, async () => {
+    validateParamsObject(Joi.object(queueIdTextParamSchema), req, res, async () => {
       validateBodyObject(queueResourceNowPlayingSchema, req, res, async () => {
         ensureAuthenticated(
           req,
@@ -160,7 +159,7 @@ class QueueResourceItemAddByRSSController {
   }
 
   static async addItemAddByRSSToHistory(req: Request, res: Response): Promise<void> {
-    validateParamsObject(queueIdSchema, req, res, async () => {
+    validateParamsObject(Joi.object(queueIdTextParamSchema), req, res, async () => {
       validateBodyObject(queueResourceNowPlayingSchema, req, res, async () => {
         ensureAuthenticated(
           req,
@@ -203,7 +202,12 @@ class QueueResourceItemAddByRSSController {
   }
 
   static async removeItemAddByRSSFromQueue(req: Request, res: Response): Promise<void> {
-    validateParamsObject(queueAndRSSHashIdSchema, req, res, async () => {
+    const paramsSchema = Joi.object({
+      ...queueIdTextParamSchema,
+      add_by_rss_hash_id: Joi.string().required(),
+    });
+
+    validateParamsObject(paramsSchema, req, res, async () => {
       ensureAuthenticated(
         req,
         res,

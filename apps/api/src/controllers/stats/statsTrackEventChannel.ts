@@ -5,10 +5,6 @@ import { handleGenericErrorResponse } from '@api/controllers/helpers/error';
 import { ensureAuthenticated, getAuthenticatedUser } from '@api/lib/auth';
 import { validateBodyObject } from '@api/lib/validation';
 
-const createStatsTrackEventChannelSchema = Joi.object({
-  channel_id_text: Joi.string().required(),
-});
-
 export class StatsTrackEventChannelController {
   private static statsTrackEventChannelService = new StatsTrackEventChannelService();
 
@@ -17,7 +13,11 @@ export class StatsTrackEventChannelController {
       req,
       res,
       async () => {
-        validateBodyObject(createStatsTrackEventChannelSchema, req, res, async () => {
+        const bodySchema = Joi.object({
+          channel_id_text: Joi.string().required(),
+        });
+
+        validateBodyObject(bodySchema, req, res, async () => {
           const jwtUser = getAuthenticatedUser(req);
           const { channel_id_text } = req.body;
 

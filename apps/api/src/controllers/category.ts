@@ -6,15 +6,15 @@ import { handleGenericErrorResponse } from '@api/controllers/helpers/error';
 import { validateParamsObject } from '@api/lib/validation';
 import { getParamRequired } from '@api/lib/params';
 
-const getCategorySchema = Joi.object({
-  id: Joi.number().integer().min(1).required(),
-});
-
 export class CategoryController {
   private static categoryService = new CategoryService();
 
   static async get(req: Request, res: Response): Promise<void> {
-    validateParamsObject(getCategorySchema, req, res, async () => {
+    const paramsSchema = Joi.object({
+      id: Joi.number().integer().min(1).required(),
+    });
+
+    validateParamsObject(paramsSchema, req, res, async () => {
       try {
         const id = getParamRequired(req, 'id');
         const numericId = parseInt(id, 10);

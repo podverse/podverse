@@ -4,24 +4,25 @@ import { PlaylistResourceService } from '@podverse/orm';
 import { handleGenericErrorResponse } from '@api/controllers/helpers/error';
 import { verifyPlaylistOwnership } from '@api/controllers/playlist/playlist';
 import { ensureAuthenticated } from '@api/lib/auth';
-import { validateBodyObject, validateParamsObject } from '@api/lib/validation';
+import {
+  clipIdTextParamSchema,
+  playlistIdTextParamSchema,
+  positionBetweenBodySchema,
+  validateBodyObject,
+  validateParamsObject,
+} from '@api/lib/validation';
 import { getParamRequired } from '@api/lib/params';
-
-const addClipToPlaylistBetweenSchema = Joi.object({
-  position1: Joi.number().min(0).required(),
-  position2: Joi.number().min(Joi.ref('position1')).required(),
-}).with('position1', 'position2');
-
-const playlistAndClipIdSchema = Joi.object({
-  playlist_id_text: Joi.string().required(),
-  clip_id_text: Joi.string().required(),
-});
 
 class PlaylistResourceClipController {
   private static playlistResourceService = new PlaylistResourceService();
 
   static async addClipToPlaylistFirst(req: Request, res: Response): Promise<void> {
-    validateParamsObject(playlistAndClipIdSchema, req, res, async () => {
+    const paramsSchema = Joi.object({
+      ...playlistIdTextParamSchema,
+      ...clipIdTextParamSchema,
+    });
+
+    validateParamsObject(paramsSchema, req, res, async () => {
       ensureAuthenticated(
         req,
         res,
@@ -48,7 +49,12 @@ class PlaylistResourceClipController {
   }
 
   static async addClipToPlaylistLast(req: Request, res: Response): Promise<void> {
-    validateParamsObject(playlistAndClipIdSchema, req, res, async () => {
+    const paramsSchema = Joi.object({
+      ...playlistIdTextParamSchema,
+      ...clipIdTextParamSchema,
+    });
+
+    validateParamsObject(paramsSchema, req, res, async () => {
       ensureAuthenticated(
         req,
         res,
@@ -74,13 +80,18 @@ class PlaylistResourceClipController {
   }
 
   static async addClipToPlaylistBetween(req: Request, res: Response): Promise<void> {
-    validateParamsObject(playlistAndClipIdSchema, req, res, async () => {
+    const paramsSchema = Joi.object({
+      ...playlistIdTextParamSchema,
+      ...clipIdTextParamSchema,
+    });
+
+    validateParamsObject(paramsSchema, req, res, async () => {
       ensureAuthenticated(
         req,
         res,
         async () => {
           verifyPlaylistOwnership()(req, res, async () => {
-            validateBodyObject(addClipToPlaylistBetweenSchema, req, res, async () => {
+            validateBodyObject(Joi.object(positionBetweenBodySchema), req, res, async () => {
               try {
                 const playlist_id_text = getParamRequired(req, 'playlist_id_text');
                 const clip_id_text = getParamRequired(req, 'clip_id_text');
@@ -105,7 +116,12 @@ class PlaylistResourceClipController {
   }
 
   static async removeClipFromPlaylist(req: Request, res: Response): Promise<void> {
-    validateParamsObject(playlistAndClipIdSchema, req, res, async () => {
+    const paramsSchema = Joi.object({
+      ...playlistIdTextParamSchema,
+      ...clipIdTextParamSchema,
+    });
+
+    validateParamsObject(paramsSchema, req, res, async () => {
       ensureAuthenticated(
         req,
         res,

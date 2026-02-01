@@ -6,13 +6,9 @@ import { QueueResource, QueueResourceService } from '@podverse/orm';
 import { handleGenericErrorResponse } from '../helpers/error';
 import { ensureAuthenticated, getAuthenticatedUser } from '@api/lib/auth';
 import { verifyQueueOwnership } from '@api/controllers/queue/queue';
-import { validateParamsObject } from '@api/lib/validation';
+import { queueIdTextParamSchema, validateParamsObject } from '@api/lib/validation';
 import { getPaginationParams } from '../helpers/pagination';
 import { getParamRequired } from '@api/lib/params';
-
-const queueIdSchema = Joi.object({
-  queue_id_text: Joi.string().required(),
-});
 
 class QueueResourceController {
   private static queueResourceService = new QueueResourceService();
@@ -42,7 +38,7 @@ class QueueResourceController {
   }
 
   static async getNowPlayingByQueueIdText(req: Request, res: Response): Promise<void> {
-    validateParamsObject(queueIdSchema, req, res, async () => {
+    validateParamsObject(Joi.object(queueIdTextParamSchema), req, res, async () => {
       ensureAuthenticated(
         req,
         res,
@@ -67,7 +63,7 @@ class QueueResourceController {
   }
 
   static async getAllUpcomingByQueueIdText(req: Request, res: Response): Promise<void> {
-    validateParamsObject(queueIdSchema, req, res, async () => {
+    validateParamsObject(Joi.object(queueIdTextParamSchema), req, res, async () => {
       ensureAuthenticated(
         req,
         res,
@@ -92,7 +88,7 @@ class QueueResourceController {
   }
 
   static async getHistoryResourcesByQueueIdText(req: Request, res: Response): Promise<void> {
-    validateParamsObject(queueIdSchema, req, res, async () => {
+    validateParamsObject(Joi.object(queueIdTextParamSchema), req, res, async () => {
       ensureAuthenticated(
         req,
         res,
