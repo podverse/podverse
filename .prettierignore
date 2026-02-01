@@ -41,3 +41,4 @@ infra/config/alpha/
 # Misc
 *.tgz
 .cache/
+.llm/plans/

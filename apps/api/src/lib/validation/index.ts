@@ -1,6 +1,8 @@
 import { Request, Response, NextFunction } from 'express';
 import Joi from 'joi';
 
+export * from './querySchemas';
+
 export function validateBodyObject(
   schema: Joi.ObjectSchema,
   req: Request,

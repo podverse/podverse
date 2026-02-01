@@ -3,12 +3,8 @@ import Joi from 'joi';
 import { MembershipClaimTokenService } from '@podverse/orm';
 import { handleGenericErrorResponse } from '@api/controllers/helpers/error';
 import { ensureAuthenticated, getAuthenticatedUser } from '@api/lib/auth';
-import { validateParamsObject } from '@api/lib/validation';
+import { tokenBodySchema, validateParamsObject } from '@api/lib/validation';
 import { getParamRequired } from '@api/lib/params';
-
-const claimSchema = Joi.object({
-  token: Joi.string().required(),
-});
 
 export class MembershipClaimTokenController {
   private membershipClaimTokenService: MembershipClaimTokenService;
@@ -22,7 +18,7 @@ export class MembershipClaimTokenController {
       req,
       res,
       async () => {
-        validateParamsObject(claimSchema, req, res, async () => {
+        validateParamsObject(Joi.object(tokenBodySchema), req, res, async () => {
           try {
             const jwtUser = getAuthenticatedUser(req);
             const account_id = jwtUser.id;

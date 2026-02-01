@@ -3,22 +3,12 @@ import Joi from 'joi';
 import { AccountFollowingAddByRSSChannelService, AccountService } from '@podverse/orm';
 import { ensureAuthenticated, getAuthenticatedUser } from '@api/lib/auth';
 import { handleGenericErrorResponse } from '../helpers/error';
-import { validateBodyObject, validateParamsObject } from '@api/lib/validation';
+import {
+  accountIdTextParamSchema,
+  validateBodyObject,
+  validateParamsObject,
+} from '@api/lib/validation';
 import { getParamRequired } from '@api/lib/params';
-
-const addRSSChannelSchema = Joi.object({
-  feed_url: Joi.string().uri().required(),
-  title: Joi.string().allow(null, ''),
-  image_url: Joi.string().uri().allow(null, ''),
-});
-
-const removeRSSChannelSchema = Joi.object({
-  feed_url: Joi.string().uri().required(),
-});
-
-const getFollowedAddByRSSChannelsSchema = Joi.object({
-  account_id_text: Joi.string().required(),
-});
 
 class AccountFollowingAddByRSSChannelController {
   private static accountService = new AccountService();
@@ -26,7 +16,7 @@ class AccountFollowingAddByRSSChannelController {
     new AccountFollowingAddByRSSChannelService();
 
   static async getFollowedAddByRSSChannels(req: Request, res: Response): Promise<void> {
-    validateParamsObject(getFollowedAddByRSSChannelsSchema, req, res, async () => {
+    validateParamsObject(Joi.object(accountIdTextParamSchema), req, res, async () => {
       ensureAuthenticated(
         req,
         res,
@@ -67,7 +57,13 @@ class AccountFollowingAddByRSSChannelController {
       req,
       res,
       async () => {
-        validateBodyObject(addRSSChannelSchema, req, res, async () => {
+        const bodySchema = Joi.object({
+          feed_url: Joi.string().uri().required(),
+          title: Joi.string().allow(null, ''),
+          image_url: Joi.string().uri().allow(null, ''),
+        });
+
+        validateBodyObject(bodySchema, req, res, async () => {
           const account = getAuthenticatedUser(req);
           const dto = req.body;
 
@@ -91,7 +87,11 @@ class AccountFollowingAddByRSSChannelController {
       req,
       res,
       async () => {
-        validateBodyObject(removeRSSChannelSchema, req, res, async () => {
+        const bodySchema = Joi.object({
+          feed_url: Joi.string().uri().required(),
+        });
+
+        validateBodyObject(bodySchema, req, res, async () => {
           const account = getAuthenticatedUser(req);
           const { feed_url } = req.body;
 

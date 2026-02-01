@@ -5,24 +5,25 @@ import { QueueResourceService } from '@podverse/orm';
 import { handleGenericErrorResponse } from '@api/controllers/helpers/error';
 import { ensureAuthenticated } from '@api/lib/auth';
 import { verifyQueueOwnership } from '@api/controllers/queue/queue';
-import { validateBodyObject, validateParamsObject } from '@api/lib/validation';
+import {
+  clipIdTextParamSchema,
+  positionBetweenBodySchema,
+  queueIdTextParamSchema,
+  validateBodyObject,
+  validateParamsObject,
+} from '@api/lib/validation';
 import { getParamRequired } from '@api/lib/params';
-
-const addClipToQueueBetweenSchema = Joi.object({
-  position1: Joi.number().min(0).required(),
-  position2: Joi.number().min(Joi.ref('position1')).required(),
-}).with('position1', 'position2');
-
-const queueAndClipIdSchema = Joi.object({
-  queue_id_text: Joi.string().required(),
-  clip_id_text: Joi.string().required(),
-});
 
 class QueueResourceClipController {
   private static queueResourceService = new QueueResourceService();
 
   static async addClipToQueueNext(req: Request, res: Response): Promise<void> {
-    validateParamsObject(queueAndClipIdSchema, req, res, async () => {
+    const paramsSchema = Joi.object({
+      ...queueIdTextParamSchema,
+      ...clipIdTextParamSchema,
+    });
+
+    validateParamsObject(paramsSchema, req, res, async () => {
       ensureAuthenticated(
         req,
         res,
@@ -49,7 +50,12 @@ class QueueResourceClipController {
   }
 
   static async addClipToQueueLast(req: Request, res: Response): Promise<void> {
-    validateParamsObject(queueAndClipIdSchema, req, res, async () => {
+    const paramsSchema = Joi.object({
+      ...queueIdTextParamSchema,
+      ...clipIdTextParamSchema,
+    });
+
+    validateParamsObject(paramsSchema, req, res, async () => {
       ensureAuthenticated(
         req,
         res,
@@ -76,13 +82,18 @@ class QueueResourceClipController {
   }
 
   static async addClipToQueueBetween(req: Request, res: Response): Promise<void> {
-    validateParamsObject(queueAndClipIdSchema, req, res, async () => {
+    const paramsSchema = Joi.object({
+      ...queueIdTextParamSchema,
+      ...clipIdTextParamSchema,
+    });
+
+    validateParamsObject(paramsSchema, req, res, async () => {
       ensureAuthenticated(
         req,
         res,
         async () => {
           verifyQueueOwnership()(req, res, async () => {
-            validateBodyObject(addClipToQueueBetweenSchema, req, res, async () => {
+            validateBodyObject(Joi.object(positionBetweenBodySchema), req, res, async () => {
               const queue_id_text = getParamRequired(req, 'queue_id_text');
               const clip_id_text = getParamRequired(req, 'clip_id_text');
               const { position1, position2 } = req.body;
@@ -108,7 +119,12 @@ class QueueResourceClipController {
   }
 
   static async addClipToNowPlaying(req: Request, res: Response): Promise<void> {
-    validateParamsObject(queueAndClipIdSchema, req, res, async () => {
+    const paramsSchema = Joi.object({
+      ...queueIdTextParamSchema,
+      ...clipIdTextParamSchema,
+    });
+
+    validateParamsObject(paramsSchema, req, res, async () => {
       validateBodyObject(queueResourceNowPlayingSchema, req, res, async () => {
         ensureAuthenticated(
           req,
@@ -147,7 +163,12 @@ class QueueResourceClipController {
   }
 
   static async addClipToHistory(req: Request, res: Response): Promise<void> {
-    validateParamsObject(queueAndClipIdSchema, req, res, async () => {
+    const paramsSchema = Joi.object({
+      ...queueIdTextParamSchema,
+      ...clipIdTextParamSchema,
+    });
+
+    validateParamsObject(paramsSchema, req, res, async () => {
       validateBodyObject(queueResourceNowPlayingSchema, req, res, async () => {
         ensureAuthenticated(
           req,
@@ -186,7 +207,12 @@ class QueueResourceClipController {
   }
 
   static async removeClipFromQueue(req: Request, res: Response): Promise<void> {
-    validateParamsObject(queueAndClipIdSchema, req, res, async () => {
+    const paramsSchema = Joi.object({
+      ...queueIdTextParamSchema,
+      ...clipIdTextParamSchema,
+    });
+
+    validateParamsObject(paramsSchema, req, res, async () => {
       ensureAuthenticated(
         req,
         res,

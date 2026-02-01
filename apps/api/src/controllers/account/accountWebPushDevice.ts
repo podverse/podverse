@@ -2,28 +2,8 @@ import { Request, Response } from 'express';
 import Joi from 'joi';
 import { AccountWebPushDeviceService } from '@podverse/orm';
 import { handleGenericErrorResponse } from '@api/controllers/helpers/error';
-import { validateBodyObject } from '@api/lib/validation';
+import { localeBodySchema, validateBodyObject } from '@api/lib/validation';
 import { ensureAuthenticated, getAuthenticatedUser } from '@api/lib/auth';
-
-const createAccountWebPushDeviceSchema = Joi.object({
-  endpoint: Joi.string().uri().required(),
-  p256dh: Joi.string().required(),
-  auth: Joi.string().required(),
-});
-
-const updateAccountWebPushDeviceSchema = Joi.object({
-  endpoint: Joi.string().uri().required(),
-  p256dh: Joi.string().required(),
-  auth: Joi.string().required(),
-});
-
-const deleteAccountWebPushDeviceSchema = Joi.object({
-  endpoint: Joi.string().uri().required(),
-});
-
-const updateLocaleForAccountSchema = Joi.object({
-  locale: Joi.string().required(),
-});
 
 export class AccountWebPushDeviceController {
   private static accountWebPushDeviceService = new AccountWebPushDeviceService();
@@ -33,7 +13,13 @@ export class AccountWebPushDeviceController {
       req,
       res,
       async () => {
-        validateBodyObject(createAccountWebPushDeviceSchema, req, res, async () => {
+        const bodySchema = Joi.object({
+          endpoint: Joi.string().uri().required(),
+          p256dh: Joi.string().required(),
+          auth: Joi.string().required(),
+        });
+
+        validateBodyObject(bodySchema, req, res, async () => {
           try {
             const jwtUser = getAuthenticatedUser(req);
             const { endpoint, p256dh, auth } = req.body as {
@@ -62,7 +48,13 @@ export class AccountWebPushDeviceController {
       req,
       res,
       async () => {
-        validateBodyObject(updateAccountWebPushDeviceSchema, req, res, async () => {
+        const bodySchema = Joi.object({
+          endpoint: Joi.string().uri().required(),
+          p256dh: Joi.string().required(),
+          auth: Joi.string().required(),
+        });
+
+        validateBodyObject(bodySchema, req, res, async () => {
           try {
             const jwtUser = getAuthenticatedUser(req);
             const { endpoint, p256dh, auth } = req.body as {
@@ -91,7 +83,11 @@ export class AccountWebPushDeviceController {
       req,
       res,
       async () => {
-        validateBodyObject(deleteAccountWebPushDeviceSchema, req, res, async () => {
+        const bodySchema = Joi.object({
+          endpoint: Joi.string().uri().required(),
+        });
+
+        validateBodyObject(bodySchema, req, res, async () => {
           try {
             const jwtUser = getAuthenticatedUser(req);
             const { endpoint } = req.body as {
@@ -135,7 +131,7 @@ export class AccountWebPushDeviceController {
       req,
       res,
       async () => {
-        validateBodyObject(updateLocaleForAccountSchema, req, res, async () => {
+        validateBodyObject(Joi.object(localeBodySchema), req, res, async () => {
           try {
             const jwtUser = getAuthenticatedUser(req);
             const { locale } = req.body as { locale: string };

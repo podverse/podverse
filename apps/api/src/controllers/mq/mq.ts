@@ -8,11 +8,6 @@ import { handleGenericErrorResponse } from '../helpers/error';
 import { activeMQArtemisService } from '@api/factories/activeMQArtemisService';
 import { rateLimitAuthEndpoint } from '@api/lib/rateLimiter';
 
-const addToOnDemandMQSchema = Joi.object({
-  url: Joi.string().uri().required(),
-  podcast_index_id: Joi.number().min(1).required(),
-});
-
 export class MQController {
   static rssOnDemandMiddleware = rateLimitAuthEndpoint({
     windowMs: 60 * 60 * 1000,
@@ -26,7 +21,12 @@ export class MQController {
         res,
         async () => {
           MQController.rssOnDemandMiddleware(req, res, () => {
-            validateBodyObject(addToOnDemandMQSchema, req, res, async () => {
+            const bodySchema = Joi.object({
+              url: Joi.string().uri().required(),
+              podcast_index_id: Joi.number().min(1).required(),
+            });
+
+            validateBodyObject(bodySchema, req, res, async () => {
               const dto = req.body;
               const finalDto = {
                 url: dto.url,

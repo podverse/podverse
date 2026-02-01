@@ -3,26 +3,27 @@ import { QueueResourceService } from '@podverse/orm';
 import { handleGenericErrorResponse } from '@api/controllers/helpers/error';
 import { ensureAuthenticated } from '@api/lib/auth';
 import { verifyQueueOwnership } from '@api/controllers/queue/queue';
-import { validateBodyObject, validateParamsObject } from '@api/lib/validation';
+import {
+  itemSoundbiteIdTextParamSchema,
+  positionBetweenBodySchema,
+  queueIdTextParamSchema,
+  validateBodyObject,
+  validateParamsObject,
+} from '@api/lib/validation';
 import Joi from 'joi';
 import { queueResourceNowPlayingSchema } from './queueResourceItem';
 import { getParamRequired } from '@api/lib/params';
-
-const addItemSoundbiteToQueueBetweenSchema = Joi.object({
-  position1: Joi.number().min(0).required(),
-  position2: Joi.number().min(Joi.ref('position1')).required(),
-}).with('position1', 'position2');
-
-const queueAndSoundbiteIdSchema = Joi.object({
-  queue_id_text: Joi.string().required(),
-  item_soundbite_id_text: Joi.string().required(),
-});
 
 class QueueResourceItemSoundbiteController {
   private static queueResourceService = new QueueResourceService();
 
   static async addItemSoundbiteToQueueNext(req: Request, res: Response): Promise<void> {
-    validateParamsObject(queueAndSoundbiteIdSchema, req, res, async () => {
+    const paramsSchema = Joi.object({
+      ...queueIdTextParamSchema,
+      ...itemSoundbiteIdTextParamSchema,
+    });
+
+    validateParamsObject(paramsSchema, req, res, async () => {
       ensureAuthenticated(
         req,
         res,
@@ -49,7 +50,12 @@ class QueueResourceItemSoundbiteController {
   }
 
   static async addItemSoundbiteToQueueLast(req: Request, res: Response): Promise<void> {
-    validateParamsObject(queueAndSoundbiteIdSchema, req, res, async () => {
+    const paramsSchema = Joi.object({
+      ...queueIdTextParamSchema,
+      ...itemSoundbiteIdTextParamSchema,
+    });
+
+    validateParamsObject(paramsSchema, req, res, async () => {
       ensureAuthenticated(
         req,
         res,
@@ -76,12 +82,17 @@ class QueueResourceItemSoundbiteController {
   }
 
   static async addItemSoundbiteToQueueBetween(req: Request, res: Response): Promise<void> {
-    validateParamsObject(queueAndSoundbiteIdSchema, req, res, async () => {
+    const paramsSchema = Joi.object({
+      ...queueIdTextParamSchema,
+      ...itemSoundbiteIdTextParamSchema,
+    });
+
+    validateParamsObject(paramsSchema, req, res, async () => {
       ensureAuthenticated(
         req,
         res,
         async () => {
-          validateBodyObject(addItemSoundbiteToQueueBetweenSchema, req, res, async () => {
+          validateBodyObject(Joi.object(positionBetweenBodySchema), req, res, async () => {
             verifyQueueOwnership()(req, res, async () => {
               const queue_id_text = getParamRequired(req, 'queue_id_text');
               const item_soundbite_id_text = getParamRequired(req, 'item_soundbite_id_text');
@@ -108,7 +119,12 @@ class QueueResourceItemSoundbiteController {
   }
 
   static async addItemSoundbiteToNowPlaying(req: Request, res: Response): Promise<void> {
-    validateParamsObject(queueAndSoundbiteIdSchema, req, res, async () => {
+    const paramsSchema = Joi.object({
+      ...queueIdTextParamSchema,
+      ...itemSoundbiteIdTextParamSchema,
+    });
+
+    validateParamsObject(paramsSchema, req, res, async () => {
       validateBodyObject(queueResourceNowPlayingSchema, req, res, async () => {
         ensureAuthenticated(
           req,
@@ -147,7 +163,12 @@ class QueueResourceItemSoundbiteController {
   }
 
   static async addItemSoundbiteToHistory(req: Request, res: Response): Promise<void> {
-    validateParamsObject(queueAndSoundbiteIdSchema, req, res, async () => {
+    const paramsSchema = Joi.object({
+      ...queueIdTextParamSchema,
+      ...itemSoundbiteIdTextParamSchema,
+    });
+
+    validateParamsObject(paramsSchema, req, res, async () => {
       validateBodyObject(queueResourceNowPlayingSchema, req, res, async () => {
         ensureAuthenticated(
           req,
@@ -186,7 +207,12 @@ class QueueResourceItemSoundbiteController {
   }
 
   static async removeItemSoundbiteFromQueue(req: Request, res: Response): Promise<void> {
-    validateParamsObject(queueAndSoundbiteIdSchema, req, res, async () => {
+    const paramsSchema = Joi.object({
+      ...queueIdTextParamSchema,
+      ...itemSoundbiteIdTextParamSchema,
+    });
+
+    validateParamsObject(paramsSchema, req, res, async () => {
       ensureAuthenticated(
         req,
         res,

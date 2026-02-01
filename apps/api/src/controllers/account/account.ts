@@ -6,7 +6,7 @@ import {
   SharableStatusEnum,
   getSharableStatusIdsForProfileType,
 } from '@podverse/helpers';
-import { QueryParamsStatsRange, QUERY_PARAMS_STATS_RANGE_VALUES } from '@podverse/helpers-requests';
+import { QueryParamsStatsRange } from '@podverse/helpers-requests';
 import {
   AccountCredentialsService,
   AccountEmailChangeVerificationService,
@@ -33,81 +33,19 @@ import {
 } from '@api/lib/auth/';
 import { sendVerificationEmail } from '@api/lib/mailer/sendVerificationEmail';
 import { sendResetPasswordEmail } from '@api/lib/mailer/sendResetPasswordEmail';
-import { validateBodyObject, validateParamsObject, validateQueryObject } from '@api/lib/validation';
+import {
+  emailBodySchema,
+  pageQuerySchema,
+  pageRangeQuerySchema,
+  tokenBodySchema,
+  validateBodyObject,
+  validateParamsObject,
+  validateQueryObject,
+} from '@api/lib/validation';
 import { sendEmailChangeVerificationEmail } from '@api/lib/mailer/sendChangeEmailVerificationEmail';
 import { getParamRequired } from '@api/lib/params';
 import { getStatsOrder } from '@api/lib/stats';
 import { getFollowedAccountIds } from '@api/lib/followed';
-
-const createAccountSchema = Joi.object({
-  email: Joi.string().email().required(),
-  password: Joi.string().min(8).required(),
-  locale: Joi.string().required(),
-});
-
-const updateAccountSchema = Joi.object({
-  display_name: Joi.string().allow(null).required(),
-  bio: Joi.string().allow(null).required(),
-  sharable_status: Joi.number()
-    .valid(...Object.values(SharableStatusEnum))
-    .required(),
-  locale: Joi.string().required(),
-});
-
-const sendVerificationEmailSchema = Joi.object({
-  email: Joi.string().email().required(),
-});
-
-const verifyEmailSchema = Joi.object({
-  token: Joi.string().required(),
-});
-
-const verifyEmailChangeSchema = Joi.object({
-  token: Joi.string().required(),
-});
-
-const sendEmailChangeVerificationSchema = Joi.object({
-  new_email: Joi.string().email().required(),
-});
-
-const sendResetPasswordEmailSchema = Joi.object({
-  email: Joi.string().email().required(),
-});
-
-const resetPasswordSchema = Joi.object({
-  token: Joi.string().required(),
-  password: Joi.string().min(8).required(),
-});
-
-const getByIdTextSchema = Joi.object({
-  id_text: Joi.string().required(),
-});
-
-const getManyPublicRecentSchema = Joi.object({
-  page: Joi.number().integer().min(1).required(),
-});
-
-const getManyPublicTopSchema = Joi.object({
-  page: Joi.number().integer().min(1).required(),
-  range: Joi.string()
-    .valid(...QUERY_PARAMS_STATS_RANGE_VALUES)
-    .required(),
-});
-
-const getManySubscribedAZSchema = Joi.object({
-  page: Joi.number().integer().min(1).required(),
-});
-
-const getManySubscribedRecentSchema = Joi.object({
-  page: Joi.number().integer().min(1).required(),
-});
-
-const getManySubscribedTopSchema = Joi.object({
-  page: Joi.number().integer().min(1).required(),
-  range: Joi.string()
-    .valid(...QUERY_PARAMS_STATS_RANGE_VALUES)
-    .required(),
-});
 
 const publicRelations = ['account_following_channels', 'account_profile'];
 
@@ -151,7 +89,11 @@ export class AccountController {
   private static accountDataExportService = new AccountDataExportService();
 
   static async getByIdText(req: Request, res: Response): Promise<void> {
-    validateParamsObject(getByIdTextSchema, req, res, async () => {
+    const paramsSchema = Joi.object({
+      id_text: Joi.string().required(),
+    });
+
+    validateParamsObject(paramsSchema, req, res, async () => {
       optionalEnsureAuthenticated(
         req,
         res,
@@ -237,7 +179,7 @@ export class AccountController {
   }
 
   static async getManyPublicRecent(req: Request, res: Response): Promise<void> {
-    validateQueryObject(getManyPublicRecentSchema, req, res, async () => {
+    validateQueryObject(Joi.object(pageQuerySchema), req, res, async () => {
       try {
         const { page, limit, offset } = getPaginationParams(req);
 
@@ -269,7 +211,7 @@ export class AccountController {
   }
 
   static async getManySubscribedAZ(req: Request, res: Response): Promise<void> {
-    validateQueryObject(getManySubscribedAZSchema, req, res, async () => {
+    validateQueryObject(Joi.object(pageQuerySchema), req, res, async () => {
       ensureAuthenticated(
         req,
         res,
@@ -354,7 +296,7 @@ export class AccountController {
   }
 
   static async getManySubscribedRecent(req: Request, res: Response): Promise<void> {
-    validateQueryObject(getManySubscribedRecentSchema, req, res, async () => {
+    validateQueryObject(Joi.object(pageQuerySchema), req, res, async () => {
       ensureAuthenticated(
         req,
         res,
@@ -439,7 +381,7 @@ export class AccountController {
   }
 
   static async getManyPublicTop(req: Request, res: Response): Promise<void> {
-    validateQueryObject(getManyPublicTopSchema, req, res, async () => {
+    validateQueryObject(Joi.object(pageRangeQuerySchema), req, res, async () => {
       try {
         const { page, limit, offset } = getPaginationParams(req);
         const { range } = req.query as {
@@ -481,7 +423,7 @@ export class AccountController {
   }
 
   static async getManySubscribedTop(req: Request, res: Response): Promise<void> {
-    validateQueryObject(getManySubscribedTopSchema, req, res, async () => {
+    validateQueryObject(Joi.object(pageRangeQuerySchema), req, res, async () => {
       ensureAuthenticated(
         req,
         res,
@@ -542,7 +484,13 @@ export class AccountController {
   }
 
   static async create(req: Request, res: Response): Promise<void> {
-    validateBodyObject(createAccountSchema, req, res, async () => {
+    const bodySchema = Joi.object({
+      email: Joi.string().email().required(),
+      password: Joi.string().min(8).required(),
+      locale: Joi.string().required(),
+    });
+
+    validateBodyObject(bodySchema, req, res, async () => {
       try {
         const { email, password, locale } = req.body as {
           email: string;
@@ -571,7 +519,16 @@ export class AccountController {
       req,
       res,
       async () => {
-        validateBodyObject(updateAccountSchema, req, res, async () => {
+        const bodySchema = Joi.object({
+          display_name: Joi.string().allow(null).required(),
+          bio: Joi.string().allow(null).required(),
+          sharable_status: Joi.number()
+            .valid(...Object.values(SharableStatusEnum))
+            .required(),
+          locale: Joi.string().required(),
+        });
+
+        validateBodyObject(bodySchema, req, res, async () => {
           try {
             const jwtUser = getAuthenticatedUser(req);
             const account_id = jwtUser.id;
@@ -594,7 +551,7 @@ export class AccountController {
   }
 
   static async sendVerificationEmail(req: Request, res: Response): Promise<void> {
-    validateBodyObject(sendVerificationEmailSchema, req, res, async () => {
+    validateBodyObject(Joi.object(emailBodySchema), req, res, async () => {
       try {
         const { email } = req.body;
         await AccountController.sendVerificationEmailHelper(email);
@@ -627,7 +584,7 @@ export class AccountController {
   }
 
   static async verifyEmail(req: Request, res: Response): Promise<void> {
-    validateBodyObject(verifyEmailSchema, req, res, async () => {
+    validateBodyObject(Joi.object(tokenBodySchema), req, res, async () => {
       try {
         const { token } = req.body;
         const accountVerification =
@@ -652,7 +609,11 @@ export class AccountController {
       req,
       res,
       async () => {
-        validateBodyObject(sendEmailChangeVerificationSchema, req, res, async () => {
+        const bodySchema = Joi.object({
+          new_email: Joi.string().email().required(),
+        });
+
+        validateBodyObject(bodySchema, req, res, async () => {
           try {
             const jwtUser = getAuthenticatedUser(req);
             const account_id = jwtUser.id;
@@ -701,7 +662,7 @@ export class AccountController {
   }
 
   static async verifyEmailChange(req: Request, res: Response): Promise<void> {
-    validateBodyObject(verifyEmailChangeSchema, req, res, async () => {
+    validateBodyObject(Joi.object(tokenBodySchema), req, res, async () => {
       try {
         const { token } = req.body;
         const accountEmailChangeVerification =
@@ -733,7 +694,7 @@ export class AccountController {
   }
 
   static async sendResetPasswordEmail(req: Request, res: Response): Promise<void> {
-    validateBodyObject(sendResetPasswordEmailSchema, req, res, async () => {
+    validateBodyObject(Joi.object(emailBodySchema), req, res, async () => {
       try {
         const { email } = req.body;
         await AccountController.sendResetPasswordEmailHelper(email);
@@ -765,7 +726,12 @@ export class AccountController {
   }
 
   static async resetPassword(req: Request, res: Response): Promise<void> {
-    validateBodyObject(resetPasswordSchema, req, res, async () => {
+    const bodySchema = Joi.object({
+      token: Joi.string().required(),
+      password: Joi.string().min(8).required(),
+    });
+
+    validateBodyObject(bodySchema, req, res, async () => {
       try {
         const { token, password } = req.body;
         const accountResetPassword =

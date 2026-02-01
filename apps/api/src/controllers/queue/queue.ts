@@ -3,16 +3,12 @@ import { QueueService } from '@podverse/orm';
 import { ensureAuthenticated, getAuthenticatedUser } from '@api/lib/auth';
 import { handleGenericErrorResponse } from '../helpers/error';
 import Joi from 'joi';
-import { validateBodyObject, validateParamsObject } from '@api/lib/validation';
+import {
+  queueIdTextParamSchema,
+  validateBodyObject,
+  validateParamsObject,
+} from '@api/lib/validation';
 import { getParamRequired } from '@api/lib/params';
-
-const queueIdTextParamsSchema = Joi.object({
-  queue_id_text: Joi.string().required(),
-});
-
-const updateIsActiveQueueSchema = Joi.object({
-  is_active_queue: Joi.boolean().required(),
-});
 
 const queueService = new QueueService();
 
@@ -68,8 +64,12 @@ class QueueController {
       res,
       async () => {
         verifyQueueOwnership()(req, res, async () => {
-          validateParamsObject(queueIdTextParamsSchema, req, res, async () => {
-            validateBodyObject(updateIsActiveQueueSchema, req, res, async () => {
+          const bodySchema = Joi.object({
+            is_active_queue: Joi.boolean().required(),
+          });
+
+          validateParamsObject(Joi.object(queueIdTextParamSchema), req, res, async () => {
+            validateBodyObject(bodySchema, req, res, async () => {
               const account = getAuthenticatedUser(req);
               const queue_id_text = getParamRequired(req, 'queue_id_text');
               const { is_active_queue } = req.body;

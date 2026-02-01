@@ -5,10 +5,6 @@ import { handleGenericErrorResponse } from '@api/controllers/helpers/error';
 import { ensureAuthenticated, getAuthenticatedUser } from '@api/lib/auth';
 import { validateBodyObject } from '@api/lib/validation';
 
-const createStatsTrackEventPlaylistSchema = Joi.object({
-  playlist_id_text: Joi.string().required(),
-});
-
 export class StatsTrackEventPlaylistController {
   private static statsTrackEventPlaylistService = new StatsTrackEventPlaylistService();
 
@@ -17,7 +13,11 @@ export class StatsTrackEventPlaylistController {
       req,
       res,
       async () => {
-        validateBodyObject(createStatsTrackEventPlaylistSchema, req, res, async () => {
+        const bodySchema = Joi.object({
+          playlist_id_text: Joi.string().required(),
+        });
+
+        validateBodyObject(bodySchema, req, res, async () => {
           const jwtUser = getAuthenticatedUser(req);
           const { playlist_id_text } = req.body;
 

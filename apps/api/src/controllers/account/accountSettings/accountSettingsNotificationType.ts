@@ -6,21 +6,15 @@ import { validateBodyObject } from '@api/lib/validation';
 import { ensureAuthenticated, getAuthenticatedUser } from '@api/lib/auth';
 import { handleGenericErrorResponse } from '@api/controllers/helpers/error';
 
-const createAccountSettingsNotificationTypeSchema = Joi.object({
-  type: Joi.string()
-    .valid(...ACCOUNT_NOTIFICATION_TYPE_VALUES)
-    .required(),
-});
-
-const deleteAccountSettingsNotificationTypeSchema = Joi.object({
-  type: Joi.string()
-    .valid(...ACCOUNT_NOTIFICATION_TYPE_VALUES)
-    .required(),
-});
-
 export class AccountSettingsNotificationTypeController {
   static async create(req: Request, res: Response): Promise<void> {
-    validateBodyObject(createAccountSettingsNotificationTypeSchema, req, res, async () => {
+    const bodySchema = Joi.object({
+      type: Joi.string()
+        .valid(...ACCOUNT_NOTIFICATION_TYPE_VALUES)
+        .required(),
+    });
+
+    validateBodyObject(bodySchema, req, res, async () => {
       ensureAuthenticated(
         req,
         res,
@@ -42,7 +36,13 @@ export class AccountSettingsNotificationTypeController {
   }
 
   static async delete(req: Request, res: Response): Promise<void> {
-    validateBodyObject(deleteAccountSettingsNotificationTypeSchema, req, res, async () => {
+    const bodySchema = Joi.object({
+      type: Joi.string()
+        .valid(...ACCOUNT_NOTIFICATION_TYPE_VALUES)
+        .required(),
+    });
+
+    validateBodyObject(bodySchema, req, res, async () => {
       ensureAuthenticated(
         req,
         res,
