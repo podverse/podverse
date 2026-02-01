@@ -125,6 +125,189 @@ Core rule: align imports and types with shared helpers.
 
 ---
 
+### Session 3 - 2026-01-31
+
+#### Prompt (Developer)
+
+@migration-COPY-PASTA.md (16-47)
+
+#### Key Decisions
+
+- Consolidate duplicate query param arrays into shared base constants in helpers.
+- Preserve existing export names to avoid downstream changes.
+
+#### Files Modified
+
+- packages/helpers-requests/src/api/queryParams.ts
+- .llm/history/active/query-param-dry/query-param-dry-part-01.md
+
+---
+
+### Session 4 - 2026-01-31
+
+#### Prompt (Developer)
+
+break all of the remaining query-param-dry plans into sub plans so they can be run one by one or in
+parallel without exceeding the complexity threshold
+
+#### Key Decisions
+
+- Split the API Joi refactor into smaller controller-focused plan files plus a shared schema step.
+- Split web verification into per-page verification steps to keep each plan under the threshold.
+
+#### Files Modified
+
+- .llm/plans/active/query-param-dry/migration-02a-api-shared-schemas.md
+- .llm/plans/active/query-param-dry/migration-02b-api-channel-item.md
+- .llm/plans/active/query-param-dry/migration-02c-api-clip-playlist.md
+- .llm/plans/active/query-param-dry/migration-02d-api-playlist-resources.md
+- .llm/plans/active/query-param-dry/migration-02e-api-item-soundbite-queue.md
+- .llm/plans/active/query-param-dry/migration-02f-api-queue-resources.md
+- .llm/plans/active/query-param-dry/migration-02g-api-misc-controllers.md
+- .llm/plans/active/query-param-dry/migration-03a-web-podcasts-tracks.md
+- .llm/plans/active/query-param-dry/migration-03b-web-profiles-queues.md
+- .llm/plans/active/query-param-dry/migration-COPY-PASTA.md
+- .llm/plans/active/query-param-dry/migration-02-api-joi-refactor.md
+- .llm/plans/active/query-param-dry/migration-03-web-updates.md
+- .llm/history/active/query-param-dry/query-param-dry-part-01.md
+
+---
+
+### Session 5 - 2026-01-31
+
+#### Prompt (Developer)
+
+go
+
+#### Key Decisions
+
+- Temporarily comment out the complexity assessment rule in `.cursorrules`.
+
+#### Files Modified
+
+- .cursorrules
+- .llm/history/active/query-param-dry/query-param-dry-part-01.md
+
+---
+
+### Session 6 - 2026-01-31
+
+#### Prompt (Developer)
+
+execute the remaining plans for the query-param-dry
+
+#### Key Decisions
+
+- Added shared query Joi schemas and re-exported them for controller usage.
+- Inlined non-reusable schemas and switched Joi.valid arrays to shared constants.
+
+#### Files Modified
+
+- apps/api/src/lib/validation/querySchemas.ts
+- apps/api/src/lib/validation/index.ts
+- apps/api/src/controllers/channel.ts
+- apps/api/src/controllers/item.ts
+- apps/api/src/controllers/clip.ts
+- apps/api/src/controllers/playlist/playlist.ts
+- apps/api/src/controllers/playlist/playlistResource.ts
+- apps/api/src/controllers/playlist/playlistResourceItem.ts
+- apps/api/src/controllers/playlist/playlistResourceClip.ts
+- apps/api/src/controllers/playlist/playlistResourceItemSoundbite.ts
+- apps/api/src/controllers/playlist/playlistResourceItemAddByRSS.ts
+- apps/api/src/controllers/itemSoundbite.ts
+- apps/api/src/controllers/queue/queue.ts
+- apps/api/src/controllers/queue/queueResource.ts
+- apps/api/src/controllers/queue/queueResourceItem.ts
+- apps/api/src/controllers/queue/queueResourceClip.ts
+- apps/api/src/controllers/queue/queueResourceItemSoundbite.ts
+- apps/api/src/controllers/queue/queueResourceItemAddByRSS.ts
+- apps/api/src/controllers/account/account.ts
+- apps/api/src/controllers/account/accountFCMDevice.ts
+- apps/api/src/controllers/account/accountUPDevice.ts
+- apps/api/src/controllers/account/accountWebPushDevice.ts
+- apps/api/src/controllers/account/accountSettings/accountSettingsLocale.ts
+- apps/api/src/controllers/account/accountSettings/accountSettingsNotificationType.ts
+- apps/api/src/controllers/account/accountNotificationChannelType.ts
+- apps/api/src/controllers/account/accountNotificationChannel.ts
+- apps/api/src/controllers/account/accountFollowingPlaylist.ts
+- apps/api/src/controllers/account/accountFollowingChannel.ts
+- apps/api/src/controllers/account/accountFollowingAddByRSSChannel.ts
+- apps/api/src/controllers/account/accountFollowingAccount.ts
+- apps/api/src/controllers/profileContent.ts
+- apps/api/src/controllers/publisherFeed.ts
+- apps/api/src/controllers/podroll.ts
+- apps/api/src/controllers/itemTranscript.ts
+- apps/api/src/controllers/itemChapter.ts
+- apps/api/src/controllers/membershipClaimToken.ts
+- apps/api/src/controllers/liveItem.ts
+- apps/api/src/controllers/feed.ts
+- apps/api/src/controllers/externalServices/podcastIndex.ts
+- apps/api/src/controllers/category.ts
+- apps/api/src/controllers/stats/statsTrackEventPlaylist.ts
+- apps/api/src/controllers/stats/statsTrackEventItem.ts
+- apps/api/src/controllers/stats/statsTrackEventClip.ts
+- apps/api/src/controllers/stats/statsTrackEventChannel.ts
+- apps/api/src/controllers/stats/statsTrackEventAccount.ts
+- .llm/history/active/query-param-dry/query-param-dry-part-01.md
+
+---
+
+### Session 7 - 2026-01-31
+
+#### Prompt (Developer)
+
+review the query-param-dry plans, and if you decide they are all finished, handle them as complete
+
+#### Key Decisions
+
+- Mark query-param-dry plan files as completed and move to completed directory.
+
+#### Files Modified
+
+- .llm/history/active/query-param-dry/query-param-dry-part-01.md
+- .llm/plans/active/query-param-dry/migration-00-EXECUTION-ORDER.md
+- .llm/plans/active/query-param-dry/migration-00-SUMMARY.md
+- .llm/plans/active/query-param-dry/migration-01-helpers-dedupe.md
+- .llm/plans/active/query-param-dry/migration-02-api-joi-refactor.md
+- .llm/plans/active/query-param-dry/migration-02a-api-shared-schemas.md
+- .llm/plans/active/query-param-dry/migration-02b-api-channel-item.md
+- .llm/plans/active/query-param-dry/migration-02c-api-clip-playlist.md
+- .llm/plans/active/query-param-dry/migration-02d-api-playlist-resources.md
+- .llm/plans/active/query-param-dry/migration-02e-api-item-soundbite-queue.md
+- .llm/plans/active/query-param-dry/migration-02f-api-queue-resources.md
+- .llm/plans/active/query-param-dry/migration-02g-api-account-core.md
+- .llm/plans/active/query-param-dry/migration-02h-api-account-devices-settings.md
+- .llm/plans/active/query-param-dry/migration-02i-api-account-notification-following.md
+- .llm/plans/active/query-param-dry/migration-02j-api-misc-content.md
+- .llm/plans/active/query-param-dry/migration-02k-api-misc-services.md
+- .llm/plans/active/query-param-dry/migration-02l-api-stats-controllers.md
+- .llm/plans/active/query-param-dry/migration-03-web-updates.md
+- .llm/plans/active/query-param-dry/migration-03a-web-podcasts-tracks.md
+- .llm/plans/active/query-param-dry/migration-03b-web-profiles-queues.md
+- .llm/plans/active/query-param-dry/migration-COPY-PASTA.md
+- .llm/plans/completed/query-param-dry/migration-00-EXECUTION-ORDER.md
+- .llm/plans/completed/query-param-dry/migration-00-SUMMARY.md
+- .llm/plans/completed/query-param-dry/migration-01-helpers-dedupe.md
+- .llm/plans/completed/query-param-dry/migration-02-api-joi-refactor.md
+- .llm/plans/completed/query-param-dry/migration-02a-api-shared-schemas.md
+- .llm/plans/completed/query-param-dry/migration-02b-api-channel-item.md
+- .llm/plans/completed/query-param-dry/migration-02c-api-clip-playlist.md
+- .llm/plans/completed/query-param-dry/migration-02d-api-playlist-resources.md
+- .llm/plans/completed/query-param-dry/migration-02e-api-item-soundbite-queue.md
+- .llm/plans/completed/query-param-dry/migration-02f-api-queue-resources.md
+- .llm/plans/completed/query-param-dry/migration-02g-api-account-core.md
+- .llm/plans/completed/query-param-dry/migration-02h-api-account-devices-settings.md
+- .llm/plans/completed/query-param-dry/migration-02i-api-account-notification-following.md
+- .llm/plans/completed/query-param-dry/migration-02j-api-misc-content.md
+- .llm/plans/completed/query-param-dry/migration-02k-api-misc-services.md
+- .llm/plans/completed/query-param-dry/migration-02l-api-stats-controllers.md
+- .llm/plans/completed/query-param-dry/migration-03-web-updates.md
+- .llm/plans/completed/query-param-dry/migration-03a-web-podcasts-tracks.md
+- .llm/plans/completed/query-param-dry/migration-03b-web-profiles-queues.md
+- .llm/plans/completed/query-param-dry/migration-COPY-PASTA.md
+
+---
+
 ## Related Resources
 
 - [Link to PR]
