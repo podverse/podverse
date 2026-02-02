@@ -26,3 +26,5 @@ response when appropriate.
 3. Compare to optional `feedHash` from the request:
    - If match, return not-modified response.
    - If not match, return parsed payload + updated hash.
+4. If cache headers are available, prefer `ETag`/`Last-Modified` conditional request checks
+   and use hash as a fallback.

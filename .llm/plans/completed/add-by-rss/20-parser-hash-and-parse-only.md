@@ -10,6 +10,7 @@ based on hash comparison.
 - Parse-only flow in the RSS parser.
 - Hash computation and comparison.
 - Return contract for parsed vs. not-modified.
+- Conditional HTTP requests using cache headers where available.
 
 ## Key Files
 - Parser entry points: [packages/parser/src/lib/rss/parser.ts](/Users/mitcheldowney/repos/pv/podverse/packages/parser/src/lib/rss/parser.ts)
@@ -23,6 +24,8 @@ based on hash comparison.
   [22-parser-hash-computation.md](/Users/mitcheldowney/repos/pv/podverse/.llm/plans/active/add-by-rss/22-parser-hash-computation.md)
 - Response contract (parsed vs. not modified):
   [23-parser-response-contract.md](/Users/mitcheldowney/repos/pv/podverse/.llm/plans/active/add-by-rss/23-parser-response-contract.md)
+- Cache headers strategy:
+  [24-parser-cache-headers.md](/Users/mitcheldowney/repos/pv/podverse/.llm/plans/active/add-by-rss/24-parser-cache-headers.md)
 
 ## Decisions to Make Later
 

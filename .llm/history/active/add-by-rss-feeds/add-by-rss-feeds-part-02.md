@@ -70,3 +70,92 @@ move the 10-14 mq to completed
 - .llm/plans/completed/add-by-rss/12-mq-payload-types.md
 - .llm/plans/completed/add-by-rss/13-mq-enqueue-helpers.md
 - .llm/plans/completed/add-by-rss/14-mq-dedupe-and-rate-limit.md
+
+### Session 13 - 2026-02-01
+
+#### Prompt (Developer)
+
+update it
+
+#### Key Decisions
+
+- Added a cache-headers subplan to the parse-only overview and noted headers+hash flow.
+
+#### Files Modified
+
+- .llm/plans/active/add-by-rss/20-parser-hash-and-parse-only.md
+- .llm/plans/active/add-by-rss/22-parser-hash-computation.md
+- .llm/plans/active/add-by-rss/24-parser-cache-headers.md
+
+### Session 14 - 2026-02-01
+
+#### Prompt (Developer)
+
+begin implementing @podverse/.llm/plans/active/add-by-rss/20-parser-hash-and-parse-only.md
+
+#### Key Decisions
+
+- Added request helper to return headers for conditional cache handling.
+- Implemented parse-only Add by RSS parser with cache headers and hash fallback.
+- Added raw feed hashing helper and exported parse-only types/functions.
+
+#### Files Modified
+
+- packages/helpers-requests/src/\_request.ts
+- packages/parser/src/lib/\_request.ts
+- packages/parser/src/lib/rss/hash/rawFeed.ts
+- packages/parser/src/lib/rss/parser.ts
+- packages/parser/src/index.ts
+
+### Session 15 - 2026-02-01
+
+#### Prompt (Developer)
+
+refactor it
+
+#### Key Decisions
+
+- Consolidated request logic into a shared internal helper for both request helpers.
+
+#### Files Modified
+
+- packages/helpers-requests/src/\_request.ts
+
+### Session 16 - 2026-02-01
+
+#### Prompt (Developer)
+
+refactor it
+
+#### Key Decisions
+
+- Moved Add by RSS parse-only logic into a dedicated module to keep parser.ts smaller.
+
+#### Files Modified
+
+- packages/parser/src/lib/rss/addByRSS.ts
+- packages/parser/src/lib/rss/parser.ts
+- packages/parser/src/index.ts
+
+### Session 17 - 2026-02-01
+
+#### Prompt (Developer)
+
+move to completed
+
+#### Key Decisions
+
+- Moved Add by RSS parser plans 20-24 from active to completed.
+
+#### Files Modified
+
+- .llm/plans/active/add-by-rss/20-parser-hash-and-parse-only.md
+- .llm/plans/active/add-by-rss/21-parser-parse-only-flow.md
+- .llm/plans/active/add-by-rss/22-parser-hash-computation.md
+- .llm/plans/active/add-by-rss/23-parser-response-contract.md
+- .llm/plans/active/add-by-rss/24-parser-cache-headers.md
+- .llm/plans/completed/add-by-rss/20-parser-hash-and-parse-only.md
+- .llm/plans/completed/add-by-rss/21-parser-parse-only-flow.md
+- .llm/plans/completed/add-by-rss/22-parser-hash-computation.md
+- .llm/plans/completed/add-by-rss/23-parser-response-contract.md
+- .llm/plans/completed/add-by-rss/24-parser-cache-headers.md
