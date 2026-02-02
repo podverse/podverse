@@ -1,5 +1,5 @@
 import { useLocale, useTranslations } from 'use-intl';
-import { DTOAccount, DTOChannel } from '@podverse/helpers';
+import type { DTOAccount, DTOChannel } from '@podverse/helpers';
 import { Button } from '../Button/Button';
 import { useAccount } from '../../contexts/Account';
 import { useModals } from '../../contexts/Modals';

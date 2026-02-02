@@ -1,27 +1,29 @@
-import { NextFunction, Request, Response } from 'express';
+import type { NextFunction, Request, Response } from 'express';
 import Joi from 'joi';
+import type { QueryParamsQueueMedium } from '@podverse/helpers';
 import {
   getQueueMediumIdFromType,
   QUERY_PARAMS_QUEUE_MEDIUMS,
-  QueryParamsQueueMedium,
   SharableStatusEnum,
 } from '@podverse/helpers';
-import { ApiListResponse, QueryParamsStatsRange } from '@podverse/helpers-requests';
-import {
+import type { ApiListResponse, QueryParamsStatsRange } from '@podverse/helpers-requests';
+import type {
   AccountFollowingPlaylist,
-  AccountFollowingPlaylistService,
   FindManyOptions,
   Playlist,
-  PlaylistService,
   StatsAggregatedPlaylist,
+} from '@podverse/orm';
+import {
+  AccountFollowingPlaylistService,
+  PlaylistService,
   StatsAggregatedPlaylistService,
 } from '@podverse/orm';
 import {
   ensureAuthenticated,
   optionalEnsureAuthenticated,
   getAuthenticatedUser,
-} from '@api/lib/auth';
-import { handleGenericErrorResponse } from '../helpers/error';
+} from '@api/lib/auth/index.js';
+import { handleGenericErrorResponse } from '../helpers/error.js';
 import {
   mediumPageQuerySchema,
   mediumPageRangeQuerySchema,
@@ -29,11 +31,11 @@ import {
   validateBodyObject,
   validateParamsObject,
   validateQueryObject,
-} from '@api/lib/validation';
-import { getPaginationParams } from '../helpers/pagination';
-import { getStatsOrder } from '@api/lib/stats';
-import { getFollowedPlaylistIdsPrivate } from '@api/lib/followed';
-import { getParamRequired } from '@api/lib/params';
+} from '@api/lib/validation/index.js';
+import { getPaginationParams } from '../helpers/pagination.js';
+import { getStatsOrder } from '@api/lib/stats.js';
+import { getFollowedPlaylistIdsPrivate } from '@api/lib/followed.js';
+import { getParamRequired } from '@api/lib/params.js';
 
 const playlistService = new PlaylistService();
 

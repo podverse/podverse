@@ -1,5 +1,5 @@
-import { AppDataSourceRead } from '@orm/db';
-import { ItemFlagStatus } from '@orm/entities/item/itemFlagStatus';
+import { AppDataSourceRead } from '@orm/db/index.js';
+import { ItemFlagStatus } from '@orm/entities/item/itemFlagStatus.js';
 
 export class ItemFlagStatusService {
   private repositoryRead = AppDataSourceRead.getRepository(ItemFlagStatus);

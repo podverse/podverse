@@ -1,7 +1,7 @@
 import { Router } from 'express';
-import { config } from '@api/config';
-import { AccountPayPalOrderController } from '@api/controllers/account/accountPayPalOrder';
-import { asyncHandler } from '@api/middleware/asyncHandler';
+import { config } from '@api/config/index.js';
+import { AccountPayPalOrderController } from '@api/controllers/account/accountPayPalOrder.js';
+import { asyncHandler } from '@api/middleware/asyncHandler.js';
 
 const router = Router();
 

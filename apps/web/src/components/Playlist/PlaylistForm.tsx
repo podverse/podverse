@@ -10,7 +10,7 @@ import Form from '../../components/Form/Form';
 import { Divider } from '../Divider/Divider';
 import { apiRequestService } from '../../factories/apiRequestService';
 import styles from '../../styles/components/Playlist/PlaylistForm.module.scss';
-import { DropdownMenuItem } from '../Dropdown/Dropdown';
+import type { DropdownMenuItem } from '../Dropdown/Dropdown';
 
 export type PlaylistFormProps = {
   medium: string;

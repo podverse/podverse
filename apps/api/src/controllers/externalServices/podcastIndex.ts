@@ -1,8 +1,8 @@
-import { Request, Response } from 'express';
+import type { Request, Response } from 'express';
 import Joi from 'joi';
-import { podcastIndexService } from '@api/factories/podcastIndexService';
-import { validateParamsObject, validateQueryObject } from '@api/lib/validation';
-import { getParamRequired } from '@api/lib/params';
+import { podcastIndexService } from '@api/factories/podcastIndexService.js';
+import { validateParamsObject, validateQueryObject } from '@api/lib/validation/index.js';
+import { getParamRequired } from '@api/lib/params.js';
 
 interface PodcastIndexSearchPodcastsQuery {
   q: string;

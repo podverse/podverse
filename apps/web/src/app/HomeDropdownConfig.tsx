@@ -1,5 +1,5 @@
-import { QueryParamsMedium } from '@podverse/helpers';
-import { QueryParamsHomeSort } from '@podverse/helpers-requests';
+import type { QueryParamsMedium } from '@podverse/helpers';
+import type { QueryParamsHomeSort } from '@podverse/helpers-requests';
 
 export function getHomeDropdownConfig({
   tMedia,

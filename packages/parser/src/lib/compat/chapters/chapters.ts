@@ -1,6 +1,6 @@
-import { getPIChapterMd5Hash } from '@parser/lib/rss/hash/parsedItemChapter';
+import { getPIChapterMd5Hash } from '@parser/lib/rss/hash/parsedItemChapter.js';
 import { isValidHttpUrl } from '@podverse/helpers-validation';
-import { ItemChapterDto } from '@podverse/orm';
+import type { ItemChapterDto } from '@podverse/orm';
 
 export type PIChapter = {
   startTime: string;

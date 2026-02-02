@@ -1,5 +1,5 @@
 import lighthouse from 'lighthouse';
-import { BrowserAutomation } from './browser-automation.js';
+import type { BrowserAutomation } from './browser-automation.js';
 import type { Result as LighthouseResult } from 'lighthouse';
 
 export interface LighthouseScenarioResult {

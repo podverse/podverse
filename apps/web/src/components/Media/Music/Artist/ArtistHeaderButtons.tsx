@@ -1,6 +1,6 @@
 'use client';
 
-import { DTOChannel } from '@podverse/helpers';
+import type { DTOChannel } from '@podverse/helpers';
 import React from 'react';
 import HeaderButtons from '../../Header/HeaderButtons';
 

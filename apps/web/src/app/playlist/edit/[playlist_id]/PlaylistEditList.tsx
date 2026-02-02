@@ -3,7 +3,7 @@
 import dynamic from 'next/dynamic';
 import React from 'react';
 
-import { DTOPlaylist } from '@podverse/helpers';
+import type { DTOPlaylist } from '@podverse/helpers';
 
 import { LazyLoadPlaceholder } from '../../../../components/LazyLoadPlaceholder/LazyLoadPlaceholder';
 import { usePlaylistEditContext } from './PlaylistEditContext';

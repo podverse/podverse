@@ -1,7 +1,7 @@
-import { EntityManager } from 'typeorm';
-import { Item } from '@orm/entities/item/item';
-import { ItemChat } from '@orm/entities/item/itemChat';
-import { BaseOneService } from '@orm/services/base/baseOneService';
+import type { EntityManager } from 'typeorm';
+import type { Item } from '@orm/entities/item/item.js';
+import { ItemChat } from '@orm/entities/item/itemChat.js';
+import { BaseOneService } from '@orm/services/base/baseOneService.js';
 
 type ItemChatDto = {
   server: string;

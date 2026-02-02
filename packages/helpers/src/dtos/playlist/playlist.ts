@@ -1,6 +1,6 @@
-import { DTOAccount } from '../account/account';
-import { DTOMedium } from '../medium';
-import { DTOPlaylistResource, DTOPlaylistResourceIdsOnly } from './playlistResource';
+import type { DTOAccount } from '../account/account.js';
+import type { DTOMedium } from '../medium.js';
+import type { DTOPlaylistResource, DTOPlaylistResourceIdsOnly } from './playlistResource.js';
 
 export interface DTOPlaylist {
   id: number;

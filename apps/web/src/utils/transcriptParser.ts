@@ -1,4 +1,5 @@
-import { formatHHMMSS, TranscriptRow } from '@podverse/helpers';
+import type { TranscriptRow } from '@podverse/helpers';
+import { formatHHMMSS } from '@podverse/helpers';
 import { convertFile } from 'transcriptator';
 import { TimestampFormatter } from 'transcriptator/timestamp';
 

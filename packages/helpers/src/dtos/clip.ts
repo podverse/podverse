@@ -1,6 +1,6 @@
-import { DTOAccount } from './account/account';
-import { DTOItem } from './item/item';
-import { DTOSharableStatus } from './sharableStatus';
+import type { DTOAccount } from './account/account.js';
+import type { DTOItem } from './item/item.js';
+import type { DTOSharableStatus } from './sharableStatus.js';
 
 export interface DTOClip {
   id: number;

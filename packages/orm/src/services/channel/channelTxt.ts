@@ -1,7 +1,7 @@
-import { EntityManager } from 'typeorm';
-import { Channel } from '@orm/entities/channel/channel';
-import { ChannelTxt } from '@orm/entities/channel/channelTxt';
-import { BaseManyService } from '@orm/services/base/baseManyService';
+import type { EntityManager } from 'typeorm';
+import type { Channel } from '@orm/entities/channel/channel.js';
+import { ChannelTxt } from '@orm/entities/channel/channelTxt.js';
+import { BaseManyService } from '@orm/services/base/baseManyService.js';
 
 type ChannelTxtDto = {
   purpose: string | null;

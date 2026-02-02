@@ -1,7 +1,7 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { DTOAccount, DTOChannel, DTOPlaylist } from '@podverse/helpers';
+import type { DTOAccount, DTOChannel, DTOPlaylist } from '@podverse/helpers';
 import React from 'react';
 import { Button } from '../../Button/Button';
 import { useAccount } from '../../../contexts/Account';

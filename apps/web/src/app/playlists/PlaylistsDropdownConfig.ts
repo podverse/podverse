@@ -1,11 +1,10 @@
-import { QueryParamsQueueMedium } from '@podverse/helpers';
-import {
-  getValidQueryParam,
+import type { QueryParamsQueueMedium } from '@podverse/helpers';
+import type {
   QueryParamsStatsRange,
   QueryParamsPlaylistsType,
-  QUERY_PARAMS_SUBSCRIBED_FULL_SORT,
   QueryParamsSubscribedFullSort,
 } from '@podverse/helpers-requests';
+import { getValidQueryParam, QUERY_PARAMS_SUBSCRIBED_FULL_SORT } from '@podverse/helpers-requests';
 import { getRangeDropdownItems } from '../../utils/dropdownMenuItems';
 
 type GetPlaylistsDropdownConfig = {

@@ -1,10 +1,10 @@
-import { EntityManager, FindManyOptions, FindOneOptions } from 'typeorm';
-import { AccountNotificationChannel } from '@orm/entities/account/accountNotificationChannel';
-import { AccountNotificationChannelType } from '@orm/entities/account/accountNotificationChannelType';
-import { BaseManyService } from '@orm/services/base/baseManyService';
-import { AccountService } from '@orm/services/account/account';
-import { ChannelService } from '@orm/services/channel/channel';
-import { AppDataSourceReadWrite } from '@orm/db';
+import type { EntityManager, FindManyOptions, FindOneOptions } from 'typeorm';
+import { AccountNotificationChannel } from '@orm/entities/account/accountNotificationChannel.js';
+import { AccountNotificationChannelType } from '@orm/entities/account/accountNotificationChannelType.js';
+import { BaseManyService } from '@orm/services/base/baseManyService.js';
+import { AccountService } from '@orm/services/account/account.js';
+import { ChannelService } from '@orm/services/channel/channel.js';
+import { AppDataSourceReadWrite } from '@orm/db/index.js';
 
 export class AccountNotificationChannelService extends BaseManyService<
   AccountNotificationChannel,

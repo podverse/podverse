@@ -1,6 +1,6 @@
 import { TimerManager } from '@podverse/helpers-backend';
-import { getLoggerService } from './loggerService';
-import type { BaseConfig } from '@workers/config';
+import { getLoggerService } from './loggerService.js';
+import type { BaseConfig } from '@workers/config/index.js';
 
 let instance: TimerManager | null = null;
 

@@ -1,6 +1,6 @@
 // Re-export logger from context for backwards compatibility
 // Apps should use createORMContext() and access loggerService from the returned context
-import { getLoggerService } from '@orm/context';
+import { getLoggerService } from '@orm/context.js';
 
 // Export a proxy object that delegates to the context's logger service
 export const loggerService = new Proxy({} as ReturnType<typeof getLoggerService>, {

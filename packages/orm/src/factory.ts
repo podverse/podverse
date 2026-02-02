@@ -1,9 +1,10 @@
-import { DataSource, DataSourceOptions } from 'typeorm';
+import type { DataSourceOptions } from 'typeorm';
+import { DataSource } from 'typeorm';
 import { SnakeNamingStrategy } from 'typeorm-naming-strategies';
 import { LoggerService } from '@podverse/helpers-backend';
-import { ORMConfig } from './config/types';
-import { entities } from './db/entities';
-import { setORMContext } from './context';
+import type { ORMConfig } from './config/types.js';
+import { entities } from './db/entities.js';
+import { setORMContext } from './context.js';
 
 export type ORMContext = {
   config: ORMConfig;

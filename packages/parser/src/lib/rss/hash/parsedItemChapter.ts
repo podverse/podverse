@@ -1,5 +1,5 @@
 import { getMd5Hash } from '@podverse/helpers';
-import { PIChapter } from '@parser/lib/compat/chapters/chapters';
+import type { PIChapter } from '@parser/lib/compat/chapters/chapters.js';
 
 function stripUrlParams(url: string | null): string | null {
   if (!url) {

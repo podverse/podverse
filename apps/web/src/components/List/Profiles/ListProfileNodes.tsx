@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { DTOAccount } from '@podverse/helpers';
+import type { DTOAccount } from '@podverse/helpers';
 import { ListProfileRow } from './ListProfileRow';
 import { Divider } from '../../Divider/Divider';
 import styles from '../../../styles/components/List/ListNodes.module.scss';

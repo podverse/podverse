@@ -1,8 +1,8 @@
-import { AccountNotificationTypeValues } from '@podverse/helpers';
-import { Repository } from 'typeorm';
-import { AppDataSourceReadWrite, AppDataSourceRead } from '@orm/db';
-import { AccountSettingsNotificationType } from '@orm/entities/account/accountSettings/accountSettingsNotificationType';
-import { AccountSettings } from '@orm/entities/account/accountSettings/accountSettings';
+import type { AccountNotificationTypeValues } from '@podverse/helpers';
+import type { Repository } from 'typeorm';
+import { AppDataSourceReadWrite, AppDataSourceRead } from '@orm/db/index.js';
+import { AccountSettingsNotificationType } from '@orm/entities/account/accountSettings/accountSettingsNotificationType.js';
+import { AccountSettings } from '@orm/entities/account/accountSettings/accountSettings.js';
 
 type CreateDto = {
   account_id: number;

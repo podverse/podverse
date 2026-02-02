@@ -29,5 +29,6 @@
   },
   "devDependencies": {
     "@types/web-push": "^3.6.4"
-  }
+  },
+  "type": "module"
 }

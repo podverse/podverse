@@ -4,7 +4,7 @@
   "private": true,
   "description": "Local development utilities for Podverse",
   "scripts": {
-    "generate-password-hash": "node generate-password-hash.js"
+    "generate-password-hash": "node generate-password-hash.mjs"
   },
   "dependencies": {
     "bcrypt": "^6.0.0"

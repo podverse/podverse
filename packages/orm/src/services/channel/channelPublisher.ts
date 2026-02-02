@@ -1,7 +1,7 @@
-import { EntityManager } from 'typeorm';
-import { Channel } from '@orm/entities/channel/channel';
-import { ChannelPublisher } from '@orm/entities/channel/channelPublisher';
-import { BaseOneService } from '@orm/services/base/baseOneService';
+import type { EntityManager } from 'typeorm';
+import type { Channel } from '@orm/entities/channel/channel.js';
+import { ChannelPublisher } from '@orm/entities/channel/channelPublisher.js';
+import { BaseOneService } from '@orm/services/base/baseOneService.js';
 
 type ChannelPublisherDto = object;
 

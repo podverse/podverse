@@ -1,23 +1,26 @@
-import { Request, Response } from 'express';
+import type { Request, Response } from 'express';
 import Joi from 'joi';
-import {
+import type {
   ApiListResponse,
-  QUERY_PARAMS_ITEM_SOUNDBITES_BY_CHANNEL_SORT_VALUES,
-  QUERY_PARAMS_ITEM_SOUNDBITES_BY_ITEM_SORT_VALUES,
   QueryParamsItemSoundbitesByChannelSort,
   QueryParamsItemSoundbitesByItemSort,
 } from '@podverse/helpers-requests';
-import { ItemSoundbite, ItemSoundbiteService } from '@podverse/orm';
-import { handleGenericErrorResponse } from './helpers/error';
+import {
+  QUERY_PARAMS_ITEM_SOUNDBITES_BY_CHANNEL_SORT_VALUES,
+  QUERY_PARAMS_ITEM_SOUNDBITES_BY_ITEM_SORT_VALUES,
+} from '@podverse/helpers-requests';
+import type { ItemSoundbite } from '@podverse/orm';
+import { ItemSoundbiteService } from '@podverse/orm';
+import { handleGenericErrorResponse } from './helpers/error.js';
 import {
   channelIdTextParamSchema,
   itemIdTextParamSchema,
   itemSoundbiteIdTextParamSchema,
   validateParamsObject,
   validateQueryObject,
-} from '@api/lib/validation';
-import { getPaginationParams } from './helpers/pagination';
-import { getParamRequired } from '@api/lib/params';
+} from '@api/lib/validation/index.js';
+import { getPaginationParams } from './helpers/pagination.js';
+import { getParamRequired } from '@api/lib/params.js';
 
 const itemSoundbiteService = new ItemSoundbiteService();
 

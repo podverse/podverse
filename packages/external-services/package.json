@@ -24,7 +24,6 @@
     "@podverse/helpers": "*",
     "@podverse/helpers-backend": "*",
     "@podverse/helpers-requests": "*",
-    "crypto-js": "^4.2.0",
     "csv-parser": "^3.2.0",
     "firebase-admin": "^13.6.0",
     "http-errors": "2.0.1",
@@ -32,9 +31,9 @@
     "web-push": "^3.6.7"
   },
   "devDependencies": {
-    "@types/crypto-js": "^4.2.2",
     "@types/http-errors": "^2.0.5",
     "@types/web-push": "^3.6.4",
     "tsc-alias": "^1.8.16"
-  }
+  },
+  "type": "module"
 }

@@ -1,7 +1,7 @@
 'use client';
 
 import { NextIntlClientProvider } from 'next-intl';
-import { DTOAccount, DTOCategory, QueueResourcesAbridgedIndex } from '@podverse/helpers';
+import type { DTOAccount, DTOCategory, QueueResourcesAbridgedIndex } from '@podverse/helpers';
 import { AccountProvider } from '../contexts/Account';
 import { LocalSettingsProvider } from '../contexts/LocalSettings';
 import { ModalsProvider } from '../contexts/Modals';
@@ -13,7 +13,7 @@ import { QueuesProvider } from '../contexts/Queue';
 import { QueueResourcesAbridgedIndexProvider } from '../contexts/QueueResourcesAbridgedIndex';
 import { AutoQueueProvider } from '../contexts/AutoQueue';
 import { MediaPlayerVideoProvider } from '../contexts/MediaPlayerVideo';
-import { LocalSettingsState } from '../utils/localSettings/localSettings';
+import type { LocalSettingsState } from '../utils/localSettings/localSettings';
 import { NotificationsProvider } from '../contexts/Notifications';
 import { NavigationProvider } from '../contexts/Navigation';
 

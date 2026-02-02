@@ -1,6 +1,7 @@
 import { BuildManager } from './build-manager.js';
-import { BundleReportManager, BundleReport, BundleChunkSummary } from './report-manager.js';
-import { AppConfig } from './app-config.js';
+import type { BundleReport, BundleChunkSummary } from './report-manager.js';
+import { BundleReportManager } from './report-manager.js';
+import type { AppConfig } from './app-config.js';
 
 const DEFAULT_TOP_CHUNKS = 20; // Hard-coded for local development
 

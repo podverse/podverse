@@ -1,10 +1,12 @@
-import { QueryParamsMedium } from '@podverse/helpers';
-import { StatsAggregatedItem } from '@orm/entities/stats/statsAggregatedItem';
-import { StatsTrackEventItemService } from './statsTrackEventItem';
-import { BaseStatsAggregatedService, UpdateHistoricalOptions } from './baseStatsAggregated';
-import { Equal, FindManyOptions, IsNull, Not } from 'typeorm';
-import { getActiveFeedWhere } from '@orm/lib/feedFlagHelpers';
-import { getLiveItemStatusEnumValue } from '@orm/index';
+import type { QueryParamsMedium } from '@podverse/helpers';
+import { StatsAggregatedItem } from '@orm/entities/stats/statsAggregatedItem.js';
+import { StatsTrackEventItemService } from './statsTrackEventItem.js';
+import type { UpdateHistoricalOptions } from './baseStatsAggregated.js';
+import { BaseStatsAggregatedService } from './baseStatsAggregated.js';
+import type { FindManyOptions } from 'typeorm';
+import { Equal, IsNull, Not } from 'typeorm';
+import { getActiveFeedWhere } from '@orm/lib/feedFlagHelpers.js';
+import { getLiveItemStatusEnumValue } from '@orm/index.js';
 
 export class StatsAggregatedItemService extends BaseStatsAggregatedService<
   StatsAggregatedItem,

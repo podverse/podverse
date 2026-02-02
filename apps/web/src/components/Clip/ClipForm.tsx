@@ -2,7 +2,8 @@
 
 import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
-import { DTOChannel, DTOItem, hhmmssToSecondsNumber } from '@podverse/helpers';
+import type { DTOChannel, DTOItem } from '@podverse/helpers';
+import { hhmmssToSecondsNumber } from '@podverse/helpers';
 import Form from '../Form/Form';
 import styles from '../../styles/components/Clip/ClipForm.module.scss';
 import { MediaHeaderMini } from '../MediaHeaderMini/MediaHeaderMini';

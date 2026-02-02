@@ -1,16 +1,14 @@
-import {
-  getTotalPages,
-  DTOPlaylist,
-  QUERY_PARAMS_QUEUE_MEDIUMS,
-  QueryParamsQueueMedium,
-} from '@podverse/helpers';
+import type { DTOPlaylist, QueryParamsQueueMedium } from '@podverse/helpers';
+import { getTotalPages, QUERY_PARAMS_QUEUE_MEDIUMS } from '@podverse/helpers';
+import type {
+  QueryParamsPlaylistsType,
+  QueryParamsStatsRange,
+  QueryParamsSubscribedFullSort,
+} from '@podverse/helpers-requests';
 import {
   QUERY_PARAMS_STATS_RANGE_VALUES,
   QUERY_PARAMS_PLAYLISTS_TYPE_VALUES,
-  QueryParamsPlaylistsType,
-  QueryParamsStatsRange,
   QUERY_PARAMS_SUBSCRIBED_FULL_SORT,
-  QueryParamsSubscribedFullSort,
 } from '@podverse/helpers-requests';
 import { cookies } from 'next/headers';
 import { z } from 'zod';
@@ -18,10 +16,8 @@ import { PlaylistsClient } from './PlaylistsClient';
 import { getPlaylistsFilterParams } from './PlaylistsDropdownConfig';
 import { getSSRAuthService } from '../../utils/auth/ssrAuth';
 import { guardSubscribedSsrFilter, safeSsrListRequest } from '../../utils/filters/ssrFilterGuards';
-import {
-  getParsedLocalSettings,
-  PlaylistsFilterDefaults,
-} from '../../utils/localSettings/localSettings';
+import type { PlaylistsFilterDefaults } from '../../utils/localSettings/localSettings';
+import { getParsedLocalSettings } from '../../utils/localSettings/localSettings';
 
 const searchParamsSchema = z.object({
   page: z

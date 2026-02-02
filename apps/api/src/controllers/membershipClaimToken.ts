@@ -1,10 +1,10 @@
-import { Request, Response } from 'express';
+import type { Request, Response } from 'express';
 import Joi from 'joi';
 import { MembershipClaimTokenService } from '@podverse/orm';
-import { handleGenericErrorResponse } from '@api/controllers/helpers/error';
-import { ensureAuthenticated, getAuthenticatedUser } from '@api/lib/auth';
-import { tokenBodySchema, validateParamsObject } from '@api/lib/validation';
-import { getParamRequired } from '@api/lib/params';
+import { handleGenericErrorResponse } from '@api/controllers/helpers/error.js';
+import { ensureAuthenticated, getAuthenticatedUser } from '@api/lib/auth/index.js';
+import { tokenBodySchema, validateParamsObject } from '@api/lib/validation/index.js';
+import { getParamRequired } from '@api/lib/params.js';
 
 export class MembershipClaimTokenController {
   private membershipClaimTokenService: MembershipClaimTokenService;

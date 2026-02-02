@@ -1,5 +1,5 @@
 import React from 'react';
-import { DTOCategory } from '@podverse/helpers';
+import type { DTOCategory } from '@podverse/helpers';
 import { useRouter } from 'next/navigation';
 import LoadingSpinnerOverlay from '../../components/LoadingSpinner/LoadingSpinnerOverlay';
 import { ModalCategoriesSelect } from '../../components/Modal/ModalCategoriesSelect';

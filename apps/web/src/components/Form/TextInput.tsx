@@ -1,4 +1,5 @@
-import React, { AriaAttributes } from 'react';
+import type { AriaAttributes } from 'react';
+import React from 'react';
 import styles from '../../styles/components/Form/TextInput.module.scss';
 import { Button } from '../Button/Button';
 import { TextInputNumberIncrement } from './TextInputNumberIncrements';

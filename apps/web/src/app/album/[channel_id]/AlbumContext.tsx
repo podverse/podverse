@@ -1,9 +1,11 @@
 'use client';
 
 import { useParams } from 'next/navigation';
-import { DTOItem, getTotalPages } from '@podverse/helpers';
-import { QueryParamsChannelMusicAlbum } from '@podverse/helpers-requests';
-import { createContext, useContext, useState, ReactNode, useRef } from 'react';
+import type { DTOItem } from '@podverse/helpers';
+import { getTotalPages } from '@podverse/helpers';
+import type { QueryParamsChannelMusicAlbum } from '@podverse/helpers-requests';
+import type { ReactNode } from 'react';
+import { createContext, useContext, useState, useRef } from 'react';
 import { apiRequestService } from '../../../factories/apiRequestService';
 import { useAccount } from '../../../contexts/Account';
 import { checkBackNavFlag } from '../../../contexts/Navigation';

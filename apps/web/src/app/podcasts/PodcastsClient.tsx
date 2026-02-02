@@ -1,7 +1,7 @@
 'use client';
 
-import { DTOChannel } from '@podverse/helpers';
-import { QueryParamsGetMany } from '@podverse/helpers-requests';
+import type { DTOChannel } from '@podverse/helpers';
+import type { QueryParamsGetMany } from '@podverse/helpers-requests';
 import { PodcastsContextProvider } from './PodcastsContext';
 import { MainWrapper } from '../../components/Main/MainWrapper';
 import { PodcastsHeader } from './PodcastsHeader';

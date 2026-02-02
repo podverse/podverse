@@ -1,17 +1,15 @@
-import { Episode } from 'podverse-partytime';
+import type { Episode } from 'podverse-partytime';
 import { hasValidFeedUuid } from '@podverse/helpers';
+import type { EntityManager, Item, Channel } from '@podverse/orm';
 import {
-  EntityManager,
-  Item,
   ItemValueService,
   ItemValueRecipientService,
   ItemValueTimeSplitService,
   ItemValueTimeSplitRecipientService,
   ItemValueTimeSplitRemoteItemService,
   ChannelService,
-  Channel,
 } from '@podverse/orm';
-import { compatItemValueDtos } from '@parser/lib/compat/partytime/item';
+import { compatItemValueDtos } from '@parser/lib/compat/partytime/item.js';
 
 export const handleParsedItemValue = async (
   parsedItem: Episode,

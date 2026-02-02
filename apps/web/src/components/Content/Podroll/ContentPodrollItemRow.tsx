@@ -1,5 +1,6 @@
 import { useTranslations } from 'next-intl';
-import { DTOItem, findDTOItemImageBySize } from '@podverse/helpers';
+import type { DTOItem } from '@podverse/helpers';
+import { findDTOItemImageBySize } from '@podverse/helpers';
 import { Link } from '../../Link/Link';
 import { WEB } from '../../../constants/web';
 import { IMAGES } from '../../../constants/images';

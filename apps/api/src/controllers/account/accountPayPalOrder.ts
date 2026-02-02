@@ -1,11 +1,11 @@
-import { Request, Response } from 'express';
+import type { Request, Response } from 'express';
 import Joi from 'joi';
 import { AccountPayPalOrderService } from '@podverse/orm';
-import { handleGenericErrorResponse } from '../helpers/error';
-import { ensureAuthenticated, getAuthenticatedUser } from '@api/lib/auth';
-import { validateBodyObject, validateParamsObject } from '@api/lib/validation';
-import { paypalService } from '@api/factories/paypalService';
-import { getParamRequired } from '@api/lib/params';
+import { handleGenericErrorResponse } from '../helpers/error.js';
+import { ensureAuthenticated, getAuthenticatedUser } from '@api/lib/auth/index.js';
+import { validateBodyObject, validateParamsObject } from '@api/lib/validation/index.js';
+import { paypalService } from '@api/factories/paypalService.js';
+import { getParamRequired } from '@api/lib/params.js';
 
 const getPayPalOrderSchema = Joi.object({
   payment_id: Joi.string().required(),

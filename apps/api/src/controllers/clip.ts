@@ -1,31 +1,22 @@
-import {
-  CategoryMappingKeys,
-  getCategoryEnumValue,
-  QueryParamsMedium,
-  SharableStatusEnum,
-} from '@podverse/helpers';
-import {
-  ApiListResponse,
-  emptyApiListResponse,
-  QueryParamsStatsRange,
-} from '@podverse/helpers-requests';
-import { NextFunction, Request, Response } from 'express';
+import type { CategoryMappingKeys, QueryParamsMedium } from '@podverse/helpers';
+import { getCategoryEnumValue, SharableStatusEnum } from '@podverse/helpers';
+import type { ApiListResponse, QueryParamsStatsRange } from '@podverse/helpers-requests';
+import { emptyApiListResponse } from '@podverse/helpers-requests';
+import type { NextFunction, Request, Response } from 'express';
 import {
   ensureAuthenticated,
   optionalEnsureAuthenticated,
   getAuthenticatedUser,
-} from '../lib/auth';
+} from '../lib/auth/index.js';
 import Joi from 'joi';
+import type { Clip, FindManyOptions, StatsAggregatedClip } from '@podverse/orm';
 import {
   ChannelService,
-  Clip,
   ClipService,
-  FindManyOptions,
   ItemService,
-  StatsAggregatedClip,
   StatsAggregatedClipService,
 } from '@podverse/orm';
-import { handleGenericErrorResponse } from './helpers/error';
+import { handleGenericErrorResponse } from './helpers/error.js';
 import {
   clipIdTextParamSchema,
   channelIdTextParamSchema,
@@ -39,11 +30,11 @@ import {
   validateBodyObject,
   validateParamsObject,
   validateQueryObject,
-} from '@api/lib/validation';
-import { getPaginationParams } from './helpers/pagination';
-import { getStatsOrder } from '@api/lib/stats';
-import { getFollowedChannelIds } from '@api/lib/followed';
-import { getParamRequired } from '@api/lib/params';
+} from '@api/lib/validation/index.js';
+import { getPaginationParams } from './helpers/pagination.js';
+import { getStatsOrder } from '@api/lib/stats.js';
+import { getFollowedChannelIds } from '@api/lib/followed.js';
+import { getParamRequired } from '@api/lib/params.js';
 
 const clipPublicManyRelations = [
   'item',

@@ -1,5 +1,5 @@
-import { ApiRequestService } from '../_request';
-import { ApiMessageResponse } from '../_response';
+import type { ApiRequestService } from '../_request.js';
+import type { ApiMessageResponse } from '../_response.js';
 
 export async function reqMQRSSAddOnDemand(
   api: ApiRequestService,

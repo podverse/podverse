@@ -1,6 +1,7 @@
-import { getMediumIdArrayFromType, QueryParamsMedium } from '@podverse/helpers';
+import type { QueryParamsMedium } from '@podverse/helpers';
+import { getMediumIdArrayFromType } from '@podverse/helpers';
 import { Equal, In } from 'typeorm';
-import { FeedFlagStatusStatusEnum } from '@orm/entities/feed/feedFlagStatus';
+import { FeedFlagStatusStatusEnum } from '@orm/entities/feed/feedFlagStatus.js';
 
 type ActiveFeedWhere = {
   channel_ids: number[] | null;

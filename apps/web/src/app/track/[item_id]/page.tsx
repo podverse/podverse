@@ -2,7 +2,8 @@ import { QUERY_PARAMS_ITEM_MUSIC_TYPE_VALUES } from '@podverse/helpers-requests'
 import { z } from 'zod';
 import { getSSRAuthService } from '../../../utils/auth/ssrAuth';
 import { TrackClient } from './TrackClient';
-import { getTrackFilterParams, TrackDropdownConfigCurrentParams } from './TrackDropdownConfig';
+import type { TrackDropdownConfigCurrentParams } from './TrackDropdownConfig';
+import { getTrackFilterParams } from './TrackDropdownConfig';
 
 const searchParamsSchema = z.object({
   type: z.enum(QUERY_PARAMS_ITEM_MUSIC_TYPE_VALUES).optional().default('summary'),

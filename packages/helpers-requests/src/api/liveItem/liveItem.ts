@@ -1,8 +1,7 @@
-import { ApiRequestService } from '../_request';
-import { DTOItem, LiveItemStatus } from '@podverse/helpers';
-import {
+import type { ApiRequestService } from '../_request.js';
+import type { DTOItem, LiveItemStatus } from '@podverse/helpers';
+import type {
   ApiListResponse,
-  emptyApiListResponse,
   QueryParamsCategoryRecent,
   QueryParamsCategoryTop,
   QueryParamsGetManyPartial,
@@ -10,7 +9,8 @@ import {
   QueryParamsGlobalTop,
   QueryParamsSubscribedRecent,
   QueryParamsSubscribedTop,
-} from '../..';
+} from '../../index.js';
+import { emptyApiListResponse } from '../../index.js';
 
 export async function reqLiveItemGetManyGlobalRecent(
   api: ApiRequestService,

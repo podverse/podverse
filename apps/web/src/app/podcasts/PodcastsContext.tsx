@@ -1,9 +1,11 @@
 'use client';
 
-import { createContext, useContext, useState, ReactNode } from 'react';
+import type { ReactNode } from 'react';
+import { createContext, useContext, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { DTOChannel, getTotalPages, removeQueryParamByPattern } from '@podverse/helpers';
-import { QueryParamsGetMany } from '@podverse/helpers-requests';
+import type { DTOChannel } from '@podverse/helpers';
+import { getTotalPages, removeQueryParamByPattern } from '@podverse/helpers';
+import type { QueryParamsGetMany } from '@podverse/helpers-requests';
 import { apiRequestService } from '../../factories/apiRequestService';
 import { useAccount } from '../../contexts/Account';
 import { useSkipInitialEffect } from '../../hooks/useSkipInitialEffect';

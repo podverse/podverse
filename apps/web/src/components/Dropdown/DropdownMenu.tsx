@@ -1,5 +1,6 @@
 import classNames from 'classnames';
-import React, { RefObject } from 'react';
+import type { RefObject } from 'react';
+import React from 'react';
 import styles from '../../styles/components/Dropdown/DropdownMenu.module.scss';
 import { cssClass } from '../../utils/cssModule';
 

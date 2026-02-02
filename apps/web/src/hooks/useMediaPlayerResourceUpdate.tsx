@@ -1,18 +1,19 @@
 import { useEffect, useRef } from 'react';
-import {
+import type {
   DTOChannel,
   DTOClip,
   DTOItem,
   DTOItemChapter,
   DTOItemSoundbite,
   EnclosureSelectedParams,
-  MediumEnum,
 } from '@podverse/helpers';
+import { MediumEnum } from '@podverse/helpers';
 import { useMediaPlayer } from '../contexts/MediaPlayer';
 import { useQueueResourcesUpdateNowPlaying } from './useQueueResourceUpdateNowPlaying';
 import { useMediaPlayerCurrentTime } from '../contexts/MediaPlayerCurrentTime';
 import { useQueueResourcesAbridgedIndex } from '../contexts/QueueResourcesAbridgedIndex';
-import { AutoQueueConfig, useAutoQueue } from '../contexts/AutoQueue';
+import type { AutoQueueConfig } from '../contexts/AutoQueue';
+import { useAutoQueue } from '../contexts/AutoQueue';
 
 export function useMediaPlayerResourceUpdate() {
   const {

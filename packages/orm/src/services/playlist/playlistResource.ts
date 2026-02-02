@@ -1,21 +1,21 @@
 // TODO: get rid of "any" in the file
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { getMd5Hash, PAGINATION, PlaylistResourceIdTextOptions } from '@podverse/helpers';
-import {
+import type { PlaylistResourceIdTextOptions } from '@podverse/helpers';
+import { getMd5Hash, PAGINATION } from '@podverse/helpers';
+import type {
   EntityManager,
   FindManyOptions,
   FindOptionsOrderValue,
   FindOptionsWhere,
-  MoreThan,
-  LessThan,
 } from 'typeorm';
-import { PlaylistResource } from '@orm/entities/playlist/playlistResource';
-import { PlaylistService } from './playlist';
-import { BaseManyService } from '@orm/services/base/baseManyService';
-import { ClipService } from '../clip';
-import { ItemService } from '../item/item';
-import { ItemSoundbiteService } from '../item/itemSoundbite';
-import { listResourceRelations } from '../queue/queueResource';
+import { MoreThan, LessThan } from 'typeorm';
+import { PlaylistResource } from '@orm/entities/playlist/playlistResource.js';
+import { PlaylistService } from './playlist.js';
+import { BaseManyService } from '@orm/services/base/baseManyService.js';
+import { ClipService } from '../clip.js';
+import { ItemService } from '../item/item.js';
+import { ItemSoundbiteService } from '../item/itemSoundbite.js';
+import { listResourceRelations } from '../queue/queueResource.js';
 
 const PLAYLIST_LIST_POSITION_INCREMENT = 0.00000001;
 

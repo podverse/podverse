@@ -1,5 +1,5 @@
-import { getPodcastIndexService } from '@workers/factories/podcastIndexService';
-import { DeduplicatorService } from '@workers/lib/deduplicator';
+import { getPodcastIndexService } from '@workers/factories/podcastIndexService.js';
+import { DeduplicatorService } from '@workers/lib/deduplicator.js';
 import fs from 'fs';
 
 const CACHE_FILE_PATH = '/data/dead_feeds_cache.json';

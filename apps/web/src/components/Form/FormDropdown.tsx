@@ -4,7 +4,7 @@ import React, { useRef, useMemo } from 'react';
 import { FaChevronDown } from 'react-icons/fa6';
 import { DropdownMenu } from '../Dropdown/DropdownMenu';
 import { useDropdownKeyboardNavigation } from '../../hooks/useDropdownKeyboardNavigation';
-import { DropdownMenuItem } from '../Dropdown/Dropdown';
+import type { DropdownMenuItem } from '../Dropdown/Dropdown';
 import styles from '../../styles/components/Form/FormDropdown.module.scss';
 
 export interface FormDropdownProps {

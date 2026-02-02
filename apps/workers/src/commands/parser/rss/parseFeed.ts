@@ -1,9 +1,9 @@
 import { MQ_QUEUES } from '@podverse/helpers';
 import { mqRSSAdd as mqRSSAddFunction } from '@podverse/mq';
 import { parseRSSFeedAndSaveToDatabase } from '@podverse/parser';
-import { CommandLineArgs } from '@workers/commands';
-import { getPodcastIndexService } from '@workers/factories/podcastIndexService';
-import { getActiveMQArtemisService } from '@workers/factories/activeMQArtemisService';
+import type { CommandLineArgs } from '@workers/commands/index.js';
+import { getPodcastIndexService } from '@workers/factories/podcastIndexService.js';
+import { getActiveMQArtemisService } from '@workers/factories/activeMQArtemisService.js';
 
 export const parserRSSParseFeed = async (args: CommandLineArgs) => {
   const podcast_index_id = Array.isArray(args.p) ? args.p[0] : args.p;

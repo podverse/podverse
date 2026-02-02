@@ -1,7 +1,7 @@
 'use client';
 
-import { DTOQueue } from '@podverse/helpers';
-import { QueryParamsQueues } from '@podverse/helpers-requests';
+import type { DTOQueue } from '@podverse/helpers';
+import type { QueryParamsQueues } from '@podverse/helpers-requests';
 import { MainWrapper } from '../../components/Main/MainWrapper';
 import { QueuesPageContextProvider } from './QueuesPageContext';
 import { QueuesHeader } from './QueuesHeader';

@@ -1,7 +1,8 @@
 import { Entity, PrimaryGeneratedColumn, Column, JoinColumn, OneToOne } from 'typeorm';
-import { Account } from '@orm/entities/account/account';
-import { AccountSettingsLocale } from './accountSettingsLocale';
-import { AccountSettingsNotification } from './accountSettingsNotification';
+import type { Relation } from 'typeorm';
+import type { Account } from '@orm/entities/account/account.js';
+import type { AccountSettingsLocale } from './accountSettingsLocale.js';
+import type { AccountSettingsNotification } from './accountSettingsNotification.js';
 
 @Entity()
 export class AccountSettings {
@@ -11,21 +12,22 @@ export class AccountSettings {
   @Column({ name: 'account_id', unique: true })
   account_id!: number;
 
-  @OneToOne(() => Account, (account) => account.account_settings, { onDelete: 'CASCADE' })
+  @OneToOne('Account', (account: Account) => account.account_settings, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'account_id' })
-  account!: Account;
+  account!: Relation<Account>;
 
   @OneToOne(
-    () => AccountSettingsLocale,
-    (accountSettingsLocale) => accountSettingsLocale.account_settings,
+    'AccountSettingsLocale',
+    (accountSettingsLocale: AccountSettingsLocale) => accountSettingsLocale.account_settings,
     { cascade: ['insert'] }
   )
-  account_settings_locale!: AccountSettingsLocale;
+  account_settings_locale!: Relation<AccountSettingsLocale>;
 
   @OneToOne(
-    () => AccountSettingsNotification,
-    (accountSettingsNotification) => accountSettingsNotification.account_settings,
+    'AccountSettingsNotification',
+    (accountSettingsNotification: AccountSettingsNotification) =>
+      accountSettingsNotification.account_settings,
     { cascade: ['insert'] }
   )
-  account_settings_notification!: AccountSettingsNotification;
+  account_settings_notification!: Relation<AccountSettingsNotification>;
 }

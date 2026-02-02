@@ -1,7 +1,8 @@
-import { ApiRequestService } from '../_request';
-import { ApiListResponse, emptyApiListResponse } from '../_response';
-import { DTOItem, DTOItemChapter, DTOItemQueueItem } from '@podverse/helpers';
-import {
+import type { ApiRequestService } from '../_request.js';
+import type { ApiListResponse } from '../_response.js';
+import { emptyApiListResponse } from '../_response.js';
+import type { DTOItem, DTOItemChapter, DTOItemQueueItem } from '@podverse/helpers';
+import type {
   QueryDirection,
   QueryParamsCategoryRecent,
   QueryParamsCategoryTop,
@@ -15,7 +16,7 @@ import {
   QueryParamsShuffle,
   QueryParamsSubscribedRecent,
   QueryParamsSubscribedTop,
-} from '../queryParams';
+} from '../queryParams.js';
 
 export async function reqItemGetByIdOrIdText(api: ApiRequestService, idOrIdText: string) {
   return api.apiRequest<DTOItem>({

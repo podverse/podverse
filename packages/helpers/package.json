@@ -1,6 +1,7 @@
 {
   "name": "@podverse/helpers",
   "version": "5.2.5",
+  "type": "module",
   "sideEffects": false,
   "description": "Shared utilities and DTOs for Podverse applications",
   "main": "dist/index.js",

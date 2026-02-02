@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { getMd5Hash } from '@podverse/helpers';
-import { FeedObject } from 'podverse-partytime';
+import type { FeedObject } from 'podverse-partytime';
 
 export const getParsedFeedMd5Hash = (parsedFeed: FeedObject): string => {
   const {

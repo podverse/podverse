@@ -1,6 +1,7 @@
-import { ActiveMQArtemisService, ActiveMQArtemisServiceParams } from '@podverse/mq';
-import { loggerService } from './loggerService';
-import { config } from '@api/config';
+import type { ActiveMQArtemisServiceParams } from '@podverse/mq';
+import { ActiveMQArtemisService } from '@podverse/mq';
+import { loggerService } from './loggerService.js';
+import { config } from '@api/config/index.js';
 
 const activeMQArtemisParams: ActiveMQArtemisServiceParams = {
   protocol: config.activeMQArtemis.protocol,

@@ -1,7 +1,9 @@
 'use client';
 
-import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
-import { DTOPlaylist, DTOPlaylistResource, MediumEnum } from '@podverse/helpers';
+import type { DropResult } from '@hello-pangea/dnd';
+import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
+import type { DTOPlaylist, DTOPlaylistResource } from '@podverse/helpers';
+import { MediumEnum } from '@podverse/helpers';
 import React from 'react';
 import { ListPlaylistResourceRow } from './ListPlaylistResourceRow';
 import { apiRequestService } from '../../../factories/apiRequestService';

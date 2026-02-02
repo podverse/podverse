@@ -1,11 +1,12 @@
-import { AppDataSourceRead, AppDataSourceReadWrite } from '@orm/db';
-import { Clip } from '@orm/entities/clip';
-import { Feed } from '@orm/entities/feed/feed';
-import { FeedFlagStatusStatusEnum } from '@orm/entities/feed/feedFlagStatus';
-import { Item } from '@orm/entities/item/item';
-import { ItemFlagStatus, ItemFlagStatusStatusEnum } from '@orm/entities/item/itemFlagStatus';
-import { PlaylistResource } from '@orm/entities/playlist/playlistResource';
-import { ItemFlagStatusService } from './item/itemFlagStatus';
+import { AppDataSourceRead, AppDataSourceReadWrite } from '@orm/db/index.js';
+import { Clip } from '@orm/entities/clip.js';
+import { Feed } from '@orm/entities/feed/feed.js';
+import { FeedFlagStatusStatusEnum } from '@orm/entities/feed/feedFlagStatus.js';
+import { Item } from '@orm/entities/item/item.js';
+import type { ItemFlagStatus } from '@orm/entities/item/itemFlagStatus.js';
+import { ItemFlagStatusStatusEnum } from '@orm/entities/item/itemFlagStatus.js';
+import { PlaylistResource } from '@orm/entities/playlist/playlistResource.js';
+import { ItemFlagStatusService } from './item/itemFlagStatus.js';
 
 export class ArchiverService {
   private itemRepositoryRead = AppDataSourceRead.getRepository(Item);

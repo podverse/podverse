@@ -1,4 +1,4 @@
-import { DTOFeedFlagStatus } from './feedFlagStatus';
+import type { DTOFeedFlagStatus } from './feedFlagStatus.js';
 
 export interface DTOFeed {
   id: number;

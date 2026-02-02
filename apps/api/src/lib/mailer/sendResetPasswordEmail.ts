@@ -1,8 +1,8 @@
 import { convertSecondsToDaysText } from '@podverse/helpers';
-import { config } from '@api/config';
-import { emailTemplate } from '@api/lib/mailer/emailTemplate';
-import { createTransporter } from '@api/lib/mailer/transporter';
-import { loggerService } from '@api/factories/loggerService';
+import { config } from '@api/config/index.js';
+import { emailTemplate } from '@api/lib/mailer/emailTemplate.js';
+import { createTransporter } from '@api/lib/mailer/transporter.js';
+import { loggerService } from '@api/factories/loggerService.js';
 
 export const sendResetPasswordEmail = async (
   email: string,

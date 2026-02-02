@@ -1,6 +1,7 @@
 'use client';
 
-import { buildLabeledItemEnclosures, DTOQueueResource } from '@podverse/helpers';
+import type { DTOQueueResource } from '@podverse/helpers';
+import { buildLabeledItemEnclosures } from '@podverse/helpers';
 import React, { useEffect, useRef } from 'react';
 import { MediaPlayerControllerAudio } from './Audio/MediaPlayerControllerAudio';
 import { useMediaPlayer } from '../../../contexts/MediaPlayer';
@@ -9,11 +10,8 @@ import { useMediaPlayerCurrentTime } from '../../../contexts/MediaPlayerCurrentT
 import { apiRequestService } from '../../../factories/apiRequestService';
 import { useQueues } from '../../../contexts/Queue';
 import { useMediaPlayerResourceUpdate } from '../../../hooks/useMediaPlayerResourceUpdate';
-import {
-  AutoQueueResourcesMapRow,
-  checkIsActiveRowHighestKey,
-  useAutoQueue,
-} from '../../../contexts/AutoQueue';
+import type { AutoQueueResourcesMapRow } from '../../../contexts/AutoQueue';
+import { checkIsActiveRowHighestKey, useAutoQueue } from '../../../contexts/AutoQueue';
 import { updateLayoutForMediaPlayer } from '../../../utils/mediaPlayer/mediaPlayerLayout';
 import { useAutoQueueLoadResources } from '../../../hooks/useAutoQueueLoadResources';
 import { MediaPlayerVideoWrapper } from './Video/MediaPlayerVideoWrapper';

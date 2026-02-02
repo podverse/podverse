@@ -3,15 +3,15 @@
   "compilerOptions": {
     "composite": true,
     "target": "ES2022",
-    "module": "CommonJS",
-    "moduleResolution": "Node",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
     "outDir": "./dist",
     "rootDir": "./src",
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
     "baseUrl": "./"
   },
-  "include": ["./src/**/*.ts"],
+  "include": ["./src/**/*.ts", "./src/**/*.d.ts"],
   "exclude": ["node_modules", "dist"],
   "references": [{ "path": "../helpers" }]
 }

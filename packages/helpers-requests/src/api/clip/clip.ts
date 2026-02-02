@@ -1,7 +1,8 @@
-import { DTOClip } from '@podverse/helpers';
-import { ApiRequestService } from '../_request';
-import { ApiListResponse, emptyApiListResponse } from '../_response';
-import {
+import type { DTOClip } from '@podverse/helpers';
+import type { ApiRequestService } from '../_request.js';
+import type { ApiListResponse } from '../_response.js';
+import { emptyApiListResponse } from '../_response.js';
+import type {
   QueryParamsCategoryRecent,
   QueryParamsCategoryTop,
   QueryParamsGetManyPartial,
@@ -12,7 +13,7 @@ import {
   QueryParamsPageRange,
   QueryParamsSubscribedRecent,
   QueryParamsSubscribedTop,
-} from '../queryParams';
+} from '../queryParams.js';
 
 export type ReqClipCreateParams = {
   item_id_text: string;

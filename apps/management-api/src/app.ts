@@ -2,11 +2,12 @@ import 'reflect-metadata';
 import bodyParser from 'body-parser';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
-import express, { NextFunction, Request, Response } from 'express';
-import { config } from '@mgmt-api/config';
-import { initializePassport } from '@mgmt-api/lib/auth';
-import { authRouter } from '@mgmt-api/routes/auth';
-import { adminAccountRouter } from '@mgmt-api/routes/adminAccount';
+import type { NextFunction, Request, Response } from 'express';
+import express from 'express';
+import { config } from '@mgmt-api/config/index.js';
+import { initializePassport } from '@mgmt-api/lib/auth/index.js';
+import { authRouter } from '@mgmt-api/routes/auth.js';
+import { adminAccountRouter } from '@mgmt-api/routes/adminAccount.js';
 
 export const app = express();
 const port = config.api.port;

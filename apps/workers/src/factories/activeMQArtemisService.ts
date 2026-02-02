@@ -1,4 +1,4 @@
-import { ActiveMQArtemisService } from '@podverse/mq';
+import type { ActiveMQArtemisService } from '@podverse/mq';
 
 let instance: ActiveMQArtemisService | null = null;
 

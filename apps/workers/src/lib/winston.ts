@@ -1,6 +1,6 @@
 import * as winston from 'winston';
 import 'winston-daily-rotate-file';
-import { getBaseConfig } from '@workers/config';
+import { getBaseConfig } from '@workers/config/index.js';
 
 export const createDailyRotateLogger = (filename: string, level = 'info') => {
   const logDir = getBaseConfig().log.dir ?? '';

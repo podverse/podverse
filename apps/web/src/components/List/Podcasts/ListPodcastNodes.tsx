@@ -1,10 +1,10 @@
 'use client';
 
 import React from 'react';
-import { DTOChannel } from '@podverse/helpers';
+import type { DTOChannel } from '@podverse/helpers';
 import { ListPodcastRow } from './ListPodcastRow';
 import { ListPodcastGridNode } from './ListPodcastGridNode';
-import { ViewSelectedOption } from '../../ViewSelector/ViewSelector';
+import type { ViewSelectedOption } from '../../ViewSelector/ViewSelector';
 import { Divider } from '../../Divider/Divider';
 import styles from '../../../styles/components/List/ListNodes.module.scss';
 

@@ -1,5 +1,5 @@
 import { stringifyData, chunkArray } from '@podverse/helpers';
-import { FirebaseContext } from '../../../factory';
+import type { FirebaseContext } from '../../../factory.js';
 
 type AndroidPayload = {
   fcmToken: string;

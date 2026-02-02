@@ -6,22 +6,23 @@ import {
   getSharableStatusIdsForProfileType,
 } from '@podverse/helpers';
 import { validateEmail, validatePassword } from '@podverse/helpers-validation';
-import { FindManyOptions, FindOneOptions, Repository, In, Not, IsNull } from 'typeorm';
-import { Account } from '@orm/entities/account/account';
-import { AppDataSourceRead, AppDataSourceReadWrite } from '@orm/db';
-import { SharableStatus } from '@orm/entities/sharableStatus';
-import { hashPassword } from '@orm/lib/password';
-import { AccountCredentialsService } from './accountCredentials';
-import { AccountMembershipStatusService } from './accountMembershipStatus';
-import { AccountVerificationService } from './accountVerification';
-import { AccountResetPasswordService } from './accountResetPassword';
-import { AccountProfileService } from './accountProfile';
-import { AccountProfile } from '@orm/entities/account/accountProfile';
-import { AccountSettings } from '@orm/entities/account/accountSettings/accountSettings';
-import { AccountSettingsLocale } from '@orm/entities/account/accountSettings/accountSettingsLocale';
-import { AccountSettingsNotification } from '@orm/entities/account/accountSettings/accountSettingsNotification';
-import { AccountSettingsNotificationType } from '@orm/entities/account/accountSettings/accountSettingsNotificationType';
-import { getDefaultLocale } from '@orm/config';
+import type { FindManyOptions, FindOneOptions, Repository } from 'typeorm';
+import { In, Not, IsNull } from 'typeorm';
+import { Account } from '@orm/entities/account/account.js';
+import { AppDataSourceRead, AppDataSourceReadWrite } from '@orm/db/index.js';
+import { SharableStatus } from '@orm/entities/sharableStatus.js';
+import { hashPassword } from '@orm/lib/password.js';
+import { AccountCredentialsService } from './accountCredentials.js';
+import { AccountMembershipStatusService } from './accountMembershipStatus.js';
+import { AccountVerificationService } from './accountVerification.js';
+import { AccountResetPasswordService } from './accountResetPassword.js';
+import { AccountProfileService } from './accountProfile.js';
+import { AccountProfile } from '@orm/entities/account/accountProfile.js';
+import { AccountSettings } from '@orm/entities/account/accountSettings/accountSettings.js';
+import { AccountSettingsLocale } from '@orm/entities/account/accountSettings/accountSettingsLocale.js';
+import { AccountSettingsNotification } from '@orm/entities/account/accountSettings/accountSettingsNotification.js';
+import { AccountSettingsNotificationType } from '@orm/entities/account/accountSettings/accountSettingsNotificationType.js';
+import { getDefaultLocale } from '@orm/config/index.js';
 
 type CreateAccountDto = {
   email: string;

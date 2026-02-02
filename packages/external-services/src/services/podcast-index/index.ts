@@ -1,5 +1,4 @@
-import sha1 from 'crypto-js/sha1';
-import encHex from 'crypto-js/enc-hex';
+import { createHash } from 'node:crypto';
 import csv from 'csv-parser';
 import fs from 'fs';
 import path from 'path';
@@ -12,7 +11,7 @@ import type {
   EpisodeByGuidResponse,
   EpisodeByGuidSecondaryParams,
 } from '@podverse/helpers';
-import { ILoggerLike } from '@podverse/helpers-backend';
+import type { ILoggerLike } from '@podverse/helpers-backend';
 
 type Constructor = {
   userAgent: string;
@@ -52,7 +51,9 @@ export class PodcastIndexService {
     extraParams?: { delayMs?: number }
   ) => {
     const apiHeaderTime = Math.floor(Date.now() / 1000);
-    const hash = sha1(this.authKey + this.secretKey + apiHeaderTime).toString(encHex);
+    const hash = createHash('sha1')
+      .update(this.authKey + this.secretKey + apiHeaderTime)
+      .digest('hex');
 
     if (extraParams?.delayMs && extraParams.delayMs > 0) {
       await new Promise((resolve) => setTimeout(resolve, extraParams.delayMs));

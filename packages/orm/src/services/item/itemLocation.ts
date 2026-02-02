@@ -1,7 +1,7 @@
-import { EntityManager } from 'typeorm';
-import { Item } from '@orm/entities/item/item';
-import { ItemLocation } from '@orm/entities/item/itemLocation';
-import { BaseOneService } from '@orm/services/base/baseOneService';
+import type { EntityManager } from 'typeorm';
+import type { Item } from '@orm/entities/item/item.js';
+import { ItemLocation } from '@orm/entities/item/itemLocation.js';
+import { BaseOneService } from '@orm/services/base/baseOneService.js';
 
 type ItemLocationDto = {
   geo: string | null;

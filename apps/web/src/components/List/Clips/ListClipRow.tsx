@@ -2,10 +2,8 @@
 
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';
+import type { DTOChannel, DTOClip, DTOItem } from '@podverse/helpers';
 import {
-  DTOChannel,
-  DTOClip,
-  DTOItem,
   findDTOChannelImageBySize,
   findDTOItemImageBySize,
   getQueueForMedium,
@@ -17,7 +15,8 @@ import { Image } from '../../Image/Image';
 import { ROUTES } from '../../../constants/routes';
 import { IMAGES } from '../../../constants/images';
 import { PlayButtonRow } from '../../MediaPlayer/Buttons/PlayButtonRow';
-import { MoreButton, MoreButtonMenuItem } from '../../MoreButton/MoreButton';
+import type { MoreButtonMenuItem } from '../../MoreButton/MoreButton';
+import { MoreButton } from '../../MoreButton/MoreButton';
 import { useMediaPlayer } from '../../../contexts/MediaPlayer';
 import { ReadableDate } from '../../Time/ReadableDate';
 import { ReadableTimeRange } from '../../Time/ReadableTimeRange';

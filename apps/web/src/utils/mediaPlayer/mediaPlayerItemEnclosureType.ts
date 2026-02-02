@@ -1,4 +1,4 @@
-import { DTOItem, SelectedLabeledItemEnclosureAndSource } from '@podverse/helpers';
+import type { DTOItem, SelectedLabeledItemEnclosureAndSource } from '@podverse/helpers';
 
 export const checkIfIsAudioFile = (
   selectedItemEnclosureAndSource: SelectedLabeledItemEnclosureAndSource

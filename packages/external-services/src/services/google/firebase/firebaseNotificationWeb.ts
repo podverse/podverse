@@ -1,5 +1,5 @@
 import { chunkArray } from '@podverse/helpers';
-import { FirebaseContext } from '../../../factory';
+import type { FirebaseContext } from '../../../factory.js';
 
 type NotificationPayload = {
   fcmToken: string;

@@ -1,7 +1,7 @@
-import { EntityManager } from 'typeorm';
-import { Account } from '@orm/entities/account/account';
-import { AccountCredentials } from '@orm/entities/account/accountCredentials';
-import { BaseOneService } from '@orm/services/base/baseOneService';
+import type { EntityManager } from 'typeorm';
+import type { Account } from '@orm/entities/account/account.js';
+import { AccountCredentials } from '@orm/entities/account/accountCredentials.js';
+import { BaseOneService } from '@orm/services/base/baseOneService.js';
 
 export type AccountCredentialsDto = {
   email?: string;

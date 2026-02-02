@@ -1,4 +1,4 @@
-import { DTOAccount } from '../account/account';
+import type { DTOAccount } from '../account/account.js';
 
 export interface DTOStatsTrackAccountGuid {
   id: number;

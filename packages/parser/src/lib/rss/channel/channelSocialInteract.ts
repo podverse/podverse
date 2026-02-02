@@ -1,8 +1,9 @@
-import { FeedObject } from 'podverse-partytime';
-import { Channel, ChannelSocialInteractService, EntityManager } from '@podverse/orm';
-import { compatChannelSocialInteractDtos } from '@parser/lib/compat/partytime/channel';
-import { handleParsedManyData } from '../base/handleParsedManyData';
-import { timerManager } from '@parser/factories/timerManager';
+import type { FeedObject } from 'podverse-partytime';
+import type { Channel, EntityManager } from '@podverse/orm';
+import { ChannelSocialInteractService } from '@podverse/orm';
+import { compatChannelSocialInteractDtos } from '@parser/lib/compat/partytime/channel.js';
+import { handleParsedManyData } from '../base/handleParsedManyData.js';
+import { timerManager } from '@parser/factories/timerManager.js';
 
 export const handleParsedChannelSocialInteract = async (
   parsedFeed: FeedObject,

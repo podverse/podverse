@@ -24,5 +24,6 @@
   "dependencies": {
     "@podverse/helpers": "*",
     "axios": "^1.12.2"
-  }
+  },
+  "type": "module"
 }

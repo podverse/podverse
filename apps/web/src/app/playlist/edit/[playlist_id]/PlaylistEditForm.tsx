@@ -2,7 +2,8 @@
 
 import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
-import { DTOPlaylist, getQueryParamFromQueueMediumId } from '@podverse/helpers';
+import type { DTOPlaylist } from '@podverse/helpers';
+import { getQueryParamFromQueueMediumId } from '@podverse/helpers';
 import React from 'react';
 import { usePlaylistEditContext } from './PlaylistEditContext';
 import { apiRequestService } from '../../../../factories/apiRequestService';

@@ -1,4 +1,4 @@
-import { LoggerService } from './logger';
+import type { LoggerService } from './logger.js';
 
 export class TimerManager {
   private timers: Map<string, number>;

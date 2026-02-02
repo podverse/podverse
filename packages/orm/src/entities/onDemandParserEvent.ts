@@ -7,7 +7,8 @@ import {
   JoinColumn,
   CreateDateColumn,
 } from 'typeorm';
-import { Account } from '@orm/entities/account/account';
+import type { Relation } from 'typeorm';
+import type { Account } from '@orm/entities/account/account.js';
 
 @Entity()
 export class OnDemandParserEvent {
@@ -29,7 +30,7 @@ export class OnDemandParserEvent {
   @CreateDateColumn({ name: 'created_at', type: 'timestamp' })
   createdAt!: Date;
 
-  @ManyToOne(() => Account, { onDelete: 'CASCADE' })
+  @ManyToOne('Account', (account: Account) => account.id, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'account_id' })
-  account!: Account;
+  account!: Relation<Account>;
 }

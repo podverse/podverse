@@ -1,10 +1,8 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import {
-  QueryParamsLiveItemType,
-  QUERY_PARAMS_LIVE_ITEM_TYPE_VALUES,
-} from '@podverse/helpers-requests';
+import type { QueryParamsLiveItemType } from '@podverse/helpers-requests';
+import { QUERY_PARAMS_LIVE_ITEM_TYPE_VALUES } from '@podverse/helpers-requests';
 import React from 'react';
 import { ListHeader } from '../../../../components/List/ListHeader';
 import { useLivestreamContext } from './LivestreamContext';

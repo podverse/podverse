@@ -1,9 +1,9 @@
 import { useEffect, useRef } from 'react';
-import {
+import type {
   FilterDefaultsPage,
-  updateFilterDefaults,
   FilterDefaultsForPage,
 } from '../utils/localSettings/localSettings';
+import { updateFilterDefaults } from '../utils/localSettings/localSettings';
 
 /**
  * Hook to automatically update filter defaults in cookie when filter params change.

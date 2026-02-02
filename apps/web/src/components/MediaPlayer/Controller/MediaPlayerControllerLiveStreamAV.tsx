@@ -1,12 +1,11 @@
 import React, { useRef, useEffect, useMemo } from 'react';
-import {
+import type {
   DTOItem,
   EnclosureSelectedParams,
-  getSelectedLabeledItemEnclosureAndSource,
-  isEqual,
   LabeledItemEnclosure,
   SelectedLabeledItemEnclosureAndSource,
 } from '@podverse/helpers';
+import { getSelectedLabeledItemEnclosureAndSource, isEqual } from '@podverse/helpers';
 import videojs from 'video.js';
 import 'video.js/dist/video-js.css';
 

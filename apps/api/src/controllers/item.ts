@@ -1,25 +1,27 @@
-import { Request, Response } from 'express';
+import type { Request, Response } from 'express';
 import Joi from 'joi';
+import type {
+  Item,
+  StatsAggregatedItem,
+  FindManyOptions,
+  FindOptionsOrder,
+  ItemChapter,
+} from '@podverse/orm';
 import {
   itemGetOneRelations,
   itemGetManyRelations,
   ItemChapterService,
   ItemService,
-  Item,
-  StatsAggregatedItem,
-  FindManyOptions,
   subItemGetManyRelations,
   StatsAggregatedItemService,
   ChannelService,
   itemGetManyRelationsWithChannel,
   subItemGetManyRelationsWithChannel,
-  FindOptionsOrder,
-  ItemChapter,
 } from '@podverse/orm';
 import { parseChapters } from '@podverse/parser';
-import { handleReturnDataOrNotFound } from '@api/controllers/helpers/data';
-import { handleGenericErrorResponse } from '@api/controllers/helpers/error';
-import { getPaginationParams } from '@api/controllers/helpers/pagination';
+import { handleReturnDataOrNotFound } from '@api/controllers/helpers/data.js';
+import { handleGenericErrorResponse } from '@api/controllers/helpers/error.js';
+import { getPaginationParams } from '@api/controllers/helpers/pagination.js';
 import {
   idOrIdTextParamSchema,
   itemIdTextParamSchema,
@@ -31,24 +33,19 @@ import {
   pageRangeQuerySchema,
   validateParamsObject,
   validateQueryObject,
-} from '@api/lib/validation';
-import {
-  CategoryMappingKeys,
-  getCategoryEnumValue,
-  LIVE_ITEM_STATUSES,
-  QueryParamsMedium,
-} from '@podverse/helpers';
-import {
+} from '@api/lib/validation/index.js';
+import type { CategoryMappingKeys, QueryParamsMedium } from '@podverse/helpers';
+import { getCategoryEnumValue, LIVE_ITEM_STATUSES } from '@podverse/helpers';
+import type {
   ApiListResponse,
-  emptyApiListResponse,
-  QUERY_PARAMS_DIRECTION_VALUES,
   QueryParamsDirection,
   QueryParamsStatsRange,
 } from '@podverse/helpers-requests';
-import { getStatsOrder } from '@api/lib/stats';
-import { ensureAuthenticated, getAuthenticatedUser } from '@api/lib/auth';
-import { getFollowedChannelIds } from '@api/lib/followed';
-import { getParamRequired } from '@api/lib/params';
+import { emptyApiListResponse, QUERY_PARAMS_DIRECTION_VALUES } from '@podverse/helpers-requests';
+import { getStatsOrder } from '@api/lib/stats.js';
+import { ensureAuthenticated, getAuthenticatedUser } from '@api/lib/auth/index.js';
+import { getFollowedChannelIds } from '@api/lib/followed.js';
+import { getParamRequired } from '@api/lib/params.js';
 
 const getRecentOrder = (itemType: 'normal' | 'live-item'): FindOptionsOrder<Item> => {
   if (itemType === 'live-item') {

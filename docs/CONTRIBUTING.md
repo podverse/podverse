@@ -37,8 +37,9 @@ This interactive script:
 ### During Development
 
 1. Code and lint: `npm run lint`
-2. Commit with issue reference: `Fix bug #123`
-3. Keep LLM history updated if using AI assistance
+2. Use `import type` for imports that are only used in type positions (annotations, generics, etc.); the ESLint rule `@typescript-eslint/consistent-type-imports` enforces this and can auto-fix with `npm run lint:fix` (or `eslint --fix`).
+3. Commit with issue reference: `Fix bug #123`
+4. Keep LLM history updated if using AI assistance
 
 ### Completing a Feature
 

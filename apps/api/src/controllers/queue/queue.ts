@@ -1,14 +1,14 @@
-import { NextFunction, Request, Response } from 'express';
+import type { NextFunction, Request, Response } from 'express';
 import { QueueService } from '@podverse/orm';
-import { ensureAuthenticated, getAuthenticatedUser } from '@api/lib/auth';
-import { handleGenericErrorResponse } from '../helpers/error';
+import { ensureAuthenticated, getAuthenticatedUser } from '@api/lib/auth/index.js';
+import { handleGenericErrorResponse } from '../helpers/error.js';
 import Joi from 'joi';
 import {
   queueIdTextParamSchema,
   validateBodyObject,
   validateParamsObject,
-} from '@api/lib/validation';
-import { getParamRequired } from '@api/lib/params';
+} from '@api/lib/validation/index.js';
+import { getParamRequired } from '@api/lib/params.js';
 
 const queueService = new QueueService();
 

@@ -1,4 +1,4 @@
-import { TranscriptRow } from '@podverse/helpers';
+import type { TranscriptRow } from '@podverse/helpers';
 
 /**
  * Parses transcript string into rows. Transcriptator (he, xmldom, etc.) is

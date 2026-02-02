@@ -1,7 +1,7 @@
 import { Router } from 'express';
-import { config } from '@api/config';
-import { ItemSoundbiteController } from '@api/controllers/itemSoundbite';
-import { asyncHandler } from '@api/middleware/asyncHandler';
+import { config } from '@api/config/index.js';
+import { ItemSoundbiteController } from '@api/controllers/itemSoundbite.js';
+import { asyncHandler } from '@api/middleware/asyncHandler.js';
 
 const router = Router();
 

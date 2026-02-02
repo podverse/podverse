@@ -1,4 +1,4 @@
-import { DTOChannel, DTOItem } from '@podverse/helpers';
+import type { DTOChannel, DTOItem } from '@podverse/helpers';
 import React from 'react';
 import styles from '../../../../styles/components/Media/Podcast/Episode/EpisodeHeader.module.scss';
 import { Divider } from '../../../Divider/Divider';

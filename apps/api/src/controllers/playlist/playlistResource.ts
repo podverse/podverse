@@ -1,22 +1,23 @@
-import { Request, Response } from 'express';
+import type { Request, Response } from 'express';
 import Joi from 'joi';
-import { PlaylistResourceIdTextOptions } from '@podverse/helpers';
-import { FindManyOptions, PlaylistResource, PlaylistResourceService } from '@podverse/orm';
-import { handleGenericErrorResponse } from '../helpers/error';
+import type { PlaylistResourceIdTextOptions } from '@podverse/helpers';
+import type { FindManyOptions, PlaylistResource } from '@podverse/orm';
+import { PlaylistResourceService } from '@podverse/orm';
+import { handleGenericErrorResponse } from '../helpers/error.js';
 import {
   pageDefaultQuerySchema,
   playlistIdTextParamSchema,
   validateParamsObject,
   validateQueryObject,
-} from '@api/lib/validation';
-import { verifyPlaylistOwnership, verifyPrivatePlaylistOwnershipIfNeeded } from './playlist';
+} from '@api/lib/validation/index.js';
+import { verifyPlaylistOwnership, verifyPrivatePlaylistOwnershipIfNeeded } from './playlist.js';
 import {
   ensureAuthenticated,
   optionalEnsureAuthenticated,
   getAuthenticatedUser,
-} from '@api/lib/auth';
-import { getPaginationParams } from '../helpers/pagination';
-import { getParamRequired } from '@api/lib/params';
+} from '@api/lib/auth/index.js';
+import { getPaginationParams } from '../helpers/pagination.js';
+import { getParamRequired } from '@api/lib/params.js';
 
 class PlaylistResourceController {
   private static playlistResourceService = new PlaylistResourceService();

@@ -1,5 +1,5 @@
 import { useTranslations } from 'next-intl';
-import { TranscriptRow } from '@podverse/helpers';
+import type { TranscriptRow } from '@podverse/helpers';
 import { useState, useMemo } from 'react';
 import { ItemTranscriptRow } from './ItemTranscriptRow';
 import { SearchInput } from '../Form/SearchInput';

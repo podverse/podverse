@@ -1,5 +1,5 @@
 import React from 'react';
-import { DTOCategory } from '@podverse/helpers';
+import type { DTOCategory } from '@podverse/helpers';
 import LoadingSpinnerOverlay from '../../components/LoadingSpinner/LoadingSpinnerOverlay';
 import { useLocalSettings } from '../../contexts/LocalSettings';
 import { ModalCategoriesSelect } from '../../components/Modal/ModalCategoriesSelect';

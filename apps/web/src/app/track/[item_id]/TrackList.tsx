@@ -2,7 +2,7 @@
 
 import React from 'react';
 import dynamic from 'next/dynamic';
-import { DTOItem } from '@podverse/helpers';
+import type { DTOItem } from '@podverse/helpers';
 import { useTrackContext } from './TrackContext';
 import LoadingSpinnerOverlay from '../../../components/LoadingSpinner/LoadingSpinnerOverlay';
 import { EpisodeSummary } from '../../../components/Media/Podcast/Episode/EpisodeSummary';

@@ -1,5 +1,6 @@
 import { useCallback, useRef, useEffect } from 'react';
-import { MediumEnum, DTOQueueResource } from '@podverse/helpers';
+import type { DTOQueueResource } from '@podverse/helpers';
+import { MediumEnum } from '@podverse/helpers';
 import { useAccount } from '../contexts/Account';
 import { useQueues } from '../contexts/Queue';
 import { apiRequestService } from '../factories/apiRequestService';

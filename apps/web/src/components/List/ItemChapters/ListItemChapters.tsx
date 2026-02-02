@@ -1,6 +1,6 @@
 'use client';
 
-import { DTOChannel, DTOItem, DTOItemChapter } from '@podverse/helpers';
+import type { DTOChannel, DTOItem, DTOItemChapter } from '@podverse/helpers';
 import React from 'react';
 import Pagination from '../../Pagination/Pagination';
 import { useSkipInitialEffect } from '../../../hooks/useSkipInitialEffect';

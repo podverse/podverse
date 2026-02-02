@@ -1,7 +1,13 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { DTOChannel, DTOClip, DTOItem, DTOItemChapter, DTOItemSoundbite } from '@podverse/helpers';
+import type {
+  DTOChannel,
+  DTOClip,
+  DTOItem,
+  DTOItemChapter,
+  DTOItemSoundbite,
+} from '@podverse/helpers';
 import React from 'react';
 import { FaCircleDollarToSlot, FaCommentDollar, FaGlobe, FaRss, FaShare } from 'react-icons/fa6';
 import { IconButton } from './IconButton';

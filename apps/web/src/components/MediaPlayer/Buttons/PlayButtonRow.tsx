@@ -1,7 +1,7 @@
 import { useTranslations } from 'next-intl';
 import { FaPause, FaPlay } from 'react-icons/fa6';
 import { useMediaPlayer } from '../../../contexts/MediaPlayer';
-import { DTOClip, DTOItem, DTOItemChapter, DTOItemSoundbite } from '@podverse/helpers';
+import type { DTOClip, DTOItem, DTOItemChapter, DTOItemSoundbite } from '@podverse/helpers';
 import styles from '../../../styles/components/MediaPlayer/Buttons/PlayButtonRow.module.scss';
 
 type PlayButtonRowProps = {

@@ -1,5 +1,5 @@
-import { DTOChannel, DTOItem, QueryParamsQueueMedium } from '@podverse/helpers';
-import { QueryParamsLiveItem } from '@podverse/helpers-requests';
+import type { DTOChannel, DTOItem, QueryParamsQueueMedium } from '@podverse/helpers';
+import type { QueryParamsLiveItem } from '@podverse/helpers-requests';
 import { MainWrapper } from '../../../../components/Main/MainWrapper';
 import { LivestreamContextProvider } from './LivestreamContext';
 import { LivestreamList } from './LivestreamList';

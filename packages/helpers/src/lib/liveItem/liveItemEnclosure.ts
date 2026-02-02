@@ -1,4 +1,4 @@
-import { DTOItem, DTOItemEnclosure } from 'src/dtos';
+import type { DTOItem, DTOItemEnclosure } from '../../dtos/index.js';
 
 export function getLiveItemEnclosureSource(item: DTOItem | null): {
   url: string | null;

@@ -2,7 +2,7 @@ import path from 'path';
 
 import withBundleAnalyzerInit from '@next/bundle-analyzer';
 import { DATE_FNS_LOCALE_IDS } from '@podverse/helpers';
-import { NextConfig } from 'next';
+import type { NextConfig } from 'next';
 import createNextIntlPlugin from 'next-intl/plugin';
 import webpack from 'webpack';
 

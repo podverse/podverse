@@ -1,6 +1,6 @@
-import { Item } from '@orm/entities/item/item';
-import { ItemContentLink } from '@orm/entities/item/itemContentLink';
-import { BaseManyService } from '@orm/services/base/baseManyService';
+import type { Item } from '@orm/entities/item/item.js';
+import { ItemContentLink } from '@orm/entities/item/itemContentLink.js';
+import { BaseManyService } from '@orm/services/base/baseManyService.js';
 
 type ItemContentLinkDto = {
   url: string;

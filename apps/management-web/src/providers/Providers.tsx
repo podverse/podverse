@@ -1,6 +1,7 @@
 'use client';
 
-import { NextIntlClientProvider, AbstractIntlMessages } from 'next-intl';
+import type { AbstractIntlMessages } from 'next-intl';
+import { NextIntlClientProvider } from 'next-intl';
 
 export default function Providers({
   children,

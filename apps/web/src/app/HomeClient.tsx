@@ -1,5 +1,5 @@
-import { DTOChannel } from '@podverse/helpers';
-import { QueryParamsHome } from '@podverse/helpers-requests';
+import type { DTOChannel } from '@podverse/helpers';
+import type { QueryParamsHome } from '@podverse/helpers-requests';
 import { MainWrapper } from '../components/Main/MainWrapper';
 import { MainInnerWrapper } from '../components/Main/MainInnerWrapper';
 import { MainInnerContentWrapper } from '../components/Main/MainInnerContentWrapper';

@@ -1,6 +1,7 @@
 'use client';
 
-import React, { Component, ErrorInfo, ReactNode } from 'react';
+import type { ErrorInfo, ReactNode } from 'react';
+import React, { Component } from 'react';
 import { useTranslations } from 'next-intl';
 import { Button } from '../Button/Button';
 import styles from '../../styles/components/ErrorBoundary/ErrorBoundary.module.scss';

@@ -1,12 +1,13 @@
-import { QueryParamsQueueMedium } from '@podverse/helpers';
-import { ApiListResponse, emptyApiListResponse } from '../..';
-import { DTOPlaylist, DTOPlaylistFavorites } from '@podverse/helpers';
-import { ApiRequestService } from '../_request';
-import {
+import type { QueryParamsQueueMedium } from '@podverse/helpers';
+import type { ApiListResponse } from '../../index.js';
+import { emptyApiListResponse } from '../../index.js';
+import type { DTOPlaylist, DTOPlaylistFavorites } from '@podverse/helpers';
+import type { ApiRequestService } from '../_request.js';
+import type {
   QueryParamsGlobalRecent,
   QueryParamsGlobalTop,
   QueryParamsPlaylists,
-} from '../queryParams';
+} from '../queryParams.js';
 
 export async function reqPlaylistGet(api: ApiRequestService, id_text: string) {
   return api.apiRequest<DTOPlaylist>({

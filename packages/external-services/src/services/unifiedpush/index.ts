@@ -1,6 +1,6 @@
 // import { getUPDevicesForPodcastId, UPEndpointData } from 'podverse-orm'
 // import { promiseAllSkippingErrors } from 'podverse-shared'
-// import { SendNotificationOptions } from '../notifications'
+// import { SendNotificationOptions } from '../notifications.js'
 
 // const webpush = require('web-push')
 

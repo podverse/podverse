@@ -1,6 +1,6 @@
 'use client';
 
-import { DTOChannel, RemoteItemsResponse } from '@podverse/helpers';
+import type { DTOChannel, RemoteItemsResponse } from '@podverse/helpers';
 import React from 'react';
 import { usePodcastContext } from './PodcastContext';
 import LoadingSpinnerOverlay from '../../../components/LoadingSpinner/LoadingSpinnerOverlay';

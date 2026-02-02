@@ -1,4 +1,4 @@
-import { FeedObject } from 'podverse-partytime';
+import type { FeedObject } from 'podverse-partytime';
 import { getMediumEnumValue } from '@podverse/helpers';
 
 // Determine the most-appropriate publisher medium based on podcastRemoteItems

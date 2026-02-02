@@ -2,9 +2,8 @@
 
 import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
+import type { DTOChannel, DTOItem } from '@podverse/helpers';
 import {
-  DTOChannel,
-  DTOItem,
   findDTOChannelImageBySize,
   findDTOItemImageBySize,
   getQueueForMedium,
@@ -15,7 +14,8 @@ import { FaGripLines } from 'react-icons/fa6';
 import { Image } from '../../../../Image/Image';
 import { ROUTES } from '../../../../../constants/routes';
 import { IMAGES } from '../../../../../constants/images';
-import { MoreButton, MoreButtonMenuItem } from '../../../../MoreButton/MoreButton';
+import type { MoreButtonMenuItem } from '../../../../MoreButton/MoreButton';
+import { MoreButton } from '../../../../MoreButton/MoreButton';
 import { useMediaPlayer } from '../../../../../contexts/MediaPlayer';
 import { useModals } from '../../../../../contexts/Modals';
 import { useQueues } from '../../../../../contexts/Queue';

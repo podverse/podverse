@@ -1,17 +1,17 @@
-import { AccountFollowingAccountService } from './accountFollowingAccount';
-import { AccountFollowingChannelService } from './accountFollowingChannel';
-import { AccountFollowingPlaylistService } from './accountFollowingPlaylist';
-import { AccountFollowingAddByRSSChannelService } from './accountFollowingAddByRSSChannel';
-import { PlaylistService } from '../playlist/playlist';
-import { PlaylistResourceService } from '../playlist/playlistResource';
-import { ClipService } from '../clip';
-import { QueueService } from '../queue/queue';
-import { QueueResourceService, listResourceRelations } from '../queue/queueResource';
-import { AccountService } from './account';
-import { Item } from '@orm/entities/item/item';
-import { Clip } from '@orm/entities/clip';
-import { PlaylistResource } from '@orm/entities/playlist/playlistResource';
-import { QueueResource } from '@orm/entities/queue/queueResource';
+import { AccountFollowingAccountService } from './accountFollowingAccount.js';
+import { AccountFollowingChannelService } from './accountFollowingChannel.js';
+import { AccountFollowingPlaylistService } from './accountFollowingPlaylist.js';
+import { AccountFollowingAddByRSSChannelService } from './accountFollowingAddByRSSChannel.js';
+import { PlaylistService } from '../playlist/playlist.js';
+import { PlaylistResourceService } from '../playlist/playlistResource.js';
+import { ClipService } from '../clip.js';
+import { QueueService } from '../queue/queue.js';
+import { QueueResourceService, listResourceRelations } from '../queue/queueResource.js';
+import { AccountService } from './account.js';
+import type { Item } from '@orm/entities/item/item.js';
+import type { Clip } from '@orm/entities/clip.js';
+import type { PlaylistResource } from '@orm/entities/playlist/playlistResource.js';
+import type { QueueResource } from '@orm/entities/queue/queueResource.js';
 
 export class AccountDataExportService {
   private accountService: AccountService;

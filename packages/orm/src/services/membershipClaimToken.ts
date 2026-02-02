@@ -1,10 +1,10 @@
-import { AccountMembershipEnum } from '@podverse/helpers';
-import { Repository } from 'typeorm';
-import { AppDataSourceRead, AppDataSourceReadWrite } from '@orm/db';
-import { MembershipClaimToken } from '@orm/entities/membershipClaimToken';
-import { AccountMembershipService } from '@orm/services/account/accountMembership';
-import { AccountService } from '@orm/services/account/account';
-import { AccountMembershipStatusService } from '@orm/services/account/accountMembershipStatus';
+import type { AccountMembershipEnum } from '@podverse/helpers';
+import type { Repository } from 'typeorm';
+import { AppDataSourceRead, AppDataSourceReadWrite } from '@orm/db/index.js';
+import { MembershipClaimToken } from '@orm/entities/membershipClaimToken.js';
+import { AccountMembershipService } from '@orm/services/account/accountMembership.js';
+import { AccountService } from '@orm/services/account/account.js';
+import { AccountMembershipStatusService } from '@orm/services/account/accountMembershipStatus.js';
 
 export class MembershipClaimTokenService {
   protected repositoryRead: Repository<MembershipClaimToken>;

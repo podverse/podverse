@@ -1,9 +1,9 @@
-import { Request, Response } from 'express';
+import type { Request, Response } from 'express';
 import Joi from 'joi';
 import { StatsTrackEventChannelService } from '@podverse/orm';
-import { handleGenericErrorResponse } from '@api/controllers/helpers/error';
-import { ensureAuthenticated, getAuthenticatedUser } from '@api/lib/auth';
-import { validateBodyObject } from '@api/lib/validation';
+import { handleGenericErrorResponse } from '@api/controllers/helpers/error.js';
+import { ensureAuthenticated, getAuthenticatedUser } from '@api/lib/auth/index.js';
+import { validateBodyObject } from '@api/lib/validation/index.js';
 
 export class StatsTrackEventChannelController {
   private static statsTrackEventChannelService = new StatsTrackEventChannelService();

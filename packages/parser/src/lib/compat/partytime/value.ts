@@ -1,4 +1,4 @@
-import { Phase4Value, Phase4ValueRecipient } from 'podverse-partytime';
+import type { Phase4Value, Phase4ValueRecipient } from 'podverse-partytime';
 import { DATABASE_CONSTANTS } from '@podverse/helpers';
 import { isValidHttpUrl } from '@podverse/helpers-validation';
 

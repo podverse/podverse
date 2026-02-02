@@ -1,29 +1,24 @@
-import { FeedObject } from 'podverse-partytime';
-import {
-  AppDataSourceReadWrite,
-  Channel,
-  ChannelService,
-  ChannelSeasonIndex,
-  EntityManager,
-} from '@podverse/orm';
-import { compatChannelDto } from '@parser/lib/compat/partytime/channel';
-import { handleParsedChannelAbout } from '@parser/lib/rss/channel/channelAbout';
-import { handleParsedChannelCategory } from '@parser/lib/rss/channel/channelCategory';
-import { handleParsedChannelChat } from '@parser/lib/rss/channel/channelChat';
-import { handleParsedChannelDescription } from '@parser/lib/rss/channel/channelDescription';
-import { handleParsedChannelFunding } from '@parser/lib/rss/channel/channelFunding';
-import { handleParsedChannelImage } from '@parser/lib/rss/channel/channelImage';
-import { handleParsedChannelLicense } from '@parser/lib/rss/channel/channelLicense';
-import { handleParsedChannelLocation } from '@parser/lib/rss/channel/channelLocation';
-import { handleParsedChannelPerson } from '@parser/lib/rss/channel/channelPerson';
-import { handleParsedChannelPodroll } from '@parser/lib/rss/channel/channelPodroll';
-import { handleParsedChannelPublisher } from '@parser/lib/rss/channel/channelPublisher';
-import { handleParsedChannelRemoteItem } from '@parser/lib/rss/channel/channelRemoteItem';
-import { handleParsedChannelSocialInteract } from '@parser/lib/rss/channel/channelSocialInteract';
-import { handleParsedChannelTrailer } from '@parser/lib/rss/channel/channelTrailer';
-import { handleParsedChannelTxt } from '@parser/lib/rss/channel/channelTxt';
-import { handleParsedChannelValue } from '@parser/lib/rss/channel/channelValue';
-import { timerManager } from '@parser/factories/timerManager';
+import type { FeedObject } from 'podverse-partytime';
+import type { Channel, ChannelSeasonIndex, EntityManager } from '@podverse/orm';
+import { AppDataSourceReadWrite, ChannelService } from '@podverse/orm';
+import { compatChannelDto } from '@parser/lib/compat/partytime/channel.js';
+import { handleParsedChannelAbout } from '@parser/lib/rss/channel/channelAbout.js';
+import { handleParsedChannelCategory } from '@parser/lib/rss/channel/channelCategory.js';
+import { handleParsedChannelChat } from '@parser/lib/rss/channel/channelChat.js';
+import { handleParsedChannelDescription } from '@parser/lib/rss/channel/channelDescription.js';
+import { handleParsedChannelFunding } from '@parser/lib/rss/channel/channelFunding.js';
+import { handleParsedChannelImage } from '@parser/lib/rss/channel/channelImage.js';
+import { handleParsedChannelLicense } from '@parser/lib/rss/channel/channelLicense.js';
+import { handleParsedChannelLocation } from '@parser/lib/rss/channel/channelLocation.js';
+import { handleParsedChannelPerson } from '@parser/lib/rss/channel/channelPerson.js';
+import { handleParsedChannelPodroll } from '@parser/lib/rss/channel/channelPodroll.js';
+import { handleParsedChannelPublisher } from '@parser/lib/rss/channel/channelPublisher.js';
+import { handleParsedChannelRemoteItem } from '@parser/lib/rss/channel/channelRemoteItem.js';
+import { handleParsedChannelSocialInteract } from '@parser/lib/rss/channel/channelSocialInteract.js';
+import { handleParsedChannelTrailer } from '@parser/lib/rss/channel/channelTrailer.js';
+import { handleParsedChannelTxt } from '@parser/lib/rss/channel/channelTxt.js';
+import { handleParsedChannelValue } from '@parser/lib/rss/channel/channelValue.js';
+import { timerManager } from '@parser/factories/timerManager.js';
 
 export const handleParsedChannel = async (
   parsedFeed: FeedObject,

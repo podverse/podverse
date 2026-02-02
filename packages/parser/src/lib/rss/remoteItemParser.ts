@@ -3,8 +3,8 @@ import {
   ON_DEMAND_REMOTE_ITEM_PARSER_LIMIT,
   getOnDemandParserEventDateRange,
 } from '@podverse/helpers';
+import type { Channel } from '@podverse/orm';
 import {
-  Channel,
   ChannelPodrollRemoteItemService,
   ChannelPodrollService,
   ChannelPublisherRemoteItemService,
@@ -15,10 +15,10 @@ import {
   ItemService,
   OnDemandParserEventService,
 } from '@podverse/orm';
-import { podcastIndexService } from '@parser/factories/podcastIndex';
-import type { ParseRSSFeedAndSaveToDatabaseOptions } from '@parser/lib/rss/parser';
-import { loggerService } from '@parser/factories/loggerService';
-import { config } from '@parser/config';
+import { podcastIndexService } from '@parser/factories/podcastIndex.js';
+import type { ParseRSSFeedAndSaveToDatabaseOptions } from '@parser/lib/rss/parser.js';
+import { loggerService } from '@parser/factories/loggerService.js';
+import { config } from '@parser/config/index.js';
 
 type PIFeedWithPodcastGuidData = {
   id: number;

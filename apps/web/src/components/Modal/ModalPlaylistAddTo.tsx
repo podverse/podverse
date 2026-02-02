@@ -1,20 +1,22 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
+import type { QueryParamsQueueMedium } from '@podverse/helpers';
 import {
   getQueryParamFromQueueMediumId,
   getQueueMediumIdForChannelMediumId,
   MediumEnum,
-  QueryParamsQueueMedium,
 } from '@podverse/helpers';
 import React from 'react';
 import { Modal } from './Modal';
 import { MEDIUM } from '../../constants/medium';
-import { ModalPlaylistAddToState, useModals } from '../../contexts/Modals';
+import type { ModalPlaylistAddToState } from '../../contexts/Modals';
+import { useModals } from '../../contexts/Modals';
 import { MediaHeaderMini } from '../MediaHeaderMini/MediaHeaderMini';
 import { ButtonTabs } from '../Tabs/ButtonTabs';
 import { apiRequestService } from '../../factories/apiRequestService';
-import { DTOPlaylist, getTotalPages } from '@podverse/helpers';
+import type { DTOPlaylist } from '@podverse/helpers';
+import { getTotalPages } from '@podverse/helpers';
 import { ListPlaylists } from '../List/Playlists/ListPlaylists';
 import { useAccount } from '../../contexts/Account';
 import { useSkipInitialEffect } from '../../hooks/useSkipInitialEffect';

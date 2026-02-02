@@ -1,7 +1,7 @@
-import { EntityManager } from 'typeorm';
-import { Item } from '@orm/entities/item/item';
-import { ItemLicense } from '@orm/entities/item/itemLicense';
-import { BaseOneService } from '@orm/services/base/baseOneService';
+import type { EntityManager } from 'typeorm';
+import type { Item } from '@orm/entities/item/item.js';
+import { ItemLicense } from '@orm/entities/item/itemLicense.js';
+import { BaseOneService } from '@orm/services/base/baseOneService.js';
 
 type ItemLicenseDto = {
   identifier: string;

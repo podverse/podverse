@@ -1,12 +1,14 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import {
+import type {
   QueryParamsStatsRange,
-  QUERY_PARAMS_STATS_RANGE_VALUES,
   QueryParamsItemType,
-  QUERY_PARAMS_ITEM_TYPE_VALUES,
   QueryParamsItemSort,
+} from '@podverse/helpers-requests';
+import {
+  QUERY_PARAMS_STATS_RANGE_VALUES,
+  QUERY_PARAMS_ITEM_TYPE_VALUES,
   QUERY_PARAMS_ITEM_SORT_VALUES,
 } from '@podverse/helpers-requests';
 import React from 'react';

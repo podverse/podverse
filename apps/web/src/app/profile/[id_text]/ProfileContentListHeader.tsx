@@ -5,7 +5,8 @@ import { useTranslations } from 'next-intl';
 import { ListHeader } from '../../../components/List/ListHeader';
 import { Tabs } from '../../../components/Tabs/Tabs';
 import Dropdown from '../../../components/Dropdown/Dropdown';
-import { useProfileContentContext, ProfileContentTab } from './ProfileContentContext';
+import type { ProfileContentTab } from './ProfileContentContext';
+import { useProfileContentContext } from './ProfileContentContext';
 import styles from '../../../styles/app/profile/ProfileContentListHeader.module.scss';
 
 export const ProfileContentListHeader: React.FC = () => {

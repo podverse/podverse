@@ -1,5 +1,9 @@
+import { createRequire } from 'module';
+
 import admin from 'firebase-admin';
-import { ExternalServicesConfig } from './config/types';
+import type { ExternalServicesConfig } from './config/types.js';
+
+const require = createRequire(import.meta.url);
 
 export type FirebaseContext = {
   firebaseAdmin: typeof admin | null;
@@ -34,7 +38,6 @@ export function createFirebaseContext(config: ExternalServicesConfig): FirebaseC
       isFirebaseEnabled = false;
     } else {
       try {
-        // eslint-disable-next-line @typescript-eslint/no-require-imports
         const settings = require(config.firebase.admin_json_key_path);
         const serviceAccount = settings as admin.ServiceAccount;
 

@@ -1,4 +1,4 @@
-import { MediumEnum } from '@podverse/helpers';
+import type { MediumEnum } from '@podverse/helpers';
 import {
   Entity,
   PrimaryGeneratedColumn,
@@ -7,9 +7,10 @@ import {
   BeforeInsert,
   Column,
 } from 'typeorm';
-import { Account } from '@orm/entities/account/account';
-import { Medium } from '@orm/entities/medium';
-import { generateRandomIdText } from '@orm/lib/nanoid';
+import type { Relation } from 'typeorm';
+import type { Account } from '@orm/entities/account/account.js';
+import type { Medium } from '@orm/entities/medium.js';
+import { generateRandomIdText } from '@orm/lib/nanoid.js';
 
 @Entity()
 export class Queue {
@@ -19,11 +20,11 @@ export class Queue {
   @Column({ type: 'varchar', unique: true })
   id_text!: string;
 
-  @ManyToOne(() => Account, (account) => account.id, { onDelete: 'CASCADE' })
+  @ManyToOne('Account', (account: Account) => account.id, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'account_id' })
-  account!: Account;
+  account!: Relation<Account>;
 
-  @ManyToOne(() => Medium, (medium) => medium.id)
+  @ManyToOne('Medium', (medium: Medium) => medium.id)
   @JoinColumn({ name: 'medium_id' })
   medium!: MediumEnum;
 

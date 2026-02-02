@@ -1,7 +1,7 @@
-import { EntityManager } from 'typeorm';
-import { Channel } from '@orm/entities/channel/channel';
-import { ChannelChat } from '@orm/entities/channel/channelChat';
-import { BaseOneService } from '@orm/services/base/baseOneService';
+import type { EntityManager } from 'typeorm';
+import type { Channel } from '@orm/entities/channel/channel.js';
+import { ChannelChat } from '@orm/entities/channel/channelChat.js';
+import { BaseOneService } from '@orm/services/base/baseOneService.js';
 
 type ChannelChatDto = {
   server: string;

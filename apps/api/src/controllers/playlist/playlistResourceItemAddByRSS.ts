@@ -1,16 +1,16 @@
-import { Request, Response } from 'express';
+import type { Request, Response } from 'express';
 import Joi from 'joi';
 import { PlaylistResourceService } from '@podverse/orm';
-import { handleGenericErrorResponse } from '@api/controllers/helpers/error';
-import { verifyPlaylistOwnership } from '@api/controllers/playlist/playlist';
-import { ensureAuthenticated } from '@api/lib/auth';
+import { handleGenericErrorResponse } from '@api/controllers/helpers/error.js';
+import { verifyPlaylistOwnership } from '@api/controllers/playlist/playlist.js';
+import { ensureAuthenticated } from '@api/lib/auth/index.js';
 import {
   playlistIdTextParamSchema,
   positionBetweenBodySchema,
   validateBodyObject,
   validateParamsObject,
-} from '@api/lib/validation';
-import { getParamRequired } from '@api/lib/params';
+} from '@api/lib/validation/index.js';
+import { getParamRequired } from '@api/lib/params.js';
 
 class PlaylistResourceItemAddByRSSController {
   private static playlistResourceService = new PlaylistResourceService();

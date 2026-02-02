@@ -1,5 +1,5 @@
-import { AppDataSourceRead } from '@orm/db';
-import { Category } from '@orm/entities/category';
+import { AppDataSourceRead } from '@orm/db/index.js';
+import { Category } from '@orm/entities/category.js';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 let allCategories: any[] = [];

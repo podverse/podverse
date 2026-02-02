@@ -1,7 +1,7 @@
 import { formatDuration } from 'date-fns/formatDuration';
 import { intervalToDuration } from 'date-fns/intervalToDuration';
 
-import { getDateFnsLocale } from '../date';
+import { getDateFnsLocale } from '../date.js';
 
 export function formatSecondsToReadableDuration(input: string, lang: string = 'en-US'): string {
   let seconds = Math.floor(parseFloat(input));

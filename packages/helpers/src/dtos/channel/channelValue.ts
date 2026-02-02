@@ -1,4 +1,4 @@
-import { DTOChannelValueRecipient } from './channelValueRecipient';
+import type { DTOChannelValueRecipient } from './channelValueRecipient.js';
 
 export interface DTOChannelValue {
   id: number;

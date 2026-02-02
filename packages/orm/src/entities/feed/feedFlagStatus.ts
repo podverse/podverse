@@ -1,5 +1,5 @@
 import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
-import { Feed } from './feed';
+import type { Feed } from './feed.js';
 
 export enum FeedFlagStatusStatusEnum {
   Active = 1,
@@ -22,6 +22,6 @@ export class FeedFlagStatus {
   })
   status!: FeedFlagStatusStatusEnum;
 
-  @OneToMany(() => Feed, (feed) => feed.feed_flag_status)
+  @OneToMany('Feed', (feed: Feed) => feed.feed_flag_status)
   feeds!: Feed[];
 }

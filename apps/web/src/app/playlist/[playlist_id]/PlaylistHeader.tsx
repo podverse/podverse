@@ -1,6 +1,6 @@
 'use client';
 
-import { DTOPlaylist } from '@podverse/helpers';
+import type { DTOPlaylist } from '@podverse/helpers';
 import React from 'react';
 import { useRouter } from 'next/navigation';
 import { PlaylistHeaderInfo } from './PlaylistHeaderInfo';

@@ -1,5 +1,5 @@
 import { useTranslations } from 'next-intl';
-import { DTOChannelPerson, DTOItemPerson } from '@podverse/helpers';
+import type { DTOChannelPerson, DTOItemPerson } from '@podverse/helpers';
 import styles from '../../../styles/components/Content/About/ContentPeopleRow.module.scss';
 import { Link } from '../../Link/Link';
 

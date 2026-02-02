@@ -1,5 +1,5 @@
 // Re-export logger from context for backwards compatibility
-import { getLoggerService } from '../context';
+import { getLoggerService } from '../context.js';
 
 // Export a proxy object that delegates to the context's logger service
 export const loggerService = new Proxy({} as ReturnType<typeof getLoggerService>, {

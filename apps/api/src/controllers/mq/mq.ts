@@ -1,12 +1,13 @@
-import { Request, Response } from 'express';
+import type { Request, Response } from 'express';
 import Joi from 'joi';
-import { MQ_QUEUES, OnDemandParserEventType } from '@podverse/helpers';
+import type { OnDemandParserEventType } from '@podverse/helpers';
+import { MQ_QUEUES } from '@podverse/helpers';
 import { mqRSSAdd } from '@podverse/mq';
-import { ensureAuthenticated, getAuthenticatedUser } from '@api/lib/auth';
-import { validateBodyObject } from '@api/lib/validation';
-import { handleGenericErrorResponse } from '../helpers/error';
-import { activeMQArtemisService } from '@api/factories/activeMQArtemisService';
-import { rateLimitAuthEndpoint } from '@api/lib/rateLimiter';
+import { ensureAuthenticated, getAuthenticatedUser } from '@api/lib/auth/index.js';
+import { validateBodyObject } from '@api/lib/validation/index.js';
+import { handleGenericErrorResponse } from '../helpers/error.js';
+import { activeMQArtemisService } from '@api/factories/activeMQArtemisService.js';
+import { rateLimitAuthEndpoint } from '@api/lib/rateLimiter.js';
 
 export class MQController {
   static rssOnDemandMiddleware = rateLimitAuthEndpoint({

@@ -1,5 +1,5 @@
-import { DTOAccountSettingsLocale } from './accountSettingsLocale';
-import { DTOAccountSettingsNotification } from './accountSettingsNotification';
+import type { DTOAccountSettingsLocale } from './accountSettingsLocale.js';
+import type { DTOAccountSettingsNotification } from './accountSettingsNotification.js';
 
 export interface DTOAccountSettings {
   id: number;

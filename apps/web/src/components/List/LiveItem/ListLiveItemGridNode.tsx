@@ -3,10 +3,8 @@
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';
 import React from 'react';
+import type { DTOChannel, DTOItem, DTOLiveItem } from '@podverse/helpers';
 import {
-  DTOChannel,
-  DTOItem,
-  DTOLiveItem,
   findDTOChannelImageBySize,
   findDTOItemImageBySize,
   getQueryParamFromQueueMediumId,

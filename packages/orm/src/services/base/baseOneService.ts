@@ -1,13 +1,13 @@
-import {
+import type {
   EntityManager,
   FindOneOptions,
   FindOptionsWhere,
   ObjectLiteral,
   Repository,
 } from 'typeorm';
-import { getDataSourceRead, getDataSourceReadWrite, getLoggerService } from '@orm/context';
-import { applyProperties } from '@orm/lib/applyProperties';
-import { hasDifferentValues } from '@orm/lib/hasDifferentValues';
+import { getDataSourceRead, getDataSourceReadWrite, getLoggerService } from '@orm/context.js';
+import { applyProperties } from '@orm/lib/applyProperties.js';
+import { hasDifferentValues } from '@orm/lib/hasDifferentValues.js';
 
 export class BaseOneService<T extends ObjectLiteral, K extends keyof T> {
   private parentEntityKey: K;

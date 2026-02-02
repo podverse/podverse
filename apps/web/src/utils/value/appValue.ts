@@ -1,4 +1,4 @@
-import { AppValueRecipient } from '@podverse/helpers';
+import type { AppValueRecipient } from '@podverse/helpers';
 import { config } from '../../config';
 
 type GetAppValueRecipientParams = {

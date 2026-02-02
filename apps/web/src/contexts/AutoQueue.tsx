@@ -1,7 +1,8 @@
-import { DTOChannel, DTOClip, DTOItemQueueItem, DTOItemSoundbite } from '@podverse/helpers';
+import type { DTOChannel, DTOClip, DTOItemQueueItem, DTOItemSoundbite } from '@podverse/helpers';
 import { getShuffleHash } from '@podverse/helpers-requests';
-import { createContext, useContext, useState, ReactNode, useEffect } from 'react';
-import { LocalSettingsState } from '../utils/localSettings/localSettings';
+import type { ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect } from 'react';
+import type { LocalSettingsState } from '../utils/localSettings/localSettings';
 import { useLocalSettings } from './LocalSettings';
 
 export type AutoQueueResourcesMapRow = {

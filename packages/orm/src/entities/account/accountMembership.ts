@@ -1,5 +1,5 @@
 import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
-import { AccountMembershipStatus } from '@orm/entities/account/accountMembershipStatus';
+import { AccountMembershipStatus } from '@orm/entities/account/accountMembershipStatus.js';
 
 @Entity()
 export class AccountMembership {

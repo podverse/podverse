@@ -1,4 +1,4 @@
-import { RemoteItemsResponse } from '@podverse/helpers';
+import type { RemoteItemsResponse } from '@podverse/helpers';
 import Accordion from '../../Accordian/Accordian';
 import { ContentPodrollHeader } from './ContentPodrollHeader';
 import { ContentPodrollRows } from './ContentPodrollRows';

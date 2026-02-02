@@ -1,2 +1,2 @@
-export * from './configValidation';
-export * from './startupValidation';
+export * from './configValidation.js';
+export * from './startupValidation.js';

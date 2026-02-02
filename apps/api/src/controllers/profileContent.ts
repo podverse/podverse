@@ -1,29 +1,31 @@
-import { Request, Response } from 'express';
+import type { Request, Response } from 'express';
 import Joi from 'joi';
 import { getSharableStatusIdsForProfileType } from '@podverse/helpers';
-import { ApiListResponse } from '@podverse/helpers-requests';
-import {
+import type { ApiListResponse } from '@podverse/helpers-requests';
+import type {
   AccountFollowingChannel,
-  AccountFollowingChannelService,
-  AccountService,
   Channel,
   Clip,
-  ClipService,
   FindManyOptions,
   Playlist,
+} from '@podverse/orm';
+import {
+  AccountFollowingChannelService,
+  AccountService,
+  ClipService,
   PlaylistService,
   subChannelGetManyRelations,
 } from '@podverse/orm';
-import { handleGenericErrorResponse } from '@api/controllers/helpers/error';
-import { getPaginationParams } from '@api/controllers/helpers/pagination';
+import { handleGenericErrorResponse } from '@api/controllers/helpers/error.js';
+import { getPaginationParams } from '@api/controllers/helpers/pagination.js';
 import {
   accountIdTextParamSchema,
   pageQuerySchema,
   validateParamsObject,
   validateQueryObject,
-} from '@api/lib/validation';
-import { ensureAuthenticated, getAuthenticatedUser } from '@api/lib/auth';
-import { getParamRequired } from '@api/lib/params';
+} from '@api/lib/validation/index.js';
+import { ensureAuthenticated, getAuthenticatedUser } from '@api/lib/auth/index.js';
+import { getParamRequired } from '@api/lib/params.js';
 
 const clipRelations = [
   'item',

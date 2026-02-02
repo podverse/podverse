@@ -1,6 +1,6 @@
-import { DataSource } from 'typeorm';
-import { ILoggerLike } from '@podverse/helpers-backend';
-import { ORMConfig } from './config/types';
+import type { DataSource } from 'typeorm';
+import type { ILoggerLike } from '@podverse/helpers-backend';
+import type { ORMConfig } from './config/types.js';
 
 /**
  * Module-level context holder for the ORM.

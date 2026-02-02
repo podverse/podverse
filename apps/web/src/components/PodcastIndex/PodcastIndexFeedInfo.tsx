@@ -1,7 +1,8 @@
 'use client';
 
 import { useLocale, useTranslations } from 'next-intl';
-import { formatDateAbbrev, PodcastByIdFeed } from '@podverse/helpers';
+import type { PodcastByIdFeed } from '@podverse/helpers';
+import { formatDateAbbrev } from '@podverse/helpers';
 import { Image } from '../Image/Image';
 import { IMAGES } from '../../constants/images';
 import { Button } from '../Button/Button';

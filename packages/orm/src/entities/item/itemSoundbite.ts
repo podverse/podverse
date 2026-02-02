@@ -7,8 +7,9 @@ import {
   JoinColumn,
   BeforeInsert,
 } from 'typeorm';
-import { Item } from '@orm/entities/item/item';
-import { generateRandomIdText } from '@orm/lib/nanoid';
+import type { Relation } from 'typeorm';
+import type { Item } from '@orm/entities/item/item.js';
+import { generateRandomIdText } from '@orm/lib/nanoid.js';
 
 @Entity()
 export class ItemSoundbite {
@@ -18,9 +19,9 @@ export class ItemSoundbite {
   @Column({ type: 'varchar', unique: true })
   id_text!: string;
 
-  @ManyToOne(() => Item, (item) => item.id, { onDelete: 'CASCADE' })
+  @ManyToOne('Item', (item: Item) => item.id, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'item_id' })
-  item!: Item;
+  item!: Relation<Item>;
 
   @Column({ type: 'decimal', precision: 10, scale: 2 })
   start_time!: string;

@@ -1,9 +1,9 @@
-import { itemIdTextParamSchema, validateParamsObject } from '@api/lib/validation';
-import { Request, Response } from 'express';
+import { itemIdTextParamSchema, validateParamsObject } from '@api/lib/validation/index.js';
+import type { Request, Response } from 'express';
 import Joi from 'joi';
 import { ItemTranscriptService } from '@podverse/orm';
-import { _request } from '../lib/_request';
-import { getParamRequired } from '@api/lib/params';
+import { _request } from '../lib/_request.js';
+import { getParamRequired } from '@api/lib/params.js';
 
 export class ItemTranscriptController {
   private static itemTranscriptService = new ItemTranscriptService();

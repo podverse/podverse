@@ -1,4 +1,4 @@
-import {
+import type {
   DTOChannel,
   DTOClip,
   DTOItem,
@@ -9,7 +9,8 @@ import {
   PlaybackMode,
   PlaybackSpeedValue,
 } from '@podverse/helpers';
-import { createContext, useContext, useState, ReactNode } from 'react';
+import type { ReactNode } from 'react';
+import { createContext, useContext, useState } from 'react';
 
 type MediaPlayerContextType = {
   mpChannel: DTOChannel | null;

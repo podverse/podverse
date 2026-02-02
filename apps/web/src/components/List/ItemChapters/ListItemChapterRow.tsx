@@ -2,13 +2,8 @@
 
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';
-import {
-  DTOChannel,
-  DTOItem,
-  DTOItemChapter,
-  findDTOChannelImageBySize,
-  findDTOItemImageBySize,
-} from '@podverse/helpers';
+import type { DTOChannel, DTOItem, DTOItemChapter } from '@podverse/helpers';
+import { findDTOChannelImageBySize, findDTOItemImageBySize } from '@podverse/helpers';
 import { getShuffleHash } from '@podverse/helpers-requests';
 import React from 'react';
 import { Image } from '../../Image/Image';

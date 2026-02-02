@@ -1,7 +1,7 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { DTOChannel } from '@podverse/helpers';
+import type { DTOChannel } from '@podverse/helpers';
 import { FaBell, FaBellSlash } from 'react-icons/fa6';
 import { useAccount } from '../../../contexts/Account';
 import { useModals } from '../../../contexts/Modals';

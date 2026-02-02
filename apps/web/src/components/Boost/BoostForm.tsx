@@ -6,7 +6,7 @@ import Form from '../Form/Form';
 import TextInputNumber from '../Form/TextInputNumber';
 import { TextInput } from '../Form/TextInput';
 import { MediaHeaderMini } from '../MediaHeaderMini/MediaHeaderMini';
-import { DTOChannel, DTOItem } from '@podverse/helpers';
+import type { DTOChannel, DTOItem } from '@podverse/helpers';
 import { ButtonTabs } from '../Tabs/ButtonTabs';
 import styles from '../../styles/components/Boost/BoostForm.module.scss';
 import Accordion from '../Accordian/Accordian';

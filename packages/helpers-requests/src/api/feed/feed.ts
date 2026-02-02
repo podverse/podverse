@@ -1,5 +1,5 @@
-import { DTOFeed } from '@podverse/helpers';
-import { ApiRequestService } from '../_request';
+import type { DTOFeed } from '@podverse/helpers';
+import type { ApiRequestService } from '../_request.js';
 
 export async function reqFeedGetByPodcastIndexId(
   api: ApiRequestService,

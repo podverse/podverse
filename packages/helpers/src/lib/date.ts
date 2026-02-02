@@ -5,7 +5,7 @@ import { es } from 'date-fns/locale/es';
 import { fr } from 'date-fns/locale/fr';
 import { el } from 'date-fns/locale/el';
 
-import { SUPPORTED_LOCALES } from './constants/locales';
+import { SUPPORTED_LOCALES } from './constants/locales.js';
 
 /** date-fns locale module ids for SUPPORTED_LOCALES (en-US, es, fr, el for el-GR). Use for bundle restriction (e.g. Webpack ContextReplacementPlugin). */
 export const DATE_FNS_LOCALE_IDS: readonly string[] = SUPPORTED_LOCALES.map((loc) =>

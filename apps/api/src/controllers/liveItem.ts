@@ -1,16 +1,16 @@
-import { Request, Response } from 'express';
-import { getParamRequired } from '@api/lib/params';
+import type { Request, Response } from 'express';
+import { getParamRequired } from '@api/lib/params.js';
 import Joi from 'joi';
 import { LIVE_ITEM_STATUSES } from '@podverse/helpers';
+import type { Item } from '@podverse/orm';
 import {
   ChannelService,
-  Item,
   itemGetManyRelations,
   ItemService,
   LiveItemStatusEnum,
 } from '@podverse/orm';
-import { validateQueryObject } from '@api/lib/validation';
-import { ItemController } from '@api/controllers/item';
+import { validateQueryObject } from '@api/lib/validation/index.js';
+import { ItemController } from '@api/controllers/item.js';
 
 export class LiveItemController {
   private static itemService = new ItemService();

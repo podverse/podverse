@@ -1,7 +1,7 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { DTOQueueResource } from '@podverse/helpers';
+import type { DTOQueueResource } from '@podverse/helpers';
 import React, { useRef } from 'react';
 import { CallToActionMessage } from '../../CallToActionMessage/CallToActionMessage';
 import { useModals } from '../../../contexts/Modals';

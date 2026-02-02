@@ -7,7 +7,7 @@ import LoadingSpinnerOverlay from '../../../components/LoadingSpinner/LoadingSpi
 import styles from '../../../styles/app/podcast/PodcastList.module.scss';
 import { EpisodeSummary } from '../../../components/Media/Podcast/Episode/EpisodeSummary';
 import { ListClips } from '../../../components/List/Clips/ListClips';
-import { DTOChannel, DTOItem } from '@podverse/helpers';
+import type { DTOChannel, DTOItem } from '@podverse/helpers';
 import { ListItemSoundbites } from '../../../components/List/ItemSoundbites/ListItemSoundbites';
 import { ListItemChapters } from '../../../components/List/ItemChapters/ListItemChapters';
 

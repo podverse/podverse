@@ -1,28 +1,23 @@
-import { getMediumIdArrayFromType, MediumEnum, QueryParamsMedium } from '@podverse/helpers';
-import {
-  FindManyOptions,
-  FindOptionsRelations,
-  FindOptionsWhere,
-  In,
-  Repository,
-  Equal,
-} from 'typeorm';
-import { Channel } from '@orm/entities/channel/channel';
-import { Feed } from '@orm/entities/feed/feed';
-import { applyProperties } from '@orm/lib/applyProperties';
-import { AppDataSourceRead, AppDataSourceReadWrite } from '@orm/db';
-import { ChannelCategoryService } from './channelCategory';
-import { ChannelFundingService } from './channelFunding';
-import { ChannelImageService } from './channelImage';
-import { ChannelPersonService } from './channelPerson';
-import { ChannelRemoteItemService } from './channelRemoteItem';
-import { ChannelSeasonService } from './channelSeason';
-import { ChannelSocialInteractService } from './channelSocialInteract';
-import { ChannelTrailerService } from './channelTrailer';
-import { ChannelTxtService } from './channelTxt';
-import { ChannelValueService } from './channelValue';
-import { ChannelValueRecipientService } from './channelValueRecipient';
-import { FeedFlagStatusStatusEnum } from '@orm/entities/feed/feedFlagStatus';
+import type { QueryParamsMedium } from '@podverse/helpers';
+import { getMediumIdArrayFromType, MediumEnum } from '@podverse/helpers';
+import type { FindManyOptions, FindOptionsRelations, FindOptionsWhere, Repository } from 'typeorm';
+import { In, Equal } from 'typeorm';
+import { Channel } from '@orm/entities/channel/channel.js';
+import { Feed } from '@orm/entities/feed/feed.js';
+import { applyProperties } from '@orm/lib/applyProperties.js';
+import { AppDataSourceRead, AppDataSourceReadWrite } from '@orm/db/index.js';
+import { ChannelCategoryService } from './channelCategory.js';
+import { ChannelFundingService } from './channelFunding.js';
+import { ChannelImageService } from './channelImage.js';
+import { ChannelPersonService } from './channelPerson.js';
+import { ChannelRemoteItemService } from './channelRemoteItem.js';
+import { ChannelSeasonService } from './channelSeason.js';
+import { ChannelSocialInteractService } from './channelSocialInteract.js';
+import { ChannelTrailerService } from './channelTrailer.js';
+import { ChannelTxtService } from './channelTxt.js';
+import { ChannelValueService } from './channelValue.js';
+import { ChannelValueRecipientService } from './channelValueRecipient.js';
+import { FeedFlagStatusStatusEnum } from '@orm/entities/feed/feedFlagStatus.js';
 
 type ChannelDto = {
   slug?: string | null;

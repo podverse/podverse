@@ -1,5 +1,5 @@
-import { AppDataSourceRead } from '@orm/db';
-import { Medium } from '@orm/entities/medium';
+import { AppDataSourceRead } from '@orm/db/index.js';
+import { Medium } from '@orm/entities/medium.js';
 
 export class MediumService {
   private repositoryRead = AppDataSourceRead.getRepository(Medium);

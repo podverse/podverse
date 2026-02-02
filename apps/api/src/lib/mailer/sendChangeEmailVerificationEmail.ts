@@ -1,7 +1,7 @@
-import { config } from '@api/config';
-import { loggerService } from '@api/factories/loggerService';
-import { emailTemplate } from '@api/lib/mailer/emailTemplate';
-import { createTransporter } from '@api/lib/mailer/transporter';
+import { config } from '@api/config/index.js';
+import { loggerService } from '@api/factories/loggerService.js';
+import { emailTemplate } from '@api/lib/mailer/emailTemplate.js';
+import { createTransporter } from '@api/lib/mailer/transporter.js';
 
 export const sendEmailChangeVerificationEmail = async (
   pending_email_address: string,

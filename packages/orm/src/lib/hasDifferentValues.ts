@@ -1,4 +1,4 @@
-import { loggerService } from '@orm/factories/loggerService';
+import { loggerService } from '@orm/factories/loggerService.js';
 
 function isDebugMode(): boolean {
   try {

@@ -1,7 +1,7 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { DTOItem } from '@podverse/helpers';
+import type { DTOItem } from '@podverse/helpers';
 import React, { useRef } from 'react';
 import { CallToActionMessage } from '../../CallToActionMessage/CallToActionMessage';
 import Pagination from '../../Pagination/Pagination';
@@ -9,7 +9,7 @@ import { useModals } from '../../../contexts/Modals';
 import { checkBackNavFlag } from '../../../contexts/Navigation';
 import { useSkipInitialEffect } from '../../../hooks/useSkipInitialEffect';
 import { scrollMainToTop } from '../../../utils/scroll';
-import { ViewSelectedOption } from '../../ViewSelector/ViewSelector';
+import type { ViewSelectedOption } from '../../ViewSelector/ViewSelector';
 import { ListLiveItemNodes } from './ListLiveItemNodes';
 import { InfoWrapper } from '../../InfoWrapper/InfoWrapper';
 import styles from '../../../styles/components/List/Podcasts/Episodes/ListEpisodes.module.scss';

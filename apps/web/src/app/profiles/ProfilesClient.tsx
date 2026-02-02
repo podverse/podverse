@@ -1,7 +1,8 @@
 'use client';
 
-import { DTOAccount } from '@podverse/helpers';
-import { ProfilesContextProvider, ProfilesQueryParams } from './ProfilesContext';
+import type { DTOAccount } from '@podverse/helpers';
+import type { ProfilesQueryParams } from './ProfilesContext';
+import { ProfilesContextProvider } from './ProfilesContext';
 import { MainWrapper } from '../../components/Main/MainWrapper';
 import { ProfilesHeader } from './ProfilesHeader';
 import { ProfilesList } from './ProfilesList';

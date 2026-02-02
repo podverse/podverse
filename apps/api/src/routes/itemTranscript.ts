@@ -1,7 +1,7 @@
 import { Router } from 'express';
-import { config } from '@api/config';
-import { ItemTranscriptController } from '@api/controllers/itemTranscript';
-import { asyncHandler } from '@api/middleware/asyncHandler';
+import { config } from '@api/config/index.js';
+import { ItemTranscriptController } from '@api/controllers/itemTranscript.js';
+import { asyncHandler } from '@api/middleware/asyncHandler.js';
 
 const router = Router();
 

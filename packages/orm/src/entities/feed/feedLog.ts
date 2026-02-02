@@ -1,14 +1,15 @@
 import { Entity, PrimaryGeneratedColumn, Column, OneToOne, JoinColumn } from 'typeorm';
-import { Feed } from '@orm/entities/feed/feed';
+import type { Relation } from 'typeorm';
+import type { Feed } from '@orm/entities/feed/feed.js';
 
 @Entity('feed_log')
 export class FeedLog {
   @PrimaryGeneratedColumn()
   id!: number;
 
-  @OneToOne(() => Feed, (feed) => feed.feed_log, { onDelete: 'CASCADE' })
+  @OneToOne('Feed', (feed: Feed) => feed.feed_log, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'feed_id' })
-  feed!: Feed;
+  feed!: Relation<Feed>;
 
   @Column({ type: 'int', nullable: true })
   last_http_status!: number | null;

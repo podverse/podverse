@@ -1,7 +1,8 @@
-import { FindManyOptions, FindOneOptions, EntityManager, In } from 'typeorm';
-import { ItemChapter } from '@orm/entities/item/itemChapter';
-import { ItemChaptersFeed } from '@orm/entities/item/itemChaptersFeed';
-import { BaseManyService } from '@orm/services/base/baseManyService';
+import type { FindManyOptions, FindOneOptions, EntityManager } from 'typeorm';
+import { In } from 'typeorm';
+import { ItemChapter } from '@orm/entities/item/itemChapter.js';
+import type { ItemChaptersFeed } from '@orm/entities/item/itemChaptersFeed.js';
+import { BaseManyService } from '@orm/services/base/baseManyService.js';
 
 export type ItemChapterDto = {
   start_time: string;

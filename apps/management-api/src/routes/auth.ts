@@ -1,7 +1,7 @@
 import express from 'express';
-import { authenticate, logout, ensureAuthenticated } from '@mgmt-api/lib/auth';
-import { config } from '@mgmt-api/config';
-import { AdminAccountService } from '@mgmt-api/orm/services/adminAccount';
+import { authenticate, logout, ensureAuthenticated } from '@mgmt-api/lib/auth/index.js';
+import { config } from '@mgmt-api/config/index.js';
+import { AdminAccountService } from '@mgmt-api/orm/services/adminAccount.js';
 
 const router = express.Router();
 const baseUrl = `${config.api.prefix}${config.api.version}`;

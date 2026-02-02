@@ -1,6 +1,6 @@
-import { DTOClip } from '../clip';
-import { DTOItem } from '../item/item';
-import { DTOItemSoundbite } from '../item/itemSoundbite';
+import type { DTOClip } from '../clip.js';
+import type { DTOItem } from '../item/item.js';
+import type { DTOItemSoundbite } from '../item/itemSoundbite.js';
 
 export interface DTOQueueResource {
   id: number;

@@ -1,8 +1,8 @@
-import { Repository } from 'typeorm';
-import { AppDataSourceReadWrite, AppDataSourceRead } from '@orm/db';
-import { AccountSettingsLocale } from '@orm/entities/account/accountSettings/accountSettingsLocale';
-import { AccountSettings } from '@orm/entities/account/accountSettings/accountSettings';
-import { AccountFCMDevice } from '@orm/entities/account/accountFCMDevice';
+import type { Repository } from 'typeorm';
+import { AppDataSourceReadWrite, AppDataSourceRead } from '@orm/db/index.js';
+import { AccountSettingsLocale } from '@orm/entities/account/accountSettings/accountSettingsLocale.js';
+import { AccountSettings } from '@orm/entities/account/accountSettings/accountSettings.js';
+import { AccountFCMDevice } from '@orm/entities/account/accountFCMDevice.js';
 
 type CreateDto = {
   account_id: number;

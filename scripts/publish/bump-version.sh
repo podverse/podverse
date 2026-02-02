@@ -23,7 +23,7 @@ fi
 echo ""
 
 # Show current version from root package.json and prompt for next
-CURRENT_VERSION=$(node -p "require('./package.json').version")
+CURRENT_VERSION=$(node --input-type=module -e "import { readFileSync } from 'fs'; const pkg = JSON.parse(readFileSync('./package.json', 'utf8')); console.log(pkg.version)")
 echo -e "Current version (root package.json): ${GREEN}$CURRENT_VERSION${NC}"
 echo ""
 read -p "Enter next version (e.g., 5.2.3): " VERSION

@@ -2,7 +2,8 @@
 
 import React from 'react';
 import { useTranslations } from 'next-intl';
-import toast, { Toaster, ToastOptions, Toast as ToastType } from 'react-hot-toast';
+import type { ToastOptions, Toast as ToastType } from 'react-hot-toast';
+import toast, { Toaster } from 'react-hot-toast';
 import NextLink from 'next/link';
 import { FaXmark } from 'react-icons/fa6';
 import styles from '../../styles/components/Toast/Toast.module.scss';

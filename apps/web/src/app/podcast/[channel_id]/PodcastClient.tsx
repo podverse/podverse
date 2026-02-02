@@ -1,11 +1,11 @@
-import {
+import type {
   DTOChannel,
   DTOClip,
   DTOItem,
   DTOItemSoundbite,
   RemoteItemsResponse,
 } from '@podverse/helpers';
-import { QueryParamsChannel } from '@podverse/helpers-requests';
+import type { QueryParamsChannel } from '@podverse/helpers-requests';
 import { MainWrapper } from '../../../components/Main/MainWrapper';
 import { PodcastContextProvider } from './PodcastContext';
 import { PodcastListHeader } from './PodcastListHeader';

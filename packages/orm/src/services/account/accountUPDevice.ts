@@ -1,10 +1,10 @@
-import { CreateAccountUPDeviceParams, UpdateAccountUPDeviceParams } from '@podverse/helpers';
+import type { CreateAccountUPDeviceParams, UpdateAccountUPDeviceParams } from '@podverse/helpers';
 import { In } from 'typeorm';
-import { AccountUPDevice } from '@orm/entities/account/accountUPDevice';
-import { BaseManyService } from '@orm/services/base/baseManyService';
-import { AccountService } from '@orm/services/account/account';
-import { AccountNotificationChannelService } from '@orm/services/account/accountNotificationChannel';
-import { getDefaultLocale } from '@orm/config';
+import { AccountUPDevice } from '@orm/entities/account/accountUPDevice.js';
+import { BaseManyService } from '@orm/services/base/baseManyService.js';
+import { AccountService } from '@orm/services/account/account.js';
+import { AccountNotificationChannelService } from '@orm/services/account/accountNotificationChannel.js';
+import { getDefaultLocale } from '@orm/config/index.js';
 
 export class AccountUPDeviceService extends BaseManyService<AccountUPDevice, 'account'> {
   private accountService: AccountService;

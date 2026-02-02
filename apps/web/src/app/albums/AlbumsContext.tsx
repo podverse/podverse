@@ -1,8 +1,10 @@
 'use client';
 
-import { createContext, useContext, useState, ReactNode } from 'react';
-import { DTOChannel, getTotalPages } from '@podverse/helpers';
-import { QueryParamsGetManyMusic } from '@podverse/helpers-requests';
+import type { ReactNode } from 'react';
+import { createContext, useContext, useState } from 'react';
+import type { DTOChannel } from '@podverse/helpers';
+import { getTotalPages } from '@podverse/helpers';
+import type { QueryParamsGetManyMusic } from '@podverse/helpers-requests';
 import { apiRequestService } from '../../factories/apiRequestService';
 import { useAccount } from '../../contexts/Account';
 import { useSkipInitialEffect } from '../../hooks/useSkipInitialEffect';

@@ -1,6 +1,6 @@
-import { Feed } from '@orm/entities/feed/feed';
-import { FeedLog } from '@orm/entities/feed/feedLog';
-import { BaseOneService } from '@orm/services/base/baseOneService';
+import type { Feed } from '@orm/entities/feed/feed.js';
+import { FeedLog } from '@orm/entities/feed/feedLog.js';
+import { BaseOneService } from '@orm/services/base/baseOneService.js';
 
 type FeedLogDto = {
   last_http_status?: number | null;

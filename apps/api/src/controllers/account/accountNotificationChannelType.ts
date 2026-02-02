@@ -1,15 +1,16 @@
-import { Request, Response } from 'express';
+import type { Request, Response } from 'express';
 import { AccountNotificationChannelTypeService } from '@podverse/orm';
 import Joi from 'joi';
-import { ACCOUNT_NOTIFICATION_TYPE_VALUES, AccountNotificationTypeEnum } from '@podverse/helpers';
-import { ensureAuthenticated, getAuthenticatedUser } from '@api/lib/auth';
-import { handleGenericErrorResponse } from '../helpers/error';
+import type { AccountNotificationTypeEnum } from '@podverse/helpers';
+import { ACCOUNT_NOTIFICATION_TYPE_VALUES } from '@podverse/helpers';
+import { ensureAuthenticated, getAuthenticatedUser } from '@api/lib/auth/index.js';
+import { handleGenericErrorResponse } from '../helpers/error.js';
 import {
   channelIdTextParamSchema,
   validateBodyObject,
   validateParamsObject,
-} from '@api/lib/validation';
-import { getParamRequired } from '@api/lib/params';
+} from '@api/lib/validation/index.js';
+import { getParamRequired } from '@api/lib/params.js';
 
 class AccountNotificationChannelTypeController {
   private static accountNotificationChannelTypeService =

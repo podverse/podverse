@@ -1,4 +1,4 @@
-import { QueryParamsMedium, QueryParamsQueueMedium } from '@podverse/helpers';
+import type { QueryParamsMedium, QueryParamsQueueMedium } from '@podverse/helpers';
 import {
   AccountFollowingChannelService,
   AccountFollowingPlaylistService,

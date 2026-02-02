@@ -1,4 +1,4 @@
-import { DTOChannel, DTOItem, QueryParamsQueueMedium } from '@podverse/helpers';
+import type { DTOChannel, DTOItem, QueryParamsQueueMedium } from '@podverse/helpers';
 import React from 'react';
 import { Divider } from '../../Divider/Divider';
 import { LivestreamHeaderPlaySection } from './LivestreamHeaderPlaySection';

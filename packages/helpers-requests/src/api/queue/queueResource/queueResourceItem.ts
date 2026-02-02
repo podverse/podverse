@@ -1,7 +1,7 @@
-import { ApiRequestService } from '../../_request';
-import { DTOQueueResource } from '@podverse/helpers';
-import { BetweenParams } from '@podverse/helpers';
-import { QueueExtraParams } from '@podverse/helpers';
+import type { ApiRequestService } from '../../_request.js';
+import type { DTOQueueResource } from '@podverse/helpers';
+import type { BetweenParams } from '@podverse/helpers';
+import type { QueueExtraParams } from '@podverse/helpers';
 
 export async function reqQueueResourceItemAddNowPlaying(
   api: ApiRequestService,

@@ -1,9 +1,10 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { UITheme, toUITheme } from '../utils/localSettings/uiTheme';
-import { ViewSelectedOption } from '../components/ViewSelector/ViewSelector';
+import type { UITheme } from '../utils/localSettings/uiTheme';
+import { toUITheme } from '../utils/localSettings/uiTheme';
+import type { ViewSelectedOption } from '../components/ViewSelector/ViewSelector';
+import type { LocalSettingsState } from '../utils/localSettings/localSettings';
 import {
   handleLocalSettingsUpdate,
-  LocalSettingsState,
   getParsedLocalSettings,
 } from '../utils/localSettings/localSettings';
 

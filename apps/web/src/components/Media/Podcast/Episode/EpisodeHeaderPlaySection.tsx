@@ -1,6 +1,7 @@
 'use client';
 
-import { DTOChannel, DTOItem, getQueueForMedium } from '@podverse/helpers';
+import type { DTOChannel, DTOItem } from '@podverse/helpers';
+import { getQueueForMedium } from '@podverse/helpers';
 import { getShuffleHash } from '@podverse/helpers-requests';
 import React from 'react';
 import { PlayButtonLarge } from '../../../MediaPlayer/Buttons/PlayButtonLarge';

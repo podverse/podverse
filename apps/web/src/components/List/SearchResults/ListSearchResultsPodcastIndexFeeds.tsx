@@ -1,6 +1,6 @@
 'use client';
 
-import { SearchPodcastsFeed } from '@podverse/helpers';
+import type { SearchPodcastsFeed } from '@podverse/helpers';
 import React from 'react';
 import ListSearchResultPodcastIndexFeedRow from './ListSearchResultPodcastIndexFeedRow';
 

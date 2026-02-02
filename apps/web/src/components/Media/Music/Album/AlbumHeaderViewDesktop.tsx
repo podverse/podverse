@@ -1,4 +1,4 @@
-import { DTOChannel, DTOItem } from '@podverse/helpers';
+import type { DTOChannel, DTOItem } from '@podverse/helpers';
 import { AlbumHeaderButtons } from './AlbumHeaderButtons';
 import { AlbumHeaderImage } from './AlbumHeaderImage';
 import { AlbumHeaderSubtitle } from './AlbumHeaderSubtitle';

@@ -1,7 +1,9 @@
 #!/usr/bin/env node
 
-const { Client } = require('pg');
-const bcrypt = require('bcrypt');
+import bcrypt from 'bcrypt';
+import pg from 'pg';
+
+const { Client } = pg;
 
 async function createSuperuser() {
   const email = process.env.SUPERUSER_EMAIL;
