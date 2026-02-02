@@ -1,7 +1,7 @@
 import type { FeedObject } from 'podverse-partytime';
 import type { Channel, EntityManager } from '@podverse/orm';
 import { ChannelImageService } from '@podverse/orm';
-import { compatChannelImageDtos } from '@parser/lib/compat/partytime/channel.js';
+import { compatChannelImageDtos } from '@podverse/parser-mapping';
 import { handleParsedManyData } from '../base/handleParsedManyData.js';
 import { timerManager } from '@parser/factories/timerManager.js';
 

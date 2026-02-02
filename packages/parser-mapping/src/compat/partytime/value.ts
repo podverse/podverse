@@ -1,4 +1,4 @@
-import type { Phase4Value, Phase4ValueRecipient } from 'podverse-partytime';
+import type { Phase4Value, Phase4ValueRecipient } from '../../types/partytime.js';
 import { DATABASE_CONSTANTS } from '@podverse/helpers';
 import { isValidHttpUrl } from '@podverse/helpers-validation';
 
@@ -25,10 +25,10 @@ export const compatItemValue = (value: Phase4Value) => {
               start_time: DATABASE_CONSTANTS.getMediaPlayerNumeric(valueTimeSplit.startTime),
               duration: DATABASE_CONSTANTS.getMediaPlayerNumeric(valueTimeSplit.duration),
               remote_start_time:
-                DATABASE_CONSTANTS.getMediaPlayerNumeric(valueTimeSplit.remoteStartTime) ||
+                DATABASE_CONSTANTS.getMediaPlayerNumeric(valueTimeSplit.remoteStartTime ?? 0) ||
                 (0).toFixed(2),
               remote_percentage:
-                DATABASE_CONSTANTS.getMediaPlayerNumeric(valueTimeSplit.remotePercentage) ||
+                DATABASE_CONSTANTS.getMediaPlayerNumeric(valueTimeSplit.remotePercentage ?? 100) ||
                 (100).toFixed(2),
             },
             item_value_time_splits_recipients: [],

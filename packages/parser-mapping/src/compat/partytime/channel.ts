@@ -1,6 +1,5 @@
-import type { FeedObject } from 'podverse-partytime';
-import { Phase4Medium } from 'podverse-partytime';
-import type { Phase4PodcastImage } from 'podverse-partytime/dist/parser/phase/phase-4.js';
+import type { FeedObject, Phase4PodcastImage } from '../../types/partytime.js';
+import { Phase4Medium } from '../../types/partytime.js';
 import {
   createSortableTitle,
   DATABASE_CONSTANTS,
@@ -10,11 +9,14 @@ import {
   getMediumEnumValue,
 } from '@podverse/helpers';
 import { isValidHttpUrl } from '@podverse/helpers-validation';
-import { compatChannelValue } from '@parser/lib/compat/partytime/value.js';
+import { compatChannelValue } from './value.js';
 import { detectDuckTypedPublisherMediumId } from './publisher.js';
 
 export const compatChannelDto = (parsedFeed: FeedObject) => {
-  let medium_id = getMediumEnumValue(parsedFeed.medium ?? Phase4Medium.Podcast);
+  // TODO: tighten medium type once partytime enum is modeled locally
+  const mediumRaw =
+    typeof parsedFeed.medium === 'string' ? parsedFeed.medium : Phase4Medium.Podcast;
+  let medium_id = getMediumEnumValue(mediumRaw);
   const detected = detectDuckTypedPublisherMediumId(parsedFeed);
   if (detected !== null) {
     medium_id = detected;
@@ -24,7 +26,8 @@ export const compatChannelDto = (parsedFeed: FeedObject) => {
     podcast_guid: parsedFeed.guid?.slice(0, DATABASE_CONSTANTS.varchar_guid) || null,
     title: parsedFeed.title?.slice(0, DATABASE_CONSTANTS.varchar_normal) || null,
     sortable_title:
-      createSortableTitle(parsedFeed.title)?.slice(0, DATABASE_CONSTANTS.varchar_short) || null,
+      createSortableTitle(parsedFeed.title ?? '').slice(0, DATABASE_CONSTANTS.varchar_short) ||
+      null,
     medium_id,
   };
 };
@@ -39,7 +42,7 @@ export const compatChannelAboutDto = (parsedFeed: FeedObject) => ({
     )
       ?.join(', ')
       ?.slice(0, DATABASE_CONSTANTS.varchar_normal) || null,
-  explicit: getBooleanOrNull(parsedFeed.explicit),
+  explicit: getBooleanOrNull(parsedFeed.explicit ?? null),
   language: parsedFeed.language?.slice(0, DATABASE_CONSTANTS.varchar_short) || null,
   website_link_url:
     (isValidHttpUrl(parsedFeed.link) &&
@@ -81,7 +84,8 @@ export const compatChannelCategoryDtos = (parsedFeed: FeedObject) => {
 };
 
 export const compatChannelChatDto = (parsedFeed: FeedObject) => {
-  if (!parsedFeed.chat || !parsedFeed.chat.server) {
+  // TODO: tighten chat shape once Phase7Chat is fully modeled
+  if (!parsedFeed.chat || !parsedFeed.chat.server || !parsedFeed.chat.protocol) {
     return null;
   }
   return {

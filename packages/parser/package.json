@@ -28,6 +28,7 @@
     "@podverse/helpers-requests": "*",
     "@podverse/helpers-validation": "*",
     "@podverse/orm": "*",
+    "@podverse/parser-mapping": "*",
     "podverse-partytime": "^5.0.0"
   },
   "devDependencies": {

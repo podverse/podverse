@@ -1,12 +1,11 @@
-import type { Episode } from 'podverse-partytime';
-import type { Phase4PodcastImage } from 'podverse-partytime/dist/parser/phase/phase-4.js';
+import type { Episode, Phase4PodcastImage } from '../../types/partytime.js';
 import {
   DATABASE_CONSTANTS,
   formatGuidEnclosureUrl,
   getItemItunesEpisodeTypeEnumValue,
 } from '@podverse/helpers';
 import { isValidHttpUrl } from '@podverse/helpers-validation';
-import { compatItemValue } from '@parser/lib/compat/partytime/value.js';
+import { compatItemValue } from './value.js';
 
 type CompatItemDtoOptions = {
   isLiveItem?: boolean;
@@ -73,9 +72,9 @@ export const compatItemEnclosureDtos = (parsedItem: Episode) => {
   const dtos = [];
 
   // Create item_enclosure_default dto separately
-  if (parsedItem.enclosure?.url) {
+  if (parsedItem.enclosure.url) {
     const item_enclosure = {
-      type: parsedItem.enclosure.type?.slice(0, DATABASE_CONSTANTS.varchar_short),
+      type: parsedItem.enclosure.type.slice(0, DATABASE_CONSTANTS.varchar_short),
       length: parsedItem.enclosure.length || null,
       bitrate: null,
       height: null,
@@ -124,6 +123,7 @@ export const compatItemEnclosureDtos = (parsedItem: Episode) => {
         'compatItemEnclosureDtos' has or is using name 'IntegrityType' from external module
         "/podverse-parser/node_modules/podverse-partytime/dist/parser/phase/phase-3" but cannot be named.
       */
+      // TODO: replace any-cast when IntegrityType is modeled locally
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const item_enclosure_integrity = (alternativeEnclosure.integrity as any) || null;
 
@@ -237,7 +237,7 @@ export const compatItemSeasonDto = (parsedItem: Episode) => {
 
 export const compatItemSeasonEpisodeDto = (parsedItem: Episode) => {
   const episodeNumber = parsedItem.podcastEpisode?.number ?? parsedItem.itunesEpisode;
-  if (episodeNumber === undefined) {
+  if (episodeNumber === undefined || episodeNumber === null) {
     return null;
   }
 

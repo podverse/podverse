@@ -2,7 +2,7 @@ import type { Phase4PodcastLiveItem } from 'podverse-partytime/dist/parser/phase
 import { chunkArray, getLiveItemStatusEnumValue, LiveItemStatusEnum } from '@podverse/helpers';
 import type { Channel, ChannelSeasonIndex, LiveItem } from '@podverse/orm';
 import { AppDataSourceReadWrite, ItemService, LiveItemService } from '@podverse/orm';
-import { compatLiveItemsDtos } from '@parser/lib/compat/partytime/liveItem.js';
+import { compatLiveItemsDtos } from '@podverse/parser-mapping';
 import { createItemTimerAccumulator, handleParsedItem } from '@parser/lib/rss/item/item.js';
 import { ItemFlagStatusStatusEnum } from '@podverse/orm';
 import { timerManager } from '@parser/factories/timerManager.js';
@@ -15,12 +15,8 @@ export type HandleParsedLiveItemsResult = {
   liveItemGuids: string[];
 };
 
-type LiveItemObjDto = {
-  item: Phase4PodcastLiveItem;
-  // TODO: how to replace this any?
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  liveItem: any; // Replace with the correct type if available
-};
+// TODO: tighten type once parser-mapping live item types align with partytime
+type LiveItemObjDto = ReturnType<typeof compatLiveItemsDtos>[number];
 
 const processLiveItemBatch = async (
   liveItemObjDtosBatch: LiveItemObjDto[],

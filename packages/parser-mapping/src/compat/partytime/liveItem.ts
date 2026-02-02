@@ -1,4 +1,4 @@
-import type { Phase4PodcastLiveItem } from 'podverse-partytime/dist/parser/phase/phase-4.js';
+import type { Phase4PodcastLiveItem } from '../../types/partytime.js';
 // import { isValidHttpUrl } from "@podverse/helpers";
 import { getLiveItemStatusEnumValue, LiveItemStatusEnum } from '@podverse/helpers';
 
@@ -8,7 +8,7 @@ export const compatLiveItemsDtos = (parsedLiveItems: Phase4PodcastLiveItem[]) =>
     dtos.push({
       liveItem: {
         live_item_status:
-          getLiveItemStatusEnumValue(parsedLiveItem.status) ?? LiveItemStatusEnum.Pending,
+          getLiveItemStatusEnumValue(parsedLiveItem.status ?? null) ?? LiveItemStatusEnum.Pending,
         start_time: parsedLiveItem.start,
         end_time: parsedLiveItem.end || null,
         /*

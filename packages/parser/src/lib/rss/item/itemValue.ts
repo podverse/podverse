@@ -9,7 +9,7 @@ import {
   ItemValueTimeSplitRemoteItemService,
   ChannelService,
 } from '@podverse/orm';
-import { compatItemValueDtos } from '@parser/lib/compat/partytime/item.js';
+import { compatItemValueDtos } from '@podverse/parser-mapping';
 
 export const handleParsedItemValue = async (
   parsedItem: Episode,

@@ -2,7 +2,7 @@ import type { Episode } from 'podverse-partytime';
 import { chunkArray, DATABASE_CONSTANTS, formatGuidEnclosureUrl } from '@podverse/helpers';
 import type { Channel, ChannelSeasonIndex } from '@podverse/orm';
 import { AppDataSourceReadWrite, ItemService } from '@podverse/orm';
-import { compatItemDto } from '@parser/lib/compat/partytime/item.js';
+import { compatItemDto } from '@podverse/parser-mapping';
 import { handleParsedItemAbout } from '@parser/lib/rss/item/itemAbout.js';
 import { handleParsedItemChaptersFeed } from '@parser/lib/rss/item/itemChaptersFeed.js';
 import { handleParsedItemDescription } from '@parser/lib/rss/item/itemDescription.js';
