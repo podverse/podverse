@@ -20,4 +20,5 @@ Provide a simple Add by RSS feed input form for users to add private RSS URLs.
 
 1. Add a simple form to accept a feed URL.
 2. Validate input and submit to existing Add by RSS API endpoint.
-3. Display success or error states.
+3. Generate a synthetic `id`/`id_text` mapping for the feed to enable stable routes.
+4. Display success or error states.

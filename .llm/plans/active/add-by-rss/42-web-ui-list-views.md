@@ -21,5 +21,6 @@ when only feed URLs are available.
 
 1. Build list views for:
    - Podcasts, Episodes, Artists, Albums, Tracks, Live Streams.
-2. Show placeholders for saved add-by-rss feed URLs when no parsed data exists.
-3. Reuse existing list components to keep UI consistent.
+2. Map parsed Add by RSS payloads to view models with synthetic `id`/`id_text` for UI parity.
+3. Show placeholders for saved add-by-rss feed URLs when no parsed data exists.
+4. Reuse existing list components to keep UI consistent.

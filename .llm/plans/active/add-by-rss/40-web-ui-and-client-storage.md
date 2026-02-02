@@ -3,14 +3,15 @@
 ## Goal
 
 Add a new Add by RSS UI section in the web app with list views, detail navigation via URL
-params, and client-side persistence with hashes.
+params, and client-side persistence with hashes for private feed viewing.
 
 ## Scope
 
 - Sidebar navigation section.
 - List views with placeholders for saved feeds.
 - “Check for Updates” button and progress UI.
-- Client-side storage of parsed payload + hash.
+- Client-side storage of parsed payload + hash in IndexedDB.
+- Synthetic `id`/`id_text` for Add by RSS view models to mirror DB-backed UI patterns.
 
 ## Key Files
 
@@ -34,7 +35,7 @@ params, and client-side persistence with hashes.
 - Client storage and hashing:
   [46-web-ui-client-storage.md](/Users/mitcheldowney/repos/pv/podverse/.llm/plans/active/add-by-rss/46-web-ui-client-storage.md)
 
-## Decisions to Make Later
+## Decisions
 
-- Best client storage choice (localStorage vs. IndexedDB vs. other).
-- URL param scheme for detail views and routing conventions.
+- Use IndexedDB for parsed payload storage and hashes.
+- Use path params with synthetic `id_text` for detail routes.

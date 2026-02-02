@@ -16,6 +16,6 @@ Persist Add by RSS parsed payloads and hashes in client storage and keep them in
 
 ## Plan
 
-1. Choose client storage approach (localStorage vs. IndexedDB vs. other).
-2. Store parsed payloads alongside their feed hash.
+1. Use IndexedDB for parsed payload storage and hashes.
+2. Store parsed payloads alongside their feed hash and synthetic `id`/`id_text` mappings.
 3. When data changes, update the stored hash; when data is removed, remove the hash.

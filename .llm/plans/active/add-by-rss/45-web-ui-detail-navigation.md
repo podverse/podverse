@@ -16,6 +16,6 @@ Support navigation to podcast-like detail views using URL parameters instead of 
 
 ## Plan
 
-1. Define URL parameter scheme for Add by RSS detail views.
-2. Add routes that parse URL params and load client-stored data.
+1. Use path params with synthetic `id_text` for Add by RSS detail views.
+2. Add routes that resolve `id_text` to client-stored data.
 3. Keep routes private to the current user’s client state.

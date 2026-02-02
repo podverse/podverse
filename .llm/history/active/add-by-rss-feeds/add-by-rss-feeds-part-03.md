@@ -144,3 +144,23 @@ update the plan text to fix the incongruency
 
 - .llm/plans/completed/add-by-rss/32-api-progress-and-results.md
 - .llm/history/active/add-by-rss-feeds/add-by-rss-feeds-part-03.md
+
+### Session 28 - 2026-02-02
+
+#### Prompt (Developer)
+
+update those plan files accordingly
+
+#### Key Decisions
+
+- Standardized IndexedDB storage and synthetic id/id_text for Add by RSS viewer models.
+- Switched detail routing to path params keyed by synthetic id_text.
+
+#### Files Modified
+
+- .llm/plans/active/add-by-rss/40-web-ui-and-client-storage.md
+- .llm/plans/active/add-by-rss/42-web-ui-list-views.md
+- .llm/plans/active/add-by-rss/44-web-ui-add-feed.md
+- .llm/plans/active/add-by-rss/45-web-ui-detail-navigation.md
+- .llm/plans/active/add-by-rss/46-web-ui-client-storage.md
+- .llm/history/active/add-by-rss-feeds/add-by-rss-feeds-part-03.md
