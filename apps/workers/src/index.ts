@@ -46,8 +46,8 @@ const run = async () => {
     assertConfigValid,
   } = await import('@podverse/helpers-config');
   const { createORMContext } = await import('@podverse/orm');
-  const { createFirebaseContext, PodcastIndexService } =
-    await import('@podverse/external-services');
+  const { createFirebaseContext } = await import('@podverse/external-services-firebase');
+  const { PodcastIndexService } = await import('@podverse/external-services-podcast-index');
   const { createNotificationsContext } = await import('@podverse/notifications');
   const { createParserContext } = await import('@podverse/parser');
   const { LoggerService } = await import('@podverse/helpers-backend');

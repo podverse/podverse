@@ -7,11 +7,8 @@
     "moduleResolution": "NodeNext",
     "outDir": "./dist",
     "rootDir": "./src",
-    "experimentalDecorators": true,
-    "emitDecoratorMetadata": true,
     "baseUrl": "./"
   },
   "include": ["./src/**/*.ts", "./src/**/*.d.ts"],
-  "exclude": ["node_modules", "dist"],
-  "references": [{ "path": "../helpers" }]
+  "exclude": ["node_modules", "dist"]
 }

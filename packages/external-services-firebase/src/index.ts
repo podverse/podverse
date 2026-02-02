@@ -6,4 +6,4 @@ export { createFirebaseContext } from './factory.js';
 export type { FirebaseContext } from './factory.js';
 
 // Service exports
-export * from './services/index.js';
+export * from './services/google/firebase/index.js';

@@ -2,7 +2,7 @@ import { MediumEnum } from '@podverse/helpers';
 import {
   firebaseNotificationBatchOrchestrator,
   type FirebaseContext,
-} from '@podverse/external-services';
+} from '@podverse/external-services-firebase';
 import type { NotificationsContext } from '../../factory.js';
 import { webpushNotificationBatchOrchestrator } from '../webpush/index.js';
 import type { WebPushSubscription } from '../webpush/index.js';

@@ -1,7 +1,7 @@
 import type { ILoggerLike } from '@podverse/helpers-backend';
 import { LoggerService, TimerManager } from '@podverse/helpers-backend';
-import type { FirebaseContext } from '@podverse/external-services';
-import { PodcastIndexService } from '@podverse/external-services';
+import type { FirebaseContext } from '@podverse/external-services-firebase';
+import { PodcastIndexService } from '@podverse/external-services-podcast-index';
 import type { NotificationsContext } from '@podverse/notifications';
 import type { ParserConfig } from './config/types.js';
 import { setParserContext } from './context.js';

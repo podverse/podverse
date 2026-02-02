@@ -1,4 +1,4 @@
-import { PodcastIndexService } from '@podverse/external-services';
+import { PodcastIndexService } from '@podverse/external-services-podcast-index';
 import { loggerService } from './loggerService.js';
 import { config } from '../config/index.js';
 

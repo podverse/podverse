@@ -1,5 +1,5 @@
 /**
- * Configuration types for podverse-external-services
+ * Configuration types for podverse-external-services-firebase
  * These types are used by the app to create the configuration object
  * that gets passed to factory functions
  */

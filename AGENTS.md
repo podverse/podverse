@@ -32,7 +32,7 @@ Build packages in this order (dependencies must be built first):
    - `helpers-backend` (backend-specific utilities)
    - `helpers-browser` (browser-specific utilities)
    - `helpers-config` (configuration validation)
-3. `external-services`
+3. `external-services-firebase`, `external-services-paypal`, `external-services-podcast-index` (parallel)
 4. `orm`
 5. `notifications`
 6. `parser`
