@@ -148,6 +148,11 @@ Recommended breakdown:
 Shall I proceed with just "helpers" first?
 ```
 
+## Module format and imports
+
+- **ESM formatting**: Use ESM-style imports and `.js` extensions in relative paths. Packages and apps use NodeNext (ESM).
+- **import type**: Use `import type` whenever the import is used only as a type (e.g. type annotations, generics). Use value imports when the symbol is used at runtime (e.g. classes for `instanceof`, decorators that need the constructor).
+
 ## Code Quality
 
 **Treat warnings as errors.** Fix all lint warnings before considering a task complete:

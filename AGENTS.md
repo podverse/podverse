@@ -93,6 +93,11 @@ import { Podcast } from '@podverse/orm';
 import { config } from './config'; // 4. Relative imports
 ```
 
+### ESM and import type
+
+- **ESM**: Relative imports use `.js` extensions. Packages and apps use ESM (NodeNext in `tsconfig.base.json`).
+- **Type-only imports**: Use `import type { X } from '...'` when the import is only used as a type (avoids runtime references and helps with circular deps). Keep value imports when the symbol is used at runtime (e.g. classes for `instanceof`, decorators that need the constructor).
+
 ## Architecture
 
 ### Directory Structure

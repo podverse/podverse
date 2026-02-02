@@ -13,6 +13,8 @@ See `.llm/context/architecture.md`. Lower tiers cannot depend on higher.
 - No `any` types
 - DTOs from `@podverse/helpers`
 - Follow `tsconfig.base.json`
+- Use ESM formatting (`.js` extensions in relative imports; `"type": "module"` where applicable)
+- Prefer `import type` for type-only imports instead of value imports
 
 ## Formatting Rules
 
