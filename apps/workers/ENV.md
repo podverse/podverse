@@ -2,7 +2,11 @@
 
 ## Overview
 
-The `podverse-workers` application uses environment variables to configure various services and modules. Environment variables are loaded from `.env` in development (production expects them in the environment). This repo consumes multiple modules (ORM, Parser, External Services, Notifications); the variables below are used to build the configuration objects passed to those module factories.
+The `podverse-workers` application uses environment variables to configure various services and modules.
+
+### Build requirement
+
+Worker commands run the built output (`node ./dist/index.js <command>`). You must build before running any command: from repo root run `npm run build:packages`, then from `apps/workers` run `npm run build` (or run both from root so packages and workers are built). This matches how the API is run (build then node). Environment variables are loaded from `.env` in development (production expects them in the environment). This repo consumes multiple modules (ORM, Parser, External Services, Notifications); the variables below are used to build the configuration objects passed to those module factories.
 
 ## Per-command validation
 

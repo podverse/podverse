@@ -20,7 +20,6 @@
   "license": "AGPL-3.0",
   "dependencies": {
     "@faker-js/faker": "^10.0.0",
-    "@podverse/external-services": "*",
     "@podverse/helpers": "*",
     "@podverse/helpers-backend": "*",
     "@podverse/orm": "*",

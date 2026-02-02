@@ -18,7 +18,8 @@
   "exclude": ["node_modules", "dist"],
   "references": [
     { "path": "../../packages/helpers" },
-    { "path": "../../packages/external-services" },
+    { "path": "../../packages/external-services-firebase" },
+    { "path": "../../packages/external-services-podcast-index" },
     { "path": "../../packages/orm" },
     { "path": "../../packages/mq" },
     { "path": "../../packages/notifications" },

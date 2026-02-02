@@ -1,4 +1,4 @@
-import { PayPalService } from '@podverse/external-services';
+import { PayPalService } from '@podverse/external-services-paypal';
 import { config } from '@api/config/index.js';
 
 export const paypalService = new PayPalService({

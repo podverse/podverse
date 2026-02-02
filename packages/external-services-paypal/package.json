@@ -1,7 +1,7 @@
 {
-  "name": "@podverse/notifications",
+  "name": "@podverse/external-services-paypal",
   "version": "5.2.5",
-  "description": "Push notification helper module for Podverse use cases",
+  "description": "PayPal integration for Podverse",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "files": [
@@ -21,14 +21,7 @@
     "access": "public"
   },
   "dependencies": {
-    "@podverse/external-services-firebase": "*",
-    "@podverse/helpers": "*",
-    "web-push": "^3.6.7",
-    "@podverse/helpers-backend": "*",
-    "@podverse/helpers-validation": "*"
-  },
-  "devDependencies": {
-    "@types/web-push": "^3.6.4"
+    "paypal-rest-sdk": "2.0.0-rc.2"
   },
   "type": "module"
 }

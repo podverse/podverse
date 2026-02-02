@@ -48,7 +48,7 @@ npm run build:packages
 ```
 
 This builds all shared packages in dependency order:
-`helpers` → `external-services` → `orm` → `notifications` → `parser` → `mq`
+`helpers` → `external-services-firebase`, `external-services-paypal`, `external-services-podcast-index` → `orm` → `notifications` → `parser` → `mq`
 
 ### 4. Start the API
 

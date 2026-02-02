@@ -19,7 +19,7 @@ const run = async () => {
   } = await import('@podverse/helpers-config');
   const { createORMContext, getDataSourceRead, getDataSourceReadWrite } =
     await import('@podverse/orm');
-  const { createFirebaseContext } = await import('@podverse/external-services');
+  const { createFirebaseContext } = await import('@podverse/external-services-firebase');
   const { createNotificationsContext } = await import('@podverse/notifications');
   const { createParserContext } = await import('@podverse/parser');
   const { loggerService } = await import('./factories/loggerService.js');

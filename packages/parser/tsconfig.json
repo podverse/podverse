@@ -16,5 +16,10 @@
   },
   "include": ["./src/**/*.ts"],
   "exclude": ["node_modules", "dist"],
-  "references": [{ "path": "../helpers" }, { "path": "../external-services" }, { "path": "../orm" }]
+  "references": [
+    { "path": "../helpers" },
+    { "path": "../external-services-firebase" },
+    { "path": "../external-services-podcast-index" },
+    { "path": "../orm" }
+  ]
 }
