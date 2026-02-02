@@ -164,3 +164,107 @@ update those plan files accordingly
 - .llm/plans/active/add-by-rss/45-web-ui-detail-navigation.md
 - .llm/plans/active/add-by-rss/46-web-ui-client-storage.md
 - .llm/history/active/add-by-rss-feeds/add-by-rss-feeds-part-03.md
+
+### Session 29 - 2026-02-02
+
+#### Prompt (Developer)
+
+implement the add-by-rss 40-46 all the way until completion, unless there is something critical
+you are unsure of, then you should ask me how to answer those questions
+
+#### Key Decisions
+
+- Implemented IndexedDB storage for Add by RSS feeds with synthetic id/id_text mapping.
+- Added web UI routes, list/detail views, and check-for-updates workflow.
+- Exposed API endpoint + request helpers to list followed Add by RSS channels.
+
+#### Files Modified
+
+- apps/web/src/constants/routes.ts
+- apps/web/src/components/SideBar/SideBar.tsx
+- apps/web/i18n/originals/en-US.json
+- apps/api/src/routes/account.ts
+- packages/helpers-requests/src/api/account/follow/addByRSSChannel.ts
+- packages/helpers-requests/src/api/\_request.ts
+- apps/web/src/utils/addByRSS/types.ts
+- apps/web/src/utils/addByRSS/ids.ts
+- apps/web/src/utils/addByRSS/storage.ts
+- apps/web/src/utils/addByRSS/api.ts
+- apps/web/src/utils/addByRSS/mapping.ts
+- apps/web/src/app/add-by-rss/[resource]/page.tsx
+- apps/web/src/app/add-by-rss/[resource]/[id_text]/page.tsx
+- apps/web/src/app/add-by-rss/AddByRSSListClient.tsx
+- apps/web/src/app/add-by-rss/AddByRSSDetailClient.tsx
+- apps/web/src/styles/app/add-by-rss/AddByRSSList.module.scss
+- apps/web/src/styles/app/add-by-rss/AddByRSSDetail.module.scss
+- .llm/history/active/add-by-rss-feeds/add-by-rss-feeds-part-03.md
+
+### Session 30 - 2026-02-02
+
+#### Prompt (Developer)
+
+the Add by RSS accordion in the SideBar should be collapsed by default.
+
+If the SideBar doesn't already, then the state of collapsed and opened sidebar accordions should be
+remembered, similar to filters
+
+#### Key Decisions
+
+- Persisted sidebar accordion open state in localStorage with Add by RSS collapsed by default.
+
+#### Files Modified
+
+- apps/web/src/components/Accordian/Accordian.tsx
+- apps/web/src/components/SideBar/SideBar.tsx
+- .llm/history/active/add-by-rss-feeds/add-by-rss-feeds-part-03.md
+
+### Session 31 - 2026-02-02
+
+#### Prompt (Developer)
+
+@en-US.json (57-67)
+
+these key/values should be nested under a key "add_by_rss"
+
+#### Key Decisions
+
+- Nested Add by RSS i18n keys under features.add_by_rss and updated references.
+
+#### Files Modified
+
+- apps/web/i18n/originals/en-US.json
+- apps/web/src/components/SideBar/SideBar.tsx
+- apps/web/src/app/add-by-rss/AddByRSSListClient.tsx
+- apps/web/src/app/add-by-rss/AddByRSSDetailClient.tsx
+- .llm/history/active/add-by-rss-feeds/add-by-rss-feeds-part-03.md
+
+### Session 32 - 2026-02-02
+
+#### Prompt (Developer)
+
+Implement the plan as specified, it is attached for your reference. Do NOT edit the plan file itself.
+
+To-do's from the plan have already been created. Do not create them again. Mark them as in_progress as you work, starting with the first one. Don't stop until you have completed all the to-dos.
+
+#### Key Decisions
+
+- Moved iTunes type/live item status enums and lookup helpers into `@podverse/helpers`.
+- Added `DTOItemChapterCreate` with explicit nullable fields for compat output.
+
+#### Files Modified
+
+- packages/helpers/src/lib/channelItunesType.ts
+- packages/helpers/src/lib/itemItunesEpisodeType.ts
+- packages/helpers/src/lib/liveItemStatus.ts
+- packages/helpers/src/index.ts
+- packages/helpers/src/dtos/item/itemChapterCreate.ts
+- packages/helpers/src/dtos/index.ts
+- packages/orm/src/entities/channel/channelItunesType.ts
+- packages/orm/src/entities/item/itemItunesEpisodeType.ts
+- packages/orm/src/entities/liveItem/liveItemStatus.ts
+- packages/parser/src/lib/compat/partytime/channel.ts
+- packages/parser/src/lib/compat/partytime/item.ts
+- packages/parser/src/lib/compat/partytime/liveItem.ts
+- packages/parser/src/lib/rss/liveItem/liveItem.ts
+- packages/parser/src/lib/compat/chapters/chapters.ts
+- .llm/history/active/add-by-rss-feeds/add-by-rss-feeds-part-03.md

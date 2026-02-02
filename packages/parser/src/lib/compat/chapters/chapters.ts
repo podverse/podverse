@@ -1,6 +1,6 @@
 import { getPIChapterMd5Hash } from '@parser/lib/rss/hash/parsedItemChapter.js';
 import { isValidHttpUrl } from '@podverse/helpers-validation';
-import type { ItemChapterDto } from '@podverse/orm';
+import type { DTOItemChapterCreate } from '@podverse/helpers';
 
 export type PIChapter = {
   startTime: string;
@@ -11,7 +11,7 @@ export type PIChapter = {
   toc: boolean;
 };
 
-export const compatParsedChapters = (chapters: PIChapter[]): ItemChapterDto[] => {
+export const compatParsedChapters = (chapters: PIChapter[]): DTOItemChapterCreate[] => {
   return chapters.map((chapter) => {
     const data_hash = getPIChapterMd5Hash(chapter);
     return {

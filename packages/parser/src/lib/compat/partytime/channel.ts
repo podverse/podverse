@@ -4,12 +4,12 @@ import type { Phase4PodcastImage } from 'podverse-partytime/dist/parser/phase/ph
 import {
   createSortableTitle,
   DATABASE_CONSTANTS,
+  getChannelItunesTypeItunesTypeEnumValue,
   getBooleanOrNull,
   getCategoryEnumValue,
   getMediumEnumValue,
 } from '@podverse/helpers';
 import { isValidHttpUrl } from '@podverse/helpers-validation';
-import { getChannelItunesTypeItunesTypeEnumValue } from '@podverse/orm';
 import { compatChannelValue } from '@parser/lib/compat/partytime/value.js';
 import { detectDuckTypedPublisherMediumId } from './publisher.js';
 
