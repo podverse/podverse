@@ -1,12 +1,12 @@
 'use client';
 
 import React from 'react';
-import { DTOChannel, PodcastBatchByFeedGuidResponse } from '@podverse/helpers';
+import type { DTOChannel, PodcastBatchByFeedGuidResponse } from '@podverse/helpers';
 import { ListAlbumRow } from './ListAlbumRow';
 import { ListAlbumGridNode } from './ListAlbumGridNode';
 import { ListAlbumRowRemoteItemUnadded } from './ListAlbumRowRemoteItemUnadded';
 import { ListAlbumGridNodeUnadded } from './ListAlbumGridNodeUnadded';
-import { ViewSelectedOption } from '../../../ViewSelector/ViewSelector';
+import type { ViewSelectedOption } from '../../../ViewSelector/ViewSelector';
 import { Divider } from '../../../Divider/Divider';
 import styles from '../../../../styles/components/List/ListNodes.module.scss';
 

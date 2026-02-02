@@ -1,6 +1,6 @@
 import { stringifyData, chunkArray } from '@podverse/helpers';
 import type { MulticastMessage } from 'firebase-admin/messaging';
-import { FirebaseContext } from '../../../factory';
+import type { FirebaseContext } from '../../../factory.js';
 
 type IOSPayload = {
   fcmToken: string;

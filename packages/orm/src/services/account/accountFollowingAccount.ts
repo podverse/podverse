@@ -1,7 +1,8 @@
-import { EntityManager, FindManyOptions, Not } from 'typeorm';
-import { AccountFollowingAccount } from '@orm/entities/account/accountFollowingAccount';
-import { BaseManyService } from '@orm/services/base/baseManyService';
-import { AccountService } from '@orm/services/account/account';
+import type { EntityManager, FindManyOptions } from 'typeorm';
+import { Not } from 'typeorm';
+import { AccountFollowingAccount } from '@orm/entities/account/accountFollowingAccount.js';
+import { BaseManyService } from '@orm/services/base/baseManyService.js';
+import { AccountService } from '@orm/services/account/account.js';
 import { SharableStatusEnum } from '@podverse/helpers';
 
 export type AccountFollowingAccountDto = {

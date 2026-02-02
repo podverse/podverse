@@ -1,7 +1,8 @@
-import { Episode } from 'podverse-partytime';
-import { EntityManager, Item, ItemPersonService } from '@podverse/orm';
-import { compatItemPersonDtos } from '@parser/lib/compat/partytime/item';
-import { handleParsedManyData } from '../base/handleParsedManyData';
+import type { Episode } from 'podverse-partytime';
+import type { EntityManager, Item } from '@podverse/orm';
+import { ItemPersonService } from '@podverse/orm';
+import { compatItemPersonDtos } from '@parser/lib/compat/partytime/item.js';
+import { handleParsedManyData } from '../base/handleParsedManyData.js';
 
 export const handleParsedItemPerson = async (
   parsedItem: Episode,

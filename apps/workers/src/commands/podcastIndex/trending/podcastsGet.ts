@@ -1,6 +1,6 @@
-import { CommandLineArgs } from '@workers/commands';
-import { getLoggerService } from '@workers/factories/loggerService';
-import { getPodcastIndexService } from '@workers/factories/podcastIndexService';
+import type { CommandLineArgs } from '@workers/commands/index.js';
+import { getLoggerService } from '@workers/factories/loggerService.js';
+import { getPodcastIndexService } from '@workers/factories/podcastIndexService.js';
 
 const podcastIndexTrendingPodcastsGet = async (args: CommandLineArgs) => {
   try {

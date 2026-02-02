@@ -1,4 +1,4 @@
-import { Response } from 'express';
+import type { Response } from 'express';
 import { ChannelService } from '@podverse/orm';
 
 const channelService = new ChannelService();

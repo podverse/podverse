@@ -1,4 +1,4 @@
-import { validateUUIDV5 } from './guid';
+import { validateUUIDV5 } from './guid.js';
 
 export type RemoteItemDto = {
   feed_guid: string;

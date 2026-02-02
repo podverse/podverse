@@ -1,7 +1,7 @@
-import { DTOChannel } from './channel/channel';
-import { DTOItem } from './item/item';
-import { EpisodeByGuidResponse } from './podcast-index/episodeByGuid';
-import { PodcastBatchByFeedGuidResponse } from './podcast-index/podcastBatchByFeedGuid';
+import type { DTOChannel } from './channel/channel.js';
+import type { DTOItem } from './item/item.js';
+import type { EpisodeByGuidResponse } from './podcast-index/episodeByGuid.js';
+import type { PodcastBatchByFeedGuidResponse } from './podcast-index/podcastBatchByFeedGuid.js';
 
 export interface RemoteItemsResponse {
   channelsAdded: DTOChannel[];

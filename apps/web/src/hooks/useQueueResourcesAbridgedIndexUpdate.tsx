@@ -1,4 +1,5 @@
-import { QueueResourceAbridgedUpdates, updateQueueResourceAbridgedIndex } from '@podverse/helpers';
+import type { QueueResourceAbridgedUpdates } from '@podverse/helpers';
+import { updateQueueResourceAbridgedIndex } from '@podverse/helpers';
 import { useRef, useEffect, useCallback } from 'react';
 import { useMediaPlayer } from '../contexts/MediaPlayer';
 import { useQueueResourcesAbridgedIndex } from '../contexts/QueueResourcesAbridgedIndex';

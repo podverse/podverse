@@ -1,4 +1,5 @@
-import { useEffect, useState, RefObject } from 'react';
+import type { RefObject } from 'react';
+import { useEffect, useState } from 'react';
 
 interface UseDropdownKeyboardNavigationProps {
   itemCount: number;

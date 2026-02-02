@@ -1,7 +1,7 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { DTOPlaylist } from '@podverse/helpers';
+import type { DTOPlaylist } from '@podverse/helpers';
 import React from 'react';
 import { Link } from '../../Link/Link';
 import { ROUTES } from '../../../constants/routes';

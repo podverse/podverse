@@ -1,2 +1,2 @@
-export * from './i18nNotifications';
-export * from './notificationOrchestrator';
+export * from './i18nNotifications.js';
+export * from './notificationOrchestrator.js';

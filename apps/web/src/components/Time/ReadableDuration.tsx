@@ -1,12 +1,9 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import {
-  DTOItem,
-  formatSecondsToReadableDuration,
-  QueueResourcesAbridgedIndex,
-} from '@podverse/helpers';
-import React from 'react';
+import type { DTOItem, QueueResourcesAbridgedIndex } from '@podverse/helpers';
+import { formatSecondsToReadableDuration } from '@podverse/helpers';
+import type React from 'react';
 
 type ReadableDurationProps = {
   durationStr: string | null;

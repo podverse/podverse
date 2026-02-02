@@ -1,6 +1,6 @@
 'use client';
 
-import { DTOPlaylist } from '@podverse/helpers';
+import type { DTOPlaylist } from '@podverse/helpers';
 import { PlaylistEditContextProvider } from './PlaylistEditContext';
 import { PlaylistEditForm } from './PlaylistEditForm';
 import { PlaylistEditHeader } from './PlaylistEditHeader';

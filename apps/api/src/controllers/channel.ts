@@ -1,22 +1,25 @@
-import { Request, Response } from 'express';
+import type { Request, Response } from 'express';
 import Joi from 'joi';
-import { getCategoryEnumValue, CategoryMappingKeys, QueryParamsMedium } from '@podverse/helpers';
-import { ApiListResponse, QueryParamsStatsRange } from '@podverse/helpers-requests';
+import type { CategoryMappingKeys, QueryParamsMedium } from '@podverse/helpers';
+import { getCategoryEnumValue } from '@podverse/helpers';
+import type { ApiListResponse, QueryParamsStatsRange } from '@podverse/helpers-requests';
+import type {
+  Channel,
+  FindManyOptions,
+  AccountFollowingChannel,
+  StatsAggregatedChannel,
+} from '@podverse/orm';
 import {
   channelGetOneRelations,
   channelGetManyRelations,
-  Channel,
   ChannelService,
-  FindManyOptions,
   AccountFollowingChannelService,
   StatsAggregatedChannelService,
-  AccountFollowingChannel,
-  StatsAggregatedChannel,
   subChannelGetManyRelations,
 } from '@podverse/orm';
-import { handleReturnDataOrNotFound } from '@api/controllers/helpers/data';
-import { handleGenericErrorResponse } from '@api/controllers/helpers/error';
-import { getPaginationParams } from '@api/controllers/helpers/pagination';
+import { handleReturnDataOrNotFound } from '@api/controllers/helpers/data.js';
+import { handleGenericErrorResponse } from '@api/controllers/helpers/error.js';
+import { getPaginationParams } from '@api/controllers/helpers/pagination.js';
 import {
   idOrIdTextParamSchema,
   mediumCategoryPageQuerySchema,
@@ -25,11 +28,11 @@ import {
   mediumPageRangeQuerySchema,
   validateParamsObject,
   validateQueryObject,
-} from '@api/lib/validation';
-import { ensureAuthenticated, getAuthenticatedUser } from '@api/lib/auth';
-import { getStatsOrder } from '@api/lib/stats';
-import { getFollowedChannelIds } from '@api/lib/followed';
-import { getParamRequired } from '@api/lib/params';
+} from '@api/lib/validation/index.js';
+import { ensureAuthenticated, getAuthenticatedUser } from '@api/lib/auth/index.js';
+import { getStatsOrder } from '@api/lib/stats.js';
+import { getFollowedChannelIds } from '@api/lib/followed.js';
+import { getParamRequired } from '@api/lib/params.js';
 
 export class ChannelController {
   private static channelService = new ChannelService();

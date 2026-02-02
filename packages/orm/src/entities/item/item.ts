@@ -11,28 +11,29 @@ import {
   OneToMany,
   BeforeUpdate,
 } from 'typeorm';
-import { Channel } from '@orm/entities/channel/channel';
-import { LiveItem } from '../liveItem/liveItem';
-import { ItemChaptersFeed } from '@orm/entities/item/itemChaptersFeed';
-import { ItemValue } from '@orm/entities/item/itemValue';
-import { ItemAbout } from '@orm/entities/item/itemAbout';
-import { ItemChat } from '@orm/entities/item/itemChat';
-import { ItemContentLink } from '@orm/entities/item/itemContentLink';
-import { ItemDescription } from '@orm/entities/item/itemDescription';
-import { ItemEnclosure } from '@orm/entities/item/itemEnclosure';
-import { ItemFunding } from '@orm/entities/item/itemFunding';
-import { ItemImage } from '@orm/entities/item/itemImage';
-import { ItemLicense } from '@orm/entities/item/itemLicense';
-import { ItemLocation } from '@orm/entities/item/itemLocation';
-import { ItemPerson } from '@orm/entities/item/itemPerson';
-import { ItemSeason } from '@orm/entities/item/itemSeason';
-import { ItemSeasonEpisode } from '@orm/entities/item/itemSeasonEpisode';
-import { ItemSocialInteract } from '@orm/entities/item/itemSocialInteract';
-import { ItemSoundbite } from '@orm/entities/item/itemSoundbite';
-import { ItemTranscript } from '@orm/entities/item/itemTranscript';
-import { ItemTxt } from '@orm/entities/item/itemTxt';
-import { ItemFlagStatus } from './itemFlagStatus';
-import { generateRandomIdText } from '@orm/lib/nanoid';
+import type { Relation } from 'typeorm';
+import type { Channel } from '@orm/entities/channel/channel.js';
+import type { ItemChaptersFeed } from '@orm/entities/item/itemChaptersFeed.js';
+import type { ItemValue } from '@orm/entities/item/itemValue.js';
+import type { ItemAbout } from '@orm/entities/item/itemAbout.js';
+import type { ItemChat } from '@orm/entities/item/itemChat.js';
+import type { ItemContentLink } from '@orm/entities/item/itemContentLink.js';
+import type { ItemDescription } from '@orm/entities/item/itemDescription.js';
+import type { ItemEnclosure } from '@orm/entities/item/itemEnclosure.js';
+import type { ItemFunding } from '@orm/entities/item/itemFunding.js';
+import type { ItemImage } from '@orm/entities/item/itemImage.js';
+import type { ItemLicense } from '@orm/entities/item/itemLicense.js';
+import type { ItemLocation } from '@orm/entities/item/itemLocation.js';
+import type { ItemPerson } from '@orm/entities/item/itemPerson.js';
+import type { ItemSeason } from '@orm/entities/item/itemSeason.js';
+import type { ItemSeasonEpisode } from '@orm/entities/item/itemSeasonEpisode.js';
+import type { ItemSocialInteract } from '@orm/entities/item/itemSocialInteract.js';
+import type { ItemSoundbite } from '@orm/entities/item/itemSoundbite.js';
+import type { ItemTranscript } from '@orm/entities/item/itemTranscript.js';
+import type { ItemTxt } from '@orm/entities/item/itemTxt.js';
+import type { ItemFlagStatus } from './itemFlagStatus.js';
+import type { LiveItem } from '../liveItem/liveItem.js';
+import { generateRandomIdText } from '@orm/lib/nanoid.js';
 
 @Entity()
 @Index('item_slug', ['slug'], { unique: true, where: 'slug IS NOT NULL' })
@@ -54,9 +55,9 @@ export class Item {
   @Column()
   channel_id!: string;
 
-  @ManyToOne(() => Channel, (channel) => channel.id, { onDelete: 'CASCADE' })
+  @ManyToOne('Channel', (channel: Channel) => channel.id, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'channel_id' })
-  channel!: Channel;
+  channel!: Relation<Channel>;
 
   @Column({ type: 'varchar', name: 'guid', nullable: true, length: DATABASE_CONSTANTS.varchar_uri })
   guid?: string | null;
@@ -75,65 +76,71 @@ export class Item {
   })
   title?: string | null;
 
-  @OneToOne(() => LiveItem, (liveItem) => liveItem.item, { nullable: true })
-  live_item!: LiveItem | null;
+  @OneToOne('LiveItem', (liveItem: LiveItem) => liveItem.item, { nullable: true })
+  live_item!: Relation<LiveItem> | null;
 
-  @ManyToOne(() => ItemFlagStatus, (item_flag_status) => item_flag_status.id)
+  @ManyToOne('ItemFlagStatus', (item_flag_status: ItemFlagStatus) => item_flag_status.id)
   @JoinColumn({ name: 'item_flag_status_id' })
-  item_flag_status!: ItemFlagStatus;
+  item_flag_status!: Relation<ItemFlagStatus>;
 
-  @OneToOne(() => ItemAbout, (item_about) => item_about.item)
-  item_about!: ItemAbout;
+  @OneToOne('ItemAbout', (item_about: ItemAbout) => item_about.item)
+  item_about!: Relation<ItemAbout>;
 
-  @OneToOne(() => ItemChaptersFeed, (item_chapters_feed) => item_chapters_feed.item)
-  item_chapters_feed!: ItemChaptersFeed;
+  @OneToOne('ItemChaptersFeed', (item_chapters_feed: ItemChaptersFeed) => item_chapters_feed.item)
+  item_chapters_feed!: Relation<ItemChaptersFeed>;
 
-  @OneToOne(() => ItemChat, (item_chat) => item_chat.item)
-  item_chat!: ItemChat;
+  @OneToOne('ItemChat', (item_chat: ItemChat) => item_chat.item)
+  item_chat!: Relation<ItemChat>;
 
-  @OneToMany(() => ItemContentLink, (item_content_link) => item_content_link.item)
+  @OneToMany('ItemContentLink', (item_content_link: ItemContentLink) => item_content_link.item)
   item_content_links!: ItemContentLink[];
 
-  @OneToOne(() => ItemDescription, (item_description) => item_description.item)
-  item_description!: ItemDescription;
+  @OneToOne('ItemDescription', (item_description: ItemDescription) => item_description.item)
+  item_description!: Relation<ItemDescription>;
 
-  @OneToMany(() => ItemEnclosure, (item_enclosure) => item_enclosure.item)
+  @OneToMany('ItemEnclosure', (item_enclosure: ItemEnclosure) => item_enclosure.item)
   item_enclosures!: ItemEnclosure[];
 
-  @OneToMany(() => ItemFunding, (item_funding) => item_funding.item)
+  @OneToMany('ItemFunding', (item_funding: ItemFunding) => item_funding.item)
   item_fundings!: ItemFunding[];
 
-  @OneToMany(() => ItemImage, (item_image) => item_image.item)
+  @OneToMany('ItemImage', (item_image: ItemImage) => item_image.item)
   item_images!: ItemImage[];
 
-  @OneToOne(() => ItemLicense, (item_license) => item_license.item)
-  item_license!: ItemLicense;
+  @OneToOne('ItemLicense', (item_license: ItemLicense) => item_license.item)
+  item_license!: Relation<ItemLicense>;
 
-  @OneToOne(() => ItemLocation, (item_location) => item_location.item)
-  item_location!: ItemLocation;
+  @OneToOne('ItemLocation', (item_location: ItemLocation) => item_location.item)
+  item_location!: Relation<ItemLocation>;
 
-  @OneToMany(() => ItemPerson, (item_person) => item_person.item)
+  @OneToMany('ItemPerson', (item_person: ItemPerson) => item_person.item)
   item_persons!: ItemPerson[];
 
-  @OneToOne(() => ItemSeason, (item_season) => item_season.item)
-  item_season!: ItemSeason;
+  @OneToOne('ItemSeason', (item_season: ItemSeason) => item_season.item)
+  item_season!: Relation<ItemSeason>;
 
-  @OneToOne(() => ItemSeasonEpisode, (item_season_episode) => item_season_episode.item)
-  item_season_episode!: ItemSeasonEpisode;
+  @OneToOne(
+    'ItemSeasonEpisode',
+    (item_season_episode: ItemSeasonEpisode) => item_season_episode.item
+  )
+  item_season_episode!: Relation<ItemSeasonEpisode>;
 
-  @OneToMany(() => ItemSocialInteract, (item_social_interact) => item_social_interact.item)
+  @OneToMany(
+    'ItemSocialInteract',
+    (item_social_interact: ItemSocialInteract) => item_social_interact.item
+  )
   item_social_interacts!: ItemSocialInteract[];
 
-  @OneToMany(() => ItemSoundbite, (item_soundbite) => item_soundbite.item)
+  @OneToMany('ItemSoundbite', (item_soundbite: ItemSoundbite) => item_soundbite.item)
   item_soundbites!: ItemSoundbite[];
 
-  @OneToMany(() => ItemTranscript, (item_transcript) => item_transcript.item)
+  @OneToMany('ItemTranscript', (item_transcript: ItemTranscript) => item_transcript.item)
   item_transcripts!: ItemTranscript[];
 
-  @OneToMany(() => ItemTxt, (item_txt) => item_txt.item)
+  @OneToMany('ItemTxt', (item_txt: ItemTxt) => item_txt.item)
   item_txts!: ItemTxt[];
 
-  @OneToMany(() => ItemValue, (itemValue) => itemValue.item)
+  @OneToMany('ItemValue', (itemValue: ItemValue) => itemValue.item)
   item_values!: ItemValue[];
 
   @BeforeInsert()

@@ -1,6 +1,6 @@
 import { chunkArray } from '@podverse/helpers';
-import { NotificationsContext } from '../../factory';
-import { UPSubscription } from './unifiedpushHelpers';
+import type { NotificationsContext } from '../../factory.js';
+import type { UPSubscription } from './unifiedpushHelpers.js';
 
 type UPPayload = {
   title: string;

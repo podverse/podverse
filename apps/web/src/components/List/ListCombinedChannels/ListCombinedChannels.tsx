@@ -1,12 +1,12 @@
 'use client';
 
-import { DTOChannel, QueryParamsMedium } from '@podverse/helpers';
+import type { DTOChannel, QueryParamsMedium } from '@podverse/helpers';
 import React, { useRef } from 'react';
 import Pagination from '../../Pagination/Pagination';
 import { checkBackNavFlag } from '../../../contexts/Navigation';
 import { useSkipInitialEffect } from '../../../hooks/useSkipInitialEffect';
 import { scrollMainToTop } from '../../../utils/scroll';
-import { ViewSelectedOption } from '../../ViewSelector/ViewSelector';
+import type { ViewSelectedOption } from '../../ViewSelector/ViewSelector';
 import { ListCombinedChannelNodes } from './ListCombinedChannelNodes';
 import styles from '../../../styles/components/List/Podcasts/ListPodcasts.module.scss';
 

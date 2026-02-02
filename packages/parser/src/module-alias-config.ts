@@ -1,6 +1,9 @@
-/* eslint-disable @typescript-eslint/no-require-imports */
-const moduleAlias = require('module-alias');
-const path = require('path');
+import moduleAlias from 'module-alias';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 moduleAlias.addAliases({
   '@parser': path.join(__dirname, ''),

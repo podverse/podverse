@@ -1,13 +1,13 @@
-import {
+import type {
   PodcastBatchByFeedGuidResponse,
   EpisodeByGuidResponse,
   DTOChannel,
   DTOItem,
   RemoteItemGeneric,
 } from '@podverse/helpers';
-import { podcastIndexService } from '@api/factories/podcastIndexService';
-import { cacheGetJson, cacheSetJson } from '@api/lib/keyvaldb/keyvaldb';
-import { config } from '@api/config';
+import { podcastIndexService } from '@api/factories/podcastIndexService.js';
+import { cacheGetJson, cacheSetJson } from '@api/lib/keyvaldb/keyvaldb.js';
+import { config } from '@api/config/index.js';
 
 export type FinalRemoteItemsResult = {
   channelsAdded: DTOChannel[];

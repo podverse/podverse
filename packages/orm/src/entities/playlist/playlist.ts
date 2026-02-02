@@ -1,4 +1,5 @@
-import { DATABASE_CONSTANTS, MediumEnum, SharableStatusEnum } from '@podverse/helpers';
+import type { MediumEnum, SharableStatusEnum } from '@podverse/helpers';
+import { DATABASE_CONSTANTS } from '@podverse/helpers';
 import {
   Entity,
   PrimaryGeneratedColumn,
@@ -9,11 +10,12 @@ import {
   Unique,
   OneToMany,
 } from 'typeorm';
-import { Account } from '@orm/entities/account/account';
-import { SharableStatus } from '@orm/entities/sharableStatus';
-import { Medium } from '@orm/entities/medium';
-import { PlaylistResource } from './playlistResource';
-import { generateRandomIdText } from '@orm/lib/nanoid';
+import type { Relation } from 'typeorm';
+import type { Account } from '@orm/entities/account/account.js';
+import type { SharableStatus } from '@orm/entities/sharableStatus.js';
+import type { Medium } from '@orm/entities/medium.js';
+import type { PlaylistResource } from './playlistResource.js';
+import { generateRandomIdText } from '@orm/lib/nanoid.js';
 
 @Entity()
 @Unique(['account', 'medium', 'is_default_favorites'])
@@ -24,11 +26,11 @@ export class Playlist {
   @Column({ type: 'varchar', unique: true })
   id_text!: string;
 
-  @ManyToOne(() => Account, (account) => account.id, { onDelete: 'CASCADE' })
+  @ManyToOne('Account', (account: Account) => account.id, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'account_id' })
-  account!: Account;
+  account!: Relation<Account>;
 
-  @ManyToOne(() => SharableStatus, (sharableStatus) => sharableStatus.id)
+  @ManyToOne('SharableStatus', (sharableStatus: SharableStatus) => sharableStatus.id)
   @JoinColumn({ name: 'sharable_status_id' })
   sharable_status!: SharableStatusEnum;
 
@@ -54,7 +56,7 @@ export class Playlist {
   @Column({ type: 'timestamp' })
   last_updated!: Date;
 
-  @ManyToOne(() => Medium, (medium) => medium.id)
+  @ManyToOne('Medium', (medium: Medium) => medium.id)
   @JoinColumn({ name: 'medium_id' })
   medium!: MediumEnum;
 
@@ -65,7 +67,7 @@ export class Playlist {
   @Column({ name: 'medium_id', type: 'int', nullable: true })
   medium_id?: number | null;
 
-  @OneToMany(() => PlaylistResource, (playlistResource) => playlistResource.playlist)
+  @OneToMany('PlaylistResource', (playlistResource: PlaylistResource) => playlistResource.playlist)
   playlist_resources!: PlaylistResource[];
 
   @BeforeInsert()

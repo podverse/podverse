@@ -1,4 +1,4 @@
-import { DTOChannelPerson, DTOItemPerson } from '@podverse/helpers';
+import type { DTOChannelPerson, DTOItemPerson } from '@podverse/helpers';
 import { ContentAboutAccordion } from './ContentAboutAccordion';
 import { ContentAboutDescription } from './ContentAboutDescription';
 import { ContentPeopleRows } from './ContentPeopleRows';

@@ -1,7 +1,7 @@
 import { Router } from 'express';
-import { config } from '@api/config';
-import { FeedController } from '@api/controllers/feed';
-import { asyncHandler } from '@api/middleware/asyncHandler';
+import { config } from '@api/config/index.js';
+import { FeedController } from '@api/controllers/feed.js';
+import { asyncHandler } from '@api/middleware/asyncHandler.js';
 
 const router = Router();
 

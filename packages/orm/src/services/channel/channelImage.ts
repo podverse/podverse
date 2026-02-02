@@ -1,8 +1,8 @@
-import { EntityManager } from 'typeorm';
-import { Channel } from '@orm/entities/channel/channel';
-import { ChannelImage } from '@orm/entities/channel/channelImage';
-import { filterDtosByHighestWidth } from '@orm/lib/filterImageDtosByHighestWidth';
-import { BaseManyService } from '@orm/services/base/baseManyService';
+import type { EntityManager } from 'typeorm';
+import type { Channel } from '@orm/entities/channel/channel.js';
+import { ChannelImage } from '@orm/entities/channel/channelImage.js';
+import { filterDtosByHighestWidth } from '@orm/lib/filterImageDtosByHighestWidth.js';
+import { BaseManyService } from '@orm/services/base/baseManyService.js';
 
 type ChannelImageDto = {
   url: string;

@@ -1,10 +1,10 @@
-import { Request, Response, NextFunction, CookieOptions } from 'express';
+import type { Request, Response, NextFunction, CookieOptions } from 'express';
 import jwt from 'jsonwebtoken';
 import passport from 'passport';
 import { Strategy as LocalStrategy } from 'passport-local';
 import { Strategy as JwtStrategy, ExtractJwt } from 'passport-jwt';
-import { config } from '@mgmt-api/config';
-import { AdminAccountService } from '@mgmt-api/orm/services/adminAccount';
+import { config } from '@mgmt-api/config/index.js';
+import { AdminAccountService } from '@mgmt-api/orm/services/adminAccount.js';
 
 const isProduction = config.nodeEnv === 'production';
 const ADMIN_AUTH_COOKIE_NAME = 'pv_mgmt_auth';

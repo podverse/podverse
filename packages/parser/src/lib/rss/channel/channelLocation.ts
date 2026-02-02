@@ -1,8 +1,9 @@
-import { FeedObject } from 'podverse-partytime';
-import { Channel, ChannelLocationService, EntityManager } from '@podverse/orm';
-import { compatChannelLocationDto } from '@parser/lib/compat/partytime/channel';
-import { handleParsedOneData } from '../base/handleParsedOneData';
-import { timerManager } from '@parser/factories/timerManager';
+import type { FeedObject } from 'podverse-partytime';
+import type { Channel, EntityManager } from '@podverse/orm';
+import { ChannelLocationService } from '@podverse/orm';
+import { compatChannelLocationDto } from '@parser/lib/compat/partytime/channel.js';
+import { handleParsedOneData } from '../base/handleParsedOneData.js';
+import { timerManager } from '@parser/factories/timerManager.js';
 
 export const handleParsedChannelLocation = async (
   parsedFeed: FeedObject,

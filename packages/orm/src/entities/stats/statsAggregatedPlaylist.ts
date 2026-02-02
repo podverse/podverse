@@ -1,14 +1,15 @@
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from 'typeorm';
-import { Playlist } from '@orm/entities/playlist/playlist';
+import type { Relation } from 'typeorm';
+import type { Playlist } from '@orm/entities/playlist/playlist.js';
 
 @Entity('stats_aggregated_playlist')
 export class StatsAggregatedPlaylist {
   @PrimaryGeneratedColumn()
   id!: number;
 
-  @ManyToOne(() => Playlist)
+  @ManyToOne('Playlist', (playlist: Playlist) => playlist.id)
   @JoinColumn({ name: 'playlist_id' })
-  playlist!: Playlist;
+  playlist!: Relation<Playlist>;
 
   @Column()
   playlist_id!: number;

@@ -1,4 +1,4 @@
-import { DTOAccountSettingsNotificationType } from './accountSettingsNotificationType';
+import type { DTOAccountSettingsNotificationType } from './accountSettingsNotificationType.js';
 
 export interface DTOAccountSettingsNotification {
   id: number;

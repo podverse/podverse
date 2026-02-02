@@ -1,8 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import { createLogger, format, transports, Logger } from 'winston';
+import type { Logger } from 'winston';
+import { createLogger, format, transports } from 'winston';
 import 'winston-daily-rotate-file';
-import * as TransportStream from 'winston-transport';
+import type * as TransportStream from 'winston-transport';
 
 const { combine, timestamp, printf, colorize, json } = format;
 

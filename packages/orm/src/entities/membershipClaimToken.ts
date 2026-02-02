@@ -1,6 +1,6 @@
-import { AccountMembershipEnum } from '@podverse/helpers';
+import type { AccountMembershipEnum } from '@podverse/helpers';
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from 'typeorm';
-import { AccountMembership } from '@orm/entities/account/accountMembership';
+import type { AccountMembership } from '@orm/entities/account/accountMembership.js';
 
 @Entity()
 export class MembershipClaimToken {
@@ -16,7 +16,7 @@ export class MembershipClaimToken {
   @Column()
   account_membership_id!: number;
 
-  @ManyToOne(() => AccountMembership, (accountMembership) => accountMembership.id, {
+  @ManyToOne('AccountMembership', (accountMembership: AccountMembership) => accountMembership.id, {
     onDelete: 'CASCADE',
   })
   @JoinColumn({ name: 'account_membership_id' })

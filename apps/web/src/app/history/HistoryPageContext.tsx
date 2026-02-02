@@ -1,13 +1,10 @@
 'use client';
 
-import {
-  DTOQueue,
-  DTOQueueResource,
-  getQueueMediumIdFromType,
-  getTotalPages,
-} from '@podverse/helpers';
-import { QueryParamsHistory } from '@podverse/helpers-requests';
-import { createContext, useContext, useState, ReactNode, useEffect, useRef } from 'react';
+import type { DTOQueue, DTOQueueResource } from '@podverse/helpers';
+import { getQueueMediumIdFromType, getTotalPages } from '@podverse/helpers';
+import type { QueryParamsHistory } from '@podverse/helpers-requests';
+import type { ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { apiRequestService } from '../../factories/apiRequestService';
 import { useAccount } from '../../contexts/Account';
 import { checkBackNavFlag } from '../../contexts/Navigation';

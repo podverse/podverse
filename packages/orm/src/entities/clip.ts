@@ -1,4 +1,5 @@
-import { DATABASE_CONSTANTS, SharableStatusEnum } from '@podverse/helpers';
+import type { SharableStatusEnum } from '@podverse/helpers';
+import { DATABASE_CONSTANTS } from '@podverse/helpers';
 import {
   Entity,
   PrimaryGeneratedColumn,
@@ -7,10 +8,11 @@ import {
   JoinColumn,
   BeforeInsert,
 } from 'typeorm';
-import { Account } from '@orm/entities/account/account';
-import { Item } from '@orm/entities/item/item';
-import { SharableStatus } from '@orm/entities/sharableStatus';
-import { generateRandomIdText } from '@orm/lib/nanoid';
+import type { Relation } from 'typeorm';
+import type { Account } from '@orm/entities/account/account.js';
+import type { Item } from '@orm/entities/item/item.js';
+import type { SharableStatus } from '@orm/entities/sharableStatus.js';
+import { generateRandomIdText } from '@orm/lib/nanoid.js';
 
 @Entity('clip')
 export class Clip {
@@ -20,16 +22,16 @@ export class Clip {
   @Column({ type: 'varchar', unique: true })
   id_text!: string;
 
-  @ManyToOne(() => Account, (account) => account.id, { onDelete: 'CASCADE' })
+  @ManyToOne('Account', (account: Account) => account.id, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'account_id' })
-  account!: Account;
+  account!: Relation<Account>;
 
   @Column()
   item_id!: string;
 
-  @ManyToOne(() => Item, (item) => item.id, { onDelete: 'CASCADE' })
+  @ManyToOne('Item', (item: Item) => item.id, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'item_id' })
-  item!: Item;
+  item!: Relation<Item>;
 
   @Column({ type: 'decimal', precision: 10, scale: 2 })
   start_time!: string;
@@ -46,7 +48,7 @@ export class Clip {
   @Column({ type: 'timestamp' })
   created_at!: Date;
 
-  @ManyToOne(() => SharableStatus, (sharableStatus) => sharableStatus.id)
+  @ManyToOne('SharableStatus', (sharableStatus: SharableStatus) => sharableStatus.id)
   @JoinColumn({ name: 'sharable_status_id' })
   sharable_status!: SharableStatusEnum;
 

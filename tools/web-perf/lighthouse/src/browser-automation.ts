@@ -1,5 +1,6 @@
-import { chromium, Browser, Page, BrowserContext } from 'playwright';
-import { TestUser } from './user-manager.js';
+import type { Browser, Page, BrowserContext } from 'playwright';
+import { chromium } from 'playwright';
+import type { TestUser } from './user-manager.js';
 
 export interface TestUrls {
   homepage: string;

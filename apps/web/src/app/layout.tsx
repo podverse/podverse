@@ -1,6 +1,7 @@
 import '../styles/index.scss';
 import { cookies } from 'next/headers';
-import { generateQueueResourceAbridgedIndex, QueueResourcesAbridgedIndex } from '@podverse/helpers';
+import type { QueueResourcesAbridgedIndex } from '@podverse/helpers';
+import { generateQueueResourceAbridgedIndex } from '@podverse/helpers';
 import FavIcons from '../components/Head/FavIcons';
 import FontPreloads from '../components/Head/FontPreloads';
 import Manifest from '../components/Head/Manifest';

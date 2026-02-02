@@ -1,11 +1,12 @@
-import { FeedObject } from 'podverse-partytime';
+import type { FeedObject } from 'podverse-partytime';
 import { throwRequestError } from '@podverse/helpers-requests';
-import { Feed, FeedService, FeedLogService } from '@podverse/orm';
-import { getParsedFeedMd5Hash } from '../hash/parsedFeed';
-import { getAndParseRSSFeed } from '../parser';
-import { FeedIsParsingError, FeedNoChangesSinceLastParsedError } from '../errors';
-import { timerManager } from '@parser/factories/timerManager';
-import { _request } from '../../_request';
+import type { Feed } from '@podverse/orm';
+import { FeedService, FeedLogService } from '@podverse/orm';
+import { getParsedFeedMd5Hash } from '../hash/parsedFeed.js';
+import { getAndParseRSSFeed } from '../parser.js';
+import { FeedIsParsingError, FeedNoChangesSinceLastParsedError } from '../errors.js';
+import { timerManager } from '@parser/factories/timerManager.js';
+import { _request } from '../../_request.js';
 
 export const handleGetRSSFeed = async (url: string, podcast_index_id: number): Promise<Feed> => {
   timerManager.start('handleGetRSSFeed');

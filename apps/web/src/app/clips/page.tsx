@@ -1,12 +1,8 @@
 import z from 'zod';
+import type { DTOClip, QueryParamsMedium } from '@podverse/helpers';
+import { CATEGORY_MAPPING_KEYS, getTotalPages } from '@podverse/helpers';
+import type { ApiListResponse } from '@podverse/helpers-requests';
 import {
-  CATEGORY_MAPPING_KEYS,
-  DTOClip,
-  getTotalPages,
-  QueryParamsMedium,
-} from '@podverse/helpers';
-import {
-  ApiListResponse,
   QUERY_PARAMS_STATS_RANGE_VALUES,
   QUERY_PARAMS_SUBSCRIBED_PARTIAL_SORT,
   QUERY_PARAMS_SUBSCRIBED_TYPE,
@@ -14,15 +10,11 @@ import {
 import { cookies } from 'next/headers';
 import { getSSRAuthService } from '../../utils/auth/ssrAuth';
 import { ClipsClient } from './ClipsClient';
-import {
-  EpisodesDropdownConfigCurrentParams,
-  getEpisodesFilterParams,
-} from '../episodes/EpisodesDropdownConfig';
+import type { EpisodesDropdownConfigCurrentParams } from '../episodes/EpisodesDropdownConfig';
+import { getEpisodesFilterParams } from '../episodes/EpisodesDropdownConfig';
 import { guardSubscribedSsrFilter, safeSsrListRequest } from '../../utils/filters/ssrFilterGuards';
-import {
-  getParsedLocalSettings,
-  ClipsFilterDefaults,
-} from '../../utils/localSettings/localSettings';
+import type { ClipsFilterDefaults } from '../../utils/localSettings/localSettings';
+import { getParsedLocalSettings } from '../../utils/localSettings/localSettings';
 
 const searchParamsSchema = z.object({
   page: z

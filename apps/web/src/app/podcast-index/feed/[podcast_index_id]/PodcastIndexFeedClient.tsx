@@ -6,7 +6,7 @@ import { MainInnerWrapper } from '../../../../components/Main/MainInnerWrapper';
 import { MainInnerContentWrapper } from '../../../../components/Main/MainInnerContentWrapper';
 import { SideContent } from '../../../../components/SideContent/SideContent';
 import { PodcastIndexFeedInfo } from '../../../../components/PodcastIndex/PodcastIndexFeedInfo';
-import { PodcastByIdFeed } from '@podverse/helpers';
+import type { PodcastByIdFeed } from '@podverse/helpers';
 
 type PodcastIndexFeedClientProps = {
   ssrFeed: PodcastByIdFeed;

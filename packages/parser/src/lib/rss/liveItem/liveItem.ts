@@ -1,20 +1,18 @@
-import { Phase4PodcastLiveItem } from 'podverse-partytime/dist/parser/phase/phase-4';
+import type { Phase4PodcastLiveItem } from 'podverse-partytime/dist/parser/phase/phase-4.js';
 import { chunkArray } from '@podverse/helpers';
+import type { Channel, ChannelSeasonIndex, LiveItem } from '@podverse/orm';
 import {
   AppDataSourceReadWrite,
-  Channel,
-  ChannelSeasonIndex,
   getLiveItemStatusEnumValue,
   ItemService,
   LiveItemService,
   LiveItemStatusEnum,
-  LiveItem,
 } from '@podverse/orm';
-import { compatLiveItemsDtos } from '@parser/lib/compat/partytime/liveItem';
-import { createItemTimerAccumulator, handleParsedItem } from '@parser/lib/rss/item/item';
+import { compatLiveItemsDtos } from '@parser/lib/compat/partytime/liveItem.js';
+import { createItemTimerAccumulator, handleParsedItem } from '@parser/lib/rss/item/item.js';
 import { ItemFlagStatusStatusEnum } from '@podverse/orm';
-import { timerManager } from '@parser/factories/timerManager';
-import { loggerService } from '@parser/factories/loggerService';
+import { timerManager } from '@parser/factories/timerManager.js';
+import { loggerService } from '@parser/factories/loggerService.js';
 
 export type HandleParsedLiveItemsResult = {
   /** GUIDs of live items that are new or changed to "pending" status */

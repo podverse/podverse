@@ -1,11 +1,12 @@
-import { getSelectedLabeledItemEnclosureAndSource, LabeledItemEnclosure } from '@podverse/helpers';
+import type { LabeledItemEnclosure } from '@podverse/helpers';
+import { getSelectedLabeledItemEnclosureAndSource } from '@podverse/helpers';
 import { Fragment } from 'react';
 import { useTranslations } from 'next-intl';
 import { SourceSelectorRow } from './SourceSelectorRow';
 import { Divider } from '../Divider/Divider';
 import { useMediaPlayer } from '../../contexts/MediaPlayer';
 import { useModals } from '../../contexts/Modals';
-import { showToastPromiseWithLoading } from '../Toast/Toast';
+import { showToast, showToastPromiseWithLoading } from '../Toast/Toast';
 import { downloadAndSaveFile } from '../../utils/fileDownloader';
 import styles from '../../styles/components/SourceSelectors/SourceSelectors.module.scss';
 
@@ -53,6 +54,10 @@ export const SourceSelectors = ({
         });
 
         const selectedItemEnclosureUrl = selectedItemEnclosureAndSource.source?.uri;
+        if (!selectedItemEnclosureUrl) {
+          showToast(tFeatures('download.episode_download_error'), 'error');
+          return;
+        }
 
         showToastPromiseWithLoading(
           downloadAndSaveFile(selectedItemEnclosureUrl, itemTitle || 'episode.mp3'),
@@ -71,6 +76,10 @@ export const SourceSelectors = ({
         });
 
         const selectedItemEnclosureUrl = selectedItemEnclosureAndSource.source?.uri;
+        if (!selectedItemEnclosureUrl) {
+          showToast(tFeatures('download.track_download_error'), 'error');
+          return;
+        }
 
         showToastPromiseWithLoading(
           downloadAndSaveFile(selectedItemEnclosureUrl, itemTitle || 'track.mp3'),

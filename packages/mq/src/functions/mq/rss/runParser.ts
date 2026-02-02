@@ -1,7 +1,7 @@
 import { MQ_QUEUES } from '@podverse/helpers';
 import { parseRSSFeedAndSaveToDatabase } from '@podverse/parser';
-import { MQQueueName, ActiveMQArtemisService } from '@queue/services/activeMQArtemis';
-import { mqRSSAdd } from './add';
+import type { MQQueueName, ActiveMQArtemisService } from '@queue/services/activeMQArtemis/index.js';
+import { mqRSSAdd } from './add.js';
 
 export const mqRSSRunParser = async (
   activeMQArtemisService: ActiveMQArtemisService,

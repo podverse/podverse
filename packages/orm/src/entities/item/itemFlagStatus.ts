@@ -1,5 +1,5 @@
 import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
-import { Item } from './item';
+import type { Item } from './item.js';
 
 export enum ItemFlagStatusStatusEnum {
   Active = 1,
@@ -20,6 +20,6 @@ export class ItemFlagStatus {
   })
   status!: ItemFlagStatusStatusEnum;
 
-  @OneToMany(() => Item, (item) => item.item_flag_status)
+  @OneToMany('Item', (item: Item) => item.item_flag_status)
   items!: Item[];
 }

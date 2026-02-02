@@ -1,17 +1,12 @@
+import type { AccountSignupMode } from '@podverse/helpers';
+import { isValidUUID, SERVER_ENV_VALUES, isValidServerEnv } from '@podverse/helpers';
+import type { ValidationResult, ValidationSummary } from '@podverse/helpers-config';
 import {
-  isValidUUID,
-  AccountSignupMode,
-  SERVER_ENV_VALUES,
-  isValidServerEnv,
-} from '@podverse/helpers';
-import {
-  ValidationResult,
-  ValidationSummary,
   validateRequired,
   validateOptional,
   validateConditionalOptional,
 } from '@podverse/helpers-config';
-import { loggerService } from '@api/factories/loggerService';
+import { loggerService } from '@api/factories/loggerService.js';
 
 /**
  * Validates critical environment variables and configuration at application startup.

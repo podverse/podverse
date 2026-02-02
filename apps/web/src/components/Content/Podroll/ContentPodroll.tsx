@@ -1,4 +1,4 @@
-import { RemoteItemsResponse } from '@podverse/helpers';
+import type { RemoteItemsResponse } from '@podverse/helpers';
 import { ContentPodrollAccordion } from './ContentPodrollAccordion';
 import { ContentPodrollRows } from './ContentPodrollRows';
 import styles from '../../../styles/components/Content/Podroll/ContentPodroll.module.scss';

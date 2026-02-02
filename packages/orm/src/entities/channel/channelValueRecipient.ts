@@ -1,15 +1,18 @@
 import { DATABASE_CONSTANTS } from '@podverse/helpers';
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from 'typeorm';
-import { ChannelValue } from '@orm/entities/channel/channelValue';
+import type { Relation } from 'typeorm';
+import type { ChannelValue } from '@orm/entities/channel/channelValue.js';
 
 @Entity({ name: 'channel_value_recipient' })
 export class ChannelValueRecipient {
   @PrimaryGeneratedColumn()
   id!: number;
 
-  @ManyToOne(() => ChannelValue, (channelValue) => channelValue.id, { onDelete: 'CASCADE' })
+  @ManyToOne('ChannelValue', (channelValue: ChannelValue) => channelValue.id, {
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'channel_value_id' })
-  channel_value!: ChannelValue;
+  channel_value!: Relation<ChannelValue>;
 
   @Column({ type: 'varchar', name: 'type', length: DATABASE_CONSTANTS.varchar_short })
   type!: string;

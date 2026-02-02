@@ -25,4 +25,4 @@ export POSTGRES_USER="${POSTGRES_USER:-postgres}"
 export POSTGRES_PASSWORD="${POSTGRES_PASSWORD:-}"
 
 # Run the Node.js script
-node create-superuser.js
+node create-superuser.mjs

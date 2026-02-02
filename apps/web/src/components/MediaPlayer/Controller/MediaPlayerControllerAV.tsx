@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useRef, useEffect, useMemo } from 'react';
-import {
+import type {
   QueueResourcesAbridgedIndex,
   DTOClip,
   DTOItem,
@@ -9,15 +9,13 @@ import {
   DTOItemSoundbite,
   LabeledItemEnclosure,
   EnclosureSelectedParams,
-  getSelectedLabeledItemEnclosureAndSource,
-  isEqual,
-  MediumEnum,
   DTOChannel,
   SelectedLabeledItemEnclosureAndSource,
 } from '@podverse/helpers';
+import { getSelectedLabeledItemEnclosureAndSource, isEqual, MediumEnum } from '@podverse/helpers';
 import { EVENTS } from '../../../constants/events';
-import { MoveNowPlayingToHistoryCallbackParams } from '../../../hooks/useQueueResourceMoveNowPlayingToHistory';
-import { UpdateNowPlayingParams } from '../../../hooks/useQueueResourceUpdateNowPlaying';
+import type { MoveNowPlayingToHistoryCallbackParams } from '../../../hooks/useQueueResourceMoveNowPlayingToHistory';
+import type { UpdateNowPlayingParams } from '../../../hooks/useQueueResourceUpdateNowPlaying';
 import {
   checkIfIsAudioFile,
   checkIfIsVideoFile,
@@ -511,7 +509,7 @@ export const MediaPlayerControllerAV: React.FC<MediaPlayerControllerAVProps> = (
     playWhenReady();
   }, [mpClip, mpItemChapter, mpItemSoundbite]);
 
-  const sourceUri = selectedItemEnclosureAndSource?.source?.uri || null;
+  const sourceUri = selectedItemEnclosureAndSource?.source?.uri ?? undefined;
 
   if (mediaType === 'audio') {
     return (

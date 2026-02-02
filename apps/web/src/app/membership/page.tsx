@@ -1,5 +1,6 @@
 import React from 'react';
-import { AccountMembershipEnum, calculateTimeRemaining, DTOAccount } from '@podverse/helpers';
+import type { DTOAccount } from '@podverse/helpers';
+import { AccountMembershipEnum, calculateTimeRemaining } from '@podverse/helpers';
 import { getTranslations } from 'next-intl/server';
 import { MainHeader } from '../../components/Main/MainHeader';
 import { MainWrapper } from '../../components/Main/MainWrapper';

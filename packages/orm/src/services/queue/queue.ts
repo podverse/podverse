@@ -1,8 +1,8 @@
 import { supportedQueueMediums } from '@podverse/helpers';
-import { EntityManager, FindManyOptions, FindOneOptions } from 'typeorm';
-import { Queue } from '@orm/entities/queue/queue';
-import { BaseManyService } from '@orm/services/base/baseManyService';
-import { AccountService } from '@orm/services/account/account';
+import type { EntityManager, FindManyOptions, FindOneOptions } from 'typeorm';
+import { Queue } from '@orm/entities/queue/queue.js';
+import { BaseManyService } from '@orm/services/base/baseManyService.js';
+import { AccountService } from '@orm/services/account/account.js';
 
 export type QueueDto = {
   medium_id: number;

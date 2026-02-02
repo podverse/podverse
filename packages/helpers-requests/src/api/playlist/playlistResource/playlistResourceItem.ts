@@ -1,6 +1,6 @@
-import { DTOPlaylistResource } from '@podverse/helpers';
-import { ApiRequestService } from '../../_request';
-import { BetweenParams } from '@podverse/helpers';
+import type { DTOPlaylistResource } from '@podverse/helpers';
+import type { ApiRequestService } from '../../_request.js';
+import type { BetweenParams } from '@podverse/helpers';
 
 export async function reqPlaylistResourceItemAddFirst(
   api: ApiRequestService,

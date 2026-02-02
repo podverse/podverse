@@ -1,6 +1,6 @@
 import { AccountNotificationTypeEnum } from '@podverse/helpers';
 import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
-import { AccountNotificationChannel } from '@orm/entities/account/accountNotificationChannel';
+import { AccountNotificationChannel } from '@orm/entities/account/accountNotificationChannel.js';
 
 @Entity()
 export class AccountNotificationChannelType {

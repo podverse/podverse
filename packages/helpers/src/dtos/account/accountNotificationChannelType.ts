@@ -1,4 +1,4 @@
-import { AccountNotificationTypeEnum } from 'src/lib/accountNotificationType';
+import type { AccountNotificationTypeEnum } from '../../lib/accountNotificationType.js';
 
 export interface DTOAccountNotificationChannelType {
   id: number;

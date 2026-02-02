@@ -1,7 +1,7 @@
-import webpush from 'web-push';
+import type webpush from 'web-push';
 import { chunkArray } from '@podverse/helpers';
-import { NotificationsContext } from '../../factory';
-import { WebPushSubscription } from './webpushHelpers';
+import type { NotificationsContext } from '../../factory.js';
+import type { WebPushSubscription } from './webpushHelpers.js';
 
 type WebPushPayload = {
   title: string;

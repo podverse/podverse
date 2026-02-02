@@ -1,5 +1,6 @@
-import { QueueResourcesAbridgedIndex } from '@podverse/helpers';
-import { createContext, useContext, useState, ReactNode } from 'react';
+import type { QueueResourcesAbridgedIndex } from '@podverse/helpers';
+import type { ReactNode } from 'react';
+import { createContext, useContext, useState } from 'react';
 
 type QueueResourcesAbridgedContextType = {
   queueResourcesAbridgedIndex: QueueResourcesAbridgedIndex;

@@ -1,6 +1,7 @@
-import { CommandLineArgs } from '@workers/commands';
-import { getActiveMQArtemisService } from '@workers/factories/activeMQArtemisService';
-import { MQ_QUEUES, MQQueueNameParamKey, validMQQueueNamesParamKeys } from '@podverse/helpers';
+import type { CommandLineArgs } from '@workers/commands/index.js';
+import { getActiveMQArtemisService } from '@workers/factories/activeMQArtemisService.js';
+import type { MQQueueNameParamKey } from '@podverse/helpers';
+import { MQ_QUEUES, validMQQueueNamesParamKeys } from '@podverse/helpers';
 import { mqRSSRunParser as mqRSSRunParserFunction, createActiveMQShutdown } from '@podverse/mq';
 
 export const mqRSSRunParser = async (args: CommandLineArgs) => {

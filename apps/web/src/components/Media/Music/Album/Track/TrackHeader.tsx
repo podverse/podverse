@@ -1,4 +1,4 @@
-import { DTOChannel, DTOItem } from '@podverse/helpers';
+import type { DTOChannel, DTOItem } from '@podverse/helpers';
 import React from 'react';
 import { Divider } from '../../../../Divider/Divider';
 import { TrackHeaderPlaySection } from './TrackHeaderPlaySection';

@@ -1,10 +1,10 @@
-import {
+import type {
   DTOAccountUPDevice,
   CreateAccountUPDeviceParams,
   UpdateAccountUPDeviceParams,
   DeleteAccountUPDeviceParams,
 } from '@podverse/helpers';
-import { ApiRequestService } from '../../_request';
+import type { ApiRequestService } from '../../_request.js';
 
 export async function reqAccountUPDeviceCreate(
   api: ApiRequestService,

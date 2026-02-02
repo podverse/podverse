@@ -1,8 +1,8 @@
-import { EntityManager } from 'typeorm';
-import { Channel } from '@orm/entities/channel/channel';
-import { ChannelSeason } from '@orm/entities/channel/channelSeason';
-import { ChannelTrailer } from '@orm/entities/channel/channelTrailer';
-import { BaseManyService } from '@orm/services/base/baseManyService';
+import type { EntityManager } from 'typeorm';
+import type { Channel } from '@orm/entities/channel/channel.js';
+import type { ChannelSeason } from '@orm/entities/channel/channelSeason.js';
+import { ChannelTrailer } from '@orm/entities/channel/channelTrailer.js';
+import { BaseManyService } from '@orm/services/base/baseManyService.js';
 
 export type ChannelTrailerDto = {
   url: string;

@@ -8,7 +8,8 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { Account } from '@orm/entities/account/account';
+import type { Relation } from 'typeorm';
+import type { Account } from '@orm/entities/account/account.js';
 
 @Entity('account_up_device')
 export class AccountUPDevice {
@@ -33,7 +34,7 @@ export class AccountUPDevice {
   @UpdateDateColumn({ name: 'updated_at', type: 'timestamp' })
   updated_at!: Date;
 
-  @ManyToOne(() => Account, (account) => account.id, { onDelete: 'CASCADE' })
+  @ManyToOne('Account', (account: Account) => account.id, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'account_id' })
-  account!: Account;
+  account!: Relation<Account>;
 }

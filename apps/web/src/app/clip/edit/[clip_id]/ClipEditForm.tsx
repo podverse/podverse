@@ -1,7 +1,8 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { DTOClip, hhmmssToSecondsNumeric } from '@podverse/helpers';
+import type { DTOClip } from '@podverse/helpers';
+import { hhmmssToSecondsNumeric } from '@podverse/helpers';
 import React from 'react';
 import { useClipEditContext } from './ClipEditContext';
 import { apiRequestService } from '../../../../factories/apiRequestService';

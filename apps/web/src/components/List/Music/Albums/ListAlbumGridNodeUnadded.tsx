@@ -3,7 +3,7 @@
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';
 import React from 'react';
-import { PodcastBatchByFeedGuidResponse } from '@podverse/helpers';
+import type { PodcastBatchByFeedGuidResponse } from '@podverse/helpers';
 import { Image } from '../../../Image/Image';
 import { ROUTES } from '../../../../constants/routes';
 import { IMAGES } from '../../../../constants/images';

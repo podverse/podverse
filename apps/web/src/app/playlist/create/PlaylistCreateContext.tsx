@@ -1,7 +1,8 @@
 'use client';
 
 import { MediumEnum, SharableStatusEnum } from '@podverse/helpers';
-import { createContext, useContext, useState, ReactNode } from 'react';
+import type { ReactNode } from 'react';
+import { createContext, useContext, useState } from 'react';
 
 interface PlaylistCreateContextType {
   medium: string;

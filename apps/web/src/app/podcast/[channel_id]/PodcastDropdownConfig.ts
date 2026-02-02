@@ -1,4 +1,4 @@
-import {
+import type {
   QueryParamsChannelType,
   QueryParamsChannelSort,
   QueryParamsStatsRange,

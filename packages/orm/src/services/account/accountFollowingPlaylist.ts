@@ -1,13 +1,11 @@
-import { EntityManager, Equal, FindManyOptions, Not } from 'typeorm';
-import { AccountFollowingPlaylist } from '@orm/entities/account/accountFollowingPlaylist';
-import { BaseManyService } from '@orm/services/base/baseManyService';
-import { AccountService } from '@orm/services/account/account';
-import { PlaylistService } from '../playlist/playlist';
-import {
-  getQueueMediumIdFromType,
-  QueryParamsQueueMedium,
-  SharableStatusEnum,
-} from '@podverse/helpers';
+import type { EntityManager, FindManyOptions } from 'typeorm';
+import { Equal, Not } from 'typeorm';
+import { AccountFollowingPlaylist } from '@orm/entities/account/accountFollowingPlaylist.js';
+import { BaseManyService } from '@orm/services/base/baseManyService.js';
+import { AccountService } from '@orm/services/account/account.js';
+import { PlaylistService } from '../playlist/playlist.js';
+import type { QueryParamsQueueMedium } from '@podverse/helpers';
+import { getQueueMediumIdFromType, SharableStatusEnum } from '@podverse/helpers';
 
 export class AccountFollowingPlaylistService extends BaseManyService<
   AccountFollowingPlaylist,

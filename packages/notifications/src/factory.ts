@@ -1,5 +1,5 @@
 import webpush from 'web-push';
-import { NotificationsConfig } from './config/types';
+import type { NotificationsConfig } from './config/types.js';
 
 export type NotificationsContext = {
   config: NotificationsConfig;

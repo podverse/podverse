@@ -1,8 +1,8 @@
-import { Repository } from 'typeorm';
+import type { Repository } from 'typeorm';
 import { generateGuidV4 } from '@podverse/helpers';
-import { AppDataSourceRead, AppDataSourceReadWrite } from '@orm/db';
-import { StatsTrackAccountGuid } from '@orm/entities/stats/statsTrackAccountGuid';
-import { AccountService } from '@orm/services/account/account';
+import { AppDataSourceRead, AppDataSourceReadWrite } from '@orm/db/index.js';
+import { StatsTrackAccountGuid } from '@orm/entities/stats/statsTrackAccountGuid.js';
+import { AccountService } from '@orm/services/account/account.js';
 
 export class StatsTrackAccountGuidService {
   private repositoryRead: Repository<StatsTrackAccountGuid>;

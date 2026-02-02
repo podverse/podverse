@@ -1,11 +1,13 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import {
+import type {
   QueryParamsStatsRange,
-  QUERY_PARAMS_STATS_RANGE_VALUES,
   QueryParamsChannelMusicAlbumType,
   QueryParamsChannelMusicAlbumSort,
+} from '@podverse/helpers-requests';
+import {
+  QUERY_PARAMS_STATS_RANGE_VALUES,
   QUERY_PARAMS_CHANNEL_MUSIC_ALBUM_TYPE_VALUES,
   QUERY_PARAMS_CHANNEL_MUSIC_ALBUM_SORT_VALUES,
 } from '@podverse/helpers-requests';

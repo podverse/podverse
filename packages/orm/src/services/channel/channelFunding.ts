@@ -1,7 +1,7 @@
-import { EntityManager } from 'typeorm';
-import { Channel } from '@orm/entities/channel/channel';
-import { ChannelFunding } from '@orm/entities/channel/channelFunding';
-import { BaseManyService } from '@orm/services/base/baseManyService';
+import type { EntityManager } from 'typeorm';
+import type { Channel } from '@orm/entities/channel/channel.js';
+import { ChannelFunding } from '@orm/entities/channel/channelFunding.js';
+import { BaseManyService } from '@orm/services/base/baseManyService.js';
 
 type ChannelFundingDto = {
   url: string;

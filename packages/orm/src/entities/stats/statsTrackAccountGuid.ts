@@ -6,16 +6,17 @@ import {
   ManyToOne,
   JoinColumn,
 } from 'typeorm';
-import { Account } from '@orm/entities/account/account';
+import type { Relation } from 'typeorm';
+import type { Account } from '@orm/entities/account/account.js';
 
 @Entity('stats_track_account_guid')
 export class StatsTrackAccountGuid {
   @PrimaryGeneratedColumn()
   id!: number;
 
-  @ManyToOne(() => Account)
+  @ManyToOne('Account', (account: Account) => account.id)
   @JoinColumn({ name: 'account_id' })
-  account!: Account;
+  account!: Relation<Account>;
 
   @Column('uuid')
   account_guid!: string;

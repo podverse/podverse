@@ -1,12 +1,11 @@
-import { Episode } from 'podverse-partytime';
+import type { Episode } from 'podverse-partytime';
+import type { EntityManager, Item } from '@podverse/orm';
 import {
-  EntityManager,
-  Item,
   ItemEnclosureService,
   ItemEnclosureSourceService,
   ItemEnclosureIntegrityService,
 } from '@podverse/orm';
-import { compatItemEnclosureDtos } from '@parser/lib/compat/partytime/item';
+import { compatItemEnclosureDtos } from '@parser/lib/compat/partytime/item.js';
 
 export const handleParsedItemEnclosure = async (
   parsedItem: Episode,

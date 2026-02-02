@@ -1,5 +1,5 @@
 import * as winston from 'winston';
-import type { BaseConfig } from '@workers/config';
+import type { BaseConfig } from '@workers/config/index.js';
 
 const { combine, timestamp, json, simple } = winston.format;
 

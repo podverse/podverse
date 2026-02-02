@@ -1,5 +1,5 @@
-import { AppDataSourceRead } from '@orm/db';
-import { FeedFlagStatus, FeedFlagStatusStatusEnum } from '@orm/entities/feed/feedFlagStatus';
+import { AppDataSourceRead } from '@orm/db/index.js';
+import { FeedFlagStatus, FeedFlagStatusStatusEnum } from '@orm/entities/feed/feedFlagStatus.js';
 
 export const checkIfFeedFlagStatusShouldParse = (status: FeedFlagStatusStatusEnum) => {
   if (

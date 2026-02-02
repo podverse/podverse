@@ -7,9 +7,8 @@ import { config } from 'dotenv';
 import { resolve } from 'path';
 import { existsSync } from 'fs';
 import { SERVER_ENV_VALUES, isValidServerEnv } from '@podverse/helpers';
+import type { ValidationResult, ValidationSummary } from '@podverse/helpers-config';
 import {
-  ValidationResult,
-  ValidationSummary,
   validateRequired,
   validateOptional,
   getAllAvailableOrListMessage,

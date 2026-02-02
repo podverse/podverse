@@ -1,4 +1,10 @@
-import { DTOChannel, DTOClip, DTOItem, DTOItemChapter, DTOItemSoundbite } from '@podverse/helpers';
+import type {
+  DTOChannel,
+  DTOClip,
+  DTOItem,
+  DTOItemChapter,
+  DTOItemSoundbite,
+} from '@podverse/helpers';
 import { PodcastHeaderButtons } from './PodcastHeaderButtons';
 import { PodcastHeaderImage } from './PodcastHeaderImage';
 import { PodcastHeaderSubtitle } from './PodcastHeaderSubtitle';

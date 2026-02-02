@@ -1,7 +1,7 @@
-import { EntityManager } from 'typeorm';
-import { Item } from '@orm/entities/item/item';
-import { ItemChaptersFeed } from '@orm/entities/item/itemChaptersFeed';
-import { BaseOneService } from '@orm/services/base/baseOneService';
+import type { EntityManager } from 'typeorm';
+import type { Item } from '@orm/entities/item/item.js';
+import { ItemChaptersFeed } from '@orm/entities/item/itemChaptersFeed.js';
+import { BaseOneService } from '@orm/services/base/baseOneService.js';
 
 type ItemChaptersFeedDto = {
   url: string;

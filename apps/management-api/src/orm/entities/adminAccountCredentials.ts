@@ -1,12 +1,12 @@
 import { Entity, PrimaryGeneratedColumn, Column, JoinColumn, OneToOne } from 'typeorm';
-import { AdminAccount } from './adminAccount';
+import type { AdminAccount } from './adminAccount.js';
 
 @Entity('admin_account_credentials')
 export class AdminAccountCredentials {
   @PrimaryGeneratedColumn()
   id!: number;
 
-  @OneToOne(() => AdminAccount, (adminAccount) => adminAccount.id, { onDelete: 'CASCADE' })
+  @OneToOne('AdminAccount', 'admin_account_credentials', { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'admin_account_id' })
   admin_account!: AdminAccount;
 

@@ -1,4 +1,4 @@
-import { DTOItem } from './item';
+import type { DTOItem } from './item.js';
 
 export interface DTOItemChaptersFeed {
   id: number;

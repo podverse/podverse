@@ -1,8 +1,8 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { CategoryMappingKeys, DTOChannel, DTOClip, DTOItem } from '@podverse/helpers';
-import { QueryParamsItemsType } from '@podverse/helpers-requests';
+import type { CategoryMappingKeys, DTOChannel, DTOClip, DTOItem } from '@podverse/helpers';
+import type { QueryParamsItemsType } from '@podverse/helpers-requests';
 import React, { useRef } from 'react';
 import { ListClipRow } from './ListClipRow';
 import { CallToActionMessage } from '../../CallToActionMessage/CallToActionMessage';

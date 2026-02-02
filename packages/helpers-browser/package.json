@@ -23,5 +23,6 @@
   },
   "dependencies": {
     "@podverse/helpers": "*"
-  }
+  },
+  "type": "module"
 }

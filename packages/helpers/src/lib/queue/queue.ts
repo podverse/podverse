@@ -1,5 +1,5 @@
-import { DTOQueue } from 'src/dtos';
-import { MediumEnum } from '../medium';
+import type { DTOQueue } from '../../dtos/index.js';
+import { MediumEnum } from '../medium.js';
 
 export const getQueueForMedium = (queues: DTOQueue[], medium_id: number) => {
   if (medium_id === MediumEnum.Podcast || medium_id === MediumEnum.Video) {

@@ -1,4 +1,4 @@
-import { config } from '@api/config';
+import { config } from '@api/config/index.js';
 import { LoggerService } from '@podverse/helpers-backend';
 
 export const loggerService = new LoggerService({

@@ -1,10 +1,10 @@
-import {
+import type {
   DTOAccountWebPushDevice,
   CreateAccountWebPushDeviceParams,
   UpdateAccountWebPushDeviceParams,
   DeleteAccountWebPushDeviceParams,
 } from '@podverse/helpers';
-import { ApiRequestService } from '../../_request';
+import type { ApiRequestService } from '../../_request.js';
 
 export async function reqAccountWebPushDeviceCreate(
   api: ApiRequestService,

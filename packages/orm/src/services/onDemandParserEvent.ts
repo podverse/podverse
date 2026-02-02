@@ -1,8 +1,9 @@
-import { Repository, LessThan, MoreThan } from 'typeorm';
-import { OnDemandParserEventType } from '@podverse/helpers';
-import { OnDemandParserEvent } from '@orm/entities/onDemandParserEvent';
-import { AppDataSourceRead, AppDataSourceReadWrite } from '@orm/db';
-import { Account } from '@orm/entities/account/account';
+import type { Repository } from 'typeorm';
+import { LessThan, MoreThan } from 'typeorm';
+import type { OnDemandParserEventType } from '@podverse/helpers';
+import { OnDemandParserEvent } from '@orm/entities/onDemandParserEvent.js';
+import { AppDataSourceRead, AppDataSourceReadWrite } from '@orm/db/index.js';
+import type { Account } from '@orm/entities/account/account.js';
 
 type CreateOnDemandParserEventDto = {
   account: Account;

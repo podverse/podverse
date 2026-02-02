@@ -1,4 +1,4 @@
-import { DTOChannelImage, DTOItemImage } from '../dtos';
+import type { DTOChannelImage, DTOItemImage } from '../dtos/index.js';
 
 type ItemImagePartial = {
   image_width_size: number | null;

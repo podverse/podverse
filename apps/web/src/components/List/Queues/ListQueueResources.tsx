@@ -1,13 +1,10 @@
 'use client';
 
-import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
+import type { DropResult } from '@hello-pangea/dnd';
+import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import { useTranslations } from 'next-intl';
-import {
-  DTOQueueResource,
-  getQueueMediumIdFromType,
-  MediumEnum,
-  QueryParamsQueueMedium,
-} from '@podverse/helpers';
+import type { DTOQueueResource, QueryParamsQueueMedium } from '@podverse/helpers';
+import { getQueueMediumIdFromType, MediumEnum } from '@podverse/helpers';
 import React from 'react';
 import { CallToActionMessage } from '../../CallToActionMessage/CallToActionMessage';
 import { useModals } from '../../../contexts/Modals';

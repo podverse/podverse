@@ -1,7 +1,7 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { DTOChannelCategory } from '@podverse/helpers';
+import type { DTOChannelCategory } from '@podverse/helpers';
 import { Link } from '../../../components/Link/Link';
 
 type PodcastHeaderCategoriesProps = {

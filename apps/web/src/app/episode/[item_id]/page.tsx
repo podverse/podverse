@@ -6,10 +6,8 @@ import {
 import { z } from 'zod';
 import { getSSRAuthService } from '../../../utils/auth/ssrAuth';
 import { EpisodeClient } from './EpisodeClient';
-import {
-  EpisodeDropdownConfigCurrentParams,
-  getEpisodeFilterParams,
-} from './EpisodeDropdownConfig';
+import type { EpisodeDropdownConfigCurrentParams } from './EpisodeDropdownConfig';
+import { getEpisodeFilterParams } from './EpisodeDropdownConfig';
 
 const searchParamsSchema = z.object({
   page: z

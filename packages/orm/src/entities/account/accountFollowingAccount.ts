@@ -1,5 +1,6 @@
 import { Entity, PrimaryColumn, ManyToOne, JoinColumn } from 'typeorm';
-import { Account } from '@orm/entities/account/account';
+import type { Relation } from 'typeorm';
+import type { Account } from '@orm/entities/account/account.js';
 
 @Entity()
 export class AccountFollowingAccount {
@@ -9,11 +10,11 @@ export class AccountFollowingAccount {
   @PrimaryColumn()
   following_account_id!: number;
 
-  @ManyToOne(() => Account, (account) => account.id, { onDelete: 'CASCADE' })
+  @ManyToOne('Account', (account: Account) => account.id, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'account_id' })
-  account!: Account;
+  account!: Relation<Account>;
 
-  @ManyToOne(() => Account, (account) => account.id, { onDelete: 'CASCADE' })
+  @ManyToOne('Account', (account: Account) => account.id, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'following_account_id' })
-  following_account!: Account;
+  following_account!: Relation<Account>;
 }

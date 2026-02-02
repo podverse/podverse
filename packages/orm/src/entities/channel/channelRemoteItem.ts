@@ -1,15 +1,16 @@
 import { DATABASE_CONSTANTS } from '@podverse/helpers';
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from 'typeorm';
-import { Channel } from '@orm/entities/channel/channel';
+import type { Relation } from 'typeorm';
+import type { Channel } from '@orm/entities/channel/channel.js';
 
 @Entity({ name: 'channel_remote_item' })
 export class ChannelRemoteItem {
   @PrimaryGeneratedColumn()
   id!: number;
 
-  @ManyToOne(() => Channel, (channel) => channel.id, { onDelete: 'CASCADE' })
+  @ManyToOne('Channel', (channel: Channel) => channel.id, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'channel_id' })
-  channel!: Channel;
+  channel!: Relation<Channel>;
 
   @Column({ type: 'uuid', name: 'feed_guid' })
   feed_guid!: string;

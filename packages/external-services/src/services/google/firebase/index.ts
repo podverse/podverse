@@ -1,4 +1,4 @@
-export { firebaseNotificationBatchOrchestrator } from './firebaseNotificationOrchestrator';
-export { sendFirebaseNotificationBatchWeb } from './firebaseNotificationWeb';
-export { sendFirebaseNotificationBatchAndroid } from './firebaseNotificationAndroid';
-export { sendFirebaseNotificationBatchIOS } from './firebaseNotificationIOS';
+export { firebaseNotificationBatchOrchestrator } from './firebaseNotificationOrchestrator.js';
+export { sendFirebaseNotificationBatchWeb } from './firebaseNotificationWeb.js';
+export { sendFirebaseNotificationBatchAndroid } from './firebaseNotificationAndroid.js';
+export { sendFirebaseNotificationBatchIOS } from './firebaseNotificationIOS.js';

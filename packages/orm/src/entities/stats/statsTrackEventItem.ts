@@ -6,21 +6,22 @@ import {
   JoinColumn,
   Column,
 } from 'typeorm';
-import { StatsTrackAccountGuid } from '@orm/entities/stats/statsTrackAccountGuid';
-import { Item } from '@orm/entities/item/item';
+import type { Relation } from 'typeorm';
+import type { StatsTrackAccountGuid } from '@orm/entities/stats/statsTrackAccountGuid.js';
+import type { Item } from '@orm/entities/item/item.js';
 
 @Entity('stats_track_event_item')
 export class StatsTrackEventItem {
   @PrimaryGeneratedColumn()
   id!: number;
 
-  @ManyToOne(() => StatsTrackAccountGuid)
+  @ManyToOne('StatsTrackAccountGuid', (accountGuid: StatsTrackAccountGuid) => accountGuid.id)
   @JoinColumn({ name: 'account_guid' })
-  account_guid!: StatsTrackAccountGuid;
+  account_guid!: Relation<StatsTrackAccountGuid>;
 
-  @ManyToOne(() => Item)
+  @ManyToOne('Item', (item: Item) => item.id)
   @JoinColumn({ name: 'item_id' })
-  item!: Item;
+  item!: Relation<Item>;
 
   @Column()
   item_id!: number;

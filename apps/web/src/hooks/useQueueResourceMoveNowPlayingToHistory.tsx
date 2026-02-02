@@ -3,7 +3,7 @@ import { useAccount } from '../contexts/Account';
 import { useQueues } from '../contexts/Queue';
 import { apiRequestService } from '../factories/apiRequestService';
 import { useQueueResourcesAbridgedIndexUpdate } from './useQueueResourcesAbridgedIndexUpdate';
-import { DTOClip, DTOItem, DTOItemSoundbite } from '@podverse/helpers';
+import type { DTOClip, DTOItem, DTOItemSoundbite } from '@podverse/helpers';
 
 export type MoveNowPlayingToHistoryCallbackParams = {
   completed?: boolean;

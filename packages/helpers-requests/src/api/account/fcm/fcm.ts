@@ -1,10 +1,10 @@
-import {
+import type {
   DTOAccountFCMDevice,
   CreateAccountFCMDeviceParams,
   UpdateAccountFCMDeviceParams,
   DeleteAccountFCMDeviceParams,
 } from '@podverse/helpers';
-import { ApiRequestService } from '../../_request';
+import type { ApiRequestService } from '../../_request.js';
 
 export async function reqAccountFCMDeviceCreate(
   api: ApiRequestService,

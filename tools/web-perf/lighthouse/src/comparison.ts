@@ -1,4 +1,4 @@
-import { LighthouseReport } from './report-manager.js';
+import type { LighthouseReport } from './report-manager.js';
 import type { Result as LighthouseResult } from 'lighthouse';
 
 interface MetricComparison {

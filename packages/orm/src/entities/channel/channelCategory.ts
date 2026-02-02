@@ -1,6 +1,7 @@
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from 'typeorm';
-import { Channel } from '@orm/entities/channel/channel';
-import { Category } from '@orm/entities/category';
+import type { Relation } from 'typeorm';
+import type { Channel } from '@orm/entities/channel/channel.js';
+import type { Category } from '@orm/entities/category.js';
 
 @Entity('channel_category')
 export class ChannelCategory {
@@ -10,11 +11,11 @@ export class ChannelCategory {
   @Column({ type: 'int', name: 'category_id' })
   category_id!: number;
 
-  @ManyToOne(() => Channel, (channel) => channel.id, { onDelete: 'CASCADE' })
+  @ManyToOne('Channel', (channel: Channel) => channel.id, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'channel_id' })
-  channel!: Channel;
+  channel!: Relation<Channel>;
 
-  @ManyToOne(() => Category, (category) => category.id)
+  @ManyToOne('Category', (category: Category) => category.id)
   @JoinColumn({ name: 'category_id' })
-  category!: Category;
+  category!: Relation<Category>;
 }

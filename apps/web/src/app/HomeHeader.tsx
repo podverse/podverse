@@ -1,8 +1,10 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { QueryParamsMedium, QUERY_PARAMS_MEDIUMS } from '@podverse/helpers';
-import { QUERY_PARAMS_HOME_SORT_VALUES, QueryParamsHomeSort } from '@podverse/helpers-requests';
+import type { QueryParamsMedium } from '@podverse/helpers';
+import { QUERY_PARAMS_MEDIUMS } from '@podverse/helpers';
+import type { QueryParamsHomeSort } from '@podverse/helpers-requests';
+import { QUERY_PARAMS_HOME_SORT_VALUES } from '@podverse/helpers-requests';
 import React from 'react';
 import Dropdown from '../components/Dropdown/Dropdown';
 import { MainHeader } from '../components/Main/MainHeader';

@@ -1,5 +1,5 @@
 // Re-export timerManager from context for backwards compatibility
-import { getTimerManager } from '../context';
+import { getTimerManager } from '../context.js';
 
 // Export a proxy object that delegates to the context's timer manager
 export const timerManager = new Proxy({} as ReturnType<typeof getTimerManager>, {

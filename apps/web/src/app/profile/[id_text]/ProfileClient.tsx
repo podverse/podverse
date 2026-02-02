@@ -1,6 +1,6 @@
 'use client';
 
-import { DTOAccount } from '@podverse/helpers';
+import type { DTOAccount } from '@podverse/helpers';
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { MainWrapper } from '../../../components/Main/MainWrapper';

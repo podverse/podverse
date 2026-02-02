@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion -- env vars validated at build time in scripts/validate-env.ts */
 
-import { DTOAccount, SUPPORTED_LOCALES } from '@podverse/helpers';
+import type { DTOAccount } from '@podverse/helpers';
+import { SUPPORTED_LOCALES } from '@podverse/helpers';
 import { getRequestConfig } from 'next-intl/server';
 import { headers, cookies } from 'next/headers';
 

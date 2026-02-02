@@ -1,6 +1,6 @@
 import { AccountNotificationTypeEnum } from '@podverse/helpers';
 import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
-import { AccountSettingsNotification } from './accountSettingsNotification';
+import type { AccountSettingsNotification } from './accountSettingsNotification.js';
 
 @Entity('account_settings_notification_type')
 export class AccountSettingsNotificationType {
@@ -10,8 +10,8 @@ export class AccountSettingsNotificationType {
   @Column({ name: 'type', type: 'enum', enum: AccountNotificationTypeEnum })
   type!: AccountNotificationTypeEnum;
 
-  @ManyToOne(
-    () => AccountSettingsNotification,
+  @ManyToOne<AccountSettingsNotification>(
+    'AccountSettingsNotification',
     (accountSettingsNotification) =>
       accountSettingsNotification.account_settings_notification_types,
     { onDelete: 'CASCADE' }

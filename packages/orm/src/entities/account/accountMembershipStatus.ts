@@ -1,19 +1,20 @@
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, OneToOne } from 'typeorm';
-import { Account } from '@orm/entities/account/account';
-import { AccountMembership } from '@orm/entities/account/accountMembership';
+import type { Relation } from 'typeorm';
+import type { Account } from '@orm/entities/account/account.js';
+import type { AccountMembership } from '@orm/entities/account/accountMembership.js';
 
 @Entity()
 export class AccountMembershipStatus {
   @PrimaryGeneratedColumn()
   id!: number;
 
-  @OneToOne(() => Account, (account) => account.id, { onDelete: 'CASCADE' })
+  @OneToOne('Account', (account: Account) => account.id, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'account_id' })
-  account!: Account;
+  account!: Relation<Account>;
 
-  @ManyToOne(() => AccountMembership, (accountMembership) => accountMembership.id)
+  @ManyToOne('AccountMembership', (accountMembership: AccountMembership) => accountMembership.id)
   @JoinColumn({ name: 'account_membership_id' })
-  account_membership!: AccountMembership;
+  account_membership!: Relation<AccountMembership>;
 
   @Column({ type: 'timestamp', nullable: true })
   membership_expires_at?: Date | null;

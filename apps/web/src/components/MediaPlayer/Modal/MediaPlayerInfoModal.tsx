@@ -2,16 +2,14 @@
 
 import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
-import {
+import type {
   DTOChannel,
   DTOClip,
   DTOItem,
   DTOItemChapter,
   DTOItemSoundbite,
-  findDTOChannelImageBySize,
-  findDTOItemImageBySize,
-  MediumEnum,
 } from '@podverse/helpers';
+import { findDTOChannelImageBySize, findDTOItemImageBySize, MediumEnum } from '@podverse/helpers';
 import { useMediaPlayer } from '../../../contexts/MediaPlayer';
 import { ImageNonReact } from '../../Image/ImageNonReact';
 import { Link } from '../../Link/Link';

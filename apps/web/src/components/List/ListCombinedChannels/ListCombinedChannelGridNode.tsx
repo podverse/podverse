@@ -1,6 +1,7 @@
 'use client';
 
-import { DTOChannel, MediumEnum, QueryParamsMedium } from '@podverse/helpers';
+import type { DTOChannel, QueryParamsMedium } from '@podverse/helpers';
+import { MediumEnum } from '@podverse/helpers';
 import React from 'react';
 import { ListPodcastGridNode } from '../Podcasts/ListPodcastGridNode';
 import { ListAlbumGridNode } from '../Music/Albums/ListAlbumGridNode';

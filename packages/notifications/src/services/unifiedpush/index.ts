@@ -1,3 +1,3 @@
-export type { UPSubscription } from './unifiedpushHelpers';
-export { sendUPNotificationBatch } from './unifiedpushNotification';
-export { unifiedpushNotificationBatchOrchestrator } from './unifiedpushNotificationOrchestrator';
+export type { UPSubscription } from './unifiedpushHelpers.js';
+export { sendUPNotificationBatch } from './unifiedpushNotification.js';
+export { unifiedpushNotificationBatchOrchestrator } from './unifiedpushNotificationOrchestrator.js';

@@ -1,4 +1,4 @@
-import { NextRequest } from 'next/server';
+import type { NextRequest } from 'next/server';
 import { checkRateLimit } from '../../../utils/proxy/rateLimiter';
 import { validateProxyUrl } from '../../../utils/proxy/urlValidator';
 import { PROXY } from '../../../utils/proxy/constants';

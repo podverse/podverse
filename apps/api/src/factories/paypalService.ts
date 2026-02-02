@@ -1,5 +1,5 @@
 import { PayPalService } from '@podverse/external-services';
-import { config } from '@api/config';
+import { config } from '@api/config/index.js';
 
 export const paypalService = new PayPalService({
   clientId: config.paypal.clientId,

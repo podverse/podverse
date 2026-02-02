@@ -1,5 +1,5 @@
-import { FindOneOptions, FindOptionsWhere, ObjectLiteral } from 'typeorm';
-import { BaseManyService } from '@orm/services/base/baseManyService';
+import type { FindOneOptions, FindOptionsWhere, ObjectLiteral } from 'typeorm';
+import { BaseManyService } from '@orm/services/base/baseManyService.js';
 
 export class BaseRemoteItemsService<
   T extends ObjectLiteral,

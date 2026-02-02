@@ -5,7 +5,8 @@ import {
   getOnDemandParserEventDateRange,
   sleep,
 } from '@podverse/helpers';
-import { FeedObject, parseFeed } from 'podverse-partytime';
+import type { FeedObject } from 'podverse-partytime';
+import { parseFeed } from 'podverse-partytime';
 import {
   ChannelService,
   ChannelSeasonService,
@@ -17,30 +18,29 @@ import {
   OnDemandParserEventService,
   AccountService,
 } from '@podverse/orm';
-// import { handleNewItemsNotifications, handleNewLiveItemsNotifications } from '@parser/lib/notifications';
-import { handleParsedChannel } from '@parser/lib/rss/channel/channel';
-import { handleParsedChannelSeasons } from '@parser/lib/rss/channel/channelSeason';
+// import { handleNewItemsNotifications, handleNewLiveItemsNotifications } from '@parser/lib/notifications.js';
+import { handleParsedChannel } from '@parser/lib/rss/channel/channel.js';
+import { handleParsedChannelSeasons } from '@parser/lib/rss/channel/channelSeason.js';
 import {
   handleRequestRSSFeed,
   handleParsedFeed,
   handleGetRSSFeed,
-} from '@parser/lib/rss/feed/feed';
-import { handleParsedItems, HandleParsedItemsResult } from '@parser/lib/rss/item/item';
-import {
-  handleParsedLiveItems,
-  HandleParsedLiveItemsResult,
-} from '@parser/lib/rss/liveItem/liveItem';
-import { handleAllRemoteItemsFeedParsing } from '@parser/lib/rss/remoteItemParser';
-import { FeedIsParsingError, FeedNoChangesSinceLastParsedError } from './errors';
-import { timerManager } from '@parser/factories/timerManager';
-import { loggerService } from '@parser/factories/loggerService';
-// import { firebaseAccessTokenServiceFactory } from '@parser/factories/firebaseAccessTokenService';
-// import { NotificationsServiceFactory } from '@parser/factories/notificationsService';
-import { _request } from '../_request';
-import { getParsedFeedMd5Hash } from './hash/parsedFeed';
-import { config } from '@parser/config';
-import { handleNewItemNotifications } from '../notifications/handleNewItemNotifications';
-import { handleNewLiveItemNotifications } from '../notifications/handleNewLiveItemNotifications';
+} from '@parser/lib/rss/feed/feed.js';
+import type { HandleParsedItemsResult } from '@parser/lib/rss/item/item.js';
+import { handleParsedItems } from '@parser/lib/rss/item/item.js';
+import type { HandleParsedLiveItemsResult } from '@parser/lib/rss/liveItem/liveItem.js';
+import { handleParsedLiveItems } from '@parser/lib/rss/liveItem/liveItem.js';
+import { handleAllRemoteItemsFeedParsing } from '@parser/lib/rss/remoteItemParser.js';
+import { FeedIsParsingError, FeedNoChangesSinceLastParsedError } from './errors.js';
+import { timerManager } from '@parser/factories/timerManager.js';
+import { loggerService } from '@parser/factories/loggerService.js';
+// import { firebaseAccessTokenServiceFactory } from '@parser/factories/firebaseAccessTokenService.js';
+// import { NotificationsServiceFactory } from '@parser/factories/notificationsService.js';
+import { _request } from '../_request.js';
+import { getParsedFeedMd5Hash } from './hash/parsedFeed.js';
+import { config } from '@parser/config/index.js';
+import { handleNewItemNotifications } from '../notifications/handleNewItemNotifications.js';
+import { handleNewLiveItemNotifications } from '../notifications/handleNewLiveItemNotifications.js';
 
 /*
   NOTE: All RSS feeds that have a podcast_index_id will be saved to the database.

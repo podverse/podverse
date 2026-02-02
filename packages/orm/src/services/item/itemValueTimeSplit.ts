@@ -1,7 +1,7 @@
-import { EntityManager } from 'typeorm';
-import { ItemValue } from '@orm/entities/item/itemValue';
-import { ItemValueTimeSplit } from '@orm/entities/item/itemValueTimeSplit';
-import { BaseManyService } from '@orm/services/base/baseManyService';
+import type { EntityManager } from 'typeorm';
+import type { ItemValue } from '@orm/entities/item/itemValue.js';
+import { ItemValueTimeSplit } from '@orm/entities/item/itemValueTimeSplit.js';
+import { BaseManyService } from '@orm/services/base/baseManyService.js';
 
 type ItemValueTimeSplitDto = {
   start_time: string;

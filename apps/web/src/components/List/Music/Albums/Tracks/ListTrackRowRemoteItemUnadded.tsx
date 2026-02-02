@@ -1,7 +1,7 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { EpisodeByGuidResponse } from '@podverse/helpers';
+import type { EpisodeByGuidResponse } from '@podverse/helpers';
 import React from 'react';
 import { Image } from '../../../../Image/Image';
 import { ROUTES } from '../../../../../constants/routes';

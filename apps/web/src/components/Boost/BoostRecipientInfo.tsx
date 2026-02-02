@@ -1,13 +1,12 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import {
+import type {
   AppValueRecipient,
   DTOChannelValueRecipient,
   DTOItemValueRecipient,
-  normalizeChannelValueRecipients,
-  normalizeItemValueRecipients,
 } from '@podverse/helpers';
+import { normalizeChannelValueRecipients, normalizeItemValueRecipients } from '@podverse/helpers';
 import styles from '../../styles/components/Boost/BoostRecipientInfo.module.scss';
 import { BoostRecipientInfoRow } from './BoostRecipientInfoRow';
 

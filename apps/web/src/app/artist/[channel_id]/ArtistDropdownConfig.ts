@@ -1,4 +1,4 @@
-import { QueryParamsChannelMusicArtistType } from '@podverse/helpers-requests';
+import type { QueryParamsChannelMusicArtistType } from '@podverse/helpers-requests';
 
 type ArtistDropdownConfigParams = {
   type: QueryParamsChannelMusicArtistType;

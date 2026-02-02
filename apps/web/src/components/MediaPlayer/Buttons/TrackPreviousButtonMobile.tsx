@@ -1,5 +1,5 @@
 import { FaBackwardStep } from 'react-icons/fa6';
-import {
+import type {
   DTOChannel,
   DTOClip,
   DTOItem,

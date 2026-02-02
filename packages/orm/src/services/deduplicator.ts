@@ -1,9 +1,9 @@
-import { EntityManager } from 'typeorm';
-import { AppDataSourceReadWrite } from '@orm/db';
-import { AccountFollowingChannel } from '@orm/entities/account/accountFollowingChannel';
-import { Clip } from '@orm/entities/clip';
-import { Item } from '@orm/entities/item/item';
-import { PlaylistResource } from '@orm/entities/playlist/playlistResource';
+import type { EntityManager } from 'typeorm';
+import { AppDataSourceReadWrite } from '@orm/db/index.js';
+import { AccountFollowingChannel } from '@orm/entities/account/accountFollowingChannel.js';
+import { Clip } from '@orm/entities/clip.js';
+import { Item } from '@orm/entities/item/item.js';
+import { PlaylistResource } from '@orm/entities/playlist/playlistResource.js';
 
 export class DeduplicatorService {
   protected readWriteEntityManager: EntityManager;

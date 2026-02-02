@@ -1,20 +1,20 @@
-import { DTOAccountAppStorePurchase } from './accountAppStorePurchase';
-import { DTOAccountCredentials } from './accountCredentials';
-import { DTOAccountEmailChangeVerification } from './accountEmailChangeVerification';
-import { DTOAccountFCMDevice } from './accountFCMDevice';
-import { DTOAccountFollowingAccount } from './accountFollowingAccount';
-import { DTOAccountFollowingAddByRSSChannel } from './accountFollowingAddByRSSChannel';
-import { DTOAccountFollowingChannel } from './accountFollowingChannel';
-import { DTOAccountFollowingPlaylist } from './accountFollowingPlaylist';
-import { DTOAccountGooglePlayPurchase } from './accountGooglePlayPurchase';
-import { DTOAccountMembershipStatus } from './accountMembershipStatus';
-import { DTOAccountNotificationChannel } from './accountNotificationChannel';
-import { DTOAccountPayPalOrder } from './accountPayPalOrder';
-import { DTOAccountProfile } from './accountProfile';
-import { DTOAccountResetPassword } from './accountResetPassword';
-import { DTOAccountSettings } from './accountSettings/accountSettings';
-import { DTOAccountUPDevice } from './accountUPDevice';
-import { DTOAccountVerification } from './accountVerification';
+import type { DTOAccountAppStorePurchase } from './accountAppStorePurchase.js';
+import type { DTOAccountCredentials } from './accountCredentials.js';
+import type { DTOAccountEmailChangeVerification } from './accountEmailChangeVerification.js';
+import type { DTOAccountFCMDevice } from './accountFCMDevice.js';
+import type { DTOAccountFollowingAccount } from './accountFollowingAccount.js';
+import type { DTOAccountFollowingAddByRSSChannel } from './accountFollowingAddByRSSChannel.js';
+import type { DTOAccountFollowingChannel } from './accountFollowingChannel.js';
+import type { DTOAccountFollowingPlaylist } from './accountFollowingPlaylist.js';
+import type { DTOAccountGooglePlayPurchase } from './accountGooglePlayPurchase.js';
+import type { DTOAccountMembershipStatus } from './accountMembershipStatus.js';
+import type { DTOAccountNotificationChannel } from './accountNotificationChannel.js';
+import type { DTOAccountPayPalOrder } from './accountPayPalOrder.js';
+import type { DTOAccountProfile } from './accountProfile.js';
+import type { DTOAccountResetPassword } from './accountResetPassword.js';
+import type { DTOAccountSettings } from './accountSettings/accountSettings.js';
+import type { DTOAccountUPDevice } from './accountUPDevice.js';
+import type { DTOAccountVerification } from './accountVerification.js';
 
 export interface DTOAccount {
   id: number;

@@ -1,14 +1,15 @@
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from 'typeorm';
-import { Channel } from '@orm/entities/channel/channel';
+import type { Relation } from 'typeorm';
+import type { Channel } from '@orm/entities/channel/channel.js';
 
 @Entity('stats_aggregated_channel')
 export class StatsAggregatedChannel {
   @PrimaryGeneratedColumn()
   id!: number;
 
-  @ManyToOne(() => Channel)
+  @ManyToOne('Channel', (channel: Channel) => channel.id)
   @JoinColumn({ name: 'channel_id' })
-  channel!: Channel;
+  channel!: Relation<Channel>;
 
   @Column()
   channel_id!: number;

@@ -1,6 +1,7 @@
 'use client';
 
-import { DTOPlaylist, formatDateAbbrev } from '@podverse/helpers';
+import type { DTOPlaylist } from '@podverse/helpers';
+import { formatDateAbbrev } from '@podverse/helpers';
 import styles from '../../../styles/app/playlist/PlaylistHeaderInfo.module.scss';
 import { useLocale, useTranslations } from 'next-intl';
 import { MEDIUM } from '../../../constants/medium';

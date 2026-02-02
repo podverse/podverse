@@ -1,4 +1,4 @@
-import { Request } from 'express';
+import type { Request } from 'express';
 
 /**
  * Safely extracts a route parameter from req.params as a string.

@@ -1,4 +1,4 @@
-import { ParseRSSFeedAndSaveToDatabaseOptions } from '@podverse/parser';
+import type { ParseRSSFeedAndSaveToDatabaseOptions } from '@podverse/parser';
 
 export type MQFeedMessage = {
   url: string;

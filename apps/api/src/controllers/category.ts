@@ -1,10 +1,10 @@
-import { Request, Response } from 'express';
+import type { Request, Response } from 'express';
 import Joi from 'joi';
 import { CategoryService } from '@podverse/orm';
-import { handleReturnDataOrNotFound } from '@api/controllers/helpers/data';
-import { handleGenericErrorResponse } from '@api/controllers/helpers/error';
-import { validateParamsObject } from '@api/lib/validation';
-import { getParamRequired } from '@api/lib/params';
+import { handleReturnDataOrNotFound } from '@api/controllers/helpers/data.js';
+import { handleGenericErrorResponse } from '@api/controllers/helpers/error.js';
+import { validateParamsObject } from '@api/lib/validation/index.js';
+import { getParamRequired } from '@api/lib/params.js';
 
 export class CategoryController {
   private static categoryService = new CategoryService();

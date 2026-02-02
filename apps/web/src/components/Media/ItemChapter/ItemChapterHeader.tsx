@@ -1,4 +1,4 @@
-import { DTOChannel, DTOItem, DTOItemChapter } from '@podverse/helpers';
+import type { DTOChannel, DTOItem, DTOItemChapter } from '@podverse/helpers';
 import React from 'react';
 import { Link } from '../../Link/Link';
 import { ROUTES } from '../../../constants/routes';

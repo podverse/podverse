@@ -1,6 +1,7 @@
 import rhea from 'rhea';
-import { Connection, Sender, Receiver, EventContext } from 'rhea';
-import { ILoggerLike, getContainerIpPart } from '@podverse/helpers-backend';
+import type { Connection, Sender, Receiver, EventContext } from 'rhea';
+import type { ILoggerLike } from '@podverse/helpers-backend';
+import { getContainerIpPart } from '@podverse/helpers-backend';
 import crypto from 'crypto';
 import type { ParseRSSFeedAndSaveToDatabaseOptions } from '@podverse/parser';
 

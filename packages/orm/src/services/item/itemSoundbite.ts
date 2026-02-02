@@ -1,7 +1,7 @@
-import { EntityManager, FindManyOptions, FindOneOptions } from 'typeorm';
-import { Item } from '@orm/entities/item/item';
-import { ItemSoundbite } from '@orm/entities/item/itemSoundbite';
-import { BaseManyService } from '@orm/services/base/baseManyService';
+import type { EntityManager, FindManyOptions, FindOneOptions } from 'typeorm';
+import type { Item } from '@orm/entities/item/item.js';
+import { ItemSoundbite } from '@orm/entities/item/itemSoundbite.js';
+import { BaseManyService } from '@orm/services/base/baseManyService.js';
 
 type ItemSoundbiteDto = {
   start_time: string;

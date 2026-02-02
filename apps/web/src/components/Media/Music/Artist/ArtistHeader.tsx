@@ -1,4 +1,4 @@
-import { DTOChannel } from '@podverse/helpers';
+import type { DTOChannel } from '@podverse/helpers';
 import React from 'react';
 import { ArtistHeaderViewDesktop } from './ArtistHeaderViewDesktop';
 import { ArtistHeaderViewTablet } from './ArtistHeaderViewTablet';

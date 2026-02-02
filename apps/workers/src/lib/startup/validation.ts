@@ -23,13 +23,9 @@
  * Console output is intentional for startup diagnostics.
  */
 
-import {
-  ValidationResult,
-  ValidationSummary,
-  validateRequired,
-  validateOptional,
-} from '@podverse/helpers-config';
-import { KNOWN_COMMANDS } from '@workers/commands/commandNames';
+import type { ValidationResult, ValidationSummary } from '@podverse/helpers-config';
+import { validateRequired, validateOptional } from '@podverse/helpers-config';
+import { KNOWN_COMMANDS } from '@workers/commands/commandNames.js';
 import {
   getCategoriesForCommand,
   CATEGORY_BASE,
@@ -38,7 +34,7 @@ import {
   CATEGORY_PARSER,
   CATEGORY_PODCAST_INDEX,
   CATEGORY_WEB_NOTIFICATIONS,
-} from './categoriesForCommand';
+} from './categoriesForCommand.js';
 
 /** Category: Config/Base — every command needs at least these */
 function validateBase(): ValidationResult[] {

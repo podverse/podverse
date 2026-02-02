@@ -2,7 +2,8 @@
 
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';
-import { DTOChannel, findDTOChannelImageBySize } from '@podverse/helpers';
+import type { DTOChannel } from '@podverse/helpers';
+import { findDTOChannelImageBySize } from '@podverse/helpers';
 import React from 'react';
 import { Image } from '../../../Image/Image';
 import { ROUTES } from '../../../../constants/routes';

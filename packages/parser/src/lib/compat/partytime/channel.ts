@@ -1,5 +1,6 @@
-import { FeedObject, Phase4Medium } from 'podverse-partytime';
-import { Phase4PodcastImage } from 'podverse-partytime/dist/parser/phase/phase-4';
+import type { FeedObject } from 'podverse-partytime';
+import { Phase4Medium } from 'podverse-partytime';
+import type { Phase4PodcastImage } from 'podverse-partytime/dist/parser/phase/phase-4.js';
 import {
   createSortableTitle,
   DATABASE_CONSTANTS,
@@ -9,8 +10,8 @@ import {
 } from '@podverse/helpers';
 import { isValidHttpUrl } from '@podverse/helpers-validation';
 import { getChannelItunesTypeItunesTypeEnumValue } from '@podverse/orm';
-import { compatChannelValue } from '@parser/lib/compat/partytime/value';
-import { detectDuckTypedPublisherMediumId } from './publisher';
+import { compatChannelValue } from '@parser/lib/compat/partytime/value.js';
+import { detectDuckTypedPublisherMediumId } from './publisher.js';
 
 export const compatChannelDto = (parsedFeed: FeedObject) => {
   let medium_id = getMediumEnumValue(parsedFeed.medium ?? Phase4Medium.Podcast);

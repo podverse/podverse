@@ -1,7 +1,7 @@
-import { EntityManager } from 'typeorm';
-import { ChannelValue } from '@orm/entities/channel/channelValue';
-import { ChannelValueRecipient } from '@orm/entities/channel/channelValueRecipient';
-import { BaseManyService } from '@orm/services/base/baseManyService';
+import type { EntityManager } from 'typeorm';
+import type { ChannelValue } from '@orm/entities/channel/channelValue.js';
+import { ChannelValueRecipient } from '@orm/entities/channel/channelValueRecipient.js';
+import { BaseManyService } from '@orm/services/base/baseManyService.js';
 
 type ChannelValueRecipientDto = {
   type: string;

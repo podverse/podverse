@@ -1,4 +1,4 @@
-import { QueryParamsStatsRange, StatsSortColumn } from '@podverse/helpers-requests';
+import type { QueryParamsStatsRange, StatsSortColumn } from '@podverse/helpers-requests';
 
 export const getStatsOrder = (range?: QueryParamsStatsRange): StatsSortColumn => {
   switch (range) {

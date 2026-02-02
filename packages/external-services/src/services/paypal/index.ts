@@ -1,5 +1,5 @@
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const paypalRestSdk = require('paypal-rest-sdk');
+import paypalRestSdk from 'paypal-rest-sdk';
+
 const payments = paypalRestSdk.v1.payments;
 
 export interface PayPalServiceParams {

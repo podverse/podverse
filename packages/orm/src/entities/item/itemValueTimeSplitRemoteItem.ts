@@ -1,17 +1,22 @@
 import { DATABASE_CONSTANTS } from '@podverse/helpers';
 import { Entity, PrimaryGeneratedColumn, Column, JoinColumn, OneToOne } from 'typeorm';
-import { ItemValueTimeSplit } from '@orm/entities/item/itemValueTimeSplit';
+import type { Relation } from 'typeorm';
+import type { ItemValueTimeSplit } from '@orm/entities/item/itemValueTimeSplit.js';
 
 @Entity()
 export class ItemValueTimeSplitRemoteItem {
   @PrimaryGeneratedColumn()
   id!: number;
 
-  @OneToOne(() => ItemValueTimeSplit, (itemValueTimeSplit) => itemValueTimeSplit.id, {
-    onDelete: 'CASCADE',
-  })
+  @OneToOne(
+    'ItemValueTimeSplit',
+    (itemValueTimeSplit: ItemValueTimeSplit) => itemValueTimeSplit.id,
+    {
+      onDelete: 'CASCADE',
+    }
+  )
   @JoinColumn({ name: 'item_value_time_split_id' })
-  item_value_time_split!: ItemValueTimeSplit;
+  item_value_time_split!: Relation<ItemValueTimeSplit>;
 
   @Column({ type: 'uuid' })
   feed_guid!: string;

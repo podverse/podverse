@@ -1,6 +1,7 @@
 import { Entity, PrimaryColumn, ManyToOne, JoinColumn } from 'typeorm';
-import { Account } from '@orm/entities/account/account';
-import { Playlist } from '@orm/entities/playlist/playlist';
+import type { Relation } from 'typeorm';
+import type { Account } from '@orm/entities/account/account.js';
+import type { Playlist } from '@orm/entities/playlist/playlist.js';
 
 @Entity()
 export class AccountFollowingPlaylist {
@@ -10,11 +11,11 @@ export class AccountFollowingPlaylist {
   @PrimaryColumn()
   playlist_id!: number;
 
-  @ManyToOne(() => Account, (account) => account.id, { onDelete: 'CASCADE' })
+  @ManyToOne('Account', (account: Account) => account.id, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'account_id' })
-  account!: Account;
+  account!: Relation<Account>;
 
-  @ManyToOne(() => Playlist, (playlist) => playlist.id, { onDelete: 'CASCADE' })
+  @ManyToOne('Playlist', (playlist: Playlist) => playlist.id, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'playlist_id' })
-  playlist!: Playlist;
+  playlist!: Relation<Playlist>;
 }

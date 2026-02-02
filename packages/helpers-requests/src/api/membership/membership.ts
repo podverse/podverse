@@ -1,4 +1,4 @@
-import { ApiRequestService } from '../_request';
+import type { ApiRequestService } from '../_request.js';
 
 type MembershipPricingData = {
   costMonthly: number;

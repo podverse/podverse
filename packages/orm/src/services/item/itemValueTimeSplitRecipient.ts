@@ -1,7 +1,7 @@
-import { EntityManager } from 'typeorm';
-import { ItemValueTimeSplit } from '@orm/entities/item/itemValueTimeSplit';
-import { ItemValueTimeSplitRecipient } from '@orm/entities/item/itemValueTimeSplitRecipient';
-import { BaseManyService } from '@orm/services/base/baseManyService';
+import type { EntityManager } from 'typeorm';
+import type { ItemValueTimeSplit } from '@orm/entities/item/itemValueTimeSplit.js';
+import { ItemValueTimeSplitRecipient } from '@orm/entities/item/itemValueTimeSplitRecipient.js';
+import { BaseManyService } from '@orm/services/base/baseManyService.js';
 
 type ItemValueTimeSplitRecipientDto = {
   type: string;

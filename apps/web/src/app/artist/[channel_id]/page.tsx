@@ -1,6 +1,7 @@
 import { QUERY_PARAMS_CHANNEL_MUSIC_ARTIST_TYPE_VALUES } from '@podverse/helpers-requests';
 import { z } from 'zod';
-import { getArtistFilterParams, ArtistDropdownConfigCurrentParams } from './ArtistDropdownConfig';
+import type { ArtistDropdownConfigCurrentParams } from './ArtistDropdownConfig';
+import { getArtistFilterParams } from './ArtistDropdownConfig';
 import { ArtistClient } from './ArtistClient';
 import { getSSRAuthService } from '../../../utils/auth/ssrAuth';
 

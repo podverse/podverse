@@ -1,4 +1,4 @@
-import { Request, Response } from 'express';
+import type { Request, Response } from 'express';
 import Joi from 'joi';
 import archiver from 'archiver';
 import {
@@ -6,7 +6,13 @@ import {
   SharableStatusEnum,
   getSharableStatusIdsForProfileType,
 } from '@podverse/helpers';
-import { QueryParamsStatsRange } from '@podverse/helpers-requests';
+import type { QueryParamsStatsRange } from '@podverse/helpers-requests';
+import type {
+  FindManyOptions,
+  StatsAggregatedAccount,
+  Account,
+  AccountFollowingAccount,
+} from '@podverse/orm';
 import {
   AccountCredentialsService,
   AccountEmailChangeVerificationService,
@@ -15,24 +21,20 @@ import {
   AccountVerificationService,
   AccountFollowingAccountService,
   StatsAggregatedAccountService,
-  FindManyOptions,
-  StatsAggregatedAccount,
-  Account,
-  AccountFollowingAccount,
   AccountDataExportService,
 } from '@podverse/orm';
 import { v4 as uuidv4 } from 'uuid';
-import { config } from '@api/config';
-import { handleReturnDataOrNotFound } from '@api/controllers/helpers/data';
-import { handleGenericErrorResponse } from '@api/controllers/helpers/error';
-import { getPaginationParams } from '@api/controllers/helpers/pagination';
+import { config } from '@api/config/index.js';
+import { handleReturnDataOrNotFound } from '@api/controllers/helpers/data.js';
+import { handleGenericErrorResponse } from '@api/controllers/helpers/error.js';
+import { getPaginationParams } from '@api/controllers/helpers/pagination.js';
 import {
   ensureAuthenticated,
   optionalEnsureAuthenticated,
   getAuthenticatedUser,
-} from '@api/lib/auth/';
-import { sendVerificationEmail } from '@api/lib/mailer/sendVerificationEmail';
-import { sendResetPasswordEmail } from '@api/lib/mailer/sendResetPasswordEmail';
+} from '@api/lib/auth//index.js';
+import { sendVerificationEmail } from '@api/lib/mailer/sendVerificationEmail.js';
+import { sendResetPasswordEmail } from '@api/lib/mailer/sendResetPasswordEmail.js';
 import {
   emailBodySchema,
   pageQuerySchema,
@@ -41,11 +43,11 @@ import {
   validateBodyObject,
   validateParamsObject,
   validateQueryObject,
-} from '@api/lib/validation';
-import { sendEmailChangeVerificationEmail } from '@api/lib/mailer/sendChangeEmailVerificationEmail';
-import { getParamRequired } from '@api/lib/params';
-import { getStatsOrder } from '@api/lib/stats';
-import { getFollowedAccountIds } from '@api/lib/followed';
+} from '@api/lib/validation/index.js';
+import { sendEmailChangeVerificationEmail } from '@api/lib/mailer/sendChangeEmailVerificationEmail.js';
+import { getParamRequired } from '@api/lib/params.js';
+import { getStatsOrder } from '@api/lib/stats.js';
+import { getFollowedAccountIds } from '@api/lib/followed.js';
 
 const publicRelations = ['account_following_channels', 'account_profile'];
 

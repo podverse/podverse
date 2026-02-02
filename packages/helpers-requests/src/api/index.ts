@@ -1,3 +1,3 @@
-export * from './_request';
-export * from './_response';
-export * from './queryParams';
+export * from './_request.js';
+export * from './_response.js';
+export * from './queryParams.js';

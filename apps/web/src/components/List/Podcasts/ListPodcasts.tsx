@@ -1,8 +1,8 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { CategoryMappingKeys, DTOChannel } from '@podverse/helpers';
-import { QueryParamsSubscribedType } from '@podverse/helpers-requests';
+import type { CategoryMappingKeys, DTOChannel } from '@podverse/helpers';
+import type { QueryParamsSubscribedType } from '@podverse/helpers-requests';
 import React, { useRef } from 'react';
 import { ListPodcastNodes } from './ListPodcastNodes';
 import { CallToActionMessage } from '../../CallToActionMessage/CallToActionMessage';
@@ -11,7 +11,7 @@ import { useModals } from '../../../contexts/Modals';
 import { checkBackNavFlag } from '../../../contexts/Navigation';
 import { useSkipInitialEffect } from '../../../hooks/useSkipInitialEffect';
 import { scrollMainToTop } from '../../../utils/scroll';
-import { ViewSelectedOption } from '../../ViewSelector/ViewSelector';
+import type { ViewSelectedOption } from '../../ViewSelector/ViewSelector';
 import styles from '../../../styles/components/List/Podcasts/ListPodcasts.module.scss';
 
 type Props = {

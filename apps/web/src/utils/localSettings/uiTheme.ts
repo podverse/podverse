@@ -7,10 +7,16 @@ const ALL_POSSIBLE_THEMES: UITheme[] = ['dark', 'light', 'dracula'];
 /**
  * Get the list of valid themes from config, or all themes if config is blank
  */
+const ALL_AVAILABLE_VALUE = 'all-available';
+
 export function getValidThemes(): UITheme[] {
   const validThemesConfig = config.public.theme.valid?.trim();
 
   if (!validThemesConfig) {
+    return ALL_POSSIBLE_THEMES;
+  }
+
+  if (validThemesConfig.toLowerCase() === ALL_AVAILABLE_VALUE) {
     return ALL_POSSIBLE_THEMES;
   }
 

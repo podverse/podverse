@@ -1,15 +1,16 @@
 import { DATABASE_CONSTANTS } from '@podverse/helpers';
 import { Entity, PrimaryGeneratedColumn, Column, JoinColumn, OneToOne } from 'typeorm';
-import { Channel } from '@orm/entities/channel/channel';
+import type { Relation } from 'typeorm';
+import type { Channel } from '@orm/entities/channel/channel.js';
 
 @Entity()
 export class ChannelChat {
   @PrimaryGeneratedColumn()
   id!: number;
 
-  @OneToOne(() => Channel, (channel) => channel.id, { onDelete: 'CASCADE' })
+  @OneToOne('Channel', (channel: Channel) => channel.id, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'channel_id' })
-  channel!: Channel;
+  channel!: Relation<Channel>;
 
   @Column({ type: 'varchar', length: DATABASE_CONSTANTS.varchar_fqdn })
   server!: string;

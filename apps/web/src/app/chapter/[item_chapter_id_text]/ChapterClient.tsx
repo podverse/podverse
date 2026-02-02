@@ -1,4 +1,4 @@
-import { DTOChannel, DTOItem, DTOItemChapter } from '@podverse/helpers';
+import type { DTOChannel, DTOItem, DTOItemChapter } from '@podverse/helpers';
 import { MainWrapper } from '../../../components/Main/MainWrapper';
 import { MainInnerWrapper } from '../../../components/Main/MainInnerWrapper';
 import { MainInnerContentWrapper } from '../../../components/Main/MainInnerContentWrapper';

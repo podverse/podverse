@@ -1,4 +1,4 @@
-import {
+import type {
   DTOChannel,
   DTOChannelFunding,
   DTOClip,
@@ -8,8 +8,9 @@ import {
   DTOItemSoundbite,
   LabeledItemEnclosure,
 } from '@podverse/helpers';
-import { createContext, useContext, useState, ReactNode } from 'react';
-import { SourceSelectorActionType } from '../components/SourceSelectors/SourceSelectors';
+import type { ReactNode } from 'react';
+import { createContext, useContext, useState } from 'react';
+import type { SourceSelectorActionType } from '../components/SourceSelectors/SourceSelectors';
 
 type ModalBasic = {
   isOpen: boolean;

@@ -1,8 +1,9 @@
-import { FeedObject } from 'podverse-partytime';
-import { Channel, ChannelLicenseService, EntityManager } from '@podverse/orm';
-import { compatChannelLicenseDto } from '@parser/lib/compat/partytime/channel';
-import { handleParsedOneData } from '../base/handleParsedOneData';
-import { timerManager } from '@parser/factories/timerManager';
+import type { FeedObject } from 'podverse-partytime';
+import type { Channel, EntityManager } from '@podverse/orm';
+import { ChannelLicenseService } from '@podverse/orm';
+import { compatChannelLicenseDto } from '@parser/lib/compat/partytime/channel.js';
+import { handleParsedOneData } from '../base/handleParsedOneData.js';
+import { timerManager } from '@parser/factories/timerManager.js';
 
 export const handleParsedChannelLicense = async (
   parsedFeed: FeedObject,

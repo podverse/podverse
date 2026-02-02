@@ -1,18 +1,18 @@
-import { Request, Response } from 'express';
+import type { Request, Response } from 'express';
 import { QueueResourceService } from '@podverse/orm';
-import { handleGenericErrorResponse } from '@api/controllers/helpers/error';
-import { ensureAuthenticated } from '@api/lib/auth';
-import { verifyQueueOwnership } from '@api/controllers/queue/queue';
+import { handleGenericErrorResponse } from '@api/controllers/helpers/error.js';
+import { ensureAuthenticated } from '@api/lib/auth/index.js';
+import { verifyQueueOwnership } from '@api/controllers/queue/queue.js';
 import {
   itemSoundbiteIdTextParamSchema,
   positionBetweenBodySchema,
   queueIdTextParamSchema,
   validateBodyObject,
   validateParamsObject,
-} from '@api/lib/validation';
+} from '@api/lib/validation/index.js';
 import Joi from 'joi';
-import { queueResourceNowPlayingSchema } from './queueResourceItem';
-import { getParamRequired } from '@api/lib/params';
+import { queueResourceNowPlayingSchema } from './queueResourceItem.js';
+import { getParamRequired } from '@api/lib/params.js';
 
 class QueueResourceItemSoundbiteController {
   private static queueResourceService = new QueueResourceService();

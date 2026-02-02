@@ -1,6 +1,7 @@
 'use client';
 
-import { DTOQueueResource, MediumEnum } from '@podverse/helpers';
+import type { DTOQueueResource } from '@podverse/helpers';
+import { MediumEnum } from '@podverse/helpers';
 import React from 'react';
 import ListEpisodeRow from '../Podcasts/Episodes/ListEpisodeRow';
 import { ListClipRow } from '../Clips/ListClipRow';

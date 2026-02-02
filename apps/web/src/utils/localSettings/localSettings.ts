@@ -1,13 +1,14 @@
-import { UITheme, setUIThemeOnDocument, toUITheme, getDefaultTheme } from './uiTheme';
-import { ViewSelectedOption } from '../../components/ViewSelector/ViewSelector';
+import type { UITheme } from './uiTheme';
+import { setUIThemeOnDocument, toUITheme, getDefaultTheme } from './uiTheme';
+import type { ViewSelectedOption } from '../../components/ViewSelector/ViewSelector';
 import { clearCookie, readCookie, writeCookie } from '../cookie';
-import {
+import type {
   CategoryMappingKeys,
   LiveItemStatus,
   QueryParamsMedium,
   QueryParamsQueueMedium,
 } from '@podverse/helpers';
-import {
+import type {
   QueryParamsHomeSort,
   QueryParamsPlaylistsType,
   QueryParamsStatsRange,

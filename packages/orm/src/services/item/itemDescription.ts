@@ -1,7 +1,7 @@
-import { EntityManager } from 'typeorm';
-import { Item } from '@orm/entities/item/item';
-import { ItemDescription } from '@orm/entities/item/itemDescription';
-import { BaseOneService } from '@orm/services/base/baseOneService';
+import type { EntityManager } from 'typeorm';
+import type { Item } from '@orm/entities/item/item.js';
+import { ItemDescription } from '@orm/entities/item/itemDescription.js';
+import { BaseOneService } from '@orm/services/base/baseOneService.js';
 
 type ItemDescriptionDto = {
   value: string;

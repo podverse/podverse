@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { DTOItem } from '@podverse/helpers';
+import type { DTOItem } from '@podverse/helpers';
 import { useLivestreamContext } from './LivestreamContext';
 import LoadingSpinnerOverlay from '../../../../components/LoadingSpinner/LoadingSpinnerOverlay';
 import { EpisodeSummary } from '../../../../components/Media/Podcast/Episode/EpisodeSummary';

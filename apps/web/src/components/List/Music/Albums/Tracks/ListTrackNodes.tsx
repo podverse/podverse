@@ -1,8 +1,8 @@
 'use client';
 
 import React from 'react';
-import { DTOChannel, DTOItem } from '@podverse/helpers';
-import { ViewSelectedOption } from '../../../../ViewSelector/ViewSelector';
+import type { DTOChannel, DTOItem } from '@podverse/helpers';
+import type { ViewSelectedOption } from '../../../../ViewSelector/ViewSelector';
 import { ListLiveItemRow } from '../../../LiveItem/ListLiveItemRow';
 import { Divider } from '../../../../Divider/Divider';
 import { ListTrackRow } from './ListTrackRow';

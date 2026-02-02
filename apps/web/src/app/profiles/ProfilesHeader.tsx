@@ -1,13 +1,15 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
+import type {
+  QueryParamsStatsRange,
+  QueryParamsSubscribedFullSort,
+  QueryParamsSubscribedType,
+} from '@podverse/helpers-requests';
 import {
   QUERY_PARAMS_STATS_RANGE_VALUES,
   QUERY_PARAMS_SUBSCRIBED_FULL_SORT,
   QUERY_PARAMS_SUBSCRIBED_TYPE,
-  QueryParamsStatsRange,
-  QueryParamsSubscribedFullSort,
-  QueryParamsSubscribedType,
 } from '@podverse/helpers-requests';
 import React from 'react';
 import Dropdown from '../../components/Dropdown/Dropdown';

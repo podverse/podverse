@@ -1,4 +1,4 @@
-import { DTOChannel, DTOClip, DTOItem } from '@podverse/helpers';
+import type { DTOChannel, DTOClip, DTOItem } from '@podverse/helpers';
 import React from 'react';
 import { ClipHeaderPlaySection } from './ClipHeaderPlaySection';
 import { Link } from '../../Link/Link';

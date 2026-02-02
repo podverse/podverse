@@ -1,4 +1,4 @@
-import { AccountMembershipEnum } from '../lib/accountMembership';
+import type { AccountMembershipEnum } from '../lib/accountMembership.js';
 
 export interface DTOMembershipClaimToken {
   id: string;

@@ -1,18 +1,18 @@
-import { Request, Response } from 'express';
+import type { Request, Response } from 'express';
 import Joi from 'joi';
-import { queueResourceNowPlayingSchema } from './queueResourceItem';
+import { queueResourceNowPlayingSchema } from './queueResourceItem.js';
 import { QueueResourceService } from '@podverse/orm';
-import { handleGenericErrorResponse } from '@api/controllers/helpers/error';
-import { ensureAuthenticated } from '@api/lib/auth';
-import { verifyQueueOwnership } from '@api/controllers/queue/queue';
+import { handleGenericErrorResponse } from '@api/controllers/helpers/error.js';
+import { ensureAuthenticated } from '@api/lib/auth/index.js';
+import { verifyQueueOwnership } from '@api/controllers/queue/queue.js';
 import {
   clipIdTextParamSchema,
   positionBetweenBodySchema,
   queueIdTextParamSchema,
   validateBodyObject,
   validateParamsObject,
-} from '@api/lib/validation';
-import { getParamRequired } from '@api/lib/params';
+} from '@api/lib/validation/index.js';
+import { getParamRequired } from '@api/lib/params.js';
 
 class QueueResourceClipController {
   private static queueResourceService = new QueueResourceService();

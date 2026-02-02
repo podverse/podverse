@@ -1,8 +1,8 @@
 'use client';
 
-import { DTOChannel, PodcastBatchByFeedGuidResponse } from '@podverse/helpers';
-import React from 'react';
-import { ViewSelectedOption } from '../../../ViewSelector/ViewSelector';
+import type { DTOChannel, PodcastBatchByFeedGuidResponse } from '@podverse/helpers';
+import type React from 'react';
+import type { ViewSelectedOption } from '../../../ViewSelector/ViewSelector';
 import { ListAlbumRemoteItemNodes } from './ListAlbumRemoteItemNodes';
 
 type Props = {

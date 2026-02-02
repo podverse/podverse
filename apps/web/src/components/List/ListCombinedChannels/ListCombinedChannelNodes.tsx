@@ -1,10 +1,10 @@
 'use client';
 
 import React from 'react';
-import { DTOChannel, QueryParamsMedium } from '@podverse/helpers';
+import type { DTOChannel, QueryParamsMedium } from '@podverse/helpers';
 import { ListCombinedChannelRow } from './ListCombinedChannelRow';
 import { ListCombinedChannelGridNode } from './ListCombinedChannelGridNode';
-import { ViewSelectedOption } from '../../ViewSelector/ViewSelector';
+import type { ViewSelectedOption } from '../../ViewSelector/ViewSelector';
 import { Divider } from '../../Divider/Divider';
 import styles from '../../../styles/components/List/ListNodes.module.scss';
 

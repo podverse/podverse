@@ -1,6 +1,7 @@
 import { Entity, PrimaryColumn, ManyToOne, JoinColumn } from 'typeorm';
-import { Account } from '@orm/entities/account/account';
-import { Channel } from '@orm/entities/channel/channel';
+import type { Relation } from 'typeorm';
+import type { Account } from '@orm/entities/account/account.js';
+import type { Channel } from '@orm/entities/channel/channel.js';
 
 @Entity()
 export class AccountFollowingChannel {
@@ -10,11 +11,11 @@ export class AccountFollowingChannel {
   @PrimaryColumn()
   channel_id!: number;
 
-  @ManyToOne(() => Account, (account) => account.id, { onDelete: 'CASCADE' })
+  @ManyToOne('Account', (account: Account) => account.id, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'account_id' })
-  account!: Account;
+  account!: Relation<Account>;
 
-  @ManyToOne(() => Channel, (channel) => channel.id, { onDelete: 'CASCADE' })
+  @ManyToOne('Channel', (channel: Channel) => channel.id, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'channel_id' })
-  channel!: Channel;
+  channel!: Relation<Channel>;
 }

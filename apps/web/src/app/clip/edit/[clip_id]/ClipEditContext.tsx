@@ -1,7 +1,9 @@
 'use client';
 
-import { DTOClip, formatNumericToHHMMSS } from '@podverse/helpers';
-import { createContext, useContext, useState, ReactNode, useEffect } from 'react';
+import type { DTOClip } from '@podverse/helpers';
+import { formatNumericToHHMMSS } from '@podverse/helpers';
+import type { ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect } from 'react';
 import { useMediaPlayerResourceUpdate } from '../../../../hooks/useMediaPlayerResourceUpdate';
 import { useAutoQueue } from '../../../../contexts/AutoQueue';
 

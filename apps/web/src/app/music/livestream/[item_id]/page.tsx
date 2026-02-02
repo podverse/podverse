@@ -1,10 +1,8 @@
 import { QUERY_PARAMS_LIVE_ITEM_TYPE_VALUES } from '@podverse/helpers-requests';
 import { z } from 'zod';
 import { getSSRAuthService } from '../../../../utils/auth/ssrAuth';
-import {
-  getLivestreamFilterParams,
-  LivestreamDropdownConfigCurrentParams,
-} from '../../../podcast/livestream/[item_id]/LivestreamDropdownConfig';
+import type { LivestreamDropdownConfigCurrentParams } from '../../../podcast/livestream/[item_id]/LivestreamDropdownConfig';
+import { getLivestreamFilterParams } from '../../../podcast/livestream/[item_id]/LivestreamDropdownConfig';
 import { LivestreamClient } from '../../../podcast/livestream/[item_id]/LivestreamClient';
 
 const searchParamsSchema = z.object({

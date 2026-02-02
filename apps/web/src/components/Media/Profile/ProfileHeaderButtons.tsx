@@ -1,6 +1,6 @@
 'use client';
 
-import { DTOAccount } from '@podverse/helpers';
+import type { DTOAccount } from '@podverse/helpers';
 import React from 'react';
 import { useRouter } from 'next/navigation';
 import { SubscribeButton } from '../Header/SubscribeButton';

@@ -1,8 +1,8 @@
-import { EntityManager } from 'typeorm';
-import { Item } from '@orm/entities/item/item';
-import { ItemImage } from '@orm/entities/item/itemImage';
-import { filterDtosByHighestWidth } from '@orm/lib/filterImageDtosByHighestWidth';
-import { BaseManyService } from '@orm/services/base/baseManyService';
+import type { EntityManager } from 'typeorm';
+import type { Item } from '@orm/entities/item/item.js';
+import { ItemImage } from '@orm/entities/item/itemImage.js';
+import { filterDtosByHighestWidth } from '@orm/lib/filterImageDtosByHighestWidth.js';
+import { BaseManyService } from '@orm/services/base/baseManyService.js';
 
 type ItemImageDto = {
   url: string;

@@ -1,14 +1,14 @@
-import { ApiRequestService } from '../_request';
-import { ApiListResponse } from '../_response';
-import { DTOAccount } from '@podverse/helpers';
-import {
+import type { ApiRequestService } from '../_request.js';
+import type { ApiListResponse } from '../_response.js';
+import type { DTOAccount } from '@podverse/helpers';
+import type {
   QueryParamsAccountGlobalTop,
   QueryParamsAccountSubscribedTop,
   QueryParamsSubscribedType,
   QueryParamsSubscribedFullSort,
   QueryParamsStatsRange,
   QueryParamsPage,
-} from '../queryParams';
+} from '../queryParams.js';
 
 export async function reqAccountGetManyPublicRecent(
   api: ApiRequestService,

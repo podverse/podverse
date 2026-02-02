@@ -1,4 +1,4 @@
-import {
+import type {
   EntityManager,
   FindManyOptions,
   FindOneOptions,
@@ -6,9 +6,9 @@ import {
   ObjectLiteral,
   Repository,
 } from 'typeorm';
-import { getDataSourceRead, getDataSourceReadWrite, getLoggerService } from '@orm/context';
-import { applyProperties } from '@orm/lib/applyProperties';
-import { hasDifferentValues } from '@orm/lib/hasDifferentValues';
+import { getDataSourceRead, getDataSourceReadWrite, getLoggerService } from '@orm/context.js';
+import { applyProperties } from '@orm/lib/applyProperties.js';
+import { hasDifferentValues } from '@orm/lib/hasDifferentValues.js';
 
 export class BaseManyService<T extends ObjectLiteral, K extends keyof T> {
   protected repositoryRead: Repository<T>;

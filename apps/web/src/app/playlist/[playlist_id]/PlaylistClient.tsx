@@ -1,6 +1,6 @@
 'use client';
 
-import { DTOPlaylist } from '@podverse/helpers';
+import type { DTOPlaylist } from '@podverse/helpers';
 import { MainWrapper } from '../../../components/Main/MainWrapper';
 import { MainInnerWrapper } from '../../../components/Main/MainInnerWrapper';
 import { MainInnerContentWrapper } from '../../../components/Main/MainInnerContentWrapper';

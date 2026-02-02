@@ -1,7 +1,7 @@
 import { Router } from 'express';
-import { config } from '@api/config';
-import { asyncHandler } from '@api/middleware/asyncHandler';
-import { PodcastIndexController } from '@api/controllers/externalServices/podcastIndex';
+import { config } from '@api/config/index.js';
+import { asyncHandler } from '@api/middleware/asyncHandler.js';
+import { PodcastIndexController } from '@api/controllers/externalServices/podcastIndex.js';
 
 const router = Router();
 

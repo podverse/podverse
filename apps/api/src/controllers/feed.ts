@@ -1,9 +1,9 @@
-import { Request, Response } from 'express';
+import type { Request, Response } from 'express';
 import Joi from 'joi';
 import { FeedService } from '@podverse/orm';
-import { handleGenericErrorResponse } from '@api/controllers/helpers/error';
-import { validateParamsObject } from '@api/lib/validation';
-import { getParamRequired } from '@api/lib/params';
+import { handleGenericErrorResponse } from '@api/controllers/helpers/error.js';
+import { validateParamsObject } from '@api/lib/validation/index.js';
+import { getParamRequired } from '@api/lib/params.js';
 
 export class FeedController {
   private static feedService = new FeedService();

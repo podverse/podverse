@@ -1,8 +1,9 @@
-import { ActiveMQArtemisService, MQQueueName } from '@queue/services/activeMQArtemis';
+import type { ActiveMQArtemisService, MQQueueName } from '@queue/services/activeMQArtemis/index.js';
 import { MQ_QUEUES } from '@podverse/helpers';
-import { Feed, FeedService } from '@podverse/orm';
+import type { Feed } from '@podverse/orm';
+import { FeedService } from '@podverse/orm';
 import WebSocket from 'ws';
-import { mqRSSAdd } from './add';
+import { mqRSSAdd } from './add.js';
 
 export const mqRSSRunLiveItemListener = (activeMQArtemisService: ActiveMQArtemisService) => {
   console.warn('starting runLiveItemListener v2');

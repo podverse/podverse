@@ -1,5 +1,6 @@
 import classNames from 'classnames';
-import React, { AriaAttributes } from 'react';
+import type { AriaAttributes } from 'react';
+import React from 'react';
 import styles from '../../styles/components/Form/TextArea.module.scss';
 
 type TextAreaProps = {

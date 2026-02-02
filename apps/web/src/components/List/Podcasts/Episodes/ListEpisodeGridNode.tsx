@@ -3,9 +3,8 @@
 import { useLocale, useTranslations } from 'next-intl';
 import Link from 'next/link';
 import React from 'react';
+import type { DTOChannel, DTOItem } from '@podverse/helpers';
 import {
-  DTOChannel,
-  DTOItem,
   findDTOChannelImageBySize,
   findDTOItemImageBySize,
   formatDateAbbrev,

@@ -1,7 +1,7 @@
 import { mqRSSSetupDlqConsumers, createActiveMQShutdown } from '@podverse/mq';
-import { getActiveMQArtemisService } from '@workers/factories/activeMQArtemisService';
-import { getLogger } from '@workers/factories/logger';
-import { createDailyRotateLogger } from '@workers/lib/winston';
+import { getActiveMQArtemisService } from '@workers/factories/activeMQArtemisService.js';
+import { getLogger } from '@workers/factories/logger.js';
+import { createDailyRotateLogger } from '@workers/lib/winston.js';
 
 export const mqRSSRunDlqConsumer = async () => {
   getLogger().info('DLQ consumer process started.');

@@ -1,7 +1,7 @@
-import { Item } from '@orm/entities/item/item';
-import { BaseStatsTrackEventService } from './baseStatsTrackEvent';
-import { StatsTrackEventItem } from '@orm/entities/stats/statsTrackEventItem';
-import { ItemService } from '@orm/services/item/item';
+import type { Item } from '@orm/entities/item/item.js';
+import { BaseStatsTrackEventService } from './baseStatsTrackEvent.js';
+import { StatsTrackEventItem } from '@orm/entities/stats/statsTrackEventItem.js';
+import { ItemService } from '@orm/services/item/item.js';
 
 export class StatsTrackEventItemService extends BaseStatsTrackEventService<StatsTrackEventItem> {
   protected entity = StatsTrackEventItem;

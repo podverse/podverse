@@ -1,14 +1,15 @@
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from 'typeorm';
-import { Account } from '@orm/entities/account/account';
+import type { Relation } from 'typeorm';
+import type { Account } from '@orm/entities/account/account.js';
 
 @Entity('stats_aggregated_account')
 export class StatsAggregatedAccount {
   @PrimaryGeneratedColumn()
   id!: number;
 
-  @ManyToOne(() => Account)
+  @ManyToOne('Account', (account: Account) => account.id)
   @JoinColumn({ name: 'tracked_account_id' })
-  tracked_account!: Account;
+  tracked_account!: Relation<Account>;
 
   @Column()
   tracked_account_id!: number;

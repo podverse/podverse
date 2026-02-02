@@ -1,9 +1,9 @@
 import type { Episode } from 'podverse-partytime';
-import { Phase4PodcastImage } from 'podverse-partytime/dist/parser/phase/phase-4';
+import type { Phase4PodcastImage } from 'podverse-partytime/dist/parser/phase/phase-4.js';
 import { DATABASE_CONSTANTS, formatGuidEnclosureUrl } from '@podverse/helpers';
 import { isValidHttpUrl } from '@podverse/helpers-validation';
 import { getItemItunesEpisodeTypeEnumValue } from '@podverse/orm';
-import { compatItemValue } from '@parser/lib/compat/partytime/value';
+import { compatItemValue } from '@parser/lib/compat/partytime/value.js';
 
 type CompatItemDtoOptions = {
   isLiveItem?: boolean;

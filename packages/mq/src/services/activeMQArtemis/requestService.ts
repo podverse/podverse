@@ -1,5 +1,5 @@
 import { request } from '@podverse/helpers-requests';
-import { ActiveMQArtemisServiceParams } from '.';
+import type { ActiveMQArtemisServiceParams } from './index.js';
 
 export class ActiveMQArtemisRequestService {
   private protocol: string;

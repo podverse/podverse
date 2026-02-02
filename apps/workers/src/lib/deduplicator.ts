@@ -1,5 +1,5 @@
+import type { Channel } from '@podverse/orm';
 import {
-  Channel,
   ChannelService,
   DeduplicatorService as DeduplicatorServiceORM,
   FeedFlagStatusStatusEnum,

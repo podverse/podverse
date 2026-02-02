@@ -1,9 +1,9 @@
+import type { DTOItem } from '@podverse/helpers';
 import {
   buildLabeledItemEnclosures,
-  DTOItem,
   getSelectedLabeledItemEnclosureAndSource,
 } from '@podverse/helpers';
-import { ModalSourceSelector } from '../../contexts/Modals';
+import type { ModalSourceSelector } from '../../contexts/Modals';
 
 type DownloadEpisodeWithModalParams = {
   item: DTOItem;

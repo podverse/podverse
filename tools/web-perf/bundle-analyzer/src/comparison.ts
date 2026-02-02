@@ -1,4 +1,4 @@
-import { BundleReport, BundleChunkSummary } from './report-manager.js';
+import type { BundleReport, BundleChunkSummary } from './report-manager.js';
 
 interface MetricComparison {
   name: string;
