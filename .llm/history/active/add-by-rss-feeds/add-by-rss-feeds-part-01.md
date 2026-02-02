@@ -175,6 +175,42 @@ deleted? if yes, delete it
 
 - .llm/history/active/add-by-rss-planning/add-by-rss-planning-part-01.md
 
+### Session 9 - 2026-02-01
+
+#### Prompt (Developer)
+
+implement @podverse/.llm/plans/active/add-by-rss/10-mq-queues-and-types.md
+
+#### Key Decisions
+
+- Added Add by RSS queue constants and message types for MQ.
+- Implemented MQ enqueue helpers for single and bulk Add by RSS feed requests.
+
+#### Files Modified
+
+- packages/helpers/src/lib/mq/mqConstants.ts
+- packages/mq/src/types/mq.ts
+- packages/mq/src/functions/mq/rss/addByRSS.ts
+- packages/mq/src/functions/mq/rss/addByRSSAll.ts
+- packages/mq/src/index.ts
+
+### Session 10 - 2026-02-01
+
+#### Prompt (Developer)
+
+Type 'MQQueueName' is not assignable to type 'import("/Users/mitcheldowney/repos/pv/podverse/packages/mq/src/services/activeMQArtemis/index", { with: { "resolution-mode": "import" } }).MQQueueName'.
+Type '"add-by-rss-on-demand"' is not assignable to type 'MQQueueName'.ts(2322)
+index.ts(23, 3): The expected type comes from property 'queueName' which is declared here on type 'SendMessageParams'
+
+#### Key Decisions
+
+- Expanded MQ queue name union to include Add by RSS queues and DLQ variants.
+- Extended MQ message union to include Add by RSS messages and updated dedupe hash logic.
+
+#### Files Modified
+
+- packages/mq/src/services/activeMQArtemis/index.ts
+
 ## Related Resources
 
 - [Link to PR]

@@ -28,6 +28,7 @@ export * from './lib/pagination.js';
 export * from './lib/queue/queue.js';
 export * from './lib/queue/queueResourceAbridged.js';
 export * from './lib/remoteItem.js';
+export * from './lib/record.js';
 export * from './lib/sharableStatus.js';
 export * from './lib/sleep.js';
 export * from './lib/sortableTitle.js';

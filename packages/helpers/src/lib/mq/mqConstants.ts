@@ -1,13 +1,26 @@
-export type MQQueueNameParamKey = 'rss-slow' | 'rss-normal' | 'rss-on-demand' | 'rss-live';
+export type MQQueueNameParamKey =
+  | 'rss-slow'
+  | 'rss-normal'
+  | 'rss-on-demand'
+  | 'rss-live'
+  | 'add-by-rss-on-demand'
+  | 'add-by-rss-background';
 
 export const validMQQueueNamesParamKeys: MQQueueNameParamKey[] = [
   'rss-slow',
   'rss-normal',
   'rss-on-demand',
   'rss-live',
+  'add-by-rss-on-demand',
+  'add-by-rss-background',
 ];
 
-type MQQueueName = 'rss-normal' | 'rss-on-demand' | 'rss-live';
+type MQQueueName =
+  | 'rss-normal'
+  | 'rss-on-demand'
+  | 'rss-live'
+  | 'add-by-rss-on-demand'
+  | 'add-by-rss-background';
 
 export type MQQueueConfig = {
   queueName: MQQueueName;
@@ -38,6 +51,16 @@ export const MQ_QUEUES: Record<MQQueueNameParamKey, MQQueueConfig> = {
   'rss-live': {
     queueName: 'rss-live',
     dedupeCacheTimeMS: null,
+    priority: 'normal',
+  },
+  'add-by-rss-on-demand': {
+    queueName: 'add-by-rss-on-demand',
+    dedupeCacheTimeMS: 1 * 60 * 1000,
+    priority: 'normal',
+  },
+  'add-by-rss-background': {
+    queueName: 'add-by-rss-background',
+    dedupeCacheTimeMS: 5 * 60 * 1000,
     priority: 'normal',
   },
 };
