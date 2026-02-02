@@ -47,3 +47,26 @@ add extra safety, and if the helper is reusable, import it from a helpers module
 
 - [Link to PR]
 - [Link to related issues]
+
+### Session 12 - 2026-02-01
+
+#### Prompt (Developer)
+
+move the 10-14 mq to completed
+
+#### Key Decisions
+
+- Moved Add by RSS MQ plans 10-14 from active to completed.
+
+#### Files Modified
+
+- .llm/plans/active/add-by-rss/10-mq-queues-and-types.md
+- .llm/plans/active/add-by-rss/11-mq-queue-constants.md
+- .llm/plans/active/add-by-rss/12-mq-payload-types.md
+- .llm/plans/active/add-by-rss/13-mq-enqueue-helpers.md
+- .llm/plans/active/add-by-rss/14-mq-dedupe-and-rate-limit.md
+- .llm/plans/completed/add-by-rss/10-mq-queues-and-types.md
+- .llm/plans/completed/add-by-rss/11-mq-queue-constants.md
+- .llm/plans/completed/add-by-rss/12-mq-payload-types.md
+- .llm/plans/completed/add-by-rss/13-mq-enqueue-helpers.md
+- .llm/plans/completed/add-by-rss/14-mq-dedupe-and-rate-limit.md
