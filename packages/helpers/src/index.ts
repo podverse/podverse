@@ -8,6 +8,7 @@ export * from './lib/accountMembership.js';
 export * from './lib/accountSignupMode.js';
 export * from './lib/accountNotificationType.js';
 export * from './lib/array.js';
+export * from './lib/addByRSSParseCache.js';
 export * from './lib/bitrate.js';
 export * from './lib/boolean.js';
 export * from './lib/category.js';

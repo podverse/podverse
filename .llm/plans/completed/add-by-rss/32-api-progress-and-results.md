@@ -8,7 +8,7 @@ Provide a lightweight progress and result surface for Add by RSS parsing request
 
 - Status values and response shapes.
 - Storage for in-flight progress and results (temporary).
-- Hash update behavior for completed parses.
+- Hash update behavior for parsed results.
 
 ## Key Files
 
@@ -20,7 +20,7 @@ Provide a lightweight progress and result surface for Add by RSS parsing request
 ## Plan
 
 1. Define status values:
-   - queued, processing, completed, not_modified, failed.
-2. Return parsed payload + updated hash when completed.
+   - queued, processing, parsed, not_modified, failed.
+2. Return parsed payload + updated hash when parsed.
 3. Return not_modified when hash matches current feed state.
 4. Decide on temporary storage for status/results (to be detailed later).

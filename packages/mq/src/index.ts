@@ -9,4 +9,5 @@ export { mqRSSRunLiveItemListener } from './functions/mq/rss/runLiveItemListener
 
 export { ActiveMQArtemisService } from './services/activeMQArtemis/index.js';
 export type { ActiveMQArtemisServiceParams } from './services/activeMQArtemis/index.js';
+export type { MQAddByRSSMessage } from './types/mq.js';
 export { createActiveMQShutdown } from './services/activeMQArtemis/shutdown.js';

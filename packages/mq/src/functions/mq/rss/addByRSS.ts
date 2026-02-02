@@ -7,6 +7,8 @@ type MQAddByRSSAddOptions = MQQueueConfigFunctionParams & {
   feedUrl: string;
   requestId: string;
   feedHash?: string;
+  etag?: string;
+  lastModified?: string;
 };
 
 export const mqAddByRSSAdd = async (
@@ -21,6 +23,8 @@ export const mqAddByRSSAdd = async (
       feedUrl: options.feedUrl,
       requestId: options.requestId,
       feedHash: options.feedHash,
+      etag: options.etag,
+      lastModified: options.lastModified,
     };
 
     await activeMQArtemisService.sendMessage({

@@ -9,6 +9,8 @@ import type { MQQueueConfigFunctionParams } from '@podverse/helpers';
 type MQAddByRSSAddAllConfig = MQQueueConfigFunctionParams & {
   accountId: number;
   feedHashesByUrl?: Record<string, string>;
+  etagsByUrl?: Record<string, string>;
+  lastModifiedByUrl?: Record<string, string>;
   requestIdGenerator?: (feedUrl: string) => string;
 };
 
@@ -26,11 +28,15 @@ export const mqAddByRSSAddAll = async (
     for (const feed of feeds) {
       const feedUrl = feed.feed_url;
       const feedHash = getRecordValue(options.feedHashesByUrl, feedUrl);
+      const etag = getRecordValue(options.etagsByUrl, feedUrl);
+      const lastModified = getRecordValue(options.lastModifiedByUrl, feedUrl);
       const message: MQAddByRSSMessage = {
         accountId: options.accountId,
         feedUrl,
         requestId: getRequestId(feedUrl),
         feedHash,
+        etag,
+        lastModified,
       };
 
       await activeMQArtemisService.sendMessage({

@@ -29,6 +29,7 @@ const run = async () => {
     CATEGORY_PARSER,
     CATEGORY_PODCAST_INDEX,
     CATEGORY_WEB_NOTIFICATIONS,
+    CATEGORY_KEYVALDB,
   } = await import('./lib/startup/categoriesForCommand.js');
 
   /**
@@ -59,11 +60,13 @@ const run = async () => {
     getPodcastIndexConfig,
     getExternalServicesConfig,
     getNotificationsConfig,
+    getKeyvaldbConfig,
   } = await import('./config/index.js');
   const { setLoggerService, getLoggerService } = await import('./factories/loggerService.js');
   const { setLogger } = await import('./factories/logger.js');
   const { setTimerManager } = await import('./factories/timerManager.js');
   const { setActiveMQArtemisService } = await import('./factories/activeMQArtemisService.js');
+  const { initKeyvaldb } = await import('./lib/keyvaldb/keyvaldb.js');
   const { ActiveMQArtemisService } = await import('@podverse/mq');
   const { setPodcastIndexService } = await import('./factories/podcastIndexService.js');
 
@@ -149,6 +152,25 @@ const run = async () => {
       if (categories.has(CATEGORY_MQ)) {
         const mqConfig = getMQConfig();
         setActiveMQArtemisService(new ActiveMQArtemisService(mqConfig, getLoggerService()));
+      }
+
+      if (categories.has(CATEGORY_KEYVALDB)) {
+        const { Redis } = await import('ioredis');
+        const keyvaldbConfig = getKeyvaldbConfig();
+        const client = new Redis({
+          host: keyvaldbConfig.host,
+          port: keyvaldbConfig.port,
+          password: keyvaldbConfig.password,
+          retryStrategy: (times: number) => {
+            if (times > 3) {
+              return null;
+            }
+            return Math.min(times * 200, 3000);
+          },
+          maxRetriesPerRequest: 1,
+          enableOfflineQueue: false,
+        });
+        initKeyvaldb(client, keyvaldbConfig);
       }
 
       if (categories.has(CATEGORY_PARSER)) {

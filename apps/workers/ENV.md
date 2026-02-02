@@ -26,6 +26,7 @@ The workers app validates environment variables **per command**. Each job only v
 | Base + ORM + Podcast Index      | Base, ORM, PodcastIndex                  | podcastIndexDeadFeedsFlagAndMerge                           |
 | Base + ORM + MQ                 | Base, ORM, MQ                            | mqRSSRunDlqConsumer, mqRSSAddAll                            |
 | Base + ORM + MQ + Podcast Index | Base, ORM, MQ, PodcastIndex              | mqRSSAdd                                                    |
+| Base + MQ + Parser + KeyValDB   | Base, MQ, Parser, KeyValDB               | mqAddByRSSRunParser                                         |
 | Base + ORM + Parser + PI + Web  | Base, ORM, Parser, PodcastIndex, Web     | parserRSSParseFeed                                          |
 | Full stack                      | Base, ORM, MQ, Parser, PodcastIndex, Web | mqRSSRunParser, mqRSSRunLiveItemListener                    |
 
@@ -77,6 +78,13 @@ examples if needed. For the full checklist (including index.ts and new categorie
 - **`MESSAGE_QUEUE_USERNAME`** (Required) - Message queue username
 - **`MESSAGE_QUEUE_PASSWORD`** (Required) - Message queue password
 - **`MESSAGE_QUEUE_PORT`** (Required) - Message queue port
+
+## KeyValDB (commands that use Redis)
+
+- **`KEYVALDB_HOST`** (Required) - Redis host
+- **`KEYVALDB_PORT`** (Required) - Redis port
+- **`KEYVALDB_PASSWORD`** (Required) - Redis password
+- **`KEYVALDB_CACHE_TTL_SECONDS`** (Required) - Default TTL for cached entries
 
 ## Database (for ORM Module)
 

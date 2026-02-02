@@ -5,6 +5,7 @@
     "target": "ES2022",
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
+    "types": ["node"],
     "outDir": "./dist",
     "rootDir": "./src",
     "experimentalDecorators": true,

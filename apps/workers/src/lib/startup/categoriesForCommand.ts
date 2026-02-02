@@ -10,6 +10,7 @@ export const CATEGORY_MQ = 'MQ';
 export const CATEGORY_PARSER = 'Parser';
 export const CATEGORY_PODCAST_INDEX = 'PodcastIndex';
 export const CATEGORY_WEB_NOTIFICATIONS = 'WebNotifications';
+export const CATEGORY_KEYVALDB = 'KeyValDB';
 
 export type ConfigCategory =
   | typeof CATEGORY_BASE
@@ -17,7 +18,8 @@ export type ConfigCategory =
   | typeof CATEGORY_MQ
   | typeof CATEGORY_PARSER
   | typeof CATEGORY_PODCAST_INDEX
-  | typeof CATEGORY_WEB_NOTIFICATIONS;
+  | typeof CATEGORY_WEB_NOTIFICATIONS
+  | typeof CATEGORY_KEYVALDB;
 
 const BASE_ORM_COMMANDS = [
   'archiveAll',
@@ -48,6 +50,8 @@ const FULL_STACK_COMMANDS = [
   'mqRSSRunLiveItemListener',
   'mqRSSAddRecentlyUpdatedFeedsFromPodcastIndex',
 ] as const;
+
+const BASE_MQ_PARSER_KEYVALDB_COMMANDS = ['mqAddByRSSRunParser'] as const;
 
 /**
  * Returns the set of config categories required for the given command.
@@ -121,6 +125,17 @@ export function getCategoriesForCommand(commandName: string): Set<ConfigCategory
     categories.add(CATEGORY_PARSER);
     categories.add(CATEGORY_PODCAST_INDEX);
     categories.add(CATEGORY_WEB_NOTIFICATIONS);
+    return categories;
+  }
+
+  if (
+    BASE_MQ_PARSER_KEYVALDB_COMMANDS.includes(
+      commandName as (typeof BASE_MQ_PARSER_KEYVALDB_COMMANDS)[number]
+    )
+  ) {
+    categories.add(CATEGORY_MQ);
+    categories.add(CATEGORY_PARSER);
+    categories.add(CATEGORY_KEYVALDB);
     return categories;
   }
 

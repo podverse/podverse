@@ -22,4 +22,4 @@ per-feed progress.
 1. Add a top-level “Check for Updates” button to Add by RSS list views.
 2. On click, enqueue all saved feeds through the API.
 3. Show per-feed progress status:
-   - queued, processing, completed, not_modified, failed.
+   - queued, processing, parsed, not_modified, failed.

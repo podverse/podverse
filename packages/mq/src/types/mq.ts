@@ -11,4 +11,6 @@ export type MQAddByRSSMessage = {
   feedUrl: string;
   requestId: string;
   feedHash?: string;
+  etag?: string;
+  lastModified?: string;
 };

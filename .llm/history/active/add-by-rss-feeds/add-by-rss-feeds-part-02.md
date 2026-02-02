@@ -137,6 +137,27 @@ refactor it
 - packages/parser/src/lib/rss/parser.ts
 - packages/parser/src/index.ts
 
+### Session 18 - 2026-02-01
+
+#### Prompt (Developer)
+
+sounds good. implmenet the plan if you have no further questions
+
+#### Key Decisions
+
+- Added API enqueue/status endpoints for Add by RSS parsing using MQ-only flow.
+- Implemented Redis-backed cache entries for parse progress/results.
+- Extended Add by RSS MQ message metadata to carry cache headers.
+
+#### Files Modified
+
+- packages/mq/src/types/mq.ts
+- packages/mq/src/functions/mq/rss/addByRSS.ts
+- packages/mq/src/functions/mq/rss/addByRSSAll.ts
+- apps/api/src/lib/addByRSSParseCache.ts
+- apps/api/src/controllers/account/accountAddByRSSParse.ts
+- apps/api/src/routes/account.ts
+
 ### Session 17 - 2026-02-01
 
 #### Prompt (Developer)
@@ -159,3 +180,59 @@ move to completed
 - .llm/plans/completed/add-by-rss/22-parser-hash-computation.md
 - .llm/plans/completed/add-by-rss/23-parser-response-contract.md
 - .llm/plans/completed/add-by-rss/24-parser-cache-headers.md
+
+### Session 19 - 2026-02-01
+
+#### Prompt (Developer)
+
+if they are fully completed, move them to completed. also, generate the plan file or files
+you recommend to work on next, if i should not move onto 40-web yet
+
+#### Key Decisions
+
+- Moved Add by RSS API plans 30-33 into completed.
+- Added a workers-side plan for parsing progress updates.
+
+#### Files Modified
+
+- .llm/plans/active/add-by-rss/30-api-enqueue-and-progress.md
+- .llm/plans/active/add-by-rss/31-api-endpoints.md
+- .llm/plans/active/add-by-rss/32-api-progress-and-results.md
+- .llm/plans/active/add-by-rss/33-api-mq-only-guardrails.md
+- .llm/plans/completed/add-by-rss/30-api-enqueue-and-progress.md
+- .llm/plans/completed/add-by-rss/31-api-endpoints.md
+- .llm/plans/completed/add-by-rss/32-api-progress-and-results.md
+- .llm/plans/completed/add-by-rss/33-api-mq-only-guardrails.md
+- .llm/plans/active/add-by-rss/34-worker-parse-progress.md
+
+### Session 20 - 2026-02-01
+
+#### Prompt (Developer)
+
+implement @podverse/.llm/plans/active/add-by-rss/34-worker-parse-progress.md
+
+#### Key Decisions
+
+- Added workers-side Add by RSS MQ consumer and Redis cache updates.
+- Introduced KeyValDB config/validation for workers and documented env vars.
+
+#### Files Modified
+
+- apps/workers/src/lib/keyvaldb/keyvaldb.ts
+- apps/workers/src/lib/addByRSSParseCache.ts
+- apps/workers/src/commands/mq/rss/runAddByRSSParser.ts
+- apps/workers/src/commands/commandNames.ts
+- apps/workers/src/commands/index.ts
+- apps/workers/src/config/index.ts
+- apps/workers/src/index.ts
+- apps/workers/src/lib/startup/categoriesForCommand.ts
+- apps/workers/src/lib/startup/validation.ts
+- apps/workers/package.json
+- apps/workers/ENV.md
+- apps/workers/.env.example
+- packages/mq/src/types/mq.ts
+- packages/mq/src/functions/mq/rss/addByRSS.ts
+- packages/mq/src/functions/mq/rss/addByRSSAll.ts
+- packages/mq/src/index.ts
+- .llm/plans/active/add-by-rss/34-worker-parse-progress.md
+- .llm/plans/completed/add-by-rss/34-worker-parse-progress.md
