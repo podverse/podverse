@@ -108,6 +108,10 @@ router.post(
   '/follow/add-by-rss-channel',
   asyncHandler(AccountFollowingAddByRSSChannelController.addOrUpdateRSSChannel)
 );
+router.get(
+  '/follow/add-by-rss-channel/:account_id_text',
+  asyncHandler(AccountFollowingAddByRSSChannelController.getFollowedAddByRSSChannels)
+);
 router.post(
   '/unfollow/add-by-rss-channel',
   asyncHandler(AccountFollowingAddByRSSChannelController.removeRSSChannel)

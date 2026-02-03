@@ -8,14 +8,27 @@ export enum Phase4Medium {
   Blog = 'blog',
   Publisher = 'publisher',
   Course = 'course',
-  PublisherPodcast = 'publisherpodcast',
-  PublisherMusic = 'publishermusic',
-  PublisherVideo = 'publishervideo',
-  PublisherFilm = 'publisherfilm',
-  PublisherAudiobook = 'publisheraudiobook',
-  PublisherNewsletter = 'publishernewsletter',
-  PublisherBlog = 'publisherblog',
-  PublisherCourse = 'publishercourse',
+  PodcastL = 'podcastl',
+  MusicL = 'musicl',
+  VideoL = 'videol',
+  FilmL = 'filml',
+  AudiobookL = 'audiobookl',
+  NewsletterL = 'newsletterl',
+  BlogL = 'blogl',
+  PublisherL = 'publisherl',
+  CourseL = 'coursel',
+  Mixed = 'mixed',
+}
+
+export enum IntegrityType {
+  SRI = 'sri',
+  PGP = 'pgp-signature',
+}
+
+export enum Phase4LiveStatus {
+  Pending = 'pending',
+  Live = 'live',
+  Ended = 'ended',
 }
 
 export type Phase4PodcastImage = {
@@ -35,57 +48,60 @@ export type Phase4ValueRecipient = {
   fee: boolean;
 };
 
-export type Phase4ValueTimeSplitRemoteItem = {
+export type Phase6RemoteItem = {
   feedGuid: string;
-  // TODO: tighten type to required string when partytime shape is aligned
-  feedUrl?: string | null;
-  itemGuid?: string | null;
+  itemGuid?: string;
+  feedUrl?: string;
+  medium?: Phase4Medium;
+  title?: string;
 };
 
-export type Phase4ValueTimeSplit =
-  | {
-      type: 'remoteItem';
-      startTime: number;
-      duration: number;
-      remoteStartTime?: number | null;
-      remotePercentage?: number | null;
-      remoteItem: Phase4ValueTimeSplitRemoteItem;
-    }
-  | {
-      type: 'recipients';
-      startTime: number;
-      duration: number;
-      recipients: Phase4ValueRecipient[];
-    };
+type Phase6ValueTimeSplitBase = {
+  startTime: number;
+  duration: number;
+};
+
+type Phase6RemoteItemValueTimeSplit = Phase6ValueTimeSplitBase & {
+  remoteStartTime: number;
+  remotePercentage: number;
+  remoteItem: Phase6RemoteItem;
+  type: 'remoteItem';
+};
+
+type Phase6RecipientItemValueTimeSplit = Phase6ValueTimeSplitBase & {
+  recipients: Phase4ValueRecipient[];
+  type: 'recipients';
+};
+
+export type Phase6ValueTimeSplit =
+  | Phase6RemoteItemValueTimeSplit
+  | Phase6RecipientItemValueTimeSplit;
+
+export type Phase4ValueTimeSplitRemoteItem = Phase6RemoteItem;
+export type Phase4ValueTimeSplit = Phase6ValueTimeSplit;
 
 export type Phase4Value = {
   type: string;
   method: string;
   suggested?: string | null;
   recipients: Phase4ValueRecipient[];
-  // TODO: tighten to match partytime Phase6ValueTimeSplit shape
-  valueTimeSplits?: Phase4ValueTimeSplit[];
+  valueTimeSplits?: Phase6ValueTimeSplit[];
 };
 
-export type Phase4PodcastLiveItem = {
-  // TODO: tighten to match partytime live item shape
-  title?: string;
-  guid: string;
-  enclosure: {
-    url: string;
-    length: number;
-    type: string;
+export type Phase4PodcastLiveItemItem = Pick<Episode, 'guid' | 'enclosure'> &
+  Partial<Omit<Episode, 'chat'>> & {
+    chat?: Phase7Chat | { phase: '4'; url: string };
   };
-  // TODO: tighten to Phase4LiveStatus enum
-  status: string;
+
+export type Phase4PodcastLiveItem = Phase4PodcastLiveItemItem & {
+  status: Phase4LiveStatus;
   start: Date;
   end?: Date;
+  image?: string;
   contentLinks: Array<{
     url: string;
     title: string;
   }>;
-  // TODO: tighten once partytime chat union is modeled locally
-  chat?: Phase7Chat | { phase: '4'; url: string };
 };
 
 export type Episode = {
@@ -104,8 +120,10 @@ export type Episode = {
     title?: string | null;
     rel?: string | null;
     codecs?: string | null;
-    // TODO: tighten integrity type once IntegrityType is modeled locally
-    integrity?: unknown;
+    integrity?: {
+      type: IntegrityType;
+      value: string;
+    };
     source: Array<{
       uri: string;
       contentType: string;
@@ -175,15 +193,13 @@ export type Episode = {
     value: string;
   }>;
   value?: Phase4Value | null;
-  // TODO: tighten podcastSeasonIndex once partytime shape is modeled
-  podcastSeasonIndex?: unknown;
+  podcastSeasonIndex?: number | null;
 };
 
 export type FeedObject = {
   guid?: string | null;
   title: string;
-  // TODO: tighten to Phase4Medium when partytime medium enum is modeled
-  medium?: unknown;
+  medium?: Phase4Medium;
   author?: string | string[] | null;
   explicit: boolean;
   language?: string | null;
@@ -218,22 +234,12 @@ export type FeedObject = {
     img?: string | null;
     href?: string | null;
   }>;
-  // TODO: tighten to partytime remote item shape (feedUrl/medium optionality)
-  podroll?: Array<{
-    feedGuid?: string | null;
-    feedUrl?: string | null;
-    medium?: unknown;
-  }>;
+  podroll?: Phase6RemoteItem[];
   podcastPublisher?: {
-    feedGuid?: string | null;
-    feedUrl?: string | null;
+    feedGuid: string;
+    feedUrl?: string;
   } | null;
-  // TODO: tighten to partytime remote item shape (feedUrl/medium optionality)
-  podcastRemoteItems?: Array<{
-    feedGuid?: string | null;
-    feedUrl?: string | null;
-    medium?: unknown;
-  }>;
+  podcastRemoteItems?: Phase6RemoteItem[];
   podcastSocial?: Array<{
     platform: string;
     url: string;

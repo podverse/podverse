@@ -268,3 +268,172 @@ To-do's from the plan have already been created. Do not create them again. Mark 
 - packages/parser/src/lib/rss/liveItem/liveItem.ts
 - packages/parser/src/lib/compat/chapters/chapters.ts
 - .llm/history/active/add-by-rss-feeds/add-by-rss-feeds-part-03.md
+
+### Session 33 - 2026-02-02
+
+#### Prompt (Developer)
+
+Implement the plan as specified, it is attached for your reference. Do NOT edit the plan file itself.
+
+To-do's from the plan have already been created. Do not create them again. Mark them as in_progress as you work, starting with the first one. Don't stop until you have completed all the to-dos.
+
+#### Key Decisions
+
+- Created `@podverse/parser-mapping` for browser-safe compat mapping.
+- Introduced local partytime-compatible types and a pure JS MD5 for chapter hashes.
+- Switched parser live item DTO typing to derive from mapping return types.
+
+#### Files Modified
+
+- package.json
+- packages/parser/tsconfig.json
+- packages/parser/package.json
+- packages/parser/src/lib/chapters/chapters.ts
+- packages/parser/src/lib/rss/channel/channel.ts
+- packages/parser/src/lib/rss/channel/channelAbout.ts
+- packages/parser/src/lib/rss/channel/channelCategory.ts
+- packages/parser/src/lib/rss/channel/channelChat.ts
+- packages/parser/src/lib/rss/channel/channelDescription.ts
+- packages/parser/src/lib/rss/channel/channelFunding.ts
+- packages/parser/src/lib/rss/channel/channelImage.ts
+- packages/parser/src/lib/rss/channel/channelLicense.ts
+- packages/parser/src/lib/rss/channel/channelLocation.ts
+- packages/parser/src/lib/rss/channel/channelPerson.ts
+- packages/parser/src/lib/rss/channel/channelPodroll.ts
+- packages/parser/src/lib/rss/channel/channelPublisher.ts
+- packages/parser/src/lib/rss/channel/channelRemoteItem.ts
+- packages/parser/src/lib/rss/channel/channelSeason.ts
+- packages/parser/src/lib/rss/channel/channelSocialInteract.ts
+- packages/parser/src/lib/rss/channel/channelTrailer.ts
+- packages/parser/src/lib/rss/channel/channelTxt.ts
+- packages/parser/src/lib/rss/channel/channelValue.ts
+- packages/parser/src/lib/rss/item/item.ts
+- packages/parser/src/lib/rss/item/itemAbout.ts
+- packages/parser/src/lib/rss/item/itemChaptersFeed.ts
+- packages/parser/src/lib/rss/item/itemChat.ts
+- packages/parser/src/lib/rss/item/itemDescription.ts
+- packages/parser/src/lib/rss/item/itemEnclosure.ts
+- packages/parser/src/lib/rss/item/itemImage.ts
+- packages/parser/src/lib/rss/item/itemLicense.ts
+- packages/parser/src/lib/rss/item/itemLocation.ts
+- packages/parser/src/lib/rss/item/itemPerson.ts
+- packages/parser/src/lib/rss/item/itemSeason.ts
+- packages/parser/src/lib/rss/item/itemSeasonEpisode.ts
+- packages/parser/src/lib/rss/item/itemSocialInteract.ts
+- packages/parser/src/lib/rss/item/itemSoundbite.ts
+- packages/parser/src/lib/rss/item/itemTranscript.ts
+- packages/parser/src/lib/rss/item/itemTxt.ts
+- packages/parser/src/lib/rss/item/itemValue.ts
+- packages/parser/src/lib/rss/liveItem/liveItem.ts
+- packages/parser-mapping/package.json
+- packages/parser-mapping/tsconfig.json
+- packages/parser-mapping/src/index.ts
+- packages/parser-mapping/src/types/partytime.ts
+- packages/parser-mapping/src/compat/partytime/channel.ts
+- packages/parser-mapping/src/compat/partytime/compatFull.ts
+- packages/parser-mapping/src/compat/partytime/item.ts
+- packages/parser-mapping/src/compat/partytime/liveItem.ts
+- packages/parser-mapping/src/compat/partytime/publisher.ts
+- packages/parser-mapping/src/compat/partytime/value.ts
+- packages/parser-mapping/src/compat/chapters/hash.ts
+- packages/parser-mapping/src/compat/chapters/chapters.ts
+- packages/parser/src/lib/compat/partytime/channel.ts (deleted)
+- packages/parser/src/lib/compat/partytime/compatFull.ts (deleted)
+- packages/parser/src/lib/compat/partytime/item.ts (deleted)
+- packages/parser/src/lib/compat/partytime/liveItem.ts (deleted)
+- packages/parser/src/lib/compat/partytime/publisher.ts (deleted)
+- packages/parser/src/lib/compat/partytime/value.ts (deleted)
+- packages/parser/src/lib/compat/chapters/chapters.ts (deleted)
+- packages/parser/src/lib/rss/hash/parsedItemChapter.ts (deleted)
+- .llm/history/active/add-by-rss-feeds/add-by-rss-feeds-part-03.md
+
+### Session 34 - 2026-02-02
+
+#### Prompt (Developer)
+
+Implement the plan as specified, it is attached for your reference. Do NOT edit the plan file itself.
+
+To-do's from the plan have already been created. Do not create them again. Mark them as in_progress as you work, starting with the first one. Don't stop until you have completed all the to-dos.
+
+#### Key Decisions
+
+- Added TODO flags where parser-mapping types were relaxed for compatibility.
+
+#### Files Modified
+
+- packages/parser-mapping/src/types/partytime.ts
+- packages/parser-mapping/src/compat/partytime/channel.ts
+- packages/parser-mapping/src/compat/partytime/item.ts
+- packages/parser-mapping/src/compat/chapters/hash.ts
+- packages/parser/src/lib/rss/liveItem/liveItem.ts
+- .llm/history/active/add-by-rss-feeds/add-by-rss-feeds-part-03.md
+
+### Session 35 - 2026-02-02
+
+#### Prompt (Developer)
+
+Implement the plan as specified, it is attached for your reference. Do NOT edit the plan file itself.
+
+To-do's from the plan have already been created. Do not create them again. Mark them as in_progress as you work, starting with the first one. Don't stop until you have completed all the to-dos.
+
+#### Key Decisions
+
+- Added shared status-code extraction for parser error logging.
+- Exported explicit live item DTO type from parser-mapping.
+- Created a dedicated parser-mapping TODO plan file.
+
+#### Files Modified
+
+- packages/parser/src/lib/rss/parser.ts
+- packages/parser/src/lib/rss/feed/feed.ts
+- packages/parser/src/lib/rss/liveItem/liveItem.ts
+- packages/parser-mapping/src/compat/partytime/liveItem.ts
+- packages/parser-mapping/dist/index.d.ts
+- packages/parser-mapping/dist/compat/partytime/liveItem.d.ts
+- .cursor/plans/parser-mapping-todos_9c6d43a9.plan.md
+- .llm/history/active/add-by-rss-feeds/add-by-rss-feeds-part-03.md
+
+### Session 36 - 2026-02-02
+
+#### Prompt (Developer)
+
+getStatusCodeFromError is this code duplicated? also, if it is generic and can be used elsewhere, move it to an appropriate helpers module
+
+#### Key Decisions
+
+- Centralized status code extraction in helpers-requests.
+- Enabled composite builds for helpers-requests to support parser reference.
+
+#### Files Modified
+
+- packages/helpers-requests/src/getStatusCodeFromError.ts
+- packages/helpers-requests/src/index.ts
+- packages/helpers-requests/tsconfig.json
+- packages/parser/src/lib/rss/feed/feed.ts
+- packages/parser/src/lib/rss/parser.ts
+- packages/parser/tsconfig.json
+- .llm/history/active/add-by-rss-feeds/add-by-rss-feeds-part-03.md
+
+### Session 37 - 2026-02-02
+
+#### Prompt (Developer)
+
+Implement the plan as specified, it is attached for your reference. Do NOT edit the plan file itself.
+
+To-do's from the plan have already been created. Do not create them again. Mark them as in_progress as you work, starting with the first one. Don't stop until you have completed all the to-dos.
+
+#### Key Decisions
+
+- Tightened parser-mapping partytime types to match podverse-partytime phase types.
+- Kept parser item helpers typed to Episode and cast live items at the call site.
+
+#### Files Modified
+
+- packages/parser/src/lib/rss/addByRSS.ts
+- packages/parser/src/lib/rss/item/item.ts
+- packages/parser/src/lib/rss/liveItem/liveItem.ts
+- packages/parser-mapping/src/types/partytime.ts
+- packages/parser-mapping/src/compat/partytime/item.ts
+- packages/parser-mapping/dist/types/partytime.d.ts
+- packages/parser-mapping/dist/compat/partytime/item.d.ts
+- .llm/history/active/add-by-rss-feeds/add-by-rss-feeds-part-03.md

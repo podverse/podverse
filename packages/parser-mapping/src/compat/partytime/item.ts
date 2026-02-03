@@ -1,4 +1,8 @@
-import type { Episode, Phase4PodcastImage } from '../../types/partytime.js';
+import type {
+  Episode as PartytimeEpisode,
+  Phase4PodcastImage,
+  Phase4PodcastLiveItem,
+} from '../../types/partytime.js';
 import {
   DATABASE_CONSTANTS,
   formatGuidEnclosureUrl,
@@ -10,6 +14,8 @@ import { compatItemValue } from './value.js';
 type CompatItemDtoOptions = {
   isLiveItem?: boolean;
 };
+
+type Episode = PartytimeEpisode | Phase4PodcastLiveItem;
 
 export const compatItemDto = (parsedItem: Episode, options?: CompatItemDtoOptions) => ({
   guid: parsedItem.guid?.slice(0, DATABASE_CONSTANTS.varchar_url) || null,
@@ -48,14 +54,15 @@ export const compatItemChaptersFeedDto = (parsedItem: Episode) => {
 };
 
 export const compatItemChatDto = (parsedItem: Episode) => {
-  if (!parsedItem.chat || !parsedItem.chat.server || !parsedItem.chat.protocol) {
+  const chat = parsedItem.chat;
+  if (!chat || chat.phase === '4' || !chat.server || !chat.protocol) {
     return null;
   }
   return {
-    server: parsedItem.chat.server.slice(0, DATABASE_CONSTANTS.varchar_fqdn),
-    protocol: parsedItem.chat.protocol.slice(0, DATABASE_CONSTANTS.varchar_short),
-    account_id: parsedItem.chat.accountId?.slice(0, DATABASE_CONSTANTS.varchar_normal) || null,
-    space: parsedItem.chat.space?.slice(0, DATABASE_CONSTANTS.varchar_normal) || null,
+    server: chat.server.slice(0, DATABASE_CONSTANTS.varchar_fqdn),
+    protocol: chat.protocol.slice(0, DATABASE_CONSTANTS.varchar_short),
+    account_id: chat.accountId?.slice(0, DATABASE_CONSTANTS.varchar_normal) || null,
+    space: chat.space?.slice(0, DATABASE_CONSTANTS.varchar_normal) || null,
   };
 };
 
@@ -117,15 +124,7 @@ export const compatItemEnclosureDtos = (parsedItem: Episode) => {
         item_enclosure_default: false,
       };
 
-      /*
-        PTDO: why am I getting this error when I don't use any?
-        src/lib/compat/partytime/item.ts:50:14 - error TS4023: Exported variable
-        'compatItemEnclosureDtos' has or is using name 'IntegrityType' from external module
-        "/podverse-parser/node_modules/podverse-partytime/dist/parser/phase/phase-3" but cannot be named.
-      */
-      // TODO: replace any-cast when IntegrityType is modeled locally
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const item_enclosure_integrity = (alternativeEnclosure.integrity as any) || null;
+      const item_enclosure_integrity = alternativeEnclosure.integrity ?? null;
 
       const item_enclosure_sources = alternativeEnclosure.source.map((source) => ({
         uri: source.uri.slice(0, DATABASE_CONSTANTS.varchar_uri),

@@ -1,8 +1,11 @@
+import type { Episode } from 'podverse-partytime';
 import type { Phase4PodcastLiveItem } from 'podverse-partytime/dist/parser/phase/phase-4.js';
 import { chunkArray, getLiveItemStatusEnumValue, LiveItemStatusEnum } from '@podverse/helpers';
-import type { Channel, ChannelSeasonIndex, LiveItem } from '@podverse/orm';
+import type { Channel, ChannelSeasonIndex, EntityManager, LiveItem } from '@podverse/orm';
 import { AppDataSourceReadWrite, ItemService, LiveItemService } from '@podverse/orm';
+import type { CompatLiveItemDto } from '@podverse/parser-mapping';
 import { compatLiveItemsDtos } from '@podverse/parser-mapping';
+import type { ItemTimerAccumulator } from '@parser/lib/rss/item/item.js';
 import { createItemTimerAccumulator, handleParsedItem } from '@parser/lib/rss/item/item.js';
 import { ItemFlagStatusStatusEnum } from '@podverse/orm';
 import { timerManager } from '@parser/factories/timerManager.js';
@@ -15,8 +18,7 @@ export type HandleParsedLiveItemsResult = {
   liveItemGuids: string[];
 };
 
-// TODO: tighten type once parser-mapping live item types align with partytime
-type LiveItemObjDto = ReturnType<typeof compatLiveItemsDtos>[number];
+type LiveItemObjDto = CompatLiveItemDto;
 
 const processLiveItemBatch = async (
   liveItemObjDtosBatch: LiveItemObjDto[],
@@ -26,17 +28,15 @@ const processLiveItemBatch = async (
   updatedLiveItemIds: number[],
   pendingItemGuids: string[],
   liveItemGuids: string[],
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  transactionalEntityManager: any,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  timerAccumulator: any,
+  transactionalEntityManager: EntityManager,
+  timerAccumulator: ItemTimerAccumulator,
   liveItemService: LiveItemService
 ) => {
   for (const liveItemObjDto of liveItemObjDtosBatch) {
     const itemDto = liveItemObjDto.item;
 
     const item = await handleParsedItem({
-      parsedItem: itemDto,
+      parsedItem: itemDto as Episode,
       channel,
       channelSeasonIndex,
       transactionalEntityManager,

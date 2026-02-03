@@ -1,3 +1,6 @@
+import type { FeedObject } from 'podverse-partytime';
+import { parseFeed } from 'podverse-partytime';
+
 import {
   OnDemandParserEventType,
   ON_DEMAND_ADD_PARSER_LIMIT,
@@ -5,8 +8,7 @@ import {
   getOnDemandParserEventDateRange,
   sleep,
 } from '@podverse/helpers';
-import type { FeedObject } from 'podverse-partytime';
-import { parseFeed } from 'podverse-partytime';
+import { getStatusCodeFromError } from '@podverse/helpers-requests';
 import {
   ChannelService,
   ChannelSeasonService,
@@ -209,7 +211,15 @@ export const parseRSSFeedAndSaveToDatabase = async (
     } else if (error instanceof FeedNoChangesSinceLastParsedError) {
       loggerService.warn(`Feed ${feed?.id} has no changes since last parsed.`);
     } else {
-      // TODO: Handle other errors
+      const statusCode = getStatusCodeFromError(error);
+      if (feed) {
+        const feedLogService = new FeedLogService();
+        const feedLog = await feedLogService.get(feed);
+        await feedLogService.update(feed, {
+          ...(statusCode ? { last_http_status: statusCode } : {}),
+          parse_errors: (feedLog?.parse_errors || 0) + 1,
+        });
+      }
       loggerService.logError('parseRSSFeedAndSaveToDatabase', error as Error);
     }
   } finally {

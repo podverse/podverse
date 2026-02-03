@@ -1,5 +1,5 @@
 import type { FeedObject } from 'podverse-partytime';
-import { throwRequestError } from '@podverse/helpers-requests';
+import { getStatusCodeFromError, throwRequestError } from '@podverse/helpers-requests';
 import type { Feed } from '@podverse/orm';
 import { FeedService, FeedLogService } from '@podverse/orm';
 import { getParsedFeedMd5Hash } from '../hash/parsedFeed.js';
@@ -55,16 +55,12 @@ export const handleRequestRSSFeed = async (feed: Feed): Promise<FeedObject> => {
       last_good_http_status_time: new Date(),
     });
   } catch (error) {
-    // TODO: how to handle errors?
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const statusCode = (error as any).statusCode as number;
+    const statusCode = getStatusCodeFromError(error);
     const feedLog = await feedLogService.get(feed);
-    if (statusCode) {
-      await feedLogService.update(feed, {
-        last_http_status: statusCode,
-        parse_errors: (feedLog?.parse_errors || 0) + 1,
-      });
-    }
+    await feedLogService.update(feed, {
+      ...(statusCode ? { last_http_status: statusCode } : {}),
+      parse_errors: (feedLog?.parse_errors || 0) + 1,
+    });
     return throwRequestError(error);
   }
 

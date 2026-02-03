@@ -39,10 +39,10 @@ async function handleRateLimitRequestDelay(url: string) {
   }
 }
 
-const getHeaderValue = (
-  headers: Record<string, unknown>,
-  headerName: string
-): string | undefined => {
+type HeaderValue = string | string[] | undefined;
+type HeaderRecord = Record<string, HeaderValue>;
+
+const getHeaderValue = (headers: HeaderRecord, headerName: string): string | undefined => {
   const value = headers[headerName];
   if (typeof value === 'string') {
     return value;
@@ -93,8 +93,9 @@ export const parseRSSFeedForAddByRSS = async (
     return { status: 'failed', error: `parseRSSFeedForAddByRSS: empty body for ${url}` };
   }
 
-  const responseEtag = getHeaderValue(response.headers, 'etag');
-  const responseLastModified = getHeaderValue(response.headers, 'last-modified');
+  const responseHeaders = response.headers as HeaderRecord;
+  const responseEtag = getHeaderValue(responseHeaders, 'etag');
+  const responseLastModified = getHeaderValue(responseHeaders, 'last-modified');
   const currentFeedHash = getRawFeedMd5Hash(rawFeed);
 
   if (options.feedHash && options.feedHash === currentFeedHash) {
