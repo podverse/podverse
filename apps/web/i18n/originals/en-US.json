@@ -54,6 +54,19 @@
       "add_feed_explanation": "This feed is not in our directory. If you would like to add it, press the \"Add Feed\" button.",
       "rss_link": "RSS Link"
     },
+    "add_by_rss": {
+      "label": "Add by RSS",
+      "check_updates": "Check for Updates",
+      "feed_url": "RSS Feed URL",
+      "invalid_url": "Enter a valid RSS feed URL.",
+      "no_feeds": "No RSS feeds saved yet.",
+      "status": "Status",
+      "status_failed": "Failed",
+      "status_not_modified": "Not modified",
+      "status_parsed": "Parsed",
+      "status_processing": "Processing",
+      "status_queued": "Queued"
+    },
     "my_library": "My Library",
     "queue": {
       "queue": "Queue",

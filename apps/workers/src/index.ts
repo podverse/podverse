@@ -122,8 +122,8 @@ const run = async () => {
         ormContext = createORMContext(ormConfig);
       }
 
-      let firebaseContext: ReturnType<typeof createFirebaseContext> | null = null;
-      let notificationsContext: ReturnType<typeof createNotificationsContext> | null = null;
+      let firebaseContext: ReturnType<typeof createFirebaseContext> | undefined;
+      let notificationsContext: ReturnType<typeof createNotificationsContext> | undefined;
 
       if (categories.has(CATEGORY_WEB_NOTIFICATIONS)) {
         const externalServicesConfig = getExternalServicesConfig();
@@ -176,7 +176,7 @@ const run = async () => {
       if (categories.has(CATEGORY_PARSER)) {
         const podcastIndexConfig = categories.has(CATEGORY_PODCAST_INDEX)
           ? getPodcastIndexConfig()
-          : { authKey: '', baseUrl: '', secretKey: '' };
+          : undefined;
         const parserConfig = {
           userAgent: baseConfig.userAgent,
           log: {
@@ -188,12 +188,14 @@ const run = async () => {
             notifications_enabled: process.env.GOOGLE_FIREBASE_NOTIFICATIONS_ENABLED === 'true',
             authJsonPath: process.env.GOOGLE_FIREBASE_ADMIN_JSON_KEY_PATH,
           },
-          podcastIndex: {
-            authKey: podcastIndexConfig.authKey,
-            baseUrl: podcastIndexConfig.baseUrl,
-            secretKey: podcastIndexConfig.secretKey,
-            rateLimitDelay: podcastIndexConfig.rateLimitDelay ?? 0,
-          },
+          podcastIndex: podcastIndexConfig
+            ? {
+                authKey: podcastIndexConfig.authKey,
+                baseUrl: podcastIndexConfig.baseUrl,
+                secretKey: podcastIndexConfig.secretKey,
+                rateLimitDelay: podcastIndexConfig.rateLimitDelay ?? 0,
+              }
+            : undefined,
           parser: {
             addRemoteItemsToMQ: process.env.PARSER_ADD_REMOTE_ITEMS_TO_MQ === 'true',
           },
@@ -206,13 +208,11 @@ const run = async () => {
           },
         };
         assertConfigValid(validateParserConfig(parserConfig), 'podverse-parser');
-        if (firebaseContext && notificationsContext) {
-          createParserContext({
-            config: parserConfig,
-            notificationsContext,
-            firebaseContext,
-          });
-        }
+        createParserContext({
+          config: parserConfig,
+          notificationsContext,
+          firebaseContext,
+        });
       }
 
       if (ormContext) {

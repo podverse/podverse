@@ -54,6 +54,19 @@
       "add_feed_explanation": "Αυτή η ροή δεν είναι στον κατάλογό μας. Αν θέλετε να την προσθέσετε, πατήστε το κουμπί \"Προσθήκη Ροής\".",
       "rss_link": "Σύνδεσμος RSS"
     },
+    "add_by_rss": {
+      "label": "Προσθήκη μέσω RSS",
+      "check_updates": "Έλεγχος για Ενημερώσεις",
+      "feed_url": "URL Ροής RSS",
+      "invalid_url": "Εισάγετε έγκυρο URL ροής RSS.",
+      "no_feeds": "Δεν υπάρχουν αποθηκευμένες ροές RSS ακόμα.",
+      "status": "Κατάσταση",
+      "status_failed": "Απέτυχε",
+      "status_not_modified": "Αλλαγή δεν έγινε",
+      "status_parsed": "Επεξεργασμένο",
+      "status_processing": "Επεξεργασία",
+      "status_queued": "Σε ουρά"
+    },
     "my_library": "Η Βιβλιοθήκη Μου",
     "queue": {
       "queue": "Ουρά",

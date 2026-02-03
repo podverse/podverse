@@ -1,0 +1,85 @@
+.addFeedForm {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+  width: 100%;
+}
+
+.addFeedInput {
+  margin-bottom: 0;
+  align-self: center;
+}
+
+.errorMessage {
+  color: var(--text-color-danger);
+  margin-bottom: 12px;
+}
+
+.loading {
+  color: var(--color-text-secondary);
+  margin: 12px 0;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.listItem {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  padding: 12px;
+  border-radius: var(--border-radius-md);
+  background: var(--color-background-card);
+  text-decoration: none;
+  color: inherit;
+  transition: background 0.2s ease;
+}
+
+.listItem:hover {
+  background: var(--color-background-card-hover);
+}
+
+.image {
+  border-radius: var(--border-radius-sm);
+  object-fit: cover;
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.meta {
+  display: flex;
+  gap: 6px;
+  font-size: 0.875rem;
+  color: var(--color-text-secondary);
+}
+
+.statusLabel {
+  font-weight: 600;
+}
+
+.statusValue {
+  text-transform: capitalize;
+}
+
+.feedUrl {
+  font-size: 0.875rem;
+  color: var(--color-text-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

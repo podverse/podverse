@@ -66,10 +66,14 @@ examples if needed. For the full checklist (including index.ts and new categorie
 
 ## Podcast Index
 
+These variables are required only for commands that include the Podcast Index category
+(see "Command groups and env categories" above).
+
 - **`PODCAST_INDEX_AUTH_KEY`** (Required) - Podcast Index API authentication key
 - **`PODCAST_INDEX_BASE_URL`** (Required) - Podcast Index API base URL
 - **`PODCAST_INDEX_SECRET_KEY`** (Required) - Podcast Index API secret key
-- **`PODCAST_INDEX_API_RATE_LIMIT_DELAY`** (Optional) - Rate limit delay in milliseconds for Podcast Index API requests
+- **`PODCAST_INDEX_API_RATE_LIMIT_DELAY`** (Optional) - Rate limit delay in milliseconds for
+  Podcast Index API requests
 
 ## Message Queue (commands that use MQ)
 

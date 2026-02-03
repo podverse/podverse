@@ -54,6 +54,19 @@
       "add_feed_explanation": "",
       "rss_link": ""
     },
+    "add_by_rss": {
+      "label": "",
+      "check_updates": "",
+      "feed_url": "",
+      "invalid_url": "",
+      "no_feeds": "",
+      "status": "",
+      "status_failed": "",
+      "status_not_modified": "",
+      "status_parsed": "",
+      "status_processing": "",
+      "status_queued": ""
+    },
     "my_library": "",
     "queue": {
       "queue": "",

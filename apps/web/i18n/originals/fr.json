@@ -54,6 +54,19 @@
       "add_feed_explanation": "Ce flux n'est pas dans notre annuaire. Si vous souhaitez l'ajouter, appuyez sur le bouton \"Ajouter un flux\".",
       "rss_link": "Lien RSS"
     },
+    "add_by_rss": {
+      "label": "Ajouter par RSS",
+      "check_updates": "Vérifier les mises à jour",
+      "feed_url": "URL du flux RSS",
+      "invalid_url": "Entrez une URL de flux RSS valide.",
+      "no_feeds": "Aucun flux RSS enregistré pour le moment.",
+      "status": "Statut",
+      "status_failed": "Échec",
+      "status_not_modified": "Non modifié",
+      "status_parsed": "Analyser",
+      "status_processing": "Traitement",
+      "status_queued": "En attente"
+    },
     "my_library": "Ma Bibliothèque",
     "queue": {
       "queue": "File d'attente",
