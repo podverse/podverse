@@ -1,5 +1,6 @@
 import type { ApiRequestService } from '../../_request.js';
-import type { DTOAccountFollowingAddByRSSChannel } from '@podverse/helpers';
+import type { DTOAccount, DTOAccountFollowingAddByRSSChannel } from '@podverse/helpers';
+import { reqAuthMe } from '../../auth/auth.js';
 
 type ReqAccountFollowAddByRSSChannelParams = {
   feed_url: string;
@@ -18,8 +19,8 @@ type ReqAccountGetFollowedAddByRSSChannelsParams = {
 export async function reqAccountFollowAddByRSSChannel(
   api: ApiRequestService,
   params: ReqAccountFollowAddByRSSChannelParams
-): Promise<{ message: string }> {
-  return api.apiRequest<{ message: string }>({
+): Promise<DTOAccount> {
+  await api.apiRequest<{ message: string }>({
     path: '/account/follow/add-by-rss-channel',
     method: 'POST',
     data: {
@@ -29,12 +30,14 @@ export async function reqAccountFollowAddByRSSChannel(
     },
     config: { withCredentials: true },
   });
+
+  return reqAuthMe(api);
 }
 
 export async function reqAccountUnfollowAddByRSSChannel(
   api: ApiRequestService,
   params: ReqAccountUnfollowAddByRSSChannelParams
-): Promise<void> {
+): Promise<DTOAccount> {
   await api.apiRequest<void>({
     path: '/account/unfollow/add-by-rss-channel',
     method: 'POST',
@@ -43,6 +46,8 @@ export async function reqAccountUnfollowAddByRSSChannel(
     },
     config: { withCredentials: true },
   });
+
+  return reqAuthMe(api);
 }
 
 export async function reqAccountGetFollowedAddByRSSChannels(

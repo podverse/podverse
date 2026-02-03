@@ -66,7 +66,8 @@ const run = async () => {
   const { setLogger } = await import('./factories/logger.js');
   const { setTimerManager } = await import('./factories/timerManager.js');
   const { setActiveMQArtemisService } = await import('./factories/activeMQArtemisService.js');
-  const { initKeyvaldb } = await import('./lib/keyvaldb/keyvaldb.js');
+  const { initKeyvaldb, testKeyvaldbConnection, waitForKeyvaldbConnection } =
+    await import('./lib/keyvaldb/keyvaldb.js');
   const { ActiveMQArtemisService } = await import('@podverse/mq');
   const { setPodcastIndexService } = await import('./factories/podcastIndexService.js');
 
@@ -171,6 +172,22 @@ const run = async () => {
           enableOfflineQueue: false,
         });
         initKeyvaldb(client, keyvaldbConfig);
+        const keyvaldbReady = await waitForKeyvaldbConnection();
+        if (!keyvaldbReady) {
+          console.error('KeyValDB connection did not become ready before ping', {
+            host: keyvaldbConfig.host,
+            port: keyvaldbConfig.port,
+          });
+          throw new Error('FATAL: KeyValDB connection not ready');
+        }
+        const keyvaldbOk = await testKeyvaldbConnection();
+        if (!keyvaldbOk) {
+          console.error('KeyValDB connection test failed', {
+            host: keyvaldbConfig.host,
+            port: keyvaldbConfig.port,
+          });
+          throw new Error('FATAL: KeyValDB connection test failed');
+        }
       }
 
       if (categories.has(CATEGORY_PARSER)) {

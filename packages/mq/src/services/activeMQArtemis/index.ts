@@ -329,6 +329,15 @@ export class ActiveMQArtemisService {
       const sender = await this.ensureSender(queueName);
       const bodyString = JSON.stringify(message);
       const duplicateId = this.computeDuplicateId(queueName, message, dedupeCacheTimeMS);
+      if (process.env.MQ_DEBUG === 'true') {
+        this.logger.info('MQ send debug', {
+          queueName,
+          host: this.params.host,
+          port: this.params.port,
+          protocol: this.params.protocol,
+          duplicateId,
+        });
+      }
       const priorityValue = !priority || priority === 'normal' ? 5 : 1;
       await new Promise<void>((resolve, reject) => {
         const delivery = sender.send({
@@ -362,6 +371,7 @@ export class ActiveMQArtemisService {
         `sendMessage: Error sending message to queue ${queueName}`,
         error as Error
       );
+      throw error;
     }
   }
 

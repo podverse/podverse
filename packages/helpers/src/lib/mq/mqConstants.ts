@@ -1,3 +1,11 @@
+import {
+  DEDUPE_WINDOW_ADD_BY_RSS_BACKGROUND_MS,
+  DEDUPE_WINDOW_ADD_BY_RSS_ON_DEMAND_MS,
+  DEDUPE_WINDOW_RSS_NORMAL_MS,
+  DEDUPE_WINDOW_RSS_ON_DEMAND_MS,
+  DEDUPE_WINDOW_RSS_SLOW_MS,
+} from './dedupeWindows.js';
+
 export type MQQueueNameParamKey =
   | 'rss-slow'
   | 'rss-normal'
@@ -35,17 +43,17 @@ export type MQQueueConfigFunctionParams = MQQueueConfig & {
 export const MQ_QUEUES: Record<MQQueueNameParamKey, MQQueueConfig> = {
   'rss-slow': {
     queueName: 'rss-normal',
-    dedupeCacheTimeMS: 15 * 60 * 1000,
+    dedupeCacheTimeMS: DEDUPE_WINDOW_RSS_SLOW_MS,
     priority: 'slow',
   },
   'rss-normal': {
     queueName: 'rss-normal',
-    dedupeCacheTimeMS: 5 * 60 * 1000,
+    dedupeCacheTimeMS: DEDUPE_WINDOW_RSS_NORMAL_MS,
     priority: 'normal',
   },
   'rss-on-demand': {
     queueName: 'rss-on-demand',
-    dedupeCacheTimeMS: 1 * 60 * 1000,
+    dedupeCacheTimeMS: DEDUPE_WINDOW_RSS_ON_DEMAND_MS,
     priority: 'normal',
   },
   'rss-live': {
@@ -55,12 +63,12 @@ export const MQ_QUEUES: Record<MQQueueNameParamKey, MQQueueConfig> = {
   },
   'add-by-rss-on-demand': {
     queueName: 'add-by-rss-on-demand',
-    dedupeCacheTimeMS: 1 * 60 * 1000,
+    dedupeCacheTimeMS: DEDUPE_WINDOW_ADD_BY_RSS_ON_DEMAND_MS,
     priority: 'normal',
   },
   'add-by-rss-background': {
     queueName: 'add-by-rss-background',
-    dedupeCacheTimeMS: 5 * 60 * 1000,
+    dedupeCacheTimeMS: DEDUPE_WINDOW_ADD_BY_RSS_BACKGROUND_MS,
     priority: 'normal',
   },
 };

@@ -4,17 +4,37 @@ import { getLoggerService } from '@workers/factories/loggerService.js';
 import { setAddByRSSParseCacheEntry } from '@workers/lib/addByRSSParseCache.js';
 
 import { parseRSSFeedForAddByRSS } from '@podverse/parser';
+import { MQ_QUEUES } from '@podverse/helpers';
+import type { MQQueueNameParamKey } from '@podverse/helpers';
 import type { MQAddByRSSMessage } from '@podverse/mq';
 import { createActiveMQShutdown } from '@podverse/mq';
 
-export const mqAddByRSSRunParser = async (_args: CommandLineArgs) => {
+const allowedQueueParamKeys: MQQueueNameParamKey[] = [
+  'add-by-rss-on-demand',
+  'add-by-rss-background',
+];
+
+export const mqAddByRSSRunParser = async (args: CommandLineArgs) => {
+  const mqQueueNameParamKey = (Array.isArray(args.q) ? args.q[0] : args.q) as
+    | MQQueueNameParamKey
+    | undefined;
+  if (!mqQueueNameParamKey) {
+    throw new Error('queueName (-q) parameter is required');
+  }
+
+  if (!allowedQueueParamKeys.includes(mqQueueNameParamKey)) {
+    throw new Error(`Invalid queueName. Allowed values are: ${allowedQueueParamKeys.join(', ')}`);
+  }
+
+  const mqConstantMessageOptions = MQ_QUEUES[mqQueueNameParamKey];
   const activeMQArtemisService = getActiveMQArtemisService();
   const loggerService = getLoggerService();
+  const isDev = process.env.NODE_ENV === 'development';
 
   await activeMQArtemisService.initialize();
 
   await activeMQArtemisService.consumeMessages(
-    'add-by-rss-on-demand',
+    mqConstantMessageOptions.queueName,
     async (context, receiver) => {
       const bodyStr = (context.message?.body as string) ?? '';
       let message: MQAddByRSSMessage | null = null;
@@ -39,6 +59,14 @@ export const mqAddByRSSRunParser = async (_args: CommandLineArgs) => {
           },
           updatedAt: new Date().toISOString(),
         });
+
+        if (isDev) {
+          loggerService.info('mqAddByRSSRunParser: parse started', {
+            accountId,
+            requestId,
+            queueName: mqConstantMessageOptions.queueName,
+          });
+        }
 
         const result = await parseRSSFeedForAddByRSS(feedUrl, {
           feedHash,
@@ -76,9 +104,25 @@ export const mqAddByRSSRunParser = async (_args: CommandLineArgs) => {
           });
         }
 
+        if (isDev) {
+          loggerService.info('mqAddByRSSRunParser: parse finished', {
+            accountId,
+            requestId,
+            queueName: mqConstantMessageOptions.queueName,
+            status: result.status,
+          });
+        }
+
         context.delivery?.accept();
         receiver.add_credit(1);
       } catch (error) {
+        if (isDev) {
+          loggerService.info('mqAddByRSSRunParser: parse failed', {
+            accountId: message?.accountId,
+            requestId: message?.requestId,
+            queueName: mqConstantMessageOptions.queueName,
+          });
+        }
         loggerService.logError('mqAddByRSSRunParser: error processing message', error as Error);
         try {
           if (message?.accountId && message?.feedUrl && message?.requestId) {

@@ -56,7 +56,63 @@ export async function cacheSetJson<T>(
     } else {
       await getKeyvaldb().set(key, str);
     }
-  } catch {
-    // swallow
+  } catch (error) {
+    if (process.env.NODE_ENV === 'development') {
+      getLoggerService().debug('KeyValDB cacheSetJson failed', {
+        key,
+        error: (error as Error).message,
+      });
+    }
   }
+}
+
+export async function testKeyvaldbConnection(): Promise<boolean> {
+  try {
+    const pingPromise = getKeyvaldb().ping();
+    const timeoutPromise = new Promise<never>((_, reject) => {
+      setTimeout(() => reject(new Error('Connection test timeout')), 5000);
+    });
+    await Promise.race([pingPromise, timeoutPromise]);
+    return true;
+  } catch (error) {
+    console.error('KeyValDB connection test failed', {
+      error: (error as Error).message,
+    });
+    return false;
+  }
+}
+
+export async function waitForKeyvaldbConnection(timeoutMs = 5000): Promise<boolean> {
+  const client = getKeyvaldb();
+  if (client.status === 'ready') {
+    return true;
+  }
+
+  return new Promise((resolve) => {
+    const timer = setTimeout(() => {
+      cleanup();
+      resolve(false);
+    }, timeoutMs);
+
+    const onReady = () => {
+      cleanup();
+      resolve(true);
+    };
+
+    const onError = () => {
+      cleanup();
+      resolve(false);
+    };
+
+    const cleanup = () => {
+      clearTimeout(timer);
+      client.off('ready', onReady);
+      client.off('error', onError);
+      client.off('end', onError);
+    };
+
+    client.on('ready', onReady);
+    client.on('error', onError);
+    client.on('end', onError);
+  });
 }

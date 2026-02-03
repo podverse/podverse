@@ -2,11 +2,14 @@ import { randomUUID } from 'node:crypto';
 
 import type { Request, Response } from 'express';
 import Joi from 'joi';
-import { MQ_QUEUES, getRecordValue } from '@podverse/helpers';
+import { MQ_QUEUES, getDedupeTTLSeconds, getRecordValue } from '@podverse/helpers';
 import { mqAddByRSSAdd, mqAddByRSSAddAll } from '@podverse/mq';
+import { config } from '@api/config/index.js';
 import { ensureAuthenticated, getAuthenticatedUser } from '@api/lib/auth/index.js';
 import { handleGenericErrorResponse } from '../helpers/error.js';
 import { activeMQArtemisService } from '@api/factories/activeMQArtemisService.js';
+import { loggerService } from '@api/factories/loggerService.js';
+import { cacheGetJson, cacheSetJson } from '@api/lib/keyvaldb/keyvaldb.js';
 import { rateLimitAuthEndpoint } from '@api/lib/rateLimiter.js';
 import { validateBodyObject, validateParamsObject } from '@api/lib/validation/index.js';
 import { getParamRequired } from '@api/lib/params.js';
@@ -16,6 +19,9 @@ import {
 } from '@api/lib/addByRSSParseCache.js';
 
 type FeedHashMap = Record<string, string>;
+
+const buildAddByRSSDedupeKey = (accountId: number, feedUrl: string): string =>
+  `addByRSS:dedupe:${accountId}:${encodeURIComponent(feedUrl)}`;
 
 const enqueueRateLimit = rateLimitAuthEndpoint({
   windowMs: 60 * 60 * 1000,
@@ -41,8 +47,41 @@ class AccountAddByRSSParseController {
             const requestId = randomUUID();
             const { feed_url, feed_hash, etag, last_modified } = req.body;
             const mqConstantMessageOptions = MQ_QUEUES['add-by-rss-on-demand'];
+            const dedupeTTLSeconds = getDedupeTTLSeconds(
+              mqConstantMessageOptions.dedupeCacheTimeMS
+            );
 
             try {
+              if (dedupeTTLSeconds) {
+                const dedupeKey = buildAddByRSSDedupeKey(account.id, feed_url);
+                const existing = await cacheGetJson<{ createdAt: string }>(dedupeKey);
+                if (existing) {
+                  res.status(429).json({
+                    message: 'Duplicate request. Please wait before retrying.',
+                    retry_after_seconds: dedupeTTLSeconds,
+                  });
+                  return;
+                }
+
+                await cacheSetJson(
+                  dedupeKey,
+                  { createdAt: new Date().toISOString() },
+                  dedupeTTLSeconds
+                );
+              }
+
+              if (process.env.MQ_DEBUG === 'true') {
+                loggerService.info('Add-by-RSS enqueue debug', {
+                  queueName: mqConstantMessageOptions.queueName,
+                  host: config.activeMQArtemis.host,
+                  port: config.activeMQArtemis.port,
+                  protocol: config.activeMQArtemis.protocol,
+                  requestId,
+                  feedUrl: feed_url,
+                  dedupeTTLSeconds,
+                });
+              }
+
               await mqAddByRSSAdd(activeMQArtemisService, {
                 ...mqConstantMessageOptions,
                 accountId: account.id,

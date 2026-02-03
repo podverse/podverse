@@ -27,6 +27,8 @@ export * from './lib/liveItem/liveItemEnclosure.js';
 export * from './lib/liveItemStatus.js';
 export * from './lib/medium.js';
 export * from './lib/mq/mqConstants.js';
+export * from './lib/mq/dedupeWindows.js';
+export * from './lib/mq/getDedupeTTLSeconds.js';
 export * from './lib/onDemandParserEvent.js';
 export * from './lib/pagination.js';
 export * from './lib/queue/queue.js';
