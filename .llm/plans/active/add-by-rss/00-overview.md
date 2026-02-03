@@ -14,7 +14,7 @@ Implement the Add by RSS feature as a multi-stage effort with clear isolation of
 - MQ and message types: [10-mq-queues-and-types.md](/Users/mitcheldowney/repos/pv/podverse/.llm/plans/active/add-by-rss/10-mq-queues-and-types.md)
 - Parse-only + hashing flow: [20-parser-hash-and-parse-only.md](/Users/mitcheldowney/repos/pv/podverse/.llm/plans/active/add-by-rss/20-parser-hash-and-parse-only.md)
 - API orchestration + progress: [30-api-enqueue-and-progress.md](/Users/mitcheldowney/repos/pv/podverse/.llm/plans/active/add-by-rss/30-api-enqueue-and-progress.md)
-- Web UI + client storage: [40-web-ui-and-client-storage.md](/Users/mitcheldowney/repos/pv/podverse/.llm/plans/active/add-by-rss/40-web-ui-and-client-storage.md)
+- Web UI + client storage: [40-web-ui-and-client-storage.md](/Users/mitcheldowney/repos/pv/podverse/.llm/plans/completed/add-by-rss/40-web-ui-and-client-storage.md)
 - Schema validation + drift handling: [50-schema-validation.md](/Users/mitcheldowney/repos/pv/podverse/.llm/plans/active/add-by-rss/50-schema-validation.md)
 
 ## Deferred Items (Placeholders)

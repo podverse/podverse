@@ -23,17 +23,17 @@ params, and client-side persistence with hashes for private feed viewing.
 ## Subplans
 
 - Sidebar and navigation:
-  [41-web-ui-sidebar-and-nav.md](/Users/mitcheldowney/repos/pv/podverse/.llm/plans/active/add-by-rss/41-web-ui-sidebar-and-nav.md)
+  [41-web-ui-sidebar-and-nav.md](/Users/mitcheldowney/repos/pv/podverse/.llm/plans/completed/add-by-rss/41-web-ui-sidebar-and-nav.md)
 - List views and placeholders:
-  [42-web-ui-list-views.md](/Users/mitcheldowney/repos/pv/podverse/.llm/plans/active/add-by-rss/42-web-ui-list-views.md)
+  [42-web-ui-list-views.md](/Users/mitcheldowney/repos/pv/podverse/.llm/plans/completed/add-by-rss/42-web-ui-list-views.md)
 - “Check for Updates” button and progress UI:
-  [43-web-ui-check-for-updates.md](/Users/mitcheldowney/repos/pv/podverse/.llm/plans/active/add-by-rss/43-web-ui-check-for-updates.md)
+  [43-web-ui-check-for-updates.md](/Users/mitcheldowney/repos/pv/podverse/.llm/plans/completed/add-by-rss/43-web-ui-check-for-updates.md)
 - Add by RSS feed input UI:
-  [44-web-ui-add-feed.md](/Users/mitcheldowney/repos/pv/podverse/.llm/plans/active/add-by-rss/44-web-ui-add-feed.md)
+  [44-web-ui-add-feed.md](/Users/mitcheldowney/repos/pv/podverse/.llm/plans/completed/add-by-rss/44-web-ui-add-feed.md)
 - Detail navigation via URL params:
-  [45-web-ui-detail-navigation.md](/Users/mitcheldowney/repos/pv/podverse/.llm/plans/active/add-by-rss/45-web-ui-detail-navigation.md)
+  [45-web-ui-detail-navigation.md](/Users/mitcheldowney/repos/pv/podverse/.llm/plans/completed/add-by-rss/45-web-ui-detail-navigation.md)
 - Client storage and hashing:
-  [46-web-ui-client-storage.md](/Users/mitcheldowney/repos/pv/podverse/.llm/plans/active/add-by-rss/46-web-ui-client-storage.md)
+  [46-web-ui-client-storage.md](/Users/mitcheldowney/repos/pv/podverse/.llm/plans/completed/add-by-rss/46-web-ui-client-storage.md)
 
 ## Decisions
 
