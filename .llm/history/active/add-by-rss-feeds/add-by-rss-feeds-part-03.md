@@ -437,3 +437,63 @@ To-do's from the plan have already been created. Do not create them again. Mark 
 - packages/parser-mapping/dist/types/partytime.d.ts
 - packages/parser-mapping/dist/compat/partytime/item.d.ts
 - .llm/history/active/add-by-rss-feeds/add-by-rss-feeds-part-03.md
+
+### Session 38 - 2026-02-02
+
+#### Prompt (Developer)
+
+Implement the plan as specified, it is attached for your reference. Do NOT edit the plan file itself.
+
+To-do's from the plan have already been created. Do not create them again. Mark them as in_progress as you work, starting with the first one. Don't stop until you have completed all the to-dos.
+
+#### Key Decisions
+
+- Swapped parser EntityManager imports to use @podverse/orm re-export.
+
+#### Files Modified
+
+- packages/parser/src/lib/rss/item/item.ts
+- packages/parser/src/lib/rss/liveItem/liveItem.ts
+- .llm/history/active/add-by-rss-feeds/add-by-rss-feeds-part-03.md
+
+### Session 39 - 2026-02-02
+
+#### Prompt (Developer)
+
+@podverse/apps/web/src/utils/addByRSS/ids.ts:23 object is possibly undefined for values
+
+#### Key Decisions
+
+- Guard Uint8Array indexing to satisfy strict undefined checks.
+
+#### Files Modified
+
+- apps/web/src/utils/addByRSS/ids.ts
+- .llm/history/active/add-by-rss-feeds/add-by-rss-feeds-part-03.md
+
+### Session 40 - 2026-02-02
+
+#### Prompt (Developer)
+
+Implement the plan as specified, it is attached for your reference. Do NOT edit the plan file itself.
+
+To-do's from the plan have already been created. Do not create them again. Mark them as in_progress as you work, starting with the first one. Don't stop until you have completed all the to-dos.
+
+#### Key Decisions
+
+- Replaced web-local add-by-rss mapping with parser-mapping compat bundle.
+- Stored mapped DTO bundle only, keeping cache metadata for parsing optimization.
+
+#### Files Modified
+
+- apps/web/src/utils/addByRSS/types.ts
+- apps/web/src/app/add-by-rss/AddByRSSListClient.tsx
+- apps/web/src/app/add-by-rss/AddByRSSDetailClient.tsx
+- apps/web/package.json
+- package-lock.json
+- apps/web/src/utils/addByRSS/mapping.ts (deleted)
+- packages/parser-mapping/src/compat/partytime/compatFull.ts
+- packages/parser-mapping/src/types/partytime.ts
+- packages/parser-mapping/dist/compat/partytime/compatFull.d.ts
+- packages/parser-mapping/dist/types/partytime.d.ts
+- .llm/history/active/add-by-rss-feeds/add-by-rss-feeds-part-03.md
