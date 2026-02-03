@@ -254,6 +254,7 @@ export type FeedObject = {
     type?: string | null;
     season?: number | null;
   }>;
+  podcastLiveItems?: Phase4PodcastLiveItem[];
   podcastTxt?: Array<{
     purpose?: string | null;
     value: string;
