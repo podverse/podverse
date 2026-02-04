@@ -4,30 +4,30 @@ import type { DTOQueue } from '@podverse/helpers';
 import type { QueryParamsQueues } from '@podverse/helpers-requests';
 import { MainWrapper } from '../../components/Main/MainWrapper';
 import { QueuesPageContextProvider } from './QueuesPageContext';
-import { QueuesHeader } from './QueuesHeader';
-import { QueuesList } from './QueuesList';
-import { QueuesListHeader } from './QueuesListHeader';
+import { QueuesPageHeader } from './QueuesPageHeader';
+import { QueuesPageList } from './QueuesPageList';
+import { QueuesPageListHeader } from './QueuesPageListHeader';
 import { MainInnerWrapper } from '../../components/Main/MainInnerWrapper';
 import { MainInnerContentWrapper } from '../../components/Main/MainInnerContentWrapper';
 import { SideContent } from '../../components/SideContent/SideContent';
 
-interface QueuesClientProps {
+interface QueuesPageClientProps {
   initialQueryParams: QueryParamsQueues;
   ssrQueues: DTOQueue[];
 }
 
-export function QueuesClient(props: QueuesClientProps) {
+export function QueuesPageClient(props: QueuesPageClientProps) {
   const { initialQueryParams, ssrQueues } = props;
 
   return (
     <QueuesPageContextProvider initialQueryParams={initialQueryParams} ssrQueues={ssrQueues}>
-      <QueuesHeader />
+      <QueuesPageHeader />
       <MainWrapper>
         <MainInnerWrapper>
           <SideContent />
           <MainInnerContentWrapper>
-            <QueuesListHeader />
-            <QueuesList />
+            <QueuesPageListHeader />
+            <QueuesPageList />
           </MainInnerContentWrapper>
         </MainInnerWrapper>
       </MainWrapper>

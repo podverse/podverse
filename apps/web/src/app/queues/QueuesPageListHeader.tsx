@@ -6,7 +6,7 @@ import { ListHeader } from '../../components/List/ListHeader';
 import { useQueuesPageContext } from './QueuesPageContext';
 import { ButtonTabs } from '../../components/Tabs/ButtonTabs';
 
-export const QueuesListHeader: React.FC = () => {
+export const QueuesPageListHeader: React.FC = () => {
   const { filterParams, setFilterParams } = useQueuesPageContext();
   const tMedia = useTranslations('media');
 

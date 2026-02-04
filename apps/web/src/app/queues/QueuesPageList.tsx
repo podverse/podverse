@@ -17,7 +17,7 @@ const ListQueueResources = dynamic(
   }
 );
 
-export const QueuesList: React.FC = () => {
+export const QueuesPageList: React.FC = () => {
   const { filterParams, queueResources, isLoading, showLoginMessage } = useQueuesPageContext();
   const { medium } = filterParams;
 

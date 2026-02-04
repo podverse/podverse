@@ -1,7 +1,7 @@
 import type { DTOQueue, QueryParamsQueueMedium } from '@podverse/helpers';
 import { QUERY_PARAMS_QUEUE_MEDIUMS } from '@podverse/helpers';
 import { z } from 'zod';
-import { QueuesClient } from './QueuesClient';
+import { QueuesPageClient } from './QueuesPageClient';
 import { getSSRAuthService } from '../../utils/auth/ssrAuth';
 
 const searchParamsSchema = z.object({
@@ -27,7 +27,7 @@ export default async function QueuesPage({ searchParams }: QueuePageProps) {
     ssrQueues = response;
   }
 
-  return <QueuesClient initialQueryParams={{ medium: currentMedium }} ssrQueues={ssrQueues} />;
+  return <QueuesPageClient initialQueryParams={{ medium: currentMedium }} ssrQueues={ssrQueues} />;
 }
 
 type ParseSearchParams = {
