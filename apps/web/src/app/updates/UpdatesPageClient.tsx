@@ -4,11 +4,11 @@ import { MainInnerWrapper } from '../../components/Main/MainInnerWrapper';
 import { MainInnerContentWrapper } from '../../components/Main/MainInnerContentWrapper';
 import { SideContent } from '../../components/SideContent/SideContent';
 
-type UpdatesClientProps = {
+type UpdatesPageClientProps = {
   markdownContent: string;
 };
 
-export function UpdatesClient({ markdownContent }: UpdatesClientProps) {
+export function UpdatesPageClient({ markdownContent }: UpdatesPageClientProps) {
   return (
     <MainWrapper>
       <MainInnerWrapper>
