@@ -1,5 +1,5 @@
-import { SearchClient } from './SearchClient';
+import { SearchPageClient } from './SearchPageClient';
 
 export default function SearchPage() {
-  return <SearchClient />;
+  return <SearchPageClient />;
 }

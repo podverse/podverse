@@ -47,7 +47,7 @@ const RouteErrorComponent: React.FC = () => {
   throw new Error('Route-level error - should show error.tsx');
 };
 
-export const TestErrorBoundariesClient: React.FC = () => {
+export const TestErrorBoundariesPageClient: React.FC = () => {
   const tTestPage = useTranslations('errors.test_page');
   const [triggerError, setTriggerError] = useState(false);
   const [triggerMountError, setTriggerMountError] = useState(false);

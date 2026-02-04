@@ -1,4 +1,4 @@
-import { TestErrorBoundariesClient } from './TestErrorBoundariesClient';
+import { TestErrorBoundariesPageClient } from './TestErrorBoundariesPageClient';
 
 export default function TestErrorBoundariesPage() {
   // Only allow in development
@@ -6,5 +6,5 @@ export default function TestErrorBoundariesPage() {
     return null;
   }
 
-  return <TestErrorBoundariesClient />;
+  return <TestErrorBoundariesPageClient />;
 }
