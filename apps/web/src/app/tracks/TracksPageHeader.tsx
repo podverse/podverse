@@ -16,17 +16,17 @@ import Dropdown from '../../components/Dropdown/Dropdown';
 import { MainHeader } from '../../components/Main/MainHeader';
 import { ViewSelector } from '../../components/ViewSelector/ViewSelector';
 import { useLocalSettings } from '../../contexts/LocalSettings';
-import { useTracksContext } from './TracksContext';
-import { getTracksDropdownConfig } from './TracksDropdownConfig';
+import { useTracksPageContext } from './TracksPageContext';
+import { getTracksPageDropdownConfig } from './TracksPageDropdownConfig';
 
-export const TracksHeader: React.FC = () => {
-  const { filterParams, setFilterParams } = useTracksContext();
+export const TracksPageHeader: React.FC = () => {
+  const { filterParams, setFilterParams } = useTracksPageContext();
   const { viewSelected, setViewSelected } = useLocalSettings();
   const { type, sort, range } = filterParams;
   const tMedia = useTranslations('media');
   const tFilters = useTranslations('filters');
   const { typeMenuItems, sortMenuItems, rangeMenuItems, showRangeDropdown } =
-    getTracksDropdownConfig({ type, sort, tFilters });
+    getTracksPageDropdownConfig({ type, sort, tFilters });
   const medium = 'music';
 
   function isItemType(val: string): val is QueryParamsSubscribedMusicType {

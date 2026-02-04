@@ -10,7 +10,7 @@ import { useSkipInitialEffect } from '../../../hooks/useSkipInitialEffect';
 import { apiRequestService } from '../../../factories/apiRequestService';
 import { getTranscriptRowsFromTranscriptString } from '../../../utils/transcript';
 
-interface TrackContextType {
+interface TrackPageContextType {
   filterParams: QueryParamsItemMusic;
   setFilterParams: (params: QueryParamsItemMusic) => void;
   transcriptRows: TranscriptRow[];
@@ -21,17 +21,17 @@ interface TrackContextType {
   setIsLoading: (isLoading: boolean) => void;
 }
 
-const TrackContext = createContext<TrackContextType | undefined>(undefined);
+const TrackPageContext = createContext<TrackPageContextType | undefined>(undefined);
 
-interface TrackContextProviderProps {
+interface TrackPageContextProviderProps {
   children: ReactNode;
   initialQueryParams: QueryParamsItemMusic;
 }
 
-export const TrackContextProvider = ({
+export const TrackPageContextProvider = ({
   children,
   initialQueryParams,
-}: TrackContextProviderProps) => {
+}: TrackPageContextProviderProps) => {
   const params = useParams();
   const [filterParams, setFilterParams] = useState<QueryParamsItemMusic>(initialQueryParams);
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -70,7 +70,7 @@ export const TrackContextProvider = ({
   }, [filterParams, loggedInAccount]);
 
   return (
-    <TrackContext.Provider
+    <TrackPageContext.Provider
       value={{
         filterParams,
         setFilterParams,
@@ -83,14 +83,14 @@ export const TrackContextProvider = ({
       }}
     >
       {children}
-    </TrackContext.Provider>
+    </TrackPageContext.Provider>
   );
 };
 
-export const useTrackContext = () => {
-  const ctx = useContext(TrackContext);
+export const useTrackPageContext = () => {
+  const ctx = useContext(TrackPageContext);
   if (!ctx) {
-    throw new Error('useTrackContext must be used within a TrackContextProvider');
+    throw new Error('useTrackPageContext must be used within a TrackPageContextProvider');
   }
   return ctx;
 };

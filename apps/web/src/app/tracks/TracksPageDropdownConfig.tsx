@@ -12,7 +12,7 @@ import {
 import { getRangeDropdownItems } from '../../utils/dropdownMenuItems';
 import type { DropdownMenuItem } from '../../components/Dropdown/Dropdown';
 
-export function getTracksDropdownConfig({
+export function getTracksPageDropdownConfig({
   type,
   sort,
   tFilters,
@@ -53,24 +53,24 @@ export function getTracksDropdownConfig({
   };
 }
 
-type TracksDropdownConfigParams = {
+type TracksPageDropdownConfigParams = {
   type: QueryParamsSubscribedMusicType | null;
   sort: QueryParamsSubscribedPartialSort | null;
   range: QueryParamsStatsRange | null;
   page: number;
 };
 
-export type TracksDropdownConfigCurrentParams = {
+export type TracksPageDropdownConfigCurrentParams = {
   currentType: QueryParamsSubscribedMusicType;
   currentSort: QueryParamsSubscribedPartialSort;
   currentRange: QueryParamsStatsRange | null;
   currentPage: number;
 };
 
-export function getTracksFilterParams(
-  { type, sort, range, page }: TracksDropdownConfigParams,
+export function getTracksPageFilterParams(
+  { type, sort, range, page }: TracksPageDropdownConfigParams,
   isValidAuthSession: boolean
-): TracksDropdownConfigCurrentParams {
+): TracksPageDropdownConfigCurrentParams {
   let currentType = type;
   let currentSort = sort;
   let currentRange = range;

@@ -5,16 +5,16 @@ import type { QueryParamsItemMusicType } from '@podverse/helpers-requests';
 import { QUERY_PARAMS_ITEM_MUSIC_TYPE_VALUES } from '@podverse/helpers-requests';
 import React from 'react';
 import { ListHeader } from '../../../components/List/ListHeader';
-import { useTrackContext } from './TrackContext';
+import { useTrackPageContext } from './TrackPageContext';
 import { Tabs } from '../../../components/Tabs/Tabs';
 import { Button } from '../../../components/Button/Button';
 
-type TrackListHeaderProps = {
+type TrackPageListHeaderProps = {
   ssrHasTranscripts: boolean;
 };
 
-export const TrackListHeader: React.FC<TrackListHeaderProps> = ({ ssrHasTranscripts }) => {
-  const { filterParams, setFilterParams, autoScrollOn, setAutoScrollOn } = useTrackContext();
+export const TrackPageListHeader: React.FC<TrackPageListHeaderProps> = ({ ssrHasTranscripts }) => {
+  const { filterParams, setFilterParams, autoScrollOn, setAutoScrollOn } = useTrackPageContext();
   const { type } = filterParams;
   const tInfo = useTranslations('info');
   const tMisc = useTranslations('misc');

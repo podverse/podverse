@@ -5,33 +5,33 @@ import type { QueryParamsGetManyPartialMusic } from '@podverse/helpers-requests'
 import { MainWrapper } from '../../components/Main/MainWrapper';
 import { MainInnerWrapper } from '../../components/Main/MainInnerWrapper';
 import { MainInnerContentWrapper } from '../../components/Main/MainInnerContentWrapper';
-import { TracksContextProvider } from './TracksContext';
-import { TracksHeader } from './TracksHeader';
-import { TracksList } from './TracksList';
+import { TracksPageContextProvider } from './TracksPageContext';
+import { TracksPageHeader } from './TracksPageHeader';
+import { TracksPageList } from './TracksPageList';
 
-interface TracksClientProps {
+interface TracksPageClientProps {
   initialQueryParams: QueryParamsGetManyPartialMusic;
   ssrItems: DTOItem[];
   ssrTotalPages: number;
 }
 
-export function TracksClient(props: TracksClientProps) {
+export function TracksPageClient(props: TracksPageClientProps) {
   const { initialQueryParams, ssrItems, ssrTotalPages } = props;
 
   return (
-    <TracksContextProvider
+    <TracksPageContextProvider
       initialQueryParams={initialQueryParams}
       ssrItems={ssrItems}
       ssrTotalPages={ssrTotalPages}
     >
-      <TracksHeader />
+      <TracksPageHeader />
       <MainWrapper>
         <MainInnerWrapper>
           <MainInnerContentWrapper>
-            <TracksList />
+            <TracksPageList />
           </MainInnerContentWrapper>
         </MainInnerWrapper>
       </MainWrapper>
-    </TracksContextProvider>
+    </TracksPageContextProvider>
   );
 }

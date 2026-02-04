@@ -10,9 +10,9 @@ import { useAccount } from '../../contexts/Account';
 import { useSkipInitialEffect } from '../../hooks/useSkipInitialEffect';
 import { useFilterDefaults } from '../../hooks/useFilterDefaults';
 import { useListPageCache } from '../../hooks/useListPageCache';
-import { getTracksFilterParams } from './TracksDropdownConfig';
+import { getTracksPageFilterParams } from './TracksPageDropdownConfig';
 
-interface TracksContextType {
+interface TracksPageContextType {
   filterParams: QueryParamsGetManyPartialMusic;
   setFilterParams: (params: QueryParamsGetManyPartialMusic) => void;
   items: DTOItem[];
@@ -25,21 +25,21 @@ interface TracksContextType {
   setShowSubscribeMessage: (show: boolean) => void;
 }
 
-const TracksContext = createContext<TracksContextType | undefined>(undefined);
+const TracksPageContext = createContext<TracksPageContextType | undefined>(undefined);
 
-interface TracksContextProviderProps {
+interface TracksPageContextProviderProps {
   children: ReactNode;
   initialQueryParams: QueryParamsGetManyPartialMusic;
   ssrItems: DTOItem[];
   ssrTotalPages: number;
 }
 
-export const TracksContextProvider = ({
+export const TracksPageContextProvider = ({
   children,
   initialQueryParams,
   ssrItems,
   ssrTotalPages,
-}: TracksContextProviderProps) => {
+}: TracksPageContextProviderProps) => {
   // Use the list page cache hook for back navigation caching
   const {
     filterParams,
@@ -81,7 +81,7 @@ export const TracksContextProvider = ({
 
       setIsLoading(true);
 
-      const { currentSort, currentRange, currentType } = getTracksFilterParams(
+      const { currentSort, currentRange, currentType } = getTracksPageFilterParams(
         {
           page: filterParams.page,
           type: filterParams.type,
@@ -115,7 +115,7 @@ export const TracksContextProvider = ({
   }, [filterParams, loggedInAccount]);
 
   return (
-    <TracksContext.Provider
+    <TracksPageContext.Provider
       value={{
         filterParams,
         setFilterParams,
@@ -130,14 +130,14 @@ export const TracksContextProvider = ({
       }}
     >
       {children}
-    </TracksContext.Provider>
+    </TracksPageContext.Provider>
   );
 };
 
-export const useTracksContext = () => {
-  const ctx = useContext(TracksContext);
+export const useTracksPageContext = () => {
+  const ctx = useContext(TracksPageContext);
   if (!ctx) {
-    throw new Error('useTracksContext must be used within a TracksContextProvider');
+    throw new Error('useTracksPageContext must be used within a TracksPageContextProvider');
   }
   return ctx;
 };

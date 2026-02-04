@@ -1,16 +1,16 @@
 import type { QueryParamsItemMusicType } from '@podverse/helpers-requests';
 
-type TrackDropdownConfigParams = {
+type TrackPageDropdownConfigParams = {
   type: QueryParamsItemMusicType;
 };
 
-export type TrackDropdownConfigCurrentParams = {
+export type TrackPageDropdownConfigCurrentParams = {
   currentType: QueryParamsItemMusicType;
 };
 
-export function getTrackFilterParams({
+export function getTrackPageFilterParams({
   type,
-}: TrackDropdownConfigParams): TrackDropdownConfigCurrentParams {
+}: TrackPageDropdownConfigParams): TrackPageDropdownConfigCurrentParams {
   const currentType = type;
 
   return { currentType };

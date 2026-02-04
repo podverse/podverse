@@ -3,10 +3,10 @@
 import React from 'react';
 import dynamic from 'next/dynamic';
 import type { DTOItem } from '@podverse/helpers';
-import { useTrackContext } from './TrackContext';
+import { useTrackPageContext } from './TrackPageContext';
 import LoadingSpinnerOverlay from '../../../components/LoadingSpinner/LoadingSpinnerOverlay';
+import { DetailListWrapper } from '../../../components/List/DetailListWrapper';
 import { EpisodeSummary } from '../../../components/Media/Podcast/Episode/EpisodeSummary';
-import styles from '../../../styles/app/podcast/PodcastList.module.scss';
 
 const ItemTranscript = dynamic(
   () =>
@@ -19,21 +19,21 @@ const ItemTranscript = dynamic(
   }
 );
 
-type TrackListProps = {
+type TrackPageListProps = {
   ssrItem: DTOItem;
 };
 
-export const TrackList: React.FC<TrackListProps> = ({ ssrItem }) => {
-  const { filterParams, isLoading, transcriptRows, autoScrollOn } = useTrackContext();
+export const TrackPageList: React.FC<TrackPageListProps> = ({ ssrItem }) => {
+  const { filterParams, isLoading, transcriptRows, autoScrollOn } = useTrackPageContext();
   const { type } = filterParams;
 
   return (
-    <div className={styles.list}>
+    <DetailListWrapper>
       {type === 'summary' && <EpisodeSummary description={ssrItem.item_description?.value} />}
       {type === 'transcript' && (
         <ItemTranscript autoScrollOn={autoScrollOn} rows={transcriptRows} />
       )}
       <LoadingSpinnerOverlay isLoading={isLoading} />
-    </div>
+    </DetailListWrapper>
   );
 };

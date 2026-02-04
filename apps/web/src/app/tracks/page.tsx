@@ -10,9 +10,9 @@ import {
 import { cookies } from 'next/headers';
 import { getSSRAuthService } from '../../utils/auth/ssrAuth';
 import { guardSubscribedSsrFilter, safeSsrListRequest } from '../../utils/filters/ssrFilterGuards';
-import type { TracksDropdownConfigCurrentParams } from './TracksDropdownConfig';
-import { getTracksFilterParams } from './TracksDropdownConfig';
-import { TracksClient } from './TracksClient';
+import type { TracksPageDropdownConfigCurrentParams } from './TracksPageDropdownConfig';
+import { getTracksPageFilterParams } from './TracksPageDropdownConfig';
+import { TracksPageClient } from './TracksPageClient';
 import type { TracksFilterDefaults } from '../../utils/localSettings/localSettings';
 import { getParsedLocalSettings } from '../../utils/localSettings/localSettings';
 
@@ -70,7 +70,7 @@ export default async function TracksPage({ searchParams }: TracksPageProps) {
   );
 
   return (
-    <TracksClient
+    <TracksPageClient
       initialQueryParams={{
         page: currentPage,
         type: currentType,
@@ -88,7 +88,7 @@ function parseSearchParams(
   queryParams: SearchParams,
   isAuthenticated: boolean,
   cookieDefaults?: TracksFilterDefaults
-): TracksDropdownConfigCurrentParams {
+): TracksPageDropdownConfigCurrentParams {
   const parsed = searchParamsSchema.safeParse(queryParams);
 
   if (!parsed.success) {
@@ -130,7 +130,7 @@ function parseSearchParams(
     },
   });
 
-  return getTracksFilterParams(
+  return getTracksPageFilterParams(
     {
       page: guarded.page,
       type: guarded.type ?? 'global',

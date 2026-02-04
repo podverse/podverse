@@ -1,20 +1,20 @@
 import React from 'react';
+import { CoreTracks } from '../../components/Core/List/Track/CoreTracks';
+import { HowToStartInfo } from '../../components/InfoWrapper/HowToStartInfo';
 import LoadingSpinnerOverlay from '../../components/LoadingSpinner/LoadingSpinnerOverlay';
 import { useLocalSettings } from '../../contexts/LocalSettings';
-import { useTracksContext } from './TracksContext';
-import { ListTracks } from '../../components/List/Music/Albums/Tracks/ListTracks';
-import { HowToStartInfo } from '../../components/InfoWrapper/HowToStartInfo';
+import { useTracksPageContext } from './TracksPageContext';
 
-export const TracksList: React.FC = () => {
+export const TracksPageList: React.FC = () => {
   const { filterParams, setFilterParams, items, totalPages, isLoading, showSubscribeMessage } =
-    useTracksContext();
+    useTracksPageContext();
   const { viewSelected } = useLocalSettings();
   const { page, type } = filterParams;
 
   return (
     <>
       {type === 'subscribed' && <HowToStartInfo rows={items} totalPages={totalPages} />}
-      <ListTracks
+      <CoreTracks
         page={page}
         setPage={(page) => setFilterParams({ ...filterParams, page })}
         channel={null}
