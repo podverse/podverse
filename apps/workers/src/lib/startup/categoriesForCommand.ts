@@ -113,6 +113,7 @@ export function getCategoriesForCommand(commandName: string): Set<ConfigCategory
     )
   ) {
     categories.add(CATEGORY_ORM);
+    categories.add(CATEGORY_MQ);
     categories.add(CATEGORY_PARSER);
     categories.add(CATEGORY_PODCAST_INDEX);
     categories.add(CATEGORY_WEB_NOTIFICATIONS);

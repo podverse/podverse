@@ -18,17 +18,17 @@ The workers app validates environment variables **per command**. Each job only v
 
 ### Command groups and env categories
 
-| Command group                   | Categories validated                     | Commands (examples)                                         |
-| ------------------------------- | ---------------------------------------- | ----------------------------------------------------------- |
-| Base only                       | Base                                     | podcastIndexDeadFeedsDeleteCache                            |
-| Base + ORM only                 | Base, ORM                                | archiveAll, statsUpdateAggregated, orm\*                    |
-| Base + Podcast Index            | Base, PodcastIndex                       | podcastIndexTrendingPodcastsGet, podcastIndexValueUpdateAll |
-| Base + ORM + Podcast Index      | Base, ORM, PodcastIndex                  | podcastIndexDeadFeedsFlagAndMerge                           |
-| Base + ORM + MQ                 | Base, ORM, MQ                            | mqRSSRunDlqConsumer, mqRSSAddAll                            |
-| Base + ORM + MQ + Podcast Index | Base, ORM, MQ, PodcastIndex              | mqRSSAdd                                                    |
-| Base + MQ + Parser + KeyValDB   | Base, MQ, Parser, KeyValDB               | mqAddByRSSRunParser                                         |
-| Base + ORM + Parser + PI + Web  | Base, ORM, Parser, PodcastIndex, Web     | parserRSSParseFeed                                          |
-| Full stack                      | Base, ORM, MQ, Parser, PodcastIndex, Web | mqRSSRunParser, mqRSSRunLiveItemListener                    |
+| Command group                       | Categories validated                     | Commands (examples)                                         |
+| ----------------------------------- | ---------------------------------------- | ----------------------------------------------------------- |
+| Base only                           | Base                                     | podcastIndexDeadFeedsDeleteCache                            |
+| Base + ORM only                     | Base, ORM                                | archiveAll, statsUpdateAggregated, orm\*                    |
+| Base + Podcast Index                | Base, PodcastIndex                       | podcastIndexTrendingPodcastsGet, podcastIndexValueUpdateAll |
+| Base + ORM + Podcast Index          | Base, ORM, PodcastIndex                  | podcastIndexDeadFeedsFlagAndMerge                           |
+| Base + ORM + MQ                     | Base, ORM, MQ                            | mqRSSRunDlqConsumer, mqRSSAddAll                            |
+| Base + ORM + MQ + Podcast Index     | Base, ORM, MQ, PodcastIndex              | mqRSSAdd                                                    |
+| Base + MQ + Parser + KeyValDB       | Base, MQ, Parser, KeyValDB               | mqAddByRSSRunParser                                         |
+| Base + ORM + MQ + Parser + PI + Web | Base, ORM, MQ, Parser, PodcastIndex, Web | parserRSSParseFeed                                          |
+| Full stack                          | Base, ORM, MQ, Parser, PodcastIndex, Web | mqRSSRunParser, mqRSSRunLiveItemListener                    |
 
 Within each category, vars are required or optional as listed in the sections below. Only the categories for your command are validated.
 
