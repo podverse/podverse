@@ -12,15 +12,15 @@ import { checkBackNavFlag } from '../../../contexts/Navigation';
 import { useSkipInitialEffect } from '../../../hooks/useSkipInitialEffect';
 import { usePageStateCache } from '../../../hooks/usePageStateCache';
 import { getPageState, definedProps } from '../../../utils/pageStateCache';
-import { getAlbumFilterParams } from './AlbumDropdownConfig';
+import { getAlbumPageFilterParams } from './AlbumPageDropdownConfig';
 
 // Type for cached data
-interface AlbumCachedData {
+interface AlbumPageCachedData {
   items: DTOItem[];
   totalPages: number;
 }
 
-interface AlbumContextType {
+interface AlbumPageContextType {
   filterParams: QueryParamsChannelMusicAlbum;
   setFilterParams: (params: QueryParamsChannelMusicAlbum) => void;
   items: DTOItem[];
@@ -31,9 +31,9 @@ interface AlbumContextType {
   setIsLoading: (isLoading: boolean) => void;
 }
 
-const AlbumContext = createContext<AlbumContextType | undefined>(undefined);
+const AlbumPageContext = createContext<AlbumPageContextType | undefined>(undefined);
 
-interface AlbumContextProviderProps {
+interface AlbumPageContextProviderProps {
   children: ReactNode;
   initialQueryParams: QueryParamsChannelMusicAlbum;
   ssrItemsWithLiveItem: DTOItem[];
@@ -41,13 +41,13 @@ interface AlbumContextProviderProps {
   ssrTotalPages: number;
 }
 
-export const AlbumContextProvider = ({
+export const AlbumPageContextProvider = ({
   children,
   initialQueryParams,
   ssrItemsWithLiveItem,
   ssrItems,
   ssrTotalPages,
-}: AlbumContextProviderProps) => {
+}: AlbumPageContextProviderProps) => {
   const params = useParams();
 
   if (!params.channel_id) {
@@ -61,7 +61,7 @@ export const AlbumContextProvider = ({
 
   // Check for cached state on back navigation
   const cachedState = isBackNav
-    ? getPageState<QueryParamsChannelMusicAlbum, AlbumCachedData>(routeKey)
+    ? getPageState<QueryParamsChannelMusicAlbum, AlbumPageCachedData>(routeKey)
     : null;
   const restoredFromCacheRef = useRef(!!cachedState?.data);
 
@@ -76,7 +76,7 @@ export const AlbumContextProvider = ({
   const { loggedInAccount } = useAccount();
 
   // Hook to save/restore page state for back navigation
-  usePageStateCache<QueryParamsChannelMusicAlbum, AlbumCachedData>({
+  usePageStateCache<QueryParamsChannelMusicAlbum, AlbumPageCachedData>({
     routeKey,
     filterParams,
     setFilterParams,
@@ -100,7 +100,7 @@ export const AlbumContextProvider = ({
     }
 
     async function fetchItems() {
-      const { currentPage, currentSort, currentRange } = getAlbumFilterParams({
+      const { currentPage, currentSort, currentRange } = getAlbumPageFilterParams({
         page: filterParams.page,
         type: filterParams.type,
         sort: filterParams.sort,
@@ -143,7 +143,7 @@ export const AlbumContextProvider = ({
   }, [filterParams, loggedInAccount]);
 
   return (
-    <AlbumContext.Provider
+    <AlbumPageContext.Provider
       value={{
         filterParams,
         setFilterParams,
@@ -156,14 +156,14 @@ export const AlbumContextProvider = ({
       }}
     >
       {children}
-    </AlbumContext.Provider>
+    </AlbumPageContext.Provider>
   );
 };
 
-export const useAlbumContext = () => {
-  const ctx = useContext(AlbumContext);
+export const useAlbumPageContext = () => {
+  const ctx = useContext(AlbumPageContext);
   if (!ctx) {
-    throw new Error('useAlbumContext must be used within a AlbumContextProvider');
+    throw new Error('useAlbumPageContext must be used within a AlbumPageContextProvider');
   }
   return ctx;
 };

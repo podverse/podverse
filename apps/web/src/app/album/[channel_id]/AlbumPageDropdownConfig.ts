@@ -5,7 +5,7 @@ import type {
 } from '@podverse/helpers-requests';
 import { getRangeDropdownItems } from '../../../utils/dropdownMenuItems';
 
-export function getAlbumDropdownConfig({
+export function getAlbumPageDropdownConfig({
   sort,
   tFilters,
 }: {
@@ -30,26 +30,26 @@ export function getAlbumDropdownConfig({
   };
 }
 
-type AlbumDropdownConfigParams = {
+type AlbumPageDropdownConfigParams = {
   type: QueryParamsChannelMusicAlbumType;
   sort: QueryParamsChannelMusicAlbumSort;
   range: QueryParamsStatsRange | null;
   page: number;
 };
 
-export type AlbumDropdownConfigCurrentParams = {
+export type AlbumPageDropdownConfigCurrentParams = {
   currentType: QueryParamsChannelMusicAlbumType;
   currentSort: QueryParamsChannelMusicAlbumSort;
   currentRange: QueryParamsStatsRange | null;
   currentPage: number;
 };
 
-export function getAlbumFilterParams({
+export function getAlbumPageFilterParams({
   type,
   sort,
   range,
   page,
-}: AlbumDropdownConfigParams): AlbumDropdownConfigCurrentParams {
+}: AlbumPageDropdownConfigParams): AlbumPageDropdownConfigCurrentParams {
   const currentType = type;
   const currentSort = sort;
   const currentRange = range;

@@ -2,25 +2,25 @@
 
 import type { DTOChannel, RemoteItemsResponse } from '@podverse/helpers';
 import React from 'react';
-import { useAlbumContext } from './AlbumContext';
+import { useAlbumPageContext } from './AlbumPageContext';
 import LoadingSpinnerOverlay from '../../../components/LoadingSpinner/LoadingSpinnerOverlay';
 import { ListTracks } from '../../../components/List/Music/Albums/Tracks/ListTracks';
 import { ContentAbout } from '../../../components/Content/About/ContentAbout';
 import { ContentPodroll } from '../../../components/Content/Podroll/ContentPodroll';
+import { DetailListWrapper } from '../../../components/List/DetailListWrapper';
 import { ListChannelSettings } from '../../../components/List/ListChannelSettings';
-import styles from '../../../styles/app/podcast/PodcastList.module.scss';
 
-type AlbumListProps = {
+type AlbumPageListProps = {
   podroll: RemoteItemsResponse | null;
   ssrChannel: DTOChannel;
 };
 
-export const AlbumList: React.FC<AlbumListProps> = ({ podroll, ssrChannel }) => {
-  const { filterParams, setFilterParams, items, totalPages, isLoading } = useAlbumContext();
+export const AlbumPageList: React.FC<AlbumPageListProps> = ({ podroll, ssrChannel }) => {
+  const { filterParams, setFilterParams, items, totalPages, isLoading } = useAlbumPageContext();
   const { page, type } = filterParams;
 
   return (
-    <div className={styles.list}>
+    <DetailListWrapper>
       {type === 'tracks' && (
         <ListTracks
           page={page}
@@ -40,6 +40,6 @@ export const AlbumList: React.FC<AlbumListProps> = ({ podroll, ssrChannel }) => 
       {type === 'podroll' && <ContentPodroll remoteItemsResponse={podroll} />}
       {type === 'settings' && <ListChannelSettings channel={ssrChannel} />}
       <LoadingSpinnerOverlay isLoading={isLoading} />
-    </div>
+    </DetailListWrapper>
   );
 };

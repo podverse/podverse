@@ -1,15 +1,15 @@
 import type { DTOChannel, DTOItem, RemoteItemsResponse } from '@podverse/helpers';
 import type { QueryParamsChannelMusicAlbum } from '@podverse/helpers-requests';
 import { MainWrapper } from '../../../components/Main/MainWrapper';
-import { AlbumContextProvider } from './AlbumContext';
-import { AlbumListHeader } from './AlbumListHeader';
-import { AlbumList } from './AlbumList';
+import { AlbumPageContextProvider } from './AlbumPageContext';
+import { AlbumPageListHeader } from './AlbumPageListHeader';
+import { AlbumPageList } from './AlbumPageList';
 import { MainInnerWrapper } from '../../../components/Main/MainInnerWrapper';
 import { MainInnerContentWrapper } from '../../../components/Main/MainInnerContentWrapper';
-import { AlbumSideContent } from './AlbumSideContent';
+import { AlbumPageSideContent } from './AlbumPageSideContent';
 import { AlbumHeader } from '../../../components/Media/Music/Album/AlbumHeader';
 
-interface AlbumClientProps {
+interface AlbumPageClientProps {
   initialQueryParams: QueryParamsChannelMusicAlbum;
   ssrChannel: DTOChannel;
   ssrItemsWithLiveItem: DTOItem[];
@@ -18,7 +18,7 @@ interface AlbumClientProps {
   ssrPodroll: RemoteItemsResponse | null;
 }
 
-export function AlbumClient(props: AlbumClientProps) {
+export function AlbumPageClient(props: AlbumPageClientProps) {
   const {
     initialQueryParams,
     ssrChannel,
@@ -29,7 +29,7 @@ export function AlbumClient(props: AlbumClientProps) {
   } = props;
 
   return (
-    <AlbumContextProvider
+    <AlbumPageContextProvider
       initialQueryParams={initialQueryParams}
       ssrItemsWithLiveItem={ssrItemsWithLiveItem}
       ssrItems={ssrItems}
@@ -38,13 +38,13 @@ export function AlbumClient(props: AlbumClientProps) {
       <MainWrapper>
         <AlbumHeader channel={ssrChannel} />
         <MainInnerWrapper>
-          <AlbumSideContent channel={ssrChannel} podroll={ssrPodroll} />
+          <AlbumPageSideContent channel={ssrChannel} podroll={ssrPodroll} />
           <MainInnerContentWrapper>
-            <AlbumListHeader ssrHasPodroll={!!ssrPodroll} />
-            <AlbumList ssrChannel={ssrChannel} podroll={ssrPodroll} />
+            <AlbumPageListHeader ssrHasPodroll={!!ssrPodroll} />
+            <AlbumPageList ssrChannel={ssrChannel} podroll={ssrPodroll} />
           </MainInnerContentWrapper>
         </MainInnerWrapper>
       </MainWrapper>
-    </AlbumContextProvider>
+    </AlbumPageContextProvider>
   );
 }

@@ -3,12 +3,12 @@ import { SideContent } from '../../../components/SideContent/SideContent';
 import { ContentAbout } from '../../../components/Content/About/ContentAbout';
 import { ContentPodroll } from '../../../components/Content/Podroll/ContentPodroll';
 
-type AlbumSideContentProps = {
+type AlbumPageSideContentProps = {
   channel: DTOChannel;
   podroll: RemoteItemsResponse | null;
 };
 
-export const AlbumSideContent = ({ channel, podroll }: AlbumSideContentProps) => {
+export const AlbumPageSideContent = ({ channel, podroll }: AlbumPageSideContentProps) => {
   return (
     <SideContent>
       <ContentAbout

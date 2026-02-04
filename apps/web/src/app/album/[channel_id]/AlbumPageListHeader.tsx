@@ -14,17 +14,17 @@ import {
 import React from 'react';
 import Dropdown from '../../../components/Dropdown/Dropdown';
 import { ListHeader } from '../../../components/List/ListHeader';
-import { useAlbumContext } from './AlbumContext';
-import { getAlbumDropdownConfig } from './AlbumDropdownConfig';
+import { useAlbumPageContext } from './AlbumPageContext';
+import { getAlbumPageDropdownConfig } from './AlbumPageDropdownConfig';
 import { Tabs } from '../../../components/Tabs/Tabs';
 import { useAccount } from '../../../contexts/Account';
 
-type AlbumListHeaderProps = {
+type AlbumPageListHeaderProps = {
   ssrHasPodroll?: boolean;
 };
 
-export const AlbumListHeader: React.FC<AlbumListHeaderProps> = ({ ssrHasPodroll }) => {
-  const { filterParams, setFilterParams } = useAlbumContext();
+export const AlbumPageListHeader: React.FC<AlbumPageListHeaderProps> = ({ ssrHasPodroll }) => {
+  const { filterParams, setFilterParams } = useAlbumPageContext();
   const { type, sort, range } = filterParams;
   const tFilters = useTranslations('filters');
   const tMedia = useTranslations('media');
@@ -32,7 +32,7 @@ export const AlbumListHeader: React.FC<AlbumListHeaderProps> = ({ ssrHasPodroll 
   const tSettings = useTranslations('settings');
   const { loggedInAccount } = useAccount();
 
-  const { sortMenuItems, rangeMenuItems, showRangeDropdown } = getAlbumDropdownConfig({
+  const { sortMenuItems, rangeMenuItems, showRangeDropdown } = getAlbumPageDropdownConfig({
     sort,
     tFilters,
     tMedia,
