@@ -163,3 +163,256 @@ To-do's from the plan have already been created. Do not create them again. Mark 
 - apps/web/src/components/Media/Music/Album/Track/TrackHeader.tsx
 - apps/web/src/components/Media/Music/Artist/ArtistHeader.tsx
 - apps/web/src/components/Media/Podcast/Episode/EpisodeHeader.tsx
+
+### Session 122 - 2026-02-03
+
+#### Prompt (Developer)
+
+implement the plans
+
+#### Key Decisions
+
+- Rebuilt add-by-RSS episodes list to use a local IndexedDB index with fast first-page render and background indexing.
+- Switched add-by-RSS episode detail to a dedicated client using item GUID routing and add-by-RSS headers/play controls.
+- Added medium filtering for add-by-RSS episodes using channel `medium_id` to include podcast/video feeds only.
+
+#### Files Modified
+
+- apps/web/src/app/add-by-rss/AddByRSSDetailClient.tsx
+- apps/web/src/app/add-by-rss/AddByRSSDetailPageClient.tsx
+- apps/web/src/app/add-by-rss/episode/AddByRSSEpisodePageClient.tsx
+- apps/web/src/app/add-by-rss/episode/[id]/page.tsx
+- apps/web/src/app/add-by-rss/episodes/AddByRSSEpisodesPageClient.tsx
+- apps/web/src/app/add-by-rss/episodes/page.tsx
+- apps/web/src/components/AddByRSS/Podcast/Episode/AddByRSSEpisodeDetailHeader.tsx
+- apps/web/src/components/AddByRSS/Podcast/Episode/AddByRSSEpisodeGridItem.tsx
+- apps/web/src/components/AddByRSS/Podcast/Episode/AddByRSSEpisodeNodes.tsx
+- apps/web/src/components/AddByRSS/Podcast/Episode/AddByRSSEpisodeRow.tsx
+- apps/web/src/components/AddByRSS/Podcast/Episode/AddByRSSEpisodesListNodes.tsx
+- apps/web/src/utils/addByRSS/episodeIndex.ts
+- apps/web/src/utils/addByRSS/storage.ts
+- apps/web/src/utils/addByRSS/types.ts
+
+### Session 123 - 2026-02-03
+
+#### Prompt (Developer)
+
+Implement the plan as specified, it is attached for your reference. Do NOT edit the plan file itself.
+
+To-do's from the plan have already been created. Do not create them again. Mark them as in_progress as you work, starting with the first one. Don't stop until you have completed all the to-dos.
+
+#### Key Decisions
+
+- Always render pagination controls when totalPages > 1, even if the current page has no items yet.
+- Clamp add-by-RSS episodes pages to the last valid page once the index count is available.
+
+#### Files Modified
+
+- apps/web/src/app/add-by-rss/episodes/AddByRSSEpisodesPageClient.tsx
+- apps/web/src/utils/addByRSS/episodeIndex.ts
+
+### Session 124 - 2026-02-03
+
+#### Prompt (Developer)
+
+Implement the plan as specified, it is attached for your reference. Do NOT edit the plan file itself.
+
+To-do's from the plan have already been created. Do not create them again. Mark them as in_progress as you work, starting with the first one. Don't stop until you have completed all the to-dos.
+
+#### Key Decisions
+
+- Aligned add-by-RSS episodes page size with shared PAGINATION.DEFAULT_LIMIT.
+
+#### Files Modified
+
+- apps/web/src/utils/addByRSS/episodeIndex.ts
+
+### Session 125 - 2026-02-03
+
+#### Prompt (Developer)
+
+make the add by rss pagination consistent with the non
+
+#### Key Decisions
+
+- Reused the existing `ListEpisodes` pagination spacing class for add-by-RSS.
+
+#### Files Modified
+
+- apps/web/src/app/add-by-rss/episodes/AddByRSSEpisodesPageClient.tsx
+
+### Session 126 - 2026-02-03
+
+#### Prompt (Developer)
+
+The Add by RSS episodes page and possibly the podcast page are automatically adding URL parameters but the URL parameters should be similar to the non-add by RSS podcasts and episodes where it can be set if the user types it in and then navigates to that URL parameter directly but otherwise The URL parameters should stay cleared and not visible in the URL bar. They only exist for navigating directly to a page with those filters and otherwise should not be visible.
+
+#### Key Decisions
+
+- Add-by-RSS episodes and podcast pages keep URL params only when the user navigates with them; defaults are removed.
+- Add recent/oldest sorting to add-by-RSS podcast list and detail pages without auto-adding params.
+- Drop URL syncing after initial navigation to keep URLs clean on user actions.
+
+#### Files Modified
+
+- apps/web/src/app/add-by-rss/episodes/AddByRSSEpisodesPageClient.tsx
+- apps/web/src/app/add-by-rss/podcast/AddByRSSPodcastPageDetailClient.tsx
+- apps/web/src/components/AddByRSS/AddByRSSListClient.tsx
+- apps/web/src/components/AddByRSS/List/AddByRSSListHeader.tsx
+- apps/web/src/components/AddByRSS/Podcast/AddByRSSPodcastPageListHeader.tsx
+
+### Session 127 - 2026-02-03
+
+#### Prompt (Developer)
+
+move the page client to components/AddByRSS since it is used in multiple pages
+
+#### Key Decisions
+
+- Moved AddByRSSDetailPageClient into components/AddByRSS and updated route imports.
+
+#### Files Modified
+
+- apps/web/src/components/AddByRSS/AddByRSSDetailPageClient.tsx
+- apps/web/src/app/add-by-rss/[resource]/[id_text]/page.tsx
+- apps/web/src/app/add-by-rss/album/[id]/page.tsx
+- apps/web/src/app/add-by-rss/artist/[id]/page.tsx
+- apps/web/src/app/add-by-rss/podcast/[id]/page.tsx
+- apps/web/src/app/add-by-rss/track/[id]/page.tsx
+- apps/web/src/app/add-by-rss/podcast/livestream/[id]/page.tsx
+- apps/web/src/app/add-by-rss/music/livestream/[id]/page.tsx
+- apps/web/src/app/add-by-rss/AddByRSSDetailClient.tsx
+
+### Session 128 - 2026-02-03
+
+#### Prompt (Developer)
+
+Implement the plan as specified, it is attached for your reference. Do NOT edit the plan file itself.
+
+To-do's from the plan have already been created. Do not create them again. Mark them as in_progress as you work, starting with the first one. Don't stop until you have completed all the to-dos.
+
+#### Key Decisions
+
+- Added dedicated add-by-RSS artists list/detail clients with local pagination and recent/oldest sorting.
+- Filtered add-by-RSS music lists to music-only mediums and matched artist-related album/track feeds by author/title.
+
+#### Files Modified
+
+- apps/web/src/app/add-by-rss/artists/AddByRSSArtistsPageClient.tsx
+- apps/web/src/app/add-by-rss/artists/page.tsx
+- apps/web/src/app/add-by-rss/artist/AddByRSSArtistPageListHeader.tsx
+- apps/web/src/app/add-by-rss/artist/AddByRSSArtistPageList.tsx
+- apps/web/src/app/add-by-rss/artist/AddByRSSArtistPageClient.tsx
+- apps/web/src/app/add-by-rss/artist/[id]/page.tsx
+
+### Session 129 - 2026-02-03
+
+#### Prompt (Developer)
+
+Implement the plan as specified, it is attached for your reference. Do NOT edit the plan file itself.
+
+To-do's from the plan have already been created. Do not create them again. Mark them as in_progress as you work, starting with the first one. Don't stop until you have completed all the to-dos.
+
+#### Key Decisions
+
+- Moved add-by-RSS feed creation to a dedicated /add-by-rss/add page with status updates and redirect on parse success.
+- Auto-detect add-by-RSS resource type from mapped medium_id (including publisher music detection) and update stored records before redirect.
+- Added a sidebar Add by RSS button and removed add-feed forms from list views.
+
+#### Files Modified
+
+- apps/web/src/components/AddByRSS/List/AddByRSSListClient.tsx
+- apps/web/src/utils/addByRSS/resourceType.ts
+- apps/web/src/app/add-by-rss/add/page.tsx
+- apps/web/src/app/add-by-rss/add/AddByRSSAddFeedPageClient.tsx
+- apps/web/src/styles/components/AddByRSS/AddByRSSAddFeed.module.scss
+- apps/web/src/constants/routes.ts
+- apps/web/src/components/SideBar/SideBar.tsx
+- apps/web/src/styles/components/SideBar/SideBar.module.scss
+- apps/web/i18n/originals/en-US.json
+
+### Session 130 - 2026-02-03
+
+#### Prompt (Developer)
+
+the add by rss in the sidebar should not be a button, but the same type of link element as the other sidebar items
+
+#### Key Decisions
+
+- Switched the add-by-RSS sidebar entry back to the standard SideBarLink.
+
+#### Files Modified
+
+- apps/web/src/components/SideBar/SideBar.tsx
+- apps/web/src/styles/components/SideBar/SideBar.module.scss
+
+### Session 131 - 2026-02-03
+
+#### Prompt (Developer)
+
+the "Check for Updates" button on the add by rss pages within the header should be the same style as the dropdown looking buttons in the header
+
+#### Key Decisions
+
+- Matched the add-by-RSS check updates button styling to dropdown buttons by switching to the mini variant.
+
+#### Files Modified
+
+- apps/web/src/components/AddByRSS/List/AddByRSSListHeader.tsx
+
+### Session 132 - 2026-02-03
+
+#### Prompt (Developer)
+
+the "Add Feed" button should become disabled and show a loading spinner in it while working
+
+#### Key Decisions
+
+- Added disabled/loading support to TextInput buttons and wired it for add-by-RSS add feed.
+
+#### Files Modified
+
+- apps/web/src/components/Form/TextInput.tsx
+- apps/web/src/app/add-by-rss/add/AddByRSSAddFeedPageClient.tsx
+
+### Session 133 - 2026-02-03
+
+#### Prompt (Developer)
+
+the Check Feed for Updates button shows a loading spinner inside it already, so it does not need to show the global loading spinner as well
+
+#### Key Decisions
+
+- Suppressed the global list loading spinner while check updates is in progress.
+
+#### Files Modified
+
+- apps/web/src/components/AddByRSS/List/AddByRSSListClient.tsx
+
+### Session 134 - 2026-02-03
+
+#### Prompt (Developer)
+
+the "Check Feed for Updates" loadingspinneroverlay handling i describe needs to be applied to all pages that use Check Feed for Updates not just the add by rss pages
+
+#### Key Decisions
+
+- Removed the global loading overlay from add-by-RSS podcast settings while check updates runs.
+
+#### Files Modified
+
+- apps/web/src/app/add-by-rss/podcast/AddByRSSPodcastPageDetailClient.tsx
+
+### Session 135 - 2026-02-03
+
+#### Prompt (Developer)
+
+update
+
+#### Key Decisions
+
+- Used formatDateTimeAbbrev for last parsed timestamps to display localized time.
+
+#### Files Modified
+
+- apps/web/src/components/List/ListChannelSettings.tsx
