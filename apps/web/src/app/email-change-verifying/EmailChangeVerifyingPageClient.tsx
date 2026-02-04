@@ -13,11 +13,11 @@ import { handleRateLimitAlert } from '../../utils/rateLimit/rateLimitAlert';
 import LoadingSpinner from '../../components/LoadingSpinner/LoadingSpinner';
 import styles from '../../styles/app/email-change-verifying/EmailChangeVerifyingClient.module.scss';
 
-type EmailChangeVerifyingClientProps = {
+type EmailChangeVerifyingPageClientProps = {
   token?: string;
 };
 
-export function EmailChangeVerifyingClient({ token }: EmailChangeVerifyingClientProps) {
+export function EmailChangeVerifyingPageClient({ token }: EmailChangeVerifyingPageClientProps) {
   const tAuthentication = useTranslations('authentication');
   const tMisc = useTranslations('misc');
   const locale = useLocale();

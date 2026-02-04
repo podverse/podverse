@@ -5,7 +5,7 @@ import { MainInnerWrapper } from '../../components/Main/MainInnerWrapper';
 import { MainWrapper } from '../../components/Main/MainWrapper';
 import { AuthEmailChangeForm } from '../../components/Auth/AuthEmailChangeForm';
 
-export function EmailChangeClient() {
+export function EmailChangePageClient() {
   const tAuthentication = useTranslations('authentication');
 
   return (
