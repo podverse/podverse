@@ -21,12 +21,12 @@ type MembershipPricingData = {
   monthlyEquivalentAnnually: number;
 };
 
-type CheckoutClientProps = {
+type CheckoutPageClientProps = {
   pricingData: MembershipPricingData | null;
   isContactOnlyMode: boolean;
 };
 
-export function CheckoutClient({ pricingData, isContactOnlyMode }: CheckoutClientProps) {
+export function CheckoutPageClient({ pricingData, isContactOnlyMode }: CheckoutPageClientProps) {
   const t = useTranslations('checkout');
   const tMembership = useTranslations('membership');
 
