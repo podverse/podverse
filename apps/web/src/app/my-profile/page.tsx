@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation';
 import { getSSRAuthService } from '../../utils/auth/ssrAuth';
-import { MyProfileClient } from './MyProfileClient';
+import { MyProfilePageClient } from './MyProfilePageClient';
 
 export default async function MyProfilePage() {
   const { isValidAuthSession, ssrApiRequestService } = await getSSRAuthService();
@@ -18,7 +18,7 @@ export default async function MyProfilePage() {
       return;
     }
 
-    return <MyProfileClient ssrAccount={ssrAccount} />;
+    return <MyProfilePageClient ssrAccount={ssrAccount} />;
   } catch {
     redirect('/');
   }

@@ -5,12 +5,12 @@ import { useTranslations } from 'next-intl';
 import { ListHeader } from '../../components/List/ListHeader';
 import { Tabs } from '../../components/Tabs/Tabs';
 import Dropdown from '../../components/Dropdown/Dropdown';
-import type { MyProfileContentTab } from './MyProfileContentContext';
-import { useMyProfileContentContext } from './MyProfileContentContext';
+import type { MyProfilePageContentTab } from './MyProfilePageContentContext';
+import { useMyProfilePageContentContext } from './MyProfilePageContentContext';
 import styles from '../../styles/app/profile/ProfileContentListHeader.module.scss';
 
-export const MyProfileContentListHeader: React.FC = () => {
-  const { selectedTab, setSelectedTab } = useMyProfileContentContext();
+export const MyProfilePageContentListHeader: React.FC = () => {
+  const { selectedTab, setSelectedTab } = useMyProfilePageContentContext();
   const tMedia = useTranslations('media');
   const tFeatures = useTranslations('features');
   const tFilters = useTranslations('filters');
@@ -19,25 +19,25 @@ export const MyProfileContentListHeader: React.FC = () => {
     {
       key: 'podcasts',
       label: tMedia('podcast.podcasts'),
-      onClick: () => setSelectedTab('podcasts' as MyProfileContentTab),
+      onClick: () => setSelectedTab('podcasts' as MyProfilePageContentTab),
       zIndex: 4,
     },
     {
       key: 'albums',
       label: tMedia('music.albums'),
-      onClick: () => setSelectedTab('albums' as MyProfileContentTab),
+      onClick: () => setSelectedTab('albums' as MyProfilePageContentTab),
       zIndex: 3,
     },
     {
       key: 'playlists',
       label: tFeatures('playlist.playlists'),
-      onClick: () => setSelectedTab('playlists' as MyProfileContentTab),
+      onClick: () => setSelectedTab('playlists' as MyProfilePageContentTab),
       zIndex: 2,
     },
     {
       key: 'clips',
       label: tFeatures('clip.clips'),
-      onClick: () => setSelectedTab('clips' as MyProfileContentTab),
+      onClick: () => setSelectedTab('clips' as MyProfilePageContentTab),
       zIndex: 1,
     },
   ];

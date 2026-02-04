@@ -5,28 +5,28 @@ import { MainWrapper } from '../../components/Main/MainWrapper';
 import { MainInnerWrapper } from '../../components/Main/MainInnerWrapper';
 import { MainInnerContentWrapper } from '../../components/Main/MainInnerContentWrapper';
 import { ProfileHeader } from '../../components/Media/Profile/ProfileHeader';
-import { MyProfileContentContextProvider } from './MyProfileContentContext';
-import { MyProfileContentList } from './MyProfileContentList';
-import { MyProfileContentListHeader } from './MyProfileContentListHeader';
+import { MyProfilePageContentContextProvider } from './MyProfilePageContentContext';
+import { MyProfilePageContentList } from './MyProfilePageContentList';
+import { MyProfilePageContentListHeader } from './MyProfilePageContentListHeader';
 
-interface MyProfileClientProps {
+interface MyProfilePageClientProps {
   ssrAccount: DTOAccount;
 }
 
-export function MyProfileClient(props: MyProfileClientProps) {
+export function MyProfilePageClient(props: MyProfilePageClientProps) {
   const { ssrAccount } = props;
 
   return (
-    <MyProfileContentContextProvider account={ssrAccount}>
+    <MyProfilePageContentContextProvider account={ssrAccount}>
       <MainWrapper>
         <ProfileHeader account={ssrAccount} isOwnProfile={true} />
         <MainInnerWrapper>
           <MainInnerContentWrapper>
-            <MyProfileContentListHeader />
-            <MyProfileContentList />
+            <MyProfilePageContentListHeader />
+            <MyProfilePageContentList />
           </MainInnerContentWrapper>
         </MainInnerWrapper>
       </MainWrapper>
-    </MyProfileContentContextProvider>
+    </MyProfilePageContentContextProvider>
   );
 }

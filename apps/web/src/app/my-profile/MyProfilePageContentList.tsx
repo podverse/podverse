@@ -1,8 +1,8 @@
 'use client';
 
 import React from 'react';
-import { useMyProfileContentContext } from './MyProfileContentContext';
-import { ListPodcasts } from '../../components/List/Podcasts/ListPodcasts';
+import { useMyProfilePageContentContext } from './MyProfilePageContentContext';
+import { CorePodcasts } from '../../components/Core/List/Podcast/CorePodcasts';
 import { ListAlbums } from '../../components/List/Music/Albums/ListAlbums';
 import { ListPlaylists } from '../../components/List/Playlists/ListPlaylists';
 import { ListClips } from '../../components/List/Clips/ListClips';
@@ -10,7 +10,7 @@ import { NoResults } from '../../components/NoResults/NoResults';
 import LoadingSpinnerOverlay from '../../components/LoadingSpinner/LoadingSpinnerOverlay';
 import styles from '../../styles/app/profile/ProfileContentList.module.scss';
 
-export const MyProfileContentList: React.FC = () => {
+export const MyProfilePageContentList: React.FC = () => {
   const {
     selectedTab,
     podcasts,
@@ -34,7 +34,7 @@ export const MyProfileContentList: React.FC = () => {
     clipsTotalPages,
     clipsLoaded,
     isLoading,
-  } = useMyProfileContentContext();
+  } = useMyProfilePageContentContext();
 
   if (selectedTab === 'podcasts') {
     // Show loading spinner if currently loading and data hasn't been loaded yet
@@ -52,7 +52,7 @@ export const MyProfileContentList: React.FC = () => {
 
     return (
       <>
-        <ListPodcasts
+        <CorePodcasts
           page={podcastsPage}
           setPage={setPodcastsPage}
           channels={podcasts}

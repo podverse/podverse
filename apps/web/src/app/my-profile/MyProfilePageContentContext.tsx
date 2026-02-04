@@ -8,12 +8,12 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import { apiRequestService } from '../../factories/apiRequestService';
 import { useSkipInitialEffect } from '../../hooks/useSkipInitialEffect';
 
-export type MyProfileContentTab = 'podcasts' | 'albums' | 'playlists' | 'clips';
+export type MyProfilePageContentTab = 'podcasts' | 'albums' | 'playlists' | 'clips';
 
-interface MyProfileContentContextType {
+interface MyProfilePageContentContextType {
   account: DTOAccount;
-  selectedTab: MyProfileContentTab;
-  setSelectedTab: (tab: MyProfileContentTab) => void;
+  selectedTab: MyProfilePageContentTab;
+  setSelectedTab: (tab: MyProfilePageContentTab) => void;
 
   // Podcasts
   podcasts: DTOChannel[];
@@ -46,17 +46,19 @@ interface MyProfileContentContextType {
   isLoading: boolean;
 }
 
-const MyProfileContentContext = createContext<MyProfileContentContextType | undefined>(undefined);
+const MyProfilePageContentContext = createContext<MyProfilePageContentContextType | undefined>(
+  undefined
+);
 
-interface MyProfileContentContextProviderProps {
+interface MyProfilePageContentContextProviderProps {
   children: ReactNode;
   account: DTOAccount;
 }
 
-export const MyProfileContentContextProvider = ({
+export const MyProfilePageContentContextProvider = ({
   children,
   account,
-}: MyProfileContentContextProviderProps) => {
+}: MyProfilePageContentContextProviderProps) => {
   const searchParams = useSearchParams();
   const router = useRouter();
 
@@ -67,13 +69,13 @@ export const MyProfileContentContextProvider = ({
     tabFromQuery === 'albums' ||
     tabFromQuery === 'playlists' ||
     tabFromQuery === 'clips';
-  const initialTab = (isValidTab ? tabFromQuery : 'podcasts') as MyProfileContentTab;
+  const initialTab = (isValidTab ? tabFromQuery : 'podcasts') as MyProfilePageContentTab;
 
-  const [selectedTab, setSelectedTabState] = useState<MyProfileContentTab>(initialTab);
+  const [selectedTab, setSelectedTabState] = useState<MyProfilePageContentTab>(initialTab);
 
   // Wrapper to clear query params when tab changes
   const setSelectedTab = useCallback(
-    (tab: MyProfileContentTab) => {
+    (tab: MyProfilePageContentTab) => {
       setSelectedTabState(tab);
       // Clear query params when user clicks a tab
       const params = new URLSearchParams(searchParams.toString());
@@ -227,7 +229,7 @@ export const MyProfileContentContextProvider = ({
   }, [clipsPage]);
 
   return (
-    <MyProfileContentContext.Provider
+    <MyProfilePageContentContext.Provider
       value={{
         account,
         selectedTab,
@@ -256,15 +258,15 @@ export const MyProfileContentContextProvider = ({
       }}
     >
       {children}
-    </MyProfileContentContext.Provider>
+    </MyProfilePageContentContext.Provider>
   );
 };
 
-export const useMyProfileContentContext = () => {
-  const ctx = useContext(MyProfileContentContext);
+export const useMyProfilePageContentContext = () => {
+  const ctx = useContext(MyProfilePageContentContext);
   if (!ctx) {
     throw new Error(
-      'useMyProfileContentContext must be used within a MyProfileContentContextProvider'
+      'useMyProfilePageContentContext must be used within a MyProfilePageContentContextProvider'
     );
   }
   return ctx;
