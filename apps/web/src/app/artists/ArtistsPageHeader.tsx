@@ -14,19 +14,19 @@ import {
 import React from 'react';
 import Dropdown from '../../components/Dropdown/Dropdown';
 import { MainHeader } from '../../components/Main/MainHeader';
-import { useArtistsContext } from './ArtistsContext';
-import { getArtistsDropdownConfig } from './ArtistsDropdownConfig';
+import { useArtistsPageContext } from './ArtistsPageContext';
+import { getArtistsPageDropdownConfig } from './ArtistsPageDropdownConfig';
 import { ViewSelector } from '../../components/ViewSelector/ViewSelector';
 import { useLocalSettings } from '../../contexts/LocalSettings';
 
-export const ArtistsHeader: React.FC = () => {
-  const { filterParams, setFilterParams } = useArtistsContext();
+export const ArtistsPageHeader: React.FC = () => {
+  const { filterParams, setFilterParams } = useArtistsPageContext();
   const { viewSelected, setViewSelected } = useLocalSettings();
   const { type, sort, range } = filterParams;
   const tMedia = useTranslations('media');
   const tFilters = useTranslations('filters');
   const { typeMenuItems, sortMenuItems, rangeMenuItems, showRangeDropdown } =
-    getArtistsDropdownConfig({ type, sort, tFilters });
+    getArtistsPageDropdownConfig({ type, sort, tFilters });
 
   const medium = 'publisher-music';
 

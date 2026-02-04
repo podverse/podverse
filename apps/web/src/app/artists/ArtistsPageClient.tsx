@@ -2,36 +2,36 @@
 
 import type { DTOChannel } from '@podverse/helpers';
 import type { QueryParamsGetManyMusic } from '@podverse/helpers-requests';
-import { ArtistsContextProvider } from './ArtistsContext';
+import { ArtistsPageContextProvider } from './ArtistsPageContext';
 import { MainWrapper } from '../../components/Main/MainWrapper';
-import { ArtistsHeader } from './ArtistsHeader';
-import { ArtistsList } from './ArtistsList';
+import { ArtistsPageHeader } from './ArtistsPageHeader';
+import { ArtistsPageList } from './ArtistsPageList';
 import { MainInnerWrapper } from '../../components/Main/MainInnerWrapper';
 import { MainInnerContentWrapper } from '../../components/Main/MainInnerContentWrapper';
 
-interface ArtistsClientProps {
+interface ArtistsPageClientProps {
   initialQueryParams: QueryParamsGetManyMusic;
   ssrChannels: DTOChannel[];
   ssrTotalPages: number;
 }
 
-export function ArtistsClient(props: ArtistsClientProps) {
+export function ArtistsPageClient(props: ArtistsPageClientProps) {
   const { initialQueryParams, ssrChannels, ssrTotalPages } = props;
 
   return (
-    <ArtistsContextProvider
+    <ArtistsPageContextProvider
       initialQueryParams={initialQueryParams}
       ssrChannels={ssrChannels}
       ssrTotalPages={ssrTotalPages}
     >
-      <ArtistsHeader />
+      <ArtistsPageHeader />
       <MainWrapper>
         <MainInnerWrapper>
           <MainInnerContentWrapper>
-            <ArtistsList />
+            <ArtistsPageList />
           </MainInnerContentWrapper>
         </MainInnerWrapper>
       </MainWrapper>
-    </ArtistsContextProvider>
+    </ArtistsPageContextProvider>
   );
 }

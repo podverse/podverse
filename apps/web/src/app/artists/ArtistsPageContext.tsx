@@ -10,9 +10,9 @@ import { useAccount } from '../../contexts/Account';
 import { useSkipInitialEffect } from '../../hooks/useSkipInitialEffect';
 import { useFilterDefaults } from '../../hooks/useFilterDefaults';
 import { useListPageCache } from '../../hooks/useListPageCache';
-import { getArtistsFilterParams } from './ArtistsDropdownConfig';
+import { getArtistsPageFilterParams } from './ArtistsPageDropdownConfig';
 
-interface ArtistsContextType {
+interface ArtistsPageContextType {
   filterParams: QueryParamsGetManyMusic;
   setFilterParams: (params: QueryParamsGetManyMusic) => void;
   channels: DTOChannel[];
@@ -27,21 +27,21 @@ interface ArtistsContextType {
   setShowCategoriesModal: (show: boolean) => void;
 }
 
-const ArtistsContext = createContext<ArtistsContextType | undefined>(undefined);
+const ArtistsPageContext = createContext<ArtistsPageContextType | undefined>(undefined);
 
-interface ArtistsContextProviderProps {
+interface ArtistsPageContextProviderProps {
   children: ReactNode;
   initialQueryParams: QueryParamsGetManyMusic;
   ssrChannels: DTOChannel[];
   ssrTotalPages: number;
 }
 
-export const ArtistsContextProvider = ({
+export const ArtistsPageContextProvider = ({
   children,
   initialQueryParams,
   ssrChannels,
   ssrTotalPages,
-}: ArtistsContextProviderProps) => {
+}: ArtistsPageContextProviderProps) => {
   // Use the list page cache hook for back navigation caching
   const {
     filterParams,
@@ -83,7 +83,7 @@ export const ArtistsContextProvider = ({
 
       setIsLoading(true);
 
-      const { currentSort, currentRange, currentType } = getArtistsFilterParams(
+      const { currentSort, currentRange, currentType } = getArtistsPageFilterParams(
         {
           page: filterParams.page,
           type: filterParams.type,
@@ -117,7 +117,7 @@ export const ArtistsContextProvider = ({
   }, [filterParams, loggedInAccount]);
 
   return (
-    <ArtistsContext.Provider
+    <ArtistsPageContext.Provider
       value={{
         filterParams,
         setFilterParams,
@@ -134,14 +134,14 @@ export const ArtistsContextProvider = ({
       }}
     >
       {children}
-    </ArtistsContext.Provider>
+    </ArtistsPageContext.Provider>
   );
 };
 
-export const useArtistsContext = () => {
-  const ctx = useContext(ArtistsContext);
+export const useArtistsPageContext = () => {
+  const ctx = useContext(ArtistsPageContext);
   if (!ctx) {
-    throw new Error('useArtistsContext must be used within a ArtistsContextProvider');
+    throw new Error('useArtistsPageContext must be used within a ArtistsPageContextProvider');
   }
   return ctx;
 };

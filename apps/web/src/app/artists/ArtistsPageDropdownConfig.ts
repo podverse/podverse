@@ -11,7 +11,7 @@ import {
 import { getRangeDropdownItems } from '../../utils/dropdownMenuItems';
 import type { DropdownMenuItem } from '../../components/Dropdown/Dropdown';
 
-export function getArtistsDropdownConfig({
+export function getArtistsPageDropdownConfig({
   type,
   sort,
   tFilters,
@@ -53,24 +53,24 @@ export function getArtistsDropdownConfig({
   };
 }
 
-type ArtistsDropdownConfigParams = {
+type ArtistsPageDropdownConfigParams = {
   type: QueryParamsSubscribedMusicType | null;
   sort: QueryParamsSubscribedFullSort | null;
   range: QueryParamsStatsRange | null;
   page: number;
 };
 
-export type ArtistsDropdownConfigCurrentParams = {
+export type ArtistsPageDropdownConfigCurrentParams = {
   currentType: QueryParamsSubscribedMusicType;
   currentSort: QueryParamsSubscribedFullSort;
   currentRange: QueryParamsStatsRange | null;
   currentPage: number;
 };
 
-export function getArtistsFilterParams(
-  { type, sort, range, page }: ArtistsDropdownConfigParams,
+export function getArtistsPageFilterParams(
+  { type, sort, range, page }: ArtistsPageDropdownConfigParams,
   isValidAuthSession: boolean
-): ArtistsDropdownConfigCurrentParams {
+): ArtistsPageDropdownConfigCurrentParams {
   let currentType = type;
   let currentSort = sort;
   let currentRange = range;
