@@ -6,10 +6,10 @@ import { ModalCategoriesSelect } from '../../components/Modal/ModalCategoriesSel
 import { onClickCategory } from '../../utils/categories';
 import { ROUTES } from '../../constants/routes';
 import { ListClips } from '../../components/List/Clips/ListClips';
-import { useClipsContext } from './ClipsContext';
+import { useClipsPageContext } from './ClipsPageContext';
 import { HowToStartInfo } from '../../components/InfoWrapper/HowToStartInfo';
 
-export const ClipsList: React.FC = () => {
+export const ClipsPageList: React.FC = () => {
   const {
     filterParams,
     setFilterParams,
@@ -19,7 +19,7 @@ export const ClipsList: React.FC = () => {
     showSubscribeMessage,
     showCategoriesModal,
     setShowCategoriesModal,
-  } = useClipsContext();
+  } = useClipsPageContext();
   const { page, type, category } = filterParams;
   const router = useRouter();
 

@@ -4,16 +4,16 @@ import { useRouter } from 'next/navigation';
 import type { DTOClip } from '@podverse/helpers';
 import { hhmmssToSecondsNumeric } from '@podverse/helpers';
 import React from 'react';
-import { useClipEditContext } from './ClipEditContext';
+import { useClipEditPageContext } from './ClipEditPageContext';
 import { apiRequestService } from '../../../../factories/apiRequestService';
 import { ClipForm } from '../../../../components/Clip/ClipForm';
 import { useAutoQueue } from '../../../../contexts/AutoQueue';
 
-type ClipEditFormProps = {
+type ClipEditPageFormProps = {
   ssrClip: DTOClip;
 };
 
-export const ClipEditForm: React.FC<ClipEditFormProps> = ({ ssrClip }) => {
+export const ClipEditPageForm: React.FC<ClipEditPageFormProps> = ({ ssrClip }) => {
   const router = useRouter();
   const {
     sharableStatus,
@@ -26,7 +26,7 @@ export const ClipEditForm: React.FC<ClipEditFormProps> = ({ ssrClip }) => {
     setEndTimeString,
     isUpdating,
     setIsUpdating,
-  } = useClipEditContext();
+  } = useClipEditPageContext();
 
   const { setAutoQueueConfig, autoQueueConfig } = useAutoQueue();
 

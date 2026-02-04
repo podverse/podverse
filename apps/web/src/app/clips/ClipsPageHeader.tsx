@@ -16,18 +16,18 @@ import Dropdown from '../../components/Dropdown/Dropdown';
 import { MainHeader } from '../../components/Main/MainHeader';
 import { ViewSelector } from '../../components/ViewSelector/ViewSelector';
 import { useLocalSettings } from '../../contexts/LocalSettings';
-import { useClipsContext } from './ClipsContext';
-import { getEpisodesDropdownConfig } from '../episodes/EpisodesDropdownConfig';
+import { useClipsPageContext } from './ClipsPageContext';
+import { getEpisodesPageDropdownConfig } from '../episodes/EpisodesPageDropdownConfig';
 
-export const ClipsHeader: React.FC = () => {
-  const { filterParams, setFilterParams, setShowCategoriesModal } = useClipsContext();
+export const ClipsPageHeader: React.FC = () => {
+  const { filterParams, setFilterParams, setShowCategoriesModal } = useClipsPageContext();
   const { viewSelected, setViewSelected } = useLocalSettings();
   const { type, sort, range } = filterParams;
   const tFilters = useTranslations('filters');
   const tCategories = useTranslations('categories');
   const tFeatures = useTranslations('features');
   const { typeMenuItems, sortMenuItems, rangeMenuItems, showRangeDropdown } =
-    getEpisodesDropdownConfig({ type, sort, tFilters });
+    getEpisodesPageDropdownConfig({ type, sort, tFilters });
   const medium = 'av';
 
   function isItemType(val: string): val is QueryParamsSubscribedType {

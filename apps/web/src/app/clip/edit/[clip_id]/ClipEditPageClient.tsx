@@ -1,38 +1,38 @@
 'use client';
 
 import type { DTOClip } from '@podverse/helpers';
-import { ClipEditContextProvider } from './ClipEditContext';
-import { ClipEditForm } from './ClipEditForm';
-import { ClipEditHeader } from './ClipEditHeader';
+import { ClipEditPageContextProvider } from './ClipEditPageContext';
+import { ClipEditPageForm } from './ClipEditPageForm';
+import { ClipEditPageHeader } from './ClipEditPageHeader';
 import { MainWrapper } from '../../../../components/Main/MainWrapper';
 import { MainInnerWrapper } from '../../../../components/Main/MainInnerWrapper';
 import { MainInnerContentWrapper } from '../../../../components/Main/MainInnerContentWrapper';
 
-type ClipEditClientProps = {
+type ClipEditPageClientProps = {
   ssrClip: DTOClip;
   ssrEnclosureTypeSelected: 'default' | 'audio' | 'video';
   ssrEnclosureRowSelected: number;
 };
 
-export function ClipEditClient({
+export function ClipEditPageClient({
   ssrClip,
   ssrEnclosureTypeSelected,
   ssrEnclosureRowSelected,
-}: ClipEditClientProps) {
+}: ClipEditPageClientProps) {
   return (
-    <ClipEditContextProvider
+    <ClipEditPageContextProvider
       ssrClip={ssrClip}
       ssrEnclosureTypeSelected={ssrEnclosureTypeSelected}
       ssrEnclosureRowSelected={ssrEnclosureRowSelected}
     >
-      <ClipEditHeader />
+      <ClipEditPageHeader />
       <MainWrapper>
         <MainInnerWrapper>
           <MainInnerContentWrapper>
-            <ClipEditForm ssrClip={ssrClip} />
+            <ClipEditPageForm ssrClip={ssrClip} />
           </MainInnerContentWrapper>
         </MainInnerWrapper>
       </MainWrapper>
-    </ClipEditContextProvider>
+    </ClipEditPageContextProvider>
   );
 }

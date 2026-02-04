@@ -5,33 +5,33 @@ import type { QueryParamsGetManyPartial } from '@podverse/helpers-requests';
 import { MainWrapper } from '../../components/Main/MainWrapper';
 import { MainInnerWrapper } from '../../components/Main/MainInnerWrapper';
 import { MainInnerContentWrapper } from '../../components/Main/MainInnerContentWrapper';
-import { ClipsContextProvider } from './ClipsContext';
-import { ClipsHeader } from './ClipsHeader';
-import { ClipsList } from './ClipsList';
+import { ClipsPageContextProvider } from './ClipsPageContext';
+import { ClipsPageHeader } from './ClipsPageHeader';
+import { ClipsPageList } from './ClipsPageList';
 
-interface ClipsClientProps {
+interface ClipsPageClientProps {
   initialQueryParams: QueryParamsGetManyPartial;
   ssrClips: DTOClip[];
   ssrTotalPages: number;
 }
 
-export function ClipsClient(props: ClipsClientProps) {
+export function ClipsPageClient(props: ClipsPageClientProps) {
   const { initialQueryParams, ssrClips, ssrTotalPages } = props;
 
   return (
-    <ClipsContextProvider
+    <ClipsPageContextProvider
       initialQueryParams={initialQueryParams}
       ssrClips={ssrClips}
       ssrTotalPages={ssrTotalPages}
     >
-      <ClipsHeader />
+      <ClipsPageHeader />
       <MainWrapper>
         <MainInnerWrapper>
           <MainInnerContentWrapper>
-            <ClipsList />
+            <ClipsPageList />
           </MainInnerContentWrapper>
         </MainInnerWrapper>
       </MainWrapper>
-    </ClipsContextProvider>
+    </ClipsPageContextProvider>
   );
 }

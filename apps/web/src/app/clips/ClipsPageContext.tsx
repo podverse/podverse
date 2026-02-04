@@ -12,9 +12,9 @@ import { useSkipInitialEffect } from '../../hooks/useSkipInitialEffect';
 import { useFilterDefaults } from '../../hooks/useFilterDefaults';
 import { useListPageCache } from '../../hooks/useListPageCache';
 import { ROUTES } from '../../constants/routes';
-import { getEpisodesFilterParams } from '../episodes/EpisodesDropdownConfig';
+import { getEpisodesPageFilterParams } from '../episodes/EpisodesPageDropdownConfig';
 
-interface ClipsContextType {
+interface ClipsPageContextType {
   filterParams: QueryParamsGetManyPartial;
   setFilterParams: (params: QueryParamsGetManyPartial) => void;
   clips: DTOClip[];
@@ -29,21 +29,21 @@ interface ClipsContextType {
   setShowCategoriesModal: (show: boolean) => void;
 }
 
-const ClipsContext = createContext<ClipsContextType | undefined>(undefined);
+const ClipsPageContext = createContext<ClipsPageContextType | undefined>(undefined);
 
-interface ClipsContextProviderProps {
+interface ClipsPageContextProviderProps {
   children: ReactNode;
   initialQueryParams: QueryParamsGetManyPartial;
   ssrClips: DTOClip[];
   ssrTotalPages: number;
 }
 
-export const ClipsContextProvider = ({
+export const ClipsPageContextProvider = ({
   children,
   initialQueryParams,
   ssrClips,
   ssrTotalPages,
-}: ClipsContextProviderProps) => {
+}: ClipsPageContextProviderProps) => {
   const router = useRouter();
 
   // Use the list page cache hook for back navigation caching
@@ -87,7 +87,7 @@ export const ClipsContextProvider = ({
 
       setIsLoading(true);
 
-      const { currentSort, currentRange, currentType } = getEpisodesFilterParams(
+      const { currentSort, currentRange, currentType } = getEpisodesPageFilterParams(
         {
           page: filterParams.page,
           type: filterParams.type,
@@ -126,7 +126,7 @@ export const ClipsContextProvider = ({
   }, [filterParams, loggedInAccount]);
 
   return (
-    <ClipsContext.Provider
+    <ClipsPageContext.Provider
       value={{
         filterParams,
         setFilterParams,
@@ -143,14 +143,14 @@ export const ClipsContextProvider = ({
       }}
     >
       {children}
-    </ClipsContext.Provider>
+    </ClipsPageContext.Provider>
   );
 };
 
-export const useClipsContext = () => {
-  const ctx = useContext(ClipsContext);
+export const useClipsPageContext = () => {
+  const ctx = useContext(ClipsPageContext);
   if (!ctx) {
-    throw new Error('useClipsContext must be used within a ClipsContextProvider');
+    throw new Error('useClipsPageContext must be used within a ClipsPageContextProvider');
   }
   return ctx;
 };

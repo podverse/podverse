@@ -7,7 +7,7 @@ import { createContext, useContext, useState, useEffect } from 'react';
 import { useMediaPlayerResourceUpdate } from '../../../../hooks/useMediaPlayerResourceUpdate';
 import { useAutoQueue } from '../../../../contexts/AutoQueue';
 
-interface ClipEditContextType {
+interface ClipEditPageContextType {
   sharableStatus: string;
   setSharableStatus: (status: string) => void;
   title: string;
@@ -22,21 +22,21 @@ interface ClipEditContextType {
   onCancel: () => void;
 }
 
-const ClipEditContext = createContext<ClipEditContextType | undefined>(undefined);
+const ClipEditPageContext = createContext<ClipEditPageContextType | undefined>(undefined);
 
-interface ClipEditContextProviderProps {
+interface ClipEditPageContextProviderProps {
   children: ReactNode;
   ssrClip: DTOClip;
   ssrEnclosureRowSelected: number;
   ssrEnclosureTypeSelected: 'default' | 'audio' | 'video';
 }
 
-export const ClipEditContextProvider = ({
+export const ClipEditPageContextProvider = ({
   children,
   ssrClip,
   ssrEnclosureRowSelected,
   ssrEnclosureTypeSelected,
-}: ClipEditContextProviderProps) => {
+}: ClipEditPageContextProviderProps) => {
   const [sharableStatus, setSharableStatus] = useState<string>(`${ssrClip.sharable_status.id}`);
   const [title, setTitle] = useState<string>(ssrClip.title || '');
   const [startTimeString, setStartTimeString] = useState<string>(
@@ -82,7 +82,7 @@ export const ClipEditContextProvider = ({
   }, []);
 
   return (
-    <ClipEditContext.Provider
+    <ClipEditPageContext.Provider
       value={{
         sharableStatus,
         setSharableStatus,
@@ -99,14 +99,14 @@ export const ClipEditContextProvider = ({
       }}
     >
       {children}
-    </ClipEditContext.Provider>
+    </ClipEditPageContext.Provider>
   );
 };
 
-export const useClipEditContext = () => {
-  const ctx = useContext(ClipEditContext);
+export const useClipEditPageContext = () => {
+  const ctx = useContext(ClipEditPageContext);
   if (!ctx) {
-    throw new Error('useClipEditContext must be used within a ClipEditContextProvider');
+    throw new Error('useClipEditPageContext must be used within a ClipEditPageContextProvider');
   }
   return ctx;
 };
