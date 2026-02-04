@@ -1,8 +1,8 @@
 import { QUERY_PARAMS_CHANNEL_MUSIC_ARTIST_TYPE_VALUES } from '@podverse/helpers-requests';
 import { z } from 'zod';
-import type { ArtistDropdownConfigCurrentParams } from './ArtistDropdownConfig';
-import { getArtistFilterParams } from './ArtistDropdownConfig';
-import { ArtistClient } from './ArtistClient';
+import type { ArtistPageDropdownConfigCurrentParams } from './ArtistPageDropdownConfig';
+import { getArtistPageFilterParams } from './ArtistPageDropdownConfig';
+import { ArtistPageClient } from './ArtistPageClient';
 import { getSSRAuthService } from '../../../utils/auth/ssrAuth';
 
 const searchParamsSchema = z.object({
@@ -32,7 +32,7 @@ export default async function ArtistPage({ params, searchParams }: ArtistPagePro
   }
 
   return (
-    <ArtistClient
+    <ArtistPageClient
       initialQueryParams={{
         type: currentType,
       }}
@@ -46,7 +46,7 @@ export default async function ArtistPage({ params, searchParams }: ArtistPagePro
   );
 }
 
-function parseSearchParams(queryParams: SearchParams): ArtistDropdownConfigCurrentParams {
+function parseSearchParams(queryParams: SearchParams): ArtistPageDropdownConfigCurrentParams {
   const parsed = searchParamsSchema.safeParse(queryParams);
 
   if (!parsed.success) {
@@ -57,5 +57,5 @@ function parseSearchParams(queryParams: SearchParams): ArtistDropdownConfigCurre
 
   const data = parsed.data;
 
-  return getArtistFilterParams(data);
+  return getArtistPageFilterParams(data);
 }

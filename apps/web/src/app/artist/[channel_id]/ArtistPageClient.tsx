@@ -7,15 +7,15 @@ import type {
 } from '@podverse/helpers';
 import type { QueryParamsChannelMusicArtist } from '@podverse/helpers-requests';
 import { MainWrapper } from '../../../components/Main/MainWrapper';
-import { ArtistContextProvider } from './ArtistContext';
-import { ArtistListHeader } from './ArtistListHeader';
-import { ArtistList } from './ArtistList';
+import { ArtistPageContextProvider } from './ArtistPageContext';
+import { ArtistPageListHeader } from './ArtistPageListHeader';
+import { ArtistPageList } from './ArtistPageList';
 import { MainInnerWrapper } from '../../../components/Main/MainInnerWrapper';
 import { MainInnerContentWrapper } from '../../../components/Main/MainInnerContentWrapper';
-import { ArtistSideContent } from './ArtistSideContent';
+import { ArtistPageSideContent } from './ArtistPageSideContent';
 import { ArtistHeader } from '../../../components/Media/Music/Artist/ArtistHeader';
 
-interface ArtistClientProps {
+interface ArtistPageClientProps {
   initialQueryParams: QueryParamsChannelMusicArtist;
   ssrChannel: DTOChannel;
   ssrChannelsAdded: DTOChannel[];
@@ -25,7 +25,7 @@ interface ArtistClientProps {
   ssrPodroll: RemoteItemsResponse | null;
 }
 
-export function ArtistClient(props: ArtistClientProps) {
+export function ArtistPageClient(props: ArtistPageClientProps) {
   const {
     initialQueryParams,
     ssrChannel,
@@ -41,19 +41,19 @@ export function ArtistClient(props: ArtistClientProps) {
   const ssrHasPodroll = !!ssrPodroll;
 
   return (
-    <ArtistContextProvider initialQueryParams={initialQueryParams}>
+    <ArtistPageContextProvider initialQueryParams={initialQueryParams}>
       <MainWrapper>
         <ArtistHeader channel={ssrChannel} />
         <MainInnerWrapper>
-          <ArtistSideContent channel={ssrChannel} podroll={ssrPodroll} />
+          <ArtistPageSideContent channel={ssrChannel} podroll={ssrPodroll} />
           <MainInnerContentWrapper>
-            <ArtistListHeader
+            <ArtistPageListHeader
               ssrHasAlbums={ssrHasAlbums}
               ssrHasTracks={ssrHasTracks}
               ssrHasDescription={ssrHasDescription}
               ssrHasPodroll={ssrHasPodroll}
             />
-            <ArtistList
+            <ArtistPageList
               ssrChannel={ssrChannel}
               ssrChannelsAdded={ssrChannelsAdded}
               ssrChannelsUnadded={ssrChannelsUnadded}
@@ -64,6 +64,6 @@ export function ArtistClient(props: ArtistClientProps) {
           </MainInnerContentWrapper>
         </MainInnerWrapper>
       </MainWrapper>
-    </ArtistContextProvider>
+    </ArtistPageContextProvider>
   );
 }

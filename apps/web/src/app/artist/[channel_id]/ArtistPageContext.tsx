@@ -8,22 +8,22 @@ import { checkBackNavFlag } from '../../../contexts/Navigation';
 import { usePageStateCache } from '../../../hooks/usePageStateCache';
 import { getPageState, definedProps } from '../../../utils/pageStateCache';
 
-interface ArtistContextType {
+interface ArtistPageContextType {
   filterParams: QueryParamsChannelMusicArtist;
   setFilterParams: (params: QueryParamsChannelMusicArtist) => void;
 }
 
-const ArtistContext = createContext<ArtistContextType | undefined>(undefined);
+const ArtistPageContext = createContext<ArtistPageContextType | undefined>(undefined);
 
-interface ArtistContextProviderProps {
+interface ArtistPageContextProviderProps {
   children: ReactNode;
   initialQueryParams: QueryParamsChannelMusicArtist;
 }
 
-export const ArtistContextProvider = ({
+export const ArtistPageContextProvider = ({
   children,
   initialQueryParams,
-}: ArtistContextProviderProps) => {
+}: ArtistPageContextProviderProps) => {
   const params = useParams();
 
   const channel_id = params.channel_id as string;
@@ -48,21 +48,21 @@ export const ArtistContextProvider = ({
   });
 
   return (
-    <ArtistContext.Provider
+    <ArtistPageContext.Provider
       value={{
         filterParams,
         setFilterParams,
       }}
     >
       {children}
-    </ArtistContext.Provider>
+    </ArtistPageContext.Provider>
   );
 };
 
-export const useArtistContext = () => {
-  const ctx = useContext(ArtistContext);
+export const useArtistPageContext = () => {
+  const ctx = useContext(ArtistPageContext);
   if (!ctx) {
-    throw new Error('useArtistContext must be used within a ArtistContextProvider');
+    throw new Error('useArtistPageContext must be used within a ArtistPageContextProvider');
   }
   return ctx;
 };

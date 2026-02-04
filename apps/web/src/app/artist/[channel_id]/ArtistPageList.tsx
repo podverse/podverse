@@ -8,15 +8,15 @@ import type {
   RemoteItemsResponse,
 } from '@podverse/helpers';
 import React from 'react';
-import { useArtistContext } from './ArtistContext';
+import { useArtistPageContext } from './ArtistPageContext';
 import { ContentAbout } from '../../../components/Content/About/ContentAbout';
 import { ContentPodroll } from '../../../components/Content/Podroll/ContentPodroll';
+import { DetailListWrapper } from '../../../components/List/DetailListWrapper';
 import { ListAlbumsRemoteItems } from '../../../components/List/Music/Albums/ListAlbumsRemoteItems';
 import { ListTracksRemoteItems } from '../../../components/List/Music/Albums/Tracks/ListTracksRemoteItems';
 import { ListChannelSettings } from '../../../components/List/ListChannelSettings';
-import styles from '../../../styles/app/podcast/PodcastList.module.scss';
 
-type ArtistListProps = {
+type ArtistPageListProps = {
   podroll: RemoteItemsResponse | null;
   ssrChannel: DTOChannel;
   ssrChannelsAdded: DTOChannel[];
@@ -25,7 +25,7 @@ type ArtistListProps = {
   ssrItemsUnadded: NonNullable<EpisodeByGuidResponse['episode']>[];
 };
 
-export const ArtistList: React.FC<ArtistListProps> = ({
+export const ArtistPageList: React.FC<ArtistPageListProps> = ({
   podroll,
   ssrChannel,
   ssrChannelsAdded,
@@ -33,11 +33,11 @@ export const ArtistList: React.FC<ArtistListProps> = ({
   ssrItemsAdded,
   ssrItemsUnadded,
 }) => {
-  const { filterParams } = useArtistContext();
+  const { filterParams } = useArtistPageContext();
   const { type } = filterParams;
 
   return (
-    <div className={styles.list}>
+    <DetailListWrapper>
       {type === 'albums' && (
         <ListAlbumsRemoteItems
           channelsAdded={ssrChannelsAdded}
@@ -60,6 +60,6 @@ export const ArtistList: React.FC<ArtistListProps> = ({
       )}
       {type === 'podroll' && <ContentPodroll remoteItemsResponse={podroll} />}
       {type === 'settings' && <ListChannelSettings channel={ssrChannel} />}
-    </div>
+    </DetailListWrapper>
   );
 };

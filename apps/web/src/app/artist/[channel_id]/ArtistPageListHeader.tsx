@@ -5,24 +5,24 @@ import type { QueryParamsChannelMusicArtistType } from '@podverse/helpers-reques
 import { QUERY_PARAMS_CHANNEL_MUSIC_ARTIST_TYPE_VALUES } from '@podverse/helpers-requests';
 import React from 'react';
 import { ListHeader } from '../../../components/List/ListHeader';
-import { useArtistContext } from './ArtistContext';
+import { useArtistPageContext } from './ArtistPageContext';
 import { Tabs } from '../../../components/Tabs/Tabs';
 import { useAccount } from '../../../contexts/Account';
 
-type ArtistListHeaderProps = {
+type ArtistPageListHeaderProps = {
   ssrHasPodroll: boolean;
   ssrHasAlbums: boolean;
   ssrHasTracks: boolean;
   ssrHasDescription: boolean;
 };
 
-export const ArtistListHeader: React.FC<ArtistListHeaderProps> = ({
+export const ArtistPageListHeader: React.FC<ArtistPageListHeaderProps> = ({
   ssrHasPodroll,
   ssrHasAlbums,
   ssrHasTracks,
   ssrHasDescription,
 }) => {
-  const { filterParams, setFilterParams } = useArtistContext();
+  const { filterParams, setFilterParams } = useArtistPageContext();
   const { type } = filterParams;
   const tMedia = useTranslations('media');
   const tInfo = useTranslations('info');

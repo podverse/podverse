@@ -1,16 +1,16 @@
 import type { QueryParamsChannelMusicArtistType } from '@podverse/helpers-requests';
 
-type ArtistDropdownConfigParams = {
+type ArtistPageDropdownConfigParams = {
   type: QueryParamsChannelMusicArtistType;
 };
 
-export type ArtistDropdownConfigCurrentParams = {
+export type ArtistPageDropdownConfigCurrentParams = {
   currentType: QueryParamsChannelMusicArtistType;
 };
 
-export function getArtistFilterParams({
+export function getArtistPageFilterParams({
   type,
-}: ArtistDropdownConfigParams): ArtistDropdownConfigCurrentParams {
+}: ArtistPageDropdownConfigParams): ArtistPageDropdownConfigCurrentParams {
   const currentType = type;
   return { currentType };
 }
