@@ -60,12 +60,18 @@
       "feed_url": "URL du flux RSS",
       "invalid_url": "Entrez une URL de flux RSS valide.",
       "no_feeds": "Aucun flux RSS enregistré pour le moment.",
+      "feed_not_found_local": "Ce flux n'a pas pu être trouvé localement.",
       "status": "Statut",
       "status_failed": "Échec",
       "status_not_modified": "Non modifié",
       "status_parsed": "Analyser",
       "status_processing": "Traitement",
-      "status_queued": "En attente"
+      "status_queued": "En attente",
+      "status_pending": "En attente",
+      "status_parsing": "Analyse",
+      "last_parsed": "Dernière analyse : {date}",
+      "wait_to_retry_minutes": "Vous devrez attendre jusqu'à {minutes} minutes pour recommencer.",
+      "wait_to_retry_minute": "Vous devrez attendre jusqu'à {minutes} minute pour recommencer."
     },
     "my_library": "Ma Bibliothèque",
     "queue": {
@@ -328,6 +334,7 @@
     "done": "Fait",
     "id": "ID",
     "loading": "Chargement…",
+    "loading_your_content": "Chargement de votre contenu...",
     "continue": "Continuer",
     "i_have_read_and_agree": "J'ai lu et j'accepte les conditions.",
     "unknown_date": "Date inconnue",
@@ -517,7 +524,10 @@
     },
     "feed": {
       "check_feed_for_updates": "Vérifier le flux pour les mises à jour",
-      "check_feed_added_to_queue": "Flux ajouté à la file d'attente pour analyse. Cela peut prendre quelques minutes pour que le flux soit analysé. Veuillez vérifier la liste pour des mises à jour plus tard."
+      "check_feed_added_to_queue": "Flux ajouté à la file d'attente pour analyse. Cela peut prendre quelques minutes pour que le flux soit analysé. Veuillez vérifier la liste pour des mises à jour plus tard.",
+      "last_parsed": "Dernière analyse : {date}",
+      "wait_to_retry_minutes": "Vous devrez attendre jusqu'à {minutes} minutes pour recommencer.",
+      "wait_to_retry_minute": "Vous devrez attendre jusqu'à {minutes} minute pour recommencer."
     },
     "account": {
       "account": "Compte",
