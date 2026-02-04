@@ -5,7 +5,7 @@ import { MainInnerWrapper } from '../../components/Main/MainInnerWrapper';
 import { MainWrapper } from '../../components/Main/MainWrapper';
 import { AuthForgotPasswordForm } from '../../components/Auth/AuthForgotPasswordForm';
 
-export function ForgotPasswordClient() {
+export function ForgotPasswordPageClient() {
   const tAuthentication = useTranslations('authentication');
 
   return (

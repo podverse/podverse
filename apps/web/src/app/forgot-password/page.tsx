@@ -1,5 +1,5 @@
-import { ForgotPasswordClient } from './ForgotPasswordClient';
+import { ForgotPasswordPageClient } from './ForgotPasswordPageClient';
 
 export default function ForgotPasswordPage() {
-  return <ForgotPasswordClient />;
+  return <ForgotPasswordPageClient />;
 }
