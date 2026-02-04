@@ -14,19 +14,19 @@ import {
 import React from 'react';
 import Dropdown from '../../components/Dropdown/Dropdown';
 import { MainHeader } from '../../components/Main/MainHeader';
-import { useAlbumsContext } from './AlbumsContext';
-import { getAlbumsDropdownConfig } from './AlbumsDropdownConfig';
+import { useAlbumsPageContext } from './AlbumsPageContext';
+import { getAlbumsPageDropdownConfig } from './AlbumsPageDropdownConfig';
 import { ViewSelector } from '../../components/ViewSelector/ViewSelector';
 import { useLocalSettings } from '../../contexts/LocalSettings';
 
-export const AlbumsHeader: React.FC = () => {
-  const { filterParams, setFilterParams } = useAlbumsContext();
+export const AlbumsPageHeader: React.FC = () => {
+  const { filterParams, setFilterParams } = useAlbumsPageContext();
   const { viewSelected, setViewSelected } = useLocalSettings();
   const { type, sort, range } = filterParams;
   const tMedia = useTranslations('media');
   const tFilters = useTranslations('filters');
   const { typeMenuItems, sortMenuItems, rangeMenuItems, showRangeDropdown } =
-    getAlbumsDropdownConfig({ type, sort, tFilters });
+    getAlbumsPageDropdownConfig({ type, sort, tFilters });
 
   const medium = 'music';
 

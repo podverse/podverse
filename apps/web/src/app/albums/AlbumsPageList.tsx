@@ -1,13 +1,15 @@
+'use client';
+
 import React from 'react';
-import { useAlbumsContext } from './AlbumsContext';
-import { ListAlbums } from '../../components/List/Music/Albums/ListAlbums';
+import { useAlbumsPageContext } from './AlbumsPageContext';
+import { CoreAlbums } from '../../components/Core/List/Album/CoreAlbums';
 import LoadingSpinnerOverlay from '../../components/LoadingSpinner/LoadingSpinnerOverlay';
 import { useLocalSettings } from '../../contexts/LocalSettings';
 import { HowToStartInfo } from '../../components/InfoWrapper/HowToStartInfo';
 
-export const AlbumsList: React.FC = () => {
+export const AlbumsPageList: React.FC = () => {
   const { filterParams, setFilterParams, channels, totalPages, isLoading, showSubscribeMessage } =
-    useAlbumsContext();
+    useAlbumsPageContext();
   const { viewSelected } = useLocalSettings();
   const { page, type } = filterParams;
 
@@ -16,7 +18,7 @@ export const AlbumsList: React.FC = () => {
       {filterParams.type === 'subscribed' && (
         <HowToStartInfo rows={channels} totalPages={totalPages} />
       )}
-      <ListAlbums
+      <CoreAlbums
         page={page}
         setPage={(page) => setFilterParams({ ...filterParams, page })}
         channels={channels}

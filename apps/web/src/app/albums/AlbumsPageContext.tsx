@@ -10,9 +10,9 @@ import { useAccount } from '../../contexts/Account';
 import { useSkipInitialEffect } from '../../hooks/useSkipInitialEffect';
 import { useFilterDefaults } from '../../hooks/useFilterDefaults';
 import { useListPageCache } from '../../hooks/useListPageCache';
-import { getAlbumsFilterParams } from './AlbumsDropdownConfig';
+import { getAlbumsPageFilterParams } from './AlbumsPageDropdownConfig';
 
-interface AlbumsContextType {
+interface AlbumsPageContextType {
   filterParams: QueryParamsGetManyMusic;
   setFilterParams: (params: QueryParamsGetManyMusic) => void;
   channels: DTOChannel[];
@@ -27,21 +27,21 @@ interface AlbumsContextType {
   setShowCategoriesModal: (show: boolean) => void;
 }
 
-const AlbumsContext = createContext<AlbumsContextType | undefined>(undefined);
+const AlbumsPageContext = createContext<AlbumsPageContextType | undefined>(undefined);
 
-interface AlbumsContextProviderProps {
+interface AlbumsPageContextProviderProps {
   children: ReactNode;
   initialQueryParams: QueryParamsGetManyMusic;
   ssrChannels: DTOChannel[];
   ssrTotalPages: number;
 }
 
-export const AlbumsContextProvider = ({
+export const AlbumsPageContextProvider = ({
   children,
   initialQueryParams,
   ssrChannels,
   ssrTotalPages,
-}: AlbumsContextProviderProps) => {
+}: AlbumsPageContextProviderProps) => {
   // Use the list page cache hook for back navigation caching
   const {
     filterParams,
@@ -83,7 +83,7 @@ export const AlbumsContextProvider = ({
 
       setIsLoading(true);
 
-      const { currentSort, currentRange, currentType } = getAlbumsFilterParams(
+      const { currentSort, currentRange, currentType } = getAlbumsPageFilterParams(
         {
           page: filterParams.page,
           type: filterParams.type,
@@ -117,7 +117,7 @@ export const AlbumsContextProvider = ({
   }, [filterParams, loggedInAccount]);
 
   return (
-    <AlbumsContext.Provider
+    <AlbumsPageContext.Provider
       value={{
         filterParams,
         setFilterParams,
@@ -134,14 +134,14 @@ export const AlbumsContextProvider = ({
       }}
     >
       {children}
-    </AlbumsContext.Provider>
+    </AlbumsPageContext.Provider>
   );
 };
 
-export const useAlbumsContext = () => {
-  const ctx = useContext(AlbumsContext);
+export const useAlbumsPageContext = () => {
+  const ctx = useContext(AlbumsPageContext);
   if (!ctx) {
-    throw new Error('useAlbumsContext must be used within a AlbumsContextProvider');
+    throw new Error('useAlbumsPageContext must be used within a AlbumsPageContextProvider');
   }
   return ctx;
 };
