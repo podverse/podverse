@@ -11,10 +11,10 @@ import { useAccount } from '../../contexts/Account';
 import { useSkipInitialEffect } from '../../hooks/useSkipInitialEffect';
 import { useFilterDefaults } from '../../hooks/useFilterDefaults';
 import { useListPageCache } from '../../hooks/useListPageCache';
-import { getPodcastsFilterParams } from './PodcastsDropdownConfig';
+import { getPodcastsPageFilterParams } from './PodcastsPageDropdownConfig';
 import { ROUTES } from '../../constants/routes';
 
-interface PodcastsContextType {
+interface PodcastsPageContextType {
   filterParams: QueryParamsGetMany;
   setFilterParams: (params: QueryParamsGetMany) => void;
   channels: DTOChannel[];
@@ -29,21 +29,21 @@ interface PodcastsContextType {
   setShowCategoriesModal: (show: boolean) => void;
 }
 
-const PodcastsContext = createContext<PodcastsContextType | undefined>(undefined);
+const PodcastsPageContext = createContext<PodcastsPageContextType | undefined>(undefined);
 
-interface PodcastsContextProviderProps {
+interface PodcastsPageContextProviderProps {
   children: ReactNode;
   initialQueryParams: QueryParamsGetMany;
   ssrChannels: DTOChannel[];
   ssrTotalPages: number;
 }
 
-export const PodcastsContextProvider = ({
+export const PodcastsPageContextProvider = ({
   children,
   initialQueryParams,
   ssrChannels,
   ssrTotalPages,
-}: PodcastsContextProviderProps) => {
+}: PodcastsPageContextProviderProps) => {
   const router = useRouter();
 
   // Use the list page cache hook for back navigation caching
@@ -88,7 +88,7 @@ export const PodcastsContextProvider = ({
 
       setIsLoading(true);
 
-      const { currentSort, currentRange, currentType } = getPodcastsFilterParams(
+      const { currentSort, currentRange, currentType } = getPodcastsPageFilterParams(
         {
           page: filterParams.page,
           type: filterParams.type,
@@ -127,7 +127,7 @@ export const PodcastsContextProvider = ({
   }, [filterParams, loggedInAccount]);
 
   return (
-    <PodcastsContext.Provider
+    <PodcastsPageContext.Provider
       value={{
         filterParams,
         setFilterParams,
@@ -144,14 +144,14 @@ export const PodcastsContextProvider = ({
       }}
     >
       {children}
-    </PodcastsContext.Provider>
+    </PodcastsPageContext.Provider>
   );
 };
 
-export const usePodcastsContext = () => {
-  const ctx = useContext(PodcastsContext);
+export const usePodcastsPageContext = () => {
+  const ctx = useContext(PodcastsPageContext);
   if (!ctx) {
-    throw new Error('usePodcastsContext must be used within a PodcastsContextProvider');
+    throw new Error('usePodcastsPageContext must be used within a PodcastsPageContextProvider');
   }
   return ctx;
 };

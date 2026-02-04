@@ -3,45 +3,48 @@
 import { useTranslations } from 'next-intl';
 import type {
   QueryParamsStatsRange,
-  QueryParamsSubscribedFullSort,
+  QueryParamsSubscribedPartialSort,
   QueryParamsSubscribedType,
 } from '@podverse/helpers-requests';
 import {
   QUERY_PARAMS_STATS_RANGE_VALUES,
-  QUERY_PARAMS_SUBSCRIBED_FULL_SORT,
+  QUERY_PARAMS_SUBSCRIBED_PARTIAL_SORT,
   QUERY_PARAMS_SUBSCRIBED_TYPE,
 } from '@podverse/helpers-requests';
 import React from 'react';
-import Dropdown from '../../components/Dropdown/Dropdown';
-import { MainHeader } from '../../components/Main/MainHeader';
-import { usePodcastsContext } from './PodcastsContext';
-import { getPodcastsDropdownConfig } from './PodcastsDropdownConfig';
-import { ViewSelector } from '../../components/ViewSelector/ViewSelector';
-import { useLocalSettings } from '../../contexts/LocalSettings';
+import Dropdown from '../../../components/Dropdown/Dropdown';
+import { MainHeader } from '../../../components/Main/MainHeader';
+import { ViewSelector } from '../../../components/ViewSelector/ViewSelector';
+import { useLocalSettings } from '../../../contexts/LocalSettings';
+import { useLivestreamsPageContext } from './LivestreamsPageContext';
+import { getEpisodesPageDropdownConfig } from '../../episodes/EpisodesPageDropdownConfig';
 
-export const PodcastsHeader: React.FC = () => {
-  const { filterParams, setFilterParams, setShowCategoriesModal } = usePodcastsContext();
+type LivestreamsPageHeaderProps = {
+  medium: 'av' | 'music';
+};
+
+export const LivestreamsPageHeader: React.FC<LivestreamsPageHeaderProps> = ({ medium }) => {
+  const { filterParams, setFilterParams, setShowCategoriesModal } = useLivestreamsPageContext();
   const { viewSelected, setViewSelected } = useLocalSettings();
   const { type, sort, range } = filterParams;
   const tMedia = useTranslations('media');
   const tFilters = useTranslations('filters');
   const tCategories = useTranslations('categories');
   const { typeMenuItems, sortMenuItems, rangeMenuItems, showRangeDropdown } =
-    getPodcastsDropdownConfig({ type, sort, tFilters });
-  const medium = 'av';
+    getEpisodesPageDropdownConfig({ type, sort, tFilters, medium });
 
-  function isChannelType(val: string): val is QueryParamsSubscribedType {
+  function isItemType(val: string): val is QueryParamsSubscribedType {
     return QUERY_PARAMS_SUBSCRIBED_TYPE.includes(val as QueryParamsSubscribedType);
   }
-  function isChannelSort(val: string): val is QueryParamsSubscribedFullSort {
-    return QUERY_PARAMS_SUBSCRIBED_FULL_SORT.includes(val as QueryParamsSubscribedFullSort);
+  function isItemSort(val: string): val is QueryParamsSubscribedPartialSort {
+    return QUERY_PARAMS_SUBSCRIBED_PARTIAL_SORT.includes(val as QueryParamsSubscribedPartialSort);
   }
   function isStatsRange(val: string): val is QueryParamsStatsRange {
     return QUERY_PARAMS_STATS_RANGE_VALUES.includes(val as QueryParamsStatsRange);
   }
 
   const handleTypeChange = (value: string) => {
-    if (isChannelType(value)) {
+    if (isItemType(value)) {
       if (value === 'global') {
         setFilterParams({
           page: 1,
@@ -50,6 +53,7 @@ export const PodcastsHeader: React.FC = () => {
           sort: 'recent',
           range: null,
           category: null,
+          liveItemType: filterParams.liveItemType,
         });
       } else if (value === 'category') {
         setShowCategoriesModal(true);
@@ -58,16 +62,17 @@ export const PodcastsHeader: React.FC = () => {
           page: 1,
           medium,
           type: value,
-          sort: 'a_z',
+          sort: 'recent',
           range: null,
           category: null,
+          liveItemType: filterParams.liveItemType,
         });
       }
     }
   };
 
   const handleSortChange = (value: string) => {
-    if (isChannelSort(value)) {
+    if (isItemSort(value)) {
       if (value === 'top') {
         setFilterParams({
           page: 1,
@@ -76,6 +81,7 @@ export const PodcastsHeader: React.FC = () => {
           sort: value,
           range: 'week',
           category: filterParams.category,
+          liveItemType: filterParams.liveItemType,
         });
       } else {
         setFilterParams({
@@ -85,6 +91,7 @@ export const PodcastsHeader: React.FC = () => {
           sort: value,
           range: filterParams.range,
           category: filterParams.category,
+          liveItemType: filterParams.liveItemType,
         });
       }
     }
@@ -99,6 +106,7 @@ export const PodcastsHeader: React.FC = () => {
         sort: filterParams.sort,
         range: value,
         category: filterParams.category,
+        liveItemType: filterParams.liveItemType,
       });
     }
   };
@@ -120,8 +128,8 @@ export const PodcastsHeader: React.FC = () => {
   );
 
   const headerTitle = filterParams.category
-    ? `${tMedia('podcast.podcasts')} > ${tCategories(filterParams.category)}`
-    : tMedia('podcast.podcasts');
+    ? `${tMedia('livestream.livestreams')} > ${tCategories(filterParams.category)}`
+    : tMedia('livestream.livestreams');
 
   return <MainHeader title={headerTitle} buttonsNode={buttonsNode} />;
 };

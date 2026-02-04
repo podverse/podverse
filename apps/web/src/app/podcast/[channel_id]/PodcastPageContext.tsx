@@ -12,17 +12,17 @@ import { checkBackNavFlag } from '../../../contexts/Navigation';
 import { useSkipInitialEffect } from '../../../hooks/useSkipInitialEffect';
 import { usePageStateCache } from '../../../hooks/usePageStateCache';
 import { getPageState, definedProps } from '../../../utils/pageStateCache';
-import { getPodcastFilterParams } from './PodcastDropdownConfig';
+import { getPodcastPageFilterParams } from './PodcastPageDropdownConfig';
 
 // Type for cached data
-interface PodcastCachedData {
+interface PodcastPageCachedData {
   items: DTOItem[];
   itemSoundbites: DTOItemSoundbite[];
   clips: DTOClip[];
   totalPages: number;
 }
 
-interface PodcastContextType {
+interface PodcastPageContextType {
   filterParams: QueryParamsChannel;
   setFilterParams: (params: QueryParamsChannel) => void;
   items: DTOItem[];
@@ -37,9 +37,9 @@ interface PodcastContextType {
   setIsLoading: (isLoading: boolean) => void;
 }
 
-const PodcastContext = createContext<PodcastContextType | undefined>(undefined);
+const PodcastPageContext = createContext<PodcastPageContextType | undefined>(undefined);
 
-interface PodcastContextProviderProps {
+interface PodcastPageContextProviderProps {
   children: ReactNode;
   initialQueryParams: QueryParamsChannel;
   ssrItemsWithLiveItem: DTOItem[];
@@ -49,7 +49,7 @@ interface PodcastContextProviderProps {
   ssrTotalPages: number;
 }
 
-export const PodcastContextProvider = ({
+export const PodcastPageContextProvider = ({
   children,
   initialQueryParams,
   ssrItemsWithLiveItem,
@@ -57,7 +57,7 @@ export const PodcastContextProvider = ({
   ssrItems,
   ssrClips,
   ssrTotalPages,
-}: PodcastContextProviderProps) => {
+}: PodcastPageContextProviderProps) => {
   const params = useParams();
 
   if (!params.channel_id) {
@@ -71,7 +71,7 @@ export const PodcastContextProvider = ({
 
   // Check for cached state on back navigation
   const cachedState = isBackNav
-    ? getPageState<QueryParamsChannel, PodcastCachedData>(routeKey)
+    ? getPageState<QueryParamsChannel, PodcastPageCachedData>(routeKey)
     : null;
   const restoredFromCacheRef = useRef(!!cachedState?.data);
 
@@ -90,7 +90,7 @@ export const PodcastContextProvider = ({
   const { loggedInAccount } = useAccount();
 
   // Hook to save/restore page state for back navigation
-  usePageStateCache<QueryParamsChannel, PodcastCachedData>({
+  usePageStateCache<QueryParamsChannel, PodcastPageCachedData>({
     routeKey,
     filterParams,
     setFilterParams,
@@ -116,7 +116,7 @@ export const PodcastContextProvider = ({
     }
 
     async function fetchItems() {
-      const { currentPage, currentSort, currentRange } = getPodcastFilterParams({
+      const { currentPage, currentSort, currentRange } = getPodcastPageFilterParams({
         page: filterParams.page,
         type: filterParams.type,
         sort: filterParams.sort,
@@ -146,7 +146,7 @@ export const PodcastContextProvider = ({
     }
 
     async function fetchItemSoundbites() {
-      const { currentSort } = getPodcastFilterParams({
+      const { currentSort } = getPodcastPageFilterParams({
         page: filterParams.page,
         type: filterParams.type,
         sort: filterParams.sort,
@@ -169,7 +169,7 @@ export const PodcastContextProvider = ({
     }
 
     async function fetchClips() {
-      const { currentPage, currentSort, currentRange } = getPodcastFilterParams({
+      const { currentPage, currentSort, currentRange } = getPodcastPageFilterParams({
         page: filterParams.page,
         type: filterParams.type,
         sort: filterParams.sort,
@@ -211,7 +211,7 @@ export const PodcastContextProvider = ({
   }, [filterParams, loggedInAccount]);
 
   return (
-    <PodcastContext.Provider
+    <PodcastPageContext.Provider
       value={{
         filterParams,
         setFilterParams,
@@ -228,14 +228,14 @@ export const PodcastContextProvider = ({
       }}
     >
       {children}
-    </PodcastContext.Provider>
+    </PodcastPageContext.Provider>
   );
 };
 
-export const usePodcastContext = () => {
-  const ctx = useContext(PodcastContext);
+export const usePodcastPageContext = () => {
+  const ctx = useContext(PodcastPageContext);
   if (!ctx) {
-    throw new Error('usePodcastContext must be used within a PodcastContextProvider');
+    throw new Error('usePodcastPageContext must be used within a PodcastPageContextProvider');
   }
   return ctx;
 };

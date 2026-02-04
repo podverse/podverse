@@ -5,24 +5,24 @@ import type { QueryParamsLiveItem } from '@podverse/helpers-requests';
 import type { ReactNode } from 'react';
 import { createContext, useContext, useState } from 'react';
 
-interface LivestreamContextType {
+interface LivestreamPageContextType {
   filterParams: QueryParamsLiveItem;
   setFilterParams: (params: QueryParamsLiveItem) => void;
   isLoading: boolean;
   setIsLoading: (isLoading: boolean) => void;
 }
 
-const LivestreamContext = createContext<LivestreamContextType | undefined>(undefined);
+const LivestreamPageContext = createContext<LivestreamPageContextType | undefined>(undefined);
 
-interface LivestreamContextProviderProps {
+interface LivestreamPageContextProviderProps {
   children: ReactNode;
   initialQueryParams: QueryParamsLiveItem;
 }
 
-export const LivestreamContextProvider = ({
+export const LivestreamPageContextProvider = ({
   children,
   initialQueryParams,
-}: LivestreamContextProviderProps) => {
+}: LivestreamPageContextProviderProps) => {
   const params = useParams();
   const [filterParams, setFilterParams] = useState<QueryParamsLiveItem>(initialQueryParams);
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -32,7 +32,7 @@ export const LivestreamContextProvider = ({
   }
 
   return (
-    <LivestreamContext.Provider
+    <LivestreamPageContext.Provider
       value={{
         filterParams,
         setFilterParams,
@@ -41,14 +41,16 @@ export const LivestreamContextProvider = ({
       }}
     >
       {children}
-    </LivestreamContext.Provider>
+    </LivestreamPageContext.Provider>
   );
 };
 
-export const useLivestreamContext = () => {
-  const ctx = useContext(LivestreamContext);
+export const useLivestreamPageContext = () => {
+  const ctx = useContext(LivestreamPageContext);
   if (!ctx) {
-    throw new Error('useLivestreamContext must be used within an LivestreamContextProvider');
+    throw new Error(
+      'useLivestreamPageContext must be used within an LivestreamPageContextProvider'
+    );
   }
   return ctx;
 };

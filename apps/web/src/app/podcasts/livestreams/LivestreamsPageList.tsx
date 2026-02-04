@@ -1,24 +1,24 @@
 import React from 'react';
 import type { DTOCategory } from '@podverse/helpers';
 import { useTranslations } from 'next-intl';
-import LoadingSpinnerOverlay from '../../../components/LoadingSpinner/LoadingSpinnerOverlay';
-import { useLocalSettings } from '../../../contexts/LocalSettings';
-import { ModalCategoriesSelect } from '../../../components/Modal/ModalCategoriesSelect';
-import { onClickCategory } from '../../../utils/categories';
-import { ROUTES } from '../../../constants/routes';
 import { useRouter } from 'next/navigation';
-import { useLivestreamsContext } from './LivestreamsContext';
-import { HowToStartInfo } from '../../../components/InfoWrapper/HowToStartInfo';
-import { ListLiveItems } from '../../../components/List/LiveItem/ListLiveItems';
+import { CoreLivestreams } from '../../../components/Core/List/Livestream/CoreLivestreams';
 import { ButtonTabs } from '../../../components/Tabs/ButtonTabs';
+import { HowToStartInfo } from '../../../components/InfoWrapper/HowToStartInfo';
+import LoadingSpinnerOverlay from '../../../components/LoadingSpinner/LoadingSpinnerOverlay';
+import { ModalCategoriesSelect } from '../../../components/Modal/ModalCategoriesSelect';
+import { ROUTES } from '../../../constants/routes';
 import { useAccount } from '../../../contexts/Account';
+import { useLocalSettings } from '../../../contexts/LocalSettings';
+import { onClickCategory } from '../../../utils/categories';
 import styles from '../../../styles/app/podcasts/livestreams/LivestreamsList.module.scss';
+import { useLivestreamsPageContext } from './LivestreamsPageContext';
 
-type LivestreamsListProps = {
+type LivestreamsPageListProps = {
   medium: 'av' | 'music';
 };
 
-export const LivestreamsList: React.FC<LivestreamsListProps> = ({ medium }) => {
+export const LivestreamsPageList: React.FC<LivestreamsPageListProps> = ({ medium }) => {
   const {
     filterParams,
     setFilterParams,
@@ -28,7 +28,7 @@ export const LivestreamsList: React.FC<LivestreamsListProps> = ({ medium }) => {
     showSubscribeMessage,
     showCategoriesModal,
     setShowCategoriesModal,
-  } = useLivestreamsContext();
+  } = useLivestreamsPageContext();
   const { viewSelected } = useLocalSettings();
   const { page } = filterParams;
   const router = useRouter();
@@ -72,7 +72,7 @@ export const LivestreamsList: React.FC<LivestreamsListProps> = ({ medium }) => {
       )}
       <ButtonTabs buttonTabs={buttonTabs} selectedKey={filterParams.liveItemType} />
       <div className={styles.listWrapper}>
-        <ListLiveItems
+        <CoreLivestreams
           page={page}
           setPage={(page) => setFilterParams({ ...filterParams, page })}
           items={items}

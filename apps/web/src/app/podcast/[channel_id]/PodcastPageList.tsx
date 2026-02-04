@@ -1,31 +1,32 @@
 'use client';
 
-import type { DTOChannel, RemoteItemsResponse } from '@podverse/helpers';
 import React from 'react';
-import { usePodcastContext } from './PodcastContext';
-import LoadingSpinnerOverlay from '../../../components/LoadingSpinner/LoadingSpinnerOverlay';
-import { ListEpisodes } from '../../../components/List/Podcasts/Episodes/ListEpisodes';
+import type { DTOChannel, RemoteItemsResponse } from '@podverse/helpers';
+
 import { ContentAbout } from '../../../components/Content/About/ContentAbout';
 import { ContentPodroll } from '../../../components/Content/Podroll/ContentPodroll';
+import { DetailListWrapper } from '../../../components/List/DetailListWrapper';
 import { ListClips } from '../../../components/List/Clips/ListClips';
+import { ListEpisodes } from '../../../components/List/Podcasts/Episodes/ListEpisodes';
 import { ListItemSoundbites } from '../../../components/List/ItemSoundbites/ListItemSoundbites';
 import { ListChannelSettings } from '../../../components/List/ListChannelSettings';
-import styles from '../../../styles/app/podcast/PodcastList.module.scss';
+import LoadingSpinnerOverlay from '../../../components/LoadingSpinner/LoadingSpinnerOverlay';
+import { usePodcastPageContext } from './PodcastPageContext';
 
-type PodcastListProps = {
+type PodcastPageListProps = {
   podroll: RemoteItemsResponse | null;
   ssrChannel: DTOChannel;
 };
 
-export const PodcastList: React.FC<PodcastListProps> = ({ podroll, ssrChannel }) => {
+export const PodcastPageList: React.FC<PodcastPageListProps> = ({ podroll, ssrChannel }) => {
   const { filterParams, setFilterParams, items, itemSoundbites, clips, totalPages, isLoading } =
-    usePodcastContext();
+    usePodcastPageContext();
   const { page } = filterParams;
 
   const { type } = filterParams;
 
   return (
-    <div className={styles.list}>
+    <DetailListWrapper>
       {type === 'episodes' && (
         <ListEpisodes
           page={page}
@@ -66,6 +67,6 @@ export const PodcastList: React.FC<PodcastListProps> = ({ podroll, ssrChannel })
       {type === 'podroll' && <ContentPodroll remoteItemsResponse={podroll} />}
       {type === 'settings' && <ListChannelSettings channel={ssrChannel} />}
       <LoadingSpinnerOverlay isLoading={isLoading} />
-    </div>
+    </DetailListWrapper>
   );
 };

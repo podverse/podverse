@@ -6,7 +6,7 @@ import type {
 } from '@podverse/helpers-requests';
 import { getRangeDropdownItems } from '../../../utils/dropdownMenuItems';
 
-export function getPodcastDropdownConfig({
+export function getPodcastPageDropdownConfig({
   sort,
   tFilters,
 }: {
@@ -31,26 +31,26 @@ export function getPodcastDropdownConfig({
   };
 }
 
-type PodcastDropdownConfigParams = {
+type PodcastPageDropdownConfigParams = {
   type: QueryParamsChannelType;
   sort: QueryParamsGlobalSort;
   range: QueryParamsStatsRange | null;
   page: number;
 };
 
-export type PodcastDropdownConfigCurrentParams = {
+export type PodcastPageDropdownConfigCurrentParams = {
   currentType: QueryParamsChannelType;
   currentSort: QueryParamsGlobalSort;
   currentRange: QueryParamsStatsRange | null;
   currentPage: number;
 };
 
-export function getPodcastFilterParams({
+export function getPodcastPageFilterParams({
   type,
   sort,
   range,
   page,
-}: PodcastDropdownConfigParams): PodcastDropdownConfigCurrentParams {
+}: PodcastPageDropdownConfigParams): PodcastPageDropdownConfigCurrentParams {
   const currentType = type;
   const currentSort = sort;
   const currentRange = range;

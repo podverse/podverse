@@ -1,38 +1,38 @@
 import type { DTOChannel, DTOItem, QueryParamsQueueMedium } from '@podverse/helpers';
 import type { QueryParamsLiveItem } from '@podverse/helpers-requests';
 import { MainWrapper } from '../../../../components/Main/MainWrapper';
-import { LivestreamContextProvider } from './LivestreamContext';
-import { LivestreamList } from './LivestreamList';
-import { LivestreamListHeader } from './LivestreamListHeader';
+import { LivestreamPageContextProvider } from './LivestreamPageContext';
+import { LivestreamPageList } from './LivestreamPageList';
+import { LivestreamPageListHeader } from './LivestreamPageListHeader';
 import { MainInnerWrapper } from '../../../../components/Main/MainInnerWrapper';
 import { MainInnerContentWrapper } from '../../../../components/Main/MainInnerContentWrapper';
-import { PodcastHeader } from '../../../../components/Media/Podcast/PodcastHeader';
+import { CorePodcastHeader } from '../../../../components/Core/Media/Podcast/CorePodcastHeader';
 import { SideContent } from '../../../../components/SideContent/SideContent';
 import { LivestreamHeader } from '../../../../components/Media/Livestream/LivestreamHeader';
 
-interface LivestreamClientProps {
+interface LivestreamPageClientProps {
   initialQueryParams: QueryParamsLiveItem;
   ssrChannel: DTOChannel;
   ssrItem: DTOItem;
   medium: QueryParamsQueueMedium;
 }
 
-export function LivestreamClient(props: LivestreamClientProps) {
+export function LivestreamPageClient(props: LivestreamPageClientProps) {
   const { initialQueryParams, ssrItem, ssrChannel, medium } = props;
 
   return (
-    <LivestreamContextProvider initialQueryParams={initialQueryParams}>
+    <LivestreamPageContextProvider initialQueryParams={initialQueryParams}>
       <MainWrapper>
-        <PodcastHeader channel={ssrChannel} item={ssrItem} />
+        <CorePodcastHeader channel={ssrChannel} item={ssrItem} />
         <MainInnerWrapper>
           <SideContent />
           <MainInnerContentWrapper>
             <LivestreamHeader channel={ssrChannel} item={ssrItem} medium={medium} />
-            <LivestreamListHeader />
-            <LivestreamList ssrItem={ssrItem} />
+            <LivestreamPageListHeader />
+            <LivestreamPageList ssrItem={ssrItem} />
           </MainInnerContentWrapper>
         </MainInnerWrapper>
       </MainWrapper>
-    </LivestreamContextProvider>
+    </LivestreamPageContextProvider>
   );
 }

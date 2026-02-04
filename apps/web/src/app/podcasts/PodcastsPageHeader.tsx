@@ -3,48 +3,46 @@
 import { useTranslations } from 'next-intl';
 import type {
   QueryParamsStatsRange,
-  QueryParamsSubscribedPartialSort,
+  QueryParamsSubscribedFullSort,
   QueryParamsSubscribedType,
 } from '@podverse/helpers-requests';
 import {
   QUERY_PARAMS_STATS_RANGE_VALUES,
-  QUERY_PARAMS_SUBSCRIBED_PARTIAL_SORT,
+  QUERY_PARAMS_SUBSCRIBED_FULL_SORT,
   QUERY_PARAMS_SUBSCRIBED_TYPE,
 } from '@podverse/helpers-requests';
 import React from 'react';
-import Dropdown from '../../../components/Dropdown/Dropdown';
-import { MainHeader } from '../../../components/Main/MainHeader';
-import { ViewSelector } from '../../../components/ViewSelector/ViewSelector';
-import { useLocalSettings } from '../../../contexts/LocalSettings';
-import { useLivestreamsContext } from './LivestreamsContext';
-import { getEpisodesDropdownConfig } from '../../episodes/EpisodesDropdownConfig';
 
-type LivestreamsHeaderProps = {
-  medium: 'av' | 'music';
-};
+import Dropdown from '../../components/Dropdown/Dropdown';
+import { MainHeader } from '../../components/Main/MainHeader';
+import { ViewSelector } from '../../components/ViewSelector/ViewSelector';
+import { useLocalSettings } from '../../contexts/LocalSettings';
+import { usePodcastsPageContext } from './PodcastsPageContext';
+import { getPodcastsPageDropdownConfig } from './PodcastsPageDropdownConfig';
 
-export const LivestreamsHeader: React.FC<LivestreamsHeaderProps> = ({ medium }) => {
-  const { filterParams, setFilterParams, setShowCategoriesModal } = useLivestreamsContext();
+export const PodcastsPageHeader: React.FC = () => {
+  const { filterParams, setFilterParams, setShowCategoriesModal } = usePodcastsPageContext();
   const { viewSelected, setViewSelected } = useLocalSettings();
   const { type, sort, range } = filterParams;
   const tMedia = useTranslations('media');
   const tFilters = useTranslations('filters');
   const tCategories = useTranslations('categories');
   const { typeMenuItems, sortMenuItems, rangeMenuItems, showRangeDropdown } =
-    getEpisodesDropdownConfig({ type, sort, tFilters, medium });
+    getPodcastsPageDropdownConfig({ type, sort, tFilters });
+  const medium = 'av';
 
-  function isItemType(val: string): val is QueryParamsSubscribedType {
+  function isChannelType(val: string): val is QueryParamsSubscribedType {
     return QUERY_PARAMS_SUBSCRIBED_TYPE.includes(val as QueryParamsSubscribedType);
   }
-  function isItemSort(val: string): val is QueryParamsSubscribedPartialSort {
-    return QUERY_PARAMS_SUBSCRIBED_PARTIAL_SORT.includes(val as QueryParamsSubscribedPartialSort);
+  function isChannelSort(val: string): val is QueryParamsSubscribedFullSort {
+    return QUERY_PARAMS_SUBSCRIBED_FULL_SORT.includes(val as QueryParamsSubscribedFullSort);
   }
   function isStatsRange(val: string): val is QueryParamsStatsRange {
     return QUERY_PARAMS_STATS_RANGE_VALUES.includes(val as QueryParamsStatsRange);
   }
 
   const handleTypeChange = (value: string) => {
-    if (isItemType(value)) {
+    if (isChannelType(value)) {
       if (value === 'global') {
         setFilterParams({
           page: 1,
@@ -53,7 +51,6 @@ export const LivestreamsHeader: React.FC<LivestreamsHeaderProps> = ({ medium }) 
           sort: 'recent',
           range: null,
           category: null,
-          liveItemType: filterParams.liveItemType,
         });
       } else if (value === 'category') {
         setShowCategoriesModal(true);
@@ -62,17 +59,16 @@ export const LivestreamsHeader: React.FC<LivestreamsHeaderProps> = ({ medium }) 
           page: 1,
           medium,
           type: value,
-          sort: 'recent',
+          sort: 'a_z',
           range: null,
           category: null,
-          liveItemType: filterParams.liveItemType,
         });
       }
     }
   };
 
   const handleSortChange = (value: string) => {
-    if (isItemSort(value)) {
+    if (isChannelSort(value)) {
       if (value === 'top') {
         setFilterParams({
           page: 1,
@@ -81,7 +77,6 @@ export const LivestreamsHeader: React.FC<LivestreamsHeaderProps> = ({ medium }) 
           sort: value,
           range: 'week',
           category: filterParams.category,
-          liveItemType: filterParams.liveItemType,
         });
       } else {
         setFilterParams({
@@ -91,7 +86,6 @@ export const LivestreamsHeader: React.FC<LivestreamsHeaderProps> = ({ medium }) 
           sort: value,
           range: filterParams.range,
           category: filterParams.category,
-          liveItemType: filterParams.liveItemType,
         });
       }
     }
@@ -106,7 +100,6 @@ export const LivestreamsHeader: React.FC<LivestreamsHeaderProps> = ({ medium }) 
         sort: filterParams.sort,
         range: value,
         category: filterParams.category,
-        liveItemType: filterParams.liveItemType,
       });
     }
   };
@@ -128,8 +121,8 @@ export const LivestreamsHeader: React.FC<LivestreamsHeaderProps> = ({ medium }) 
   );
 
   const headerTitle = filterParams.category
-    ? `${tMedia('livestream.livestreams')} > ${tCategories(filterParams.category)}`
-    : tMedia('livestream.livestreams');
+    ? `${tMedia('podcast.podcasts')} > ${tCategories(filterParams.category)}`
+    : tMedia('podcast.podcasts');
 
   return <MainHeader title={headerTitle} buttonsNode={buttonsNode} />;
 };

@@ -2,36 +2,37 @@
 
 import type { DTOChannel } from '@podverse/helpers';
 import type { QueryParamsGetMany } from '@podverse/helpers-requests';
-import { PodcastsContextProvider } from './PodcastsContext';
-import { MainWrapper } from '../../components/Main/MainWrapper';
-import { PodcastsHeader } from './PodcastsHeader';
-import { PodcastsList } from './PodcastsList';
-import { MainInnerWrapper } from '../../components/Main/MainInnerWrapper';
-import { MainInnerContentWrapper } from '../../components/Main/MainInnerContentWrapper';
 
-interface PodcastsClientProps {
+import { MainInnerContentWrapper } from '../../components/Main/MainInnerContentWrapper';
+import { MainInnerWrapper } from '../../components/Main/MainInnerWrapper';
+import { MainWrapper } from '../../components/Main/MainWrapper';
+import { PodcastsPageContextProvider } from './PodcastsPageContext';
+import { PodcastsPageHeader } from './PodcastsPageHeader';
+import { PodcastsPageList } from './PodcastsPageList';
+
+interface PodcastsPageClientProps {
   initialQueryParams: QueryParamsGetMany;
   ssrChannels: DTOChannel[];
   ssrTotalPages: number;
 }
 
-export function PodcastsClient(props: PodcastsClientProps) {
+export function PodcastsPageClient(props: PodcastsPageClientProps) {
   const { initialQueryParams, ssrChannels, ssrTotalPages } = props;
 
   return (
-    <PodcastsContextProvider
+    <PodcastsPageContextProvider
       initialQueryParams={initialQueryParams}
       ssrChannels={ssrChannels}
       ssrTotalPages={ssrTotalPages}
     >
-      <PodcastsHeader />
+      <PodcastsPageHeader />
       <MainWrapper>
         <MainInnerWrapper>
           <MainInnerContentWrapper>
-            <PodcastsList />
+            <PodcastsPageList />
           </MainInnerContentWrapper>
         </MainInnerWrapper>
       </MainWrapper>
-    </PodcastsContextProvider>
+    </PodcastsPageContextProvider>
   );
 }

@@ -13,7 +13,7 @@ import {
 import { getRangeDropdownItems } from '../../../utils/dropdownMenuItems';
 import type { DropdownMenuItem } from '../../../components/Dropdown/Dropdown';
 
-export function getLivestreamsDropdownConfig({
+export function getLivestreamsPageDropdownConfig({
   type,
   sort,
   tFilters,
@@ -60,7 +60,7 @@ export function getLivestreamsDropdownConfig({
   };
 }
 
-type LivestreamsDropdownConfigParams = {
+type LivestreamsPageDropdownConfigParams = {
   type: QueryParamsSubscribedType | null;
   sort: QueryParamsSubscribedPartialSort | null;
   range: QueryParamsStatsRange | null;
@@ -69,7 +69,7 @@ type LivestreamsDropdownConfigParams = {
   liveItemType: LiveItemStatus;
 };
 
-export type LivestreamsDropdownConfigCurrentParams = {
+export type LivestreamsPageDropdownConfigCurrentParams = {
   currentType: QueryParamsSubscribedType;
   currentSort: QueryParamsSubscribedPartialSort;
   currentRange: QueryParamsStatsRange | null;
@@ -78,10 +78,10 @@ export type LivestreamsDropdownConfigCurrentParams = {
   currentLiveItemType: LiveItemStatus;
 };
 
-export function getLivestreamsFilterParams(
-  { type, sort, range, category, page, liveItemType }: LivestreamsDropdownConfigParams,
+export function getLivestreamsPageFilterParams(
+  { type, sort, range, category, page, liveItemType }: LivestreamsPageDropdownConfigParams,
   isValidAuthSession: boolean
-): LivestreamsDropdownConfigCurrentParams {
+): LivestreamsPageDropdownConfigCurrentParams {
   let currentType = type;
   let currentSort = sort;
   let currentRange = range;

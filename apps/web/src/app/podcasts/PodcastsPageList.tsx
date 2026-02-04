@@ -1,16 +1,17 @@
 import React from 'react';
-import type { DTOCategory } from '@podverse/helpers';
-import { ListPodcasts } from '../../components/List/Podcasts/ListPodcasts';
-import { usePodcastsContext } from './PodcastsContext';
-import LoadingSpinnerOverlay from '../../components/LoadingSpinner/LoadingSpinnerOverlay';
-import { useLocalSettings } from '../../contexts/LocalSettings';
-import { ModalCategoriesSelect } from '../../components/Modal/ModalCategoriesSelect';
-import { onClickCategory } from '../../utils/categories';
-import { ROUTES } from '../../constants/routes';
 import { useRouter } from 'next/navigation';
-import { HowToStartInfo } from '../../components/InfoWrapper/HowToStartInfo';
+import type { DTOCategory } from '@podverse/helpers';
 
-export const PodcastsList: React.FC = () => {
+import { HowToStartInfo } from '../../components/InfoWrapper/HowToStartInfo';
+import { CorePodcasts } from '../../components/Core/List/Podcast/CorePodcasts';
+import LoadingSpinnerOverlay from '../../components/LoadingSpinner/LoadingSpinnerOverlay';
+import { ModalCategoriesSelect } from '../../components/Modal/ModalCategoriesSelect';
+import { ROUTES } from '../../constants/routes';
+import { useLocalSettings } from '../../contexts/LocalSettings';
+import { onClickCategory } from '../../utils/categories';
+import { usePodcastsPageContext } from './PodcastsPageContext';
+
+export const PodcastsPageList: React.FC = () => {
   const {
     filterParams,
     setFilterParams,
@@ -20,7 +21,7 @@ export const PodcastsList: React.FC = () => {
     showSubscribeMessage,
     showCategoriesModal,
     setShowCategoriesModal,
-  } = usePodcastsContext();
+  } = usePodcastsPageContext();
   const { viewSelected } = useLocalSettings();
   const { page, type, category } = filterParams;
   const router = useRouter();
@@ -41,7 +42,7 @@ export const PodcastsList: React.FC = () => {
       {filterParams.type === 'subscribed' && (
         <HowToStartInfo rows={channels} totalPages={totalPages} />
       )}
-      <ListPodcasts
+      <CorePodcasts
         page={page}
         setPage={(page) => setFilterParams({ ...filterParams, page })}
         channels={channels}

@@ -2,38 +2,38 @@
 
 import type { DTOItem } from '@podverse/helpers';
 import type { QueryParamsGetManyLivestreams } from '@podverse/helpers-requests';
-import { LivestreamsContextProvider } from './LivestreamsContext';
-import { LivestreamsHeader } from './LivestreamsHeader';
-import { LivestreamsList } from './LivestreamsList';
+import { LivestreamsPageContextProvider } from './LivestreamsPageContext';
+import { LivestreamsPageHeader } from './LivestreamsPageHeader';
+import { LivestreamsPageList } from './LivestreamsPageList';
 import { MainWrapper } from '../../../components/Main/MainWrapper';
 import { MainInnerWrapper } from '../../../components/Main/MainInnerWrapper';
 import { MainInnerContentWrapper } from '../../../components/Main/MainInnerContentWrapper';
 
-interface LivestreamsClientProps {
+interface LivestreamsPageClientProps {
   initialQueryParams: QueryParamsGetManyLivestreams;
   ssrItems: DTOItem[];
   ssrTotalPages: number;
   medium: 'av' | 'music';
 }
 
-export function LivestreamsClient(props: LivestreamsClientProps) {
+export function LivestreamsPageClient(props: LivestreamsPageClientProps) {
   const { initialQueryParams, ssrItems, ssrTotalPages, medium } = props;
 
   return (
-    <LivestreamsContextProvider
+    <LivestreamsPageContextProvider
       initialQueryParams={initialQueryParams}
       ssrItems={ssrItems}
       ssrTotalPages={ssrTotalPages}
       medium={medium}
     >
-      <LivestreamsHeader medium={medium} />
+      <LivestreamsPageHeader medium={medium} />
       <MainWrapper>
         <MainInnerWrapper>
           <MainInnerContentWrapper>
-            <LivestreamsList medium={medium} />
+            <LivestreamsPageList medium={medium} />
           </MainInnerContentWrapper>
         </MainInnerWrapper>
       </MainWrapper>
-    </LivestreamsContextProvider>
+    </LivestreamsPageContextProvider>
   );
 }

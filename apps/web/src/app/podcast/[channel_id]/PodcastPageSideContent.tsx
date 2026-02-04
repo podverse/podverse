@@ -1,14 +1,15 @@
 import type { DTOChannel, RemoteItemsResponse } from '@podverse/helpers';
-import { SideContent } from '../../../components/SideContent/SideContent';
+
 import { ContentAbout } from '../../../components/Content/About/ContentAbout';
 import { ContentPodroll } from '../../../components/Content/Podroll/ContentPodroll';
+import { SideContent } from '../../../components/SideContent/SideContent';
 
-type PodcastSideContentProps = {
+type PodcastPageSideContentProps = {
   channel: DTOChannel;
   podroll: RemoteItemsResponse | null;
 };
 
-export const PodcastSideContent = ({ channel, podroll }: PodcastSideContentProps) => {
+export const PodcastPageSideContent = ({ channel, podroll }: PodcastPageSideContentProps) => {
   return (
     <SideContent>
       <ContentAbout

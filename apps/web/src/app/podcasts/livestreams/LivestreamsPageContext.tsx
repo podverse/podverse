@@ -12,9 +12,9 @@ import { useSkipInitialEffect } from '../../../hooks/useSkipInitialEffect';
 import { useFilterDefaults } from '../../../hooks/useFilterDefaults';
 import { useListPageCache } from '../../../hooks/useListPageCache';
 import { ROUTES } from '../../../constants/routes';
-import { getEpisodesFilterParams } from '../../episodes/EpisodesDropdownConfig';
+import { getEpisodesPageFilterParams } from '../../episodes/EpisodesPageDropdownConfig';
 
-interface LivestreamsContextType {
+interface LivestreamsPageContextType {
   filterParams: QueryParamsGetManyLivestreams;
   setFilterParams: (params: QueryParamsGetManyLivestreams) => void;
   items: DTOItem[];
@@ -29,9 +29,9 @@ interface LivestreamsContextType {
   setShowCategoriesModal: (show: boolean) => void;
 }
 
-const LivestreamsContext = createContext<LivestreamsContextType | undefined>(undefined);
+const LivestreamsPageContext = createContext<LivestreamsPageContextType | undefined>(undefined);
 
-interface LivestreamsContextProviderProps {
+interface LivestreamsPageContextProviderProps {
   children: ReactNode;
   initialQueryParams: QueryParamsGetManyLivestreams;
   ssrItems: DTOItem[];
@@ -39,13 +39,13 @@ interface LivestreamsContextProviderProps {
   medium: 'av' | 'music';
 }
 
-export const LivestreamsContextProvider = ({
+export const LivestreamsPageContextProvider = ({
   children,
   initialQueryParams,
   ssrItems,
   ssrTotalPages,
   medium,
-}: LivestreamsContextProviderProps) => {
+}: LivestreamsPageContextProviderProps) => {
   const router = useRouter();
 
   // Use different route keys for different mediums
@@ -93,7 +93,7 @@ export const LivestreamsContextProvider = ({
 
       setIsLoading(true);
 
-      const { currentSort, currentRange, currentType } = getEpisodesFilterParams(
+      const { currentSort, currentRange, currentType } = getEpisodesPageFilterParams(
         {
           page: filterParams.page,
           type: filterParams.type,
@@ -136,7 +136,7 @@ export const LivestreamsContextProvider = ({
   }, [filterParams, loggedInAccount]);
 
   return (
-    <LivestreamsContext.Provider
+    <LivestreamsPageContext.Provider
       value={{
         filterParams,
         setFilterParams,
@@ -153,14 +153,16 @@ export const LivestreamsContextProvider = ({
       }}
     >
       {children}
-    </LivestreamsContext.Provider>
+    </LivestreamsPageContext.Provider>
   );
 };
 
-export const useLivestreamsContext = () => {
-  const ctx = useContext(LivestreamsContext);
+export const useLivestreamsPageContext = () => {
+  const ctx = useContext(LivestreamsPageContext);
   if (!ctx) {
-    throw new Error('useLivestreamsContext must be used within a LivestreamsContextProvider');
+    throw new Error(
+      'useLivestreamsPageContext must be used within a LivestreamsPageContextProvider'
+    );
   }
   return ctx;
 };

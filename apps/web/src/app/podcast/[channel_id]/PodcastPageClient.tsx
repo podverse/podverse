@@ -6,16 +6,17 @@ import type {
   RemoteItemsResponse,
 } from '@podverse/helpers';
 import type { QueryParamsChannel } from '@podverse/helpers-requests';
-import { MainWrapper } from '../../../components/Main/MainWrapper';
-import { PodcastContextProvider } from './PodcastContext';
-import { PodcastListHeader } from './PodcastListHeader';
-import { PodcastList } from './PodcastList';
-import { MainInnerWrapper } from '../../../components/Main/MainInnerWrapper';
-import { MainInnerContentWrapper } from '../../../components/Main/MainInnerContentWrapper';
-import { PodcastSideContent } from './PodcastSideContent';
-import { PodcastHeader } from '../../../components/Media/Podcast/PodcastHeader';
 
-interface PodcastClientProps {
+import { MainInnerContentWrapper } from '../../../components/Main/MainInnerContentWrapper';
+import { MainInnerWrapper } from '../../../components/Main/MainInnerWrapper';
+import { MainWrapper } from '../../../components/Main/MainWrapper';
+import { CorePodcastHeader } from '../../../components/Core/Media/Podcast/CorePodcastHeader';
+import { PodcastPageContextProvider } from './PodcastPageContext';
+import { PodcastPageListHeader } from './PodcastPageListHeader';
+import { PodcastPageList } from './PodcastPageList';
+import { PodcastPageSideContent } from './PodcastPageSideContent';
+
+interface PodcastPageClientProps {
   initialQueryParams: QueryParamsChannel;
   ssrChannel: DTOChannel;
   ssrItemsWithLiveItem: DTOItem[];
@@ -27,7 +28,7 @@ interface PodcastClientProps {
   ssrPodroll: RemoteItemsResponse | null;
 }
 
-export function PodcastClient(props: PodcastClientProps) {
+export function PodcastPageClient(props: PodcastPageClientProps) {
   const {
     initialQueryParams,
     ssrChannel,
@@ -41,7 +42,7 @@ export function PodcastClient(props: PodcastClientProps) {
   } = props;
 
   return (
-    <PodcastContextProvider
+    <PodcastPageContextProvider
       initialQueryParams={initialQueryParams}
       ssrItemsWithLiveItem={ssrItemsWithLiveItem}
       ssrItems={ssrItems}
@@ -50,18 +51,18 @@ export function PodcastClient(props: PodcastClientProps) {
       ssrTotalPages={ssrTotalPages}
     >
       <MainWrapper>
-        <PodcastHeader channel={ssrChannel} />
+        <CorePodcastHeader channel={ssrChannel} />
         <MainInnerWrapper>
-          <PodcastSideContent channel={ssrChannel} podroll={ssrPodroll} />
+          <PodcastPageSideContent channel={ssrChannel} podroll={ssrPodroll} />
           <MainInnerContentWrapper>
-            <PodcastListHeader
+            <PodcastPageListHeader
               ssrHasPodroll={!!ssrPodroll}
               ssrHasItemSoundbites={ssrHasItemSoundbites}
             />
-            <PodcastList ssrChannel={ssrChannel} podroll={ssrPodroll} />
+            <PodcastPageList ssrChannel={ssrChannel} podroll={ssrPodroll} />
           </MainInnerContentWrapper>
         </MainInnerWrapper>
       </MainWrapper>
-    </PodcastContextProvider>
+    </PodcastPageContextProvider>
   );
 }

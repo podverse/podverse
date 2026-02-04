@@ -12,23 +12,24 @@ import {
   QUERY_PARAMS_CHANNEL_SORT_VALUES,
 } from '@podverse/helpers-requests';
 import React from 'react';
+
 import Dropdown from '../../../components/Dropdown/Dropdown';
 import { ListHeader } from '../../../components/List/ListHeader';
-import { usePodcastContext } from './PodcastContext';
-import { getPodcastDropdownConfig } from './PodcastDropdownConfig';
 import { Tabs } from '../../../components/Tabs/Tabs';
 import { useAccount } from '../../../contexts/Account';
+import { usePodcastPageContext } from './PodcastPageContext';
+import { getPodcastPageDropdownConfig } from './PodcastPageDropdownConfig';
 
-type PodcastListHeaderProps = {
+type PodcastPageListHeaderProps = {
   ssrHasPodroll?: boolean;
   ssrHasItemSoundbites?: boolean;
 };
 
-export const PodcastListHeader: React.FC<PodcastListHeaderProps> = ({
+export const PodcastPageListHeader: React.FC<PodcastPageListHeaderProps> = ({
   ssrHasPodroll,
   ssrHasItemSoundbites,
 }) => {
-  const { filterParams, setFilterParams } = usePodcastContext();
+  const { filterParams, setFilterParams } = usePodcastPageContext();
   const { type, sort, range } = filterParams;
   const tFilters = useTranslations('filters');
   const tMedia = useTranslations('media');
@@ -37,7 +38,7 @@ export const PodcastListHeader: React.FC<PodcastListHeaderProps> = ({
   const tSettings = useTranslations('settings');
   const { loggedInAccount } = useAccount();
 
-  const { sortMenuItems, rangeMenuItems, showRangeDropdown } = getPodcastDropdownConfig({
+  const { sortMenuItems, rangeMenuItems, showRangeDropdown } = getPodcastPageDropdownConfig({
     sort,
     tFilters,
     tMedia,

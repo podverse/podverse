@@ -2,23 +2,23 @@
 
 import React from 'react';
 import type { DTOItem } from '@podverse/helpers';
-import { useLivestreamContext } from './LivestreamContext';
+import { useLivestreamPageContext } from './LivestreamPageContext';
 import LoadingSpinnerOverlay from '../../../../components/LoadingSpinner/LoadingSpinnerOverlay';
+import { DetailListWrapper } from '../../../../components/List/DetailListWrapper';
 import { EpisodeSummary } from '../../../../components/Media/Podcast/Episode/EpisodeSummary';
-import styles from '../../../../styles/app/podcast/PodcastList.module.scss';
 
-type LivestreamListProps = {
+type LivestreamPageListProps = {
   ssrItem: DTOItem;
 };
 
-export const LivestreamList: React.FC<LivestreamListProps> = ({ ssrItem }) => {
-  const { filterParams, isLoading } = useLivestreamContext();
+export const LivestreamPageList: React.FC<LivestreamPageListProps> = ({ ssrItem }) => {
+  const { filterParams, isLoading } = useLivestreamPageContext();
   const { type } = filterParams;
 
   return (
-    <div className={styles.list}>
+    <DetailListWrapper>
       {type === 'summary' && <EpisodeSummary description={ssrItem.item_description?.value} />}
       <LoadingSpinnerOverlay isLoading={isLoading} />
-    </div>
+    </DetailListWrapper>
   );
 };

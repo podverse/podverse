@@ -12,7 +12,7 @@ import {
 import { getRangeDropdownItems } from '../../utils/dropdownMenuItems';
 import type { DropdownMenuItem } from '../../components/Dropdown/Dropdown';
 
-export function getPodcastsDropdownConfig({
+export function getPodcastsPageDropdownConfig({
   type,
   sort,
   tFilters,
@@ -60,7 +60,7 @@ export function getPodcastsDropdownConfig({
   };
 }
 
-type PodcastsDropdownConfigParams = {
+type PodcastsPageDropdownConfigParams = {
   type: QueryParamsSubscribedType | null;
   sort: QueryParamsSubscribedFullSort | null;
   range: QueryParamsStatsRange | null;
@@ -68,7 +68,7 @@ type PodcastsDropdownConfigParams = {
   page: number;
 };
 
-export type PodcastsDropdownConfigCurrentParams = {
+export type PodcastsPageDropdownConfigCurrentParams = {
   currentType: QueryParamsSubscribedType;
   currentSort: QueryParamsSubscribedFullSort;
   currentRange: QueryParamsStatsRange | null;
@@ -76,10 +76,10 @@ export type PodcastsDropdownConfigCurrentParams = {
   currentPage: number;
 };
 
-export function getPodcastsFilterParams(
-  { type, sort, range, category, page }: PodcastsDropdownConfigParams,
+export function getPodcastsPageFilterParams(
+  { type, sort, range, category, page }: PodcastsPageDropdownConfigParams,
   isValidAuthSession: boolean
-): PodcastsDropdownConfigCurrentParams {
+): PodcastsPageDropdownConfigCurrentParams {
   let currentType = type;
   let currentSort = sort;
   let currentRange = range;
