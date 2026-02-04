@@ -7,12 +7,12 @@ import React, { createContext, useContext, useState, useCallback } from 'react';
 import { apiRequestService } from '../../../factories/apiRequestService';
 import { useSkipInitialEffect } from '../../../hooks/useSkipInitialEffect';
 
-export type ProfileContentTab = 'podcasts' | 'albums' | 'playlists' | 'clips';
+export type ProfilePageContentTab = 'podcasts' | 'albums' | 'playlists' | 'clips';
 
-interface ProfileContentContextType {
+interface ProfilePageContentContextType {
   account: DTOAccount;
-  selectedTab: ProfileContentTab;
-  setSelectedTab: (tab: ProfileContentTab) => void;
+  selectedTab: ProfilePageContentTab;
+  setSelectedTab: (tab: ProfilePageContentTab) => void;
 
   // Podcasts
   podcasts: DTOChannel[];
@@ -45,18 +45,20 @@ interface ProfileContentContextType {
   isLoading: boolean;
 }
 
-const ProfileContentContext = createContext<ProfileContentContextType | undefined>(undefined);
+const ProfilePageContentContext = createContext<ProfilePageContentContextType | undefined>(
+  undefined
+);
 
-interface ProfileContentContextProviderProps {
+interface ProfilePageContentContextProviderProps {
   children: ReactNode;
   account: DTOAccount;
 }
 
-export const ProfileContentContextProvider = ({
+export const ProfilePageContentContextProvider = ({
   children,
   account,
-}: ProfileContentContextProviderProps) => {
-  const [selectedTab, setSelectedTab] = useState<ProfileContentTab>('podcasts');
+}: ProfilePageContentContextProviderProps) => {
+  const [selectedTab, setSelectedTab] = useState<ProfilePageContentTab>('podcasts');
 
   // Podcasts state
   const [podcasts, setPodcasts] = useState<DTOChannel[]>([]);
@@ -225,7 +227,7 @@ export const ProfileContentContextProvider = ({
   }, [clipsPage]);
 
   return (
-    <ProfileContentContext.Provider
+    <ProfilePageContentContext.Provider
       value={{
         account,
         selectedTab,
@@ -254,14 +256,16 @@ export const ProfileContentContextProvider = ({
       }}
     >
       {children}
-    </ProfileContentContext.Provider>
+    </ProfilePageContentContext.Provider>
   );
 };
 
-export const useProfileContentContext = () => {
-  const ctx = useContext(ProfileContentContext);
+export const useProfilePageContentContext = () => {
+  const ctx = useContext(ProfilePageContentContext);
   if (!ctx) {
-    throw new Error('useProfileContentContext must be used within a ProfileContentContextProvider');
+    throw new Error(
+      'useProfilePageContentContext must be used within a ProfilePageContentContextProvider'
+    );
   }
   return ctx;
 };

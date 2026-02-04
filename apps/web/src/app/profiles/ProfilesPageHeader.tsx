@@ -14,11 +14,11 @@ import {
 import React from 'react';
 import Dropdown from '../../components/Dropdown/Dropdown';
 import { MainHeader } from '../../components/Main/MainHeader';
-import { useProfilesContext } from './ProfilesContext';
-import { getProfilesDropdownConfig } from './ProfilesDropdownConfig';
+import { useProfilesPageContext } from './ProfilesPageContext';
+import { getProfilesPageDropdownConfig } from './ProfilesPageDropdownConfig';
 
-export const ProfilesHeader: React.FC = () => {
-  const { filterParams, setFilterParams } = useProfilesContext();
+export const ProfilesPageHeader: React.FC = () => {
+  const { filterParams, setFilterParams } = useProfilesPageContext();
   const { type, sort, range } = filterParams;
   const tFeatures = useTranslations('features');
   const tFilters = useTranslations('filters');
@@ -34,7 +34,7 @@ export const ProfilesHeader: React.FC = () => {
   }
 
   const { typeMenuItems, sortMenuItems, rangeMenuItems, showRangeDropdown } =
-    getProfilesDropdownConfig({ type, sort, tFilters });
+    getProfilesPageDropdownConfig({ type, sort, tFilters });
 
   const handleTypeChange = (value: string) => {
     if (isProfileType(value)) {

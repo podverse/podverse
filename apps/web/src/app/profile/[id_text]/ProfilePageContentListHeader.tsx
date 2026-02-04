@@ -5,12 +5,12 @@ import { useTranslations } from 'next-intl';
 import { ListHeader } from '../../../components/List/ListHeader';
 import { Tabs } from '../../../components/Tabs/Tabs';
 import Dropdown from '../../../components/Dropdown/Dropdown';
-import type { ProfileContentTab } from './ProfileContentContext';
-import { useProfileContentContext } from './ProfileContentContext';
+import type { ProfilePageContentTab } from './ProfilePageContentContext';
+import { useProfilePageContentContext } from './ProfilePageContentContext';
 import styles from '../../../styles/app/profile/ProfileContentListHeader.module.scss';
 
-export const ProfileContentListHeader: React.FC = () => {
-  const { selectedTab, setSelectedTab } = useProfileContentContext();
+export const ProfilePageContentListHeader: React.FC = () => {
+  const { selectedTab, setSelectedTab } = useProfilePageContentContext();
   const tMedia = useTranslations('media');
   const tFeatures = useTranslations('features');
   const tFilters = useTranslations('filters');
@@ -19,25 +19,25 @@ export const ProfileContentListHeader: React.FC = () => {
     {
       key: 'podcasts',
       label: tMedia('podcast.podcasts'),
-      onClick: () => setSelectedTab('podcasts' as ProfileContentTab),
+      onClick: () => setSelectedTab('podcasts' as ProfilePageContentTab),
       zIndex: 4,
     },
     {
       key: 'albums',
       label: tMedia('music.albums'),
-      onClick: () => setSelectedTab('albums' as ProfileContentTab),
+      onClick: () => setSelectedTab('albums' as ProfilePageContentTab),
       zIndex: 3,
     },
     {
       key: 'playlists',
       label: tFeatures('playlist.playlists'),
-      onClick: () => setSelectedTab('playlists' as ProfileContentTab),
+      onClick: () => setSelectedTab('playlists' as ProfilePageContentTab),
       zIndex: 2,
     },
     {
       key: 'clips',
       label: tFeatures('clip.clips'),
-      onClick: () => setSelectedTab('clips' as ProfileContentTab),
+      onClick: () => setSelectedTab('clips' as ProfilePageContentTab),
       zIndex: 1,
     },
   ];

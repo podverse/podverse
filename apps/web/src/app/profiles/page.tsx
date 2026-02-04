@@ -8,9 +8,9 @@ import {
 } from '@podverse/helpers-requests';
 import { cookies } from 'next/headers';
 import { z } from 'zod';
-import { ProfilesClient } from './ProfilesClient';
-import type { ProfilesDropdownConfigCurrentParams } from './ProfilesDropdownConfig';
-import { getProfilesFilterParams } from './ProfilesDropdownConfig';
+import { ProfilesPageClient } from './ProfilesPageClient';
+import type { ProfilesPageDropdownConfigCurrentParams } from './ProfilesPageDropdownConfig';
+import { getProfilesPageFilterParams } from './ProfilesPageDropdownConfig';
 import { getSSRAuthService } from '../../utils/auth/ssrAuth';
 import { guardSubscribedSsrFilter, safeSsrListRequest } from '../../utils/filters/ssrFilterGuards';
 import type { ProfilesFilterDefaults } from '../../utils/localSettings/localSettings';
@@ -67,7 +67,7 @@ export default async function ProfilesPage({ searchParams }: ProfilesPageProps) 
   );
 
   return (
-    <ProfilesClient
+    <ProfilesPageClient
       initialQueryParams={{
         page: currentPage,
         type: currentType,
@@ -84,7 +84,7 @@ function parseSearchParams(
   queryParams: SearchParams,
   isAuthenticated: boolean,
   cookieDefaults?: ProfilesFilterDefaults
-): ProfilesDropdownConfigCurrentParams {
+): ProfilesPageDropdownConfigCurrentParams {
   const parsed = searchParamsSchema.safeParse(queryParams);
 
   if (!parsed.success) {
@@ -141,7 +141,7 @@ function parseSearchParams(
     },
   });
 
-  return getProfilesFilterParams(
+  return getProfilesPageFilterParams(
     {
       page: guarded.page,
       type: guarded.type ?? 'global',

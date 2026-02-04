@@ -8,15 +8,15 @@ import { MainInnerWrapper } from '../../../components/Main/MainInnerWrapper';
 import { MainInnerContentWrapper } from '../../../components/Main/MainInnerContentWrapper';
 import { ProfileHeader } from '../../../components/Media/Profile/ProfileHeader';
 import { useAccount } from '../../../contexts/Account';
-import { ProfileContentContextProvider } from './ProfileContentContext';
-import { ProfileContentList } from './ProfileContentList';
-import { ProfileContentListHeader } from './ProfileContentListHeader';
+import { ProfilePageContentContextProvider } from './ProfilePageContentContext';
+import { ProfilePageContentList } from './ProfilePageContentList';
+import { ProfilePageContentListHeader } from './ProfilePageContentListHeader';
 
-interface ProfileClientProps {
+interface ProfilePageClientProps {
   ssrAccount: DTOAccount;
 }
 
-export function ProfileClient(props: ProfileClientProps) {
+export function ProfilePageClient(props: ProfilePageClientProps) {
   const { ssrAccount } = props;
   const { loggedInAccount } = useAccount();
   const router = useRouter();
@@ -36,16 +36,16 @@ export function ProfileClient(props: ProfileClientProps) {
   }
 
   return (
-    <ProfileContentContextProvider account={ssrAccount}>
+    <ProfilePageContentContextProvider account={ssrAccount}>
       <MainWrapper>
         <ProfileHeader account={ssrAccount} isOwnProfile={isOwnProfile} />
         <MainInnerWrapper>
           <MainInnerContentWrapper>
-            <ProfileContentListHeader />
-            <ProfileContentList />
+            <ProfilePageContentListHeader />
+            <ProfilePageContentList />
           </MainInnerContentWrapper>
         </MainInnerWrapper>
       </MainWrapper>
-    </ProfileContentContextProvider>
+    </ProfilePageContentContextProvider>
   );
 }

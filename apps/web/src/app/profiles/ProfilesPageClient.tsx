@@ -1,39 +1,39 @@
 'use client';
 
 import type { DTOAccount } from '@podverse/helpers';
-import type { ProfilesQueryParams } from './ProfilesContext';
-import { ProfilesContextProvider } from './ProfilesContext';
+import type { ProfilesPageQueryParams } from './ProfilesPageContext';
+import { ProfilesPageContextProvider } from './ProfilesPageContext';
 import { MainWrapper } from '../../components/Main/MainWrapper';
-import { ProfilesHeader } from './ProfilesHeader';
-import { ProfilesList } from './ProfilesList';
+import { ProfilesPageHeader } from './ProfilesPageHeader';
+import { ProfilesPageList } from './ProfilesPageList';
 import { MainInnerWrapper } from '../../components/Main/MainInnerWrapper';
 import { MainInnerContentWrapper } from '../../components/Main/MainInnerContentWrapper';
 import { SideContent } from '../../components/SideContent/SideContent';
 
-interface ProfilesClientProps {
-  initialQueryParams: ProfilesQueryParams;
+interface ProfilesPageClientProps {
+  initialQueryParams: ProfilesPageQueryParams;
   ssrAccounts: DTOAccount[];
   ssrTotalPages: number;
 }
 
-export function ProfilesClient(props: ProfilesClientProps) {
+export function ProfilesPageClient(props: ProfilesPageClientProps) {
   const { initialQueryParams, ssrAccounts, ssrTotalPages } = props;
 
   return (
-    <ProfilesContextProvider
+    <ProfilesPageContextProvider
       initialQueryParams={initialQueryParams}
       ssrAccounts={ssrAccounts}
       ssrTotalPages={ssrTotalPages}
     >
-      <ProfilesHeader />
+      <ProfilesPageHeader />
       <MainWrapper>
         <MainInnerWrapper>
           <SideContent />
           <MainInnerContentWrapper>
-            <ProfilesList />
+            <ProfilesPageList />
           </MainInnerContentWrapper>
         </MainInnerWrapper>
       </MainWrapper>
-    </ProfilesContextProvider>
+    </ProfilesPageContextProvider>
   );
 }

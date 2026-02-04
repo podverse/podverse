@@ -11,7 +11,7 @@ import {
 import { getRangeDropdownItems } from '../../utils/dropdownMenuItems';
 import type { DropdownMenuItem } from '../../components/Dropdown/Dropdown';
 
-export function getProfilesDropdownConfig({
+export function getProfilesPageDropdownConfig({
   type,
   sort,
   tFilters,
@@ -53,24 +53,24 @@ export function getProfilesDropdownConfig({
   };
 }
 
-type ProfilesDropdownConfigParams = {
+type ProfilesPageDropdownConfigParams = {
   type: QueryParamsSubscribedType | null;
   sort: QueryParamsSubscribedFullSort | null;
   range: QueryParamsStatsRange | null;
   page: number;
 };
 
-export type ProfilesDropdownConfigCurrentParams = {
+export type ProfilesPageDropdownConfigCurrentParams = {
   currentType: QueryParamsSubscribedType;
   currentSort: QueryParamsSubscribedFullSort;
   currentRange: QueryParamsStatsRange | null;
   currentPage: number;
 };
 
-export function getProfilesFilterParams(
-  { type, sort, range, page }: ProfilesDropdownConfigParams,
+export function getProfilesPageFilterParams(
+  { type, sort, range, page }: ProfilesPageDropdownConfigParams,
   isValidAuthSession: boolean
-): ProfilesDropdownConfigCurrentParams {
+): ProfilesPageDropdownConfigCurrentParams {
   let currentType = type;
   let currentSort = sort;
   let currentRange = range;

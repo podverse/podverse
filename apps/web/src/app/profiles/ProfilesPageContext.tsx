@@ -14,18 +14,18 @@ import { useAccount } from '../../contexts/Account';
 import { useSkipInitialEffect } from '../../hooks/useSkipInitialEffect';
 import { useFilterDefaults } from '../../hooks/useFilterDefaults';
 import { useListPageCache } from '../../hooks/useListPageCache';
-import { getProfilesFilterParams } from './ProfilesDropdownConfig';
+import { getProfilesPageFilterParams } from './ProfilesPageDropdownConfig';
 
-export type ProfilesQueryParams = {
+export type ProfilesPageQueryParams = {
   page: number;
   type: QueryParamsSubscribedType;
   sort: QueryParamsSubscribedFullSort;
   range: QueryParamsStatsRange | null;
 };
 
-interface ProfilesContextType {
-  filterParams: ProfilesQueryParams;
-  setFilterParams: (params: ProfilesQueryParams) => void;
+interface ProfilesPageContextType {
+  filterParams: ProfilesPageQueryParams;
+  setFilterParams: (params: ProfilesPageQueryParams) => void;
   accounts: DTOAccount[];
   setAccounts: (accounts: DTOAccount[]) => void;
   totalPages: number;
@@ -36,21 +36,21 @@ interface ProfilesContextType {
   setShowSubscribeMessage: (show: boolean) => void;
 }
 
-const ProfilesContext = createContext<ProfilesContextType | undefined>(undefined);
+const ProfilesPageContext = createContext<ProfilesPageContextType | undefined>(undefined);
 
-interface ProfilesContextProviderProps {
+interface ProfilesPageContextProviderProps {
   children: ReactNode;
-  initialQueryParams: ProfilesQueryParams;
+  initialQueryParams: ProfilesPageQueryParams;
   ssrAccounts: DTOAccount[];
   ssrTotalPages: number;
 }
 
-export const ProfilesContextProvider = ({
+export const ProfilesPageContextProvider = ({
   children,
   initialQueryParams,
   ssrAccounts,
   ssrTotalPages,
-}: ProfilesContextProviderProps) => {
+}: ProfilesPageContextProviderProps) => {
   // Use the list page cache hook for back navigation caching
   const {
     filterParams,
@@ -60,7 +60,7 @@ export const ProfilesContextProvider = ({
     totalPages,
     setTotalPages,
     shouldSkipFetch,
-  } = useListPageCache<ProfilesQueryParams, DTOAccount[]>({
+  } = useListPageCache<ProfilesPageQueryParams, DTOAccount[]>({
     routeKey: 'profiles',
     initialParams: initialQueryParams,
     ssrData: ssrAccounts ?? [],
@@ -91,7 +91,7 @@ export const ProfilesContextProvider = ({
 
       setIsLoading(true);
 
-      const { currentSort, currentRange, currentType } = getProfilesFilterParams(
+      const { currentSort, currentRange, currentType } = getProfilesPageFilterParams(
         {
           page: filterParams.page,
           type: filterParams.type,
@@ -123,7 +123,7 @@ export const ProfilesContextProvider = ({
   }, [filterParams, loggedInAccount]);
 
   return (
-    <ProfilesContext.Provider
+    <ProfilesPageContext.Provider
       value={{
         filterParams,
         setFilterParams,
@@ -138,14 +138,14 @@ export const ProfilesContextProvider = ({
       }}
     >
       {children}
-    </ProfilesContext.Provider>
+    </ProfilesPageContext.Provider>
   );
 };
 
-export const useProfilesContext = () => {
-  const ctx = useContext(ProfilesContext);
+export const useProfilesPageContext = () => {
+  const ctx = useContext(ProfilesPageContext);
   if (!ctx) {
-    throw new Error('useProfilesContext must be used within a ProfilesContextProvider');
+    throw new Error('useProfilesPageContext must be used within a ProfilesPageContextProvider');
   }
   return ctx;
 };
