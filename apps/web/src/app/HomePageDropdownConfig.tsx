@@ -1,7 +1,7 @@
 import type { QueryParamsMedium } from '@podverse/helpers';
 import type { QueryParamsHomeSort } from '@podverse/helpers-requests';
 
-export function getHomeDropdownConfig({
+export function getHomePageDropdownConfig({
   tMedia,
   tFilters,
 }: {
@@ -27,23 +27,23 @@ export function getHomeDropdownConfig({
   };
 }
 
-type HomeDropdownConfigParams = {
+type HomePageDropdownConfigParams = {
   medium: QueryParamsMedium;
   sort: QueryParamsHomeSort;
   page: number;
 };
 
-export type HomeDropdownConfigCurrentParams = {
+export type HomePageDropdownConfigCurrentParams = {
   currentMedium: QueryParamsMedium;
   currentSort: QueryParamsHomeSort;
   currentPage: number;
 };
 
-export function getHomeFilterParams({
+export function getHomePageFilterParams({
   medium,
   sort,
   page,
-}: HomeDropdownConfigParams): HomeDropdownConfigCurrentParams {
+}: HomePageDropdownConfigParams): HomePageDropdownConfigCurrentParams {
   const currentMedium = medium;
   const currentSort = sort;
   const currentPage = page;

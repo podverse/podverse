@@ -1,15 +1,15 @@
 'use client';
 
 import React from 'react';
-import { ListCombinedChannels } from '../components/List/ListCombinedChannels/ListCombinedChannels';
+import { CoreCombinedChannels } from '../components/Core/List/CombinedChannels/CoreCombinedChannels';
 import LoadingSpinnerOverlay from '../components/LoadingSpinner/LoadingSpinnerOverlay';
-import { useHomeContext } from './HomeContext';
+import { useHomePageContext } from './HomePageContext';
 import { useAccount } from '../contexts/Account';
 import { useLocalSettings } from '../contexts/LocalSettings';
 import { HowToStartInfo } from '../components/InfoWrapper/HowToStartInfo';
 
-export const HomeList: React.FC = () => {
-  const { filterParams, setFilterParams, channels, totalPages, isLoading } = useHomeContext();
+export const HomePageList: React.FC = () => {
+  const { filterParams, setFilterParams, channels, totalPages, isLoading } = useHomePageContext();
   const { loggedInAccount } = useAccount();
   const { viewSelected } = useLocalSettings();
   const { page, medium } = filterParams;
@@ -18,7 +18,7 @@ export const HomeList: React.FC = () => {
     <>
       <HowToStartInfo rows={channels} totalPages={totalPages} />
       {loggedInAccount && channels.length !== 0 && (
-        <ListCombinedChannels
+        <CoreCombinedChannels
           page={page}
           setPage={(page) => setFilterParams({ ...filterParams, page })}
           channels={channels}

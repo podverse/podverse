@@ -10,17 +10,17 @@ import Dropdown from '../components/Dropdown/Dropdown';
 import { MainHeader } from '../components/Main/MainHeader';
 import { ViewSelector } from '../components/ViewSelector/ViewSelector';
 import { useLocalSettings } from '../contexts/LocalSettings';
-import { useHomeContext } from './HomeContext';
-import { getHomeDropdownConfig } from './HomeDropdownConfig';
+import { useHomePageContext } from './HomePageContext';
+import { getHomePageDropdownConfig } from './HomePageDropdownConfig';
 
-export const HomeHeader: React.FC = () => {
-  const { filterParams, setFilterParams } = useHomeContext();
+export const HomePageHeader: React.FC = () => {
+  const { filterParams, setFilterParams } = useHomePageContext();
   const { viewSelected, setViewSelected } = useLocalSettings();
   const { sort, medium } = filterParams;
   const tMedia = useTranslations('media');
   const tFilters = useTranslations('filters');
   const tSubscriptions = useTranslations('subscriptions');
-  const { mediumMenuItems, sortMenuItems } = getHomeDropdownConfig({
+  const { mediumMenuItems, sortMenuItems } = getHomePageDropdownConfig({
     medium,
     sort,
     tFilters,

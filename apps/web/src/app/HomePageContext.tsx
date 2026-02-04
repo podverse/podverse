@@ -10,9 +10,9 @@ import { useAccount } from '../contexts/Account';
 import { useSkipInitialEffect } from '../hooks/useSkipInitialEffect';
 import { useFilterDefaults } from '../hooks/useFilterDefaults';
 import { useListPageCache } from '../hooks/useListPageCache';
-import { getHomeFilterParams } from './HomeDropdownConfig';
+import { getHomePageFilterParams } from './HomePageDropdownConfig';
 
-interface HomeContextType {
+interface HomePageContextType {
   filterParams: QueryParamsHome;
   setFilterParams: (params: QueryParamsHome) => void;
   channels: DTOChannel[];
@@ -23,21 +23,21 @@ interface HomeContextType {
   setIsLoading: (isLoading: boolean) => void;
 }
 
-const HomeContext = createContext<HomeContextType | undefined>(undefined);
+const HomePageContext = createContext<HomePageContextType | undefined>(undefined);
 
-interface HomeContextProviderProps {
+interface HomePageContextProviderProps {
   children: ReactNode;
   initialQueryParams: QueryParamsHome;
   ssrChannels: DTOChannel[];
   ssrTotalPages: number;
 }
 
-export const HomeContextProvider = ({
+export const HomePageContextProvider = ({
   children,
   initialQueryParams,
   ssrChannels,
   ssrTotalPages,
-}: HomeContextProviderProps) => {
+}: HomePageContextProviderProps) => {
   // Use the list page cache hook for back navigation caching
   const {
     filterParams,
@@ -74,7 +74,7 @@ export const HomeContextProvider = ({
 
       setIsLoading(true);
 
-      const { currentSort, currentMedium, currentPage } = getHomeFilterParams({
+      const { currentSort, currentMedium, currentPage } = getHomePageFilterParams({
         page: filterParams.page,
         medium: filterParams.medium,
         sort: filterParams.sort,
@@ -104,7 +104,7 @@ export const HomeContextProvider = ({
   }, [filterParams, loggedInAccount]);
 
   return (
-    <HomeContext.Provider
+    <HomePageContext.Provider
       value={{
         filterParams,
         setFilterParams,
@@ -117,14 +117,14 @@ export const HomeContextProvider = ({
       }}
     >
       {children}
-    </HomeContext.Provider>
+    </HomePageContext.Provider>
   );
 };
 
-export const useHomeContext = () => {
-  const ctx = useContext(HomeContext);
+export const useHomePageContext = () => {
+  const ctx = useContext(HomePageContext);
   if (!ctx) {
-    throw new Error('useHomeContext must be used within a HomeContextProvider');
+    throw new Error('useHomePageContext must be used within a HomePageContextProvider');
   }
   return ctx;
 };
