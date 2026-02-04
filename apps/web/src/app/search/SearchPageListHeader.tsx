@@ -1,9 +1,11 @@
+'use client';
+
 import { useTranslations } from 'next-intl';
 import { SearchInput } from '../../components/Form/SearchInput';
-import { useSearchContext } from './SearchContext';
+import { useSearchPageContext } from './SearchPageContext';
 
-export function SearchListHeader() {
-  const { setSearchParams } = useSearchContext();
+export function SearchPageListHeader() {
+  const { setSearchParams } = useSearchPageContext();
   const tFeatures = useTranslations('features');
 
   return (

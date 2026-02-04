@@ -6,27 +6,27 @@ import { createContext, useContext, useState } from 'react';
 import { apiRequestService } from '../../factories/apiRequestService';
 import { useSkipInitialEffect } from '../../hooks/useSkipInitialEffect';
 
-type SearchParams = {
+type SearchPageParams = {
   q: string;
 };
 
-interface SearchContextType {
-  searchParams: SearchParams;
-  setSearchParams: (params: SearchParams) => void;
+interface SearchPageContextType {
+  searchParams: SearchPageParams;
+  setSearchParams: (params: SearchPageParams) => void;
   searchResultFeeds: SearchPodcastsFeed[];
   setSearchResultFeeds: (feeds: SearchPodcastsFeed[]) => void;
   isLoading: boolean;
   setIsLoading: (isLoading: boolean) => void;
 }
 
-const SearchContext = createContext<SearchContextType | undefined>(undefined);
+const SearchPageContext = createContext<SearchPageContextType | undefined>(undefined);
 
-interface SearchContextProviderProps {
+interface SearchPageContextProviderProps {
   children: ReactNode;
 }
 
-export const SearchContextProvider = ({ children }: SearchContextProviderProps) => {
-  const [searchParams, setSearchParams] = useState<SearchParams>({ q: '' });
+export const SearchPageContextProvider = ({ children }: SearchPageContextProviderProps) => {
+  const [searchParams, setSearchParams] = useState<SearchPageParams>({ q: '' });
   const [searchResultFeeds, setSearchResultFeeds] = useState<SearchPodcastsFeed[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
@@ -53,7 +53,7 @@ export const SearchContextProvider = ({ children }: SearchContextProviderProps) 
   }, [searchParams]);
 
   return (
-    <SearchContext.Provider
+    <SearchPageContext.Provider
       value={{
         searchParams,
         setSearchParams,
@@ -64,14 +64,14 @@ export const SearchContextProvider = ({ children }: SearchContextProviderProps) 
       }}
     >
       {children}
-    </SearchContext.Provider>
+    </SearchPageContext.Provider>
   );
 };
 
-export const useSearchContext = () => {
-  const ctx = useContext(SearchContext);
+export const useSearchPageContext = () => {
+  const ctx = useContext(SearchPageContext);
   if (!ctx) {
-    throw new Error('useSearchContext must be used within a SearchContextProvider');
+    throw new Error('useSearchPageContext must be used within a SearchPageContextProvider');
   }
   return ctx;
 };

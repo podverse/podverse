@@ -1,27 +1,27 @@
 'use client';
 
-import { SearchContextProvider } from './SearchContext';
-import { SearchHeader } from './SearchHeader';
+import { SearchPageContextProvider } from './SearchPageContext';
+import { SearchPageHeader } from './SearchPageHeader';
 import { MainWrapper } from '../../components/Main/MainWrapper';
 import { MainInnerWrapper } from '../../components/Main/MainInnerWrapper';
 import { MainInnerContentWrapper } from '../../components/Main/MainInnerContentWrapper';
-import { SearchListHeader } from './SearchListHeader';
+import { SearchPageListHeader } from './SearchPageListHeader';
 import { SideContent } from '../../components/SideContent/SideContent';
-import { SearchList } from './SearchList';
+import { SearchPageList } from './SearchPageList';
 
-export function SearchClient() {
+export function SearchPageClient() {
   return (
-    <SearchContextProvider>
+    <SearchPageContextProvider>
       <MainWrapper>
-        <SearchHeader />
+        <SearchPageHeader />
         <MainInnerWrapper>
           <SideContent />
           <MainInnerContentWrapper>
-            <SearchListHeader />
-            <SearchList />
+            <SearchPageListHeader />
+            <SearchPageList />
           </MainInnerContentWrapper>
         </MainInnerWrapper>
       </MainWrapper>
-    </SearchContextProvider>
+    </SearchPageContextProvider>
   );
 }
