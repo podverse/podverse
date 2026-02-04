@@ -5,33 +5,33 @@ import type { QueryParamsGetManyPartial } from '@podverse/helpers-requests';
 import { MainWrapper } from '../../components/Main/MainWrapper';
 import { MainInnerWrapper } from '../../components/Main/MainInnerWrapper';
 import { MainInnerContentWrapper } from '../../components/Main/MainInnerContentWrapper';
-import { EpisodesContextProvider } from './EpisodesContext';
-import { EpisodesHeader } from './EpisodesHeader';
-import { EpisodesList } from './EpisodesList';
+import { EpisodesPageContextProvider } from './EpisodesPageContext';
+import { EpisodesPageHeader } from './EpisodesPageHeader';
+import { EpisodesPageList } from './EpisodesPageList';
 
-interface EpisodesClientProps {
+interface EpisodesPageClientProps {
   initialQueryParams: QueryParamsGetManyPartial;
   ssrItems: DTOItem[];
   ssrTotalPages: number;
 }
 
-export function EpisodesClient(props: EpisodesClientProps) {
+export function EpisodesPageClient(props: EpisodesPageClientProps) {
   const { initialQueryParams, ssrItems, ssrTotalPages } = props;
 
   return (
-    <EpisodesContextProvider
+    <EpisodesPageContextProvider
       initialQueryParams={initialQueryParams}
       ssrItems={ssrItems}
       ssrTotalPages={ssrTotalPages}
     >
-      <EpisodesHeader />
+      <EpisodesPageHeader />
       <MainWrapper>
         <MainInnerWrapper>
           <MainInnerContentWrapper>
-            <EpisodesList />
+            <EpisodesPageList />
           </MainInnerContentWrapper>
         </MainInnerWrapper>
       </MainWrapper>
-    </EpisodesContextProvider>
+    </EpisodesPageContextProvider>
   );
 }

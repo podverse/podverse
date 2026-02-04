@@ -11,12 +11,12 @@ import { checkBackNavFlag } from '../../../contexts/Navigation';
 import { useSkipInitialEffect } from '../../../hooks/useSkipInitialEffect';
 import { usePageStateCache } from '../../../hooks/usePageStateCache';
 import { getPageState, definedProps } from '../../../utils/pageStateCache';
-import { getEpisodeFilterParams } from './EpisodeDropdownConfig';
+import { getEpisodePageFilterParams } from './EpisodePageDropdownConfig';
 import { apiRequestService } from '../../../factories/apiRequestService';
 import { getTranscriptRowsFromTranscriptString } from '../../../utils/transcript';
 
 // Type for cached data
-interface EpisodeCachedData {
+interface EpisodePageCachedData {
   itemChapters: DTOItemChapter[];
   itemSoundbites: DTOItemSoundbite[];
   clips: DTOClip[];
@@ -24,7 +24,7 @@ interface EpisodeCachedData {
   transcriptRows: TranscriptRow[];
 }
 
-interface EpisodeContextType {
+interface EpisodePageContextType {
   filterParams: QueryParamsItem;
   setFilterParams: (params: QueryParamsItem) => void;
   itemChapters: DTOItemChapter[];
@@ -43,17 +43,17 @@ interface EpisodeContextType {
   setIsLoading: (isLoading: boolean) => void;
 }
 
-const EpisodeContext = createContext<EpisodeContextType | undefined>(undefined);
+const EpisodePageContext = createContext<EpisodePageContextType | undefined>(undefined);
 
-interface EpisodeContextProviderProps {
+interface EpisodePageContextProviderProps {
   children: ReactNode;
   initialQueryParams: QueryParamsItem;
 }
 
-export const EpisodeContextProvider = ({
+export const EpisodePageContextProvider = ({
   children,
   initialQueryParams,
-}: EpisodeContextProviderProps) => {
+}: EpisodePageContextProviderProps) => {
   const params = useParams();
 
   if (!params.item_id) {
@@ -67,7 +67,9 @@ export const EpisodeContextProvider = ({
   const isBackNav = checkBackNavFlag();
 
   // Check for cached state on back navigation
-  const cachedState = isBackNav ? getPageState<QueryParamsItem, EpisodeCachedData>(routeKey) : null;
+  const cachedState = isBackNav
+    ? getPageState<QueryParamsItem, EpisodePageCachedData>(routeKey)
+    : null;
   const restoredFromCacheRef = useRef(!!cachedState?.data);
 
   const [filterParams, setFilterParams] = useState<QueryParamsItem>(
@@ -89,7 +91,7 @@ export const EpisodeContextProvider = ({
   const { loggedInAccount } = useAccount();
 
   // Hook to save/restore page state for back navigation
-  usePageStateCache<QueryParamsItem, EpisodeCachedData>({
+  usePageStateCache<QueryParamsItem, EpisodePageCachedData>({
     routeKey,
     filterParams,
     setFilterParams,
@@ -133,7 +135,7 @@ export const EpisodeContextProvider = ({
     }
 
     async function fetchSoundbites() {
-      const { currentSort } = getEpisodeFilterParams({
+      const { currentSort } = getEpisodePageFilterParams({
         page: filterParams.page,
         type: filterParams.type,
         sort: filterParams.sort,
@@ -156,7 +158,7 @@ export const EpisodeContextProvider = ({
     }
 
     async function fetchClips() {
-      const { currentSort, currentRange } = getEpisodeFilterParams({
+      const { currentSort, currentRange } = getEpisodePageFilterParams({
         page: filterParams.page,
         type: filterParams.type,
         sort: filterParams.sort,
@@ -206,7 +208,7 @@ export const EpisodeContextProvider = ({
   }, [filterParams, loggedInAccount]);
 
   return (
-    <EpisodeContext.Provider
+    <EpisodePageContext.Provider
       value={{
         filterParams,
         setFilterParams,
@@ -227,14 +229,14 @@ export const EpisodeContextProvider = ({
       }}
     >
       {children}
-    </EpisodeContext.Provider>
+    </EpisodePageContext.Provider>
   );
 };
 
-export const useEpisodeContext = () => {
-  const ctx = useContext(EpisodeContext);
+export const useEpisodePageContext = () => {
+  const ctx = useContext(EpisodePageContext);
   if (!ctx) {
-    throw new Error('useEpisodeContext must be used within an EpisodeContextProvider');
+    throw new Error('useEpisodePageContext must be used within an EpisodePageContextProvider');
   }
   return ctx;
 };

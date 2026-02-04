@@ -2,9 +2,9 @@
 
 import React from 'react';
 import dynamic from 'next/dynamic';
-import { useEpisodeContext } from './EpisodeContext';
+import { useEpisodePageContext } from './EpisodePageContext';
 import LoadingSpinnerOverlay from '../../../components/LoadingSpinner/LoadingSpinnerOverlay';
-import styles from '../../../styles/app/podcast/PodcastList.module.scss';
+import { DetailListWrapper } from '../../../components/List/DetailListWrapper';
 import { EpisodeSummary } from '../../../components/Media/Podcast/Episode/EpisodeSummary';
 import { ListClips } from '../../../components/List/Clips/ListClips';
 import type { DTOChannel, DTOItem } from '@podverse/helpers';
@@ -22,12 +22,12 @@ const ItemTranscript = dynamic(
   }
 );
 
-type EpisodeListProps = {
+type EpisodePageListProps = {
   ssrChannel: DTOChannel;
   ssrItem: DTOItem;
 };
 
-export const EpisodeList: React.FC<EpisodeListProps> = ({ ssrChannel, ssrItem }) => {
+export const EpisodePageList: React.FC<EpisodePageListProps> = ({ ssrChannel, ssrItem }) => {
   const {
     filterParams,
     setFilterParams,
@@ -38,11 +38,11 @@ export const EpisodeList: React.FC<EpisodeListProps> = ({ ssrChannel, ssrItem })
     totalPages,
     transcriptRows,
     autoScrollOn,
-  } = useEpisodeContext();
+  } = useEpisodePageContext();
   const { page, type } = filterParams;
 
   return (
-    <div className={styles.list}>
+    <DetailListWrapper>
       {type === 'summary' && <EpisodeSummary description={ssrItem.item_description?.value} />}
       {type === 'chapters' && (
         <ListItemChapters
@@ -80,6 +80,6 @@ export const EpisodeList: React.FC<EpisodeListProps> = ({ ssrChannel, ssrItem })
         <ItemTranscript autoScrollOn={autoScrollOn} rows={transcriptRows} />
       )}
       <LoadingSpinnerOverlay isLoading={isLoading} />
-    </div>
+    </DetailListWrapper>
   );
 };

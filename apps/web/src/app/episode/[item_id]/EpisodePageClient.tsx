@@ -1,16 +1,16 @@
 import type { DTOChannel, DTOItem } from '@podverse/helpers';
 import type { QueryParamsItem } from '@podverse/helpers-requests';
 import { MainWrapper } from '../../../components/Main/MainWrapper';
-import { EpisodeContextProvider } from './EpisodeContext';
-import { EpisodeList } from './EpisodeList';
-import { EpisodeListHeader } from './EpisodeListHeader';
+import { EpisodePageContextProvider } from './EpisodePageContext';
+import { EpisodePageList } from './EpisodePageList';
+import { EpisodePageListHeader } from './EpisodePageListHeader';
 import { MainInnerWrapper } from '../../../components/Main/MainInnerWrapper';
 import { MainInnerContentWrapper } from '../../../components/Main/MainInnerContentWrapper';
-import { PodcastHeader } from '../../../components/Media/Podcast/PodcastHeader';
+import { CorePodcastHeader } from '../../../components/Core/Media/Podcast/CorePodcastHeader';
 import { SideContent } from '../../../components/SideContent/SideContent';
 import { EpisodeHeader } from '../../../components/Media/Podcast/Episode/EpisodeHeader';
 
-interface EpisodeClientProps {
+interface EpisodePageClientProps {
   initialQueryParams: QueryParamsItem;
   ssrChannel: DTOChannel;
   ssrItem: DTOItem;
@@ -19,7 +19,7 @@ interface EpisodeClientProps {
   ssrHasTranscripts: boolean;
 }
 
-export function EpisodeClient(props: EpisodeClientProps) {
+export function EpisodePageClient(props: EpisodePageClientProps) {
   const {
     initialQueryParams,
     ssrItem,
@@ -30,22 +30,22 @@ export function EpisodeClient(props: EpisodeClientProps) {
   } = props;
 
   return (
-    <EpisodeContextProvider initialQueryParams={initialQueryParams}>
+    <EpisodePageContextProvider initialQueryParams={initialQueryParams}>
       <MainWrapper>
-        <PodcastHeader channel={ssrChannel} item={ssrItem} />
+        <CorePodcastHeader channel={ssrChannel} item={ssrItem} />
         <MainInnerWrapper>
           <SideContent />
           <MainInnerContentWrapper>
             <EpisodeHeader channel={ssrChannel} item={ssrItem} />
-            <EpisodeListHeader
+            <EpisodePageListHeader
               ssrHasChapters={ssrHasChapters}
               ssrHasTranscripts={ssrHasTranscripts}
               ssrHasSoundbites={ssrHasSoundbites}
             />
-            <EpisodeList ssrChannel={ssrChannel} ssrItem={ssrItem} />
+            <EpisodePageList ssrChannel={ssrChannel} ssrItem={ssrItem} />
           </MainInnerContentWrapper>
         </MainInnerWrapper>
       </MainWrapper>
-    </EpisodeContextProvider>
+    </EpisodePageContextProvider>
   );
 }

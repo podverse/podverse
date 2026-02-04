@@ -12,9 +12,9 @@ import { useSkipInitialEffect } from '../../hooks/useSkipInitialEffect';
 import { useFilterDefaults } from '../../hooks/useFilterDefaults';
 import { useListPageCache } from '../../hooks/useListPageCache';
 import { ROUTES } from '../../constants/routes';
-import { getEpisodesFilterParams } from './EpisodesDropdownConfig';
+import { getEpisodesPageFilterParams } from './EpisodesPageDropdownConfig';
 
-interface EpisodesContextType {
+interface EpisodesPageContextType {
   filterParams: QueryParamsGetManyPartial;
   setFilterParams: (params: QueryParamsGetManyPartial) => void;
   items: DTOItem[];
@@ -29,21 +29,21 @@ interface EpisodesContextType {
   setShowCategoriesModal: (show: boolean) => void;
 }
 
-const EpisodesContext = createContext<EpisodesContextType | undefined>(undefined);
+const EpisodesPageContext = createContext<EpisodesPageContextType | undefined>(undefined);
 
-interface EpisodesContextProviderProps {
+interface EpisodesPageContextProviderProps {
   children: ReactNode;
   initialQueryParams: QueryParamsGetManyPartial;
   ssrItems: DTOItem[];
   ssrTotalPages: number;
 }
 
-export const EpisodesContextProvider = ({
+export const EpisodesPageContextProvider = ({
   children,
   initialQueryParams,
   ssrItems,
   ssrTotalPages,
-}: EpisodesContextProviderProps) => {
+}: EpisodesPageContextProviderProps) => {
   const router = useRouter();
 
   // Use the list page cache hook for back navigation caching
@@ -88,7 +88,7 @@ export const EpisodesContextProvider = ({
 
       setIsLoading(true);
 
-      const { currentSort, currentRange, currentType } = getEpisodesFilterParams(
+      const { currentSort, currentRange, currentType } = getEpisodesPageFilterParams(
         {
           page: filterParams.page,
           type: filterParams.type,
@@ -127,7 +127,7 @@ export const EpisodesContextProvider = ({
   }, [filterParams, loggedInAccount]);
 
   return (
-    <EpisodesContext.Provider
+    <EpisodesPageContext.Provider
       value={{
         filterParams,
         setFilterParams,
@@ -144,14 +144,14 @@ export const EpisodesContextProvider = ({
       }}
     >
       {children}
-    </EpisodesContext.Provider>
+    </EpisodesPageContext.Provider>
   );
 };
 
-export const useEpisodesContext = () => {
-  const ctx = useContext(EpisodesContext);
+export const useEpisodesPageContext = () => {
+  const ctx = useContext(EpisodesPageContext);
   if (!ctx) {
-    throw new Error('useEpisodesContext must be used within a EpisodesContextProvider');
+    throw new Error('useEpisodesPageContext must be used within a EpisodesPageContextProvider');
   }
   return ctx;
 };

@@ -14,30 +14,30 @@ import {
 import React from 'react';
 import Dropdown from '../../../components/Dropdown/Dropdown';
 import { ListHeader } from '../../../components/List/ListHeader';
-import { useEpisodeContext } from './EpisodeContext';
-import { getEpisodeDropdownConfig } from './EpisodeDropdownConfig';
+import { useEpisodePageContext } from './EpisodePageContext';
+import { getEpisodePageDropdownConfig } from './EpisodePageDropdownConfig';
 import { Tabs } from '../../../components/Tabs/Tabs';
 import { Button } from '../../../components/Button/Button';
 
-type EpisodeListHeaderProps = {
+type EpisodePageListHeaderProps = {
   ssrHasChapters: boolean;
   ssrHasSoundbites: boolean;
   ssrHasTranscripts: boolean;
 };
 
-export const EpisodeListHeader: React.FC<EpisodeListHeaderProps> = ({
+export const EpisodePageListHeader: React.FC<EpisodePageListHeaderProps> = ({
   ssrHasChapters,
   ssrHasSoundbites,
   ssrHasTranscripts,
 }) => {
-  const { filterParams, setFilterParams, autoScrollOn, setAutoScrollOn } = useEpisodeContext();
+  const { filterParams, setFilterParams, autoScrollOn, setAutoScrollOn } = useEpisodePageContext();
   const { type, sort, range } = filterParams;
   const tFilters = useTranslations('filters');
   const tInfo = useTranslations('info');
   const tFeatures = useTranslations('features');
   const tMisc = useTranslations('misc');
 
-  const { sortMenuItems, rangeMenuItems, showRangeDropdown } = getEpisodeDropdownConfig({
+  const { sortMenuItems, rangeMenuItems, showRangeDropdown } = getEpisodePageDropdownConfig({
     sort,
     tFilters,
   });

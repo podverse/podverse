@@ -13,7 +13,7 @@ import {
 import { getRangeDropdownItems } from '../../utils/dropdownMenuItems';
 import type { DropdownMenuItem } from '../../components/Dropdown/Dropdown';
 
-export function getEpisodesDropdownConfig({
+export function getEpisodesPageDropdownConfig({
   type,
   sort,
   tFilters,
@@ -70,7 +70,7 @@ export function getEpisodesDropdownConfig({
   };
 }
 
-type EpisodesDropdownConfigParams = {
+type EpisodesPageDropdownConfigParams = {
   type: QueryParamsSubscribedType | null;
   sort: QueryParamsSubscribedPartialSort | null;
   range: QueryParamsStatsRange | null;
@@ -78,7 +78,7 @@ type EpisodesDropdownConfigParams = {
   page: number;
 };
 
-export type EpisodesDropdownConfigCurrentParams = {
+export type EpisodesPageDropdownConfigCurrentParams = {
   currentType: QueryParamsSubscribedType;
   currentSort: QueryParamsSubscribedPartialSort;
   currentRange: QueryParamsStatsRange | null;
@@ -86,10 +86,10 @@ export type EpisodesDropdownConfigCurrentParams = {
   currentPage: number;
 };
 
-export function getEpisodesFilterParams(
-  { type, sort, range, category, page }: EpisodesDropdownConfigParams,
+export function getEpisodesPageFilterParams(
+  { type, sort, range, category, page }: EpisodesPageDropdownConfigParams,
   isValidAuthSession: boolean
-): EpisodesDropdownConfigCurrentParams {
+): EpisodesPageDropdownConfigCurrentParams {
   let currentType = type;
   let currentSort = sort;
   let currentRange = range;

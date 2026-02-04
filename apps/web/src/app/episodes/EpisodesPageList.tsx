@@ -1,16 +1,18 @@
+'use client';
+
 import React from 'react';
 import type { DTOCategory } from '@podverse/helpers';
-import LoadingSpinnerOverlay from '../../components/LoadingSpinner/LoadingSpinnerOverlay';
-import { useLocalSettings } from '../../contexts/LocalSettings';
-import { ModalCategoriesSelect } from '../../components/Modal/ModalCategoriesSelect';
-import { onClickCategory } from '../../utils/categories';
-import { ROUTES } from '../../constants/routes';
 import { useRouter } from 'next/navigation';
-import { useEpisodesContext } from './EpisodesContext';
-import { ListEpisodes } from '../../components/List/Podcasts/Episodes/ListEpisodes';
+import { CoreEpisodes } from '../../components/Core/List/Episode/CoreEpisodes';
+import LoadingSpinnerOverlay from '../../components/LoadingSpinner/LoadingSpinnerOverlay';
+import { ModalCategoriesSelect } from '../../components/Modal/ModalCategoriesSelect';
 import { HowToStartInfo } from '../../components/InfoWrapper/HowToStartInfo';
+import { ROUTES } from '../../constants/routes';
+import { useLocalSettings } from '../../contexts/LocalSettings';
+import { onClickCategory } from '../../utils/categories';
+import { useEpisodesPageContext } from './EpisodesPageContext';
 
-export const EpisodesList: React.FC = () => {
+export const EpisodesPageList: React.FC = () => {
   const {
     filterParams,
     setFilterParams,
@@ -20,7 +22,7 @@ export const EpisodesList: React.FC = () => {
     showSubscribeMessage,
     showCategoriesModal,
     setShowCategoriesModal,
-  } = useEpisodesContext();
+  } = useEpisodesPageContext();
   const { viewSelected } = useLocalSettings();
   const { page, type } = filterParams;
   const router = useRouter();
@@ -39,7 +41,7 @@ export const EpisodesList: React.FC = () => {
   return (
     <>
       {type === 'subscribed' && <HowToStartInfo rows={items} totalPages={totalPages} />}
-      <ListEpisodes
+      <CoreEpisodes
         page={page}
         setPage={(page) => setFilterParams({ ...filterParams, page })}
         channel={null}
