@@ -13,11 +13,11 @@ import {
 } from '@podverse/helpers-requests';
 import React from 'react';
 import Dropdown from '../../../components/Dropdown/Dropdown';
-import { MainHeader } from '../../../components/Main/MainHeader';
 import { ViewSelector } from '../../../components/ViewSelector/ViewSelector';
 import { useLocalSettings } from '../../../contexts/LocalSettings';
 import { useLivestreamsPageContext } from './LivestreamsPageContext';
 import { getEpisodesPageDropdownConfig } from '../../episodes/EpisodesPageDropdownConfig';
+import { CommonListPageHeader } from '../../../components/Common/List/CommonListPageHeader';
 
 type LivestreamsPageHeaderProps = {
   medium: 'av' | 'music';
@@ -131,5 +131,5 @@ export const LivestreamsPageHeader: React.FC<LivestreamsPageHeaderProps> = ({ me
     ? `${tMedia('livestream.livestreams')} > ${tCategories(filterParams.category)}`
     : tMedia('livestream.livestreams');
 
-  return <MainHeader title={headerTitle} buttonsNode={buttonsNode} />;
+  return <CommonListPageHeader title={headerTitle} buttonsNode={buttonsNode} />;
 };

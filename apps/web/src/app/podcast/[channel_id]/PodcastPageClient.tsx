@@ -10,7 +10,7 @@ import type { QueryParamsChannel } from '@podverse/helpers-requests';
 import { MainInnerContentWrapper } from '../../../components/Main/MainInnerContentWrapper';
 import { MainInnerWrapper } from '../../../components/Main/MainInnerWrapper';
 import { MainWrapper } from '../../../components/Main/MainWrapper';
-import { CorePodcastHeader } from '../../../components/Core/Media/Podcast/CorePodcastHeader';
+import { CorePodcastHeader } from '../../../components/Core/Podcast/CorePodcastHeader';
 import { PodcastPageContextProvider } from './PodcastPageContext';
 import { PodcastPageListHeader } from './PodcastPageListHeader';
 import { PodcastPageList } from './PodcastPageList';

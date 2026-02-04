@@ -1,5 +1,5 @@
 import React from 'react';
-import { CoreTracks } from '../../components/Core/List/Track/CoreTracks';
+import { CoreTracks } from '../../components/Core/Artist/Album/Track/CoreTracks';
 import { HowToStartInfo } from '../../components/InfoWrapper/HowToStartInfo';
 import LoadingSpinnerOverlay from '../../components/LoadingSpinner/LoadingSpinnerOverlay';
 import { useLocalSettings } from '../../contexts/LocalSettings';

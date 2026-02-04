@@ -13,11 +13,11 @@ import {
 } from '@podverse/helpers-requests';
 import React from 'react';
 import Dropdown from '../../components/Dropdown/Dropdown';
-import { MainHeader } from '../../components/Main/MainHeader';
-import { useArtistsPageContext } from './ArtistsPageContext';
-import { getArtistsPageDropdownConfig } from './ArtistsPageDropdownConfig';
 import { ViewSelector } from '../../components/ViewSelector/ViewSelector';
 import { useLocalSettings } from '../../contexts/LocalSettings';
+import { useArtistsPageContext } from './ArtistsPageContext';
+import { getArtistsPageDropdownConfig } from './ArtistsPageDropdownConfig';
+import { CommonListPageHeader } from '../../components/Common/List/CommonListPageHeader';
 
 export const ArtistsPageHeader: React.FC = () => {
   const { filterParams, setFilterParams } = useArtistsPageContext();
@@ -114,5 +114,5 @@ export const ArtistsPageHeader: React.FC = () => {
 
   const headerTitle = tMedia('music.artists');
 
-  return <MainHeader title={headerTitle} buttonsNode={buttonsNode} />;
+  return <CommonListPageHeader title={headerTitle} buttonsNode={buttonsNode} />;
 };

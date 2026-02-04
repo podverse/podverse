@@ -4,9 +4,9 @@ import { useTranslations } from 'next-intl';
 import type { QueryParamsLiveItemType } from '@podverse/helpers-requests';
 import { QUERY_PARAMS_LIVE_ITEM_TYPE_VALUES } from '@podverse/helpers-requests';
 import React from 'react';
-import { ListHeader } from '../../../../components/List/ListHeader';
-import { useLivestreamPageContext } from './LivestreamPageContext';
 import { Tabs } from '../../../../components/Tabs/Tabs';
+import { useLivestreamPageContext } from './LivestreamPageContext';
+import { CommonDetailListHeader } from '../../../../components/Common/List/CommonDetailListHeader';
 
 export const LivestreamPageListHeader: React.FC = () => {
   const { filterParams, setFilterParams } = useLivestreamPageContext();
@@ -32,5 +32,5 @@ export const LivestreamPageListHeader: React.FC = () => {
     },
   ];
 
-  return <ListHeader tabs={<Tabs tabData={tabData} selectedKey={type ?? ''} />} />;
+  return <CommonDetailListHeader tabs={<Tabs tabData={tabData} selectedKey={type ?? ''} />} />;
 };

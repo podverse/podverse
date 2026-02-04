@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { useProfilePageContentContext } from './ProfilePageContentContext';
-import { CorePodcasts } from '../../../components/Core/List/Podcast/CorePodcasts';
+import { CorePodcasts } from '../../../components/Core/Podcast/CorePodcasts';
 import { ListAlbums } from '../../../components/List/Music/Albums/ListAlbums';
 import { ListPlaylists } from '../../../components/List/Playlists/ListPlaylists';
 import { ListClips } from '../../../components/List/Clips/ListClips';

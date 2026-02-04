@@ -3,7 +3,7 @@
 import React from 'react';
 import type { DTOCategory } from '@podverse/helpers';
 import { useRouter } from 'next/navigation';
-import { CoreEpisodes } from '../../components/Core/List/Episode/CoreEpisodes';
+import { CoreEpisodes } from '../../components/Core/Podcast/Episodes/CoreEpisodes';
 import LoadingSpinnerOverlay from '../../components/LoadingSpinner/LoadingSpinnerOverlay';
 import { ModalCategoriesSelect } from '../../components/Modal/ModalCategoriesSelect';
 import { HowToStartInfo } from '../../components/InfoWrapper/HowToStartInfo';

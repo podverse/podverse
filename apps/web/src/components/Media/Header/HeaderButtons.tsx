@@ -14,7 +14,7 @@ import { IconButton } from './IconButton';
 import { useModals } from '../../../contexts/Modals';
 import { NotificationIconButton } from './NotificationIconButton';
 import { SubscribeButton } from './SubscribeButton';
-import styles from '../../../styles/components/Media/Header/HeaderButtons.module.scss';
+import styles from '../../../styles/components/Common/Media/Header/HeaderButtons.module.scss';
 
 type ShareArgs = {
   item?: DTOItem | null;

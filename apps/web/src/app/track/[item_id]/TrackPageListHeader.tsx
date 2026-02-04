@@ -4,10 +4,10 @@ import { useTranslations } from 'next-intl';
 import type { QueryParamsItemMusicType } from '@podverse/helpers-requests';
 import { QUERY_PARAMS_ITEM_MUSIC_TYPE_VALUES } from '@podverse/helpers-requests';
 import React from 'react';
-import { ListHeader } from '../../../components/List/ListHeader';
-import { useTrackPageContext } from './TrackPageContext';
 import { Tabs } from '../../../components/Tabs/Tabs';
 import { Button } from '../../../components/Button/Button';
+import { useTrackPageContext } from './TrackPageContext';
+import { CommonDetailListHeader } from '../../../components/Common/List/CommonDetailListHeader';
 
 type TrackPageListHeaderProps = {
   ssrHasTranscripts: boolean;
@@ -58,7 +58,7 @@ export const TrackPageListHeader: React.FC<TrackPageListHeaderProps> = ({ ssrHas
   }
 
   return (
-    <ListHeader
+    <CommonDetailListHeader
       tabs={<Tabs tabData={tabData} selectedKey={type ?? ''} />}
       sideButtons={sideButtons}
     />

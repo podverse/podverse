@@ -13,11 +13,11 @@ import {
 } from '@podverse/helpers-requests';
 import React from 'react';
 import Dropdown from '../../components/Dropdown/Dropdown';
-import { MainHeader } from '../../components/Main/MainHeader';
 import { ViewSelector } from '../../components/ViewSelector/ViewSelector';
 import { useLocalSettings } from '../../contexts/LocalSettings';
 import { useEpisodesPageContext } from './EpisodesPageContext';
 import { getEpisodesPageDropdownConfig } from './EpisodesPageDropdownConfig';
+import { CommonListPageHeader } from '../../components/Common/List/CommonListPageHeader';
 
 export const EpisodesPageHeader: React.FC = () => {
   const { filterParams, setFilterParams, setShowCategoriesModal } = useEpisodesPageContext();
@@ -123,5 +123,5 @@ export const EpisodesPageHeader: React.FC = () => {
     ? `${tMedia('podcast.episodes')} > ${tCategories(filterParams.category)}`
     : tMedia('podcast.episodes');
 
-  return <MainHeader title={headerTitle} buttonsNode={buttonsNode} />;
+  return <CommonListPageHeader title={headerTitle} buttonsNode={buttonsNode} />;
 };

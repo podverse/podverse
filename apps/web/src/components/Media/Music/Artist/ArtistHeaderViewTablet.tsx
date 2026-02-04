@@ -4,7 +4,7 @@ import { ArtistHeaderImage } from './ArtistHeaderImage';
 import { ArtistHeaderSubtitle } from './ArtistHeaderSubtitle';
 import { Link } from '../../../Link/Link';
 import { ROUTES } from '../../../../constants/routes';
-import styles from '../../../../styles/components/Media/Podcast/PodcastHeaderViewTablet.module.scss';
+import styles from '../../../../styles/components/Common/Media/Podcast/PodcastHeaderViewTablet.module.scss';
 
 type ArtistHeaderViewTabletProps = {
   channel: DTOChannel;

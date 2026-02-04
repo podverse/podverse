@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { CoreCombinedChannels } from '../components/Core/List/CombinedChannels/CoreCombinedChannels';
+import { CoreCombinedChannels } from '../components/Core/CombinedChannels/CoreCombinedChannels';
 import LoadingSpinnerOverlay from '../components/LoadingSpinner/LoadingSpinnerOverlay';
 import { useHomePageContext } from './HomePageContext';
 import { useAccount } from '../contexts/Account';

@@ -3,7 +3,7 @@ import { useRouter } from 'next/navigation';
 import type { DTOCategory } from '@podverse/helpers';
 
 import { HowToStartInfo } from '../../components/InfoWrapper/HowToStartInfo';
-import { CorePodcasts } from '../../components/Core/List/Podcast/CorePodcasts';
+import { CorePodcasts } from '../../components/Core/Podcast/CorePodcasts';
 import LoadingSpinnerOverlay from '../../components/LoadingSpinner/LoadingSpinnerOverlay';
 import { ModalCategoriesSelect } from '../../components/Modal/ModalCategoriesSelect';
 import { ROUTES } from '../../constants/routes';

@@ -7,11 +7,11 @@ import type { QueryParamsHomeSort } from '@podverse/helpers-requests';
 import { QUERY_PARAMS_HOME_SORT_VALUES } from '@podverse/helpers-requests';
 import React from 'react';
 import Dropdown from '../components/Dropdown/Dropdown';
-import { MainHeader } from '../components/Main/MainHeader';
 import { ViewSelector } from '../components/ViewSelector/ViewSelector';
 import { useLocalSettings } from '../contexts/LocalSettings';
 import { useHomePageContext } from './HomePageContext';
 import { getHomePageDropdownConfig } from './HomePageDropdownConfig';
+import { CommonListPageHeader } from '../components/Common/List/CommonListPageHeader';
 
 export const HomePageHeader: React.FC = () => {
   const { filterParams, setFilterParams } = useHomePageContext();
@@ -64,5 +64,5 @@ export const HomePageHeader: React.FC = () => {
     </>
   );
 
-  return <MainHeader title={tSubscriptions('subscriptions')} buttonsNode={buttonsNode} />;
+  return <CommonListPageHeader title={tSubscriptions('subscriptions')} buttonsNode={buttonsNode} />;
 };

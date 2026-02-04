@@ -4,7 +4,7 @@ import { AlbumHeaderImage } from './AlbumHeaderImage';
 import { AlbumHeaderSubtitle } from './AlbumHeaderSubtitle';
 import { Link } from '../../../Link/Link';
 import { ROUTES } from '../../../../constants/routes';
-import styles from '../../../../styles/components/Media/Podcast/PodcastHeaderViewDesktop.module.scss';
+import styles from '../../../../styles/components/Common/Media/Podcast/PodcastHeaderViewDesktop.module.scss';
 
 type AlbumHeaderViewDesktopProps = {
   channel: DTOChannel;

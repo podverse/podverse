@@ -1,5 +1,5 @@
 import type { AddByRSSParseCacheEntry } from '@podverse/helpers';
-import type { DTOAccountFollowingAddByRSSChannel } from '@podverse/helpers';
+import type { DTOAccount, DTOAccountFollowingAddByRSSChannel } from '@podverse/helpers';
 import { apiRequestService } from '../../factories/apiRequestService';
 import type { AddByRSSCache, AddByRSSParsedFeed } from './types';
 
@@ -20,16 +20,15 @@ export const followAddByRSSChannel = async (params: {
   feedUrl: string;
   title?: string | null;
   imageUrl?: string | null;
-}): Promise<{ message: string }> =>
+}): Promise<DTOAccount> =>
   apiRequestService.reqAccountFollowAddByRSSChannel({
     feed_url: params.feedUrl,
     title: params.title ?? null,
     image_url: params.imageUrl ?? null,
   });
 
-export const unfollowAddByRSSChannel = async (feedUrl: string): Promise<void> => {
-  await apiRequestService.reqAccountUnfollowAddByRSSChannel({ feed_url: feedUrl });
-};
+export const unfollowAddByRSSChannel = async (feedUrl: string): Promise<DTOAccount> =>
+  apiRequestService.reqAccountUnfollowAddByRSSChannel({ feed_url: feedUrl });
 
 export const enqueueAddByRSSParse = async (params: {
   feedUrl: string;

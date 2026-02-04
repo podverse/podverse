@@ -8,7 +8,7 @@ import { ListAlbumRowRemoteItemUnadded } from './ListAlbumRowRemoteItemUnadded';
 import { ListAlbumGridNodeUnadded } from './ListAlbumGridNodeUnadded';
 import type { ViewSelectedOption } from '../../../ViewSelector/ViewSelector';
 import { Divider } from '../../../Divider/Divider';
-import styles from '../../../../styles/components/List/ListNodes.module.scss';
+import styles from '../../../../styles/components/Common/List/ListNodes.module.scss';
 
 interface Params {
   channelsAdded: DTOChannel[];

@@ -7,7 +7,7 @@ import { Image } from '../../../../Image/Image';
 import { ROUTES } from '../../../../../constants/routes';
 import { IMAGES } from '../../../../../constants/images';
 import { Link } from '../../../../Link/Link';
-import styles from '../../../../../styles/components/List/Podcasts/Episodes/ListEpisodeRow.module.scss';
+import styles from '../../../../../styles/components/Common/List/Podcasts/Episodes/ListEpisodeRow.module.scss';
 
 interface Props {
   itemUnadded: NonNullable<EpisodeByGuidResponse['episode']>;

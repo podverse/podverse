@@ -13,11 +13,11 @@ import {
 } from '@podverse/helpers-requests';
 import React from 'react';
 import Dropdown from '../../../components/Dropdown/Dropdown';
-import { ListHeader } from '../../../components/List/ListHeader';
-import { useEpisodePageContext } from './EpisodePageContext';
-import { getEpisodePageDropdownConfig } from './EpisodePageDropdownConfig';
 import { Tabs } from '../../../components/Tabs/Tabs';
 import { Button } from '../../../components/Button/Button';
+import { useEpisodePageContext } from './EpisodePageContext';
+import { getEpisodePageDropdownConfig } from './EpisodePageDropdownConfig';
+import { CommonDetailListHeader } from '../../../components/Common/List/CommonDetailListHeader';
 
 type EpisodePageListHeaderProps = {
   ssrHasChapters: boolean;
@@ -150,7 +150,7 @@ export const EpisodePageListHeader: React.FC<EpisodePageListHeaderProps> = ({
   }
 
   return (
-    <ListHeader
+    <CommonDetailListHeader
       tabs={<Tabs tabData={tabData} selectedKey={type ?? ''} />}
       sideButtons={sideButtons}
     />

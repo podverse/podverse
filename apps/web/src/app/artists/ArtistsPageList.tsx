@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { CoreArtists } from '../../components/Core/List/Artist/CoreArtists';
+import { CoreArtists } from '../../components/Core/Artist/CoreArtists';
 import LoadingSpinnerOverlay from '../../components/LoadingSpinner/LoadingSpinnerOverlay';
 import { useLocalSettings } from '../../contexts/LocalSettings';
 import { HowToStartInfo } from '../../components/InfoWrapper/HowToStartInfo';

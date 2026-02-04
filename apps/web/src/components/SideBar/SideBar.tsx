@@ -134,12 +134,12 @@ export const SideBar: React.FC = () => {
               <SideBarLink href={ROUTES.ADD_BY_RSS_PODCASTS}>
                 {tMedia('podcast.podcasts')}
               </SideBarLink>
-              {/* <SideBarLink href={ROUTES.ADD_BY_RSS_EPISODES}>
+              <SideBarLink href={ROUTES.ADD_BY_RSS_EPISODES}>
                 {tMedia('podcast.episodes')}
-              </SideBarLink> */}
+              </SideBarLink>
               <SideBarLink href={ROUTES.ADD_BY_RSS_ARTISTS}>{tMedia('music.artists')}</SideBarLink>
               <SideBarLink href={ROUTES.ADD_BY_RSS_ALBUMS}>{tMedia('music.albums')}</SideBarLink>
-              {/* <SideBarLink href={ROUTES.ADD_BY_RSS_TRACKS}>{tMedia('music.tracks')}</SideBarLink> */}
+              <SideBarLink href={ROUTES.ADD_BY_RSS_TRACKS}>{tMedia('music.tracks')}</SideBarLink>
               {/* <SideBarLink href={ROUTES.ADD_BY_RSS_LIVESTREAMS}>
                 {tMedia('livestream.livestreams')}
               </SideBarLink> */}

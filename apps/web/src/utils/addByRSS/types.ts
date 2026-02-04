@@ -31,5 +31,6 @@ export type AddByRSSFeedRecord = {
   status?: AddByRSSParseStatus;
   cache?: AddByRSSCache;
   mappedFeed?: AddByRSSMappedFeed;
+  lastParsedAt?: string | null;
   updatedAt: string;
 };

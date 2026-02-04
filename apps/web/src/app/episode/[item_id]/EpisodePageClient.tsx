@@ -6,7 +6,7 @@ import { EpisodePageList } from './EpisodePageList';
 import { EpisodePageListHeader } from './EpisodePageListHeader';
 import { MainInnerWrapper } from '../../../components/Main/MainInnerWrapper';
 import { MainInnerContentWrapper } from '../../../components/Main/MainInnerContentWrapper';
-import { CorePodcastHeader } from '../../../components/Core/Media/Podcast/CorePodcastHeader';
+import { CorePodcastHeader } from '../../../components/Core/Podcast/CorePodcastHeader';
 import { SideContent } from '../../../components/SideContent/SideContent';
 import { EpisodeHeader } from '../../../components/Media/Podcast/Episode/EpisodeHeader';
 

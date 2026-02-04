@@ -8,7 +8,7 @@ import React from 'react';
 import { Image } from '../../../Image/Image';
 import { ROUTES } from '../../../../constants/routes';
 import { IMAGES } from '../../../../constants/images';
-import styles from '../../../../styles/components/List/Podcasts/ListPodcastRow.module.scss';
+import styles from '../../../../styles/components/Common/List/Podcasts/ListPodcastRow.module.scss';
 
 interface Props {
   channel: DTOChannel;

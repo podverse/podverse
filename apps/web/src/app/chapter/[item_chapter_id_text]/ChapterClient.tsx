@@ -2,7 +2,7 @@ import type { DTOChannel, DTOItem, DTOItemChapter } from '@podverse/helpers';
 import { MainWrapper } from '../../../components/Main/MainWrapper';
 import { MainInnerWrapper } from '../../../components/Main/MainInnerWrapper';
 import { MainInnerContentWrapper } from '../../../components/Main/MainInnerContentWrapper';
-import { CorePodcastHeader } from '../../../components/Core/Media/Podcast/CorePodcastHeader';
+import { CorePodcastHeader } from '../../../components/Core/Podcast/CorePodcastHeader';
 import { SideContent } from '../../../components/SideContent/SideContent';
 import { ItemChapterHeader } from '../../../components/Media/ItemChapter/ItemChapterHeader';
 

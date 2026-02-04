@@ -12,13 +12,12 @@ import {
   QUERY_PARAMS_CHANNEL_SORT_VALUES,
 } from '@podverse/helpers-requests';
 import React from 'react';
-
 import Dropdown from '../../../components/Dropdown/Dropdown';
-import { ListHeader } from '../../../components/List/ListHeader';
 import { Tabs } from '../../../components/Tabs/Tabs';
 import { useAccount } from '../../../contexts/Account';
 import { usePodcastPageContext } from './PodcastPageContext';
 import { getPodcastPageDropdownConfig } from './PodcastPageDropdownConfig';
+import { CommonDetailListHeader } from '../../../components/Common/List/CommonDetailListHeader';
 
 type PodcastPageListHeaderProps = {
   ssrHasPodroll?: boolean;
@@ -157,7 +156,7 @@ export const PodcastPageListHeader: React.FC<PodcastPageListHeaderProps> = ({
   }
 
   return (
-    <ListHeader
+    <CommonDetailListHeader
       tabs={<Tabs tabData={tabData} selectedKey={type ?? ''} />}
       sideButtons={sideButtons}
     />

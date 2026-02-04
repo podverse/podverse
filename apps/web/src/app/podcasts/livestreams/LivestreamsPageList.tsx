@@ -2,7 +2,7 @@ import React from 'react';
 import type { DTOCategory } from '@podverse/helpers';
 import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
-import { CoreLivestreams } from '../../../components/Core/List/Livestream/CoreLivestreams';
+import { CoreLivestreams } from '../../../components/Core/Livestream/CoreLivestreams';
 import { ButtonTabs } from '../../../components/Tabs/ButtonTabs';
 import { HowToStartInfo } from '../../../components/InfoWrapper/HowToStartInfo';
 import LoadingSpinnerOverlay from '../../../components/LoadingSpinner/LoadingSpinnerOverlay';

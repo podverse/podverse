@@ -12,13 +12,12 @@ import {
   QUERY_PARAMS_SUBSCRIBED_TYPE,
 } from '@podverse/helpers-requests';
 import React from 'react';
-
 import Dropdown from '../../components/Dropdown/Dropdown';
-import { MainHeader } from '../../components/Main/MainHeader';
 import { ViewSelector } from '../../components/ViewSelector/ViewSelector';
 import { useLocalSettings } from '../../contexts/LocalSettings';
 import { usePodcastsPageContext } from './PodcastsPageContext';
 import { getPodcastsPageDropdownConfig } from './PodcastsPageDropdownConfig';
+import { CommonListPageHeader } from '../../components/Common/List/CommonListPageHeader';
 
 export const PodcastsPageHeader: React.FC = () => {
   const { filterParams, setFilterParams, setShowCategoriesModal } = usePodcastsPageContext();
@@ -124,5 +123,5 @@ export const PodcastsPageHeader: React.FC = () => {
     ? `${tMedia('podcast.podcasts')} > ${tCategories(filterParams.category)}`
     : tMedia('podcast.podcasts');
 
-  return <MainHeader title={headerTitle} buttonsNode={buttonsNode} />;
+  return <CommonListPageHeader title={headerTitle} buttonsNode={buttonsNode} />;
 };

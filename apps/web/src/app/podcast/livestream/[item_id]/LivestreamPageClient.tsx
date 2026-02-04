@@ -6,7 +6,7 @@ import { LivestreamPageList } from './LivestreamPageList';
 import { LivestreamPageListHeader } from './LivestreamPageListHeader';
 import { MainInnerWrapper } from '../../../../components/Main/MainInnerWrapper';
 import { MainInnerContentWrapper } from '../../../../components/Main/MainInnerContentWrapper';
-import { CorePodcastHeader } from '../../../../components/Core/Media/Podcast/CorePodcastHeader';
+import { CorePodcastHeader } from '../../../../components/Core/Podcast/CorePodcastHeader';
 import { SideContent } from '../../../../components/SideContent/SideContent';
 import { LivestreamHeader } from '../../../../components/Media/Livestream/LivestreamHeader';
 
