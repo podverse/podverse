@@ -2,6 +2,7 @@
 
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
+import { useSearchParams } from 'next/navigation';
 import {
   DEDUPE_WINDOW_ADD_BY_RSS_ON_DEMAND_MS,
   formatDateTimeAbbrev,
@@ -20,6 +21,7 @@ import Pagination from '../../../components/Pagination/Pagination';
 import { DetailListWrapper } from '../../../components/List/DetailListWrapper';
 import { RSSFeedSettingsSection } from '../../../components/Settings/RSSFeedSettingsSection';
 import { SideContent } from '../../../components/SideContent/SideContent';
+import Dropdown from '../../../components/Dropdown/Dropdown';
 import { AddByRSSPodcastHeader } from '../../../components/AddByRSS/Podcast/AddByRSSPodcastHeader';
 import { AddByRSSEpisodeNodes } from '../../../components/AddByRSS/Podcast/Episode/AddByRSSEpisodeNodes';
 import { SettingsWrapper } from '../../../components/Settings/SettingsWrapper';
@@ -30,13 +32,14 @@ import { enqueueAddByRSSParse } from '../../../utils/addByRSS/api';
 import { applyAddByRSSParseStatus, pollAddByRSSParseStatus } from '../../../utils/addByRSS/actions';
 import { getAddByRSSFeedByUrl } from '../../../utils/addByRSS/storage';
 import type { AddByRSSFeedRecord, AddByRSSParsedFeed } from '../../../utils/addByRSS/types';
-import { AddByRSSPodcastPageListHeader } from '../../../components/AddByRSS/Podcast/AddByRSSPodcastPageListHeader';
+import { AddByRSSPodcastPageListHeader } from './AddByRSSPodcastPageListHeader';
 
 type AddByRSSPodcastPageDetailClientProps = {
   feed: AddByRSSFeedRecord;
 };
 
 type AddByRSSPodcastPageTabKey = 'episodes' | 'about' | 'settings';
+type AddByRSSPodcastSort = 'recent' | 'oldest';
 
 export const AddByRSSPodcastPageDetailClient: React.FC<AddByRSSPodcastPageDetailClientProps> = ({
   feed,
@@ -46,19 +49,37 @@ export const AddByRSSPodcastPageDetailClient: React.FC<AddByRSSPodcastPageDetail
   const tAuthentication = useTranslations('authentication');
   const tInfo = useTranslations('info');
   const tSettings = useTranslations('settings');
+  const tFilters = useTranslations('filters');
   const locale = useLocale();
+  const searchParams = useSearchParams();
   const { loggedInAccount } = useAccount();
   const { setModalAuthLogin } = useModals();
   const [activeTab, setActiveTab] = useState<AddByRSSPodcastPageTabKey>('episodes');
   const [localFeed, setLocalFeed] = useState(feed);
   const [isUpdating, setIsUpdating] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [currentPage, setCurrentPage] = useState(1);
+  const initialPage = useMemo(() => {
+    const value = parseInt(searchParams.get('page') ?? '1', 10);
+    return Number.isNaN(value) || value < 1 ? 1 : value;
+  }, [searchParams]);
+  const initialSort: AddByRSSPodcastSort = useMemo(
+    () => (searchParams.get('sort') === 'oldest' ? 'oldest' : 'recent'),
+    [searchParams]
+  );
+  const [currentPage, setCurrentPage] = useState(initialPage);
+  const [sort, setSort] = useState<AddByRSSPodcastSort>(initialSort);
 
   useEffect(() => {
     setLocalFeed(feed);
     setCurrentPage(1);
   }, [feed]);
+
+  useEffect(() => {
+    if (searchParams.has('page') || searchParams.has('sort')) {
+      setCurrentPage(initialPage);
+      setSort(initialSort);
+    }
+  }, [initialPage, initialSort, searchParams]);
 
   const mappedFeed = localFeed.mappedFeed;
   const mappedChannel = mappedFeed?.channel;
@@ -67,18 +88,38 @@ export const AddByRSSPodcastPageDetailClient: React.FC<AddByRSSPodcastPageDetail
   const feedDescription = mappedChannel?.description?.value ?? null;
   const items = mappedFeed?.items ?? [];
   const itemsPerPage = PAGINATION.DEFAULT_LIMIT;
+  const sortedItems = useMemo(() => {
+    const next = [...items];
+    next.sort((a, b) => {
+      const aDate = a.item.pub_date ? new Date(a.item.pub_date).getTime() : 0;
+      const bDate = b.item.pub_date ? new Date(b.item.pub_date).getTime() : 0;
+      return sort === 'oldest' ? aDate - bDate : bDate - aDate;
+    });
+    return next;
+  }, [items, sort]);
   const pagedItems = useMemo(() => {
     const startIndex = (currentPage - 1) * itemsPerPage;
-    return items.slice(startIndex, startIndex + itemsPerPage);
-  }, [currentPage, items, itemsPerPage]);
+    return sortedItems.slice(startIndex, startIndex + itemsPerPage);
+  }, [currentPage, itemsPerPage, sortedItems]);
   const totalPages = useMemo(
     () => getTotalPages(items.length, itemsPerPage, pagedItems.length, currentPage),
     [currentPage, items.length, itemsPerPage, pagedItems.length]
   );
+
+  useEffect(() => {
+    if (currentPage > totalPages) {
+      setCurrentPage(totalPages);
+    }
+  }, [currentPage, totalPages]);
   const handlePageChange = useCallback((page: number) => {
     scrollMainToTop();
     setCurrentPage(page);
   }, []);
+  const handleSortChange = (value: string) => {
+    const nextSort = value === 'oldest' ? 'oldest' : 'recent';
+    setSort(nextSort);
+    setCurrentPage(1);
+  };
 
   const lastParsedLabel = useMemo(() => {
     if (!localFeed.lastParsedAt) {
@@ -87,6 +128,19 @@ export const AddByRSSPodcastPageDetailClient: React.FC<AddByRSSPodcastPageDetail
     const formatted = formatDateTimeAbbrev(localFeed.lastParsedAt, locale);
     return tSettings('feed.last_parsed', { date: formatted });
   }, [localFeed.lastParsedAt, locale, tSettings]);
+
+  const sortMenuItems = useMemo(
+    () => [
+      { label: tFilters('sort.recent'), param: 'sort', value: 'recent' },
+      { label: tFilters('sort.oldest'), param: 'sort', value: 'oldest' },
+    ],
+    [tFilters]
+  );
+
+  const sideButtons =
+    activeTab === 'episodes' ? (
+      <Dropdown value={sort} menuItems={sortMenuItems} onChange={handleSortChange} />
+    ) : null;
 
   const statusLabel = useMemo(() => {
     switch (localFeed.status) {
@@ -213,6 +267,7 @@ export const AddByRSSPodcastPageDetailClient: React.FC<AddByRSSPodcastPageDetail
           <AddByRSSPodcastPageListHeader
             selectedKey={activeTab}
             onSelect={(key) => setActiveTab(key)}
+            sideButtons={sideButtons}
           />
           <DetailListWrapper>
             {activeTab === 'episodes' && (
@@ -250,7 +305,6 @@ export const AddByRSSPodcastPageDetailClient: React.FC<AddByRSSPodcastPageDetail
                   statusLine={statusLine}
                   errorMessage={errorMessage}
                 />
-                <LoadingSpinnerOverlay isLoading={isUpdating} />
               </SettingsWrapper>
             )}
           </DetailListWrapper>

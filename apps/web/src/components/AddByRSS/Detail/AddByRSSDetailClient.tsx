@@ -4,30 +4,30 @@ import React from 'react';
 import { useTranslations, useLocale } from 'next-intl';
 import { formatDateAbbrev } from '@podverse/helpers';
 
-import { MainHeader } from '../../components/Main/MainHeader';
-import { MainWrapper } from '../../components/Main/MainWrapper';
-import { MainInnerWrapper } from '../../components/Main/MainInnerWrapper';
-import { MainInnerContentWrapper } from '../../components/Main/MainInnerContentWrapper';
-import { Image } from '../../components/Image/Image';
-import { DescriptionRenderer } from '../../components/Description/DescriptionRenderer';
-import { NoResults } from '../../components/NoResults/NoResults';
-import { DetailListWrapper } from '../../components/List/DetailListWrapper';
-import { SideContent } from '../../components/SideContent/SideContent';
-import LoadingSpinnerOverlay from '../../components/LoadingSpinner/LoadingSpinnerOverlay';
-import { IMAGES } from '../../constants/images';
-import styles from '../../styles/app/add-by-rss/AddByRSSDetail.module.scss';
-import { AddByRSSPodcastPageDetailClient } from './podcast/AddByRSSPodcastPageDetailClient';
-import { AddByRSSAlbumHeader } from '../../components/AddByRSS/Artist/Album/AddByRSSAlbumHeader';
-import { AddByRSSArtistHeader } from '../../components/AddByRSS/Artist/AddByRSSArtistHeader';
-import { AddByRSSEpisodeHeader } from '../../components/AddByRSS/Podcast/Episode/AddByRSSEpisodeHeader';
-import { AddByRSSLivestreamHeader } from '../../components/AddByRSS/Livestream/AddByRSSLivestreamHeader';
-import { AddByRSSTrackHeader } from '../../components/AddByRSS/Artist/Album/Track/AddByRSSTrackHeader';
-import { getAddByRSSFeedByIdText } from '../../utils/addByRSS/storage';
+import { MainHeader } from '../../Main/MainHeader';
+import { MainWrapper } from '../../Main/MainWrapper';
+import { MainInnerWrapper } from '../../Main/MainInnerWrapper';
+import { MainInnerContentWrapper } from '../../Main/MainInnerContentWrapper';
+import { Image } from '../../Image/Image';
+import { DescriptionRenderer } from '../../Description/DescriptionRenderer';
+import { NoResults } from '../../NoResults/NoResults';
+import { DetailListWrapper } from '../../List/DetailListWrapper';
+import { SideContent } from '../../SideContent/SideContent';
+import LoadingSpinnerOverlay from '../../LoadingSpinner/LoadingSpinnerOverlay';
+import { IMAGES } from '../../../constants/images';
+import { AddByRSSPodcastPageDetailClient } from '../../../app/add-by-rss/podcast/AddByRSSPodcastPageDetailClient';
+import { AddByRSSEpisodePageClient } from '../../../app/add-by-rss/episode/AddByRSSEpisodePageClient';
+import { AddByRSSAlbumHeader } from '../Artist/Album/AddByRSSAlbumHeader';
+import { AddByRSSArtistHeader } from '../Artist/AddByRSSArtistHeader';
+import { AddByRSSLivestreamHeader } from '../Livestream/AddByRSSLivestreamHeader';
+import { AddByRSSTrackHeader } from '../Artist/Album/Track/AddByRSSTrackHeader';
+import { getAddByRSSFeedByIdText } from '../../../utils/addByRSS/storage';
 import type {
   AddByRSSFeedRecord,
   AddByRSSMappedFeed,
   AddByRSSResourceType,
-} from '../../utils/addByRSS/types';
+} from '../../../utils/addByRSS/types';
+import styles from '../../../styles/components/AddByRSS/Detail/AddByRSSDetail.module.scss';
 
 type AddByRSSDetailClientProps = {
   resourceType: AddByRSSResourceType;
@@ -79,6 +79,9 @@ export const AddByRSSDetailClient: React.FC<AddByRSSDetailClientProps> = ({
   if (resourceType === 'podcasts') {
     return <AddByRSSPodcastPageDetailClient feed={feed} />;
   }
+  if (resourceType === 'episodes') {
+    return <AddByRSSEpisodePageClient itemGuid={idText} />;
+  }
 
   const mappedFeed = feed.mappedFeed;
   const mappedChannel = mappedFeed?.channel;
@@ -88,8 +91,6 @@ export const AddByRSSDetailClient: React.FC<AddByRSSDetailClientProps> = ({
   const items: AddByRSSMappedFeed['items'] = mappedFeed?.items ?? [];
   const itemsLabel = (() => {
     switch (resourceType) {
-      case 'episodes':
-        return tMedia('podcast.episodes');
       case 'artists':
         return tMedia('music.artists');
       case 'albums':
@@ -108,8 +109,6 @@ export const AddByRSSDetailClient: React.FC<AddByRSSDetailClientProps> = ({
       <AddByRSSAlbumHeader feed={feed} />
     ) : resourceType === 'artists' ? (
       <AddByRSSArtistHeader feed={feed} />
-    ) : resourceType === 'episodes' ? (
-      <AddByRSSEpisodeHeader feed={feed} />
     ) : resourceType === 'livestreams' ? (
       <AddByRSSLivestreamHeader feed={feed} />
     ) : resourceType === 'tracks' ? (

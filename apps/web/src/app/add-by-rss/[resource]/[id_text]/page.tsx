@@ -1,5 +1,5 @@
 import { notFound } from 'next/navigation';
-import { AddByRSSDetailPageClient } from '../../AddByRSSDetailPageClient';
+import { AddByRSSDetailClient } from '../../../../components/AddByRSS/Detail/AddByRSSDetailClient';
 import type { AddByRSSResourceType } from '../../../../utils/addByRSS/types';
 
 const RESOURCE_TYPES: AddByRSSResourceType[] = [
@@ -25,5 +25,5 @@ export default async function AddByRSSDetailPage({ params }: AddByRSSDetailPageP
     notFound();
   }
 
-  return <AddByRSSDetailPageClient resourceType={resource} idText={idText} />;
+  return <AddByRSSDetailClient resourceType={resource} idText={idText} />;
 }

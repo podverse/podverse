@@ -34,3 +34,13 @@ export type AddByRSSFeedRecord = {
   lastParsedAt?: string | null;
   updatedAt: string;
 };
+
+export type AddByRSSEpisodeIndexItem = {
+  id: string;
+  itemGuid: string;
+  feedIdText: string;
+  feedTitle: string;
+  feedImageUrl?: string;
+  bundle: AddByRSSMappedFeed['items'][number];
+  pubDateMs: number;
+};

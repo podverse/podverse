@@ -17,14 +17,14 @@ const alertPlaceholder = (label: string) => () => {
 };
 
 type AddByRSSEpisodeRowProps = {
-  feedIdText: string;
+  itemGuid: string;
   feedTitle: string;
   feedImageUrl?: string;
   bundle: AddByRSSMappedFeed['items'][number];
 };
 
 export const AddByRSSEpisodeRow: React.FC<AddByRSSEpisodeRowProps> = ({
-  feedIdText,
+  itemGuid,
   feedTitle,
   feedImageUrl,
   bundle,
@@ -37,7 +37,7 @@ export const AddByRSSEpisodeRow: React.FC<AddByRSSEpisodeRowProps> = ({
     ? stripAndDecodeHtml(bundle.description.value)
     : feedTitle;
   const imageUrl = bundle.images?.[0]?.url ?? feedImageUrl;
-  const url = `/add-by-rss/episode/${feedIdText}`;
+  const url = `/add-by-rss/episode/${itemGuid}`;
 
   const moreButtonMenuItems = [
     {

@@ -143,6 +143,9 @@ export const SideBar: React.FC = () => {
               {/* <SideBarLink href={ROUTES.ADD_BY_RSS_LIVESTREAMS}>
                 {tMedia('livestream.livestreams')}
               </SideBarLink> */}
+              <SideBarLink href={ROUTES.ADD_BY_RSS_ADD}>
+                {tFeatures('add_feed.add_feed')}
+              </SideBarLink>
             </>
           }
           color="link"

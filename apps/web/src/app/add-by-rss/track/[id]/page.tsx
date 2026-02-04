@@ -1,4 +1,4 @@
-import { AddByRSSDetailPageClient } from '../../AddByRSSDetailPageClient';
+import { AddByRSSDetailClient } from '../../../../components/AddByRSS/Detail/AddByRSSDetailClient';
 
 type AddByRSSTrackDetailPageProps = {
   params: Promise<{ id: string }>;
@@ -7,5 +7,5 @@ type AddByRSSTrackDetailPageProps = {
 export default async function AddByRSSTrackDetailPage({ params }: AddByRSSTrackDetailPageProps) {
   const { id } = await params;
 
-  return <AddByRSSDetailPageClient resourceType="tracks" idText={id} />;
+  return <AddByRSSDetailClient resourceType="tracks" idText={id} />;
 }

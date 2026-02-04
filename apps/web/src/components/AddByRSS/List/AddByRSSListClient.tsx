@@ -1,49 +1,46 @@
 'use client';
 
-import type { FormEvent } from 'react';
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslations } from 'next-intl';
+import { useSearchParams } from 'next/navigation';
 
-import { CallToActionMessage } from '../CallToActionMessage/CallToActionMessage';
-import { TextInput } from '../Form/TextInput';
-import LoadingSpinnerOverlay from '../LoadingSpinner/LoadingSpinnerOverlay';
-import { MainInnerContentWrapper } from '../Main/MainInnerContentWrapper';
-import { MainInnerWrapper } from '../Main/MainInnerWrapper';
-import { MainWrapper } from '../Main/MainWrapper';
-import { NoResults } from '../NoResults/NoResults';
-import { AddByRSSListHeader } from './List/AddByRSSListHeader';
-import { AddByRSSPodcastListNodes } from './Podcast/AddByRSSPodcastListNodes';
-import { useAccount } from '../../contexts/Account';
-import { useModals } from '../../contexts/Modals';
-import { useLocalSettings } from '../../contexts/LocalSettings';
-import styles from '../../styles/app/add-by-rss/AddByRSSList.module.scss';
-import { enqueueAddByRSSParseAll, getFollowedAddByRSSChannels } from '../../utils/addByRSS/api';
-import {
-  applyAddByRSSParseStatus,
-  followAddByRSSChannelAndQueue,
-  pollAddByRSSParseStatus,
-} from '../../utils/addByRSS/actions';
-import { createAddByRSSId, createAddByRSSIdText } from '../../utils/addByRSS/ids';
+import { CallToActionMessage } from '../../CallToActionMessage/CallToActionMessage';
+import LoadingSpinnerOverlay from '../../LoadingSpinner/LoadingSpinnerOverlay';
+import { MainInnerContentWrapper } from '../../Main/MainInnerContentWrapper';
+import { MainInnerWrapper } from '../../Main/MainInnerWrapper';
+import { MainWrapper } from '../../Main/MainWrapper';
+import { NoResults } from '../../NoResults/NoResults';
+import Dropdown from '../../Dropdown/Dropdown';
+import { AddByRSSListHeader } from './AddByRSSListHeader';
+import { AddByRSSPodcastListNodes } from '../Podcast/AddByRSSPodcastListNodes';
+import { useAccount } from '../../../contexts/Account';
+import { useModals } from '../../../contexts/Modals';
+import { useLocalSettings } from '../../../contexts/LocalSettings';
+import { enqueueAddByRSSParseAll, getFollowedAddByRSSChannels } from '../../../utils/addByRSS/api';
+import { applyAddByRSSParseStatus, pollAddByRSSParseStatus } from '../../../utils/addByRSS/actions';
+import { createAddByRSSId, createAddByRSSIdText } from '../../../utils/addByRSS/ids';
 import {
   bulkUpsertAddByRSSFeeds,
   bulkRemoveAddByRSSFeeds,
   getAddByRSSFeedsByResourceType,
   getAllAddByRSSFeeds,
-} from '../../utils/addByRSS/storage';
+} from '../../../utils/addByRSS/storage';
 import type {
   AddByRSSFeedRecord,
   AddByRSSParsedFeed,
   AddByRSSResourceType,
-} from '../../utils/addByRSS/types';
-import { AddByRSSAlbumNodes } from './Artist/Album/AddByRSSAlbumNodes';
-import { AddByRSSArtistNodes } from './Artist/AddByRSSArtistNodes';
-import { AddByRSSEpisodeNodes } from './Podcast/Episode/AddByRSSEpisodeNodes';
-import { AddByRSSLivestreamNodes } from './Livestream/AddByRSSLivestreamNodes';
-import { AddByRSSTrackNodes } from './Artist/Album/Track/AddByRSSTrackNodes';
+} from '../../../utils/addByRSS/types';
+import { AddByRSSAlbumNodes } from '../Artist/Album/AddByRSSAlbumNodes';
+import { AddByRSSArtistNodes } from '../Artist/AddByRSSArtistNodes';
+import { AddByRSSEpisodeNodes } from '../Podcast/Episode/AddByRSSEpisodeNodes';
+import { AddByRSSLivestreamNodes } from '../Livestream/AddByRSSLivestreamNodes';
+import { AddByRSSTrackNodes } from '../Artist/Album/Track/AddByRSSTrackNodes';
 
 type AddByRSSListClientProps = {
   resourceType: AddByRSSResourceType;
 };
+
+type AddByRSSPodcastSort = 'recent' | 'oldest';
 
 const getResourceLabel = (
   resourceType: AddByRSSResourceType,
@@ -103,28 +100,110 @@ const upsertFeedInState = (
 export const AddByRSSListClient: React.FC<AddByRSSListClientProps> = ({ resourceType }) => {
   const tFeatures = useTranslations('features');
   const tMedia = useTranslations('media');
+  const tFilters = useTranslations('filters');
   const tInstructions = useTranslations('instructions');
   const tAuthentication = useTranslations('authentication');
-  const { loggedInAccount, setLoggedInAccount } = useAccount();
+  const { loggedInAccount } = useAccount();
   const { setModalAuthLogin } = useModals();
   const { viewSelected, setViewSelected } = useLocalSettings();
+  const searchParams = useSearchParams();
 
   const [feeds, setFeeds] = useState<AddByRSSFeedRecord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isUpdating, setIsUpdating] = useState(false);
-  const [isAddingFeed, setIsAddingFeed] = useState(false);
-  const [newFeedUrl, setNewFeedUrl] = useState('');
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  const initialPodcastSort = useMemo<AddByRSSPodcastSort>(() => {
+    return searchParams.get('sort') === 'oldest' ? 'oldest' : 'recent';
+  }, [searchParams]);
+
+  const [podcastSort, setPodcastSort] = useState<AddByRSSPodcastSort>(initialPodcastSort);
+
+  useEffect(() => {
+    if (searchParams.has('sort')) {
+      setPodcastSort(initialPodcastSort);
+    }
+  }, [initialPodcastSort, searchParams]);
+
+  const handlePodcastSortChange = (value: string) => {
+    const nextSort: AddByRSSPodcastSort = value === 'oldest' ? 'oldest' : 'recent';
+    setPodcastSort(nextSort);
+  };
 
   const headerTitle = useMemo(
     () => `${tFeatures('add_by_rss.label')} · ${getResourceLabel(resourceType, tMedia)}`,
     [resourceType, tFeatures, tMedia]
   );
 
+  const sortMenuItems = useMemo(
+    () => [
+      { label: tFilters('sort.recent'), param: 'sort', value: 'recent' },
+      { label: tFilters('sort.oldest'), param: 'sort', value: 'oldest' },
+    ],
+    [tFilters]
+  );
+
+  const extraButtons =
+    resourceType === 'podcasts' ? (
+      <Dropdown value={podcastSort} menuItems={sortMenuItems} onChange={handlePodcastSortChange} />
+    ) : null;
+
   const refreshFeeds = useCallback(async () => {
     const nextFeeds = await getAddByRSSFeedsByResourceType(resourceType);
+    if (resourceType === 'podcasts') {
+      const sorted = [...nextFeeds].sort((a, b) => {
+        const aDateRaw = a.mappedFeed?.channel?.about?.last_pub_date ?? null;
+        const bDateRaw = b.mappedFeed?.channel?.about?.last_pub_date ?? null;
+        const aDate =
+          aDateRaw instanceof Date
+            ? aDateRaw.getTime()
+            : aDateRaw
+              ? new Date(aDateRaw).getTime()
+              : 0;
+        const bDate =
+          bDateRaw instanceof Date
+            ? bDateRaw.getTime()
+            : bDateRaw
+              ? new Date(bDateRaw).getTime()
+              : 0;
+        if (aDate === bDate) {
+          return (a.title || a.feedUrl).localeCompare(b.title || b.feedUrl);
+        }
+        return podcastSort === 'oldest' ? aDate - bDate : bDate - aDate;
+      });
+      setFeeds(sorted);
+      return;
+    }
     setFeeds(nextFeeds.sort((a, b) => (a.title || a.feedUrl).localeCompare(b.title || b.feedUrl)));
-  }, [resourceType]);
+  }, [podcastSort, resourceType]);
+
+  useEffect(() => {
+    if (resourceType !== 'podcasts') {
+      return;
+    }
+    setFeeds((prev) => {
+      const sorted = [...prev].sort((a, b) => {
+        const aDateRaw = a.mappedFeed?.channel?.about?.last_pub_date ?? null;
+        const bDateRaw = b.mappedFeed?.channel?.about?.last_pub_date ?? null;
+        const aDate =
+          aDateRaw instanceof Date
+            ? aDateRaw.getTime()
+            : aDateRaw
+              ? new Date(aDateRaw).getTime()
+              : 0;
+        const bDate =
+          bDateRaw instanceof Date
+            ? bDateRaw.getTime()
+            : bDateRaw
+              ? new Date(bDateRaw).getTime()
+              : 0;
+        if (aDate === bDate) {
+          return (a.title || a.feedUrl).localeCompare(b.title || b.feedUrl);
+        }
+        return podcastSort === 'oldest' ? aDate - bDate : bDate - aDate;
+      });
+      return sorted;
+    });
+  }, [podcastSort, resourceType]);
 
   const renderFeeds = () => {
     switch (resourceType) {
@@ -193,8 +272,6 @@ export const AddByRSSListClient: React.FC<AddByRSSListClientProps> = ({ resource
 
   const loadFeeds = useCallback(async () => {
     setIsLoading(true);
-    setErrorMessage(null);
-
     if (!loggedInAccount) {
       setFeeds([]);
       setIsLoading(false);
@@ -205,7 +282,7 @@ export const AddByRSSListClient: React.FC<AddByRSSListClientProps> = ({ resource
       await syncFeeds();
       await refreshFeeds();
     } catch (error) {
-      setErrorMessage((error as Error).message);
+      console.error(error);
     } finally {
       setIsLoading(false);
     }
@@ -257,7 +334,6 @@ export const AddByRSSListClient: React.FC<AddByRSSListClientProps> = ({ resource
     }
 
     setIsUpdating(true);
-    setErrorMessage(null);
 
     try {
       const allFeeds = await getAllAddByRSSFeeds();
@@ -276,67 +352,11 @@ export const AddByRSSListClient: React.FC<AddByRSSListClientProps> = ({ resource
         response.request_ids.map(({ request_id, feed_url }) => pollRequest(request_id, feed_url))
       );
     } catch (error) {
-      setErrorMessage((error as Error).message);
+      console.error(error);
     } finally {
       setIsUpdating(false);
     }
   }, [handleParseStatus, loggedInAccount, pollRequest, setModalAuthLogin]);
-
-  const handleAddFeed = useCallback(
-    async (event?: FormEvent) => {
-      event?.preventDefault();
-      if (isAddingFeed) {
-        return;
-      }
-      if (!loggedInAccount) {
-        setModalAuthLogin({ isOpen: true });
-        return;
-      }
-
-      const feedUrl = newFeedUrl.trim();
-      if (!feedUrl) {
-        return;
-      }
-
-      setIsAddingFeed(true);
-      setErrorMessage(null);
-
-      try {
-        try {
-          new URL(feedUrl);
-        } catch {
-          setErrorMessage(tFeatures('add_by_rss.invalid_url'));
-          setIsAddingFeed(false);
-          return;
-        }
-
-        const { requestId, account } = await followAddByRSSChannelAndQueue({
-          feedUrl,
-          resourceType,
-          title: feedUrl,
-          imageUrl: null,
-        });
-        if (account) {
-          setLoggedInAccount(account);
-        }
-        setNewFeedUrl('');
-        await pollRequest(requestId, feedUrl);
-      } catch (error) {
-        setErrorMessage((error as Error).message);
-      } finally {
-        setIsAddingFeed(false);
-      }
-    },
-    [
-      isAddingFeed,
-      loggedInAccount,
-      newFeedUrl,
-      pollRequest,
-      resourceType,
-      setModalAuthLogin,
-      setLoggedInAccount,
-    ]
-  );
 
   React.useEffect(() => {
     void loadFeeds();
@@ -351,6 +371,7 @@ export const AddByRSSListClient: React.FC<AddByRSSListClientProps> = ({ resource
         checkUpdatesLabel={tFeatures('add_by_rss.check_updates')}
         viewSelected={viewSelected}
         setViewSelected={setViewSelected}
+        extraButtons={extraButtons}
       />
       <MainWrapper>
         <MainInnerWrapper>
@@ -363,27 +384,7 @@ export const AddByRSSListClient: React.FC<AddByRSSListClientProps> = ({ resource
               />
             )}
 
-            {loggedInAccount && (
-              <form onSubmit={handleAddFeed} className={styles.addFeedForm}>
-                <TextInput
-                  value={newFeedUrl}
-                  onChange={(event) => setNewFeedUrl(event.target.value)}
-                  placeholder={tFeatures('add_by_rss.feed_url')}
-                  aria-label={tFeatures('add_by_rss.feed_url')}
-                  className={styles.addFeedInput}
-                  infoError={errorMessage ?? undefined}
-                  aria-invalid={errorMessage ? true : undefined}
-                  button={{
-                    label: tFeatures('add_feed.add_feed'),
-                    onClick: () => {
-                      void handleAddFeed();
-                    },
-                  }}
-                />
-              </form>
-            )}
-
-            {isLoading ? (
+            {isLoading && !isUpdating ? (
               <LoadingSpinnerOverlay isLoading />
             ) : feeds.length === 0 ? (
               <NoResults message={tFeatures('add_by_rss.no_feeds')} />

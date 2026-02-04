@@ -37,7 +37,7 @@ export const AddByRSSEpisodeNodes: React.FC<AddByRSSEpisodeNodesProps> = (props)
           {feeds.map((feed, idx) => (
             <React.Fragment key={feed.idText}>
               <AddByRSSEpisodeRow
-                feedIdText={feed.idText}
+                itemGuid={feed.mappedFeed?.items?.[0]?.item?.guid ?? feed.idText}
                 feedTitle={feed.mappedFeed?.channel?.channel?.title ?? feed.title ?? feed.feedUrl}
                 feedImageUrl={feed.imageUrl ?? feed.mappedFeed?.channel?.images?.[0]?.url}
                 bundle={feed.mappedFeed?.items?.[0] ?? ({} as AddByRSSMappedFeed['items'][number])}
@@ -67,7 +67,7 @@ export const AddByRSSEpisodeNodes: React.FC<AddByRSSEpisodeNodesProps> = (props)
         {items.map((bundle, idx) => (
           <React.Fragment key={bundle.item?.guid ?? idx}>
             <AddByRSSEpisodeRow
-              feedIdText={feedIdText}
+              itemGuid={bundle.item?.guid ?? feedIdText}
               feedTitle={feedTitle}
               feedImageUrl={feedImageUrl}
               bundle={bundle}

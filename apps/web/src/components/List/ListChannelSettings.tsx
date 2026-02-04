@@ -1,5 +1,5 @@
 import { useLocale, useTranslations } from 'use-intl';
-import { DEDUPE_WINDOW_RSS_ON_DEMAND_MS, formatDateAbbrev } from '@podverse/helpers';
+import { DEDUPE_WINDOW_RSS_ON_DEMAND_MS, formatDateTimeAbbrev } from '@podverse/helpers';
 import type { DTOAccount, DTOChannel } from '@podverse/helpers';
 import { getStatusCodeFromError } from '@podverse/helpers-requests';
 import { useAccount } from '../../contexts/Account';
@@ -28,7 +28,7 @@ export const ListChannelSettings = ({ channel }: ListChannelSettingsProps) => {
   const { loadingMap, withLoading, setLoadingFor } = useLoadingMap();
   const locale = useLocale();
   const lastParsedAt = channel.feed?.feed_log?.last_finished_parse_time ?? null;
-  const lastParsedLabel = lastParsedAt ? formatDateAbbrev(lastParsedAt, locale) : null;
+  const lastParsedLabel = lastParsedAt ? formatDateTimeAbbrev(lastParsedAt, locale) : null;
   const rssStatusLine = lastParsedLabel
     ? tSettings('feed.last_parsed', { date: lastParsedLabel })
     : null;

@@ -1,5 +1,5 @@
-import { AddByRSSListClient } from '../../../components/AddByRSS/AddByRSSListClient';
+import { AddByRSSArtistsPageClient } from './AddByRSSArtistsPageClient';
 
 export default function AddByRSSArtistsPage() {
-  return <AddByRSSListClient resourceType="artists" />;
+  return <AddByRSSArtistsPageClient />;
 }

@@ -3,19 +3,21 @@
 import { useTranslations } from 'next-intl';
 import React from 'react';
 
-import { Tabs } from '../../Tabs/Tabs';
-import { CommonDetailListHeader } from '../../Common/List/CommonDetailListHeader';
+import { Tabs } from '../../../components/Tabs/Tabs';
+import { CommonDetailListHeader } from '../../../components/Common/List/CommonDetailListHeader';
 
 type AddByRSSPodcastPageTabKey = 'episodes' | 'about' | 'settings';
 
 type AddByRSSPodcastPageListHeaderProps = {
   selectedKey: AddByRSSPodcastPageTabKey;
   onSelect: (key: AddByRSSPodcastPageTabKey) => void;
+  sideButtons?: React.ReactNode | null;
 };
 
 export const AddByRSSPodcastPageListHeader: React.FC<AddByRSSPodcastPageListHeaderProps> = ({
   selectedKey,
   onSelect,
+  sideButtons = null,
 }) => {
   const tMedia = useTranslations('media');
   const tInfo = useTranslations('info');
@@ -45,5 +47,10 @@ export const AddByRSSPodcastPageListHeader: React.FC<AddByRSSPodcastPageListHead
     },
   ];
 
-  return <CommonDetailListHeader tabs={<Tabs tabData={tabData} selectedKey={selectedKey} />} />;
+  return (
+    <CommonDetailListHeader
+      tabs={<Tabs tabData={tabData} selectedKey={selectedKey} />}
+      sideButtons={sideButtons}
+    />
+  );
 };

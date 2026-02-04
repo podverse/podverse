@@ -14,6 +14,7 @@ type AddByRSSListHeaderProps = {
   checkUpdatesLabel: string;
   viewSelected: ViewSelectedOption;
   setViewSelected: (view: ViewSelectedOption) => void;
+  extraButtons?: React.ReactNode;
 };
 
 export const AddByRSSListHeader: React.FC<AddByRSSListHeaderProps> = ({
@@ -23,12 +24,14 @@ export const AddByRSSListHeader: React.FC<AddByRSSListHeaderProps> = ({
   checkUpdatesLabel,
   viewSelected,
   setViewSelected,
+  extraButtons = null,
 }) => {
   const buttonsNode = (
     <>
-      <Button onClick={onCheckUpdates} isLoading={isUpdating} variant="outline">
+      <Button onClick={onCheckUpdates} isLoading={isUpdating} variant="mini">
         {checkUpdatesLabel}
       </Button>
+      {extraButtons}
       <ViewSelector viewSelected={viewSelected} setViewSelected={setViewSelected} />
     </>
   );

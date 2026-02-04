@@ -56,6 +56,7 @@
     },
     "add_by_rss": {
       "label": "Ajouter par RSS",
+      "add_feed_instructions": "Ajoutez une URL de flux RSS pour suivre des podcasts ou de la musique non répertoriés dans notre annuaire. Nous allons le parser et l'enregistrer dans votre bibliothèque Ajouter par RSS.",
       "check_updates": "Vérifier les mises à jour",
       "feed_url": "URL du flux RSS",
       "invalid_url": "Entrez une URL de flux RSS valide.",
