@@ -5,11 +5,11 @@ import { MainInnerContentWrapper } from '../../components/Main/MainInnerContentW
 import { MainInnerWrapper } from '../../components/Main/MainInnerWrapper';
 import { MainWrapper } from '../../components/Main/MainWrapper';
 
-type ResetPasswordClientProps = {
+type ResetPasswordPageClientProps = {
   token?: string;
 };
 
-export function ResetPasswordClient({ token }: ResetPasswordClientProps) {
+export function ResetPasswordPageClient({ token }: ResetPasswordPageClientProps) {
   const tAuthentication = useTranslations('authentication');
 
   return (
