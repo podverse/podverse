@@ -7,7 +7,7 @@ import type { ReactNode } from 'react';
 import { createContext, useContext, useState, useEffect } from 'react';
 import { apiRequestService } from '../../../factories/apiRequestService';
 
-interface PlaylistContextType {
+interface PlaylistPageContextType {
   filterParams: QueryParamsPlaylistResources;
   setFilterParams: (params: QueryParamsPlaylistResources) => void;
   playlistResources: DTOPlaylistResource[];
@@ -16,17 +16,17 @@ interface PlaylistContextType {
   setTotalPages: (totalPages: number) => void;
 }
 
-const PlaylistContext = createContext<PlaylistContextType | undefined>(undefined);
+const PlaylistPageContext = createContext<PlaylistPageContextType | undefined>(undefined);
 
-interface PlaylistContextProviderProps {
+interface PlaylistPageContextProviderProps {
   children: ReactNode;
   ssrPlaylist: DTOPlaylist;
 }
 
-export const PlaylistContextProvider = ({
+export const PlaylistPageContextProvider = ({
   children,
   ssrPlaylist,
-}: PlaylistContextProviderProps) => {
+}: PlaylistPageContextProviderProps) => {
   const [filterParams, setFilterParams] = useState<QueryParamsPlaylistResources>({ page: 1 });
   const [playlistResources, setPlaylistResources] = useState<DTOPlaylistResource[]>([]);
   const [totalPages, setTotalPages] = useState<number>(1);
@@ -54,7 +54,7 @@ export const PlaylistContextProvider = ({
   }, [filterParams]);
 
   return (
-    <PlaylistContext.Provider
+    <PlaylistPageContext.Provider
       value={{
         filterParams,
         setFilterParams,
@@ -65,14 +65,14 @@ export const PlaylistContextProvider = ({
       }}
     >
       {children}
-    </PlaylistContext.Provider>
+    </PlaylistPageContext.Provider>
   );
 };
 
-export const usePlaylistContext = () => {
-  const ctx = useContext(PlaylistContext);
+export const usePlaylistPageContext = () => {
+  const ctx = useContext(PlaylistPageContext);
   if (!ctx) {
-    throw new Error('usePlaylistContext must be used within a PlaylistContextProvider');
+    throw new Error('usePlaylistPageContext must be used within a PlaylistPageContextProvider');
   }
   return ctx;
 };

@@ -5,7 +5,7 @@ import type { ReactNode } from 'react';
 import { createContext, useContext, useState, useEffect } from 'react';
 import { apiRequestService } from '../../../../factories/apiRequestService';
 
-interface PlaylistEditContextType {
+interface PlaylistEditPageContextType {
   tabSelectedKey: 'info' | 'items';
   setTabSelectedKey: (key: 'info' | 'items') => void;
   medium: string;
@@ -24,17 +24,17 @@ interface PlaylistEditContextType {
   setPlaylistResources: (resources: DTOPlaylistResource[]) => void;
 }
 
-const PlaylistEditContext = createContext<PlaylistEditContextType | undefined>(undefined);
+const PlaylistEditPageContext = createContext<PlaylistEditPageContextType | undefined>(undefined);
 
-interface PlaylistEditContextProviderProps {
+interface PlaylistEditPageContextProviderProps {
   children: ReactNode;
   ssrPlaylist: DTOPlaylist;
 }
 
-export const PlaylistEditContextProvider = ({
+export const PlaylistEditPageContextProvider = ({
   children,
   ssrPlaylist,
-}: PlaylistEditContextProviderProps) => {
+}: PlaylistEditPageContextProviderProps) => {
   const [tabSelectedKey, setTabSelectedKey] = useState<'info' | 'items'>('info');
   const [medium, setMedium] = useState<string>(`${ssrPlaylist.medium_id}`);
   const [sharableStatus, setSharableStatus] = useState<string>(`${ssrPlaylist.sharable_status_id}`);
@@ -61,7 +61,7 @@ export const PlaylistEditContextProvider = ({
   }, [tabSelectedKey]);
 
   return (
-    <PlaylistEditContext.Provider
+    <PlaylistEditPageContext.Provider
       value={{
         tabSelectedKey,
         setTabSelectedKey,
@@ -82,14 +82,16 @@ export const PlaylistEditContextProvider = ({
       }}
     >
       {children}
-    </PlaylistEditContext.Provider>
+    </PlaylistEditPageContext.Provider>
   );
 };
 
-export const usePlaylistEditContext = () => {
-  const ctx = useContext(PlaylistEditContext);
+export const usePlaylistEditPageContext = () => {
+  const ctx = useContext(PlaylistEditPageContext);
   if (!ctx) {
-    throw new Error('usePlaylistEditContext must be used within a PlaylistEditContextProvider');
+    throw new Error(
+      'usePlaylistEditPageContext must be used within a PlaylistEditPageContextProvider'
+    );
   }
   return ctx;
 };

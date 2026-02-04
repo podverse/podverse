@@ -4,7 +4,7 @@ import { MediumEnum, SharableStatusEnum } from '@podverse/helpers';
 import type { ReactNode } from 'react';
 import { createContext, useContext, useState } from 'react';
 
-interface PlaylistCreateContextType {
+interface PlaylistCreatePageContextType {
   medium: string;
   setMedium: (medium: string) => void;
   sharableStatus: string;
@@ -17,13 +17,17 @@ interface PlaylistCreateContextType {
   setIsUpdating: (isUpdating: boolean) => void;
 }
 
-const PlaylistCreateContext = createContext<PlaylistCreateContextType | undefined>(undefined);
+const PlaylistCreatePageContext = createContext<PlaylistCreatePageContextType | undefined>(
+  undefined
+);
 
-interface PlaylistCreateContextProviderProps {
+interface PlaylistCreatePageContextProviderProps {
   children: ReactNode;
 }
 
-export const PlaylistCreateContextProvider = ({ children }: PlaylistCreateContextProviderProps) => {
+export const PlaylistCreatePageContextProvider = ({
+  children,
+}: PlaylistCreatePageContextProviderProps) => {
   const [medium, setMedium] = useState<string>(`${MediumEnum.AV}`);
   const [title, setTitle] = useState<string>('');
   const [description, setDescription] = useState<string>('');
@@ -31,7 +35,7 @@ export const PlaylistCreateContextProvider = ({ children }: PlaylistCreateContex
   const [isUpdating, setIsUpdating] = useState<boolean>(false);
 
   return (
-    <PlaylistCreateContext.Provider
+    <PlaylistCreatePageContext.Provider
       value={{
         medium,
         setMedium,
@@ -46,14 +50,16 @@ export const PlaylistCreateContextProvider = ({ children }: PlaylistCreateContex
       }}
     >
       {children}
-    </PlaylistCreateContext.Provider>
+    </PlaylistCreatePageContext.Provider>
   );
 };
 
-export const usePlaylistCreateContext = () => {
-  const ctx = useContext(PlaylistCreateContext);
+export const usePlaylistCreatePageContext = () => {
+  const ctx = useContext(PlaylistCreatePageContext);
   if (!ctx) {
-    throw new Error('usePlaylistCreateContext must be used within a PlaylistCreateContextProvider');
+    throw new Error(
+      'usePlaylistCreatePageContext must be used within a PlaylistCreatePageContextProvider'
+    );
   }
   return ctx;
 };

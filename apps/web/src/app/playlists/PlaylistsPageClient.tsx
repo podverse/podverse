@@ -2,38 +2,38 @@
 
 import type { DTOPlaylist } from '@podverse/helpers';
 import type { QueryParamsPlaylists } from '@podverse/helpers-requests';
-import { PlaylistsContextProvider } from './PlaylistsContext';
+import { PlaylistsPageContextProvider } from './PlaylistsPageContext';
 import { MainWrapper } from '../../components/Main/MainWrapper';
-import { PlaylistsHeader } from './PlaylistsHeader';
-import { PlaylistsList } from './PlaylistsList';
+import { PlaylistsPageHeader } from './PlaylistsPageHeader';
+import { PlaylistsPageList } from './PlaylistsPageList';
 import { MainInnerWrapper } from '../../components/Main/MainInnerWrapper';
 import { MainInnerContentWrapper } from '../../components/Main/MainInnerContentWrapper';
-import { PlaylistsListHeader } from './PlaylistsListHeader';
+import { PlaylistsPageListHeader } from './PlaylistsPageListHeader';
 
-interface PlaylistsClientProps {
+interface PlaylistsPageClientProps {
   initialQueryParams: QueryParamsPlaylists;
   ssrPlaylists: DTOPlaylist[];
   ssrTotalPages: number;
 }
 
-export function PlaylistsClient(props: PlaylistsClientProps) {
+export function PlaylistsPageClient(props: PlaylistsPageClientProps) {
   const { initialQueryParams, ssrPlaylists, ssrTotalPages } = props;
 
   return (
-    <PlaylistsContextProvider
+    <PlaylistsPageContextProvider
       initialQueryParams={initialQueryParams}
       ssrPlaylists={ssrPlaylists}
       ssrTotalPages={ssrTotalPages}
     >
-      <PlaylistsHeader />
+      <PlaylistsPageHeader />
       <MainWrapper>
         <MainInnerWrapper>
           <MainInnerContentWrapper>
-            <PlaylistsListHeader />
-            <PlaylistsList />
+            <PlaylistsPageListHeader />
+            <PlaylistsPageList />
           </MainInnerContentWrapper>
         </MainInnerWrapper>
       </MainWrapper>
-    </PlaylistsContextProvider>
+    </PlaylistsPageContextProvider>
   );
 }

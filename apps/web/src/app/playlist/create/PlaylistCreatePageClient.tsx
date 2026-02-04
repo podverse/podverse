@@ -1,23 +1,23 @@
 'use client';
 
-import { PlaylistCreateContextProvider } from './PlaylistCreateContext';
+import { PlaylistCreatePageContextProvider } from './PlaylistCreatePageContext';
 import { MainWrapper } from '../../../components/Main/MainWrapper';
 import { MainInnerWrapper } from '../../../components/Main/MainInnerWrapper';
 import { MainInnerContentWrapper } from '../../../components/Main/MainInnerContentWrapper';
-import { PlaylistCreateHeader } from './PlaylistCreateHeader';
-import { PlaylistCreateForm } from './PlaylistCreateForm';
+import { PlaylistCreatePageHeader } from './PlaylistCreatePageHeader';
+import { PlaylistCreatePageForm } from './PlaylistCreatePageForm';
 
-export function PlaylistCreateClient() {
+export function PlaylistCreatePageClient() {
   return (
-    <PlaylistCreateContextProvider>
-      <PlaylistCreateHeader />
+    <PlaylistCreatePageContextProvider>
+      <PlaylistCreatePageHeader />
       <MainWrapper>
         <MainInnerWrapper>
           <MainInnerContentWrapper>
-            <PlaylistCreateForm />
+            <PlaylistCreatePageForm />
           </MainInnerContentWrapper>
         </MainInnerWrapper>
       </MainWrapper>
-    </PlaylistCreateContextProvider>
+    </PlaylistCreatePageContextProvider>
   );
 }

@@ -4,13 +4,13 @@ import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import { getQueryParamFromQueueMediumId } from '@podverse/helpers';
 import React from 'react';
-import { usePlaylistCreateContext } from './PlaylistCreateContext';
+import { usePlaylistCreatePageContext } from './PlaylistCreatePageContext';
 import { apiRequestService } from '../../../factories/apiRequestService';
 import { PlaylistForm } from '../../../components/Playlist/PlaylistForm';
 import { SHARABLE_STATUS } from '../../../constants/sharableStatus';
 import { MEDIUM } from '../../../constants/medium';
 
-export const PlaylistCreateForm: React.FC = () => {
+export const PlaylistCreatePageForm: React.FC = () => {
   const tMedia = useTranslations('media');
   const tFeatures = useTranslations('features');
   const tMisc = useTranslations('misc');
@@ -26,7 +26,7 @@ export const PlaylistCreateForm: React.FC = () => {
     setSharableStatus,
     isUpdating,
     setIsUpdating,
-  } = usePlaylistCreateContext();
+  } = usePlaylistCreatePageContext();
 
   const mediumDropdownMenuItems = MEDIUM.menuItems(tMedia);
   const sharableStatusDropdownMenuItems = SHARABLE_STATUS.menuItems(tMisc);

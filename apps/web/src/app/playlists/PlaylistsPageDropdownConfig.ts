@@ -7,13 +7,17 @@ import type {
 import { getValidQueryParam, QUERY_PARAMS_SUBSCRIBED_FULL_SORT } from '@podverse/helpers-requests';
 import { getRangeDropdownItems } from '../../utils/dropdownMenuItems';
 
-type GetPlaylistsDropdownConfig = {
+type GetPlaylistsPageDropdownConfig = {
   sort: QueryParamsSubscribedFullSort;
   type: QueryParamsPlaylistsType;
   tFilters: (key: string) => string;
 };
 
-export function getPlaylistsDropdownConfig({ sort, type, tFilters }: GetPlaylistsDropdownConfig) {
+export function getPlaylistsPageDropdownConfig({
+  sort,
+  type,
+  tFilters,
+}: GetPlaylistsPageDropdownConfig) {
   let sortDropdownMenuItems = [{ label: tFilters('sort.top'), param: 'sort', value: 'top' }];
 
   if (type === 'public') {
@@ -41,7 +45,7 @@ export function getPlaylistsDropdownConfig({ sort, type, tFilters }: GetPlaylist
   };
 }
 
-type PlaylistsDropdownConfigParams = {
+type PlaylistsPageDropdownConfigParams = {
   type: QueryParamsPlaylistsType | null;
   sort: QueryParamsSubscribedFullSort | null;
   range: QueryParamsStatsRange | null;
@@ -49,7 +53,7 @@ type PlaylistsDropdownConfigParams = {
   page: number;
 };
 
-export type PlaylistsDropdownConfigCurrentParams = {
+export type PlaylistsPageDropdownConfigCurrentParams = {
   currentType: QueryParamsPlaylistsType;
   currentSort: QueryParamsSubscribedFullSort;
   currentRange: QueryParamsStatsRange | null;
@@ -57,10 +61,10 @@ export type PlaylistsDropdownConfigCurrentParams = {
   currentPage: number;
 };
 
-export function getPlaylistsFilterParams(
-  { type, sort, range, medium, page }: PlaylistsDropdownConfigParams,
+export function getPlaylistsPageFilterParams(
+  { type, sort, range, medium, page }: PlaylistsPageDropdownConfigParams,
   isValidAuthSession: boolean
-): PlaylistsDropdownConfigCurrentParams {
+): PlaylistsPageDropdownConfigCurrentParams {
   let currentType = type;
   let currentSort = sort;
   const currentRange = range;

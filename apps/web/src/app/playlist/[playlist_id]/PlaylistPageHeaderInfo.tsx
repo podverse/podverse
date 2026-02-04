@@ -6,11 +6,11 @@ import styles from '../../../styles/app/playlist/PlaylistHeaderInfo.module.scss'
 import { useLocale, useTranslations } from 'next-intl';
 import { MEDIUM } from '../../../constants/medium';
 
-type PlaylistHeaderInfoProps = {
+type PlaylistPageHeaderInfoProps = {
   playlist: DTOPlaylist;
 };
 
-export const PlaylistHeaderInfo = ({ playlist }: PlaylistHeaderInfoProps) => {
+export const PlaylistPageHeaderInfo = ({ playlist }: PlaylistPageHeaderInfoProps) => {
   const tMedia = useTranslations('media');
   const tFeatures = useTranslations('features');
   const tMisc = useTranslations('misc');

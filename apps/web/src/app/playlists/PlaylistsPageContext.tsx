@@ -10,9 +10,9 @@ import { useAccount } from '../../contexts/Account';
 import { useSkipInitialEffect } from '../../hooks/useSkipInitialEffect';
 import { useFilterDefaults } from '../../hooks/useFilterDefaults';
 import { useListPageCache } from '../../hooks/useListPageCache';
-import { getPlaylistsFilterParams } from './PlaylistsDropdownConfig';
+import { getPlaylistsPageFilterParams } from './PlaylistsPageDropdownConfig';
 
-interface PlaylistsContextType {
+interface PlaylistsPageContextType {
   filterParams: QueryParamsPlaylists;
   setFilterParams: (params: QueryParamsPlaylists) => void;
   playlists: DTOPlaylist[];
@@ -25,21 +25,21 @@ interface PlaylistsContextType {
   setShowLoginMessage: (show: boolean) => void;
 }
 
-const PlaylistsContext = createContext<PlaylistsContextType | undefined>(undefined);
+const PlaylistsPageContext = createContext<PlaylistsPageContextType | undefined>(undefined);
 
-interface PlaylistsContextProviderProps {
+interface PlaylistsPageContextProviderProps {
   children: ReactNode;
   initialQueryParams: QueryParamsPlaylists;
   ssrPlaylists: DTOPlaylist[];
   ssrTotalPages: number;
 }
 
-export const PlaylistsContextProvider = ({
+export const PlaylistsPageContextProvider = ({
   children,
   initialQueryParams,
   ssrPlaylists,
   ssrTotalPages,
-}: PlaylistsContextProviderProps) => {
+}: PlaylistsPageContextProviderProps) => {
   // Use the list page cache hook for back navigation caching
   const {
     filterParams,
@@ -80,16 +80,17 @@ export const PlaylistsContextProvider = ({
 
       setIsLoading(true);
 
-      const { currentSort, currentRange, currentType, currentMedium } = getPlaylistsFilterParams(
-        {
-          page: filterParams.page,
-          type: filterParams.type,
-          sort: filterParams.sort,
-          range: filterParams.range,
-          medium: filterParams.medium,
-        },
-        !!loggedInAccount
-      );
+      const { currentSort, currentRange, currentType, currentMedium } =
+        getPlaylistsPageFilterParams(
+          {
+            page: filterParams.page,
+            type: filterParams.type,
+            sort: filterParams.sort,
+            range: filterParams.range,
+            medium: filterParams.medium,
+          },
+          !!loggedInAccount
+        );
 
       const response = await apiRequestService.reqPlaylistGetMany({
         page: filterParams.page,
@@ -116,7 +117,7 @@ export const PlaylistsContextProvider = ({
   }, [filterParams, loggedInAccount]);
 
   return (
-    <PlaylistsContext.Provider
+    <PlaylistsPageContext.Provider
       value={{
         filterParams,
         setFilterParams,
@@ -131,14 +132,14 @@ export const PlaylistsContextProvider = ({
       }}
     >
       {children}
-    </PlaylistsContext.Provider>
+    </PlaylistsPageContext.Provider>
   );
 };
 
-export const usePlaylistsContext = () => {
-  const ctx = useContext(PlaylistsContext);
+export const usePlaylistsPageContext = () => {
+  const ctx = useContext(PlaylistsPageContext);
   if (!ctx) {
-    throw new Error('usePlaylistsContext must be used within a PlaylistsContextProvider');
+    throw new Error('usePlaylistsPageContext must be used within a PlaylistsPageContextProvider');
   }
   return ctx;
 };

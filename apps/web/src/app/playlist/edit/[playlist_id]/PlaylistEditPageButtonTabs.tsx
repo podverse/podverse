@@ -1,11 +1,13 @@
+'use client';
+
 import { useTranslations } from 'next-intl';
 import { ButtonTabs } from '../../../../components/Tabs/ButtonTabs';
-import { usePlaylistEditContext } from './PlaylistEditContext';
+import { usePlaylistEditPageContext } from './PlaylistEditPageContext';
 import styles from '../../../../styles/app/playlist/edit/PlaylistEditButtonTabs.module.scss';
 
-export function PlaylistEditButtonTabs() {
+export function PlaylistEditPageButtonTabs() {
   const tMisc = useTranslations('misc');
-  const { tabSelectedKey, setTabSelectedKey } = usePlaylistEditContext();
+  const { tabSelectedKey, setTabSelectedKey } = usePlaylistEditPageContext();
 
   const buttonTabs = [
     {

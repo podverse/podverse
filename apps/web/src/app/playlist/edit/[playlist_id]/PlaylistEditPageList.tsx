@@ -6,7 +6,7 @@ import React from 'react';
 import type { DTOPlaylist } from '@podverse/helpers';
 
 import { LazyLoadPlaceholder } from '../../../../components/LazyLoadPlaceholder/LazyLoadPlaceholder';
-import { usePlaylistEditContext } from './PlaylistEditContext';
+import { usePlaylistEditPageContext } from './PlaylistEditPageContext';
 
 const ListPlaylistResources = dynamic(
   () =>
@@ -19,12 +19,12 @@ const ListPlaylistResources = dynamic(
   }
 );
 
-type PlaylistEditListProps = {
+type PlaylistEditPageListProps = {
   ssrPlaylist: DTOPlaylist;
 };
 
-export const PlaylistEditList: React.FC<PlaylistEditListProps> = ({ ssrPlaylist }) => {
-  const { playlistResources, tabSelectedKey } = usePlaylistEditContext();
+export const PlaylistEditPageList: React.FC<PlaylistEditPageListProps> = ({ ssrPlaylist }) => {
+  const { playlistResources, tabSelectedKey } = usePlaylistEditPageContext();
 
   if (tabSelectedKey !== 'items') {
     return null;

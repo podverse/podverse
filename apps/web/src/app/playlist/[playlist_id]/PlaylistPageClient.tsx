@@ -4,27 +4,27 @@ import type { DTOPlaylist } from '@podverse/helpers';
 import { MainWrapper } from '../../../components/Main/MainWrapper';
 import { MainInnerWrapper } from '../../../components/Main/MainInnerWrapper';
 import { MainInnerContentWrapper } from '../../../components/Main/MainInnerContentWrapper';
-import { PlaylistHeader } from './PlaylistHeader';
-import { PlaylistContextProvider } from './PlaylistContext';
-import { PlaylistList } from './PlaylistList';
+import { PlaylistPageHeader } from './PlaylistPageHeader';
+import { PlaylistPageContextProvider } from './PlaylistPageContext';
+import { PlaylistPageList } from './PlaylistPageList';
 import { SideContent } from '../../../components/SideContent/SideContent';
 
-interface PlaylistClientProps {
+interface PlaylistPageClientProps {
   ssrPlaylist: DTOPlaylist;
 }
 
-export function PlaylistClient({ ssrPlaylist }: PlaylistClientProps) {
+export function PlaylistPageClient({ ssrPlaylist }: PlaylistPageClientProps) {
   return (
-    <PlaylistContextProvider ssrPlaylist={ssrPlaylist}>
-      <PlaylistHeader playlist={ssrPlaylist} />
+    <PlaylistPageContextProvider ssrPlaylist={ssrPlaylist}>
+      <PlaylistPageHeader playlist={ssrPlaylist} />
       <MainWrapper>
         <MainInnerWrapper>
           <SideContent />
           <MainInnerContentWrapper>
-            <PlaylistList ssrPlaylist={ssrPlaylist} />
+            <PlaylistPageList ssrPlaylist={ssrPlaylist} />
           </MainInnerContentWrapper>
         </MainInnerWrapper>
       </MainWrapper>
-    </PlaylistContextProvider>
+    </PlaylistPageContextProvider>
   );
 }

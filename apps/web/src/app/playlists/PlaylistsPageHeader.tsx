@@ -8,7 +8,7 @@ import { Button } from '../../components/Button/Button';
 import styles from '../../styles/app/playlists/PlaylistsHeader.module.scss';
 import { useRouter } from 'next/navigation';
 
-export const PlaylistsHeader: React.FC = () => {
+export const PlaylistsPageHeader: React.FC = () => {
   const tFeatures = useTranslations('features');
   const router = useRouter();
 

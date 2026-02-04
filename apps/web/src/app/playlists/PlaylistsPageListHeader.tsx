@@ -14,19 +14,19 @@ import {
 import React from 'react';
 import Dropdown from '../../components/Dropdown/Dropdown';
 import { ListHeader } from '../../components/List/ListHeader';
-import { getPlaylistsDropdownConfig } from './PlaylistsDropdownConfig';
+import { getPlaylistsPageDropdownConfig } from './PlaylistsPageDropdownConfig';
 import { Tabs } from '../../components/Tabs/Tabs';
-import { usePlaylistsContext } from './PlaylistsContext';
+import { usePlaylistsPageContext } from './PlaylistsPageContext';
 import { ButtonTabs } from '../../components/Tabs/ButtonTabs';
 import styles from '../../styles/app/playlists/PlaylistsListHeader.module.scss';
 
-export const PlaylistsListHeader: React.FC = () => {
-  const { filterParams, setFilterParams } = usePlaylistsContext();
+export const PlaylistsPageListHeader: React.FC = () => {
+  const { filterParams, setFilterParams } = usePlaylistsPageContext();
   const { type, sort, range } = filterParams;
   const tFilters = useTranslations('filters');
   const tMedia = useTranslations('media');
   const tFeatures = useTranslations('features');
-  const { sortMenuItems, rangeMenuItems, showRangeDropdown } = getPlaylistsDropdownConfig({
+  const { sortMenuItems, rangeMenuItems, showRangeDropdown } = getPlaylistsPageDropdownConfig({
     type,
     sort,
     tFilters,

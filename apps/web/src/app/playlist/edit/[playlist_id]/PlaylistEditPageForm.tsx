@@ -5,17 +5,17 @@ import { useRouter } from 'next/navigation';
 import type { DTOPlaylist } from '@podverse/helpers';
 import { getQueryParamFromQueueMediumId } from '@podverse/helpers';
 import React from 'react';
-import { usePlaylistEditContext } from './PlaylistEditContext';
+import { usePlaylistEditPageContext } from './PlaylistEditPageContext';
 import { apiRequestService } from '../../../../factories/apiRequestService';
 import { PlaylistForm } from '../../../../components/Playlist/PlaylistForm';
 import { SHARABLE_STATUS } from '../../../../constants/sharableStatus';
 import { MEDIUM } from '../../../../constants/medium';
 
-type PlaylistEditFormProps = {
+type PlaylistEditPageFormProps = {
   ssrPlaylist: DTOPlaylist;
 };
 
-export const PlaylistEditForm: React.FC<PlaylistEditFormProps> = ({ ssrPlaylist }) => {
+export const PlaylistEditPageForm: React.FC<PlaylistEditPageFormProps> = ({ ssrPlaylist }) => {
   const tMedia = useTranslations('media');
   const tFeatures = useTranslations('features');
   const tMisc = useTranslations('misc');
@@ -32,7 +32,7 @@ export const PlaylistEditForm: React.FC<PlaylistEditFormProps> = ({ ssrPlaylist 
     isUpdating,
     setIsUpdating,
     tabSelectedKey,
-  } = usePlaylistEditContext();
+  } = usePlaylistEditPageContext();
 
   if (tabSelectedKey !== 'info') {
     return null;

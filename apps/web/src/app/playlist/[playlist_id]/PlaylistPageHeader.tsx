@@ -3,15 +3,15 @@
 import type { DTOPlaylist } from '@podverse/helpers';
 import React from 'react';
 import { useRouter } from 'next/navigation';
-import { PlaylistHeaderInfo } from './PlaylistHeaderInfo';
+import { PlaylistPageHeaderInfo } from './PlaylistPageHeaderInfo';
 import { SubscribeButton } from '../../../components/Media/Header/SubscribeButton';
 import styles from '../../../styles/app/playlist/PlaylistHeader.module.scss';
 
-type PlaylistHeaderProps = {
+type PlaylistPageHeaderProps = {
   playlist: DTOPlaylist;
 };
 
-export const PlaylistHeader: React.FC<PlaylistHeaderProps> = ({ playlist }) => {
+export const PlaylistPageHeader: React.FC<PlaylistPageHeaderProps> = ({ playlist }) => {
   const router = useRouter();
 
   const handleEditClick = () => {
@@ -23,7 +23,7 @@ export const PlaylistHeader: React.FC<PlaylistHeaderProps> = ({ playlist }) => {
       <div className={styles.content}>
         <div className={styles.textSection}>
           <h1 className={styles.title}>{playlist.title}</h1>
-          <PlaylistHeaderInfo playlist={playlist} />
+          <PlaylistPageHeaderInfo playlist={playlist} />
         </div>
         <SubscribeButton entity={playlist} kind="playlist" onEdit={handleEditClick} />
       </div>

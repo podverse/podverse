@@ -1,11 +1,11 @@
 import React from 'react';
 import { ListPlaylists } from '../../components/List/Playlists/ListPlaylists';
-import { usePlaylistsContext } from './PlaylistsContext';
+import { usePlaylistsPageContext } from './PlaylistsPageContext';
 import LoadingSpinnerOverlay from '../../components/LoadingSpinner/LoadingSpinnerOverlay';
 
-export const PlaylistsList: React.FC = () => {
+export const PlaylistsPageList: React.FC = () => {
   const { filterParams, setFilterParams, playlists, totalPages, isLoading, showLoginMessage } =
-    usePlaylistsContext();
+    usePlaylistsPageContext();
   const { page, type } = filterParams;
 
   const showCreator = filterParams.type === 'public' || filterParams.type === 'private_followed';

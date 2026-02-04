@@ -6,7 +6,7 @@ import React from 'react';
 import type { DTOPlaylist } from '@podverse/helpers';
 
 import { LazyLoadPlaceholder } from '../../../components/LazyLoadPlaceholder/LazyLoadPlaceholder';
-import { usePlaylistContext } from './PlaylistContext';
+import { usePlaylistPageContext } from './PlaylistPageContext';
 
 const ListPlaylistResources = dynamic(
   () =>
@@ -19,12 +19,12 @@ const ListPlaylistResources = dynamic(
   }
 );
 
-type PlaylistListProps = {
+type PlaylistPageListProps = {
   ssrPlaylist: DTOPlaylist;
 };
 
-export const PlaylistList: React.FC<PlaylistListProps> = ({ ssrPlaylist }) => {
-  const { playlistResources, totalPages, filterParams, setFilterParams } = usePlaylistContext();
+export const PlaylistPageList: React.FC<PlaylistPageListProps> = ({ ssrPlaylist }) => {
+  const { playlistResources, totalPages, filterParams, setFilterParams } = usePlaylistPageContext();
   const { page } = filterParams;
 
   return (
