@@ -4,30 +4,30 @@ import type { DTOQueue } from '@podverse/helpers';
 import type { QueryParamsHistory } from '@podverse/helpers-requests';
 import { MainWrapper } from '../../components/Main/MainWrapper';
 import { HistoryPageContextProvider } from './HistoryPageContext';
-import { HistoryHeader } from './HistoryHeader';
-import { HistoryList } from './HistoryList';
-import { HistoryListHeader } from './HistoryListHeader';
+import { HistoryPageHeader } from './HistoryPageHeader';
+import { HistoryPageList } from './HistoryPageList';
+import { HistoryPageListHeader } from './HistoryPageListHeader';
 import { MainInnerWrapper } from '../../components/Main/MainInnerWrapper';
 import { MainInnerContentWrapper } from '../../components/Main/MainInnerContentWrapper';
 import { SideContent } from '../../components/SideContent/SideContent';
 
-interface HistoryClientProps {
+interface HistoryPageClientProps {
   initialQueryParams: QueryParamsHistory;
   ssrQueues: DTOQueue[];
 }
 
-export function HistoryClient(props: HistoryClientProps) {
+export function HistoryPageClient(props: HistoryPageClientProps) {
   const { initialQueryParams, ssrQueues } = props;
 
   return (
     <HistoryPageContextProvider initialQueryParams={initialQueryParams} ssrQueues={ssrQueues}>
-      <HistoryHeader />
+      <HistoryPageHeader />
       <MainWrapper>
         <MainInnerWrapper>
           <SideContent />
           <MainInnerContentWrapper>
-            <HistoryListHeader />
-            <HistoryList />
+            <HistoryPageListHeader />
+            <HistoryPageList />
           </MainInnerContentWrapper>
         </MainInnerWrapper>
       </MainWrapper>

@@ -6,7 +6,7 @@ import { ListHeader } from '../../components/List/ListHeader';
 import { useHistoryPageContext } from './HistoryPageContext';
 import { ButtonTabs } from '../../components/Tabs/ButtonTabs';
 
-export const HistoryListHeader: React.FC = () => {
+export const HistoryPageListHeader: React.FC = () => {
   const { filterParams, setFilterParams } = useHistoryPageContext();
   const tMedia = useTranslations('media');
 

@@ -3,7 +3,7 @@ import LoadingSpinnerOverlay from '../../components/LoadingSpinner/LoadingSpinne
 import { useHistoryPageContext } from './HistoryPageContext';
 import { ListHistoryResources } from '../../components/List/Queues/ListHistoryResources';
 
-export const HistoryList: React.FC = () => {
+export const HistoryPageList: React.FC = () => {
   const { filterParams, setFilterParams, queueResources, isLoading, showLoginMessage, totalPages } =
     useHistoryPageContext();
   const { page } = filterParams;
