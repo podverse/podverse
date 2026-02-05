@@ -15,6 +15,8 @@ import { CommonDetailListHeader } from '../../../components/Common/List/CommonDe
 import { Tabs } from '../../../components/Tabs/Tabs';
 import { AddByRSSPodcastHeader } from '../../../components/AddByRSS/Podcast/AddByRSSPodcastHeader';
 import { AddByRSSEpisodeDetailHeader } from '../../../components/AddByRSS/Podcast/Episode/AddByRSSEpisodeDetailHeader';
+import { useAccount } from '../../../contexts/Account';
+import { syncAddByRSSCacheWithServer } from '../../../utils/addByRSS/sync';
 import { getAddByRSSFeedByIdText, getAllAddByRSSFeeds } from '../../../utils/addByRSS/storage';
 import type { AddByRSSFeedRecord, AddByRSSEpisodeIndexItem } from '../../../utils/addByRSS/types';
 import { findAddByRSSEpisodeByGuid } from '../../../utils/addByRSS/episodeIndex';
@@ -30,6 +32,7 @@ export const AddByRSSEpisodePageClient: React.FC<AddByRSSEpisodePageClientProps>
   const tFeatures = useTranslations('features');
   const tInfo = useTranslations('info');
   const tMisc = useTranslations('misc');
+  const { loggedInAccount } = useAccount();
   const [feed, setFeed] = React.useState<AddByRSSFeedRecord | null>(null);
   const [episode, setEpisode] = React.useState<AddByRSSEpisodeIndexItem | null>(null);
   const [isLoading, setIsLoading] = React.useState(true);
@@ -39,6 +42,18 @@ export const AddByRSSEpisodePageClient: React.FC<AddByRSSEpisodePageClientProps>
 
     const load = async () => {
       setIsLoading(true);
+
+      if (!loggedInAccount) {
+        setEpisode(null);
+        setFeed(null);
+        setIsLoading(false);
+        return;
+      }
+
+      await syncAddByRSSCacheWithServer(loggedInAccount.id_text);
+      if (cancelled) {
+        return;
+      }
 
       let found = await getAddByRSSEpisodeByGuid(itemGuid);
       if (!found) {
@@ -72,7 +87,7 @@ export const AddByRSSEpisodePageClient: React.FC<AddByRSSEpisodePageClientProps>
     return () => {
       cancelled = true;
     };
-  }, [itemGuid]);
+  }, [itemGuid, loggedInAccount]);
 
   if (isLoading) {
     return <LoadingSpinnerOverlay isLoading message={tMisc('loading_your_content')} />;

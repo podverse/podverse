@@ -13,8 +13,10 @@ import { NoResults } from '../../../components/NoResults/NoResults';
 import { CommonListPageHeader } from '../../../components/Common/List/CommonListPageHeader';
 import Pagination from '../../../components/Pagination/Pagination';
 import { ViewSelector } from '../../../components/ViewSelector/ViewSelector';
+import { useAccount } from '../../../contexts/Account';
 import { useLocalSettings } from '../../../contexts/LocalSettings';
 import styles from '../../../styles/components/Common/List/Podcasts/Episodes/ListEpisodes.module.scss';
+import { syncAddByRSSCacheWithServer } from '../../../utils/addByRSS/sync';
 import { getAllAddByRSSFeeds } from '../../../utils/addByRSS/storage';
 import {
   ADD_BY_RSS_EPISODES_PAGE_SIZE,
@@ -34,6 +36,7 @@ export const AddByRSSEpisodesPageClient: React.FC = () => {
   const tMedia = useTranslations('media');
   const tFeatures = useTranslations('features');
   const tFilters = useTranslations('filters');
+  const { loggedInAccount } = useAccount();
   const { viewSelected, setViewSelected } = useLocalSettings();
   const searchParams = useSearchParams();
 
@@ -78,6 +81,18 @@ export const AddByRSSEpisodesPageClient: React.FC = () => {
 
     const load = async () => {
       setIsLoading(true);
+
+      if (!loggedInAccount) {
+        setItems([]);
+        setTotalPages(1);
+        setIsLoading(false);
+        return;
+      }
+
+      await syncAddByRSSCacheWithServer(loggedInAccount.id_text);
+      if (cancelled) {
+        return;
+      }
 
       const indexResult = await getAddByRSSEpisodesIndexPageOrEmpty({
         sort,
@@ -156,7 +171,7 @@ export const AddByRSSEpisodesPageClient: React.FC = () => {
     return () => {
       cancelled = true;
     };
-  }, [page, sort, isIndexBuilding]);
+  }, [page, sort, isIndexBuilding, loggedInAccount]);
 
   const headerTitle = `${tFeatures('add_by_rss.label')} · ${tMedia('podcast.episodes')}`;
 
@@ -195,7 +210,7 @@ export const AddByRSSEpisodesPageClient: React.FC = () => {
             ) : items.length > 0 ? (
               <AddByRSSEpisodesListNodes items={items} viewSelected={viewSelected} />
             ) : isLoading ? null : (
-              <NoResults message={tFeatures('add_by_rss.no_feeds')} />
+              <NoResults message={tFeatures('add_by_rss.no_feeds_podcast')} />
             )}
             <LoadingSpinnerOverlay isLoading={isLoading} />
           </MainInnerContentWrapper>

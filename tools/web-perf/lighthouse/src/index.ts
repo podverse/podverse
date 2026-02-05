@@ -3,6 +3,7 @@ console.log('📝 Script starting - loading modules...\n');
 
 import inquirer from 'inquirer';
 import { BrowserAutomation } from './browser-automation.js';
+import type { LighthouseScreenshotOptions } from './lighthouse-runner.js';
 import { LighthouseRunner } from './lighthouse-runner.js';
 import { ReportManager } from './report-manager.js';
 import { ComparisonEngine } from './comparison.js';
@@ -13,7 +14,12 @@ import { DatabaseSetup } from './database-setup.js';
 import { WebAppManager } from './web-app-manager.js';
 import { ApiManager } from './api-manager.js';
 import { killProcessOnPort } from './port-killer.js';
-import { AssetGenerator, AssetServer } from 'podverse-test-assets';
+import {
+  generateFeedAndAssets,
+  checkAssetsServerReachable,
+  populateDatabaseFromFeed,
+  DEFAULT_TEST_FEED_URL,
+} from 'podverse-test-assets';
 import dotenv from 'dotenv';
 import path from 'path';
 import fs from 'fs';
@@ -67,7 +73,6 @@ function getNextReportNumber(existingReports: string[]): string {
 // Store managers in module scope for cleanup handlers
 let webAppManager: WebAppManager | null = null;
 let apiManager: ApiManager | null = null;
-let assetServer: AssetServer | null = null;
 let databaseSetup: DatabaseSetup | null = null;
 
 // Setup signal handlers for cleanup (at module level)
@@ -92,14 +97,6 @@ const cleanup = async (signal?: string) => {
     }
   }
 
-  if (assetServer) {
-    try {
-      await assetServer.stop();
-    } catch (error) {
-      console.error('   ⚠️  Error stopping asset server:', error);
-    }
-  }
-
   if (databaseSetup) {
     try {
       await databaseSetup.teardownLighthouseServices();
@@ -116,11 +113,6 @@ const cleanup = async (signal?: string) => {
   }
   try {
     await killProcessOnPort(1111); // API port
-  } catch {
-    // Ignore
-  }
-  try {
-    await killProcessOnPort(2111); // Asset server port
   } catch {
     // Ignore
   }
@@ -150,13 +142,12 @@ process.on('unhandledRejection', async (reason) => {
 async function main() {
   console.log('🚀 Lighthouse QA System for Podverse Web\n');
 
-  // Clean up any existing processes on test ports at startup
+  // Clean up any existing processes on test ports at startup (web and API only; assets server is user-run)
   console.log('🔍 Checking for existing processes on test ports...');
   try {
     const webPortKilled = await killProcessOnPort(3111);
     const apiPortKilled = await killProcessOnPort(1111);
-    const assetPortKilled = await killProcessOnPort(2111);
-    if (webPortKilled || apiPortKilled || assetPortKilled) {
+    if (webPortKilled || apiPortKilled) {
       console.log('✅ Cleaned up existing processes\n');
     } else {
       console.log('✅ Test ports are free\n');
@@ -169,23 +160,26 @@ async function main() {
   // Check required Docker containers first
   databaseSetup = new DatabaseSetup();
 
-  // Generate test assets BEFORE database setup
-  console.log('🎨 Generating test assets...\n');
-  const assetGenerator = new AssetGenerator({ namespace: 'lighthouse' });
+  // Ensure required test-assets exist: one podcast feed + media (BEFORE database setup)
+  console.log('🎨 Generating podcast feed and assets (test-assets)...\n');
+  const genResult = await generateFeedAndAssets({ count: 1, items: 3 });
+  if (!genResult.success) {
+    console.error('❌ generateFeedAndAssets failed');
+    process.exit(1);
+  }
+  console.log('✅ Feed and assets ready (feed-podcast-1.rss + media)\n');
+
+  // Check that the assets server is reachable (user must run it separately)
   try {
-    await assetGenerator.generateAllAssets();
-  } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    const errorStack = error instanceof Error ? error.stack : undefined;
-    console.error('❌ Failed to generate test assets:', errorMessage);
-    if (errorStack) {
-      console.error(errorStack);
-    }
-    if (errorMessage.includes('ffmpeg-static') || errorMessage.includes('npm install')) {
-      console.error(
-        '\n💡 Hint: Run "npm install" in the tools/test-assets directory to install required dependencies.'
-      );
-    }
+    await checkAssetsServerReachable({ timeoutMs: 5000 });
+    console.log('✅ Assets server reachable\n');
+  } catch (err) {
+    console.error(
+      '❌ The assets server is not running. Lighthouse tests need assets at http://localhost:2111/'
+    );
+    console.error('\nStart the server in a separate terminal, then run Lighthouse again:');
+    console.error('  From repo root: npm run start -w podverse-test-assets');
+    console.error('  Or: cd tools/test-assets && npm run start\n');
     process.exit(1);
   }
 
@@ -205,24 +199,24 @@ async function main() {
       '  docker exec -i podverse_lighthouse_test_db psql -U postgres -d postgres -f /opt/database/combined/init_database.sql'
     );
     console.error(
-      '  docker exec -i podverse_lighthouse_test_db psql -U postgres -d postgres -f /opt/database/seed-scripts/local-lighthouse-test-fixtures.sql'
+      '  Then ensure DB_* env vars are set and run parser (see tools/test-assets docs).'
     );
     process.exit(1);
   }
 
-  // Load API environment variables
+  // Load API environment variables (required before populating DB via parser)
   console.log('🔧 Loading API environment variables...');
   loadEnvFile('.env.api', '../.env.api', true);
   console.log('✅ API environment variables loaded\n');
 
-  // Start asset server BEFORE API/Web (assets need to be available)
-  console.log('🌐 Starting asset server...\n');
-  assetServer = new AssetServer();
+  // Populate database with channel/items from generated feed (test-assets parser)
+  console.log('📥 Populating database from feed (parser in test-assets mode)...\n');
   try {
-    await assetServer.start();
-    console.log(`   ✅ Asset server ready at http://localhost:${assetServer.getPort()}\n`);
+    await populateDatabaseFromFeed(DEFAULT_TEST_FEED_URL);
+    console.log('✅ Database populated from feed\n');
   } catch (error) {
-    console.error('❌ Failed to start asset server:', error);
+    console.error('❌ Failed to populate database from feed:', error);
+    console.error('  Check DB connectivity and that .env.api has correct DB_* values.');
     process.exit(1);
   }
 
@@ -267,6 +261,10 @@ async function main() {
   console.log('📂 Initializing components...');
   const reportManager = new ReportManager('web');
   const comparisonEngine = new ComparisonEngine();
+  const saveScreenshots = process.env.LIGHTHOUSE_SAVE_SCREENSHOTS === 'true';
+  if (saveScreenshots) {
+    console.log('   📸 Screenshots enabled (saved alongside reports/web)');
+  }
   console.log('   ✅ ReportManager and ComparisonEngine initialized\n');
 
   // Get existing reports
@@ -368,13 +366,20 @@ async function main() {
     console.log('✅ Browser ready\n');
 
     console.log('🧪 Starting Lighthouse test suite...\n');
-    const results = await lighthouseRunner.runAllTests(automation);
+    const screenshotOptions: LighthouseScreenshotOptions | undefined = saveScreenshots
+      ? {
+          saveScreenshots: true,
+          screenshotsDir: path.dirname(reportManager.getReportPath(trimmedReportId)),
+          sanitizedReportId: reportManager.sanitizeReportId(trimmedReportId),
+        }
+      : undefined;
+    const results = await lighthouseRunner.runAllTests(automation, screenshotOptions);
 
     console.log('\n✅ All tests completed!\n');
 
     // Save new report
     console.log(`💾 Saving report "${trimmedReportId}"...`);
-    reportManager.saveReport(trimmedReportId, results, baseReport);
+    reportManager.saveReport(trimmedReportId, results, baseReport, saveScreenshots);
     console.log(
       `✅ Report saved to reports/report-${reportManager.sanitizeReportId(trimmedReportId)}.json\n`
     );
@@ -451,15 +456,6 @@ async function main() {
         console.log('   ✅ API server stopped');
       } catch (error) {
         console.error('   ⚠️  Error stopping API server:', error);
-      }
-    }
-
-    // Stop asset server
-    if (assetServer) {
-      try {
-        await assetServer.stop();
-      } catch (error) {
-        console.error('   ⚠️  Error stopping asset server:', error);
       }
     }
 

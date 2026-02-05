@@ -61,6 +61,8 @@
       "feed_url": "RSS Feed URL",
       "invalid_url": "Enter a valid RSS feed URL.",
       "no_feeds": "No RSS feeds saved yet.",
+      "no_feeds_podcast": "No RSS podcast feeds saved yet.",
+      "no_feeds_music": "No RSS music feeds saved yet.",
       "feed_not_found_local": "This feed could not be found locally.",
       "status": "Status",
       "status_failed": "Failed",

@@ -11,9 +11,6 @@ assets/**/*.mp3
 assets/**/*.mp4
 assets/**/*.rss
 
-# Keep RSS feeds
-!assets/**/*.rss
-
 # TypeScript build info
 tsconfig.tsbuildinfo
 

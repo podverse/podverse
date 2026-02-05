@@ -30,7 +30,7 @@ export class AssetServer {
       case '.mp4':
         return 'video/mp4';
       case '.rss':
-        return 'application/rss+xml';
+        return 'application/xml';
       case '.xml':
         return 'text/xml';
       default:
@@ -90,10 +90,15 @@ export class AssetServer {
             }
 
             const mimeType = this.getMimeType(filePath);
-            res.writeHead(200, {
+            const ext = path.extname(filePath).toLowerCase();
+            const headers: Record<string, string> = {
               'Content-Type': mimeType,
-              'Content-Length': data.length,
-            });
+              'Content-Length': String(data.length),
+            };
+            if (ext === '.rss' || ext === '.xml') {
+              headers['Content-Disposition'] = 'inline';
+            }
+            res.writeHead(200, headers);
             res.end(data);
           });
         });

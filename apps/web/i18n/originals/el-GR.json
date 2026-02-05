@@ -61,6 +61,8 @@
       "feed_url": "URL Ροής RSS",
       "invalid_url": "Εισάγετε έγκυρο URL ροής RSS.",
       "no_feeds": "Δεν υπάρχουν αποθηκευμένες ροές RSS ακόμα.",
+      "no_feeds_podcast": "Δεν υπάρχουν αποθηκευμένες ροές RSS podcast ακόμα.",
+      "no_feeds_music": "Δεν υπάρχουν αποθηκευμένες ροές RSS μουσικής ακόμα.",
       "feed_not_found_local": "Αυτή η ροή δεν βρέθηκε τοπικά.",
       "status": "Κατάσταση",
       "status_failed": "Απέτυχε",

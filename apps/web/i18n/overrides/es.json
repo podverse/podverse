@@ -61,6 +61,8 @@
       "feed_url": "",
       "invalid_url": "",
       "no_feeds": "",
+      "no_feeds_podcast": "",
+      "no_feeds_music": "",
       "feed_not_found_local": "",
       "status": "",
       "status_failed": "",

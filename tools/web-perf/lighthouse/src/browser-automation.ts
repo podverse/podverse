@@ -1,5 +1,6 @@
 import type { Browser, Page, BrowserContext } from 'playwright';
 import { chromium } from 'playwright';
+import { LIGHTHOUSE_CHANNEL_ID_FEED_1, LIGHTHOUSE_ITEM_ID_FEED_1 } from 'podverse-test-assets';
 import type { TestUser } from './user-manager.js';
 
 export interface TestUrls {
@@ -8,12 +9,13 @@ export interface TestUrls {
   itemUrl: string;
 }
 
+/** Aligned with feed-1-based assets (feed-podcast-1.rss) after populate. */
 export const TEST_FIXTURES = {
   CHANNEL_1: {
-    id: 'lhtest-chan-1',
-    url: '/podcast/lhtest-chan-1',
-    itemId: 'lhtest-item-1',
-    itemUrl: '/episode/lhtest-item-1',
+    id: LIGHTHOUSE_CHANNEL_ID_FEED_1,
+    url: `/podcast/${LIGHTHOUSE_CHANNEL_ID_FEED_1}`,
+    itemId: LIGHTHOUSE_ITEM_ID_FEED_1,
+    itemUrl: `/episode/${LIGHTHOUSE_ITEM_ID_FEED_1}`,
   },
 };
 

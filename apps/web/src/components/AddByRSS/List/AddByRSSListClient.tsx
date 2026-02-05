@@ -22,6 +22,7 @@ import { createAddByRSSId, createAddByRSSIdText } from '../../../utils/addByRSS/
 import {
   bulkUpsertAddByRSSFeeds,
   bulkRemoveAddByRSSFeeds,
+  clearAddByRSSEpisodesIndex,
   getAddByRSSFeedsByResourceType,
   getAllAddByRSSFeeds,
 } from '../../../utils/addByRSS/storage';
@@ -240,6 +241,7 @@ export const AddByRSSListClient: React.FC<AddByRSSListClientProps> = ({ resource
 
     if (toRemove.length > 0) {
       await bulkRemoveAddByRSSFeeds(toRemove);
+      await clearAddByRSSEpisodesIndex();
     }
 
     const toUpsert: AddByRSSFeedRecord[] = remote.map((channel) => {
@@ -387,7 +389,15 @@ export const AddByRSSListClient: React.FC<AddByRSSListClientProps> = ({ resource
             {isLoading && !isUpdating ? (
               <LoadingSpinnerOverlay isLoading />
             ) : feeds.length === 0 ? (
-              <NoResults message={tFeatures('add_by_rss.no_feeds')} />
+              <NoResults
+                message={tFeatures(
+                  resourceType === 'artists' ||
+                    resourceType === 'albums' ||
+                    resourceType === 'tracks'
+                    ? 'add_by_rss.no_feeds_music'
+                    : 'add_by_rss.no_feeds_podcast'
+                )}
+              />
             ) : (
               renderFeeds()
             )}

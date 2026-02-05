@@ -21,6 +21,8 @@ import { AddByRSSAlbumHeader } from '../Artist/Album/AddByRSSAlbumHeader';
 import { AddByRSSArtistHeader } from '../Artist/AddByRSSArtistHeader';
 import { AddByRSSLivestreamHeader } from '../Livestream/AddByRSSLivestreamHeader';
 import { AddByRSSTrackHeader } from '../Artist/Album/Track/AddByRSSTrackHeader';
+import { useAccount } from '../../../contexts/Account';
+import { syncAddByRSSCacheWithServer } from '../../../utils/addByRSS/sync';
 import { getAddByRSSFeedByIdText } from '../../../utils/addByRSS/storage';
 import type {
   AddByRSSFeedRecord,
@@ -42,19 +44,26 @@ export const AddByRSSDetailClient: React.FC<AddByRSSDetailClientProps> = ({
   const tMisc = useTranslations('misc');
   const tMedia = useTranslations('media');
   const locale = useLocale();
+  const { loggedInAccount } = useAccount();
   const [feed, setFeed] = React.useState<AddByRSSFeedRecord | null>(null);
   const [isLoading, setIsLoading] = React.useState(true);
 
   React.useEffect(() => {
     const load = async () => {
       setIsLoading(true);
+      if (!loggedInAccount) {
+        setFeed(null);
+        setIsLoading(false);
+        return;
+      }
+      await syncAddByRSSCacheWithServer(loggedInAccount.id_text);
       const record = await getAddByRSSFeedByIdText(idText);
       setFeed(record);
       setIsLoading(false);
     };
 
     void load();
-  }, [idText]);
+  }, [idText, loggedInAccount]);
 
   if (isLoading) {
     return <LoadingSpinnerOverlay isLoading message={tMisc('loading_your_content')} />;

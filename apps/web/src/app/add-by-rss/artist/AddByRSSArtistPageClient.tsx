@@ -263,7 +263,7 @@ export const AddByRSSArtistPageClient: React.FC<AddByRSSArtistPageClientProps> =
             sideButtons={sideButtons}
           />
           {isEmptyActiveTab ? (
-            <NoResults message={tFeatures('add_by_rss.no_feeds')} />
+            <NoResults message={tFeatures('add_by_rss.no_feeds_music')} />
           ) : (
             <AddByRSSArtistPageList
               activeTab={activeTab}

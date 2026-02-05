@@ -180,7 +180,7 @@ export const AddByRSSArtistsPageClient: React.FC = () => {
             ) : pagedFeeds.length > 0 ? (
               <AddByRSSArtistNodes feeds={pagedFeeds} viewSelected={viewSelected} />
             ) : isLoading ? null : (
-              <NoResults message={tFeatures('add_by_rss.no_feeds')} />
+              <NoResults message={tFeatures('add_by_rss.no_feeds_music')} />
             )}
             <LoadingSpinnerOverlay isLoading={isLoading} />
           </MainInnerContentWrapper>

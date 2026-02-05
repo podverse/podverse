@@ -16,7 +16,6 @@ export class DatabaseSetup {
   private dockerComposeFile: string;
   private containerName = 'podverse_lighthouse_test_db';
   private networkName = 'podverse_lighthouse_network';
-  private seedScriptPath = '/opt/database/seed-scripts/local-lighthouse-test-fixtures.sql';
   private hostInitSqlPath: string;
 
   constructor() {
@@ -123,7 +122,6 @@ export class DatabaseSetup {
       await this.runPsqlCommand('DROP SCHEMA IF EXISTS public CASCADE; CREATE SCHEMA public;');
       await this.runInitDatabaseFromHost();
       await this.runInitScript();
-      await this.runPsqlFile(this.seedScriptPath);
       await this.verifyCategoryTable();
       console.log('✅ Test database reset and initialized');
     } catch (error: unknown) {

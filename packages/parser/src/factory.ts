@@ -5,6 +5,7 @@ import { PodcastIndexService } from '@podverse/external-services-podcast-index';
 import type { NotificationsContext } from '@podverse/notifications';
 import type { ParserConfig } from './config/types.js';
 import { setParserContext } from './context.js';
+import { createMockPodcastIndexService } from './lib/mockPodcastIndexService.js';
 
 export type ParserContext = {
   config: ParserConfig;
@@ -38,15 +39,17 @@ export function createParserContext(params: CreateParserContextParams): ParserCo
     logLevel: config.log.level,
   });
 
-  const podcastIndexService = config.podcastIndex
-    ? new PodcastIndexService({
-        userAgent: config.userAgent,
-        authKey: config.podcastIndex.authKey,
-        baseUrl: config.podcastIndex.baseUrl,
-        secretKey: config.podcastIndex.secretKey,
-        loggerService,
-      })
-    : undefined;
+  const podcastIndexService = config.testAssetsMode
+    ? createMockPodcastIndexService()
+    : config.podcastIndex
+      ? new PodcastIndexService({
+          userAgent: config.userAgent,
+          authKey: config.podcastIndex.authKey,
+          baseUrl: config.podcastIndex.baseUrl,
+          secretKey: config.podcastIndex.secretKey,
+          loggerService,
+        })
+      : undefined;
 
   const timerManager = new TimerManager(config.log.timer || false, loggerService);
 

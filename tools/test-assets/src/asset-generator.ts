@@ -15,12 +15,9 @@ export class AssetGenerator {
   private assetsDir: string;
   private namespace: string;
 
-  constructor(options: { namespace: string }) {
-    if (!options?.namespace) {
-      throw new Error('AssetGenerator namespace is required.');
-    }
-    this.namespace = options.namespace;
-    // Assets directory is tools/test-assets/assets/<namespace>/
+  constructor(options: { namespace?: string } = {}) {
+    this.namespace = options?.namespace ?? '';
+    // Assets directory is tools/test-assets/assets/ or tools/test-assets/assets/<namespace>/
     this.assetsDir = path.join(__dirname, '../assets', this.namespace);
   }
 
@@ -30,7 +27,11 @@ export class AssetGenerator {
     }
   }
 
-  async generateImage(filename: string, backgroundColor: string = '#FF0000'): Promise<void> {
+  async generateImage(
+    filename: string,
+    backgroundColor: string = '#FF0000',
+    size: { width: number; height: number } = { width: 800, height: 800 }
+  ): Promise<void> {
     const filePath = path.join(this.assetsDir, filename);
 
     // Skip if file already exists
@@ -51,14 +52,14 @@ export class AssetGenerator {
         throw new Error('ffmpeg-static binary not found. Make sure ffmpeg-static is installed.');
       }
 
-      // Generate a colored image using ffmpeg
-      // Using color filter to create a solid color image (800x800 pixels, typical for podcast/album art)
+      // Generate a colored image using ffmpeg (sensible size to limit storage)
       // FFmpeg expects hex color without # symbol
       const hexColor = backgroundColor.replace('#', '');
-      const command = `"${ffmpegPath}" -f lavfi -i color=c=${hexColor}:s=800x800:d=1 -frames:v 1 -pix_fmt yuvj420p -y "${filePath}"`;
+      const { width, height } = size;
+      const command = `"${ffmpegPath}" -f lavfi -i color=c=${hexColor}:s=${width}x${height}:d=1 -frames:v 1 -pix_fmt yuvj420p -y "${filePath}"`;
 
       await execAsync(command);
-      console.log(`   ✅ Generated: ${filename} (color: ${backgroundColor})`);
+      console.log(`   ✅ Generated: ${filename} (color: ${backgroundColor}, ${width}x${height})`);
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       throw new Error(`Failed to generate image file ${filename}: ${errorMessage}`);
