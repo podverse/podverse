@@ -56,6 +56,7 @@
     },
     "add_by_rss": {
       "label": "",
+      "add_feed_instructions": "",
       "check_updates": "",
       "feed_url": "",
       "invalid_url": "",
