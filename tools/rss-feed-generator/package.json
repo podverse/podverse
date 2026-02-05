@@ -1,0 +1,18 @@
+{
+  "name": "podverse-rss-feed-generator",
+  "version": "1.0.0",
+  "description": "CLI to generate tag-rich RSS feeds for parser/testing",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "ensure-assets": "tsx src/ensure-assets.ts"
+  },
+  "dependencies": {
+    "podverse-test-assets": "*"
+  },
+  "devDependencies": {
+    "@types/node": "^25.0.10",
+    "tsx": "^4.19.2",
+    "typescript": "^5.9.2"
+  }
+}
