@@ -13,7 +13,6 @@ import { getStatusCodeFromError } from '@podverse/helpers-requests';
 
 import { CallToActionMessage } from '../../../components/CallToActionMessage/CallToActionMessage';
 import { DescriptionRenderer } from '../../../components/Description/DescriptionRenderer';
-import LoadingSpinnerOverlay from '../../../components/LoadingSpinner/LoadingSpinnerOverlay';
 import { MainInnerContentWrapper } from '../../../components/Main/MainInnerContentWrapper';
 import { MainInnerWrapper } from '../../../components/Main/MainInnerWrapper';
 import { MainWrapper } from '../../../components/Main/MainWrapper';
