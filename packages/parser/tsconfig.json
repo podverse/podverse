@@ -18,6 +18,8 @@
   "exclude": ["node_modules", "dist"],
   "references": [
     { "path": "../helpers" },
+    { "path": "../helpers-requests" },
+    { "path": "../parser-mapping" },
     { "path": "../external-services-firebase" },
     { "path": "../external-services-podcast-index" },
     { "path": "../orm" }

@@ -4,12 +4,16 @@ import type { ILoggerLike } from '@podverse/helpers-backend';
 import { getContainerIpPart } from '@podverse/helpers-backend';
 import crypto from 'crypto';
 import type { ParseRSSFeedAndSaveToDatabaseOptions } from '@podverse/parser';
+import type { MQAddByRSSMessage } from '@queue/types/mq.js';
 
 export type MQQueueName =
   | 'rss-normal'
   | 'rss-on-demand'
   | 'rss-live'
-  | `DLQ.${'rss-normal' | 'rss-on-demand' | 'rss-live'}`;
+  | 'add-by-rss-on-demand'
+  | 'add-by-rss-background'
+  | `DLQ.${'rss-normal' | 'rss-on-demand' | 'rss-live'}`
+  | `DLQ.${'add-by-rss-on-demand' | 'add-by-rss-background'}`;
 
 type MQRSSMessage = {
   url: string;
@@ -17,7 +21,7 @@ type MQRSSMessage = {
   options: ParseRSSFeedAndSaveToDatabaseOptions;
 };
 
-type Message = MQRSSMessage;
+type Message = MQRSSMessage | MQAddByRSSMessage;
 
 type SendMessageParams = {
   queueName: MQQueueName;
@@ -311,10 +315,9 @@ export class ActiveMQArtemisService {
     if (!dedupeCacheTimeMS || dedupeCacheTimeMS <= 0) {
       return null;
     }
-    const baseHash = crypto
-      .createHash('sha256')
-      .update(JSON.stringify(message.podcast_index_id))
-      .digest('hex');
+    const dedupeValue =
+      'podcast_index_id' in message ? (message.podcast_index_id ?? message.url) : message.feedUrl;
+    const baseHash = crypto.createHash('sha256').update(String(dedupeValue)).digest('hex');
     const now = Date.now();
     const bucketStart = Math.floor(now / dedupeCacheTimeMS) * dedupeCacheTimeMS;
     return `${queueName}:${bucketStart}:${baseHash}`;
@@ -326,6 +329,15 @@ export class ActiveMQArtemisService {
       const sender = await this.ensureSender(queueName);
       const bodyString = JSON.stringify(message);
       const duplicateId = this.computeDuplicateId(queueName, message, dedupeCacheTimeMS);
+      if (process.env.MQ_DEBUG === 'true') {
+        this.logger.info('MQ send debug', {
+          queueName,
+          host: this.params.host,
+          port: this.params.port,
+          protocol: this.params.protocol,
+          duplicateId,
+        });
+      }
       const priorityValue = !priority || priority === 'normal' ? 5 : 1;
       await new Promise<void>((resolve, reject) => {
         const delivery = sender.send({
@@ -359,6 +371,7 @@ export class ActiveMQArtemisService {
         `sendMessage: Error sending message to queue ${queueName}`,
         error as Error
       );
+      throw error;
     }
   }
 

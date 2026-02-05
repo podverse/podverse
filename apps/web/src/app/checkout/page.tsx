@@ -1,6 +1,6 @@
 import { getSSRApiRequestService } from '../../factories/apiRequestService';
 import { config } from '../../config';
-import { CheckoutClient } from './CheckoutClient';
+import { CheckoutPageClient } from './CheckoutPageClient';
 
 type MembershipPricingData = {
   costMonthly: number;
@@ -30,5 +30,5 @@ export default async function CheckoutPage() {
     }
   }
 
-  return <CheckoutClient pricingData={pricingData} isContactOnlyMode={isContactOnlyMode} />;
+  return <CheckoutPageClient pricingData={pricingData} isContactOnlyMode={isContactOnlyMode} />;
 }

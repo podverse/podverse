@@ -1,7 +1,7 @@
 import type { Episode } from 'podverse-partytime';
 import type { EntityManager, Item } from '@podverse/orm';
 import { ItemAboutService } from '@podverse/orm';
-import { compatItemAboutDto } from '@parser/lib/compat/partytime/item.js';
+import { compatItemAboutDto } from '@podverse/parser-mapping';
 
 export const handleParsedItemAbout = async (
   parsedItem: Episode,

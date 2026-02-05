@@ -1,7 +1,7 @@
 import type { FeedObject } from 'podverse-partytime';
 import type { Channel, EntityManager } from '@podverse/orm';
 import { ChannelCategoryService } from '@podverse/orm';
-import { compatChannelCategoryDtos } from '@parser/lib/compat/partytime/channel.js';
+import { compatChannelCategoryDtos } from '@podverse/parser-mapping';
 import { timerManager } from '@parser/factories/timerManager.js';
 
 export const handleParsedChannelCategory = async (

@@ -6,7 +6,7 @@ import type { ViewSelectedOption } from '../../ViewSelector/ViewSelector';
 import { ListLiveItemRow } from './ListLiveItemRow';
 import { Divider } from '../../Divider/Divider';
 import { ListLiveItemGridNode } from './ListLiveItemGridNode';
-import styles from '../../../styles/components/List/ListNodes.module.scss';
+import styles from '../../../styles/components/Common/List/ListNodes.module.scss';
 
 interface Params {
   items: DTOItem[];

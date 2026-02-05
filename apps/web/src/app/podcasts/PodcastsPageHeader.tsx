@@ -1,0 +1,127 @@
+'use client';
+
+import { useTranslations } from 'next-intl';
+import type {
+  QueryParamsStatsRange,
+  QueryParamsSubscribedFullSort,
+  QueryParamsSubscribedType,
+} from '@podverse/helpers-requests';
+import {
+  QUERY_PARAMS_STATS_RANGE_VALUES,
+  QUERY_PARAMS_SUBSCRIBED_FULL_SORT,
+  QUERY_PARAMS_SUBSCRIBED_TYPE,
+} from '@podverse/helpers-requests';
+import React from 'react';
+import Dropdown from '../../components/Dropdown/Dropdown';
+import { ViewSelector } from '../../components/ViewSelector/ViewSelector';
+import { useLocalSettings } from '../../contexts/LocalSettings';
+import { usePodcastsPageContext } from './PodcastsPageContext';
+import { getPodcastsPageDropdownConfig } from './PodcastsPageDropdownConfig';
+import { CommonListPageHeader } from '../../components/Common/List/CommonListPageHeader';
+
+export const PodcastsPageHeader: React.FC = () => {
+  const { filterParams, setFilterParams, setShowCategoriesModal } = usePodcastsPageContext();
+  const { viewSelected, setViewSelected } = useLocalSettings();
+  const { type, sort, range } = filterParams;
+  const tMedia = useTranslations('media');
+  const tFilters = useTranslations('filters');
+  const tCategories = useTranslations('categories');
+  const { typeMenuItems, sortMenuItems, rangeMenuItems, showRangeDropdown } =
+    getPodcastsPageDropdownConfig({ type, sort, tFilters });
+  const medium = 'av';
+
+  function isChannelType(val: string): val is QueryParamsSubscribedType {
+    return QUERY_PARAMS_SUBSCRIBED_TYPE.includes(val as QueryParamsSubscribedType);
+  }
+  function isChannelSort(val: string): val is QueryParamsSubscribedFullSort {
+    return QUERY_PARAMS_SUBSCRIBED_FULL_SORT.includes(val as QueryParamsSubscribedFullSort);
+  }
+  function isStatsRange(val: string): val is QueryParamsStatsRange {
+    return QUERY_PARAMS_STATS_RANGE_VALUES.includes(val as QueryParamsStatsRange);
+  }
+
+  const handleTypeChange = (value: string) => {
+    if (isChannelType(value)) {
+      if (value === 'global') {
+        setFilterParams({
+          page: 1,
+          medium,
+          type: value,
+          sort: 'recent',
+          range: null,
+          category: null,
+        });
+      } else if (value === 'category') {
+        setShowCategoriesModal(true);
+      } else if (value === 'subscribed') {
+        setFilterParams({
+          page: 1,
+          medium,
+          type: value,
+          sort: 'a_z',
+          range: null,
+          category: null,
+        });
+      }
+    }
+  };
+
+  const handleSortChange = (value: string) => {
+    if (isChannelSort(value)) {
+      if (value === 'top') {
+        setFilterParams({
+          page: 1,
+          medium,
+          type: filterParams.type,
+          sort: value,
+          range: 'week',
+          category: filterParams.category,
+        });
+      } else {
+        setFilterParams({
+          page: 1,
+          medium,
+          type: filterParams.type,
+          sort: value,
+          range: filterParams.range,
+          category: filterParams.category,
+        });
+      }
+    }
+  };
+
+  const handleRangeChange = (value: string) => {
+    if (isStatsRange(value)) {
+      setFilterParams({
+        page: 1,
+        medium,
+        type: filterParams.type,
+        sort: filterParams.sort,
+        range: value,
+        category: filterParams.category,
+      });
+    }
+  };
+
+  const buttonsNode = (
+    <>
+      <Dropdown key="type" value={type} menuItems={typeMenuItems} onChange={handleTypeChange} />
+      <Dropdown key="sort" value={sort} menuItems={sortMenuItems} onChange={handleSortChange} />
+      {showRangeDropdown && range && (
+        <Dropdown
+          key="range"
+          value={range}
+          menuItems={rangeMenuItems}
+          onChange={handleRangeChange}
+        />
+      )}
+      <ViewSelector viewSelected={viewSelected} setViewSelected={setViewSelected} />
+    </>
+  );
+
+  const headerTitle = filterParams.category
+    ? `${tMedia('podcast.podcasts')} > ${tCategories(filterParams.category)}`
+    : tMedia('podcast.podcasts');
+
+  return <CommonListPageHeader title={headerTitle} buttonsNode={buttonsNode} />;
+};

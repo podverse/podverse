@@ -1,7 +1,7 @@
 import type { Episode } from 'podverse-partytime';
 import type { EntityManager, Item } from '@podverse/orm';
 import { ItemLocationService } from '@podverse/orm';
-import { compatItemLocationDto } from '@parser/lib/compat/partytime/item.js';
+import { compatItemLocationDto } from '@podverse/parser-mapping';
 import { handleParsedOneData } from '../base/handleParsedOneData.js';
 
 export const handleParsedItemLocation = async (

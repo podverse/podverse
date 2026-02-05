@@ -1,5 +1,5 @@
-import { PlaylistCreateClient } from './PlaylistCreateClient';
+import { PlaylistCreatePageClient } from './PlaylistCreatePageClient';
 
 export default async function PlaylistCreatePage() {
-  return <PlaylistCreateClient />;
+  return <PlaylistCreatePageClient />;
 }

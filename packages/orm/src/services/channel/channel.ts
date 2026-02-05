@@ -214,6 +214,7 @@ export class ChannelService {
       // can't use Feed service here because of circular dependency
       const feed = await this.feedRepositoryRead.findOne({
         where: { id: Equal(channel.feed_id) },
+        relations: { feed_log: true },
       });
       if (feed) {
         channel.feed = feed;

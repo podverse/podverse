@@ -1,7 +1,7 @@
 import { ItemChapterService, ItemChaptersFeedLogService } from '@podverse/orm';
 import type { ItemChapterDto, Item, ItemChaptersFeed } from '@podverse/orm';
-import type { PIChapter } from '@parser/lib/compat/chapters/chapters.js';
-import { compatParsedChapters } from '@parser/lib/compat/chapters/chapters.js';
+import type { PIChapter } from '@podverse/parser-mapping';
+import { compatParsedChapters } from '@podverse/parser-mapping';
 import { _request } from '../_request.js';
 
 const getParsedChapters = async (

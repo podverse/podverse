@@ -1,7 +1,7 @@
 import { notFound } from 'next/navigation';
 import { z } from 'zod';
 import { getSSRAuthService } from '../../../../utils/auth/ssrAuth';
-import { ClipEditClient } from './ClipEditClient';
+import { ClipEditPageClient } from './ClipEditPageClient';
 
 const searchParamsSchema = z.object({
   ers: z
@@ -39,7 +39,7 @@ export default async function ClipEditPage({ params, searchParams }: ClipEditPag
   }
 
   return (
-    <ClipEditClient
+    <ClipEditPageClient
       ssrClip={ssrClip}
       ssrEnclosureTypeSelected={ssrEnclosureTypeSelected}
       ssrEnclosureRowSelected={ssrEnclosureRowSelected}

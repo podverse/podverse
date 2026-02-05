@@ -18,16 +18,17 @@ The workers app validates environment variables **per command**. Each job only v
 
 ### Command groups and env categories
 
-| Command group                   | Categories validated                     | Commands (examples)                                         |
-| ------------------------------- | ---------------------------------------- | ----------------------------------------------------------- |
-| Base only                       | Base                                     | podcastIndexDeadFeedsDeleteCache                            |
-| Base + ORM only                 | Base, ORM                                | archiveAll, statsUpdateAggregated, orm\*                    |
-| Base + Podcast Index            | Base, PodcastIndex                       | podcastIndexTrendingPodcastsGet, podcastIndexValueUpdateAll |
-| Base + ORM + Podcast Index      | Base, ORM, PodcastIndex                  | podcastIndexDeadFeedsFlagAndMerge                           |
-| Base + ORM + MQ                 | Base, ORM, MQ                            | mqRSSRunDlqConsumer, mqRSSAddAll                            |
-| Base + ORM + MQ + Podcast Index | Base, ORM, MQ, PodcastIndex              | mqRSSAdd                                                    |
-| Base + ORM + Parser + PI + Web  | Base, ORM, Parser, PodcastIndex, Web     | parserRSSParseFeed                                          |
-| Full stack                      | Base, ORM, MQ, Parser, PodcastIndex, Web | mqRSSRunParser, mqRSSRunLiveItemListener                    |
+| Command group                       | Categories validated                     | Commands (examples)                                         |
+| ----------------------------------- | ---------------------------------------- | ----------------------------------------------------------- |
+| Base only                           | Base                                     | podcastIndexDeadFeedsDeleteCache                            |
+| Base + ORM only                     | Base, ORM                                | archiveAll, statsUpdateAggregated, orm\*                    |
+| Base + Podcast Index                | Base, PodcastIndex                       | podcastIndexTrendingPodcastsGet, podcastIndexValueUpdateAll |
+| Base + ORM + Podcast Index          | Base, ORM, PodcastIndex                  | podcastIndexDeadFeedsFlagAndMerge                           |
+| Base + ORM + MQ                     | Base, ORM, MQ                            | mqRSSRunDlqConsumer, mqRSSAddAll                            |
+| Base + ORM + MQ + Podcast Index     | Base, ORM, MQ, PodcastIndex              | mqRSSAdd                                                    |
+| Base + MQ + Parser + KeyValDB       | Base, MQ, Parser, KeyValDB               | mqAddByRSSRunParser                                         |
+| Base + ORM + MQ + Parser + PI + Web | Base, ORM, MQ, Parser, PodcastIndex, Web | parserRSSParseFeed                                          |
+| Full stack                          | Base, ORM, MQ, Parser, PodcastIndex, Web | mqRSSRunParser, mqRSSRunLiveItemListener                    |
 
 Within each category, vars are required or optional as listed in the sections below. Only the categories for your command are validated.
 
@@ -65,10 +66,14 @@ examples if needed. For the full checklist (including index.ts and new categorie
 
 ## Podcast Index
 
+These variables are required only for commands that include the Podcast Index category
+(see "Command groups and env categories" above).
+
 - **`PODCAST_INDEX_AUTH_KEY`** (Required) - Podcast Index API authentication key
 - **`PODCAST_INDEX_BASE_URL`** (Required) - Podcast Index API base URL
 - **`PODCAST_INDEX_SECRET_KEY`** (Required) - Podcast Index API secret key
-- **`PODCAST_INDEX_API_RATE_LIMIT_DELAY`** (Optional) - Rate limit delay in milliseconds for Podcast Index API requests
+- **`PODCAST_INDEX_API_RATE_LIMIT_DELAY`** (Optional) - Rate limit delay in milliseconds for
+  Podcast Index API requests
 
 ## Message Queue (commands that use MQ)
 
@@ -77,6 +82,13 @@ examples if needed. For the full checklist (including index.ts and new categorie
 - **`MESSAGE_QUEUE_USERNAME`** (Required) - Message queue username
 - **`MESSAGE_QUEUE_PASSWORD`** (Required) - Message queue password
 - **`MESSAGE_QUEUE_PORT`** (Required) - Message queue port
+
+## KeyValDB (commands that use Redis)
+
+- **`KEYVALDB_HOST`** (Required) - Redis host
+- **`KEYVALDB_PORT`** (Required) - Redis port
+- **`KEYVALDB_PASSWORD`** (Required) - Redis password
+- **`KEYVALDB_CACHE_TTL_SECONDS`** (Required) - Default TTL for cached entries
 
 ## Database (for ORM Module)
 

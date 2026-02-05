@@ -29,6 +29,7 @@ const run = async () => {
     CATEGORY_PARSER,
     CATEGORY_PODCAST_INDEX,
     CATEGORY_WEB_NOTIFICATIONS,
+    CATEGORY_KEYVALDB,
   } = await import('./lib/startup/categoriesForCommand.js');
 
   /**
@@ -59,11 +60,14 @@ const run = async () => {
     getPodcastIndexConfig,
     getExternalServicesConfig,
     getNotificationsConfig,
+    getKeyvaldbConfig,
   } = await import('./config/index.js');
   const { setLoggerService, getLoggerService } = await import('./factories/loggerService.js');
   const { setLogger } = await import('./factories/logger.js');
   const { setTimerManager } = await import('./factories/timerManager.js');
   const { setActiveMQArtemisService } = await import('./factories/activeMQArtemisService.js');
+  const { initKeyvaldb, testKeyvaldbConnection, waitForKeyvaldbConnection } =
+    await import('./lib/keyvaldb/keyvaldb.js');
   const { ActiveMQArtemisService } = await import('@podverse/mq');
   const { setPodcastIndexService } = await import('./factories/podcastIndexService.js');
 
@@ -119,8 +123,8 @@ const run = async () => {
         ormContext = createORMContext(ormConfig);
       }
 
-      let firebaseContext: ReturnType<typeof createFirebaseContext> | null = null;
-      let notificationsContext: ReturnType<typeof createNotificationsContext> | null = null;
+      let firebaseContext: ReturnType<typeof createFirebaseContext> | undefined;
+      let notificationsContext: ReturnType<typeof createNotificationsContext> | undefined;
 
       if (categories.has(CATEGORY_WEB_NOTIFICATIONS)) {
         const externalServicesConfig = getExternalServicesConfig();
@@ -151,10 +155,45 @@ const run = async () => {
         setActiveMQArtemisService(new ActiveMQArtemisService(mqConfig, getLoggerService()));
       }
 
+      if (categories.has(CATEGORY_KEYVALDB)) {
+        const { Redis } = await import('ioredis');
+        const keyvaldbConfig = getKeyvaldbConfig();
+        const client = new Redis({
+          host: keyvaldbConfig.host,
+          port: keyvaldbConfig.port,
+          password: keyvaldbConfig.password,
+          retryStrategy: (times: number) => {
+            if (times > 3) {
+              return null;
+            }
+            return Math.min(times * 200, 3000);
+          },
+          maxRetriesPerRequest: 1,
+          enableOfflineQueue: false,
+        });
+        initKeyvaldb(client, keyvaldbConfig);
+        const keyvaldbReady = await waitForKeyvaldbConnection();
+        if (!keyvaldbReady) {
+          console.error('KeyValDB connection did not become ready before ping', {
+            host: keyvaldbConfig.host,
+            port: keyvaldbConfig.port,
+          });
+          throw new Error('FATAL: KeyValDB connection not ready');
+        }
+        const keyvaldbOk = await testKeyvaldbConnection();
+        if (!keyvaldbOk) {
+          console.error('KeyValDB connection test failed', {
+            host: keyvaldbConfig.host,
+            port: keyvaldbConfig.port,
+          });
+          throw new Error('FATAL: KeyValDB connection test failed');
+        }
+      }
+
       if (categories.has(CATEGORY_PARSER)) {
         const podcastIndexConfig = categories.has(CATEGORY_PODCAST_INDEX)
           ? getPodcastIndexConfig()
-          : { authKey: '', baseUrl: '', secretKey: '' };
+          : undefined;
         const parserConfig = {
           userAgent: baseConfig.userAgent,
           log: {
@@ -166,12 +205,14 @@ const run = async () => {
             notifications_enabled: process.env.GOOGLE_FIREBASE_NOTIFICATIONS_ENABLED === 'true',
             authJsonPath: process.env.GOOGLE_FIREBASE_ADMIN_JSON_KEY_PATH,
           },
-          podcastIndex: {
-            authKey: podcastIndexConfig.authKey,
-            baseUrl: podcastIndexConfig.baseUrl,
-            secretKey: podcastIndexConfig.secretKey,
-            rateLimitDelay: podcastIndexConfig.rateLimitDelay ?? 0,
-          },
+          podcastIndex: podcastIndexConfig
+            ? {
+                authKey: podcastIndexConfig.authKey,
+                baseUrl: podcastIndexConfig.baseUrl,
+                secretKey: podcastIndexConfig.secretKey,
+                rateLimitDelay: podcastIndexConfig.rateLimitDelay ?? 0,
+              }
+            : undefined,
           parser: {
             addRemoteItemsToMQ: process.env.PARSER_ADD_REMOTE_ITEMS_TO_MQ === 'true',
           },
@@ -184,13 +225,11 @@ const run = async () => {
           },
         };
         assertConfigValid(validateParserConfig(parserConfig), 'podverse-parser');
-        if (firebaseContext && notificationsContext) {
-          createParserContext({
-            config: parserConfig,
-            notificationsContext,
-            firebaseContext,
-          });
-        }
+        createParserContext({
+          config: parserConfig,
+          notificationsContext,
+          firebaseContext,
+        });
       }
 
       if (ormContext) {

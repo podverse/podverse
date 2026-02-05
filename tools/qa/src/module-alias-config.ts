@@ -1,6 +1,6 @@
-import moduleAlias from 'module-alias';
+import { addAliases } from 'module-alias';
 import path from 'path';
 
-moduleAlias.addAliases({
+addAliases({
   '@qa': path.join(__dirname, ''),
 });

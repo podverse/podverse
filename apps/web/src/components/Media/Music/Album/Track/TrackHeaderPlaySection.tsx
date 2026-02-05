@@ -20,7 +20,7 @@ import { useAutoQueue } from '../../../../../contexts/AutoQueue';
 import { useQueueResourcesAbridgedIndex } from '../../../../../contexts/QueueResourcesAbridgedIndex';
 import { useAccount } from '../../../../../contexts/Account';
 import { downloadTrackWithModal } from '../../../../../utils/downloadModal/downloadTrackWithModal';
-import styles from '../../../../../styles/components/Media/Podcast/Episode/EpisodeHeaderPlaySection.module.scss';
+import styles from '../../../../../styles/components/Common/Media/Podcast/Episode/EpisodeHeaderPlaySection.module.scss';
 
 type TrackHeaderPlaySectionProps = {
   item: DTOItem;

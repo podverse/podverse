@@ -8,11 +8,11 @@ import {
 } from '@podverse/helpers-requests';
 import { cookies } from 'next/headers';
 import { z } from 'zod';
-import { ArtistsClient } from './ArtistsClient';
+import { ArtistsPageClient } from './ArtistsPageClient';
 import { getSSRAuthService } from '../../utils/auth/ssrAuth';
 import { guardSubscribedSsrFilter, safeSsrListRequest } from '../../utils/filters/ssrFilterGuards';
-import type { ArtistsDropdownConfigCurrentParams } from './ArtistsDropdownConfig';
-import { getArtistsFilterParams } from './ArtistsDropdownConfig';
+import type { ArtistsPageDropdownConfigCurrentParams } from './ArtistsPageDropdownConfig';
+import { getArtistsPageFilterParams } from './ArtistsPageDropdownConfig';
 import type { ArtistsFilterDefaults } from '../../utils/localSettings/localSettings';
 import { getParsedLocalSettings } from '../../utils/localSettings/localSettings';
 
@@ -70,7 +70,7 @@ export default async function ArtistsPage({ searchParams }: ArtistsPageProps) {
   );
 
   return (
-    <ArtistsClient
+    <ArtistsPageClient
       initialQueryParams={{
         page: currentPage,
         type: currentType,
@@ -88,7 +88,7 @@ function parseSearchParams(
   queryParams: SearchParams,
   isAuthenticated: boolean,
   cookieDefaults?: ArtistsFilterDefaults
-): ArtistsDropdownConfigCurrentParams {
+): ArtistsPageDropdownConfigCurrentParams {
   const parsed = searchParamsSchema.safeParse(queryParams);
 
   if (!parsed.success) {
@@ -130,7 +130,7 @@ function parseSearchParams(
     },
   });
 
-  return getArtistsFilterParams(
+  return getArtistsPageFilterParams(
     {
       page: guarded.page,
       type: guarded.type ?? 'global',

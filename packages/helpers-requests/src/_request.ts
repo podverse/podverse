@@ -3,14 +3,14 @@ import axios from 'axios';
 
 export type { AxiosRequestConfig } from 'axios';
 
-export const request = async <T>(
+const requestInternal = async <T>(
   url: string,
   requestConfig?: AxiosRequestConfig,
   abort?: {
     controller: AbortController;
     timeoutMs: number;
   }
-): Promise<{ status: number; data: T }> => {
+): Promise<AxiosResponse<T>> => {
   let timeoutId: NodeJS.Timeout | undefined;
   if (abort) {
     timeoutId = setTimeout(() => {
@@ -33,14 +33,40 @@ export const request = async <T>(
       ...(abort?.controller?.signal ? { signal: abort.controller.signal } : {}),
     };
 
-    const response: AxiosResponse<T> = await axios.request<T>(axiosConfig);
-
-    return { status: response.status, data: response.data };
+    return await axios.request<T>(axiosConfig);
   } finally {
     if (timeoutId) {
       clearTimeout(timeoutId);
     }
   }
+};
+
+export const request = async <T>(
+  url: string,
+  requestConfig?: AxiosRequestConfig,
+  abort?: {
+    controller: AbortController;
+    timeoutMs: number;
+  }
+): Promise<{ status: number; data: T }> => {
+  const response = await requestInternal<T>(url, requestConfig, abort);
+  return { status: response.status, data: response.data };
+};
+
+export const requestWithHeaders = async <T>(
+  url: string,
+  requestConfig?: AxiosRequestConfig,
+  abort?: {
+    controller: AbortController;
+    timeoutMs: number;
+  }
+): Promise<{ status: number; data: T; headers: AxiosResponse<T>['headers'] }> => {
+  const response = await requestInternal<T>(url, requestConfig, abort);
+  return {
+    status: response.status,
+    data: response.data,
+    headers: response.headers,
+  };
 };
 
 interface ErrorWithStatusCode extends Error {

@@ -15,10 +15,10 @@ import {
   ItemService,
   OnDemandParserEventService,
 } from '@podverse/orm';
-import { podcastIndexService } from '@parser/factories/podcastIndex.js';
 import type { ParseRSSFeedAndSaveToDatabaseOptions } from '@parser/lib/rss/parser.js';
 import { loggerService } from '@parser/factories/loggerService.js';
 import { config } from '@parser/config/index.js';
+import { getPodcastIndexService } from '@parser/context.js';
 
 type PIFeedWithPodcastGuidData = {
   id: number;
@@ -58,9 +58,10 @@ const handleRemoteItemsFeedParsing = async (
     const pvExistingFeed = await feedService.getByPodcastGuid(feedGuid);
 
     if (!pvExistingFeed) {
-      const piFeedDataResponse = await podcastIndexService.podcastGetByGuid(
+      const podcastIndexServiceInstance = getPodcastIndexService();
+      const piFeedDataResponse = await podcastIndexServiceInstance.podcastGetByGuid(
         feedGuid,
-        config.podcastIndex.rateLimitDelay
+        config.podcastIndex?.rateLimitDelay ?? 0
       );
       if (piFeedDataResponse?.feed?.id && piFeedDataResponse?.feed?.url) {
         const piFeedData: PIFeedWithPodcastGuidData = {

@@ -8,11 +8,11 @@ import {
 } from '@podverse/helpers-requests';
 import { cookies } from 'next/headers';
 import { z } from 'zod';
-import { AlbumsClient } from './AlbumsClient';
+import { AlbumsPageClient } from './AlbumsPageClient';
 import { getSSRAuthService } from '../../utils/auth/ssrAuth';
 import { guardSubscribedSsrFilter, safeSsrListRequest } from '../../utils/filters/ssrFilterGuards';
-import type { AlbumsDropdownConfigCurrentParams } from './AlbumsDropdownConfig';
-import { getAlbumsFilterParams } from './AlbumsDropdownConfig';
+import type { AlbumsPageDropdownConfigCurrentParams } from './AlbumsPageDropdownConfig';
+import { getAlbumsPageFilterParams } from './AlbumsPageDropdownConfig';
 import type { AlbumsFilterDefaults } from '../../utils/localSettings/localSettings';
 import { getParsedLocalSettings } from '../../utils/localSettings/localSettings';
 
@@ -70,7 +70,7 @@ export default async function AlbumsPage({ searchParams }: AlbumsPageProps) {
   );
 
   return (
-    <AlbumsClient
+    <AlbumsPageClient
       initialQueryParams={{
         page: currentPage,
         type: currentType,
@@ -88,7 +88,7 @@ function parseSearchParams(
   queryParams: SearchParams,
   isAuthenticated: boolean,
   cookieDefaults?: AlbumsFilterDefaults
-): AlbumsDropdownConfigCurrentParams {
+): AlbumsPageDropdownConfigCurrentParams {
   const parsed = searchParamsSchema.safeParse(queryParams);
 
   if (!parsed.success) {
@@ -130,7 +130,7 @@ function parseSearchParams(
     },
   });
 
-  return getAlbumsFilterParams(
+  return getAlbumsPageFilterParams(
     {
       page: guarded.page,
       type: guarded.type ?? 'global',

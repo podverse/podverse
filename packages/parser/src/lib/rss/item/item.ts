@@ -1,8 +1,8 @@
 import type { Episode } from 'podverse-partytime';
 import { chunkArray, DATABASE_CONSTANTS, formatGuidEnclosureUrl } from '@podverse/helpers';
-import type { Channel, ChannelSeasonIndex } from '@podverse/orm';
+import type { Channel, ChannelSeasonIndex, EntityManager } from '@podverse/orm';
 import { AppDataSourceReadWrite, ItemService } from '@podverse/orm';
-import { compatItemDto } from '@parser/lib/compat/partytime/item.js';
+import { compatItemDto } from '@podverse/parser-mapping';
 import { handleParsedItemAbout } from '@parser/lib/rss/item/itemAbout.js';
 import { handleParsedItemChaptersFeed } from '@parser/lib/rss/item/itemChaptersFeed.js';
 import { handleParsedItemDescription } from '@parser/lib/rss/item/itemDescription.js';
@@ -45,7 +45,7 @@ const removeInvalidItems = (parsedItems: Episode[]): Episode[] => {
   }, [] as Episode[]);
 };
 
-type ItemTimerAccumulator = {
+export type ItemTimerAccumulator = {
   updateItem: number;
   handleParsedItemAbout: number;
   handleParsedItemChaptersFeed: number;
@@ -69,19 +69,16 @@ type HandleParsedItemBatch = {
   parsedItemBatch: Episode[];
   channel: Channel;
   channelSeasonIndex: ChannelSeasonIndex;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  transactionalEntityManager?: any;
+  transactionalEntityManager?: EntityManager;
   updatedItemIds: number[];
   timerAccumulator: ItemTimerAccumulator;
 };
 
 type HandleParsedItem = {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  parsedItem: any;
+  parsedItem: Episode;
   channel: Channel;
   channelSeasonIndex: ChannelSeasonIndex;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  transactionalEntityManager?: any;
+  transactionalEntityManager?: EntityManager;
   timerAccumulator: ItemTimerAccumulator;
   isLiveItem?: boolean;
 };

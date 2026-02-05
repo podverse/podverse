@@ -12,6 +12,18 @@
   pointer-events: none;
 }
 
+.content {
+  @include flexColumn;
+  align-items: center;
+  gap: var(--spacing-lg);
+}
+
+.message {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-light);
+  color: var(--text-color-secondary);
+}
+
 .spinnerWrapper {
   @include flexCenter;
 }

@@ -43,6 +43,7 @@ type ButtonProps = {
   isDropdownButton?: boolean;
   isLoading?: boolean;
   description?: string;
+  errorMessage?: string;
 };
 
 export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
@@ -70,6 +71,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       isDropdownButton = false,
       isLoading = false,
       description,
+      errorMessage,
       ...rest
     },
     ref
@@ -117,11 +119,12 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       </button>
     );
 
-    if (description) {
+    if (description || errorMessage) {
       return (
         <div className={styles.buttonWrapper}>
-          <p className={styles.buttonDescription}>{description}</p>
+          {description && <p className={styles.buttonDescription}>{description}</p>}
           {buttonElement}
+          {errorMessage && <p className={styles.buttonError}>{errorMessage}</p>}
         </div>
       );
     }

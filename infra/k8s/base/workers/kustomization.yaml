@@ -5,6 +5,8 @@ resources:
   - 03-configmap.yaml
   - consumer-dlq.yaml
   - listener-live.yaml
+  - parser-add-by-rss-ondemand.yaml
+  - parser-add-by-rss-ondemand-background.yaml
   - parser-live.yaml
   - parser-normal.yaml
   - parser-ondemand.yaml

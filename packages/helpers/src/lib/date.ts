@@ -31,6 +31,26 @@ export const formatDateAbbrev = (date: Date | number | string, localeString: str
   return format(d, 'MMM d yyyy', { locale });
 };
 
+export const formatDateTimeAbbrev = (
+  date: Date | number | string,
+  localeString: string
+): string => {
+  const d =
+    typeof date === 'string' || typeof date === 'number'
+      ? new Date(typeof date === 'number' && date < 1e12 ? date * 1000 : date)
+      : date;
+  const formatter = new Intl.DateTimeFormat(localeString, {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true,
+    timeZoneName: 'short',
+  });
+  return formatter.format(d);
+};
+
 export const convertSecondsToDaysText = (seconds: string) => {
   const totalDays = Math.round(parseInt(seconds, 10) / 86400);
   return `${totalDays > 1 ? `${totalDays} days` : '24 hours'}`;

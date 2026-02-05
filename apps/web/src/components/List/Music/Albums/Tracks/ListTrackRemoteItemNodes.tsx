@@ -9,7 +9,7 @@ import { ListTrackRow } from './ListTrackRow';
 import { ListTrackGridNode } from './ListTrackGridNode';
 import { ListTrackRowRemoteItemUnadded } from './ListTrackRowRemoteItemUnadded';
 import { ListTrackGridNodeUnadded } from './ListTrackGridNodeUnadded';
-import styles from '../../../../../styles/components/List/ListNodes.module.scss';
+import styles from '../../../../../styles/components/Common/List/ListNodes.module.scss';
 
 interface Params {
   itemsAdded: DTOItem[];

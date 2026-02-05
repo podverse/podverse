@@ -9,9 +9,9 @@ import {
   QUERY_PARAMS_SUBSCRIBED_PARTIAL_SORT,
 } from '@podverse/helpers-requests';
 import { getSSRAuthService } from '../../../utils/auth/ssrAuth';
-import { LivestreamsClient } from '../../podcasts/livestreams/LivestreamsClient';
-import type { LivestreamsDropdownConfigCurrentParams } from '../../podcasts/livestreams/LivestreamsDropdownConfig';
-import { getLivestreamsFilterParams } from '../../podcasts/livestreams/LivestreamsDropdownConfig';
+import { LivestreamsPageClient } from '../../podcasts/livestreams/LivestreamsPageClient';
+import type { LivestreamsPageDropdownConfigCurrentParams } from '../../podcasts/livestreams/LivestreamsPageDropdownConfig';
+import { getLivestreamsPageFilterParams } from '../../podcasts/livestreams/LivestreamsPageDropdownConfig';
 import {
   guardSubscribedSsrFilter,
   safeSsrListRequest,
@@ -75,7 +75,7 @@ export default async function MusicLivestreamsPage({ searchParams }: MusicLivest
   );
 
   return (
-    <LivestreamsClient
+    <LivestreamsPageClient
       initialQueryParams={{
         page: currentPage,
         type: currentType,
@@ -96,7 +96,7 @@ function parseSearchParams(
   queryParams: SearchParams,
   isAuthenticated: boolean,
   cookieDefaults?: MusicLivestreamsFilterDefaults
-): LivestreamsDropdownConfigCurrentParams {
+): LivestreamsPageDropdownConfigCurrentParams {
   const parsed = searchParamsSchema.safeParse(queryParams);
 
   if (!parsed.success) {
@@ -144,7 +144,7 @@ function parseSearchParams(
     },
   });
 
-  return getLivestreamsFilterParams(
+  return getLivestreamsPageFilterParams(
     {
       page: guarded.page,
       type: guarded.type ?? 'global',

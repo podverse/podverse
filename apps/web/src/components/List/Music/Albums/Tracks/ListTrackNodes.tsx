@@ -7,7 +7,7 @@ import { ListLiveItemRow } from '../../../LiveItem/ListLiveItemRow';
 import { Divider } from '../../../../Divider/Divider';
 import { ListTrackRow } from './ListTrackRow';
 import { ListTrackGridNode } from './ListTrackGridNode';
-import styles from '../../../../../styles/components/List/ListNodes.module.scss';
+import styles from '../../../../../styles/components/Common/List/ListNodes.module.scss';
 
 interface Params {
   channel: DTOChannel | null;

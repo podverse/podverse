@@ -8,9 +8,9 @@ import {
 } from '@podverse/helpers-requests';
 import { cookies } from 'next/headers';
 import { z } from 'zod';
-import { PodcastsClient } from './PodcastsClient';
-import type { PodcastsDropdownConfigCurrentParams } from './PodcastsDropdownConfig';
-import { getPodcastsFilterParams } from './PodcastsDropdownConfig';
+import { PodcastsPageClient } from './PodcastsPageClient';
+import type { PodcastsPageDropdownConfigCurrentParams } from './PodcastsPageDropdownConfig';
+import { getPodcastsPageFilterParams } from './PodcastsPageDropdownConfig';
 import { getSSRAuthService } from '../../utils/auth/ssrAuth';
 import { guardSubscribedSsrFilter, safeSsrListRequest } from '../../utils/filters/ssrFilterGuards';
 import type { PodcastsFilterDefaults } from '../../utils/localSettings/localSettings';
@@ -72,7 +72,7 @@ export default async function PodcastsPage({ searchParams }: PodcastsPageProps) 
   );
 
   return (
-    <PodcastsClient
+    <PodcastsPageClient
       initialQueryParams={{
         page: currentPage,
         type: currentType,
@@ -91,7 +91,7 @@ function parseSearchParams(
   queryParams: SearchParams,
   isAuthenticated: boolean,
   cookieDefaults?: PodcastsFilterDefaults
-): PodcastsDropdownConfigCurrentParams {
+): PodcastsPageDropdownConfigCurrentParams {
   const parsed = searchParamsSchema.safeParse(queryParams);
 
   if (!parsed.success) {
@@ -138,7 +138,7 @@ function parseSearchParams(
     },
   });
 
-  return getPodcastsFilterParams(
+  return getPodcastsPageFilterParams(
     {
       page: guarded.page,
       type: guarded.type ?? 'global',

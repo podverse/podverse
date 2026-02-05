@@ -22,7 +22,7 @@ import { IMAGES } from '../../../constants/images';
 import { useAutoQueue } from '../../../contexts/AutoQueue';
 import { useMediaPlayer } from '../../../contexts/MediaPlayer';
 import { useMediaPlayerResourceUpdate } from '../../../hooks/useMediaPlayerResourceUpdate';
-import styles from '../../../styles/components/List/LiveItem/ListLiveItemRow.module.scss';
+import styles from '../../../styles/components/Common/List/LiveItem/ListLiveItemRow.module.scss';
 
 interface Props {
   channel: DTOChannel;
