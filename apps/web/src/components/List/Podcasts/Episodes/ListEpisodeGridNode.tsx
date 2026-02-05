@@ -12,7 +12,7 @@ import {
 import { Image } from '../../../Image/Image';
 import { ROUTES } from '../../../../constants/routes';
 import { IMAGES } from '../../../../constants/images';
-import styles from '../../../../styles/components/List/ListGridNode.module.scss';
+import styles from '../../../../styles/components/Common/List/ListGridNode.module.scss';
 
 interface Props {
   channel: DTOChannel;

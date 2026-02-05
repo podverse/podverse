@@ -54,6 +54,26 @@
       "add_feed_explanation": "",
       "rss_link": ""
     },
+    "add_by_rss": {
+      "label": "",
+      "add_feed_instructions": "",
+      "check_updates": "",
+      "feed_url": "",
+      "invalid_url": "",
+      "no_feeds": "",
+      "feed_not_found_local": "",
+      "status": "",
+      "status_failed": "",
+      "status_not_modified": "",
+      "status_parsed": "",
+      "status_processing": "",
+      "status_queued": "",
+      "status_pending": "",
+      "status_parsing": "",
+      "last_parsed": "",
+      "wait_to_retry_minutes": "",
+      "wait_to_retry_minute": ""
+    },
     "my_library": "",
     "queue": {
       "queue": "",
@@ -315,6 +335,7 @@
     "done": "",
     "id": "",
     "loading": "",
+    "loading_your_content": "",
     "continue": "",
     "i_have_read_and_agree": "",
     "unknown_date": "",
@@ -504,7 +525,10 @@
     },
     "feed": {
       "check_feed_for_updates": "",
-      "check_feed_added_to_queue": ""
+      "check_feed_added_to_queue": "",
+      "last_parsed": "",
+      "wait_to_retry_minutes": "",
+      "wait_to_retry_minute": ""
     },
     "account": {
       "account": "",

@@ -10,7 +10,7 @@ import { useMediaPlayerResourceUpdate } from '../../../hooks/useMediaPlayerResou
 import { useAutoQueue } from '../../../contexts/AutoQueue';
 import { ReadableTime } from '../../Time/ReadableTime';
 import { LiveItemStatus } from '../../LiveItem/LiveItemStatus';
-import styles from '../../../styles/components/Media/Podcast/Episode/EpisodeHeaderPlaySection.module.scss';
+import styles from '../../../styles/components/Common/Media/Podcast/Episode/EpisodeHeaderPlaySection.module.scss';
 
 type LivestreamHeaderPlaySectionProps = {
   item: DTOItem;

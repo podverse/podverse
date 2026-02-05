@@ -69,7 +69,13 @@ export const mqRSSSetupDlqConsumers = async (
   artemisService: ActiveMQArtemisService,
   logger: DQLMessageLogger
 ) => {
-  const dlqQueues: MQQueueName[] = ['DLQ.rss-normal', 'DLQ.rss-on-demand', 'DLQ.rss-live'];
+  const dlqQueues: MQQueueName[] = [
+    'DLQ.rss-normal',
+    'DLQ.rss-on-demand',
+    'DLQ.rss-live',
+    'DLQ.add-by-rss-on-demand',
+    'DLQ.add-by-rss-background',
+  ];
 
   for (let i = 0; i < 10; i++) {
     await artemisService.sendSampleToDLQ(
@@ -85,6 +91,16 @@ export const mqRSSSetupDlqConsumers = async (
     await artemisService.sendSampleToDLQ(
       'rss-live',
       { url: 'https://example.com/feed.xml', podcast_index_id: 123 },
+      'Manual DLQ seed for verification'
+    );
+    await artemisService.sendSampleToDLQ(
+      'add-by-rss-on-demand',
+      { feedUrl: 'https://example.com/feed.xml', requestId: '123' },
+      'Manual DLQ seed for verification'
+    );
+    await artemisService.sendSampleToDLQ(
+      'add-by-rss-background',
+      { feedUrl: 'https://example.com/feed.xml', requestId: '123' },
       'Manual DLQ seed for verification'
     );
   }

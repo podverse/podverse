@@ -12,8 +12,8 @@ import {
 } from '@podverse/helpers-requests';
 import { cookies } from 'next/headers';
 import { z } from 'zod';
-import { PlaylistsClient } from './PlaylistsClient';
-import { getPlaylistsFilterParams } from './PlaylistsDropdownConfig';
+import { PlaylistsPageClient } from './PlaylistsPageClient';
+import { getPlaylistsPageFilterParams } from './PlaylistsPageDropdownConfig';
 import { getSSRAuthService } from '../../utils/auth/ssrAuth';
 import { guardSubscribedSsrFilter, safeSsrListRequest } from '../../utils/filters/ssrFilterGuards';
 import type { PlaylistsFilterDefaults } from '../../utils/localSettings/localSettings';
@@ -69,7 +69,7 @@ export default async function PlaylistsPage({ searchParams }: PlaylistsPageProps
   );
 
   return (
-    <PlaylistsClient
+    <PlaylistsPageClient
       initialQueryParams={{
         page: currentPage,
         type: currentType,
@@ -138,7 +138,7 @@ function parseSearchParams(
     },
   });
 
-  return getPlaylistsFilterParams(
+  return getPlaylistsPageFilterParams(
     {
       page: guarded.page,
       type: guarded.type ?? 'public',

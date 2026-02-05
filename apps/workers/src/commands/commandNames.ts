@@ -13,6 +13,7 @@ export const KNOWN_COMMANDS: readonly string[] = [
   'mqRSSRunDlqConsumer',
   'mqRSSRunLiveItemListener',
   'mqRSSRunParser',
+  'mqAddByRSSRunParser',
   'ormFeedUpdateFlagStatus',
   'parserRSSParseFeed',
   'podcastIndexDeadFeedsDeleteCache',

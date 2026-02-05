@@ -43,6 +43,22 @@ export function getMQConfig(): MQConfig {
   };
 }
 
+export type KeyvaldbConfig = {
+  host: string;
+  port: number;
+  password: string;
+  cacheTTLSeconds: number;
+};
+
+export function getKeyvaldbConfig(): KeyvaldbConfig {
+  return {
+    host: process.env.KEYVALDB_HOST!,
+    port: Number(process.env.KEYVALDB_PORT!),
+    password: process.env.KEYVALDB_PASSWORD!,
+    cacheTTLSeconds: Number(process.env.KEYVALDB_CACHE_TTL_SECONDS!),
+  };
+}
+
 export type PodcastIndexConfig = {
   authKey: string;
   baseUrl: string;

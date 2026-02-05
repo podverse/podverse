@@ -1,8 +1,6 @@
 import type { DTOChannel, DTOItem } from '@podverse/helpers';
 import React from 'react';
-import { AlbumHeaderViewDesktop } from './AlbumHeaderViewDesktop';
-import { AlbumHeaderViewTablet } from './AlbumHeaderViewTablet';
-import styles from '../../../../styles/components/Media/Podcast/PodcastHeader.module.scss';
+import { CoreAlbumHeader } from '../../../Core/Artist/Album/CoreAlbumHeader';
 
 type AlbumHeaderProps = {
   channel: DTOChannel;
@@ -10,10 +8,5 @@ type AlbumHeaderProps = {
 };
 
 export const AlbumHeader: React.FC<AlbumHeaderProps> = ({ channel, item }) => {
-  return (
-    <header className={styles.header}>
-      <AlbumHeaderViewDesktop channel={channel} item={item} />
-      <AlbumHeaderViewTablet channel={channel} item={item} />
-    </header>
-  );
+  return <CoreAlbumHeader channel={channel} item={item} />;
 };

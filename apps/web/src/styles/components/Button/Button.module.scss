@@ -205,3 +205,9 @@
   color: var(--text-color-secondary);
   font-size: var(--font-size-base);
 }
+
+.buttonError {
+  margin: var(--spacing-none);
+  color: var(--text-color-danger);
+  font-size: var(--font-size-sm);
+}

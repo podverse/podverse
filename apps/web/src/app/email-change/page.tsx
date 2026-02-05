@@ -1,5 +1,5 @@
-import { EmailChangeClient } from './EmailChangeClient';
+import { EmailChangePageClient } from './EmailChangePageClient';
 
 export default function EmailChangePage() {
-  return <EmailChangeClient />;
+  return <EmailChangePageClient />;
 }

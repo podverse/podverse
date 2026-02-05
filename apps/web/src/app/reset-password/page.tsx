@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { ResetPasswordClient } from './ResetPasswordClient';
+import { ResetPasswordPageClient } from './ResetPasswordPageClient';
 
 const searchParamsSchema = z.object({
   token: z.string().optional(),
@@ -15,7 +15,7 @@ export default async function ResetPasswordPage({ searchParams }: PodcastsPagePr
   const queryParams = searchParams ? await searchParams : {};
   const { token } = await parseSearchParams(queryParams);
 
-  return <ResetPasswordClient token={token} />;
+  return <ResetPasswordPageClient token={token} />;
 }
 
 async function parseSearchParams(queryParams: SearchParams) {

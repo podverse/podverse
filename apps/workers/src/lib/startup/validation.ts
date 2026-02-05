@@ -34,6 +34,7 @@ import {
   CATEGORY_PARSER,
   CATEGORY_PODCAST_INDEX,
   CATEGORY_WEB_NOTIFICATIONS,
+  CATEGORY_KEYVALDB,
 } from './categoriesForCommand.js';
 
 /** Category: Config/Base — every command needs at least these */
@@ -72,6 +73,16 @@ function validateMQ(): ValidationResult[] {
   results.push(validateRequired('MESSAGE_QUEUE_USERNAME', 'Message Queue'));
   results.push(validateRequired('MESSAGE_QUEUE_PASSWORD', 'Message Queue'));
   results.push(validateRequired('MESSAGE_QUEUE_PORT', 'Message Queue'));
+  return results;
+}
+
+/** Category: KeyValDB */
+function validateKeyvaldb(): ValidationResult[] {
+  const results: ValidationResult[] = [];
+  results.push(validateRequired('KEYVALDB_HOST', 'KeyValDB'));
+  results.push(validateRequired('KEYVALDB_PORT', 'KeyValDB'));
+  results.push(validateRequired('KEYVALDB_PASSWORD', 'KeyValDB'));
+  results.push(validateRequired('KEYVALDB_CACHE_TTL_SECONDS', 'KeyValDB'));
   return results;
 }
 
@@ -154,6 +165,9 @@ function getValidationResultsForCommand(commandName: string): ValidationResult[]
   }
   if (categories.has(CATEGORY_WEB_NOTIFICATIONS)) {
     results.push(...validateWebNotifications());
+  }
+  if (categories.has(CATEGORY_KEYVALDB)) {
+    results.push(...validateKeyvaldb());
   }
 
   return results;

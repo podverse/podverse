@@ -4,7 +4,7 @@ import React from 'react';
 import type { DTOAccount } from '@podverse/helpers';
 import { ListProfileRow } from './ListProfileRow';
 import { Divider } from '../../Divider/Divider';
-import styles from '../../../styles/components/List/ListNodes.module.scss';
+import styles from '../../../styles/components/Common/List/ListNodes.module.scss';
 
 interface Params {
   accounts: DTOAccount[];

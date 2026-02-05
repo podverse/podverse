@@ -2,7 +2,7 @@ import type { DTOChannel, DTOItem, DTOItemSoundbite } from '@podverse/helpers';
 import { MainWrapper } from '../../../components/Main/MainWrapper';
 import { MainInnerWrapper } from '../../../components/Main/MainInnerWrapper';
 import { MainInnerContentWrapper } from '../../../components/Main/MainInnerContentWrapper';
-import { PodcastHeader } from '../../../components/Media/Podcast/PodcastHeader';
+import { CorePodcastHeader } from '../../../components/Core/Podcast/CorePodcastHeader';
 import { SideContent } from '../../../components/SideContent/SideContent';
 import { ItemSoundbiteHeader } from '../../../components/Media/ItemSoundbite/ItemSoundbiteHeader';
 
@@ -17,7 +17,7 @@ export function OfficialClipClient(props: OfficialClipClientProps) {
 
   return (
     <MainWrapper>
-      <PodcastHeader channel={ssrChannel} item={ssrItem} item_soundbite={ssrItemSoundbite} />
+      <CorePodcastHeader channel={ssrChannel} item={ssrItem} item_soundbite={ssrItemSoundbite} />
       <MainInnerWrapper>
         <SideContent />
         <MainInnerContentWrapper>

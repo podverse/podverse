@@ -1,9 +1,9 @@
 import { QUERY_PARAMS_ITEM_MUSIC_TYPE_VALUES } from '@podverse/helpers-requests';
 import { z } from 'zod';
 import { getSSRAuthService } from '../../../utils/auth/ssrAuth';
-import { TrackClient } from './TrackClient';
-import type { TrackDropdownConfigCurrentParams } from './TrackDropdownConfig';
-import { getTrackFilterParams } from './TrackDropdownConfig';
+import { TrackPageClient } from './TrackPageClient';
+import type { TrackPageDropdownConfigCurrentParams } from './TrackPageDropdownConfig';
+import { getTrackPageFilterParams } from './TrackPageDropdownConfig';
 
 const searchParamsSchema = z.object({
   type: z.enum(QUERY_PARAMS_ITEM_MUSIC_TYPE_VALUES).optional().default('summary'),
@@ -30,7 +30,7 @@ export default async function TrackPage({ params, searchParams }: TrackPageProps
   const ssrHasTranscripts = ssrItem.item_transcripts && ssrItem.item_transcripts.length > 0;
 
   return (
-    <TrackClient
+    <TrackPageClient
       initialQueryParams={{
         type: currentType,
       }}
@@ -41,7 +41,7 @@ export default async function TrackPage({ params, searchParams }: TrackPageProps
   );
 }
 
-function parseSearchParams(searchParams: SearchParams): TrackDropdownConfigCurrentParams {
+function parseSearchParams(searchParams: SearchParams): TrackPageDropdownConfigCurrentParams {
   const parsed = searchParamsSchema.safeParse(searchParams);
 
   if (!parsed.success) {
@@ -52,5 +52,5 @@ function parseSearchParams(searchParams: SearchParams): TrackDropdownConfigCurre
 
   const data = parsed.data;
 
-  return getTrackFilterParams(data);
+  return getTrackPageFilterParams(data);
 }

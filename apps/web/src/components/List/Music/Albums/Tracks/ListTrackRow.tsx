@@ -27,7 +27,7 @@ import { useAutoQueue } from '../../../../../contexts/AutoQueue';
 import { useAccount } from '../../../../../contexts/Account';
 import { downloadTrackWithModal } from '../../../../../utils/downloadModal/downloadTrackWithModal';
 import { Button } from '../../../../Button/Button';
-import styles from '../../../../../styles/components/List/Podcasts/Episodes/ListEpisodeRow.module.scss';
+import styles from '../../../../../styles/components/Common/List/Podcasts/Episodes/ListEpisodeRow.module.scss';
 
 interface Props {
   channel: DTOChannel;

@@ -5,7 +5,7 @@ import {
   ItemEnclosureSourceService,
   ItemEnclosureIntegrityService,
 } from '@podverse/orm';
-import { compatItemEnclosureDtos } from '@parser/lib/compat/partytime/item.js';
+import { compatItemEnclosureDtos } from '@podverse/parser-mapping';
 
 export const handleParsedItemEnclosure = async (
   parsedItem: Episode,

@@ -5,7 +5,7 @@ import type { DTOChannel, DTOItem } from '@podverse/helpers';
 import { findDTOChannelImageBySize, findDTOItemImageBySize } from '@podverse/helpers';
 import { Image } from '../../../../components/Image/Image';
 import { IMAGES } from '../../../../constants/images';
-import styles from '../../../../styles/components/Media/Podcast/PodcastHeaderImage.module.scss';
+import styles from '../../../../styles/components/Common/Media/Podcast/PodcastHeaderImage.module.scss';
 
 type AlbumHeaderImageProps = {
   channel: DTOChannel;

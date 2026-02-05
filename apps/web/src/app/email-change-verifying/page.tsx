@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { EmailChangeVerifyingClient } from './EmailChangeVerifyingClient';
+import { EmailChangeVerifyingPageClient } from './EmailChangeVerifyingPageClient';
 
 const searchParamsSchema = z.object({
   token: z.string().optional(),
@@ -17,7 +17,7 @@ export default async function EmailChangeVerifyingPage({
   const queryParams = searchParams ? await searchParams : {};
   const { token } = await parseSearchParams(queryParams);
 
-  return <EmailChangeVerifyingClient token={token} />;
+  return <EmailChangeVerifyingPageClient token={token} />;
 }
 
 async function parseSearchParams(queryParams: SearchParams) {

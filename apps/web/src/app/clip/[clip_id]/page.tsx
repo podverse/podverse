@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation';
 import { getSSRAuthService } from '../../../utils/auth/ssrAuth';
-import { ClipClient } from './ClipClient';
+import { ClipPageClient } from './ClipPageClient';
 
 export type ClipPageProps = {
   params: Promise<{ clip_id: string }>;
@@ -27,5 +27,5 @@ export default async function ClipPage({ params }: ClipPageProps) {
     return notFound();
   }
 
-  return <ClipClient ssrChannel={ssrChannel} ssrItem={ssrItem} ssrClip={ssrClip} />;
+  return <ClipPageClient ssrChannel={ssrChannel} ssrItem={ssrItem} ssrClip={ssrClip} />;
 }

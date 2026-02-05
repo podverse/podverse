@@ -38,6 +38,8 @@ type TextInputProps = {
 export type TextInputButton = {
   label: string;
   onClick: () => void;
+  disabled?: boolean;
+  isLoading?: boolean;
 };
 
 export type TextInputButtonIcon = {
@@ -143,7 +145,13 @@ export const TextInput: React.FC<TextInputProps> = ({
           />
         )}
         {button && (
-          <Button className={styles.button} onClick={button.onClick} variant="mini">
+          <Button
+            className={styles.button}
+            onClick={button.onClick}
+            variant="mini"
+            disabled={button.disabled}
+            isLoading={button.isLoading}
+          >
             {button.label}
           </Button>
         )}

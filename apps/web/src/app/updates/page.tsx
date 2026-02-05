@@ -3,7 +3,7 @@ import path from 'path';
 import dynamic from 'next/dynamic';
 
 const UpdatesClient = dynamic(
-  () => import('./UpdatesClient').then((mod) => ({ default: mod.UpdatesClient })),
+  () => import('./UpdatesPageClient').then((mod) => ({ default: mod.UpdatesPageClient })),
   { ssr: true }
 );
 

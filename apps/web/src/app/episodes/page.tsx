@@ -10,9 +10,9 @@ import {
 import { cookies } from 'next/headers';
 import { getSSRAuthService } from '../../utils/auth/ssrAuth';
 import { guardSubscribedSsrFilter, safeSsrListRequest } from '../../utils/filters/ssrFilterGuards';
-import type { EpisodesDropdownConfigCurrentParams } from './EpisodesDropdownConfig';
-import { getEpisodesFilterParams } from './EpisodesDropdownConfig';
-import { EpisodesClient } from './EpisodesClient';
+import type { EpisodesPageDropdownConfigCurrentParams } from './EpisodesPageDropdownConfig';
+import { getEpisodesPageFilterParams } from './EpisodesPageDropdownConfig';
+import { EpisodesPageClient } from './EpisodesPageClient';
 import type { EpisodesFilterDefaults } from '../../utils/localSettings/localSettings';
 import { getParsedLocalSettings } from '../../utils/localSettings/localSettings';
 
@@ -72,7 +72,7 @@ export default async function EpisodesPage({ searchParams }: EpisodesPageProps) 
   );
 
   return (
-    <EpisodesClient
+    <EpisodesPageClient
       initialQueryParams={{
         page: currentPage,
         type: currentType,
@@ -91,7 +91,7 @@ function parseSearchParams(
   queryParams: SearchParams,
   isAuthenticated: boolean,
   cookieDefaults?: EpisodesFilterDefaults
-): EpisodesDropdownConfigCurrentParams {
+): EpisodesPageDropdownConfigCurrentParams {
   const parsed = searchParamsSchema.safeParse(queryParams);
 
   if (!parsed.success) {
@@ -138,7 +138,7 @@ function parseSearchParams(
     },
   });
 
-  return getEpisodesFilterParams(
+  return getEpisodesPageFilterParams(
     {
       page: guarded.page,
       type: guarded.type ?? 'global',

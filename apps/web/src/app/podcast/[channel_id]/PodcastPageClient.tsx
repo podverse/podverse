@@ -1,0 +1,68 @@
+import type {
+  DTOChannel,
+  DTOClip,
+  DTOItem,
+  DTOItemSoundbite,
+  RemoteItemsResponse,
+} from '@podverse/helpers';
+import type { QueryParamsChannel } from '@podverse/helpers-requests';
+
+import { MainInnerContentWrapper } from '../../../components/Main/MainInnerContentWrapper';
+import { MainInnerWrapper } from '../../../components/Main/MainInnerWrapper';
+import { MainWrapper } from '../../../components/Main/MainWrapper';
+import { CorePodcastHeader } from '../../../components/Core/Podcast/CorePodcastHeader';
+import { PodcastPageContextProvider } from './PodcastPageContext';
+import { PodcastPageListHeader } from './PodcastPageListHeader';
+import { PodcastPageList } from './PodcastPageList';
+import { PodcastPageSideContent } from './PodcastPageSideContent';
+
+interface PodcastPageClientProps {
+  initialQueryParams: QueryParamsChannel;
+  ssrChannel: DTOChannel;
+  ssrItemsWithLiveItem: DTOItem[];
+  ssrItems: DTOItem[];
+  ssrItemSoundbites: DTOItemSoundbite[];
+  ssrHasItemSoundbites: boolean;
+  ssrClips: DTOClip[];
+  ssrTotalPages: number;
+  ssrPodroll: RemoteItemsResponse | null;
+}
+
+export function PodcastPageClient(props: PodcastPageClientProps) {
+  const {
+    initialQueryParams,
+    ssrChannel,
+    ssrItemsWithLiveItem,
+    ssrItems,
+    ssrClips,
+    ssrItemSoundbites,
+    ssrHasItemSoundbites,
+    ssrTotalPages,
+    ssrPodroll,
+  } = props;
+
+  return (
+    <PodcastPageContextProvider
+      initialQueryParams={initialQueryParams}
+      ssrItemsWithLiveItem={ssrItemsWithLiveItem}
+      ssrItems={ssrItems}
+      ssrClips={ssrClips}
+      ssrItemSoundbites={ssrItemSoundbites}
+      ssrTotalPages={ssrTotalPages}
+    >
+      <MainWrapper>
+        <CorePodcastHeader channel={ssrChannel} />
+        <MainInnerWrapper>
+          <PodcastPageSideContent channel={ssrChannel} podroll={ssrPodroll} />
+          <MainInnerContentWrapper>
+            <PodcastPageListHeader
+              ssrHasPodroll={!!ssrPodroll}
+              ssrHasItemSoundbites={ssrHasItemSoundbites}
+            />
+            <PodcastPageList ssrChannel={ssrChannel} podroll={ssrPodroll} />
+          </MainInnerContentWrapper>
+        </MainInnerWrapper>
+      </MainWrapper>
+    </PodcastPageContextProvider>
+  );
+}

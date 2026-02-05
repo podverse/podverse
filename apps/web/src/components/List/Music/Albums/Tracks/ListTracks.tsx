@@ -11,7 +11,7 @@ import { useSkipInitialEffect } from '../../../../../hooks/useSkipInitialEffect'
 import { scrollMainToTop } from '../../../../../utils/scroll';
 import type { ViewSelectedOption } from '../../../../ViewSelector/ViewSelector';
 import { ListTrackNodes } from './ListTrackNodes';
-import styles from '../../../../../styles/components/List/Podcasts/Episodes/ListEpisodes.module.scss';
+import styles from '../../../../../styles/components/Common/List/Podcasts/Episodes/ListEpisodes.module.scss';
 
 type Props = {
   page: number;

@@ -38,7 +38,7 @@ export type ParserConfig = {
   userAgent: string;
   log: LogConfig;
   firebase: FirebaseConfig;
-  podcastIndex: PodcastIndexConfig;
+  podcastIndex?: PodcastIndexConfig;
   parser?: ParserSettingsConfig;
   defaults: DefaultsConfig;
 };

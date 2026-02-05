@@ -17,6 +17,11 @@ import {
   reqAccountVerifyEmail,
 } from './account/account.js';
 import { reqAccountFollowChannel, reqAccountUnfollowChannel } from './account/follow/channel.js';
+import {
+  reqAccountFollowAddByRSSChannel,
+  reqAccountGetFollowedAddByRSSChannels,
+  reqAccountUnfollowAddByRSSChannel,
+} from './account/follow/addByRSSChannel.js';
 import { reqAccountFollowAccount, reqAccountUnfollowAccount } from './account/follow/account.js';
 import { reqAccountFollowPlaylist, reqAccountUnfollowPlaylist } from './account/follow/playlist.js';
 import { reqAuthCheckSession, reqAuthLogin, reqAuthLogout, reqAuthMe } from './auth/auth.js';
@@ -457,6 +462,24 @@ export class ApiRequestService {
 
   reqAccountUnfollowChannel(params: { channel_id_text: string }) {
     return reqAccountUnfollowChannel(this, params);
+  }
+
+  /* ACCOUNT > FOLLOW > ADD BY RSS CHANNEL */
+
+  reqAccountFollowAddByRSSChannel(params: {
+    feed_url: string;
+    title?: string | null;
+    image_url?: string | null;
+  }) {
+    return reqAccountFollowAddByRSSChannel(this, params);
+  }
+
+  reqAccountUnfollowAddByRSSChannel(params: { feed_url: string }) {
+    return reqAccountUnfollowAddByRSSChannel(this, params);
+  }
+
+  reqAccountGetFollowedAddByRSSChannels(params: { account_id_text: string }) {
+    return reqAccountGetFollowedAddByRSSChannels(this, params);
   }
 
   /* ACCOUNT > FOLLOW > ACCOUNT */

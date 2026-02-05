@@ -1,7 +1,7 @@
 import type { FeedObject } from 'podverse-partytime';
 import type { Channel, ChannelSeasonIndex, EntityManager } from '@podverse/orm';
 import { AppDataSourceReadWrite, ChannelService } from '@podverse/orm';
-import { compatChannelDto } from '@parser/lib/compat/partytime/channel.js';
+import { compatChannelDto } from '@podverse/parser-mapping';
 import { handleParsedChannelAbout } from '@parser/lib/rss/channel/channelAbout.js';
 import { handleParsedChannelCategory } from '@parser/lib/rss/channel/channelCategory.js';
 import { handleParsedChannelChat } from '@parser/lib/rss/channel/channelChat.js';

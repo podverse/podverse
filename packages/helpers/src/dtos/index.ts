@@ -64,6 +64,7 @@ export * from './feed/feedLog.js';
 export * from './item/item.js';
 export * from './item/itemAbout.js';
 export * from './item/itemChapter.js';
+export * from './item/itemChapterCreate.js';
 export * from './item/itemChapterLocation.js';
 export * from './item/itemChaptersFeed.js';
 export * from './item/itemChaptersFeedLog.js';

@@ -30,7 +30,7 @@ import { useMediaPlayerResourceUpdate } from '../../../../hooks/useMediaPlayerRe
 import { useQueueResourcesAbridgedIndex } from '../../../../contexts/QueueResourcesAbridgedIndex';
 import { useAutoQueue } from '../../../../contexts/AutoQueue';
 import { downloadEpisodeWithModal } from '../../../../utils/downloadModal/downloadEpisodeWithModal';
-import styles from '../../../../styles/components/List/Podcasts/Episodes/ListEpisodeRow.module.scss';
+import styles from '../../../../styles/components/Common/List/Podcasts/Episodes/ListEpisodeRow.module.scss';
 import { useAccount } from '../../../../contexts/Account';
 
 interface Props {

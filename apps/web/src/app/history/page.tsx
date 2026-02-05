@@ -1,7 +1,7 @@
 import type { DTOQueue, QueryParamsQueueMedium } from '@podverse/helpers';
 import { QUERY_PARAMS_QUEUE_MEDIUMS } from '@podverse/helpers';
 import { z } from 'zod';
-import { HistoryClient } from './HistoryClient';
+import { HistoryPageClient } from './HistoryPageClient';
 import { getSSRAuthService } from '../../utils/auth/ssrAuth';
 
 const searchParamsSchema = z.object({
@@ -33,7 +33,7 @@ export default async function HistoryPage({ searchParams }: HistoryPageProps) {
   }
 
   return (
-    <HistoryClient
+    <HistoryPageClient
       initialQueryParams={{ medium: currentMedium, page: currentPage }}
       ssrQueues={ssrQueues}
     />

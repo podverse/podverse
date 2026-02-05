@@ -12,7 +12,7 @@ import { scrollMainToTop } from '../../../utils/scroll';
 import type { ViewSelectedOption } from '../../ViewSelector/ViewSelector';
 import { ListLiveItemNodes } from './ListLiveItemNodes';
 import { InfoWrapper } from '../../InfoWrapper/InfoWrapper';
-import styles from '../../../styles/components/List/Podcasts/Episodes/ListEpisodes.module.scss';
+import styles from '../../../styles/components/Common/List/Podcasts/Episodes/ListEpisodes.module.scss';
 
 type Props = {
   page: number;

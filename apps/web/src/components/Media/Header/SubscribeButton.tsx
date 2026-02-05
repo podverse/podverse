@@ -7,7 +7,7 @@ import { Button } from '../../Button/Button';
 import { useAccount } from '../../../contexts/Account';
 import { useModals } from '../../../contexts/Modals';
 import { apiRequestService } from '../../../factories/apiRequestService';
-import styles from '../../../styles/components/Media/Header/SubscribeButton.module.scss';
+import styles from '../../../styles/components/Common/Media/Header/SubscribeButton.module.scss';
 
 type SubscribeButtonProps = {
   entity: DTOChannel | DTOPlaylist | DTOAccount;

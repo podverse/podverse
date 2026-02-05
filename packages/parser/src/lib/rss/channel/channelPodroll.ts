@@ -1,7 +1,7 @@
 import type { FeedObject } from 'podverse-partytime';
 import type { Channel, EntityManager } from '@podverse/orm';
 import { ChannelPodrollService, ChannelPodrollRemoteItemService } from '@podverse/orm';
-import { compatChannelPodrollRemoteItemDtos } from '@parser/lib/compat/partytime/channel.js';
+import { compatChannelPodrollRemoteItemDtos } from '@podverse/parser-mapping';
 import { timerManager } from '@parser/factories/timerManager.js';
 
 export const handleParsedChannelPodroll = async (

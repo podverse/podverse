@@ -9,9 +9,9 @@ import {
 } from '@podverse/helpers-requests';
 import { cookies } from 'next/headers';
 import { getSSRAuthService } from '../../utils/auth/ssrAuth';
-import { ClipsClient } from './ClipsClient';
-import type { EpisodesDropdownConfigCurrentParams } from '../episodes/EpisodesDropdownConfig';
-import { getEpisodesFilterParams } from '../episodes/EpisodesDropdownConfig';
+import { ClipsPageClient } from './ClipsPageClient';
+import type { EpisodesPageDropdownConfigCurrentParams } from '../episodes/EpisodesPageDropdownConfig';
+import { getEpisodesPageFilterParams } from '../episodes/EpisodesPageDropdownConfig';
 import { guardSubscribedSsrFilter, safeSsrListRequest } from '../../utils/filters/ssrFilterGuards';
 import type { ClipsFilterDefaults } from '../../utils/localSettings/localSettings';
 import { getParsedLocalSettings } from '../../utils/localSettings/localSettings';
@@ -73,7 +73,7 @@ export default async function ClipsPage({ searchParams }: ClipsPageProps) {
   );
 
   return (
-    <ClipsClient
+    <ClipsPageClient
       initialQueryParams={{
         page: currentPage,
         type: currentType,
@@ -92,7 +92,7 @@ function parseSearchParams(
   queryParams: SearchParams,
   isAuthenticated: boolean,
   cookieDefaults?: ClipsFilterDefaults
-): EpisodesDropdownConfigCurrentParams {
+): EpisodesPageDropdownConfigCurrentParams {
   const parsed = searchParamsSchema.safeParse(queryParams);
 
   if (!parsed.success) {
@@ -139,7 +139,7 @@ function parseSearchParams(
     },
   });
 
-  return getEpisodesFilterParams(
+  return getEpisodesPageFilterParams(
     {
       page: guarded.page,
       type: guarded.type ?? 'global',

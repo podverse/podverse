@@ -9,9 +9,9 @@ import {
   QUERY_PARAMS_SUBSCRIBED_TYPE,
 } from '@podverse/helpers-requests';
 import { getSSRAuthService } from '../../../utils/auth/ssrAuth';
-import { LivestreamsClient } from './LivestreamsClient';
-import type { LivestreamsDropdownConfigCurrentParams } from './LivestreamsDropdownConfig';
-import { getLivestreamsFilterParams } from './LivestreamsDropdownConfig';
+import { LivestreamsPageClient } from './LivestreamsPageClient';
+import type { LivestreamsPageDropdownConfigCurrentParams } from './LivestreamsPageDropdownConfig';
+import { getLivestreamsPageFilterParams } from './LivestreamsPageDropdownConfig';
 import {
   guardSubscribedSsrFilter,
   safeSsrListRequest,
@@ -85,7 +85,7 @@ export default async function PodcastsLivestreamsPage({ searchParams }: Livestre
   );
 
   return (
-    <LivestreamsClient
+    <LivestreamsPageClient
       initialQueryParams={{
         page: currentPage,
         type: currentType,
@@ -106,7 +106,7 @@ function parseSearchParams(
   queryParams: SearchParams,
   isAuthenticated: boolean,
   cookieDefaults?: PodcastsLivestreamsFilterDefaults
-): LivestreamsDropdownConfigCurrentParams {
+): LivestreamsPageDropdownConfigCurrentParams {
   const parsed = searchParamsSchema.safeParse(queryParams);
 
   if (!parsed.success) {
@@ -154,7 +154,7 @@ function parseSearchParams(
     },
   });
 
-  return getLivestreamsFilterParams(
+  return getLivestreamsPageFilterParams(
     {
       page: guarded.page,
       type: guarded.type ?? 'global',
