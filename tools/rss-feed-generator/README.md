@@ -2,6 +2,8 @@
 
 CLI to generate tag-rich RSS feeds for parser and integration testing. Feeds are compatible with the Podverse parser (via Partytime) and use a shared pool of media assets.
 
+**Output:** Feeds are written to `tools/test-assets/assets/rss-generator/` (feed-1.rss, feed-2.rss, …) and served at `http://localhost:2111/rss-generator/` when the test-assets server is running.
+
 ## Media assets (JPEG, MP3, MP4)
 
 Generated feeds use the same base URL pattern as the Lighthouse tool: `http://localhost:2111/<namespace>/` (e.g. `rss-generator`). The same test-assets server (`tools/test-assets`) serves both Lighthouse and RSS generator namespaces.
@@ -15,3 +17,6 @@ Asset file generation **reuses** `AssetGenerator` from `podverse-test-assets` (n
 ## Scripts
 
 - `npm run ensure-assets` — Ensure media assets exist (skips existing). Optional: `--max N` (1–100) to limit how many of each type are ensured.
+- `npm run generate` — Generate RSS feeds. Usage: `npm run generate -- <count> [--multi 2|min-max]`. Writes `feed-1.rss` … `feed-N.rss` under `tools/test-assets/assets/rss-generator/`. When the test-assets server is running, feeds are served at `http://localhost:2111/rss-generator/feed-N.rss`.
+
+  Example from repo root: `cd tools/rss-feed-generator && npm run generate -- 5` or `npm run generate -w podverse-rss-feed-generator -- 3 --multi 2-5`.
