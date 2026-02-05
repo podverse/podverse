@@ -39,8 +39,8 @@
     "zod": "^4.3.6"
   },
   "devDependencies": {
-    "@types/node": "^25.0.10",
-    "@types/react": "^19.1.13",
+    "@types/node": "^24.10.10",
+    "@types/react": "^19.2.11",
     "@types/react-dom": "^19.2.2",
     "@types/video.js": "^7.3.58",
     "dotenv": "^17.2.2",
