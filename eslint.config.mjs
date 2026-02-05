@@ -50,6 +50,12 @@ export default tseslint.config(
     },
   },
   {
+    files: ['tools/**/*.{ts,tsx,js,mjs,cjs}'],
+    rules: {
+      'no-console': 'off',
+    },
+  },
+  {
     ignores: [
       '**/dist/**',
       '**/node_modules/**',

@@ -36,18 +36,28 @@ export class BrowserAutomation {
   async initialize(): Promise<void> {
     // Use a fixed viewport/device scale for determinism and expose CDP port for Lighthouse
     this.cdpPort = 9222;
-    this.browser = await chromium.launch({
-      headless: true,
-      args: [
-        `--remote-debugging-port=${this.cdpPort}`,
-        '--disable-gpu',
-        '--disable-dev-shm-usage',
-        '--no-sandbox',
-        '--disable-background-timer-throttling',
-        '--disable-backgrounding-occluded-windows',
-        '--disable-renderer-backgrounding',
-      ],
-    });
+    try {
+      this.browser = await chromium.launch({
+        headless: true,
+        args: [
+          `--remote-debugging-port=${this.cdpPort}`,
+          '--disable-gpu',
+          '--disable-dev-shm-usage',
+          '--no-sandbox',
+          '--disable-background-timer-throttling',
+          '--disable-backgrounding-occluded-windows',
+          '--disable-renderer-backgrounding',
+        ],
+      });
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : String(error);
+      if (message.includes("Executable doesn't exist")) {
+        throw new Error(
+          'Playwright browser binaries are not installed. Run: npx playwright install'
+        );
+      }
+      throw error;
+    }
     this.context = await this.browser.newContext(this.contextOptions);
     this.page = await this.context.newPage();
   }

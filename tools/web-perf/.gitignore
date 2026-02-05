@@ -6,16 +6,6 @@ lighthouse/node_modules/
 bundle-analyzer/dist/
 lighthouse/dist/
 
-# Generated assets (lighthouse)
-lighthouse/assets/*.jpg
-lighthouse/assets/*.jpeg
-lighthouse/assets/*.mp3
-lighthouse/assets/*.mp4
-
-# Keep RSS feeds and asset documentation
-!lighthouse/assets/*.rss
-!lighthouse/assets/README.md
-
 # Environment files
 bundle-analyzer/.env
 lighthouse/.env

@@ -190,6 +190,10 @@ router.get(
 
 See `apps/api/src/lib/startup/validation.ts` for environment variable validation patterns.
 
+**Lighthouse alignment:** When validation changes here, update
+`tools/web-perf/lighthouse/.env.api.example` and `.env.api` so the Lighthouse runner
+stays in sync with API startup validation.
+
 ## File Structure
 
 ```

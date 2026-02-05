@@ -24,7 +24,8 @@
   "workspaces": [
     "packages/*",
     "apps/*",
-    "tools/*"
+    "tools/*",
+    "tools/*/*"
   ],
   "overrides": {
     "fast-xml-parser": "^5.3.4"

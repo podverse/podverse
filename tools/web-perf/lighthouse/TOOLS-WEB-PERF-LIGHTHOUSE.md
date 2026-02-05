@@ -16,10 +16,10 @@ This system uses Playwright for browser automation and Lighthouse for performanc
 
 ## Prerequisites
 
-- **Node.js 22.17.0 or higher** (specified in root `.nvmrc`)
+- **Node.js** as specified in root `.nvmrc` (currently Node 24)
   - If using nvm: `nvm use` in the monorepo root to switch to the correct version
   - Or ensure your Node.js version matches `.nvmrc`
-- Chrome/Chromium browser installed
+- **Playwright browsers**: Run `npx playwright install` (from `tools/web-perf/lighthouse` or monorepo root) before running `npm run lighthouse`. Playwright uses its own browser binaries; without this step, the tool will fail with an "Executable doesn't exist" error.
 - The web app will be started automatically on `http://localhost:3111` during tests
 - Test fixtures seeded in the database (see Database Setup)
 
@@ -28,32 +28,68 @@ This system uses Playwright for browser automation and Lighthouse for performanc
 ```bash
 cd tools/web-perf/lighthouse
 npm install
+npx playwright install
+
+cd ../../test-assets
+npm install
+npm run build
 ```
+
+Run `npx playwright install` before your first `npm run lighthouse`; it is required for browser automation.
 
 ## Setup
 
 1.  **Configure environment variables**:
 
     ```bash
-    cp .env.example .env
+    cp .env.api.example .env.api
+    cp .env.web.example .env.web
+    cp .env.lighthouse.example .env.lighthouse
     ```
 
-    Then edit `.env` with your test database connection details. **Important**: The test database runs on port **5111** (separate from the development database on port 5432). The `.env.example` file is pre-configured for the test database.
+    Then edit `.env.api`, `.env.web`, and `.env.lighthouse` with your test settings.
+    **Important**: The test database runs on port **5111** (separate from the
+    development database on port 5432). The example files are pre-configured for
+    the test database.
 
-2.  **Test Database Setup**: The test suite uses a separate test database that is automatically managed:
-    - The test database runs in a Docker container (`podverse_test_db`) on port 5111
-    - Before each test run, the database is automatically reset and reinitialized
-    - Test fixtures are automatically seeded
-    - You can manually manage the test database using make commands from `podverse-ops` (sibling repo):
+    Lighthouse does **not** provide its own env validation. It relies on the app
+    startup validation in:
+    - `apps/api/src/lib/startup/validation.ts`
+    - `apps/web/scripts/validate-env.ts`
+
+    Keep `.env.api` and `.env.web` aligned with those validators.
+
+    When Lighthouse starts the API, it skips loading `apps/api/.env` so the
+    Lighthouse `.env.api` values are always used.
+
+2.  **Lighthouse Docker Services**: The test suite manages its own Docker services
+    (database, message queue, key-value DB) with Lighthouse-specific container names
+    and ports to avoid collisions with local dev services:
+    - Database container: `podverse_lighthouse_test_db` (port 5111)
+    - Message queue: `podverse_lighthouse_mq` (AMQP on port 5673)
+    - Key-value DB: `podverse_lighthouse_keyvaldb` (Valkey on port 6381)
+    - Before each test run, Lighthouse tears down any existing Lighthouse services,
+      then starts fresh containers, resets the database schema, and seeds fixtures.
+    - You can manually manage the services using the Lighthouse compose file:
+
       ```bash
-      cd ../podverse-ops
-      make test_db_up     # Start the test database container
-      make test_db_reinit # Reset and reinitialize with test fixtures
-      make test_db_down   # Stop and remove the test database container
+      docker compose -f tools/web-perf/lighthouse/docker/docker-compose.yml up -d
+      cat ../../infra/database/combined/init_database.sql | \
+        docker exec -i podverse_lighthouse_test_db psql -U postgres -d postgres
+      docker exec -i podverse_lighthouse_test_db psql -U postgres -d postgres \
+        -f /opt/database/seed-scripts/local-lighthouse-test-fixtures.sql
       ```
-    - The test suite will automatically ensure the database is up and reset before running tests
 
-3.  **Test Assets**: Test assets (images, media files, and RSS feeds) are located in `tools/web-perf/lighthouse/assets/`. The tool automatically generates missing image and media files when you run `npm run lighthouse`. RSS feed files are source controlled. Assets are served via a local HTTP server on `localhost:2111`. See `tools/web-perf/lighthouse/assets/README.md` for details.
+    - The test suite will automatically ensure the Lighthouse services are up and reset
+      before running tests
+    - Environment variable details for these services are documented in
+      `tools/web-perf/lighthouse/docker/env/ENV.md`
+
+3.  **Test Assets**: Test assets (images, media files, and RSS feeds) are located in
+    `tools/test-assets/assets/`. The tool automatically generates missing image and media
+    files when you run `npm run lighthouse`. RSS feed files are source controlled. Assets
+    are served via a local HTTP server on `localhost:2111/lighthouse/`. See
+    `tools/test-assets/TOOLS-TEST-ASSETS.md` for details.
 
 4.  **Podcast Index API Override**: The `@podverse/external-services` package needs to be updated to include the Podcast Index API override logic. This ensures that test `podcast_index_id` values and feed URLs return mock data instead of querying the real API. This override is only active in non-production environments (`NODE_ENV !== 'production'`).
 
@@ -188,7 +224,9 @@ The test suite uses a **separate test database** (port 5111) that is isolated fr
 - No interference with development data
 - Automatic reset before each test run
 
-The test database is managed via Docker and make commands in `podverse-ops`. The test suite automatically handles database setup, but you can also manage it manually if needed.
+The test database is managed via Docker compose in
+`tools/web-perf/lighthouse/docker`. The test suite automatically handles database
+setup, but you can also manage it manually if needed.
 
 ## Test Fixtures
 
@@ -207,7 +245,15 @@ Test fixtures must be seeded in the local database. The seed script should creat
 - Test channels (Podcast, Video, Music)
 - Test items (one per channel)
 
-The test database is automatically initialized from `podverse-ops` (sibling repo). See `podverse-ops/database/seed-scripts/local-lighthouse-test-fixtures.sql` for the seed script.
+The test database is automatically initialized from
+`infra/database/seeds/local-lighthouse-test-fixtures.sql`, which is mounted into the
+container at `/opt/database/seed-scripts/local-lighthouse-test-fixtures.sql`.
+
+## Docker Sync Note
+
+If you update infra Docker images, commands, or env files for DB/MQ/KeyvalDB, make
+sure to update the Lighthouse Docker files under `tools/web-perf/lighthouse/docker`
+to keep the tool aligned with infra changes.
 
 ## Troubleshooting
 
@@ -224,17 +270,31 @@ The test database is automatically initialized from `podverse-ops` (sibling repo
 **Login fails:**
 
 - Verify database connection is configured correctly in `.env`
-- Check that the test database is running: `docker ps | grep podverse_test_db`
+- Check that the test database is running: `docker ps | grep podverse_lighthouse_test_db`
 - Ensure the test database is on port 5111 (not 5432)
 - Check that the database user has permissions to create and delete accounts
 - Ensure podverse-orm can connect to the database
 
 **Database connection fails:**
 
-- Verify the test database container is running: `make test_db_up` (from podverse-ops sibling repo)
+- Verify the test database container is running:
+  `docker ps | grep podverse_lighthouse_test_db`
 - Check that `.env` has the correct port (5111) and credentials
-- Ensure `podverse-ops` is a sibling directory to the monorepo (for automatic database setup)
-- If automatic setup fails, manually run: `make test_db_reinit` from podverse-ops
+- The reset step runs `/opt/database/init-scripts/01-create-users.sh` to ensure
+  `read`/`read_write` users exist with the Lighthouse DB passwords.
+- Check Postgres readiness and logs:
+  `docker logs podverse_lighthouse_test_db`
+- If schema creation fails, Lighthouse now verifies `category` exists after reset.
+  A failure usually means the combined schema SQL was not applied.
+- If automatic setup fails, manually run:
+
+  ```bash
+  docker compose -f tools/web-perf/lighthouse/docker/docker-compose.yml up -d
+  cat ../../infra/database/combined/init_database.sql | \
+    docker exec -i podverse_lighthouse_test_db psql -U postgres -d postgres
+  docker exec -i podverse_lighthouse_test_db psql -U postgres -d postgres \
+    -f /opt/database/seed-scripts/local-lighthouse-test-fixtures.sql
+  ```
 
 ## Consistency Tips
 
@@ -254,6 +314,6 @@ The system consists of:
 - `database-setup.ts`: Test database lifecycle management (start, reset, initialize)
 - `web-app-manager.ts`: Web app lifecycle (start, stop)
 - `api-manager.ts`: API server lifecycle (start, stop)
-- `asset-generator.ts`: Test asset generation (images, media)
-- `asset-server.ts`: Local HTTP server for test assets
+- `tools/test-assets/src/asset-generator.ts`: Test asset generation (images, media)
+- `tools/test-assets/src/asset-server.ts`: Local HTTP server for test assets
 - `index.ts`: Main CLI interface

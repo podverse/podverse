@@ -13,10 +13,15 @@ const execAsync = promisify(exec);
 
 export class AssetGenerator {
   private assetsDir: string;
+  private namespace: string;
 
-  constructor() {
-    // Assets directory is qa/lighthouse/assets/
-    this.assetsDir = path.join(__dirname, '../assets');
+  constructor(options: { namespace: string }) {
+    if (!options?.namespace) {
+      throw new Error('AssetGenerator namespace is required.');
+    }
+    this.namespace = options.namespace;
+    // Assets directory is tools/test-assets/assets/<namespace>/
+    this.assetsDir = path.join(__dirname, '../assets', this.namespace);
   }
 
   async ensureAssetsDirectory(): Promise<void> {
@@ -54,7 +59,7 @@ export class AssetGenerator {
 
       await execAsync(command);
       console.log(`   ✅ Generated: ${filename} (color: ${backgroundColor})`);
-    } catch (error: any) {
+    } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       throw new Error(`Failed to generate image file ${filename}: ${errorMessage}`);
     }
@@ -87,7 +92,7 @@ export class AssetGenerator {
 
       await execAsync(command);
       console.log(`   ✅ Generated: ${filename} (${durationSeconds}s)`);
-    } catch (error: any) {
+    } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       throw new Error(`Failed to generate MP3 file ${filename}: ${errorMessage}`);
     }
@@ -120,7 +125,7 @@ export class AssetGenerator {
 
       await execAsync(command);
       console.log(`   ✅ Generated: ${filename} (${durationSeconds}s)`);
-    } catch (error: any) {
+    } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       throw new Error(`Failed to generate MP4 file ${filename}: ${errorMessage}`);
     }
@@ -129,7 +134,7 @@ export class AssetGenerator {
   async generateAllAssets(): Promise<void> {
     await this.ensureAssetsDirectory();
 
-    console.log('🎨 Generating test assets...\n');
+    console.log(`🎨 Generating test assets (${this.namespace})...\n`);
 
     // Generate channel images with different colors
     console.log('   → Generating channel images...');

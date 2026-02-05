@@ -15,7 +15,7 @@ export class AssetServer {
   private assetsDir: string;
 
   constructor() {
-    // Assets directory is qa/lighthouse/assets/
+    // Assets directory is tools/test-assets/assets/
     this.assetsDir = path.join(__dirname, '../assets');
   }
 

@@ -14,18 +14,15 @@ const execAsync = promisify(exec);
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-const TEST_PORT = 3111;
-const TEST_URL = `http://localhost:${TEST_PORT}`;
-
 export class WebAppManager {
   private webAppProcess: ChildProcess | null = null;
   private podverseWebPath: string;
 
   constructor() {
-    // Calculate path to apps/web (3 levels up from tools/web-perf/lighthouse/src)
+    // Calculate path to apps/web
     const currentDir = __dirname;
-    const webRoot = path.resolve(currentDir, '../../../apps/web');
-    this.podverseWebPath = webRoot;
+    const monorepoRoot = path.resolve(currentDir, '../../../..');
+    this.podverseWebPath = path.join(monorepoRoot, 'apps/web');
   }
 
   private async checkPortAvailable(port: number): Promise<boolean> {
@@ -60,50 +57,48 @@ export class WebAppManager {
   async start(): Promise<string> {
     if (this.webAppProcess) {
       console.log('⚠️  Web app is already running');
-      return TEST_URL;
+      return this.getWebUrl();
     }
+
+    const webPort = this.getWebPort();
 
     // Check if port is available, and kill any process using it
-    const portAvailable = await this.checkPortAvailable(TEST_PORT);
+    const portAvailable = await this.checkPortAvailable(webPort);
     if (!portAvailable) {
-      console.log(`⚠️  Port ${TEST_PORT} is in use, attempting to free it...`);
-      await killProcessOnPort(TEST_PORT);
+      console.log(`⚠️  Port ${webPort} is in use, attempting to free it...`);
+      await killProcessOnPort(webPort);
     }
 
-    console.log(`🚀 Starting podverse-web on port ${TEST_PORT}...`);
+    console.log(`🚀 Starting podverse-web on port ${webPort}...`);
     console.log(`   Working directory: ${this.podverseWebPath}`);
 
     // Set environment variables for test instance
+    // Pass WEB_PORT as PORT for Next.js
     const env = {
       ...process.env,
-      PORT: String(TEST_PORT),
-      NODE_ENV: 'production',
-      // Point to test database (port 5111)
-      DB_HOST: 'localhost',
-      DB_PORT: '5111',
-      DB_DATABASE: 'postgres',
-      DB_READ_USERNAME: process.env.DB_READ_USERNAME || 'read',
-      DB_READ_PASSWORD: process.env.DB_READ_PASSWORD || '',
-      DB_READ_WRITE_USERNAME: process.env.DB_READ_WRITE_USERNAME || 'read_write',
-      DB_READ_WRITE_PASSWORD: process.env.DB_READ_WRITE_PASSWORD || '',
-      DB_SSL_CONNECTION: 'false',
-      // Web domain for this test instance
-      NEXT_PUBLIC_WEB_DOMAIN: `localhost:${TEST_PORT}`,
-      NEXT_PUBLIC_WEB_PROTOCOL: 'http',
-      // API configuration (matching local.env)
-      NEXT_PUBLIC_SSR_API_PROTOCOL: 'http',
-      NEXT_PUBLIC_SSR_API_HOST: 'localhost',
-      NEXT_PUBLIC_SSR_API_PORT: '1111',
-      NEXT_PUBLIC_API_PROTOCOL: 'http',
-      NEXT_PUBLIC_API_HOST: 'localhost',
-      NEXT_PUBLIC_API_PORT: '1111',
-      NEXT_PUBLIC_API_PREFIX: '/api',
-      NEXT_PUBLIC_API_VERSION: '/v2',
-      NEXT_PUBLIC_SERVER_ENV: 'local',
-      // Disable env validation for faster startup (Next.js will handle it)
-      SKIP_ENV_VALIDATION: 'true',
-      // Allow localhost proxy for Lighthouse test assets (even in production mode)
-      ALLOW_LOCALHOST_PROXY: 'true',
+      PORT: process.env.WEB_PORT,
+      NODE_ENV: process.env.NODE_ENV,
+      DB_HOST: process.env.DB_HOST,
+      DB_PORT: process.env.DB_PORT,
+      DB_DATABASE: process.env.DB_DATABASE,
+      DB_READ_USERNAME: process.env.DB_READ_USERNAME,
+      DB_READ_PASSWORD: process.env.DB_READ_PASSWORD,
+      DB_READ_WRITE_USERNAME: process.env.DB_READ_WRITE_USERNAME,
+      DB_READ_WRITE_PASSWORD: process.env.DB_READ_WRITE_PASSWORD,
+      DB_SSL_CONNECTION: process.env.DB_SSL_CONNECTION,
+      NEXT_PUBLIC_WEB_DOMAIN: process.env.NEXT_PUBLIC_WEB_DOMAIN,
+      NEXT_PUBLIC_WEB_PROTOCOL: process.env.NEXT_PUBLIC_WEB_PROTOCOL,
+      NEXT_PUBLIC_SSR_API_PROTOCOL: process.env.NEXT_PUBLIC_SSR_API_PROTOCOL,
+      NEXT_PUBLIC_SSR_API_HOST: process.env.NEXT_PUBLIC_SSR_API_HOST,
+      NEXT_PUBLIC_SSR_API_PORT: process.env.NEXT_PUBLIC_SSR_API_PORT,
+      NEXT_PUBLIC_API_PROTOCOL: process.env.NEXT_PUBLIC_API_PROTOCOL,
+      NEXT_PUBLIC_API_HOST: process.env.NEXT_PUBLIC_API_HOST,
+      NEXT_PUBLIC_API_PORT: process.env.NEXT_PUBLIC_API_PORT,
+      NEXT_PUBLIC_API_PREFIX: process.env.NEXT_PUBLIC_API_PREFIX,
+      NEXT_PUBLIC_API_VERSION: process.env.NEXT_PUBLIC_API_VERSION,
+      NEXT_PUBLIC_SERVER_ENV: process.env.NEXT_PUBLIC_SERVER_ENV,
+      SKIP_ENV_VALIDATION: process.env.SKIP_ENV_VALIDATION,
+      ALLOW_LOCALHOST_PROXY: process.env.ALLOW_LOCALHOST_PROXY,
     };
 
     // Check if package.json exists
@@ -113,9 +108,9 @@ export class WebAppManager {
     }
 
     console.log('   → Web app DB config:');
-    console.log(`     DB_HOST=${env.DB_HOST}`);
-    console.log(`     DB_PORT=${env.DB_PORT}`);
-    console.log(`     DB_DATABASE=${env.DB_DATABASE}`);
+    console.log(`     DB_HOST=${env.DB_HOST ?? ''}`);
+    console.log(`     DB_PORT=${env.DB_PORT ?? ''}`);
+    console.log(`     DB_DATABASE=${env.DB_DATABASE ?? ''}`);
 
     // Build the Next.js app (production) before starting
     console.log('   → Building web app (next build)...');
@@ -161,7 +156,7 @@ export class WebAppManager {
     });
 
     // Handle process exit
-    this.webAppProcess.on('exit', (code, signal) => {
+    this.webAppProcess.on('exit', (code, _signal) => {
       if (code !== null && code !== 0 && code !== 130) {
         // 130 is SIGINT (Ctrl+C), which is expected
         console.error(`⚠️  Web app process exited with code ${code}`);
@@ -171,19 +166,19 @@ export class WebAppManager {
 
     // Wait for server to be ready
     console.log(`   → Waiting for server to be ready...`);
-    const isReady = await this.waitForServerReady(TEST_URL, 120, 1000); // Wait up to 2 minutes
+    const isReady = await this.waitForServerReady(this.getWebUrl(), 120, 1000); // Wait up to 2 minutes
 
     if (!isReady) {
       await this.stop();
       throw new Error(
-        `Web app failed to start on port ${TEST_PORT} within 2 minutes.\n` +
+        `Web app failed to start on port ${webPort} within 2 minutes.\n` +
           `Last output:\n${output.slice(-500)}\n` +
           `Last errors:\n${errorOutput.slice(-500)}`
       );
     }
 
-    console.log(`✅ Web app is ready at ${TEST_URL}\n`);
-    return TEST_URL;
+    console.log(`✅ Web app is ready at ${this.getWebUrl()}\n`);
+    return this.getWebUrl();
   }
 
   async stop(): Promise<void> {
@@ -192,7 +187,7 @@ export class WebAppManager {
 
     if (!process) {
       // If we don't have a process reference, try killing by port
-      await killProcessOnPort(TEST_PORT);
+      await killProcessOnPort(this.getWebPort());
       return;
     }
 
@@ -204,7 +199,7 @@ export class WebAppManager {
 
       if (!killed) {
         // Process might already be dead, try killing by port
-        killProcessOnPort(TEST_PORT).then(() => resolve());
+        killProcessOnPort(this.getWebPort()).then(() => resolve());
         return;
       }
 
@@ -216,7 +211,7 @@ export class WebAppManager {
           // Process already gone
         }
         // Also try killing by port in case process reference is stale
-        await killProcessOnPort(TEST_PORT);
+        await killProcessOnPort(this.getWebPort());
         resolve();
       }, 5000);
 
@@ -233,6 +228,27 @@ export class WebAppManager {
   }
 
   getUrl(): string {
-    return TEST_URL;
+    return this.getWebUrl();
+  }
+
+  private getWebUrl(): string {
+    return `http://localhost:${this.getWebPort()}`;
+  }
+
+  private getWebPort(): number {
+    const value = this.getRequiredEnv('WEB_PORT');
+    const port = Number(value);
+    if (!Number.isFinite(port)) {
+      throw new Error(`WEB_PORT must be a number. Received: ${value}`);
+    }
+    return port;
+  }
+
+  private getRequiredEnv(name: string): string {
+    const value = process.env[name];
+    if (!value) {
+      throw new Error(`Missing required environment variable: ${name}`);
+    }
+    return value;
   }
 }
