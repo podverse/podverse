@@ -205,7 +205,10 @@ export const AddByRSSArtistPageClient: React.FC<AddByRSSArtistPageClientProps> =
       return;
     }
     if (!availableTabs.includes(activeTab)) {
-      setActiveTab(availableTabs[0]);
+      const nextTab = availableTabs[0];
+      if (nextTab) {
+        setActiveTab(nextTab);
+      }
     }
   }, [activeTab, hasAlbums, hasDescription, hasTracks]);
 
