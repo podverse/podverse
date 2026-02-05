@@ -24,7 +24,7 @@
     "@podverse/helpers-backend": "*",
     "@podverse/orm": "*",
     "@podverse/parser": "*",
-    "module-alias": "^2.2.3"
+    "module-alias": "^2.3.3"
   },
   "devDependencies": {
     "@dotenvx/dotenvx": "^1.49.0",
