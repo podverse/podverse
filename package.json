@@ -74,7 +74,7 @@
     "dev:management:all": "concurrently -n pkg,mgmt-api,mgmt-web -c gray,magentaBright,greenBright \"npm run watch:packages\" \"sleep 21 && npm run dev:management-api:watch\" \"sleep 27 && npm run dev:management-web\"",
     "dev:all": "concurrently -n pkg,workers,api,web,mgmt-api,mgmt-web -c gray,yellow,blue,green,magentaBright,greenBright \"npm run watch:packages\" \"sleep 25 && npm run watch:workers\" \"sleep 21 && npm run dev:api:watch\" \"sleep 27 && npm run dev:web\" \"sleep 33 && npm run dev:management-api:watch\" \"sleep 39 && npm run dev:management-web\"",
     "lint": "npm run type-check && npm run lint --workspaces --if-present && npm run prettier:check",
-    "lint:fix": "npm run lint:fix --workspaces --if-present && npm run prettier:write",
+    "lint:fix": "npm run type-check && npm run lint:fix --workspaces --if-present && npm run prettier:write",
     "prettier:check": "prettier --check .",
     "prettier:write": "prettier --write .",
     "format:shell": "prettier --write \"**/*.sh\" --plugin prettier-plugin-sh",
