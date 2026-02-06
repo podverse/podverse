@@ -1,45 +1,54 @@
 'use client';
 
-import { useLocale, useTranslations } from 'next-intl';
+import { useTranslations } from 'next-intl';
 import Link from 'next/link';
 import React from 'react';
 
-import { formatDateAbbrev, getQueryParamFromQueueMediumId } from '@podverse/helpers';
+import { getQueryParamFromQueueMediumId } from '@podverse/helpers';
 
 import { Image } from '../../Image/Image';
+import { ReadableDate } from '../../Time/ReadableDate';
+import { ReadableTime } from '../../Time/ReadableTime';
 import { IMAGES } from '../../../constants/images';
+import { getAddByRSSLivestreamPath } from '../../../utils/addByRSS/itemPath';
+import type { AddByRSSLivestreamIndexItem } from '../../../utils/addByRSS/types';
 import styles from '../../../styles/components/Common/List/ListGridNode.module.scss';
-import type { AddByRSSFeedRecord } from '../../../utils/addByRSS/types';
 
 type AddByRSSLivestreamGridNodeProps = {
-  feed: AddByRSSFeedRecord;
+  item: AddByRSSLivestreamIndexItem;
+  showChannelInfo?: boolean;
 };
 
-export const AddByRSSLivestreamGridNode: React.FC<AddByRSSLivestreamGridNodeProps> = ({ feed }) => {
+export const AddByRSSLivestreamGridNode: React.FC<AddByRSSLivestreamGridNodeProps> = ({
+  item,
+  showChannelInfo,
+}) => {
   const tMedia = useTranslations('media');
-  const locale = useLocale();
-  const feedTitle = feed.mappedFeed?.channel?.channel?.title ?? feed.title ?? feed.feedUrl;
-  const feedImageUrl = feed.imageUrl ?? feed.mappedFeed?.channel?.images?.[0]?.url ?? undefined;
-  const lastPubDate = feed.mappedFeed?.channel?.about?.last_pub_date ?? null;
-  const mediumParam = getQueryParamFromQueueMediumId(
-    feed.mappedFeed?.channel?.channel?.medium_id ?? null
-  );
+  const mediumParam = getQueryParamFromQueueMediumId(item.mediumId) ?? 'podcast';
   const mediumSlug = mediumParam === 'music' ? 'music' : 'podcast';
-  const url = `/add-by-rss/${mediumSlug}/livestream/${feed.idText}`;
+  const url = getAddByRSSLivestreamPath(item.idText, mediumSlug);
+  const title = item.item.title ?? tMedia('livestream.livestream');
+  const imageUrl = item.item.image ?? item.channelImageUrl ?? undefined;
 
   return (
     <Link href={url} className={styles.link}>
       <div className={styles.gridNode}>
         <Image
-          src={feedImageUrl}
-          alt={feedTitle || tMedia('livestream.livestream_image')}
+          src={imageUrl}
+          alt={title || tMedia('livestream.livestream_image')}
           width={IMAGES.LIST.GRID.SIZE}
           height={IMAGES.LIST.GRID.SIZE}
           className={styles.image}
         />
-        <div className={styles.title}>{feedTitle}</div>
+        <div className={styles.title}>{title}</div>
+        {showChannelInfo && <div className={styles.channelTitle}>{item.channelTitle}</div>}
         <div className={styles.lastPubDate}>
-          {lastPubDate ? formatDateAbbrev(lastPubDate, locale) : null}
+          <ReadableDate date={item.liveItem.start_time?.toISOString?.() ?? ''} />
+          {' • '}
+          <ReadableTime
+            start={item.liveItem.start_time?.toISOString?.() ?? ''}
+            end={item.liveItem.end_time?.toISOString?.() ?? null}
+          />
         </div>
       </div>
     </Link>

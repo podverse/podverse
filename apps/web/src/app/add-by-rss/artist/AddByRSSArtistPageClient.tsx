@@ -3,7 +3,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
-import { MediumEnum } from '@podverse/helpers';
 
 import { AddByRSSArtistHeader } from '../../../components/AddByRSS/Artist/AddByRSSArtistHeader';
 import { MainInnerContentWrapper } from '../../../components/Main/MainInnerContentWrapper';
@@ -18,7 +17,18 @@ import {
   getAddByRSSFeedByIdText,
   getAddByRSSFeedsByResourceType,
 } from '../../../utils/addByRSS/storage';
-import type { AddByRSSFeedRecord } from '../../../utils/addByRSS/types';
+import type {
+  AddByRSSFeedRecord,
+  AddByRSSItemIndexItem,
+  AddByRSSLivestreamIndexItem,
+} from '../../../utils/addByRSS/types';
+import { isAlbumMediumId, parseMediumId } from '../../../utils/addByRSS/mediumHelpers';
+import {
+  buildAddByRSSLivestreamIndex,
+  buildAddByRSSItemsIndex,
+  buildItemIdTextMap,
+} from '../../../utils/addByRSS/itemIndex';
+import { createAddByRSSIdText } from '../../../utils/addByRSS/ids';
 import { AddByRSSArtistPageListHeader } from './AddByRSSArtistPageListHeader';
 import type { AddByRSSArtistPageTabKey } from './AddByRSSArtistPageListHeader';
 import { AddByRSSArtistPageList } from './AddByRSSArtistPageList';
@@ -27,22 +37,6 @@ type SortOption = 'recent' | 'oldest';
 
 const toSortOption = (value: string | null): SortOption =>
   value === 'oldest' ? 'oldest' : 'recent';
-
-const parseMediumId = (value: unknown): number | null => {
-  if (typeof value === 'number') {
-    return value;
-  }
-  if (typeof value === 'string') {
-    const parsed = parseInt(value, 10);
-    return Number.isNaN(parsed) ? null : parsed;
-  }
-  return null;
-};
-
-const isMusicMedium = (mediumId: number | null): boolean =>
-  mediumId === MediumEnum.Music ||
-  mediumId === MediumEnum.MusicL ||
-  mediumId === MediumEnum.PublisherMusic;
 
 const getFeedLastPubDateMs = (feed: AddByRSSFeedRecord): number => {
   const raw = feed.mappedFeed?.channel?.about?.last_pub_date ?? null;
@@ -90,7 +84,8 @@ export const AddByRSSArtistPageClient: React.FC<AddByRSSArtistPageClientProps> =
 
   const [feed, setFeed] = useState<AddByRSSFeedRecord | null>(null);
   const [albumFeeds, setAlbumFeeds] = useState<AddByRSSFeedRecord[]>([]);
-  const [trackFeeds, setTrackFeeds] = useState<AddByRSSFeedRecord[]>([]);
+  const [trackItems, setTrackItems] = useState<AddByRSSItemIndexItem[]>([]);
+  const [liveItems, setLiveItems] = useState<AddByRSSLivestreamIndexItem[]>([]);
   const [activeTab, setActiveTab] = useState<AddByRSSArtistPageTabKey>('albums');
   const [isLoading, setIsLoading] = useState(true);
 
@@ -130,26 +125,61 @@ export const AddByRSSArtistPageClient: React.FC<AddByRSSArtistPageClientProps> =
     let cancelled = false;
 
     const loadRelated = async () => {
-      const [albums, tracks] = await Promise.all([
-        getAddByRSSFeedsByResourceType('albums'),
-        getAddByRSSFeedsByResourceType('tracks'),
-      ]);
+      const albums = await getAddByRSSFeedsByResourceType('albums');
       if (cancelled) {
         return;
       }
       const artistKey = getArtistMatchKey(feed);
-      const filterMusic = (record: AddByRSSFeedRecord) => {
+      const filterAlbum = (record: AddByRSSFeedRecord) => {
         const mediumId = parseMediumId(record.mappedFeed?.channel?.channel?.medium_id);
-        return isMusicMedium(mediumId);
+        return isAlbumMediumId(mediumId);
       };
       const relatedAlbums = albums.filter(
-        (record) => filterMusic(record) && matchesArtist(record, artistKey)
-      );
-      const relatedTracks = tracks.filter(
-        (record) => filterMusic(record) && matchesArtist(record, artistKey)
+        (record) => filterAlbum(record) && matchesArtist(record, artistKey)
       );
       setAlbumFeeds(relatedAlbums);
-      setTrackFeeds(relatedTracks);
+
+      // Build items index and extract track items from all related albums
+      await buildAddByRSSItemsIndex(relatedAlbums);
+      const livestreams = await buildAddByRSSLivestreamIndex(relatedAlbums);
+      const map = await buildItemIdTextMap();
+      if (cancelled) {
+        return;
+      }
+
+      // Extract individual track items from album feeds
+      const items: AddByRSSItemIndexItem[] = [];
+      for (const albumFeed of relatedAlbums) {
+        const feedItems = albumFeed.mappedFeed?.items ?? [];
+        const channelTitle =
+          albumFeed.mappedFeed?.channel?.channel?.title ?? albumFeed.title ?? albumFeed.feedUrl;
+        const channelImageUrl =
+          albumFeed.imageUrl ?? albumFeed.mappedFeed?.channel?.images?.[0]?.url ?? undefined;
+        const mediumId = parseMediumId(albumFeed.mappedFeed?.channel?.channel?.medium_id);
+
+        for (let i = 0; i < feedItems.length; i++) {
+          const bundle = feedItems[i];
+          if (!bundle) continue;
+          const itemGuid = bundle.item?.guid ?? `${albumFeed.idText}-${i}`;
+          const compositeId = `${albumFeed.idText}-${itemGuid}`;
+          const itemIdText = map.get(compositeId) ?? createAddByRSSIdText();
+          const pubDateMs = bundle.item?.pub_date ? new Date(bundle.item.pub_date).getTime() : 0;
+
+          items.push({
+            id: compositeId,
+            idText: itemIdText,
+            itemGuid,
+            channelIdText: albumFeed.idText,
+            channelTitle,
+            channelImageUrl,
+            mediumId,
+            bundle,
+            pubDateMs,
+          });
+        }
+      }
+      setTrackItems(items);
+      setLiveItems(livestreams);
     };
 
     void loadRelated();
@@ -172,22 +202,26 @@ export const AddByRSSArtistPageClient: React.FC<AddByRSSArtistPageClientProps> =
     return next;
   }, [albumFeeds, sort]);
 
-  const sortedTracks = useMemo(() => {
-    const next = [...trackFeeds];
+  const sortedTrackItems = useMemo(() => {
+    const next = [...trackItems];
     next.sort((a, b) => {
-      const aDate = getFeedLastPubDateMs(a);
-      const bDate = getFeedLastPubDateMs(b);
-      if (aDate === bDate) {
-        return (a.title || a.feedUrl).localeCompare(b.title || b.feedUrl);
+      if (a.pubDateMs === b.pubDateMs) {
+        return (a.bundle?.item?.title ?? '').localeCompare(b.bundle?.item?.title ?? '');
       }
-      return sort === 'oldest' ? aDate - bDate : bDate - aDate;
+      return sort === 'oldest' ? a.pubDateMs - b.pubDateMs : b.pubDateMs - a.pubDateMs;
     });
     return next;
-  }, [trackFeeds, sort]);
+  }, [trackItems, sort]);
+
+  const sortedLiveItems = useMemo(() => {
+    const next = [...liveItems];
+    next.sort((a, b) => b.startTimeMs - a.startTimeMs);
+    return next;
+  }, [liveItems]);
 
   const description = feed?.mappedFeed?.channel?.description?.value ?? null;
   const hasAlbums = sortedAlbums.length > 0;
-  const hasTracks = sortedTracks.length > 0;
+  const hasTracks = sortedTrackItems.length > 0;
   const hasDescription = !!description;
 
   useEffect(() => {
@@ -268,7 +302,8 @@ export const AddByRSSArtistPageClient: React.FC<AddByRSSArtistPageClientProps> =
             <AddByRSSArtistPageList
               activeTab={activeTab}
               albumFeeds={sortedAlbums}
-              trackFeeds={sortedTracks}
+              trackItems={sortedTrackItems}
+              liveItems={sortedLiveItems}
               description={description}
               viewSelected={viewSelected}
             />

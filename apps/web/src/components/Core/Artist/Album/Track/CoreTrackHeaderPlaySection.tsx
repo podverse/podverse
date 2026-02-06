@@ -5,6 +5,7 @@ import { getQueueForMedium } from '@podverse/helpers';
 import { getShuffleHash } from '@podverse/helpers-requests';
 import React from 'react';
 import { useTranslations } from 'next-intl';
+
 import { PlayButtonLarge } from '../../../../MediaPlayer/Buttons/PlayButtonLarge';
 import { useMediaPlayer } from '../../../../../contexts/MediaPlayer';
 import { ReadableDate } from '../../../../Time/ReadableDate';
@@ -22,12 +23,12 @@ import { useAccount } from '../../../../../contexts/Account';
 import { downloadTrackWithModal } from '../../../../../utils/downloadModal/downloadTrackWithModal';
 import styles from '../../../../../styles/components/Common/Media/Podcast/Episode/EpisodeHeaderPlaySection.module.scss';
 
-type TrackHeaderPlaySectionProps = {
+type CoreTrackHeaderPlaySectionProps = {
   item: DTOItem;
   channel: DTOChannel;
 };
 
-export const TrackHeaderPlaySection: React.FC<TrackHeaderPlaySectionProps> = ({
+export const CoreTrackHeaderPlaySection: React.FC<CoreTrackHeaderPlaySectionProps> = ({
   item,
   channel,
 }) => {

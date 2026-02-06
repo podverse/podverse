@@ -12,14 +12,16 @@ import { AddByRSSEpisodeRow } from './AddByRSSEpisodeRow';
 type AddByRSSEpisodeNodesFeedsProps = {
   feeds: AddByRSSFeedRecord[];
   viewSelected: ViewSelectedOption;
+  itemIdTextMap?: Map<string, string>;
 };
 
 type AddByRSSEpisodeNodesItemsProps = {
-  feedIdText: string;
-  feedTitle: string;
-  feedImageUrl?: string;
+  channelIdText: string;
+  channelTitle: string;
+  channelImageUrl?: string;
   items: AddByRSSMappedFeed['items'];
   viewSelected?: ViewSelectedOption;
+  itemIdTextMap: Map<string, string>;
 };
 
 type AddByRSSEpisodeNodesProps = AddByRSSEpisodeNodesFeedsProps | AddByRSSEpisodeNodesItemsProps;
@@ -28,23 +30,40 @@ function isFeedsProps(props: AddByRSSEpisodeNodesProps): props is AddByRSSEpisod
   return 'feeds' in props;
 }
 
+const getItemIdText = (
+  map: Map<string, string> | undefined,
+  channelIdText: string,
+  itemGuid: string
+): string => {
+  const compositeId = `${channelIdText}-${itemGuid}`;
+  return map?.get(compositeId) ?? '';
+};
+
 export const AddByRSSEpisodeNodes: React.FC<AddByRSSEpisodeNodesProps> = (props) => {
   if (isFeedsProps(props)) {
-    const { feeds, viewSelected } = props;
+    const { feeds, viewSelected, itemIdTextMap } = props;
     if (viewSelected === 'rows') {
       return (
         <div key="list" className={styles.list}>
-          {feeds.map((feed, idx) => (
-            <React.Fragment key={feed.idText}>
-              <AddByRSSEpisodeRow
-                itemGuid={feed.mappedFeed?.items?.[0]?.item?.guid ?? feed.idText}
-                feedTitle={feed.mappedFeed?.channel?.channel?.title ?? feed.title ?? feed.feedUrl}
-                feedImageUrl={feed.imageUrl ?? feed.mappedFeed?.channel?.images?.[0]?.url}
-                bundle={feed.mappedFeed?.items?.[0] ?? ({} as AddByRSSMappedFeed['items'][number])}
-              />
-              {idx < feeds.length - 1 && <Divider />}
-            </React.Fragment>
-          ))}
+          {feeds.map((feed, idx) => {
+            const itemGuid = feed.mappedFeed?.items?.[0]?.item?.guid ?? feed.idText;
+            const itemIdText = getItemIdText(itemIdTextMap, feed.idText, itemGuid);
+            return (
+              <React.Fragment key={feed.idText}>
+                <AddByRSSEpisodeRow
+                  itemIdText={itemIdText}
+                  channelTitle={
+                    feed.mappedFeed?.channel?.channel?.title ?? feed.title ?? feed.feedUrl
+                  }
+                  channelImageUrl={feed.imageUrl ?? feed.mappedFeed?.channel?.images?.[0]?.url}
+                  bundle={
+                    feed.mappedFeed?.items?.[0] ?? ({} as AddByRSSMappedFeed['items'][number])
+                  }
+                />
+                {idx < feeds.length - 1 && <Divider />}
+              </React.Fragment>
+            );
+          })}
         </div>
       );
     }
@@ -60,21 +79,32 @@ export const AddByRSSEpisodeNodes: React.FC<AddByRSSEpisodeNodesProps> = (props)
     return null;
   }
 
-  const { feedIdText, feedTitle, feedImageUrl, items, viewSelected = 'rows' } = props;
+  const {
+    channelIdText,
+    channelTitle,
+    channelImageUrl,
+    items,
+    viewSelected = 'rows',
+    itemIdTextMap,
+  } = props;
   if (viewSelected === 'rows') {
     return (
       <div key="list" className={styles.list}>
-        {items.map((bundle, idx) => (
-          <React.Fragment key={bundle.item?.guid ?? idx}>
-            <AddByRSSEpisodeRow
-              itemGuid={bundle.item?.guid ?? feedIdText}
-              feedTitle={feedTitle}
-              feedImageUrl={feedImageUrl}
-              bundle={bundle}
-            />
-            {idx < items.length - 1 && <Divider />}
-          </React.Fragment>
-        ))}
+        {items.map((bundle, idx) => {
+          const itemGuid = bundle.item?.guid ?? `${channelIdText}-${idx}`;
+          const itemIdText = getItemIdText(itemIdTextMap, channelIdText, itemGuid);
+          return (
+            <React.Fragment key={bundle.item?.guid ?? idx}>
+              <AddByRSSEpisodeRow
+                itemIdText={itemIdText}
+                channelTitle={channelTitle}
+                channelImageUrl={channelImageUrl}
+                bundle={bundle}
+              />
+              {idx < items.length - 1 && <Divider />}
+            </React.Fragment>
+          );
+        })}
       </div>
     );
   }
@@ -86,13 +116,13 @@ export const AddByRSSEpisodeNodes: React.FC<AddByRSSEpisodeNodesProps> = (props)
             key={bundle.item?.guid ?? idx}
             feed={
               {
-                idText: feedIdText,
-                title: feedTitle,
+                idText: channelIdText,
+                title: channelTitle,
                 feedUrl: '',
-                imageUrl: feedImageUrl,
+                imageUrl: channelImageUrl,
                 mappedFeed: {
                   channel: {
-                    channel: { title: feedTitle },
+                    channel: { title: channelTitle },
                     images: [],
                     about: {},
                     funding: [],

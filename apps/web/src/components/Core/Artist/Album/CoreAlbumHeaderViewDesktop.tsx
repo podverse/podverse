@@ -6,9 +6,9 @@ import { CommonAlbumHeaderViewDesktop } from '../../../Common/Artist/Album/Commo
 import { Link } from '../../../Link/Link';
 import { ROUTES } from '../../../../constants/routes';
 import styles from '../../../../styles/components/Common/Media/Podcast/PodcastHeaderViewDesktop.module.scss';
-import { AlbumHeaderButtons } from '../../../Media/Music/Album/AlbumHeaderButtons';
-import { AlbumHeaderImage } from '../../../Media/Music/Album/AlbumHeaderImage';
-import { AlbumHeaderSubtitle } from '../../../Media/Music/Album/AlbumHeaderSubtitle';
+import { CoreAlbumHeaderButtons } from './CoreAlbumHeaderButtons';
+import { CoreAlbumHeaderImage } from './CoreAlbumHeaderImage';
+import { CoreAlbumHeaderSubtitle } from './CoreAlbumHeaderSubtitle';
 
 type CoreAlbumHeaderViewDesktopProps = {
   channel: DTOChannel;
@@ -21,14 +21,14 @@ export const CoreAlbumHeaderViewDesktop: React.FC<CoreAlbumHeaderViewDesktopProp
 }) => {
   return (
     <CommonAlbumHeaderViewDesktop
-      imageNode={<AlbumHeaderImage channel={channel} item={item} />}
+      imageNode={<CoreAlbumHeaderImage channel={channel} item={item} />}
       titleNode={
         <Link href={`${ROUTES.ALBUM}/${channel.id_text}`}>
           <h1 className={styles.title}>{channel.title}</h1>
         </Link>
       }
-      subtitleNode={<AlbumHeaderSubtitle channel={channel} />}
-      buttonsNode={<AlbumHeaderButtons channel={channel} item={item} />}
+      subtitleNode={<CoreAlbumHeaderSubtitle channel={channel} />}
+      buttonsNode={<CoreAlbumHeaderButtons channel={channel} item={item} />}
     />
   );
 };

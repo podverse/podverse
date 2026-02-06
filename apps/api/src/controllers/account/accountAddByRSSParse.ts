@@ -3,13 +3,13 @@ import { randomUUID } from 'node:crypto';
 import type { Request, Response } from 'express';
 import Joi from 'joi';
 import { MQ_QUEUES, getDedupeTTLSeconds, getRecordValue } from '@podverse/helpers';
-import { mqAddByRSSAdd, mqAddByRSSAddAll } from '@podverse/mq';
+import { AccountFollowingAddByRSSChannelService } from '@podverse/orm';
+import { mqAddByRSSAdd } from '@podverse/mq';
 import { config } from '@api/config/index.js';
 import { ensureAuthenticated, getAuthenticatedUser } from '@api/lib/auth/index.js';
 import { handleGenericErrorResponse } from '../helpers/error.js';
 import { activeMQArtemisService } from '@api/factories/activeMQArtemisService.js';
 import { loggerService } from '@api/factories/loggerService.js';
-import { cacheGetJson, cacheSetJson } from '@api/lib/keyvaldb/keyvaldb.js';
 import { rateLimitAuthEndpoint } from '@api/lib/rateLimiter.js';
 import { validateBodyObject, validateParamsObject } from '@api/lib/validation/index.js';
 import { getParamRequired } from '@api/lib/params.js';
@@ -17,11 +17,12 @@ import {
   getAddByRSSParseCacheEntry,
   setAddByRSSParseCacheEntry,
 } from '@api/lib/addByRSSParseCache.js';
+import {
+  getAddByRSSParseDedupeEntry,
+  setAddByRSSParseDedupeEntry,
+} from '@api/lib/addByRSSParseDedupeCache.js';
 
 type FeedHashMap = Record<string, string>;
-
-const buildAddByRSSDedupeKey = (accountId: number, feedUrl: string): string =>
-  `addByRSS:dedupe:${accountId}:${encodeURIComponent(feedUrl)}`;
 
 const enqueueRateLimit = rateLimitAuthEndpoint({
   windowMs: 60 * 60 * 1000,
@@ -53,8 +54,7 @@ class AccountAddByRSSParseController {
 
             try {
               if (dedupeTTLSeconds) {
-                const dedupeKey = buildAddByRSSDedupeKey(account.id, feed_url);
-                const existing = await cacheGetJson<{ createdAt: string }>(dedupeKey);
+                const existing = await getAddByRSSParseDedupeEntry(account.id, feed_url);
                 if (existing) {
                   res.status(429).json({
                     message: 'Duplicate request. Please wait before retrying.',
@@ -63,11 +63,7 @@ class AccountAddByRSSParseController {
                   return;
                 }
 
-                await cacheSetJson(
-                  dedupeKey,
-                  { createdAt: new Date().toISOString() },
-                  dedupeTTLSeconds
-                );
+                await setAddByRSSParseDedupeEntry(account.id, feed_url, dedupeTTLSeconds);
               }
 
               if (process.env.MQ_DEBUG === 'true') {
@@ -133,42 +129,63 @@ class AccountAddByRSSParseController {
             const account = getAuthenticatedUser(req);
             const mqConstantMessageOptions = MQ_QUEUES['add-by-rss-on-demand'];
             const requestIds: Array<{ request_id: string; feed_url: string }> = [];
+            const dedupedFeedUrls: string[] = [];
             const feedHashesByUrl = req.body.feed_hashes_by_url as FeedHashMap | undefined;
             const etagsByUrl = req.body.etags_by_url as FeedHashMap | undefined;
             const lastModifiedByUrl = req.body.last_modified_by_url as FeedHashMap | undefined;
-            const requestIdGenerator = (feedUrl: string) => {
-              const requestId = randomUUID();
-              requestIds.push({ request_id: requestId, feed_url: feedUrl });
-              return requestId;
-            };
+            const dedupeTTLSeconds = getDedupeTTLSeconds(
+              mqConstantMessageOptions.dedupeCacheTimeMS
+            );
 
             try {
-              await mqAddByRSSAddAll(activeMQArtemisService, {
-                ...mqConstantMessageOptions,
-                accountId: account.id,
-                feedHashesByUrl,
-                etagsByUrl,
-                lastModifiedByUrl,
-                requestIdGenerator,
-                closeAfterSend: false,
-              });
+              const addByRSSChannelService = new AccountFollowingAddByRSSChannelService();
+              const feeds = await addByRSSChannelService.getFollowedAddByRSSChannels(account.id);
 
-              for (const { request_id, feed_url } of requestIds) {
-                await setAddByRSSParseCacheEntry({
-                  requestId: request_id,
+              for (const feed of feeds) {
+                const feedUrl = feed.feed_url;
+
+                if (dedupeTTLSeconds) {
+                  const existing = await getAddByRSSParseDedupeEntry(account.id, feedUrl);
+                  if (existing) {
+                    dedupedFeedUrls.push(feedUrl);
+                    continue;
+                  }
+                  await setAddByRSSParseDedupeEntry(account.id, feedUrl, dedupeTTLSeconds);
+                }
+
+                const requestId = randomUUID();
+                requestIds.push({ request_id: requestId, feed_url: feedUrl });
+
+                await mqAddByRSSAdd(activeMQArtemisService, {
+                  ...mqConstantMessageOptions,
                   accountId: account.id,
-                  feedUrl: feed_url,
+                  feedUrl,
+                  requestId,
+                  feedHash: getRecordValue(feedHashesByUrl, feedUrl),
+                  etag: getRecordValue(etagsByUrl, feedUrl),
+                  lastModified: getRecordValue(lastModifiedByUrl, feedUrl),
+                  closeAfterSend: false,
+                });
+
+                await setAddByRSSParseCacheEntry({
+                  requestId,
+                  accountId: account.id,
+                  feedUrl,
                   status: 'queued',
                   cache: {
-                    feedHash: getRecordValue(feedHashesByUrl, feed_url),
-                    etag: getRecordValue(etagsByUrl, feed_url),
-                    lastModified: getRecordValue(lastModifiedByUrl, feed_url),
+                    feedHash: getRecordValue(feedHashesByUrl, feedUrl),
+                    etag: getRecordValue(etagsByUrl, feedUrl),
+                    lastModified: getRecordValue(lastModifiedByUrl, feedUrl),
                   },
                   updatedAt: new Date().toISOString(),
                 });
               }
 
-              res.status(201).json({ request_ids: requestIds });
+              res.status(201).json({
+                request_ids: requestIds,
+                deduped_feed_urls: dedupedFeedUrls,
+                dedupe_ttl_seconds: dedupeTTLSeconds ?? null,
+              });
             } catch (err) {
               handleGenericErrorResponse(res, err);
             }

@@ -1,11 +1,13 @@
-import { AddByRSSDetailClient } from '../../../../components/AddByRSS/Detail/AddByRSSDetailClient';
+import { AddByRSSTrackItemPageClient } from '../AddByRSSTrackItemPageClient';
 
-type AddByRSSTrackDetailPageProps = {
+type AddByRSSTrackItemDetailPageProps = {
   params: Promise<{ id: string }>;
 };
 
-export default async function AddByRSSTrackDetailPage({ params }: AddByRSSTrackDetailPageProps) {
+export default async function AddByRSSTrackItemDetailPage({
+  params,
+}: AddByRSSTrackItemDetailPageProps) {
   const { id } = await params;
 
-  return <AddByRSSDetailClient resourceType="tracks" idText={id} />;
+  return <AddByRSSTrackItemPageClient itemIdText={id} />;
 }

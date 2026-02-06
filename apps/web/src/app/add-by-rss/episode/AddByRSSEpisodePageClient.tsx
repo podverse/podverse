@@ -10,31 +10,29 @@ import { SideContent } from '../../../components/SideContent/SideContent';
 import { DetailListWrapper } from '../../../components/List/DetailListWrapper';
 import LoadingSpinnerOverlay from '../../../components/LoadingSpinner/LoadingSpinnerOverlay';
 import { NoResults } from '../../../components/NoResults/NoResults';
-import { EpisodeSummary } from '../../../components/Media/Podcast/Episode/EpisodeSummary';
+import { CoreEpisodeSummary } from '../../../components/Core/Podcast/Episodes/CoreEpisodeSummary';
 import { CommonDetailListHeader } from '../../../components/Common/List/CommonDetailListHeader';
 import { Tabs } from '../../../components/Tabs/Tabs';
 import { AddByRSSPodcastHeader } from '../../../components/AddByRSS/Podcast/AddByRSSPodcastHeader';
 import { AddByRSSEpisodeDetailHeader } from '../../../components/AddByRSS/Podcast/Episode/AddByRSSEpisodeDetailHeader';
 import { useAccount } from '../../../contexts/Account';
 import { syncAddByRSSCacheWithServer } from '../../../utils/addByRSS/sync';
-import { getAddByRSSFeedByIdText, getAllAddByRSSFeeds } from '../../../utils/addByRSS/storage';
-import type { AddByRSSFeedRecord, AddByRSSEpisodeIndexItem } from '../../../utils/addByRSS/types';
-import { findAddByRSSEpisodeByGuid } from '../../../utils/addByRSS/episodeIndex';
-import { getAddByRSSEpisodeByGuid } from '../../../utils/addByRSS/storage';
+import { getAddByRSSFeedByIdText, getAddByRSSItemByIdText } from '../../../utils/addByRSS/storage';
+import type { AddByRSSFeedRecord, AddByRSSItemIndexItem } from '../../../utils/addByRSS/types';
 
 type AddByRSSEpisodePageClientProps = {
-  itemGuid: string;
+  itemIdText: string;
 };
 
 export const AddByRSSEpisodePageClient: React.FC<AddByRSSEpisodePageClientProps> = ({
-  itemGuid,
+  itemIdText,
 }) => {
   const tFeatures = useTranslations('features');
   const tInfo = useTranslations('info');
   const tMisc = useTranslations('misc');
   const { loggedInAccount } = useAccount();
   const [feed, setFeed] = React.useState<AddByRSSFeedRecord | null>(null);
-  const [episode, setEpisode] = React.useState<AddByRSSEpisodeIndexItem | null>(null);
+  const [episode, setEpisode] = React.useState<AddByRSSItemIndexItem | null>(null);
   const [isLoading, setIsLoading] = React.useState(true);
 
   React.useEffect(() => {
@@ -42,6 +40,13 @@ export const AddByRSSEpisodePageClient: React.FC<AddByRSSEpisodePageClientProps>
 
     const load = async () => {
       setIsLoading(true);
+
+      if (!itemIdText) {
+        setEpisode(null);
+        setFeed(null);
+        setIsLoading(false);
+        return;
+      }
 
       if (!loggedInAccount) {
         setEpisode(null);
@@ -55,12 +60,7 @@ export const AddByRSSEpisodePageClient: React.FC<AddByRSSEpisodePageClientProps>
         return;
       }
 
-      let found = await getAddByRSSEpisodeByGuid(itemGuid);
-      if (!found) {
-        const feeds = await getAllAddByRSSFeeds();
-        found = findAddByRSSEpisodeByGuid(feeds, itemGuid);
-      }
-
+      const found = await getAddByRSSItemByIdText(itemIdText);
       if (cancelled) {
         return;
       }
@@ -72,7 +72,7 @@ export const AddByRSSEpisodePageClient: React.FC<AddByRSSEpisodePageClientProps>
         return;
       }
 
-      const feedRecord = await getAddByRSSFeedByIdText(found.feedIdText);
+      const feedRecord = await getAddByRSSFeedByIdText(found.channelIdText);
       if (cancelled) {
         return;
       }
@@ -87,7 +87,7 @@ export const AddByRSSEpisodePageClient: React.FC<AddByRSSEpisodePageClientProps>
     return () => {
       cancelled = true;
     };
-  }, [itemGuid, loggedInAccount]);
+  }, [itemIdText, loggedInAccount]);
 
   if (isLoading) {
     return <LoadingSpinnerOverlay isLoading message={tMisc('loading_your_content')} />;
@@ -124,10 +124,10 @@ export const AddByRSSEpisodePageClient: React.FC<AddByRSSEpisodePageClientProps>
       <MainInnerWrapper>
         <SideContent />
         <MainInnerContentWrapper>
-          <AddByRSSEpisodeDetailHeader itemGuid={episode.itemGuid} title={title} />
+          <AddByRSSEpisodeDetailHeader itemIdText={episode.idText} title={title} />
           <CommonDetailListHeader tabs={<Tabs tabData={tabData} selectedKey="summary" />} />
           <DetailListWrapper>
-            {description ? <EpisodeSummary description={description} /> : null}
+            {description ? <CoreEpisodeSummary description={description} /> : null}
           </DetailListWrapper>
         </MainInnerContentWrapper>
       </MainInnerWrapper>

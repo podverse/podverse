@@ -13,7 +13,7 @@ import { ArtistPageList } from './ArtistPageList';
 import { MainInnerWrapper } from '../../../components/Main/MainInnerWrapper';
 import { MainInnerContentWrapper } from '../../../components/Main/MainInnerContentWrapper';
 import { ArtistPageSideContent } from './ArtistPageSideContent';
-import { ArtistHeader } from '../../../components/Media/Music/Artist/ArtistHeader';
+import { CoreArtistHeader } from '../../../components/Core/Artist/CoreArtistHeader';
 
 interface ArtistPageClientProps {
   initialQueryParams: QueryParamsChannelMusicArtist;
@@ -43,7 +43,7 @@ export function ArtistPageClient(props: ArtistPageClientProps) {
   return (
     <ArtistPageContextProvider initialQueryParams={initialQueryParams}>
       <MainWrapper>
-        <ArtistHeader channel={ssrChannel} />
+        <CoreArtistHeader channel={ssrChannel} />
         <MainInnerWrapper>
           <ArtistPageSideContent channel={ssrChannel} podroll={ssrPodroll} />
           <MainInnerContentWrapper>

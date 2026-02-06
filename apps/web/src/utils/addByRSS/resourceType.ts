@@ -1,43 +1,22 @@
-import { MediumEnum } from '@podverse/helpers';
-
 import type { AddByRSSMappedFeed, AddByRSSResourceType } from './types';
-
-const isPodcastMedium = (mediumId: number | null): boolean =>
-  mediumId === MediumEnum.Podcast ||
-  mediumId === MediumEnum.PodcastL ||
-  mediumId === MediumEnum.PublisherPodcast ||
-  mediumId === MediumEnum.Video ||
-  mediumId === MediumEnum.VideoL ||
-  mediumId === MediumEnum.PublisherVideo ||
-  mediumId === MediumEnum.PublisherAV;
-
-const isAlbumMedium = (mediumId: number | null): boolean =>
-  mediumId === MediumEnum.Music || mediumId === MediumEnum.MusicL;
-
-const isArtistMedium = (mediumId: number | null): boolean => mediumId === MediumEnum.PublisherMusic;
-
-const parseMediumId = (value: unknown): number | null => {
-  if (typeof value === 'number') {
-    return value;
-  }
-  if (typeof value === 'string') {
-    const parsed = parseInt(value, 10);
-    return Number.isNaN(parsed) ? null : parsed;
-  }
-  return null;
-};
+import {
+  isPodcastMediumId,
+  isAlbumMediumId,
+  isArtistMediumId,
+  parseMediumId,
+} from './mediumHelpers';
 
 export const getAddByRSSResourceTypeFromMappedFeed = (
   mappedFeed: AddByRSSMappedFeed | null | undefined
 ): AddByRSSResourceType => {
   const mediumId = parseMediumId(mappedFeed?.channel?.channel?.medium_id);
-  if (isArtistMedium(mediumId)) {
+  if (isArtistMediumId(mediumId)) {
     return 'artists';
   }
-  if (isAlbumMedium(mediumId)) {
+  if (isAlbumMediumId(mediumId)) {
     return 'albums';
   }
-  if (isPodcastMedium(mediumId)) {
+  if (isPodcastMediumId(mediumId)) {
     return 'podcasts';
   }
   return 'podcasts';

@@ -7,7 +7,7 @@ import { AlbumPageList } from './AlbumPageList';
 import { MainInnerWrapper } from '../../../components/Main/MainInnerWrapper';
 import { MainInnerContentWrapper } from '../../../components/Main/MainInnerContentWrapper';
 import { AlbumPageSideContent } from './AlbumPageSideContent';
-import { AlbumHeader } from '../../../components/Media/Music/Album/AlbumHeader';
+import { CoreAlbumHeader } from '../../../components/Core/Artist/Album/CoreAlbumHeader';
 
 interface AlbumPageClientProps {
   initialQueryParams: QueryParamsChannelMusicAlbum;
@@ -36,7 +36,7 @@ export function AlbumPageClient(props: AlbumPageClientProps) {
       ssrTotalPages={ssrTotalPages}
     >
       <MainWrapper>
-        <AlbumHeader channel={ssrChannel} />
+        <CoreAlbumHeader channel={ssrChannel} />
         <MainInnerWrapper>
           <AlbumPageSideContent channel={ssrChannel} podroll={ssrPodroll} />
           <MainInnerContentWrapper>

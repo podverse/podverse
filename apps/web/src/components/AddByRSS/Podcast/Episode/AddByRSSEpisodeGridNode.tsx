@@ -21,7 +21,7 @@ export const AddByRSSEpisodeGridNode: React.FC<AddByRSSEpisodeGridNodeProps> = (
   const feedTitle = feed.mappedFeed?.channel?.channel?.title ?? feed.title ?? feed.feedUrl;
   const feedImageUrl = feed.imageUrl ?? feed.mappedFeed?.channel?.images?.[0]?.url ?? undefined;
   const lastPubDate = feed.mappedFeed?.channel?.about?.last_pub_date ?? null;
-  const url = `/add-by-rss/episode/${feed.idText}`;
+  const url = `/add-by-rss/podcast/${feed.idText}`;
 
   return (
     <Link href={url} className={styles.link}>

@@ -6,7 +6,7 @@ import type { DTOItem } from '@podverse/helpers';
 import { useTrackPageContext } from './TrackPageContext';
 import LoadingSpinnerOverlay from '../../../components/LoadingSpinner/LoadingSpinnerOverlay';
 import { DetailListWrapper } from '../../../components/List/DetailListWrapper';
-import { EpisodeSummary } from '../../../components/Media/Podcast/Episode/EpisodeSummary';
+import { CoreEpisodeSummary } from '../../../components/Core/Podcast/Episodes/CoreEpisodeSummary';
 
 const ItemTranscript = dynamic(
   () =>
@@ -29,7 +29,7 @@ export const TrackPageList: React.FC<TrackPageListProps> = ({ ssrItem }) => {
 
   return (
     <DetailListWrapper>
-      {type === 'summary' && <EpisodeSummary description={ssrItem.item_description?.value} />}
+      {type === 'summary' && <CoreEpisodeSummary description={ssrItem.item_description?.value} />}
       {type === 'transcript' && (
         <ItemTranscript autoScrollOn={autoScrollOn} rows={transcriptRows} />
       )}

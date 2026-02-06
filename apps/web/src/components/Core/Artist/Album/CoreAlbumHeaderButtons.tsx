@@ -2,14 +2,18 @@
 
 import type { DTOChannel, DTOItem } from '@podverse/helpers';
 import React from 'react';
-import HeaderButtons from '../../Header/HeaderButtons';
 
-type AlbumHeaderButtonsProps = {
+import HeaderButtons from '../../../Media/Header/HeaderButtons';
+
+type CoreAlbumHeaderButtonsProps = {
   channel: DTOChannel;
   item?: DTOItem;
 };
 
-export const AlbumHeaderButtons: React.FC<AlbumHeaderButtonsProps> = ({ channel, item = null }) => {
+export const CoreAlbumHeaderButtons: React.FC<CoreAlbumHeaderButtonsProps> = ({
+  channel,
+  item = null,
+}) => {
   return (
     <HeaderButtons
       channel={channel}

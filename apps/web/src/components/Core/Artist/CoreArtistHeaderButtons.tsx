@@ -2,13 +2,14 @@
 
 import type { DTOChannel } from '@podverse/helpers';
 import React from 'react';
-import HeaderButtons from '../../Header/HeaderButtons';
 
-type ArtistHeaderButtonsProps = {
+import HeaderButtons from '../../Media/Header/HeaderButtons';
+
+type CoreArtistHeaderButtonsProps = {
   channel: DTOChannel;
 };
 
-export const ArtistHeaderButtons: React.FC<ArtistHeaderButtonsProps> = ({ channel }) => {
+export const CoreArtistHeaderButtons: React.FC<CoreArtistHeaderButtonsProps> = ({ channel }) => {
   return (
     <HeaderButtons
       channel={channel}

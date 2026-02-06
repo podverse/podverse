@@ -9,27 +9,28 @@ import { formatDateAbbrev } from '@podverse/helpers';
 import { Image } from '../../../Image/Image';
 import { IMAGES } from '../../../../constants/images';
 import styles from '../../../../styles/components/Common/List/ListGridNode.module.scss';
-import type { AddByRSSEpisodeIndexItem } from '../../../../utils/addByRSS/types';
+import { getAddByRSSItemPath } from '../../../../utils/addByRSS/itemPath';
+import type { AddByRSSItemIndexItem } from '../../../../utils/addByRSS/types';
 
-type AddByRSSEpisodeGridItemProps = {
-  item: AddByRSSEpisodeIndexItem;
+type AddByRSSEpisodeGridCardProps = {
+  item: AddByRSSItemIndexItem;
   showChannelInfo?: boolean;
 };
 
-export const AddByRSSEpisodeGridItem: React.FC<AddByRSSEpisodeGridItemProps> = ({
+export const AddByRSSEpisodeGridCard: React.FC<AddByRSSEpisodeGridCardProps> = ({
   item,
   showChannelInfo,
 }) => {
   const tMedia = useTranslations('media');
   const locale = useLocale();
   const title = item.bundle.item.title ?? tMedia('podcast.episode_image');
-  const imageUrl = item.bundle.images?.[0]?.url ?? item.feedImageUrl;
+  const imageUrl = item.bundle.images?.[0]?.url ?? item.channelImageUrl;
   const lastPubDateRaw = item.bundle.item.pub_date ?? null;
   const lastPubDate =
     typeof lastPubDateRaw === 'string' ? lastPubDateRaw : lastPubDateRaw?.toISOString();
 
   return (
-    <Link href={`/add-by-rss/episode/${item.itemGuid}`} className={styles.link}>
+    <Link href={getAddByRSSItemPath(item.idText)} className={styles.link}>
       <div className={styles.gridNode}>
         <Image
           src={imageUrl}
@@ -39,7 +40,7 @@ export const AddByRSSEpisodeGridItem: React.FC<AddByRSSEpisodeGridItemProps> = (
           className={styles.image}
         />
         <div className={styles.title}>{title}</div>
-        {showChannelInfo && <div className={styles.channelTitle}>{item.feedTitle}</div>}
+        {showChannelInfo && <div className={styles.channelTitle}>{item.channelTitle}</div>}
         {lastPubDate ? (
           <span className={styles.lastPubDate}>{formatDateAbbrev(lastPubDate, locale)}</span>
         ) : null}

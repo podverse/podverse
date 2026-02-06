@@ -1,11 +1,11 @@
 import type { DTOChannel } from '@podverse/helpers';
 import React from 'react';
 
-type AlbumHeaderSubtitleProps = {
+type CoreArtistHeaderSubtitleProps = {
   channel: DTOChannel;
 };
 
-export const AlbumHeaderSubtitle: React.FC<AlbumHeaderSubtitleProps> = ({ channel }) => {
+export const CoreArtistHeaderSubtitle: React.FC<CoreArtistHeaderSubtitleProps> = ({ channel }) => {
   const channel_about = channel.channel_about;
   const author = channel_about?.author;
 

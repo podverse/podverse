@@ -3,16 +3,17 @@
 import { useTranslations } from 'next-intl';
 import type { DTOChannel, DTOItem } from '@podverse/helpers';
 import { findDTOChannelImageBySize, findDTOItemImageBySize } from '@podverse/helpers';
-import { Image } from '../../../../components/Image/Image';
+
+import { Image } from '../../../Image/Image';
 import { IMAGES } from '../../../../constants/images';
 import styles from '../../../../styles/components/Common/Media/Podcast/PodcastHeaderImage.module.scss';
 
-type AlbumHeaderImageProps = {
+type CoreAlbumHeaderImageProps = {
   channel: DTOChannel;
   item?: DTOItem;
 };
 
-export const AlbumHeaderImage = ({ channel, item }: AlbumHeaderImageProps) => {
+export const CoreAlbumHeaderImage = ({ channel, item }: CoreAlbumHeaderImageProps) => {
   const tMedia = useTranslations('media');
 
   const imageItemMobile = findDTOItemImageBySize(

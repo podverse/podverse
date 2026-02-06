@@ -15,6 +15,10 @@ export function showToast(message: string, type: 'success' | 'error' | 'warning'
     toast.success(message, { duration, className: styles.toast });
   } else if (type === 'error') {
     toast.error(message, { duration, className: styles.toastDanger });
+  } else if (type === 'warning') {
+    toast(message, { duration, className: styles.toastWarning });
+  } else if (type === 'danger') {
+    toast(message, { duration, className: styles.toastDanger });
   }
 }
 

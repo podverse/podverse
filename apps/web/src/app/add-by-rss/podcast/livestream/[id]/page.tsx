@@ -1,4 +1,4 @@
-import { AddByRSSDetailClient } from '../../../../../components/AddByRSS/Detail/AddByRSSDetailClient';
+import { AddByRSSLivestreamItemPageClient } from '../../../livestream/AddByRSSLivestreamItemPageClient';
 
 type AddByRSSPodcastLivestreamDetailPageProps = {
   params: Promise<{ id: string }>;
@@ -9,5 +9,5 @@ export default async function AddByRSSPodcastLivestreamDetailPage({
 }: AddByRSSPodcastLivestreamDetailPageProps) {
   const { id } = await params;
 
-  return <AddByRSSDetailClient resourceType="livestreams" idText={id} />;
+  return <AddByRSSLivestreamItemPageClient itemIdText={id} mediumSlug="podcast" />;
 }

@@ -1,14 +1,10 @@
 import { getFollowedAddByRSSChannels } from './api';
-import {
-  getAllAddByRSSFeeds,
-  bulkRemoveAddByRSSFeeds,
-  clearAddByRSSEpisodesIndex,
-} from './storage';
+import { getAllAddByRSSFeeds, bulkRemoveAddByRSSFeeds, clearAddByRSSItemsIndex } from './storage';
 
 /**
  * Syncs Add by RSS IndexedDB cache with the server: removes any feeds from IDB
- * that are no longer followed for the account, and clears the episodes index
- * when any feed is removed so stale episodes are not shown.
+ * that are no longer followed for the account, and clears the items index
+ * when any feed is removed so stale items are not shown.
  */
 export async function syncAddByRSSCacheWithServer(accountIdText: string): Promise<void> {
   const remote = await getFollowedAddByRSSChannels(accountIdText);
@@ -20,6 +16,6 @@ export async function syncAddByRSSCacheWithServer(accountIdText: string): Promis
 
   if (toRemove.length > 0) {
     await bulkRemoveAddByRSSFeeds(toRemove);
-    await clearAddByRSSEpisodesIndex();
+    await clearAddByRSSItemsIndex();
   }
 }

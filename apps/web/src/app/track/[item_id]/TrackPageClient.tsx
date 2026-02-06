@@ -7,8 +7,8 @@ import { TrackPageListHeader } from './TrackPageListHeader';
 import { MainInnerWrapper } from '../../../components/Main/MainInnerWrapper';
 import { MainInnerContentWrapper } from '../../../components/Main/MainInnerContentWrapper';
 import { SideContent } from '../../../components/SideContent/SideContent';
-import { AlbumHeader } from '../../../components/Media/Music/Album/AlbumHeader';
-import { TrackHeader } from '../../../components/Media/Music/Album/Track/TrackHeader';
+import { CoreAlbumHeader } from '../../../components/Core/Artist/Album/CoreAlbumHeader';
+import { CoreTrackHeader } from '../../../components/Core/Artist/Album/Track/CoreTrackHeader';
 
 interface TrackPageClientProps {
   initialQueryParams: QueryParamsItemMusic;
@@ -23,11 +23,11 @@ export function TrackPageClient(props: TrackPageClientProps) {
   return (
     <TrackPageContextProvider initialQueryParams={initialQueryParams}>
       <MainWrapper>
-        <AlbumHeader channel={ssrChannel} item={ssrItem} />
+        <CoreAlbumHeader channel={ssrChannel} item={ssrItem} />
         <MainInnerWrapper>
           <SideContent />
           <MainInnerContentWrapper>
-            <TrackHeader channel={ssrChannel} item={ssrItem} />
+            <CoreTrackHeader channel={ssrChannel} item={ssrItem} />
             <TrackPageListHeader ssrHasTranscripts={ssrHasTranscripts} />
             <TrackPageList ssrItem={ssrItem} />
           </MainInnerContentWrapper>

@@ -23,7 +23,7 @@ export const AddByRSSEpisodeHeader: React.FC<AddByRSSEpisodeHeaderProps> = ({ fe
   const title = feed.mappedFeed?.channel?.channel?.title ?? feed.title ?? feed.feedUrl;
 
   const titleNode = (
-    <Link href={`/add-by-rss/episode/${feed.idText}`}>
+    <Link href={`/add-by-rss/podcast/${feed.idText}`}>
       <h2 className={styles.episodeTitle}>{title || 'Untitled'}</h2>
     </Link>
   );

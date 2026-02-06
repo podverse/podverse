@@ -4,12 +4,13 @@ import type { DTOChannel, DTOItem } from '@podverse/helpers';
 import { getQueueForMedium } from '@podverse/helpers';
 import { getShuffleHash } from '@podverse/helpers-requests';
 import React from 'react';
+import { useTranslations } from 'next-intl';
+
 import { PlayButtonLarge } from '../../../MediaPlayer/Buttons/PlayButtonLarge';
 import { useMediaPlayer } from '../../../../contexts/MediaPlayer';
 import { ReadableDate } from '../../../Time/ReadableDate';
 import { getDurationAndPositionStr, ReadableDuration } from '../../../Time/ReadableDuration';
 import { MoreButton } from '../../../MoreButton/MoreButton';
-import { useTranslations } from 'next-intl';
 import { showToastPromise, showToastPromiseWithLoading } from '../../../Toast/Toast';
 import { apiRequestService } from '../../../../factories/apiRequestService';
 import { useQueues } from '../../../../contexts/Queue';
@@ -22,12 +23,12 @@ import { downloadEpisodeWithModal } from '../../../../utils/downloadModal/downlo
 import { useAccount } from '../../../../contexts/Account';
 import styles from '../../../../styles/components/Common/Media/Podcast/Episode/EpisodeHeaderPlaySection.module.scss';
 
-type EpisodeHeaderPlaySectionProps = {
+type CoreEpisodeHeaderPlaySectionProps = {
   item: DTOItem;
   channel: DTOChannel;
 };
 
-export const EpisodeHeaderPlaySection: React.FC<EpisodeHeaderPlaySectionProps> = ({
+export const CoreEpisodeHeaderPlaySection: React.FC<CoreEpisodeHeaderPlaySectionProps> = ({
   item,
   channel,
 }) => {
