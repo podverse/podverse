@@ -253,7 +253,7 @@ Update documentation to reflect:
 
 1. **Docker**: Must be running for test database
 2. **podverse-ops repo**: At `../../podverse-ops` relative to monorepo root
-3. **Database seed script**: `podverse-ops/database/seed-scripts/local-lighthouse-test-fixtures.sql`
+3. **Database**: Lighthouse now populates the test DB via the parser (test-assets mode) from the generated feed; the former seed script `local-lighthouse-test-fixtures.sql` was removed.
 
 ### Auto-Generated (Not Migrated)
 
