@@ -34,10 +34,15 @@ export class AssetGenerator {
     }
   }
 
+  /**
+   * Generate a single image file. Optional sizeLabel is drawn in large text (FFmpeg drawtext)
+   * for visual identification (e.g. "300" or "600×600").
+   */
   async generateImage(
     filename: string,
     backgroundColor: string = '#FF0000',
-    size: { width: number; height: number } = { width: 800, height: 800 }
+    size: { width: number; height: number } = { width: 800, height: 800 },
+    sizeLabel?: string
   ): Promise<void> {
     const filePath = path.join(this.assetsDir, 'images', filename);
 
@@ -47,7 +52,6 @@ export class AssetGenerator {
     }
 
     try {
-      // Import ffmpeg-static dynamically
       const ffmpegStatic = await import('ffmpeg-static').catch((err) => {
         throw new Error(
           `Failed to import ffmpeg-static. Make sure to run 'npm install' first. Error: ${err instanceof Error ? err.message : String(err)}`
@@ -59,17 +63,40 @@ export class AssetGenerator {
         throw new Error('ffmpeg-static binary not found. Make sure ffmpeg-static is installed.');
       }
 
-      // Generate a colored image using ffmpeg (sensible size to limit storage)
-      // FFmpeg expects hex color without # symbol
       const hexColor = backgroundColor.replace('#', '');
       const { width, height } = size;
-      const command = `"${ffmpegPath}" -f lavfi -i color=c=${hexColor}:s=${width}x${height}:d=1 -frames:v 1 -pix_fmt yuvj420p -y "${filePath}"`;
+      // Escape single quotes in label for drawtext (replace ' with '\'')
+      const safeLabel = sizeLabel ? sizeLabel.replace(/'/g, "'\\''") : '';
+      // Scale font with image size so overlay is readable on 300/600/1400px assets
+      const fontSize = Math.max(24, Math.round(Math.min(width, height) * 0.12));
+      const drawtextFilter =
+        safeLabel !== ''
+          ? ` -vf "drawtext=text='${safeLabel}':fontsize=${fontSize}:fontcolor=white:x=(w-text_w)/2:y=(h-text_h)/2"`
+          : '';
+      const command = `"${ffmpegPath}" -f lavfi -i color=c=${hexColor}:s=${width}x${height}:d=1 -frames:v 1 -pix_fmt yuvj420p${drawtextFilter} -y "${filePath}"`;
 
       await execAsync(command);
       console.log(`   ✅ Generated: ${filename} (color: ${backgroundColor}, ${width}x${height})`);
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       throw new Error(`Failed to generate image file ${filename}: ${errorMessage}`);
+    }
+  }
+
+  /**
+   * Generate multiple image sizes for one logical index (e.g. image-001-300.jpg, image-001-600.jpg).
+   * Respects skip-if-exists. sizeLabel is drawn on each image when provided.
+   */
+  async generateImageSizes(
+    indexPad: string,
+    widths: number[],
+    backgroundColor: string,
+    sizeLabel?: boolean
+  ): Promise<void> {
+    for (const w of widths) {
+      const filename = `image-${indexPad}-${w}.jpg`;
+      const label = sizeLabel ? `${w}` : undefined;
+      await this.generateImage(filename, backgroundColor, { width: w, height: w }, label);
     }
   }
 

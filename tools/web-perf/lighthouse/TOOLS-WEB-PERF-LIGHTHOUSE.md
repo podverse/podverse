@@ -97,8 +97,8 @@ Run `npx playwright install` before your first Lighthouse run; it is required fo
       `tools/web-perf/lighthouse/docker/env/ENV.md`
 
 3.  **Test Assets**: Assets are served by the **test-assets** HTTP server at
-    `http://localhost:2111/` (feeds and media as siblings, e.g. `/feed-podcast-1.rss`,
-    `/image-001.jpg`). You must **start the assets server** before running Lighthouse.
+    `http://localhost:2111/` (e.g. `/feeds/feed-podcast-1.rss`, `/images/image-001-300.jpg`).
+    You must **start the assets server** before running Lighthouse.
     From the repo root, in a separate terminal: `npm run start -w podverse-test-assets`.
     Or from the tool dir: `cd tools/test-assets && npm run start`. When you run Lighthouse
     the tool first runs the test-assets **generate** step to create one podcast feed and
