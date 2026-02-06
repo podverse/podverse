@@ -22,8 +22,15 @@ export class AssetGenerator {
   }
 
   async ensureAssetsDirectory(): Promise<void> {
+    const subdirs = ['audio', 'feeds', 'images', 'videos'];
     if (!fs.existsSync(this.assetsDir)) {
       fs.mkdirSync(this.assetsDir, { recursive: true });
+    }
+    for (const sub of subdirs) {
+      const dir = path.join(this.assetsDir, sub);
+      if (!fs.existsSync(dir)) {
+        fs.mkdirSync(dir, { recursive: true });
+      }
     }
   }
 
@@ -32,7 +39,7 @@ export class AssetGenerator {
     backgroundColor: string = '#FF0000',
     size: { width: number; height: number } = { width: 800, height: 800 }
   ): Promise<void> {
-    const filePath = path.join(this.assetsDir, filename);
+    const filePath = path.join(this.assetsDir, 'images', filename);
 
     // Skip if file already exists
     if (fs.existsSync(filePath)) {
@@ -67,7 +74,7 @@ export class AssetGenerator {
   }
 
   async generateMP3(filename: string, durationSeconds: number = 300): Promise<void> {
-    const filePath = path.join(this.assetsDir, filename);
+    const filePath = path.join(this.assetsDir, 'audio', filename);
 
     // Skip if file already exists
     if (fs.existsSync(filePath)) {
@@ -100,7 +107,7 @@ export class AssetGenerator {
   }
 
   async generateMP4(filename: string, durationSeconds: number = 300): Promise<void> {
-    const filePath = path.join(this.assetsDir, filename);
+    const filePath = path.join(this.assetsDir, 'videos', filename);
 
     // Skip if file already exists
     if (fs.existsSync(filePath)) {

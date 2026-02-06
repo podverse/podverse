@@ -8,7 +8,7 @@ export type GenerateFeedAndAssetsOptions = {
 };
 
 /**
- * Generates podcast feed(s) and media assets under tools/test-assets/assets/ (flat).
+ * Generates podcast feed(s) and media under tools/test-assets/assets/{audio,feeds,images,videos}.
  * Uses the same logic as the generate CLI.
  */
 export async function generateFeedAndAssets(options: GenerateFeedAndAssetsOptions = {}): Promise<{

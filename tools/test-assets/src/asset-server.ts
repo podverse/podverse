@@ -61,8 +61,9 @@ export class AssetServer {
           return;
         }
 
-        // Parse requested file path
-        const urlPath = req.url === '/' ? '/index.html' : req.url || '/';
+        // Parse requested file path (strip leading slash so path.join stays under assetsDir)
+        const rawPath = req.url === '/' ? '/index.html' : req.url || '/';
+        const urlPath = rawPath.startsWith('/') ? rawPath.slice(1) : rawPath;
         const filePath = path.join(this.assetsDir, urlPath);
 
         // Security: prevent directory traversal
@@ -125,7 +126,7 @@ export class AssetServer {
     }
 
     return new Promise((resolve, reject) => {
-      this.server!.close((err) => {
+      this.server?.close((err) => {
         if (err) {
           reject(err);
         } else {

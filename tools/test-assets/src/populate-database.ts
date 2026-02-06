@@ -34,7 +34,7 @@ export async function populateDatabaseFromFeed(
     !dbReadWritePassword
   ) {
     throw new Error(
-      'populateDatabaseFromFeed: DB_* env vars required (DB_HOST, DB_PORT, DB_DATABASE, DB_READ_USERNAME, DB_READ_PASSWORD, DB_READ_WRITE_USERNAME, DB_READ_WRITE_PASSWORD). Load .env.api or set them before calling.'
+      'populateDatabaseFromFeed: DB_* env vars required (DB_HOST, DB_PORT, DB_DATABASE, DB_READ_USERNAME, DB_READ_PASSWORD, DB_READ_WRITE_USERNAME, DB_READ_WRITE_PASSWORD). Create .env.api from tools/web-perf/lighthouse/.env.api.example and set DB_* there (or set DB_* in the environment).'
     );
   }
 

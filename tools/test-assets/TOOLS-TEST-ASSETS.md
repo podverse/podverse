@@ -5,25 +5,28 @@ and RSS feeds) for Lighthouse and other tooling.
 
 ## Asset Location
 
-All assets (feeds and media) are served from `http://localhost:2111/<filename>` via a
-local HTTP server started by consumers such as the Lighthouse tool. Feeds and media
-files live as siblings in a single directory:
+All assets are served from `http://localhost:2111/<subdir>/<filename>` via a local HTTP
+server started by consumers such as the Lighthouse tool. Files are organized by type:
 
-- `tools/test-assets/assets/` (flat: feed-podcast-1.rss, image-001.jpg, audio-001.mp3, etc.)
-- URLs: `http://localhost:2111/feed-podcast-1.rss`, `http://localhost:2111/image-001.jpg`, etc.
+- `tools/test-assets/assets/audio/` — audio files (e.g. audio-001.mp3)
+- `tools/test-assets/assets/feeds/` — RSS feeds (e.g. feed-podcast-1.rss)
+- `tools/test-assets/assets/images/` — images (e.g. image-001.jpg)
+- `tools/test-assets/assets/videos/` — video files (e.g. video-001.mp4)
+- URLs: `http://localhost:2111/feeds/feed-podcast-1.rss`, `http://localhost:2111/images/image-001.jpg`,
+  `http://localhost:2111/audio/audio-001.mp3`, `http://localhost:2111/videos/video-001.mp4`
 
 ## Required Files
 
-The following files are automatically generated or provided for the Lighthouse tool
-under `assets/lighthouse/`:
+The following files are automatically generated or provided for the Lighthouse tool under
+`assets/images/`, `assets/audio/`, `assets/videos/`, and `assets/feeds/`:
 
-### Channel Images (Generated)
+### Channel Images (Generated, in `assets/images/`)
 
 - `chan-1-image.jpg` - Image for Podcast channel
 - `chan-2-image.jpg` - Image for Video channel
 - `chan-3-image.jpg` - Image for Music channel
 
-### Item Images (Generated)
+### Item Images (Generated, in `assets/images/`)
 
 - `item-1-image.jpg` - Image for Podcast episode
 - `item-2-image.jpg` - Image for Video episode
@@ -31,11 +34,10 @@ under `assets/lighthouse/`:
 
 ### Media Files (Generated - 5 minutes each)
 
-- `item-1-podcast.mp3` - Audio file for Podcast episode (5 minutes)
-- `item-2-video.mp4` - Video file for Video episode (5 minutes)
-- `item-3-music.mp3` - Audio file for Music track (5 minutes)
+- `assets/audio/`: `item-1-podcast.mp3`, `item-3-music.mp3` - Audio for Podcast/Music
+- `assets/videos/`: `item-2-video.mp4` - Video for Video episode
 
-### RSS Feed Files (Source Controlled)
+### RSS Feed Files (in `assets/feeds/`)
 
 - `feed-1.rss` - RSS feed for Podcast channel
 - `feed-2.rss` - RSS feed for Video channel
@@ -47,23 +49,30 @@ under `assets/lighthouse/`:
   if they don't exist.
 - Media files are 5 minutes long to prevent playback from ending during tests.
 - RSS feed files are source controlled and contain references to assets served from
-  `localhost:2111/<toolname>/`.
-- Lighthouse (and other tools) populate the test database via the parser in
-  test-assets mode using the feed at `http://localhost:2111/feed-podcast-1.rss`.
+  `localhost:2111/<subdir>/` (e.g. `audio/`, `images/`, `videos/`).
+- Lighthouse (and other tools) populate the test database via the parser in test-assets
+  mode using the feed at `http://localhost:2111/feeds/feed-podcast-1.rss`.
 - The assets server sends RSS/XML with `Content-Disposition: inline` so opening
-  e.g. `http://localhost:2111/feed-podcast-1.rss` in a browser displays the feed
+  e.g. `http://localhost:2111/feeds/feed-podcast-1.rss` in a browser displays the feed
   content in the tab instead of triggering a download.
 
 ## Scripts
 
 Run from the monorepo root unless noted.
 
-| Script                                               | Description                                                                                                                                                                                                                                                           |
-| ---------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `npm run generate -w podverse-test-assets`           | **Generate assets only (no parse).** Writes feeds and media to `tools/test-assets/assets/`. Does not touch the database. Optional args: `<count> [--items N] [--multi N]`. Alias: `generate:only`.                                                                    |
-| `npm run generate_and_parse -w podverse-test-assets` | **Generate assets then parse.** Runs generate, then populates the database from the default feed (parser in test-assets mode). Requires DB (e.g. Lighthouse Docker), `.env.api` with `DB_*` set, and assets server running (`npm run start -w podverse-test-assets`). |
+| Script                                               | Description                                                                                                                                                                                                                                                                                             |
+| ---------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `npm run generate -w podverse-test-assets`           | **Generate assets only (no parse).** Writes to `assets/audio/`, `assets/feeds/`, `assets/images/`, `assets/videos/`. Does not touch the database. Optional args: `<count> [--items N] [--multi N]`. Alias: `generate:only`.                                                                             |
+| `npm run generate_and_parse -w podverse-test-assets` | **Generate assets then parse.** Runs generate with same `<count> [--items N]` as the generate script, then populates the database from **all** generated feeds (one parser run per feed). Requires DB, `.env.api` with `DB_*` set, and assets server running (`npm run start -w podverse-test-assets`). |
 
-Use `generate` (or `generate:only`) when you only need to refresh feeds/media. Use `generate_and_parse` when you need the test database populated for the API or Lighthouse.
+Use `generate` (or `generate:only`) when you only need to refresh feeds/media. Use `generate_and_parse` when you need the database populated for the API or Lighthouse; it accepts the same count and `--items` as the generate script and parses every generated feed (e.g. 9 feeds for count=1).
+
+**`.env.api` and database for generate_and_parse:**
+
+- The script looks for `.env.api` in this order: (1) monorepo root, (2) `tools/web-perf/lighthouse/.env.api`. You do not need to run from a specific directory.
+- **Standalone (populate dev DB):** If only Lighthouse's `.env.api` exists, the script defaults to **dev database** (`DB_HOST=127.0.0.1`, `DB_PORT=5432`). To use the Lighthouse test DB (e.g. port 5111) when running the CLI, set `TEST_ASSETS_USE_TEST_DB=1`.
+- **Lighthouse:** When Lighthouse runs, it loads its own `.env.api` (test DB on 5111) and calls the parser in-process, so the CLI defaults do not apply.
+- For the Lighthouse flow, copy the example and edit: `cp tools/web-perf/lighthouse/.env.api.example tools/web-perf/lighthouse/.env.api`.
 
 ## Generation
 
@@ -73,10 +82,12 @@ Feeds and media are generated by the **generate** script (assets only) or progra
 npm run generate -w podverse-test-assets -- 1 --items 3
 ```
 
-The Lighthouse tool runs generate automatically before tests. Generated files are written flat under `tools/test-assets/assets/` (no subdirectories).
+The Lighthouse tool runs generate automatically before tests. Generated files are written
+to `assets/audio/`, `assets/feeds/`, `assets/images/`, and `assets/videos/`.
 
 ## Namespacing
 
 `AssetGenerator` accepts an optional `namespace`; use `namespace: ''` (or omit) to write
-directly under `assets/`. Use a non-empty namespace to group assets in a subdirectory
+under `assets/audio/`, `assets/images/`, `assets/videos/` (and `assets/feeds/` when writing
+feeds). Use a non-empty namespace to group assets in a subdirectory (e.g. `assets/<ns>/images/`)
 if needed.
