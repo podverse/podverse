@@ -142,8 +142,9 @@ export const getAddByRSSItemsIndexPageOrEmpty = async (params: {
 
   // Apply medium filter if specified
   if (params.mediumFilter && params.mediumFilter !== 'all') {
+    const mediumFilter = params.mediumFilter;
     const filtered = result.items.filter((item) =>
-      matchesMediumFilter(item.mediumId, params.mediumFilter!)
+      matchesMediumFilter(item.mediumId, mediumFilter)
     );
     return { items: filtered, totalCount: filtered.length };
   }
