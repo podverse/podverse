@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { useTranslations, useLocale } from 'next-intl';
+import { useRouter } from 'next/navigation';
 import { formatDateAbbrev } from '@podverse/helpers';
 
 import { MainHeader } from '../../Main/MainHeader';
@@ -16,11 +17,12 @@ import { SideContent } from '../../SideContent/SideContent';
 import LoadingSpinnerOverlay from '../../LoadingSpinner/LoadingSpinnerOverlay';
 import { IMAGES } from '../../../constants/images';
 import { AddByRSSPodcastPageDetailClient } from '../../../app/add-by-rss/podcast/AddByRSSPodcastPageDetailClient';
-import { AddByRSSEpisodePageClient } from '../../../app/add-by-rss/episode/AddByRSSEpisodePageClient';
-import { AddByRSSAlbumHeader } from '../Artist/Album/AddByRSSAlbumHeader';
+import { AddByRSSAlbumPageClient } from '../../../app/add-by-rss/album/AddByRSSAlbumPageClient';
 import { AddByRSSArtistHeader } from '../Artist/AddByRSSArtistHeader';
 import { AddByRSSLivestreamHeader } from '../Livestream/AddByRSSLivestreamHeader';
 import { AddByRSSTrackHeader } from '../Artist/Album/Track/AddByRSSTrackHeader';
+import { useAccount } from '../../../contexts/Account';
+import { syncAddByRSSCacheWithServer } from '../../../utils/addByRSS/sync';
 import { getAddByRSSFeedByIdText } from '../../../utils/addByRSS/storage';
 import type {
   AddByRSSFeedRecord,
@@ -42,19 +44,35 @@ export const AddByRSSDetailClient: React.FC<AddByRSSDetailClientProps> = ({
   const tMisc = useTranslations('misc');
   const tMedia = useTranslations('media');
   const locale = useLocale();
+  const router = useRouter();
+  const { loggedInAccount } = useAccount();
   const [feed, setFeed] = React.useState<AddByRSSFeedRecord | null>(null);
   const [isLoading, setIsLoading] = React.useState(true);
+
+  const isEpisodesDetail = resourceType === 'episodes';
 
   React.useEffect(() => {
     const load = async () => {
       setIsLoading(true);
+      if (!loggedInAccount) {
+        setFeed(null);
+        setIsLoading(false);
+        return;
+      }
+      await syncAddByRSSCacheWithServer(loggedInAccount.id_text);
       const record = await getAddByRSSFeedByIdText(idText);
       setFeed(record);
       setIsLoading(false);
     };
 
     void load();
-  }, [idText]);
+  }, [idText, loggedInAccount]);
+
+  React.useEffect(() => {
+    if (isEpisodesDetail && feed) {
+      router.replace(`/add-by-rss/podcast/${feed.idText}`);
+    }
+  }, [isEpisodesDetail, feed, router]);
 
   if (isLoading) {
     return <LoadingSpinnerOverlay isLoading message={tMisc('loading_your_content')} />;
@@ -79,8 +97,11 @@ export const AddByRSSDetailClient: React.FC<AddByRSSDetailClientProps> = ({
   if (resourceType === 'podcasts') {
     return <AddByRSSPodcastPageDetailClient feed={feed} />;
   }
+  if (resourceType === 'albums') {
+    return <AddByRSSAlbumPageClient feed={feed} />;
+  }
   if (resourceType === 'episodes') {
-    return <AddByRSSEpisodePageClient itemGuid={idText} />;
+    return <LoadingSpinnerOverlay isLoading message={tMisc('loading_your_content')} />;
   }
 
   const mappedFeed = feed.mappedFeed;
@@ -93,8 +114,6 @@ export const AddByRSSDetailClient: React.FC<AddByRSSDetailClientProps> = ({
     switch (resourceType) {
       case 'artists':
         return tMedia('music.artists');
-      case 'albums':
-        return tMedia('music.albums');
       case 'tracks':
         return tMedia('music.tracks');
       case 'livestreams':
@@ -105,9 +124,7 @@ export const AddByRSSDetailClient: React.FC<AddByRSSDetailClientProps> = ({
   })();
   const statusLabel = feed.status ? tFeatures(`add_by_rss.status_${feed.status}`) : undefined;
   const headerNode =
-    resourceType === 'albums' ? (
-      <AddByRSSAlbumHeader feed={feed} />
-    ) : resourceType === 'artists' ? (
+    resourceType === 'artists' ? (
       <AddByRSSArtistHeader feed={feed} />
     ) : resourceType === 'livestreams' ? (
       <AddByRSSLivestreamHeader feed={feed} />

@@ -8,7 +8,7 @@ import {
   BeforeInsert,
 } from 'typeorm';
 import type { Relation } from 'typeorm';
-import type { ItemChaptersFeed } from './itemChaptersFeed.js';
+import type { ItemChaptersObject } from './itemChaptersObject.js';
 import { generateRandomIdText } from '@orm/lib/nanoid.js';
 
 @Entity()
@@ -19,11 +19,13 @@ export class ItemChapter {
   @Column({ type: 'varchar', unique: true })
   id_text!: string;
 
-  @ManyToOne('ItemChaptersFeed', (item_chapters_feed: ItemChaptersFeed) => item_chapters_feed.id, {
-    onDelete: 'CASCADE',
-  })
-  @JoinColumn({ name: 'item_chapters_feed_id' })
-  item_chapters_feed!: Relation<ItemChaptersFeed>;
+  @ManyToOne(
+    'ItemChaptersObject',
+    (item_chapters_object: ItemChaptersObject) => item_chapters_object.item_chapters,
+    { onDelete: 'CASCADE' }
+  )
+  @JoinColumn({ name: 'item_chapters_object_id' })
+  item_chapters_object!: Relation<ItemChaptersObject>;
 
   @Column({ type: 'varchar', length: DATABASE_CONSTANTS.varchar_md5 })
   data_hash!: string;

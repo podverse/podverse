@@ -5,7 +5,7 @@ import dynamic from 'next/dynamic';
 import { useEpisodePageContext } from './EpisodePageContext';
 import LoadingSpinnerOverlay from '../../../components/LoadingSpinner/LoadingSpinnerOverlay';
 import { DetailListWrapper } from '../../../components/List/DetailListWrapper';
-import { EpisodeSummary } from '../../../components/Media/Podcast/Episode/EpisodeSummary';
+import { CoreEpisodeSummary } from '../../../components/Core/Podcast/Episodes/CoreEpisodeSummary';
 import { ListClips } from '../../../components/List/Clips/ListClips';
 import type { DTOChannel, DTOItem } from '@podverse/helpers';
 import { ListItemSoundbites } from '../../../components/List/ItemSoundbites/ListItemSoundbites';
@@ -43,7 +43,7 @@ export const EpisodePageList: React.FC<EpisodePageListProps> = ({ ssrChannel, ss
 
   return (
     <DetailListWrapper>
-      {type === 'summary' && <EpisodeSummary description={ssrItem.item_description?.value} />}
+      {type === 'summary' && <CoreEpisodeSummary description={ssrItem.item_description?.value} />}
       {type === 'chapters' && (
         <ListItemChapters
           page={page}

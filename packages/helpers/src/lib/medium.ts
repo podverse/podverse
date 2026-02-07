@@ -30,6 +30,24 @@ export enum MediumEnum {
   PublisherCourse = 29,
 }
 
+/**
+ * Medium strings allowed in RSS feeds (<podcast:medium>, <podcast:remoteItem medium="...">).
+ * Internal-only values (av, publisher-av, etc.) must never be emitted in RSS.
+ */
+export const RSS_FEED_MEDIUM_VALUES = ['podcast', 'video', 'music', 'publisher'] as const;
+export type RssFeedMedium = (typeof RSS_FEED_MEDIUM_VALUES)[number];
+
+export function isRssFeedMedium(value: string): value is RssFeedMedium {
+  return (RSS_FEED_MEDIUM_VALUES as readonly string[]).includes(value.toLowerCase());
+}
+
+/** Returns a random RSS feed medium or undefined (omit attribute). */
+export function pickRandomRssFeedMedium(): string | undefined {
+  if (Math.random() < 0.5) return undefined;
+  const idx = Math.floor(Math.random() * RSS_FEED_MEDIUM_VALUES.length);
+  return RSS_FEED_MEDIUM_VALUES[idx];
+}
+
 export function getMediumEnumValue(input: string | null): MediumEnum {
   const sanitizedInput = input
     ?.toLowerCase()

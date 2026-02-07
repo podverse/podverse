@@ -1,0 +1,23 @@
+# Dependencies
+node_modules/
+
+# Build outputs
+dist/
+
+# Generated assets
+assets/**/*.jpg
+assets/**/*.jpeg
+assets/**/*.json
+assets/**/*.mp3
+assets/**/*.mp4
+assets/**/*.ogg
+assets/**/*.webm
+assets/**/*.rss
+assets/**/*.srt
+assets/**/*.vtt
+
+# TypeScript build info
+tsconfig.tsbuildinfo
+
+# Logs
+*.log

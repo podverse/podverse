@@ -1,4 +1,4 @@
--- Combined migrations generated Sat Jan 24 13:06:14 CST 2026
+-- Combined migrations generated Sat Feb  7 01:58:56 CST 2026
 -- DO NOT EDIT - regenerate with scripts/database/combine-migrations.sh
 
 -- Including: 0000_init_helpers.sql
@@ -745,6 +745,23 @@ CREATE TABLE item_chapters_feed (
 
 CREATE INDEX idx_item_chapters_feed_item_id ON item_chapters_feed(item_id);
 
+--** ITEM > CHAPTERS > OBJECT
+
+-- File-level metadata for a parsed chapters JSON file (one per item_chapters_feed)
+CREATE TABLE item_chapters_object (
+    id SERIAL PRIMARY KEY,
+    item_chapters_feed_id INTEGER NOT NULL UNIQUE REFERENCES item_chapters_feed(id) ON DELETE CASCADE,
+    version varchar_short,
+    author varchar_normal,
+    title varchar_normal,
+    podcast_name varchar_normal,
+    description varchar_longer,
+    file_name varchar_normal,
+    waypoints BOOLEAN
+);
+
+CREATE INDEX idx_item_chapters_object_item_chapters_feed_id ON item_chapters_object(item_chapters_feed_id);
+
 --** ITEM > CHAPTERS > LOG
 
 -- <item> -> <podcast:chapters> -> parsing logs
@@ -766,7 +783,7 @@ CREATE INDEX idx_item_chapters_feed_log_item_chapters_feed_id ON item_chapters_f
 CREATE TABLE item_chapter (
     id SERIAL PRIMARY KEY,
     id_text nano_id_v2 UNIQUE NOT NULL,
-    item_chapters_feed_id INTEGER NOT NULL REFERENCES item_chapters_feed(id) ON DELETE CASCADE,
+    item_chapters_object_id INTEGER NOT NULL REFERENCES item_chapters_object(id) ON DELETE CASCADE,
     data_hash varchar_md5 NOT NULL,
     start_time media_player_time NOT NULL,
     end_time media_player_time,
@@ -776,7 +793,7 @@ CREATE TABLE item_chapter (
     table_of_contents BOOLEAN DEFAULT TRUE
 );
 
-CREATE INDEX idx_item_chapter_item_chapters_feed_id ON item_chapter(item_chapters_feed_id);
+CREATE INDEX idx_item_chapter_item_chapters_object_id ON item_chapter(item_chapters_object_id);
 
 --** ITEM > CHAPTER > LOCATION
 

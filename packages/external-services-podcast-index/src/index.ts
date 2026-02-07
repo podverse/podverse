@@ -251,11 +251,11 @@ export class PodcastIndexService {
   ): Promise<PodcastByGuidResponse | null> => {
     // Check if this is a test feed URL (only in non-production)
     if (process.env.NODE_ENV !== 'production') {
-      if (podcastGuid.includes('/test-assets/feed-1.rss')) {
+      if (podcastGuid.includes('/test-assets/lighthouse/feed-1.rss')) {
         return this.getMockTestFeed(2147483640) as PodcastByGuidResponse | null;
-      } else if (podcastGuid.includes('/test-assets/feed-2.rss')) {
+      } else if (podcastGuid.includes('/test-assets/lighthouse/feed-2.rss')) {
         return this.getMockTestFeed(2147483641) as PodcastByGuidResponse | null;
-      } else if (podcastGuid.includes('/test-assets/feed-3.rss')) {
+      } else if (podcastGuid.includes('/test-assets/lighthouse/feed-3.rss')) {
         return this.getMockTestFeed(2147483642) as PodcastByGuidResponse | null;
       }
     }

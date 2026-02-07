@@ -7,25 +7,26 @@ import React from 'react';
 import { CommonItemHeader } from '../../../Common/Item/CommonItemHeader';
 import { AddByRSSItemHeaderPlaySection } from '../../Item/AddByRSSItemHeaderPlaySection';
 import styles from '../../../../styles/components/Common/Media/Podcast/Episode/EpisodeHeader.module.scss';
+import { getAddByRSSItemPath } from '../../../../utils/addByRSS/itemPath';
 
 const alertPlaceholder = (label: string) => () => {
   window.alert(`Add by RSS: ${label}`);
 };
 
 type AddByRSSEpisodeDetailHeaderProps = {
-  itemGuid: string;
+  itemIdText: string;
   title: string;
 };
 
 export const AddByRSSEpisodeDetailHeader: React.FC<AddByRSSEpisodeDetailHeaderProps> = ({
-  itemGuid,
+  itemIdText,
   title,
 }) => {
   const tMediaPlayer = useTranslations('media_player');
   const tFeatures = useTranslations('features');
 
   const titleNode = (
-    <Link href={`/add-by-rss/episode/${itemGuid}`}>
+    <Link href={getAddByRSSItemPath(itemIdText)}>
       <h2 className={styles.episodeTitle}>{title || 'Untitled'}</h2>
     </Link>
   );

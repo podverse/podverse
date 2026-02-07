@@ -5,11 +5,12 @@ import Link from 'next/link';
 import React from 'react';
 
 import { stripAndDecodeHtml } from '@podverse/helpers';
-import { Image } from '../../../Image/Image';
+import { ImagesPerView } from '../../../Image/ImagesPerView';
 import { MoreButton } from '../../../MoreButton/MoreButton';
 import { ReadableDate } from '../../../Time/ReadableDate';
 import { IMAGES } from '../../../../constants/images';
 import styles from '../../../../styles/components/Common/List/Podcasts/Episodes/ListEpisodeRow.module.scss';
+import { getAddByRSSItemPath } from '../../../../utils/addByRSS/itemPath';
 import type { AddByRSSMappedFeed } from '../../../../utils/addByRSS/types';
 
 const alertPlaceholder = (label: string) => () => {
@@ -17,16 +18,16 @@ const alertPlaceholder = (label: string) => () => {
 };
 
 type AddByRSSEpisodeRowProps = {
-  itemGuid: string;
-  feedTitle: string;
-  feedImageUrl?: string;
+  itemIdText: string;
+  channelTitle: string;
+  channelImageUrl?: string;
   bundle: AddByRSSMappedFeed['items'][number];
 };
 
 export const AddByRSSEpisodeRow: React.FC<AddByRSSEpisodeRowProps> = ({
-  itemGuid,
-  feedTitle,
-  feedImageUrl,
+  itemIdText,
+  channelTitle,
+  channelImageUrl,
   bundle,
 }) => {
   const tMedia = useTranslations('media');
@@ -35,9 +36,9 @@ export const AddByRSSEpisodeRow: React.FC<AddByRSSEpisodeRowProps> = ({
   const title = bundle.item.title ?? tMedia('podcast.episode_image');
   const description = bundle.description?.value
     ? stripAndDecodeHtml(bundle.description.value)
-    : feedTitle;
-  const imageUrl = bundle.images?.[0]?.url ?? feedImageUrl;
-  const url = `/add-by-rss/episode/${itemGuid}`;
+    : channelTitle;
+  const imageUrl = bundle.images?.[0]?.url ?? channelImageUrl;
+  const url = getAddByRSSItemPath(itemIdText);
 
   const moreButtonMenuItems = [
     {
@@ -68,22 +69,17 @@ export const AddByRSSEpisodeRow: React.FC<AddByRSSEpisodeRowProps> = ({
 
   return (
     <div className={styles.row}>
-      <Link href={url} tabIndex={-1}>
-        <Image
-          src={imageUrl}
-          alt={title || tMedia('podcast.episode_image')}
-          width={IMAGES.LIST.EPISODES.DESKTOP.SIZE}
-          height={IMAGES.LIST.EPISODES.DESKTOP.SIZE}
-          className={styles.image}
-        />
-        <Image
-          src={imageUrl}
-          alt={title || tMedia('podcast.episode_image')}
-          width={IMAGES.LIST.EPISODES.MOBILE.SIZE}
-          height={IMAGES.LIST.EPISODES.MOBILE.SIZE}
-          className={styles.imageMobile}
-        />
-      </Link>
+      <ImagesPerView
+        src={imageUrl}
+        alt={title || tMedia('podcast.episode_image')}
+        widthDesktop={IMAGES.LIST.EPISODES.DESKTOP.SIZE}
+        heightDesktop={IMAGES.LIST.EPISODES.DESKTOP.SIZE}
+        widthMobile={IMAGES.LIST.EPISODES.MOBILE.SIZE}
+        heightMobile={IMAGES.LIST.EPISODES.MOBILE.SIZE}
+        classNameDesktop={styles.image}
+        classNameMobile={styles.imageMobile}
+        href={url}
+      />
       <div className={styles.content}>
         <Link href={url}>
           <div className={styles.topSection}>

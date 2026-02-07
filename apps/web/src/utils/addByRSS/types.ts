@@ -35,12 +35,27 @@ export type AddByRSSFeedRecord = {
   updatedAt: string;
 };
 
-export type AddByRSSEpisodeIndexItem = {
+export type AddByRSSItemIndexItem = {
   id: string;
+  idText: string;
   itemGuid: string;
-  feedIdText: string;
-  feedTitle: string;
-  feedImageUrl?: string;
+  channelIdText: string;
+  channelTitle: string;
+  channelImageUrl?: string;
+  mediumId: number | null;
   bundle: AddByRSSMappedFeed['items'][number];
   pubDateMs: number;
+};
+
+export type AddByRSSLivestreamIndexItem = {
+  id: string;
+  idText: string;
+  itemGuid: string;
+  channelIdText: string;
+  channelTitle: string;
+  channelImageUrl?: string;
+  mediumId: number | null;
+  liveItem: AddByRSSMappedFeed['liveItems'][number]['liveItem'];
+  item: AddByRSSMappedFeed['liveItems'][number]['item'];
+  startTimeMs: number;
 };

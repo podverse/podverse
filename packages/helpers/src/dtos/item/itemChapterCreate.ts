@@ -1,3 +1,5 @@
+import type { DTOItemChapterLocation } from './itemChapterLocation.js';
+
 export interface DTOItemChapterCreate {
   data_hash: string;
   start_time: string;
@@ -6,4 +8,5 @@ export interface DTOItemChapterCreate {
   img: string | null;
   web_url: string | null;
   table_of_contents: boolean;
+  location?: Pick<DTOItemChapterLocation, 'name' | 'geo' | 'osm'> | null;
 }

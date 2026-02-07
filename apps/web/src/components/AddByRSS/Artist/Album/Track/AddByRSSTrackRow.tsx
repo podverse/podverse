@@ -1,52 +1,71 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import Link from 'next/link';
 import React from 'react';
 
-import { Image } from '../../../../Image/Image';
-import { IMAGES } from '../../../../../constants/images';
-import styles from '../../../../../styles/components/Common/List/Podcasts/Episodes/ListEpisodeRow.module.scss';
-import type { AddByRSSFeedRecord } from '../../../../../utils/addByRSS/types';
+import { stripAndDecodeHtml } from '@podverse/helpers';
+import { MoreButton } from '../../../../MoreButton/MoreButton';
+import { CommonTrackRow } from '../../../../Common/Artist/Album/Track/CommonTrackRow';
+import { getAddByRSSItemPath } from '../../../../../utils/addByRSS/itemPath';
+import type { AddByRSSMappedFeed } from '../../../../../utils/addByRSS/types';
 
-type AddByRSSTrackRowProps = {
-  feed: AddByRSSFeedRecord;
+const alertPlaceholder = (label: string) => () => {
+  window.alert(`Add by RSS: ${label}`);
 };
 
-export const AddByRSSTrackRow: React.FC<AddByRSSTrackRowProps> = ({ feed }) => {
+type AddByRSSTrackRowProps = {
+  itemIdText: string;
+  channelTitle: string;
+  channelImageUrl?: string;
+  bundle: AddByRSSMappedFeed['items'][number];
+};
+
+export const AddByRSSTrackRow: React.FC<AddByRSSTrackRowProps> = ({
+  itemIdText,
+  channelTitle,
+  channelImageUrl,
+  bundle,
+}) => {
   const tMedia = useTranslations('media');
-  const tMisc = useTranslations('misc');
-  const feedTitle = feed.mappedFeed?.channel?.channel?.title ?? feed.title ?? feed.feedUrl;
-  const feedImageUrl = feed.imageUrl ?? feed.mappedFeed?.channel?.images?.[0]?.url ?? undefined;
-  const author = feed.mappedFeed?.channel?.about?.author ?? null;
-  const url = `/add-by-rss/track/${feed.idText}`;
+  const tMediaPlayer = useTranslations('media_player');
+  const tFeatures = useTranslations('features');
+  const title = bundle.item.title ?? tMedia('music.track_image');
+  const description = bundle.description?.value
+    ? stripAndDecodeHtml(bundle.description.value)
+    : channelTitle;
+  const imageUrl = bundle.images?.[0]?.url ?? channelImageUrl;
+  const url = getAddByRSSItemPath(itemIdText, 'tracks');
+
+  const moreButtonMenuItems = [
+    {
+      label: tMediaPlayer('play'),
+      onClick: alertPlaceholder(tMediaPlayer('play')),
+    },
+    {
+      label: tFeatures('queue.queue_next'),
+      onClick: alertPlaceholder(tFeatures('queue.queue_next')),
+    },
+    {
+      label: tFeatures('queue.queue_last'),
+      onClick: alertPlaceholder(tFeatures('queue.queue_last')),
+    },
+    {
+      label: tFeatures('playlist.add_to_playlist'),
+      onClick: alertPlaceholder(tFeatures('playlist.add_to_playlist')),
+    },
+    {
+      label: tFeatures('download.download_track'),
+      onClick: alertPlaceholder(tFeatures('download.download_track')),
+    },
+  ];
 
   return (
-    <div className={styles.trackRow}>
-      <Link href={url} className={styles.trackClickable}>
-        <Image
-          src={feedImageUrl}
-          alt={feedTitle || tMedia('music.track_image')}
-          width={IMAGES.LIST.TRACKS.DESKTOP.SIZE}
-          height={IMAGES.LIST.TRACKS.DESKTOP.SIZE}
-          className={styles.image}
-        />
-        <Image
-          src={feedImageUrl}
-          alt={feedTitle || tMedia('music.track_image')}
-          width={IMAGES.LIST.TRACKS.MOBILE.SIZE}
-          height={IMAGES.LIST.TRACKS.MOBILE.SIZE}
-          className={styles.imageMobile}
-        />
-        <div className={styles.trackWrapper}>
-          <div className={styles.trackContent}>
-            <div className={styles.trackTextWrapper}>
-              <h3 className={styles.trackTitle}>{feedTitle}</h3>
-              <div className={styles.trackArtist}>{author ?? tMisc('untitled')}</div>
-            </div>
-          </div>
-        </div>
-      </Link>
-    </div>
+    <CommonTrackRow
+      href={url}
+      title={title}
+      subtitle={description}
+      imageUrl={imageUrl}
+      rightMetaNode={<MoreButton moreButtonMenuItems={moreButtonMenuItems} />}
+    />
   );
 };

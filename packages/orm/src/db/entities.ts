@@ -55,6 +55,7 @@ import { ItemAbout } from '@orm/entities/item/itemAbout.js';
 import { ItemChapter } from '@orm/entities/item/itemChapter.js';
 import { ItemChapterLocation } from '@orm/entities/item/itemChapterLocation.js';
 import { ItemChaptersFeed } from '@orm/entities/item/itemChaptersFeed.js';
+import { ItemChaptersObject } from '@orm/entities/item/itemChaptersObject.js';
 import { ItemChaptersFeedLog } from '@orm/entities/item/itemChaptersFeedLog.js';
 import { ItemChat } from '@orm/entities/item/itemChat.js';
 import { ItemContentLink } from '@orm/entities/item/itemContentLink.js';
@@ -160,6 +161,7 @@ export const entities = [
   ItemChapter,
   ItemChapterLocation,
   ItemChaptersFeed,
+  ItemChaptersObject,
   ItemChaptersFeedLog,
   ItemChat,
   ItemContentLink,

@@ -8,7 +8,7 @@ import { MainInnerWrapper } from '../../../components/Main/MainInnerWrapper';
 import { MainInnerContentWrapper } from '../../../components/Main/MainInnerContentWrapper';
 import { CorePodcastHeader } from '../../../components/Core/Podcast/CorePodcastHeader';
 import { SideContent } from '../../../components/SideContent/SideContent';
-import { EpisodeHeader } from '../../../components/Media/Podcast/Episode/EpisodeHeader';
+import { CoreEpisodeHeader } from '../../../components/Core/Podcast/Episodes/CoreEpisodeHeader';
 
 interface EpisodePageClientProps {
   initialQueryParams: QueryParamsItem;
@@ -36,7 +36,7 @@ export function EpisodePageClient(props: EpisodePageClientProps) {
         <MainInnerWrapper>
           <SideContent />
           <MainInnerContentWrapper>
-            <EpisodeHeader channel={ssrChannel} item={ssrItem} />
+            <CoreEpisodeHeader channel={ssrChannel} item={ssrItem} />
             <EpisodePageListHeader
               ssrHasChapters={ssrHasChapters}
               ssrHasTranscripts={ssrHasTranscripts}

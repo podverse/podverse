@@ -61,6 +61,8 @@
       "feed_url": "URL du flux RSS",
       "invalid_url": "Entrez une URL de flux RSS valide.",
       "no_feeds": "Aucun flux RSS enregistré pour le moment.",
+      "no_feeds_podcast": "Aucun flux RSS de podcast enregistré pour le moment.",
+      "no_feeds_music": "Aucun flux RSS musical enregistré pour le moment.",
       "feed_not_found_local": "Ce flux n'a pas pu être trouvé localement.",
       "status": "Statut",
       "status_failed": "Échec",

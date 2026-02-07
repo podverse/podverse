@@ -4,7 +4,7 @@ import type { DTOChannel, DTOItem } from '@podverse/helpers';
 import React from 'react';
 
 import { CommonItemHeader } from '../../../../Common/Item/CommonItemHeader';
-import { TrackHeaderPlaySection } from '../../../../Media/Music/Album/Track/TrackHeaderPlaySection';
+import { CoreTrackHeaderPlaySection } from './CoreTrackHeaderPlaySection';
 import { Link } from '../../../../Link/Link';
 import { ROUTES } from '../../../../../constants/routes';
 import styles from '../../../../../styles/components/Common/Media/Podcast/Episode/EpisodeHeader.module.scss';
@@ -24,7 +24,7 @@ export const CoreTrackHeader: React.FC<CoreTrackHeaderProps> = ({ item, channel 
   return (
     <CommonItemHeader
       titleNode={titleNode}
-      playSectionNode={<TrackHeaderPlaySection item={item} channel={channel} />}
+      playSectionNode={<CoreTrackHeaderPlaySection item={item} channel={channel} />}
     />
   );
 };

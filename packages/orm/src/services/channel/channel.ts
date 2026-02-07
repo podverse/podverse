@@ -100,7 +100,7 @@ const getChannelOneToOneRelations = (relations: FindOptionsRelations<Channel>) =
       ? { channel_podroll: { channel_podroll_remote_items: true } }
       : {}),
     ...(relations.channel_publisher
-      ? { channel_publisher: { channel_publisher_remote_items: true } }
+      ? { channel_publisher: { channel_publisher_remote_item: true } }
       : {}),
   };
 

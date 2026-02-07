@@ -6,7 +6,7 @@ import type { DTOChannel, DTOItem, DTOItemChapter } from '@podverse/helpers';
 import { findDTOChannelImageBySize, findDTOItemImageBySize } from '@podverse/helpers';
 import { getShuffleHash } from '@podverse/helpers-requests';
 import React from 'react';
-import { Image } from '../../Image/Image';
+import { ImagesPerView } from '../../Image/ImagesPerView';
 import { ROUTES } from '../../../constants/routes';
 import { IMAGES } from '../../../constants/images';
 import { PlayButtonRow } from '../../MediaPlayer/Buttons/PlayButtonRow';
@@ -94,22 +94,17 @@ export const ListItemChapterRow: React.FC<ListItemChapterRowProps> = ({
 
   return (
     <div className={styles.row}>
-      <Link href={url} tabIndex={-1}>
-        <Image
-          src={item_chapter?.img || item_image?.url || channel_image?.url}
-          alt={tInfo('chapter.chapter_image')}
-          width={IMAGES.LIST.ITEM_CHAPTERS.SIZE}
-          height={IMAGES.LIST.ITEM_CHAPTERS.SIZE}
-          className={styles.image}
-        />
-        <Image
-          src={item_chapter?.img || item_image?.url || channel_image?.url}
-          alt={tInfo('chapter.chapter_image')}
-          width={IMAGES.LIST.ITEM_CHAPTERS.SIZE}
-          height={IMAGES.LIST.ITEM_CHAPTERS.SIZE}
-          className={styles.imageMobile}
-        />
-      </Link>
+      <ImagesPerView
+        src={item_chapter?.img || item_image?.url || channel_image?.url}
+        alt={tInfo('chapter.chapter_image')}
+        widthDesktop={IMAGES.LIST.ITEM_CHAPTERS.SIZE}
+        heightDesktop={IMAGES.LIST.ITEM_CHAPTERS.SIZE}
+        widthMobile={IMAGES.LIST.ITEM_CHAPTERS.SIZE}
+        heightMobile={IMAGES.LIST.ITEM_CHAPTERS.SIZE}
+        classNameDesktop={styles.image}
+        classNameMobile={styles.imageMobile}
+        href={url}
+      />
       <div className={styles.content}>
         <Link href={url}>
           <div className={styles.topSection}>

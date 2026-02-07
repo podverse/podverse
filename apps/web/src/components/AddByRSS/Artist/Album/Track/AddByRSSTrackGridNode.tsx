@@ -1,12 +1,9 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import Link from 'next/link';
 import React from 'react';
 
-import { Image } from '../../../../Image/Image';
-import { IMAGES } from '../../../../../constants/images';
-import styles from '../../../../../styles/components/Common/List/ListGridNode.module.scss';
+import { CommonTrackGridNodeSimple } from '../../../../Common/Artist/Album/Track/CommonTrackGridNodeSimple';
 import type { AddByRSSFeedRecord } from '../../../../../utils/addByRSS/types';
 
 type AddByRSSTrackGridNodeProps = {
@@ -22,18 +19,11 @@ export const AddByRSSTrackGridNode: React.FC<AddByRSSTrackGridNodeProps> = ({ fe
   const url = `/add-by-rss/track/${feed.idText}`;
 
   return (
-    <Link href={url} className={styles.link}>
-      <div className={styles.gridNode}>
-        <Image
-          src={feedImageUrl}
-          alt={feedTitle || tMedia('music.track_image')}
-          width={IMAGES.LIST.GRID.SIZE}
-          height={IMAGES.LIST.GRID.SIZE}
-          className={styles.image}
-        />
-        <div className={styles.title}>{feedTitle}</div>
-        <span className={styles.lastPubDate}>{author ?? tMisc('untitled')}</span>
-      </div>
-    </Link>
+    <CommonTrackGridNodeSimple
+      href={url}
+      title={feedTitle || tMedia('music.track_image')}
+      subtitle={author ?? tMisc('untitled')}
+      imageUrl={feedImageUrl}
+    />
   );
 };

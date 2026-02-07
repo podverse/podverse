@@ -4,39 +4,42 @@ import React from 'react';
 
 import { Divider } from '../../../../Divider/Divider';
 import type { ViewSelectedOption } from '../../../../ViewSelector/ViewSelector';
-import styles from '../../../../../styles/components/Common/List/ListNodes.module.scss';
-import type { AddByRSSFeedRecord } from '../../../../../utils/addByRSS/types';
-import { AddByRSSTrackGridNode } from './AddByRSSTrackGridNode';
+import type { AddByRSSItemIndexItem } from '../../../../../utils/addByRSS/types';
+import { AddByRSSTrackGridCard } from './AddByRSSTrackGridCard';
 import { AddByRSSTrackRow } from './AddByRSSTrackRow';
+import styles from '../../../../../styles/components/Common/List/ListNodes.module.scss';
 
 type AddByRSSTrackNodesProps = {
-  feeds: AddByRSSFeedRecord[];
+  items: AddByRSSItemIndexItem[];
   viewSelected: ViewSelectedOption;
 };
 
-export const AddByRSSTrackNodes: React.FC<AddByRSSTrackNodesProps> = ({ feeds, viewSelected }) => {
+export const AddByRSSTrackNodes: React.FC<AddByRSSTrackNodesProps> = ({ items, viewSelected }) => {
   if (viewSelected === 'rows') {
     return (
-      <div key="list" className={styles.listTracks}>
-        {feeds.map((feed, idx) => (
-          <React.Fragment key={feed.idText}>
-            <AddByRSSTrackRow feed={feed} />
-            {idx < feeds.length - 1 && <Divider />}
+      <div key="list" className={styles.list}>
+        {items.map((item, idx) => (
+          <React.Fragment key={item.id}>
+            <AddByRSSTrackRow
+              itemIdText={item.idText}
+              channelTitle={item.channelTitle}
+              channelImageUrl={item.channelImageUrl}
+              bundle={item.bundle}
+            />
+            {idx < items.length - 1 && <Divider />}
           </React.Fragment>
         ))}
       </div>
     );
   }
-
   if (viewSelected === 'grid') {
     return (
       <div key="grid" className={styles.grid}>
-        {feeds.map((feed) => (
-          <AddByRSSTrackGridNode key={feed.idText} feed={feed} />
+        {items.map((item) => (
+          <AddByRSSTrackGridCard key={item.id} item={item} showChannelInfo />
         ))}
       </div>
     );
   }
-
   return null;
 };

@@ -13,7 +13,7 @@ import {
 } from '@podverse/helpers';
 import { getShuffleHash } from '@podverse/helpers-requests';
 
-import { Image } from '../../../Image/Image';
+import { ImagesPerView } from '../../../Image/ImagesPerView';
 import { PlayButtonRow } from '../../../MediaPlayer/Buttons/PlayButtonRow';
 import type { MoreButtonMenuItem } from '../../../MoreButton/MoreButton';
 import { MoreButton } from '../../../MoreButton/MoreButton';
@@ -263,22 +263,17 @@ export const CommonEpisodeListRow: React.FC<EpisodeListRowProps> = ({
           <FaGripLines />
         </div>
       )}
-      <Link href={url} tabIndex={-1}>
-        <Image
-          src={itemImage?.url || channelImage?.url}
-          alt={item.title || tMedia('podcast.episode_image')}
-          width={IMAGES.LIST.EPISODES.DESKTOP.SIZE}
-          height={IMAGES.LIST.EPISODES.DESKTOP.SIZE}
-          className={styles.image}
-        />
-        <Image
-          src={itemImage?.url || channelImage?.url}
-          alt={item.title || tMedia('podcast.episode_image')}
-          width={IMAGES.LIST.EPISODES.MOBILE.SIZE}
-          height={IMAGES.LIST.EPISODES.MOBILE.SIZE}
-          className={styles.imageMobile}
-        />
-      </Link>
+      <ImagesPerView
+        src={itemImage?.url || channelImage?.url}
+        alt={item.title || tMedia('podcast.episode_image')}
+        widthDesktop={IMAGES.LIST.EPISODES.DESKTOP.SIZE}
+        heightDesktop={IMAGES.LIST.EPISODES.DESKTOP.SIZE}
+        widthMobile={IMAGES.LIST.EPISODES.MOBILE.SIZE}
+        heightMobile={IMAGES.LIST.EPISODES.MOBILE.SIZE}
+        classNameDesktop={styles.image}
+        classNameMobile={styles.imageMobile}
+        href={url}
+      />
       <div className={styles.content}>
         <Link href={url}>
           <div className={styles.topSection}>

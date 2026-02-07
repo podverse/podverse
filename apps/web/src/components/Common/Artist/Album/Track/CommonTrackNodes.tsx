@@ -8,7 +8,7 @@ import { Divider } from '../../../../Divider/Divider';
 import { ListLiveItemRow } from '../../../../List/LiveItem/ListLiveItemRow';
 import styles from '../../../../../styles/components/Common/List/ListNodes.module.scss';
 import { CommonTrackListGridNode } from './CommonTrackGridNode';
-import { CommonTrackListRow } from './CommonTrackRow';
+import { CommonTrackListRow } from './CommonTrackListRow';
 
 type CommonTrackListNodesProps = {
   channel: DTOChannel | null;

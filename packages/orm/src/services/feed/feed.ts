@@ -98,6 +98,18 @@ export class FeedService {
     });
   }
 
+  /** Returns the maximum podcast_index_id in the feeds table, or null if empty. Used in test-assets mode for auto-increment. */
+  async getMaxPodcastIndexId(): Promise<number | null> {
+    const result = await this.repositoryRead
+      .createQueryBuilder('feed')
+      .select('MAX(feed.podcast_index_id)', 'max')
+      .getRawOne<{ max: number | string | null }>();
+    const max = result?.max;
+    if (max === null || max === undefined) return null;
+    const n = typeof max === 'number' ? max : parseInt(String(max), 10);
+    return Number.isNaN(n) ? null : n;
+  }
+
   async getOrCreate({ url, podcast_index_id }: FeedCreateDto): Promise<Feed> {
     const feed = await this.repositoryRead.findOne({
       where: { url },

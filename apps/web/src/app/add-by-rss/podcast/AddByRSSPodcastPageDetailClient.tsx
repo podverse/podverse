@@ -21,6 +21,7 @@ import { DetailListWrapper } from '../../../components/List/DetailListWrapper';
 import { RSSFeedSettingsSection } from '../../../components/Settings/RSSFeedSettingsSection';
 import { SideContent } from '../../../components/SideContent/SideContent';
 import Dropdown from '../../../components/Dropdown/Dropdown';
+import { AddByRSSLivestreamNodes } from '../../../components/AddByRSS/Livestream/AddByRSSLivestreamNodes';
 import { AddByRSSPodcastHeader } from '../../../components/AddByRSS/Podcast/AddByRSSPodcastHeader';
 import { AddByRSSEpisodeNodes } from '../../../components/AddByRSS/Podcast/Episode/AddByRSSEpisodeNodes';
 import { SettingsWrapper } from '../../../components/Settings/SettingsWrapper';
@@ -30,7 +31,16 @@ import { scrollMainToTop } from '../../../utils/scroll';
 import { enqueueAddByRSSParse } from '../../../utils/addByRSS/api';
 import { applyAddByRSSParseStatus, pollAddByRSSParseStatus } from '../../../utils/addByRSS/actions';
 import { getAddByRSSFeedByUrl } from '../../../utils/addByRSS/storage';
-import type { AddByRSSFeedRecord, AddByRSSParsedFeed } from '../../../utils/addByRSS/types';
+import {
+  buildAddByRSSLivestreamIndex,
+  buildAddByRSSItemsIndex,
+  buildItemIdTextMap,
+} from '../../../utils/addByRSS/itemIndex';
+import type {
+  AddByRSSFeedRecord,
+  AddByRSSParsedFeed,
+  AddByRSSLivestreamIndexItem,
+} from '../../../utils/addByRSS/types';
 import { AddByRSSPodcastPageListHeader } from './AddByRSSPodcastPageListHeader';
 
 type AddByRSSPodcastPageDetailClientProps = {
@@ -57,6 +67,8 @@ export const AddByRSSPodcastPageDetailClient: React.FC<AddByRSSPodcastPageDetail
   const [localFeed, setLocalFeed] = useState(feed);
   const [isUpdating, setIsUpdating] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [itemIdTextMap, setItemIdTextMap] = useState<Map<string, string>>(new Map());
+  const [liveItems, setLiveItems] = useState<AddByRSSLivestreamIndexItem[]>([]);
   const initialPage = useMemo(() => {
     const value = parseInt(searchParams.get('page') ?? '1', 10);
     return Number.isNaN(value) || value < 1 ? 1 : value;
@@ -74,6 +86,17 @@ export const AddByRSSPodcastPageDetailClient: React.FC<AddByRSSPodcastPageDetail
   }, [feed]);
 
   useEffect(() => {
+    const init = async () => {
+      await buildAddByRSSItemsIndex([localFeed]);
+      const livestreams = await buildAddByRSSLivestreamIndex([localFeed]);
+      const map = await buildItemIdTextMap();
+      setItemIdTextMap(map);
+      setLiveItems(livestreams);
+    };
+    void init();
+  }, [localFeed]);
+
+  useEffect(() => {
     if (searchParams.has('page') || searchParams.has('sort')) {
       setCurrentPage(initialPage);
       setSort(initialSort);
@@ -82,9 +105,9 @@ export const AddByRSSPodcastPageDetailClient: React.FC<AddByRSSPodcastPageDetail
 
   const mappedFeed = localFeed.mappedFeed;
   const mappedChannel = mappedFeed?.channel;
-  const feedTitle = mappedChannel?.channel?.title ?? localFeed.title ?? localFeed.feedUrl;
-  const feedImageUrl = localFeed.imageUrl ?? mappedChannel?.images?.[0]?.url ?? undefined;
-  const feedDescription = mappedChannel?.description?.value ?? null;
+  const channelTitle = mappedChannel?.channel?.title ?? localFeed.title ?? localFeed.feedUrl;
+  const channelImageUrl = localFeed.imageUrl ?? mappedChannel?.images?.[0]?.url ?? undefined;
+  const channelDescription = mappedChannel?.description?.value ?? null;
   const items = mappedFeed?.items ?? [];
   const itemsPerPage = PAGINATION.DEFAULT_LIMIT;
   const sortedItems = useMemo(() => {
@@ -257,6 +280,14 @@ export const AddByRSSPodcastPageDetailClient: React.FC<AddByRSSPodcastPageDetail
     tFeatures,
   ]);
 
+  const sortedLiveItems = useMemo(() => {
+    const next = [...liveItems];
+    next.sort((a, b) => b.startTimeMs - a.startTimeMs);
+    return next;
+  }, [liveItems]);
+
+  const showLiveItems = activeTab === 'episodes' && currentPage === 1 && sortedLiveItems.length > 0;
+
   return (
     <MainWrapper>
       <AddByRSSPodcastHeader feed={localFeed} />
@@ -275,16 +306,26 @@ export const AddByRSSPodcastPageDetailClient: React.FC<AddByRSSPodcastPageDetail
                 totalPages={totalPages}
                 setPage={handlePageChange}
               >
-                <AddByRSSEpisodeNodes
-                  feedIdText={localFeed.idText}
-                  feedTitle={feedTitle}
-                  feedImageUrl={feedImageUrl}
-                  items={pagedItems}
-                />
+                <>
+                  {showLiveItems && (
+                    <AddByRSSLivestreamNodes
+                      items={sortedLiveItems}
+                      viewSelected="rows"
+                      showChannelInfo={false}
+                    />
+                  )}
+                  <AddByRSSEpisodeNodes
+                    channelIdText={localFeed.idText}
+                    channelTitle={channelTitle}
+                    channelImageUrl={channelImageUrl}
+                    items={pagedItems}
+                    itemIdTextMap={itemIdTextMap}
+                  />
+                </>
               </Pagination>
             )}
-            {activeTab === 'about' && feedDescription && (
-              <DescriptionRenderer description={feedDescription} />
+            {activeTab === 'about' && channelDescription && (
+              <DescriptionRenderer description={channelDescription} />
             )}
             {activeTab === 'settings' && (
               <SettingsWrapper removeWrapperMargin>

@@ -178,7 +178,7 @@ const getMd5Hash = (data: unknown): string => {
 };
 
 export const getPIChapterMd5Hash = (piChapter: PIChapter): string => {
-  const { startTime, endTime, title, img, url, toc } = piChapter;
+  const { startTime, endTime, title, img, url, toc, location } = piChapter;
 
   const imgNoParams = stripUrlParams(img);
   const urlNoParams = stripUrlParams(url);
@@ -190,5 +190,6 @@ export const getPIChapterMd5Hash = (piChapter: PIChapter): string => {
     img: imgNoParams,
     url: urlNoParams,
     toc,
+    location,
   });
 };

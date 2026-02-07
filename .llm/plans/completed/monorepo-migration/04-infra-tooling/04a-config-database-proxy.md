@@ -89,7 +89,7 @@ podverse-ops/proxy/proxy.conf -> infra/proxy/proxy.conf
 - `init-scripts/01-create-users.sh`
 - `migrations/0000_init_helpers.sql` through `0012_account_settings.sql` (13 files)
 - `seed-scripts/local-dev-account.sql`
-- `seed-scripts/local-lighthouse-test-fixtures.sql`
+- (local-lighthouse-test-fixtures.sql removed; Lighthouse populates DB via parser)
 - `scripts/combine_all_migrations.sh`
 
 ### Database Files (Management - 6 files)

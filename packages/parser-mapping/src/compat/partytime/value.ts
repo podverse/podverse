@@ -1,5 +1,5 @@
 import type { Phase4Value, Phase4ValueRecipient } from '../../types/partytime.js';
-import { DATABASE_CONSTANTS } from '@podverse/helpers';
+import { DATABASE_CONSTANTS, getMediumEnumValue } from '@podverse/helpers';
 import { isValidHttpUrl } from '@podverse/helpers-validation';
 
 export const compatChannelValue = (value: Phase4Value) => {
@@ -36,7 +36,7 @@ export const compatItemValue = (value: Phase4Value) => {
               ? {
                   feed_guid: valueTimeSplit.remoteItem.feedGuid.slice(
                     0,
-                    DATABASE_CONSTANTS.varchar_url
+                    DATABASE_CONSTANTS.varchar_guid
                   ),
                   feed_url:
                     (isValidHttpUrl(valueTimeSplit.remoteItem.feedUrl) &&
@@ -49,8 +49,13 @@ export const compatItemValue = (value: Phase4Value) => {
                     valueTimeSplit.remoteItem.itemGuid?.slice(
                       0,
                       DATABASE_CONSTANTS.varchar_normal
-                    ) || null,
-                  title: /* PTDO: ri.title || */ null,
+                    ) ?? null,
+                  title:
+                    valueTimeSplit.remoteItem.title?.slice(0, DATABASE_CONSTANTS.varchar_normal) ??
+                    null,
+                  medium_id: valueTimeSplit.remoteItem.medium
+                    ? getMediumEnumValue(valueTimeSplit.remoteItem.medium)
+                    : null,
                 }
               : null,
           };

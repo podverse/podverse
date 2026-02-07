@@ -32,10 +32,10 @@ type PollAddByRSSParseStatusParams = {
 
 export const unfollowAddByRSSChannelAndClear = async (params: {
   feedUrl: string;
-  feedIdText: string;
+  channelIdText: string;
 }): Promise<DTOAccount> => {
   const account = await unfollowAddByRSSChannel(params.feedUrl);
-  await removeAddByRSSFeed(params.feedIdText);
+  await removeAddByRSSFeed(params.channelIdText);
   return account;
 };
 

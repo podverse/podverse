@@ -1,0 +1,34 @@
+import { DEFAULT_ASSETS_BASE_URL } from './constants.js';
+
+export type CheckAssetsServerReachableOptions = {
+  /** Base URL of the assets server. Default http://localhost:2111 */
+  baseUrl?: string;
+  /** Timeout in ms. Default 5000. */
+  timeoutMs?: number;
+};
+
+/**
+ * Verifies the test-assets HTTP server is reachable.
+ * @throws Error if unreachable or non-2xx (except 404 is treated as reachable).
+ */
+export async function checkAssetsServerReachable(
+  options: CheckAssetsServerReachableOptions = {}
+): Promise<void> {
+  const { baseUrl = DEFAULT_ASSETS_BASE_URL, timeoutMs = 5000 } = options;
+  const url = baseUrl.endsWith('/') ? baseUrl : `${baseUrl}/`;
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const res = await fetch(url, { signal: controller.signal });
+    clearTimeout(timeoutId);
+    if (!res.ok && res.status !== 404) {
+      throw new Error(`Assets server returned ${res.status}`);
+    }
+  } catch (err) {
+    clearTimeout(timeoutId);
+    if (err instanceof Error) {
+      throw new Error(`Assets server not reachable at ${url}: ${err.message}`);
+    }
+    throw err;
+  }
+}

@@ -194,6 +194,7 @@ export type Episode = {
   }>;
   value?: Phase4Value | null;
   podcastSeasonIndex?: number | null;
+  contentLinks?: Array<{ url: string; title: string }>;
 };
 
 export type FeedObject = {
@@ -238,8 +239,19 @@ export type FeedObject = {
   podcastPublisher?: {
     feedGuid: string;
     feedUrl?: string;
+    itemGuid?: string;
+    title?: string;
+    medium?: string;
   } | null;
   podcastRemoteItems?: Phase6RemoteItem[];
+  /** Channel-level podcast:socialInteract (spec); same shape as item podcastSocialInteraction. */
+  channelPodcastSocialInteract?: Array<{
+    platform: string;
+    id: string;
+    url: string;
+    profileUrl?: string | null;
+    priority?: number | null;
+  }>;
   podcastSocial?: Array<{
     platform: string;
     url: string;
@@ -262,6 +274,12 @@ export type FeedObject = {
   value?: Phase4Value | null;
 };
 
+export type PIChapterLocation = {
+  name: string;
+  geo: string;
+  osm?: string;
+};
+
 export type PIChapter = {
   startTime: string;
   endTime: string | null;
@@ -269,6 +287,7 @@ export type PIChapter = {
   img: string | null;
   url: string | null;
   toc: boolean;
+  location?: PIChapterLocation | null;
 };
 
 export type Phase7Chat = {

@@ -3,6 +3,7 @@ console.log('📝 Script starting - loading modules...\n');
 
 import inquirer from 'inquirer';
 import { BrowserAutomation } from './browser-automation.js';
+import type { LighthouseScreenshotOptions } from './lighthouse-runner.js';
 import { LighthouseRunner } from './lighthouse-runner.js';
 import { ReportManager } from './report-manager.js';
 import { ComparisonEngine } from './comparison.js';
@@ -12,10 +13,13 @@ import { generateComparisonSummary } from './openai-summary.js';
 import { DatabaseSetup } from './database-setup.js';
 import { WebAppManager } from './web-app-manager.js';
 import { ApiManager } from './api-manager.js';
-import { ContainerChecker } from './container-checker.js';
 import { killProcessOnPort } from './port-killer.js';
-import { AssetGenerator } from './asset-generator.js';
-import { AssetServer } from './asset-server.js';
+import {
+  generateFeedAndAssets,
+  checkAssetsServerReachable,
+  populateDatabaseFromFeed,
+  DEFAULT_TEST_FEED_URL,
+} from 'podverse-test-assets';
 import dotenv from 'dotenv';
 import path from 'path';
 import fs from 'fs';
@@ -28,24 +32,17 @@ const __dirname = dirname(__filename);
 
 console.log('📦 All modules loaded successfully\n');
 
-// Load environment variables - first from tools/web-perf/lighthouse/.env, then from apps/web/env/local.env
-console.log('🔧 Loading environment variables...');
-const localEnvPath = path.join(__dirname, '../.env');
-if (fs.existsSync(localEnvPath)) {
-  console.log(`   → Loading from: ${localEnvPath}`);
-  dotenv.config({ path: localEnvPath });
-} else {
-  console.log(`   ⚠️  No .env file found at: ${localEnvPath}`);
-}
-
-const webEnvPath = path.join(__dirname, '../../../apps/web/env/local.env');
-if (fs.existsSync(webEnvPath)) {
-  console.log(`   → Loading from: ${webEnvPath}`);
-  dotenv.config({ path: webEnvPath });
-} else {
-  console.log(`   ⚠️  No env file found at: ${webEnvPath}`);
-}
-console.log('✅ Environment variables loaded\n');
+const loadEnvFile = (label: string, relativePath: string, required: boolean) => {
+  const envPath = path.join(__dirname, relativePath);
+  if (fs.existsSync(envPath)) {
+    console.log(`   → Loading ${label} from: ${envPath}`);
+    dotenv.config({ path: envPath, override: true });
+  } else if (required) {
+    throw new Error(`Missing required ${label} file at: ${envPath}`);
+  } else {
+    console.log(`   ⚠️  No ${label} file found at: ${envPath}`);
+  }
+};
 
 // Base URL will be set by WebAppManager (localhost:3111 for tests)
 let BASE_URL = 'http://localhost:3111';
@@ -76,7 +73,7 @@ function getNextReportNumber(existingReports: string[]): string {
 // Store managers in module scope for cleanup handlers
 let webAppManager: WebAppManager | null = null;
 let apiManager: ApiManager | null = null;
-let assetServer: AssetServer | null = null;
+let databaseSetup: DatabaseSetup | null = null;
 
 // Setup signal handlers for cleanup (at module level)
 const cleanup = async (signal?: string) => {
@@ -100,11 +97,11 @@ const cleanup = async (signal?: string) => {
     }
   }
 
-  if (assetServer) {
+  if (databaseSetup) {
     try {
-      await assetServer.stop();
+      await databaseSetup.teardownLighthouseServices();
     } catch (error) {
-      console.error('   ⚠️  Error stopping asset server:', error);
+      console.error('   ⚠️  Error tearing down Lighthouse Docker services:', error);
     }
   }
 
@@ -116,11 +113,6 @@ const cleanup = async (signal?: string) => {
   }
   try {
     await killProcessOnPort(1111); // API port
-  } catch {
-    // Ignore
-  }
-  try {
-    await killProcessOnPort(2111); // Asset server port
   } catch {
     // Ignore
   }
@@ -136,7 +128,7 @@ process.on('uncaughtException', async (error) => {
   process.exit(1);
 });
 
-process.on('unhandledRejection', async (reason, promise) => {
+process.on('unhandledRejection', async (reason) => {
   const errorMessage = reason instanceof Error ? reason.message : String(reason);
   const errorStack = reason instanceof Error ? reason.stack : undefined;
   console.error('❌ Unhandled rejection:', errorMessage);
@@ -150,13 +142,12 @@ process.on('unhandledRejection', async (reason, promise) => {
 async function main() {
   console.log('🚀 Lighthouse QA System for Podverse Web\n');
 
-  // Clean up any existing processes on test ports at startup
+  // Clean up any existing processes on test ports at startup (web and API only; assets server is user-run)
   console.log('🔍 Checking for existing processes on test ports...');
   try {
     const webPortKilled = await killProcessOnPort(3111);
     const apiPortKilled = await killProcessOnPort(1111);
-    const assetPortKilled = await killProcessOnPort(2111);
-    if (webPortKilled || apiPortKilled || assetPortKilled) {
+    if (webPortKilled || apiPortKilled) {
       console.log('✅ Cleaned up existing processes\n');
     } else {
       console.log('✅ Test ports are free\n');
@@ -167,63 +158,65 @@ async function main() {
   }
 
   // Check required Docker containers first
-  const containerChecker = new ContainerChecker();
-  try {
-    await containerChecker.validateRequiredContainers();
-    console.log('✅ All required containers are running\n');
-  } catch (error) {
-    console.error(
-      '❌ Container validation failed:',
-      error instanceof Error ? error.message : error
-    );
+  databaseSetup = new DatabaseSetup();
+
+  // Ensure required test-assets exist: one podcast feed + media (BEFORE database setup)
+  console.log('🎨 Generating podcast feed and assets (test-assets)...\n');
+  const genResult = await generateFeedAndAssets({ count: 1, items: 3 });
+  if (!genResult.success) {
+    console.error('❌ generateFeedAndAssets failed');
     process.exit(1);
   }
+  console.log('✅ Feed and assets ready (feed-podcast-1.rss + media)\n');
 
-  // Generate test assets BEFORE database setup
-  console.log('🎨 Generating test assets...\n');
-  const assetGenerator = new AssetGenerator();
+  // Check that the assets server is reachable (user must run it separately)
   try {
-    await assetGenerator.generateAllAssets();
-  } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    const errorStack = error instanceof Error ? error.stack : undefined;
-    console.error('❌ Failed to generate test assets:', errorMessage);
-    if (errorStack) {
-      console.error(errorStack);
-    }
-    if (errorMessage.includes('ffmpeg-static') || errorMessage.includes('npm install')) {
-      console.error(
-        '\n💡 Hint: Run "npm install" in the qa/lighthouse directory to install required dependencies.'
-      );
-    }
+    await checkAssetsServerReachable({ timeoutMs: 5000 });
+    console.log('✅ Assets server reachable\n');
+  } catch (err) {
+    console.error(
+      '❌ The assets server is not running. Lighthouse tests need assets at http://localhost:2111/'
+    );
+    console.error('\nStart the server in a separate terminal, then run Lighthouse again:');
+    console.error('  From repo root: npm run start -w podverse-test-assets');
+    console.error('  Or: cd tools/test-assets && npm run start\n');
     process.exit(1);
   }
 
   // Setup test database BEFORE starting API (API needs database to start)
   console.log('🔧 Setting up test database...\n');
-  const databaseSetup = new DatabaseSetup();
   try {
-    console.log('   → Checking test database container...');
-    await databaseSetup.ensureTestDatabaseUp();
+    console.log('   → Starting Lighthouse Docker services...');
+    await databaseSetup.startLighthouseServices();
     console.log('   → Resetting and initializing database schema...');
     await databaseSetup.resetTestDatabase();
     console.log('✅ Test database ready\n');
   } catch (error) {
     console.error('❌ Failed to setup test database:', error);
-    console.error('\nYou can try running manually from podverse-ops:');
-    console.error('  make test_db_up');
-    console.error('  make test_db_reinit');
+    console.error('\nYou can try running manually from the monorepo root:');
+    console.error('  docker compose -f tools/web-perf/lighthouse/docker/docker-compose.yml up -d');
+    console.error(
+      '  docker exec -i podverse_lighthouse_test_db psql -U postgres -d postgres -f /opt/database/combined/init_database.sql'
+    );
+    console.error(
+      '  Then ensure DB_* env vars are set and run parser (see tools/test-assets docs).'
+    );
     process.exit(1);
   }
 
-  // Start asset server BEFORE API/Web (assets need to be available)
-  console.log('🌐 Starting asset server...\n');
-  assetServer = new AssetServer();
+  // Load API environment variables (required before populating DB via parser)
+  console.log('🔧 Loading API environment variables...');
+  loadEnvFile('.env.api', '../.env.api', true);
+  console.log('✅ API environment variables loaded\n');
+
+  // Populate database with channel/items from generated feed (test-assets parser)
+  console.log('📥 Populating database from feed (parser in test-assets mode)...\n');
   try {
-    await assetServer.start();
-    console.log(`   ✅ Asset server ready at http://localhost:${assetServer.getPort()}\n`);
+    await populateDatabaseFromFeed(DEFAULT_TEST_FEED_URL);
+    console.log('✅ Database populated from feed\n');
   } catch (error) {
-    console.error('❌ Failed to start asset server:', error);
+    console.error('❌ Failed to populate database from feed:', error);
+    console.error('  Check DB connectivity and that .env.api has correct DB_* values.');
     process.exit(1);
   }
 
@@ -236,6 +229,16 @@ async function main() {
     console.error('❌ Failed to start API server:', error);
     process.exit(1);
   }
+
+  // Load web environment variables
+  console.log('🔧 Loading web environment variables...');
+  loadEnvFile('.env.web', '../.env.web', true);
+  console.log('✅ Web environment variables loaded\n');
+
+  // Load Lighthouse-specific environment variables
+  console.log('🔧 Loading Lighthouse environment variables...');
+  loadEnvFile('.env.lighthouse', '../.env.lighthouse', true);
+  console.log('✅ Lighthouse environment variables loaded\n');
 
   // Start web app (depends on API)
   console.log('🌐 Starting web app for testing...\n');
@@ -258,6 +261,10 @@ async function main() {
   console.log('📂 Initializing components...');
   const reportManager = new ReportManager('web');
   const comparisonEngine = new ComparisonEngine();
+  const saveScreenshots = process.env.LIGHTHOUSE_SAVE_SCREENSHOTS === 'true';
+  if (saveScreenshots) {
+    console.log('   📸 Screenshots enabled (saved alongside reports/web)');
+  }
   console.log('   ✅ ReportManager and ComparisonEngine initialized\n');
 
   // Get existing reports
@@ -359,13 +366,20 @@ async function main() {
     console.log('✅ Browser ready\n');
 
     console.log('🧪 Starting Lighthouse test suite...\n');
-    const results = await lighthouseRunner.runAllTests(automation);
+    const screenshotOptions: LighthouseScreenshotOptions | undefined = saveScreenshots
+      ? {
+          saveScreenshots: true,
+          screenshotsDir: path.dirname(reportManager.getReportPath(trimmedReportId)),
+          sanitizedReportId: reportManager.sanitizeReportId(trimmedReportId),
+        }
+      : undefined;
+    const results = await lighthouseRunner.runAllTests(automation, screenshotOptions);
 
     console.log('\n✅ All tests completed!\n');
 
     // Save new report
     console.log(`💾 Saving report "${trimmedReportId}"...`);
-    reportManager.saveReport(trimmedReportId, results, baseReport);
+    reportManager.saveReport(trimmedReportId, results, baseReport, saveScreenshots);
     console.log(
       `✅ Report saved to reports/report-${reportManager.sanitizeReportId(trimmedReportId)}.json\n`
     );
@@ -445,12 +459,12 @@ async function main() {
       }
     }
 
-    // Stop asset server
-    if (assetServer) {
+    if (databaseSetup) {
       try {
-        await assetServer.stop();
+        await databaseSetup.teardownLighthouseServices();
+        console.log('   ✅ Lighthouse Docker services stopped');
       } catch (error) {
-        console.error('   ⚠️  Error stopping asset server:', error);
+        console.error('   ⚠️  Error tearing down Lighthouse Docker services:', error);
       }
     }
   }

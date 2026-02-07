@@ -11,8 +11,12 @@ interface ContainerStatus {
 
 export class ContainerChecker {
   private requiredContainers = [
-    { name: 'podverse_local_mq', port: 5672, description: 'Message Queue (ActiveMQ Artemis)' },
-    { name: 'podverse_local_keyvaldb', port: 6379, description: 'Key-Value DB (Redis)' },
+    {
+      name: 'podverse_lighthouse_mq',
+      port: 5673,
+      description: 'Message Queue (ActiveMQ Artemis)',
+    },
+    { name: 'podverse_lighthouse_keyvaldb', port: 6381, description: 'Key-Value DB (Valkey)' },
   ];
 
   async checkContainerRunning(containerName: string): Promise<boolean> {
@@ -92,16 +96,9 @@ export class ContainerChecker {
         .join('\n');
 
       throw new Error(
-        `Required Docker containers are not running. Please start the following containers:\n\n${missingContainers}\n\n` +
-          `You can start them using make commands from podverse-ops:\n` +
-          `  cd podverse-ops\n` +
-          `  make local_mq_up          # Start message queue (port 5672)\n` +
-          `  make local_keyvaldb_up    # Start keyvaldb/redis (port 6379)\n` +
-          `\nOr using docker-compose directly:\n` +
-          `  cd podverse-ops\n` +
-          `  docker compose -f docker-compose/local/mq/docker-compose.yml up -d\n` +
-          `  docker compose -f docker-compose/local/keyvaldb/docker-compose.yml up -d\n` +
-          `\nThen run the tests again.`
+        `Required Lighthouse Docker containers are not running. Please start the following containers:\n\n${missingContainers}\n\n` +
+          `You can start them using the Lighthouse compose file from the monorepo root:\n` +
+          `  docker compose -f tools/web-perf/lighthouse/docker/docker-compose.yml up -d\n`
       );
     }
   }

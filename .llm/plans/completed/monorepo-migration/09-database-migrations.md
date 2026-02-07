@@ -24,7 +24,7 @@ database/
     combine_all_migrations.sh
   seed-scripts/
     local-dev-account.sql
-    local-lighthouse-test-fixtures.sql
+    # local-lighthouse-test-fixtures.sql removed; Lighthouse uses parser (test-assets mode) to populate DB
   management/
     combined/
       init_management_database.sql
@@ -51,7 +51,7 @@ infra/
         ...
       seed-scripts/
         local-dev-account.sql
-        local-lighthouse-test-fixtures.sql
+        # local-lighthouse-test-fixtures.sql removed; DB populated via parser
     management/
       combined/
         init_management_database.sql

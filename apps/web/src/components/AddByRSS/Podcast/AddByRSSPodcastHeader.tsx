@@ -65,7 +65,7 @@ export const AddByRSSPodcastHeader: React.FC<AddByRSSPodcastHeaderProps> = ({ fe
       if (isSubscribed) {
         const nextAccount = await unfollowAddByRSSChannelAndClear({
           feedUrl,
-          feedIdText: feed.idText,
+          channelIdText: feed.idText,
         });
         setLoggedInAccount(nextAccount);
       } else {

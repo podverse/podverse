@@ -22,13 +22,13 @@
     {
       "name": "Workers",
       "description": "Workers app development",
-      "cwd": "./apps/workers",
+      "cwd": ".",
       "open": true
     },
     {
       "name": "Tools",
       "description": "Tools development",
-      "cwd": "./tools",
+      "cwd": ".",
       "open": true
     },
     {
@@ -38,8 +38,8 @@
       "open": true
     },
     {
-      "name": "SSH",
-      "description": "SSH sessions",
+      "name": "Misc",
+      "description": "Misc commands",
       "cwd": ".",
       "open": true
     }

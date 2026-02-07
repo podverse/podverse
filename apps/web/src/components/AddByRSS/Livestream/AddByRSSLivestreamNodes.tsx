@@ -4,27 +4,33 @@ import React from 'react';
 
 import { Divider } from '../../Divider/Divider';
 import type { ViewSelectedOption } from '../../ViewSelector/ViewSelector';
-import styles from '../../../styles/components/Common/List/ListNodes.module.scss';
-import type { AddByRSSFeedRecord } from '../../../utils/addByRSS/types';
 import { AddByRSSLivestreamGridNode } from './AddByRSSLivestreamGridNode';
 import { AddByRSSLivestreamRow } from './AddByRSSLivestreamRow';
+import type { AddByRSSLivestreamIndexItem } from '../../../utils/addByRSS/types';
+import styles from '../../../styles/components/Common/List/ListNodes.module.scss';
 
 type AddByRSSLivestreamNodesProps = {
-  feeds: AddByRSSFeedRecord[];
+  items: AddByRSSLivestreamIndexItem[];
   viewSelected: ViewSelectedOption;
+  showChannelInfo?: boolean;
 };
 
 export const AddByRSSLivestreamNodes: React.FC<AddByRSSLivestreamNodesProps> = ({
-  feeds,
+  items,
   viewSelected,
+  showChannelInfo,
 }) => {
+  if (items.length === 0) {
+    return null;
+  }
+
   if (viewSelected === 'rows') {
     return (
       <div key="list" className={styles.list}>
-        {feeds.map((feed, idx) => (
-          <React.Fragment key={feed.idText}>
-            <AddByRSSLivestreamRow feed={feed} />
-            {idx < feeds.length - 1 && <Divider />}
+        {items.map((item, idx) => (
+          <React.Fragment key={item.id}>
+            <AddByRSSLivestreamRow item={item} showChannelInfo={showChannelInfo} />
+            {idx < items.length - 1 && <Divider />}
           </React.Fragment>
         ))}
       </div>
@@ -34,8 +40,8 @@ export const AddByRSSLivestreamNodes: React.FC<AddByRSSLivestreamNodesProps> = (
   if (viewSelected === 'grid') {
     return (
       <div key="grid" className={styles.grid}>
-        {feeds.map((feed) => (
-          <AddByRSSLivestreamGridNode key={feed.idText} feed={feed} />
+        {items.map((item) => (
+          <AddByRSSLivestreamGridNode key={item.id} item={item} showChannelInfo={showChannelInfo} />
         ))}
       </div>
     );

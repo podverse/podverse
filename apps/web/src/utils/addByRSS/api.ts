@@ -7,6 +7,8 @@ export type AddByRSSParseStatusResponse = AddByRSSParseCacheEntry<AddByRSSParsed
 
 export type AddByRSSParseAllResponse = {
   request_ids: Array<{ request_id: string; feed_url: string }>;
+  deduped_feed_urls?: string[];
+  dedupe_ttl_seconds?: number | null;
 };
 
 export const getFollowedAddByRSSChannels = async (

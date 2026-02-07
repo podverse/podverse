@@ -1,8 +1,8 @@
 import type { Episode } from 'podverse-partytime';
 import { chunkArray, DATABASE_CONSTANTS, formatGuidEnclosureUrl } from '@podverse/helpers';
 import type { Channel, ChannelSeasonIndex, EntityManager } from '@podverse/orm';
-import { AppDataSourceReadWrite, ItemService } from '@podverse/orm';
-import { compatItemDto } from '@podverse/parser-mapping';
+import { AppDataSourceReadWrite, ItemService, ItemContentLinkService } from '@podverse/orm';
+import { compatItemDto, compatItemContentLinkDtos } from '@podverse/parser-mapping';
 import { handleParsedItemAbout } from '@parser/lib/rss/item/itemAbout.js';
 import { handleParsedItemChaptersFeed } from '@parser/lib/rss/item/itemChaptersFeed.js';
 import { handleParsedItemDescription } from '@parser/lib/rss/item/itemDescription.js';
@@ -50,6 +50,7 @@ export type ItemTimerAccumulator = {
   handleParsedItemAbout: number;
   handleParsedItemChaptersFeed: number;
   handleParsedItemChat: number;
+  handleParsedItemContentLink: number;
   handleParsedItemDescription: number;
   handleParsedItemEnclosure: number;
   handleParsedItemImage: number;
@@ -89,6 +90,7 @@ export const createItemTimerAccumulator = (): ItemTimerAccumulator => {
     handleParsedItemAbout: 0,
     handleParsedItemChaptersFeed: 0,
     handleParsedItemChat: 0,
+    handleParsedItemContentLink: 0,
     handleParsedItemDescription: 0,
     handleParsedItemEnclosure: 0,
     handleParsedItemImage: 0,
@@ -265,14 +267,17 @@ export const handleParsedItem = async ({
     timerManager.end('handleParsedItemChat', preventTimerLog) +
     timerAccumulator.handleParsedItemChat;
 
-  // // PTDO: add itemContentLinkService support after partytime adds chat support
-  // const itemContentLinkService = new ItemContentLinkService();
-  // const itemContentLinkDtos = compatItemContentLinkDtos(parsedItem);
-  // if (itemContentLinkDtos.length) {
-  //   await itemContentLinkService.updateMany(item, itemContentLinkDtos);
-  // } else {
-  //   await itemContentLinkService._deleteAll(item);
-  // }
+  timerManager.start('handleParsedItemContentLink');
+  const itemContentLinkService = new ItemContentLinkService(transactionalEntityManager);
+  const itemContentLinkDtos = compatItemContentLinkDtos(parsedItem);
+  if (itemContentLinkDtos.length > 0) {
+    await itemContentLinkService.updateMany(item, itemContentLinkDtos);
+  } else {
+    await itemContentLinkService._deleteAll(item);
+  }
+  timerAccumulator.handleParsedItemContentLink =
+    timerManager.end('handleParsedItemContentLink', preventTimerLog) +
+    timerAccumulator.handleParsedItemContentLink;
 
   timerManager.start('handleParsedItemDescription');
   await handleParsedItemDescription(parsedItem, item, transactionalEntityManager);

@@ -2,6 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
+import { LIGHTHOUSE_CHANNEL_ID_FEED_1, LIGHTHOUSE_ITEM_ID_FEED_1 } from 'podverse-test-assets';
 import type { LighthouseTestResults } from './lighthouse-runner.js';
 
 // ES modules __dirname equivalent
@@ -14,6 +15,8 @@ export interface LighthouseReport {
   newReport: string;
   testChannelIds: string[];
   testItemIds: string[];
+  /** Whether page screenshots were taken before each Lighthouse audit (can affect results). */
+  screenshotsEnabled?: boolean;
   scenarios: LighthouseTestResults;
 }
 
@@ -67,13 +70,19 @@ export class ReportManager {
     }
   }
 
-  saveReport(reportId: string, results: LighthouseTestResults, baseReport?: string): void {
+  saveReport(
+    reportId: string,
+    results: LighthouseTestResults,
+    baseReport?: string,
+    screenshotsEnabled: boolean = false
+  ): void {
     const report: LighthouseReport = {
       timestamp: new Date().toISOString(),
       baseReport,
       newReport: reportId,
-      testChannelIds: ['lhtest-chan-1'],
-      testItemIds: [],
+      testChannelIds: [LIGHTHOUSE_CHANNEL_ID_FEED_1],
+      testItemIds: [LIGHTHOUSE_ITEM_ID_FEED_1],
+      screenshotsEnabled,
       scenarios: results,
     };
 
