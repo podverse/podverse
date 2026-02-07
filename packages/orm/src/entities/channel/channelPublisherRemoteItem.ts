@@ -40,4 +40,7 @@ export class ChannelPublisherRemoteItem {
     length: DATABASE_CONSTANTS.varchar_normal,
   })
   title!: string | null;
+
+  @Column({ type: 'int', name: 'medium_id', nullable: true })
+  medium_id!: number | null;
 }

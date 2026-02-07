@@ -211,8 +211,9 @@ export const compatChannelPodrollRemoteItemDtos = (parsedFeed: FeedObject) => {
           feed_url:
             (isValidHttpUrl(ri.feedUrl) && ri.feedUrl?.slice(0, DATABASE_CONSTANTS.varchar_url)) ||
             null,
-          item_guid: null,
-          title: /* PTDO: ri.title || */ null,
+          item_guid: ri.itemGuid?.slice(0, DATABASE_CONSTANTS.varchar_uri) ?? null,
+          title: ri.title?.slice(0, DATABASE_CONSTANTS.varchar_normal) ?? null,
+          medium_id: ri.medium ? getMediumEnumValue(ri.medium) : null,
         });
       }
     }
@@ -231,8 +232,9 @@ export const compatChannelPublisherRemoteItemDtos = (parsedFeed: FeedObject) => 
         (isValidHttpUrl(publisherRemoteItem.feedUrl) &&
           publisherRemoteItem.feedUrl?.slice(0, DATABASE_CONSTANTS.varchar_url)) ||
         null,
-      item_guid: null,
-      title: /* PTDO: ri.title || */ null,
+      item_guid: publisherRemoteItem.itemGuid?.slice(0, DATABASE_CONSTANTS.varchar_uri) ?? null,
+      title: publisherRemoteItem.title?.slice(0, DATABASE_CONSTANTS.varchar_normal) ?? null,
+      medium_id: publisherRemoteItem.medium ? getMediumEnumValue(publisherRemoteItem.medium) : null,
     });
   }
 
@@ -250,8 +252,9 @@ export const compatChannelRemoteItemDtos = (parsedFeed: FeedObject) => {
           feed_url:
             (isValidHttpUrl(ri.feedUrl) && ri.feedUrl?.slice(0, DATABASE_CONSTANTS.varchar_url)) ||
             null,
-          item_guid: null,
-          title: /* PTDO: ri.title || */ null,
+          item_guid: ri.itemGuid?.slice(0, DATABASE_CONSTANTS.varchar_uri) ?? null,
+          title: ri.title?.slice(0, DATABASE_CONSTANTS.varchar_normal) ?? null,
+          medium_id: ri.medium ? getMediumEnumValue(ri.medium) : null,
         });
       }
     }
@@ -260,20 +263,47 @@ export const compatChannelRemoteItemDtos = (parsedFeed: FeedObject) => {
   return dtos;
 };
 
-export const compatChannelSocialInteractDtos = (parsedFeed: FeedObject) => {
-  const dtos = [];
+function mapSocialInteractToDto(ps: {
+  platform: string;
+  url: string;
+  id?: string | null;
+  profileUrl?: string | null;
+  priority?: number | null;
+}) {
+  return {
+    protocol: ps.platform.slice(0, DATABASE_CONSTANTS.varchar_short),
+    uri: ps.url.slice(0, DATABASE_CONSTANTS.varchar_uri),
+    account_id: ps.id?.slice(0, DATABASE_CONSTANTS.varchar_normal) || null,
+    account_url:
+      (ps.profileUrl &&
+        isValidHttpUrl(ps.profileUrl) &&
+        ps.profileUrl.slice(0, DATABASE_CONSTANTS.varchar_url)) ||
+      null,
+    priority: ps.priority ?? null,
+  };
+}
 
-  if (parsedFeed?.podcastSocial?.length) {
+export const compatChannelSocialInteractDtos = (parsedFeed: FeedObject) => {
+  const dtos: Array<{
+    protocol: string;
+    uri: string;
+    account_id: string | null;
+    account_url: string | null;
+    priority: number | null;
+  }> = [];
+
+  if (parsedFeed?.channelPodcastSocialInteract?.length) {
+    for (const ps of parsedFeed.channelPodcastSocialInteract) {
+      dtos.push(mapSocialInteractToDto(ps));
+    }
+  } else if (parsedFeed?.podcastSocial?.length) {
     for (const ps of parsedFeed.podcastSocial) {
-      dtos.push({
-        // PTDO: fix keys mismatch between partytime and podverse
-        protocol: ps.platform.slice(0, DATABASE_CONSTANTS.varchar_short),
-        uri: ps.url.slice(0, DATABASE_CONSTANTS.varchar_uri),
-        account_id: ps.id?.slice(0, DATABASE_CONSTANTS.varchar_normal) || null,
-        account_url:
-          (isValidHttpUrl(ps.url) && ps.url?.slice(0, DATABASE_CONSTANTS.varchar_url)) || null,
-        priority: ps.priority || null,
-      });
+      dtos.push(
+        mapSocialInteractToDto({
+          ...ps,
+          profileUrl: null,
+        })
+      );
     }
   }
 

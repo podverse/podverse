@@ -69,7 +69,7 @@ export const AddByRSSArtistsPageClient: React.FC = () => {
   const [isUpdating, setIsUpdating] = useState(false);
 
   const startDelayedLoadingToast = () => {
-    let toastId: string | null = null;
+    let toastId: string | Promise<string> | null = null;
     const timer = setTimeout(() => {
       toastId = showToastLoading(tMisc('loading'));
     }, 250);

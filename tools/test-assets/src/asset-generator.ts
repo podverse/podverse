@@ -166,6 +166,56 @@ export class AssetGenerator {
     }
   }
 
+  /** 07b: Generate OGG (Vorbis) audio; skip if exists. Cap 100 per type (caller's responsibility). */
+  async generateOGG(filename: string, durationSeconds: number = 300): Promise<void> {
+    const filePath = path.join(this.assetsDir, 'audio', filename);
+    if (fs.existsSync(filePath)) {
+      return;
+    }
+    try {
+      const ffmpegStatic = await import('ffmpeg-static').catch((err) => {
+        throw new Error(
+          `Failed to import ffmpeg-static. Error: ${err instanceof Error ? err.message : String(err)}`
+        );
+      });
+      const ffmpegPath = ffmpegStatic.default;
+      if (!ffmpegPath) {
+        throw new Error('ffmpeg-static binary not found.');
+      }
+      const command = `"${ffmpegPath}" -f lavfi -i anullsrc=r=44100:cl=stereo -t ${durationSeconds} -acodec libvorbis -y "${filePath}"`;
+      await execAsync(command);
+      console.log(`   ✅ Generated: ${filename} (${durationSeconds}s)`);
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      throw new Error(`Failed to generate OGG file ${filename}: ${errorMessage}`);
+    }
+  }
+
+  /** 07b: Generate WebM (VP9 + Vorbis); skip if exists. Cap 100 per type (caller's responsibility). */
+  async generateWebM(filename: string, durationSeconds: number = 300): Promise<void> {
+    const filePath = path.join(this.assetsDir, 'videos', filename);
+    if (fs.existsSync(filePath)) {
+      return;
+    }
+    try {
+      const ffmpegStatic = await import('ffmpeg-static').catch((err) => {
+        throw new Error(
+          `Failed to import ffmpeg-static. Error: ${err instanceof Error ? err.message : String(err)}`
+        );
+      });
+      const ffmpegPath = ffmpegStatic.default;
+      if (!ffmpegPath) {
+        throw new Error('ffmpeg-static binary not found.');
+      }
+      const command = `"${ffmpegPath}" -f lavfi -i testsrc2=duration=${durationSeconds}:size=320x240:rate=1 -f lavfi -i anullsrc=r=44100:cl=stereo -c:v libvpx-vp9 -c:a libvorbis -t ${durationSeconds} -y "${filePath}"`;
+      await execAsync(command);
+      console.log(`   ✅ Generated: ${filename} (${durationSeconds}s)`);
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      throw new Error(`Failed to generate WebM file ${filename}: ${errorMessage}`);
+    }
+  }
+
   async generateAllAssets(): Promise<void> {
     await this.ensureAssetsDirectory();
 

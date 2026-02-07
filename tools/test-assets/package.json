@@ -24,6 +24,7 @@
   },
   "dependencies": {
     "@faker-js/faker": "^9.3.0",
+    "@podverse/helpers": "*",
     "@podverse/orm": "*",
     "@podverse/parser": "*",
     "dotenv": "^17.2.2"

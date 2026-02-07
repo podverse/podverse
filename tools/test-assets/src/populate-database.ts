@@ -1,5 +1,47 @@
-import { createORMContext, getDataSourceRead, getDataSourceReadWrite } from '@podverse/orm';
-import { createParserContext, parseRSSFeedAndSaveToDatabase } from '@podverse/parser';
+import {
+  createORMContext,
+  getDataSourceRead,
+  getDataSourceReadWrite,
+  FeedService,
+  ItemChaptersFeed,
+} from '@podverse/orm';
+import {
+  createParserContext,
+  parseRSSFeedAndSaveToDatabase,
+  parseChapters,
+} from '@podverse/parser';
+
+/**
+ * After RSS parse, finds all items for this feed that have a chapters URL and runs
+ * parseChapters(item) for each so that item_chapters_object and item_chapter rows are populated.
+ */
+async function runChaptersParseForFeed(feedUrl: string): Promise<void> {
+  const feedService = new FeedService();
+  const feed = await feedService.getByUrl({ url: feedUrl });
+  if (!feed?.id) {
+    return;
+  }
+  const ds = getDataSourceRead();
+  const itemChaptersFeedRepo = ds.getRepository(ItemChaptersFeed);
+  const feedsWithChapters = await itemChaptersFeedRepo
+    .createQueryBuilder('icf')
+    .innerJoinAndSelect('icf.item', 'item')
+    .innerJoin('item.channel', 'channel')
+    .where('channel.feed_id = :feedId', { feedId: feed.id })
+    .getMany();
+  for (const itemChaptersFeedRow of feedsWithChapters) {
+    const item = itemChaptersFeedRow.item;
+    if (!item) continue;
+    // Use a minimal reference to avoid circular ref (ItemChaptersFeed.item -> Item.item_chapters_feed)
+    // when parser passes item_chapters_feed to ItemChaptersFeedLogService.update (which JSON.stringify's in debug).
+    item.item_chapters_feed = {
+      id: itemChaptersFeedRow.id,
+      url: itemChaptersFeedRow.url,
+      type: itemChaptersFeedRow.type,
+    } as typeof itemChaptersFeedRow;
+    await parseChapters(item);
+  }
+}
 
 /**
  * Populates the database with channel and items by parsing the given feed URL
@@ -9,12 +51,16 @@ import { createParserContext, parseRSSFeedAndSaveToDatabase } from '@podverse/pa
  * If not found, the parser assigns the next available ID (max+1, or 1 if empty).
  * Default 1 for the first feed.
  *
+ * runChaptersParse: when true, after RSS parse runs chapters parsing for each item
+ * that has a podcast:chapters URL so that item_chapters_object and item_chapter are populated.
+ *
  * Requires DB_* and DEFAULT_ACCOUNT_SETTINGS_LOCALE (or similar) env vars to be set
  * (e.g. load .env.api before calling).
  */
 export async function populateDatabaseFromFeed(
   feedUrl: string,
-  podcastIndexIdHint: number = 1
+  podcastIndexIdHint: number = 1,
+  options?: { runChaptersParse?: boolean }
 ): Promise<void> {
   const dbHost = process.env.DB_HOST;
   const dbPort = process.env.DB_PORT;
@@ -87,6 +133,9 @@ export async function populateDatabaseFromFeed(
         type: null,
       },
     });
+    if (options?.runChaptersParse) {
+      await runChaptersParseForFeed(feedUrl);
+    }
   } finally {
     await getDataSourceRead().destroy();
     await getDataSourceReadWrite().destroy();

@@ -5,6 +5,10 @@ export type GenerateFeedAndAssetsOptions = {
   count?: number;
   /** Number of items per feed. Default 3. */
   items?: number;
+  /** When true, overwrite existing RSS feed files (media assets are never overwritten). */
+  forceRss?: boolean;
+  /** When true, include podcast:value (channel + item) with fake Lightning data. No confirmation in API. */
+  addFakeValueTags?: boolean;
 };
 
 /**
@@ -16,10 +20,12 @@ export async function generateFeedAndAssets(options: GenerateFeedAndAssetsOption
   written: number;
   skipped: number;
 }> {
-  const { count = 1, items = 3 } = options;
+  const { count = 1, items = 3, forceRss = false, addFakeValueTags = false } = options;
   const result = await runGenerateFeedAndAssets(count, {
     itemsConfig: { kind: 'fixed', value: items },
     multiConfig: { kind: 'fixed', value: 2 },
+    forceRss,
+    addFakeValueTags,
   });
   return {
     success: result.success,

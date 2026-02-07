@@ -10,6 +10,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { DEFAULT_ASSETS_BASE_URL } from './constants.js';
 import {
+  confirmAddFakeValueTags,
   getFeedUrlsForSets,
   getPositionalCount,
   getValueFromConfig,
@@ -57,9 +58,21 @@ const main = async () => {
   const count = getPositionalCount(argv) ?? 1;
   const itemsConfig = parseNumericArg('--items', 3, argv);
   const items = getValueFromConfig(itemsConfig);
+  const forceRss = argv.includes('--force-rss');
+  const addFakeValueTagsFlag = argv.includes('--add-fake-value-tags');
+
+  let addFakeValueTags = false;
+  if (addFakeValueTagsFlag) {
+    const confirmed = await confirmAddFakeValueTags();
+    if (!confirmed) {
+      console.log('Skipping value tags. Exiting.');
+      process.exit(1);
+    }
+    addFakeValueTags = true;
+  }
 
   console.log('Generating feed and assets...');
-  const gen = await generateFeedAndAssets({ count, items });
+  const gen = await generateFeedAndAssets({ count, items, forceRss, addFakeValueTags });
   if (!gen.success) {
     console.error('generate_and_parse: generate failed');
     process.exit(1);
@@ -81,7 +94,7 @@ const main = async () => {
   try {
     for (let i = 0; i < feedUrls.length; i++) {
       const url = feedUrls[i];
-      if (url) await populateDatabaseFromFeed(url, i + 1);
+      if (url) await populateDatabaseFromFeed(url, i + 1, { runChaptersParse: true });
     }
   } catch (err) {
     console.error('generate_and_parse: populateDatabaseFromFeed failed:', err);

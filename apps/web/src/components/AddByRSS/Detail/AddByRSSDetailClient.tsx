@@ -18,7 +18,6 @@ import LoadingSpinnerOverlay from '../../LoadingSpinner/LoadingSpinnerOverlay';
 import { IMAGES } from '../../../constants/images';
 import { AddByRSSPodcastPageDetailClient } from '../../../app/add-by-rss/podcast/AddByRSSPodcastPageDetailClient';
 import { AddByRSSAlbumPageClient } from '../../../app/add-by-rss/album/AddByRSSAlbumPageClient';
-import { AddByRSSAlbumHeader } from '../Artist/Album/AddByRSSAlbumHeader';
 import { AddByRSSArtistHeader } from '../Artist/AddByRSSArtistHeader';
 import { AddByRSSLivestreamHeader } from '../Livestream/AddByRSSLivestreamHeader';
 import { AddByRSSTrackHeader } from '../Artist/Album/Track/AddByRSSTrackHeader';
@@ -115,8 +114,6 @@ export const AddByRSSDetailClient: React.FC<AddByRSSDetailClientProps> = ({
     switch (resourceType) {
       case 'artists':
         return tMedia('music.artists');
-      case 'albums':
-        return tMedia('music.albums');
       case 'tracks':
         return tMedia('music.tracks');
       case 'livestreams':
@@ -127,9 +124,7 @@ export const AddByRSSDetailClient: React.FC<AddByRSSDetailClientProps> = ({
   })();
   const statusLabel = feed.status ? tFeatures(`add_by_rss.status_${feed.status}`) : undefined;
   const headerNode =
-    resourceType === 'albums' ? (
-      <AddByRSSAlbumHeader feed={feed} />
-    ) : resourceType === 'artists' ? (
+    resourceType === 'artists' ? (
       <AddByRSSArtistHeader feed={feed} />
     ) : resourceType === 'livestreams' ? (
       <AddByRSSLivestreamHeader feed={feed} />

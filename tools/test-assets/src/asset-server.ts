@@ -19,8 +19,11 @@ export class AssetServer {
     this.assetsDir = path.join(__dirname, '../assets');
   }
 
-  getMimeType(filename: string): string {
+  getMimeType(filename: string, filePath?: string): string {
     const ext = path.extname(filename).toLowerCase();
+    if (ext === '.json' && filePath && filePath.includes(path.sep + 'chapters' + path.sep)) {
+      return 'application/json+chapters';
+    }
     switch (ext) {
       case '.jpg':
       case '.jpeg':
@@ -29,10 +32,24 @@ export class AssetServer {
         return 'audio/mpeg';
       case '.mp4':
         return 'video/mp4';
+      case '.ogg':
+        return 'audio/ogg';
+      case '.webm':
+        return 'video/webm';
       case '.rss':
         return 'application/xml';
       case '.xml':
         return 'text/xml';
+      case '.json':
+        return 'application/json';
+      case '.vtt':
+        return 'text/vtt';
+      case '.srt':
+        return 'application/x-subrip';
+      case '.txt':
+        return 'text/plain';
+      case '.html':
+        return 'text/html';
       default:
         return 'application/octet-stream';
     }
@@ -90,7 +107,7 @@ export class AssetServer {
               return;
             }
 
-            const mimeType = this.getMimeType(filePath);
+            const mimeType = this.getMimeType(filePath, filePath);
             const ext = path.extname(filePath).toLowerCase();
             const headers: Record<string, string> = {
               'Content-Type': mimeType,

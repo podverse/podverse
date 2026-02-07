@@ -318,6 +318,25 @@ export const compatItemTxtDtos = (parsedItem: Episode) => {
   return dtos;
 };
 
+export const compatItemContentLinkDtos = (
+  parsedItem: Episode
+): { href: string; title: string | null }[] => {
+  const dtos: { href: string; title: string | null }[] = [];
+  if (!parsedItem.contentLinks?.length) {
+    return dtos;
+  }
+  for (const cl of parsedItem.contentLinks) {
+    if (!cl.url || !isValidHttpUrl(cl.url)) {
+      continue;
+    }
+    dtos.push({
+      href: cl.url.slice(0, DATABASE_CONSTANTS.varchar_url),
+      title: cl.title?.slice(0, DATABASE_CONSTANTS.varchar_normal) ?? null,
+    });
+  }
+  return dtos;
+};
+
 export const compatItemValueDtos = (parsedItem: Episode) => {
   const dtos = [];
   if (parsedItem.value) {

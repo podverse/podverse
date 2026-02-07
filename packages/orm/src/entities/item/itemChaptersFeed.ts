@@ -1,9 +1,9 @@
 import { DATABASE_CONSTANTS } from '@podverse/helpers';
-import { Entity, PrimaryGeneratedColumn, Column, JoinColumn, OneToOne, OneToMany } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, JoinColumn, OneToOne } from 'typeorm';
 import type { Relation } from 'typeorm';
 import type { Item } from '@orm/entities/item/item.js';
 import type { ItemChaptersFeedLog } from '@orm/entities/item/itemChaptersFeedLog.js';
-import type { ItemChapter } from '@orm/entities/item/itemChapter.js';
+import type { ItemChaptersObject } from '@orm/entities/item/itemChaptersObject.js';
 
 @Entity('item_chapters_feed')
 export class ItemChaptersFeed {
@@ -20,8 +20,11 @@ export class ItemChaptersFeed {
   @Column({ type: 'varchar', name: 'type', length: DATABASE_CONSTANTS.varchar_short })
   type!: string;
 
-  @OneToMany('ItemChapter', (item_chapter: ItemChapter) => item_chapter.item_chapters_feed)
-  item_chapters!: ItemChapter[];
+  @OneToOne(
+    'ItemChaptersObject',
+    (item_chapters_object: ItemChaptersObject) => item_chapters_object.item_chapters_feed
+  )
+  item_chapters_object!: Relation<ItemChaptersObject>;
 
   @OneToOne(
     'ItemChaptersFeedLog',

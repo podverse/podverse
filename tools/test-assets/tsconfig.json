@@ -1,11 +1,15 @@
 {
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@faker-js/faker": ["../../node_modules/@faker-js/faker"]
+    },
     "outDir": "./dist",
     "rootDir": "./src",
-    "module": "ESNext",
+    "module": "NodeNext",
     "target": "ES2022",
-    "moduleResolution": "node",
+    "moduleResolution": "NodeNext",
     "declaration": true,
     "declarationMap": true,
     "esModuleInterop": true,
@@ -16,8 +20,5 @@
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules", "dist"],
-  "ts-node": {
-    "esm": true,
-    "experimentalSpecifierResolution": "node"
-  }
+  "ts-node": { "esm": true, "experimentalSpecifierResolution": "node" }
 }
