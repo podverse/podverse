@@ -1,3 +1,7 @@
+-- Combined migrations generated Sat Feb  7 01:58:56 CST 2026
+-- DO NOT EDIT - regenerate with scripts/database/combine-migrations.sh
+
+-- Including: 0000_init_helpers.sql
 -- 0000 migration
 
 -- Extensions
@@ -44,6 +48,8 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+
+-- Including: 0001_init_podcasting_20_database.sql
 -- 0001 migration
 
 /*
@@ -1141,6 +1147,8 @@ CREATE TABLE live_item (
 CREATE INDEX idx_live_item_item_id ON live_item(item_id);
 CREATE INDEX idx_live_item_live_item_status_id ON live_item(live_item_status_id);
 
+
+-- Including: 0002_account.sql
 CREATE TABLE sharable_status (
     id SERIAL PRIMARY KEY,
     status TEXT UNIQUE CHECK (status IN ('public', 'unlisted', 'private'))
@@ -1221,6 +1229,8 @@ CREATE TABLE account_membership_status (
 CREATE INDEX idx_account_membership_status_account_id ON account_membership_status(account_id);
 CREATE INDEX idx_account_membership_status_account_membership_id ON account_membership_status(account_membership_id);
 
+
+-- Including: 0003_clip.sql
 -- 0003 migration
 
 CREATE TABLE clip (
@@ -1241,6 +1251,8 @@ CREATE INDEX idx_clip_item_id ON clip(item_id);
 CREATE INDEX idx_clip_sharable_status_id ON clip(sharable_status_id);
 CREATE INDEX idx_clip_created_at ON clip(created_at);
 
+
+-- Including: 0004_playlist.sql
 -- 0004 migration
 
 CREATE TABLE playlist (
@@ -1317,6 +1329,8 @@ BEFORE INSERT ON playlist_resource
 FOR EACH ROW
 EXECUTE FUNCTION enforce_playlist_resource_limit();
 
+
+-- Including: 0005_queue.sql
 -- 0005 migration
 
 CREATE TABLE queue (
@@ -1395,6 +1409,8 @@ CREATE TRIGGER queue_resource_limit_trigger
 BEFORE INSERT ON queue_resource
 FOR EACH ROW
 EXECUTE FUNCTION enforce_queue_resource_limit();
+
+-- Including: 0006_account_following_tables.sql
 -- 0006 migration
 
 CREATE TABLE account_following_account (
@@ -1434,6 +1450,8 @@ CREATE TABLE account_following_add_by_rss_channel (
 
 CREATE INDEX idx_account_following_add_by_rss_channel_account_id ON account_following_add_by_rss_channel(account_id);
 
+
+-- Including: 0007_notifications.sql
 -- 0007
 
 CREATE TABLE account_notification_channel (
@@ -1515,6 +1533,8 @@ EXECUTE FUNCTION set_updated_at_field();
 CREATE INDEX idx_account_webpush_device_account_id ON account_webpush_device(account_id);
 CREATE INDEX idx_account_webpush_device_endpoint ON account_webpush_device(endpoint);
 
+
+-- Including: 0008_purchases_paypal_apple_google.sql
 -- 0008
 
 CREATE TABLE account_paypal_order (
@@ -1567,6 +1587,8 @@ CREATE TABLE account_google_play_purchase (
 
 CREATE INDEX idx_account_google_play_purchase_account_id ON account_google_play_purchase(account_id);
 
+
+-- Including: 0009_membership_claim_token.sql
 -- 0009
 
 CREATE TABLE membership_claim_token (
@@ -1578,6 +1600,8 @@ CREATE TABLE membership_claim_token (
 
 CREATE INDEX idx_membership_claim_token_account_membership_id ON membership_claim_token(account_membership_id);
 
+
+-- Including: 0010_stats.sql
 CREATE TABLE stats_track_account_guid (
     id SERIAL PRIMARY KEY,
     account_id INT NOT NULL,
@@ -1812,6 +1836,8 @@ CREATE INDEX stats_aggregated_account_week_current_count_idx ON stats_aggregated
 CREATE INDEX stats_aggregated_account_month_current_count_idx ON stats_aggregated_account(month_current_count);
 CREATE INDEX stats_aggregated_account_all_time_count_idx ON stats_aggregated_account(all_time_count);
 
+
+-- Including: 0011_on_demand_parser_event.sql
 CREATE TYPE on_demand_parser_event_type AS ENUM ('add', 'refresh', 'remoteItem');
 
 CREATE TABLE on_demand_parser_event (
@@ -1829,6 +1855,8 @@ CREATE INDEX idx_on_demand_parser_event_remote_parent_podcast_index_id ON on_dem
 CREATE INDEX idx_on_demand_parser_event_type ON on_demand_parser_event(type);
 CREATE INDEX idx_on_demand_parser_event_created_at ON on_demand_parser_event(created_at DESC);
 
+
+-- Including: 0012_account_settings.sql
 CREATE TABLE account_settings (
     id SERIAL PRIMARY KEY,
     account_id integer NOT NULL REFERENCES account(id) ON DELETE CASCADE UNIQUE
@@ -1851,4 +1879,5 @@ CREATE TABLE account_settings_notification_type (
     type notification_channel_type_options NOT NULL,
     CONSTRAINT account_settings_notification_type_notification_id_type_unique UNIQUE (account_settings_notification_id, type)
 );
+
 
