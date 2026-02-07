@@ -3,7 +3,7 @@
 import { useTranslations } from 'next-intl';
 import React from 'react';
 
-import { CommonTrackRowSimple } from '../../../../Common/Artist/Album/Track/CommonTrackRowSimple';
+import { CommonTrackRow } from '../../../../Common/Artist/Album/Track/CommonTrackRow';
 import type { AddByRSSFeedRecord } from '../../../../../utils/addByRSS/types';
 
 type AddByRSSTrackFeedRowProps = {
@@ -19,7 +19,7 @@ export const AddByRSSTrackFeedRow: React.FC<AddByRSSTrackFeedRowProps> = ({ feed
   const url = `/add-by-rss/track/${feed.idText}`;
 
   return (
-    <CommonTrackRowSimple
+    <CommonTrackRow
       href={url}
       title={feedTitle || tMedia('music.track_image')}
       subtitle={author ?? tMisc('untitled')}

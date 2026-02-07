@@ -5,7 +5,7 @@ import React from 'react';
 
 import { stripAndDecodeHtml } from '@podverse/helpers';
 import { MoreButton } from '../../../../MoreButton/MoreButton';
-import { CommonTrackRowSimple } from '../../../../Common/Artist/Album/Track/CommonTrackRowSimple';
+import { CommonTrackRow } from '../../../../Common/Artist/Album/Track/CommonTrackRow';
 import { getAddByRSSItemPath } from '../../../../../utils/addByRSS/itemPath';
 import type { AddByRSSMappedFeed } from '../../../../../utils/addByRSS/types';
 
@@ -60,7 +60,7 @@ export const AddByRSSTrackRow: React.FC<AddByRSSTrackRowProps> = ({
   ];
 
   return (
-    <CommonTrackRowSimple
+    <CommonTrackRow
       href={url}
       title={title}
       subtitle={description}

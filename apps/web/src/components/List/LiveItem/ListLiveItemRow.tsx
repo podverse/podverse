@@ -12,7 +12,7 @@ import {
 } from '@podverse/helpers';
 import { getShuffleHash } from '@podverse/helpers-requests';
 import React from 'react';
-import { Image } from '../../Image/Image';
+import { ImagesPerView } from '../../Image/ImagesPerView';
 import { LiveItemStatus } from '../../LiveItem/LiveItemStatus';
 import { PlayButtonRow } from '../../MediaPlayer/Buttons/PlayButtonRow';
 import { ReadableDate } from '../../Time/ReadableDate';
@@ -89,22 +89,17 @@ export const ListLiveItemRow: React.FC<Props> = ({
 
   return (
     <div className={styles.row}>
-      <Link href={url} tabIndex={-1}>
-        <Image
-          src={item_image?.url || channel_image?.url}
-          alt={item.title || tMedia('livestream.livestream_image')}
-          width={IMAGES.LIST.LIVESTREAMS.DESKTOP.SIZE}
-          height={IMAGES.LIST.LIVESTREAMS.DESKTOP.SIZE}
-          className={styles.image}
-        />
-        <Image
-          src={item_image?.url || channel_image?.url}
-          alt={item.title || tMedia('livestream.livestream_image')}
-          width={IMAGES.LIST.LIVESTREAMS.MOBILE.SIZE}
-          height={IMAGES.LIST.LIVESTREAMS.MOBILE.SIZE}
-          className={styles.imageMobile}
-        />
-      </Link>
+      <ImagesPerView
+        src={item_image?.url || channel_image?.url}
+        alt={item.title || tMedia('livestream.livestream_image')}
+        widthDesktop={IMAGES.LIST.LIVESTREAMS.DESKTOP.SIZE}
+        heightDesktop={IMAGES.LIST.LIVESTREAMS.DESKTOP.SIZE}
+        widthMobile={IMAGES.LIST.LIVESTREAMS.MOBILE.SIZE}
+        heightMobile={IMAGES.LIST.LIVESTREAMS.MOBILE.SIZE}
+        classNameDesktop={styles.image}
+        classNameMobile={styles.imageMobile}
+        href={url}
+      />
       <div className={styles.content}>
         <Link href={url}>
           <div className={styles.topSection}>

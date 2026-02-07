@@ -11,7 +11,7 @@ import {
 import { getShuffleHash } from '@podverse/helpers-requests';
 import React from 'react';
 import { FaGripLines } from 'react-icons/fa6';
-import { Image } from '../../../../Image/Image';
+import { ImagesPerView } from '../../../../Image/ImagesPerView';
 import { ROUTES } from '../../../../../constants/routes';
 import { IMAGES } from '../../../../../constants/images';
 import type { MoreButtonMenuItem } from '../../../../MoreButton/MoreButton';
@@ -246,19 +246,15 @@ export const ListTrackRow: React.FC<Props> = ({
         </div>
       )}
       <Button variant="unstyled" onClick={playButtonOnClick} className={styles.trackClickable}>
-        <Image
+        <ImagesPerView
           src={item_image?.url || channel_image?.url}
           alt={item.title || tMedia('music.track_image')}
-          width={IMAGES.LIST.TRACKS.DESKTOP.SIZE}
-          height={IMAGES.LIST.TRACKS.DESKTOP.SIZE}
-          className={styles.image}
-        />
-        <Image
-          src={item_image?.url || channel_image?.url}
-          alt={item.title || tMedia('music.track_image')}
-          width={IMAGES.LIST.TRACKS.MOBILE.SIZE}
-          height={IMAGES.LIST.TRACKS.MOBILE.SIZE}
-          className={styles.imageMobile}
+          widthDesktop={IMAGES.LIST.TRACKS.DESKTOP.SIZE}
+          heightDesktop={IMAGES.LIST.TRACKS.DESKTOP.SIZE}
+          widthMobile={IMAGES.LIST.TRACKS.MOBILE.SIZE}
+          heightMobile={IMAGES.LIST.TRACKS.MOBILE.SIZE}
+          classNameDesktop={styles.image}
+          classNameMobile={styles.imageMobile}
         />
         <div className={styles.trackWrapper}>
           <div className={styles.trackContent}>

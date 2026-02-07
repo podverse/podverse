@@ -11,7 +11,7 @@ import {
   stripAndDecodeHtml,
 } from '@podverse/helpers';
 
-import { Image } from '../../Image/Image';
+import { ImagesPerView } from '../../Image/ImagesPerView';
 import { LiveItemStatus } from '../../LiveItem/LiveItemStatus';
 import { ReadableDate } from '../../Time/ReadableDate';
 import { ReadableTime } from '../../Time/ReadableTime';
@@ -52,22 +52,17 @@ export const AddByRSSLivestreamRow: React.FC<AddByRSSLivestreamRowProps> = ({
 
   return (
     <div className={styles.row}>
-      <Link href={url} tabIndex={-1}>
-        <Image
-          src={imageUrl}
-          alt={title || tMedia('livestream.livestream_image')}
-          width={IMAGES.LIST.LIVESTREAMS.DESKTOP.SIZE}
-          height={IMAGES.LIST.LIVESTREAMS.DESKTOP.SIZE}
-          className={styles.image}
-        />
-        <Image
-          src={imageUrl}
-          alt={title || tMedia('livestream.livestream_image')}
-          width={IMAGES.LIST.LIVESTREAMS.MOBILE.SIZE}
-          height={IMAGES.LIST.LIVESTREAMS.MOBILE.SIZE}
-          className={styles.imageMobile}
-        />
-      </Link>
+      <ImagesPerView
+        src={imageUrl}
+        alt={title || tMedia('livestream.livestream_image')}
+        widthDesktop={IMAGES.LIST.LIVESTREAMS.DESKTOP.SIZE}
+        heightDesktop={IMAGES.LIST.LIVESTREAMS.DESKTOP.SIZE}
+        widthMobile={IMAGES.LIST.LIVESTREAMS.MOBILE.SIZE}
+        heightMobile={IMAGES.LIST.LIVESTREAMS.MOBILE.SIZE}
+        classNameDesktop={styles.image}
+        classNameMobile={styles.imageMobile}
+        href={url}
+      />
       <div className={styles.content}>
         <Link href={url}>
           <div className={styles.topSection}>

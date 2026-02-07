@@ -6,7 +6,7 @@ import React from 'react';
 
 import { formatDateAbbrev, getQueryParamFromQueueMediumId } from '@podverse/helpers';
 
-import { Image } from '../../Image/Image';
+import { ImagesPerView } from '../../Image/ImagesPerView';
 import { IMAGES } from '../../../constants/images';
 import type { AddByRSSFeedRecord } from '../../../utils/addByRSS/types';
 import styles from '../../../styles/components/Common/List/LiveItem/ListLiveItemRow.module.scss';
@@ -29,22 +29,17 @@ export const AddByRSSLivestreamFeedRow: React.FC<AddByRSSLivestreamFeedRowProps>
 
   return (
     <div className={styles.row}>
-      <Link href={url} tabIndex={-1}>
-        <Image
-          src={feedImageUrl}
-          alt={feedTitle || tMedia('livestream.livestream_image')}
-          width={IMAGES.LIST.LIVESTREAMS.DESKTOP.SIZE}
-          height={IMAGES.LIST.LIVESTREAMS.DESKTOP.SIZE}
-          className={styles.image}
-        />
-        <Image
-          src={feedImageUrl}
-          alt={feedTitle || tMedia('livestream.livestream_image')}
-          width={IMAGES.LIST.LIVESTREAMS.MOBILE.SIZE}
-          height={IMAGES.LIST.LIVESTREAMS.MOBILE.SIZE}
-          className={styles.imageMobile}
-        />
-      </Link>
+      <ImagesPerView
+        src={feedImageUrl}
+        alt={feedTitle || tMedia('livestream.livestream_image')}
+        widthDesktop={IMAGES.LIST.LIVESTREAMS.DESKTOP.SIZE}
+        heightDesktop={IMAGES.LIST.LIVESTREAMS.DESKTOP.SIZE}
+        widthMobile={IMAGES.LIST.LIVESTREAMS.MOBILE.SIZE}
+        heightMobile={IMAGES.LIST.LIVESTREAMS.MOBILE.SIZE}
+        classNameDesktop={styles.image}
+        classNameMobile={styles.imageMobile}
+        href={url}
+      />
       <div className={styles.content}>
         <Link href={url}>
           <div className={styles.topSection}>

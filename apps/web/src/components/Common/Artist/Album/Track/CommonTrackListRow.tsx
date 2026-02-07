@@ -1,41 +1,48 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import React from 'react';
 import { FaGripLines } from 'react-icons/fa6';
 
+import type { DTOChannel, DTOItem } from '@podverse/helpers';
 import {
   findDTOChannelImageBySize,
   findDTOItemImageBySize,
   getQueueForMedium,
-  stripAndDecodeHtml,
 } from '@podverse/helpers';
 import { getShuffleHash } from '@podverse/helpers-requests';
 
-import { ImagesPerView } from '../../../Image/ImagesPerView';
-import { PlayButtonRow } from '../../../MediaPlayer/Buttons/PlayButtonRow';
-import type { MoreButtonMenuItem } from '../../../MoreButton/MoreButton';
-import { MoreButton } from '../../../MoreButton/MoreButton';
-import { ReadableDate } from '../../../Time/ReadableDate';
-import { getDurationAndPositionStr, ReadableDuration } from '../../../Time/ReadableDuration';
-import { showToastPromise, showToastPromiseWithLoading } from '../../../Toast/Toast';
-import { IMAGES } from '../../../../constants/images';
-import { ROUTES } from '../../../../constants/routes';
-import { useAccount } from '../../../../contexts/Account';
-import { useAutoQueue } from '../../../../contexts/AutoQueue';
-import { useMediaPlayer } from '../../../../contexts/MediaPlayer';
-import { useModals } from '../../../../contexts/Modals';
-import { useQueues } from '../../../../contexts/Queue';
-import { useQueueResourcesAbridgedIndex } from '../../../../contexts/QueueResourcesAbridgedIndex';
-import { apiRequestService } from '../../../../factories/apiRequestService';
-import { useMediaPlayerResourceUpdate } from '../../../../hooks/useMediaPlayerResourceUpdate';
-import { downloadEpisodeWithModal } from '../../../../utils/downloadModal/downloadEpisodeWithModal';
-import { downloadAndSaveFile } from '../../../../utils/fileDownloader';
-import styles from '../../../../styles/components/Common/List/Podcasts/Episodes/ListEpisodeRow.module.scss';
-import type { EpisodeListRowProps } from './types';
+import { Button } from '../../../../Button/Button';
+import { ImagesPerView } from '../../../../Image/ImagesPerView';
+import type { MoreButtonMenuItem } from '../../../../MoreButton/MoreButton';
+import { MoreButton } from '../../../../MoreButton/MoreButton';
+import { showToastPromise, showToastPromiseWithLoading } from '../../../../Toast/Toast';
+import { IMAGES } from '../../../../../constants/images';
+import { ROUTES } from '../../../../../constants/routes';
+import { useAccount } from '../../../../../contexts/Account';
+import { useAutoQueue } from '../../../../../contexts/AutoQueue';
+import { useMediaPlayer } from '../../../../../contexts/MediaPlayer';
+import { useModals } from '../../../../../contexts/Modals';
+import { useQueues } from '../../../../../contexts/Queue';
+import { apiRequestService } from '../../../../../factories/apiRequestService';
+import { useMediaPlayerResourceUpdate } from '../../../../../hooks/useMediaPlayerResourceUpdate';
+import { downloadTrackWithModal } from '../../../../../utils/downloadModal/downloadTrackWithModal';
+import { downloadAndSaveFile } from '../../../../../utils/fileDownloader';
+import styles from '../../../../../styles/components/Common/List/Podcasts/Episodes/ListEpisodeRow.module.scss';
 
-export const CommonEpisodeListRow: React.FC<EpisodeListRowProps> = ({
+type CommonTrackListRowProps = {
+  channel: DTOChannel;
+  item: DTOItem;
+  showChannelInfo?: boolean;
+  isEditModeQueue?: boolean;
+  removeFromQueue?: () => void;
+  isEditModePlaylist?: boolean;
+  removeFromPlaylist?: () => void;
+  playlist_id_text: string | null;
+};
+
+export const CommonTrackListRow: React.FC<CommonTrackListRowProps> = ({
   channel,
   isEditModeQueue,
   item,
@@ -45,17 +52,11 @@ export const CommonEpisodeListRow: React.FC<EpisodeListRowProps> = ({
   removeFromPlaylist,
   playlist_id_text,
 }) => {
-  const url = `${ROUTES.EPISODE}/${item.id_text}`;
-  const channelImage = findDTOChannelImageBySize(
-    channel.channel_images,
-    IMAGES.LIST.EPISODES.DESKTOP.SIZE_FIND_TARGET,
-    'lesser'
-  );
-  const itemImage = findDTOItemImageBySize(
-    item.item_images,
-    IMAGES.LIST.EPISODES.DESKTOP.SIZE_FIND_TARGET,
-    'lesser'
-  );
+  const router = useRouter();
+  const url = `${ROUTES.TRACK}/${item.id_text}`;
+  const imageSizeTarget = IMAGES.LIST.TRACKS.DESKTOP.SIZE_FIND_TARGET;
+  const channelImage = findDTOChannelImageBySize(channel.channel_images, imageSizeTarget, 'lesser');
+  const itemImage = findDTOItemImageBySize(item.item_images, imageSizeTarget, 'lesser');
   const tFeatures = useTranslations('features');
   const tMedia = useTranslations('media');
   const tMediaPlayer = useTranslations('media_player');
@@ -65,8 +66,6 @@ export const CommonEpisodeListRow: React.FC<EpisodeListRowProps> = ({
   const { mpItem, mpIsPlaying, setMPIsPlaying } = useMediaPlayer();
   const mediaPlayerResourceUpdate = useMediaPlayerResourceUpdate();
   const { setModalPlaylistAddTo, setModalSourceSelector, setModalLoginRequired } = useModals();
-  const { queueResourcesAbridgedIndex } = useQueueResourcesAbridgedIndex();
-  const { durationStr, positionStr } = getDurationAndPositionStr(item, queueResourcesAbridgedIndex);
   const { autoQueueConfig } = useAutoQueue();
 
   const playButtonOnClick = () => {
@@ -150,31 +149,12 @@ export const CommonEpisodeListRow: React.FC<EpisodeListRowProps> = ({
     });
   };
 
-  const markAsPlayedOnClick = async () => {
-    if (!loggedInAccount) {
-      setModalLoginRequired({
-        title: null,
-        message: tInstructions('login_to_mark_as_played'),
-      });
-      return;
-    }
-
-    const queue = getQueueForMedium(queues, channel.medium_id);
-    if (queue) {
-      showToastPromise(
-        apiRequestService.reqQueueResourceItemAddHistory(queue.id_text, item.id_text, {
-          completed: true,
-        }),
-        {
-          success: tFeatures('history.marked_as_played'),
-          error: tFeatures('history.mark_as_played_error'),
-        }
-      );
-    }
+  const goToTrackPage = () => {
+    router.push(url);
   };
 
-  const downloadEpisode = async () => {
-    downloadEpisodeWithModal({
+  const downloadTrack = async () => {
+    downloadTrackWithModal({
       item,
       setModalSourceSelector,
       tFeatures,
@@ -231,12 +211,12 @@ export const CommonEpisodeListRow: React.FC<EpisodeListRowProps> = ({
       onClick: addToPlaylistOnClick,
     },
     {
-      label: tFeatures('history.mark_as_played'),
-      onClick: markAsPlayedOnClick,
+      label: tMedia('music.track_go_to'),
+      onClick: goToTrackPage,
     },
     {
-      label: tFeatures('download.download_episode'),
-      onClick: downloadEpisode,
+      label: tFeatures('download.download_track'),
+      onClick: downloadTrack,
     },
   ];
 
@@ -257,47 +237,33 @@ export const CommonEpisodeListRow: React.FC<EpisodeListRowProps> = ({
   }
 
   return (
-    <div className={styles.row}>
+    <div className={styles.trackRow}>
       {(isEditModeQueue || isEditModePlaylist) && (
         <div className={styles.editingButtons}>
           <FaGripLines />
         </div>
       )}
-      <ImagesPerView
-        src={itemImage?.url || channelImage?.url}
-        alt={item.title || tMedia('podcast.episode_image')}
-        widthDesktop={IMAGES.LIST.EPISODES.DESKTOP.SIZE}
-        heightDesktop={IMAGES.LIST.EPISODES.DESKTOP.SIZE}
-        widthMobile={IMAGES.LIST.EPISODES.MOBILE.SIZE}
-        heightMobile={IMAGES.LIST.EPISODES.MOBILE.SIZE}
-        classNameDesktop={styles.image}
-        classNameMobile={styles.imageMobile}
-        href={url}
-      />
-      <div className={styles.content}>
-        <Link href={url}>
-          <div className={styles.topSection}>
-            <h3>{item.title}</h3>
-            {showChannelInfo && <div className={styles.channelTitle}>{channel.title}</div>}
-            <div className={styles.subtitle}>
-              {stripAndDecodeHtml(item.item_description?.value)}
+      <Button variant="unstyled" onClick={playButtonOnClick} className={styles.trackClickable}>
+        <ImagesPerView
+          src={itemImage?.url || channelImage?.url}
+          alt={item.title || tMedia('music.track_image')}
+          widthDesktop={IMAGES.LIST.TRACKS.DESKTOP.SIZE}
+          heightDesktop={IMAGES.LIST.TRACKS.DESKTOP.SIZE}
+          widthMobile={IMAGES.LIST.TRACKS.MOBILE.SIZE}
+          heightMobile={IMAGES.LIST.TRACKS.MOBILE.SIZE}
+          classNameDesktop={styles.image}
+          classNameMobile={styles.imageMobile}
+        />
+        <div className={styles.trackWrapper}>
+          <div className={styles.trackContent}>
+            <div className={styles.trackTextWrapper}>
+              <h3 className={styles.trackTitle}>{item.title}</h3>
+              {showChannelInfo && <div className={styles.trackArtist}>{channel.title}</div>}
             </div>
-          </div>
-        </Link>
-        <div className={styles.bottomSection}>
-          <div className={styles.bottomSectionStart}>
-            <PlayButtonRow item={item} onClick={playButtonOnClick} />
-            <div className={styles.timeSection}>
-              <ReadableDate date={item.pub_date} />
-              {durationStr ? ' • ' : null}
-              <ReadableDuration durationStr={durationStr} positionStr={positionStr} />
-            </div>
-          </div>
-          <div className={styles.bottomSectionEnd}>
-            <MoreButton moreButtonMenuItems={moreButtonMenuItems} />
           </div>
         </div>
-      </div>
+      </Button>
+      <MoreButton moreButtonMenuItems={moreButtonMenuItems} />
     </div>
   );
 };

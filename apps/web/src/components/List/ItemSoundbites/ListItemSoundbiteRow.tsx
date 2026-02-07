@@ -11,7 +11,7 @@ import {
 import { getShuffleHash } from '@podverse/helpers-requests';
 import React from 'react';
 import { FaGripLines } from 'react-icons/fa6';
-import { Image } from '../../Image/Image';
+import { ImagesPerView } from '../../Image/ImagesPerView';
 import { ROUTES } from '../../../constants/routes';
 import { IMAGES } from '../../../constants/images';
 import { PlayButtonRow } from '../../MediaPlayer/Buttons/PlayButtonRow';
@@ -267,22 +267,17 @@ export const ListItemSoundbiteRow: React.FC<ListItemSoundbiteProps> = ({
           <FaGripLines />
         </div>
       )}
-      <Link href={url} tabIndex={-1}>
-        <Image
-          src={item_image?.url || channel_image?.url}
-          alt={itemTitle || tMedia('podcast.episode_image')}
-          width={IMAGES.LIST.CLIPS.SIZE}
-          height={IMAGES.LIST.CLIPS.SIZE}
-          className={styles.image}
-        />
-        <Image
-          src={item_image?.url || channel_image?.url}
-          alt={itemTitle || tMedia('podcast.episode_image')}
-          width={IMAGES.LIST.CLIPS.SIZE}
-          height={IMAGES.LIST.CLIPS.SIZE}
-          className={styles.imageMobile}
-        />
-      </Link>
+      <ImagesPerView
+        src={item_image?.url || channel_image?.url}
+        alt={itemTitle || tMedia('podcast.episode_image')}
+        widthDesktop={IMAGES.LIST.CLIPS.SIZE}
+        heightDesktop={IMAGES.LIST.CLIPS.SIZE}
+        widthMobile={IMAGES.LIST.CLIPS.SIZE}
+        heightMobile={IMAGES.LIST.CLIPS.SIZE}
+        classNameDesktop={styles.image}
+        classNameMobile={styles.imageMobile}
+        href={url}
+      />
       <div className={styles.content}>
         <Link href={url}>
           <div className={styles.topSection}>

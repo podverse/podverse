@@ -5,7 +5,7 @@ import Link from 'next/link';
 import React from 'react';
 
 import { stripAndDecodeHtml } from '@podverse/helpers';
-import { Image } from '../../../Image/Image';
+import { ImagesPerView } from '../../../Image/ImagesPerView';
 import { MoreButton } from '../../../MoreButton/MoreButton';
 import { ReadableDate } from '../../../Time/ReadableDate';
 import { IMAGES } from '../../../../constants/images';
@@ -69,22 +69,17 @@ export const AddByRSSEpisodeRow: React.FC<AddByRSSEpisodeRowProps> = ({
 
   return (
     <div className={styles.row}>
-      <Link href={url} tabIndex={-1}>
-        <Image
-          src={imageUrl}
-          alt={title || tMedia('podcast.episode_image')}
-          width={IMAGES.LIST.EPISODES.DESKTOP.SIZE}
-          height={IMAGES.LIST.EPISODES.DESKTOP.SIZE}
-          className={styles.image}
-        />
-        <Image
-          src={imageUrl}
-          alt={title || tMedia('podcast.episode_image')}
-          width={IMAGES.LIST.EPISODES.MOBILE.SIZE}
-          height={IMAGES.LIST.EPISODES.MOBILE.SIZE}
-          className={styles.imageMobile}
-        />
-      </Link>
+      <ImagesPerView
+        src={imageUrl}
+        alt={title || tMedia('podcast.episode_image')}
+        widthDesktop={IMAGES.LIST.EPISODES.DESKTOP.SIZE}
+        heightDesktop={IMAGES.LIST.EPISODES.DESKTOP.SIZE}
+        widthMobile={IMAGES.LIST.EPISODES.MOBILE.SIZE}
+        heightMobile={IMAGES.LIST.EPISODES.MOBILE.SIZE}
+        classNameDesktop={styles.image}
+        classNameMobile={styles.imageMobile}
+        href={url}
+      />
       <div className={styles.content}>
         <Link href={url}>
           <div className={styles.topSection}>
