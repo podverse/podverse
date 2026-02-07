@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Mutex } from 'async-mutex';
 import type { QueueExtraParams } from '@podverse/helpers';
-import { getMd5Hash } from '@podverse/helpers';
+import { getAddByRSSHashId } from '@podverse/helpers';
 import type { EntityManager, FindManyOptions, FindOptionsOrderValue } from 'typeorm';
 import { Between, LessThan, LessThanOrEqual, MoreThan } from 'typeorm';
 import { QueueResource } from '@orm/entities/queue/queueResource.js';
@@ -717,7 +717,7 @@ export class QueueResourceService extends BaseManyService<QueueResource, 'queue'
       firstQueued as QueueResource,
       lastQueued as QueueResource
     );
-    const add_by_rss_hash_id = getMd5Hash(add_by_rss_resource_data);
+    const add_by_rss_hash_id = getAddByRSSHashId(add_by_rss_resource_data);
 
     const finalDto = {
       add_by_rss_resource_data,
@@ -801,7 +801,7 @@ export class QueueResourceService extends BaseManyService<QueueResource, 'queue'
       throw new Error('Queue not found.');
     }
 
-    const add_by_rss_hash_id = getMd5Hash(add_by_rss_resource_data);
+    const add_by_rss_hash_id = getAddByRSSHashId(add_by_rss_resource_data);
 
     const finalDto = {
       add_by_rss_resource_data,
@@ -821,7 +821,7 @@ export class QueueResourceService extends BaseManyService<QueueResource, 'queue'
       throw new Error('Queue not found.');
     }
 
-    const add_by_rss_hash_id = getMd5Hash(add_by_rss_resource_data);
+    const add_by_rss_hash_id = getAddByRSSHashId(add_by_rss_resource_data);
 
     const mostRecentHistoryItem = await this.getMostRecentHistoryItemByQueueIdText(queue_id_text);
     const newPosition = mostRecentHistoryItem

@@ -1,7 +1,7 @@
 // TODO: get rid of "any" in the file
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import type { PlaylistResourceIdTextOptions } from '@podverse/helpers';
-import { getMd5Hash, PAGINATION } from '@podverse/helpers';
+import { getAddByRSSHashId, PAGINATION } from '@podverse/helpers';
 import type {
   EntityManager,
   FindManyOptions,
@@ -584,7 +584,7 @@ export class PlaylistResourceService extends BaseManyService<PlaylistResource, '
       firstItem as PlaylistResource,
       lastItem as PlaylistResource
     );
-    const add_by_rss_hash_id = getMd5Hash(add_by_rss_resource_data);
+    const add_by_rss_hash_id = getAddByRSSHashId(add_by_rss_resource_data);
 
     const finalDto = {
       add_by_rss_resource_data,
