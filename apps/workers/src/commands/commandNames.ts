@@ -15,6 +15,7 @@ export const KNOWN_COMMANDS: readonly string[] = [
   'mqRSSRunParser',
   'mqAddByRSSRunParser',
   'ormFeedUpdateFlagStatus',
+  'reencryptAddByRSSCredentials',
   'parserRSSParseFeed',
   'podcastIndexDeadFeedsDeleteCache',
   'podcastIndexDeadFeedsFlagAndMerge',

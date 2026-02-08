@@ -62,6 +62,7 @@ function validateORM(): ValidationResult[] {
   results.push(validateRequired('DB_DATABASE', 'Database'));
   results.push(validateOptional('DB_SSL_CONNECTION', 'Database', 'Use Default (false)'));
   results.push(validateRequired('DEFAULT_ACCOUNT_SETTINGS_LOCALE', 'Defaults'));
+  results.push(validateRequired('ADD_BY_RSS_CREDENTIALS_ENCRYPTION_KEY', 'Add-by-RSS'));
   return results;
 }
 

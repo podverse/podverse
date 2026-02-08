@@ -9,6 +9,7 @@ import type {
 import { getDataSourceRead, getDataSourceReadWrite, getLoggerService } from '@orm/context.js';
 import { applyProperties } from '@orm/lib/applyProperties.js';
 import { hasDifferentValues } from '@orm/lib/hasDifferentValues.js';
+import { redactForLog } from '@orm/lib/redactForLog.js';
 
 export class BaseManyService<T extends ObjectLiteral, K extends keyof T> {
   protected repositoryRead: Repository<T>;
@@ -102,8 +103,10 @@ export class BaseManyService<T extends ObjectLiteral, K extends keyof T> {
 
     entity = applyProperties(entity, dto);
     const loggerService = getLoggerService();
-    loggerService.debug(`Updating entity ${JSON.stringify(entity)}`);
-    loggerService.debug(`With DTO ${JSON.stringify(dto)}`);
+    loggerService.debug(
+      `Updating entity ${JSON.stringify(redactForLog(entity as Record<string, unknown>))}`
+    );
+    loggerService.debug(`With DTO ${JSON.stringify(redactForLog(dto as Record<string, unknown>))}`);
 
     return ((this.transactionalEntityManager as EntityManager) ?? this.repositoryReadWrite).save(
       entity

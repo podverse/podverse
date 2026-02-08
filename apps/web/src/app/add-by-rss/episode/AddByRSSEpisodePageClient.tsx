@@ -121,6 +121,7 @@ export const AddByRSSEpisodePageClient: React.FC<AddByRSSEpisodePageClientProps>
           itemIdText: episode.idText,
           chaptersFeedUrl: cf,
           transcriptUrl: tu,
+          feedUrl: feed?.feedUrl,
         });
         if (cancelled) return;
         setCachedChaptersTranscript(episode.idText, {
@@ -157,7 +158,7 @@ export const AddByRSSEpisodePageClient: React.FC<AddByRSSEpisodePageClientProps>
     return () => {
       cancelled = true;
     };
-  }, [episode, selectedTab, hasChaptersOrTranscript, tMisc]);
+  }, [episode, feed, selectedTab, hasChaptersOrTranscript, tMisc]);
 
   React.useEffect(() => {
     let cancelled = false;

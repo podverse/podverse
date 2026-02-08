@@ -24,6 +24,7 @@ export type ConfigCategory =
 const BASE_ORM_COMMANDS = [
   'archiveAll',
   'ormFeedUpdateFlagStatus',
+  'reencryptAddByRSSCredentials',
   'statsUpdateAggregated',
   'statsUpdateAggregatedRolling',
   'generateOnDemandParserEventReports',

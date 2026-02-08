@@ -144,6 +144,7 @@ export const AddByRSSTrackItemPageClient: React.FC<AddByRSSTrackItemPageClientPr
         const res = await apiRequestService.reqAccountAddByRSSChaptersTranscript({
           itemIdText: track.idText,
           transcriptUrl,
+          feedUrl: feed?.feedUrl,
         });
         if (cancelled) return;
         setCachedChaptersTranscript(track.idText, {
@@ -171,7 +172,7 @@ export const AddByRSSTrackItemPageClient: React.FC<AddByRSSTrackItemPageClientPr
     return () => {
       cancelled = true;
     };
-  }, [track, selectedTab, transcriptUrl, tMisc]);
+  }, [track, feed, selectedTab, transcriptUrl, tMisc]);
 
   if (isLoading) {
     return <LoadingSpinnerOverlay isLoading message={tMisc('loading_your_content')} />;

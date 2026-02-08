@@ -20,4 +20,10 @@ export class AccountFollowingAddByRSSChannel {
 
   @Column({ type: 'varchar', nullable: true, length: DATABASE_CONSTANTS.varchar_url })
   image_url!: string | null;
+
+  @Column({ type: 'varchar', nullable: true, length: DATABASE_CONSTANTS.varchar_normal })
+  basic_auth_username!: string | null;
+
+  @Column({ type: 'varchar', nullable: true, length: DATABASE_CONSTANTS.varchar_normal })
+  basic_auth_password!: string | null;
 }

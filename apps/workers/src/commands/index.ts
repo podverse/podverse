@@ -1,5 +1,6 @@
 import archiveAll from '@workers/commands/archiver/archiveAll.js';
 import { ormFeedUpdateFlagStatus } from '@workers/commands/orm/feed/updateFlagStatus.js';
+import { reencryptAddByRSSCredentials } from '@workers/commands/orm/addByRSS/reencryptCredentials.js';
 import { parserRSSParseFeed } from '@workers/commands/parser/rss/parseFeed.js';
 import {
   podcastIndexDeadFeedsDeleteCache,
@@ -24,6 +25,7 @@ export type CommandLineArgs = { [key: string]: string | string[] };
 export default {
   archiveAll,
   ormFeedUpdateFlagStatus,
+  reencryptAddByRSSCredentials,
   parserRSSParseFeed,
   podcastIndexDeadFeedsDeleteCache,
   podcastIndexDeadFeedsFlagAndMerge,

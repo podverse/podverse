@@ -132,6 +132,7 @@ export * from './entities/stats/statsTrackEventPlaylist.js';
 
 export * from './lib/typeORMTypes.js';
 export * from './lib/nanoid.js';
+export { decryptWithKey, encryptCredentials } from './lib/credentialsEncryption.js';
 
 export * from './services/category.js';
 

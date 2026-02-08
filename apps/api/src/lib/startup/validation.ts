@@ -90,6 +90,9 @@ const validateAllEnvironmentVariables = (): ValidationSummary => {
   results.push(validateRequired('PODCAST_INDEX_BASE_URL', 'Podcast Index'));
   results.push(validateRequired('PODCAST_INDEX_SECRET_KEY', 'Podcast Index'));
 
+  // Add-by-RSS (required: Basic Auth credentials encrypted at rest)
+  results.push(validateRequired('ADD_BY_RSS_CREDENTIALS_ENCRYPTION_KEY', 'Add-by-RSS'));
+
   // Premium/Membership
   // Note: validateSignupMode() is called earlier to determine conditional requirements
   results.push(validateOptional('PREMIUM_MEMBERSHIP_COST_MONTHLY', 'Premium'));

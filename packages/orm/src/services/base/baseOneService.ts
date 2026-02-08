@@ -8,6 +8,7 @@ import type {
 import { getDataSourceRead, getDataSourceReadWrite, getLoggerService } from '@orm/context.js';
 import { applyProperties } from '@orm/lib/applyProperties.js';
 import { hasDifferentValues } from '@orm/lib/hasDifferentValues.js';
+import { redactForLog } from '@orm/lib/redactForLog.js';
 
 export class BaseOneService<T extends ObjectLiteral, K extends keyof T> {
   private parentEntityKey: K;
@@ -40,7 +41,9 @@ export class BaseOneService<T extends ObjectLiteral, K extends keyof T> {
     const loggerService = getLoggerService();
 
     loggerService.debug(`parentEntityKey: ${this.parentEntityKey as string}`);
-    loggerService.debug(`dto: ${dto ? JSON.stringify(dto) : 'null'}`);
+    loggerService.debug(
+      `dto: ${dto ? JSON.stringify(redactForLog(dto as Record<string, unknown>)) : 'null'}`
+    );
     loggerService.debug(`config: ${config ? JSON.stringify(config) : 'null'}`);
     loggerService.debug(`Entity exists: ${!!entity}`);
     loggerService.debug(
@@ -55,8 +58,10 @@ export class BaseOneService<T extends ObjectLiteral, K extends keyof T> {
     }
 
     entity = applyProperties(entity, dto);
-    loggerService.debug(`Updating entity ${JSON.stringify(entity)}`);
-    loggerService.debug(`With DTO ${JSON.stringify(dto)}`);
+    loggerService.debug(
+      `Updating entity ${JSON.stringify(redactForLog(entity as Record<string, unknown>))}`
+    );
+    loggerService.debug(`With DTO ${JSON.stringify(redactForLog(dto as Record<string, unknown>))}`);
 
     return ((this.transactionalEntityManager as EntityManager) ?? this.repositoryReadWrite).save(
       entity

@@ -104,6 +104,10 @@ const run = async () => {
           },
         },
       },
+      addByRssCredentialsEncryptionKey:
+        process.env.ADD_BY_RSS_CREDENTIALS_ENCRYPTION_KEY ?? undefined,
+      addByRssCredentialsEncryptionKeyOld:
+        process.env.ADD_BY_RSS_CREDENTIALS_ENCRYPTION_KEY_OLD ?? undefined,
     };
     /* eslint-enable @typescript-eslint/no-non-null-assertion */
 

@@ -17,7 +17,10 @@ import {
   reqAccountVerifyEmail,
 } from './account/account.js';
 import { reqAccountFollowChannel, reqAccountUnfollowChannel } from './account/follow/channel.js';
-import { reqAccountAddByRSSChaptersTranscript } from './account/addByRSSChaptersTranscript.js';
+import {
+  reqAccountAddByRSSChaptersTranscript,
+  type ReqAccountAddByRSSChaptersTranscriptParams,
+} from './account/addByRSSChaptersTranscript.js';
 import {
   reqAccountFollowAddByRSSChannel,
   reqAccountGetFollowedAddByRSSChannels,
@@ -215,7 +218,10 @@ import {
   reqMyProfileAlbumsAZ,
 } from './profile/profile.js';
 
-export type { AddByRSSChapterResponse } from './account/addByRSSChaptersTranscript.js';
+export type {
+  AddByRSSChapterResponse,
+  ReqAccountAddByRSSChaptersTranscriptParams,
+} from './account/addByRSSChaptersTranscript.js';
 
 export type AbortOpts = { controller: AbortController; timeoutMs: number };
 
@@ -479,6 +485,8 @@ export class ApiRequestService {
     feed_url: string;
     title?: string | null;
     image_url?: string | null;
+    basic_auth_username?: string | null;
+    basic_auth_password?: string | null;
   }) {
     return reqAccountFollowAddByRSSChannel(this, params);
   }
@@ -491,11 +499,7 @@ export class ApiRequestService {
     return reqAccountGetFollowedAddByRSSChannels(this, params);
   }
 
-  reqAccountAddByRSSChaptersTranscript(params: {
-    itemIdText: string;
-    chaptersFeedUrl?: string;
-    transcriptUrl?: string;
-  }) {
+  reqAccountAddByRSSChaptersTranscript(params: ReqAccountAddByRSSChaptersTranscriptParams) {
     return reqAccountAddByRSSChaptersTranscript(this, params);
   }
 

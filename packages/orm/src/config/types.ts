@@ -34,4 +34,8 @@ export type ORMConfig = {
   database: DatabaseConfig;
   log: LogConfig;
   defaults: DefaultsConfig;
+  /** 32-byte key (64 hex chars) for encrypting add-by-RSS Basic Auth credentials at rest. Required. */
+  addByRssCredentialsEncryptionKey?: string;
+  /** Optional: previous key (64 hex chars) for key rotation. When set, decryptCredentials will try this key if decryption with the current key fails, so existing ciphertext remains readable until re-encryption script has run. */
+  addByRssCredentialsEncryptionKeyOld?: string;
 };

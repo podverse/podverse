@@ -8,6 +8,8 @@ export type ReqAccountAddByRSSChaptersTranscriptParams = {
   itemIdText: string;
   chaptersFeedUrl?: string;
   transcriptUrl?: string;
+  /** When provided and user is authenticated, backend uses stored Basic Auth for this feed when fetching. */
+  feedUrl?: string;
 };
 
 export type ReqAccountAddByRSSChaptersTranscriptResponse = {

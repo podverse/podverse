@@ -1,4 +1,4 @@
--- Combined migrations generated Sat Feb  7 01:58:56 CST 2026
+-- Combined migrations generated Sun Feb  8 00:30:24 CST 2026
 -- DO NOT EDIT - regenerate with scripts/database/combine-migrations.sh
 
 -- Including: 0000_init_helpers.sql
@@ -1879,5 +1879,14 @@ CREATE TABLE account_settings_notification_type (
     type notification_channel_type_options NOT NULL,
     CONSTRAINT account_settings_notification_type_notification_id_type_unique UNIQUE (account_settings_notification_id, type)
 );
+
+
+-- Including: 0013_add_by_rss_basic_auth.sql
+-- 0013: Add optional Basic Auth columns for add-by-RSS feeds (Option A: two columns).
+-- Credentials are stored per account+feed_url; never expose password in API responses.
+
+ALTER TABLE account_following_add_by_rss_channel
+    ADD COLUMN basic_auth_username varchar_normal NULL,
+    ADD COLUMN basic_auth_password varchar_normal NULL;
 
 
