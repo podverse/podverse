@@ -1,10 +1,14 @@
 'use client';
 
+import { MediumEnum } from '@podverse/helpers';
 import React from 'react';
 
 import { Divider } from '../../../../Divider/Divider';
 import type { ViewSelectedOption } from '../../../../ViewSelector/ViewSelector';
-import type { AddByRSSMappedFeed } from '../../../../../utils/addByRSS/types';
+import type {
+  AddByRSSItemIndexItem,
+  AddByRSSMappedFeed,
+} from '../../../../../utils/addByRSS/types';
 import { AddByRSSTrackRow } from './AddByRSSTrackRow';
 import { AddByRSSTrackGridCard } from './AddByRSSTrackGridCard';
 import styles from '../../../../../styles/components/Common/List/ListNodes.module.scss';
@@ -16,6 +20,7 @@ type AddByRSSAlbumTrackNodesProps = {
   items: AddByRSSMappedFeed['items'];
   viewSelected?: ViewSelectedOption;
   itemIdTextMap: Map<string, string>;
+  mediumId?: number | null;
 };
 
 const getItemIdText = (
@@ -34,6 +39,7 @@ export const AddByRSSAlbumTrackNodes: React.FC<AddByRSSAlbumTrackNodesProps> = (
   items,
   viewSelected = 'rows',
   itemIdTextMap,
+  mediumId = MediumEnum.Music,
 }) => {
   if (viewSelected === 'rows') {
     return (
@@ -41,6 +47,18 @@ export const AddByRSSAlbumTrackNodes: React.FC<AddByRSSAlbumTrackNodesProps> = (
         {items.map((bundle, idx) => {
           const itemGuid = bundle.item?.guid ?? `${channelIdText}-${idx}`;
           const itemIdText = getItemIdText(itemIdTextMap, channelIdText, itemGuid);
+          const pubDateMs = bundle.item?.pub_date ? new Date(bundle.item.pub_date).getTime() : 0;
+          const indexItem: AddByRSSItemIndexItem = {
+            id: `${channelIdText}-${itemGuid}`,
+            idText: itemIdText,
+            itemGuid,
+            channelIdText,
+            channelTitle,
+            channelImageUrl,
+            mediumId: mediumId ?? MediumEnum.Music,
+            bundle,
+            pubDateMs,
+          };
           return (
             <React.Fragment key={bundle.item?.guid ?? idx}>
               <AddByRSSTrackRow
@@ -48,6 +66,7 @@ export const AddByRSSAlbumTrackNodes: React.FC<AddByRSSAlbumTrackNodesProps> = (
                 channelTitle={channelTitle}
                 channelImageUrl={channelImageUrl}
                 bundle={bundle}
+                indexItem={indexItem}
               />
               {idx < items.length - 1 && <Divider />}
             </React.Fragment>

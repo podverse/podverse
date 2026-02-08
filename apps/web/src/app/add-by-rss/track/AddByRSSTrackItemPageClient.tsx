@@ -124,7 +124,7 @@ export const AddByRSSTrackItemPageClient: React.FC<AddByRSSTrackItemPageClientPr
       <MainInnerWrapper>
         <SideContent />
         <MainInnerContentWrapper>
-          <AddByRSSTrackDetailHeader itemIdText={track.idText} title={title} />
+          <AddByRSSTrackDetailHeader itemIdText={track.idText} title={title} indexItem={track} />
           <CommonDetailListHeader tabs={<Tabs tabData={tabData} selectedKey="summary" />} />
           <DetailListWrapper>
             {description ? <CoreEpisodeSummary description={description} /> : null}

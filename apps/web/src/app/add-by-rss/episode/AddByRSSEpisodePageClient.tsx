@@ -124,7 +124,11 @@ export const AddByRSSEpisodePageClient: React.FC<AddByRSSEpisodePageClientProps>
       <MainInnerWrapper>
         <SideContent />
         <MainInnerContentWrapper>
-          <AddByRSSEpisodeDetailHeader itemIdText={episode.idText} title={title} />
+          <AddByRSSEpisodeDetailHeader
+            itemIdText={episode.idText}
+            title={title}
+            indexItem={episode}
+          />
           <CommonDetailListHeader tabs={<Tabs tabData={tabData} selectedKey="summary" />} />
           <DetailListWrapper>
             {description ? <CoreEpisodeSummary description={description} /> : null}

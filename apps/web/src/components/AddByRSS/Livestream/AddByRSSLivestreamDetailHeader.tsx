@@ -25,7 +25,6 @@ export const AddByRSSLivestreamDetailHeader: React.FC<AddByRSSLivestreamDetailHe
   mediumSlug,
 }) => {
   const tMediaPlayer = useTranslations('media_player');
-  const tFeatures = useTranslations('features');
 
   const titleNode = (
     <Link href={getAddByRSSLivestreamPath(itemIdText, mediumSlug)}>
@@ -37,18 +36,6 @@ export const AddByRSSLivestreamDetailHeader: React.FC<AddByRSSLivestreamDetailHe
     {
       label: tMediaPlayer('play'),
       onClick: alertPlaceholder(tMediaPlayer('play')),
-    },
-    {
-      label: tFeatures('queue.queue_next'),
-      onClick: alertPlaceholder(tFeatures('queue.queue_next')),
-    },
-    {
-      label: tFeatures('queue.queue_last'),
-      onClick: alertPlaceholder(tFeatures('queue.queue_last')),
-    },
-    {
-      label: tFeatures('playlist.add_to_playlist'),
-      onClick: alertPlaceholder(tFeatures('playlist.add_to_playlist')),
     },
   ];
 

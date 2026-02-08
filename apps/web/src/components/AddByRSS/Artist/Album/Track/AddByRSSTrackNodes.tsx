@@ -25,6 +25,7 @@ export const AddByRSSTrackNodes: React.FC<AddByRSSTrackNodesProps> = ({ items, v
               channelTitle={item.channelTitle}
               channelImageUrl={item.channelImageUrl}
               bundle={item.bundle}
+              indexItem={item}
             />
             {idx < items.length - 1 && <Divider />}
           </React.Fragment>
