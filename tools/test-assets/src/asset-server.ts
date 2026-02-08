@@ -105,13 +105,29 @@ export class AssetServer {
 
         // Parse requested file path (strip leading slash and query so path.join stays under assetsDir)
         const rawPath = req.url === '/' ? '/index.html' : req.url || '/';
-        const pathname = (
-          rawPath.includes('?') ? rawPath.slice(0, rawPath.indexOf('?')) : rawPath
-        ).replace(/^\//, '');
+        const pathname = path
+          .normalize(
+            (rawPath.includes('?') ? rawPath.slice(0, rawPath.indexOf('?')) : rawPath).replace(
+              /^\//,
+              ''
+            )
+          )
+          .replace(/^\/+/, '');
         const filePath = path.join(this.assetsDir, pathname);
 
-        // Require HTTP Basic Auth for paths under basic-auth/
-        if (pathname === BASIC_AUTH_SUBDIR || pathname.startsWith(BASIC_AUTH_SUBDIR + '/')) {
+        // Security: prevent directory traversal
+        const normalizedPath = path.normalize(filePath);
+        if (!normalizedPath.startsWith(this.assetsDir)) {
+          res.writeHead(403, { 'Content-Type': 'text/plain' });
+          res.end('Forbidden');
+          return;
+        }
+
+        // Require HTTP Basic Auth for any path that resolves under basic-auth/
+        const basicAuthDir = path.join(this.assetsDir, BASIC_AUTH_SUBDIR);
+        const isBasicAuthPath =
+          normalizedPath === basicAuthDir || normalizedPath.startsWith(basicAuthDir + path.sep);
+        if (isBasicAuthPath) {
           const creds = parseBasicAuth(req.headers.authorization);
           if (
             !creds ||
@@ -127,16 +143,8 @@ export class AssetServer {
           }
         }
 
-        // Security: prevent directory traversal
-        const normalizedPath = path.normalize(filePath);
-        if (!normalizedPath.startsWith(this.assetsDir)) {
-          res.writeHead(403, { 'Content-Type': 'text/plain' });
-          res.end('Forbidden');
-          return;
-        }
-
         // Check if file exists
-        fs.stat(filePath, (err, stats) => {
+        fs.stat(normalizedPath, (err, stats) => {
           if (err || !stats.isFile()) {
             res.writeHead(404, { 'Content-Type': 'text/plain' });
             res.end('File not found');
@@ -144,15 +152,15 @@ export class AssetServer {
           }
 
           // Read and serve file
-          fs.readFile(filePath, (err, data) => {
+          fs.readFile(normalizedPath, (err, data) => {
             if (err) {
               res.writeHead(500, { 'Content-Type': 'text/plain' });
               res.end('Internal server error');
               return;
             }
 
-            const mimeType = this.getMimeType(filePath, filePath);
-            const ext = path.extname(filePath).toLowerCase();
+            const mimeType = this.getMimeType(normalizedPath, normalizedPath);
+            const ext = path.extname(normalizedPath).toLowerCase();
             const headers: Record<string, string> = {
               'Content-Type': mimeType,
               'Content-Length': String(data.length),
