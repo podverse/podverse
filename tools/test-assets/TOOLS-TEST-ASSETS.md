@@ -14,6 +14,16 @@ server started by consumers such as the Lighthouse tool. Files are organized by 
 - `tools/test-assets/assets/videos/` — video files (e.g. video-001.mp4)
 - URLs: `http://localhost:2111/feeds/feed-podcast-1.rss`, `http://localhost:2111/images/image-001-300.jpg`,
   `http://localhost:2111/audio/audio-001.mp3`, `http://localhost:2111/videos/video-001.mp4`
+- `tools/test-assets/assets/basic-auth/` — one feed (`feed-basic-auth.rss`) with 10 items and its own audio, images, videos, chapters, transcripts. Paths under `http://localhost:2111/basic-auth/` require HTTP Basic Auth (see below).
+
+## Basic-Auth test feed
+
+A single **Basic-Auth-protected** feed is generated every time you run generate (or generate_and_parse). It is for testing add-by-RSS (private feeds) on the website.
+
+- **Location:** `assets/basic-auth/` (feeds, audio, images, videos, chapters, transcripts). Feed URL: `http://localhost:2111/basic-auth/feeds/feed-basic-auth.rss`.
+- **Count:** Exactly one feed, 10 items, regardless of `<count>` or `--items`.
+- **Server:** Any request to a path under `/basic-auth/` (e.g. the feed, enclosures, images) requires HTTP Basic Auth. Use username **`username`** and password **`password`** (test-only; not secure).
+- **Parsing:** generate_and_parse creates the basic-auth assets but does **not** parse this feed (the parser does not send credentials). Add the feed manually in the web app with the credentials above to test add-by-RSS.
 
 ## Image naming
 

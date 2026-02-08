@@ -118,7 +118,7 @@ import { fileURLToPath } from 'url';
 import { faker } from '@faker-js/faker';
 import { generateGuidWithRandomVersion, pickRandomRssFeedMedium } from '@podverse/helpers';
 import { AssetGenerator } from './asset-generator.js';
-import { DEFAULT_ASSETS_BASE_URL } from './constants.js';
+import { BASIC_AUTH_BASE_URL, BASIC_AUTH_SUBDIR, DEFAULT_ASSETS_BASE_URL } from './constants.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -136,6 +136,11 @@ const MAX_ASSETS_PER_TYPE = 100;
 const MAX_JPEG_FILES = 100;
 /** Widths (px) for podcast:images srcset. Total JPEGs = imagePoolSize * IMAGE_SIZES.length ≤ MAX_JPEG_FILES. */
 const IMAGE_SIZES = [300, 600, 1400];
+
+/** Basic-Auth test feed: one feed, fixed 10 items, under assets/basic-auth/. */
+const BASIC_AUTH_FEED_ITEMS = 10;
+const BASIC_AUTH_FEED_FILENAME = 'feed-basic-auth.rss';
+const BASIC_AUTH_IMAGE_POOL_SIZE = 4;
 
 export type MultiConfig =
   | { kind: 'fixed'; value: number }
@@ -332,6 +337,25 @@ async function ensureMediaAssets(poolSize: number): Promise<void> {
   console.log(
     `\nMedia pool ready (images 1..${imagePoolSize} × ${IMAGE_SIZES.length} sizes; audio/video/ogg/webm 1..${poolSize}). Writing feeds...\n`
   );
+}
+
+/** Ensure media pool for the single basic-auth feed (10 items, 4 image indices, under assets/basic-auth/). */
+async function ensureBasicAuthMediaAssets(): Promise<void> {
+  const generator = new AssetGenerator({ namespace: BASIC_AUTH_SUBDIR });
+  await generator.ensureAssetsDirectory();
+  for (let i = 1; i <= BASIC_AUTH_IMAGE_POOL_SIZE; i++) {
+    const pad = pad3(i);
+    const color = faker.color.rgb({ format: 'hex' });
+    await generator.generateImageSizes(pad, IMAGE_SIZES, color, true);
+  }
+  for (let i = 1; i <= BASIC_AUTH_FEED_ITEMS; i++) {
+    const pad = pad3(i);
+    const durationSec = faker.number.int({ min: 30, max: 90 });
+    await generator.generateMP3(`audio-${pad}.mp3`, durationSec);
+    await generator.generateOGG(`audio-${pad}.ogg`, durationSec);
+    await generator.generateMP4(`video-${pad}.mp4`, durationSec);
+    await generator.generateWebM(`video-${pad}.webm`, durationSec);
+  }
 }
 
 /** RFC 2822-style date for pubDate/lastBuildDate */
@@ -1132,11 +1156,55 @@ export async function runGenerateFeedAndAssets(
     }
   }
 
+  // Basic-Auth feed: exactly one feed, 10 items, under assets/basic-auth/ (always created; never parsed by generate_and_parse).
+  const basicAuthDir = path.join(outDir, BASIC_AUTH_SUBDIR);
+  const basicAuthFeedsDir = path.join(basicAuthDir, 'feeds');
+  const basicAuthChaptersDir = path.join(basicAuthDir, 'chapters');
+  const basicAuthTranscriptsDir = path.join(basicAuthDir, 'transcripts');
+  for (const dir of [
+    basicAuthDir,
+    basicAuthFeedsDir,
+    basicAuthChaptersDir,
+    basicAuthTranscriptsDir,
+  ]) {
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
+    }
+  }
+  await ensureBasicAuthMediaAssets();
+  const basicAuthFeedPath = path.join(basicAuthFeedsDir, BASIC_AUTH_FEED_FILENAME);
+  if (!forceRss && fs.existsSync(basicAuthFeedPath)) {
+    skipped++;
+    console.log(`Skipped (exists): ${BASIC_AUTH_SUBDIR}/feeds/${BASIC_AUTH_FEED_FILENAME}`);
+  } else {
+    const { xml, chaptersToWrite, transcriptsToWrite } = buildFeed(
+      'podcast',
+      BASIC_AUTH_FEED_FILENAME,
+      BASIC_AUTH_FEED_ITEMS,
+      BASIC_AUTH_FEED_ITEMS,
+      BASIC_AUTH_IMAGE_POOL_SIZE,
+      multiConfig,
+      BASIC_AUTH_BASE_URL,
+      [],
+      undefined,
+      false
+    );
+    fs.writeFileSync(basicAuthFeedPath, xml, 'utf8');
+    for (const { filename: chFilename, content } of chaptersToWrite) {
+      fs.writeFileSync(path.join(basicAuthChaptersDir, chFilename), content, 'utf8');
+    }
+    for (const { filename: txFilename, content } of transcriptsToWrite) {
+      fs.writeFileSync(path.join(basicAuthTranscriptsDir, txFilename), content, 'utf8');
+    }
+    written++;
+    console.log(`Wrote ${basicAuthFeedPath} (${BASIC_AUTH_FEED_ITEMS} items, Basic Auth)`);
+  }
+
   console.log(
-    `\nDone. ${written} new feed(s), ${skipped} already present (${count} sets × 9 types).`
+    `\nDone. ${written} new feed(s), ${skipped} already present (${count} sets × 9 types + 1 basic-auth).`
   );
   console.log(
-    `Assets in tools/test-assets/assets/{audio,chapters,feeds,images,transcripts,videos}. Served at ${baseUrl}/<subdir>/<filename>.`
+    `Assets in tools/test-assets/assets/{audio,chapters,feeds,images,transcripts,videos} and assets/${BASIC_AUTH_SUBDIR}/. Served at ${baseUrl}/<subdir>/<filename>.`
   );
 
   return { success: true, written, skipped };

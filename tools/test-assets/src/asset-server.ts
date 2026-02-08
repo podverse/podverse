@@ -3,12 +3,37 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
+import {
+  BASIC_AUTH_SUBDIR,
+  BASIC_AUTH_TEST_PASSWORD,
+  BASIC_AUTH_TEST_USERNAME,
+} from './constants.js';
 
 // ES modules __dirname equivalent
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 const ASSET_PORT = 2111;
+
+function parseBasicAuth(
+  authHeader: string | undefined
+): { username: string; password: string } | null {
+  if (!authHeader || !authHeader.startsWith('Basic ')) {
+    return null;
+  }
+  try {
+    const encoded = authHeader.slice(6).trim();
+    const decoded = Buffer.from(encoded, 'base64').toString('utf8');
+    const colonIndex = decoded.indexOf(':');
+    if (colonIndex === -1) return null;
+    return {
+      username: decoded.slice(0, colonIndex),
+      password: decoded.slice(colonIndex + 1),
+    };
+  } catch {
+    return null;
+  }
+}
 
 export class AssetServer {
   private server: http.Server | null = null;
@@ -78,10 +103,29 @@ export class AssetServer {
           return;
         }
 
-        // Parse requested file path (strip leading slash so path.join stays under assetsDir)
+        // Parse requested file path (strip leading slash and query so path.join stays under assetsDir)
         const rawPath = req.url === '/' ? '/index.html' : req.url || '/';
-        const urlPath = rawPath.startsWith('/') ? rawPath.slice(1) : rawPath;
-        const filePath = path.join(this.assetsDir, urlPath);
+        const pathname = (
+          rawPath.includes('?') ? rawPath.slice(0, rawPath.indexOf('?')) : rawPath
+        ).replace(/^\//, '');
+        const filePath = path.join(this.assetsDir, pathname);
+
+        // Require HTTP Basic Auth for paths under basic-auth/
+        if (pathname === BASIC_AUTH_SUBDIR || pathname.startsWith(BASIC_AUTH_SUBDIR + '/')) {
+          const creds = parseBasicAuth(req.headers.authorization);
+          if (
+            !creds ||
+            creds.username !== BASIC_AUTH_TEST_USERNAME ||
+            creds.password !== BASIC_AUTH_TEST_PASSWORD
+          ) {
+            res.writeHead(401, {
+              'Content-Type': 'text/plain',
+              'WWW-Authenticate': 'Basic realm="test-assets"',
+            });
+            res.end('Unauthorized');
+            return;
+          }
+        }
 
         // Security: prevent directory traversal
         const normalizedPath = path.normalize(filePath);
