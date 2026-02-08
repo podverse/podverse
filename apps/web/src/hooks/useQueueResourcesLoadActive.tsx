@@ -48,7 +48,7 @@ export function useQueueResourcesLoadActive() {
 
     if (!loggedInAccount) {
       setQueues([]);
-      return;
+      return 0;
     }
 
     const queueData = await apiRequestService.reqQueueGetAllForAccountPrivate();
@@ -87,6 +87,10 @@ export function useQueueResourcesLoadActive() {
           setAutoQueueActiveRow(0);
         }
       }
+
+      return combinedQueueResources.length;
     }
+
+    return 0;
   }, []);
 }

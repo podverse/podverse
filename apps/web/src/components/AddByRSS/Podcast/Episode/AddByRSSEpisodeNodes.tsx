@@ -95,6 +95,10 @@ export const AddByRSSEpisodeNodes: React.FC<AddByRSSEpisodeNodesProps> = (props)
     mediumId = MediumEnum.Podcast,
   } = props;
   if (viewSelected === 'rows') {
+    const itemIdTexts = items.map((bundle, i) => {
+      const itemGuid = bundle.item?.guid ?? `${channelIdText}-${i}`;
+      return getItemIdText(itemIdTextMap, channelIdText, itemGuid);
+    });
     return (
       <div key="list" className={styles.list}>
         {items.map((bundle, idx) => {
@@ -120,6 +124,11 @@ export const AddByRSSEpisodeNodes: React.FC<AddByRSSEpisodeNodesProps> = (props)
                 channelImageUrl={channelImageUrl}
                 bundle={bundle}
                 indexItem={indexItem}
+                listContext={{
+                  feedIdText: channelIdText,
+                  itemIdTexts,
+                  currentIndex: idx,
+                }}
               />
               {idx < items.length - 1 && <Divider />}
             </React.Fragment>

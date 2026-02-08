@@ -19,6 +19,8 @@ export const AddByRSSEpisodesListNodes: React.FC<AddByRSSEpisodesListNodesProps>
   viewSelected,
 }) => {
   if (viewSelected === 'rows') {
+    const feedIdText = items[0]?.channelIdText ?? '';
+    const itemIdTexts = items.map((i) => i.idText);
     return (
       <div key="list" className={styles.list}>
         {items.map((item, idx) => (
@@ -28,6 +30,12 @@ export const AddByRSSEpisodesListNodes: React.FC<AddByRSSEpisodesListNodesProps>
               channelTitle={item.channelTitle}
               channelImageUrl={item.channelImageUrl}
               bundle={item.bundle}
+              indexItem={item}
+              listContext={{
+                feedIdText,
+                itemIdTexts,
+                currentIndex: idx,
+              }}
             />
             {idx < items.length - 1 && <Divider />}
           </React.Fragment>

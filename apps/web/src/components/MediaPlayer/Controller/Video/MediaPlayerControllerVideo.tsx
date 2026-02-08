@@ -6,6 +6,7 @@ import { useQueueResourcesMoveNowPlayingToHistory } from '../../../../hooks/useQ
 import { useQueueResourcesLoadActive } from '../../../../hooks/useQueueResourcesLoadActive';
 import { useQueueResourcesAbridgedIndex } from '../../../../contexts/QueueResourcesAbridgedIndex';
 import { useAddByRSSPositionSave } from '../../../../hooks/useAddByRSSPositionSave';
+import { useAddByRSSPlayNext } from '../../../../hooks/useAddByRSSPlayNext';
 
 export function MediaPlayerControllerVideo() {
   const mediaPlayer = useMediaPlayer();
@@ -16,6 +17,7 @@ export function MediaPlayerControllerVideo() {
   const { queueResourcesAbridgedIndex } = useQueueResourcesAbridgedIndex();
   const { savePosition: onAddByRSSPositionSave, handleEnded: onAddByRSSEnded } =
     useAddByRSSPositionSave();
+  const onAddByRSSPlayNext = useAddByRSSPlayNext();
 
   return (
     <MediaPlayerControllerAV
@@ -52,6 +54,7 @@ export function MediaPlayerControllerVideo() {
       queueResourcesAbridgedIndex={queueResourcesAbridgedIndex}
       onAddByRSSPositionSave={onAddByRSSPositionSave}
       onAddByRSSEnded={onAddByRSSEnded}
+      onAddByRSSPlayNext={onAddByRSSPlayNext}
       setMPAddByRSS={mediaPlayer.setMPAddByRSS}
     />
   );

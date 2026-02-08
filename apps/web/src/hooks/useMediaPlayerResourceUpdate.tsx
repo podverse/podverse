@@ -9,6 +9,7 @@ import type {
 } from '@podverse/helpers';
 import { MediumEnum } from '@podverse/helpers';
 import { useMediaPlayer } from '../contexts/MediaPlayer';
+import { useAddByRSSListContext } from '../contexts/AddByRSSListContext';
 import { useQueueResourcesUpdateNowPlaying } from './useQueueResourceUpdateNowPlaying';
 import { useMediaPlayerCurrentTime } from '../contexts/MediaPlayerCurrentTime';
 import { useQueueResourcesAbridgedIndex } from '../contexts/QueueResourcesAbridgedIndex';
@@ -31,6 +32,7 @@ export function useMediaPlayerResourceUpdate() {
   } = useMediaPlayer();
   const { autoQueueConfig, setAutoQueueConfig, setAutoQueueResources, setAutoQueueActiveRow } =
     useAutoQueue();
+  const { setAddByRSSListContext } = useAddByRSSListContext();
   const { mpEnclosureSelectedParams, mpItem } = useMediaPlayer();
   const { setMPCurrentTime } = useMediaPlayerCurrentTime();
   const updateNowPlaying = useQueueResourcesUpdateNowPlaying();
@@ -89,6 +91,7 @@ export function useMediaPlayerResourceUpdate() {
     const previousItemId = mpItemRef.current?.id;
 
     setMPAddByRSS(null);
+    setAddByRSSListContext(null);
 
     if (autoQueueShouldClear) {
       setAutoQueueResources({});

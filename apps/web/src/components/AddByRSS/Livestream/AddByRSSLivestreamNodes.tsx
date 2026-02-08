@@ -25,11 +25,21 @@ export const AddByRSSLivestreamNodes: React.FC<AddByRSSLivestreamNodesProps> = (
   }
 
   if (viewSelected === 'rows') {
+    const feedIdText = items[0]?.channelIdText ?? '';
+    const itemIdTexts = items.map((i) => i.idText);
     return (
       <div key="list" className={styles.list}>
         {items.map((item, idx) => (
           <React.Fragment key={item.id}>
-            <AddByRSSLivestreamRow item={item} showChannelInfo={showChannelInfo} />
+            <AddByRSSLivestreamRow
+              item={item}
+              showChannelInfo={showChannelInfo}
+              listContext={{
+                feedIdText,
+                itemIdTexts,
+                currentIndex: idx,
+              }}
+            />
             {idx < items.length - 1 && <Divider />}
           </React.Fragment>
         ))}

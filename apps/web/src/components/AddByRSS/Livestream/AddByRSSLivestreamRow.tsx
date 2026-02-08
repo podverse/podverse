@@ -18,22 +18,28 @@ import { ReadableDate } from '../../Time/ReadableDate';
 import { ReadableTime } from '../../Time/ReadableTime';
 import { IMAGES } from '../../../constants/images';
 import { useMediaPlayer } from '../../../contexts/MediaPlayer';
+import { useAddByRSSListContext } from '../../../contexts/AddByRSSListContext';
 import { usePlayAddByRSS } from '../../../hooks/usePlayAddByRSS';
 import { getAddByRSSLivestreamPath } from '../../../utils/addByRSS/itemPath';
 import type { AddByRSSLivestreamIndexItem } from '../../../utils/addByRSS/types';
+import type { AddByRSSListContextState } from '../../../contexts/AddByRSSListContext';
 import styles from '../../../styles/components/Common/List/LiveItem/ListLiveItemRow.module.scss';
 
 type AddByRSSLivestreamRowProps = {
   item: AddByRSSLivestreamIndexItem;
   showChannelInfo?: boolean;
+  /** When set, play will set this list context for autoplay-next from list. */
+  listContext?: AddByRSSListContextState | null;
 };
 
 export const AddByRSSLivestreamRow: React.FC<AddByRSSLivestreamRowProps> = ({
   item,
   showChannelInfo,
+  listContext: listContextProp,
 }) => {
   const tMedia = useTranslations('media');
   const { mpAddByRSS, mpIsPlaying, setMPIsPlaying } = useMediaPlayer();
+  const { setAddByRSSListContext } = useAddByRSSListContext();
   const playAddByRSS = usePlayAddByRSS();
 
   const mediumParam = getQueryParamFromQueueMediumId(item.mediumId) ?? 'podcast';
@@ -60,6 +66,9 @@ export const AddByRSSLivestreamRow: React.FC<AddByRSSLivestreamRowProps> = ({
     if (mpAddByRSS?.idText === item.idText) {
       setMPIsPlaying(!mpIsPlaying);
     } else {
+      if (listContextProp) {
+        setAddByRSSListContext(listContextProp);
+      }
       playAddByRSS(item);
     }
   };

@@ -56,12 +56,14 @@ export interface MediaPlayerControllerAVProps {
   setMPCurrentTime: (time: number) => void;
   updateNowPlaying: (args: UpdateNowPlayingParams) => void;
   moveNowPlayingToHistory: (params: MoveNowPlayingToHistoryCallbackParams) => Promise<void>;
-  queueResourcesLoadActive: () => Promise<void>;
+  queueResourcesLoadActive: () => Promise<number>;
   queueResourcesAbridgedIndex: QueueResourcesAbridgedIndex;
   /** When add-by-RSS is now playing, called to save position (e.g. every 15s and on pause). */
   onAddByRSSPositionSave?: (positionSeconds: number) => void;
   /** When add-by-RSS playback ends, called to add to history; then controller clears add-by-RSS state. */
   onAddByRSSEnded?: (positionSeconds: number) => Promise<void>;
+  /** When add-by-RSS playback ends and queue is empty, try to play next from list context. */
+  onAddByRSSPlayNext?: () => Promise<void>;
   setMPAddByRSS: (val: MediaPlayerAddByRSSState) => void;
 }
 
@@ -103,6 +105,7 @@ export const MediaPlayerControllerAV: React.FC<MediaPlayerControllerAVProps> = (
     queueResourcesAbridgedIndex,
     onAddByRSSPositionSave,
     onAddByRSSEnded,
+    onAddByRSSPlayNext,
     setMPAddByRSS,
   } = props;
 
@@ -120,6 +123,10 @@ export const MediaPlayerControllerAV: React.FC<MediaPlayerControllerAVProps> = (
   useEffect(() => {
     onAddByRSSEndedRef.current = onAddByRSSEnded;
   }, [onAddByRSSEnded]);
+  const onAddByRSSPlayNextRef = useRef(onAddByRSSPlayNext);
+  useEffect(() => {
+    onAddByRSSPlayNextRef.current = onAddByRSSPlayNext;
+  }, [onAddByRSSPlayNext]);
 
   const mpChannelRef = useRef<typeof mpChannel>(null);
   useEffect(() => {
@@ -454,12 +461,16 @@ export const MediaPlayerControllerAV: React.FC<MediaPlayerControllerAVProps> = (
 
     const handleEnded = async () => {
       const onAddByRSSEndedFn = onAddByRSSEndedRef.current;
+      const onAddByRSSPlayNextFn = onAddByRSSPlayNextRef.current;
       if (mpAddByRSSRef.current && onAddByRSSEndedFn) {
         const positionSeconds = media.currentTime;
         await onAddByRSSEndedFn(positionSeconds);
         setMPAddByRSS(null);
         setMPShouldPlay(false);
-        await queueResourcesLoadActive();
+        const upcomingCount = await queueResourcesLoadActive();
+        if (upcomingCount === 0 && onAddByRSSPlayNextFn) {
+          await onAddByRSSPlayNextFn();
+        }
         return;
       }
       await moveNowPlayingToHistory({

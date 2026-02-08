@@ -17,7 +17,9 @@ import {
   getAddByRSSHashId,
 } from '../../../../utils/addByRSS/queuePlaylistHelpers';
 import type { AddByRSSMappedFeed, AddByRSSItemIndexItem } from '../../../../utils/addByRSS/types';
+import type { AddByRSSListContextState } from '../../../../contexts/AddByRSSListContext';
 import { useAccount } from '../../../../contexts/Account';
+import { useAddByRSSListContext } from '../../../../contexts/AddByRSSListContext';
 import { useModals } from '../../../../contexts/Modals';
 import { useQueues } from '../../../../contexts/Queue';
 import { apiRequestService } from '../../../../factories/apiRequestService';
@@ -34,6 +36,8 @@ type AddByRSSEpisodeRowProps = {
   channelImageUrl?: string;
   bundle: AddByRSSMappedFeed['items'][number];
   indexItem?: AddByRSSItemIndexItem | null;
+  /** When set, play will set this list context for autoplay-next from list. */
+  listContext?: AddByRSSListContextState | null;
 };
 
 export const AddByRSSEpisodeRow: React.FC<AddByRSSEpisodeRowProps> = ({
@@ -42,6 +46,7 @@ export const AddByRSSEpisodeRow: React.FC<AddByRSSEpisodeRowProps> = ({
   channelImageUrl,
   bundle,
   indexItem,
+  listContext: listContextProp,
 }) => {
   const tMedia = useTranslations('media');
   const tMediaPlayer = useTranslations('media_player');
@@ -49,6 +54,7 @@ export const AddByRSSEpisodeRow: React.FC<AddByRSSEpisodeRowProps> = ({
   const tInstructions = useTranslations('instructions');
   const { loggedInAccount } = useAccount();
   const { setModalPlaylistAddTo, setModalLoginRequired } = useModals();
+  const { setAddByRSSListContext } = useAddByRSSListContext();
   const { queues } = useQueues();
   const playAddByRSS = usePlayAddByRSS();
   const title = bundle.item.title ?? tMedia('podcast.episode_image');
@@ -126,7 +132,14 @@ export const AddByRSSEpisodeRow: React.FC<AddByRSSEpisodeRowProps> = ({
     );
   };
 
-  const onPlay = indexItem ? () => playAddByRSS(indexItem) : alertPlaceholder(tMediaPlayer('play'));
+  const onPlay = indexItem
+    ? () => {
+        if (listContextProp) {
+          setAddByRSSListContext(listContextProp);
+        }
+        playAddByRSS(indexItem);
+      }
+    : alertPlaceholder(tMediaPlayer('play'));
 
   const moreButtonMenuItems = [
     {
