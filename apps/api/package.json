@@ -28,6 +28,7 @@
     "@podverse/notifications": "*",
     "@podverse/orm": "*",
     "@podverse/parser": "*",
+    "@podverse/parser-mapping": "*",
     "@types/archiver": "^7.0.0",
     "archiver": "^7.0.1",
     "bcrypt": "^6.0.0",

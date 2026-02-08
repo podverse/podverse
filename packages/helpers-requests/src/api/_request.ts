@@ -17,6 +17,7 @@ import {
   reqAccountVerifyEmail,
 } from './account/account.js';
 import { reqAccountFollowChannel, reqAccountUnfollowChannel } from './account/follow/channel.js';
+import { reqAccountAddByRSSChaptersTranscript } from './account/addByRSSChaptersTranscript.js';
 import {
   reqAccountFollowAddByRSSChannel,
   reqAccountGetFollowedAddByRSSChannels,
@@ -213,6 +214,8 @@ import {
   reqMyProfileClipsRecent,
   reqMyProfileAlbumsAZ,
 } from './profile/profile.js';
+
+export type { AddByRSSChapterResponse } from './account/addByRSSChaptersTranscript.js';
 
 export type AbortOpts = { controller: AbortController; timeoutMs: number };
 
@@ -486,6 +489,14 @@ export class ApiRequestService {
 
   reqAccountGetFollowedAddByRSSChannels(params: { account_id_text: string }) {
     return reqAccountGetFollowedAddByRSSChannels(this, params);
+  }
+
+  reqAccountAddByRSSChaptersTranscript(params: {
+    itemIdText: string;
+    chaptersFeedUrl?: string;
+    transcriptUrl?: string;
+  }) {
+    return reqAccountAddByRSSChaptersTranscript(this, params);
   }
 
   /* ACCOUNT > FOLLOW > ACCOUNT */

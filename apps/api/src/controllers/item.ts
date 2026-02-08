@@ -19,6 +19,7 @@ import {
   subItemGetManyRelationsWithChannel,
 } from '@podverse/orm';
 import { parseChapters } from '@podverse/parser';
+import { assignChapterEndTimes } from '@api/lib/chapters.js';
 import { handleReturnDataOrNotFound } from '@api/controllers/helpers/data.js';
 import { handleGenericErrorResponse } from '@api/controllers/helpers/error.js';
 import { getPaginationParams } from '@api/controllers/helpers/pagination.js';
@@ -777,31 +778,7 @@ export class ItemController {
         );
 
         const chapters = results.results;
-        const transformed: ItemChapter[] = [];
-        // Only consider chapters with table_of_contents true for end_time assignment
-        const tocChapters = chapters.filter((ch) => ch.table_of_contents);
-        for (let i = 0; i < chapters.length; i++) {
-          const ch = chapters[i];
-          if (!ch) {
-            continue;
-          }
-          if (ch.table_of_contents) {
-            // Find the next toc chapter ahead
-            const nextToc = tocChapters.find(
-              (toc) => parseFloat(toc.start_time) > parseFloat(ch.start_time)
-            );
-            if (nextToc) {
-              transformed.push({ ...ch, end_time: nextToc.start_time } as ItemChapter);
-            } else {
-              transformed.push(ch);
-            }
-          } else {
-            // Only include if end_time is present
-            if (ch.end_time) {
-              transformed.push(ch);
-            }
-          }
-        }
+        const transformed = assignChapterEndTimes(chapters);
 
         const response: ApiListResponse<ItemChapter> = {
           data: transformed,
