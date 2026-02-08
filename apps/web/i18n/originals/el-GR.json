@@ -75,7 +75,12 @@
       "status_parsing": "Ανάλυση",
       "last_parsed": "Τελευταία ανάλυση: {date}",
       "wait_to_retry_minutes": "Θα χρειαστεί να περιμένετε έως και {minutes} λεπτά για να το ξανακάνετε.",
-      "wait_to_retry_minute": "Θα χρειαστεί να περιμένετε έως και {minutes} λεπτό για να το ξανακάνετε."
+      "wait_to_retry_minute": "Θα χρειαστεί να περιμένετε έως και {minutes} λεπτό για να το ξανακάνετε.",
+      "basic_auth_use": "Use Basic Auth",
+      "basic_auth_requires": "This feed requires username and password",
+      "basic_auth_username": "Username",
+      "basic_auth_password": "Password",
+      "basic_auth_required_both": "Basic Auth requires both username and password."
     },
     "my_library": "Η Βιβλιοθήκη Μου",
     "queue": {

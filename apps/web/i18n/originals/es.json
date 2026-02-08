@@ -75,7 +75,12 @@
       "status_parsing": "Analizando",
       "last_parsed": "Último Analizado: {date}",
       "wait_to_retry_minutes": "Necesitarás esperar hasta {minutes} minutos para hacer eso de nuevo.",
-      "wait_to_retry_minute": "Necesitarás esperar hasta {minutes} minuto para hacer eso de nuevo."
+      "wait_to_retry_minute": "Necesitarás esperar hasta {minutes} minuto para hacer eso de nuevo.",
+      "basic_auth_use": "Use Basic Auth",
+      "basic_auth_requires": "This feed requires username and password",
+      "basic_auth_username": "Username",
+      "basic_auth_password": "Password",
+      "basic_auth_required_both": "Basic Auth requires both username and password."
     },
     "my_library": "Mi Biblioteca",
     "queue": {
