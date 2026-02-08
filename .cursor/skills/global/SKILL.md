@@ -36,6 +36,8 @@ Tier 1 → Tier 2 → ... → Tier 5. Only depend on lower tiers.
 { "extends": "../../tsconfig.base.json" }
 ```
 
+Avoid type assertions (`as`) when a better approach exists (types, narrowing, type guards).
+
 ## Package Structure
 
 ```

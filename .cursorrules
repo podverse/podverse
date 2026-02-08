@@ -15,6 +15,8 @@ See `.llm/context/architecture.md`. Lower tiers cannot depend on higher.
 - Follow `tsconfig.base.json`
 - Use ESM formatting (`.js` extensions in relative imports; `"type": "module"` where applicable)
 - Prefer `import type` for type-only imports instead of value imports
+- **Strict equality**: Use `===` and `!==` only (no `==` or `!=`). For "not null or undefined" use `x !== null && x !== undefined` (or optional chaining / truthiness where appropriate).
+- **Avoid type assertions (`as`)**: Prefer proper types, optional chaining, type guards, or narrowing so the type system enforces correctness. Use `as` only when there is no better way (e.g. necessary escape hatch); keep such use minimal and documented.
 
 ## Formatting Rules
 
