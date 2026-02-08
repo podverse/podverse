@@ -1,4 +1,5 @@
 import type {
+  AddByRSSResourceData,
   DTOChannel,
   DTOClip,
   DTOItem,
@@ -12,7 +13,16 @@ import type {
 import type { ReactNode } from 'react';
 import { createContext, useContext, useState } from 'react';
 
+/** State for "now playing" when the source is add-by-RSS (no DTO item). */
+export type MediaPlayerAddByRSSState = {
+  idText: string;
+  resourceData: AddByRSSResourceData;
+} | null;
+
 type MediaPlayerContextType = {
+  /** When set, now playing is an add-by-RSS item; use for enclosure URL and display. */
+  mpAddByRSS: MediaPlayerAddByRSSState;
+  setMPAddByRSS: (val: MediaPlayerAddByRSSState) => void;
   mpChannel: DTOChannel | null;
   setMPChannel: (val: DTOChannel | null) => void;
   mpItem: DTOItem | null;
@@ -56,6 +66,7 @@ type MediaPlayerProviderProps = {
 };
 
 export const MediaPlayerProvider = ({ children }: MediaPlayerProviderProps) => {
+  const [mpAddByRSS, setMPAddByRSS] = useState<MediaPlayerAddByRSSState>(null);
   const [mpChannel, setMPChannel] = useState<DTOChannel | null>(null);
   const [mpItem, setMPItem] = useState<DTOItem | null>(null);
   const [mpItemLabeledItemEnclosures, setMPItemLabeledItemEnclosures] = useState<
@@ -84,6 +95,8 @@ export const MediaPlayerProvider = ({ children }: MediaPlayerProviderProps) => {
   return (
     <MediaPlayerContext.Provider
       value={{
+        mpAddByRSS,
+        setMPAddByRSS,
         mpChannel,
         setMPChannel,
         mpItem,

@@ -17,6 +17,7 @@ import { useAutoQueue } from '../contexts/AutoQueue';
 
 export function useMediaPlayerResourceUpdate() {
   const {
+    setMPAddByRSS,
     setMPShouldPlay,
     setMPChannel,
     setMPClip,
@@ -86,6 +87,8 @@ export function useMediaPlayerResourceUpdate() {
     autoQueueShouldClear: boolean;
   }) => {
     const previousItemId = mpItemRef.current?.id;
+
+    setMPAddByRSS(null);
 
     if (autoQueueShouldClear) {
       setAutoQueueResources({});

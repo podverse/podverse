@@ -20,7 +20,6 @@ type AddByRSSLivestreamHeaderProps = {
 
 export const AddByRSSLivestreamHeader: React.FC<AddByRSSLivestreamHeaderProps> = ({ feed }) => {
   const tMediaPlayer = useTranslations('media_player');
-  const tFeatures = useTranslations('features');
   const title = feed.mappedFeed?.channel?.channel?.title ?? feed.title ?? feed.feedUrl;
   const mediumParam = getQueryParamFromQueueMediumId(
     feed.mappedFeed?.channel?.channel?.medium_id ?? null
@@ -34,33 +33,11 @@ export const AddByRSSLivestreamHeader: React.FC<AddByRSSLivestreamHeaderProps> =
     </Link>
   );
 
-  const moreButtonMenuItems = [
-    {
-      label: tMediaPlayer('play'),
-      onClick: alertPlaceholder(tMediaPlayer('play')),
-    },
-    {
-      label: tFeatures('queue.queue_next'),
-      onClick: alertPlaceholder(tFeatures('queue.queue_next')),
-    },
-    {
-      label: tFeatures('queue.queue_last'),
-      onClick: alertPlaceholder(tFeatures('queue.queue_last')),
-    },
-    {
-      label: tFeatures('playlist.add_to_playlist'),
-      onClick: alertPlaceholder(tFeatures('playlist.add_to_playlist')),
-    },
-  ];
-
   return (
     <CommonItemHeader
       titleNode={titleNode}
       playSectionNode={
-        <AddByRSSItemHeaderPlaySection
-          onPlay={alertPlaceholder(tMediaPlayer('play'))}
-          moreButtonMenuItems={moreButtonMenuItems}
-        />
+        <AddByRSSItemHeaderPlaySection onPlay={alertPlaceholder(tMediaPlayer('play'))} />
       }
     />
   );

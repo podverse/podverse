@@ -147,6 +147,7 @@ export const AddByRSSLivestreamItemPageClient: React.FC<AddByRSSLivestreamItemPa
             itemIdText={livestream.idText}
             title={title}
             mediumSlug={mediumSlug}
+            indexItem={livestream}
           />
           <CommonDetailListHeader tabs={<Tabs tabData={tabData} selectedKey="summary" />} />
           <DetailListWrapper>

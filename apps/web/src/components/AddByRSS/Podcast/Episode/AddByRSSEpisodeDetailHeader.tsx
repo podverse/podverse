@@ -18,6 +18,7 @@ import { useAccount } from '../../../../contexts/Account';
 import { useModals } from '../../../../contexts/Modals';
 import { useQueues } from '../../../../contexts/Queue';
 import { apiRequestService } from '../../../../factories/apiRequestService';
+import { usePlayAddByRSS } from '../../../../hooks/usePlayAddByRSS';
 import { showToastPromise } from '../../../Toast/Toast';
 
 const alertPlaceholder = (label: string) => () => {
@@ -41,6 +42,7 @@ export const AddByRSSEpisodeDetailHeader: React.FC<AddByRSSEpisodeDetailHeaderPr
   const { loggedInAccount } = useAccount();
   const { setModalPlaylistAddTo, setModalLoginRequired } = useModals();
   const { queues } = useQueues();
+  const playAddByRSS = usePlayAddByRSS();
 
   const titleNode = (
     <Link href={getAddByRSSItemPath(itemIdText)}>
@@ -116,10 +118,12 @@ export const AddByRSSEpisodeDetailHeader: React.FC<AddByRSSEpisodeDetailHeaderPr
     );
   };
 
+  const onPlay = indexItem ? () => playAddByRSS(indexItem) : alertPlaceholder(tMediaPlayer('play'));
+
   const moreButtonMenuItems = [
     {
       label: tMediaPlayer('play'),
-      onClick: alertPlaceholder(tMediaPlayer('play')),
+      onClick: onPlay,
     },
     {
       label: tFeatures('queue.queue_next'),
@@ -155,10 +159,7 @@ export const AddByRSSEpisodeDetailHeader: React.FC<AddByRSSEpisodeDetailHeaderPr
     <CommonItemHeader
       titleNode={titleNode}
       playSectionNode={
-        <AddByRSSItemHeaderPlaySection
-          onPlay={alertPlaceholder(tMediaPlayer('play'))}
-          moreButtonMenuItems={moreButtonMenuItems}
-        />
+        <AddByRSSItemHeaderPlaySection onPlay={onPlay} moreButtonMenuItems={moreButtonMenuItems} />
       }
     />
   );

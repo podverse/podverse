@@ -17,6 +17,7 @@ import { useAccount } from '../../../../../contexts/Account';
 import { useModals } from '../../../../../contexts/Modals';
 import { useQueues } from '../../../../../contexts/Queue';
 import { apiRequestService } from '../../../../../factories/apiRequestService';
+import { usePlayAddByRSS } from '../../../../../hooks/usePlayAddByRSS';
 import { showToastPromise } from '../../../../Toast/Toast';
 import styles from '../../../../../styles/components/Common/Media/Podcast/Episode/EpisodeHeader.module.scss';
 
@@ -41,6 +42,7 @@ export const AddByRSSTrackDetailHeader: React.FC<AddByRSSTrackDetailHeaderProps>
   const { loggedInAccount } = useAccount();
   const { setModalPlaylistAddTo, setModalLoginRequired } = useModals();
   const { queues } = useQueues();
+  const playAddByRSS = usePlayAddByRSS();
 
   const titleNode = (
     <Link href={getAddByRSSItemPath(itemIdText, 'tracks')}>
@@ -116,10 +118,12 @@ export const AddByRSSTrackDetailHeader: React.FC<AddByRSSTrackDetailHeaderProps>
     );
   };
 
+  const onPlay = indexItem ? () => playAddByRSS(indexItem) : alertPlaceholder(tMediaPlayer('play'));
+
   const moreButtonMenuItems = [
     {
       label: tMediaPlayer('play'),
-      onClick: alertPlaceholder(tMediaPlayer('play')),
+      onClick: onPlay,
     },
     {
       label: tFeatures('queue.queue_next'),
@@ -155,10 +159,7 @@ export const AddByRSSTrackDetailHeader: React.FC<AddByRSSTrackDetailHeaderProps>
     <CommonItemHeader
       titleNode={titleNode}
       playSectionNode={
-        <AddByRSSItemHeaderPlaySection
-          onPlay={alertPlaceholder(tMediaPlayer('play'))}
-          moreButtonMenuItems={moreButtonMenuItems}
-        />
+        <AddByRSSItemHeaderPlaySection onPlay={onPlay} moreButtonMenuItems={moreButtonMenuItems} />
       }
     />
   );

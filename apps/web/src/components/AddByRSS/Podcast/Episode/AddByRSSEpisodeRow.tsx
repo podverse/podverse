@@ -21,6 +21,7 @@ import { useAccount } from '../../../../contexts/Account';
 import { useModals } from '../../../../contexts/Modals';
 import { useQueues } from '../../../../contexts/Queue';
 import { apiRequestService } from '../../../../factories/apiRequestService';
+import { usePlayAddByRSS } from '../../../../hooks/usePlayAddByRSS';
 import { showToastPromise } from '../../../Toast/Toast';
 
 const alertPlaceholder = (label: string) => () => {
@@ -49,6 +50,7 @@ export const AddByRSSEpisodeRow: React.FC<AddByRSSEpisodeRowProps> = ({
   const { loggedInAccount } = useAccount();
   const { setModalPlaylistAddTo, setModalLoginRequired } = useModals();
   const { queues } = useQueues();
+  const playAddByRSS = usePlayAddByRSS();
   const title = bundle.item.title ?? tMedia('podcast.episode_image');
   const description = bundle.description?.value
     ? stripAndDecodeHtml(bundle.description.value)
@@ -124,10 +126,12 @@ export const AddByRSSEpisodeRow: React.FC<AddByRSSEpisodeRowProps> = ({
     );
   };
 
+  const onPlay = indexItem ? () => playAddByRSS(indexItem) : alertPlaceholder(tMediaPlayer('play'));
+
   const moreButtonMenuItems = [
     {
       label: tMediaPlayer('play'),
-      onClick: alertPlaceholder(tMediaPlayer('play')),
+      onClick: onPlay,
     },
     {
       label: tFeatures('queue.queue_next'),

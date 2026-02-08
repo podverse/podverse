@@ -7,11 +7,26 @@ import { getAddByRSSHashId as getAddByRSSHashIdFromHelpers } from '@podverse/hel
 
 import type { AddByRSSItemIndexItem, AddByRSSLivestreamIndexItem } from './types.js';
 
+/** Image entry shape compatible with findDTOChannelImageBySize / findDTOItemImageBySize. */
+type AddByRSSResourceDataImageEntry = {
+  url: string;
+  image_width_size: number | null;
+};
+
 /** Minimal hash input keys in fixed order (snake_case to match backend). */
 const HASH_KEYS = ['channel_id_text', 'guid', 'title', 'pub_date', 'start_time'] as const;
 
 function toIsoString(ms: number): string {
   return ms > 1e12 ? new Date(ms).toISOString() : new Date(ms * 1000).toISOString();
+}
+
+function hasLivestreamImageUrl(o: unknown): o is { image: string } {
+  return (
+    typeof o === 'object' &&
+    o !== null &&
+    'image' in o &&
+    typeof (o as { image: unknown }).image === 'string'
+  );
 }
 
 function getTitleFromEpisodeItem(
@@ -64,6 +79,8 @@ export function buildAddByRSSHashInput(
 export type AddByRSSResourceDataPayload = {
   medium_id?: number | null;
   title?: string;
+  channel_images?: AddByRSSResourceDataImageEntry[];
+  item_images?: AddByRSSResourceDataImageEntry[];
   [key: string]: unknown;
 };
 
@@ -80,6 +97,17 @@ export function buildAddByRSSResourceData(
   const title = getTitleFromEpisodeItem(item);
   const pub_date = 'pubDateMs' in item ? toIsoString(item.pubDateMs) : '';
 
+  const channel_images: AddByRSSResourceDataImageEntry[] = item.channelImageUrl
+    ? [{ url: item.channelImageUrl, image_width_size: null }]
+    : [];
+
+  let item_images: AddByRSSResourceDataImageEntry[] = [];
+  if ('bundle' in item && Array.isArray(item.bundle?.images) && item.bundle.images.length > 0) {
+    item_images = item.bundle.images;
+  } else if ('item' in item && hasLivestreamImageUrl(item.item)) {
+    item_images = [{ url: item.item.image, image_width_size: null }];
+  }
+
   const payload: AddByRSSResourceDataPayload = {
     channel_id_text,
     guid,
@@ -89,6 +117,8 @@ export function buildAddByRSSResourceData(
     medium_id: item.mediumId ?? null,
     channel_title: item.channelTitle ?? null,
     channel_image_url: item.channelImageUrl ?? null,
+    channel_images,
+    item_images,
   };
 
   if ('startTimeMs' in item && item.startTimeMs !== null && item.startTimeMs !== undefined) {

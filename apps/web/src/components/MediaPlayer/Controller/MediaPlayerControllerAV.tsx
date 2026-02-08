@@ -12,6 +12,7 @@ import type {
   DTOChannel,
   SelectedLabeledItemEnclosureAndSource,
 } from '@podverse/helpers';
+import type { MediaPlayerAddByRSSState } from '../../../contexts/MediaPlayer';
 import { getSelectedLabeledItemEnclosureAndSource, isEqual, MediumEnum } from '@podverse/helpers';
 import { EVENTS } from '../../../constants/events';
 import type { MoveNowPlayingToHistoryCallbackParams } from '../../../hooks/useQueueResourceMoveNowPlayingToHistory';
@@ -29,6 +30,7 @@ export interface MediaPlayerControllerAVProps {
   preload?: 'auto' | 'metadata' | 'none';
   style?: React.CSSProperties;
   hidden?: boolean;
+  mpAddByRSS: MediaPlayerAddByRSSState;
   mpChannel: DTOChannel | null;
   mpClip: DTOClip | null;
   setMPClip: (clip: DTOClip | null) => void;
@@ -50,11 +52,17 @@ export interface MediaPlayerControllerAVProps {
   mpShouldPlay: boolean;
   setMPShouldPlay: (shouldPlay: boolean) => void;
   setMPDuration: (duration: number) => void;
+  mpCurrentTime: number;
   setMPCurrentTime: (time: number) => void;
   updateNowPlaying: (args: UpdateNowPlayingParams) => void;
   moveNowPlayingToHistory: (params: MoveNowPlayingToHistoryCallbackParams) => Promise<void>;
   queueResourcesLoadActive: () => Promise<void>;
   queueResourcesAbridgedIndex: QueueResourcesAbridgedIndex;
+  /** When add-by-RSS is now playing, called to save position (e.g. every 15s and on pause). */
+  onAddByRSSPositionSave?: (positionSeconds: number) => void;
+  /** When add-by-RSS playback ends, called to add to history; then controller clears add-by-RSS state. */
+  onAddByRSSEnded?: (positionSeconds: number) => Promise<void>;
+  setMPAddByRSS: (val: MediaPlayerAddByRSSState) => void;
 }
 
 let globalPauseAtTime: number | null = null;
@@ -65,6 +73,7 @@ export const MediaPlayerControllerAV: React.FC<MediaPlayerControllerAVProps> = (
     preload = 'auto',
     style,
     hidden,
+    mpAddByRSS,
     mpChannel,
     mpClip,
     setMPClip,
@@ -86,14 +95,31 @@ export const MediaPlayerControllerAV: React.FC<MediaPlayerControllerAVProps> = (
     mpShouldPlay,
     setMPShouldPlay,
     setMPDuration,
+    mpCurrentTime,
     setMPCurrentTime,
     updateNowPlaying,
     moveNowPlayingToHistory,
     queueResourcesLoadActive,
     queueResourcesAbridgedIndex,
+    onAddByRSSPositionSave,
+    onAddByRSSEnded,
+    setMPAddByRSS,
   } = props;
 
   const mediaRef = useRef<HTMLAudioElement & HTMLVideoElement>(null);
+
+  const mpAddByRSSRef = useRef(mpAddByRSS);
+  useEffect(() => {
+    mpAddByRSSRef.current = mpAddByRSS;
+  }, [mpAddByRSS]);
+  const onAddByRSSPositionSaveRef = useRef(onAddByRSSPositionSave);
+  useEffect(() => {
+    onAddByRSSPositionSaveRef.current = onAddByRSSPositionSave;
+  }, [onAddByRSSPositionSave]);
+  const onAddByRSSEndedRef = useRef(onAddByRSSEnded);
+  useEffect(() => {
+    onAddByRSSEndedRef.current = onAddByRSSEnded;
+  }, [onAddByRSSEnded]);
 
   const mpChannelRef = useRef<typeof mpChannel>(null);
   useEffect(() => {
@@ -148,6 +174,27 @@ export const MediaPlayerControllerAV: React.FC<MediaPlayerControllerAVProps> = (
   }, [mpItemLabeledEnclosures, mpEnclosureSelectedParams]);
 
   useEffect(() => {
+    const media = mediaRef.current;
+    if (!media || !mpAddByRSS?.resourceData) return;
+
+    const mediumId = mpAddByRSS.resourceData.medium_id;
+    if (mediaType === 'audio' && mediumId === MediumEnum.Video) return;
+    if (mediaType === 'video' && mediumId !== MediumEnum.Video) return;
+
+    const enclosureUrl = mpAddByRSS.resourceData.enclosure_url;
+    if (typeof enclosureUrl === 'string' && enclosureUrl.trim() !== '') {
+      const seekTime = typeof mpCurrentTime === 'number' && mpCurrentTime >= 0 ? mpCurrentTime : 0;
+      media.currentTime = seekTime;
+      media.src = enclosureUrl;
+      media.load();
+      if (mpShouldPlayRef.current) {
+        playMediaWhenReady(media, () => setMPShouldPlay(false));
+      }
+    }
+  }, [mpAddByRSS, mediaType]);
+
+  useEffect(() => {
+    if (mpAddByRSS) return;
     if (!selectedItemEnclosureAndSource) {
       return;
     }
@@ -179,7 +226,7 @@ export const MediaPlayerControllerAV: React.FC<MediaPlayerControllerAVProps> = (
         media.load();
       }
     }
-  }, [selectedItemEnclosureAndSource]);
+  }, [mpAddByRSS, selectedItemEnclosureAndSource]);
 
   useEffect(() => {
     const handleSeek = (e: Event) => {
@@ -299,6 +346,9 @@ export const MediaPlayerControllerAV: React.FC<MediaPlayerControllerAVProps> = (
 
     const handlePause = () => {
       const newCurrentTime = media.currentTime;
+      if (mpAddByRSSRef.current && onAddByRSSPositionSaveRef.current) {
+        onAddByRSSPositionSaveRef.current(newCurrentTime);
+      }
       if (newCurrentTime < media.duration) {
         updateNowPlaying({
           mpChannel: mpChannelRef.current,
@@ -331,6 +381,9 @@ export const MediaPlayerControllerAV: React.FC<MediaPlayerControllerAVProps> = (
       lastPlaybackTimeRef.current = newCurrentTime;
 
       if (playbackElapsedRef.current >= 15) {
+        if (mpAddByRSSRef.current && onAddByRSSPositionSaveRef.current) {
+          onAddByRSSPositionSaveRef.current(newCurrentTime);
+        }
         updateNowPlaying({
           mpChannel: channel,
           mpClip: clip,
@@ -400,6 +453,15 @@ export const MediaPlayerControllerAV: React.FC<MediaPlayerControllerAVProps> = (
     };
 
     const handleEnded = async () => {
+      const onAddByRSSEndedFn = onAddByRSSEndedRef.current;
+      if (mpAddByRSSRef.current && onAddByRSSEndedFn) {
+        const positionSeconds = media.currentTime;
+        await onAddByRSSEndedFn(positionSeconds);
+        setMPAddByRSS(null);
+        setMPShouldPlay(false);
+        await queueResourcesLoadActive();
+        return;
+      }
       await moveNowPlayingToHistory({
         completed: true,
         mpClip: mpClipRef.current,

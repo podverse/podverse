@@ -1,6 +1,6 @@
 'use client';
 
-import { getSelectedLabeledItemEnclosureAndSource } from '@podverse/helpers';
+import { getSelectedLabeledItemEnclosureAndSource, MediumEnum } from '@podverse/helpers';
 import { useMediaPlayer } from '../../../../contexts/MediaPlayer';
 import { useMediaPlayerVideo } from '../../../../contexts/MediaPlayerVideo';
 import { MediaPlayerControllerVideo } from './MediaPlayerControllerVideo';
@@ -8,7 +8,21 @@ import { MediaPlayerVideoPortalFloating } from './MediaPlayerVideoPortalFloating
 
 export function MediaPlayerVideoWrapper() {
   const { videoLocation } = useMediaPlayerVideo();
-  const { mpItem, mpItemLabeledItemEnclosures, mpEnclosureSelectedParams } = useMediaPlayer();
+  const { mpItem, mpAddByRSS, mpItemLabeledItemEnclosures, mpEnclosureSelectedParams } =
+    useMediaPlayer();
+
+  const isAddByRSSVideo = mpAddByRSS?.resourceData?.medium_id === MediumEnum.Video;
+
+  if (mpAddByRSS && isAddByRSSVideo) {
+    if (videoLocation === 'floating') {
+      return (
+        <MediaPlayerVideoPortalFloating>
+          <MediaPlayerControllerVideo />
+        </MediaPlayerVideoPortalFloating>
+      );
+    }
+    return null;
+  }
 
   if (!mpItem || mpItem.live_item) {
     return null;
