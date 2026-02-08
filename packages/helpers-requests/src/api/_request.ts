@@ -72,6 +72,12 @@ import {
   reqPlaylistResourceItemAddLast,
   reqPlaylistResourceItemDelete,
 } from './playlist/playlistResource/playlistResourceItem.js';
+import {
+  reqPlaylistResourceItemAddByRSSAddFirst,
+  reqPlaylistResourceItemAddByRSSAddLast,
+  reqPlaylistResourceItemAddByRSSAddBetween,
+  reqPlaylistResourceItemAddByRSSDelete,
+} from './playlist/playlistResource/playlistResourceItemAddByRSS.js';
 import { reqPodrollGetForChannel } from './podroll/podroll.js';
 import type {
   QueryDirection,
@@ -812,6 +818,31 @@ export class ApiRequestService {
 
   reqPlaylistResourceItemDelete(playlist_id_text: string, item_id_text: string) {
     return reqPlaylistResourceItemDelete(this, playlist_id_text, item_id_text);
+  }
+
+  reqPlaylistResourceItemAddByRSSAddFirst(
+    playlist_id_text: string,
+    params: { add_by_rss_resource_data: object }
+  ) {
+    return reqPlaylistResourceItemAddByRSSAddFirst(this, playlist_id_text, params);
+  }
+
+  reqPlaylistResourceItemAddByRSSAddLast(
+    playlist_id_text: string,
+    params: { add_by_rss_resource_data: object }
+  ) {
+    return reqPlaylistResourceItemAddByRSSAddLast(this, playlist_id_text, params);
+  }
+
+  reqPlaylistResourceItemAddByRSSAddBetween(
+    playlist_id_text: string,
+    params: BetweenParams & { add_by_rss_resource_data: object }
+  ) {
+    return reqPlaylistResourceItemAddByRSSAddBetween(this, playlist_id_text, params);
+  }
+
+  reqPlaylistResourceItemAddByRSSDelete(playlist_id_text: string, add_by_rss_hash_id: string) {
+    return reqPlaylistResourceItemAddByRSSDelete(this, playlist_id_text, add_by_rss_hash_id);
   }
 
   /* PLAYLIST RESOURCE > ITEM SOUNDBITE */
