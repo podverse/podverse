@@ -32,9 +32,12 @@ export const ListQueueResourceRow: React.FC<Props> = ({
   const clip = queueResource.clip;
   const item_soundbite = queueResource.item_soundbite;
   const add_by_rss_hash_id = queueResource.add_by_rss_hash_id;
+  const is_add_by_rss_redacted = queueResource.is_add_by_rss_redacted === true;
 
   if (add_by_rss_hash_id) {
-    const addByRSSTitle = queueResource.add_by_rss_resource_data?.title ?? 'Add-by-RSS';
+    const addByRSSTitle = is_add_by_rss_redacted
+      ? tFeatures('add_by_rss.private_item_placeholder')
+      : (queueResource.add_by_rss_resource_data?.title ?? 'Add-by-RSS');
     const removeFromQueueOnClick = async () => {
       if (!activeQueue?.id_text) return;
       await apiRequestService.reqQueueResourceItemAddByRSSDelete(
@@ -43,20 +46,21 @@ export const ListQueueResourceRow: React.FC<Props> = ({
       );
       removeFromQueue?.();
     };
-    const moreButtonMenuItems = isEditModeQueue
-      ? [
-          {
-            label: tFeatures('queue.remove_from_queue'),
-            onClick: () => {
-              showToastPromise(removeFromQueueOnClick(), {
-                success: tFeatures('queue.removed_from_queue'),
-                error: tFeatures('queue.remove_error'),
-              });
+    const moreButtonMenuItems =
+      isEditModeQueue && !is_add_by_rss_redacted
+        ? [
+            {
+              label: tFeatures('queue.remove_from_queue'),
+              onClick: () => {
+                showToastPromise(removeFromQueueOnClick(), {
+                  success: tFeatures('queue.removed_from_queue'),
+                  error: tFeatures('queue.remove_error'),
+                });
+              },
+              variant: 'danger' as const,
             },
-            variant: 'danger' as const,
-          },
-        ]
-      : [];
+          ]
+        : [];
     return (
       <div className={styles.row}>
         {isEditModeQueue && (

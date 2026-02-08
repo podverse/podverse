@@ -15,6 +15,8 @@ export interface DTOPlaylistResource {
   item_soundbite_id: number | null;
   add_by_rss_resource_data?: AddByRSSResourceData | null;
   add_by_rss_hash_id?: string | null;
+  /** True when add-by-RSS data was redacted for privacy (non-owner viewer). */
+  is_add_by_rss_redacted?: boolean;
 }
 
 export interface DTOPlaylistResourceIdsOnly {
