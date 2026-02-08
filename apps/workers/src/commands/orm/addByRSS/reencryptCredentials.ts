@@ -6,6 +6,7 @@ import {
   decryptWithKey,
   encryptCredentials,
 } from '@podverse/orm';
+import { getLoggerService } from '@workers/factories/loggerService.js';
 
 const KEY_LEN = 64;
 
@@ -60,18 +61,18 @@ export async function reencryptAddByRSSCredentials(): Promise<void> {
       continue;
     }
     const newU =
-      u !== null && u !== undefined && u.startsWith('v1:')
-        ? encryptCredentials(plainU!)
+      u !== null && u !== undefined && u.startsWith('v1:') && plainU !== null
+        ? encryptCredentials(plainU)
         : (u ?? null);
     const newP =
-      p !== null && p !== undefined && p.startsWith('v1:')
-        ? encryptCredentials(plainP!)
+      p !== null && p !== undefined && p.startsWith('v1:') && plainP !== null
+        ? encryptCredentials(plainP)
         : (p ?? null);
     row.basic_auth_username = newU;
     row.basic_auth_password = newP;
     await repo.save(row);
     updated += 1;
   }
-  console.log(`Re-encrypted ${updated} of ${rows.length} rows with credentials.`);
+  getLoggerService().info(`Re-encrypted ${updated} of ${rows.length} rows with credentials.`);
   await ds.destroy();
 }
