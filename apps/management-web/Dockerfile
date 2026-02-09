@@ -29,6 +29,8 @@ COPY apps/management-web/ ./apps/management-web/
 # ENV_FILE path is relative to build context and exists in copied app folder
 RUN if [ -n "${ENV_FILE}" ]; then cp "${ENV_FILE}" apps/management-web/.env.production; fi
 
+COPY scripts/ci/ ./scripts/ci/
+
 # Build packages (prod = TypeScript only, no linting)
 RUN npm run build:packages:prod
 

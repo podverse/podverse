@@ -19,7 +19,18 @@ LICENSE
 
 # Infrastructure (not needed in app images)
 infra/
-scripts/
+scripts/add-by-rss/
+scripts/audit/
+scripts/database/
+scripts/dev/
+scripts/ghcr/
+scripts/git-hooks/
+scripts/keyvaldb/
+scripts/management/
+scripts/mq/
+scripts/podcast-index/
+scripts/publish/
+
 tools/
 
 # IDE and CI

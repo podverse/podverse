@@ -29,11 +29,13 @@
     "typeorm": "^0.3.26",
     "typeorm-naming-strategies": "^4.1.0",
     "@podverse/helpers-backend": "*",
-    "@podverse/helpers-validation": "*"
+    "@podverse/helpers-validation": "*",
+    "module-alias": "^2.3.3"
   },
   "devDependencies": {
     "@types/bcrypt": "^6.0.0",
-    "tsc-alias": "^1.8.16"
+    "tsc-alias": "^1.8.16",
+    "@types/module-alias": "^2.0.4"
   },
   "type": "module"
 }

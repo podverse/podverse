@@ -16,6 +16,7 @@ FROM deps AS builder
 
 COPY packages/ ./packages/
 COPY apps/workers/ ./apps/workers/
+COPY scripts/ci/ ./scripts/ci/
 
 # Build packages (prod = TypeScript only, no linting)
 RUN npm run build:packages:prod
