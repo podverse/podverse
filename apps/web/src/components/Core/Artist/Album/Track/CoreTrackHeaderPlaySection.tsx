@@ -126,6 +126,29 @@ export const CoreTrackHeaderPlaySection: React.FC<CoreTrackHeaderPlaySectionProp
     });
   };
 
+  const markAsPlayedOnClick = async () => {
+    if (!loggedInAccount) {
+      setModalLoginRequired({
+        title: null,
+        message: tInstructions('login_to_mark_as_played'),
+      });
+      return;
+    }
+
+    const queue = getQueueForMedium(queues, channel.medium_id);
+    if (queue) {
+      showToastPromise(
+        apiRequestService.reqQueueResourceItemAddHistory(queue.id_text, item.id_text, {
+          completed: true,
+        }),
+        {
+          success: tFeatures('history.marked_as_played'),
+          error: tFeatures('history.mark_as_played_error'),
+        }
+      );
+    }
+  };
+
   const downloadTrack = async () => {
     downloadTrackWithModal({
       item,
@@ -152,6 +175,10 @@ export const CoreTrackHeaderPlaySection: React.FC<CoreTrackHeaderPlaySectionProp
     {
       label: tFeatures('playlist.add_to_playlist'),
       onClick: addToPlaylistOnClick,
+    },
+    {
+      label: tFeatures('history.mark_as_played'),
+      onClick: markAsPlayedOnClick,
     },
     {
       label: tFeatures('download.download_track'),

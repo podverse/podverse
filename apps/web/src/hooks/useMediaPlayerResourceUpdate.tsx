@@ -148,8 +148,12 @@ export function useMediaPlayerResourceUpdate() {
       preventSet: boolean = false
     ) {
       const abridged = resource ? abridgedMap?.[resource.id] : undefined;
-      const currentTime = Number(abridged?.p) || 0;
+      let currentTime = Number(abridged?.p) || 0;
       const duration = Number(abridged?.d) || 0;
+
+      if (duration > 0 && currentTime >= duration - 5) {
+        currentTime = 0;
+      }
 
       if (!preventSet) {
         setMPCurrentTime(currentTime);

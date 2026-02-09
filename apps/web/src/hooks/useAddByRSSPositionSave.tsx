@@ -35,7 +35,7 @@ export function useAddByRSSPositionSave() {
   );
 
   const handleEnded = useCallback(
-    async (positionSeconds: number) => {
+    async (_positionSeconds: number) => {
       if (!loggedInAccount || !mpAddByRSS?.resourceData) return;
       const mediumId = mpAddByRSS.resourceData.medium_id;
       if (typeof mediumId !== 'number') return;
@@ -44,7 +44,7 @@ export function useAddByRSSPositionSave() {
       await apiRequestService
         .reqQueueResourceItemAddByRSSAddHistory(queue.id_text, {
           add_by_rss_resource_data: mpAddByRSS.resourceData,
-          playback_position: String(positionSeconds),
+          playback_position: '0',
           completed: true,
         })
         .catch(() => {

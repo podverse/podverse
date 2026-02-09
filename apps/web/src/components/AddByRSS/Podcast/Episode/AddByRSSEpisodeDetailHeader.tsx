@@ -15,11 +15,14 @@ import {
 } from '../../../../utils/addByRSS/queuePlaylistHelpers';
 import type { AddByRSSItemIndexItem } from '../../../../utils/addByRSS/types';
 import { useAccount } from '../../../../contexts/Account';
+import { useMediaPlayer } from '../../../../contexts/MediaPlayer';
 import { useModals } from '../../../../contexts/Modals';
 import { useQueues } from '../../../../contexts/Queue';
 import { apiRequestService } from '../../../../factories/apiRequestService';
 import { usePlayAddByRSS } from '../../../../hooks/usePlayAddByRSS';
-import { showToastPromise } from '../../../Toast/Toast';
+import { showToastPromise, showToastPromiseWithLoading } from '../../../Toast/Toast';
+import { downloadAndSaveFile } from '../../../../utils/fileDownloader';
+import { downloadAddByRSSMediaWithModal } from '../../../../utils/downloadModal/downloadAddByRSSMediaWithModal';
 
 const alertPlaceholder = (label: string) => () => {
   window.alert(`Add by RSS: ${label}`);
@@ -40,9 +43,12 @@ export const AddByRSSEpisodeDetailHeader: React.FC<AddByRSSEpisodeDetailHeaderPr
   const tFeatures = useTranslations('features');
   const tInstructions = useTranslations('instructions');
   const { loggedInAccount } = useAccount();
-  const { setModalPlaylistAddTo, setModalLoginRequired } = useModals();
+  const { setModalPlaylistAddTo, setModalLoginRequired, setModalSourceSelector } = useModals();
   const { queues } = useQueues();
+  const { mpAddByRSS, mpIsPlaying, setMPIsPlaying } = useMediaPlayer();
   const playAddByRSS = usePlayAddByRSS();
+
+  const itemImageUrl = indexItem?.bundle?.images?.[0]?.url ?? null;
 
   const titleNode = (
     <Link href={getAddByRSSItemPath(itemIdText)}>
@@ -118,7 +124,30 @@ export const AddByRSSEpisodeDetailHeader: React.FC<AddByRSSEpisodeDetailHeaderPr
     );
   };
 
-  const onPlay = indexItem ? () => playAddByRSS(indexItem) : alertPlaceholder(tMediaPlayer('play'));
+  const onPlay = () => {
+    if (indexItem !== null && indexItem !== undefined && mpAddByRSS?.idText === indexItem.idText) {
+      setMPIsPlaying(!mpIsPlaying);
+    } else if (indexItem) {
+      playAddByRSS(indexItem);
+    } else {
+      alertPlaceholder(tMediaPlayer('play'))();
+    }
+  };
+
+  const downloadEpisode = () => {
+    if (indexItem) {
+      downloadAddByRSSMediaWithModal({
+        indexItem,
+        setModalSourceSelector,
+        showToastPromiseWithLoading,
+        downloadAndSaveFile,
+        tFeatures,
+        variant: 'episode',
+      });
+    } else {
+      alertPlaceholder(tFeatures('download.download_episode'))();
+    }
+  };
 
   const moreButtonMenuItems = [
     {
@@ -151,16 +180,24 @@ export const AddByRSSEpisodeDetailHeader: React.FC<AddByRSSEpisodeDetailHeaderPr
     },
     {
       label: tFeatures('download.download_episode'),
-      onClick: alertPlaceholder(tFeatures('download.download_episode')),
+      onClick: downloadEpisode,
     },
   ];
+
+  const tMedia = useTranslations('media');
 
   return (
     <CommonItemHeader
       titleNode={titleNode}
       playSectionNode={
-        <AddByRSSItemHeaderPlaySection onPlay={onPlay} moreButtonMenuItems={moreButtonMenuItems} />
+        <AddByRSSItemHeaderPlaySection
+          onPlay={onPlay}
+          addByRSSIdText={indexItem?.idText ?? undefined}
+          moreButtonMenuItems={moreButtonMenuItems}
+        />
       }
+      imageUrl={itemImageUrl}
+      imageAlt={title || tMedia('podcast.episode_image')}
     />
   );
 };

@@ -409,6 +409,7 @@
     "login_required": "Connexion requise",
     "login_for_subscriptions": "Veuillez vous connecter pour voir vos abonnements.",
     "login_to_create_playlists": "Veuillez vous connecter pour créer des playlists.",
+    "no_playlists_created": "Vous n'avez pas encore de playlists. Créez-en une pour commencer.",
     "login_to_create_clips": "Veuillez vous connecter pour créer des extraits.",
     "login_for_queues": "Veuillez vous connecter pour voir vos files d'attente.",
     "login_for_history": "Veuillez vous connecter pour voir votre historique.",

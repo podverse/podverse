@@ -19,6 +19,27 @@ export function MediaPlayerControllerAudio() {
     useAddByRSSPositionSave();
   const onAddByRSSPlayNext = useAddByRSSPlayNext();
 
+  const clearNowPlaying = () => {
+    mediaPlayer.setMPAddByRSS(null);
+    mediaPlayer.setMPChannel(null);
+    mediaPlayer.setMPItem(null);
+    mediaPlayer.setMPClip(null);
+    mediaPlayer.setMPItemSoundbite(null);
+    mediaPlayer.setMPItemChapter(null);
+    mediaPlayer.setMPItemChapters(null);
+    mediaPlayer.setMPItemChapterShouldSeek(false);
+    mediaPlayer.setMPItemLabeledItemEnclosures([]);
+    mediaPlayer.setMPEnclosureSelectedParams({
+      type: 'default',
+      enclosureRowSelected: null,
+      sourceRowSelected: null,
+    });
+    mediaPlayer.setMPIsPlaying(false);
+    mediaPlayer.setMPShouldPlay(false);
+    mediaPlayer.setMPDuration(0);
+    setMPCurrentTime(0);
+  };
+
   return (
     <MediaPlayerControllerAV
       mediaType="audio"
@@ -55,7 +76,7 @@ export function MediaPlayerControllerAudio() {
       onAddByRSSPositionSave={onAddByRSSPositionSave}
       onAddByRSSEnded={onAddByRSSEnded}
       onAddByRSSPlayNext={onAddByRSSPlayNext}
-      setMPAddByRSS={mediaPlayer.setMPAddByRSS}
+      clearNowPlaying={clearNowPlaying}
     />
   );
 }

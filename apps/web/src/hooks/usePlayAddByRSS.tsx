@@ -33,7 +33,35 @@ export function usePlayAddByRSS() {
   const { queues } = useQueues();
   const { loggedInAccount } = useAccount();
 
-  return (indexItem: AddByRSSItemIndexItem | AddByRSSLivestreamIndexItem) => {
+  const getDurationSecondsFromBundle = (bundle: unknown): number | null => {
+    if (!bundle || typeof bundle !== 'object') {
+      return null;
+    }
+    if (!('about' in bundle)) {
+      return null;
+    }
+    const about = (bundle as { about?: unknown }).about;
+    if (!about || typeof about !== 'object') {
+      return null;
+    }
+    if (!('duration' in about)) {
+      return null;
+    }
+    const duration = (about as { duration?: unknown }).duration;
+    if (typeof duration === 'number') {
+      return duration;
+    }
+    if (typeof duration === 'string') {
+      const parsed = parseFloat(duration);
+      return Number.isNaN(parsed) ? null : parsed;
+    }
+    return null;
+  };
+
+  return (
+    indexItem: AddByRSSItemIndexItem | AddByRSSLivestreamIndexItem,
+    playbackPosition?: number
+  ) => {
     const resourceData = buildAddByRSSResourceData(indexItem);
     const idText = indexItem.idText ?? '';
 
@@ -72,31 +100,47 @@ export function usePlayAddByRSS() {
     // Restore position and sync to API after state is set so playback can start without delay.
     if (queue?.id_text) {
       (async () => {
-        let playbackPosition = 0;
-        try {
-          const nowPlaying = await apiRequestService.reqQueueResourcesGetNowPlayingByQueueIdText(
-            queue.id_text
-          );
-          const hash = getAddByRSSHashId(indexItem);
-          if (
-            nowPlaying?.add_by_rss_hash_id !== null &&
-            nowPlaying?.add_by_rss_hash_id !== undefined &&
-            nowPlaying.add_by_rss_hash_id === hash &&
-            nowPlaying.playback_position !== null
-          ) {
-            const p = parseFloat(String(nowPlaying.playback_position));
-            if (!Number.isNaN(p) && p >= 0) {
-              playbackPosition = p;
-              setMPCurrentTime(p);
+        // Use provided position if available, otherwise fetch from API
+        let resolvedPosition = typeof playbackPosition === 'number' ? playbackPosition : 0;
+
+        if (typeof playbackPosition !== 'number') {
+          // Only fetch if position wasn't provided
+          try {
+            const nowPlaying = await apiRequestService.reqQueueResourcesGetNowPlayingByQueueIdText(
+              queue.id_text
+            );
+            const hash = getAddByRSSHashId(indexItem);
+            if (
+              nowPlaying?.add_by_rss_hash_id !== null &&
+              nowPlaying?.add_by_rss_hash_id !== undefined &&
+              nowPlaying.add_by_rss_hash_id === hash &&
+              nowPlaying.playback_position !== null
+            ) {
+              const p = parseFloat(String(nowPlaying.playback_position));
+              if (!Number.isNaN(p) && p >= 0) {
+                resolvedPosition = p;
+              }
             }
+          } catch {
+            // Best-effort restore; keep 0
           }
-        } catch {
-          // Best-effort restore; keep 0
         }
+
+        const durationSeconds = getDurationSecondsFromBundle(resourceData.bundle);
+        if (
+          typeof durationSeconds === 'number' &&
+          durationSeconds > 0 &&
+          resolvedPosition >= durationSeconds - 5
+        ) {
+          resolvedPosition = 0;
+        }
+
+        setMPCurrentTime(resolvedPosition);
+
         apiRequestService
           .reqQueueResourceItemAddByRSSAddNowPlaying(queue.id_text, {
             add_by_rss_resource_data: resourceData,
-            playback_position: String(playbackPosition),
+            playback_position: String(resolvedPosition),
           })
           .catch(() => {
             // Fire-and-forget; queue sync is best-effort

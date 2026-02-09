@@ -197,32 +197,40 @@ export const ListTrackRow: React.FC<Props> = ({
     });
   };
 
-  const moreButtonMenuItems: MoreButtonMenuItem[] = [
-    {
-      label: tMediaPlayer('play'),
-      onClick: playButtonOnClick,
-    },
-    {
-      label: tFeatures('queue.queue_next'),
-      onClick: addToQueueNextOnClick,
-    },
-    {
-      label: tFeatures('queue.queue_last'),
-      onClick: addToQueueLastOnClick,
-    },
-    {
-      label: tFeatures('playlist.add_to_playlist'),
-      onClick: addToPlaylistOnClick,
-    },
-    {
-      label: tMedia('music.track_go_to'),
-      onClick: goToTrackPage,
-    },
-    {
-      label: tFeatures('download.download_track'),
-      onClick: downloadTrack,
-    },
-  ];
+  const moreButtonMenuItems: MoreButtonMenuItem[] = isEditModePlaylist
+    ? [
+        {
+          label: tFeatures('playlist.remove_from_playlist'),
+          onClick: removeFromPlaylistOnClick,
+          variant: 'danger',
+        },
+      ]
+    : [
+        {
+          label: tMediaPlayer('play'),
+          onClick: playButtonOnClick,
+        },
+        {
+          label: tFeatures('queue.queue_next'),
+          onClick: addToQueueNextOnClick,
+        },
+        {
+          label: tFeatures('queue.queue_last'),
+          onClick: addToQueueLastOnClick,
+        },
+        {
+          label: tFeatures('playlist.add_to_playlist'),
+          onClick: addToPlaylistOnClick,
+        },
+        {
+          label: tMedia('music.track_go_to'),
+          onClick: goToTrackPage,
+        },
+        {
+          label: tFeatures('download.download_track'),
+          onClick: downloadTrack,
+        },
+      ];
 
   if (isEditModeQueue) {
     moreButtonMenuItems.push({
@@ -233,11 +241,7 @@ export const ListTrackRow: React.FC<Props> = ({
   }
 
   if (isEditModePlaylist) {
-    moreButtonMenuItems.push({
-      label: tFeatures('playlist.remove_from_playlist'),
-      onClick: removeFromPlaylistOnClick,
-      variant: 'danger',
-    });
+    // Menu already limited to remove-from-playlist in edit mode.
   }
 
   return (

@@ -25,7 +25,9 @@ import { useModals } from '../../../../../contexts/Modals';
 import { useQueues } from '../../../../../contexts/Queue';
 import { apiRequestService } from '../../../../../factories/apiRequestService';
 import { usePlayAddByRSS } from '../../../../../hooks/usePlayAddByRSS';
-import { showToastPromise } from '../../../../Toast/Toast';
+import { showToastPromise, showToastPromiseWithLoading } from '../../../../Toast/Toast';
+import { downloadAndSaveFile } from '../../../../../utils/fileDownloader';
+import { downloadAddByRSSMediaWithModal } from '../../../../../utils/downloadModal/downloadAddByRSSMediaWithModal';
 
 const alertPlaceholder = (label: string) => () => {
   window.alert(`Add by RSS: ${label}`);
@@ -54,7 +56,7 @@ export const AddByRSSTrackRow: React.FC<AddByRSSTrackRowProps> = ({
   const tFeatures = useTranslations('features');
   const tInstructions = useTranslations('instructions');
   const { loggedInAccount } = useAccount();
-  const { setModalPlaylistAddTo, setModalLoginRequired } = useModals();
+  const { setModalPlaylistAddTo, setModalLoginRequired, setModalSourceSelector } = useModals();
   const { setAddByRSSListContext } = useAddByRSSListContext();
   const { mpAddByRSS, mpIsPlaying, setMPIsPlaying } = useMediaPlayer();
   const { queues } = useQueues();
@@ -155,6 +157,21 @@ export const AddByRSSTrackRow: React.FC<AddByRSSTrackRowProps> = ({
     router.push(url);
   };
 
+  const downloadTrack = () => {
+    if (indexItem) {
+      downloadAddByRSSMediaWithModal({
+        indexItem,
+        setModalSourceSelector,
+        showToastPromiseWithLoading,
+        downloadAndSaveFile,
+        tFeatures,
+        variant: 'track',
+      });
+    } else {
+      alertPlaceholder(tFeatures('download.download_track'))();
+    }
+  };
+
   const moreButtonMenuItems = [
     {
       label: tMediaPlayer('play'),
@@ -190,7 +207,7 @@ export const AddByRSSTrackRow: React.FC<AddByRSSTrackRowProps> = ({
     },
     {
       label: tFeatures('download.download_track'),
-      onClick: alertPlaceholder(tFeatures('download.download_track')),
+      onClick: downloadTrack,
     },
   ];
 

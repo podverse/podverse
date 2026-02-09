@@ -214,6 +214,53 @@ export const AddByRSSEpisodePageClient: React.FC<AddByRSSEpisodePageClientProps>
     };
   }, [itemIdText, loggedInAccount]);
 
+  const tabData = React.useMemo(() => {
+    const tabs: Array<{
+      key: 'summary' | 'chapters' | 'transcript';
+      label: string;
+      onClick: () => void;
+      zIndex: number;
+    }> = [
+      {
+        key: 'summary',
+        label: tInfo('summary.summary'),
+        onClick: () => setSelectedTab('summary'),
+        zIndex: 1,
+      },
+    ];
+    if (chaptersFeedUrl) {
+      tabs.push({
+        key: 'chapters',
+        label: tInfo('chapter.chapters'),
+        onClick: () => setSelectedTab('chapters'),
+        zIndex: 2,
+      });
+    }
+    if (transcriptUrl) {
+      tabs.push({
+        key: 'transcript',
+        label: tInfo('transcript.transcript'),
+        onClick: () => setSelectedTab('transcript'),
+        zIndex: 3,
+      });
+    }
+    return tabs;
+  }, [chaptersFeedUrl, transcriptUrl, tInfo]);
+
+  const handlePlayChapter = React.useCallback(
+    (chapter: DTOItemChapter) => {
+      if (!episode || mpAddByRSS?.idText !== episode.idText) return;
+      setMPItemChapter(chapter);
+      setMPItemChapterShouldSeek(true);
+      window.dispatchEvent(
+        new CustomEvent(EVENTS.MEDIA_PLAYER.SEEK, {
+          detail: { time: Number(chapter.start_time) },
+        })
+      );
+    },
+    [episode, mpAddByRSS?.idText, setMPItemChapter, setMPItemChapterShouldSeek]
+  );
+
   if (isLoading) {
     return <LoadingSpinnerOverlay isLoading message={tMisc('loading_your_content')} />;
   }
@@ -233,55 +280,7 @@ export const AddByRSSEpisodePageClient: React.FC<AddByRSSEpisodePageClientProps>
 
   const title = episode.bundle.item.title ?? tInfo('episode.episode');
   const description = episode.bundle.description?.value ?? null;
-
-  const tabData = React.useMemo(() => {
-    const tabs: Array<{
-      key: 'summary' | 'chapters' | 'transcript';
-      label: string;
-      onClick: () => void;
-      zIndex: number;
-    }> = [
-      {
-        key: 'summary',
-        label: tInfo('summary.summary'),
-        onClick: () => setSelectedTab('summary'),
-        zIndex: 1,
-      },
-    ];
-    if (chaptersFeedUrl) {
-      tabs.push({
-        key: 'chapters',
-        label: tInfo('transcript.chapters'),
-        onClick: () => setSelectedTab('chapters'),
-        zIndex: 2,
-      });
-    }
-    if (transcriptUrl) {
-      tabs.push({
-        key: 'transcript',
-        label: tInfo('transcript.transcript'),
-        onClick: () => setSelectedTab('transcript'),
-        zIndex: 3,
-      });
-    }
-    return tabs;
-  }, [chaptersFeedUrl, transcriptUrl, tInfo]);
-
   const chaptersTotalPages = itemChapters.length > 0 ? 1 : 1;
-
-  const handlePlayChapter = React.useCallback(
-    (chapter: DTOItemChapter) => {
-      if (mpAddByRSS?.idText !== episode.idText) return;
-      setMPItemChapter(chapter);
-      setMPItemChapterShouldSeek(true);
-      window.dispatchEvent(
-        new CustomEvent(EVENTS.MEDIA_PLAYER.SEEK, {
-          detail: { time: Number(chapter.start_time) },
-        })
-      );
-    },
-    [episode.idText, mpAddByRSS?.idText, setMPItemChapter, setMPItemChapterShouldSeek]
-  );
 
   return (
     <MainWrapper>

@@ -1,6 +1,7 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
+import { useRouter } from 'next/navigation';
 import type { QueryParamsQueueMedium } from '@podverse/helpers';
 import {
   getQueryParamFromQueueMediumId,
@@ -10,6 +11,7 @@ import {
 import React from 'react';
 import { Modal } from './Modal';
 import { MEDIUM } from '../../constants/medium';
+import { ROUTES } from '../../constants/routes';
 import type { ModalPlaylistAddToState } from '../../contexts/Modals';
 import { useModals } from '../../contexts/Modals';
 import { MediaHeaderMini } from '../MediaHeaderMini/MediaHeaderMini';
@@ -50,6 +52,7 @@ export const ModalPlaylistAddTo: React.FC = () => {
   const tAuthentication = useTranslations('authentication');
   const header = tFeatures('playlist.add_to_playlist');
   const { modalPlaylistAddTo, setModalPlaylistAddTo, setModalAuthLogin } = useModals();
+  const router = useRouter();
   const [playlists, setPlaylists] = React.useState<DTOPlaylist[]>([]);
   const [totalPages, setTotalPages] = React.useState(0);
   const { loggedInAccount } = useAccount();
@@ -181,6 +184,13 @@ export const ModalPlaylistAddTo: React.FC = () => {
     clearModalPlaylistAddTo();
   };
 
+  const hasNoPlaylists = loggedInAccount && playlists.length === 0;
+
+  const onCreatePlaylist = () => {
+    clearModalPlaylistAddTo();
+    router.push(`${ROUTES.PLAYLIST}/create`);
+  };
+
   const isOpen =
     !!modalPlaylistAddTo.addByRSSResourceData ||
     !!(
@@ -236,14 +246,22 @@ export const ModalPlaylistAddTo: React.FC = () => {
             buttonTabs={buttonTabs}
             selectedKey={getCurrentMediumId(filterParams, modalPlaylistAddTo)}
           />
-          <ListPlaylists
-            page={filterParams.page}
-            setPage={(page: number) => setFilterParams({ ...filterParams, page })}
-            playlists={playlists}
-            totalPages={totalPages}
-            showLoginMessage={false}
-            onClick={onClick}
-          />
+          {hasNoPlaylists ? (
+            <CallToActionMessage
+              message={tInstructions('no_playlists_created')}
+              buttonLabel={tFeatures('playlist.create_playlist')}
+              onButtonClick={onCreatePlaylist}
+            />
+          ) : (
+            <ListPlaylists
+              page={filterParams.page}
+              setPage={(page: number) => setFilterParams({ ...filterParams, page })}
+              playlists={playlists}
+              totalPages={totalPages}
+              showLoginMessage={false}
+              onClick={onClick}
+            />
+          )}
         </>
       )}
     </Modal>

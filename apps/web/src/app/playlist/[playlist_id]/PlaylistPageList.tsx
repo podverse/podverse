@@ -5,7 +5,7 @@ import React from 'react';
 
 import type { DTOPlaylist } from '@podverse/helpers';
 
-import { LazyLoadPlaceholder } from '../../../components/LazyLoadPlaceholder/LazyLoadPlaceholder';
+import LoadingSpinnerOverlay from '../../../components/LoadingSpinner/LoadingSpinnerOverlay';
 import { usePlaylistPageContext } from './PlaylistPageContext';
 
 const ListPlaylistResources = dynamic(
@@ -15,7 +15,7 @@ const ListPlaylistResources = dynamic(
     })),
   {
     ssr: false,
-    loading: () => <LazyLoadPlaceholder />,
+    loading: () => null,
   }
 );
 
@@ -24,7 +24,8 @@ type PlaylistPageListProps = {
 };
 
 export const PlaylistPageList: React.FC<PlaylistPageListProps> = ({ ssrPlaylist }) => {
-  const { playlistResources, totalPages, filterParams, setFilterParams } = usePlaylistPageContext();
+  const { playlistResources, totalPages, filterParams, setFilterParams, isLoading } =
+    usePlaylistPageContext();
   const { page } = filterParams;
 
   return (
@@ -36,6 +37,7 @@ export const PlaylistPageList: React.FC<PlaylistPageListProps> = ({ ssrPlaylist 
         setPage={(page) => setFilterParams({ ...filterParams, page })}
         totalPages={totalPages}
       />
+      <LoadingSpinnerOverlay isLoading={isLoading} />
     </>
   );
 };

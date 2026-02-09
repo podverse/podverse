@@ -64,7 +64,7 @@ export interface MediaPlayerControllerAVProps {
   onAddByRSSEnded?: (positionSeconds: number) => Promise<void>;
   /** When add-by-RSS playback ends and queue is empty, try to play next from list context. */
   onAddByRSSPlayNext?: () => Promise<void>;
-  setMPAddByRSS: (val: MediaPlayerAddByRSSState) => void;
+  clearNowPlaying: () => void;
 }
 
 let globalPauseAtTime: number | null = null;
@@ -106,7 +106,7 @@ export const MediaPlayerControllerAV: React.FC<MediaPlayerControllerAVProps> = (
     onAddByRSSPositionSave,
     onAddByRSSEnded,
     onAddByRSSPlayNext,
-    setMPAddByRSS,
+    clearNowPlaying,
   } = props;
 
   const mediaRef = useRef<HTMLAudioElement & HTMLVideoElement>(null);
@@ -127,6 +127,10 @@ export const MediaPlayerControllerAV: React.FC<MediaPlayerControllerAVProps> = (
   useEffect(() => {
     onAddByRSSPlayNextRef.current = onAddByRSSPlayNext;
   }, [onAddByRSSPlayNext]);
+  const clearNowPlayingRef = useRef(clearNowPlaying);
+  useEffect(() => {
+    clearNowPlayingRef.current = clearNowPlaying;
+  }, [clearNowPlaying]);
 
   const mpChannelRef = useRef<typeof mpChannel>(null);
   useEffect(() => {
@@ -193,12 +197,22 @@ export const MediaPlayerControllerAV: React.FC<MediaPlayerControllerAVProps> = (
 
     const url = enclosureUrl.trim();
     const seekTime = typeof mpCurrentTime === 'number' && mpCurrentTime >= 0 ? mpCurrentTime : 0;
-    media.currentTime = seekTime;
     // Only set src/load if not already set (e.g. declarative src from JSX may already match).
     if (media.src !== url) {
       media.src = url;
       media.load();
     }
+
+    const applySeek = () => {
+      media.currentTime = seekTime;
+    };
+
+    if (media.readyState >= 1) {
+      applySeek();
+    } else {
+      media.addEventListener('loadedmetadata', applySeek, { once: true });
+    }
+
     if (mpShouldPlay) {
       playMediaWhenReady(media, () => setMPShouldPlay(false));
     }
@@ -245,6 +259,7 @@ export const MediaPlayerControllerAV: React.FC<MediaPlayerControllerAVProps> = (
       const media = mediaRef.current;
       if (media && typeof customEvent.detail.time === 'number') {
         media.currentTime = customEvent.detail.time;
+        setMPCurrentTime(customEvent.detail.time);
       }
     };
 
@@ -252,7 +267,9 @@ export const MediaPlayerControllerAV: React.FC<MediaPlayerControllerAVProps> = (
       const customEvent = e as CustomEvent<{ seconds: number }>;
       const media = mediaRef.current;
       if (media && typeof customEvent.detail.seconds === 'number') {
-        media.currentTime = Math.max(media.currentTime - customEvent.detail.seconds, 0);
+        const newTime = Math.max(media.currentTime - customEvent.detail.seconds, 0);
+        media.currentTime = newTime;
+        setMPCurrentTime(newTime);
       }
     };
 
@@ -264,10 +281,9 @@ export const MediaPlayerControllerAV: React.FC<MediaPlayerControllerAVProps> = (
         typeof customEvent.detail.seconds === 'number' &&
         typeof media.duration === 'number'
       ) {
-        media.currentTime = Math.min(
-          media.currentTime + customEvent.detail.seconds,
-          media.duration
-        );
+        const newTime = Math.min(media.currentTime + customEvent.detail.seconds, media.duration);
+        media.currentTime = newTime;
+        setMPCurrentTime(newTime);
       }
     };
 
@@ -342,6 +358,13 @@ export const MediaPlayerControllerAV: React.FC<MediaPlayerControllerAVProps> = (
 
     const handlePlay = () => {
       const newCurrentTime = media.currentTime;
+      if (mpAddByRSSRef.current && onAddByRSSPositionSaveRef.current) {
+        try {
+          onAddByRSSPositionSaveRef.current(newCurrentTime);
+        } catch {
+          // Best-effort; do not block play state
+        }
+      }
       if (newCurrentTime < media.duration) {
         updateNowPlaying({
           mpChannel: mpChannelRef.current,
@@ -359,7 +382,11 @@ export const MediaPlayerControllerAV: React.FC<MediaPlayerControllerAVProps> = (
     const handlePause = () => {
       const newCurrentTime = media.currentTime;
       if (mpAddByRSSRef.current && onAddByRSSPositionSaveRef.current) {
-        onAddByRSSPositionSaveRef.current(newCurrentTime);
+        try {
+          onAddByRSSPositionSaveRef.current(newCurrentTime);
+        } catch {
+          // Best-effort; do not block pause state
+        }
       }
       if (newCurrentTime < media.duration) {
         updateNowPlaying({
@@ -383,7 +410,10 @@ export const MediaPlayerControllerAV: React.FC<MediaPlayerControllerAVProps> = (
       const chapters = mpItemChaptersRef.current;
       const newCurrentTime = media.currentTime;
 
-      setMPCurrentTime(newCurrentTime);
+      const shouldUpdateCurrentTime = !mpAddByRSSRef.current || !media.paused;
+      if (shouldUpdateCurrentTime) {
+        setMPCurrentTime(newCurrentTime);
+      }
 
       if (lastPlaybackTimeRef.current !== null) {
         const delta = newCurrentTime - lastPlaybackTimeRef.current;
@@ -395,7 +425,11 @@ export const MediaPlayerControllerAV: React.FC<MediaPlayerControllerAVProps> = (
 
       if (playbackElapsedRef.current >= 15) {
         if (mpAddByRSSRef.current && onAddByRSSPositionSaveRef.current) {
-          onAddByRSSPositionSaveRef.current(newCurrentTime);
+          try {
+            onAddByRSSPositionSaveRef.current(newCurrentTime);
+          } catch {
+            // Best-effort; do not block timeupdate
+          }
         }
         updateNowPlaying({
           mpChannel: channel,
@@ -478,13 +512,12 @@ export const MediaPlayerControllerAV: React.FC<MediaPlayerControllerAVProps> = (
         await onAddByRSSEndedFn(positionSeconds);
         setMPShouldPlay(false);
         const upcomingCount = await queueResourcesLoadActive(medium_id);
-        // Only clear mpAddByRSS if there are no more items in the queue.
-        // If there's a next item, playAddByRSS will update it directly (avoiding a flicker).
         if (upcomingCount === 0) {
-          setMPAddByRSS(null);
-          if (onAddByRSSPlayNextFn) {
-            await onAddByRSSPlayNextFn();
-          }
+          clearNowPlayingRef.current?.();
+          return;
+        }
+        if (onAddByRSSPlayNextFn) {
+          await onAddByRSSPlayNextFn();
         }
         return;
       }
@@ -494,8 +527,12 @@ export const MediaPlayerControllerAV: React.FC<MediaPlayerControllerAVProps> = (
         mpItem: mpItemRef.current,
         mpItemSoundbite: mpItemSoundbiteRef.current,
       });
+      const upcomingCount = await queueResourcesLoadActive();
+      if (upcomingCount === 0) {
+        clearNowPlayingRef.current?.();
+        return;
+      }
       setMPShouldPlay(true);
-      await queueResourcesLoadActive();
     };
 
     media.addEventListener('loadedmetadata', handleLoadedMetadata);

@@ -14,6 +14,7 @@ interface PlaylistPageContextType {
   setPlaylistResources: (playlistResources: DTOPlaylistResource[]) => void;
   totalPages: number;
   setTotalPages: (totalPages: number) => void;
+  isLoading: boolean;
 }
 
 const PlaylistPageContext = createContext<PlaylistPageContextType | undefined>(undefined);
@@ -30,9 +31,11 @@ export const PlaylistPageContextProvider = ({
   const [filterParams, setFilterParams] = useState<QueryParamsPlaylistResources>({ page: 1 });
   const [playlistResources, setPlaylistResources] = useState<DTOPlaylistResource[]>([]);
   const [totalPages, setTotalPages] = useState<number>(1);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
 
   useEffect(() => {
     async function fetchPlaylistResources() {
+      setIsLoading(true);
       const response = await apiRequestService.reqPlaylistResourceGetManyByPlaylistIdText(
         ssrPlaylist.id_text,
         {
@@ -48,6 +51,7 @@ export const PlaylistPageContextProvider = ({
       );
       setTotalPages(totalPages);
       setPlaylistResources(response.data);
+      setIsLoading(false);
     }
 
     fetchPlaylistResources();
@@ -62,6 +66,7 @@ export const PlaylistPageContextProvider = ({
         setPlaylistResources,
         totalPages,
         setTotalPages,
+        isLoading,
       }}
     >
       {children}

@@ -409,6 +409,7 @@
     "login_required": "",
     "login_for_subscriptions": "",
     "login_to_create_playlists": "",
+    "no_playlists_created": "",
     "login_to_create_clips": "",
     "login_for_queues": "",
     "login_for_history": "",

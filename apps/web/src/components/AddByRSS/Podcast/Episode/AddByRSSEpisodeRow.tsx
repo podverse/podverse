@@ -26,7 +26,9 @@ import { useModals } from '../../../../contexts/Modals';
 import { useQueues } from '../../../../contexts/Queue';
 import { apiRequestService } from '../../../../factories/apiRequestService';
 import { usePlayAddByRSS } from '../../../../hooks/usePlayAddByRSS';
-import { showToastPromise } from '../../../Toast/Toast';
+import { showToastPromise, showToastPromiseWithLoading } from '../../../Toast/Toast';
+import { downloadAndSaveFile } from '../../../../utils/fileDownloader';
+import { downloadAddByRSSMediaWithModal } from '../../../../utils/downloadModal/downloadAddByRSSMediaWithModal';
 
 const alertPlaceholder = (label: string) => () => {
   window.alert(`Add by RSS: ${label}`);
@@ -55,7 +57,7 @@ export const AddByRSSEpisodeRow: React.FC<AddByRSSEpisodeRowProps> = ({
   const tFeatures = useTranslations('features');
   const tInstructions = useTranslations('instructions');
   const { loggedInAccount } = useAccount();
-  const { setModalPlaylistAddTo, setModalLoginRequired } = useModals();
+  const { setModalPlaylistAddTo, setModalLoginRequired, setModalSourceSelector } = useModals();
   const { setAddByRSSListContext } = useAddByRSSListContext();
   const { mpAddByRSS, mpIsPlaying, setMPIsPlaying } = useMediaPlayer();
   const { queues } = useQueues();
@@ -150,6 +152,21 @@ export const AddByRSSEpisodeRow: React.FC<AddByRSSEpisodeRowProps> = ({
     playAddByRSS(indexItem);
   };
 
+  const downloadEpisode = () => {
+    if (indexItem) {
+      downloadAddByRSSMediaWithModal({
+        indexItem,
+        setModalSourceSelector,
+        showToastPromiseWithLoading,
+        downloadAndSaveFile,
+        tFeatures,
+        variant: 'episode',
+      });
+    } else {
+      alertPlaceholder(tFeatures('download.download_episode'))();
+    }
+  };
+
   const moreButtonMenuItems = [
     {
       label: tMediaPlayer('play'),
@@ -181,7 +198,7 @@ export const AddByRSSEpisodeRow: React.FC<AddByRSSEpisodeRowProps> = ({
     },
     {
       label: tFeatures('download.download_episode'),
-      onClick: alertPlaceholder(tFeatures('download.download_episode')),
+      onClick: downloadEpisode,
     },
   ];
 

@@ -224,32 +224,40 @@ const ListEpisodeRow: React.FC<Props> = ({
     });
   };
 
-  const moreButtonMenuItems: MoreButtonMenuItem[] = [
-    {
-      label: tMediaPlayer('play'),
-      onClick: playButtonOnClick,
-    },
-    {
-      label: tFeatures('queue.queue_next'),
-      onClick: addToQueueNextOnClick,
-    },
-    {
-      label: tFeatures('queue.queue_last'),
-      onClick: addToQueueLastOnClick,
-    },
-    {
-      label: tFeatures('playlist.add_to_playlist'),
-      onClick: addToPlaylistOnClick,
-    },
-    {
-      label: tFeatures('history.mark_as_played'),
-      onClick: markAsPlayedOnClick,
-    },
-    {
-      label: tFeatures('download.download_episode'),
-      onClick: downloadEpisode,
-    },
-  ];
+  const moreButtonMenuItems: MoreButtonMenuItem[] = isEditModePlaylist
+    ? [
+        {
+          label: tFeatures('playlist.remove_from_playlist'),
+          onClick: removeFromPlaylistOnClick,
+          variant: 'danger',
+        },
+      ]
+    : [
+        {
+          label: tMediaPlayer('play'),
+          onClick: playButtonOnClick,
+        },
+        {
+          label: tFeatures('queue.queue_next'),
+          onClick: addToQueueNextOnClick,
+        },
+        {
+          label: tFeatures('queue.queue_last'),
+          onClick: addToQueueLastOnClick,
+        },
+        {
+          label: tFeatures('playlist.add_to_playlist'),
+          onClick: addToPlaylistOnClick,
+        },
+        {
+          label: tFeatures('history.mark_as_played'),
+          onClick: markAsPlayedOnClick,
+        },
+        {
+          label: tFeatures('download.download_episode'),
+          onClick: downloadEpisode,
+        },
+      ];
 
   if (isEditModeQueue) {
     moreButtonMenuItems.push({
@@ -260,11 +268,7 @@ const ListEpisodeRow: React.FC<Props> = ({
   }
 
   if (isEditModePlaylist) {
-    moreButtonMenuItems.push({
-      label: tFeatures('playlist.remove_from_playlist'),
-      onClick: removeFromPlaylistOnClick,
-      variant: 'danger',
-    });
+    // Menu already limited to remove-from-playlist in edit mode.
   }
 
   return (

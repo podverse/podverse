@@ -1,0 +1,71 @@
+@use '../../../variables/breakpoints' as *;
+
+.wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xl);
+
+  @media (min-width: $breakpoint-md-min) {
+    flex-direction: row;
+    align-items: flex-start;
+  }
+}
+
+.imageWrapper {
+  flex-shrink: 0;
+  position: relative;
+
+  @media (max-width: $breakpoint-sm-max) {
+    width: 100%;
+    order: 1;
+    margin-top: var(--spacing-md);
+  }
+
+  @media (min-width: $breakpoint-md-min) {
+    width: 128px;
+    height: 128px;
+    order: 0;
+    margin-top: 0;
+  }
+}
+
+.imageMobile,
+.imageDesktop {
+  display: none;
+}
+
+@media (max-width: $breakpoint-sm-max) {
+  .imageMobile {
+    display: block;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 1;
+    object-fit: cover;
+  }
+}
+
+@media (min-width: $breakpoint-md-min) {
+  .imageDesktop {
+    display: block;
+    width: 128px;
+    height: 128px;
+    object-fit: cover;
+  }
+}
+
+.contentSection {
+  flex: 1;
+  min-width: 0;
+
+  @media (max-width: $breakpoint-sm-max) {
+    order: 0;
+  }
+
+  @media (min-width: $breakpoint-md-min) {
+    order: 1;
+  }
+}
+
+.divider {
+  margin: var(--spacing-section-y);
+}

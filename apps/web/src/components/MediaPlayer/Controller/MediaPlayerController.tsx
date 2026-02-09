@@ -258,7 +258,16 @@ export const MediaPlayerController: React.FC = () => {
     const resourceData = nextResource.add_by_rss_resource_data ?? null;
     const indexItem = await loadAddByRSSIndexItemFromResourceData(resourceData);
     if (indexItem) {
-      await playAddByRSS(indexItem);
+      // Pass playback_position from the already-fetched queue resource
+      const playbackPosition = nextResource.playback_position
+        ? parseFloat(String(nextResource.playback_position))
+        : undefined;
+      await playAddByRSS(
+        indexItem,
+        playbackPosition !== undefined && !Number.isNaN(playbackPosition)
+          ? playbackPosition
+          : undefined
+      );
     }
   }
 
@@ -285,7 +294,7 @@ export const MediaPlayerController: React.FC = () => {
         handleLoadQueueItemSoundbite(nextResource);
       }
     }
-  }, [activeQueueUpcomingResources, mpAddByRSS?.idText]);
+  }, [activeQueueUpcomingResources]);
 
   useEffect(() => {
     const autoQueueResources = autoQueueResourcesRef.current;

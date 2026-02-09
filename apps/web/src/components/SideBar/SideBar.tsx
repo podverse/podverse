@@ -9,9 +9,8 @@ import SideBarBrand from './SideBarBrand';
 import SideBarLink from './SideBarLink';
 import SideBarHeader from './SideBarHeader';
 import Accordion from '../Accordian/AccordianClient';
+import { useLocalSettings } from '../../contexts/LocalSettings';
 import styles from '../../styles/components/SideBar/SideBar.module.scss';
-
-const ACCORDION_STORAGE_KEY = 'pv_sidebar_accordion_state';
 
 type AccordionState = {
   podcasts: boolean;
@@ -20,59 +19,14 @@ type AccordionState = {
   library: boolean;
 };
 
-const defaultAccordionState: AccordionState = {
-  podcasts: true,
-  music: true,
-  addByRSS: false,
-  library: true,
-};
-
-const readAccordionState = (): AccordionState | null => {
-  if (typeof window === 'undefined') {
-    return null;
-  }
-
-  try {
-    const raw = window.localStorage.getItem(ACCORDION_STORAGE_KEY);
-    if (!raw) {
-      return null;
-    }
-    const parsed = JSON.parse(raw) as Partial<AccordionState>;
-    return { ...defaultAccordionState, ...parsed };
-  } catch {
-    return null;
-  }
-};
-
-const writeAccordionState = (state: AccordionState) => {
-  if (typeof window === 'undefined') {
-    return;
-  }
-  try {
-    window.localStorage.setItem(ACCORDION_STORAGE_KEY, JSON.stringify(state));
-  } catch {
-    // ignore storage errors
-  }
-};
-
 export const SideBar: React.FC = () => {
   const tMedia = useTranslations('media');
   const tFeatures = useTranslations('features');
-  const [accordionState, setAccordionState] = React.useState<AccordionState>(defaultAccordionState);
-
-  React.useEffect(() => {
-    const stored = readAccordionState();
-    if (stored) {
-      setAccordionState(stored);
-    }
-  }, []);
+  const { sidebarAccordion, setSidebarAccordion } = useLocalSettings();
+  const accordionState: AccordionState = sidebarAccordion;
 
   const handleAccordionToggle = (key: keyof AccordionState) => (open: boolean) => {
-    setAccordionState((prev) => {
-      const next = { ...prev, [key]: open };
-      writeAccordionState(next);
-      return next;
-    });
+    setSidebarAccordion((prev) => ({ ...prev, [key]: open }));
   };
 
   return (

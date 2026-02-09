@@ -55,7 +55,15 @@ export const ListQueueResources: React.FC<Props> = ({
         const resourceData = queueResource.add_by_rss_resource_data;
         const indexItem = await loadAddByRSSIndexItemFromResourceData(resourceData);
         if (indexItem) {
-          playAddByRSS(indexItem);
+          const playbackPosition = queueResource.playback_position
+            ? parseFloat(String(queueResource.playback_position))
+            : undefined;
+          playAddByRSS(
+            indexItem,
+            playbackPosition !== undefined && !Number.isNaN(playbackPosition)
+              ? playbackPosition
+              : undefined
+          );
         }
         return;
       }

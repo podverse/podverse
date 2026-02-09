@@ -834,7 +834,8 @@ export class QueueResourceService extends BaseManyService<QueueResource, 'queue'
 
   async addItemAddByRSSToNowPlaying(
     queue_id_text: string,
-    add_by_rss_resource_data: object
+    add_by_rss_resource_data: object,
+    params: QueueExtraParams = {}
   ): Promise<QueueResource> {
     const lock = this.getQueueLock(queue_id_text);
     return lock.runExclusive(async () => {
@@ -842,7 +843,8 @@ export class QueueResourceService extends BaseManyService<QueueResource, 'queue'
         return this._addItemAddByRSSToNowPlayingTransactional(
           manager,
           queue_id_text,
-          add_by_rss_resource_data
+          add_by_rss_resource_data,
+          params
         );
       });
     });
@@ -851,7 +853,8 @@ export class QueueResourceService extends BaseManyService<QueueResource, 'queue'
   private async _addItemAddByRSSToNowPlayingTransactional(
     manager: EntityManager,
     queue_id_text: string,
-    add_by_rss_resource_data: object
+    add_by_rss_resource_data: object,
+    params: QueueExtraParams = {}
   ): Promise<QueueResource> {
     const queue = (await manager.findOne('Queue', { where: { id_text: queue_id_text } })) as any;
     if (!queue) {
@@ -882,10 +885,20 @@ export class QueueResourceService extends BaseManyService<QueueResource, 'queue'
     // update that row back to now-playing to avoid violating UNIQUE (queue_id, add_by_rss_hash_id).
     const isMovedRow = existingNowPlaying && queueResource?.id === existingNowPlaying.id;
 
+    const extraFields = {
+      ...(params.playback_position !== undefined && {
+        playback_position: params.playback_position,
+      }),
+      ...(params.media_file_duration !== undefined && {
+        media_file_duration: params.media_file_duration,
+      }),
+    };
+
     if (isMovedRow && queueResource) {
       Object.assign(queueResource, {
         add_by_rss_resource_data,
         list_position: '0',
+        ...extraFields,
       });
     } else if (!queueResource) {
       queueResource = manager.create(QueueResource, {
@@ -893,11 +906,13 @@ export class QueueResourceService extends BaseManyService<QueueResource, 'queue'
         add_by_rss_resource_data,
         add_by_rss_hash_id,
         list_position: '0',
+        ...extraFields,
       });
     } else {
       Object.assign(queueResource, {
         add_by_rss_resource_data,
         list_position: '0',
+        ...extraFields,
       });
     }
 
@@ -909,7 +924,8 @@ export class QueueResourceService extends BaseManyService<QueueResource, 'queue'
 
   async addItemAddByRSSToHistory(
     queue_id_text: string,
-    add_by_rss_resource_data: object
+    add_by_rss_resource_data: object,
+    params: QueueExtraParams = {}
   ): Promise<QueueResource> {
     const queue = await this.queueService.getByIdText(queue_id_text);
     if (!queue) {
@@ -923,10 +939,35 @@ export class QueueResourceService extends BaseManyService<QueueResource, 'queue'
       ? parseFloat(mostRecentHistoryItem.list_position) + QUEUE_LIST_POSITION_INCREMENT
       : -1;
 
+    const existing = await this.repositoryRead.findOne({
+      where: { queue: { id: queue.id }, add_by_rss_hash_id },
+    });
+
+    if (existing) {
+      existing.list_position = newPosition.toString();
+      if (params.completed !== undefined) {
+        existing.completed = params.completed;
+      }
+      if (params.playback_position !== undefined) {
+        existing.playback_position = params.playback_position;
+      }
+      if (params.media_file_duration !== undefined) {
+        existing.media_file_duration = params.media_file_duration;
+      }
+      return this.repositoryReadWrite.save(existing);
+    }
+
     const finalDto = {
       add_by_rss_resource_data,
       list_position: newPosition.toString(),
       add_by_rss_hash_id,
+      ...(params.completed !== undefined && { completed: params.completed }),
+      ...(params.playback_position !== undefined && {
+        playback_position: params.playback_position,
+      }),
+      ...(params.media_file_duration !== undefined && {
+        media_file_duration: params.media_file_duration,
+      }),
     };
 
     return this._update(queue, ['queue', 'add_by_rss_hash_id'], finalDto);

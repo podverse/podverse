@@ -174,26 +174,6 @@ export const AddByRSSTrackItemPageClient: React.FC<AddByRSSTrackItemPageClientPr
     };
   }, [track, feed, selectedTab, transcriptUrl, tMisc]);
 
-  if (isLoading) {
-    return <LoadingSpinnerOverlay isLoading message={tMisc('loading_your_content')} />;
-  }
-
-  if (!track || !feed) {
-    return (
-      <MainWrapper>
-        <MainInnerWrapper>
-          <SideContent />
-          <MainInnerContentWrapper>
-            <NoResults message={tFeatures('add_by_rss.feed_not_found_local')} />
-          </MainInnerContentWrapper>
-        </MainInnerWrapper>
-      </MainWrapper>
-    );
-  }
-
-  const title = track.bundle.item.title ?? tInfo('track.track');
-  const description = track.bundle.description?.value ?? null;
-
   const tabData = React.useMemo(() => {
     const tabs: Array<{
       key: 'summary' | 'transcript';
@@ -218,6 +198,26 @@ export const AddByRSSTrackItemPageClient: React.FC<AddByRSSTrackItemPageClientPr
     }
     return tabs;
   }, [transcriptUrl, tInfo]);
+
+  if (isLoading) {
+    return <LoadingSpinnerOverlay isLoading message={tMisc('loading_your_content')} />;
+  }
+
+  if (!track || !feed) {
+    return (
+      <MainWrapper>
+        <MainInnerWrapper>
+          <SideContent />
+          <MainInnerContentWrapper>
+            <NoResults message={tFeatures('add_by_rss.feed_not_found_local')} />
+          </MainInnerContentWrapper>
+        </MainInnerWrapper>
+      </MainWrapper>
+    );
+  }
+
+  const title = track.bundle.item.title ?? tInfo('track.track');
+  const description = track.bundle.description?.value ?? null;
 
   return (
     <MainWrapper>

@@ -130,13 +130,25 @@ class QueueResourceItemAddByRSSController {
           async () => {
             verifyQueueOwnership()(req, res, async () => {
               const queue_id_text = getParamRequired(req, 'queue_id_text');
-              const { add_by_rss_resource_data } = req.body;
+              const { add_by_rss_resource_data, playback_position, media_file_duration } = req.body;
+
+              const params = {
+                ...(playback_position !== undefined &&
+                  playback_position !== null && {
+                    playback_position: String(playback_position),
+                  }),
+                ...(media_file_duration !== undefined &&
+                  media_file_duration !== null && {
+                    media_file_duration: String(media_file_duration),
+                  }),
+              };
 
               try {
                 const queueResource =
                   await QueueResourceItemAddByRSSController.queueResourceService.addItemAddByRSSToNowPlaying(
                     queue_id_text,
-                    add_by_rss_resource_data
+                    add_by_rss_resource_data,
+                    params
                   );
                 res.status(201).json(queueResource);
               } catch (err) {
@@ -159,13 +171,31 @@ class QueueResourceItemAddByRSSController {
           async () => {
             verifyQueueOwnership()(req, res, async () => {
               const queue_id_text = getParamRequired(req, 'queue_id_text');
-              const { add_by_rss_resource_data } = req.body;
+              const {
+                add_by_rss_resource_data,
+                completed,
+                playback_position,
+                media_file_duration,
+              } = req.body;
+
+              const params = {
+                ...(completed !== undefined && { completed }),
+                ...(playback_position !== undefined &&
+                  playback_position !== null && {
+                    playback_position: String(playback_position),
+                  }),
+                ...(media_file_duration !== undefined &&
+                  media_file_duration !== null && {
+                    media_file_duration: String(media_file_duration),
+                  }),
+              };
 
               try {
                 const queueResource =
                   await QueueResourceItemAddByRSSController.queueResourceService.addItemAddByRSSToHistory(
                     queue_id_text,
-                    add_by_rss_resource_data
+                    add_by_rss_resource_data,
+                    params
                   );
                 res.status(201).json(queueResource);
               } catch (err) {

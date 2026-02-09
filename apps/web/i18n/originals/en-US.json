@@ -409,6 +409,7 @@
     "login_required": "Login Required",
     "login_for_subscriptions": "Please login to view your subscriptions.",
     "login_to_create_playlists": "Please login to create playlists.",
+    "no_playlists_created": "You do not have any playlists yet. Create one to get started.",
     "login_to_create_clips": "Please login to create clips.",
     "login_for_queues": "Please login to view your queues.",
     "login_for_history": "Please login to view your history.",
