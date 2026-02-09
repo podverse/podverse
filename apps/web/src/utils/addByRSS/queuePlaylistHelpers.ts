@@ -1,6 +1,8 @@
 /**
  * Add-by-RSS queue and playlist: build minimal hash input and full resource
- * payload for API. Same resource => same add_by_rss_hash_id (matches backend 01a).
+ * payload for API. Same resource => same add_by_rss_hash_id (matches backend).
+ *
+ * Hash uses channel_id_text + guid (primary) or channel_id_text + enclosure_url (fallback).
  */
 
 import { getAddByRSSHashId as getAddByRSSHashIdFromHelpers } from '@podverse/helpers';
@@ -12,9 +14,6 @@ type AddByRSSResourceDataImageEntry = {
   url: string;
   image_width_size: number | null;
 };
-
-/** Minimal hash input keys in fixed order (snake_case to match backend). */
-const HASH_KEYS = ['channel_id_text', 'guid', 'title', 'pub_date', 'start_time'] as const;
 
 function toIsoString(ms: number): string {
   return ms > 1e12 ? new Date(ms).toISOString() : new Date(ms * 1000).toISOString();
@@ -48,25 +47,48 @@ function getTitleFromEpisodeItem(
 }
 
 /**
- * Build minimal hash input from an index item (fixed key order, string values only).
- * Used so client hash matches backend getAddByRSSHashId(extractAddByRSSHashInput(payload)).
+ * Extract enclosure URL from an index item.
+ * For episodes: bundle.enclosures[0].item_enclosure_sources[0].uri
+ * For livestreams: item.enclosure.url
+ */
+function getEnclosureUrl(item: AddByRSSItemIndexItem | AddByRSSLivestreamIndexItem): string {
+  if ('bundle' in item && item.bundle?.enclosures?.length) {
+    const enc = item.bundle.enclosures[0];
+    const uri = enc?.item_enclosure_sources?.[0]?.uri;
+    return typeof uri === 'string' ? uri.trim() : '';
+  }
+  if ('item' in item && item.item?.enclosure) {
+    const url = item.item.enclosure.url;
+    return typeof url === 'string' ? url.trim() : '';
+  }
+  return '';
+}
+
+/**
+ * Build minimal hash input from an index item.
+ * Uses channel_id_text + guid (primary) or channel_id_text + enclosure_url (fallback).
+ * Must match backend extractAddByRSSHashInput logic.
  */
 export function buildAddByRSSHashInput(
   item: AddByRSSItemIndexItem | AddByRSSLivestreamIndexItem
 ): Record<string, string> {
-  const channel_id_text = item.channelIdText?.trim() ?? '';
-  const guid = item.itemGuid?.trim() ?? '';
-  const title = getTitleFromEpisodeItem(item);
-  const pub_date = 'pubDateMs' in item ? toIsoString(item.pubDateMs) : '';
-
   const out: Record<string, string> = {};
-  if (channel_id_text) out[HASH_KEYS[0]] = channel_id_text;
-  if (guid) out[HASH_KEYS[1]] = guid;
-  if (title) out[HASH_KEYS[2]] = title;
-  if (pub_date) out[HASH_KEYS[3]] = pub_date;
 
-  if ('startTimeMs' in item && item.startTimeMs !== null && item.startTimeMs !== undefined) {
-    out[HASH_KEYS[4]] = toIsoString(item.startTimeMs);
+  const channel_id_text = item.channelIdText?.trim() ?? '';
+  if (channel_id_text) {
+    out['channel_id_text'] = channel_id_text;
+  }
+
+  const guid = item.itemGuid?.trim() ?? '';
+  if (guid) {
+    // Primary: channel_id_text + guid
+    out['guid'] = guid;
+  } else {
+    // Fallback: channel_id_text + enclosure_url (if no guid)
+    const enclosure_url = getEnclosureUrl(item);
+    if (enclosure_url) {
+      out['enclosure_url'] = enclosure_url;
+    }
   }
 
   return out;

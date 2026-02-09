@@ -33,40 +33,19 @@ export function usePlayAddByRSS() {
   const { queues } = useQueues();
   const { loggedInAccount } = useAccount();
 
-  return async (indexItem: AddByRSSItemIndexItem | AddByRSSLivestreamIndexItem) => {
+  return (indexItem: AddByRSSItemIndexItem | AddByRSSLivestreamIndexItem) => {
     const resourceData = buildAddByRSSResourceData(indexItem);
     const idText = indexItem.idText ?? '';
 
-    let restorePosition = 0;
     const mediumId = indexItem.mediumId ?? null;
     const queue =
       loggedInAccount && mediumId !== null && mediumId !== undefined
         ? getQueueForMedium(queues, mediumId)
         : null;
 
-    if (queue?.id_text) {
-      try {
-        const nowPlaying = await apiRequestService.reqQueueResourcesGetNowPlayingByQueueIdText(
-          queue.id_text
-        );
-        const hash = getAddByRSSHashId(indexItem);
-        if (
-          nowPlaying?.add_by_rss_hash_id !== null &&
-          nowPlaying?.add_by_rss_hash_id !== undefined &&
-          nowPlaying.add_by_rss_hash_id === hash &&
-          nowPlaying.playback_position !== null &&
-          nowPlaying.playback_position !== undefined
-        ) {
-          const p = parseFloat(nowPlaying.playback_position);
-          if (!Number.isNaN(p) && p >= 0) {
-            restorePosition = p;
-          }
-        }
-      } catch {
-        // Best-effort restore; use 0
-      }
-    }
-
+    // Set state immediately so the media player effect runs while the user gesture is still
+    // valid. Browsers require a recent user gesture to allow media.play(); awaiting the API
+    // before setState delays the effect and causes play() to be blocked (NotAllowedError).
     setAutoQueueResources({});
     setAutoQueueActiveRow(0);
 
@@ -87,18 +66,42 @@ export function usePlayAddByRSS() {
 
     const duration = typeof resourceData.duration === 'number' ? resourceData.duration : 0;
     setMPDuration(duration);
-    setMPCurrentTime(restorePosition);
+    setMPCurrentTime(0);
     setMPShouldPlay(true);
 
+    // Restore position and sync to API after state is set so playback can start without delay.
     if (queue?.id_text) {
-      apiRequestService
-        .reqQueueResourceItemAddByRSSAddNowPlaying(queue.id_text, {
-          add_by_rss_resource_data: resourceData,
-          playback_position: String(restorePosition),
-        })
-        .catch(() => {
-          // Fire-and-forget; queue sync is best-effort
-        });
+      (async () => {
+        let playbackPosition = 0;
+        try {
+          const nowPlaying = await apiRequestService.reqQueueResourcesGetNowPlayingByQueueIdText(
+            queue.id_text
+          );
+          const hash = getAddByRSSHashId(indexItem);
+          if (
+            nowPlaying?.add_by_rss_hash_id !== null &&
+            nowPlaying?.add_by_rss_hash_id !== undefined &&
+            nowPlaying.add_by_rss_hash_id === hash &&
+            nowPlaying.playback_position !== null
+          ) {
+            const p = parseFloat(String(nowPlaying.playback_position));
+            if (!Number.isNaN(p) && p >= 0) {
+              playbackPosition = p;
+              setMPCurrentTime(p);
+            }
+          }
+        } catch {
+          // Best-effort restore; keep 0
+        }
+        apiRequestService
+          .reqQueueResourceItemAddByRSSAddNowPlaying(queue.id_text, {
+            add_by_rss_resource_data: resourceData,
+            playback_position: String(playbackPosition),
+          })
+          .catch(() => {
+            // Fire-and-forget; queue sync is best-effort
+          });
+      })();
     }
   };
 }

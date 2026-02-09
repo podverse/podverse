@@ -407,7 +407,47 @@ export class QueueResourceService extends BaseManyService<QueueResource, 'queue'
       });
     }
 
+    // Set this queue as the active queue (clear any other active queues for this account)
+    await this._setQueueAsActiveTransactional(manager, queue);
+
     return await manager.save(queueResource);
+  }
+
+  /**
+   * Sets the given queue as the active queue for its account.
+   * Clears is_active_queue on any other queues for the same account.
+   */
+  private async _setQueueAsActiveTransactional(
+    manager: EntityManager,
+    queue: { id: number }
+  ): Promise<void> {
+    // Get the queue with account relation to find the account_id
+    const fullQueue = await manager.findOne('Queue', {
+      where: { id: queue.id },
+      relations: ['account'],
+    });
+
+    if (!fullQueue || !(fullQueue as any).account?.id) {
+      return; // Cannot set active queue without account
+    }
+
+    const accountId = (fullQueue as any).account.id;
+
+    // Clear is_active_queue on all queues for this account using query builder
+    await manager
+      .createQueryBuilder()
+      .update('Queue')
+      .set({ is_active_queue: false })
+      .where('account_id = :accountId AND is_active_queue = true', { accountId })
+      .execute();
+
+    // Set this queue as active
+    await manager
+      .createQueryBuilder()
+      .update('Queue')
+      .set({ is_active_queue: true })
+      .where('id = :id', { id: queue.id })
+      .execute();
   }
 
   private async moveQueueResourceToHistoryByIdTransactional(
@@ -796,20 +836,75 @@ export class QueueResourceService extends BaseManyService<QueueResource, 'queue'
     queue_id_text: string,
     add_by_rss_resource_data: object
   ): Promise<QueueResource> {
-    const queue = await this.queueService.getByIdText(queue_id_text);
+    const lock = this.getQueueLock(queue_id_text);
+    return lock.runExclusive(async () => {
+      return await this.repositoryReadWrite.manager.transaction(async (manager) => {
+        return this._addItemAddByRSSToNowPlayingTransactional(
+          manager,
+          queue_id_text,
+          add_by_rss_resource_data
+        );
+      });
+    });
+  }
+
+  private async _addItemAddByRSSToNowPlayingTransactional(
+    manager: EntityManager,
+    queue_id_text: string,
+    add_by_rss_resource_data: object
+  ): Promise<QueueResource> {
+    const queue = (await manager.findOne('Queue', { where: { id_text: queue_id_text } })) as any;
     if (!queue) {
       throw new Error('Queue not found.');
     }
 
     const add_by_rss_hash_id = getAddByRSSHashId(add_by_rss_resource_data);
 
-    const finalDto = {
-      add_by_rss_resource_data,
-      list_position: '0',
-      add_by_rss_hash_id,
-    };
+    const existingNowPlaying = (await manager.findOne(QueueResource, {
+      where: { queue: { id: queue.id }, list_position: Between(-epsilon, epsilon) as any },
+    })) as QueueResource | null;
 
-    return this._update(queue, ['queue', 'add_by_rss_hash_id'], finalDto);
+    // Always move current now-playing to history so position 0 is free. Avoids violating
+    // UNIQUE (queue_id, list_position) when we insert/update below.
+    if (existingNowPlaying) {
+      await this.moveQueueResourceToHistoryByIdTransactional(
+        manager,
+        queue_id_text,
+        existingNowPlaying.id
+      );
+    }
+
+    let queueResource = await manager.findOne(QueueResource, {
+      where: { queue: { id: queue.id }, add_by_rss_hash_id },
+    });
+
+    // If the only matching row is the one we just moved to history (same hash: replay),
+    // update that row back to now-playing to avoid violating UNIQUE (queue_id, add_by_rss_hash_id).
+    const isMovedRow = existingNowPlaying && queueResource?.id === existingNowPlaying.id;
+
+    if (isMovedRow && queueResource) {
+      Object.assign(queueResource, {
+        add_by_rss_resource_data,
+        list_position: '0',
+      });
+    } else if (!queueResource) {
+      queueResource = manager.create(QueueResource, {
+        queue,
+        add_by_rss_resource_data,
+        add_by_rss_hash_id,
+        list_position: '0',
+      });
+    } else {
+      Object.assign(queueResource, {
+        add_by_rss_resource_data,
+        list_position: '0',
+      });
+    }
+
+    // Set this queue as the active queue (clear any other active queues for this account)
+    await this._setQueueAsActiveTransactional(manager, queue);
+
+    return manager.save(queueResource);
   }
 
   async addItemAddByRSSToHistory(

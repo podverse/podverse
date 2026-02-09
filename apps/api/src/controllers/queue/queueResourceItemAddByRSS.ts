@@ -1,6 +1,5 @@
 import type { Request, Response } from 'express';
 import Joi from 'joi';
-import { queueResourceNowPlayingSchema } from './queueResourceItem.js';
 import { QueueResourceService } from '@podverse/orm';
 import { handleGenericErrorResponse } from '@api/controllers/helpers/error.js';
 import { ensureAuthenticated } from '@api/lib/auth/index.js';
@@ -12,6 +11,13 @@ import {
   validateParamsObject,
 } from '@api/lib/validation/index.js';
 import { getParamRequired } from '@api/lib/params.js';
+
+const queueResourceAddByRSSNowPlayingBodySchema = Joi.object({
+  add_by_rss_resource_data: Joi.object().required(),
+  playback_position: Joi.number().min(0).optional(),
+  media_file_duration: Joi.number().min(0).optional(),
+  completed: Joi.boolean().optional(),
+}).required();
 
 class QueueResourceItemAddByRSSController {
   private static queueResourceService = new QueueResourceService();
@@ -117,34 +123,20 @@ class QueueResourceItemAddByRSSController {
 
   static async addItemAddByRSSToNowPlaying(req: Request, res: Response): Promise<void> {
     validateParamsObject(Joi.object(queueIdTextParamSchema), req, res, async () => {
-      validateBodyObject(queueResourceNowPlayingSchema, req, res, async () => {
+      validateBodyObject(queueResourceAddByRSSNowPlayingBodySchema, req, res, async () => {
         ensureAuthenticated(
           req,
           res,
           async () => {
             verifyQueueOwnership()(req, res, async () => {
               const queue_id_text = getParamRequired(req, 'queue_id_text');
-              const {
-                add_by_rss_resource_data,
-                playback_position,
-                media_file_duration,
-                completed,
-              } = req.body;
-
-              const dto = {
-                add_by_rss_resource_data,
-                ...(playback_position || playback_position === 0 ? { playback_position } : {}),
-                ...(media_file_duration || media_file_duration === 0
-                  ? { media_file_duration }
-                  : {}),
-                ...(completed ? { completed } : {}),
-              };
+              const { add_by_rss_resource_data } = req.body;
 
               try {
                 const queueResource =
                   await QueueResourceItemAddByRSSController.queueResourceService.addItemAddByRSSToNowPlaying(
                     queue_id_text,
-                    dto
+                    add_by_rss_resource_data
                   );
                 res.status(201).json(queueResource);
               } catch (err) {
@@ -160,34 +152,20 @@ class QueueResourceItemAddByRSSController {
 
   static async addItemAddByRSSToHistory(req: Request, res: Response): Promise<void> {
     validateParamsObject(Joi.object(queueIdTextParamSchema), req, res, async () => {
-      validateBodyObject(queueResourceNowPlayingSchema, req, res, async () => {
+      validateBodyObject(queueResourceAddByRSSNowPlayingBodySchema, req, res, async () => {
         ensureAuthenticated(
           req,
           res,
           async () => {
             verifyQueueOwnership()(req, res, async () => {
               const queue_id_text = getParamRequired(req, 'queue_id_text');
-              const {
-                add_by_rss_resource_data,
-                playback_position,
-                media_file_duration,
-                completed,
-              } = req.body;
-
-              const dto = {
-                add_by_rss_resource_data,
-                ...(playback_position || playback_position === 0 ? { playback_position } : {}),
-                ...(media_file_duration || media_file_duration === 0
-                  ? { media_file_duration }
-                  : {}),
-                ...(completed ? { completed } : {}),
-              };
+              const { add_by_rss_resource_data } = req.body;
 
               try {
                 const queueResource =
                   await QueueResourceItemAddByRSSController.queueResourceService.addItemAddByRSSToHistory(
                     queue_id_text,
-                    dto
+                    add_by_rss_resource_data
                   );
                 res.status(201).json(queueResource);
               } catch (err) {

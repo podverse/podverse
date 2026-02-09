@@ -2,11 +2,12 @@
 
 import { getQueueForMedium } from '@podverse/helpers';
 import { useTranslations } from 'next-intl';
+import { useRouter } from 'next/navigation';
 import React from 'react';
 
 import { stripAndDecodeHtml } from '@podverse/helpers';
-import { MoreButton } from '../../../../MoreButton/MoreButton';
 import { CommonTrackRow } from '../../../../Common/Artist/Album/Track/CommonTrackRow';
+import { MoreButton } from '../../../../MoreButton/MoreButton';
 import { getAddByRSSItemPath } from '../../../../../utils/addByRSS/itemPath';
 import {
   buildAddByRSSResourceData,
@@ -19,6 +20,7 @@ import type {
 import type { AddByRSSListContextState } from '../../../../../contexts/AddByRSSListContext';
 import { useAccount } from '../../../../../contexts/Account';
 import { useAddByRSSListContext } from '../../../../../contexts/AddByRSSListContext';
+import { useMediaPlayer } from '../../../../../contexts/MediaPlayer';
 import { useModals } from '../../../../../contexts/Modals';
 import { useQueues } from '../../../../../contexts/Queue';
 import { apiRequestService } from '../../../../../factories/apiRequestService';
@@ -54,6 +56,7 @@ export const AddByRSSTrackRow: React.FC<AddByRSSTrackRowProps> = ({
   const { loggedInAccount } = useAccount();
   const { setModalPlaylistAddTo, setModalLoginRequired } = useModals();
   const { setAddByRSSListContext } = useAddByRSSListContext();
+  const { mpAddByRSS, mpIsPlaying, setMPIsPlaying } = useMediaPlayer();
   const { queues } = useQueues();
   const playAddByRSS = usePlayAddByRSS();
   const title = bundle.item.title ?? tMedia('music.track_image');
@@ -131,19 +134,35 @@ export const AddByRSSTrackRow: React.FC<AddByRSSTrackRowProps> = ({
     );
   };
 
-  const onPlay = indexItem
-    ? () => {
-        if (listContextProp) {
-          setAddByRSSListContext(listContextProp);
-        }
-        playAddByRSS(indexItem);
-      }
-    : alertPlaceholder(tMediaPlayer('play'));
+  const router = useRouter();
+
+  const playButtonOnClick = () => {
+    if (!indexItem) {
+      alertPlaceholder(tMediaPlayer('play'))();
+      return;
+    }
+    if (indexItem.idText === mpAddByRSS?.idText) {
+      setMPIsPlaying(!mpIsPlaying);
+      return;
+    }
+    if (listContextProp) {
+      setAddByRSSListContext(listContextProp);
+    }
+    playAddByRSS(indexItem);
+  };
+
+  const goToTrackPage = () => {
+    router.push(url);
+  };
 
   const moreButtonMenuItems = [
     {
       label: tMediaPlayer('play'),
-      onClick: onPlay,
+      onClick: playButtonOnClick,
+    },
+    {
+      label: tMedia('music.track_go_to'),
+      onClick: goToTrackPage,
     },
     {
       label: tFeatures('queue.queue_next'),
@@ -177,7 +196,7 @@ export const AddByRSSTrackRow: React.FC<AddByRSSTrackRowProps> = ({
 
   return (
     <CommonTrackRow
-      href={url}
+      onClick={playButtonOnClick}
       title={title}
       subtitle={description}
       imageUrl={imageUrl}

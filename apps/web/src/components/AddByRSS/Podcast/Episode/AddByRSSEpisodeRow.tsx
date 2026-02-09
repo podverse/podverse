@@ -7,6 +7,7 @@ import React from 'react';
 
 import { stripAndDecodeHtml } from '@podverse/helpers';
 import { ImagesPerView } from '../../../Image/ImagesPerView';
+import { PlayButtonRow } from '../../../MediaPlayer/Buttons/PlayButtonRow';
 import { MoreButton } from '../../../MoreButton/MoreButton';
 import { ReadableDate } from '../../../Time/ReadableDate';
 import { IMAGES } from '../../../../constants/images';
@@ -20,6 +21,7 @@ import type { AddByRSSMappedFeed, AddByRSSItemIndexItem } from '../../../../util
 import type { AddByRSSListContextState } from '../../../../contexts/AddByRSSListContext';
 import { useAccount } from '../../../../contexts/Account';
 import { useAddByRSSListContext } from '../../../../contexts/AddByRSSListContext';
+import { useMediaPlayer } from '../../../../contexts/MediaPlayer';
 import { useModals } from '../../../../contexts/Modals';
 import { useQueues } from '../../../../contexts/Queue';
 import { apiRequestService } from '../../../../factories/apiRequestService';
@@ -55,6 +57,7 @@ export const AddByRSSEpisodeRow: React.FC<AddByRSSEpisodeRowProps> = ({
   const { loggedInAccount } = useAccount();
   const { setModalPlaylistAddTo, setModalLoginRequired } = useModals();
   const { setAddByRSSListContext } = useAddByRSSListContext();
+  const { mpAddByRSS, mpIsPlaying, setMPIsPlaying } = useMediaPlayer();
   const { queues } = useQueues();
   const playAddByRSS = usePlayAddByRSS();
   const title = bundle.item.title ?? tMedia('podcast.episode_image');
@@ -132,19 +135,25 @@ export const AddByRSSEpisodeRow: React.FC<AddByRSSEpisodeRowProps> = ({
     );
   };
 
-  const onPlay = indexItem
-    ? () => {
-        if (listContextProp) {
-          setAddByRSSListContext(listContextProp);
-        }
-        playAddByRSS(indexItem);
-      }
-    : alertPlaceholder(tMediaPlayer('play'));
+  const playButtonOnClick = () => {
+    if (!indexItem) {
+      alertPlaceholder(tMediaPlayer('play'))();
+      return;
+    }
+    if (indexItem.idText === mpAddByRSS?.idText) {
+      setMPIsPlaying(!mpIsPlaying);
+      return;
+    }
+    if (listContextProp) {
+      setAddByRSSListContext(listContextProp);
+    }
+    playAddByRSS(indexItem);
+  };
 
   const moreButtonMenuItems = [
     {
       label: tMediaPlayer('play'),
-      onClick: onPlay,
+      onClick: playButtonOnClick,
     },
     {
       label: tFeatures('queue.queue_next'),
@@ -198,6 +207,11 @@ export const AddByRSSEpisodeRow: React.FC<AddByRSSEpisodeRowProps> = ({
         </Link>
         <div className={styles.bottomSection}>
           <div className={styles.bottomSectionStart}>
+            <PlayButtonRow
+              item={null}
+              addByRSSIdText={indexItem?.idText ?? undefined}
+              onClick={playButtonOnClick}
+            />
             <div className={styles.timeSection}>
               {bundle.item.pub_date ? (
                 <ReadableDate

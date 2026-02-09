@@ -82,8 +82,8 @@ export const MediaPlayerController: React.FC = () => {
   });
 
   useEffect(() => {
-    updateLayoutForMediaPlayer(!!mpChannel);
-  }, [mpChannel]);
+    updateLayoutForMediaPlayer(!!mpChannel || !!mpAddByRSS);
+  }, [mpChannel, mpAddByRSS]);
 
   useEffect(() => {
     const fetchItemChapters = async () => {

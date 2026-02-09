@@ -56,7 +56,7 @@ export interface MediaPlayerControllerAVProps {
   setMPCurrentTime: (time: number) => void;
   updateNowPlaying: (args: UpdateNowPlayingParams) => void;
   moveNowPlayingToHistory: (params: MoveNowPlayingToHistoryCallbackParams) => Promise<void>;
-  queueResourcesLoadActive: () => Promise<number>;
+  queueResourcesLoadActive: (medium_id?: number) => Promise<number>;
   queueResourcesAbridgedIndex: QueueResourcesAbridgedIndex;
   /** When add-by-RSS is now playing, called to save position (e.g. every 15s and on pause). */
   onAddByRSSPositionSave?: (positionSeconds: number) => void;
@@ -189,16 +189,20 @@ export const MediaPlayerControllerAV: React.FC<MediaPlayerControllerAVProps> = (
     if (mediaType === 'video' && mediumId !== MediumEnum.Video) return;
 
     const enclosureUrl = mpAddByRSS.resourceData.enclosure_url;
-    if (typeof enclosureUrl === 'string' && enclosureUrl.trim() !== '') {
-      const seekTime = typeof mpCurrentTime === 'number' && mpCurrentTime >= 0 ? mpCurrentTime : 0;
-      media.currentTime = seekTime;
-      media.src = enclosureUrl;
+    if (typeof enclosureUrl !== 'string' || enclosureUrl.trim() === '') return;
+
+    const url = enclosureUrl.trim();
+    const seekTime = typeof mpCurrentTime === 'number' && mpCurrentTime >= 0 ? mpCurrentTime : 0;
+    media.currentTime = seekTime;
+    // Only set src/load if not already set (e.g. declarative src from JSX may already match).
+    if (media.src !== url) {
+      media.src = url;
       media.load();
-      if (mpShouldPlayRef.current) {
-        playMediaWhenReady(media, () => setMPShouldPlay(false));
-      }
     }
-  }, [mpAddByRSS, mediaType]);
+    if (mpShouldPlay) {
+      playMediaWhenReady(media, () => setMPShouldPlay(false));
+    }
+  }, [mpAddByRSS, mediaType, mpShouldPlay, mpCurrentTime]);
 
   useEffect(() => {
     if (mpAddByRSS) return;
@@ -349,6 +353,7 @@ export const MediaPlayerControllerAV: React.FC<MediaPlayerControllerAVProps> = (
         playbackElapsedRef.current = 0;
         lastPlaybackTimeRef.current = newCurrentTime;
       }
+      setMPIsPlaying(true);
     };
 
     const handlePause = () => {
@@ -367,6 +372,7 @@ export const MediaPlayerControllerAV: React.FC<MediaPlayerControllerAVProps> = (
         playbackElapsedRef.current = 0;
         lastPlaybackTimeRef.current = null;
       }
+      setMPIsPlaying(false);
     };
 
     const handleTimeUpdate = () => {
@@ -464,12 +470,21 @@ export const MediaPlayerControllerAV: React.FC<MediaPlayerControllerAVProps> = (
       const onAddByRSSPlayNextFn = onAddByRSSPlayNextRef.current;
       if (mpAddByRSSRef.current && onAddByRSSEndedFn) {
         const positionSeconds = media.currentTime;
+        // Capture medium_id before potentially clearing mpAddByRSS so we can find the correct queue
+        const medium_id =
+          typeof mpAddByRSSRef.current.resourceData?.medium_id === 'number'
+            ? mpAddByRSSRef.current.resourceData.medium_id
+            : undefined;
         await onAddByRSSEndedFn(positionSeconds);
-        setMPAddByRSS(null);
         setMPShouldPlay(false);
-        const upcomingCount = await queueResourcesLoadActive();
-        if (upcomingCount === 0 && onAddByRSSPlayNextFn) {
-          await onAddByRSSPlayNextFn();
+        const upcomingCount = await queueResourcesLoadActive(medium_id);
+        // Only clear mpAddByRSS if there are no more items in the queue.
+        // If there's a next item, playAddByRSS will update it directly (avoiding a flicker).
+        if (upcomingCount === 0) {
+          setMPAddByRSS(null);
+          if (onAddByRSSPlayNextFn) {
+            await onAddByRSSPlayNextFn();
+          }
         }
         return;
       }
@@ -582,7 +597,17 @@ export const MediaPlayerControllerAV: React.FC<MediaPlayerControllerAVProps> = (
     playWhenReady();
   }, [mpClip, mpItemChapter, mpItemSoundbite]);
 
-  const sourceUri = selectedItemEnclosureAndSource?.source?.uri ?? undefined;
+  const addByRSSEnclosureUrl =
+    mpAddByRSS?.resourceData &&
+    typeof mpAddByRSS.resourceData.enclosure_url === 'string' &&
+    mpAddByRSS.resourceData.enclosure_url.trim() !== ''
+      ? (mediaType === 'audio' && mpAddByRSS.resourceData.medium_id !== MediumEnum.Video) ||
+        (mediaType === 'video' && mpAddByRSS.resourceData.medium_id === MediumEnum.Video)
+        ? mpAddByRSS.resourceData.enclosure_url.trim()
+        : undefined
+      : undefined;
+  const sourceUri =
+    addByRSSEnclosureUrl ?? selectedItemEnclosureAndSource?.source?.uri ?? undefined;
 
   if (mediaType === 'audio') {
     return (
