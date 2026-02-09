@@ -1,6 +1,14 @@
 import type { AddByRSSParseStatus } from '@podverse/helpers';
-import type { ParsedRSSFeedCompatBundle } from '@podverse/parser-mapping';
 import type { ParseRSSFeedForAddByRSSResult } from '@podverse/parser';
+
+// Re-export shared types from parser-mapping
+export type {
+  AddByRSSItemIndexItem,
+  AddByRSSLivestreamIndexItem,
+  AddByRSSMappedFeed,
+} from '@podverse/parser-mapping';
+
+import type { AddByRSSMappedFeed } from '@podverse/parser-mapping';
 
 export type AddByRSSResourceType =
   | 'podcasts'
@@ -13,7 +21,6 @@ export type AddByRSSResourceType =
 type ParsedFeedResult = Extract<ParseRSSFeedForAddByRSSResult, { status: 'parsed' }>;
 
 export type AddByRSSParsedFeed = ParsedFeedResult['parsedFeed'];
-export type AddByRSSMappedFeed = ParsedRSSFeedCompatBundle;
 
 export type AddByRSSCache = {
   feedHash?: string;
@@ -33,29 +40,4 @@ export type AddByRSSFeedRecord = {
   mappedFeed?: AddByRSSMappedFeed;
   lastParsedAt?: string | null;
   updatedAt: string;
-};
-
-export type AddByRSSItemIndexItem = {
-  id: string;
-  idText: string;
-  itemGuid: string;
-  channelIdText: string;
-  channelTitle: string;
-  channelImageUrl?: string;
-  mediumId: number | null;
-  bundle: AddByRSSMappedFeed['items'][number];
-  pubDateMs: number;
-};
-
-export type AddByRSSLivestreamIndexItem = {
-  id: string;
-  idText: string;
-  itemGuid: string;
-  channelIdText: string;
-  channelTitle: string;
-  channelImageUrl?: string;
-  mediumId: number | null;
-  liveItem: AddByRSSMappedFeed['liveItems'][number]['liveItem'];
-  item: AddByRSSMappedFeed['liveItems'][number]['item'];
-  startTimeMs: number;
 };

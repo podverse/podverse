@@ -40,6 +40,7 @@ interface ListItemSoundbiteProps {
   isEditModePlaylist?: boolean;
   removeFromPlaylist?: () => void;
   playlist_id_text: string | null;
+  onPlayAndRemove?: () => void;
 }
 
 export const ListItemSoundbiteRow: React.FC<ListItemSoundbiteProps> = ({
@@ -53,6 +54,7 @@ export const ListItemSoundbiteRow: React.FC<ListItemSoundbiteProps> = ({
   isEditModePlaylist,
   removeFromPlaylist,
   playlist_id_text,
+  onPlayAndRemove,
 }) => {
   const url = `${ROUTES.OFFICIAL_CLIP}/${item_soundbite.id_text}`;
 
@@ -276,27 +278,43 @@ export const ListItemSoundbiteRow: React.FC<ListItemSoundbiteProps> = ({
         heightMobile={IMAGES.LIST.CLIPS.SIZE}
         classNameDesktop={styles.image}
         classNameMobile={styles.imageMobile}
-        href={url}
+        href={onPlayAndRemove ? undefined : url}
+        onClick={onPlayAndRemove}
       />
       <div className={styles.content}>
-        <Link href={url}>
-          <div className={styles.topSection}>
-            <h3 className={styles.clipTitle}>{itemSoundbiteTitle}</h3>
-            {(showChannelInfo || showItemInfo) && (
-              <div className={styles.subtitle}>
-                {showChannelInfo && channelTitle}
-                {showChannelInfo && showItemInfo && ' • '}
-                {showItemInfo && itemTitle}
-              </div>
-            )}
-          </div>
-        </Link>
+        {onPlayAndRemove ? (
+          <button type="button" className={styles.clickableTopSection} onClick={onPlayAndRemove}>
+            <div className={styles.topSection}>
+              <h3 className={styles.clipTitle}>{itemSoundbiteTitle}</h3>
+              {(showChannelInfo || showItemInfo) && (
+                <div className={styles.subtitle}>
+                  {showChannelInfo && channelTitle}
+                  {showChannelInfo && showItemInfo && ' • '}
+                  {showItemInfo && itemTitle}
+                </div>
+              )}
+            </div>
+          </button>
+        ) : (
+          <Link href={url}>
+            <div className={styles.topSection}>
+              <h3 className={styles.clipTitle}>{itemSoundbiteTitle}</h3>
+              {(showChannelInfo || showItemInfo) && (
+                <div className={styles.subtitle}>
+                  {showChannelInfo && channelTitle}
+                  {showChannelInfo && showItemInfo && ' • '}
+                  {showItemInfo && itemTitle}
+                </div>
+              )}
+            </div>
+          </Link>
+        )}
         <div className={styles.bottomSection}>
           <div className={styles.bottomSectionStart}>
             <PlayButtonRow
               item_soundbite={item_soundbite}
               item={item || item_soundbite.item || null}
-              onClick={playButtonOnClick}
+              onClick={onPlayAndRemove ?? playButtonOnClick}
             />
             <div className={styles.timeSection}>
               {showItemInfo && (

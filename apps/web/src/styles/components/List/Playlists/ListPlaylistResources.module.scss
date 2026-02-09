@@ -9,7 +9,7 @@
 }
 
 .listTracks {
-  @include flexColumn(var(--spacing-lg));
+  @include flexColumn(var(--spacing-xl));
 }
 
 .row {

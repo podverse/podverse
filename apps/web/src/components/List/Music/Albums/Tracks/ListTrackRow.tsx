@@ -38,6 +38,7 @@ interface Props {
   isEditModePlaylist?: boolean;
   removeFromPlaylist?: () => void;
   playlist_id_text: string | null;
+  onPlayAndRemove?: () => void;
 }
 
 export const ListTrackRow: React.FC<Props> = ({
@@ -49,6 +50,7 @@ export const ListTrackRow: React.FC<Props> = ({
   isEditModePlaylist,
   removeFromPlaylist,
   playlist_id_text,
+  onPlayAndRemove,
 }) => {
   const router = useRouter();
   const url = `${ROUTES.TRACK}/${item.id_text}`;
@@ -245,7 +247,11 @@ export const ListTrackRow: React.FC<Props> = ({
           <FaGripLines />
         </div>
       )}
-      <Button variant="unstyled" onClick={playButtonOnClick} className={styles.trackClickable}>
+      <Button
+        variant="unstyled"
+        onClick={onPlayAndRemove ?? playButtonOnClick}
+        className={styles.trackClickable}
+      >
         <ImagesPerView
           src={item_image?.url || channel_image?.url}
           alt={item.title || tMedia('music.track_image')}

@@ -34,6 +34,14 @@
   gap: 0.375rem; // Keep specific value for content spacing
 }
 
+.clickableTopSection {
+  all: unset;
+  cursor: pointer;
+  display: block;
+  width: 100%;
+  text-align: left;
+}
+
 .clipTitle {
   @include line-clamp(3);
 }

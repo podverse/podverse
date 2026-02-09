@@ -9,9 +9,13 @@
 }
 
 .listTracks {
-  @include flexColumn(var(--spacing-lg));
+  @include flexColumn(var(--spacing-xl));
 }
 
-.queueList {
-  @include flexColumn(var(--spacing-2xl));
+.queueListAV {
+  @include flexColumn(1.25rem);
+}
+
+.queueListMusic {
+  @include flexColumn(1.25rem);
 }

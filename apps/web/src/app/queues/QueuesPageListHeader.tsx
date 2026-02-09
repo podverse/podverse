@@ -26,7 +26,9 @@ export const QueuesPageListHeader: React.FC = () => {
   return (
     <ListHeader
       belowButtons={
-        <ButtonTabs buttonTabs={belowButtons} selectedKey={filterParams.medium ?? 'av'} />
+        <div>
+          <ButtonTabs buttonTabs={belowButtons} selectedKey={filterParams.medium ?? 'av'} />
+        </div>
       }
     />
   );

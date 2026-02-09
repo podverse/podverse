@@ -158,6 +158,17 @@ export function buildAddByRSSResourceData(
     payload.duration = enc.length ?? null;
   }
 
+  // Store full item data for cross-device access (when IndexedDB is unavailable)
+  if ('bundle' in item && item.bundle) {
+    payload.bundle = item.bundle;
+  }
+  if ('liveItem' in item && item.liveItem) {
+    payload.liveItem = item.liveItem;
+  }
+  if ('item' in item && item.item) {
+    payload.livestream_item = item.item;
+  }
+
   return payload;
 }
 

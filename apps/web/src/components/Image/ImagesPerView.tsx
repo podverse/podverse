@@ -15,6 +15,7 @@ type ImagesPerViewProps = {
   classNameDesktop?: string;
   classNameMobile?: string;
   href?: string;
+  onClick?: () => void;
 };
 
 export const ImagesPerView: React.FC<ImagesPerViewProps> = ({
@@ -27,6 +28,7 @@ export const ImagesPerView: React.FC<ImagesPerViewProps> = ({
   classNameDesktop,
   classNameMobile,
   href,
+  onClick,
 }) => {
   const images = (
     <>
@@ -52,6 +54,14 @@ export const ImagesPerView: React.FC<ImagesPerViewProps> = ({
       <Link href={href} tabIndex={-1}>
         {images}
       </Link>
+    );
+  }
+
+  if (onClick) {
+    return (
+      <button type="button" onClick={onClick} tabIndex={-1} style={{ cursor: 'pointer' }}>
+        {images}
+      </button>
     );
   }
 
