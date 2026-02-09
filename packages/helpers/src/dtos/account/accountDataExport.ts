@@ -1,3 +1,5 @@
+import type { AddByRSSResourceData } from '../addByRSSResourceData.js';
+
 export interface DTOAccountDataExportMinimalFeed {
   url: string;
 }
@@ -35,7 +37,7 @@ export interface DTOAccountDataExportPlaylistResource {
   clip?: DTOAccountDataExportMinimalClip | null;
   item_soundbite?: DTOAccountDataExportItemSoundbite | null;
   add_by_rss_hash_id?: string | null;
-  add_by_rss_resource_data?: object | null;
+  add_by_rss_resource_data?: AddByRSSResourceData | null;
 }
 
 export interface DTOAccountDataExportPlaylist {
@@ -70,7 +72,7 @@ export interface DTOAccountDataExportQueueResource {
   clip?: DTOAccountDataExportMinimalClip | null;
   item_soundbite?: DTOAccountDataExportItemSoundbite | null;
   add_by_rss_hash_id?: string | null;
-  add_by_rss_resource_data?: object | null;
+  add_by_rss_resource_data?: AddByRSSResourceData | null;
 }
 
 export interface DTOAccountDataExportQueue {

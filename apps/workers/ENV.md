@@ -41,6 +41,13 @@ env checks for that command, (3) update this doc's "Command groups and env categ
 examples if needed. For the full checklist (including index.ts and new categories), see the
 [validation.ts](src/lib/startup/validation.ts) JSDoc and the workers skill.
 
+## Add-by-RSS
+
+Add-by-RSS feed parsing (e.g. `mqAddByRSSRunParser`) uses optional HTTP Basic Auth credentials stored per-feed in the database (`account_following_add_by_rss_channel`).
+
+- **`ADD_BY_RSS_CREDENTIALS_ENCRYPTION_KEY`** (Required) – Basic Auth credentials are encrypted at rest (AES-256-GCM). Must be 64 hex characters (32 bytes). Generate with: `openssl rand -hex 32`. Passed into the ORM via `createORMContext(config)`. See [docs/ADD-BY-RSS.md](../../docs/ADD-BY-RSS.md) for key-rotation procedure.
+- **`ADD_BY_RSS_CREDENTIALS_ENCRYPTION_KEY_OLD`** (Optional) – During key rotation only. When set, the app decrypts with the current key first, then with this old key. Remove after running the re-encryption script.
+
 ## General Configuration (Base — every command)
 
 - **`USER_AGENT`** (Required)

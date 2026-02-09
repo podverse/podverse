@@ -27,6 +27,7 @@ LocalSettingsState Legend:
   - aqc = autoQueueConfig
     - rp = repeat
     - rd = random
+  - sba = sidebarAccordion (open/closed accordion sections)
   - fd = filterDefaults (per-page filter preferences)
   - metd = membershipExpirationToastDismissed (ISO date string of last dismissal)
 */
@@ -130,6 +131,13 @@ export interface FilterDefaults {
   profiles?: ProfilesFilterDefaults;
 }
 
+export interface SidebarAccordionState {
+  podcasts: boolean;
+  music: boolean;
+  addByRSS: boolean;
+  library: boolean;
+}
+
 export interface LocalSettingsState {
   uit: UITheme;
   vs: ViewSelectedOption;
@@ -138,6 +146,7 @@ export interface LocalSettingsState {
     rp: boolean;
     rd: boolean;
   };
+  sba: SidebarAccordionState;
   fd?: Partial<FilterDefaults>;
   metd?: string; // membershipExpirationToastDismissed (ISO date string of last dismissal)
 }
@@ -169,6 +178,12 @@ const defaultLocalSettings: LocalSettingsState = {
     rp: false,
     rd: false,
   },
+  sba: {
+    podcasts: true,
+    music: true,
+    addByRSS: true,
+    library: true,
+  },
   fd: {},
 };
 
@@ -178,6 +193,7 @@ function isValidLocalSettings(settings: unknown): settings is LocalSettingsState
     return false;
   }
   const aqc = s.aqc as Record<string, unknown> | undefined;
+  const sba = s.sba as Record<string, unknown> | undefined;
   return (
     typeof s.uit === 'string' &&
     typeof s.vs === 'string' &&
@@ -186,6 +202,13 @@ function isValidLocalSettings(settings: unknown): settings is LocalSettingsState
     aqc !== null &&
     typeof aqc.rp === 'boolean' &&
     typeof aqc.rd === 'boolean' &&
+    (sba === undefined ||
+      (typeof sba === 'object' &&
+        sba !== null &&
+        typeof sba.podcasts === 'boolean' &&
+        typeof sba.music === 'boolean' &&
+        typeof sba.addByRSS === 'boolean' &&
+        typeof sba.library === 'boolean')) &&
     (s.fd === undefined || (typeof s.fd === 'object' && s.fd !== null)) &&
     (s.metd === undefined || typeof s.metd === 'string')
   );
@@ -219,7 +242,14 @@ export function getParsedLocalSettings(cookieStore?: CookieStore): LocalSettings
       throw new Error('Invalid local settings format');
     }
 
-    return parsed;
+    return {
+      ...defaultLocalSettings,
+      ...parsed,
+      sba: {
+        ...defaultLocalSettings.sba,
+        ...(parsed.sba as Partial<SidebarAccordionState> | undefined),
+      },
+    };
   } catch {
     if (!isServer) {
       clearCookie('local-settings');

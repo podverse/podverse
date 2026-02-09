@@ -52,6 +52,11 @@
   flex: 1;
 }
 
+.bottomSectionEnd {
+  display: flex;
+  align-items: center;
+}
+
 .timeSection {
   display: flex;
   @include time-text-row();

@@ -1,5 +1,3 @@
-import type { DTOChannelImage, DTOItemImage } from '../dtos/index.js';
-
 type ItemImagePartial = {
   image_width_size: number | null;
   url: string;
@@ -10,7 +8,7 @@ type AllowedExtension = 'png' | 'jpg' | 'gif' | 'jpeg' | 'webp';
 type ValidExtension = 'png' | 'jpg' | 'gif' | 'webp';
 
 export function findDTOChannelImageBySize(
-  channelImages: DTOChannelImage[] | null | undefined,
+  channelImages: ItemImagePartial[] | null | undefined,
   size: number | 'largest' | 'smallest',
   comparison: Comparison = null,
   allowedExtensions: AllowedExtension[] = ['png', 'jpg', 'webp']
@@ -23,7 +21,7 @@ export function findDTOChannelImageBySize(
 }
 
 export function findDTOItemImageBySize(
-  itemImages: DTOItemImage[] | null | undefined,
+  itemImages: ItemImagePartial[] | null | undefined,
   size: number | 'largest' | 'smallest',
   comparison: Comparison = null,
   allowedExtensions: AllowedExtension[] = ['png', 'jpg', 'webp']

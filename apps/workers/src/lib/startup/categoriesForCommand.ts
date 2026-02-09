@@ -24,6 +24,7 @@ export type ConfigCategory =
 const BASE_ORM_COMMANDS = [
   'archiveAll',
   'ormFeedUpdateFlagStatus',
+  'reencryptAddByRSSCredentials',
   'statsUpdateAggregated',
   'statsUpdateAggregatedRolling',
   'generateOnDemandParserEventReports',
@@ -51,7 +52,7 @@ const FULL_STACK_COMMANDS = [
   'mqRSSAddRecentlyUpdatedFeedsFromPodcastIndex',
 ] as const;
 
-const BASE_MQ_PARSER_KEYVALDB_COMMANDS = ['mqAddByRSSRunParser'] as const;
+const BASE_ORM_MQ_PARSER_KEYVALDB_COMMANDS = ['mqAddByRSSRunParser'] as const;
 
 /**
  * Returns the set of config categories required for the given command.
@@ -130,10 +131,11 @@ export function getCategoriesForCommand(commandName: string): Set<ConfigCategory
   }
 
   if (
-    BASE_MQ_PARSER_KEYVALDB_COMMANDS.includes(
-      commandName as (typeof BASE_MQ_PARSER_KEYVALDB_COMMANDS)[number]
+    BASE_ORM_MQ_PARSER_KEYVALDB_COMMANDS.includes(
+      commandName as (typeof BASE_ORM_MQ_PARSER_KEYVALDB_COMMANDS)[number]
     )
   ) {
+    categories.add(CATEGORY_ORM);
     categories.add(CATEGORY_MQ);
     categories.add(CATEGORY_PARSER);
     categories.add(CATEGORY_KEYVALDB);

@@ -189,3 +189,7 @@ infra/              # Infrastructure
 
 - Queue definitions in `packages/mq/`
 - Worker processors in `apps/workers/`
+
+## Add-by-RSS
+
+Users can follow RSS feeds (podcasts, music) not in the main directory. Feeds may use optional HTTP Basic Auth; credentials are stored per-feed in the database and used for feed parse, chapters, and transcript. See [ADD-BY-RSS.md](ADD-BY-RSS.md) for details and environment notes.

@@ -23,6 +23,10 @@ interface ListItemChapterRowProps {
   item_chapter: DTOItemChapter;
   showChannelInfo?: boolean;
   showItemInfo?: boolean;
+  /** When provided and channel/item are null (e.g. add-by-RSS), called on play click to seek. */
+  onPlayChapter?: (chapter: DTOItemChapter) => void;
+  /** When provided, used as Link href instead of chapter route (e.g. '#' for add-by-RSS). */
+  getChapterHref?: (chapter: DTOItemChapter) => string;
 }
 
 export const ListItemChapterRow: React.FC<ListItemChapterRowProps> = ({
@@ -31,8 +35,13 @@ export const ListItemChapterRow: React.FC<ListItemChapterRowProps> = ({
   item_chapter,
   showChannelInfo,
   showItemInfo,
+  onPlayChapter,
+  getChapterHref,
 }) => {
-  const url = `${ROUTES.CHAPTER}/${item_chapter.id_text}`;
+  const url =
+    getChapterHref !== undefined && getChapterHref !== null
+      ? getChapterHref(item_chapter)
+      : `${ROUTES.CHAPTER}/${item_chapter.id_text}`;
 
   channel = channel || item?.channel || item_chapter.item_chapters_feed?.item?.channel || null;
   item = item || item_chapter.item_chapters_feed?.item || null;
@@ -65,7 +74,7 @@ export const ListItemChapterRow: React.FC<ListItemChapterRowProps> = ({
   const endTime = item_chapter.end_time;
 
   const playButtonOnClick = () => {
-    if (item_chapter.id === mpItemChapter?.id) {
+    if (item_chapter.id_text === mpItemChapter?.id_text) {
       setMPIsPlaying(!mpIsPlaying);
     } else if (channel && item) {
       mediaPlayerResourceUpdate({
@@ -89,6 +98,8 @@ export const ListItemChapterRow: React.FC<ListItemChapterRowProps> = ({
         },
         autoQueueShouldClear: true,
       });
+    } else if (onPlayChapter) {
+      onPlayChapter(item_chapter);
     }
   };
 

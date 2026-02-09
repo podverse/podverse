@@ -10,10 +10,12 @@ import { useMediaPlayerCurrentTime } from '../../../contexts/MediaPlayerCurrentT
 import { apiRequestService } from '../../../factories/apiRequestService';
 import { useQueues } from '../../../contexts/Queue';
 import { useMediaPlayerResourceUpdate } from '../../../hooks/useMediaPlayerResourceUpdate';
+import { usePlayAddByRSS } from '../../../hooks/usePlayAddByRSS';
 import type { AutoQueueResourcesMapRow } from '../../../contexts/AutoQueue';
 import { checkIsActiveRowHighestKey, useAutoQueue } from '../../../contexts/AutoQueue';
 import { updateLayoutForMediaPlayer } from '../../../utils/mediaPlayer/mediaPlayerLayout';
 import { useAutoQueueLoadResources } from '../../../hooks/useAutoQueueLoadResources';
+import { loadAddByRSSIndexItemFromResourceData } from '../../../utils/addByRSS/playFromQueueResource';
 import { MediaPlayerVideoWrapper } from './Video/MediaPlayerVideoWrapper';
 import { MediaPlayerLiveStreamVideoWrapper } from './LiveStream/MediaPlayerLiveStreamVideoWrapper';
 import { MediaPlayerControllerLiveStreamAudio } from './LiveStream/MediaPlayerControllerLiveStreamAudio';
@@ -24,11 +26,13 @@ export const MediaPlayerController: React.FC = () => {
     mpItem,
     mpClip,
     mpItemSoundbite,
+    mpAddByRSS,
     mpDuration,
     setMPItemChapters,
     setMPItemLabeledItemEnclosures,
   } = useMediaPlayer();
   const mediaPlayerResourceUpdate = useMediaPlayerResourceUpdate();
+  const playAddByRSS = usePlayAddByRSS();
   const { mpCurrentTime } = useMediaPlayerCurrentTime();
   const { activeQueueUpcomingResources } = useQueues();
   const { autoQueueResources, autoQueueActiveRow, autoQueueConfig } = useAutoQueue();
@@ -78,8 +82,8 @@ export const MediaPlayerController: React.FC = () => {
   });
 
   useEffect(() => {
-    updateLayoutForMediaPlayer(!!mpChannel);
-  }, [mpChannel]);
+    updateLayoutForMediaPlayer(!!mpChannel || !!mpAddByRSS);
+  }, [mpChannel, mpAddByRSS]);
 
   useEffect(() => {
     const fetchItemChapters = async () => {
@@ -250,10 +254,39 @@ export const MediaPlayerController: React.FC = () => {
     }
   }
 
+  async function handleLoadQueueItemAddByRSS(nextResource: DTOQueueResource) {
+    const resourceData = nextResource.add_by_rss_resource_data ?? null;
+    const indexItem = await loadAddByRSSIndexItemFromResourceData(resourceData);
+    if (indexItem) {
+      // Pass playback_position from the already-fetched queue resource
+      const playbackPosition = nextResource.playback_position
+        ? parseFloat(String(nextResource.playback_position))
+        : undefined;
+      await playAddByRSS(
+        indexItem,
+        playbackPosition !== undefined && !Number.isNaN(playbackPosition)
+          ? playbackPosition
+          : undefined
+      );
+    }
+  }
+
   useEffect(() => {
     if (activeQueueUpcomingResources && activeQueueUpcomingResources.length > 0) {
       const nextResource = activeQueueUpcomingResources[0];
-      if (nextResource?.item) {
+      if (!nextResource) return;
+      const nextIdText =
+        typeof nextResource.add_by_rss_resource_data?.id_text === 'string'
+          ? nextResource.add_by_rss_resource_data.id_text
+          : null;
+      const isAlreadyPlayingThisAddByRSS = nextIdText !== null && mpAddByRSS?.idText === nextIdText;
+      if (
+        nextResource.add_by_rss_resource_data &&
+        !nextResource.is_add_by_rss_redacted &&
+        !isAlreadyPlayingThisAddByRSS
+      ) {
+        handleLoadQueueItemAddByRSS(nextResource);
+      } else if (nextResource?.item && !isAlreadyPlayingThisAddByRSS) {
         handleLoadQueueItem(nextResource);
       } else if (nextResource?.clip) {
         handleLoadQueueClip(nextResource);

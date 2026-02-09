@@ -11,6 +11,7 @@ import type {
 import type { ReactNode } from 'react';
 import { createContext, useContext, useState } from 'react';
 import type { SourceSelectorActionType } from '../components/SourceSelectors/SourceSelectors';
+import type { AddByRSSResourceDataPayload } from '../utils/addByRSS/queuePlaylistHelpers.js';
 
 type ModalBasic = {
   isOpen: boolean;
@@ -59,6 +60,8 @@ export type ModalPlaylistAddToState = {
   item: DTOItem | null;
   clip: DTOClip | null;
   item_soundbite: DTOItemSoundbite | null;
+  addByRSSResourceData?: AddByRSSResourceDataPayload | null;
+  addByRSSHashId?: string | null;
 };
 
 type ModalsContextType = {
@@ -95,6 +98,8 @@ const defaultModalPlaylistAddTo = {
   item: null,
   clip: null,
   item_soundbite: null,
+  addByRSSResourceData: null,
+  addByRSSHashId: null,
 };
 
 const defaultModalClip = {

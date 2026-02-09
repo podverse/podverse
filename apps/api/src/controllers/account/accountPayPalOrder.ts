@@ -95,13 +95,19 @@ class AccountPayPalOrderController {
             if (resource_version === '2.0') {
               const paymentID = resource.id;
               const capture = await paypalService.getCaptureInfo(paymentID);
-              const { state } = capture;
+              const state = capture?.status;
+              if (!state) {
+                throw new Error('PayPal capture status missing');
+              }
               const isV2 = true;
               await this.accountPayPalOrderService.completePayPalOrder(paymentID, state, isV2);
             } else if (event_version === '1.0') {
               const paymentID = resource.parent_payment;
               const order = await paypalService.getPaymentInfo(paymentID);
-              const { state } = order;
+              const state = order?.status;
+              if (!state) {
+                throw new Error('PayPal order status missing');
+              }
               const isV2 = false;
               await this.accountPayPalOrderService.completePayPalOrder(paymentID, state, isV2);
             }

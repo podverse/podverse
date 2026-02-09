@@ -61,11 +61,51 @@ class AccountFollowingAddByRSSChannelController {
           feed_url: Joi.string().uri().required(),
           title: Joi.string().allow(null, ''),
           image_url: Joi.string().uri().allow(null, ''),
-        });
+          basic_auth_username: Joi.string().allow(null, '').max(255),
+          basic_auth_password: Joi.string().allow(null, '').max(255),
+        })
+          .messages({
+            'any.invalid': 'Basic Auth requires both username and password when one is provided',
+          })
+          .custom((value, helpers) => {
+            const hasUsername =
+              value.basic_auth_username !== undefined &&
+              value.basic_auth_username !== null &&
+              String(value.basic_auth_username).trim() !== '';
+            const hasPassword =
+              value.basic_auth_password !== undefined &&
+              value.basic_auth_password !== null &&
+              String(value.basic_auth_password) !== '';
+            if (hasUsername !== hasPassword) {
+              return helpers.error('any.invalid');
+            }
+            return value;
+          });
 
         validateBodyObject(bodySchema, req, res, async () => {
           const account = getAuthenticatedUser(req);
-          const dto = req.body;
+          const body = req.body as {
+            feed_url: string;
+            title?: string | null;
+            image_url?: string | null;
+            basic_auth_username?: string | null;
+            basic_auth_password?: string | null;
+          };
+          const dto = {
+            ...body,
+            basic_auth_username:
+              body.basic_auth_username !== undefined &&
+              body.basic_auth_username !== null &&
+              String(body.basic_auth_username).trim() !== ''
+                ? String(body.basic_auth_username).trim()
+                : null,
+            basic_auth_password:
+              body.basic_auth_password !== undefined &&
+              body.basic_auth_password !== null &&
+              String(body.basic_auth_password) !== ''
+                ? body.basic_auth_password
+                : null,
+          };
 
           try {
             await AccountFollowingAddByRSSChannelController.accountFollowingAddByRSSChannelService.addOrUpdateRSSChannel(

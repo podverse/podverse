@@ -14,6 +14,35 @@ server started by consumers such as the Lighthouse tool. Files are organized by 
 - `tools/test-assets/assets/videos/` — video files (e.g. video-001.mp4)
 - URLs: `http://localhost:2111/feeds/feed-podcast-1.rss`, `http://localhost:2111/images/image-001-300.jpg`,
   `http://localhost:2111/audio/audio-001.mp3`, `http://localhost:2111/videos/video-001.mp4`
+- `tools/test-assets/assets/basic-auth/` — one feed (`feed-basic-auth.rss`) with 10 items and its own audio, images, videos, chapters, transcripts. Paths under `http://localhost:2111/basic-auth/` require HTTP Basic Auth (see below).
+
+## Basic-Auth test feed
+
+A single **Basic-Auth-protected** feed is generated every time you run generate (or generate_and_parse). It is for testing add-by-RSS (private feeds) on the website.
+
+- **Location:** `assets/basic-auth/` (feeds, audio, images, videos, chapters, transcripts). Feed URL: `http://localhost:2111/basic-auth/feeds/feed-basic-auth.rss`.
+- **Count:** Exactly one feed, 10 items, regardless of `<count>` or `--items`.
+- **Server:** Any request to a path under `/basic-auth/` (e.g. the feed, enclosures, images) requires HTTP Basic Auth. Use username **`username`** and password **`password`** (test-only; not secure).
+- **Parsing:** generate_and_parse creates the basic-auth assets but does **not** parse this feed (the parser does not send credentials). Add the feed manually in the web app with the credentials above to test add-by-RSS.
+
+**Verifying Basic Auth:** With the asset server running on port 2111:
+
+- Without auth, expect **401** and `WWW-Authenticate: Basic realm="test-assets"`:
+  ```bash
+  curl -i http://localhost:2111/basic-auth/feeds/feed-basic-auth.rss
+  ```
+- With auth, expect **200** and the feed body:
+  ```bash
+  curl -i -u username:password http://localhost:2111/basic-auth/feeds/feed-basic-auth.rss
+  ```
+
+Optional: run the verification script (server must be running): `bash tools/test-assets/scripts/verify-basic-auth.sh`. Use `BASE_URL` to override the base URL (default `http://localhost:2111`).
+
+**Operational notes:**
+
+- The HTTP server on port **2111** must be the one from **tools/test-assets** (e.g. `npm run start -w podverse-test-assets`). If another process is bound to 2111, Basic Auth will not be applied.
+- After pulling or changing Basic Auth code, **restart** the test-assets server so the running process has the latest logic.
+- Add-by-RSS “success” (redirect to feed detail) means the **worker** successfully fetched and parsed the feed. If the feed URL is under `/basic-auth/` and no credentials are provided, the worker’s request gets 401 and the parse fails; the add-feed UI should show a failed status and not redirect.
 
 ## Image naming
 

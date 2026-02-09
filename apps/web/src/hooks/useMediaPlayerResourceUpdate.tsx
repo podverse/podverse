@@ -9,6 +9,7 @@ import type {
 } from '@podverse/helpers';
 import { MediumEnum } from '@podverse/helpers';
 import { useMediaPlayer } from '../contexts/MediaPlayer';
+import { useAddByRSSListContext } from '../contexts/AddByRSSListContext';
 import { useQueueResourcesUpdateNowPlaying } from './useQueueResourceUpdateNowPlaying';
 import { useMediaPlayerCurrentTime } from '../contexts/MediaPlayerCurrentTime';
 import { useQueueResourcesAbridgedIndex } from '../contexts/QueueResourcesAbridgedIndex';
@@ -17,6 +18,7 @@ import { useAutoQueue } from '../contexts/AutoQueue';
 
 export function useMediaPlayerResourceUpdate() {
   const {
+    setMPAddByRSS,
     setMPShouldPlay,
     setMPChannel,
     setMPClip,
@@ -30,6 +32,7 @@ export function useMediaPlayerResourceUpdate() {
   } = useMediaPlayer();
   const { autoQueueConfig, setAutoQueueConfig, setAutoQueueResources, setAutoQueueActiveRow } =
     useAutoQueue();
+  const { setAddByRSSListContext } = useAddByRSSListContext();
   const { mpEnclosureSelectedParams, mpItem } = useMediaPlayer();
   const { setMPCurrentTime } = useMediaPlayerCurrentTime();
   const updateNowPlaying = useQueueResourcesUpdateNowPlaying();
@@ -87,6 +90,9 @@ export function useMediaPlayerResourceUpdate() {
   }) => {
     const previousItemId = mpItemRef.current?.id;
 
+    setMPAddByRSS(null);
+    setAddByRSSListContext(null);
+
     if (autoQueueShouldClear) {
       setAutoQueueResources({});
       setAutoQueueActiveRow(0);
@@ -142,8 +148,12 @@ export function useMediaPlayerResourceUpdate() {
       preventSet: boolean = false
     ) {
       const abridged = resource ? abridgedMap?.[resource.id] : undefined;
-      const currentTime = Number(abridged?.p) || 0;
+      let currentTime = Number(abridged?.p) || 0;
       const duration = Number(abridged?.d) || 0;
+
+      if (duration > 0 && currentTime >= duration - 5) {
+        currentTime = 0;
+      }
 
       if (!preventSet) {
         setMPCurrentTime(currentTime);

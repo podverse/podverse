@@ -44,11 +44,15 @@ export const followAddByRSSChannelAndQueue = async (params: {
   resourceType: AddByRSSResourceType;
   title?: string | null;
   imageUrl?: string | null;
+  basic_auth_username?: string | null;
+  basic_auth_password?: string | null;
 }): Promise<{ requestId: string; record: AddByRSSFeedRecord; account: DTOAccount }> => {
   const account = await followAddByRSSChannel({
     feedUrl: params.feedUrl,
     title: params.title ?? null,
     imageUrl: params.imageUrl ?? null,
+    basic_auth_username: params.basic_auth_username ?? null,
+    basic_auth_password: params.basic_auth_password ?? null,
   });
 
   const idText = createAddByRSSIdText();

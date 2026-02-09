@@ -8,6 +8,7 @@ import { MQ_QUEUES } from '@podverse/helpers';
 import type { MQQueueNameParamKey } from '@podverse/helpers';
 import type { MQAddByRSSMessage } from '@podverse/mq';
 import { createActiveMQShutdown } from '@podverse/mq';
+import { AccountFollowingAddByRSSChannelService } from '@podverse/orm';
 
 const allowedQueueParamKeys: MQQueueNameParamKey[] = [
   'add-by-rss-on-demand',
@@ -68,10 +69,16 @@ export const mqAddByRSSRunParser = async (args: CommandLineArgs) => {
           });
         }
 
+        const channelService = new AccountFollowingAddByRSSChannelService();
+        const credentials = await channelService.getCredentialsForFeed(accountId, feedUrl);
+
         const result = await parseRSSFeedForAddByRSS(feedUrl, {
           feedHash,
           etag,
           lastModified,
+          ...(credentials
+            ? { basicAuth: { username: credentials.username, password: credentials.password } }
+            : {}),
         });
 
         if (result.status === 'parsed') {

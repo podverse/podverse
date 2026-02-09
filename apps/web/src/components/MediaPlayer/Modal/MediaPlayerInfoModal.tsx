@@ -10,7 +10,8 @@ import type {
   DTOItemSoundbite,
 } from '@podverse/helpers';
 import { findDTOChannelImageBySize, findDTOItemImageBySize, MediumEnum } from '@podverse/helpers';
-import { useMediaPlayer } from '../../../contexts/MediaPlayer';
+import { useMediaPlayer, type MediaPlayerAddByRSSState } from '../../../contexts/MediaPlayer';
+import { getAddByRSSItemPath, getAddByRSSLivestreamPath } from '../../../utils/addByRSS/itemPath';
 import { ImageNonReact } from '../../Image/ImageNonReact';
 import { Link } from '../../Link/Link';
 import { ReadableTimeRange } from '../../Time/ReadableTimeRange';
@@ -22,6 +23,7 @@ type UseLinkHelperParams = {
   mpClip: DTOClip | null;
   mpItemChapter: DTOItemChapter | null;
   mpItemSoundbite: DTOItemSoundbite | null;
+  mpAddByRSS: MediaPlayerAddByRSSState;
 };
 
 function useLinkHelper({
@@ -30,12 +32,25 @@ function useLinkHelper({
   mpClip,
   mpItemChapter,
   mpItemSoundbite,
+  mpAddByRSS,
 }: UseLinkHelperParams) {
   let channelLinkUrl = '';
   let itemLinkUrl = '';
   let subsectionUrl = '';
 
-  if (mpChannel?.medium_id) {
+  if (mpAddByRSS) {
+    const { idText, resourceData } = mpAddByRSS;
+    const mediumId = resourceData.medium_id as number | undefined;
+    if (resourceData.start_time !== null && resourceData.start_time !== undefined) {
+      const mediumSlug = mediumId === MediumEnum.Music ? 'music' : 'podcast';
+      itemLinkUrl = getAddByRSSLivestreamPath(idText, mediumSlug);
+    } else {
+      itemLinkUrl =
+        mediumId === MediumEnum.Music
+          ? getAddByRSSItemPath(idText, 'tracks')
+          : getAddByRSSItemPath(idText, 'episodes');
+    }
+  } else if (mpChannel?.medium_id) {
     if (mpChannel.medium_id === MediumEnum.Podcast || mpChannel.medium_id === MediumEnum.Video) {
       channelLinkUrl = `/podcast/${mpChannel.id_text}`;
       if (mpItem) {
@@ -88,8 +103,15 @@ function ClickableTitle({
 }
 
 export const MediaPlayerInfoModal: React.FC = () => {
-  const { mpChannel, mpItem, mpClip, mpItemChapter, mpItemSoundbite, setPlayerModalIsOpen } =
-    useMediaPlayer();
+  const {
+    mpChannel,
+    mpItem,
+    mpAddByRSS,
+    mpClip,
+    mpItemChapter,
+    mpItemSoundbite,
+    setPlayerModalIsOpen,
+  } = useMediaPlayer();
   const tMediaPlayer = useTranslations('media_player');
   const router = useRouter();
 
@@ -99,34 +121,52 @@ export const MediaPlayerInfoModal: React.FC = () => {
     mpClip,
     mpItemChapter,
     mpItemSoundbite,
+    mpAddByRSS,
   });
 
-  const channel_image = findDTOChannelImageBySize(mpChannel?.channel_images, 'largest');
-  const item_image = findDTOItemImageBySize(mpItem?.item_images, 'largest');
+  const channel_image = findDTOChannelImageBySize(
+    mpChannel?.channel_images ?? mpAddByRSS?.resourceData?.channel_images,
+    'largest'
+  );
+  const item_image = findDTOItemImageBySize(
+    mpItem?.item_images ?? mpAddByRSS?.resourceData?.item_images,
+    'largest'
+  );
   const defaultImageUrl = item_image?.url || channel_image?.url || undefined;
-  let imageUrl = '';
+  const imageUrl = mpItemChapter
+    ? mpItemChapter.img || defaultImageUrl || ''
+    : defaultImageUrl || '';
 
-  if (mpItemChapter) {
-    imageUrl = mpItemChapter.img || defaultImageUrl || '';
-  } else {
-    imageUrl = defaultImageUrl || '';
-  }
+  const itemTitle =
+    (typeof mpAddByRSS?.resourceData?.title === 'string' ? mpAddByRSS.resourceData.title : null) ??
+    mpItem?.title ??
+    null;
+  const channelTitle =
+    (typeof mpAddByRSS?.resourceData?.channel_title === 'string'
+      ? mpAddByRSS.resourceData.channel_title
+      : null) ??
+    mpChannel?.title ??
+    null;
 
   return (
     <div className={styles.info}>
       <div className={styles.titleSection}>
         <ClickableTitle
-          title={mpItem?.title}
+          title={itemTitle ?? undefined}
           className={styles.itemTitle}
-          onClick={() => router.push(itemLinkUrl)}
+          onClick={() => itemLinkUrl && router.push(itemLinkUrl)}
           setPlayerModalIsOpen={setPlayerModalIsOpen}
         />
-        <ClickableTitle
-          title={mpChannel?.title}
-          className={styles.channelTitle}
-          onClick={() => router.push(channelLinkUrl)}
-          setPlayerModalIsOpen={setPlayerModalIsOpen}
-        />
+        {channelLinkUrl ? (
+          <ClickableTitle
+            title={channelTitle ?? undefined}
+            className={styles.channelTitle}
+            onClick={() => router.push(channelLinkUrl)}
+            setPlayerModalIsOpen={setPlayerModalIsOpen}
+          />
+        ) : channelTitle ? (
+          <div className={styles.channelTitle}>{String(channelTitle)}</div>
+        ) : null}
       </div>
       <div className={styles.imageWrapper}>
         <ImageNonReact

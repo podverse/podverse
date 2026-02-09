@@ -98,6 +98,10 @@ import { config } from './config'; // 4. Relative imports
 - **ESM**: Relative imports use `.js` extensions. Packages and apps use ESM (NodeNext in `tsconfig.base.json`).
 - **Type-only imports**: Use `import type { X } from '...'` when the import is only used as a type (avoids runtime references and helps with circular deps). Keep value imports when the symbol is used at runtime (e.g. classes for `instanceof`, decorators that need the constructor).
 
+### Type assertions
+
+It is **critical** to avoid `as` (type assertions) as much as possible. Prefer improving types (DTOs, interfaces), optional chaining, and type guards; use `as` only when there is no better option, and confine or document those cases.
+
 ## Architecture
 
 ### Directory Structure

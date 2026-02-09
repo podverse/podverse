@@ -54,6 +54,8 @@ export type ORMConfig = {
       };
     };
   };
+  addByRssCredentialsEncryptionKey?: string;
+  addByRssCredentialsEncryptionKeyOld?: string;
 };
 
 export function validateORMConfig(config: ORMConfig): ConfigValidationResult {

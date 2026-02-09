@@ -40,6 +40,7 @@ interface Props {
   isEditModePlaylist?: boolean;
   removeFromPlaylist?: () => void;
   playlist_id_text: string | null;
+  onPlayAndRemove?: () => void;
 }
 
 export const ListClipRow: React.FC<Props> = ({
@@ -53,6 +54,7 @@ export const ListClipRow: React.FC<Props> = ({
   isEditModePlaylist,
   removeFromPlaylist,
   playlist_id_text,
+  onPlayAndRemove,
 }) => {
   const url = `${ROUTES.CLIP}/${clip.id_text}`;
 
@@ -181,25 +183,6 @@ export const ListClipRow: React.FC<Props> = ({
     });
   };
 
-  const moreButtonMenuItems: MoreButtonMenuItem[] = [
-    {
-      label: tMediaPlayer('play'),
-      onClick: () => alert(tMediaPlayer('play')),
-    },
-    {
-      label: tFeatures('queue.queue_next'),
-      onClick: addToQueueNextOnClick,
-    },
-    {
-      label: tFeatures('queue.queue_last'),
-      onClick: addToQueueLastOnClick,
-    },
-    {
-      label: tFeatures('playlist.add_to_playlist'),
-      onClick: addToPlaylistOnClick,
-    },
-  ];
-
   const removeFromQueueOnClick = async () => {
     if (channel) {
       const queue = getQueueForMedium(queues, channel.medium_id);
@@ -230,6 +213,33 @@ export const ListClipRow: React.FC<Props> = ({
     });
   };
 
+  const moreButtonMenuItems: MoreButtonMenuItem[] = isEditModePlaylist
+    ? [
+        {
+          label: tFeatures('playlist.remove_from_playlist'),
+          onClick: removeFromPlaylistOnClick,
+          variant: 'danger',
+        },
+      ]
+    : [
+        {
+          label: tMediaPlayer('play'),
+          onClick: () => alert(tMediaPlayer('play')),
+        },
+        {
+          label: tFeatures('queue.queue_next'),
+          onClick: addToQueueNextOnClick,
+        },
+        {
+          label: tFeatures('queue.queue_last'),
+          onClick: addToQueueLastOnClick,
+        },
+        {
+          label: tFeatures('playlist.add_to_playlist'),
+          onClick: addToPlaylistOnClick,
+        },
+      ];
+
   if (isEditModeQueue) {
     moreButtonMenuItems.push({
       label: tFeatures('queue.remove_from_queue'),
@@ -239,14 +249,10 @@ export const ListClipRow: React.FC<Props> = ({
   }
 
   if (isEditModePlaylist) {
-    moreButtonMenuItems.push({
-      label: tFeatures('playlist.remove_from_playlist'),
-      onClick: removeFromPlaylistOnClick,
-      variant: 'danger',
-    });
+    // Menu already limited to remove-from-playlist in edit mode.
   }
 
-  if (loggedInAccount?.id_text === clip.account?.id_text) {
+  if (!isEditModePlaylist && loggedInAccount?.id_text === clip.account?.id_text) {
     moreButtonMenuItems.push({
       label: tFeatures('clip.edit_clip'),
       onClick: () => {
@@ -271,24 +277,44 @@ export const ListClipRow: React.FC<Props> = ({
         heightMobile={IMAGES.LIST.CLIPS.SIZE}
         classNameDesktop={styles.image}
         classNameMobile={styles.imageMobile}
-        href={url}
+        href={onPlayAndRemove ? undefined : url}
+        onClick={onPlayAndRemove}
       />
       <div className={styles.content}>
-        <Link href={url}>
-          <div className={styles.topSection}>
-            <h3 className={styles.clipTitle}>{clipTitle}</h3>
-            {(showChannelInfo || showItemInfo) && (
-              <div className={styles.subtitle}>
-                {showChannelInfo && channelTitle}
-                {showChannelInfo && showItemInfo && ' • '}
-                {showItemInfo && itemTitle}
-              </div>
-            )}
-          </div>
-        </Link>
+        {onPlayAndRemove ? (
+          <button type="button" className={styles.clickableTopSection} onClick={onPlayAndRemove}>
+            <div className={styles.topSection}>
+              <h3 className={styles.clipTitle}>{clipTitle}</h3>
+              {(showChannelInfo || showItemInfo) && (
+                <div className={styles.subtitle}>
+                  {showChannelInfo && channelTitle}
+                  {showChannelInfo && showItemInfo && ' • '}
+                  {showItemInfo && itemTitle}
+                </div>
+              )}
+            </div>
+          </button>
+        ) : (
+          <Link href={url}>
+            <div className={styles.topSection}>
+              <h3 className={styles.clipTitle}>{clipTitle}</h3>
+              {(showChannelInfo || showItemInfo) && (
+                <div className={styles.subtitle}>
+                  {showChannelInfo && channelTitle}
+                  {showChannelInfo && showItemInfo && ' • '}
+                  {showItemInfo && itemTitle}
+                </div>
+              )}
+            </div>
+          </Link>
+        )}
         <div className={styles.bottomSection}>
           <div className={styles.bottomSectionStart}>
-            <PlayButtonRow clip={clip} item={item || clip.item} onClick={playButtonOnClick} />
+            <PlayButtonRow
+              clip={clip}
+              item={item || clip.item}
+              onClick={onPlayAndRemove ?? playButtonOnClick}
+            />
             <div className={styles.timeSection}>
               {showItemInfo && (
                 <>

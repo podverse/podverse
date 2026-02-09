@@ -56,6 +56,7 @@
     },
     "add_by_rss": {
       "label": "Ajouter par RSS",
+      "private_item_placeholder": "Élément privé ajouté par RSS",
       "add_feed_instructions": "Ajoutez une URL de flux RSS pour suivre des podcasts ou de la musique non répertoriés dans notre annuaire. Nous allons le parser et l'enregistrer dans votre bibliothèque Ajouter par RSS.",
       "check_updates": "Vérifier les mises à jour",
       "feed_url": "URL du flux RSS",
@@ -74,7 +75,12 @@
       "status_parsing": "Analyse",
       "last_parsed": "Dernière analyse : {date}",
       "wait_to_retry_minutes": "Vous devrez attendre jusqu'à {minutes} minutes pour recommencer.",
-      "wait_to_retry_minute": "Vous devrez attendre jusqu'à {minutes} minute pour recommencer."
+      "wait_to_retry_minute": "Vous devrez attendre jusqu'à {minutes} minute pour recommencer.",
+      "basic_auth_use": "Use Basic Auth",
+      "basic_auth_requires": "This feed requires username and password",
+      "basic_auth_username": "Username",
+      "basic_auth_password": "Password",
+      "basic_auth_required_both": "Basic Auth requires both username and password."
     },
     "my_library": "Ma Bibliothèque",
     "queue": {
@@ -403,6 +409,7 @@
     "login_required": "Connexion requise",
     "login_for_subscriptions": "Veuillez vous connecter pour voir vos abonnements.",
     "login_to_create_playlists": "Veuillez vous connecter pour créer des playlists.",
+    "no_playlists_created": "Vous n'avez pas encore de playlists. Créez-en une pour commencer.",
     "login_to_create_clips": "Veuillez vous connecter pour créer des extraits.",
     "login_for_queues": "Veuillez vous connecter pour voir vos files d'attente.",
     "login_for_history": "Veuillez vous connecter pour voir votre historique.",

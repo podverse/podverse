@@ -13,23 +13,35 @@ import {
 
 import { ImagesPerView } from '../../Image/ImagesPerView';
 import { LiveItemStatus } from '../../LiveItem/LiveItemStatus';
+import { PlayButtonRow } from '../../MediaPlayer/Buttons/PlayButtonRow';
 import { ReadableDate } from '../../Time/ReadableDate';
 import { ReadableTime } from '../../Time/ReadableTime';
 import { IMAGES } from '../../../constants/images';
+import { useMediaPlayer } from '../../../contexts/MediaPlayer';
+import { useAddByRSSListContext } from '../../../contexts/AddByRSSListContext';
+import { usePlayAddByRSS } from '../../../hooks/usePlayAddByRSS';
 import { getAddByRSSLivestreamPath } from '../../../utils/addByRSS/itemPath';
 import type { AddByRSSLivestreamIndexItem } from '../../../utils/addByRSS/types';
+import type { AddByRSSListContextState } from '../../../contexts/AddByRSSListContext';
 import styles from '../../../styles/components/Common/List/LiveItem/ListLiveItemRow.module.scss';
 
 type AddByRSSLivestreamRowProps = {
   item: AddByRSSLivestreamIndexItem;
   showChannelInfo?: boolean;
+  /** When set, play will set this list context for autoplay-next from list. */
+  listContext?: AddByRSSListContextState | null;
 };
 
 export const AddByRSSLivestreamRow: React.FC<AddByRSSLivestreamRowProps> = ({
   item,
   showChannelInfo,
+  listContext: listContextProp,
 }) => {
   const tMedia = useTranslations('media');
+  const { mpAddByRSS, mpIsPlaying, setMPIsPlaying } = useMediaPlayer();
+  const { setAddByRSSListContext } = useAddByRSSListContext();
+  const playAddByRSS = usePlayAddByRSS();
+
   const mediumParam = getQueryParamFromQueueMediumId(item.mediumId) ?? 'podcast';
   const mediumSlug = mediumParam === 'music' ? 'music' : 'podcast';
   const url = getAddByRSSLivestreamPath(item.idText, mediumSlug);
@@ -49,6 +61,17 @@ export const AddByRSSLivestreamRow: React.FC<AddByRSSLivestreamRowProps> = ({
     start_time: startTime?.toISOString?.() ?? '',
     end_time: endTime?.toISOString?.() ?? null,
   } as unknown as DTOLiveItem;
+
+  const playButtonOnClick = () => {
+    if (mpAddByRSS?.idText === item.idText) {
+      setMPIsPlaying(!mpIsPlaying);
+    } else {
+      if (listContextProp) {
+        setAddByRSSListContext(listContextProp);
+      }
+      playAddByRSS(item);
+    }
+  };
 
   return (
     <div className={styles.row}>
@@ -72,6 +95,9 @@ export const AddByRSSLivestreamRow: React.FC<AddByRSSLivestreamRowProps> = ({
         </Link>
         <div className={styles.bottomSection}>
           <div className={styles.bottomSectionStart}>
+            {liveStatusId === LiveItemStatusEnum.Live && (
+              <PlayButtonRow item={null} addByRSSIdText={item.idText} onClick={playButtonOnClick} />
+            )}
             <LiveItemStatus live_item={liveItemDto} />
             <div className={styles.timeSection}>
               <ReadableDate date={startTime?.toISOString?.() ?? ''} />

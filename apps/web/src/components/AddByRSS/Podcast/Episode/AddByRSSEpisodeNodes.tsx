@@ -1,11 +1,16 @@
 'use client';
 
+import { MediumEnum } from '@podverse/helpers';
 import React from 'react';
 
 import { Divider } from '../../../Divider/Divider';
 import type { ViewSelectedOption } from '../../../ViewSelector/ViewSelector';
 import styles from '../../../../styles/components/Common/List/ListNodes.module.scss';
-import type { AddByRSSFeedRecord, AddByRSSMappedFeed } from '../../../../utils/addByRSS/types';
+import type {
+  AddByRSSFeedRecord,
+  AddByRSSItemIndexItem,
+  AddByRSSMappedFeed,
+} from '../../../../utils/addByRSS/types';
 import { AddByRSSEpisodeGridNode } from './AddByRSSEpisodeGridNode';
 import { AddByRSSEpisodeRow } from './AddByRSSEpisodeRow';
 
@@ -22,6 +27,7 @@ type AddByRSSEpisodeNodesItemsProps = {
   items: AddByRSSMappedFeed['items'];
   viewSelected?: ViewSelectedOption;
   itemIdTextMap: Map<string, string>;
+  mediumId?: number | null;
 };
 
 type AddByRSSEpisodeNodesProps = AddByRSSEpisodeNodesFeedsProps | AddByRSSEpisodeNodesItemsProps;
@@ -86,13 +92,30 @@ export const AddByRSSEpisodeNodes: React.FC<AddByRSSEpisodeNodesProps> = (props)
     items,
     viewSelected = 'rows',
     itemIdTextMap,
+    mediumId = MediumEnum.Podcast,
   } = props;
   if (viewSelected === 'rows') {
+    const itemIdTexts = items.map((bundle, i) => {
+      const itemGuid = bundle.item?.guid ?? `${channelIdText}-${i}`;
+      return getItemIdText(itemIdTextMap, channelIdText, itemGuid);
+    });
     return (
       <div key="list" className={styles.list}>
         {items.map((bundle, idx) => {
           const itemGuid = bundle.item?.guid ?? `${channelIdText}-${idx}`;
           const itemIdText = getItemIdText(itemIdTextMap, channelIdText, itemGuid);
+          const pubDateMs = bundle.item?.pub_date ? new Date(bundle.item.pub_date).getTime() : 0;
+          const indexItem: AddByRSSItemIndexItem = {
+            id: `${channelIdText}-${itemGuid}`,
+            idText: itemIdText,
+            itemGuid,
+            channelIdText,
+            channelTitle,
+            channelImageUrl,
+            mediumId: mediumId ?? MediumEnum.Podcast,
+            bundle,
+            pubDateMs,
+          };
           return (
             <React.Fragment key={bundle.item?.guid ?? idx}>
               <AddByRSSEpisodeRow
@@ -100,6 +123,12 @@ export const AddByRSSEpisodeNodes: React.FC<AddByRSSEpisodeNodesProps> = (props)
                 channelTitle={channelTitle}
                 channelImageUrl={channelImageUrl}
                 bundle={bundle}
+                indexItem={indexItem}
+                listContext={{
+                  feedIdText: channelIdText,
+                  itemIdTexts,
+                  currentIndex: idx,
+                }}
               />
               {idx < items.length - 1 && <Divider />}
             </React.Fragment>

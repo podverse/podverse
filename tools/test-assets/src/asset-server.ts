@@ -3,12 +3,37 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
+import {
+  BASIC_AUTH_SUBDIR,
+  BASIC_AUTH_TEST_PASSWORD,
+  BASIC_AUTH_TEST_USERNAME,
+} from './constants.js';
 
 // ES modules __dirname equivalent
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 const ASSET_PORT = 2111;
+
+function parseBasicAuth(
+  authHeader: string | undefined
+): { username: string; password: string } | null {
+  if (!authHeader || !authHeader.startsWith('Basic ')) {
+    return null;
+  }
+  try {
+    const encoded = authHeader.slice(6).trim();
+    const decoded = Buffer.from(encoded, 'base64').toString('utf8');
+    const colonIndex = decoded.indexOf(':');
+    if (colonIndex === -1) return null;
+    return {
+      username: decoded.slice(0, colonIndex),
+      password: decoded.slice(colonIndex + 1),
+    };
+  } catch {
+    return null;
+  }
+}
 
 export class AssetServer {
   private server: http.Server | null = null;
@@ -78,10 +103,17 @@ export class AssetServer {
           return;
         }
 
-        // Parse requested file path (strip leading slash so path.join stays under assetsDir)
+        // Parse requested file path (strip leading slash and query so path.join stays under assetsDir)
         const rawPath = req.url === '/' ? '/index.html' : req.url || '/';
-        const urlPath = rawPath.startsWith('/') ? rawPath.slice(1) : rawPath;
-        const filePath = path.join(this.assetsDir, urlPath);
+        const pathname = path
+          .normalize(
+            (rawPath.includes('?') ? rawPath.slice(0, rawPath.indexOf('?')) : rawPath).replace(
+              /^\//,
+              ''
+            )
+          )
+          .replace(/^\/+/, '');
+        const filePath = path.join(this.assetsDir, pathname);
 
         // Security: prevent directory traversal
         const normalizedPath = path.normalize(filePath);
@@ -91,8 +123,28 @@ export class AssetServer {
           return;
         }
 
+        // Require HTTP Basic Auth for any path that resolves under basic-auth/
+        const basicAuthDir = path.join(this.assetsDir, BASIC_AUTH_SUBDIR);
+        const isBasicAuthPath =
+          normalizedPath === basicAuthDir || normalizedPath.startsWith(basicAuthDir + path.sep);
+        if (isBasicAuthPath) {
+          const creds = parseBasicAuth(req.headers.authorization);
+          if (
+            !creds ||
+            creds.username !== BASIC_AUTH_TEST_USERNAME ||
+            creds.password !== BASIC_AUTH_TEST_PASSWORD
+          ) {
+            res.writeHead(401, {
+              'Content-Type': 'text/plain',
+              'WWW-Authenticate': 'Basic realm="test-assets"',
+            });
+            res.end('Unauthorized');
+            return;
+          }
+        }
+
         // Check if file exists
-        fs.stat(filePath, (err, stats) => {
+        fs.stat(normalizedPath, (err, stats) => {
           if (err || !stats.isFile()) {
             res.writeHead(404, { 'Content-Type': 'text/plain' });
             res.end('File not found');
@@ -100,15 +152,15 @@ export class AssetServer {
           }
 
           // Read and serve file
-          fs.readFile(filePath, (err, data) => {
+          fs.readFile(normalizedPath, (err, data) => {
             if (err) {
               res.writeHead(500, { 'Content-Type': 'text/plain' });
               res.end('Internal server error');
               return;
             }
 
-            const mimeType = this.getMimeType(filePath, filePath);
-            const ext = path.extname(filePath).toLowerCase();
+            const mimeType = this.getMimeType(normalizedPath, normalizedPath);
+            const ext = path.extname(normalizedPath).toLowerCase();
             const headers: Record<string, string> = {
               'Content-Type': mimeType,
               'Content-Length': String(data.length),

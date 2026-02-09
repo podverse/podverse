@@ -3,6 +3,7 @@ import { config } from '@api/config/index.js';
 import { AccountController } from '@api/controllers/account/account.js';
 import { AccountFollowingAccountController } from '@api/controllers/account/accountFollowingAccount.js';
 import { AccountFollowingAddByRSSChannelController } from '@api/controllers/account/accountFollowingAddByRSSChannel.js';
+import { AccountAddByRSSChaptersTranscriptController } from '@api/controllers/account/accountAddByRSSChaptersTranscript.js';
 import { AccountAddByRSSParseController } from '@api/controllers/account/accountAddByRSSParse.js';
 import { AccountFollowingChannelController } from '@api/controllers/account/accountFollowingChannel.js';
 import { asyncHandler } from '@api/middleware/asyncHandler.js';
@@ -115,6 +116,11 @@ router.get(
 router.post(
   '/unfollow/add-by-rss-channel',
   asyncHandler(AccountFollowingAddByRSSChannelController.removeRSSChannel)
+);
+router.post(
+  '/add-by-rss/chapters-transcript',
+  rateLimitEndpoint({ windowMs: 60 * 1000, max: 30 }),
+  asyncHandler(AccountAddByRSSChaptersTranscriptController.getChaptersAndTranscript)
 );
 router.post('/add-by-rss/parse', asyncHandler(AccountAddByRSSParseController.enqueueParse));
 router.post('/add-by-rss/parse/all', asyncHandler(AccountAddByRSSParseController.enqueueParseAll));

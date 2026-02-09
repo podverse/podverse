@@ -10,6 +10,8 @@ export type ParseRSSFeedForAddByRSSOptions = {
   feedHash?: string;
   etag?: string;
   lastModified?: string;
+  /** When provided, set Authorization: Basic on the feed request (for private add-by-RSS feeds). */
+  basicAuth?: { username: string; password: string };
 };
 
 export type ParseRSSFeedForAddByRSSResult =
@@ -70,6 +72,18 @@ export const parseRSSFeedForAddByRSS = async (
   }
   if (options.lastModified) {
     conditionalHeaders['If-Modified-Since'] = options.lastModified;
+  }
+  if (
+    options.basicAuth?.username !== undefined &&
+    options.basicAuth?.username !== null &&
+    options.basicAuth?.password !== undefined &&
+    options.basicAuth?.password !== null
+  ) {
+    const encoded = Buffer.from(
+      `${options.basicAuth.username}:${options.basicAuth.password}`,
+      'utf8'
+    ).toString('base64');
+    conditionalHeaders['Authorization'] = `Basic ${encoded}`;
   }
 
   const response = await _requestWithHeaders<string>(url, {

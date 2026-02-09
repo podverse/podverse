@@ -32,6 +32,14 @@
   color: var(--text-color-secondary);
 }
 
+.clickableTopSection {
+  all: unset;
+  cursor: pointer;
+  display: block;
+  width: 100%;
+  text-align: left;
+}
+
 .trackTitle {
   @include line-clamp(1);
   font-weight: var(--font-weight-light);
@@ -85,7 +93,6 @@
 .trackRow {
   display: flex;
   align-items: center;
-  margin-left: calc(var(--spacing-md) * -1);
 }
 
 .trackClickable {
@@ -94,7 +101,6 @@
   justify-content: flex-start !important;
   margin-right: var(--spacing-xl) !important;
   border-radius: var(--border-radius) !important;
-  padding-left: var(--spacing-md) !important;
 }
 
 .trackWrapper {

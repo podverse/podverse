@@ -12,6 +12,7 @@ import { PlaylistsFavoritesProvider } from '../contexts/PlaylistsFavorites';
 import { QueuesProvider } from '../contexts/Queue';
 import { QueueResourcesAbridgedIndexProvider } from '../contexts/QueueResourcesAbridgedIndex';
 import { AutoQueueProvider } from '../contexts/AutoQueue';
+import { AddByRSSListContextProvider } from '../contexts/AddByRSSListContext';
 import { MediaPlayerVideoProvider } from '../contexts/MediaPlayerVideo';
 import type { LocalSettingsState } from '../utils/localSettings/localSettings';
 import { NotificationsProvider } from '../contexts/Notifications';
@@ -48,13 +49,15 @@ export default function Providers({
                     <MediaPlayerCurrentTimeProvider>
                       <MediaPlayerProvider>
                         <MediaPlayerVideoProvider>
-                          <AutoQueueProvider ssrLocalSettings={ssrLocalSettings}>
-                            <ModalsProvider>
-                              <CategoriesProvider ssrCategories={categories}>
-                                {children}
-                              </CategoriesProvider>
-                            </ModalsProvider>
-                          </AutoQueueProvider>
+                          <AddByRSSListContextProvider>
+                            <AutoQueueProvider ssrLocalSettings={ssrLocalSettings}>
+                              <ModalsProvider>
+                                <CategoriesProvider ssrCategories={categories}>
+                                  {children}
+                                </CategoriesProvider>
+                              </ModalsProvider>
+                            </AutoQueueProvider>
+                          </AddByRSSListContextProvider>
                         </MediaPlayerVideoProvider>
                       </MediaPlayerProvider>
                     </MediaPlayerCurrentTimeProvider>

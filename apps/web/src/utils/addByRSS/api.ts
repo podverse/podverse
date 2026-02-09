@@ -22,11 +22,15 @@ export const followAddByRSSChannel = async (params: {
   feedUrl: string;
   title?: string | null;
   imageUrl?: string | null;
+  basic_auth_username?: string | null;
+  basic_auth_password?: string | null;
 }): Promise<DTOAccount> =>
   apiRequestService.reqAccountFollowAddByRSSChannel({
     feed_url: params.feedUrl,
     title: params.title ?? null,
     image_url: params.imageUrl ?? null,
+    basic_auth_username: params.basic_auth_username ?? null,
+    basic_auth_password: params.basic_auth_password ?? null,
   });
 
 export const unfollowAddByRSSChannel = async (feedUrl: string): Promise<DTOAccount> =>

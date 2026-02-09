@@ -1,3 +1,4 @@
+import { normalizeTranscriptResponseData } from '@api/lib/transcript.js';
 import { itemIdTextParamSchema, validateParamsObject } from '@api/lib/validation/index.js';
 import type { Request, Response } from 'express';
 import Joi from 'joi';
@@ -30,7 +31,8 @@ export class ItemTranscriptController {
 
       try {
         const transcriptResponse = await _request(item_transcript.url);
-        res.json({ data: transcriptResponse.data });
+        const data = normalizeTranscriptResponseData(transcriptResponse.data);
+        res.json({ data });
       } catch (error) {
         res.status(500).json({
           message: 'Failed to fetch transcript data',

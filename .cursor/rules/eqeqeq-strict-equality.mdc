@@ -1,0 +1,27 @@
+---
+description: Use strict equality (=== and !==) to satisfy eslint eqeqeq
+globs:
+  - "**/*.ts"
+  - "**/*.tsx"
+  - "**/*.js"
+  - "**/*.jsx"
+alwaysApply: true
+---
+
+# Strict Equality (eqeqeq)
+
+Use **strict equality** only. ESLint rule `eqeqeq` expects `===` and `!==`, not `==` or `!=`.
+
+## Do
+
+- `x === null`, `x === undefined`, `value === 0`
+- `x !== null`, `x !== undefined`
+- For "value is not null and not undefined": `x !== null && x !== undefined` (or use optional chaining / truthiness where that is the intent)
+
+## Don't
+
+- `x == null` (use `x === null || x === undefined` or `x !== null && x !== undefined` as appropriate)
+- `x != null` (use `x !== null && x !== undefined`)
+- `a == b` or `a != b` in general
+
+This keeps behavior explicit and satisfies `eslint eqeqeq`.

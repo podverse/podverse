@@ -118,6 +118,10 @@ const run = async () => {
               },
             },
           },
+          addByRssCredentialsEncryptionKey:
+            process.env.ADD_BY_RSS_CREDENTIALS_ENCRYPTION_KEY ?? undefined,
+          addByRssCredentialsEncryptionKeyOld:
+            process.env.ADD_BY_RSS_CREDENTIALS_ENCRYPTION_KEY_OLD ?? undefined,
         };
         assertConfigValid(validateORMConfig(ormConfig), 'podverse-orm');
         ormContext = createORMContext(ormConfig);

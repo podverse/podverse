@@ -1,6 +1,4 @@
-import paypalRestSdk from 'paypal-rest-sdk';
-
-const payments = paypalRestSdk.v1.payments;
+import { Client, Environment, PaymentsController } from '@paypal/paypal-server-sdk';
 
 export interface PayPalServiceParams {
   clientId: string;
@@ -9,8 +7,8 @@ export interface PayPalServiceParams {
 }
 
 export class PayPalService {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private client: any;
+  private client: Client;
+  private paymentsController: PaymentsController;
   private clientId: string;
   private clientSecret: string;
   private nodeEnv: string;
@@ -19,26 +17,32 @@ export class PayPalService {
     this.clientId = clientId;
     this.clientSecret = clientSecret;
     this.nodeEnv = nodeEnv;
-    this.client = new paypalRestSdk.core.PayPalHttpClient(this.getEnvironment());
+    this.client = new Client({
+      clientCredentialsAuthCredentials: {
+        oAuthClientId: this.clientId,
+        oAuthClientSecret: this.clientSecret,
+      },
+      environment: this.getEnvironment(),
+      timeout: 0,
+    });
+    this.paymentsController = new PaymentsController(this.client);
   }
 
-  private getEnvironment() {
-    if (this.nodeEnv === 'production') {
-      return new paypalRestSdk.core.LiveEnvironment(this.clientId, this.clientSecret);
-    } else {
-      return new paypalRestSdk.core.SandboxEnvironment(this.clientId, this.clientSecret);
-    }
+  private getEnvironment(): Environment {
+    return this.nodeEnv === 'production' ? Environment.Production : Environment.Sandbox;
   }
 
   async getPaymentInfo(paymentId: string) {
-    const request = new payments.PaymentGetRequest(paymentId);
-    const response = await this.client.execute(request);
-    return response?.data?.result;
+    const response = await this.paymentsController.getAuthorizedPayment({
+      authorizationId: paymentId,
+    });
+    return response?.result ?? null;
   }
 
   async getCaptureInfo(paymentId: string) {
-    const request = new payments.CaptureGetRequest(paymentId);
-    const response = await this.client.execute(request);
-    return response?.data?.result;
+    const response = await this.paymentsController.getCapturedPayment({
+      captureId: paymentId,
+    });
+    return response?.result ?? null;
   }
 }

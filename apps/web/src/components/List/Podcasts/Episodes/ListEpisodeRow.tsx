@@ -42,6 +42,7 @@ interface Props {
   isEditModePlaylist?: boolean;
   removeFromPlaylist?: () => void;
   playlist_id_text: string | null;
+  onPlayAndRemove?: () => void;
 }
 
 const ListEpisodeRow: React.FC<Props> = ({
@@ -53,6 +54,7 @@ const ListEpisodeRow: React.FC<Props> = ({
   isEditModePlaylist,
   removeFromPlaylist,
   playlist_id_text,
+  onPlayAndRemove,
 }) => {
   const url = `${ROUTES.EPISODE}/${item.id_text}`;
   const channel_image = findDTOChannelImageBySize(
@@ -222,32 +224,40 @@ const ListEpisodeRow: React.FC<Props> = ({
     });
   };
 
-  const moreButtonMenuItems: MoreButtonMenuItem[] = [
-    {
-      label: tMediaPlayer('play'),
-      onClick: playButtonOnClick,
-    },
-    {
-      label: tFeatures('queue.queue_next'),
-      onClick: addToQueueNextOnClick,
-    },
-    {
-      label: tFeatures('queue.queue_last'),
-      onClick: addToQueueLastOnClick,
-    },
-    {
-      label: tFeatures('playlist.add_to_playlist'),
-      onClick: addToPlaylistOnClick,
-    },
-    {
-      label: tFeatures('history.mark_as_played'),
-      onClick: markAsPlayedOnClick,
-    },
-    {
-      label: tFeatures('download.download_episode'),
-      onClick: downloadEpisode,
-    },
-  ];
+  const moreButtonMenuItems: MoreButtonMenuItem[] = isEditModePlaylist
+    ? [
+        {
+          label: tFeatures('playlist.remove_from_playlist'),
+          onClick: removeFromPlaylistOnClick,
+          variant: 'danger',
+        },
+      ]
+    : [
+        {
+          label: tMediaPlayer('play'),
+          onClick: playButtonOnClick,
+        },
+        {
+          label: tFeatures('queue.queue_next'),
+          onClick: addToQueueNextOnClick,
+        },
+        {
+          label: tFeatures('queue.queue_last'),
+          onClick: addToQueueLastOnClick,
+        },
+        {
+          label: tFeatures('playlist.add_to_playlist'),
+          onClick: addToPlaylistOnClick,
+        },
+        {
+          label: tFeatures('history.mark_as_played'),
+          onClick: markAsPlayedOnClick,
+        },
+        {
+          label: tFeatures('download.download_episode'),
+          onClick: downloadEpisode,
+        },
+      ];
 
   if (isEditModeQueue) {
     moreButtonMenuItems.push({
@@ -258,11 +268,7 @@ const ListEpisodeRow: React.FC<Props> = ({
   }
 
   if (isEditModePlaylist) {
-    moreButtonMenuItems.push({
-      label: tFeatures('playlist.remove_from_playlist'),
-      onClick: removeFromPlaylistOnClick,
-      variant: 'danger',
-    });
+    // Menu already limited to remove-from-playlist in edit mode.
   }
 
   return (
@@ -281,21 +287,34 @@ const ListEpisodeRow: React.FC<Props> = ({
         heightMobile={IMAGES.LIST.EPISODES.MOBILE.SIZE}
         classNameDesktop={styles.image}
         classNameMobile={styles.imageMobile}
-        href={url}
+        href={onPlayAndRemove ? undefined : url}
+        onClick={onPlayAndRemove}
       />
       <div className={styles.content}>
-        <Link href={url}>
-          <div className={styles.topSection}>
-            <h3>{item.title}</h3>
-            {showChannelInfo && <div className={styles.channelTitle}>{channel.title}</div>}
-            <div className={styles.subtitle}>
-              {stripAndDecodeHtml(item.item_description?.value)}
+        {onPlayAndRemove ? (
+          <button type="button" className={styles.clickableTopSection} onClick={onPlayAndRemove}>
+            <div className={styles.topSection}>
+              <h3>{item.title}</h3>
+              {showChannelInfo && <div className={styles.channelTitle}>{channel.title}</div>}
+              <div className={styles.subtitle}>
+                {stripAndDecodeHtml(item.item_description?.value)}
+              </div>
             </div>
-          </div>
-        </Link>
+          </button>
+        ) : (
+          <Link href={url}>
+            <div className={styles.topSection}>
+              <h3>{item.title}</h3>
+              {showChannelInfo && <div className={styles.channelTitle}>{channel.title}</div>}
+              <div className={styles.subtitle}>
+                {stripAndDecodeHtml(item.item_description?.value)}
+              </div>
+            </div>
+          </Link>
+        )}
         <div className={styles.bottomSection}>
           <div className={styles.bottomSectionStart}>
-            <PlayButtonRow item={item} onClick={playButtonOnClick} />
+            <PlayButtonRow item={item} onClick={onPlayAndRemove ?? playButtonOnClick} />
             <div className={styles.timeSection}>
               <ReadableDate date={item.pub_date} />
               {durationStr ? ' • ' : null}

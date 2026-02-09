@@ -9,22 +9,28 @@ import styles from '../../../styles/components/Common/Media/Podcast/Episode/Epis
 
 type AddByRSSItemHeaderPlaySectionProps = {
   onPlay: () => void;
-  moreButtonMenuItems: MoreButtonMenuItem[];
+  /** When provided (e.g. episode/track detail), play button shows pause when this item is playing. */
+  addByRSSIdText?: string;
+  /** When empty or omitted, no more button is shown (e.g. add-by-RSS livestream: play/pause only). */
+  moreButtonMenuItems?: MoreButtonMenuItem[];
 };
 
 export const AddByRSSItemHeaderPlaySection: React.FC<AddByRSSItemHeaderPlaySectionProps> = ({
   onPlay,
-  moreButtonMenuItems,
+  addByRSSIdText,
+  moreButtonMenuItems = [],
 }) => {
   return (
     <div className={styles.playSection}>
       <div className={styles.sectionStart}>
-        <PlayButtonLarge onClick={onPlay} />
+        <PlayButtonLarge addByRSSIdText={addByRSSIdText} onClick={onPlay} />
         <div className={styles.timeSection} />
       </div>
-      <div className={styles.sectionEnd}>
-        <MoreButton moreButtonMenuItems={moreButtonMenuItems} isLarge />
-      </div>
+      {moreButtonMenuItems.length > 0 && (
+        <div className={styles.sectionEnd}>
+          <MoreButton moreButtonMenuItems={moreButtonMenuItems} isLarge />
+        </div>
+      )}
     </div>
   );
 };

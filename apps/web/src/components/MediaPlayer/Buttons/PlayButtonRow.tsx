@@ -9,6 +9,8 @@ type PlayButtonRowProps = {
   item: DTOItem | null;
   item_soundbite?: DTOItemSoundbite;
   item_chapter?: DTOItemChapter;
+  /** When provided (e.g. add-by-RSS livestream row), match now-playing by idText; item may be null. */
+  addByRSSIdText?: string;
   onClick: () => void;
 };
 
@@ -17,23 +19,27 @@ export const PlayButtonRow: React.FC<PlayButtonRowProps> = ({
   item,
   item_chapter,
   item_soundbite,
+  addByRSSIdText,
   onClick,
 }) => {
-  const { mpIsPlaying, mpItem, mpItemChapter, mpItemSoundbite, mpClip } = useMediaPlayer();
+  const { mpIsPlaying, mpItem, mpItemChapter, mpItemSoundbite, mpClip, mpAddByRSS } =
+    useMediaPlayer();
   const tMediaPlayer = useTranslations('media_player');
 
-  if (!item) {
+  if (!item && !addByRSSIdText) {
     return null;
   }
 
   let isCurrentlyInPlayer = false;
-  if (item_chapter) {
+  if (addByRSSIdText && mpAddByRSS?.idText === addByRSSIdText) {
+    isCurrentlyInPlayer = true;
+  } else if (item_chapter && item) {
     isCurrentlyInPlayer = mpItemChapter?.id_text === item_chapter.id_text;
-  } else if (item_soundbite) {
+  } else if (item_soundbite && item) {
     isCurrentlyInPlayer = mpItemSoundbite?.id_text === item_soundbite.id_text;
-  } else if (clip) {
+  } else if (clip && item) {
     isCurrentlyInPlayer = mpClip?.id_text === clip.id_text;
-  } else if (mpItem) {
+  } else if (mpItem && item) {
     isCurrentlyInPlayer = mpItem.id_text === item.id_text;
   }
 

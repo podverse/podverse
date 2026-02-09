@@ -38,6 +38,7 @@ interface Props {
   isEditModePlaylist?: boolean;
   removeFromPlaylist?: () => void;
   playlist_id_text: string | null;
+  onPlayAndRemove?: () => void;
 }
 
 export const ListTrackRow: React.FC<Props> = ({
@@ -49,6 +50,7 @@ export const ListTrackRow: React.FC<Props> = ({
   isEditModePlaylist,
   removeFromPlaylist,
   playlist_id_text,
+  onPlayAndRemove,
 }) => {
   const router = useRouter();
   const url = `${ROUTES.TRACK}/${item.id_text}`;
@@ -195,32 +197,40 @@ export const ListTrackRow: React.FC<Props> = ({
     });
   };
 
-  const moreButtonMenuItems: MoreButtonMenuItem[] = [
-    {
-      label: tMediaPlayer('play'),
-      onClick: playButtonOnClick,
-    },
-    {
-      label: tFeatures('queue.queue_next'),
-      onClick: addToQueueNextOnClick,
-    },
-    {
-      label: tFeatures('queue.queue_last'),
-      onClick: addToQueueLastOnClick,
-    },
-    {
-      label: tFeatures('playlist.add_to_playlist'),
-      onClick: addToPlaylistOnClick,
-    },
-    {
-      label: tMedia('music.track_go_to'),
-      onClick: goToTrackPage,
-    },
-    {
-      label: tFeatures('download.download_track'),
-      onClick: downloadTrack,
-    },
-  ];
+  const moreButtonMenuItems: MoreButtonMenuItem[] = isEditModePlaylist
+    ? [
+        {
+          label: tFeatures('playlist.remove_from_playlist'),
+          onClick: removeFromPlaylistOnClick,
+          variant: 'danger',
+        },
+      ]
+    : [
+        {
+          label: tMediaPlayer('play'),
+          onClick: playButtonOnClick,
+        },
+        {
+          label: tFeatures('queue.queue_next'),
+          onClick: addToQueueNextOnClick,
+        },
+        {
+          label: tFeatures('queue.queue_last'),
+          onClick: addToQueueLastOnClick,
+        },
+        {
+          label: tFeatures('playlist.add_to_playlist'),
+          onClick: addToPlaylistOnClick,
+        },
+        {
+          label: tMedia('music.track_go_to'),
+          onClick: goToTrackPage,
+        },
+        {
+          label: tFeatures('download.download_track'),
+          onClick: downloadTrack,
+        },
+      ];
 
   if (isEditModeQueue) {
     moreButtonMenuItems.push({
@@ -231,11 +241,7 @@ export const ListTrackRow: React.FC<Props> = ({
   }
 
   if (isEditModePlaylist) {
-    moreButtonMenuItems.push({
-      label: tFeatures('playlist.remove_from_playlist'),
-      onClick: removeFromPlaylistOnClick,
-      variant: 'danger',
-    });
+    // Menu already limited to remove-from-playlist in edit mode.
   }
 
   return (
@@ -245,7 +251,11 @@ export const ListTrackRow: React.FC<Props> = ({
           <FaGripLines />
         </div>
       )}
-      <Button variant="unstyled" onClick={playButtonOnClick} className={styles.trackClickable}>
+      <Button
+        variant="unstyled"
+        onClick={onPlayAndRemove ?? playButtonOnClick}
+        className={styles.trackClickable}
+      >
         <ImagesPerView
           src={item_image?.url || channel_image?.url}
           alt={item.title || tMedia('music.track_image')}

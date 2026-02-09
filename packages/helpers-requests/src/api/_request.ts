@@ -18,6 +18,10 @@ import {
 } from './account/account.js';
 import { reqAccountFollowChannel, reqAccountUnfollowChannel } from './account/follow/channel.js';
 import {
+  reqAccountAddByRSSChaptersTranscript,
+  type ReqAccountAddByRSSChaptersTranscriptParams,
+} from './account/addByRSSChaptersTranscript.js';
+import {
   reqAccountFollowAddByRSSChannel,
   reqAccountGetFollowedAddByRSSChannels,
   reqAccountUnfollowAddByRSSChannel,
@@ -72,6 +76,12 @@ import {
   reqPlaylistResourceItemAddLast,
   reqPlaylistResourceItemDelete,
 } from './playlist/playlistResource/playlistResourceItem.js';
+import {
+  reqPlaylistResourceItemAddByRSSAddFirst,
+  reqPlaylistResourceItemAddByRSSAddLast,
+  reqPlaylistResourceItemAddByRSSAddBetween,
+  reqPlaylistResourceItemAddByRSSDelete,
+} from './playlist/playlistResource/playlistResourceItemAddByRSS.js';
 import { reqPodrollGetForChannel } from './podroll/podroll.js';
 import type {
   QueryDirection,
@@ -207,6 +217,11 @@ import {
   reqMyProfileClipsRecent,
   reqMyProfileAlbumsAZ,
 } from './profile/profile.js';
+
+export type {
+  AddByRSSChapterResponse,
+  ReqAccountAddByRSSChaptersTranscriptParams,
+} from './account/addByRSSChaptersTranscript.js';
 
 export type AbortOpts = { controller: AbortController; timeoutMs: number };
 
@@ -470,6 +485,8 @@ export class ApiRequestService {
     feed_url: string;
     title?: string | null;
     image_url?: string | null;
+    basic_auth_username?: string | null;
+    basic_auth_password?: string | null;
   }) {
     return reqAccountFollowAddByRSSChannel(this, params);
   }
@@ -480,6 +497,10 @@ export class ApiRequestService {
 
   reqAccountGetFollowedAddByRSSChannels(params: { account_id_text: string }) {
     return reqAccountGetFollowedAddByRSSChannels(this, params);
+  }
+
+  reqAccountAddByRSSChaptersTranscript(params: ReqAccountAddByRSSChaptersTranscriptParams) {
+    return reqAccountAddByRSSChaptersTranscript(this, params);
   }
 
   /* ACCOUNT > FOLLOW > ACCOUNT */
@@ -812,6 +833,31 @@ export class ApiRequestService {
 
   reqPlaylistResourceItemDelete(playlist_id_text: string, item_id_text: string) {
     return reqPlaylistResourceItemDelete(this, playlist_id_text, item_id_text);
+  }
+
+  reqPlaylistResourceItemAddByRSSAddFirst(
+    playlist_id_text: string,
+    params: { add_by_rss_resource_data: object }
+  ) {
+    return reqPlaylistResourceItemAddByRSSAddFirst(this, playlist_id_text, params);
+  }
+
+  reqPlaylistResourceItemAddByRSSAddLast(
+    playlist_id_text: string,
+    params: { add_by_rss_resource_data: object }
+  ) {
+    return reqPlaylistResourceItemAddByRSSAddLast(this, playlist_id_text, params);
+  }
+
+  reqPlaylistResourceItemAddByRSSAddBetween(
+    playlist_id_text: string,
+    params: BetweenParams & { add_by_rss_resource_data: object }
+  ) {
+    return reqPlaylistResourceItemAddByRSSAddBetween(this, playlist_id_text, params);
+  }
+
+  reqPlaylistResourceItemAddByRSSDelete(playlist_id_text: string, add_by_rss_hash_id: string) {
+    return reqPlaylistResourceItemAddByRSSDelete(this, playlist_id_text, add_by_rss_hash_id);
   }
 
   /* PLAYLIST RESOURCE > ITEM SOUNDBITE */

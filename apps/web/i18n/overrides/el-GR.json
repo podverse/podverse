@@ -56,6 +56,7 @@
     },
     "add_by_rss": {
       "label": "",
+      "private_item_placeholder": "",
       "add_feed_instructions": "",
       "check_updates": "",
       "feed_url": "",
@@ -74,7 +75,12 @@
       "status_parsing": "",
       "last_parsed": "",
       "wait_to_retry_minutes": "",
-      "wait_to_retry_minute": ""
+      "wait_to_retry_minute": "",
+      "basic_auth_use": "",
+      "basic_auth_requires": "",
+      "basic_auth_username": "",
+      "basic_auth_password": "",
+      "basic_auth_required_both": ""
     },
     "my_library": "",
     "queue": {
@@ -403,6 +409,7 @@
     "login_required": "",
     "login_for_subscriptions": "",
     "login_to_create_playlists": "",
+    "no_playlists_created": "",
     "login_to_create_clips": "",
     "login_for_queues": "",
     "login_for_history": "",

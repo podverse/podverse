@@ -40,3 +40,15 @@
   color: var(--text-color-danger);
   margin: 0;
 }
+
+.basicAuthSection {
+  @include flexColumn;
+  gap: var(--spacing-sm);
+  margin-top: var(--spacing-md);
+}
+
+.basicAuthFields {
+  @include flexColumn;
+  gap: var(--spacing-sm);
+  margin-left: var(--spacing-md);
+}

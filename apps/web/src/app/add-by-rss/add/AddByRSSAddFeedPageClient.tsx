@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 
 import { CallToActionMessage } from '../../../components/CallToActionMessage/CallToActionMessage';
+import { Checkbox } from '../../../components/Form/Checkbox';
 import { TextInput } from '../../../components/Form/TextInput';
 import { MainHeader } from '../../../components/Main/MainHeader';
 import { MainInnerContentWrapper } from '../../../components/Main/MainInnerContentWrapper';
@@ -50,6 +51,10 @@ export const AddByRSSAddFeedPageClient: React.FC = () => {
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [inputError, setInputError] = useState<string | null>(null);
   const [statusError, setStatusError] = useState<string | null>(null);
+  const [useBasicAuth, setUseBasicAuth] = useState(false);
+  const [basicAuthUsername, setBasicAuthUsername] = useState('');
+  const [basicAuthPassword, setBasicAuthPassword] = useState('');
+  const [basicAuthError, setBasicAuthError] = useState<string | null>(null);
 
   const statusLabel = useMemo(() => {
     switch (status) {
@@ -133,6 +138,7 @@ export const AddByRSSAddFeedPageClient: React.FC = () => {
     setStatusMessage(null);
     setInputError(null);
     setStatusError(null);
+    setBasicAuthError(null);
 
     try {
       try {
@@ -144,15 +150,37 @@ export const AddByRSSAddFeedPageClient: React.FC = () => {
         return;
       }
 
+      if (useBasicAuth) {
+        const username = basicAuthUsername.trim();
+        const password = basicAuthPassword;
+        if (!username || !password) {
+          setBasicAuthError(tFeatures('add_by_rss.basic_auth_required_both'));
+          setIsAddingFeed(false);
+          return;
+        }
+      }
+
       const { requestId, record, account } = await followAddByRSSChannelAndQueue({
         feedUrl,
         resourceType: 'podcasts',
         title: feedUrl,
         imageUrl: null,
+        ...(useBasicAuth && basicAuthUsername.trim() && basicAuthPassword
+          ? {
+              basic_auth_username: basicAuthUsername.trim(),
+              basic_auth_password: basicAuthPassword,
+            }
+          : {}),
       });
 
       if (account) {
         setLoggedInAccount(account);
+      }
+
+      setBasicAuthPassword('');
+      if (useBasicAuth) {
+        setBasicAuthUsername('');
+        setUseBasicAuth(false);
       }
 
       await runParseAndRedirect(requestId, feedUrl, record);
@@ -232,6 +260,36 @@ export const AddByRSSAddFeedPageClient: React.FC = () => {
                     }}
                     disabled={isAddingFeed}
                   />
+                  <div className={styles.basicAuthSection}>
+                    <Checkbox
+                      id="add-by-rss-use-basic-auth"
+                      name="useBasicAuth"
+                      checked={useBasicAuth}
+                      onChange={setUseBasicAuth}
+                      label={tFeatures('add_by_rss.basic_auth_requires')}
+                    />
+                    {useBasicAuth && (
+                      <div className={styles.basicAuthFields}>
+                        <TextInput
+                          value={basicAuthUsername}
+                          onChange={(event) => setBasicAuthUsername(event.target.value)}
+                          placeholder={tFeatures('add_by_rss.basic_auth_username')}
+                          aria-label={tFeatures('add_by_rss.basic_auth_username')}
+                          type="text"
+                          disabled={isAddingFeed}
+                        />
+                        <TextInput
+                          value={basicAuthPassword}
+                          onChange={(event) => setBasicAuthPassword(event.target.value)}
+                          placeholder={tFeatures('add_by_rss.basic_auth_password')}
+                          aria-label={tFeatures('add_by_rss.basic_auth_password')}
+                          type="password"
+                          infoError={basicAuthError ?? undefined}
+                          disabled={isAddingFeed}
+                        />
+                      </div>
+                    )}
+                  </div>
                 </form>
               )}
 

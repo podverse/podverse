@@ -4,10 +4,12 @@ import { PlaylistAddToButton } from '../Buttons/PlaylistAddToButton';
 import { RepeatButton } from '../Buttons/RepeatButton';
 import { ShuffleButton } from '../Buttons/ShuffleButton';
 import { SettingsButton } from '../Buttons/SettingsButton';
+import { useMediaPlayer } from '../../../contexts/MediaPlayer';
 import { useQueues } from '../../../contexts/Queue';
 import styles from '../../../styles/components/MediaPlayer/Modal/MediaPlayerButtonsModal.module.scss';
 
 export const MediaPlayerButtonsModal = () => {
+  const { mpAddByRSS } = useMediaPlayer();
   const { activeQueue } = useQueues();
   const medium_id = activeQueue?.medium_id || MediumEnum.AV;
 
@@ -15,7 +17,7 @@ export const MediaPlayerButtonsModal = () => {
     <div className={styles.buttons}>
       <div className={styles.startSection}>
         <PlaylistAddToButton />
-        {medium_id === MediumEnum.AV && <ClipButton />}
+        {medium_id === MediumEnum.AV && !mpAddByRSS && <ClipButton />}
         <RepeatButton />
         <ShuffleButton />
         <SettingsButton />

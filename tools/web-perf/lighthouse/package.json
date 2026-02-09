@@ -13,7 +13,7 @@
     "chrome-launcher": "^1.0.0",
     "dotenv": "^17.2.2",
     "inquirer": "^8.2.6",
-    "lighthouse": "^11.4.0",
+    "lighthouse": "^13.0.2",
     "openai": "^6.16.0",
     "pg": "^8.13.1",
     "playwright": "^1.40.0",
@@ -23,7 +23,6 @@
     "typescript": "^5.9.2"
   },
   "dependencies": {
-    "@types/bcryptjs": "^3.0.0",
     "bcryptjs": "^3.0.3",
     "podverse-test-assets": "*"
   }

@@ -2,7 +2,6 @@
 
 import dynamic from 'next/dynamic';
 import React from 'react';
-import { LazyLoadPlaceholder } from '../../components/LazyLoadPlaceholder/LazyLoadPlaceholder';
 import LoadingSpinnerOverlay from '../../components/LoadingSpinner/LoadingSpinnerOverlay';
 import { useQueuesPageContext } from './QueuesPageContext';
 
@@ -13,7 +12,6 @@ const ListQueueResources = dynamic(
     })),
   {
     ssr: false,
-    loading: () => <LazyLoadPlaceholder />,
   }
 );
 

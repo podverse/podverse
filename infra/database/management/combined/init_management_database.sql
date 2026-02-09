@@ -1,4 +1,4 @@
--- Combined migrations generated Sat Feb  7 01:58:56 CST 2026
+-- Combined migrations generated Sun Feb  8 00:30:24 CST 2026
 -- DO NOT EDIT - regenerate with scripts/database/combine-migrations.sh
 
 -- Including: 0000_init_helpers.sql

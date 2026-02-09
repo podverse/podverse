@@ -56,6 +56,7 @@
     },
     "add_by_rss": {
       "label": "Προσθήκη μέσω RSS",
+      "private_item_placeholder": "Ιδιωτικό αντικείμενο προσθήκης μέσω RSS",
       "add_feed_instructions": "Προσθέστε μια διεύθυνση URL RSS για να παρακολουθήσετε podcasts ή μουσική που δεν είναι στη βιβλιοθήκη μας. Θα το αναλύσουμε και θα το αποθηκεύσουμε στη βιβλιοθήκη σας Προσθήκη μέσω RSS.",
       "check_updates": "Έλεγχος για Ενημερώσεις",
       "feed_url": "URL Ροής RSS",
@@ -74,7 +75,12 @@
       "status_parsing": "Ανάλυση",
       "last_parsed": "Τελευταία ανάλυση: {date}",
       "wait_to_retry_minutes": "Θα χρειαστεί να περιμένετε έως και {minutes} λεπτά για να το ξανακάνετε.",
-      "wait_to_retry_minute": "Θα χρειαστεί να περιμένετε έως και {minutes} λεπτό για να το ξανακάνετε."
+      "wait_to_retry_minute": "Θα χρειαστεί να περιμένετε έως και {minutes} λεπτό για να το ξανακάνετε.",
+      "basic_auth_use": "Use Basic Auth",
+      "basic_auth_requires": "This feed requires username and password",
+      "basic_auth_username": "Username",
+      "basic_auth_password": "Password",
+      "basic_auth_required_both": "Basic Auth requires both username and password."
     },
     "my_library": "Η Βιβλιοθήκη Μου",
     "queue": {
@@ -403,6 +409,7 @@
     "login_required": "Απαιτείται Σύνδεση",
     "login_for_subscriptions": "Παρακαλώ συνδεθείτε για να δείτε τις συνδρομές σας.",
     "login_to_create_playlists": "Παρακαλώ συνδεθείτε για να δημιουργήσετε λίστες αναπαραγωγής.",
+    "no_playlists_created": "Δεν έχετε ακόμη λίστες αναπαραγωγής. Δημιουργήστε μία για να ξεκινήσετε.",
     "login_to_create_clips": "Παρακαλώ συνδεθείτε για να δημιουργήσετε κλιπ.",
     "login_for_queues": "Παρακαλώ συνδεθείτε για να δείτε τις ουρές σας.",
     "login_for_history": "Παρακαλώ συνδεθείτε για να δείτε την ιστορία σας.",
