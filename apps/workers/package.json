@@ -44,7 +44,7 @@
     "@podverse/orm": "*",
     "@podverse/parser": "*",
     "amqplib": "^0.10.9",
-    "axios": "^1.13.4",
+    "axios": "^1.13.5",
     "ioredis": "^5.9.2",
     "pg": "^8.16.3",
     "typeorm": "^0.3.26",

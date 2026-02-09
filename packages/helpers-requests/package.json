@@ -23,7 +23,7 @@
   },
   "dependencies": {
     "@podverse/helpers": "*",
-    "axios": "^1.12.2"
+    "axios": "^1.13.5"
   },
   "type": "module"
 }
