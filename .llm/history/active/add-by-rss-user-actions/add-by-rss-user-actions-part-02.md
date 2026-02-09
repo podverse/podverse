@@ -53,3 +53,17 @@ implement your plan
 #### Files Modified
 
 - package.json
+
+### Session 13 - 2026-02-09
+
+#### Prompt (Developer)
+
+@/Users/mitcheldowney/.cursor/projects/Users-mitcheldowney-repos-pv-pv-code-workspace/terminals/17.txt:1011-1042 npm run build fails with this
+
+#### Key Decisions
+
+- Move remove-from-playlist handler above menu creation to avoid use-before-declaration.
+
+#### Files Modified
+
+- apps/web/src/components/List/Clips/ListClipRow.tsx

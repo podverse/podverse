@@ -15,6 +15,7 @@ interface PlaylistPageContextType {
   totalPages: number;
   setTotalPages: (totalPages: number) => void;
   isLoading: boolean;
+  setIsLoading: (loading: boolean) => void;
 }
 
 const PlaylistPageContext = createContext<PlaylistPageContextType | undefined>(undefined);
@@ -67,6 +68,7 @@ export const PlaylistPageContextProvider = ({
         totalPages,
         setTotalPages,
         isLoading,
+        setIsLoading,
       }}
     >
       {children}

@@ -191,33 +191,6 @@ export const ListItemSoundbiteRow: React.FC<ListItemSoundbiteProps> = ({
     });
   };
 
-  const moreButtonMenuItems: MoreButtonMenuItem[] = isEditModePlaylist
-    ? [
-        {
-          label: tFeatures('playlist.remove_from_playlist'),
-          onClick: removeFromPlaylistOnClick,
-          variant: 'danger',
-        },
-      ]
-    : [
-        {
-          label: tMediaPlayer('play'),
-          onClick: () => alert(tMediaPlayer('play')),
-        },
-        {
-          label: tFeatures('queue.queue_next'),
-          onClick: addToQueueNextOnClick,
-        },
-        {
-          label: tFeatures('queue.queue_last'),
-          onClick: addToQueueLastOnClick,
-        },
-        {
-          label: tFeatures('playlist.add_to_playlist'),
-          onClick: addToPlaylistOnClick,
-        },
-      ];
-
   const removeFromQueueOnClick = async () => {
     if (channel) {
       const queue = getQueueForMedium(queues, channel.medium_id);
@@ -253,6 +226,33 @@ export const ListItemSoundbiteRow: React.FC<ListItemSoundbiteProps> = ({
       error: tFeatures('playlist.remove_error'),
     });
   };
+
+  const moreButtonMenuItems: MoreButtonMenuItem[] = isEditModePlaylist
+    ? [
+        {
+          label: tFeatures('playlist.remove_from_playlist'),
+          onClick: removeFromPlaylistOnClick,
+          variant: 'danger',
+        },
+      ]
+    : [
+        {
+          label: tMediaPlayer('play'),
+          onClick: () => alert(tMediaPlayer('play')),
+        },
+        {
+          label: tFeatures('queue.queue_next'),
+          onClick: addToQueueNextOnClick,
+        },
+        {
+          label: tFeatures('queue.queue_last'),
+          onClick: addToQueueLastOnClick,
+        },
+        {
+          label: tFeatures('playlist.add_to_playlist'),
+          onClick: addToPlaylistOnClick,
+        },
+      ];
 
   if (isEditModeQueue) {
     moreButtonMenuItems.push({

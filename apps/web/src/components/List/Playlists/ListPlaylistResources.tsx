@@ -25,6 +25,7 @@ type Props = {
   page?: number;
   setPage?: (page: number) => void;
   totalPages?: number;
+  setIsLoading?: (loading: boolean) => void;
 };
 
 export const ListPlaylistResources: React.FC<Props> = ({
@@ -34,6 +35,7 @@ export const ListPlaylistResources: React.FC<Props> = ({
   page,
   setPage,
   totalPages = 1,
+  setIsLoading: setLoadingFromParent,
 }) => {
   const [resources, setResources] = React.useState(playlistResources);
   const mediaPlayerResourceUpdate = useMediaPlayerResourceUpdate();
@@ -208,7 +210,7 @@ export const ListPlaylistResources: React.FC<Props> = ({
     const destIdx = result.destination.index;
     const prevResource = reordered[destIdx - 1];
     const nextResource = reordered[destIdx + 1];
-    setIsLoading(true);
+    setLoadingFromParent?.(true);
 
     try {
       let updatedResource: DTOPlaylistResource | null = null;
@@ -348,7 +350,7 @@ export const ListPlaylistResources: React.FC<Props> = ({
     } catch (err) {
       console.error('Error updating playlist order', err);
     }
-    setIsLoading(false);
+    setLoadingFromParent?.(false);
   };
 
   const listWrapperClassName =

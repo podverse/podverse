@@ -16,6 +16,7 @@ import { ImagesPerView } from '../../Image/ImagesPerView';
 import { ListClipRow } from '../Clips/ListClipRow';
 import { ListItemSoundbiteRow } from '../ItemSoundbites/ListItemSoundbiteRow';
 import ListEpisodeRow from '../Podcasts/Episodes/ListEpisodeRow';
+import type { MoreButtonMenuItem } from '../../MoreButton/MoreButton';
 import { MoreButton } from '../../MoreButton/MoreButton';
 import { ListTrackRow } from '../Music/Albums/Tracks/ListTrackRow';
 import { ReadableDate } from '../../Time/ReadableDate';
@@ -175,7 +176,7 @@ export const ListPlaylistResourceRow: React.FC<Props> = ({
     const downloadItem = async () => {
       if (!resourceData) return;
       const indexItem = await loadAddByRSSIndexItemFromResourceData(resourceData);
-      if (!indexItem || typeof indexItem !== 'object') {
+      if (!indexItem || typeof indexItem !== 'object' || !('bundle' in indexItem)) {
         return;
       }
       downloadAddByRSSMediaWithModal({
@@ -197,14 +198,14 @@ export const ListPlaylistResourceRow: React.FC<Props> = ({
       router.push(getAddByRSSItemPath(idText, 'tracks'));
     };
 
-    const moreButtonMenuItems = isEditModePlaylist
+    const moreButtonMenuItems: MoreButtonMenuItem[] = isEditModePlaylist
       ? [
           {
             label: tFeatures('playlist.remove_from_playlist'),
             onClick: () => {
               void removeFromPlaylistOnClick();
             },
-            variant: 'danger' as const,
+            variant: 'danger',
           },
         ]
       : [];

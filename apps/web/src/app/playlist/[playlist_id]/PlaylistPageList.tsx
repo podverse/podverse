@@ -24,7 +24,7 @@ type PlaylistPageListProps = {
 };
 
 export const PlaylistPageList: React.FC<PlaylistPageListProps> = ({ ssrPlaylist }) => {
-  const { playlistResources, totalPages, filterParams, setFilterParams, isLoading } =
+  const { playlistResources, totalPages, filterParams, setFilterParams, isLoading, setIsLoading } =
     usePlaylistPageContext();
   const { page } = filterParams;
 
@@ -36,6 +36,7 @@ export const PlaylistPageList: React.FC<PlaylistPageListProps> = ({ ssrPlaylist 
         page={page}
         setPage={(page) => setFilterParams({ ...filterParams, page })}
         totalPages={totalPages}
+        setIsLoading={setIsLoading}
       />
       <LoadingSpinnerOverlay isLoading={isLoading} />
     </>
