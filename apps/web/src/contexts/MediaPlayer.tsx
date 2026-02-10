@@ -57,6 +57,9 @@ type MediaPlayerContextType = {
   setPlayerModalIsOpen: (val: boolean) => void;
   mpShouldPlay: boolean;
   setMPShouldPlay: (val: boolean) => void;
+  /** One-shot seek time for Add-by-RSS restored position; set by usePlayAddByRSS, consumed and cleared by controller. */
+  addByRSSSeekToTime: number | null;
+  setAddByRSSSeekToTime: (val: number | null) => void;
 };
 
 export const MediaPlayerContext = createContext<MediaPlayerContextType | undefined>(undefined);
@@ -91,6 +94,7 @@ export const MediaPlayerProvider = ({ children }: MediaPlayerProviderProps) => {
   const [mpDuration, setMPDuration] = useState<number>(0);
   const [playerModalIsOpen, setPlayerModalIsOpen] = useState<boolean>(false);
   const [mpShouldPlay, setMPShouldPlay] = useState<boolean>(false);
+  const [addByRSSSeekToTime, setAddByRSSSeekToTime] = useState<number | null>(null);
 
   return (
     <MediaPlayerContext.Provider
@@ -131,6 +135,8 @@ export const MediaPlayerProvider = ({ children }: MediaPlayerProviderProps) => {
         setPlayerModalIsOpen,
         mpShouldPlay,
         setMPShouldPlay,
+        addByRSSSeekToTime,
+        setAddByRSSSeekToTime,
       }}
     >
       {children}

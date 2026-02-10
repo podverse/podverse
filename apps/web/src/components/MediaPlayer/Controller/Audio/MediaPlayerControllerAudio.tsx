@@ -85,6 +85,8 @@ export function MediaPlayerControllerAudio() {
       setMPDuration={mediaPlayer.setMPDuration}
       mpCurrentTime={mpCurrentTime}
       setMPCurrentTime={setMPCurrentTime}
+      addByRSSSeekToTime={mediaPlayer.addByRSSSeekToTime}
+      setAddByRSSSeekToTime={mediaPlayer.setAddByRSSSeekToTime}
       updateNowPlaying={updateNowPlaying}
       moveNowPlayingToHistory={moveNowPlayingToHistory}
       queueResourcesLoadActive={queueResourcesLoadActive}

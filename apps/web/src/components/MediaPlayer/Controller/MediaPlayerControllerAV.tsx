@@ -55,6 +55,8 @@ export interface MediaPlayerControllerAVProps {
   setMPDuration: (duration: number) => void;
   mpCurrentTime: number;
   setMPCurrentTime: (time: number) => void;
+  addByRSSSeekToTime: number | null;
+  setAddByRSSSeekToTime: (time: number | null) => void;
   updateNowPlaying: (args: UpdateNowPlayingParams) => void;
   moveNowPlayingToHistory: (params: MoveNowPlayingToHistoryCallbackParams) => Promise<void>;
   queueResourcesLoadActive: (medium_id?: number) => Promise<QueueResourcesLoadActiveResult>;
@@ -98,8 +100,10 @@ export const MediaPlayerControllerAV: React.FC<MediaPlayerControllerAVProps> = (
     mpShouldPlay,
     setMPShouldPlay,
     setMPDuration,
-    mpCurrentTime,
+    mpCurrentTime: _mpCurrentTime,
     setMPCurrentTime,
+    addByRSSSeekToTime,
+    setAddByRSSSeekToTime,
     updateNowPlaying,
     moveNowPlayingToHistory,
     queueResourcesLoadActive,
@@ -197,7 +201,9 @@ export const MediaPlayerControllerAV: React.FC<MediaPlayerControllerAVProps> = (
     if (typeof enclosureUrl !== 'string' || enclosureUrl.trim() === '') return;
 
     const url = enclosureUrl.trim();
-    const seekTime = typeof mpCurrentTime === 'number' && mpCurrentTime >= 0 ? mpCurrentTime : 0;
+    const isRestoredSeek = addByRSSSeekToTime !== null;
+    const seekTime = isRestoredSeek && addByRSSSeekToTime >= 0 ? addByRSSSeekToTime : 0;
+
     // Only set src/load if not already set (e.g. declarative src from JSX may already match).
     if (media.src !== url) {
       media.src = url;
@@ -205,7 +211,10 @@ export const MediaPlayerControllerAV: React.FC<MediaPlayerControllerAVProps> = (
     }
 
     const applySeek = () => {
-      media.currentTime = seekTime;
+      if (isRestoredSeek) {
+        media.currentTime = seekTime;
+        setAddByRSSSeekToTime(null);
+      }
     };
 
     if (media.readyState >= 1) {
@@ -217,7 +226,7 @@ export const MediaPlayerControllerAV: React.FC<MediaPlayerControllerAVProps> = (
     if (mpShouldPlay) {
       playMediaWhenReady(media, () => setMPShouldPlay(false));
     }
-  }, [mpAddByRSS, mediaType, mpShouldPlay, mpCurrentTime]);
+  }, [mpAddByRSS, mediaType, mpShouldPlay, addByRSSSeekToTime, setAddByRSSSeekToTime]);
 
   useEffect(() => {
     if (mpAddByRSS) return;
