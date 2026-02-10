@@ -1,6 +1,6 @@
 {
   "name": "@podverse/parser",
-  "version": "5.3.1",
+  "version": "5.3.2",
   "description": "RSS/Atom feed parser for Podverse",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
