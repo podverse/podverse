@@ -305,11 +305,11 @@ export const AddByRSSTracksPageClient: React.FC = () => {
                 paginationControlsClassName={styles.paginationControls}
               >
                 {items.length > 0 ? (
-                  <AddByRSSTrackNodes items={items} viewSelected={viewSelected} />
+                  <AddByRSSTrackNodes items={items} viewSelected={viewSelected} sortOrder={sort} />
                 ) : null}
               </Pagination>
             ) : items.length > 0 ? (
-              <AddByRSSTrackNodes items={items} viewSelected={viewSelected} />
+              <AddByRSSTrackNodes items={items} viewSelected={viewSelected} sortOrder={sort} />
             ) : isLoading ? null : (
               <NoResults message={tFeatures('add_by_rss.no_feeds_music')} />
             )}

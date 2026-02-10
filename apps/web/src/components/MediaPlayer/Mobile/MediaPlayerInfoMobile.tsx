@@ -12,16 +12,21 @@ export const MediaPlayerInfoMobile: React.FC = () => {
   const tMediaPlayer = useTranslations('media_player');
   const tMisc = useTranslations('misc');
 
-  const title =
-    (typeof mpAddByRSS?.resourceData?.title === 'string' ? mpAddByRSS.resourceData.title : null) ||
-    mpItem?.title ||
-    tMisc('untitled');
-  const subtitle =
-    (typeof mpAddByRSS?.resourceData?.channel_title === 'string'
-      ? mpAddByRSS.resourceData.channel_title
-      : null) ||
-    mpChannel?.title ||
-    tMisc('untitled');
+  const hasContent = !!mpChannel || !!mpAddByRSS;
+  const title = hasContent
+    ? (typeof mpAddByRSS?.resourceData?.title === 'string'
+        ? mpAddByRSS.resourceData.title
+        : null) ||
+      mpItem?.title ||
+      tMisc('untitled')
+    : '';
+  const subtitle = hasContent
+    ? (typeof mpAddByRSS?.resourceData?.channel_title === 'string'
+        ? mpAddByRSS.resourceData.channel_title
+        : null) ||
+      mpChannel?.title ||
+      tMisc('untitled')
+    : '';
 
   const channel_image = findDTOChannelImageBySize(
     mpChannel?.channel_images ?? mpAddByRSS?.resourceData?.channel_images,

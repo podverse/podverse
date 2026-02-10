@@ -16,6 +16,7 @@ import type { MediaPlayerAddByRSSState } from '../../../contexts/MediaPlayer';
 import { getSelectedLabeledItemEnclosureAndSource, isEqual, MediumEnum } from '@podverse/helpers';
 import { EVENTS } from '../../../constants/events';
 import type { MoveNowPlayingToHistoryCallbackParams } from '../../../hooks/useQueueResourceMoveNowPlayingToHistory';
+import type { QueueResourcesLoadActiveResult } from '../../../hooks/useQueueResourcesLoadActive';
 import type { UpdateNowPlayingParams } from '../../../hooks/useQueueResourceUpdateNowPlaying';
 import {
   checkIfIsAudioFile,
@@ -56,14 +57,14 @@ export interface MediaPlayerControllerAVProps {
   setMPCurrentTime: (time: number) => void;
   updateNowPlaying: (args: UpdateNowPlayingParams) => void;
   moveNowPlayingToHistory: (params: MoveNowPlayingToHistoryCallbackParams) => Promise<void>;
-  queueResourcesLoadActive: (medium_id?: number) => Promise<number>;
+  queueResourcesLoadActive: (medium_id?: number) => Promise<QueueResourcesLoadActiveResult>;
   queueResourcesAbridgedIndex: QueueResourcesAbridgedIndex;
   /** When add-by-RSS is now playing, called to save position (e.g. every 15s and on pause). */
   onAddByRSSPositionSave?: (positionSeconds: number) => void;
   /** When add-by-RSS playback ends, called to add to history; then controller clears add-by-RSS state. */
   onAddByRSSEnded?: (positionSeconds: number) => Promise<void>;
-  /** When add-by-RSS playback ends and queue is empty, try to play next from list context. */
-  onAddByRSSPlayNext?: () => Promise<void>;
+  /** When add-by-RSS playback ends and queue is empty, try to play next from list context. Returns true if playback started. */
+  onAddByRSSPlayNext?: () => Promise<boolean>;
   clearNowPlaying: () => void;
 }
 
@@ -511,13 +512,13 @@ export const MediaPlayerControllerAV: React.FC<MediaPlayerControllerAVProps> = (
             : undefined;
         await onAddByRSSEndedFn(positionSeconds);
         setMPShouldPlay(false);
-        const upcomingCount = await queueResourcesLoadActive(medium_id);
-        if (upcomingCount === 0) {
-          clearNowPlayingRef.current?.();
+        const { upcomingManualCount } = await queueResourcesLoadActive(medium_id);
+        if (upcomingManualCount > 0) {
           return;
         }
-        if (onAddByRSSPlayNextFn) {
-          await onAddByRSSPlayNextFn();
+        const playedNext = onAddByRSSPlayNextFn ? await onAddByRSSPlayNextFn() : false;
+        if (!playedNext) {
+          clearNowPlayingRef.current?.();
         }
         return;
       }
@@ -527,12 +528,14 @@ export const MediaPlayerControllerAV: React.FC<MediaPlayerControllerAVProps> = (
         mpItem: mpItemRef.current,
         mpItemSoundbite: mpItemSoundbiteRef.current,
       });
-      const upcomingCount = await queueResourcesLoadActive();
-      if (upcomingCount === 0) {
+      const { upcomingManualCount, hasAutoQueueNext } = await queueResourcesLoadActive();
+      if (upcomingManualCount === 0 && !hasAutoQueueNext) {
         clearNowPlayingRef.current?.();
         return;
       }
-      setMPShouldPlay(true);
+      if (upcomingManualCount > 0 || hasAutoQueueNext) {
+        setMPShouldPlay(true);
+      }
     };
 
     media.addEventListener('loadedmetadata', handleLoadedMetadata);

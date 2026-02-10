@@ -1,4 +1,6 @@
+import { useCallback } from 'react';
 import { MediaPlayerControllerAV } from '../MediaPlayerControllerAV';
+import { useAddByRSSListContext } from '../../../../contexts/AddByRSSListContext';
 import { useMediaPlayer } from '../../../../contexts/MediaPlayer';
 import { useMediaPlayerCurrentTime } from '../../../../contexts/MediaPlayerCurrentTime';
 import { useQueueResourcesUpdateNowPlaying } from '../../../../hooks/useQueueResourceUpdateNowPlaying';
@@ -7,9 +9,11 @@ import { useQueueResourcesLoadActive } from '../../../../hooks/useQueueResources
 import { useQueueResourcesAbridgedIndex } from '../../../../contexts/QueueResourcesAbridgedIndex';
 import { useAddByRSSPositionSave } from '../../../../hooks/useAddByRSSPositionSave';
 import { useAddByRSSPlayNext } from '../../../../hooks/useAddByRSSPlayNext';
+import { resolveAddByRSSListContextFromCurrentItem } from '../../../../utils/addByRSS/resolveListContextFromCurrentItem';
 
 export function MediaPlayerControllerAudio() {
   const mediaPlayer = useMediaPlayer();
+  const { listContext } = useAddByRSSListContext();
   const { mpCurrentTime, setMPCurrentTime } = useMediaPlayerCurrentTime();
   const updateNowPlaying = useQueueResourcesUpdateNowPlaying();
   const moveNowPlayingToHistory = useQueueResourcesMoveNowPlayingToHistory();
@@ -17,7 +21,19 @@ export function MediaPlayerControllerAudio() {
   const { queueResourcesAbridgedIndex } = useQueueResourcesAbridgedIndex();
   const { savePosition: onAddByRSSPositionSave, handleEnded: onAddByRSSEnded } =
     useAddByRSSPositionSave();
-  const onAddByRSSPlayNext = useAddByRSSPlayNext();
+  const playNextRaw = useAddByRSSPlayNext();
+  const onAddByRSSPlayNext = useCallback(async (): Promise<boolean> => {
+    const hasListContext = listContext && listContext.itemIdTexts.length > 0;
+    if (!hasListContext && mediaPlayer.mpAddByRSS) {
+      const fallbackContext = await resolveAddByRSSListContextFromCurrentItem(
+        mediaPlayer.mpAddByRSS.idText,
+        mediaPlayer.mpAddByRSS.resourceData,
+        'recent'
+      );
+      return playNextRaw(fallbackContext ?? undefined);
+    }
+    return playNextRaw();
+  }, [listContext, mediaPlayer.mpAddByRSS, playNextRaw]);
 
   const clearNowPlaying = () => {
     mediaPlayer.setMPAddByRSS(null);

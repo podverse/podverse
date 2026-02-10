@@ -4,6 +4,7 @@ import React from 'react';
 
 import { Divider } from '../../Divider/Divider';
 import type { ViewSelectedOption } from '../../ViewSelector/ViewSelector';
+import type { AddByRSSListSortOrder } from '../../../contexts/AddByRSSListContext';
 import { AddByRSSLivestreamGridNode } from './AddByRSSLivestreamGridNode';
 import { AddByRSSLivestreamRow } from './AddByRSSLivestreamRow';
 import type { AddByRSSLivestreamIndexItem } from '../../../utils/addByRSS/types';
@@ -13,12 +14,14 @@ type AddByRSSLivestreamNodesProps = {
   items: AddByRSSLivestreamIndexItem[];
   viewSelected: ViewSelectedOption;
   showChannelInfo?: boolean;
+  sortOrder?: AddByRSSListSortOrder;
 };
 
 export const AddByRSSLivestreamNodes: React.FC<AddByRSSLivestreamNodesProps> = ({
   items,
   viewSelected,
   showChannelInfo,
+  sortOrder = 'recent',
 }) => {
   if (items.length === 0) {
     return null;
@@ -38,6 +41,7 @@ export const AddByRSSLivestreamNodes: React.FC<AddByRSSLivestreamNodesProps> = (
                 feedIdText,
                 itemIdTexts,
                 currentIndex: idx,
+                sortOrder,
               }}
             />
             {idx < items.length - 1 && <Divider />}

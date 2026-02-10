@@ -6,6 +6,11 @@ import { useQueues } from '../contexts/Queue';
 import { apiRequestService } from '../factories/apiRequestService';
 import { autoQueueIncrementActiveRow, useAutoQueue } from '../contexts/AutoQueue';
 
+export type QueueResourcesLoadActiveResult = {
+  upcomingManualCount: number;
+  hasAutoQueueNext?: boolean;
+};
+
 /*
   NOTE: If you want useQueueResourcesLoadActive to load the next item
   from the queue or auto-queue, and to skip the current "now playing item",
@@ -46,7 +51,7 @@ export function useQueueResourcesLoadActive() {
    *                    When provided, uses getQueueMediumIdForChannelMediumId to map to the correct queue.
    *                    Falls back to AV queue if not provided or no match found.
    */
-  return useCallback(async (medium_id?: number) => {
+  return useCallback(async (medium_id?: number): Promise<QueueResourcesLoadActiveResult> => {
     const loggedInAccount = loggedInAccountRef.current;
     const autoQueueConfig = autoQueueConfigRef.current;
     const autoQueueActiveRow = autoQueueActiveRowRef.current;
@@ -54,7 +59,7 @@ export function useQueueResourcesLoadActive() {
 
     if (!loggedInAccount) {
       setQueues([]);
-      return 0;
+      return { upcomingManualCount: 0 };
     }
 
     const queueData = await apiRequestService.reqQueueGetAllForAccountPrivate();
@@ -119,18 +124,23 @@ export function useQueueResourcesLoadActive() {
 
       setActiveQueueUpcomingResources(combinedQueueResources);
 
+      let hasAutoQueueNext = false;
       if (combinedQueueResources.length === 0) {
         const nextAutoQueueActiveRow = autoQueueIncrementActiveRow(autoQueueActiveRow);
         if (autoQueueResources[nextAutoQueueActiveRow]) {
+          hasAutoQueueNext = true;
           setAutoQueueActiveRow(nextAutoQueueActiveRow);
         } else if (autoQueueConfig.repeat) {
           setAutoQueueActiveRow(0);
         }
       }
 
-      return combinedQueueResources.length;
+      return {
+        upcomingManualCount: combinedQueueResources.length,
+        hasAutoQueueNext: combinedQueueResources.length === 0 ? hasAutoQueueNext : undefined,
+      };
     }
 
-    return 0;
+    return { upcomingManualCount: 0 };
   }, []);
 }

@@ -6,6 +6,7 @@ import React from 'react';
 import { Divider } from '../../../Divider/Divider';
 import type { ViewSelectedOption } from '../../../ViewSelector/ViewSelector';
 import styles from '../../../../styles/components/Common/List/ListNodes.module.scss';
+import type { AddByRSSListSortOrder } from '../../../../contexts/AddByRSSListContext';
 import type {
   AddByRSSFeedRecord,
   AddByRSSItemIndexItem,
@@ -28,6 +29,7 @@ type AddByRSSEpisodeNodesItemsProps = {
   viewSelected?: ViewSelectedOption;
   itemIdTextMap: Map<string, string>;
   mediumId?: number | null;
+  sortOrder?: AddByRSSListSortOrder;
 };
 
 type AddByRSSEpisodeNodesProps = AddByRSSEpisodeNodesFeedsProps | AddByRSSEpisodeNodesItemsProps;
@@ -93,6 +95,7 @@ export const AddByRSSEpisodeNodes: React.FC<AddByRSSEpisodeNodesProps> = (props)
     viewSelected = 'rows',
     itemIdTextMap,
     mediumId = MediumEnum.Podcast,
+    sortOrder = 'recent',
   } = props;
   if (viewSelected === 'rows') {
     const itemIdTexts = items.map((bundle, i) => {
@@ -128,6 +131,7 @@ export const AddByRSSEpisodeNodes: React.FC<AddByRSSEpisodeNodesProps> = (props)
                   feedIdText: channelIdText,
                   itemIdTexts,
                   currentIndex: idx,
+                  sortOrder,
                 }}
               />
               {idx < items.length - 1 && <Divider />}

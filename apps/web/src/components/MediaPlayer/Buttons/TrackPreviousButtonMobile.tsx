@@ -9,22 +9,46 @@ import type {
 } from '@podverse/helpers';
 import { EVENTS } from '../../../constants/events';
 import { useMediaPlayer } from '../../../contexts/MediaPlayer';
+import { useAddByRSSListContext } from '../../../contexts/AddByRSSListContext';
 import { MediumEnum } from '@podverse/helpers';
 import { apiRequestService } from '../../../factories/apiRequestService';
+import { useAddByRSSPlayPrevious } from '../../../hooks/useAddByRSSPlayPrevious';
 import { useMediaPlayerResourceUpdate } from '../../../hooks/useMediaPlayerResourceUpdate';
 import { useAutoQueue } from '../../../contexts/AutoQueue';
 import { useMediaPlayerCurrentTime } from '../../../contexts/MediaPlayerCurrentTime';
+import { resolveAddByRSSListContextFromCurrentItem } from '../../../utils/addByRSS/resolveListContextFromCurrentItem';
 import styles from '../../../styles/components/MediaPlayer/Buttons/TrackPreviousButtonMobile.module.scss';
 
 export const TrackPreviousButtonMobile = () => {
-  const { mpChannel, mpItem, mpClip, mpItemSoundbite, setMPShouldPlay, mpIsPlaying } =
+  const { mpChannel, mpItem, mpClip, mpItemSoundbite, setMPShouldPlay, mpIsPlaying, mpAddByRSS } =
     useMediaPlayer();
   const { mpCurrentTime } = useMediaPlayerCurrentTime();
+  const { listContext } = useAddByRSSListContext();
 
   const mediaPlayerResourceUpdate = useMediaPlayerResourceUpdate();
   const { autoQueueConfig, autoQueueActiveRow, setAutoQueueActiveRow } = useAutoQueue();
+  const addByRSSPlayPrevious = useAddByRSSPlayPrevious();
 
   const onClick = async () => {
+    if (mpAddByRSS) {
+      const isRestartThreshold = 3;
+      if (mpCurrentTime > isRestartThreshold) {
+        window.dispatchEvent(new CustomEvent(EVENTS.MEDIA_PLAYER.SEEK, { detail: { time: 0 } }));
+        return;
+      }
+      const hasListContext = listContext && listContext.itemIdTexts.length > 0;
+      const fallbackContext = !hasListContext
+        ? await resolveAddByRSSListContextFromCurrentItem(
+            mpAddByRSS.idText,
+            mpAddByRSS.resourceData,
+            'recent'
+          )
+        : null;
+      const played = await addByRSSPlayPrevious(fallbackContext ?? undefined);
+      if (played) return;
+      window.dispatchEvent(new CustomEvent(EVENTS.MEDIA_PLAYER.SEEK, { detail: { time: 0 } }));
+      return;
+    }
     if (mpChannel && mpItem) {
       const isRestartThreshold = 3;
       const shouldRestart = mpCurrentTime > isRestartThreshold;
