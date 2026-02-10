@@ -34,12 +34,12 @@ pipeline {
                             docker compose -f docker-compose.yml run -d --name podverse_alpha_workers_parser_rss_live_1 podverse_alpha_workers node apps/workers/dist/index.js mqRSSRunParser -q rss-live
 
                             # Start Add By RSS On-Demand (2 instances)
-                            docker compose -f docker-compose.yml run -d --name podverse_alpha_workers_parser_add_by_rss_on_demand_1 podverse_alpha_workers node apps/workers/dist/index.js mqRSSRunParser -q add-by-rss-on-demand
-                            docker compose -f docker-compose.yml run -d --name podverse_alpha_workers_parser_add_by_rss_on_demand_2 podverse_alpha_workers node apps/workers/dist/index.js mqRSSRunParser -q add-by-rss-on-demand
+                            docker compose -f docker-compose.yml run -d --name podverse_alpha_workers_parser_add_by_rss_on_demand_1 podverse_alpha_workers node apps/workers/dist/index.js mqAddByRSSRunParser -q add-by-rss-on-demand
+                            docker compose -f docker-compose.yml run -d --name podverse_alpha_workers_parser_add_by_rss_on_demand_2 podverse_alpha_workers node apps/workers/dist/index.js mqAddByRSSRunParser -q add-by-rss-on-demand
 
                             # Start Add By RSS Background (2 instances)
-                            docker compose -f docker-compose.yml run -d --name podverse_alpha_workers_parser_add_by_rss_background_1 podverse_alpha_workers node apps/workers/dist/index.js mqRSSRunParser -q add-by-rss-background
-                            docker compose -f docker-compose.yml run -d --name podverse_alpha_workers_parser_add_by_rss_background_2 podverse_alpha_workers node apps/workers/dist/index.js mqRSSRunParser -q add-by-rss-background
+                            docker compose -f docker-compose.yml run -d --name podverse_alpha_workers_parser_add_by_rss_background_1 podverse_alpha_workers node apps/workers/dist/index.js mqAddByRSSRunParser -q add-by-rss-background
+                            docker compose -f docker-compose.yml run -d --name podverse_alpha_workers_parser_add_by_rss_background_2 podverse_alpha_workers node apps/workers/dist/index.js mqAddByRSSRunParser -q add-by-rss-background
                         '''
                     }
                 }
