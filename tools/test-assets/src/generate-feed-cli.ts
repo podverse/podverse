@@ -203,10 +203,10 @@ function buildRemoteItemXml(target: { guid: string; url: string }): string {
     `feedGuid="${escapeXml(target.guid)}"`,
     `feedUrl="${escapeXml(target.url)}"`,
   ];
-  if (faker.datatype.boolean()) {
+  if (faker.helpers.arrayElement([true, false])) {
     attrs.push(`itemGuid="${escapeXml(generateGuidWithRandomVersion())}"`);
   }
-  if (faker.datatype.boolean()) {
+  if (faker.helpers.arrayElement([true, false])) {
     attrs.push(`title="${escapeXml(faker.lorem.words(3))}"`);
   }
   const medium = pickRandomRssFeedMedium();
@@ -223,10 +223,10 @@ function buildPublisherRemoteItemXml(target: { guid: string; url: string }): str
     `feedUrl="${escapeXml(target.url)}"`,
     'medium="publisher"',
   ];
-  if (faker.datatype.boolean()) {
+  if (faker.helpers.arrayElement([true, false])) {
     attrs.push(`itemGuid="${escapeXml(generateGuidWithRandomVersion())}"`);
   }
-  if (faker.datatype.boolean()) {
+  if (faker.helpers.arrayElement([true, false])) {
     attrs.push(`title="${escapeXml(faker.lorem.words(3))}"`);
   }
   return `<podcast:remoteItem ${attrs.join(' ')}/>`;
@@ -432,13 +432,13 @@ function buildValueRecipientXml(
 /** Random optional customKey, customValue (only when customKey), and fee for a valueRecipient. */
 function randomValueRecipientOpts(): ValueRecipientOpts {
   const opts: ValueRecipientOpts = {};
-  if (faker.datatype.boolean()) {
+  if (faker.helpers.arrayElement([true, false])) {
     opts.customKey = faker.lorem.slug();
-    if (faker.datatype.boolean()) {
+    if (faker.helpers.arrayElement([true, false])) {
       opts.customValue = faker.lorem.word();
     }
   }
-  if (faker.datatype.boolean()) {
+  if (faker.helpers.arrayElement([true, false])) {
     opts.fee = true;
   }
   return opts;
@@ -547,13 +547,13 @@ function buildChaptersForItem(
       title: faker.lorem.sentence(),
       toc: true,
     };
-    if (faker.datatype.boolean()) {
+    if (faker.helpers.arrayElement([true, false])) {
       ch.img = `${baseUrl}/images/image-${pad3(faker.number.int({ min: 1, max: imagePoolSize }))}-${IMAGE_SIZES[0]}.jpg`;
     }
-    if (faker.datatype.boolean()) {
+    if (faker.helpers.arrayElement([true, false])) {
       ch.url = faker.internet.url();
     }
-    if (faker.datatype.boolean()) {
+    if (faker.helpers.arrayElement([true, false])) {
       ch.location = {
         name: faker.location.city(),
         geo: `geo:${faker.location.latitude()},${faker.location.longitude()}`,
@@ -612,8 +612,8 @@ function buildChaptersJson(chapters: GeneratedChapter[]): {
     description: faker.lorem.paragraph(),
     fileName: faker.system.fileName(),
   };
-  if (faker.datatype.boolean()) {
-    root.waypoints = faker.datatype.boolean();
+  if (faker.helpers.arrayElement([true, false])) {
+    root.waypoints = faker.helpers.arrayElement([true, false]);
   }
   return root;
 }
@@ -724,7 +724,7 @@ function buildFeed(
   const itunesTitle = faker.helpers.arrayElement([channelTitle, faker.lorem.sentence()]);
   const itunesSummary = faker.lorem.paragraph();
   const itunesCategories = faker.helpers.shuffle([...ITUNES_CATEGORIES]).slice(0, 2);
-  const itunesExplicit = faker.datatype.boolean() ? 'yes' : 'no';
+  const itunesExplicit = faker.helpers.arrayElement([true, false]) ? 'yes' : 'no';
   const itunesBlock = 'no';
   const itunesComplete = 'no';
   const itunesType = faker.helpers.arrayElement(['episodic', 'serial'] as const);
@@ -735,7 +735,7 @@ function buildFeed(
   // Channel-level podcast namespace (all required)
   const podcastGuid = generateGuidWithRandomVersion();
   const mediumTag = getMediumForKind(feedKind);
-  const lockedVal = faker.datatype.boolean() ? 'yes' : 'no';
+  const lockedVal = faker.helpers.arrayElement([true, false]) ? 'yes' : 'no';
   const lockedOwner = faker.internet.email();
   const fundingBlocks = Array.from({ length: multiCount }, () => {
     const url = faker.internet.url();
@@ -856,7 +856,7 @@ function buildFeed(
     const length = faker.number.int({ min: 0, max: 99999999 });
 
     const itunesAuthor = faker.person.fullName();
-    const itunesItemExplicit = faker.datatype.boolean() ? 'yes' : 'no';
+    const itunesItemExplicit = faker.helpers.arrayElement([true, false]) ? 'yes' : 'no';
     const durationSec = faker.number.int({ min: 60, max: 7200 });
     const itunesDuration =
       durationSec >= 3600

@@ -126,7 +126,7 @@ async function main() {
     console.log(`   Found ${existingReports.length} existing report(s)\n`);
     const selection = await inquirer.prompt([
       {
-        type: 'list',
+        type: 'select',
         name: 'selectedBaseReport',
         message: 'Select a previous report to compare against (or "Skip comparison"):',
         choices: [
