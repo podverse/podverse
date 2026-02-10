@@ -29,7 +29,7 @@
     "@podverse/helpers-validation": "*",
     "@podverse/orm": "*",
     "@podverse/parser-mapping": "*",
-    "podverse-partytime": "^5.0.0",
+    "podverse-partytime": "^5.0.4",
     "module-alias": "^2.3.3"
   },
   "devDependencies": {
