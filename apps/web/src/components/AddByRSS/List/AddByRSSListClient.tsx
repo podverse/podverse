@@ -224,7 +224,9 @@ export const AddByRSSListClient: React.FC<AddByRSSListClientProps> = ({ resource
           />
         );
       case 'tracks':
-        return <AddByRSSTrackNodes items={trackItems} viewSelected={viewSelected} />;
+        return (
+          <AddByRSSTrackNodes items={trackItems} viewSelected={viewSelected} sortOrder={listSort} />
+        );
       case 'livestreams':
         return <AddByRSSLivestreamFeedNodes feeds={feeds} viewSelected={viewSelected} />;
       default:

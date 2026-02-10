@@ -312,6 +312,7 @@ export const AddByRSSPodcastPageDetailClient: React.FC<AddByRSSPodcastPageDetail
                       items={sortedLiveItems}
                       viewSelected="rows"
                       showChannelInfo={false}
+                      sortOrder={sort}
                     />
                   )}
                   <AddByRSSEpisodeNodes
@@ -320,6 +321,7 @@ export const AddByRSSPodcastPageDetailClient: React.FC<AddByRSSPodcastPageDetail
                     channelImageUrl={channelImageUrl}
                     items={pagedItems}
                     itemIdTextMap={itemIdTextMap}
+                    sortOrder={sort}
                   />
                 </>
               </Pagination>

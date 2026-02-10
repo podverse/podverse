@@ -27,6 +27,7 @@ export function usePlayAddByRSS() {
     setMPEnclosureSelectedParams,
     setMPShouldPlay,
     setMPDuration,
+    setAddByRSSSeekToTime,
   } = useMediaPlayer();
   const { setMPCurrentTime } = useMediaPlayerCurrentTime();
   const { setAutoQueueResources, setAutoQueueActiveRow } = useAutoQueue();
@@ -94,22 +95,36 @@ export function usePlayAddByRSS() {
 
     const duration = typeof resourceData.duration === 'number' ? resourceData.duration : 0;
     setMPDuration(duration);
-    setMPCurrentTime(0);
+
+    // When playbackPosition is provided (e.g. from queue), set seek synchronously so the first
+    // controller effect run applies it; otherwise the effect would run with null and seek to 0.
+    const hasProvidedPosition =
+      typeof playbackPosition === 'number' &&
+      !Number.isNaN(playbackPosition) &&
+      playbackPosition >= 0;
+    if (hasProvidedPosition) {
+      let syncPosition = playbackPosition;
+      if (duration > 0 && syncPosition >= duration - 5) {
+        syncPosition = 0;
+      }
+      setMPCurrentTime(syncPosition);
+      setAddByRSSSeekToTime(syncPosition);
+    } else {
+      setMPCurrentTime(0);
+    }
     setMPShouldPlay(true);
 
-    // Restore position and sync to API after state is set so playback can start without delay.
+    // Resolve position when not provided (fetch from API) and sync to queue API.
     if (queue?.id_text) {
       (async () => {
-        // Use provided position if available, otherwise fetch from API
         let resolvedPosition = typeof playbackPosition === 'number' ? playbackPosition : 0;
 
         if (typeof playbackPosition !== 'number') {
-          // Only fetch if position wasn't provided
+          const hash = getAddByRSSHashId(indexItem);
           try {
             const nowPlaying = await apiRequestService.reqQueueResourcesGetNowPlayingByQueueIdText(
               queue.id_text
             );
-            const hash = getAddByRSSHashId(indexItem);
             if (
               nowPlaying?.add_by_rss_hash_id !== null &&
               nowPlaying?.add_by_rss_hash_id !== undefined &&
@@ -119,6 +134,41 @@ export function usePlayAddByRSS() {
               const p = parseFloat(String(nowPlaying.playback_position));
               if (!Number.isNaN(p) && p >= 0) {
                 resolvedPosition = p;
+              }
+            } else {
+              // Now-playing is a different item (e.g. skip next); look in upcoming then history.
+              const upcoming = await apiRequestService.reqQueueResourcesGetAllUpcomingByQueueIdText(
+                queue.id_text
+              );
+              const fromUpcoming = upcoming?.find(
+                (r) => r.add_by_rss_hash_id !== null && r.add_by_rss_hash_id === hash
+              );
+              if (
+                fromUpcoming?.playback_position !== null &&
+                fromUpcoming?.playback_position !== undefined
+              ) {
+                const p = parseFloat(String(fromUpcoming.playback_position));
+                if (!Number.isNaN(p) && p >= 0) {
+                  resolvedPosition = p;
+                }
+              } else {
+                const history =
+                  await apiRequestService.reqQueueResourcesGetHistoryByQueueIdTextPaginated(
+                    queue.id_text,
+                    1
+                  );
+                const fromHistory = history?.data?.find(
+                  (r) => r.add_by_rss_hash_id !== null && r.add_by_rss_hash_id === hash
+                );
+                if (
+                  fromHistory?.playback_position !== null &&
+                  fromHistory?.playback_position !== undefined
+                ) {
+                  const p = parseFloat(String(fromHistory.playback_position));
+                  if (!Number.isNaN(p) && p >= 0) {
+                    resolvedPosition = p;
+                  }
+                }
               }
             }
           } catch {
@@ -135,7 +185,11 @@ export function usePlayAddByRSS() {
           resolvedPosition = 0;
         }
 
-        setMPCurrentTime(resolvedPosition);
+        // Only update seek state when we resolved position in this async (was not provided).
+        if (typeof playbackPosition !== 'number') {
+          setMPCurrentTime(resolvedPosition);
+          setAddByRSSSeekToTime(resolvedPosition);
+        }
 
         apiRequestService
           .reqQueueResourceItemAddByRSSAddNowPlaying(queue.id_text, {

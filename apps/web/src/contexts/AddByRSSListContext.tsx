@@ -3,10 +3,14 @@
 import type { ReactNode } from 'react';
 import { createContext, useCallback, useContext, useState } from 'react';
 
+export type AddByRSSListSortOrder = 'recent' | 'oldest';
+
 export type AddByRSSListContextState = {
   feedIdText: string;
   itemIdTexts: string[];
   currentIndex: number;
+  /** List sort when context was set. 'recent' = newest first (index 0 = newest); 'oldest' = oldest first. Default 'recent'. */
+  sortOrder?: AddByRSSListSortOrder;
 };
 
 type AddByRSSListContextType = {

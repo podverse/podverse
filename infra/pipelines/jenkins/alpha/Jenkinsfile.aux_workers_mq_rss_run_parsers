@@ -30,7 +30,9 @@ pipeline {
                 script {
                     // Maps to 'pushd /opt/podverse/infra/docker/alpha/workers'
                     dir('/opt/podverse/infra/docker/alpha/workers') {
-                        // Compute formatted queue name and loop in Groovy to avoid shell subshells in GStrings
+                        // Add-by-RSS queues use mqAddByRSSRunParser; core RSS queues use mqRSSRunParser.
+                        def isAddByRSSQueue = (params.MQ_QUEUE_NAME == 'add-by-rss-on-demand' || params.MQ_QUEUE_NAME == 'add-by-rss-background')
+                        def commandName = isAddByRSSQueue ? 'mqAddByRSSRunParser' : 'mqRSSRunParser'
                         def mqQueueNameUnderscore = params.MQ_QUEUE_NAME.toLowerCase().replace('-', '_')
                         int total = params.PARSER_TOTAL as int
                         for (int i = 1; i <= total; i++) {
@@ -38,7 +40,7 @@ pipeline {
                             sh """
                                 set -eux
                                 echo "Starting container: ${containerName}"
-                                docker compose -f docker-compose.yml run -d --name "${containerName}" podverse_alpha_workers node apps/workers/dist/index.js mqRSSRunParser -q "${params.MQ_QUEUE_NAME}"
+                                docker compose -f docker-compose.yml run -d --name "${containerName}" podverse_alpha_workers node apps/workers/dist/index.js ${commandName} -q "${params.MQ_QUEUE_NAME}"
                             """
                         }
                     }
