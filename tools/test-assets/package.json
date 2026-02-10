@@ -23,14 +23,14 @@
     "generate_and_parse": "tsx src/generate-and-parse.ts"
   },
   "dependencies": {
-    "@faker-js/faker": "^9.3.0",
+    "@faker-js/faker": "^10.3.0",
     "@podverse/helpers": "*",
     "@podverse/orm": "*",
     "@podverse/parser": "*",
     "dotenv": "^17.2.2"
   },
   "devDependencies": {
-    "@types/node": "^25.0.10",
+    "@types/node": "^24.10.12",
     "ffmpeg-static": "^5.2.0",
     "tsx": "^4.19.2",
     "typescript": "^5.9.2"

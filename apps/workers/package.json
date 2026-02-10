@@ -44,7 +44,7 @@
     "@podverse/orm": "*",
     "@podverse/parser": "*",
     "amqplib": "^0.10.9",
-    "axios": "^1.13.4",
+    "axios": "^1.13.5",
     "ioredis": "^5.9.2",
     "pg": "^8.16.3",
     "typeorm": "^0.3.26",
@@ -54,7 +54,7 @@
   },
   "devDependencies": {
     "@dotenvx/dotenvx": "^1.49.0",
-    "@types/node": "^24.10.10",
+    "@types/node": "^24.10.12",
     "nodemon": "^3.1.10",
     "ts-node": "^10.9.2",
     "tsc-alias": "^1.8.16",

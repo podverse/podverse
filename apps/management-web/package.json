@@ -20,9 +20,9 @@
   "dependencies": {
     "@hello-pangea/dnd": "^18.0.1",
     "@podverse/helpers": "*",
-    "axios": "^1.13.4",
+    "axios": "^1.13.5",
     "classnames": "^2.5.1",
-    "isomorphic-dompurify": "^2.28.0",
+    "isomorphic-dompurify": "^2.36.0",
     "next": "^16.1.6",
     "next-intl": "^4.8.2",
     "react": "^19.2.4",
@@ -39,7 +39,7 @@
     "zod": "^4.3.6"
   },
   "devDependencies": {
-    "@types/node": "^24.10.10",
+    "@types/node": "^24.10.12",
     "@types/react": "^19.2.11",
     "@types/react-dom": "^19.2.2",
     "@types/video.js": "^7.3.58",

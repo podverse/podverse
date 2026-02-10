@@ -280,7 +280,7 @@ async function main() {
   } else {
     const { selectedBaseReport } = await inquirer.prompt([
       {
-        type: 'list',
+        type: 'select',
         name: 'selectedBaseReport',
         message: 'Select the base report to compare against:',
         choices: existingReports.map((report) => ({ name: report, value: report })),
