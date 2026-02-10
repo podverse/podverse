@@ -55,11 +55,14 @@ done
 
 cd "$REPO_ROOT"
 
-# Stage changes
+# Stage changes (root + all workspaces from same list used for bumping)
 git add package.json package-lock.json
-git add packages/*/package.json
-git add apps/*/package.json
-git add tools/*/package.json
+for ws in $WORKSPACES; do
+  git add "$ws/package.json"
+  if [[ -f "$REPO_ROOT/$ws/package-lock.json" ]]; then
+    git add "$ws/package-lock.json"
+  fi
+done
 
 # Commit (bypass hooks)
 git commit --no-verify -m "chore: bump version to $VERSION"
