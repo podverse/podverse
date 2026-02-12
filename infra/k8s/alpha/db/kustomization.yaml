@@ -7,9 +7,7 @@ kind: Kustomization
 
 # 1. Resources to include
 resources:
-  - ../../base/db/01-configmap.yaml
-  - ../../base/db/03-service.yaml
-  - ../../base/db/04-statefulset.yaml
+  - github.com/podverse/podverse/infra/k8s/base/db?ref=feature/manifests00
 
 # 2. Namespace
 namespace: podverse-alpha

@@ -1,0 +1,72 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: podverse-api
+  annotations:
+    # ArgoCD Application endpoint annotation for clickable link
+    argocd.argoproj.io/refresh: "hard"
+    argocd.argoproj.io/managed-by: "argocd"
+    argocd.argoproj.io/compare-options: "IgnoreExtraneous"
+    # This is the endpoint that will show up as a clickable link in ArgoCD UI
+    link.argocd.argoproj.io/external-link: https://api.example.com/ # Override in environment overlay
+spec:
+  # replicas: 1
+  selector:
+    matchLabels:
+      app: podverse-api
+  template:
+    metadata:
+    spec:
+      containers:
+        - name: api
+          image: ghcr.io/podverse/podverse/api
+          command: ["npm", "start"]
+          ports:
+            - containerPort: 1234
+              name: http
+          securityContext:
+            readOnlyRootFilesystem: true
+            allowPrivilegeEscalation: false
+            runAsUser: 1000
+            runAsGroup: 1000
+            runAsNonRoot: true
+          resources:
+            requests:
+              memory: "192Mi"
+              cpu: "100m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+          envFrom:
+            - configMapRef:
+                name: podverse-api-config
+            - secretRef:
+                name: podverse-api-opaque
+            - secretRef:
+                name: podverse-db-opaque
+            - secretRef:
+                name: podverse-keyvaldb-opaque
+            - secretRef:
+                name: podverse-mq-opaque
+            - secretRef:
+                name: podverse-api.podcastindex.org-opaque
+          volumeMounts:
+            - name: logs-volume
+              mountPath: /logs
+            - name: logs-volume
+              mountPath: /opt/logs
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 1234
+            initialDelaySeconds: 15
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 1234
+            initialDelaySeconds: 30
+            periodSeconds: 20
+      volumes:
+        - name: logs-volume
+          emptyDir: {}
