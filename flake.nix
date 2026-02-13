@@ -22,8 +22,8 @@
       {
         devShells.default = pkgs.mkShell {
           buildInputs = with pkgs; [
-            # Node.js and npm (v22 for monorepo development)
-            nodejs_22
+            # Node.js and npm (v24 for monorepo development)
+            nodejs_24
 
             # Container and orchestration tools
             argocd
