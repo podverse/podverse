@@ -65,6 +65,9 @@ validate_docker: validate
 	@echo "Building api..."
 	docker build -f apps/api/Dockerfile -t podverse-api:test .
 	@echo ""
+	@echo "Building web-base and management-web-base..."
+	@$(MAKE) local_build_web_base local_build_management_web_base
+	@echo ""
 	@echo "Building web..."
 	docker build -f apps/web/Dockerfile --build-arg ENV_FILE=apps/web/env/local.env -t podverse-web:test .
 	@echo ""

@@ -205,12 +205,20 @@ local_build_workers:
 local_build_management_api:
 	docker build -f apps/management-api/Dockerfile -t podverse-management-api:latest .
 
+.PHONY: local_build_web_base
+local_build_web_base:
+	docker build -f apps/web/Dockerfile.base -t ghcr.io/podverse/podverse/web-base:alpha .
+
+.PHONY: local_build_management_web_base
+local_build_management_web_base:
+	docker build -f apps/management-web/Dockerfile.base -t ghcr.io/podverse/podverse/management-web-base:alpha .
+
 .PHONY: local_build_web
-local_build_web:
+local_build_web: local_build_web_base
 	docker build -f apps/web/Dockerfile --build-arg ENV_FILE=apps/web/env/local.env -t podverse-web:latest .
 
 .PHONY: local_build_management_web
-local_build_management_web:
+local_build_management_web: local_build_management_web_base
 	docker build -f apps/management-web/Dockerfile --build-arg ENV_FILE=apps/management-web/env/local.env -t podverse-management-web:latest .
 
 .PHONY: local_build_all

@@ -1,24 +1,13 @@
-FROM node:24-slim AS base
-WORKDIR /opt
+# Base image: published as web-base by Alpha workflow, or use default for local builds.
+ARG BASE_IMAGE=ghcr.io/podverse/podverse/web-base:alpha
 
 # Build argument for environment file path (optional)
 # - For deploy images: pass ENV_FILE=apps/web/env/alpha.env to bake in env vars
 # - For base images: omit ENV_FILE, app uses runtime environment variables
 ARG ENV_FILE=
 
-# Stage 1: Install dependencies
-FROM base AS deps
-COPY package*.json tsconfig.base.json ./
-COPY packages/ ./packages/
-COPY apps/web/package*.json ./apps/web/
-
-# Install all dependencies (devDependencies like @types/* needed for TypeScript compilation)
-# --ignore-scripts skips the prepare script that tries to install git hooks
-RUN npm install --ignore-scripts
-
-# Stage 2: Build the app
-FROM deps AS builder
-# Redeclare ARG so it's available in this stage
+# Stage 1 (deps) is the published base image. Stage 2: Build the app.
+FROM ${BASE_IMAGE} AS builder
 ARG ENV_FILE
 ENV NODE_ENV=production
 
