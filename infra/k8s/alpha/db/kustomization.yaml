@@ -7,7 +7,7 @@ kind: Kustomization
 
 # 1. Resources to include
 resources:
-  - github.com/podverse/podverse/infra/k8s/base/db?ref=feature/manifests00
+  - github.com/podverse/podverse/infra/k8s/base/db?ref=feature/alpha
 
 # 2. Namespace
 namespace: podverse-alpha

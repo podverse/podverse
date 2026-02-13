@@ -7,7 +7,7 @@ kind: Kustomization
 
 # 1. Resources to include in this bundle
 resources:
-  - github.com/podverse/podverse/infra/k8s/base/keyvaldb?ref=feature/manifests00
+  - github.com/podverse/podverse/infra/k8s/base/keyvaldb?ref=feature/alpha
   # Note: We will uncomment the secret line below once you run the generation script
   # - k8s/secrets/podverse-keyvaldb-secret.enc.yaml
 
