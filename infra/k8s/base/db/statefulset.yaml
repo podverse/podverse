@@ -1,8 +1,3 @@
-# Version: 9
-# The StatefulSet manages the Database Pod.
-# It defines the storage, the image, the configuration arguments, and the startup scripts.
-# UPDATE: Changed mountPath to /var/lib/postgresql per Postgres 18+ recommendations for easier upgrades.
-
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
@@ -15,30 +10,15 @@ spec:
       app: podverse-db
   template:
     spec:
-      # Pin the database to a specific node using its hostname.
-      # Run 'kubectl get nodes' to see your node names.
-      # REMOVED: We are commenting this out to let K8s pick the node.
-      # This fixes the "0/3 nodes available" scheduling error.
-      # nodeSelector:
-      #   kubernetes.io/hostname: "k3s-server-1"
-
       containers:
         - name: postgres
-          # The image below is a placeholder.
-          # Kustomize will override this based on the kustomization.yaml file.
           image: postgres:latest
           ports:
             - containerPort: 5432
               name: postgres
-
-          # We inject the sensitive variables from the Secret we created in Step 2
           envFrom:
             - secretRef:
                 name: podverse-db-opaque
-
-          # We translate the 'command' flags from docker-compose into 'args'.
-          # Note: We do not set 'max_worker_processes' or 'max_parallel_workers' too high
-          # as this is a shared home lab environment, but we kept your values here.
           args:
             - "-c"
             - "max_connections=100"

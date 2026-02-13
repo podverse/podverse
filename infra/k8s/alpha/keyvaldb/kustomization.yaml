@@ -7,9 +7,7 @@ kind: Kustomization
 
 # 1. Resources to include in this bundle
 resources:
-  - ../../base/keyvaldb/01-configmap.yaml
-  - ../../base/keyvaldb/02-services.yaml
-  - ../../base/keyvaldb/03-deployments.yaml
+  - github.com/podverse/podverse/infra/k8s/base/keyvaldb?ref=feature/alpha
   # Note: We will uncomment the secret line below once you run the generation script
   # - k8s/secrets/podverse-keyvaldb-secret.enc.yaml
 

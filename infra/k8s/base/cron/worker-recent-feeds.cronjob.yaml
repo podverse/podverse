@@ -1,12 +1,9 @@
-# File Version: 4
-# Source: Jenkinsfile.aux_workers_archive_all
-# Schedule: 6 AM and 6 PM daily
 apiVersion: batch/v1
 kind: CronJob
 metadata:
-  name: worker-archive-all
+  name: worker-recent-feeds
 spec:
-  schedule: "0 6,18 * * *"
+  schedule: "*/5 * * * *"
   concurrencyPolicy: Forbid
   jobTemplate:
     spec:
@@ -15,7 +12,17 @@ spec:
           containers:
             - name: worker
               image: ghcr.io/podverse/podverse/workers
-              command: ["npm", "run", "archive_all"]
+              command:
+                [
+                  "npm",
+                  "run",
+                  "mq_rss_add_recently_updated_feeds_from_podcast_index",
+                  "--",
+                  "-q",
+                  "rss-normal",
+                  "-sr",
+                  "900",
+                ]
               securityContext:
                 runAsUser: 1000
                 runAsGroup: 1000
