@@ -114,5 +114,5 @@ podverse-ops/proxy/proxy.conf -> infra/proxy/proxy.conf
 ## Notes
 
 - The `podverse-local-*.env` files are local development configs that should NOT be committed - they're gitignored
-- The `podverse-alpha-*.env` files are server-specific and should NOT be migrated
+- The alpha env files under `config/alpha/` (e.g. `api.env`, `db.env`, …) are server-specific and should NOT be migrated
 - Only `.example` files should be migrated as templates
