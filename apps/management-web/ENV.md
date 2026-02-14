@@ -4,15 +4,18 @@
 
 The `podverse-management-web` app is a Next.js app that reads `NEXT_PUBLIC_*` values at runtime via an internal runtime-config sidecar. These values are exposed to the browser, so do not include secrets.
 
-The app validates only server-side connectivity to the sidecar in `scripts/validate-env.ts`. The sidecar uses the same validation helpers as the rest of the monorepo (`@podverse/helpers-config`). It runs full environment validation at startup (every required and optional `NEXT_PUBLIC_*` and `PORT`), logs each variable's status by category, and exits with code 1 if any required variable is missing or invalid; it also validates required presence on each `/runtime-config` request. For local dev, run `npm run build:sidecar:management-web` from the repo root once before using `npm run dev:management-web-sidecar` or `npm run dev:all` (the sidecar runs from a bundled `sidecar/dist/server.js`).
+**No environment variables are required at build time.** The app can be built without any `.env` file. All configuration is fetched from the sidecar at runtime.
+
+The sidecar uses the same validation helpers as the rest of the monorepo (`@podverse/helpers-config`). It runs full environment validation at startup (every required and optional `NEXT_PUBLIC_*` and `PORT`), logs each variable's status by category, and exits with code 1 if any required variable is missing or invalid; it also validates required presence on each `/runtime-config` request. For local dev, run `npm run build:sidecar:management-web` from the repo root once before using `npm run dev:management-web-sidecar` or `npm run dev:all` (the sidecar runs from a bundled `sidecar/dist/server.js`).
 
 ## Required Variables
 
-### Runtime Config Sidecar (Server-Only)
+### Runtime Config Sidecar (Server-Only, Runtime)
 
-- **`RUNTIME_CONFIG_URL`** (Required)
+- **`RUNTIME_CONFIG_URL`** (Required at runtime only)
   - Internal URL for the runtime-config sidecar (e.g., `http://localhost:3101`). Use 3101 so it does not collide with the web app sidecar (3001).
-  - Used by the Next.js server to fetch runtime config during SSR
+  - Used by the Next.js server to fetch runtime config at startup via `instrumentation.ts`
+  - **Not needed at build time** - the sidecar architecture allows builds without any env vars
 
 ### API Configuration
 
@@ -94,9 +97,9 @@ Required Missing: 0
 ## Important Notes
 
 - **Public variables**: All `NEXT_PUBLIC_*` variables are exposed to the browser. Do not include sensitive information.
-- **Runtime validation**: The sidecar validates required `NEXT_PUBLIC_*` values at runtime. The app validates `RUNTIME_CONFIG_URL` before startup.
-- **Validation file**: See `scripts/validate-env.ts` for app-side validation and `apps/management-web/sidecar/server.js` for sidecar validation.
-- **Environment file loading**: The app validation script loads `.env.production` in production mode, or `.env.local` (if exists) or `.env` in development mode.
+- **No build-time validation**: The app can be built without any environment variables. All validation happens at runtime.
+- **Runtime validation**: The sidecar validates all required `NEXT_PUBLIC_*` values at startup. The app fetches config from the sidecar via `instrumentation.ts` before any requests are served.
+- **Validation file**: See `apps/management-web/sidecar/src/server.ts` for sidecar validation logic. The `scripts/validate-env.ts` script is available for manual validation but does not run automatically during builds.
 
 ## Adding New Environment Variables
 
