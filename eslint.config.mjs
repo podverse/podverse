@@ -63,6 +63,8 @@ export default tseslint.config(
       '**/*.js',
       '**/*.d.ts',
       '**/.llm/plans/**',
+      '**/*.md',
+      '**/*.mdc',
     ],
   },
   eslintConfigPrettier,

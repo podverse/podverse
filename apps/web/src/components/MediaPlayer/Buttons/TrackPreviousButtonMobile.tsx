@@ -12,7 +12,7 @@ import { EVENTS } from '../../../constants/events';
 import { useMediaPlayer } from '../../../contexts/MediaPlayer';
 import { useAddByRSSListContext } from '../../../contexts/AddByRSSListContext';
 import { MediumEnum } from '@podverse/helpers';
-import { apiRequestService } from '../../../factories/apiRequestService';
+import { getApiRequestService } from '../../../factories/apiRequestService';
 import { useAddByRSSPlayPrevious } from '../../../hooks/useAddByRSSPlayPrevious';
 import { useLongPress } from '../../../hooks/useLongPress';
 import { useMediaPlayerResourceUpdate } from '../../../hooks/useMediaPlayerResourceUpdate';
@@ -22,6 +22,7 @@ import { resolveAddByRSSListContextFromCurrentItem } from '../../../utils/addByR
 import styles from '../../../styles/components/MediaPlayer/Buttons/TrackPreviousButtonMobile.module.scss';
 
 export const TrackPreviousButtonMobile = () => {
+  const apiRequestService = getApiRequestService();
   const { mpChannel, mpItem, mpClip, mpItemSoundbite, setMPShouldPlay, mpIsPlaying, mpAddByRSS } =
     useMediaPlayer();
   const { mpCurrentTime } = useMediaPlayerCurrentTime();

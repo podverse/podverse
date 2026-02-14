@@ -1,7 +1,7 @@
 import { useRef, useEffect, useCallback } from 'react';
 import { useAccount } from '../contexts/Account';
 import { useQueues } from '../contexts/Queue';
-import { apiRequestService } from '../factories/apiRequestService';
+import { getApiRequestService } from '../factories/apiRequestService';
 import { useQueueResourcesAbridgedIndexUpdate } from './useQueueResourcesAbridgedIndexUpdate';
 import type { DTOChannel, DTOClip, DTOItem, DTOItemSoundbite } from '@podverse/helpers';
 import { getQueueMediumIdFromMediumId } from '@podverse/helpers';
@@ -31,6 +31,7 @@ export function useQueueResourcesUpdateNowPlaying() {
   }, [loggedInAccount]);
 
   return useCallback(async (params: UpdateNowPlayingParams) => {
+    const apiRequestService = getApiRequestService();
     const loggedInAccount = loggedInAccountRef.current;
     const queues = queuesRef.current;
 

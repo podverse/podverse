@@ -10,7 +10,7 @@ import React from 'react';
 import { CallToActionMessage } from '../../CallToActionMessage/CallToActionMessage';
 import { useModals } from '../../../contexts/Modals';
 import { ListQueueResourceRow } from './ListQueueResourceRow';
-import { apiRequestService } from '../../../factories/apiRequestService';
+import { getApiRequestService } from '../../../factories/apiRequestService';
 import { useQueues } from '../../../contexts/Queue';
 import { useQueueResourcesLoadActive } from '../../../hooks/useQueueResourcesLoadActive';
 import { useMediaPlayerResourceUpdate } from '../../../hooks/useMediaPlayerResourceUpdate';
@@ -30,6 +30,7 @@ export const ListQueueResources: React.FC<Props> = ({
   queueResources,
   showLoginMessage,
 }) => {
+  const apiRequestService = getApiRequestService();
   const tInstructions = useTranslations('instructions');
   const tAuthentication = useTranslations('authentication');
   const { setModalAuthLogin } = useModals();

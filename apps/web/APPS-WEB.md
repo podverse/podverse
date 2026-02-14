@@ -67,32 +67,33 @@ npm run start -w apps/web
 
 ### Building Docker Images
 
-The web app uses a DRY Dockerfile structure that requires the `ENV_FILE` build argument to specify which environment configuration to use:
+The web app image is build-once and expects runtime config via a sidecar service.
 
 ```bash
-# Build for local environment (from monorepo root)
-docker build -f apps/web/Dockerfile --build-arg ENV_FILE=apps/web/env/local.env -t podverse-web:latest .
+# Build the web app image (from monorepo root)
+docker build -f apps/web/Dockerfile -t podverse-web:latest .
 
-# Build for alpha environment
-docker build -f apps/web/Dockerfile --build-arg ENV_FILE=apps/web/env/alpha.env -t podverse-web:alpha .
+# Build the runtime config sidecar image
+docker build -f apps/web/sidecar/Dockerfile -t podverse-web-runtime-config:latest .
 ```
 
-**Important**: The `ENV_FILE` build argument is **required** - builds will fail if it's not provided. This ensures explicit environment selection and prevents accidental builds with the wrong configuration.
+Runtime configuration is provided to the sidecar at deploy time using the env files in `apps/web/env/`.
 
 The Makefile provides convenient shortcuts:
 
 ```bash
 # From monorepo root
-make local_build_web # Builds with local.env
+make local_build_web
+make local_build_web_runtime_config
 ```
 
 ### Dockerfile Structure
 
-The Dockerfile uses a single source of truth for build logic, with only the environment file path varying between environments. This DRY approach eliminates duplication while maintaining clear environment separation.
+The web app Dockerfile builds the Next.js app without baking env files. Runtime configuration is supplied by the sidecar service at startup.
 
 ## Environment Files
 
-Environment-specific configurations are in the `env/` directory:
+Environment-specific configurations are in the `env/` directory. These are loaded into the runtime-config sidecar at deploy time:
 
 | File            | Environment       |
 | --------------- | ----------------- |

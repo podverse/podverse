@@ -2,13 +2,15 @@
 
 import Link from 'next/link';
 import React from 'react';
+import { useConfig } from '../../contexts/Config';
 import { useLocalSettings } from '../../contexts/LocalSettings';
 import { getBrandLogoSrc } from '../../utils/brandLogo';
-import { config } from '../../config';
 import { Image } from '../Image/Image';
+
 import styles from '../../styles/components/Footer/FooterBrand.module.scss';
 
 const FooterBrand: React.FC = () => {
+  const config = useConfig();
   const { uiTheme } = useLocalSettings();
 
   return (

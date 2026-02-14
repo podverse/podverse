@@ -5,7 +5,7 @@ import { getQueueForMedium } from '@podverse/helpers';
 import { useAccount } from '../contexts/Account';
 import { useMediaPlayer } from '../contexts/MediaPlayer';
 import { useQueues } from '../contexts/Queue';
-import { apiRequestService } from '../factories/apiRequestService';
+import { getApiRequestService } from '../factories/apiRequestService';
 
 /**
  * Returns callbacks to save add-by-RSS playback position and to add to history on ended.
@@ -17,6 +17,7 @@ export function useAddByRSSPositionSave() {
 
   const savePosition = useCallback(
     (positionSeconds: number) => {
+      const apiRequestService = getApiRequestService();
       if (!loggedInAccount || !mpAddByRSS?.resourceData) return;
       const mediumId = mpAddByRSS.resourceData.medium_id;
       if (typeof mediumId !== 'number') return;
@@ -36,6 +37,7 @@ export function useAddByRSSPositionSave() {
 
   const handleEnded = useCallback(
     async (_positionSeconds: number) => {
+      const apiRequestService = getApiRequestService();
       if (!loggedInAccount || !mpAddByRSS?.resourceData) return;
       const mediumId = mpAddByRSS.resourceData.medium_id;
       if (typeof mediumId !== 'number') return;

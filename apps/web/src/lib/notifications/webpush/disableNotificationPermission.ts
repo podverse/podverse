@@ -1,4 +1,4 @@
-import { apiRequestService } from '../../../factories/apiRequestService';
+import { getApiRequestService } from '../../../factories/apiRequestService';
 
 export async function disableNotificationPermission(): Promise<void> {
   try {
@@ -17,7 +17,7 @@ export async function disableNotificationPermission(): Promise<void> {
         // Tell the server to delete the subscription
         if (endpoint) {
           try {
-            await apiRequestService.reqAccountWebPushDeviceDelete({
+            await getApiRequestService().reqAccountWebPushDeviceDelete({
               endpoint,
             });
           } catch (e) {

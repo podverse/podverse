@@ -6,7 +6,7 @@ import { getTotalPages } from '@podverse/helpers';
 import type { QueryParamsChannelMusicAlbum } from '@podverse/helpers-requests';
 import type { ReactNode } from 'react';
 import { createContext, useContext, useState, useRef } from 'react';
-import { apiRequestService } from '../../../factories/apiRequestService';
+import { getApiRequestService } from '../../../factories/apiRequestService';
 import { useAccount } from '../../../contexts/Account';
 import { checkBackNavFlag } from '../../../contexts/Navigation';
 import { useSkipInitialEffect } from '../../../hooks/useSkipInitialEffect';
@@ -107,7 +107,7 @@ export const AlbumPageContextProvider = ({
         range: filterParams.range,
       });
 
-      const response = await apiRequestService.reqItemGetManyByChannelBySeason({
+      const response = await getApiRequestService().reqItemGetManyByChannelBySeason({
         idOrIdText: channel_id,
         page: currentPage,
         sort: currentSort,

@@ -8,9 +8,9 @@ import { TextArea } from '../../components/Form/TextArea';
 import { Button } from '../../components/Button/Button';
 import Form from '../../components/Form/Form';
 import { Divider } from '../Divider/Divider';
-import { apiRequestService } from '../../factories/apiRequestService';
-import styles from '../../styles/components/Playlist/PlaylistForm.module.scss';
+import { getApiRequestService } from '../../factories/apiRequestService';
 import type { DropdownMenuItem } from '../Dropdown/Dropdown';
+import styles from '../../styles/components/Playlist/PlaylistForm.module.scss';
 
 export type PlaylistFormProps = {
   medium: string;
@@ -53,6 +53,7 @@ export const PlaylistForm: React.FC<PlaylistFormProps> = ({
   edit_playlist_id_text,
 }) => {
   const router = useRouter();
+  const apiRequestService = getApiRequestService();
 
   const handleDelete = async () => {
     if (edit_playlist_id_text && window.confirm(tFeatures('playlist.delete_playlist_confirm'))) {

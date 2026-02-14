@@ -18,7 +18,7 @@ import { Tabs } from '../../../components/Tabs/Tabs';
 import { AddByRSSAlbumHeader } from '../../../components/AddByRSS/Artist/Album/AddByRSSAlbumHeader';
 import { AddByRSSTrackDetailHeader } from '../../../components/AddByRSS/Artist/Album/Track/AddByRSSTrackDetailHeader';
 import { useAccount } from '../../../contexts/Account';
-import { apiRequestService } from '../../../factories/apiRequestService';
+import { getApiRequestService } from '../../../factories/apiRequestService';
 import { syncAddByRSSCacheWithServer } from '../../../utils/addByRSS/sync';
 import { getAddByRSSFeedByIdText, getAddByRSSItemByIdText } from '../../../utils/addByRSS/storage';
 import {
@@ -141,7 +141,7 @@ export const AddByRSSTrackItemPageClient: React.FC<AddByRSSTrackItemPageClientPr
         return;
       }
       try {
-        const res = await apiRequestService.reqAccountAddByRSSChaptersTranscript({
+        const res = await getApiRequestService().reqAccountAddByRSSChaptersTranscript({
           itemIdText: track.idText,
           transcriptUrl,
           feedUrl: feed?.feedUrl,

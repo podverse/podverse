@@ -1,12 +1,13 @@
 ---
-description: Require semicolons in JS/TS files
+description: Require semicolons in JS/TS files only; .md and .mdc are exempt
 globs: **/*.{js,jsx,ts,tsx}
 alwaysApply: false
 ---
 
 # Semicolons Required
 
-- Use semicolons at the end of statements in JavaScript and TypeScript files.
+- Use semicolons at the end of statements in **JavaScript and TypeScript files only** (`.js`, `.jsx`, `.ts`, `.tsx`).
+- **Exempt:** Markdown (`.md`) and Cursor rule (`.mdc`) files are not subject to this rule.
 - When updating existing code, keep semicolons consistent with this rule.
 
 ```typescript

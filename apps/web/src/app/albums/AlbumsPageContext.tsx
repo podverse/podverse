@@ -5,7 +5,7 @@ import { createContext, useContext, useState } from 'react';
 import type { DTOChannel } from '@podverse/helpers';
 import { getTotalPages } from '@podverse/helpers';
 import type { QueryParamsGetManyMusic } from '@podverse/helpers-requests';
-import { apiRequestService } from '../../factories/apiRequestService';
+import { getApiRequestService } from '../../factories/apiRequestService';
 import { useAccount } from '../../contexts/Account';
 import { useSkipInitialEffect } from '../../hooks/useSkipInitialEffect';
 import { useFilterDefaults } from '../../hooks/useFilterDefaults';
@@ -93,7 +93,7 @@ export const AlbumsPageContextProvider = ({
         !!loggedInAccount
       );
 
-      const response = await apiRequestService.reqChannelGetMany({
+      const response = await getApiRequestService().reqChannelGetMany({
         page: filterParams.page,
         medium: 'music',
         type: currentType,

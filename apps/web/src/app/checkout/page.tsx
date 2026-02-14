@@ -1,5 +1,5 @@
 import { getSSRApiRequestService } from '../../factories/apiRequestService';
-import { config } from '../../config';
+import { getConfig } from '../../config';
 import { CheckoutPageClient } from './CheckoutPageClient';
 
 type MembershipPricingData = {
@@ -14,6 +14,7 @@ type MembershipPricingData = {
 export const dynamic = 'force-dynamic';
 
 export default async function CheckoutPage() {
+  const config = getConfig();
   const ssrApiRequestService = getSSRApiRequestService();
   const signupMode = config.public.account.signupMode;
   const isContactOnlyMode = signupMode === 'contact-only';

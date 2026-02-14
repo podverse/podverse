@@ -5,7 +5,7 @@ import { getTotalPages } from '@podverse/helpers';
 import type { ReactNode } from 'react';
 import React, { createContext, useContext, useState, useCallback } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { apiRequestService } from '../../factories/apiRequestService';
+import { getApiRequestService } from '../../factories/apiRequestService';
 import { useSkipInitialEffect } from '../../hooks/useSkipInitialEffect';
 
 export type MyProfilePageContentTab = 'podcasts' | 'albums' | 'playlists' | 'clips';
@@ -116,7 +116,7 @@ export const MyProfilePageContentContextProvider = ({
   const fetchPodcasts = useCallback(async (page: number) => {
     setIsLoading(true);
     try {
-      const response = await apiRequestService.reqMyProfilePodcastsAZ({ page });
+      const response = await getApiRequestService().reqMyProfilePodcastsAZ({ page });
       setPodcasts(response.data);
       setPodcastsTotalPages(
         getTotalPages(response.meta.count, response.meta.limit, response.data.length, page)
@@ -132,7 +132,7 @@ export const MyProfilePageContentContextProvider = ({
   const fetchPlaylists = useCallback(async (page: number) => {
     setIsLoading(true);
     try {
-      const response = await apiRequestService.reqMyProfilePlaylistsAZ({ page });
+      const response = await getApiRequestService().reqMyProfilePlaylistsAZ({ page });
       setPlaylists(response.data);
       setPlaylistsTotalPages(
         getTotalPages(response.meta.count, response.meta.limit, response.data.length, page)
@@ -148,7 +148,7 @@ export const MyProfilePageContentContextProvider = ({
   const fetchAlbums = useCallback(async (page: number) => {
     setIsLoading(true);
     try {
-      const response = await apiRequestService.reqMyProfileAlbumsAZ({ page });
+      const response = await getApiRequestService().reqMyProfileAlbumsAZ({ page });
       setAlbums(response.data);
       setAlbumsTotalPages(
         getTotalPages(response.meta.count, response.meta.limit, response.data.length, page)
@@ -164,7 +164,7 @@ export const MyProfilePageContentContextProvider = ({
   const fetchClips = useCallback(async (page: number) => {
     setIsLoading(true);
     try {
-      const response = await apiRequestService.reqMyProfileClipsRecent({ page });
+      const response = await getApiRequestService().reqMyProfileClipsRecent({ page });
       setClips(response.data);
       setClipsTotalPages(
         getTotalPages(response.meta.count, response.meta.limit, response.data.length, page)

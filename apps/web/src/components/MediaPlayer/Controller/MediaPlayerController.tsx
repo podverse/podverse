@@ -7,7 +7,7 @@ import { MediaPlayerControllerAudio } from './Audio/MediaPlayerControllerAudio';
 import { useMediaPlayer } from '../../../contexts/MediaPlayer';
 import { EVENTS } from '../../../constants/events';
 import { useMediaPlayerCurrentTime } from '../../../contexts/MediaPlayerCurrentTime';
-import { apiRequestService } from '../../../factories/apiRequestService';
+import { getApiRequestService } from '../../../factories/apiRequestService';
 import { useQueues } from '../../../contexts/Queue';
 import { useMediaPlayerResourceUpdate } from '../../../hooks/useMediaPlayerResourceUpdate';
 import { usePlayAddByRSS } from '../../../hooks/usePlayAddByRSS';
@@ -21,6 +21,7 @@ import { MediaPlayerLiveStreamVideoWrapper } from './LiveStream/MediaPlayerLiveS
 import { MediaPlayerControllerLiveStreamAudio } from './LiveStream/MediaPlayerControllerLiveStreamAudio';
 
 export const MediaPlayerController: React.FC = () => {
+  const apiRequestService = getApiRequestService();
   const {
     mpChannel,
     mpItem,

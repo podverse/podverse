@@ -8,7 +8,7 @@ import { MainInnerWrapper } from '../../components/Main/MainInnerWrapper';
 import { MainWrapper } from '../../components/Main/MainWrapper';
 import { FormInfoMessageText } from '../../components/Form/FormInfoMessageText';
 import { FormErrorMessageText } from '../../components/Form/FormErrorMessageText';
-import { apiRequestService } from '../../factories/apiRequestService';
+import { getApiRequestService } from '../../factories/apiRequestService';
 import { handleRateLimitAlert } from '../../utils/rateLimit/rateLimitAlert';
 import LoadingSpinner from '../../components/LoadingSpinner/LoadingSpinner';
 import styles from '../../styles/app/email-change-verifying/EmailChangeVerifyingClient.module.scss';
@@ -38,7 +38,7 @@ export function EmailChangeVerifyingPageClient({ token }: EmailChangeVerifyingPa
         setIsVerifying(true);
         setIsError(false);
         setIsSuccess(false);
-        await apiRequestService.reqAccountChangeEmailAddress({ token });
+        await getApiRequestService().reqAccountChangeEmailAddress({ token });
         setIsSuccess(true);
         // Redirect after 3 seconds (hard reload)
         timeoutId = setTimeout(() => {

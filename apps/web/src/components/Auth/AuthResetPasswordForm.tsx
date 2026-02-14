@@ -11,7 +11,7 @@ import { useRouter } from 'next/navigation';
 import { Button } from '../Button/Button';
 import { TextInput } from '../Form/TextInput';
 import Form from '../Form/Form';
-import { apiRequestService } from '../../factories/apiRequestService';
+import { getApiRequestService } from '../../factories/apiRequestService';
 import { handleRateLimitAlert } from '../../utils/rateLimit/rateLimitAlert';
 import { FormInfoMessageText } from '../Form/FormInfoMessageText';
 import styles from '../../styles/components/Auth/AuthResetPasswordForm.module.scss';
@@ -48,7 +48,7 @@ export const AuthResetPasswordForm: React.FC<AuthResetPasswordFormProps> = ({ to
     if (isFormValid) {
       setIsLoading(true);
       try {
-        await apiRequestService.reqAccountResetPassword({ token, password: password1 });
+        await getApiRequestService().reqAccountResetPassword({ token, password: password1 });
         setIsPasswordResetComplete(true);
       } catch (err) {
         const rateLimitErrorHandled = await handleRateLimitAlert(err, locale, tMisc);

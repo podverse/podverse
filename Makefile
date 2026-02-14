@@ -69,7 +69,10 @@ validate_docker: validate
 	@$(MAKE) local_build_web_base local_build_management_web_base
 	@echo ""
 	@echo "Building web..."
-	docker build -f apps/web/Dockerfile --build-arg ENV_FILE=apps/web/env/local.env -t podverse-web:test .
+	docker build -f apps/web/Dockerfile -t podverse-web:test .
+	@echo ""
+	@echo "Building web runtime config sidecar..."
+	docker build -f apps/web/sidecar/Dockerfile -t podverse-web-runtime-config:test .
 	@echo ""
 	@echo "Building workers..."
 	docker build -f apps/workers/Dockerfile -t podverse-workers:test .
@@ -78,7 +81,10 @@ validate_docker: validate
 	docker build -f apps/management-api/Dockerfile -t podverse-management-api:test .
 	@echo ""
 	@echo "Building management-web..."
-	docker build -f apps/management-web/Dockerfile --build-arg ENV_FILE=apps/management-web/env/local.env -t podverse-management-web:test .
+	docker build -f apps/management-web/Dockerfile -t podverse-management-web:test .
+	@echo ""
+	@echo "Building management-web runtime config sidecar..."
+	docker build -f apps/management-web/sidecar/Dockerfile -t podverse-management-web-runtime-config:test .
 	@echo ""
 	@echo "============================================"
 	@echo "  All Docker images built successfully!"

@@ -7,7 +7,7 @@ import type { ReactNode } from 'react';
 import { createContext, useContext, useState } from 'react';
 import { useAccount } from '../../../contexts/Account';
 import { useSkipInitialEffect } from '../../../hooks/useSkipInitialEffect';
-import { apiRequestService } from '../../../factories/apiRequestService';
+import { getApiRequestService } from '../../../factories/apiRequestService';
 import { getTranscriptRowsFromTranscriptString } from '../../../utils/transcript';
 
 interface TrackPageContextType {
@@ -38,6 +38,7 @@ export const TrackPageContextProvider = ({
   const [transcriptRows, setTranscriptRows] = useState<TranscriptRow[]>([]);
   const [autoScrollOn, setAutoScrollOn] = useState<boolean>(true);
   const { loggedInAccount } = useAccount();
+  const apiRequestService = getApiRequestService();
 
   if (!params.item_id) {
     return null;

@@ -7,7 +7,7 @@ import { Button } from '../Button/Button';
 import { Modal } from './Modal';
 import { TextInput } from '../Form/TextInput';
 import { useModals } from '../../contexts/Modals';
-import { apiRequestService } from '../../factories/apiRequestService';
+import { getApiRequestService } from '../../factories/apiRequestService';
 import Form from '../Form/Form';
 import { FormErrorMessageText } from '../Form/FormErrorMessageText';
 import styles from '../../styles/components/Modal/ModalAuthLogin.module.scss';
@@ -35,7 +35,7 @@ export const ModalAuthLogin: React.FC = () => {
       setShowErrorMessage(false);
       setAccountNotVerified(false);
       setVerificationEmailSent(false);
-      await apiRequestService.reqAuthLogin({ email, password });
+      await getApiRequestService().reqAuthLogin({ email, password });
       window.location.reload();
     } catch (err: unknown) {
       const rateLimitErrorHandled = await handleRateLimitAlert(err, locale, tMisc);
@@ -55,7 +55,7 @@ export const ModalAuthLogin: React.FC = () => {
 
   const handleResendVerificationEmail = async () => {
     try {
-      await apiRequestService.reqAccountSendVerificationEmail({ email });
+      await getApiRequestService().reqAccountSendVerificationEmail({ email });
       setVerificationEmailSent(true);
     } catch (err) {
       const rateLimitErrorHandled = await handleRateLimitAlert(err, locale, tMisc);

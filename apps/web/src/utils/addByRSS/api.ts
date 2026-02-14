@@ -1,6 +1,6 @@
 import type { AddByRSSParseCacheEntry } from '@podverse/helpers';
 import type { DTOAccount, DTOAccountFollowingAddByRSSChannel } from '@podverse/helpers';
-import { apiRequestService } from '../../factories/apiRequestService';
+import { getApiRequestService } from '../../factories/apiRequestService';
 import type { AddByRSSCache, AddByRSSParsedFeed } from './types';
 
 export type AddByRSSParseStatusResponse = AddByRSSParseCacheEntry<AddByRSSParsedFeed>;
@@ -14,7 +14,7 @@ export type AddByRSSParseAllResponse = {
 export const getFollowedAddByRSSChannels = async (
   accountIdText: string
 ): Promise<DTOAccountFollowingAddByRSSChannel[]> =>
-  apiRequestService.reqAccountGetFollowedAddByRSSChannels({
+  getApiRequestService().reqAccountGetFollowedAddByRSSChannels({
     account_id_text: accountIdText,
   });
 
@@ -25,7 +25,7 @@ export const followAddByRSSChannel = async (params: {
   basic_auth_username?: string | null;
   basic_auth_password?: string | null;
 }): Promise<DTOAccount> =>
-  apiRequestService.reqAccountFollowAddByRSSChannel({
+  getApiRequestService().reqAccountFollowAddByRSSChannel({
     feed_url: params.feedUrl,
     title: params.title ?? null,
     image_url: params.imageUrl ?? null,
@@ -34,13 +34,13 @@ export const followAddByRSSChannel = async (params: {
   });
 
 export const unfollowAddByRSSChannel = async (feedUrl: string): Promise<DTOAccount> =>
-  apiRequestService.reqAccountUnfollowAddByRSSChannel({ feed_url: feedUrl });
+  getApiRequestService().reqAccountUnfollowAddByRSSChannel({ feed_url: feedUrl });
 
 export const enqueueAddByRSSParse = async (params: {
   feedUrl: string;
   cache?: AddByRSSCache;
 }): Promise<{ request_id: string }> =>
-  apiRequestService.apiRequest<{ request_id: string }>({
+  getApiRequestService().apiRequest<{ request_id: string }>({
     path: '/account/add-by-rss/parse',
     method: 'POST',
     data: {
@@ -57,7 +57,7 @@ export const enqueueAddByRSSParseAll = async (params: {
   etagsByUrl?: Record<string, string>;
   lastModifiedByUrl?: Record<string, string>;
 }): Promise<AddByRSSParseAllResponse> =>
-  apiRequestService.apiRequest<AddByRSSParseAllResponse>({
+  getApiRequestService().apiRequest<AddByRSSParseAllResponse>({
     path: '/account/add-by-rss/parse/all',
     method: 'POST',
     data: {
@@ -71,7 +71,7 @@ export const enqueueAddByRSSParseAll = async (params: {
 export const getAddByRSSParseStatus = async (
   requestId: string
 ): Promise<AddByRSSParseStatusResponse> =>
-  apiRequestService.apiRequest<AddByRSSParseStatusResponse>({
+  getApiRequestService().apiRequest<AddByRSSParseStatusResponse>({
     path: `/account/add-by-rss/parse/status/${requestId}`,
     method: 'GET',
     config: { withCredentials: true },

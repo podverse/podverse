@@ -1,24 +1,29 @@
+// The root styles must be imported first to ensure the correct order of styles
 import '../styles/index.scss';
+
 import Providers from '../providers/Providers';
 import { getLocale } from 'next-intl/server';
-import { config } from '../config';
+import RuntimeConfigScript from '../components/Head/RuntimeConfigScript';
 import FavIcons from '../components/Head/FavIcons';
 import Manifest from '../components/Head/Manifest';
-
-export const metadata = {
-  title: config.public.brand.name || 'Podverse Management',
-  description: 'Administrative management interface for Podverse',
-};
+import { getConfig } from '../config';
+import { getRuntimeConfig } from '../config/runtime-config-store';
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  // Runtime config is initialized in instrumentation.ts at server startup
+  const runtimeConfig = getRuntimeConfig();
+  const config = getConfig();
+  const brandName = config.public.brand.name ?? 'Podverse Management';
   const locale = await getLocale();
   const messages = (await import(`../../i18n/originals/${locale}.json`)).default;
 
   return (
     <html lang={locale}>
       <head>
+        <RuntimeConfigScript runtimeConfig={runtimeConfig} />
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>{brandName}</title>
         <FavIcons />
         <Manifest />
       </head>

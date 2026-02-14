@@ -1,5 +1,5 @@
-import { apiRequestService } from '../../../factories/apiRequestService';
-import { config } from '../../../config';
+import { getApiRequestService } from '../../../factories/apiRequestService';
+import { getConfig } from '../../../config';
 
 /**
  * Converts a base64 VAPID public key to a Uint8Array for the Push API
@@ -19,6 +19,8 @@ function urlBase64ToUint8Array(base64String: string): ArrayBuffer {
 
 export const requestNotificationPermission = async (): Promise<boolean> => {
   try {
+    const config = getConfig();
+    const apiRequestService = getApiRequestService();
     const vapidPublicKey = config.public.notifications.webpush.vapidPublicKey;
     if (!vapidPublicKey) {
       console.warn('No VAPID public key available; aborting notification setup.');

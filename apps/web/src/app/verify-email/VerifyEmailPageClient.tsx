@@ -8,7 +8,7 @@ import { MainInnerWrapper } from '../../components/Main/MainInnerWrapper';
 import { MainWrapper } from '../../components/Main/MainWrapper';
 import { FormInfoMessageText } from '../../components/Form/FormInfoMessageText';
 import { FormErrorMessageText } from '../../components/Form/FormErrorMessageText';
-import { apiRequestService } from '../../factories/apiRequestService';
+import { getApiRequestService } from '../../factories/apiRequestService';
 import { handleRateLimitAlert } from '../../utils/rateLimit/rateLimitAlert';
 import LoadingSpinner from '../../components/LoadingSpinner/LoadingSpinner';
 import styles from '../../styles/app/verify-email/VerifyEmailClient.module.scss';
@@ -21,6 +21,7 @@ export function VerifyEmailPageClient({ token }: VerifyEmailPageClientProps) {
   const tAuthentication = useTranslations('authentication');
   const tMisc = useTranslations('misc');
   const locale = useLocale();
+  const apiRequestService = getApiRequestService();
 
   const [isVerifying, setIsVerifying] = useState<boolean>(true);
   const [isSuccess, setIsSuccess] = useState<boolean>(false);

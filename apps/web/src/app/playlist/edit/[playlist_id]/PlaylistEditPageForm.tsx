@@ -6,7 +6,7 @@ import type { DTOPlaylist } from '@podverse/helpers';
 import { getQueryParamFromQueueMediumId } from '@podverse/helpers';
 import React from 'react';
 import { usePlaylistEditPageContext } from './PlaylistEditPageContext';
-import { apiRequestService } from '../../../../factories/apiRequestService';
+import { getApiRequestService } from '../../../../factories/apiRequestService';
 import { PlaylistForm } from '../../../../components/Playlist/PlaylistForm';
 import { SHARABLE_STATUS } from '../../../../constants/sharableStatus';
 import { MEDIUM } from '../../../../constants/medium';
@@ -48,7 +48,7 @@ export const PlaylistEditPageForm: React.FC<PlaylistEditPageFormProps> = ({ ssrP
   const onSubmit = async () => {
     setIsUpdating(true);
 
-    const playlist = await apiRequestService.reqPlaylistEdit({
+    const playlist = await getApiRequestService().reqPlaylistEdit({
       id_text: ssrPlaylist.id_text,
       title,
       description,

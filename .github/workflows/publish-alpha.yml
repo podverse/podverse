@@ -41,11 +41,6 @@ jobs:
       - name: Type check
         run: npm run type-check
 
-      - name: Setup env files for web apps
-        run: |
-          cp apps/web/env/alpha.env apps/web/.env
-          cp apps/management-web/env/alpha.env apps/management-web/.env
-
       - name: Build all apps
         run: npm run build:apps
 
@@ -151,30 +146,24 @@ jobs:
     strategy:
       matrix:
         include:
-          # Non-web apps (no env file needed)
+          # Non-web apps
           - app: api
             dockerfile: apps/api/Dockerfile
-            env_file:
-            base_image_name:
           - app: workers
             dockerfile: apps/workers/Dockerfile
-            env_file:
-            base_image_name:
           - app: management-api
             dockerfile: apps/management-api/Dockerfile
-            env_file:
-            base_image_name:
-          # Web apps (with env file baked in - required by Next.js at build time)
-          # Note: Next.js requires NEXT_PUBLIC_* vars at build time, so base images
-          # without env vars are not possible. Self-hosters must build their own images.
+          # Web apps (runtime config via sidecar)
           - app: web-deploy
             dockerfile: apps/web/Dockerfile
-            env_file: apps/web/env/alpha.env
             base_image_name: web-base
           - app: management-web-deploy
             dockerfile: apps/management-web/Dockerfile
-            env_file: apps/management-web/env/alpha.env
             base_image_name: management-web-base
+          - app: web-runtime-config
+            dockerfile: apps/web/sidecar/Dockerfile
+          - app: management-web-runtime-config
+            dockerfile: apps/management-web/sidecar/Dockerfile
     steps:
       - uses: actions/checkout@v6
 
@@ -201,7 +190,6 @@ jobs:
           file: ${{ matrix.dockerfile }}
           push: true
           build-args: |
-            ${{ matrix.env_file && format('ENV_FILE={0}', matrix.env_file) }}
             ${{ matrix.base_image_name && format('BASE_IMAGE=ghcr.io/{0}/{1}:{2}', github.repository, matrix.base_image_name, steps.version.outputs.VERSION) }}
           tags: |
             ghcr.io/${{ github.repository }}/${{ matrix.app }}:${{ steps.version.outputs.VERSION }}

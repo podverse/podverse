@@ -3,11 +3,12 @@
 import { useTranslations } from 'next-intl';
 import React, { useEffect, useState } from 'react';
 import { Modal } from './Modal';
+import { useConfig } from '../../contexts/Config';
 import { useModals } from '../../contexts/Modals';
 import { Button } from '../Button/Button';
-import { config } from '../../config';
 import { TextCheckboxes } from '../Form/TextCheckboxes';
 import { useLocalSettings } from '../../contexts/LocalSettings';
+
 import styles from '../../styles/components/Modal/ModalDisclaimer.module.scss';
 
 type ModalDisclaimerProps = {
@@ -15,7 +16,8 @@ type ModalDisclaimerProps = {
 };
 
 export const ModalDisclaimer: React.FC<ModalDisclaimerProps> = ({ isOpen }) => {
-  const server_env = config?.public?.server_env;
+  const config = useConfig();
+  const server_env = config.public.server_env;
 
   if (!server_env || server_env === 'prod') {
     return null;

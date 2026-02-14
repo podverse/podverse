@@ -8,6 +8,7 @@
     "build": "next build --webpack",
     "predev": "npm run validate-env && npm run i18n-compile",
     "dev": "next dev --webpack",
+    "dev:sidecar": "env PORT=3001 node -r dotenv/config sidecar/dist/server.js",
     "dev:watch": "nodemon",
     "lint": "eslint ./src --max-warnings 0",
     "lint:fix": "eslint ./src --fix",

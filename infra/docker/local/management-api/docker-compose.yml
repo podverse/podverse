@@ -9,7 +9,9 @@ services:
     env_file:
       - ../../../config/local/management-api.env
     networks:
-      - podverse_local_network
+      podverse_local_network:
+        aliases:
+          - podverse_local_management_api
     ports:
       - 127.0.0.1:1999:1999
     logging:

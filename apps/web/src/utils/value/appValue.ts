@@ -1,5 +1,5 @@
 import type { AppValueRecipient } from '@podverse/helpers';
-import { config } from '../../config';
+import { getConfig } from '../../config';
 
 type GetAppValueRecipientParams = {
   type: string;
@@ -13,6 +13,7 @@ export const getAppValueRecipient = ({
   final_amount,
 }: GetAppValueRecipientParams): AppValueRecipient | null => {
   if (type === 'lightning' && method === 'keysend') {
+    const config = getConfig();
     return {
       type: config.public.app_value.lightning_keysend.type,
       address: config.public.app_value.lightning_keysend.address,

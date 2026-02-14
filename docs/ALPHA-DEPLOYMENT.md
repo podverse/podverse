@@ -103,10 +103,12 @@ npm run build:apps
 
 # 4. Test Docker builds locally (optional but recommended)
 docker build -f apps/api/Dockerfile -t test-api .
-docker build -f apps/web/Dockerfile --build-arg ENV_FILE=apps/web/env/alpha.env -t test-web .
+docker build -f apps/web/Dockerfile -t test-web .
+docker build -f apps/web/sidecar/Dockerfile -t test-web-runtime-config .
 docker build -f apps/workers/Dockerfile -t test-workers .
 docker build -f apps/management-api/Dockerfile -t test-management-api .
-docker build -f apps/management-web/Dockerfile --build-arg ENV_FILE=apps/management-web/env/alpha.env -t test-management-web .
+docker build -f apps/management-web/Dockerfile -t test-management-web .
+docker build -f apps/management-web/sidecar/Dockerfile -t test-management-web-runtime-config .
 ```
 
 ## Standard Release Flow

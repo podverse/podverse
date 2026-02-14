@@ -3,7 +3,7 @@ import type { DTOQueueResource } from '@podverse/helpers';
 import { getQueueMediumIdForChannelMediumId, MediumEnum } from '@podverse/helpers';
 import { useAccount } from '../contexts/Account';
 import { useQueues } from '../contexts/Queue';
-import { apiRequestService } from '../factories/apiRequestService';
+import { getApiRequestService } from '../factories/apiRequestService';
 import { autoQueueIncrementActiveRow, useAutoQueue } from '../contexts/AutoQueue';
 
 export type QueueResourcesLoadActiveResult = {
@@ -52,6 +52,7 @@ export function useQueueResourcesLoadActive() {
    *                    Falls back to AV queue if not provided or no match found.
    */
   return useCallback(async (medium_id?: number): Promise<QueueResourcesLoadActiveResult> => {
+    const apiRequestService = getApiRequestService();
     const loggedInAccount = loggedInAccountRef.current;
     const autoQueueConfig = autoQueueConfigRef.current;
     const autoQueueActiveRow = autoQueueActiveRowRef.current;

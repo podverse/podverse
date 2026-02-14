@@ -10,7 +10,7 @@ import { TextInput } from '../../../Form/TextInput';
 import { TextArea } from '../../../Form/TextArea';
 import { FormDropdown } from '../../../Form/FormDropdown';
 import { SHARABLE_STATUS } from '../../../../constants/sharableStatus';
-import { apiRequestService } from '../../../../factories/apiRequestService';
+import { getApiRequestService } from '../../../../factories/apiRequestService';
 import { showToast } from '../../../Toast/Toast';
 
 export function SettingsProfile() {
@@ -56,7 +56,7 @@ export function SettingsProfile() {
     setIsSaving(true);
 
     try {
-      const updatedAccount = await apiRequestService.reqAccountUpdate({
+      const updatedAccount = await getApiRequestService().reqAccountUpdate({
         display_name: displayName.trim() || null,
         bio: bio.trim() || null,
         sharable_status: Number(sharableStatus),

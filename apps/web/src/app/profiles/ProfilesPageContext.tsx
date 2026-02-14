@@ -9,7 +9,7 @@ import type {
   QueryParamsSubscribedFullSort,
   QueryParamsStatsRange,
 } from '@podverse/helpers-requests';
-import { apiRequestService } from '../../factories/apiRequestService';
+import { getApiRequestService } from '../../factories/apiRequestService';
 import { useAccount } from '../../contexts/Account';
 import { useSkipInitialEffect } from '../../hooks/useSkipInitialEffect';
 import { useFilterDefaults } from '../../hooks/useFilterDefaults';
@@ -70,6 +70,7 @@ export const ProfilesPageContextProvider = ({
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [showSubscribeMessage, setShowSubscribeMessage] = useState<boolean>(false);
   const { loggedInAccount } = useAccount();
+  const apiRequestService = getApiRequestService();
 
   useFilterDefaults('profiles', filterParams);
 

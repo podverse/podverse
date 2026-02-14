@@ -170,22 +170,24 @@ export function handleLocalSettingsUpdate(newState: LocalSettingsState) {
   writeCookie('local-settings', serialized);
 }
 
-const defaultLocalSettings: LocalSettingsState = {
-  uit: getDefaultTheme(),
-  vs: 'grid',
-  seda: false,
-  aqc: {
-    rp: false,
-    rd: false,
-  },
-  sba: {
-    podcasts: true,
-    music: true,
-    addByRSS: true,
-    library: true,
-  },
-  fd: {},
-};
+function getDefaultLocalSettings(): LocalSettingsState {
+  return {
+    uit: getDefaultTheme(),
+    vs: 'grid',
+    seda: false,
+    aqc: {
+      rp: false,
+      rd: false,
+    },
+    sba: {
+      podcasts: true,
+      music: true,
+      addByRSS: true,
+      library: true,
+    },
+    fd: {},
+  };
+}
 
 function isValidLocalSettings(settings: unknown): settings is LocalSettingsState {
   const s = settings as Record<string, unknown>;
@@ -228,7 +230,7 @@ export function getParsedLocalSettings(cookieStore?: CookieStore): LocalSettings
   }
 
   if (!raw) {
-    return { ...defaultLocalSettings };
+    return { ...getDefaultLocalSettings() };
   }
 
   try {
@@ -237,25 +239,26 @@ export function getParsedLocalSettings(cookieStore?: CookieStore): LocalSettings
 
     if (!isValid) {
       if (isServer) {
-        return { ...defaultLocalSettings };
+        return { ...getDefaultLocalSettings() };
       }
       throw new Error('Invalid local settings format');
     }
 
+    const defaults = getDefaultLocalSettings();
     return {
-      ...defaultLocalSettings,
+      ...defaults,
       ...parsed,
       sba: {
-        ...defaultLocalSettings.sba,
+        ...defaults.sba,
         ...(parsed.sba as Partial<SidebarAccordionState> | undefined),
       },
     };
   } catch {
     if (!isServer) {
       clearCookie('local-settings');
-      writeCookie('local-settings', encodeURIComponent(JSON.stringify(defaultLocalSettings)));
+      writeCookie('local-settings', encodeURIComponent(JSON.stringify(getDefaultLocalSettings())));
     }
-    return { ...defaultLocalSettings };
+    return { ...getDefaultLocalSettings() };
   }
 }
 

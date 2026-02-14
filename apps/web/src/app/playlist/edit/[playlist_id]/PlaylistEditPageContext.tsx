@@ -3,7 +3,7 @@
 import type { DTOPlaylist, DTOPlaylistResource } from '@podverse/helpers';
 import type { ReactNode } from 'react';
 import { createContext, useContext, useState, useEffect } from 'react';
-import { apiRequestService } from '../../../../factories/apiRequestService';
+import { getApiRequestService } from '../../../../factories/apiRequestService';
 
 interface PlaylistEditPageContextType {
   tabSelectedKey: 'info' | 'items';
@@ -47,9 +47,10 @@ export const PlaylistEditPageContextProvider = ({
   useEffect(() => {
     async function fetchPlaylistResourcesAll() {
       setIsLoading(true);
-      const response = await apiRequestService.reqPlaylistResourceGetAllByPlaylistIdTextPrivate(
-        ssrPlaylist.id_text
-      );
+      const response =
+        await getApiRequestService().reqPlaylistResourceGetAllByPlaylistIdTextPrivate(
+          ssrPlaylist.id_text
+        );
 
       setPlaylistResources(response);
       setIsLoading(false);

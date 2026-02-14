@@ -12,7 +12,7 @@ import { useSkipInitialEffect } from '../../../hooks/useSkipInitialEffect';
 import { usePageStateCache } from '../../../hooks/usePageStateCache';
 import { getPageState, definedProps } from '../../../utils/pageStateCache';
 import { getEpisodePageFilterParams } from './EpisodePageDropdownConfig';
-import { apiRequestService } from '../../../factories/apiRequestService';
+import { getApiRequestService } from '../../../factories/apiRequestService';
 import { getTranscriptRowsFromTranscriptString } from '../../../utils/transcript';
 
 // Type for cached data
@@ -118,7 +118,7 @@ export const EpisodePageContextProvider = ({
     }
 
     async function fetchItemChapters() {
-      const response = await apiRequestService.reqItemParseAndGetChapters(item_id);
+      const response = await getApiRequestService().reqItemParseAndGetChapters(item_id);
 
       const totalPages = getTotalPages(
         response.meta.count,
@@ -142,7 +142,7 @@ export const EpisodePageContextProvider = ({
         range: filterParams.range,
       });
 
-      const response = await apiRequestService.reqItemSoundbiteGetManyByItemIdText(item_id, {
+      const response = await getApiRequestService().reqItemSoundbiteGetManyByItemIdText(item_id, {
         page: filterParams.page,
         sort: currentSort === 'oldest' ? 'oldest' : 'recent',
       });
@@ -165,7 +165,7 @@ export const EpisodePageContextProvider = ({
         range: filterParams.range,
       });
 
-      const response = await apiRequestService.reqClipGetManyByItemPublic({
+      const response = await getApiRequestService().reqClipGetManyByItemPublic({
         idOrIdText: item_id,
         page: filterParams.page,
         sort: currentSort,
@@ -183,7 +183,7 @@ export const EpisodePageContextProvider = ({
     }
 
     async function fetchTranscript() {
-      const response = await apiRequestService.reqItemTranscriptGet(item_id);
+      const response = await getApiRequestService().reqItemTranscriptGet(item_id);
       const rows = await getTranscriptRowsFromTranscriptString(response.data);
       setTranscriptRows(rows);
     }

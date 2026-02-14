@@ -6,7 +6,7 @@ import { useAutoQueue } from '../contexts/AutoQueue';
 import { useMediaPlayer } from '../contexts/MediaPlayer';
 import { useMediaPlayerCurrentTime } from '../contexts/MediaPlayerCurrentTime';
 import { useQueues } from '../contexts/Queue';
-import { apiRequestService } from '../factories/apiRequestService';
+import { getApiRequestService } from '../factories/apiRequestService';
 import {
   buildAddByRSSResourceData,
   getAddByRSSHashId,
@@ -63,6 +63,7 @@ export function usePlayAddByRSS() {
     indexItem: AddByRSSItemIndexItem | AddByRSSLivestreamIndexItem,
     playbackPosition?: number
   ) => {
+    const apiRequestService = getApiRequestService();
     const resourceData = buildAddByRSSResourceData(indexItem);
     const idText = indexItem.idText ?? '';
 

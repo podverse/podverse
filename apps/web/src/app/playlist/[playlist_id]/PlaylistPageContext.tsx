@@ -5,7 +5,7 @@ import { getTotalPages } from '@podverse/helpers';
 import type { QueryParamsPlaylistResources } from '@podverse/helpers-requests';
 import type { ReactNode } from 'react';
 import { createContext, useContext, useState, useEffect } from 'react';
-import { apiRequestService } from '../../../factories/apiRequestService';
+import { getApiRequestService } from '../../../factories/apiRequestService';
 
 interface PlaylistPageContextType {
   filterParams: QueryParamsPlaylistResources;
@@ -37,7 +37,7 @@ export const PlaylistPageContextProvider = ({
   useEffect(() => {
     async function fetchPlaylistResources() {
       setIsLoading(true);
-      const response = await apiRequestService.reqPlaylistResourceGetManyByPlaylistIdText(
+      const response = await getApiRequestService().reqPlaylistResourceGetManyByPlaylistIdText(
         ssrPlaylist.id_text,
         {
           page: filterParams.page,

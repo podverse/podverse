@@ -3,7 +3,7 @@
 import type { SearchPodcastsFeed } from '@podverse/helpers';
 import type { ReactNode } from 'react';
 import { createContext, useContext, useState } from 'react';
-import { apiRequestService } from '../../factories/apiRequestService';
+import { getApiRequestService } from '../../factories/apiRequestService';
 import { useSkipInitialEffect } from '../../hooks/useSkipInitialEffect';
 
 type SearchPageParams = {
@@ -29,6 +29,7 @@ export const SearchPageContextProvider = ({ children }: SearchPageContextProvide
   const [searchParams, setSearchParams] = useState<SearchPageParams>({ q: '' });
   const [searchResultFeeds, setSearchResultFeeds] = useState<SearchPodcastsFeed[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const apiRequestService = getApiRequestService();
 
   useSkipInitialEffect(() => {
     async function fetchSearchResults() {

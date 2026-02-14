@@ -7,10 +7,30 @@ services:
   podverse_alpha_management_web:
     image: ghcr.io/podverse/podverse/management-web-deploy:REPLACE_WITH_MANAGEMENT_WEB_VERSION
     container_name: podverse_alpha_management_web
+    depends_on:
+      - podverse_alpha_management_web_runtime_config
+    env_file:
+      - ../../../config/alpha/management-web.env
     networks:
       - podverse_alpha_network
     ports:
-      - 127.0.0.1:3999:3999
+      - 127.0.0.1:3100:3100
+    restart: unless-stopped
+    logging:
+      driver: 'json-file'
+      options:
+        max-file: '1'
+        max-size: '50m'
+
+  podverse_alpha_management_web_runtime_config:
+    image: ghcr.io/podverse/podverse/management-web-runtime-config:REPLACE_WITH_MANAGEMENT_WEB_RUNTIME_CONFIG_VERSION
+    container_name: podverse_alpha_management_web_runtime_config
+    env_file:
+      - ../../../config/alpha/management-web.env
+    environment:
+      PORT: "3101"
+    networks:
+      - podverse_alpha_network
     restart: unless-stopped
     logging:
       driver: 'json-file'

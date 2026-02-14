@@ -17,7 +17,7 @@ import { useAccount } from '../../../../../contexts/Account';
 import { useMediaPlayer } from '../../../../../contexts/MediaPlayer';
 import { useModals } from '../../../../../contexts/Modals';
 import { useQueues } from '../../../../../contexts/Queue';
-import { apiRequestService } from '../../../../../factories/apiRequestService';
+import { getApiRequestService } from '../../../../../factories/apiRequestService';
 import { usePlayAddByRSS } from '../../../../../hooks/usePlayAddByRSS';
 import { showToastPromise, showToastPromiseWithLoading } from '../../../../Toast/Toast';
 import { downloadAndSaveFile } from '../../../../../utils/fileDownloader';
@@ -47,6 +47,7 @@ export const AddByRSSTrackDetailHeader: React.FC<AddByRSSTrackDetailHeaderProps>
   const { queues } = useQueues();
   const { mpAddByRSS, mpIsPlaying, setMPIsPlaying } = useMediaPlayer();
   const playAddByRSS = usePlayAddByRSS();
+  const apiRequestService = getApiRequestService();
 
   const itemImageUrl = indexItem?.bundle?.images?.[0]?.url ?? null;
 

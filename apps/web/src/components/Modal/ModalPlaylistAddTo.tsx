@@ -16,7 +16,7 @@ import type { ModalPlaylistAddToState } from '../../contexts/Modals';
 import { useModals } from '../../contexts/Modals';
 import { MediaHeaderMini } from '../MediaHeaderMini/MediaHeaderMini';
 import { ButtonTabs } from '../Tabs/ButtonTabs';
-import { apiRequestService } from '../../factories/apiRequestService';
+import { getApiRequestService } from '../../factories/apiRequestService';
 import type { DTOPlaylist } from '@podverse/helpers';
 import { getTotalPages } from '@podverse/helpers';
 import { ListPlaylists } from '../List/Playlists/ListPlaylists';
@@ -46,6 +46,7 @@ const getCurrentMediumId = (
 };
 
 export const ModalPlaylistAddTo: React.FC = () => {
+  const apiRequestService = getApiRequestService();
   const tFeatures = useTranslations('features');
   const tMedia = useTranslations('media');
   const tInstructions = useTranslations('instructions');

@@ -2,9 +2,10 @@ import type { NextRequest } from 'next/server';
 import { checkRateLimit } from '../../../utils/proxy/rateLimiter';
 import { validateProxyUrl } from '../../../utils/proxy/urlValidator';
 import { PROXY } from '../../../utils/proxy/constants';
-import { config } from '../../../config';
+import { getConfig } from '../../../config';
 
 export async function GET(req: NextRequest) {
+  const config = getConfig();
   // Rate limiting check
   const rateLimitResult = checkRateLimit(req);
   if (!rateLimitResult.allowed) {

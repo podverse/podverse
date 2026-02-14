@@ -2,9 +2,10 @@ import type { DTOAccount } from '@podverse/helpers';
 import { SUPPORTED_LOCALES } from '@podverse/helpers';
 import { getRequestConfig } from 'next-intl/server';
 import { headers, cookies } from 'next/headers';
+import { getConfig } from '../config';
 
 function getSupportedLocales(): string[] {
-  const supportedLocalesEnv = process.env.NEXT_PUBLIC_FEATURES_SUPPORTED_LOCALES ?? '';
+  const supportedLocalesEnv = getConfig().public.features.locales.supported;
   if (supportedLocalesEnv === 'all-available') {
     return [...SUPPORTED_LOCALES];
   }
@@ -18,7 +19,7 @@ function getSupportedLocales(): string[] {
 }
 
 function getDefaultLocale(): string {
-  return process.env.NEXT_PUBLIC_FEATURES_DEFAULT_LOCALE ?? 'en-US';
+  return getConfig().public.features.locales.default;
 }
 
 async function detectLocale(ssrLoggedInAccount?: DTOAccount | null) {

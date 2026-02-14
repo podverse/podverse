@@ -39,7 +39,7 @@ npm run build:packages
 
 ### Running
 
-Development mode (port 3999):
+Development mode (port 3100):
 
 ```bash
 npm run dev:management-web
@@ -67,38 +67,33 @@ npm run start -w apps/management-web
 
 ### Building Docker Images
 
-The management-web app uses a DRY Dockerfile structure that requires the `ENV_FILE` build argument to specify which environment configuration to use:
+The management-web image is build-once and expects runtime config via a sidecar service.
 
 ```bash
-# Build for local environment (from monorepo root)
-docker build -f apps/management-web/Dockerfile --build-arg ENV_FILE=apps/management-web/env/local.env -t podverse-management-web:latest .
+# Build the management-web app image (from monorepo root)
+docker build -f apps/management-web/Dockerfile -t podverse-management-web:latest .
 
-# Build for alpha environment
-docker build -f apps/management-web/Dockerfile --build-arg ENV_FILE=apps/management-web/env/alpha.env -t podverse-management-web:alpha .
-
-# Build for beta environment
-docker build -f apps/management-web/Dockerfile --build-arg ENV_FILE=apps/management-web/env/beta.env -t podverse-management-web:beta .
-
-# Build for production environment
-docker build -f apps/management-web/Dockerfile --build-arg ENV_FILE=apps/management-web/env/production.env -t podverse-management-web:prod .
+# Build the runtime config sidecar image
+docker build -f apps/management-web/sidecar/Dockerfile -t podverse-management-web-runtime-config:latest .
 ```
 
-**Important**: The `ENV_FILE` build argument is **required** - builds will fail if it's not provided. This ensures explicit environment selection and prevents accidental builds with the wrong configuration.
+Runtime configuration is provided to the sidecar at deploy time using the env files in `apps/management-web/env/`.
 
 The Makefile provides convenient shortcuts:
 
 ```bash
 # From monorepo root
-make local_build_management_web # Builds with local.env
+make local_build_management_web
+make local_build_management_web_runtime_config
 ```
 
 ### Dockerfile Structure
 
-The Dockerfile uses a single source of truth for build logic, with only the environment file path varying between environments. This DRY approach eliminates duplication while maintaining clear environment separation.
+The management-web Dockerfile builds the Next.js app without baking env files. Runtime configuration is supplied by the sidecar service at startup.
 
 ## Environment Files
 
-Environment-specific configurations are in the `env/` directory:
+Environment-specific configurations are in the `env/` directory. These are loaded into the runtime-config sidecar at deploy time:
 
 | File                 | Environment       |
 | -------------------- | ----------------- |

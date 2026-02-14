@@ -7,7 +7,7 @@ import { Modal } from '../../../Modal/Modal';
 import { TextInput } from '../../../Form/TextInput';
 import { Button } from '../../../Button/Button';
 import styles from '../../../../styles/components/Modal/ModalDeleteAccount.module.scss';
-import { apiRequestService } from '../../../../factories/apiRequestService';
+import { getApiRequestService } from '../../../../factories/apiRequestService';
 import { useAccount } from '../../../../contexts/Account';
 import { handleRateLimitAlert } from '../../../../utils/rateLimit/rateLimitAlert';
 
@@ -65,12 +65,12 @@ export const ModalDeleteAccount: React.FC<ModalDeleteAccountProps> = ({
     setHasBlurred(false);
 
     try {
-      await apiRequestService.reqAccountDelete();
+      await getApiRequestService().reqAccountDelete();
       // Clear account context
       setLoggedInAccount(null);
       // Logout to clear server session
       try {
-        await apiRequestService.reqAuthLogout();
+        await getApiRequestService().reqAuthLogout();
       } catch {
         // Logout may fail if session is already invalid, that's ok
       }
