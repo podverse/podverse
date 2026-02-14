@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { getQueryParamFromQueueMediumId } from '@podverse/helpers';
 import React from 'react';
 import { usePlaylistCreatePageContext } from './PlaylistCreatePageContext';
-import { apiRequestService } from '../../../factories/apiRequestService';
+import { getApiRequestService } from '../../../factories/apiRequestService';
 import { PlaylistForm } from '../../../components/Playlist/PlaylistForm';
 import { SHARABLE_STATUS } from '../../../constants/sharableStatus';
 import { MEDIUM } from '../../../constants/medium';
@@ -38,7 +38,7 @@ export const PlaylistCreatePageForm: React.FC = () => {
   const onSubmit = async () => {
     setIsUpdating(true);
 
-    const playlist = await apiRequestService.reqPlaylistCreate({
+    const playlist = await getApiRequestService().reqPlaylistCreate({
       title,
       description,
       medium: getQueryParamFromQueueMediumId(Number(medium)),

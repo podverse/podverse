@@ -5,7 +5,7 @@ import { getTotalPages } from '@podverse/helpers';
 import type { QueryParamsPlaylists } from '@podverse/helpers-requests';
 import type { ReactNode } from 'react';
 import { createContext, useContext, useState } from 'react';
-import { apiRequestService } from '../../factories/apiRequestService';
+import { getApiRequestService } from '../../factories/apiRequestService';
 import { useAccount } from '../../contexts/Account';
 import { useSkipInitialEffect } from '../../hooks/useSkipInitialEffect';
 import { useFilterDefaults } from '../../hooks/useFilterDefaults';
@@ -92,7 +92,7 @@ export const PlaylistsPageContextProvider = ({
           !!loggedInAccount
         );
 
-      const response = await apiRequestService.reqPlaylistGetMany({
+      const response = await getApiRequestService().reqPlaylistGetMany({
         page: filterParams.page,
         type: currentType,
         sort: currentSort,

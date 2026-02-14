@@ -19,7 +19,7 @@ import { MoreButton } from '../../../../MoreButton/MoreButton';
 import { useMediaPlayer } from '../../../../../contexts/MediaPlayer';
 import { useModals } from '../../../../../contexts/Modals';
 import { useQueues } from '../../../../../contexts/Queue';
-import { apiRequestService } from '../../../../../factories/apiRequestService';
+import { getApiRequestService } from '../../../../../factories/apiRequestService';
 import { showToastPromise, showToastPromiseWithLoading } from '../../../../Toast/Toast';
 import { downloadAndSaveFile } from '../../../../../utils/fileDownloader';
 import { useMediaPlayerResourceUpdate } from '../../../../../hooks/useMediaPlayerResourceUpdate';
@@ -52,6 +52,7 @@ export const ListTrackRow: React.FC<Props> = ({
   playlist_id_text,
   onPlayAndRemove,
 }) => {
+  const apiRequestService = getApiRequestService();
   const router = useRouter();
   const url = `${ROUTES.TRACK}/${item.id_text}`;
   const imageSizeTarget = IMAGES.LIST.TRACKS.DESKTOP.SIZE_FIND_TARGET;

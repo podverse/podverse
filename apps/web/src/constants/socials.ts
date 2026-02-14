@@ -1,9 +1,19 @@
-import { config } from '../config';
+import { getConfig } from '../config';
 
 export const SOCIALS = {
-  ACTIVITY_PUB: config.public.socials.activityPub,
-  DISCORD: config.public.socials.discord,
-  GITHUB: config.public.socials.github,
-  MATRIX: config.public.socials.matrix,
-  X: config.public.socials.x,
+  get ACTIVITY_PUB(): string {
+    return getConfig().public.socials.activityPub;
+  },
+  get DISCORD(): string {
+    return getConfig().public.socials.discord;
+  },
+  get GITHUB(): string {
+    return getConfig().public.socials.github;
+  },
+  get MATRIX(): string {
+    return getConfig().public.socials.matrix;
+  },
+  get X(): string {
+    return getConfig().public.socials.x;
+  },
 };

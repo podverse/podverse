@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import type { DTOChannel } from '@podverse/helpers';
 import { getTotalPages, removeQueryParamByPattern } from '@podverse/helpers';
 import type { QueryParamsGetMany } from '@podverse/helpers-requests';
-import { apiRequestService } from '../../factories/apiRequestService';
+import { getApiRequestService } from '../../factories/apiRequestService';
 import { useAccount } from '../../contexts/Account';
 import { useSkipInitialEffect } from '../../hooks/useSkipInitialEffect';
 import { useFilterDefaults } from '../../hooks/useFilterDefaults';
@@ -99,7 +99,7 @@ export const PodcastsPageContextProvider = ({
         !!loggedInAccount
       );
 
-      const response = await apiRequestService.reqChannelGetMany({
+      const response = await getApiRequestService().reqChannelGetMany({
         page: filterParams.page,
         medium,
         type: currentType,

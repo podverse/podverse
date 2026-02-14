@@ -7,7 +7,7 @@ import type {
   DTOPlaylistResource,
 } from '@podverse/helpers';
 import { MediumEnum } from '@podverse/helpers';
-import { apiRequestService } from '../factories/apiRequestService';
+import { getApiRequestService } from '../factories/apiRequestService';
 import { useMediaPlayer } from '../contexts/MediaPlayer';
 import type { AutoQueueResourcesMap } from '../contexts/AutoQueue';
 import { useAutoQueue } from '../contexts/AutoQueue';
@@ -48,6 +48,7 @@ export function useAutoQueueLoadResources() {
   }, [autoQueueConfig]);
 
   return useCallback(async () => {
+    const apiRequestService = getApiRequestService();
     const mpItem = mpItemRef.current;
     const mpChannel = mpChannelRef.current;
     const mpClip = mpClipRef.current;

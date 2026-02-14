@@ -49,24 +49,24 @@ class RSSGenerator {
     <language>en-us</language>
     <copyright>© ${new Date().getFullYear()} ${this.escapeXml(channelTitle)}</copyright>
     <lastBuildDate>${new Date().toUTCString()}</lastBuildDate>
-    
+
     <itunes:author>${this.escapeXml(faker.person.fullName())}</itunes:author>
     <itunes:summary>${this.escapeXml(channelDescription)}</itunes:summary>
     <itunes:type>episodic</itunes:type>
     <itunes:explicit>false</itunes:explicit>
     <itunes:image href="${channelImage}"/>
     <itunes:category text="Technology"/>
-    
+
     <podcast:guid>${podcastGuid}</podcast:guid>
     <podcast:medium>podcast</podcast:medium>
     <podcast:locked>no</podcast:locked>
-    
+
     <image>
       <url>${channelImage}</url>
       <title>${this.escapeXml(channelTitle)}</title>
       <link>${this.escapeXml(channelLink)}</link>
     </image>
-    
+
 ${items}
   </channel>
 </rss>`;
@@ -91,9 +91,9 @@ ${items}
       <link>http://localhost:2111/episode/${itemId}</link>
       <guid isPermaLink="false">${guid}</guid>
       <pubDate>${pubDate.toUTCString()}</pubDate>
-      
+
       <enclosure url="${enclosureUrl}" length="${faker.number.int({ min: 1000000, max: 50000000 })}" type="audio/mpeg"/>
-      
+
       <itunes:title>${this.escapeXml(title)}</itunes:title>
       <itunes:summary>${this.escapeXml(description.substring(0, 255))}</itunes:summary>
       <itunes:duration>${this.formatDuration(duration)}</itunes:duration>
@@ -101,7 +101,7 @@ ${items}
       <itunes:episodeType>full</itunes:episodeType>
       <itunes:episode>${count - i}</itunes:episode>
       <itunes:image href="${imageUrl}"/>
-      
+
       <podcast:transcript url="http://localhost:2111/transcripts/${itemId}.vtt" type="text/vtt"/>
       <podcast:chapters url="http://localhost:2111/chapters/${itemId}.json" type="application/json+chapters"/>
     </item>`);

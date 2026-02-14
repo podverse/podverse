@@ -1,3 +1,7 @@
+import { getWebOrigin } from '../config';
+
 export const WEB = {
-  origin: `${process.env.NEXT_PUBLIC_WEB_PROTOCOL}://${process.env.NEXT_PUBLIC_WEB_DOMAIN}`,
+  get origin(): string {
+    return getWebOrigin();
+  },
 };

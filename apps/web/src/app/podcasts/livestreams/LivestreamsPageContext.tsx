@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import type { DTOItem } from '@podverse/helpers';
 import { getTotalPages, removeQueryParamByPattern } from '@podverse/helpers';
 import type { QueryParamsGetManyLivestreams } from '@podverse/helpers-requests';
-import { apiRequestService } from '../../../factories/apiRequestService';
+import { getApiRequestService } from '../../../factories/apiRequestService';
 import { useAccount } from '../../../contexts/Account';
 import { useSkipInitialEffect } from '../../../hooks/useSkipInitialEffect';
 import { useFilterDefaults } from '../../../hooks/useFilterDefaults';
@@ -71,6 +71,7 @@ export const LivestreamsPageContextProvider = ({
   const [showSubscribeMessage, setShowSubscribeMessage] = useState<boolean>(false);
   const [showCategoriesModal, setShowCategoriesModal] = useState<boolean>(false);
   const { loggedInAccount } = useAccount();
+  const apiRequestService = getApiRequestService();
 
   const filterDefaultsPage = medium === 'av' ? 'podcasts-livestreams' : 'music-livestreams';
   useFilterDefaults(filterDefaultsPage, filterParams);

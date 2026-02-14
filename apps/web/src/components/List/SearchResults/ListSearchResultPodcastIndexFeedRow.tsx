@@ -2,7 +2,7 @@
 
 import { useLocale, useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
-import { apiRequestService } from '../../../factories/apiRequestService';
+import { getApiRequestService } from '../../../factories/apiRequestService';
 import { redirectToChannelPageByMediumClient } from '../../../utils/redirect/redirectToChannelPageByMedium';
 import type { SearchPodcastsFeed } from '@podverse/helpers';
 import { formatDateAbbrev } from '@podverse/helpers';
@@ -18,6 +18,7 @@ interface Props {
 }
 
 const ListSearchResultPodcastIndexFeedRow: React.FC<Props> = ({ searchResultPodcastIndexFeed }) => {
+  const apiRequestService = getApiRequestService();
   const router = useRouter();
   const imageUrl = searchResultPodcastIndexFeed.image || searchResultPodcastIndexFeed.artwork;
   const description = searchResultPodcastIndexFeed.description || '';

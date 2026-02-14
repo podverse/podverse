@@ -27,7 +27,7 @@ import { IMAGES } from '../../../constants/images';
 import { useAccount } from '../../../contexts/Account';
 import { useModals } from '../../../contexts/Modals';
 import { useQueues } from '../../../contexts/Queue';
-import { apiRequestService } from '../../../factories/apiRequestService';
+import { getApiRequestService } from '../../../factories/apiRequestService';
 import { getAddByRSSItemPath } from '../../../utils/addByRSS/itemPath';
 import { loadAddByRSSIndexItemFromResourceData } from '../../../utils/addByRSS/playFromQueueResource';
 import { downloadAddByRSSMediaWithModal } from '../../../utils/downloadModal/downloadAddByRSSMediaWithModal';
@@ -50,6 +50,7 @@ export const ListPlaylistResourceRow: React.FC<Props> = ({
   isEditModePlaylist,
   onPlay,
 }) => {
+  const apiRequestService = getApiRequestService();
   const tFeatures = useTranslations('features');
   const tMedia = useTranslations('media');
   const tMediaPlayer = useTranslations('media_player');

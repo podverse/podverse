@@ -24,7 +24,11 @@
  */
 
 import type { ValidationResult, ValidationSummary } from '@podverse/helpers-config';
-import { validateRequired, validateOptional } from '@podverse/helpers-config';
+import {
+  validateRequired,
+  validateOptional,
+  displayValidationResults,
+} from '@podverse/helpers-config';
 import { KNOWN_COMMANDS } from '@workers/commands/commandNames.js';
 import {
   getCategoriesForCommand,
@@ -203,66 +207,3 @@ export const validateStartupRequirements = (commandName: string): void => {
 
   console.log('Startup validation completed successfully');
 };
-
-/**
- * Displays validation results in a formatted table (by category, checkmarks, summary)
- */
-function displayValidationResults(summary: ValidationSummary): void {
-  console.log('=== Environment Variable Validation ===');
-
-  const byCategory: Record<string, ValidationResult[]> = {};
-  for (const result of summary.results) {
-    const category = result.category;
-    const categoryList = byCategory[category] ?? (byCategory[category] = []);
-    categoryList.push(result);
-  }
-
-  const categories = Object.keys(byCategory).sort();
-  for (const category of categories) {
-    console.log(`[${category}]`);
-    const categoryResults = byCategory[category];
-    if (!categoryResults) {
-      continue;
-    }
-    for (const result of categoryResults) {
-      const status = result.isValid ? '✓' : '✗';
-      const requiredText = result.isRequired ? '' : ' (optional)';
-      const logMessage = `  ${status} ${result.name}${requiredText} - ${result.message}`;
-      if (!result.isValid) {
-        console.error(logMessage);
-      } else if (!result.isSet && !result.isRequired) {
-        console.warn(logMessage);
-      } else {
-        console.log(logMessage);
-      }
-    }
-  }
-
-  console.log('=== Validation Summary ===');
-  console.log(`Total: ${summary.total}`);
-  const passedText =
-    summary.defaultsUsed > 0
-      ? `Passed: ${summary.passed} (${summary.defaultsUsed} using defaults)`
-      : `Passed: ${summary.passed}`;
-  console.log(passedText);
-  console.log(`Skipped: ${summary.skipped}`);
-  console.log(`Failed: ${summary.failed}`);
-  console.log(`Required Missing: ${summary.requiredMissing}`);
-
-  if (summary.failed > 0) {
-    console.error('The following environment variables failed validation:');
-    summary.results
-      .filter((r) => !r.isValid)
-      .forEach((r) => {
-        const requiredText = r.isRequired ? ' (required)' : ' (optional)';
-        console.error(`  - ${r.name}${requiredText}: ${r.message}`);
-      });
-  }
-
-  if (summary.skipped > 0) {
-    console.log('Skipped optional variables (not set):');
-    summary.results
-      .filter((r) => !r.isRequired && !r.isSet)
-      .forEach((r) => console.log(`  - ${r.name}`));
-  }
-}

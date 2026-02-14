@@ -8,10 +8,12 @@ import { writeCookie } from '../../../../utils/cookie';
 import { FormDropdown } from '../../../Form/FormDropdown';
 import type { DropdownMenuItem } from '../../../Dropdown/Dropdown';
 import { useAccount } from '../../../../contexts/Account';
-import { apiRequestService } from '../../../../factories/apiRequestService';
-import { config } from '../../../../config';
+import { useConfig } from '../../../../contexts/Config';
+import { getApiRequestService } from '../../../../factories/apiRequestService';
 
 export const SettingsLocaleSelector: React.FC = () => {
+  const config = useConfig();
+  const apiRequestService = getApiRequestService();
   const tLanguage = useTranslations('language');
   const locale = useLocale();
   const router = useRouter();

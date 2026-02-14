@@ -3,7 +3,7 @@
 # ==========================================
 
 .PHONY: alpha_validate_init
-alpha_validate_init: infra/config/alpha/db.env infra/config/alpha/mq.env infra/config/alpha/workers.env infra/config/alpha/api.env infra/config/alpha/web.env infra/config/alpha/management-db.env infra/config/alpha/management-api.env
+alpha_validate_init: infra/config/alpha/db.env infra/config/alpha/mq.env infra/config/alpha/workers.env infra/config/alpha/api.env infra/config/alpha/web.env infra/config/alpha/management-db.env infra/config/alpha/management-api.env infra/config/alpha/management-web.env
 
 # Auto-copy missing alpha env files from templates
 infra/config/alpha/db.env:
@@ -40,6 +40,11 @@ infra/config/alpha/management-api.env:
 	@echo "Missing: $@"
 	@echo "Copying from example file"
 	cp ./infra/config/env-templates/management-api.env.example ./$@
+
+infra/config/alpha/management-web.env:
+	@echo "Missing: $@"
+	@echo "Copying from example file"
+	cp ./infra/config/env-templates/management-web.env.example ./$@
 
 # Docker Network
 .PHONY: alpha_network_create
@@ -140,8 +145,11 @@ alpha_web_down:
 	else \
 		echo "docker-compose.yml not found, stopping container directly..."; \
 		docker stop podverse_alpha_web 2>/dev/null || true; \
+		docker stop podverse_alpha_web_runtime_config 2>/dev/null || true; \
 		docker rm podverse_alpha_web 2>/dev/null || true; \
+		docker rm podverse_alpha_web_runtime_config 2>/dev/null || true; \
 		docker rmi $$(docker images --filter=reference='ghcr.io/podverse/podverse/web-deploy/*' -q) 2>/dev/null || true; \
+		docker rmi $$(docker images --filter=reference='ghcr.io/podverse/podverse/web-runtime-config/*' -q) 2>/dev/null || true; \
 	fi
 
 # Stop all alpha services
@@ -266,6 +274,9 @@ alpha_management_web_down:
 	else \
 		echo "docker-compose.yml not found, stopping container directly..."; \
 		docker stop podverse_alpha_management_web 2>/dev/null || true; \
+		docker stop podverse_alpha_management_web_runtime_config 2>/dev/null || true; \
 		docker rm podverse_alpha_management_web 2>/dev/null || true; \
+		docker rm podverse_alpha_management_web_runtime_config 2>/dev/null || true; \
 		docker rmi $$(docker images --filter=reference='ghcr.io/podverse/podverse/management-web-deploy/*' -q) 2>/dev/null || true; \
+		docker rmi $$(docker images --filter=reference='ghcr.io/podverse/podverse/management-web-runtime-config/*' -q) 2>/dev/null || true; \
 	fi

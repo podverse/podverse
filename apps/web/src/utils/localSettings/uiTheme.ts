@@ -1,4 +1,4 @@
-import { config } from '../../config';
+import { getConfig } from '../../config';
 
 export type UITheme = 'dark' | 'light' | 'dracula';
 
@@ -10,6 +10,7 @@ const ALL_POSSIBLE_THEMES: UITheme[] = ['dark', 'light', 'dracula'];
 const ALL_AVAILABLE_VALUE = 'all-available';
 
 export function getValidThemes(): UITheme[] {
+  const config = getConfig();
   const validThemesConfig = config.public.theme.valid?.trim();
 
   if (!validThemesConfig) {
@@ -56,6 +57,7 @@ export function getValidThemes(): UITheme[] {
  * Get the default theme from config, or "dark" if blank, or first valid theme if dark is not valid
  */
 export function getDefaultTheme(): UITheme {
+  const config = getConfig();
   const defaultThemeConfig = config.public.theme.default?.trim().toLowerCase();
   const validThemes = getValidThemes();
 

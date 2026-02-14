@@ -86,17 +86,15 @@ make local_build_all          # Build all images
 make local_test_docker_builds # Build and verify images
 ```
 
-**Note**: The web apps (`web` and `management-web`) use a DRY Dockerfile structure that requires a build argument to specify the environment file:
+**Note**: The web apps (`web` and `management-web`) build once and read `NEXT_PUBLIC_*` values from a runtime-config sidecar:
 
 ```bash
-# Build web app for local environment
-docker build -f apps/web/Dockerfile --build-arg ENV_FILE=apps/web/env/local.env -t podverse-web:latest .
-
-# Build web app for alpha environment
-docker build -f apps/web/Dockerfile --build-arg ENV_FILE=apps/web/env/alpha.env -t podverse-web:alpha .
+# Build web app and sidecar
+docker build -f apps/web/Dockerfile -t podverse-web:latest .
+docker build -f apps/web/sidecar/Dockerfile -t podverse-web-runtime-config:latest .
 ```
 
-The `ENV_FILE` build argument is **required** - builds will fail if it's not provided. This ensures explicit environment selection and prevents accidental builds with the wrong configuration.
+Provide runtime env values to the sidecar at deploy time using `apps/web/env/` and `apps/management-web/env/`.
 
 See [docs/QUICKSTART.md](docs/QUICKSTART.md#docker-images) for detailed Docker instructions.
 

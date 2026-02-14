@@ -2,19 +2,20 @@
 
 import { useTranslations } from 'next-intl';
 import React, { useState } from 'react';
+import type { DTOChannel, DTOItem } from '@podverse/helpers';
 import Form from '../Form/Form';
 import TextInputNumber from '../Form/TextInputNumber';
 import { TextInput } from '../Form/TextInput';
 import { MediaHeaderMini } from '../MediaHeaderMini/MediaHeaderMini';
-import type { DTOChannel, DTOItem } from '@podverse/helpers';
 import { ButtonTabs } from '../Tabs/ButtonTabs';
-import styles from '../../styles/components/Boost/BoostForm.module.scss';
 import Accordion from '../Accordian/Accordian';
 import { BoostRecipientInfo } from './BoostRecipientInfo';
-import { config } from '../../config';
+import { useConfig } from '../../contexts/Config';
 import { getAppValueRecipient } from '../../utils/value/appValue';
 import { TextArea } from '../Form/TextArea';
 import { Button } from '../Button/Button';
+
+import styles from '../../styles/components/Boost/BoostForm.module.scss';
 
 // Reusable mock recipients
 const MOCK_RECIPIENTS = [
@@ -149,6 +150,7 @@ type BoostFormProps = {
 };
 
 export const BoostForm: React.FC<BoostFormProps> = ({ className: _className, channel, item }) => {
+  const config = useConfig();
   const tValue = useTranslations('value');
   const tMisc = useTranslations('misc');
   const [selectedKey, setSelectedKey] = useState('');

@@ -5,7 +5,7 @@ import type { DTOClip } from '@podverse/helpers';
 import { hhmmssToSecondsNumeric } from '@podverse/helpers';
 import React from 'react';
 import { useClipEditPageContext } from './ClipEditPageContext';
-import { apiRequestService } from '../../../../factories/apiRequestService';
+import { getApiRequestService } from '../../../../factories/apiRequestService';
 import { ClipForm } from '../../../../components/Clip/ClipForm';
 import { useAutoQueue } from '../../../../contexts/AutoQueue';
 
@@ -50,7 +50,7 @@ export const ClipEditPageForm: React.FC<ClipEditPageFormProps> = ({ ssrClip }) =
     const finalStartTime = hhmmssToSecondsNumeric(startTimeString);
     const finalEndTime = endTimeString ? hhmmssToSecondsNumeric(endTimeString) : null;
 
-    const clip = await apiRequestService.reqClipUpdate(ssrClip.id_text, {
+    const clip = await getApiRequestService().reqClipUpdate(ssrClip.id_text, {
       item_id_text: ssrClip.item.id_text,
       sharable_status_id: finalSharableStatusId,
       title: finalTitle,

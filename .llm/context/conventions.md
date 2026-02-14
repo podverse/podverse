@@ -14,7 +14,7 @@
 
 ## Style
 
-- No semicolons, single quotes
+- Semicolons required, single quotes
 - Trailing commas, 2-space indent
 
 ## Git

@@ -8,9 +8,21 @@ type ReadableTimeProps = {
   end: string | null;
 };
 
+const FALLBACK = '—';
+
 export const ReadableTime: React.FC<ReadableTimeProps> = ({ start, end }) => {
   const locale = useLocale();
   const tInfo = useTranslations('info');
+
+  const isValidDate = (value: string): boolean => {
+    if (typeof value !== 'string' || value.trim() === '') return false;
+    const parsed = Date.parse(value);
+    return !Number.isNaN(parsed);
+  };
+
+  if (!isValidDate(start)) {
+    return FALLBACK;
+  }
 
   const formatTime = (time: string | Date) =>
     typeof time === 'string'
@@ -26,7 +38,7 @@ export const ReadableTime: React.FC<ReadableTimeProps> = ({ start, end }) => {
         });
 
   const startTime = formatTime(start);
-  const endTime = end ? formatTime(end) : null;
+  const endTime = end && isValidDate(end) ? formatTime(end) : null;
 
   const timeText = endTime
     ? tInfo('time.start_end', { timeStart: startTime, timeEnd: endTime })

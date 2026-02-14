@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import type { DTOClip } from '@podverse/helpers';
 import { getTotalPages, removeQueryParamByPattern } from '@podverse/helpers';
 import type { QueryParamsGetManyPartial } from '@podverse/helpers-requests';
-import { apiRequestService } from '../../factories/apiRequestService';
+import { getApiRequestService } from '../../factories/apiRequestService';
 import { useAccount } from '../../contexts/Account';
 import { useSkipInitialEffect } from '../../hooks/useSkipInitialEffect';
 import { useFilterDefaults } from '../../hooks/useFilterDefaults';
@@ -98,7 +98,7 @@ export const ClipsPageContextProvider = ({
         !!loggedInAccount
       );
 
-      const response = await apiRequestService.reqClipGetManyPublic({
+      const response = await getApiRequestService().reqClipGetManyPublic({
         page: filterParams.page,
         medium: 'av',
         type: currentType,

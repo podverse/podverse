@@ -7,10 +7,29 @@ services:
   podverse_alpha_web:
     image: ghcr.io/podverse/podverse/web-deploy:REPLACE_WITH_WEB_VERSION
     container_name: podverse_alpha_web
+    depends_on:
+      - podverse_alpha_web_runtime_config
+    env_file:
+      - ../../../config/alpha/web.env
     networks:
       - podverse_alpha_network
     ports:
       - 127.0.0.1:3000:3000
+    logging:
+      driver: "syslog"
+      options:
+        tag: "{{.ImageName}}/{{.Name}}/{{.ID}}"
+    restart: unless-stopped
+
+  podverse_alpha_web_runtime_config:
+    image: ghcr.io/podverse/podverse/web-runtime-config:REPLACE_WITH_WEB_RUNTIME_CONFIG_VERSION
+    container_name: podverse_alpha_web_runtime_config
+    env_file:
+      - ../../../config/alpha/web.env
+    environment:
+      PORT: "3001"
+    networks:
+      - podverse_alpha_network
     logging:
       driver: "syslog"
       options:

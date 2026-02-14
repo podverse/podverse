@@ -24,7 +24,7 @@ import { useAddByRSSListContext } from '../../../../contexts/AddByRSSListContext
 import { useMediaPlayer } from '../../../../contexts/MediaPlayer';
 import { useModals } from '../../../../contexts/Modals';
 import { useQueues } from '../../../../contexts/Queue';
-import { apiRequestService } from '../../../../factories/apiRequestService';
+import { getApiRequestService } from '../../../../factories/apiRequestService';
 import { usePlayAddByRSS } from '../../../../hooks/usePlayAddByRSS';
 import { showToastPromise, showToastPromiseWithLoading } from '../../../Toast/Toast';
 import { downloadAndSaveFile } from '../../../../utils/fileDownloader';
@@ -62,6 +62,7 @@ export const AddByRSSEpisodeRow: React.FC<AddByRSSEpisodeRowProps> = ({
   const { mpAddByRSS, mpIsPlaying, setMPIsPlaying } = useMediaPlayer();
   const { queues } = useQueues();
   const playAddByRSS = usePlayAddByRSS();
+  const apiRequestService = getApiRequestService();
   const title = bundle.item.title ?? tMedia('podcast.episode_image');
   const description = bundle.description?.value
     ? stripAndDecodeHtml(bundle.description.value)

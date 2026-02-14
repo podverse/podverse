@@ -10,7 +10,7 @@ import { useMediaPlayer } from '../../../contexts/MediaPlayer';
 import { ReadableDate } from '../../Time/ReadableDate';
 import { MoreButton } from '../../MoreButton/MoreButton';
 import { showToastPromise, showToastPromiseWithLoading } from '../../Toast/Toast';
-import { apiRequestService } from '../../../factories/apiRequestService';
+import { getApiRequestService } from '../../../factories/apiRequestService';
 import { useQueues } from '../../../contexts/Queue';
 import { useModals } from '../../../contexts/Modals';
 import { downloadAndSaveFile } from '../../../utils/fileDownloader';
@@ -32,6 +32,7 @@ export const ItemSoundbiteHeaderPlaySection: React.FC<ItemSoundbiteHeaderPlaySec
   item,
   channel,
 }) => {
+  const apiRequestService = getApiRequestService();
   const tFeatures = useTranslations('features');
   const tMediaPlayer = useTranslations('media_player');
   const tInstructions = useTranslations('instructions');

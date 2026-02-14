@@ -5,7 +5,7 @@ import { createContext, useContext, useState } from 'react';
 import type { DTOChannel } from '@podverse/helpers';
 import { getTotalPages } from '@podverse/helpers';
 import type { QueryParamsHome } from '@podverse/helpers-requests';
-import { apiRequestService } from '../factories/apiRequestService';
+import { getApiRequestService } from '../factories/apiRequestService';
 import { useAccount } from '../contexts/Account';
 import { useSkipInitialEffect } from '../hooks/useSkipInitialEffect';
 import { useFilterDefaults } from '../hooks/useFilterDefaults';
@@ -80,7 +80,7 @@ export const HomePageContextProvider = ({
         sort: filterParams.sort,
       });
 
-      const response = await apiRequestService.reqChannelGetMany({
+      const response = await getApiRequestService().reqChannelGetMany({
         page: currentPage,
         medium: currentMedium,
         type: 'subscribed',

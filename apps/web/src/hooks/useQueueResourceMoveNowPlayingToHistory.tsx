@@ -1,7 +1,7 @@
 import { useRef, useEffect, useCallback } from 'react';
 import { useAccount } from '../contexts/Account';
 import { useQueues } from '../contexts/Queue';
-import { apiRequestService } from '../factories/apiRequestService';
+import { getApiRequestService } from '../factories/apiRequestService';
 import { useQueueResourcesAbridgedIndexUpdate } from './useQueueResourcesAbridgedIndexUpdate';
 import type { DTOClip, DTOItem, DTOItemSoundbite } from '@podverse/helpers';
 
@@ -28,6 +28,7 @@ export function useQueueResourcesMoveNowPlayingToHistory() {
   }, [loggedInAccount]);
 
   return useCallback(async (params: MoveNowPlayingToHistoryCallbackParams) => {
+    const apiRequestService = getApiRequestService();
     const activeQueue = activeQueueRef.current;
     const loggedInAccount = loggedInAccountRef.current;
     const { completed, mpClip, mpItem, mpItemSoundbite } = params;

@@ -16,7 +16,7 @@ import { Button } from '../Button/Button';
 import { EVENTS } from '../../constants/events';
 import { useMediaPlayer } from '../../contexts/MediaPlayer';
 import { Divider } from '../Divider/Divider';
-import { apiRequestService } from '../../factories/apiRequestService';
+import { getApiRequestService } from '../../factories/apiRequestService';
 import { useAccount } from '../../contexts/Account';
 import { CallToActionMessage } from '../CallToActionMessage/CallToActionMessage';
 import { useModals } from '../../contexts/Modals';
@@ -62,6 +62,7 @@ export const ClipForm: React.FC<ClipFormProps> = ({
   const tAuthentication = useTranslations('authentication');
   const tMisc = useTranslations('misc');
   const router = useRouter();
+  const apiRequestService = getApiRequestService();
 
   const sharableStatusDropdownMenuItems = SHARABLE_STATUS.menuItems(tMisc);
 

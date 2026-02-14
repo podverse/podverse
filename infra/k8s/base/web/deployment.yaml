@@ -81,6 +81,52 @@ spec:
             successThreshold: 1
             failureThreshold: 3
             timeoutSeconds: 5
+        - name: runtime-config
+          image: ghcr.io/podverse/podverse/web-runtime-config
+          imagePullPolicy: Always
+          env:
+            - name: PORT
+              value: "3001"
+          envFrom:
+            - configMapRef:
+                name: podverse-web-config
+          securityContext:
+            readOnlyRootFilesystem: true
+            allowPrivilegeEscalation: false
+            runAsUser: 1000
+            runAsGroup: 1000
+            runAsNonRoot: true
+          resources:
+            requests:
+              memory: "64Mi"
+              cpu: "50m"
+            limits:
+              memory: "128Mi"
+              cpu: "200m"
+          ports:
+            - containerPort: 3001
+              name: runtime-config
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /runtime-config
+              port: 3001
+              scheme: HTTP
+            initialDelaySeconds: 5
+            periodSeconds: 20
+            successThreshold: 1
+            failureThreshold: 3
+            timeoutSeconds: 5
+          readinessProbe:
+            httpGet:
+              path: /runtime-config
+              port: 3001
+              scheme: HTTP
+            initialDelaySeconds: 2
+            periodSeconds: 10
+            successThreshold: 1
+            failureThreshold: 3
+            timeoutSeconds: 5
       volumes:
         - name: nextjs-cache
           emptyDir: {}

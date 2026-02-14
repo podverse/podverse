@@ -23,7 +23,7 @@ import { ReadableTimeRange } from '../../Time/ReadableTimeRange';
 import { useAccount } from '../../../contexts/Account';
 import { useQueues } from '../../../contexts/Queue';
 import { showToastPromise } from '../../Toast/Toast';
-import { apiRequestService } from '../../../factories/apiRequestService';
+import { getApiRequestService } from '../../../factories/apiRequestService';
 import { useModals } from '../../../contexts/Modals';
 import { useMediaPlayerResourceUpdate } from '../../../hooks/useMediaPlayerResourceUpdate';
 import { useAutoQueue } from '../../../contexts/AutoQueue';
@@ -56,6 +56,7 @@ export const ListClipRow: React.FC<Props> = ({
   playlist_id_text,
   onPlayAndRemove,
 }) => {
+  const apiRequestService = getApiRequestService();
   const url = `${ROUTES.CLIP}/${clip.id_text}`;
 
   channel = clip.item?.channel || item?.channel || channel || null;

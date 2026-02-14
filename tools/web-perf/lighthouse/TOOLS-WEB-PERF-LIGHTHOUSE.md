@@ -69,6 +69,10 @@ Run `npx playwright install` before your first Lighthouse run; it is required fo
 
     Keep `.env.api` and `.env.web` aligned with those validators.
 
+    The web app reads `NEXT_PUBLIC_*` values from the runtime-config sidecar.
+    Make sure `.env.web` includes `RUNTIME_CONFIG_URL` and `RUNTIME_CONFIG_PORT`
+    so Lighthouse can start the sidecar alongside the web app.
+
     When Lighthouse starts the API, it skips loading `apps/api/.env` so the
     Lighthouse `.env.api` values are always used.
 

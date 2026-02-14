@@ -6,7 +6,7 @@ import { getTotalPages } from '@podverse/helpers';
 import type { QueryParamsChannel } from '@podverse/helpers-requests';
 import type { ReactNode } from 'react';
 import { createContext, useContext, useState, useRef } from 'react';
-import { apiRequestService } from '../../../factories/apiRequestService';
+import { getApiRequestService } from '../../../factories/apiRequestService';
 import { useAccount } from '../../../contexts/Account';
 import { checkBackNavFlag } from '../../../contexts/Navigation';
 import { useSkipInitialEffect } from '../../../hooks/useSkipInitialEffect';
@@ -123,7 +123,7 @@ export const PodcastPageContextProvider = ({
         range: filterParams.range,
       });
 
-      const response = await apiRequestService.reqItemGetManyByChannel({
+      const response = await getApiRequestService().reqItemGetManyByChannel({
         idOrIdText: channel_id,
         page: currentPage,
         sort: currentSort,
@@ -153,10 +153,13 @@ export const PodcastPageContextProvider = ({
         range: filterParams.range,
       });
 
-      const response = await apiRequestService.reqItemSoundbiteGetManyByChannelIdText(channel_id, {
-        page: filterParams.page,
-        sort: currentSort !== 'top' ? currentSort : 'recent',
-      });
+      const response = await getApiRequestService().reqItemSoundbiteGetManyByChannelIdText(
+        channel_id,
+        {
+          page: filterParams.page,
+          sort: currentSort !== 'top' ? currentSort : 'recent',
+        }
+      );
 
       const totalPages = getTotalPages(
         response.meta.count,
@@ -176,7 +179,7 @@ export const PodcastPageContextProvider = ({
         range: filterParams.range,
       });
 
-      const response = await apiRequestService.reqClipGetManyByChannelPublic({
+      const response = await getApiRequestService().reqClipGetManyByChannelPublic({
         idOrIdText: channel_id,
         page: currentPage,
         sort: currentSort,

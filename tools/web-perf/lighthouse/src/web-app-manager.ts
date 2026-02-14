@@ -16,6 +16,7 @@ const __dirname = dirname(__filename);
 
 export class WebAppManager {
   private webAppProcess: ChildProcess | null = null;
+  private runtimeConfigProcess: ChildProcess | null = null;
   private podverseWebPath: string;
 
   constructor() {
@@ -61,6 +62,8 @@ export class WebAppManager {
     }
 
     const webPort = this.getWebPort();
+    const runtimeConfigPort = this.getRuntimeConfigPort();
+    const runtimeConfigUrl = this.getRuntimeConfigUrl();
 
     // Check if port is available, and kill any process using it
     const portAvailable = await this.checkPortAvailable(webPort);
@@ -69,8 +72,48 @@ export class WebAppManager {
       await killProcessOnPort(webPort);
     }
 
+    const runtimePortAvailable = await this.checkPortAvailable(runtimeConfigPort);
+    if (!runtimePortAvailable) {
+      console.log(
+        `⚠️  Runtime config port ${runtimeConfigPort} is in use, attempting to free it...`
+      );
+      await killProcessOnPort(runtimeConfigPort);
+    }
+
     console.log(`🚀 Starting podverse-web on port ${webPort}...`);
     console.log(`   Working directory: ${this.podverseWebPath}`);
+
+    console.log(`🚀 Starting runtime-config sidecar on port ${runtimeConfigPort}...`);
+    const runtimeConfigPath = path.join(this.podverseWebPath, 'sidecar', 'server.js');
+    const runtimeConfigEnv = {
+      ...process.env,
+      PORT: runtimeConfigPort.toString(),
+    };
+    this.runtimeConfigProcess = spawn('node', [runtimeConfigPath], {
+      cwd: this.podverseWebPath,
+      env: runtimeConfigEnv,
+      stdio: ['ignore', 'pipe', 'pipe'],
+      shell: false,
+    });
+
+    this.runtimeConfigProcess.on('exit', (code) => {
+      if (code !== null && code !== 0 && code !== 130) {
+        console.error(`⚠️  Runtime config sidecar exited with code ${code}`);
+      }
+      this.runtimeConfigProcess = null;
+    });
+
+    const runtimeConfigReady = await this.waitForServerReady(
+      `${runtimeConfigUrl}/runtime-config`,
+      60,
+      500
+    );
+    if (!runtimeConfigReady) {
+      await this.stop();
+      throw new Error(
+        `Runtime config sidecar failed to start on port ${runtimeConfigPort} within 30 seconds.`
+      );
+    }
 
     // Set environment variables for test instance
     // Pass WEB_PORT as PORT for Next.js
@@ -97,6 +140,7 @@ export class WebAppManager {
       NEXT_PUBLIC_API_PREFIX: process.env.NEXT_PUBLIC_API_PREFIX,
       NEXT_PUBLIC_API_VERSION: process.env.NEXT_PUBLIC_API_VERSION,
       NEXT_PUBLIC_SERVER_ENV: process.env.NEXT_PUBLIC_SERVER_ENV,
+      RUNTIME_CONFIG_URL: runtimeConfigUrl,
       SKIP_ENV_VALIDATION: process.env.SKIP_ENV_VALIDATION,
       ALLOW_LOCALHOST_PROXY: process.env.ALLOW_LOCALHOST_PROXY,
     };
@@ -183,11 +227,14 @@ export class WebAppManager {
 
   async stop(): Promise<void> {
     const process = this.webAppProcess;
+    const runtimeConfigProcess = this.runtimeConfigProcess;
     this.webAppProcess = null; // Clear reference immediately to prevent double-stop
+    this.runtimeConfigProcess = null;
 
     if (!process) {
       // If we don't have a process reference, try killing by port
       await killProcessOnPort(this.getWebPort());
+      await this.stopRuntimeConfigSidecar(runtimeConfigProcess);
       return;
     }
 
@@ -199,7 +246,10 @@ export class WebAppManager {
 
       if (!killed) {
         // Process might already be dead, try killing by port
-        killProcessOnPort(this.getWebPort()).then(() => resolve());
+        killProcessOnPort(this.getWebPort()).then(async () => {
+          await this.stopRuntimeConfigSidecar(runtimeConfigProcess);
+          resolve();
+        });
         return;
       }
 
@@ -212,12 +262,14 @@ export class WebAppManager {
         }
         // Also try killing by port in case process reference is stale
         await killProcessOnPort(this.getWebPort());
+        await this.stopRuntimeConfigSidecar(runtimeConfigProcess);
         resolve();
       }, 5000);
 
-      process.on('exit', () => {
+      process.on('exit', async () => {
         clearTimeout(timeout);
         console.log('   ✅ Web app stopped');
+        await this.stopRuntimeConfigSidecar(runtimeConfigProcess);
         resolve();
       });
     });
@@ -242,6 +294,52 @@ export class WebAppManager {
       throw new Error(`WEB_PORT must be a number. Received: ${value}`);
     }
     return port;
+  }
+
+  private getRuntimeConfigPort(): number {
+    const value = this.getRequiredEnv('RUNTIME_CONFIG_PORT');
+    const port = Number(value);
+    if (!Number.isFinite(port)) {
+      throw new Error(`RUNTIME_CONFIG_PORT must be a number. Received: ${value}`);
+    }
+    return port;
+  }
+
+  private getRuntimeConfigUrl(): string {
+    return this.getRequiredEnv('RUNTIME_CONFIG_URL');
+  }
+
+  private async stopRuntimeConfigSidecar(process: ChildProcess | null): Promise<void> {
+    if (!process) {
+      await killProcessOnPort(this.getRuntimeConfigPort());
+      return;
+    }
+
+    console.log(`🛑 Stopping runtime-config sidecar...`);
+
+    await new Promise((resolve) => {
+      const killed = process.kill('SIGTERM');
+      if (!killed) {
+        killProcessOnPort(this.getRuntimeConfigPort()).then(() => resolve(null));
+        return;
+      }
+
+      const timeout = setTimeout(async () => {
+        try {
+          process.kill('SIGKILL');
+        } catch {
+          // Process already gone
+        }
+        await killProcessOnPort(this.getRuntimeConfigPort());
+        resolve(null);
+      }, 5000);
+
+      process.on('exit', () => {
+        clearTimeout(timeout);
+        console.log('   ✅ Runtime config sidecar stopped');
+        resolve(null);
+      });
+    });
   }
 
   private getRequiredEnv(name: string): string {

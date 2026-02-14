@@ -6,7 +6,7 @@ import React from 'react';
 import { Button } from '../../Button/Button';
 import { useAccount } from '../../../contexts/Account';
 import { useModals } from '../../../contexts/Modals';
-import { apiRequestService } from '../../../factories/apiRequestService';
+import { getApiRequestService } from '../../../factories/apiRequestService';
 import styles from '../../../styles/components/Common/Media/Header/SubscribeButton.module.scss';
 
 type SubscribeButtonProps = {
@@ -16,6 +16,7 @@ type SubscribeButtonProps = {
 };
 
 export const SubscribeButton: React.FC<SubscribeButtonProps> = ({ entity, kind, onEdit }) => {
+  const apiRequestService = getApiRequestService();
   const tFeatures = useTranslations('features');
   const tInstructions = useTranslations('instructions');
   const tMisc = useTranslations('misc');

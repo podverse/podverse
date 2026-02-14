@@ -23,15 +23,16 @@ import { useMediaPlayer } from '../../../../contexts/MediaPlayer';
 import { ReadableDate } from '../../../Time/ReadableDate';
 import { useModals } from '../../../../contexts/Modals';
 import { useQueues } from '../../../../contexts/Queue';
-import { apiRequestService } from '../../../../factories/apiRequestService';
+import { getApiRequestService } from '../../../../factories/apiRequestService';
 import { showToastPromise, showToastPromiseWithLoading } from '../../../Toast/Toast';
 import { downloadAndSaveFile } from '../../../../utils/fileDownloader';
 import { useMediaPlayerResourceUpdate } from '../../../../hooks/useMediaPlayerResourceUpdate';
 import { useQueueResourcesAbridgedIndex } from '../../../../contexts/QueueResourcesAbridgedIndex';
 import { useAutoQueue } from '../../../../contexts/AutoQueue';
 import { downloadEpisodeWithModal } from '../../../../utils/downloadModal/downloadEpisodeWithModal';
-import styles from '../../../../styles/components/Common/List/Podcasts/Episodes/ListEpisodeRow.module.scss';
 import { useAccount } from '../../../../contexts/Account';
+
+import styles from '../../../../styles/components/Common/List/Podcasts/Episodes/ListEpisodeRow.module.scss';
 
 interface Props {
   channel: DTOChannel;
@@ -56,6 +57,7 @@ const ListEpisodeRow: React.FC<Props> = ({
   playlist_id_text,
   onPlayAndRemove,
 }) => {
+  const apiRequestService = getApiRequestService();
   const url = `${ROUTES.EPISODE}/${item.id_text}`;
   const channel_image = findDTOChannelImageBySize(
     channel.channel_images,

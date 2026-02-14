@@ -6,7 +6,7 @@ import { Modal } from './Modal';
 import { useModals } from '../../contexts/Modals';
 import { ClipForm } from '../Clip/ClipForm';
 import { hhmmssToSecondsNumeric, SharableStatusEnum } from '@podverse/helpers';
-import { apiRequestService } from '../../factories/apiRequestService';
+import { getApiRequestService } from '../../factories/apiRequestService';
 
 export const ModalClip: React.FC = () => {
   const tFeatures = useTranslations('features');
@@ -45,7 +45,7 @@ export const ModalClip: React.FC = () => {
       const finalStartTime = hhmmssToSecondsNumeric(startTimeString);
       const finalEndTime = endTimeString ? hhmmssToSecondsNumeric(endTimeString) : null;
 
-      const clip = await apiRequestService.reqClipCreate({
+      const clip = await getApiRequestService().reqClipCreate({
         item_id_text: modalClip.item.id_text,
         sharable_status_id: finalSharableStatusId,
         title: finalTitle.length > 0 ? finalTitle : null,

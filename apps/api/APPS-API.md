@@ -10,7 +10,7 @@ The Podverse API provides RESTful endpoints for all client applications, handlin
 
 ### Prerequisites
 
-- Node.js v22+
+- Node.js v24+
 - PostgreSQL database
 - Redis (key-value store)
 - RabbitMQ (message queue)

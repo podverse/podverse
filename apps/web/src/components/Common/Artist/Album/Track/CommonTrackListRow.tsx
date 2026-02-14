@@ -25,7 +25,7 @@ import { useAutoQueue } from '../../../../../contexts/AutoQueue';
 import { useMediaPlayer } from '../../../../../contexts/MediaPlayer';
 import { useModals } from '../../../../../contexts/Modals';
 import { useQueues } from '../../../../../contexts/Queue';
-import { apiRequestService } from '../../../../../factories/apiRequestService';
+import { getApiRequestService } from '../../../../../factories/apiRequestService';
 import { useMediaPlayerResourceUpdate } from '../../../../../hooks/useMediaPlayerResourceUpdate';
 import { downloadTrackWithModal } from '../../../../../utils/downloadModal/downloadTrackWithModal';
 import { downloadAndSaveFile } from '../../../../../utils/fileDownloader';
@@ -67,6 +67,7 @@ export const CommonTrackListRow: React.FC<CommonTrackListRowProps> = ({
   const mediaPlayerResourceUpdate = useMediaPlayerResourceUpdate();
   const { setModalPlaylistAddTo, setModalSourceSelector, setModalLoginRequired } = useModals();
   const { autoQueueConfig } = useAutoQueue();
+  const apiRequestService = getApiRequestService();
 
   const playButtonOnClick = () => {
     if (item.id === mpItem?.id) {

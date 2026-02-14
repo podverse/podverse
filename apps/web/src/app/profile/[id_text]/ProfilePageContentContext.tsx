@@ -4,7 +4,7 @@ import type { DTOAccount, DTOChannel, DTOClip, DTOPlaylist } from '@podverse/hel
 import { getTotalPages } from '@podverse/helpers';
 import type { ReactNode } from 'react';
 import React, { createContext, useContext, useState, useCallback } from 'react';
-import { apiRequestService } from '../../../factories/apiRequestService';
+import { getApiRequestService } from '../../../factories/apiRequestService';
 import { useSkipInitialEffect } from '../../../hooks/useSkipInitialEffect';
 
 export type ProfilePageContentTab = 'podcasts' | 'albums' | 'playlists' | 'clips';
@@ -86,6 +86,7 @@ export const ProfilePageContentContextProvider = ({
 
   // Initialize loading state to true since we'll fetch data on mount for the default tab
   const [isLoading, setIsLoading] = useState(true);
+  const apiRequestService = getApiRequestService();
 
   const fetchPodcasts = useCallback(
     async (page: number) => {

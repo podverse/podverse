@@ -9,7 +9,7 @@ import { TextInput } from '../../../Form/TextInput';
 import { Button } from '../../../Button/Button';
 import { FormInfoMessageText } from '../../../Form/FormInfoMessageText';
 import styles from '../../../../styles/components/Modal/ModalChangeEmail.module.scss';
-import { apiRequestService } from '../../../../factories/apiRequestService';
+import { getApiRequestService } from '../../../../factories/apiRequestService';
 import { handleRateLimitAlert } from '../../../../utils/rateLimit/rateLimitAlert';
 
 type ModalChangeEmailProps = {
@@ -79,7 +79,7 @@ export const ModalChangeEmail: React.FC<ModalChangeEmailProps> = ({ isOpen, onCl
     setErrorMessage('');
 
     try {
-      await apiRequestService.reqAccountSendChangeEmailAddressEmail({ new_email: email });
+      await getApiRequestService().reqAccountSendChangeEmailAddressEmail({ new_email: email });
       setIsEmailSent(true);
     } catch (err: unknown) {
       const rateLimitErrorHandled = await handleRateLimitAlert(err, locale, tMisc);

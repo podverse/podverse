@@ -9,7 +9,7 @@ import { ListClipRow } from '../Clips/ListClipRow';
 import { ListItemSoundbiteRow } from '../ItemSoundbites/ListItemSoundbiteRow';
 import { ListTrackRow } from '../Music/Albums/Tracks/ListTrackRow';
 import { useQueues } from '../../../contexts/Queue';
-import { apiRequestService } from '../../../factories/apiRequestService';
+import { getApiRequestService } from '../../../factories/apiRequestService';
 import { showToastPromise } from '../../Toast/Toast';
 import { MoreButton } from '../../MoreButton/MoreButton';
 import { FaGripLines } from 'react-icons/fa6';
@@ -33,6 +33,7 @@ export const ListQueueResourceRow: React.FC<Props> = ({
   isEditModeQueue,
   onPlayAndRemove,
 }) => {
+  const apiRequestService = getApiRequestService();
   const tFeatures = useTranslations('features');
   const { activeQueue } = useQueues();
   const item = queueResource.item;

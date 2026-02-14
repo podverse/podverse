@@ -8,7 +8,7 @@ import { ModalDeleteAccount } from './ModalDeleteAccount';
 import { ModalChangeEmail } from './ModalChangeEmail';
 import { SettingsSection } from '../../SettingsSection';
 import { Divider } from '../../../Divider/Divider';
-import { apiRequestService } from '../../../../factories/apiRequestService';
+import { getApiRequestService } from '../../../../factories/apiRequestService';
 import { showToast, showToastLoading, dismissToast } from '../../../Toast/Toast';
 import { handleRateLimitAlert } from '../../../../utils/rateLimit/rateLimitAlert';
 
@@ -30,7 +30,7 @@ export function SettingsAccount() {
     const loadingToastId = await showToastLoading(tSettings('account.download_my_data_loading'));
 
     try {
-      const blob: Blob = await apiRequestService.reqAccountDownloadData();
+      const blob: Blob = await getApiRequestService().reqAccountDownloadData();
 
       // Download zip file
       const url = URL.createObjectURL(blob);

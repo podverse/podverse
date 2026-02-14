@@ -4,7 +4,7 @@ import type { DTOAccount, DTOChannel } from '@podverse/helpers';
 import { getStatusCodeFromError } from '@podverse/helpers-requests';
 import { useAccount } from '../../contexts/Account';
 import { useModals } from '../../contexts/Modals';
-import { apiRequestService } from '../../factories/apiRequestService';
+import { getApiRequestService } from '../../factories/apiRequestService';
 import { handleRateLimitAlert } from '../../utils/rateLimit/rateLimitAlert';
 import { SwitchButton } from '../Form/SwitchButton';
 import { Divider } from '../Divider/Divider';
@@ -18,6 +18,7 @@ type ListChannelSettingsProps = {
 };
 
 export const ListChannelSettings = ({ channel }: ListChannelSettingsProps) => {
+  const apiRequestService = getApiRequestService();
   const tInfo = useTranslations('info');
   const tSettings = useTranslations('settings');
   const tInstructions = useTranslations('instructions');

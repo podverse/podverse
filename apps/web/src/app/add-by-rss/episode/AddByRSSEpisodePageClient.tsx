@@ -21,7 +21,7 @@ import { AddByRSSEpisodeDetailHeader } from '../../../components/AddByRSS/Podcas
 import { ListItemChapters } from '../../../components/List/ItemChapters/ListItemChapters';
 import { useAccount } from '../../../contexts/Account';
 import { useMediaPlayer } from '../../../contexts/MediaPlayer';
-import { apiRequestService } from '../../../factories/apiRequestService';
+import { getApiRequestService } from '../../../factories/apiRequestService';
 import { EVENTS } from '../../../constants/events';
 import { syncAddByRSSCacheWithServer } from '../../../utils/addByRSS/sync';
 import { getAddByRSSFeedByIdText, getAddByRSSItemByIdText } from '../../../utils/addByRSS/storage';
@@ -117,7 +117,7 @@ export const AddByRSSEpisodePageClient: React.FC<AddByRSSEpisodePageClientProps>
         return;
       }
       try {
-        const res = await apiRequestService.reqAccountAddByRSSChaptersTranscript({
+        const res = await getApiRequestService().reqAccountAddByRSSChaptersTranscript({
           itemIdText: episode.idText,
           chaptersFeedUrl: cf,
           transcriptUrl: tu,

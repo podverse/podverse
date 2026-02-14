@@ -6,7 +6,7 @@ import type { DTOPlaylist, DTOPlaylistResource } from '@podverse/helpers';
 import { MediumEnum } from '@podverse/helpers';
 import React from 'react';
 import { ListPlaylistResourceRow } from './ListPlaylistResourceRow';
-import { apiRequestService } from '../../../factories/apiRequestService';
+import { getApiRequestService } from '../../../factories/apiRequestService';
 import Pagination from '../../Pagination/Pagination';
 import { useSkipInitialEffect } from '../../../hooks/useSkipInitialEffect';
 import { scrollMainToTop } from '../../../utils/scroll';
@@ -37,6 +37,7 @@ export const ListPlaylistResources: React.FC<Props> = ({
   totalPages = 1,
   setIsLoading: setLoadingFromParent,
 }) => {
+  const apiRequestService = getApiRequestService();
   const [resources, setResources] = React.useState(playlistResources);
   const mediaPlayerResourceUpdate = useMediaPlayerResourceUpdate();
   const playAddByRSS = usePlayAddByRSS();

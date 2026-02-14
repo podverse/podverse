@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import { apiRequestService } from '../factories/apiRequestService';
+import { getApiRequestService } from '../factories/apiRequestService';
 import { generateQueueResourceAbridgedIndex } from '@podverse/helpers';
 import { useQueueResourcesAbridgedIndex } from '../contexts/QueueResourcesAbridgedIndex';
 import { useAccount } from '../contexts/Account';
@@ -13,7 +13,7 @@ export function useQueueResourcesAbridgedLoad() {
       return;
     }
 
-    const resources = await apiRequestService.reqQueueResourcesGetAllByAccountAbridged();
+    const resources = await getApiRequestService().reqQueueResourcesGetAllByAccountAbridged();
     const index = generateQueueResourceAbridgedIndex(resources);
     setQueueResourcesAbridgedIndex(index);
   }, []);

@@ -12,7 +12,7 @@ import { ReadableDate } from '../../../Time/ReadableDate';
 import { getDurationAndPositionStr, ReadableDuration } from '../../../Time/ReadableDuration';
 import { MoreButton } from '../../../MoreButton/MoreButton';
 import { showToastPromise, showToastPromiseWithLoading } from '../../../Toast/Toast';
-import { apiRequestService } from '../../../../factories/apiRequestService';
+import { getApiRequestService } from '../../../../factories/apiRequestService';
 import { useQueues } from '../../../../contexts/Queue';
 import { useModals } from '../../../../contexts/Modals';
 import { downloadAndSaveFile } from '../../../../utils/fileDownloader';
@@ -32,6 +32,7 @@ export const CoreEpisodeHeaderPlaySection: React.FC<CoreEpisodeHeaderPlaySection
   item,
   channel,
 }) => {
+  const apiRequestService = getApiRequestService();
   const tFeatures = useTranslations('features');
   const tMediaPlayer = useTranslations('media_player');
   const tInstructions = useTranslations('instructions');

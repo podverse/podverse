@@ -38,6 +38,18 @@ infra/config/local/management-api.env:
 	@echo "Copying from example file"
 	cp ./infra/config/env-templates/management-api.env.example ./$@
 
+infra/config/local/web.env:
+	@echo "Missing: $@"
+	@echo "Copying from example file"
+	mkdir -p infra/config/local
+	cp ./infra/config/env-templates/web.env.example ./$@
+
+infra/config/local/management-web.env:
+	@echo "Missing: $@"
+	@echo "Copying from example file"
+	mkdir -p infra/config/local
+	cp ./infra/config/env-templates/management-web.env.example ./$@
+
 # Docker Network
 .PHONY: local_network_create
 local_network_create:
@@ -189,6 +201,12 @@ local_prune_podverse_images:
 	docker builder prune -f 2>/dev/null || true
 	@echo "Done. External images (postgres, valkey, artemis) preserved."
 
+# Stop all app containers and remove Podverse images; volumes are retained.
+.PHONY: local_teardown_apps
+local_teardown_apps:
+	$(MAKE) local_stop_all_apps
+	$(MAKE) local_prune_podverse_images
+
 # ==========================================
 # Docker Image Building
 # ==========================================
@@ -215,14 +233,22 @@ local_build_management_web_base:
 
 .PHONY: local_build_web
 local_build_web: local_build_web_base
-	docker build -f apps/web/Dockerfile --build-arg ENV_FILE=apps/web/env/local.env -t podverse-web:latest .
+	docker build -f apps/web/Dockerfile -t podverse-web:latest .
+
+.PHONY: local_build_web_runtime_config
+local_build_web_runtime_config:
+	docker build -f apps/web/sidecar/Dockerfile -t podverse-web-runtime-config:latest .
 
 .PHONY: local_build_management_web
 local_build_management_web: local_build_management_web_base
-	docker build -f apps/management-web/Dockerfile --build-arg ENV_FILE=apps/management-web/env/local.env -t podverse-management-web:latest .
+	docker build -f apps/management-web/Dockerfile -t podverse-management-web:latest .
+
+.PHONY: local_build_management_web_runtime_config
+local_build_management_web_runtime_config:
+	docker build -f apps/management-web/sidecar/Dockerfile -t podverse-management-web-runtime-config:latest .
 
 .PHONY: local_build_all
-local_build_all: local_build_api local_build_workers local_build_management_api local_build_web local_build_management_web
+local_build_all: local_build_api local_build_workers local_build_management_api local_build_web local_build_web_runtime_config local_build_management_web local_build_management_web_runtime_config
 	@echo "All Docker images built successfully"
 
 # ==========================================
@@ -262,22 +288,22 @@ local_test_management_api: local_build_management_api
 	@echo "Stop with: docker compose -f infra/docker/local/management-api/docker-compose.yml down"
 
 .PHONY: local_test_web
-local_test_web: local_build_web
+local_test_web: local_build_web local_build_web_runtime_config infra/config/local/web.env
 	docker compose -f infra/docker/local/web/docker-compose.yml up -d
 	@echo "Web started at http://localhost:3000"
 	@echo "Check logs with: docker compose -f infra/docker/local/web/docker-compose.yml logs -f"
 	@echo "Stop with: docker compose -f infra/docker/local/web/docker-compose.yml down"
 
 .PHONY: local_test_management_web
-local_test_management_web: local_build_management_web
+local_test_management_web: local_build_management_web local_build_management_web_runtime_config infra/config/local/management-web.env
 	docker compose -f infra/docker/local/management-web/docker-compose.yml up -d
-	@echo "Management Web started at http://localhost:3999"
+	@echo "Management Web started at http://localhost:3100"
 	@echo "Check logs with: docker compose -f infra/docker/local/management-web/docker-compose.yml logs -f"
 	@echo "Stop with: docker compose -f infra/docker/local/management-web/docker-compose.yml down"
 
 # Run all apps (api, web, management-api, management-web)
 .PHONY: local_test_all_apps
-local_test_all_apps: local_build_all
+local_test_all_apps: local_build_all infra/config/local/web.env infra/config/local/management-web.env
 	docker compose -f infra/docker/local/api/docker-compose.yml up -d
 	docker compose -f infra/docker/local/web/docker-compose.yml up -d
 	docker compose -f infra/docker/local/management-api/docker-compose.yml up -d
@@ -286,8 +312,10 @@ local_test_all_apps: local_build_all
 	@echo "All apps started:"
 	@echo "  - API:            http://localhost:1234"
 	@echo "  - Web:            http://localhost:3000"
+	@echo "  - Web Sidecar:    podverse_local_web_runtime_config:3001"
 	@echo "  - Management API: http://localhost:3998"
-	@echo "  - Management Web: http://localhost:3999"
+	@echo "  - Management Web: http://localhost:3100"
+	@echo "  - Management Sidecar: podverse_local_management_web_runtime_config:3101"
 	@echo ""
 	@echo "Stop all with: make local_stop_all_apps"
 
@@ -301,7 +329,7 @@ local_stop_all_apps:
 
 # Start all apps (assumes images are already built)
 .PHONY: local_start_all_apps
-local_start_all_apps:
+local_start_all_apps: infra/config/local/web.env infra/config/local/management-web.env
 	docker compose -f infra/docker/local/api/docker-compose.yml up -d
 	docker compose -f infra/docker/local/web/docker-compose.yml up -d
 	docker compose -f infra/docker/local/management-api/docker-compose.yml up -d
@@ -310,8 +338,10 @@ local_start_all_apps:
 	@echo "All apps started:"
 	@echo "  - API:            http://localhost:1234"
 	@echo "  - Web:            http://localhost:3000"
+	@echo "  - Web Sidecar:    podverse_local_web_runtime_config:3001"
 	@echo "  - Management API: http://localhost:3998"
-	@echo "  - Management Web: http://localhost:3999"
+	@echo "  - Management Web: http://localhost:3100"
+	@echo "  - Management Sidecar: podverse_local_management_web_runtime_config:3101"
 	@echo ""
 	@echo "Stop all with: make local_stop_all_apps"
 

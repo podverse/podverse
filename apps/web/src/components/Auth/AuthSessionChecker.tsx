@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
-import { apiRequestService } from '../../factories/apiRequestService';
+import { getApiRequestService } from '../../factories/apiRequestService';
 
 interface AuthSessionCheckerProps {
   ssrShouldLogout: boolean;
@@ -12,7 +12,7 @@ const AuthSessionChecker = ({ ssrShouldLogout }: AuthSessionCheckerProps) => {
     if (ssrShouldLogout) {
       (async () => {
         try {
-          await apiRequestService.reqAuthLogout();
+          await getApiRequestService().reqAuthLogout();
         } catch {
           // Logout may fail if session is already invalid, that's ok
         }
