@@ -10,7 +10,7 @@ Podverse Management Web is a Next.js application providing administrative tools 
 
 ### Prerequisites
 
-- Node.js v22+
+- Node.js v24+
 - Podverse Management API running (see `apps/management-api`)
 
 ### Setup

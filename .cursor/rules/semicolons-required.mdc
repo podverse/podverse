@@ -1,0 +1,20 @@
+---
+description: Require semicolons in JS/TS files
+globs: **/*.{js,jsx,ts,tsx}
+alwaysApply: false
+---
+
+# Semicolons Required
+
+- Use semicolons at the end of statements in JavaScript and TypeScript files.
+- When updating existing code, keep semicolons consistent with this rule.
+
+```typescript
+// ✅ Good
+const value = 123;
+doWork();
+
+// ❌ Bad
+const value = 123
+doWork()
+```

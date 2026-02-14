@@ -4,12 +4,12 @@ This document provides rules and patterns for AI coding assistants working on th
 
 ## Quick Reference
 
-| Item            | Value                                        |
-| --------------- | -------------------------------------------- |
-| Node.js         | 22+ (see `.nvmrc`)                           |
-| Package Manager | npm workspaces                               |
-| Style           | No semicolons, single quotes, 2-space indent |
-| TypeScript      | Strict mode, no `any` types                  |
+| Item            | Value                                              |
+| --------------- | -------------------------------------------------- |
+| Node.js         | 24+ (see `.nvmrc`)                                 |
+| Package Manager | npm workspaces                                     |
+| Style           | Semicolons required, single quotes, 2-space indent |
+| TypeScript      | Strict mode, no `any` types                        |
 
 ### Essential Commands
 

@@ -10,7 +10,7 @@ Podverse Workers provides command-line tools for various background tasks includ
 
 ### Prerequisites
 
-- Node.js v22+
+- Node.js v24+
 - PostgreSQL database
 - RabbitMQ (message queue)
 - Podcast Index API credentials

@@ -10,7 +10,7 @@ The Podverse web app provides a full-featured podcast client in the browser, sup
 
 ### Prerequisites
 
-- Node.js v22+
+- Node.js v24+
 - Podverse API running (see `apps/api`)
 
 ### Setup

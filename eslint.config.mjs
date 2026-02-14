@@ -65,5 +65,10 @@ export default tseslint.config(
       '**/.llm/plans/**',
     ],
   },
-  eslintConfigPrettier
+  eslintConfigPrettier,
+  {
+    rules: {
+      semi: ['error', 'always'],
+    },
+  }
 );
