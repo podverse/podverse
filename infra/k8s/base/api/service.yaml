@@ -1,7 +1,3 @@
-# Version: 2
-# This Service exposes the API internally on port 1234.
-# The Ingress (created later) will point to this Service to expose it to the world.
-
 apiVersion: v1
 kind: Service
 metadata:
