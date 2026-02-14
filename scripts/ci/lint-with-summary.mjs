@@ -1,12 +1,16 @@
 /**
  * Runs type-check, workspace lint, and prettier; streams output and prints
- * a summary of errors/warnings at the end.
+ * a summary of errors/warnings at the end. When Prettier fails, prints a
+ * unified diff for each failed file so you can see what would change.
  *
  * Usage: node scripts/ci/lint-with-summary.mjs [lint|lint:fix]
  * Default: lint (use lint:fix for fix mode)
  */
 
-import { spawn } from 'node:child_process';
+import { spawn, spawnSync } from 'node:child_process';
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
 
 const mode = process.argv[2] === 'lint:fix' ? 'lint:fix' : 'lint';
 const prettierScript = mode === 'lint:fix' ? 'prettier:write' : 'prettier:check';
@@ -35,6 +39,56 @@ const runStep = (step) =>
       resolve({ step: step.name, code, output: chunks.join('') });
     });
   });
+
+function parsePrettierFailedFiles(prettierOutput) {
+  const files = [];
+  for (const line of prettierOutput.split('\n')) {
+    const m = line.match(/^\[warn\]\s+(.+)$/);
+    if (!m) continue;
+    const candidate = m[1].trim();
+    if (candidate.startsWith('Code style issues found') || candidate.startsWith('Run Prettier'))
+      continue;
+    files.push(candidate);
+  }
+  return files;
+}
+
+function getPrettierDiff(filePath) {
+  const cwd = process.cwd();
+  const absolutePath = path.isAbsolute(filePath) ? filePath : path.join(cwd, filePath);
+  if (!fs.existsSync(absolutePath)) return null;
+  const current = fs.readFileSync(absolutePath, 'utf8');
+  const prettierResult = spawnSync('npx', ['prettier', '--stdin-filepath', filePath], {
+    input: current,
+    encoding: 'utf8',
+    shell: true,
+    cwd,
+  });
+  const formatted = prettierResult.stdout;
+  if (formatted === current) return null;
+  const tmpDir = os.tmpdir();
+  const base = path.basename(filePath);
+  const currentTmp = path.join(tmpDir, `prettier-current-${base}`);
+  const formattedTmp = path.join(tmpDir, `prettier-formatted-${base}`);
+  try {
+    fs.writeFileSync(currentTmp, current, 'utf8');
+    fs.writeFileSync(formattedTmp, formatted, 'utf8');
+    const diffResult = spawnSync('diff', ['-u', currentTmp, formattedTmp], {
+      encoding: 'utf8',
+      maxBuffer: 2 * 1024 * 1024,
+    });
+    let out = diffResult.stdout || '';
+    if (out && !out.endsWith('\n')) out += '\n';
+    return out
+      .replace(`--- ${currentTmp}\n`, `--- ${filePath}\n`)
+      .replace(`+++ ${formattedTmp}\n`, `+++ ${filePath}\n`);
+  } finally {
+    try {
+      fs.unlinkSync(currentTmp);
+      fs.unlinkSync(formattedTmp);
+    } catch (_) {}
+  }
+}
 
 function summarize(output) {
   const summary = { tsErrors: 0, eslintErrors: 0, eslintWarnings: 0, prettierFiles: 0 };
@@ -81,6 +135,21 @@ console.log(
 console.log(
   `Prettier:  ${prettierFailed ? 'failed' : 'passed'}${summary.prettierFiles ? ` (${summary.prettierFiles} file(s) with issues)` : ''}`
 );
+
+if (prettierFailed && summary.prettierFiles > 0) {
+  const prettierOutput = results[2].output;
+  const failedFiles = parsePrettierFailedFiles(prettierOutput);
+  if (failedFiles.length > 0) {
+    console.log('\n--- Prettier (what would change) ---');
+    for (const file of failedFiles) {
+      const diff = getPrettierDiff(file);
+      if (diff) {
+        console.log(`\n${file}:`);
+        console.log(diff);
+      }
+    }
+  }
+}
 
 const anyFailed = typeCheckFailed || lintFailed || prettierFailed;
 process.exit(anyFailed ? 1 : 0);

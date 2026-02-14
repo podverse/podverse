@@ -1,0 +1,13 @@
+# Standalone deps image for management-web. Published by the Alpha workflow as
+# management-web-base; used as the builder base for management-web-deploy
+# (see apps/management-web/Dockerfile). Build context: repo root (.).
+FROM node:24-slim
+WORKDIR /opt
+
+COPY package*.json tsconfig.base.json ./
+COPY packages/ ./packages/
+COPY apps/management-web/package*.json ./apps/management-web/
+
+# Install all dependencies (devDependencies like @types/* needed for TypeScript compilation)
+# --ignore-scripts skips the prepare script that tries to install git hooks
+RUN npm install --ignore-scripts
