@@ -1,14 +1,8 @@
-# Version: 1
-# This ConfigMap contains the initialization SQL and shell scripts for the database.
-# We will mount these into the database container later.
-
 apiVersion: v1
 kind: ConfigMap
 metadata:
   name: podverse-db-init-scripts
 data:
-  # This script creates the read/write users.
-  # It expects environment variables (POSTGRES_READ_PASSWORD, etc.) to be set in the container.
   01-create-users.sh: |
     #!/bin/bash
     set -e
@@ -48,7 +42,6 @@ data:
     ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO read_write;
     ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT, USAGE, UPDATE ON SEQUENCES TO read_write;
     SQL
-  # This is the full schema initialization SQL.
   init_database.sql: |
     -- 0000 migration
 

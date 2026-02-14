@@ -1,12 +1,9 @@
-# File Version: 2
-# Source: Jenkinsfile.aux_workers_mq_rss_add_recently_updated_feeds_from_podcast_index
-# Schedule: Every 5 minutes
 apiVersion: batch/v1
 kind: CronJob
 metadata:
-  name: worker-recent-feeds
+  name: worker-archive-all
 spec:
-  schedule: "*/5 * * * *"
+  schedule: "0 6,18 * * *"
   concurrencyPolicy: Forbid
   jobTemplate:
     spec:
@@ -15,7 +12,7 @@ spec:
           containers:
             - name: worker
               image: ghcr.io/podverse/podverse/workers
-              command: ["npm", "run", "mq_rss_add_recently_updated_feeds_from_podcast_index", "--", "-q", "rss-normal", "-sr", "900"]
+              command: ["npm", "run", "archive_all"]
               securityContext:
                 runAsUser: 1000
                 runAsGroup: 1000
@@ -43,15 +40,7 @@ spec:
                   mountPath: /logs
                 - name: logs-volume
                   mountPath: /opt/logs
-          #   volumeMounts:
-          #   - name: firebase-config
-          #     mountPath: /opt/config/firebase-key.json
-          #     subPath: firebase-key.json
-          #     readOnly: true
           volumes:
             - name: logs-volume
               emptyDir: {}
-          # - name: firebase-config
-          #   secret:
-          #     secretName: podverse-workers-firebase-opaque
           restartPolicy: OnFailure

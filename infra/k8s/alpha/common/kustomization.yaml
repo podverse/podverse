@@ -7,8 +7,7 @@ kind: Kustomization
 
 resources:
   - ./00-namespace.yaml
-  - ../../base/common/01-ingress.yaml
-  - ../../base/common/02-tls-options.yaml
+  - github.com/podverse/podverse/infra/k8s/base/common?ref=feature/alpha
 
 patches:
   - path: ingress-hosts-patch.yaml

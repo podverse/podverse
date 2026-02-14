@@ -2,7 +2,7 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
 resources:
-  - 02-configmap.yaml
-  - 03-service.yaml
-  - 04-statefulset.yaml
-  - 05-job-provision.yaml
+  - scripts.configmap.yaml
+  - service.yaml
+  - statefulset.yaml
+  - provisioner.job.yaml

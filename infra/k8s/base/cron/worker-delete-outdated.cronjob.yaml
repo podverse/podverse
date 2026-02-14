@@ -1,17 +1,12 @@
-# File Version: 5
 apiVersion: batch/v1
 kind: CronJob
 metadata:
-  name: worker-dead-feeds-merge
-  labels:
-    app: podverse-workers
-    task: dead-feeds
+  name: worker-delete-outdated
 spec:
-  # TODO: Fix the dead feeds merge job - currently broken
-  suspend: true
-  # Schedule: Run at 2am daily (Change this to match your Jenkins schedule)
-  schedule: "0 2 * * *"
+  schedule: "0 1 * * *"
   concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 30
+  failedJobsHistoryLimit: 10
   jobTemplate:
     spec:
       template:
@@ -19,9 +14,8 @@ spec:
           containers:
             - name: worker
               image: ghcr.io/podverse/podverse/workers
-              # The command from your Jenkinsfile:
-              # npm run podcast_index_dead_feeds_flag_and_merge
-              command: ["npm", "run", "podcast_index_dead_feeds_flag_and_merge"]
+              command:
+                ["npm", "run", "orm_on_demand_parser_event_delete_outdated"]
               securityContext:
                 runAsUser: 1000
                 runAsGroup: 1000
@@ -35,8 +29,6 @@ spec:
                 limits:
                   memory: "1Gi"
                   cpu: "500m"
-
-              # Re-use the same env/secrets as the main worker deployment
               envFrom:
                 - configMapRef:
                     name: podverse-workers-config
@@ -51,24 +43,7 @@ spec:
                   mountPath: /logs
                 - name: logs-volume
                   mountPath: /opt/logs
-                # Fix EROFS error by mounting a writable volume for the temp directory
-                - name: tmp-volume
-                  mountPath: /opt/node_modules/podverse-external-services/dist/services/podcast-index/tmp
-
-          #   volumeMounts:
-          #   - name: firebase-config
-          #     mountPath: /opt/config/firebase-key.json
-          #     subPath: firebase-key.json
-          #     readOnly: true
-
           volumes:
             - name: logs-volume
               emptyDir: {}
-            # Ephemeral volume for temporary file writing
-            - name: tmp-volume
-              emptyDir: {}
-          # - name: firebase-config
-          #   secret:
-          #     secretName: podverse-workers-firebase-opaque
-
           restartPolicy: OnFailure

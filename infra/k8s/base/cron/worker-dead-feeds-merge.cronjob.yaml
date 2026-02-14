@@ -1,18 +1,16 @@
-# File Version: 5
-# Source: Jenkinsfile.aux_workers_orm_on_demand_parser_event_delete_outdated
-# Schedule: 1 AM daily
 apiVersion: batch/v1
 kind: CronJob
 metadata:
-  name: worker-delete-outdated
+  name: worker-dead-feeds-merge
+  labels:
+    app: podverse-workers
+    task: dead-feeds
 spec:
-  schedule: "0 1 * * *"
+  # TODO: Fix the dead feeds merge job - currently broken
+  suspend: true
+  # Schedule: Run at 2am daily (Change this to match your Jenkins schedule)
+  schedule: "0 2 * * *"
   concurrencyPolicy: Forbid
-
-  # UPDATE: Keep the last 30 runs (30 days of history) for logs.
-  successfulJobsHistoryLimit: 30
-  failedJobsHistoryLimit: 10
-
   jobTemplate:
     spec:
       template:
@@ -20,7 +18,7 @@ spec:
           containers:
             - name: worker
               image: ghcr.io/podverse/podverse/workers
-              command: ["npm", "run", "orm_on_demand_parser_event_delete_outdated"]
+              command: ["npm", "run", "podcast_index_dead_feeds_flag_and_merge"]
               securityContext:
                 runAsUser: 1000
                 runAsGroup: 1000
@@ -48,7 +46,22 @@ spec:
                   mountPath: /logs
                 - name: logs-volume
                   mountPath: /opt/logs
+                - name: tmp-volume
+                  mountPath: /opt/node_modules/podverse-external-services/dist/services/podcast-index/tmp
+
+          #   volumeMounts:
+          #   - name: firebase-config
+          #     mountPath: /opt/config/firebase-key.json
+          #     subPath: firebase-key.json
+          #     readOnly: true
+
           volumes:
             - name: logs-volume
               emptyDir: {}
+            - name: tmp-volume
+              emptyDir: {}
+          # - name: firebase-config
+          #   secret:
+          #     secretName: podverse-workers-firebase-opaque
+
           restartPolicy: OnFailure
