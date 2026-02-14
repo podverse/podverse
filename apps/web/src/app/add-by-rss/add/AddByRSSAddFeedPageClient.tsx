@@ -19,6 +19,7 @@ import {
   applyAddByRSSParseStatus,
   followAddByRSSChannelAndQueue,
   pollAddByRSSParseStatus,
+  unfollowAddByRSSChannelAndClear,
 } from '../../../utils/addByRSS/actions';
 import { enqueueAddByRSSParse } from '../../../utils/addByRSS/api';
 import { handleRateLimitAlert } from '../../../utils/rateLimit/rateLimitAlert';
@@ -115,6 +116,11 @@ export const AddByRSSAddFeedPageClient: React.FC = () => {
       }
       const routeSegment = getAddByRSSDetailRouteSegment(resourceType);
       router.push(`/add-by-rss/${routeSegment}/${latestRecord.idText}`);
+    } else if (finalStatus === 'failed' && !isParsedStatus(seedRecord.status)) {
+      await unfollowAddByRSSChannelAndClear({
+        feedUrl,
+        channelIdText: seedRecord.idText,
+      });
     }
   };
 
