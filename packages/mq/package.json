@@ -1,6 +1,6 @@
 {
   "name": "@podverse/mq",
-  "version": "5.3.2",
+  "version": "5.4.0",
   "description": "Message queue module for Podverse",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
