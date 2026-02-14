@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-non-null-assertion -- env vars validated at build time in scripts/validate-env.ts */
-
 import type { DTOAccount } from '@podverse/helpers';
 import { SUPPORTED_LOCALES } from '@podverse/helpers';
 import { getRequestConfig } from 'next-intl/server';
@@ -7,8 +5,9 @@ import { headers, cookies } from 'next/headers';
 import { getConfig } from '../config';
 
 function getSupportedLocales(): string[] {
-  const supportedLocalesEnv = getConfig().public.features.locales.supported!;
-  if (supportedLocalesEnv === 'all-available') {
+  const supportedLocalesEnv = getConfig().public.features.locales.supported;
+  // At build time (prerender), config may be undefined - use all locales as fallback
+  if (!supportedLocalesEnv || supportedLocalesEnv === 'all-available') {
     return [...SUPPORTED_LOCALES];
   }
   const requested = supportedLocalesEnv
@@ -21,7 +20,9 @@ function getSupportedLocales(): string[] {
 }
 
 function getDefaultLocale(): string {
-  return getConfig().public.features.locales.default!;
+  const defaultLocale = getConfig().public.features.locales.default;
+  // At build time (prerender), config may be undefined - use en-US as fallback
+  return defaultLocale || SUPPORTED_LOCALES[0] || 'en-US';
 }
 
 async function detectLocale(ssrLoggedInAccount?: DTOAccount | null) {
