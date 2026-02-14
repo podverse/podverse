@@ -41,7 +41,9 @@ import type {
   AddByRSSParsedFeed,
   AddByRSSLivestreamIndexItem,
 } from '../../../utils/addByRSS/types';
+import { Divider } from '../../../components/Divider/Divider';
 import { AddByRSSPodcastPageListHeader } from './AddByRSSPodcastPageListHeader';
+import listNodesStyles from '../../../styles/components/Common/List/ListNodes.module.scss';
 
 type AddByRSSPodcastPageDetailClientProps = {
   feed: AddByRSSFeedRecord;
@@ -306,7 +308,7 @@ export const AddByRSSPodcastPageDetailClient: React.FC<AddByRSSPodcastPageDetail
                 totalPages={totalPages}
                 setPage={handlePageChange}
               >
-                <>
+                <div className={listNodesStyles.list}>
                   {showLiveItems && (
                     <AddByRSSLivestreamNodes
                       items={sortedLiveItems}
@@ -315,6 +317,7 @@ export const AddByRSSPodcastPageDetailClient: React.FC<AddByRSSPodcastPageDetail
                       sortOrder={sort}
                     />
                   )}
+                  {showLiveItems && sortedLiveItems.length > 0 && <Divider />}
                   <AddByRSSEpisodeNodes
                     channelIdText={localFeed.idText}
                     channelTitle={channelTitle}
@@ -323,7 +326,7 @@ export const AddByRSSPodcastPageDetailClient: React.FC<AddByRSSPodcastPageDetail
                     itemIdTextMap={itemIdTextMap}
                     sortOrder={sort}
                   />
-                </>
+                </div>
               </Pagination>
             )}
             {activeTab === 'about' && channelDescription && (

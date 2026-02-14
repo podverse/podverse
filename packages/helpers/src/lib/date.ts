@@ -59,3 +59,25 @@ export const convertSecondsToDaysText = (seconds: string) => {
 export function getDateFnsLocale(appLocale: string): Locale {
   return dateFnsLocaleMap[appLocale] ?? enUS;
 }
+
+/**
+ * Normalize a value to an ISO date string or null.
+ * Handles Date instances and strings (e.g. after JSON round-trip); invalid or empty values return null.
+ */
+export function toIsoOrNull(value: unknown): string | null {
+  if (value === null || value === undefined) return null;
+  if (typeof value === 'string') {
+    if (value.trim() === '') return null;
+    const parsed = Date.parse(value);
+    return Number.isNaN(parsed) ? null : new Date(parsed).toISOString();
+  }
+  if (
+    typeof value === 'object' &&
+    value !== null &&
+    'toISOString' in value &&
+    typeof (value as Date).toISOString === 'function'
+  ) {
+    return (value as Date).toISOString();
+  }
+  return null;
+}

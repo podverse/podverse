@@ -41,8 +41,10 @@ import type {
   AddByRSSParsedFeed,
   AddByRSSLivestreamIndexItem,
 } from '../../../utils/addByRSS/types';
+import { Divider } from '../../../components/Divider/Divider';
 import { AddByRSSAlbumPageListHeader } from './AddByRSSAlbumPageListHeader';
 import type { AddByRSSAlbumPageTabKey } from './AddByRSSAlbumPageListHeader';
+import listNodesStyles from '../../../styles/components/Common/List/ListNodes.module.scss';
 
 type AddByRSSAlbumPageClientProps = {
   feed: AddByRSSFeedRecord;
@@ -314,7 +316,7 @@ export const AddByRSSAlbumPageClient: React.FC<AddByRSSAlbumPageClientProps> = (
                 totalPages={totalPages}
                 setPage={handlePageChange}
               >
-                <>
+                <div className={listNodesStyles.list}>
                   {showLiveItems && (
                     <AddByRSSLivestreamNodes
                       items={sortedLiveItems}
@@ -322,6 +324,7 @@ export const AddByRSSAlbumPageClient: React.FC<AddByRSSAlbumPageClientProps> = (
                       showChannelInfo={false}
                     />
                   )}
+                  {showLiveItems && sortedLiveItems.length > 0 && <Divider />}
                   <AddByRSSAlbumTrackNodes
                     channelIdText={localFeed.idText}
                     channelTitle={channelTitle}
@@ -329,7 +332,7 @@ export const AddByRSSAlbumPageClient: React.FC<AddByRSSAlbumPageClientProps> = (
                     items={pagedItems}
                     itemIdTextMap={itemIdTextMap}
                   />
-                </>
+                </div>
               </Pagination>
             )}
             {activeTab === 'about' && channelDescription && (

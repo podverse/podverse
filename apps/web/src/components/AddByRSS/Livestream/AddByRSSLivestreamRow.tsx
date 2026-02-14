@@ -9,6 +9,7 @@ import {
   getQueryParamFromQueueMediumId,
   LiveItemStatusEnum,
   stripAndDecodeHtml,
+  toIsoOrNull,
 } from '@podverse/helpers';
 
 import { ImagesPerView } from '../../Image/ImagesPerView';
@@ -51,15 +52,19 @@ export const AddByRSSLivestreamRow: React.FC<AddByRSSLivestreamRowProps> = ({
     : stripAndDecodeHtml(item.item.description ?? '');
   const imageUrl = item.item.image ?? item.channelImageUrl ?? undefined;
   const liveStatusId = item.liveItem.live_item_status ?? LiveItemStatusEnum.Pending;
-  const startTime = item.liveItem.start_time;
-  const endTime = item.liveItem.end_time ?? null;
+  const startTimeRaw = item.liveItem.start_time;
+  const endTimeRaw = item.liveItem.end_time ?? null;
+  const startTimeIso = toIsoOrNull(startTimeRaw);
+  const endTimeIso =
+    endTimeRaw !== null && endTimeRaw !== undefined ? toIsoOrNull(endTimeRaw) : null;
+
   const liveItemDto = {
     id: 0,
     item_id: 0,
     live_item_status_id: liveStatusId,
     live_item_status: { id: liveStatusId },
-    start_time: startTime?.toISOString?.() ?? '',
-    end_time: endTime?.toISOString?.() ?? null,
+    start_time: startTimeIso ?? '',
+    end_time: endTimeIso,
   } as unknown as DTOLiveItem;
 
   const playButtonOnClick = () => {
@@ -99,14 +104,13 @@ export const AddByRSSLivestreamRow: React.FC<AddByRSSLivestreamRowProps> = ({
               <PlayButtonRow item={null} addByRSSIdText={item.idText} onClick={playButtonOnClick} />
             )}
             <LiveItemStatus live_item={liveItemDto} />
-            <div className={styles.timeSection}>
-              <ReadableDate date={startTime?.toISOString?.() ?? ''} />
-              {' • '}
-              <ReadableTime
-                start={startTime?.toISOString?.() ?? ''}
-                end={endTime?.toISOString?.() ?? null}
-              />
-            </div>
+            {startTimeIso !== null && (
+              <div className={styles.timeSection}>
+                <ReadableDate date={startTimeIso} />
+                {' • '}
+                <ReadableTime start={startTimeIso} end={endTimeIso} />
+              </div>
+            )}
           </div>
         </div>
       </div>
