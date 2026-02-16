@@ -85,6 +85,28 @@ data:
   PARSER_ADD_REMOTE_ITEMS_TO_MQ: "false"
 
   #####
+  ##### DigitalOcean
+  #####
+  # ACCESS_KEY and SECRET_KEY are in secrets (podverse-workers-digital-ocean-opaque)
+
+  #####
+  ##### Image Shrink (storage)
+  #####
+  IMAGE_CDN_REGION: "nyc3"
+  IMAGE_CDN_BUCKET: "podverse-images"
+  IMAGE_CDN_BASE_URL: "https://podverse-images.nyc3.cdn.digitaloceanspaces.com"
+
+  #####
+  ##### Image Shrink
+  #####
+  IMAGE_SHRINK_WIDTH_PX: "300"
+  IMAGE_SHRINK_BATCH_SIZE: "250"
+  IMAGE_SHRINK_CONCURRENCY: "5"
+  IMAGE_SHRINK_RPS: "2"
+  IMAGE_SHRINK_RECHECK_TTL_SECONDS: "86400"
+  IMAGE_SHRINK_SOURCE_PRUNE_DAYS: "30"
+
+  #####
   ##### Web Push (Native)
   #####
   # Native browser push notifications using W3C Push API (no third-party dependency)

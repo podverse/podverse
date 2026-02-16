@@ -39,7 +39,9 @@ import {
   CATEGORY_PODCAST_INDEX,
   CATEGORY_WEB_NOTIFICATIONS,
   CATEGORY_KEYVALDB,
+  CATEGORY_IMAGE_SHRINK,
 } from './categoriesForCommand.js';
+import { hasAnyImageShrinkEnvSet } from '@workers/config/index.js';
 
 /** Category: Config/Base — every command needs at least these */
 function validateBase(): ValidationResult[] {
@@ -88,6 +90,31 @@ function validateKeyvaldb(): ValidationResult[] {
   results.push(validateRequired('KEYVALDB_PORT', 'KeyValDB'));
   results.push(validateRequired('KEYVALDB_PASSWORD', 'KeyValDB'));
   results.push(validateRequired('KEYVALDB_CACHE_TTL_SECONDS', 'KeyValDB'));
+  return results;
+}
+
+/** Category: Image Shrink */
+function validateImageShrink(): ValidationResult[] {
+  const results: ValidationResult[] = [];
+  if (!hasAnyImageShrinkEnvSet()) {
+    results.push(
+      validateOptional(
+        'IMAGE_SHRINK_WIDTH_PX',
+        'Image Shrink',
+        'Disabled - image shrink env vars not set'
+      )
+    );
+    return results;
+  }
+  results.push(validateRequired('DIGITAL_OCEAN_ACCESS_KEY', 'DigitalOcean'));
+  results.push(validateRequired('DIGITAL_OCEAN_SECRET_KEY', 'DigitalOcean'));
+  results.push(validateRequired('IMAGE_CDN_REGION', 'Image Shrink'));
+  results.push(validateRequired('IMAGE_CDN_BUCKET', 'Image Shrink'));
+  results.push(validateRequired('IMAGE_CDN_BASE_URL', 'Image Shrink'));
+  results.push(validateRequired('IMAGE_SHRINK_WIDTH_PX', 'Image Shrink'));
+  results.push(validateRequired('IMAGE_SHRINK_BATCH_SIZE', 'Image Shrink'));
+  results.push(validateRequired('IMAGE_SHRINK_CONCURRENCY', 'Image Shrink'));
+  results.push(validateRequired('IMAGE_SHRINK_RPS', 'Image Shrink'));
   return results;
 }
 
@@ -173,6 +200,9 @@ function getValidationResultsForCommand(commandName: string): ValidationResult[]
   }
   if (categories.has(CATEGORY_KEYVALDB)) {
     results.push(...validateKeyvaldb());
+  }
+  if (categories.has(CATEGORY_IMAGE_SHRINK)) {
+    results.push(...validateImageShrink());
   }
 
   return results;

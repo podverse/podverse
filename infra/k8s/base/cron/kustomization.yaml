@@ -7,3 +7,4 @@ resources:
   - worker-generate-reports.cronjob.yaml
   - worker-dead-feeds-merge.cronjob.yaml
   - worker-delete-outdated.cronjob.yaml
+  - worker-image-shrink-backfill.cronjob.yaml

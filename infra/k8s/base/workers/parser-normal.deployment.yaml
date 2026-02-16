@@ -66,6 +66,8 @@ spec:
                 name: podverse-mq-opaque
             - secretRef:
                 name: podverse-api.podcastindex.org-opaque
+            - secretRef:
+                name: podverse-workers-digital-ocean-opaque
           # TODO: The application creates a local `logs` directory and fails
           # if it does not exist. Prefer logs to stdout so K3s/journald
           # pick them up. Short-term workaround: mount an `emptyDir` at

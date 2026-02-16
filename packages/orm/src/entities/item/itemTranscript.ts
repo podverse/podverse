@@ -21,6 +21,6 @@ export class ItemTranscript {
   @Column({ type: 'varchar', nullable: true, length: DATABASE_CONSTANTS.varchar_short })
   language?: string | null;
 
-  @Column({ type: 'varchar', nullable: true, length: 50 })
+  @Column({ type: 'varchar', nullable: true, length: DATABASE_CONSTANTS.varchar_short })
   rel?: string | null;
 }

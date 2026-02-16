@@ -8,6 +8,7 @@ import {
   getOnDemandParserEventDateRange,
   sleep,
 } from '@podverse/helpers';
+import type { ImageShrinkHint } from '@podverse/helpers';
 import { getStatusCodeFromError } from '@podverse/helpers-requests';
 import {
   ChannelService,
@@ -22,6 +23,7 @@ import {
 } from '@podverse/orm';
 // import { handleNewItemsNotifications, handleNewLiveItemsNotifications } from '@parser/lib/notifications.js';
 import { handleParsedChannel } from '@parser/lib/rss/channel/channel.js';
+import { compatChannelImageDtos, compatItemImageDtos } from '@podverse/parser-mapping';
 import { handleParsedChannelSeasons } from '@parser/lib/rss/channel/channelSeason.js';
 import {
   handleRequestRSSFeed,
@@ -72,6 +74,15 @@ export type ParseRSSFeedAndSaveToDatabaseOptions = {
   onDemandParserEvent: ParseRSSOnDemandParserEvent;
 };
 
+export type ParseRSSFeedAndSaveToDatabaseResult = {
+  remoteItemsToParse: {
+    url: string;
+    podcast_index_id: number;
+    options: ParseRSSFeedAndSaveToDatabaseOptions;
+  }[];
+  imageHints: ImageShrinkHint[];
+};
+
 // Handle request delay for specific domains to avoid rate limiting
 async function handleRateLimitRequestDelay(url: string) {
   const delayConfig = [{ regex: /^https?:\/\/(www\.)?wavlake\.com/, delay: 5000 }];
@@ -88,7 +99,7 @@ export const parseRSSFeedAndSaveToDatabase = async (
   url: string,
   podcast_index_id: number,
   options: ParseRSSFeedAndSaveToDatabaseOptions
-) => {
+): Promise<ParseRSSFeedAndSaveToDatabaseResult> => {
   const { onDemandParserEvent } = options;
   const onDemandParserEventService = new OnDemandParserEventService();
 
@@ -125,6 +136,7 @@ export const parseRSSFeedAndSaveToDatabase = async (
   timerManager.start(timerFullRunLabel);
 
   let parsedFeed: FeedObject | null = null;
+  const imageHints: ImageShrinkHint[] = [];
 
   try {
     if (!url || !podcast_index_id) {
@@ -167,6 +179,18 @@ export const parseRSSFeedAndSaveToDatabase = async (
 
     await handleParsedChannel(parsedFeed, channel, channelSeasonIndex);
 
+    const hintCreatedAt = new Date().toISOString();
+    const channelImageDtos = compatChannelImageDtos(parsedFeed);
+    for (const image of channelImageDtos) {
+      if (image.url) {
+        imageHints.push({
+          url: image.url,
+          entityType: 'channel',
+          hintCreatedAt,
+        });
+      }
+    }
+
     loggerService.info(`item count: ${parsedFeed.items.length}`);
 
     const newItemIdentifiers: HandleParsedItemsResult = await handleParsedItems(
@@ -174,6 +198,18 @@ export const parseRSSFeedAndSaveToDatabase = async (
       channel,
       channelSeasonIndex
     );
+    for (const item of parsedFeed.items) {
+      const itemImageDtos = compatItemImageDtos(item);
+      for (const image of itemImageDtos) {
+        if (image.url) {
+          imageHints.push({
+            url: image.url,
+            entityType: 'item',
+            hintCreatedAt,
+          });
+        }
+      }
+    }
     let newLiveItemIdentifiers: HandleParsedLiveItemsResult = {
       pendingItemGuids: [],
       liveItemGuids: [],
@@ -207,7 +243,7 @@ export const parseRSSFeedAndSaveToDatabase = async (
     if (error instanceof FeedIsParsingError) {
       loggerService.warn(`Feed ${feed?.id} is already parsing.`);
       // return so the is_parsing flag is not reset
-      return;
+      return { remoteItemsToParse: [], imageHints };
     } else if (error instanceof FeedNoChangesSinceLastParsedError) {
       loggerService.warn(`Feed ${feed?.id} has no changes since last parsed.`);
     } else {
@@ -260,9 +296,9 @@ export const parseRSSFeedAndSaveToDatabase = async (
         accountId: onDemandParserEvent?.accountId || null,
         remoteParentPodcastIndexId: podcast_index_id,
       });
-      return { remoteItemsToParse: remoteItems };
+      return { remoteItemsToParse: remoteItems, imageHints };
     }
   }
 
-  return { remoteItemsToParse: [] };
+  return { remoteItemsToParse: [], imageHints };
 };

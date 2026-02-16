@@ -15,6 +15,8 @@
     "type-check": "tsc --noEmit",
     "start": "node ./dist/index.js",
     "archive_all": "node ./dist/index.js archiveAll",
+    "mq_image_shrink_backfill": "node ./dist/index.js mqImageShrinkBackfill",
+    "mq_image_shrink_run_consumer": "node ./dist/index.js mqImageShrinkRunConsumer",
     "mq_rss_add": "node ./dist/index.js mqRSSAdd",
     "mq_rss_add_all": "node ./dist/index.js mqRSSAddAll",
     "mq_rss_add_recently_updated_feeds_from_podcast_index": "node ./dist/index.js mqRSSAddRecentlyUpdatedFeedsFromPodcastIndex",
@@ -34,6 +36,7 @@
   },
   "license": "AGPL-3.0",
   "dependencies": {
+    "@podverse/external-services-digital-ocean": "*",
     "@podverse/external-services-firebase": "*",
     "@podverse/external-services-podcast-index": "*",
     "@podverse/helpers": "*",
@@ -49,6 +52,7 @@
     "pg": "^8.16.3",
     "typeorm": "^0.3.26",
     "typeorm-naming-strategies": "^4.1.0",
+    "sharp": "^0.33.5",
     "winston": "^3.19.0",
     "winston-daily-rotate-file": "^5.0.0"
   },

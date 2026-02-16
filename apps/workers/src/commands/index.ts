@@ -19,6 +19,8 @@ import { statsUpdateAggregatedRolling } from '@workers/commands/stats/statsUpdat
 import { mqRSSRunLiveItemListener } from './mq/rss/runLiveItemListener.js';
 import { generateOnDemandParserEventReports } from './orm/onDemandParserEvent/generateOnDemandParserEventReports.js';
 import { deleteOutdatedOnDemandParserEvent } from './orm/onDemandParserEvent/deleteOutdatedOnDemandParserEvent.js';
+import { mqImageShrinkBackfill } from './mq/imageShrink/backfill.js';
+import { mqImageShrinkRunConsumer } from './mq/imageShrink/runConsumer.js';
 
 export type CommandLineArgs = { [key: string]: string | string[] };
 
@@ -42,4 +44,6 @@ export default {
   statsUpdateAggregatedRolling,
   generateOnDemandParserEventReports,
   deleteOutdatedOnDemandParserEvent,
+  mqImageShrinkBackfill,
+  mqImageShrinkRunConsumer,
 } as { [key: string]: (args: CommandLineArgs) => void };

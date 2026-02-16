@@ -43,6 +43,74 @@ export function getMQConfig(): MQConfig {
   };
 }
 
+export type DigitalOceanConfig = {
+  accessKey: string;
+  secretKey: string;
+  region: string;
+};
+
+export function getDigitalOceanConfig(): DigitalOceanConfig {
+  return {
+    accessKey: process.env.DIGITAL_OCEAN_ACCESS_KEY!,
+    secretKey: process.env.DIGITAL_OCEAN_SECRET_KEY!,
+    region: process.env.IMAGE_CDN_REGION!,
+  };
+}
+
+/** Provider-agnostic config for image shrink storage (bucket + CDN base URL). */
+export type ImageShrinkStorageConfig = {
+  bucket: string;
+  cdnBaseUrl: string;
+};
+
+/** Returns storage config from provider-agnostic env (IMAGE_CDN_BUCKET, IMAGE_CDN_BASE_URL). */
+export function getImageShrinkStorageConfig(): ImageShrinkStorageConfig {
+  return {
+    bucket: process.env.IMAGE_CDN_BUCKET!,
+    cdnBaseUrl: process.env.IMAGE_CDN_BASE_URL!,
+  };
+}
+
+export type ImageShrinkConfig = {
+  widthPx: number;
+  batchSize: number;
+  concurrency: number;
+  rps: number;
+};
+
+const IMAGE_SHRINK_REQUIRED_VARS = [
+  'DIGITAL_OCEAN_ACCESS_KEY',
+  'DIGITAL_OCEAN_SECRET_KEY',
+  'IMAGE_CDN_REGION',
+  'IMAGE_CDN_BUCKET',
+  'IMAGE_CDN_BASE_URL',
+  'IMAGE_SHRINK_WIDTH_PX',
+  'IMAGE_SHRINK_BATCH_SIZE',
+  'IMAGE_SHRINK_CONCURRENCY',
+  'IMAGE_SHRINK_RPS',
+] as const;
+
+const isEnvVarSet = (value: string | undefined): boolean => {
+  return value !== undefined && value.trim() !== '';
+};
+
+export function hasAnyImageShrinkEnvSet(): boolean {
+  return IMAGE_SHRINK_REQUIRED_VARS.some((key) => isEnvVarSet(process.env[key]));
+}
+
+export function isImageShrinkEnabled(): boolean {
+  return IMAGE_SHRINK_REQUIRED_VARS.every((key) => isEnvVarSet(process.env[key]));
+}
+
+export function getImageShrinkConfig(): ImageShrinkConfig {
+  return {
+    widthPx: Number(process.env.IMAGE_SHRINK_WIDTH_PX!),
+    batchSize: Number(process.env.IMAGE_SHRINK_BATCH_SIZE!),
+    concurrency: Number(process.env.IMAGE_SHRINK_CONCURRENCY!),
+    rps: Number(process.env.IMAGE_SHRINK_RPS!),
+  };
+}
+
 export type KeyvaldbConfig = {
   host: string;
   port: number;

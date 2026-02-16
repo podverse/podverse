@@ -12,7 +12,8 @@
     "emitDecoratorMetadata": true,
     "baseUrl": "./",
     "paths": {
-      "@workers/*": ["src/*"]
+      "@workers/*": ["src/*"],
+      "@podverse/orm": ["../../packages/orm/src/index.ts"]
     }
   },
   "include": ["./src/**/*.ts"],

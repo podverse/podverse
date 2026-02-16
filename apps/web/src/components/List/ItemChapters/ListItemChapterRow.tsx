@@ -3,7 +3,7 @@
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';
 import type { DTOChannel, DTOItem, DTOItemChapter } from '@podverse/helpers';
-import { findDTOChannelImageBySize, findDTOItemImageBySize } from '@podverse/helpers';
+import { findDTOChannelImageForList, findDTOItemImageForList } from '@podverse/helpers';
 import { getShuffleHash } from '@podverse/helpers-requests';
 import React from 'react';
 import { ImagesPerView } from '../../Image/ImagesPerView';
@@ -49,12 +49,12 @@ export const ListItemChapterRow: React.FC<ListItemChapterRowProps> = ({
   const channel_images = channel?.channel_images;
   const item_images = item?.item_images;
 
-  const channel_image = findDTOChannelImageBySize(
+  const channel_image = findDTOChannelImageForList(
     channel_images,
     IMAGES.LIST.CLIPS.SIZE_FIND_TARGET,
     'lesser'
   );
-  const item_image = findDTOItemImageBySize(
+  const item_image = findDTOItemImageForList(
     item_images,
     IMAGES.LIST.CLIPS.SIZE_FIND_TARGET,
     'lesser'

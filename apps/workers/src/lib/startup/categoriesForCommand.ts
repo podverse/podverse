@@ -11,6 +11,7 @@ export const CATEGORY_PARSER = 'Parser';
 export const CATEGORY_PODCAST_INDEX = 'PodcastIndex';
 export const CATEGORY_WEB_NOTIFICATIONS = 'WebNotifications';
 export const CATEGORY_KEYVALDB = 'KeyValDB';
+export const CATEGORY_IMAGE_SHRINK = 'ImageShrink';
 
 export type ConfigCategory =
   | typeof CATEGORY_BASE
@@ -19,7 +20,8 @@ export type ConfigCategory =
   | typeof CATEGORY_PARSER
   | typeof CATEGORY_PODCAST_INDEX
   | typeof CATEGORY_WEB_NOTIFICATIONS
-  | typeof CATEGORY_KEYVALDB;
+  | typeof CATEGORY_KEYVALDB
+  | typeof CATEGORY_IMAGE_SHRINK;
 
 const BASE_ORM_COMMANDS = [
   'archiveAll',
@@ -43,6 +45,11 @@ const BASE_ORM_PODCAST_INDEX_COMMANDS = ['podcastIndexDeadFeedsFlagAndMerge'] as
 const BASE_ORM_MQ_PODCAST_INDEX_COMMANDS = ['mqRSSAdd'] as const;
 
 const BASE_ORM_MQ_COMMANDS = ['mqRSSRunDlqConsumer', 'mqRSSAddAll'] as const;
+
+const BASE_ORM_MQ_IMAGE_SHRINK_COMMANDS = [
+  'mqImageShrinkBackfill',
+  'mqImageShrinkRunConsumer',
+] as const;
 
 const BASE_ORM_PARSER_PODCAST_INDEX_COMMANDS = ['parserRSSParseFeed'] as const;
 
@@ -105,6 +112,17 @@ export function getCategoriesForCommand(commandName: string): Set<ConfigCategory
   if (BASE_ORM_MQ_COMMANDS.includes(commandName as (typeof BASE_ORM_MQ_COMMANDS)[number])) {
     categories.add(CATEGORY_ORM);
     categories.add(CATEGORY_MQ);
+    return categories;
+  }
+
+  if (
+    BASE_ORM_MQ_IMAGE_SHRINK_COMMANDS.includes(
+      commandName as (typeof BASE_ORM_MQ_IMAGE_SHRINK_COMMANDS)[number]
+    )
+  ) {
+    categories.add(CATEGORY_ORM);
+    categories.add(CATEGORY_MQ);
+    categories.add(CATEGORY_IMAGE_SHRINK);
     return categories;
   }
 

@@ -14,3 +14,9 @@ export type MQAddByRSSMessage = {
   etag?: string;
   lastModified?: string;
 };
+
+export type MQImageShrinkHintMessage = {
+  url: string;
+  entityType: 'channel' | 'item';
+  hintCreatedAt: string;
+};

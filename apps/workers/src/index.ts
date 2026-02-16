@@ -30,6 +30,7 @@ const run = async () => {
     CATEGORY_PODCAST_INDEX,
     CATEGORY_WEB_NOTIFICATIONS,
     CATEGORY_KEYVALDB,
+    CATEGORY_IMAGE_SHRINK,
   } = await import('./lib/startup/categoriesForCommand.js');
 
   /**
@@ -52,6 +53,7 @@ const run = async () => {
   const { createNotificationsContext } = await import('@podverse/notifications');
   const { createParserContext } = await import('@podverse/parser');
   const { LoggerService } = await import('@podverse/helpers-backend');
+  const { DigitalOceanService } = await import('@podverse/external-services-digital-ocean');
   const { default: commands } = await import('@workers/commands/index.js');
   const { parseArgs } = await import('@workers/commands/parseArgs.js');
   const {
@@ -61,11 +63,14 @@ const run = async () => {
     getExternalServicesConfig,
     getNotificationsConfig,
     getKeyvaldbConfig,
+    getDigitalOceanConfig,
+    isImageShrinkEnabled,
   } = await import('./config/index.js');
   const { setLoggerService, getLoggerService } = await import('./factories/loggerService.js');
   const { setLogger } = await import('./factories/logger.js');
   const { setTimerManager } = await import('./factories/timerManager.js');
   const { setActiveMQArtemisService } = await import('./factories/activeMQArtemisService.js');
+  const { setImageStorageService } = await import('./factories/imageStorageService.js');
   const { initKeyvaldb, testKeyvaldbConnection, waitForKeyvaldbConnection } =
     await import('./lib/keyvaldb/keyvaldb.js');
   const { ActiveMQArtemisService } = await import('@podverse/mq');
@@ -157,6 +162,19 @@ const run = async () => {
       if (categories.has(CATEGORY_MQ)) {
         const mqConfig = getMQConfig();
         setActiveMQArtemisService(new ActiveMQArtemisService(mqConfig, getLoggerService()));
+      }
+
+      if (categories.has(CATEGORY_IMAGE_SHRINK)) {
+        if (isImageShrinkEnabled()) {
+          const digitalOceanConfig = getDigitalOceanConfig();
+          setImageStorageService(
+            new DigitalOceanService({
+              accessKey: digitalOceanConfig.accessKey,
+              secretKey: digitalOceanConfig.secretKey,
+              region: digitalOceanConfig.region,
+            })
+          );
+        }
       }
 
       if (categories.has(CATEGORY_KEYVALDB)) {

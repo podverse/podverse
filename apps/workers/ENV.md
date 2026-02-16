@@ -28,6 +28,7 @@ The workers app validates environment variables **per command**. Each job only v
 | Base + ORM + MQ + Podcast Index     | Base, ORM, MQ, PodcastIndex              | mqRSSAdd                                                    |
 | Base + MQ + Parser + KeyValDB       | Base, MQ, Parser, KeyValDB               | mqAddByRSSRunParser                                         |
 | Base + ORM + MQ + Parser + PI + Web | Base, ORM, MQ, Parser, PodcastIndex, Web | parserRSSParseFeed                                          |
+| Base + ORM + MQ + Image Shrink      | Base, ORM, MQ, ImageShrink               | mqImageShrinkRunConsumer, mqImageShrinkBackfill             |
 | Full stack                          | Base, ORM, MQ, Parser, PodcastIndex, Web | mqRSSRunParser, mqRSSRunLiveItemListener                    |
 
 Within each category, vars are required or optional as listed in the sections below. Only the categories for your command are validated.
@@ -89,6 +90,22 @@ These variables are required only for commands that include the Podcast Index ca
 - **`MESSAGE_QUEUE_USERNAME`** (Required) - Message queue username
 - **`MESSAGE_QUEUE_PASSWORD`** (Required) - Message queue password
 - **`MESSAGE_QUEUE_PORT`** (Required) - Message queue port
+
+## Image Shrink
+
+Image shrink is optional. If **no** image shrink env vars are set, image shrink is disabled and these variables are not used. If **any** image shrink env var is set, image shrink is treated as enabled and **all** of the variables listed below are required for commands that use image shrink (`mqImageShrinkRunConsumer`, `mqImageShrinkBackfill`).
+
+- **`DIGITAL_OCEAN_ACCESS_KEY`** (Required when image shrink enabled) - DigitalOcean Spaces access key
+- **`DIGITAL_OCEAN_SECRET_KEY`** (Required when image shrink enabled) - DigitalOcean Spaces secret key
+- **`IMAGE_CDN_REGION`** (Required when image shrink enabled) - CDN region/location (e.g. `nyc3` for DO, `us-east-1` for AWS)
+- **`IMAGE_CDN_BUCKET`** (Required when image shrink enabled) - Image CDN bucket name (storage)
+- **`IMAGE_CDN_BASE_URL`** (Required when image shrink enabled) - Public CDN base URL for the bucket (storage)
+- **`IMAGE_SHRINK_WIDTH_PX`** (Required when image shrink enabled) - Target width in pixels for resized images
+- **`IMAGE_SHRINK_BATCH_SIZE`** (Required when image shrink enabled) - Max images processed per batch run
+- **`IMAGE_SHRINK_CONCURRENCY`** (Required when image shrink enabled) - Parallel image processing count
+- **`IMAGE_SHRINK_RPS`** (Required when image shrink enabled) - Rate limit for image fetches (requests/second)
+- **`IMAGE_SHRINK_RECHECK_TTL_SECONDS`** (Optional) - Minimum seconds between origin re-checks
+- **`IMAGE_SHRINK_SOURCE_PRUNE_DAYS`** (Optional) - Prune source metadata after N days without resized images
 
 ## KeyValDB (commands that use Redis)
 

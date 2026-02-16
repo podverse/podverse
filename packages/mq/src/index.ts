@@ -1,4 +1,5 @@
 export { mqRSSAdd } from './functions/mq/rss/add.js';
+export { mqImageShrinkHintAdd } from './functions/mq/rss/addImageHint.js';
 export { mqRSSAddAll } from './functions/mq/rss/addAll.js';
 export { mqAddByRSSAdd } from './functions/mq/rss/addByRSS.js';
 export { mqAddByRSSAddAll } from './functions/mq/rss/addByRSSAll.js';
@@ -9,5 +10,5 @@ export { mqRSSRunLiveItemListener } from './functions/mq/rss/runLiveItemListener
 
 export { ActiveMQArtemisService } from './services/activeMQArtemis/index.js';
 export type { ActiveMQArtemisServiceParams } from './services/activeMQArtemis/index.js';
-export type { MQAddByRSSMessage } from './types/mq.js';
+export type { MQAddByRSSMessage, MQImageShrinkHintMessage } from './types/mq.js';
 export { createActiveMQShutdown } from './services/activeMQArtemis/shutdown.js';

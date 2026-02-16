@@ -4,6 +4,7 @@ kind: Kustomization
 resources:
   - configmap.yaml
   - consumer-dlq.deployment.yaml
+  - image-shrink-consumer.deployment.yaml
   - listener-live.deployment.yaml
   - parser-add-by-rss-ondemand.deployment.yaml
   - parser-add-by-rss-ondemand-background.deployment.yaml
