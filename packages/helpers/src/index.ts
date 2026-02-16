@@ -11,6 +11,7 @@ export * from './lib/array.js';
 export * from './lib/channelItunesType.js';
 export * from './lib/addByRSSHash.js';
 export * from './lib/addByRSSParseCache.js';
+export * from './lib/addByRSS/enclosure.js';
 export * from './lib/bitrate.js';
 export * from './lib/boolean.js';
 export * from './lib/category.js';

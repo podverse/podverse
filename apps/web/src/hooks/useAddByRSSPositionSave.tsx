@@ -56,5 +56,27 @@ export function useAddByRSSPositionSave() {
     [loggedInAccount, mpAddByRSS, queues]
   );
 
-  return { savePosition, handleEnded };
+  const handleClose = useCallback(
+    async (positionSeconds: number) => {
+      const apiRequestService = getApiRequestService();
+      if (!loggedInAccount || !mpAddByRSS?.resourceData) return;
+      const mediumId = mpAddByRSS.resourceData.medium_id;
+      if (typeof mediumId !== 'number') return;
+      const queue = getQueueForMedium(queues, mediumId);
+      if (!queue?.id_text) return;
+      const playbackPosition = Number.isFinite(positionSeconds) ? String(positionSeconds) : '0';
+      await apiRequestService
+        .reqQueueResourceItemAddByRSSAddHistory(queue.id_text, {
+          add_by_rss_resource_data: mpAddByRSS.resourceData,
+          playback_position: playbackPosition,
+          completed: false,
+        })
+        .catch(() => {
+          // Best-effort
+        });
+    },
+    [loggedInAccount, mpAddByRSS, queues]
+  );
+
+  return { savePosition, handleEnded, handleClose };
 }

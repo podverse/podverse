@@ -9,12 +9,14 @@ import { useQueueResourcesLoadActive } from '../../../../hooks/useQueueResources
 import { useQueueResourcesAbridgedIndex } from '../../../../contexts/QueueResourcesAbridgedIndex';
 import { useAddByRSSPositionSave } from '../../../../hooks/useAddByRSSPositionSave';
 import { useAddByRSSPlayNext } from '../../../../hooks/useAddByRSSPlayNext';
+import { useMediaPlayerClearNowPlaying } from '../../../../hooks/useMediaPlayerClearNowPlaying';
 import { resolveAddByRSSListContextFromCurrentItem } from '../../../../utils/addByRSS/resolveListContextFromCurrentItem';
 
 export function MediaPlayerControllerAudio() {
   const mediaPlayer = useMediaPlayer();
   const { listContext } = useAddByRSSListContext();
   const { mpCurrentTime, setMPCurrentTime } = useMediaPlayerCurrentTime();
+  const clearNowPlaying = useMediaPlayerClearNowPlaying();
   const updateNowPlaying = useQueueResourcesUpdateNowPlaying();
   const moveNowPlayingToHistory = useQueueResourcesMoveNowPlayingToHistory();
   const queueResourcesLoadActive = useQueueResourcesLoadActive();
@@ -34,27 +36,6 @@ export function MediaPlayerControllerAudio() {
     }
     return playNextRaw();
   }, [listContext, mediaPlayer.mpAddByRSS, playNextRaw]);
-
-  const clearNowPlaying = () => {
-    mediaPlayer.setMPAddByRSS(null);
-    mediaPlayer.setMPChannel(null);
-    mediaPlayer.setMPItem(null);
-    mediaPlayer.setMPClip(null);
-    mediaPlayer.setMPItemSoundbite(null);
-    mediaPlayer.setMPItemChapter(null);
-    mediaPlayer.setMPItemChapters(null);
-    mediaPlayer.setMPItemChapterShouldSeek(false);
-    mediaPlayer.setMPItemLabeledItemEnclosures([]);
-    mediaPlayer.setMPEnclosureSelectedParams({
-      type: 'default',
-      enclosureRowSelected: null,
-      sourceRowSelected: null,
-    });
-    mediaPlayer.setMPIsPlaying(false);
-    mediaPlayer.setMPShouldPlay(false);
-    mediaPlayer.setMPDuration(0);
-    setMPCurrentTime(0);
-  };
 
   return (
     <MediaPlayerControllerAV

@@ -7,6 +7,7 @@ import { Divider } from '../../../Divider/Divider';
 import type { ViewSelectedOption } from '../../../ViewSelector/ViewSelector';
 import styles from '../../../../styles/components/Common/List/ListNodes.module.scss';
 import type { AddByRSSListSortOrder } from '../../../../contexts/AddByRSSListContext';
+import { getItemMediumIdFromBundle } from '../../../../utils/addByRSS/itemIndex';
 import type {
   AddByRSSFeedRecord,
   AddByRSSItemIndexItem,
@@ -115,7 +116,7 @@ export const AddByRSSEpisodeNodes: React.FC<AddByRSSEpisodeNodesProps> = (props)
             channelIdText,
             channelTitle,
             channelImageUrl,
-            mediumId: mediumId ?? MediumEnum.Podcast,
+            mediumId: getItemMediumIdFromBundle(bundle, mediumId ?? MediumEnum.Podcast),
             bundle,
             pubDateMs,
           };
