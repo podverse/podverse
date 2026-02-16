@@ -1,6 +1,10 @@
 'use client';
 
-import { getQueueForMedium } from '@podverse/helpers';
+import {
+  buildLabeledItemEnclosuresFromAddByRSSBundle,
+  getDefaultEnclosureSelectedParams,
+  getQueueForMedium,
+} from '@podverse/helpers';
 import { useAccount } from '../contexts/Account';
 import { useAutoQueue } from '../contexts/AutoQueue';
 import { useMediaPlayer } from '../contexts/MediaPlayer';
@@ -87,12 +91,23 @@ export function usePlayAddByRSS() {
     setMPItemChapters(null);
     setMPItemChapterShouldSeek(false);
     setMPItemSoundbite(null);
-    setMPItemLabeledItemEnclosures([]);
-    setMPEnclosureSelectedParams({
-      type: 'default',
-      enclosureRowSelected: null,
-      sourceRowSelected: null,
-    });
+
+    const bundleEnclosures =
+      'bundle' in indexItem && indexItem.bundle?.enclosures?.length
+        ? indexItem.bundle.enclosures
+        : undefined;
+    if (bundleEnclosures && bundleEnclosures.length > 0) {
+      const labeled = buildLabeledItemEnclosuresFromAddByRSSBundle(bundleEnclosures);
+      setMPItemLabeledItemEnclosures(labeled);
+      setMPEnclosureSelectedParams(getDefaultEnclosureSelectedParams(labeled));
+    } else {
+      setMPItemLabeledItemEnclosures([]);
+      setMPEnclosureSelectedParams({
+        type: 'default',
+        enclosureRowSelected: null,
+        sourceRowSelected: null,
+      });
+    }
 
     const duration = typeof resourceData.duration === 'number' ? resourceData.duration : 0;
     setMPDuration(duration);

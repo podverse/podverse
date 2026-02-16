@@ -10,6 +10,8 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 const execAsync = promisify(exec);
+const AUDIO_FREQ_MIN = 220;
+const AUDIO_FREQ_MAX = 440;
 
 export class AssetGenerator {
   private assetsDir: string;
@@ -121,9 +123,8 @@ export class AssetGenerator {
         throw new Error('ffmpeg-static binary not found. Make sure ffmpeg-static is installed.');
       }
 
-      // Generate 5 minutes of silence as MP3
-      // Using anullsrc (null audio source) with libmp3lame encoder
-      const command = `"${ffmpegPath}" -f lavfi -i anullsrc=r=44100:cl=stereo -t ${durationSeconds} -acodec libmp3lame -b:a 128k -y "${filePath}"`;
+      const frequency = this.getAudioFrequency();
+      const command = `"${ffmpegPath}" -f lavfi -i sine=frequency=${frequency}:duration=${durationSeconds} -t ${durationSeconds} -acodec libmp3lame -b:a 128k -y "${filePath}"`;
 
       await execAsync(command);
       console.log(`   ✅ Generated: ${filename} (${durationSeconds}s)`);
@@ -154,9 +155,8 @@ export class AssetGenerator {
         throw new Error('ffmpeg-static binary not found. Make sure ffmpeg-static is installed.');
       }
 
-      // Generate 5 minutes of minimal video (color test pattern with silent audio)
-      // Using testsrc2 for video and anullsrc for audio
-      const command = `"${ffmpegPath}" -f lavfi -i testsrc2=duration=${durationSeconds}:size=320x240:rate=1 -f lavfi -i anullsrc=r=44100:cl=stereo -c:v libx264 -preset ultrafast -crf 28 -c:a aac -b:a 128k -t ${durationSeconds} -y "${filePath}"`;
+      const frequency = this.getAudioFrequency();
+      const command = `"${ffmpegPath}" -f lavfi -i testsrc2=duration=${durationSeconds}:size=320x240:rate=1 -f lavfi -i sine=frequency=${frequency}:duration=${durationSeconds} -c:v libx264 -preset ultrafast -crf 28 -c:a aac -b:a 128k -t ${durationSeconds} -y "${filePath}"`;
 
       await execAsync(command);
       console.log(`   ✅ Generated: ${filename} (${durationSeconds}s)`);
@@ -182,7 +182,8 @@ export class AssetGenerator {
       if (!ffmpegPath) {
         throw new Error('ffmpeg-static binary not found.');
       }
-      const command = `"${ffmpegPath}" -f lavfi -i anullsrc=r=44100:cl=stereo -t ${durationSeconds} -acodec libvorbis -y "${filePath}"`;
+      const frequency = this.getAudioFrequency();
+      const command = `"${ffmpegPath}" -f lavfi -i sine=frequency=${frequency}:duration=${durationSeconds} -t ${durationSeconds} -acodec libvorbis -y "${filePath}"`;
       await execAsync(command);
       console.log(`   ✅ Generated: ${filename} (${durationSeconds}s)`);
     } catch (error: unknown) {
@@ -207,7 +208,8 @@ export class AssetGenerator {
       if (!ffmpegPath) {
         throw new Error('ffmpeg-static binary not found.');
       }
-      const command = `"${ffmpegPath}" -f lavfi -i testsrc2=duration=${durationSeconds}:size=320x240:rate=1 -f lavfi -i anullsrc=r=44100:cl=stereo -c:v libvpx-vp9 -c:a libvorbis -t ${durationSeconds} -y "${filePath}"`;
+      const frequency = this.getAudioFrequency();
+      const command = `"${ffmpegPath}" -f lavfi -i testsrc2=duration=${durationSeconds}:size=320x240:rate=1 -f lavfi -i sine=frequency=${frequency}:duration=${durationSeconds} -c:v libvpx-vp9 -c:a libvorbis -t ${durationSeconds} -y "${filePath}"`;
       await execAsync(command);
       console.log(`   ✅ Generated: ${filename} (${durationSeconds}s)`);
     } catch (error: unknown) {
@@ -240,5 +242,9 @@ export class AssetGenerator {
     await this.generateMP3('item-3-music.mp3', 300);
 
     console.log('   ✅ All assets generated\n');
+  }
+
+  private getAudioFrequency(): number {
+    return AUDIO_FREQ_MIN + Math.floor(Math.random() * (AUDIO_FREQ_MAX - AUDIO_FREQ_MIN + 1));
   }
 }

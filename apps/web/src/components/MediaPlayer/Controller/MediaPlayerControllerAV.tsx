@@ -189,18 +189,37 @@ export const MediaPlayerControllerAV: React.FC<MediaPlayerControllerAVProps> = (
     return next;
   }, [mpItemLabeledEnclosures, mpEnclosureSelectedParams]);
 
+  const addByRSSSelectedMediaType =
+    mpAddByRSS && mpItemLabeledEnclosures.length > 0
+      ? (selectedItemEnclosureAndSource?.labeledItemEnclosure?.mediaType ?? null)
+      : null;
+
   useEffect(() => {
     const media = mediaRef.current;
     if (!media || !mpAddByRSS?.resourceData) return;
 
     const mediumId = mpAddByRSS.resourceData.medium_id;
-    if (mediaType === 'audio' && mediumId === MediumEnum.Video) return;
-    if (mediaType === 'video' && mediumId !== MediumEnum.Video) return;
+    const addByRSSMediaType =
+      addByRSSSelectedMediaType ?? (mediumId === MediumEnum.Video ? 'video' : 'audio');
+    if (mediaType === 'audio' && addByRSSMediaType === 'video') return;
+    if (mediaType === 'video' && addByRSSMediaType !== 'video') return;
 
-    const enclosureUrl = mpAddByRSS.resourceData.enclosure_url;
-    if (typeof enclosureUrl !== 'string' || enclosureUrl.trim() === '') return;
-
-    const url = enclosureUrl.trim();
+    let url: string;
+    if (mpItemLabeledEnclosures.length > 0) {
+      const selected = getSelectedLabeledItemEnclosureAndSource({
+        labeledItemEnclosures: mpItemLabeledEnclosures,
+        type: mpEnclosureSelectedParams.type,
+        enclosureRowIndex: mpEnclosureSelectedParams.enclosureRowSelected,
+        sourceRowIndex: mpEnclosureSelectedParams.sourceRowSelected,
+      });
+      const uri = selected?.source?.uri;
+      if (typeof uri !== 'string' || uri.trim() === '') return;
+      url = uri.trim();
+    } else {
+      const enclosureUrl = mpAddByRSS.resourceData.enclosure_url;
+      if (typeof enclosureUrl !== 'string' || enclosureUrl.trim() === '') return;
+      url = enclosureUrl.trim();
+    }
     const isRestoredSeek = addByRSSSeekToTime !== null;
     const seekTime = isRestoredSeek && addByRSSSeekToTime >= 0 ? addByRSSSeekToTime : 0;
 
@@ -226,10 +245,20 @@ export const MediaPlayerControllerAV: React.FC<MediaPlayerControllerAVProps> = (
     if (mpShouldPlay) {
       playMediaWhenReady(media, () => setMPShouldPlay(false));
     }
-  }, [mpAddByRSS, mediaType, mpShouldPlay, addByRSSSeekToTime, setAddByRSSSeekToTime]);
+  }, [
+    mpAddByRSS,
+    mediaType,
+    mpShouldPlay,
+    addByRSSSeekToTime,
+    setAddByRSSSeekToTime,
+    mpItemLabeledEnclosures,
+    mpEnclosureSelectedParams,
+    addByRSSSelectedMediaType,
+  ]);
 
   useEffect(() => {
-    if (mpAddByRSS) return;
+    const isAddByRSSWithNoEnclosures = mpAddByRSS && mpItemLabeledEnclosures.length === 0;
+    if (isAddByRSSWithNoEnclosures) return;
     if (!selectedItemEnclosureAndSource) {
       return;
     }
@@ -261,7 +290,7 @@ export const MediaPlayerControllerAV: React.FC<MediaPlayerControllerAVProps> = (
         media.load();
       }
     }
-  }, [mpAddByRSS, selectedItemEnclosureAndSource]);
+  }, [mpAddByRSS, mpItemLabeledEnclosures.length, selectedItemEnclosureAndSource]);
 
   useEffect(() => {
     const handleSeek = (e: Event) => {
@@ -646,15 +675,22 @@ export const MediaPlayerControllerAV: React.FC<MediaPlayerControllerAVProps> = (
     playWhenReady();
   }, [mpClip, mpItemChapter, mpItemSoundbite]);
 
-  const addByRSSEnclosureUrl =
-    mpAddByRSS?.resourceData &&
-    typeof mpAddByRSS.resourceData.enclosure_url === 'string' &&
-    mpAddByRSS.resourceData.enclosure_url.trim() !== ''
-      ? (mediaType === 'audio' && mpAddByRSS.resourceData.medium_id !== MediumEnum.Video) ||
-        (mediaType === 'video' && mpAddByRSS.resourceData.medium_id === MediumEnum.Video)
-        ? mpAddByRSS.resourceData.enclosure_url.trim()
-        : undefined
-      : undefined;
+  const addByRSSEnclosureUrl = (() => {
+    if (!mpAddByRSS?.resourceData) return undefined;
+    const addByRSSMediaType =
+      addByRSSSelectedMediaType ??
+      (mpAddByRSS.resourceData.medium_id === MediumEnum.Video ? 'video' : 'audio');
+    const mediumMatch = mediaType === addByRSSMediaType;
+    if (!mediumMatch) return undefined;
+    if (mpItemLabeledEnclosures.length > 0) {
+      const uri = selectedItemEnclosureAndSource?.source?.uri;
+      if (typeof uri === 'string' && uri.trim() !== '') {
+        return uri.trim();
+      }
+    }
+    const fallback = mpAddByRSS.resourceData.enclosure_url;
+    return typeof fallback === 'string' && fallback.trim() !== '' ? fallback.trim() : undefined;
+  })();
   const sourceUri =
     addByRSSEnclosureUrl ?? selectedItemEnclosureAndSource?.source?.uri ?? undefined;
 

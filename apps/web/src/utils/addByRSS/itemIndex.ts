@@ -1,4 +1,4 @@
-import { PAGINATION, sleep } from '@podverse/helpers';
+import { MediumEnum, PAGINATION, sleep } from '@podverse/helpers';
 
 import type {
   AddByRSSFeedRecord,
@@ -42,6 +42,21 @@ type ItemIndexMeta = {
 const getFeedMedium = (feed: AddByRSSFeedRecord): number | null =>
   feed.mappedFeed?.channel?.channel?.medium_id ?? null;
 
+/**
+ * Derive per-item medium from the first enclosure MIME type.
+ * If it starts with "video/", return Video; otherwise return feedMediumFallback.
+ */
+export const getItemMediumIdFromBundle = (
+  bundle: AddByRSSMappedFeed['items'][number],
+  feedMediumFallback: number | null
+): number | null => {
+  const type = bundle.enclosures?.[0]?.item_enclosure?.type;
+  if (typeof type === 'string' && type.toLowerCase().startsWith('video/')) {
+    return MediumEnum.Video;
+  }
+  return feedMediumFallback;
+};
+
 const getChannelTitle = (feed: AddByRSSFeedRecord): string =>
   feed.mappedFeed?.channel?.channel?.title ?? feed.title ?? feed.feedUrl;
 
@@ -63,7 +78,7 @@ const toIndexItem = (
   const itemGuid = bundle.item.guid ?? `${feed.idText}-${fallbackId}`;
   const pubDateMs = bundle.item.pub_date ? new Date(bundle.item.pub_date).getTime() : 0;
   const idText = existingIdText ?? createAddByRSSIdText();
-  const mediumId = getFeedMedium(feed);
+  const mediumId = getItemMediumIdFromBundle(bundle, getFeedMedium(feed));
 
   return {
     id: `${feed.idText}-${itemGuid}`,
