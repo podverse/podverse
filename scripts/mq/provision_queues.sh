@@ -14,7 +14,7 @@ if [[ -z "$CONTAINER" || -z "$ENV_FILE" ]]; then
 fi
 
 if [[ ${#QUEUES[@]} -eq 0 ]]; then
-  QUEUES=(rss-normal rss-on-demand rss-live add-by-rss-on-demand add-by-rss-background)
+  QUEUES=(rss-normal rss-on-demand rss-live add-by-rss-on-demand add-by-rss-background image-shrinking-hints)
 fi
 
 if [[ ! -f "$ENV_FILE" ]]; then

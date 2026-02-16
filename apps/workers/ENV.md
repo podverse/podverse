@@ -95,8 +95,8 @@ These variables are required only for commands that include the Podcast Index ca
 
 Image shrink is optional. If **no** image shrink env vars are set, image shrink is disabled and these variables are not used. If **any** image shrink env var is set, image shrink is treated as enabled and **all** of the variables listed below are required for commands that use image shrink (`mqImageShrinkRunConsumer`, `mqImageShrinkBackfill`).
 
-- **`DIGITAL_OCEAN_ACCESS_KEY`** (Required when image shrink enabled) - DigitalOcean Spaces access key
-- **`DIGITAL_OCEAN_SECRET_KEY`** (Required when image shrink enabled) - DigitalOcean Spaces secret key
+- **`DIGITAL_OCEAN_ACCESS_KEY`** (Required when image shrink enabled) - DigitalOcean Spaces access key (not the API Personal Access Token)
+- **`DIGITAL_OCEAN_SECRET_KEY`** (Required when image shrink enabled) - DigitalOcean Spaces secret key (not the API Personal Access Token)
 - **`IMAGE_CDN_REGION`** (Required when image shrink enabled) - CDN region/location (e.g. `nyc3` for DO, `us-east-1` for AWS)
 - **`IMAGE_CDN_BUCKET`** (Required when image shrink enabled) - Image CDN bucket name (storage)
 - **`IMAGE_CDN_BASE_URL`** (Required when image shrink enabled) - Public CDN base URL for the bucket (storage)

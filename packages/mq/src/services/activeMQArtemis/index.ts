@@ -14,7 +14,8 @@ export type MQQueueName =
   | 'add-by-rss-background'
   | 'image-shrinking-hints'
   | `DLQ.${'rss-normal' | 'rss-on-demand' | 'rss-live'}`
-  | `DLQ.${'add-by-rss-on-demand' | 'add-by-rss-background'}`;
+  | `DLQ.${'add-by-rss-on-demand' | 'add-by-rss-background'}`
+  | 'DLQ.image-shrinking-hints';
 
 type MQRSSMessage = {
   url: string;

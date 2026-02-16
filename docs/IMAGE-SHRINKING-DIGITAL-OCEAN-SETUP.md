@@ -35,6 +35,8 @@ The worker needs an access key and secret to upload objects.
 4. Copy the **Access Key** and **Secret** immediately; the secret is shown only once.
 5. Use these as `DIGITAL_OCEAN_ACCESS_KEY` and `DIGITAL_OCEAN_SECRET_KEY` in the worker environment.
 
+This setup requires **Spaces access keys** (Access Key + Secret Key), not the general **Personal Access Token** (PAT) used for API, CLI, or Terraform. PATs cannot be used for Spaces; they will cause authentication failures when uploading.
+
 **Security:** Store the secret in a secrets manager or encrypted config (e.g. SOPS) for production; do not commit them to the repo.
 
 ## 4. Env vars summary
@@ -43,8 +45,8 @@ Set the following in the workers app (e.g. `apps/workers/.env` or your deploymen
 
 | Variable                   | Example / source                                                                    |
 | -------------------------- | ----------------------------------------------------------------------------------- |
-| `DIGITAL_OCEAN_ACCESS_KEY` | From step 3 (Access Key)                                                            |
-| `DIGITAL_OCEAN_SECRET_KEY` | From step 3 (Secret)                                                                |
+| `DIGITAL_OCEAN_ACCESS_KEY` | From step 3 (Spaces access key; not the API Personal Access Token)                  |
+| `DIGITAL_OCEAN_SECRET_KEY` | From step 3 (Spaces secret key; not the API Personal Access Token)                  |
 | `IMAGE_CDN_REGION`         | Space region, e.g. `nyc3`                                                           |
 | `IMAGE_CDN_BUCKET`         | Space name, e.g. `podverse-images`                                                  |
 | `IMAGE_CDN_BASE_URL`       | CDN URL from step 2, e.g. `https://podverse-images.nyc3.cdn.digitaloceanspaces.com` |
