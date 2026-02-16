@@ -149,7 +149,7 @@ local_management_db_init: infra/config/local/management-db.env
 	  -e DB_DATABASE="$${POSTGRES_DB:-postgres}" \
 	  -e POSTGRES_USER="$${POSTGRES_USER:-postgres}" \
 	  -e POSTGRES_PASSWORD="$$POSTGRES_PASSWORD" \
-	  node:22-slim \
+	  node:24-slim \
 	  sh -c "npm install && node create-superuser.mjs"
 
 # Start all local infrastructure services (use this to restart after local_all_down)
