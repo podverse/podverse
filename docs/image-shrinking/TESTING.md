@@ -118,7 +118,35 @@ LIMIT 5;
 
 If the web or mobile app uses resized images for list views, confirm that list views show the resized thumbnails (CDN URLs) and that they load correctly.
 
-## 6. Optional: generate hints via the parser
+## 6. Test orphan cleanup (dry run → delete)
+
+1. Start with dry run (default is `true`):
+
+```bash
+npm run image_shrink_cleanup_orphans -w apps/workers
+```
+
+2. Review logs for counts: listed objects, candidates, referenced, orphans, wouldDelete.
+3. If you want to actually delete, set `IMAGE_SHRINK_ORPHAN_CLEANUP_DRY_RUN=false` and rerun.
+
+Notes:
+
+- Only `.webp` objects under `images/` older than `IMAGE_SHRINK_ORPHAN_CLEANUP_MIN_AGE_DAYS` are eligible.
+- Objects without `lastModified` are skipped.
+- Use `IMAGE_SHRINK_ORPHAN_CLEANUP_MAX_DELETE` to cap deletions per run.
+
+## 7. Test source prune
+
+1. Ensure there are unused `image_shrink_source` rows (URLs with no resized images pointing at them).
+2. Run the prune job:
+
+```bash
+npm run image_shrink_source_prune -w apps/workers
+```
+
+3. Confirm older unused rows are deleted (default age threshold is 30 days).
+
+## 8. Optional: generate hints via the parser
 
 Hints are normally emitted when the RSS parser runs (for recently parsed feeds). To test the full flow including hint emission:
 
@@ -127,7 +155,7 @@ Hints are normally emitted when the RSS parser runs (for recently parsed feeds).
 
 If you only run the backfill without the parser, the backfill will still enqueue any existing unresized images from the database.
 
-## 7. Troubleshooting
+## 9. Troubleshooting
 
 | Symptom                                       | What to check                                                                                                                                                   |
 | --------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |

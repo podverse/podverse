@@ -73,6 +73,33 @@ Run the source prune (cron-style, deletes unused `image_shrink_source` rows):
 npm run image_shrink_source_prune -w apps/workers
 ```
 
+## Cleanup Behavior Details
+
+### Orphan Cleanup Criteria
+
+The orphan cleanup job (`imageShrinkCleanupOrphans`) lists objects directly from DigitalOcean
+Spaces and applies the following filters before deleting:
+
+- Only objects under the `images/` prefix with a `.webp` suffix.
+- Only objects with a `lastModified` timestamp (missing timestamps are skipped).
+- Only objects older than `IMAGE_SHRINK_ORPHAN_CLEANUP_MIN_AGE_DAYS` (default: `7`).
+- `IMAGE_SHRINK_ORPHAN_CLEANUP_MAX_DELETE` can cap deletions per run (default: no cap).
+- `IMAGE_SHRINK_ORPHAN_CLEANUP_PAGE_SIZE` controls list pagination (default: `500`).
+- `IMAGE_SHRINK_ORPHAN_CLEANUP_DRY_RUN` defaults to `true` unless set to `false`.
+
+The job then checks whether each candidate CDN URL is still referenced by a resized
+`channel_image` or `item_image` row. Only unreferenced objects are deleted.
+
+### Source Prune Criteria
+
+The source prune job (`imageShrinkSourcePrune`) deletes **metadata rows** from
+`image_shrink_source` when:
+
+- The URL is **unused** (no `channel_image`/`item_image` row with `is_resized = true` points at it).
+- The last change/check time is older than `IMAGE_SHRINK_SOURCE_PRUNE_DAYS` (default: `30`).
+
+Source pruning does **not** delete CDN objects; it only trims metadata rows.
+
 ## MQ Hints
 
 Hints are published to the `image-shrinking-hints` queue with the following fields:

@@ -345,3 +345,23 @@ implement the plan
 - docs/image-shrinking/TESTING.md
 - docs/image-shrinking/ARCHITECTURE/01-FLOW.md
 - docs/image-shrinking/ARCHITECTURE/03-DELETION-ORPHANS.md
+
+### Session 49 - 2026-02-17
+
+#### Prompt (Developer)
+
+Implement the plan as specified, it is attached for your reference. Do NOT edit the plan file itself.
+
+To-do's from the plan have already been created. Do not create them again. Mark them as in_progress as you work, starting with the first one. Don't stop until you have completed all the to-dos.
+
+#### Key Decisions
+
+- Documented cleanup/prune criteria and defaults in SERVICE.md.
+- Clarified provider-specific orphan cleanup and added detailed flow diagrams.
+- Expanded testing guidance for orphan cleanup and source prune.
+
+#### Files Modified
+
+- docs/image-shrinking/SERVICE.md
+- docs/image-shrinking/ARCHITECTURE/03-DELETION-ORPHANS.md
+- docs/image-shrinking/TESTING.md

@@ -21,8 +21,12 @@ Key code paths:
 ### Why Objects Remain in Storage
 
 The storage interface only supports upload + URL generation. There is no delete method, and
-the image shrink pipeline never calls a storage delete. As a result, deleting DB rows alone
+the core shrinking pipeline never calls a storage delete. As a result, deleting DB rows alone
 does not remove objects from the bucket.
+
+The cleanup command is intentionally **provider-specific**: it uses the concrete
+`DigitalOceanService` to list and delete objects. This keeps the main pipeline provider-agnostic
+while still allowing cleanup in the current DigitalOcean Spaces implementation.
 
 The orphan cleanup command (`imageShrinkCleanupOrphans`) lists objects in the bucket,
 checks whether their CDN URLs are still referenced in `channel_image` or `item_image`
@@ -56,7 +60,36 @@ flowchart TD
   pruneJob -->|delete unused rows| sourcePruned["image_shrink_source pruned"]
 ```
 
+### Orphan Cleanup Scan (Detailed)
+
+```mermaid
+flowchart TD
+  listObjects["ListObjectsV2 (images/ prefix)"] --> filterCandidates[FilterCandidates]
+  filterCandidates --> queryDb[QueryDbForUrls]
+  queryDb --> partition[PartitionReferencedOrphans]
+  partition --> deleteObjects[DeleteOrphans]
+```
+
+Filters applied before DB checks:
+
+- `.webp` suffix only
+- `lastModified` must exist
+- Age must be >= `IMAGE_SHRINK_ORPHAN_CLEANUP_MIN_AGE_DAYS`
+- Optional `IMAGE_SHRINK_ORPHAN_CLEANUP_MAX_DELETE` cap
+- Optional `IMAGE_SHRINK_ORPHAN_CLEANUP_PAGE_SIZE` pagination
+
+### Source Prune Scan (Detailed)
+
+```mermaid
+flowchart TD
+  querySources[QueryUnusedSources] --> ageFilter[FilterByPruneAge]
+  ageFilter --> deleteRows[DeleteImageShrinkSourceRows]
+```
+
 ### Practical Implication
 
 If you delete channels/items directly in the DB, **the images will not be removed immediately
 from Spaces**. They remain until the orphan cleanup job runs (or are manually deleted).
+
+Spaces “folders” are just key prefixes. If the last object under a prefix is deleted, the UI may
+still show the folder until any zero-byte placeholder objects are removed (if they exist).
