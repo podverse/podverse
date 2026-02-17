@@ -11,6 +11,13 @@ const run = async () => {
   // Command-first bootstrap: resolve command from argv before validation or config
   const argv = process.argv.slice(2);
   const commandName = (argv[0] as string) ?? '';
+  const longRunningCommands = new Set([
+    'mqRSSRunParser',
+    'mqAddByRSSRunParser',
+    'mqRSSRunLiveItemListener',
+    'mqRSSRunDlqConsumer',
+    'mqImageShrinkRunConsumer',
+  ]);
 
   const { KNOWN_COMMANDS } = await import('@workers/commands/commandNames.js');
   if (!commandName || !KNOWN_COMMANDS.includes(commandName)) {
@@ -271,11 +278,18 @@ const run = async () => {
         console.error(error.message);
         process.exit(1);
       } else {
-        getLoggerService().logError('Error running app:', error as Error);
+        // Logger may not be initialized if error occurred during early bootstrap
+        try {
+          getLoggerService().logError('Error running app:', error as Error);
+        } catch {
+          console.error('Error running app:', error);
+        }
         process.exit(1);
       }
     } finally {
-      process.exit(0);
+      if (!longRunningCommands.has(commandName)) {
+        process.exit(0);
+      }
     }
   };
 

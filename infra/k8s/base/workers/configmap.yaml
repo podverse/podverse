@@ -46,10 +46,19 @@ data:
   #####
   ##### Message Queue
   #####
+  MESSAGE_QUEUE_PROTOCOL: "amqp"
   MESSAGE_QUEUE_HOST: "podverse-mq"
   MESSAGE_QUEUE_PORT: "5672"
   #MESSAGE_QUEUE_USERNAME: "admin"  # in secrets
   #MESSAGE_QUEUE_PASSWORD: ""       # in secrets
+
+  #####
+  ##### KeyValDB (Redis/Valkey)
+  #####
+  KEYVALDB_HOST: "podverse-keyvaldb"
+  KEYVALDB_PORT: "6379"
+  # KEYVALDB_PASSWORD: ""  # in secrets (podverse-keyvaldb-opaque)
+  KEYVALDB_CACHE_TTL_SECONDS: "900"
 
   #####
   ##### Google / Firebase
@@ -83,6 +92,14 @@ data:
   # The parser will recursively follow all remote items, and their remote items, until it runs out.
   # If a feed is already in the database, it will not add a message for that remote item feed to the queue.
   PARSER_ADD_REMOTE_ITEMS_TO_MQ: "false"
+
+  #####
+  ##### Add-by-RSS
+  #####
+  # Basic Auth credentials for add-by-RSS feeds are stored per-feed in the database
+  # (account_following_add_by_rss_channel). Required: 64 hex characters (32 bytes)
+  # for AES-256-GCM encryption at rest. Generate with: openssl rand -hex 32
+  # ADD_BY_RSS_CREDENTIALS_ENCRYPTION_KEY: ""  # in secrets (podverse-workers-add-by-rss-opaque)
 
   #####
   ##### DigitalOcean

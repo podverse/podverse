@@ -178,6 +178,87 @@ implement the plan
 - packages/helpers-backend/src/index.ts
 - apps/workers/src/commands/imageShrink/batch.ts
 
+### Session 29 - 2026-02-16
+
+#### Prompt (Developer)
+
+@/Users/mitcheldowney/.cursor/projects/Users-mitcheldowney-repos-pv-pv-code-workspace/terminals/12.txt:957-1027
+
+#### Key Decisions
+
+- Prevented the workers bootstrap from force-exiting long-running MQ consumer commands.
+
+#### Files Modified
+
+- apps/workers/src/index.ts
+
+### Session 30 - 2026-02-17
+
+#### Prompt (Developer)
+
+why are the workers exiting immediately? also, why are these warnings happening?
+
+#### Key Decisions
+
+- Fixed LOG_DIR env var in workers.env — Docker's env_file parser doesn't support inline comments
+  after a value, so `LOG_DIR= # comment` was being parsed as `LOG_DIR="# comment"`. Removed the
+  inline comment so LOG_DIR is properly empty for local development.
+- Fixed error handling in workers index.ts catch block — if an error occurs before LoggerService
+  is initialized, the catch block would throw a secondary error when calling getLoggerService().
+  Added a try/catch wrapper to fall back to console.error.
+- Orphan container warnings are expected and harmless — `docker compose run --name` creates
+  containers that aren't part of the service definition, so Docker Compose flags them as orphans.
+
+#### Files Modified
+
+- infra/config/local/workers.env
+- apps/workers/src/index.ts
+
+### Session 31 - 2026-02-17
+
+#### Prompt (Developer)
+
+debug the google firebase startup error. modify the workers.env local if necessary
+
+#### Key Decisions
+
+- Disabled Firebase notifications for local Docker development — the `GOOGLE_FIREBASE_ADMIN_JSON_KEY_PATH`
+  pointed to an old host path (`/Users/.../podverse-workers/...`) that doesn't exist in the container.
+  Set both `GOOGLE_FIREBASE_NOTIFICATIONS_ENABLED` and `GOOGLE_FIREBASE_ADMIN_JSON_KEY_PATH` to empty
+  to disable Firebase locally.
+
+#### Files Modified
+
+- infra/config/local/workers.env
+
+### Session 32 - 2026-02-17
+
+#### Prompt (Developer)
+
+i ran make local_run_parsers_all but it doesn't look like it started the image shrinking service. should it have? also make sure jenkinsfiles and k8s processes account for this if needed
+
+#### Key Decisions
+
+- `local_run_parsers_all` intentionally only starts parser workers. Added separate Makefile targets
+  for the image shrink service:
+  - `local_run_image_shrink_consumer` - starts the MQ consumer
+  - `local_stop_image_shrink_consumer` - stops the consumer
+  - `local_run_image_shrink_backfill` - runs the one-shot backfill job
+  - `local_run_workers_all` - starts parsers + image shrink consumer
+  - `local_stop_workers_all` - stops all workers
+- Jenkins and K8s already had image shrink support (Jenkinsfiles and deployments existed).
+- Fixed K8s workers configmap: added missing `MESSAGE_QUEUE_PROTOCOL` env var (required by workers).
+- Fixed K8s workers configmap: added `KEYVALDB_*` env vars needed by add-by-rss parsers.
+- Fixed K8s add-by-rss parser deployments: added missing secretRefs for `podverse-keyvaldb-opaque`
+  and `podverse-workers-add-by-rss-opaque`.
+
+#### Files Modified
+
+- Makefile.local
+- infra/k8s/base/workers/configmap.yaml
+- infra/k8s/base/workers/parser-add-by-rss-ondemand.deployment.yaml
+- infra/k8s/base/workers/parser-add-by-rss-ondemand-background.deployment.yaml
+
 ---
 
 ## Related Resources

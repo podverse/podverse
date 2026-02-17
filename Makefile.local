@@ -176,6 +176,7 @@ local_setup: local_infra_up local_db_init local_management_db_init
 # Stop all local infrastructure services
 .PHONY: local_all_down
 local_all_down:
+	-$(MAKE) local_stop_parsers
 	-$(MAKE) local_keyvaldb_down
 	-$(MAKE) local_mq_down
 	-$(MAKE) local_db_down
@@ -188,6 +189,7 @@ local_clean:
 	docker compose -f infra/docker/local/mq/docker-compose.yml down -v 2>/dev/null || true
 	docker compose -f infra/docker/local/keyvaldb/docker-compose.yml down -v 2>/dev/null || true
 	docker compose -f infra/docker/local/management-db/docker-compose.yml down -v 2>/dev/null || true
+	-$(MAKE) local_stop_parsers
 	-$(MAKE) local_network_remove
 	@echo "Local environment cleaned. Images preserved for faster restart."
 
@@ -280,6 +282,77 @@ local_test_workers: local_build_workers
 	docker compose -f infra/docker/local/workers/docker-compose.yml up -d
 	@echo "Workers started. Check logs with: docker compose -f infra/docker/local/workers/docker-compose.yml logs -f"
 	@echo "Stop with: docker compose -f infra/docker/local/workers/docker-compose.yml down"
+
+# Run all feed parsers (mirrors alpha Jenkinsfile.aux_workers_mq_rss_run_parsers_all).
+# Requires: local_infra_up, local_build_workers, queues provisioned (e.g. make local_mq_up).
+# If containers with these names already exist, run: make local_stop_parsers first.
+.PHONY: local_run_parsers_all
+local_run_parsers_all: local_build_workers
+	@echo "Starting parser workers (mirroring alpha)..."
+	docker compose -f infra/docker/local/workers/docker-compose.yml run -d --name podverse_local_workers_parser_rss_normal_1 podverse_local_workers node apps/workers/dist/index.js mqRSSRunParser -q rss-normal
+	docker compose -f infra/docker/local/workers/docker-compose.yml run -d --name podverse_local_workers_parser_rss_normal_2 podverse_local_workers node apps/workers/dist/index.js mqRSSRunParser -q rss-normal
+	docker compose -f infra/docker/local/workers/docker-compose.yml run -d --name podverse_local_workers_parser_rss_on_demand_1 podverse_local_workers node apps/workers/dist/index.js mqRSSRunParser -q rss-on-demand
+	docker compose -f infra/docker/local/workers/docker-compose.yml run -d --name podverse_local_workers_parser_rss_on_demand_2 podverse_local_workers node apps/workers/dist/index.js mqRSSRunParser -q rss-on-demand
+	docker compose -f infra/docker/local/workers/docker-compose.yml run -d --name podverse_local_workers_parser_rss_live_1 podverse_local_workers node apps/workers/dist/index.js mqRSSRunParser -q rss-live
+	docker compose -f infra/docker/local/workers/docker-compose.yml run -d --name podverse_local_workers_parser_add_by_rss_on_demand_1 podverse_local_workers node apps/workers/dist/index.js mqAddByRSSRunParser -q add-by-rss-on-demand
+	docker compose -f infra/docker/local/workers/docker-compose.yml run -d --name podverse_local_workers_parser_add_by_rss_on_demand_2 podverse_local_workers node apps/workers/dist/index.js mqAddByRSSRunParser -q add-by-rss-on-demand
+	docker compose -f infra/docker/local/workers/docker-compose.yml run -d --name podverse_local_workers_parser_add_by_rss_background_1 podverse_local_workers node apps/workers/dist/index.js mqAddByRSSRunParser -q add-by-rss-background
+	docker compose -f infra/docker/local/workers/docker-compose.yml run -d --name podverse_local_workers_parser_add_by_rss_background_2 podverse_local_workers node apps/workers/dist/index.js mqAddByRSSRunParser -q add-by-rss-background
+	@echo "Parser workers started. Stop with: make local_stop_parsers"
+
+# Stop and remove all local parser containers (mirrors alpha stop parsers).
+.PHONY: local_stop_parsers
+local_stop_parsers:
+	@matches=$$(docker ps -a --format '{{.Names}}' | grep '^podverse_local_workers_parser_' || true); \
+	if [ -n "$$matches" ]; then \
+	  echo "Stopping parser containers..."; \
+	  echo "$$matches" | xargs docker stop 2>/dev/null || true; \
+	  echo "Removing parser containers..."; \
+	  echo "$$matches" | xargs docker rm 2>/dev/null || true; \
+	  echo "Done."; \
+	else \
+	  echo "No parser containers found."; \
+	fi
+
+# Run the image shrink consumer (mirrors alpha Jenkinsfile.aux_workers_mq_image_shrink_run_consumer).
+# Requires: local_infra_up, local_build_workers, queues provisioned (e.g. make local_mq_up).
+.PHONY: local_run_image_shrink_consumer
+local_run_image_shrink_consumer: local_build_workers
+	@echo "Starting image shrink consumer..."
+	docker compose -f infra/docker/local/workers/docker-compose.yml run -d --name podverse_local_workers_image_shrink_consumer podverse_local_workers node apps/workers/dist/index.js mqImageShrinkRunConsumer
+	@echo "Image shrink consumer started. Stop with: make local_stop_image_shrink_consumer"
+
+# Stop and remove the image shrink consumer container.
+.PHONY: local_stop_image_shrink_consumer
+local_stop_image_shrink_consumer:
+	@matches=$$(docker ps -a --format '{{.Names}}' | grep '^podverse_local_workers_image_shrink_consumer' || true); \
+	if [ -n "$$matches" ]; then \
+	  echo "Stopping image shrink consumer..."; \
+	  echo "$$matches" | xargs docker stop 2>/dev/null || true; \
+	  echo "Removing image shrink consumer container..."; \
+	  echo "$$matches" | xargs docker rm 2>/dev/null || true; \
+	  echo "Done."; \
+	else \
+	  echo "No image shrink consumer container found."; \
+	fi
+
+# Run the image shrink backfill job (mirrors alpha Jenkinsfile.aux_workers_mq_image_shrink_backfill).
+# This is a one-shot job that queues images needing shrinking, not a long-running consumer.
+.PHONY: local_run_image_shrink_backfill
+local_run_image_shrink_backfill: local_build_workers
+	@echo "Running image shrink backfill job..."
+	docker compose -f infra/docker/local/workers/docker-compose.yml run --rm podverse_local_workers node apps/workers/dist/index.js mqImageShrinkBackfill
+	@echo "Image shrink backfill job completed."
+
+# Run all workers (parsers + image shrink consumer).
+.PHONY: local_run_workers_all
+local_run_workers_all: local_run_parsers_all local_run_image_shrink_consumer
+	@echo "All workers started (parsers + image shrink consumer)."
+
+# Stop all workers (parsers + image shrink consumer).
+.PHONY: local_stop_workers_all
+local_stop_workers_all: local_stop_parsers local_stop_image_shrink_consumer
+	@echo "All workers stopped."
 
 .PHONY: local_test_management_api
 local_test_management_api: local_build_management_api
