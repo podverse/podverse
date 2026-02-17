@@ -257,9 +257,10 @@ export const createImageShrinkProcessor = (): ImageShrinkProcessor => {
       width: imageShrinkConfig.widthPx,
       withoutEnlargement: true,
     });
-    const metadata = await resizedImage.metadata();
-    const resizedWidth = metadata.width ?? imageShrinkConfig.widthPx;
-    const resizedBuffer = await resizedImage.webp({ quality: 80 }).toBuffer();
+    const { data: resizedBuffer, info: resizedInfo } = await resizedImage
+      .webp({ quality: 80 })
+      .toBuffer({ resolveWithObject: true });
+    const resizedWidth = resizedInfo.width ?? imageShrinkConfig.widthPx;
 
     await imageStorageService.uploadResizedImage({
       bucket: storageConfig.bucket,
