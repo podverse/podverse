@@ -9,7 +9,7 @@ Key code paths:
   `packages/orm/src/entities/item/itemImage.ts`
 - Source metadata pruning: `packages/orm/src/services/imageShrinkSource.ts`
 - Storage interface (no delete method): `apps/workers/src/types/imageStorage.ts`
-- Orphan cleanup worker: `apps/workers/src/commands/mq/imageShrink/cleanupOrphans.ts`
+- Orphan cleanup worker: `apps/workers/src/commands/imageShrink/cleanupOrphans.ts`
 
 ### What Happens If You Delete a Channel/Item in the DB
 
@@ -24,9 +24,12 @@ The storage interface only supports upload + URL generation. There is no delete 
 the image shrink pipeline never calls a storage delete. As a result, deleting DB rows alone
 does not remove objects from the bucket.
 
-The orphan cleanup command (`mqImageShrinkCleanupOrphans`) lists objects in the bucket,
+The orphan cleanup command (`imageShrinkCleanupOrphans`) lists objects in the bucket,
 checks whether their CDN URLs are still referenced in `channel_image` or `item_image`
 (`is_resized = true`), and deletes any orphaned objects.
+
+The source prune command (`imageShrinkSourcePrune`) deletes unused `image_shrink_source` rows
+based on `IMAGE_SHRINK_SOURCE_PRUNE_DAYS`. It does not delete CDN objects.
 
 ### Source Metadata Pruning
 
@@ -47,8 +50,10 @@ flowchart TD
 
   cascade --> storageNote["Spaces objects remain"]
   storageNote --> orphaned["Orphaned WebP objects in bucket"]
-  orphaned --> cleanupJob["mqImageShrinkCleanupOrphans (scheduled)"]
+  orphaned --> cleanupJob["imageShrinkCleanupOrphans (scheduled)"]
   cleanupJob -->|delete orphaned| storageClean["Spaces objects removed"]
+  sourceTable --> pruneJob["imageShrinkSourcePrune (scheduled)"]
+  pruneJob -->|delete unused rows| sourcePruned["image_shrink_source pruned"]
 ```
 
 ### Practical Implication

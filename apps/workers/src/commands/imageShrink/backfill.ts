@@ -6,11 +6,11 @@ import { MQ_IMAGE_SHRINK_HINTS_CONFIG } from '@podverse/helpers';
 import { mqImageShrinkHintAdd } from '@podverse/mq';
 import { ChannelImageService, ItemImageService } from '@podverse/orm';
 
-export const mqImageShrinkBackfill = async (_args: CommandLineArgs) => {
+export const imageShrinkBackfill = async (_args: CommandLineArgs) => {
   const logger = getLoggerService();
 
   if (!isImageShrinkEnabled()) {
-    logger.info('mqImageShrinkBackfill: disabled (image shrink env vars not set)');
+    logger.info('imageShrinkBackfill: disabled (image shrink env vars not set)');
     return;
   }
 
@@ -35,7 +35,7 @@ export const mqImageShrinkBackfill = async (_args: CommandLineArgs) => {
 
   const totalHints = channelUrls.size + itemUrls.size;
   if (totalHints === 0) {
-    logger.info('mqImageShrinkBackfill: no unresized images found');
+    logger.info('imageShrinkBackfill: no unresized images found');
     return;
   }
 
@@ -77,5 +77,5 @@ export const mqImageShrinkBackfill = async (_args: CommandLineArgs) => {
     );
   }
 
-  logger.info(`mqImageShrinkBackfill: queued ${totalHints} hints`);
+  logger.info(`imageShrinkBackfill: queued ${totalHints} hints`);
 };

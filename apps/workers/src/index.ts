@@ -16,7 +16,7 @@ const run = async () => {
     'mqAddByRSSRunParser',
     'mqRSSRunLiveItemListener',
     'mqRSSRunDlqConsumer',
-    'mqImageShrinkRunConsumer',
+    'imageShrinkRunConsumer',
   ]);
 
   const { KNOWN_COMMANDS } = await import('@workers/commands/commandNames.js');

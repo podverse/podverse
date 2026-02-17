@@ -20,7 +20,7 @@ pipeline {
                         // We use triple double-quotes (""") to interpolate the Jenkins parameters.
                         sh """
                             set -eux
-                            docker compose -f docker-compose.yml run --rm podverse_alpha_workers node apps/workers/dist/index.js mqImageShrinkBackfill
+                            docker compose -f docker-compose.yml run --rm podverse_alpha_workers node apps/workers/dist/index.js imageShrinkBackfill
                         """
                     }
                 }

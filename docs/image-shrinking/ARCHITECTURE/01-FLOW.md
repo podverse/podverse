@@ -6,7 +6,7 @@ storage and DB updates.
 Key code paths:
 
 - MQ hints emitted during RSS parsing: `apps/workers/src/commands/parser/rss/parseFeed.ts`
-- MQ consumer and hint handling: `apps/workers/src/commands/mq/imageShrink/runConsumer.ts`
+- MQ consumer and hint handling: `apps/workers/src/commands/imageShrink/runConsumer.ts`
 - Resizing/uploading/DB updates: `apps/workers/src/commands/imageShrink/batch.ts`
 
 ### High-Level Flow
@@ -15,9 +15,9 @@ Key code paths:
 flowchart TD
   rssParse[parserRSSParseFeed] -->|parseRSSFeedAndSaveToDatabase| dbWrite[DB: channel_image/item_image]
   rssParse -->|imageHints| mqHints["MQ: image-shrinking-hints"]
-  backfill[mqImageShrinkBackfill] -->|unresized images| mqHints
+  backfill[imageShrinkBackfill] -->|unresized images| mqHints
 
-  mqHints --> consumer[mqImageShrinkRunConsumer]
+  mqHints --> consumer[imageShrinkRunConsumer]
   consumer -->|fetch channel/item images by URL| imageRows[DB: channel_image/item_image]
   consumer -->|processTarget| resize[createImageShrinkProcessor]
 

@@ -13,7 +13,7 @@ different implementation and wiring it in the worker; batch logic and the interf
 
 Key points:
 
-- Resizing runs via the `mqImageShrinkRunConsumer` MQ consumer.
+- Resizing runs via the `imageShrinkRunConsumer` MQ consumer.
 - Parser emits MQ hints so the consumer prioritizes recently updated images.
 - A periodic backfill cron enqueues unresized images for full coverage.
 - A periodic orphan cleanup deletes unreferenced WebP objects from storage.
@@ -32,7 +32,7 @@ Further reading:
 
 1. RSS parser saves original image URLs as usual.
 2. Parser emits MQ hints (channel + item image URLs) for recently parsed feeds.
-3. `mqImageShrinkRunConsumer` consumes hints (fresh within 24 hours).
+3. `imageShrinkRunConsumer` consumes hints (fresh within 24 hours).
 4. Periodic backfill enqueues any remaining unresized images.
 5. Worker downloads, resizes to `IMAGE_SHRINK_WIDTH_PX`, and uploads to image CDN.
 6. Worker writes `is_resized = true` rows pointing at CDN URLs.
@@ -52,19 +52,25 @@ Output is WebP for smaller file size at similar quality. WebP is well supported 
 Run the MQ consumer:
 
 ```
-npm run mq_image_shrink_run_consumer -w apps/workers
+npm run image_shrink_run_consumer -w apps/workers
 ```
 
 Run the backfill (cron-style, enqueues up to `IMAGE_SHRINK_BATCH_SIZE` hints per run):
 
 ```
-npm run mq_image_shrink_backfill -w apps/workers
+npm run image_shrink_backfill -w apps/workers
 ```
 
 Run the orphan cleanup (cron-style, deletes unreferenced WebP objects):
 
 ```
-npm run mq_image_shrink_cleanup_orphans -w apps/workers
+npm run image_shrink_cleanup_orphans -w apps/workers
+```
+
+Run the source prune (cron-style, deletes unused `image_shrink_source` rows):
+
+```
+npm run image_shrink_source_prune -w apps/workers
 ```
 
 ## MQ Hints
@@ -147,3 +153,5 @@ ensure the DigitalOcean secret is included in `envFrom`.
 Add the secret to the `envFrom` list so the workers pod can access the Spaces credentials.
 
 `infra/k8s/base/cron/worker-image-shrink-orphan-cleanup.cronjob.yaml` runs the orphan cleanup on a weekly schedule. It uses the same env/secret wiring as the backfill job.
+
+`infra/k8s/base/cron/worker-image-shrink-source-prune.cronjob.yaml` runs the source prune on a weekly schedule. It uses the same env/secret wiring as the backfill job.

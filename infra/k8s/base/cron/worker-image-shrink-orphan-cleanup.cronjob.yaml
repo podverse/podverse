@@ -12,7 +12,7 @@ spec:
           containers:
             - name: worker
               image: ghcr.io/podverse/podverse/workers
-              command: ["npm", "run", "mq_image_shrink_cleanup_orphans"]
+              command: ["npm", "run", "image_shrink_cleanup_orphans"]
               securityContext:
                 runAsUser: 1000
                 runAsGroup: 1000

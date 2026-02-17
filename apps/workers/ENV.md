@@ -28,8 +28,8 @@ The workers app validates environment variables **per command**. Each job only v
 | Base + ORM + MQ + Podcast Index     | Base, ORM, MQ, PodcastIndex              | mqRSSAdd                                                    |
 | Base + MQ + Parser + KeyValDB       | Base, MQ, Parser, KeyValDB               | mqAddByRSSRunParser                                         |
 | Base + ORM + MQ + Parser + PI + Web | Base, ORM, MQ, Parser, PodcastIndex, Web | parserRSSParseFeed                                          |
-| Base + ORM + MQ + Image Shrink      | Base, ORM, MQ, ImageShrink               | mqImageShrinkRunConsumer, mqImageShrinkBackfill             |
-| Base + ORM + Image Shrink           | Base, ORM, ImageShrink                   | mqImageShrinkCleanupOrphans                                 |
+| Base + ORM + MQ + Image Shrink      | Base, ORM, MQ, ImageShrink               | imageShrinkRunConsumer, imageShrinkBackfill                 |
+| Base + ORM + Image Shrink           | Base, ORM, ImageShrink                   | imageShrinkCleanupOrphans, imageShrinkSourcePrune           |
 | Full stack                          | Base, ORM, MQ, Parser, PodcastIndex, Web | mqRSSRunParser, mqRSSRunLiveItemListener                    |
 
 Within each category, vars are required or optional as listed in the sections below. Only the categories for your command are validated.
@@ -94,7 +94,7 @@ These variables are required only for commands that include the Podcast Index ca
 
 ## Image Shrink
 
-Image shrink is optional. If **no** image shrink env vars are set, image shrink is disabled and these variables are not used. If **any** image shrink env var is set, image shrink is treated as enabled and **all** of the variables listed below are required for commands that use image shrink (`mqImageShrinkRunConsumer`, `mqImageShrinkBackfill`).
+Image shrink is optional. If **no** image shrink env vars are set, image shrink is disabled and these variables are not used. If **any** image shrink env var is set, image shrink is treated as enabled and **all** of the variables listed below are required for commands that use image shrink (`imageShrinkRunConsumer`, `imageShrinkBackfill`).
 
 - **`DIGITAL_OCEAN_ACCESS_KEY`** (Required when image shrink enabled) - DigitalOcean Spaces access key (not the API Personal Access Token)
 - **`DIGITAL_OCEAN_SECRET_KEY`** (Required when image shrink enabled) - DigitalOcean Spaces secret key (not the API Personal Access Token)

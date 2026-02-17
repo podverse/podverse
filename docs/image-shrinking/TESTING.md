@@ -57,13 +57,13 @@ The backfill finds channel and item images that are not yet resized and enqueues
 From the monorepo root:
 
 ```bash
-npm run mq_image_shrink_backfill -w apps/workers
+npm run image_shrink_backfill -w apps/workers
 ```
 
 Or from `apps/workers` with env loaded:
 
 ```bash
-node ./dist/index.js mqImageShrinkBackfill
+node ./dist/index.js imageShrinkBackfill
 ```
 
 - If image shrink is disabled (no image shrink env set), the command logs that it is disabled and exits.
@@ -77,13 +77,13 @@ Start the long-running consumer so it processes hints from the queue, downloads 
 From the monorepo root:
 
 ```bash
-npm run mq_image_shrink_run_consumer -w apps/workers
+npm run image_shrink_run_consumer -w apps/workers
 ```
 
 Or from `apps/workers`:
 
 ```bash
-node ./dist/index.js mqImageShrinkRunConsumer
+node ./dist/index.js imageShrinkRunConsumer
 ```
 
 Leave it running. It will:

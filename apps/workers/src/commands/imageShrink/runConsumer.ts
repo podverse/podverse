@@ -32,11 +32,11 @@ const isImageShrinkHintMessage = (value: unknown): value is ImageShrinkHintMessa
   );
 };
 
-export const mqImageShrinkRunConsumer = async (_args: CommandLineArgs) => {
+export const imageShrinkRunConsumer = async (_args: CommandLineArgs) => {
   const logger = getLoggerService();
 
   if (!isImageShrinkEnabled()) {
-    logger.info('mqImageShrinkRunConsumer: disabled (image shrink env vars not set)');
+    logger.info('imageShrinkRunConsumer: disabled (image shrink env vars not set)');
     return;
   }
 
@@ -59,7 +59,7 @@ export const mqImageShrinkRunConsumer = async (_args: CommandLineArgs) => {
         const bodyStr = typeof body === 'string' ? body : '';
         const parsed: unknown = JSON.parse(bodyStr);
         if (!isImageShrinkHintMessage(parsed)) {
-          logger.warn('mqImageShrinkRunConsumer: invalid hint message');
+          logger.warn('imageShrinkRunConsumer: invalid hint message');
           context.delivery?.accept();
           return;
         }
@@ -103,7 +103,7 @@ export const mqImageShrinkRunConsumer = async (_args: CommandLineArgs) => {
         context.delivery?.accept();
       } catch (error) {
         const err = error instanceof Error ? error : new Error('Unknown image shrink error');
-        logger.logError('mqImageShrinkRunConsumer: error processing hint', err);
+        logger.logError('imageShrinkRunConsumer: error processing hint', err);
         context.delivery?.reject();
       } finally {
         receiver.add_credit(1);

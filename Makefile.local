@@ -314,12 +314,12 @@ local_stop_parsers:
 	  echo "No parser containers found."; \
 	fi
 
-# Run the image shrink consumer (mirrors alpha Jenkinsfile.aux_workers_mq_image_shrink_run_consumer).
+# Run the image shrink consumer (mirrors alpha Jenkinsfile.aux_workers_image_shrink_run_consumer).
 # Requires: local_infra_up, local_build_workers, queues provisioned (e.g. make local_mq_up).
 .PHONY: local_run_image_shrink_consumer
 local_run_image_shrink_consumer: local_build_workers
 	@echo "Starting image shrink consumer..."
-	docker compose -f infra/docker/local/workers/docker-compose.yml run -d --name podverse_local_workers_image_shrink_consumer podverse_local_workers node apps/workers/dist/index.js mqImageShrinkRunConsumer
+	docker compose -f infra/docker/local/workers/docker-compose.yml run -d --name podverse_local_workers_image_shrink_consumer podverse_local_workers node apps/workers/dist/index.js imageShrinkRunConsumer
 	@echo "Image shrink consumer started. Stop with: make local_stop_image_shrink_consumer"
 
 # Stop and remove the image shrink consumer container.
@@ -336,12 +336,12 @@ local_stop_image_shrink_consumer:
 	  echo "No image shrink consumer container found."; \
 	fi
 
-# Run the image shrink backfill job (mirrors alpha Jenkinsfile.aux_workers_mq_image_shrink_backfill).
+# Run the image shrink backfill job (mirrors alpha Jenkinsfile.aux_workers_image_shrink_backfill).
 # This is a one-shot job that queues images needing shrinking, not a long-running consumer.
 .PHONY: local_run_image_shrink_backfill
 local_run_image_shrink_backfill: local_build_workers
 	@echo "Running image shrink backfill job..."
-	docker compose -f infra/docker/local/workers/docker-compose.yml run --rm podverse_local_workers node apps/workers/dist/index.js mqImageShrinkBackfill
+	docker compose -f infra/docker/local/workers/docker-compose.yml run --rm podverse_local_workers node apps/workers/dist/index.js imageShrinkBackfill
 	@echo "Image shrink backfill job completed."
 
 # Run all workers (parsers + image shrink consumer).

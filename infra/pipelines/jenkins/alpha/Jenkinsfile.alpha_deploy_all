@@ -111,7 +111,13 @@ pipeline {
             }
         }
 
-        stage('14. Start API (srv)') {
+        stage('14. Start Image Shrink Consumer (aux)') {
+            steps {
+                build job: 'pipelines/alpha/aux_workers_image_shrink_run_consumer', wait: true, propagate: true
+            }
+        }
+
+        stage('15. Start API (srv)') {
             steps {
                 build job: 'pipelines/alpha/srv_api_up',
                       wait: true,
@@ -122,7 +128,7 @@ pipeline {
             }
         }
 
-        stage('15. Start Management API (srv)') {
+        stage('16. Start Management API (srv)') {
             steps {
                 build job: 'pipelines/alpha/srv_management_api_up',
                       wait: true,
@@ -133,7 +139,7 @@ pipeline {
             }
         }
 
-        stage('16. Start Web (srv)') {
+        stage('17. Start Web (srv)') {
             steps {
                 build job: 'pipelines/alpha/srv_web_up',
                       wait: true,
@@ -144,7 +150,7 @@ pipeline {
             }
         }
 
-        stage('17. Start Management Web (srv)') {
+        stage('18. Start Management Web (srv)') {
             steps {
                 build job: 'pipelines/alpha/srv_management_web_up',
                       wait: true,

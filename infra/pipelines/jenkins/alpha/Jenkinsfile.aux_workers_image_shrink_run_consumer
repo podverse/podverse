@@ -22,7 +22,7 @@ pipeline {
                         // finish successfully as soon as the container starts.
                         sh '''
                             set -eux
-                            docker compose -f docker-compose.yml run -d --name podverse_alpha_workers_image_shrink_consumer podverse_alpha_workers node apps/workers/dist/index.js mqImageShrinkRunConsumer
+                            docker compose -f docker-compose.yml run -d --name podverse_alpha_workers_image_shrink_consumer podverse_alpha_workers node apps/workers/dist/index.js imageShrinkRunConsumer
                         '''
                     }
                 }

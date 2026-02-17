@@ -221,3 +221,127 @@ To-do's from the plan have already been created. Do not create them again. Mark 
 #### Files Modified
 
 - apps/workers/src/commands/imageShrink/batch.ts
+
+### Session 43 - 2026-02-17
+
+#### Prompt (Developer)
+
+Implement the plan as specified, it is attached for your reference. Do NOT edit the plan file itself.
+
+To-do's from the plan have already been created. Do not create them again. Mark them as in_progress as you work, starting with the first one. Don't stop until you have completed all the to-dos.
+
+#### Key Decisions
+
+- Add explicit summary logging for cleanup counts and keep progress logs concise.
+
+#### Files Modified
+
+- apps/workers/src/commands/mq/imageShrink/cleanupOrphans.ts
+
+### Session 44 - 2026-02-17
+
+#### Prompt (Developer)
+
+@/Users/mitcheldowney/.cursor/projects/Users-mitcheldowney-repos-pv-pv-code-workspace/terminals/13.txt i still don't see any logs. if the result is no images qualify for removal, that should be indicated
+
+#### Key Decisions
+
+- Log summary counts directly in the message string for visibility.
+- Add explicit notice when no images qualify for removal.
+
+#### Files Modified
+
+- apps/workers/src/commands/mq/imageShrink/cleanupOrphans.ts
+
+### Session 45 - 2026-02-17
+
+#### Prompt (Developer)
+
+Implement the plan
+
+#### Key Decisions
+
+- Allow IMAGE_SHRINK_ORPHAN_CLEANUP_MIN_AGE_DAYS=0 for test runs (no clamp).
+
+#### Files Modified
+
+- apps/workers/src/config/index.ts
+
+### Session 46 - 2026-02-17
+
+#### Prompt (Developer)
+
+Implement the plan as specified, it is attached for your reference. Do NOT edit the plan file itself.
+
+To-do's from the plan have already been created. Do not create them again. Mark them as in_progress as you work, starting with the first one. Don't stop until you have completed all the to-dos.
+
+#### Key Decisions
+
+- Add a dedicated image shrink source prune command with cron wiring.
+
+#### Files Modified
+
+- apps/workers/src/commands/imageShrink/pruneSources.ts
+- apps/workers/src/commands/commandNames.ts
+- apps/workers/src/commands/index.ts
+- apps/workers/package.json
+- apps/workers/src/lib/startup/categoriesForCommand.ts
+- infra/pipelines/jenkins/alpha/Jenkinsfile.aux_workers_image_shrink_source_prune
+- infra/k8s/base/cron/worker-image-shrink-source-prune.cronjob.yaml
+- infra/k8s/base/cron/kustomization.yaml
+- docs/image-shrinking/SERVICE.md
+- docs/image-shrinking/ARCHITECTURE/03-DELETION-ORPHANS.md
+- apps/workers/ENV.md
+
+### Session 47 - 2026-02-17
+
+#### Prompt (Developer)
+
+Implement the plan as specified, it is attached for your reference. Do NOT edit the plan file itself.
+
+To-do's from the plan have already been created. Do not create them again. Mark them as in_progress as you work, starting with the first one. Don't stop until you have completed all the to-dos.
+
+#### Key Decisions
+
+- Add image shrink consumer to deploy-all Jenkins pipelines.
+
+#### Files Modified
+
+- infra/pipelines/jenkins/alpha/Jenkinsfile.alpha_deploy_all
+- infra/pipelines/jenkins/alpha/Jenkinsfile.alpha_reset_db_and_deploy_all
+
+### Session 48 - 2026-02-17
+
+#### Prompt (Developer)
+
+implement the plan
+
+#### Key Decisions
+
+- Drop mq prefix from all image jobs and update references consistently.
+
+#### Files Modified
+
+- apps/workers/src/commands/imageShrink/runConsumer.ts
+- apps/workers/src/commands/imageShrink/backfill.ts
+- apps/workers/src/commands/imageShrink/cleanupOrphans.ts
+- apps/workers/src/commands/index.ts
+- apps/workers/src/commands/commandNames.ts
+- apps/workers/src/lib/startup/categoriesForCommand.ts
+- apps/workers/src/index.ts
+- apps/workers/package.json
+- apps/workers/ENV.md
+- apps/workers/APPS-WORKERS.md
+- Makefile.local
+- infra/k8s/base/workers/image-shrink-consumer.deployment.yaml
+- infra/k8s/base/cron/worker-image-shrink-backfill.cronjob.yaml
+- infra/k8s/base/cron/worker-image-shrink-orphan-cleanup.cronjob.yaml
+- infra/pipelines/jenkins/alpha/Jenkinsfile.alpha_deploy_all
+- infra/pipelines/jenkins/alpha/Jenkinsfile.alpha_reset_db_and_deploy_all
+- infra/pipelines/jenkins/alpha/Jenkinsfile.aux_workers_image_shrink_run_consumer
+- infra/pipelines/jenkins/alpha/Jenkinsfile.aux_workers_image_shrink_backfill
+- infra/pipelines/jenkins/alpha/Jenkinsfile.aux_workers_image_shrink_cleanup_orphans
+- docs/image-shrinking/SERVICE.md
+- docs/image-shrinking/TESTING.md
+- docs/image-shrinking/ARCHITECTURE/01-FLOW.md
+- docs/image-shrinking/ARCHITECTURE/03-DELETION-ORPHANS.md

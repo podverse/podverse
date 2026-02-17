@@ -110,8 +110,8 @@ data:
   ##### Image Shrink (storage)
   #####
   IMAGE_CDN_REGION: "nyc3"
-  IMAGE_CDN_BUCKET: "podverse-images"
-  IMAGE_CDN_BASE_URL: "https://podverse-images.nyc3.cdn.digitaloceanspaces.com"
+  IMAGE_CDN_BUCKET: "podverse-assets-alpha"
+  IMAGE_CDN_BASE_URL: "https://podverse-assets-alpha.nyc3.digitaloceanspaces.com"
 
   #####
   ##### Image Shrink

@@ -144,7 +144,8 @@ export function getImageShrinkCleanupConfig(): ImageShrinkCleanupConfig {
   return {
     dryRun: process.env.IMAGE_SHRINK_ORPHAN_CLEANUP_DRY_RUN !== 'false',
     maxDelete: maxDelete && maxDelete > 0 ? maxDelete : null,
-    minAgeDays: minAgeDays > 0 ? minAgeDays : DEFAULT_ORPHAN_CLEANUP_MIN_AGE_DAYS,
+    minAgeDays:
+      minAgeDays !== null && minAgeDays >= 0 ? minAgeDays : DEFAULT_ORPHAN_CLEANUP_MIN_AGE_DAYS,
     pageSize: pageSize > 0 ? pageSize : DEFAULT_ORPHAN_CLEANUP_PAGE_SIZE,
   };
 }

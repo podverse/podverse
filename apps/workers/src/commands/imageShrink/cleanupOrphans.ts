@@ -29,11 +29,11 @@ const isOlderThanMinAge = (lastModified: Date | undefined, minAgeMs: number): bo
   return Date.now() - lastModified.getTime() >= minAgeMs;
 };
 
-export const mqImageShrinkCleanupOrphans = async (_args: CommandLineArgs) => {
+export const imageShrinkCleanupOrphans = async (_args: CommandLineArgs) => {
   const logger = getLoggerService();
 
   if (!isImageShrinkEnabled()) {
-    logger.info('mqImageShrinkCleanupOrphans: disabled (image shrink env vars not set)');
+    logger.info('imageShrinkCleanupOrphans: disabled (image shrink env vars not set)');
     return;
   }
 
@@ -51,15 +51,17 @@ export const mqImageShrinkCleanupOrphans = async (_args: CommandLineArgs) => {
 
   let continuationToken: string | undefined;
   let totalListed = 0;
+  let pageCount = 0;
   let skippedNonWebp = 0;
   let skippedTooNew = 0;
+  let totalCandidates = 0;
   let referenced = 0;
   let orphaned = 0;
   let missingLastModified = 0;
   let deleted = 0;
   let wouldDelete = 0;
 
-  logger.info('mqImageShrinkCleanupOrphans: starting scan', {
+  logger.info('imageShrinkCleanupOrphans: starting scan', {
     dryRun: cleanupConfig.dryRun,
     maxDelete: cleanupConfig.maxDelete ?? 'none',
     minAgeDays: cleanupConfig.minAgeDays,
@@ -74,6 +76,7 @@ export const mqImageShrinkCleanupOrphans = async (_args: CommandLineArgs) => {
       maxKeys: cleanupConfig.pageSize,
     });
 
+    pageCount += 1;
     totalListed += listResult.objects.length;
     continuationToken = listResult.nextContinuationToken;
 
@@ -102,8 +105,24 @@ export const mqImageShrinkCleanupOrphans = async (_args: CommandLineArgs) => {
     }
 
     if (candidates.length === 0) {
+      if (listResult.objects.length > 0) {
+        logger.info(
+          `imageShrinkCleanupOrphans: page summary (page=${pageCount}, listed=${listResult.objects.length}, candidates=0, orphans=0, wouldDelete=${wouldDelete}, deleted=${deleted}, dryRun=${cleanupConfig.dryRun})`,
+          {
+            page: pageCount,
+            listed: listResult.objects.length,
+            candidates: 0,
+            orphans: 0,
+            wouldDelete,
+            deleted,
+            dryRun: cleanupConfig.dryRun,
+          }
+        );
+      }
       continue;
     }
+
+    totalCandidates += candidates.length;
 
     const urls = candidates.map((candidate) => candidate.url);
     const channelImages = await channelImageService.getByUrls(urls, true);
@@ -141,9 +160,22 @@ export const mqImageShrinkCleanupOrphans = async (_args: CommandLineArgs) => {
       deleted += 1;
     }
 
+    logger.info(
+      `imageShrinkCleanupOrphans: page summary (page=${pageCount}, listed=${listResult.objects.length}, candidates=${candidates.length}, orphans=${orphans.length}, wouldDelete=${wouldDelete}, deleted=${deleted}, dryRun=${cleanupConfig.dryRun})`,
+      {
+        page: pageCount,
+        listed: listResult.objects.length,
+        candidates: candidates.length,
+        orphans: orphans.length,
+        wouldDelete,
+        deleted,
+        dryRun: cleanupConfig.dryRun,
+      }
+    );
+
     const deleteCount = cleanupConfig.dryRun ? wouldDelete : deleted;
     if (cleanupConfig.maxDelete !== null && deleteCount >= cleanupConfig.maxDelete) {
-      logger.info('mqImageShrinkCleanupOrphans: delete cap reached', {
+      logger.info('imageShrinkCleanupOrphans: delete cap reached', {
         deleted,
         wouldDelete,
         maxDelete: cleanupConfig.maxDelete,
@@ -153,8 +185,18 @@ export const mqImageShrinkCleanupOrphans = async (_args: CommandLineArgs) => {
     }
   } while (continuationToken);
 
-  logger.info('mqImageShrinkCleanupOrphans: completed', {
+  const summaryMessage =
+    `imageShrinkCleanupOrphans: completed ` +
+    `(pages=${pageCount}, listed=${totalListed}, candidates=${totalCandidates}, ` +
+    `skippedNonWebp=${skippedNonWebp}, skippedTooNew=${skippedTooNew}, ` +
+    `missingLastModified=${missingLastModified}, referenced=${referenced}, ` +
+    `orphans=${orphaned}, wouldDelete=${wouldDelete}, deleted=${deleted}, ` +
+    `dryRun=${cleanupConfig.dryRun}, maxDelete=${cleanupConfig.maxDelete ?? 'none'})`;
+
+  logger.info(summaryMessage, {
+    pages: pageCount,
     totalListed,
+    totalCandidates,
     skippedNonWebp,
     skippedTooNew,
     referenced,
@@ -163,5 +205,18 @@ export const mqImageShrinkCleanupOrphans = async (_args: CommandLineArgs) => {
     deleted,
     wouldDelete,
     dryRun: cleanupConfig.dryRun,
+    maxDelete: cleanupConfig.maxDelete ?? 'none',
   });
+
+  if (orphaned === 0) {
+    logger.info('imageShrinkCleanupOrphans: no images qualified for removal', {
+      totalListed,
+      totalCandidates,
+      skippedNonWebp,
+      skippedTooNew,
+      missingLastModified,
+      referenced,
+      dryRun: cleanupConfig.dryRun,
+    });
+  }
 };

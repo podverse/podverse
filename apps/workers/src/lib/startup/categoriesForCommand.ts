@@ -47,11 +47,14 @@ const BASE_ORM_MQ_PODCAST_INDEX_COMMANDS = ['mqRSSAdd'] as const;
 const BASE_ORM_MQ_COMMANDS = ['mqRSSRunDlqConsumer', 'mqRSSAddAll'] as const;
 
 const BASE_ORM_MQ_IMAGE_SHRINK_COMMANDS = [
-  'mqImageShrinkBackfill',
-  'mqImageShrinkRunConsumer',
+  'imageShrinkBackfill',
+  'imageShrinkRunConsumer',
 ] as const;
 
-const BASE_ORM_IMAGE_SHRINK_COMMANDS = ['mqImageShrinkCleanupOrphans'] as const;
+const BASE_ORM_IMAGE_SHRINK_COMMANDS = [
+  'imageShrinkCleanupOrphans',
+  'imageShrinkSourcePrune',
+] as const;
 
 const BASE_ORM_PARSER_PODCAST_INDEX_COMMANDS = ['parserRSSParseFeed'] as const;
 

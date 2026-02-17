@@ -9,3 +9,4 @@ resources:
   - worker-delete-outdated.cronjob.yaml
   - worker-image-shrink-backfill.cronjob.yaml
   - worker-image-shrink-orphan-cleanup.cronjob.yaml
+  - worker-image-shrink-source-prune.cronjob.yaml
