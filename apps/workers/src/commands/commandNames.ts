@@ -8,6 +8,7 @@ export const KNOWN_COMMANDS: readonly string[] = [
   'deleteOutdatedOnDemandParserEvent',
   'generateOnDemandParserEventReports',
   'mqImageShrinkBackfill',
+  'mqImageShrinkCleanupOrphans',
   'mqImageShrinkRunConsumer',
   'mqRSSAdd',
   'mqRSSAddAll',

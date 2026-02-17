@@ -1,0 +1,57 @@
+## Deletion and Orphan Behavior
+
+This doc explains what happens when channels/items are deleted and how that affects stored
+image data in the database and in DigitalOcean Spaces.
+
+Key code paths:
+
+- DB cascade rules: `packages/orm/src/entities/channel/channelImage.ts`,
+  `packages/orm/src/entities/item/itemImage.ts`
+- Source metadata pruning: `packages/orm/src/services/imageShrinkSource.ts`
+- Storage interface (no delete method): `apps/workers/src/types/imageStorage.ts`
+- Orphan cleanup worker: `apps/workers/src/commands/mq/imageShrink/cleanupOrphans.ts`
+
+### What Happens If You Delete a Channel/Item in the DB
+
+1. The channel/item row is deleted.
+2. Related `channel_image` or `item_image` rows are deleted via `onDelete: 'CASCADE'`.
+3. **No immediate storage deletion occurs**. The WebP objects in DigitalOcean Spaces remain
+   until the orphan cleanup job runs.
+
+### Why Objects Remain in Storage
+
+The storage interface only supports upload + URL generation. There is no delete method, and
+the image shrink pipeline never calls a storage delete. As a result, deleting DB rows alone
+does not remove objects from the bucket.
+
+The orphan cleanup command (`mqImageShrinkCleanupOrphans`) lists objects in the bucket,
+checks whether their CDN URLs are still referenced in `channel_image` or `item_image`
+(`is_resized = true`), and deletes any orphaned objects.
+
+### Source Metadata Pruning
+
+The worker periodically deletes **metadata rows** from `image_shrink_source` when:
+
+- There is no resized image referencing the URL in `channel_image` or `item_image`.
+- A prune interval has passed (`IMAGE_SHRINK_SOURCE_PRUNE_DAYS`).
+
+This cleanup **does not delete any objects** from DigitalOcean Spaces.
+
+### Deletion Flow Diagram
+
+```mermaid
+flowchart TD
+  deleteAction[Delete Channel_or_Item in DB] --> cascade[DB cascade deletes channel_image/item_image]
+  cascade --> sourcePrune[deleteUnusedSources removes image_shrink_source rows]
+  sourcePrune -->|metadata only| sourceTable[image_shrink_source]
+
+  cascade --> storageNote["Spaces objects remain"]
+  storageNote --> orphaned["Orphaned WebP objects in bucket"]
+  orphaned --> cleanupJob["mqImageShrinkCleanupOrphans (scheduled)"]
+  cleanupJob -->|delete orphaned| storageClean["Spaces objects removed"]
+```
+
+### Practical Implication
+
+If you delete channels/items directly in the DB, **the images will not be removed immediately
+from Spaces**. They remain until the orphan cleanup job runs (or are manually deleted).

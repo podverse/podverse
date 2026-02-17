@@ -2,7 +2,7 @@
 
 ## Setup
 
-See [QUICKSTART.md](QUICKSTART.md) for complete setup instructions including:
+See [QUICKSTART.md](../QUICKSTART.md) for complete setup instructions including:
 
 - Prerequisites (Docker, Node.js 22 LTS)
 - Infrastructure services (database, message queue, cache)

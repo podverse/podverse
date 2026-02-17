@@ -20,6 +20,7 @@ import { mqRSSRunLiveItemListener } from './mq/rss/runLiveItemListener.js';
 import { generateOnDemandParserEventReports } from './orm/onDemandParserEvent/generateOnDemandParserEventReports.js';
 import { deleteOutdatedOnDemandParserEvent } from './orm/onDemandParserEvent/deleteOutdatedOnDemandParserEvent.js';
 import { mqImageShrinkBackfill } from './mq/imageShrink/backfill.js';
+import { mqImageShrinkCleanupOrphans } from './mq/imageShrink/cleanupOrphans.js';
 import { mqImageShrinkRunConsumer } from './mq/imageShrink/runConsumer.js';
 
 export type CommandLineArgs = { [key: string]: string | string[] };
@@ -45,5 +46,6 @@ export default {
   generateOnDemandParserEventReports,
   deleteOutdatedOnDemandParserEvent,
   mqImageShrinkBackfill,
+  mqImageShrinkCleanupOrphans,
   mqImageShrinkRunConsumer,
 } as { [key: string]: (args: CommandLineArgs) => void };

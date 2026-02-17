@@ -29,6 +29,7 @@ The workers app validates environment variables **per command**. Each job only v
 | Base + MQ + Parser + KeyValDB       | Base, MQ, Parser, KeyValDB               | mqAddByRSSRunParser                                         |
 | Base + ORM + MQ + Parser + PI + Web | Base, ORM, MQ, Parser, PodcastIndex, Web | parserRSSParseFeed                                          |
 | Base + ORM + MQ + Image Shrink      | Base, ORM, MQ, ImageShrink               | mqImageShrinkRunConsumer, mqImageShrinkBackfill             |
+| Base + ORM + Image Shrink           | Base, ORM, ImageShrink                   | mqImageShrinkCleanupOrphans                                 |
 | Full stack                          | Base, ORM, MQ, Parser, PodcastIndex, Web | mqRSSRunParser, mqRSSRunLiveItemListener                    |
 
 Within each category, vars are required or optional as listed in the sections below. Only the categories for your command are validated.
@@ -46,7 +47,7 @@ examples if needed. For the full checklist (including index.ts and new categorie
 
 Add-by-RSS feed parsing (e.g. `mqAddByRSSRunParser`) uses optional HTTP Basic Auth credentials stored per-feed in the database (`account_following_add_by_rss_channel`).
 
-- **`ADD_BY_RSS_CREDENTIALS_ENCRYPTION_KEY`** (Required) – Basic Auth credentials are encrypted at rest (AES-256-GCM). Must be 64 hex characters (32 bytes). Generate with: `openssl rand -hex 32`. Passed into the ORM via `createORMContext(config)`. See [docs/ADD-BY-RSS.md](../../docs/ADD-BY-RSS.md) for key-rotation procedure.
+- **`ADD_BY_RSS_CREDENTIALS_ENCRYPTION_KEY`** (Required) – Basic Auth credentials are encrypted at rest (AES-256-GCM). Must be 64 hex characters (32 bytes). Generate with: `openssl rand -hex 32`. Passed into the ORM via `createORMContext(config)`. See [docs/features/ADD-BY-RSS.md](../../docs/features/ADD-BY-RSS.md) for key-rotation procedure.
 - **`ADD_BY_RSS_CREDENTIALS_ENCRYPTION_KEY_OLD`** (Optional) – During key rotation only. When set, the app decrypts with the current key first, then with this old key. Remove after running the re-encryption script.
 
 ## General Configuration (Base — every command)
@@ -106,6 +107,10 @@ Image shrink is optional. If **no** image shrink env vars are set, image shrink 
 - **`IMAGE_SHRINK_RPS`** (Required when image shrink enabled) - Rate limit for image fetches (requests/second)
 - **`IMAGE_SHRINK_RECHECK_TTL_SECONDS`** (Optional) - Minimum seconds between origin re-checks
 - **`IMAGE_SHRINK_SOURCE_PRUNE_DAYS`** (Optional) - Prune source metadata after N days without resized images
+- **`IMAGE_SHRINK_ORPHAN_CLEANUP_DRY_RUN`** (Optional) - Dry run cleanup (default: `true`)
+- **`IMAGE_SHRINK_ORPHAN_CLEANUP_MAX_DELETE`** (Optional) - Max deletes per run (default: none)
+- **`IMAGE_SHRINK_ORPHAN_CLEANUP_MIN_AGE_DAYS`** (Optional) - Skip objects newer than this age (default: `7`)
+- **`IMAGE_SHRINK_ORPHAN_CLEANUP_PAGE_SIZE`** (Optional) - List page size (default: `500`)
 
 ## KeyValDB (commands that use Redis)
 

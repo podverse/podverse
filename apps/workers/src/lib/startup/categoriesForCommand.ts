@@ -51,6 +51,8 @@ const BASE_ORM_MQ_IMAGE_SHRINK_COMMANDS = [
   'mqImageShrinkRunConsumer',
 ] as const;
 
+const BASE_ORM_IMAGE_SHRINK_COMMANDS = ['mqImageShrinkCleanupOrphans'] as const;
+
 const BASE_ORM_PARSER_PODCAST_INDEX_COMMANDS = ['parserRSSParseFeed'] as const;
 
 const FULL_STACK_COMMANDS = [
@@ -122,6 +124,16 @@ export function getCategoriesForCommand(commandName: string): Set<ConfigCategory
   ) {
     categories.add(CATEGORY_ORM);
     categories.add(CATEGORY_MQ);
+    categories.add(CATEGORY_IMAGE_SHRINK);
+    return categories;
+  }
+
+  if (
+    BASE_ORM_IMAGE_SHRINK_COMMANDS.includes(
+      commandName as (typeof BASE_ORM_IMAGE_SHRINK_COMMANDS)[number]
+    )
+  ) {
+    categories.add(CATEGORY_ORM);
     categories.add(CATEGORY_IMAGE_SHRINK);
     return categories;
   }

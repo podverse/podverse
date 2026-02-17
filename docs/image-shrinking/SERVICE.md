@@ -16,10 +16,17 @@ Key points:
 - Resizing runs via the `mqImageShrinkRunConsumer` MQ consumer.
 - Parser emits MQ hints so the consumer prioritizes recently updated images.
 - A periodic backfill cron enqueues unresized images for full coverage.
+- A periodic orphan cleanup deletes unreferenced WebP objects from storage.
 - Resized images are stored in `channel_image` and `item_image` with `is_resized = true`.
 - List views prefer resized images; headers and full-size views continue using original URLs.
 
-For detailed testing steps (prerequisites, backfill, consumer, verification), see [Image Shrinking — Testing Guide](IMAGE-SHRINKING-TESTING.md).
+For detailed testing steps (prerequisites, backfill, consumer, verification), see [Testing Guide](TESTING.md).
+
+Further reading:
+
+- [01 Flow](ARCHITECTURE/01-FLOW.md)
+- [02 Cache and Recheck](ARCHITECTURE/02-CACHE-RECHECK.md)
+- [03 Deletion and Orphans](ARCHITECTURE/03-DELETION-ORPHANS.md)
 
 ## End-to-End Flow
 
@@ -52,6 +59,12 @@ Run the backfill (cron-style, enqueues up to `IMAGE_SHRINK_BATCH_SIZE` hints per
 
 ```
 npm run mq_image_shrink_backfill -w apps/workers
+```
+
+Run the orphan cleanup (cron-style, deletes unreferenced WebP objects):
+
+```
+npm run mq_image_shrink_cleanup_orphans -w apps/workers
 ```
 
 ## MQ Hints
@@ -100,6 +113,10 @@ See `apps/workers/.env.example` for the authoritative template and commented gro
 - `IMAGE_SHRINK_RPS`
 - `IMAGE_SHRINK_RECHECK_TTL_SECONDS` (Optional; see example env file)
 - `IMAGE_SHRINK_SOURCE_PRUNE_DAYS` (Optional; see example env file)
+- `IMAGE_SHRINK_ORPHAN_CLEANUP_DRY_RUN` (Optional; default true)
+- `IMAGE_SHRINK_ORPHAN_CLEANUP_MAX_DELETE` (Optional; cap per run)
+- `IMAGE_SHRINK_ORPHAN_CLEANUP_MIN_AGE_DAYS` (Optional; default 7)
+- `IMAGE_SHRINK_ORPHAN_CLEANUP_PAGE_SIZE` (Optional; default 500)
 
 ## Kubernetes Wiring
 
@@ -128,3 +145,5 @@ ensure the DigitalOcean secret is included in `envFrom`.
 
 `infra/k8s/base/cron/worker-image-shrink-backfill.cronjob.yaml` runs the backfill on a schedule.
 Add the secret to the `envFrom` list so the workers pod can access the Spaces credentials.
+
+`infra/k8s/base/cron/worker-image-shrink-orphan-cleanup.cronjob.yaml` runs the orphan cleanup on a weekly schedule. It uses the same env/secret wiring as the backfill job.

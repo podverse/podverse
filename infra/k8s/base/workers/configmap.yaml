@@ -124,6 +124,14 @@ data:
   IMAGE_SHRINK_SOURCE_PRUNE_DAYS: "30"
 
   #####
+  ##### Image Shrink Orphan Cleanup (optional)
+  #####
+  IMAGE_SHRINK_ORPHAN_CLEANUP_DRY_RUN: "true"
+  IMAGE_SHRINK_ORPHAN_CLEANUP_MAX_DELETE: ""
+  IMAGE_SHRINK_ORPHAN_CLEANUP_MIN_AGE_DAYS: "7"
+  IMAGE_SHRINK_ORPHAN_CLEANUP_PAGE_SIZE: "500"
+
+  #####
   ##### Web Push (Native)
   #####
   # Native browser push notifications using W3C Push API (no third-party dependency)

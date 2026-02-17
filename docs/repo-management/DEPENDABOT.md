@@ -4,7 +4,7 @@ This document explains the automated dependency update system using GitHub Depen
 
 ## Overview
 
-Dependabot automatically creates pull requests to keep dependencies up-to-date and secure. Configuration is in [`.github/dependabot.yml`](../.github/dependabot.yml).
+Dependabot automatically creates pull requests to keep dependencies up-to-date and secure. Configuration is in [`.github/dependabot.yml`](../../.github/dependabot.yml).
 
 ## Update Schedule
 
@@ -67,7 +67,7 @@ All dependency checks run on this schedule to batch updates together, reducing n
 | `apps`         | Docker updates (modify `apps/*/`)  | PR Labeler |
 | `packages`     | npm updates (modify `packages/*/`) | PR Labeler |
 
-See [GITHUB-LABELS.md](GITHUB-LABELS.md) for complete label documentation.
+See [GitHub Labels](GITHUB-LABELS.md) for complete label documentation.
 
 ## Node.js Version Policy
 
@@ -204,8 +204,8 @@ ignore:
 ## Related Documentation
 
 - [GitHub Labels](GITHUB-LABELS.md) - Complete label reference
-- [Contributing](CONTRIBUTING.md) - PR review guidelines
-- [GitHub Actions](.github/workflows/) - CI/CD workflows
+- [Contributing](../development/CONTRIBUTING.md) - PR review guidelines
+- [GitHub Actions](../../.github/workflows/) - CI/CD workflows
 
 ## References
 

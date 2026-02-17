@@ -115,6 +115,18 @@ function validateImageShrink(): ValidationResult[] {
   results.push(validateRequired('IMAGE_SHRINK_BATCH_SIZE', 'Image Shrink'));
   results.push(validateRequired('IMAGE_SHRINK_CONCURRENCY', 'Image Shrink'));
   results.push(validateRequired('IMAGE_SHRINK_RPS', 'Image Shrink'));
+  results.push(
+    validateOptional('IMAGE_SHRINK_ORPHAN_CLEANUP_DRY_RUN', 'Image Shrink', 'Use Default (true)')
+  );
+  results.push(
+    validateOptional('IMAGE_SHRINK_ORPHAN_CLEANUP_MAX_DELETE', 'Image Shrink', 'Use Default (none)')
+  );
+  results.push(
+    validateOptional('IMAGE_SHRINK_ORPHAN_CLEANUP_MIN_AGE_DAYS', 'Image Shrink', 'Use Default (7)')
+  );
+  results.push(
+    validateOptional('IMAGE_SHRINK_ORPHAN_CLEANUP_PAGE_SIZE', 'Image Shrink', 'Use Default (500)')
+  );
   return results;
 }
 

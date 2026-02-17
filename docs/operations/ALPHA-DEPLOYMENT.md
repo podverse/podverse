@@ -44,7 +44,7 @@ flowchart TD
 
 ### Required Secrets (Already Configured)
 
-See [docs/modules/SECRETS.md](modules/SECRETS.md) for details:
+See [Secrets Configuration](SECRETS.md) for details:
 
 - `GHCR_REGISTRY_TOKEN` - Query existing Docker tags for version incrementing
 - `GITHUB_TOKEN` - Automatic, used for GHCR push
@@ -348,7 +348,7 @@ gh run rerun <run-id> --failed
 
 ## Related Documentation
 
-- [Branch Protection Rules](BRANCH-PROTECTION.md)
-- [Secrets Configuration](modules/SECRETS.md)
-- [Quick Start Guide](QUICKSTART.md)
-- [Architecture Overview](ARCHITECTURE.md)
+- [Branch Protection Rules](../repo-management/BRANCH-PROTECTION.md)
+- [Secrets Configuration](SECRETS.md)
+- [Quick Start Guide](../QUICKSTART.md)
+- [Architecture Overview](../architecture/ARCHITECTURE.md)

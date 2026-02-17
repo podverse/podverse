@@ -70,7 +70,7 @@ This document lists all 23 labels in the Podverse repository for consistent issu
 - `dependencies` - Applied to all dependency PRs
 - `docker` - Applied to Docker image updates (Node.js LTS versions only)
 
-See [DEPENDABOT.md](DEPENDABOT.md) for complete Dependabot configuration and Node.js LTS policy.
+See [Dependabot](DEPENDABOT.md) for complete Dependabot configuration and Node.js LTS policy.
 
 ### PR Labeler (`pr-labeler.yml`)
 

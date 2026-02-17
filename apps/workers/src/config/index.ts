@@ -78,6 +78,13 @@ export type ImageShrinkConfig = {
   rps: number;
 };
 
+export type ImageShrinkCleanupConfig = {
+  dryRun: boolean;
+  maxDelete: number | null;
+  minAgeDays: number;
+  pageSize: number;
+};
+
 const IMAGE_SHRINK_REQUIRED_VARS = [
   'DIGITAL_OCEAN_ACCESS_KEY',
   'DIGITAL_OCEAN_SECRET_KEY',
@@ -108,6 +115,37 @@ export function getImageShrinkConfig(): ImageShrinkConfig {
     batchSize: Number(process.env.IMAGE_SHRINK_BATCH_SIZE!),
     concurrency: Number(process.env.IMAGE_SHRINK_CONCURRENCY!),
     rps: Number(process.env.IMAGE_SHRINK_RPS!),
+  };
+}
+
+const DEFAULT_ORPHAN_CLEANUP_MIN_AGE_DAYS = 7;
+const DEFAULT_ORPHAN_CLEANUP_PAGE_SIZE = 500;
+
+const parseOptionalNumber = (value: string | undefined): number | null => {
+  if (!value || value.trim() === '') {
+    return null;
+  }
+  const parsed = Number(value);
+  if (Number.isNaN(parsed)) {
+    return null;
+  }
+  return parsed;
+};
+
+export function getImageShrinkCleanupConfig(): ImageShrinkCleanupConfig {
+  const maxDelete = parseOptionalNumber(process.env.IMAGE_SHRINK_ORPHAN_CLEANUP_MAX_DELETE);
+  const minAgeDays =
+    parseOptionalNumber(process.env.IMAGE_SHRINK_ORPHAN_CLEANUP_MIN_AGE_DAYS) ??
+    DEFAULT_ORPHAN_CLEANUP_MIN_AGE_DAYS;
+  const pageSize =
+    parseOptionalNumber(process.env.IMAGE_SHRINK_ORPHAN_CLEANUP_PAGE_SIZE) ??
+    DEFAULT_ORPHAN_CLEANUP_PAGE_SIZE;
+
+  return {
+    dryRun: process.env.IMAGE_SHRINK_ORPHAN_CLEANUP_DRY_RUN !== 'false',
+    maxDelete: maxDelete && maxDelete > 0 ? maxDelete : null,
+    minAgeDays: minAgeDays > 0 ? minAgeDays : DEFAULT_ORPHAN_CLEANUP_MIN_AGE_DAYS,
+    pageSize: pageSize > 0 ? pageSize : DEFAULT_ORPHAN_CLEANUP_PAGE_SIZE,
   };
 }
 

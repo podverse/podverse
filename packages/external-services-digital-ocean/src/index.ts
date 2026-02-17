@@ -1,6 +1,7 @@
 import {
   DeleteObjectCommand,
   HeadObjectCommand,
+  ListObjectsV2Command,
   PutObjectCommand,
   S3Client,
 } from '@aws-sdk/client-s3';
@@ -33,6 +34,24 @@ export type DigitalOceanObjectExistsParams = {
 export type DigitalOceanPublicUrlParams = {
   cdnBaseUrl: string;
   key: string;
+};
+
+export type DigitalOceanListObjectsParams = {
+  bucket: string;
+  prefix?: string;
+  continuationToken?: string;
+  maxKeys?: number;
+};
+
+export type DigitalOceanListObject = {
+  key: string;
+  lastModified?: Date;
+};
+
+export type DigitalOceanListObjectsResult = {
+  objects: DigitalOceanListObject[];
+  nextContinuationToken?: string;
+  isTruncated: boolean;
 };
 
 export class DigitalOceanService {
@@ -95,6 +114,33 @@ export class DigitalOceanService {
       }
       throw error;
     }
+  }
+
+  async listObjects(params: DigitalOceanListObjectsParams): Promise<DigitalOceanListObjectsResult> {
+    const command = new ListObjectsV2Command({
+      Bucket: params.bucket,
+      Prefix: params.prefix,
+      ContinuationToken: params.continuationToken,
+      MaxKeys: params.maxKeys,
+    });
+    const response = await this.client.send(command);
+    const objects =
+      response.Contents?.flatMap((item) => {
+        if (!item.Key) {
+          return [];
+        }
+        return [
+          {
+            key: item.Key,
+            lastModified: item.LastModified,
+          },
+        ];
+      }) ?? [];
+    return {
+      objects,
+      nextContinuationToken: response.NextContinuationToken,
+      isTruncated: response.IsTruncated ?? false,
+    };
   }
 
   getPublicUrl(params: DigitalOceanPublicUrlParams): string {

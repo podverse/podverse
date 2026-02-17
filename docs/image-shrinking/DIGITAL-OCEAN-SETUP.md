@@ -51,7 +51,7 @@ Set the following in the workers app (e.g. `apps/workers/.env` or your deploymen
 | `IMAGE_CDN_BUCKET`         | Space name, e.g. `podverse-images`                                                  |
 | `IMAGE_CDN_BASE_URL`       | CDN URL from step 2, e.g. `https://podverse-images.nyc3.cdn.digitaloceanspaces.com` |
 
-Plus the remaining [image shrink env vars](IMAGE-SHRINKING-SERVICE.md#required-environment-variables) (`IMAGE_SHRINK_WIDTH_PX`, `IMAGE_SHRINK_BATCH_SIZE`, etc.).
+Plus the remaining [image shrink env vars](SERVICE.md#required-environment-variables) (`IMAGE_SHRINK_WIDTH_PX`, `IMAGE_SHRINK_BATCH_SIZE`, etc.).
 
 ## 5. Verify the Space is writable
 
@@ -59,5 +59,5 @@ After the worker is configured, running the backfill and consumer will upload We
 
 ## References
 
-- [Image Shrinking Service](IMAGE-SHRINKING-SERVICE.md) — overview, flow, and env vars
-- [Image Shrinking Testing](IMAGE-SHRINKING-TESTING.md) — how to run and test the service locally or in staging
+- [Service](SERVICE.md) — overview, flow, and env vars
+- [Testing](TESTING.md) — how to run and test the service locally or in staging

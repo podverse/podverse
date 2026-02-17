@@ -152,7 +152,7 @@ These variables are used when signup mode is 'sign-up' but are not required:
 
 Add-by-RSS allows users to follow RSS feeds (podcasts, music) not in the main directory. Optional HTTP Basic Auth credentials (username/password) can be provided when adding a feed; they are stored per-feed in the database (`account_following_add_by_rss_channel`).
 
-- **`ADD_BY_RSS_CREDENTIALS_ENCRYPTION_KEY`** (Required) – Basic Auth credentials are encrypted at rest using AES-256-GCM. Must be exactly 64 hex characters (32 bytes). Generate with: `openssl rand -hex 32`. The value is passed into the ORM via `createORMContext(config)`. See [docs/ADD-BY-RSS.md](../../docs/ADD-BY-RSS.md) and key-rotation procedure there.
+- **`ADD_BY_RSS_CREDENTIALS_ENCRYPTION_KEY`** (Required) – Basic Auth credentials are encrypted at rest using AES-256-GCM. Must be exactly 64 hex characters (32 bytes). Generate with: `openssl rand -hex 32`. The value is passed into the ORM via `createORMContext(config)`. See [docs/features/ADD-BY-RSS.md](../../docs/features/ADD-BY-RSS.md) and key-rotation procedure there.
 - **`ADD_BY_RSS_CREDENTIALS_ENCRYPTION_KEY_OLD`** (Optional) – During key rotation only. When set, the app decrypts with the current key first, then with this old key, so existing ciphertext remains readable until the re-encryption script has run. Remove after rotation.
 
 ### General

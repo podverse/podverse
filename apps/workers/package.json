@@ -16,6 +16,7 @@
     "start": "node ./dist/index.js",
     "archive_all": "node ./dist/index.js archiveAll",
     "mq_image_shrink_backfill": "node ./dist/index.js mqImageShrinkBackfill",
+    "mq_image_shrink_cleanup_orphans": "node ./dist/index.js mqImageShrinkCleanupOrphans",
     "mq_image_shrink_run_consumer": "node ./dist/index.js mqImageShrinkRunConsumer",
     "mq_rss_add": "node ./dist/index.js mqRSSAdd",
     "mq_rss_add_all": "node ./dist/index.js mqRSSAddAll",
