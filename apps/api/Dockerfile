@@ -60,7 +60,7 @@ COPY --from=builder /opt/apps/api/package.json ./apps/api/
 COPY --from=builder /opt/apps/api/dist/ ./apps/api/dist/
 
 # Install production dependencies only
-RUN npm install --workspaces --omit=dev --ignore-scripts
+RUN npm install --omit=dev --ignore-scripts
 
 USER node
 

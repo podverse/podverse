@@ -60,7 +60,7 @@ COPY --from=builder /opt/apps/workers/package.json ./apps/workers/
 COPY --from=builder /opt/apps/workers/dist/ ./apps/workers/dist/
 
 # Install production dependencies only
-RUN npm install --workspaces --omit=dev --ignore-scripts
+RUN npm install --omit=dev --ignore-scripts
 
 # Env is provided at runtime via env_file / K8s; skip .env loading so dotenvx is not needed
 ENV NODE_ENV=production
