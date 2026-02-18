@@ -29,12 +29,12 @@
     "@podverse/helpers-validation": "*",
     "@podverse/orm": "*",
     "@podverse/parser-mapping": "*",
-    "podverse-partytime": "^5.0.4",
-    "module-alias": "^2.3.3"
+    "module-alias": "^2.3.3",
+    "podverse-partytime": "^5.0.4"
   },
   "devDependencies": {
-    "tsc-alias": "^1.8.16",
-    "@types/module-alias": "^2.0.4"
+    "@types/module-alias": "^2.0.4",
+    "tsc-alias": "^1.8.16"
   },
   "type": "module"
 }

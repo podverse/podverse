@@ -116,6 +116,10 @@ local_management_db_up: local_network_create infra/config/local/management-db.en
 local_management_db_down:
 	docker compose -f infra/docker/local/management-db/docker-compose.yml down --remove-orphans
 
+.PHONY: local_workers_down
+local_workers_down:
+	docker compose -f infra/docker/local/workers/docker-compose.yml down --remove-orphans
+
 .PHONY: local_management_db_reset
 local_management_db_reset:
 	@echo "Dropping and recreating public schema..."
@@ -176,7 +180,7 @@ local_setup: local_infra_up local_db_init local_management_db_init
 # Stop all local infrastructure services
 .PHONY: local_all_down
 local_all_down:
-	-$(MAKE) local_stop_parsers
+	-$(MAKE) local_workers_down
 	-$(MAKE) local_keyvaldb_down
 	-$(MAKE) local_mq_down
 	-$(MAKE) local_db_down
@@ -189,7 +193,7 @@ local_clean:
 	docker compose -f infra/docker/local/mq/docker-compose.yml down -v 2>/dev/null || true
 	docker compose -f infra/docker/local/keyvaldb/docker-compose.yml down -v 2>/dev/null || true
 	docker compose -f infra/docker/local/management-db/docker-compose.yml down -v 2>/dev/null || true
-	-$(MAKE) local_stop_parsers
+	-$(MAKE) local_workers_down
 	-$(MAKE) local_network_remove
 	@echo "Local environment cleaned. Images preserved for faster restart."
 
@@ -423,3 +427,17 @@ local_start_all_apps: infra/config/local/web.env infra/config/local/management-w
 local_rebuild_all_apps: local_stop_all_apps local_prune_podverse_images local_build_all
 	@echo ""
 	@echo "All app images rebuilt. Start with: make local_test_all_apps"
+
+# Full nuke, rebuild, and run (destroys everything, rebuilds images, starts all apps + workers)
+.PHONY: local_nuke_rebuild_run
+local_nuke_rebuild_run:
+	$(MAKE) local_clean
+	$(MAKE) local_prune_podverse_images
+	$(MAKE) local_setup
+	$(MAKE) local_build_all
+	$(MAKE) local_start_all_apps
+	$(MAKE) local_run_workers_all
+	@echo ""
+	@echo "============================================"
+	@echo "Local environment fully rebuilt and running!"
+	@echo "============================================"
