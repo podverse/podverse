@@ -70,7 +70,7 @@ const run = async () => {
     getExternalServicesConfig,
     getNotificationsConfig,
     getKeyvaldbConfig,
-    getDigitalOceanConfig,
+    getBucketProviderConfig,
     isImageShrinkEnabled,
   } = await import('./config/index.js');
   const { setLoggerService, getLoggerService } = await import('./factories/loggerService.js');
@@ -173,12 +173,12 @@ const run = async () => {
 
       if (categories.has(CATEGORY_IMAGE_SHRINK)) {
         if (isImageShrinkEnabled()) {
-          const digitalOceanConfig = getDigitalOceanConfig();
+          const bucketProviderConfig = getBucketProviderConfig();
           setImageStorageService(
             new DigitalOceanService({
-              accessKey: digitalOceanConfig.accessKey,
-              secretKey: digitalOceanConfig.secretKey,
-              region: digitalOceanConfig.region,
+              accessKey: bucketProviderConfig.accessKey,
+              secretKey: bucketProviderConfig.secretKey,
+              region: bucketProviderConfig.region,
             })
           );
         }

@@ -25,11 +25,12 @@ Ensure the database has some channel and/or item images (from normal RSS parsing
    - MQ: `MESSAGE_QUEUE_PROTOCOL`, `MESSAGE_QUEUE_HOST`, `MESSAGE_QUEUE_USERNAME`, `MESSAGE_QUEUE_PASSWORD`, `MESSAGE_QUEUE_PORT`
 
 3. **Set Image Shrink variables** for the implementation you are using. For Digital Ocean Spaces, follow [Digital Ocean Spaces Setup](DIGITAL-OCEAN-SETUP.md) and set:
-   - `DIGITAL_OCEAN_ACCESS_KEY`, `DIGITAL_OCEAN_SECRET_KEY`
+   - `BUCKET_PROVIDER` (`digitalocean`)
+   - `BUCKET_ACCESS_KEY`, `BUCKET_SECRET_KEY`
    - `BUCKET_REGION`, `BUCKET_NAME`, `BUCKET_CDN_BASE_URL`
    - `IMAGE_SHRINK_WIDTH_PX`, `IMAGE_SHRINK_BATCH_SIZE`, `IMAGE_SHRINK_CONCURRENCY`, `IMAGE_SHRINK_RPS`
 
-   If any image shrink env var is set, **all** of the above are required (all-or-nothing). Optional: `IMAGE_SHRINK_RECHECK_TTL_SECONDS`, `IMAGE_SHRINK_SOURCE_PRUNE_DAYS`.
+   If `BUCKET_PROVIDER` is set, **all** of the above are required (all-or-nothing). Optional: `IMAGE_SHRINK_RECHECK_TTL_SECONDS`, `IMAGE_SHRINK_SOURCE_PRUNE_DAYS`.
 
 4. **Confirm the queue exists**. The consumer expects the queue name defined in `MQ_IMAGE_SHRINK_HINTS_CONFIG` (see `@podverse/helpers`). Ensure ActiveMQ has that queue created (or use default queue creation if your broker creates queues on demand).
 

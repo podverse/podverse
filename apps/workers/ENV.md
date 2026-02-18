@@ -94,10 +94,11 @@ These variables are required only for commands that include the Podcast Index ca
 
 ## Image Shrink
 
-Image shrink is optional. If **no** image shrink env vars are set, image shrink is disabled and these variables are not used. If **any** image shrink env var is set, image shrink is treated as enabled and **all** of the variables listed below are required for commands that use image shrink (`imageShrinkRunConsumer`, `imageShrinkBackfill`).
+Image shrink is optional. If **`BUCKET_PROVIDER`** is empty or unset, image shrink is disabled and these variables are not used. If **`BUCKET_PROVIDER`** is set (current supported value: `digitalocean`), image shrink is enabled and **all** of the variables listed below are required for commands that use image shrink (`imageShrinkRunConsumer`, `imageShrinkBackfill`).
 
-- **`DIGITAL_OCEAN_ACCESS_KEY`** (Required when image shrink enabled) - DigitalOcean Spaces access key (not the API Personal Access Token)
-- **`DIGITAL_OCEAN_SECRET_KEY`** (Required when image shrink enabled) - DigitalOcean Spaces secret key (not the API Personal Access Token)
+- **`BUCKET_PROVIDER`** (Required when image shrink enabled) - Bucket provider (`digitalocean`)
+- **`BUCKET_ACCESS_KEY`** (Required when image shrink enabled) - Bucket access key (DigitalOcean Spaces access key; not the API Personal Access Token)
+- **`BUCKET_SECRET_KEY`** (Required when image shrink enabled) - Bucket secret key (DigitalOcean Spaces secret key; not the API Personal Access Token)
 - **`BUCKET_REGION`** (Required when image shrink enabled) - CDN region/location (e.g. `nyc3` for DO, `us-east-1` for AWS)
 - **`BUCKET_NAME`** (Required when image shrink enabled) - Image CDN bucket name (storage)
 - **`BUCKET_CDN_BASE_URL`** (Required when image shrink enabled) - Public CDN base URL for the bucket (storage)

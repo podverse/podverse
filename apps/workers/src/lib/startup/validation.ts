@@ -96,18 +96,28 @@ function validateKeyvaldb(): ValidationResult[] {
 /** Category: Image Shrink */
 function validateImageShrink(): ValidationResult[] {
   const results: ValidationResult[] = [];
+  const bucketProvider = process.env.BUCKET_PROVIDER?.trim() ?? '';
   if (!hasAnyImageShrinkEnvSet()) {
     results.push(
-      validateOptional(
-        'IMAGE_SHRINK_WIDTH_PX',
-        'Image Shrink',
-        'Disabled - image shrink env vars not set'
-      )
+      validateOptional('BUCKET_PROVIDER', 'Image Shrink', 'Disabled - BUCKET_PROVIDER not set')
     );
     return results;
   }
-  results.push(validateRequired('DIGITAL_OCEAN_ACCESS_KEY', 'DigitalOcean'));
-  results.push(validateRequired('DIGITAL_OCEAN_SECRET_KEY', 'DigitalOcean'));
+
+  const isBucketProviderValid = bucketProvider === 'digitalocean';
+  results.push({
+    name: 'BUCKET_PROVIDER',
+    isSet: true,
+    isValid: isBucketProviderValid,
+    isRequired: true,
+    message: isBucketProviderValid
+      ? 'Set'
+      : `Invalid value: "${bucketProvider}" (expected "digitalocean")`,
+    category: 'Image Shrink',
+  });
+
+  results.push(validateRequired('BUCKET_ACCESS_KEY', 'Image Shrink'));
+  results.push(validateRequired('BUCKET_SECRET_KEY', 'Image Shrink'));
   results.push(validateRequired('BUCKET_REGION', 'Image Shrink'));
   results.push(validateRequired('BUCKET_NAME', 'Image Shrink'));
   results.push(validateRequired('BUCKET_CDN_BASE_URL', 'Image Shrink'));

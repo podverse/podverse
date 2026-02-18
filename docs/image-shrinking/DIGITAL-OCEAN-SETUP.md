@@ -33,7 +33,7 @@ The worker needs an access key and secret to upload objects.
 2. Under **Spaces access keys**, click **Generate New Key**.
 3. Give the key a name (e.g. `podverse-workers-image-shrink`).
 4. Copy the **Access Key** and **Secret** immediately; the secret is shown only once.
-5. Use these as `DIGITAL_OCEAN_ACCESS_KEY` and `DIGITAL_OCEAN_SECRET_KEY` in the worker environment.
+5. Use these as `BUCKET_ACCESS_KEY` and `BUCKET_SECRET_KEY` in the worker environment.
 
 This setup requires **Spaces access keys** (Access Key + Secret Key), not the general **Personal Access Token** (PAT) used for API, CLI, or Terraform. PATs cannot be used for Spaces; they will cause authentication failures when uploading.
 
@@ -43,13 +43,14 @@ This setup requires **Spaces access keys** (Access Key + Secret Key), not the ge
 
 Set the following in the workers app (e.g. `apps/workers/.env` or your deployment config). See `apps/workers/.env.example` for the full template.
 
-| Variable                   | Example / source                                                                    |
-| -------------------------- | ----------------------------------------------------------------------------------- |
-| `DIGITAL_OCEAN_ACCESS_KEY` | From step 3 (Spaces access key; not the API Personal Access Token)                  |
-| `DIGITAL_OCEAN_SECRET_KEY` | From step 3 (Spaces secret key; not the API Personal Access Token)                  |
-| `BUCKET_REGION`            | Space region, e.g. `nyc3`                                                           |
-| `BUCKET_NAME`              | Space name, e.g. `podverse-images`                                                  |
-| `BUCKET_CDN_BASE_URL`      | CDN URL from step 2, e.g. `https://podverse-images.nyc3.cdn.digitaloceanspaces.com` |
+| Variable              | Example / source                                                                    |
+| --------------------- | ----------------------------------------------------------------------------------- |
+| `BUCKET_PROVIDER`     | `digitalocean`                                                                      |
+| `BUCKET_ACCESS_KEY`   | From step 3 (Spaces access key; not the API Personal Access Token)                  |
+| `BUCKET_SECRET_KEY`   | From step 3 (Spaces secret key; not the API Personal Access Token)                  |
+| `BUCKET_REGION`       | Space region, e.g. `nyc3`                                                           |
+| `BUCKET_NAME`         | Space name, e.g. `podverse-images`                                                  |
+| `BUCKET_CDN_BASE_URL` | CDN URL from step 2, e.g. `https://podverse-images.nyc3.cdn.digitaloceanspaces.com` |
 
 Plus the remaining [image shrink env vars](SERVICE.md#required-environment-variables) (`IMAGE_SHRINK_WIDTH_PX`, `IMAGE_SHRINK_BATCH_SIZE`, etc.).
 

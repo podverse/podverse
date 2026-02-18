@@ -102,13 +102,10 @@ data:
   # ADD_BY_RSS_CREDENTIALS_ENCRYPTION_KEY: ""  # in secrets (podverse-workers-add-by-rss-opaque)
 
   #####
-  ##### DigitalOcean
-  #####
-  # ACCESS_KEY and SECRET_KEY are in secrets (podverse-workers-digital-ocean-opaque)
-
-  #####
   ##### Image Shrink (storage)
   #####
+  BUCKET_PROVIDER: "digitalocean"
+  # BUCKET_ACCESS_KEY and BUCKET_SECRET_KEY are in secrets (podverse-workers-digital-ocean-opaque)
   BUCKET_REGION: "nyc3"
   BUCKET_NAME: "podverse-assets-alpha"
   BUCKET_CDN_BASE_URL: "https://podverse-assets-alpha.nyc3.digitaloceanspaces.com"

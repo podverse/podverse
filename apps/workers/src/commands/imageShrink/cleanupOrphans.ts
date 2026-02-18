@@ -1,6 +1,6 @@
 import type { CommandLineArgs } from '@workers/commands/index.js';
 import {
-  getDigitalOceanConfig,
+  getBucketProviderConfig,
   getImageShrinkCleanupConfig,
   getImageShrinkStorageConfig,
   isImageShrinkEnabled,
@@ -39,11 +39,11 @@ export const imageShrinkCleanupOrphans = async (_args: CommandLineArgs) => {
 
   const cleanupConfig = getImageShrinkCleanupConfig();
   const storageConfig = getImageShrinkStorageConfig();
-  const digitalOceanConfig = getDigitalOceanConfig();
+  const bucketProviderConfig = getBucketProviderConfig();
   const digitalOceanService = new DigitalOceanService({
-    accessKey: digitalOceanConfig.accessKey,
-    secretKey: digitalOceanConfig.secretKey,
-    region: digitalOceanConfig.region,
+    accessKey: bucketProviderConfig.accessKey,
+    secretKey: bucketProviderConfig.secretKey,
+    region: bucketProviderConfig.region,
   });
   const channelImageService = new ChannelImageService();
   const itemImageService = new ItemImageService();

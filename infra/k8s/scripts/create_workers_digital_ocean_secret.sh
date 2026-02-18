@@ -18,13 +18,13 @@ OUTPUT_FILE="./k8s/secrets/podverse-${ENVIRONMENT}-workers-digital-ocean-opaque.
 # INPUTS
 # ------------------------------------------------------------------
 echo "--- DIGITALOCEAN SPACES ---"
-read -r -s -p "Enter DIGITAL_OCEAN_ACCESS_KEY: " DIGITAL_OCEAN_ACCESS_KEY
+read -r -s -p "Enter BUCKET_ACCESS_KEY: " BUCKET_ACCESS_KEY
 echo ""
-if [ -z "$DIGITAL_OCEAN_ACCESS_KEY" ]; then echo "Error: DIGITAL_OCEAN_ACCESS_KEY required."; exit 1; fi
+if [ -z "$BUCKET_ACCESS_KEY" ]; then echo "Error: BUCKET_ACCESS_KEY required."; exit 1; fi
 
-read -r -s -p "Enter DIGITAL_OCEAN_SECRET_KEY: " DIGITAL_OCEAN_SECRET_KEY
+read -r -s -p "Enter BUCKET_SECRET_KEY: " BUCKET_SECRET_KEY
 echo ""
-if [ -z "$DIGITAL_OCEAN_SECRET_KEY" ]; then echo "Error: DIGITAL_OCEAN_SECRET_KEY required."; exit 1; fi
+if [ -z "$BUCKET_SECRET_KEY" ]; then echo "Error: BUCKET_SECRET_KEY required."; exit 1; fi
 
 # --- GENERATION ---
 mkdir -p "$(dirname "$OUTPUT_FILE")"
@@ -33,8 +33,8 @@ echo "Generating and encrypting secret..."
 TMP_FILE="$(mktemp -t "${SECRET_NAME}.XXXXXX.yaml")"
 kubectl create secret generic "${SECRET_NAME}" \
     --namespace "${NAMESPACE}" \
-    --from-literal=DIGITAL_OCEAN_ACCESS_KEY="${DIGITAL_OCEAN_ACCESS_KEY}" \
-    --from-literal=DIGITAL_OCEAN_SECRET_KEY="${DIGITAL_OCEAN_SECRET_KEY}" \
+    --from-literal=BUCKET_ACCESS_KEY="${BUCKET_ACCESS_KEY}" \
+    --from-literal=BUCKET_SECRET_KEY="${BUCKET_SECRET_KEY}" \
     --dry-run=client -o yaml > "$TMP_FILE"
 
 sops --encrypt --encrypted-regex '^(data|stringData)$' \

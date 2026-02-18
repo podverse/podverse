@@ -43,16 +43,16 @@ export function getMQConfig(): MQConfig {
   };
 }
 
-export type DigitalOceanConfig = {
+export type BucketProviderConfig = {
   accessKey: string;
   secretKey: string;
   region: string;
 };
 
-export function getDigitalOceanConfig(): DigitalOceanConfig {
+export function getBucketProviderConfig(): BucketProviderConfig {
   return {
-    accessKey: process.env.DIGITAL_OCEAN_ACCESS_KEY!,
-    secretKey: process.env.DIGITAL_OCEAN_SECRET_KEY!,
+    accessKey: process.env.BUCKET_ACCESS_KEY!,
+    secretKey: process.env.BUCKET_SECRET_KEY!,
     region: process.env.BUCKET_REGION!,
   };
 }
@@ -86,8 +86,8 @@ export type ImageShrinkCleanupConfig = {
 };
 
 const IMAGE_SHRINK_REQUIRED_VARS = [
-  'DIGITAL_OCEAN_ACCESS_KEY',
-  'DIGITAL_OCEAN_SECRET_KEY',
+  'BUCKET_ACCESS_KEY',
+  'BUCKET_SECRET_KEY',
   'BUCKET_REGION',
   'BUCKET_NAME',
   'BUCKET_CDN_BASE_URL',
@@ -102,11 +102,14 @@ const isEnvVarSet = (value: string | undefined): boolean => {
 };
 
 export function hasAnyImageShrinkEnvSet(): boolean {
-  return IMAGE_SHRINK_REQUIRED_VARS.some((key) => isEnvVarSet(process.env[key]));
+  return isEnvVarSet(process.env.BUCKET_PROVIDER);
 }
 
 export function isImageShrinkEnabled(): boolean {
-  return IMAGE_SHRINK_REQUIRED_VARS.every((key) => isEnvVarSet(process.env[key]));
+  return (
+    process.env.BUCKET_PROVIDER?.trim() === 'digitalocean' &&
+    IMAGE_SHRINK_REQUIRED_VARS.every((key) => isEnvVarSet(process.env[key]))
+  );
 }
 
 export function getImageShrinkConfig(): ImageShrinkConfig {
