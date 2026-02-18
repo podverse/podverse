@@ -18,6 +18,10 @@ append_indented_file() {
 	local target_file="$3"
 
 	while IFS= read -r line || [[ -n "$line" ]]; do
+		if [[ -z "${line//[[:space:]]/}" ]]; then
+			printf '\n' >>"$target_file"
+			continue
+		fi
 		printf '%s%s\n' "$indent" "$line" >>"$target_file"
 	done <"$source_file"
 }
