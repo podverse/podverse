@@ -48,13 +48,14 @@ echo "" >>"$MAIN_COMBINED"
 
 main_migrations=("$MAIN_MIGRATIONS"/*.sql)
 if ((${#main_migrations[@]} > 0)); then
-	IFS=$'\n' main_migrations_sorted=($(printf '%s\n' "${main_migrations[@]}" | sort))
-	unset IFS
+	mapfile -t main_migrations_sorted < <(printf '%s\n' "${main_migrations[@]}" | sort)
 	for migration in "${main_migrations_sorted[@]}"; do
-		echo "-- Including: $(basename "$migration")" >>"$MAIN_COMBINED"
-		cat "$migration" >>"$MAIN_COMBINED"
-		echo "" >>"$MAIN_COMBINED"
-		echo "" >>"$MAIN_COMBINED"
+		{
+			echo "-- Including: $(basename "$migration")"
+			cat "$migration"
+			echo ""
+			echo ""
+		} >>"$MAIN_COMBINED"
 	done
 fi
 
@@ -65,6 +66,7 @@ ensure_parent_dir "$MAIN_CONFIGMAP"
 cat <<EOF >"$MAIN_CONFIGMAP"
 apiVersion: v1
 kind: ConfigMap
+# DO NOT EDIT - regenerate with scripts/database/combine-migrations.sh
 metadata:
   name: podverse-db-init-scripts
 data:
@@ -90,13 +92,14 @@ echo "" >>"$MGMT_COMBINED"
 
 mgmt_migrations=("$MGMT_MIGRATIONS"/*.sql)
 if ((${#mgmt_migrations[@]} > 0)); then
-	IFS=$'\n' mgmt_migrations_sorted=($(printf '%s\n' "${mgmt_migrations[@]}" | sort))
-	unset IFS
+	mapfile -t mgmt_migrations_sorted < <(printf '%s\n' "${mgmt_migrations[@]}" | sort)
 	for migration in "${mgmt_migrations_sorted[@]}"; do
-		echo "-- Including: $(basename "$migration")" >>"$MGMT_COMBINED"
-		cat "$migration" >>"$MGMT_COMBINED"
-		echo "" >>"$MGMT_COMBINED"
-		echo "" >>"$MGMT_COMBINED"
+		{
+			echo "-- Including: $(basename "$migration")"
+			cat "$migration"
+			echo ""
+			echo ""
+		} >>"$MGMT_COMBINED"
 	done
 fi
 

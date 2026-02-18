@@ -81,3 +81,32 @@ update the scripts/database/combine-migrations.sh to create the infra/k8s/base/d
 #### Files Modified
 
 - scripts/database/combine-migrations.sh
+
+### Session 6 - 2026-02-18
+
+#### Prompt (Developer)
+
+on lines that only spaces remove the spaces
+
+#### Key Decisions
+
+- Treat whitespace-only lines as blank when writing the ConfigMap content.
+- Keep configmap generation in combine-migrations and clean shellcheck warnings.
+
+#### Files Modified
+
+- scripts/database/combine-migrations.sh
+
+### Session 7 - 2026-02-18
+
+#### Prompt (Developer)
+
+add the same do not edit warning to the configmap as a comment that is generated in the other files
+
+#### Key Decisions
+
+- Add a generated warning comment to the ConfigMap output.
+
+#### Files Modified
+
+- scripts/database/combine-migrations.sh
