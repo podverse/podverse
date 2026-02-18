@@ -71,50 +71,23 @@ data:
   DB_SSL_CONNECTION: "false"
 
   #####
-  ##### Auth/Membership
+  ##### Key-value (Valkey / Redis)
   #####
 
-  # "sign-up" for paid premium memberships
-  # "sign-up" plus set costs to 0 for free sign ups
-  # "contact-only" for contact-only signup mode
-  ACCOUNT_SIGNUP_MODE: "contact-only"
-  VERIFY_EMAIL_TOKEN_EXPIRATION: "604800" # 7 days
-  VERIFY_EMAIL_PAGE_PATH: "/verify-email?token="
-  EMAIL_CHANGE_VERIFICATION_TOKEN_EXPIRATION: "604800" # 7 days
-  EMAIL_CHANGE_VERIFICATION_PAGE_PATH: "/email-change-verifying?token="
-  RESET_PASSWORD_TOKEN_EXPIRATION: "86400" # 1 day
-  RESET_PASSWORD_PAGE_PATH: "/reset-password?token="
-  FREE_TRIAL_EXPIRATION: "2592000" # 30 days
-  PREMIUM_MEMBERSHIP_COST_MONTHLY: "3" # monthly cost in USD
-  PREMIUM_MEMBERSHIP_COST_ANNUALLY: "30" # annually cost in USD
+  KEYVALDB_HOST: "podverse-keyvaldb"
+  KEYVALDB_PORT: "6379"
+  ##KEYVALDB_PASSWORD: ""             # in secrets
+  KEYVALDB_CACHE_TTL_SECONDS: "86400" # 1 day
 
   #####
-  ##### Email template
-  #####
-  ### These are used in the templates of the auth related emails we send.
-
-  EMAIL_BRAND_COLOR: "#2968B1"
-  EMAIL_HEADER_IMAGE_URL: ""
-  LEGAL_NAME: ""
-  LEGAL_ADDRESS: ""
-  SOCIAL_FACEBOOK_IMAGE_URL: ""
-  SOCIAL_FACEBOOK_PAGE_URL: ""
-  SOCIAL_GITHUB_IMAGE_URL: ""
-  SOCIAL_GITHUB_PAGE_URL: ""
-  SOCIAL_TWITTER_IMAGE_URL: ""
-  SOCIAL_TWITTER_PAGE_URL: ""
-
-  #####
-  ##### Mailer
+  ##### Message Queue (RabbitMQ)
   #####
 
-  MAILER_DISABLED: "1"
-  MAILER_HOST: ""
-  MAILER_PORT: ""
-  MAILER_SERVICE: ""
-  MAILER_USERNAME: ""
-  MAILER_PASSWORD: ""
-  MAILER_FROM: ""
+  MESSAGE_QUEUE_PROTOCOL: "amqp"
+  MESSAGE_QUEUE_HOST: "podverse-mq"
+  ##MESSAGE_QUEUE_USERNAME: "user"
+  ##MESSAGE_QUEUE_PASSWORD: "your_mq_password"
+  MESSAGE_QUEUE_PORT: "5672"
 
   #####
   ##### Podcast Index
@@ -128,35 +101,85 @@ data:
   PODCAST_INDEX_API_RATE_LIMIT_DELAY: "200"
 
   #####
-  ##### Message Queue
+  ##### Auth/Membership
   #####
 
-  MESSAGE_QUEUE_PROTOCOL: "amqp"
-  MESSAGE_QUEUE_HOST: "podverse-mq"
-  #MESSAGE_QUEUE_USERNAME: "user"         # in secrets
-  #MESSAGE_QUEUE_PASSWORD: "mysecretpw"   # in secrets
-  MESSAGE_QUEUE_PORT: "5672"
+  # Must be either "sign-up" or "contact-only"
+  # "sign-up" - enables user registration (requires mailer config below)
+  # "contact-only" - disables user registration
+  ACCOUNT_SIGNUP_MODE: "contact-only"
+
+  # Optional premium membership costs (set to 0 for free signups)
+  PREMIUM_MEMBERSHIP_COST_MONTHLY: ""
+  PREMIUM_MEMBERSHIP_COST_ANNUALLY: ""
+  FREE_TRIAL_EXPIRATION: ""
 
   #####
-  ##### Key-value (Valkey / Redis)
+  ##### Mailer (Required when ACCOUNT_SIGNUP_MODE=sign-up)
   #####
 
-  KEYVALDB_HOST: "podverse-keyvaldb"
-  KEYVALDB_PORT: "6379"
-  #KEYVALDB_PASSWORD: ""                # in secrets
-  KEYVALDB_CACHE_TTL_SECONDS: "86400" # 1 day
+  # Set to true to disable mailer
+  MAILER_DISABLED: "true"
+  MAILER_HOST: "smtp.example.com"
+  MAILER_PORT: "587"
+  MAILER_USERNAME: "your_smtp_username"
+  MAILER_PASSWORD: "your_smtp_password"
+  MAILER_FROM: "noreply@example.com"
+
+  #####
+  ##### Email Template (Required when ACCOUNT_SIGNUP_MODE=sign-up)
+  #####
+
+  EMAIL_BRAND_COLOR: "#2968B1"
+  EMAIL_HEADER_IMAGE_URL: "https://example.com/images/logo.png"
+  LEGAL_NAME: "Your Company Name"
+  LEGAL_ADDRESS: "Your City, State, Country"
+
+  #####
+  ##### Token Expiration (Required when ACCOUNT_SIGNUP_MODE=sign-up)
+  #####
+
+  # Values in seconds
+  VERIFY_EMAIL_TOKEN_EXPIRATION: "31540000"
+  EMAIL_CHANGE_VERIFICATION_TOKEN_EXPIRATION: "31540000"
+  RESET_PASSWORD_TOKEN_EXPIRATION: "86400"
+
+  #####
+  ##### Page Paths (Required when ACCOUNT_SIGNUP_MODE=sign-up)
+  #####
+
+  VERIFY_EMAIL_PAGE_PATH: "/verify-email?token="
+  EMAIL_CHANGE_VERIFICATION_PAGE_PATH: "/verify-email-change?token="
+  RESET_PASSWORD_PAGE_PATH: "/reset-password?token="
+
+  #####
+  ##### Social Media (Optional, used in email templates)
+  #####
+
+  SOCIAL_FACEBOOK_PAGE_URL: ""
+  SOCIAL_FACEBOOK_IMAGE_URL: ""
+  SOCIAL_GITHUB_PAGE_URL: ""
+  SOCIAL_GITHUB_IMAGE_URL: ""
+  SOCIAL_TWITTER_PAGE_URL: ""
+  SOCIAL_TWITTER_IMAGE_URL: ""
+
+  #####
+  ##### Add-by-RSS
+  #####
+  # Basic Auth credentials for add-by-RSS feeds are stored per-feed in the database
+  # (account_following_add_by_rss_channel). Required: 64 hex characters (32 bytes)
+  # for AES-256-GCM encryption at rest. Generate with: openssl rand -hex 32
+  ADD_BY_RSS_CREDENTIALS_ENCRYPTION_KEY: ""
+
+  #####
+  ##### PayPal (Optional, for payment processing)
+  #####
+
+  PAYPAL_CLIENT_ID: ""
+  PAYPAL_CLIENT_SECRET: ""
 
   #####
   ##### Default Account Settings
   #####
   # These are used as default values when creating new accounts.
   DEFAULT_ACCOUNT_SETTINGS_LOCALE: "en-US"
-
-  #####
-  ##### Parser
-  #####
-
-  # When true, the parser will add remote items to the message queue for processing.
-  # The parser will recursively follow all remote items, and their remote items, until it runs out.
-  # If a feed is already in the database, it will not add a message for that remote item feed to the queue.
-  PARSER_ADD_REMOTE_ITEMS_TO_MQ: ""
