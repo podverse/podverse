@@ -110,3 +110,21 @@ add the same do not edit warning to the configmap as a comment that is generated
 #### Files Modified
 
 - scripts/database/combine-migrations.sh
+
+### Session 8 - 2026-02-18
+
+#### Prompt (Developer)
+
+I need a new create secret script like infra/k8s/scripts/create_api_secret.sh
+It should be called ADD_BY_RSS_CREDENTIALS_ENCRYPTION_KEY
+created using openssl rand -hex 32
+the output should be podverse-workers-add-by-rss-opaque
+
+#### Key Decisions
+
+- Add a workers add-by-rss secret creator with optional auto-generation using openssl rand -hex 32.
+- Name the secret podverse-workers-add-by-rss-opaque and store output in the k8s secrets folder.
+
+#### Files Created
+
+- infra/k8s/scripts/create_workers_add_by_rss_secret.sh
