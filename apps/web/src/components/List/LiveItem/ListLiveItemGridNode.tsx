@@ -5,8 +5,8 @@ import Link from 'next/link';
 import React from 'react';
 import type { DTOChannel, DTOItem, DTOLiveItem } from '@podverse/helpers';
 import {
-  findDTOChannelImageBySize,
-  findDTOItemImageBySize,
+  findDTOChannelImageForList,
+  findDTOItemImageForList,
   getQueryParamFromQueueMediumId,
 } from '@podverse/helpers';
 import { Image } from '../../Image/Image';
@@ -34,12 +34,12 @@ export const ListLiveItemGridNode: React.FC<Props> = ({
     medium === 'av'
       ? `${ROUTES.PODCAST_LIVESTREAM}/${item.id_text}`
       : `${ROUTES.MUSIC_LIVESTREAM}/${item.id_text}`;
-  const channel_image = findDTOChannelImageBySize(
+  const channel_image = findDTOChannelImageForList(
     channel.channel_images,
     IMAGES.LIST.LIVESTREAMS.DESKTOP.SIZE_FIND_TARGET,
     'lesser'
   );
-  const item_image = findDTOItemImageBySize(
+  const item_image = findDTOItemImageForList(
     item.item_images,
     IMAGES.LIST.LIVESTREAMS.DESKTOP.SIZE_FIND_TARGET,
     'lesser'

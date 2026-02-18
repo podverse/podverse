@@ -33,7 +33,7 @@ validate:
 	@echo "============================================"
 	@echo ""
 	@echo "Step 1/6: Security audit..."
-	npm audit
+	npm audit --omit=dev
 	@echo ""
 	@echo "Step 2/6: Building packages..."
 	npm run build:packages

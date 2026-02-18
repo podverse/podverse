@@ -5,8 +5,8 @@ import Link from 'next/link';
 import React from 'react';
 import type { DTOChannel, DTOItem } from '@podverse/helpers';
 import {
-  findDTOChannelImageBySize,
-  findDTOItemImageBySize,
+  findDTOChannelImageForList,
+  findDTOItemImageForList,
   formatDateAbbrev,
 } from '@podverse/helpers';
 import { Image } from '../../../Image/Image';
@@ -22,12 +22,12 @@ interface Props {
 
 export const ListEpisodeGridNode: React.FC<Props> = ({ channel, item, showChannelInfo }) => {
   const url = `${ROUTES.EPISODE}/${item.id_text}`;
-  const channel_image = findDTOChannelImageBySize(
+  const channel_image = findDTOChannelImageForList(
     channel.channel_images,
     IMAGES.LIST.EPISODES.DESKTOP.SIZE_FIND_TARGET,
     'lesser'
   );
-  const item_image = findDTOItemImageBySize(
+  const item_image = findDTOItemImageForList(
     item.item_images,
     IMAGES.LIST.EPISODES.DESKTOP.SIZE_FIND_TARGET,
     'lesser'

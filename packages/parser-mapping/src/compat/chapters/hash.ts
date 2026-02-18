@@ -51,7 +51,7 @@ const md5 = (input: string): string => {
     const numberOfWordsTemp2 = (numberOfWordsTemp1 - (numberOfWordsTemp1 % 64)) / 64;
     const numberOfWords = (numberOfWordsTemp2 + 1) * 16;
     const wordArray = new Array(numberOfWords - 1);
-    let bytePosition = 0;
+    let bytePosition: number;
     let byteCount = 0;
     while (byteCount < messageLength) {
       const wordCount = (byteCount - (byteCount % 4)) / 4;
@@ -70,7 +70,7 @@ const md5 = (input: string): string => {
 
   const wordToHex = (value: number): string => {
     let wordToHexValue = '';
-    let wordToHexValueTemp = '';
+    let wordToHexValueTemp: string;
     for (let count = 0; count <= 3; count++) {
       const byte = (value >>> (count * 8)) & 255;
       wordToHexValueTemp = `0${byte.toString(16)}`;

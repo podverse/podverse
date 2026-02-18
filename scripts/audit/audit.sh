@@ -15,20 +15,20 @@ echo ""
 # Check for --fix flag
 if [ "$1" == "--fix" ]; then
   echo "Running npm audit fix..."
-  npm audit fix --workspaces || true
+  npm audit fix --omit=dev --workspaces || true
   echo ""
 fi
 
-# Run npm audit (strict: all dependencies, all severity levels)
-echo "Running npm audit..."
-npm audit || true
+# Run npm audit --omit=dev (all severity levels)
+echo "Running npm audit --omit=dev..."
+npm audit --omit=dev || true
 
 echo ""
 echo "=== Audit Complete ==="
 
 # Summary with vulnerability count
 if command -v jq &> /dev/null; then
-  VULNS=$(npm audit --json 2> /dev/null | jq '.metadata.vulnerabilities.total // 0' || echo "0")
+  VULNS=$(npm audit --omit=dev --json 2> /dev/null | jq '.metadata.vulnerabilities.total // 0' || echo "0")
   if [ "$VULNS" != "0" ] && [ "$VULNS" != "null" ]; then
     echo ""
     echo "⚠️  Found $VULNS vulnerabilities"

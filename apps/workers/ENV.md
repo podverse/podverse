@@ -28,6 +28,8 @@ The workers app validates environment variables **per command**. Each job only v
 | Base + ORM + MQ + Podcast Index     | Base, ORM, MQ, PodcastIndex              | mqRSSAdd                                                    |
 | Base + MQ + Parser + KeyValDB       | Base, MQ, Parser, KeyValDB               | mqAddByRSSRunParser                                         |
 | Base + ORM + MQ + Parser + PI + Web | Base, ORM, MQ, Parser, PodcastIndex, Web | parserRSSParseFeed                                          |
+| Base + ORM + MQ + Image Shrink      | Base, ORM, MQ, ImageShrink               | imageShrinkRunConsumer, imageShrinkBackfill                 |
+| Base + ORM + Image Shrink           | Base, ORM, ImageShrink                   | imageShrinkCleanupOrphans, imageShrinkSourcePrune           |
 | Full stack                          | Base, ORM, MQ, Parser, PodcastIndex, Web | mqRSSRunParser, mqRSSRunLiveItemListener                    |
 
 Within each category, vars are required or optional as listed in the sections below. Only the categories for your command are validated.
@@ -45,7 +47,7 @@ examples if needed. For the full checklist (including index.ts and new categorie
 
 Add-by-RSS feed parsing (e.g. `mqAddByRSSRunParser`) uses optional HTTP Basic Auth credentials stored per-feed in the database (`account_following_add_by_rss_channel`).
 
-- **`ADD_BY_RSS_CREDENTIALS_ENCRYPTION_KEY`** (Required) – Basic Auth credentials are encrypted at rest (AES-256-GCM). Must be 64 hex characters (32 bytes). Generate with: `openssl rand -hex 32`. Passed into the ORM via `createORMContext(config)`. See [docs/ADD-BY-RSS.md](../../docs/ADD-BY-RSS.md) for key-rotation procedure.
+- **`ADD_BY_RSS_CREDENTIALS_ENCRYPTION_KEY`** (Required) – Basic Auth credentials are encrypted at rest (AES-256-GCM). Must be 64 hex characters (32 bytes). Generate with: `openssl rand -hex 32`. Passed into the ORM via `createORMContext(config)`. See [docs/features/ADD-BY-RSS.md](../../docs/features/ADD-BY-RSS.md) for key-rotation procedure.
 - **`ADD_BY_RSS_CREDENTIALS_ENCRYPTION_KEY_OLD`** (Optional) – During key rotation only. When set, the app decrypts with the current key first, then with this old key. Remove after running the re-encryption script.
 
 ## General Configuration (Base — every command)
@@ -89,6 +91,27 @@ These variables are required only for commands that include the Podcast Index ca
 - **`MESSAGE_QUEUE_USERNAME`** (Required) - Message queue username
 - **`MESSAGE_QUEUE_PASSWORD`** (Required) - Message queue password
 - **`MESSAGE_QUEUE_PORT`** (Required) - Message queue port
+
+## Image Shrink
+
+Image shrink is optional. If **`BUCKET_PROVIDER`** is empty or unset, image shrink is disabled and these variables are not used. If **`BUCKET_PROVIDER`** is set (current supported value: `digitalocean`), image shrink is enabled and **all** of the variables listed below are required for commands that use image shrink (`imageShrinkRunConsumer`, `imageShrinkBackfill`).
+
+- **`BUCKET_PROVIDER`** (Required when image shrink enabled) - Bucket provider (`digitalocean`)
+- **`BUCKET_ACCESS_KEY`** (Required when image shrink enabled) - Bucket access key (DigitalOcean Spaces access key; not the API Personal Access Token)
+- **`BUCKET_SECRET_KEY`** (Required when image shrink enabled) - Bucket secret key (DigitalOcean Spaces secret key; not the API Personal Access Token)
+- **`BUCKET_REGION`** (Required when image shrink enabled) - CDN region/location (e.g. `nyc3` for DO, `us-east-1` for AWS)
+- **`BUCKET_NAME`** (Required when image shrink enabled) - Image CDN bucket name (storage)
+- **`BUCKET_CDN_BASE_URL`** (Required when image shrink enabled) - Public CDN base URL for the bucket (storage)
+- **`IMAGE_SHRINK_WIDTH_PX`** (Required when image shrink enabled) - Target width in pixels for resized images
+- **`IMAGE_SHRINK_BATCH_SIZE`** (Required when image shrink enabled) - Max images processed per batch run
+- **`IMAGE_SHRINK_CONCURRENCY`** (Required when image shrink enabled) - Parallel image processing count
+- **`IMAGE_SHRINK_RPS`** (Required when image shrink enabled) - Rate limit for image fetches (requests/second)
+- **`IMAGE_SHRINK_RECHECK_TTL_SECONDS`** (Optional) - Minimum seconds between origin re-checks
+- **`IMAGE_SHRINK_SOURCE_PRUNE_DAYS`** (Optional) - Prune source metadata after N days without resized images
+- **`IMAGE_SHRINK_ORPHAN_CLEANUP_DRY_RUN`** (Optional) - Dry run cleanup (default: `true`)
+- **`IMAGE_SHRINK_ORPHAN_CLEANUP_MAX_DELETE`** (Optional) - Max deletes per run (default: none)
+- **`IMAGE_SHRINK_ORPHAN_CLEANUP_MIN_AGE_DAYS`** (Optional) - Skip objects newer than this age (default: `7`)
+- **`IMAGE_SHRINK_ORPHAN_CLEANUP_PAGE_SIZE`** (Optional) - List page size (default: `500`)
 
 ## KeyValDB (commands that use Redis)
 

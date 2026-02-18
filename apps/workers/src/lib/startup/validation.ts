@@ -39,7 +39,9 @@ import {
   CATEGORY_PODCAST_INDEX,
   CATEGORY_WEB_NOTIFICATIONS,
   CATEGORY_KEYVALDB,
+  CATEGORY_IMAGE_SHRINK,
 } from './categoriesForCommand.js';
+import { hasAnyImageShrinkEnvSet } from '@workers/config/index.js';
 
 /** Category: Config/Base — every command needs at least these */
 function validateBase(): ValidationResult[] {
@@ -88,6 +90,53 @@ function validateKeyvaldb(): ValidationResult[] {
   results.push(validateRequired('KEYVALDB_PORT', 'KeyValDB'));
   results.push(validateRequired('KEYVALDB_PASSWORD', 'KeyValDB'));
   results.push(validateRequired('KEYVALDB_CACHE_TTL_SECONDS', 'KeyValDB'));
+  return results;
+}
+
+/** Category: Image Shrink */
+function validateImageShrink(): ValidationResult[] {
+  const results: ValidationResult[] = [];
+  const bucketProvider = process.env.BUCKET_PROVIDER?.trim() ?? '';
+  if (!hasAnyImageShrinkEnvSet()) {
+    results.push(
+      validateOptional('BUCKET_PROVIDER', 'Image Shrink', 'Disabled - BUCKET_PROVIDER not set')
+    );
+    return results;
+  }
+
+  const isBucketProviderValid = bucketProvider === 'digitalocean';
+  results.push({
+    name: 'BUCKET_PROVIDER',
+    isSet: true,
+    isValid: isBucketProviderValid,
+    isRequired: true,
+    message: isBucketProviderValid
+      ? 'Set'
+      : `Invalid value: "${bucketProvider}" (expected "digitalocean")`,
+    category: 'Image Shrink',
+  });
+
+  results.push(validateRequired('BUCKET_ACCESS_KEY', 'Image Shrink'));
+  results.push(validateRequired('BUCKET_SECRET_KEY', 'Image Shrink'));
+  results.push(validateRequired('BUCKET_REGION', 'Image Shrink'));
+  results.push(validateRequired('BUCKET_NAME', 'Image Shrink'));
+  results.push(validateRequired('BUCKET_CDN_BASE_URL', 'Image Shrink'));
+  results.push(validateRequired('IMAGE_SHRINK_WIDTH_PX', 'Image Shrink'));
+  results.push(validateRequired('IMAGE_SHRINK_BATCH_SIZE', 'Image Shrink'));
+  results.push(validateRequired('IMAGE_SHRINK_CONCURRENCY', 'Image Shrink'));
+  results.push(validateRequired('IMAGE_SHRINK_RPS', 'Image Shrink'));
+  results.push(
+    validateOptional('IMAGE_SHRINK_ORPHAN_CLEANUP_DRY_RUN', 'Image Shrink', 'Use Default (true)')
+  );
+  results.push(
+    validateOptional('IMAGE_SHRINK_ORPHAN_CLEANUP_MAX_DELETE', 'Image Shrink', 'Use Default (none)')
+  );
+  results.push(
+    validateOptional('IMAGE_SHRINK_ORPHAN_CLEANUP_MIN_AGE_DAYS', 'Image Shrink', 'Use Default (7)')
+  );
+  results.push(
+    validateOptional('IMAGE_SHRINK_ORPHAN_CLEANUP_PAGE_SIZE', 'Image Shrink', 'Use Default (500)')
+  );
   return results;
 }
 
@@ -173,6 +222,9 @@ function getValidationResultsForCommand(commandName: string): ValidationResult[]
   }
   if (categories.has(CATEGORY_KEYVALDB)) {
     results.push(...validateKeyvaldb());
+  }
+  if (categories.has(CATEGORY_IMAGE_SHRINK)) {
+    results.push(...validateImageShrink());
   }
 
   return results;

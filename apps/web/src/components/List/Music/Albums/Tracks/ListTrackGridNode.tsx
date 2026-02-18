@@ -4,7 +4,7 @@ import { useTranslations } from 'next-intl';
 import Link from 'next/link';
 import React from 'react';
 import type { DTOChannel, DTOItem } from '@podverse/helpers';
-import { findDTOChannelImageBySize, findDTOItemImageBySize } from '@podverse/helpers';
+import { findDTOChannelImageForList, findDTOItemImageForList } from '@podverse/helpers';
 import { Image } from '../../../../Image/Image';
 import { ROUTES } from '../../../../../constants/routes';
 import { IMAGES } from '../../../../../constants/images';
@@ -18,12 +18,12 @@ interface Props {
 
 export const ListTrackGridNode: React.FC<Props> = ({ channel, item, showChannelInfo }) => {
   const url = `${ROUTES.TRACK}/${item.id_text}`;
-  const channel_image = findDTOChannelImageBySize(
+  const channel_image = findDTOChannelImageForList(
     channel.channel_images,
     IMAGES.LIST.EPISODES.DESKTOP.SIZE_FIND_TARGET,
     'lesser'
   );
-  const item_image = findDTOItemImageBySize(
+  const item_image = findDTOItemImageForList(
     item.item_images,
     IMAGES.LIST.EPISODES.DESKTOP.SIZE_FIND_TARGET,
     'lesser'

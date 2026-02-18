@@ -103,7 +103,7 @@ completed/
 
 ## GitHub Workflows
 
-**Issue Templates & Labels**: [docs/GITHUB-LABELS.md](../../../docs/GITHUB-LABELS.md)
+**Issue Templates & Labels**: [docs/repo-management/GITHUB-LABELS.md](../../../docs/repo-management/GITHUB-LABELS.md)
 
 The repository uses 23 carefully curated labels and 5 issue templates. When creating issues or discussing GitHub workflows, refer to the label documentation.
 

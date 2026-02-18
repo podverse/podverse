@@ -98,7 +98,6 @@ export async function buildRemoteItemsFinalResult(
 
   let itemsUnaddedFromPI: NonNullable<EpisodeByGuidResponse['episode']>[] = [];
   try {
-    itemsUnaddedFromPI = [];
     const items = originalItemsUnadded || [];
 
     const itemsWithFeedGuid = items.filter(

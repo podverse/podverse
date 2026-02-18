@@ -1,4 +1,4 @@
--- Combined migrations generated Sun Feb  8 00:30:24 CST 2026
+-- Combined migrations generated Mon Feb 16 01:51:58 CST 2026
 -- DO NOT EDIT - regenerate with scripts/database/combine-migrations.sh
 
 -- Including: 0000_init_helpers.sql
@@ -1888,5 +1888,29 @@ CREATE TABLE account_settings_notification_type (
 ALTER TABLE account_following_add_by_rss_channel
     ADD COLUMN basic_auth_username varchar_normal NULL,
     ADD COLUMN basic_auth_password varchar_normal NULL;
+
+
+-- Including: 0014_image_shrink_source.sql
+-- 0014: Add image_shrink_source for origin metadata tracking.
+
+CREATE TABLE image_shrink_source (
+    id SERIAL PRIMARY KEY,
+    url varchar_url NOT NULL UNIQUE,
+    etag varchar_normal NULL,
+    last_modified varchar_normal NULL,
+    content_length INTEGER NULL,
+    checksum_sha256 varchar_normal NULL,
+    last_checked_at server_time NULL,
+    last_changed_at server_time NULL,
+    created_at server_time_with_default NOT NULL,
+    updated_at server_time_with_default NOT NULL
+);
+
+CREATE INDEX idx_image_shrink_source_last_checked_at ON image_shrink_source(last_checked_at DESC);
+
+CREATE TRIGGER set_updated_at_image_shrink_source
+    BEFORE UPDATE ON image_shrink_source
+    FOR EACH ROW
+    EXECUTE FUNCTION set_updated_at_field();
 
 

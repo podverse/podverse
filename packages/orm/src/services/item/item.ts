@@ -223,7 +223,7 @@ export class ItemService {
     idOrIdText: string,
     relations: FindOptionsRelations<Item> = {}
   ): Promise<Item | null> {
-    let item = null;
+    let item: Item | null;
 
     if (isNaN(Number(idOrIdText))) {
       item = await this.getByIdText(idOrIdText, relations);
@@ -464,7 +464,7 @@ export class ItemService {
         .andWhere('item_flag_status.id = :status', { status: ItemFlagStatusStatusEnum.Active });
     };
 
-    let finalResults: Item[] = [];
+    let finalResults: Item[];
 
     if (currentSeasonNumber !== -1) {
       // Current item has an actual season number
@@ -653,7 +653,7 @@ export class ItemService {
         .andWhere('item_flag_status.id = :status', { status: ItemFlagStatusStatusEnum.Active });
     };
 
-    let finalResults: Item[] = [];
+    let finalResults: Item[];
 
     if (order === 'forward') {
       // Forward = unseasoned items first (DESC pub_date), then seasoned items (ASC season/episode)

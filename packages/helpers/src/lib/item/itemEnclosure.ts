@@ -53,8 +53,8 @@ export function getSelectedLabeledItemEnclosureAndSource({
     return { labeledItemEnclosure: null, source: null };
   }
 
-  let labeledItemEnclosure: LabeledItemEnclosure | null = null;
-  let source: DTOItemEnclosureSource | null = null;
+  let labeledItemEnclosure: LabeledItemEnclosure | null;
+  let source: DTOItemEnclosureSource | null;
 
   // Helper to get first enclosure of a given mediaType
   const getFirstOfType = (mediaType: 'audio' | 'video') =>

@@ -3,7 +3,7 @@
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';
 import type { DTOChannel } from '@podverse/helpers';
-import { findDTOChannelImageBySize } from '@podverse/helpers';
+import { findDTOChannelImageForList } from '@podverse/helpers';
 import React from 'react';
 import { Image } from '../../../Image/Image';
 import { ROUTES } from '../../../../constants/routes';
@@ -16,7 +16,7 @@ interface Props {
 
 export const ListAlbumRow: React.FC<Props> = ({ channel }) => {
   const url = `${ROUTES.ALBUM}/${channel.id_text}`;
-  const channel_image = findDTOChannelImageBySize(
+  const channel_image = findDTOChannelImageForList(
     channel.channel_images,
     IMAGES.LIST.PODCASTS.SIZE_FIND_TARGET,
     'lesser'

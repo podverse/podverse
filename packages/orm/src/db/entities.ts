@@ -50,6 +50,7 @@ import { Clip } from '@orm/entities/clip.js';
 import { Feed } from '@orm/entities/feed/feed.js';
 import { FeedFlagStatus } from '@orm/entities/feed/feedFlagStatus.js';
 import { FeedLog } from '@orm/entities/feed/feedLog.js';
+import { ImageShrinkSource } from '../entities/imageShrinkSource.js';
 import { Item } from '@orm/entities/item/item.js';
 import { ItemAbout } from '@orm/entities/item/itemAbout.js';
 import { ItemChapter } from '@orm/entities/item/itemChapter.js';
@@ -156,6 +157,7 @@ export const entities = [
   Feed,
   FeedFlagStatus,
   FeedLog,
+  ImageShrinkSource,
   Item,
   ItemAbout,
   ItemChapter,

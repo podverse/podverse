@@ -1,6 +1,6 @@
 {
   "name": "@podverse/api",
-  "version": "5.4.0",
+  "version": "5.4.1",
   "type": "module",
   "description": "Data API, database migration scripts, and backend services for Podverse",
   "private": true,
@@ -57,7 +57,7 @@
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.3",
     "@types/node": "^24.10.12",
-    "@types/nodemailer": "^7.0.1",
+    "@types/nodemailer": "^7.0.10",
     "@types/passport": "^1.0.17",
     "@types/passport-jwt": "^4.0.1",
     "@types/passport-local": "^1.0.38",

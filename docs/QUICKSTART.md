@@ -109,7 +109,7 @@ npm run dev:watch -w apps/api
 npm run dev:web
 ```
 
-For advanced terminal configurations using VS Code Terminals Manager, see [IDE-SETUP.md](IDE-SETUP.md).
+For advanced terminal configurations using VS Code Terminals Manager, see [development/IDE-SETUP.md](development/IDE-SETUP.md).
 
 ### Run Multiple Apps (dev:\*:all)
 
@@ -450,6 +450,6 @@ See the ENV.md files in each app directory for detailed variable documentation:
 
 ## Next Steps
 
-- [Architecture Overview](ARCHITECTURE.md) - System design and data flow
-- [Contributing Guide](CONTRIBUTING.md) - Development workflow and PR guidelines
+- [Architecture Overview](architecture/ARCHITECTURE.md) - System design and data flow
+- [Contributing Guide](development/CONTRIBUTING.md) - Development workflow and PR guidelines
 - [API Documentation](../apps/api/APPS-API.md) - API endpoints and usage
