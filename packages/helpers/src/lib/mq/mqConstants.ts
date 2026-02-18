@@ -1,6 +1,7 @@
 import {
   DEDUPE_WINDOW_ADD_BY_RSS_BACKGROUND_MS,
   DEDUPE_WINDOW_ADD_BY_RSS_ON_DEMAND_MS,
+  DEDUPE_WINDOW_IMAGE_SHRINK_HINTS_MS,
   DEDUPE_WINDOW_RSS_NORMAL_MS,
   DEDUPE_WINDOW_RSS_ON_DEMAND_MS,
   DEDUPE_WINDOW_RSS_SLOW_MS,
@@ -28,7 +29,8 @@ type MQQueueName =
   | 'rss-on-demand'
   | 'rss-live'
   | 'add-by-rss-on-demand'
-  | 'add-by-rss-background';
+  | 'add-by-rss-background'
+  | 'image-shrinking-hints';
 
 export type MQQueueConfig = {
   queueName: MQQueueName;
@@ -71,4 +73,12 @@ export const MQ_QUEUES: Record<MQQueueNameParamKey, MQQueueConfig> = {
     dedupeCacheTimeMS: DEDUPE_WINDOW_ADD_BY_RSS_BACKGROUND_MS,
     priority: 'normal',
   },
+};
+
+export const MQ_IMAGE_SHRINK_HINTS_QUEUE_NAME: MQQueueName = 'image-shrinking-hints';
+
+export const MQ_IMAGE_SHRINK_HINTS_CONFIG: MQQueueConfig = {
+  queueName: MQ_IMAGE_SHRINK_HINTS_QUEUE_NAME,
+  dedupeCacheTimeMS: DEDUPE_WINDOW_IMAGE_SHRINK_HINTS_MS,
+  priority: 'normal',
 };

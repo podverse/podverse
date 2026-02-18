@@ -117,9 +117,9 @@ See [tools/web-perf/README.md](tools/web-perf/README.md) for detailed instructio
 ## Documentation
 
 - [Quick Start](docs/QUICKSTART.md) - Setup and running locally
-- [Architecture](docs/ARCHITECTURE.md) - System design and data flow
-- [Contributing](docs/CONTRIBUTING.md) - Development workflow and PR guidelines
-- [IDE Setup](docs/IDE-SETUP.md) - VS Code configuration and debugging
+- [Architecture](docs/architecture/ARCHITECTURE.md) - System design and data flow
+- [Contributing](docs/development/CONTRIBUTING.md) - Development workflow and PR guidelines
+- [IDE Setup](docs/development/IDE-SETUP.md) - VS Code configuration and debugging
 
 ## License
 

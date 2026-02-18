@@ -48,6 +48,8 @@ npm run build -w apps/workers
 | Script                                           | Description                      |
 | ------------------------------------------------ | -------------------------------- |
 | `npm run archive_all`                            | Archive all feeds                |
+| `npm run image_shrink_run_consumer`              | Run image shrink MQ consumer     |
+| `npm run image_shrink_backfill`                  | Enqueue image shrink backfill    |
 | `npm run mq_rss_add`                             | Add single feed to message queue |
 | `npm run mq_rss_add_all`                         | Add all feeds to message queue   |
 | `npm run mq_rss_run_parser`                      | Run RSS parser worker            |
@@ -98,11 +100,13 @@ Long-running workers that consume from RabbitMQ:
 - `mq_rss_run_parser` - Parses RSS feeds from the queue
 - `mq_rss_run_live_item_listener` - Handles live item updates
 - `mq_rss_run_dlq_consumer` - Processes failed messages
+- `image_shrink_run_consumer` - Resizes and uploads list-view images
 
 ### Scheduled Jobs
 
 One-off commands typically run via cron:
 
+- `image_shrink_backfill` - Enqueues unresized images for shrinking
 - `stats_update_aggregated` - Updates statistics
 - `podcast_index_*` - Podcast Index integrations
 - `orm_*` - Database maintenance tasks

@@ -43,6 +43,113 @@ export function getMQConfig(): MQConfig {
   };
 }
 
+export type DigitalOceanConfig = {
+  accessKey: string;
+  secretKey: string;
+  region: string;
+};
+
+export function getDigitalOceanConfig(): DigitalOceanConfig {
+  return {
+    accessKey: process.env.DIGITAL_OCEAN_ACCESS_KEY!,
+    secretKey: process.env.DIGITAL_OCEAN_SECRET_KEY!,
+    region: process.env.BUCKET_REGION!,
+  };
+}
+
+/** Provider-agnostic config for image shrink storage (bucket + CDN base URL). */
+export type ImageShrinkStorageConfig = {
+  bucket: string;
+  cdnBaseUrl: string;
+};
+
+/** Returns storage config from provider-agnostic env (BUCKET_NAME, BUCKET_CDN_BASE_URL). */
+export function getImageShrinkStorageConfig(): ImageShrinkStorageConfig {
+  return {
+    bucket: process.env.BUCKET_NAME!,
+    cdnBaseUrl: process.env.BUCKET_CDN_BASE_URL!,
+  };
+}
+
+export type ImageShrinkConfig = {
+  widthPx: number;
+  batchSize: number;
+  concurrency: number;
+  rps: number;
+};
+
+export type ImageShrinkCleanupConfig = {
+  dryRun: boolean;
+  maxDelete: number | null;
+  minAgeDays: number;
+  pageSize: number;
+};
+
+const IMAGE_SHRINK_REQUIRED_VARS = [
+  'DIGITAL_OCEAN_ACCESS_KEY',
+  'DIGITAL_OCEAN_SECRET_KEY',
+  'BUCKET_REGION',
+  'BUCKET_NAME',
+  'BUCKET_CDN_BASE_URL',
+  'IMAGE_SHRINK_WIDTH_PX',
+  'IMAGE_SHRINK_BATCH_SIZE',
+  'IMAGE_SHRINK_CONCURRENCY',
+  'IMAGE_SHRINK_RPS',
+] as const;
+
+const isEnvVarSet = (value: string | undefined): boolean => {
+  return value !== undefined && value.trim() !== '';
+};
+
+export function hasAnyImageShrinkEnvSet(): boolean {
+  return IMAGE_SHRINK_REQUIRED_VARS.some((key) => isEnvVarSet(process.env[key]));
+}
+
+export function isImageShrinkEnabled(): boolean {
+  return IMAGE_SHRINK_REQUIRED_VARS.every((key) => isEnvVarSet(process.env[key]));
+}
+
+export function getImageShrinkConfig(): ImageShrinkConfig {
+  return {
+    widthPx: Number(process.env.IMAGE_SHRINK_WIDTH_PX!),
+    batchSize: Number(process.env.IMAGE_SHRINK_BATCH_SIZE!),
+    concurrency: Number(process.env.IMAGE_SHRINK_CONCURRENCY!),
+    rps: Number(process.env.IMAGE_SHRINK_RPS!),
+  };
+}
+
+const DEFAULT_ORPHAN_CLEANUP_MIN_AGE_DAYS = 7;
+const DEFAULT_ORPHAN_CLEANUP_PAGE_SIZE = 500;
+
+const parseOptionalNumber = (value: string | undefined): number | null => {
+  if (!value || value.trim() === '') {
+    return null;
+  }
+  const parsed = Number(value);
+  if (Number.isNaN(parsed)) {
+    return null;
+  }
+  return parsed;
+};
+
+export function getImageShrinkCleanupConfig(): ImageShrinkCleanupConfig {
+  const maxDelete = parseOptionalNumber(process.env.IMAGE_SHRINK_ORPHAN_CLEANUP_MAX_DELETE);
+  const minAgeDays =
+    parseOptionalNumber(process.env.IMAGE_SHRINK_ORPHAN_CLEANUP_MIN_AGE_DAYS) ??
+    DEFAULT_ORPHAN_CLEANUP_MIN_AGE_DAYS;
+  const pageSize =
+    parseOptionalNumber(process.env.IMAGE_SHRINK_ORPHAN_CLEANUP_PAGE_SIZE) ??
+    DEFAULT_ORPHAN_CLEANUP_PAGE_SIZE;
+
+  return {
+    dryRun: process.env.IMAGE_SHRINK_ORPHAN_CLEANUP_DRY_RUN !== 'false',
+    maxDelete: maxDelete && maxDelete > 0 ? maxDelete : null,
+    minAgeDays:
+      minAgeDays !== null && minAgeDays >= 0 ? minAgeDays : DEFAULT_ORPHAN_CLEANUP_MIN_AGE_DAYS,
+    pageSize: pageSize > 0 ? pageSize : DEFAULT_ORPHAN_CLEANUP_PAGE_SIZE,
+  };
+}
+
 export type KeyvaldbConfig = {
   host: string;
   port: number;

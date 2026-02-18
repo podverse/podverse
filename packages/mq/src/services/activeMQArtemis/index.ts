@@ -4,7 +4,7 @@ import type { ILoggerLike } from '@podverse/helpers-backend';
 import { getContainerIpPart } from '@podverse/helpers-backend';
 import crypto from 'crypto';
 import type { ParseRSSFeedAndSaveToDatabaseOptions } from '@podverse/parser';
-import type { MQAddByRSSMessage } from '@queue/types/mq.js';
+import type { MQAddByRSSMessage, MQImageShrinkHintMessage } from '@queue/types/mq.js';
 
 export type MQQueueName =
   | 'rss-normal'
@@ -12,8 +12,10 @@ export type MQQueueName =
   | 'rss-live'
   | 'add-by-rss-on-demand'
   | 'add-by-rss-background'
+  | 'image-shrinking-hints'
   | `DLQ.${'rss-normal' | 'rss-on-demand' | 'rss-live'}`
-  | `DLQ.${'add-by-rss-on-demand' | 'add-by-rss-background'}`;
+  | `DLQ.${'add-by-rss-on-demand' | 'add-by-rss-background'}`
+  | 'DLQ.image-shrinking-hints';
 
 type MQRSSMessage = {
   url: string;
@@ -21,7 +23,7 @@ type MQRSSMessage = {
   options: ParseRSSFeedAndSaveToDatabaseOptions;
 };
 
-type Message = MQRSSMessage | MQAddByRSSMessage;
+type Message = MQRSSMessage | MQAddByRSSMessage | MQImageShrinkHintMessage;
 
 type SendMessageParams = {
   queueName: MQQueueName;
@@ -316,7 +318,11 @@ export class ActiveMQArtemisService {
       return null;
     }
     const dedupeValue =
-      'podcast_index_id' in message ? (message.podcast_index_id ?? message.url) : message.feedUrl;
+      'podcast_index_id' in message
+        ? (message.podcast_index_id ?? message.url)
+        : 'feedUrl' in message
+          ? message.feedUrl
+          : message.url;
     const baseHash = crypto.createHash('sha256').update(String(dedupeValue)).digest('hex');
     const now = Date.now();
     const bucketStart = Math.floor(now / dedupeCacheTimeMS) * dedupeCacheTimeMS;

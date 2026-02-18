@@ -133,7 +133,7 @@ apps/               # Deployable applications
 | Shared types/DTOs          | `packages/helpers/src/dto/`                                                      |
 | Feed parsing               | `packages/parser/src/`                                                           |
 | Web pages                  | `apps/web/src/app/`                                                              |
-| Environment templates      | `infra/config/env-templates/`                                                    |
+| Environment templates      | `infra/config/env-templates/` (app stubs link to `apps/*/.env.example`)          |
 | Workers startup validation | `apps/workers/src/lib/startup/validation.ts` (see [ENV.md](apps/workers/ENV.md)) |
 | K8s manifests              | `infra/k8s/`                                                                     |
 | Jenkins pipelines          | `infra/pipelines/jenkins/`                                                       |
@@ -200,7 +200,7 @@ logger.error('Feed parsing failed', { error, feedUrl });
 ### i18n / Translations
 
 - ❌ Modify files in `i18n/compiled/` (generated at build time, not committed)
-- ❌ Add locales without updating all sync points (see `docs/i18n.md`)
+- ❌ Add locales without updating all sync points (see `docs/localization/I18N.md`)
 - ❌ Use empty strings in `i18n/originals/` (use override files for blanks)
 
 ### General
@@ -252,7 +252,7 @@ See `.llm/LLM.md` for full guidelines.
 ## References
 
 - [Quick Start Guide](docs/QUICKSTART.md) - Setup and running locally
-- [Architecture](docs/ARCHITECTURE.md) - System design and data flow
-- [Contributing](docs/CONTRIBUTING.md) - Workflow and PR guidelines
-- [i18n Guide](docs/i18n.md) - Translation system details
-- [IDE Setup](docs/IDE-SETUP.md) - VS Code configuration
+- [Architecture](docs/architecture/ARCHITECTURE.md) - System design and data flow
+- [Contributing](docs/development/CONTRIBUTING.md) - Workflow and PR guidelines
+- [i18n Guide](docs/localization/I18N.md) - Translation system details
+- [IDE Setup](docs/development/IDE-SETUP.md) - VS Code configuration

@@ -4,8 +4,8 @@ import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import type { DTOChannel, DTOItem } from '@podverse/helpers';
 import {
-  findDTOChannelImageBySize,
-  findDTOItemImageBySize,
+  findDTOChannelImageForList,
+  findDTOItemImageForList,
   getQueueForMedium,
 } from '@podverse/helpers';
 import { getShuffleHash } from '@podverse/helpers-requests';
@@ -56,12 +56,12 @@ export const ListTrackRow: React.FC<Props> = ({
   const router = useRouter();
   const url = `${ROUTES.TRACK}/${item.id_text}`;
   const imageSizeTarget = IMAGES.LIST.TRACKS.DESKTOP.SIZE_FIND_TARGET;
-  const channel_image = findDTOChannelImageBySize(
+  const channel_image = findDTOChannelImageForList(
     channel.channel_images,
     imageSizeTarget,
     'lesser'
   );
-  const item_image = findDTOItemImageBySize(item.item_images, imageSizeTarget, 'lesser');
+  const item_image = findDTOItemImageForList(item.item_images, imageSizeTarget, 'lesser');
   const tFeatures = useTranslations('features');
   const tMedia = useTranslations('media');
   const tMediaPlayer = useTranslations('media_player');

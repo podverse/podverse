@@ -44,6 +44,8 @@ COPY --from=builder /opt/packages/external-services-firebase/package.json ./pack
 COPY --from=builder /opt/packages/external-services-firebase/dist/ ./packages/external-services-firebase/dist/
 COPY --from=builder /opt/packages/external-services-podcast-index/package.json ./packages/external-services-podcast-index/
 COPY --from=builder /opt/packages/external-services-podcast-index/dist/ ./packages/external-services-podcast-index/dist/
+COPY --from=builder /opt/packages/external-services-digital-ocean/package.json ./packages/external-services-digital-ocean/
+COPY --from=builder /opt/packages/external-services-digital-ocean/dist/ ./packages/external-services-digital-ocean/dist/
 COPY --from=builder /opt/packages/orm/package.json ./packages/orm/
 COPY --from=builder /opt/packages/orm/dist/ ./packages/orm/dist/
 COPY --from=builder /opt/packages/notifications/package.json ./packages/notifications/
@@ -59,5 +61,8 @@ COPY --from=builder /opt/apps/workers/dist/ ./apps/workers/dist/
 
 # Install production dependencies only
 RUN npm install --workspaces --omit=dev --ignore-scripts
+
+# Env is provided at runtime via env_file / K8s; skip .env loading so dotenvx is not needed
+ENV NODE_ENV=production
 
 USER node

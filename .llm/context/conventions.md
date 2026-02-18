@@ -33,7 +33,7 @@
 - Infrastructure: `infra` label (hosting, deployment, CI/CD)
 - Documentation: `docs` label
 
-**Labels**: See [docs/GITHUB-LABELS.md](../../docs/GITHUB-LABELS.md) for complete reference
+**Labels**: See [docs/repo-management/GITHUB-LABELS.md](../../docs/repo-management/GITHUB-LABELS.md) for complete reference
 
 ## Import Order
 
@@ -116,7 +116,8 @@ logger.debug('Query result', { count: results.length });
 
 ### Organization
 
-- Templates in `infra/config/env-templates/`
+- App templates live in `apps/*/.env.example`
+- Infra env-templates are **link-only stubs** in `infra/config/env-templates/`
 - Local overrides in `infra/config/local/` (gitignored)
 - Documented in `docs/ENV.md`
 

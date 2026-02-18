@@ -111,12 +111,12 @@ kustomize build --load-restrictor LoadRestrictionsNone infra/k8s/alpha/api/ | ku
 
 ## ConfigMap Conventions
 
-### Sync with env-templates
+### Sync with env templates
 
-ConfigMaps in `base/<component>/01-configmap.yaml` should mirror the structure of `infra/config/env-templates/<component>.env.example`:
+ConfigMaps in `base/<component>/01-configmap.yaml` should mirror the structure of the authoritative app `.env.example` files (e.g. `apps/api/.env.example`, `apps/workers/.env.example`). Infra env-templates for apps are link-only stubs.
 
 - Use same section headers (e.g., `##### App / General #####`)
-- Add comment: `# Mapped from config/podverse-<component>.env.example`
+- Add comment: `# Mapped from apps/<component>/.env.example`
 - Keep variable names and structure aligned
 
 ### Secrets Handling
@@ -279,7 +279,7 @@ labels:
 
 ### Adding a New Environment Variable
 
-1. Add to `infra/config/env-templates/<component>.env.example` (if not secret)
+1. Add to `apps/<component>/.env.example` (if not secret)
 2. Add to `base/<component>/01-configmap.yaml` with same section/comments
 3. If secret, add to appropriate secret creation script
 4. If environment-specific, override in `alpha/<component>/kustomization.yaml`
@@ -325,7 +325,7 @@ See [infra/k8s/scripts/README.md](../../infra/k8s/scripts/README.md) for details
 ## References
 
 - [infra/k8s/README.md](../../infra/k8s/README.md) - Full K8s documentation
-- [docs/ALPHA-DEPLOYMENT.md](../../docs/ALPHA-DEPLOYMENT.md) - Docker/CI and alpha deployment
+- [docs/operations/ALPHA-DEPLOYMENT.md](../../docs/operations/ALPHA-DEPLOYMENT.md) - Docker/CI and alpha deployment
 - [.cursor/rules/infra-k8s.mdc](../.cursor/rules/infra-k8s.mdc) - K8s cursor rules
 - [.prettierrc.json](../../.prettierrc.json) - Prettier config with k8s overrides
 

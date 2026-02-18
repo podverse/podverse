@@ -4,8 +4,8 @@ import { useTranslations } from 'next-intl';
 import Link from 'next/link';
 import type { DTOChannel, DTOItem } from '@podverse/helpers';
 import {
-  findDTOChannelImageBySize,
-  findDTOItemImageBySize,
+  findDTOChannelImageForList,
+  findDTOItemImageForList,
   getQueueForMedium,
   stripAndDecodeHtml,
 } from '@podverse/helpers';
@@ -59,12 +59,12 @@ const ListEpisodeRow: React.FC<Props> = ({
 }) => {
   const apiRequestService = getApiRequestService();
   const url = `${ROUTES.EPISODE}/${item.id_text}`;
-  const channel_image = findDTOChannelImageBySize(
+  const channel_image = findDTOChannelImageForList(
     channel.channel_images,
     IMAGES.LIST.EPISODES.DESKTOP.SIZE_FIND_TARGET,
     'lesser'
   );
-  const item_image = findDTOItemImageBySize(
+  const item_image = findDTOItemImageForList(
     item.item_images,
     IMAGES.LIST.EPISODES.DESKTOP.SIZE_FIND_TARGET,
     'lesser'

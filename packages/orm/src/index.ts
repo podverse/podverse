@@ -115,6 +115,7 @@ export * from './entities/queue/queueResource.js';
 export * from './entities/category.js';
 export * from './entities/clip.js';
 export * from './entities/medium.js';
+export * from './entities/imageShrinkSource.js';
 export * from './entities/membershipClaimToken.js';
 export * from './entities/sharableStatus.js';
 
@@ -185,6 +186,7 @@ export * from './services/channel/channelValueRecipient.js';
 export * from './services/clip.js';
 
 export * from './services/deduplicator.js';
+export * from './services/imageShrinkSource.js';
 
 export * from './services/feed/feed.js';
 export * from './services/feed/feedFlagStatus.js';

@@ -8,6 +8,7 @@ export const DATABASE_CONSTANTS = {
   varchar_fqdn: 253,
   varchar_guid: 36,
   varchar_md5: 32,
+  varchar_sha256_hex: 64,
   varchar_password: 36,
   varchar_slug: 100,
   varchar_uri: 2083,
