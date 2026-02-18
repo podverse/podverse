@@ -1,10 +1,4 @@
-import {
-  DeleteObjectCommand,
-  HeadObjectCommand,
-  ListObjectsV2Command,
-  PutObjectCommand,
-  S3Client,
-} from '@aws-sdk/client-s3';
+import { S3mini } from 's3mini';
 
 export type DigitalOceanServiceParams = {
   accessKey: string;
@@ -54,92 +48,89 @@ export type DigitalOceanListObjectsResult = {
   isTruncated: boolean;
 };
 
+/**
+ * Builds the S3-compatible endpoint URL for a bucket.
+ * When no custom endpoint is set: virtual-hosted style https://{bucket}.{region}.digitaloceanspaces.com.
+ * When custom endpoint is set (e.g. https://nyc3.digitaloceanspaces.com): https://{bucket}.{host}.
+ */
+function endpointForBucket(bucket: string, region: string, customEndpoint?: string): string {
+  const base = customEndpoint ?? `https://${region}.digitaloceanspaces.com`;
+  const parsed = new URL(base);
+  return `https://${bucket}.${parsed.hostname}`;
+}
+
 export class DigitalOceanService {
-  private client: S3Client;
+  private readonly accessKey: string;
+  private readonly secretKey: string;
+  private readonly region: string;
+  private readonly endpoint: string | undefined;
+  private readonly clientCache = new Map<string, S3mini>();
 
   constructor(params: DigitalOceanServiceParams) {
-    const endpoint = params.endpoint ?? `https://${params.region}.digitaloceanspaces.com`;
-    this.client = new S3Client({
-      region: params.region,
-      endpoint,
-      credentials: {
-        accessKeyId: params.accessKey,
-        secretAccessKey: params.secretKey,
-      },
-    });
+    this.accessKey = params.accessKey;
+    this.secretKey = params.secretKey;
+    this.region = params.region;
+    this.endpoint = params.endpoint;
   }
 
-  private hasMetadata(value: unknown): value is { $metadata?: { httpStatusCode?: number } } {
-    return typeof value === 'object' && value !== null && '$metadata' in value;
-  }
-
-  private isNotFoundError(error: unknown): boolean {
-    if (!this.hasMetadata(error)) {
-      return false;
+  private getClient(bucket: string): S3mini {
+    let client = this.clientCache.get(bucket);
+    if (client === undefined) {
+      const endpointUrl = endpointForBucket(bucket, this.region, this.endpoint);
+      client = new S3mini({
+        accessKeyId: this.accessKey,
+        secretAccessKey: this.secretKey,
+        endpoint: endpointUrl,
+        region: this.region,
+      });
+      this.clientCache.set(bucket, client);
     }
-    return error.$metadata?.httpStatusCode === 404;
+    return client;
   }
 
   async uploadResizedImage(params: DigitalOceanUploadParams): Promise<void> {
-    const command = new PutObjectCommand({
-      Bucket: params.bucket,
-      Key: params.key,
-      Body: params.body,
-      ContentType: params.contentType,
-      CacheControl: params.cacheControl,
-      ACL: 'public-read',
-    });
-    await this.client.send(command);
+    const client = this.getClient(params.bucket);
+    const additionalHeaders: Record<string, string> = { 'x-amz-acl': 'public-read' };
+    if (params.cacheControl !== undefined && params.cacheControl !== '') {
+      additionalHeaders['Cache-Control'] = params.cacheControl;
+    }
+    await client.putObject(
+      params.key,
+      params.body,
+      params.contentType,
+      undefined,
+      additionalHeaders as Parameters<S3mini['putObject']>[4]
+    );
   }
 
   async deleteImageByKey(params: DigitalOceanDeleteParams): Promise<void> {
-    const command = new DeleteObjectCommand({
-      Bucket: params.bucket,
-      Key: params.key,
-    });
-    await this.client.send(command);
+    const client = this.getClient(params.bucket);
+    await client.deleteObject(params.key);
   }
 
   async objectExists(params: DigitalOceanObjectExistsParams): Promise<boolean> {
-    const command = new HeadObjectCommand({
-      Bucket: params.bucket,
-      Key: params.key,
-    });
-    try {
-      await this.client.send(command);
-      return true;
-    } catch (error) {
-      if (this.isNotFoundError(error)) {
-        return false;
-      }
-      throw error;
-    }
+    const client = this.getClient(params.bucket);
+    const result = await client.objectExists(params.key);
+    return result === true;
   }
 
   async listObjects(params: DigitalOceanListObjectsParams): Promise<DigitalOceanListObjectsResult> {
-    const command = new ListObjectsV2Command({
-      Bucket: params.bucket,
-      Prefix: params.prefix,
-      ContinuationToken: params.continuationToken,
-      MaxKeys: params.maxKeys,
-    });
-    const response = await this.client.send(command);
-    const objects =
-      response.Contents?.flatMap((item) => {
-        if (!item.Key) {
-          return [];
-        }
-        return [
-          {
-            key: item.Key,
-            lastModified: item.LastModified,
-          },
-        ];
-      }) ?? [];
+    const client = this.getClient(params.bucket);
+    const prefix = params.prefix ?? '';
+    const maxKeys = params.maxKeys ?? 1000;
+    const result = await client.listObjectsPaged('/', prefix, maxKeys, params.continuationToken);
+    if (result === null || result === undefined) {
+      return { objects: [], nextContinuationToken: undefined, isTruncated: false };
+    }
+    const objects: DigitalOceanListObject[] = (result.objects ?? []).map((item) => ({
+      key: item.Key,
+      lastModified: item.LastModified,
+    }));
     return {
       objects,
-      nextContinuationToken: response.NextContinuationToken,
-      isTruncated: response.IsTruncated ?? false,
+      nextContinuationToken: result.nextContinuationToken,
+      isTruncated:
+        result.nextContinuationToken !== undefined && result.nextContinuationToken.length > 0,
     };
   }
 

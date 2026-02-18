@@ -41,6 +41,6 @@ export const sendResetPasswordEmail = async (
     });
   } catch (error) {
     loggerService.logError('Failed to send reset password email', error as Error);
-    throw new Error('Internal Server Error', { cause: error });
+    throw new Error('Internal Server Error');
   }
 };

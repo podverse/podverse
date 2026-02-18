@@ -21,7 +21,7 @@
     "access": "public"
   },
   "dependencies": {
-    "@aws-sdk/client-s3": "^3.883.0"
+    "s3mini": "^0.9.1"
   },
   "type": "module"
 }
