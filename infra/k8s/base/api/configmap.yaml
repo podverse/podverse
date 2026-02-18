@@ -27,6 +27,7 @@ data:
   #####
   ##### API Configuration
   #####
+
   API_PORT: "1234"
   API_PREFIX: "/api"
   API_VERSION: "/v2"
@@ -58,7 +59,7 @@ data:
   WEB_ICON_IMAGE_PATH: "/favicon/web-app-manifest-192x192.png"
 
   #####
-  ##### Postgres
+  ##### Database (Postgres)
   #####
 
   DB_HOST: "podverse-db"
@@ -68,10 +69,11 @@ data:
   # DB_READ_WRITE_USERNAME: "read_write"    # in secrets
   # DB_READ_WRITE_PASSWORD: "read_write"    # in secrets
   # DB_DATABASE: "postgres"                 # in secrets
-  DB_SSL_CONNECTION: "false"
+  # Set to true for SSL connection
+  DB_SSL_CONNECTION: ""
 
   #####
-  ##### Key-value (Valkey / Redis)
+  ##### Key-value (Valkey)
   #####
 
   KEYVALDB_HOST: "podverse-keyvaldb"
@@ -172,14 +174,14 @@ data:
   ADD_BY_RSS_CREDENTIALS_ENCRYPTION_KEY: ""
 
   #####
+  ##### Default Account Settings
+  #####
+  # These are used as default values when creating new accounts.
+  DEFAULT_ACCOUNT_SETTINGS_LOCALE: "en-US"
+
+  #####
   ##### PayPal (Optional, for payment processing)
   #####
 
   PAYPAL_CLIENT_ID: ""
   PAYPAL_CLIENT_SECRET: ""
-
-  #####
-  ##### Default Account Settings
-  #####
-  # These are used as default values when creating new accounts.
-  DEFAULT_ACCOUNT_SETTINGS_LOCALE: "en-US"
