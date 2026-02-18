@@ -21,7 +21,7 @@
     "access": "public"
   },
   "dependencies": {
-    "@aws-sdk/client-s3": "^3.883.0"
+    "@aws-sdk/client-s3": "^3.992.0"
   },
   "type": "module"
 }
