@@ -245,7 +245,7 @@ export class ChannelService {
     idOrIdText: string,
     relations: FindOptionsRelations<Channel> = {}
   ): Promise<Channel | null> {
-    let channel = null;
+    let channel: Channel | null;
 
     if (isNaN(Number(idOrIdText))) {
       channel = await this.getByIdText(idOrIdText, relations);

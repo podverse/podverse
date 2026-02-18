@@ -35,7 +35,7 @@ function getExtensionFromUri(sourceUri: string): string | null {
     return null;
   }
 
-  let path = '';
+  let path: string;
   try {
     const url = new URL(trimmed, 'http://dummy.local');
     path = url.pathname;

@@ -13,7 +13,7 @@ export const handleGetRSSFeed = async (url: string, podcast_index_id: number): P
   timerManager.start('handleGetRSSFeed');
 
   const feedService = new FeedService();
-  let feed: Feed | null = null;
+  let feed: Feed | null;
 
   if (getParserConfig().testAssetsMode) {
     feed = await feedService.getByPodcastIndexId(podcast_index_id);
@@ -61,7 +61,7 @@ export const handleGetRSSFeed = async (url: string, podcast_index_id: number): P
 export const handleRequestRSSFeed = async (feed: Feed): Promise<FeedObject> => {
   timerManager.start('handleRequestRSSFeed');
   const feedLogService = new FeedLogService();
-  let parsedFeed: FeedObject | null = null;
+  let parsedFeed: FeedObject | null;
 
   try {
     parsedFeed = await getAndParseRSSFeed(feed.url);
