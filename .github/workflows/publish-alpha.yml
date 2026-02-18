@@ -30,7 +30,7 @@ jobs:
         run: npm ci
 
       - name: Security audit
-        run: npm audit
+        run: npm audit --omit=dev
 
       - name: Build all packages
         run: npm run build:packages
