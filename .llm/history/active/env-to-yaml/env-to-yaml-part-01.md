@@ -20,3 +20,34 @@ Create a bash script in infra/k8s/scripts to convert docker env-style files into
 
 - infra/k8s/scripts/env-to-yaml.sh
 - infra/k8s/scripts/README.md
+
+### Session 2 - 2026-02-18
+
+#### Prompt (Developer)
+
+Preserve comments and blank lines, and avoid doubled quotes when values are already quoted.
+
+#### Key Decisions
+
+- Pass through comments and blank lines as-is.
+- Strip one surrounding quote pair before re-quoting values.
+
+#### Files Modified
+
+- infra/k8s/scripts/env-to-yaml.sh
+
+### Session 3 - 2026-02-18
+
+#### Prompt (Developer)
+
+Indent output lines by two spaces and add a ConfigMap header so editors detect YAML.
+
+#### Key Decisions
+
+- Prefix all output lines with two spaces (including comments/blank lines).
+- Emit a ConfigMap header before converting entries.
+
+#### Files Modified
+
+- infra/k8s/scripts/env-to-yaml.sh
+- infra/k8s/scripts/README.md

@@ -27,6 +27,12 @@ if [[ ! -f "$input_file" ]]; then
 	exit 1
 fi
 
+printf '%s\n' "apiVersion: v1"
+printf '%s\n' "kind: ConfigMap"
+printf '%s\n' "metadata:"
+printf '%s\n' "  name: podverse-EXAMPLE-config"
+printf '%s\n' "data:"
+
 trim() {
 	local value=$1
 	value=${value#"${value%%[![:space:]]*}"}
@@ -38,10 +44,12 @@ while IFS= read -r line || [[ -n $line ]]; do
 	line=${line%$'\r'}
 
 	if [[ -z "${line//[[:space:]]/}" ]]; then
+		printf '  \n'
 		continue
 	fi
 
 	if [[ $line =~ ^[[:space:]]*# ]]; then
+		printf '  %s\n' "$line"
 		continue
 	fi
 
@@ -73,5 +81,5 @@ while IFS= read -r line || [[ -n $line ]]; do
 	value=${value//\\/\\\\}
 	value=${value//"/\\"/}
 
-	printf '%s: "%s"\n' "$key" "$value"
+	printf '  %s: "%s"\n' "$key" "$value"
 done <"$input_file"
