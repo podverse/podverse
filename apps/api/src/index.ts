@@ -155,7 +155,7 @@ const run = async () => {
         secretKey: config.podcastIndex.secretKey,
         rateLimitDelay: process.env.PODCAST_INDEX_API_RATE_LIMIT_DELAY
           ? parseInt(process.env.PODCAST_INDEX_API_RATE_LIMIT_DELAY, 10)
-          : 0,
+          : 0, // TODO: determine if rateLimitDelay should be enabled in API
       },
       defaults: {
         account: {
