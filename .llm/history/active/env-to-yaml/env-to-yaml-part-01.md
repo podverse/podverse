@@ -51,3 +51,33 @@ Indent output lines by two spaces and add a ConfigMap header so editors detect Y
 
 - infra/k8s/scripts/env-to-yaml.sh
 - infra/k8s/scripts/README.md
+
+### Session 4 - 2026-02-18
+
+#### Prompt (Developer)
+
+Append a Vim modeline so nvim detects YAML on stdin.
+
+#### Key Decisions
+
+- Emit a trailing YAML modeline as a comment with two-space indent.
+
+#### Files Modified
+
+- infra/k8s/scripts/env-to-yaml.sh
+- infra/k8s/scripts/README.md
+
+### Session 5 - 2026-02-18
+
+#### Prompt (Developer)
+
+update the scripts/database/combine-migrations.sh to create the infra/k8s/base/db/init-scripts.configmap.yaml file as well
+
+#### Key Decisions
+
+- Extend combine-migrations to emit the DB init scripts ConfigMap with the create-users script and combined SQL.
+- Ensure parent directories exist before writing combined SQL or the ConfigMap.
+
+#### Files Modified
+
+- scripts/database/combine-migrations.sh

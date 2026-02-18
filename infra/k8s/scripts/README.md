@@ -26,6 +26,7 @@ The `db-connect.sh` script provides an easy way to connect to the PostgreSQL dat
 ## ENV to YAML Conversion
 
 Use `env-to-yaml.sh` to convert `.env`-style files into YAML-style key/value pairs and print a ConfigMap header.
+The script appends a Vim modeline so editors detect YAML when reading stdin.
 
 ### Convert an env file
 

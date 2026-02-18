@@ -83,3 +83,5 @@ while IFS= read -r line || [[ -n $line ]]; do
 
 	printf '  %s: "%s"\n' "$key" "$value"
 done <"$input_file"
+
+printf '%s\n' "  # vim: set filetype=yaml :"
