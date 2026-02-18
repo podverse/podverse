@@ -53,7 +53,7 @@ export function getDigitalOceanConfig(): DigitalOceanConfig {
   return {
     accessKey: process.env.DIGITAL_OCEAN_ACCESS_KEY!,
     secretKey: process.env.DIGITAL_OCEAN_SECRET_KEY!,
-    region: process.env.IMAGE_CDN_REGION!,
+    region: process.env.BUCKET_REGION!,
   };
 }
 
@@ -63,11 +63,11 @@ export type ImageShrinkStorageConfig = {
   cdnBaseUrl: string;
 };
 
-/** Returns storage config from provider-agnostic env (IMAGE_CDN_BUCKET, IMAGE_CDN_BASE_URL). */
+/** Returns storage config from provider-agnostic env (BUCKET_NAME, BUCKET_CDN_BASE_URL). */
 export function getImageShrinkStorageConfig(): ImageShrinkStorageConfig {
   return {
-    bucket: process.env.IMAGE_CDN_BUCKET!,
-    cdnBaseUrl: process.env.IMAGE_CDN_BASE_URL!,
+    bucket: process.env.BUCKET_NAME!,
+    cdnBaseUrl: process.env.BUCKET_CDN_BASE_URL!,
   };
 }
 
@@ -88,9 +88,9 @@ export type ImageShrinkCleanupConfig = {
 const IMAGE_SHRINK_REQUIRED_VARS = [
   'DIGITAL_OCEAN_ACCESS_KEY',
   'DIGITAL_OCEAN_SECRET_KEY',
-  'IMAGE_CDN_REGION',
-  'IMAGE_CDN_BUCKET',
-  'IMAGE_CDN_BASE_URL',
+  'BUCKET_REGION',
+  'BUCKET_NAME',
+  'BUCKET_CDN_BASE_URL',
   'IMAGE_SHRINK_WIDTH_PX',
   'IMAGE_SHRINK_BATCH_SIZE',
   'IMAGE_SHRINK_CONCURRENCY',

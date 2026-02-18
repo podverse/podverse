@@ -98,9 +98,9 @@ Image shrink is optional. If **no** image shrink env vars are set, image shrink 
 
 - **`DIGITAL_OCEAN_ACCESS_KEY`** (Required when image shrink enabled) - DigitalOcean Spaces access key (not the API Personal Access Token)
 - **`DIGITAL_OCEAN_SECRET_KEY`** (Required when image shrink enabled) - DigitalOcean Spaces secret key (not the API Personal Access Token)
-- **`IMAGE_CDN_REGION`** (Required when image shrink enabled) - CDN region/location (e.g. `nyc3` for DO, `us-east-1` for AWS)
-- **`IMAGE_CDN_BUCKET`** (Required when image shrink enabled) - Image CDN bucket name (storage)
-- **`IMAGE_CDN_BASE_URL`** (Required when image shrink enabled) - Public CDN base URL for the bucket (storage)
+- **`BUCKET_REGION`** (Required when image shrink enabled) - CDN region/location (e.g. `nyc3` for DO, `us-east-1` for AWS)
+- **`BUCKET_NAME`** (Required when image shrink enabled) - Image CDN bucket name (storage)
+- **`BUCKET_CDN_BASE_URL`** (Required when image shrink enabled) - Public CDN base URL for the bucket (storage)
 - **`IMAGE_SHRINK_WIDTH_PX`** (Required when image shrink enabled) - Target width in pixels for resized images
 - **`IMAGE_SHRINK_BATCH_SIZE`** (Required when image shrink enabled) - Max images processed per batch run
 - **`IMAGE_SHRINK_CONCURRENCY`** (Required when image shrink enabled) - Parallel image processing count

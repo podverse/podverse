@@ -108,9 +108,9 @@ function validateImageShrink(): ValidationResult[] {
   }
   results.push(validateRequired('DIGITAL_OCEAN_ACCESS_KEY', 'DigitalOcean'));
   results.push(validateRequired('DIGITAL_OCEAN_SECRET_KEY', 'DigitalOcean'));
-  results.push(validateRequired('IMAGE_CDN_REGION', 'Image Shrink'));
-  results.push(validateRequired('IMAGE_CDN_BUCKET', 'Image Shrink'));
-  results.push(validateRequired('IMAGE_CDN_BASE_URL', 'Image Shrink'));
+  results.push(validateRequired('BUCKET_REGION', 'Image Shrink'));
+  results.push(validateRequired('BUCKET_NAME', 'Image Shrink'));
+  results.push(validateRequired('BUCKET_CDN_BASE_URL', 'Image Shrink'));
   results.push(validateRequired('IMAGE_SHRINK_WIDTH_PX', 'Image Shrink'));
   results.push(validateRequired('IMAGE_SHRINK_BATCH_SIZE', 'Image Shrink'));
   results.push(validateRequired('IMAGE_SHRINK_CONCURRENCY', 'Image Shrink'));

@@ -26,7 +26,7 @@ Ensure the database has some channel and/or item images (from normal RSS parsing
 
 3. **Set Image Shrink variables** for the implementation you are using. For Digital Ocean Spaces, follow [Digital Ocean Spaces Setup](DIGITAL-OCEAN-SETUP.md) and set:
    - `DIGITAL_OCEAN_ACCESS_KEY`, `DIGITAL_OCEAN_SECRET_KEY`
-   - `IMAGE_CDN_REGION`, `IMAGE_CDN_BUCKET`, `IMAGE_CDN_BASE_URL`
+   - `BUCKET_REGION`, `BUCKET_NAME`, `BUCKET_CDN_BASE_URL`
    - `IMAGE_SHRINK_WIDTH_PX`, `IMAGE_SHRINK_BATCH_SIZE`, `IMAGE_SHRINK_CONCURRENCY`, `IMAGE_SHRINK_RPS`
 
    If any image shrink env var is set, **all** of the above are required (all-or-nothing). Optional: `IMAGE_SHRINK_RECHECK_TTL_SECONDS`, `IMAGE_SHRINK_SOURCE_PRUNE_DAYS`.

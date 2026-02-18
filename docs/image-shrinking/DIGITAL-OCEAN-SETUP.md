@@ -11,8 +11,8 @@ This document describes how to set up **Digital Ocean Spaces** as the image CDN 
 
 1. In the [Digital Ocean Control Panel](https://cloud.digitalocean.com/), go to **Spaces** in the left sidebar.
 2. Click **Create Space**.
-3. Choose a **datacenter region** (e.g. `nyc3`). This becomes your `IMAGE_CDN_REGION`.
-4. Choose a **unique name** for the Space (e.g. `podverse-images`). This becomes your `IMAGE_CDN_BUCKET`.
+3. Choose a **datacenter region** (e.g. `nyc3`). This becomes your `BUCKET_REGION`.
+4. Choose a **unique name** for the Space (e.g. `podverse-images`). This becomes your `BUCKET_NAME`.
 5. Enable **CDN** (recommended) so you get a public CDN URL for the bucket.
 6. Create the Space.
 
@@ -23,7 +23,7 @@ After the Space is created and CDN is enabled:
 1. Open the Space in the control panel.
 2. Under **Settings** or the Space overview, find the **CDN endpoint** or **Public URL**.
 3. It will look like: `https://<space-name>.<region>.cdn.digitaloceanspaces.com`
-4. Use this as `IMAGE_CDN_BASE_URL` (no trailing slash). Example: `https://podverse-images.nyc3.cdn.digitaloceanspaces.com`
+4. Use this as `BUCKET_CDN_BASE_URL` (no trailing slash). Example: `https://podverse-images.nyc3.cdn.digitaloceanspaces.com`
 
 ## 3. Create Spaces access keys
 
@@ -47,15 +47,15 @@ Set the following in the workers app (e.g. `apps/workers/.env` or your deploymen
 | -------------------------- | ----------------------------------------------------------------------------------- |
 | `DIGITAL_OCEAN_ACCESS_KEY` | From step 3 (Spaces access key; not the API Personal Access Token)                  |
 | `DIGITAL_OCEAN_SECRET_KEY` | From step 3 (Spaces secret key; not the API Personal Access Token)                  |
-| `IMAGE_CDN_REGION`         | Space region, e.g. `nyc3`                                                           |
-| `IMAGE_CDN_BUCKET`         | Space name, e.g. `podverse-images`                                                  |
-| `IMAGE_CDN_BASE_URL`       | CDN URL from step 2, e.g. `https://podverse-images.nyc3.cdn.digitaloceanspaces.com` |
+| `BUCKET_REGION`            | Space region, e.g. `nyc3`                                                           |
+| `BUCKET_NAME`              | Space name, e.g. `podverse-images`                                                  |
+| `BUCKET_CDN_BASE_URL`      | CDN URL from step 2, e.g. `https://podverse-images.nyc3.cdn.digitaloceanspaces.com` |
 
 Plus the remaining [image shrink env vars](SERVICE.md#required-environment-variables) (`IMAGE_SHRINK_WIDTH_PX`, `IMAGE_SHRINK_BATCH_SIZE`, etc.).
 
 ## 5. Verify the Space is writable
 
-After the worker is configured, running the backfill and consumer will upload WebP objects under the key prefix `images/`. You can confirm uploads in the Digital Ocean control panel by opening the Space and browsing the `images/` folder, or by checking that `channel_image` / `item_image` rows have `is_resized = true` and URLs starting with your `IMAGE_CDN_BASE_URL`.
+After the worker is configured, running the backfill and consumer will upload WebP objects under the key prefix `images/`. You can confirm uploads in the Digital Ocean control panel by opening the Space and browsing the `images/` folder, or by checking that `channel_image` / `item_image` rows have `is_resized = true` and URLs starting with your `BUCKET_CDN_BASE_URL`.
 
 ## References
 

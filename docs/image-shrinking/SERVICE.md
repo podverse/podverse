@@ -134,9 +134,9 @@ See `apps/workers/.env.example` for the authoritative template and commented gro
 
 ### Image Shrink (storage)
 
-- `IMAGE_CDN_REGION`
-- `IMAGE_CDN_BUCKET`
-- `IMAGE_CDN_BASE_URL`
+- `BUCKET_REGION`
+- `BUCKET_NAME`
+- `BUCKET_CDN_BASE_URL`
 
 ### Image Shrink
 
@@ -158,7 +158,7 @@ See `apps/workers/.env.example` for the authoritative template and commented gro
 Add non-sensitive values to `infra/k8s/base/workers/configmap.yaml` using the same section structure as `apps/workers/.env.example` (DigitalOcean; Image Shrink storage; Image Shrink):
 
 - **DigitalOcean** — keys are in secrets; no values in ConfigMap.
-- **Image Shrink (storage):** `IMAGE_CDN_REGION`, `IMAGE_CDN_BUCKET`, `IMAGE_CDN_BASE_URL`
+- **Image Shrink (storage):** `BUCKET_REGION`, `BUCKET_NAME`, `BUCKET_CDN_BASE_URL`
 - **Image Shrink:** `IMAGE_SHRINK_WIDTH_PX`, `IMAGE_SHRINK_BATCH_SIZE`, `IMAGE_SHRINK_CONCURRENCY`, `IMAGE_SHRINK_RPS`, `IMAGE_SHRINK_RECHECK_TTL_SECONDS` (Optional), `IMAGE_SHRINK_SOURCE_PRUNE_DAYS` (Optional)
 
 ### Secret
