@@ -30,6 +30,8 @@ all files and validation files should be updated. the renamed variables should b
 - `apps/workers/ENV.md`
 - `infra/config/local/workers.env`
 - `infra/k8s/base/workers/configmap.yaml`
+- `infra/k8s/alpha/workers/kustomization.yaml`
+- `infra/k8s/scripts/create_workers_bucket_secret.sh`
 - `infra/k8s/scripts/create_workers_digital_ocean_secret.sh`
 - `docs/image-shrinking/SERVICE.md`
 - `docs/image-shrinking/TESTING.md`

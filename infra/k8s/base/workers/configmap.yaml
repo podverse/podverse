@@ -15,7 +15,7 @@ data:
   ##### General
   #####
 
-  NODE_ENV: "development"
+  NODE_ENV: "production"
   #
   # Format: BrandName Bot Environment/AppName/Version
   USER_AGENT: "Podverse Bot Base/Workers/5"
@@ -42,6 +42,7 @@ data:
   ##DB_READ_WRITE_USERNAME: "read_write"                # in secrets
   ##DB_READ_WRITE_PASSWORD: "your_read_write_password"  # in secrets
   # DB_DATABASE: "postgres"                             # in secrets
+  # Set to true for SSL connection
   DB_SSL_CONNECTION: ""
 
   #####
@@ -68,11 +69,11 @@ data:
   #####
 
   BUCKET_PROVIDER: ""
-  BUCKET_ACCESS_KEY: ""
-  BUCKET_SECRET_KEY: ""
-  BUCKET_REGION: "nyc3"
-  BUCKET_NAME: "podverse-assets-alpha"
-  BUCKET_CDN_BASE_URL: "https://podverse-assets-alpha.nyc3.digitaloceanspaces.com"
+  ##BUCKET_ACCESS_KEY: ""  # in secrets
+  ##BUCKET_SECRET_KEY: ""  # in secrets
+  BUCKET_REGION: ""
+  BUCKET_NAME: "" #
+  BUCKET_CDN_BASE_URL: ""
 
   #####
   ##### Image Shrink
@@ -99,7 +100,7 @@ data:
   #####
   KEYVALDB_HOST: "podverse-keyvaldb"
   KEYVALDB_PORT: "6379"
-  # KEYVALDB_PASSWORD: ""  # in secrets (podverse-keyvaldb-opaque)
+  ##KEYVALDB_PASSWORD: ""  # in secrets (podverse-keyvaldb-opaque)
   KEYVALDB_CACHE_TTL_SECONDS: "3600"
 
   #####
@@ -143,19 +144,16 @@ data:
   DEFAULT_ACCOUNT_SETTINGS_LOCALE: "en-US"
 
   #####
+  ##### Add-by-RSS
+  #####
+  # Required: 64 hex characters (32 bytes) for AES-256-GCM encryption of Basic Auth
+  # credentials at rest. Generate with: openssl rand -hex 32
+  ##ADD_BY_RSS_CREDENTIALS_ENCRYPTION_KEY: ""  # in secrets
+
+  #####
   ##### Parser
   #####
 
-  # IMPORTANT
   # When true, the parser will add remote items to the message queue for processing.
-  # The parser will recursively follow all remote items, and their remote items, until it runs out.
-  # If a feed is already in the database, it will not add a message for that remote item feed to the queue.
-  PARSER_ADD_REMOTE_ITEMS_TO_MQ: "false"
-
-  #####
-  ##### Add-by-RSS
-  #####
-  # Basic Auth credentials for add-by-RSS feeds are stored per-feed in the database
-  # (account_following_add_by_rss_channel). Required: 64 hex characters (32 bytes)
-  # for AES-256-GCM encryption at rest. Generate with: openssl rand -hex 32
-  # ADD_BY_RSS_CREDENTIALS_ENCRYPTION_KEY: ""  # in secrets (podverse-workers-add-by-rss-opaque)
+  # The parser will recursively follow all remote items until it runs out.
+  PARSER_ADD_REMOTE_ITEMS_TO_MQ: ""

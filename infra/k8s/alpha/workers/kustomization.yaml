@@ -18,6 +18,10 @@ configMapGenerator:
     behavior: merge
     literals:
       - WEB_DOMAIN=alpha-podverse.k.podverse.fm
+      - BUCKET_PROVIDER=
+      - BUCKET_REGION=
+      - BUCKET_NAME=
+      - BUCKET_CDN_BASE_URL=
 
 labels:
   - pairs:
