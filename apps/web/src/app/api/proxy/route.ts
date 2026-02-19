@@ -1,4 +1,5 @@
 import type { NextRequest } from 'next/server';
+import { fetchWithTimeout } from '@podverse/helpers-backend';
 import { checkRateLimit } from '../../../utils/proxy/rateLimiter';
 import { validateProxyUrl } from '../../../utils/proxy/urlValidator';
 import { PROXY } from '../../../utils/proxy/constants';
@@ -34,20 +35,13 @@ export async function GET(req: NextRequest) {
     return new Response(`Invalid URL: ${urlValidation.error}`, { status: 400 });
   }
 
-  // Create AbortController for timeout
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), PROXY.TIMEOUT_MS);
-
   try {
-    // Fetch the resource with timeout
-    const response = await fetch(url, {
+    const response = await fetchWithTimeout(url, {
       headers: {
         'User-Agent': config.proxy.userAgent,
       },
-      signal: controller.signal,
+      timeoutMs: PROXY.TIMEOUT_MS,
     });
-
-    clearTimeout(timeoutId);
 
     if (!response.ok) {
       return new Response('Image fetch failed', { status: response.status });
@@ -130,14 +124,9 @@ export async function GET(req: NextRequest) {
       },
     });
   } catch (error) {
-    clearTimeout(timeoutId);
-
-    // Handle timeout
     if (error instanceof Error && error.name === 'AbortError') {
       return new Response('Request timeout', { status: 504 });
     }
-
-    // Handle other fetch errors
     return new Response('Image fetch failed', { status: 500 });
   }
 }

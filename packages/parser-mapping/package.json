@@ -22,6 +22,7 @@
   },
   "dependencies": {
     "@podverse/helpers": "*",
+    "@podverse/helpers-v4v": "*",
     "@podverse/helpers-validation": "*"
   },
   "type": "module",

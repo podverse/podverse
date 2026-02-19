@@ -6,7 +6,7 @@ import type {
   DTOChannelValueRecipient,
   DTOItemValueRecipient,
 } from '@podverse/helpers';
-import { normalizeChannelValueRecipients, normalizeItemValueRecipients } from '@podverse/helpers';
+import { calculateRecipientAmounts } from '@podverse/helpers-v4v';
 import styles from '../../styles/components/Boost/BoostRecipientInfo.module.scss';
 import { BoostRecipientInfoRow } from './BoostRecipientInfoRow';
 
@@ -30,22 +30,22 @@ export const BoostRecipientInfo = ({
   let rows: React.ReactNode[] = [];
 
   const normalized_channel_value_recipients = channel_value_recipients
-    ? normalizeChannelValueRecipients(channel_value_recipients, totalAmountToCreator)
+    ? calculateRecipientAmounts(channel_value_recipients, totalAmountToCreator)
     : [];
   const normalized_item_value_recipients = item_value_recipients
-    ? normalizeItemValueRecipients(item_value_recipients, totalAmountToCreator)
+    ? calculateRecipientAmounts(item_value_recipients, totalAmountToCreator)
     : [];
 
   if (normalized_channel_value_recipients && normalized_item_value_recipients.length > 0) {
     rows = normalized_item_value_recipients.map((recipient, index) => (
-      <BoostRecipientInfoRow key={index} normalized_item_value_recipient={recipient} />
+      <BoostRecipientInfoRow key={index} recipient={recipient} />
     ));
   } else if (
     normalized_channel_value_recipients &&
     normalized_channel_value_recipients.length > 0
   ) {
     rows = normalized_channel_value_recipients.map((recipient, index) => (
-      <BoostRecipientInfoRow key={index} normalized_channel_value_recipient={recipient} />
+      <BoostRecipientInfoRow key={index} recipient={recipient} />
     ));
   }
 
@@ -80,7 +80,7 @@ export const BoostRecipientInfo = ({
             </tr>
           </thead>
           <tbody>
-            <BoostRecipientInfoRow app_value_recipient={app_value_recipient} />
+            <BoostRecipientInfoRow recipient={app_value_recipient} />
           </tbody>
         </table>
       )}

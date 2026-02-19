@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 /**
  * Runs type-check, workspace lint, and prettier; streams output and prints
  * a summary of errors/warnings at the end. When Prettier fails, prints a
@@ -15,10 +16,21 @@ import path from 'node:path';
 const mode = process.argv[2] === 'lint:fix' ? 'lint:fix' : 'lint';
 const prettierScript = mode === 'lint:fix' ? 'prettier:write' : 'prettier:check';
 
+const filterPrettierOutput = (output) =>
+  output
+    .split('\n')
+    .filter((line) => !line.includes('(unchanged)'))
+    .join('\n');
+
 const steps = [
   { name: 'type-check', cmd: 'npm', args: ['run', 'type-check', '--workspaces', '--if-present'] },
   { name: 'lint', cmd: 'npm', args: ['run', mode, '--workspaces', '--if-present'] },
-  { name: 'prettier', cmd: 'npm', args: ['run', prettierScript] },
+  {
+    name: 'prettier',
+    cmd: 'npm',
+    args: ['run', prettierScript],
+    outputFilter: filterPrettierOutput,
+  },
 ];
 
 const runStep = (step) =>
@@ -26,8 +38,12 @@ const runStep = (step) =>
     const chunks = [];
     const capture = (data) => {
       const s = data.toString();
-      chunks.push(s);
-      process.stdout.write(data);
+      const filtered = step.outputFilter ? step.outputFilter(s) : s;
+      if (!filtered) {
+        return;
+      }
+      chunks.push(filtered);
+      process.stdout.write(filtered);
     };
     const child = spawn(step.cmd, step.args, {
       stdio: ['inherit', 'pipe', 'pipe'],
@@ -86,7 +102,9 @@ function getPrettierDiff(filePath) {
     try {
       fs.unlinkSync(currentTmp);
       fs.unlinkSync(formattedTmp);
-    } catch (_) {}
+    } catch {
+      // ignore
+    }
   }
 }
 

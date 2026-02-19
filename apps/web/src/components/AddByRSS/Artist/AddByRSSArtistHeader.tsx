@@ -14,16 +14,17 @@ import { CommonArtistHeaderViewTablet } from '../../Common/Artist/CommonArtistHe
 import { useAccount } from '../../../contexts/Account';
 import { useModals } from '../../../contexts/Modals';
 import { IMAGES } from '../../../constants/images';
-import headerDesktopStyles from '../../../styles/components/Common/Media/Podcast/PodcastHeaderViewDesktop.module.scss';
-import headerTabletStyles from '../../../styles/components/Common/Media/Podcast/PodcastHeaderViewTablet.module.scss';
-import imageStyles from '../../../styles/components/Common/Media/Podcast/PodcastHeaderImage.module.scss';
-import headerButtonsStyles from '../../../styles/components/Common/Media/Header/HeaderButtons.module.scss';
-import subscribeButtonStyles from '../../../styles/components/Common/Media/Header/SubscribeButton.module.scss';
+import { buildAddByRssBoostChannel } from '@podverse/parser-mapping';
 import {
   unfollowAddByRSSChannelAndClear,
   followAddByRSSChannelAndQueue,
 } from '../../../utils/addByRSS/actions';
 import type { AddByRSSFeedRecord } from '../../../utils/addByRSS/types';
+import headerDesktopStyles from '../../../styles/components/Common/Media/Podcast/PodcastHeaderViewDesktop.module.scss';
+import headerTabletStyles from '../../../styles/components/Common/Media/Podcast/PodcastHeaderViewTablet.module.scss';
+import imageStyles from '../../../styles/components/Common/Media/Podcast/PodcastHeaderImage.module.scss';
+import headerButtonsStyles from '../../../styles/components/Common/Media/Header/HeaderButtons.module.scss';
+import subscribeButtonStyles from '../../../styles/components/Common/Media/Header/SubscribeButton.module.scss';
 
 const alertPlaceholder = (label: string) => () => {
   window.alert(`Add by RSS: ${label}`);
@@ -40,7 +41,7 @@ export const AddByRSSArtistHeader: React.FC<AddByRSSArtistHeaderProps> = ({ feed
   const tFeatures = useTranslations('features');
   const tInstructions = useTranslations('instructions');
   const { loggedInAccount, setLoggedInAccount } = useAccount();
-  const { setModalLoginRequired } = useModals();
+  const { setModalLoginRequired, setModalBoost } = useModals();
   const [isUpdating, setIsUpdating] = useState(false);
   const title = feed.mappedFeed?.channel?.channel?.title ?? feed.title ?? feed.feedUrl;
   const author = feed.mappedFeed?.channel?.about?.author ?? null;
@@ -83,6 +84,15 @@ export const AddByRSSArtistHeader: React.FC<AddByRSSArtistHeaderProps> = ({ feed
     } finally {
       setIsUpdating(false);
     }
+  };
+
+  const handleBoostClick = () => {
+    const boostChannel = buildAddByRssBoostChannel(feed);
+    if (!boostChannel) {
+      alertPlaceholder(tValue('boost'))();
+      return;
+    }
+    setModalBoost({ channel: boostChannel, item: null });
   };
 
   const buttonsNode = (
@@ -133,7 +143,7 @@ export const AddByRSSArtistHeader: React.FC<AddByRSSArtistHeaderProps> = ({ feed
       {hasValue && (
         <IconButton
           type="button"
-          onClick={alertPlaceholder(tValue('boost'))}
+          onClick={handleBoostClick}
           ariaLabel={tValue('boost')}
           title={tValue('boost')}
           color="secondary"

@@ -1,4 +1,7 @@
-import { MediumEnum, PAGINATION, sleep } from '@podverse/helpers';
+import { createAddByRSSIdText, PAGINATION, sleep } from '@podverse/helpers';
+import type { MediumFilter } from '@podverse/helpers';
+import { matchesMediumFilter } from '@podverse/helpers';
+import { getItemMediumIdFromBundle } from '@podverse/parser-mapping';
 
 import type {
   AddByRSSFeedRecord,
@@ -6,7 +9,6 @@ import type {
   AddByRSSItemIndexItem,
   AddByRSSLivestreamIndexItem,
 } from './types';
-import { createAddByRSSIdText } from './ids';
 import {
   bulkUpsertAddByRSSItemsIndexItems,
   bulkUpsertAddByRSSLivestreamIndexItems,
@@ -19,15 +21,10 @@ import {
   getAllAddByRSSItems,
   getAllAddByRSSLivestreamItems,
 } from './storage';
-import { type MediumFilter, matchesMediumFilter } from './mediumHelpers';
 
-// Re-export medium helpers for consumers
-export {
-  type MediumFilter,
-  isPodcastMediumId,
-  isMusicMediumId,
-  matchesMediumFilter,
-} from './mediumHelpers';
+export type { MediumFilter } from '@podverse/helpers';
+export { getItemMediumIdFromBundle } from '@podverse/parser-mapping';
+export { isPodcastMediumId, isMusicMediumId, matchesMediumFilter } from '@podverse/helpers';
 
 export const ADD_BY_RSS_ITEMS_PAGE_SIZE = PAGINATION.DEFAULT_LIMIT;
 const INDEX_META_KEY = 'itemsIndexInfo';
@@ -41,21 +38,6 @@ type ItemIndexMeta = {
 
 const getFeedMedium = (feed: AddByRSSFeedRecord): number | null =>
   feed.mappedFeed?.channel?.channel?.medium_id ?? null;
-
-/**
- * Derive per-item medium from the first enclosure MIME type.
- * If it starts with "video/", return Video; otherwise return feedMediumFallback.
- */
-export const getItemMediumIdFromBundle = (
-  bundle: AddByRSSMappedFeed['items'][number],
-  feedMediumFallback: number | null
-): number | null => {
-  const type = bundle.enclosures?.[0]?.item_enclosure?.type;
-  if (typeof type === 'string' && type.toLowerCase().startsWith('video/')) {
-    return MediumEnum.Video;
-  }
-  return feedMediumFallback;
-};
 
 const getChannelTitle = (feed: AddByRSSFeedRecord): string =>
   feed.mappedFeed?.channel?.channel?.title ?? feed.title ?? feed.feedUrl;

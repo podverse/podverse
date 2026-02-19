@@ -23,7 +23,7 @@ import {
   getAllAddByRSSFeeds,
 } from '../../../utils/addByRSS/storage';
 import type { AddByRSSFeedRecord, AddByRSSParsedFeed } from '../../../utils/addByRSS/types';
-import { isMusicMediumId, parseMediumId } from '../../../utils/addByRSS/mediumHelpers';
+import { isMusicMediumId, parseMediumId } from '@podverse/helpers';
 import { runAddByRSSParseAll } from '../../../utils/addByRSS/parseAll';
 import styles from '../../../styles/components/Common/List/Podcasts/ListPodcasts.module.scss';
 import { dismissToast, showToast, showToastLoading } from '../../../components/Toast/Toast';

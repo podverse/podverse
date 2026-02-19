@@ -1,10 +1,12 @@
-import type { AddByRSSMappedFeed, AddByRSSResourceType } from './types';
 import {
   isPodcastMediumId,
   isAlbumMediumId,
   isArtistMediumId,
   parseMediumId,
-} from './mediumHelpers';
+  type AddByRSSResourceType,
+} from '@podverse/helpers';
+
+import type { AddByRSSMappedFeed } from './types.js';
 
 export const getAddByRSSResourceTypeFromMappedFeed = (
   mappedFeed: AddByRSSMappedFeed | null | undefined
@@ -39,4 +41,11 @@ export const getAddByRSSDetailRouteSegment = (resourceType: AddByRSSResourceType
     default:
       return 'podcast';
   }
+};
+
+/** Route segment for item (episode/track) detail; usable for web paths or RN deep links. */
+export const getAddByRSSItemRouteSegment = (
+  resourceType: 'episodes' | 'tracks'
+): 'episode' | 'track' => {
+  return resourceType === 'tracks' ? 'track' : 'episode';
 };

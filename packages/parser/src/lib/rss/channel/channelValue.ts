@@ -1,6 +1,10 @@
 import type { FeedObject } from 'podverse-partytime';
 import type { Channel, EntityManager } from '@podverse/orm';
-import { ChannelValueService, ChannelValueRecipientService } from '@podverse/orm';
+import {
+  ChannelValueMetaBoostService,
+  ChannelValueService,
+  ChannelValueRecipientService,
+} from '@podverse/orm';
 import { compatChannelValueDtos } from '@podverse/parser-mapping';
 import { timerManager } from '@parser/factories/timerManager.js';
 
@@ -13,6 +17,7 @@ export const handleParsedChannelValue = async (
   const channelValueService = new ChannelValueService(transactionalEntityManager);
   const channelValueDtos = compatChannelValueDtos(parsedFeed);
   const channelValueRecipientService = new ChannelValueRecipientService(transactionalEntityManager);
+  const channelValueMetaBoostService = new ChannelValueMetaBoostService(transactionalEntityManager);
 
   if (channelValueDtos.length > 0) {
     for (const channelValueDto of channelValueDtos) {
@@ -20,6 +25,13 @@ export const handleParsedChannelValue = async (
         channel,
         channelValueDto.channel_value
       );
+
+      const channelValueMetaBoostDto = channelValueDto.channel_value_meta_boost;
+      if (channelValueMetaBoostDto) {
+        await channelValueMetaBoostService.update(channel_value, channelValueMetaBoostDto);
+      } else {
+        await channelValueMetaBoostService.delete(channel_value);
+      }
 
       const channelValueRecipientDtos = channelValueDto.channel_value_recipients;
       if (channelValueRecipientDtos.length > 0) {

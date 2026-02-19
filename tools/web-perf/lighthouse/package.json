@@ -23,6 +23,7 @@
     "typescript": "^5.9.2"
   },
   "dependencies": {
+    "@podverse/helpers-backend": "*",
     "bcryptjs": "^3.0.3",
     "podverse-test-assets": "*"
   }

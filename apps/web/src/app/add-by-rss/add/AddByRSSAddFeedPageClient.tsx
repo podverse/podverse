@@ -28,7 +28,7 @@ import type { AddByRSSFeedRecord } from '../../../utils/addByRSS/types';
 import {
   getAddByRSSDetailRouteSegment,
   getAddByRSSResourceTypeFromMappedFeed,
-} from '../../../utils/addByRSS/resourceType';
+} from '@podverse/parser-mapping';
 import styles from '../../../styles/components/AddByRSS/AddByRSSAddFeed.module.scss';
 
 type AddByRSSStatus = AddByRSSFeedRecord['status'] | 'idle' | 'error';

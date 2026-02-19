@@ -647,6 +647,19 @@ CREATE TABLE channel_value (
 
 CREATE INDEX idx_channel_value_channel_id ON channel_value(channel_id);
 
+-- <channel> -> <podcast:value> -> <podcast:metaBoost>
+CREATE TABLE channel_value_meta_boost (
+    id SERIAL PRIMARY KEY,
+    channel_value_id INTEGER NOT NULL REFERENCES channel_value(id) ON DELETE CASCADE,
+    type varchar_short NOT NULL,
+    schema varchar_short NOT NULL,
+    license varchar_url,
+    node varchar_url NOT NULL,
+    UNIQUE (channel_value_id)
+);
+
+CREATE INDEX idx_channel_value_meta_boost_channel_value_id ON channel_value_meta_boost(channel_value_id);
+
 --** CHANNEL > VALUE > RECEIPIENT
 
 -- <channel> -> <podcast:value> -> <podcast:valueRecipient>
@@ -1049,6 +1062,19 @@ CREATE TABLE item_value (
 );
 
 CREATE INDEX idx_item_value_item_id ON item_value(item_id);
+
+-- <item> -> <podcast:value> -> <podcast:metaBoost>
+CREATE TABLE item_value_meta_boost (
+    id SERIAL PRIMARY KEY,
+    item_value_id INTEGER NOT NULL REFERENCES item_value(id) ON DELETE CASCADE,
+    type varchar_short NOT NULL,
+    schema varchar_short NOT NULL,
+    license varchar_url,
+    node varchar_url NOT NULL,
+    UNIQUE (item_value_id)
+);
+
+CREATE INDEX idx_item_value_meta_boost_item_value_id ON item_value_meta_boost(item_value_id);
 
 --** ITEM > VALUE > RECEIPIENT
 

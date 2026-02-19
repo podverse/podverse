@@ -13,10 +13,7 @@ import { ReadableDate } from '../../../Time/ReadableDate';
 import { IMAGES } from '../../../../constants/images';
 import styles from '../../../../styles/components/Common/List/Podcasts/Episodes/ListEpisodeRow.module.scss';
 import { getAddByRSSItemPath } from '../../../../utils/addByRSS/itemPath';
-import {
-  buildAddByRSSResourceData,
-  getAddByRSSHashId,
-} from '../../../../utils/addByRSS/queuePlaylistHelpers';
+import { buildAddByRSSResourceData, getAddByRSSHashId } from '@podverse/parser-mapping';
 import type { AddByRSSMappedFeed, AddByRSSItemIndexItem } from '../../../../utils/addByRSS/types';
 import type { AddByRSSListContextState } from '../../../../contexts/AddByRSSListContext';
 import { useAccount } from '../../../../contexts/Account';

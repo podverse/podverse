@@ -262,6 +262,24 @@
     },
     "total": "Total",
     "message": "Message",
+    "meta_boost": {
+      "title": "MetaBoost",
+      "type_label": "Type:",
+      "schema_label": "Schema:",
+      "license_label": "License:",
+      "node_label": "Node:"
+    },
+    "boost_messages": {
+      "not_enabled": "Boost messages are not enabled for this podcast.",
+      "more_info": "More Info",
+      "server_error_title": "Boost message server error",
+      "server_error_message": "There is an error with the message server. A message cannot be sent, but you can continue to send your payment anyway.",
+      "pay_anyway": "Pay Anyway",
+      "status_pending": "Pending…",
+      "status_paying": "Paying…",
+      "status_success": "Sent",
+      "status_failed": "Failed"
+    },
     "types": {
       "lightning_keysend": {
         "label": "Bitcoin Lightning Keysend",
@@ -285,6 +303,15 @@
       "app": "Send to {brand_name}"
     },
     "your_name": "Your Name"
+  },
+  "v4v": {
+    "boost_messages": {
+      "title": "Boost Messages",
+      "description": "Podverse requires the <podcast:metaBoost> RSS tag in order to send boost messages. Without it, payments can still be sent but messages will be disabled.",
+      "example": "<podcast:value type=\"lightning\" method=\"keysend\">\\n  <podcast:metaBoost schema=\"boostbox\">http://localhost:8080/boost</podcast:metaBoost>\\n  <podcast:valueRecipient type=\"lnaddress\" address=\"example@domain.com\" split=\"100\" />\\n</podcast:value>",
+      "boostbox_label": "BoostBox on GitHub",
+      "boostbox_url": "https://github.com/noblepayne/boostbox"
+    }
   },
   "filters": {
     "type": {

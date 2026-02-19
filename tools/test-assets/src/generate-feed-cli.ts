@@ -126,6 +126,14 @@ const DEFAULT_ITEMS = 20;
 const DEFAULT_MULTI = 2;
 const ITEMS_PER_SEASON = 10;
 const MIN_SEASONS = 2;
+const METABOOST_URL = 'http://localhost:8080/boost';
+const METABOOST_LICENSE_URL = 'https://example.com/metaboost-license';
+const LNURL_TEST_ADDRESSES = [
+  'podverse+one@sandbox.albylabs.com',
+  'podverse+two@sandbox.albylabs.com',
+  'podverse+fee@sandbox.albylabs.com',
+];
+const VALUE_RECIPIENT_SPLITS = [60, 40, 1] as const;
 /** Fixed ActivityPub socialInteract for all generated feeds (channel + every item). */
 const SOCIAL_INTERACT_URI = 'https://podcastindex.social/@mitch/116024949309724989';
 const SOCIAL_INTERACT_PROTOCOL = 'activitypub';
@@ -399,6 +407,7 @@ function lightningNodePubkey(): string {
 }
 
 type ValueRecipientOpts = {
+  type?: string;
   customKey?: string;
   customValue?: string;
   fee?: boolean;
@@ -412,7 +421,7 @@ function buildValueRecipientXml(
   opts?: ValueRecipientOpts
 ): string {
   const parts = [
-    'type="node"',
+    `type="${escapeXml(opts?.type ?? 'node')}"`,
     `address="${escapeXml(address)}"`,
     `split="${split}"`,
     `name="${escapeXml(name)}"`,
@@ -444,31 +453,70 @@ function randomValueRecipientOpts(): ValueRecipientOpts {
   return opts;
 }
 
-/** 07a: Build channel <podcast:value type="lightning" method="keysend"> with valueRecipients (type=node). */
-function buildChannelValueBlock(recipientCount: number): string {
+const buildFixedValueRecipients = (
+  type: string,
+  addresses: string[],
+  labelPrefix: string
+): string => {
+  return addresses
+    .map((address, index) =>
+      buildValueRecipientXml(
+        address,
+        VALUE_RECIPIENT_SPLITS[index] ?? 0,
+        `${labelPrefix} ${index + 1}`,
+        {
+          type,
+          fee: index === 2,
+        }
+      )
+    )
+    .join('\n    ');
+};
+
+/** 07a: Build channel <podcast:value> blocks for keysend + lnaddress. */
+function buildChannelValueBlock(_recipientCount: number): string {
   const suggested = '0.00000005000';
-  const recipients = Array.from({ length: recipientCount }, () => {
-    const address = lightningNodePubkey();
-    const split = faker.number.int({ min: 1, max: 100 });
-    const name = faker.person.fullName();
-    return buildValueRecipientXml(address, split, name, randomValueRecipientOpts());
-  }).join('\n    ');
-  return `<podcast:value type="lightning" method="keysend" suggested="${suggested}">\n    ${recipients}\n    </podcast:value>`;
+  const metaBoost = `<podcast:metaBoost type="post" schema="boostbox" license="${METABOOST_LICENSE_URL}">${METABOOST_URL}</podcast:metaBoost>`;
+  const keysendRecipients = buildFixedValueRecipients(
+    'node',
+    [lightningNodePubkey(), lightningNodePubkey(), lightningNodePubkey()],
+    'Keysend Recipient'
+  );
+  const lnaddressRecipients = buildFixedValueRecipients(
+    'lnaddress',
+    LNURL_TEST_ADDRESSES,
+    'LNAddress Recipient'
+  );
+
+  return [
+    `<podcast:value type="lightning" method="keysend" suggested="${suggested}">`,
+    `    ${metaBoost}`,
+    `    ${keysendRecipients}`,
+    `    </podcast:value>`,
+    `<podcast:value type="lightning" method="lnaddress" suggested="${suggested}">`,
+    `    ${metaBoost}`,
+    `    ${lnaddressRecipients}`,
+    `    </podcast:value>`,
+  ].join('\n');
 }
 
-/** 07a: Build item <podcast:value> (lightning keysend) with optional valueTimeSplit (recipients or remoteItem variant). */
+/** 07a: Build item <podcast:value> blocks (keysend + lnaddress). */
 function buildItemValueBlock(
-  recipientCount: number,
   includeValueTimeSplit: boolean,
   remoteItemTarget?: WrittenFeedInfo | null
 ): string {
   const suggested = '0.00000005000';
-  const recipients = Array.from({ length: recipientCount }, () => {
-    const address = lightningNodePubkey();
-    const split = faker.number.int({ min: 1, max: 100 });
-    const name = faker.person.fullName();
-    return buildValueRecipientXml(address, split, name, randomValueRecipientOpts());
-  }).join('\n      ');
+  const metaBoost = `<podcast:metaBoost type="post" schema="boostbox" license="${METABOOST_LICENSE_URL}">${METABOOST_URL}</podcast:metaBoost>`;
+  const keysendRecipients = buildFixedValueRecipients(
+    'node',
+    [lightningNodePubkey(), lightningNodePubkey(), lightningNodePubkey()],
+    'Keysend Recipient'
+  );
+  const lnaddressRecipients = buildFixedValueRecipients(
+    'lnaddress',
+    LNURL_TEST_ADDRESSES,
+    'LNAddress Recipient'
+  );
   let valueTimeSplitBlock = '';
   if (includeValueTimeSplit) {
     const startTime = faker.number.int({ min: 0, max: 3600 });
@@ -501,7 +549,16 @@ function buildItemValueBlock(
       </podcast:valueTimeSplit>`;
     }
   }
-  return `<podcast:value type="lightning" method="keysend" suggested="${suggested}">\n      ${recipients}${valueTimeSplitBlock}\n      </podcast:value>`;
+  return [
+    `<podcast:value type="lightning" method="keysend" suggested="${suggested}">`,
+    `      ${metaBoost}`,
+    `      ${keysendRecipients}${valueTimeSplitBlock}`,
+    `      </podcast:value>`,
+    `<podcast:value type="lightning" method="lnaddress" suggested="${suggested}">`,
+    `      ${metaBoost}`,
+    `      ${lnaddressRecipients}`,
+    `      </podcast:value>`,
+  ].join('\n');
 }
 
 /** JSON chapters (1.2): chapter entry for generated file. startTime/endTime in seconds. */
@@ -959,7 +1016,7 @@ function buildFeed(
     const includeItemValue = includeValueTags && i < multiCount;
     const remoteItemTargetForValue = writtenFeedInfo.length > 0 ? writtenFeedInfo[0] : null;
     const itemValueBlock = includeItemValue
-      ? buildItemValueBlock(multiCount, i === 0, remoteItemTargetForValue)
+      ? buildItemValueBlock(i === 0, remoteItemTargetForValue)
       : '';
 
     const alternateEnclosureBlocks = buildAlternateEnclosureBlocks(baseUrl, enclosureIndex);

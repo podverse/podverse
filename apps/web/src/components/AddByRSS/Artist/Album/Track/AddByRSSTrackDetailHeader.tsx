@@ -8,10 +8,7 @@ import React from 'react';
 import { CommonItemHeader } from '../../../../Common/Item/CommonItemHeader';
 import { AddByRSSItemHeaderPlaySection } from '../../../Item/AddByRSSItemHeaderPlaySection';
 import { getAddByRSSItemPath } from '../../../../../utils/addByRSS/itemPath';
-import {
-  buildAddByRSSResourceData,
-  getAddByRSSHashId,
-} from '../../../../../utils/addByRSS/queuePlaylistHelpers';
+import { buildAddByRSSResourceData, getAddByRSSHashId } from '@podverse/parser-mapping';
 import type { AddByRSSItemIndexItem } from '../../../../../utils/addByRSS/types';
 import { useAccount } from '../../../../../contexts/Account';
 import { useMediaPlayer } from '../../../../../contexts/MediaPlayer';

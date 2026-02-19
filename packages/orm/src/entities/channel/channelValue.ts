@@ -1,7 +1,16 @@
 import { DATABASE_CONSTANTS } from '@podverse/helpers';
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, OneToMany } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  JoinColumn,
+  OneToMany,
+  OneToOne,
+} from 'typeorm';
 import type { Relation } from 'typeorm';
 import type { Channel } from '@orm/entities/channel/channel.js';
+import type { ChannelValueMetaBoost } from '@orm/entities/channel/channelValueMetaBoost.js';
 import type { ChannelValueRecipient } from '@orm/entities/channel/channelValueRecipient.js';
 
 @Entity({ name: 'channel_value' })
@@ -21,6 +30,12 @@ export class ChannelValue {
 
   @Column({ type: 'float', name: 'suggested', nullable: true })
   suggested!: number | null;
+
+  @OneToOne(
+    'ChannelValueMetaBoost',
+    (channel_value_meta_boost: ChannelValueMetaBoost) => channel_value_meta_boost.channel_value
+  )
+  meta_boost?: Relation<ChannelValueMetaBoost>;
 
   @OneToMany(
     'ChannelValueRecipient',

@@ -6,6 +6,7 @@ import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 import { promisify } from 'util';
 import { exec } from 'child_process';
+import { fetchWithTimeout } from '@podverse/helpers-backend';
 import { killProcessOnPort } from './port-killer.js';
 
 const execAsync = promisify(exec);
@@ -41,7 +42,7 @@ export class ApiManager {
   ): Promise<boolean> {
     for (let i = 0; i < maxAttempts; i++) {
       try {
-        const response = await fetch(url);
+        const response = await fetchWithTimeout(url, { timeoutMs: 5000 });
         if (response.ok || response.status === 404 || response.status === 401) {
           // Server is responding (401 is OK, means auth is required but server is up)
           return true;

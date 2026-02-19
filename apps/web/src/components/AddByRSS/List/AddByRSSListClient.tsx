@@ -19,7 +19,7 @@ import { useModals } from '../../../contexts/Modals';
 import { useLocalSettings } from '../../../contexts/LocalSettings';
 import { getFollowedAddByRSSChannels } from '../../../utils/addByRSS/api';
 import { applyAddByRSSParseStatus } from '../../../utils/addByRSS/actions';
-import { createAddByRSSId, createAddByRSSIdText } from '../../../utils/addByRSS/ids';
+import { createAddByRSSId, createAddByRSSIdText } from '@podverse/helpers';
 import {
   bulkUpsertAddByRSSFeeds,
   bulkRemoveAddByRSSFeeds,

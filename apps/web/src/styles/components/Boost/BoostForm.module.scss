@@ -15,3 +15,68 @@
   justify-content: flex-end;
   margin-top: var(--spacing-2xl);
 }
+
+.metaBoostInfo {
+  margin-top: var(--spacing-xl);
+  display: grid;
+  gap: var(--spacing-xs);
+}
+
+.boostMessageNotice {
+  margin-top: var(--spacing-lg);
+  display: grid;
+  gap: var(--spacing-xs);
+}
+
+.recipientStatusList {
+  margin-top: var(--spacing-xl);
+  display: grid;
+  gap: var(--spacing-sm);
+}
+
+.recipientStatusItem {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: var(--spacing-sm) var(--spacing-lg);
+  padding: var(--spacing-sm) var(--spacing-md);
+  border: 1px solid var(--form-element-border-color);
+  border-radius: var(--border-radius);
+}
+
+.recipientStatusMeta {
+  display: grid;
+  gap: var(--spacing-3xs);
+}
+
+.recipientStatusAddress {
+  color: var(--text-color-secondary);
+  font-size: var(--font-size-sm);
+  word-break: break-word;
+}
+
+.recipientStatusAmount {
+  align-self: center;
+  font-weight: var(--font-weight-bold);
+}
+
+.recipientStatusError {
+  margin-top: var(--spacing-3xs);
+  color: var(--text-color-danger);
+  font-size: var(--font-size-sm);
+}
+
+.status_pending {
+  color: var(--text-color-secondary);
+}
+
+.status_paying {
+  color: var(--text-color-secondary);
+}
+
+.status_success {
+  color: var(--button-success-bg);
+}
+
+.status_failed {
+  color: var(--text-color-danger);
+}

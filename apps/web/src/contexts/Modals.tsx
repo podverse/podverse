@@ -11,7 +11,7 @@ import type {
 import type { ReactNode } from 'react';
 import { createContext, useContext, useState } from 'react';
 import type { SourceSelectorActionType } from '../components/SourceSelectors/SourceSelectors';
-import type { AddByRSSResourceDataPayload } from '../utils/addByRSS/queuePlaylistHelpers.js';
+import type { AddByRSSResourceDataPayload } from '@podverse/parser-mapping';
 
 type ModalBasic = {
   isOpen: boolean;
@@ -47,6 +47,13 @@ type ModalFunding = {
 type ModalBoost = {
   channel: DTOChannel | null;
   item: DTOItem | null;
+};
+
+type ModalBoostMessageError = {
+  title: string | null;
+  message: string | null;
+  onSendAnyway?: (() => void) | null;
+  onCancel?: (() => void) | null;
 };
 
 export type ModalSourceSelector = {
@@ -85,6 +92,8 @@ type ModalsContextType = {
   setModalSourceSelector: (val: ModalSourceSelector) => void;
   modalBoost: ModalBoost;
   setModalBoost: (val: ModalBoost) => void;
+  modalBoostMessageError: ModalBoostMessageError;
+  setModalBoostMessageError: (val: ModalBoostMessageError) => void;
   modalLoginRequired: ModalMessage;
   setModalLoginRequired: (val: ModalMessage) => void;
   modalDisclaimer: ModalBasic;
@@ -140,6 +149,13 @@ const defaultModalLoginRequired = {
   message: null,
 };
 
+const defaultModalBoostMessageError = {
+  title: null,
+  message: null,
+  onSendAnyway: null,
+  onCancel: null,
+};
+
 export const ModalsProvider = ({ children }: { children: ReactNode }) => {
   const [modalAuthLogin, setModalAuthLogin] = useState<ModalBasic>({ isOpen: false });
   const [modalSignUp, setModalSignUp] = useState<ModalBasic>({ isOpen: false });
@@ -155,6 +171,9 @@ export const ModalsProvider = ({ children }: { children: ReactNode }) => {
     defaultModalSourceSelector
   );
   const [modalBoost, setModalBoost] = useState<ModalBoost>(defaultModalBoost);
+  const [modalBoostMessageError, setModalBoostMessageError] = useState<ModalBoostMessageError>(
+    defaultModalBoostMessageError
+  );
   const [modalLoginRequired, setModalLoginRequired] =
     useState<ModalMessage>(defaultModalLoginRequired);
   const [modalDisclaimer, setModalDisclaimer] = useState<ModalBasic>({ isOpen: false });
@@ -182,6 +201,8 @@ export const ModalsProvider = ({ children }: { children: ReactNode }) => {
         setModalSourceSelector,
         modalBoost,
         setModalBoost,
+        modalBoostMessageError,
+        setModalBoostMessageError,
         modalLoginRequired,
         setModalLoginRequired,
         modalDisclaimer,

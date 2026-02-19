@@ -5,15 +5,10 @@
  * Hash uses channel_id_text + guid (primary) or channel_id_text + enclosure_url (fallback).
  */
 
+import type { AddByRSSResourceDataImageEntry } from '@podverse/helpers';
 import { getAddByRSSHashId as getAddByRSSHashIdFromHelpers } from '@podverse/helpers';
 
 import type { AddByRSSItemIndexItem, AddByRSSLivestreamIndexItem } from './types.js';
-
-/** Image entry shape compatible with findDTOChannelImageBySize / findDTOItemImageBySize. */
-type AddByRSSResourceDataImageEntry = {
-  url: string;
-  image_width_size: number | null;
-};
 
 function toIsoString(ms: number): string {
   return ms > 1e12 ? new Date(ms).toISOString() : new Date(ms * 1000).toISOString();
@@ -81,10 +76,8 @@ export function buildAddByRSSHashInput(
 
   const guid = item.itemGuid?.trim() ?? '';
   if (guid) {
-    // Primary: channel_id_text + guid
     out['guid'] = guid;
   } else {
-    // Fallback: channel_id_text + enclosure_url (if no guid)
     const enclosure_url = getEnclosureUrl(item);
     if (enclosure_url) {
       out['enclosure_url'] = enclosure_url;
@@ -158,7 +151,6 @@ export function buildAddByRSSResourceData(
     payload.duration = enc.length ?? null;
   }
 
-  // Store full item data for cross-device access (when IndexedDB is unavailable)
   if ('bundle' in item && item.bundle) {
     payload.bundle = item.bundle;
   }

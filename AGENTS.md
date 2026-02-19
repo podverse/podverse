@@ -61,6 +61,13 @@ Config files are the ONE exception where `!` assertions are allowed because vali
 /* eslint-disable @typescript-eslint/no-non-null-assertion -- env vars validated at startup */
 ```
 
+### HTTP / request helpers
+
+Use the shared request helpers for all HTTP calls; do not use raw `fetch()`.
+
+- **Server/Node:** Use `fetchWithTimeout` from `@podverse/helpers-backend` (timeout, cache, body, headers). The only place that may call native `fetch` is inside that helper.
+- **Browser/isomorphic:** Use `request` (and optionally `requestWithHeaders`) from `@podverse/helpers-requests`; they return `{ status, data }` and use axios under the hood.
+
 ### Environment File Formatting
 
 In `.env` files:
@@ -253,6 +260,7 @@ See `.llm/LLM.md` for full guidelines.
 
 - [Quick Start Guide](docs/QUICKSTART.md) - Setup and running locally
 - [Architecture](docs/architecture/ARCHITECTURE.md) - System design and data flow
+- [V4V MetaBoost + LNURL](docs/v4v/V4V-METABOOST-LNURL.md) - Value-for-value boost flow and local setup
 - [Contributing](docs/development/CONTRIBUTING.md) - Workflow and PR guidelines
 - [i18n Guide](docs/localization/I18N.md) - Translation system details
 - [IDE Setup](docs/development/IDE-SETUP.md) - VS Code configuration

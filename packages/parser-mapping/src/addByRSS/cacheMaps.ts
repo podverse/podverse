@@ -1,10 +1,4 @@
-import type { AddByRSSFeedRecord } from './types';
-
-export type AddByRSSParseAllParams = {
-  feedHashesByUrl: Record<string, string>;
-  etagsByUrl: Record<string, string>;
-  lastModifiedByUrl: Record<string, string>;
-};
+import type { AddByRSSFeedRecord, AddByRSSParseAllParams } from '@podverse/helpers';
 
 export const buildCacheMaps = (feeds: AddByRSSFeedRecord[]): AddByRSSParseAllParams => {
   const feedHashesByUrl: Record<string, string> = {};
