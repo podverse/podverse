@@ -38,6 +38,12 @@
       "open": true
     },
     {
+      "name": "BoostBox",
+      "description": "BoostBox development",
+      "cwd": "../boostbox",
+      "open": true
+    },
+    {
       "name": "Misc",
       "description": "Misc commands",
       "cwd": ".",

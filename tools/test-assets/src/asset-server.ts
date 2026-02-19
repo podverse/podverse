@@ -85,10 +85,8 @@ export class AssetServer {
       throw new Error('Asset server is already running');
     }
 
-    // Ensure assets directory exists
-    if (!fs.existsSync(this.assetsDir)) {
-      throw new Error(`Assets directory does not exist: ${this.assetsDir}`);
-    }
+    // Create assets directory on startup if it does not exist
+    fs.mkdirSync(this.assetsDir, { recursive: true });
 
     return new Promise((resolve, reject) => {
       this.server = http.createServer((req, res) => {
