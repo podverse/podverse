@@ -57,7 +57,7 @@ local_network_create:
 
 .PHONY: local_network_remove
 local_network_remove:
-	docker network rm podverse_local_network
+	docker network rm podverse_local_network 2>/dev/null || true
 
 # Database
 .PHONY: local_db_up
@@ -186,7 +186,8 @@ local_all_down:
 	-$(MAKE) local_db_down
 	-$(MAKE) local_management_db_down
 
-# Clean local environment (containers + volumes), but preserve images for faster restart
+# Clean local environment (containers + volumes), but preserve images for faster restart.
+# Tear down app stacks first so the network has no endpoints, then remove and recreate network on next setup.
 .PHONY: local_clean
 local_clean:
 	docker compose -f infra/docker/local/db/docker-compose.yml down -v 2>/dev/null || true
@@ -194,7 +195,11 @@ local_clean:
 	docker compose -f infra/docker/local/keyvaldb/docker-compose.yml down -v 2>/dev/null || true
 	docker compose -f infra/docker/local/management-db/docker-compose.yml down -v 2>/dev/null || true
 	-$(MAKE) local_workers_down
-	-$(MAKE) local_network_remove
+	docker compose -f infra/docker/local/api/docker-compose.yml down --remove-orphans 2>/dev/null || true
+	docker compose -f infra/docker/local/web/docker-compose.yml down --remove-orphans 2>/dev/null || true
+	docker compose -f infra/docker/local/management-api/docker-compose.yml down --remove-orphans 2>/dev/null || true
+	docker compose -f infra/docker/local/management-web/docker-compose.yml down --remove-orphans 2>/dev/null || true
+	$(MAKE) local_network_remove
 	@echo "Local environment cleaned. Images preserved for faster restart."
 
 # Remove only Podverse-specific images and build cache, preserving external images (postgres, valkey, artemis)
