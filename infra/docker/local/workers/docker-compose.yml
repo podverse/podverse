@@ -4,6 +4,9 @@ networks:
 
 services:
   podverse_local_workers:
+    build:
+      context: ../..
+      dockerfile: infra/docker/local/workers/Dockerfile
     image: podverse-workers:latest
     container_name: podverse_local_workers
     env_file:

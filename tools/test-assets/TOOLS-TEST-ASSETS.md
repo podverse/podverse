@@ -44,6 +44,10 @@ Optional: run the verification script (server must be running): `bash tools/test
 - After pulling or changing Basic Auth code, **restart** the test-assets server so the running process has the latest logic.
 - Add-by-RSS “success” (redirect to feed detail) means the **worker** successfully fetched and parsed the feed. If the feed URL is under `/basic-auth/` and no credentials are provided, the worker’s request gets 401 and the parse fails; the add-feed UI should show a failed status and not redirect.
 
+## Docker
+
+When test-assets runs in Docker (e.g. `make local_infra_up`), it is on `podverse_local_network` as `podverse_local_test_assets`. The local **workers** (`infra/docker/local/workers/`), **API** (`infra/docker/local/api/`), **management-api** (`infra/docker/local/management-api/`), **web** (`infra/docker/local/web/`), and **management-web** (`infra/docker/local/management-web/`) images use an entrypoint that runs a socat proxy: requests to `localhost:2111` inside those containers are forwarded to `podverse_local_test_assets:2111`, so feeds, images, video, chapters, and transcripts at `http://localhost:2111/...` work with no app-level URL rewriting. Use cases: workers (parser, image shrink); API (item transcript, add-by-RSS chapters/transcript); management-api (parity with API for future use); web and management-web (SSR, e.g. `/api/proxy` and Next.js image optimization for test-asset images). The test-assets image is built by `make local_build_test_assets` (or `make local_build_all` / `make local_nuke_rebuild_run`).
+
 ## Image naming
 
 Images use **multi-size** naming: `image-{index}-{width}.jpg` (e.g. `image-001-300.jpg`, `image-001-600.jpg`, `image-001-1400.jpg`). Each logical index has one file per width (300, 600, 1400 px). Total JPEGs are capped at 100 (index count × 3 ≤ 100). Feeds reference them via `<podcast:images srcset="..."/>`. When changing image naming or widths, update: `asset-generator.ts`, `generate-feed-cli.ts`, this doc, `asset-server.ts` (MIME/behavior), and `tools/web-perf/lighthouse/TOOLS-WEB-PERF-LIGHTHOUSE.md` if it references image paths.

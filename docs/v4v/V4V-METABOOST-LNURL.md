@@ -28,6 +28,11 @@ See `docs/v4v/V4V-METABOOST-FLOW.md`.
 - Test assets server running (`npm run dev:test-assets`)
 - WebLN-compatible wallet (Alby or similar)
 
+**BoostBox (local):** You can start BoostBox as part of local infra: run `make local_infra_up` (which
+includes BoostBox), or build once with `make local_build_boostbox` then `make local_boostbox_up`.
+BoostBox lives in a separate repo cloned as a sibling of Podverse; see
+[docs/infra/LOCAL-BOOSTBOX.md](../infra/LOCAL-BOOSTBOX.md).
+
 Notes:
 
 - BoostBox is hardcoded to `http://localhost:8080` and expects a dev API key header.

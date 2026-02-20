@@ -1,0 +1,21 @@
+# Local use only; boostbox image is built from sibling repo (../boostbox), not published.
+networks:
+  podverse_local_network:
+    external: true
+
+volumes:
+  podverse_local_boostbox_boosts:
+
+services:
+  podverse_local_boostbox:
+    image: boostbox:latest
+    container_name: podverse_local_boostbox
+    env_file:
+      - ../../../config/local/boostbox.env
+    ports:
+      - "8080:8080"
+    volumes:
+      # BB_FS_ROOT_PATH (default "boosts") is relative to container workdir /app
+      - podverse_local_boostbox_boosts:/app/boosts
+    networks:
+      - podverse_local_network

@@ -1,0 +1,71 @@
+# Alpha app services: api, web, management-api, management-web
+
+# API
+.PHONY: alpha_api_up
+alpha_api_up: infra/config/alpha/api.env
+	docker compose -f infra/docker/alpha/api/docker-compose.yml up podverse_alpha_api -d
+
+.PHONY: alpha_api_down
+alpha_api_down:
+	@if [ -f infra/docker/alpha/api/docker-compose.yml ]; then \
+		docker compose -f infra/docker/alpha/api/docker-compose.yml down --remove-orphans --rmi all; \
+	else \
+		echo "docker-compose.yml not found, stopping container directly..."; \
+		docker stop podverse_alpha_api 2>/dev/null || true; \
+		docker rm podverse_alpha_api 2>/dev/null || true; \
+		docker rmi $$(docker images --filter=reference='ghcr.io/podverse/podverse/api/*' -q) 2>/dev/null || true; \
+	fi
+
+# Web
+.PHONY: alpha_web_up
+alpha_web_up: infra/config/alpha/web.env
+	docker compose -f infra/docker/alpha/web/docker-compose.yml up podverse_alpha_web -d
+
+.PHONY: alpha_web_down
+alpha_web_down:
+	@if [ -f infra/docker/alpha/web/docker-compose.yml ]; then \
+		docker compose -f infra/docker/alpha/web/docker-compose.yml down --remove-orphans --rmi all; \
+	else \
+		echo "docker-compose.yml not found, stopping container directly..."; \
+		docker stop podverse_alpha_web 2>/dev/null || true; \
+		docker stop podverse_alpha_web_runtime_config 2>/dev/null || true; \
+		docker rm podverse_alpha_web 2>/dev/null || true; \
+		docker rm podverse_alpha_web_runtime_config 2>/dev/null || true; \
+		docker rmi $$(docker images --filter=reference='ghcr.io/podverse/podverse/web-deploy/*' -q) 2>/dev/null || true; \
+		docker rmi $$(docker images --filter=reference='ghcr.io/podverse/podverse/web-runtime-config/*' -q) 2>/dev/null || true; \
+	fi
+
+# Management API
+.PHONY: alpha_management_api_up
+alpha_management_api_up: infra/config/alpha/management-api.env
+	docker compose -f infra/docker/alpha/management-api/docker-compose.yml up podverse_alpha_management_api -d
+
+.PHONY: alpha_management_api_down
+alpha_management_api_down:
+	@if [ -f infra/docker/alpha/management-api/docker-compose.yml ]; then \
+		docker compose -f infra/docker/alpha/management-api/docker-compose.yml down --remove-orphans --rmi all; \
+	else \
+		echo "docker-compose.yml not found, stopping container directly..."; \
+		docker stop podverse_alpha_management_api 2>/dev/null || true; \
+		docker rm podverse_alpha_management_api 2>/dev/null || true; \
+		docker rmi $$(docker images --filter=reference='ghcr.io/podverse/podverse/management-api/*' -q) 2>/dev/null || true; \
+	fi
+
+# Management Web
+.PHONY: alpha_management_web_up
+alpha_management_web_up:
+	docker compose -f infra/docker/alpha/management-web/docker-compose.yml up podverse_alpha_management_web -d
+
+.PHONY: alpha_management_web_down
+alpha_management_web_down:
+	@if [ -f infra/docker/alpha/management-web/docker-compose.yml ]; then \
+		docker compose -f infra/docker/alpha/management-web/docker-compose.yml down --remove-orphans --rmi all; \
+	else \
+		echo "docker-compose.yml not found, stopping container directly..."; \
+		docker stop podverse_alpha_management_web 2>/dev/null || true; \
+		docker stop podverse_alpha_management_web_runtime_config 2>/dev/null || true; \
+		docker rm podverse_alpha_management_web 2>/dev/null || true; \
+		docker rm podverse_alpha_management_web_runtime_config 2>/dev/null || true; \
+		docker rmi $$(docker images --filter=reference='ghcr.io/podverse/podverse/management-web-deploy/*' -q) 2>/dev/null || true; \
+		docker rmi $$(docker images --filter=reference='ghcr.io/podverse/podverse/management-web-runtime-config/*' -q) 2>/dev/null || true; \
+	fi

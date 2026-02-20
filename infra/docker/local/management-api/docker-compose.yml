@@ -4,6 +4,9 @@ networks:
 
 services:
   podverse_local_management_api:
+    build:
+      context: ../..
+      dockerfile: infra/docker/local/management-api/Dockerfile
     image: podverse-management-api:latest
     container_name: podverse_local_management_api
     env_file:
