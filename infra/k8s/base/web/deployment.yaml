@@ -27,7 +27,7 @@ spec:
     metadata:
       labels:
         app: podverse-web
-        environment: alpha
+        environment: base
     spec:
       containers:
         - name: web

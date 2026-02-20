@@ -18,7 +18,7 @@ data:
   ##### API Configuration
   #####
   NEXT_PUBLIC_API_PROTOCOL: "https"
-  NEXT_PUBLIC_API_HOST: "management-api.alpha.podverse.fm" # Override in environment overlay
+  NEXT_PUBLIC_API_HOST: "management-api.base.podverse.fm" # Override in environment overlay
   NEXT_PUBLIC_API_PORT: ""
   NEXT_PUBLIC_API_PREFIX: "/api"
   NEXT_PUBLIC_API_VERSION: "/v2"
