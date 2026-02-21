@@ -16,8 +16,9 @@ local_test_workers: local_build_workers
 	@echo "Workers started. Check logs with: docker compose -f infra/docker/local/workers/docker-compose.yml logs -f"
 	@echo "Stop with: docker compose -f infra/docker/local/workers/docker-compose.yml down"
 
-# Run all feed parsers (mirrors alpha Jenkinsfile.aux_workers_mq_rss_run_parsers_all).
-# Requires: local_infra_up, local_build_workers, queues provisioned (e.g. make local_mq_up).
+# Run all feed parsers (build workers, create and run parser containers).
+# Mirrors alpha Jenkinsfile.aux_workers_mq_rss_run_parsers_all.
+# Requires: local_infra_up, queues provisioned (e.g. make local_mq_up).
 # If containers with these names already exist, run: make local_stop_parsers first.
 .PHONY: local_run_parsers_all
 local_run_parsers_all: local_build_workers
@@ -32,6 +33,18 @@ local_run_parsers_all: local_build_workers
 	docker compose -f infra/docker/local/workers/docker-compose.yml run -d --name podverse_local_workers_parser_add_by_rss_background_1 podverse_local_workers node apps/workers/dist/index.js mqAddByRSSRunParser -q add-by-rss-background
 	docker compose -f infra/docker/local/workers/docker-compose.yml run -d --name podverse_local_workers_parser_add_by_rss_background_2 podverse_local_workers node apps/workers/dist/index.js mqAddByRSSRunParser -q add-by-rss-background
 	@echo "Parser workers started. Stop with: make local_stop_parsers"
+
+# Start existing parser containers (assumes they were created by local_run_parsers_all).
+.PHONY: local_start_parsers_all
+local_start_parsers_all:
+	@matches=$$(docker ps -a --format '{{.Names}}' | grep '^podverse_local_workers_parser_' || true); \
+	if [ -n "$$matches" ]; then \
+	  echo "Starting parser containers..."; \
+	  echo "$$matches" | xargs docker start; \
+	  echo "Done."; \
+	else \
+	  echo "No parser containers found. Run: make local_run_parsers_all first."; \
+	fi
 
 # Stop and remove all local parser containers (mirrors alpha stop parsers).
 .PHONY: local_stop_parsers
