@@ -113,73 +113,72 @@
 
 import fs from 'fs';
 import path from 'path';
-import readline from 'node:readline';
 import { fileURLToPath } from 'url';
 import { faker } from '@faker-js/faker';
-import { generateGuidWithRandomVersion, pickRandomRssFeedMedium } from '@podverse/helpers';
+import { generateGuidWithRandomVersion } from '@podverse/helpers';
 import { AssetGenerator } from './asset-generator.js';
 import { BASIC_AUTH_BASE_URL, BASIC_AUTH_SUBDIR, DEFAULT_ASSETS_BASE_URL } from './constants.js';
+import {
+  BASIC_AUTH_FEED_FILENAME,
+  BASIC_AUTH_FEED_ITEMS,
+  BASIC_AUTH_IMAGE_POOL_SIZE,
+  DEFAULT_ITEMS,
+  DEFAULT_MULTI,
+  FEED_KINDS,
+  IMAGE_SIZES,
+  ITUNES_CATEGORIES,
+  ITEMS_PER_SEASON,
+  MAX_ASSETS_PER_TYPE,
+  MAX_FEEDS,
+  MIN_SEASONS,
+  PERSON_GROUPS,
+  PERSON_ROLES,
+  SOCIAL_INTERACT_ACCOUNT_ID,
+  SOCIAL_INTERACT_ACCOUNT_URL,
+  SOCIAL_INTERACT_PROTOCOL,
+  SOCIAL_INTERACT_URI,
+} from './generate-feed-constants.js';
+import {
+  confirmAddFakeValueTags,
+  getPositionalCount,
+  getValueFromConfig,
+  parseNumericArg,
+} from './generate-feed-cli-utils.js';
+import { type MultiConfig } from './generate-feed-cli-utils.js';
+import { buildChaptersForItem, buildChaptersJson } from './generate-feed-chapters.js';
+import { buildPodcastImagesSrcset, getImagePoolSize, pad3 } from './generate-feed-utils.js';
+import {
+  buildLiveItemBlock,
+  buildPublisherRemoteItemXml,
+  buildRemoteItemXml,
+  escapeXml,
+  toRfc2822,
+} from './generate-feed-xml.js';
+import { buildChannelValueBlock, buildItemValueBlock } from './generate-feed-value-tags.js';
+import {
+  type BuildFeedResult,
+  type RunGenerateFeedAndAssetsOptions,
+  type RunGenerateFeedAndAssetsResult,
+  type WrittenFeedInfo,
+} from './generate-feed-types.js';
+import { type FeedKind } from './generate-feed-constants.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-const DEFAULT_ITEMS = 20;
-const DEFAULT_MULTI = 2;
-const ITEMS_PER_SEASON = 10;
-const MIN_SEASONS = 2;
-const METABOOST_URL = 'http://localhost:8080/boost';
-const METABOOST_LICENSE_URL = 'https://example.com/metaboost-license';
-const LNURL_TEST_ADDRESSES = [
-  'podverse+one@sandbox.albylabs.com',
-  'podverse+two@sandbox.albylabs.com',
-  'podverse+fee@sandbox.albylabs.com',
-];
-const VALUE_RECIPIENT_SPLITS = [60, 40, 1] as const;
-/** Fixed ActivityPub socialInteract for all generated feeds (channel + every item). */
-const SOCIAL_INTERACT_URI = 'https://podcastindex.social/@mitch/116024949309724989';
-const SOCIAL_INTERACT_PROTOCOL = 'activitypub';
-const SOCIAL_INTERACT_ACCOUNT_ID = '@mitch';
-const SOCIAL_INTERACT_ACCOUNT_URL = 'https://podcastindex.social/@mitch';
-const MAX_FEEDS = 100_000;
-const MAX_ASSETS_PER_TYPE = 100;
-const MAX_JPEG_FILES = 100;
-/** Widths (px) for podcast:images srcset. Total JPEGs = imagePoolSize * IMAGE_SIZES.length ≤ MAX_JPEG_FILES. */
-const IMAGE_SIZES = [300, 600, 1400];
-
-/** Basic-Auth test feed: one feed, fixed 10 items, under assets/basic-auth/. */
-const BASIC_AUTH_FEED_ITEMS = 10;
-const BASIC_AUTH_FEED_FILENAME = 'feed-basic-auth.rss';
-const BASIC_AUTH_IMAGE_POOL_SIZE = 4;
-
-export type MultiConfig =
-  | { kind: 'fixed'; value: number }
-  | { kind: 'range'; min: number; max: number };
-
-/** Nine feed types per set: 5 non-season + 4 season. See 10-test-data-spec.md */
-const FEED_KINDS = [
-  'none',
-  'podcast',
-  'video',
-  'music',
-  'publisher',
-  'season',
-  'podcast-season',
-  'video-season',
-  'music-season',
-] as const;
-export type FeedKind = (typeof FEED_KINDS)[number];
-
-const ITUNES_CATEGORIES = [
-  'Technology',
-  'Business',
-  'News',
-  'Comedy',
-  'Education',
-  'Science',
-  'Society & Culture',
-  'Arts',
-  'Health',
-  'Religion & Spirituality',
-] as const;
+export type { MultiConfig } from './generate-feed-cli-utils.js';
+export type { FeedKind } from './generate-feed-constants.js';
+export type {
+  BuildFeedResult,
+  RunGenerateFeedAndAssetsOptions,
+  RunGenerateFeedAndAssetsResult,
+  WrittenFeedInfo,
+} from './generate-feed-types.js';
+export {
+  confirmAddFakeValueTags,
+  getPositionalCount,
+  getValueFromConfig,
+  parseNumericArg,
+} from './generate-feed-cli-utils.js';
 
 function isSeasonFeed(kind: FeedKind): boolean {
   return (
@@ -196,109 +195,6 @@ function getEnclosureKind(kind: FeedKind): 'audio' | 'video' {
   return 'audio';
 }
 
-function escapeXml(s: string): string {
-  return s
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&apos;');
-}
-
-/** Build one <podcast:remoteItem> with optional itemGuid, title, medium (each chosen randomly). */
-function buildRemoteItemXml(target: { guid: string; url: string }): string {
-  const attrs: string[] = [
-    `feedGuid="${escapeXml(target.guid)}"`,
-    `feedUrl="${escapeXml(target.url)}"`,
-  ];
-  if (faker.helpers.arrayElement([true, false])) {
-    attrs.push(`itemGuid="${escapeXml(generateGuidWithRandomVersion())}"`);
-  }
-  if (faker.helpers.arrayElement([true, false])) {
-    attrs.push(`title="${escapeXml(faker.lorem.words(3))}"`);
-  }
-  const medium = pickRandomRssFeedMedium();
-  if (medium !== undefined) {
-    attrs.push(`medium="${escapeXml(medium)}"`);
-  }
-  return `<podcast:remoteItem ${attrs.join(' ')}/>`;
-}
-
-/** Build one <podcast:remoteItem> for <podcast:publisher>: always medium="publisher", optional itemGuid/title. */
-function buildPublisherRemoteItemXml(target: { guid: string; url: string }): string {
-  const attrs: string[] = [
-    `feedGuid="${escapeXml(target.guid)}"`,
-    `feedUrl="${escapeXml(target.url)}"`,
-    'medium="publisher"',
-  ];
-  if (faker.helpers.arrayElement([true, false])) {
-    attrs.push(`itemGuid="${escapeXml(generateGuidWithRandomVersion())}"`);
-  }
-  if (faker.helpers.arrayElement([true, false])) {
-    attrs.push(`title="${escapeXml(faker.lorem.words(3))}"`);
-  }
-  return `<podcast:remoteItem ${attrs.join(' ')}/>`;
-}
-
-export function parseNumericArg(flag: string, defaultVal: number, argv: string[]): MultiConfig {
-  const idx = argv.indexOf(flag);
-  const value = argv[idx + 1];
-  if (idx === -1 || value === undefined) {
-    return { kind: 'fixed', value: defaultVal };
-  }
-  const rangeMatch = value.match(/^(\d+)-(\d+)$/);
-  if (rangeMatch && rangeMatch[1] !== undefined && rangeMatch[2] !== undefined) {
-    const min = parseInt(rangeMatch[1], 10);
-    const max = parseInt(rangeMatch[2], 10);
-    if (!Number.isNaN(min) && !Number.isNaN(max) && min >= 1 && max >= min) {
-      return { kind: 'range', min, max };
-    }
-  }
-  const n = parseInt(value, 10);
-  if (!Number.isNaN(n) && n >= 1) {
-    return { kind: 'fixed', value: n };
-  }
-  return { kind: 'fixed', value: defaultVal };
-}
-
-export function getValueFromConfig(config: MultiConfig): number {
-  if (config.kind === 'fixed') return config.value;
-  return faker.number.int({ min: config.min, max: config.max });
-}
-
-/** Returns true if user types y (case-insensitive), false otherwise. Exported for generate_and_parse. */
-export function confirmAddFakeValueTags(): Promise<boolean> {
-  const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
-  return new Promise((resolve) => {
-    rl.question(
-      'WARNING: This will generate value tags with fake information. You should NOT use these value tags to send money to, or your money will be lost.\nType y to continue, or any other key to quit.\n',
-      (answer) => {
-        rl.close();
-        resolve(answer.trim().toLowerCase() === 'y');
-      }
-    );
-  });
-}
-
-export function getPositionalCount(argv: string[]): number | null {
-  const positionals: string[] = [];
-  for (let i = 0; i < argv.length; i++) {
-    const arg = argv[i];
-    if (arg === undefined) continue;
-    if (arg === '--multi' || arg === '--items') {
-      i++;
-      continue;
-    }
-    if (arg === '--force-rss' || arg === '--add-fake-value-tags') continue;
-    positionals.push(arg);
-  }
-  const first = positionals[0];
-  if (!first) return null;
-  const n = parseInt(first, 10);
-  if (Number.isNaN(n) || n < 1) return null;
-  return n;
-}
-
 function getOutputDir(): string {
   return path.join(__dirname, '../assets');
 }
@@ -306,18 +202,6 @@ function getOutputDir(): string {
 function getFeedFilename(kind: FeedKind, setIndex: number): string {
   if (kind === 'none') return `feed-${setIndex}.rss`;
   return `feed-${kind}-${setIndex}.rss`;
-}
-
-function pad3(n: number): string {
-  return n.toString().padStart(3, '0');
-}
-
-/** Per 07d: URL and channel GUID for a feed already written in this run (for remoteItem/podroll/publisher). */
-export type WrittenFeedInfo = { url: string; guid: string };
-
-/** Image pool size so that imagePoolSize * IMAGE_SIZES.length ≤ MAX_JPEG_FILES. */
-function getImagePoolSize(poolSize: number): number {
-  return Math.min(poolSize, Math.floor(MAX_JPEG_FILES / IMAGE_SIZES.length));
 }
 
 async function ensureMediaAssets(poolSize: number): Promise<void> {
@@ -366,17 +250,6 @@ async function ensureBasicAuthMediaAssets(): Promise<void> {
   }
 }
 
-/** RFC 2822-style date for pubDate/lastBuildDate */
-function toRfc2822(d: Date): string {
-  return d.toUTCString();
-}
-
-/** Build podcast:images srcset value (e.g. "url1 300w, url2 600w, url3 1400w"). */
-function buildPodcastImagesSrcset(baseUrl: string, indexPad: string): string {
-  const base = baseUrl.replace(/\/$/, '');
-  return IMAGE_SIZES.map((w) => `${base}/images/image-${indexPad}-${w}.jpg ${w}w`).join(', ');
-}
-
 /** podcast:medium value per feed kind; null = omit tag (feed-none, feed-season). */
 function getMediumForKind(kind: FeedKind): string | null {
   switch (kind) {
@@ -394,307 +267,6 @@ function getMediumForKind(kind: FeedKind): string | null {
     default:
       return null;
   }
-}
-
-/** Person role/group values Partytime accepts (from person-enum). */
-const PERSON_ROLES = ['Host', 'Co-Host', 'Guest', 'Producer', 'Narrator'] as const;
-const PERSON_GROUPS = ['Cast', 'Hosts', 'Creative Direction'] as const;
-
-/** 07a: Lightning keysend — generate a node pubkey-like string (66 hex chars). */
-function lightningNodePubkey(): string {
-  const hexChars = '0123456789abcdef'.split('');
-  return Array.from({ length: 66 }, () => faker.helpers.arrayElement(hexChars)).join('');
-}
-
-type ValueRecipientOpts = {
-  type?: string;
-  customKey?: string;
-  customValue?: string;
-  fee?: boolean;
-};
-
-/** Build one <podcast:valueRecipient> XML string. customValue only emitted when customKey is present. */
-function buildValueRecipientXml(
-  address: string,
-  split: number,
-  name: string,
-  opts?: ValueRecipientOpts
-): string {
-  const parts = [
-    `type="${escapeXml(opts?.type ?? 'node')}"`,
-    `address="${escapeXml(address)}"`,
-    `split="${split}"`,
-    `name="${escapeXml(name)}"`,
-  ];
-  if (opts?.customKey !== undefined) {
-    parts.push(`customKey="${escapeXml(opts.customKey)}"`);
-    if (opts.customValue !== undefined) {
-      parts.push(`customValue="${escapeXml(opts.customValue)}"`);
-    }
-  }
-  if (opts?.fee === true) {
-    parts.push('fee="true"');
-  }
-  return `<podcast:valueRecipient ${parts.join(' ')}/>`;
-}
-
-/** Random optional customKey, customValue (only when customKey), and fee for a valueRecipient. */
-function randomValueRecipientOpts(): ValueRecipientOpts {
-  const opts: ValueRecipientOpts = {};
-  if (faker.helpers.arrayElement([true, false])) {
-    opts.customKey = faker.lorem.slug();
-    if (faker.helpers.arrayElement([true, false])) {
-      opts.customValue = faker.lorem.word();
-    }
-  }
-  if (faker.helpers.arrayElement([true, false])) {
-    opts.fee = true;
-  }
-  return opts;
-}
-
-const buildFixedValueRecipients = (
-  type: string,
-  addresses: string[],
-  labelPrefix: string
-): string => {
-  return addresses
-    .map((address, index) =>
-      buildValueRecipientXml(
-        address,
-        VALUE_RECIPIENT_SPLITS[index] ?? 0,
-        `${labelPrefix} ${index + 1}`,
-        {
-          type,
-          fee: index === 2,
-        }
-      )
-    )
-    .join('\n    ');
-};
-
-/** 07a: Build channel <podcast:value> blocks for keysend + lnaddress. */
-function buildChannelValueBlock(_recipientCount: number): string {
-  const suggested = '0.00000005000';
-  const metaBoost = `<podcast:metaBoost type="post" schema="boostbox" license="${METABOOST_LICENSE_URL}">${METABOOST_URL}</podcast:metaBoost>`;
-  const keysendRecipients = buildFixedValueRecipients(
-    'node',
-    [lightningNodePubkey(), lightningNodePubkey(), lightningNodePubkey()],
-    'Keysend Recipient'
-  );
-  const lnaddressRecipients = buildFixedValueRecipients(
-    'lnaddress',
-    LNURL_TEST_ADDRESSES,
-    'LNAddress Recipient'
-  );
-
-  return [
-    `<podcast:value type="lightning" method="keysend" suggested="${suggested}">`,
-    `    ${metaBoost}`,
-    `    ${keysendRecipients}`,
-    `    </podcast:value>`,
-    `<podcast:value type="lightning" method="lnaddress" suggested="${suggested}">`,
-    `    ${metaBoost}`,
-    `    ${lnaddressRecipients}`,
-    `    </podcast:value>`,
-  ].join('\n');
-}
-
-/** 07a: Build item <podcast:value> blocks (keysend + lnaddress). */
-function buildItemValueBlock(
-  includeValueTimeSplit: boolean,
-  remoteItemTarget?: WrittenFeedInfo | null
-): string {
-  const suggested = '0.00000005000';
-  const metaBoost = `<podcast:metaBoost type="post" schema="boostbox" license="${METABOOST_LICENSE_URL}">${METABOOST_URL}</podcast:metaBoost>`;
-  const keysendRecipients = buildFixedValueRecipients(
-    'node',
-    [lightningNodePubkey(), lightningNodePubkey(), lightningNodePubkey()],
-    'Keysend Recipient'
-  );
-  const lnaddressRecipients = buildFixedValueRecipients(
-    'lnaddress',
-    LNURL_TEST_ADDRESSES,
-    'LNAddress Recipient'
-  );
-  let valueTimeSplitBlock = '';
-  if (includeValueTimeSplit) {
-    const startTime = faker.number.int({ min: 0, max: 3600 });
-    const duration = faker.number.int({ min: 60, max: 600 });
-    const remoteStartTime = faker.number.int({ min: 0, max: 3600 });
-    const remotePercentage = faker.number.int({ min: 0, max: 100 });
-    const useRemoteItem = remoteItemTarget && remoteItemTarget.guid && remoteItemTarget.url;
-    if (useRemoteItem) {
-      const remoteItemXml = buildRemoteItemXml({
-        guid: remoteItemTarget.guid,
-        url: remoteItemTarget.url,
-      });
-      valueTimeSplitBlock = `
-      <podcast:valueTimeSplit startTime="${startTime}" duration="${duration}" remoteStartTime="${remoteStartTime}" remotePercentage="${remotePercentage}">
-        ${remoteItemXml}
-      </podcast:valueTimeSplit>`;
-    } else {
-      const vsRecipientAddress = lightningNodePubkey();
-      const vsSplit = faker.number.int({ min: 1, max: 100 });
-      const vsName = faker.person.fullName();
-      const vsRecipientXml = buildValueRecipientXml(
-        vsRecipientAddress,
-        vsSplit,
-        vsName,
-        randomValueRecipientOpts()
-      );
-      valueTimeSplitBlock = `
-      <podcast:valueTimeSplit startTime="${startTime}" duration="${duration}" remoteStartTime="${remoteStartTime}" remotePercentage="${remotePercentage}">
-        ${vsRecipientXml}
-      </podcast:valueTimeSplit>`;
-    }
-  }
-  return [
-    `<podcast:value type="lightning" method="keysend" suggested="${suggested}">`,
-    `      ${metaBoost}`,
-    `      ${keysendRecipients}${valueTimeSplitBlock}`,
-    `      </podcast:value>`,
-    `<podcast:value type="lightning" method="lnaddress" suggested="${suggested}">`,
-    `      ${metaBoost}`,
-    `      ${lnaddressRecipients}`,
-    `      </podcast:value>`,
-  ].join('\n');
-}
-
-/** JSON chapters (1.2): chapter entry for generated file. startTime/endTime in seconds. */
-type GeneratedChapter = {
-  startTime: number;
-  endTime?: number;
-  title?: string;
-  img?: string;
-  url?: string;
-  toc?: boolean;
-  location?: { name: string; geo: string; osm?: string };
-};
-
-const CHAPTERS_VERSION = '1.2.0';
-const MIN_CHAPTER_LENGTH_SEC = 10;
-const MIN_TOC_CHAPTERS = 3;
-
-/**
- * Build chapters array for one item. At least MIN_TOC_CHAPTERS toc:true chapters, each >= 10s,
- * all within [0, durationSec]. Optionally 0–2 toc:false overlay chapters. Sorted by startTime.
- */
-function buildChaptersForItem(
-  durationSec: number,
-  baseUrl: string,
-  imagePoolSize: number
-): GeneratedChapter[] {
-  const chapters: GeneratedChapter[] = [];
-  const maxChaptersByDuration = Math.floor(durationSec / MIN_CHAPTER_LENGTH_SEC);
-  const numTocChapters = faker.number.int({
-    min: MIN_TOC_CHAPTERS,
-    max: Math.max(MIN_TOC_CHAPTERS, Math.min(6, maxChaptersByDuration)),
-  });
-  const segmentDuration = durationSec / numTocChapters;
-  for (let i = 0; i < numTocChapters; i++) {
-    const startTime = Math.round(i * segmentDuration * 10) / 10;
-    const endTime =
-      i < numTocChapters - 1
-        ? Math.round((i + 1) * segmentDuration * 10) / 10
-        : Math.round(durationSec * 10) / 10;
-    const ch: GeneratedChapter = {
-      startTime,
-      endTime,
-      title: faker.lorem.sentence(),
-      toc: true,
-    };
-    if (faker.helpers.arrayElement([true, false])) {
-      ch.img = `${baseUrl}/images/image-${pad3(faker.number.int({ min: 1, max: imagePoolSize }))}-${IMAGE_SIZES[0]}.jpg`;
-    }
-    if (faker.helpers.arrayElement([true, false])) {
-      ch.url = faker.internet.url();
-    }
-    if (faker.helpers.arrayElement([true, false])) {
-      ch.location = {
-        name: faker.location.city(),
-        geo: `geo:${faker.location.latitude()},${faker.location.longitude()}`,
-      };
-    }
-    chapters.push(ch);
-  }
-  const numOverlay = faker.number.int({ min: 0, max: 2 });
-  for (let o = 0; o < numOverlay; o++) {
-    const start = faker.number.float({
-      min: 0,
-      max: Math.max(0, durationSec - 10),
-      fractionDigits: 1,
-    });
-    const end = Math.min(
-      durationSec,
-      start + faker.number.float({ min: 10, max: 60, fractionDigits: 1 })
-    );
-    chapters.push({
-      startTime: Math.round(start * 10) / 10,
-      endTime: Math.round(end * 10) / 10,
-      title: faker.lorem.words(2),
-      toc: false,
-    });
-  }
-  chapters.sort((a, b) => a.startTime - b.startTime);
-  return chapters;
-}
-
-/** Build full chapters JSON object (version + optional metadata + chapters). */
-function buildChaptersJson(chapters: GeneratedChapter[]): {
-  version: string;
-  chapters: GeneratedChapter[];
-  author?: string;
-  title?: string;
-  podcastName?: string;
-  description?: string;
-  fileName?: string;
-  waypoints?: boolean;
-} {
-  const root: {
-    version: string;
-    chapters: GeneratedChapter[];
-    author?: string;
-    title?: string;
-    podcastName?: string;
-    description?: string;
-    fileName?: string;
-    waypoints?: boolean;
-  } = {
-    version: CHAPTERS_VERSION,
-    chapters,
-    author: faker.person.fullName(),
-    title: faker.lorem.sentence(),
-    podcastName: faker.lorem.words(3),
-    description: faker.lorem.paragraph(),
-    fileName: faker.system.fileName(),
-  };
-  if (faker.helpers.arrayElement([true, false])) {
-    root.waypoints = faker.helpers.arrayElement([true, false]);
-  }
-  return root;
-}
-
-/** 07c: Reference enclosure for all live items (24/7 stream). */
-const LIVE_ITEM_ENCLOSURE_URL = 'https://op3.dev/e/listen.noagendastream.com/noagenda';
-const LIVE_ITEM_ENCLOSURE_TYPE = 'audio/mpeg';
-const LIVE_ITEM_ENCLOSURE_LENGTH = 33;
-
-/** 07c: Build one <podcast:liveItem> with reference enclosure; status = live | pending | ended. */
-function buildLiveItemBlock(status: 'live' | 'pending' | 'ended', chatWebUrl?: string): string {
-  const guid = generateGuidWithRandomVersion();
-  const title = faker.lorem.sentence();
-  const start = toRfc2822(faker.date.recent({ days: 1 }));
-  const endAttr =
-    status === 'ended' || status === 'pending'
-      ? ` end="${toRfc2822(faker.date.recent({ days: 1 }))}"`
-      : '';
-  const chatAttr = chatWebUrl ? ` chat="${escapeXml(chatWebUrl)}"` : '';
-  return `<podcast:liveItem status="${status}" start="${start}"${endAttr}${chatAttr}>
-    <guid>${escapeXml(guid)}</guid>
-    <title>${escapeXml(title)}</title>
-    <enclosure url="${escapeXml(LIVE_ITEM_ENCLOSURE_URL)}" type="${LIVE_ITEM_ENCLOSURE_TYPE}" length="${LIVE_ITEM_ENCLOSURE_LENGTH}"/>
-  </podcast:liveItem>`;
 }
 
 /** 07b: Build 4 <podcast:alternateEnclosure> per item (audio/mpeg, audio/ogg, video/mp4, video/webm) with <podcast:source>. */
@@ -736,13 +308,6 @@ function buildTranscriptContent(format: 'vtt' | 'srt' | 'plain'): string {
       return 'Sample transcript text.';
   }
 }
-
-export type BuildFeedResult = {
-  xml: string;
-  channelGuid: string;
-  chaptersToWrite: { filename: string; content: string }[];
-  transcriptsToWrite: { filename: string; content: string }[];
-};
 
 function buildFeed(
   feedKind: FeedKind,
@@ -1110,22 +675,6 @@ ${items.join('\n')}
 `;
   return { xml, channelGuid: podcastGuid, chaptersToWrite, transcriptsToWrite };
 }
-
-export type RunGenerateFeedAndAssetsOptions = {
-  itemsConfig?: MultiConfig;
-  multiConfig?: MultiConfig;
-  baseUrl?: string;
-  /** When true, overwrite existing RSS feed files only (media assets are never overwritten). */
-  forceRss?: boolean;
-  /** When true, include podcast:value (channel + item) with fake Lightning data. CLI prompts for confirmation. */
-  addFakeValueTags?: boolean;
-};
-
-export type RunGenerateFeedAndAssetsResult = {
-  success: boolean;
-  written: number;
-  skipped: number;
-};
 
 /**
  * Shared logic: generate media pool and feed files under assets/audio, assets/feeds,
