@@ -56,6 +56,7 @@ type UseBoostPaymentsParams = {
   setRecipientStatuses: Dispatch<SetStateAction<RecipientStatus[]>>;
   setIsSubmitting: Dispatch<SetStateAction<boolean>>;
   setModalBoostMessageError: (params: BoostMessageModalParams) => void;
+  onBoostSuccess?: () => void;
 };
 
 const buildCustomRecordsForRecipient = (
@@ -63,6 +64,26 @@ const buildCustomRecordsForRecipient = (
   recipient: PaymentRecipient
 ): Record<string, string> | undefined =>
   buildCustomRecords(blipPayload, recipient.custom_key, recipient.custom_value);
+
+/**
+ * Extract a user-facing message from a thrown value (e.g. Error, Alby response body).
+ */
+function getErrorMessage(error: unknown, fallback: string): string {
+  if (error instanceof Error && typeof error.message === 'string' && error.message.trim() !== '') {
+    return error.message.trim();
+  }
+  const withResponse = error as { response?: { data?: { message?: string } } };
+  const msg = withResponse?.response?.data?.message;
+  if (typeof msg === 'string' && msg.trim() !== '') {
+    return msg.trim();
+  }
+  const withData = error as { data?: { message?: string } };
+  const dataMsg = withData?.data?.message;
+  if (typeof dataMsg === 'string' && dataMsg.trim() !== '') {
+    return dataMsg.trim();
+  }
+  return fallback;
+}
 
 export const useBoostPayments = ({
   channel,
@@ -81,6 +102,7 @@ export const useBoostPayments = ({
   setRecipientStatuses,
   setIsSubmitting,
   setModalBoostMessageError,
+  onBoostSuccess,
 }: UseBoostPaymentsParams) => {
   const sendPayments = async (desc: string | null, allowBlipFallback: boolean) => {
     const provider = await ensureWeblnEnabled();
@@ -100,7 +122,11 @@ export const useBoostPayments = ({
 
     setRecipientStatuses(toRecipientStatuses(paymentRecipients));
 
+    let anyFailed = false;
     for (const recipient of paymentRecipients) {
+      if (recipient.final_amount <= 0) {
+        continue;
+      }
       try {
         if (recipient.type === 'lnaddress') {
           updateRecipientStatus(recipient.id, 'paying');
@@ -188,12 +214,15 @@ export const useBoostPayments = ({
         }
         updateRecipientStatus(recipient.id, 'success');
       } catch (error) {
-        const errorMessage =
-          error instanceof Error ? error.message : tValue('boost_messages.status_failed');
+        anyFailed = true;
+        const errorMessage = getErrorMessage(error, tValue('boost_messages.status_failed'));
         updateRecipientStatus(recipient.id, 'failed', errorMessage);
       }
     }
 
+    if (!anyFailed) {
+      onBoostSuccess?.();
+    }
     setIsSubmitting(false);
   };
 

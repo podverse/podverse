@@ -1,3 +1,29 @@
+.summaryHeading {
+  margin: 0 0 var(--spacing-lg);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+}
+
+.summaryDivider {
+  margin: var(--spacing-xl) 0 var(--spacing-md);
+  border: 0;
+  border-top: 1px solid var(--form-element-border-color);
+}
+
+.summaryTotals {
+  display: grid;
+  gap: var(--spacing-xs);
+  margin-bottom: var(--spacing-xl);
+}
+
+.summarySuccessful {
+  color: var(--button-success-bg);
+}
+
+.summaryFailed {
+  color: var(--text-color-danger);
+}
+
 .form {
   margin-top: var(--spacing-2xl);
 }
@@ -13,6 +39,7 @@
 .buttons {
   display: flex;
   justify-content: flex-end;
+  gap: var(--spacing-md);
   margin-top: var(--spacing-2xl);
 }
 
@@ -29,26 +56,26 @@
 }
 
 .recipientStatusList {
-  margin-top: var(--spacing-xl);
   display: grid;
-  gap: var(--spacing-sm);
+  gap: var(--spacing-md);
 }
 
 .recipientStatusItem {
   display: grid;
   grid-template-columns: 1fr auto;
-  gap: var(--spacing-sm) var(--spacing-lg);
-  padding: var(--spacing-sm) var(--spacing-md);
+  gap: var(--spacing-md) var(--spacing-xl);
+  padding: var(--spacing-md) 0;
   border: 1px solid var(--form-element-border-color);
   border-radius: var(--border-radius);
 }
 
 .recipientStatusMeta {
   display: grid;
-  gap: var(--spacing-3xs);
+  gap: var(--spacing-xs);
 }
 
 .recipientStatusAddress {
+  margin-top: var(--spacing-sm);
   color: var(--text-color-secondary);
   font-size: var(--font-size-sm);
   word-break: break-word;
@@ -60,13 +87,19 @@
 }
 
 .recipientStatusError {
-  margin-top: var(--spacing-3xs);
+  margin-top: var(--spacing-xs);
   color: var(--text-color-danger);
   font-size: var(--font-size-sm);
 }
 
 .status_pending {
   color: var(--text-color-secondary);
+}
+
+.statusPayingRow {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
 }
 
 .status_paying {

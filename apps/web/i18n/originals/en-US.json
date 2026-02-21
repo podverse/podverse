@@ -278,7 +278,10 @@
       "status_pending": "Pending…",
       "status_paying": "Paying…",
       "status_success": "Sent",
-      "status_failed": "Failed"
+      "status_failed": "Failed",
+      "status_summary": "Summary",
+      "successfully_sent": "Successful: ",
+      "failed_to_send": "Failed: "
     },
     "types": {
       "lightning_keysend": {
@@ -359,6 +362,7 @@
     "saving": "Saving...",
     "cancel": "Cancel",
     "close": "Close",
+    "go_back": "Go back",
     "close_video_player": "Close video player",
     "dismiss": "Dismiss",
     "on": "On",

@@ -83,7 +83,7 @@ const getPaymentRecipients = (
     });
   }
 
-  return paymentRecipients.filter((recipient) => recipient.final_amount > 0);
+  return paymentRecipients;
 };
 
 const toRecipientStatuses = (recipients: PaymentRecipient[]): RecipientStatus[] =>

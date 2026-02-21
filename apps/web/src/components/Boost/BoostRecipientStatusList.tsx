@@ -1,5 +1,6 @@
 import type { RecipientStatus } from './types.js';
 
+import LoadingSpinner from '../LoadingSpinner/LoadingSpinner';
 import styles from '../../styles/components/Boost/BoostForm.module.scss';
 
 type Translator = (key: string, values?: Record<string, string | number>) => string;
@@ -30,11 +31,22 @@ export const BoostRecipientStatusList = ({
           </div>
           <div className={styles[`status_${recipient.status}`]}>
             {recipient.status === 'pending' && tValue('boost_messages.status_pending')}
-            {recipient.status === 'paying' && tValue('boost_messages.status_paying')}
+            {recipient.status === 'paying' && (
+              <span className={styles.statusPayingRow}>
+                {tValue('boost_messages.status_paying')}
+                <LoadingSpinner size="small" />
+              </span>
+            )}
             {recipient.status === 'success' && tValue('boost_messages.status_success')}
-            {recipient.status === 'failed' && tValue('boost_messages.status_failed')}
-            {recipient.status === 'failed' && recipient.error && (
-              <div className={styles.recipientStatusError}>{recipient.error}</div>
+            {recipient.status === 'failed' && (
+              <>
+                {tValue('boost_messages.status_failed')}
+                {recipient.error !== undefined &&
+                  recipient.error !== '' &&
+                  recipient.error !== tValue('boost_messages.status_failed') && (
+                    <div className={styles.recipientStatusError}>{recipient.error}</div>
+                  )}
+              </>
             )}
           </div>
         </div>
