@@ -3,9 +3,6 @@ networks:
   podverse_local_network:
     external: true
 
-volumes:
-  podverse_local_boostbox_boosts:
-
 services:
   podverse_local_boostbox:
     image: boostbox:latest
@@ -16,6 +13,6 @@ services:
       - "8080:8080"
     volumes:
       # BB_FS_ROOT_PATH (default "boosts") is relative to container workdir /app
-      - podverse_local_boostbox_boosts:/app/boosts
+      - ${PWD}/../boostbox/boosts:/app/boosts
     networks:
       - podverse_local_network

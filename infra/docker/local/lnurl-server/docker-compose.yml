@@ -1,0 +1,27 @@
+# Local LNURL server for Lightning Address testing.
+# Connects to Nigiri's LND node for invoice creation.
+# LND credentials are mounted from Nigiri's data directory.
+# Set NIGIRI_LND_CREDENTIALS_PATH (Makefile does this: macOS uses Library/Application Support/Nigiri, else ~/.nigiri).
+# Nigiri exposes LND REST on 18080.
+
+services:
+  podverse_local_lnurl_server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: podverse_local_lnurl_server
+    ports:
+      - "3003:3003"
+    environment:
+      - PORT=3003
+      - DOMAIN=localhost:3003
+      - LND_REST_HOST=host.docker.internal
+      - LND_REST_PORT=18080
+      - LND_MACAROON_PATH=/lnd-creds/admin.macaroon
+      - LND_TLS_CERT_PATH=/lnd-creds/tls.cert
+    volumes:
+      - ${NIGIRI_LND_CREDENTIALS_PATH:-${HOME}/.nigiri/regtest}/volumes/lnd/data/chain/bitcoin/regtest/admin.macaroon:/lnd-creds/admin.macaroon:ro
+      - ${NIGIRI_LND_CREDENTIALS_PATH:-${HOME}/.nigiri/regtest}/volumes/lnd/tls.cert:/lnd-creds/tls.cert:ro
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    restart: unless-stopped

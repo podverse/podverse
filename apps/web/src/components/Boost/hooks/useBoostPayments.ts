@@ -8,6 +8,7 @@ import {
   buildCustomRecords,
   buildBoostMetadataRequest,
   isBoostMetadataResponse,
+  META_BOOST_SCHEMA_BOOSTBOX,
   resolveLnaddressKeysendDetails,
   serializeBlip10Metadata,
   toCustomRecords,
@@ -25,8 +26,29 @@ type AppConfig = {
     brand: {
       name: string;
     };
+    api?: {
+      client?: { protocol?: string; host?: string; port?: string };
+      prefix?: string;
+      version?: string;
+    };
   };
 };
+
+function getMetaboostBoostboxBoostUrl(config: AppConfig): string | null {
+  const api = config.public?.api;
+  const client = api?.client;
+  if (
+    client?.protocol === undefined ||
+    client?.host === undefined ||
+    api?.prefix === undefined ||
+    api?.version === undefined
+  ) {
+    return null;
+  }
+  const portPart = client.port !== undefined && client.port !== '' ? `:${client.port}` : '';
+  const prefix = api.prefix.replace(/\/$/, '');
+  return `${client.protocol}://${client.host}${portPart}${prefix}${api.version}/metaboost/boostbox/boost`;
+}
 
 type BoostMessageModalParams = {
   title: string;
@@ -247,8 +269,21 @@ export const useBoostPayments = ({
           item_title: item?.title ?? undefined,
         });
 
-        const { status, data: responseData } = await request<unknown>(metaBoost.node, {
-          data: requestBody,
+        const requestUrl =
+          metaBoost.schema === META_BOOST_SCHEMA_BOOSTBOX
+            ? getMetaboostBoostboxBoostUrl(config)
+            : null;
+        if (metaBoost.schema === META_BOOST_SCHEMA_BOOSTBOX && requestUrl === null) {
+          throw new Error('BoostBox proxy URL not configured');
+        }
+        const url = requestUrl !== null ? requestUrl : metaBoost.node;
+        const requestData =
+          metaBoost.schema === META_BOOST_SCHEMA_BOOSTBOX
+            ? { baseUrl: 'http://localhost:8080', ...requestBody }
+            : requestBody;
+
+        const { status, data: responseData } = await request<unknown>(url, {
+          data: requestData,
           method: 'POST',
         });
 

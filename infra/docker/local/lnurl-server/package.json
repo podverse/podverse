@@ -1,0 +1,13 @@
+{
+  "name": "podverse-local-lnurl-server",
+  "version": "1.0.0",
+  "description": "Minimal LNURL server for local Lightning Address testing",
+  "main": "server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.21.0"
+  }
+}

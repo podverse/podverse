@@ -1,0 +1,38 @@
+{
+  "keysend": [
+    {
+      "address": "02REPLACE_WITH_KEYSEND_PUBKEY_1",
+      "name": "Keysend Recipient 1",
+      "split": 60
+    },
+    {
+      "address": "02REPLACE_WITH_KEYSEND_PUBKEY_2",
+      "name": "Keysend Recipient 2",
+      "split": 40
+    },
+    {
+      "address": "02REPLACE_WITH_KEYSEND_PUBKEY_3",
+      "name": "Keysend Fee Recipient",
+      "split": 1,
+      "fee": true
+    }
+  ],
+  "lnaddress": [
+    {
+      "address": "recipient1@example.local",
+      "name": "LNAddress Recipient 1",
+      "split": 60
+    },
+    {
+      "address": "recipient2@example.local",
+      "name": "LNAddress Recipient 2",
+      "split": 40
+    },
+    {
+      "address": "fee@example.local",
+      "name": "LNAddress Fee Recipient",
+      "split": 1,
+      "fee": true
+    }
+  ]
+}

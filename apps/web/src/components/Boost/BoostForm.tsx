@@ -182,6 +182,15 @@ export const BoostForm: React.FC<BoostFormProps> = ({
     return null;
   }
 
+  const hasResults = recipientStatuses.length > 0 && !isSubmitting;
+  const allFailed =
+    recipientStatuses.length > 0 && recipientStatuses.every((r) => r.status === 'failed');
+  const showFormInputs = recipientStatuses.length === 0;
+
+  const goBackFromResults = (): void => {
+    setRecipientStatuses([]);
+  };
+
   if (step === 'summary') {
     const hasAnySuccess = recipientStatuses.some((r) => r.status === 'success');
     const totalSent = recipientStatuses
@@ -224,7 +233,7 @@ export const BoostForm: React.FC<BoostFormProps> = ({
                 variant="secondary"
                 onClick={() => setModalBoost({ channel: null, item: null })}
               >
-                {tMisc('cancel')}
+                {tMisc('close')}
               </Button>
             </>
           )}
@@ -235,7 +244,7 @@ export const BoostForm: React.FC<BoostFormProps> = ({
 
   return (
     <div>
-      {!isSubmitting && (
+      {showFormInputs && (
         <>
           <MediaHeaderMini channel={channel} item={item} />
           <ButtonTabs buttonTabs={buttonTabs} selectedKey={selectedKey} />
@@ -279,20 +288,42 @@ export const BoostForm: React.FC<BoostFormProps> = ({
       )}
       <BoostRecipientStatusList recipientStatuses={recipientStatuses} tValue={tValue} />
       <div className={styles.buttons}>
-        <Button
-          variant="secondary"
-          onClick={() => setModalBoost({ channel: null, item: null })}
-          disabled={isSubmitting}
-        >
-          {tMisc('cancel')}
-        </Button>
-        <Button
-          onClick={boostTestMode ? handleTestSubmit : handleSubmitBoost}
-          isLoading={isSubmitting}
-          disabled={isSubmitting}
-        >
-          {tMisc('submit')}
-        </Button>
+        {hasResults ? (
+          allFailed ? (
+            <>
+              <Button variant="secondary" onClick={goBackFromResults}>
+                {tMisc('go_back')}
+              </Button>
+              <Button
+                variant="secondary"
+                onClick={() => setModalBoost({ channel: null, item: null })}
+              >
+                {tMisc('close')}
+              </Button>
+            </>
+          ) : (
+            <Button onClick={() => setModalBoost({ channel: null, item: null })}>
+              {tMisc('close')}
+            </Button>
+          )
+        ) : (
+          <>
+            <Button
+              variant="secondary"
+              onClick={() => setModalBoost({ channel: null, item: null })}
+              disabled={isSubmitting}
+            >
+              {tMisc('cancel')}
+            </Button>
+            <Button
+              onClick={boostTestMode ? handleTestSubmit : handleSubmitBoost}
+              isLoading={isSubmitting}
+              disabled={isSubmitting}
+            >
+              {tMisc('submit')}
+            </Button>
+          </>
+        )}
       </div>
     </div>
   );

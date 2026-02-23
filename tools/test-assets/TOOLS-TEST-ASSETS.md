@@ -98,6 +98,38 @@ Use `generate` (or `generate:only`) when you only need to refresh feeds/media. U
 
 By default, generated feeds **do not** contain value blocks (podcast:value, valueRecipient, valueTimeSplit). To include them for parser or UI testing, pass `--add-fake-value-tags`. The CLI will show a warning and ask you to type `y` to continue. The value data is **fake** and must **not** be used for real payments; sending money to these addresses will result in loss of funds.
 
+### Local LN recipient overrides
+
+If you need deterministic recipients for end-to-end tests, provide a local config file that
+replaces the built-in fake recipients when `--add-fake-value-tags` is used.
+
+- Copy the example file to create your local config:
+
+```bash
+cp tools/test-assets/config/ln-recipients.local.json.example \
+  tools/test-assets/config/ln-recipients.local.json
+```
+
+- Update the file with real values from your local Lightning setup:
+
+```json
+{
+  "keysend": [
+    { "address": "02...", "name": "Keysend Recipient 1", "split": 60 },
+    { "address": "02...", "name": "Keysend Recipient 2", "split": 40 },
+    { "address": "02...", "name": "Keysend Fee Recipient", "split": 1, "fee": true }
+  ],
+  "lnaddress": [
+    { "address": "user@domain", "name": "LNAddress Recipient 1", "split": 60 },
+    { "address": "user@domain", "name": "LNAddress Recipient 2", "split": 40 },
+    { "address": "user@domain", "name": "LNAddress Fee Recipient", "split": 1, "fee": true }
+  ]
+}
+```
+
+If the file is missing or invalid, the generator falls back to the built-in fake recipients.
+The local file is gitignored and should not be committed.
+
 **`.env.api` and database for generate_and_parse:**
 
 - The script looks for `.env.api` in this order: (1) monorepo root, (2) `tools/web-perf/lighthouse/.env.api`. You do not need to run from a specific directory.

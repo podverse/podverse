@@ -8,7 +8,7 @@ source lives in a **separate repository**, not inside the Podverse monorepo.
 
 Boostbox is developed as its own project (e.g. [podverse/boostbox](https://github.com/podverse/boostbox)
 or [noblepayne/boostbox](https://github.com/noblepayne/boostbox)). It is cloned as a **sibling** of the
-Podverse repo so the Makefile can build its Docker image and start it as part of local infra.
+Podverse repo so the Makefile can build its Docker image and start it as part of local infra (targets live in `Makefile.local.v4v`, included by `Makefile.local.infra`).
 
 ## Expected layout
 
@@ -46,6 +46,15 @@ From the Podverse repo root, the path to Boostbox must be `../boostbox` (not con
 
 - Env file: `infra/config/local/boostbox.env` (created from `infra/config/env-templates/boostbox.env.example` if missing).
 - Defaults (filesystem storage, dev) are fine for local V4V testing.
+
+## API proxy (web app → BoostBox)
+
+The web app does not call BoostBox directly. When the user boosts with MetaBoost schema **boostbox**, the client sends a POST to the Podverse API at **`/api/v1/metaboost/boostbox/boost`** with a JSON body that includes:
+
+- **`baseUrl`** (required): The BoostBox base URL. The API forwards the request to `{baseUrl}/boost`. In **production** only **HTTPS** is allowed; in development both **HTTP** and HTTPS are accepted (so `http://localhost:8080` works for local Boostbox).
+- The rest of the boost metadata (action, value_msat, message, etc.); the API forwards this as the request body to BoostBox.
+
+The API adds the **`X-API-Key`** header (value `v4v4me`, matching BoostBox’s default **`BB_ALLOWED_KEYS`**); the key is not configurable and is never exposed in the browser.
 
 ## Using a pre-built image
 

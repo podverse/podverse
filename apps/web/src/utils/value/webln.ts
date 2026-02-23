@@ -14,7 +14,7 @@ const getRecordValue = (value: unknown, key: string): unknown => {
   if (typeof value !== 'object' || value === null) {
     return undefined;
   }
-  return Object.getOwnPropertyDescriptor(value, key)?.value;
+  return (value as Record<string, unknown>)[key];
 };
 
 const isWeblnProvider = (value: unknown): value is WeblnProvider => {

@@ -55,26 +55,8 @@ local_keyvaldb_up: local_network_create infra/config/local/keyvaldb.env
 local_keyvaldb_down:
 	docker compose -f infra/docker/local/keyvaldb/docker-compose.yml down --remove-orphans
 
-# Boostbox (V4V boost metadata API; repo is sibling to podverse - see docs/infra/LOCAL-BOOSTBOX.md)
-.PHONY: local_build_boostbox
-local_build_boostbox:
-	@if [ ! -d "../boostbox" ]; then \
-		echo "ERROR: ../boostbox is not a directory. Clone the boostbox repo as a sibling of the podverse monorepo (see docs/infra/LOCAL-BOOSTBOX.md)."; \
-		exit 1; \
-	fi
-	@if [ ! -f "../boostbox/Dockerfile" ]; then \
-		echo "ERROR: ../boostbox/Dockerfile not found. Add a Dockerfile to the boostbox repo."; \
-		exit 1; \
-	fi
-	docker build -f ../boostbox/Dockerfile -t boostbox:latest ../boostbox
-
-.PHONY: local_boostbox_up
-local_boostbox_up: local_network_create infra/config/local/boostbox.env
-	docker compose -f infra/docker/local/boostbox/docker-compose.yml up podverse_local_boostbox -d
-
-.PHONY: local_boostbox_down
-local_boostbox_down:
-	docker compose -f infra/docker/local/boostbox/docker-compose.yml down --remove-orphans
+# V4V (Boostbox + Lightning Network) targets live in Makefile.local.v4v
+include Makefile.local.v4v
 
 # Test-assets server (tools/test-assets). Serves feeds/media at http://localhost:2111. Workers local image uses an entrypoint that proxies localhost:2111 to podverse_local_test_assets:2111 (see infra/docker/local/workers/).
 .PHONY: local_build_test_assets
@@ -143,6 +125,16 @@ local_management_db_init: infra/config/local/management-db.env
 local_infra_up: local_db_up local_mq_up local_keyvaldb_up local_management_db_up local_boostbox_up local_test_assets_up
 	@echo "All local infrastructure services started"
 
+# Start all infrastructure including Lightning Network (for V4V testing)
+# Use this when you need the full E2E environment with value-for-value payments.
+.PHONY: local_infra_up_full
+local_infra_up_full: local_infra_up local_ln_up
+	@echo ""
+	@echo "Full infrastructure started (including Lightning Network)"
+	@echo "LND HTTP proxy: http://localhost:8181  (use for Alby)"
+	@echo "LNURL server: http://localhost:3003"
+	@echo "LN recipients config: tools/test-assets/config/ln-recipients.local.json"
+
 # Complete local setup (infrastructure + database initialization)
 # Only run this once for initial setup, or after local_clean
 .PHONY: local_setup
@@ -163,6 +155,7 @@ local_setup: local_infra_up local_db_init local_management_db_init
 .PHONY: local_all_down
 local_all_down:
 	-$(MAKE) local_workers_down
+	-$(MAKE) local_ln_down
 	-$(MAKE) local_boostbox_down
 	-$(MAKE) local_test_assets_down
 	-$(MAKE) local_keyvaldb_down
@@ -180,6 +173,7 @@ local_clean:
 	docker compose -f infra/docker/local/management-db/docker-compose.yml down -v 2>/dev/null || true
 	docker compose -f infra/docker/local/boostbox/docker-compose.yml down --remove-orphans 2>/dev/null || true
 	docker compose -f infra/docker/local/test-assets/docker-compose.yml down --remove-orphans 2>/dev/null || true
+	-$(MAKE) local_ln_clean
 	-$(MAKE) local_workers_down
 	docker compose -f infra/docker/local/api/docker-compose.yml down --remove-orphans 2>/dev/null || true
 	docker compose -f infra/docker/local/web/docker-compose.yml down --remove-orphans 2>/dev/null || true

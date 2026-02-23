@@ -40,3 +40,88 @@ To-do's from the plan have already been created. Do not create them again. Mark 
 #### Files Modified
 
 - /Users/mitcheldowney/repos/pv/podverse/apps/web/src/components/Boost/hooks/useBoostRecipients.ts
+
+### Session 27 - 2026-02-23
+
+#### Prompt (Developer)
+
+does the alby web extension support regtest testing? investigate. the
+@podverse/docs/v4v/LOCAL-V4V-TESTNET-WALKTHROUGH.md says it doesn't but it was made by ChatGPT and i
+don't trust it.
+
+#### Prompt (Developer)
+
+rewrite the plan with the correct steps i can take to test transactions to our regtest local network
+
+#### Key Decisions
+
+- Investigated Alby extension source (`lnd.ts`, `ConnectLnd/index.tsx`): the LND connector accepts any
+  URL + macaroon hex with no network-type restriction. The doc claim "Alby does not support regtest" was
+  incorrect.
+- The Alby `ConnectLnd` UI accepts `http://` URLs (pattern `https?://.+`) and supports drag-and-drop of
+  `.macaroon` files, so connecting to Nigiri's local LND REST at `http://localhost:18080` is fully
+  supported.
+- Browser extension background scripts are not subject to the same mixed-content/CORS restrictions as
+  web pages, so HTTP to localhost works from the extension context.
+- Rewrote the wallet section of both docs with concrete Alby + regtest steps including OS-specific
+  `xxd` commands for the macaroon.
+
+#### Files Modified
+
+- docs/v4v/LOCAL-V4V-TESTNET-WALKTHROUGH.md (session 27)
+- docs/infra/LOCAL-LIGHTNING.md (session 27)
+
+### Session 28 - 2026-02-23
+
+#### Prompt (Developer)
+
+i tried copy and pasting the string, then i tried to drag and drop the file itself. i still get this error
+
+#### Prompt (Developer)
+
+update
+
+#### Key Decisions
+
+- "Connection failed (Bad Request)" (HTTP 400) was caused by using `http://` against LND's REST API,
+  which only serves HTTPS. Go's net/http TLS server returns exactly HTTP 400 "Client sent an HTTP
+  request to an HTTPS server" when it receives a plain HTTP connection on a TLS port. This affects both
+  hex paste and file drag-drop equally (the URL is what's wrong, not the macaroon).
+- Fix: use `https://localhost:18080`. Chrome must first accept LND's self-signed cert via
+  `https://localhost:18080/v1/getinfo` → Advanced → Proceed; the extension background script uses the
+  same trust store.
+- Also corrected `xxd` command to use `| tr -d '\n'` (no `-c 256`) so the hex output is always a
+  single unbroken line regardless of macaroon length.
+
+#### Files Modified
+
+- docs/v4v/LOCAL-V4V-TESTNET-WALKTHROUGH.md
+- docs/infra/LOCAL-LIGHTNING.md
+
+### Session 29 - 2026-02-23
+
+#### Prompt (Developer)
+
+debug [screenshot: Alby "Failed to fetch" with https://localhost:18080]
+
+#### Prompt (Developer)
+
+update
+
+#### Key Decisions
+
+- "Failed to fetch" with https:// means the Chrome extension service worker rejects the self-signed TLS
+  cert. Unlike browser tabs, extension service workers do not inherit browser "Proceed anyway" exceptions.
+- `no-rest-tls=1` with `restlisten=0.0.0.0` is rejected by LND (security check). `restlisten=127.0.0.1`
+  allows `no-rest-tls` but Docker Desktop on macOS cannot forward ports to container loopback — confirmed
+  via curl exit code 56.
+- Chosen fix: add LND's self-signed TLS cert to the macOS login keychain as a trusted root. Chrome on
+  macOS uses the macOS keychain (including for extension service workers), so this makes the cert trusted
+  system-wide. The cert regenerates on `make local_ln_clean`, so Makefile.local.v4v now runs
+  `security add-trusted-cert` automatically on macOS after each `make local_ln_up`.
+
+#### Files Modified
+
+- Makefile.local.v4v
+- docs/v4v/LOCAL-V4V-TESTNET-WALKTHROUGH.md
+- docs/infra/LOCAL-LIGHTNING.md

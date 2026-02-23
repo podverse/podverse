@@ -2,6 +2,7 @@ import type { Request, Response, NextFunction } from 'express';
 import type Joi from 'joi';
 
 export * from './querySchemas.js';
+export * from './uriSchemes.js';
 
 export function validateBodyObject(
   schema: Joi.ObjectSchema,

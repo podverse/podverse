@@ -9,6 +9,10 @@ and sending boost messages with BoostBox + WebLN (Alby or compatible). It also d
 keysend bLIP-0010 fallback when metaBoost is absent, and the LNAddress behavior when messages are
 not enabled.
 
+For a concrete step-by-step from Nix activation through nuke/rebuild V4V, test asset generation,
+navigating to a media page to boost, wallet configuration for testnet, and verification (including
+separate test paths for LNAddress and Keysend), see [LOCAL-V4V-TESTNET-WALKTHROUGH.md](LOCAL-V4V-TESTNET-WALKTHROUGH.md).
+
 ## Diagram
 
 See `docs/v4v/V4V-METABOOST-FLOW.md`.
@@ -35,8 +39,39 @@ BoostBox lives in a separate repo cloned as a sibling of Podverse; see
 
 Notes:
 
-- BoostBox is hardcoded to `http://localhost:8080` and expects a dev API key header.
+- The client sends the BoostBox base URL in the request body (`baseUrl`) when calling the Podverse API proxy; the API forwards to that URL and uses a fixed API key. See [LOCAL-BOOSTBOX.md](../infra/LOCAL-BOOSTBOX.md).
 - Alby Sandbox base URL and getalby.com LNURL endpoints are hardcoded in `@podverse/external-services-alby` for development only.
+
+## Local Lightning Network Setup
+
+For local V4V testing with real Lightning payments on regtest, use the automated
+Nigiri-based setup. See [docs/infra/LOCAL-LIGHTNING.md](../infra/LOCAL-LIGHTNING.md)
+for full instructions.
+
+Quick start:
+
+```bash
+# Start Lightning Network (Bitcoin Core + LND + CLN + LNURL server)
+make local_ln_up
+
+# This automatically:
+# 1. Starts Nigiri with Lightning nodes
+# 2. Discovers node pubkeys
+# 3. Writes tools/test-assets/config/ln-recipients.local.json
+```
+
+The generated config file contains actual LND/CLN pubkeys and local LNURL addresses,
+which are used when generating test assets with `--add-fake-value-tags`.
+
+## Manual Wallet Setup (Browser Testing)
+
+For browser-based V4V testing, you need a WebLN-compatible wallet configured for regtest.
+Wallet support for regtest varies, so verify your provider supports it or use the CLI
+testing approach described in [LOCAL-LIGHTNING.md](../infra/LOCAL-LIGHTNING.md#alternative-direct-lnd-testing).
+
+When `--add-fake-value-tags` is enabled, the generator uses `ln-recipients.local.json` for
+`type="node"` and `type="lnaddress"` recipients. If the file is missing or invalid,
+it falls back to built-in fake data.
 
 ## Supported recipient types
 
@@ -89,10 +124,9 @@ npm run generate -w tools/test-assets -- --add-fake-value-tags
 
 ## MetaBoost (BoostBox) flow
 
-When `<podcast:metaBoost>` is present, the client must call BoostBox first and use the response
-to carry message metadata downstream:
+When `<podcast:metaBoost>` is present, the client must obtain BoostBox metadata before sending payments:
 
-1. POST boost metadata to BoostBox (`POST /boost`).
+1. POST to the Podverse API at **`/api/v1/metaboost/boostbox/boost`** with a body that includes **`baseUrl`** (BoostBox base URL; must be HTTPS) and the boost metadata. The API proxies to BoostBox at `{baseUrl}/boost` and returns the response.
 2. Use the BoostBox `desc` string (`rss::payment::{action} {url} {truncated message}`) for:
    - LNAddress invoice comment (when allowed by LNURL).
    - Keysend bLIP-0010 `message` field (so the payload carries the BoostBox metadata URL).
@@ -137,6 +171,6 @@ ensure `localhost` origins are permitted in BoostBox CORS settings.
 
 ## Production follow-ups (not implemented)
 
-- Move BoostBox URL + API key to environment configuration.
+- The BoostBox base URL is supplied by the client in the request body; the API key is fixed. Production may require different key handling or validation.
 - Replace hardcoded Alby Sandbox constants with production config.
 - Add production-grade error handling and retries.

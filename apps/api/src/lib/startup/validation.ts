@@ -225,6 +225,11 @@ const validateAllEnvironmentVariables = (): ValidationSummary => {
     }
   }
 
+  // BoostBox (optional - local dev only; when set, overrides client-supplied baseUrl)
+  results.push(
+    validateOptional('BOOSTBOX_INTERNAL_BASE_URL', 'BoostBox', 'Use Default (client-supplied)')
+  );
+
   // PayPal (optional, but validated)
   results.push(validateOptional('PAYPAL_CLIENT_ID', 'PayPal'));
   results.push(validateOptional('PAYPAL_CLIENT_SECRET', 'PayPal'));

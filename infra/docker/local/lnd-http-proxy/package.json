@@ -1,0 +1,9 @@
+{
+  "name": "podverse-local-lnd-http-proxy",
+  "version": "1.0.0",
+  "description": "Plain HTTP proxy for the local LND HTTPS REST API",
+  "main": "proxy.js",
+  "scripts": {
+    "start": "node proxy.js"
+  }
+}
