@@ -12,7 +12,7 @@ services:
     ports:
       - "2111:2111"
     volumes:
-      # Mount host assets so you can run `npm run generate -w tools/test-assets` without rebuilding
-      - ../../../../tools/test-assets/assets:/opt/tools/test-assets/assets:ro
+      # Bind-mount host assets so generate/update is visible immediately.
+      - ../../../../tools/test-assets/assets:/opt/tools/test-assets/assets
     networks:
       - podverse_local_network

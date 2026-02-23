@@ -33,7 +33,7 @@ export const CorePodcastHeaderViewDesktop: React.FC<CorePodcastHeaderViewDesktop
 }) => {
   return (
     <CommonPodcastHeaderViewDesktop
-      imageNode={<CorePodcastHeaderImage channel={channel} item={item} />}
+      imageNode={<CorePodcastHeaderImage channel={channel} />}
       titleNode={
         <Link href={`${ROUTES.PODCAST}/${channel.id_text}`}>
           <h1 className={styles.title}>{channel.title}</h1>

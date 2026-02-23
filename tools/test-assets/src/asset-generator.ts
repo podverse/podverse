@@ -10,8 +10,10 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 const execAsync = promisify(exec);
-const AUDIO_FREQ_MIN = 220;
-const AUDIO_FREQ_MAX = 440;
+
+/** Exported so CLI can pick one frequency per item and pass it to all formats. */
+export const AUDIO_FREQ_MIN = 220;
+export const AUDIO_FREQ_MAX = 440;
 
 export class AssetGenerator {
   private assetsDir: string;
@@ -102,7 +104,11 @@ export class AssetGenerator {
     }
   }
 
-  async generateMP3(filename: string, durationSeconds: number = 300): Promise<void> {
+  async generateMP3(
+    filename: string,
+    durationSeconds: number = 300,
+    frequencyHz?: number
+  ): Promise<void> {
     const filePath = path.join(this.assetsDir, 'audio', filename);
 
     // Skip if file already exists
@@ -123,7 +129,7 @@ export class AssetGenerator {
         throw new Error('ffmpeg-static binary not found. Make sure ffmpeg-static is installed.');
       }
 
-      const frequency = this.getAudioFrequency();
+      const frequency = frequencyHz ?? this.getAudioFrequency();
       const command = `"${ffmpegPath}" -f lavfi -i sine=frequency=${frequency}:duration=${durationSeconds} -t ${durationSeconds} -acodec libmp3lame -b:a 128k -y "${filePath}"`;
 
       await execAsync(command);
@@ -134,7 +140,11 @@ export class AssetGenerator {
     }
   }
 
-  async generateMP4(filename: string, durationSeconds: number = 300): Promise<void> {
+  async generateMP4(
+    filename: string,
+    durationSeconds: number = 300,
+    frequencyHz?: number
+  ): Promise<void> {
     const filePath = path.join(this.assetsDir, 'videos', filename);
 
     // Skip if file already exists
@@ -155,7 +165,7 @@ export class AssetGenerator {
         throw new Error('ffmpeg-static binary not found. Make sure ffmpeg-static is installed.');
       }
 
-      const frequency = this.getAudioFrequency();
+      const frequency = frequencyHz ?? this.getAudioFrequency();
       const command = `"${ffmpegPath}" -f lavfi -i testsrc2=duration=${durationSeconds}:size=320x240:rate=1 -f lavfi -i sine=frequency=${frequency}:duration=${durationSeconds} -c:v libx264 -preset ultrafast -crf 28 -c:a aac -b:a 128k -t ${durationSeconds} -y "${filePath}"`;
 
       await execAsync(command);
@@ -167,7 +177,11 @@ export class AssetGenerator {
   }
 
   /** 07b: Generate OGG (Vorbis) audio; skip if exists. Cap 100 per type (caller's responsibility). */
-  async generateOGG(filename: string, durationSeconds: number = 300): Promise<void> {
+  async generateOGG(
+    filename: string,
+    durationSeconds: number = 300,
+    frequencyHz?: number
+  ): Promise<void> {
     const filePath = path.join(this.assetsDir, 'audio', filename);
     if (fs.existsSync(filePath)) {
       return;
@@ -182,7 +196,7 @@ export class AssetGenerator {
       if (!ffmpegPath) {
         throw new Error('ffmpeg-static binary not found.');
       }
-      const frequency = this.getAudioFrequency();
+      const frequency = frequencyHz ?? this.getAudioFrequency();
       const command = `"${ffmpegPath}" -f lavfi -i sine=frequency=${frequency}:duration=${durationSeconds} -t ${durationSeconds} -acodec libvorbis -y "${filePath}"`;
       await execAsync(command);
       console.log(`   ✅ Generated: ${filename} (${durationSeconds}s)`);
@@ -193,7 +207,11 @@ export class AssetGenerator {
   }
 
   /** 07b: Generate WebM (VP9 + Vorbis); skip if exists. Cap 100 per type (caller's responsibility). */
-  async generateWebM(filename: string, durationSeconds: number = 300): Promise<void> {
+  async generateWebM(
+    filename: string,
+    durationSeconds: number = 300,
+    frequencyHz?: number
+  ): Promise<void> {
     const filePath = path.join(this.assetsDir, 'videos', filename);
     if (fs.existsSync(filePath)) {
       return;
@@ -208,7 +226,7 @@ export class AssetGenerator {
       if (!ffmpegPath) {
         throw new Error('ffmpeg-static binary not found.');
       }
-      const frequency = this.getAudioFrequency();
+      const frequency = frequencyHz ?? this.getAudioFrequency();
       const command = `"${ffmpegPath}" -f lavfi -i testsrc2=duration=${durationSeconds}:size=320x240:rate=1 -f lavfi -i sine=frequency=${frequency}:duration=${durationSeconds} -c:v libvpx-vp9 -c:a libvorbis -t ${durationSeconds} -y "${filePath}"`;
       await execAsync(command);
       console.log(`   ✅ Generated: ${filename} (${durationSeconds}s)`);

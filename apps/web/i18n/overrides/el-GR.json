@@ -267,6 +267,10 @@
         "label": "",
         "denomination": ""
       },
+      "lightning_lnaddress": {
+        "label": "",
+        "denomination": ""
+      },
       "paypal_send": {
         "label": "",
         "denomination": ""

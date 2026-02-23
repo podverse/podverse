@@ -1,8 +1,27 @@
 # Local LNURL server for Lightning Address testing.
-# Connects to Nigiri's LND node for invoice creation.
-# LND credentials are mounted from Nigiri's data directory.
-# Set NIGIRI_LND_CREDENTIALS_PATH (Makefile does this: macOS uses Library/Application Support/Nigiri, else ~/.nigiri).
-# Nigiri exposes LND REST on 18080.
+# Routes per-username to separate LND nodes:
+#   alice → podverse_local_lnd_alice (REST :8080 on podverse_local_network)
+#   bob   → podverse_local_lnd_bob
+#   fee   → podverse_local_lnd_fee
+#   *     → main Nigiri LND (default, via host.docker.internal:18080)
+#
+# Named volumes from ln-recipient-nodes compose are mounted read-only so the
+# server can read each node's admin.macaroon and tls.cert without running exec.
+#
+# Set NIGIRI_LND_CREDENTIALS_PATH in the environment before starting
+# (Makefile handles this: macOS uses Library/Application Support/Nigiri, else ~/.nigiri).
+
+networks:
+  podverse_local_network:
+    external: true
+
+volumes:
+  podverse_local_lnd_alice_data:
+    external: true
+  podverse_local_lnd_bob_data:
+    external: true
+  podverse_local_lnd_fee_data:
+    external: true
 
 services:
   podverse_local_lnurl_server:
@@ -20,8 +39,18 @@ services:
       - LND_MACAROON_PATH=/lnd-creds/admin.macaroon
       - LND_TLS_CERT_PATH=/lnd-creds/tls.cert
     volumes:
+      # Main Nigiri LND credentials (default / fallback)
       - ${NIGIRI_LND_CREDENTIALS_PATH:-${HOME}/.nigiri/regtest}/volumes/lnd/data/chain/bitcoin/regtest/admin.macaroon:/lnd-creds/admin.macaroon:ro
       - ${NIGIRI_LND_CREDENTIALS_PATH:-${HOME}/.nigiri/regtest}/volumes/lnd/tls.cert:/lnd-creds/tls.cert:ro
+      # Recipient node credentials (from named Docker volumes)
+      # Volume root = /data/.lnd of each LND container
+      # macaroon: <mount>/data/chain/bitcoin/regtest/admin.macaroon
+      # tls cert: <mount>/tls.cert
+      - podverse_local_lnd_alice_data:/alice-creds:ro
+      - podverse_local_lnd_bob_data:/bob-creds:ro
+      - podverse_local_lnd_fee_data:/fee-creds:ro
+    networks:
+      - podverse_local_network
     extra_hosts:
       - "host.docker.internal:host-gateway"
     restart: unless-stopped

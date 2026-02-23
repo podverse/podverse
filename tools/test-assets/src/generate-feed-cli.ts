@@ -116,7 +116,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { faker } from '@faker-js/faker';
 import { generateGuidWithRandomVersion } from '@podverse/helpers';
-import { AssetGenerator } from './asset-generator.js';
+import { AssetGenerator, AUDIO_FREQ_MAX, AUDIO_FREQ_MIN } from './asset-generator.js';
 import { BASIC_AUTH_BASE_URL, BASIC_AUTH_SUBDIR, DEFAULT_ASSETS_BASE_URL } from './constants.js';
 import {
   BASIC_AUTH_FEED_FILENAME,
@@ -204,7 +204,7 @@ function getFeedFilename(kind: FeedKind, setIndex: number): string {
   return `feed-${kind}-${setIndex}.rss`;
 }
 
-async function ensureMediaAssets(poolSize: number): Promise<void> {
+async function ensureMediaAssets(poolSize: number): Promise<number[]> {
   const generator = new AssetGenerator({ namespace: '' });
   await generator.ensureAssetsDirectory();
   const imagePoolSize = getImagePoolSize(poolSize);
@@ -217,22 +217,26 @@ async function ensureMediaAssets(poolSize: number): Promise<void> {
     const color = faker.color.rgb({ format: 'hex' });
     await generator.generateImageSizes(pad, IMAGE_SIZES, color, true);
   }
+  const durations: number[] = [];
   for (let i = 1; i <= poolSize; i++) {
     const pad = pad3(i);
     const durationSec = faker.number.int({ min: 30, max: 90 });
-    await generator.generateMP3(`audio-${pad}.mp3`, durationSec);
-    await generator.generateOGG(`audio-${pad}.ogg`, durationSec);
-    await generator.generateMP4(`video-${pad}.mp4`, durationSec);
-    await generator.generateWebM(`video-${pad}.webm`, durationSec);
+    const frequencyHz = faker.number.int({ min: AUDIO_FREQ_MIN, max: AUDIO_FREQ_MAX });
+    durations.push(durationSec);
+    await generator.generateMP3(`audio-${pad}.mp3`, durationSec, frequencyHz);
+    await generator.generateOGG(`audio-${pad}.ogg`, durationSec, frequencyHz);
+    await generator.generateMP4(`video-${pad}.mp4`, durationSec, frequencyHz);
+    await generator.generateWebM(`video-${pad}.webm`, durationSec, frequencyHz);
   }
 
   console.log(
     `\nMedia pool ready (images 1..${imagePoolSize} × ${IMAGE_SIZES.length} sizes; audio/video/ogg/webm 1..${poolSize}). Writing feeds...\n`
   );
+  return durations;
 }
 
 /** Ensure media pool for the single basic-auth feed (10 items, 4 image indices, under assets/basic-auth/). */
-async function ensureBasicAuthMediaAssets(): Promise<void> {
+async function ensureBasicAuthMediaAssets(): Promise<number[]> {
   const generator = new AssetGenerator({ namespace: BASIC_AUTH_SUBDIR });
   await generator.ensureAssetsDirectory();
   for (let i = 1; i <= BASIC_AUTH_IMAGE_POOL_SIZE; i++) {
@@ -240,14 +244,18 @@ async function ensureBasicAuthMediaAssets(): Promise<void> {
     const color = faker.color.rgb({ format: 'hex' });
     await generator.generateImageSizes(pad, IMAGE_SIZES, color, true);
   }
+  const durations: number[] = [];
   for (let i = 1; i <= BASIC_AUTH_FEED_ITEMS; i++) {
     const pad = pad3(i);
     const durationSec = faker.number.int({ min: 30, max: 90 });
-    await generator.generateMP3(`audio-${pad}.mp3`, durationSec);
-    await generator.generateOGG(`audio-${pad}.ogg`, durationSec);
-    await generator.generateMP4(`video-${pad}.mp4`, durationSec);
-    await generator.generateWebM(`video-${pad}.webm`, durationSec);
+    const frequencyHz = faker.number.int({ min: AUDIO_FREQ_MIN, max: AUDIO_FREQ_MAX });
+    durations.push(durationSec);
+    await generator.generateMP3(`audio-${pad}.mp3`, durationSec, frequencyHz);
+    await generator.generateOGG(`audio-${pad}.ogg`, durationSec, frequencyHz);
+    await generator.generateMP4(`video-${pad}.mp4`, durationSec, frequencyHz);
+    await generator.generateWebM(`video-${pad}.webm`, durationSec, frequencyHz);
   }
+  return durations;
 }
 
 /** podcast:medium value per feed kind; null = omit tag (feed-none, feed-season). */
@@ -295,18 +303,69 @@ function buildAlternateEnclosureBlocks(baseUrl: string, enclosureIndex: number):
   return blocks.join('\n      ');
 }
 
-/** Minimal spec-compliant transcript content for test assets (WebVTT, SRT, plain). */
-function buildTranscriptContent(format: 'vtt' | 'srt' | 'plain'): string {
-  switch (format) {
-    case 'vtt':
-      return 'WEBVTT\n\n00:00:00.000 --> 00:00:05.000\nSample transcript line.\n';
-    case 'srt':
-      return '1\n00:00:00,000 --> 00:00:05,000\nSample transcript line.\n';
-    case 'plain':
-      return 'Sample transcript text.';
-    default:
-      return 'Sample transcript text.';
+/** One transcript cue: start/end in seconds, text for that interval. */
+type TranscriptSegment = { startSec: number; endSec: number; text: string };
+
+/** Format seconds as HH:MM:SS.mmm (VTT) or HH:MM:SS,mmm (SRT). */
+function secToTimestamp(sec: number, useComma: boolean): string {
+  const h = Math.floor(sec / 3600);
+  const m = Math.floor((sec % 3600) / 60);
+  const s = Math.floor(sec % 60);
+  const ms = Math.round((sec % 1) * 1000);
+  const sep = useComma ? ',' : '.';
+  return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}${sep}${String(ms).padStart(3, '0')}`;
+}
+
+/** Build transcript segments that fit within [0, durationSec]; varied text per segment. */
+function buildTranscriptSegments(durationSec: number): TranscriptSegment[] {
+  const numSegments = Math.max(2, Math.min(50, Math.floor(durationSec / 8)));
+  const segmentDuration = durationSec / numSegments;
+  const segments: TranscriptSegment[] = [];
+  for (let i = 0; i < numSegments; i++) {
+    const startSec = Math.round(i * segmentDuration * 1000) / 1000;
+    const endSec =
+      i === numSegments - 1
+        ? Math.round(durationSec * 1000) / 1000
+        : Math.round((i + 1) * segmentDuration * 1000) / 1000;
+    segments.push({
+      startSec,
+      endSec,
+      text: faker.lorem.sentence(),
+    });
   }
+  return segments;
+}
+
+/** Format segments as WebVTT, SRT, or plain text. */
+function formatTranscriptSegments(
+  segments: TranscriptSegment[],
+  format: 'vtt' | 'srt' | 'plain'
+): string {
+  if (format === 'plain') {
+    return segments.map((s) => s.text).join('\n');
+  }
+  if (format === 'vtt') {
+    const lines = ['WEBVTT', ''];
+    for (const seg of segments) {
+      lines.push(
+        `${secToTimestamp(seg.startSec, false)} --> ${secToTimestamp(seg.endSec, false)}`,
+        seg.text,
+        ''
+      );
+    }
+    return lines.join('\n');
+  }
+  // SRT
+  const lines: string[] = [];
+  segments.forEach((seg, idx) => {
+    lines.push(
+      String(idx + 1),
+      `${secToTimestamp(seg.startSec, true)} --> ${secToTimestamp(seg.endSec, true)}`,
+      seg.text,
+      ''
+    );
+  });
+  return lines.join('\n');
 }
 
 function buildFeed(
@@ -314,6 +373,7 @@ function buildFeed(
   filename: string,
   itemCount: number,
   poolSize: number,
+  mediaDurationsByPoolIndex: number[],
   imagePoolSize: number,
   multiConfig: MultiConfig,
   baseUrl: string,
@@ -479,7 +539,7 @@ function buildFeed(
 
     const itunesAuthor = faker.person.fullName();
     const itunesItemExplicit = faker.helpers.arrayElement([true, false]) ? 'yes' : 'no';
-    const durationSec = faker.number.int({ min: 60, max: 7200 });
+    const durationSec = mediaDurationsByPoolIndex[enclosureIndex - 1] ?? 60;
     const itunesDuration =
       durationSec >= 3600
         ? `${Math.floor(durationSec / 3600)}:${String(Math.floor((durationSec % 3600) / 60)).padStart(2, '0')}:${String(durationSec % 60).padStart(2, '0')}`
@@ -500,17 +560,18 @@ function buildFeed(
     }
 
     const baseNoSlash = baseUrl.replace(/\/$/, '');
+    const transcriptSegments = buildTranscriptSegments(durationSec);
     const transcriptEntries: { filename: string; type: string; content: string; rel?: string }[] = [
       {
         filename: `transcript-${feedBasename}-item-${i}-0.vtt`,
         type: 'text/vtt',
-        content: buildTranscriptContent('vtt'),
+        content: formatTranscriptSegments(transcriptSegments, 'vtt'),
         rel: 'captions',
       },
       {
         filename: `transcript-${feedBasename}-item-${i}-1.srt`,
         type: 'application/x-subrip',
-        content: buildTranscriptContent('srt'),
+        content: formatTranscriptSegments(transcriptSegments, 'srt'),
         // omit rel so item_transcript.rel is null for this row (some populated, some not)
       },
     ];
@@ -712,7 +773,7 @@ export async function runGenerateFeedAndAssets(
     fs.mkdirSync(transcriptsDir, { recursive: true });
   }
 
-  await ensureMediaAssets(poolSize);
+  const mediaDurations = await ensureMediaAssets(poolSize);
 
   const base = baseUrl.replace(/\/$/, '');
   const writtenFeedInfo: WrittenFeedInfo[] = [];
@@ -740,6 +801,7 @@ export async function runGenerateFeedAndAssets(
         filename,
         itemCount,
         poolSize,
+        mediaDurations,
         imagePoolSize,
         multiConfig,
         baseUrl,
@@ -777,7 +839,7 @@ export async function runGenerateFeedAndAssets(
       fs.mkdirSync(dir, { recursive: true });
     }
   }
-  await ensureBasicAuthMediaAssets();
+  const basicAuthDurations = await ensureBasicAuthMediaAssets();
   const basicAuthFeedPath = path.join(basicAuthFeedsDir, BASIC_AUTH_FEED_FILENAME);
   if (!forceRss && fs.existsSync(basicAuthFeedPath)) {
     skipped++;
@@ -788,6 +850,7 @@ export async function runGenerateFeedAndAssets(
       BASIC_AUTH_FEED_FILENAME,
       BASIC_AUTH_FEED_ITEMS,
       BASIC_AUTH_FEED_ITEMS,
+      basicAuthDurations,
       BASIC_AUTH_IMAGE_POOL_SIZE,
       multiConfig,
       BASIC_AUTH_BASE_URL,

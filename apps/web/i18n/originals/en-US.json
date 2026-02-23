@@ -288,6 +288,10 @@
         "label": "Bitcoin Lightning Keysend",
         "denomination": "satoshis"
       },
+      "lightning_lnaddress": {
+        "label": "Bitcoin LNAddress",
+        "denomination": "satoshis"
+      },
       "paypal_send": {
         "label": "PayPal",
         "denomination": "USD"

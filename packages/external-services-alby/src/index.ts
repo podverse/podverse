@@ -73,9 +73,42 @@ const isAlbyLnurlInvoiceResponse = (value: unknown): value is AlbyLnurlInvoiceRe
   return typeof pr === 'string' && Array.isArray(routes);
 };
 
+/**
+ * Returns true when the lightning address domain is localhost or 127.0.0.1,
+ * indicating a local dev environment where the Alby proxy cannot be used.
+ */
+const isLocalhostAddress = (lnurlOrAddress: string): boolean => {
+  const atIndex = lnurlOrAddress.indexOf('@');
+  if (atIndex === -1) return false;
+  const domain = lnurlOrAddress.slice(atIndex + 1);
+  return domain.startsWith('localhost') || domain.startsWith('127.0.0.1');
+};
+
+/**
+ * Constructs a direct LNURL-pay well-known URL for a lightning address.
+ * Uses http (not https) for localhost per the LNURL spec (LUD-06).
+ */
+const buildLocalLnurlpUrl = (lnurlOrAddress: string): string | null => {
+  const atIndex = lnurlOrAddress.indexOf('@');
+  if (atIndex === -1) return null;
+  const username = lnurlOrAddress.slice(0, atIndex);
+  const domain = lnurlOrAddress.slice(atIndex + 1);
+  if (!username || !domain) return null;
+  return `http://${domain}/.well-known/lnurlp/${encodeURIComponent(username)}`;
+};
+
 export const fetchLnurlDetails = async ({
   lnurlOrAddress,
 }: FetchLnurlDetailsParams): Promise<AlbyLnurlDetailsResponse | null> => {
+  if (isLocalhostAddress(lnurlOrAddress)) {
+    // Bypass Alby proxy: resolve directly from the local LNURL server
+    const url = buildLocalLnurlpUrl(lnurlOrAddress);
+    if (!url) return null;
+    const { status, data } = await request<unknown>(url);
+    if (status < 200 || status >= 300) return null;
+    return isAlbyLnurlDetailsResponse(data) ? data : null;
+  }
+
   const url = `${ALBY_LNURL_DETAILS_URL}?lnurl_or_address=${encodeURIComponent(lnurlOrAddress)}`;
   const { status, data } = await request<unknown>(url);
   if (status < 200 || status >= 300) {
@@ -90,6 +123,21 @@ export const fetchLnurlInvoice = async ({
   comment,
   zapRequest,
 }: FetchLnurlInvoiceParams): Promise<AlbyLnurlInvoiceResponse | null> => {
+  if (isLocalhostAddress(lnurlOrAddress)) {
+    // Bypass Alby proxy: first get the LNURL details to obtain the callback URL,
+    // then GET the callback directly with amount + optional comment (LUD-06 flow).
+    const details = await fetchLnurlDetails({ lnurlOrAddress });
+    if (!details?.callback) return null;
+    const callbackUrl = new URL(details.callback);
+    callbackUrl.searchParams.set('amount', String(amountMsat));
+    if (comment) {
+      callbackUrl.searchParams.set('comment', comment);
+    }
+    const { status, data } = await request<unknown>(callbackUrl.toString());
+    if (status < 200 || status >= 300) return null;
+    return isAlbyLnurlInvoiceResponse(data) ? data : null;
+  }
+
   const { status, data } = await request<unknown>(ALBY_LNURL_INVOICE_URL, {
     data: {
       amount: amountMsat,

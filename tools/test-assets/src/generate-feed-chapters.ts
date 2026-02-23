@@ -1,11 +1,6 @@
 import { faker } from '@faker-js/faker';
 
-import {
-  CHAPTERS_VERSION,
-  IMAGE_SIZES,
-  MIN_CHAPTER_LENGTH_SEC,
-  MIN_TOC_CHAPTERS,
-} from './generate-feed-constants.js';
+import { CHAPTERS_VERSION, IMAGE_SIZES, NUM_TOC_CHAPTERS } from './generate-feed-constants.js';
 import { pad3 } from './generate-feed-utils.js';
 
 /** JSON chapters (1.2): chapter entry for generated file. startTime/endTime in seconds. */
@@ -20,7 +15,7 @@ export type GeneratedChapter = {
 };
 
 /**
- * Build chapters array for one item. At least MIN_TOC_CHAPTERS toc:true chapters, each >= 10s,
+ * Build chapters array for one item. Exactly NUM_TOC_CHAPTERS toc:true chapters,
  * all within [0, durationSec]. Optionally 0–2 toc:false overlay chapters. Sorted by startTime.
  */
 export const buildChaptersForItem = (
@@ -29,11 +24,7 @@ export const buildChaptersForItem = (
   imagePoolSize: number
 ): GeneratedChapter[] => {
   const chapters: GeneratedChapter[] = [];
-  const maxChaptersByDuration = Math.floor(durationSec / MIN_CHAPTER_LENGTH_SEC);
-  const numTocChapters = faker.number.int({
-    min: MIN_TOC_CHAPTERS,
-    max: Math.max(MIN_TOC_CHAPTERS, Math.min(6, maxChaptersByDuration)),
-  });
+  const numTocChapters = NUM_TOC_CHAPTERS;
   const segmentDuration = durationSec / numTocChapters;
   for (let i = 0; i < numTocChapters; i++) {
     const startTime = Math.round(i * segmentDuration * 10) / 10;
@@ -82,7 +73,19 @@ export const buildChaptersForItem = (
     });
   }
   chapters.sort((a, b) => a.startTime - b.startTime);
-  return chapters;
+
+  // Ensure no chapter exceeds media duration (clamp start/end to [0, durationSec])
+  const clamped = chapters.map((ch) => {
+    const start = Math.max(0, Math.min(ch.startTime, durationSec));
+    const end =
+      ch.endTime !== undefined ? Math.max(start, Math.min(ch.endTime, durationSec)) : undefined;
+    return {
+      ...ch,
+      startTime: Math.round(start * 10) / 10,
+      endTime: end !== undefined ? Math.round(end * 10) / 10 : undefined,
+    };
+  });
+  return clamped;
 };
 
 /** Build full chapters JSON object (version + optional metadata + chapters). */

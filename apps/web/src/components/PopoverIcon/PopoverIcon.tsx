@@ -4,6 +4,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useTranslations } from 'next-intl';
 import { FaInfoCircle } from 'react-icons/fa';
 import { Button } from '../Button/Button';
+import { Tooltip } from '../Tooltip/Tooltip';
 import styles from '../../styles/components/PopoverIcon/PopoverIcon.module.scss';
 
 type PopoverIconProps = {
@@ -195,21 +196,21 @@ export const PopoverIcon: React.FC<PopoverIconProps> = ({ text, ariaLabel }) => 
         <FaInfoCircle className={styles.icon} />
       </Button>
       {isOpen && position && (
-        <div
+        <Tooltip
           ref={popoverRef}
-          className={styles.popover}
-          role="tooltip"
-          style={
-            {
-              top: `${position.top}px`,
-              left: `${position.left}px`,
-              width: `${position.width}px`,
-              '--arrow-left': `${position.arrowLeft}px`,
-            } as React.CSSProperties & { '--arrow-left': string }
-          }
+          showArrow
+          arrowLeft={position.arrowLeft}
+          pointerEvents={isPinned ? 'auto' : 'none'}
+          style={{
+            top: position.top,
+            left: position.left,
+            width: position.width,
+            minWidth: 200,
+            maxWidth: 400,
+          }}
         >
           {text}
-        </div>
+        </Tooltip>
       )}
     </div>
   );

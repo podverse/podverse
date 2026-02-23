@@ -68,3 +68,4 @@ export const LIVE_ITEM_ENCLOSURE_LENGTH = 33;
 export const CHAPTERS_VERSION = '1.2.0';
 export const MIN_CHAPTER_LENGTH_SEC = 10;
 export const MIN_TOC_CHAPTERS = 3;
+export const NUM_TOC_CHAPTERS = 4;
