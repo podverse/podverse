@@ -53,7 +53,7 @@
     "@types/video.js": "^7.3.58",
     "axios": "^1.13.5",
     "dotenv": "^17.2.2",
-    "nodemon": "^3.1.10",
+    "nodemon": "^3.1.14",
     "openai": "^6.16.0",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.2"

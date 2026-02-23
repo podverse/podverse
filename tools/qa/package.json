@@ -30,7 +30,7 @@
     "@dotenvx/dotenvx": "^1.49.0",
     "@types/module-alias": "^2.0.4",
     "@types/node": "^24.10.12",
-    "nodemon": "^3.1.10",
+    "nodemon": "^3.1.14",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.2"
   }

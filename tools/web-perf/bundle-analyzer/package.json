@@ -13,7 +13,7 @@
     "@types/inquirer": "^8.2.10",
     "@types/node": "^24.10.12",
     "dotenv": "^17.2.2",
-    "inquirer": "^13.2.4",
+    "inquirer": "^13.3.0",
     "openai": "^6.16.0",
     "tsx": "^4.19.2",
     "typescript": "^5.9.2"
