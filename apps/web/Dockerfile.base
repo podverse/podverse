@@ -10,4 +10,4 @@ COPY apps/web/package*.json ./apps/web/
 
 # Install all dependencies (devDependencies like @types/* needed for TypeScript compilation)
 # --ignore-scripts skips the prepare script that tries to install git hooks
-RUN npm install --ignore-scripts
+RUN npm ci --ignore-scripts

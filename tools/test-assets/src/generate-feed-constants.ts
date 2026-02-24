@@ -2,14 +2,7 @@ export const DEFAULT_ITEMS = 20;
 export const DEFAULT_MULTI = 2;
 export const ITEMS_PER_SEASON = 10;
 export const MIN_SEASONS = 2;
-export const METABOOST_URL = 'http://localhost:8080/boost';
 export const METABOOST_LICENSE_URL = 'https://example.com/metaboost-license';
-export const LNURL_TEST_ADDRESSES = [
-  'podverse+one@sandbox.albylabs.com',
-  'podverse+two@sandbox.albylabs.com',
-  'podverse+fee@sandbox.albylabs.com',
-];
-export const VALUE_RECIPIENT_SPLITS = [60, 40, 1] as const;
 
 /** Fixed ActivityPub socialInteract for all generated feeds (channel + every item). */
 export const SOCIAL_INTERACT_URI = 'https://podcastindex.social/@mitch/116024949309724989';

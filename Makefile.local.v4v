@@ -35,16 +35,16 @@ local_lnd_http_proxy_up: local_network_create
 	else \
 		export NIGIRI_LND_CREDENTIALS_PATH="$$HOME/.nigiri/regtest"; \
 	fi; \
-	docker compose -f infra/docker/local/lnd-http-proxy/docker-compose.yml up -d
+	docker compose -f infra/docker/local/v4v/bitcoin/lnd/lnd-http-proxy/docker-compose.yml up -d
 
 .PHONY: local_lnd_http_proxy_down
 local_lnd_http_proxy_down:
-	docker compose -f infra/docker/local/lnd-http-proxy/docker-compose.yml down --remove-orphans
+	docker compose -f infra/docker/local/v4v/bitcoin/lnd/lnd-http-proxy/docker-compose.yml down --remove-orphans
 
 # Lightning Network (Nigiri CLI + LNURL server + LND HTTP proxy)
 # Nigiri provides Bitcoin Core + LND + Core Lightning on regtest.
 # Install Nigiri: curl https://getnigiri.vulpem.com | bash
-# See docs/infra/LOCAL-LIGHTNING.md for full setup.
+# See docs/v4v/bitcoin/lnd/LOCAL-LIGHTNING.md for full setup.
 
 .PHONY: local_ln_check_nigiri
 local_ln_check_nigiri:
@@ -71,39 +71,63 @@ local_ln_check_jq:
 # Ensure Esplora uses host port 8282 (not 5000) to avoid conflicts e.g. macOS AirPlay
 .PHONY: local_ln_ensure_esplora_port
 local_ln_ensure_esplora_port:
-	@./scripts/ln/ensure-nigiri-port-override.sh
+	@./scripts/v4v/btc/ln/ensure-nigiri-port-override.sh
 
 # LND recipient nodes (alice, bob, fee) — dedicated keysend targets; never the sender
 .PHONY: local_ln_recipient_nodes_up
 local_ln_recipient_nodes_up: local_network_create
-	docker compose -f infra/docker/local/ln-recipient-nodes/docker-compose.yml up -d
+	docker compose -f infra/docker/local/v4v/bitcoin/lnd/ln-recipient-nodes/docker-compose.yml up -d
 
 .PHONY: local_ln_recipient_nodes_down
 local_ln_recipient_nodes_down:
-	docker compose -f infra/docker/local/ln-recipient-nodes/docker-compose.yml down --remove-orphans
+	docker compose -f infra/docker/local/v4v/bitcoin/lnd/ln-recipient-nodes/docker-compose.yml down --remove-orphans
+
+.PHONY: local_ln_verify_recipient_creds
+local_ln_verify_recipient_creds:
+	@echo "Verifying LNURL recipient credentials are mounted..."
+	@docker exec podverse_local_lnurl_server sh -c 'for u in alice bob fee; do \
+		test -f "/$$u-creds/data/chain/bitcoin/regtest/admin.macaroon" || { \
+			echo "ERROR: Missing /$$u-creds/data/chain/bitcoin/regtest/admin.macaroon"; exit 1; }; \
+		test -f "/$$u-creds/tls.cert" || { \
+			echo "ERROR: Missing /$$u-creds/tls.cert"; exit 1; }; \
+	done'
+	@echo "Recipient credentials verified."
 
 .PHONY: local_ln_up
-local_ln_up: local_ln_check_nigiri local_ln_check_jq local_ln_ensure_esplora_port
+local_ln_up: local_network_create local_ln_check_nigiri local_ln_check_jq local_ln_ensure_esplora_port
 	@echo "Starting Nigiri (Bitcoin Core + LND + Core Lightning)..."
-	@./scripts/ln/start-nigiri-with-esplora-port.sh
+	@./scripts/v4v/btc/ln/start-nigiri-with-esplora-port.sh
 	@echo "Waiting for LND to be ready..."
-	@./scripts/ln/wait-for-lnd.sh
+	@./scripts/v4v/btc/ln/wait-for-lnd.sh
 	@echo "Provisioning regtest (sync chain, fund LND/CLN 1 BTC, open channel)..."
-	@./scripts/ln/provision-regtest.sh
-	@echo "Starting LNURL server and LND HTTP proxy..."
+	@./scripts/v4v/btc/ln/provision-regtest.sh
+	@echo "Ensuring LN recipient volumes exist (shared by recipient nodes and LNURL server)..."
+	@docker volume create podverse_local_lnd_alice_data 2>/dev/null || true
+	@docker volume create podverse_local_lnd_bob_data 2>/dev/null || true
+	@docker volume create podverse_local_lnd_fee_data 2>/dev/null || true
+	@echo "Starting LND recipient nodes (alice, bob, fee)..."
+	@docker compose -f infra/docker/local/v4v/bitcoin/lnd/ln-recipient-nodes/docker-compose.yml up -d
+	@echo "Waiting for recipient nodes to create credentials (avoid self-payment fallback)..."
+	@sleep 8
+	@echo "Starting LND HTTP proxy..."
 	@if [ "$$(uname -s)" = "Darwin" ]; then \
 		export NIGIRI_LND_CREDENTIALS_PATH="$$HOME/Library/Application Support/Nigiri"; \
 	else \
 		export NIGIRI_LND_CREDENTIALS_PATH="$$HOME/.nigiri/regtest"; \
 	fi; \
-	docker compose -f infra/docker/local/lnurl-server/docker-compose.yml up -d && \
-	docker compose -f infra/docker/local/lnd-http-proxy/docker-compose.yml up -d
-	@echo "Starting LND recipient nodes (alice, bob, fee)..."
-	@docker compose -f infra/docker/local/ln-recipient-nodes/docker-compose.yml up -d
+	docker compose -f infra/docker/local/v4v/bitcoin/lnd/lnd-http-proxy/docker-compose.yml up -d
 	@echo "Provisioning recipient nodes (fund + connect + open channels)..."
-	@./scripts/ln/provision-ln-recipient-nodes.sh
+	@./scripts/v4v/btc/ln/provision-ln-recipient-nodes.sh
 	@echo "Discovering node pubkeys and writing ln-recipients.local.json..."
-	@./scripts/ln/discover-recipients.sh
+	@./scripts/v4v/btc/ln/discover-recipients.sh
+	@echo "Starting LNURL server after recipient provisioning..."
+	@if [ "$$(uname -s)" = "Darwin" ]; then \
+		export NIGIRI_LND_CREDENTIALS_PATH="$$HOME/Library/Application Support/Nigiri"; \
+	else \
+		export NIGIRI_LND_CREDENTIALS_PATH="$$HOME/.nigiri/regtest"; \
+	fi; \
+	docker compose -f infra/docker/local/v4v/bitcoin/lnd/lnurl-server/docker-compose.yml up -d --force-recreate
+	@$(MAKE) local_ln_verify_recipient_creds
 	@echo ""
 	@echo "Lightning Network ready!"
 	@echo "  Esplora (block explorer): http://localhost:8282"
@@ -117,18 +141,21 @@ local_ln_up: local_ln_check_nigiri local_ln_check_jq local_ln_ensure_esplora_por
 
 .PHONY: local_ln_down
 local_ln_down:
-	docker compose -f infra/docker/local/ln-recipient-nodes/docker-compose.yml down --remove-orphans 2>/dev/null || true
-	docker compose -f infra/docker/local/lnurl-server/docker-compose.yml down 2>/dev/null || true
-	docker compose -f infra/docker/local/lnd-http-proxy/docker-compose.yml down 2>/dev/null || true
-	@./scripts/ln/stop-nigiri-stack.sh
+	docker compose -f infra/docker/local/v4v/bitcoin/lnd/ln-recipient-nodes/docker-compose.yml down --remove-orphans 2>/dev/null || true
+	docker compose -f infra/docker/local/v4v/bitcoin/lnd/lnurl-server/docker-compose.yml down 2>/dev/null || true
+	docker compose -f infra/docker/local/v4v/bitcoin/lnd/lnd-http-proxy/docker-compose.yml down 2>/dev/null || true
+	@./scripts/v4v/btc/ln/stop-nigiri-stack.sh
 	nigiri stop 2>/dev/null || true
 
 .PHONY: local_ln_clean
 local_ln_clean:
-	docker compose -f infra/docker/local/ln-recipient-nodes/docker-compose.yml down -v 2>/dev/null || true
-	docker compose -f infra/docker/local/lnurl-server/docker-compose.yml down -v 2>/dev/null || true
-	docker compose -f infra/docker/local/lnd-http-proxy/docker-compose.yml down -v 2>/dev/null || true
-	@./scripts/ln/stop-nigiri-stack.sh --volumes
+	docker compose -f infra/docker/local/v4v/bitcoin/lnd/ln-recipient-nodes/docker-compose.yml down -v 2>/dev/null || true
+	docker compose -f infra/docker/local/v4v/bitcoin/lnd/lnurl-server/docker-compose.yml down -v 2>/dev/null || true
+	docker compose -f infra/docker/local/v4v/bitcoin/lnd/lnd-http-proxy/docker-compose.yml down -v 2>/dev/null || true
+	docker volume rm podverse_local_lnd_alice_data 2>/dev/null || true
+	docker volume rm podverse_local_lnd_bob_data 2>/dev/null || true
+	docker volume rm podverse_local_lnd_fee_data 2>/dev/null || true
+	@./scripts/v4v/btc/ln/stop-nigiri-stack.sh --volumes
 	nigiri stop --delete 2>/dev/null || true
 	rm -f tools/test-assets/config/ln-recipients.local.json
 	@echo "Lightning Network state cleaned."

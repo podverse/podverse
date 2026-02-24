@@ -91,5 +91,3 @@ export const calculateRecipientAmounts = <T extends RecipientSplitInput>(
     final_amount: Math.floor((recipient.normalized_split / 100) * totalAmountToCreator),
   }));
 };
-
-export const isLnaddressRecipient = (type: string): boolean => type === 'lnaddress';

@@ -85,7 +85,7 @@ When you run `make local_ln_up`, the following services start:
 | Chopsticks               | 3030                                                             | Faucet and block mining (3030 to avoid conflict with web app on 3000)                 |
 | LNURL Server             | 3003                                                             | Lightning Address support; try http://localhost:3003/ or /health                      |
 
-The block explorer uses port **8282** (not Nigiri’s default 5000). Because Docker Compose does not auto-merge an override when Nigiri uses `-f`, `make local_ln_up` runs `scripts/ln/start-nigiri-with-esplora-port.sh`, which tries `nigiri start --ln` and, if it fails (e.g. port 5000 in use), patches the compose file and runs `docker compose` with the override so Esplora binds to 8282. No system settings (e.g. AirPlay) need to be changed.
+The block explorer uses port **8282** (not Nigiri's default 5000). Because Docker Compose does not auto-merge an override when Nigiri uses `-f`, `make local_ln_up` runs `scripts/v4v/btc/ln/start-nigiri-with-esplora-port.sh`, which tries `nigiri start --ln` and, if it fails (e.g. port 5000 in use), patches the compose file and runs `docker compose` with the override so Esplora binds to 8282. No system settings (e.g. AirPlay) need to be changed.
 
 ## Auto-Configuration
 
@@ -94,9 +94,10 @@ The `make local_ln_up` target automatically:
 1. Starts Nigiri with Lightning nodes
 2. Waits for LND to be ready
 3. **Provisions the regtest:** syncs the chain, funds LND and CLN with **1 BTC each**, and opens an LND–CLN channel so the network is ready for V4V testing without manual steps
-4. Starts the LNURL server
+4. Starts/recreates the LNURL server after recipient provisioning
 5. Discovers node pubkeys from LND and CLN
 6. Writes `tools/test-assets/config/ln-recipients.local.json`
+7. Verifies LNURL recipient credential mounts (`alice`, `bob`, `fee`) before printing readiness
 
 The generated config file contains the actual node pubkeys and LNURL addresses,
 which are used when generating test assets with `--add-fake-value-tags`.
@@ -214,7 +215,7 @@ This generates RSS feeds with:
 To test V4V payments from the browser, you need a WebLN-compatible wallet
 configured for regtest. This is a manual step. For a full step-by-step from Nix
 to boost and verification (including wallet setup and LNAddress/Keysend test
-paths), see [LOCAL-V4V-TESTNET-WALKTHROUGH.md](../v4v/LOCAL-V4V-TESTNET-WALKTHROUGH.md).
+paths), see [LOCAL-V4V-TESTNET-WALKTHROUGH.md](LOCAL-V4V-TESTNET-WALKTHROUGH.md).
 
 ### Alby
 
@@ -230,7 +231,7 @@ In the Alby setup flow, choose **Connect** → **LND**, then enter:
 Alby validates by calling `/v1/getinfo` through the proxy. On success the extension is on regtest.
 
 For the full end-to-end walkthrough (Nix activation → boost → verification), see
-[LOCAL-V4V-TESTNET-WALKTHROUGH.md](../v4v/LOCAL-V4V-TESTNET-WALKTHROUGH.md).
+[LOCAL-V4V-TESTNET-WALKTHROUGH.md](LOCAL-V4V-TESTNET-WALKTHROUGH.md).
 
 ### Alternative: Direct LND Testing
 
@@ -301,7 +302,9 @@ The Bitcoin block explorer (Esplora) is exposed on **8282** (not 5000), so port 
 
 ### LNURL Server Can't Connect to LND
 
-The LNURL server mounts LND credentials from Nigiri's data directory. The Makefile sets `NIGIRI_LND_CREDENTIALS_PATH` automatically: on **macOS** it uses `~/Library/Application Support/Nigiri`; on Linux it uses `~/.nigiri`. If you start the LNURL server manually (e.g. `docker compose` in `infra/docker/local/lnurl-server/`), on macOS you must export this path first.
+The LNURL server mounts LND credentials from Nigiri's data directory. The Makefile sets `NIGIRI_LND_CREDENTIALS_PATH` automatically: on **macOS** it uses `~/Library/Application Support/Nigiri`; on Linux it uses `~/.nigiri`. If you start the LNURL server manually (e.g. `docker compose` in `infra/docker/local/v4v/bitcoin/lnd/lnurl-server/`), on macOS you must export this path first.
+
+Use `make local_ln_up` as the canonical startup flow. It now recreates LNURL server after recipient provisioning and runs a credential verification gate.
 
 Check that the macaroon and TLS cert exist (use the path for your OS):
 
@@ -339,6 +342,19 @@ LND REST is on port **18080** (not 8080). If http://localhost:3003 is not reacha
 docker logs podverse_local_lnurl_server
 ```
 
+If boosts fail with recipient errors like `No macaroon available for alice`, run:
+
+```bash
+make local_ln_verify_recipient_creds
+```
+
+If this check fails, run a clean cycle:
+
+```bash
+make local_ln_clean
+make local_ln_up
+```
+
 ### lncli inside LND container: mainnet macaroon error
 
 If you run `docker exec lnd lncli getinfo` and see an error like "unable to read macaroon path ... mainnet/admin.macaroon", you must pass `--network=regtest` because Nigiri runs LND on regtest (macaroons live under `.../bitcoin/regtest/...`, not mainnet). Use:
@@ -354,7 +370,7 @@ Prefer running `nigiri lnd getinfo` (and other commands like `nigiri lnd listpay
 If `make local_ln_up` fails during "Provisioning regtest" (e.g. script exits with an error), run the provision script manually to see detailed output:
 
 ```bash
-./scripts/ln/provision-regtest.sh
+./scripts/v4v/btc/ln/provision-regtest.sh
 ```
 
 Ensure Bitcoin and LND/CLN containers are up (`docker ps`). If the chain never syncs or funding fails, try a clean start: `make local_ln_clean` then `make local_ln_up`.
@@ -369,6 +385,12 @@ Ensure Bitcoin and LND/CLN containers are up (`docker ps`). If the chain never s
 | `make local_infra_up_full`        | Start all infra including Lightning         |
 | `make local_nuke_rebuild_run_v4v` | Full rebuild with Lightning for V4V testing |
 
+## Nix, Makefile, and config
+
+- **Nix:** The root flake’s `.#v4v` and `.#v4v-fish` shells (`nix/v4v.nix`) are the shared entry point for Bitcoin LN local dev (Nigiri + jq).
+- **Makefile:** `Makefile.local.v4v` is the single shared entry for all V4V local targets; LN targets (`local_ln_*`, `local_lnd_http_proxy_*`, `local_ln_recipient_nodes_*`) are documented in this doc.
+- **Config:** `tools/test-assets/config/ln-recipients.local.json` is generated by `discover-recipients.sh` and consumed by the test-asset value-tag generator; it is the bridge between the LN stack and test feeds.
+
 ## File Locations
 
 | File                                                           | Purpose                                                                                                           |
@@ -376,13 +398,14 @@ Ensure Bitcoin and LND/CLN containers are up (`docker ps`). If the chain never s
 | `nix/v4v.nix`                                                  | Nigiri + V4V shell config; root `flake.nix` exposes `.#v4v` using it                                              |
 | `Makefile.local.v4v`                                           | Make targets for local*ln*\* (included by Makefile.local.infra)                                                   |
 | `Makefile.local.apps`                                          | Make targets for local_nuke_rebuild_run_v4v                                                                       |
-| `scripts/ln/ensure-nigiri-port-override.sh`                    | Writes docker-compose.override.yml so Esplora uses port 8282                                                      |
-| `scripts/ln/start-nigiri-with-esplora-port.sh`                 | Runs nigiri start; on port-5000 failure, patches compose and runs docker compose with override (LN services only) |
-| `scripts/ln/wait-for-lnd.sh`                                   | Health check script                                                                                               |
-| `scripts/ln/provision-regtest.sh`                              | Syncs chain, funds LND/CLN with 1 BTC each, opens LND–CLN channel                                                 |
-| `scripts/ln/discover-recipients.sh`                            | Auto-config script                                                                                                |
-| `infra/docker/local/lnurl-server/`                             | LNURL server Docker setup                                                                                         |
-| `infra/docker/local/lnd-http-proxy/`                           | LND HTTP proxy Docker setup                                                                                       |
+| `scripts/v4v/btc/ln/ensure-nigiri-port-override.sh`            | Writes docker-compose.override.yml so Esplora uses port 8282                                                      |
+| `scripts/v4v/btc/ln/start-nigiri-with-esplora-port.sh`         | Runs nigiri start; on port-5000 failure, patches compose and runs docker compose with override (LN services only) |
+| `scripts/v4v/btc/ln/wait-for-lnd.sh`                           | Health check script                                                                                               |
+| `scripts/v4v/btc/ln/provision-regtest.sh`                      | Syncs chain, funds LND/CLN with 1 BTC each, opens LND–CLN channel                                                 |
+| `scripts/v4v/btc/ln/discover-recipients.sh`                    | Auto-config script                                                                                                |
+| `infra/docker/local/v4v/bitcoin/lnd/lnurl-server/`             | LNURL server Docker setup                                                                                         |
+| `infra/docker/local/v4v/bitcoin/lnd/ln-recipient-nodes/`       | LND recipient nodes (alice, bob, fee) Docker setup                                                                |
+| `infra/docker/local/v4v/bitcoin/lnd/lnd-http-proxy/`           | LND HTTP proxy Docker setup                                                                                       |
 | `tools/test-assets/config/ln-recipients.local.json`            | Auto-generated recipient config                                                                                   |
 | `~/.nigiri/` (or macOS `~/Library/Application Support/Nigiri`) | Nigiri data directory; override written here                                                                      |
 
@@ -408,6 +431,8 @@ Copy the "got" hash to replace the placeholder.
 
 ## References
 
+- For the full Bitcoin LN setup and integration diagram (Nix → Docker → test assets → parsing →
+  web boost), see [V4V-BITCOIN-LN-SETUP-DIAGRAM.md](V4V-BITCOIN-LN-SETUP-DIAGRAM.md).
 - [Nigiri GitHub](https://github.com/vulpemventures/nigiri)
 - [Nigiri Documentation](https://nigiri.vulpem.com/)
 - [LND REST API](https://api.lightning.community/)

@@ -264,11 +264,11 @@
     "message": "Message",
     "types": {
       "lightning_keysend": {
-        "label": "Bitcoin Lightning Keysend",
+        "label": "Bitcoin LN Keysend",
         "denomination": "satoshis"
       },
       "lightning_lnaddress": {
-        "label": "Bitcoin LNAddress",
+        "label": "Bitcoin LN Address",
         "denomination": "satoshis"
       },
       "paypal_send": {

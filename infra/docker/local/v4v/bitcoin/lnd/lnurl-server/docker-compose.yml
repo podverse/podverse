@@ -36,12 +36,11 @@ services:
       - DOMAIN=localhost:3003
       - LND_REST_HOST=host.docker.internal
       - LND_REST_PORT=18080
-      - LND_MACAROON_PATH=/lnd-creds/admin.macaroon
+      - LND_MACAROON_PATH=/lnd-creds/data/chain/bitcoin/regtest/admin.macaroon
       - LND_TLS_CERT_PATH=/lnd-creds/tls.cert
     volumes:
       # Main Nigiri LND credentials (default / fallback)
-      - ${NIGIRI_LND_CREDENTIALS_PATH:-${HOME}/.nigiri/regtest}/volumes/lnd/data/chain/bitcoin/regtest/admin.macaroon:/lnd-creds/admin.macaroon:ro
-      - ${NIGIRI_LND_CREDENTIALS_PATH:-${HOME}/.nigiri/regtest}/volumes/lnd/tls.cert:/lnd-creds/tls.cert:ro
+      - ${NIGIRI_LND_CREDENTIALS_PATH:-${HOME}/.nigiri/regtest}/volumes/lnd:/lnd-creds:ro
       # Recipient node credentials (from named Docker volumes)
       # Volume root = /data/.lnd of each LND container
       # macaroon: <mount>/data/chain/bitcoin/regtest/admin.macaroon

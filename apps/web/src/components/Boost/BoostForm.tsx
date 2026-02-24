@@ -199,11 +199,19 @@ export const BoostForm: React.FC<BoostFormProps> = ({
     const totalFailed = recipientStatuses
       .filter((r) => r.status === 'failed')
       .reduce((s, r) => s + r.final_amount, 0);
-    const denomination = tValue('types.lightning_keysend.denomination');
+    const denomination = tValue(
+      selectedValueKey
+        ? `types.${selectedValueKey}.denomination`
+        : 'types.lightning_keysend.denomination'
+    );
     return (
       <div>
         <h2 className={styles.summaryHeading}>{tValue('boost_messages.status_summary')}</h2>
-        <BoostRecipientStatusList recipientStatuses={recipientStatuses} tValue={tValue} />
+        <BoostRecipientStatusList
+          recipientStatuses={recipientStatuses}
+          tValue={tValue}
+          selectedValueKey={selectedValueKey}
+        />
         <hr className={styles.summaryDivider} />
         <div className={styles.summaryTotals}>
           {totalSent > 0 && (
@@ -286,7 +294,11 @@ export const BoostForm: React.FC<BoostFormProps> = ({
           </div>
         </>
       )}
-      <BoostRecipientStatusList recipientStatuses={recipientStatuses} tValue={tValue} />
+      <BoostRecipientStatusList
+        recipientStatuses={recipientStatuses}
+        tValue={tValue}
+        selectedValueKey={selectedValueKey}
+      />
       <div className={styles.buttons}>
         {hasResults ? (
           allFailed ? (

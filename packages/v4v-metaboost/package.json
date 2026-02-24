@@ -1,7 +1,7 @@
 {
-  "name": "@podverse/parser-mapping",
+  "name": "@podverse/v4v-metaboost",
   "version": "5.4.1",
-  "description": "Browser-safe mapping helpers for parsed feeds",
+  "description": "V4V metaBoost feed type and BoostBox API types and helpers",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "files": [
@@ -20,11 +20,7 @@
   "publishConfig": {
     "access": "public"
   },
-  "dependencies": {
-    "@podverse/helpers": "*",
-    "@podverse/v4v-metaboost": "*",
-    "@podverse/helpers-validation": "*"
-  },
+  "dependencies": {},
   "type": "module",
   "sideEffects": false
 }

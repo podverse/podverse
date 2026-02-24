@@ -8,15 +8,21 @@ type Translator = (key: string, values?: Record<string, string | number>) => str
 type BoostRecipientStatusListProps = {
   recipientStatuses: RecipientStatus[];
   tValue: Translator;
+  selectedValueKey?: string | null;
 };
 
 export const BoostRecipientStatusList = ({
   recipientStatuses,
   tValue,
+  selectedValueKey = null,
 }: BoostRecipientStatusListProps) => {
   if (recipientStatuses.length === 0) {
     return null;
   }
+
+  const denominationKey = selectedValueKey
+    ? `types.${selectedValueKey}.denomination`
+    : 'types.lightning_keysend.denomination';
 
   return (
     <div className={styles.recipientStatusList}>
@@ -27,7 +33,7 @@ export const BoostRecipientStatusList = ({
             <div className={styles.recipientStatusAddress}>{recipient.address}</div>
           </div>
           <div className={styles.recipientStatusAmount}>
-            {recipient.final_amount} {tValue('types.lightning_keysend.denomination')}
+            {recipient.final_amount} {tValue(denominationKey)}
           </div>
           <div className={styles[`status_${recipient.status}`]}>
             {recipient.status === 'pending' && tValue('boost_messages.status_pending')}

@@ -66,20 +66,20 @@ sequenceDiagram
 
 ## Module Dependency Order
 
-| Tier | Packages                                                                                                           | Depends On                                                                            |
-| ---- | ------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------- |
-| 1    | helpers, helpers-v4v                                                                                               | (none)                                                                                |
-| 2    | helpers-validation, helpers-requests, helpers-backend, helpers-browser, helpers-config                             | helpers                                                                               |
-| 3    | external-services-alby, external-services-firebase, external-services-paypal, external-services-podcast-index, orm | helpers, helpers-\*                                                                   |
-| 4    | notifications, parser                                                                                              | helpers, helpers-\*, external-services-firebase, external-services-podcast-index, orm |
-| 5    | mq                                                                                                                 | helpers, helpers-\*, external-services-podcast-index, orm, parser                     |
-| 6    | api, web, workers, management-\*                                                                                   | various                                                                               |
-| 7    | qa                                                                                                                 | helpers, helpers-\*, external-services-\*, orm, parser                                |
+| Tier | Packages                                                                                                                       | Depends On                                                                            |
+| ---- | ------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------- |
+| 1    | helpers, v4v-metaboost, v4v-helpers                                                                                            | (none)                                                                                |
+| 2    | helpers-validation, helpers-requests, helpers-backend, helpers-browser, helpers-config                                         | helpers                                                                               |
+| 3    | external-services-alby, external-services-firebase, external-services-paypal, external-services-podcast-index, orm, v4v-btc-ln | helpers, helpers-\*                                                                   |
+| 4    | notifications, parser                                                                                                          | helpers, helpers-\*, external-services-firebase, external-services-podcast-index, orm |
+| 5    | mq                                                                                                                             | helpers, helpers-\*, external-services-podcast-index, orm, parser                     |
+| 6    | api, web, workers, management-\*                                                                                               | various                                                                               |
+| 7    | qa                                                                                                                             | helpers, helpers-\*, external-services-\*, orm, parser                                |
 
 ## Build Order
 
 ```
-1. helpers, helpers-v4v (parallel)
+1. helpers, v4v-metaboost, v4v-helpers (parallel)
 2. helpers-validation, helpers-requests, helpers-backend, helpers-browser, helpers-config (parallel)
 3. external-services-alby, external-services-firebase, external-services-paypal, external-services-podcast-index (parallel)
 4. orm, parser-mapping (parallel)
@@ -97,9 +97,10 @@ sequenceDiagram
 ```
 packages/                 # Publishable npm packages (@podverse/*)
   helpers/                # Core utilities, types, DTOs, mediums
-  helpers-v4v/             # V4V helpers, BoostBox metadata
-  helpers-v4v-web/        # Browser V4V/WebLN helpers
+  v4v-metaboost/          # V4V metaBoost feed type and BoostBox API types/helpers
+  v4v-helpers/            # V4V payment-agnostic: recipient split and amount calculation
   helpers-validation/     # Validation utilities (email, password, URL, etc.)
+  v4v-btc-ln/             # Bitcoin Lightning: lnaddress, keysend/blip10, web payments
   helpers-requests/       # API request types, query params, ApiRequestService
   helpers-backend/        # Backend-specific utilities (logger, timers, OS)
   helpers-browser/        # Browser-specific utilities (clipboard)

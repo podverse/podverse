@@ -1,14 +1,15 @@
-import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { faker } from '@faker-js/faker';
 
+import type { LocalLnRecipient } from '@podverse/v4v-btc-ln/test-data';
 import {
   LNURL_TEST_ADDRESSES,
-  METABOOST_LICENSE_URL,
   METABOOST_URL,
+  readLocalLnRecipientsConfig,
   VALUE_RECIPIENT_SPLITS,
-} from './generate-feed-constants.js';
+} from '@podverse/v4v-btc-ln/test-data';
+import { METABOOST_LICENSE_URL } from './generate-feed-constants.js';
 import { buildRemoteItemXml, escapeXml } from './generate-feed-xml.js';
 import { type WrittenFeedInfo } from './generate-feed-types.js';
 
@@ -19,74 +20,6 @@ const LOCAL_LN_RECIPIENTS_PATH = path.resolve(
   'config',
   'ln-recipients.local.json'
 );
-
-type LocalLnRecipient = {
-  address: string;
-  name: string;
-  split: number;
-  fee?: boolean;
-};
-
-type LocalLnRecipientsConfig = {
-  keysend: LocalLnRecipient[];
-  lnaddress: LocalLnRecipient[];
-};
-
-const isRecord = (value: unknown): value is Record<string, unknown> => {
-  return typeof value === 'object' && value !== null && !Array.isArray(value);
-};
-
-const isLocalLnRecipient = (value: unknown): value is LocalLnRecipient => {
-  if (!isRecord(value)) {
-    return false;
-  }
-  const { address, name, split, fee } = value;
-  if (typeof address !== 'string' || address.length === 0) {
-    return false;
-  }
-  if (typeof name !== 'string' || name.length === 0) {
-    return false;
-  }
-  if (typeof split !== 'number' || !Number.isFinite(split) || split <= 0) {
-    return false;
-  }
-  if (fee !== undefined && typeof fee !== 'boolean') {
-    return false;
-  }
-  return true;
-};
-
-const isLocalLnRecipientsConfig = (value: unknown): value is LocalLnRecipientsConfig => {
-  if (!isRecord(value)) {
-    return false;
-  }
-  const { keysend, lnaddress } = value;
-  if (!Array.isArray(keysend) || !Array.isArray(lnaddress)) {
-    return false;
-  }
-  return keysend.every(isLocalLnRecipient) && lnaddress.every(isLocalLnRecipient);
-};
-
-const readLocalLnRecipientsConfig = (): LocalLnRecipientsConfig | null => {
-  if (!fs.existsSync(LOCAL_LN_RECIPIENTS_PATH)) {
-    return null;
-  }
-  try {
-    const raw = fs.readFileSync(LOCAL_LN_RECIPIENTS_PATH, 'utf8');
-    const parsed: unknown = JSON.parse(raw);
-    if (!isLocalLnRecipientsConfig(parsed)) {
-      console.warn('Invalid local LN recipients config. Using built-in fake recipients instead.');
-      return null;
-    }
-    return parsed;
-  } catch (error) {
-    console.warn(
-      'Failed to read local LN recipients config. Using built-in fake recipients instead.',
-      error
-    );
-    return null;
-  }
-};
 
 /** 07a: Lightning keysend — generate a node pubkey-like string (66 hex chars). */
 const lightningNodePubkey = (): string => {
@@ -176,7 +109,7 @@ const buildConfiguredValueRecipients = (type: string, recipients: LocalLnRecipie
 export const buildChannelValueBlock = (_recipientCount: number): string => {
   const suggested = '0.00000005000';
   const metaBoost = `<podcast:metaBoost type="post" schema="boostbox" license="${METABOOST_LICENSE_URL}">${METABOOST_URL}</podcast:metaBoost>`;
-  const localRecipients = readLocalLnRecipientsConfig();
+  const localRecipients = readLocalLnRecipientsConfig(LOCAL_LN_RECIPIENTS_PATH);
   const keysendRecipients = localRecipients
     ? buildConfiguredValueRecipients('node', localRecipients.keysend)
     : buildFixedValueRecipients(
@@ -207,7 +140,7 @@ export const buildItemValueBlock = (
 ): string => {
   const suggested = '0.00000005000';
   const metaBoost = `<podcast:metaBoost type="post" schema="boostbox" license="${METABOOST_LICENSE_URL}">${METABOOST_URL}</podcast:metaBoost>`;
-  const localRecipients = readLocalLnRecipientsConfig();
+  const localRecipients = readLocalLnRecipientsConfig(LOCAL_LN_RECIPIENTS_PATH);
   const keysendRecipients = localRecipients
     ? buildConfiguredValueRecipients('node', localRecipients.keysend)
     : buildFixedValueRecipients(

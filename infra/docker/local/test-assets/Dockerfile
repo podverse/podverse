@@ -10,7 +10,7 @@ COPY packages/ ./packages/
 COPY tools/test-assets/ ./tools/test-assets/
 COPY scripts/ci/ ./scripts/ci/
 
-RUN npm install --ignore-scripts && npm run build:packages:prod && npm run build -w tools/test-assets
+RUN npm ci --ignore-scripts && npm run build:packages:prod && npm run build -w tools/test-assets
 
 ENV BIND_ADDRESS=0.0.0.0
 EXPOSE 2111

@@ -8,8 +8,10 @@ import type {
   DTOItem,
   DTOItemValueRecipient,
 } from '@podverse/helpers';
-import type { MetaBoost, RecipientAmount } from '@podverse/helpers-v4v';
-import { calculateRecipientAmounts, isLnaddressRecipient } from '@podverse/helpers-v4v';
+import type { RecipientAmount } from '@podverse/v4v-helpers';
+import { calculateRecipientAmounts } from '@podverse/v4v-helpers';
+import type { MetaBoost } from '@podverse/v4v-metaboost';
+import { isLnaddressRecipient } from '@podverse/v4v-btc-ln';
 
 import type { PaymentRecipient, RecipientStatus } from '../types.js';
 import { getAppValueRecipient } from '../../../utils/value/appValue';

@@ -1,19 +1,22 @@
 import type { Dispatch, SetStateAction } from 'react';
 
 import type { DTOChannel, DTOItem } from '@podverse/helpers';
-import type { MetaBoost } from '@podverse/helpers-v4v';
+import type { MetaBoost } from '@podverse/v4v-metaboost';
+import {
+  buildBoostMetadataRequest,
+  isBoostMetadataResponse,
+  META_BOOST_SCHEMA_BOOSTBOX,
+} from '@podverse/v4v-metaboost';
 import {
   buildBlipMessage,
   buildBlip10Metadata,
   buildCustomRecords,
-  buildBoostMetadataRequest,
-  isBoostMetadataResponse,
-  META_BOOST_SCHEMA_BOOSTBOX,
   resolveLnaddressKeysendDetails,
+  sendKeysendPayment,
+  sendLnaddressPayment,
   serializeBlip10Metadata,
   toCustomRecords,
-} from '@podverse/helpers-v4v';
-import { sendKeysendPayment, sendLnaddressPayment } from '@podverse/helpers-v4v-web';
+} from '@podverse/v4v-btc-ln';
 import { request } from '@podverse/helpers-requests';
 
 import type { PaymentRecipient, RecipientStatus } from '../types.js';

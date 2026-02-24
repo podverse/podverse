@@ -6,6 +6,17 @@ const app = express();
 const PORT = process.env.PORT || 3003;
 const DOMAIN = process.env.DOMAIN || 'localhost:3003';
 
+// CORS: allow web app (e.g. localhost:3000) to call LNURLp endpoints from the browser
+app.use((req, res, next) => {
+  res.setHeader('Access-Control-Allow-Origin', req.headers.origin ?? '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(204);
+  }
+  next();
+});
+
 // Default LND config (main Nigiri LND, used for unrecognized usernames)
 const DEFAULT_LND = {
   host: process.env.LND_REST_HOST || 'host.docker.internal',
@@ -91,10 +102,14 @@ function getLndCredsForUser(username) {
   if (creds.macaroonHex !== null) {
     return creds;
   }
-  // Fall back to default LND if user-specific creds are unavailable
-  const defaultCreds = loadLndCredentials('__default__');
-  console.warn(`[${username}] Falling back to default LND`);
-  return defaultCreds;
+  // Only fall back to default LND for unknown usernames (not alice/bob/fee).
+  // For known recipients, never use Nigiri — Alby is connected to Nigiri, so that would be a self-payment.
+  if (!(username in USER_LND_MAP)) {
+    const defaultCreds = loadLndCredentials('__default__');
+    console.warn(`[${username}] Falling back to default LND`);
+    return defaultCreds;
+  }
+  return creds;
 }
 
 async function createInvoice(username, amountMsat, memo) {

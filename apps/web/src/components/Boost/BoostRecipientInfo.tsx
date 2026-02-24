@@ -6,7 +6,7 @@ import type {
   DTOChannelValueRecipient,
   DTOItemValueRecipient,
 } from '@podverse/helpers';
-import { calculateRecipientAmounts } from '@podverse/helpers-v4v';
+import { calculateRecipientAmounts } from '@podverse/v4v-helpers';
 import styles from '../../styles/components/Boost/BoostRecipientInfo.module.scss';
 import { BoostRecipientInfoRow } from './BoostRecipientInfoRow';
 

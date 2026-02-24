@@ -15,7 +15,8 @@ separate test paths for LNAddress and Keysend), see [LOCAL-V4V-TESTNET-WALKTHROU
 
 ## Diagram
 
-See `docs/v4v/V4V-METABOOST-FLOW.md`.
+See [V4V-METABOOST-FLOW.md](V4V-METABOOST-FLOW.md). For the full Bitcoin LN setup (Nix, Docker,
+test assets, parsing, web boost flow), see [V4V-BITCOIN-LN-SETUP-DIAGRAM.md](V4V-BITCOIN-LN-SETUP-DIAGRAM.md).
 
 ## Reference docs
 
@@ -35,17 +36,17 @@ See `docs/v4v/V4V-METABOOST-FLOW.md`.
 **BoostBox (local):** You can start BoostBox as part of local infra: run `make local_infra_up` (which
 includes BoostBox), or build once with `make local_build_boostbox` then `make local_boostbox_up`.
 BoostBox lives in a separate repo cloned as a sibling of Podverse; see
-[docs/infra/LOCAL-BOOSTBOX.md](../infra/LOCAL-BOOSTBOX.md).
+[LOCAL-BOOSTBOX.md](../../../infra/LOCAL-BOOSTBOX.md).
 
 Notes:
 
-- The client sends the BoostBox base URL in the request body (`baseUrl`) when calling the Podverse API proxy; the API forwards to that URL and uses a fixed API key. See [LOCAL-BOOSTBOX.md](../infra/LOCAL-BOOSTBOX.md).
+- The client sends the BoostBox base URL in the request body (`baseUrl`) when calling the Podverse API proxy; the API forwards to that URL and uses a fixed API key. See [LOCAL-BOOSTBOX.md](../../../infra/LOCAL-BOOSTBOX.md).
 - Alby Sandbox base URL and getalby.com LNURL endpoints are hardcoded in `@podverse/external-services-alby` for development only.
 
 ## Local Lightning Network Setup
 
 For local V4V testing with real Lightning payments on regtest, use the automated
-Nigiri-based setup. See [docs/infra/LOCAL-LIGHTNING.md](../infra/LOCAL-LIGHTNING.md)
+Nigiri-based setup. See [LOCAL-LIGHTNING.md](LOCAL-LIGHTNING.md)
 for full instructions.
 
 Quick start:
@@ -67,7 +68,7 @@ which are used when generating test assets with `--add-fake-value-tags`.
 
 For browser-based V4V testing, you need a WebLN-compatible wallet configured for regtest.
 Wallet support for regtest varies, so verify your provider supports it or use the CLI
-testing approach described in [LOCAL-LIGHTNING.md](../infra/LOCAL-LIGHTNING.md#alternative-direct-lnd-testing).
+testing approach described in [LOCAL-LIGHTNING.md](LOCAL-LIGHTNING.md#alternative-direct-lnd-testing).
 
 When `--add-fake-value-tags` is enabled, the generator uses `ln-recipients.local.json` for
 `type="node"` and `type="lnaddress"` recipients. If the file is missing or invalid,
@@ -120,7 +121,7 @@ npm run generate -w tools/test-assets -- --add-fake-value-tags
 
 1. Parse a feed (via `tools/test-assets` or ingest tooling).
 2. Confirm `channel_value_meta_boost` and `item_value_meta_boost` rows exist in the DB.
-3. Parsing generated assets is the official “seeding” step for local testing.
+3. Parsing generated assets is the official "seeding" step for local testing.
 
 ## MetaBoost (BoostBox) flow
 
@@ -131,7 +132,7 @@ When `<podcast:metaBoost>` is present, the client must obtain BoostBox metadata 
    - LNAddress invoice comment (when allowed by LNURL).
    - Keysend bLIP-0010 `message` field (so the payload carries the BoostBox metadata URL).
 
-If BoostBox fails, a modal warns that the message cannot be sent and the user can “Pay Anyway.”
+If BoostBox fails, a modal warns that the message cannot be sent and the user can "Pay Anyway."
 Payments continue with **no memo** (no comment and no bLIP-0010 record).
 
 ## Keysend (bLIP-0010) fallback
@@ -149,7 +150,7 @@ and rounded down to the nearest integer (e.g., 60 + 40 + 1 is valid and normaliz
 ## LNAddress behavior when metaBoost is absent
 
 When metaBoost is **not** present for LNAddress recipients (`type="lnaddress"`), boost messages are
-disabled **for LNURL invoice flows**. The boost form shows a notice with a “More Info” link to
+disabled **for LNURL invoice flows**. The boost form shows a notice with a "More Info" link to
 `/v4v/boost-messages`, and the payment proceeds **without** any message metadata.
 
 ## Manual test checklist
@@ -159,7 +160,7 @@ disabled **for LNURL invoice flows**. The boost form shows a notice with a “Mo
 - API responses that include V4V value data include metaBoost fields.
 - Web UI shows per-recipient send status and amounts.
 - BoostBox success: LNAddress invoices include BoostBox `desc` comment where allowed.
-- BoostBox failure: modal appears; “Pay Anyway” sends payments with no message metadata.
+- BoostBox failure: modal appears; "Pay Anyway" sends payments with no message metadata.
 - Keysend without metaBoost: bLIP-0010 record is attached (TLV 7629169).
 - LNAddress without metaBoost: notice shown; payments sent without message metadata.
 - `/v4v/boost-messages` page loads and explains requirements.

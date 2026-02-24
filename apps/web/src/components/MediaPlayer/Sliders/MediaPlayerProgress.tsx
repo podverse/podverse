@@ -342,12 +342,14 @@ function getChapterAtPercent(
   }
   for (let i = 0; i < chapters.length; i++) {
     const ch = chapters[i];
+    if (ch === undefined) continue;
     const startSec = Number(ch.start_time);
     let endSec: number;
     if (ch.end_time !== null && ch.end_time !== undefined && !isNaN(Number(ch.end_time))) {
       endSec = Number(ch.end_time);
     } else if (i < chapters.length - 1) {
-      endSec = Number(chapters[i + 1].start_time);
+      const nextCh = chapters[i + 1];
+      endSec = nextCh !== undefined ? Number(nextCh.start_time) : duration;
     } else {
       endSec = duration;
     }

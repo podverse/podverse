@@ -21,6 +21,10 @@ npm run dev:web        # Start web app (localhost:3000)
 npm run dev:all        # Start everything with watch mode
 ```
 
+### Lock file and workspace dependencies
+
+All monorepo Dockerfiles use `npm ci` for reproducible installs. The root `package-lock.json` must match all workspace `package.json` files. The Make targets that build Docker images (e.g. `local_build_api`, `local_build_web`, `local_build_web_runtime_config`, `local_build_test_assets`, `local_build_all`) automatically run `sync_lockfile` first so the lock file is in sync before `npm ci` runs in the container. After adding, removing, or renaming workspace packages, run `make sync_lockfile` and commit the updated `package-lock.json` so the change is committed; the next Docker build will use the updated lock file from the context.
+
 ### Package Build Order
 
 Build packages in this order (dependencies must be built first):
@@ -260,7 +264,7 @@ See `.llm/LLM.md` for full guidelines.
 
 - [Quick Start Guide](docs/QUICKSTART.md) - Setup and running locally
 - [Architecture](docs/architecture/ARCHITECTURE.md) - System design and data flow
-- [V4V MetaBoost + LNURL](docs/v4v/V4V-METABOOST-LNURL.md) - Value-for-value boost flow and local setup
+- [V4V MetaBoost + LNURL](docs/v4v/bitcoin/lnd/V4V-METABOOST-LNURL.md) - Value-for-value boost flow and local setup
 - [Contributing](docs/development/CONTRIBUTING.md) - Workflow and PR guidelines
 - [i18n Guide](docs/localization/I18N.md) - Translation system details
 - [IDE Setup](docs/development/IDE-SETUP.md) - VS Code configuration

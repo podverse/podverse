@@ -6,7 +6,8 @@ title: "Local V4V Testnet Walkthrough"
 
 This document gives **concrete steps** to go from a clean slate to successfully sending a boost on the local Lightning regtest and verifying it. It covers Nix activation, nuke/rebuild with V4V, test asset generation, navigating to a media page to use the Boost feature, browser wallet recommendation and testnet configuration, verification, and separate test paths for **LNAddress** and **Keysend**.
 
-For deeper setup (Nigiri install options, Boostbox repo layout), see [LOCAL-LIGHTNING.md](../infra/LOCAL-LIGHTNING.md) and [LOCAL-BOOSTBOX.md](../infra/LOCAL-BOOSTBOX.md).
+For deeper setup (Nigiri install options, Boostbox repo layout), see [LOCAL-LIGHTNING.md](LOCAL-LIGHTNING.md) and
+[LOCAL-BOOSTBOX.md](../../../infra/LOCAL-BOOSTBOX.md).
 
 ## Prerequisites
 
@@ -28,7 +29,7 @@ If you use Fish:
 nix develop .#v4v-fish
 ```
 
-If you are not using Nix, install Nigiri and jq per [LOCAL-LIGHTNING.md](../infra/LOCAL-LIGHTNING.md) before continuing.
+If you are not using Nix, install Nigiri and jq per [LOCAL-LIGHTNING.md](LOCAL-LIGHTNING.md) before continuing.
 
 ## Step 2: Nuke and rebuild with V4V
 
@@ -47,7 +48,7 @@ This single command:
 5. Runs setup (DB init, management DB init, etc.)
 6. Starts all apps and workers
 
-For more on provisioning (what runs, troubleshooting), see [LOCAL-LIGHTNING.md](../infra/LOCAL-LIGHTNING.md).
+For more on provisioning (what runs, troubleshooting), see [LOCAL-LIGHTNING.md](LOCAL-LIGHTNING.md).
 
 **Expected outcome:**
 
@@ -119,7 +120,7 @@ nigiri lnd addinvoice --amt 1000 --memo "Test payment"
 nigiri lnd sendpayment --dest <pubkey> --amt 1000 --keysend
 ```
 
-See [LOCAL-LIGHTNING.md](../infra/LOCAL-LIGHTNING.md) for full CLI payment steps.
+See [LOCAL-LIGHTNING.md](LOCAL-LIGHTNING.md) for full CLI payment steps.
 
 ## Verification that a boost worked
 
@@ -151,6 +152,6 @@ See [LOCAL-LIGHTNING.md](../infra/LOCAL-LIGHTNING.md) for full CLI payment steps
 
 ## Troubleshooting
 
-- **LND not ready, port conflicts, LNURL server:** See [LOCAL-LIGHTNING.md](../infra/LOCAL-LIGHTNING.md) (e.g. LND Not Ready, Port Conflicts, LNURL Server Can't Connect to LND).
+- **LND not ready, port conflicts, LNURL server:** See [LOCAL-LIGHTNING.md](LOCAL-LIGHTNING.md) (e.g. LND Not Ready, Port Conflicts, LNURL Server Can't Connect to LND).
 - **Boost button not showing:** Ensure the feed was parsed with value tags and the channel has `channel_values`. Re-run `npm run generate_and_parse -w podverse-test-assets -- --add-fake-value-tags` and confirm the podcast appears with value data.
 - **Wallet not connecting:** Confirm LND is reachable (e.g. `curl -k` to the LND REST endpoint), that the macaroon and TLS cert paths are correct, and that the extension supports a custom node or localhost.

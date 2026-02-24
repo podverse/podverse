@@ -9,7 +9,7 @@ COPY apps/api/package*.json ./apps/api/
 
 # Install all dependencies (devDependencies like @types/* needed for TypeScript compilation)
 # --ignore-scripts skips the prepare script that tries to install git hooks
-RUN npm install --ignore-scripts
+RUN npm ci --ignore-scripts
 
 # Stage 2: Build the app
 FROM deps AS builder
@@ -50,8 +50,8 @@ COPY --from=builder /opt/packages/orm/package.json ./packages/orm/
 COPY --from=builder /opt/packages/orm/dist/ ./packages/orm/dist/
 COPY --from=builder /opt/packages/notifications/package.json ./packages/notifications/
 COPY --from=builder /opt/packages/notifications/dist/ ./packages/notifications/dist/
-COPY --from=builder /opt/packages/helpers-v4v/package.json ./packages/helpers-v4v/
-COPY --from=builder /opt/packages/helpers-v4v/dist/ ./packages/helpers-v4v/dist/
+COPY --from=builder /opt/packages/v4v-metaboost/package.json ./packages/v4v-metaboost/
+COPY --from=builder /opt/packages/v4v-metaboost/dist/ ./packages/v4v-metaboost/dist/
 COPY --from=builder /opt/packages/parser-mapping/package.json ./packages/parser-mapping/
 COPY --from=builder /opt/packages/parser-mapping/dist/ ./packages/parser-mapping/dist/
 COPY --from=builder /opt/packages/parser/package.json ./packages/parser/
@@ -62,7 +62,7 @@ COPY --from=builder /opt/apps/api/package.json ./apps/api/
 COPY --from=builder /opt/apps/api/dist/ ./apps/api/dist/
 
 # Install production dependencies only
-RUN npm install --omit=dev --ignore-scripts
+RUN npm ci --omit=dev --ignore-scripts
 
 USER node
 

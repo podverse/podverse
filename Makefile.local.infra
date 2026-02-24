@@ -60,7 +60,7 @@ include Makefile.local.v4v
 
 # Test-assets server (tools/test-assets). Serves feeds/media at http://localhost:2111. Workers local image uses an entrypoint that proxies localhost:2111 to podverse_local_test_assets:2111 (see infra/docker/local/workers/).
 .PHONY: local_build_test_assets
-local_build_test_assets:
+local_build_test_assets: sync_lockfile
 	docker build -f infra/docker/local/test-assets/Dockerfile -t podverse-test-assets:latest .
 
 .PHONY: local_test_assets_up

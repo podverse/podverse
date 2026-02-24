@@ -13,10 +13,14 @@ networks:
   podverse_local_network:
     external: true
 
+# External so they are shared with lnurl-server (created by Makefile before up).
 volumes:
   podverse_local_lnd_alice_data:
+    external: true
   podverse_local_lnd_bob_data:
+    external: true
   podverse_local_lnd_fee_data:
+    external: true
 
 x-lnd-common: &lnd-common
   image: lightninglabs/lnd:v0.19.3-beta
@@ -64,6 +68,7 @@ services:
       - --bitcoind.zmqpubrawblock=tcp://host.docker.internal:28332
       - --bitcoind.zmqpubrawtx=tcp://host.docker.internal:28333
       - --noseedbackup
+      - --lnddir=/data/.lnd
       - --alias=alice
       - --listen=0.0.0.0:9735
       - --rpclisten=0.0.0.0:10009
@@ -91,6 +96,7 @@ services:
       - --bitcoind.zmqpubrawblock=tcp://host.docker.internal:28332
       - --bitcoind.zmqpubrawtx=tcp://host.docker.internal:28333
       - --noseedbackup
+      - --lnddir=/data/.lnd
       - --alias=bob
       - --listen=0.0.0.0:9735
       - --rpclisten=0.0.0.0:10009
@@ -118,6 +124,7 @@ services:
       - --bitcoind.zmqpubrawblock=tcp://host.docker.internal:28332
       - --bitcoind.zmqpubrawtx=tcp://host.docker.internal:28333
       - --noseedbackup
+      - --lnddir=/data/.lnd
       - --alias=fee
       - --listen=0.0.0.0:9735
       - --rpclisten=0.0.0.0:10009

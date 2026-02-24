@@ -1,9 +1,19 @@
 {
-  "name": "@podverse/helpers-v4v-web",
+  "name": "@podverse/v4v-btc-ln",
   "version": "5.4.1",
-  "description": "Web-specific V4V helpers",
+  "description": "Bitcoin Lightning (LN) V4V helpers: lnaddress, keysend/blip10, web payments",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./test-data": {
+      "types": "./dist/test-data/ln-recipients-config.d.ts",
+      "default": "./dist/test-data/ln-recipients-config.js"
+    }
+  },
   "files": [
     "dist/**/*"
   ],
@@ -20,10 +30,10 @@
   "publishConfig": {
     "access": "public"
   },
-  "type": "module",
-  "sideEffects": false,
   "dependencies": {
     "@podverse/external-services-alby": "*",
-    "@podverse/helpers-v4v": "*"
-  }
+    "@podverse/helpers-requests": "*"
+  },
+  "type": "module",
+  "sideEffects": false
 }

@@ -28,6 +28,7 @@
     "@podverse/helpers-backend": "*",
     "@podverse/orm": "*",
     "@podverse/parser": "*",
+    "@podverse/v4v-btc-ln": "*",
     "dotenv": "^17.2.2"
   },
   "devDependencies": {

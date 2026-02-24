@@ -125,3 +125,29 @@ update
 - Makefile.local.v4v
 - docs/v4v/LOCAL-V4V-TESTNET-WALKTHROUGH.md
 - docs/infra/LOCAL-LIGHTNING.md
+
+### Session 30 - 2026-02-24
+
+#### Prompt (Developer)
+
+Fix LN Credential Reliability
+
+Implement the plan as specified, it is attached for your reference. Do NOT edit the plan file itself.
+
+To-do's from the plan have already been created. Do not create them again. Mark them as in_progress as you work, starting with the first one. Don't stop until you have completed all the to-dos.
+
+#### Key Decisions
+
+- Added `--lnddir=/data/.lnd` for alice/bob/fee recipient LND services so credential artifacts are written into the shared mounted volume path deterministically.
+- Switched LNURL server default Nigiri credential mount from per-file binds to a single directory bind (`.../volumes/lnd:/lnd-creds:ro`) and updated `LND_MACAROON_PATH` to `/lnd-creds/data/chain/bitcoin/regtest/admin.macaroon` to avoid file-vs-directory bind ambiguity.
+- Reordered `local_ln_up` to start the LNURL server only after recipient provisioning/discovery and always with the OS-specific `NIGIRI_LND_CREDENTIALS_PATH` export.
+- Added `local_ln_verify_recipient_creds` make target and enforced it in `local_ln_up` before readiness output, failing fast when alice/bob/fee credential files are missing.
+- Updated LOCAL-LIGHTNING docs with the new startup behavior and troubleshooting command (`make local_ln_verify_recipient_creds`).
+
+#### Files Modified
+
+- .llm/history/active/v4v-boost-metadata-alby/v4v-boost-metadata-alby-part-03.md
+- infra/docker/local/v4v/bitcoin/lnd/ln-recipient-nodes/docker-compose.yml
+- infra/docker/local/v4v/bitcoin/lnd/lnurl-server/docker-compose.yml
+- Makefile.local.v4v
+- docs/v4v/bitcoin/lnd/LOCAL-LIGHTNING.md

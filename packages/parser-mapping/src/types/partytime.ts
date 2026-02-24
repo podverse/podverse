@@ -200,7 +200,7 @@ export type Episode = {
     purpose?: string | null;
     value: string;
   }>;
-  value?: Phase4Value | null;
+  values?: Phase4Value[];
   podcastSeasonIndex?: number | null;
   contentLinks?: Array<{ url: string; title: string }>;
 };
@@ -279,7 +279,7 @@ export type FeedObject = {
     purpose?: string | null;
     value: string;
   }>;
-  value?: Phase4Value | null;
+  values?: Phase4Value[];
 };
 
 export type PIChapterLocation = {

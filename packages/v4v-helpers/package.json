@@ -1,7 +1,7 @@
 {
-  "name": "@podverse/helpers-v4v",
+  "name": "@podverse/v4v-helpers",
   "version": "5.4.1",
-  "description": "Shared V4V helpers and BoostBox metadata helpers",
+  "description": "V4V payment-agnostic helpers: recipient split normalization and amount calculation",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "files": [
@@ -20,9 +20,7 @@
   "publishConfig": {
     "access": "public"
   },
-  "dependencies": {
-    "@podverse/helpers-requests": "*"
-  },
+  "dependencies": {},
   "type": "module",
   "sideEffects": false
 }

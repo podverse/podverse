@@ -2,14 +2,14 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+REPO_ROOT="$(cd "$SCRIPT_DIR/../../../.." && pwd)"
 CONFIG_FILE="$REPO_ROOT/tools/test-assets/config/ln-recipients.local.json"
 
 echo "Discovering Lightning node pubkeys..."
 
 get_recipient_pubkey() {
   local container="$1"
-  docker exec "$container" lncli --network=regtest getinfo | jq -r '.identity_pubkey'
+  docker exec "$container" lncli --network=regtest --lnddir=/data/.lnd getinfo | jq -r '.identity_pubkey'
 }
 
 ALICE_PUBKEY=$(get_recipient_pubkey "podverse_local_lnd_alice")

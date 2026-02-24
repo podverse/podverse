@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 
 import type { DTOChannel, DTOItem } from '@podverse/helpers';
-import { toMetaBoost } from '@podverse/helpers-v4v';
+import { toMetaBoost } from '@podverse/v4v-metaboost';
 
 type Translator = (key: string, values?: Record<string, string | number>) => string;
 
@@ -14,8 +14,24 @@ type UseBoostSelectionParams = {
   tValue: Translator;
 };
 
+const METHOD_PRIORITY_ORDER = ['lnaddress', 'keysend'];
+
+const sortChannelValuesWithLnaddressFirst = (values: ChannelValue[]): ChannelValue[] => {
+  return [...values].sort((a, b) => {
+    if (a.type !== 'lightning' || b.type !== 'lightning') return 0;
+    const aIdx = METHOD_PRIORITY_ORDER.indexOf(a.method);
+    const bIdx = METHOD_PRIORITY_ORDER.indexOf(b.method);
+    if (aIdx === -1 && bIdx === -1) return 0;
+    if (aIdx === -1) return 1;
+    if (bIdx === -1) return -1;
+    return aIdx - bIdx;
+  });
+};
+
 export const useBoostSelection = ({ channel, item, tValue }: UseBoostSelectionParams) => {
-  const channelValues: ChannelValue[] = channel.channel_values ?? [];
+  const channelValues: ChannelValue[] = sortChannelValuesWithLnaddressFirst(
+    channel.channel_values ?? []
+  );
   const [selectedKey, setSelectedKey] = useState('');
 
   useEffect(() => {

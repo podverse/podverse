@@ -9,7 +9,7 @@ import {
   getItemItunesEpisodeTypeEnumValue,
 } from '@podverse/helpers';
 import { isValidHttpUrl } from '@podverse/helpers-validation';
-import { compatItemValue } from './value.js';
+import { compatItemValue, compatItemValueWithMethodAndRecipients } from './value.js';
 
 type CompatItemDtoOptions = {
   isLiveItem?: boolean;
@@ -337,11 +337,99 @@ export const compatItemContentLinkDtos = (
   return dtos;
 };
 
+const METHOD_PRIORITY_ORDER = ['lnaddress', 'keysend'];
+
+function sortItemValueDtos<T extends { item_value: { type: string; method: string } }>(
+  dtos: T[]
+): T[] {
+  return [...dtos].sort((a, b) => {
+    if (a.item_value.type !== 'lightning' || b.item_value.type !== 'lightning') return 0;
+    const aIdx = METHOD_PRIORITY_ORDER.indexOf(a.item_value.method);
+    const bIdx = METHOD_PRIORITY_ORDER.indexOf(b.item_value.method);
+    if (aIdx === -1 && bIdx === -1) return 0;
+    if (aIdx === -1) return 1;
+    if (bIdx === -1) return -1;
+    return aIdx - bIdx;
+  });
+}
+
 export const compatItemValueDtos = (parsedItem: Episode) => {
-  const dtos = [];
-  if (parsedItem.value) {
-    const dto = compatItemValue(parsedItem.value);
-    const formattedDto = {
+  const sourceValues = parsedItem.values ?? [];
+  if (sourceValues.length === 0) return [];
+
+  if (sourceValues.length > 1) {
+    const dtos = sourceValues.map((value) => {
+      const dto = compatItemValue(value);
+      return {
+        item_value: {
+          type: dto.type.slice(0, DATABASE_CONSTANTS.varchar_short),
+          method: dto.method.slice(0, DATABASE_CONSTANTS.varchar_short),
+          suggested: dto.suggested || null,
+        },
+        item_value_meta_boost: dto.meta_boost ?? null,
+        item_value_recipients: dto.item_value_recipients,
+        item_value_time_splits: dto.item_value_time_splits,
+      };
+    });
+    return sortItemValueDtos(dtos);
+  }
+
+  const value = sourceValues[0];
+  if (!value) return [];
+
+  const type = value.type?.toLowerCase() ?? '';
+  const recipients = value.recipients ?? [];
+  const hasLnaddress = recipients.some((r) => r.type?.toLowerCase() === 'lnaddress');
+  const hasKeysend = recipients.some((r) => r.type?.toLowerCase() !== 'lnaddress');
+
+  if (type === 'lightning' && (hasLnaddress || hasKeysend)) {
+    if (hasLnaddress && hasKeysend) {
+      const lnaddressRecipients = recipients.filter((r) => r.type?.toLowerCase() === 'lnaddress');
+      const keysendRecipients = recipients.filter((r) => r.type?.toLowerCase() !== 'lnaddress');
+      const dtos = [];
+      for (const [method, filtered] of [
+        ['lnaddress', lnaddressRecipients],
+        ['keysend', keysendRecipients],
+      ] as const) {
+        if (filtered.length === 0) continue;
+        const dto = compatItemValueWithMethodAndRecipients(value, method, filtered);
+        dtos.push({
+          item_value: {
+            type: dto.type.slice(0, DATABASE_CONSTANTS.varchar_short),
+            method: dto.method.slice(0, DATABASE_CONSTANTS.varchar_short),
+            suggested: dto.suggested || null,
+          },
+          item_value_meta_boost: dto.meta_boost ?? null,
+          item_value_recipients: dto.item_value_recipients,
+          item_value_time_splits: dto.item_value_time_splits,
+        });
+      }
+      return sortItemValueDtos(dtos);
+    }
+    if (hasLnaddress) {
+      const dto = compatItemValueWithMethodAndRecipients(
+        value,
+        'lnaddress',
+        recipients.filter((r) => r.type?.toLowerCase() === 'lnaddress')
+      );
+      return [
+        {
+          item_value: {
+            type: dto.type.slice(0, DATABASE_CONSTANTS.varchar_short),
+            method: dto.method.slice(0, DATABASE_CONSTANTS.varchar_short),
+            suggested: dto.suggested || null,
+          },
+          item_value_meta_boost: dto.meta_boost ?? null,
+          item_value_recipients: dto.item_value_recipients,
+          item_value_time_splits: dto.item_value_time_splits,
+        },
+      ];
+    }
+  }
+
+  const dto = compatItemValue(value);
+  return [
+    {
       item_value: {
         type: dto.type.slice(0, DATABASE_CONSTANTS.varchar_short),
         method: dto.method.slice(0, DATABASE_CONSTANTS.varchar_short),
@@ -350,9 +438,6 @@ export const compatItemValueDtos = (parsedItem: Episode) => {
       item_value_meta_boost: dto.meta_boost ?? null,
       item_value_recipients: dto.item_value_recipients,
       item_value_time_splits: dto.item_value_time_splits,
-    };
-
-    dtos.push(formattedDto);
-  }
-  return dtos;
+    },
+  ];
 };
