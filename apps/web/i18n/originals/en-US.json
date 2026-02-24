@@ -284,12 +284,8 @@
       "failed_to_send": "Failed: "
     },
     "types": {
-      "lightning_keysend": {
-        "label": "Bitcoin LN Keysend",
-        "denomination": "satoshis"
-      },
-      "lightning_lnaddress": {
-        "label": "Bitcoin LN Address",
+      "lightning": {
+        "label": "Bitcoin Lightning",
         "denomination": "satoshis"
       },
       "paypal_send": {
@@ -407,6 +403,12 @@
     "try_again": "Try again",
     "reload_page": "Reload page",
     "go_to_home": "Go to Home"
+  },
+  "donate": {
+    "title": "Donate",
+    "app_donation_notice": "This donation will be sent to {brand_name}.",
+    "creator_donation_hint_prefix": "To donate to a podcaster or artist, use the",
+    "creator_donation_hint_suffix": "Boost button on their page."
   },
   "errors": {
     "generic": "Something went wrong. Please try again later, or contact support for assistance.",

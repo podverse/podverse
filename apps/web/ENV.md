@@ -99,13 +99,19 @@ These variables are used for client-side API requests:
 - **`NEXT_PUBLIC_POLLING_INTERVAL_MS`** (Optional) - Polling interval in milliseconds (default: `3000`)
   - Must be a positive number if set
 
-### Lightning Keysend
+### App Lightning Node
 
-- **`NEXT_PUBLIC_APP_VALUE_LIGHTNING_KEYSEND_NAME`** (Optional) - Lightning keysend name
-- **`NEXT_PUBLIC_APP_VALUE_LIGHTNING_KEYSEND_TYPE`** (Optional) - Lightning keysend type
-- **`NEXT_PUBLIC_APP_VALUE_LIGHTNING_KEYSEND_ADDRESS`** (Optional) - Lightning keysend address
-- **`NEXT_PUBLIC_APP_VALUE_LIGHTNING_KEYSEND_CUSTOM_KEY`** (Optional) - Lightning keysend custom key
-- **`NEXT_PUBLIC_APP_VALUE_LIGHTNING_KEYSEND_CUSTOM_VALUE`** (Optional) - Lightning keysend custom value
+- **`NEXT_PUBLIC_APP_VALUE_LIGHTNING_NODE_NAME`** (Optional) - Lightning node name
+- **`NEXT_PUBLIC_APP_VALUE_LIGHTNING_NODE_ADDRESS`** (Optional) - Lightning node address
+- **`NEXT_PUBLIC_APP_VALUE_LIGHTNING_NODE_CUSTOM_KEY`** (Optional) - Lightning node custom key
+- **`NEXT_PUBLIC_APP_VALUE_LIGHTNING_NODE_CUSTOM_VALUE`** (Optional) - Lightning node custom value
+- **Note**: Set either LNAddress or Node app value vars, not both.
+
+### App Lightning LNAddress
+
+- **`NEXT_PUBLIC_APP_VALUE_LIGHTNING_LNADDRESS_NAME`** (Optional) - Lightning LNAddress name
+- **`NEXT_PUBLIC_APP_VALUE_LIGHTNING_LNADDRESS_ADDRESS`** (Optional) - Lightning LNAddress address
+- **Note**: Set either LNAddress or Node app value vars, not both.
 
 ### Notifications
 

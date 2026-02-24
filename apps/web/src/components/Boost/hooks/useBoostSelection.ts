@@ -14,48 +14,126 @@ type UseBoostSelectionParams = {
   tValue: Translator;
 };
 
-const METHOD_PRIORITY_ORDER = ['lnaddress', 'keysend'];
+const getValueKey = (value: ChannelValue | ItemValue): string =>
+  value.type === 'lightning' ? 'lightning' : `${value.type}_${value.method}`;
 
-const sortChannelValuesWithLnaddressFirst = (values: ChannelValue[]): ChannelValue[] => {
-  return [...values].sort((a, b) => {
-    if (a.type !== 'lightning' || b.type !== 'lightning') return 0;
-    const aIdx = METHOD_PRIORITY_ORDER.indexOf(a.method);
-    const bIdx = METHOD_PRIORITY_ORDER.indexOf(b.method);
-    if (aIdx === -1 && bIdx === -1) return 0;
-    if (aIdx === -1) return 1;
-    if (bIdx === -1) return -1;
-    return aIdx - bIdx;
-  });
+const buildButtonTabs = (
+  values: ChannelValue[],
+  tValue: Translator,
+  setSelectedKey: (key: string) => void
+) => {
+  const seen = new Set<string>();
+  return values.reduce<{ key: string; label: string; onClick: () => void }[]>((acc, value) => {
+    const key = getValueKey(value);
+    if (seen.has(key)) {
+      return acc;
+    }
+    seen.add(key);
+    acc.push({
+      key,
+      label: tValue(`types.${key}.label`),
+      onClick: () => setSelectedKey(key),
+    });
+    return acc;
+  }, []);
+};
+
+const mergeLightningChannelValues = (values: ChannelValue[]): ChannelValue[] => {
+  const lightningValues = values.filter((value) => value.type === 'lightning');
+  if (lightningValues.length <= 1) {
+    return values;
+  }
+  const firstLightning = lightningValues[0];
+  if (!firstLightning) {
+    return values;
+  }
+  const mergedRecipients = lightningValues.reduce<ChannelValue['channel_value_recipients']>(
+    (acc, value) => [...acc, ...value.channel_value_recipients],
+    []
+  );
+  const mergedMetaBoost =
+    lightningValues.find((value) => value.meta_boost !== null && value.meta_boost !== undefined)
+      ?.meta_boost ?? null;
+  const mergedLightning: ChannelValue = {
+    ...firstLightning,
+    method: 'keysend',
+    meta_boost: mergedMetaBoost,
+    channel_value_recipients: mergedRecipients,
+  };
+  const mergedValues: ChannelValue[] = [];
+  let lightningInserted = false;
+  for (const value of values) {
+    if (value.type === 'lightning') {
+      if (!lightningInserted) {
+        mergedValues.push(mergedLightning);
+        lightningInserted = true;
+      }
+      continue;
+    }
+    mergedValues.push(value);
+  }
+  return mergedValues;
+};
+
+const mergeLightningItemValues = (values: ItemValue[]): ItemValue[] => {
+  const lightningValues = values.filter((value) => value.type === 'lightning');
+  if (lightningValues.length <= 1) {
+    return values;
+  }
+  const firstLightning = lightningValues[0];
+  if (!firstLightning) {
+    return values;
+  }
+  const mergedRecipients = lightningValues.reduce<ItemValue['item_value_recipients']>(
+    (acc, value) => [...acc, ...value.item_value_recipients],
+    []
+  );
+  const mergedMetaBoost =
+    lightningValues.find((value) => value.meta_boost !== null && value.meta_boost !== undefined)
+      ?.meta_boost ?? null;
+  const mergedLightning: ItemValue = {
+    ...firstLightning,
+    method: 'keysend',
+    meta_boost: mergedMetaBoost,
+    item_value_recipients: mergedRecipients,
+  };
+  const mergedValues: ItemValue[] = [];
+  let lightningInserted = false;
+  for (const value of values) {
+    if (value.type === 'lightning') {
+      if (!lightningInserted) {
+        mergedValues.push(mergedLightning);
+        lightningInserted = true;
+      }
+      continue;
+    }
+    mergedValues.push(value);
+  }
+  return mergedValues;
 };
 
 export const useBoostSelection = ({ channel, item, tValue }: UseBoostSelectionParams) => {
-  const channelValues: ChannelValue[] = sortChannelValuesWithLnaddressFirst(
-    channel.channel_values ?? []
-  );
+  const channelValues: ChannelValue[] = mergeLightningChannelValues(channel.channel_values ?? []);
+  const itemValues: ItemValue[] = mergeLightningItemValues(item?.item_values ?? []);
   const [selectedKey, setSelectedKey] = useState('');
 
   useEffect(() => {
     if (channelValues.length > 0 && !selectedKey) {
       const firstValue = channelValues[0];
       if (firstValue) {
-        setSelectedKey(`${firstValue.type}_${firstValue.method}`);
+        setSelectedKey(getValueKey(firstValue));
       }
     }
   }, [channelValues, selectedKey]);
 
   const selectedChannelValue: ChannelValue | undefined = channelValues.find(
-    (cv) => `${cv.type}_${cv.method}` === selectedKey
+    (cv) => getValueKey(cv) === selectedKey
   );
 
   const selectedItemValue: ItemValue | undefined =
-    item?.item_values?.find(
-      (value) =>
-        selectedChannelValue &&
-        value.type === selectedChannelValue.type &&
-        value.method === selectedChannelValue.method
-    ) ?? item?.item_values?.[0];
-
-  const selectedMethod = selectedItemValue?.method ?? selectedChannelValue?.method ?? null;
+    itemValues.find(
+      (value) => selectedChannelValue && getValueKey(value) === getValueKey(selectedChannelValue)
+    ) ?? itemValues[0];
 
   const metaBoost =
     toMetaBoost(
@@ -71,15 +149,9 @@ export const useBoostSelection = ({ channel, item, tValue }: UseBoostSelectionPa
       selectedChannelValue?.meta_boost?.node ?? null
     );
 
-  const buttonTabs = channelValues.map((cv) => ({
-    key: `${cv.type}_${cv.method}`,
-    label: tValue(`types.${cv.type}_${cv.method}.label`),
-    onClick: () => setSelectedKey(`${cv.type}_${cv.method}`),
-  }));
+  const buttonTabs = buildButtonTabs(channelValues, tValue, setSelectedKey);
 
-  const selectedValueKey = selectedChannelValue
-    ? `${selectedChannelValue.type}_${selectedChannelValue.method}`
-    : null;
+  const selectedValueKey = selectedChannelValue ? getValueKey(selectedChannelValue) : null;
 
   return {
     buttonTabs,
@@ -87,7 +159,6 @@ export const useBoostSelection = ({ channel, item, tValue }: UseBoostSelectionPa
     selectedChannelValue,
     selectedItemValue,
     selectedKey,
-    selectedMethod,
     selectedValueKey,
     setSelectedKey,
     metaBoost,

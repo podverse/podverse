@@ -62,3 +62,91 @@ To-do's from the plan have already been created. Do not create them again. Mark 
 - /Users/mitcheldowney/repos/pv/podverse/.llm/history/active/v4v-boost-metadata-alby/v4v-boost-metadata-alby-part-04.md
 - /Users/mitcheldowney/repos/pv/podverse/scripts/v4v/btc/ln/provision-ln-recipient-nodes.sh
 - /Users/mitcheldowney/repos/pv/podverse/Makefile.local.v4v
+
+### Session 33 - 2026-02-24
+
+#### Prompt (Developer)
+
+The boost form should not have app recipient displayed When the boost form is attached to a media item. Instead, sending a boost to the app should be its own form on a new page. And the page is called donate. And the form looks exactly like the form that appears for media boosts but it only has one donation option and it is the app value recipient That we currently have Integrated with the keys and boost form implementation wise, it should expect data similar to how it is parsed out of RSS feeds and as of today that form should support both Ln address and the key send approach. We may need more environment variables. So we can specify either key send or ln address for the app The donate page should have a brief explanation at the top of it That lets the user know that this donation will be sent to Podverse. And if they are looking to donate to a Podcaster or artist, then they should use the boost button on their respective page and also show the font awesome icon they will need to press on the page so it can educate them as to what to look for To send boosts to a podcaster or artist since the boost form will be nearly identical between media pages and the app donate page, It may make sense to have two separate components with reusable logic. shared between them possibly in another component for consistency but also separation
+
+#### Key Decisions
+
+- Extracted shared Boost form behavior into `BoostFormBase`, allowing media boosts to omit the app recipient and a new donate form to target only the app recipient.
+- Added LNAddress app recipient env/config wiring and updated app value lookup to choose between keysend and LNAddress by method.
+- Implemented a dedicated Donate page using translations and the boost icon with app-only donation messaging.
+
+#### Files Modified
+
+- /Users/mitcheldowney/repos/pv/podverse/.llm/history/active/v4v-boost-metadata-alby/v4v-boost-metadata-alby-part-04.md
+- /Users/mitcheldowney/repos/pv/podverse/apps/web/src/components/Boost/BoostDonateForm.tsx
+- /Users/mitcheldowney/repos/pv/podverse/apps/web/src/components/Boost/BoostForm.tsx
+- /Users/mitcheldowney/repos/pv/podverse/apps/web/src/components/Boost/BoostFormBase.tsx
+- /Users/mitcheldowney/repos/pv/podverse/apps/web/src/components/Boost/BoostFormFields.tsx
+- /Users/mitcheldowney/repos/pv/podverse/apps/web/src/components/Boost/BoostRecipientInfo.tsx
+- /Users/mitcheldowney/repos/pv/podverse/apps/web/src/components/Boost/hooks/useBoostPayments.ts
+- /Users/mitcheldowney/repos/pv/podverse/apps/web/src/components/Boost/hooks/useBoostRecipients.ts
+- /Users/mitcheldowney/repos/pv/podverse/apps/web/src/config/index.ts
+- /Users/mitcheldowney/repos/pv/podverse/apps/web/src/config/runtime-config.ts
+- /Users/mitcheldowney/repos/pv/podverse/apps/web/src/app/donate/page.tsx
+- /Users/mitcheldowney/repos/pv/podverse/apps/web/src/styles/app/donate/Donate.module.scss
+- /Users/mitcheldowney/repos/pv/podverse/apps/web/src/utils/value/appValue.ts
+- /Users/mitcheldowney/repos/pv/podverse/apps/web/i18n/originals/en-US.json
+- /Users/mitcheldowney/repos/pv/podverse/apps/web/ENV.md
+- /Users/mitcheldowney/repos/pv/podverse/infra/k8s/base/web/configmap.yaml
+- /Users/mitcheldowney/repos/pv/podverse/tools/web-perf/lighthouse/.env.web
+- /Users/mitcheldowney/repos/pv/podverse/tools/web-perf/lighthouse/.env.web.example
+
+### Session 34 - 2026-02-24
+
+#### Prompt (Developer)
+
+can useBoostRecipients be split into useBoostRecipients and useBoostAppRecipients for clarity and separation? while still using reusable logic where appropriate (if any?).
+
+places where "creator" and "app" are both passed seem like a code smell to me, as it seems like twisting logic that should not overlap, but i am not sure. please advise
+
+#### Key Decisions
+
+- Split recipient handling into creator-focused `useBoostRecipients` and app-only `useBoostAppRecipients`, with shared status handling in `useBoostRecipientStatuses`.
+- Moved LNAddress message notice logic and combined recipient list to `BoostFormBase` to keep app/creator flows separate.
+
+#### Files Modified
+
+- /Users/mitcheldowney/repos/pv/podverse/.llm/history/active/v4v-boost-metadata-alby/v4v-boost-metadata-alby-part-04.md
+- /Users/mitcheldowney/repos/pv/podverse/apps/web/src/components/Boost/BoostFormBase.tsx
+- /Users/mitcheldowney/repos/pv/podverse/apps/web/src/components/Boost/hooks/useBoostRecipients.ts
+- /Users/mitcheldowney/repos/pv/podverse/apps/web/src/components/Boost/hooks/useBoostAppRecipients.ts
+- /Users/mitcheldowney/repos/pv/podverse/apps/web/src/components/Boost/hooks/useBoostRecipientStatuses.ts
+
+### Session 35 - 2026-02-24
+
+#### Prompt (Developer)
+
+remove the "boost test mode" url param and handling which is no longer needed
+
+#### Key Decisions
+
+- Removed the boost test flow and URL param handling from boost forms, simplifying submission to always use real payments.
+
+#### Files Modified
+
+- /Users/mitcheldowney/repos/pv/podverse/.llm/history/active/v4v-boost-metadata-alby/v4v-boost-metadata-alby-part-04.md
+- /Users/mitcheldowney/repos/pv/podverse/apps/web/src/components/Boost/BoostForm.tsx
+- /Users/mitcheldowney/repos/pv/podverse/apps/web/src/components/Boost/BoostFormBase.tsx
+- /Users/mitcheldowney/repos/pv/podverse/apps/web/src/components/Boost/hooks/useBoostTestFlow.ts
+
+### Session 36 - 2026-02-24
+
+#### Prompt (Developer)
+
+BoostDonateForm should be renamed to BoostAppDonateForm since it is specifically only for the app
+
+#### Key Decisions
+
+- Renamed the app-only donate form component to `BoostAppDonateForm` for clarity.
+
+#### Files Modified
+
+- /Users/mitcheldowney/repos/pv/podverse/.llm/history/active/v4v-boost-metadata-alby/v4v-boost-metadata-alby-part-04.md
+- /Users/mitcheldowney/repos/pv/podverse/apps/web/src/app/donate/page.tsx
+- /Users/mitcheldowney/repos/pv/podverse/apps/web/src/components/Boost/BoostAppDonateForm.tsx
+- /Users/mitcheldowney/repos/pv/podverse/apps/web/src/components/Boost/BoostDonateForm.tsx

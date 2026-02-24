@@ -29,12 +29,15 @@ const buildConfig = () => {
         host: env.NEXT_PUBLIC_WEB_DOMAIN!,
       },
       app_value: {
-        lightning_keysend: {
-          name: env.NEXT_PUBLIC_APP_VALUE_LIGHTNING_KEYSEND_NAME!,
-          type: env.NEXT_PUBLIC_APP_VALUE_LIGHTNING_KEYSEND_TYPE!,
-          address: env.NEXT_PUBLIC_APP_VALUE_LIGHTNING_KEYSEND_ADDRESS!,
-          custom_key: env.NEXT_PUBLIC_APP_VALUE_LIGHTNING_KEYSEND_CUSTOM_KEY!,
-          custom_value: env.NEXT_PUBLIC_APP_VALUE_LIGHTNING_KEYSEND_CUSTOM_VALUE!,
+        lightning_lnaddress: {
+          name: env.NEXT_PUBLIC_APP_VALUE_LIGHTNING_LNADDRESS_NAME!,
+          address: env.NEXT_PUBLIC_APP_VALUE_LIGHTNING_LNADDRESS_ADDRESS!,
+        },
+        lightning_node: {
+          name: env.NEXT_PUBLIC_APP_VALUE_LIGHTNING_NODE_NAME!,
+          address: env.NEXT_PUBLIC_APP_VALUE_LIGHTNING_NODE_ADDRESS!,
+          custom_key: env.NEXT_PUBLIC_APP_VALUE_LIGHTNING_NODE_CUSTOM_KEY!,
+          custom_value: env.NEXT_PUBLIC_APP_VALUE_LIGHTNING_NODE_CUSTOM_VALUE!,
         },
       },
       polling: {

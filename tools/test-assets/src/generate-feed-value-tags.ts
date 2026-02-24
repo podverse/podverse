@@ -105,11 +105,15 @@ const buildConfiguredValueRecipients = (type: string, recipients: LocalLnRecipie
     .join('\n    ');
 };
 
-/** 07a: Build channel <podcast:value> blocks for keysend + lnaddress. */
+const randomLightningRecipientType = (): 'lnaddress' | 'node' =>
+  faker.helpers.arrayElement(['lnaddress', 'node']);
+
+/** 07a: Build channel <podcast:value> blocks for lightning. */
 export const buildChannelValueBlock = (_recipientCount: number): string => {
   const suggested = '0.00000005000';
   const metaBoost = `<podcast:metaBoost type="post" schema="boostbox" license="${METABOOST_LICENSE_URL}">${METABOOST_URL}</podcast:metaBoost>`;
   const localRecipients = readLocalLnRecipientsConfig(LOCAL_LN_RECIPIENTS_PATH);
+  const recipientType = randomLightningRecipientType();
   const keysendRecipients = localRecipients
     ? buildConfiguredValueRecipients('node', localRecipients.keysend)
     : buildFixedValueRecipients(
@@ -120,20 +124,17 @@ export const buildChannelValueBlock = (_recipientCount: number): string => {
   const lnaddressRecipients = localRecipients
     ? buildConfiguredValueRecipients('lnaddress', localRecipients.lnaddress)
     : buildFixedValueRecipients('lnaddress', LNURL_TEST_ADDRESSES, 'LNAddress Recipient');
+  const recipients = recipientType === 'lnaddress' ? lnaddressRecipients : keysendRecipients;
 
   return [
     `<podcast:value type="lightning" method="keysend" suggested="${suggested}">`,
     `    ${metaBoost}`,
-    `    ${keysendRecipients}`,
-    `    </podcast:value>`,
-    `<podcast:value type="lightning" method="lnaddress" suggested="${suggested}">`,
-    `    ${metaBoost}`,
-    `    ${lnaddressRecipients}`,
+    `    ${recipients}`,
     `    </podcast:value>`,
   ].join('\n');
 };
 
-/** 07a: Build item <podcast:value> blocks (keysend + lnaddress). */
+/** 07a: Build item <podcast:value> blocks (lightning only). */
 export const buildItemValueBlock = (
   includeValueTimeSplit: boolean,
   remoteItemTarget?: WrittenFeedInfo | null
@@ -141,6 +142,7 @@ export const buildItemValueBlock = (
   const suggested = '0.00000005000';
   const metaBoost = `<podcast:metaBoost type="post" schema="boostbox" license="${METABOOST_LICENSE_URL}">${METABOOST_URL}</podcast:metaBoost>`;
   const localRecipients = readLocalLnRecipientsConfig(LOCAL_LN_RECIPIENTS_PATH);
+  const recipientType = randomLightningRecipientType();
   const keysendRecipients = localRecipients
     ? buildConfiguredValueRecipients('node', localRecipients.keysend)
     : buildFixedValueRecipients(
@@ -151,6 +153,7 @@ export const buildItemValueBlock = (
   const lnaddressRecipients = localRecipients
     ? buildConfiguredValueRecipients('lnaddress', localRecipients.lnaddress)
     : buildFixedValueRecipients('lnaddress', LNURL_TEST_ADDRESSES, 'LNAddress Recipient');
+  const recipients = recipientType === 'lnaddress' ? lnaddressRecipients : keysendRecipients;
   let valueTimeSplitBlock = '';
   if (includeValueTimeSplit) {
     const startTime = faker.number.int({ min: 0, max: 3600 });
@@ -168,15 +171,16 @@ export const buildItemValueBlock = (
         ${remoteItemXml}
       </podcast:valueTimeSplit>`;
     } else {
-      const vsRecipientAddress = lightningNodePubkey();
+      const vsRecipientAddress =
+        recipientType === 'lnaddress'
+          ? faker.helpers.arrayElement(LNURL_TEST_ADDRESSES)
+          : lightningNodePubkey();
       const vsSplit = faker.number.int({ min: 1, max: 100 });
       const vsName = faker.person.fullName();
-      const vsRecipientXml = buildValueRecipientXml(
-        vsRecipientAddress,
-        vsSplit,
-        vsName,
-        randomValueRecipientOpts()
-      );
+      const vsRecipientXml = buildValueRecipientXml(vsRecipientAddress, vsSplit, vsName, {
+        type: recipientType,
+        ...randomValueRecipientOpts(),
+      });
       valueTimeSplitBlock = `
       <podcast:valueTimeSplit startTime="${startTime}" duration="${duration}" remoteStartTime="${remoteStartTime}" remotePercentage="${remotePercentage}">
         ${vsRecipientXml}
@@ -186,11 +190,7 @@ export const buildItemValueBlock = (
   return [
     `<podcast:value type="lightning" method="keysend" suggested="${suggested}">`,
     `      ${metaBoost}`,
-    `      ${keysendRecipients}${valueTimeSplitBlock}`,
-    `      </podcast:value>`,
-    `<podcast:value type="lightning" method="lnaddress" suggested="${suggested}">`,
-    `      ${metaBoost}`,
-    `      ${lnaddressRecipients}`,
+    `      ${recipients}${valueTimeSplitBlock}`,
     `      </podcast:value>`,
   ].join('\n');
 };

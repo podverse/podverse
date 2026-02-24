@@ -263,12 +263,8 @@
     "total": "Total",
     "message": "Mensaje",
     "types": {
-      "lightning_keysend": {
-        "label": "Bitcoin LN Keysend",
-        "denomination": "satoshis"
-      },
-      "lightning_lnaddress": {
-        "label": "Bitcoin LN Address",
+      "lightning": {
+        "label": "Bitcoin Lightning",
         "denomination": "satoshis"
       },
       "paypal_send": {

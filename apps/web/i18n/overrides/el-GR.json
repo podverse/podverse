@@ -263,11 +263,7 @@
     "total": "",
     "message": "",
     "types": {
-      "lightning_keysend": {
-        "label": "",
-        "denomination": ""
-      },
-      "lightning_lnaddress": {
+      "lightning": {
         "label": "",
         "denomination": ""
       },

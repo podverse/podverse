@@ -22,7 +22,7 @@ export const BoostRecipientStatusList = ({
 
   const denominationKey = selectedValueKey
     ? `types.${selectedValueKey}.denomination`
-    : 'types.lightning_keysend.denomination';
+    : 'types.lightning.denomination';
 
   return (
     <div className={styles.recipientStatusList}>

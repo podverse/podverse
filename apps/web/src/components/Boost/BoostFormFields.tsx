@@ -15,6 +15,8 @@ type BoostFormFieldsProps = {
   selectedValueKey: string | null;
   isSubmitting: boolean;
   hasStatusUpdates: boolean;
+  showCreatorInput: boolean;
+  showAppInput: boolean;
   yourName: string;
   setYourName: (value: string) => void;
   message: string;
@@ -32,6 +34,8 @@ export const BoostFormFields = ({
   selectedValueKey,
   isSubmitting,
   hasStatusUpdates,
+  showCreatorInput,
+  showAppInput,
   yourName,
   setYourName,
   message,
@@ -47,22 +51,26 @@ export const BoostFormFields = ({
     }}
   >
     <div className={styles.boostAmountInputs}>
-      <TextInputNumber
-        eyebrow={tValue('send_to.creator')}
-        value={totalAmountToCreator}
-        min={0}
-        onChange={(e) => setTotalAmountToCreator(Number(e.target.value))}
-        sideText={selectedValueKey ? tValue(`types.${selectedValueKey}.denomination`) : undefined}
-        disabled={isSubmitting || hasStatusUpdates}
-      />
-      <TextInputNumber
-        eyebrow={tValue('send_to.app', { brand_name: brandName })}
-        value={totalAmountToApp}
-        min={0}
-        onChange={(e) => setTotalAmountToApp(Number(e.target.value))}
-        sideText={selectedValueKey ? tValue(`types.${selectedValueKey}.denomination`) : undefined}
-        disabled={isSubmitting || hasStatusUpdates}
-      />
+      {showCreatorInput && (
+        <TextInputNumber
+          eyebrow={tValue('send_to.creator')}
+          value={totalAmountToCreator}
+          min={0}
+          onChange={(e) => setTotalAmountToCreator(Number(e.target.value))}
+          sideText={selectedValueKey ? tValue(`types.${selectedValueKey}.denomination`) : undefined}
+          disabled={isSubmitting || hasStatusUpdates}
+        />
+      )}
+      {showAppInput && (
+        <TextInputNumber
+          eyebrow={tValue('send_to.app', { brand_name: brandName })}
+          value={totalAmountToApp}
+          min={0}
+          onChange={(e) => setTotalAmountToApp(Number(e.target.value))}
+          sideText={selectedValueKey ? tValue(`types.${selectedValueKey}.denomination`) : undefined}
+          disabled={isSubmitting || hasStatusUpdates}
+        />
+      )}
     </div>
     <TextInput
       eyebrow={tValue('your_name')}

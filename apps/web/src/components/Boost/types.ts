@@ -1,6 +1,7 @@
 export type PaymentRecipient = {
   id: string;
   type: string;
+  recipient_type?: string | null;
   address: string;
   name: string | null;
   custom_key?: string | null;

@@ -38,11 +38,12 @@ const requiredKeys = [
 
 const optionalKeys = [
   'NEXT_PUBLIC_API_PORT',
-  'NEXT_PUBLIC_APP_VALUE_LIGHTNING_KEYSEND_ADDRESS',
-  'NEXT_PUBLIC_APP_VALUE_LIGHTNING_KEYSEND_CUSTOM_KEY',
-  'NEXT_PUBLIC_APP_VALUE_LIGHTNING_KEYSEND_CUSTOM_VALUE',
-  'NEXT_PUBLIC_APP_VALUE_LIGHTNING_KEYSEND_NAME',
-  'NEXT_PUBLIC_APP_VALUE_LIGHTNING_KEYSEND_TYPE',
+  'NEXT_PUBLIC_APP_VALUE_LIGHTNING_LNADDRESS_ADDRESS',
+  'NEXT_PUBLIC_APP_VALUE_LIGHTNING_LNADDRESS_NAME',
+  'NEXT_PUBLIC_APP_VALUE_LIGHTNING_NODE_ADDRESS',
+  'NEXT_PUBLIC_APP_VALUE_LIGHTNING_NODE_CUSTOM_KEY',
+  'NEXT_PUBLIC_APP_VALUE_LIGHTNING_NODE_CUSTOM_VALUE',
+  'NEXT_PUBLIC_APP_VALUE_LIGHTNING_NODE_NAME',
   'NEXT_PUBLIC_BRAND_NAME',
   'NEXT_PUBLIC_CONTACT_EMAIL',
   'NEXT_PUBLIC_POLLING_INTERVAL_MS',
@@ -154,11 +155,12 @@ function getCategory(key: string): string {
     NEXT_PUBLIC_SUPPORTED_THEMES: 'Themes',
     NEXT_PUBLIC_WEB_DOMAIN: 'Web',
     NEXT_PUBLIC_WEB_PROTOCOL: 'Web',
-    NEXT_PUBLIC_APP_VALUE_LIGHTNING_KEYSEND_ADDRESS: 'Lightning',
-    NEXT_PUBLIC_APP_VALUE_LIGHTNING_KEYSEND_CUSTOM_KEY: 'Lightning',
-    NEXT_PUBLIC_APP_VALUE_LIGHTNING_KEYSEND_CUSTOM_VALUE: 'Lightning',
-    NEXT_PUBLIC_APP_VALUE_LIGHTNING_KEYSEND_NAME: 'Lightning',
-    NEXT_PUBLIC_APP_VALUE_LIGHTNING_KEYSEND_TYPE: 'Lightning',
+    NEXT_PUBLIC_APP_VALUE_LIGHTNING_LNADDRESS_ADDRESS: 'Lightning',
+    NEXT_PUBLIC_APP_VALUE_LIGHTNING_LNADDRESS_NAME: 'Lightning',
+    NEXT_PUBLIC_APP_VALUE_LIGHTNING_NODE_ADDRESS: 'Lightning',
+    NEXT_PUBLIC_APP_VALUE_LIGHTNING_NODE_CUSTOM_KEY: 'Lightning',
+    NEXT_PUBLIC_APP_VALUE_LIGHTNING_NODE_CUSTOM_VALUE: 'Lightning',
+    NEXT_PUBLIC_APP_VALUE_LIGHTNING_NODE_NAME: 'Lightning',
     NEXT_PUBLIC_BRAND_NAME: 'Brand',
     NEXT_PUBLIC_CONTACT_EMAIL: 'Brand',
     NEXT_PUBLIC_POLLING_INTERVAL_MS: 'API',
@@ -180,6 +182,26 @@ function buildValidationResults(): ValidationResult[] {
   }
   for (const key of optionalKeys) {
     results.push(validateOne(key, false));
+  }
+  const lnaddressName = normalizeEnvValue(
+    process.env.NEXT_PUBLIC_APP_VALUE_LIGHTNING_LNADDRESS_NAME
+  );
+  const lnaddressAddress = normalizeEnvValue(
+    process.env.NEXT_PUBLIC_APP_VALUE_LIGHTNING_LNADDRESS_ADDRESS
+  );
+  const nodeName = normalizeEnvValue(process.env.NEXT_PUBLIC_APP_VALUE_LIGHTNING_NODE_NAME);
+  const nodeAddress = normalizeEnvValue(process.env.NEXT_PUBLIC_APP_VALUE_LIGHTNING_NODE_ADDRESS);
+  const hasLnaddress = Boolean(lnaddressName) || Boolean(lnaddressAddress);
+  const hasNode = Boolean(nodeName) || Boolean(nodeAddress);
+  if (hasLnaddress && hasNode) {
+    results.push({
+      name: 'NEXT_PUBLIC_APP_VALUE_LIGHTNING',
+      isSet: true,
+      isValid: false,
+      isRequired: false,
+      message: 'Set only one: LNAddress or Node app value vars (not both).',
+      category: 'Lightning',
+    });
   }
   return results;
 }

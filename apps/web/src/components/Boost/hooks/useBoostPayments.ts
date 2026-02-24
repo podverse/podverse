@@ -11,11 +11,9 @@ import {
   buildBlipMessage,
   buildBlip10Metadata,
   buildCustomRecords,
-  resolveLnaddressKeysendDetails,
   sendKeysendPayment,
   sendLnaddressPayment,
   serializeBlip10Metadata,
-  toCustomRecords,
 } from '@podverse/v4v-btc-ln';
 import { request } from '@podverse/helpers-requests';
 
@@ -61,14 +59,13 @@ type BoostMessageModalParams = {
 };
 
 type UseBoostPaymentsParams = {
-  channel: DTOChannel;
+  channel: DTOChannel | null;
   item: DTOItem | null;
   config: AppConfig;
   tValue: Translator;
   message: string;
   yourName: string;
   metaBoost: MetaBoost | null;
-  selectedMethod: string | null;
   totalAmountToCreator: number;
   totalAmountToApp: number;
   paymentRecipients: PaymentRecipient[];
@@ -118,7 +115,6 @@ export const useBoostPayments = ({
   message,
   yourName,
   metaBoost,
-  selectedMethod,
   totalAmountToCreator,
   totalAmountToApp,
   paymentRecipients,
@@ -153,59 +149,15 @@ export const useBoostPayments = ({
         continue;
       }
       try {
-        if (recipient.type === 'lnaddress') {
+        if (recipient.type === 'lightning' && recipient.recipient_type === 'lnaddress') {
           updateRecipientStatus(recipient.id, 'paying');
-          if (selectedMethod === 'keysend') {
-            const resolved = await resolveLnaddressKeysendDetails(recipient.address);
-            if (!resolved) {
-              throw new Error('Unable to resolve LNAddress keysend details.');
-            }
-            const amountMsat = Math.max(0, Math.round(recipient.final_amount * 1000));
-            const shouldIncludeBlip = desc !== null || allowBlipFallback;
-            const blipMessage = buildBlipMessage(desc, allowBlipFallback, message);
-            const blipPayload = shouldIncludeBlip
-              ? serializeBlip10Metadata(
-                  buildBlip10Metadata({
-                    action: 'boost',
-                    value_msat_total: totalMsat,
-                    value_msat: amountMsat,
-                    app_name: config.public.brand.name,
-                    sender_name: yourName.trim() || undefined,
-                    message: blipMessage,
-                    guid: channel.podcast_guid ?? undefined,
-                    podcast: channel.title ?? undefined,
-                    episode: item?.title ?? undefined,
-                    episode_guid: item?.guid ?? undefined,
-                    name: recipient.name ?? undefined,
-                  })
-                )
-              : null;
-            const recipientRecords = buildCustomRecordsForRecipient(blipPayload, recipient);
-            const keysendRecords = toCustomRecords(resolved.customData);
-            const combinedRecords = {
-              ...(keysendRecords ?? {}),
-              ...(recipientRecords ?? {}),
-            };
-            const customRecords =
-              Object.keys(combinedRecords).length > 0 ? combinedRecords : undefined;
-            await sendKeysendPayment({
-              destination: resolved.pubkey,
-              amountSats: Math.max(0, Math.round(recipient.final_amount)),
-              customRecords,
-              provider,
-            });
-          } else {
-            await sendLnaddressPayment({
-              recipientAddress: recipient.address,
-              amountMsat: Math.max(0, Math.round(recipient.final_amount * 1000)),
-              desc,
-              provider,
-            });
-          }
-        } else if (recipient.type === 'node') {
-          if (selectedMethod !== 'keysend') {
-            throw new Error('Unsupported recipient type for method.');
-          }
+          await sendLnaddressPayment({
+            recipientAddress: recipient.address,
+            amountMsat: Math.max(0, Math.round(recipient.final_amount * 1000)),
+            desc,
+            provider,
+          });
+        } else if (recipient.type === 'lightning' && recipient.recipient_type === 'node') {
           updateRecipientStatus(recipient.id, 'paying');
           const amountMsat = Math.max(0, Math.round(recipient.final_amount * 1000));
           const shouldIncludeBlip = desc !== null || allowBlipFallback;
@@ -219,8 +171,8 @@ export const useBoostPayments = ({
                   app_name: config.public.brand.name,
                   sender_name: yourName.trim() || undefined,
                   message: blipMessage,
-                  guid: channel.podcast_guid ?? undefined,
-                  podcast: channel.title ?? undefined,
+                  guid: channel?.podcast_guid ?? undefined,
+                  podcast: channel?.title ?? undefined,
                   episode: item?.title ?? undefined,
                   episode_guid: item?.guid ?? undefined,
                   name: recipient.name ?? undefined,
@@ -266,8 +218,8 @@ export const useBoostPayments = ({
           message: message.trim() || undefined,
           app_name: config.public.brand.name,
           sender_name: yourName.trim() || undefined,
-          feed_guid: channel.podcast_guid ?? undefined,
-          feed_title: channel.title ?? undefined,
+          feed_guid: channel?.podcast_guid ?? undefined,
+          feed_title: channel?.title ?? undefined,
           item_guid: item?.guid ?? undefined,
           item_title: item?.title ?? undefined,
         });
