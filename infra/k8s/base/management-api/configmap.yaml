@@ -1,0 +1,67 @@
+# Version: 1
+# Configuration for the Management API.
+# Mapped from apps/management-api/.env.example
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: podverse-management-api-config
+data:
+  #####
+  ##### podverse-management-api
+  #####
+
+  ####
+  ##### General
+  #####
+
+  NODE_ENV: "production"
+  LOG_LEVEL: "info"
+  # No default. Leave empty for console-only (e.g. local/dev or container without file logging).
+  # When using Docker with a log volume, set to the container path (e.g. /opt/logs).
+  LOG_DIR: ""
+
+  #####
+  ##### API Configuration
+  #####
+
+  API_PORT: "1999"
+  API_PREFIX: "/api"
+  API_VERSION: "/v1"
+
+  # Use the public facing domain, not the internal docker network ip address.
+  COOKIE_DOMAIN: "base.podverse.fm"
+
+  # Comma-separated list of allowed CORS origins
+  API_ALLOWED_CORS_ORIGINS: "http://podverse-management-web:3999"
+
+  #####
+  ##### Auth & Security
+  #####
+
+  # Must be a valid UUID - generate with: uuidgen
+  # AUTH_JWT_SECRET: "your-secret-whatever" # in secrets
+
+  # Format: BrandName Bot Environment/AppName/Version
+  USER_AGENT: "Podverse Bot base/Management-API/5" # Update per environment
+
+  #####
+  ##### Web Configuration
+  #####
+
+  WEB_PROTOCOL: "http"
+  WEB_DOMAIN: "podverse-management-api:3999"
+
+  #####
+  ##### Database (Postgres - Management Database)
+  #####
+
+  DB_HOST: "podverse-management-db"
+  DB_PORT: "5999"
+  # DB_READ_USERNAME: "read"                # in secrets
+  # DB_READ_PASSWORD: "your_read_password"  # in secrets
+  # DB_READ_WRITE_USERNAME: "read_write"    # in secrets
+  # DB_READ_WRITE_PASSWORD: "read_write"    # in secrets
+  # DB_DATABASE: "postgres"                 # in secrets
+  # Set to true for SSL connection
+  DB_SSL_CONNECTION: ""

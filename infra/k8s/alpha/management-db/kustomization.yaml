@@ -1,0 +1,21 @@
+# Version: 1
+# Filename: kustomization.yaml
+# Description: Bundles resources and manages image versions for Management DB.
+
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - github.com/podverse/podverse/infra/k8s/base/management-db?ref=feature/alpha
+
+namespace: podverse-alpha
+
+labels:
+  - pairs:
+      app: podverse-management-db
+      environment: alpha
+    includeSelectors: true
+
+images:
+  - name: postgres
+    newTag: "18.1"

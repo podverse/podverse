@@ -23,6 +23,16 @@ The `db-connect.sh` script provides an easy way to connect to the PostgreSQL dat
 ./scripts/db-connect.sh
 ```
 
+## Secret Generation
+
+### Management DB secret
+
+Generate the management database credentials secret with:
+
+```bash
+./scripts/create_management_db_secret.sh
+```
+
 ## ENV to YAML Conversion
 
 Use `env-to-yaml.sh` to convert `.env`-style files into YAML-style key/value pairs and print a ConfigMap header.
