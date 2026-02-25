@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { Response } from 'express';
+import type { Response } from 'express';
 
 export function handleReturnDataOrNotFound(res: Response, data: any, label: string) {
   if (res.headersSent) {

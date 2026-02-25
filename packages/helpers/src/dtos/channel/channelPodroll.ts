@@ -1,4 +1,4 @@
-import { DTOChannelPodrollRemoteItem } from './channelPodrollRemoteItem';
+import type { DTOChannelPodrollRemoteItem } from './channelPodrollRemoteItem.js';
 
 export interface DTOChannelPodroll {
   id: number;

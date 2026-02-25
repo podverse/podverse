@@ -1,8 +1,9 @@
-import { MQ_QUEUES, MQQueueNameParamKey, validMQQueueNamesParamKeys } from '@podverse/helpers';
+import type { MQQueueNameParamKey } from '@podverse/helpers';
+import { MQ_QUEUES, validMQQueueNamesParamKeys } from '@podverse/helpers';
 import { mqRSSAddRecentlyUpdatedFeedsFromPodcastIndex as mqRSSAddRecentlyUpdatedFeedsFromPodcastIndexFunction } from '@podverse/mq';
-import { CommandLineArgs } from '@workers/commands';
-import { getPodcastIndexService } from '@workers/factories/podcastIndexService';
-import { getActiveMQArtemisService } from '@workers/factories/activeMQArtemisService';
+import type { CommandLineArgs } from '@workers/commands/index.js';
+import { getPodcastIndexService } from '@workers/factories/podcastIndexService.js';
+import { getActiveMQArtemisService } from '@workers/factories/activeMQArtemisService.js';
 
 export const mqRSSAddRecentlyUpdatedFeedsFromPodcastIndex = async (args: CommandLineArgs) => {
   const mqQueueNameParamKey = (Array.isArray(args.q) ? args.q[0] : args.q) as

@@ -1,5 +1,5 @@
-import { ApiRequestService } from '../_request';
-import { RemoteItemsResponse } from '@podverse/helpers';
+import type { ApiRequestService } from '../_request.js';
+import type { RemoteItemsResponse } from '@podverse/helpers';
 
 export async function reqPodrollGetForChannel(api: ApiRequestService, idOrIdText: string) {
   return api.apiRequest<RemoteItemsResponse>({

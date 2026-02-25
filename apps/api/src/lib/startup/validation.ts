@@ -1,17 +1,12 @@
+import type { AccountSignupMode } from '@podverse/helpers';
+import { isValidUUID, SERVER_ENV_VALUES, isValidServerEnv } from '@podverse/helpers';
+import type { ValidationResult, ValidationSummary } from '@podverse/helpers-config';
 import {
-  isValidUUID,
-  AccountSignupMode,
-  SERVER_ENV_VALUES,
-  isValidServerEnv,
-} from '@podverse/helpers';
-import {
-  ValidationResult,
-  ValidationSummary,
   validateRequired,
   validateOptional,
   validateConditionalOptional,
 } from '@podverse/helpers-config';
-import { loggerService } from '@api/factories/loggerService';
+import { loggerService } from '@api/factories/loggerService.js';
 
 /**
  * Validates critical environment variables and configuration at application startup.
@@ -94,6 +89,9 @@ const validateAllEnvironmentVariables = (): ValidationSummary => {
   results.push(validateRequired('PODCAST_INDEX_AUTH_KEY', 'Podcast Index'));
   results.push(validateRequired('PODCAST_INDEX_BASE_URL', 'Podcast Index'));
   results.push(validateRequired('PODCAST_INDEX_SECRET_KEY', 'Podcast Index'));
+
+  // Add-by-RSS (required: Basic Auth credentials encrypted at rest)
+  results.push(validateRequired('ADD_BY_RSS_CREDENTIALS_ENCRYPTION_KEY', 'Add-by-RSS'));
 
   // Premium/Membership
   // Note: validateSignupMode() is called earlier to determine conditional requirements

@@ -1,5 +1,8 @@
-import { ActiveMQArtemisService, MQQueueName } from '../../../services/activeMQArtemis';
-import { EventContext, Receiver } from 'rhea';
+import type {
+  ActiveMQArtemisService,
+  MQQueueName,
+} from '../../../services/activeMQArtemis/index.js';
+import type { EventContext, Receiver } from 'rhea';
 
 export type DQLMessageLogger = (logMessage: string) => void;
 
@@ -66,7 +69,14 @@ export const mqRSSSetupDlqConsumers = async (
   artemisService: ActiveMQArtemisService,
   logger: DQLMessageLogger
 ) => {
-  const dlqQueues: MQQueueName[] = ['DLQ.rss-normal', 'DLQ.rss-on-demand', 'DLQ.rss-live'];
+  const dlqQueues: MQQueueName[] = [
+    'DLQ.rss-normal',
+    'DLQ.rss-on-demand',
+    'DLQ.rss-live',
+    'DLQ.add-by-rss-on-demand',
+    'DLQ.add-by-rss-background',
+    'DLQ.image-shrinking-hints',
+  ];
 
   for (let i = 0; i < 10; i++) {
     await artemisService.sendSampleToDLQ(
@@ -82,6 +92,25 @@ export const mqRSSSetupDlqConsumers = async (
     await artemisService.sendSampleToDLQ(
       'rss-live',
       { url: 'https://example.com/feed.xml', podcast_index_id: 123 },
+      'Manual DLQ seed for verification'
+    );
+    await artemisService.sendSampleToDLQ(
+      'add-by-rss-on-demand',
+      { feedUrl: 'https://example.com/feed.xml', requestId: '123' },
+      'Manual DLQ seed for verification'
+    );
+    await artemisService.sendSampleToDLQ(
+      'add-by-rss-background',
+      { feedUrl: 'https://example.com/feed.xml', requestId: '123' },
+      'Manual DLQ seed for verification'
+    );
+    await artemisService.sendSampleToDLQ(
+      'image-shrinking-hints',
+      {
+        url: 'https://example.com/image.png',
+        entityType: 'channel',
+        hintCreatedAt: new Date().toISOString(),
+      },
       'Manual DLQ seed for verification'
     );
   }

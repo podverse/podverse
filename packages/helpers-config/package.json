@@ -1,6 +1,6 @@
 {
   "name": "@podverse/helpers-config",
-  "version": "5.2.5",
+  "version": "5.4.1",
   "description": "Configuration and startup validation utilities for Podverse backend applications",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -24,6 +24,7 @@
     "@podverse/helpers": "*"
   },
   "devDependencies": {
-    "@types/node": "^24.4.0"
-  }
+    "@types/node": "^24.10.12"
+  },
+  "type": "module"
 }

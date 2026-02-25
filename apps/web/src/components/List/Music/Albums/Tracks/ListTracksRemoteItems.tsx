@@ -1,8 +1,8 @@
 'use client';
 
-import { DTOItem, EpisodeByGuidResponse } from '@podverse/helpers';
-import React from 'react';
-import { ViewSelectedOption } from '../../../../ViewSelector/ViewSelector';
+import type { DTOItem, EpisodeByGuidResponse } from '@podverse/helpers';
+import type React from 'react';
+import type { ViewSelectedOption } from '../../../../ViewSelector/ViewSelector';
 import { ListTrackRemoteItemNodes } from './ListTrackRemoteItemNodes';
 
 type Props = {

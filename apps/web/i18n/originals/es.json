@@ -54,6 +54,34 @@
       "add_feed_explanation": "Este feed no está en nuestro directorio. Si deseas agregarlo, presiona el botón \"Agregar Feed\".",
       "rss_link": "Enlace RSS"
     },
+    "add_by_rss": {
+      "label": "Agregar por RSS",
+      "private_item_placeholder": "Elemento privado añadido por RSS",
+      "add_feed_instructions": "Agrega una URL de feed RSS para seguir podcasts o música que no están en nuestro directorio. La analizaremos y la guardaremos en tu biblioteca de Agregar por RSS",
+      "check_updates": "Buscar actualizaciones",
+      "feed_url": "URL del feed RSS",
+      "invalid_url": "Ingrese una URL de feed RSS válida.",
+      "no_feeds": "No hay feeds RSS guardados aún.",
+      "no_feeds_podcast": "No hay feeds RSS de podcast guardados aún.",
+      "no_feeds_music": "No hay feeds RSS de música guardados aún.",
+      "feed_not_found_local": "Este feed no pudo ser encontrado localmente.",
+      "status": "Estado",
+      "status_failed": "Fallido",
+      "status_not_modified": "No modificado",
+      "status_parsed": "Analizado",
+      "status_processing": "Procesando",
+      "status_queued": "En cola",
+      "status_pending": "Pendiente",
+      "status_parsing": "Analizando",
+      "last_parsed": "Último Analizado: {date}",
+      "wait_to_retry_minutes": "Necesitarás esperar hasta {minutes} minutos para hacer eso de nuevo.",
+      "wait_to_retry_minute": "Necesitarás esperar hasta {minutes} minuto para hacer eso de nuevo.",
+      "basic_auth_use": "Use Basic Auth",
+      "basic_auth_requires": "This feed requires username and password",
+      "basic_auth_username": "Username",
+      "basic_auth_password": "Password",
+      "basic_auth_required_both": "Basic Auth requires both username and password."
+    },
     "my_library": "Mi Biblioteca",
     "queue": {
       "queue": "Cola",
@@ -315,6 +343,7 @@
     "done": "Hecho",
     "id": "ID",
     "loading": "Cargando…",
+    "loading_your_content": "Cargando tu contenido...",
     "continue": "Continuar",
     "i_have_read_and_agree": "He leído y acepto los términos.",
     "unknown_date": "Fecha Desconocida",
@@ -380,6 +409,7 @@
     "login_required": "Inicio de Sesión Requerido",
     "login_for_subscriptions": "Por favor, inicia sesión para ver tus suscripciones.",
     "login_to_create_playlists": "Por favor, inicia sesión para crear listas de reproducción.",
+    "no_playlists_created": "No tienes ninguna lista de reproducción todavía. Crea una para empezar.",
     "login_to_create_clips": "Por favor, inicia sesión para crear clips.",
     "login_for_queues": "Por favor, inicia sesión para ver tus colas.",
     "login_for_history": "Por favor, inicia sesión para ver tu historial.",
@@ -504,7 +534,10 @@
     },
     "feed": {
       "check_feed_for_updates": "Buscar Actualizaciones en la Fuente",
-      "check_feed_added_to_queue": "Fuente añadida a la cola para su análisis. Puede tardar unos minutos en analizarse. Por favor, verifica la lista para ver si hay actualizaciones más tarde."
+      "check_feed_added_to_queue": "Fuente añadida a la cola para su análisis. Puede tardar unos minutos en analizarse. Por favor, verifica la lista para ver si hay actualizaciones más tarde.",
+      "last_parsed": "Último Analizado: {date}",
+      "wait_to_retry_minutes": "Necesitarás esperar hasta {minutes} minutos para hacer eso de nuevo.",
+      "wait_to_retry_minute": "Necesitarás esperar hasta {minutes} minuto para hacer eso de nuevo."
     },
     "account": {
       "account": "Cuenta",

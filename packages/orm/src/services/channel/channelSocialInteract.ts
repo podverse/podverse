@@ -1,7 +1,7 @@
-import { EntityManager } from 'typeorm';
-import { Channel } from '@orm/entities/channel/channel';
-import { ChannelSocialInteract } from '@orm/entities/channel/channelSocialInteract';
-import { BaseManyService } from '@orm/services/base/baseManyService';
+import type { EntityManager } from 'typeorm';
+import type { Channel } from '@orm/entities/channel/channel.js';
+import { ChannelSocialInteract } from '@orm/entities/channel/channelSocialInteract.js';
+import { BaseManyService } from '@orm/services/base/baseManyService.js';
 
 type ChannelSocialInteractDto = {
   protocol: string;

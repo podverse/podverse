@@ -2,18 +2,20 @@
 
 ## Overview
 
-The `podverse-management-web` application is a Next.js application that requires environment variable validation before build. All environment variables are prefixed with `NEXT_PUBLIC_` which means they are exposed to the browser/client-side code.
+The `podverse-management-web` app is a Next.js app that reads `NEXT_PUBLIC_*` values at runtime via an internal runtime-config sidecar. These values are exposed to the browser, so do not include secrets.
 
-Validation occurs in `scripts/validate-env.ts` before the build process. The validation:
+**No environment variables are required at build time.** The app can be built without any `.env` file. All configuration is fetched from the sidecar at runtime.
 
-1. Checks if each variable is set
-2. Validates format/type where applicable (e.g., locale validation, numeric validation)
-3. Displays a categorized status for each variable
-4. Aborts the build if any required variables are missing or invalid
-
-**Important**: All environment variables in this application are public (exposed to the browser). Do not include sensitive information like API keys or secrets.
+The sidecar uses the same validation helpers as the rest of the monorepo (`@podverse/helpers-config`). It runs full environment validation at startup (every required and optional `NEXT_PUBLIC_*` and `PORT`), logs each variable's status by category, and exits with code 1 if any required variable is missing or invalid; it also validates required presence on each `/runtime-config` request. For local dev, run `npm run build:sidecar:management-web` from the repo root once before using `npm run dev:management-web-sidecar` or `npm run dev:all` (the sidecar runs from a bundled `sidecar/dist/server.js`).
 
 ## Required Variables
+
+### Runtime Config Sidecar (Server-Only, Runtime)
+
+- **`RUNTIME_CONFIG_URL`** (Required at runtime only)
+  - Internal URL for the runtime-config sidecar (e.g., `http://localhost:3101`). Use 3101 so it does not collide with the web app sidecar (3001).
+  - Used by the Next.js server to fetch runtime config at startup via `instrumentation.ts`
+  - **Not needed at build time** - the sidecar architecture allows builds without any env vars
 
 ### API Configuration
 
@@ -36,6 +38,10 @@ Validation occurs in `scripts/validate-env.ts` before the build process. The val
 
 ## Optional Variables
 
+### Runtime Config Sidecar (Server-Only)
+
+- **`ALLOW_LOCALHOST_PROXY`** (Optional) - If set, must be `"true"` or `"false"`
+
 ### API Configuration
 
 - **`NEXT_PUBLIC_API_PORT`** (Optional) - API port for client-side API requests
@@ -46,7 +52,9 @@ Validation occurs in `scripts/validate-env.ts` before the build process. The val
 
 - **`NEXT_PUBLIC_BRAND_NAME`** (Optional) - Brand name for the application
 
-## Validation Rules
+## Value Rules
+
+These rules describe acceptable values. The sidecar enforces required presence; value validation is best-effort and may also be enforced at runtime in app logic.
 
 ### Numeric Validation
 
@@ -61,7 +69,7 @@ Variables containing `PORT` are validated to ensure they are valid positive numb
 
 ## Validation Output
 
-During build, the validation displays:
+During startup, the validation displays:
 
 - A categorized list of all environment variables
 - Status indicator (✓ for valid, ✗ for invalid)
@@ -88,29 +96,25 @@ Required Missing: 0
 
 ## Important Notes
 
-- **Public variables**: All environment variables are prefixed with `NEXT_PUBLIC_` and are exposed to the browser. Do not include sensitive information.
-- **Build abort**: If any required variable is missing or invalid, the build process will abort with a clear error message.
-- **Validation file**: See `scripts/validate-env.ts` for the complete validation implementation.
-- **Environment file loading**: The validation script loads `.env.production` in production mode, or `.env.local` (if exists) or `.env` in development mode.
+- **Public variables**: All `NEXT_PUBLIC_*` variables are exposed to the browser. Do not include sensitive information.
+- **No build-time validation**: The app can be built without any environment variables. All validation happens at runtime.
+- **Runtime validation**: The sidecar validates all required `NEXT_PUBLIC_*` values at startup. The app fetches config from the sidecar via `instrumentation.ts` before any requests are served.
+- **Validation file**: See `apps/management-web/sidecar/src/server.ts` for sidecar validation logic. The `scripts/validate-env.ts` script is available for manual validation but does not run automatically during builds.
 
 ## Adding New Environment Variables
 
 When adding a new environment variable to the application:
 
-1. **Add to configuration files**:
-   - Add the variable to the appropriate config section
+1. **Add to runtime config types**:
+   - Update `src/config/runtime-config.ts` with the new key and required/optional classification
 
-2. **Add validation to `scripts/validate-env.ts`**:
-   - Determine if the variable is required or optional
-   - Add appropriate validation call in `validateAllEnvironmentVariables()`
-   - Use `validateRequired()` for required vars
-   - Use `validateOptional()` for optional vars
-   - Add custom validation if format/type checking is needed (e.g., locale validation)
+2. **Update sidecar validation**:
+   - Add the key to `apps/management-web/sidecar/server.js`
+   - Add any format/type validation required for the new value
 
 3. **Update this file**:
    - Add the variable to the appropriate section above
    - Document any special requirements (format, type)
 
-4. **Update `.env.example` and environment files**:
-   - Add the variable with a comment explaining its purpose
-   - Update all environment-specific files in the `env/` directory with the same comments
+4. **Update environment files**:
+   - Add the variable to all environment-specific files in `env/`

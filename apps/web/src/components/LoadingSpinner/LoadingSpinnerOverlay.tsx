@@ -7,6 +7,7 @@ type Props = {
   className?: string;
   style?: React.CSSProperties;
   isLoading?: boolean;
+  message?: string;
 };
 
 const LoadingSpinnerOverlay: React.FC<Props> = ({
@@ -14,6 +15,7 @@ const LoadingSpinnerOverlay: React.FC<Props> = ({
   className = '',
   style = {},
   isLoading = false,
+  message,
 }) => {
   if (!isLoading) {
     return null;
@@ -21,8 +23,11 @@ const LoadingSpinnerOverlay: React.FC<Props> = ({
 
   return (
     <div className={`${styles.overlay} ${className}`} style={style}>
-      <div className={styles.spinnerWrapper}>
-        <LoadingSpinner size={size} />
+      <div className={styles.content}>
+        {message && <div className={styles.message}>{message}</div>}
+        <div className={styles.spinnerWrapper}>
+          <LoadingSpinner size={size} />
+        </div>
       </div>
     </div>
   );

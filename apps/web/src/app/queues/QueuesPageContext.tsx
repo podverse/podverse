@@ -1,14 +1,11 @@
 'use client';
 
-import {
-  DTOQueue,
-  DTOQueueResource,
-  getQueueMediumIdFromType,
-  MediumEnum,
-} from '@podverse/helpers';
-import { QueryParamsQueues } from '@podverse/helpers-requests';
-import { createContext, useContext, useState, ReactNode, useEffect } from 'react';
-import { apiRequestService } from '../../factories/apiRequestService';
+import type { DTOQueue, DTOQueueResource } from '@podverse/helpers';
+import { getQueueMediumIdFromType, MediumEnum } from '@podverse/helpers';
+import type { QueryParamsQueues } from '@podverse/helpers-requests';
+import type { ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect } from 'react';
+import { getApiRequestService } from '../../factories/apiRequestService';
 import { useAccount } from '../../contexts/Account';
 
 interface QueuesPageContextType {
@@ -42,6 +39,7 @@ export const QueuesPageContextProvider = ({
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [showLoginMessage, setShowLoginMessage] = useState<boolean>(false);
   const { loggedInAccount } = useAccount();
+  const apiRequestService = getApiRequestService();
 
   useEffect(() => {
     async function fetchQueueResources() {

@@ -73,7 +73,8 @@ export const Modals: React.FC = () => {
   return (
     <>
       {modalAuthLogin.isOpen && <LazyModalAuthLogin />}
-      {modalPlaylistAddTo.channel !== null && <LazyModalPlaylistAddTo />}
+      {(modalPlaylistAddTo.channel !== null ||
+        modalPlaylistAddTo.addByRSSResourceData !== null) && <LazyModalPlaylistAddTo />}
       {(modalClip.channel !== null || modalClip.item !== null) && <LazyModalClip />}
       {modalClipCreated.clip !== null && <LazyModalClipCreated />}
       {(modalShare.channel !== null ||

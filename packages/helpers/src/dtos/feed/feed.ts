@@ -1,4 +1,5 @@
-import { DTOFeedFlagStatus } from './feedFlagStatus';
+import type { DTOFeedFlagStatus } from './feedFlagStatus.js';
+import type { DTOFeedLog } from './feedLog.js';
 
 export interface DTOFeed {
   id: number;
@@ -6,6 +7,7 @@ export interface DTOFeed {
   podcast_index_id: number;
   feed_flag_status_id: number;
   feed_flag_status: DTOFeedFlagStatus;
+  feed_log?: DTOFeedLog;
   is_parsing: string | null; // ISO string
   parsing_priority: number;
   last_parsed_file_hash: string | null;

@@ -1,4 +1,4 @@
-import { DTOItemValueRecipient } from './itemValueRecipient';
+import type { DTOItemValueRecipient } from './itemValueRecipient.js';
 
 export interface DTOItemValue {
   id: number;

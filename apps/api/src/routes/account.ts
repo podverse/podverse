@@ -1,17 +1,19 @@
 import { Router } from 'express';
-import { config } from '@api/config';
-import { AccountController } from '@api/controllers/account/account';
-import { AccountFollowingAccountController } from '@api/controllers/account/accountFollowingAccount';
-import { AccountFollowingAddByRSSChannelController } from '@api/controllers/account/accountFollowingAddByRSSChannel';
-import { AccountFollowingChannelController } from '@api/controllers/account/accountFollowingChannel';
-import { asyncHandler } from '@api/middleware/asyncHandler';
-import { AccountFollowingPlaylistController } from '@api/controllers/account/accountFollowingPlaylist';
-import { AccountNotificationChannelController } from '@api/controllers/account/accountNotificationChannel';
-import { AccountNotificationChannelTypeController } from '@api/controllers/account/accountNotificationChannelType';
-import { AccountFCMDeviceController } from '@api/controllers/account/accountFCMDevice';
-import { AccountWebPushDeviceController } from '@api/controllers/account/accountWebPushDevice';
-import { AccountUPDeviceController } from '@api/controllers/account/accountUPDevice';
-import { rateLimitEndpoint, rateLimitAuthEndpoint } from '@api/lib/rateLimiter';
+import { config } from '@api/config/index.js';
+import { AccountController } from '@api/controllers/account/account.js';
+import { AccountFollowingAccountController } from '@api/controllers/account/accountFollowingAccount.js';
+import { AccountFollowingAddByRSSChannelController } from '@api/controllers/account/accountFollowingAddByRSSChannel.js';
+import { AccountAddByRSSChaptersTranscriptController } from '@api/controllers/account/accountAddByRSSChaptersTranscript.js';
+import { AccountAddByRSSParseController } from '@api/controllers/account/accountAddByRSSParse.js';
+import { AccountFollowingChannelController } from '@api/controllers/account/accountFollowingChannel.js';
+import { asyncHandler } from '@api/middleware/asyncHandler.js';
+import { AccountFollowingPlaylistController } from '@api/controllers/account/accountFollowingPlaylist.js';
+import { AccountNotificationChannelController } from '@api/controllers/account/accountNotificationChannel.js';
+import { AccountNotificationChannelTypeController } from '@api/controllers/account/accountNotificationChannelType.js';
+import { AccountFCMDeviceController } from '@api/controllers/account/accountFCMDevice.js';
+import { AccountWebPushDeviceController } from '@api/controllers/account/accountWebPushDevice.js';
+import { AccountUPDeviceController } from '@api/controllers/account/accountUPDevice.js';
+import { rateLimitEndpoint, rateLimitAuthEndpoint } from '@api/lib/rateLimiter.js';
 
 const router = Router();
 
@@ -107,9 +109,24 @@ router.post(
   '/follow/add-by-rss-channel',
   asyncHandler(AccountFollowingAddByRSSChannelController.addOrUpdateRSSChannel)
 );
+router.get(
+  '/follow/add-by-rss-channel/:account_id_text',
+  asyncHandler(AccountFollowingAddByRSSChannelController.getFollowedAddByRSSChannels)
+);
 router.post(
   '/unfollow/add-by-rss-channel',
   asyncHandler(AccountFollowingAddByRSSChannelController.removeRSSChannel)
+);
+router.post(
+  '/add-by-rss/chapters-transcript',
+  rateLimitEndpoint({ windowMs: 60 * 1000, max: 30 }),
+  asyncHandler(AccountAddByRSSChaptersTranscriptController.getChaptersAndTranscript)
+);
+router.post('/add-by-rss/parse', asyncHandler(AccountAddByRSSParseController.enqueueParse));
+router.post('/add-by-rss/parse/all', asyncHandler(AccountAddByRSSParseController.enqueueParseAll));
+router.get(
+  '/add-by-rss/parse/status/:request_id',
+  asyncHandler(AccountAddByRSSParseController.getParseStatus)
 );
 
 router.post('/follow/channel', asyncHandler(AccountFollowingChannelController.followChannel));

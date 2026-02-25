@@ -1,5 +1,5 @@
 import { request } from './_request';
-import { config } from '../../config';
+import { getConfig } from '../../config';
 
 export type AbortOpts = { controller: AbortController; timeoutMs: number };
 
@@ -17,6 +17,7 @@ export class ManagementApiRequestService {
   private jwt?: string;
 
   constructor(jwt?: string) {
+    const config = getConfig();
     const { protocol, host, port } = config.public.api.client;
     const { prefix, version } = config.public.api;
     const portPart = port ? `:${port}` : '';

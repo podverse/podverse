@@ -1,173 +1,40 @@
-import {
-  CATEGORY_MAPPING_KEYS,
-  CategoryMappingKeys,
-  getCategoryEnumValue,
-  QUERY_PARAMS_MEDIUMS,
-  QueryParamsMedium,
-  SharableStatusEnum,
-} from '@podverse/helpers';
-import {
-  ApiListResponse,
-  emptyApiListResponse,
-  QUERY_PARAMS_STATS_RANGE_VALUES,
-  QueryParamsStatsRange,
-} from '@podverse/helpers-requests';
-import { NextFunction, Request, Response } from 'express';
+import type { CategoryMappingKeys, QueryParamsMedium } from '@podverse/helpers';
+import { getCategoryEnumValue, SharableStatusEnum } from '@podverse/helpers';
+import type { ApiListResponse, QueryParamsStatsRange } from '@podverse/helpers-requests';
+import { emptyApiListResponse } from '@podverse/helpers-requests';
+import type { NextFunction, Request, Response } from 'express';
 import {
   ensureAuthenticated,
   optionalEnsureAuthenticated,
   getAuthenticatedUser,
-} from '../lib/auth';
+} from '../lib/auth/index.js';
 import Joi from 'joi';
+import type { Clip, FindManyOptions, StatsAggregatedClip } from '@podverse/orm';
 import {
   ChannelService,
-  Clip,
   ClipService,
-  FindManyOptions,
   ItemService,
-  StatsAggregatedClip,
   StatsAggregatedClipService,
 } from '@podverse/orm';
-import { handleGenericErrorResponse } from './helpers/error';
-import { validateBodyObject, validateParamsObject, validateQueryObject } from '@api/lib/validation';
-import { getPaginationParams } from './helpers/pagination';
-import { getStatsOrder } from '@api/lib/stats';
-import { getFollowedChannelIds } from '@api/lib/followed';
-import { getParamRequired } from '@api/lib/params';
-
-const clipCreateSchema = Joi.object({
-  start_time: Joi.number().min(0).required(),
-  end_time: Joi.number().greater(0).allow(null, ''),
-  title: Joi.string().allow(null, ''),
-  description: Joi.string().allow(null, ''),
-  item_id_text: Joi.string().required(),
-  sharable_status_id: Joi.number().min(1).required(),
-});
-
-const clipUpdateSchema = Joi.object({
-  start_time: Joi.number().min(0).required(),
-  end_time: Joi.number().greater(0).allow(null, ''),
-  title: Joi.string().allow(null, ''),
-  description: Joi.string().allow(null, ''),
-  item_id_text: Joi.string().required(),
-  sharable_status_id: Joi.number().min(1).required(),
-});
-
-const clipIdSchema = Joi.object({
-  clip_id_text: Joi.string().required(),
-});
-
-const getByChannelIdTextSchema = Joi.object({
-  channel_id_text: Joi.string().required(),
-});
-
-const getByItemIdTextSchema = Joi.object({
-  item_id_text: Joi.string().required(),
-});
-
-const getClipsPublicManyRecentSchema = Joi.object({
-  page: Joi.number().integer().min(1).required(),
-  medium: Joi.string()
-    .valid(...QUERY_PARAMS_MEDIUMS)
-    .required(),
-});
-
-const getClipsPublicManyOldestSchema = Joi.object({
-  page: Joi.number().integer().min(1).required(),
-  medium: Joi.string()
-    .valid(...QUERY_PARAMS_MEDIUMS)
-    .required(),
-});
-
-const getClipsPublicTopSchema = Joi.object({
-  page: Joi.number().integer().min(1).required(),
-  medium: Joi.string()
-    .valid(...QUERY_PARAMS_MEDIUMS)
-    .required(),
-  range: Joi.string()
-    .valid(...QUERY_PARAMS_STATS_RANGE_VALUES)
-    .required(),
-});
-
-const getClipsPublicManyCategoryRecentSchema = Joi.object({
-  page: Joi.number().integer().min(1).required(),
-  medium: Joi.string()
-    .valid(...QUERY_PARAMS_MEDIUMS)
-    .required(),
-  category: Joi.string()
-    .valid(...CATEGORY_MAPPING_KEYS)
-    .required(),
-});
-
-const getClipsPublicManyCategoryOldestSchema = Joi.object({
-  page: Joi.number().integer().min(1).required(),
-  medium: Joi.string()
-    .valid(...QUERY_PARAMS_MEDIUMS)
-    .required(),
-  category: Joi.string()
-    .valid(...CATEGORY_MAPPING_KEYS)
-    .required(),
-});
-
-const getClipsPublicManyCategoryTopSchema = Joi.object({
-  page: Joi.number().integer().min(1).required(),
-  medium: Joi.string()
-    .valid(...QUERY_PARAMS_MEDIUMS)
-    .required(),
-  range: Joi.string()
-    .valid(...QUERY_PARAMS_STATS_RANGE_VALUES)
-    .required(),
-  category: Joi.string()
-    .valid(...CATEGORY_MAPPING_KEYS)
-    .required(),
-});
-
-const getClipsPublicByChannelRecentSchema = Joi.object({
-  page: Joi.number().integer().min(1).required(),
-});
-
-const getClipsPublicByChannelOldestSchema = Joi.object({
-  page: Joi.number().integer().min(1).required(),
-});
-
-const getClipsPublicByChannelTopSchema = Joi.object({
-  page: Joi.number().integer().min(1).required(),
-  range: Joi.string()
-    .valid(...QUERY_PARAMS_STATS_RANGE_VALUES)
-    .required(),
-});
-
-const getClipsPublicByItemRecentSchema = Joi.object({
-  page: Joi.number().integer().min(1).required(),
-});
-
-const getClipsPublicByItemOldestSchema = Joi.object({
-  page: Joi.number().integer().min(1).required(),
-});
-
-const getClipsPublicByItemTopSchema = Joi.object({
-  page: Joi.number().integer().min(1).required(),
-  range: Joi.string()
-    .valid(...QUERY_PARAMS_STATS_RANGE_VALUES)
-    .required(),
-});
-
-const getManySubscribedRecentSchema = Joi.object({
-  medium: Joi.string()
-    .valid(...QUERY_PARAMS_MEDIUMS)
-    .required(),
-  page: Joi.number().integer().min(1).required(),
-});
-
-const getManySubscribedTopSchema = Joi.object({
-  medium: Joi.string()
-    .valid(...QUERY_PARAMS_MEDIUMS)
-    .required(),
-  range: Joi.string()
-    .valid(...QUERY_PARAMS_STATS_RANGE_VALUES)
-    .required(),
-  page: Joi.number().integer().min(1).required(),
-});
+import { handleGenericErrorResponse } from './helpers/error.js';
+import {
+  clipIdTextParamSchema,
+  channelIdTextParamSchema,
+  itemIdTextParamSchema,
+  mediumCategoryPageQuerySchema,
+  mediumCategoryPageRangeQuerySchema,
+  mediumPageQuerySchema,
+  mediumPageRangeQuerySchema,
+  pageQuerySchema,
+  pageRangeQuerySchema,
+  validateBodyObject,
+  validateParamsObject,
+  validateQueryObject,
+} from '@api/lib/validation/index.js';
+import { getPaginationParams } from './helpers/pagination.js';
+import { getStatsOrder } from '@api/lib/stats.js';
+import { getFollowedChannelIds } from '@api/lib/followed.js';
+import { getParamRequired } from '@api/lib/params.js';
 
 const clipPublicManyRelations = [
   'item',
@@ -280,7 +147,16 @@ class ClipController {
       req,
       res,
       async () => {
-        validateBodyObject(clipCreateSchema, req, res, async () => {
+        const schema = Joi.object({
+          start_time: Joi.number().min(0).required(),
+          end_time: Joi.number().greater(0).allow(null, ''),
+          title: Joi.string().allow(null, ''),
+          description: Joi.string().allow(null, ''),
+          item_id_text: Joi.string().required(),
+          sharable_status_id: Joi.number().min(1).required(),
+        });
+
+        validateBodyObject(schema, req, res, async () => {
           const account = getAuthenticatedUser(req);
           const dto = req.body;
 
@@ -310,9 +186,18 @@ class ClipController {
       req,
       res,
       async () => {
-        validateParamsObject(clipIdSchema, req, res, () => {
+        validateParamsObject(Joi.object(clipIdTextParamSchema), req, res, () => {
           verifyClipOwnership()(req, res, () => {
-            validateBodyObject(clipUpdateSchema, req, res, async () => {
+            const schema = Joi.object({
+              start_time: Joi.number().min(0).required(),
+              end_time: Joi.number().greater(0).allow(null, ''),
+              title: Joi.string().allow(null, ''),
+              description: Joi.string().allow(null, ''),
+              item_id_text: Joi.string().required(),
+              sharable_status_id: Joi.number().min(1).required(),
+            });
+
+            validateBodyObject(schema, req, res, async () => {
               const account = getAuthenticatedUser(req);
               const clip_id_text = getParamRequired(req, 'clip_id_text');
               const dto = req.body;
@@ -345,7 +230,7 @@ class ClipController {
       req,
       res,
       async () => {
-        validateParamsObject(clipIdSchema, req, res, () => {
+        validateParamsObject(Joi.object(clipIdTextParamSchema), req, res, () => {
           verifyClipOwnership()(req, res, async () => {
             const account = getAuthenticatedUser(req);
             const clip_id_text = getParamRequired(req, 'clip_id_text');
@@ -364,7 +249,7 @@ class ClipController {
   }
 
   static async getClipByIdText(req: Request, res: Response): Promise<void> {
-    validateParamsObject(clipIdSchema, req, res, () => {
+    validateParamsObject(Joi.object(clipIdTextParamSchema), req, res, () => {
       optionalEnsureAuthenticated(
         req,
         res,
@@ -418,7 +303,7 @@ class ClipController {
   }
 
   static async getManyPublicRecent(req: Request, res: Response): Promise<void> {
-    validateQueryObject(getClipsPublicManyRecentSchema, req, res, async () => {
+    validateQueryObject(Joi.object(mediumPageQuerySchema), req, res, async () => {
       try {
         const { page, limit, offset } = getPaginationParams(req);
         const { medium } = req.query as {
@@ -446,7 +331,7 @@ class ClipController {
   }
 
   static async getManyPublicOldest(req: Request, res: Response): Promise<void> {
-    validateQueryObject(getClipsPublicManyOldestSchema, req, res, async () => {
+    validateQueryObject(Joi.object(mediumPageQuerySchema), req, res, async () => {
       try {
         const { page, limit, offset } = getPaginationParams(req);
         const { medium } = req.query as {
@@ -474,7 +359,7 @@ class ClipController {
   }
 
   static async getManyPublicTop(req: Request, res: Response): Promise<void> {
-    validateQueryObject(getClipsPublicTopSchema, req, res, async () => {
+    validateQueryObject(Joi.object(mediumPageRangeQuerySchema), req, res, async () => {
       try {
         const { page, limit, offset } = getPaginationParams(req);
         const { range, medium } = req.query as {
@@ -511,7 +396,7 @@ class ClipController {
   }
 
   static async getManyByCategoryPublicRecent(req: Request, res: Response): Promise<void> {
-    validateQueryObject(getClipsPublicManyCategoryRecentSchema, req, res, async () => {
+    validateQueryObject(Joi.object(mediumCategoryPageQuerySchema), req, res, async () => {
       try {
         const { page, limit, offset } = getPaginationParams(req);
         const { medium, category } = req.query as {
@@ -541,7 +426,7 @@ class ClipController {
   }
 
   static async getManyByCategoryPublicOldest(req: Request, res: Response): Promise<void> {
-    validateQueryObject(getClipsPublicManyCategoryOldestSchema, req, res, async () => {
+    validateQueryObject(Joi.object(mediumCategoryPageQuerySchema), req, res, async () => {
       try {
         const { page, limit, offset } = getPaginationParams(req);
         const { medium, category } = req.query as {
@@ -571,7 +456,7 @@ class ClipController {
   }
 
   static async getManyByCategoryPublicTop(req: Request, res: Response): Promise<void> {
-    validateQueryObject(getClipsPublicManyCategoryTopSchema, req, res, async () => {
+    validateQueryObject(Joi.object(mediumCategoryPageRangeQuerySchema), req, res, async () => {
       try {
         const { page, limit, offset } = getPaginationParams(req);
         const { range, medium, category } = req.query as {
@@ -609,88 +494,72 @@ class ClipController {
   }
 
   static async getManyByChannelPublicRecent(req: Request, res: Response): Promise<void> {
-    validateParamsObject(getByChannelIdTextSchema, req, res, async () => {
-      validateQueryObject(
-        getClipsPublicByChannelRecentSchema,
-        req,
-        res,
-        async (): Promise<void> => {
-          try {
-            const channel_id_text = getParamRequired(req, 'channel_id_text');
-            const { page, limit, offset } = getPaginationParams(req);
+    validateParamsObject(Joi.object(channelIdTextParamSchema), req, res, async () => {
+      validateQueryObject(Joi.object(pageQuerySchema), req, res, async (): Promise<void> => {
+        try {
+          const channel_id_text = getParamRequired(req, 'channel_id_text');
+          const { page, limit, offset } = getPaginationParams(req);
 
-            const channel = await channelService.getByIdText(channel_id_text);
-            if (!channel) {
-              res.status(404).json({ message: 'Channel not found' });
-              return;
-            }
-
-            const [clips, count] = await clipService.getManyByChannelAndCountPublic(
-              channel_id_text,
-              {
-                order: { created_at: 'DESC' },
-                skip: offset,
-                take: limit,
-                relations: clipPublicManyChannelRelations,
-              }
-            );
-
-            const response: ApiListResponse<Clip> = {
-              data: clips,
-              meta: { page, count, limit },
-            };
-            res.json(response);
-          } catch (err) {
-            handleGenericErrorResponse(res, err);
+          const channel = await channelService.getByIdText(channel_id_text);
+          if (!channel) {
+            res.status(404).json({ message: 'Channel not found' });
+            return;
           }
+
+          const [clips, count] = await clipService.getManyByChannelAndCountPublic(channel_id_text, {
+            order: { created_at: 'DESC' },
+            skip: offset,
+            take: limit,
+            relations: clipPublicManyChannelRelations,
+          });
+
+          const response: ApiListResponse<Clip> = {
+            data: clips,
+            meta: { page, count, limit },
+          };
+          res.json(response);
+        } catch (err) {
+          handleGenericErrorResponse(res, err);
         }
-      );
+      });
     });
   }
 
   static async getManyByChannelPublicOldest(req: Request, res: Response): Promise<void> {
-    validateParamsObject(getByChannelIdTextSchema, req, res, async () => {
-      validateQueryObject(
-        getClipsPublicByChannelOldestSchema,
-        req,
-        res,
-        async (): Promise<void> => {
-          try {
-            const channel_id_text = getParamRequired(req, 'channel_id_text');
-            const { page, limit, offset } = getPaginationParams(req);
+    validateParamsObject(Joi.object(channelIdTextParamSchema), req, res, async () => {
+      validateQueryObject(Joi.object(pageQuerySchema), req, res, async (): Promise<void> => {
+        try {
+          const channel_id_text = getParamRequired(req, 'channel_id_text');
+          const { page, limit, offset } = getPaginationParams(req);
 
-            const channel = await channelService.getByIdText(channel_id_text);
-            if (!channel) {
-              res.status(404).json({ message: 'Channel not found' });
-              return;
-            }
-
-            const [clips, count] = await clipService.getManyByChannelAndCountPublic(
-              channel_id_text,
-              {
-                order: { created_at: 'ASC' },
-                skip: offset,
-                take: limit,
-                relations: clipPublicManyChannelRelations,
-              }
-            );
-
-            const response: ApiListResponse<Clip> = {
-              data: clips,
-              meta: { page, count, limit },
-            };
-            res.json(response);
-          } catch (err) {
-            handleGenericErrorResponse(res, err);
+          const channel = await channelService.getByIdText(channel_id_text);
+          if (!channel) {
+            res.status(404).json({ message: 'Channel not found' });
+            return;
           }
+
+          const [clips, count] = await clipService.getManyByChannelAndCountPublic(channel_id_text, {
+            order: { created_at: 'ASC' },
+            skip: offset,
+            take: limit,
+            relations: clipPublicManyChannelRelations,
+          });
+
+          const response: ApiListResponse<Clip> = {
+            data: clips,
+            meta: { page, count, limit },
+          };
+          res.json(response);
+        } catch (err) {
+          handleGenericErrorResponse(res, err);
         }
-      );
+      });
     });
   }
 
   static async getManyByChannelPublicTop(req: Request, res: Response): Promise<void> {
-    validateParamsObject(getByChannelIdTextSchema, req, res, async () => {
-      validateQueryObject(getClipsPublicByChannelTopSchema, req, res, async (): Promise<void> => {
+    validateParamsObject(Joi.object(channelIdTextParamSchema), req, res, async () => {
+      validateQueryObject(Joi.object(pageRangeQuerySchema), req, res, async (): Promise<void> => {
         try {
           const channel_id_text = getParamRequired(req, 'channel_id_text');
           const { page, limit, offset } = getPaginationParams(req);
@@ -733,8 +602,8 @@ class ClipController {
   }
 
   static async getManyByItemPublicRecent(req: Request, res: Response): Promise<void> {
-    validateParamsObject(getByItemIdTextSchema, req, res, async () => {
-      validateQueryObject(getClipsPublicByItemRecentSchema, req, res, async (): Promise<void> => {
+    validateParamsObject(Joi.object(itemIdTextParamSchema), req, res, async () => {
+      validateQueryObject(Joi.object(pageQuerySchema), req, res, async (): Promise<void> => {
         try {
           const item_id_text = getParamRequired(req, 'item_id_text');
           const { page, limit, offset } = getPaginationParams(req);
@@ -765,8 +634,8 @@ class ClipController {
   }
 
   static async getManyByItemPublicOldest(req: Request, res: Response): Promise<void> {
-    validateParamsObject(getByItemIdTextSchema, req, res, async () => {
-      validateQueryObject(getClipsPublicByItemOldestSchema, req, res, async (): Promise<void> => {
+    validateParamsObject(Joi.object(itemIdTextParamSchema), req, res, async () => {
+      validateQueryObject(Joi.object(pageQuerySchema), req, res, async (): Promise<void> => {
         try {
           const item_id_text = getParamRequired(req, 'item_id_text');
           const { page, limit, offset } = getPaginationParams(req);
@@ -797,8 +666,8 @@ class ClipController {
   }
 
   static async getManyByItemPublicTop(req: Request, res: Response): Promise<void> {
-    validateParamsObject(getByItemIdTextSchema, req, res, async () => {
-      validateQueryObject(getClipsPublicByItemTopSchema, req, res, async (): Promise<void> => {
+    validateParamsObject(Joi.object(itemIdTextParamSchema), req, res, async () => {
+      validateQueryObject(Joi.object(pageRangeQuerySchema), req, res, async (): Promise<void> => {
         try {
           const item_id_text = getParamRequired(req, 'item_id_text');
           const { page, limit, offset } = getPaginationParams(req);
@@ -838,7 +707,7 @@ class ClipController {
   }
 
   static async getManySubscribedPublicRecent(req: Request, res: Response): Promise<void> {
-    validateQueryObject(getManySubscribedRecentSchema, req, res, async (): Promise<void> => {
+    validateQueryObject(Joi.object(mediumPageQuerySchema), req, res, async (): Promise<void> => {
       ensureAuthenticated(
         req,
         res,
@@ -883,54 +752,59 @@ class ClipController {
   }
 
   static async getManySubscribedPublicTop(req: Request, res: Response): Promise<void> {
-    validateQueryObject(getManySubscribedTopSchema, req, res, async (): Promise<void> => {
-      ensureAuthenticated(
-        req,
-        res,
-        async (): Promise<void> => {
-          try {
-            const { page, limit, offset } = getPaginationParams(req);
-            const { range, medium } = req.query as {
-              range: QueryParamsStatsRange;
-              medium: QueryParamsMedium;
-            };
-            const jwtUser = getAuthenticatedUser(req);
-            const account_id = jwtUser.id;
+    validateQueryObject(
+      Joi.object(mediumPageRangeQuerySchema),
+      req,
+      res,
+      async (): Promise<void> => {
+        ensureAuthenticated(
+          req,
+          res,
+          async (): Promise<void> => {
+            try {
+              const { page, limit, offset } = getPaginationParams(req);
+              const { range, medium } = req.query as {
+                range: QueryParamsStatsRange;
+                medium: QueryParamsMedium;
+              };
+              const jwtUser = getAuthenticatedUser(req);
+              const account_id = jwtUser.id;
 
-            const channel_ids = await getFollowedChannelIds(account_id, medium);
-            if (!channel_ids.length) {
-              const response: ApiListResponse<Clip> = emptyApiListResponse;
+              const channel_ids = await getFollowedChannelIds(account_id, medium);
+              if (!channel_ids.length) {
+                const response: ApiListResponse<Clip> = emptyApiListResponse;
+                res.json(response);
+              }
+
+              const order = getStatsOrder(range);
+              const config: FindManyOptions<StatsAggregatedClip> = {
+                order: { [order]: 'DESC' },
+                skip: offset,
+                take: limit,
+                relations: statsAggregationRelations,
+              };
+              const results =
+                await ClipController.statsAggregatedClipService.getManyByChannelsAndCountPublic(
+                  channel_ids,
+                  config
+                );
+              const statsResults = results[0];
+              const count = results[1];
+              const clips = statsResults.map((stat: { clip: Clip }) => stat.clip).filter(Boolean);
+
+              const response: ApiListResponse<Clip> = {
+                data: clips,
+                meta: { page, count, limit },
+              };
               res.json(response);
+            } catch (error) {
+              handleGenericErrorResponse(res, error);
             }
-
-            const order = getStatsOrder(range);
-            const config: FindManyOptions<StatsAggregatedClip> = {
-              order: { [order]: 'DESC' },
-              skip: offset,
-              take: limit,
-              relations: statsAggregationRelations,
-            };
-            const results =
-              await ClipController.statsAggregatedClipService.getManyByChannelsAndCountPublic(
-                channel_ids,
-                config
-              );
-            const statsResults = results[0];
-            const count = results[1];
-            const clips = statsResults.map((stat: { clip: Clip }) => stat.clip).filter(Boolean);
-
-            const response: ApiListResponse<Clip> = {
-              data: clips,
-              meta: { page, count, limit },
-            };
-            res.json(response);
-          } catch (error) {
-            handleGenericErrorResponse(res, error);
-          }
-        },
-        { skipMembershipStatus: true }
-      );
-    });
+          },
+          { skipMembershipStatus: true }
+        );
+      }
+    );
   }
 }
 

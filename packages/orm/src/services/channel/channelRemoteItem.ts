@@ -1,8 +1,9 @@
-import { filterInvalidFeedUuids, RemoteItemDto } from '@podverse/helpers';
-import { EntityManager } from 'typeorm';
-import { Channel } from '@orm/entities/channel/channel';
-import { ChannelRemoteItem } from '@orm/entities/channel/channelRemoteItem';
-import { BaseRemoteItemsService } from '@orm/services/base/baseRemoteItemsService';
+import type { RemoteItemDto } from '@podverse/helpers';
+import { filterInvalidFeedUuids } from '@podverse/helpers';
+import type { EntityManager } from 'typeorm';
+import type { Channel } from '@orm/entities/channel/channel.js';
+import { ChannelRemoteItem } from '@orm/entities/channel/channelRemoteItem.js';
+import { BaseRemoteItemsService } from '@orm/services/base/baseRemoteItemsService.js';
 
 export class ChannelRemoteItemService extends BaseRemoteItemsService<ChannelRemoteItem, 'channel'> {
   constructor(transactionalEntityManager?: EntityManager) {

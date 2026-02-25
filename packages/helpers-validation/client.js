@@ -1,2 +1,1 @@
-'use strict';
-module.exports = require('./dist/client.js');
+export * from './dist/client.js';

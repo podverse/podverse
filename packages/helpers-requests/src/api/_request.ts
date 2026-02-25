@@ -1,6 +1,7 @@
-import { QueueExtraParams } from '@podverse/helpers';
-import { BetweenParams } from '@podverse/helpers';
-import { request } from '../_request';
+import type { QueueExtraParams } from '@podverse/helpers';
+import type { BetweenParams } from '@podverse/helpers';
+import { request } from '../_request.js';
+import type { QueryParamsGetManyProfiles } from './account/account.js';
 import {
   reqAccountChangeEmailAddress,
   reqAccountCreate,
@@ -14,28 +15,36 @@ import {
   reqAccountSendResetPasswordEmail,
   reqAccountSendVerificationEmail,
   reqAccountVerifyEmail,
-  QueryParamsGetManyProfiles,
-} from './account/account';
-import { reqAccountFollowChannel, reqAccountUnfollowChannel } from './account/follow/channel';
-import { reqAccountFollowAccount, reqAccountUnfollowAccount } from './account/follow/account';
-import { reqAccountFollowPlaylist, reqAccountUnfollowPlaylist } from './account/follow/playlist';
-import { reqAuthCheckSession, reqAuthLogin, reqAuthLogout, reqAuthMe } from './auth/auth';
-import { reqCategoryGetAll } from './category/category';
+} from './account/account.js';
+import { reqAccountFollowChannel, reqAccountUnfollowChannel } from './account/follow/channel.js';
+import {
+  reqAccountAddByRSSChaptersTranscript,
+  type ReqAccountAddByRSSChaptersTranscriptParams,
+} from './account/addByRSSChaptersTranscript.js';
+import {
+  reqAccountFollowAddByRSSChannel,
+  reqAccountGetFollowedAddByRSSChannels,
+  reqAccountUnfollowAddByRSSChannel,
+} from './account/follow/addByRSSChannel.js';
+import { reqAccountFollowAccount, reqAccountUnfollowAccount } from './account/follow/account.js';
+import { reqAccountFollowPlaylist, reqAccountUnfollowPlaylist } from './account/follow/playlist.js';
+import { reqAuthCheckSession, reqAuthLogin, reqAuthLogout, reqAuthMe } from './auth/auth.js';
+import { reqCategoryGetAll } from './category/category.js';
 import {
   reqChannelGetByIdOrIdText,
   reqChannelGetByPodcastIndexId,
   reqChannelGetMany,
-} from './channel/channel';
+} from './channel/channel.js';
+import type { ReqClipCreateParams } from './clip/clip.js';
 import {
   reqClipCreate,
-  ReqClipCreateParams,
   reqClipDelete,
   reqClipGet,
   reqClipGetManyByChannelPublic,
   reqClipGetManyByItemPublic,
   reqClipGetManyPublic,
   reqClipUpdate,
-} from './clip/clip';
+} from './clip/clip.js';
 import {
   reqItemGetByIdOrIdText,
   reqItemGetMany,
@@ -45,31 +54,36 @@ import {
   reqItemGetManyForQueueByPubDate,
   reqItemGetManyForQueueBySeason,
   reqItemParseAndGetChapters,
-} from './item/item';
+} from './item/item.js';
+import type { ReqPlaylistCreateParams, ReqPlaylistEditParams } from './playlist/playlist.js';
 import {
   reqPlaylistCreate,
-  ReqPlaylistCreateParams,
   reqPlaylistDelete,
   reqPlaylistEdit,
-  ReqPlaylistEditParams,
   reqPlaylistGet,
   reqPlaylistGetAllFavoritesPrivate,
   reqPlaylistGetMany,
-} from './playlist/playlist';
+} from './playlist/playlist.js';
 import {
   reqPlaylistResourceClipAddBetween,
   reqPlaylistResourceClipAddFirst,
   reqPlaylistResourceClipAddLast,
   reqPlaylistResourceClipDelete,
-} from './playlist/playlistResource/playlistResourceClip';
+} from './playlist/playlistResource/playlistResourceClip.js';
 import {
   reqPlaylistResourceItemAddFirst,
   reqPlaylistResourceItemAddBetween,
   reqPlaylistResourceItemAddLast,
   reqPlaylistResourceItemDelete,
-} from './playlist/playlistResource/playlistResourceItem';
-import { reqPodrollGetForChannel } from './podroll/podroll';
+} from './playlist/playlistResource/playlistResourceItem.js';
 import {
+  reqPlaylistResourceItemAddByRSSAddFirst,
+  reqPlaylistResourceItemAddByRSSAddLast,
+  reqPlaylistResourceItemAddByRSSAddBetween,
+  reqPlaylistResourceItemAddByRSSDelete,
+} from './playlist/playlistResource/playlistResourceItemAddByRSS.js';
+import { reqPodrollGetForChannel } from './podroll/podroll.js';
+import type {
   QueryDirection,
   QueryParamsGetMany,
   QueryParamsGetManyPartial,
@@ -80,8 +94,8 @@ import {
   QueryParamsPlaylistResources,
   QueryParamsPlaylists,
   QueryParamsShuffle,
-} from './queryParams';
-import { reqQueueGetAllForAccountPrivate, reqQueueUpdateIsActiveQueue } from './queue/queue';
+} from './queryParams.js';
+import { reqQueueGetAllForAccountPrivate, reqQueueUpdateIsActiveQueue } from './queue/queue.js';
 import {
   reqQueueResourceItemAddBetween,
   reqQueueResourceItemAddHistory,
@@ -89,7 +103,7 @@ import {
   reqQueueResourceItemAddNext,
   reqQueueResourceItemAddNowPlaying,
   reqQueueResourceItemDelete,
-} from './queue/queueResource/queueResourceItem';
+} from './queue/queueResource/queueResourceItem.js';
 import {
   reqQueueResourceClipAddBetween,
   reqQueueResourceClipAddHistory,
@@ -97,7 +111,7 @@ import {
   reqQueueResourceClipAddNext,
   reqQueueResourceClipAddNowPlaying,
   reqQueueResourceClipDelete,
-} from './queue/queueResource/queueResourceClip';
+} from './queue/queueResource/queueResourceClip.js';
 import {
   reqQueueResourceItemAddByRSSAddBetween,
   reqQueueResourceItemAddByRSSAddHistory,
@@ -105,7 +119,7 @@ import {
   reqQueueResourceItemAddByRSSAddNext,
   reqQueueResourceItemAddByRSSAddNowPlaying,
   reqQueueResourceItemAddByRSSDelete,
-} from './queue/queueResource/queueResourceItemAddByRSS';
+} from './queue/queueResource/queueResourceItemAddByRSS.js';
 import {
   reqQueueResourceItemSoundbiteAddBetween,
   reqQueueResourceItemSoundbiteAddHistory,
@@ -113,41 +127,41 @@ import {
   reqQueueResourceItemSoundbiteAddNext,
   reqQueueResourceItemSoundbiteAddNowPlaying,
   reqQueueResourceItemSoundbiteDelete,
-} from './queue/queueResource/queueResourceItemSoundbite';
+} from './queue/queueResource/queueResourceItemSoundbite.js';
 import {
   reqItemSoundbiteGet,
   reqItemSoundbiteGetManyByChannelIdText,
   reqItemSoundbiteGetManyByItemIdText,
-} from './itemSoundbite/itemSoundbite';
-import { reqItemTranscriptGet } from './itemTranscript/itemTranscript';
+} from './itemSoundbite/itemSoundbite.js';
+import { reqItemTranscriptGet } from './itemTranscript/itemTranscript.js';
 import {
   reqQueueResourcesGetAllByAccountAbridged,
   reqQueueResourcesGetAllUpcomingByQueueIdText,
   reqQueueResourcesGetHistoryByQueueIdTextPaginated,
   reqQueueResourcesGetNowPlayingByQueueIdText,
-} from './queue/queueResource/queueResource';
-import { reqItemChapterGetByIdText } from './itemChapter/itemChapter';
+} from './queue/queueResource/queueResource.js';
+import { reqItemChapterGetByIdText } from './itemChapter/itemChapter.js';
 import {
   reqPlaylistResourceItemSoundbiteAddFirst,
   reqPlaylistResourceItemSoundbiteAddLast,
   reqPlaylistResourceItemSoundbiteAddBetween,
   reqPlaylistResourceItemSoundbiteDelete,
-} from './playlist/playlistResource/playlistResourceItemSoundbite';
+} from './playlist/playlistResource/playlistResourceItemSoundbite.js';
 import {
   reqPlaylistResourceGetAllByPlaylistIdTextPrivate,
   reqPlaylistResourceGetManyByPlaylistIdText,
   reqPlaylistResourceGetManyByShuffle,
   reqPlaylistResourceGetManyForQueueByListPosition,
-} from './playlist/playlistResource/playlistResource';
-import { reqLiveItemGetMany, reqLiveItemGetManyByChannel } from './liveItem/liveItem';
-import { reqMembershipGetPricing } from './membership/membership';
+} from './playlist/playlistResource/playlistResource.js';
+import { reqLiveItemGetMany, reqLiveItemGetManyByChannel } from './liveItem/liveItem.js';
+import { reqMembershipGetPricing } from './membership/membership.js';
 import {
   reqPodcastIndexFeedById,
   reqPodcastIndexSearchPodcasts,
-} from './externalServices/podcastIndex';
-import { reqMQRSSAddOnDemand, reqMQRSSRefreshOnDemand } from './mq/mq';
-import { reqFeedGetByPodcastIndexId } from './feed/feed';
-import {
+} from './externalServices/podcastIndex/index.js';
+import { reqMQRSSAddOnDemand, reqMQRSSRefreshOnDemand } from './mq/mq.js';
+import { reqFeedGetByPodcastIndexId } from './feed/feed.js';
+import type {
   CreateAccountFCMDeviceParams,
   DeleteAccountFCMDeviceParams,
   LiveItemStatus,
@@ -163,35 +177,36 @@ import {
 import {
   reqAccountNotificationChannelCreate,
   reqAccountNotificationChannelDelete,
-} from './account/notification/channel';
+} from './account/notification/channel.js';
 import {
   reqAccountNotificationChannelTypeCreate,
   reqAccountNotificationChannelTypeDelete,
-} from './account/notification/channelType';
+} from './account/notification/channelType.js';
 import {
   reqAccountSettingsLocaleUpdate,
   reqAccountSettingsNotificationTypeCreate,
   reqAccountSettingsNotificationTypeDelete,
-} from './accountSettings/accountSettings';
+} from './accountSettings/accountSettings.js';
 import {
   reqAccountFCMDeviceCreate,
   reqAccountFCMDeviceUpdate,
   reqAccountFCMDeviceDelete,
   reqAccountFCMDeviceGetAllForAccount,
-} from './account/fcm/fcm';
+} from './account/fcm/fcm.js';
 import {
   reqAccountWebPushDeviceCreate,
   reqAccountWebPushDeviceUpdate,
   reqAccountWebPushDeviceDelete,
   reqAccountWebPushDeviceGetAllForAccount,
-} from './account/webpush/webpush';
+} from './account/webpush/webpush.js';
 import {
   reqAccountUPDeviceCreate,
   reqAccountUPDeviceUpdate,
   reqAccountUPDeviceDelete,
   reqAccountUPDeviceGetForAccount,
-} from './account/unifiedpush/unifiedpush';
-import { reqPublisherFeedGetRemoteItemsForChannel } from './publisherFeed/publisherFeed';
+} from './account/unifiedpush/unifiedpush.js';
+import { reqPublisherFeedGetRemoteItemsForChannel } from './publisherFeed/publisherFeed.js';
+import type { QueryParamsProfileContent } from './profile/profile.js';
 import {
   reqProfilePodcastsAZ,
   reqProfilePlaylistsAZ,
@@ -201,8 +216,12 @@ import {
   reqMyProfilePlaylistsAZ,
   reqMyProfileClipsRecent,
   reqMyProfileAlbumsAZ,
-  QueryParamsProfileContent,
-} from './profile/profile';
+} from './profile/profile.js';
+
+export type {
+  AddByRSSChapterResponse,
+  ReqAccountAddByRSSChaptersTranscriptParams,
+} from './account/addByRSSChaptersTranscript.js';
 
 export type AbortOpts = { controller: AbortController; timeoutMs: number };
 
@@ -458,6 +477,30 @@ export class ApiRequestService {
 
   reqAccountUnfollowChannel(params: { channel_id_text: string }) {
     return reqAccountUnfollowChannel(this, params);
+  }
+
+  /* ACCOUNT > FOLLOW > ADD BY RSS CHANNEL */
+
+  reqAccountFollowAddByRSSChannel(params: {
+    feed_url: string;
+    title?: string | null;
+    image_url?: string | null;
+    basic_auth_username?: string | null;
+    basic_auth_password?: string | null;
+  }) {
+    return reqAccountFollowAddByRSSChannel(this, params);
+  }
+
+  reqAccountUnfollowAddByRSSChannel(params: { feed_url: string }) {
+    return reqAccountUnfollowAddByRSSChannel(this, params);
+  }
+
+  reqAccountGetFollowedAddByRSSChannels(params: { account_id_text: string }) {
+    return reqAccountGetFollowedAddByRSSChannels(this, params);
+  }
+
+  reqAccountAddByRSSChaptersTranscript(params: ReqAccountAddByRSSChaptersTranscriptParams) {
+    return reqAccountAddByRSSChaptersTranscript(this, params);
   }
 
   /* ACCOUNT > FOLLOW > ACCOUNT */
@@ -790,6 +833,31 @@ export class ApiRequestService {
 
   reqPlaylistResourceItemDelete(playlist_id_text: string, item_id_text: string) {
     return reqPlaylistResourceItemDelete(this, playlist_id_text, item_id_text);
+  }
+
+  reqPlaylistResourceItemAddByRSSAddFirst(
+    playlist_id_text: string,
+    params: { add_by_rss_resource_data: object }
+  ) {
+    return reqPlaylistResourceItemAddByRSSAddFirst(this, playlist_id_text, params);
+  }
+
+  reqPlaylistResourceItemAddByRSSAddLast(
+    playlist_id_text: string,
+    params: { add_by_rss_resource_data: object }
+  ) {
+    return reqPlaylistResourceItemAddByRSSAddLast(this, playlist_id_text, params);
+  }
+
+  reqPlaylistResourceItemAddByRSSAddBetween(
+    playlist_id_text: string,
+    params: BetweenParams & { add_by_rss_resource_data: object }
+  ) {
+    return reqPlaylistResourceItemAddByRSSAddBetween(this, playlist_id_text, params);
+  }
+
+  reqPlaylistResourceItemAddByRSSDelete(playlist_id_text: string, add_by_rss_hash_id: string) {
+    return reqPlaylistResourceItemAddByRSSDelete(this, playlist_id_text, add_by_rss_hash_id);
   }
 
   /* PLAYLIST RESOURCE > ITEM SOUNDBITE */

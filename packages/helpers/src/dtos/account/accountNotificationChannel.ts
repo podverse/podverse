@@ -1,4 +1,4 @@
-import { DTOAccountNotificationChannelType } from './accountNotificationChannelType';
+import type { DTOAccountNotificationChannelType } from './accountNotificationChannelType.js';
 
 export interface DTOAccountNotificationChannel {
   account_id: number;

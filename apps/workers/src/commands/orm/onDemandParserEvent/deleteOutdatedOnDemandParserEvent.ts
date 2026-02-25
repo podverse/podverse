@@ -1,6 +1,6 @@
 import { OnDemandParserEventService } from '@podverse/orm';
-import { getLogger } from '@workers/factories/logger';
-import { CommandLineArgs } from '@workers/commands';
+import { getLogger } from '@workers/factories/logger.js';
+import type { CommandLineArgs } from '@workers/commands/index.js';
 
 const DEFAULT_DAYS = 30;
 

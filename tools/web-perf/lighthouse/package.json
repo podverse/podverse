@@ -1,6 +1,6 @@
 {
   "name": "podverse-lighthouse",
-  "version": "1.0.0",
+  "version": "5.4.1",
   "description": "Lighthouse performance testing for podverse-web",
   "private": true,
   "type": "module",
@@ -9,12 +9,11 @@
   },
   "devDependencies": {
     "@types/inquirer": "^8.2.10",
-    "@types/node": "^25.0.10",
+    "@types/node": "^24.10.12",
     "chrome-launcher": "^1.0.0",
     "dotenv": "^17.2.2",
-    "ffmpeg-static": "^5.2.0",
-    "inquirer": "^8.2.6",
-    "lighthouse": "^11.4.0",
+    "inquirer": "^13.2.4",
+    "lighthouse": "^13.0.2",
     "openai": "^6.16.0",
     "pg": "^8.13.1",
     "playwright": "^1.40.0",
@@ -24,7 +23,7 @@
     "typescript": "^5.9.2"
   },
   "dependencies": {
-    "@types/bcryptjs": "^3.0.0",
-    "bcryptjs": "^3.0.3"
+    "bcryptjs": "^3.0.3",
+    "podverse-test-assets": "*"
   }
 }

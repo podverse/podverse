@@ -2,36 +2,37 @@
 
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';
+import type { DTOChannel, DTOItem } from '@podverse/helpers';
 import {
-  DTOChannel,
-  DTOItem,
-  findDTOChannelImageBySize,
-  findDTOItemImageBySize,
+  findDTOChannelImageForList,
+  findDTOItemImageForList,
   getQueueForMedium,
   stripAndDecodeHtml,
 } from '@podverse/helpers';
 import { getShuffleHash } from '@podverse/helpers-requests';
 import React from 'react';
 import { FaGripLines } from 'react-icons/fa6';
-import { Image } from '../../../Image/Image';
+import { ImagesPerView } from '../../../Image/ImagesPerView';
 import { ROUTES } from '../../../../constants/routes';
 import { IMAGES } from '../../../../constants/images';
 import { PlayButtonRow } from '../../../MediaPlayer/Buttons/PlayButtonRow';
 import { getDurationAndPositionStr, ReadableDuration } from '../../../Time/ReadableDuration';
-import { MoreButton, MoreButtonMenuItem } from '../../../MoreButton/MoreButton';
+import type { MoreButtonMenuItem } from '../../../MoreButton/MoreButton';
+import { MoreButton } from '../../../MoreButton/MoreButton';
 import { useMediaPlayer } from '../../../../contexts/MediaPlayer';
 import { ReadableDate } from '../../../Time/ReadableDate';
 import { useModals } from '../../../../contexts/Modals';
 import { useQueues } from '../../../../contexts/Queue';
-import { apiRequestService } from '../../../../factories/apiRequestService';
+import { getApiRequestService } from '../../../../factories/apiRequestService';
 import { showToastPromise, showToastPromiseWithLoading } from '../../../Toast/Toast';
 import { downloadAndSaveFile } from '../../../../utils/fileDownloader';
 import { useMediaPlayerResourceUpdate } from '../../../../hooks/useMediaPlayerResourceUpdate';
 import { useQueueResourcesAbridgedIndex } from '../../../../contexts/QueueResourcesAbridgedIndex';
 import { useAutoQueue } from '../../../../contexts/AutoQueue';
 import { downloadEpisodeWithModal } from '../../../../utils/downloadModal/downloadEpisodeWithModal';
-import styles from '../../../../styles/components/List/Podcasts/Episodes/ListEpisodeRow.module.scss';
 import { useAccount } from '../../../../contexts/Account';
+
+import styles from '../../../../styles/components/Common/List/Podcasts/Episodes/ListEpisodeRow.module.scss';
 
 interface Props {
   channel: DTOChannel;
@@ -42,6 +43,7 @@ interface Props {
   isEditModePlaylist?: boolean;
   removeFromPlaylist?: () => void;
   playlist_id_text: string | null;
+  onPlayAndRemove?: () => void;
 }
 
 const ListEpisodeRow: React.FC<Props> = ({
@@ -53,14 +55,16 @@ const ListEpisodeRow: React.FC<Props> = ({
   isEditModePlaylist,
   removeFromPlaylist,
   playlist_id_text,
+  onPlayAndRemove,
 }) => {
+  const apiRequestService = getApiRequestService();
   const url = `${ROUTES.EPISODE}/${item.id_text}`;
-  const channel_image = findDTOChannelImageBySize(
+  const channel_image = findDTOChannelImageForList(
     channel.channel_images,
     IMAGES.LIST.EPISODES.DESKTOP.SIZE_FIND_TARGET,
     'lesser'
   );
-  const item_image = findDTOItemImageBySize(
+  const item_image = findDTOItemImageForList(
     item.item_images,
     IMAGES.LIST.EPISODES.DESKTOP.SIZE_FIND_TARGET,
     'lesser'
@@ -222,32 +226,40 @@ const ListEpisodeRow: React.FC<Props> = ({
     });
   };
 
-  const moreButtonMenuItems: MoreButtonMenuItem[] = [
-    {
-      label: tMediaPlayer('play'),
-      onClick: playButtonOnClick,
-    },
-    {
-      label: tFeatures('queue.queue_next'),
-      onClick: addToQueueNextOnClick,
-    },
-    {
-      label: tFeatures('queue.queue_last'),
-      onClick: addToQueueLastOnClick,
-    },
-    {
-      label: tFeatures('playlist.add_to_playlist'),
-      onClick: addToPlaylistOnClick,
-    },
-    {
-      label: tFeatures('history.mark_as_played'),
-      onClick: markAsPlayedOnClick,
-    },
-    {
-      label: tFeatures('download.download_episode'),
-      onClick: downloadEpisode,
-    },
-  ];
+  const moreButtonMenuItems: MoreButtonMenuItem[] = isEditModePlaylist
+    ? [
+        {
+          label: tFeatures('playlist.remove_from_playlist'),
+          onClick: removeFromPlaylistOnClick,
+          variant: 'danger',
+        },
+      ]
+    : [
+        {
+          label: tMediaPlayer('play'),
+          onClick: playButtonOnClick,
+        },
+        {
+          label: tFeatures('queue.queue_next'),
+          onClick: addToQueueNextOnClick,
+        },
+        {
+          label: tFeatures('queue.queue_last'),
+          onClick: addToQueueLastOnClick,
+        },
+        {
+          label: tFeatures('playlist.add_to_playlist'),
+          onClick: addToPlaylistOnClick,
+        },
+        {
+          label: tFeatures('history.mark_as_played'),
+          onClick: markAsPlayedOnClick,
+        },
+        {
+          label: tFeatures('download.download_episode'),
+          onClick: downloadEpisode,
+        },
+      ];
 
   if (isEditModeQueue) {
     moreButtonMenuItems.push({
@@ -258,11 +270,7 @@ const ListEpisodeRow: React.FC<Props> = ({
   }
 
   if (isEditModePlaylist) {
-    moreButtonMenuItems.push({
-      label: tFeatures('playlist.remove_from_playlist'),
-      onClick: removeFromPlaylistOnClick,
-      variant: 'danger',
-    });
+    // Menu already limited to remove-from-playlist in edit mode.
   }
 
   return (
@@ -272,35 +280,43 @@ const ListEpisodeRow: React.FC<Props> = ({
           <FaGripLines />
         </div>
       )}
-      <Link href={url} tabIndex={-1}>
-        <Image
-          src={item_image?.url || channel_image?.url}
-          alt={item.title || tMedia('podcast.episode_image')}
-          width={IMAGES.LIST.EPISODES.DESKTOP.SIZE}
-          height={IMAGES.LIST.EPISODES.DESKTOP.SIZE}
-          className={styles.image}
-        />
-        <Image
-          src={item_image?.url || channel_image?.url}
-          alt={item.title || tMedia('podcast.episode_image')}
-          width={IMAGES.LIST.EPISODES.MOBILE.SIZE}
-          height={IMAGES.LIST.EPISODES.MOBILE.SIZE}
-          className={styles.imageMobile}
-        />
-      </Link>
+      <ImagesPerView
+        src={item_image?.url || channel_image?.url}
+        alt={item.title || tMedia('podcast.episode_image')}
+        widthDesktop={IMAGES.LIST.EPISODES.DESKTOP.SIZE}
+        heightDesktop={IMAGES.LIST.EPISODES.DESKTOP.SIZE}
+        widthMobile={IMAGES.LIST.EPISODES.MOBILE.SIZE}
+        heightMobile={IMAGES.LIST.EPISODES.MOBILE.SIZE}
+        classNameDesktop={styles.image}
+        classNameMobile={styles.imageMobile}
+        href={onPlayAndRemove ? undefined : url}
+        onClick={onPlayAndRemove}
+      />
       <div className={styles.content}>
-        <Link href={url}>
-          <div className={styles.topSection}>
-            <h3>{item.title}</h3>
-            {showChannelInfo && <div className={styles.channelTitle}>{channel.title}</div>}
-            <div className={styles.subtitle}>
-              {stripAndDecodeHtml(item.item_description?.value)}
+        {onPlayAndRemove ? (
+          <button type="button" className={styles.clickableTopSection} onClick={onPlayAndRemove}>
+            <div className={styles.topSection}>
+              <h3>{item.title}</h3>
+              {showChannelInfo && <div className={styles.channelTitle}>{channel.title}</div>}
+              <div className={styles.subtitle}>
+                {stripAndDecodeHtml(item.item_description?.value)}
+              </div>
             </div>
-          </div>
-        </Link>
+          </button>
+        ) : (
+          <Link href={url}>
+            <div className={styles.topSection}>
+              <h3>{item.title}</h3>
+              {showChannelInfo && <div className={styles.channelTitle}>{channel.title}</div>}
+              <div className={styles.subtitle}>
+                {stripAndDecodeHtml(item.item_description?.value)}
+              </div>
+            </div>
+          </Link>
+        )}
         <div className={styles.bottomSection}>
           <div className={styles.bottomSectionStart}>
-            <PlayButtonRow item={item} onClick={playButtonOnClick} />
+            <PlayButtonRow item={item} onClick={onPlayAndRemove ?? playButtonOnClick} />
             <div className={styles.timeSection}>
               <ReadableDate date={item.pub_date} />
               {durationStr ? ' • ' : null}

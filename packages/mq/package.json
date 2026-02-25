@@ -1,6 +1,6 @@
 {
   "name": "@podverse/mq",
-  "version": "5.2.5",
+  "version": "5.4.1",
   "description": "Message queue module for Podverse",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -21,7 +21,7 @@
     "access": "public"
   },
   "dependencies": {
-    "@podverse/external-services": "*",
+    "@podverse/external-services-podcast-index": "*",
     "@podverse/helpers": "*",
     "@podverse/helpers-backend": "*",
     "@podverse/helpers-requests": "*",
@@ -29,10 +29,13 @@
     "@podverse/orm": "*",
     "@podverse/parser": "*",
     "rhea": "^3.0.4",
-    "ws": "^8.18.3"
+    "ws": "^8.18.3",
+    "module-alias": "^2.3.3"
   },
   "devDependencies": {
     "@types/ws": "^8.18.1",
-    "tsc-alias": "^1.8.16"
-  }
+    "tsc-alias": "^1.8.16",
+    "@types/module-alias": "^2.0.4"
+  },
+  "type": "module"
 }

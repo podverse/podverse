@@ -1,30 +1,21 @@
 name: CI
 
 on:
-  pull_request:
-    types: [opened, synchronize, reopened]
   issue_comment:
     types: [created]
 
 jobs:
   validate:
-    # Run if:
-    # 1. Dependabot PR (automatic), OR
-    # 2. PR comment with /test from maintainers (manual trigger for external contributors)
+    # Run when a maintainer comments /test on a PR (manual trigger for external contributors).
+    # Dependabot PRs: comment /test to run CI, or add a separate ci-dependabot workflow.
     if: |
+      github.event_name == 'issue_comment' &&
+      github.event.issue.pull_request &&
+      contains(github.event.comment.body, '/test') &&
       (
-        github.event_name == 'pull_request' &&
-        github.actor == 'dependabot[bot]'
-      ) ||
-      (
-        github.event_name == 'issue_comment' &&
-        github.event.issue.pull_request &&
-        contains(github.event.comment.body, '/test') &&
-        (
-          github.event.comment.author_association == 'OWNER' ||
-          github.event.comment.author_association == 'MEMBER' ||
-          github.event.comment.author_association == 'COLLABORATOR'
-        )
+        github.event.comment.author_association == 'OWNER' ||
+        github.event.comment.author_association == 'MEMBER' ||
+        github.event.comment.author_association == 'COLLABORATOR'
       )
     runs-on: ubuntu-latest
     permissions:
@@ -44,8 +35,7 @@ jobs:
               content: 'rocket'
             });
 
-      - name: Get PR details (for comment trigger)
-        if: github.event_name == 'issue_comment'
+      - name: Get PR details
         id: pr-comment
         uses: actions/github-script@v8
         with:
@@ -59,17 +49,9 @@ jobs:
             core.setOutput('head_sha', pr.data.head.sha);
             core.setOutput('pr_number', context.issue.number);
 
-      - name: Set PR details (for pull_request trigger)
-        if: github.event_name == 'pull_request'
-        id: pr-direct
-        run: |
-          echo "head_ref=${{ github.head_ref }}" >> $GITHUB_OUTPUT
-          echo "head_sha=${{ github.event.pull_request.head.sha }}" >> $GITHUB_OUTPUT
-          echo "pr_number=${{ github.event.pull_request.number }}" >> $GITHUB_OUTPUT
-
       - uses: actions/checkout@v6
         with:
-          ref: ${{ steps.pr-comment.outputs.head_sha || steps.pr-direct.outputs.head_sha }}
+          ref: ${{ steps.pr-comment.outputs.head_sha }}
 
       - name: Verify database migrations combined
         id: db-verify
@@ -93,13 +75,6 @@ jobs:
         id: lint
         run: npm run lint
 
-      - name: Setup env files for web apps
-        id: setup-env
-        run: |
-          cp apps/web/env/local.env apps/web/.env
-          cp apps/management-web/env/local.env apps/management-web/.env
-          echo "✓ Copied local.env files for CI build"
-
       - name: Build apps
         id: build-apps
         run: npm run build:apps
@@ -109,7 +84,7 @@ jobs:
         uses: actions/github-script@v8
         env:
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-          PR_NUMBER: ${{ steps.pr-comment.outputs.pr_number || steps.pr-direct.outputs.pr_number }}
+          PR_NUMBER: ${{ steps.pr-comment.outputs.pr_number }}
         with:
           script: |
             const body = [
@@ -139,7 +114,7 @@ jobs:
         if: success()
         uses: actions/github-script@v8
         env:
-          HEAD_SHA: ${{ steps.pr-comment.outputs.head_sha || steps.pr-direct.outputs.head_sha }}
+          HEAD_SHA: ${{ steps.pr-comment.outputs.head_sha }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         with:
           script: |
@@ -158,7 +133,7 @@ jobs:
         uses: actions/github-script@v8
         env:
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-          PR_NUMBER: ${{ steps.pr-comment.outputs.pr_number || steps.pr-direct.outputs.pr_number }}
+          PR_NUMBER: ${{ steps.pr-comment.outputs.pr_number }}
           DB_VERIFY: ${{ steps.db-verify.outcome }}
           INSTALL: ${{ steps.install.outcome }}
           LINT: ${{ steps.lint.outcome }}
@@ -201,7 +176,7 @@ jobs:
         if: failure()
         uses: actions/github-script@v8
         env:
-          HEAD_SHA: ${{ steps.pr-comment.outputs.head_sha || steps.pr-direct.outputs.head_sha }}
+          HEAD_SHA: ${{ steps.pr-comment.outputs.head_sha }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         with:
           script: |

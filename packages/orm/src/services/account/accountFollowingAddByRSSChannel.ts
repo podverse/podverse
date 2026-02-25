@@ -1,12 +1,24 @@
-import { EntityManager, FindManyOptions } from 'typeorm';
-import { AccountFollowingAddByRSSChannel } from '@orm/entities/account/accountFollowingAddByRSSChannel';
-import { BaseManyService } from '@orm/services/base/baseManyService';
-import { AccountService } from '@orm/services/account/account';
+import type { EntityManager, FindManyOptions } from 'typeorm';
+import { AccountFollowingAddByRSSChannel } from '@orm/entities/account/accountFollowingAddByRSSChannel.js';
+import { BaseManyService } from '@orm/services/base/baseManyService.js';
+import { AccountService } from '@orm/services/account/account.js';
+import {
+  decryptCredentials,
+  encryptCredentials,
+  isEncryptionConfigured,
+} from '@orm/lib/credentialsEncryption.js';
 
 export type AccountFollowingAddByRSSChannelDto = {
   feed_url: string;
   title?: string | null;
   image_url?: string | null;
+  basic_auth_username?: string | null;
+  basic_auth_password?: string | null;
+};
+
+export type AddByRSSFeedCredentials = {
+  username: string;
+  password: string;
 };
 
 export class AccountFollowingAddByRSSChannelService extends BaseManyService<
@@ -29,7 +41,44 @@ export class AccountFollowingAddByRSSChannelService extends BaseManyService<
       throw new Error('Account not found.');
     }
 
-    return this._getAll(account, config);
+    const safeSelect: (keyof AccountFollowingAddByRSSChannel)[] = [
+      'account_id',
+      'feed_url',
+      'title',
+      'image_url',
+      'basic_auth_username',
+    ];
+    const mergedConfig: FindManyOptions<AccountFollowingAddByRSSChannel> = {
+      select: safeSelect,
+      ...config,
+    };
+    const rows = await this._getAll(account, mergedConfig);
+    return rows.map((row) => {
+      if (row.basic_auth_username?.startsWith('v1:')) {
+        return { ...row, basic_auth_username: '[saved]' as string | null };
+      }
+      return row;
+    });
+  }
+
+  async getCredentialsForFeed(
+    account_id: number,
+    feed_url: string
+  ): Promise<AddByRSSFeedCredentials | null> {
+    const account = await this.accountService.get(account_id);
+    if (!account) {
+      return null;
+    }
+    const row = await this._get(account, { feed_url });
+    if (!row?.basic_auth_username || !row?.basic_auth_password) {
+      return null;
+    }
+    const username = decryptCredentials(row.basic_auth_username);
+    const password = decryptCredentials(row.basic_auth_password);
+    if (username === null || password === null) {
+      return null;
+    }
+    return { username, password };
   }
 
   async addOrUpdateRSSChannel(
@@ -41,7 +90,24 @@ export class AccountFollowingAddByRSSChannelService extends BaseManyService<
       throw new Error('Account not found.');
     }
 
-    return this._update(account, ['account_id', 'feed_url'], dto);
+    let payload = dto;
+    if (
+      isEncryptionConfigured() &&
+      dto.basic_auth_username !== undefined &&
+      dto.basic_auth_username !== null &&
+      dto.basic_auth_username !== '' &&
+      dto.basic_auth_password !== undefined &&
+      dto.basic_auth_password !== null &&
+      dto.basic_auth_password !== ''
+    ) {
+      payload = {
+        ...dto,
+        basic_auth_username: encryptCredentials(dto.basic_auth_username),
+        basic_auth_password: encryptCredentials(dto.basic_auth_password),
+      };
+    }
+
+    return this._update(account, ['account_id', 'feed_url'], payload);
   }
 
   async removeRSSChannel(account_id: number, feed_url: string): Promise<void> {

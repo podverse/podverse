@@ -1,11 +1,12 @@
-import { getSelectedLabeledItemEnclosureAndSource, LabeledItemEnclosure } from '@podverse/helpers';
+import type { LabeledItemEnclosure } from '@podverse/helpers';
+import { getDownloadFilenameFromSource } from '@podverse/helpers';
 import { Fragment } from 'react';
 import { useTranslations } from 'next-intl';
 import { SourceSelectorRow } from './SourceSelectorRow';
 import { Divider } from '../Divider/Divider';
 import { useMediaPlayer } from '../../contexts/MediaPlayer';
 import { useModals } from '../../contexts/Modals';
-import { showToastPromiseWithLoading } from '../Toast/Toast';
+import { showToast, showToastPromiseWithLoading } from '../Toast/Toast';
 import { downloadAndSaveFile } from '../../utils/fileDownloader';
 import styles from '../../styles/components/SourceSelectors/SourceSelectors.module.scss';
 
@@ -45,41 +46,37 @@ export const SourceSelectors = ({
           sourceRowSelected: sourceIndex,
         });
       } else if (actionType === 'download-episode') {
-        const selectedItemEnclosureAndSource = getSelectedLabeledItemEnclosureAndSource({
-          labeledItemEnclosures: labeledItemEnclosures,
-          type: null,
-          enclosureRowIndex: enclosureIndex,
-          sourceRowIndex: sourceIndex,
+        if (!source.uri) {
+          showToast(tFeatures('download.episode_download_error'), 'error');
+          return;
+        }
+        const filename = getDownloadFilenameFromSource({
+          itemTitle,
+          sourceUri: source.uri,
+          fallbackFilename: 'episode.mp3',
         });
 
-        const selectedItemEnclosureUrl = selectedItemEnclosureAndSource.source?.uri;
-
-        showToastPromiseWithLoading(
-          downloadAndSaveFile(selectedItemEnclosureUrl, itemTitle || 'episode.mp3'),
-          {
-            loading: tFeatures('download.downloading_episode'),
-            success: tFeatures('download.episode_downloaded'),
-            error: tFeatures('download.episode_download_error'),
-          }
-        );
+        showToastPromiseWithLoading(downloadAndSaveFile(source.uri, filename), {
+          loading: tFeatures('download.downloading_episode'),
+          success: tFeatures('download.episode_downloaded'),
+          error: tFeatures('download.episode_download_error'),
+        });
       } else if (actionType === 'download-track') {
-        const selectedItemEnclosureAndSource = getSelectedLabeledItemEnclosureAndSource({
-          labeledItemEnclosures: labeledItemEnclosures,
-          type: null,
-          enclosureRowIndex: enclosureIndex,
-          sourceRowIndex: sourceIndex,
+        if (!source.uri) {
+          showToast(tFeatures('download.track_download_error'), 'error');
+          return;
+        }
+        const filename = getDownloadFilenameFromSource({
+          itemTitle,
+          sourceUri: source.uri,
+          fallbackFilename: 'track.mp3',
         });
 
-        const selectedItemEnclosureUrl = selectedItemEnclosureAndSource.source?.uri;
-
-        showToastPromiseWithLoading(
-          downloadAndSaveFile(selectedItemEnclosureUrl, itemTitle || 'track.mp3'),
-          {
-            loading: tFeatures('download.downloading_track'),
-            success: tFeatures('download.track_downloaded'),
-            error: tFeatures('download.track_download_error'),
-          }
-        );
+        showToastPromiseWithLoading(downloadAndSaveFile(source.uri, filename), {
+          loading: tFeatures('download.downloading_track'),
+          success: tFeatures('download.track_downloaded'),
+          error: tFeatures('download.track_download_error'),
+        });
       }
     }
 

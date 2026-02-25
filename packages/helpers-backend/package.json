@@ -1,6 +1,6 @@
 {
   "name": "@podverse/helpers-backend",
-  "version": "5.2.5",
+  "version": "5.4.1",
   "description": "Backend utilities for Podverse applications",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -28,6 +28,7 @@
     "winston-transport": "^4.9.0"
   },
   "devDependencies": {
-    "@types/node": "^24.4.0"
-  }
+    "@types/node": "^24.10.12"
+  },
+  "type": "module"
 }

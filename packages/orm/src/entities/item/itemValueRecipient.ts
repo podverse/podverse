@@ -1,15 +1,16 @@
 import { DATABASE_CONSTANTS } from '@podverse/helpers';
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from 'typeorm';
-import { ItemValue } from '@orm/entities/item/itemValue';
+import type { Relation } from 'typeorm';
+import type { ItemValue } from '@orm/entities/item/itemValue.js';
 
 @Entity()
 export class ItemValueRecipient {
   @PrimaryGeneratedColumn()
   id!: number;
 
-  @ManyToOne(() => ItemValue, (itemValue) => itemValue.id, { onDelete: 'CASCADE' })
+  @ManyToOne('ItemValue', (itemValue: ItemValue) => itemValue.id, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'item_value_id' })
-  item_value!: ItemValue;
+  item_value!: Relation<ItemValue>;
 
   @Column({ type: 'varchar', length: DATABASE_CONSTANTS.varchar_short })
   type!: string;

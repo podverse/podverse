@@ -1,39 +1,11 @@
-import { Request, Response } from 'express';
+import type { Request, Response } from 'express';
 import Joi from 'joi';
-import {
-  ACCOUNT_FCM_DEVICE_PLATFORM_VALUES,
-  AccountFCMDevicePlatformValues,
-} from '@podverse/helpers';
+import type { AccountFCMDevicePlatformValues } from '@podverse/helpers';
+import { ACCOUNT_FCM_DEVICE_PLATFORM_VALUES } from '@podverse/helpers';
 import { AccountFCMDeviceService } from '@podverse/orm';
-import { handleGenericErrorResponse } from '@api/controllers/helpers/error';
-import { validateBodyObject } from '@api/lib/validation';
-import { ensureAuthenticated, getAuthenticatedUser } from '@api/lib/auth';
-
-const createAccountFCMDeviceSchema = Joi.object({
-  fcm_token: Joi.string().required(),
-  installation_id: Joi.string().required(),
-  platform: Joi.string()
-    .valid(...ACCOUNT_FCM_DEVICE_PLATFORM_VALUES)
-    .required(),
-});
-
-const updateAccountFCMDeviceSchema = Joi.object({
-  new_fcm_token: Joi.string().required(),
-  installation_id: Joi.string().required(),
-  previous_fcm_token: Joi.string().required().allow(null),
-  platform: Joi.string()
-    .valid(...ACCOUNT_FCM_DEVICE_PLATFORM_VALUES)
-    .required(),
-});
-
-const deleteAccountFCMDeviceSchema = Joi.object({
-  fcm_token: Joi.string().required().allow(null),
-  installation_id: Joi.string().required().allow(null),
-});
-
-const updateLocaleForAccountSchema = Joi.object({
-  locale: Joi.string().required(),
-});
+import { handleGenericErrorResponse } from '@api/controllers/helpers/error.js';
+import { localeBodySchema, validateBodyObject } from '@api/lib/validation/index.js';
+import { ensureAuthenticated, getAuthenticatedUser } from '@api/lib/auth/index.js';
 
 export class AccountFCMDeviceController {
   private static accountFCMDeviceService = new AccountFCMDeviceService();
@@ -43,7 +15,15 @@ export class AccountFCMDeviceController {
       req,
       res,
       async () => {
-        validateBodyObject(createAccountFCMDeviceSchema, req, res, async () => {
+        const bodySchema = Joi.object({
+          fcm_token: Joi.string().required(),
+          installation_id: Joi.string().required(),
+          platform: Joi.string()
+            .valid(...ACCOUNT_FCM_DEVICE_PLATFORM_VALUES)
+            .required(),
+        });
+
+        validateBodyObject(bodySchema, req, res, async () => {
           try {
             const jwtUser = getAuthenticatedUser(req);
             const { fcm_token, installation_id, platform } = req.body as {
@@ -72,7 +52,16 @@ export class AccountFCMDeviceController {
       req,
       res,
       async () => {
-        validateBodyObject(updateAccountFCMDeviceSchema, req, res, async () => {
+        const bodySchema = Joi.object({
+          new_fcm_token: Joi.string().required(),
+          installation_id: Joi.string().required(),
+          previous_fcm_token: Joi.string().required().allow(null),
+          platform: Joi.string()
+            .valid(...ACCOUNT_FCM_DEVICE_PLATFORM_VALUES)
+            .required(),
+        });
+
+        validateBodyObject(bodySchema, req, res, async () => {
           try {
             const jwtUser = getAuthenticatedUser(req);
             const { previous_fcm_token, new_fcm_token, installation_id, platform } = req.body as {
@@ -103,7 +92,12 @@ export class AccountFCMDeviceController {
       req,
       res,
       async () => {
-        validateBodyObject(deleteAccountFCMDeviceSchema, req, res, async () => {
+        const bodySchema = Joi.object({
+          fcm_token: Joi.string().required().allow(null),
+          installation_id: Joi.string().required().allow(null),
+        });
+
+        validateBodyObject(bodySchema, req, res, async () => {
           try {
             const jwtUser = getAuthenticatedUser(req);
             const { fcm_token, installation_id } = req.body as {
@@ -148,7 +142,7 @@ export class AccountFCMDeviceController {
       req,
       res,
       async () => {
-        validateBodyObject(updateLocaleForAccountSchema, req, res, async () => {
+        validateBodyObject(Joi.object(localeBodySchema), req, res, async () => {
           try {
             const jwtUser = getAuthenticatedUser(req);
             const { locale } = req.body as { locale: string };

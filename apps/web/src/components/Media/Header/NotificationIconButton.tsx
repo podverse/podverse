@@ -1,12 +1,12 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { DTOChannel } from '@podverse/helpers';
+import type { DTOChannel } from '@podverse/helpers';
 import { FaBell, FaBellSlash } from 'react-icons/fa6';
 import { useAccount } from '../../../contexts/Account';
 import { useModals } from '../../../contexts/Modals';
 import { IconButton } from '../Header/IconButton';
-import { apiRequestService } from '../../../factories/apiRequestService';
+import { getApiRequestService } from '../../../factories/apiRequestService';
 import { requestNotificationPermission } from '../../../lib/notifications/webpush/requestNotificationPermission';
 
 type NotificationIconButtonProps = {
@@ -18,6 +18,7 @@ export const NotificationIconButton: React.FC<NotificationIconButtonProps> = ({
   channel,
   kind,
 }) => {
+  const apiRequestService = getApiRequestService();
   if (kind === 'playlist') {
     return null;
   }

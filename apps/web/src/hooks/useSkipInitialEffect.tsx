@@ -1,4 +1,5 @@
-import { DependencyList, useEffect, useRef } from 'react';
+import type { DependencyList } from 'react';
+import { useEffect, useRef } from 'react';
 
 export function useSkipInitialEffect(effect: () => void | (() => void), deps: DependencyList) {
   const isFirst = useRef(true);

@@ -1,11 +1,11 @@
 'use client';
 
-import { DTOAccount } from '@podverse/helpers';
+import type { DTOAccount } from '@podverse/helpers';
 import React from 'react';
 import { useRouter } from 'next/navigation';
 import { SubscribeButton } from '../Header/SubscribeButton';
 import { ROUTES } from '../../../constants/routes';
-import styles from '../../../styles/components/Media/Header/HeaderButtons.module.scss';
+import styles from '../../../styles/components/Common/Media/Header/HeaderButtons.module.scss';
 
 type ProfileHeaderButtonsProps = {
   account: DTOAccount;

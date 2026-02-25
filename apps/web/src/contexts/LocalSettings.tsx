@@ -1,9 +1,10 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { UITheme, toUITheme } from '../utils/localSettings/uiTheme';
-import { ViewSelectedOption } from '../components/ViewSelector/ViewSelector';
+import type { UITheme } from '../utils/localSettings/uiTheme';
+import { toUITheme } from '../utils/localSettings/uiTheme';
+import type { ViewSelectedOption } from '../components/ViewSelector/ViewSelector';
+import type { LocalSettingsState } from '../utils/localSettings/localSettings';
 import {
   handleLocalSettingsUpdate,
-  LocalSettingsState,
   getParsedLocalSettings,
 } from '../utils/localSettings/localSettings';
 
@@ -16,6 +17,8 @@ type LocalSettingsContextType = {
   setServerEnvironmentDisclaimerAccepted: (accepted: boolean) => void;
   lsAutoQueueConfig: LocalSettingsState['aqc'];
   setLSAutoQueueConfig: React.Dispatch<React.SetStateAction<LocalSettingsState['aqc']>>;
+  sidebarAccordion: LocalSettingsState['sba'];
+  setSidebarAccordion: React.Dispatch<React.SetStateAction<LocalSettingsState['sba']>>;
 };
 
 type LocalSettingsProps = {
@@ -36,6 +39,9 @@ export const LocalSettingsProvider: React.FC<LocalSettingsProps> = ({
   const [lsAutoQueueConfig, setLSAutoQueueConfig] = useState(
     ssrLocalSettings.aqc || { rp: false, rd: false }
   );
+  const [sidebarAccordion, setSidebarAccordion] = useState(
+    ssrLocalSettings.sba || { podcasts: true, music: true, addByRSS: true, library: true }
+  );
 
   useEffect(() => {
     const existingSettings = getParsedLocalSettings();
@@ -46,10 +52,17 @@ export const LocalSettingsProvider: React.FC<LocalSettingsProps> = ({
       vs: viewSelected,
       seda: serverEnvironmentDisclaimerAccepted,
       aqc: lsAutoQueueConfig,
+      sba: sidebarAccordion,
       fd: existingSettings.fd,
       metd: existingSettings.metd,
     });
-  }, [uiTheme, viewSelected, serverEnvironmentDisclaimerAccepted, lsAutoQueueConfig]);
+  }, [
+    uiTheme,
+    viewSelected,
+    serverEnvironmentDisclaimerAccepted,
+    lsAutoQueueConfig,
+    sidebarAccordion,
+  ]);
 
   return (
     <LocalSettingsContext.Provider
@@ -62,6 +75,8 @@ export const LocalSettingsProvider: React.FC<LocalSettingsProps> = ({
         setServerEnvironmentDisclaimerAccepted,
         lsAutoQueueConfig,
         setLSAutoQueueConfig,
+        sidebarAccordion,
+        setSidebarAccordion,
       }}
     >
       {children}

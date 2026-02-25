@@ -1,47 +1,29 @@
-import { Request, Response } from 'express';
+import type { Request, Response } from 'express';
 import Joi from 'joi';
-import { PlaylistResourceIdTextOptions } from '@podverse/helpers';
-import { FindManyOptions, PlaylistResource, PlaylistResourceService } from '@podverse/orm';
-import { handleGenericErrorResponse } from '../helpers/error';
-import { validateParamsObject, validateQueryObject } from '@api/lib/validation';
-import { verifyPlaylistOwnership, verifyPrivatePlaylistOwnershipIfNeeded } from './playlist';
+import type { PlaylistResourceIdTextOptions } from '@podverse/helpers';
+import type { FindManyOptions, PlaylistResource } from '@podverse/orm';
+import { PlaylistResourceService } from '@podverse/orm';
+import { handleGenericErrorResponse } from '../helpers/error.js';
+import {
+  pageDefaultQuerySchema,
+  playlistIdTextParamSchema,
+  validateParamsObject,
+  validateQueryObject,
+} from '@api/lib/validation/index.js';
+import { verifyPlaylistOwnership, verifyPrivatePlaylistOwnershipIfNeeded } from './playlist.js';
 import {
   ensureAuthenticated,
   optionalEnsureAuthenticated,
   getAuthenticatedUser,
-} from '@api/lib/auth';
-import { getPaginationParams } from '../helpers/pagination';
-import { getParamRequired } from '@api/lib/params';
-
-const playlistIdSchema = Joi.object({
-  playlist_id_text: Joi.string().required(),
-});
-
-const getManyForQueueByListPositionParamsSchema = Joi.object({
-  playlist_id_text: Joi.string().required(),
-});
-
-const getManyForQueueByListPositionQuerySchema = Joi.object({
-  item_id_text: Joi.string().optional(),
-  clip_id_text: Joi.string().optional(),
-  item_soundbite_id_text: Joi.string().optional(),
-  direction: Joi.string().valid('forward', 'backward').required(),
-});
-
-const getManyByPlaylistShuffleParamsSchema = Joi.object({
-  playlist_id_text: Joi.string().required(),
-});
-
-const getManyByPlaylistShuffleQuerySchema = Joi.object({
-  shuffleHash: Joi.string().required(),
-  page: Joi.number().integer().min(1).default(1),
-});
+} from '@api/lib/auth/index.js';
+import { getPaginationParams } from '../helpers/pagination.js';
+import { getParamRequired } from '@api/lib/params.js';
 
 class PlaylistResourceController {
   private static playlistResourceService = new PlaylistResourceService();
 
   static async getAllByPlaylistIdTextPrivate(req: Request, res: Response): Promise<void> {
-    validateParamsObject(playlistIdSchema, req, res, async () => {
+    validateParamsObject(Joi.object(playlistIdTextParamSchema), req, res, async () => {
       ensureAuthenticated(
         req,
         res,
@@ -69,8 +51,15 @@ class PlaylistResourceController {
   }
 
   static async getManyForQueueByListPosition(req: Request, res: Response): Promise<void> {
-    validateParamsObject(getManyForQueueByListPositionParamsSchema, req, res, async () => {
-      validateQueryObject(getManyForQueueByListPositionQuerySchema, req, res, async () => {
+    const querySchema = Joi.object({
+      item_id_text: Joi.string().optional(),
+      clip_id_text: Joi.string().optional(),
+      item_soundbite_id_text: Joi.string().optional(),
+      direction: Joi.string().valid('forward', 'backward').required(),
+    });
+
+    validateParamsObject(Joi.object(playlistIdTextParamSchema), req, res, async () => {
+      validateQueryObject(querySchema, req, res, async () => {
         optionalEnsureAuthenticated(
           req,
           res,
@@ -122,8 +111,13 @@ class PlaylistResourceController {
   }
 
   static async getManyByPlaylistShuffle(req: Request, res: Response): Promise<void> {
-    validateParamsObject(getManyByPlaylistShuffleParamsSchema, req, res, async () => {
-      validateQueryObject(getManyByPlaylistShuffleQuerySchema, req, res, async () => {
+    const querySchema = Joi.object({
+      ...pageDefaultQuerySchema,
+      shuffleHash: Joi.string().required(),
+    });
+
+    validateParamsObject(Joi.object(playlistIdTextParamSchema), req, res, async () => {
+      validateQueryObject(querySchema, req, res, async () => {
         optionalEnsureAuthenticated(
           req,
           res,
@@ -167,7 +161,7 @@ class PlaylistResourceController {
   }
 
   static async getManyByPlaylistIdText(req: Request, res: Response): Promise<void> {
-    validateParamsObject(playlistIdSchema, req, res, async () => {
+    validateParamsObject(Joi.object(playlistIdTextParamSchema), req, res, async () => {
       optionalEnsureAuthenticated(
         req,
         res,

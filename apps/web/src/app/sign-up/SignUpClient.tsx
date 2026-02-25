@@ -5,9 +5,10 @@ import { MainInnerWrapper } from '../../components/Main/MainInnerWrapper';
 import { MainWrapper } from '../../components/Main/MainWrapper';
 import { AuthSignUpForm } from '../../components/Auth/AuthSignUpForm';
 import { AuthContactOnlyMessage } from '../../components/Auth/AuthContactOnlyMessage';
-import { config } from '../../config';
+import { getConfig } from '../../config';
 
 export function SignUpClient() {
+  const config = getConfig();
   const tAuthentication = useTranslations('authentication');
   const signupMode = config.public.account.signupMode;
   const contactEmail = config.public.account.contactEmail;

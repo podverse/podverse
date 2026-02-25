@@ -1,4 +1,4 @@
-import { DTOItemChapter } from '@podverse/helpers';
+import type { DTOItemChapter } from '@podverse/helpers';
 
 type ChapterNavigationParams = {
   currentChapter: DTOItemChapter;

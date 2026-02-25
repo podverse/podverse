@@ -1,26 +1,30 @@
 'use client';
 
 import { useLocale, useTranslations } from 'next-intl';
-import { formatDateAbbrev, PodcastByIdFeed } from '@podverse/helpers';
+import type { PodcastByIdFeed } from '@podverse/helpers';
+import { formatDateAbbrev } from '@podverse/helpers';
+import { useState, useRef, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { FaPlus, FaRss } from 'react-icons/fa6';
 import { Image } from '../Image/Image';
 import { IMAGES } from '../../constants/images';
 import { Button } from '../Button/Button';
-import { FaPlus, FaRss } from 'react-icons/fa6';
-import styles from '../../styles/components/PodcastIndex/PodcastIndexFeedInfo.module.scss';
-import { useState, useRef, useEffect } from 'react';
-import { apiRequestService } from '../../factories/apiRequestService';
+import { getApiRequestService } from '../../factories/apiRequestService';
 import { handleRateLimitAlert } from '../../utils/rateLimit/rateLimitAlert';
-import { useRouter } from 'next/navigation';
 import { redirectToChannelPageByMediumClient } from '../../utils/redirect/redirectToChannelPageByMedium';
 import { useAccount } from '../../contexts/Account';
+import { useConfig } from '../../contexts/Config';
 import { useModals } from '../../contexts/Modals';
-import { config } from '../../config';
+
+import styles from '../../styles/components/PodcastIndex/PodcastIndexFeedInfo.module.scss';
 
 type PodcastIndexFeedInfoProps = {
   podcastIndexFeed: PodcastByIdFeed;
 };
 
 export const PodcastIndexFeedInfo: React.FC<PodcastIndexFeedInfoProps> = ({ podcastIndexFeed }) => {
+  const config = useConfig();
+  const apiRequestService = getApiRequestService();
   const tFeatures = useTranslations('features');
   const tMedia = useTranslations('media');
   const tMisc = useTranslations('misc');

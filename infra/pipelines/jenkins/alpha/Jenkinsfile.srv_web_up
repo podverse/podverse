@@ -58,7 +58,9 @@ pipeline {
 
                         sh '''#!/bin/bash
                             set -euo pipefail
-                            sed -e "s|REPLACE_WITH_WEB_VERSION|''' + webVersion + '''|g" docker-compose.yml.template > docker-compose.yml
+                            sed -e "s|REPLACE_WITH_WEB_VERSION|''' + webVersion + '''|g" \
+                                -e "s|REPLACE_WITH_WEB_RUNTIME_CONFIG_VERSION|''' + webVersion + '''|g" \
+                                docker-compose.yml.template > docker-compose.yml
                         '''
                     }
                 }

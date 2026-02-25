@@ -1,6 +1,6 @@
-import { ApiRequestService } from '../../_request';
-import { DTOAccount } from '@podverse/helpers';
-import { reqAuthMe } from '../../auth/auth';
+import type { ApiRequestService } from '../../_request.js';
+import type { DTOAccount } from '@podverse/helpers';
+import { reqAuthMe } from '../../auth/auth.js';
 
 type ReqAccountFollowParams = {
   following_account_id_text: string;

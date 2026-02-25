@@ -1,6 +1,6 @@
 {
   "name": "@podverse/qa",
-  "version": "5.2.5",
+  "version": "5.4.1",
   "description": "QA tools and faker utilities for Podverse testing",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -19,18 +19,17 @@
   },
   "license": "AGPL-3.0",
   "dependencies": {
-    "@faker-js/faker": "^10.0.0",
-    "@podverse/external-services": "*",
+    "@faker-js/faker": "^10.3.0",
     "@podverse/helpers": "*",
     "@podverse/helpers-backend": "*",
     "@podverse/orm": "*",
     "@podverse/parser": "*",
-    "module-alias": "^2.2.3"
+    "module-alias": "^2.3.3"
   },
   "devDependencies": {
     "@dotenvx/dotenvx": "^1.49.0",
     "@types/module-alias": "^2.0.4",
-    "@types/node": "^25.0.10",
+    "@types/node": "^24.10.12",
     "nodemon": "^3.1.10",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.2"

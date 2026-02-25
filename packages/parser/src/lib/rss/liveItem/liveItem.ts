@@ -1,20 +1,15 @@
-import { Phase4PodcastLiveItem } from 'podverse-partytime/dist/parser/phase/phase-4';
-import { chunkArray } from '@podverse/helpers';
-import {
-  AppDataSourceReadWrite,
-  Channel,
-  ChannelSeasonIndex,
-  getLiveItemStatusEnumValue,
-  ItemService,
-  LiveItemService,
-  LiveItemStatusEnum,
-  LiveItem,
-} from '@podverse/orm';
-import { compatLiveItemsDtos } from '@parser/lib/compat/partytime/liveItem';
-import { createItemTimerAccumulator, handleParsedItem } from '@parser/lib/rss/item/item';
+import type { Episode } from 'podverse-partytime';
+import type { Phase4PodcastLiveItem } from 'podverse-partytime/dist/parser/phase/phase-4.js';
+import { chunkArray, getLiveItemStatusEnumValue, LiveItemStatusEnum } from '@podverse/helpers';
+import type { Channel, ChannelSeasonIndex, EntityManager, LiveItem } from '@podverse/orm';
+import { AppDataSourceReadWrite, ItemService, LiveItemService } from '@podverse/orm';
+import type { CompatLiveItemDto } from '@podverse/parser-mapping';
+import { compatLiveItemsDtos } from '@podverse/parser-mapping';
+import type { ItemTimerAccumulator } from '@parser/lib/rss/item/item.js';
+import { createItemTimerAccumulator, handleParsedItem } from '@parser/lib/rss/item/item.js';
 import { ItemFlagStatusStatusEnum } from '@podverse/orm';
-import { timerManager } from '@parser/factories/timerManager';
-import { loggerService } from '@parser/factories/loggerService';
+import { timerManager } from '@parser/factories/timerManager.js';
+import { loggerService } from '@parser/factories/loggerService.js';
 
 export type HandleParsedLiveItemsResult = {
   /** GUIDs of live items that are new or changed to "pending" status */
@@ -23,12 +18,7 @@ export type HandleParsedLiveItemsResult = {
   liveItemGuids: string[];
 };
 
-type LiveItemObjDto = {
-  item: Phase4PodcastLiveItem;
-  // TODO: how to replace this any?
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  liveItem: any; // Replace with the correct type if available
-};
+type LiveItemObjDto = CompatLiveItemDto;
 
 const processLiveItemBatch = async (
   liveItemObjDtosBatch: LiveItemObjDto[],
@@ -38,17 +28,15 @@ const processLiveItemBatch = async (
   updatedLiveItemIds: number[],
   pendingItemGuids: string[],
   liveItemGuids: string[],
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  transactionalEntityManager: any,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  timerAccumulator: any,
+  transactionalEntityManager: EntityManager,
+  timerAccumulator: ItemTimerAccumulator,
   liveItemService: LiveItemService
 ) => {
   for (const liveItemObjDto of liveItemObjDtosBatch) {
     const itemDto = liveItemObjDto.item;
 
     const item = await handleParsedItem({
-      parsedItem: itemDto,
+      parsedItem: itemDto as Episode,
       channel,
       channelSeasonIndex,
       transactionalEntityManager,

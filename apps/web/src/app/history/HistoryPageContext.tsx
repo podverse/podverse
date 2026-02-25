@@ -1,14 +1,11 @@
 'use client';
 
-import {
-  DTOQueue,
-  DTOQueueResource,
-  getQueueMediumIdFromType,
-  getTotalPages,
-} from '@podverse/helpers';
-import { QueryParamsHistory } from '@podverse/helpers-requests';
-import { createContext, useContext, useState, ReactNode, useEffect, useRef } from 'react';
-import { apiRequestService } from '../../factories/apiRequestService';
+import type { DTOQueue, DTOQueueResource } from '@podverse/helpers';
+import { getQueueMediumIdFromType, getTotalPages } from '@podverse/helpers';
+import type { QueryParamsHistory } from '@podverse/helpers-requests';
+import type { ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, useRef } from 'react';
+import { getApiRequestService } from '../../factories/apiRequestService';
 import { useAccount } from '../../contexts/Account';
 import { checkBackNavFlag } from '../../contexts/Navigation';
 import { usePageStateCache } from '../../hooks/usePageStateCache';
@@ -102,10 +99,11 @@ export const HistoryPageContextProvider = ({
       const currentQueue = ssrQueues.find((q) => q.medium_id === currentMediumId);
 
       if (currentQueue) {
-        const response = await apiRequestService.reqQueueResourcesGetHistoryByQueueIdTextPaginated(
-          currentQueue.id_text,
-          filterParams.page
-        );
+        const response =
+          await getApiRequestService().reqQueueResourcesGetHistoryByQueueIdTextPaginated(
+            currentQueue.id_text,
+            filterParams.page
+          );
         setQueueResources(response.data);
         const totalPages = getTotalPages(
           response.meta.count,

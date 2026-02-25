@@ -1,6 +1,7 @@
-import { DTOItemEnclosureSource } from 'src/dtos';
-import { DTOItemEnclosure } from '../../dtos/item/itemEnclosure';
-import { formatBitrate, FormattedBitrate } from '../bitrate';
+import type { DTOItemEnclosureSource } from '../../dtos/index.js';
+import type { DTOItemEnclosure } from '../../dtos/item/itemEnclosure.js';
+import type { FormattedBitrate } from '../bitrate.js';
+import { formatBitrate } from '../bitrate.js';
 
 const EXTENSION_MEDIA_TYPE_MAP: Record<string, 'audio' | 'video'> = {
   mp3: 'audio',
@@ -52,8 +53,8 @@ export function getSelectedLabeledItemEnclosureAndSource({
     return { labeledItemEnclosure: null, source: null };
   }
 
-  let labeledItemEnclosure: LabeledItemEnclosure | null = null;
-  let source: DTOItemEnclosureSource | null = null;
+  let labeledItemEnclosure: LabeledItemEnclosure | null;
+  let source: DTOItemEnclosureSource | null;
 
   // Helper to get first enclosure of a given mediaType
   const getFirstOfType = (mediaType: 'audio' | 'video') =>

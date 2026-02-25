@@ -24,6 +24,12 @@
       "options": {
         "singleQuote": false
       }
+    },
+    {
+      "files": ["*.md", "*.mdc"],
+      "options": {
+        "embeddedLanguageFormatting": "off"
+      }
     }
   ]
 }

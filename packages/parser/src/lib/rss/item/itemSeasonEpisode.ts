@@ -1,7 +1,8 @@
-import { Episode } from 'podverse-partytime';
-import { EntityManager, Item, ItemSeasonEpisodeService } from '@podverse/orm';
-import { compatItemSeasonEpisodeDto } from '@parser/lib/compat/partytime/item';
-import { handleParsedOneData } from '../base/handleParsedOneData';
+import type { Episode } from 'podverse-partytime';
+import type { EntityManager, Item } from '@podverse/orm';
+import { ItemSeasonEpisodeService } from '@podverse/orm';
+import { compatItemSeasonEpisodeDto } from '@podverse/parser-mapping';
+import { handleParsedOneData } from '../base/handleParsedOneData.js';
 
 export const handleParsedItemSeasonEpisode = async (
   parsedItem: Episode,

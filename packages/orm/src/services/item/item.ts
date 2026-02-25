@@ -1,40 +1,30 @@
-import { getMediumIdArrayFromType, PAGINATION, QueryParamsMedium } from '@podverse/helpers';
-import {
-  FindManyOptions,
-  FindOptionsRelations,
-  FindOptionsWhere,
-  In,
-  IsNull,
-  Not,
-  Repository,
-  MoreThan,
-  LessThan,
-  Equal,
-  Brackets,
-} from 'typeorm';
-import { Channel } from '@orm/entities/channel/channel';
-import { Item } from '@orm/entities/item/item';
-import { applyProperties } from '@orm/lib/applyProperties';
-import { AppDataSourceRead, AppDataSourceReadWrite } from '@orm/db';
-import { ItemChaptersFeedService } from './itemChaptersFeed';
-import { ItemEnclosureService } from './itemEnclosure';
-import { ItemContentLinkService } from './itemContentLink';
-import { ItemFundingService } from './itemFunding';
-import { ItemImageService } from './itemImage';
-import { ItemPersonService } from './itemPerson';
-import { ItemSocialInteractService } from './itemSocialInteract';
-import { ItemSoundbiteService } from './itemSoundbite';
-import { ItemTranscriptService } from './itemTranscript';
-import { ItemTxtService } from './itemTxt';
-import { ItemValueService } from './itemValue';
-import { ItemValueRecipientService } from './itemValueRecipient';
-import { ItemValueTimeSplitService } from './itemValueTimeSplit';
-import { ItemValueTimeSplitRecipientService } from './itemValueTimeSplitRecipient';
-import { ItemValueTimeSplitRemoteItemService } from './itemValueTimeSplitRemoteItem';
-import { ItemValueTimeSplit } from '@orm/entities/item/itemValueTimeSplit';
-import { ItemFlagStatusService } from './itemFlagStatus';
-import { ItemFlagStatusStatusEnum } from '@orm/entities/item/itemFlagStatus';
-import { getLiveItemStatusEnumValue } from '@orm/entities/liveItem/liveItemStatus';
+import type { QueryParamsMedium } from '@podverse/helpers';
+import { getMediumIdArrayFromType, PAGINATION } from '@podverse/helpers';
+import type { FindManyOptions, FindOptionsRelations, FindOptionsWhere, Repository } from 'typeorm';
+import { In, IsNull, Not, MoreThan, LessThan, Equal, Brackets } from 'typeorm';
+import type { Channel } from '@orm/entities/channel/channel.js';
+import { Item } from '@orm/entities/item/item.js';
+import { applyProperties } from '@orm/lib/applyProperties.js';
+import { AppDataSourceRead, AppDataSourceReadWrite } from '@orm/db/index.js';
+import { ItemChaptersFeedService } from './itemChaptersFeed.js';
+import { ItemEnclosureService } from './itemEnclosure.js';
+import { ItemContentLinkService } from './itemContentLink.js';
+import { ItemFundingService } from './itemFunding.js';
+import { ItemImageService } from './itemImage.js';
+import { ItemPersonService } from './itemPerson.js';
+import { ItemSocialInteractService } from './itemSocialInteract.js';
+import { ItemSoundbiteService } from './itemSoundbite.js';
+import { ItemTranscriptService } from './itemTranscript.js';
+import { ItemTxtService } from './itemTxt.js';
+import { ItemValueService } from './itemValue.js';
+import { ItemValueRecipientService } from './itemValueRecipient.js';
+import { ItemValueTimeSplitService } from './itemValueTimeSplit.js';
+import { ItemValueTimeSplitRecipientService } from './itemValueTimeSplitRecipient.js';
+import { ItemValueTimeSplitRemoteItemService } from './itemValueTimeSplitRemoteItem.js';
+import type { ItemValueTimeSplit } from '@orm/entities/item/itemValueTimeSplit.js';
+import { ItemFlagStatusService } from './itemFlagStatus.js';
+import { ItemFlagStatusStatusEnum } from '@orm/entities/item/itemFlagStatus.js';
+import { getLiveItemStatusEnumValue } from '@orm/entities/liveItem/liveItemStatus.js';
 
 type ItemDto = {
   title: string | null;
@@ -233,7 +223,7 @@ export class ItemService {
     idOrIdText: string,
     relations: FindOptionsRelations<Item> = {}
   ): Promise<Item | null> {
-    let item = null;
+    let item: Item | null;
 
     if (isNaN(Number(idOrIdText))) {
       item = await this.getByIdText(idOrIdText, relations);
@@ -474,7 +464,7 @@ export class ItemService {
         .andWhere('item_flag_status.id = :status', { status: ItemFlagStatusStatusEnum.Active });
     };
 
-    let finalResults: Item[] = [];
+    let finalResults: Item[];
 
     if (currentSeasonNumber !== -1) {
       // Current item has an actual season number
@@ -663,7 +653,7 @@ export class ItemService {
         .andWhere('item_flag_status.id = :status', { status: ItemFlagStatusStatusEnum.Active });
     };
 
-    let finalResults: Item[] = [];
+    let finalResults: Item[];
 
     if (order === 'forward') {
       // Forward = unseasoned items first (DESC pub_date), then seasoned items (ASC season/episode)

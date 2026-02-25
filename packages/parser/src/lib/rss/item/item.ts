@@ -1,26 +1,27 @@
-import { Episode } from 'podverse-partytime';
+import type { Episode } from 'podverse-partytime';
 import { chunkArray, DATABASE_CONSTANTS, formatGuidEnclosureUrl } from '@podverse/helpers';
-import { AppDataSourceReadWrite, Channel, ChannelSeasonIndex, ItemService } from '@podverse/orm';
-import { compatItemDto } from '@parser/lib/compat/partytime/item';
-import { handleParsedItemAbout } from '@parser/lib/rss/item/itemAbout';
-import { handleParsedItemChaptersFeed } from '@parser/lib/rss/item/itemChaptersFeed';
-import { handleParsedItemDescription } from '@parser/lib/rss/item/itemDescription';
-import { handleParsedItemEnclosure } from '@parser/lib/rss/item/itemEnclosure';
-import { handleParsedItemImage } from '@parser/lib/rss/item/itemImage';
-import { handleParsedItemLicense } from '@parser/lib/rss/item/itemLicense';
-import { handleParsedItemLocation } from '@parser/lib/rss/item/itemLocation';
-import { handleParsedItemPerson } from '@parser/lib/rss/item/itemPerson';
-import { handleParsedItemSeason } from '@parser/lib/rss/item/itemSeason';
-import { handleParsedItemSeasonEpisode } from '@parser/lib/rss/item/itemSeasonEpisode';
-import { handleParsedItemSocialInteract } from '@parser/lib/rss/item/itemSocialInteract';
-import { handleParsedItemSoundbite } from '@parser/lib/rss/item/itemSoundbite';
-import { handleParsedItemTranscript } from '@parser/lib/rss/item/itemTranscript';
-import { handleParsedItemTxt } from '@parser/lib/rss/item/itemTxt';
-import { handleParsedItemValue } from '@parser/lib/rss/item/itemValue';
-import { handleParsedItemChat } from '@parser/lib/rss/item/itemChat';
+import type { Channel, ChannelSeasonIndex, EntityManager } from '@podverse/orm';
+import { AppDataSourceReadWrite, ItemService, ItemContentLinkService } from '@podverse/orm';
+import { compatItemDto, compatItemContentLinkDtos } from '@podverse/parser-mapping';
+import { handleParsedItemAbout } from '@parser/lib/rss/item/itemAbout.js';
+import { handleParsedItemChaptersFeed } from '@parser/lib/rss/item/itemChaptersFeed.js';
+import { handleParsedItemDescription } from '@parser/lib/rss/item/itemDescription.js';
+import { handleParsedItemEnclosure } from '@parser/lib/rss/item/itemEnclosure.js';
+import { handleParsedItemImage } from '@parser/lib/rss/item/itemImage.js';
+import { handleParsedItemLicense } from '@parser/lib/rss/item/itemLicense.js';
+import { handleParsedItemLocation } from '@parser/lib/rss/item/itemLocation.js';
+import { handleParsedItemPerson } from '@parser/lib/rss/item/itemPerson.js';
+import { handleParsedItemSeason } from '@parser/lib/rss/item/itemSeason.js';
+import { handleParsedItemSeasonEpisode } from '@parser/lib/rss/item/itemSeasonEpisode.js';
+import { handleParsedItemSocialInteract } from '@parser/lib/rss/item/itemSocialInteract.js';
+import { handleParsedItemSoundbite } from '@parser/lib/rss/item/itemSoundbite.js';
+import { handleParsedItemTranscript } from '@parser/lib/rss/item/itemTranscript.js';
+import { handleParsedItemTxt } from '@parser/lib/rss/item/itemTxt.js';
+import { handleParsedItemValue } from '@parser/lib/rss/item/itemValue.js';
+import { handleParsedItemChat } from '@parser/lib/rss/item/itemChat.js';
 import { ItemFlagStatusStatusEnum } from '@podverse/orm';
-import { timerManager } from '@parser/factories/timerManager';
-import { loggerService } from '@parser/factories/loggerService';
+import { timerManager } from '@parser/factories/timerManager.js';
+import { loggerService } from '@parser/factories/loggerService.js';
 
 const removeInvalidItems = (parsedItems: Episode[]): Episode[] => {
   const seenEnclosureUrls = new Set<string>();
@@ -44,11 +45,12 @@ const removeInvalidItems = (parsedItems: Episode[]): Episode[] => {
   }, [] as Episode[]);
 };
 
-type ItemTimerAccumulator = {
+export type ItemTimerAccumulator = {
   updateItem: number;
   handleParsedItemAbout: number;
   handleParsedItemChaptersFeed: number;
   handleParsedItemChat: number;
+  handleParsedItemContentLink: number;
   handleParsedItemDescription: number;
   handleParsedItemEnclosure: number;
   handleParsedItemImage: number;
@@ -68,19 +70,16 @@ type HandleParsedItemBatch = {
   parsedItemBatch: Episode[];
   channel: Channel;
   channelSeasonIndex: ChannelSeasonIndex;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  transactionalEntityManager?: any;
+  transactionalEntityManager?: EntityManager;
   updatedItemIds: number[];
   timerAccumulator: ItemTimerAccumulator;
 };
 
 type HandleParsedItem = {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  parsedItem: any;
+  parsedItem: Episode;
   channel: Channel;
   channelSeasonIndex: ChannelSeasonIndex;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  transactionalEntityManager?: any;
+  transactionalEntityManager?: EntityManager;
   timerAccumulator: ItemTimerAccumulator;
   isLiveItem?: boolean;
 };
@@ -91,6 +90,7 @@ export const createItemTimerAccumulator = (): ItemTimerAccumulator => {
     handleParsedItemAbout: 0,
     handleParsedItemChaptersFeed: 0,
     handleParsedItemChat: 0,
+    handleParsedItemContentLink: 0,
     handleParsedItemDescription: 0,
     handleParsedItemEnclosure: 0,
     handleParsedItemImage: 0,
@@ -267,14 +267,17 @@ export const handleParsedItem = async ({
     timerManager.end('handleParsedItemChat', preventTimerLog) +
     timerAccumulator.handleParsedItemChat;
 
-  // // PTDO: add itemContentLinkService support after partytime adds chat support
-  // const itemContentLinkService = new ItemContentLinkService();
-  // const itemContentLinkDtos = compatItemContentLinkDtos(parsedItem);
-  // if (itemContentLinkDtos.length) {
-  //   await itemContentLinkService.updateMany(item, itemContentLinkDtos);
-  // } else {
-  //   await itemContentLinkService._deleteAll(item);
-  // }
+  timerManager.start('handleParsedItemContentLink');
+  const itemContentLinkService = new ItemContentLinkService(transactionalEntityManager);
+  const itemContentLinkDtos = compatItemContentLinkDtos(parsedItem);
+  if (itemContentLinkDtos.length > 0) {
+    await itemContentLinkService.updateMany(item, itemContentLinkDtos);
+  } else {
+    await itemContentLinkService._deleteAll(item);
+  }
+  timerAccumulator.handleParsedItemContentLink =
+    timerManager.end('handleParsedItemContentLink', preventTimerLog) +
+    timerAccumulator.handleParsedItemContentLink;
 
   timerManager.start('handleParsedItemDescription');
   await handleParsedItemDescription(parsedItem, item, transactionalEntityManager);

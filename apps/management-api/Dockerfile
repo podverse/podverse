@@ -16,6 +16,7 @@ FROM deps AS builder
 
 COPY packages/ ./packages/
 COPY apps/management-api/ ./apps/management-api/
+COPY scripts/ci/ ./scripts/ci/
 
 # Build packages (prod = TypeScript only, no linting)
 RUN npm run build:packages:prod
@@ -39,12 +40,12 @@ COPY --from=builder /opt/packages/helpers-backend/package.json ./packages/helper
 COPY --from=builder /opt/packages/helpers-backend/dist/ ./packages/helpers-backend/dist/
 COPY --from=builder /opt/packages/helpers-config/package.json ./packages/helpers-config/
 COPY --from=builder /opt/packages/helpers-config/dist/ ./packages/helpers-config/dist/
-COPY --from=builder /opt/packages/external-services/package.json ./packages/external-services/
-COPY --from=builder /opt/packages/external-services/dist/ ./packages/external-services/dist/
 COPY --from=builder /opt/packages/orm/package.json ./packages/orm/
 COPY --from=builder /opt/packages/orm/dist/ ./packages/orm/dist/
 COPY --from=builder /opt/packages/notifications/package.json ./packages/notifications/
 COPY --from=builder /opt/packages/notifications/dist/ ./packages/notifications/dist/
+COPY --from=builder /opt/packages/parser-mapping/package.json ./packages/parser-mapping/
+COPY --from=builder /opt/packages/parser-mapping/dist/ ./packages/parser-mapping/dist/
 COPY --from=builder /opt/packages/parser/package.json ./packages/parser/
 COPY --from=builder /opt/packages/parser/dist/ ./packages/parser/dist/
 COPY --from=builder /opt/packages/mq/package.json ./packages/mq/
@@ -53,7 +54,7 @@ COPY --from=builder /opt/apps/management-api/package.json ./apps/management-api/
 COPY --from=builder /opt/apps/management-api/dist/ ./apps/management-api/dist/
 
 # Install production dependencies only
-RUN npm install --workspaces --omit=dev --ignore-scripts
+RUN npm install --omit=dev --ignore-scripts
 
 USER node
 

@@ -9,13 +9,13 @@ import { updateLayoutForMediaPlayer } from '../../utils/mediaPlayer/mediaPlayerL
 import styles from '../../styles/components/MediaPlayer/MediaPlayer.module.scss';
 
 export const MediaPlayer = () => {
-  const { mpChannel } = useMediaPlayer();
+  const { mpChannel, mpAddByRSS } = useMediaPlayer();
 
   // Sync layout when this component mounts (e.g. after lazy load) or when playing state changes.
   // This ensures the "reserve space" CSS is only applied once the player UI is ready to display.
   useEffect(() => {
-    updateLayoutForMediaPlayer(!!mpChannel);
-  }, [mpChannel]);
+    updateLayoutForMediaPlayer(!!mpChannel || !!mpAddByRSS);
+  }, [mpChannel, mpAddByRSS]);
 
   return (
     <aside id="media-player" className={styles.player}>

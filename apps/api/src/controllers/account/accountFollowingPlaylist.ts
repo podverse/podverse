@@ -1,30 +1,27 @@
-import { Request, Response } from 'express';
+import type { Request, Response } from 'express';
 import Joi from 'joi';
 import { AccountFollowingPlaylistService, AccountService } from '@podverse/orm';
 import {
   ensureAuthenticated,
   optionalEnsureAuthenticated,
   getAuthenticatedUser,
-} from '@api/lib/auth';
-import { handleGenericErrorResponse } from '../helpers/error';
-import { validateBodyObject, validateParamsObject } from '@api/lib/validation';
+} from '@api/lib/auth/index.js';
+import { handleGenericErrorResponse } from '../helpers/error.js';
+import {
+  accountIdTextParamSchema,
+  playlistIdTextParamSchema,
+  validateBodyObject,
+  validateParamsObject,
+} from '@api/lib/validation/index.js';
 import { SharableStatusEnum } from '@podverse/helpers';
-import { getParamRequired } from '@api/lib/params';
-
-const followPlaylistSchema = Joi.object({
-  playlist_id_text: Joi.string().required(),
-});
-
-const getFollowedPlaylistsSchema = Joi.object({
-  account_id_text: Joi.string().required(),
-});
+import { getParamRequired } from '@api/lib/params.js';
 
 class AccountFollowingPlaylistController {
   private static accountFollowingPlaylistService = new AccountFollowingPlaylistService();
   private static accountService = new AccountService();
 
   static async getFollowedPlaylists(req: Request, res: Response): Promise<void> {
-    validateParamsObject(getFollowedPlaylistsSchema, req, res, async () => {
+    validateParamsObject(Joi.object(accountIdTextParamSchema), req, res, async () => {
       optionalEnsureAuthenticated(
         req,
         res,
@@ -77,7 +74,7 @@ class AccountFollowingPlaylistController {
       req,
       res,
       async () => {
-        validateBodyObject(followPlaylistSchema, req, res, async () => {
+        validateBodyObject(Joi.object(playlistIdTextParamSchema), req, res, async () => {
           const account = getAuthenticatedUser(req);
           const { playlist_id_text } = req.body;
 
@@ -101,7 +98,7 @@ class AccountFollowingPlaylistController {
       req,
       res,
       async () => {
-        validateBodyObject(followPlaylistSchema, req, res, async () => {
+        validateBodyObject(Joi.object(playlistIdTextParamSchema), req, res, async () => {
           const account = getAuthenticatedUser(req);
           const { playlist_id_text } = req.body;
 

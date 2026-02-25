@@ -1,28 +1,20 @@
-import {
-  CATEGORY_MAPPING_KEYS,
-  getTotalPages,
-  QueryParamsMedium,
-  DTOChannel,
-} from '@podverse/helpers';
+import type { QueryParamsMedium, DTOChannel } from '@podverse/helpers';
+import { CATEGORY_MAPPING_KEYS, getTotalPages } from '@podverse/helpers';
+import type { ApiListResponse } from '@podverse/helpers-requests';
 import {
   QUERY_PARAMS_STATS_RANGE_VALUES,
   QUERY_PARAMS_SUBSCRIBED_TYPE,
   QUERY_PARAMS_SUBSCRIBED_FULL_SORT,
-  ApiListResponse,
 } from '@podverse/helpers-requests';
 import { cookies } from 'next/headers';
 import { z } from 'zod';
-import { PodcastsClient } from './PodcastsClient';
-import {
-  getPodcastsFilterParams,
-  PodcastsDropdownConfigCurrentParams,
-} from './PodcastsDropdownConfig';
+import { PodcastsPageClient } from './PodcastsPageClient';
+import type { PodcastsPageDropdownConfigCurrentParams } from './PodcastsPageDropdownConfig';
+import { getPodcastsPageFilterParams } from './PodcastsPageDropdownConfig';
 import { getSSRAuthService } from '../../utils/auth/ssrAuth';
 import { guardSubscribedSsrFilter, safeSsrListRequest } from '../../utils/filters/ssrFilterGuards';
-import {
-  getParsedLocalSettings,
-  PodcastsFilterDefaults,
-} from '../../utils/localSettings/localSettings';
+import type { PodcastsFilterDefaults } from '../../utils/localSettings/localSettings';
+import { getParsedLocalSettings } from '../../utils/localSettings/localSettings';
 
 const searchParamsSchema = z.object({
   page: z
@@ -80,7 +72,7 @@ export default async function PodcastsPage({ searchParams }: PodcastsPageProps) 
   );
 
   return (
-    <PodcastsClient
+    <PodcastsPageClient
       initialQueryParams={{
         page: currentPage,
         type: currentType,
@@ -99,7 +91,7 @@ function parseSearchParams(
   queryParams: SearchParams,
   isAuthenticated: boolean,
   cookieDefaults?: PodcastsFilterDefaults
-): PodcastsDropdownConfigCurrentParams {
+): PodcastsPageDropdownConfigCurrentParams {
   const parsed = searchParamsSchema.safeParse(queryParams);
 
   if (!parsed.success) {
@@ -146,7 +138,7 @@ function parseSearchParams(
     },
   });
 
-  return getPodcastsFilterParams(
+  return getPodcastsPageFilterParams(
     {
       page: guarded.page,
       type: guarded.type ?? 'global',

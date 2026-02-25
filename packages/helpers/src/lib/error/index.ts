@@ -1,1 +1,1 @@
-export * from './errorMessages';
+export * from './errorMessages.js';

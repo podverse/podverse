@@ -1,23 +1,9 @@
-import { Request, Response } from 'express';
+import type { Request, Response } from 'express';
 import Joi from 'joi';
 import { AccountUPDeviceService } from '@podverse/orm';
-import { handleGenericErrorResponse } from '@api/controllers/helpers/error';
-import { validateBodyObject } from '@api/lib/validation';
-import { ensureAuthenticated, getAuthenticatedUser } from '@api/lib/auth';
-
-const createAccountUPDeviceSchema = Joi.object({
-  up_endpoint: Joi.string().uri().required(),
-  up_auth_key: Joi.string().required().allow(null),
-});
-
-const updateAccountUPDeviceSchema = Joi.object({
-  up_endpoint: Joi.string().uri().required(),
-  up_auth_key: Joi.string().required().allow(null),
-});
-
-const updateLocaleForAccountSchema = Joi.object({
-  locale: Joi.string().required(),
-});
+import { handleGenericErrorResponse } from '@api/controllers/helpers/error.js';
+import { localeBodySchema, validateBodyObject } from '@api/lib/validation/index.js';
+import { ensureAuthenticated, getAuthenticatedUser } from '@api/lib/auth/index.js';
 
 export class AccountUPDeviceController {
   private static accountUPDeviceService = new AccountUPDeviceService();
@@ -27,7 +13,12 @@ export class AccountUPDeviceController {
       req,
       res,
       async () => {
-        validateBodyObject(createAccountUPDeviceSchema, req, res, async () => {
+        const bodySchema = Joi.object({
+          up_endpoint: Joi.string().uri().required(),
+          up_auth_key: Joi.string().required().allow(null),
+        });
+
+        validateBodyObject(bodySchema, req, res, async () => {
           try {
             const jwtUser = getAuthenticatedUser(req);
             const { up_endpoint, up_auth_key } = req.body as {
@@ -56,7 +47,12 @@ export class AccountUPDeviceController {
       req,
       res,
       async () => {
-        validateBodyObject(updateAccountUPDeviceSchema, req, res, async () => {
+        const bodySchema = Joi.object({
+          up_endpoint: Joi.string().uri().required(),
+          up_auth_key: Joi.string().required().allow(null),
+        });
+
+        validateBodyObject(bodySchema, req, res, async () => {
           try {
             const jwtUser = getAuthenticatedUser(req);
             const { up_endpoint, up_auth_key } = req.body as {
@@ -121,7 +117,7 @@ export class AccountUPDeviceController {
       req,
       res,
       async () => {
-        validateBodyObject(updateLocaleForAccountSchema, req, res, async () => {
+        validateBodyObject(Joi.object(localeBodySchema), req, res, async () => {
           try {
             const jwtUser = getAuthenticatedUser(req);
             const { locale } = req.body as { locale: string };

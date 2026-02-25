@@ -3,7 +3,7 @@ import { useEffect, useMemo } from 'react';
 import { MainHeader } from '../../../components/Main/MainHeader';
 import { MainWrapper } from '../../../components/Main/MainWrapper';
 import { useTranslations } from 'next-intl';
-import { DTOFeed } from '@podverse/helpers';
+import type { DTOFeed } from '@podverse/helpers';
 import { useRouter } from 'next/navigation';
 import { MainInnerWrapper } from '../../../components/Main/MainInnerWrapper';
 import { SideContent } from '../../../components/SideContent/SideContent';

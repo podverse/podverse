@@ -1,16 +1,17 @@
 import { AccountNotificationTypeEnum, MediumEnum } from '@podverse/helpers';
-import { Channel, ChannelImage, ItemService } from '@podverse/orm';
-import { NotificationMessageType } from '@podverse/notifications';
-import { HandleParsedItemsResult } from '@parser/lib/rss/item/item';
-import { loggerService } from '@parser/factories/loggerService';
+import type { Channel, ChannelImage } from '@podverse/orm';
+import { ItemService } from '@podverse/orm';
+import type { NotificationMessageType } from '@podverse/notifications';
+import type { HandleParsedItemsResult } from '@parser/lib/rss/item/item.js';
+import { loggerService } from '@parser/factories/loggerService.js';
+import type { ItemNotificationData } from './sharedNotificationHelpers.js';
 import {
-  ItemNotificationData,
   getBestImageUrl,
   getDevicesForNotificationType,
   groupDevicesByLocaleAndPlatform,
   loadChannelImages,
   sendItemNotifications,
-} from './sharedNotificationHelpers';
+} from './sharedNotificationHelpers.js';
 
 /**
  * Determines the NotificationMessageType based on the channel's medium_id

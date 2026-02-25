@@ -1,36 +1,52 @@
-import { FeedObject } from 'podverse-partytime';
-import { throwRequestError } from '@podverse/helpers-requests';
-import { Feed, FeedService, FeedLogService } from '@podverse/orm';
-import { getParsedFeedMd5Hash } from '../hash/parsedFeed';
-import { getAndParseRSSFeed } from '../parser';
-import { FeedIsParsingError, FeedNoChangesSinceLastParsedError } from '../errors';
-import { timerManager } from '@parser/factories/timerManager';
-import { _request } from '../../_request';
+import type { FeedObject } from 'podverse-partytime';
+import { getStatusCodeFromError, throwRequestError } from '@podverse/helpers-requests';
+import type { Feed } from '@podverse/orm';
+import { FeedService, FeedLogService } from '@podverse/orm';
+import { getParsedFeedMd5Hash } from '../hash/parsedFeed.js';
+import { getAndParseRSSFeed } from '../parser.js';
+import { FeedIsParsingError, FeedNoChangesSinceLastParsedError } from '../errors.js';
+import { timerManager } from '@parser/factories/timerManager.js';
+import { _request } from '../../_request.js';
+import { getParserConfig } from '../../../context.js';
 
 export const handleGetRSSFeed = async (url: string, podcast_index_id: number): Promise<Feed> => {
   timerManager.start('handleGetRSSFeed');
 
   const feedService = new FeedService();
+  let feed: Feed | null;
 
-  let feed = await feedService.getByUrlAndPodcastIndexId({
-    url,
-    podcast_index_id,
-  });
-
-  if (!feed) {
+  if (getParserConfig().testAssetsMode) {
     feed = await feedService.getByPodcastIndexId(podcast_index_id);
-    if (feed) {
-      feed.url = url;
-      await feedService.update(feed.id, { url });
+    if (!feed) {
+      const response = await _request(url, { method: 'HEAD' });
+      if (!response || response.status < 200 || response.status >= 300) {
+        throw new Error(`HEAD request failed for ${url} with status ${response?.status}`);
+      }
+      const maxId = await feedService.getMaxPodcastIndexId();
+      const newPodcastIndexId = maxId === null ? 1 : maxId + 1;
+      feed = await feedService.getOrCreate({ url, podcast_index_id: newPodcastIndexId });
     }
-  }
+  } else {
+    feed = await feedService.getByUrlAndPodcastIndexId({
+      url,
+      podcast_index_id,
+    });
 
-  if (!feed) {
-    const response = await _request(url, { method: 'HEAD' });
-    if (!response || response.status < 200 || response.status >= 300) {
-      throw new Error(`HEAD request failed for ${url} with status ${response?.status}`);
+    if (!feed) {
+      feed = await feedService.getByPodcastIndexId(podcast_index_id);
+      if (feed) {
+        feed.url = url;
+        await feedService.update(feed.id, { url });
+      }
     }
-    feed = await feedService.getOrCreate({ url, podcast_index_id });
+
+    if (!feed) {
+      const response = await _request(url, { method: 'HEAD' });
+      if (!response || response.status < 200 || response.status >= 300) {
+        throw new Error(`HEAD request failed for ${url} with status ${response?.status}`);
+      }
+      feed = await feedService.getOrCreate({ url, podcast_index_id });
+    }
   }
 
   timerManager.end('handleGetRSSFeed');
@@ -45,7 +61,7 @@ export const handleGetRSSFeed = async (url: string, podcast_index_id: number): P
 export const handleRequestRSSFeed = async (feed: Feed): Promise<FeedObject> => {
   timerManager.start('handleRequestRSSFeed');
   const feedLogService = new FeedLogService();
-  let parsedFeed: FeedObject | null = null;
+  let parsedFeed: FeedObject | null;
 
   try {
     parsedFeed = await getAndParseRSSFeed(feed.url);
@@ -54,16 +70,12 @@ export const handleRequestRSSFeed = async (feed: Feed): Promise<FeedObject> => {
       last_good_http_status_time: new Date(),
     });
   } catch (error) {
-    // TODO: how to handle errors?
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const statusCode = (error as any).statusCode as number;
+    const statusCode = getStatusCodeFromError(error);
     const feedLog = await feedLogService.get(feed);
-    if (statusCode) {
-      await feedLogService.update(feed, {
-        last_http_status: statusCode,
-        parse_errors: (feedLog?.parse_errors || 0) + 1,
-      });
-    }
+    await feedLogService.update(feed, {
+      ...(statusCode ? { last_http_status: statusCode } : {}),
+      parse_errors: (feedLog?.parse_errors || 0) + 1,
+    });
     return throwRequestError(error);
   }
 

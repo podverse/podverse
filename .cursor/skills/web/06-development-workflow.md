@@ -126,8 +126,8 @@ When working on a task and you identify potential improvements that are **outsid
 ```markdown
 ### [Number]. [Title]
 
-**Status**: Pending  
-**Priority**: [Critical/High/Medium/Low]  
+**Status**: Pending
+**Priority**: [Critical/High/Medium/Low]
 **Severity**: [High/Medium/Low]
 
 **Issue**: [Clear description of the problem or opportunity]
@@ -155,8 +155,8 @@ When working on a task and you identify potential improvements that are **outsid
 ```markdown
 ### 20. Memoize ListRow Components
 
-**Status**: Pending  
-**Priority**: Medium  
+**Status**: Pending
+**Priority**: Medium
 **Severity**: Medium
 
 **Issue**: `ListPodcastRow` component re-renders on every parent update, even when its props haven't changed. This causes unnecessary re-renders in long lists.

@@ -10,7 +10,7 @@ The Podverse Management API provides backend services for the internal managemen
 
 ### Prerequisites
 
-- Node.js v22+
+- Node.js v24+
 - PostgreSQL (management database)
 
 ### Setup

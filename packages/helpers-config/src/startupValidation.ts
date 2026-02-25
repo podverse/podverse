@@ -1,4 +1,5 @@
-import { SUPPORTED_LOCALES } from '@podverse/helpers';
+/* eslint-disable no-console */
+import { SUPPORTED_LOCALES, SERVER_ENV_VALUES, isValidServerEnv } from '@podverse/helpers';
 
 /**
  * Types and functions for validating environment variables at application startup.
@@ -613,4 +614,312 @@ export function validatePositiveNumber(
     message: `Valid number: ${numValue}${rangeMsg}`,
     category,
   };
+}
+
+/** Allowed values for ACCOUNT_SIGNUP_MODE / NEXT_PUBLIC_ACCOUNT_SIGNUP_MODE */
+const SIGNUP_MODES = ['sign-up', 'contact-only'] as const;
+
+/**
+ * Validates signup mode - must be "sign-up" or "contact-only".
+ */
+export function validateSignupMode(varName: string, category: string): ValidationResult {
+  const value = process.env[varName];
+  const isSet =
+    value !== undefined && value !== null && typeof value === 'string' && value.trim() !== '';
+
+  if (!isSet) {
+    return {
+      name: varName,
+      isSet: false,
+      isValid: false,
+      isRequired: true,
+      message: `Missing - must be one of: ${SIGNUP_MODES.map((m) => `"${m}"`).join(' or ')}`,
+      category,
+    };
+  }
+
+  const trimmed = value.trim();
+  if (!SIGNUP_MODES.includes(trimmed as (typeof SIGNUP_MODES)[number])) {
+    return {
+      name: varName,
+      isSet: true,
+      isValid: false,
+      isRequired: true,
+      message: `Invalid value: "${value}" - must be one of: ${SIGNUP_MODES.map((m) => `"${m}"`).join(' or ')}`,
+      category,
+    };
+  }
+
+  return {
+    name: varName,
+    isSet: true,
+    isValid: true,
+    isRequired: true,
+    message: `Set to "${trimmed}"`,
+    category,
+  };
+}
+
+/**
+ * Validates SERVER_ENV / NEXT_PUBLIC_SERVER_ENV using helpers constants.
+ */
+export function validateServerEnv(varName: string, category: string): ValidationResult {
+  const value = process.env[varName];
+  const isSet =
+    value !== undefined && value !== null && typeof value === 'string' && value.trim() !== '';
+
+  if (!isSet) {
+    return {
+      name: varName,
+      isSet: false,
+      isValid: false,
+      isRequired: true,
+      message: `Missing - must be one of: ${SERVER_ENV_VALUES.join(', ')}`,
+      category,
+    };
+  }
+
+  const trimmed = value.trim();
+  if (!isValidServerEnv(trimmed)) {
+    return {
+      name: varName,
+      isSet: true,
+      isValid: false,
+      isRequired: true,
+      message: `Invalid value: "${value}" - must be one of: ${SERVER_ENV_VALUES.join(', ')}`,
+      category,
+    };
+  }
+
+  return {
+    name: varName,
+    isSet: true,
+    isValid: true,
+    isRequired: true,
+    message: `Set to "${trimmed}"`,
+    category,
+  };
+}
+
+const USER_AGENT_PATTERN = /^[^/]+\/[^/]+\/[^/]+$/;
+
+/**
+ * Validates proxy user-agent - format X/Y/Z with "Bot" in first segment.
+ */
+export function validateProxyUserAgent(varName: string, category: string): ValidationResult {
+  const value = process.env[varName];
+  const isSet =
+    value !== undefined && value !== null && typeof value === 'string' && value.trim() !== '';
+
+  if (!isSet) {
+    return {
+      name: varName,
+      isSet: false,
+      isValid: false,
+      isRequired: true,
+      message: 'Missing - must follow format: BrandName Bot Environment/AppName/Version',
+      category,
+    };
+  }
+
+  const trimmed = value.trim();
+  if (!USER_AGENT_PATTERN.test(trimmed)) {
+    return {
+      name: varName,
+      isSet: true,
+      isValid: false,
+      isRequired: true,
+      message: `Invalid format: "${value}" - must follow format: BrandName Bot Environment/AppName/Version`,
+      category,
+    };
+  }
+
+  const firstPart = trimmed.split('/')[0];
+  if (firstPart && !firstPart.includes('Bot')) {
+    return {
+      name: varName,
+      isSet: true,
+      isValid: false,
+      isRequired: true,
+      message: `Missing "Bot" in first part: "${value}"`,
+      category,
+    };
+  }
+
+  return {
+    name: varName,
+    isSet: true,
+    isValid: true,
+    isRequired: true,
+    message: 'Valid format',
+    category,
+  };
+}
+
+/** Supported UI themes (keep in sync with ENV.md / frontend). */
+export const SUPPORTED_THEMES = ['dark', 'light', 'dracula'] as const;
+
+/**
+ * Validates NEXT_PUBLIC_SUPPORTED_THEMES - "all-available" or comma-delimited list of valid themes.
+ */
+export function validateSupportedThemesList(
+  varName: string = 'NEXT_PUBLIC_SUPPORTED_THEMES',
+  category: string
+): ValidationResult {
+  const value = process.env[varName] || '';
+  const isSet = value.trim() !== '';
+
+  if (!isSet) {
+    return {
+      name: varName,
+      isSet: false,
+      isValid: false,
+      isRequired: true,
+      message: `Missing - must be "all-available" or comma-delimited list (valid: ${SUPPORTED_THEMES.join(', ')})`,
+      category,
+    };
+  }
+
+  const trimmed = value.trim();
+  if (trimmed === 'all-available') {
+    return {
+      name: varName,
+      isSet: true,
+      isValid: true,
+      isRequired: true,
+      message: 'Set to "all-available"',
+      category,
+    };
+  }
+
+  const list = trimmed
+    .split(',')
+    .map((t) => t.trim())
+    .filter(Boolean);
+  const invalid = list.filter(
+    (t) => !SUPPORTED_THEMES.includes(t as (typeof SUPPORTED_THEMES)[number])
+  );
+  if (invalid.length > 0) {
+    return {
+      name: varName,
+      isSet: true,
+      isValid: false,
+      isRequired: true,
+      message: `Invalid theme(s): ${invalid.join(', ')}. Valid: ${SUPPORTED_THEMES.join(', ')}`,
+      category,
+    };
+  }
+
+  return {
+    name: varName,
+    isSet: true,
+    isValid: true,
+    isRequired: true,
+    message: `Valid themes: ${list.join(', ')}`,
+    category,
+  };
+}
+
+/**
+ * Validates NEXT_PUBLIC_DEFAULT_THEME - must be one of dark, light, dracula.
+ */
+export function validateDefaultTheme(
+  varName: string = 'NEXT_PUBLIC_DEFAULT_THEME',
+  category: string
+): ValidationResult {
+  const value = process.env[varName] || '';
+  const isSet = value.trim() !== '';
+
+  if (!isSet) {
+    return {
+      name: varName,
+      isSet: false,
+      isValid: false,
+      isRequired: true,
+      message: `Missing - must be one of: ${SUPPORTED_THEMES.join(', ')}`,
+      category,
+    };
+  }
+
+  const trimmed = value.trim();
+  if (!SUPPORTED_THEMES.includes(trimmed as (typeof SUPPORTED_THEMES)[number])) {
+    return {
+      name: varName,
+      isSet: true,
+      isValid: false,
+      isRequired: true,
+      message: `Invalid value: "${value}" - must be one of: ${SUPPORTED_THEMES.join(', ')}`,
+      category,
+    };
+  }
+
+  return {
+    name: varName,
+    isSet: true,
+    isValid: true,
+    isRequired: true,
+    message: `Set to "${trimmed}"`,
+    category,
+  };
+}
+
+/**
+ * Displays validation results by category with checkmarks, then summary and failed/skipped lists.
+ * Matches the format used by api and workers startup validation.
+ */
+export function displayValidationResults(summary: ValidationSummary): void {
+  console.log('=== Environment Variable Validation ===');
+
+  const byCategory: Record<string, ValidationResult[]> = {};
+  for (const result of summary.results) {
+    const category = result.category;
+    const list = byCategory[category] ?? (byCategory[category] = []);
+    list.push(result);
+  }
+
+  const categories = Object.keys(byCategory).sort();
+  for (const category of categories) {
+    console.log(`[${category}]`);
+    const list = byCategory[category] ?? [];
+    for (const r of list) {
+      const status = r.isValid ? '✓' : '✗';
+      const requiredText = r.isRequired ? '' : ' (optional)';
+      const msg = `  ${status} ${r.name}${requiredText} - ${r.message}`;
+      if (!r.isValid) {
+        console.error(msg);
+      } else if (!r.isSet && !r.isRequired) {
+        console.warn(msg);
+      } else {
+        console.log(msg);
+      }
+    }
+  }
+
+  console.log('=== Validation Summary ===');
+  console.log(`Total: ${summary.total}`);
+  const passedText =
+    summary.defaultsUsed > 0
+      ? `Passed: ${summary.passed} (${summary.defaultsUsed} using defaults)`
+      : `Passed: ${summary.passed}`;
+  console.log(passedText);
+  console.log(`Skipped: ${summary.skipped}`);
+  console.log(`Failed: ${summary.failed}`);
+  console.log(`Required Missing: ${summary.requiredMissing}`);
+
+  if (summary.failed > 0) {
+    console.error('The following environment variables failed validation:');
+    summary.results
+      .filter((r) => !r.isValid)
+      .forEach((r) => {
+        const requiredText = r.isRequired ? ' (required)' : ' (optional)';
+        console.error(`  - ${r.name}${requiredText}: ${r.message}`);
+      });
+  }
+
+  if (summary.skipped > 0) {
+    console.log('Skipped optional variables (not set):');
+    summary.results
+      .filter((r) => !r.isRequired && !r.isSet)
+      .forEach((r) => console.log(`  - ${r.name}`));
+  }
 }

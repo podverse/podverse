@@ -1,15 +1,18 @@
 import { DATABASE_CONSTANTS } from '@podverse/helpers';
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from 'typeorm';
-import { ChannelPodroll } from '@orm/entities/channel/channelPodroll';
+import type { Relation } from 'typeorm';
+import type { ChannelPodroll } from '@orm/entities/channel/channelPodroll.js';
 
 @Entity({ name: 'channel_podroll_remote_item' })
 export class ChannelPodrollRemoteItem {
   @PrimaryGeneratedColumn()
   id!: number;
 
-  @ManyToOne(() => ChannelPodroll, (channelPodroll) => channelPodroll.id, { onDelete: 'CASCADE' })
+  @ManyToOne('ChannelPodroll', (channelPodroll: ChannelPodroll) => channelPodroll.id, {
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'channel_podroll_id' })
-  channel_podroll!: ChannelPodroll;
+  channel_podroll!: Relation<ChannelPodroll>;
 
   @Column({ type: 'uuid', name: 'feed_guid' })
   feed_guid!: string;
@@ -37,4 +40,7 @@ export class ChannelPodrollRemoteItem {
     length: DATABASE_CONSTANTS.varchar_normal,
   })
   title!: string | null;
+
+  @Column({ type: 'int', name: 'medium_id', nullable: true })
+  medium_id!: number | null;
 }

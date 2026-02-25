@@ -1,14 +1,14 @@
-import {
+import type {
   CreateAccountWebPushDeviceParams,
   UpdateAccountWebPushDeviceParams,
   DeleteAccountWebPushDeviceParams,
 } from '@podverse/helpers';
 import { In } from 'typeorm';
-import { AccountWebPushDevice } from '@orm/entities/account/accountWebPushDevice';
-import { BaseManyService } from '@orm/services/base/baseManyService';
-import { AccountService } from '@orm/services/account/account';
-import { AccountNotificationChannelService } from '@orm/services/account/accountNotificationChannel';
-import { getDefaultLocale } from '@orm/config';
+import { AccountWebPushDevice } from '@orm/entities/account/accountWebPushDevice.js';
+import { BaseManyService } from '@orm/services/base/baseManyService.js';
+import { AccountService } from '@orm/services/account/account.js';
+import { AccountNotificationChannelService } from '@orm/services/account/accountNotificationChannel.js';
+import { getDefaultLocale } from '@orm/config/index.js';
 
 export class AccountWebPushDeviceService extends BaseManyService<AccountWebPushDevice, 'account'> {
   private accountService: AccountService;

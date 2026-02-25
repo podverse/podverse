@@ -1,7 +1,7 @@
-import { Clip } from '@orm/entities/clip';
-import { BaseStatsTrackEventService } from './baseStatsTrackEvent';
-import { StatsTrackEventClip } from '@orm/entities/stats/statsTrackEventClip';
-import { ClipService } from '@orm/services/clip';
+import type { Clip } from '@orm/entities/clip.js';
+import { BaseStatsTrackEventService } from './baseStatsTrackEvent.js';
+import { StatsTrackEventClip } from '@orm/entities/stats/statsTrackEventClip.js';
+import { ClipService } from '@orm/services/clip.js';
 
 export class StatsTrackEventClipService extends BaseStatsTrackEventService<StatsTrackEventClip> {
   protected entity = StatsTrackEventClip;

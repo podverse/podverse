@@ -1,8 +1,9 @@
-import { createContext, useState, ReactNode, useEffect, useCallback } from 'react';
+import type { ReactNode } from 'react';
+import { createContext, useState, useEffect, useCallback } from 'react';
 import { useContext } from 'react';
 import { useAccount } from './Account';
-import { apiRequestService } from '../factories/apiRequestService';
-import { config } from '../config';
+import { useConfig } from './Config';
+import { getApiRequestService } from '../factories/apiRequestService';
 
 type NotificationsContextType = {
   permission: NotificationPermission;
@@ -31,6 +32,7 @@ type NotificationsProviderProps = {
 };
 
 export const NotificationsProvider = ({ children }: NotificationsProviderProps) => {
+  const config = useConfig();
   const [permission, setPermission] = useState<NotificationPermission>('default');
   const [registered, setRegistered] = useState<boolean>(false);
   const [upRegistered, setUPRegistered] = useState<boolean>(false);
@@ -75,6 +77,7 @@ export const NotificationsProvider = ({ children }: NotificationsProviderProps) 
       return;
     }
 
+    const apiRequestService = getApiRequestService();
     const vapidPublicKey = config.public.notifications.webpush.vapidPublicKey;
 
     const init = async () => {

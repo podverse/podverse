@@ -5,11 +5,9 @@ import {
 } from '@podverse/helpers-requests';
 import { z } from 'zod';
 import { getSSRAuthService } from '../../../utils/auth/ssrAuth';
-import { EpisodeClient } from './EpisodeClient';
-import {
-  EpisodeDropdownConfigCurrentParams,
-  getEpisodeFilterParams,
-} from './EpisodeDropdownConfig';
+import { EpisodePageClient } from './EpisodePageClient';
+import type { EpisodePageDropdownConfigCurrentParams } from './EpisodePageDropdownConfig';
+import { getEpisodePageFilterParams } from './EpisodePageDropdownConfig';
 
 const searchParamsSchema = z.object({
   page: z
@@ -45,7 +43,7 @@ export default async function EpisodePage({ params, searchParams }: EpisodePageP
   const ssrHasTranscripts = ssrItem.item_transcripts && ssrItem.item_transcripts.length > 0;
 
   return (
-    <EpisodeClient
+    <EpisodePageClient
       initialQueryParams={{
         page: currentPage,
         type: currentType,
@@ -61,7 +59,7 @@ export default async function EpisodePage({ params, searchParams }: EpisodePageP
   );
 }
 
-function parseSearchParams(searchParams: SearchParams): EpisodeDropdownConfigCurrentParams {
+function parseSearchParams(searchParams: SearchParams): EpisodePageDropdownConfigCurrentParams {
   const parsed = searchParamsSchema.safeParse(searchParams);
 
   if (!parsed.success) {
@@ -75,5 +73,5 @@ function parseSearchParams(searchParams: SearchParams): EpisodeDropdownConfigCur
 
   const data = parsed.data;
 
-  return getEpisodeFilterParams(data);
+  return getEpisodePageFilterParams(data);
 }

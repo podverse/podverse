@@ -12,3 +12,29 @@
 .floatingVideoPortal.hasMarquee {
   bottom: calc(var(--media-player-height) + var(--media-player-height-top-section));
 }
+
+.closeButton {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.6);
+  color: #fff;
+  opacity: 0;
+  pointer-events: none;
+  cursor: pointer;
+  transition: opacity 150ms ease-in-out;
+  z-index: 2;
+}
+
+.floatingVideoPortal:hover .closeButton,
+.floatingVideoPortal:focus-within .closeButton {
+  opacity: 1;
+  pointer-events: auto;
+}

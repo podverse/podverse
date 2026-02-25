@@ -6,7 +6,7 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { AdminAccount } from './adminAccount';
+import type { AdminAccount } from './adminAccount.js';
 
 export enum AdminAccountRoleEnum {
   SUPERUSER = 'superuser',
@@ -21,7 +21,7 @@ export class AdminAccountRole {
   @Column({ type: 'varchar', length: 20, unique: true })
   role!: AdminAccountRoleEnum;
 
-  @OneToMany(() => AdminAccount, (adminAccount) => adminAccount.admin_account_role)
+  @OneToMany('AdminAccount', 'admin_account_role')
   admin_accounts!: AdminAccount[];
 
   @CreateDateColumn({ type: 'timestamp', default: () => 'NOW()' })

@@ -1,124 +1,41 @@
-import { NextFunction, Request, Response } from 'express';
+import type { NextFunction, Request, Response } from 'express';
 import Joi from 'joi';
+import type { QueryParamsQueueMedium } from '@podverse/helpers';
 import {
   getQueueMediumIdFromType,
-  QUERY_PARAMS_MEDIUMS,
   QUERY_PARAMS_QUEUE_MEDIUMS,
-  QueryParamsQueueMedium,
   SharableStatusEnum,
 } from '@podverse/helpers';
-import {
-  ApiListResponse,
-  QUERY_PARAMS_STATS_RANGE_VALUES,
-  QueryParamsStatsRange,
-} from '@podverse/helpers-requests';
-import {
+import type { ApiListResponse, QueryParamsStatsRange } from '@podverse/helpers-requests';
+import type {
   AccountFollowingPlaylist,
-  AccountFollowingPlaylistService,
   FindManyOptions,
   Playlist,
-  PlaylistService,
   StatsAggregatedPlaylist,
+} from '@podverse/orm';
+import {
+  AccountFollowingPlaylistService,
+  PlaylistService,
   StatsAggregatedPlaylistService,
 } from '@podverse/orm';
 import {
   ensureAuthenticated,
   optionalEnsureAuthenticated,
   getAuthenticatedUser,
-} from '@api/lib/auth';
-import { handleGenericErrorResponse } from '../helpers/error';
-import { validateBodyObject, validateParamsObject, validateQueryObject } from '@api/lib/validation';
-import { getPaginationParams } from '../helpers/pagination';
-import { getStatsOrder } from '@api/lib/stats';
-import { getFollowedPlaylistIdsPrivate } from '@api/lib/followed';
-import { getParamRequired } from '@api/lib/params';
-
-const createPlaylistSchema = Joi.object({
-  title: Joi.string().allow(null, ''),
-  description: Joi.string().allow(null, ''),
-  medium: Joi.string()
-    .valid(...QUERY_PARAMS_QUEUE_MEDIUMS)
-    .required(),
-  sharable_status_id: Joi.number().min(1).required(),
-});
-
-const updatePlaylistSchema = createPlaylistSchema;
-
-const playlistIdSchema = Joi.object({
-  playlist_id_text: Joi.string().required(),
-});
-
-const getManyPublicTopSchema = Joi.object({
-  medium: Joi.string()
-    .valid(...QUERY_PARAMS_MEDIUMS)
-    .required(),
-  range: Joi.string()
-    .valid(...QUERY_PARAMS_STATS_RANGE_VALUES)
-    .required(),
-  page: Joi.number().integer().min(1).required(),
-});
-
-const getManyPrivateRecentSchema = Joi.object({
-  medium: Joi.string()
-    .valid(...QUERY_PARAMS_MEDIUMS)
-    .required(),
-  page: Joi.number().integer().min(1).required(),
-});
-
-const getManyPrivateOldestSchema = Joi.object({
-  medium: Joi.string()
-    .valid(...QUERY_PARAMS_MEDIUMS)
-    .required(),
-  page: Joi.number().integer().min(1).required(),
-});
-
-const getManyPrivateAZSchema = Joi.object({
-  medium: Joi.string()
-    .valid(...QUERY_PARAMS_MEDIUMS)
-    .required(),
-  page: Joi.number().integer().min(1).required(),
-});
-
-const getManyPrivateTopSchema = Joi.object({
-  medium: Joi.string()
-    .valid(...QUERY_PARAMS_MEDIUMS)
-    .required(),
-  page: Joi.number().integer().min(1).required(),
-  range: Joi.string()
-    .valid(...QUERY_PARAMS_STATS_RANGE_VALUES)
-    .required(),
-});
-
-const getManyPrivateFollowedTopSchema = Joi.object({
-  medium: Joi.string()
-    .valid(...QUERY_PARAMS_MEDIUMS)
-    .required(),
-  page: Joi.number().integer().min(1).required(),
-  range: Joi.string()
-    .valid(...QUERY_PARAMS_STATS_RANGE_VALUES)
-    .required(),
-});
-
-const getManyPrivateFollowedRecentSchema = Joi.object({
-  medium: Joi.string()
-    .valid(...QUERY_PARAMS_MEDIUMS)
-    .required(),
-  page: Joi.number().integer().min(1).required(),
-});
-
-const getManyPrivateFollowedOldestSchema = Joi.object({
-  medium: Joi.string()
-    .valid(...QUERY_PARAMS_MEDIUMS)
-    .required(),
-  page: Joi.number().integer().min(1).required(),
-});
-
-const getManyPrivateFollowedAZSchema = Joi.object({
-  medium: Joi.string()
-    .valid(...QUERY_PARAMS_MEDIUMS)
-    .required(),
-  page: Joi.number().integer().min(1).required(),
-});
+} from '@api/lib/auth/index.js';
+import { handleGenericErrorResponse } from '../helpers/error.js';
+import {
+  mediumPageQuerySchema,
+  mediumPageRangeQuerySchema,
+  playlistIdTextParamSchema,
+  validateBodyObject,
+  validateParamsObject,
+  validateQueryObject,
+} from '@api/lib/validation/index.js';
+import { getPaginationParams } from '../helpers/pagination.js';
+import { getStatsOrder } from '@api/lib/stats.js';
+import { getFollowedPlaylistIdsPrivate } from '@api/lib/followed.js';
+import { getParamRequired } from '@api/lib/params.js';
 
 const playlistService = new PlaylistService();
 
@@ -193,7 +110,16 @@ class PlaylistController {
       req,
       res,
       async () => {
-        validateBodyObject(createPlaylistSchema, req, res, async () => {
+        const schema = Joi.object({
+          title: Joi.string().allow(null, ''),
+          description: Joi.string().allow(null, ''),
+          medium: Joi.string()
+            .valid(...QUERY_PARAMS_QUEUE_MEDIUMS)
+            .required(),
+          sharable_status_id: Joi.number().min(1).required(),
+        });
+
+        validateBodyObject(schema, req, res, async () => {
           const account = getAuthenticatedUser(req);
 
           const { title, description, medium, sharable_status_id } = req.body as {
@@ -234,9 +160,18 @@ class PlaylistController {
       req,
       res,
       async () => {
-        validateParamsObject(playlistIdSchema, req, res, async () => {
+        validateParamsObject(Joi.object(playlistIdTextParamSchema), req, res, async () => {
           verifyPlaylistOwnership()(req, res, async () => {
-            validateBodyObject(updatePlaylistSchema, req, res, async () => {
+            const schema = Joi.object({
+              title: Joi.string().allow(null, ''),
+              description: Joi.string().allow(null, ''),
+              medium: Joi.string()
+                .valid(...QUERY_PARAMS_QUEUE_MEDIUMS)
+                .required(),
+              sharable_status_id: Joi.number().min(1).required(),
+            });
+
+            validateBodyObject(schema, req, res, async () => {
               const account = getAuthenticatedUser(req);
               const playlist_id_text = getParamRequired(req, 'playlist_id_text');
 
@@ -284,7 +219,7 @@ class PlaylistController {
       req,
       res,
       async () => {
-        validateParamsObject(playlistIdSchema, req, res, async () => {
+        validateParamsObject(Joi.object(playlistIdTextParamSchema), req, res, async () => {
           verifyPlaylistOwnership()(req, res, async () => {
             const account = getAuthenticatedUser(req);
             const playlist_id_text = getParamRequired(req, 'playlist_id_text');
@@ -303,7 +238,7 @@ class PlaylistController {
   }
 
   static async getManyPublicTop(req: Request, res: Response): Promise<void> {
-    validateQueryObject(getManyPublicTopSchema, req, res, async () => {
+    validateQueryObject(Joi.object(mediumPageRangeQuerySchema), req, res, async () => {
       try {
         const { medium, range } = req.query as {
           medium: QueryParamsQueueMedium;
@@ -341,7 +276,7 @@ class PlaylistController {
       req,
       res,
       async () => {
-        validateQueryObject(getManyPrivateTopSchema, req, res, async () => {
+        validateQueryObject(Joi.object(mediumPageRangeQuerySchema), req, res, async () => {
           try {
             const account = getAuthenticatedUser(req);
 
@@ -390,7 +325,7 @@ class PlaylistController {
       req,
       res,
       async () => {
-        validateQueryObject(getManyPrivateRecentSchema, req, res, async () => {
+        validateQueryObject(Joi.object(mediumPageQuerySchema), req, res, async () => {
           try {
             const account = getAuthenticatedUser(req);
             const { medium } = req.query as {
@@ -430,7 +365,7 @@ class PlaylistController {
       req,
       res,
       async () => {
-        validateQueryObject(getManyPrivateOldestSchema, req, res, async () => {
+        validateQueryObject(Joi.object(mediumPageQuerySchema), req, res, async () => {
           try {
             const account = getAuthenticatedUser(req);
             const { medium } = req.query as {
@@ -470,7 +405,7 @@ class PlaylistController {
       req,
       res,
       async () => {
-        validateQueryObject(getManyPrivateAZSchema, req, res, async () => {
+        validateQueryObject(Joi.object(mediumPageQuerySchema), req, res, async () => {
           try {
             const account = getAuthenticatedUser(req);
             const { medium } = req.query as {
@@ -510,7 +445,7 @@ class PlaylistController {
       req,
       res,
       async () => {
-        validateQueryObject(getManyPrivateFollowedTopSchema, req, res, async () => {
+        validateQueryObject(Joi.object(mediumPageRangeQuerySchema), req, res, async () => {
           const { page, limit, offset } = getPaginationParams(req);
           const { range, medium } = req.query as {
             range: QueryParamsStatsRange;
@@ -554,7 +489,7 @@ class PlaylistController {
       req,
       res,
       async () => {
-        validateQueryObject(getManyPrivateFollowedRecentSchema, req, res, async () => {
+        validateQueryObject(Joi.object(mediumPageQuerySchema), req, res, async () => {
           const { page, limit, offset } = getPaginationParams(req);
           const { medium } = req.query as {
             medium: QueryParamsQueueMedium;
@@ -599,7 +534,7 @@ class PlaylistController {
       req,
       res,
       async () => {
-        validateQueryObject(getManyPrivateFollowedOldestSchema, req, res, async () => {
+        validateQueryObject(Joi.object(mediumPageQuerySchema), req, res, async () => {
           const { page, limit, offset } = getPaginationParams(req);
           const { medium } = req.query as {
             medium: QueryParamsQueueMedium;
@@ -644,7 +579,7 @@ class PlaylistController {
       req,
       res,
       async () => {
-        validateQueryObject(getManyPrivateFollowedAZSchema, req, res, async () => {
+        validateQueryObject(Joi.object(mediumPageQuerySchema), req, res, async () => {
           const { page, limit, offset } = getPaginationParams(req);
           const { medium } = req.query as {
             medium: QueryParamsQueueMedium;
@@ -704,7 +639,7 @@ class PlaylistController {
   }
 
   static async getPlaylistById(req: Request, res: Response): Promise<void> {
-    validateParamsObject(playlistIdSchema, req, res, async () => {
+    validateParamsObject(Joi.object(playlistIdTextParamSchema), req, res, async () => {
       optionalEnsureAuthenticated(
         req,
         res,

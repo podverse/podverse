@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { VerifyEmailClient } from './VerifyEmailClient';
+import { VerifyEmailPageClient } from './VerifyEmailPageClient';
 
 const searchParamsSchema = z.object({
   token: z.string().optional(),
@@ -15,7 +15,7 @@ export default async function VerifyEmailPage({ searchParams }: PodcastsPageProp
   const queryParams = searchParams ? await searchParams : {};
   const { token } = await parseSearchParams(queryParams);
 
-  return <VerifyEmailClient token={token} />;
+  return <VerifyEmailPageClient token={token} />;
 }
 
 async function parseSearchParams(queryParams: SearchParams) {

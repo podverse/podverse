@@ -1,8 +1,8 @@
-import { EntityManager } from 'typeorm';
-import { Item } from '@orm/entities/item/item';
-import { ItemAbout } from '@orm/entities/item/itemAbout';
-import { ItemItunesEpisodeTypeEnum } from '@orm/entities/item/itemItunesEpisodeType';
-import { BaseOneService } from '@orm/services/base/baseOneService';
+import type { EntityManager } from 'typeorm';
+import type { Item } from '@orm/entities/item/item.js';
+import { ItemAbout } from '@orm/entities/item/itemAbout.js';
+import type { ItemItunesEpisodeTypeEnum } from '@orm/entities/item/itemItunesEpisodeType.js';
+import { BaseOneService } from '@orm/services/base/baseOneService.js';
 
 type ItemAboutDto = {
   duration: string | null;

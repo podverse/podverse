@@ -2,16 +2,11 @@
 
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';
-import {
-  DTOChannel,
-  DTOItem,
-  DTOItemChapter,
-  findDTOChannelImageBySize,
-  findDTOItemImageBySize,
-} from '@podverse/helpers';
+import type { DTOChannel, DTOItem, DTOItemChapter } from '@podverse/helpers';
+import { findDTOChannelImageForList, findDTOItemImageForList } from '@podverse/helpers';
 import { getShuffleHash } from '@podverse/helpers-requests';
 import React from 'react';
-import { Image } from '../../Image/Image';
+import { ImagesPerView } from '../../Image/ImagesPerView';
 import { ROUTES } from '../../../constants/routes';
 import { IMAGES } from '../../../constants/images';
 import { PlayButtonRow } from '../../MediaPlayer/Buttons/PlayButtonRow';
@@ -28,6 +23,10 @@ interface ListItemChapterRowProps {
   item_chapter: DTOItemChapter;
   showChannelInfo?: boolean;
   showItemInfo?: boolean;
+  /** When provided and channel/item are null (e.g. add-by-RSS), called on play click to seek. */
+  onPlayChapter?: (chapter: DTOItemChapter) => void;
+  /** When provided, used as Link href instead of chapter route (e.g. '#' for add-by-RSS). */
+  getChapterHref?: (chapter: DTOItemChapter) => string;
 }
 
 export const ListItemChapterRow: React.FC<ListItemChapterRowProps> = ({
@@ -36,8 +35,13 @@ export const ListItemChapterRow: React.FC<ListItemChapterRowProps> = ({
   item_chapter,
   showChannelInfo,
   showItemInfo,
+  onPlayChapter,
+  getChapterHref,
 }) => {
-  const url = `${ROUTES.CHAPTER}/${item_chapter.id_text}`;
+  const url =
+    getChapterHref !== undefined && getChapterHref !== null
+      ? getChapterHref(item_chapter)
+      : `${ROUTES.CHAPTER}/${item_chapter.id_text}`;
 
   channel = channel || item?.channel || item_chapter.item_chapters_feed?.item?.channel || null;
   item = item || item_chapter.item_chapters_feed?.item || null;
@@ -45,12 +49,12 @@ export const ListItemChapterRow: React.FC<ListItemChapterRowProps> = ({
   const channel_images = channel?.channel_images;
   const item_images = item?.item_images;
 
-  const channel_image = findDTOChannelImageBySize(
+  const channel_image = findDTOChannelImageForList(
     channel_images,
     IMAGES.LIST.CLIPS.SIZE_FIND_TARGET,
     'lesser'
   );
-  const item_image = findDTOItemImageBySize(
+  const item_image = findDTOItemImageForList(
     item_images,
     IMAGES.LIST.CLIPS.SIZE_FIND_TARGET,
     'lesser'
@@ -70,7 +74,7 @@ export const ListItemChapterRow: React.FC<ListItemChapterRowProps> = ({
   const endTime = item_chapter.end_time;
 
   const playButtonOnClick = () => {
-    if (item_chapter.id === mpItemChapter?.id) {
+    if (item_chapter.id_text === mpItemChapter?.id_text) {
       setMPIsPlaying(!mpIsPlaying);
     } else if (channel && item) {
       mediaPlayerResourceUpdate({
@@ -94,27 +98,24 @@ export const ListItemChapterRow: React.FC<ListItemChapterRowProps> = ({
         },
         autoQueueShouldClear: true,
       });
+    } else if (onPlayChapter) {
+      onPlayChapter(item_chapter);
     }
   };
 
   return (
     <div className={styles.row}>
-      <Link href={url} tabIndex={-1}>
-        <Image
-          src={item_chapter?.img || item_image?.url || channel_image?.url}
-          alt={tInfo('chapter.chapter_image')}
-          width={IMAGES.LIST.ITEM_CHAPTERS.SIZE}
-          height={IMAGES.LIST.ITEM_CHAPTERS.SIZE}
-          className={styles.image}
-        />
-        <Image
-          src={item_chapter?.img || item_image?.url || channel_image?.url}
-          alt={tInfo('chapter.chapter_image')}
-          width={IMAGES.LIST.ITEM_CHAPTERS.SIZE}
-          height={IMAGES.LIST.ITEM_CHAPTERS.SIZE}
-          className={styles.imageMobile}
-        />
-      </Link>
+      <ImagesPerView
+        src={item_chapter?.img || item_image?.url || channel_image?.url}
+        alt={tInfo('chapter.chapter_image')}
+        widthDesktop={IMAGES.LIST.ITEM_CHAPTERS.SIZE}
+        heightDesktop={IMAGES.LIST.ITEM_CHAPTERS.SIZE}
+        widthMobile={IMAGES.LIST.ITEM_CHAPTERS.SIZE}
+        heightMobile={IMAGES.LIST.ITEM_CHAPTERS.SIZE}
+        classNameDesktop={styles.image}
+        classNameMobile={styles.imageMobile}
+        href={url}
+      />
       <div className={styles.content}>
         <Link href={url}>
           <div className={styles.topSection}>

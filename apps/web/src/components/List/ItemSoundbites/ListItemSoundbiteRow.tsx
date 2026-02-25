@@ -2,33 +2,33 @@
 
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';
+import type { DTOChannel, DTOItem, DTOItemSoundbite } from '@podverse/helpers';
 import {
-  DTOChannel,
-  DTOItem,
-  DTOItemSoundbite,
-  findDTOChannelImageBySize,
-  findDTOItemImageBySize,
+  findDTOChannelImageForList,
+  findDTOItemImageForList,
   getQueueForMedium,
 } from '@podverse/helpers';
 import { getShuffleHash } from '@podverse/helpers-requests';
 import React from 'react';
 import { FaGripLines } from 'react-icons/fa6';
-import { Image } from '../../Image/Image';
+import { ImagesPerView } from '../../Image/ImagesPerView';
 import { ROUTES } from '../../../constants/routes';
 import { IMAGES } from '../../../constants/images';
 import { PlayButtonRow } from '../../MediaPlayer/Buttons/PlayButtonRow';
-import { MoreButton, MoreButtonMenuItem } from '../../MoreButton/MoreButton';
+import type { MoreButtonMenuItem } from '../../MoreButton/MoreButton';
+import { MoreButton } from '../../MoreButton/MoreButton';
 import { useMediaPlayer } from '../../../contexts/MediaPlayer';
 import { ReadableDate } from '../../Time/ReadableDate';
 import { ReadableTimeRange } from '../../Time/ReadableTimeRange';
 import { useQueues } from '../../../contexts/Queue';
 import { showToastPromise } from '../../Toast/Toast';
-import { apiRequestService } from '../../../factories/apiRequestService';
+import { getApiRequestService } from '../../../factories/apiRequestService';
 import { useModals } from '../../../contexts/Modals';
 import { useMediaPlayerResourceUpdate } from '../../../hooks/useMediaPlayerResourceUpdate';
 import { useAutoQueue } from '../../../contexts/AutoQueue';
-import styles from '../../../styles/components/List/ItemSoundbites/ListItemSoundbiteRow.module.scss';
 import { useAccount } from '../../../contexts/Account';
+
+import styles from '../../../styles/components/List/ItemSoundbites/ListItemSoundbiteRow.module.scss';
 
 interface ListItemSoundbiteProps {
   channel: DTOChannel | null;
@@ -41,6 +41,7 @@ interface ListItemSoundbiteProps {
   isEditModePlaylist?: boolean;
   removeFromPlaylist?: () => void;
   playlist_id_text: string | null;
+  onPlayAndRemove?: () => void;
 }
 
 export const ListItemSoundbiteRow: React.FC<ListItemSoundbiteProps> = ({
@@ -54,7 +55,9 @@ export const ListItemSoundbiteRow: React.FC<ListItemSoundbiteProps> = ({
   isEditModePlaylist,
   removeFromPlaylist,
   playlist_id_text,
+  onPlayAndRemove,
 }) => {
+  const apiRequestService = getApiRequestService();
   const url = `${ROUTES.OFFICIAL_CLIP}/${item_soundbite.id_text}`;
 
   channel = item?.channel || channel || null;
@@ -63,12 +66,12 @@ export const ListItemSoundbiteRow: React.FC<ListItemSoundbiteProps> = ({
   const channel_images = channel?.channel_images;
   const item_images = item?.item_images;
 
-  const channel_image = findDTOChannelImageBySize(
+  const channel_image = findDTOChannelImageForList(
     channel_images,
     IMAGES.LIST.CLIPS.SIZE_FIND_TARGET,
     'lesser'
   );
-  const item_image = findDTOItemImageBySize(
+  const item_image = findDTOItemImageForList(
     item_images,
     IMAGES.LIST.CLIPS.SIZE_FIND_TARGET,
     'lesser'
@@ -190,25 +193,6 @@ export const ListItemSoundbiteRow: React.FC<ListItemSoundbiteProps> = ({
     });
   };
 
-  const moreButtonMenuItems: MoreButtonMenuItem[] = [
-    {
-      label: tMediaPlayer('play'),
-      onClick: () => alert(tMediaPlayer('play')),
-    },
-    {
-      label: tFeatures('queue.queue_next'),
-      onClick: addToQueueNextOnClick,
-    },
-    {
-      label: tFeatures('queue.queue_last'),
-      onClick: addToQueueLastOnClick,
-    },
-    {
-      label: tFeatures('playlist.add_to_playlist'),
-      onClick: addToPlaylistOnClick,
-    },
-  ];
-
   const removeFromQueueOnClick = async () => {
     if (channel) {
       const queue = getQueueForMedium(queues, channel.medium_id);
@@ -245,6 +229,33 @@ export const ListItemSoundbiteRow: React.FC<ListItemSoundbiteProps> = ({
     });
   };
 
+  const moreButtonMenuItems: MoreButtonMenuItem[] = isEditModePlaylist
+    ? [
+        {
+          label: tFeatures('playlist.remove_from_playlist'),
+          onClick: removeFromPlaylistOnClick,
+          variant: 'danger',
+        },
+      ]
+    : [
+        {
+          label: tMediaPlayer('play'),
+          onClick: () => alert(tMediaPlayer('play')),
+        },
+        {
+          label: tFeatures('queue.queue_next'),
+          onClick: addToQueueNextOnClick,
+        },
+        {
+          label: tFeatures('queue.queue_last'),
+          onClick: addToQueueLastOnClick,
+        },
+        {
+          label: tFeatures('playlist.add_to_playlist'),
+          onClick: addToPlaylistOnClick,
+        },
+      ];
+
   if (isEditModeQueue) {
     moreButtonMenuItems.push({
       label: tFeatures('queue.remove_from_queue'),
@@ -254,11 +265,7 @@ export const ListItemSoundbiteRow: React.FC<ListItemSoundbiteProps> = ({
   }
 
   if (isEditModePlaylist) {
-    moreButtonMenuItems.push({
-      label: tFeatures('playlist.remove_from_playlist'),
-      onClick: removeFromPlaylistOnClick,
-      variant: 'danger',
-    });
+    // Menu already limited to remove-from-playlist in edit mode.
   }
 
   return (
@@ -268,41 +275,52 @@ export const ListItemSoundbiteRow: React.FC<ListItemSoundbiteProps> = ({
           <FaGripLines />
         </div>
       )}
-      <Link href={url} tabIndex={-1}>
-        <Image
-          src={item_image?.url || channel_image?.url}
-          alt={itemTitle || tMedia('podcast.episode_image')}
-          width={IMAGES.LIST.CLIPS.SIZE}
-          height={IMAGES.LIST.CLIPS.SIZE}
-          className={styles.image}
-        />
-        <Image
-          src={item_image?.url || channel_image?.url}
-          alt={itemTitle || tMedia('podcast.episode_image')}
-          width={IMAGES.LIST.CLIPS.SIZE}
-          height={IMAGES.LIST.CLIPS.SIZE}
-          className={styles.imageMobile}
-        />
-      </Link>
+      <ImagesPerView
+        src={item_image?.url || channel_image?.url}
+        alt={itemTitle || tMedia('podcast.episode_image')}
+        widthDesktop={IMAGES.LIST.CLIPS.SIZE}
+        heightDesktop={IMAGES.LIST.CLIPS.SIZE}
+        widthMobile={IMAGES.LIST.CLIPS.SIZE}
+        heightMobile={IMAGES.LIST.CLIPS.SIZE}
+        classNameDesktop={styles.image}
+        classNameMobile={styles.imageMobile}
+        href={onPlayAndRemove ? undefined : url}
+        onClick={onPlayAndRemove}
+      />
       <div className={styles.content}>
-        <Link href={url}>
-          <div className={styles.topSection}>
-            <h3 className={styles.clipTitle}>{itemSoundbiteTitle}</h3>
-            {(showChannelInfo || showItemInfo) && (
-              <div className={styles.subtitle}>
-                {showChannelInfo && channelTitle}
-                {showChannelInfo && showItemInfo && ' • '}
-                {showItemInfo && itemTitle}
-              </div>
-            )}
-          </div>
-        </Link>
+        {onPlayAndRemove ? (
+          <button type="button" className={styles.clickableTopSection} onClick={onPlayAndRemove}>
+            <div className={styles.topSection}>
+              <h3 className={styles.clipTitle}>{itemSoundbiteTitle}</h3>
+              {(showChannelInfo || showItemInfo) && (
+                <div className={styles.subtitle}>
+                  {showChannelInfo && channelTitle}
+                  {showChannelInfo && showItemInfo && ' • '}
+                  {showItemInfo && itemTitle}
+                </div>
+              )}
+            </div>
+          </button>
+        ) : (
+          <Link href={url}>
+            <div className={styles.topSection}>
+              <h3 className={styles.clipTitle}>{itemSoundbiteTitle}</h3>
+              {(showChannelInfo || showItemInfo) && (
+                <div className={styles.subtitle}>
+                  {showChannelInfo && channelTitle}
+                  {showChannelInfo && showItemInfo && ' • '}
+                  {showItemInfo && itemTitle}
+                </div>
+              )}
+            </div>
+          </Link>
+        )}
         <div className={styles.bottomSection}>
           <div className={styles.bottomSectionStart}>
             <PlayButtonRow
               item_soundbite={item_soundbite}
               item={item || item_soundbite.item || null}
-              onClick={playButtonOnClick}
+              onClick={onPlayAndRemove ?? playButtonOnClick}
             />
             <div className={styles.timeSection}>
               {showItemInfo && (

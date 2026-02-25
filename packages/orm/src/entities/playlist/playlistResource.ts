@@ -1,8 +1,9 @@
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, Unique } from 'typeorm';
-import { Playlist } from '@orm/entities/playlist/playlist';
-import { Clip } from '../clip';
-import { Item } from '../item/item';
-import { ItemSoundbite } from '../item/itemSoundbite';
+import type { Relation } from 'typeorm';
+import type { Playlist } from '@orm/entities/playlist/playlist.js';
+import type { Clip } from '../clip.js';
+import type { Item } from '../item/item.js';
+import type { ItemSoundbite } from '../item/itemSoundbite.js';
 
 @Entity()
 @Unique(['playlist', 'list_position'])
@@ -10,9 +11,9 @@ export class PlaylistResource {
   @PrimaryGeneratedColumn()
   id!: number;
 
-  @ManyToOne(() => Playlist, (playlist) => playlist.id, { onDelete: 'CASCADE' })
+  @ManyToOne('Playlist', (playlist: Playlist) => playlist.id, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'playlist_id' })
-  playlist!: Playlist;
+  playlist!: Relation<Playlist>;
 
   @Column({ type: 'numeric' })
   list_position!: string;
@@ -20,23 +21,25 @@ export class PlaylistResource {
   @Column()
   clip_id!: string;
 
-  @ManyToOne(() => Clip, (clip) => clip.id, { onDelete: 'CASCADE' })
+  @ManyToOne('Clip', (clip: Clip) => clip.id, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'clip_id' })
-  clip!: Clip;
+  clip!: Relation<Clip>;
 
   @Column()
   item_id!: string;
 
-  @ManyToOne(() => Item, (item) => item.id, { onDelete: 'CASCADE' })
+  @ManyToOne('Item', (item: Item) => item.id, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'item_id' })
-  item!: Item;
+  item!: Relation<Item>;
 
   @Column()
   item_soundbite_id!: number;
 
-  @ManyToOne(() => ItemSoundbite, (itemSoundbite) => itemSoundbite.id, { onDelete: 'CASCADE' })
+  @ManyToOne('ItemSoundbite', (itemSoundbite: ItemSoundbite) => itemSoundbite.id, {
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'item_soundbite_id' })
-  item_soundbite!: ItemSoundbite;
+  item_soundbite!: Relation<ItemSoundbite>;
 
   @Column()
   add_by_rss_hash_id!: string;

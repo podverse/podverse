@@ -6,12 +6,7 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
 resources:
-  - ../../base/workers/03-configmap.yaml
-  - ../../base/workers/consumer-dlq.yaml
-  - ../../base/workers/listener-live.yaml
-  - ../../base/workers/parser-live.yaml
-  - ../../base/workers/parser-normal.yaml
-  - ../../base/workers/parser-ondemand.yaml
+  - github.com/podverse/podverse/infra/k8s/base/workers?ref=feature/alpha
 namespace: podverse-alpha
 
 images:
@@ -31,5 +26,5 @@ labels:
     # This ensures the labels are also applied to the selectors,
     # so the Service correctly finds the Pods.
     includeSelectors: true
-patchesStrategicMerge:
-  - log-level-debug.yaml
+patches:
+  - path: log-level-debug.yaml

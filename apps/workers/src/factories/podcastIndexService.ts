@@ -1,4 +1,4 @@
-import { PodcastIndexService } from '@podverse/external-services';
+import type { PodcastIndexService } from '@podverse/external-services-podcast-index';
 
 let instance: PodcastIndexService | null = null;
 

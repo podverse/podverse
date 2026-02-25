@@ -1,13 +1,19 @@
-import {
+import type {
   PodcastBatchByFeedGuidResponse,
   EpisodeByGuidResponse,
   DTOChannel,
   DTOItem,
   RemoteItemGeneric,
 } from '@podverse/helpers';
-import { podcastIndexService } from '@api/factories/podcastIndexService';
-import { cacheGetJson, cacheSetJson } from '@api/lib/keyvaldb/keyvaldb';
-import { config } from '@api/config';
+import { podcastIndexService } from '@api/factories/podcastIndexService.js';
+import { cacheGetJson, cacheSetJson } from '@api/lib/keyvaldb/keyvaldb.js';
+import { config } from '@api/config/index.js';
+
+function isLocalFeedUrl(url: string | null | undefined): boolean {
+  if (url === null || url === '' || url === undefined) return true;
+  const lower = url.toLowerCase();
+  return lower.includes('localhost') || lower.includes('127.0.0.1');
+}
 
 export type FinalRemoteItemsResult = {
   channelsAdded: DTOChannel[];
@@ -92,10 +98,11 @@ export async function buildRemoteItemsFinalResult(
 
   let itemsUnaddedFromPI: NonNullable<EpisodeByGuidResponse['episode']>[] = [];
   try {
-    itemsUnaddedFromPI = [];
     const items = originalItemsUnadded || [];
 
-    const itemsWithFeedGuid = items.filter((it) => it && it.feed_guid && it.item_guid);
+    const itemsWithFeedGuid = items.filter(
+      (it) => it && it.feed_guid && it.item_guid && !isLocalFeedUrl(it.feed_url)
+    );
 
     const missingItems: { item_guid: string; feed_guid: string }[] = [];
 

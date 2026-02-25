@@ -13,7 +13,7 @@ import { Button } from '../Button/Button';
 import { TextInput } from '../Form/TextInput';
 import Form from '../Form/Form';
 import styles from '../../styles/components/Auth/AuthSignUpForm.module.scss';
-import { apiRequestService } from '../../factories/apiRequestService';
+import { getApiRequestService } from '../../factories/apiRequestService';
 import { handleRateLimitAlert } from '../../utils/rateLimit/rateLimitAlert';
 import { FormInfoMessageText } from '../Form/FormInfoMessageText';
 
@@ -39,7 +39,7 @@ export const AuthSignUpForm: React.FC = () => {
     if (isFormValid) {
       setIsLoading(true);
       try {
-        await apiRequestService.reqAccountCreate({
+        await getApiRequestService().reqAccountCreate({
           email,
           password: password1,
           locale,

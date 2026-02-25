@@ -1,13 +1,36 @@
-export type MQQueueNameParamKey = 'rss-slow' | 'rss-normal' | 'rss-on-demand' | 'rss-live';
+import {
+  DEDUPE_WINDOW_ADD_BY_RSS_BACKGROUND_MS,
+  DEDUPE_WINDOW_ADD_BY_RSS_ON_DEMAND_MS,
+  DEDUPE_WINDOW_IMAGE_SHRINK_HINTS_MS,
+  DEDUPE_WINDOW_RSS_NORMAL_MS,
+  DEDUPE_WINDOW_RSS_ON_DEMAND_MS,
+  DEDUPE_WINDOW_RSS_SLOW_MS,
+} from './dedupeWindows.js';
+
+export type MQQueueNameParamKey =
+  | 'rss-slow'
+  | 'rss-normal'
+  | 'rss-on-demand'
+  | 'rss-live'
+  | 'add-by-rss-on-demand'
+  | 'add-by-rss-background';
 
 export const validMQQueueNamesParamKeys: MQQueueNameParamKey[] = [
   'rss-slow',
   'rss-normal',
   'rss-on-demand',
   'rss-live',
+  'add-by-rss-on-demand',
+  'add-by-rss-background',
 ];
 
-type MQQueueName = 'rss-normal' | 'rss-on-demand' | 'rss-live';
+type MQQueueName =
+  | 'rss-normal'
+  | 'rss-on-demand'
+  | 'rss-live'
+  | 'add-by-rss-on-demand'
+  | 'add-by-rss-background'
+  | 'image-shrinking-hints';
 
 export type MQQueueConfig = {
   queueName: MQQueueName;
@@ -22,17 +45,17 @@ export type MQQueueConfigFunctionParams = MQQueueConfig & {
 export const MQ_QUEUES: Record<MQQueueNameParamKey, MQQueueConfig> = {
   'rss-slow': {
     queueName: 'rss-normal',
-    dedupeCacheTimeMS: 15 * 60 * 1000,
+    dedupeCacheTimeMS: DEDUPE_WINDOW_RSS_SLOW_MS,
     priority: 'slow',
   },
   'rss-normal': {
     queueName: 'rss-normal',
-    dedupeCacheTimeMS: 5 * 60 * 1000,
+    dedupeCacheTimeMS: DEDUPE_WINDOW_RSS_NORMAL_MS,
     priority: 'normal',
   },
   'rss-on-demand': {
     queueName: 'rss-on-demand',
-    dedupeCacheTimeMS: 1 * 60 * 1000,
+    dedupeCacheTimeMS: DEDUPE_WINDOW_RSS_ON_DEMAND_MS,
     priority: 'normal',
   },
   'rss-live': {
@@ -40,4 +63,22 @@ export const MQ_QUEUES: Record<MQQueueNameParamKey, MQQueueConfig> = {
     dedupeCacheTimeMS: null,
     priority: 'normal',
   },
+  'add-by-rss-on-demand': {
+    queueName: 'add-by-rss-on-demand',
+    dedupeCacheTimeMS: DEDUPE_WINDOW_ADD_BY_RSS_ON_DEMAND_MS,
+    priority: 'normal',
+  },
+  'add-by-rss-background': {
+    queueName: 'add-by-rss-background',
+    dedupeCacheTimeMS: DEDUPE_WINDOW_ADD_BY_RSS_BACKGROUND_MS,
+    priority: 'normal',
+  },
+};
+
+export const MQ_IMAGE_SHRINK_HINTS_QUEUE_NAME: MQQueueName = 'image-shrinking-hints';
+
+export const MQ_IMAGE_SHRINK_HINTS_CONFIG: MQQueueConfig = {
+  queueName: MQ_IMAGE_SHRINK_HINTS_QUEUE_NAME,
+  dedupeCacheTimeMS: DEDUPE_WINDOW_IMAGE_SHRINK_HINTS_MS,
+  priority: 'normal',
 };

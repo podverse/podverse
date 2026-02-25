@@ -1,6 +1,6 @@
-import { Repository, ObjectLiteral, FindOptionsWhere, EntityTarget } from 'typeorm';
+import type { Repository, ObjectLiteral, FindOptionsWhere, EntityTarget } from 'typeorm';
 import { TIME_CONSTANTS } from '@podverse/helpers';
-import { AppDataSourceRead, AppDataSourceReadWrite } from '@orm/db';
+import { AppDataSourceRead, AppDataSourceReadWrite } from '@orm/db/index.js';
 
 export type UpdateHistoricalOptions = {
   daily: boolean;

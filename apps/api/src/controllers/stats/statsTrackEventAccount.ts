@@ -1,13 +1,9 @@
-import { Request, Response } from 'express';
+import type { Request, Response } from 'express';
 import Joi from 'joi';
 import { StatsTrackEventAccountService } from '@podverse/orm';
-import { handleGenericErrorResponse } from '@api/controllers/helpers/error';
-import { ensureAuthenticated, getAuthenticatedUser } from '@api/lib/auth';
-import { validateBodyObject } from '@api/lib/validation';
-
-const createStatsTrackEventAccountSchema = Joi.object({
-  account_id_text: Joi.string().required(),
-});
+import { handleGenericErrorResponse } from '@api/controllers/helpers/error.js';
+import { ensureAuthenticated, getAuthenticatedUser } from '@api/lib/auth/index.js';
+import { validateBodyObject } from '@api/lib/validation/index.js';
 
 export class StatsTrackEventAccountController {
   private static statsTrackEventAccountService = new StatsTrackEventAccountService();
@@ -17,7 +13,11 @@ export class StatsTrackEventAccountController {
       req,
       res,
       async () => {
-        validateBodyObject(createStatsTrackEventAccountSchema, req, res, async () => {
+        const bodySchema = Joi.object({
+          account_id_text: Joi.string().required(),
+        });
+
+        validateBodyObject(bodySchema, req, res, async () => {
           const jwtUser = getAuthenticatedUser(req);
           const { account_id_text } = req.body;
 

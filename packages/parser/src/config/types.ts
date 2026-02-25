@@ -38,7 +38,9 @@ export type ParserConfig = {
   userAgent: string;
   log: LogConfig;
   firebase: FirebaseConfig;
-  podcastIndex: PodcastIndexConfig;
+  podcastIndex?: PodcastIndexConfig;
   parser?: ParserSettingsConfig;
   defaults: DefaultsConfig;
+  /** When true, bypass Podcast Index (mock PI service) and use URL-only feed lookup. For test-assets and tools. */
+  testAssetsMode?: boolean;
 };

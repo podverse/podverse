@@ -7,9 +7,7 @@ kind: Kustomization
 
 # 1. Resources to include
 resources:
-  - ../../base/api/01-configmap.yaml
-  - ../../base/api/02-service.yaml
-  - ../../base/api/03-deployment.yaml
+  - github.com/podverse/podverse/infra/k8s/base/api?ref=feature/alpha
 
 # 2. Namespace (optional, ensures all resources are in this namespace)
 namespace: podverse-alpha

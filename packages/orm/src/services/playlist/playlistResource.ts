@@ -1,21 +1,21 @@
 // TODO: get rid of "any" in the file
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { getMd5Hash, PAGINATION, PlaylistResourceIdTextOptions } from '@podverse/helpers';
-import {
+import type { PlaylistResourceIdTextOptions } from '@podverse/helpers';
+import { getAddByRSSHashId, PAGINATION } from '@podverse/helpers';
+import type {
   EntityManager,
   FindManyOptions,
   FindOptionsOrderValue,
   FindOptionsWhere,
-  MoreThan,
-  LessThan,
 } from 'typeorm';
-import { PlaylistResource } from '@orm/entities/playlist/playlistResource';
-import { PlaylistService } from './playlist';
-import { BaseManyService } from '@orm/services/base/baseManyService';
-import { ClipService } from '../clip';
-import { ItemService } from '../item/item';
-import { ItemSoundbiteService } from '../item/itemSoundbite';
-import { listResourceRelations } from '../queue/queueResource';
+import { MoreThan, LessThan } from 'typeorm';
+import { PlaylistResource } from '@orm/entities/playlist/playlistResource.js';
+import { PlaylistService } from './playlist.js';
+import { BaseManyService } from '@orm/services/base/baseManyService.js';
+import { ClipService } from '../clip.js';
+import { ItemService } from '../item/item.js';
+import { ItemSoundbiteService } from '../item/itemSoundbite.js';
+import { listResourceRelations } from '../queue/queueResource.js';
 
 const PLAYLIST_LIST_POSITION_INCREMENT = 0.00000001;
 
@@ -45,12 +45,41 @@ export class PlaylistResourceService extends BaseManyService<PlaylistResource, '
     });
   }
 
+  /**
+   * Redact add-by-RSS data (feed URL, token, enclosure URLs) for non-owners.
+   * Mutates resources in place: clears add_by_rss_resource_data and sets is_add_by_rss_redacted when
+   * the requester is not the playlist owner.
+   */
+  private redactAddByRSSForNonOwner<
+    T extends { add_by_rss_hash_id?: string | null; add_by_rss_resource_data?: unknown },
+  >(resources: T[], playlistOwnerId: number | null, requesterAccountId: number | null): T[] {
+    const isOwner =
+      requesterAccountId !== null &&
+      playlistOwnerId !== null &&
+      requesterAccountId === playlistOwnerId;
+    if (isOwner) {
+      return resources;
+    }
+    for (const resource of resources) {
+      // Key off either field so the sensitive payload is never exposed (defense in depth).
+      const hasAddByRSSData =
+        Boolean(resource.add_by_rss_hash_id) || Boolean(resource.add_by_rss_resource_data);
+      if (hasAddByRSSData) {
+        (resource as Record<string, unknown>).add_by_rss_resource_data = undefined;
+        (resource as Record<string, unknown>).is_add_by_rss_redacted = true;
+      }
+    }
+    return resources;
+  }
+
   async getManyByPlaylistIdText(
     playlist_id_text: string,
     account_id: number | null,
     options: Partial<FindManyOptions<PlaylistResource>> = {}
   ): Promise<PlaylistResource[]> {
-    const playlist = await this.playlistService.getByIdText(playlist_id_text);
+    const playlist = await this.playlistService.getByIdText(playlist_id_text, {
+      relations: ['account'],
+    });
     if (!playlist) {
       throw new Error('Playlist not found.');
     }
@@ -67,7 +96,9 @@ export class PlaylistResourceService extends BaseManyService<PlaylistResource, '
       where: { ...defaultOptions.where, ...(options.where || {}) },
     });
 
-    return this.filterPrivateClips(results, account_id);
+    const filtered = this.filterPrivateClips(results, account_id);
+    const playlistOwnerId = (playlist as { account?: { id?: number } }).account?.id ?? null;
+    return this.redactAddByRSSForNonOwner(filtered, playlistOwnerId, account_id);
   }
 
   async getManyForQueueByListPosition(
@@ -86,7 +117,9 @@ export class PlaylistResourceService extends BaseManyService<PlaylistResource, '
       );
     }
 
-    const playlist = await this.playlistService.getByIdText(playlist_id_text);
+    const playlist = await this.playlistService.getByIdText(playlist_id_text, {
+      relations: ['account'],
+    });
     if (!playlist) {
       throw new Error('Playlist not found.');
     }
@@ -141,7 +174,9 @@ export class PlaylistResourceService extends BaseManyService<PlaylistResource, '
       relations: listResourceRelations,
     });
 
-    return this.filterPrivateClips(results, account_id);
+    const filtered = this.filterPrivateClips(results, account_id);
+    const playlistOwnerId = (playlist as { account?: { id?: number } }).account?.id ?? null;
+    return this.redactAddByRSSForNonOwner(filtered, playlistOwnerId, account_id);
   }
 
   async getManyByPlaylistShuffle(
@@ -150,7 +185,9 @@ export class PlaylistResourceService extends BaseManyService<PlaylistResource, '
     account_id: number | null,
     options?: FindManyOptions<PlaylistResource>
   ): Promise<PlaylistResource[]> {
-    const playlist = await this.playlistService.getByIdText(playlist_id_text);
+    const playlist = await this.playlistService.getByIdText(playlist_id_text, {
+      relations: ['account'],
+    });
     if (!playlist) {
       throw new Error('Playlist not found.');
     }
@@ -208,7 +245,9 @@ export class PlaylistResourceService extends BaseManyService<PlaylistResource, '
       .take(take);
 
     const result = await query.getRawAndEntities();
-    return this.filterPrivateClips(result.entities, account_id);
+    const filtered = this.filterPrivateClips(result.entities, account_id);
+    const playlistOwnerId = (playlist as { account?: { id?: number } }).account?.id ?? null;
+    return this.redactAddByRSSForNonOwner(filtered, playlistOwnerId, account_id);
   }
 
   async getAllByPlaylistIdText(
@@ -584,7 +623,7 @@ export class PlaylistResourceService extends BaseManyService<PlaylistResource, '
       firstItem as PlaylistResource,
       lastItem as PlaylistResource
     );
-    const add_by_rss_hash_id = getMd5Hash(add_by_rss_resource_data);
+    const add_by_rss_hash_id = getAddByRSSHashId(add_by_rss_resource_data);
 
     const finalDto = {
       add_by_rss_resource_data,

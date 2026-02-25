@@ -1,4 +1,7 @@
-import { DTOQueueResourceAbridgedResponseData, QueueResourcesAbridgedIndex } from '../../dtos';
+import type {
+  DTOQueueResourceAbridgedResponseData,
+  QueueResourcesAbridgedIndex,
+} from '../../dtos/index.js';
 
 export const generateQueueResourceAbridgedIndex = (
   queueResourcesAbridged: DTOQueueResourceAbridgedResponseData[]

@@ -2,19 +2,17 @@
 
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';
+import type { DTOChannel, DTOItem, DTOLiveItem } from '@podverse/helpers';
 import {
-  DTOChannel,
-  DTOItem,
-  DTOLiveItem,
-  findDTOChannelImageBySize,
-  findDTOItemImageBySize,
+  findDTOChannelImageForList,
+  findDTOItemImageForList,
   getQueryParamFromQueueMediumId,
   LiveItemStatusEnum,
   stripAndDecodeHtml,
 } from '@podverse/helpers';
 import { getShuffleHash } from '@podverse/helpers-requests';
 import React from 'react';
-import { Image } from '../../Image/Image';
+import { ImagesPerView } from '../../Image/ImagesPerView';
 import { LiveItemStatus } from '../../LiveItem/LiveItemStatus';
 import { PlayButtonRow } from '../../MediaPlayer/Buttons/PlayButtonRow';
 import { ReadableDate } from '../../Time/ReadableDate';
@@ -24,7 +22,7 @@ import { IMAGES } from '../../../constants/images';
 import { useAutoQueue } from '../../../contexts/AutoQueue';
 import { useMediaPlayer } from '../../../contexts/MediaPlayer';
 import { useMediaPlayerResourceUpdate } from '../../../hooks/useMediaPlayerResourceUpdate';
-import styles from '../../../styles/components/List/LiveItem/ListLiveItemRow.module.scss';
+import styles from '../../../styles/components/Common/List/LiveItem/ListLiveItemRow.module.scss';
 
 interface Props {
   channel: DTOChannel;
@@ -46,12 +44,12 @@ export const ListLiveItemRow: React.FC<Props> = ({
     medium === 'av'
       ? `${ROUTES.PODCAST_LIVESTREAM}/${item.id_text}`
       : `${ROUTES.MUSIC_LIVESTREAM}/${item.id_text}`;
-  const channel_image = findDTOChannelImageBySize(
+  const channel_image = findDTOChannelImageForList(
     channel.channel_images,
     IMAGES.LIST.LIVESTREAMS.DESKTOP.SIZE_FIND_TARGET,
     'lesser'
   );
-  const item_image = findDTOItemImageBySize(
+  const item_image = findDTOItemImageForList(
     item.item_images,
     IMAGES.LIST.LIVESTREAMS.DESKTOP.SIZE_FIND_TARGET,
     'lesser'
@@ -91,22 +89,17 @@ export const ListLiveItemRow: React.FC<Props> = ({
 
   return (
     <div className={styles.row}>
-      <Link href={url} tabIndex={-1}>
-        <Image
-          src={item_image?.url || channel_image?.url}
-          alt={item.title || tMedia('livestream.livestream_image')}
-          width={IMAGES.LIST.LIVESTREAMS.DESKTOP.SIZE}
-          height={IMAGES.LIST.LIVESTREAMS.DESKTOP.SIZE}
-          className={styles.image}
-        />
-        <Image
-          src={item_image?.url || channel_image?.url}
-          alt={item.title || tMedia('livestream.livestream_image')}
-          width={IMAGES.LIST.LIVESTREAMS.MOBILE.SIZE}
-          height={IMAGES.LIST.LIVESTREAMS.MOBILE.SIZE}
-          className={styles.imageMobile}
-        />
-      </Link>
+      <ImagesPerView
+        src={item_image?.url || channel_image?.url}
+        alt={item.title || tMedia('livestream.livestream_image')}
+        widthDesktop={IMAGES.LIST.LIVESTREAMS.DESKTOP.SIZE}
+        heightDesktop={IMAGES.LIST.LIVESTREAMS.DESKTOP.SIZE}
+        widthMobile={IMAGES.LIST.LIVESTREAMS.MOBILE.SIZE}
+        heightMobile={IMAGES.LIST.LIVESTREAMS.MOBILE.SIZE}
+        classNameDesktop={styles.image}
+        classNameMobile={styles.imageMobile}
+        href={url}
+      />
       <div className={styles.content}>
         <Link href={url}>
           <div className={styles.topSection}>

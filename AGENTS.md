@@ -4,12 +4,12 @@ This document provides rules and patterns for AI coding assistants working on th
 
 ## Quick Reference
 
-| Item            | Value                                        |
-| --------------- | -------------------------------------------- |
-| Node.js         | 22+ (see `.nvmrc`)                           |
-| Package Manager | npm workspaces                               |
-| Style           | No semicolons, single quotes, 2-space indent |
-| TypeScript      | Strict mode, no `any` types                  |
+| Item            | Value                                              |
+| --------------- | -------------------------------------------------- |
+| Node.js         | 24+ (see `.nvmrc`)                                 |
+| Package Manager | npm workspaces                                     |
+| Style           | Semicolons required, single quotes, 2-space indent |
+| TypeScript      | Strict mode, no `any` types                        |
 
 ### Essential Commands
 
@@ -32,7 +32,7 @@ Build packages in this order (dependencies must be built first):
    - `helpers-backend` (backend-specific utilities)
    - `helpers-browser` (browser-specific utilities)
    - `helpers-config` (configuration validation)
-3. `external-services`
+3. `external-services-firebase`, `external-services-paypal`, `external-services-podcast-index` (parallel)
 4. `orm`
 5. `notifications`
 6. `parser`
@@ -93,6 +93,15 @@ import { Podcast } from '@podverse/orm';
 import { config } from './config'; // 4. Relative imports
 ```
 
+### ESM and import type
+
+- **ESM**: Relative imports use `.js` extensions. Packages and apps use ESM (NodeNext in `tsconfig.base.json`).
+- **Type-only imports**: Use `import type { X } from '...'` when the import is only used as a type (avoids runtime references and helps with circular deps). Keep value imports when the symbol is used at runtime (e.g. classes for `instanceof`, decorators that need the constructor).
+
+### Type assertions
+
+It is **critical** to avoid `as` (type assertions) as much as possible. Prefer improving types (DTOs, interfaces), optional chaining, and type guards; use `as` only when there is no better option, and confine or document those cases.
+
 ## Architecture
 
 ### Directory Structure
@@ -124,7 +133,7 @@ apps/               # Deployable applications
 | Shared types/DTOs          | `packages/helpers/src/dto/`                                                      |
 | Feed parsing               | `packages/parser/src/`                                                           |
 | Web pages                  | `apps/web/src/app/`                                                              |
-| Environment templates      | `infra/config/env-templates/`                                                    |
+| Environment templates      | `infra/config/env-templates/` (app stubs link to `apps/*/.env.example`)          |
 | Workers startup validation | `apps/workers/src/lib/startup/validation.ts` (see [ENV.md](apps/workers/ENV.md)) |
 | K8s manifests              | `infra/k8s/`                                                                     |
 | Jenkins pipelines          | `infra/pipelines/jenkins/`                                                       |
@@ -191,7 +200,7 @@ logger.error('Feed parsing failed', { error, feedUrl });
 ### i18n / Translations
 
 - ❌ Modify files in `i18n/compiled/` (generated at build time, not committed)
-- ❌ Add locales without updating all sync points (see `docs/i18n.md`)
+- ❌ Add locales without updating all sync points (see `docs/localization/I18N.md`)
 - ❌ Use empty strings in `i18n/originals/` (use override files for blanks)
 
 ### General
@@ -243,7 +252,7 @@ See `.llm/LLM.md` for full guidelines.
 ## References
 
 - [Quick Start Guide](docs/QUICKSTART.md) - Setup and running locally
-- [Architecture](docs/ARCHITECTURE.md) - System design and data flow
-- [Contributing](docs/CONTRIBUTING.md) - Workflow and PR guidelines
-- [i18n Guide](docs/i18n.md) - Translation system details
-- [IDE Setup](docs/IDE-SETUP.md) - VS Code configuration
+- [Architecture](docs/architecture/ARCHITECTURE.md) - System design and data flow
+- [Contributing](docs/development/CONTRIBUTING.md) - Workflow and PR guidelines
+- [i18n Guide](docs/localization/I18N.md) - Translation system details
+- [IDE Setup](docs/development/IDE-SETUP.md) - VS Code configuration

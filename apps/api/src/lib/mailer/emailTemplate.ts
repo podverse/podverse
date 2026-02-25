@@ -1,4 +1,4 @@
-import { config } from '@api/config';
+import { config } from '@api/config/index.js';
 
 type EmailTemplateParams = {
   buttonLink?: string;

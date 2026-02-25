@@ -8,16 +8,17 @@ import {
   BeforeInsert,
   BeforeUpdate,
 } from 'typeorm';
-import { Item } from './item';
+import type { Relation } from 'typeorm';
+import type { Item } from './item.js';
 
 @Entity()
 export class ItemPerson {
   @PrimaryGeneratedColumn()
   id!: number;
 
-  @ManyToOne(() => Item, (item) => item.id, { onDelete: 'CASCADE' })
+  @ManyToOne('Item', (item: Item) => item.id, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'item_id' })
-  item!: Item;
+  item!: Relation<Item>;
 
   @Column({ type: 'varchar', length: DATABASE_CONSTANTS.varchar_normal })
   name!: string;

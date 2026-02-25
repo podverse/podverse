@@ -54,6 +54,8 @@ export type ORMConfig = {
       };
     };
   };
+  addByRssCredentialsEncryptionKey?: string;
+  addByRssCredentialsEncryptionKeyOld?: string;
 };
 
 export function validateORMConfig(config: ORMConfig): ConfigValidationResult {
@@ -251,7 +253,7 @@ export type ParserConfig = {
     notifications_enabled: boolean;
     authJsonPath?: string | undefined;
   };
-  podcastIndex: {
+  podcastIndex?: {
     authKey: string;
     baseUrl: string;
     secretKey: string;
@@ -298,10 +300,8 @@ export function validateParserConfig(config: ParserConfig): ConfigValidationResu
     }
   }
 
-  // Podcast Index config validation
-  if (!config.podcastIndex) {
-    errors.push(createError('podcastIndex', 'Podcast Index configuration is required'));
-  } else {
+  // Podcast Index config validation (only when provided)
+  if (config.podcastIndex) {
     if (!config.podcastIndex.authKey || config.podcastIndex.authKey.trim() === '') {
       errors.push(createError('podcastIndex.authKey', 'Podcast Index auth key is required'));
     }

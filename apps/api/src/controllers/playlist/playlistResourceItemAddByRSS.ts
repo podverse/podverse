@@ -1,42 +1,32 @@
-import { Request, Response } from 'express';
+import type { Request, Response } from 'express';
 import Joi from 'joi';
 import { PlaylistResourceService } from '@podverse/orm';
-import { handleGenericErrorResponse } from '@api/controllers/helpers/error';
-import { verifyPlaylistOwnership } from '@api/controllers/playlist/playlist';
-import { ensureAuthenticated } from '@api/lib/auth';
-import { validateBodyObject, validateParamsObject } from '@api/lib/validation';
-import { getParamRequired } from '@api/lib/params';
-
-const addItemToPlaylistSchema = Joi.object({
-  add_by_rss_resource_data: Joi.object().required(),
-});
-
-const addItemToPlaylistBetweenSchema = Joi.object({
-  add_by_rss_resource_data: Joi.object().required(),
-  position1: Joi.number().min(0).required(),
-  position2: Joi.number().min(Joi.ref('position1')).required(),
-}).with('position1', 'position2');
-
-const playlistAndRSSHashIdSchema = Joi.object({
-  playlist_id_text: Joi.string().required(),
-  add_by_rss_hash_id: Joi.string().required(),
-});
-
-const playlistIdSchema = Joi.object({
-  playlist_id_text: Joi.string().required(),
-});
+import { handleGenericErrorResponse } from '@api/controllers/helpers/error.js';
+import { verifyPlaylistOwnership } from '@api/controllers/playlist/playlist.js';
+import { ensureAuthenticated } from '@api/lib/auth/index.js';
+import {
+  playlistIdTextParamSchema,
+  positionBetweenBodySchema,
+  validateBodyObject,
+  validateParamsObject,
+} from '@api/lib/validation/index.js';
+import { getParamRequired } from '@api/lib/params.js';
 
 class PlaylistResourceItemAddByRSSController {
   private static playlistResourceService = new PlaylistResourceService();
 
   static async addItemAddByRSSToPlaylistFirst(req: Request, res: Response): Promise<void> {
-    validateParamsObject(playlistIdSchema, req, res, async () => {
+    const bodySchema = Joi.object({
+      add_by_rss_resource_data: Joi.object().required(),
+    });
+
+    validateParamsObject(Joi.object(playlistIdTextParamSchema), req, res, async () => {
       ensureAuthenticated(
         req,
         res,
         async () => {
           verifyPlaylistOwnership()(req, res, async () => {
-            validateBodyObject(addItemToPlaylistSchema, req, res, async () => {
+            validateBodyObject(bodySchema, req, res, async () => {
               const playlist_id_text = getParamRequired(req, 'playlist_id_text');
               const { add_by_rss_resource_data } = req.body;
 
@@ -59,13 +49,17 @@ class PlaylistResourceItemAddByRSSController {
   }
 
   static async addItemAddByRSSToPlaylistLast(req: Request, res: Response): Promise<void> {
-    validateParamsObject(playlistIdSchema, req, res, async () => {
+    const bodySchema = Joi.object({
+      add_by_rss_resource_data: Joi.object().required(),
+    });
+
+    validateParamsObject(Joi.object(playlistIdTextParamSchema), req, res, async () => {
       ensureAuthenticated(
         req,
         res,
         async () => {
           verifyPlaylistOwnership()(req, res, async () => {
-            validateBodyObject(addItemToPlaylistSchema, req, res, async () => {
+            validateBodyObject(bodySchema, req, res, async () => {
               const playlist_id_text = getParamRequired(req, 'playlist_id_text');
               const { add_by_rss_resource_data } = req.body;
 
@@ -88,13 +82,18 @@ class PlaylistResourceItemAddByRSSController {
   }
 
   static async addItemAddByRSSToPlaylistBetween(req: Request, res: Response): Promise<void> {
-    validateParamsObject(playlistIdSchema, req, res, async () => {
+    const bodySchema = Joi.object({
+      add_by_rss_resource_data: Joi.object().required(),
+      ...positionBetweenBodySchema,
+    });
+
+    validateParamsObject(Joi.object(playlistIdTextParamSchema), req, res, async () => {
       ensureAuthenticated(
         req,
         res,
         async () => {
           verifyPlaylistOwnership()(req, res, async () => {
-            validateBodyObject(addItemToPlaylistBetweenSchema, req, res, async () => {
+            validateBodyObject(bodySchema, req, res, async () => {
               const playlist_id_text = getParamRequired(req, 'playlist_id_text');
               const { add_by_rss_resource_data, position1, position2 } = req.body;
 
@@ -119,7 +118,12 @@ class PlaylistResourceItemAddByRSSController {
   }
 
   static async removeItemAddByRSSFromPlaylist(req: Request, res: Response): Promise<void> {
-    validateParamsObject(playlistAndRSSHashIdSchema, req, res, async () => {
+    const paramsSchema = Joi.object({
+      ...playlistIdTextParamSchema,
+      add_by_rss_hash_id: Joi.string().required(),
+    });
+
+    validateParamsObject(paramsSchema, req, res, async () => {
       ensureAuthenticated(
         req,
         res,

@@ -1,8 +1,9 @@
 'use client';
 
 import { NextIntlClientProvider } from 'next-intl';
-import { DTOAccount, DTOCategory, QueueResourcesAbridgedIndex } from '@podverse/helpers';
+import type { DTOAccount, DTOCategory, QueueResourcesAbridgedIndex } from '@podverse/helpers';
 import { AccountProvider } from '../contexts/Account';
+import { ConfigProvider } from '../contexts/Config';
 import { LocalSettingsProvider } from '../contexts/LocalSettings';
 import { ModalsProvider } from '../contexts/Modals';
 import { CategoriesProvider } from '../contexts/Categories';
@@ -12,13 +13,16 @@ import { PlaylistsFavoritesProvider } from '../contexts/PlaylistsFavorites';
 import { QueuesProvider } from '../contexts/Queue';
 import { QueueResourcesAbridgedIndexProvider } from '../contexts/QueueResourcesAbridgedIndex';
 import { AutoQueueProvider } from '../contexts/AutoQueue';
+import { AddByRSSListContextProvider } from '../contexts/AddByRSSListContext';
 import { MediaPlayerVideoProvider } from '../contexts/MediaPlayerVideo';
-import { LocalSettingsState } from '../utils/localSettings/localSettings';
+import type { LocalSettingsState } from '../utils/localSettings/localSettings';
 import { NotificationsProvider } from '../contexts/Notifications';
 import { NavigationProvider } from '../contexts/Navigation';
+import type { WebConfig } from '../config';
 
 export default function Providers({
   children,
+  config,
   locale,
   ssrLocalSettings,
   ssrLoggedInAccount,
@@ -27,6 +31,7 @@ export default function Providers({
   categories,
 }: {
   children: React.ReactNode;
+  config: WebConfig;
   locale: string;
   ssrLocalSettings: LocalSettingsState;
   ssrLoggedInAccount: DTOAccount | null;
@@ -35,36 +40,40 @@ export default function Providers({
   categories: DTOCategory[];
 }) {
   return (
-    <NextIntlClientProvider locale={locale} messages={messages} timeZone="America/Chicago">
-      <NavigationProvider>
-        <LocalSettingsProvider ssrLocalSettings={ssrLocalSettings}>
-          <AccountProvider ssrLoggedInAccount={ssrLoggedInAccount}>
-            <NotificationsProvider>
-              <QueuesProvider>
-                <QueueResourcesAbridgedIndexProvider
-                  ssrQueueResourcesAbridgedIndex={ssrQueueResourcesAbridgedIndex}
-                >
-                  <PlaylistsFavoritesProvider>
-                    <MediaPlayerCurrentTimeProvider>
-                      <MediaPlayerProvider>
-                        <MediaPlayerVideoProvider>
-                          <AutoQueueProvider ssrLocalSettings={ssrLocalSettings}>
-                            <ModalsProvider>
-                              <CategoriesProvider ssrCategories={categories}>
-                                {children}
-                              </CategoriesProvider>
-                            </ModalsProvider>
-                          </AutoQueueProvider>
-                        </MediaPlayerVideoProvider>
-                      </MediaPlayerProvider>
-                    </MediaPlayerCurrentTimeProvider>
-                  </PlaylistsFavoritesProvider>
-                </QueueResourcesAbridgedIndexProvider>
-              </QueuesProvider>
-            </NotificationsProvider>
-          </AccountProvider>
-        </LocalSettingsProvider>
-      </NavigationProvider>
-    </NextIntlClientProvider>
+    <ConfigProvider config={config}>
+      <NextIntlClientProvider locale={locale} messages={messages} timeZone="America/Chicago">
+        <NavigationProvider>
+          <LocalSettingsProvider ssrLocalSettings={ssrLocalSettings}>
+            <AccountProvider ssrLoggedInAccount={ssrLoggedInAccount}>
+              <NotificationsProvider>
+                <QueuesProvider>
+                  <QueueResourcesAbridgedIndexProvider
+                    ssrQueueResourcesAbridgedIndex={ssrQueueResourcesAbridgedIndex}
+                  >
+                    <PlaylistsFavoritesProvider>
+                      <MediaPlayerCurrentTimeProvider>
+                        <MediaPlayerProvider>
+                          <MediaPlayerVideoProvider>
+                            <AddByRSSListContextProvider>
+                              <AutoQueueProvider ssrLocalSettings={ssrLocalSettings}>
+                                <ModalsProvider>
+                                  <CategoriesProvider ssrCategories={categories}>
+                                    {children}
+                                  </CategoriesProvider>
+                                </ModalsProvider>
+                              </AutoQueueProvider>
+                            </AddByRSSListContextProvider>
+                          </MediaPlayerVideoProvider>
+                        </MediaPlayerProvider>
+                      </MediaPlayerCurrentTimeProvider>
+                    </PlaylistsFavoritesProvider>
+                  </QueueResourcesAbridgedIndexProvider>
+                </QueuesProvider>
+              </NotificationsProvider>
+            </AccountProvider>
+          </LocalSettingsProvider>
+        </NavigationProvider>
+      </NextIntlClientProvider>
+    </ConfigProvider>
   );
 }

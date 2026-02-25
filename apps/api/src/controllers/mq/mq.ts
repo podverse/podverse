@@ -1,17 +1,20 @@
-import { Request, Response } from 'express';
+import type { Request, Response } from 'express';
 import Joi from 'joi';
-import { MQ_QUEUES, OnDemandParserEventType } from '@podverse/helpers';
+import type { OnDemandParserEventType } from '@podverse/helpers';
+import { getDedupeTTLSeconds, MQ_QUEUES } from '@podverse/helpers';
 import { mqRSSAdd } from '@podverse/mq';
-import { ensureAuthenticated, getAuthenticatedUser } from '@api/lib/auth';
-import { validateBodyObject } from '@api/lib/validation';
-import { handleGenericErrorResponse } from '../helpers/error';
-import { activeMQArtemisService } from '@api/factories/activeMQArtemisService';
-import { rateLimitAuthEndpoint } from '@api/lib/rateLimiter';
+import { ensureAuthenticated, getAuthenticatedUser } from '@api/lib/auth/index.js';
+import { cacheGetJson, cacheSetJson } from '@api/lib/keyvaldb/keyvaldb.js';
+import { validateBodyObject } from '@api/lib/validation/index.js';
+import { handleGenericErrorResponse } from '../helpers/error.js';
+import { activeMQArtemisService } from '@api/factories/activeMQArtemisService.js';
+import { rateLimitAuthEndpoint } from '@api/lib/rateLimiter.js';
 
-const addToOnDemandMQSchema = Joi.object({
-  url: Joi.string().uri().required(),
-  podcast_index_id: Joi.number().min(1).required(),
-});
+const buildRSSOnDemandDedupeKey = (
+  accountId: number,
+  type: OnDemandParserEventType,
+  feedUrl: string
+): string => `rss:on-demand:dedupe:${accountId}:${type}:${encodeURIComponent(feedUrl)}`;
 
 export class MQController {
   static rssOnDemandMiddleware = rateLimitAuthEndpoint({
@@ -26,7 +29,12 @@ export class MQController {
         res,
         async () => {
           MQController.rssOnDemandMiddleware(req, res, () => {
-            validateBodyObject(addToOnDemandMQSchema, req, res, async () => {
+            const bodySchema = Joi.object({
+              url: Joi.string().uri().required(),
+              podcast_index_id: Joi.number().min(1).required(),
+            });
+
+            validateBodyObject(bodySchema, req, res, async () => {
               const dto = req.body;
               const finalDto = {
                 url: dto.url,
@@ -35,6 +43,29 @@ export class MQController {
 
               try {
                 const mqConstantMessageOptions = MQ_QUEUES['rss-on-demand'];
+                const dedupeTTLSeconds = getDedupeTTLSeconds(
+                  mqConstantMessageOptions.dedupeCacheTimeMS
+                );
+                const accountId = getAuthenticatedUser(req).id;
+
+                if (dedupeTTLSeconds) {
+                  const dedupeKey = buildRSSOnDemandDedupeKey(accountId, type, finalDto.url);
+                  const existing = await cacheGetJson<{ createdAt: string }>(dedupeKey);
+                  if (existing) {
+                    res.status(429).json({
+                      message: 'Duplicate request. Please wait before retrying.',
+                      retry_after_seconds: dedupeTTLSeconds,
+                    });
+                    return;
+                  }
+
+                  await cacheSetJson(
+                    dedupeKey,
+                    { createdAt: new Date().toISOString() },
+                    dedupeTTLSeconds
+                  );
+                }
+
                 await mqRSSAdd(
                   activeMQArtemisService,
                   {
@@ -46,7 +77,7 @@ export class MQController {
                   {
                     forceParse: false,
                     onDemandParserEvent: {
-                      accountId: getAuthenticatedUser(req).id,
+                      accountId,
                       remoteParentPodcastIndexId: null,
                       type: type,
                     },

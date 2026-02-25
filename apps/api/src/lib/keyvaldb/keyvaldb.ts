@@ -1,12 +1,12 @@
-import Redis from 'ioredis';
-import { config } from '@api/config';
-import { loggerService } from '@api/factories/loggerService';
+import { Redis } from 'ioredis';
+import { config } from '@api/config/index.js';
+import { loggerService } from '@api/factories/loggerService.js';
 
 const keyvaldb = new Redis({
   host: config.keyvaldb.host,
   port: config.keyvaldb.port,
   password: config.keyvaldb.password,
-  retryStrategy: (times) => {
+  retryStrategy: (times: number) => {
     // Stop retrying after 3 attempts to prevent endless reconnection loops
     if (times > 3) {
       return null; // Return null to stop retrying
@@ -22,7 +22,7 @@ const keyvaldb = new Redis({
 let connectionErrorLogged = false;
 
 // Handle connection errors to prevent unhandled error events
-keyvaldb.on('error', (err) => {
+keyvaldb.on('error', (err: Error) => {
   // Only log the error once to avoid spam
   if (!connectionErrorLogged) {
     connectionErrorLogged = true;

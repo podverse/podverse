@@ -1,28 +1,20 @@
-import { Request, Response } from 'express';
-import { ensureAuthenticated, getAuthenticatedUser } from '@api/lib/auth';
+import type { Request, Response } from 'express';
+import { ensureAuthenticated, getAuthenticatedUser } from '@api/lib/auth/index.js';
 import { AccountNotificationChannelService } from '@podverse/orm';
-import { handleGenericErrorResponse } from '../helpers/error';
-import { validateBodyObject, validateParamsObject } from '@api/lib/validation';
+import { handleGenericErrorResponse } from '../helpers/error.js';
+import {
+  channelIdTextParamSchema,
+  validateBodyObject,
+  validateParamsObject,
+} from '@api/lib/validation/index.js';
 import Joi from 'joi';
-import { getParamRequired } from '@api/lib/params';
-
-const createNotificationChannelSchema = Joi.object({
-  channel_id_text: Joi.string().required(),
-});
-
-const deleteNotificationChannelSchema = Joi.object({
-  channel_id_text: Joi.string().required(),
-});
-
-const getByAccountAndChannelSchema = Joi.object({
-  channel_id_text: Joi.string().required(),
-});
+import { getParamRequired } from '@api/lib/params.js';
 
 class AccountNotificationChannelController {
   private static accountNotificationChannelService = new AccountNotificationChannelService();
 
   static async getByAccountAndChannel(req: Request, res: Response): Promise<void> {
-    validateParamsObject(getByAccountAndChannelSchema, req, res, async () => {
+    validateParamsObject(Joi.object(channelIdTextParamSchema), req, res, async () => {
       ensureAuthenticated(
         req,
         res,
@@ -74,7 +66,7 @@ class AccountNotificationChannelController {
       req,
       res,
       async () => {
-        validateBodyObject(createNotificationChannelSchema, req, res, async () => {
+        validateBodyObject(Joi.object(channelIdTextParamSchema), req, res, async () => {
           try {
             const jwtUser = getAuthenticatedUser(req);
             const { channel_id_text } = req.body;
@@ -98,7 +90,7 @@ class AccountNotificationChannelController {
       req,
       res,
       async () => {
-        validateParamsObject(deleteNotificationChannelSchema, req, res, async () => {
+        validateParamsObject(Joi.object(channelIdTextParamSchema), req, res, async () => {
           try {
             const jwtUser = getAuthenticatedUser(req);
             const channel_id_text = getParamRequired(req, 'channel_id_text');

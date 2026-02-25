@@ -1,15 +1,15 @@
 'use client';
 
 import React from 'react';
-import { DTOItem, EpisodeByGuidResponse } from '@podverse/helpers';
-import { ViewSelectedOption } from '../../../../ViewSelector/ViewSelector';
+import type { DTOItem, EpisodeByGuidResponse } from '@podverse/helpers';
+import type { ViewSelectedOption } from '../../../../ViewSelector/ViewSelector';
 import { ListLiveItemRow } from '../../../LiveItem/ListLiveItemRow';
 import { Divider } from '../../../../Divider/Divider';
 import { ListTrackRow } from './ListTrackRow';
 import { ListTrackGridNode } from './ListTrackGridNode';
 import { ListTrackRowRemoteItemUnadded } from './ListTrackRowRemoteItemUnadded';
 import { ListTrackGridNodeUnadded } from './ListTrackGridNodeUnadded';
-import styles from '../../../../../styles/components/List/ListNodes.module.scss';
+import styles from '../../../../../styles/components/Common/List/ListNodes.module.scss';
 
 interface Params {
   itemsAdded: DTOItem[];

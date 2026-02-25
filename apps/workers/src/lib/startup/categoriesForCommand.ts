@@ -10,6 +10,8 @@ export const CATEGORY_MQ = 'MQ';
 export const CATEGORY_PARSER = 'Parser';
 export const CATEGORY_PODCAST_INDEX = 'PodcastIndex';
 export const CATEGORY_WEB_NOTIFICATIONS = 'WebNotifications';
+export const CATEGORY_KEYVALDB = 'KeyValDB';
+export const CATEGORY_IMAGE_SHRINK = 'ImageShrink';
 
 export type ConfigCategory =
   | typeof CATEGORY_BASE
@@ -17,11 +19,14 @@ export type ConfigCategory =
   | typeof CATEGORY_MQ
   | typeof CATEGORY_PARSER
   | typeof CATEGORY_PODCAST_INDEX
-  | typeof CATEGORY_WEB_NOTIFICATIONS;
+  | typeof CATEGORY_WEB_NOTIFICATIONS
+  | typeof CATEGORY_KEYVALDB
+  | typeof CATEGORY_IMAGE_SHRINK;
 
 const BASE_ORM_COMMANDS = [
   'archiveAll',
   'ormFeedUpdateFlagStatus',
+  'reencryptAddByRSSCredentials',
   'statsUpdateAggregated',
   'statsUpdateAggregatedRolling',
   'generateOnDemandParserEventReports',
@@ -41,6 +46,16 @@ const BASE_ORM_MQ_PODCAST_INDEX_COMMANDS = ['mqRSSAdd'] as const;
 
 const BASE_ORM_MQ_COMMANDS = ['mqRSSRunDlqConsumer', 'mqRSSAddAll'] as const;
 
+const BASE_ORM_MQ_IMAGE_SHRINK_COMMANDS = [
+  'imageShrinkBackfill',
+  'imageShrinkRunConsumer',
+] as const;
+
+const BASE_ORM_IMAGE_SHRINK_COMMANDS = [
+  'imageShrinkCleanupOrphans',
+  'imageShrinkSourcePrune',
+] as const;
+
 const BASE_ORM_PARSER_PODCAST_INDEX_COMMANDS = ['parserRSSParseFeed'] as const;
 
 const FULL_STACK_COMMANDS = [
@@ -48,6 +63,8 @@ const FULL_STACK_COMMANDS = [
   'mqRSSRunLiveItemListener',
   'mqRSSAddRecentlyUpdatedFeedsFromPodcastIndex',
 ] as const;
+
+const BASE_ORM_MQ_PARSER_KEYVALDB_COMMANDS = ['mqAddByRSSRunParser'] as const;
 
 /**
  * Returns the set of config categories required for the given command.
@@ -104,11 +121,33 @@ export function getCategoriesForCommand(commandName: string): Set<ConfigCategory
   }
 
   if (
+    BASE_ORM_MQ_IMAGE_SHRINK_COMMANDS.includes(
+      commandName as (typeof BASE_ORM_MQ_IMAGE_SHRINK_COMMANDS)[number]
+    )
+  ) {
+    categories.add(CATEGORY_ORM);
+    categories.add(CATEGORY_MQ);
+    categories.add(CATEGORY_IMAGE_SHRINK);
+    return categories;
+  }
+
+  if (
+    BASE_ORM_IMAGE_SHRINK_COMMANDS.includes(
+      commandName as (typeof BASE_ORM_IMAGE_SHRINK_COMMANDS)[number]
+    )
+  ) {
+    categories.add(CATEGORY_ORM);
+    categories.add(CATEGORY_IMAGE_SHRINK);
+    return categories;
+  }
+
+  if (
     BASE_ORM_PARSER_PODCAST_INDEX_COMMANDS.includes(
       commandName as (typeof BASE_ORM_PARSER_PODCAST_INDEX_COMMANDS)[number]
     )
   ) {
     categories.add(CATEGORY_ORM);
+    categories.add(CATEGORY_MQ);
     categories.add(CATEGORY_PARSER);
     categories.add(CATEGORY_PODCAST_INDEX);
     categories.add(CATEGORY_WEB_NOTIFICATIONS);
@@ -121,6 +160,18 @@ export function getCategoriesForCommand(commandName: string): Set<ConfigCategory
     categories.add(CATEGORY_PARSER);
     categories.add(CATEGORY_PODCAST_INDEX);
     categories.add(CATEGORY_WEB_NOTIFICATIONS);
+    return categories;
+  }
+
+  if (
+    BASE_ORM_MQ_PARSER_KEYVALDB_COMMANDS.includes(
+      commandName as (typeof BASE_ORM_MQ_PARSER_KEYVALDB_COMMANDS)[number]
+    )
+  ) {
+    categories.add(CATEGORY_ORM);
+    categories.add(CATEGORY_MQ);
+    categories.add(CATEGORY_PARSER);
+    categories.add(CATEGORY_KEYVALDB);
     return categories;
   }
 

@@ -1,25 +1,16 @@
-import { Request, Response } from 'express';
+import type { Request, Response } from 'express';
 import { AccountNotificationChannelTypeService } from '@podverse/orm';
 import Joi from 'joi';
-import { ACCOUNT_NOTIFICATION_TYPE_VALUES, AccountNotificationTypeEnum } from '@podverse/helpers';
-import { ensureAuthenticated, getAuthenticatedUser } from '@api/lib/auth';
-import { handleGenericErrorResponse } from '../helpers/error';
-import { validateBodyObject, validateParamsObject } from '@api/lib/validation';
-import { getParamRequired } from '@api/lib/params';
-
-const createNotificationChannelTypeSchema = Joi.object({
-  channel_id_text: Joi.string().required(),
-  type: Joi.string()
-    .valid(...ACCOUNT_NOTIFICATION_TYPE_VALUES)
-    .required(),
-});
-
-const deleteNotificationChannelTypeSchema = Joi.object({
-  channel_id_text: Joi.string().required(),
-  type: Joi.string()
-    .valid(...ACCOUNT_NOTIFICATION_TYPE_VALUES)
-    .required(),
-});
+import type { AccountNotificationTypeEnum } from '@podverse/helpers';
+import { ACCOUNT_NOTIFICATION_TYPE_VALUES } from '@podverse/helpers';
+import { ensureAuthenticated, getAuthenticatedUser } from '@api/lib/auth/index.js';
+import { handleGenericErrorResponse } from '../helpers/error.js';
+import {
+  channelIdTextParamSchema,
+  validateBodyObject,
+  validateParamsObject,
+} from '@api/lib/validation/index.js';
+import { getParamRequired } from '@api/lib/params.js';
 
 class AccountNotificationChannelTypeController {
   private static accountNotificationChannelTypeService =
@@ -30,7 +21,14 @@ class AccountNotificationChannelTypeController {
       req,
       res,
       async () => {
-        validateBodyObject(createNotificationChannelTypeSchema, req, res, async () => {
+        const bodySchema = Joi.object({
+          ...channelIdTextParamSchema,
+          type: Joi.string()
+            .valid(...ACCOUNT_NOTIFICATION_TYPE_VALUES)
+            .required(),
+        });
+
+        validateBodyObject(bodySchema, req, res, async () => {
           try {
             const jwtUser = getAuthenticatedUser(req);
             const { channel_id_text, type } = req.body as {
@@ -58,7 +56,14 @@ class AccountNotificationChannelTypeController {
       req,
       res,
       async () => {
-        validateParamsObject(deleteNotificationChannelTypeSchema, req, res, async () => {
+        const paramsSchema = Joi.object({
+          ...channelIdTextParamSchema,
+          type: Joi.string()
+            .valid(...ACCOUNT_NOTIFICATION_TYPE_VALUES)
+            .required(),
+        });
+
+        validateParamsObject(paramsSchema, req, res, async () => {
           try {
             const jwtUser = getAuthenticatedUser(req);
             const channel_id_text = getParamRequired(req, 'channel_id_text');

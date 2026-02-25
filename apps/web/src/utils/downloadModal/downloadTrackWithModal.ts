@@ -1,9 +1,10 @@
+import type { DTOItem } from '@podverse/helpers';
 import {
   buildLabeledItemEnclosures,
-  DTOItem,
+  getDownloadFilenameFromSource,
   getSelectedLabeledItemEnclosureAndSource,
 } from '@podverse/helpers';
-import { ModalSourceSelector } from '../../contexts/Modals';
+import type { ModalSourceSelector } from '../../contexts/Modals';
 
 type DownloadTrackWithModalParams = {
   item: DTOItem;
@@ -45,14 +46,16 @@ export const downloadTrackWithModal = async ({
       sourceRowIndex: null,
     });
     if (selected?.source?.uri) {
-      showToastPromiseWithLoading(
-        downloadAndSaveFile(selected.source.uri, item.title || 'track.mp3'),
-        {
-          loading: tFeatures('download.downloading_track'),
-          success: tFeatures('download.track_downloaded'),
-          error: tFeatures('download.track_download_error'),
-        }
-      );
+      const filename = getDownloadFilenameFromSource({
+        itemTitle: item.title,
+        sourceUri: selected.source.uri,
+        fallbackFilename: 'track.mp3',
+      });
+      showToastPromiseWithLoading(downloadAndSaveFile(selected.source.uri, filename), {
+        loading: tFeatures('download.downloading_track'),
+        success: tFeatures('download.track_downloaded'),
+        error: tFeatures('download.track_download_error'),
+      });
     }
   }
 };

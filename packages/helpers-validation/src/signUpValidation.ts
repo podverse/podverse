@@ -1,5 +1,5 @@
-import { getEmailErrorKey } from './email';
-import { getPassword2ErrorKey, getPasswordErrorKey } from './password';
+import { getEmailErrorKey } from './email.js';
+import { getPassword2ErrorKey, getPasswordErrorKey } from './password.js';
 
 export type SignUpValidationResult = {
   emailErrorKey?: string;

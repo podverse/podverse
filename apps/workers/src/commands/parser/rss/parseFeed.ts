@@ -1,9 +1,9 @@
-import { MQ_QUEUES } from '@podverse/helpers';
-import { mqRSSAdd as mqRSSAddFunction } from '@podverse/mq';
+import { hasImageHints, MQ_IMAGE_SHRINK_HINTS_CONFIG, MQ_QUEUES } from '@podverse/helpers';
+import { mqImageShrinkHintAdd, mqRSSAdd as mqRSSAddFunction } from '@podverse/mq';
 import { parseRSSFeedAndSaveToDatabase } from '@podverse/parser';
-import { CommandLineArgs } from '@workers/commands';
-import { getPodcastIndexService } from '@workers/factories/podcastIndexService';
-import { getActiveMQArtemisService } from '@workers/factories/activeMQArtemisService';
+import type { CommandLineArgs } from '@workers/commands/index.js';
+import { getPodcastIndexService } from '@workers/factories/podcastIndexService.js';
+import { getActiveMQArtemisService } from '@workers/factories/activeMQArtemisService.js';
 
 export const parserRSSParseFeed = async (args: CommandLineArgs) => {
   const podcast_index_id = Array.isArray(args.p) ? args.p[0] : args.p;
@@ -42,6 +42,9 @@ export const parserRSSParseFeed = async (args: CommandLineArgs) => {
 
   const result = await parseRSSFeedAndSaveToDatabase(feedUrl, Number(podcast_index_id), options);
 
+  const activeMQArtemisService = getActiveMQArtemisService();
+  let sentMessages = 0;
+
   if (result && Array.isArray(result.remoteItemsToParse) && result.remoteItemsToParse.length > 0) {
     const mqConfig = MQ_QUEUES['rss-slow'];
     for (let i = 0; i < result.remoteItemsToParse.length; i++) {
@@ -49,21 +52,46 @@ export const parserRSSParseFeed = async (args: CommandLineArgs) => {
       if (!item) {
         continue;
       }
-      const isLast = i === result.remoteItemsToParse.length - 1;
       try {
         await mqRSSAddFunction(
-          getActiveMQArtemisService(),
+          activeMQArtemisService,
           {
             ...mqConfig,
-            closeAfterSend: isLast,
+            closeAfterSend: false,
             feedUrl: item.url,
             podcast_index_id: item.podcast_index_id,
           },
           item.options
         );
+        sentMessages += 1;
       } catch (err) {
         console.error('Error enqueueing remote item', err as Error);
       }
     }
+  }
+
+  if (hasImageHints(result) && result.imageHints.length > 0) {
+    for (const hint of result.imageHints) {
+      if (!hint) {
+        continue;
+      }
+      try {
+        await mqImageShrinkHintAdd(
+          activeMQArtemisService,
+          {
+            ...MQ_IMAGE_SHRINK_HINTS_CONFIG,
+            closeAfterSend: false,
+          },
+          hint
+        );
+        sentMessages += 1;
+      } catch (err) {
+        console.error('Error enqueueing image shrink hint', err as Error);
+      }
+    }
+  }
+
+  if (sentMessages > 0) {
+    await activeMQArtemisService.close();
   }
 };

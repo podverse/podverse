@@ -1,5 +1,6 @@
-import { DTOQueue, DTOQueueResource } from '@podverse/helpers';
-import { createContext, useContext, useState, ReactNode } from 'react';
+import type { DTOQueue, DTOQueueResource } from '@podverse/helpers';
+import type { ReactNode } from 'react';
+import { createContext, useContext, useState } from 'react';
 
 type QueuesContextType = {
   queues: DTOQueue[];

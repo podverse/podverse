@@ -23,13 +23,13 @@
  * Console output is intentional for startup diagnostics.
  */
 
+import type { ValidationResult, ValidationSummary } from '@podverse/helpers-config';
 import {
-  ValidationResult,
-  ValidationSummary,
   validateRequired,
   validateOptional,
+  displayValidationResults,
 } from '@podverse/helpers-config';
-import { KNOWN_COMMANDS } from '@workers/commands/commandNames';
+import { KNOWN_COMMANDS } from '@workers/commands/commandNames.js';
 import {
   getCategoriesForCommand,
   CATEGORY_BASE,
@@ -38,7 +38,10 @@ import {
   CATEGORY_PARSER,
   CATEGORY_PODCAST_INDEX,
   CATEGORY_WEB_NOTIFICATIONS,
-} from './categoriesForCommand';
+  CATEGORY_KEYVALDB,
+  CATEGORY_IMAGE_SHRINK,
+} from './categoriesForCommand.js';
+import { hasAnyImageShrinkEnvSet } from '@workers/config/index.js';
 
 /** Category: Config/Base — every command needs at least these */
 function validateBase(): ValidationResult[] {
@@ -65,6 +68,7 @@ function validateORM(): ValidationResult[] {
   results.push(validateRequired('DB_DATABASE', 'Database'));
   results.push(validateOptional('DB_SSL_CONNECTION', 'Database', 'Use Default (false)'));
   results.push(validateRequired('DEFAULT_ACCOUNT_SETTINGS_LOCALE', 'Defaults'));
+  results.push(validateRequired('ADD_BY_RSS_CREDENTIALS_ENCRYPTION_KEY', 'Add-by-RSS'));
   return results;
 }
 
@@ -76,6 +80,63 @@ function validateMQ(): ValidationResult[] {
   results.push(validateRequired('MESSAGE_QUEUE_USERNAME', 'Message Queue'));
   results.push(validateRequired('MESSAGE_QUEUE_PASSWORD', 'Message Queue'));
   results.push(validateRequired('MESSAGE_QUEUE_PORT', 'Message Queue'));
+  return results;
+}
+
+/** Category: KeyValDB */
+function validateKeyvaldb(): ValidationResult[] {
+  const results: ValidationResult[] = [];
+  results.push(validateRequired('KEYVALDB_HOST', 'KeyValDB'));
+  results.push(validateRequired('KEYVALDB_PORT', 'KeyValDB'));
+  results.push(validateRequired('KEYVALDB_PASSWORD', 'KeyValDB'));
+  results.push(validateRequired('KEYVALDB_CACHE_TTL_SECONDS', 'KeyValDB'));
+  return results;
+}
+
+/** Category: Image Shrink */
+function validateImageShrink(): ValidationResult[] {
+  const results: ValidationResult[] = [];
+  const bucketProvider = process.env.BUCKET_PROVIDER?.trim() ?? '';
+  if (!hasAnyImageShrinkEnvSet()) {
+    results.push(
+      validateOptional('BUCKET_PROVIDER', 'Image Shrink', 'Disabled - BUCKET_PROVIDER not set')
+    );
+    return results;
+  }
+
+  const isBucketProviderValid = bucketProvider === 'digitalocean';
+  results.push({
+    name: 'BUCKET_PROVIDER',
+    isSet: true,
+    isValid: isBucketProviderValid,
+    isRequired: true,
+    message: isBucketProviderValid
+      ? 'Set'
+      : `Invalid value: "${bucketProvider}" (expected "digitalocean")`,
+    category: 'Image Shrink',
+  });
+
+  results.push(validateRequired('BUCKET_ACCESS_KEY', 'Image Shrink'));
+  results.push(validateRequired('BUCKET_SECRET_KEY', 'Image Shrink'));
+  results.push(validateRequired('BUCKET_REGION', 'Image Shrink'));
+  results.push(validateRequired('BUCKET_NAME', 'Image Shrink'));
+  results.push(validateRequired('BUCKET_CDN_BASE_URL', 'Image Shrink'));
+  results.push(validateRequired('IMAGE_SHRINK_WIDTH_PX', 'Image Shrink'));
+  results.push(validateRequired('IMAGE_SHRINK_BATCH_SIZE', 'Image Shrink'));
+  results.push(validateRequired('IMAGE_SHRINK_CONCURRENCY', 'Image Shrink'));
+  results.push(validateRequired('IMAGE_SHRINK_RPS', 'Image Shrink'));
+  results.push(
+    validateOptional('IMAGE_SHRINK_ORPHAN_CLEANUP_DRY_RUN', 'Image Shrink', 'Use Default (true)')
+  );
+  results.push(
+    validateOptional('IMAGE_SHRINK_ORPHAN_CLEANUP_MAX_DELETE', 'Image Shrink', 'Use Default (none)')
+  );
+  results.push(
+    validateOptional('IMAGE_SHRINK_ORPHAN_CLEANUP_MIN_AGE_DAYS', 'Image Shrink', 'Use Default (7)')
+  );
+  results.push(
+    validateOptional('IMAGE_SHRINK_ORPHAN_CLEANUP_PAGE_SIZE', 'Image Shrink', 'Use Default (500)')
+  );
   return results;
 }
 
@@ -159,6 +220,12 @@ function getValidationResultsForCommand(commandName: string): ValidationResult[]
   if (categories.has(CATEGORY_WEB_NOTIFICATIONS)) {
     results.push(...validateWebNotifications());
   }
+  if (categories.has(CATEGORY_KEYVALDB)) {
+    results.push(...validateKeyvaldb());
+  }
+  if (categories.has(CATEGORY_IMAGE_SHRINK)) {
+    results.push(...validateImageShrink());
+  }
 
   return results;
 }
@@ -192,66 +259,3 @@ export const validateStartupRequirements = (commandName: string): void => {
 
   console.log('Startup validation completed successfully');
 };
-
-/**
- * Displays validation results in a formatted table (by category, checkmarks, summary)
- */
-function displayValidationResults(summary: ValidationSummary): void {
-  console.log('=== Environment Variable Validation ===');
-
-  const byCategory: Record<string, ValidationResult[]> = {};
-  for (const result of summary.results) {
-    const category = result.category;
-    const categoryList = byCategory[category] ?? (byCategory[category] = []);
-    categoryList.push(result);
-  }
-
-  const categories = Object.keys(byCategory).sort();
-  for (const category of categories) {
-    console.log(`[${category}]`);
-    const categoryResults = byCategory[category];
-    if (!categoryResults) {
-      continue;
-    }
-    for (const result of categoryResults) {
-      const status = result.isValid ? '✓' : '✗';
-      const requiredText = result.isRequired ? '' : ' (optional)';
-      const logMessage = `  ${status} ${result.name}${requiredText} - ${result.message}`;
-      if (!result.isValid) {
-        console.error(logMessage);
-      } else if (!result.isSet && !result.isRequired) {
-        console.warn(logMessage);
-      } else {
-        console.log(logMessage);
-      }
-    }
-  }
-
-  console.log('=== Validation Summary ===');
-  console.log(`Total: ${summary.total}`);
-  const passedText =
-    summary.defaultsUsed > 0
-      ? `Passed: ${summary.passed} (${summary.defaultsUsed} using defaults)`
-      : `Passed: ${summary.passed}`;
-  console.log(passedText);
-  console.log(`Skipped: ${summary.skipped}`);
-  console.log(`Failed: ${summary.failed}`);
-  console.log(`Required Missing: ${summary.requiredMissing}`);
-
-  if (summary.failed > 0) {
-    console.error('The following environment variables failed validation:');
-    summary.results
-      .filter((r) => !r.isValid)
-      .forEach((r) => {
-        const requiredText = r.isRequired ? ' (required)' : ' (optional)';
-        console.error(`  - ${r.name}${requiredText}: ${r.message}`);
-      });
-  }
-
-  if (summary.skipped > 0) {
-    console.log('Skipped optional variables (not set):');
-    summary.results
-      .filter((r) => !r.isRequired && !r.isSet)
-      .forEach((r) => console.log(`  - ${r.name}`));
-  }
-}

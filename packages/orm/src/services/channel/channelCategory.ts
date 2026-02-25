@@ -1,7 +1,7 @@
-import { EntityManager } from 'typeorm';
-import { Channel } from '@orm/entities/channel/channel';
-import { ChannelCategory } from '@orm/entities/channel/channelCategory';
-import { BaseManyService } from '@orm/services/base/baseManyService';
+import type { EntityManager } from 'typeorm';
+import type { Channel } from '@orm/entities/channel/channel.js';
+import { ChannelCategory } from '@orm/entities/channel/channelCategory.js';
+import { BaseManyService } from '@orm/services/base/baseManyService.js';
 
 type ChannelCategoryDto = {
   category_id: number;

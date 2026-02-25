@@ -1,5 +1,6 @@
 import { Entity, PrimaryGeneratedColumn, Column, JoinColumn, OneToOne } from 'typeorm';
-import { Account } from '@orm/entities/account/account';
+import type { Relation } from 'typeorm';
+import type { Account } from '@orm/entities/account/account.js';
 import { DATABASE_CONSTANTS } from '@podverse/helpers';
 
 @Entity()
@@ -7,9 +8,9 @@ export class AccountEmailChangeVerification {
   @PrimaryGeneratedColumn()
   id!: number;
 
-  @OneToOne(() => Account, (account) => account.id, { onDelete: 'CASCADE' })
+  @OneToOne('Account', (account: Account) => account.id, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'account_id' })
-  account!: Account;
+  account!: Relation<Account>;
 
   @Column()
   account_id!: number;

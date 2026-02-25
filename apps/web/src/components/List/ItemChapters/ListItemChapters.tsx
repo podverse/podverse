@@ -1,6 +1,6 @@
 'use client';
 
-import { DTOChannel, DTOItem, DTOItemChapter } from '@podverse/helpers';
+import type { DTOChannel, DTOItem, DTOItemChapter } from '@podverse/helpers';
 import React from 'react';
 import Pagination from '../../Pagination/Pagination';
 import { useSkipInitialEffect } from '../../../hooks/useSkipInitialEffect';
@@ -10,10 +10,12 @@ import { ListItemChapterRow } from './ListItemChapterRow';
 type ListItemChaptersProps = {
   page: number;
   setPage: (page: number) => void;
-  channel: DTOChannel;
-  item: DTOItem;
+  channel: DTOChannel | null;
+  item: DTOItem | null;
   item_chapters: DTOItemChapter[];
   totalPages: number;
+  onPlayChapter?: (chapter: DTOItemChapter) => void;
+  getChapterHref?: (chapter: DTOItemChapter) => string;
 };
 
 export const ListItemChapters: React.FC<ListItemChaptersProps> = ({
@@ -23,6 +25,8 @@ export const ListItemChapters: React.FC<ListItemChaptersProps> = ({
   item,
   item_chapters,
   totalPages,
+  onPlayChapter,
+  getChapterHref,
 }) => {
   useSkipInitialEffect(() => {
     scrollMainToTop();
@@ -32,10 +36,12 @@ export const ListItemChapters: React.FC<ListItemChaptersProps> = ({
     <Pagination currentPage={page} totalPages={totalPages} setPage={setPage}>
       {item_chapters.map((item_chapter) => (
         <ListItemChapterRow
-          key={item_chapter.id}
+          key={item_chapter.id_text ?? item_chapter.id}
           channel={channel}
           item={item}
           item_chapter={item_chapter}
+          onPlayChapter={onPlayChapter}
+          getChapterHref={getChapterHref}
         />
       ))}
     </Pagination>

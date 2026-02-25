@@ -1,5 +1,5 @@
-import { AccountMembership } from '@orm/entities/account/accountMembership';
-import { BaseGetOnlyService } from '../base/baseGetOnlyService';
+import { AccountMembership } from '@orm/entities/account/accountMembership.js';
+import { BaseGetOnlyService } from '../base/baseGetOnlyService.js';
 
 export class AccountMembershipService extends BaseGetOnlyService<AccountMembership> {
   constructor() {

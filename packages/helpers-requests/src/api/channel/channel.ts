@@ -1,7 +1,8 @@
-import { ApiRequestService } from '../_request';
-import { ApiListResponse, emptyApiListResponse } from '../_response';
-import { DTOChannel } from '@podverse/helpers';
-import {
+import type { ApiRequestService } from '../_request.js';
+import type { ApiListResponse } from '../_response.js';
+import { emptyApiListResponse } from '../_response.js';
+import type { DTOChannel } from '@podverse/helpers';
+import type {
   QueryParamsCategoryRecent,
   QueryParamsCategoryTop,
   QueryParamsGetMany,
@@ -10,7 +11,7 @@ import {
   QueryParamsSubscribedAZ,
   QueryParamsSubscribedRecent,
   QueryParamsSubscribedTop,
-} from '../queryParams';
+} from '../queryParams.js';
 
 export async function reqChannelGetByIdOrIdText(
   api: ApiRequestService,

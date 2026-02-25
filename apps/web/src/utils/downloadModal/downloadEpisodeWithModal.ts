@@ -1,9 +1,10 @@
+import type { DTOItem } from '@podverse/helpers';
 import {
   buildLabeledItemEnclosures,
-  DTOItem,
+  getDownloadFilenameFromSource,
   getSelectedLabeledItemEnclosureAndSource,
 } from '@podverse/helpers';
-import { ModalSourceSelector } from '../../contexts/Modals';
+import type { ModalSourceSelector } from '../../contexts/Modals';
 
 type DownloadEpisodeWithModalParams = {
   item: DTOItem;
@@ -45,14 +46,16 @@ export const downloadEpisodeWithModal = async ({
       sourceRowIndex: null,
     });
     if (selected?.source?.uri) {
-      showToastPromiseWithLoading(
-        downloadAndSaveFile(selected.source.uri, item.title || 'episode.mp3'),
-        {
-          loading: tFeatures('download.downloading_episode'),
-          success: tFeatures('download.episode_downloaded'),
-          error: tFeatures('download.episode_download_error'),
-        }
-      );
+      const filename = getDownloadFilenameFromSource({
+        itemTitle: item.title,
+        sourceUri: selected.source.uri,
+        fallbackFilename: 'episode.mp3',
+      });
+      showToastPromiseWithLoading(downloadAndSaveFile(selected.source.uri, filename), {
+        loading: tFeatures('download.downloading_episode'),
+        success: tFeatures('download.episode_downloaded'),
+        error: tFeatures('download.episode_download_error'),
+      });
     }
   }
 };

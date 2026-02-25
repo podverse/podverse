@@ -1,6 +1,6 @@
-import { Item } from '@orm/entities/item/item';
-import { ItemFunding } from '@orm/entities/item/itemFunding';
-import { BaseManyService } from '@orm/services/base/baseManyService';
+import type { Item } from '@orm/entities/item/item.js';
+import { ItemFunding } from '@orm/entities/item/itemFunding.js';
+import { BaseManyService } from '@orm/services/base/baseManyService.js';
 
 type ItemFundingDto = {
   url: string;

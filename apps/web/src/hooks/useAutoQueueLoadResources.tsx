@@ -1,15 +1,16 @@
 import { useCallback, useEffect, useRef } from 'react';
-import {
+import type {
   DTOChannel,
   DTOClip,
   DTOItemQueueItem,
   DTOItemSoundbite,
   DTOPlaylistResource,
-  MediumEnum,
 } from '@podverse/helpers';
-import { apiRequestService } from '../factories/apiRequestService';
+import { MediumEnum } from '@podverse/helpers';
+import { getApiRequestService } from '../factories/apiRequestService';
 import { useMediaPlayer } from '../contexts/MediaPlayer';
-import { AutoQueueResourcesMap, useAutoQueue } from '../contexts/AutoQueue';
+import type { AutoQueueResourcesMap } from '../contexts/AutoQueue';
+import { useAutoQueue } from '../contexts/AutoQueue';
 
 export function useAutoQueueLoadResources() {
   const { mpChannel, mpItem, mpClip, mpItemSoundbite } = useMediaPlayer();
@@ -47,6 +48,7 @@ export function useAutoQueueLoadResources() {
   }, [autoQueueConfig]);
 
   return useCallback(async () => {
+    const apiRequestService = getApiRequestService();
     const mpItem = mpItemRef.current;
     const mpChannel = mpChannelRef.current;
     const mpClip = mpClipRef.current;

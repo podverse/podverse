@@ -1,4 +1,4 @@
--- Combined migrations generated Sat Jan 24 13:06:14 CST 2026
+-- Combined migrations generated Mon Feb 16 01:51:58 CST 2026
 -- DO NOT EDIT - regenerate with scripts/database/combine-migrations.sh
 
 -- Including: 0000_init_helpers.sql
@@ -745,6 +745,23 @@ CREATE TABLE item_chapters_feed (
 
 CREATE INDEX idx_item_chapters_feed_item_id ON item_chapters_feed(item_id);
 
+--** ITEM > CHAPTERS > OBJECT
+
+-- File-level metadata for a parsed chapters JSON file (one per item_chapters_feed)
+CREATE TABLE item_chapters_object (
+    id SERIAL PRIMARY KEY,
+    item_chapters_feed_id INTEGER NOT NULL UNIQUE REFERENCES item_chapters_feed(id) ON DELETE CASCADE,
+    version varchar_short,
+    author varchar_normal,
+    title varchar_normal,
+    podcast_name varchar_normal,
+    description varchar_longer,
+    file_name varchar_normal,
+    waypoints BOOLEAN
+);
+
+CREATE INDEX idx_item_chapters_object_item_chapters_feed_id ON item_chapters_object(item_chapters_feed_id);
+
 --** ITEM > CHAPTERS > LOG
 
 -- <item> -> <podcast:chapters> -> parsing logs
@@ -766,7 +783,7 @@ CREATE INDEX idx_item_chapters_feed_log_item_chapters_feed_id ON item_chapters_f
 CREATE TABLE item_chapter (
     id SERIAL PRIMARY KEY,
     id_text nano_id_v2 UNIQUE NOT NULL,
-    item_chapters_feed_id INTEGER NOT NULL REFERENCES item_chapters_feed(id) ON DELETE CASCADE,
+    item_chapters_object_id INTEGER NOT NULL REFERENCES item_chapters_object(id) ON DELETE CASCADE,
     data_hash varchar_md5 NOT NULL,
     start_time media_player_time NOT NULL,
     end_time media_player_time,
@@ -776,7 +793,7 @@ CREATE TABLE item_chapter (
     table_of_contents BOOLEAN DEFAULT TRUE
 );
 
-CREATE INDEX idx_item_chapter_item_chapters_feed_id ON item_chapter(item_chapters_feed_id);
+CREATE INDEX idx_item_chapter_item_chapters_object_id ON item_chapter(item_chapters_object_id);
 
 --** ITEM > CHAPTER > LOCATION
 
@@ -1862,5 +1879,38 @@ CREATE TABLE account_settings_notification_type (
     type notification_channel_type_options NOT NULL,
     CONSTRAINT account_settings_notification_type_notification_id_type_unique UNIQUE (account_settings_notification_id, type)
 );
+
+
+-- Including: 0013_add_by_rss_basic_auth.sql
+-- 0013: Add optional Basic Auth columns for add-by-RSS feeds (Option A: two columns).
+-- Credentials are stored per account+feed_url; never expose password in API responses.
+
+ALTER TABLE account_following_add_by_rss_channel
+    ADD COLUMN basic_auth_username varchar_normal NULL,
+    ADD COLUMN basic_auth_password varchar_normal NULL;
+
+
+-- Including: 0014_image_shrink_source.sql
+-- 0014: Add image_shrink_source for origin metadata tracking.
+
+CREATE TABLE image_shrink_source (
+    id SERIAL PRIMARY KEY,
+    url varchar_url NOT NULL UNIQUE,
+    etag varchar_normal NULL,
+    last_modified varchar_normal NULL,
+    content_length INTEGER NULL,
+    checksum_sha256 varchar_normal NULL,
+    last_checked_at server_time NULL,
+    last_changed_at server_time NULL,
+    created_at server_time_with_default NOT NULL,
+    updated_at server_time_with_default NOT NULL
+);
+
+CREATE INDEX idx_image_shrink_source_last_checked_at ON image_shrink_source(last_checked_at DESC);
+
+CREATE TRIGGER set_updated_at_image_shrink_source
+    BEFORE UPDATE ON image_shrink_source
+    FOR EACH ROW
+    EXECUTE FUNCTION set_updated_at_field();
 
 

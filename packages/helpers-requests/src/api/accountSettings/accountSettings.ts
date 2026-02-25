@@ -1,6 +1,6 @@
-import { DTOAccount } from '@podverse/helpers';
-import { ApiRequestService } from '../_request';
-import { reqAuthMe } from '../auth/auth';
+import type { DTOAccount } from '@podverse/helpers';
+import type { ApiRequestService } from '../_request.js';
+import { reqAuthMe } from '../auth/auth.js';
 
 type ReqLocaleParams = {
   locale: string;

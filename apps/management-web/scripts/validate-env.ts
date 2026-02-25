@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 /**
  * Validates that all required environment variables are set before build.
  * Aborts the build process if any required variables are missing or invalid.
@@ -6,14 +7,8 @@
 import { config } from 'dotenv';
 import { resolve } from 'path';
 import { existsSync } from 'fs';
-import {
-  ValidationResult,
-  ValidationSummary,
-  validateRequired,
-  validateOptional,
-  validateSupportedLocalesList,
-  validateLocale,
-} from '@podverse/helpers-config';
+import type { ValidationResult, ValidationSummary } from '@podverse/helpers-config';
+import { validateRequired } from '@podverse/helpers-config';
 
 // Load .env file based on NODE_ENV
 // Next.js loads .env files automatically, but this script runs standalone via ts-node
@@ -58,64 +53,16 @@ if (loadedEnvFile) {
 }
 
 /**
- * Validates NEXT_PUBLIC_API_PORT (must be a positive number if set, optional)
- */
-const validateApiPort = (): ValidationResult => {
-  const value = process.env.NEXT_PUBLIC_API_PORT || '';
-  const isSet = value !== '';
-
-  if (!isSet) {
-    return {
-      name: 'NEXT_PUBLIC_API_PORT',
-      isSet: false,
-      isValid: true,
-      isRequired: false,
-      message: 'Blank',
-      category: 'API Configuration',
-    };
-  }
-
-  const numValue = Number(value);
-  if (isNaN(numValue) || numValue <= 0) {
-    return {
-      name: 'NEXT_PUBLIC_API_PORT',
-      isSet: true,
-      isValid: false,
-      isRequired: false,
-      message: `Invalid number: "${value}"`,
-      category: 'API Configuration',
-    };
-  }
-
-  return {
-    name: 'NEXT_PUBLIC_API_PORT',
-    isSet: true,
-    isValid: true,
-    isRequired: false,
-    message: 'Set',
-    category: 'API Configuration',
-  };
-};
-
-/**
  * Validates all environment variables and returns a comprehensive summary
  */
 const validateAllEnvironmentVariables = (): ValidationSummary => {
   const results: ValidationResult[] = [];
 
-  // API Configuration
-  results.push(validateRequired('NEXT_PUBLIC_API_PROTOCOL', 'API Configuration'));
-  results.push(validateRequired('NEXT_PUBLIC_API_HOST', 'API Configuration'));
-  results.push(validateApiPort());
-  results.push(validateRequired('NEXT_PUBLIC_API_PREFIX', 'API Configuration'));
-  results.push(validateRequired('NEXT_PUBLIC_API_VERSION', 'API Configuration'));
+  // Runtime config sidecar connection
+  results.push(validateRequired('RUNTIME_CONFIG_URL', 'Runtime Config Sidecar'));
 
-  // Brand & Features
-  results.push(validateOptional('NEXT_PUBLIC_BRAND_NAME', 'Brand & Features', 'Blank'));
-  results.push(
-    validateSupportedLocalesList('NEXT_PUBLIC_FEATURES_SUPPORTED_LOCALES', 'Brand & Features')
-  );
-  results.push(validateLocale('NEXT_PUBLIC_FEATURES_DEFAULT_LOCALE', 'Brand & Features', true));
+  // Optional proxy override for local dev
+  results.push(validateOptionalBoolean('ALLOW_LOCALHOST_PROXY', 'Proxy Configuration'));
 
   // Calculate summary
   const total = results.length;
@@ -137,6 +84,43 @@ const validateAllEnvironmentVariables = (): ValidationSummary => {
     skipped,
     defaultsUsed,
     results,
+  };
+};
+
+/**
+ * Validates an optional boolean env var (must be "true" or "false" if set).
+ */
+const validateOptionalBoolean = (name: string, category: string): ValidationResult => {
+  const value = process.env[name] ?? '';
+  if (value === '') {
+    return {
+      name,
+      isSet: false,
+      isValid: true,
+      isRequired: false,
+      message: 'Blank',
+      category,
+    };
+  }
+
+  if (value !== 'true' && value !== 'false') {
+    return {
+      name,
+      isSet: true,
+      isValid: false,
+      isRequired: false,
+      message: `Invalid value: "${value}" - must be "true" or "false"`,
+      category,
+    };
+  }
+
+  return {
+    name,
+    isSet: true,
+    isValid: true,
+    isRequired: false,
+    message: 'Set',
+    category,
   };
 };
 

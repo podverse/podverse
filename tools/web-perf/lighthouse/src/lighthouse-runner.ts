@@ -1,6 +1,9 @@
+import fs from 'fs';
+import path from 'path';
 import lighthouse from 'lighthouse';
-import { BrowserAutomation } from './browser-automation.js';
 import type { Result as LighthouseResult } from 'lighthouse';
+import { TEST_FIXTURES } from './browser-automation.js';
+import type { BrowserAutomation } from './browser-automation.js';
 
 export interface LighthouseScenarioResult {
   homepage?: LighthouseResult;
@@ -9,6 +12,12 @@ export interface LighthouseScenarioResult {
 
 export interface LighthouseTestResults {
   loggedOut: LighthouseScenarioResult;
+}
+
+export interface LighthouseScreenshotOptions {
+  saveScreenshots: boolean;
+  screenshotsDir: string;
+  sanitizedReportId: string;
 }
 
 export class LighthouseRunner {
@@ -183,7 +192,22 @@ export class LighthouseRunner {
     return this.buildMedianLhr(runs);
   }
 
-  async testLoggedOut(automation: BrowserAutomation): Promise<LighthouseScenarioResult> {
+  private async savePageScreenshot(
+    automation: BrowserAutomation,
+    screenshotPath: string
+  ): Promise<void> {
+    const dir = path.dirname(screenshotPath);
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
+    }
+    await automation.getPage().screenshot({ path: screenshotPath });
+    console.log(`         📸 Screenshot saved: ${screenshotPath}`);
+  }
+
+  async testLoggedOut(
+    automation: BrowserAutomation,
+    screenshotOptions?: LighthouseScreenshotOptions
+  ): Promise<LighthouseScenarioResult> {
     const results: LighthouseScenarioResult = {};
     console.log('   📋 Running logged-out tests...');
 
@@ -196,6 +220,17 @@ export class LighthouseRunner {
       console.log('      → Testing homepage...');
       await automation.navigateToHomepage();
       await automation.waitBetweenActions();
+      if (
+        screenshotOptions?.saveScreenshots &&
+        screenshotOptions.screenshotsDir &&
+        screenshotOptions.sanitizedReportId
+      ) {
+        const homepagePath = path.join(
+          screenshotOptions.screenshotsDir,
+          `${screenshotOptions.sanitizedReportId}-homepage.png`
+        );
+        await this.savePageScreenshot(automation, homepagePath);
+      }
       console.log('         Running Lighthouse audit...');
       results.homepage = await this.runWithMedian(
         automation,
@@ -205,31 +240,41 @@ export class LighthouseRunner {
       console.log('         ✅ Homepage test complete');
 
       // Podcast channel page
-      await automation.navigateToChannel('lhtest-chan-1', false);
+      await automation.navigateToChannel(TEST_FIXTURES.CHANNEL_1.id, false);
       await automation.waitBetweenActions();
+      if (
+        screenshotOptions?.saveScreenshots &&
+        screenshotOptions.screenshotsDir &&
+        screenshotOptions.sanitizedReportId
+      ) {
+        const channelPath = path.join(
+          screenshotOptions.screenshotsDir,
+          `${screenshotOptions.sanitizedReportId}-podcast-channel.png`
+        );
+        await this.savePageScreenshot(automation, channelPath);
+      }
       results.podcastChannelPage = await this.runWithMedian(
         automation,
         await automation.getCurrentUrl(),
         port
       );
 
-      // Potential scenarios (currently disabled):
-      // - Logged out: podcast episode, podcast after play, podcast after reload
-      // - Logged out: video channel, music album, video episode, music track
-      // - Logged out: video/music after play, video/music after reload
-      // - Logged in: homepage, podcast/video/music channel, podcast/video/music episode,
-      //   podcast/video/music after play, podcast/video/music after reload
+      // Potential scenarios to restore later: podcast episode, play, reload; logged-in flows.
     } finally {
       // Playwright owns the Chrome lifecycle
     }
 
     return results;
   }
-  async runAllTests(automation: BrowserAutomation): Promise<LighthouseTestResults> {
+
+  async runAllTests(
+    automation: BrowserAutomation,
+    screenshotOptions?: LighthouseScreenshotOptions
+  ): Promise<LighthouseTestResults> {
     // Test logged out
     console.log('   🔓 Starting logged-out test suite...');
     await automation.clearCookies();
-    const loggedOut = await this.testLoggedOut(automation);
+    const loggedOut = await this.testLoggedOut(automation, screenshotOptions);
 
     return {
       loggedOut,

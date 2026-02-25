@@ -3,11 +3,12 @@
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';
 import React from 'react';
-import { DTOChannel, findDTOChannelImageBySize } from '@podverse/helpers';
+import type { DTOChannel } from '@podverse/helpers';
+import { findDTOChannelImageForList } from '@podverse/helpers';
 import { Image } from '../../../Image/Image';
 import { ROUTES } from '../../../../constants/routes';
 import { IMAGES } from '../../../../constants/images';
-import styles from '../../../../styles/components/List/ListGridNode.module.scss';
+import styles from '../../../../styles/components/Common/List/ListGridNode.module.scss';
 
 interface Props {
   channel: DTOChannel;
@@ -15,7 +16,7 @@ interface Props {
 
 export const ListAlbumGridNode: React.FC<Props> = ({ channel }) => {
   const url = `${ROUTES.ALBUM}/${channel.id_text}`;
-  const channel_image = findDTOChannelImageBySize(
+  const channel_image = findDTOChannelImageForList(
     channel.channel_images,
     IMAGES.LIST.PODCASTS.SIZE_FIND_TARGET,
     'lesser'

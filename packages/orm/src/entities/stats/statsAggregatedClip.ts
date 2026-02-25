@@ -1,14 +1,15 @@
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from 'typeorm';
-import { Clip } from '@orm/entities/clip';
+import type { Relation } from 'typeorm';
+import type { Clip } from '@orm/entities/clip.js';
 
 @Entity('stats_aggregated_clip')
 export class StatsAggregatedClip {
   @PrimaryGeneratedColumn()
   id!: number;
 
-  @ManyToOne(() => Clip)
+  @ManyToOne('Clip', (clip: Clip) => clip.id)
   @JoinColumn({ name: 'clip_id' })
-  clip!: Clip;
+  clip!: Relation<Clip>;
 
   @Column()
   clip_id!: number;

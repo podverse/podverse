@@ -1,8 +1,8 @@
-import { Channel } from '@orm/entities/channel/channel';
-import { ChannelService } from './channel/channel';
-import { ItemService } from './item/item';
-import { ChannelRemoteItem } from '@orm/entities/channel/channelRemoteItem';
-import { Item } from '@orm/entities/item/item';
+import type { Channel } from '@orm/entities/channel/channel.js';
+import { ChannelService } from './channel/channel.js';
+import { ItemService } from './item/item.js';
+import type { ChannelRemoteItem } from '@orm/entities/channel/channelRemoteItem.js';
+import type { Item } from '@orm/entities/item/item.js';
 
 export class PublisherFeedService {
   async getPublisherFeedChannels(channel_remote_items: ChannelRemoteItem[]): Promise<Channel[]> {

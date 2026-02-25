@@ -48,7 +48,7 @@ npm run build:packages
 ```
 
 This builds all shared packages in dependency order:
-`helpers` → `external-services` → `orm` → `notifications` → `parser` → `mq`
+`helpers` → `external-services-firebase`, `external-services-paypal`, `external-services-podcast-index` → `orm` → `notifications` → `parser` → `mq`
 
 ### 4. Start the API
 
@@ -109,7 +109,7 @@ npm run dev:watch -w apps/api
 npm run dev:web
 ```
 
-For advanced terminal configurations using VS Code Terminals Manager, see [IDE-SETUP.md](IDE-SETUP.md).
+For advanced terminal configurations using VS Code Terminals Manager, see [development/IDE-SETUP.md](development/IDE-SETUP.md).
 
 ### Run Multiple Apps (dev:\*:all)
 
@@ -323,26 +323,24 @@ make local_build_api
 make local_build_workers
 make local_build_management_api
 make local_build_web
+make local_build_web_runtime_config
 make local_build_management_web
+make local_build_management_web_runtime_config
 ```
 
-**Web Apps Build Arguments**: The `web` and `management-web` apps use a DRY Dockerfile structure that requires the `ENV_FILE` build argument to specify which environment configuration to use. The Makefile commands handle this automatically, but if building manually:
+**Web Apps Runtime Config**: The `web` and `management-web` apps build once and read `NEXT_PUBLIC_*` values from a runtime-config sidecar. The Makefile commands handle image builds, but if building manually:
 
 ```bash
-# Build web app for local environment
-docker build -f apps/web/Dockerfile --build-arg ENV_FILE=apps/web/env/local.env -t podverse-web:latest .
+# Build web app and sidecar
+docker build -f apps/web/Dockerfile -t podverse-web:latest .
+docker build -f apps/web/sidecar/Dockerfile -t podverse-web-runtime-config:latest .
 
-# Build web app for alpha environment
-docker build -f apps/web/Dockerfile --build-arg ENV_FILE=apps/web/env/alpha.env -t podverse-web:alpha .
-
-# Build management-web for local environment
-docker build -f apps/management-web/Dockerfile --build-arg ENV_FILE=apps/management-web/env/local.env -t podverse-management-web:latest .
-
-# Build management-web for alpha environment
-docker build -f apps/management-web/Dockerfile --build-arg ENV_FILE=apps/management-web/env/alpha.env -t podverse-management-web:alpha .
+# Build management-web and sidecar
+docker build -f apps/management-web/Dockerfile -t podverse-management-web:latest .
+docker build -f apps/management-web/sidecar/Dockerfile -t podverse-management-web-runtime-config:latest .
 ```
 
-**Important**: The `ENV_FILE` build argument is **required** - builds will fail if it's not provided. This ensures explicit environment selection and prevents accidental builds with the wrong configuration. The Dockerfile uses a single source of truth for build logic, with only the environment file path varying between environments.
+Provide runtime env values to the sidecar at deploy time (see `apps/web/env/` and `apps/management-web/env/`).
 
 ### Testing Docker Images
 
@@ -452,6 +450,6 @@ See the ENV.md files in each app directory for detailed variable documentation:
 
 ## Next Steps
 
-- [Architecture Overview](ARCHITECTURE.md) - System design and data flow
-- [Contributing Guide](CONTRIBUTING.md) - Development workflow and PR guidelines
+- [Architecture Overview](architecture/ARCHITECTURE.md) - System design and data flow
+- [Contributing Guide](development/CONTRIBUTING.md) - Development workflow and PR guidelines
 - [API Documentation](../apps/api/APPS-API.md) - API endpoints and usage

@@ -1,6 +1,6 @@
-import { DTOAccount } from '@podverse/helpers';
-import { ApiRequestService } from '../_request';
-import { ApiMessageResponse } from '../_response';
+import type { DTOAccount } from '@podverse/helpers';
+import type { ApiRequestService } from '../_request.js';
+import type { ApiMessageResponse } from '../_response.js';
 
 type ReqAuthLoginParams = {
   email: string;

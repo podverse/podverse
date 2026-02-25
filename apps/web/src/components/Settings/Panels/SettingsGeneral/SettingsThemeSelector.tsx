@@ -5,7 +5,8 @@ import { useTranslations } from 'next-intl';
 import { FormDropdown } from '../../../Form/FormDropdown';
 import type { DropdownMenuItem } from '../../../Dropdown/Dropdown';
 import { useLocalSettings } from '../../../../contexts/LocalSettings';
-import { getValidThemes, UITheme } from '../../../../utils/localSettings/uiTheme';
+import type { UITheme } from '../../../../utils/localSettings/uiTheme';
+import { getValidThemes } from '../../../../utils/localSettings/uiTheme';
 
 export const SettingsThemeSelector: React.FC = () => {
   const tSettings = useTranslations('settings');

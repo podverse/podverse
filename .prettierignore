@@ -20,6 +20,9 @@ package-lock.json
 # Generated reports (bundle analyzer, etc.)
 **/reports/
 
+# Test assets (generated feeds, chapters, transcripts, media)
+tools/test-assets/assets/
+
 # Test coverage
 coverage/
 
@@ -41,3 +44,4 @@ infra/config/alpha/
 # Misc
 *.tgz
 .cache/
+.llm/plans/

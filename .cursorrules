@@ -13,6 +13,10 @@ See `.llm/context/architecture.md`. Lower tiers cannot depend on higher.
 - No `any` types
 - DTOs from `@podverse/helpers`
 - Follow `tsconfig.base.json`
+- Use ESM formatting (`.js` extensions in relative imports; `"type": "module"` where applicable)
+- Prefer `import type` for type-only imports instead of value imports
+- **Strict equality**: Use `===` and `!==` only (no `==` or `!=`). For "not null or undefined" use `x !== null && x !== undefined` (or optional chaining / truthiness where appropriate).
+- **Avoid type assertions (`as`)**: Prefer proper types, optional chaining, type guards, or narrowing so the type system enforces correctness. Use `as` only when there is no better way (e.g. necessary escape hatch); keep such use minimal and documented.
 
 ## Formatting Rules
 
@@ -84,28 +88,3 @@ End file-modifying responses with: **LLM History**: Updated `.llm/history/active
 **Plans must be under 300 lines.**
 
 If over 300: STOP, split into sub-plans, save, then work sequentially.
-
----
-
-## COMPLEXITY ASSESSMENT (CRITICAL)
-
-**BEFORE executing any plan, assess complexity.**
-
-### Thresholds (STOP if ANY exceeded)
-
-- 3+ packages/modules being modified
-- 10+ files expected to change
-- 2+ dependency chains (A→B→C)
-- 20+ minutes estimated execution
-
-### Required Behavior
-
-If thresholds exceeded:
-
-1. **STOP** — Do not begin execution
-2. **List** complexity factors detected
-3. **Propose** natural breakpoints (one package at a time)
-4. **Ask** developer to confirm smaller scope
-5. **Proceed only** after explicit approval of reduced scope
-
-This prevents cognitive overload from causing missed auxiliary tasks (like history updates).

@@ -1,16 +1,46 @@
 import {
-  Item,
-  ItemChaptersFeed,
   ItemChapterService,
   ItemChaptersFeedLogService,
+  ItemChaptersObjectService,
 } from '@podverse/orm';
-import type { ItemChapterDto } from '@podverse/orm';
-import { compatParsedChapters, PIChapter } from '@parser/lib/compat/chapters/chapters';
-import { _request } from '../_request';
+import type {
+  ItemChapterDto,
+  Item,
+  ItemChaptersFeed,
+  ItemChaptersObjectMetadataDto,
+} from '@podverse/orm';
+import type { PIChapter } from '@podverse/parser-mapping';
+import { compatParsedChapters } from '@podverse/parser-mapping';
+import { _request } from '../_request.js';
+
+type ParsedChaptersResult = {
+  metadata: ItemChaptersObjectMetadataDto;
+  chapters: ItemChapterDto[];
+};
+
+function metadataFromChaptersJson(data: {
+  version?: string;
+  author?: string;
+  title?: string;
+  podcastName?: string;
+  description?: string;
+  fileName?: string;
+  waypoints?: boolean;
+}): ItemChaptersObjectMetadataDto {
+  return {
+    version: data.version ?? null,
+    author: data.author ?? null,
+    title: data.title ?? null,
+    podcast_name: data.podcastName ?? null,
+    description: data.description ?? null,
+    file_name: data.fileName ?? null,
+    ...(data.waypoints !== undefined ? { waypoints: data.waypoints } : {}),
+  };
+}
 
 const getParsedChapters = async (
   item_chapters_feed: ItemChaptersFeed
-): Promise<ItemChapterDto[] | null> => {
+): Promise<ParsedChaptersResult | null> => {
   const itemChaptersFeedLogService = new ItemChaptersFeedLogService();
   try {
     const response = await _request(item_chapters_feed.url);
@@ -23,7 +53,11 @@ const getParsedChapters = async (
         last_http_status: 200,
         last_good_http_status_time: new Date(),
       });
-      return compatParsedChapters(chapters);
+      const metadata = metadataFromChaptersJson(data);
+      return {
+        metadata,
+        chapters: compatParsedChapters(chapters),
+      };
     } else {
       throw new Error('No chapters found in feed');
     }
@@ -49,11 +83,18 @@ export const parseChapters = async (item: Item): Promise<{ parsed: boolean }> =>
     return { parsed: false };
   }
 
-  const parsedChapters = await getParsedChapters(item_chapters_feed);
+  const result = await getParsedChapters(item_chapters_feed);
 
-  if (parsedChapters === null) {
+  if (result === null) {
     return { parsed: false };
   }
+
+  const { metadata, chapters: parsedChapters } = result;
+
+  const itemChaptersObjectService = new ItemChaptersObjectService();
+  const item_chapters_object =
+    await itemChaptersObjectService.getOrCreateByItemChaptersFeed(item_chapters_feed);
+  await itemChaptersObjectService.updateMetadata(item_chapters_object, metadata);
 
   const itemChapterService = new ItemChapterService();
 

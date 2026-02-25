@@ -1,5 +1,5 @@
-import { ApiRequestService } from '../_request';
-import { PublisherRemoteItemsResponse } from '@podverse/helpers';
+import type { ApiRequestService } from '../_request.js';
+import type { PublisherRemoteItemsResponse } from '@podverse/helpers';
 
 export async function reqPublisherFeedGetRemoteItemsForChannel(
   api: ApiRequestService,

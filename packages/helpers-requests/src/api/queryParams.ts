@@ -1,6 +1,19 @@
-import { LiveItemStatus } from '@podverse/helpers';
-import { QueryParamsMedium, QueryParamsQueueMedium } from '@podverse/helpers';
-import { CategoryMappingKeys } from '@podverse/helpers';
+import type { LiveItemStatus } from '@podverse/helpers';
+import type { QueryParamsMedium, QueryParamsQueueMedium } from '@podverse/helpers';
+import type { CategoryMappingKeys } from '@podverse/helpers';
+
+// ===== BASE CONSTANTS =====
+// Shared query parameter value sets used across multiple contexts.
+// These base constants eliminate duplication and serve as the single source of truth.
+
+/** Base sort values: chronological order plus top-ranked */
+export const SORT_RECENT_OLDEST_TOP = ['recent', 'oldest', 'top'] as const;
+
+/** Base sort values: chronological order only */
+export const SORT_RECENT_OLDEST = ['recent', 'oldest'] as const;
+
+/** Base type values: global, subscribed, or category-filtered feeds */
+export const TYPE_GLOBAL_SUBSCRIBED_CATEGORY = ['global', 'subscribed', 'category'] as const;
 
 // Helpers
 
@@ -141,10 +154,10 @@ export type QueryParamsSubscribedTop = {
   range: QueryParamsStatsRange;
 };
 
-export const QUERY_PARAMS_SUBSCRIBED_TYPE = ['global', 'subscribed', 'category'] as const;
+export const QUERY_PARAMS_SUBSCRIBED_TYPE = TYPE_GLOBAL_SUBSCRIBED_CATEGORY;
 export type QueryParamsSubscribedType = (typeof QUERY_PARAMS_SUBSCRIBED_TYPE)[number];
 
-export const QUERY_PARAMS_GLOBAL_SORT_VALUES = ['recent', 'oldest', 'top'] as const;
+export const QUERY_PARAMS_GLOBAL_SORT_VALUES = SORT_RECENT_OLDEST_TOP;
 export type QueryParamsGlobalSort = (typeof QUERY_PARAMS_GLOBAL_SORT_VALUES)[number];
 
 export const QUERY_PARAMS_SUBSCRIBED_FULL_SORT = ['recent', 'oldest', 'a_z', 'top'] as const;
@@ -180,7 +193,7 @@ export const QUERY_PARAMS_CHANNEL_TYPE_VALUES = [
   'podroll',
   'settings',
 ] as const;
-export const QUERY_PARAMS_CHANNEL_SORT_VALUES = ['recent', 'oldest', 'top'] as const;
+export const QUERY_PARAMS_CHANNEL_SORT_VALUES = SORT_RECENT_OLDEST_TOP;
 
 export type QueryParamsChannelType = (typeof QUERY_PARAMS_CHANNEL_TYPE_VALUES)[number];
 export type QueryParamsChannelSort = (typeof QUERY_PARAMS_CHANNEL_SORT_VALUES)[number];
@@ -240,7 +253,7 @@ export interface QueryParamsChannels {
 
 // Clips
 
-export const QUERY_PARAMS_CLIPS_BY_CHANNEL_SORT_VALUES = ['recent', 'oldest', 'top'];
+export const QUERY_PARAMS_CLIPS_BY_CHANNEL_SORT_VALUES = SORT_RECENT_OLDEST_TOP;
 
 export type QueryParamsClipsByChannelSort =
   (typeof QUERY_PARAMS_CLIPS_BY_CHANNEL_SORT_VALUES)[number];
@@ -272,7 +285,7 @@ export const QUERY_PARAMS_ITEM_TYPE_VALUES = [
   'clips',
   'transcript',
 ] as const;
-export const QUERY_PARAMS_ITEM_SORT_VALUES = ['recent', 'oldest', 'top'] as const;
+export const QUERY_PARAMS_ITEM_SORT_VALUES = SORT_RECENT_OLDEST_TOP;
 
 export type QueryParamsItemType = (typeof QUERY_PARAMS_ITEM_TYPE_VALUES)[number];
 export type QueryParamsItemSort = (typeof QUERY_PARAMS_ITEM_SORT_VALUES)[number];
@@ -294,8 +307,8 @@ export interface QueryParamsItemMusic {
 
 // Items
 
-export const QUERY_PARAMS_ITEMS_TYPE_VALUES = ['global', 'subscribed', 'category'] as const;
-export const QUERY_PARAMS_ITEMS_SORT_VALUES = ['recent', 'oldest', 'top'] as const;
+export const QUERY_PARAMS_ITEMS_TYPE_VALUES = TYPE_GLOBAL_SUBSCRIBED_CATEGORY;
+export const QUERY_PARAMS_ITEMS_SORT_VALUES = SORT_RECENT_OLDEST_TOP;
 
 export type QueryParamsItemsType = (typeof QUERY_PARAMS_ITEMS_TYPE_VALUES)[number];
 export type QueryParamsItemsSort = (typeof QUERY_PARAMS_ITEMS_SORT_VALUES)[number];
@@ -310,7 +323,7 @@ export interface QueryParamsItems {
 
 // Item Soundbites
 
-export const QUERY_PARAMS_ITEM_SOUNDBITES_BY_CHANNEL_SORT_VALUES = ['recent', 'oldest'] as const;
+export const QUERY_PARAMS_ITEM_SOUNDBITES_BY_CHANNEL_SORT_VALUES = SORT_RECENT_OLDEST;
 
 export type QueryParamsItemSoundbitesByChannelSort =
   (typeof QUERY_PARAMS_ITEM_SOUNDBITES_BY_CHANNEL_SORT_VALUES)[number];
@@ -320,7 +333,7 @@ export interface QueryParamsItemSoundbitesByChannel {
   sort?: QueryParamsItemSoundbitesByChannelSort;
 }
 
-export const QUERY_PARAMS_ITEM_SOUNDBITES_BY_ITEM_SORT_VALUES = ['recent', 'oldest'] as const;
+export const QUERY_PARAMS_ITEM_SOUNDBITES_BY_ITEM_SORT_VALUES = SORT_RECENT_OLDEST;
 
 export type QueryParamsItemSoundbitesByItemSort =
   (typeof QUERY_PARAMS_ITEM_SOUNDBITES_BY_ITEM_SORT_VALUES)[number];

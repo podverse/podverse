@@ -1,0 +1,19 @@
+{
+  "name": "@podverse/management-web-sidecar",
+  "version": "5.4.1",
+  "private": true,
+  "type": "module",
+  "description": "Runtime-config sidecar for podverse-management-web",
+  "scripts": {
+    "build": "tsc",
+    "bundle": "esbuild src/server.ts --bundle --platform=node --format=esm --outfile=dist/server.js"
+  },
+  "dependencies": {
+    "@podverse/helpers": "*",
+    "@podverse/helpers-config": "*"
+  },
+  "devDependencies": {
+    "esbuild": "^0.27.3",
+    "typescript": "^5.9.2"
+  }
+}

@@ -1,4 +1,5 @@
-import {
+import type {
+  AddByRSSResourceData,
   DTOChannel,
   DTOClip,
   DTOItem,
@@ -9,9 +10,19 @@ import {
   PlaybackMode,
   PlaybackSpeedValue,
 } from '@podverse/helpers';
-import { createContext, useContext, useState, ReactNode } from 'react';
+import type { ReactNode } from 'react';
+import { createContext, useContext, useState } from 'react';
+
+/** State for "now playing" when the source is add-by-RSS (no DTO item). */
+export type MediaPlayerAddByRSSState = {
+  idText: string;
+  resourceData: AddByRSSResourceData;
+} | null;
 
 type MediaPlayerContextType = {
+  /** When set, now playing is an add-by-RSS item; use for enclosure URL and display. */
+  mpAddByRSS: MediaPlayerAddByRSSState;
+  setMPAddByRSS: (val: MediaPlayerAddByRSSState) => void;
   mpChannel: DTOChannel | null;
   setMPChannel: (val: DTOChannel | null) => void;
   mpItem: DTOItem | null;
@@ -46,6 +57,9 @@ type MediaPlayerContextType = {
   setPlayerModalIsOpen: (val: boolean) => void;
   mpShouldPlay: boolean;
   setMPShouldPlay: (val: boolean) => void;
+  /** One-shot seek time for Add-by-RSS restored position; set by usePlayAddByRSS, consumed and cleared by controller. */
+  addByRSSSeekToTime: number | null;
+  setAddByRSSSeekToTime: (val: number | null) => void;
 };
 
 export const MediaPlayerContext = createContext<MediaPlayerContextType | undefined>(undefined);
@@ -55,6 +69,7 @@ type MediaPlayerProviderProps = {
 };
 
 export const MediaPlayerProvider = ({ children }: MediaPlayerProviderProps) => {
+  const [mpAddByRSS, setMPAddByRSS] = useState<MediaPlayerAddByRSSState>(null);
   const [mpChannel, setMPChannel] = useState<DTOChannel | null>(null);
   const [mpItem, setMPItem] = useState<DTOItem | null>(null);
   const [mpItemLabeledItemEnclosures, setMPItemLabeledItemEnclosures] = useState<
@@ -79,10 +94,13 @@ export const MediaPlayerProvider = ({ children }: MediaPlayerProviderProps) => {
   const [mpDuration, setMPDuration] = useState<number>(0);
   const [playerModalIsOpen, setPlayerModalIsOpen] = useState<boolean>(false);
   const [mpShouldPlay, setMPShouldPlay] = useState<boolean>(false);
+  const [addByRSSSeekToTime, setAddByRSSSeekToTime] = useState<number | null>(null);
 
   return (
     <MediaPlayerContext.Provider
       value={{
+        mpAddByRSS,
+        setMPAddByRSS,
         mpChannel,
         setMPChannel,
         mpItem,
@@ -117,6 +135,8 @@ export const MediaPlayerProvider = ({ children }: MediaPlayerProviderProps) => {
         setPlayerModalIsOpen,
         mpShouldPlay,
         setMPShouldPlay,
+        addByRSSSeekToTime,
+        setAddByRSSSeekToTime,
       }}
     >
       {children}

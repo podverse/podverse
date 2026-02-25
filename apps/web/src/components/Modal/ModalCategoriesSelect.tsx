@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { useTranslations } from 'next-intl';
-import { DTOCategory } from '@podverse/helpers';
+import type { DTOCategory } from '@podverse/helpers';
 import { Modal } from './Modal';
 import { CategoriesList } from '../Category/CategoriesList';
 

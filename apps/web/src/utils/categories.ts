@@ -1,6 +1,7 @@
-import { AppRouterInstance } from 'next/dist/shared/lib/app-router-context.shared-runtime';
-import { DTOCategory } from '@podverse/helpers';
-import { QUERY_PARAMS_GLOBAL_SORT_VALUES, QueryParamsGlobalSort } from '@podverse/helpers-requests';
+import type { AppRouterInstance } from 'next/dist/shared/lib/app-router-context.shared-runtime';
+import type { DTOCategory } from '@podverse/helpers';
+import type { QueryParamsGlobalSort } from '@podverse/helpers-requests';
+import { QUERY_PARAMS_GLOBAL_SORT_VALUES } from '@podverse/helpers-requests';
 
 type OnClickCategoryParams<T extends object> = {
   category: DTOCategory;

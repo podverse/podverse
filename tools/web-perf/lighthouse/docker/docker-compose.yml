@@ -1,0 +1,90 @@
+networks:
+  podverse_lighthouse_network:
+    name: podverse_lighthouse_network
+
+volumes:
+  podverse_lighthouse_keyvaldb_data:
+
+services:
+  podverse_lighthouse_test_db:
+    image: postgres:18.1
+    container_name: podverse_lighthouse_test_db
+    env_file:
+      - ./env/db.env
+    ports:
+      - "5111:5432" # Use port 5111 for the test database so it doesn't conflict with dev
+    networks:
+      - podverse_lighthouse_network
+    volumes:
+      - ../../../../infra/database/combined/init_database.sql:/opt/database/combined/init_database.sql
+      - ../../../../infra/database/init-scripts:/opt/database/init-scripts
+    command: >
+      postgres -c max_connections=200
+               -c superuser_reserved_connections=20
+               -c shared_buffers=512MB
+               -c effective_cache_size=6GB
+               -c maintenance_work_mem=512MB
+               -c checkpoint_completion_target=0.7
+               -c wal_buffers=16MB
+               -c default_statistics_target=100
+               -c random_page_cost=1.1
+               -c effective_io_concurrency=200
+               -c work_mem=5242kB
+               -c min_wal_size=1GB
+               -c max_wal_size=2GB
+               -c max_worker_processes=4
+               -c max_parallel_workers_per_gather=2
+               -c max_parallel_workers=4
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-file: "1"
+        max-size: "50m"
+
+  podverse_lighthouse_mq:
+    image: apache/activemq-artemis:2.37.0
+    container_name: podverse_lighthouse_mq
+    env_file:
+      - ./env/mq.env
+    ports:
+      - "127.0.0.1:5673:5672" # AMQP 1.0
+      - "127.0.0.1:8162:8161" # Web console
+    networks:
+      - podverse_lighthouse_network
+    restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-file: "1"
+        max-size: "50m"
+
+  podverse_lighthouse_keyvaldb:
+    image: valkey/valkey:9.0.1
+    container_name: podverse_lighthouse_keyvaldb
+    env_file:
+      - ./env/keyvaldb.env
+    networks:
+      - podverse_lighthouse_network
+    ports:
+      - "127.0.0.1:6381:6379"
+    volumes:
+      - podverse_lighthouse_keyvaldb_data:/var/lib/valkey
+      - ../../../../infra/scripts/keyvaldb:/opt/keyvaldb
+    command: ["/opt/keyvaldb/valkey-entrypoint.sh"]
+    healthcheck:
+      test: ["CMD", "/opt/keyvaldb/valkey-healthcheck.sh"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-file: "1"
+        max-size: "50m"

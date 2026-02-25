@@ -1,6 +1,7 @@
 'use client';
 
-import { DTOClip, formatHHMMSS } from '@podverse/helpers';
+import type { DTOClip } from '@podverse/helpers';
+import { formatHHMMSS } from '@podverse/helpers';
 import React, { useRef } from 'react';
 import { EVENTS } from '../../../constants/events';
 import { useMediaPlayer } from '../../../contexts/MediaPlayer';

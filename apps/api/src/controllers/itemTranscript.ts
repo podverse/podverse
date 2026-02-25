@@ -1,19 +1,16 @@
-import { validateParamsObject } from '@api/lib/validation';
-import { Request, Response } from 'express';
+import { normalizeTranscriptResponseData } from '@api/lib/transcript.js';
+import { itemIdTextParamSchema, validateParamsObject } from '@api/lib/validation/index.js';
+import type { Request, Response } from 'express';
 import Joi from 'joi';
 import { ItemTranscriptService } from '@podverse/orm';
-import { _request } from '../lib/_request';
-import { getParamRequired } from '@api/lib/params';
-
-const getByIdOrIdTextSchema = Joi.object({
-  item_id_text: Joi.string().required(),
-});
+import { _request } from '../lib/_request.js';
+import { getParamRequired } from '@api/lib/params.js';
 
 export class ItemTranscriptController {
   private static itemTranscriptService = new ItemTranscriptService();
 
   static async getByIdOrIdText(req: Request, res: Response): Promise<void> {
-    validateParamsObject(getByIdOrIdTextSchema, req, res, async () => {
+    validateParamsObject(Joi.object(itemIdTextParamSchema), req, res, async () => {
       const item_id_text = getParamRequired(req, 'item_id_text');
 
       const options = {
@@ -34,7 +31,8 @@ export class ItemTranscriptController {
 
       try {
         const transcriptResponse = await _request(item_transcript.url);
-        res.json({ data: transcriptResponse.data });
+        const data = normalizeTranscriptResponseData(transcriptResponse.data);
+        res.json({ data });
       } catch (error) {
         res.status(500).json({
           message: 'Failed to fetch transcript data',

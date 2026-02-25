@@ -1,7 +1,7 @@
-import { FindOneOptions, Repository } from 'typeorm';
-import { AdminAccount } from '@mgmt-api/orm/entities/adminAccount';
-import { AdminAccountCredentials } from '@mgmt-api/orm/entities/adminAccountCredentials';
-import { AppDataSourceRead, AppDataSourceReadWrite } from '@mgmt-api/orm/db';
+import type { FindOneOptions, Repository } from 'typeorm';
+import { AdminAccount } from '@mgmt-api/orm/entities/adminAccount.js';
+import { AdminAccountCredentials } from '@mgmt-api/orm/entities/adminAccountCredentials.js';
+import { AppDataSourceRead, AppDataSourceReadWrite } from '@mgmt-api/orm/db/index.js';
 import bcrypt from 'bcrypt';
 
 type CreateAdminAccountDto = {

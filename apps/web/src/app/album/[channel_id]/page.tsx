@@ -1,13 +1,15 @@
-import { DTOItem, getTotalPages } from '@podverse/helpers';
+import type { DTOItem } from '@podverse/helpers';
+import { getTotalPages } from '@podverse/helpers';
+import type { ApiListResponse } from '@podverse/helpers-requests';
 import {
   QUERY_PARAMS_STATS_RANGE_VALUES,
   QUERY_PARAMS_CHANNEL_MUSIC_ALBUM_TYPE_VALUES,
   QUERY_PARAMS_CHANNEL_MUSIC_ALBUM_SORT_VALUES,
-  ApiListResponse,
 } from '@podverse/helpers-requests';
 import { z } from 'zod';
-import { getAlbumFilterParams, AlbumDropdownConfigCurrentParams } from './AlbumDropdownConfig';
-import { AlbumClient } from './AlbumClient';
+import type { AlbumPageDropdownConfigCurrentParams } from './AlbumPageDropdownConfig';
+import { getAlbumPageFilterParams } from './AlbumPageDropdownConfig';
+import { AlbumPageClient } from './AlbumPageClient';
 import { getSSRAuthService } from '../../../utils/auth/ssrAuth';
 
 const searchParamsSchema = z.object({
@@ -62,7 +64,7 @@ export default async function AlbumPage({ params, searchParams }: AlbumPageProps
   }
 
   return (
-    <AlbumClient
+    <AlbumPageClient
       initialQueryParams={{
         page: currentPage,
         type: currentType,
@@ -101,7 +103,7 @@ const getCurrentTotalPages = ({
   return 1;
 };
 
-function parseSearchParams(queryParams: SearchParams): AlbumDropdownConfigCurrentParams {
+function parseSearchParams(queryParams: SearchParams): AlbumPageDropdownConfigCurrentParams {
   const parsed = searchParamsSchema.safeParse(queryParams);
 
   if (!parsed.success) {
@@ -115,5 +117,5 @@ function parseSearchParams(queryParams: SearchParams): AlbumDropdownConfigCurren
 
   const data = parsed.data;
 
-  return getAlbumFilterParams(data);
+  return getAlbumPageFilterParams(data);
 }

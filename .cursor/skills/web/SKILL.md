@@ -75,6 +75,11 @@ For the most critical patterns, see:
 - Updating .env Files
 - User-Agent String Pattern
 
+### Lighthouse Alignment
+
+When web env validation changes (`apps/web/scripts/validate-env.ts`), update
+`tools/web-perf/lighthouse/.env.web.example` and `.env.web` so Lighthouse stays aligned.
+
 ### [05-code-quality.md](05-code-quality.md)
 
 - Error Handling (Catch Block Pattern, API Error Handling)

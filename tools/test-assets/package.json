@@ -1,0 +1,38 @@
+{
+  "name": "podverse-test-assets",
+  "version": "5.4.1",
+  "description": "Local test asset generation and serving utilities",
+  "private": true,
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "start": "tsx src/serve.ts",
+    "generate": "tsx src/run-generate-feed-cli.ts",
+    "generate:only": "tsx src/run-generate-feed-cli.ts",
+    "generate_and_parse": "tsx src/generate-and-parse.ts"
+  },
+  "dependencies": {
+    "@faker-js/faker": "^10.3.0",
+    "@podverse/helpers": "*",
+    "@podverse/orm": "*",
+    "@podverse/parser": "*",
+    "dotenv": "^17.2.2"
+  },
+  "devDependencies": {
+    "@types/node": "^24.10.12",
+    "ffmpeg-static": "^5.2.0",
+    "tsx": "^4.19.2",
+    "typescript": "^5.9.2"
+  }
+}

@@ -1,4 +1,4 @@
-import { ApiRequestService } from '../_request';
+import type { ApiRequestService } from '../_request.js';
 
 export async function reqItemTranscriptGet(api: ApiRequestService, item_soundbite_id_text: string) {
   return api.apiRequest<{ data: string | null }>({

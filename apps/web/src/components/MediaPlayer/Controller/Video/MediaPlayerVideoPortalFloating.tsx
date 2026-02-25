@@ -3,18 +3,29 @@
 import React, { useEffect, useState } from 'react';
 import ReactDOM from 'react-dom';
 import classNames from 'classnames';
+import { useTranslations } from 'next-intl';
+import { FaXmark } from 'react-icons/fa6';
+
 import { useMediaPlayer } from '../../../../contexts/MediaPlayer';
-import styles from '../../../../styles/components/MediaPlayer/Controller/Video/MediaPlayerVideoPortalFloating.module.scss';
 import { cssClass } from '../../../../utils/cssModule';
 
-export const MediaPlayerVideoPortalFloating: React.FC<{ children: React.ReactNode }> = ({
+import styles from '../../../../styles/components/MediaPlayer/Controller/Video/MediaPlayerVideoPortalFloating.module.scss';
+
+type MediaPlayerVideoPortalFloatingProps = {
+  children: React.ReactNode;
+  onClose: () => void;
+};
+
+export const MediaPlayerVideoPortalFloating: React.FC<MediaPlayerVideoPortalFloatingProps> = ({
   children,
+  onClose,
 }) => {
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
 
   const { mpItemSoundbite, mpClip, mpItemChapter } = useMediaPlayer();
   const hasMarquee = !!mpItemSoundbite || !!mpClip || !!mpItemChapter;
+  const tMisc = useTranslations('misc');
 
   if (!mounted || typeof document === 'undefined') {
     return null;
@@ -27,6 +38,15 @@ export const MediaPlayerVideoPortalFloating: React.FC<{ children: React.ReactNod
         [cssClass(styles, 'hasMarquee')]: hasMarquee,
       })}
     >
+      <button
+        type="button"
+        className={cssClass(styles, 'closeButton')}
+        onClick={onClose}
+        aria-label={tMisc('close_video_player')}
+        title={tMisc('close_video_player')}
+      >
+        <FaXmark />
+      </button>
       {children}
     </div>,
     document.body

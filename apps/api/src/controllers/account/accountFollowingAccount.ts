@@ -1,30 +1,26 @@
-import { Request, Response } from 'express';
+import type { Request, Response } from 'express';
 import Joi from 'joi';
 import { AccountFollowingAccountService, AccountService } from '@podverse/orm';
 import {
   ensureAuthenticated,
   optionalEnsureAuthenticated,
   getAuthenticatedUser,
-} from '@api/lib/auth';
-import { handleGenericErrorResponse } from '../helpers/error';
-import { validateBodyObject, validateParamsObject } from '@api/lib/validation';
+} from '@api/lib/auth/index.js';
+import { handleGenericErrorResponse } from '../helpers/error.js';
+import {
+  accountIdTextParamSchema,
+  validateBodyObject,
+  validateParamsObject,
+} from '@api/lib/validation/index.js';
 import { SharableStatusEnum } from '@podverse/helpers';
-import { getParamRequired } from '@api/lib/params';
-
-const followAccountSchema = Joi.object({
-  following_account_id_text: Joi.string().required(),
-});
-
-const getFollowedAccountsSchema = Joi.object({
-  account_id_text: Joi.string().required(),
-});
+import { getParamRequired } from '@api/lib/params.js';
 
 class AccountFollowingAccountController {
   private static accountFollowingAccountService = new AccountFollowingAccountService();
   private static accountService = new AccountService();
 
   static async getFollowedAccounts(req: Request, res: Response): Promise<void> {
-    validateParamsObject(getFollowedAccountsSchema, req, res, async () => {
+    validateParamsObject(Joi.object(accountIdTextParamSchema), req, res, async () => {
       optionalEnsureAuthenticated(
         req,
         res,
@@ -77,7 +73,11 @@ class AccountFollowingAccountController {
       req,
       res,
       async () => {
-        validateBodyObject(followAccountSchema, req, res, async () => {
+        const bodySchema = Joi.object({
+          following_account_id_text: Joi.string().required(),
+        });
+
+        validateBodyObject(bodySchema, req, res, async () => {
           const account = getAuthenticatedUser(req);
           const { following_account_id_text } = req.body;
 
@@ -101,7 +101,11 @@ class AccountFollowingAccountController {
       req,
       res,
       async () => {
-        validateBodyObject(followAccountSchema, req, res, async () => {
+        const bodySchema = Joi.object({
+          following_account_id_text: Joi.string().required(),
+        });
+
+        validateBodyObject(bodySchema, req, res, async () => {
           const account = getAuthenticatedUser(req);
           const { following_account_id_text } = req.body;
 

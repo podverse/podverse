@@ -1,12 +1,12 @@
 'use client';
 
 import React from 'react';
-import { DTOChannel } from '@podverse/helpers';
+import type { DTOChannel } from '@podverse/helpers';
 import { ListAlbumRow } from './ListAlbumRow';
 import { ListAlbumGridNode } from './ListAlbumGridNode';
-import { ViewSelectedOption } from '../../../ViewSelector/ViewSelector';
+import type { ViewSelectedOption } from '../../../ViewSelector/ViewSelector';
 import { Divider } from '../../../Divider/Divider';
-import styles from '../../../../styles/components/List/ListNodes.module.scss';
+import styles from '../../../../styles/components/Common/List/ListNodes.module.scss';
 
 interface Params {
   channels: DTOChannel[];

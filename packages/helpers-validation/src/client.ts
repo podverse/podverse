@@ -56,4 +56,4 @@ export {
   isValidHttpUrl,
   isPrivateIP,
   isLocalhost,
-} from './url';
+} from './url.js';

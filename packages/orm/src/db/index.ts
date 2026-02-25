@@ -1,8 +1,8 @@
-import { DataSource, EntityTarget, ObjectLiteral, Repository } from 'typeorm';
-import { getDataSourceRead, getDataSourceReadWrite } from '@orm/context';
+import type { DataSource, EntityTarget, ObjectLiteral, Repository } from 'typeorm';
+import { getDataSourceRead, getDataSourceReadWrite } from '@orm/context.js';
 
 // Re-export entities
-export { entities } from './entities';
+export { entities } from './entities.js';
 
 // Type for the DataSource proxy
 type DataSourceProxy = {

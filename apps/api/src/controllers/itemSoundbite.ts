@@ -1,43 +1,32 @@
-import { Request, Response } from 'express';
+import type { Request, Response } from 'express';
 import Joi from 'joi';
-import {
+import type {
   ApiListResponse,
   QueryParamsItemSoundbitesByChannelSort,
   QueryParamsItemSoundbitesByItemSort,
 } from '@podverse/helpers-requests';
-import { ItemSoundbite, ItemSoundbiteService } from '@podverse/orm';
-import { handleGenericErrorResponse } from './helpers/error';
-import { validateParamsObject, validateQueryObject } from '@api/lib/validation';
-import { getPaginationParams } from './helpers/pagination';
-import { getParamRequired } from '@api/lib/params';
-
-const getItemSoundbitesByChannelIdTextSchema = Joi.object({
-  page: Joi.number().integer().min(1).optional(),
-  sort: Joi.string().valid('recent', 'oldest').optional(),
-});
-
-const getItemSoundbitesByItemIdTextSchema = Joi.object({
-  page: Joi.number().integer().min(1).optional(),
-  sort: Joi.string().valid('recent', 'oldest').optional(),
-});
-
-const itemSoundbiteIdTextSchema = Joi.object({
-  item_soundbite_id_text: Joi.string().required(),
-});
-
-const getByChannelIdTextSchema = Joi.object({
-  channel_id_text: Joi.string().required(),
-});
-
-const getByItemIdTextSchema = Joi.object({
-  item_id_text: Joi.string().required(),
-});
+import {
+  QUERY_PARAMS_ITEM_SOUNDBITES_BY_CHANNEL_SORT_VALUES,
+  QUERY_PARAMS_ITEM_SOUNDBITES_BY_ITEM_SORT_VALUES,
+} from '@podverse/helpers-requests';
+import type { ItemSoundbite } from '@podverse/orm';
+import { ItemSoundbiteService } from '@podverse/orm';
+import { handleGenericErrorResponse } from './helpers/error.js';
+import {
+  channelIdTextParamSchema,
+  itemIdTextParamSchema,
+  itemSoundbiteIdTextParamSchema,
+  validateParamsObject,
+  validateQueryObject,
+} from '@api/lib/validation/index.js';
+import { getPaginationParams } from './helpers/pagination.js';
+import { getParamRequired } from '@api/lib/params.js';
 
 const itemSoundbiteService = new ItemSoundbiteService();
 
 export class ItemSoundbiteController {
   static async getItemSoundbiteById(req: Request, res: Response): Promise<void> {
-    validateParamsObject(itemSoundbiteIdTextSchema, req, res, async () => {
+    validateParamsObject(Joi.object(itemSoundbiteIdTextParamSchema), req, res, async () => {
       try {
         const item_soundbite_id_text = getParamRequired(req, 'item_soundbite_id_text');
         const itemSoundbite = await itemSoundbiteService.getByIdText(item_soundbite_id_text, {
@@ -55,8 +44,15 @@ export class ItemSoundbiteController {
   }
 
   static async getManyByChannelIdText(req: Request, res: Response): Promise<void> {
-    validateParamsObject(getByChannelIdTextSchema, req, res, async () => {
-      validateQueryObject(getItemSoundbitesByChannelIdTextSchema, req, res, async () => {
+    const querySchema = Joi.object({
+      page: Joi.number().integer().min(1).optional(),
+      sort: Joi.string()
+        .valid(...QUERY_PARAMS_ITEM_SOUNDBITES_BY_CHANNEL_SORT_VALUES)
+        .optional(),
+    });
+
+    validateParamsObject(Joi.object(channelIdTextParamSchema), req, res, async () => {
+      validateQueryObject(querySchema, req, res, async () => {
         try {
           const channel_id_text = getParamRequired(req, 'channel_id_text');
           const { page, limit, offset } = getPaginationParams(req);
@@ -100,8 +96,15 @@ export class ItemSoundbiteController {
   }
 
   static async getManyByItemIdText(req: Request, res: Response): Promise<void> {
-    validateParamsObject(getByItemIdTextSchema, req, res, async () => {
-      validateQueryObject(getItemSoundbitesByItemIdTextSchema, req, res, async () => {
+    const querySchema = Joi.object({
+      page: Joi.number().integer().min(1).optional(),
+      sort: Joi.string()
+        .valid(...QUERY_PARAMS_ITEM_SOUNDBITES_BY_ITEM_SORT_VALUES)
+        .optional(),
+    });
+
+    validateParamsObject(Joi.object(itemIdTextParamSchema), req, res, async () => {
+      validateQueryObject(querySchema, req, res, async () => {
         try {
           const item_id_text = getParamRequired(req, 'item_id_text');
           const { page, limit, offset } = getPaginationParams(req);

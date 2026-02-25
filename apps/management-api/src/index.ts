@@ -1,41 +1,45 @@
-if (process.env.NODE_ENV !== 'production') {
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  require('@dotenvx/dotenvx').config({ path: '.env' });
-}
-
-import { AppDataSourceRead, AppDataSourceReadWrite } from '@mgmt-api/orm/db';
-import { startApp } from './app';
-import { validateStartupRequirements } from './lib/startup/validation';
-
-let serverInstance: import('http').Server | null = null;
-
-const shutdown = async (signal?: string) => {
-  try {
-    console.warn(`Shutdown initiated${signal ? ` due to ${signal}` : ''}`);
-    if (serverInstance) {
-      await new Promise<void>((resolve, reject) => {
-        serverInstance?.close((err) => (err ? reject(err) : resolve()));
-      });
-      console.warn('HTTP server closed');
-    }
-    try {
-      await AppDataSourceRead.destroy();
-      await AppDataSourceReadWrite.destroy();
-      console.warn('Database connections closed');
-    } catch (err) {
-      console.error('Error closing DB connections during shutdown:', err);
-    }
-  } catch (err) {
-    console.error('Error during shutdown:', err);
-  } finally {
-    process.exit(0);
+const loadEnv = async () => {
+  if (process.env.NODE_ENV !== 'production') {
+    const dotenvx = await import('@dotenvx/dotenvx');
+    dotenvx.config({ path: '.env' });
   }
 };
 
-process.on('SIGINT', () => void shutdown('SIGINT'));
-process.on('SIGTERM', () => void shutdown('SIGTERM'));
+let serverInstance: import('http').Server | null = null;
 
-(async () => {
+const run = async () => {
+  await loadEnv();
+
+  const { AppDataSourceRead, AppDataSourceReadWrite } = await import('@mgmt-api/orm/db/index.js');
+  const { startApp } = await import('./app.js');
+  const { validateStartupRequirements } = await import('./lib/startup/validation.js');
+
+  const shutdown = async (signal?: string) => {
+    try {
+      console.warn(`Shutdown initiated${signal ? ` due to ${signal}` : ''}`);
+      if (serverInstance) {
+        await new Promise<void>((resolve, reject) => {
+          serverInstance?.close((err) => (err ? reject(err) : resolve()));
+        });
+        console.warn('HTTP server closed');
+      }
+      try {
+        await AppDataSourceRead.destroy();
+        await AppDataSourceReadWrite.destroy();
+        console.warn('Database connections closed');
+      } catch (err) {
+        console.error('Error closing DB connections during shutdown:', err);
+      }
+    } catch (err) {
+      console.error('Error during shutdown:', err);
+    } finally {
+      process.exit(0);
+    }
+  };
+
+  process.on('SIGINT', () => void shutdown('SIGINT'));
+  process.on('SIGTERM', () => void shutdown('SIGTERM'));
+
   try {
     validateStartupRequirements();
 
@@ -63,4 +67,6 @@ process.on('SIGTERM', () => void shutdown('SIGTERM'));
       process.exit(1);
     }
   }
-})();
+};
+
+void run();

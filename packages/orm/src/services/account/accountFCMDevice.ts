@@ -1,14 +1,14 @@
-import {
+import type {
   CreateAccountFCMDeviceParams,
   UpdateAccountFCMDeviceParams,
   DeleteAccountFCMDeviceParams,
 } from '@podverse/helpers';
 import { In } from 'typeorm';
-import { AccountFCMDevice } from '@orm/entities/account/accountFCMDevice';
-import { BaseManyService } from '@orm/services/base/baseManyService';
-import { AccountService } from '@orm/services/account/account';
-import { AccountNotificationChannelService } from '@orm/services/account/accountNotificationChannel';
-import { getDefaultLocale } from '@orm/config';
+import { AccountFCMDevice } from '@orm/entities/account/accountFCMDevice.js';
+import { BaseManyService } from '@orm/services/base/baseManyService.js';
+import { AccountService } from '@orm/services/account/account.js';
+import { AccountNotificationChannelService } from '@orm/services/account/accountNotificationChannel.js';
+import { getDefaultLocale } from '@orm/config/index.js';
 
 export class AccountFCMDeviceService extends BaseManyService<AccountFCMDevice, 'account'> {
   private accountService: AccountService;

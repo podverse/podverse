@@ -1,17 +1,18 @@
 import { DATABASE_CONSTANTS } from '@podverse/helpers';
 import { Entity, PrimaryGeneratedColumn, Column, JoinColumn, OneToOne } from 'typeorm';
-import { ChannelPublisher } from '@orm/entities/channel/channelPublisher';
+import type { Relation } from 'typeorm';
+import type { ChannelPublisher } from '@orm/entities/channel/channelPublisher.js';
 
 @Entity({ name: 'channel_publisher_remote_item' })
 export class ChannelPublisherRemoteItem {
   @PrimaryGeneratedColumn()
   id!: number;
 
-  @OneToOne(() => ChannelPublisher, (channelPublisher) => channelPublisher.id, {
+  @OneToOne('ChannelPublisher', (channelPublisher: ChannelPublisher) => channelPublisher.id, {
     onDelete: 'CASCADE',
   })
   @JoinColumn({ name: 'channel_publisher_id' })
-  channel_publisher!: ChannelPublisher;
+  channel_publisher!: Relation<ChannelPublisher>;
 
   @Column({ type: 'uuid', name: 'feed_guid' })
   feed_guid!: string;
@@ -39,4 +40,7 @@ export class ChannelPublisherRemoteItem {
     length: DATABASE_CONSTANTS.varchar_normal,
   })
   title!: string | null;
+
+  @Column({ type: 'int', name: 'medium_id', nullable: true })
+  medium_id!: number | null;
 }

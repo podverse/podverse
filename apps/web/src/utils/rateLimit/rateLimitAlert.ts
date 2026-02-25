@@ -10,13 +10,20 @@ type RateLimitData =
   | {
       tooManyRequests?: boolean;
       minutesRemaining?: number;
+      retry_after_seconds?: number;
     }
   | Blob;
+
+type RateLimitAlertOptions = {
+  onMessage?: (message: string) => void;
+  suppressAlert?: boolean;
+};
 
 export async function handleRateLimitAlert(
   error: unknown,
   _locale?: string,
-  tMisc?: (key: string, values?: Record<string, string | number>) => string
+  tMisc?: (key: string, values?: Record<string, string | number>) => string,
+  options?: RateLimitAlertOptions
 ): Promise<boolean> {
   const e = error as ErrorWithResponse;
   const status = e?.response?.status ?? e?.status ?? e?.code;
@@ -43,18 +50,34 @@ export async function handleRateLimitAlert(
 
   // After potential blob conversion, data should not be a Blob
   const rateLimitData = data instanceof Blob ? undefined : data;
-  if (status === 429 && rateLimitData?.tooManyRequests) {
-    const minutesRemaining = rateLimitData.minutesRemaining;
-    if (typeof minutesRemaining !== 'number' || isNaN(minutesRemaining) || minutesRemaining < 1) {
-      alert(tMisc ? tMisc('rate_limit.generic') : 'Rate limited: please try again later.');
+  if (status === 429) {
+    const minutesRemaining = rateLimitData?.minutesRemaining;
+    const retryAfterSeconds = rateLimitData?.retry_after_seconds;
+    const fallbackMinutes = typeof retryAfterSeconds === 'number' ? retryAfterSeconds / 60 : null;
+    const rateLimitMinutes =
+      typeof minutesRemaining === 'number' ? minutesRemaining : fallbackMinutes;
+    const isRateLimit = rateLimitData?.tooManyRequests || typeof rateLimitMinutes === 'number';
+    if (!isRateLimit) {
+      return false;
+    }
+    const normalizedMinutes =
+      typeof rateLimitMinutes === 'number' ? Math.max(1, Math.ceil(rateLimitMinutes)) : null;
+    if (normalizedMinutes === null || isNaN(normalizedMinutes) || normalizedMinutes < 1) {
+      const genericMessage = tMisc
+        ? tMisc('rate_limit.generic')
+        : 'Rate limited: please try again later.';
+      options?.onMessage?.(genericMessage);
+      if (!options?.suppressAlert) {
+        alert(genericMessage);
+      }
       return true;
     }
 
     let message: string;
     if (tMisc) {
       const key =
-        minutesRemaining === 1 ? 'rate_limit.minute_remaining' : 'rate_limit.minutes_remaining';
-      const templated = tMisc(key, { minutes: minutesRemaining });
+        normalizedMinutes === 1 ? 'rate_limit.minute_remaining' : 'rate_limit.minutes_remaining';
+      const templated = tMisc(key, { minutes: normalizedMinutes });
       if (!templated || templated.includes(key)) {
         // Fallback to generic if translation missing
         message = tMisc('rate_limit.generic');
@@ -63,11 +86,14 @@ export async function handleRateLimitAlert(
       }
     } else {
       message =
-        minutesRemaining === 1
+        normalizedMinutes === 1
           ? 'Rate limited: 1 minute until you can use this action again.'
-          : `Rate limited: ${minutesRemaining} minutes until you can use this action again.`;
+          : `Rate limited: ${normalizedMinutes} minutes until you can use this action again.`;
     }
-    alert(message);
+    options?.onMessage?.(message);
+    if (!options?.suppressAlert) {
+      alert(message);
+    }
     return true;
   }
 

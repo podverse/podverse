@@ -1,6 +1,6 @@
 {
   "name": "@podverse/helpers-validation",
-  "version": "5.2.5",
+  "version": "5.4.1",
   "sideEffects": false,
   "description": "Email and password validation utilities for Podverse",
   "main": "dist/index.js",
@@ -36,5 +36,6 @@
   "dependencies": {
     "@podverse/helpers": "*",
     "joi": "^18.0.1"
-  }
+  },
+  "type": "module"
 }

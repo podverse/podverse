@@ -33,9 +33,9 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
     }
 
     // Import ProfileClient dynamically to avoid circular dependencies
-    const { ProfileClient } = await import('./ProfileClient');
+    const { ProfilePageClient } = await import('./ProfilePageClient');
 
-    return <ProfileClient ssrAccount={ssrAccount} />;
+    return <ProfilePageClient ssrAccount={ssrAccount} />;
   } catch (error) {
     // Check if this is a Next.js redirect error - if so, re-throw it
     if (error && typeof error === 'object' && 'digest' in error) {

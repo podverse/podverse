@@ -8,20 +8,33 @@ import { useMediaPlayer } from '../../../contexts/MediaPlayer';
 import styles from '../../../styles/components/MediaPlayer/Desktop/MediaPlayerInfoDesktop.module.scss';
 
 export const MediaPlayerInfoDesktop: React.FC = () => {
-  const { mpChannel, mpItem, setPlayerModalIsOpen } = useMediaPlayer();
+  const { mpChannel, mpItem, mpAddByRSS, setPlayerModalIsOpen } = useMediaPlayer();
   const tMediaPlayer = useTranslations('media_player');
   const tMisc = useTranslations('misc');
 
-  const title = mpItem?.title || tMisc('untitled');
-  const subtitle = mpChannel?.title || tMisc('untitled');
+  const hasContent = !!mpChannel || !!mpAddByRSS;
+  const title = hasContent
+    ? (typeof mpAddByRSS?.resourceData?.title === 'string'
+        ? mpAddByRSS.resourceData.title
+        : null) ||
+      mpItem?.title ||
+      tMisc('untitled')
+    : '';
+  const subtitle = hasContent
+    ? (typeof mpAddByRSS?.resourceData?.channel_title === 'string'
+        ? mpAddByRSS.resourceData.channel_title
+        : null) ||
+      mpChannel?.title ||
+      tMisc('untitled')
+    : '';
 
   const channel_image = findDTOChannelImageBySize(
-    mpChannel?.channel_images,
+    mpChannel?.channel_images ?? mpAddByRSS?.resourceData?.channel_images,
     IMAGES.MEDIA_PLAYER.DESKTOP.MINI.SIZE_FIND_TARGET,
     'greater'
   );
   const item_image = findDTOItemImageBySize(
-    mpItem?.item_images,
+    mpItem?.item_images ?? mpAddByRSS?.resourceData?.item_images,
     IMAGES.MEDIA_PLAYER.DESKTOP.MINI.SIZE_FIND_TARGET,
     'greater'
   );

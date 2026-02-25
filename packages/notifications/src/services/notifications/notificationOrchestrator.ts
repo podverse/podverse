@@ -2,13 +2,14 @@ import { MediumEnum } from '@podverse/helpers';
 import {
   firebaseNotificationBatchOrchestrator,
   type FirebaseContext,
-} from '@podverse/external-services';
-import { NotificationsContext } from '../../factory';
-import { webpushNotificationBatchOrchestrator } from '../webpush';
-import { WebPushSubscription } from '../webpush';
-import { unifiedpushNotificationBatchOrchestrator } from '../unifiedpush';
-import { UPSubscription } from '../unifiedpush';
-import { i18nNotifications, NotificationMessageType } from './i18nNotifications';
+} from '@podverse/external-services-firebase';
+import type { NotificationsContext } from '../../factory.js';
+import { webpushNotificationBatchOrchestrator } from '../webpush/index.js';
+import type { WebPushSubscription } from '../webpush/index.js';
+import { unifiedpushNotificationBatchOrchestrator } from '../unifiedpush/index.js';
+import type { UPSubscription } from '../unifiedpush/index.js';
+import type { NotificationMessageType } from './i18nNotifications.js';
+import { i18nNotifications } from './i18nNotifications.js';
 
 export type NotificationPlatform = 'web' | 'android' | 'ios';
 export type NotificationService = 'firebase' | 'webpush' | 'unifiedpush';

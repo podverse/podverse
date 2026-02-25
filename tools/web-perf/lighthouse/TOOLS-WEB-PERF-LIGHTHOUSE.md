@@ -16,44 +16,99 @@ This system uses Playwright for browser automation and Lighthouse for performanc
 
 ## Prerequisites
 
-- **Node.js 22.17.0 or higher** (specified in root `.nvmrc`)
+- **Node.js** as specified in root `.nvmrc` (currently Node 24)
   - If using nvm: `nvm use` in the monorepo root to switch to the correct version
   - Or ensure your Node.js version matches `.nvmrc`
-- Chrome/Chromium browser installed
+- **Playwright browsers**: Run `npx playwright install` from the monorepo root (or from `tools/web-perf/lighthouse`) before your first Lighthouse run. Playwright uses its own browser binaries; without this step, the tool will fail with an "Executable doesn't exist" error.
 - The web app will be started automatically on `http://localhost:3111` during tests
-- Test fixtures seeded in the database (see Database Setup)
+- Database populated with channel/items from the generated feed (see Database Setup)
 
 ## Installation
+
+From the monorepo root (recommended):
+
+```bash
+npm install
+npm run build -w podverse-test-assets
+npx playwright install
+```
+
+Or from the tool directories:
 
 ```bash
 cd tools/web-perf/lighthouse
 npm install
+npx playwright install
+
+cd ../../test-assets
+npm install
+npm run build
 ```
+
+Run `npx playwright install` before your first Lighthouse run; it is required for browser automation.
 
 ## Setup
 
 1.  **Configure environment variables**:
 
     ```bash
-    cp .env.example .env
+    cp .env.api.example .env.api
+    cp .env.web.example .env.web
+    cp .env.lighthouse.example .env.lighthouse
     ```
 
-    Then edit `.env` with your test database connection details. **Important**: The test database runs on port **5111** (separate from the development database on port 5432). The `.env.example` file is pre-configured for the test database.
+    Then edit `.env.api`, `.env.web`, and `.env.lighthouse` with your test settings.
+    **Important**: The test database runs on port **5111** (separate from the
+    development database on port 5432). The example files are pre-configured for
+    the test database.
 
-2.  **Test Database Setup**: The test suite uses a separate test database that is automatically managed:
-    - The test database runs in a Docker container (`podverse_test_db`) on port 5111
-    - Before each test run, the database is automatically reset and reinitialized
-    - Test fixtures are automatically seeded
-    - You can manually manage the test database using make commands from `podverse-ops` (sibling repo):
+    Lighthouse does **not** provide its own env validation. It relies on the app
+    startup validation in:
+    - `apps/api/src/lib/startup/validation.ts`
+    - `apps/web/scripts/validate-env.ts`
+
+    Keep `.env.api` and `.env.web` aligned with those validators.
+
+    The web app reads `NEXT_PUBLIC_*` values from the runtime-config sidecar.
+    Make sure `.env.web` includes `RUNTIME_CONFIG_URL` and `RUNTIME_CONFIG_PORT`
+    so Lighthouse can start the sidecar alongside the web app.
+
+    When Lighthouse starts the API, it skips loading `apps/api/.env` so the
+    Lighthouse `.env.api` values are always used.
+
+2.  **Lighthouse Docker Services**: The test suite manages its own Docker services
+    (database, message queue, key-value DB) with Lighthouse-specific container names
+    and ports to avoid collisions with local dev services:
+    - Database container: `podverse_lighthouse_test_db` (port 5111)
+    - Message queue: `podverse_lighthouse_mq` (AMQP on port 5673)
+    - Key-value DB: `podverse_lighthouse_keyvaldb` (Valkey on port 6381)
+    - Before each test run, Lighthouse tears down any existing Lighthouse services,
+      then starts fresh containers, resets the database schema, and populates it via the
+      parser (test-assets mode) using the generated feed URL.
+    - You can manually manage the services using the Lighthouse compose file:
+
       ```bash
-      cd ../podverse-ops
-      make test_db_up     # Start the test database container
-      make test_db_reinit # Reset and reinitialize with test fixtures
-      make test_db_down   # Stop and remove the test database container
+      docker compose -f tools/web-perf/lighthouse/docker/docker-compose.yml up -d
+      cat ../../infra/database/combined/init_database.sql | \
+        docker exec -i podverse_lighthouse_test_db psql -U postgres -d postgres
+      # Then load .env.api and run: npm run generate_and_parse -w podverse-test-assets
+      # (or let Lighthouse do the reset + populate when you run npm run lighthouse)
       ```
-    - The test suite will automatically ensure the database is up and reset before running tests
 
-3.  **Test Assets**: Test assets (images, media files, and RSS feeds) are located in `tools/web-perf/lighthouse/assets/`. The tool automatically generates missing image and media files when you run `npm run lighthouse`. RSS feed files are source controlled. Assets are served via a local HTTP server on `localhost:2111`. See `tools/web-perf/lighthouse/assets/README.md` for details.
+    - The test suite will automatically ensure the Lighthouse services are up and reset
+      before running tests
+    - Environment variable details for these services are documented in
+      `tools/web-perf/lighthouse/docker/env/ENV.md`
+
+3.  **Test Assets**: Assets are served by the **test-assets** HTTP server at
+    `http://localhost:2111/` (e.g. `/feeds/feed-podcast-1.rss`, `/images/image-001-300.jpg`).
+    You must **start the assets server** before running Lighthouse.
+    From the repo root, in a separate terminal: `npm run start -w podverse-test-assets`.
+    Or from the tool dir: `cd tools/test-assets && npm run start`. When you run Lighthouse
+    the tool first runs the test-assets **generate** step to create one podcast feed and
+    media under `tools/test-assets/assets/`; it then checks that the assets server is
+    reachable. If the server is not running, Lighthouse exits with instructions to start
+    it. See `tools/test-assets/TOOLS-TEST-ASSETS.md`.
 
 4.  **Podcast Index API Override**: The `@podverse/external-services` package needs to be updated to include the Podcast Index API override logic. This ensures that test `podcast_index_id` values and feed URLs return mock data instead of querying the real API. This override is only active in non-production environments (`NODE_ENV !== 'production'`).
 
@@ -61,9 +116,23 @@ npm install
 
 ## Usage
 
-Run the Lighthouse performance tool (from `tools/web-perf/lighthouse`):
+**From the monorepo root** (recommended):
 
 ```bash
+# One-time: build test-assets so Lighthouse can use feed-1 constants
+npm run build -w podverse-test-assets
+
+# In a separate terminal: start the assets server (Lighthouse will prompt if it's not running)
+npm run start -w podverse-test-assets
+
+# Run Lighthouse (generate, DB reset+populate, API, web, then audits)
+npm run lighthouse -w podverse-lighthouse
+```
+
+**From the tool directory:**
+
+```bash
+cd tools/web-perf/lighthouse
 npm run lighthouse
 ```
 
@@ -76,23 +145,12 @@ The CLI will prompt you to:
 
 ### Test Flow
 
-The system comprehensively tests all media types and user states:
+The system tests the default (podcast) feed type and user states:
 
 **Logged-Out Tests:**
 
 1. Homepage load
-2. Podcast channel page load (`/podcast/lhtest-chan-1`)
-3. Video channel page load (`/podcast/lhtest-chan-2`)
-4. Music album page load (`/album/lhtest-chan-3`)
-5. Podcast episode page load (`/episode/lhtest-item-1`)
-6. Video episode page load (`/episode/lhtest-item-2`)
-7. Music track page load (`/track/lhtest-item-3`)
-8. Podcast episode play behavior
-9. Podcast episode reload (tests history-based loading)
-10. Video episode play behavior
-11. Video episode reload (tests history-based loading)
-12. Music track play behavior
-13. Music track reload (tests history-based loading)
+2. Podcast channel page load (`/podcast/{feed-1 channel id}` — feed-1-based assets)
 
 **Logged-In Tests:**
 
@@ -117,15 +175,16 @@ Reports are stored in `tools/web-perf/lighthouse/reports/{app}/report-{identifie
 - `report-before-optimization.json`
 - `report-after-changes.json`
 
-Each report has the following structure:
+Each report has the following structure. `screenshotsEnabled` records whether page screenshots were taken before each audit (they can slightly affect timings, so this helps when comparing reports):
 
 ```json
 {
   "timestamp": "2024-01-15T10:30:00Z",
   "baseReport": "v1.0",
   "newReport": "v1.1",
-  "testChannelIds": ["lhtest-chan-1"],
-  "testItemIds": [],
+  "testChannelIds": ["1"],
+  "testItemIds": ["1"],
+  "screenshotsEnabled": false,
   "scenarios": {
     "loggedOut": {
       "homepage": {
@@ -140,12 +199,7 @@ Each report has the following structure:
 ```
 
 <!--
-Potential scenarios to restore later:
-- Logged out: podcast episode, podcast after play, podcast after reload
-- Logged out: video channel, music album, video episode, music track
-- Logged out: video/music after play, video/music after reload
-- Logged in: homepage, podcast/video/music channel, podcast/video/music episode,
-  podcast/video/music after play, podcast/video/music after reload
+Potential scenarios to restore later: podcast episode, play, reload; logged-in flows.
 -->
 
 ## Comparison Analysis
@@ -180,6 +234,15 @@ You can tune run determinism with these environment variables:
   - `fresh`: new browser context per run (most isolated).
   - `single`: reuse a single context per scenario and clear cache between runs.
 
+### Screenshots
+
+Set `LIGHTHOUSE_SAVE_SCREENSHOTS="true"` in `.env.lighthouse` to save PNG screenshots of each tested page alongside the report in `reports/web/`. This helps confirm that pages loaded correctly with the expected data. When enabled, the runner writes:
+
+- `{report-id}-homepage.png` — homepage after load
+- `{report-id}-podcast-channel.png` — podcast channel page after load
+
+Leave unset or set to any value other than `"true"` to disable.
+
 ### Database
 
 The test suite uses a **separate test database** (port 5111) that is isolated from the development database (port 5432). This ensures:
@@ -188,32 +251,36 @@ The test suite uses a **separate test database** (port 5111) that is isolated fr
 - No interference with development data
 - Automatic reset before each test run
 
-The test database is managed via Docker and make commands in `podverse-ops`. The test suite automatically handles database setup, but you can also manage it manually if needed.
+The test database is managed via Docker compose in
+`tools/web-perf/lighthouse/docker`. The test suite automatically handles database
+setup, but you can also manage it manually if needed.
 
 ## Test Fixtures
 
-The system expects test fixtures to be available:
-
-- Channel: `lhtest-chan-1` (Podcast)
-- Episode: `lhtest-item-1` (Podcast episode)
-
-These should be seeded in the database using the seed script (see Database Setup).
+The system expects one podcast channel and episodes to be present. These are created
+automatically: after the database schema is reset, Lighthouse calls the test-assets
+parser (in test-assets mode) to parse the generated feed
+`http://localhost:2111/feed-podcast-1.rss` and populate the database.
+No manual seed script is used.
 
 ## Database Setup
 
-Test fixtures must be seeded in the local database. The seed script should create:
+The test database is reset (DROP/CREATE schema, init from `infra/database/combined/init_database.sql`,
+init-scripts for users), then populated by the **parser** in test-assets mode using the
+generated feed URL. The parser creates the feed, channel, and items from the RSS feed;
+no SQL seed file is used. This happens automatically when you run `npm run lighthouse`.
 
-- Test feeds with podcast_index_id values 2147483640-2147483642
-- Test channels (Podcast, Video, Music)
-- Test items (one per channel)
+## Docker Sync Note
 
-The test database is automatically initialized from `podverse-ops` (sibling repo). See `podverse-ops/database/seed-scripts/local-lighthouse-test-fixtures.sql` for the seed script.
+If you update infra Docker images, commands, or env files for DB/MQ/KeyvalDB, make
+sure to update the Lighthouse Docker files under `tools/web-perf/lighthouse/docker`
+to keep the tool aligned with infra changes.
 
 ## Troubleshooting
 
 **Tests fail with "Page not found":**
 
-- Ensure test fixtures are seeded in the database
+- Ensure the database was populated (Lighthouse runs the parser after schema reset)
 - Verify the web app is running on the expected URL
 
 **Lighthouse fails:**
@@ -224,17 +291,32 @@ The test database is automatically initialized from `podverse-ops` (sibling repo
 **Login fails:**
 
 - Verify database connection is configured correctly in `.env`
-- Check that the test database is running: `docker ps | grep podverse_test_db`
+- Check that the test database is running: `docker ps | grep podverse_lighthouse_test_db`
 - Ensure the test database is on port 5111 (not 5432)
 - Check that the database user has permissions to create and delete accounts
 - Ensure podverse-orm can connect to the database
 
 **Database connection fails:**
 
-- Verify the test database container is running: `make test_db_up` (from podverse-ops sibling repo)
+- Verify the test database container is running:
+  `docker ps | grep podverse_lighthouse_test_db`
 - Check that `.env` has the correct port (5111) and credentials
-- Ensure `podverse-ops` is a sibling directory to the monorepo (for automatic database setup)
-- If automatic setup fails, manually run: `make test_db_reinit` from podverse-ops
+- The reset step runs `/opt/database/init-scripts/01-create-users.sh` to ensure
+  `read`/`read_write` users exist with the Lighthouse DB passwords.
+- Check Postgres readiness and logs:
+  `docker logs podverse_lighthouse_test_db`
+- If schema creation fails, Lighthouse now verifies `category` exists after reset.
+  A failure usually means the combined schema SQL was not applied.
+- If automatic setup fails, manually run the schema init, then ensure `.env.api` has
+  DB\_\* set and run `npm run generate_and_parse -w podverse-test-assets` from the repo
+  root to populate the database from the generated feed:
+
+  ```bash
+  docker compose -f tools/web-perf/lighthouse/docker/docker-compose.yml up -d
+  cat ../../infra/database/combined/init_database.sql | \
+    docker exec -i podverse_lighthouse_test_db psql -U postgres -d postgres
+  # Load .env.api, then: npm run generate_and_parse -w podverse-test-assets
+  ```
 
 ## Consistency Tips
 
@@ -254,6 +336,7 @@ The system consists of:
 - `database-setup.ts`: Test database lifecycle management (start, reset, initialize)
 - `web-app-manager.ts`: Web app lifecycle (start, stop)
 - `api-manager.ts`: API server lifecycle (start, stop)
-- `asset-generator.ts`: Test asset generation (images, media)
-- `asset-server.ts`: Local HTTP server for test assets
+- `tools/test-assets`: Generates feed and media (`generate` script / `generateFeedAndAssets`), checks assets server
+  reachability, and populates the DB from the feed (`populateDatabaseFromFeed`). Also provides
+  the HTTP server for test assets (run with `npm run start`; see Test Assets above).
 - `index.ts`: Main CLI interface

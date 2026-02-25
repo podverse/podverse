@@ -1,13 +1,9 @@
-import { Request, Response } from 'express';
+import type { Request, Response } from 'express';
 import Joi from 'joi';
 import { StatsTrackEventItemService } from '@podverse/orm';
-import { handleGenericErrorResponse } from '@api/controllers/helpers/error';
-import { ensureAuthenticated, getAuthenticatedUser } from '@api/lib/auth';
-import { validateBodyObject } from '@api/lib/validation';
-
-const createStatsTrackEventItemSchema = Joi.object({
-  item_id_text: Joi.string().required(),
-});
+import { handleGenericErrorResponse } from '@api/controllers/helpers/error.js';
+import { ensureAuthenticated, getAuthenticatedUser } from '@api/lib/auth/index.js';
+import { validateBodyObject } from '@api/lib/validation/index.js';
 
 export class StatsTrackEventItemController {
   private static statsTrackEventItemService = new StatsTrackEventItemService();
@@ -17,7 +13,11 @@ export class StatsTrackEventItemController {
       req,
       res,
       async () => {
-        validateBodyObject(createStatsTrackEventItemSchema, req, res, async () => {
+        const bodySchema = Joi.object({
+          item_id_text: Joi.string().required(),
+        });
+
+        validateBodyObject(bodySchema, req, res, async () => {
           const jwtUser = getAuthenticatedUser(req);
           const { item_id_text } = req.body;
 

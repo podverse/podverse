@@ -1,7 +1,8 @@
 import { DATABASE_CONSTANTS } from '@podverse/helpers';
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, OneToOne } from 'typeorm';
-import { ChannelSeason } from '@orm/entities/channel/channelSeason';
-import { Item } from '@orm/entities/item/item';
+import type { Relation } from 'typeorm';
+import type { ChannelSeason } from '@orm/entities/channel/channelSeason.js';
+import type { Item } from '@orm/entities/item/item.js';
 
 @Entity()
 export class ItemSeason {
@@ -11,13 +12,15 @@ export class ItemSeason {
   @Column({ type: 'integer', name: 'channel_season_id' })
   channel_season_id!: number;
 
-  @ManyToOne(() => ChannelSeason, (channel_season) => channel_season.id, { onDelete: 'CASCADE' })
+  @ManyToOne('ChannelSeason', (channel_season: ChannelSeason) => channel_season.id, {
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'channel_season_id' })
-  channel_season!: ChannelSeason;
+  channel_season!: Relation<ChannelSeason>;
 
-  @OneToOne(() => Item, (item) => item.id, { onDelete: 'CASCADE' })
+  @OneToOne('Item', (item: Item) => item.id, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'item_id' })
-  item!: Item;
+  item!: Relation<Item>;
 
   @Column({ type: 'varchar', nullable: true, length: DATABASE_CONSTANTS.varchar_normal })
   title!: string | null;

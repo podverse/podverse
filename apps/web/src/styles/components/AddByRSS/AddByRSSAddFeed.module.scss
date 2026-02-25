@@ -1,0 +1,54 @@
+@use '../../mixins/flexbox' as *;
+
+.content {
+  @include flexColumn;
+  gap: var(--spacing-lg);
+}
+
+.instructions {
+  color: var(--text-color-secondary);
+  margin: 0;
+}
+
+.form {
+  width: 100%;
+}
+
+.statusCard {
+  @include flexColumn;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-sm);
+  text-align: center;
+  padding: var(--spacing-lg);
+  border-radius: var(--border-radius);
+  background: var(--background-color-secondary);
+  border: var(--button-border-size) solid var(--border-color-opaque);
+}
+
+.statusLabel {
+  color: var(--text-color-secondary);
+  margin: 0;
+}
+
+.statusValue {
+  font-weight: 600;
+  margin: 0;
+}
+
+.errorText {
+  color: var(--text-color-danger);
+  margin: 0;
+}
+
+.basicAuthSection {
+  @include flexColumn;
+  gap: var(--spacing-sm);
+  margin-top: var(--spacing-md);
+}
+
+.basicAuthFields {
+  @include flexColumn;
+  gap: var(--spacing-sm);
+  margin-left: var(--spacing-md);
+}

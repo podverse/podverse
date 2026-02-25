@@ -1,7 +1,22 @@
-import { ParseRSSFeedAndSaveToDatabaseOptions } from '@podverse/parser';
+import type { ParseRSSFeedAndSaveToDatabaseOptions } from '@podverse/parser';
 
 export type MQFeedMessage = {
   url: string;
   podcast_index_id: number;
   options: ParseRSSFeedAndSaveToDatabaseOptions;
+};
+
+export type MQAddByRSSMessage = {
+  accountId: number;
+  feedUrl: string;
+  requestId: string;
+  feedHash?: string;
+  etag?: string;
+  lastModified?: string;
+};
+
+export type MQImageShrinkHintMessage = {
+  url: string;
+  entityType: 'channel' | 'item';
+  hintCreatedAt: string;
 };

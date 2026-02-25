@@ -1,5 +1,6 @@
 import React from 'react';
-import { AccountMembershipEnum, calculateTimeRemaining, DTOAccount } from '@podverse/helpers';
+import type { DTOAccount } from '@podverse/helpers';
+import { AccountMembershipEnum, calculateTimeRemaining } from '@podverse/helpers';
 import { getTranslations } from 'next-intl/server';
 import { MainHeader } from '../../components/Main/MainHeader';
 import { MainWrapper } from '../../components/Main/MainWrapper';
@@ -10,8 +11,9 @@ import { FeatureComparison } from '../../components/FeatureComparison/FeatureCom
 import { MembershipCTA } from './MembershipCTA';
 import { getSSRLoggedInAccount } from '../../utils/auth/ssrAuth';
 import { getSSRApiRequestService } from '../../factories/apiRequestService';
-import { config } from '../../config';
+import { getConfig } from '../../config';
 import { FEATURES } from '../../constants/features';
+
 import styles from '../../styles/app/membership/Membership.module.scss';
 
 type MembershipPricingData = {
@@ -42,6 +44,7 @@ type RenderIntroTextParams = {
 export const dynamic = 'force-dynamic';
 
 export default async function MembershipPage() {
+  const config = getConfig();
   const t = await getTranslations('membership');
   const ssrLoggedInAccount = await getSSRLoggedInAccount();
   const ssrApiRequestService = getSSRApiRequestService();

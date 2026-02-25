@@ -1,17 +1,18 @@
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from 'typeorm';
-import { Queue } from '@orm/entities/queue/queue';
-import { Clip } from '../clip';
-import { Item } from '../item/item';
-import { ItemSoundbite } from '../item/itemSoundbite';
+import type { Relation } from 'typeorm';
+import type { Queue } from '@orm/entities/queue/queue.js';
+import type { Clip } from '../clip.js';
+import type { Item } from '../item/item.js';
+import type { ItemSoundbite } from '../item/itemSoundbite.js';
 
 @Entity()
 export class QueueResource {
   @PrimaryGeneratedColumn()
   id!: number;
 
-  @ManyToOne(() => Queue, (queue) => queue.id, { onDelete: 'CASCADE' })
+  @ManyToOne('Queue', (queue: Queue) => queue.id, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'queue_id' })
-  queue!: Queue;
+  queue!: Relation<Queue>;
 
   @Column({ type: 'numeric' })
   list_position!: string;
@@ -28,23 +29,25 @@ export class QueueResource {
   @Column()
   clip_id!: string;
 
-  @ManyToOne(() => Clip, (clip) => clip.id, { onDelete: 'CASCADE' })
+  @ManyToOne('Clip', (clip: Clip) => clip.id, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'clip_id' })
-  clip!: Clip;
+  clip!: Relation<Clip>;
 
   @Column()
   item_id!: string;
 
-  @ManyToOne(() => Item, (item) => item.id, { onDelete: 'CASCADE' })
+  @ManyToOne('Item', (item: Item) => item.id, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'item_id' })
-  item!: Item;
+  item!: Relation<Item>;
 
   @Column()
   item_soundbite_id!: string;
 
-  @ManyToOne(() => ItemSoundbite, (itemSoundbite) => itemSoundbite.id, { onDelete: 'CASCADE' })
+  @ManyToOne('ItemSoundbite', (itemSoundbite: ItemSoundbite) => itemSoundbite.id, {
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'item_soundbite_id' })
-  item_soundbite!: ItemSoundbite;
+  item_soundbite!: Relation<ItemSoundbite>;
 
   @Column()
   add_by_rss_hash_id!: string;

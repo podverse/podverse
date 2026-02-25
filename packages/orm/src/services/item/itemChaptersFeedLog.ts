@@ -1,6 +1,6 @@
-import { ItemChaptersFeed } from '@orm/entities/item/itemChaptersFeed';
-import { ItemChaptersFeedLog } from '@orm/entities/item/itemChaptersFeedLog';
-import { BaseOneService } from '@orm/services/base/baseOneService';
+import type { ItemChaptersFeed } from '@orm/entities/item/itemChaptersFeed.js';
+import { ItemChaptersFeedLog } from '@orm/entities/item/itemChaptersFeedLog.js';
+import { BaseOneService } from '@orm/services/base/baseOneService.js';
 
 type ItemChaptersFeedLogDto = {
   last_http_status?: number | null;

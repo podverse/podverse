@@ -3,8 +3,8 @@
   "compilerOptions": {
     "composite": true,
     "target": "ES2022",
-    "module": "CommonJS",
-    "moduleResolution": "Node",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
     "outDir": "./dist",
     "rootDir": "./src",
     "experimentalDecorators": true,
@@ -18,7 +18,7 @@
   "exclude": ["node_modules", "dist"],
   "references": [
     { "path": "../helpers" },
-    { "path": "../external-services" },
+    { "path": "../external-services-podcast-index" },
     { "path": "../orm" },
     { "path": "../parser" }
   ]

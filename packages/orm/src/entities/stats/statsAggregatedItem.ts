@@ -1,14 +1,15 @@
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from 'typeorm';
-import { Item } from '@orm/entities/item/item';
+import type { Relation } from 'typeorm';
+import type { Item } from '@orm/entities/item/item.js';
 
 @Entity('stats_aggregated_item')
 export class StatsAggregatedItem {
   @PrimaryGeneratedColumn()
   id!: number;
 
-  @ManyToOne(() => Item)
+  @ManyToOne('Item', (item: Item) => item.id)
   @JoinColumn({ name: 'item_id' })
-  item!: Item;
+  item!: Relation<Item>;
 
   @Column()
   item_id!: number;

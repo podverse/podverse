@@ -1,13 +1,14 @@
-import { UITheme, setUIThemeOnDocument, toUITheme, getDefaultTheme } from './uiTheme';
-import { ViewSelectedOption } from '../../components/ViewSelector/ViewSelector';
+import type { UITheme } from './uiTheme';
+import { setUIThemeOnDocument, toUITheme, getDefaultTheme } from './uiTheme';
+import type { ViewSelectedOption } from '../../components/ViewSelector/ViewSelector';
 import { clearCookie, readCookie, writeCookie } from '../cookie';
-import {
+import type {
   CategoryMappingKeys,
   LiveItemStatus,
   QueryParamsMedium,
   QueryParamsQueueMedium,
 } from '@podverse/helpers';
-import {
+import type {
   QueryParamsHomeSort,
   QueryParamsPlaylistsType,
   QueryParamsStatsRange,
@@ -26,6 +27,7 @@ LocalSettingsState Legend:
   - aqc = autoQueueConfig
     - rp = repeat
     - rd = random
+  - sba = sidebarAccordion (open/closed accordion sections)
   - fd = filterDefaults (per-page filter preferences)
   - metd = membershipExpirationToastDismissed (ISO date string of last dismissal)
 */
@@ -129,6 +131,13 @@ export interface FilterDefaults {
   profiles?: ProfilesFilterDefaults;
 }
 
+export interface SidebarAccordionState {
+  podcasts: boolean;
+  music: boolean;
+  addByRSS: boolean;
+  library: boolean;
+}
+
 export interface LocalSettingsState {
   uit: UITheme;
   vs: ViewSelectedOption;
@@ -137,6 +146,7 @@ export interface LocalSettingsState {
     rp: boolean;
     rd: boolean;
   };
+  sba: SidebarAccordionState;
   fd?: Partial<FilterDefaults>;
   metd?: string; // membershipExpirationToastDismissed (ISO date string of last dismissal)
 }
@@ -160,16 +170,24 @@ export function handleLocalSettingsUpdate(newState: LocalSettingsState) {
   writeCookie('local-settings', serialized);
 }
 
-const defaultLocalSettings: LocalSettingsState = {
-  uit: getDefaultTheme(),
-  vs: 'grid',
-  seda: false,
-  aqc: {
-    rp: false,
-    rd: false,
-  },
-  fd: {},
-};
+function getDefaultLocalSettings(): LocalSettingsState {
+  return {
+    uit: getDefaultTheme(),
+    vs: 'grid',
+    seda: false,
+    aqc: {
+      rp: false,
+      rd: false,
+    },
+    sba: {
+      podcasts: true,
+      music: true,
+      addByRSS: true,
+      library: true,
+    },
+    fd: {},
+  };
+}
 
 function isValidLocalSettings(settings: unknown): settings is LocalSettingsState {
   const s = settings as Record<string, unknown>;
@@ -177,6 +195,7 @@ function isValidLocalSettings(settings: unknown): settings is LocalSettingsState
     return false;
   }
   const aqc = s.aqc as Record<string, unknown> | undefined;
+  const sba = s.sba as Record<string, unknown> | undefined;
   return (
     typeof s.uit === 'string' &&
     typeof s.vs === 'string' &&
@@ -185,6 +204,13 @@ function isValidLocalSettings(settings: unknown): settings is LocalSettingsState
     aqc !== null &&
     typeof aqc.rp === 'boolean' &&
     typeof aqc.rd === 'boolean' &&
+    (sba === undefined ||
+      (typeof sba === 'object' &&
+        sba !== null &&
+        typeof sba.podcasts === 'boolean' &&
+        typeof sba.music === 'boolean' &&
+        typeof sba.addByRSS === 'boolean' &&
+        typeof sba.library === 'boolean')) &&
     (s.fd === undefined || (typeof s.fd === 'object' && s.fd !== null)) &&
     (s.metd === undefined || typeof s.metd === 'string')
   );
@@ -204,7 +230,7 @@ export function getParsedLocalSettings(cookieStore?: CookieStore): LocalSettings
   }
 
   if (!raw) {
-    return { ...defaultLocalSettings };
+    return { ...getDefaultLocalSettings() };
   }
 
   try {
@@ -213,18 +239,26 @@ export function getParsedLocalSettings(cookieStore?: CookieStore): LocalSettings
 
     if (!isValid) {
       if (isServer) {
-        return { ...defaultLocalSettings };
+        return { ...getDefaultLocalSettings() };
       }
       throw new Error('Invalid local settings format');
     }
 
-    return parsed;
+    const defaults = getDefaultLocalSettings();
+    return {
+      ...defaults,
+      ...parsed,
+      sba: {
+        ...defaults.sba,
+        ...(parsed.sba as Partial<SidebarAccordionState> | undefined),
+      },
+    };
   } catch {
     if (!isServer) {
       clearCookie('local-settings');
-      writeCookie('local-settings', encodeURIComponent(JSON.stringify(defaultLocalSettings)));
+      writeCookie('local-settings', encodeURIComponent(JSON.stringify(getDefaultLocalSettings())));
     }
-    return { ...defaultLocalSettings };
+    return { ...getDefaultLocalSettings() };
   }
 }
 

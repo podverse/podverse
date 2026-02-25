@@ -1,5 +1,7 @@
-import { chromium, Browser, Page, BrowserContext } from 'playwright';
-import { TestUser } from './user-manager.js';
+import type { Browser, Page, BrowserContext } from 'playwright';
+import { chromium } from 'playwright';
+import { LIGHTHOUSE_CHANNEL_ID_FEED_1, LIGHTHOUSE_ITEM_ID_FEED_1 } from 'podverse-test-assets';
+import type { TestUser } from './user-manager.js';
 
 export interface TestUrls {
   homepage: string;
@@ -7,12 +9,13 @@ export interface TestUrls {
   itemUrl: string;
 }
 
+/** Aligned with feed-1-based assets (feed-podcast-1.rss) after populate. */
 export const TEST_FIXTURES = {
   CHANNEL_1: {
-    id: 'lhtest-chan-1',
-    url: '/podcast/lhtest-chan-1',
-    itemId: 'lhtest-item-1',
-    itemUrl: '/episode/lhtest-item-1',
+    id: LIGHTHOUSE_CHANNEL_ID_FEED_1,
+    url: `/podcast/${LIGHTHOUSE_CHANNEL_ID_FEED_1}`,
+    itemId: LIGHTHOUSE_ITEM_ID_FEED_1,
+    itemUrl: `/episode/${LIGHTHOUSE_ITEM_ID_FEED_1}`,
   },
 };
 
@@ -35,18 +38,28 @@ export class BrowserAutomation {
   async initialize(): Promise<void> {
     // Use a fixed viewport/device scale for determinism and expose CDP port for Lighthouse
     this.cdpPort = 9222;
-    this.browser = await chromium.launch({
-      headless: true,
-      args: [
-        `--remote-debugging-port=${this.cdpPort}`,
-        '--disable-gpu',
-        '--disable-dev-shm-usage',
-        '--no-sandbox',
-        '--disable-background-timer-throttling',
-        '--disable-backgrounding-occluded-windows',
-        '--disable-renderer-backgrounding',
-      ],
-    });
+    try {
+      this.browser = await chromium.launch({
+        headless: true,
+        args: [
+          `--remote-debugging-port=${this.cdpPort}`,
+          '--disable-gpu',
+          '--disable-dev-shm-usage',
+          '--no-sandbox',
+          '--disable-background-timer-throttling',
+          '--disable-backgrounding-occluded-windows',
+          '--disable-renderer-backgrounding',
+        ],
+      });
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : String(error);
+      if (message.includes("Executable doesn't exist")) {
+        throw new Error(
+          'Playwright browser binaries are not installed. Run: npx playwright install'
+        );
+      }
+      throw error;
+    }
     this.context = await this.browser.newContext(this.contextOptions);
     this.page = await this.context.newPage();
   }

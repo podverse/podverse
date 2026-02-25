@@ -1,7 +1,7 @@
-import { EntityManager } from 'typeorm';
-import { Account } from '@orm/entities/account/account';
-import { AccountResetPassword } from '@orm/entities/account/accountResetPassword';
-import { BaseOneService } from '@orm/services/base/baseOneService';
+import type { EntityManager } from 'typeorm';
+import type { Account } from '@orm/entities/account/account.js';
+import { AccountResetPassword } from '@orm/entities/account/accountResetPassword.js';
+import { BaseOneService } from '@orm/services/base/baseOneService.js';
 
 export type AccountResetPasswordDto = {
   reset_token: string;

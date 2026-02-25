@@ -1,5 +1,5 @@
 import { useTranslations } from 'next-intl';
-import { DTOClip, DTOItem, DTOItemChapter, DTOItemSoundbite } from '@podverse/helpers';
+import type { DTOClip, DTOItem, DTOItemChapter, DTOItemSoundbite } from '@podverse/helpers';
 import { FaPause, FaPlay } from 'react-icons/fa6';
 import { useMediaPlayer } from '../../../contexts/MediaPlayer';
 import styles from '../../../styles/components/MediaPlayer/Buttons/PlayButtonLarge.module.scss';
@@ -9,6 +9,8 @@ type PlayButtonLargeProps = {
   item?: DTOItem;
   item_chapter?: DTOItemChapter;
   item_soundbite?: DTOItemSoundbite;
+  /** When provided (e.g. add-by-RSS livestream detail), match now-playing by idText. */
+  addByRSSIdText?: string;
   onClick: () => void;
 };
 
@@ -17,13 +19,17 @@ export const PlayButtonLarge: React.FC<PlayButtonLargeProps> = ({
   item,
   item_chapter,
   item_soundbite,
+  addByRSSIdText,
   onClick,
 }) => {
-  const { mpIsPlaying, mpItem, mpClip, mpItemSoundbite, mpItemChapter } = useMediaPlayer();
+  const { mpIsPlaying, mpItem, mpClip, mpItemSoundbite, mpItemChapter, mpAddByRSS } =
+    useMediaPlayer();
   const tMediaPlayer = useTranslations('media_player');
 
   let isCurrentlyInPlayer = false;
-  if (clip) {
+  if (addByRSSIdText && mpAddByRSS?.idText === addByRSSIdText) {
+    isCurrentlyInPlayer = true;
+  } else if (clip) {
     isCurrentlyInPlayer = mpClip?.id_text === clip.id_text;
   } else if (item_soundbite) {
     isCurrentlyInPlayer = mpItemSoundbite?.id_text === item_soundbite.id_text;

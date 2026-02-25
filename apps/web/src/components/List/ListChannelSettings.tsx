@@ -1,20 +1,24 @@
 import { useLocale, useTranslations } from 'use-intl';
-import { DTOAccount, DTOChannel } from '@podverse/helpers';
-import { Button } from '../Button/Button';
+import { DEDUPE_WINDOW_RSS_ON_DEMAND_MS, formatDateTimeAbbrev } from '@podverse/helpers';
+import type { DTOAccount, DTOChannel } from '@podverse/helpers';
+import { getStatusCodeFromError } from '@podverse/helpers-requests';
 import { useAccount } from '../../contexts/Account';
 import { useModals } from '../../contexts/Modals';
-import { apiRequestService } from '../../factories/apiRequestService';
+import { getApiRequestService } from '../../factories/apiRequestService';
 import { handleRateLimitAlert } from '../../utils/rateLimit/rateLimitAlert';
 import { SwitchButton } from '../Form/SwitchButton';
 import { Divider } from '../Divider/Divider';
 import { useLoadingMap } from '../../hooks/useLoadingMap';
-import styles from '../../styles/components/List/ListChannelSettings.module.scss';
+import { SettingsSection } from '../Settings/SettingsSection';
+import { RSSFeedSettingsSection } from '../Settings/RSSFeedSettingsSection';
+import { SettingsWrapper } from '../Settings/SettingsWrapper';
 
 type ListChannelSettingsProps = {
   channel: DTOChannel;
 };
 
 export const ListChannelSettings = ({ channel }: ListChannelSettingsProps) => {
+  const apiRequestService = getApiRequestService();
   const tInfo = useTranslations('info');
   const tSettings = useTranslations('settings');
   const tInstructions = useTranslations('instructions');
@@ -24,6 +28,11 @@ export const ListChannelSettings = ({ channel }: ListChannelSettingsProps) => {
   const { setModalLoginRequired } = useModals();
   const { loadingMap, withLoading, setLoadingFor } = useLoadingMap();
   const locale = useLocale();
+  const lastParsedAt = channel.feed?.feed_log?.last_finished_parse_time ?? null;
+  const lastParsedLabel = lastParsedAt ? formatDateTimeAbbrev(lastParsedAt, locale) : null;
+  const rssStatusLine = lastParsedLabel
+    ? tSettings('feed.last_parsed', { date: lastParsedLabel })
+    : null;
 
   const checkFeedForUpdates = async () => {
     if (!loggedInAccount) {
@@ -42,6 +51,18 @@ export const ListChannelSettings = ({ channel }: ListChannelSettingsProps) => {
         });
         alert(tSettings('feed.check_feed_added_to_queue'));
       } catch (error: unknown) {
+        const statusCode = getStatusCodeFromError(error);
+        if (statusCode === 429) {
+          const responseData = (error as { response?: { data?: { retry_after_seconds?: number } } })
+            .response?.data;
+          const retryAfterSeconds = responseData?.retry_after_seconds;
+          const fallbackMinutes = Math.ceil(DEDUPE_WINDOW_RSS_ON_DEMAND_MS / 60000);
+          const minutes = Math.max(1, Math.ceil((retryAfterSeconds ?? fallbackMinutes * 60) / 60));
+          const waitKey =
+            minutes === 1 ? 'feed.wait_to_retry_minute' : 'feed.wait_to_retry_minutes';
+          alert(tSettings(waitKey, { minutes }));
+          return;
+        }
         const rateLimitErrorHandled = await handleRateLimitAlert(error, locale, tMisc);
         if (!rateLimitErrorHandled) {
           type ErrorWithResponse = { response?: { status?: number; data?: { i18nKey?: string } } };
@@ -137,28 +158,32 @@ export const ListChannelSettings = ({ channel }: ListChannelSettingsProps) => {
   const hasNotificationChannel = !!getAccountNotificationChannel();
 
   return (
-    <div className={styles.wrapper}>
-      <h3>{tInfo('rss_feed')}</h3>
-      <Button variant="primary" onClick={checkFeedForUpdates}>
-        {tSettings('feed.check_feed_for_updates')}
-      </Button>
+    <SettingsWrapper removeWrapperMargin>
+      <RSSFeedSettingsSection
+        title={tInfo('rss_feed')}
+        buttonLabel={tSettings('feed.check_feed_for_updates')}
+        onCheckUpdates={checkFeedForUpdates}
+        statusLine={rssStatusLine}
+      />
       {hasNotificationChannel && (
         <>
-          <Divider />
-          <h3>{tSettings('notifications.notifications')}</h3>
-          {notificationTypes.map((nt) => (
-            <SwitchButton
-              key={nt.key}
-              id={`channel-notification-${nt.key}`}
-              label={nt.label}
-              checked={isTypeEnabled(nt.key)}
-              onChange={async (next) => await toggleNotificationType(nt.key, next)}
-              loading={!!loadingMap[`channel-notification.${nt.key}`]}
-              aria-describedby={`channel-notification-help-${nt.key}`}
-            />
-          ))}
+          <Divider withSpacing />
+          <SettingsSection>
+            <h3>{tSettings('notifications.notifications')}</h3>
+            {notificationTypes.map((nt) => (
+              <SwitchButton
+                key={nt.key}
+                id={`channel-notification-${nt.key}`}
+                label={nt.label}
+                checked={isTypeEnabled(nt.key)}
+                onChange={async (next) => await toggleNotificationType(nt.key, next)}
+                loading={!!loadingMap[`channel-notification.${nt.key}`]}
+                aria-describedby={`channel-notification-help-${nt.key}`}
+              />
+            ))}
+          </SettingsSection>
         </>
       )}
-    </div>
+    </SettingsWrapper>
   );
 };

@@ -1,11 +1,11 @@
-import { spawn, ChildProcess } from 'child_process';
+import type { ChildProcess } from 'child_process';
+import { spawn } from 'child_process';
 import * as path from 'path';
 import * as fs from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 import { promisify } from 'util';
 import { exec } from 'child_process';
-import * as crypto from 'crypto';
 import { killProcessOnPort } from './port-killer.js';
 
 const execAsync = promisify(exec);
@@ -14,22 +14,15 @@ const execAsync = promisify(exec);
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-const TEST_API_PORT = 1111; // Test API port (separate from dev)
-const TEST_API_URL = `http://localhost:${TEST_API_PORT}`;
-
 export class ApiManager {
   private apiProcess: ChildProcess | null = null;
   private podverseApiPath: string;
-  private podverseOpsPath: string;
 
   constructor() {
-    // Calculate path to apps/api and podverse-ops
+    // Calculate path to apps/api
     const currentDir = __dirname;
-    const monorepoRoot = path.resolve(currentDir, '../../..');
+    const monorepoRoot = path.resolve(currentDir, '../../../..');
     this.podverseApiPath = path.join(monorepoRoot, 'apps/api');
-    // podverse-ops is a sibling repo to the monorepo
-    const reposRoot = path.resolve(monorepoRoot, '..');
-    this.podverseOpsPath = path.join(reposRoot, 'podverse-ops');
   }
 
   private async checkPortAvailable(port: number): Promise<boolean> {
@@ -61,76 +54,52 @@ export class ApiManager {
     return false;
   }
 
-  private async ensureNpmLinks(): Promise<void> {
-    const linkScriptPath = path.join(this.podverseOpsPath, 'scripts/dev/npm-link-modules.sh');
-
-    if (!fs.existsSync(linkScriptPath)) {
-      console.log('   ⚠️  npm-link-modules.sh not found, skipping npm link setup');
-      return;
-    }
-
-    // Check if links are already set up by checking for symlinks in node_modules
-    // For now, we'll assume links are already set up or will be handled manually
-    // The script could be run here if needed, but it might be slow
-    console.log('   → Assuming npm links are already set up (run npm-link-modules.sh if needed)');
-  }
-
   async start(): Promise<string> {
     if (this.apiProcess) {
       console.log('⚠️  API is already running');
-      return TEST_API_URL;
+      return this.getApiUrl();
     }
+
+    const apiPort = this.getApiPort();
 
     // Check if port is available, and kill any process using it
-    const portAvailable = await this.checkPortAvailable(TEST_API_PORT);
+    const portAvailable = await this.checkPortAvailable(apiPort);
     if (!portAvailable) {
-      console.log(`⚠️  Port ${TEST_API_PORT} is in use, attempting to free it...`);
-      await killProcessOnPort(TEST_API_PORT);
+      console.log(`⚠️  Port ${apiPort} is in use, attempting to free it...`);
+      await killProcessOnPort(apiPort);
     }
 
-    console.log(`🚀 Starting podverse-api on port ${TEST_API_PORT}...`);
+    console.log(`🚀 Starting podverse-api on port ${apiPort}...`);
     console.log(`   Working directory: ${this.podverseApiPath}`);
-
-    // Ensure npm links are set up
-    await this.ensureNpmLinks();
-
-    // Generate a valid UUID for AUTH_JWT_SECRET if not provided
-    const authJwtSecret = process.env.AUTH_JWT_SECRET || crypto.randomUUID();
 
     // Set environment variables for test instance
     const env = {
       ...process.env,
-      NODE_ENV: 'development',
-      API_PORT: String(TEST_API_PORT),
-      // Point to test database (port 5111)
-      DB_HOST: 'localhost',
-      DB_PORT: '5111',
-      DB_DATABASE: 'postgres',
-      DB_READ_USERNAME: process.env.DB_READ_USERNAME || 'read',
-      DB_READ_PASSWORD: process.env.DB_READ_PASSWORD || '',
-      DB_READ_WRITE_USERNAME: process.env.DB_READ_WRITE_USERNAME || 'read_write',
-      DB_READ_WRITE_PASSWORD: process.env.DB_READ_WRITE_PASSWORD || '',
-      DB_SSL_CONNECTION: 'false',
-      // JWT Secret (required by API)
-      AUTH_JWT_SECRET: authJwtSecret,
-      // API configuration
-      API_PREFIX: '/api',
-      API_VERSION: '/v2',
-      COOKIE_DOMAIN: 'localhost',
-      // Disable mailer for testing
-      MAILER_DISABLED: 'true',
-      // Message Queue configuration (use existing podverse_local_mq)
-      MESSAGE_QUEUE_PROTOCOL: 'amqp',
-      MESSAGE_QUEUE_HOST: 'localhost',
-      MESSAGE_QUEUE_PORT: '5672',
-      MESSAGE_QUEUE_USERNAME: 'user',
-      MESSAGE_QUEUE_PASSWORD: 'mysecretpw',
-      // KeyvalDB configuration (use existing podverse_local_keyvaldb)
-      KEYVALDB_HOST: '127.0.0.1',
-      KEYVALDB_PORT: '6379',
-      KEYVALDB_PASSWORD: 'mysecretpw',
-      // Log level
-      LOG_LEVEL: process.env.LOG_LEVEL || 'info',
+      PODVERSE_SKIP_DOTENV: 'true',
+      NODE_ENV: process.env.NODE_ENV,
+      API_PORT: process.env.API_PORT,
+      DB_HOST: process.env.DB_HOST,
+      DB_PORT: process.env.DB_PORT,
+      DB_DATABASE: process.env.DB_DATABASE,
+      DB_READ_USERNAME: process.env.DB_READ_USERNAME,
+      DB_READ_PASSWORD: process.env.DB_READ_PASSWORD,
+      DB_READ_WRITE_USERNAME: process.env.DB_READ_WRITE_USERNAME,
+      DB_READ_WRITE_PASSWORD: process.env.DB_READ_WRITE_PASSWORD,
+      DB_SSL_CONNECTION: process.env.DB_SSL_CONNECTION,
+      AUTH_JWT_SECRET: process.env.AUTH_JWT_SECRET,
+      API_PREFIX: process.env.API_PREFIX,
+      API_VERSION: process.env.API_VERSION,
+      COOKIE_DOMAIN: process.env.COOKIE_DOMAIN,
+      MAILER_DISABLED: process.env.MAILER_DISABLED,
+      MESSAGE_QUEUE_PROTOCOL: process.env.MESSAGE_QUEUE_PROTOCOL,
+      MESSAGE_QUEUE_HOST: process.env.MESSAGE_QUEUE_HOST,
+      MESSAGE_QUEUE_PORT: process.env.MESSAGE_QUEUE_PORT,
+      MESSAGE_QUEUE_USERNAME: process.env.MESSAGE_QUEUE_USERNAME,
+      MESSAGE_QUEUE_PASSWORD: process.env.MESSAGE_QUEUE_PASSWORD,
+      KEYVALDB_HOST: process.env.KEYVALDB_HOST,
+      KEYVALDB_PORT: process.env.KEYVALDB_PORT,
+      KEYVALDB_PASSWORD: process.env.KEYVALDB_PASSWORD,
+      LOG_LEVEL: process.env.LOG_LEVEL,
     };
 
     // Check if package.json exists
@@ -140,9 +109,9 @@ export class ApiManager {
     }
 
     console.log('   → API DB config:');
-    console.log(`     DB_HOST=${env.DB_HOST}`);
-    console.log(`     DB_PORT=${env.DB_PORT}`);
-    console.log(`     DB_DATABASE=${env.DB_DATABASE}`);
+    console.log(`     DB_HOST=${env.DB_HOST ?? ''}`);
+    console.log(`     DB_PORT=${env.DB_PORT ?? ''}`);
+    console.log(`     DB_DATABASE=${env.DB_DATABASE ?? ''}`);
 
     // Start API server
     this.apiProcess = spawn('npm', ['run', 'dev'], {
@@ -189,7 +158,7 @@ export class ApiManager {
     let exitCode: number | null = null;
 
     // Handle process exit
-    this.apiProcess.on('exit', (code, signal) => {
+    this.apiProcess.on('exit', (code, _signal) => {
       if (code !== null && code !== 0 && code !== 130) {
         // 130 is SIGINT (Ctrl+C), which is expected
         console.error(`⚠️  API process exited with code ${code}`);
@@ -210,7 +179,7 @@ export class ApiManager {
     let checkInterval: NodeJS.Timeout | null = null;
     let checkTimeout: NodeJS.Timeout | null = null;
     const isReady = await Promise.race([
-      this.waitForServerReady(`${TEST_API_URL}/api/v2/`, 180, 1000), // Wait up to 3 minutes
+      this.waitForServerReady(`${this.getApiUrl()}/api/v2/`, 180, 1000), // Wait up to 3 minutes
       new Promise<boolean>((resolve) => {
         checkInterval = setInterval(() => {
           if (processExitedWithError || !this.apiProcess || this.apiProcess.killed) {
@@ -247,7 +216,7 @@ export class ApiManager {
       await this.stop();
       const errorMessage = processExitedWithError
         ? `API process exited with code ${exitCode} before server became ready.\n`
-        : `API server failed to start on port ${TEST_API_PORT} within 3 minutes.\n`;
+        : `API server failed to start on port ${apiPort} within 3 minutes.\n`;
       throw new Error(
         errorMessage +
           `Last output:\n${output.slice(-500)}\n` +
@@ -255,8 +224,8 @@ export class ApiManager {
       );
     }
 
-    console.log(`✅ API server is ready at ${TEST_API_URL}\n`);
-    return TEST_API_URL;
+    console.log(`✅ API server is ready at ${this.getApiUrl()}\n`);
+    return this.getApiUrl();
   }
 
   async stop(): Promise<void> {
@@ -265,7 +234,7 @@ export class ApiManager {
 
     if (!process) {
       // If we don't have a process reference, try killing by port
-      await killProcessOnPort(TEST_API_PORT);
+      await killProcessOnPort(this.getApiPort());
       return;
     }
 
@@ -277,7 +246,7 @@ export class ApiManager {
 
       if (!killed) {
         // Process might already be dead, try killing by port
-        killProcessOnPort(TEST_API_PORT).then(() => resolve());
+        killProcessOnPort(this.getApiPort()).then(() => resolve());
         return;
       }
 
@@ -289,7 +258,7 @@ export class ApiManager {
           // Process already gone
         }
         // Also try killing by port in case process reference is stale
-        await killProcessOnPort(TEST_API_PORT);
+        await killProcessOnPort(this.getApiPort());
         resolve();
       }, 5000);
 
@@ -306,6 +275,27 @@ export class ApiManager {
   }
 
   getUrl(): string {
-    return TEST_API_URL;
+    return this.getApiUrl();
+  }
+
+  private getApiUrl(): string {
+    return `http://localhost:${this.getApiPort()}`;
+  }
+
+  private getApiPort(): number {
+    const value = this.getRequiredEnv('API_PORT');
+    const port = Number(value);
+    if (!Number.isFinite(port)) {
+      throw new Error(`API_PORT must be a number. Received: ${value}`);
+    }
+    return port;
+  }
+
+  private getRequiredEnv(name: string): string {
+    const value = process.env[name];
+    if (!value) {
+      throw new Error(`Missing required environment variable: ${name}`);
+    }
+    return value;
   }
 }

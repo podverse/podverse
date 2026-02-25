@@ -1,6 +1,6 @@
 import { cookies } from 'next/headers';
 import { getLocale } from 'next-intl/server';
-import { DTOAccount } from '@podverse/helpers';
+import type { DTOAccount } from '@podverse/helpers';
 
 /**
  * Detects and returns the appropriate locale for the current request.

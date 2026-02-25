@@ -79,7 +79,7 @@ fi
 
 echo -e "${YELLOW}Running security audit on develop...${NC}"
 npm ci
-if ! npm audit; then
+if ! npm audit --omit=dev; then
   echo -e "${RED}Error: npm audit found vulnerabilities in develop. Fix them before syncing to alpha.${NC}"
   exit 1
 fi

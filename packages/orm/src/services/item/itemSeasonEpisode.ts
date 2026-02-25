@@ -1,7 +1,7 @@
-import { EntityManager } from 'typeorm';
-import { Item } from '@orm/entities/item/item';
-import { ItemSeasonEpisode } from '@orm/entities/item/itemSeasonEpisode';
-import { BaseOneService } from '../base/baseOneService';
+import type { EntityManager } from 'typeorm';
+import type { Item } from '@orm/entities/item/item.js';
+import { ItemSeasonEpisode } from '@orm/entities/item/itemSeasonEpisode.js';
+import { BaseOneService } from '../base/baseOneService.js';
 
 type ItemSeasonEpisodeDto = {
   display: string | null;

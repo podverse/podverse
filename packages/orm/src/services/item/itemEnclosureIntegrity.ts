@@ -1,7 +1,7 @@
-import { ItemEnclosure } from '@orm/entities/item/itemEnclosure';
-import { ItemEnclosureIntegrity } from '@orm/entities/item/itemEnclosureIntegrity';
-import { BaseOneService } from '@orm/services/base/baseOneService';
-import { EntityManager } from 'typeorm';
+import type { ItemEnclosure } from '@orm/entities/item/itemEnclosure.js';
+import { ItemEnclosureIntegrity } from '@orm/entities/item/itemEnclosureIntegrity.js';
+import { BaseOneService } from '@orm/services/base/baseOneService.js';
+import type { EntityManager } from 'typeorm';
 
 type ItemEnclosureIntegrityDto = {
   type: 'sri' | 'pgp-signature';

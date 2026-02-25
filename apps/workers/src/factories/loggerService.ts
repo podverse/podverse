@@ -1,4 +1,4 @@
-import { LoggerService } from '@podverse/helpers-backend';
+import type { LoggerService } from '@podverse/helpers-backend';
 
 let instance: LoggerService | null = null;
 

@@ -12,7 +12,7 @@ export const NoResults: React.FC<NoResultsProps> = ({ message }) => {
   const displayMessage = message || 'No results found';
 
   return (
-    <div className={styles.noResults}>
+    <div>
       <InfoWrapper>
         <p className={styles.noResultsText}>{displayMessage}</p>
       </InfoWrapper>

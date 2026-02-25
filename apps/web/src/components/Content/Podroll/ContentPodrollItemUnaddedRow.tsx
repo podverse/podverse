@@ -1,5 +1,5 @@
 import { useTranslations } from 'next-intl';
-import { EpisodeByGuidResponse } from '@podverse/helpers';
+import type { EpisodeByGuidResponse } from '@podverse/helpers';
 import { Link } from '../../Link/Link';
 import { WEB } from '../../../constants/web';
 import { IMAGES } from '../../../constants/images';

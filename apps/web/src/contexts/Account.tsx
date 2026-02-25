@@ -1,5 +1,6 @@
-import { DTOAccount } from '@podverse/helpers';
-import { createContext, useState, ReactNode } from 'react';
+import type { DTOAccount } from '@podverse/helpers';
+import type { ReactNode } from 'react';
+import { createContext, useState } from 'react';
 import { useContext } from 'react';
 
 type AccountContextType = {

@@ -1,8 +1,11 @@
-/* eslint-disable @typescript-eslint/no-require-imports */
-const moduleAlias = require('module-alias');
-const path = require('path');
+import { addAliases } from 'module-alias';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
-moduleAlias.addAliases({
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+addAliases({
   '@queue': path.join(__dirname, ''),
 });
 

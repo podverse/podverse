@@ -1,21 +1,22 @@
 'use client';
 
-import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
+import type { DropResult } from '@hello-pangea/dnd';
+import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import { useTranslations } from 'next-intl';
-import {
-  DTOQueueResource,
-  getQueueMediumIdFromType,
-  MediumEnum,
-  QueryParamsQueueMedium,
-} from '@podverse/helpers';
+import type { DTOQueueResource, QueryParamsQueueMedium } from '@podverse/helpers';
+import { getQueueMediumIdFromType, MediumEnum } from '@podverse/helpers';
+import { getShuffleHash } from '@podverse/helpers-requests';
 import React from 'react';
 import { CallToActionMessage } from '../../CallToActionMessage/CallToActionMessage';
 import { useModals } from '../../../contexts/Modals';
 import { ListQueueResourceRow } from './ListQueueResourceRow';
-import { apiRequestService } from '../../../factories/apiRequestService';
+import { getApiRequestService } from '../../../factories/apiRequestService';
 import { useQueues } from '../../../contexts/Queue';
 import { useQueueResourcesLoadActive } from '../../../hooks/useQueueResourcesLoadActive';
-import LoadingSpinnerOverlay from '../../LoadingSpinner/LoadingSpinnerOverlay';
+import { useMediaPlayerResourceUpdate } from '../../../hooks/useMediaPlayerResourceUpdate';
+import { usePlayAddByRSS } from '../../../hooks/usePlayAddByRSS';
+import { useAutoQueue } from '../../../contexts/AutoQueue';
+import { loadAddByRSSIndexItemFromResourceData } from '../../../utils/addByRSS/playFromQueueResource';
 import styles from '../../../styles/components/List/Queues/ListQueueResources.module.scss';
 
 type Props = {
@@ -29,18 +30,130 @@ export const ListQueueResources: React.FC<Props> = ({
   queueResources,
   showLoginMessage,
 }) => {
+  const apiRequestService = getApiRequestService();
   const tInstructions = useTranslations('instructions');
   const tAuthentication = useTranslations('authentication');
   const { setModalAuthLogin } = useModals();
   const { activeQueue } = useQueues();
-  const [isLoading, setIsLoading] = React.useState(true);
   const queueResourcesLoadActive = useQueueResourcesLoadActive();
   const [resources, setResources] = React.useState(queueResources);
+  const mediaPlayerResourceUpdate = useMediaPlayerResourceUpdate();
+  const playAddByRSS = usePlayAddByRSS();
+  const { autoQueueConfig } = useAutoQueue();
 
   React.useEffect(() => {
     setResources(queueResources);
-    setIsLoading(false);
   }, [queueResources]);
+
+  const createPlayAndRemoveHandler = (queueResource: DTOQueueResource) => {
+    return async () => {
+      // Remove from visual list immediately
+      const updatedResources = resources.filter((res) => res.id !== queueResource.id);
+      setResources(updatedResources);
+
+      // Handle add-by-RSS items
+      if (queueResource.add_by_rss_hash_id) {
+        const resourceData = queueResource.add_by_rss_resource_data;
+        const indexItem = await loadAddByRSSIndexItemFromResourceData(resourceData);
+        if (indexItem) {
+          const playbackPosition = queueResource.playback_position
+            ? parseFloat(String(queueResource.playback_position))
+            : undefined;
+          playAddByRSS(
+            indexItem,
+            playbackPosition !== undefined && !Number.isNaN(playbackPosition)
+              ? playbackPosition
+              : undefined
+          );
+        }
+        return;
+      }
+
+      // Handle regular items
+      const item = queueResource.item;
+      const clip = queueResource.clip;
+      const item_soundbite = queueResource.item_soundbite;
+
+      if (clip) {
+        const clipItem = clip.item;
+        const channel = clipItem?.channel;
+        if (channel && clipItem) {
+          mediaPlayerResourceUpdate({
+            channel,
+            clip,
+            item: clipItem,
+            itemChapter: null,
+            itemChapterShouldSeek: false,
+            itemSoundbite: null,
+            isPlaying: true,
+            shouldPlay: true,
+            skipMoveNowPlayingToHistory: false,
+            enclosureSelectedParams: 'use-active-item-or-default',
+            newAutoQueueConfig: {
+              playlist_id_text: null,
+              disabled: false,
+              random: autoQueueConfig.random,
+              repeat: autoQueueConfig.repeat,
+              nextPage: 1,
+              shuffleHash: getShuffleHash(),
+            },
+            autoQueueShouldClear: true,
+          });
+        }
+      } else if (item_soundbite) {
+        const soundbiteItem = item_soundbite.item;
+        const channel = soundbiteItem?.channel;
+        if (channel && soundbiteItem) {
+          mediaPlayerResourceUpdate({
+            channel,
+            clip: null,
+            item: soundbiteItem,
+            itemChapter: null,
+            itemChapterShouldSeek: false,
+            itemSoundbite: item_soundbite,
+            isPlaying: true,
+            shouldPlay: true,
+            skipMoveNowPlayingToHistory: false,
+            enclosureSelectedParams: 'use-active-item-or-default',
+            newAutoQueueConfig: {
+              playlist_id_text: null,
+              disabled: false,
+              random: autoQueueConfig.random,
+              repeat: autoQueueConfig.repeat,
+              nextPage: 1,
+              shuffleHash: getShuffleHash(),
+            },
+            autoQueueShouldClear: true,
+          });
+        }
+      } else if (item) {
+        const channel = item.channel;
+        if (channel) {
+          mediaPlayerResourceUpdate({
+            channel,
+            clip: null,
+            item,
+            itemChapter: null,
+            itemChapterShouldSeek: false,
+            itemSoundbite: null,
+            isPlaying: true,
+            shouldPlay: true,
+            skipMoveNowPlayingToHistory: false,
+            enclosureSelectedParams: 'use-active-item-or-default',
+            newAutoQueueConfig: {
+              playlist_id_text: null,
+              disabled: false,
+              random: autoQueueConfig.random,
+              repeat: autoQueueConfig.repeat,
+              nextPage: 1,
+              shuffleHash: getShuffleHash(),
+            },
+            autoQueueShouldClear: true,
+          });
+        }
+      }
+    };
+  };
 
   const showCallToAction = showLoginMessage;
   const showPagination = !showLoginMessage;
@@ -65,6 +178,9 @@ export const ListQueueResources: React.FC<Props> = ({
     }
 
     function getIdText(resource: DTOQueueResource) {
+      if (resource.add_by_rss_hash_id) {
+        return resource.add_by_rss_hash_id;
+      }
       if (resource.clip) {
         return resource.clip.id_text;
       }
@@ -78,6 +194,9 @@ export const ListQueueResources: React.FC<Props> = ({
     }
 
     function getType(resource: DTOQueueResource) {
+      if (resource.add_by_rss_hash_id) {
+        return 'add_by_rss';
+      }
       if (resource.clip) {
         return 'clip';
       }
@@ -101,12 +220,16 @@ export const ListQueueResources: React.FC<Props> = ({
     const destIdx = result.destination.index;
     const prevResource = reordered[destIdx - 1];
     const nextResource = reordered[destIdx + 1];
-    setIsLoading(true);
 
     try {
       let updatedResource: DTOQueueResource | null = null;
       if (destIdx === 0) {
-        if (movedType === 'item') {
+        if (movedType === 'add_by_rss' && removed.add_by_rss_resource_data) {
+          updatedResource = await apiRequestService.reqQueueResourceItemAddByRSSAddNext(
+            queue_id_text,
+            { add_by_rss_resource_data: removed.add_by_rss_resource_data }
+          );
+        } else if (movedType === 'item') {
           updatedResource = await apiRequestService.reqQueueResourceItemAddNext(
             queue_id_text,
             movedIdText
@@ -123,7 +246,12 @@ export const ListQueueResources: React.FC<Props> = ({
           );
         }
       } else if (destIdx === reordered.length - 1) {
-        if (movedType === 'item') {
+        if (movedType === 'add_by_rss' && removed.add_by_rss_resource_data) {
+          updatedResource = await apiRequestService.reqQueueResourceItemAddByRSSAddLast(
+            queue_id_text,
+            { add_by_rss_resource_data: removed.add_by_rss_resource_data }
+          );
+        } else if (movedType === 'item') {
           updatedResource = await apiRequestService.reqQueueResourceItemAddLast(
             queue_id_text,
             movedIdText
@@ -142,7 +270,25 @@ export const ListQueueResources: React.FC<Props> = ({
       } else {
         const prevPosition = prevResource ? prevResource.list_position : undefined;
         const nextPosition = nextResource ? nextResource.list_position : undefined;
-        if (movedType === 'item' && prevPosition !== undefined && nextPosition !== undefined) {
+        if (
+          movedType === 'add_by_rss' &&
+          removed.add_by_rss_resource_data &&
+          prevPosition !== undefined &&
+          nextPosition !== undefined
+        ) {
+          updatedResource = await apiRequestService.reqQueueResourceItemAddByRSSAddBetween(
+            queue_id_text,
+            {
+              add_by_rss_resource_data: removed.add_by_rss_resource_data,
+              position1: String(prevPosition),
+              position2: String(nextPosition),
+            }
+          );
+        } else if (
+          movedType === 'item' &&
+          prevPosition !== undefined &&
+          nextPosition !== undefined
+        ) {
           updatedResource = await apiRequestService.reqQueueResourceItemAddBetween(
             queue_id_text,
             movedIdText,
@@ -180,7 +326,15 @@ export const ListQueueResources: React.FC<Props> = ({
           return;
         }
 
-        if (movedType === 'clip' && movedResource.clip_id === removed.clip_id) {
+        if (
+          movedType === 'add_by_rss' &&
+          movedResource.add_by_rss_hash_id === removed.add_by_rss_hash_id
+        ) {
+          updatedReordered[destIdx] = {
+            ...movedResource,
+            list_position: updatedListPosition,
+          };
+        } else if (movedType === 'clip' && movedResource.clip_id === removed.clip_id) {
           updatedReordered[destIdx] = {
             ...movedResource,
             list_position: updatedListPosition,
@@ -207,11 +361,11 @@ export const ListQueueResources: React.FC<Props> = ({
     } catch (err) {
       console.error('Error updating queue order', err);
     }
-    setIsLoading(false);
   };
 
-  const listWrapperClassName =
-    getQueueMediumIdFromType(queueMedium) === MediumEnum.Music ? styles.listTracks : styles.list;
+  const isMusic = getQueueMediumIdFromType(queueMedium) === MediumEnum.Music;
+  const listWrapperClassName = isMusic ? styles.listTracks : styles.list;
+  const queueListClassName = isMusic ? styles.queueListMusic : styles.queueListAV;
 
   return (
     <>
@@ -222,7 +376,7 @@ export const ListQueueResources: React.FC<Props> = ({
           onButtonClick={() => setModalAuthLogin({ isOpen: true })}
         />
       )}
-      {showPagination && !isLoading && (
+      {showPagination && (
         <div className={styles.listWrapper}>
           <div className={listWrapperClassName}>
             <DragDropContext onDragEnd={handleDragEnd}>
@@ -230,7 +384,7 @@ export const ListQueueResources: React.FC<Props> = ({
                 {(provided) => (
                   <div
                     ref={provided.innerRef}
-                    className={styles.queueList}
+                    className={queueListClassName}
                     {...provided.droppableProps}
                   >
                     {resources.map((queueResource, idx) => (
@@ -254,6 +408,7 @@ export const ListQueueResources: React.FC<Props> = ({
                                 setResources(updatedResources);
                               }}
                               isEditModeQueue={true}
+                              onPlayAndRemove={createPlayAndRemoveHandler(queueResource)}
                             />
                           </div>
                         )}
@@ -264,7 +419,6 @@ export const ListQueueResources: React.FC<Props> = ({
                 )}
               </Droppable>
             </DragDropContext>
-            <LoadingSpinnerOverlay isLoading={isLoading} />
           </div>
         </div>
       )}

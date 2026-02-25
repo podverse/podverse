@@ -2,14 +2,14 @@
 
 ## Module Dependency Order
 
-| Tier | Packages                         | Depends On                              |
-| ---- | -------------------------------- | --------------------------------------- |
-| 1    | helpers                          | (none)                                  |
-| 2    | external-services, orm           | helpers                                 |
-| 3    | notifications, parser            | helpers, external-services, orm         |
-| 4    | mq                               | helpers, external-services, orm, parser |
-| 5    | api, web, workers, management-\* | various                                 |
-| 6    | qa                               | helpers, external-services, orm, parser |
+| Tier | Packages                                                                                   | Depends On                                                                |
+| ---- | ------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------- |
+| 1    | helpers                                                                                    | (none)                                                                    |
+| 2    | external-services-firebase, external-services-paypal, external-services-podcast-index, orm | helpers, helpers-\*                                                       |
+| 3    | notifications, parser                                                                      | helpers, external-services-firebase, external-services-podcast-index, orm |
+| 4    | mq                                                                                         | helpers, external-services-podcast-index, orm, parser                     |
+| 5    | api, web, workers, management-\*                                                           | various                                                                   |
+| 6    | qa                                                                                         | helpers, external-services-\*, orm, parser                                |
 
 ## Directory Structure
 

@@ -1,4 +1,4 @@
-import { RemoteItemsResponse } from '@podverse/helpers';
+import type { RemoteItemsResponse } from '@podverse/helpers';
 import { ContentPodrollChannelRow } from './ContentPodrollChannelRow';
 import { ContentPodrollChannelUnaddedRow } from './ContentPodrollChannelUnaddedRow';
 import { ContentPodrollItemRow } from './ContentPodrollItemRow';

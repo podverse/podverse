@@ -39,10 +39,38 @@ export default tseslint.config(
       '@typescript-eslint/explicit-module-boundary-types': 'off',
       '@typescript-eslint/no-explicit-any': 'warn',
       '@typescript-eslint/no-non-null-assertion': 'warn',
+      '@typescript-eslint/consistent-type-imports': [
+        'error',
+        {
+          prefer: 'type-imports',
+          fixStyle: 'separate-type-imports',
+          disallowTypeAnnotations: false,
+        },
+      ],
     },
   },
   {
-    ignores: ['**/dist/**', '**/node_modules/**', '**/*.js', '**/*.d.ts'],
+    files: ['tools/**/*.{ts,tsx,js,mjs,cjs}'],
+    rules: {
+      'no-console': 'off',
+    },
   },
-  eslintConfigPrettier
+  {
+    ignores: [
+      '**/dist/**',
+      '**/node_modules/**',
+      '**/.next/**',
+      '**/*.js',
+      '**/*.d.ts',
+      '**/.llm/plans/**',
+      '**/*.md',
+      '**/*.mdc',
+    ],
+  },
+  eslintConfigPrettier,
+  {
+    rules: {
+      semi: ['error', 'always'],
+    },
+  }
 );

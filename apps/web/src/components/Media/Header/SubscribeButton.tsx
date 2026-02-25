@@ -1,13 +1,13 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { DTOAccount, DTOChannel, DTOPlaylist } from '@podverse/helpers';
+import type { DTOAccount, DTOChannel, DTOPlaylist } from '@podverse/helpers';
 import React from 'react';
 import { Button } from '../../Button/Button';
 import { useAccount } from '../../../contexts/Account';
 import { useModals } from '../../../contexts/Modals';
-import { apiRequestService } from '../../../factories/apiRequestService';
-import styles from '../../../styles/components/Media/Header/SubscribeButton.module.scss';
+import { getApiRequestService } from '../../../factories/apiRequestService';
+import styles from '../../../styles/components/Common/Media/Header/SubscribeButton.module.scss';
 
 type SubscribeButtonProps = {
   entity: DTOChannel | DTOPlaylist | DTOAccount;
@@ -16,6 +16,7 @@ type SubscribeButtonProps = {
 };
 
 export const SubscribeButton: React.FC<SubscribeButtonProps> = ({ entity, kind, onEdit }) => {
+  const apiRequestService = getApiRequestService();
   const tFeatures = useTranslations('features');
   const tInstructions = useTranslations('instructions');
   const tMisc = useTranslations('misc');

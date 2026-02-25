@@ -1,7 +1,8 @@
-import { ILoggerLike, TimerManager } from '@podverse/helpers-backend';
-import { PodcastIndexService, FirebaseContext } from '@podverse/external-services';
-import { NotificationsContext } from '@podverse/notifications';
-import { ParserConfig } from './config/types';
+import type { ILoggerLike, TimerManager } from '@podverse/helpers-backend';
+import type { FirebaseContext } from '@podverse/external-services-firebase';
+import type { PodcastIndexService } from '@podverse/external-services-podcast-index';
+import type { NotificationsContext } from '@podverse/notifications';
+import type { ParserConfig } from './config/types.js';
 
 /**
  * Module-level context holder for the parser.
@@ -10,19 +11,19 @@ import { ParserConfig } from './config/types';
 let _context: {
   config: ParserConfig;
   loggerService: ILoggerLike;
-  podcastIndexService: PodcastIndexService;
+  podcastIndexService?: PodcastIndexService;
   timerManager: TimerManager;
-  notificationsContext: NotificationsContext;
-  firebaseContext: FirebaseContext;
+  notificationsContext?: NotificationsContext;
+  firebaseContext?: FirebaseContext;
 } | null = null;
 
 export function setParserContext(context: {
   config: ParserConfig;
   loggerService: ILoggerLike;
-  podcastIndexService: PodcastIndexService;
+  podcastIndexService?: PodcastIndexService;
   timerManager: TimerManager;
-  notificationsContext: NotificationsContext;
-  firebaseContext: FirebaseContext;
+  notificationsContext?: NotificationsContext;
+  firebaseContext?: FirebaseContext;
 }): void {
   _context = context;
 }
@@ -44,7 +45,11 @@ export function getLoggerService(): ILoggerLike {
 }
 
 export function getPodcastIndexService(): PodcastIndexService {
-  return getParserContext().podcastIndexService;
+  const service = getParserContext().podcastIndexService;
+  if (!service) {
+    throw new Error('Podcast Index service not configured for this parser context.');
+  }
+  return service;
 }
 
 export function getTimerManager(): TimerManager {
@@ -52,9 +57,17 @@ export function getTimerManager(): TimerManager {
 }
 
 export function getNotificationsContext(): NotificationsContext {
-  return getParserContext().notificationsContext;
+  const context = getParserContext().notificationsContext;
+  if (!context) {
+    throw new Error('Notifications context not configured for this parser context.');
+  }
+  return context;
 }
 
 export function getFirebaseContext(): FirebaseContext {
-  return getParserContext().firebaseContext;
+  const context = getParserContext().firebaseContext;
+  if (!context) {
+    throw new Error('Firebase context not configured for this parser context.');
+  }
+  return context;
 }

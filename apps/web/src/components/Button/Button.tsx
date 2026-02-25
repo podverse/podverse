@@ -1,5 +1,6 @@
 import classNames from 'classnames';
-import React, { AriaAttributes } from 'react';
+import type { AriaAttributes } from 'react';
+import React from 'react';
 import { FaChevronDown, FaSpinner } from 'react-icons/fa';
 import styles from '../../styles/components/Button/Button.module.scss';
 import { cssClass } from '../../utils/cssModule';
@@ -42,6 +43,7 @@ type ButtonProps = {
   isDropdownButton?: boolean;
   isLoading?: boolean;
   description?: string;
+  errorMessage?: string;
 };
 
 export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
@@ -69,6 +71,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       isDropdownButton = false,
       isLoading = false,
       description,
+      errorMessage,
       ...rest
     },
     ref
@@ -116,11 +119,12 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       </button>
     );
 
-    if (description) {
+    if (description || errorMessage) {
       return (
         <div className={styles.buttonWrapper}>
-          <p className={styles.buttonDescription}>{description}</p>
+          {description && <p className={styles.buttonDescription}>{description}</p>}
           {buttonElement}
+          {errorMessage && <p className={styles.buttonError}>{errorMessage}</p>}
         </div>
       );
     }

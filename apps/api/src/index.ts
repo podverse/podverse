@@ -1,71 +1,79 @@
-if (process.env.NODE_ENV !== 'production') {
-  // eslint-disable-next-line @typescript-eslint/no-require-imports -- dotenvx must load before imports
-  require('@dotenvx/dotenvx').config({ path: '.env' });
-}
-
-import {
-  validateORMConfig,
-  validateNotificationsConfig,
-  validateExternalServicesConfig,
-  validateParserConfig,
-  assertConfigValid,
-} from '@podverse/helpers-config';
-import { createORMContext, getDataSourceRead, getDataSourceReadWrite } from '@podverse/orm';
-import { createFirebaseContext } from '@podverse/external-services';
-import { createNotificationsContext } from '@podverse/notifications';
-import { createParserContext } from '@podverse/parser';
-import { loggerService } from './factories/loggerService';
-import { activeMQArtemisService } from './factories/activeMQArtemisService';
-import { testKeyvaldbConnection, keyvaldb } from './lib/keyvaldb/keyvaldb';
-import { config } from './config';
-import { validateStartupRequirements } from './lib/startup/validation';
-
-let serverInstance: import('http').Server | null = null;
-
-const shutdown = async (signal?: string) => {
-  try {
-    loggerService.info(`Shutdown initiated${signal ? ` due to ${signal}` : ''}`);
-    if (serverInstance) {
-      const server = serverInstance;
-      await new Promise<void>((resolve, reject) => {
-        server.close((err) => (err ? reject(err) : resolve()));
-      });
-      loggerService.info('HTTP server closed');
+const loadEnv = async () => {
+  if (process.env.NODE_ENV !== 'production') {
+    if (process.env.PODVERSE_SKIP_DOTENV === 'true') {
+      return;
     }
-    try {
-      await activeMQArtemisService.close();
-    } catch (err) {
-      loggerService.error('Error closing Artemis during shutdown', err as Error);
-    }
-    try {
-      await getDataSourceRead().destroy();
-      await getDataSourceReadWrite().destroy();
-      loggerService.info('Database connections closed');
-    } catch (err) {
-      loggerService.error('Error closing DB connections during shutdown', err as Error);
-    }
-    try {
-      // Check if connection is still open before trying to quit
-      if (keyvaldb.status === 'ready' || keyvaldb.status === 'connecting') {
-        await keyvaldb.quit();
-        loggerService.info('KeyValDB connection closed');
-      } else {
-        loggerService.info('KeyValDB connection already closed');
-      }
-    } catch (err) {
-      loggerService.error('Error closing KeyValDB connection during shutdown', err as Error);
-    }
-  } catch (err) {
-    loggerService.error('Error during shutdown', err as Error);
-  } finally {
-    process.exit(0);
+    const dotenvx = await import('@dotenvx/dotenvx');
+    dotenvx.config({ path: '.env' });
   }
 };
 
-process.on('SIGINT', () => void shutdown('SIGINT'));
-process.on('SIGTERM', () => void shutdown('SIGTERM'));
+let serverInstance: import('http').Server | null = null;
 
-(async () => {
+const run = async () => {
+  await loadEnv();
+
+  const {
+    validateORMConfig,
+    validateNotificationsConfig,
+    validateExternalServicesConfig,
+    validateParserConfig,
+    assertConfigValid,
+  } = await import('@podverse/helpers-config');
+  const { createORMContext, getDataSourceRead, getDataSourceReadWrite } =
+    await import('@podverse/orm');
+  const { createFirebaseContext } = await import('@podverse/external-services-firebase');
+  const { createNotificationsContext } = await import('@podverse/notifications');
+  const { createParserContext } = await import('@podverse/parser');
+  const { loggerService } = await import('./factories/loggerService.js');
+  const { activeMQArtemisService } = await import('./factories/activeMQArtemisService.js');
+  const { testKeyvaldbConnection, keyvaldb } = await import('./lib/keyvaldb/keyvaldb.js');
+  const { config } = await import('./config/index.js');
+  const { validateStartupRequirements } = await import('./lib/startup/validation.js');
+
+  const shutdown = async (signal?: string) => {
+    try {
+      loggerService.info(`Shutdown initiated${signal ? ` due to ${signal}` : ''}`);
+      if (serverInstance) {
+        const server = serverInstance;
+        await new Promise<void>((resolve, reject) => {
+          server.close((err) => (err ? reject(err) : resolve()));
+        });
+        loggerService.info('HTTP server closed');
+      }
+      try {
+        await activeMQArtemisService.close();
+      } catch (err) {
+        loggerService.error('Error closing Artemis during shutdown', err as Error);
+      }
+      try {
+        await getDataSourceRead().destroy();
+        await getDataSourceReadWrite().destroy();
+        loggerService.info('Database connections closed');
+      } catch (err) {
+        loggerService.error('Error closing DB connections during shutdown', err as Error);
+      }
+      try {
+        // Check if connection is still open before trying to quit
+        if (keyvaldb.status === 'ready' || keyvaldb.status === 'connecting') {
+          await keyvaldb.quit();
+          loggerService.info('KeyValDB connection closed');
+        } else {
+          loggerService.info('KeyValDB connection already closed');
+        }
+      } catch (err) {
+        loggerService.error('Error closing KeyValDB connection during shutdown', err as Error);
+      }
+    } catch (err) {
+      loggerService.error('Error during shutdown', err as Error);
+    } finally {
+      process.exit(0);
+    }
+  };
+
+  process.on('SIGINT', () => void shutdown('SIGINT'));
+  process.on('SIGTERM', () => void shutdown('SIGTERM'));
+
   try {
     // Validate podverse-api environment variables first
     validateStartupRequirements();
@@ -96,6 +104,10 @@ process.on('SIGTERM', () => void shutdown('SIGTERM'));
           },
         },
       },
+      addByRssCredentialsEncryptionKey:
+        process.env.ADD_BY_RSS_CREDENTIALS_ENCRYPTION_KEY ?? undefined,
+      addByRssCredentialsEncryptionKeyOld:
+        process.env.ADD_BY_RSS_CREDENTIALS_ENCRYPTION_KEY_OLD ?? undefined,
     };
     /* eslint-enable @typescript-eslint/no-non-null-assertion */
 
@@ -143,7 +155,7 @@ process.on('SIGTERM', () => void shutdown('SIGTERM'));
         secretKey: config.podcastIndex.secretKey,
         rateLimitDelay: process.env.PODCAST_INDEX_API_RATE_LIMIT_DELAY
           ? parseInt(process.env.PODCAST_INDEX_API_RATE_LIMIT_DELAY, 10)
-          : 0,
+          : 0, // TODO: determine if rateLimitDelay should be enabled in API
       },
       defaults: {
         account: {
@@ -186,7 +198,7 @@ process.on('SIGTERM', () => void shutdown('SIGTERM'));
       loggerService.warn('Warning: Unable to connect to KeyValDB, caching will be unavailable');
     }
 
-    const { startApp } = await import('./app');
+    const { startApp } = await import('./app.js');
     const server = await startApp();
     if (server) {
       serverInstance = server;
@@ -202,4 +214,6 @@ process.on('SIGTERM', () => void shutdown('SIGTERM'));
       process.exit(1);
     }
   }
-})();
+};
+
+void run();

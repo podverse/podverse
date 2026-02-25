@@ -1,17 +1,18 @@
 import { DATABASE_CONSTANTS } from '@podverse/helpers';
 import { Entity, PrimaryGeneratedColumn, Column, JoinColumn, OneToOne } from 'typeorm';
-import { ItemEnclosure } from '@orm/entities/item/itemEnclosure';
+import type { Relation } from 'typeorm';
+import type { ItemEnclosure } from '@orm/entities/item/itemEnclosure.js';
 
 @Entity()
 export class ItemEnclosureIntegrity {
   @PrimaryGeneratedColumn()
   id!: number;
 
-  @OneToOne(() => ItemEnclosure, (itemEnclosureSource) => itemEnclosureSource.id, {
+  @OneToOne('ItemEnclosure', (itemEnclosureSource: ItemEnclosure) => itemEnclosureSource.id, {
     onDelete: 'CASCADE',
   })
   @JoinColumn({ name: 'item_enclosure_id' })
-  item_enclosure!: ItemEnclosure;
+  item_enclosure!: Relation<ItemEnclosure>;
 
   @Column({ type: 'text' })
   type!: 'sri' | 'pgp-signature';

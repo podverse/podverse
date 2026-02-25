@@ -6,7 +6,8 @@ import { BundleAnalyzer } from './bundle-analyzer.js';
 import { BundleReportManager } from './report-manager.js';
 import { BundleComparisonEngine } from './comparison.js';
 import { generateComparisonSummary } from './openai-summary.js';
-import { AppTarget, getAppConfig } from './app-config.js';
+import type { AppTarget } from './app-config.js';
+import { getAppConfig } from './app-config.js';
 import dotenv from 'dotenv';
 import path from 'path';
 import fs from 'fs';
@@ -125,7 +126,7 @@ async function main() {
     console.log(`   Found ${existingReports.length} existing report(s)\n`);
     const selection = await inquirer.prompt([
       {
-        type: 'list',
+        type: 'select',
         name: 'selectedBaseReport',
         message: 'Select a previous report to compare against (or "Skip comparison"):',
         choices: [

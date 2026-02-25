@@ -1,16 +1,17 @@
 import { AccountNotificationTypeEnum } from '@podverse/helpers';
-import { Channel, ChannelImage, ItemService } from '@podverse/orm';
-import { NotificationMessageType } from '@podverse/notifications';
-import { HandleParsedLiveItemsResult } from '@parser/lib/rss/liveItem/liveItem';
-import { loggerService } from '@parser/factories/loggerService';
+import type { Channel, ChannelImage } from '@podverse/orm';
+import { ItemService } from '@podverse/orm';
+import type { NotificationMessageType } from '@podverse/notifications';
+import type { HandleParsedLiveItemsResult } from '@parser/lib/rss/liveItem/liveItem.js';
+import { loggerService } from '@parser/factories/loggerService.js';
+import type { ItemNotificationData } from './sharedNotificationHelpers.js';
 import {
-  ItemNotificationData,
   getBestImageUrl,
   getDevicesForNotificationType,
   groupDevicesByLocaleAndPlatform,
   loadChannelImages,
   sendItemNotifications,
-} from './sharedNotificationHelpers';
+} from './sharedNotificationHelpers.js';
 
 /**
  * Handles sending push notifications for live items

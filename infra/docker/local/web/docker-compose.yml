@@ -6,10 +6,28 @@ services:
   podverse_local_web:
     image: podverse-web:latest
     container_name: podverse_local_web
+    depends_on:
+      - podverse_local_web_runtime_config
+    env_file:
+      - ../../../config/local/web.env
     networks:
       - podverse_local_network
     ports:
       - 127.0.0.1:3000:3000
+    logging:
+      driver: "json-file"
+      options:
+        max-file: "1"
+        max-size: "50m"
+  podverse_local_web_runtime_config:
+    image: podverse-web-runtime-config:latest
+    container_name: podverse_local_web_runtime_config
+    env_file:
+      - ../../../config/local/web.env
+    environment:
+      PORT: "3001"
+    networks:
+      - podverse_local_network
     logging:
       driver: "json-file"
       options:

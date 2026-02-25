@@ -11,7 +11,7 @@ import { ComparisonEngine } from './comparison.js';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-const envPath = path.resolve(__dirname, '../../../.env.openai');
+const envPath = path.resolve(__dirname, '../../../../.env.openai');
 config({ path: envPath });
 
 const MODEL = 'gpt-4o-mini';

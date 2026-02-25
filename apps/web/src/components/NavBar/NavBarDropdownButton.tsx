@@ -9,7 +9,7 @@ import { DropdownMenu } from '../Dropdown/DropdownMenu';
 import { useDropdownKeyboardNavigation } from '../../hooks/useDropdownKeyboardNavigation';
 import { ROUTES } from '../../constants/routes';
 import { useModals } from '../../contexts/Modals';
-import { apiRequestService } from '../../factories/apiRequestService';
+import { getApiRequestService } from '../../factories/apiRequestService';
 import styles from '../../styles/components/NavBar/NavBarDropdownButton.module.scss';
 import { useTranslations } from 'next-intl';
 
@@ -25,7 +25,7 @@ const NavBarDropdownButton: React.FC = () => {
   const tAuthentication = useTranslations('authentication');
 
   async function handleLogout() {
-    await apiRequestService.reqAuthLogout();
+    await getApiRequestService().reqAuthLogout();
     window.location.reload();
   }
 

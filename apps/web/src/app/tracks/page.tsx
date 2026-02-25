@@ -1,7 +1,8 @@
 import z from 'zod';
-import { DTOItem, getTotalPages, QueryParamsMedium } from '@podverse/helpers';
+import type { DTOItem, QueryParamsMedium } from '@podverse/helpers';
+import { getTotalPages } from '@podverse/helpers';
+import type { ApiListResponse } from '@podverse/helpers-requests';
 import {
-  ApiListResponse,
   QUERY_PARAMS_STATS_RANGE_VALUES,
   QUERY_PARAMS_SUBSCRIBED_MUSIC_TYPE,
   QUERY_PARAMS_SUBSCRIBED_PARTIAL_SORT,
@@ -9,12 +10,11 @@ import {
 import { cookies } from 'next/headers';
 import { getSSRAuthService } from '../../utils/auth/ssrAuth';
 import { guardSubscribedSsrFilter, safeSsrListRequest } from '../../utils/filters/ssrFilterGuards';
-import { TracksDropdownConfigCurrentParams, getTracksFilterParams } from './TracksDropdownConfig';
-import { TracksClient } from './TracksClient';
-import {
-  getParsedLocalSettings,
-  TracksFilterDefaults,
-} from '../../utils/localSettings/localSettings';
+import type { TracksPageDropdownConfigCurrentParams } from './TracksPageDropdownConfig';
+import { getTracksPageFilterParams } from './TracksPageDropdownConfig';
+import { TracksPageClient } from './TracksPageClient';
+import type { TracksFilterDefaults } from '../../utils/localSettings/localSettings';
+import { getParsedLocalSettings } from '../../utils/localSettings/localSettings';
 
 const searchParamsSchema = z.object({
   page: z
@@ -70,7 +70,7 @@ export default async function TracksPage({ searchParams }: TracksPageProps) {
   );
 
   return (
-    <TracksClient
+    <TracksPageClient
       initialQueryParams={{
         page: currentPage,
         type: currentType,
@@ -88,7 +88,7 @@ function parseSearchParams(
   queryParams: SearchParams,
   isAuthenticated: boolean,
   cookieDefaults?: TracksFilterDefaults
-): TracksDropdownConfigCurrentParams {
+): TracksPageDropdownConfigCurrentParams {
   const parsed = searchParamsSchema.safeParse(queryParams);
 
   if (!parsed.success) {
@@ -130,7 +130,7 @@ function parseSearchParams(
     },
   });
 
-  return getTracksFilterParams(
+  return getTracksPageFilterParams(
     {
       page: guarded.page,
       type: guarded.type ?? 'global',

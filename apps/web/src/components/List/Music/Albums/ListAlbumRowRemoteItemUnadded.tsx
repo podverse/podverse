@@ -2,12 +2,12 @@
 
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';
-import { PodcastBatchByFeedGuidResponse } from '@podverse/helpers';
+import type { PodcastBatchByFeedGuidResponse } from '@podverse/helpers';
 import React from 'react';
 import { Image } from '../../../Image/Image';
 import { ROUTES } from '../../../../constants/routes';
 import { IMAGES } from '../../../../constants/images';
-import styles from '../../../../styles/components/List/Podcasts/ListPodcastRow.module.scss';
+import styles from '../../../../styles/components/Common/List/Podcasts/ListPodcastRow.module.scss';
 
 interface Props {
   channelUnadded: PodcastBatchByFeedGuidResponse['feeds'][number];

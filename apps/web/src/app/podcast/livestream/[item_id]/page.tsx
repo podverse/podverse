@@ -1,11 +1,9 @@
 import { QUERY_PARAMS_LIVE_ITEM_TYPE_VALUES } from '@podverse/helpers-requests';
 import { z } from 'zod';
 import { getSSRAuthService } from '../../../../utils/auth/ssrAuth';
-import {
-  getLivestreamFilterParams,
-  LivestreamDropdownConfigCurrentParams,
-} from './LivestreamDropdownConfig';
-import { LivestreamClient } from './LivestreamClient';
+import type { LivestreamPageDropdownConfigCurrentParams } from './LivestreamPageDropdownConfig';
+import { getLivestreamPageFilterParams } from './LivestreamPageDropdownConfig';
+import { LivestreamPageClient } from './LivestreamPageClient';
 
 const searchParamsSchema = z.object({
   type: z.enum(QUERY_PARAMS_LIVE_ITEM_TYPE_VALUES).optional().default('summary'),
@@ -30,7 +28,7 @@ export default async function PodcastLivestreamPage({ params, searchParams }: Li
   const ssrChannel = await ssrApiRequestService.reqChannelGetByIdOrIdText(ssrItem.channel_id);
 
   return (
-    <LivestreamClient
+    <LivestreamPageClient
       initialQueryParams={{
         type: currentType,
       }}
@@ -41,7 +39,7 @@ export default async function PodcastLivestreamPage({ params, searchParams }: Li
   );
 }
 
-function parseSearchParams(searchParams: SearchParams): LivestreamDropdownConfigCurrentParams {
+function parseSearchParams(searchParams: SearchParams): LivestreamPageDropdownConfigCurrentParams {
   const parsed = searchParamsSchema.safeParse(searchParams);
 
   if (!parsed.success) {
@@ -52,5 +50,5 @@ function parseSearchParams(searchParams: SearchParams): LivestreamDropdownConfig
 
   const data = parsed.data;
 
-  return getLivestreamFilterParams(data);
+  return getLivestreamPageFilterParams(data);
 }

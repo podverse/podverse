@@ -1,8 +1,9 @@
 import { DATABASE_CONSTANTS } from '@podverse/helpers';
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, OneToOne } from 'typeorm';
-import { Channel } from '@orm/entities/channel/channel';
-import { FeedFlagStatus } from '@orm/entities/feed/feedFlagStatus';
-import { FeedLog } from './feedLog';
+import type { Relation } from 'typeorm';
+import type { Channel } from '@orm/entities/channel/channel.js';
+import type { FeedFlagStatus } from '@orm/entities/feed/feedFlagStatus.js';
+import type { FeedLog } from './feedLog.js';
 
 @Entity('feed')
 export class Feed {
@@ -15,12 +16,12 @@ export class Feed {
   @Column({ type: 'int', unique: true })
   podcast_index_id!: number;
 
-  @ManyToOne(() => FeedFlagStatus, (feed_flag_status) => feed_flag_status.id)
+  @ManyToOne('FeedFlagStatus', (feed_flag_status: FeedFlagStatus) => feed_flag_status.id)
   @JoinColumn({ name: 'feed_flag_status_id' })
-  feed_flag_status!: FeedFlagStatus;
+  feed_flag_status!: Relation<FeedFlagStatus>;
 
-  @OneToOne(() => FeedLog, (feed_log) => feed_log.feed)
-  feed_log!: FeedLog;
+  @OneToOne('FeedLog', (feed_log: FeedLog) => feed_log.feed)
+  feed_log!: Relation<FeedLog>;
 
   @Column({ type: 'timestamp', nullable: true })
   is_parsing!: Date | null;
@@ -34,8 +35,8 @@ export class Feed {
   @Column({ type: 'varchar', nullable: true, length: 12 })
   container_id!: string | null;
 
-  @OneToOne(() => Channel, (channel) => channel.feed)
-  channel!: Channel;
+  @OneToOne('Channel', (channel: Channel) => channel.feed)
+  channel!: Relation<Channel>;
 
   @Column({ type: 'timestamp' })
   created_at!: Date;

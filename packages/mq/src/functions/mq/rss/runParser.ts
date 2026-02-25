@@ -1,7 +1,8 @@
-import { MQ_QUEUES } from '@podverse/helpers';
+import { hasImageHints, MQ_IMAGE_SHRINK_HINTS_CONFIG, MQ_QUEUES } from '@podverse/helpers';
 import { parseRSSFeedAndSaveToDatabase } from '@podverse/parser';
-import { MQQueueName, ActiveMQArtemisService } from '@queue/services/activeMQArtemis';
-import { mqRSSAdd } from './add';
+import type { MQQueueName, ActiveMQArtemisService } from '@queue/services/activeMQArtemis/index.js';
+import { mqRSSAdd } from './add.js';
+import { mqImageShrinkHintAdd } from './addImageHint.js';
 
 export const mqRSSRunParser = async (
   activeMQArtemisService: ActiveMQArtemisService,
@@ -40,6 +41,26 @@ export const mqRSSRunParser = async (
               );
             } catch (err) {
               console.error('Error enqueueing remote item', err as Error);
+            }
+          }
+        }
+
+        if (hasImageHints(result) && result.imageHints.length > 0) {
+          for (const hint of result.imageHints) {
+            if (!hint) {
+              continue;
+            }
+            try {
+              await mqImageShrinkHintAdd(
+                activeMQArtemisService,
+                {
+                  ...MQ_IMAGE_SHRINK_HINTS_CONFIG,
+                  closeAfterSend: false,
+                },
+                hint
+              );
+            } catch (err) {
+              console.error('Error enqueueing image shrink hint', err as Error);
             }
           }
         }

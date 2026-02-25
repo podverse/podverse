@@ -1,7 +1,7 @@
-import { ApiRequestService } from '../../_request';
-import { DTOPlaylistResource, PlaylistResourceIdTextOptions } from '@podverse/helpers';
-import { ApiListResponse } from '../../_response';
-import { QueryParamsPlaylistResources } from '../../queryParams';
+import type { ApiRequestService } from '../../_request.js';
+import type { DTOPlaylistResource, PlaylistResourceIdTextOptions } from '@podverse/helpers';
+import type { ApiListResponse } from '../../_response.js';
+import type { QueryParamsPlaylistResources } from '../../queryParams.js';
 
 export async function reqPlaylistResourceGetAllByPlaylistIdTextPrivate(
   api: ApiRequestService,

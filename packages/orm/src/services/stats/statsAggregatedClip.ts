@@ -1,9 +1,11 @@
-import { QueryParamsMedium, SharableStatusEnum } from '@podverse/helpers';
-import { StatsAggregatedClip } from '@orm/entities/stats/statsAggregatedClip';
-import { StatsTrackEventClipService } from './statsTrackEventClip';
-import { BaseStatsAggregatedService, UpdateHistoricalOptions } from './baseStatsAggregated';
-import { FindManyOptions } from 'typeorm';
-import { getActiveFeedWhere } from '@orm/lib/feedFlagHelpers';
+import type { QueryParamsMedium } from '@podverse/helpers';
+import { SharableStatusEnum } from '@podverse/helpers';
+import { StatsAggregatedClip } from '@orm/entities/stats/statsAggregatedClip.js';
+import { StatsTrackEventClipService } from './statsTrackEventClip.js';
+import type { UpdateHistoricalOptions } from './baseStatsAggregated.js';
+import { BaseStatsAggregatedService } from './baseStatsAggregated.js';
+import type { FindManyOptions } from 'typeorm';
+import { getActiveFeedWhere } from '@orm/lib/feedFlagHelpers.js';
 
 export class StatsAggregatedClipService extends BaseStatsAggregatedService<
   StatsAggregatedClip,

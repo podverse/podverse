@@ -7,7 +7,7 @@ import { useRouter } from 'next/navigation';
 import { Button } from '../Button/Button';
 import { TextInput } from '../Form/TextInput';
 import Form from '../Form/Form';
-import { apiRequestService } from '../../factories/apiRequestService';
+import { getApiRequestService } from '../../factories/apiRequestService';
 import { handleRateLimitAlert } from '../../utils/rateLimit/rateLimitAlert';
 import { FormInfoMessageText } from '../Form/FormInfoMessageText';
 import styles from '../../styles/components/Auth/AuthForgotPasswordForm.module.scss';
@@ -28,7 +28,7 @@ export const AuthForgotPasswordForm: React.FC = () => {
     if (isFormValid) {
       setIsLoading(true);
       try {
-        await apiRequestService.reqAccountSendResetPasswordEmail({ email });
+        await getApiRequestService().reqAccountSendResetPasswordEmail({ email });
         setIsEmailSent(true);
       } catch (err) {
         const rateLimitErrorHandled = await handleRateLimitAlert(err, locale, tMisc);

@@ -1,17 +1,13 @@
 import Joi from 'joi';
-import { Request, Response } from 'express';
+import type { Request, Response } from 'express';
 import { AccountSettingsLocaleService } from '@podverse/orm';
-import { validateBodyObject } from '@api/lib/validation';
-import { ensureAuthenticated, getAuthenticatedUser } from '@api/lib/auth';
-import { handleGenericErrorResponse } from '@api/controllers/helpers/error';
-
-const updateAccountSettingsLocaleSchema = Joi.object({
-  locale: Joi.string().required(),
-});
+import { localeBodySchema, validateBodyObject } from '@api/lib/validation/index.js';
+import { ensureAuthenticated, getAuthenticatedUser } from '@api/lib/auth/index.js';
+import { handleGenericErrorResponse } from '@api/controllers/helpers/error.js';
 
 export class AccountSettingsLocaleController {
   static async update(req: Request, res: Response): Promise<void> {
-    validateBodyObject(updateAccountSettingsLocaleSchema, req, res, async () => {
+    validateBodyObject(Joi.object(localeBodySchema), req, res, async () => {
       ensureAuthenticated(
         req,
         res,

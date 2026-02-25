@@ -5,7 +5,7 @@ import { useTranslations } from 'next-intl';
 import { validateHttpsUrl } from '@podverse/helpers-validation/client';
 import { requestNotificationPermission } from '../../../../lib/notifications/webpush/requestNotificationPermission';
 import { disableNotificationPermission } from '../../../../lib/notifications/webpush/disableNotificationPermission';
-import { apiRequestService } from '../../../../factories/apiRequestService';
+import { getApiRequestService } from '../../../../factories/apiRequestService';
 import { useNotifications } from '../../../../contexts/Notifications';
 import { useAccount } from '../../../../contexts/Account';
 import { useModals } from '../../../../contexts/Modals';
@@ -77,7 +77,8 @@ export function SettingsNotifications() {
             if (registration) {
               const subscription = await registration.pushManager.getSubscription();
               if (subscription) {
-                const devices = await apiRequestService.reqAccountWebPushDeviceGetAllForAccount();
+                const devices =
+                  await getApiRequestService().reqAccountWebPushDeviceGetAllForAccount();
                 const match = devices.find((d) => d.endpoint === subscription.endpoint);
                 setRegistered(!!match);
               } else {
@@ -161,12 +162,12 @@ export function SettingsNotifications() {
       }
 
       await withLoading('unifiedpush', async () => {
-        await apiRequestService.reqAccountUPDeviceCreate({
+        await getApiRequestService().reqAccountUPDeviceCreate({
           up_endpoint: endpoint,
           up_auth_key: authKey,
         });
         // Re-fetch UP device to ensure state is in sync
-        const upDevice = await apiRequestService.reqAccountUPDeviceGetForAccount();
+        const upDevice = await getApiRequestService().reqAccountUPDeviceGetForAccount();
         if (upDevice) {
           setUPRegistered(true);
           setUPEndpoint(upDevice.up_endpoint);
@@ -190,10 +191,10 @@ export function SettingsNotifications() {
     try {
       await withLoading('unifiedpush', async () => {
         if (upEndpoint) {
-          await apiRequestService.reqAccountUPDeviceDelete({ up_endpoint: upEndpoint });
+          await getApiRequestService().reqAccountUPDeviceDelete({ up_endpoint: upEndpoint });
         }
 
-        const upDevice = await apiRequestService.reqAccountUPDeviceGetForAccount();
+        const upDevice = await getApiRequestService().reqAccountUPDeviceGetForAccount();
         if (upDevice) {
           setUPRegistered(true);
           setUPEndpoint(upDevice.up_endpoint);
@@ -242,12 +243,12 @@ export function SettingsNotifications() {
     await withLoading(`notifications.${type}`, async () => {
       try {
         if (next) {
-          const updated = await apiRequestService.reqAccountSettingsNotificationTypeCreate({
+          const updated = await getApiRequestService().reqAccountSettingsNotificationTypeCreate({
             type,
           });
           setLoggedInAccount(updated as unknown as typeof loggedInAccount);
         } else {
-          const updated = await apiRequestService.reqAccountSettingsNotificationTypeDelete({
+          const updated = await getApiRequestService().reqAccountSettingsNotificationTypeDelete({
             type,
           });
           setLoggedInAccount(updated as unknown as typeof loggedInAccount);

@@ -2,7 +2,7 @@
 
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';
-import { DTOAccount } from '@podverse/helpers';
+import type { DTOAccount } from '@podverse/helpers';
 import React from 'react';
 import { ROUTES } from '../../../constants/routes';
 import styles from '../../../styles/components/List/Profiles/ListProfileRow.module.scss';

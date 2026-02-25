@@ -1,5 +1,5 @@
-import { DTOItemEnclosureIntegrity } from './itemEnclosureIntegrity';
-import { DTOItemEnclosureSource } from './itemEnclosureSource';
+import type { DTOItemEnclosureIntegrity } from './itemEnclosureIntegrity.js';
+import type { DTOItemEnclosureSource } from './itemEnclosureSource.js';
 
 export interface DTOItemEnclosure {
   id: number;
@@ -13,6 +13,6 @@ export interface DTOItemEnclosure {
   rel?: string | null;
   codecs?: string | null;
   item_enclosure_default: boolean;
-  item_enclosure_integrity: DTOItemEnclosureIntegrity;
+  item_enclosure_integrity: DTOItemEnclosureIntegrity | null;
   item_enclosure_sources: DTOItemEnclosureSource[];
 }

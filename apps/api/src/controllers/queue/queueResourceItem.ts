@@ -1,21 +1,17 @@
-import { Request, Response } from 'express';
+import type { Request, Response } from 'express';
 import Joi from 'joi';
 import { QueueResourceService } from '@podverse/orm';
-import { handleGenericErrorResponse } from '@api/controllers/helpers/error';
-import { ensureAuthenticated } from '@api/lib/auth';
-import { verifyQueueOwnership } from '@api/controllers/queue/queue';
-import { validateBodyObject, validateParamsObject } from '@api/lib/validation';
-import { getParamRequired } from '@api/lib/params';
-
-const addItemToQueueBetweenSchema = Joi.object({
-  position1: Joi.number().min(0).required(),
-  position2: Joi.number().min(Joi.ref('position1')).required(),
-}).with('position1', 'position2');
-
-const queueAndItemIdSchema = Joi.object({
-  queue_id_text: Joi.string().required(),
-  item_id_text: Joi.string().required(),
-});
+import { handleGenericErrorResponse } from '@api/controllers/helpers/error.js';
+import { ensureAuthenticated } from '@api/lib/auth/index.js';
+import { verifyQueueOwnership } from '@api/controllers/queue/queue.js';
+import {
+  itemIdTextParamSchema,
+  positionBetweenBodySchema,
+  queueIdTextParamSchema,
+  validateBodyObject,
+  validateParamsObject,
+} from '@api/lib/validation/index.js';
+import { getParamRequired } from '@api/lib/params.js';
 
 export const queueResourceNowPlayingSchema = Joi.object({
   playback_position: Joi.number().min(0).optional(),
@@ -27,7 +23,12 @@ class QueueResourceItemController {
   private static queueResourceService = new QueueResourceService();
 
   static async addItemToNowPlaying(req: Request, res: Response): Promise<void> {
-    validateParamsObject(queueAndItemIdSchema, req, res, async () => {
+    const paramsSchema = Joi.object({
+      ...queueIdTextParamSchema,
+      ...itemIdTextParamSchema,
+    });
+
+    validateParamsObject(paramsSchema, req, res, async () => {
       validateBodyObject(queueResourceNowPlayingSchema, req, res, async () => {
         ensureAuthenticated(
           req,
@@ -67,7 +68,12 @@ class QueueResourceItemController {
   }
 
   static async addItemToQueueNext(req: Request, res: Response): Promise<void> {
-    validateParamsObject(queueAndItemIdSchema, req, res, async () => {
+    const paramsSchema = Joi.object({
+      ...queueIdTextParamSchema,
+      ...itemIdTextParamSchema,
+    });
+
+    validateParamsObject(paramsSchema, req, res, async () => {
       ensureAuthenticated(
         req,
         res,
@@ -94,7 +100,12 @@ class QueueResourceItemController {
   }
 
   static async addItemToQueueLast(req: Request, res: Response): Promise<void> {
-    validateParamsObject(queueAndItemIdSchema, req, res, async () => {
+    const paramsSchema = Joi.object({
+      ...queueIdTextParamSchema,
+      ...itemIdTextParamSchema,
+    });
+
+    validateParamsObject(paramsSchema, req, res, async () => {
       ensureAuthenticated(
         req,
         res,
@@ -121,12 +132,17 @@ class QueueResourceItemController {
   }
 
   static async addItemToQueueBetween(req: Request, res: Response): Promise<void> {
-    validateParamsObject(queueAndItemIdSchema, req, res, async () => {
+    const paramsSchema = Joi.object({
+      ...queueIdTextParamSchema,
+      ...itemIdTextParamSchema,
+    });
+
+    validateParamsObject(paramsSchema, req, res, async () => {
       ensureAuthenticated(
         req,
         res,
         async () => {
-          validateBodyObject(addItemToQueueBetweenSchema, req, res, async () => {
+          validateBodyObject(Joi.object(positionBetweenBodySchema), req, res, async () => {
             verifyQueueOwnership()(req, res, async () => {
               const queue_id_text = getParamRequired(req, 'queue_id_text');
               const item_id_text = getParamRequired(req, 'item_id_text');
@@ -153,7 +169,12 @@ class QueueResourceItemController {
   }
 
   static async addItemToHistory(req: Request, res: Response): Promise<void> {
-    validateParamsObject(queueAndItemIdSchema, req, res, async () => {
+    const paramsSchema = Joi.object({
+      ...queueIdTextParamSchema,
+      ...itemIdTextParamSchema,
+    });
+
+    validateParamsObject(paramsSchema, req, res, async () => {
       validateBodyObject(queueResourceNowPlayingSchema, req, res, async () => {
         ensureAuthenticated(
           req,
@@ -192,7 +213,12 @@ class QueueResourceItemController {
   }
 
   static async removeItemFromQueue(req: Request, res: Response): Promise<void> {
-    validateParamsObject(queueAndItemIdSchema, req, res, async () => {
+    const paramsSchema = Joi.object({
+      ...queueIdTextParamSchema,
+      ...itemIdTextParamSchema,
+    });
+
+    validateParamsObject(paramsSchema, req, res, async () => {
       ensureAuthenticated(
         req,
         res,

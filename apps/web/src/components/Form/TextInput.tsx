@@ -1,4 +1,5 @@
-import React, { AriaAttributes } from 'react';
+import type { AriaAttributes } from 'react';
+import React from 'react';
 import styles from '../../styles/components/Form/TextInput.module.scss';
 import { Button } from '../Button/Button';
 import { TextInputNumberIncrement } from './TextInputNumberIncrements';
@@ -37,6 +38,8 @@ type TextInputProps = {
 export type TextInputButton = {
   label: string;
   onClick: () => void;
+  disabled?: boolean;
+  isLoading?: boolean;
 };
 
 export type TextInputButtonIcon = {
@@ -142,7 +145,13 @@ export const TextInput: React.FC<TextInputProps> = ({
           />
         )}
         {button && (
-          <Button className={styles.button} onClick={button.onClick} variant="mini">
+          <Button
+            className={styles.button}
+            onClick={button.onClick}
+            variant="mini"
+            disabled={button.disabled}
+            isLoading={button.isLoading}
+          >
             {button.label}
           </Button>
         )}

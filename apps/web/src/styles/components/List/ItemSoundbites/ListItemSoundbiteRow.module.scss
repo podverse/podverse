@@ -33,6 +33,14 @@
   gap: 0.375rem; // Keep specific value for content spacing
 }
 
+.clickableTopSection {
+  all: unset;
+  cursor: pointer;
+  display: block;
+  width: 100%;
+  text-align: left;
+}
+
 .subtitle {
   @include line-clamp(1);
   color: var(--text-color-secondary);

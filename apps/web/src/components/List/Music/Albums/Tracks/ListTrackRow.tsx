@@ -2,24 +2,24 @@
 
 import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
+import type { DTOChannel, DTOItem } from '@podverse/helpers';
 import {
-  DTOChannel,
-  DTOItem,
-  findDTOChannelImageBySize,
-  findDTOItemImageBySize,
+  findDTOChannelImageForList,
+  findDTOItemImageForList,
   getQueueForMedium,
 } from '@podverse/helpers';
 import { getShuffleHash } from '@podverse/helpers-requests';
 import React from 'react';
 import { FaGripLines } from 'react-icons/fa6';
-import { Image } from '../../../../Image/Image';
+import { ImagesPerView } from '../../../../Image/ImagesPerView';
 import { ROUTES } from '../../../../../constants/routes';
 import { IMAGES } from '../../../../../constants/images';
-import { MoreButton, MoreButtonMenuItem } from '../../../../MoreButton/MoreButton';
+import type { MoreButtonMenuItem } from '../../../../MoreButton/MoreButton';
+import { MoreButton } from '../../../../MoreButton/MoreButton';
 import { useMediaPlayer } from '../../../../../contexts/MediaPlayer';
 import { useModals } from '../../../../../contexts/Modals';
 import { useQueues } from '../../../../../contexts/Queue';
-import { apiRequestService } from '../../../../../factories/apiRequestService';
+import { getApiRequestService } from '../../../../../factories/apiRequestService';
 import { showToastPromise, showToastPromiseWithLoading } from '../../../../Toast/Toast';
 import { downloadAndSaveFile } from '../../../../../utils/fileDownloader';
 import { useMediaPlayerResourceUpdate } from '../../../../../hooks/useMediaPlayerResourceUpdate';
@@ -27,7 +27,7 @@ import { useAutoQueue } from '../../../../../contexts/AutoQueue';
 import { useAccount } from '../../../../../contexts/Account';
 import { downloadTrackWithModal } from '../../../../../utils/downloadModal/downloadTrackWithModal';
 import { Button } from '../../../../Button/Button';
-import styles from '../../../../../styles/components/List/Podcasts/Episodes/ListEpisodeRow.module.scss';
+import styles from '../../../../../styles/components/Common/List/Podcasts/Episodes/ListEpisodeRow.module.scss';
 
 interface Props {
   channel: DTOChannel;
@@ -38,6 +38,7 @@ interface Props {
   isEditModePlaylist?: boolean;
   removeFromPlaylist?: () => void;
   playlist_id_text: string | null;
+  onPlayAndRemove?: () => void;
 }
 
 export const ListTrackRow: React.FC<Props> = ({
@@ -49,16 +50,18 @@ export const ListTrackRow: React.FC<Props> = ({
   isEditModePlaylist,
   removeFromPlaylist,
   playlist_id_text,
+  onPlayAndRemove,
 }) => {
+  const apiRequestService = getApiRequestService();
   const router = useRouter();
   const url = `${ROUTES.TRACK}/${item.id_text}`;
   const imageSizeTarget = IMAGES.LIST.TRACKS.DESKTOP.SIZE_FIND_TARGET;
-  const channel_image = findDTOChannelImageBySize(
+  const channel_image = findDTOChannelImageForList(
     channel.channel_images,
     imageSizeTarget,
     'lesser'
   );
-  const item_image = findDTOItemImageBySize(item.item_images, imageSizeTarget, 'lesser');
+  const item_image = findDTOItemImageForList(item.item_images, imageSizeTarget, 'lesser');
   const tFeatures = useTranslations('features');
   const tMedia = useTranslations('media');
   const tMediaPlayer = useTranslations('media_player');
@@ -195,32 +198,40 @@ export const ListTrackRow: React.FC<Props> = ({
     });
   };
 
-  const moreButtonMenuItems: MoreButtonMenuItem[] = [
-    {
-      label: tMediaPlayer('play'),
-      onClick: playButtonOnClick,
-    },
-    {
-      label: tFeatures('queue.queue_next'),
-      onClick: addToQueueNextOnClick,
-    },
-    {
-      label: tFeatures('queue.queue_last'),
-      onClick: addToQueueLastOnClick,
-    },
-    {
-      label: tFeatures('playlist.add_to_playlist'),
-      onClick: addToPlaylistOnClick,
-    },
-    {
-      label: tMedia('music.track_go_to'),
-      onClick: goToTrackPage,
-    },
-    {
-      label: tFeatures('download.download_track'),
-      onClick: downloadTrack,
-    },
-  ];
+  const moreButtonMenuItems: MoreButtonMenuItem[] = isEditModePlaylist
+    ? [
+        {
+          label: tFeatures('playlist.remove_from_playlist'),
+          onClick: removeFromPlaylistOnClick,
+          variant: 'danger',
+        },
+      ]
+    : [
+        {
+          label: tMediaPlayer('play'),
+          onClick: playButtonOnClick,
+        },
+        {
+          label: tFeatures('queue.queue_next'),
+          onClick: addToQueueNextOnClick,
+        },
+        {
+          label: tFeatures('queue.queue_last'),
+          onClick: addToQueueLastOnClick,
+        },
+        {
+          label: tFeatures('playlist.add_to_playlist'),
+          onClick: addToPlaylistOnClick,
+        },
+        {
+          label: tMedia('music.track_go_to'),
+          onClick: goToTrackPage,
+        },
+        {
+          label: tFeatures('download.download_track'),
+          onClick: downloadTrack,
+        },
+      ];
 
   if (isEditModeQueue) {
     moreButtonMenuItems.push({
@@ -231,11 +242,7 @@ export const ListTrackRow: React.FC<Props> = ({
   }
 
   if (isEditModePlaylist) {
-    moreButtonMenuItems.push({
-      label: tFeatures('playlist.remove_from_playlist'),
-      onClick: removeFromPlaylistOnClick,
-      variant: 'danger',
-    });
+    // Menu already limited to remove-from-playlist in edit mode.
   }
 
   return (
@@ -245,20 +252,20 @@ export const ListTrackRow: React.FC<Props> = ({
           <FaGripLines />
         </div>
       )}
-      <Button variant="unstyled" onClick={playButtonOnClick} className={styles.trackClickable}>
-        <Image
+      <Button
+        variant="unstyled"
+        onClick={onPlayAndRemove ?? playButtonOnClick}
+        className={styles.trackClickable}
+      >
+        <ImagesPerView
           src={item_image?.url || channel_image?.url}
           alt={item.title || tMedia('music.track_image')}
-          width={IMAGES.LIST.TRACKS.DESKTOP.SIZE}
-          height={IMAGES.LIST.TRACKS.DESKTOP.SIZE}
-          className={styles.image}
-        />
-        <Image
-          src={item_image?.url || channel_image?.url}
-          alt={item.title || tMedia('music.track_image')}
-          width={IMAGES.LIST.TRACKS.MOBILE.SIZE}
-          height={IMAGES.LIST.TRACKS.MOBILE.SIZE}
-          className={styles.imageMobile}
+          widthDesktop={IMAGES.LIST.TRACKS.DESKTOP.SIZE}
+          heightDesktop={IMAGES.LIST.TRACKS.DESKTOP.SIZE}
+          widthMobile={IMAGES.LIST.TRACKS.MOBILE.SIZE}
+          heightMobile={IMAGES.LIST.TRACKS.MOBILE.SIZE}
+          classNameDesktop={styles.image}
+          classNameMobile={styles.imageMobile}
         />
         <div className={styles.trackWrapper}>
           <div className={styles.trackContent}>

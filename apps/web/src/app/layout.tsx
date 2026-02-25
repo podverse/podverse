@@ -1,9 +1,10 @@
-import '../styles/index.scss';
 import { cookies } from 'next/headers';
-import { generateQueueResourceAbridgedIndex, QueueResourcesAbridgedIndex } from '@podverse/helpers';
+import type { QueueResourcesAbridgedIndex } from '@podverse/helpers';
+import { generateQueueResourceAbridgedIndex } from '@podverse/helpers';
 import FavIcons from '../components/Head/FavIcons';
 import FontPreloads from '../components/Head/FontPreloads';
 import Manifest from '../components/Head/Manifest';
+import RuntimeConfigScript from '../components/Head/RuntimeConfigScript';
 import { AppWrapper } from '../components/App/AppWrapper';
 import NavBar from '../components/NavBar/NavBar';
 import PageWrapper from '../components/PageWrapper/PageWrapper';
@@ -14,7 +15,8 @@ import { toUITheme } from '../utils/localSettings/uiTheme';
 import { getSSRJwtFromCookies, getSSRLoggedInAccount } from '../utils/auth/ssrAuth';
 import AuthSessionChecker from '../components/Auth/AuthSessionChecker';
 import { getSSRApiRequestService } from '../factories/apiRequestService';
-import { config } from '../config';
+import { getConfig } from '../config';
+import { getRuntimeConfig } from '../config/runtime-config-store';
 import { MediaPlayerController } from '../components/MediaPlayer/Controller/MediaPlayerController';
 import { QueueController } from '../components/Queue/QueueController';
 import { QueueResourcesAbridgedController } from '../components/Queue/QueueResourcesAbridgedController';
@@ -23,12 +25,12 @@ import { useLocaleDetect } from '../hooks/useLocaleDetect';
 import { setSSRAccountForLocale } from '../i18n/request';
 import { LazyLoadedComponents } from '../components/LazyLoadedComponents/LazyLoadedComponents';
 
-export const metadata = {
-  title: config.public.brand.name,
-  description: 'Add meta description here',
-};
+import '../styles/index.scss';
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  // Runtime config is initialized in instrumentation.ts at server startup
+  const runtimeConfig = getRuntimeConfig();
+  const config = getConfig();
   const cookieStore = await cookies();
   const ssrLocalSettings = getParsedLocalSettings(cookieStore);
   const ssrUITheme = toUITheme(ssrLocalSettings.uit);
@@ -66,6 +68,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   return (
     <html lang={locale} data-ui-theme={ssrUITheme}>
       <head>
+        <RuntimeConfigScript runtimeConfig={runtimeConfig} />
+        <title>{config.public.brand.name}</title>
         <FontPreloads />
         <FavIcons />
         <Manifest />
@@ -74,6 +78,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         {ssrShouldLogout && <AuthSessionChecker ssrShouldLogout={ssrShouldLogout} />}
         {!ssrShouldLogout && (
           <Providers
+            config={config}
             locale={locale}
             ssrLoggedInAccount={ssrLoggedInAccount}
             ssrLocalSettings={ssrLocalSettings}

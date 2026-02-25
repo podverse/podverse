@@ -8,25 +8,26 @@ import {
   OneToOne,
   OneToMany,
 } from 'typeorm';
-import { AccountCredentials } from '@orm/entities/account/accountCredentials';
-import { SharableStatus } from '@orm/entities/sharableStatus';
-import { AccountAppStorePurchase } from './accountAppStorePurchase';
-import { AccountFCMDevice } from './accountFCMDevice';
-import { AccountFollowingAccount } from './accountFollowingAccount';
-import { AccountFollowingAddByRSSChannel } from './accountFollowingAddByRSSChannel';
-import { AccountFollowingChannel } from './accountFollowingChannel';
-import { AccountFollowingPlaylist } from './accountFollowingPlaylist';
-import { AccountGooglePlayPurchase } from './accountGooglePlayPurchase';
-import { AccountMembershipStatus } from './accountMembershipStatus';
-import { AccountNotificationChannel } from './accountNotificationChannel';
-import { AccountPayPalOrder } from './accountPayPalOrder';
-import { AccountProfile } from './accountProfile';
-import { AccountResetPassword } from './accountResetPassword';
-import { AccountUPDevice } from './accountUPDevice';
-import { AccountVerification } from './accountVerification';
-import { generateRandomIdText } from '@orm/lib/nanoid';
-import { AccountSettings } from './accountSettings/accountSettings';
-import { AccountWebPushDevice } from './accountWebPushDevice';
+import type { Relation } from 'typeorm';
+import type { SharableStatus } from '@orm/entities/sharableStatus.js';
+import { generateRandomIdText } from '@orm/lib/nanoid.js';
+import type { AccountCredentials } from '@orm/entities/account/accountCredentials.js';
+import type { AccountAppStorePurchase } from './accountAppStorePurchase.js';
+import type { AccountFCMDevice } from './accountFCMDevice.js';
+import type { AccountFollowingAccount } from './accountFollowingAccount.js';
+import type { AccountFollowingAddByRSSChannel } from './accountFollowingAddByRSSChannel.js';
+import type { AccountFollowingChannel } from './accountFollowingChannel.js';
+import type { AccountFollowingPlaylist } from './accountFollowingPlaylist.js';
+import type { AccountGooglePlayPurchase } from './accountGooglePlayPurchase.js';
+import type { AccountMembershipStatus } from './accountMembershipStatus.js';
+import type { AccountNotificationChannel } from './accountNotificationChannel.js';
+import type { AccountPayPalOrder } from './accountPayPalOrder.js';
+import type { AccountProfile } from './accountProfile.js';
+import type { AccountResetPassword } from './accountResetPassword.js';
+import type { AccountSettings } from './accountSettings/accountSettings.js';
+import type { AccountUPDevice } from './accountUPDevice.js';
+import type { AccountVerification } from './accountVerification.js';
+import type { AccountWebPushDevice } from './accountWebPushDevice.js';
 
 @Entity()
 export class Account {
@@ -39,85 +40,101 @@ export class Account {
   @Column({ type: 'boolean', default: false })
   verified!: boolean;
 
-  @ManyToOne(() => SharableStatus, (sharableStatus) => sharableStatus.id)
+  @ManyToOne('SharableStatus', (sharableStatus: SharableStatus) => sharableStatus.id)
   @JoinColumn({ name: 'sharable_status_id' })
-  sharable_status!: SharableStatus;
+  sharable_status!: Relation<SharableStatus>;
 
   @OneToMany(
-    () => AccountAppStorePurchase,
-    (accountAppStorePurchase) => accountAppStorePurchase.account
+    'AccountAppStorePurchase',
+    (accountAppStorePurchase: AccountAppStorePurchase) => accountAppStorePurchase.account
   )
   account_app_store_purchases!: AccountAppStorePurchase[];
 
-  @OneToOne(() => AccountCredentials, (accountCredentials) => accountCredentials.account)
-  account_credentials!: AccountCredentials;
+  @OneToOne(
+    'AccountCredentials',
+    (accountCredentials: AccountCredentials) => accountCredentials.account
+  )
+  account_credentials!: Relation<AccountCredentials>;
 
-  @OneToMany(() => AccountFCMDevice, (accountFCMDevice) => accountFCMDevice.account)
+  @OneToMany('AccountFCMDevice', (accountFCMDevice: AccountFCMDevice) => accountFCMDevice.account)
   account_fcm_devices!: AccountFCMDevice[];
 
   @OneToMany(
-    () => AccountFollowingAccount,
-    (accountFollowingAccount) => accountFollowingAccount.account
+    'AccountFollowingAccount',
+    (accountFollowingAccount: AccountFollowingAccount) => accountFollowingAccount.account
   )
   account_following_accounts!: AccountFollowingAccount[];
 
   @OneToMany(
-    () => AccountFollowingAddByRSSChannel,
-    (AccountFollowingAddByRSSChannel) => AccountFollowingAddByRSSChannel.account
+    'AccountFollowingAddByRSSChannel',
+    (accountFollowingAddByRSSChannel: AccountFollowingAddByRSSChannel) =>
+      accountFollowingAddByRSSChannel.account
   )
   account_following_add_by_rss_channels!: AccountFollowingAddByRSSChannel[];
 
   @OneToMany(
-    () => AccountFollowingChannel,
-    (accountFollowingChannel) => accountFollowingChannel.account
+    'AccountFollowingChannel',
+    (accountFollowingChannel: AccountFollowingChannel) => accountFollowingChannel.account
   )
   account_following_channels!: AccountFollowingChannel[];
 
   @OneToMany(
-    () => AccountFollowingPlaylist,
-    (accountFollowingPlaylist) => accountFollowingPlaylist.account
+    'AccountFollowingPlaylist',
+    (accountFollowingPlaylist: AccountFollowingPlaylist) => accountFollowingPlaylist.account
   )
   account_following_playlists!: AccountFollowingPlaylist[];
 
   @OneToMany(
-    () => AccountGooglePlayPurchase,
-    (accountGooglePlayPurchase) => accountGooglePlayPurchase.account
+    'AccountGooglePlayPurchase',
+    (accountGooglePlayPurchase: AccountGooglePlayPurchase) => accountGooglePlayPurchase.account
   )
   account_google_play_purchases!: AccountGooglePlayPurchase[];
 
   @OneToOne(
-    () => AccountMembershipStatus,
-    (accountMembershipStatus) => accountMembershipStatus.account
+    'AccountMembershipStatus',
+    (accountMembershipStatus: AccountMembershipStatus) => accountMembershipStatus.account
   )
   account_membership_status!: AccountMembershipStatus;
 
   @OneToMany(
-    () => AccountNotificationChannel,
-    (accountNotificationChannel) => accountNotificationChannel.account
+    'AccountNotificationChannel',
+    (accountNotificationChannel: AccountNotificationChannel) => accountNotificationChannel.account
   )
   account_notification_channels!: AccountNotificationChannel[];
 
-  @OneToMany(() => AccountPayPalOrder, (accountPayPalOrder) => accountPayPalOrder.account)
+  @OneToMany(
+    'AccountPayPalOrder',
+    (accountPayPalOrder: AccountPayPalOrder) => accountPayPalOrder.account
+  )
   account_paypal_orders!: AccountPayPalOrder[];
 
-  @OneToOne(() => AccountProfile, (accountProfile) => accountProfile.account)
+  @OneToOne('AccountProfile', (accountProfile: AccountProfile) => accountProfile.account)
   account_profile!: AccountProfile;
 
-  @OneToOne(() => AccountResetPassword, (accountResetPassword) => accountResetPassword.account)
+  @OneToOne(
+    'AccountResetPassword',
+    (accountResetPassword: AccountResetPassword) => accountResetPassword.account
+  )
   account_reset_password!: AccountResetPassword;
 
-  @OneToOne(() => AccountSettings, (accountSettings) => accountSettings.account, {
+  @OneToOne('AccountSettings', (accountSettings: AccountSettings) => accountSettings.account, {
     cascade: ['insert'],
   })
   account_settings!: AccountSettings;
 
-  @OneToMany(() => AccountUPDevice, (accountUPDevice) => accountUPDevice.account)
+  @OneToMany('AccountUPDevice', (accountUPDevice: AccountUPDevice) => accountUPDevice.account)
   account_up_devices!: AccountUPDevice[];
 
-  @OneToMany(() => AccountWebPushDevice, (accountWebPushDevice) => accountWebPushDevice.account)
+  @OneToMany(
+    'AccountWebPushDevice',
+    (accountWebPushDevice: AccountWebPushDevice) => accountWebPushDevice.account
+  )
   account_web_push_devices!: AccountWebPushDevice[];
 
-  @OneToOne(() => AccountVerification, (accountVerification) => accountVerification.account)
+  @OneToOne(
+    'AccountVerification',
+    (accountVerification: AccountVerification) => accountVerification.account
+  )
   account_verification!: AccountVerification;
 
   @BeforeInsert()

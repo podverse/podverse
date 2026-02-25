@@ -1,8 +1,8 @@
-import { AppDataSourceRead, AppDataSourceReadWrite } from '@orm/db';
-import { Feed } from '@orm/entities/feed/feed';
-import { FeedFlagStatusStatusEnum } from '@orm/entities/feed/feedFlagStatus';
-import { FeedFlagStatusService } from './feedFlagStatus';
-import { applyProperties } from '@orm/lib/applyProperties';
+import { AppDataSourceRead, AppDataSourceReadWrite } from '@orm/db/index.js';
+import { Feed } from '@orm/entities/feed/feed.js';
+import { FeedFlagStatusStatusEnum } from '@orm/entities/feed/feedFlagStatus.js';
+import { FeedFlagStatusService } from './feedFlagStatus.js';
+import { applyProperties } from '@orm/lib/applyProperties.js';
 
 type FeedCreateDto = {
   url: string;
@@ -96,6 +96,18 @@ export class FeedService {
       },
       relations: ['channel', 'feed_flag_status', 'feed_log'],
     });
+  }
+
+  /** Returns the maximum podcast_index_id in the feeds table, or null if empty. Used in test-assets mode for auto-increment. */
+  async getMaxPodcastIndexId(): Promise<number | null> {
+    const result = await this.repositoryRead
+      .createQueryBuilder('feed')
+      .select('MAX(feed.podcast_index_id)', 'max')
+      .getRawOne<{ max: number | string | null }>();
+    const max = result?.max;
+    if (max === null || max === undefined) return null;
+    const n = typeof max === 'number' ? max : parseInt(String(max), 10);
+    return Number.isNaN(n) ? null : n;
   }
 
   async getOrCreate({ url, podcast_index_id }: FeedCreateDto): Promise<Feed> {

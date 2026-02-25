@@ -1,6 +1,6 @@
-import { ApiListResponse } from '../..';
-import { DTOQueueResource, DTOQueueResourceAbridgedResponseData } from '@podverse/helpers';
-import { ApiRequestService } from '../../_request';
+import type { ApiListResponse } from '../../index.js';
+import type { DTOQueueResource, DTOQueueResourceAbridgedResponseData } from '@podverse/helpers';
+import type { ApiRequestService } from '../../_request.js';
 
 export async function reqQueueResourcesGetAllByAccountAbridged(api: ApiRequestService) {
   return api.apiRequest<DTOQueueResourceAbridgedResponseData[]>({

@@ -1,13 +1,13 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { EpisodeByGuidResponse } from '@podverse/helpers';
+import type { EpisodeByGuidResponse } from '@podverse/helpers';
 import React from 'react';
-import { Image } from '../../../../Image/Image';
+import { ImagesPerView } from '../../../../Image/ImagesPerView';
 import { ROUTES } from '../../../../../constants/routes';
 import { IMAGES } from '../../../../../constants/images';
 import { Link } from '../../../../Link/Link';
-import styles from '../../../../../styles/components/List/Podcasts/Episodes/ListEpisodeRow.module.scss';
+import styles from '../../../../../styles/components/Common/List/Podcasts/Episodes/ListEpisodeRow.module.scss';
 
 interface Props {
   itemUnadded: NonNullable<EpisodeByGuidResponse['episode']>;
@@ -25,19 +25,15 @@ export const ListTrackRowRemoteItemUnadded: React.FC<Props> = ({
   return (
     <div className={styles.trackRow}>
       <Link href={url} className={styles.trackClickable}>
-        <Image
+        <ImagesPerView
           src={itemUnadded.image || itemUnadded.feedImage}
           alt={itemUnadded.title || tMedia('music.track_image')}
-          width={IMAGES.LIST.TRACKS.DESKTOP.SIZE}
-          height={IMAGES.LIST.TRACKS.DESKTOP.SIZE}
-          className={styles.image}
-        />
-        <Image
-          src={itemUnadded.image || itemUnadded.feedImage}
-          alt={itemUnadded.title || tMedia('music.track_image')}
-          width={IMAGES.LIST.TRACKS.MOBILE.SIZE}
-          height={IMAGES.LIST.TRACKS.MOBILE.SIZE}
-          className={styles.imageMobile}
+          widthDesktop={IMAGES.LIST.TRACKS.DESKTOP.SIZE}
+          heightDesktop={IMAGES.LIST.TRACKS.DESKTOP.SIZE}
+          widthMobile={IMAGES.LIST.TRACKS.MOBILE.SIZE}
+          heightMobile={IMAGES.LIST.TRACKS.MOBILE.SIZE}
+          classNameDesktop={styles.image}
+          classNameMobile={styles.imageMobile}
         />
         <div className={styles.trackWrapper}>
           <div className={styles.trackContent}>
