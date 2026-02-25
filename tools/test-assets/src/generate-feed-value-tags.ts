@@ -2,7 +2,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { faker } from '@faker-js/faker';
 
-import type { LocalLnRecipient } from '@podverse/v4v-btc-ln/test-data';
+import type { LocalLnRecipientsConfig } from '@podverse/v4v-btc-ln/test-data';
 import {
   LNURL_TEST_ADDRESSES,
   METABOOST_URL,
@@ -74,57 +74,97 @@ const randomValueRecipientOpts = (): ValueRecipientOpts => {
   return opts;
 };
 
-const buildFixedValueRecipients = (
-  type: string,
-  addresses: string[],
-  labelPrefix: string
-): string => {
-  return addresses
-    .map((address, index) =>
-      buildValueRecipientXml(
-        address,
-        VALUE_RECIPIENT_SPLITS[index] ?? 0,
-        `${labelPrefix} ${index + 1}`,
-        {
-          type,
-          fee: index === 2,
-        }
-      )
-    )
-    .join('\n    ');
+type LightningRecipientType = 'lnaddress' | 'node';
+
+type LightningRecipient = {
+  address: string;
+  fee?: boolean;
+  name: string;
+  split: number;
+  type: LightningRecipientType;
 };
 
-const buildConfiguredValueRecipients = (type: string, recipients: LocalLnRecipient[]): string => {
-  return recipients
+const randomLightningRecipientType = (): LightningRecipientType =>
+  faker.helpers.arrayElement(['lnaddress', 'node']);
+
+const buildLocalRecipient = (
+  type: LightningRecipientType,
+  recipients: LocalLnRecipientsConfig | null,
+  index: number
+): LightningRecipient | null => {
+  if (!recipients) {
+    return null;
+  }
+  const list = type === 'lnaddress' ? recipients.lnaddress : recipients.keysend;
+  const recipient = list[index];
+  if (!recipient) {
+    return null;
+  }
+  return {
+    address: recipient.address,
+    fee: recipient.fee,
+    name: recipient.name,
+    split: recipient.split,
+    type,
+  };
+};
+
+const buildFakeRecipient = (type: LightningRecipientType, index: number): LightningRecipient => {
+  const address =
+    type === 'lnaddress'
+      ? (LNURL_TEST_ADDRESSES[index] ?? faker.helpers.arrayElement(LNURL_TEST_ADDRESSES))
+      : lightningNodePubkey();
+  const split = VALUE_RECIPIENT_SPLITS[index] ?? faker.number.int({ min: 1, max: 100 });
+  const labelPrefix = type === 'lnaddress' ? 'LNAddress Recipient' : 'Keysend Recipient';
+  return {
+    address,
+    fee: index === 2,
+    name: `${labelPrefix} ${index + 1}`,
+    split,
+    type,
+  };
+};
+
+const buildMixedLightningRecipient = (
+  recipients: LocalLnRecipientsConfig | null,
+  index: number
+): LightningRecipient => {
+  const preferredType = randomLightningRecipientType();
+  const preferred = buildLocalRecipient(preferredType, recipients, index);
+  if (preferred) {
+    return preferred;
+  }
+  const fallbackType = preferredType === 'lnaddress' ? 'node' : 'lnaddress';
+  const fallback = buildLocalRecipient(fallbackType, recipients, index);
+  if (fallback) {
+    return fallback;
+  }
+  return buildFakeRecipient(preferredType, index);
+};
+
+const buildMixedValueRecipients = (recipients: LocalLnRecipientsConfig | null): string => {
+  const localCount = recipients
+    ? Math.max(recipients.keysend.length, recipients.lnaddress.length)
+    : 0;
+  const count = Math.max(localCount, VALUE_RECIPIENT_SPLITS.length);
+  return Array.from({ length: count }, (_, index) =>
+    buildMixedLightningRecipient(recipients, index)
+  )
     .map((recipient) =>
       buildValueRecipientXml(recipient.address, recipient.split, recipient.name, {
-        type,
+        type: recipient.type,
         fee: recipient.fee === true,
       })
     )
     .join('\n    ');
 };
 
-const randomLightningRecipientType = (): 'lnaddress' | 'node' =>
-  faker.helpers.arrayElement(['lnaddress', 'node']);
-
 /** 07a: Build channel <podcast:value> blocks for lightning. */
 export const buildChannelValueBlock = (_recipientCount: number): string => {
   const suggested = '0.00000005000';
   const metaBoost = `<podcast:metaBoost type="post" schema="boostbox" license="${METABOOST_LICENSE_URL}">${METABOOST_URL}</podcast:metaBoost>`;
   const localRecipients = readLocalLnRecipientsConfig(LOCAL_LN_RECIPIENTS_PATH);
-  const recipientType = randomLightningRecipientType();
-  const keysendRecipients = localRecipients
-    ? buildConfiguredValueRecipients('node', localRecipients.keysend)
-    : buildFixedValueRecipients(
-        'node',
-        [lightningNodePubkey(), lightningNodePubkey(), lightningNodePubkey()],
-        'Keysend Recipient'
-      );
-  const lnaddressRecipients = localRecipients
-    ? buildConfiguredValueRecipients('lnaddress', localRecipients.lnaddress)
-    : buildFixedValueRecipients('lnaddress', LNURL_TEST_ADDRESSES, 'LNAddress Recipient');
-  const recipients = recipientType === 'lnaddress' ? lnaddressRecipients : keysendRecipients;
+  const recipients = buildMixedValueRecipients(localRecipients);
 
   return [
     `<podcast:value type="lightning" method="keysend" suggested="${suggested}">`,
@@ -142,18 +182,7 @@ export const buildItemValueBlock = (
   const suggested = '0.00000005000';
   const metaBoost = `<podcast:metaBoost type="post" schema="boostbox" license="${METABOOST_LICENSE_URL}">${METABOOST_URL}</podcast:metaBoost>`;
   const localRecipients = readLocalLnRecipientsConfig(LOCAL_LN_RECIPIENTS_PATH);
-  const recipientType = randomLightningRecipientType();
-  const keysendRecipients = localRecipients
-    ? buildConfiguredValueRecipients('node', localRecipients.keysend)
-    : buildFixedValueRecipients(
-        'node',
-        [lightningNodePubkey(), lightningNodePubkey(), lightningNodePubkey()],
-        'Keysend Recipient'
-      );
-  const lnaddressRecipients = localRecipients
-    ? buildConfiguredValueRecipients('lnaddress', localRecipients.lnaddress)
-    : buildFixedValueRecipients('lnaddress', LNURL_TEST_ADDRESSES, 'LNAddress Recipient');
-  const recipients = recipientType === 'lnaddress' ? lnaddressRecipients : keysendRecipients;
+  const recipients = buildMixedValueRecipients(localRecipients);
   let valueTimeSplitBlock = '';
   if (includeValueTimeSplit) {
     const startTime = faker.number.int({ min: 0, max: 3600 });
@@ -171,14 +200,11 @@ export const buildItemValueBlock = (
         ${remoteItemXml}
       </podcast:valueTimeSplit>`;
     } else {
-      const vsRecipientAddress =
-        recipientType === 'lnaddress'
-          ? faker.helpers.arrayElement(LNURL_TEST_ADDRESSES)
-          : lightningNodePubkey();
+      const valueTimeRecipient = buildMixedLightningRecipient(localRecipients, 0);
       const vsSplit = faker.number.int({ min: 1, max: 100 });
       const vsName = faker.person.fullName();
-      const vsRecipientXml = buildValueRecipientXml(vsRecipientAddress, vsSplit, vsName, {
-        type: recipientType,
+      const vsRecipientXml = buildValueRecipientXml(valueTimeRecipient.address, vsSplit, vsName, {
+        type: valueTimeRecipient.type,
         ...randomValueRecipientOpts(),
       });
       valueTimeSplitBlock = `

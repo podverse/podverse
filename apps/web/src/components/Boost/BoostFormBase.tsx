@@ -302,7 +302,6 @@ export const BoostFormBase: React.FC<BoostFormBaseProps> = ({
             <Button
               variant="secondary"
               onClick={() => setModalBoost({ channel: null, item: null })}
-              disabled={isSubmitting}
             >
               {tMisc('cancel')}
             </Button>
