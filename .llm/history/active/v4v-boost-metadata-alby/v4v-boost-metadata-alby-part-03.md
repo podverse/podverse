@@ -238,3 +238,47 @@ make the code changes
 #### Files Modified
 
 - /Users/mitcheldowney/repos/pv/podverse/apps/web/src/components/Boost/hooks/useBoostPayments.ts
+
+### Session 33 - 2026-02-24
+
+#### Prompt (Developer)
+
+Plan
+
+Implement the plan as specified, it is attached for your reference. Do NOT edit the plan file itself.
+
+To-do's from the plan have already been created. Do not create them again. Mark them as in_progress as you work, starting with the first one. Don't stop until you have completed all the to-dos.
+
+#### Key Decisions
+
+- Source app value recipients from the Config context to avoid mismatched runtime config on the client.
+- Treat app Lightning recipients as configured only when both name and address are present.
+- Render the donate not-configured message when no app recipients resolve.
+
+#### Files Modified
+
+- /Users/mitcheldowney/repos/pv/podverse/apps/web/src/utils/value/appValue.ts
+- /Users/mitcheldowney/repos/pv/podverse/apps/web/src/components/Boost/hooks/useBoostAppRecipients.ts
+- /Users/mitcheldowney/repos/pv/podverse/apps/web/src/components/Boost/BoostFormBase.tsx
+- /Users/mitcheldowney/repos/pv/podverse/apps/web/src/components/Boost/BoostAppDonateForm.tsx
+
+### Session 34 - 2026-02-24
+
+#### Prompt (Developer)
+
+Plan
+
+Implement the plan as specified, it is attached for your reference. Do NOT edit the plan file itself.
+
+To-do's from the plan have already been created. Do not create them again. Mark them as in_progress as you work, starting with the first one. Don't stop until you have completed all the to-dos.
+
+#### Key Decisions
+
+- Add a same-origin runtime-config API route to fetch fresh sidecar config without cache.
+- Refresh ConfigProvider on the client when runtime-config env changes, rebuilding WebConfig and logging dev-only updates.
+- Use runtime-config payload comparison to avoid unnecessary updates.
+
+#### Files Modified
+
+- /Users/mitcheldowney/repos/pv/podverse/apps/web/src/app/api/runtime-config/route.ts
+- /Users/mitcheldowney/repos/pv/podverse/apps/web/src/contexts/Config.tsx

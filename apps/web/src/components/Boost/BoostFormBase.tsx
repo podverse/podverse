@@ -1,6 +1,7 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
+import type { ReactNode } from 'react';
 import { useEffect, useRef, useState } from 'react';
 
 import type { DTOChannel, DTOItem } from '@podverse/helpers';
@@ -16,6 +17,7 @@ import { BoostFormFields } from './BoostFormFields';
 import { BoostMessageNotice } from './BoostMessageNotice';
 import { BoostMetaBoostInfo } from './BoostMetaBoostInfo';
 import { BoostRecipientStatusList } from './BoostRecipientStatusList';
+import { Callout } from '../Callout/Callout';
 import { DonateSuccessConfetti } from './DonateSuccessConfetti';
 import { useConfig } from '../../contexts/Config';
 import { useLocalSettings } from '../../contexts/LocalSettings';
@@ -58,6 +60,7 @@ type BoostFormBaseProps = {
   onDonationSuccess?: () => void;
   successPrimaryButtonLabel?: string;
   successPrimaryButtonOnClick?: () => void;
+  noRecipientsFallback?: ReactNode;
 };
 
 export const BoostFormBase: React.FC<BoostFormBaseProps> = ({
@@ -82,6 +85,7 @@ export const BoostFormBase: React.FC<BoostFormBaseProps> = ({
   onDonationSuccess,
   successPrimaryButtonLabel,
   successPrimaryButtonOnClick,
+  noRecipientsFallback,
 }) => {
   const config = useConfig();
   const { boostFormDefaults, setBoostFormDefaults } = useLocalSettings();
@@ -108,6 +112,7 @@ export const BoostFormBase: React.FC<BoostFormBaseProps> = ({
   });
   const [message, setMessage] = useState<string>('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showMetaBoostInfo, setShowMetaBoostInfo] = useState(false);
 
   useEffect(() => {
     if (!showCreatorInput) {
@@ -179,6 +184,7 @@ export const BoostFormBase: React.FC<BoostFormBaseProps> = ({
   }, [selectedValueKey, totalAmountToCreator, totalAmountToApp, yourName, setBoostFormDefaults]);
 
   const { appValueRecipient, paymentRecipients: appPaymentRecipients } = useBoostAppRecipients({
+    config,
     totalAmountToApp,
     appRecipientType: appRecipientType ?? selectedChannelValue?.type ?? null,
     appRecipientRecipientType,
@@ -231,10 +237,13 @@ export const BoostFormBase: React.FC<BoostFormBaseProps> = ({
     onBoostSuccess: () => setMessage(''),
   });
 
-  if (paymentRecipients.length === 0) {
-    return null;
-  }
-
+  const effectiveTotal =
+    includeAppRecipient && !includeCreatorRecipients
+      ? totalAmountToApp
+      : !includeAppRecipient && includeCreatorRecipients
+        ? totalAmountToCreator
+        : totalAmountToCreator + totalAmountToApp;
+  const totalAmountZeroOrLess = effectiveTotal <= 0;
   const hasResults = recipientStatuses.length > 0 && !isSubmitting;
   const allFailed =
     recipientStatuses.length > 0 && recipientStatuses.every((r) => r.status === 'failed');
@@ -248,6 +257,10 @@ export const BoostFormBase: React.FC<BoostFormBaseProps> = ({
       onDonationSuccess();
     }
   }, [isSuccess, onDonationSuccess]);
+
+  if (paymentRecipients.length === 0) {
+    return <>{noRecipientsFallback ?? null}</>;
+  }
 
   const goBackFromResults = (): void => {
     setRecipientStatuses([]);
@@ -280,6 +293,9 @@ export const BoostFormBase: React.FC<BoostFormBaseProps> = ({
               tValue={tValue}
               tMisc={tMisc}
               brandName={config.public.brand.name}
+              metaBoost={metaBoost}
+              showMetaBoostInfo={showMetaBoostInfo}
+              onToggleMetaBoostInfo={() => setShowMetaBoostInfo((s) => !s)}
             />
             {shouldShowBoostMessageNotice && (
               <BoostMessageNotice
@@ -288,7 +304,11 @@ export const BoostFormBase: React.FC<BoostFormBaseProps> = ({
               />
             )}
             <div className={styles.moreInfo}>
-              {metaBoost && <BoostMetaBoostInfo metaBoost={metaBoost} />}
+              {metaBoost && showMetaBoostInfo && (
+                <Callout>
+                  <BoostMetaBoostInfo metaBoost={metaBoost} />
+                </Callout>
+              )}
               <BoostRecipientInfo
                 channel_value_recipients={channelValueRecipients}
                 item_value_recipients={itemValueRecipients}
@@ -345,7 +365,11 @@ export const BoostFormBase: React.FC<BoostFormBaseProps> = ({
               >
                 {tMisc('cancel')}
               </Button>
-              <Button onClick={handleSubmitBoost} isLoading={isSubmitting} disabled={isSubmitting}>
+              <Button
+                onClick={handleSubmitBoost}
+                isLoading={isSubmitting}
+                disabled={isSubmitting || totalAmountZeroOrLess}
+              >
                 {tMisc('submit')}
               </Button>
             </>

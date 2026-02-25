@@ -129,11 +129,23 @@ export const fetchLnurlInvoice = async ({
     const details = await fetchLnurlDetails({ lnurlOrAddress });
     if (!details?.callback) return null;
     const callbackUrl = new URL(details.callback);
+    // Use the same host as the lightning address so the browser doesn't abort when
+    // the server returns a callback with 127.0.0.1 while the page is on localhost (or vice versa).
+    const atIndex = lnurlOrAddress.indexOf('@');
+    const authorityFromAddress =
+      atIndex !== -1 ? lnurlOrAddress.slice(atIndex + 1) : callbackUrl.host;
+    callbackUrl.host = authorityFromAddress;
     callbackUrl.searchParams.set('amount', String(amountMsat));
     if (comment) {
       callbackUrl.searchParams.set('comment', comment);
     }
-    const { status, data } = await request<unknown>(callbackUrl.toString());
+    const callbackUrlStr = callbackUrl.toString();
+    const controller = new AbortController();
+    const timeoutMs = 20_000;
+    const { status, data } = await request<unknown>(callbackUrlStr, undefined, {
+      controller,
+      timeoutMs,
+    });
     if (status < 200 || status >= 300) return null;
     return isAlbyLnurlInvoiceResponse(data) ? data : null;
   }

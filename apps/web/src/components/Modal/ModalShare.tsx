@@ -4,7 +4,7 @@ import { useTranslations } from 'next-intl';
 import { MediumEnum } from '@podverse/helpers';
 import { copyToClipboard } from '@podverse/helpers-browser';
 import React, { useRef, useState } from 'react';
-import { Modal } from './Modal';
+import { Modal, MODAL_CONTENT_MAX_WIDTH } from './Modal';
 import { FormStack } from '../Form/FormStack';
 import { TextInput } from '../Form/TextInput';
 import { useModals } from '../../contexts/Modals';
@@ -130,7 +130,7 @@ export const ModalShare: React.FC = () => {
         })
       }
       ariaLabel={tFeatures('share')}
-      modalContentMaxWidth={500}
+      modalContentMaxWidth={MODAL_CONTENT_MAX_WIDTH}
     >
       <FormStack>
         {shareInputs.map((input, idx) => (

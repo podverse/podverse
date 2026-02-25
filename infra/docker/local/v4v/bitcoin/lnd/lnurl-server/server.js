@@ -119,6 +119,8 @@ async function createInvoice(username, amountMsat, memo) {
     throw new Error(`No macaroon available for ${username}`);
   }
 
+  const LND_REQUEST_TIMEOUT_MS = 15_000;
+
   return new Promise((resolve, reject) => {
     const amountSat = Math.floor(amountMsat / 1000);
     const data = JSON.stringify({ value: amountSat, memo });
@@ -144,6 +146,7 @@ async function createInvoice(username, amountMsat, memo) {
       let body = '';
       res.on('data', (chunk) => (body += chunk));
       res.on('end', () => {
+        if (timeoutId) clearTimeout(timeoutId);
         try {
           const result = JSON.parse(body);
           if (result.payment_request) {
@@ -157,7 +160,19 @@ async function createInvoice(username, amountMsat, memo) {
       });
     });
 
-    req.on('error', reject);
+    const timeoutId = setTimeout(() => {
+      req.destroy();
+      reject(
+        new Error(
+          `LND request timed out after ${LND_REQUEST_TIMEOUT_MS}ms (${config.host}:${config.port})`
+        )
+      );
+    }, LND_REQUEST_TIMEOUT_MS);
+
+    req.on('error', (err) => {
+      clearTimeout(timeoutId);
+      reject(err);
+    });
     req.write(data);
     req.end();
   });
@@ -237,7 +252,8 @@ app.get('/lnurlp/:username/callback', async (req, res) => {
     });
   } catch (err) {
     console.error(`[${username}] Failed to create invoice:`, err.message);
-    res.status(500).json({ status: 'ERROR', reason: 'Failed to create invoice' });
+    const reason = err.message || 'Failed to create invoice';
+    res.status(500).json({ status: 'ERROR', reason });
   }
 });
 

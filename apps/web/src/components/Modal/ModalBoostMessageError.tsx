@@ -2,7 +2,7 @@
 
 import { useTranslations } from 'next-intl';
 import React from 'react';
-import { Modal } from './Modal';
+import { Modal, MODAL_CONTENT_MAX_WIDTH } from './Modal';
 import { Button } from '../Button/Button';
 import { useModals } from '../../contexts/Modals';
 
@@ -50,7 +50,7 @@ export const ModalBoostMessageError: React.FC = () => {
       onClose={handleCancel}
       header={header}
       ariaLabel={header}
-      modalContentMaxWidth={500}
+      modalContentMaxWidth={MODAL_CONTENT_MAX_WIDTH}
     >
       <p>{modalBoostMessageError.message}</p>
       <div className={styles.actions}>

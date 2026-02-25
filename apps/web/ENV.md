@@ -113,6 +113,8 @@ These variables are used for client-side API requests:
 - **`NEXT_PUBLIC_APP_VALUE_LIGHTNING_LNADDRESS_ADDRESS`** (Optional) - Lightning LNAddress address
 - **Note**: Set either LNAddress or Node app value vars, not both.
 
+**Donate page:** The Boost form on the **Donate** page (`/donate`) only appears when at least one app value Lightning method is configured (either LNAddress or Node). Both name and address must be set for the chosen method. If neither is set, the page shows an explanatory message instead of the form.
+
 ### Notifications
 
 - **`NEXT_PUBLIC_WEBPUSH_VAPID_PUBLIC_KEY`** (Optional) - WebPush VAPID public key for browser notifications

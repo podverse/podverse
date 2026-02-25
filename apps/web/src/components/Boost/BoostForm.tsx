@@ -24,8 +24,6 @@ export const BoostForm: React.FC<BoostFormProps> = ({ channel, item }) => {
     metaBoost,
   } = useBoostSelection({ channel, item, tValue });
 
-  const includeAppRecipient = item === null;
-
   return (
     <BoostFormBase
       channel={channel}
@@ -37,10 +35,10 @@ export const BoostForm: React.FC<BoostFormProps> = ({ channel, item }) => {
       selectedItemValue={selectedItemValue}
       metaBoost={metaBoost}
       includeCreatorRecipients
-      includeAppRecipient={includeAppRecipient}
+      includeAppRecipient={false}
       showCreatorInput
-      showAppInput={includeAppRecipient}
-      showAppRecipientInfo={includeAppRecipient}
+      showAppInput={false}
+      showAppRecipientInfo={false}
       showMediaHeader
     />
   );

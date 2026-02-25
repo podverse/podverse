@@ -194,7 +194,15 @@ export const useBoostPayments = ({
         updateRecipientStatus(recipient.id, 'success');
       } catch (error) {
         anyFailed = true;
-        const errorMessage = getErrorMessage(error, tValue('boost_messages.status_failed'));
+        const isTimeoutOrCancel =
+          (error !== null &&
+            error !== undefined &&
+            (error as { code?: string }).code === 'ERR_CANCELED') ||
+          (error instanceof Error &&
+            (error.message === 'canceled' || error.message === 'Request aborted'));
+        const errorMessage = isTimeoutOrCancel
+          ? tValue('boost_messages.invoice_timeout')
+          : getErrorMessage(error, tValue('boost_messages.status_failed'));
         updateRecipientStatus(recipient.id, 'failed', errorMessage);
       }
     }

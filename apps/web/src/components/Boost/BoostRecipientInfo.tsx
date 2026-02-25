@@ -25,12 +25,10 @@ export const BoostRecipientInfo = ({
   item_value_recipients,
   app_value_recipient,
   totalAmountToCreator,
-  totalAmountToApp,
+  totalAmountToApp: _totalAmountToApp,
   showAppRecipient = true,
 }: BoostRecipientInfoProps) => {
   const tValue = useTranslations('value');
-
-  let rows: React.ReactNode[] = [];
 
   const normalized_channel_value_recipients = channel_value_recipients
     ? calculateRecipientAmounts(channel_value_recipients, totalAmountToCreator)
@@ -39,42 +37,44 @@ export const BoostRecipientInfo = ({
     ? calculateRecipientAmounts(item_value_recipients, totalAmountToCreator)
     : [];
 
-  if (normalized_channel_value_recipients && normalized_item_value_recipients.length > 0) {
-    rows = normalized_item_value_recipients.map((recipient, index) => (
-      <BoostRecipientInfoRow key={index} recipient={recipient} />
-    ));
-  } else if (
-    normalized_channel_value_recipients &&
-    normalized_channel_value_recipients.length > 0
-  ) {
-    rows = normalized_channel_value_recipients.map((recipient, index) => (
-      <BoostRecipientInfoRow key={index} recipient={recipient} />
-    ));
-  }
+  const creatorRecipients =
+    normalized_item_value_recipients.length > 0
+      ? normalized_item_value_recipients
+      : normalized_channel_value_recipients;
 
-  const shouldShowAppRecipient = showAppRecipient && app_value_recipient && totalAmountToApp > 0;
+  const shouldShowAppRecipient = showAppRecipient && app_value_recipient;
 
-  if (rows.length === 0 && !shouldShowAppRecipient) {
+  if (creatorRecipients.length === 0 && !shouldShowAppRecipient) {
     return null;
   }
 
   const creatorHeaderLabel =
-    rows.length > 1
+    creatorRecipients.length > 1
       ? tValue('recipient.creator_recipients')
       : tValue('recipient.creator_recipient');
 
+  const showCreatorPercentColumn = creatorRecipients.length > 1;
+
+  const creatorRows = creatorRecipients.map((recipient, index) => (
+    <BoostRecipientInfoRow
+      key={index}
+      recipient={recipient}
+      showPercentColumn={showCreatorPercentColumn}
+    />
+  ));
+
   return (
     <div className={styles.tablesStack}>
-      {rows.length > 0 && (
+      {creatorRecipients.length > 0 && (
         <table className={styles.table}>
           <thead>
             <tr className={styles.headerRow}>
               <th>{creatorHeaderLabel}</th>
-              <th>%</th>
+              {showCreatorPercentColumn && <th>%</th>}
               <th>{tValue('total')}</th>
             </tr>
           </thead>
-          <tbody>{rows}</tbody>
+          <tbody>{creatorRows}</tbody>
         </table>
       )}
       {shouldShowAppRecipient && (
@@ -82,12 +82,11 @@ export const BoostRecipientInfo = ({
           <thead>
             <tr className={styles.headerRow}>
               <th>{tValue('recipient.app_recipient')}</th>
-              <th>%</th>
               <th>{tValue('total')}</th>
             </tr>
           </thead>
           <tbody>
-            <BoostRecipientInfoRow recipient={app_value_recipient} />
+            <BoostRecipientInfoRow recipient={app_value_recipient} showPercentColumn={false} />
           </tbody>
         </table>
       )}

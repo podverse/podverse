@@ -2,7 +2,7 @@
 
 import { useTranslations } from 'next-intl';
 import React from 'react';
-import { Modal } from './Modal';
+import { Modal, MODAL_CONTENT_MAX_WIDTH } from './Modal';
 import { FormStack } from '../Form/FormStack';
 import { Link } from '../Link/Link';
 import styles from '../../styles/components/Modal/ModalFunding.module.scss';
@@ -23,7 +23,7 @@ export const ModalFunding: React.FC = () => {
       onClose={() => setModalFunding({ channel_fundings: [], item_fundings: [] })}
       header={header}
       ariaLabel={header}
-      modalContentMaxWidth={420}
+      modalContentMaxWidth={MODAL_CONTENT_MAX_WIDTH}
     >
       <FormStack>
         <ul className={styles.fundingLinksList}>

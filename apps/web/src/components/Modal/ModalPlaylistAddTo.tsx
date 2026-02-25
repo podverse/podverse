@@ -9,7 +9,7 @@ import {
   MediumEnum,
 } from '@podverse/helpers';
 import React from 'react';
-import { Modal } from './Modal';
+import { Modal, MODAL_CONTENT_MAX_WIDTH } from './Modal';
 import { MEDIUM } from '../../constants/medium';
 import { ROUTES } from '../../constants/routes';
 import type { ModalPlaylistAddToState } from '../../contexts/Modals';
@@ -212,7 +212,7 @@ export const ModalPlaylistAddTo: React.FC = () => {
       onClose={clearModalPlaylistAddTo}
       header={header}
       ariaLabel={header}
-      modalContentMaxWidth={500}
+      modalContentMaxWidth={MODAL_CONTENT_MAX_WIDTH}
     >
       {!loggedInAccount && (
         <CallToActionMessage

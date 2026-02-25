@@ -2,6 +2,10 @@
 
 import { getRuntimeConfig } from './runtime-config-store';
 
+/** Optional env value: treat empty string as undefined so "not configured" is consistent. */
+const opt = (v: string | undefined): string | undefined =>
+  v === '' || v === undefined ? undefined : v;
+
 const buildConfig = () => {
   const { env } = getRuntimeConfig();
 
@@ -30,14 +34,14 @@ const buildConfig = () => {
       },
       app_value: {
         lightning_lnaddress: {
-          name: env.NEXT_PUBLIC_APP_VALUE_LIGHTNING_LNADDRESS_NAME!,
-          address: env.NEXT_PUBLIC_APP_VALUE_LIGHTNING_LNADDRESS_ADDRESS!,
+          name: opt(env.NEXT_PUBLIC_APP_VALUE_LIGHTNING_LNADDRESS_NAME),
+          address: opt(env.NEXT_PUBLIC_APP_VALUE_LIGHTNING_LNADDRESS_ADDRESS),
         },
         lightning_node: {
-          name: env.NEXT_PUBLIC_APP_VALUE_LIGHTNING_NODE_NAME!,
-          address: env.NEXT_PUBLIC_APP_VALUE_LIGHTNING_NODE_ADDRESS!,
-          custom_key: env.NEXT_PUBLIC_APP_VALUE_LIGHTNING_NODE_CUSTOM_KEY!,
-          custom_value: env.NEXT_PUBLIC_APP_VALUE_LIGHTNING_NODE_CUSTOM_VALUE!,
+          name: opt(env.NEXT_PUBLIC_APP_VALUE_LIGHTNING_NODE_NAME),
+          address: opt(env.NEXT_PUBLIC_APP_VALUE_LIGHTNING_NODE_ADDRESS),
+          custom_key: opt(env.NEXT_PUBLIC_APP_VALUE_LIGHTNING_NODE_CUSTOM_KEY),
+          custom_value: opt(env.NEXT_PUBLIC_APP_VALUE_LIGHTNING_NODE_CUSTOM_VALUE),
         },
       },
       polling: {

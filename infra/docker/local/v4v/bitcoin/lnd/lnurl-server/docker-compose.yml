@@ -38,6 +38,13 @@ services:
       - LND_REST_PORT=18080
       - LND_MACAROON_PATH=/lnd-creds/data/chain/bitcoin/regtest/admin.macaroon
       - LND_TLS_CERT_PATH=/lnd-creds/tls.cert
+      # Reach recipient LND nodes via host-mapped ports to avoid container-to-container TLS handshake hangs
+      - ALICE_LND_REST_HOST=host.docker.internal
+      - ALICE_LND_REST_PORT=18081
+      - BOB_LND_REST_HOST=host.docker.internal
+      - BOB_LND_REST_PORT=18082
+      - FEE_LND_REST_HOST=host.docker.internal
+      - FEE_LND_REST_PORT=18083
     volumes:
       # Main Nigiri LND credentials (default / fallback)
       - ${NIGIRI_LND_CREDENTIALS_PATH:-${HOME}/.nigiri/regtest}/volumes/lnd:/lnd-creds:ro

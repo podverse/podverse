@@ -3,7 +3,7 @@
 import React from 'react';
 import { useTranslations } from 'next-intl';
 import type { DTOCategory } from '@podverse/helpers';
-import { Modal } from './Modal';
+import { Modal, MODAL_CONTENT_MAX_WIDTH } from './Modal';
 import { CategoriesList } from '../Category/CategoriesList';
 
 type ModalCategoriesSelectProps = {
@@ -29,7 +29,7 @@ export const ModalCategoriesSelect: React.FC<ModalCategoriesSelectProps> = ({
       onClose={clearModalCategoriesSelect}
       header={tCategories('categories')}
       ariaLabel={tCategories('categories')}
-      modalContentMaxWidth={500}
+      modalContentMaxWidth={MODAL_CONTENT_MAX_WIDTH}
     >
       <CategoriesList onCategoryClick={onCategoryClick} />
     </Modal>

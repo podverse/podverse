@@ -44,7 +44,9 @@ cln_cmd() {
   if nigiri cln "$@" 2>/dev/null; then
     return 0
   fi
-  docker exec cln lightning-cli --network=regtest "$@"
+  # lightningd uses --lightning-dir=.lightning (CWD=/), so socket is at /.lightning/regtest/
+  # lightning-cli defaults to $HOME/.lightning which is wrong; specify the correct path.
+  docker exec cln lightning-cli --network=regtest --lightning-dir=/.lightning "$@"
 }
 
 # --- 1. Sync chain ---
@@ -100,7 +102,35 @@ fund_lnd() {
 }
 
 # --- 3. Fund CLN with 1 BTC ---
+# CLN creates the lightning-rpc socket only after it has fully started. If we call lightning-cli
+# before the socket exists, we get "Operation not supported". Wait for CLN RPC like we do for LND.
+CLN_RPC_MAX_ATTEMPTS=60
+CLN_RPC_SLEEP=2
+
+wait_for_cln_rpc() {
+  local i
+  for i in $(seq 1 $CLN_RPC_MAX_ATTEMPTS); do
+    if cln_cmd getinfo >/dev/null 2>&1; then
+      return 0
+    fi
+    if [ "$i" -eq $CLN_RPC_MAX_ATTEMPTS ]; then
+      echo "ERROR: CLN RPC did not become ready (lightning-rpc socket not available)."
+      echo "  If 'docker logs cln' shows: lightningd: Binding rpc socket to 'lightning-rpc': Operation not supported"
+      echo "  then lightningd cannot create the Unix socket in this environment (e.g. Docker on macOS with certain volume mounts)."
+      echo "  Check: docker logs cln"
+      echo "  See: https://github.com/ElementsProject/lightning/issues/4810"
+      return 1
+    fi
+    echo "  Attempt $i/$CLN_RPC_MAX_ATTEMPTS: CLN RPC not ready (socket may not exist yet), waiting ${CLN_RPC_SLEEP}s..."
+    sleep $CLN_RPC_SLEEP
+  done
+  return 1
+}
+
 fund_cln() {
+  echo "Waiting for CLN RPC (lightning-rpc socket)..."
+  wait_for_cln_rpc || return 1
+
   local funds total_sats
   funds=$(cln_cmd listfunds 2>/dev/null || echo '{"outputs":[]}')
   total_sats=$(echo "$funds" | jq -r '[.outputs[]? | .amount_msat // 0] | add // 0')
@@ -120,18 +150,15 @@ fund_cln() {
   fi
 }
 
-# --- 4. Connect LND to CLN and open channel ---
+# --- 4. Connect LND to CLN and open/activate channel ---
 MAX_PEER_ATTEMPTS=20
 PEER_POLL_SLEEP=2
+MAX_CHANNEL_ACTIVE_ATTEMPTS=30
+CHANNEL_ACTIVE_SLEEP=2
 
-open_channel() {
-  local channels
-  channels=$(lnd_cmd listchannels 2>/dev/null | jq -r '.channels | length // 0')
-  if [ -n "$channels" ] && [ "$channels" != "null" ] && [ "${channels:-0}" -gt 0 ]; then
-    echo "LND already has channel(s), skipping."
-    return 0
-  fi
-  echo "Waiting for CLN to be ready..."
+# Ensure LND is connected to CLN as a peer. Idempotent (connect is no-op if already connected).
+ensure_lnd_cln_connected() {
+  echo "Ensuring LND is connected to CLN..."
   local i
   for i in $(seq 1 $MAX_PEER_ATTEMPTS); do
     if cln_cmd getinfo >/dev/null 2>&1; then
@@ -144,20 +171,31 @@ open_channel() {
     echo "  Attempt $i/$MAX_PEER_ATTEMPTS: CLN not ready, waiting ${PEER_POLL_SLEEP}s..."
     sleep $PEER_POLL_SLEEP
   done
+
   local cln_id
   cln_id=$(cln_cmd getinfo | jq -r '.id')
   if [ -z "$cln_id" ] || [ "$cln_id" = "null" ]; then
     echo "ERROR: Could not get CLN node id."
     return 1
   fi
+  CLN_NODE_ID="$cln_id"
+
+  # Check if already connected
+  if lnd_cmd listpeers 2>/dev/null | jq -e '.peers[] | select(.pub_key=="'"$cln_id"'")' >/dev/null 2>&1; then
+    echo "LND already connected to CLN."
+    return 0
+  fi
+
   # CLN P2P can lag RPC; give it a moment before connect attempts
-  sleep 5
+  sleep 3
   # Nigiri CLN uses --bind-addr=0.0.0.0:9935 (see docker-compose); host 9835 maps to container 9935
   echo "Connecting LND to CLN..."
-  local connected=
   for i in $(seq 1 $MAX_PEER_ATTEMPTS); do
     if lnd_cmd connect "${cln_id}@cln:9935" 2>/dev/null; then
-      connected=1
+      break
+    fi
+    # "already connected" is not an error
+    if lnd_cmd listpeers 2>/dev/null | jq -e '.peers[] | select(.pub_key=="'"$cln_id"'")' >/dev/null 2>&1; then
       break
     fi
     if [ "$i" -eq $MAX_PEER_ATTEMPTS ]; then
@@ -167,11 +205,12 @@ open_channel() {
     echo "  Attempt $i/$MAX_PEER_ATTEMPTS: connect refused, waiting ${PEER_POLL_SLEEP}s..."
     sleep $PEER_POLL_SLEEP
   done
-  [ -n "${connected:-}" ] || return 1
+
   echo "Waiting for CLN peer to appear in LND listpeers..."
   for i in $(seq 1 $MAX_PEER_ATTEMPTS); do
     if lnd_cmd listpeers 2>/dev/null | jq -e '.peers[] | select(.pub_key=="'"$cln_id"'")' >/dev/null 2>&1; then
-      break
+      echo "LND connected to CLN."
+      return 0
     fi
     if [ "$i" -eq $MAX_PEER_ATTEMPTS ]; then
       echo "ERROR: CLN peer did not appear in LND listpeers."
@@ -180,10 +219,69 @@ open_channel() {
     echo "  Attempt $i/$MAX_PEER_ATTEMPTS: peer not in listpeers yet, waiting ${PEER_POLL_SLEEP}s..."
     sleep $PEER_POLL_SLEEP
   done
+  return 1
+}
+
+# Wait for at least one channel to become active
+wait_for_channel_active() {
+  echo "Waiting for channel to become active..."
+  local i
+  for i in $(seq 1 $MAX_CHANNEL_ACTIVE_ATTEMPTS); do
+    local active_count
+    active_count=$(lnd_cmd listchannels 2>/dev/null | jq -r '[.channels[] | select(.active == true)] | length // 0')
+
+    if [ -n "$active_count" ] && [ "$active_count" != "null" ] && [ "${active_count:-0}" -gt 0 ]; then
+      echo "Channel is active."
+      return 0
+    fi
+    if [ "$i" -eq $MAX_CHANNEL_ACTIVE_ATTEMPTS ]; then
+      echo "WARNING: Channel did not become active within timeout. Payment may fail."
+      return 1
+    fi
+    echo "  Attempt $i/$MAX_CHANNEL_ACTIVE_ATTEMPTS: no active channels yet, waiting ${CHANNEL_ACTIVE_SLEEP}s..."
+    sleep $CHANNEL_ACTIVE_SLEEP
+  done
+  return 1
+}
+
+open_channel() {
+  # Always ensure peer connection first (handles reconnection after CLN restart)
+  ensure_lnd_cln_connected || return 1
+
+  # Check if there's a channel specifically to CLN (by pubkey)
+  # CLN_NODE_ID is set by ensure_lnd_cln_connected
+  local cln_channel_count cln_channel_active orphaned_count
+  cln_channel_count=$(lnd_cmd listchannels 2>/dev/null | jq -r '[.channels[] | select(.remote_pubkey=="'"$CLN_NODE_ID"'")] | length // 0')
+  cln_channel_active=$(lnd_cmd listchannels 2>/dev/null | jq -r '[.channels[] | select(.remote_pubkey=="'"$CLN_NODE_ID"'" and .active == true)] | length // 0')
+  orphaned_count=$(lnd_cmd listchannels 2>/dev/null | jq -r '[.channels[] | select(.remote_pubkey!="'"$CLN_NODE_ID"'" and .active == false and .uptime == "0")] | length // 0')
+
+  # If we have a channel to the current CLN pubkey
+  if [ -n "$cln_channel_count" ] && [ "$cln_channel_count" != "null" ] && [ "${cln_channel_count:-0}" -gt 0 ]; then
+    if [ -n "$cln_channel_active" ] && [ "$cln_channel_active" != "null" ] && [ "${cln_channel_active:-0}" -gt 0 ]; then
+      echo "LND already has active channel to CLN ($CLN_NODE_ID), skipping."
+      return 0
+    fi
+    # Channel to current CLN exists but inactive — wait for it to activate
+    echo "LND has channel to CLN but inactive. Waiting for activation after peer reconnection..."
+    wait_for_channel_active
+    return 0
+  fi
+
+  # No channel to current CLN — check if there are orphaned channels to old CLN pubkeys
+  if [ -n "$orphaned_count" ] && [ "$orphaned_count" != "null" ] && [ "${orphaned_count:-0}" -gt 0 ]; then
+    echo "WARNING: Found $orphaned_count orphaned channel(s) to old CLN pubkey(s)."
+    echo "  CLN identity changed. Old channels will never activate."
+    echo "  Opening new channel to current CLN ($CLN_NODE_ID)..."
+  fi
+
+  # No channel exists — open one
   echo "Opening LND->CLN channel..."
-  lnd_cmd openchannel --node_key="$cln_id" --local_amt=$CHANNEL_CAPACITY_SATS
+  lnd_cmd openchannel --node_key="$CLN_NODE_ID" --local_amt=$CHANNEL_CAPACITY_SATS
   mine_blocks $CONFIRM_BLOCKS
   echo "Channel opened."
+
+  # Wait for the new channel to become active
+  wait_for_channel_active
 }
 
 # --- Main ---

@@ -2,7 +2,7 @@
 
 import { useTranslations } from 'next-intl';
 import React from 'react';
-import { Modal } from './Modal';
+import { Modal, MODAL_CONTENT_MAX_WIDTH } from './Modal';
 import { BoostForm } from '../Boost/BoostForm';
 import { useModals } from '../../contexts/Modals';
 
@@ -22,7 +22,7 @@ export const ModalBoost: React.FC = () => {
       onClose={() => setModalBoost({ channel: null, item: null })}
       header={header}
       ariaLabel={header}
-      modalContentMaxWidth={500}
+      modalContentMaxWidth={MODAL_CONTENT_MAX_WIDTH}
     >
       <BoostForm channel={modalBoost.channel} item={modalBoost.item} />
     </Modal>

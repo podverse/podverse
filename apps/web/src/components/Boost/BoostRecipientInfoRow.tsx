@@ -10,16 +10,20 @@ type BoostRecipientInfoRowProps = {
         normalized_split: number;
         final_amount: number;
       };
+  showPercentColumn?: boolean;
 };
 
-export const BoostRecipientInfoRow = ({ recipient }: BoostRecipientInfoRowProps) => {
+export const BoostRecipientInfoRow = ({
+  recipient,
+  showPercentColumn = true,
+}: BoostRecipientInfoRowProps) => {
   return (
     <tr className={styles.row}>
       <td>
         <div>{recipient.name ?? null}</div>
         <div className={styles.address}>{recipient.address}</div>
       </td>
-      <td className={styles.percent}>{recipient.normalized_split}</td>
+      {showPercentColumn && <td className={styles.percent}>{recipient.normalized_split}</td>}
       <td className={styles.amount}>{recipient.final_amount}</td>
     </tr>
   );

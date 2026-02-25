@@ -3,7 +3,7 @@
 import { useTranslations } from 'next-intl';
 import { copyToClipboard } from '@podverse/helpers-browser';
 import React, { useRef, useState } from 'react';
-import { Modal } from './Modal';
+import { Modal, MODAL_CONTENT_MAX_WIDTH } from './Modal';
 import { useModals } from '../../contexts/Modals';
 import { WEB } from '../../constants/web';
 import { TextInput } from '../Form/TextInput';
@@ -47,7 +47,7 @@ export const ModalClipCreated: React.FC = () => {
       onClose={clearModalClipCreated}
       header={header}
       ariaLabel={header}
-      modalContentMaxWidth={500}
+      modalContentMaxWidth={MODAL_CONTENT_MAX_WIDTH}
     >
       <TextInput
         key="clip_url"

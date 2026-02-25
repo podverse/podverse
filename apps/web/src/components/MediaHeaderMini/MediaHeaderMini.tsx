@@ -39,6 +39,8 @@ export const MediaHeaderMini: React.FC<MediaHeaderMiniProps> = ({
   } else if (item?.title) {
     title = item.title || tMisc('untitled');
     subtitle = channel.title || tMisc('untitled');
+  } else {
+    title = channel.title || tMisc('untitled');
   }
 
   return (

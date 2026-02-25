@@ -29,7 +29,7 @@
 }
 
 .boostAmountInputs {
-  max-width: 300px;
+  max-width: 220px;
 }
 
 .moreInfo {
@@ -46,7 +46,16 @@
 
 .metaBoostInfo {
   display: grid;
-  gap: var(--spacing-xs);
+  gap: var(--spacing-lg);
+}
+
+.metaBoostInfoToggle {
+  font-size: var(--font-size-sm);
+  line-height: 1.25;
+  height: auto;
+  min-height: 0;
+  padding: 0;
+  font-weight: var(--font-weight-normal);
 }
 
 .boostMessageNotice {

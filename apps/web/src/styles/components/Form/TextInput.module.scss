@@ -31,8 +31,45 @@
   padding: var(--spacing-form-input-inner);
 }
 
+.inputWithSuffixRow {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  min-width: 0;
+  gap: 0;
+}
+
+.inputWithSuffix {
+  flex: 0 0 auto;
+  padding-right: 0;
+}
+
+.suffixSpacer {
+  width: 0.75ch;
+  flex-shrink: 0;
+  cursor: default;
+}
+
+.suffix {
+  flex-shrink: 0;
+  font-size: var(--font-size-md);
+  font-weight: inherit;
+  color: var(--text-color-primary);
+  cursor: default;
+}
+
 .numberInput {
   -moz-appearance: textfield;
+}
+
+.numberInputWithSuffix {
+  -moz-appearance: textfield;
+
+  &::-webkit-outer-spin-button,
+  &::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
 }
 
 .textInputInfo {

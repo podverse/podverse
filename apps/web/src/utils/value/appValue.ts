@@ -1,13 +1,16 @@
 import type { AppValueRecipient } from '@podverse/helpers';
-import { getConfig } from '../../config';
+
+import type { WebConfig } from '../../config';
 
 type GetAppValueRecipientParams = {
+  config: WebConfig;
   type: string;
   recipientType?: string | null;
   final_amount: number;
 };
 
 export const getAppValueRecipient = ({
+  config,
   type,
   recipientType,
   final_amount,
@@ -16,7 +19,6 @@ export const getAppValueRecipient = ({
     return null;
   }
 
-  const config = getConfig();
   const lnaddressConfig = config.public.app_value.lightning_lnaddress;
   const nodeConfig = config.public.app_value.lightning_node;
   const hasLnaddress = Boolean(lnaddressConfig.address);

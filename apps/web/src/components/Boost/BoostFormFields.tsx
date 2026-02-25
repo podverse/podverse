@@ -2,7 +2,9 @@ import Form from '../Form/Form';
 import TextInputNumber from '../Form/TextInputNumber';
 import { TextInput } from '../Form/TextInput';
 import { TextArea } from '../Form/TextArea';
+import type { MetaBoost } from '@podverse/v4v-metaboost';
 
+import { Button } from '../Button/Button';
 import styles from '../../styles/components/Boost/BoostForm.module.scss';
 
 type Translator = (key: string, values?: Record<string, string | number>) => string;
@@ -26,6 +28,9 @@ type BoostFormFieldsProps = {
   tValue: Translator;
   tMisc: Translator;
   brandName: string;
+  metaBoost?: MetaBoost | null;
+  showMetaBoostInfo?: boolean;
+  onToggleMetaBoostInfo?: () => void;
 };
 
 export const BoostFormFields = ({
@@ -46,6 +51,9 @@ export const BoostFormFields = ({
   tValue,
   tMisc,
   brandName,
+  metaBoost = null,
+  showMetaBoostInfo = false,
+  onToggleMetaBoostInfo,
 }: BoostFormFieldsProps) => (
   <Form
     onSubmit={(e) => {
@@ -90,6 +98,18 @@ export const BoostFormFields = ({
           onChange={(e) => setMessage(e.target.value)}
           maxLength={500}
           disabled={isSubmitting || hasStatusUpdates}
+          footerLeftContent={
+            metaBoost && onToggleMetaBoostInfo ? (
+              <Button
+                type="button"
+                variant="link"
+                className={styles.metaBoostInfoToggle}
+                onClick={onToggleMetaBoostInfo}
+              >
+                {showMetaBoostInfo ? tMisc('hide_info') : tMisc('more_info')}
+              </Button>
+            ) : undefined
+          }
         />
       </>
     )}

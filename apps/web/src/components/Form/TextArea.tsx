@@ -8,6 +8,8 @@ type TextAreaProps = {
   onChange?: (event: React.ChangeEvent<HTMLTextAreaElement>) => void;
   eyebrow?: string;
   info?: string;
+  /** Renders on the left of the info row (same row as character counter when maxLength is set). */
+  footerLeftContent?: React.ReactNode;
   placeholder?: string;
   rows?: number;
   type?: string;
@@ -19,7 +21,7 @@ type TextAreaProps = {
   name?: string;
   autoFocus?: boolean;
   tabIndex?: number;
-  maxLength?: number; // Add this line
+  maxLength?: number;
   'aria-label'?: string;
   'aria-describedby'?: string;
   'aria-required'?: AriaAttributes['aria-required'];
@@ -31,6 +33,7 @@ export const TextArea: React.FC<TextAreaProps> = ({
   onChange,
   eyebrow,
   info,
+  footerLeftContent,
   placeholder,
   rows = 4,
   type: _type = 'text',
@@ -89,13 +92,15 @@ export const TextArea: React.FC<TextAreaProps> = ({
           />
         </div>
       </div>
-      {(info || typeof maxLength === 'number') && (
+      {(info || typeof maxLength === 'number' || footerLeftContent) && (
         <div className={styles.textAreaInfoRow}>
-          {info && (
+          {footerLeftContent !== undefined ? (
+            footerLeftContent
+          ) : info ? (
             <div id={infoId} className={styles.textAreaInfo}>
               {info}
             </div>
-          )}
+          ) : null}
           {typeof maxLength === 'number' && (
             <div className={styles.textAreaCounter}>
               <span>

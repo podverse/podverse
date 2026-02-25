@@ -2,37 +2,48 @@ import { useTranslations } from 'next-intl';
 
 import type { MetaBoost } from '@podverse/v4v-metaboost';
 
+import { Link } from '../Link/Link';
 import styles from '../../styles/components/Boost/BoostForm.module.scss';
 
 type BoostMetaBoostInfoProps = {
   metaBoost: MetaBoost;
 };
 
+function getDomainFromUrl(url: string): string {
+  try {
+    return new URL(url).hostname;
+  } catch {
+    return url;
+  }
+}
+
 export const BoostMetaBoostInfo = ({ metaBoost }: BoostMetaBoostInfoProps) => {
   const tValue = useTranslations('value');
 
   return (
     <div className={styles.metaBoostInfo}>
-      <strong>{tValue('meta_boost.title')}</strong>
-      <div>
-        {tValue('meta_boost.type_label')} {metaBoost.type}
-      </div>
-      <div>
-        {tValue('meta_boost.schema_label')} {metaBoost.schema}
-      </div>
-      {metaBoost.license && (
+      {metaBoost.node && (
         <div>
-          {tValue('meta_boost.license_label')}{' '}
-          <a href={metaBoost.license} target="_blank" rel="noopener noreferrer">
-            {metaBoost.license}
-          </a>
+          {tValue.rich('meta_boost.message_receive', {
+            domain: getDomainFromUrl(metaBoost.node),
+            link: (chunks) => (
+              <Link href={metaBoost.node ?? ''} target="_blank" rel="noopener noreferrer">
+                {chunks}
+              </Link>
+            ),
+          })}
         </div>
       )}
       <div>
-        {tValue('meta_boost.node_label')}{' '}
-        <a href={metaBoost.node} target="_blank" rel="noopener noreferrer">
-          {metaBoost.node}
-        </a>
+        {metaBoost.license
+          ? tValue.rich('meta_boost.terms_message', {
+              link: (chunks) => (
+                <Link href={metaBoost.license ?? ''} target="_blank" rel="noopener noreferrer">
+                  {chunks}
+                </Link>
+              ),
+            })
+          : tValue('meta_boost.no_terms')}
       </div>
     </div>
   );

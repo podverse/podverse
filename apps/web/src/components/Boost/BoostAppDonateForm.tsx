@@ -7,6 +7,8 @@ import { useMemo, useState } from 'react';
 import { BoostFormBase } from './BoostFormBase';
 import { useConfig } from '../../contexts/Config';
 
+import styles from './BoostAppDonateForm.module.scss';
+
 /** Value key for app donate when lightning is configured (lnaddress or node). */
 const APP_DONATE_LIGHTNING_KEY = 'lightning';
 
@@ -17,37 +19,36 @@ type BoostAppDonateFormProps = {
 export const BoostAppDonateForm: React.FC<BoostAppDonateFormProps> = ({ onDonationSuccess }) => {
   const router = useRouter();
   const config = useConfig();
-  const tValue = useTranslations('value');
   const tDonate = useTranslations('donate');
+  const tValue = useTranslations('value');
   const tMisc = useTranslations('misc');
 
   const appRecipientType = useMemo<'lnaddress' | 'node' | null>(() => {
-    if (config.public.app_value.lightning_lnaddress?.address) {
+    const hasLnaddress =
+      Boolean(config.public.app_value.lightning_lnaddress?.address) &&
+      Boolean(config.public.app_value.lightning_lnaddress?.name);
+    const hasNode =
+      Boolean(config.public.app_value.lightning_node?.address) &&
+      Boolean(config.public.app_value.lightning_node?.name);
+
+    if (hasLnaddress) {
       return 'lnaddress';
     }
-    if (config.public.app_value.lightning_node?.address) {
+    if (hasNode) {
       return 'node';
     }
     return null;
   }, [
-    config.public.app_value.lightning_node?.address,
     config.public.app_value.lightning_lnaddress?.address,
+    config.public.app_value.lightning_lnaddress?.name,
+    config.public.app_value.lightning_node?.address,
+    config.public.app_value.lightning_node?.name,
   ]);
 
   const defaultValueKey = useMemo<string>(() => {
     if (appRecipientType === null) return '';
-    if (
-      config.public.app_value.lightning_lnaddress?.address ||
-      config.public.app_value.lightning_node?.address
-    ) {
-      return APP_DONATE_LIGHTNING_KEY;
-    }
-    return '';
-  }, [
-    appRecipientType,
-    config.public.app_value.lightning_lnaddress?.address,
-    config.public.app_value.lightning_node?.address,
-  ]);
+    return APP_DONATE_LIGHTNING_KEY;
+  }, [appRecipientType]);
 
   const [selectedKey, setSelectedKey] = useState<string>(defaultValueKey);
   const selectedValueKey = selectedKey !== '' ? selectedKey : null;
@@ -60,7 +61,15 @@ export const BoostAppDonateForm: React.FC<BoostAppDonateFormProps> = ({ onDonati
     },
   ];
 
-  if (!appRecipientType || selectedValueKey === null) {
+  // Form is hidden when no app Lightning recipient is configured (LNAddress or Node env vars).
+  if (appRecipientType === null) {
+    return (
+      <p className={styles.notConfigured}>
+        {tDonate('app_not_configured', { brand_name: config.public.brand.name })}
+      </p>
+    );
+  }
+  if (selectedValueKey === null) {
     return null;
   }
 
@@ -87,6 +96,11 @@ export const BoostAppDonateForm: React.FC<BoostAppDonateFormProps> = ({ onDonati
       onDonationSuccess={onDonationSuccess}
       successPrimaryButtonLabel={tMisc('return_to_home_page')}
       successPrimaryButtonOnClick={() => router.push('/')}
+      noRecipientsFallback={
+        <p className={styles.notConfigured}>
+          {tDonate('app_not_configured', { brand_name: config.public.brand.name })}
+        </p>
+      }
     />
   );
 };

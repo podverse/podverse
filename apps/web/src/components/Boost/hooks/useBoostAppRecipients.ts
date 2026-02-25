@@ -2,8 +2,10 @@ import type { AppValueRecipient } from '@podverse/helpers';
 
 import type { PaymentRecipient } from '../types.js';
 import { getAppValueRecipient } from '../../../utils/value/appValue';
+import type { WebConfig } from '../../../config';
 
 type UseBoostAppRecipientsParams = {
+  config: WebConfig;
   totalAmountToApp: number;
   appRecipientType: string | null;
   appRecipientRecipientType?: string | null;
@@ -16,6 +18,7 @@ type UseBoostAppRecipientsResult = {
 };
 
 export const useBoostAppRecipients = ({
+  config,
   totalAmountToApp,
   appRecipientType,
   appRecipientRecipientType,
@@ -24,6 +27,7 @@ export const useBoostAppRecipients = ({
   const appValueRecipient =
     includeAppRecipient && appRecipientType
       ? getAppValueRecipient({
+          config,
           type: appRecipientType,
           recipientType: appRecipientRecipientType,
           final_amount: totalAmountToApp,
@@ -31,7 +35,7 @@ export const useBoostAppRecipients = ({
       : null;
 
   const paymentRecipients =
-    appValueRecipient && totalAmountToApp > 0
+    appValueRecipient !== null
       ? [
           {
             id: `app-${appValueRecipient.address}`,
