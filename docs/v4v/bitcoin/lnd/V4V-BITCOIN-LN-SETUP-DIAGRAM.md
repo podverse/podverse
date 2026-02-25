@@ -130,8 +130,8 @@ asset generation.
 - When `--add-fake-value-tags` is set, the CLI uses `@podverse/v4v-btc-ln/test-data`
   (`readLocalLnRecipientsConfig`, `LNURL_TEST_ADDRESSES`, `VALUE_RECIPIENT_SPLITS`, `METABOOST_URL`)
   to read `ln-recipients.local.json` (or fall back to built-in fake data) and emits RSS with
-  `<podcast:value>`, `<podcast:metaBoost>`, and `<podcast:valueRecipient>` (both `type="node"` and
-  `type="lnaddress"`).
+  `<podcast:value>`, `<podcast:metaBoost>`, and `<podcast:valueRecipient>` where each value block
+  can mix `type="node"` and `type="lnaddress"` recipients.
 
 ```mermaid
 flowchart LR

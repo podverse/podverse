@@ -94,7 +94,9 @@ MetaBoost is emitted as a sub-tag of `<podcast:value>`:
 
 ```xml
 <podcast:value type="lightning" method="keysend" suggested="0.00000005000">
-  <podcast:metaBoost schema="boostbox">http://localhost:8080/boost</podcast:metaBoost>
+  <podcast:metaBoost type="post" schema="boostbox" license="https://example.com/license">
+    http://localhost:8080/boost
+  </podcast:metaBoost>
   <podcast:valueRecipient ... />
 </podcast:value>
 ```
@@ -103,8 +105,8 @@ Only `schema="boostbox"` is accepted for now.
 
 ## Generate test assets (includes metaBoost + LNAddress + keysend)
 
-The test assets generator emits a single hardcoded metaBoost URL and includes both `lnaddress`
-and `keysend` recipients for every value-tagged item:
+The test assets generator emits a single hardcoded metaBoost URL and can mix `lnaddress`
+and `node` recipients per value-tagged item (per-recipient randomization):
 
 - metaBoost URL: `http://localhost:8080/boost`
 - Each value set includes three recipients with splits `60`, `40`, and `1` (fee).
@@ -127,7 +129,10 @@ npm run generate -w tools/test-assets -- --add-fake-value-tags
 
 When `<podcast:metaBoost>` is present, the client must obtain BoostBox metadata before sending payments:
 
-1. POST to the Podverse API at **`/api/v1/metaboost/boostbox/boost`** with a body that includes **`baseUrl`** (BoostBox base URL; must be HTTPS) and the boost metadata. The API proxies to BoostBox at `{baseUrl}/boost` and returns the response.
+1. POST to the Podverse API at **`/api/v1/metaboost/boostbox/boost`** with a body that includes
+   **`baseUrl`** (BoostBox base URL; must be HTTPS in production, `http://localhost` is allowed
+   locally) and the boost metadata. The API proxies to BoostBox at `{baseUrl}/boost` and returns
+   the response.
 2. Use the BoostBox `desc` string (`rss::payment::{action} {url} {truncated message}`) for:
    - LNAddress invoice comment (when allowed by LNURL).
    - Keysend bLIP-0010 `message` field (so the payload carries the BoostBox metadata URL).

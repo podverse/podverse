@@ -69,7 +69,7 @@ LN is already up and provisioned from the nuke step (chain synced, LND/CLN funde
 npm run generate -w tools/test-assets -- --add-fake-value-tags
 ```
 
-Confirm when prompted. This creates RSS feeds under `tools/test-assets/assets/feeds/` (e.g. `feed-podcast-1.rss`) with `<podcast:value>` tags that include both **node** (keysend) and **lnaddress** recipients; see [V4V-METABOOST-LNURL.md](V4V-METABOOST-LNURL.md).
+Confirm when prompted. This creates RSS feeds under `tools/test-assets/assets/feeds/` (e.g. `feed-podcast-1.rss`) with `<podcast:value>` tags that can mix **node** (keysend) and **lnaddress** recipients per value block, but not every block includes both types; see [V4V-METABOOST-LNURL.md](V4V-METABOOST-LNURL.md).
 
 **Populate the database** so podcasts appear in the web app:
 

@@ -206,7 +206,7 @@ npm run generate -w tools/test-assets -- --add-fake-value-tags
 
 This generates RSS feeds with:
 
-- `<podcast:value>` tags containing keysend and LNURL recipients
+- `<podcast:value>` tags that can mix `type="node"` and `type="lnaddress"` recipients per value block
 - Keysend recipients use the actual LND and CLN pubkeys
 - LNURL recipients use the local LNURL server addresses
 

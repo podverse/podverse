@@ -7,4 +7,5 @@ implementation.
 
 - **Bitcoin / Lightning (LND):** [bitcoin/lnd/](bitcoin/lnd/) — local Nigiri setup, LNAddress,
   keysend, metaBoost flow, and full setup diagram.
-- **BoostBox (boost messages):** [boostbox/](boostbox/) — registry and auth; payment-agnostic.
+- **BoostBox (boost messages):** [boostbox/BOOSTBOX-REGISTRY-SPEC.md](boostbox/BOOSTBOX-REGISTRY-SPEC.md)
+  — registry, auth, and mitigation options; payment-agnostic.

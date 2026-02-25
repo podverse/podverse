@@ -191,3 +191,35 @@ To-do's from the plan have already been created. Do not create them again. Mark 
 - infra/docker/local/v4v/bitcoin/lnd/lnurl-server/docker-compose.yml
 - Makefile.local.v4v
 - docs/v4v/bitcoin/lnd/LOCAL-LIGHTNING.md
+
+### Session 31 - 2026-02-24
+
+#### Prompt (Developer)
+
+review the docs/v4v/bitcoin/lnd and docs/v4v/boostbox docs for alignment with the monorepo. if
+anything is out of date, update it. if anything seems redundant to you, then propose to remove or
+consolidate it.
+
+V4V docs alignment
+
+Implement the plan as specified, it is attached for your reference. Do NOT edit the plan file
+itself.
+
+To-do's from the plan have already been created. Do not create them again. Mark them as
+in_progress as you work, starting with the first one. Don't stop until you have completed all
+the to-dos.
+
+#### Key Decisions
+
+- Align test-asset docs with mixed per-recipient LN types and current metaBoost attributes.
+- Consolidate Boostbox auth options into the registry spec and remove the standalone file.
+
+#### Files Modified
+
+- /Users/mitcheldowney/repos/pv/podverse/docs/v4v/bitcoin/lnd/LOCAL-LIGHTNING.md
+- /Users/mitcheldowney/repos/pv/podverse/docs/v4v/bitcoin/lnd/LOCAL-V4V-TESTNET-WALKTHROUGH.md
+- /Users/mitcheldowney/repos/pv/podverse/docs/v4v/bitcoin/lnd/V4V-BITCOIN-LN-SETUP-DIAGRAM.md
+- /Users/mitcheldowney/repos/pv/podverse/docs/v4v/bitcoin/lnd/V4V-METABOOST-LNURL.md
+- /Users/mitcheldowney/repos/pv/podverse/docs/v4v/boostbox/BOOSTBOX-REGISTRY-SPEC.md
+- /Users/mitcheldowney/repos/pv/podverse/docs/v4v/boostbox/BOOSTBOX-AUTH-OPTIONS.md
+- /Users/mitcheldowney/repos/pv/podverse/docs/v4v/README.md
