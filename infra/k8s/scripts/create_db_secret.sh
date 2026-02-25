@@ -40,7 +40,7 @@ ENVIRONMENT="${ENVIRONMENT:-alpha}"
 # ------------------------------------------------------------------
 SECRET_NAME="podverse-db-opaque"
 NAMESPACE="podverse-${ENVIRONMENT}"
-OUTPUT_FILE="./k8s/secrets/podverse-${ENVIRONMENT}-db-opaque.enc.yaml"
+OUTPUT_FILE="./infra/k8s/secrets/podverse-${ENVIRONMENT}-db-opaque.enc.yaml"
 
 # ------------------------------------------------------------------
 # INPUTS
@@ -125,7 +125,9 @@ echo "Generating and encrypting secret..."
 # We include both the standard POSTGRES_* keys AND the DB_* aliases
 # so the API and Workers can use this secret directly.
 
-TMP_FILE="$(mktemp -t "${SECRET_NAME}.XXXXXX.yaml")"
+TMP_FILE_BASE="$(mktemp -t "${SECRET_NAME}.XXXXXX")"
+TMP_FILE="${TMP_FILE_BASE}.yaml"
+mv "$TMP_FILE_BASE" "$TMP_FILE"
 kubectl create secret generic "${SECRET_NAME}" \
   --namespace "${NAMESPACE}" \
   --from-literal=DB_DATABASE="${POSTGRES_DB}" \
@@ -142,7 +144,7 @@ kubectl create secret generic "${SECRET_NAME}" \
   --from-literal=DB_READ_WRITE_PASSWORD="${POSTGRES_READ_WRITE_PASSWORD}" \
   --dry-run=client -o yaml >"$TMP_FILE"
 
-sops --encrypt --encrypted-regex '^(data|stringData)$' \
+sops --config .sops.yaml --encrypt --encrypted-regex '^(data|stringData)$' \
   --input-type=yaml "$TMP_FILE" >"${OUTPUT_FILE}"
 
 rm -f "$TMP_FILE"

@@ -37,7 +37,7 @@ ENVIRONMENT="${ENVIRONMENT:-alpha}"
 # Matches the secret name defined in podverse-alpha.yaml
 SECRET_NAME="podverse-keyvaldb-opaque"
 NAMESPACE="podverse-${ENVIRONMENT}"
-OUTPUT_FILE="./k8s/secrets/podverse-${ENVIRONMENT}-keyvaldb-opaque.enc.yaml"
+OUTPUT_FILE="./infra/k8s/secrets/podverse-${ENVIRONMENT}-keyvaldb-opaque.enc.yaml"
 
 # ------------------------------------------------------------------
 # INPUTS
@@ -61,7 +61,9 @@ fi
 mkdir -p "$(dirname "$OUTPUT_FILE")"
 echo "Generating and encrypting secret..."
 
-TMP_FILE="$(mktemp -t "${SECRET_NAME}.XXXXXX.yaml")"
+TMP_FILE_BASE="$(mktemp -t "${SECRET_NAME}.XXXXXX")"
+TMP_FILE="${TMP_FILE_BASE}.yaml"
+mv "$TMP_FILE_BASE" "$TMP_FILE"
 
 # We create both KEYVALDB_PASSWORD and PASSWORD to ensure compatibility
 # with various images or custom entrypoint scripts.
