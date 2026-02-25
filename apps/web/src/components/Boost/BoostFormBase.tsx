@@ -8,7 +8,7 @@ import { isLnaddressRecipient } from '@podverse/v4v-btc-ln';
 import type { MetaBoost } from '@podverse/v4v-metaboost';
 
 import { Button } from '../Button/Button';
-import Accordion from '../Accordian/Accordian';
+import { FormStack } from '../Form/FormStack';
 import { MediaHeaderMini } from '../MediaHeaderMini/MediaHeaderMini';
 import { ButtonTabs } from '../Tabs/ButtonTabs';
 import { BoostRecipientInfo } from './BoostRecipientInfo';
@@ -16,6 +16,7 @@ import { BoostFormFields } from './BoostFormFields';
 import { BoostMessageNotice } from './BoostMessageNotice';
 import { BoostMetaBoostInfo } from './BoostMetaBoostInfo';
 import { BoostRecipientStatusList } from './BoostRecipientStatusList';
+import { DonateSuccessConfetti } from './DonateSuccessConfetti';
 import { useConfig } from '../../contexts/Config';
 import { useLocalSettings } from '../../contexts/LocalSettings';
 import { useModals } from '../../contexts/Modals';
@@ -54,6 +55,9 @@ type BoostFormBaseProps = {
   showMediaHeader: boolean;
   defaultTotalAmountToCreator?: number;
   defaultTotalAmountToApp?: number;
+  onDonationSuccess?: () => void;
+  successPrimaryButtonLabel?: string;
+  successPrimaryButtonOnClick?: () => void;
 };
 
 export const BoostFormBase: React.FC<BoostFormBaseProps> = ({
@@ -75,17 +79,33 @@ export const BoostFormBase: React.FC<BoostFormBaseProps> = ({
   showMediaHeader,
   defaultTotalAmountToCreator = 1,
   defaultTotalAmountToApp = 0,
+  onDonationSuccess,
+  successPrimaryButtonLabel,
+  successPrimaryButtonOnClick,
 }) => {
   const config = useConfig();
   const { boostFormDefaults, setBoostFormDefaults } = useLocalSettings();
   const { setModalBoost, setModalBoostMessageError } = useModals();
   const tValue = useTranslations('value');
   const tMisc = useTranslations('misc');
-  const [totalAmountToCreator, setTotalAmountToCreator] = useState<number>(
-    defaultTotalAmountToCreator
-  );
-  const [totalAmountToApp, setTotalAmountToApp] = useState<number>(defaultTotalAmountToApp);
-  const [yourName, setYourName] = useState<string>('');
+  const tDonate = useTranslations('donate');
+  const hasSuccessOverride =
+    successPrimaryButtonLabel !== undefined && successPrimaryButtonOnClick !== undefined;
+  const [totalAmountToCreator, setTotalAmountToCreator] = useState<number>(() => {
+    if (selectedValueKey === null || selectedValueKey === '') return defaultTotalAmountToCreator;
+    const s = boostFormDefaults[selectedValueKey];
+    return s !== undefined ? s.totalAmountToCreator : defaultTotalAmountToCreator;
+  });
+  const [totalAmountToApp, setTotalAmountToApp] = useState<number>(() => {
+    if (selectedValueKey === null || selectedValueKey === '') return defaultTotalAmountToApp;
+    const s = boostFormDefaults[selectedValueKey];
+    return s !== undefined ? s.totalAmountToApp : defaultTotalAmountToApp;
+  });
+  const [yourName, setYourName] = useState<string>(() => {
+    if (selectedValueKey === null || selectedValueKey === '') return '';
+    const s = boostFormDefaults[selectedValueKey];
+    return s !== undefined ? s.yourName : '';
+  });
   const [message, setMessage] = useState<string>('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -219,6 +239,15 @@ export const BoostFormBase: React.FC<BoostFormBaseProps> = ({
   const allFailed =
     recipientStatuses.length > 0 && recipientStatuses.every((r) => r.status === 'failed');
   const showFormInputs = recipientStatuses.length === 0;
+  const isSuccess = hasResults && !allFailed;
+
+  const onDonationSuccessCalledRef = useRef(false);
+  useEffect(() => {
+    if (isSuccess && onDonationSuccess !== undefined && !onDonationSuccessCalledRef.current) {
+      onDonationSuccessCalledRef.current = true;
+      onDonationSuccess();
+    }
+  }, [isSuccess, onDonationSuccess]);
 
   const goBackFromResults = (): void => {
     setRecipientStatuses([]);
@@ -226,91 +255,103 @@ export const BoostFormBase: React.FC<BoostFormBaseProps> = ({
 
   return (
     <div>
-      {showFormInputs && (
-        <>
-          {showMediaHeader && channel && <MediaHeaderMini channel={channel} item={item} />}
-          {buttonTabs.length > 0 && (
-            <ButtonTabs buttonTabs={buttonTabs} selectedKey={selectedKey} />
-          )}
-          {shouldShowBoostMessageNotice && <BoostMessageNotice tValue={tValue} />}
-          <BoostFormFields
-            totalAmountToCreator={totalAmountToCreator}
-            totalAmountToApp={totalAmountToApp}
-            setTotalAmountToCreator={setTotalAmountToCreator}
-            setTotalAmountToApp={setTotalAmountToApp}
-            selectedValueKey={selectedValueKey}
-            isSubmitting={isSubmitting}
-            hasStatusUpdates={hasStatusUpdates}
-            showCreatorInput={showCreatorInput}
-            showAppInput={showAppInput}
-            yourName={yourName}
-            setYourName={setYourName}
-            message={message}
-            setMessage={setMessage}
-            tValue={tValue}
-            tMisc={tMisc}
-            brandName={config.public.brand.name}
-          />
-          <div className={styles.moreInfo}>
-            <Accordion
-              header={tMisc('more_info')}
-              content={
-                <>
-                  {metaBoost && <BoostMetaBoostInfo metaBoost={metaBoost} />}
-                  <BoostRecipientInfo
-                    channel_value_recipients={channelValueRecipients}
-                    item_value_recipients={itemValueRecipients}
-                    app_value_recipient={appValueRecipient}
-                    totalAmountToCreator={totalAmountToCreator}
-                    totalAmountToApp={totalAmountToApp}
-                    showAppRecipient={showAppRecipientInfo}
-                  />
-                </>
-              }
-              color="link"
-              size="small"
+      <FormStack className={styles.formWrapper}>
+        {showFormInputs && (
+          <>
+            {showMediaHeader && channel && <MediaHeaderMini channel={channel} item={item} />}
+            {buttonTabs.length > 0 && (
+              <ButtonTabs buttonTabs={buttonTabs} selectedKey={selectedKey} />
+            )}
+            <BoostFormFields
+              totalAmountToCreator={totalAmountToCreator}
+              totalAmountToApp={totalAmountToApp}
+              setTotalAmountToCreator={setTotalAmountToCreator}
+              setTotalAmountToApp={setTotalAmountToApp}
+              selectedValueKey={selectedValueKey}
+              isSubmitting={isSubmitting}
+              hasStatusUpdates={hasStatusUpdates}
+              showCreatorInput={showCreatorInput}
+              showAppInput={showAppInput}
+              showNameAndMessage={!shouldShowBoostMessageNotice}
+              yourName={yourName}
+              setYourName={setYourName}
+              message={message}
+              setMessage={setMessage}
+              tValue={tValue}
+              tMisc={tMisc}
+              brandName={config.public.brand.name}
             />
+            {shouldShowBoostMessageNotice && (
+              <BoostMessageNotice
+                tValue={tValue}
+                isAppDonate={includeAppRecipient && !includeCreatorRecipients}
+              />
+            )}
+            <div className={styles.moreInfo}>
+              {metaBoost && <BoostMetaBoostInfo metaBoost={metaBoost} />}
+              <BoostRecipientInfo
+                channel_value_recipients={channelValueRecipients}
+                item_value_recipients={itemValueRecipients}
+                app_value_recipient={appValueRecipient}
+                totalAmountToCreator={totalAmountToCreator}
+                totalAmountToApp={totalAmountToApp}
+                showAppRecipient={showAppRecipientInfo}
+              />
+            </div>
+          </>
+        )}
+        <BoostRecipientStatusList
+          recipientStatuses={recipientStatuses}
+          tValue={tValue}
+          selectedValueKey={selectedValueKey}
+        />
+        {isSuccess && hasSuccessOverride && (
+          <div className={styles.donateSuccessWrapper}>
+            <div className={styles.donateSuccessBlock}>
+              <p className={styles.donateSuccessThankYou}>{tDonate('success_thank_you')}</p>
+              <p className={styles.donateSuccessMessage}>
+                {tDonate('success_message', { brand_name: config.public.brand.name })}
+              </p>
+            </div>
+            <DonateSuccessConfetti />
           </div>
-        </>
-      )}
-      <BoostRecipientStatusList
-        recipientStatuses={recipientStatuses}
-        tValue={tValue}
-        selectedValueKey={selectedValueKey}
-      />
-      <div className={styles.buttons}>
-        {hasResults ? (
-          allFailed ? (
-            <>
-              <Button variant="secondary" onClick={goBackFromResults}>
-                {tMisc('go_back')}
+        )}
+        <div className={styles.buttons}>
+          {hasResults ? (
+            allFailed ? (
+              <>
+                <Button variant="secondary" onClick={goBackFromResults}>
+                  {tMisc('go_back')}
+                </Button>
+                <Button
+                  variant="secondary"
+                  onClick={() => setModalBoost({ channel: null, item: null })}
+                >
+                  {tMisc('close')}
+                </Button>
+              </>
+            ) : hasSuccessOverride ? (
+              <Button onClick={successPrimaryButtonOnClick}>{successPrimaryButtonLabel}</Button>
+            ) : (
+              <Button onClick={() => setModalBoost({ channel: null, item: null })}>
+                {tMisc('close')}
               </Button>
+            )
+          ) : (
+            <>
               <Button
                 variant="secondary"
                 onClick={() => setModalBoost({ channel: null, item: null })}
               >
-                {tMisc('close')}
+                {tMisc('cancel')}
+              </Button>
+              <Button onClick={handleSubmitBoost} isLoading={isSubmitting} disabled={isSubmitting}>
+                {tMisc('submit')}
               </Button>
             </>
-          ) : (
-            <Button onClick={() => setModalBoost({ channel: null, item: null })}>
-              {tMisc('close')}
-            </Button>
-          )
-        ) : (
-          <>
-            <Button
-              variant="secondary"
-              onClick={() => setModalBoost({ channel: null, item: null })}
-            >
-              {tMisc('cancel')}
-            </Button>
-            <Button onClick={handleSubmitBoost} isLoading={isSubmitting} disabled={isSubmitting}>
-              {tMisc('submit')}
-            </Button>
-          </>
-        )}
-      </div>
+          )}
+        </div>
+      </FormStack>
     </div>
   );
 };

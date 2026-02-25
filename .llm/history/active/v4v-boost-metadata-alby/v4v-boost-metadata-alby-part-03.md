@@ -223,3 +223,18 @@ the to-dos.
 - /Users/mitcheldowney/repos/pv/podverse/docs/v4v/boostbox/BOOSTBOX-REGISTRY-SPEC.md
 - /Users/mitcheldowney/repos/pv/podverse/docs/v4v/boostbox/BOOSTBOX-AUTH-OPTIONS.md
 - /Users/mitcheldowney/repos/pv/podverse/docs/v4v/README.md
+
+### Session 32 - 2026-02-24
+
+#### Prompt (Developer)
+
+make the code changes
+
+#### Key Decisions
+
+- Use RSS-parsed `metaBoost.node` for BoostBox base URL instead of a hard-coded localhost value.
+- Throw a clear error when BoostBox schema is present but the metaBoost node is missing.
+
+#### Files Modified
+
+- /Users/mitcheldowney/repos/pv/podverse/apps/web/src/components/Boost/hooks/useBoostPayments.ts

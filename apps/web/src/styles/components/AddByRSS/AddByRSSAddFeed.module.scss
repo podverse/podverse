@@ -44,7 +44,6 @@
 .basicAuthSection {
   @include flexColumn;
   gap: var(--spacing-sm);
-  margin-top: var(--spacing-md);
 }
 
 .basicAuthFields {

@@ -33,12 +33,6 @@ export type BoostMetadataResponse = {
   desc: string;
 };
 
-export const BOOSTBOX_BASE_URL = 'http://localhost:8080';
-export const BOOSTBOX_META_BOOST_URL = `${BOOSTBOX_BASE_URL}/boost`;
-
-// TODO: Support production/remote BoostBox base URLs via config.
-// TODO: Replace dev API key with production configuration.
-
 type BuildBoostMetadataParams = {
   action: BoostAction;
   split: number;

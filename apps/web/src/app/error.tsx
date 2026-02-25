@@ -47,7 +47,7 @@ export default function Error({ error, reset }: ErrorPageProps) {
             {tMisc('reload_page')}
           </Button>
           <Button onClick={handleGoHome} variant="outline">
-            {tMisc('go_to_home')}
+            {tMisc('return_to_home_page')}
           </Button>
         </div>
       </div>

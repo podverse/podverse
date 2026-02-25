@@ -1,10 +1,13 @@
 import { getTranslations } from 'next-intl/server';
 import Link from 'next/link';
+
 import { MainHeader } from '../../../components/Main/MainHeader';
 import { MainWrapper } from '../../../components/Main/MainWrapper';
 import { MainInnerWrapper } from '../../../components/Main/MainInnerWrapper';
 import { MainInnerContentWrapper } from '../../../components/Main/MainInnerContentWrapper';
 import { SideContent } from '../../../components/SideContent/SideContent';
+
+import styles from '../../../styles/app/v4v/BoostMessages.module.scss';
 
 export default async function BoostMessagesPage() {
   const t = await getTranslations('v4v');
@@ -18,7 +21,8 @@ export default async function BoostMessagesPage() {
           <MainInnerContentWrapper>
             <section>
               <p>{t('boost_messages.description')}</p>
-              <pre>
+              <h2 className={styles.exampleHeading}>{t('boost_messages.example_heading')}</h2>
+              <pre className={styles.exampleBlock}>
                 <code>{t('boost_messages.example')}</code>
               </pre>
               <p>

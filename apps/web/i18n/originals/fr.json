@@ -370,7 +370,7 @@
     },
     "try_again": "Réessayez",
     "reload_page": "Rcharger la page",
-    "go_to_home": "Aller à l'accueil"
+    "return_to_home_page": "Aller à l'accueil"
   },
   "errors": {
     "generic": "Quelque chose a mal tourné. Veuillez réessayer plus tard ou contacter le support pour obtenir de l'aide.",

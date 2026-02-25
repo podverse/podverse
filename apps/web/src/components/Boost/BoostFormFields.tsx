@@ -17,6 +17,8 @@ type BoostFormFieldsProps = {
   hasStatusUpdates: boolean;
   showCreatorInput: boolean;
   showAppInput: boolean;
+  /** When false, name and message inputs are hidden (boost messages not enabled). */
+  showNameAndMessage: boolean;
   yourName: string;
   setYourName: (value: string) => void;
   message: string;
@@ -36,6 +38,7 @@ export const BoostFormFields = ({
   hasStatusUpdates,
   showCreatorInput,
   showAppInput,
+  showNameAndMessage,
   yourName,
   setYourName,
   message,
@@ -45,7 +48,6 @@ export const BoostFormFields = ({
   brandName,
 }: BoostFormFieldsProps) => (
   <Form
-    className={styles.form}
     onSubmit={(e) => {
       e.preventDefault();
     }}
@@ -72,20 +74,24 @@ export const BoostFormFields = ({
         />
       )}
     </div>
-    <TextInput
-      eyebrow={tValue('your_name')}
-      value={yourName}
-      placeholder={tMisc('anonymous')}
-      onChange={(e) => setYourName(e.target.value)}
-      disabled={isSubmitting || hasStatusUpdates}
-    />
-    <TextArea
-      eyebrow={tValue('message')}
-      value={message}
-      placeholder={tMisc('optional')}
-      onChange={(e) => setMessage(e.target.value)}
-      maxLength={500}
-      disabled={isSubmitting || hasStatusUpdates}
-    />
+    {showNameAndMessage && (
+      <>
+        <TextInput
+          eyebrow={tValue('your_name')}
+          value={yourName}
+          placeholder={tMisc('anonymous')}
+          onChange={(e) => setYourName(e.target.value)}
+          disabled={isSubmitting || hasStatusUpdates}
+        />
+        <TextArea
+          eyebrow={tValue('message')}
+          value={message}
+          placeholder={tMisc('optional')}
+          onChange={(e) => setMessage(e.target.value)}
+          maxLength={500}
+          disabled={isSubmitting || hasStatusUpdates}
+        />
+      </>
+    )}
   </Form>
 );

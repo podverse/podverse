@@ -1,15 +1,25 @@
 'use client';
 
+import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 
 import { BoostFormBase } from './BoostFormBase';
 import { useConfig } from '../../contexts/Config';
 
-export const BoostAppDonateForm: React.FC = () => {
+/** Value key for app donate when lightning is configured (lnaddress or node). */
+const APP_DONATE_LIGHTNING_KEY = 'lightning';
+
+type BoostAppDonateFormProps = {
+  onDonationSuccess?: () => void;
+};
+
+export const BoostAppDonateForm: React.FC<BoostAppDonateFormProps> = ({ onDonationSuccess }) => {
+  const router = useRouter();
   const config = useConfig();
   const tValue = useTranslations('value');
-  const [selectedKey, setSelectedKey] = useState<string>('');
+  const tDonate = useTranslations('donate');
+  const tMisc = useTranslations('misc');
 
   const appRecipientType = useMemo<'lnaddress' | 'node' | null>(() => {
     if (config.public.app_value.lightning_lnaddress?.address) {
@@ -24,19 +34,29 @@ export const BoostAppDonateForm: React.FC = () => {
     config.public.app_value.lightning_lnaddress?.address,
   ]);
 
-  useEffect(() => {
-    if (!appRecipientType) return;
-    if (selectedKey !== '') return;
-    setSelectedKey('lightning');
-  }, [appRecipientType, selectedKey]);
+  const defaultValueKey = useMemo<string>(() => {
+    if (appRecipientType === null) return '';
+    if (
+      config.public.app_value.lightning_lnaddress?.address ||
+      config.public.app_value.lightning_node?.address
+    ) {
+      return APP_DONATE_LIGHTNING_KEY;
+    }
+    return '';
+  }, [
+    appRecipientType,
+    config.public.app_value.lightning_lnaddress?.address,
+    config.public.app_value.lightning_node?.address,
+  ]);
 
+  const [selectedKey, setSelectedKey] = useState<string>(defaultValueKey);
   const selectedValueKey = selectedKey !== '' ? selectedKey : null;
 
   const buttonTabs = [
     {
-      key: 'lightning',
+      key: APP_DONATE_LIGHTNING_KEY,
       label: tValue('types.lightning.label'),
-      onClick: () => setSelectedKey('lightning'),
+      onClick: () => setSelectedKey(APP_DONATE_LIGHTNING_KEY),
     },
   ];
 
@@ -64,6 +84,9 @@ export const BoostAppDonateForm: React.FC = () => {
       showMediaHeader={false}
       defaultTotalAmountToCreator={0}
       defaultTotalAmountToApp={1}
+      onDonationSuccess={onDonationSuccess}
+      successPrimaryButtonLabel={tMisc('return_to_home_page')}
+      successPrimaryButtonOnClick={() => router.push('/')}
     />
   );
 };

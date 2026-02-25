@@ -32,13 +32,19 @@ function buildRuntimeConfigFromProcessEnv(): WebRuntimeConfig {
   return { env };
 }
 
+let hasLoggedFallback = false;
+
 export const getRuntimeConfig = (): WebRuntimeConfig => {
   const runtimeConfig = globalThis.__PODVERSE_RUNTIME_CONFIG__;
   if (!runtimeConfig) {
-    // Build/prerender time: instrumentation hasn't run yet.
-    // Fall back to process.env (same values as sidecar will serve).
-    if (process.env.NODE_ENV !== 'production') {
-      console.log('[runtime-config] Using build-time process.env fallback');
+    // Build/prerender or worker without instrumentation: fall back to process.env.
+    // In dev, request handlers may run in a different process than instrumentation,
+    // so globalThis is not shared and fallback is expected.
+    if (process.env.NODE_ENV !== 'production' && !hasLoggedFallback) {
+      hasLoggedFallback = true;
+      console.log(
+        '[runtime-config] Using process.env (sidecar config not set in this process; normal in dev if handlers run in a separate worker).'
+      );
     }
     return buildRuntimeConfigFromProcessEnv();
   }

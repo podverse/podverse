@@ -1,0 +1,15 @@
+.exampleHeading {
+  margin: var(--spacing-lg) 0 var(--spacing-sm);
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-bold);
+}
+
+.exampleBlock {
+  overflow-x: auto;
+  padding: var(--spacing-md);
+  margin: 0 0 var(--spacing-lg);
+  background: var(--form-element-border-color);
+  border-radius: var(--border-radius);
+  font-size: var(--font-size-sm);
+  white-space: pre;
+}

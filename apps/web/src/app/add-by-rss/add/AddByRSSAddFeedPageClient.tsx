@@ -7,6 +7,7 @@ import { useTranslations } from 'next-intl';
 
 import { CallToActionMessage } from '../../../components/CallToActionMessage/CallToActionMessage';
 import { Checkbox } from '../../../components/Form/Checkbox';
+import Form from '../../../components/Form/Form';
 import { TextInput } from '../../../components/Form/TextInput';
 import { MainHeader } from '../../../components/Main/MainHeader';
 import { MainInnerContentWrapper } from '../../../components/Main/MainInnerContentWrapper';
@@ -248,7 +249,7 @@ export const AddByRSSAddFeedPageClient: React.FC = () => {
               )}
 
               {loggedInAccount && (
-                <form onSubmit={handleAddFeed} className={styles.form}>
+                <Form onSubmit={(e) => handleAddFeed(e)} className={styles.form}>
                   <TextInput
                     value={newFeedUrl}
                     onChange={(event) => setNewFeedUrl(event.target.value)}
@@ -296,7 +297,7 @@ export const AddByRSSAddFeedPageClient: React.FC = () => {
                       </div>
                     )}
                   </div>
-                </form>
+                </Form>
               )}
 
               {statusLabel && (

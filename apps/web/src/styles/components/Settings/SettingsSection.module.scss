@@ -2,6 +2,10 @@
   margin-bottom: var(--spacing-2xl);
 }
 
+.sectionNoVerticalMargin {
+  margin-bottom: 0;
+}
+
 .description {
   margin-top: 0.5rem;
   font-size: var(--font-size-sm);

@@ -370,7 +370,7 @@
     },
     "try_again": "Intenta de nuevo",
     "reload_page": "Recargar página",
-    "go_to_home": "Ir a Inicio"
+    "return_to_home_page": "Ir a Inicio"
   },
   "errors": {
     "generic": "Algo salió mal. Por favor, intenta de nuevo más tarde, o contacta al soporte para asistencia.",

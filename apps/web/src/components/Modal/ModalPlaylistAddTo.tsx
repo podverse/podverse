@@ -24,6 +24,7 @@ import { useAccount } from '../../contexts/Account';
 import { useSkipInitialEffect } from '../../hooks/useSkipInitialEffect';
 import { showToastPromise } from '../Toast/Toast';
 import { CallToActionMessage } from '../CallToActionMessage/CallToActionMessage';
+import { FormStack } from '../Form/FormStack';
 
 import styles from '../../styles/components/Modal/ModalPlaylistAddTo.module.scss';
 
@@ -231,7 +232,7 @@ export const ModalPlaylistAddTo: React.FC = () => {
         />
       )}
       {loggedInAccount && (
-        <>
+        <FormStack>
           {modalPlaylistAddTo.addByRSSResourceData ? (
             addByRSSTitle ? (
               <div className={styles.addByRSSTitle}>{addByRSSTitle}</div>
@@ -263,7 +264,7 @@ export const ModalPlaylistAddTo: React.FC = () => {
               onClick={onClick}
             />
           )}
-        </>
+        </FormStack>
       )}
     </Modal>
   );

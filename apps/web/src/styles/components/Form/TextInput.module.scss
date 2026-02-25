@@ -2,7 +2,6 @@
 @use '../../mixins/flexbox' as *;
 
 .textInput {
-  margin-bottom: var(--spacing-2xl);
   position: relative;
   @include flexColumn;
   flex: 1;

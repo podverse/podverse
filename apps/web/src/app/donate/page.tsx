@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { FaCommentDollar } from 'react-icons/fa6';
 
@@ -14,6 +15,7 @@ import styles from '../../styles/app/donate/Donate.module.scss';
 
 export default function DonatePage() {
   const config = useConfig();
+  const [donationSucceeded, setDonationSucceeded] = useState(false);
   const tDonate = useTranslations('donate');
 
   return (
@@ -22,17 +24,21 @@ export default function DonatePage() {
       <MainWrapper>
         <MainInnerWrapper>
           <MainInnerContentWrapper>
-            <div className={styles.intro}>
-              <p>{tDonate('app_donation_notice', { brand_name: config.public.brand.name })}</p>
-              <p className={styles.boostHint}>
-                <span>{tDonate('creator_donation_hint_prefix')}</span>
-                <span className={styles.boostIcon} aria-hidden="true">
-                  <FaCommentDollar />
-                </span>
-                <span>{tDonate('creator_donation_hint_suffix')}</span>
-              </p>
+            <div>
+              {!donationSucceeded && (
+                <div className={styles.intro}>
+                  <p>{tDonate('app_donation_notice', { brand_name: config.public.brand.name })}</p>
+                  <p className={styles.boostHint}>
+                    <span>{tDonate('creator_donation_hint_prefix')}</span>
+                    <span className={styles.boostIcon} aria-hidden="true">
+                      <FaCommentDollar />
+                    </span>
+                    <span>{tDonate('creator_donation_hint_suffix')}</span>
+                  </p>
+                </div>
+              )}
+              <BoostAppDonateForm onDonationSuccess={() => setDonationSucceeded(true)} />
             </div>
-            <BoostAppDonateForm />
           </MainInnerContentWrapper>
         </MainInnerWrapper>
       </MainWrapper>

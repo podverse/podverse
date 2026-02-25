@@ -1,4 +1,6 @@
-import Link from 'next/link';
+import { FaCircleQuestion } from 'react-icons/fa6';
+
+import { IconButton } from '../Media/Header/IconButton';
 
 import styles from '../../styles/components/Boost/BoostForm.module.scss';
 
@@ -6,11 +8,27 @@ type Translator = (key: string, values?: Record<string, string | number>) => str
 
 type BoostMessageNoticeProps = {
   tValue: Translator;
+  /** When true, use app-donation message instead of podcast message. */
+  isAppDonate?: boolean;
 };
 
-export const BoostMessageNotice = ({ tValue }: BoostMessageNoticeProps) => (
-  <div className={styles.boostMessageNotice}>
-    <div>{tValue('boost_messages.not_enabled')}</div>
-    <Link href="/v4v/boost-messages">{tValue('boost_messages.more_info')}</Link>
-  </div>
-);
+export const BoostMessageNotice = ({ tValue, isAppDonate = false }: BoostMessageNoticeProps) => {
+  const notEnabledKey = isAppDonate
+    ? 'boost_messages.not_enabled_app'
+    : 'boost_messages.not_enabled';
+  const moreInfoLabel = tValue('boost_messages.more_info');
+  return (
+    <div className={styles.boostMessageNotice}>
+      <span>{tValue(notEnabledKey)}</span>
+      <IconButton
+        href="/v4v/boost-messages"
+        ariaLabel={moreInfoLabel}
+        title={moreInfoLabel}
+        color="secondary"
+        className={styles.helpIcon}
+      >
+        <FaCircleQuestion />
+      </IconButton>
+    </div>
+  );
+};

@@ -161,7 +161,9 @@ export const useBoostPayments = ({
           updateRecipientStatus(recipient.id, 'paying');
           const amountMsat = Math.max(0, Math.round(recipient.final_amount * 1000));
           const shouldIncludeBlip = desc !== null || allowBlipFallback;
-          const blipMessage = buildBlipMessage(desc, allowBlipFallback, message);
+          const effectiveMessage = allowBlipFallback ? '' : message;
+          const effectiveSenderName = allowBlipFallback ? '' : yourName.trim();
+          const blipMessage = buildBlipMessage(desc, allowBlipFallback, effectiveMessage);
           const blipPayload = shouldIncludeBlip
             ? serializeBlip10Metadata(
                 buildBlip10Metadata({
@@ -169,7 +171,7 @@ export const useBoostPayments = ({
                   value_msat_total: totalMsat,
                   value_msat: amountMsat,
                   app_name: config.public.brand.name,
-                  sender_name: yourName.trim() || undefined,
+                  sender_name: effectiveSenderName || undefined,
                   message: blipMessage,
                   guid: channel?.podcast_guid ?? undefined,
                   podcast: channel?.title ?? undefined,
@@ -232,9 +234,12 @@ export const useBoostPayments = ({
           throw new Error('BoostBox proxy URL not configured');
         }
         const url = requestUrl !== null ? requestUrl : metaBoost.node;
+        if (metaBoost.schema === META_BOOST_SCHEMA_BOOSTBOX && metaBoost.node === null) {
+          throw new Error('BoostBox metaBoost node is missing');
+        }
         const requestData =
           metaBoost.schema === META_BOOST_SCHEMA_BOOSTBOX
-            ? { baseUrl: 'http://localhost:8080', ...requestBody }
+            ? { baseUrl: metaBoost.node, ...requestBody }
             : requestBody;
 
         const { status, data: responseData } = await request<unknown>(url, {

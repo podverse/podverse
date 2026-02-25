@@ -64,7 +64,7 @@ export const BoostRecipientInfo = ({
       : tValue('recipient.creator_recipient');
 
   return (
-    <>
+    <div className={styles.tablesStack}>
       {rows.length > 0 && (
         <table className={styles.table}>
           <thead>
@@ -91,6 +91,6 @@ export const BoostRecipientInfo = ({
           </tbody>
         </table>
       )}
-    </>
+    </div>
   );
 };

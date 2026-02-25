@@ -11,11 +11,10 @@
   display: flex;
   justify-content: flex-end;
   gap: var(--spacing-lg);
-  margin-top: 2.25rem; // Keep specific value for form button spacing
 }
 
 .bottomSection {
-  margin-top: var(--spacing-3xl);
+  /* Vertical spacing from Form gap */
 }
 
 .bottomSectionButtons {

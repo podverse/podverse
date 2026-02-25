@@ -1,3 +1,7 @@
+.formWrapper {
+  max-width: var(--form-max-width);
+}
+
 .summaryHeading {
   margin: 0 0 var(--spacing-lg);
   font-size: var(--font-size-lg);
@@ -24,35 +28,36 @@
   color: var(--text-color-danger);
 }
 
-.form {
-  margin-top: var(--spacing-2xl);
-}
-
 .boostAmountInputs {
   max-width: 300px;
 }
 
 .moreInfo {
-  margin-top: var(--spacing-2xl);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xl);
 }
 
 .buttons {
   display: flex;
   justify-content: flex-end;
-  gap: var(--spacing-md);
-  margin-top: var(--spacing-2xl);
+  gap: var(--spacing-xl);
 }
 
 .metaBoostInfo {
-  margin-top: var(--spacing-xl);
   display: grid;
   gap: var(--spacing-xs);
 }
 
 .boostMessageNotice {
-  margin-top: var(--spacing-lg);
-  display: grid;
+  display: flex;
+  align-items: center;
   gap: var(--spacing-xs);
+}
+
+.helpIcon {
+  font-size: 1em;
+  flex-shrink: 0;
 }
 
 .recipientStatusList {
@@ -112,4 +117,26 @@
 
 .status_failed {
   color: var(--text-color-danger);
+}
+
+.donateSuccessWrapper {
+  position: relative;
+}
+
+.donateSuccessBlock {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+  text-align: center;
+}
+
+.donateSuccessThankYou {
+  color: var(--button-success-bg);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+}
+
+.donateSuccessMessage {
+  color: var(--text-color-secondary);
+  font-size: var(--font-size-md);
 }
