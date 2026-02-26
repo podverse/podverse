@@ -243,6 +243,8 @@ logger.error('Feed parsing failed', { error, feedUrl });
 
 When making changes, update `.llm/history/active/[feature]/[feature].md` (or the latest part file):
 
+- **Before file-modifying work:** If the current branch matches an existing `.llm/history/active/[feature]/` (e.g. branch `chore/first-test-issue` → `first-test-issue`), update that history file; no exception for small changes.
+
 ```markdown
 ### Session N - YYYY-MM-DD
 
