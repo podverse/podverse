@@ -1,20 +1,13 @@
 ---
-description: LLM history tracking for code and plan changes
+description: LLM history tracking — essential for any file-modifying response in this repo
 globs:
-  - "packages/**/*.ts"
-  - "apps/**/*.ts"
-  - "apps/**/*.tsx"
-  - "tools/**/*.ts"
-  - ".llm/plans/**/*.md"
-  - "scripts/**/*.sh"
-  - "scripts/**/*.ts"
-  - "infra/**/*"
-alwaysApply: false
+  - "**/*"
+alwaysApply: true
 ---
 
-# History Tracking
+# History Tracking (Essential)
 
-When modifying files in this workspace, update `.llm/history/active/[feature]/[feature].md` (or the latest part file):
+When modifying **any** files in this workspace, update `.llm/history/active/[feature]/[feature].md` (or the latest part file):
 
 ```markdown
 ### Session N - YYYY-MM-DD
@@ -73,6 +66,4 @@ After:
   my-feature-part-02.md  (sessions 11+, active)
 ```
 
-**IMPORTANT**: This rule triggers based on file globs. If working on files NOT matched by the globs above (e.g., documentation in `docs/`), you may not receive this reminder. Always update history when making substantive changes.
-
-End response with history confirmation.
+End every file-modifying response with: **LLM History**: Updated `.llm/history/active/[feature]/[file].md` (Session N).
