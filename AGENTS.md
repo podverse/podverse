@@ -78,6 +78,7 @@ In `.env` files:
 
 - **Non-empty values**: Use double quotes
 - **Empty/unset values**: No value after `=`
+- **Alignment with .env.example**: All `.env` files (including `infra/config/local/*.env`) must match the organization, section comments, and variable order of their authoritative `.env.example`; only values may differ
 
 ```bash
 # Correct
