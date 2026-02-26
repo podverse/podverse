@@ -51,6 +51,13 @@
       "command": "clear"
     },
     {
+      "name": "Metaboost",
+      "description": "Metaboost development",
+      "cwd": "../metaboost",
+      "open": true,
+      "command": "clear"
+    },
+    {
       "name": "Misc",
       "description": "Misc commands",
       "cwd": ".",
