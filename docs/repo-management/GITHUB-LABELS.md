@@ -1,6 +1,6 @@
 # GitHub Labels Reference
 
-This document lists all 23 labels in the Podverse repository for consistent issue and PR management.
+This document lists all 28 labels in the Podverse repository for consistent issue and PR management.
 
 **Labels can be programmatically recreated** using `./scripts/github/setup-all-labels.sh`
 
@@ -30,6 +30,11 @@ This document lists all 23 labels in the Podverse repository for consistent issu
 | Label                   | Color                                                                  | Description                                                            | Origin |
 | ----------------------- | ---------------------------------------------------------------------- | ---------------------------------------------------------------------- | ------ |
 | `technical-improvement` | ![#0075ca](https://via.placeholder.com/15/0075ca/0075ca.png) `#0075ca` | Code quality, refactoring, optimization, and architecture improvements | Custom |
+| `accessibility`         | ![#0d9488](https://via.placeholder.com/15/0d9488/0d9488.png) `#0d9488` | Accessibility (a11y) improvements                                      | Custom |
+| `documentation`         | ![#bfd4f2](https://via.placeholder.com/15/bfd4f2/bfd4f2.png) `#bfd4f2` | Documentation improvements or requests                                 | Custom |
+| `task`                  | ![#7f8c8d](https://via.placeholder.com/15/7f8c8d/7f8c8d.png) `#7f8c8d` | Task or chore                                                          | Custom |
+| `more info needed`      | ![#fbcb04](https://via.placeholder.com/15/fbcb04/fbcb04.png) `#fbcb04` | Needs more information from the author                                 | Custom |
+| `translations`          | ![#d4c5f9](https://via.placeholder.com/15/d4c5f9/d4c5f9.png) `#d4c5f9` | Translations and localization                                          | Custom |
 
 ## Category: Dependencies
 

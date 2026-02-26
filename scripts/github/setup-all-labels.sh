@@ -65,6 +65,13 @@ LABELS=(
   # === TYPE - CUSTOM (1) ===
   "technical-improvement|0075ca|Code quality, refactoring, optimization, and architecture improvements"
   
+  # === TYPE - ADDITIONAL (5) ===
+  "accessibility|0d9488|Accessibility (a11y) improvements"
+  "documentation|bfd4f2|Documentation improvements or requests"
+  "task|7f8c8d|Task or chore"
+  "more info needed|fbcb04|Needs more information from the author"
+  "translations|d4c5f9|Translations and localization"
+  
   # === CODE AREAS (8) - Monorepo structure ===
   "apps|0e8a16|Changes to apps/"
   "packages|1d76db|Changes to packages/"
