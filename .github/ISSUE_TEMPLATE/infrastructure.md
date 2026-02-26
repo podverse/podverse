@@ -16,17 +16,17 @@ labels: infra
 
 <!-- Describe the new or updated infrastructure -->
 
-- **Services**: <!-- What services/tools will be used? (e.g., image hosting, CDN, caching) -->
-- **Hosting**: <!-- Where will it be hosted? (e.g., AWS, self-hosted, third-party service) -->
-- **Scaling**: <!-- How will it scale? What are the resource requirements? -->
+- **Services**: <!-- What services/tools will be used? -->
+- **Hosting**: <!-- Where will it be hosted? -->
+- **Scaling**: <!-- How will it scale? Resource requirements? -->
 
 ## Dependencies/Requirements
 
 <!-- What's needed to implement this? -->
 
-- **External Services**: <!-- Third-party services, APIs, accounts needed -->
-- **Access/Permissions**: <!-- What access is needed? Who needs to be involved? -->
-- **Configuration**: <!-- Environment variables, secrets, config files needed -->
+- **External Services**: <!-- Third-party services, APIs, accounts -->
+- **Access/Permissions**: <!-- What access is needed? -->
+- **Configuration**: <!-- Environment variables, secrets, config files -->
 
 ## Deployment Plan
 
@@ -34,7 +34,7 @@ labels: infra
 
 1. **Development**: <!-- How to test locally -->
 2. **Staging**: <!-- Staging deployment steps -->
-3. **Production**: <!-- Production deployment steps and rollback plan -->
+3. **Production**: <!-- Production steps and rollback plan -->
 
 ## Monitoring & Maintenance
 

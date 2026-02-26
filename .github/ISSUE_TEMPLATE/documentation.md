@@ -6,7 +6,7 @@ labels: docs
 
 ## Documentation Area
 
-<!-- What needs documenting? (e.g., API endpoints, architecture, deployment process, user guide) -->
+<!-- What needs documenting? (e.g., API endpoints, architecture, deployment, user guide) -->
 
 ## Current State
 
@@ -27,7 +27,7 @@ labels: docs
 
 ## Location
 
-<!-- Where should this documentation live? (e.g., docs/, README.md, inline code comments, wiki) -->
+<!-- Where should this documentation live? (e.g., docs/, README.md, inline comments) -->
 
 ## Related Issues
 
