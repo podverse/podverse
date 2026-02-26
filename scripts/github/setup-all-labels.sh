@@ -1,11 +1,11 @@
 #!/bin/bash
-# Complete GitHub Labels Setup - Podverse Repository
-# Creates all 21 labels needed for the repository with correct colors and descriptions
-#
-# This script can completely recreate the label system from scratch
+# GitHub labels setup – Podverse repository
+# Creates or updates all labels. Idempotent: run multiple times safely.
+# Optionally prompts to delete repo labels that are not in the script (does not
+# remove labels from existing issues/PRs; only retires them for new use).
 #
 # Usage:
-#   gh auth login  # Authenticate once
+#   gh auth login   # Authenticate once
 #   ./scripts/github/setup-all-labels.sh
 
 set -e
@@ -15,10 +15,8 @@ REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 
 cd "$REPO_ROOT"
 
-echo "🏷️  GitHub Labels - Complete Setup"
-echo "===================================="
-echo ""
-echo "This script creates all 23 labels for the Podverse repository"
+echo "🏷️  GitHub Labels – Setup"
+echo "=========================="
 echo ""
 
 # Check if gh CLI is available
@@ -90,7 +88,7 @@ LABELS=(
   "priority:low|1f8b84|Low priority issues"
 )
 
-echo "Creating labels (${#LABELS[@]} total)..."
+echo "Creating/updating labels (${#LABELS[@]} total)..."
 echo ""
 
 CREATED=0
@@ -139,7 +137,7 @@ for label_def in "${LABELS[@]}"; do
 done
 
 echo ""
-echo "===================================="
+echo "=========================="
 echo "Summary:"
 echo "  Already correct: $EXISTS"
 echo "  Created: $CREATED"
@@ -156,16 +154,62 @@ fi
 
 if [ $CREATED -gt 0 ] || [ $UPDATED -gt 0 ]; then
   echo "✅ Setup complete!"
-  if [ $CREATED -gt 0 ]; then
-    echo "   Created $CREATED new label(s)"
-  fi
-  if [ $UPDATED -gt 0 ]; then
-    echo "   Updated $UPDATED label(s)"
-  fi
 else
   echo "✅ All labels already exist with correct settings"
 fi
-
 echo ""
-echo "📚 Documentation: docs/GITHUB-LABELS.md"
-echo "🧹 To remove old labels: ./scripts/github/remove-old-labels.sh"
+
+# Optional: delete repo labels that are not defined in this script
+DEFINED_NAMES=()
+for label_def in "${LABELS[@]}"; do
+  IFS='|' read -r name _ _ <<< "$label_def"
+  DEFINED_NAMES+=("$name")
+done
+
+REPO_LABELS=$(gh label list --json name --jq '.[].name' 2>/dev/null || echo "")
+EXTRA_LABELS=()
+while IFS= read -r name; do
+  [ -z "$name" ] && continue
+  found=0
+  for def in "${DEFINED_NAMES[@]}"; do
+    if [ "$name" = "$def" ]; then
+      found=1
+      break
+    fi
+  done
+  [ $found -eq 0 ] && EXTRA_LABELS+=("$name")
+done <<< "$REPO_LABELS"
+
+if [ ${#EXTRA_LABELS[@]} -gt 0 ]; then
+  echo "Labels in the repo that are not defined in this script (${#EXTRA_LABELS[@]}):"
+  for name in "${EXTRA_LABELS[@]}"; do
+    echo "  - $name"
+  done
+  echo ""
+  echo "Deleting these labels will NOT remove them from existing issues or PRs;"
+  echo "those will still show the label. The labels will no longer be available"
+  echo "to add to new issues or PRs."
+  echo ""
+
+  if [ -t 0 ]; then
+    read -p "Do you want to delete these labels? (yes/no): " CONFIRM
+    if [ "$CONFIRM" = "yes" ]; then
+      DELETED=0
+      for name in "${EXTRA_LABELS[@]}"; do
+        if gh label delete "$name" --yes 2>/dev/null; then
+          echo "  🗑️  Deleted: $name"
+          DELETED=$((DELETED + 1))
+        else
+          echo "  ❌ Failed to delete: $name"
+        fi
+      done
+      echo ""
+      echo "Deleted $DELETED label(s)."
+    else
+      echo "Skipped deletion. No labels were removed."
+    fi
+  else
+    echo "Skipped deletion (not running interactively). No labels were removed."
+  fi
+  echo ""
+fi
