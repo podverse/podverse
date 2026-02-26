@@ -44,23 +44,9 @@
       "command": "clear"
     },
     {
-      "name": "BoostBox",
-      "description": "BoostBox development",
-      "cwd": "../boostbox",
-      "open": true,
-      "command": "clear"
-    },
-    {
-      "name": "Metaboost",
-      "description": "Metaboost development",
-      "cwd": "../metaboost",
-      "open": true,
-      "command": "clear"
-    },
-    {
-      "name": "Misc",
-      "description": "Misc commands",
-      "cwd": ".",
+      "name": "Boilerplate",
+      "description": "Boilerplate development",
+      "cwd": "../boilerplate",
       "open": true,
       "command": "clear"
     }
