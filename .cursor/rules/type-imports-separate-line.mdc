@@ -1,0 +1,31 @@
+---
+description: Type imports must use a separate import line; do not mix type and value in one statement.
+globs:
+  - "**/*.ts"
+  - "**/*.tsx"
+alwaysApply: true
+---
+
+# Type Imports on Separate Line
+
+Type-only imports must use a **separate** `import type { ... }` statement. Do not declare types inline with value imports.
+
+## Do
+
+- Use a dedicated line for type imports from the same module as value imports:
+
+```typescript
+import { DataSource } from 'typeorm';
+import type { DataSourceOptions } from 'typeorm';
+```
+
+- Use `import type { X } from '...'` when the symbol is only used in type positions.
+
+## Don't
+
+- Do not mix type and value in one import: `import { DataSource, type DataSourceOptions } from 'typeorm'`.
+- Do not use inline `type` in a value import statement.
+
+## Enforcement
+
+ESLint `@typescript-eslint/consistent-type-imports` with `fixStyle: 'separate-type-imports'` enforces this. Run `npm run lint:fix` to auto-fix.

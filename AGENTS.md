@@ -21,6 +21,14 @@ npm run dev:web        # Start web app (localhost:3000)
 npm run dev:all        # Start everything with watch mode
 ```
 
+### Nix / terminal (agent sandbox)
+
+Node and npm are provided by the repo's Nix flake, not a global install. When running terminal commands (e.g. in Cursor's agent), use the wrapper so the correct environment is available:
+
+- **Wrapper:** `./scripts/nix/with-env <command> [args...]`
+- **Examples:** `./scripts/nix/with-env npm run build:packages`, `./scripts/nix/with-env npm run lint`
+- Run from repo root. Full explanation and setup-in-other-repos: [docs/development/CURSOR-NIX-WITH-ENV.md](docs/development/CURSOR-NIX-WITH-ENV.md).
+
 ### Lock file and workspace dependencies
 
 All monorepo Dockerfiles use `npm ci` for reproducible installs. The root `package-lock.json` must match all workspace `package.json` files. The Make targets that build Docker images (e.g. `local_build_api`, `local_build_web`, `local_build_web_runtime_config`, `local_build_test_assets`, `local_build_all`) automatically run `sync_lockfile` first so the lock file is in sync before `npm ci` runs in the container. After adding, removing, or renaming workspace packages, run `make sync_lockfile` and commit the updated `package-lock.json` so the change is committed; the next Docker build will use the updated lock file from the context.
@@ -109,6 +117,7 @@ import { config } from './config'; // 4. Relative imports
 
 - **ESM**: Relative imports use `.js` extensions. Packages and apps use ESM (NodeNext in `tsconfig.base.json`).
 - **Type-only imports**: Use `import type { X } from '...'` when the import is only used as a type (avoids runtime references and helps with circular deps). Keep value imports when the symbol is used at runtime (e.g. classes for `instanceof`, decorators that need the constructor).
+- **Separate line for types**: Do not mix type and value in one import. Use a separate `import type { ... }` line (e.g. `import { DataSource } from 'typeorm';` and `import type { DataSourceOptions } from 'typeorm';`). ESLint `consistent-type-imports` with `fixStyle: 'separate-type-imports'` enforces this.
 
 ### Type assertions
 

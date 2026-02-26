@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+# Run a command inside the repo's Nix dev shell (node, npm, and other flake tools on PATH).
+# Usage: ./scripts/nix/with-env <command> [args...]
+# Example: ./scripts/nix/with-env npm run build:packages
+# Run from repo root. Also works when invoked from subdirs (resolves repo root via script path).
+set -e
+REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+exec nix develop "$REPO_ROOT" -c "$@"
