@@ -25,7 +25,7 @@
     "async-mutex": "^0.5.0",
     "bcrypt": "^6.0.0",
     "nanoid": "^5.1.6",
-    "pg": "^8.16.3",
+    "pg": "^8.19.0",
     "typeorm": "^0.3.26",
     "typeorm-naming-strategies": "^4.1.0",
     "@podverse/helpers-backend": "*",
