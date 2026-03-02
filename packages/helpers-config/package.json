@@ -24,7 +24,7 @@
     "@podverse/helpers": "*"
   },
   "devDependencies": {
-    "@types/node": "^24.10.12"
+    "@types/node": "^24.11.0"
   },
   "type": "module"
 }

@@ -46,15 +46,15 @@
   },
   "devDependencies": {
     "@next/bundle-analyzer": "^16.1.6",
-    "webpack": "^5.105.0",
-    "@types/node": "^24.10.12",
+    "webpack": "^5.105.3",
+    "@types/node": "^24.11.0",
     "@types/react": "^19.2.11",
     "@types/react-dom": "^19.2.2",
     "@types/video.js": "^7.3.58",
     "axios": "^1.13.5",
     "dotenv": "^17.2.2",
-    "nodemon": "^3.1.10",
-    "openai": "^6.16.0",
+    "nodemon": "^3.1.14",
+    "openai": "^6.25.0",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.2"
   }
