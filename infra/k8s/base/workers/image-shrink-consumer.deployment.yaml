@@ -17,7 +17,8 @@ spec:
       containers:
         - name: worker
           image: ghcr.io/podverse/podverse/workers
-          command: ["node", "apps/workers/dist/index.js", "imageShrinkRunConsumer"]
+          command:
+            ["node", "apps/workers/dist/index.js", "imageShrinkRunConsumer"]
           securityContext:
             runAsUser: 1000
             runAsGroup: 1000
@@ -61,8 +62,8 @@ spec:
                 name: podverse-db-opaque
             - secretRef:
                 name: podverse-mq-opaque
-            - secretRef:
-                name: podverse-workers-digital-ocean-opaque
+            #- secretRef:
+            #    name: podverse-workers-digital-ocean-opaque
           volumeMounts:
             - name: logs-volume
               mountPath: /logs
