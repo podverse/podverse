@@ -10,12 +10,24 @@ set -euo pipefail
 # ------------------------------------------------------------------
 PASSWORD_LENGTH=20
 AUTO_GEN=false
+OUTPUT_FILE_OVERRIDE=""
 
-# Check for --auto-gen flag
-if [[ "${1:-}" == "--auto-gen" ]]; then
-	AUTO_GEN=true
-	shift || true
-fi
+# Parse flags
+while [[ $# -gt 0 ]]; do
+	case "${1}" in
+	--auto-gen)
+		AUTO_GEN=true
+		shift
+		;;
+	--output-file)
+		OUTPUT_FILE_OVERRIDE="${2:?--output-file requires a value}"
+		shift 2
+		;;
+	*)
+		break
+		;;
+	esac
+done
 
 # Generate secure random password
 generate_password() {
@@ -41,6 +53,11 @@ ENVIRONMENT="${ENVIRONMENT:-alpha}"
 SECRET_NAME="podverse-management-db-opaque"
 NAMESPACE="podverse-${ENVIRONMENT}"
 OUTPUT_FILE="./infra/k8s/secrets/podverse-${ENVIRONMENT}-management-db-opaque.enc.yaml"
+
+# Allow orchestrator to override output path
+if [ -n "$OUTPUT_FILE_OVERRIDE" ]; then
+	OUTPUT_FILE="$OUTPUT_FILE_OVERRIDE"
+fi
 
 # ------------------------------------------------------------------
 # INPUTS
