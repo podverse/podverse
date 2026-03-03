@@ -20,7 +20,7 @@ spec:
       containers:
         - name: api
           image: ghcr.io/podverse/podverse/api
-          command: ["npm", "start"]
+          command: ["node", "apps/api/dist/index.js"]
           ports:
             - containerPort: 1234
               name: http

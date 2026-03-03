@@ -12,47 +12,47 @@ AUTO_GEN=false
 
 # Check for --auto-gen flag
 if [[ "${1:-}" == "--auto-gen" ]]; then
-  AUTO_GEN=true
-  shift || true
+	AUTO_GEN=true
+	shift || true
 fi
 
 # Generate secure random password
 generate_password() {
-  uuidgen
+	uuidgen
 }
 
 echo "Running create_management-api_secret.sh"
 
 # ENVIRONMENT INPUT
 if [ "$AUTO_GEN" = true ]; then
-  ENVIRONMENT="${1:-alpha}"
-  echo "Auto-generating with environment: $ENVIRONMENT"
+	ENVIRONMENT="${1:-alpha}"
+	echo "Auto-generating with environment: $ENVIRONMENT"
 else
-  read -r -p "Enter environment [alpha]: " ENVIRONMENT
+	read -r -p "Enter environment [alpha]: " ENVIRONMENT
 fi
 ENVIRONMENT="${ENVIRONMENT:-alpha}"
 
-SECRET_NAME="podverse-api-opaque"
+SECRET_NAME="podverse-management-api-opaque"
 NAMESPACE="podverse-${ENVIRONMENT}"
-OUTPUT_FILE="./infra/k8s/secrets/podverse-${ENVIRONMENT}-api-opaque.enc.yaml"
+OUTPUT_FILE="./infra/k8s/secrets/podverse-${ENVIRONMENT}-management-api-opaque.enc.yaml"
 
 # ------------------------------------------------------------------
 # INPUTS
 # ------------------------------------------------------------------
 if [ "$AUTO_GEN" = true ]; then
-  echo "Auto-generating secrets..."
-  AUTH_JWT_SECRET=$(generate_password)
-  echo "  AUTH_JWT_SECRET: [generated]"
+	echo "Auto-generating secrets..."
+	AUTH_JWT_SECRET=$(generate_password)
+	echo "  AUTH_JWT_SECRET: [generated]"
 else
-  echo "--- AUTHENTICATION ---"
-  read -r -s -p "Enter AUTH_JWT_SECRET (Random String): " AUTH_JWT_SECRET
-  echo ""
-  if [ -z "$AUTH_JWT_SECRET" ]; then
-    echo "Error: JWT Secret required."
-    exit 1
-  fi
+	echo "--- AUTHENTICATION ---"
+	read -r -s -p "Enter AUTH_JWT_SECRET (Random String): " AUTH_JWT_SECRET
+	echo ""
+	if [ -z "$AUTH_JWT_SECRET" ]; then
+		echo "Error: JWT Secret required."
+		exit 1
+	fi
 
-  echo ""
+	echo ""
 fi
 
 # --- GENERATION ---
@@ -63,12 +63,12 @@ TMP_FILE_BASE="$(mktemp -t "${SECRET_NAME}.XXXXXX")"
 TMP_FILE="${TMP_FILE_BASE}.yaml"
 mv "$TMP_FILE_BASE" "$TMP_FILE"
 kubectl create secret generic "${SECRET_NAME}" \
-  --namespace "${NAMESPACE}" \
-  --from-literal=AUTH_JWT_SECRET="${AUTH_JWT_SECRET}" \
-  --dry-run=client -o yaml >"$TMP_FILE"
+	--namespace "${NAMESPACE}" \
+	--from-literal=AUTH_JWT_SECRET="${AUTH_JWT_SECRET}" \
+	--dry-run=client -o yaml >"$TMP_FILE"
 
 sops --encrypt --encrypted-regex '^(data|stringData)$' \
-  --input-type=yaml "$TMP_FILE" >"${OUTPUT_FILE}"
+	--input-type=yaml "$TMP_FILE" >"${OUTPUT_FILE}"
 
 rm -f "$TMP_FILE"
 
@@ -80,4 +80,3 @@ echo "sops -d ${OUTPUT_FILE}"
 echo ""
 echo "You can apply the values (if you have the key) by running:"
 echo "sops -d ${OUTPUT_FILE} | kubectl apply -f -"
-

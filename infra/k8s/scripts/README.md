@@ -33,6 +33,33 @@ Generate the management database credentials secret with:
 ./scripts/create_management_db_secret.sh
 ```
 
+### Run all secret generators (auto-gen)
+
+Use the bulk runner to auto-generate all secrets that support it:
+
+```bash
+./scripts/create_all_secrets_auto_gen.sh alpha
+```
+
+This runs the following scripts with `--auto-gen`:
+
+- `create_api_secret.sh`
+- `create_management_api_secret.sh`
+- `create_db_secret.sh`
+- `create_management_db_secret.sh`
+- `create_keyvaldb_secret.sh`
+- `create_mq_secret.sh`
+- `create_workers_add_by_rss_secret.sh`
+
+### Secrets that require external inputs
+
+The following scripts **do not support `--auto-gen`** and are **not** included in the bulk runner. They require real credentials or files and must be run manually when those are available:
+
+- `create_api.podcastindex.org_secret.sh` - requires Podcast Index API keys
+- `create_firebase_secret.sh` - requires a `firebase-key.json` file
+- `create_workers_bucket_secret.sh` - requires bucket access/secret keys
+- `create_workers_digital_ocean_secret.sh` - requires DigitalOcean Spaces keys
+
 ## ENV to YAML Conversion
 
 Use `env-to-yaml.sh` to convert `.env`-style files into YAML-style key/value pairs and print a ConfigMap header.

@@ -17,7 +17,7 @@ spec:
       containers:
         - name: worker
           image: ghcr.io/podverse/podverse/workers
-          command: ["npm", "run", "image_shrink_run_consumer"]
+          command: ["node", "apps/workers/dist/index.js", "imageShrinkRunConsumer"]
           securityContext:
             runAsUser: 1000
             runAsGroup: 1000

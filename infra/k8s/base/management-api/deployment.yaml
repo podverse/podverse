@@ -33,7 +33,7 @@ spec:
         - name: management-api
           image: ghcr.io/podverse/podverse/management-api
           imagePullPolicy: Always
-          command: ["npm", "start", "-w", "apps/management-api"]
+          command: ["node", "apps/management-api/dist/index.js"]
           env:
             - name: NODE_ENV
               value: "production"

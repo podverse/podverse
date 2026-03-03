@@ -15,7 +15,7 @@ spec:
       containers:
         - name: worker
           image: ghcr.io/podverse/podverse/workers
-          command: ["npm", "run", "mq_rss_run_parser", "--", "-q", "rss-live"]
+          command: ["node", "apps/workers/dist/index.js", "mqRSSRunParser", "-q", "rss-live"]
           # TODO: The worker process currently needs to run as root. Address
           # this in the podverse-worker repo so images can run without root.
           securityContext:

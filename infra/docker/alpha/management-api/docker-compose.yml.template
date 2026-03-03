@@ -15,7 +15,7 @@ services:
       - 127.0.0.1:1999:1999
     volumes:
       - ../../../../logs/management-api:/opt/logs
-    command: npm start -w apps/management-api
+    command: ["node", "apps/management-api/dist/index.js"]
     restart: unless-stopped
     logging:
       driver: 'json-file'
