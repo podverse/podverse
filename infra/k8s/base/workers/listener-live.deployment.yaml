@@ -64,8 +64,8 @@ spec:
                 name: podverse-mq-opaque
             - secretRef:
                 name: podverse-api.podcastindex.org-opaque
-            - secretRef:
-                name: podverse-workers-digital-ocean-opaque
+            #- secretRef:
+            #    name: podverse-workers-digital-ocean-opaque
             - secretRef:
                 name: podverse-workers-add-by-rss-opaque
           # TODO: The application creates a local `logs` directory and fails
