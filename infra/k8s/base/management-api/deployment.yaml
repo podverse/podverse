@@ -42,6 +42,8 @@ spec:
                 name: podverse-management-api-config
             - secretRef:
                 name: podverse-management-api-opaque
+            - secretRef:
+                name: podverse-management-db-opaque
           # Container security hardening
           securityContext:
             readOnlyRootFilesystem: true
