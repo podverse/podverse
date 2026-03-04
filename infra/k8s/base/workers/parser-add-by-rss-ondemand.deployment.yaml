@@ -1,3 +1,4 @@
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -16,13 +17,11 @@ spec:
         - name: worker
           image: ghcr.io/podverse/podverse/workers
           command:
-            [
-              "node",
-              "apps/workers/dist/index.js",
-              "mqAddByRSSRunParser",
-              "-q",
-              "add-by-rss-on-demand",
-            ]
+            - node
+            - apps/workers/dist/index.js
+            - mqAddByRSSRunParser
+            - -q
+            - add-by-rss-on-demand
           # TODO: The worker process currently needs to run as root. Address
           # this in the podverse-worker repo so images can run without root.
           securityContext:
@@ -74,8 +73,6 @@ spec:
                 name: podverse-workers-add-by-rss-opaque
             - secretRef:
                 name: podverse-api.podcastindex.org-opaque
-            #- secretRef:
-            #    name: podverse-workers-digital-ocean-opaque
           # TODO: The application creates a local `logs` directory and fails
           # if it does not exist. Prefer logs to stdout so K3s/journald
           # pick them up. Short-term workaround: mount an `emptyDir` at

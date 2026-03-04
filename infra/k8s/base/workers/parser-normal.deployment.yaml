@@ -1,3 +1,4 @@
+---
 # Version: 3 (Added DB Secret Ref)
 # FIX: Corrected indentation for envFrom.secretRef.name entries.
 
@@ -19,13 +20,11 @@ spec:
         - name: worker
           image: ghcr.io/podverse/podverse/workers
           command:
-            [
-              "node",
-              "apps/workers/dist/index.js",
-              "mqRSSRunParser",
-              "-q",
-              "rss-normal",
-            ]
+            - node
+            - apps/workers/dist/index.js
+            - mqRSSRunParser
+            - -q
+            - rss-normal
           # TODO: The worker process currently needs to run as root. Address
           # this in the podverse-worker repo so images can run without root.
           securityContext:
@@ -73,8 +72,6 @@ spec:
                 name: podverse-mq-opaque
             - secretRef:
                 name: podverse-api.podcastindex.org-opaque
-            #- secretRef:
-            #    name: podverse-workers-digital-ocean-opaque
             - secretRef:
                 name: podverse-workers-add-by-rss-opaque
           # TODO: The application creates a local `logs` directory and fails
@@ -86,14 +83,6 @@ spec:
               mountPath: /logs
             - name: logs-volume
               mountPath: /opt/logs
-      #   volumeMounts:
-      #   - name: firebase-config
-      #     mountPath: /opt/config/firebase-key.json
-      #     subPath: firebase-key.json
-      #     readOnly: true
       volumes:
         - name: logs-volume
           emptyDir: {}
-      # - name: firebase-config
-      #   secret:
-      #     secretName: podverse-workers-firebase-opaque
