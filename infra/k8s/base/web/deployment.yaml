@@ -89,7 +89,7 @@ spec:
               value: "3001"
           envFrom:
             - configMapRef:
-                name: podverse-web-config
+                name: podverse-web-runtime-config
           securityContext:
             readOnlyRootFilesystem: true
             allowPrivilegeEscalation: false

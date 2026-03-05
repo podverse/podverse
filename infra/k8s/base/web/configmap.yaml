@@ -12,17 +12,17 @@ data:
   #####
 
   NODE_ENV: "production"
-  RUNTIME_CONFIG_URL: "http://localhost:3001"
+  RUNTIME_CONFIG_URL: "http://poverse-web-runtime-confg:3001"
 
   #####
   ##### API Configuration
   #####
   NEXT_PUBLIC_SSR_API_PROTOCOL: "https"
-  NEXT_PUBLIC_SSR_API_HOST: "api.base.podverse.fm" # Override in environment overlay
+  NEXT_PUBLIC_SSR_API_HOST: "api.alpha.podverse.fm" # Override in environment overlay
   NEXT_PUBLIC_SSR_API_PORT: ""
 
   NEXT_PUBLIC_API_PROTOCOL: "https"
-  NEXT_PUBLIC_API_HOST: "api.base.podverse.fm" # Override in environment overlay
+  NEXT_PUBLIC_API_HOST: "api.alpha.podverse.fm" # Override in environment overlay
   NEXT_PUBLIC_API_PORT: ""
   NEXT_PUBLIC_API_PREFIX: "/api"
   NEXT_PUBLIC_API_VERSION: "/v2"
@@ -31,7 +31,7 @@ data:
   ##### Web Configuration
   #####
   NEXT_PUBLIC_WEB_PROTOCOL: "https"
-  NEXT_PUBLIC_WEB_DOMAIN: "base.podverse.fm" # Override in environment overlay
+  NEXT_PUBLIC_WEB_DOMAIN: "alpha.podverse.fm" # Override in environment overlay
   NEXT_PUBLIC_BRAND_NAME: "Podverse"
   NEXT_PUBLIC_POLLING_INTERVAL_MS: "3000"
 
@@ -79,9 +79,9 @@ data:
   #####
   ##### Server Environment
   #####
-  NEXT_PUBLIC_SERVER_ENV: "base" # Override in environment overlay
+  NEXT_PUBLIC_SERVER_ENV: "alpha" # Override in environment overlay
 
   #####
   ##### Proxy Configuration
   #####
-  NEXT_PUBLIC_PROXY_USER_AGENT: "Podverse Bot base/Web-API/5"
+  NEXT_PUBLIC_PROXY_USER_AGENT: "Podverse Bot Alpha/Web-API/5"
