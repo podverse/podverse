@@ -71,6 +71,13 @@ spec:
             successThreshold: 1
             failureThreshold: 3
             timeoutSeconds: 5
+          startupProbe:
+            httpGet:
+              path: /runtime-config
+              port: 3001
+              scheme: HTTP
+            periodSeconds: 2
+            failureThreshold: 60
           readinessProbe:
             httpGet:
               path: /
