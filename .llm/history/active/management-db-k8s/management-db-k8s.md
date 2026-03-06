@@ -157,3 +157,26 @@ add to the script the needed lines to decrypt and apply the files. so a user can
 
 - infra/k8s/scripts/create_all_secrets_auto_gen.sh
 - infra/k8s/scripts/create_management_api_secret.sh
+
+---
+
+### Session 9 - 2026-03-05
+
+#### Prompt (Developer)
+
+the podverse-db and management-db should be in one pod and accessible by the regular infra and management infra
+
+#### Key Decisions
+
+- Pointed the management-db service at the shared podverse-db selector and port.
+- Mounted management-db init scripts and secrets into the shared podverse-db StatefulSet.
+- Kept a dedicated management-db ArgoCD app for the shared service/configmap while removing the duplicate StatefulSet overlay.
+- Updated management API DB host to use the shared podverse-db service.
+
+#### Files Modified
+
+- infra/k8s/base/db/statefulset.yaml
+- infra/k8s/base/management-db/service.yaml
+- infra/k8s/base/management-db/kustomization.yaml
+- infra/k8s/alpha/management-db/kustomization.yaml
+- infra/k8s/base/management-api/configmap.yaml

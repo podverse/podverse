@@ -4,4 +4,3 @@ kind: Kustomization
 resources:
   - init-scripts.configmap.yaml
   - service.yaml
-  - statefulset.yaml

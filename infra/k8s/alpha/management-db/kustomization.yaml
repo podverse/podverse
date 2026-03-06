@@ -12,10 +12,6 @@ namespace: podverse-alpha
 
 labels:
   - pairs:
-      app: podverse-management-db
+      app: podverse-db
       environment: alpha
     includeSelectors: true
-
-images:
-  - name: postgres
-    newTag: "18.1"

@@ -5,8 +5,8 @@ metadata:
 spec:
   type: ClusterIP
   selector:
-    app: podverse-management-db
+    app: podverse-db
   ports:
     - protocol: TCP
-      port: 5999
+      port: 5432
       targetPort: 5432

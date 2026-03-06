@@ -56,7 +56,7 @@ data:
   ##### Database (Postgres - Management Database)
   #####
 
-  DB_HOST: "podverse-management-db"
+  DB_HOST: "podverse-db"
   DB_PORT: "5432"
   # DB_READ_USERNAME: "read"                # in secrets
   # DB_READ_PASSWORD: "your_read_password"  # in secrets
