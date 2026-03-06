@@ -12,7 +12,7 @@ data:
   #####
 
   NODE_ENV: "production"
-  RUNTIME_CONFIG_URL: "http://poverse-web-runtime-confg:3001"
+  RUNTIME_CONFIG_URL: "http://podverse-web-runtime-config:3001/runtime-config"
 
   #####
   ##### API Configuration
