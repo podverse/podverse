@@ -14,7 +14,7 @@ spec:
           containers:
             - name: worker
               image: ghcr.io/podverse/podverse/workers
-              command: ["npm", "run", "orm_on_demand_parser_event_delete_outdated"]
+              command: ["node", "apps/workers/dist/index.js", "deleteOutdatedOnDemandParserEvent"]
               securityContext:
                 runAsUser: 1000
                 runAsGroup: 1000

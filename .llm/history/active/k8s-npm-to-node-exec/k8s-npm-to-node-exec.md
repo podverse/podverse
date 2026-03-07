@@ -42,3 +42,26 @@ K8s and Docker Compose commands from npm to direct node execution.
 - `infra/k8s/base/workers/consumer-dlq.deployment.yaml`
 - `infra/docker/alpha/api/docker-compose.yml.template`
 - `infra/docker/alpha/management-api/docker-compose.yml.template`
+
+### Session 2 - 2026-03-06
+
+#### Prompt (Developer)
+
+Fix the infra/k8s/base cron manifests that still run npm scripts and trigger
+"Missing script" errors.
+
+#### Key Decisions
+
+- Replace `npm run <script>` with direct `node apps/workers/dist/index.js`
+  commands to align with workers deployments and avoid npm log writes.
+
+#### Files Modified
+
+- `infra/k8s/base/cron/worker-recent-feeds.cronjob.yaml`
+- `infra/k8s/base/cron/worker-delete-outdated.cronjob.yaml`
+- `infra/k8s/base/cron/worker-generate-reports.cronjob.yaml`
+- `infra/k8s/base/cron/worker-archive-all.cronjob.yaml`
+- `infra/k8s/base/cron/worker-image-shrink-source-prune.cronjob.yaml`
+- `infra/k8s/base/cron/worker-image-shrink-backfill.cronjob.yaml`
+- `infra/k8s/base/cron/worker-image-shrink-orphan-cleanup.cronjob.yaml`
+- `infra/k8s/base/cron/worker-dead-feeds-merge.cronjob.yaml`

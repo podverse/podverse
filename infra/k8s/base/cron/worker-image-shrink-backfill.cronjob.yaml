@@ -12,7 +12,7 @@ spec:
           containers:
             - name: worker
               image: ghcr.io/podverse/podverse/workers
-              command: ["npm", "run", "image_shrink_backfill"]
+              command: ["node", "apps/workers/dist/index.js", "imageShrinkBackfill"]
               securityContext:
                 runAsUser: 1000
                 runAsGroup: 1000

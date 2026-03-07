@@ -12,7 +12,7 @@ spec:
           containers:
             - name: worker
               image: ghcr.io/podverse/podverse/workers
-              command: ["npm", "run", "archive_all"]
+              command: ["node", "apps/workers/dist/index.js", "archiveAll"]
               securityContext:
                 runAsUser: 1000
                 runAsGroup: 1000

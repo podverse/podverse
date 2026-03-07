@@ -18,7 +18,7 @@ spec:
           containers:
             - name: worker
               image: ghcr.io/podverse/podverse/workers
-              command: ["npm", "run", "podcast_index_dead_feeds_flag_and_merge"]
+              command: ["node", "apps/workers/dist/index.js", "podcastIndexDeadFeedsFlagAndMerge"]
               securityContext:
                 runAsUser: 1000
                 runAsGroup: 1000

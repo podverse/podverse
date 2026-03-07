@@ -12,7 +12,8 @@ spec:
           containers:
             - name: worker
               image: ghcr.io/podverse/podverse/workers
-              command: ["npm", "run", "mq_rss_add_recently_updated_feeds_from_podcast_index", "--", "-q", "rss-normal", "-sr", "900"]
+              command:
+                ["node", "apps/workers/dist/index.js", "mqRSSAddRecentlyUpdatedFeedsFromPodcastIndex", "-q", "rss-normal", "-sr", "900"]
               securityContext:
                 runAsUser: 1000
                 runAsGroup: 1000
