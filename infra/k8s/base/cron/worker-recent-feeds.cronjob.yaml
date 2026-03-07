@@ -13,7 +13,15 @@ spec:
             - name: worker
               image: ghcr.io/podverse/podverse/workers
               command:
-                ["node", "apps/workers/dist/index.js", "mqRSSAddRecentlyUpdatedFeedsFromPodcastIndex", "-q", "rss-normal", "-sr", "900"]
+                [
+                  "node",
+                  "apps/workers/dist/index.js",
+                  "mqRSSAddRecentlyUpdatedFeedsFromPodcastIndex",
+                  "-q",
+                  "rss-normal",
+                  "-sr",
+                  "900",
+                ]
               securityContext:
                 runAsUser: 1000
                 runAsGroup: 1000
@@ -36,6 +44,8 @@ spec:
                     name: podverse-mq-opaque
                 - secretRef:
                     name: podverse-api.podcastindex.org-opaque
+                - secretRef:
+                    name: podverse-workers-add-by-rss-opaque
               volumeMounts:
                 - name: logs-volume
                   mountPath: /logs
