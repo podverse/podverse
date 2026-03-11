@@ -19,11 +19,9 @@ spec:
             - name: worker
               image: ghcr.io/podverse/podverse/workers
               command:
-                [
-                  "node",
-                  "apps/workers/dist/index.js",
-                  "podcastIndexDeadFeedsFlagAndMerge",
-                ]
+                - "node"
+                - "apps/workers/dist/index.js"
+                - "podcastIndexDeadFeedsFlagAndMerge"
               securityContext:
                 runAsUser: 1000
                 runAsGroup: 1000

@@ -13,11 +13,9 @@ spec:
             - name: worker
               image: ghcr.io/podverse/podverse/workers
               command:
-                [
-                  "node",
-                  "apps/workers/dist/index.js",
-                  "imageShrinkCleanupOrphans",
-                ]
+                - "node"
+                - "apps/workers/dist/index.js"
+                - "imageShrinkCleanupOrphans"
               securityContext:
                 runAsUser: 1000
                 runAsGroup: 1000

@@ -1,4 +1,4 @@
-apiVersion: batch/v1
+a;wpiVersion: batch/v1
 kind: CronJob
 metadata:
   name: worker-generate-reports
@@ -13,11 +13,9 @@ spec:
             - name: worker
               image: ghcr.io/podverse/podverse/workers
               command:
-                [
-                  "node",
-                  "apps/workers/dist/index.js",
-                  "generateOnDemandParserEventReports",
-                ]
+                - "node"
+                - "apps/workers/dist/index.js"
+                - "generateOnDemandParserEventReports"
               securityContext:
                 runAsUser: 1000
                 runAsGroup: 1000

@@ -13,7 +13,9 @@ spec:
             - name: worker
               image: ghcr.io/podverse/podverse/workers
               command:
-                ["node", "apps/workers/dist/index.js", "imageShrinkBackfill"]
+                - "node"
+                - "apps/workers/dist/index.js"
+                - "imageShrinkBackfill"
               securityContext:
                 runAsUser: 1000
                 runAsGroup: 1000
