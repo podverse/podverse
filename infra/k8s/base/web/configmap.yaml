@@ -12,7 +12,7 @@ data:
   #####
 
   NODE_ENV: "production"
-  RUNTIME_CONFIG_URL: "http://localhost:3001"
+  RUNTIME_CONFIG_URL: "http://127.0.0.1:3001"
 
   #####
   ##### API Configuration

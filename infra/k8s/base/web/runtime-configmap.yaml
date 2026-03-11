@@ -1,0 +1,87 @@
+# Version: 1
+# Configuration for the web runtime-config container.
+# Mirrors podverse-web-config to satisfy runtime validation.
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: podverse-web-runtime-config
+data:
+  #####
+  ##### podverse-web
+  #####
+
+  NODE_ENV: "production"
+  RUNTIME_CONFIG_URL: "http://127.0.0.1:3001"
+
+  #####
+  ##### API Configuration
+  #####
+  NEXT_PUBLIC_SSR_API_PROTOCOL: "https"
+  NEXT_PUBLIC_SSR_API_HOST: "api.alpha.podverse.fm" # Override in environment overlay
+  NEXT_PUBLIC_SSR_API_PORT: ""
+
+  NEXT_PUBLIC_API_PROTOCOL: "https"
+  NEXT_PUBLIC_API_HOST: "api.alpha.podverse.fm" # Override in environment overlay
+  NEXT_PUBLIC_API_PORT: ""
+  NEXT_PUBLIC_API_PREFIX: "/api"
+  NEXT_PUBLIC_API_VERSION: "/v2"
+
+  #####
+  ##### Web Configuration
+  #####
+  NEXT_PUBLIC_WEB_PROTOCOL: "https"
+  NEXT_PUBLIC_WEB_DOMAIN: "alpha.podverse.fm" # Override in environment overlay
+  NEXT_PUBLIC_BRAND_NAME: "Podverse"
+  NEXT_PUBLIC_POLLING_INTERVAL_MS: "3000"
+
+  #####
+  ##### Lightning Keysend
+  #####
+  NEXT_PUBLIC_APP_VALUE_LIGHTNING_KEYSEND_NAME: "Podverse"
+  NEXT_PUBLIC_APP_VALUE_LIGHTNING_KEYSEND_TYPE: "node"
+  NEXT_PUBLIC_APP_VALUE_LIGHTNING_KEYSEND_ADDRESS: "fake9f91a0cb8ff43840e3c322c4c61f019d8c1c3cea15a25cfc425ac605e61a4a"
+  NEXT_PUBLIC_APP_VALUE_LIGHTNING_KEYSEND_CUSTOM_KEY: "123456"
+  NEXT_PUBLIC_APP_VALUE_LIGHTNING_KEYSEND_CUSTOM_VALUE: "fakefnRSUQlwKfzLEoB3"
+
+  #####
+  ##### Website Features
+  #####
+  NEXT_PUBLIC_FEATURES_SUPPORTED_LOCALES: "all-available"
+  NEXT_PUBLIC_FEATURES_DEFAULT_LOCALE: "en-US"
+
+  #####
+  ##### Theme Configuration
+  #####
+  NEXT_PUBLIC_SUPPORTED_THEMES: "all-available"
+  NEXT_PUBLIC_DEFAULT_THEME: "dark"
+
+  #####
+  ##### Web Push (Native)
+  #####
+  NEXT_PUBLIC_WEBPUSH_VAPID_PUBLIC_KEY: "BNXeKdJjn-YO5cua3tq16Ip03LdvSU13mey-fBaV9zHVaZ2rgL-Z9AaYf3UsJgqv2D5dQ-TZ-x3GlpxcZS3O6vE"
+
+  #####
+  ##### Account / Membership
+  #####
+  NEXT_PUBLIC_ACCOUNT_SIGNUP_MODE: "sign-up"
+
+  #####
+  ##### Contact & Social Media Links
+  #####
+  NEXT_PUBLIC_CONTACT_EMAIL: "contact@podverse.fm"
+  NEXT_PUBLIC_SOCIAL_ACTIVITY_PUB: "https://podcastindex.social/web/@podverse"
+  NEXT_PUBLIC_SOCIAL_DISCORD: "https://discord.gg/6HkyNKR"
+  NEXT_PUBLIC_SOCIAL_GITHUB: "https://github.com/podverse"
+  NEXT_PUBLIC_SOCIAL_MATRIX: "https://matrix.to/#/#podverse-space:matrix.org"
+  NEXT_PUBLIC_SOCIAL_X: "https://x.com/podverse"
+
+  #####
+  ##### Server Environment
+  #####
+  NEXT_PUBLIC_SERVER_ENV: "alpha" # Override in environment overlay
+
+  #####
+  ##### Proxy Configuration
+  #####
+  NEXT_PUBLIC_PROXY_USER_AGENT: "Podverse Bot Alpha/Web-API/5"

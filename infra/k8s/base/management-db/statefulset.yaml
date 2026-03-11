@@ -1,0 +1,83 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: podverse-management-db
+spec:
+  serviceName: "podverse-management-db"
+  replicas: 1
+  selector:
+    matchLabels:
+      app: podverse-management-db
+  template:
+    metadata:
+      labels:
+        app: podverse-management-db
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:latest
+          ports:
+            - containerPort: 5432
+              name: postgres
+          envFrom:
+            - secretRef:
+                name: podverse-management-db-opaque
+          args:
+            - "-c"
+            - "max_connections=50"
+            - "-c"
+            - "shared_buffers=128MB"
+            - "-c"
+            - "effective_cache_size=512MB"
+            - "-c"
+            - "maintenance_work_mem=128MB"
+            - "-c"
+            - "checkpoint_completion_target=0.7"
+            - "-c"
+            - "wal_buffers=4MB"
+            - "-c"
+            - "default_statistics_target=100"
+            - "-c"
+            - "random_page_cost=1.1"
+            - "-c"
+            - "effective_io_concurrency=200"
+            - "-c"
+            - "work_mem=2621kB"
+            - "-c"
+            - "min_wal_size=256MB"
+            - "-c"
+            - "max_wal_size=512MB"
+            - "-c"
+            - "max_worker_processes=2"
+            - "-c"
+            - "max_parallel_workers_per_gather=1"
+            - "-c"
+            - "max_parallel_workers=2"
+          volumeMounts:
+            - name: management-db-data
+              mountPath: /var/lib/postgresql
+            - name: init-scripts
+              mountPath: /docker-entrypoint-initdb.d
+            - name: run-dir
+              mountPath: /var/run/postgresql
+          securityContext:
+            readOnlyRootFilesystem: true
+            allowPrivilegeEscalation: false
+            runAsUser: 999
+            runAsGroup: 999
+            runAsNonRoot: true
+      volumes:
+        - name: init-scripts
+          configMap:
+            name: podverse-management-db-init-scripts
+        - name: run-dir
+          emptyDir: {}
+  volumeClaimTemplates:
+    - metadata:
+        name: management-db-data
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        storageClassName: local-path
+        resources:
+          requests:
+            storage: 5Gi

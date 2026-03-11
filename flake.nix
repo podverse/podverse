@@ -21,44 +21,54 @@
       in
       {
         devShells.default = pkgs.mkShell {
-          buildInputs = with pkgs; [
-            # Node.js and npm (v24 for monorepo development)
-            nodejs_24
+          buildInputs =
+            with pkgs;
+            [
+              # Node.js and npm (v24 for monorepo development)
+              nodejs_24
+              prettier
 
-            # Container and orchestration tools
-            argocd
-            kompose
-            kubectl
-            kubernetes-helm
+              # Container and orchestration tools
+              argocd
+              kompose
+              kubectl
+              kubernetes-helm
+              kustomize
 
-            # Database and cache tools
-            postgresql
-            redis
+              # Database and cache tools
+              postgresql
+              redis
 
-            # DevOps and configuration
-            git
-            sops
-            yq
-            yamllint
-            jq
+              # DevOps and configuration
+              git
+              sops
+              yq
+              yamllint
+              jq
 
-            # Kubernetes utilities
-            k9s
+              # Kubernetes utilities
+              k9s
 
-            # Development utilities
-            curl
-            gnumake
-            pkg-config
-            openssl
-            moreutils
-            pwgen
-            libuuid
-          ] ++ (if pkgs.stdenv.isLinux then [
-            docker
-            docker-compose
-          ] else [
-            # On macOS, use Docker Desktop instead
-          ]);
+              # Development utilities
+              curl
+              gnumake
+              pkg-config
+              openssl
+              moreutils
+              pwgen
+              libuuid
+            ]
+            ++ (
+              if pkgs.stdenv.isLinux then
+                [
+                  docker
+                  docker-compose
+                ]
+              else
+                [
+                  # On macOS, use Docker Desktop instead
+                ]
+            );
 
           shellHook = ''
             echo "🛠️  Podverse Monorepo Development Environment"

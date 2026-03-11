@@ -1,0 +1,35 @@
+# Version: 1
+# Configuration for the Management Web frontend.
+# Mapped from apps/management-web/.env.example
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: podverse-management-web-config
+data:
+  #####
+  ##### podverse-management-web
+  #####
+
+  NODE_ENV: "production"
+  RUNTIME_CONFIG_URL: "http://localhost:3101"
+
+  #####
+  ##### API Configuration
+  #####
+  NEXT_PUBLIC_API_PROTOCOL: "https"
+  NEXT_PUBLIC_API_HOST: "management-api.base.podverse.fm" # Override in environment overlay
+  NEXT_PUBLIC_API_PORT: ""
+  NEXT_PUBLIC_API_PREFIX: "/api"
+  NEXT_PUBLIC_API_VERSION: "/v2"
+
+  #####
+  ##### Web Configuration
+  #####
+  NEXT_PUBLIC_BRAND_NAME: "Podverse Management"
+
+  #####
+  ##### Website Features
+  #####
+  NEXT_PUBLIC_FEATURES_SUPPORTED_LOCALES: "all-available"
+  NEXT_PUBLIC_FEATURES_DEFAULT_LOCALE: "en-US"
