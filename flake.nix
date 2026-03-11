@@ -26,6 +26,7 @@
             [
               # Node.js and npm (v24 for monorepo development)
               nodejs_24
+              prettier
 
               # Container and orchestration tools
               argocd
