@@ -96,3 +96,4 @@ validate_docker: validate
 
 -include Makefile.local
 include Makefile.alpha
+include Makefile.jenkins-alpha

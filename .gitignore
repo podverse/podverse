@@ -32,6 +32,7 @@ apps/*/i18n/compiled/
 # Infra config files (gitignored - contain secrets)
 infra/config/local/
 infra/config/alpha/
+infra/pipelines/jenkins/alpha/setup/jenkins-sync.env
 
 # The following ARE committed (sanitized templates without secrets):
 # - apps/*/.env.example

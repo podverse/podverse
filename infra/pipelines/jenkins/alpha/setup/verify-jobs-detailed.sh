@@ -1,18 +1,41 @@
 #!/bin/bash
 set -euo pipefail
 
-if [ $# -lt 2 ]; then
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ALPHA_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+JENKINSFILES_DIR="$ALPHA_DIR"
+
+CRED_FILE="${1:-${CRED_FILE:-${JENKINS_CREDENTIALS_FILE:-}}}"
+JENKINS_URL="${2:-${JENKINS_URL:-}}"
+JENKINS_FOLDER="${JENKINS_FOLDER:-pipelines/alpha}"
+JENKINS_URL="${JENKINS_URL%/}"
+
+if [[ -z "$CRED_FILE" || -z "$JENKINS_URL" ]]; then
   echo "Usage: $0 <credentials_file> <jenkins_url>" >&2
+  echo "Or set env vars: JENKINS_CREDENTIALS_FILE, JENKINS_URL" >&2
   exit 1
 fi
 
-CRED_FILE="$1"
-JENKINS_URL="$2"
-JENKINS_FOLDER="pipelines/alpha"
-JENKINS_API_PATH="job/pipelines/job/alpha"
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+if [[ ! -f "$CRED_FILE" ]]; then
+  echo "ERROR: Credentials file not found: $CRED_FILE" >&2
+  exit 1
+fi
 
-AUTH="$(cat "$CRED_FILE" | tr -d '\r\n')"
+folder_to_api_path() {
+  local folder="$1"
+  local api_path=""
+  IFS='/' read -r -a segments <<< "$folder"
+  for segment in "${segments[@]}"; do
+    if [[ -n "$segment" ]]; then
+      api_path="${api_path}/job/${segment}"
+    fi
+  done
+  echo "${api_path#/}"
+}
+
+JENKINS_API_PATH="$(folder_to_api_path "$JENKINS_FOLDER")"
+
+AUTH="$(tr -d '\r\n' < "$CRED_FILE")"
 
 echo "========================================"
 echo "Jenkins Jobs Detailed Verification"
@@ -31,17 +54,34 @@ JENKINS_JOBS=$(curl -s -u "$AUTH" "${JENKINS_URL}/${JENKINS_API_PATH}/api/json" 
 
 # Get list of local Jenkinsfiles
 shopt -s nullglob
-LOCAL_FILES=("$SCRIPT_DIR"/Jenkinsfile.*)
+LOCAL_FILES=("$JENKINSFILES_DIR"/Jenkinsfile.*)
 shopt -u nullglob
 
 echo "Local Jenkinsfiles: ${#LOCAL_FILES[@]}"
 echo ""
 
-# Function to extract value from XML (simple grep/sed approach)
+# Function to extract first simple XML tag value.
+# Returns empty string if tag is missing (never fails the script).
 extract_xml() {
   local xml="$1"
   local tag="$2"
-  echo "$xml" | grep -o "<${tag}>.*</${tag}>" | sed "s|<${tag}>||;s|</${tag}>||" | head -1
+  echo "$xml" | sed -n "s|.*<${tag}>\\([^<]*\\)</${tag}>.*|\\1|p" | head -1
+}
+
+# Extract branch from the <branches> block specifically, instead of first generic <name>.
+extract_branch_name() {
+  local xml="$1"
+  echo "$xml" | awk '
+    /<branches>/ { in_branches=1 }
+    in_branches && /<name>/ {
+      line=$0
+      sub(/^.*<name>/, "", line)
+      sub(/<\/name>.*$/, "", line)
+      print line
+      exit
+    }
+    /<\/branches>/ { in_branches=0 }
+  '
 }
 
 # Function to check if sparse checkout path exists
@@ -70,7 +110,7 @@ for FILE_PATH in "${LOCAL_FILES[@]}"; do
     if [ -n "$CURRENT_CONFIG" ]; then
       # Extract current values
       CURRENT_SCRIPT_PATH=$(extract_xml "$CURRENT_CONFIG" "scriptPath")
-      CURRENT_BRANCH=$(extract_xml "$CURRENT_CONFIG" "name")
+      CURRENT_BRANCH=$(extract_branch_name "$CURRENT_CONFIG")
       CURRENT_REPO=$(extract_xml "$CURRENT_CONFIG" "url")
       CURRENT_HAS_SPARSE=$(check_sparse_path "$CURRENT_CONFIG" "$EXPECTED_SPARSE_PATH")
       
@@ -106,12 +146,12 @@ for FILE_PATH in "${LOCAL_FILES[@]}"; do
           echo "$change"
         done
         echo ""
-        ((TOTAL_UPDATE++))
-        ((TOTAL_CHANGES++))
+        TOTAL_UPDATE=$((TOTAL_UPDATE + 1))
+        TOTAL_CHANGES=$((TOTAL_CHANGES + 1))
       else
         echo "✓ No changes needed: $JOB_NAME (already correct)"
-        ((TOTAL_UPDATE++))
-        ((TOTAL_NO_CHANGE++))
+        TOTAL_UPDATE=$((TOTAL_UPDATE + 1))
+        TOTAL_NO_CHANGE=$((TOTAL_NO_CHANGE + 1))
       fi
     fi
   else
@@ -125,8 +165,8 @@ for FILE_PATH in "${LOCAL_FILES[@]}"; do
     echo "  repository: $EXPECTED_REPO"
     echo "  sparse checkout: $EXPECTED_SPARSE_PATH"
     echo ""
-    ((TOTAL_CREATE++))
-    ((TOTAL_CHANGES++))
+    TOTAL_CREATE=$((TOTAL_CREATE + 1))
+    TOTAL_CHANGES=$((TOTAL_CHANGES + 1))
   fi
 done
 
@@ -134,7 +174,7 @@ done
 declare -a ORPHANED=()
 while IFS= read -r job; do
   [ -z "$job" ] && continue
-  if [ ! -f "$SCRIPT_DIR/Jenkinsfile.$job" ]; then
+  if [ ! -f "$JENKINSFILES_DIR/Jenkinsfile.$job" ]; then
     ORPHANED+=("$job")
   fi
 done <<< "$JENKINS_JOBS"
