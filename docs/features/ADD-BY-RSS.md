@@ -39,4 +39,4 @@ To rotate the encryption key without losing access to stored credentials:
 
 4. After re-encryption completes, remove `ADD_BY_RSS_CREDENTIALS_ENCRYPTION_KEY_OLD` from the environment and restart API and workers. No JWT or auth changes are required.
 
-**Jenkins (alpha):** The job `ops_add_by_rss_reencrypt_credentials` accepts parameters `OLD_KEY` and `NEW_KEY` (password type) and runs the workers command `reencryptAddByRSSCredentials` inside the workers container. It uses the same DB env as the alpha workers. See [infra/pipelines/jenkins/alpha/Jenkinsfile.ops_add_by_rss_reencrypt_credentials](../../infra/pipelines/jenkins/alpha/Jenkinsfile.ops_add_by_rss_reencrypt_credentials).
+**Jenkins (alpha):** The job `aux_ops_add_by_rss_reencrypt_credentials` accepts parameters `OLD_KEY` and `NEW_KEY` (password type) and runs the workers command `reencryptAddByRSSCredentials` inside the workers container. It uses the same DB env as the alpha workers. See [infra/pipelines/jenkins/alpha/Jenkinsfile.aux_ops_add_by_rss_reencrypt_credentials](../../infra/pipelines/jenkins/alpha/Jenkinsfile.aux_ops_add_by_rss_reencrypt_credentials).
