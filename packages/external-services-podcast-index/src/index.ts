@@ -2,7 +2,7 @@ import { createHash } from 'node:crypto';
 import csv from 'csv-parser';
 import fs from 'fs';
 import path from 'path';
-import { request, type AxiosRequestConfig } from '@podverse/helpers-requests';
+import { requestWithUserAgent, type AxiosRequestConfig } from '@podverse/helpers-requests';
 import type {
   PodcastBatchByFeedGuidResponse,
   PodcastByGuidResponse,
@@ -61,15 +61,18 @@ export class PodcastIndexService {
 
     try {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const response = await request<any>(url, {
-        headers: {
-          'User-Agent': this.userAgent,
-          'X-Auth-Key': this.authKey,
-          'X-Auth-Date': apiHeaderTime,
-          Authorization: hash,
+      const response = await requestWithUserAgent<any>(
+        url,
+        {
+          headers: {
+            'X-Auth-Key': this.authKey,
+            'X-Auth-Date': apiHeaderTime,
+            Authorization: hash,
+          },
+          ...config,
         },
-        ...config,
-      });
+        this.userAgent
+      );
 
       return response?.data;
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -486,3 +489,5 @@ export class PodcastIndexService {
     return accumulatedPodcastIndexIds;
   };
 }
+
+export { iterateFeedsFromDb, type FeedRow } from './publicFeedsDb.js';

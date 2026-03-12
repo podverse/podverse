@@ -1,5 +1,5 @@
 import type { AxiosRequestConfig } from '@podverse/helpers-requests';
-import { request, requestWithHeaders } from '@podverse/helpers-requests';
+import { requestWithHeadersWithUserAgent, requestWithUserAgent } from '@podverse/helpers-requests';
 import { config } from '../config/index.js';
 
 export const _request = async <T>(
@@ -10,11 +10,7 @@ export const _request = async <T>(
     timeoutMs: number;
   }
 ): Promise<{ status: number; data: T }> => {
-  const headers = {
-    ...requestConfig?.headers,
-    'User-Agent': config.userAgent,
-  };
-  return request<T>(url, { ...requestConfig, headers }, abort);
+  return requestWithUserAgent<T>(url, requestConfig, config.userAgent, abort);
 };
 
 export const _requestWithHeaders = async <T>(
@@ -25,9 +21,5 @@ export const _requestWithHeaders = async <T>(
     timeoutMs: number;
   }
 ): Promise<{ status: number; data: T; headers: Record<string, unknown> }> => {
-  const headers = {
-    ...requestConfig?.headers,
-    'User-Agent': config.userAgent,
-  };
-  return requestWithHeaders<T>(url, { ...requestConfig, headers }, abort);
+  return requestWithHeadersWithUserAgent<T>(url, requestConfig, config.userAgent, abort);
 };

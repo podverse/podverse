@@ -1,0 +1,2 @@
+# Directory for Podcast Index feeds DB (podcastindex_feeds.db).
+# The file is downloaded by devPiBulkFeedsAddFromFile when missing; keep this dir for sparse checkout.

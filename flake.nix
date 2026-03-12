@@ -38,6 +38,7 @@
               # Database and cache tools
               postgresql
               redis
+              sqlite
 
               # DevOps and configuration
               git

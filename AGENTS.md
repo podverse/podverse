@@ -13,12 +13,20 @@ This document provides rules and patterns for AI coding assistants working on th
 
 ### Essential Commands
 
+All commands below are run **from the monorepo root** (do not `cd` into apps first). Use `-w apps/<name>` to run workspace scripts from root. When providing runnable commands in responses, **always put them in a fenced code block** (e.g. ```bash) so the IDE shows a copy button.
+
 ```bash
 npm run build:packages # Build packages (required before apps)
 npm run lint           # Lint all packages and apps
 npm run dev:api        # Start API (localhost:1234)
 npm run dev:web        # Start web app (localhost:3000)
 npm run dev:all        # Start everything with watch mode
+```
+
+**Workers (example: add feeds from Podcast Index DB):**
+
+```bash
+npm run dev_pi_bulk_feeds_add_from_file -w apps/workers -- -startId 1 -endId 10 -q rss-slow
 ```
 
 ### Package Build Order

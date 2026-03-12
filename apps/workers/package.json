@@ -15,6 +15,7 @@
     "type-check": "tsc --noEmit",
     "start": "node ./dist/index.js",
     "archive_all": "node ./dist/index.js archiveAll",
+    "dev_pi_bulk_feeds_add_from_file": "node ./dist/index.js devPiBulkFeedsAddFromFile",
     "image_shrink_backfill": "node ./dist/index.js imageShrinkBackfill",
     "image_shrink_cleanup_orphans": "node ./dist/index.js imageShrinkCleanupOrphans",
     "image_shrink_run_consumer": "node ./dist/index.js imageShrinkRunConsumer",

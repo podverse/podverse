@@ -39,6 +39,12 @@ infra/config/alpha/
 # - infra/config/env-templates/*.env.example
 # - infra/config/test/ (test config can be committed)
 
+# Podcast Index feeds DB (dev/test; downloaded at runtime by devPiBulkFeedsAddFromFile)
+infra/data/dev/podcast-index-feeds/*.csv
+infra/data/dev/podcast-index-feeds/*.db
+infra/data/dev/podcast-index-feeds/*.tgz
+!infra/data/dev/podcast-index-feeds/.gitkeep
+
 # Logs
 *.log
 npm-debug.log*

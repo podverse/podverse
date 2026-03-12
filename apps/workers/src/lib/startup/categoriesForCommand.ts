@@ -46,6 +46,8 @@ const BASE_ORM_MQ_PODCAST_INDEX_COMMANDS = ['mqRSSAdd'] as const;
 
 const BASE_ORM_MQ_COMMANDS = ['mqRSSRunDlqConsumer', 'mqRSSAddAll'] as const;
 
+const BASE_MQ_COMMANDS = ['devPiBulkFeedsAddFromFile'] as const;
+
 const BASE_ORM_MQ_IMAGE_SHRINK_COMMANDS = [
   'imageShrinkBackfill',
   'imageShrinkRunConsumer',
@@ -116,6 +118,11 @@ export function getCategoriesForCommand(commandName: string): Set<ConfigCategory
 
   if (BASE_ORM_MQ_COMMANDS.includes(commandName as (typeof BASE_ORM_MQ_COMMANDS)[number])) {
     categories.add(CATEGORY_ORM);
+    categories.add(CATEGORY_MQ);
+    return categories;
+  }
+
+  if (BASE_MQ_COMMANDS.includes(commandName as (typeof BASE_MQ_COMMANDS)[number])) {
     categories.add(CATEGORY_MQ);
     return categories;
   }
