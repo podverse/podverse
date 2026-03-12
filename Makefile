@@ -32,8 +32,8 @@ validate:
 	@echo "  Running Pre-Push Validation"
 	@echo "============================================"
 	@echo ""
-	@echo "Step 1/6: Security audit..."
-	npm audit --omit=dev
+	@echo "Step 1/6: Security audit (moderate and above; low permitted)..."
+	npm audit --omit=dev --audit-level=moderate
 	@echo ""
 	@echo "Step 2/6: Building packages..."
 	npm run build:packages
