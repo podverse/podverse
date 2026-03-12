@@ -18,14 +18,13 @@ export class BoostboxController {
       const resolvedBaseUrl =
         config.boostbox.internalBaseUrl ?? (typeof baseUrlRaw === 'string' ? baseUrlRaw : '');
       const baseUrl = resolvedBaseUrl.replace(/\/$/, '');
-      const boostUrl = `${baseUrl}/boost`;
       const boostPayload: Record<string, unknown> =
         typeof req.body === 'object' && req.body !== null ? { ...req.body } : {};
       delete boostPayload.baseUrl;
       const body = JSON.stringify(boostPayload);
 
       try {
-        const response = await fetchWithTimeout(boostUrl, {
+        const response = await fetchWithTimeout(baseUrl, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

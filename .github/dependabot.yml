@@ -1,6 +1,9 @@
 # Dependabot configuration for automated dependency updates
 # Targets develop branch - PRs will be created against develop
 #
+# Node.js: we only care about LTS (even-numbered: 18, 20, 22, 24, 26...).
+# Odd-numbered majors are non-LTS and are ignored for node / @types/node.
+#
 # Note: This is an alternative to Renovate - use ONE or the other, not both
 # Renovate offers better monorepo support if needed
 
@@ -21,9 +24,10 @@ updates:
       - "dependencies"
     commit-message:
       prefix: "chore(deps)"
+    # Only LTS (even) Node: ignore odd-numbered @types/node versions
     ignore:
       - dependency-name: "@types/node"
-        versions: ["25.x", "27.x", "29.x"]
+        versions: ["19.x", "21.x", "23.x", "25.x", "27.x", "29.x", "31.x"]
     groups:
       # Group minor/patch prod deps together
       production-minor-patch:
@@ -60,10 +64,10 @@ updates:
     labels:
       - "dependencies"
       - "docker"
-    # Ignore non-LTS Node.js versions (odd-numbered: 19, 21, 23, 25, 27...)
+    # Only LTS (even) Node: ignore non-LTS odd-numbered versions
     ignore:
       - dependency-name: "node"
-        versions: ["19.x", "21.x", "23.x", "25.x", "27.x", "29.x"]
+        versions: ["19.x", "21.x", "23.x", "25.x", "27.x", "29.x", "31.x"]
 
   - package-ecosystem: "docker"
     directory: "/apps/web"
@@ -73,10 +77,10 @@ updates:
     labels:
       - "dependencies"
       - "docker"
-    # Ignore non-LTS Node.js versions (odd-numbered: 19, 21, 23, 25, 27...)
+    # Only LTS (even) Node: ignore non-LTS odd-numbered versions
     ignore:
       - dependency-name: "node"
-        versions: ["19.x", "21.x", "23.x", "25.x", "27.x", "29.x"]
+        versions: ["19.x", "21.x", "23.x", "25.x", "27.x", "29.x", "31.x"]
 
   - package-ecosystem: "docker"
     directory: "/apps/workers"
@@ -86,10 +90,10 @@ updates:
     labels:
       - "dependencies"
       - "docker"
-    # Ignore non-LTS Node.js versions (odd-numbered: 19, 21, 23, 25, 27...)
+    # Only LTS (even) Node: ignore non-LTS odd-numbered versions
     ignore:
       - dependency-name: "node"
-        versions: ["19.x", "21.x", "23.x", "25.x", "27.x", "29.x"]
+        versions: ["19.x", "21.x", "23.x", "25.x", "27.x", "29.x", "31.x"]
 
   - package-ecosystem: "docker"
     directory: "/apps/management-api"
@@ -99,10 +103,10 @@ updates:
     labels:
       - "dependencies"
       - "docker"
-    # Ignore non-LTS Node.js versions (odd-numbered: 19, 21, 23, 25, 27...)
+    # Only LTS (even) Node: ignore non-LTS odd-numbered versions
     ignore:
       - dependency-name: "node"
-        versions: ["19.x", "21.x", "23.x", "25.x", "27.x", "29.x"]
+        versions: ["19.x", "21.x", "23.x", "25.x", "27.x", "29.x", "31.x"]
 
   - package-ecosystem: "docker"
     directory: "/apps/management-web"
@@ -112,10 +116,10 @@ updates:
     labels:
       - "dependencies"
       - "docker"
-    # Ignore non-LTS Node.js versions (odd-numbered: 19, 21, 23, 25, 27...)
+    # Only LTS (even) Node: ignore non-LTS odd-numbered versions
     ignore:
       - dependency-name: "node"
-        versions: ["19.x", "21.x", "23.x", "25.x", "27.x", "29.x"]
+        versions: ["19.x", "21.x", "23.x", "25.x", "27.x", "29.x", "31.x"]
 
   # GitHub Actions
   - package-ecosystem: "github-actions"

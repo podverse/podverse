@@ -1,4 +1,4 @@
--- Combined migrations generated Mon Feb 16 01:51:58 CST 2026
+-- Combined migrations generated Thu Mar 12 12:03:44 CDT 2026
 -- DO NOT EDIT - regenerate with scripts/database/combine-migrations.sh
 
 -- Including: 0000_init_helpers.sql
@@ -647,19 +647,6 @@ CREATE TABLE channel_value (
 
 CREATE INDEX idx_channel_value_channel_id ON channel_value(channel_id);
 
--- <channel> -> <podcast:value> -> <podcast:metaBoost>
-CREATE TABLE channel_value_meta_boost (
-    id SERIAL PRIMARY KEY,
-    channel_value_id INTEGER NOT NULL REFERENCES channel_value(id) ON DELETE CASCADE,
-    type varchar_short NOT NULL,
-    schema varchar_short NOT NULL,
-    license varchar_url,
-    node varchar_url NOT NULL,
-    UNIQUE (channel_value_id)
-);
-
-CREATE INDEX idx_channel_value_meta_boost_channel_value_id ON channel_value_meta_boost(channel_value_id);
-
 --** CHANNEL > VALUE > RECEIPIENT
 
 -- <channel> -> <podcast:value> -> <podcast:valueRecipient>
@@ -1062,19 +1049,6 @@ CREATE TABLE item_value (
 );
 
 CREATE INDEX idx_item_value_item_id ON item_value(item_id);
-
--- <item> -> <podcast:value> -> <podcast:metaBoost>
-CREATE TABLE item_value_meta_boost (
-    id SERIAL PRIMARY KEY,
-    item_value_id INTEGER NOT NULL REFERENCES item_value(id) ON DELETE CASCADE,
-    type varchar_short NOT NULL,
-    schema varchar_short NOT NULL,
-    license varchar_url,
-    node varchar_url NOT NULL,
-    UNIQUE (item_value_id)
-);
-
-CREATE INDEX idx_item_value_meta_boost_item_value_id ON item_value_meta_boost(item_value_id);
 
 --** ITEM > VALUE > RECEIPIENT
 
@@ -1938,5 +1912,37 @@ CREATE TRIGGER set_updated_at_image_shrink_source
     BEFORE UPDATE ON image_shrink_source
     FOR EACH ROW
     EXECUTE FUNCTION set_updated_at_field();
+
+
+-- Including: 0015_metaboost.sql
+-- 0015: Add metaBoost tables linked to value records.
+
+ALTER TABLE channel_value
+    DROP COLUMN IF EXISTS meta_boost_schema,
+    DROP COLUMN IF EXISTS meta_boost_url;
+
+ALTER TABLE item_value
+    DROP COLUMN IF EXISTS meta_boost_schema,
+    DROP COLUMN IF EXISTS meta_boost_url;
+
+CREATE TABLE channel_value_meta_boost (
+    id serial PRIMARY KEY,
+    channel_value_id int NOT NULL REFERENCES channel_value(id) ON DELETE CASCADE,
+    type varchar_short NOT NULL,
+    schema varchar_short NOT NULL,
+    license varchar_url,
+    node varchar_url NOT NULL,
+    UNIQUE (channel_value_id)
+);
+
+CREATE TABLE item_value_meta_boost (
+    id serial PRIMARY KEY,
+    item_value_id int NOT NULL REFERENCES item_value(id) ON DELETE CASCADE,
+    type varchar_short NOT NULL,
+    schema varchar_short NOT NULL,
+    license varchar_url,
+    node varchar_url NOT NULL,
+    UNIQUE (item_value_id)
+);
 
 

@@ -157,6 +157,8 @@ Shall I proceed with just "helpers" first?
 
 ## Code Quality
 
+- **Component props:** Do not pass `undefined` explicitly to components. Allow `null` as a value for optional props so callers can pass `prop={value}` directly; components treat `null` (and `undefined`) as "not set" / default behavior. When checking optional string props (e.g. error messages) for "has value", use a simple falsy check (`Boolean(value)` or `if (value)`) instead of explicit `!== undefined && !== null && !== ''`.
+
 **Treat warnings as errors.** Fix all lint warnings before considering a task complete:
 
 - Non-null assertions (`!`) → Use `??` with defaults or proper null checks
