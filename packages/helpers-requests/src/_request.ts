@@ -3,9 +3,12 @@ import axios from 'axios';
 
 export type { AxiosRequestConfig } from 'axios';
 
+/** Config may include userAgent; when set it is sent as the User-Agent header (not passed through to axios). */
+export type RequestConfig = AxiosRequestConfig & { userAgent?: string };
+
 const requestInternal = async <T>(
   url: string,
-  requestConfig?: AxiosRequestConfig,
+  requestConfig?: RequestConfig,
   abort?: {
     controller: AbortController;
     timeoutMs: number;
@@ -19,16 +22,18 @@ const requestInternal = async <T>(
   }
 
   try {
-    const method = requestConfig?.method || 'GET';
+    const { userAgent, ...rest } = requestConfig ?? {};
+    const method = rest.method || 'GET';
     const isJSONRequest = method.toUpperCase() === 'POST' || method.toUpperCase() === 'PUT';
 
     const axiosConfig: AxiosRequestConfig = {
       url,
       method,
-      ...requestConfig,
+      ...rest,
       headers: {
+        ...(userAgent ? { 'User-Agent': userAgent } : {}),
         ...(isJSONRequest ? { 'Content-Type': 'application/json' } : {}),
-        ...requestConfig?.headers,
+        ...rest.headers,
       },
       ...(abort?.controller?.signal ? { signal: abort.controller.signal } : {}),
     };
@@ -43,7 +48,7 @@ const requestInternal = async <T>(
 
 export const request = async <T>(
   url: string,
-  requestConfig?: AxiosRequestConfig,
+  requestConfig?: RequestConfig,
   abort?: {
     controller: AbortController;
     timeoutMs: number;
@@ -55,7 +60,7 @@ export const request = async <T>(
 
 export const requestWithHeaders = async <T>(
   url: string,
-  requestConfig?: AxiosRequestConfig,
+  requestConfig?: RequestConfig,
   abort?: {
     controller: AbortController;
     timeoutMs: number;
@@ -67,6 +72,32 @@ export const requestWithHeaders = async <T>(
     data: response.data,
     headers: response.headers,
   };
+};
+
+/** Same as request but requires userAgent (for backend requests to 3rd-party domains that must send User-Agent). */
+export const requestWithUserAgent = async <T>(
+  url: string,
+  requestConfig: RequestConfig | undefined,
+  userAgent: string,
+  abort?: {
+    controller: AbortController;
+    timeoutMs: number;
+  }
+): Promise<{ status: number; data: T }> => {
+  return request<T>(url, { ...requestConfig, userAgent }, abort);
+};
+
+/** Same as requestWithHeaders but requires userAgent (for backend requests to 3rd-party domains that must send User-Agent). */
+export const requestWithHeadersWithUserAgent = async <T>(
+  url: string,
+  requestConfig: RequestConfig | undefined,
+  userAgent: string,
+  abort?: {
+    controller: AbortController;
+    timeoutMs: number;
+  }
+): Promise<{ status: number; data: T; headers: AxiosResponse<T>['headers'] }> => {
+  return requestWithHeaders<T>(url, { ...requestConfig, userAgent }, abort);
 };
 
 interface ErrorWithStatusCode extends Error {

@@ -101,6 +101,10 @@ completed/
 
 **Pattern**: `NN-descriptive-name/` containing `NNx-*.md` files.
 
+## Commands From Monorepo Root
+
+When giving terminal or npm commands, **always give them relative to the monorepo root**. Do not instruct "cd apps/workers" (or similar) first. Use `npm run <script> -w apps/<workspace> -- [args]` so the user can copy-paste from repo root. **Always put runnable commands in a fenced code block** (e.g. `bash ... `) so the IDE shows a copy button; never give only inline commands when the user may want to run them. See `.cursor/rules/commands-from-monorepo-root.mdc`.
+
 ## GitHub Workflows
 
 **Issue Templates & Labels**: [docs/repo-management/GITHUB-LABELS.md](../../../docs/repo-management/GITHUB-LABELS.md)
