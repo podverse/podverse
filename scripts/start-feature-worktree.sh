@@ -3,6 +3,10 @@
 # Podverse Start Feature Worktree Script
 # Creates a new branch in a new work tree with symlinked env overrides and LLM history,
 # so you can start working immediately without re-entering override values.
+#
+# Optional: set PODVERSE_NIX_DEV_SHELL (e.g. .#fish) to use a non-default Nix dev shell
+# for npm install and so the environment matches your preferred interactive shell.
+# The repo uses Nix + direnv; see docs/development/CURSOR-NIX-WITH-ENV.md.
 
 set -euo pipefail
 
@@ -106,7 +110,22 @@ echo -e "${CYAN}Linking env overrides and generating local env files...${NC}"
 make -C "$WORKTREE_PATH" local_env_link
 make -C "$WORKTREE_PATH" local_env_setup
 
-# 9. Create LLM history file in work tree (same template as start-feature.sh)
+# 9. direnv allow and npm install so the work tree is ready when the directory opens
+if command -v direnv >/dev/null 2>&1; then
+  echo ""
+  echo -e "${CYAN}Allowing direnv in work tree...${NC}"
+  (cd "$WORKTREE_PATH" && direnv allow)
+fi
+echo ""
+echo -e "${CYAN}Running npm install in work tree...${NC}"
+if command -v nix >/dev/null 2>&1; then
+  (cd "$WORKTREE_PATH" && nix develop . ${PODVERSE_NIX_DEV_SHELL:+"$PODVERSE_NIX_DEV_SHELL"} -c npm install)
+else
+  (cd "$WORKTREE_PATH" && npm install)
+  echo -e "${YELLOW}Nix not in PATH; used system npm. For flake tools, run 'direnv allow' and use the Nix shell.${NC}"
+fi
+
+# 10. Create LLM history file in work tree (same template as start-feature.sh)
 HISTORY_DIR="$WORKTREE_PATH/.llm/history/active/$NAME"
 HISTORY_FILE="$HISTORY_DIR/$NAME-part-01.md"
 DATE=$(date +%Y-%m-%d)
@@ -180,7 +199,7 @@ fi
 echo ""
 echo -e "${CYAN}Next steps:${NC}"
 echo "  cd $WORKTREE_PATH"
-echo "  npm install   # if needed"
 echo "  npm run build:packages"
 echo "  Edit $HISTORY_FILE to add Context, then start working."
+echo "  For a custom Nix shell (e.g. fish): nix develop .#fish"
 echo ""

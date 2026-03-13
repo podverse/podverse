@@ -42,8 +42,11 @@ make start_feature_worktree
 ```
 
 This uses the same prompts as `npm run start-feature`, then creates the work tree and branch, runs
-`make local_env_link` and `make local_env_setup` in the new work tree, and creates the LLM history
-file there. See [Local Env Overrides (home directory)](LOCAL-ENV-OVERRIDES.md).
+`make local_env_link` and `make local_env_setup` in the new work tree, runs `direnv allow` and
+`npm install` (via Nix when available) so the new window is ready to use, and creates the LLM
+history file there. You can set `PODVERSE_NIX_DEV_SHELL=.#fish` (or another flake shell) so the
+Nix environment used for npm install matches your preferred shell. See [Local Env Overrides (home
+directory)](LOCAL-ENV-OVERRIDES.md).
 
 ### During Development
 

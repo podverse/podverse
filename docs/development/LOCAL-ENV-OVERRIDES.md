@@ -76,7 +76,13 @@ optional issue numbers), then:
 - Creates a new work tree and branch (e.g. `feature/add-chapters` from `develop`)
 - Runs `make local_env_link` and `make local_env_setup` in the new work tree so overrides are
   symlinked and runtime env files are generated
+- Runs `direnv allow` in the work tree (if direnv is installed) so the first terminal there loads
+  the Nix flake
+- Runs `npm install` in the work tree (via Nix when available) so `node_modules` is ready
 - Creates the LLM history file in the new work tree
+
+Optional: set `PODVERSE_NIX_DEV_SHELL` (e.g. `.#fish`) so the Nix shell used for `npm install`
+matches your preferred interactive shell. Example: `PODVERSE_NIX_DEV_SHELL=.#fish make start_feature_worktree`.
 
 You can then `cd` into the new work tree and start working immediately. See
 [QUICKSTART.md](../QUICKSTART.md) and [CONTRIBUTING.md](CONTRIBUTING.md) for the full workflow.
