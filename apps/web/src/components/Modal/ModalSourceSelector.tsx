@@ -1,5 +1,5 @@
 import { useTranslations } from 'next-intl';
-import { Modal } from './Modal';
+import { Modal, MODAL_CONTENT_MAX_WIDTH } from './Modal';
 import { useModals } from '../../contexts/Modals';
 import { SourceSelectors } from '../SourceSelectors/SourceSelectors';
 
@@ -21,7 +21,7 @@ export const ModalSourceSelector: React.FC = () => {
         })
       }
       ariaLabel={tMediaPlayer('source.select_source')}
-      modalContentMaxWidth={500}
+      modalContentMaxWidth={MODAL_CONTENT_MAX_WIDTH}
     >
       <SourceSelectors
         labeledItemEnclosures={modalSourceSelector.labeledItemEnclosures}

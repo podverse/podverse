@@ -15,6 +15,7 @@ import { ChannelSeasonService } from './channelSeason.js';
 import { ChannelSocialInteractService } from './channelSocialInteract.js';
 import { ChannelTrailerService } from './channelTrailer.js';
 import { ChannelTxtService } from './channelTxt.js';
+import { ChannelValueMetaBoostService } from './channelValueMetaBoost.js';
 import { ChannelValueService } from './channelValue.js';
 import { ChannelValueRecipientService } from './channelValueRecipient.js';
 import { FeedFlagStatusStatusEnum } from '@orm/entities/feed/feedFlagStatus.js';
@@ -196,12 +197,18 @@ export class ChannelService {
     if (relations.channel_values) {
       const channelValueService = new ChannelValueService();
       const channel_values = await channelValueService._getAll(channel);
+      const channelValueMetaBoostService = new ChannelValueMetaBoostService();
 
       for (const channel_value of channel_values) {
         const channelValueRecipientsService = new ChannelValueRecipientService();
         const channel_value_recipients = await channelValueRecipientsService._getAll(channel_value);
         if (channel_value_recipients) {
           channel_value.channel_value_recipients = channel_value_recipients;
+        }
+
+        const channel_value_meta_boost = await channelValueMetaBoostService._get(channel_value);
+        if (channel_value_meta_boost) {
+          channel_value.meta_boost = channel_value_meta_boost;
         }
       }
 

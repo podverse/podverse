@@ -1,5 +1,5 @@
 import type { AriaAttributes } from 'react';
-import React from 'react';
+import React, { useRef } from 'react';
 import styles from '../../styles/components/Form/TextInput.module.scss';
 import { Button } from '../Button/Button';
 import { TextInputNumberIncrement } from './TextInputNumberIncrements';
@@ -33,6 +33,8 @@ type TextInputProps = {
   min?: number;
   max?: number;
   step?: number;
+  /** Rendered inside the input box, aligned right (e.g. "satoshis"); input remains numeric-only when type="number" */
+  suffix?: string;
 };
 
 export type TextInputButton = {
@@ -76,11 +78,16 @@ export const TextInput: React.FC<TextInputProps> = ({
   min,
   max,
   step,
+  suffix,
   ...rest
 }) => {
   const inputId = id || name || undefined;
   const infoId = info ? `${inputId || 'textinput'}-info` : undefined;
   const infoErrorId = infoError ? `${inputId || 'textinput'}-error` : undefined;
+
+  const inputRef = useRef<HTMLInputElement>(null);
+  const suffixInputWidthCh =
+    suffix !== undefined && suffix !== '' ? Math.max(2, (value === '' ? '0' : value).length) : null;
 
   return (
     <div className={`${styles.textInput} ${className || ''}`} style={style}>
@@ -107,31 +114,82 @@ export const TextInput: React.FC<TextInputProps> = ({
               {eyebrow}
             </label>
           )}
-          <input
-            id={inputId}
-            name={name}
-            type={type}
-            value={value}
-            onChange={onChange}
-            onBlur={onBlur}
-            placeholder={placeholder}
-            disabled={disabled}
-            readOnly={readOnly}
-            autoFocus={autoFocus}
-            tabIndex={tabIndex}
-            aria-label={ariaLabel}
-            aria-describedby={info ? infoId : ariaDescribedBy}
-            aria-required={ariaRequired}
-            className={classNames(styles.input, {
-              [cssClass(styles, 'numberInput')]: type === 'number',
-            })}
-            aria-invalid={ariaInvalid}
-            onWheel={onWheel}
-            min={min}
-            max={max}
-            step={step}
-            {...rest}
-          />
+          {suffix !== undefined && suffix !== '' ? (
+            <div
+              className={styles.inputWithSuffixRow}
+              onClick={() => inputRef.current?.focus()}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  inputRef.current?.focus();
+                }
+              }}
+              role="presentation"
+            >
+              <input
+                ref={inputRef}
+                id={inputId}
+                name={name}
+                type={type}
+                value={value}
+                onChange={onChange}
+                onBlur={onBlur}
+                placeholder={placeholder}
+                disabled={disabled}
+                readOnly={readOnly}
+                autoFocus={autoFocus}
+                tabIndex={tabIndex}
+                aria-label={ariaLabel}
+                aria-describedby={info ? infoId : ariaDescribedBy}
+                aria-required={ariaRequired}
+                className={classNames(styles.input, styles.inputWithSuffix, {
+                  [cssClass(styles, 'numberInput')]: type === 'number',
+                  [cssClass(styles, 'numberInputWithSuffix')]: type === 'number' && suffix,
+                })}
+                style={
+                  suffixInputWidthCh !== null
+                    ? { width: `${suffixInputWidthCh}ch`, minWidth: '2ch' }
+                    : undefined
+                }
+                aria-invalid={ariaInvalid}
+                onWheel={onWheel}
+                min={min}
+                max={max}
+                step={step}
+                {...rest}
+              />
+              <span className={styles.suffixSpacer} aria-hidden="true" />
+              <span className={styles.suffix} aria-hidden="true">
+                {suffix}
+              </span>
+            </div>
+          ) : (
+            <input
+              id={inputId}
+              name={name}
+              type={type}
+              value={value}
+              onChange={onChange}
+              onBlur={onBlur}
+              placeholder={placeholder}
+              disabled={disabled}
+              readOnly={readOnly}
+              autoFocus={autoFocus}
+              tabIndex={tabIndex}
+              aria-label={ariaLabel}
+              aria-describedby={info ? infoId : ariaDescribedBy}
+              aria-required={ariaRequired}
+              className={classNames(styles.input, {
+                [cssClass(styles, 'numberInput')]: type === 'number',
+              })}
+              aria-invalid={ariaInvalid}
+              onWheel={onWheel}
+              min={min}
+              max={max}
+              step={step}
+              {...rest}
+            />
+          )}
         </div>
         {type === 'number' && (
           <TextInputNumberIncrement

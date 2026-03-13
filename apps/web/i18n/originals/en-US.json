@@ -262,9 +262,35 @@
     },
     "total": "Total",
     "message": "Message",
+    "meta_boost": {
+      "title": "MetaBoost",
+      "type_label": "Type:",
+      "schema_label": "Schema:",
+      "license_label": "License:",
+      "node_label": "Node:",
+      "message_receive": "The content creator will receive their message at <link>{domain}</link>.",
+      "terms_message": "<link>Click here</link> to review their Terms of Service.",
+      "no_terms": "The content creator did not provide a Terms of Service document."
+    },
+    "boost_messages": {
+      "not_enabled": "Boost messages are not enabled for this podcast.",
+      "not_enabled_app": "Boost messages are not enabled for this donation.",
+      "more_info": "More Info",
+      "server_error_title": "Boost message server error",
+      "server_error_message": "There is an error with the message server. A message cannot be sent, but you can continue to send your payment anyway.",
+      "pay_anyway": "Pay Anyway",
+      "status_pending": "Pending…",
+      "status_paying": "Paying…",
+      "status_success": "Sent",
+      "status_failed": "Failed",
+      "invoice_timeout": "Payment server did not respond in time. If using a local Lightning node, ensure it is running and reachable.",
+      "status_summary": "Summary",
+      "successfully_sent": "Successful: ",
+      "failed_to_send": "Failed: "
+    },
     "types": {
-      "lightning_keysend": {
-        "label": "Bitcoin Lightning Keysend",
+      "lightning": {
+        "label": "Bitcoin Lightning",
         "denomination": "satoshis"
       },
       "paypal_send": {
@@ -285,6 +311,16 @@
       "app": "Send to {brand_name}"
     },
     "your_name": "Your Name"
+  },
+  "v4v": {
+    "boost_messages": {
+      "title": "Boost Messages",
+      "description": "To enable boost messages for your content, add the podcast:metaBoost RSS tag to your feed inside your podcast:value block. This tag tells apps where to send optional listener messages (for example, via a BoostBox server). Without it, listeners can still send payments but cannot attach a message.",
+      "example_heading": "Example RSS snippet with podcast:metaBoost",
+      "example": "'<'podcast:value type=\"lightning\" method=\"keysend\"'>'\n  '<'podcast:metaBoost schema=\"boostbox\"'>'https://your-boostbox.example/boost'<'/podcast:metaBoost'>'\n  '<'podcast:valueRecipient type=\"lnaddress\" address=\"you@example.com\" split=\"100\" /'>'\n'<'/podcast:value'>'",
+      "boostbox_label": "BoostBox on GitHub",
+      "boostbox_url": "https://github.com/noblepayne/boostbox"
+    }
   },
   "filters": {
     "type": {
@@ -319,7 +355,8 @@
     "takedown_policy_explanation": "This content has been removed in response to a takedown request by the copyright holder."
   },
   "misc": {
-    "more_info": "More Info",
+    "more_info": "More info",
+    "hide_info": "Hide info",
     "info": "Info",
     "items": "Items",
     "increment": "Increment",
@@ -332,6 +369,7 @@
     "saving": "Saving...",
     "cancel": "Cancel",
     "close": "Close",
+    "go_back": "Go back",
     "close_video_player": "Close video player",
     "dismiss": "Dismiss",
     "on": "On",
@@ -371,7 +409,16 @@
     },
     "try_again": "Try again",
     "reload_page": "Reload page",
-    "go_to_home": "Go to Home"
+    "return_to_home_page": "Return to home page"
+  },
+  "donate": {
+    "title": "Donate",
+    "app_donation_notice": "This donation will be sent to {brand_name}.",
+    "app_not_configured": "App donations are not configured. To enable donations to {brand_name}, set Lightning LNAddress or Node in the app configuration.",
+    "creator_donation_hint_prefix": "To donate to a podcaster or artist, use the",
+    "creator_donation_hint_suffix": "Boost button on their page.",
+    "success_thank_you": "Thank you for your donation!",
+    "success_message": "Your support helps us keep {brand_name} running."
   },
   "errors": {
     "generic": "Something went wrong. Please try again later, or contact support for assistance.",

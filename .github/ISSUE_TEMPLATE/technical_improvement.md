@@ -20,14 +20,14 @@ labels: technical-improvement
 
 <!-- Expected benefits from this improvement -->
 
-- **Performance**: <!-- e.g., bundle size reduction, faster load times, improved response time -->
-- **Maintainability**: <!-- e.g., clearer code structure, easier to understand, reduced complexity -->
-- **Developer Experience**: <!-- e.g., easier to work with, better tooling, clearer APIs -->
+- **Performance**: <!-- e.g., bundle size reduction, faster load times -->
+- **Maintainability**: <!-- e.g., clearer code structure, reduced complexity -->
+- **Developer Experience**: <!-- e.g., easier to work with, better tooling -->
 - **Other**: <!-- any other relevant impacts -->
 
 ## Implementation Notes
 
-<!-- Technical details, dependencies, potential risks, and considerations -->
+<!-- Technical details, dependencies, potential risks -->
 
 ## Related Issues
 

@@ -75,7 +75,8 @@ coverage/
 *.tgz
 .cache/
 
-
+# Local test-assets overrides
+tools/test-assets/config/ln-recipients.local.json
 
 .direnv
 

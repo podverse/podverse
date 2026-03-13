@@ -16,37 +16,14 @@ jobs:
         uses: actions/github-script@v8
         with:
           script: |
-            // Get all changed files (with pagination)
             const files = await github.paginate(github.rest.pulls.listFiles, {
               owner: context.repo.owner,
               repo: context.repo.repo,
               pull_number: context.issue.number,
               per_page: 100
             });
-
             const paths = files.map(f => f.filename);
-            console.log(`Found ${paths.length} changed files`);
-
-            // Check specifically for .github files
-            const githubFiles = paths.filter(p => p.startsWith('.github/'));
-            console.log(`.github/ files found: ${githubFiles.length}`, githubFiles);
-
-            console.log('Sample paths (first 20):', paths.slice(0, 20));
-
             const labels = new Set();
-
-            // Label definitions with colors
-            const labelConfig = {
-              'packages': { color: '1d76db', description: 'Changes to packages/' },
-              'apps': { color: '0e8a16', description: 'Changes to apps/' },
-              'docs': { color: 'fef2c0', description: 'Changes to docs/' },
-              'infra': { color: 'd93f0b', description: 'Changes to infra/' },
-              'ci': { color: 'fbca04', description: 'Changes to .github/' },
-              'scripts': { color: '5319e7', description: 'Changes to scripts/' },
-              'tools': { color: 'e99695', description: 'Changes to tools/' },
-              'i18n': { color: 'c5def5', description: 'Changes to internationalization files' }
-            };
-
             for (const file of paths) {
               if (file.startsWith('packages/')) labels.add('packages');
               if (file.startsWith('apps/')) labels.add('apps');
@@ -57,18 +34,11 @@ jobs:
               if (file.startsWith('tools/')) labels.add('tools');
               if (file.includes('/i18n/')) labels.add('i18n');
             }
-
-            console.log('Labels to add:', Array.from(labels));
-
             if (labels.size > 0) {
-              // Add labels to PR
               await github.rest.issues.addLabels({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 issue_number: context.issue.number,
                 labels: Array.from(labels)
               });
-              console.log('Successfully added labels:', Array.from(labels));
-            } else {
-              console.log('No labels to add - no matching paths found');
             }

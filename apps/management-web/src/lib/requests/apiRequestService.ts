@@ -18,8 +18,10 @@ export class ManagementApiRequestService {
 
   constructor(jwt?: string) {
     const config = getConfig();
-    const { protocol, host, port } = config.public.api.client;
     const { prefix, version } = config.public.api;
+    const apiTarget =
+      typeof window === 'undefined' ? config.public.api.ssr : config.public.api.client;
+    const { protocol, host, port } = apiTarget;
     const portPart = port ? `:${port}` : '';
     this.apiBase = `${protocol}://${host}${portPart}${prefix?.replace(/\/$/, '') || ''}${version || ''}`;
     if (jwt !== undefined) {

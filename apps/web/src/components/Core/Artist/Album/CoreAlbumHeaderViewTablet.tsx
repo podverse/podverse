@@ -21,7 +21,7 @@ export const CoreAlbumHeaderViewTablet: React.FC<CoreAlbumHeaderViewTabletProps>
 }) => {
   return (
     <CommonAlbumHeaderViewTablet
-      imageNode={<CoreAlbumHeaderImage channel={channel} item={item} />}
+      imageNode={<CoreAlbumHeaderImage channel={channel} />}
       titleNode={
         <Link href={`${ROUTES.ALBUM}/${channel.id_text}`}>
           <h1 className={styles.title}>{channel.title}</h1>

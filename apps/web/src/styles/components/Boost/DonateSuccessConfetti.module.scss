@@ -1,0 +1,28 @@
+.wrapper {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.piece {
+  position: absolute;
+  top: -10%;
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  animation: confettiFall 2.5s ease-out infinite;
+}
+
+@keyframes confettiFall {
+  0% {
+    top: -10%;
+    transform: rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    top: 110%;
+    transform: rotate(720deg);
+    opacity: 0;
+  }
+}

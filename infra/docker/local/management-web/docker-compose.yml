@@ -4,6 +4,9 @@ networks:
 
 services:
   podverse_local_management_web:
+    build:
+      context: ../..
+      dockerfile: infra/docker/local/management-web/Dockerfile
     image: podverse-management-web:latest
     container_name: podverse_local_management_web
     depends_on:

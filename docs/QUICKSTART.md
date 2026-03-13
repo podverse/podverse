@@ -42,7 +42,9 @@ make local_setup
 ```
 
 `local_env_setup` creates missing runtime env files, auto-generates passwords/keys,
-and applies override values.
+and applies override values. When you run the app stack via Docker Compose, it uses
+`infra/config/local/*.env` (with Docker service names for container-to-container calls);
+when you run with npm (e.g. `npm run dev:web`), use the app `.env`/`.env.local` files (localhost).
 
 `local_setup` then:
 

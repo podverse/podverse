@@ -4,7 +4,8 @@ import { useTranslations } from 'next-intl';
 import { MediumEnum } from '@podverse/helpers';
 import { copyToClipboard } from '@podverse/helpers-browser';
 import React, { useRef, useState } from 'react';
-import { Modal } from './Modal';
+import { Modal, MODAL_CONTENT_MAX_WIDTH } from './Modal';
+import { FormStack } from '../Form/FormStack';
 import { TextInput } from '../Form/TextInput';
 import { useModals } from '../../contexts/Modals';
 import { WEB } from '../../constants/web';
@@ -129,22 +130,24 @@ export const ModalShare: React.FC = () => {
         })
       }
       ariaLabel={tFeatures('share')}
-      modalContentMaxWidth={500}
+      modalContentMaxWidth={MODAL_CONTENT_MAX_WIDTH}
     >
-      {shareInputs.map((input, idx) => (
-        <TextInput
-          key={input.name}
-          type="text"
-          name={input.name}
-          value={input.value}
-          eyebrow={input.eyebrow}
-          button={{
-            label: copiedIndex === idx ? tFeatures('copied') : tFeatures('copy'),
-            onClick: () => handleCopy(input.value, idx),
-          }}
-          readOnly
-        />
-      ))}
+      <FormStack>
+        {shareInputs.map((input, idx) => (
+          <TextInput
+            key={input.name}
+            type="text"
+            name={input.name}
+            value={input.value}
+            eyebrow={input.eyebrow}
+            button={{
+              label: copiedIndex === idx ? tFeatures('copied') : tFeatures('copy'),
+              onClick: () => handleCopy(input.value, idx),
+            }}
+            readOnly
+          />
+        ))}
+      </FormStack>
     </Modal>
   );
 };

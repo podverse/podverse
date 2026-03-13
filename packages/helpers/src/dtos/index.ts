@@ -7,6 +7,7 @@ export * from './membershipClaimToken.js';
 export * from './onDemandParserEvent.js';
 export * from './queueExtraParams.js';
 export * from './sharableStatus.js';
+export * from './valueMetaBoost.js';
 
 export * from './account/account.js';
 export * from './account/accountAppStorePurchase.js';

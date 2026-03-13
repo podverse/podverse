@@ -19,6 +19,7 @@ LICENSE
 
 # Infrastructure (not needed in app images; excludes feeds DB infra/data/dev/podcast-index-feeds from build context and image)
 infra/
+!infra/docker/local/
 scripts/add-by-rss/
 scripts/audit/
 scripts/database/
@@ -32,6 +33,7 @@ scripts/podcast-index/
 scripts/publish/
 
 tools/
+!tools/test-assets/
 
 # IDE and CI
 .cursor/

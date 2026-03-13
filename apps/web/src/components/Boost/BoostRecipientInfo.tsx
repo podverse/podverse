@@ -6,9 +6,10 @@ import type {
   DTOChannelValueRecipient,
   DTOItemValueRecipient,
 } from '@podverse/helpers';
-import { normalizeChannelValueRecipients, normalizeItemValueRecipients } from '@podverse/helpers';
-import styles from '../../styles/components/Boost/BoostRecipientInfo.module.scss';
+import { calculateRecipientAmounts } from '@podverse/v4v-helpers';
 import { BoostRecipientInfoRow } from './BoostRecipientInfoRow';
+
+import styles from '../../styles/components/Boost/BoostRecipientInfo.module.scss';
 
 type BoostRecipientInfoProps = {
   channel_value_recipients?: DTOChannelValueRecipient[];
@@ -16,6 +17,7 @@ type BoostRecipientInfoProps = {
   app_value_recipient?: AppValueRecipient | null;
   totalAmountToCreator: number;
   totalAmountToApp: number;
+  showAppRecipient?: boolean;
 };
 
 export const BoostRecipientInfo = ({
@@ -23,67 +25,71 @@ export const BoostRecipientInfo = ({
   item_value_recipients,
   app_value_recipient,
   totalAmountToCreator,
-  totalAmountToApp,
+  totalAmountToApp: _totalAmountToApp,
+  showAppRecipient = true,
 }: BoostRecipientInfoProps) => {
   const tValue = useTranslations('value');
 
-  let rows: React.ReactNode[] = [];
-
   const normalized_channel_value_recipients = channel_value_recipients
-    ? normalizeChannelValueRecipients(channel_value_recipients, totalAmountToCreator)
+    ? calculateRecipientAmounts(channel_value_recipients, totalAmountToCreator)
     : [];
   const normalized_item_value_recipients = item_value_recipients
-    ? normalizeItemValueRecipients(item_value_recipients, totalAmountToCreator)
+    ? calculateRecipientAmounts(item_value_recipients, totalAmountToCreator)
     : [];
 
-  if (normalized_channel_value_recipients && normalized_item_value_recipients.length > 0) {
-    rows = normalized_item_value_recipients.map((recipient, index) => (
-      <BoostRecipientInfoRow key={index} normalized_item_value_recipient={recipient} />
-    ));
-  } else if (
-    normalized_channel_value_recipients &&
-    normalized_channel_value_recipients.length > 0
-  ) {
-    rows = normalized_channel_value_recipients.map((recipient, index) => (
-      <BoostRecipientInfoRow key={index} normalized_channel_value_recipient={recipient} />
-    ));
-  }
+  const creatorRecipients =
+    normalized_item_value_recipients.length > 0
+      ? normalized_item_value_recipients
+      : normalized_channel_value_recipients;
 
-  if (rows.length === 0) {
+  const shouldShowAppRecipient = showAppRecipient && app_value_recipient;
+
+  if (creatorRecipients.length === 0 && !shouldShowAppRecipient) {
     return null;
   }
 
   const creatorHeaderLabel =
-    rows.length > 1
+    creatorRecipients.length > 1
       ? tValue('recipient.creator_recipients')
       : tValue('recipient.creator_recipient');
 
+  const showCreatorPercentColumn = creatorRecipients.length > 1;
+
+  const creatorRows = creatorRecipients.map((recipient, index) => (
+    <BoostRecipientInfoRow
+      key={index}
+      recipient={recipient}
+      showPercentColumn={showCreatorPercentColumn}
+    />
+  ));
+
   return (
-    <>
-      <table className={styles.table}>
-        <thead>
-          <tr className={styles.headerRow}>
-            <th>{creatorHeaderLabel}</th>
-            <th>%</th>
-            <th>{tValue('total')}</th>
-          </tr>
-        </thead>
-        <tbody>{rows}</tbody>
-      </table>
-      {app_value_recipient && totalAmountToApp > 0 && (
+    <div className={styles.tablesStack}>
+      {creatorRecipients.length > 0 && (
+        <table className={styles.table}>
+          <thead>
+            <tr className={styles.headerRow}>
+              <th>{creatorHeaderLabel}</th>
+              {showCreatorPercentColumn && <th>%</th>}
+              <th>{tValue('total')}</th>
+            </tr>
+          </thead>
+          <tbody>{creatorRows}</tbody>
+        </table>
+      )}
+      {shouldShowAppRecipient && (
         <table className={styles.table}>
           <thead>
             <tr className={styles.headerRow}>
               <th>{tValue('recipient.app_recipient')}</th>
-              <th>%</th>
               <th>{tValue('total')}</th>
             </tr>
           </thead>
           <tbody>
-            <BoostRecipientInfoRow app_value_recipient={app_value_recipient} />
+            <BoostRecipientInfoRow recipient={app_value_recipient} showPercentColumn={false} />
           </tbody>
         </table>
       )}
-    </>
+    </div>
   );
 };

@@ -2,7 +2,8 @@
 
 import { useTranslations } from 'next-intl';
 import React from 'react';
-import { Modal } from './Modal';
+import { Modal, MODAL_CONTENT_MAX_WIDTH } from './Modal';
+import { FormStack } from '../Form/FormStack';
 import { Link } from '../Link/Link';
 import styles from '../../styles/components/Modal/ModalFunding.module.scss';
 import { useModals } from '../../contexts/Modals';
@@ -22,34 +23,36 @@ export const ModalFunding: React.FC = () => {
       onClose={() => setModalFunding({ channel_fundings: [], item_fundings: [] })}
       header={header}
       ariaLabel={header}
-      modalContentMaxWidth={420}
+      modalContentMaxWidth={MODAL_CONTENT_MAX_WIDTH}
     >
-      <ul className={styles.fundingLinksList}>
-        {modalFunding.channel_fundings?.map((channel_funding, idx) => (
-          <li key={idx} className={styles.fundingLinkItem}>
-            <Link
-              href={channel_funding.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className={styles.fundingLink}
-            >
-              {channel_funding.title}
-            </Link>
-          </li>
-        ))}
-        {modalFunding.item_fundings?.map((item_funding, idx) => (
-          <li key={idx} className={styles.fundingLinkItem}>
-            <Link
-              href={item_funding.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className={styles.fundingLink}
-            >
-              {item_funding.title}
-            </Link>
-          </li>
-        ))}
-      </ul>
+      <FormStack>
+        <ul className={styles.fundingLinksList}>
+          {modalFunding.channel_fundings?.map((channel_funding, idx) => (
+            <li key={idx} className={styles.fundingLinkItem}>
+              <Link
+                href={channel_funding.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={styles.fundingLink}
+              >
+                {channel_funding.title}
+              </Link>
+            </li>
+          ))}
+          {modalFunding.item_fundings?.map((item_funding, idx) => (
+            <li key={idx} className={styles.fundingLinkItem}>
+              <Link
+                href={item_funding.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={styles.fundingLink}
+              >
+                {item_funding.title}
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </FormStack>
     </Modal>
   );
 };

@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { useLocale } from 'next-intl';
-import { Modal } from '../../../Modal/Modal';
+import { Modal, MODAL_CONTENT_MAX_WIDTH } from '../../../Modal/Modal';
 import { TextInput } from '../../../Form/TextInput';
 import { Button } from '../../../Button/Button';
 import styles from '../../../../styles/components/Modal/ModalDeleteAccount.module.scss';
@@ -104,7 +104,7 @@ export const ModalDeleteAccount: React.FC<ModalDeleteAccountProps> = ({
       onClose={handleClose}
       header={tSettings('account.delete_account_modal.title')}
       ariaLabel={tSettings('account.delete_account_modal.title')}
-      modalContentMaxWidth={500}
+      modalContentMaxWidth={MODAL_CONTENT_MAX_WIDTH}
     >
       <div className={styles.content}>
         <p className={styles.message}>{tSettings('account.delete_account_modal.message')}</p>

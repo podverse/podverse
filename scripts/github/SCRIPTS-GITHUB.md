@@ -68,32 +68,7 @@ Summary:
 ✅ Setup complete!
 ```
 
-### `remove-old-labels.sh`
-
-**Removes obsolete labels** that are no longer needed.
-
-**When to run:**
-
-- **One-time migration**: When trimming down to the 21-label system
-- **After label standardization**: To clean up old labels
-
-**⚠️ WARNING**: This permanently deletes labels. Issues with these labels will keep them, but they won't be available for new issues.
-
-**Usage:**
-
-```bash
-gh auth login
-./scripts/github/remove-old-labels.sh
-```
-
-**What it removes (13 labels):**
-
-- `good first issue`, `help wanted`
-- `documentation`, `accessibility`, `translations`, `task`
-- `more info needed`, `needs reproduction`, `needs verification`, `ready to deploy`
-- `bounty`, `bounty pending`, `bounty completed`
-
-The script will prompt for confirmation before deleting anything.
+After create/update, if the repo has labels not defined in the script, the script lists them and optionally prompts to delete them (interactive TTY only). Deleting does not remove labels from existing issues/PRs; it only retires them for new use.
 
 ## Complete Label System
 
@@ -167,10 +142,6 @@ Labels security issues by severity:
 
 4. Update `docs/repo-management/GITHUB-LABELS.md` with the new label
 
-### Deprecated: setup-labels.sh
-
-The old `setup-labels.sh` script only created 5 labels (dependencies + priorities). It has been replaced by `setup-all-labels.sh` which creates the complete 21-label system. The old script is kept for backward compatibility but should not be used for new setups.
-
 ## Troubleshooting
 
 ### "gh: command not found"
@@ -191,12 +162,7 @@ gh label list
 
 ### Want to recreate labels with new colors?
 
-Delete and recreate:
-
-```bash
-gh label delete "label-name"
-./scripts/github/setup-labels.sh
-```
+Edit the label in `setup-all-labels.sh`, then run the script again. To remove labels not in the script, run interactively and answer yes when prompted to delete extra labels.
 
 ## See Also
 

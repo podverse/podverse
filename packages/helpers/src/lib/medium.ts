@@ -217,3 +217,69 @@ export const getQueueMediumIdFromType = (
 export const getQueueMediumIdFromMediumId = (mediumId: number | null): MediumEnum | null => {
   return getQueueMediumIdFromType(getQueryParamFromQueueMediumId(mediumId));
 };
+
+// --- Medium ID classification (podcast / music / album / artist) ---
+
+const PODCAST_MEDIUMS = new Set([
+  MediumEnum.Podcast,
+  MediumEnum.PodcastL,
+  MediumEnum.Video,
+  MediumEnum.VideoL,
+  MediumEnum.PublisherPodcast,
+  MediumEnum.PublisherVideo,
+  MediumEnum.PublisherAV,
+]);
+
+const MUSIC_MEDIUMS = new Set([MediumEnum.Music, MediumEnum.MusicL]);
+const ARTIST_MEDIUMS = new Set([MediumEnum.PublisherMusic]);
+
+/**
+ * True if medium is podcast-type (channel contains episodes).
+ * null/undefined is treated as podcast.
+ */
+export const isPodcastMediumId = (mediumId: number | null | undefined): boolean =>
+  mediumId === null || mediumId === undefined || PODCAST_MEDIUMS.has(mediumId);
+
+/**
+ * True if medium is music-type (channel contains tracks).
+ * Includes Music, MusicL, and PublisherMusic.
+ */
+export const isMusicMediumId = (mediumId: number | null | undefined): boolean =>
+  mediumId !== null &&
+  mediumId !== undefined &&
+  (MUSIC_MEDIUMS.has(mediumId) || ARTIST_MEDIUMS.has(mediumId));
+
+/** True if medium is album-type (Music/MusicL). */
+export const isAlbumMediumId = (mediumId: number | null | undefined): boolean =>
+  mediumId !== null && mediumId !== undefined && MUSIC_MEDIUMS.has(mediumId);
+
+/** True if medium is artist-type (PublisherMusic). */
+export const isArtistMediumId = (mediumId: number | null | undefined): boolean =>
+  mediumId !== null && mediumId !== undefined && ARTIST_MEDIUMS.has(mediumId);
+
+export type MediumFilter = 'podcast' | 'music' | 'all';
+
+/** True if mediumId matches the filter. */
+export const matchesMediumFilter = (
+  mediumId: number | null | undefined,
+  filter: MediumFilter
+): boolean => {
+  if (filter === 'all') return true;
+  if (filter === 'podcast') return isPodcastMediumId(mediumId);
+  if (filter === 'music') return isMusicMediumId(mediumId);
+  return false;
+};
+
+/** Item type for the channel: episode (podcast/video) or track (music). */
+export const getItemTypeFromMedium = (mediumId: number | null | undefined): 'episode' | 'track' =>
+  isMusicMediumId(mediumId) ? 'track' : 'episode';
+
+/** Parse a numeric medium ID from an unknown value (number or numeric string). */
+export const parseMediumId = (value: unknown): number | null => {
+  if (typeof value === 'number') return value;
+  if (typeof value === 'string') {
+    const parsed = parseInt(value, 10);
+    return Number.isNaN(parsed) ? null : parsed;
+  }
+  return null;
+};

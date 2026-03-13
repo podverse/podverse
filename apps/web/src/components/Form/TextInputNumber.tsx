@@ -40,10 +40,10 @@ const TextInputNumber: React.FC<TextInputNumberProps> = ({
         max={max}
         step={step}
         eyebrow={eyebrow}
+        suffix={sideText}
         onWheel={(e) => (e.target as HTMLInputElement).blur()} // Prevent scroll changing value
         {...rest}
       />
-      <div className={styles.sideText}>{sideText}</div>
     </div>
   );
 };

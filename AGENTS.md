@@ -23,6 +23,18 @@ npm run dev:web        # Start web app (localhost:3000)
 npm run dev:all        # Start everything with watch mode
 ```
 
+### Nix / terminal (agent sandbox)
+
+Node and npm are provided by the repo's Nix flake, not a global install. When running terminal commands (e.g. in Cursor's agent), use the wrapper so the correct environment is available:
+
+- **Wrapper:** `./scripts/nix/with-env <command> [args...]`
+- **Examples:** `./scripts/nix/with-env npm run build:packages`, `./scripts/nix/with-env npm run lint`
+- Run from repo root. Full explanation and setup-in-other-repos: [docs/development/CURSOR-NIX-WITH-ENV.md](docs/development/CURSOR-NIX-WITH-ENV.md).
+
+### Lock file and workspace dependencies
+
+All monorepo Dockerfiles use `npm ci` for reproducible installs. The root `package-lock.json` must match all workspace `package.json` files. The Make targets that build Docker images (e.g. `local_build_api`, `local_build_web`, `local_build_web_runtime_config`, `local_build_test_assets`, `local_build_all`) automatically run `sync_lockfile` first so the lock file is in sync before `npm ci` runs in the container. After adding, removing, or renaming workspace packages, run `make sync_lockfile` and commit the updated `package-lock.json` so the change is committed; the next Docker build will use the updated lock file from the context.
+
 **Workers (example: add feeds from Podcast Index DB):**
 
 ```bash
@@ -69,12 +81,20 @@ Config files are the ONE exception where `!` assertions are allowed because vali
 /* eslint-disable @typescript-eslint/no-non-null-assertion -- env vars validated at startup */
 ```
 
+### HTTP / request helpers
+
+Use the shared request helpers for all HTTP calls; do not use raw `fetch()`.
+
+- **Server/Node:** Use `fetchWithTimeout` from `@podverse/helpers-backend` (timeout, cache, body, headers). The only place that may call native `fetch` is inside that helper.
+- **Browser/isomorphic:** Use `request` (and optionally `requestWithHeaders`) from `@podverse/helpers-requests`; they return `{ status, data }` and use axios under the hood.
+
 ### Environment File Formatting
 
 In `.env` files:
 
 - **Non-empty values**: Use double quotes
 - **Empty/unset values**: No value after `=`
+- **Alignment with .env.example**: All `.env` files (including `infra/config/local/*.env`) must match the organization, section comments, and variable order of their authoritative `.env.example`; only values may differ
 
 ```bash
 # Correct
@@ -105,6 +125,7 @@ import { config } from './config'; // 4. Relative imports
 
 - **ESM**: Relative imports use `.js` extensions. Packages and apps use ESM (NodeNext in `tsconfig.base.json`).
 - **Type-only imports**: Use `import type { X } from '...'` when the import is only used as a type (avoids runtime references and helps with circular deps). Keep value imports when the symbol is used at runtime (e.g. classes for `instanceof`, decorators that need the constructor).
+- **Separate line for types**: Do not mix type and value in one import. Use a separate `import type { ... }` line (e.g. `import { DataSource } from 'typeorm';` and `import type { DataSourceOptions } from 'typeorm';`). ESLint `consistent-type-imports` with `fixStyle: 'separate-type-imports'` enforces this.
 
 ### Type assertions
 
@@ -239,6 +260,8 @@ logger.error('Feed parsing failed', { error, feedUrl });
 
 When making changes, update `.llm/history/active/[feature]/[feature].md` (or the latest part file):
 
+- **Before file-modifying work:** If the current branch matches an existing `.llm/history/active/[feature]/` (e.g. branch `chore/first-test-issue` → `first-test-issue`), update that history file; no exception for small changes.
+
 ```markdown
 ### Session N - YYYY-MM-DD
 
@@ -261,6 +284,7 @@ See `.llm/LLM.md` for full guidelines.
 
 - [Quick Start Guide](docs/QUICKSTART.md) - Setup and running locally
 - [Architecture](docs/architecture/ARCHITECTURE.md) - System design and data flow
+- [V4V MetaBoost + LNURL](docs/v4v/bitcoin/lnd/V4V-METABOOST-LNURL.md) - Value-for-value boost flow and local setup
 - [Contributing](docs/development/CONTRIBUTING.md) - Workflow and PR guidelines
 - [i18n Guide](docs/localization/I18N.md) - Translation system details
 - [IDE Setup](docs/development/IDE-SETUP.md) - VS Code configuration

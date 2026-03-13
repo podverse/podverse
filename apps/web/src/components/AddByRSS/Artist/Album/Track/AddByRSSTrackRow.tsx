@@ -9,10 +9,7 @@ import { stripAndDecodeHtml } from '@podverse/helpers';
 import { CommonTrackRow } from '../../../../Common/Artist/Album/Track/CommonTrackRow';
 import { MoreButton } from '../../../../MoreButton/MoreButton';
 import { getAddByRSSItemPath } from '../../../../../utils/addByRSS/itemPath';
-import {
-  buildAddByRSSResourceData,
-  getAddByRSSHashId,
-} from '../../../../../utils/addByRSS/queuePlaylistHelpers';
+import { buildAddByRSSResourceData, getAddByRSSHashId } from '@podverse/parser-mapping';
 import type {
   AddByRSSMappedFeed,
   AddByRSSItemIndexItem,

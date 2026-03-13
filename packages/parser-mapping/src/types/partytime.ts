@@ -48,6 +48,13 @@ export type Phase4ValueRecipient = {
   fee: boolean;
 };
 
+export type Phase4MetaBoost = {
+  type: string;
+  schema: string;
+  license?: string | null;
+  node: string;
+};
+
 export type Phase6RemoteItem = {
   feedGuid: string;
   itemGuid?: string;
@@ -86,6 +93,7 @@ export type Phase4Value = {
   suggested?: string | null;
   recipients: Phase4ValueRecipient[];
   valueTimeSplits?: Phase6ValueTimeSplit[];
+  metaBoost?: Phase4MetaBoost;
 };
 
 export type Phase4PodcastLiveItemItem = Pick<Episode, 'guid' | 'enclosure'> &
@@ -192,7 +200,7 @@ export type Episode = {
     purpose?: string | null;
     value: string;
   }>;
-  value?: Phase4Value | null;
+  values?: Phase4Value[];
   podcastSeasonIndex?: number | null;
   contentLinks?: Array<{ url: string; title: string }>;
 };
@@ -271,7 +279,7 @@ export type FeedObject = {
     purpose?: string | null;
     value: string;
   }>;
-  value?: Phase4Value | null;
+  values?: Phase4Value[];
 };
 
 export type PIChapterLocation = {

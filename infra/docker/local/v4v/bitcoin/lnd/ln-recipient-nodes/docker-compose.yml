@@ -1,0 +1,133 @@
+# Local LND recipient nodes for V4V keysend testing.
+# These are payment RECIPIENTS only — never the sender.
+# Alby connects to the main Nigiri LND (port 8181 via the HTTP proxy) as the sender.
+# All three nodes connect to Nigiri's Bitcoin Core via host.docker.internal.
+# Channels are opened FROM the main Nigiri LND TO each recipient in provision-ln-recipient-nodes.sh.
+#
+# Ports (host:container):
+#   alice: P2P 9736:9735, REST 18081:8080, gRPC 10011:10009
+#   bob:   P2P 9737:9735, REST 18082:8080, gRPC 10012:10009
+#   fee:   P2P 9738:9735, REST 18083:8080, gRPC 10013:10009
+
+networks:
+  podverse_local_network:
+    external: true
+
+# External so they are shared with lnurl-server (created by Makefile before up).
+volumes:
+  podverse_local_lnd_alice_data:
+    external: true
+  podverse_local_lnd_bob_data:
+    external: true
+  podverse_local_lnd_fee_data:
+    external: true
+
+x-lnd-common: &lnd-common
+  image: lightninglabs/lnd:v0.19.3-beta
+  restart: unless-stopped
+  extra_hosts:
+    - "host.docker.internal:host-gateway"
+  networks:
+    - podverse_local_network
+  # Bitcoin Core credentials from Nigiri (admin1/123, ZMQ on host ports 28332/28333)
+  command:
+    - lnd
+    - --bitcoin.active
+    - --bitcoin.regtest
+    - --bitcoin.node=bitcoind
+    - --bitcoind.rpchost=host.docker.internal:18443
+    - --bitcoind.rpcuser=admin1
+    - --bitcoind.rpcpass=123
+    - --bitcoind.zmqpubrawblock=tcp://host.docker.internal:28332
+    - --bitcoind.zmqpubrawtx=tcp://host.docker.internal:28333
+    - --noseedbackup
+    - --listen=0.0.0.0:9735
+    - --rpclisten=0.0.0.0:10009
+    - --restlisten=0.0.0.0:8080
+    - --tlsextradomain=host.docker.internal
+    - --accept-keysend
+
+services:
+  podverse_local_lnd_alice:
+    <<: *lnd-common
+    container_name: podverse_local_lnd_alice
+    volumes:
+      - podverse_local_lnd_alice_data:/data/.lnd
+    ports:
+      - "9736:9735"
+      - "18081:8080"
+      - "10011:10009"
+    command:
+      - lnd
+      - --bitcoin.active
+      - --bitcoin.regtest
+      - --bitcoin.node=bitcoind
+      - --bitcoind.rpchost=host.docker.internal:18443
+      - --bitcoind.rpcuser=admin1
+      - --bitcoind.rpcpass=123
+      - --bitcoind.zmqpubrawblock=tcp://host.docker.internal:28332
+      - --bitcoind.zmqpubrawtx=tcp://host.docker.internal:28333
+      - --noseedbackup
+      - --lnddir=/data/.lnd
+      - --alias=alice
+      - --listen=0.0.0.0:9735
+      - --rpclisten=0.0.0.0:10009
+      - --restlisten=0.0.0.0:8080
+      - --tlsextradomain=host.docker.internal
+      - --accept-keysend
+
+  podverse_local_lnd_bob:
+    <<: *lnd-common
+    container_name: podverse_local_lnd_bob
+    volumes:
+      - podverse_local_lnd_bob_data:/data/.lnd
+    ports:
+      - "9737:9735"
+      - "18082:8080"
+      - "10012:10009"
+    command:
+      - lnd
+      - --bitcoin.active
+      - --bitcoin.regtest
+      - --bitcoin.node=bitcoind
+      - --bitcoind.rpchost=host.docker.internal:18443
+      - --bitcoind.rpcuser=admin1
+      - --bitcoind.rpcpass=123
+      - --bitcoind.zmqpubrawblock=tcp://host.docker.internal:28332
+      - --bitcoind.zmqpubrawtx=tcp://host.docker.internal:28333
+      - --noseedbackup
+      - --lnddir=/data/.lnd
+      - --alias=bob
+      - --listen=0.0.0.0:9735
+      - --rpclisten=0.0.0.0:10009
+      - --restlisten=0.0.0.0:8080
+      - --tlsextradomain=host.docker.internal
+      - --accept-keysend
+
+  podverse_local_lnd_fee:
+    <<: *lnd-common
+    container_name: podverse_local_lnd_fee
+    volumes:
+      - podverse_local_lnd_fee_data:/data/.lnd
+    ports:
+      - "9738:9735"
+      - "18083:8080"
+      - "10013:10009"
+    command:
+      - lnd
+      - --bitcoin.active
+      - --bitcoin.regtest
+      - --bitcoin.node=bitcoind
+      - --bitcoind.rpchost=host.docker.internal:18443
+      - --bitcoind.rpcuser=admin1
+      - --bitcoind.rpcpass=123
+      - --bitcoind.zmqpubrawblock=tcp://host.docker.internal:28332
+      - --bitcoind.zmqpubrawtx=tcp://host.docker.internal:28333
+      - --noseedbackup
+      - --lnddir=/data/.lnd
+      - --alias=fee
+      - --listen=0.0.0.0:9735
+      - --rpclisten=0.0.0.0:10009
+      - --restlisten=0.0.0.0:8080
+      - --tlsextradomain=host.docker.internal
+      - --accept-keysend

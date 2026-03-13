@@ -2,7 +2,7 @@
 
 import { useTranslations } from 'next-intl';
 import React, { useEffect, useState } from 'react';
-import { Modal } from './Modal';
+import { Modal, MODAL_CONTENT_MAX_WIDTH } from './Modal';
 import { useConfig } from '../../contexts/Config';
 import { useModals } from '../../contexts/Modals';
 import { Button } from '../Button/Button';
@@ -45,7 +45,7 @@ export const ModalDisclaimer: React.FC<ModalDisclaimerProps> = ({ isOpen }) => {
       isOpen={modalDisclaimer.isOpen}
       header={tDisclaimers(`environment_warning.${server_env}.header`)}
       ariaLabel={tDisclaimers(`environment_warning.${server_env}.header`)}
-      modalContentMaxWidth={500}
+      modalContentMaxWidth={MODAL_CONTENT_MAX_WIDTH}
     >
       <div>
         <p className={styles.message}>

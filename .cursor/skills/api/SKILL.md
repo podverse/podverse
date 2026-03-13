@@ -190,6 +190,8 @@ router.get(
 
 See `apps/api/src/lib/startup/validation.ts` for environment variable validation patterns.
 
+**Env file alignment:** All `.env` files (including `infra/config/local/*.env`) must match the organization, section comments, and variable order of their authoritative `.env.example`; only values may differ.
+
 **Lighthouse alignment:** When validation changes here, update
 `tools/web-perf/lighthouse/.env.api.example` and `.env.api` so the Lighthouse runner
 stays in sync with API startup validation.

@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { useLocale } from 'next-intl';
 import { getEmailErrorKey } from '@podverse/helpers-validation/client';
-import { Modal } from '../../../Modal/Modal';
+import { Modal, MODAL_CONTENT_MAX_WIDTH } from '../../../Modal/Modal';
 import { TextInput } from '../../../Form/TextInput';
 import { Button } from '../../../Button/Button';
 import { FormInfoMessageText } from '../../../Form/FormInfoMessageText';
@@ -112,7 +112,7 @@ export const ModalChangeEmail: React.FC<ModalChangeEmailProps> = ({ isOpen, onCl
       onClose={handleClose}
       header={tSettings('account.change_email_modal.title')}
       ariaLabel={tSettings('account.change_email_modal.title')}
-      modalContentMaxWidth={500}
+      modalContentMaxWidth={MODAL_CONTENT_MAX_WIDTH}
     >
       <div className={styles.content}>
         {!isEmailSent && (

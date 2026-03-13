@@ -2,6 +2,10 @@
 
 import { getRuntimeConfig } from './runtime-config-store';
 
+/** Optional env value: treat empty string as undefined so "not configured" is consistent. */
+const opt = (v: string | undefined): string | undefined =>
+  v === '' || v === undefined ? undefined : v;
+
 const buildConfig = () => {
   const { env } = getRuntimeConfig();
 
@@ -27,6 +31,18 @@ const buildConfig = () => {
       web: {
         protocol: env.NEXT_PUBLIC_WEB_PROTOCOL!,
         host: env.NEXT_PUBLIC_WEB_DOMAIN!,
+      },
+      app_value: {
+        lightning_lnaddress: {
+          name: opt(env.NEXT_PUBLIC_APP_VALUE_LIGHTNING_LNADDRESS_NAME),
+          address: opt(env.NEXT_PUBLIC_APP_VALUE_LIGHTNING_LNADDRESS_ADDRESS),
+        },
+        lightning_node: {
+          name: opt(env.NEXT_PUBLIC_APP_VALUE_LIGHTNING_NODE_NAME),
+          address: opt(env.NEXT_PUBLIC_APP_VALUE_LIGHTNING_NODE_ADDRESS),
+          custom_key: opt(env.NEXT_PUBLIC_APP_VALUE_LIGHTNING_NODE_CUSTOM_KEY),
+          custom_value: opt(env.NEXT_PUBLIC_APP_VALUE_LIGHTNING_NODE_CUSTOM_VALUE),
+        },
       },
       polling: {
         interval_ms: Number(env.NEXT_PUBLIC_POLLING_INTERVAL_MS!),

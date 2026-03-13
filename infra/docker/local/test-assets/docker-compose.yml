@@ -1,0 +1,18 @@
+# Local use only; this image is not published. Built by make local_build_test_assets.
+networks:
+  podverse_local_network:
+    external: true
+
+services:
+  podverse_local_test_assets:
+    image: podverse-test-assets:latest
+    container_name: podverse_local_test_assets
+    env_file:
+      - ../../../config/local/test-assets.env
+    ports:
+      - "2111:2111"
+    volumes:
+      # Bind-mount host assets so generate/update is visible immediately.
+      - ../../../../tools/test-assets/assets:/opt/tools/test-assets/assets
+    networks:
+      - podverse_local_network

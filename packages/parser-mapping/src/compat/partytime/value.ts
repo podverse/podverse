@@ -1,24 +1,94 @@
-import type { Phase4Value, Phase4ValueRecipient } from '../../types/partytime.js';
 import { DATABASE_CONSTANTS, getMediumEnumValue } from '@podverse/helpers';
+import { toMetaBoost } from '@podverse/v4v-metaboost';
 import { isValidHttpUrl } from '@podverse/helpers-validation';
 
+import type { Phase4Value, Phase4ValueRecipient } from '../../types/partytime.js';
+
 export const compatChannelValue = (value: Phase4Value) => {
+  const metaBoost = toMetaBoost(
+    value.metaBoost?.type ?? null,
+    value.metaBoost?.schema ?? null,
+    value.metaBoost?.license ?? null,
+    value.metaBoost?.node ?? null
+  );
   return {
     type: value.type.slice(0, DATABASE_CONSTANTS.varchar_short),
     method: value.method.slice(0, DATABASE_CONSTANTS.varchar_short),
     suggested: parseFloat(value.suggested ?? '0') || null,
+    meta_boost: metaBoost,
     channel_value_recipients: compatValueRecipients(value.recipients),
   };
 };
 
+/**
+ * Build a channel value DTO with a specific method and filtered recipients.
+ * Used when expanding one lightning value into lnaddress + keysend when both recipient types exist.
+ */
+export const compatChannelValueWithMethodAndRecipients = (
+  value: Phase4Value,
+  method: string,
+  recipients: Phase4ValueRecipient[]
+) => {
+  const metaBoost = toMetaBoost(
+    value.metaBoost?.type ?? null,
+    value.metaBoost?.schema ?? null,
+    value.metaBoost?.license ?? null,
+    value.metaBoost?.node ?? null
+  );
+  return {
+    type: value.type.slice(0, DATABASE_CONSTANTS.varchar_short),
+    method: method.slice(0, DATABASE_CONSTANTS.varchar_short),
+    suggested: parseFloat(value.suggested ?? '0') || null,
+    meta_boost: metaBoost,
+    channel_value_recipients: compatValueRecipients(recipients),
+  };
+};
+
 export const compatItemValue = (value: Phase4Value) => {
+  const metaBoost = toMetaBoost(
+    value.metaBoost?.type ?? null,
+    value.metaBoost?.schema ?? null,
+    value.metaBoost?.license ?? null,
+    value.metaBoost?.node ?? null
+  );
   return {
     type: value.type.slice(0, DATABASE_CONSTANTS.varchar_short),
     method: value.method.slice(0, DATABASE_CONSTANTS.varchar_long),
     suggested: parseFloat(value.suggested ?? '0') || null,
+    meta_boost: metaBoost,
     item_value_recipients: compatValueRecipients(value.recipients),
-    item_value_time_splits:
-      value.valueTimeSplits?.map((valueTimeSplit) => {
+    item_value_time_splits: buildItemValueTimeSplits(value),
+  };
+};
+
+/**
+ * Build item value DTO with a specific method and filtered recipients.
+ * Used when expanding one lightning item value into lnaddress + keysend when both recipient types exist.
+ */
+export const compatItemValueWithMethodAndRecipients = (
+  value: Phase4Value,
+  method: string,
+  recipients: Phase4ValueRecipient[]
+) => {
+  const metaBoost = toMetaBoost(
+    value.metaBoost?.type ?? null,
+    value.metaBoost?.schema ?? null,
+    value.metaBoost?.license ?? null,
+    value.metaBoost?.node ?? null
+  );
+  return {
+    type: value.type.slice(0, DATABASE_CONSTANTS.varchar_short),
+    method: method.slice(0, DATABASE_CONSTANTS.varchar_long),
+    suggested: parseFloat(value.suggested ?? '0') || null,
+    meta_boost: metaBoost,
+    item_value_recipients: compatValueRecipients(recipients),
+    item_value_time_splits: buildItemValueTimeSplits(value),
+  };
+};
+
+const buildItemValueTimeSplits = (value: Phase4Value) =>
+  value.valueTimeSplits
+    ? value.valueTimeSplits.map((valueTimeSplit) => {
         if (valueTimeSplit.type === 'remoteItem') {
           return {
             meta: {
@@ -59,22 +129,19 @@ export const compatItemValue = (value: Phase4Value) => {
                 }
               : null,
           };
-        } else {
-          // else: valueTimeSplit.type === 'recipients'
-          return {
-            meta: {
-              start_time: DATABASE_CONSTANTS.getMediaPlayerNumeric(valueTimeSplit.startTime),
-              duration: DATABASE_CONSTANTS.getMediaPlayerNumeric(valueTimeSplit.duration),
-              remote_start_time: (0).toFixed(2),
-              remote_percentage: (100).toFixed(2),
-            },
-            item_value_time_splits_recipients: compatValueRecipients(valueTimeSplit.recipients),
-            item_value_time_splits_remote_item: null,
-          };
         }
-      }) || [],
-  };
-};
+        return {
+          meta: {
+            start_time: DATABASE_CONSTANTS.getMediaPlayerNumeric(valueTimeSplit.startTime),
+            duration: DATABASE_CONSTANTS.getMediaPlayerNumeric(valueTimeSplit.duration),
+            remote_start_time: (0).toFixed(2),
+            remote_percentage: (100).toFixed(2),
+          },
+          item_value_time_splits_recipients: compatValueRecipients(valueTimeSplit.recipients),
+          item_value_time_splits_remote_item: null,
+        };
+      })
+    : [];
 
 const compatValueRecipients = (recipients: Phase4ValueRecipient[]) => {
   return (

@@ -263,7 +263,7 @@
     "total": "",
     "message": "",
     "types": {
-      "lightning_keysend": {
+      "lightning": {
         "label": "",
         "denomination": ""
       },
@@ -370,7 +370,7 @@
     },
     "try_again": "",
     "reload_page": "",
-    "go_to_home": ""
+    "return_to_home_page": ""
   },
   "errors": {
     "generic": "",

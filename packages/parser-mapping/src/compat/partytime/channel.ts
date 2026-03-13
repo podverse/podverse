@@ -9,7 +9,7 @@ import {
   getMediumEnumValue,
 } from '@podverse/helpers';
 import { isValidHttpUrl } from '@podverse/helpers-validation';
-import { compatChannelValue } from './value.js';
+import { compatChannelValue, compatChannelValueWithMethodAndRecipients } from './value.js';
 import { detectDuckTypedPublisherMediumId } from './publisher.js';
 
 export const compatChannelDto = (parsedFeed: FeedObject) => {
@@ -372,21 +372,103 @@ export const compatChannelTxtDtos = (parsedFeed: FeedObject) => {
   return dtos;
 };
 
-export const compatChannelValueDtos = (parsedFeed: FeedObject) => {
-  const dtos = [];
-  if (parsedFeed.value) {
-    const dto = compatChannelValue(parsedFeed.value);
+const METHOD_PRIORITY_ORDER = ['lnaddress', 'keysend'];
 
-    const formattedDto = {
+function sortChannelValueDtos<T extends { channel_value: { type: string; method: string } }>(
+  dtos: T[]
+): T[] {
+  return [...dtos].sort((a, b) => {
+    if (a.channel_value.type !== 'lightning' || b.channel_value.type !== 'lightning') return 0;
+    const aIdx = METHOD_PRIORITY_ORDER.indexOf(a.channel_value.method);
+    const bIdx = METHOD_PRIORITY_ORDER.indexOf(b.channel_value.method);
+    if (aIdx === -1 && bIdx === -1) return 0;
+    if (aIdx === -1) return 1;
+    if (bIdx === -1) return -1;
+    return aIdx - bIdx;
+  });
+}
+
+export const compatChannelValueDtos = (parsedFeed: FeedObject) => {
+  const sourceValues = parsedFeed.values ?? [];
+  if (sourceValues.length === 0) return [];
+
+  if (sourceValues.length > 1) {
+    const dtos = sourceValues.map((value) => {
+      const dto = compatChannelValue(value);
+      return {
+        channel_value: {
+          type: dto.type.slice(0, DATABASE_CONSTANTS.varchar_short),
+          method: dto.method.slice(0, DATABASE_CONSTANTS.varchar_short),
+          suggested: dto.suggested || null,
+        },
+        channel_value_meta_boost: dto.meta_boost ?? null,
+        channel_value_recipients: dto.channel_value_recipients,
+      };
+    });
+    return sortChannelValueDtos(dtos);
+  }
+
+  const value = sourceValues[0];
+  if (!value) return [];
+
+  const type = value.type?.toLowerCase() ?? '';
+  const recipients = value.recipients ?? [];
+  const hasLnaddress = recipients.some((r) => r.type?.toLowerCase() === 'lnaddress');
+  const hasKeysend = recipients.some((r) => r.type?.toLowerCase() !== 'lnaddress');
+
+  if (type === 'lightning' && (hasLnaddress || hasKeysend)) {
+    if (hasLnaddress && hasKeysend) {
+      const lnaddressRecipients = recipients.filter((r) => r.type?.toLowerCase() === 'lnaddress');
+      const keysendRecipients = recipients.filter((r) => r.type?.toLowerCase() !== 'lnaddress');
+      const dtos = [];
+      for (const [method, filtered] of [
+        ['lnaddress', lnaddressRecipients],
+        ['keysend', keysendRecipients],
+      ] as const) {
+        if (filtered.length === 0) continue;
+        const dto = compatChannelValueWithMethodAndRecipients(value, method, filtered);
+        dtos.push({
+          channel_value: {
+            type: dto.type.slice(0, DATABASE_CONSTANTS.varchar_short),
+            method: dto.method.slice(0, DATABASE_CONSTANTS.varchar_short),
+            suggested: dto.suggested || null,
+          },
+          channel_value_meta_boost: dto.meta_boost ?? null,
+          channel_value_recipients: dto.channel_value_recipients,
+        });
+      }
+      return sortChannelValueDtos(dtos);
+    }
+    if (hasLnaddress) {
+      const dto = compatChannelValueWithMethodAndRecipients(
+        value,
+        'lnaddress',
+        recipients.filter((r) => r.type?.toLowerCase() === 'lnaddress')
+      );
+      return [
+        {
+          channel_value: {
+            type: dto.type.slice(0, DATABASE_CONSTANTS.varchar_short),
+            method: dto.method.slice(0, DATABASE_CONSTANTS.varchar_short),
+            suggested: dto.suggested || null,
+          },
+          channel_value_meta_boost: dto.meta_boost ?? null,
+          channel_value_recipients: dto.channel_value_recipients,
+        },
+      ];
+    }
+  }
+
+  const dto = compatChannelValue(value);
+  return [
+    {
       channel_value: {
         type: dto.type.slice(0, DATABASE_CONSTANTS.varchar_short),
         method: dto.method.slice(0, DATABASE_CONSTANTS.varchar_short),
         suggested: dto.suggested || null,
       },
+      channel_value_meta_boost: dto.meta_boost ?? null,
       channel_value_recipients: dto.channel_value_recipients,
-    };
-
-    dtos.push(formattedDto);
-  }
-  return dtos;
+    },
+  ];
 };

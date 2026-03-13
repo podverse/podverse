@@ -1,5 +1,7 @@
 import 'server-only';
 
+import { fetchWithTimeout } from '@podverse/helpers-backend';
+
 import type { ManagementWebRuntimeConfig } from './runtime-config';
 
 const getRuntimeConfigUrl = (): string => {
@@ -10,22 +12,15 @@ const getRuntimeConfigUrl = (): string => {
   return url.replace(/\/$/, '');
 };
 
-const fetchWithTimeout = async (url: string, timeoutMs: number): Promise<Response> => {
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
-  try {
-    return await fetch(url, { cache: 'no-store', signal: controller.signal });
-  } finally {
-    clearTimeout(timeoutId);
-  }
-};
-
 let cachedRuntimeConfig: Promise<ManagementWebRuntimeConfig> | null = null;
 
 const fetchManagementWebRuntimeConfigFromSidecarUncached =
   async (): Promise<ManagementWebRuntimeConfig> => {
     const baseUrl = getRuntimeConfigUrl();
-    const response = await fetchWithTimeout(`${baseUrl}/runtime-config`, 2000);
+    const response = await fetchWithTimeout(`${baseUrl}/runtime-config`, {
+      cache: 'no-store',
+      timeoutMs: 2000,
+    });
     if (!response.ok) {
       throw new Error(`Runtime config sidecar returned ${response.status}.`);
     }

@@ -28,6 +28,9 @@ All dependency checks run on this schedule to batch updates together, reducing n
 
 **PR Limit**: 10 concurrent PRs
 
+**Node.js LTS (npm)**: `@types/node` updates are limited to LTS (even) versions only; odd
+(19.x, 21.x, 23.x, 25.x, 27.x, 29.x, 31.x) are ignored.
+
 ### 2. Docker Images
 
 **Directories**:
@@ -55,7 +58,10 @@ All dependency checks run on this schedule to batch updates together, reducing n
 
 **Labels**: `dependencies`
 
-**Note**: These PRs also automatically receive the `ci` label from the PR Labeler workflow since they modify files in `.github/`.
+**Note**: These PRs also automatically receive the `ci` label from the PR Labeler workflow
+since they modify files in `.github/`. Keep `node-version` in workflows on LTS (even:
+18, 20, 22, 24, …); Dependabot does not restrict workflow node versions, so set them
+manually.
 
 ## Labels Explained
 

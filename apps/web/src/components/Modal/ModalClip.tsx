@@ -2,7 +2,7 @@
 
 import { useTranslations } from 'next-intl';
 import React from 'react';
-import { Modal } from './Modal';
+import { Modal, MODAL_CONTENT_MAX_WIDTH } from './Modal';
 import { useModals } from '../../contexts/Modals';
 import { ClipForm } from '../Clip/ClipForm';
 import { hhmmssToSecondsNumeric, SharableStatusEnum } from '@podverse/helpers';
@@ -65,7 +65,7 @@ export const ModalClip: React.FC = () => {
       onClose={clearModalClip}
       header={header}
       ariaLabel={header}
-      modalContentMaxWidth={500}
+      modalContentMaxWidth={MODAL_CONTENT_MAX_WIDTH}
     >
       <ClipForm
         channel={modalClip.channel}

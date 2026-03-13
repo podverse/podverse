@@ -30,7 +30,16 @@ LocalSettingsState Legend:
   - sba = sidebarAccordion (open/closed accordion sections)
   - fd = filterDefaults (per-page filter preferences)
   - metd = membershipExpirationToastDismissed (ISO date string of last dismissal)
+  - bfd = boostFormDefaults (per value type: send to creator, send to app, your name)
 */
+
+export interface BoostFormDefaultsForValueKey {
+  totalAmountToCreator: number;
+  totalAmountToApp: number;
+  yourName: string;
+}
+
+export type BoostFormDefaultsByValueKey = Record<string, BoostFormDefaultsForValueKey>;
 
 export type FilterDefaultsPage =
   | 'home'
@@ -149,6 +158,7 @@ export interface LocalSettingsState {
   sba: SidebarAccordionState;
   fd?: Partial<FilterDefaults>;
   metd?: string; // membershipExpirationToastDismissed (ISO date string of last dismissal)
+  bfd?: BoostFormDefaultsByValueKey;
 }
 
 export function handleLocalSettingsUpdate(newState: LocalSettingsState) {
@@ -186,6 +196,7 @@ function getDefaultLocalSettings(): LocalSettingsState {
       library: true,
     },
     fd: {},
+    bfd: {},
   };
 }
 
@@ -212,7 +223,8 @@ function isValidLocalSettings(settings: unknown): settings is LocalSettingsState
         typeof sba.addByRSS === 'boolean' &&
         typeof sba.library === 'boolean')) &&
     (s.fd === undefined || (typeof s.fd === 'object' && s.fd !== null)) &&
-    (s.metd === undefined || typeof s.metd === 'string')
+    (s.metd === undefined || typeof s.metd === 'string') &&
+    (s.bfd === undefined || (typeof s.bfd === 'object' && s.bfd !== null))
   );
 }
 
@@ -252,6 +264,7 @@ export function getParsedLocalSettings(cookieStore?: CookieStore): LocalSettings
         ...defaults.sba,
         ...(parsed.sba as Partial<SidebarAccordionState> | undefined),
       },
+      bfd: parsed.bfd !== undefined ? (parsed.bfd as BoostFormDefaultsByValueKey) : defaults.bfd,
     };
   } catch {
     if (!isServer) {

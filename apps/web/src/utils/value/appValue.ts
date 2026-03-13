@@ -1,20 +1,58 @@
 import type { AppValueRecipient } from '@podverse/helpers';
 
-/**
- * Resolves the app's value recipient for Boost (Value4Value) from configured
- * Lightning node OR LNAddress. Prefer node if both are set.
- *
- * TODO: Implement by reading runtime config:
- * - Node: NEXT_PUBLIC_APP_VALUE_LIGHTNING_NODE_NAME, _ADDRESS, _CUSTOM_KEY, _CUSTOM_VALUE
- * - LNAddress: NEXT_PUBLIC_APP_VALUE_LIGHTNING_LNADDRESS_NAME, _ADDRESS
- * Return AppValueRecipient with type 'node' or 'lnurl', address, name,
- * custom_key/custom_value (node only), normalized_split: 100, final_amount.
- * Return null if neither node nor lnaddress is configured.
- */
-export function getAppValueRecipientFromNodeOrLnaddress(
-  _final_amount: number
-): AppValueRecipient | null {
-  // TODO: Read config.public.app_value.lightning_node and lightning_lnaddress
-  // (once added to web config from env). Prefer node; fallback to lnaddress.
+import type { WebConfig } from '../../config';
+
+type GetAppValueRecipientParams = {
+  config: WebConfig;
+  type: string;
+  recipientType?: string | null;
+  final_amount: number;
+};
+
+export const getAppValueRecipient = ({
+  config,
+  type,
+  recipientType,
+  final_amount,
+}: GetAppValueRecipientParams): AppValueRecipient | null => {
+  if (type !== 'lightning') {
+    return null;
+  }
+
+  const lnaddressConfig = config.public.app_value.lightning_lnaddress;
+  const nodeConfig = config.public.app_value.lightning_node;
+  const hasLnaddress = Boolean(lnaddressConfig.address);
+  const hasNode = Boolean(nodeConfig.address);
+  const resolvedRecipientType =
+    recipientType ?? (hasLnaddress ? 'lnaddress' : hasNode ? 'node' : null);
+
+  if (resolvedRecipientType === 'lnaddress') {
+    if (!lnaddressConfig.address || !lnaddressConfig.name) {
+      return null;
+    }
+    return {
+      type: 'lnaddress',
+      address: lnaddressConfig.address,
+      name: lnaddressConfig.name,
+      normalized_split: 100,
+      final_amount,
+    };
+  }
+
+  if (resolvedRecipientType === 'node') {
+    if (!nodeConfig.address || !nodeConfig.name) {
+      return null;
+    }
+    return {
+      type: 'node',
+      address: nodeConfig.address,
+      name: nodeConfig.name,
+      custom_key: nodeConfig.custom_key,
+      custom_value: nodeConfig.custom_value,
+      normalized_split: 100,
+      final_amount,
+    };
+  }
+
   return null;
-}
+};

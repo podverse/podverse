@@ -1,4 +1,5 @@
 import { chunkArray } from '@podverse/helpers';
+import { fetchWithTimeout } from '@podverse/helpers-backend';
 import type { NotificationsContext } from '../../factory.js';
 import type { UPSubscription } from './unifiedpushHelpers.js';
 
@@ -59,10 +60,10 @@ export async function sendUPNotificationBatch(
           // Message body is sent as plain text
           const messageBody = payload.body || '';
 
-          const response = await fetch(subscription.up_endpoint, {
-            method: 'POST',
-            headers,
+          const response = await fetchWithTimeout(subscription.up_endpoint, {
             body: messageBody,
+            headers,
+            method: 'POST',
           });
 
           if (!response.ok) {

@@ -4,6 +4,9 @@ networks:
 
 services:
   podverse_local_web:
+    build:
+      context: ../..
+      dockerfile: infra/docker/local/web/Dockerfile
     image: podverse-web:latest
     container_name: podverse_local_web
     depends_on:

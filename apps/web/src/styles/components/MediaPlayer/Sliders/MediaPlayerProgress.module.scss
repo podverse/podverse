@@ -55,6 +55,16 @@
   height: 100%;
 }
 
+.chapterMarker {
+  position: absolute;
+  width: 1px;
+  height: 100%;
+  top: 0;
+  transform: translateX(-50%);
+  background-color: var(--text-color-primary);
+  pointer-events: none;
+}
+
 .highlightedSection {
   position: absolute;
   height: 2rem;

@@ -6,6 +6,7 @@ import { DATABASE_CONSTANTS, SharableStatusEnum } from '@podverse/helpers';
 import { useAccount } from '../../../../contexts/Account';
 import { Button } from '../../../Button/Button';
 import { SettingsSection } from '../../SettingsSection';
+import Form from '../../../Form/Form';
 import { TextInput } from '../../../Form/TextInput';
 import { TextArea } from '../../../Form/TextArea';
 import { FormDropdown } from '../../../Form/FormDropdown';
@@ -74,8 +75,8 @@ export function SettingsProfile() {
   };
 
   return (
-    <form onSubmit={handleSubmit}>
-      <SettingsSection>
+    <Form onSubmit={handleSubmit}>
+      <SettingsSection noVerticalMargin>
         <h3>{tSettings('profile.sharable_status')}</h3>
         <FormDropdown
           id="sharable_status"
@@ -85,7 +86,7 @@ export function SettingsProfile() {
           info={sharableStatusInfo}
         />
       </SettingsSection>
-      <SettingsSection>
+      <SettingsSection noVerticalMargin>
         <h3>{tSettings('profile.display_name')}</h3>
         <TextInput
           value={displayName}
@@ -94,7 +95,7 @@ export function SettingsProfile() {
           info={tSettings('profile.display_name_description')}
         />
       </SettingsSection>
-      <SettingsSection>
+      <SettingsSection noVerticalMargin>
         <h3>{tSettings('profile.bio')}</h3>
         <TextArea
           value={bio}
@@ -105,11 +106,11 @@ export function SettingsProfile() {
           info={tSettings('profile.bio_description')}
         />
       </SettingsSection>
-      <SettingsSection>
+      <SettingsSection noVerticalMargin>
         <Button type="submit" variant="primary" disabled={isSaving}>
           {isSaving ? tMisc('saving') : tMisc('save')}
         </Button>
       </SettingsSection>
-    </form>
+    </Form>
   );
 }

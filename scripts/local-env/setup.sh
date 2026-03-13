@@ -305,8 +305,8 @@ for v in SUPERUSER_EMAIL SUPERUSER_PASSWORD; do
   apply_override "$v" "${MANAGEMENT_DB_ENV_FILES[@]}"
 done
 
-# From brand.env
-apply_override "BRAND_NAME" "${API_AND_WORKERS_ENV_FILES[@]}"
+# From brand.env (API, workers, and management-api all use BRAND_NAME)
+apply_override "BRAND_NAME" "${API_AND_WORKERS_ENV_FILES[@]}" "$MANAGEMENT_API_APP_ENV" "$MANAGEMENT_API_INFRA_ENV"
 
 # Construct USER_AGENT from BRAND_NAME (format: BrandName Bot Local/AppName/5)
 if [ -n "${BRAND_NAME:-}" ]; then
@@ -330,5 +330,19 @@ fi
 for v in NEXT_PUBLIC_APP_VALUE_LIGHTNING_NODE_NAME NEXT_PUBLIC_APP_VALUE_LIGHTNING_NODE_ADDRESS NEXT_PUBLIC_APP_VALUE_LIGHTNING_NODE_CUSTOM_KEY NEXT_PUBLIC_APP_VALUE_LIGHTNING_NODE_CUSTOM_VALUE NEXT_PUBLIC_APP_VALUE_LIGHTNING_LNADDRESS_NAME NEXT_PUBLIC_APP_VALUE_LIGHTNING_LNADDRESS_ADDRESS; do
   apply_override "$v" "${WEB_ENV_FILES[@]}"
 done
+
+# Docker-only: infra env used by Compose gets production NODE_ENV and service-name URLs.
+# Run after all overrides so infra files always get these values when used by Compose.
+upsert_var "$API_INFRA_ENV" "NODE_ENV" "production"
+upsert_var "$WORKERS_INFRA_ENV" "NODE_ENV" "production"
+upsert_var "$MANAGEMENT_API_INFRA_ENV" "NODE_ENV" "production"
+upsert_var "$WEB_INFRA_ENV" "NODE_ENV" "production"
+upsert_var "$MANAGEMENT_WEB_INFRA_ENV" "NODE_ENV" "production"
+upsert_var "$WEB_INFRA_ENV" "RUNTIME_CONFIG_URL" "http://podverse_local_web_runtime_config:3001"
+upsert_var "$WEB_INFRA_ENV" "NEXT_PUBLIC_SSR_API_HOST" "podverse_local_api"
+upsert_var "$WEB_INFRA_ENV" "NEXT_PUBLIC_SSR_API_PORT" "1234"
+upsert_var "$MANAGEMENT_WEB_INFRA_ENV" "RUNTIME_CONFIG_URL" "http://podverse_local_management_web_runtime_config:3101"
+upsert_var "$MANAGEMENT_WEB_INFRA_ENV" "NEXT_PUBLIC_SSR_API_HOST" "podverse_local_management_api"
+upsert_var "$MANAGEMENT_WEB_INFRA_ENV" "NEXT_PUBLIC_SSR_API_PORT" "1999"
 
 echo "Applied local env values from generated defaults and overrides."

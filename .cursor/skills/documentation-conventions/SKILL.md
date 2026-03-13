@@ -12,6 +12,8 @@ description: Documentation file naming conventions for the Podverse monorepo. Us
 - **One** `README.md` at repository root
 - **One** `QUICKSTART.md` in `docs/` directory
 
+**Only one file in the entire repository may be named README** (the root `README.md`). Subdirectories must use descriptive names (e.g. `scripts/github/SCRIPTS-GITHUB.md`, not `README.md`).
+
 ### Directory-Specific Documentation
 
 If a directory needs its own documentation file, name it after the **full path** from root:
@@ -67,7 +69,8 @@ Convert the directory path to uppercase, replacing slashes with hyphens:
 | `packages/helpers/`              | `PACKAGES-HELPERS.md`              |
 | `packages/orm/`                  | `PACKAGES-ORM.md`                  |
 | `infra/docker/ci/`               | `INFRA-DOCKER-CI.md`               |
-| `infra/k8s/`                     | `INFRA-K8S.md` or `README.md`      |
+| `infra/k8s/`                     | `INFRA-K8S.md`                     |
+| `scripts/github/`                | `SCRIPTS-GITHUB.md`                |
 | `infra/pipelines/jenkins/alpha/` | `INFRA-PIPELINES-JENKINS-ALPHA.md` |
 | `.llm/`                          | `LLM.md`                           |
 | `.llm/plans/`                    | `LLM-PLANS.md`                     |

@@ -4,7 +4,7 @@ import { useLocale, useTranslations } from 'next-intl';
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '../Button/Button';
-import { Modal } from './Modal';
+import { Modal, MODAL_CONTENT_MAX_WIDTH } from './Modal';
 import { TextInput } from '../Form/TextInput';
 import { useModals } from '../../contexts/Modals';
 import { getApiRequestService } from '../../factories/apiRequestService';
@@ -76,7 +76,7 @@ export const ModalAuthLogin: React.FC = () => {
       isOpen={modalAuthLogin.isOpen}
       onClose={() => setModalAuthLogin({ isOpen: false })}
       ariaLabel={tAuthentication('login')}
-      modalContentMaxWidth={500}
+      modalContentMaxWidth={MODAL_CONTENT_MAX_WIDTH}
     >
       <Form onSubmit={handleSubmit}>
         <TextInput

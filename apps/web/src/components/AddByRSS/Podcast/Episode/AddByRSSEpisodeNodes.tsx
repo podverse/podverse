@@ -7,7 +7,7 @@ import { Divider } from '../../../Divider/Divider';
 import type { ViewSelectedOption } from '../../../ViewSelector/ViewSelector';
 import styles from '../../../../styles/components/Common/List/ListNodes.module.scss';
 import type { AddByRSSListSortOrder } from '../../../../contexts/AddByRSSListContext';
-import { getItemMediumIdFromBundle } from '../../../../utils/addByRSS/itemIndex';
+import { getItemMediumIdFromBundle } from '@podverse/parser-mapping';
 import type {
   AddByRSSFeedRecord,
   AddByRSSItemIndexItem,

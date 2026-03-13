@@ -5,7 +5,7 @@ metadata:
   name: podverse-db-init-scripts
 data:
   00_init_database.sql: |
-    -- Combined migrations generated Fri Mar 13 01:10:54 CDT 2026
+    -- Combined migrations generated Fri Mar 13 14:22:34 CDT 2026
     -- DO NOT EDIT - regenerate with scripts/database/combine-migrations.sh
 
     -- Including: 0000_init_helpers.sql
@@ -1919,6 +1919,38 @@ data:
         BEFORE UPDATE ON image_shrink_source
         FOR EACH ROW
         EXECUTE FUNCTION set_updated_at_field();
+
+
+    -- Including: 0015_metaboost.sql
+    -- 0015: Add metaBoost tables linked to value records.
+
+    ALTER TABLE channel_value
+        DROP COLUMN IF EXISTS meta_boost_schema,
+        DROP COLUMN IF EXISTS meta_boost_url;
+
+    ALTER TABLE item_value
+        DROP COLUMN IF EXISTS meta_boost_schema,
+        DROP COLUMN IF EXISTS meta_boost_url;
+
+    CREATE TABLE channel_value_meta_boost (
+        id serial PRIMARY KEY,
+        channel_value_id int NOT NULL REFERENCES channel_value(id) ON DELETE CASCADE,
+        type varchar_short NOT NULL,
+        schema varchar_short NOT NULL,
+        license varchar_url,
+        node varchar_url NOT NULL,
+        UNIQUE (channel_value_id)
+    );
+
+    CREATE TABLE item_value_meta_boost (
+        id serial PRIMARY KEY,
+        item_value_id int NOT NULL REFERENCES item_value(id) ON DELETE CASCADE,
+        type varchar_short NOT NULL,
+        schema varchar_short NOT NULL,
+        license varchar_url,
+        node varchar_url NOT NULL,
+        UNIQUE (item_value_id)
+    );
 
   01-create-users.sh: |
     #!/bin/bash

@@ -1,40 +1,29 @@
-import type {
-  AppValueRecipient,
-  NormalizedChannelValueRecipient,
-  NormalizedItemValueRecipient,
-} from '@podverse/helpers';
+import type { AppValueRecipient } from '@podverse/helpers';
 import styles from '../../styles/components/Boost/BoostRecipientInfoRow.module.scss';
 
 type BoostRecipientInfoRowProps = {
-  normalized_channel_value_recipient?: NormalizedChannelValueRecipient;
-  normalized_item_value_recipient?: NormalizedItemValueRecipient;
-  app_value_recipient?: AppValueRecipient | null;
+  recipient:
+    | AppValueRecipient
+    | {
+        name?: string | null;
+        address: string;
+        normalized_split: number;
+        final_amount: number;
+      };
+  showPercentColumn?: boolean;
 };
 
 export const BoostRecipientInfoRow = ({
-  normalized_channel_value_recipient,
-  normalized_item_value_recipient,
-  app_value_recipient,
+  recipient,
+  showPercentColumn = true,
 }: BoostRecipientInfoRowProps) => {
-  const recipient = normalized_item_value_recipient
-    ? normalized_item_value_recipient
-    : normalized_channel_value_recipient
-      ? normalized_channel_value_recipient
-      : app_value_recipient
-        ? app_value_recipient
-        : null;
-
-  if (!recipient) {
-    return null;
-  }
-
   return (
     <tr className={styles.row}>
       <td>
-        <div>{recipient.name}</div>
+        <div>{recipient.name ?? null}</div>
         <div className={styles.address}>{recipient.address}</div>
       </td>
-      <td className={styles.percent}>{recipient.normalized_split}</td>
+      {showPercentColumn && <td className={styles.percent}>{recipient.normalized_split}</td>}
       <td className={styles.amount}>{recipient.final_amount}</td>
     </tr>
   );

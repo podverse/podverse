@@ -14,6 +14,7 @@ The sidecar uses the same validation helpers as the rest of the monorepo (`@podv
 
 - **`RUNTIME_CONFIG_URL`** (Required at runtime only)
   - Internal URL for the runtime-config sidecar (e.g., `http://localhost:3001`)
+  - When running via Docker Compose, `infra/config/local/web.env` is used and must use the sidecar **service name** (`http://podverse_local_web_runtime_config:3001`); `make local_env_setup` sets this automatically.
   - Used by the Next.js server to fetch runtime config at startup via `instrumentation.ts`
   - **Not needed at build time** - the sidecar architecture allows builds without any env vars
 
@@ -98,6 +99,22 @@ These variables are used for client-side API requests:
 - **`NEXT_PUBLIC_BRAND_NAME`** (Optional) - Brand name for the application
 - **`NEXT_PUBLIC_POLLING_INTERVAL_MS`** (Optional) - Polling interval in milliseconds (default: `3000`)
   - Must be a positive number if set
+
+### App Lightning Node
+
+- **`NEXT_PUBLIC_APP_VALUE_LIGHTNING_NODE_NAME`** (Optional) - Lightning node name
+- **`NEXT_PUBLIC_APP_VALUE_LIGHTNING_NODE_ADDRESS`** (Optional) - Lightning node address
+- **`NEXT_PUBLIC_APP_VALUE_LIGHTNING_NODE_CUSTOM_KEY`** (Optional) - Lightning node custom key
+- **`NEXT_PUBLIC_APP_VALUE_LIGHTNING_NODE_CUSTOM_VALUE`** (Optional) - Lightning node custom value
+- **Note**: Set either LNAddress or Node app value vars, not both.
+
+### App Lightning LNAddress
+
+- **`NEXT_PUBLIC_APP_VALUE_LIGHTNING_LNADDRESS_NAME`** (Optional) - Lightning LNAddress name
+- **`NEXT_PUBLIC_APP_VALUE_LIGHTNING_LNADDRESS_ADDRESS`** (Optional) - Lightning LNAddress address
+- **Note**: Set either LNAddress or Node app value vars, not both.
+
+**Donate page:** The Boost form on the **Donate** page (`/donate`) only appears when at least one app value Lightning method is configured (either LNAddress or Node). Both name and address must be set for the chosen method. If neither is set, the page shows an explanatory message instead of the form.
 
 ### Notifications
 

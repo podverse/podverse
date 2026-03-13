@@ -21,6 +21,7 @@
   "dependencies": {
     "@hello-pangea/dnd": "^18.0.1",
     "@podverse/helpers": "*",
+    "@podverse/helpers-backend": "*",
     "axios": "^1.13.5",
     "classnames": "^2.5.1",
     "isomorphic-dompurify": "^2.36.0",

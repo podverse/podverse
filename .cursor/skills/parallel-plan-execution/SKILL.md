@@ -30,8 +30,14 @@ Before creating plans, identify:
 
 **Critical distinction**:
 
-- **Phases**: Run sequentially (Phase 1 completes → Phase 2 starts → Phase 3 starts)
-- **Agents within a phase**: Run in parallel (all Phase 2 agents execute simultaneously)
+- **Phases**: Run sequentially (Phase 1 completes → Phase 2 starts → Phase 3 starts).
+- **Within a phase, order matters.** If the "How to use" says "run A, then B, then C and D
+  in parallel", that means: run A → **wait for A to finish** → run B → **wait for B to
+  finish** → then run C and D in parallel (e.g. two agents). Only start the parallel group
+  after the prior sequential steps in that phase have completed. **Wait for all agents in
+  the parallel group to finish** before starting the next phase.
+- **Agents marked "in parallel"** in the same step run simultaneously; do not start them
+  until any "then" steps before them in that phase are done.
 
 ### 2. Plan Hierarchy
 

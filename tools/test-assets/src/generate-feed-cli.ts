@@ -113,65 +113,72 @@
 
 import fs from 'fs';
 import path from 'path';
-import readline from 'node:readline';
 import { fileURLToPath } from 'url';
 import { faker } from '@faker-js/faker';
-import { generateGuidWithRandomVersion, pickRandomRssFeedMedium } from '@podverse/helpers';
-import { AssetGenerator } from './asset-generator.js';
+import { generateGuidWithRandomVersion } from '@podverse/helpers';
+import { AssetGenerator, AUDIO_FREQ_MAX, AUDIO_FREQ_MIN } from './asset-generator.js';
 import { BASIC_AUTH_BASE_URL, BASIC_AUTH_SUBDIR, DEFAULT_ASSETS_BASE_URL } from './constants.js';
+import {
+  BASIC_AUTH_FEED_FILENAME,
+  BASIC_AUTH_FEED_ITEMS,
+  BASIC_AUTH_IMAGE_POOL_SIZE,
+  DEFAULT_ITEMS,
+  DEFAULT_MULTI,
+  FEED_KINDS,
+  IMAGE_SIZES,
+  ITUNES_CATEGORIES,
+  ITEMS_PER_SEASON,
+  MAX_ASSETS_PER_TYPE,
+  MAX_FEEDS,
+  MIN_SEASONS,
+  PERSON_GROUPS,
+  PERSON_ROLES,
+  SOCIAL_INTERACT_ACCOUNT_ID,
+  SOCIAL_INTERACT_ACCOUNT_URL,
+  SOCIAL_INTERACT_PROTOCOL,
+  SOCIAL_INTERACT_URI,
+} from './generate-feed-constants.js';
+import {
+  confirmAddFakeValueTags,
+  getPositionalCount,
+  getValueFromConfig,
+  parseNumericArg,
+} from './generate-feed-cli-utils.js';
+import { type MultiConfig } from './generate-feed-cli-utils.js';
+import { buildChaptersForItem, buildChaptersJson } from './generate-feed-chapters.js';
+import { buildPodcastImagesSrcset, getImagePoolSize, pad3 } from './generate-feed-utils.js';
+import {
+  buildLiveItemBlock,
+  buildPublisherRemoteItemXml,
+  buildRemoteItemXml,
+  escapeXml,
+  toRfc2822,
+} from './generate-feed-xml.js';
+import { buildChannelValueBlock, buildItemValueBlock } from './generate-feed-value-tags.js';
+import {
+  type BuildFeedResult,
+  type RunGenerateFeedAndAssetsOptions,
+  type RunGenerateFeedAndAssetsResult,
+  type WrittenFeedInfo,
+} from './generate-feed-types.js';
+import { type FeedKind } from './generate-feed-constants.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-const DEFAULT_ITEMS = 20;
-const DEFAULT_MULTI = 2;
-const ITEMS_PER_SEASON = 10;
-const MIN_SEASONS = 2;
-/** Fixed ActivityPub socialInteract for all generated feeds (channel + every item). */
-const SOCIAL_INTERACT_URI = 'https://podcastindex.social/@mitch/116024949309724989';
-const SOCIAL_INTERACT_PROTOCOL = 'activitypub';
-const SOCIAL_INTERACT_ACCOUNT_ID = '@mitch';
-const SOCIAL_INTERACT_ACCOUNT_URL = 'https://podcastindex.social/@mitch';
-const MAX_FEEDS = 100_000;
-const MAX_ASSETS_PER_TYPE = 100;
-const MAX_JPEG_FILES = 100;
-/** Widths (px) for podcast:images srcset. Total JPEGs = imagePoolSize * IMAGE_SIZES.length ≤ MAX_JPEG_FILES. */
-const IMAGE_SIZES = [300, 600, 1400];
-
-/** Basic-Auth test feed: one feed, fixed 10 items, under assets/basic-auth/. */
-const BASIC_AUTH_FEED_ITEMS = 10;
-const BASIC_AUTH_FEED_FILENAME = 'feed-basic-auth.rss';
-const BASIC_AUTH_IMAGE_POOL_SIZE = 4;
-
-export type MultiConfig =
-  | { kind: 'fixed'; value: number }
-  | { kind: 'range'; min: number; max: number };
-
-/** Nine feed types per set: 5 non-season + 4 season. See 10-test-data-spec.md */
-const FEED_KINDS = [
-  'none',
-  'podcast',
-  'video',
-  'music',
-  'publisher',
-  'season',
-  'podcast-season',
-  'video-season',
-  'music-season',
-] as const;
-export type FeedKind = (typeof FEED_KINDS)[number];
-
-const ITUNES_CATEGORIES = [
-  'Technology',
-  'Business',
-  'News',
-  'Comedy',
-  'Education',
-  'Science',
-  'Society & Culture',
-  'Arts',
-  'Health',
-  'Religion & Spirituality',
-] as const;
+export type { MultiConfig } from './generate-feed-cli-utils.js';
+export type { FeedKind } from './generate-feed-constants.js';
+export type {
+  BuildFeedResult,
+  RunGenerateFeedAndAssetsOptions,
+  RunGenerateFeedAndAssetsResult,
+  WrittenFeedInfo,
+} from './generate-feed-types.js';
+export {
+  confirmAddFakeValueTags,
+  getPositionalCount,
+  getValueFromConfig,
+  parseNumericArg,
+} from './generate-feed-cli-utils.js';
 
 function isSeasonFeed(kind: FeedKind): boolean {
   return (
@@ -188,109 +195,6 @@ function getEnclosureKind(kind: FeedKind): 'audio' | 'video' {
   return 'audio';
 }
 
-function escapeXml(s: string): string {
-  return s
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&apos;');
-}
-
-/** Build one <podcast:remoteItem> with optional itemGuid, title, medium (each chosen randomly). */
-function buildRemoteItemXml(target: { guid: string; url: string }): string {
-  const attrs: string[] = [
-    `feedGuid="${escapeXml(target.guid)}"`,
-    `feedUrl="${escapeXml(target.url)}"`,
-  ];
-  if (faker.helpers.arrayElement([true, false])) {
-    attrs.push(`itemGuid="${escapeXml(generateGuidWithRandomVersion())}"`);
-  }
-  if (faker.helpers.arrayElement([true, false])) {
-    attrs.push(`title="${escapeXml(faker.lorem.words(3))}"`);
-  }
-  const medium = pickRandomRssFeedMedium();
-  if (medium !== undefined) {
-    attrs.push(`medium="${escapeXml(medium)}"`);
-  }
-  return `<podcast:remoteItem ${attrs.join(' ')}/>`;
-}
-
-/** Build one <podcast:remoteItem> for <podcast:publisher>: always medium="publisher", optional itemGuid/title. */
-function buildPublisherRemoteItemXml(target: { guid: string; url: string }): string {
-  const attrs: string[] = [
-    `feedGuid="${escapeXml(target.guid)}"`,
-    `feedUrl="${escapeXml(target.url)}"`,
-    'medium="publisher"',
-  ];
-  if (faker.helpers.arrayElement([true, false])) {
-    attrs.push(`itemGuid="${escapeXml(generateGuidWithRandomVersion())}"`);
-  }
-  if (faker.helpers.arrayElement([true, false])) {
-    attrs.push(`title="${escapeXml(faker.lorem.words(3))}"`);
-  }
-  return `<podcast:remoteItem ${attrs.join(' ')}/>`;
-}
-
-export function parseNumericArg(flag: string, defaultVal: number, argv: string[]): MultiConfig {
-  const idx = argv.indexOf(flag);
-  const value = argv[idx + 1];
-  if (idx === -1 || value === undefined) {
-    return { kind: 'fixed', value: defaultVal };
-  }
-  const rangeMatch = value.match(/^(\d+)-(\d+)$/);
-  if (rangeMatch && rangeMatch[1] !== undefined && rangeMatch[2] !== undefined) {
-    const min = parseInt(rangeMatch[1], 10);
-    const max = parseInt(rangeMatch[2], 10);
-    if (!Number.isNaN(min) && !Number.isNaN(max) && min >= 1 && max >= min) {
-      return { kind: 'range', min, max };
-    }
-  }
-  const n = parseInt(value, 10);
-  if (!Number.isNaN(n) && n >= 1) {
-    return { kind: 'fixed', value: n };
-  }
-  return { kind: 'fixed', value: defaultVal };
-}
-
-export function getValueFromConfig(config: MultiConfig): number {
-  if (config.kind === 'fixed') return config.value;
-  return faker.number.int({ min: config.min, max: config.max });
-}
-
-/** Returns true if user types y (case-insensitive), false otherwise. Exported for generate_and_parse. */
-export function confirmAddFakeValueTags(): Promise<boolean> {
-  const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
-  return new Promise((resolve) => {
-    rl.question(
-      'WARNING: This will generate value tags with fake information. You should NOT use these value tags to send money to, or your money will be lost.\nType y to continue, or any other key to quit.\n',
-      (answer) => {
-        rl.close();
-        resolve(answer.trim().toLowerCase() === 'y');
-      }
-    );
-  });
-}
-
-export function getPositionalCount(argv: string[]): number | null {
-  const positionals: string[] = [];
-  for (let i = 0; i < argv.length; i++) {
-    const arg = argv[i];
-    if (arg === undefined) continue;
-    if (arg === '--multi' || arg === '--items') {
-      i++;
-      continue;
-    }
-    if (arg === '--force-rss' || arg === '--add-fake-value-tags') continue;
-    positionals.push(arg);
-  }
-  const first = positionals[0];
-  if (!first) return null;
-  const n = parseInt(first, 10);
-  if (Number.isNaN(n) || n < 1) return null;
-  return n;
-}
-
 function getOutputDir(): string {
   return path.join(__dirname, '../assets');
 }
@@ -300,19 +204,7 @@ function getFeedFilename(kind: FeedKind, setIndex: number): string {
   return `feed-${kind}-${setIndex}.rss`;
 }
 
-function pad3(n: number): string {
-  return n.toString().padStart(3, '0');
-}
-
-/** Per 07d: URL and channel GUID for a feed already written in this run (for remoteItem/podroll/publisher). */
-export type WrittenFeedInfo = { url: string; guid: string };
-
-/** Image pool size so that imagePoolSize * IMAGE_SIZES.length ≤ MAX_JPEG_FILES. */
-function getImagePoolSize(poolSize: number): number {
-  return Math.min(poolSize, Math.floor(MAX_JPEG_FILES / IMAGE_SIZES.length));
-}
-
-async function ensureMediaAssets(poolSize: number): Promise<void> {
+async function ensureMediaAssets(poolSize: number): Promise<number[]> {
   const generator = new AssetGenerator({ namespace: '' });
   await generator.ensureAssetsDirectory();
   const imagePoolSize = getImagePoolSize(poolSize);
@@ -325,22 +217,26 @@ async function ensureMediaAssets(poolSize: number): Promise<void> {
     const color = faker.color.rgb({ format: 'hex' });
     await generator.generateImageSizes(pad, IMAGE_SIZES, color, true);
   }
+  const durations: number[] = [];
   for (let i = 1; i <= poolSize; i++) {
     const pad = pad3(i);
     const durationSec = faker.number.int({ min: 30, max: 90 });
-    await generator.generateMP3(`audio-${pad}.mp3`, durationSec);
-    await generator.generateOGG(`audio-${pad}.ogg`, durationSec);
-    await generator.generateMP4(`video-${pad}.mp4`, durationSec);
-    await generator.generateWebM(`video-${pad}.webm`, durationSec);
+    const frequencyHz = faker.number.int({ min: AUDIO_FREQ_MIN, max: AUDIO_FREQ_MAX });
+    durations.push(durationSec);
+    await generator.generateMP3(`audio-${pad}.mp3`, durationSec, frequencyHz);
+    await generator.generateOGG(`audio-${pad}.ogg`, durationSec, frequencyHz);
+    await generator.generateMP4(`video-${pad}.mp4`, durationSec, frequencyHz);
+    await generator.generateWebM(`video-${pad}.webm`, durationSec, frequencyHz);
   }
 
   console.log(
     `\nMedia pool ready (images 1..${imagePoolSize} × ${IMAGE_SIZES.length} sizes; audio/video/ogg/webm 1..${poolSize}). Writing feeds...\n`
   );
+  return durations;
 }
 
 /** Ensure media pool for the single basic-auth feed (10 items, 4 image indices, under assets/basic-auth/). */
-async function ensureBasicAuthMediaAssets(): Promise<void> {
+async function ensureBasicAuthMediaAssets(): Promise<number[]> {
   const generator = new AssetGenerator({ namespace: BASIC_AUTH_SUBDIR });
   await generator.ensureAssetsDirectory();
   for (let i = 1; i <= BASIC_AUTH_IMAGE_POOL_SIZE; i++) {
@@ -348,25 +244,18 @@ async function ensureBasicAuthMediaAssets(): Promise<void> {
     const color = faker.color.rgb({ format: 'hex' });
     await generator.generateImageSizes(pad, IMAGE_SIZES, color, true);
   }
+  const durations: number[] = [];
   for (let i = 1; i <= BASIC_AUTH_FEED_ITEMS; i++) {
     const pad = pad3(i);
     const durationSec = faker.number.int({ min: 30, max: 90 });
-    await generator.generateMP3(`audio-${pad}.mp3`, durationSec);
-    await generator.generateOGG(`audio-${pad}.ogg`, durationSec);
-    await generator.generateMP4(`video-${pad}.mp4`, durationSec);
-    await generator.generateWebM(`video-${pad}.webm`, durationSec);
+    const frequencyHz = faker.number.int({ min: AUDIO_FREQ_MIN, max: AUDIO_FREQ_MAX });
+    durations.push(durationSec);
+    await generator.generateMP3(`audio-${pad}.mp3`, durationSec, frequencyHz);
+    await generator.generateOGG(`audio-${pad}.ogg`, durationSec, frequencyHz);
+    await generator.generateMP4(`video-${pad}.mp4`, durationSec, frequencyHz);
+    await generator.generateWebM(`video-${pad}.webm`, durationSec, frequencyHz);
   }
-}
-
-/** RFC 2822-style date for pubDate/lastBuildDate */
-function toRfc2822(d: Date): string {
-  return d.toUTCString();
-}
-
-/** Build podcast:images srcset value (e.g. "url1 300w, url2 600w, url3 1400w"). */
-function buildPodcastImagesSrcset(baseUrl: string, indexPad: string): string {
-  const base = baseUrl.replace(/\/$/, '');
-  return IMAGE_SIZES.map((w) => `${base}/images/image-${indexPad}-${w}.jpg ${w}w`).join(', ');
+  return durations;
 }
 
 /** podcast:medium value per feed kind; null = omit tag (feed-none, feed-season). */
@@ -386,258 +275,6 @@ function getMediumForKind(kind: FeedKind): string | null {
     default:
       return null;
   }
-}
-
-/** Person role/group values Partytime accepts (from person-enum). */
-const PERSON_ROLES = ['Host', 'Co-Host', 'Guest', 'Producer', 'Narrator'] as const;
-const PERSON_GROUPS = ['Cast', 'Hosts', 'Creative Direction'] as const;
-
-/** 07a: Lightning keysend — generate a node pubkey-like string (66 hex chars). */
-function lightningNodePubkey(): string {
-  const hexChars = '0123456789abcdef'.split('');
-  return Array.from({ length: 66 }, () => faker.helpers.arrayElement(hexChars)).join('');
-}
-
-type ValueRecipientOpts = {
-  customKey?: string;
-  customValue?: string;
-  fee?: boolean;
-};
-
-/** Build one <podcast:valueRecipient> XML string. customValue only emitted when customKey is present. */
-function buildValueRecipientXml(
-  address: string,
-  split: number,
-  name: string,
-  opts?: ValueRecipientOpts
-): string {
-  const parts = [
-    'type="node"',
-    `address="${escapeXml(address)}"`,
-    `split="${split}"`,
-    `name="${escapeXml(name)}"`,
-  ];
-  if (opts?.customKey !== undefined) {
-    parts.push(`customKey="${escapeXml(opts.customKey)}"`);
-    if (opts.customValue !== undefined) {
-      parts.push(`customValue="${escapeXml(opts.customValue)}"`);
-    }
-  }
-  if (opts?.fee === true) {
-    parts.push('fee="true"');
-  }
-  return `<podcast:valueRecipient ${parts.join(' ')}/>`;
-}
-
-/** Random optional customKey, customValue (only when customKey), and fee for a valueRecipient. */
-function randomValueRecipientOpts(): ValueRecipientOpts {
-  const opts: ValueRecipientOpts = {};
-  if (faker.helpers.arrayElement([true, false])) {
-    opts.customKey = faker.lorem.slug();
-    if (faker.helpers.arrayElement([true, false])) {
-      opts.customValue = faker.lorem.word();
-    }
-  }
-  if (faker.helpers.arrayElement([true, false])) {
-    opts.fee = true;
-  }
-  return opts;
-}
-
-/** 07a: Build channel <podcast:value type="lightning" method="keysend"> with valueRecipients (type=node). */
-function buildChannelValueBlock(recipientCount: number): string {
-  const suggested = '0.00000005000';
-  const recipients = Array.from({ length: recipientCount }, () => {
-    const address = lightningNodePubkey();
-    const split = faker.number.int({ min: 1, max: 100 });
-    const name = faker.person.fullName();
-    return buildValueRecipientXml(address, split, name, randomValueRecipientOpts());
-  }).join('\n    ');
-  return `<podcast:value type="lightning" method="keysend" suggested="${suggested}">\n    ${recipients}\n    </podcast:value>`;
-}
-
-/** 07a: Build item <podcast:value> (lightning keysend) with optional valueTimeSplit (recipients or remoteItem variant). */
-function buildItemValueBlock(
-  recipientCount: number,
-  includeValueTimeSplit: boolean,
-  remoteItemTarget?: WrittenFeedInfo | null
-): string {
-  const suggested = '0.00000005000';
-  const recipients = Array.from({ length: recipientCount }, () => {
-    const address = lightningNodePubkey();
-    const split = faker.number.int({ min: 1, max: 100 });
-    const name = faker.person.fullName();
-    return buildValueRecipientXml(address, split, name, randomValueRecipientOpts());
-  }).join('\n      ');
-  let valueTimeSplitBlock = '';
-  if (includeValueTimeSplit) {
-    const startTime = faker.number.int({ min: 0, max: 3600 });
-    const duration = faker.number.int({ min: 60, max: 600 });
-    const remoteStartTime = faker.number.int({ min: 0, max: 3600 });
-    const remotePercentage = faker.number.int({ min: 0, max: 100 });
-    const useRemoteItem = remoteItemTarget && remoteItemTarget.guid && remoteItemTarget.url;
-    if (useRemoteItem) {
-      const remoteItemXml = buildRemoteItemXml({
-        guid: remoteItemTarget.guid,
-        url: remoteItemTarget.url,
-      });
-      valueTimeSplitBlock = `
-      <podcast:valueTimeSplit startTime="${startTime}" duration="${duration}" remoteStartTime="${remoteStartTime}" remotePercentage="${remotePercentage}">
-        ${remoteItemXml}
-      </podcast:valueTimeSplit>`;
-    } else {
-      const vsRecipientAddress = lightningNodePubkey();
-      const vsSplit = faker.number.int({ min: 1, max: 100 });
-      const vsName = faker.person.fullName();
-      const vsRecipientXml = buildValueRecipientXml(
-        vsRecipientAddress,
-        vsSplit,
-        vsName,
-        randomValueRecipientOpts()
-      );
-      valueTimeSplitBlock = `
-      <podcast:valueTimeSplit startTime="${startTime}" duration="${duration}" remoteStartTime="${remoteStartTime}" remotePercentage="${remotePercentage}">
-        ${vsRecipientXml}
-      </podcast:valueTimeSplit>`;
-    }
-  }
-  return `<podcast:value type="lightning" method="keysend" suggested="${suggested}">\n      ${recipients}${valueTimeSplitBlock}\n      </podcast:value>`;
-}
-
-/** JSON chapters (1.2): chapter entry for generated file. startTime/endTime in seconds. */
-type GeneratedChapter = {
-  startTime: number;
-  endTime?: number;
-  title?: string;
-  img?: string;
-  url?: string;
-  toc?: boolean;
-  location?: { name: string; geo: string; osm?: string };
-};
-
-const CHAPTERS_VERSION = '1.2.0';
-const MIN_CHAPTER_LENGTH_SEC = 10;
-const MIN_TOC_CHAPTERS = 3;
-
-/**
- * Build chapters array for one item. At least MIN_TOC_CHAPTERS toc:true chapters, each >= 10s,
- * all within [0, durationSec]. Optionally 0–2 toc:false overlay chapters. Sorted by startTime.
- */
-function buildChaptersForItem(
-  durationSec: number,
-  baseUrl: string,
-  imagePoolSize: number
-): GeneratedChapter[] {
-  const chapters: GeneratedChapter[] = [];
-  const maxChaptersByDuration = Math.floor(durationSec / MIN_CHAPTER_LENGTH_SEC);
-  const numTocChapters = faker.number.int({
-    min: MIN_TOC_CHAPTERS,
-    max: Math.max(MIN_TOC_CHAPTERS, Math.min(6, maxChaptersByDuration)),
-  });
-  const segmentDuration = durationSec / numTocChapters;
-  for (let i = 0; i < numTocChapters; i++) {
-    const startTime = Math.round(i * segmentDuration * 10) / 10;
-    const endTime =
-      i < numTocChapters - 1
-        ? Math.round((i + 1) * segmentDuration * 10) / 10
-        : Math.round(durationSec * 10) / 10;
-    const ch: GeneratedChapter = {
-      startTime,
-      endTime,
-      title: faker.lorem.sentence(),
-      toc: true,
-    };
-    if (faker.helpers.arrayElement([true, false])) {
-      ch.img = `${baseUrl}/images/image-${pad3(faker.number.int({ min: 1, max: imagePoolSize }))}-${IMAGE_SIZES[0]}.jpg`;
-    }
-    if (faker.helpers.arrayElement([true, false])) {
-      ch.url = faker.internet.url();
-    }
-    if (faker.helpers.arrayElement([true, false])) {
-      ch.location = {
-        name: faker.location.city(),
-        geo: `geo:${faker.location.latitude()},${faker.location.longitude()}`,
-      };
-    }
-    chapters.push(ch);
-  }
-  const numOverlay = faker.number.int({ min: 0, max: 2 });
-  for (let o = 0; o < numOverlay; o++) {
-    const start = faker.number.float({
-      min: 0,
-      max: Math.max(0, durationSec - 10),
-      fractionDigits: 1,
-    });
-    const end = Math.min(
-      durationSec,
-      start + faker.number.float({ min: 10, max: 60, fractionDigits: 1 })
-    );
-    chapters.push({
-      startTime: Math.round(start * 10) / 10,
-      endTime: Math.round(end * 10) / 10,
-      title: faker.lorem.words(2),
-      toc: false,
-    });
-  }
-  chapters.sort((a, b) => a.startTime - b.startTime);
-  return chapters;
-}
-
-/** Build full chapters JSON object (version + optional metadata + chapters). */
-function buildChaptersJson(chapters: GeneratedChapter[]): {
-  version: string;
-  chapters: GeneratedChapter[];
-  author?: string;
-  title?: string;
-  podcastName?: string;
-  description?: string;
-  fileName?: string;
-  waypoints?: boolean;
-} {
-  const root: {
-    version: string;
-    chapters: GeneratedChapter[];
-    author?: string;
-    title?: string;
-    podcastName?: string;
-    description?: string;
-    fileName?: string;
-    waypoints?: boolean;
-  } = {
-    version: CHAPTERS_VERSION,
-    chapters,
-    author: faker.person.fullName(),
-    title: faker.lorem.sentence(),
-    podcastName: faker.lorem.words(3),
-    description: faker.lorem.paragraph(),
-    fileName: faker.system.fileName(),
-  };
-  if (faker.helpers.arrayElement([true, false])) {
-    root.waypoints = faker.helpers.arrayElement([true, false]);
-  }
-  return root;
-}
-
-/** 07c: Reference enclosure for all live items (24/7 stream). */
-const LIVE_ITEM_ENCLOSURE_URL = 'https://op3.dev/e/listen.noagendastream.com/noagenda';
-const LIVE_ITEM_ENCLOSURE_TYPE = 'audio/mpeg';
-const LIVE_ITEM_ENCLOSURE_LENGTH = 33;
-
-/** 07c: Build one <podcast:liveItem> with reference enclosure; status = live | pending | ended. */
-function buildLiveItemBlock(status: 'live' | 'pending' | 'ended', chatWebUrl?: string): string {
-  const guid = generateGuidWithRandomVersion();
-  const title = faker.lorem.sentence();
-  const start = toRfc2822(faker.date.recent({ days: 1 }));
-  const endAttr =
-    status === 'ended' || status === 'pending'
-      ? ` end="${toRfc2822(faker.date.recent({ days: 1 }))}"`
-      : '';
-  const chatAttr = chatWebUrl ? ` chat="${escapeXml(chatWebUrl)}"` : '';
-  return `<podcast:liveItem status="${status}" start="${start}"${endAttr}${chatAttr}>
-    <guid>${escapeXml(guid)}</guid>
-    <title>${escapeXml(title)}</title>
-    <enclosure url="${escapeXml(LIVE_ITEM_ENCLOSURE_URL)}" type="${LIVE_ITEM_ENCLOSURE_TYPE}" length="${LIVE_ITEM_ENCLOSURE_LENGTH}"/>
-  </podcast:liveItem>`;
 }
 
 /** 07b: Build 4 <podcast:alternateEnclosure> per item (audio/mpeg, audio/ogg, video/mp4, video/webm) with <podcast:source>. */
@@ -666,32 +303,77 @@ function buildAlternateEnclosureBlocks(baseUrl: string, enclosureIndex: number):
   return blocks.join('\n      ');
 }
 
-/** Minimal spec-compliant transcript content for test assets (WebVTT, SRT, plain). */
-function buildTranscriptContent(format: 'vtt' | 'srt' | 'plain'): string {
-  switch (format) {
-    case 'vtt':
-      return 'WEBVTT\n\n00:00:00.000 --> 00:00:05.000\nSample transcript line.\n';
-    case 'srt':
-      return '1\n00:00:00,000 --> 00:00:05,000\nSample transcript line.\n';
-    case 'plain':
-      return 'Sample transcript text.';
-    default:
-      return 'Sample transcript text.';
-  }
+/** One transcript cue: start/end in seconds, text for that interval. */
+type TranscriptSegment = { startSec: number; endSec: number; text: string };
+
+/** Format seconds as HH:MM:SS.mmm (VTT) or HH:MM:SS,mmm (SRT). */
+function secToTimestamp(sec: number, useComma: boolean): string {
+  const h = Math.floor(sec / 3600);
+  const m = Math.floor((sec % 3600) / 60);
+  const s = Math.floor(sec % 60);
+  const ms = Math.round((sec % 1) * 1000);
+  const sep = useComma ? ',' : '.';
+  return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}${sep}${String(ms).padStart(3, '0')}`;
 }
 
-export type BuildFeedResult = {
-  xml: string;
-  channelGuid: string;
-  chaptersToWrite: { filename: string; content: string }[];
-  transcriptsToWrite: { filename: string; content: string }[];
-};
+/** Build transcript segments that fit within [0, durationSec]; varied text per segment. */
+function buildTranscriptSegments(durationSec: number): TranscriptSegment[] {
+  const numSegments = Math.max(2, Math.min(50, Math.floor(durationSec / 8)));
+  const segmentDuration = durationSec / numSegments;
+  const segments: TranscriptSegment[] = [];
+  for (let i = 0; i < numSegments; i++) {
+    const startSec = Math.round(i * segmentDuration * 1000) / 1000;
+    const endSec =
+      i === numSegments - 1
+        ? Math.round(durationSec * 1000) / 1000
+        : Math.round((i + 1) * segmentDuration * 1000) / 1000;
+    segments.push({
+      startSec,
+      endSec,
+      text: faker.lorem.sentence(),
+    });
+  }
+  return segments;
+}
+
+/** Format segments as WebVTT, SRT, or plain text. */
+function formatTranscriptSegments(
+  segments: TranscriptSegment[],
+  format: 'vtt' | 'srt' | 'plain'
+): string {
+  if (format === 'plain') {
+    return segments.map((s) => s.text).join('\n');
+  }
+  if (format === 'vtt') {
+    const lines = ['WEBVTT', ''];
+    for (const seg of segments) {
+      lines.push(
+        `${secToTimestamp(seg.startSec, false)} --> ${secToTimestamp(seg.endSec, false)}`,
+        seg.text,
+        ''
+      );
+    }
+    return lines.join('\n');
+  }
+  // SRT
+  const lines: string[] = [];
+  segments.forEach((seg, idx) => {
+    lines.push(
+      String(idx + 1),
+      `${secToTimestamp(seg.startSec, true)} --> ${secToTimestamp(seg.endSec, true)}`,
+      seg.text,
+      ''
+    );
+  });
+  return lines.join('\n');
+}
 
 function buildFeed(
   feedKind: FeedKind,
   filename: string,
   itemCount: number,
   poolSize: number,
+  mediaDurationsByPoolIndex: number[],
   imagePoolSize: number,
   multiConfig: MultiConfig,
   baseUrl: string,
@@ -857,7 +539,7 @@ function buildFeed(
 
     const itunesAuthor = faker.person.fullName();
     const itunesItemExplicit = faker.helpers.arrayElement([true, false]) ? 'yes' : 'no';
-    const durationSec = faker.number.int({ min: 60, max: 7200 });
+    const durationSec = mediaDurationsByPoolIndex[enclosureIndex - 1] ?? 60;
     const itunesDuration =
       durationSec >= 3600
         ? `${Math.floor(durationSec / 3600)}:${String(Math.floor((durationSec % 3600) / 60)).padStart(2, '0')}:${String(durationSec % 60).padStart(2, '0')}`
@@ -878,17 +560,18 @@ function buildFeed(
     }
 
     const baseNoSlash = baseUrl.replace(/\/$/, '');
+    const transcriptSegments = buildTranscriptSegments(durationSec);
     const transcriptEntries: { filename: string; type: string; content: string; rel?: string }[] = [
       {
         filename: `transcript-${feedBasename}-item-${i}-0.vtt`,
         type: 'text/vtt',
-        content: buildTranscriptContent('vtt'),
+        content: formatTranscriptSegments(transcriptSegments, 'vtt'),
         rel: 'captions',
       },
       {
         filename: `transcript-${feedBasename}-item-${i}-1.srt`,
         type: 'application/x-subrip',
-        content: buildTranscriptContent('srt'),
+        content: formatTranscriptSegments(transcriptSegments, 'srt'),
         // omit rel so item_transcript.rel is null for this row (some populated, some not)
       },
     ];
@@ -959,7 +642,7 @@ function buildFeed(
     const includeItemValue = includeValueTags && i < multiCount;
     const remoteItemTargetForValue = writtenFeedInfo.length > 0 ? writtenFeedInfo[0] : null;
     const itemValueBlock = includeItemValue
-      ? buildItemValueBlock(multiCount, i === 0, remoteItemTargetForValue)
+      ? buildItemValueBlock(i === 0, remoteItemTargetForValue)
       : '';
 
     const alternateEnclosureBlocks = buildAlternateEnclosureBlocks(baseUrl, enclosureIndex);
@@ -1054,22 +737,6 @@ ${items.join('\n')}
   return { xml, channelGuid: podcastGuid, chaptersToWrite, transcriptsToWrite };
 }
 
-export type RunGenerateFeedAndAssetsOptions = {
-  itemsConfig?: MultiConfig;
-  multiConfig?: MultiConfig;
-  baseUrl?: string;
-  /** When true, overwrite existing RSS feed files only (media assets are never overwritten). */
-  forceRss?: boolean;
-  /** When true, include podcast:value (channel + item) with fake Lightning data. CLI prompts for confirmation. */
-  addFakeValueTags?: boolean;
-};
-
-export type RunGenerateFeedAndAssetsResult = {
-  success: boolean;
-  written: number;
-  skipped: number;
-};
-
 /**
  * Shared logic: generate media pool and feed files under assets/audio, assets/feeds,
  * assets/images, assets/videos. Used by both the CLI and generateFeedAndAssets().
@@ -1106,7 +773,7 @@ export async function runGenerateFeedAndAssets(
     fs.mkdirSync(transcriptsDir, { recursive: true });
   }
 
-  await ensureMediaAssets(poolSize);
+  const mediaDurations = await ensureMediaAssets(poolSize);
 
   const base = baseUrl.replace(/\/$/, '');
   const writtenFeedInfo: WrittenFeedInfo[] = [];
@@ -1134,6 +801,7 @@ export async function runGenerateFeedAndAssets(
         filename,
         itemCount,
         poolSize,
+        mediaDurations,
         imagePoolSize,
         multiConfig,
         baseUrl,
@@ -1171,7 +839,7 @@ export async function runGenerateFeedAndAssets(
       fs.mkdirSync(dir, { recursive: true });
     }
   }
-  await ensureBasicAuthMediaAssets();
+  const basicAuthDurations = await ensureBasicAuthMediaAssets();
   const basicAuthFeedPath = path.join(basicAuthFeedsDir, BASIC_AUTH_FEED_FILENAME);
   if (!forceRss && fs.existsSync(basicAuthFeedPath)) {
     skipped++;
@@ -1182,6 +850,7 @@ export async function runGenerateFeedAndAssets(
       BASIC_AUTH_FEED_FILENAME,
       BASIC_AUTH_FEED_ITEMS,
       BASIC_AUTH_FEED_ITEMS,
+      basicAuthDurations,
       BASIC_AUTH_IMAGE_POOL_SIZE,
       multiConfig,
       BASIC_AUTH_BASE_URL,

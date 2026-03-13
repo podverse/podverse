@@ -1,6 +1,6 @@
 # GitHub Labels Reference
 
-This document lists all 23 labels in the Podverse repository for consistent issue and PR management.
+This document lists all 28 labels in the Podverse repository for consistent issue and PR management.
 
 **Labels can be programmatically recreated** using `./scripts/github/setup-all-labels.sh`
 
@@ -30,6 +30,11 @@ This document lists all 23 labels in the Podverse repository for consistent issu
 | Label                   | Color                                                                  | Description                                                            | Origin |
 | ----------------------- | ---------------------------------------------------------------------- | ---------------------------------------------------------------------- | ------ |
 | `technical-improvement` | ![#0075ca](https://via.placeholder.com/15/0075ca/0075ca.png) `#0075ca` | Code quality, refactoring, optimization, and architecture improvements | Custom |
+| `accessibility`         | ![#0d9488](https://via.placeholder.com/15/0d9488/0d9488.png) `#0d9488` | Accessibility (a11y) improvements                                      | Custom |
+| `documentation`         | ![#bfd4f2](https://via.placeholder.com/15/bfd4f2/bfd4f2.png) `#bfd4f2` | Documentation improvements or requests                                 | Custom |
+| `task`                  | ![#7f8c8d](https://via.placeholder.com/15/7f8c8d/7f8c8d.png) `#7f8c8d` | Task or chore                                                          | Custom |
+| `more info needed`      | ![#fbcb04](https://via.placeholder.com/15/fbcb04/fbcb04.png) `#fbcb04` | Needs more information from the author                                 | Custom |
+| `translations`          | ![#d4c5f9](https://via.placeholder.com/15/d4c5f9/d4c5f9.png) `#d4c5f9` | Translations and localization                                          | Custom |
 
 ## Category: Dependencies
 
@@ -137,17 +142,11 @@ Before workflows can use labels, run the setup script once:
 # Authenticate with GitHub CLI (if not already)
 gh auth login
 
-# Run the setup script
-./scripts/github/setup-labels.sh
+# Create or update all labels (idempotent)
+./scripts/github/setup-all-labels.sh
 ```
 
-This script creates missing labels required by workflows:
-
-- **Vulnerability Scanner** (`vulnerability-scanner.yml`): dependencies, priority:critical, priority:high, priority:medium, priority:low
-
-Note: PR Labeler uses existing labels (apps, packages, docs, infra, ci, scripts, tools, i18n) which already exist in the repository.
-
-The script is idempotent - safe to run multiple times.
+The script creates or updates all labels used by workflows (pr-labeler, vulnerability-scanner, etc.). If the repo has labels not defined in the script, it lists them and optionally prompts to delete them (interactive only; deleting does not remove labels from existing issues/PRs).
 
 ## Creating New Labels
 
@@ -160,20 +159,14 @@ When creating new labels, follow these guidelines:
 
 ### Recreating All Labels
 
-To completely recreate the label system (e.g., in a new fork or after accidental deletion):
+To recreate or refresh the label system (e.g., in a new fork or after accidental deletion):
 
 ```bash
-# 1. Authenticate
 gh auth login
-
-# 2. Remove old labels (if needed)
-./scripts/github/remove-old-labels.sh
-
-# 3. Create all 23 labels
 ./scripts/github/setup-all-labels.sh
 ```
 
-The setup script is the source of truth for the label system.
+The script creates/updates all labels. If you run it in a TTY and the repo has extra labels not in the script, it will prompt to delete them. The script is the source of truth for the label system.
 
 ## Quick Filters
 

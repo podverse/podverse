@@ -11,6 +11,11 @@ const buildConfig = () => {
         name: env.NEXT_PUBLIC_BRAND_NAME,
       },
       api: {
+        ssr: {
+          protocol: env.NEXT_PUBLIC_SSR_API_PROTOCOL!,
+          host: env.NEXT_PUBLIC_SSR_API_HOST!,
+          port: env.NEXT_PUBLIC_SSR_API_PORT,
+        },
         client: {
           protocol: env.NEXT_PUBLIC_API_PROTOCOL!,
           host: env.NEXT_PUBLIC_API_HOST!,

@@ -14,6 +14,8 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 const ASSET_PORT = 2111;
+/** Bind address (default localhost). Set to 0.0.0.0 when running in Docker so other containers can reach the server. */
+const BIND_ADDRESS = process.env.BIND_ADDRESS ?? 'localhost';
 
 function parseBasicAuth(
   authHeader: string | undefined
@@ -85,10 +87,8 @@ export class AssetServer {
       throw new Error('Asset server is already running');
     }
 
-    // Ensure assets directory exists
-    if (!fs.existsSync(this.assetsDir)) {
-      throw new Error(`Assets directory does not exist: ${this.assetsDir}`);
-    }
+    // Create assets directory on startup if it does not exist
+    fs.mkdirSync(this.assetsDir, { recursive: true });
 
     return new Promise((resolve, reject) => {
       this.server = http.createServer((req, res) => {
@@ -174,8 +174,8 @@ export class AssetServer {
         });
       });
 
-      this.server.listen(ASSET_PORT, 'localhost', () => {
-        console.log(`   ✅ Asset server started on http://localhost:${ASSET_PORT}`);
+      this.server.listen(ASSET_PORT, BIND_ADDRESS, () => {
+        console.log(`   ✅ Asset server started on http://${BIND_ADDRESS}:${ASSET_PORT}`);
         resolve();
       });
 

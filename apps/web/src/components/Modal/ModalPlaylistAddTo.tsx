@@ -9,7 +9,7 @@ import {
   MediumEnum,
 } from '@podverse/helpers';
 import React from 'react';
-import { Modal } from './Modal';
+import { Modal, MODAL_CONTENT_MAX_WIDTH } from './Modal';
 import { MEDIUM } from '../../constants/medium';
 import { ROUTES } from '../../constants/routes';
 import type { ModalPlaylistAddToState } from '../../contexts/Modals';
@@ -24,6 +24,7 @@ import { useAccount } from '../../contexts/Account';
 import { useSkipInitialEffect } from '../../hooks/useSkipInitialEffect';
 import { showToastPromise } from '../Toast/Toast';
 import { CallToActionMessage } from '../CallToActionMessage/CallToActionMessage';
+import { FormStack } from '../Form/FormStack';
 
 import styles from '../../styles/components/Modal/ModalPlaylistAddTo.module.scss';
 
@@ -211,7 +212,7 @@ export const ModalPlaylistAddTo: React.FC = () => {
       onClose={clearModalPlaylistAddTo}
       header={header}
       ariaLabel={header}
-      modalContentMaxWidth={500}
+      modalContentMaxWidth={MODAL_CONTENT_MAX_WIDTH}
     >
       {!loggedInAccount && (
         <CallToActionMessage
@@ -231,7 +232,7 @@ export const ModalPlaylistAddTo: React.FC = () => {
         />
       )}
       {loggedInAccount && (
-        <>
+        <FormStack>
           {modalPlaylistAddTo.addByRSSResourceData ? (
             addByRSSTitle ? (
               <div className={styles.addByRSSTitle}>{addByRSSTitle}</div>
@@ -263,7 +264,7 @@ export const ModalPlaylistAddTo: React.FC = () => {
               onClick={onClick}
             />
           )}
-        </>
+        </FormStack>
       )}
     </Modal>
   );

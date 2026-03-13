@@ -1,6 +1,20 @@
+/**
+ * Fetch request cache mode (standard Fetch API).
+ * Defined here so it is available without DOM lib.
+ */
+export type RequestCache =
+  | 'default'
+  | 'force-cache'
+  | 'no-cache'
+  | 'no-store'
+  | 'reload'
+  | 'only-if-cached';
+
 export type FetchWithTimeoutOptions = {
-  method?: string;
+  body?: string;
+  cache?: RequestCache;
   headers?: Record<string, string>;
+  method?: string;
   timeoutMs?: number;
 };
 
@@ -12,7 +26,7 @@ export async function fetchWithTimeout(
   url: string,
   options?: FetchWithTimeoutOptions
 ): Promise<Response> {
-  const { method = 'GET', headers, timeoutMs } = options ?? {};
+  const { body, cache, headers, method = 'GET', timeoutMs } = options ?? {};
   const controller = new AbortController();
   const timeoutId =
     timeoutMs !== undefined && timeoutMs > 0
@@ -21,8 +35,10 @@ export async function fetchWithTimeout(
 
   try {
     const response = await fetch(url, {
-      method,
+      body,
+      cache,
       headers,
+      method,
       signal: controller.signal,
     });
     return response;

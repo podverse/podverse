@@ -5,43 +5,50 @@
       "name": "Root",
       "description": "General commands, git, make targets",
       "cwd": ".",
-      "open": true
+      "open": true,
+      "command": "clear"
     },
     {
       "name": "Dev",
       "description": "npm run dev:main:all",
       "cwd": ".",
-      "open": true
+      "open": true,
+      "command": "clear"
     },
     {
       "name": "Docker",
       "description": "Docker and make commands",
       "cwd": ".",
-      "open": true
+      "open": true,
+      "command": "clear"
     },
     {
       "name": "Workers",
       "description": "Workers app development",
       "cwd": ".",
-      "open": true
+      "open": true,
+      "command": "clear"
     },
     {
       "name": "Tools",
       "description": "Tools development",
       "cwd": ".",
-      "open": true
+      "open": true,
+      "command": "clear"
     },
     {
       "name": "partytime",
       "description": "Partytime parser library",
       "cwd": "../partytime",
-      "open": true
+      "open": true,
+      "command": "clear"
     },
     {
-      "name": "Misc",
-      "description": "Misc commands",
-      "cwd": ".",
-      "open": true
+      "name": "Boilerplate",
+      "description": "Boilerplate development",
+      "cwd": "../boilerplate",
+      "open": true,
+      "command": "clear"
     }
   ]
 }

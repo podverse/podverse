@@ -1,3 +1,5 @@
+import { fetchWithTimeout } from '@podverse/helpers-backend';
+
 import { DEFAULT_ASSETS_BASE_URL } from './constants.js';
 
 export type CheckAssetsServerReachableOptions = {
@@ -16,16 +18,12 @@ export async function checkAssetsServerReachable(
 ): Promise<void> {
   const { baseUrl = DEFAULT_ASSETS_BASE_URL, timeoutMs = 5000 } = options;
   const url = baseUrl.endsWith('/') ? baseUrl : `${baseUrl}/`;
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
   try {
-    const res = await fetch(url, { signal: controller.signal });
-    clearTimeout(timeoutId);
+    const res = await fetchWithTimeout(url, { timeoutMs });
     if (!res.ok && res.status !== 404) {
       throw new Error(`Assets server returned ${res.status}`);
     }
   } catch (err) {
-    clearTimeout(timeoutId);
     if (err instanceof Error) {
       throw new Error(`Assets server not reachable at ${url}: ${err.message}`);
     }

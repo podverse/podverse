@@ -44,6 +44,10 @@ Optional: run the verification script (server must be running): `bash tools/test
 - After pulling or changing Basic Auth code, **restart** the test-assets server so the running process has the latest logic.
 - Add-by-RSS “success” (redirect to feed detail) means the **worker** successfully fetched and parsed the feed. If the feed URL is under `/basic-auth/` and no credentials are provided, the worker’s request gets 401 and the parse fails; the add-feed UI should show a failed status and not redirect.
 
+## Docker
+
+When test-assets runs in Docker (e.g. `make local_infra_up`), it is on `podverse_local_network` as `podverse_local_test_assets`. The local **workers** (`infra/docker/local/workers/`), **API** (`infra/docker/local/api/`), **management-api** (`infra/docker/local/management-api/`), **web** (`infra/docker/local/web/`), and **management-web** (`infra/docker/local/management-web/`) images use an entrypoint that runs a socat proxy: requests to `localhost:2111` inside those containers are forwarded to `podverse_local_test_assets:2111`, so feeds, images, video, chapters, and transcripts at `http://localhost:2111/...` work with no app-level URL rewriting. Use cases: workers (parser, image shrink); API (item transcript, add-by-RSS chapters/transcript); management-api (parity with API for future use); web and management-web (SSR, e.g. `/api/proxy` and Next.js image optimization for test-asset images). The test-assets image is built by `make local_build_test_assets` (or `make local_build_all` / `make local_nuke_rebuild_run`).
+
 ## Image naming
 
 Images use **multi-size** naming: `image-{index}-{width}.jpg` (e.g. `image-001-300.jpg`, `image-001-600.jpg`, `image-001-1400.jpg`). Each logical index has one file per width (300, 600, 1400 px). Total JPEGs are capped at 100 (index count × 3 ≤ 100). Feeds reference them via `<podcast:images srcset="..."/>`. When changing image naming or widths, update: `asset-generator.ts`, `generate-feed-cli.ts`, this doc, `asset-server.ts` (MIME/behavior), and `tools/web-perf/lighthouse/TOOLS-WEB-PERF-LIGHTHOUSE.md` if it references image paths.
@@ -93,6 +97,38 @@ Use `generate` (or `generate:only`) when you only need to refresh feeds/media. U
 ### Value tags (fake)
 
 By default, generated feeds **do not** contain value blocks (podcast:value, valueRecipient, valueTimeSplit). To include them for parser or UI testing, pass `--add-fake-value-tags`. The CLI will show a warning and ask you to type `y` to continue. The value data is **fake** and must **not** be used for real payments; sending money to these addresses will result in loss of funds.
+
+### Local LN recipient overrides
+
+If you need deterministic recipients for end-to-end tests, provide a local config file that
+replaces the built-in fake recipients when `--add-fake-value-tags` is used.
+
+- Copy the example file to create your local config:
+
+```bash
+cp tools/test-assets/config/ln-recipients.local.json.example \
+  tools/test-assets/config/ln-recipients.local.json
+```
+
+- Update the file with real values from your local Lightning setup:
+
+```json
+{
+  "keysend": [
+    { "address": "02...", "name": "Keysend Recipient 1", "split": 60 },
+    { "address": "02...", "name": "Keysend Recipient 2", "split": 40 },
+    { "address": "02...", "name": "Keysend Fee Recipient", "split": 1, "fee": true }
+  ],
+  "lnaddress": [
+    { "address": "user@domain", "name": "LNAddress Recipient 1", "split": 60 },
+    { "address": "user@domain", "name": "LNAddress Recipient 2", "split": 40 },
+    { "address": "user@domain", "name": "LNAddress Fee Recipient", "split": 1, "fee": true }
+  ]
+}
+```
+
+If the file is missing or invalid, the generator falls back to the built-in fake recipients.
+The local file is gitignored and should not be committed.
 
 **`.env.api` and database for generate_and_parse:**
 

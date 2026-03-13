@@ -14,13 +14,20 @@ The sidecar uses the same validation helpers as the rest of the monorepo (`@podv
 
 - **`RUNTIME_CONFIG_URL`** (Required at runtime only)
   - Internal URL for the runtime-config sidecar (e.g., `http://localhost:3101`). Use 3101 so it does not collide with the web app sidecar (3001).
+  - When running via Docker Compose, `infra/config/local/management-web.env` is used and must use the sidecar **service name** (`http://podverse_local_management_web_runtime_config:3101`); `make local_env_setup` sets this automatically.
   - Used by the Next.js server to fetch runtime config at startup via `instrumentation.ts`
   - **Not needed at build time** - the sidecar architecture allows builds without any env vars
 
-### API Configuration
+### API Configuration (SSR)
+
+- **`NEXT_PUBLIC_SSR_API_PROTOCOL`** (Required) - Protocol for server-side API requests (`http` or `https`)
+- **`NEXT_PUBLIC_SSR_API_HOST`** (Required) - Host for server-side API requests. Use Docker service name (`podverse_local_management_api`) in `infra/config/local/management-web.env` when running in Compose; `make local_env_setup` sets it.
+- **`NEXT_PUBLIC_SSR_API_PORT`** (Required) - Port for server-side API requests (e.g. `1999`)
+
+### API Configuration (Client)
 
 - **`NEXT_PUBLIC_API_PROTOCOL`** (Required) - API protocol (`http` or `https`)
-- **`NEXT_PUBLIC_API_HOST`** (Required) - API hostname
+- **`NEXT_PUBLIC_API_HOST`** (Required) - API hostname (browser requests; use localhost for local dev)
 - **`NEXT_PUBLIC_API_PORT`** (Optional) - API port (must be a valid number if set)
 - **`NEXT_PUBLIC_API_PREFIX`** (Required) - API route prefix (e.g., `/api`)
 - **`NEXT_PUBLIC_API_VERSION`** (Required) - API version (e.g., `v2`)

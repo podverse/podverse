@@ -2,7 +2,10 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import type { UITheme } from '../utils/localSettings/uiTheme';
 import { toUITheme } from '../utils/localSettings/uiTheme';
 import type { ViewSelectedOption } from '../components/ViewSelector/ViewSelector';
-import type { LocalSettingsState } from '../utils/localSettings/localSettings';
+import type {
+  LocalSettingsState,
+  BoostFormDefaultsByValueKey,
+} from '../utils/localSettings/localSettings';
 import {
   handleLocalSettingsUpdate,
   getParsedLocalSettings,
@@ -19,6 +22,8 @@ type LocalSettingsContextType = {
   setLSAutoQueueConfig: React.Dispatch<React.SetStateAction<LocalSettingsState['aqc']>>;
   sidebarAccordion: LocalSettingsState['sba'];
   setSidebarAccordion: React.Dispatch<React.SetStateAction<LocalSettingsState['sba']>>;
+  boostFormDefaults: BoostFormDefaultsByValueKey;
+  setBoostFormDefaults: React.Dispatch<React.SetStateAction<BoostFormDefaultsByValueKey>>;
 };
 
 type LocalSettingsProps = {
@@ -42,6 +47,9 @@ export const LocalSettingsProvider: React.FC<LocalSettingsProps> = ({
   const [sidebarAccordion, setSidebarAccordion] = useState(
     ssrLocalSettings.sba || { podcasts: true, music: true, addByRSS: true, library: true }
   );
+  const [boostFormDefaults, setBoostFormDefaults] = useState<BoostFormDefaultsByValueKey>(
+    ssrLocalSettings.bfd ?? {}
+  );
 
   useEffect(() => {
     const existingSettings = getParsedLocalSettings();
@@ -55,6 +63,7 @@ export const LocalSettingsProvider: React.FC<LocalSettingsProps> = ({
       sba: sidebarAccordion,
       fd: existingSettings.fd,
       metd: existingSettings.metd,
+      bfd: boostFormDefaults,
     });
   }, [
     uiTheme,
@@ -62,6 +71,7 @@ export const LocalSettingsProvider: React.FC<LocalSettingsProps> = ({
     serverEnvironmentDisclaimerAccepted,
     lsAutoQueueConfig,
     sidebarAccordion,
+    boostFormDefaults,
   ]);
 
   return (
@@ -77,6 +87,8 @@ export const LocalSettingsProvider: React.FC<LocalSettingsProps> = ({
         setLSAutoQueueConfig,
         sidebarAccordion,
         setSidebarAccordion,
+        boostFormDefaults,
+        setBoostFormDefaults,
       }}
     >
       {children}

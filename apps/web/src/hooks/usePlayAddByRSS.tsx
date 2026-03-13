@@ -11,11 +11,8 @@ import { useMediaPlayer } from '../contexts/MediaPlayer';
 import { useMediaPlayerCurrentTime } from '../contexts/MediaPlayerCurrentTime';
 import { useQueues } from '../contexts/Queue';
 import { getApiRequestService } from '../factories/apiRequestService';
-import {
-  buildAddByRSSResourceData,
-  getAddByRSSHashId,
-} from '../utils/addByRSS/queuePlaylistHelpers';
-import type { AddByRSSItemIndexItem, AddByRSSLivestreamIndexItem } from '../utils/addByRSS/types';
+import { buildAddByRSSResourceData, getAddByRSSHashId } from '@podverse/parser-mapping';
+import type { AddByRSSItemIndexItem, AddByRSSLivestreamIndexItem } from '@podverse/parser-mapping';
 
 export function usePlayAddByRSS() {
   const {

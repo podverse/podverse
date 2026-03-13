@@ -1,8 +1,8 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import type { DTOChannel, DTOItem } from '@podverse/helpers';
-import { findDTOChannelImageBySize, findDTOItemImageBySize } from '@podverse/helpers';
+import type { DTOChannel } from '@podverse/helpers';
+import { findDTOChannelImageBySize } from '@podverse/helpers';
 
 import { Image } from '../../../Image/Image';
 import { IMAGES } from '../../../../constants/images';
@@ -10,50 +10,26 @@ import styles from '../../../../styles/components/Common/Media/Podcast/PodcastHe
 
 type CoreAlbumHeaderImageProps = {
   channel: DTOChannel;
-  item?: DTOItem;
 };
 
-export const CoreAlbumHeaderImage = ({ channel, item }: CoreAlbumHeaderImageProps) => {
+export const CoreAlbumHeaderImage = ({ channel }: CoreAlbumHeaderImageProps) => {
   const tMedia = useTranslations('media');
 
-  const imageItemMobile = findDTOItemImageBySize(
-    item?.item_images,
+  const imageMobile = findDTOChannelImageBySize(
+    channel.channel_images,
     IMAGES.HEADER.MOBILE.SQUARE.SIZE_FIND_TARGET,
     'greater'
   );
-  const imageMobile =
-    imageItemMobile ||
-    findDTOChannelImageBySize(
-      channel.channel_images,
-      IMAGES.HEADER.MOBILE.SQUARE.SIZE_FIND_TARGET,
-      'greater'
-    );
-
-  const imageItemTablet = findDTOItemImageBySize(
-    item?.item_images,
+  const imageTablet = findDTOChannelImageBySize(
+    channel.channel_images,
     IMAGES.HEADER.TABLET.SQUARE.SIZE_FIND_TARGET,
     'greater'
   );
-  const imageTablet =
-    imageItemTablet ||
-    findDTOChannelImageBySize(
-      channel.channel_images,
-      IMAGES.HEADER.TABLET.SQUARE.SIZE_FIND_TARGET,
-      'greater'
-    );
-
-  const imageItemDesktop = findDTOItemImageBySize(
-    item?.item_images,
+  const imageDesktop = findDTOChannelImageBySize(
+    channel.channel_images,
     IMAGES.HEADER.DESKTOP.SQUARE.SIZE_FIND_TARGET,
     'greater'
   );
-  const imageDesktop =
-    imageItemDesktop ||
-    findDTOChannelImageBySize(
-      channel.channel_images,
-      IMAGES.HEADER.DESKTOP.SQUARE.SIZE_FIND_TARGET,
-      'greater'
-    );
 
   return (
     <div className={styles.headerImageWrapper}>

@@ -1,5 +1,11 @@
+.tablesStack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xl);
+}
+
 .table {
-  margin-top: var(--spacing-2xl);
+  width: 100%;
   border-spacing: 0px;
   border-collapse: separate;
   border: 1px solid var(--border-color-tertiary);
