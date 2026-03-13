@@ -38,7 +38,7 @@ infra/config/
 infra/database/
 scripts/
 Makefile
-Makefile.alpha
+makefiles/
 EOF
                         '''
                         
@@ -46,6 +46,7 @@ EOF
                         sh """
                             rm /opt/podverse/infra/docker/alpha/api/docker-compose.yml || true
                             rm /opt/podverse/infra/docker/alpha/web/docker-compose.yml || true
+                            rm /opt/podverse/infra/docker/alpha/management-web/docker-compose.yml || true
                             git checkout ${params.GIT_BRANCH_NAME}
                             git pull origin ${params.GIT_BRANCH_NAME}
                             

@@ -71,7 +71,7 @@ Before triggering the alpha workflow, validate your changes locally.
 make validate
 ```
 
-This runs: security audit, lint, type-check, build packages, and build apps.
+This runs: security audit, build packages, lint, type-check, local env setup, and build apps.
 
 ### Full Validation with Docker
 
@@ -80,7 +80,7 @@ This runs: security audit, lint, type-check, build packages, and build apps.
 make validate_docker
 ```
 
-This is the most thorough test - if this passes, the alpha workflow should succeed.
+This is the most thorough test - if this passes, the alpha workflow should succeed. It builds the same images as CI: base images (web-base, management-web-base), then api, web-deploy, web-runtime-config, workers, management-api, management-web-deploy, and management-web-runtime-config.
 
 ### Manual Steps (Alternative)
 
@@ -96,19 +96,18 @@ git pull origin develop
 
 # 3. Run the full CI validation locally
 npm ci
+npm run build:packages
 npm run lint
 npm run type-check
-npm run build:packages
 npm run build:apps
 
 # 4. Test Docker builds locally (optional but recommended)
-docker build -f apps/api/Dockerfile -t test-api .
-docker build -f apps/web/Dockerfile -t test-web .
-docker build -f apps/web/sidecar/Dockerfile -t test-web-runtime-config .
-docker build -f apps/workers/Dockerfile -t test-workers .
-docker build -f apps/management-api/Dockerfile -t test-management-api .
-docker build -f apps/management-web/Dockerfile -t test-management-web .
-docker build -f apps/management-web/sidecar/Dockerfile -t test-management-web-runtime-config .
+# For full parity with CI, use: make validate_docker
+# It builds base images first, then all app and runtime-config images.
+docker build -f apps/api/Dockerfile -t podverse-api:test .
+# Web and management-web require base images; use make validate_docker to build everything.
+docker build -f apps/workers/Dockerfile -t podverse-workers:test .
+docker build -f apps/management-api/Dockerfile -t podverse-management-api:test .
 ```
 
 ## Standard Release Flow
@@ -165,7 +164,7 @@ gh run watch
 gh run list --workflow=publish-alpha.yml
 
 # View specific run logs
-gh run view < run-id > --log
+gh run view <run-id> --log
 ```
 
 ## Manual Trigger (Emergency/Testing)
@@ -199,23 +198,25 @@ gh run watch
 gh run list --workflow=publish-alpha.yml
 
 # View detailed logs for a run
-gh run view < run-id > --log
+gh run view <run-id> --log
 
 # View failed job logs only
-gh run view < run-id > --log-failed
+gh run view <run-id> --log-failed
 ```
 
 ### Verify Docker Images
 
-Note: web images are published as `web-deploy` and `management-web-deploy` because Next.js requires env vars at build time.
+Note: web app images are published as `web-deploy` and `management-web-deploy` (Next.js requires env at build time). Runtime config is in separate sidecar images.
 
 ```bash
 # Pull and verify images exist
 docker pull ghcr.io/podverse/podverse/api:alpha
 docker pull ghcr.io/podverse/podverse/web-deploy:alpha
+docker pull ghcr.io/podverse/podverse/web-runtime-config:alpha
 docker pull ghcr.io/podverse/podverse/workers:alpha
 docker pull ghcr.io/podverse/podverse/management-api:alpha
 docker pull ghcr.io/podverse/podverse/management-web-deploy:alpha
+docker pull ghcr.io/podverse/podverse/management-web-runtime-config:alpha
 
 # Check image tags via GitHub API
 gh api /orgs/podverse/packages/container/podverse%2Fapi/versions --jq '.[0:3]'
@@ -229,50 +230,50 @@ Once images are published to GHCR, deploy them to the alpha server:
 
 ```bash
 # Pull latest images and restart services
-make -f Makefile.alpha alpha_api_down
-make -f Makefile.alpha alpha_api_up
+make alpha_api_down
+make alpha_api_up
 
-make -f Makefile.alpha alpha_web_down
-make -f Makefile.alpha alpha_web_up
+make alpha_web_down
+make alpha_web_up
 
-make -f Makefile.alpha alpha_workers_down
-make -f Makefile.alpha alpha_workers_up
+make alpha_workers_down
+make alpha_workers_pull
 
 # Or restart all at once
-make -f Makefile.alpha alpha_all_down
-make -f Makefile.alpha alpha_infra_up
+make alpha_all_down
+make alpha_infra_up
 ```
 
 ### Full Alpha Environment Setup
 
-For a fresh alpha environment:
+For a fresh alpha environment (run from repo root; alpha targets are included in the root Makefile):
 
 ```bash
 # Create network (first time only)
-make -f Makefile.alpha alpha_network_create
+make alpha_network_create
 
 # Start infrastructure and initialize databases
-make -f Makefile.alpha alpha_setup
+make alpha_setup
 
 # Start application services
-make -f Makefile.alpha alpha_api_up
-make -f Makefile.alpha alpha_web_up
-make -f Makefile.alpha alpha_workers_up
-make -f Makefile.alpha alpha_management_api_up
-make -f Makefile.alpha alpha_management_web_up
+make alpha_api_up
+make alpha_web_up
+make alpha_workers_up
+make alpha_management_api_up
+make alpha_management_web_up
 ```
 
 ## Version Tagging
 
 Docker images are tagged with:
 
-- `X.Y.Z-alpha` - Version-specific tag (e.g., `5.2.0-alpha`)
+- `X.Y.Z-alpha.N` - Version-specific tag (e.g., `5.2.0-alpha.0`, `5.2.0-alpha.1`)
 - `alpha` - Always points to latest alpha build
 
 The version is determined by:
 
 1. `version_override` input (if manually triggered with override)
-2. Root `package.json` version with `-alpha` suffix (default)
+2. Otherwise: base version from root `package.json` with an incremented alpha number from existing GHCR tags (e.g. `5.2.0-alpha.0`)
 
 ## Troubleshooting
 
@@ -300,9 +301,10 @@ similar), reproduce and debug locally:
    make validate_docker
    ```
 
-   This runs `make validate` then builds all five Docker images (api, web, workers, management-api,
-   management-web). If the runner stage is missing a workspace package, the image still builds; the
-   error appears only when the container starts.
+   This runs `make validate` then builds all Docker images (base images, api, web-deploy,
+   web-runtime-config, workers, management-api, management-web-deploy, management-web-runtime-config).
+   If the runner stage is missing a workspace package, the image still builds; the error appears only
+   when the container starts.
 
 2. **Run the API container** to test startup (replace with your env path or use a minimal env):
 

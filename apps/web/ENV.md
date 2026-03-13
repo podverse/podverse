@@ -99,14 +99,6 @@ These variables are used for client-side API requests:
 - **`NEXT_PUBLIC_POLLING_INTERVAL_MS`** (Optional) - Polling interval in milliseconds (default: `3000`)
   - Must be a positive number if set
 
-### Lightning Keysend
-
-- **`NEXT_PUBLIC_APP_VALUE_LIGHTNING_KEYSEND_NAME`** (Optional) - Lightning keysend name
-- **`NEXT_PUBLIC_APP_VALUE_LIGHTNING_KEYSEND_TYPE`** (Optional) - Lightning keysend type
-- **`NEXT_PUBLIC_APP_VALUE_LIGHTNING_KEYSEND_ADDRESS`** (Optional) - Lightning keysend address
-- **`NEXT_PUBLIC_APP_VALUE_LIGHTNING_KEYSEND_CUSTOM_KEY`** (Optional) - Lightning keysend custom key
-- **`NEXT_PUBLIC_APP_VALUE_LIGHTNING_KEYSEND_CUSTOM_VALUE`** (Optional) - Lightning keysend custom value
-
 ### Notifications
 
 - **`NEXT_PUBLIC_WEBPUSH_VAPID_PUBLIC_KEY`** (Optional) - WebPush VAPID public key for browser notifications

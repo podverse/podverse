@@ -42,7 +42,7 @@
               <path>Makefile</path>
             </hudson.plugins.git.extensions.impl.SparseCheckoutPath>
             <hudson.plugins.git.extensions.impl.SparseCheckoutPath>
-              <path>Makefile.alpha</path>
+              <path>makefiles/</path>
             </hudson.plugins.git.extensions.impl.SparseCheckoutPath>
           </sparseCheckoutPaths>
         </hudson.plugins.git.extensions.impl.SparseCheckoutPaths>

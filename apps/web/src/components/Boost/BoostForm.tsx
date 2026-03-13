@@ -11,7 +11,7 @@ import { ButtonTabs } from '../Tabs/ButtonTabs';
 import Accordion from '../Accordian/Accordian';
 import { BoostRecipientInfo } from './BoostRecipientInfo';
 import { useConfig } from '../../contexts/Config';
-import { getAppValueRecipient } from '../../utils/value/appValue';
+import { getAppValueRecipientFromNodeOrLnaddress } from '../../utils/value/appValue';
 import { TextArea } from '../Form/TextArea';
 import { Button } from '../Button/Button';
 
@@ -199,11 +199,7 @@ export const BoostForm: React.FC<BoostFormProps> = ({ className: _className, cha
     : null;
 
   const appValueRecipient = selectedChannelValue
-    ? getAppValueRecipient({
-        type: selectedChannelValue.type,
-        method: selectedChannelValue.method,
-        final_amount: totalAmountToApp,
-      })
+    ? getAppValueRecipientFromNodeOrLnaddress(totalAmountToApp)
     : null;
 
   return (

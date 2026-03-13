@@ -28,15 +28,6 @@ const buildConfig = () => {
         protocol: env.NEXT_PUBLIC_WEB_PROTOCOL!,
         host: env.NEXT_PUBLIC_WEB_DOMAIN!,
       },
-      app_value: {
-        lightning_keysend: {
-          name: env.NEXT_PUBLIC_APP_VALUE_LIGHTNING_KEYSEND_NAME!,
-          type: env.NEXT_PUBLIC_APP_VALUE_LIGHTNING_KEYSEND_TYPE!,
-          address: env.NEXT_PUBLIC_APP_VALUE_LIGHTNING_KEYSEND_ADDRESS!,
-          custom_key: env.NEXT_PUBLIC_APP_VALUE_LIGHTNING_KEYSEND_CUSTOM_KEY!,
-          custom_value: env.NEXT_PUBLIC_APP_VALUE_LIGHTNING_KEYSEND_CUSTOM_VALUE!,
-        },
-      },
       polling: {
         interval_ms: Number(env.NEXT_PUBLIC_POLLING_INTERVAL_MS!),
       },

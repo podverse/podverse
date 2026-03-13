@@ -5,7 +5,7 @@ set -e
 : "${POSTGRES_READ_PASSWORD:?Missing POSTGRES_READ_PASSWORD}"
 : "${POSTGRES_READ_WRITE_PASSWORD:?Missing POSTGRES_READ_WRITE_PASSWORD}"
 
-psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" << SQL
+psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" << SQL
 DO \$\$
 BEGIN
     IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = 'read') THEN
@@ -19,6 +19,14 @@ BEGIN
     IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = 'read_write') THEN
         EXECUTE format('CREATE USER read_write WITH PASSWORD %L', '${POSTGRES_READ_WRITE_PASSWORD}');
     END IF;
+END
+\$\$;
+
+-- Always sync passwords from env so DB stays aligned with local_env_setup (db.env)
+DO \$\$
+BEGIN
+    EXECUTE format('ALTER USER read WITH PASSWORD %L', '${POSTGRES_READ_PASSWORD}');
+    EXECUTE format('ALTER USER read_write WITH PASSWORD %L', '${POSTGRES_READ_WRITE_PASSWORD}');
 END
 \$\$;
 

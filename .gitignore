@@ -12,6 +12,9 @@ next-env.d.ts
 # TypeScript incremental build cache
 *.tsbuildinfo
 
+# Local backup of env files (e.g. before make local_env_setup)
+temp/
+
 # Environment files (contain secrets - created from .env.example or env/*.env templates)
 # Root-level
 .env
@@ -33,6 +36,8 @@ apps/*/i18n/compiled/
 infra/config/local/
 infra/config/alpha/
 infra/pipelines/jenkins/alpha/setup/jenkins-sync.env
+dev/env-overrides/local/*.env
+!dev/env-overrides/local/*.env.example
 
 # The following ARE committed (sanitized templates without secrets):
 # - apps/*/.env.example

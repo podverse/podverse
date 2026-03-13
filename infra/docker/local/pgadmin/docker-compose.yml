@@ -1,0 +1,40 @@
+networks:
+  podverse_local_network:
+    external: true
+
+services:
+  podverse_local_pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: podverse_local_pgadmin
+    env_file:
+      - ../../../config/local/db.env
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@local.dev
+      PGADMIN_DEFAULT_PASSWORD: admin
+      PGADMIN_CONFIG_SERVER_MODE: "False"
+      PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED: "False"
+      # Value must be single-quoted so image writes valid Python (DESKTOP_USER = 'admin@local.dev'). See pgadmin-org/pgadmin4#9154.
+      PGADMIN_CONFIG_DESKTOP_USER: "'admin@local.dev'"
+      # Avoid gunicorn "invalid int value: ''" when timeout env is empty.
+      PGADMIN_GUNICORN_TIMEOUT: "300"
+      PGPASS_FILE: /tmp/pgpass
+    entrypoint:
+      - /bin/sh
+      - -c
+      - >-
+        echo "podverse_local_db:5432:*:postgres:$$POSTGRES_PASSWORD" > /tmp/pgpass &&
+        echo "podverse_local_management_db:5432:*:postgres:$$POSTGRES_PASSWORD" >> /tmp/pgpass &&
+        chmod 0600 /tmp/pgpass &&
+        /entrypoint.sh
+    volumes:
+      - ./servers.json:/pgadmin4/servers.json:ro
+    ports:
+      - 127.0.0.1:5051:80
+    networks:
+      - podverse_local_network
+    restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-file: "1"
+        max-size: "50m"

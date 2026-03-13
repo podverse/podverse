@@ -70,13 +70,13 @@ kind: ConfigMap
 metadata:
   name: podverse-db-init-scripts
 data:
+  00_init_database.sql: |
+EOF
+append_indented_file "$MAIN_COMBINED" "    " "$MAIN_CONFIGMAP"
+cat <<EOF >>"$MAIN_CONFIGMAP"
   01-create-users.sh: |
 EOF
 append_indented_file "$MAIN_INIT_SCRIPTS" "    " "$MAIN_CONFIGMAP"
-cat <<EOF >>"$MAIN_CONFIGMAP"
-  init_database.sql: |
-EOF
-append_indented_file "$MAIN_COMBINED" "    " "$MAIN_CONFIGMAP"
 
 echo "✓ K8s ConfigMap written: $MAIN_CONFIGMAP"
 

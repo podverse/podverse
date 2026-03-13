@@ -24,11 +24,14 @@ These variables are **always required** regardless of configuration:
   - Example: `123e4567-e89b-12d3-a456-426614174000`
   - Generate with: `uuidgen` (macOS/Linux) or use an online UUID generator
 
-- **`USER_AGENT`** (Required)
-  - Format: `BrandName Bot Environment/AppName/Version`
-  - Must include "Bot" in the first part (before the first slash)
+- **`USER_AGENT`** (Required when set; may be blank)
+  - When set, must follow format: `BrandName Bot Environment/AppName/Version` and include "Bot" in the first part
+  - When blank, effective value is built from `BRAND_NAME` + suffix at runtime
   - Example: `Podverse Bot Local/API/5`
   - Used for external API requests
+
+- **`BRAND_NAME`** (Required)
+  - Validated at startup. Used when `USER_AGENT` is blank to build the effective User-Agent string.
 
 ### Database
 
@@ -180,7 +183,7 @@ Variables containing `PORT`, `EXPIRATION`, or `CACHE_TTL` are automatically vali
 ### Format Validation
 
 - **UUID Format**: `AUTH_JWT_SECRET` must be a valid UUID
-- **User-Agent Format**: `USER_AGENT` must follow `BrandName Bot Environment/AppName/Version` and include "Bot" in the first part
+- **User-Agent Format**: `USER_AGENT` (when set) or the effective value built from `BRAND_NAME` must follow `BrandName Bot Environment/AppName/Version` and include "Bot" in the first part
 - **CORS Origins**: `API_ALLOWED_CORS_ORIGINS` must contain at least one origin (comma-separated)
 
 ## Validation Output
@@ -201,6 +204,7 @@ Example output:
 
 [Auth & Security]
   ✓ AUTH_JWT_SECRET - Valid UUID
+  ✓ BRAND_NAME - Set
   ✓ USER_AGENT - Valid format
 
 [Database]

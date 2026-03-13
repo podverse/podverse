@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion -- env vars validated at startup in lib/startup/validation.ts */
 
 import type { AccountSignupMode } from '@podverse/helpers';
+import { getEffectiveUserAgent } from '@podverse/helpers';
 
 type SocialConfig = {
   pageUrl: string;
@@ -102,7 +103,11 @@ type Config = {
 export const config: Config = {
   nodeEnv: process.env.NODE_ENV!,
   serverEnv: process.env.SERVER_ENV!,
-  userAgent: process.env.USER_AGENT!,
+  userAgent: getEffectiveUserAgent({
+    userAgentRaw: process.env.USER_AGENT,
+    brandName: process.env.BRAND_NAME!,
+    suffix: ' Bot Local/API/5',
+  }),
   log: {
     level: process.env.LOG_LEVEL!,
     dir: process.env.LOG_DIR ?? '',
