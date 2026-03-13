@@ -12,6 +12,7 @@ alwaysApply: true
 ## Do
 
 - Put every runnable command in a fenced code block so a copy button appears.
+- When you change flake, env, or scripts and the user will want to run something to verify, end with a fenced code block containing the exact command(s) to run.
 - From repo root: `npm run <script> -w apps/workers -- <args>`
 - From repo root: `npm run build:packages` then `npm run build -w apps/workers`
 - From repo root: `node apps/workers/dist/index.js devPiBulkFeedsAddFromFile -startId 1 -endId 10 -q rss-slow` (uses hardcoded path `infra/data/dev/podcast-index-feeds` relative to monorepo root)

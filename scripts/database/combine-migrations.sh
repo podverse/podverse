@@ -1,7 +1,8 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # Combine all migrations into init_database.sql files
 #
 # Usage: ./scripts/database/combine-migrations.sh
+# Requires Bash 4+ (use from repo dev shell or: ./scripts/nix/with-env ./scripts/database/combine-migrations.sh)
 #
 # This script combines migration files for both main and management databases
 # into their respective combined/init_*.sql files.

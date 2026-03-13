@@ -20,6 +20,7 @@
         pkgs = nixpkgs.legacyPackages.${system};
 
         defaultBuildInputs = with pkgs; [
+          bash
           nodejs_24
           prettier
           argocd
