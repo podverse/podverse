@@ -124,6 +124,7 @@ local_setup: local_env_setup local_infra_up local_db_init
 	@echo ""
 
 local_all_down:
+	-$(MAKE) local_stop_all_apps
 	-$(MAKE) local_workers_down
 	-$(MAKE) local_pgadmin_down
 	-$(MAKE) local_keyvaldb_down
@@ -132,7 +133,9 @@ local_all_down:
 	-$(MAKE) local_management_db_down
 
 local_clean:
+	-$(MAKE) local_stop_all_apps
 	-$(MAKE) local_pgadmin_down
+	-$(MAKE) local_ln_down
 	docker compose -f infra/docker/local/db/docker-compose.yml down -v 2>/dev/null || true
 	docker compose -f infra/docker/local/mq/docker-compose.yml down -v 2>/dev/null || true
 	docker compose -f infra/docker/local/keyvaldb/docker-compose.yml down -v 2>/dev/null || true
@@ -152,3 +155,6 @@ local_prune_podverse_images:
 local_teardown_apps:
 	$(MAKE) local_stop_all_apps
 	$(MAKE) local_prune_podverse_images
+
+# V4V/Lightning targets (local_ln_up, local_build_boostbox, etc.); run from repo root.
+include Makefile.local.v4v

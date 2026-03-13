@@ -173,9 +173,10 @@ This command:
 
 1. Destroys all local containers and volumes
 2. Rebuilds all images
-3. Starts Nigiri + LNURL server
-4. Initializes databases
-5. Starts all apps and workers
+3. Cleans LN state (`local_ln_clean`: recipient volumes + Nigiri) so each run is deterministic
+4. Starts Nigiri + recipient nodes + LNURL server
+5. Initializes databases
+6. Starts all apps and workers
 
 ### Fresh Start (Just Lightning)
 

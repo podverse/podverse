@@ -135,6 +135,17 @@ wait_for_node() {
       fi
       local height
       height=$(echo "$info" | jq -r '.block_height // "unknown"' 2>/dev/null || echo "unknown")
+      # LND sometimes does not set synced_to_chain=true when already at chain tip (no new block).
+      # Mine one block to trigger ZMQ so the node flips to synced.
+      if [ -n "$height" ] && [ "$height" != "unknown" ] && [ "$height" != "null" ]; then
+        local chain_blocks
+        chain_blocks=$(bitcoin_rpc getblockchaininfo 2>/dev/null | jq -r '.blocks // empty')
+        if [ -n "$chain_blocks" ] && [ "$height" -eq "$chain_blocks" ]; then
+          echo "  $name at chain tip (height=$height) but synced_to_chain false; mining one block to nudge..."
+          mine_blocks 1
+          sleep 3
+        fi
+      fi
       echo "  Attempt $i/$MAX_WAIT_ATTEMPTS: $name RPC up but still syncing chain (height=$height), waiting ${WAIT_SLEEP}s..."
       sleep $WAIT_SLEEP
       continue

@@ -14,6 +14,7 @@ The sidecar uses the same validation helpers as the rest of the monorepo (`@podv
 
 - **`RUNTIME_CONFIG_URL`** (Required at runtime only)
   - Internal URL for the runtime-config sidecar (e.g., `http://localhost:3001`)
+  - When running via Docker Compose, `infra/config/local/web.env` is used and must use the sidecar **service name** (`http://podverse_local_web_runtime_config:3001`); `make local_env_setup` sets this automatically.
   - Used by the Next.js server to fetch runtime config at startup via `instrumentation.ts`
   - **Not needed at build time** - the sidecar architecture allows builds without any env vars
 

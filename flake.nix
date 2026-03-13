@@ -80,9 +80,12 @@
 
         # V4V environment (opt-in): includes Nigiri for local Lightning regtest.
         # Use: nix develop .#v4v   (Bitcoin/Lightning config in nix/v4v.nix)
+        # Drops into fish so the same shell is used as in the default dev environment.
         devShells.v4v = pkgs.mkShell {
-          buildInputs = v4v.buildInputs;
-          shellHook = v4v.shellHook;
+          buildInputs = v4v.buildInputs ++ [ pkgs.fish ];
+          shellHook = v4v.shellHook + ''
+            exec fish
+          '';
         };
 
         # Same environment but drops you into fish instead of bash.

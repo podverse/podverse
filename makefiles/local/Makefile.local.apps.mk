@@ -4,7 +4,7 @@
 .PHONY: local_run_image_shrink_consumer local_stop_image_shrink_consumer local_run_image_shrink_backfill
 .PHONY: local_run_workers_all local_stop_workers_all local_test_management_api local_test_web
 .PHONY: local_test_management_web local_test_all_apps local_stop_all_apps local_start_all_apps
-.PHONY: local_rebuild_all_apps local_nuke_rebuild_run
+.PHONY: local_rebuild_all_apps local_nuke_rebuild_run local_nuke_rebuild_run_v4v
 
 local_test_docker_builds:
 	@echo "Building all Docker images..."
@@ -144,6 +144,7 @@ local_rebuild_all_apps: local_stop_all_apps local_prune_podverse_images local_bu
 
 local_nuke_rebuild_run:
 	$(MAKE) local_clean
+	$(MAKE) local_env_clean
 	$(MAKE) local_prune_podverse_images
 	$(MAKE) local_setup
 	$(MAKE) local_build_all
@@ -153,3 +154,35 @@ local_nuke_rebuild_run:
 	@echo "============================================"
 	@echo "Local environment fully rebuilt and running!"
 	@echo "============================================"
+
+# Full nuke, rebuild, and run WITH Lightning Network (for V4V/value-for-value testing)
+# Same as local_nuke_rebuild_run but includes Nigiri + LNURL server.
+# Use this when you need the full E2E environment with value-for-value payments.
+# Requires Nigiri CLI installed: curl https://getnigiri.vulpem.com | bash
+# We run local_ln_clean before local_ln_up so LN state (recipient volumes, Nigiri chain)
+# is always fresh and deterministic — avoids stale recipient data and "not syncing" issues.
+local_nuke_rebuild_run_v4v:
+	$(MAKE) local_clean
+	$(MAKE) local_env_clean
+	$(MAKE) local_prune_podverse_images
+	$(MAKE) local_build_all
+	$(MAKE) local_build_boostbox
+	$(MAKE) local_ln_clean
+	$(MAKE) local_ln_up
+	$(MAKE) local_setup
+	$(MAKE) local_start_all_apps
+	$(MAKE) local_run_workers_all
+	@echo ""
+	@echo "============================================"
+	@echo "Local environment fully rebuilt and running!"
+	@echo "============================================"
+	@echo ""
+	@echo "V4V Services:"
+	@echo "  - Lightning Network (Nigiri): Running"
+	@echo "  - LND HTTP proxy: http://localhost:8181  (use for Alby — no TLS or macaroon needed)"
+	@echo "  - LNURL Server: http://localhost:3003"
+	@echo "  - LN Recipients: tools/test-assets/config/ln-recipients.local.json"
+	@echo ""
+	@echo "Generate test assets with V4V tags:"
+	@echo "  npm run generate -w tools/test-assets -- --add-fake-value-tags"
+	@echo ""

@@ -20,6 +20,9 @@ const requiredKeys = [
   'NEXT_PUBLIC_API_VERSION',
   'NEXT_PUBLIC_FEATURES_DEFAULT_LOCALE',
   'NEXT_PUBLIC_FEATURES_SUPPORTED_LOCALES',
+  'NEXT_PUBLIC_SSR_API_HOST',
+  'NEXT_PUBLIC_SSR_API_PORT',
+  'NEXT_PUBLIC_SSR_API_PROTOCOL',
 ] as const;
 
 const optionalKeys = ['NEXT_PUBLIC_API_PORT', 'NEXT_PUBLIC_BRAND_NAME'] as const;
@@ -63,7 +66,7 @@ function validatePort(): ValidationResult {
 
 function validateOne(key: string, isRequired: boolean): ValidationResult {
   const category = getCategory(key);
-  if (key === 'NEXT_PUBLIC_API_PROTOCOL') {
+  if (key === 'NEXT_PUBLIC_API_PROTOCOL' || key === 'NEXT_PUBLIC_SSR_API_PROTOCOL') {
     return validateWebProtocol(key, category, true);
   }
   if (key === 'NEXT_PUBLIC_FEATURES_SUPPORTED_LOCALES') {
@@ -74,6 +77,12 @@ function validateOne(key: string, isRequired: boolean): ValidationResult {
   }
   if (key === 'NEXT_PUBLIC_API_PORT') {
     return validatePositiveNumber(key, category, false);
+  }
+  if (key === 'NEXT_PUBLIC_SSR_API_PORT') {
+    return validatePositiveNumber(key, category, isRequired);
+  }
+  if (key === 'NEXT_PUBLIC_SSR_API_HOST') {
+    return validateRequired(key, category);
   }
   if (isRequired) {
     return validateRequired(key, category);
@@ -89,6 +98,9 @@ function getCategory(key: string): string {
     NEXT_PUBLIC_API_PROTOCOL: 'API',
     NEXT_PUBLIC_API_VERSION: 'API',
     NEXT_PUBLIC_API_PORT: 'API',
+    NEXT_PUBLIC_SSR_API_HOST: 'API',
+    NEXT_PUBLIC_SSR_API_PORT: 'API',
+    NEXT_PUBLIC_SSR_API_PROTOCOL: 'API',
     NEXT_PUBLIC_FEATURES_DEFAULT_LOCALE: 'Features',
     NEXT_PUBLIC_FEATURES_SUPPORTED_LOCALES: 'Features',
     NEXT_PUBLIC_BRAND_NAME: 'Brand',
