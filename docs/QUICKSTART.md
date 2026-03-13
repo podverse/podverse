@@ -63,7 +63,7 @@ when you run with npm (e.g. `npm run dev:web`), use the app `.env`/`.env.local` 
 - Starts pgAdmin (database browser) at `http://localhost:5051`
 - Initializes database schemas and users
 
-**Note**: Only run `local_setup` once for initial setup. To restart services later, use `make local_infra_up`.
+**Note**: Only run `local_setup` once for initial setup. To restart services later, use `make local_infra_up`. If you ran `local_env_setup` and `local_infra_up` separately (e.g. after the [prepare → link → setup](development/LOCAL-ENV-OVERRIDES.md) flow), run `make local_db_init` before starting apps so the Postgres `read`/`read_write` users exist.
 
 ### 4. Build Packages
 
