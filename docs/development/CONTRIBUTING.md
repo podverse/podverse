@@ -34,6 +34,17 @@ This interactive script:
 - Creates an LLM history file in `.llm/history/active/`
 - Links to GitHub issues (optional)
 
+To start a feature in a **new work tree** (so the main clone stays on `develop`), with env overrides
+symlinked and local env files generated so you can work immediately:
+
+```bash
+make start_feature_worktree
+```
+
+This uses the same prompts as `npm run start-feature`, then creates the work tree and branch, runs
+`make local_env_link` and `make local_env_setup` in the new work tree, and creates the LLM history
+file there. See [Local Env Overrides (home directory)](LOCAL-ENV-OVERRIDES.md).
+
 ### During Development
 
 1. Code and lint: `npm run lint`

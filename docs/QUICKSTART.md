@@ -34,6 +34,14 @@ make local_env_prepare
 This creates `dev/env-overrides/local/*.env` files from committed examples.
 Update those files with any private or external values you use locally, then continue.
 
+**Work trees / multiple clones:** To share one set of overrides across all work trees and clones,
+use home-directory overrides: run `make local_env_link` so overrides live in
+`~/.config/podverse/local-env-overrides/` and are symlinked into this repo; then run
+`make local_env_setup`. In each new work tree, run `make local_env_link` then `make local_env_setup`
+and you will not need to re-enter values. To create a new branch in a new work tree with env and
+history ready in one step, use `make start_feature_worktree`. See [Local Env Overrides (home
+directory)](development/LOCAL-ENV-OVERRIDES.md).
+
 ### 3. Generate Local Env Files and Start Infrastructure
 
 ```bash

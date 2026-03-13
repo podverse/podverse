@@ -26,5 +26,6 @@ docker_prune_images:
 # ==========================================
 
 include makefiles/local/Makefile.local.mk
+include makefiles/git/Makefile.git.mk
 include makefiles/alpha/Makefile.alpha.mk
 include makefiles/jenkins/Makefile.jenkins-alpha.mk
