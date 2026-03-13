@@ -42,7 +42,7 @@ data:
     ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO read_write;
     ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT, USAGE, UPDATE ON SEQUENCES TO read_write;
     SQL
-  init_management_database.sql: |
+  00_init_management_database.sql: |
     -- Combined migrations generated Mon Feb 16 01:51:58 CST 2026
     -- DO NOT EDIT - regenerate with scripts/database/combine-migrations.sh
 

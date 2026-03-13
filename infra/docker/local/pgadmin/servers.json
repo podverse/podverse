@@ -1,0 +1,24 @@
+{
+  "Servers": {
+    "1": {
+      "Name": "Local Main",
+      "Group": "Local Dev",
+      "Host": "podverse_local_db",
+      "Port": 5432,
+      "MaintenanceDB": "podverse_main",
+      "Username": "postgres",
+      "PassFile": "/var/lib/pgadmin/.pgpass",
+      "SSLMode": "prefer"
+    },
+    "2": {
+      "Name": "Local Management",
+      "Group": "Local Dev",
+      "Host": "podverse_local_management_db",
+      "Port": 5432,
+      "MaintenanceDB": "podverse_management",
+      "Username": "postgres",
+      "PassFile": "/var/lib/pgadmin/.pgpass",
+      "SSLMode": "prefer"
+    }
+  }
+}

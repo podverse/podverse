@@ -1,6 +1,6 @@
 # Quick Start Guide
 
-Get the Podverse monorepo running locally in 5 steps.
+Get the Podverse monorepo running locally in 6 steps.
 
 ## Prerequisites
 
@@ -14,7 +14,7 @@ Verify Docker is running:
 docker info
 ```
 
-## Quick Start (5 Steps)
+## Quick Start (6 Steps)
 
 ### 1. Clone and Install
 
@@ -25,23 +25,37 @@ nvm use
 npm install
 ```
 
-### 2. Start Infrastructure Services
+### 2. Prepare Local Override Files
 
 ```bash
+make local_env_prepare
+```
+
+This creates `dev/env-overrides/local/*.env` files from committed examples.
+Update those files with any private or external values you use locally, then continue.
+
+### 3. Generate Local Env Files and Start Infrastructure
+
+```bash
+make local_env_setup
 make local_setup
 ```
 
-This single command:
+`local_env_setup` creates missing runtime env files, auto-generates passwords/keys,
+and applies override values.
+
+`local_setup` then:
 
 - Creates the Docker network
 - Starts PostgreSQL databases (main + management)
 - Starts ActiveMQ Artemis message queue
 - Starts Valkey (Redis-compatible) cache
+- Starts pgAdmin (database browser) at `http://localhost:5051`
 - Initializes database schemas and users
 
 **Note**: Only run `local_setup` once for initial setup. To restart services later, use `make local_infra_up`.
 
-### 3. Build Packages
+### 4. Build Packages
 
 ```bash
 npm run build:packages
@@ -50,7 +64,7 @@ npm run build:packages
 This builds all shared packages in dependency order:
 `helpers` → `external-services-firebase`, `external-services-paypal`, `external-services-podcast-index` → `orm` → `notifications` → `parser` → `mq`
 
-### 4. Start the API
+### 5. Start the API
 
 ```bash
 npm run dev:api
@@ -64,7 +78,7 @@ Verify it's running:
 curl http://localhost:1234/api/v2/meta
 ```
 
-### 5. Start the Web App
+### 6. Start the Web App
 
 In a new terminal:
 
@@ -87,13 +101,16 @@ This account is pre-verified with a trial membership (expires in 1 year).
 
 ## Verification Checklist
 
-| Component     | URL                                   | Expected                          |
-| ------------- | ------------------------------------- | --------------------------------- |
-| API           | http://localhost:1234/api/v2/meta     | JSON response with version info   |
-| Web           | http://localhost:3000                 | Podverse homepage loads           |
-| Database      | `docker ps \| grep podverse_local_db` | Container running                 |
-| Message Queue | http://localhost:8161                 | Artemis console (user/mysecretpw) |
-| Cache         | http://localhost:8001                 | RedisInsight GUI                  |
+| Component     | URL                                   | Expected                                                                        |
+| ------------- | ------------------------------------- | ------------------------------------------------------------------------------- |
+| API           | http://localhost:1234/api/v2/meta     | JSON response with version info                                                 |
+| Web           | http://localhost:3000                 | Podverse homepage loads                                                         |
+| Database      | `docker ps \| grep podverse_local_db` | Container running                                                               |
+| pgAdmin       | http://localhost:5051                 | Two servers: Local Main (podverse_main), Local Management (podverse_management) |
+| Message Queue | http://localhost:8161                 | Artemis console (user/mysecretpw)                                               |
+| Cache         | http://localhost:8001                 | RedisInsight GUI                                                                |
+
+**pgAdmin:** The password is read from a pgpass file, so you can expand Local Main or Local Management without entering a password. For local DBs, set `POSTGRES_DB=podverse_main` in `infra/config/local/db.env` and `POSTGRES_DB=podverse_management` in `infra/config/local/management-db.env` (e.g. via `make local_env_setup`). If you see "database podverse_main does not exist", either **(A)** set those env values, remove the DB volume(s), and run `make local_db_up` so Postgres creates the DBs on first init, or **(B)** create the databases manually: `docker exec -it podverse_local_db psql -U postgres -c 'CREATE DATABASE podverse_main;'` and for management: `docker exec -it podverse_local_management_db psql -U postgres -c 'CREATE DATABASE podverse_management;'`.
 
 ## Development Workflow
 
@@ -156,6 +173,7 @@ make local_infra_up
 
 # Stop individual services
 make local_db_down
+make local_pgadmin_down
 make local_mq_down
 make local_keyvaldb_down
 ```
@@ -308,6 +326,37 @@ npm run build:packages
 
 Note: `local_clean` removes containers and data volumes but preserves Docker images for faster restarts.
 
+### Clean start and correct alignment
+
+Use this sequence when you want a clean slate and to ensure DB passwords stay aligned with env
+files (e.g. after changing overrides or fixing "password authentication failed for user read"):
+
+**Minimal (recommended):**
+
+```bash
+make local_clean
+make local_setup
+npm run build:packages
+```
+
+**With override refresh (if you changed `dev/env-overrides/local/*.env`):**
+
+```bash
+make local_env_prepare   # optional: (re)create override files from examples
+make local_clean
+make local_setup
+npm run build:packages
+```
+
+`local_setup` runs `local_env_setup` (which populates `infra/config/local/db.env` and
+`infra/config/local/management-db.env`), then starts infra and runs DB inits. The init scripts
+sync the `read` / `read_write` user passwords from those env files every time, so the databases
+stay aligned with `local_env_setup` results.
+
+To remove only the generated local env files (infra + app .env) and keep
+`dev/env-overrides/local/*.env` intact, run `make local_env_clean`. This target will refuse to run
+if any Podverse local containers are running; stop them first with `make local_all_down`.
+
 ## Docker Images
 
 ### Building Docker Images
@@ -391,19 +440,24 @@ Final images are ~300-500MB (vs 800MB+ with single-stage builds).
 
 Local development uses pre-configured environment files:
 
-| App            | Config File                         |
-| -------------- | ----------------------------------- |
-| API            | `apps/api/.env`                     |
-| Web            | `apps/web/env/local.env`            |
-| Workers        | `apps/workers/.env`                 |
-| Management API | `apps/management-api/.env`          |
-| Management Web | `apps/management-web/env/local.env` |
+| App            | Config File                      |
+| -------------- | -------------------------------- |
+| API            | `apps/api/.env`                  |
+| Web            | `apps/web/.env.local`            |
+| Workers        | `apps/workers/.env`              |
+| Management API | `apps/management-api/.env`       |
+| Management Web | `apps/management-web/.env.local` |
 
 ### Infrastructure Config
 
 Docker services use configs in `infra/config/local/`:
 
 - `db.env` - PostgreSQL settings
+- `api.env` - API container settings
+- `workers.env` - Workers container settings
+- `management-api.env` - Management API container settings
+- `web.env` - Web runtime-config sidecar values
+- `management-web.env` - Management web runtime-config sidecar values
 - `mq.env` - ActiveMQ Artemis settings
 - `keyvaldb.env` - Valkey/Redis settings
 - `management-db.env` - Management PostgreSQL settings

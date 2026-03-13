@@ -20,7 +20,7 @@ async function createSuperuser() {
   const client = new Client({
     host: process.env.DB_HOST || 'localhost',
     port: parseInt(process.env.DB_PORT || '5999', 10),
-    database: process.env.DB_DATABASE || process.env.POSTGRES_DB || 'postgres',
+    database: process.env.DB_DATABASE || process.env.POSTGRES_DB || 'podverse_management',
     user: process.env.POSTGRES_USER || 'postgres',
     password: process.env.POSTGRES_PASSWORD || '',
   });

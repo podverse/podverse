@@ -38,6 +38,12 @@ services:
                -c max_parallel_workers_per_gather=2
                -c max_parallel_workers=4
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", 'pg_isready -U "${POSTGRES_USER:-postgres}"']
+      interval: 2s
+      timeout: 5s
+      retries: 10
+      start_period: 15s
     shm_size: 1gb
     logging:
       driver: "json-file"

@@ -1,6 +1,4 @@
-# ==========================================
-# Alpha Jenkins Sync
-# ==========================================
+# --- Alpha Jenkins Sync ---
 
 ALPHA_JENKINS_SETUP_DIR := infra/pipelines/jenkins/alpha/setup
 ALPHA_JENKINS_ENV_FILE := $(ALPHA_JENKINS_SETUP_DIR)/jenkins-sync.env
@@ -9,7 +7,8 @@ ALPHA_JENKINS_IMPORT_SCRIPT := $(ALPHA_JENKINS_SETUP_DIR)/import.sh
 ALPHA_JENKINS_VERIFY_SCRIPT := $(ALPHA_JENKINS_SETUP_DIR)/verify-jobs.sh
 ALPHA_JENKINS_VERIFY_DETAILED_SCRIPT := $(ALPHA_JENKINS_SETUP_DIR)/verify-jobs-detailed.sh
 
-.PHONY: alpha_jenkins_sync_init
+.PHONY: alpha_jenkins_sync_init alpha_jenkins_sync_smoke alpha_jenkins_sync_smoke_detailed alpha_jenkins_sync_apply
+
 alpha_jenkins_sync_init: $(ALPHA_JENKINS_ENV_FILE)
 	@echo "Alpha Jenkins sync env ready: $(ALPHA_JENKINS_ENV_FILE)"
 	@echo "Edit this file, then run:"
@@ -20,7 +19,6 @@ $(ALPHA_JENKINS_ENV_FILE):
 	@echo "Copying from example file"
 	cp ./$(ALPHA_JENKINS_ENV_EXAMPLE) ./$@
 
-.PHONY: alpha_jenkins_sync_smoke
 alpha_jenkins_sync_smoke: alpha_jenkins_sync_init
 	@set -a; . $(ALPHA_JENKINS_ENV_FILE); set +a; \
 	: "$${JENKINS_CREDENTIALS_FILE:?Missing JENKINS_CREDENTIALS_FILE in $(ALPHA_JENKINS_ENV_FILE)}"; \
@@ -28,7 +26,6 @@ alpha_jenkins_sync_smoke: alpha_jenkins_sync_init
 	[ -f "$$JENKINS_CREDENTIALS_FILE" ] || { echo "Credentials file not found: $$JENKINS_CREDENTIALS_FILE"; exit 1; }; \
 	bash ./$(ALPHA_JENKINS_VERIFY_SCRIPT) "$$JENKINS_CREDENTIALS_FILE" "$$JENKINS_URL"
 
-.PHONY: alpha_jenkins_sync_smoke_detailed
 alpha_jenkins_sync_smoke_detailed: alpha_jenkins_sync_init
 	@set -a; . $(ALPHA_JENKINS_ENV_FILE); set +a; \
 	: "$${JENKINS_CREDENTIALS_FILE:?Missing JENKINS_CREDENTIALS_FILE in $(ALPHA_JENKINS_ENV_FILE)}"; \
@@ -36,7 +33,6 @@ alpha_jenkins_sync_smoke_detailed: alpha_jenkins_sync_init
 	[ -f "$$JENKINS_CREDENTIALS_FILE" ] || { echo "Credentials file not found: $$JENKINS_CREDENTIALS_FILE"; exit 1; }; \
 	bash ./$(ALPHA_JENKINS_VERIFY_DETAILED_SCRIPT) "$$JENKINS_CREDENTIALS_FILE" "$$JENKINS_URL"
 
-.PHONY: alpha_jenkins_sync_apply
 alpha_jenkins_sync_apply: alpha_jenkins_sync_init
 	@set -a; . $(ALPHA_JENKINS_ENV_FILE); set +a; \
 	: "$${JENKINS_CREDENTIALS_FILE:?Missing JENKINS_CREDENTIALS_FILE in $(ALPHA_JENKINS_ENV_FILE)}"; \

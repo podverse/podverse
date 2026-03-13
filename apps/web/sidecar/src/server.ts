@@ -1,6 +1,7 @@
 /* eslint-disable no-console */
 import http from 'node:http';
 import { URL } from 'node:url';
+import { getEffectiveUserAgent } from '@podverse/helpers';
 import type { ValidationResult, ValidationSummary } from '@podverse/helpers-config';
 import {
   validateRequired,
@@ -8,7 +9,6 @@ import {
   validateWebProtocol,
   validateSignupMode,
   validateServerEnv,
-  validateProxyUserAgent,
   validateSupportedLocalesList,
   validateLocale,
   validateSupportedThemesList,
@@ -38,11 +38,6 @@ const requiredKeys = [
 
 const optionalKeys = [
   'NEXT_PUBLIC_API_PORT',
-  'NEXT_PUBLIC_APP_VALUE_LIGHTNING_KEYSEND_ADDRESS',
-  'NEXT_PUBLIC_APP_VALUE_LIGHTNING_KEYSEND_CUSTOM_KEY',
-  'NEXT_PUBLIC_APP_VALUE_LIGHTNING_KEYSEND_CUSTOM_VALUE',
-  'NEXT_PUBLIC_APP_VALUE_LIGHTNING_KEYSEND_NAME',
-  'NEXT_PUBLIC_APP_VALUE_LIGHTNING_KEYSEND_TYPE',
   'NEXT_PUBLIC_BRAND_NAME',
   'NEXT_PUBLIC_CONTACT_EMAIL',
   'NEXT_PUBLIC_POLLING_INTERVAL_MS',
@@ -108,7 +103,7 @@ function validateOne(key: string, isRequired: boolean): ValidationResult {
     return validateServerEnv(key, category);
   }
   if (key === 'NEXT_PUBLIC_PROXY_USER_AGENT') {
-    return validateProxyUserAgent(key, category);
+    return validateProxyUserAgentOrDerived(category);
   }
   if (key === 'NEXT_PUBLIC_FEATURES_SUPPORTED_LOCALES') {
     return validateSupportedLocalesList(key, category);
@@ -154,11 +149,6 @@ function getCategory(key: string): string {
     NEXT_PUBLIC_SUPPORTED_THEMES: 'Themes',
     NEXT_PUBLIC_WEB_DOMAIN: 'Web',
     NEXT_PUBLIC_WEB_PROTOCOL: 'Web',
-    NEXT_PUBLIC_APP_VALUE_LIGHTNING_KEYSEND_ADDRESS: 'Lightning',
-    NEXT_PUBLIC_APP_VALUE_LIGHTNING_KEYSEND_CUSTOM_KEY: 'Lightning',
-    NEXT_PUBLIC_APP_VALUE_LIGHTNING_KEYSEND_CUSTOM_VALUE: 'Lightning',
-    NEXT_PUBLIC_APP_VALUE_LIGHTNING_KEYSEND_NAME: 'Lightning',
-    NEXT_PUBLIC_APP_VALUE_LIGHTNING_KEYSEND_TYPE: 'Lightning',
     NEXT_PUBLIC_BRAND_NAME: 'Brand',
     NEXT_PUBLIC_CONTACT_EMAIL: 'Brand',
     NEXT_PUBLIC_POLLING_INTERVAL_MS: 'API',
@@ -204,6 +194,49 @@ function buildSummary(results: ValidationResult[]): ValidationSummary {
   };
 }
 
+function getEffectiveProxyUserAgent(): string {
+  return getEffectiveUserAgent({
+    userAgentRaw: process.env.NEXT_PUBLIC_PROXY_USER_AGENT,
+    brandName: process.env.NEXT_PUBLIC_BRAND_NAME ?? '',
+    suffix: ' Bot Local/Web-API/5',
+  });
+}
+
+const USER_AGENT_PATTERN = /^[^/]+\/[^/]+\/[^/]+$/;
+
+function validateProxyUserAgentOrDerived(category: string): ValidationResult {
+  const effective = getEffectiveProxyUserAgent();
+  if (!USER_AGENT_PATTERN.test(effective)) {
+    return {
+      name: 'NEXT_PUBLIC_PROXY_USER_AGENT',
+      isSet: (process.env.NEXT_PUBLIC_PROXY_USER_AGENT?.trim() ?? '') !== '',
+      isValid: false,
+      isRequired: true,
+      message: `Invalid format: "${effective}" - must follow format: BrandName Bot Environment/AppName/Version`,
+      category,
+    };
+  }
+  const firstPart = effective.split('/')[0];
+  if (firstPart && !firstPart.includes('Bot')) {
+    return {
+      name: 'NEXT_PUBLIC_PROXY_USER_AGENT',
+      isSet: (process.env.NEXT_PUBLIC_PROXY_USER_AGENT?.trim() ?? '') !== '',
+      isValid: false,
+      isRequired: true,
+      message: `Missing "Bot" in first part: "${effective}"`,
+      category,
+    };
+  }
+  return {
+    name: 'NEXT_PUBLIC_PROXY_USER_AGENT',
+    isSet: true,
+    isValid: true,
+    isRequired: true,
+    message: 'Valid format',
+    category,
+  };
+}
+
 const normalizeEnvValue = (value: string | undefined): string | undefined =>
   value === '' ? undefined : value;
 
@@ -212,6 +245,7 @@ function buildRuntimeConfig(): { env: Record<string, string | undefined> } {
   for (const key of allKeys) {
     env[key] = normalizeEnvValue(process.env[key]);
   }
+  env.NEXT_PUBLIC_PROXY_USER_AGENT = getEffectiveProxyUserAgent();
   return { env };
 }
 
