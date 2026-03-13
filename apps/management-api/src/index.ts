@@ -24,8 +24,12 @@ const run = async () => {
         console.warn('HTTP server closed');
       }
       try {
-        await AppDataSourceRead.destroy();
-        await AppDataSourceReadWrite.destroy();
+        if (AppDataSourceRead.isInitialized) {
+          await AppDataSourceRead.destroy();
+        }
+        if (AppDataSourceReadWrite.isInitialized) {
+          await AppDataSourceReadWrite.destroy();
+        }
         console.warn('Database connections closed');
       } catch (err) {
         console.error('Error closing DB connections during shutdown:', err);

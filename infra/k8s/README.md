@@ -55,6 +55,13 @@ Before running the scripts, ensure you have the following ready:
     - `POSTGRES_READ_PASSWORD` (Read-only user)
     - `POSTGRES_READ_WRITE_PASSWORD` (Application user)
 
+- **Management DB Credentials** (`create_management_db_secret.sh`):
+  - You will need to invent 4 passwords:
+    - `POSTGRES_PASSWORD` (Superuser)
+    - `POSTGRES_READ_PASSWORD` (Read-only user)
+    - `POSTGRES_READ_WRITE_PASSWORD` (Application user)
+    - `SUPERUSER_PASSWORD` (Management superuser account)
+
 - **Message Queue Credentials** (`create_mq_secret.sh`):
   - An `MQ_PASSWORD` for the admin user.
 
@@ -74,6 +81,7 @@ Before running the scripts, ensure you have the following ready:
 ```bash
 # Run each script and follow the prompts
 bash ./k8s/scripts/create_db_secret.sh
+bash ./k8s/scripts/create_management_db_secret.sh
 bash ./k8s/scripts/create_mq_secret.sh
 bash ./k8s/scripts/create_api_secret.sh
 bash ./k8s/scripts/create_workers_secret.sh

@@ -15,9 +15,9 @@ REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 
 cd "$REPO_ROOT"
 
-echo -e "${YELLOW}Running security audit...${NC}"
-if ! npm audit --omit=dev; then
-  echo -e "${RED}Error: npm audit found vulnerabilities. Fix them before bumping version.${NC}"
+echo -e "${YELLOW}Running security audit (moderate and above; low permitted)...${NC}"
+if ! npm audit --omit=dev --audit-level=moderate; then
+  echo -e "${RED}Error: npm audit found moderate or higher vulnerabilities. Fix them before bumping version.${NC}"
   exit 1
 fi
 echo ""

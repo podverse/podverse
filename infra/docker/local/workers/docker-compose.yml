@@ -21,4 +21,5 @@ services:
     volumes:
       - ../../../config/google/firebase/firebase-admin.json:/opt/config/google/firebase/firebase-admin.json:ro
       - ../../../../logs/workers:/opt/logs
+      - ../../../../infra/data/dev/podcast-index-feeds:/opt/infra/data/dev/podcast-index-feeds
     stop_grace_period: 5m

@@ -18,13 +18,17 @@ Open source podcast app with Podcasting 2.0 support.
 git clone https://github.com/podverse/podverse.git
 cd podverse && nvm use && npm install
 
-# 2. Start infrastructure and initialize database
+# 2. Prepare override files and add private values
+make local_env_prepare
+
+# 3. Generate local env files, then start infrastructure and initialize database
+make local_env_setup
 make local_setup
 
-# 3. Build packages
+# 4. Build packages
 npm run build:packages
 
-# 4. Run apps (in separate terminals)
+# 5. Run apps (in separate terminals)
 npm run dev:api # http://localhost:1234
 npm run dev:web # http://localhost:3000
 ```
@@ -72,8 +76,10 @@ logs/               # Log files (gitignored, see logs/LOGS.md)
 Local development uses pre-configured environment files that work out of the box:
 
 - `apps/api/.env` - API configuration
-- `apps/web/env/local.env` - Web configuration
+- `apps/web/.env.local` - Web configuration
+- `apps/management-web/.env.local` - Management web configuration
 - `infra/config/local/*.env` - Docker service configuration
+- `dev/env-overrides/local/*.env` - Local-only private/external overrides (created by `make local_env_prepare`)
 
 For customization, see the ENV.md files in each app directory.
 
@@ -85,6 +91,8 @@ Build Docker images for local testing or deployment:
 make local_build_all          # Build all images
 make local_test_docker_builds # Build and verify images
 ```
+
+For local infrastructure browsing, pgAdmin is available at `http://localhost:5051` after `make local_setup` or `make local_infra_up`.
 
 **Note**: The web apps (`web` and `management-web`) build once and read `NEXT_PUBLIC_*` values from a runtime-config sidecar:
 

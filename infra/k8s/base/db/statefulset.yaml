@@ -19,6 +19,8 @@ spec:
           envFrom:
             - secretRef:
                 name: podverse-db-opaque
+            - secretRef:
+                name: podverse-management-db-opaque
           args:
             - "-c"
             - "max_connections=100"
@@ -67,6 +69,9 @@ spec:
             - name: init-scripts
               mountPath: /docker-entrypoint-initdb.d
 
+            - name: management-init-scripts
+              mountPath: /docker-entrypoint-initdb.d/management
+
             # Scratch space for the Postgres socket/lock files so it works with a read-only root FS
             - name: run-dir
               mountPath: /var/run/postgresql
@@ -82,6 +87,9 @@ spec:
         - name: init-scripts
           configMap:
             name: podverse-db-init-scripts
+        - name: management-init-scripts
+          configMap:
+            name: podverse-management-db-init-scripts
         - name: run-dir
           emptyDir: {}
 

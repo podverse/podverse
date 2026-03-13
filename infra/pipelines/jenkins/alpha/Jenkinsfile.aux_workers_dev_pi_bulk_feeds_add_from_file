@@ -1,0 +1,70 @@
+// Adds feeds to the parse queue from the Podcast Index feeds CSV.
+// The worker expects podcastindex_feeds.csv at infra/data/dev/podcast-index-feeds (CSV must be
+// present; no auto-download). For alpha, upload a CSV generated locally (make dev_pi_feeds_download_csv).
+// If the CSV is missing, the job fails with an error describing how to create or upload it.
+pipeline {
+    // Maps to <assignedNode>pv-alpha-aux</assignedNode>
+    agent {
+        label 'pv-alpha-aux'
+    }
+
+    // Maps to <concurrentBuild>false</concurrentBuild>
+    options {
+        disableConcurrentBuilds()
+        timestamps()
+    }
+
+    parameters {
+        string(
+            name: 'START_ID',
+            defaultValue: '1',
+            description: 'Start of Podcast Index ID range (e.g. 1 or 10000).',
+            trim: true
+        )
+        string(
+            name: 'END_ID',
+            defaultValue: '100',
+            description: 'End of Podcast Index ID range (e.g. 100 or 30000).',
+            trim: true
+        )
+        choice(
+            name: 'MQ_QUEUE_NAME',
+            choices: ['rss-slow', 'rss-normal', 'rss-on-demand', 'rss-live', 'add-by-rss-on-demand', 'add-by-rss-background'],
+            description: 'The mq queue which the feeds should be added to for parsing.'
+        )
+        booleanParam(
+            name: 'FORCE_PARSE',
+            defaultValue: true,
+            description: 'Force parse the feed even if it has not been modified.'
+        )
+    }
+
+    stages {
+        stage('Add feeds from DB to queue') {
+            steps {
+                script {
+                    def forceParseFlag = params.FORCE_PARSE ? '-f' : ''
+                    // Mount workspace as repo root so path infra/data/dev/podcast-index-feeds exists;
+                    // worker reads podcastindex_feeds.csv from that dir (upload for alpha).
+                    def workspaceMount = "${WORKSPACE}:/workspace"
+                    def workDir = '/workspace'
+
+                    dir('/opt/podverse/infra/docker/alpha/workers') {
+                        sh """
+                            set -eux
+                            docker compose -f docker-compose.yml run --rm \
+                                -v "${workspaceMount}" \
+                                -w "${workDir}" \
+                                podverse_alpha_workers \
+                                node apps/workers/dist/index.js devPiBulkFeedsAddFromFile \
+                                -startId "${params.START_ID}" \
+                                -endId "${params.END_ID}" \
+                                -q "${params.MQ_QUEUE_NAME}" \
+                                ${forceParseFlag}
+                        """
+                    }
+                }
+            }
+        }
+    }
+}

@@ -3,5 +3,6 @@ kind: Kustomization
 
 resources:
   - configmap.yaml
+  - runtime-configmap.yaml
   - service.yaml
   - deployment.yaml

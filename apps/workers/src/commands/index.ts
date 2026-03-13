@@ -13,6 +13,7 @@ import { mqRSSAddAll } from '@workers/commands/mq/rss/addAll.js';
 import { mqRSSRunDlqConsumer } from './mq/rss/dlqHandling.js';
 import { mqRSSRunParser } from '@workers/commands/mq/rss/runParser.js';
 import { mqAddByRSSRunParser } from '@workers/commands/mq/rss/runAddByRSSParser.js';
+import { devPiBulkFeedsAddFromFile } from '@workers/commands/mq/rss/devPiBulkFeedsAddFromFile.js';
 import { mqRSSAddRecentlyUpdatedFeedsFromPodcastIndex } from '@workers/commands/mq/rss/mqRSSAddRecentlyUpdatedFeedsFromPodcastIndex.js';
 import { statsUpdateAggregated } from '@workers/commands/stats/statsUpdateAggregated.js';
 import { statsUpdateAggregatedRolling } from '@workers/commands/stats/statsUpdateAggregatedRolling.js';
@@ -41,6 +42,7 @@ export default {
   mqRSSRunParser,
   mqAddByRSSRunParser,
   mqRSSRunLiveItemListener,
+  devPiBulkFeedsAddFromFile,
   mqRSSAddRecentlyUpdatedFeedsFromPodcastIndex,
   statsUpdateAggregated,
   statsUpdateAggregatedRolling,

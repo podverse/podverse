@@ -17,7 +17,7 @@ docs/
 AGENTS.md
 LICENSE
 
-# Infrastructure (not needed in app images)
+# Infrastructure (not needed in app images; excludes feeds DB infra/data/dev/podcast-index-feeds from build context and image)
 infra/
 !infra/docker/local/
 scripts/add-by-rss/

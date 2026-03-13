@@ -1,144 +1,104 @@
-# Jenkins Pipeline Import Tool
+# Alpha Jenkins Sync
 
-This directory contains tools for importing Jenkins pipeline jobs from this repository into a Jenkins server.
+This directory contains Jenkins pipeline definitions and setup scripts used to align the
+`pipelines/alpha` folder in Jenkins with the `Jenkinsfile.*` files in this monorepo.
 
-## Monorepo Structure
+## What to run
 
-These Jenkins pipelines use the `podverse` monorepo with **sparse checkout** to minimize server disk usage. Only deployment-related directories are checked out:
+Run all commands from the monorepo root. The workflow is:
 
-- `infra/pipelines/jenkins/` - Jenkins pipeline definitions
-- `infra/docker/` - Docker Compose configurations
-- `infra/config/` - Environment configuration files
-- `scripts/` - Deployment scripts
-- `Makefile` and `Makefile.alpha` - Make targets for deployment
+1. Initialize env file
+2. Smoke test (read-only)
+3. Apply sync changes
+4. Re-run smoke test to confirm zero pending changes
 
-The Jenkins job template (`scm-job.xml`) is configured to:
-
-- Clone from `https://github.com/podverse/podverse.git`
-- Use sparse checkout (only the paths listed above)
-- Checkout the `develop` branch by default
-- Store the checkout at `/opt/podverse` on the Jenkins agent
-
-## Prerequisites
-
-### 1. Download Jenkins CLI
-
-Before running the import script, you need to download the Jenkins CLI jar file:
+### 1) Initialize setup env file
 
 ```bash
-wget http://YOUR_JENKINS_URL/jnlpJars/jenkins-cli.jar -O infra/pipelines/jenkins/alpha/jenkins-cli.jar
+make alpha_jenkins_sync_init
 ```
 
-Replace `YOUR_JENKINS_URL` with your actual Jenkins server URL (e.g., `http://localhost:8080` or `https://jenkins.example.com`).
+This creates:
 
-### 2. Create Credentials File
+- `infra/pipelines/jenkins/alpha/setup/jenkins-sync.env` (if missing)
+- From: `infra/pipelines/jenkins/alpha/setup/jenkins-sync.env.example`
 
-Create a credentials file containing your Jenkins username and API token in the format:
+### 2) Configure credentials and URL
 
+Edit `infra/pipelines/jenkins/alpha/setup/jenkins-sync.env`:
+
+```dotenv
+JENKINS_URL="https://jenkins.example.com"
+JENKINS_CREDENTIALS_FILE="$HOME/.jenkins-api-token"
+JENKINS_FOLDER="pipelines/alpha"
 ```
+
+`JENKINS_CREDENTIALS_FILE` must point to a file containing one line:
+
+```text
 username:api_token
 ```
 
-Example: `~/.jenkins-api-token`
+### 3) Smoke test (safe, no writes)
 
-To generate an API token:
-
-1. Log into Jenkins
-2. Click your username (top right)
-3. Click "Configure"
-4. Under "API Token", click "Add new Token"
-5. Copy the generated token
-
-## Usage
-
-Run the import script from the repository root:
+Quick summary:
 
 ```bash
-bash ./infra/pipelines/jenkins/alpha/import.sh [folder_name] < credentials_file > [jenkins_url]
+make alpha_jenkins_sync_smoke
 ```
 
-### Parameters
-
-- `credentials_file` (required): Path to file containing `username:api_token`
-- `jenkins_url` (optional): Jenkins server URL (default: `http://localhost:8080/`)
-- `folder_name` (optional): Jenkins folder to create jobs in (default: `pipelines`)
-
-### Examples
-
-Basic usage with defaults:
+Detailed diff (recommended before apply):
 
 ```bash
-bash ./infra/pipelines/jenkins/alpha/import.sh ~/.jenkins-api-token
+make alpha_jenkins_sync_smoke_detailed
 ```
 
-With custom Jenkins URL:
+These targets call verify scripts only and do not create/update Jenkins jobs.
+
+### 4) Apply sync changes
 
 ```bash
-bash ./infra/pipelines/jenkins/alpha/import.sh ~/.jenkins-api-token http://jenkins.example.com:8080/
+make alpha_jenkins_sync_apply
 ```
 
-With custom folder:
+This runs the import script and creates/updates jobs under `JENKINS_FOLDER`.
+
+### 5) Confirm convergence
 
 ```bash
-bash ./infra/pipelines/jenkins/alpha/import.sh ~/.jenkins-api-token http://localhost:8080/ pipelines/alpha00
+make alpha_jenkins_sync_smoke_detailed
 ```
 
-## Updating the Import Script
+Success criteria: `Total jobs that will be modified: 0`.
 
-### Adding New Pipeline Jobs
+## Script locations
 
-1. Edit `import.sh` and add the new Jenkinsfile path to the `FILES` array:
+- Import: `infra/pipelines/jenkins/alpha/setup/import.sh`
+- Verify summary: `infra/pipelines/jenkins/alpha/setup/verify-jobs.sh`
+- Verify detailed: `infra/pipelines/jenkins/alpha/setup/verify-jobs-detailed.sh`
+- Job template: `infra/pipelines/jenkins/alpha/scm-job.xml`
+- Source Jenkinsfiles: `infra/pipelines/jenkins/alpha/Jenkinsfile.*`
 
-```bash
-declare -a FILES=(
-  "./infra/pipelines/jenkins/alpha/Jenkinsfile.aux_all_down"
-  "./infra/pipelines/jenkins/alpha/Jenkinsfile.aux_db_down"
-  "./infra/pipelines/jenkins/alpha/Jenkinsfile.your_new_job" # Add here
-  # ...
-)
-```
+## Notes
 
-2. Uncomment existing entries or add new ones as needed
-
-### Modifying Job Template
-
-The `scm-job.xml` file defines the Jenkins job configuration template. The script replaces `REPLACE_SCRIPT_PATH` with the actual Jenkinsfile path when creating jobs.
-
-To modify the job template:
-
-1. Edit `scm-job.xml`
-2. Keep the `REPLACE_SCRIPT_PATH` placeholder intact
-3. Adjust other Jenkins job settings as needed
-
-## Path References
-
-All Jenkins pipelines reference paths under `/opt/podverse`:
-
-- **Docker Compose configs**: `/opt/podverse/infra/docker/alpha/`
-- **Environment configs**: `/opt/podverse/infra/config/alpha/`
-- **Scripts**: `/opt/podverse/scripts/`
-- **Makefiles**: `/opt/podverse/Makefile.alpha`
-
-These paths are set up by the `podverse_monorepo` Ansible role during server provisioning.
+- The import/verify scripts now support both:
+  - explicit CLI args, and
+  - env vars from `jenkins-sync.env` via make targets.
+- `JENKINS_FOLDER` is used to compute Jenkins API paths (for example,
+  `pipelines/alpha` -> `job/pipelines/job/alpha`).
 
 ## Troubleshooting
 
-**Error: Unable to access jarfile jenkins-cli.jar**
+Authentication errors:
 
-- Make sure you've downloaded the Jenkins CLI jar file to `infra/pipelines/jenkins/alpha/jenkins-cli.jar`
+- Confirm `JENKINS_CREDENTIALS_FILE` exists
+- Confirm the file format is `username:api_token` on one line
+- Confirm the Jenkins user has permission to read/create/update jobs
 
-**Error: can't read scm-job.xml**
+No local Jenkinsfiles detected:
 
-- Ensure you're running the script from the repository root directory
+- Confirm files exist under `infra/pipelines/jenkins/alpha/Jenkinsfile.*`
 
-**Authentication errors**
+Template not found:
 
-- Verify your credentials file format is correct: `username:api_token` (single line, no spaces)
-- Ensure your API token is valid and hasn't expired
-- Check that your user has permissions to create jobs in Jenkins
-
-**Pipeline fails: "file not found" errors**
-
-- Verify sparse checkout is working: check that `/opt/podverse/infra/docker/alpha/` exists on the Jenkins agent
-- Ensure the `podverse_monorepo` Ansible role has been run on the server
-- Check that the Jenkins job SCM configuration includes all required sparse checkout paths
+- Confirm `infra/pipelines/jenkins/alpha/scm-job.xml` exists

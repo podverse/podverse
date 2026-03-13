@@ -1,18 +1,41 @@
 #!/bin/bash
 set -euo pipefail
 
-if [ $# -lt 2 ]; then
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ALPHA_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+JENKINSFILES_DIR="$ALPHA_DIR"
+
+CRED_FILE="${1:-${CRED_FILE:-${JENKINS_CREDENTIALS_FILE:-}}}"
+JENKINS_URL="${2:-${JENKINS_URL:-}}"
+JENKINS_FOLDER="${JENKINS_FOLDER:-pipelines/alpha}"
+JENKINS_URL="${JENKINS_URL%/}"
+
+if [[ -z "$CRED_FILE" || -z "$JENKINS_URL" ]]; then
   echo "Usage: $0 <credentials_file> <jenkins_url>" >&2
+  echo "Or set env vars: JENKINS_CREDENTIALS_FILE, JENKINS_URL" >&2
   exit 1
 fi
 
-CRED_FILE="$1"
-JENKINS_URL="$2"
-JENKINS_FOLDER="pipelines/alpha"
-JENKINS_API_PATH="job/pipelines/job/alpha"
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+if [[ ! -f "$CRED_FILE" ]]; then
+  echo "ERROR: Credentials file not found: $CRED_FILE" >&2
+  exit 1
+fi
 
-AUTH="$(cat "$CRED_FILE" | tr -d '\r\n')"
+folder_to_api_path() {
+  local folder="$1"
+  local api_path=""
+  IFS='/' read -r -a segments <<< "$folder"
+  for segment in "${segments[@]}"; do
+    if [[ -n "$segment" ]]; then
+      api_path="${api_path}/job/${segment}"
+    fi
+  done
+  echo "${api_path#/}"
+}
+
+JENKINS_API_PATH="$(folder_to_api_path "$JENKINS_FOLDER")"
+
+AUTH="$(tr -d '\r\n' < "$CRED_FILE")"
 
 echo "Jenkins Jobs Verification"
 echo "========================="
@@ -25,7 +48,7 @@ JENKINS_JOBS=$(curl -s -u "$AUTH" "${JENKINS_URL}/${JENKINS_API_PATH}/api/json" 
 
 # Get list of local Jenkinsfiles
 shopt -s nullglob
-LOCAL_FILES=("$SCRIPT_DIR"/Jenkinsfile.*)
+LOCAL_FILES=("$JENKINSFILES_DIR"/Jenkinsfile.*)
 shopt -u nullglob
 
 echo "Local Jenkinsfiles: ${#LOCAL_FILES[@]}"
@@ -50,7 +73,7 @@ done
 # Check for jobs in Jenkins without local files
 while IFS= read -r job; do
   [ -z "$job" ] && continue
-  if [ ! -f "$SCRIPT_DIR/Jenkinsfile.$job" ]; then
+  if [ ! -f "$JENKINSFILES_DIR/Jenkinsfile.$job" ]; then
     JENKINS_ONLY+=("$job")
   fi
 done <<< "$JENKINS_JOBS"

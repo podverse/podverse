@@ -1,7 +1,0 @@
-# ==========================================
-# Alpha Environment
-# ==========================================
-
-include Makefile.alpha.envfiles
-include Makefile.alpha.infra
-include Makefile.alpha.apps

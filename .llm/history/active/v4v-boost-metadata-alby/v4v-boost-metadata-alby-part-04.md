@@ -150,3 +150,21 @@ BoostDonateForm should be renamed to BoostAppDonateForm since it is specifically
 - /Users/mitcheldowney/repos/pv/podverse/apps/web/src/app/donate/page.tsx
 - /Users/mitcheldowney/repos/pv/podverse/apps/web/src/components/Boost/BoostAppDonateForm.tsx
 - /Users/mitcheldowney/repos/pv/podverse/apps/web/src/components/Boost/BoostDonateForm.tsx
+
+### Session 37 - 2026-03-13
+
+#### Prompt (Developer)
+
+Merge Conflict Recovery Master Plan
+
+Implement the plan as specified, it is attached for your reference. Do NOT edit the plan file itself.
+
+To-do's from the plan have already been created. Do not create them again. Mark them as in_progress as you work, starting with the first one. Don't stop until you have completed all the to-dos.
+
+#### Key Decisions
+
+- Started merge-conflict recovery in strict plan order (docs/delete-keep first, then web semantic conflicts, then infra/build).
+
+#### Files Modified
+
+- /Users/mitcheldowney/repos/pv/podverse/.llm/history/active/v4v-boost-metadata-alby/v4v-boost-metadata-alby-part-04.md

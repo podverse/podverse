@@ -1,118 +1,84 @@
-# Version: 1
-# Non-sensitive configuration for the Workers.
-# Mapped from config/podverse-workers.env.example
-
 apiVersion: v1
 kind: ConfigMap
 metadata:
   name: podverse-workers-config
   labels:
     app: podverse-workers
-    environment: alpha
+    environment: base
 data:
+  #####
+  ##### podverse-workers
+  ##### .env.example
+  #####
+
   #####
   ##### General
   #####
-  NODE_ENV: "development"
-  USER_AGENT: "Podverse Bot Alpha/Workers/5" # in prod change to "Podverse Bot/Workers/5", in alpha change to "Podverse Bot Alpha/Workers/5", etc.
+
+  NODE_ENV: "production"
+  #
+  # Format: BrandName Bot Environment/AppName/Version
+  USER_AGENT: "Podverse Bot Base/Workers/5"
 
   #####
   ##### Logs
   #####
+
   LOG_LEVEL: "info"
+  # No default. Leave empty for console-only (e.g. local/dev or container without file logging).
+  # When using Docker with a log volume, set to the container path (e.g. /opt/logs for workers compose).
   LOG_DIR: ""
+  # Set to true to enable log timers
   LOG_TIMER: "true"
 
   #####
-  ##### Postgres
+  ##### Database (Postgres)
   #####
+
   DB_HOST: "podverse-db"
   DB_PORT: "5432"
-  # DB_DATABASE: "postgres"               # in secrets
-  # DB_READ_USERNAME: "read"              # in secrets
-  # DB_READ_WRITE_USERNAME: "read_write"  # in secrets
-  DB_SSL_CONNECTION: "false"
+  ##DB_READ_USERNAME: "read"                            # in secrets
+  ##DB_READ_PASSWORD: "your_read_password"              # in secrets
+  ##DB_READ_WRITE_USERNAME: "read_write"                # in secrets
+  ##DB_READ_WRITE_PASSWORD: "your_read_write_password"  # in secrets
+  # DB_DATABASE: "postgres"                             # in secrets
+  # Set to true for SSL connection
+  DB_SSL_CONNECTION: ""
 
   #####
   ##### Podcast Index
   #####
   PODCAST_INDEX_BASE_URL: "https://api.podcastindex.org/api/1.0"
-  #PODCAST_INDEX_AUTH_KEY: ""   # in secrets
-  #PODCAST_INDEX_SECRET_KEY: "" # in secrets
+  #PODCAST_INDEX_AUTH_KEY: ""     # in secrets
+  #PODCAST_INDEX_SECRET_KEY: ""   # in secrets
   # Optional: Delay in milliseconds between Podcast Index API requests in the parser's remote item handling
   # Default is 200ms if not specified. Set to 0 to disable.
   PODCAST_INDEX_API_RATE_LIMIT_DELAY: "200"
 
   #####
-  ##### Message Queue
+  ##### Message Queue (RabbitMQ)
   #####
   MESSAGE_QUEUE_PROTOCOL: "amqp"
   MESSAGE_QUEUE_HOST: "podverse-mq"
-  MESSAGE_QUEUE_PORT: "5672"
   #MESSAGE_QUEUE_USERNAME: "admin"  # in secrets
   #MESSAGE_QUEUE_PASSWORD: ""       # in secrets
-
-  #####
-  ##### KeyValDB (Redis/Valkey)
-  #####
-  KEYVALDB_HOST: "podverse-keyvaldb"
-  KEYVALDB_PORT: "6379"
-  # KEYVALDB_PASSWORD: ""  # in secrets (podverse-keyvaldb-opaque)
-  KEYVALDB_CACHE_TTL_SECONDS: "900"
-
-  #####
-  ##### Google / Firebase
-  #####
-
-  GOOGLE_FIREBASE_NOTIFICATIONS_ENABLED: "" # true or undefined
-  GOOGLE_FIREBASE_ADMIN_JSON_KEY_PATH: "" # Set as absolute path
-
-  #####
-  ##### Website related
-  #####
-  ### NOTE: these are for the *public facing* IP addresses,
-  ### not the internal Docker service network or private IP addresses.
-  ### These are used by some services, e.g. Firebase Cloud Messaging, Unified Push.
-  WEB_PROTOCOL: "https"
-  WEB_DOMAIN: "web.example.com" # Override in environment kustomization.yaml
-  WEB_ICON_IMAGE_PATH: "/favicon/web-app-manifest-192x192.png"
-
-  #####
-  ##### Default Account Settings
-  #####
-  # These are used as default values when creating new accounts.
-  DEFAULT_ACCOUNT_SETTINGS_LOCALE: "en-US"
-
-  #####
-  ##### Parser
-  #####
-
-  # IMPORTANT
-  # When true, the parser will add remote items to the message queue for processing.
-  # The parser will recursively follow all remote items, and their remote items, until it runs out.
-  # If a feed is already in the database, it will not add a message for that remote item feed to the queue.
-  PARSER_ADD_REMOTE_ITEMS_TO_MQ: "false"
-
-  #####
-  ##### Add-by-RSS
-  #####
-  # Basic Auth credentials for add-by-RSS feeds are stored per-feed in the database
-  # (account_following_add_by_rss_channel). Required: 64 hex characters (32 bytes)
-  # for AES-256-GCM encryption at rest. Generate with: openssl rand -hex 32
-  # ADD_BY_RSS_CREDENTIALS_ENCRYPTION_KEY: ""  # in secrets (podverse-workers-add-by-rss-opaque)
+  MESSAGE_QUEUE_PORT: "5672"
 
   #####
   ##### Image Shrink (storage)
   #####
-  BUCKET_PROVIDER: "digitalocean"
-  # BUCKET_ACCESS_KEY and BUCKET_SECRET_KEY are in secrets (podverse-workers-digital-ocean-opaque)
-  BUCKET_REGION: "nyc3"
-  BUCKET_NAME: "podverse-assets-alpha"
-  BUCKET_CDN_BASE_URL: "https://podverse-assets-alpha.nyc3.digitaloceanspaces.com"
+
+  BUCKET_PROVIDER: ""
+  ##BUCKET_ACCESS_KEY: ""  # in secrets
+  ##BUCKET_SECRET_KEY: ""  # in secrets
+  BUCKET_REGION: ""
+  BUCKET_NAME: "" #
+  BUCKET_CDN_BASE_URL: ""
 
   #####
   ##### Image Shrink
   #####
+
   IMAGE_SHRINK_WIDTH_PX: "300"
   IMAGE_SHRINK_BATCH_SIZE: "250"
   IMAGE_SHRINK_CONCURRENCY: "5"
@@ -121,20 +87,73 @@ data:
   IMAGE_SHRINK_SOURCE_PRUNE_DAYS: "30"
 
   #####
-  ##### Image Shrink Orphan Cleanup (optional)
+  ##### Image Shrink Orphan Cleanup
   #####
+
   IMAGE_SHRINK_ORPHAN_CLEANUP_DRY_RUN: "true"
   IMAGE_SHRINK_ORPHAN_CLEANUP_MAX_DELETE: ""
   IMAGE_SHRINK_ORPHAN_CLEANUP_MIN_AGE_DAYS: "7"
   IMAGE_SHRINK_ORPHAN_CLEANUP_PAGE_SIZE: "500"
 
   #####
-  ##### Web Push (Native)
+  ##### KeyValDB (Valkey)
   #####
-  # Native browser push notifications using W3C Push API (no third-party dependency)
-  # Generate keys with: npx web-push generate-vapid-keys
+  KEYVALDB_HOST: "podverse-keyvaldb"
+  KEYVALDB_PORT: "6379"
+  ##KEYVALDB_PASSWORD: ""  # in secrets (podverse-keyvaldb-opaque)
+  KEYVALDB_CACHE_TTL_SECONDS: "3600"
 
-  WEBPUSH_ENABLED: "" # true or undefined
+  #####
+  ##### Web Configuration
+  #####
+
+  WEB_PROTOCOL: "https"
+  WEB_DOMAIN: "web.example.com" # Override in environment kustomization.yaml
+  WEB_ICON_IMAGE_PATH: "/favicon/web-app-manifest-192x192.png"
+
+  #####
+  ##### Brand
+  #####
+
+  BRAND_NAME: "Podverse"
+
+  #####
+  ##### Google / Firebase (Optional, for push notifications)
+  #####
+
+  # Set to true to enable Firebase notifications
+  GOOGLE_FIREBASE_NOTIFICATIONS_ENABLED: ""
+  # Required if Firebase notifications enabled - absolute path to Firebase admin JSON key file
+  GOOGLE_FIREBASE_ADMIN_JSON_KEY_PATH: ""
+
+  #####
+  ##### WebPush Notifications (Optional)
+  #####
+
+  # Set to true to enable WebPush notifications
+  WEBPUSH_ENABLED: ""
+  # Required if WebPush enabled - generate with: npx web-push generate-vapid-keys
   WEBPUSH_VAPID_PUBLIC_KEY: ""
   WEBPUSH_VAPID_PRIVATE_KEY: ""
-  WEBPUSH_VAPID_SUBJECT: ""
+  WEBPUSH_VAPID_SUBJECT: "mailto:contact@example.com"
+
+  #####
+  ##### Default Account Settings
+  #####
+  # These are used as default values when creating new accounts.
+  DEFAULT_ACCOUNT_SETTINGS_LOCALE: "en-US"
+
+  #####
+  ##### Add-by-RSS
+  #####
+  # Required: 64 hex characters (32 bytes) for AES-256-GCM encryption of Basic Auth
+  # credentials at rest. Generate with: openssl rand -hex 32
+  ##ADD_BY_RSS_CREDENTIALS_ENCRYPTION_KEY: ""  # in secrets
+
+  #####
+  ##### Parser
+  #####
+
+  # When true, the parser will add remote items to the message queue for processing.
+  # The parser will recursively follow all remote items until it runs out.
+  PARSER_ADD_REMOTE_ITEMS_TO_MQ: ""

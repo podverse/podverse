@@ -1,0 +1,6 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: podverse-management-web
+  annotations:
+    link.argocd.argoproj.io/external-link: https://management-alpha-podverse.k.podverse.fm/

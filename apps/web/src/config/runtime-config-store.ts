@@ -1,4 +1,6 @@
 /* eslint-disable no-console */
+import { getEffectiveUserAgent } from '@podverse/helpers';
+
 import {
   webRuntimeConfigEnvKeys,
   type WebRuntimeConfig,
@@ -15,6 +17,14 @@ export const setRuntimeConfig = (runtimeConfig: WebRuntimeConfig): void => {
 
 export const hasRuntimeConfig = (): boolean => globalThis.__PODVERSE_RUNTIME_CONFIG__ !== undefined;
 
+function getEffectiveProxyUserAgent(): string {
+  return getEffectiveUserAgent({
+    userAgentRaw: process.env.NEXT_PUBLIC_PROXY_USER_AGENT,
+    brandName: process.env.NEXT_PUBLIC_BRAND_NAME ?? '',
+    suffix: ' Bot Local/Web-API/5',
+  });
+}
+
 /**
  * Build runtime config from process.env (used at build/prerender time
  * when instrumentation hasn't run yet).
@@ -29,6 +39,7 @@ function buildRuntimeConfigFromProcessEnv(): WebRuntimeConfig {
     allKeys.map((key) => [key, process.env[key]])
   ) as WebRuntimeConfig['env'];
 
+  env.NEXT_PUBLIC_PROXY_USER_AGENT = getEffectiveProxyUserAgent();
   return { env };
 }
 

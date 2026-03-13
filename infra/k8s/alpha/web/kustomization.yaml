@@ -21,6 +21,8 @@ labels:
 images:
   - name: ghcr.io/podverse/podverse-web-deploy
     newTag: "5.1.28-alpha.0"
+  - name: ghcr.io/podverse/podverse/web-runtime-config
+    newTag: "5.1.28-alpha.0"
 
 patches:
   - path: deployment-link-patch.yaml

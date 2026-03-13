@@ -18,6 +18,11 @@ See `.llm/context/architecture.md`. Lower tiers cannot depend on higher.
 - **Strict equality**: Use `===` and `!==` only (no `==` or `!=`). For "not null or undefined" use `x !== null && x !== undefined` (or optional chaining / truthiness where appropriate).
 - **Avoid type assertions (`as`)**: Prefer proper types, optional chaining, type guards, or narrowing so the type system enforces correctness. Use `as` only when there is no better way (e.g. necessary escape hatch); keep such use minimal and documented.
 
+## Commands / Terminal
+
+- **Commands from repo root**: When giving terminal or npm commands, always give them **relative to the monorepo root**. Use `npm run <script> -w apps/<app> -- [args]` instead of instructing users to `cd apps/workers` (or similar) first. See `.cursor/rules/commands-from-monorepo-root.mdc`.
+- **Copy button**: Always put runnable commands in a **fenced code block** (e.g. ```bash ... ```) so the IDE shows a copy button. Do not give only inline commands when the user may want to run them.
+
 ## Formatting Rules
 
 ### Quote Styles

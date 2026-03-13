@@ -1,9 +1,0 @@
-# ==========================================
-# Local Environment
-# ==========================================
-# Boostbox is assumed to be a sibling repo of the monorepo (../boostbox). See docs/infra/LOCAL-BOOSTBOX.md.
-
-include Makefile.local.envfiles
-include Makefile.local.infra
-include Makefile.local.buildrules
-include Makefile.local.apps

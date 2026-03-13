@@ -12,6 +12,9 @@ next-env.d.ts
 # TypeScript incremental build cache
 *.tsbuildinfo
 
+# Local backup of env files (e.g. before make local_env_setup)
+temp/
+
 # Environment files (contain secrets - created from .env.example or env/*.env templates)
 # Root-level
 .env
@@ -32,12 +35,21 @@ apps/*/i18n/compiled/
 # Infra config files (gitignored - contain secrets)
 infra/config/local/
 infra/config/alpha/
+infra/pipelines/jenkins/alpha/setup/jenkins-sync.env
+dev/env-overrides/local/*.env
+!dev/env-overrides/local/*.env.example
 
 # The following ARE committed (sanitized templates without secrets):
 # - apps/*/.env.example
 # - apps/*/env/*.env (web app environment templates)
 # - infra/config/env-templates/*.env.example
 # - infra/config/test/ (test config can be committed)
+
+# Podcast Index feeds DB (dev/test; downloaded at runtime by devPiBulkFeedsAddFromFile)
+infra/data/dev/podcast-index-feeds/*.csv
+infra/data/dev/podcast-index-feeds/*.db
+infra/data/dev/podcast-index-feeds/*.tgz
+!infra/data/dev/podcast-index-feeds/.gitkeep
 
 # Logs
 *.log

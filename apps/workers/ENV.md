@@ -25,6 +25,7 @@ The workers app validates environment variables **per command**. Each job only v
 | Base + Podcast Index                | Base, PodcastIndex                       | podcastIndexTrendingPodcastsGet, podcastIndexValueUpdateAll |
 | Base + ORM + Podcast Index          | Base, ORM, PodcastIndex                  | podcastIndexDeadFeedsFlagAndMerge                           |
 | Base + ORM + MQ                     | Base, ORM, MQ                            | mqRSSRunDlqConsumer, mqRSSAddAll                            |
+| Base + MQ                           | Base, MQ                                 | devPiBulkFeedsAddFromFile                                   |
 | Base + ORM + MQ + Podcast Index     | Base, ORM, MQ, PodcastIndex              | mqRSSAdd                                                    |
 | Base + MQ + Parser + KeyValDB       | Base, MQ, Parser, KeyValDB               | mqAddByRSSRunParser                                         |
 | Base + ORM + MQ + Parser + PI + Web | Base, ORM, MQ, Parser, PodcastIndex, Web | parserRSSParseFeed                                          |
@@ -52,11 +53,14 @@ Add-by-RSS feed parsing (e.g. `mqAddByRSSRunParser`) uses optional HTTP Basic Au
 
 ## General Configuration (Base — every command)
 
-- **`USER_AGENT`** (Required)
-  - Format: `BrandName Bot Environment/AppName/Version`
-  - Must include "Bot" in the first part (before the first slash)
+- **`USER_AGENT`** (Required when set; may be blank)
+  - When set, must follow format: `BrandName Bot Environment/AppName/Version` and include "Bot" in the first part
+  - When blank, effective value is built from `BRAND_NAME` + suffix at runtime
   - Example: `Podverse Bot Local/Workers/5`
   - Used for external API requests
+
+- **`BRAND_NAME`** (Required)
+  - Validated at startup. Used when `USER_AGENT` is blank to build the effective User-Agent string; also used for notifications.
 
 - **`LOG_LEVEL`** (Required) - Logging level
   - Valid values: `error`, `warn`, `info`, `debug`, `verbose`, `silly`, `silent`
@@ -159,7 +163,7 @@ These variables are used by both External Services and Notifications modules:
 
 These variables are used to build the Notifications configuration:
 
-- **`BRAND_NAME`** (Optional) - Brand name for notifications (default: empty string)
+- **`BRAND_NAME`** — Required; see General Configuration (Base). Also used as brand name for notifications.
 
 - **`WEBPUSH_ENABLED`** (Optional) - Enable WebPush notifications (default: `false`)
   - Set to `"true"` to enable

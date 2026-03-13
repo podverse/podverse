@@ -1,4 +1,5 @@
 /* eslint-disable no-console */
+/* eslint-disable @typescript-eslint/no-non-null-assertion -- BRAND_NAME validated required at startup before getEffectiveUserAgent */
 /**
  * Startup validation for the workers app.
  *
@@ -23,6 +24,7 @@
  * Console output is intentional for startup diagnostics.
  */
 
+import { getEffectiveUserAgent } from '@podverse/helpers';
 import type { ValidationResult, ValidationSummary } from '@podverse/helpers-config';
 import {
   validateRequired,
@@ -43,10 +45,49 @@ import {
 } from './categoriesForCommand.js';
 import { hasAnyImageShrinkEnvSet } from '@workers/config/index.js';
 
+const USER_AGENT_PATTERN = /^[^/]+\/[^/]+\/[^/]+$/;
+
+function validateUserAgentEffective(): ValidationResult {
+  const effective = getEffectiveUserAgent({
+    userAgentRaw: process.env.USER_AGENT,
+    brandName: process.env.BRAND_NAME!,
+    suffix: ' Bot Local/Workers/5',
+  });
+  if (!USER_AGENT_PATTERN.test(effective)) {
+    return {
+      name: 'USER_AGENT',
+      isSet: process.env.USER_AGENT?.trim() !== '',
+      isValid: false,
+      isRequired: true,
+      message: `Invalid format (or set USER_AGENT / BRAND_NAME) - must follow format: BrandName Bot Environment/AppName/Version`,
+      category: 'Config',
+    };
+  }
+  const firstPart = effective.split('/')[0];
+  if (firstPart && !firstPart.includes('Bot')) {
+    return {
+      name: 'USER_AGENT',
+      isSet: process.env.USER_AGENT?.trim() !== '',
+      isValid: false,
+      isRequired: true,
+      message: `Missing "Bot" in first part: "${effective}"`,
+      category: 'Config',
+    };
+  }
+  return {
+    name: 'USER_AGENT',
+    isSet: true,
+    isValid: true,
+    isRequired: true,
+    message: 'Valid format',
+    category: 'Config',
+  };
+}
+
 /** Category: Config/Base — every command needs at least these */
 function validateBase(): ValidationResult[] {
   const results: ValidationResult[] = [];
-  results.push(validateRequired('USER_AGENT', 'Config'));
+  results.push(validateUserAgentEffective());
   results.push(validateRequired('LOG_LEVEL', 'Config'));
   results.push(
     validateOptional('LOG_DIR', 'Config', 'Optional - empty for localhost, set for file logging')

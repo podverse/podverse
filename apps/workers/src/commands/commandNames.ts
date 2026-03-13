@@ -13,6 +13,7 @@ export const KNOWN_COMMANDS: readonly string[] = [
   'imageShrinkSourcePrune',
   'mqRSSAdd',
   'mqRSSAddAll',
+  'devPiBulkFeedsAddFromFile',
   'mqRSSAddRecentlyUpdatedFeedsFromPodcastIndex',
   'mqRSSRunDlqConsumer',
   'mqRSSRunLiveItemListener',

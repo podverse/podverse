@@ -40,7 +40,7 @@ infra/config/
 infra/database/
 scripts/
 Makefile
-Makefile.alpha
+makefiles/
 EOF
                                 '''
                                 
@@ -78,7 +78,7 @@ infra/config/
 infra/database/
 scripts/
 Makefile
-Makefile.alpha
+makefiles/
 EOF
                                 '''
                                 

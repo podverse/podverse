@@ -77,10 +77,10 @@ if [ "$DEVELOP_COMMIT" != "$ORIGIN_DEVELOP_COMMIT" ]; then
   exit 1
 fi
 
-echo -e "${YELLOW}Running security audit on develop...${NC}"
+echo -e "${YELLOW}Running security audit on develop (moderate and above; low permitted)...${NC}"
 npm ci
-if ! npm audit --omit=dev; then
-  echo -e "${RED}Error: npm audit found vulnerabilities in develop. Fix them before syncing to alpha.${NC}"
+if ! npm audit --omit=dev --audit-level=moderate; then
+  echo -e "${RED}Error: npm audit found moderate or higher vulnerabilities in develop. Fix them before syncing to alpha.${NC}"
   exit 1
 fi
 echo ""

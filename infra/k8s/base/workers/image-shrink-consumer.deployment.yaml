@@ -1,3 +1,4 @@
+---
 # Version: 1
 
 apiVersion: apps/v1
@@ -17,7 +18,7 @@ spec:
       containers:
         - name: worker
           image: ghcr.io/podverse/podverse/workers
-          command: ["npm", "run", "image_shrink_run_consumer"]
+          command: ["node", "apps/workers/dist/index.js", "imageShrinkRunConsumer"]
           securityContext:
             runAsUser: 1000
             runAsGroup: 1000
@@ -61,8 +62,10 @@ spec:
                 name: podverse-db-opaque
             - secretRef:
                 name: podverse-mq-opaque
+            # - secretRef:
+            #    name: podverse-workers-digital-ocean-opaque
             - secretRef:
-                name: podverse-workers-digital-ocean-opaque
+                name: podverse-workers-add-by-rss-opaque
           volumeMounts:
             - name: logs-volume
               mountPath: /logs

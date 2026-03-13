@@ -27,7 +27,7 @@ spec:
     metadata:
       labels:
         app: podverse-web
-        environment: alpha
+        environment: base
     spec:
       containers:
         - name: web
@@ -71,6 +71,13 @@ spec:
             successThreshold: 1
             failureThreshold: 3
             timeoutSeconds: 5
+          startupProbe:
+            httpGet:
+              path: /runtime-config
+              port: 3001
+              scheme: HTTP
+            periodSeconds: 2
+            failureThreshold: 60
           readinessProbe:
             httpGet:
               path: /
@@ -89,7 +96,7 @@ spec:
               value: "3001"
           envFrom:
             - configMapRef:
-                name: podverse-web-config
+                name: podverse-web-runtime-config
           securityContext:
             readOnlyRootFilesystem: true
             allowPrivilegeEscalation: false

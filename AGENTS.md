@@ -13,6 +13,8 @@ This document provides rules and patterns for AI coding assistants working on th
 
 ### Essential Commands
 
+All commands below are run **from the monorepo root** (do not `cd` into apps first). Use `-w apps/<name>` to run workspace scripts from root. When providing runnable commands in responses, **always put them in a fenced code block** (e.g. ```bash) so the IDE shows a copy button.
+
 ```bash
 npm run build:packages # Build packages (required before apps)
 npm run lint           # Lint all packages and apps
@@ -32,6 +34,12 @@ Node and npm are provided by the repo's Nix flake, not a global install. When ru
 ### Lock file and workspace dependencies
 
 All monorepo Dockerfiles use `npm ci` for reproducible installs. The root `package-lock.json` must match all workspace `package.json` files. The Make targets that build Docker images (e.g. `local_build_api`, `local_build_web`, `local_build_web_runtime_config`, `local_build_test_assets`, `local_build_all`) automatically run `sync_lockfile` first so the lock file is in sync before `npm ci` runs in the container. After adding, removing, or renaming workspace packages, run `make sync_lockfile` and commit the updated `package-lock.json` so the change is committed; the next Docker build will use the updated lock file from the context.
+
+**Workers (example: add feeds from Podcast Index DB):**
+
+```bash
+npm run dev_pi_bulk_feeds_add_from_file -w apps/workers -- -startId 1 -endId 10 -q rss-slow
+```
 
 ### Package Build Order
 

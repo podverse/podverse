@@ -21,12 +21,15 @@
 
         defaultBuildInputs = with pkgs; [
           nodejs_24
+          prettier
           argocd
           kompose
           kubectl
           kubernetes-helm
+          kustomize
           postgresql
           redis
+          sqlite
           git
           sops
           yq
