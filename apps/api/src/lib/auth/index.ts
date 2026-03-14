@@ -2,6 +2,7 @@ import { config } from '@api/config/index.js';
 import type { CookieOptions, NextFunction, Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
 import passport from 'passport';
+import type { VerifiedCallback } from 'passport-jwt';
 import { ExtractJwt, Strategy as JwtStrategy } from 'passport-jwt';
 import { Strategy as LocalStrategy } from 'passport-local';
 
@@ -88,9 +89,8 @@ passport.use(
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       secretOrKey: config.auth.jwtSecret,
     },
-    async (jwtPayload: { id: number; email?: string }, done) => {
+    async (jwtPayload: { id: number; email?: string }, done: VerifiedCallback) => {
       try {
-        console.log('jwtPayload', jwtPayload);
         if (jwtPayload.email === undefined || jwtPayload.email === '') {
           return done(null, false);
         }
