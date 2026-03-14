@@ -12,9 +12,7 @@ pipeline {
         stage('Stop Alpha Management Web') {
             steps {
                 script {
-                    dir('/opt/podverse') {
-                        sh 'make -f makefiles/alpha/Makefile.alpha.mk alpha_management_web_down'
-                    }
+                    sh 'make -f makefiles/alpha/Makefile.alpha.mk alpha_management_web_down'
                 }
             }
         }

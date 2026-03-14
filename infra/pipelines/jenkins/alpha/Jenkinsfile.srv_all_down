@@ -14,13 +14,7 @@ pipeline {
         stage('Stop Alpha Services') {
             steps {
                 script {
-                    // Maps to the pushd/popd logic in the shell script.
-                    // The dir() wrapper ensures we execute inside the specific path.
-                    dir('/opt/podverse') {
-                        // Jenkins sh steps automatically handle 'set -e' behavior
-                        // (the build will fail if make returns a non-zero exit code).
-                        sh 'make -f makefiles/alpha/Makefile.alpha.mk alpha_all_down'
-                    }
+                    sh 'make -f makefiles/alpha/Makefile.alpha.mk alpha_all_down'
                 }
             }
         }

@@ -16,10 +16,7 @@ pipeline {
                     }
                     steps {
                         script {
-                            // Maps to logic from Jenkinsfile.aux_all_down
-                            dir('/opt/podverse') {
-                                sh 'make -f makefiles/alpha/Makefile.alpha.mk alpha_all_down'
-                            }
+                            sh 'make -f makefiles/alpha/Makefile.alpha.mk alpha_all_down'
                         }
                     }
                 }
@@ -30,10 +27,7 @@ pipeline {
                     }
                     steps {
                         script {
-                            // Maps to logic from Jenkinsfile.srv_all_down
-                            dir('/opt/podverse') {
-                                sh 'make -f makefiles/alpha/Makefile.alpha.mk alpha_all_down'
-                            }
+                            sh 'make -f makefiles/alpha/Makefile.alpha.mk alpha_all_down'
                         }
                     }
                 }
