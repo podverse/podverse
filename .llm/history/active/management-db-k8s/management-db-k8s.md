@@ -180,3 +180,53 @@ the podverse-db and management-db should be in one pod and accessible by the reg
 - infra/k8s/base/management-db/kustomization.yaml
 - infra/k8s/alpha/management-db/kustomization.yaml
 - infra/k8s/base/management-api/configmap.yaml
+
+---
+
+### Session 10 - 2026-03-14
+
+#### Prompt (Developer)
+
+i want to merge the infra/k8s/base/management-db into the infra/k8s/base/db and just use one db server for these functions; the management interface will need access to the regular db anyway
+
+#### Key Decisions
+
+- Moved management DB init scripts into the shared db base and dropped the standalone management-db StatefulSet.
+- Pointed the management-db ArgoCD app at the shared db overlay and removed the separate management-db overlay to avoid duplicate resources.
+
+#### Files Created
+
+- infra/k8s/base/db/management-init-scripts.configmap.yaml
+
+#### Files Modified
+
+- infra/k8s/base/db/kustomization.yaml
+- infra/k8s/base/db/statefulset.yaml
+- infra/k8s/base/management-api/deployment.yaml
+- infra/k8s/base/management-db/kustomization.yaml
+- infra/k8s/base/management-db/service.yaml
+- infra/k8s/alpha/apps/management-db.yaml
+
+#### Files Deleted
+
+- infra/k8s/base/management-db/init-scripts.configmap.yaml
+- infra/k8s/base/management-db/statefulset.yaml
+- infra/k8s/alpha/management-db/kustomization.yaml
+
+---
+
+### Session 11 - 2026-03-14
+
+#### Prompt (Developer)
+
+the management-api will need access to both DBs
+
+#### Key Decisions
+
+- Restored the main db secret on the management API deployment to expose both sets of DB credentials.
+
+#### Files Modified
+
+- infra/k8s/base/management-api/deployment.yaml
+
+---
