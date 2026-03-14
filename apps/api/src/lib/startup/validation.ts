@@ -1,18 +1,19 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion -- BRAND_NAME validated required at startup before getEffectiveUserAgent */
+import { loggerService } from '@api/factories/loggerService.js';
+
 import type { AccountSignupMode } from '@podverse/helpers';
 import {
   getEffectiveUserAgent,
+  isValidServerEnv,
   isValidUUID,
   SERVER_ENV_VALUES,
-  isValidServerEnv,
 } from '@podverse/helpers';
 import type { ValidationResult, ValidationSummary } from '@podverse/helpers-config';
 import {
-  validateRequired,
-  validateOptional,
   validateConditionalOptional,
+  validateOptional,
+  validateRequired,
 } from '@podverse/helpers-config';
-import { loggerService } from '@api/factories/loggerService.js';
 
 /**
  * Validates critical environment variables and configuration at application startup.

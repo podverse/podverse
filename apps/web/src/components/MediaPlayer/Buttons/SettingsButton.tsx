@@ -1,19 +1,22 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
+import { useRef } from 'react';
+import { FaGear } from 'react-icons/fa6';
+
 import {
   getNextPlaybackSpeed,
   getPlaybackTranslationKey,
   getSelectedLabeledItemEnclosureAndSource,
 } from '@podverse/helpers';
-import { useRef } from 'react';
-import { FaGear } from 'react-icons/fa6';
-import { useTranslations } from 'next-intl';
-import { DropdownMenu } from '../../Dropdown/DropdownMenu';
-import { useDropdownKeyboardNavigation } from '../../../hooks/useDropdownKeyboardNavigation';
+
 import { useMediaPlayer } from '../../../contexts/MediaPlayer';
-import { useEnclosureLabel } from '../../../utils/itemEnclosure';
-import styles from '../../../styles/components/MediaPlayer/Buttons/SettingsButton.module.scss';
 import { useModals } from '../../../contexts/Modals';
+import { useDropdownKeyboardNavigation } from '../../../hooks/useDropdownKeyboardNavigation';
+import { useEnclosureLabel } from '../../../utils/itemEnclosure';
+import { DropdownMenu } from '../../Dropdown/DropdownMenu';
+
+import styles from '../../../styles/components/MediaPlayer/Buttons/SettingsButton.module.scss';
 
 export const SettingsButton = () => {
   const buttonRef = useRef<HTMLButtonElement>(null);

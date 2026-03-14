@@ -1,5 +1,5 @@
-import type { DTOItemValueRecipient } from '../dtos/item/itemValueRecipient.js';
 import type { DTOChannelValueRecipient } from '../dtos/channel/channelValueRecipient.js';
+import type { DTOItemValueRecipient } from '../dtos/item/itemValueRecipient.js';
 
 export type NormalizedChannelValueRecipient = DTOChannelValueRecipient & {
   normalized_split: number;

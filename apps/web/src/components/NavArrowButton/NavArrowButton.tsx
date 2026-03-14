@@ -1,6 +1,7 @@
 import React from 'react';
-import styles from '../../styles/components/NavArrowButton/NavArrowButton.module.scss';
 import { FaChevronLeft, FaChevronRight } from 'react-icons/fa6';
+
+import styles from '../../styles/components/NavArrowButton/NavArrowButton.module.scss';
 
 type NavArrowButtonProps = {
   direction: 'left' | 'right';

@@ -1,7 +1,8 @@
+import { getLogger } from '@workers/factories/logger.js';
+import { createDailyRotateLogger } from '@workers/lib/winston.js';
+
 import { OnDemandParserEventType } from '@podverse/helpers';
 import { OnDemandParserEventService } from '@podverse/orm';
-import { createDailyRotateLogger } from '@workers/lib/winston.js';
-import { getLogger } from '@workers/factories/logger.js';
 
 export const generateOnDemandParserEventReports = async () => {
   getLogger().info('Generating OnDemandParserEvent reports...');

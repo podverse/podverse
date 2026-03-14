@@ -1,9 +1,12 @@
 'use client';
 
-import type { DTOAccount } from '@podverse/helpers';
 import React from 'react';
+
+import type { DTOAccount } from '@podverse/helpers';
+
 import { ProfileHeaderViewDesktop } from './ProfileHeaderViewDesktop';
 import { ProfileHeaderViewTablet } from './ProfileHeaderViewTablet';
+
 import styles from '../../../styles/components/Media/Profile/ProfileHeader.module.scss';
 
 type ProfileHeaderProps = {

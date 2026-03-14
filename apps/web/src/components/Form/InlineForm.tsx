@@ -1,4 +1,5 @@
 import React from 'react';
+
 import styles from '../../styles/components/Form/InlineForm.module.scss';
 
 type InlineFormProps = {

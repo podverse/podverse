@@ -1,9 +1,11 @@
 'use client';
 
 import React from 'react';
-import NavBarSearchButton from './NavBarSearchButton';
+
 import NavBarDropdownButton from './NavBarDropdownButton';
 import NavBarMoreButton from './NavBarMoreButton';
+import NavBarSearchButton from './NavBarSearchButton';
+
 import styles from '../../styles/components/NavBar/NavBarRightButtons.module.scss';
 
 const NavBarRightButtons: React.FC = () => (

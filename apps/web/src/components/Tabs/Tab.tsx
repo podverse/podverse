@@ -1,7 +1,9 @@
-import React from 'react';
-import styles from '../../styles/components/Tabs/Tab.module.scss';
 import classNames from 'classnames';
+import React from 'react';
+
 import { cssClass } from '../../utils/cssModule';
+
+import styles from '../../styles/components/Tabs/Tab.module.scss';
 
 type TabProps = {
   label: string;

@@ -1,12 +1,14 @@
 'use client';
 
+import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import React from 'react';
 import { FaPlus } from 'react-icons/fa6';
-import { MainHeader } from '../../components/Main/MainHeader';
+
 import { Button } from '../../components/Button/Button';
+import { MainHeader } from '../../components/Main/MainHeader';
+
 import styles from '../../styles/app/playlists/PlaylistsHeader.module.scss';
-import { useRouter } from 'next/navigation';
 
 export const PlaylistsPageHeader: React.FC = () => {
   const tFeatures = useTranslations('features');

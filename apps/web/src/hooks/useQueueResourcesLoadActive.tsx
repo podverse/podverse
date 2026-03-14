@@ -1,10 +1,12 @@
-import { useCallback, useRef, useEffect } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
+
 import type { DTOQueueResource } from '@podverse/helpers';
 import { getQueueMediumIdForChannelMediumId, MediumEnum } from '@podverse/helpers';
+
 import { useAccount } from '../contexts/Account';
+import { autoQueueIncrementActiveRow, useAutoQueue } from '../contexts/AutoQueue';
 import { useQueues } from '../contexts/Queue';
 import { getApiRequestService } from '../factories/apiRequestService';
-import { autoQueueIncrementActiveRow, useAutoQueue } from '../contexts/AutoQueue';
 
 export type QueueResourcesLoadActiveResult = {
   upcomingManualCount: number;

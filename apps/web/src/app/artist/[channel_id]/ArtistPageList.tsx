@@ -1,5 +1,7 @@
 'use client';
 
+import React from 'react';
+
 import type {
   DTOChannel,
   DTOItem,
@@ -7,14 +9,14 @@ import type {
   PodcastBatchByFeedGuidResponse,
   RemoteItemsResponse,
 } from '@podverse/helpers';
-import React from 'react';
-import { useArtistPageContext } from './ArtistPageContext';
+
 import { ContentAbout } from '../../../components/Content/About/ContentAbout';
 import { ContentPodroll } from '../../../components/Content/Podroll/ContentPodroll';
 import { DetailListWrapper } from '../../../components/List/DetailListWrapper';
+import { ListChannelSettings } from '../../../components/List/ListChannelSettings';
 import { ListAlbumsRemoteItems } from '../../../components/List/Music/Albums/ListAlbumsRemoteItems';
 import { ListTracksRemoteItems } from '../../../components/List/Music/Albums/Tracks/ListTracksRemoteItems';
-import { ListChannelSettings } from '../../../components/List/ListChannelSettings';
+import { useArtistPageContext } from './ArtistPageContext';
 
 type ArtistPageListProps = {
   podroll: RemoteItemsResponse | null;

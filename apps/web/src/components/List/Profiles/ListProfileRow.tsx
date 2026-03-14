@@ -1,10 +1,13 @@
 'use client';
 
-import { useTranslations } from 'next-intl';
 import Link from 'next/link';
-import type { DTOAccount } from '@podverse/helpers';
+import { useTranslations } from 'next-intl';
 import React from 'react';
+
+import type { DTOAccount } from '@podverse/helpers';
+
 import { ROUTES } from '../../../constants/routes';
+
 import styles from '../../../styles/components/List/Profiles/ListProfileRow.module.scss';
 
 interface Props {

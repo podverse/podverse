@@ -2,9 +2,10 @@
 
 import { useTranslations } from 'next-intl';
 import React from 'react';
-import { Modal, MODAL_CONTENT_MAX_WIDTH } from './Modal';
-import { BoostForm } from '../Boost/BoostForm';
+
 import { useModals } from '../../contexts/Modals';
+import { BoostForm } from '../Boost/BoostForm';
+import { Modal, MODAL_CONTENT_MAX_WIDTH } from './Modal';
 
 export const ModalBoost: React.FC = () => {
   const { modalBoost, setModalBoost } = useModals();

@@ -1,8 +1,8 @@
 import type { AppValueRecipient } from '@podverse/helpers';
 
-import type { PaymentRecipient } from '../types.js';
-import { getAppValueRecipient } from '../../../utils/value/appValue';
 import type { WebConfig } from '../../../config';
+import { getAppValueRecipient } from '../../../utils/value/appValue';
+import type { PaymentRecipient } from '../types.js';
 
 type UseBoostAppRecipientsParams = {
   config: WebConfig;

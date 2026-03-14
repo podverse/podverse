@@ -1,11 +1,12 @@
 'use client';
 
-import { PlayButton } from '../Buttons/PlayButton';
 import { JumpBackButton } from '../Buttons/JumpBackButton';
 import { JumpForwardButton } from '../Buttons/JumpForwardButton';
-import { TrackPreviousButton } from '../Buttons/TrackPreviousButton';
+import { PlayButton } from '../Buttons/PlayButton';
 import { TrackNextButton } from '../Buttons/TrackNextButton';
+import { TrackPreviousButton } from '../Buttons/TrackPreviousButton';
 import { MediaPlayerProgress } from '../Sliders/MediaPlayerProgress';
+
 import styles from '../../../styles/components/MediaPlayer/Desktop/MediaPlayerControlsDesktop.module.scss';
 
 export const MediaPlayerControlsDesktop = () => {

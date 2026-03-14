@@ -1,3 +1,10 @@
+import {
+  getImageShrinkConfig,
+  getImageShrinkStorageConfig,
+  isImageShrinkEnabled,
+} from '@workers/config/index.js';
+import { getImageStorageService } from '@workers/factories/imageStorageService.js';
+import { getLoggerService } from '@workers/factories/loggerService.js';
 import sharp from 'sharp';
 
 import { createThroughputLimiter, sha256Hex } from '@podverse/helpers';
@@ -14,13 +21,6 @@ import {
   Item,
   ItemImageService,
 } from '@podverse/orm';
-import {
-  getImageShrinkConfig,
-  getImageShrinkStorageConfig,
-  isImageShrinkEnabled,
-} from '@workers/config/index.js';
-import { getImageStorageService } from '@workers/factories/imageStorageService.js';
-import { getLoggerService } from '@workers/factories/loggerService.js';
 
 /**
  * Image shrink storage contract: upload by key, public URL = cdnBaseUrl + key.

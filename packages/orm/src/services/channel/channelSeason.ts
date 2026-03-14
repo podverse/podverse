@@ -1,7 +1,7 @@
-import { Equal } from 'typeorm';
 import type { Channel } from '@orm/entities/channel/channel.js';
 import { ChannelSeason } from '@orm/entities/channel/channelSeason.js';
 import { BaseManyService } from '@orm/services/base/baseManyService.js';
+import { Equal } from 'typeorm';
 
 type ChannelSeasonDto = {
   number: number;

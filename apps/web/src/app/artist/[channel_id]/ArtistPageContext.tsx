@@ -1,12 +1,14 @@
 'use client';
 
 import { useParams } from 'next/navigation';
-import type { QueryParamsChannelMusicArtist } from '@podverse/helpers-requests';
 import type { ReactNode } from 'react';
 import { createContext, useContext, useState } from 'react';
+
+import type { QueryParamsChannelMusicArtist } from '@podverse/helpers-requests';
+
 import { checkBackNavFlag } from '../../../contexts/Navigation';
 import { usePageStateCache } from '../../../hooks/usePageStateCache';
-import { getPageState, definedProps } from '../../../utils/pageStateCache';
+import { definedProps, getPageState } from '../../../utils/pageStateCache';
 
 interface ArtistPageContextType {
   filterParams: QueryParamsChannelMusicArtist;

@@ -1,4 +1,5 @@
 import { redirect } from 'next/navigation';
+
 import { getSSRAuthService } from '../../utils/auth/ssrAuth';
 import { MyProfilePageClient } from './MyProfilePageClient';
 

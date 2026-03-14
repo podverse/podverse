@@ -1,8 +1,9 @@
+import type { ActiveMQArtemisService } from '@queue/services/activeMQArtemis/index.js';
+import type { MQFeedMessage } from '@queue/types/mq.js';
+
 import type { PodcastIndexService } from '@podverse/external-services-podcast-index';
 import type { MQQueueConfigFunctionParams } from '@podverse/helpers';
 import { FeedService } from '@podverse/orm';
-import type { ActiveMQArtemisService } from '@queue/services/activeMQArtemis/index.js';
-import type { MQFeedMessage } from '@queue/types/mq.js';
 import type { ParseRSSFeedAndSaveToDatabaseOptions } from '@podverse/parser';
 
 type MQRSSAddAllRecentlyUpdatedFeedsOptions = MQQueueConfigFunctionParams & {

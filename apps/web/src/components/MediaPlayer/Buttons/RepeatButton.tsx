@@ -1,7 +1,9 @@
-import { FaRepeat } from 'react-icons/fa6';
 import { useTranslations } from 'next-intl';
+import { FaRepeat } from 'react-icons/fa6';
+
 import { useAutoQueue } from '../../../contexts/AutoQueue';
 import { useAutoQueueLoadResources } from '../../../hooks/useAutoQueueLoadResources';
+
 import styles from '../../../styles/components/MediaPlayer/Buttons/RepeatButton.module.scss';
 
 export const RepeatButton = () => {

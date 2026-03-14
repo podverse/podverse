@@ -1,10 +1,12 @@
-import { getSharableStatusIdsForProfileType } from '@podverse/helpers';
-import type { FindManyOptions } from 'typeorm';
-import { In, Not, IsNull } from 'typeorm';
 import { StatsAggregatedAccount } from '@orm/entities/stats/statsAggregatedAccount.js';
-import { StatsTrackEventAccountService } from './statsTrackEventAccount.js';
+import type { FindManyOptions } from 'typeorm';
+import { In, IsNull, Not } from 'typeorm';
+
+import { getSharableStatusIdsForProfileType } from '@podverse/helpers';
+
 import type { UpdateHistoricalOptions } from './baseStatsAggregated.js';
 import { BaseStatsAggregatedService } from './baseStatsAggregated.js';
+import { StatsTrackEventAccountService } from './statsTrackEventAccount.js';
 
 export class StatsAggregatedAccountService extends BaseStatsAggregatedService<
   StatsAggregatedAccount,

@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import React from 'react';
 import { FaTimes } from 'react-icons/fa';
+
 import styles from '../../styles/components/Modal/Modal.module.scss';
 
 /** Default max width (px) for modal content. Use when passing modalContentMaxWidth to Modal. */

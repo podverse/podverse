@@ -1,7 +1,9 @@
 import { useTranslations } from 'next-intl';
 import React from 'react';
+
 import LoadingSpinner from '../LoadingSpinner/LoadingSpinner';
 import { PopoverIcon } from '../PopoverIcon/PopoverIcon';
+
 import styles from '../../styles/components/Form/SwitchButton.module.scss';
 
 type SwitchButtonProps = {

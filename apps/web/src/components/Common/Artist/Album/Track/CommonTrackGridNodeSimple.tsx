@@ -3,8 +3,9 @@
 import Link from 'next/link';
 import React from 'react';
 
-import { Image } from '../../../../Image/Image';
 import { IMAGES } from '../../../../../constants/images';
+import { Image } from '../../../../Image/Image';
+
 import styles from '../../../../../styles/components/Common/List/ListGridNode.module.scss';
 
 type CommonTrackGridNodeSimpleProps = {

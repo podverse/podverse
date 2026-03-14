@@ -1,13 +1,14 @@
 'use client';
 
-import { useTranslations } from 'next-intl';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import React from 'react';
 
+import type { AddByRSSFeedRecord } from '../../../../../utils/addByRSS/types';
 import { CommonItemHeader } from '../../../../Common/Item/CommonItemHeader';
 import { AddByRSSItemHeaderPlaySection } from '../../../Item/AddByRSSItemHeaderPlaySection';
+
 import styles from '../../../../../styles/components/Common/Media/Podcast/Episode/EpisodeHeader.module.scss';
-import type { AddByRSSFeedRecord } from '../../../../../utils/addByRSS/types';
 
 const alertPlaceholder = (label: string) => () => {
   window.alert(`Add by RSS: ${label}`);

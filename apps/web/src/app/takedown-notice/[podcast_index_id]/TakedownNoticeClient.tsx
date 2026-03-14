@@ -1,13 +1,16 @@
 'use client';
-import { useEffect, useMemo } from 'react';
-import { MainHeader } from '../../../components/Main/MainHeader';
-import { MainWrapper } from '../../../components/Main/MainWrapper';
-import { useTranslations } from 'next-intl';
-import type { DTOFeed } from '@podverse/helpers';
 import { useRouter } from 'next/navigation';
-import { MainInnerWrapper } from '../../../components/Main/MainInnerWrapper';
-import { SideContent } from '../../../components/SideContent/SideContent';
+import { useTranslations } from 'next-intl';
+import { useEffect, useMemo } from 'react';
+
+import type { DTOFeed } from '@podverse/helpers';
+
+import { MainHeader } from '../../../components/Main/MainHeader';
 import { MainInnerContentWrapper } from '../../../components/Main/MainInnerContentWrapper';
+import { MainInnerWrapper } from '../../../components/Main/MainInnerWrapper';
+import { MainWrapper } from '../../../components/Main/MainWrapper';
+import { SideContent } from '../../../components/SideContent/SideContent';
+
 import styles from './TakedownNoticeClient.module.scss';
 
 type TakedownNoticeClientProps = {

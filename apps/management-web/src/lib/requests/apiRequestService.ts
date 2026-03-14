@@ -1,5 +1,5 @@
-import { request } from './_request';
 import { getConfig } from '../../config';
+import { request } from './_request';
 
 export type AbortOpts = { controller: AbortController; timeoutMs: number };
 

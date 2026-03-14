@@ -1,8 +1,9 @@
-import { OnDemandParserEventType } from '@podverse/helpers';
-import { Router } from 'express';
 import { config } from '@api/config/index.js';
 import { MQController } from '@api/controllers/mq/mq.js';
 import { asyncHandler } from '@api/middleware/asyncHandler.js';
+import { Router } from 'express';
+
+import { OnDemandParserEventType } from '@podverse/helpers';
 
 const router = Router();
 

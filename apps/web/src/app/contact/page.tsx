@@ -1,15 +1,17 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { MainHeader } from '../../components/Main/MainHeader';
-import { MainWrapper } from '../../components/Main/MainWrapper';
-import { MainInnerWrapper } from '../../components/Main/MainInnerWrapper';
-import { MainInnerContentWrapper } from '../../components/Main/MainInnerContentWrapper';
-import { SideContent } from '../../components/SideContent/SideContent';
+
+import { Divider } from '../../components/Divider/Divider';
 import { Link } from '../../components/Link/Link';
+import { MainHeader } from '../../components/Main/MainHeader';
+import { MainInnerContentWrapper } from '../../components/Main/MainInnerContentWrapper';
+import { MainInnerWrapper } from '../../components/Main/MainInnerWrapper';
+import { MainWrapper } from '../../components/Main/MainWrapper';
+import { SideContent } from '../../components/SideContent/SideContent';
 import { CONTACT_EMAIL_LINKS } from '../../constants/contact';
 import { SOCIALS } from '../../constants/socials';
-import { Divider } from '../../components/Divider/Divider';
+
 import styles from '../../styles/app/contact/Contact.module.scss';
 
 export default function ContactPage() {

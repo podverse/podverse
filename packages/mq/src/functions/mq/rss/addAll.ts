@@ -1,7 +1,8 @@
-import { FeedService } from '@podverse/orm';
 import type { ActiveMQArtemisService } from '@queue/services/activeMQArtemis/index.js';
 import type { MQFeedMessage } from '@queue/types/mq.js';
+
 import type { MQQueueConfigFunctionParams } from '@podverse/helpers';
+import { FeedService } from '@podverse/orm';
 import type { ParseRSSFeedAndSaveToDatabaseOptions } from '@podverse/parser';
 
 type MQRSSAddAllConfig = MQQueueConfigFunctionParams;

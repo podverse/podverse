@@ -1,5 +1,6 @@
-import React from 'react';
 import classNames from 'classnames';
+import React from 'react';
+
 import styles from '../../styles/components/Form/FormInfoMessageText.module.scss';
 
 type Props = {

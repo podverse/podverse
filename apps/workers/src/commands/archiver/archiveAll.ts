@@ -1,5 +1,6 @@
-import { ArchiverService } from '@podverse/orm';
 import { getLoggerService } from '@workers/factories/loggerService.js';
+
+import { ArchiverService } from '@podverse/orm';
 
 export default async function archiveAll(): Promise<void> {
   const archiverService = new ArchiverService();

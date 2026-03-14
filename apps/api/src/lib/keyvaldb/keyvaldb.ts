@@ -1,6 +1,6 @@
-import { Redis } from 'ioredis';
 import { config } from '@api/config/index.js';
 import { loggerService } from '@api/factories/loggerService.js';
+import { Redis } from 'ioredis';
 
 const keyvaldb = new Redis({
   host: config.keyvaldb.host,

@@ -1,6 +1,7 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
+
 import { SearchInput } from '../../components/Form/SearchInput';
 import { useSearchPageContext } from './SearchPageContext';
 

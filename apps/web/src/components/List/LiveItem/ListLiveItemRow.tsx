@@ -1,7 +1,9 @@
 'use client';
 
-import { useTranslations } from 'next-intl';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
+import React from 'react';
+
 import type { DTOChannel, DTOItem, DTOLiveItem } from '@podverse/helpers';
 import {
   findDTOChannelImageForList,
@@ -11,17 +13,18 @@ import {
   stripAndDecodeHtml,
 } from '@podverse/helpers';
 import { getShuffleHash } from '@podverse/helpers-requests';
-import React from 'react';
+
+import { IMAGES } from '../../../constants/images';
+import { ROUTES } from '../../../constants/routes';
+import { useAutoQueue } from '../../../contexts/AutoQueue';
+import { useMediaPlayer } from '../../../contexts/MediaPlayer';
+import { useMediaPlayerResourceUpdate } from '../../../hooks/useMediaPlayerResourceUpdate';
 import { ImagesPerView } from '../../Image/ImagesPerView';
 import { LiveItemStatus } from '../../LiveItem/LiveItemStatus';
 import { PlayButtonRow } from '../../MediaPlayer/Buttons/PlayButtonRow';
 import { ReadableDate } from '../../Time/ReadableDate';
 import { ReadableTime } from '../../Time/ReadableTime';
-import { ROUTES } from '../../../constants/routes';
-import { IMAGES } from '../../../constants/images';
-import { useAutoQueue } from '../../../contexts/AutoQueue';
-import { useMediaPlayer } from '../../../contexts/MediaPlayer';
-import { useMediaPlayerResourceUpdate } from '../../../hooks/useMediaPlayerResourceUpdate';
+
 import styles from '../../../styles/components/Common/List/LiveItem/ListLiveItemRow.module.scss';
 
 interface Props {

@@ -1,20 +1,22 @@
+import { cookies } from 'next/headers';
+import { z } from 'zod';
+
 import type { DTOAccount } from '@podverse/helpers';
 import { getTotalPages } from '@podverse/helpers';
 import type { QueryParamsSubscribedFullSort } from '@podverse/helpers-requests';
 import {
   QUERY_PARAMS_STATS_RANGE_VALUES,
-  QUERY_PARAMS_SUBSCRIBED_TYPE,
   QUERY_PARAMS_SUBSCRIBED_FULL_SORT,
+  QUERY_PARAMS_SUBSCRIBED_TYPE,
 } from '@podverse/helpers-requests';
-import { cookies } from 'next/headers';
-import { z } from 'zod';
-import { ProfilesPageClient } from './ProfilesPageClient';
-import type { ProfilesPageDropdownConfigCurrentParams } from './ProfilesPageDropdownConfig';
-import { getProfilesPageFilterParams } from './ProfilesPageDropdownConfig';
+
 import { getSSRAuthService } from '../../utils/auth/ssrAuth';
 import { guardSubscribedSsrFilter, safeSsrListRequest } from '../../utils/filters/ssrFilterGuards';
 import type { ProfilesFilterDefaults } from '../../utils/localSettings/localSettings';
 import { getParsedLocalSettings } from '../../utils/localSettings/localSettings';
+import { ProfilesPageClient } from './ProfilesPageClient';
+import type { ProfilesPageDropdownConfigCurrentParams } from './ProfilesPageDropdownConfig';
+import { getProfilesPageFilterParams } from './ProfilesPageDropdownConfig';
 
 const searchParamsSchema = z.object({
   page: z

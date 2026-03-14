@@ -1,14 +1,15 @@
 'use client';
 
 import type { DTOAccount } from '@podverse/helpers';
+
+import { MainInnerContentWrapper } from '../../components/Main/MainInnerContentWrapper';
+import { MainInnerWrapper } from '../../components/Main/MainInnerWrapper';
+import { MainWrapper } from '../../components/Main/MainWrapper';
+import { SideContent } from '../../components/SideContent/SideContent';
 import type { ProfilesPageQueryParams } from './ProfilesPageContext';
 import { ProfilesPageContextProvider } from './ProfilesPageContext';
-import { MainWrapper } from '../../components/Main/MainWrapper';
 import { ProfilesPageHeader } from './ProfilesPageHeader';
 import { ProfilesPageList } from './ProfilesPageList';
-import { MainInnerWrapper } from '../../components/Main/MainInnerWrapper';
-import { MainInnerContentWrapper } from '../../components/Main/MainInnerContentWrapper';
-import { SideContent } from '../../components/SideContent/SideContent';
 
 interface ProfilesPageClientProps {
   initialQueryParams: ProfilesPageQueryParams;

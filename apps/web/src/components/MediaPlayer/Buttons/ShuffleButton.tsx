@@ -1,8 +1,11 @@
-import { FaShuffle } from 'react-icons/fa6';
 import { useTranslations } from 'next-intl';
+import { FaShuffle } from 'react-icons/fa6';
+
 import { getShuffleHash } from '@podverse/helpers-requests';
+
 import { useAutoQueue } from '../../../contexts/AutoQueue';
 import { useAutoQueueLoadResources } from '../../../hooks/useAutoQueueLoadResources';
+
 import styles from '../../../styles/components/MediaPlayer/Buttons/ShuffleButton.module.scss';
 
 export const ShuffleButton = () => {

@@ -1,19 +1,22 @@
 'use client';
 
+import { useRouter } from 'next/navigation';
 import { useLocale, useTranslations } from 'next-intl';
+import React, { useEffect, useState } from 'react';
+
 import {
-  getPasswordErrorKey,
   getPassword2ErrorKey,
+  getPasswordErrorKey,
   getPasswordRequirementsInfoKey,
 } from '@podverse/helpers-validation/client';
-import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { Button } from '../Button/Button';
-import { TextInput } from '../Form/TextInput';
-import Form from '../Form/Form';
+
 import { getApiRequestService } from '../../factories/apiRequestService';
 import { handleRateLimitAlert } from '../../utils/rateLimit/rateLimitAlert';
+import { Button } from '../Button/Button';
+import Form from '../Form/Form';
 import { FormInfoMessageText } from '../Form/FormInfoMessageText';
+import { TextInput } from '../Form/TextInput';
+
 import styles from '../../styles/components/Auth/AuthResetPasswordForm.module.scss';
 
 type AuthResetPasswordFormProps = {

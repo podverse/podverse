@@ -1,9 +1,10 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useRef, useState } from 'react';
+
 import { checkBackNavFlag } from '../contexts/Navigation';
+import { definedProps, getPageState } from '../utils/pageStateCache';
 import { usePageStateCache } from './usePageStateCache';
-import { getPageState, definedProps } from '../utils/pageStateCache';
 
 /**
  * Cached data structure for list pages with pagination

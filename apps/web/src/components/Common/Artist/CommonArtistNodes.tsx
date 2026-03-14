@@ -4,10 +4,11 @@ import React from 'react';
 
 import { Divider } from '../../Divider/Divider';
 import type { ViewSelectedOption } from '../../ViewSelector/ViewSelector';
-import styles from '../../../styles/components/Common/List/ListNodes.module.scss';
 import { CommonArtistListGridNode } from './CommonArtistGridNode';
 import { CommonArtistListRow } from './CommonArtistRow';
 import type { ArtistListItem } from './types';
+
+import styles from '../../../styles/components/Common/List/ListNodes.module.scss';
 
 type CommonArtistListNodesProps = {
   items: ArtistListItem[];

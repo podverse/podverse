@@ -1,28 +1,11 @@
-import type { Request, Response } from 'express';
-import Joi from 'joi';
-import type {
-  Item,
-  StatsAggregatedItem,
-  FindManyOptions,
-  FindOptionsOrder,
-  ItemChapter,
-} from '@podverse/orm';
-import {
-  itemGetOneRelations,
-  itemGetManyRelations,
-  ItemChapterService,
-  ItemService,
-  subItemGetManyRelations,
-  StatsAggregatedItemService,
-  ChannelService,
-  itemGetManyRelationsWithChannel,
-  subItemGetManyRelationsWithChannel,
-} from '@podverse/orm';
-import { parseChapters } from '@podverse/parser';
-import { assignChapterEndTimes } from '@api/lib/chapters.js';
 import { handleReturnDataOrNotFound } from '@api/controllers/helpers/data.js';
 import { handleGenericErrorResponse } from '@api/controllers/helpers/error.js';
 import { getPaginationParams } from '@api/controllers/helpers/pagination.js';
+import { ensureAuthenticated, getAuthenticatedUser } from '@api/lib/auth/index.js';
+import { assignChapterEndTimes } from '@api/lib/chapters.js';
+import { getFollowedChannelIds } from '@api/lib/followed.js';
+import { getParamRequired } from '@api/lib/params.js';
+import { getStatsOrder } from '@api/lib/stats.js';
 import {
   idOrIdTextParamSchema,
   itemIdTextParamSchema,
@@ -35,6 +18,9 @@ import {
   validateParamsObject,
   validateQueryObject,
 } from '@api/lib/validation/index.js';
+import type { Request, Response } from 'express';
+import Joi from 'joi';
+
 import type { CategoryMappingKeys, QueryParamsMedium } from '@podverse/helpers';
 import { getCategoryEnumValue, LIVE_ITEM_STATUSES } from '@podverse/helpers';
 import type {
@@ -43,10 +29,25 @@ import type {
   QueryParamsStatsRange,
 } from '@podverse/helpers-requests';
 import { emptyApiListResponse, QUERY_PARAMS_DIRECTION_VALUES } from '@podverse/helpers-requests';
-import { getStatsOrder } from '@api/lib/stats.js';
-import { ensureAuthenticated, getAuthenticatedUser } from '@api/lib/auth/index.js';
-import { getFollowedChannelIds } from '@api/lib/followed.js';
-import { getParamRequired } from '@api/lib/params.js';
+import type {
+  FindManyOptions,
+  FindOptionsOrder,
+  Item,
+  ItemChapter,
+  StatsAggregatedItem,
+} from '@podverse/orm';
+import {
+  ChannelService,
+  ItemChapterService,
+  itemGetManyRelations,
+  itemGetManyRelationsWithChannel,
+  itemGetOneRelations,
+  ItemService,
+  StatsAggregatedItemService,
+  subItemGetManyRelations,
+  subItemGetManyRelationsWithChannel,
+} from '@podverse/orm';
+import { parseChapters } from '@podverse/parser';
 
 const getRecentOrder = (itemType: 'normal' | 'live-item'): FindOptionsOrder<Item> => {
   if (itemType === 'live-item') {

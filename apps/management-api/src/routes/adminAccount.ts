@@ -1,8 +1,8 @@
-import express from 'express';
-import { ensureAuthenticated } from '@mgmt-api/lib/auth/index.js';
 import { config } from '@mgmt-api/config/index.js';
-import { AdminAccountService } from '@mgmt-api/orm/services/adminAccount.js';
+import { ensureAuthenticated } from '@mgmt-api/lib/auth/index.js';
 import { getParamRequired } from '@mgmt-api/lib/params.js';
+import { AdminAccountService } from '@mgmt-api/orm/services/adminAccount.js';
+import express from 'express';
 
 const router = express.Router();
 const baseUrl = `${config.api.prefix}${config.api.version}`;

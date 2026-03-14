@@ -1,6 +1,6 @@
 import type { NotificationsContext } from '../../factory.js';
-import { sendWebPushNotificationBatch } from './webpushNotification.js';
 import type { WebPushSubscription } from './webpushHelpers.js';
+import { sendWebPushNotificationBatch } from './webpushNotification.js';
 
 type WebPushOrchestratorParams = {
   subscriptions: WebPushSubscription[];

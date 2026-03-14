@@ -2,18 +2,20 @@
 
 import type { ReactNode } from 'react';
 import { createContext, useContext, useState } from 'react';
+
 import type { DTOAccount } from '@podverse/helpers';
 import { getTotalPages } from '@podverse/helpers';
 import type {
-  QueryParamsSubscribedType,
-  QueryParamsSubscribedFullSort,
   QueryParamsStatsRange,
+  QueryParamsSubscribedFullSort,
+  QueryParamsSubscribedType,
 } from '@podverse/helpers-requests';
-import { getApiRequestService } from '../../factories/apiRequestService';
+
 import { useAccount } from '../../contexts/Account';
-import { useSkipInitialEffect } from '../../hooks/useSkipInitialEffect';
+import { getApiRequestService } from '../../factories/apiRequestService';
 import { useFilterDefaults } from '../../hooks/useFilterDefaults';
 import { useListPageCache } from '../../hooks/useListPageCache';
+import { useSkipInitialEffect } from '../../hooks/useSkipInitialEffect';
 import { getProfilesPageFilterParams } from './ProfilesPageDropdownConfig';
 
 export type ProfilesPageQueryParams = {

@@ -1,19 +1,3 @@
-import type { MediumEnum } from '@podverse/helpers';
-import { DATABASE_CONSTANTS } from '@podverse/helpers';
-import {
-  Entity,
-  PrimaryGeneratedColumn,
-  Column,
-  ManyToOne,
-  Unique,
-  Index,
-  OneToOne,
-  JoinColumn,
-  BeforeInsert,
-  BeforeUpdate,
-  OneToMany,
-} from 'typeorm';
-import { generateRandomIdText } from '@orm/lib/nanoid.js';
 import type { ChannelAbout } from '@orm/entities/channel/channelAbout.js';
 import type { ChannelCategory } from '@orm/entities/channel/channelCategory.js';
 import type { ChannelChat } from '@orm/entities/channel/channelChat.js';
@@ -34,6 +18,24 @@ import type { ChannelTxt } from '@orm/entities/channel/channelTxt.js';
 import type { ChannelValue } from '@orm/entities/channel/channelValue.js';
 import type { Feed } from '@orm/entities/feed/feed.js';
 import type { Medium } from '@orm/entities/medium.js';
+import { generateRandomIdText } from '@orm/lib/nanoid.js';
+import {
+  BeforeInsert,
+  BeforeUpdate,
+  Column,
+  Entity,
+  Index,
+  JoinColumn,
+  ManyToOne,
+  OneToMany,
+  OneToOne,
+  PrimaryGeneratedColumn,
+  Unique,
+} from 'typeorm';
+
+import type { MediumEnum } from '@podverse/helpers';
+import { DATABASE_CONSTANTS } from '@podverse/helpers';
+
 import type { Item } from '../item/item.js';
 
 @Entity('channel')

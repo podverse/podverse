@@ -1,10 +1,12 @@
 import { FaForwardStep } from 'react-icons/fa6';
-import { useMediaPlayer } from '../../../contexts/MediaPlayer';
+
 import { useAddByRSSListContext } from '../../../contexts/AddByRSSListContext';
+import { useMediaPlayer } from '../../../contexts/MediaPlayer';
 import { useAddByRSSPlayNext } from '../../../hooks/useAddByRSSPlayNext';
-import { useQueueResourcesLoadActive } from '../../../hooks/useQueueResourcesLoadActive';
 import { useQueueResourcesMoveNowPlayingToHistory } from '../../../hooks/useQueueResourceMoveNowPlayingToHistory';
+import { useQueueResourcesLoadActive } from '../../../hooks/useQueueResourcesLoadActive';
 import { resolveAddByRSSListContextFromCurrentItem } from '../../../utils/addByRSS/resolveListContextFromCurrentItem';
+
 import styles from '../../../styles/components/MediaPlayer/Buttons/TrackNextButton.module.scss';
 
 export const TrackNextButton = () => {

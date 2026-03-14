@@ -1,11 +1,14 @@
-import type { QueryParamsMedium } from '@podverse/helpers';
-import { getMediumIdArrayFromType, MediumEnum } from '@podverse/helpers';
-import type { FindManyOptions, FindOptionsRelations, FindOptionsWhere, Repository } from 'typeorm';
-import { In, Equal } from 'typeorm';
+import { AppDataSourceRead, AppDataSourceReadWrite } from '@orm/db/index.js';
 import { Channel } from '@orm/entities/channel/channel.js';
 import { Feed } from '@orm/entities/feed/feed.js';
+import { FeedFlagStatusStatusEnum } from '@orm/entities/feed/feedFlagStatus.js';
 import { applyProperties } from '@orm/lib/applyProperties.js';
-import { AppDataSourceRead, AppDataSourceReadWrite } from '@orm/db/index.js';
+import type { FindManyOptions, FindOptionsRelations, FindOptionsWhere, Repository } from 'typeorm';
+import { Equal, In } from 'typeorm';
+
+import type { QueryParamsMedium } from '@podverse/helpers';
+import { getMediumIdArrayFromType, MediumEnum } from '@podverse/helpers';
+
 import { ChannelCategoryService } from './channelCategory.js';
 import { ChannelFundingService } from './channelFunding.js';
 import { ChannelImageService } from './channelImage.js';
@@ -15,10 +18,9 @@ import { ChannelSeasonService } from './channelSeason.js';
 import { ChannelSocialInteractService } from './channelSocialInteract.js';
 import { ChannelTrailerService } from './channelTrailer.js';
 import { ChannelTxtService } from './channelTxt.js';
-import { ChannelValueMetaBoostService } from './channelValueMetaBoost.js';
 import { ChannelValueService } from './channelValue.js';
+import { ChannelValueMetaBoostService } from './channelValueMetaBoost.js';
 import { ChannelValueRecipientService } from './channelValueRecipient.js';
-import { FeedFlagStatusStatusEnum } from '@orm/entities/feed/feedFlagStatus.js';
 
 type ChannelDto = {
   slug?: string | null;

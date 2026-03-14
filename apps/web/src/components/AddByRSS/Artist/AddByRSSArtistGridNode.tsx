@@ -2,8 +2,8 @@
 
 import React from 'react';
 
-import { CommonArtistListGridNode } from '../../Common/Artist/CommonArtistGridNode';
 import type { AddByRSSFeedRecord } from '../../../utils/addByRSS/types';
+import { CommonArtistListGridNode } from '../../Common/Artist/CommonArtistGridNode';
 import type { ArtistListItem } from '../../Common/Artist/types';
 
 type AddByRSSArtistGridNodeProps = {

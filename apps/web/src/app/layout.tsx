@@ -1,29 +1,31 @@
 import { cookies } from 'next/headers';
+
 import type { QueueResourcesAbridgedIndex } from '@podverse/helpers';
 import { generateQueueResourceAbridgedIndex } from '@podverse/helpers';
+
+import { AppWrapper } from '../components/App/AppWrapper';
+import AuthSessionChecker from '../components/Auth/AuthSessionChecker';
 import FavIcons from '../components/Head/FavIcons';
 import FontPreloads from '../components/Head/FontPreloads';
 import Manifest from '../components/Head/Manifest';
 import RuntimeConfigScript from '../components/Head/RuntimeConfigScript';
-import { AppWrapper } from '../components/App/AppWrapper';
+import { LazyLoadedComponents } from '../components/LazyLoadedComponents/LazyLoadedComponents';
+import { MediaPlayerController } from '../components/MediaPlayer/Controller/MediaPlayerController';
 import NavBar from '../components/NavBar/NavBar';
 import PageWrapper from '../components/PageWrapper/PageWrapper';
-import { SideBar } from '../components/SideBar/SideBar';
-import WindowWrapper from '../components/Window/WindowWrapper';
-import Providers from '../providers/Providers';
-import { toUITheme } from '../utils/localSettings/uiTheme';
-import { getSSRJwtFromCookies, getSSRLoggedInAccount } from '../utils/auth/ssrAuth';
-import AuthSessionChecker from '../components/Auth/AuthSessionChecker';
-import { getSSRApiRequestService } from '../factories/apiRequestService';
-import { getConfig } from '../config';
-import { getRuntimeConfig } from '../config/runtime-config-store';
-import { MediaPlayerController } from '../components/MediaPlayer/Controller/MediaPlayerController';
 import { QueueController } from '../components/Queue/QueueController';
 import { QueueResourcesAbridgedController } from '../components/Queue/QueueResourcesAbridgedController';
-import { getParsedLocalSettings } from '../utils/localSettings/localSettings';
+import { SideBar } from '../components/SideBar/SideBar';
+import WindowWrapper from '../components/Window/WindowWrapper';
+import { getConfig } from '../config';
+import { getRuntimeConfig } from '../config/runtime-config-store';
+import { getSSRApiRequestService } from '../factories/apiRequestService';
 import { useLocaleDetect } from '../hooks/useLocaleDetect';
 import { setSSRAccountForLocale } from '../i18n/request';
-import { LazyLoadedComponents } from '../components/LazyLoadedComponents/LazyLoadedComponents';
+import Providers from '../providers/Providers';
+import { getSSRJwtFromCookies, getSSRLoggedInAccount } from '../utils/auth/ssrAuth';
+import { getParsedLocalSettings } from '../utils/localSettings/localSettings';
+import { toUITheme } from '../utils/localSettings/uiTheme';
 
 import '../styles/index.scss';
 

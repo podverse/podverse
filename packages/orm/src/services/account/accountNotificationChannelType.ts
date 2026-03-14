@@ -1,8 +1,9 @@
-import type { EntityManager, FindManyOptions } from 'typeorm';
-import type { AccountNotificationTypeEnum } from '@podverse/helpers';
+import { AppDataSourceReadWrite } from '@orm/db/index.js';
 import { AccountNotificationChannelType } from '@orm/entities/account/accountNotificationChannelType.js';
 import { AccountNotificationChannelService } from '@orm/services/account/accountNotificationChannel.js';
-import { AppDataSourceReadWrite } from '@orm/db/index.js';
+import type { EntityManager, FindManyOptions } from 'typeorm';
+
+import type { AccountNotificationTypeEnum } from '@podverse/helpers';
 
 export class AccountNotificationChannelTypeService {
   private accountNotificationChannelService: AccountNotificationChannelService;

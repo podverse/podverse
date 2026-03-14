@@ -1,16 +1,18 @@
 'use client';
 
-import { MediumEnum } from '@podverse/helpers';
 import React from 'react';
 
-import { Divider } from '../../../../Divider/Divider';
-import type { ViewSelectedOption } from '../../../../ViewSelector/ViewSelector';
+import { MediumEnum } from '@podverse/helpers';
+
 import type {
   AddByRSSItemIndexItem,
   AddByRSSMappedFeed,
 } from '../../../../../utils/addByRSS/types';
-import { AddByRSSTrackRow } from './AddByRSSTrackRow';
+import { Divider } from '../../../../Divider/Divider';
+import type { ViewSelectedOption } from '../../../../ViewSelector/ViewSelector';
 import { AddByRSSTrackGridCard } from './AddByRSSTrackGridCard';
+import { AddByRSSTrackRow } from './AddByRSSTrackRow';
+
 import styles from '../../../../../styles/components/Common/List/ListNodes.module.scss';
 
 type AddByRSSAlbumTrackNodesProps = {

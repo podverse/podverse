@@ -1,23 +1,25 @@
-import type { Request, Response } from 'express';
-import Joi from 'joi';
-import type { PlaylistResourceIdTextOptions } from '@podverse/helpers';
-import type { FindManyOptions, PlaylistResource } from '@podverse/orm';
-import { PlaylistResourceService } from '@podverse/orm';
-import { handleGenericErrorResponse } from '../helpers/error.js';
+import {
+  ensureAuthenticated,
+  getAuthenticatedUser,
+  optionalEnsureAuthenticated,
+} from '@api/lib/auth/index.js';
+import { getParamRequired } from '@api/lib/params.js';
 import {
   pageDefaultQuerySchema,
   playlistIdTextParamSchema,
   validateParamsObject,
   validateQueryObject,
 } from '@api/lib/validation/index.js';
-import { verifyPlaylistOwnership, verifyPrivatePlaylistOwnershipIfNeeded } from './playlist.js';
-import {
-  ensureAuthenticated,
-  optionalEnsureAuthenticated,
-  getAuthenticatedUser,
-} from '@api/lib/auth/index.js';
+import type { Request, Response } from 'express';
+import Joi from 'joi';
+
+import type { PlaylistResourceIdTextOptions } from '@podverse/helpers';
+import type { FindManyOptions, PlaylistResource } from '@podverse/orm';
+import { PlaylistResourceService } from '@podverse/orm';
+
+import { handleGenericErrorResponse } from '../helpers/error.js';
 import { getPaginationParams } from '../helpers/pagination.js';
-import { getParamRequired } from '@api/lib/params.js';
+import { verifyPlaylistOwnership, verifyPrivatePlaylistOwnershipIfNeeded } from './playlist.js';
 
 class PlaylistResourceController {
   private static playlistResourceService = new PlaylistResourceService();

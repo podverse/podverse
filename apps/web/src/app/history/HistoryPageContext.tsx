@@ -1,15 +1,17 @@
 'use client';
 
+import type { ReactNode } from 'react';
+import { createContext, useContext, useEffect, useRef, useState } from 'react';
+
 import type { DTOQueue, DTOQueueResource } from '@podverse/helpers';
 import { getQueueMediumIdFromType, getTotalPages } from '@podverse/helpers';
 import type { QueryParamsHistory } from '@podverse/helpers-requests';
-import type { ReactNode } from 'react';
-import { createContext, useContext, useState, useEffect, useRef } from 'react';
-import { getApiRequestService } from '../../factories/apiRequestService';
+
 import { useAccount } from '../../contexts/Account';
 import { checkBackNavFlag } from '../../contexts/Navigation';
+import { getApiRequestService } from '../../factories/apiRequestService';
 import { usePageStateCache } from '../../hooks/usePageStateCache';
-import { getPageState, definedProps } from '../../utils/pageStateCache';
+import { definedProps, getPageState } from '../../utils/pageStateCache';
 
 // Type for cached data
 interface HistoryCachedData {

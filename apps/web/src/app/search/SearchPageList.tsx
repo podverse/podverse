@@ -1,9 +1,10 @@
 'use client';
 
 import React from 'react';
-import { useSearchPageContext } from './SearchPageContext';
-import LoadingSpinnerOverlay from '../../components/LoadingSpinner/LoadingSpinnerOverlay';
+
 import { ListSearchResultsPodcastIndexFeeds } from '../../components/List/SearchResults/ListSearchResultsPodcastIndexFeeds';
+import LoadingSpinnerOverlay from '../../components/LoadingSpinner/LoadingSpinnerOverlay';
+import { useSearchPageContext } from './SearchPageContext';
 
 export const SearchPageList: React.FC = () => {
   const { searchResultFeeds, isLoading } = useSearchPageContext();

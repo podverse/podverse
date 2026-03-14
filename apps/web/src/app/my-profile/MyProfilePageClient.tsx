@@ -1,9 +1,10 @@
 'use client';
 
 import type { DTOAccount } from '@podverse/helpers';
-import { MainWrapper } from '../../components/Main/MainWrapper';
-import { MainInnerWrapper } from '../../components/Main/MainInnerWrapper';
+
 import { MainInnerContentWrapper } from '../../components/Main/MainInnerContentWrapper';
+import { MainInnerWrapper } from '../../components/Main/MainInnerWrapper';
+import { MainWrapper } from '../../components/Main/MainWrapper';
 import { ProfileHeader } from '../../components/Media/Profile/ProfileHeader';
 import { MyProfilePageContentContextProvider } from './MyProfilePageContentContext';
 import { MyProfilePageContentList } from './MyProfilePageContentList';

@@ -1,7 +1,9 @@
 import type { Episode } from 'podverse-partytime';
+
 import type { EntityManager, Item } from '@podverse/orm';
 import { ItemLicenseService } from '@podverse/orm';
 import { compatItemLicenseDto } from '@podverse/parser-mapping';
+
 import { handleParsedOneData } from '../base/handleParsedOneData.js';
 
 export const handleParsedItemLicense = async (

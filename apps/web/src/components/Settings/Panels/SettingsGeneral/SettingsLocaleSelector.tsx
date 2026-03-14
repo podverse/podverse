@@ -1,15 +1,17 @@
 'use client';
 
-import React from 'react';
-import { useLocale, useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
+import { useLocale, useTranslations } from 'next-intl';
+import React from 'react';
+
 import { SharableStatusEnum } from '@podverse/helpers';
-import { writeCookie } from '../../../../utils/cookie';
-import { FormDropdown } from '../../../Form/FormDropdown';
-import type { DropdownMenuItem } from '../../../Dropdown/Dropdown';
+
 import { useAccount } from '../../../../contexts/Account';
 import { useConfig } from '../../../../contexts/Config';
 import { getApiRequestService } from '../../../../factories/apiRequestService';
+import { writeCookie } from '../../../../utils/cookie';
+import type { DropdownMenuItem } from '../../../Dropdown/Dropdown';
+import { FormDropdown } from '../../../Form/FormDropdown';
 
 export const SettingsLocaleSelector: React.FC = () => {
   const config = useConfig();

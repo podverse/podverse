@@ -1,5 +1,5 @@
 /* eslint-disable no-console */
-import { SUPPORTED_LOCALES, SERVER_ENV_VALUES, isValidServerEnv } from '@podverse/helpers';
+import { isValidServerEnv, SERVER_ENV_VALUES, SUPPORTED_LOCALES } from '@podverse/helpers';
 
 /**
  * Types and functions for validating environment variables at application startup.

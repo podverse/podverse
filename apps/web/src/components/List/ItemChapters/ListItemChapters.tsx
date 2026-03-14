@@ -1,10 +1,12 @@
 'use client';
 
-import type { DTOChannel, DTOItem, DTOItemChapter } from '@podverse/helpers';
 import React from 'react';
-import Pagination from '../../Pagination/Pagination';
+
+import type { DTOChannel, DTOItem, DTOItemChapter } from '@podverse/helpers';
+
 import { useSkipInitialEffect } from '../../../hooks/useSkipInitialEffect';
 import { scrollMainToTop } from '../../../utils/scroll';
+import Pagination from '../../Pagination/Pagination';
 import { ListItemChapterRow } from './ListItemChapterRow';
 
 type ListItemChaptersProps = {

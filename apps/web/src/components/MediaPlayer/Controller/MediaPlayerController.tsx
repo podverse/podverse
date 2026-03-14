@@ -1,24 +1,26 @@
 'use client';
 
+import React, { useEffect, useRef } from 'react';
+
 import type { DTOQueueResource } from '@podverse/helpers';
 import { buildLabeledItemEnclosures } from '@podverse/helpers';
-import React, { useEffect, useRef } from 'react';
-import { MediaPlayerControllerAudio } from './Audio/MediaPlayerControllerAudio';
-import { useMediaPlayer } from '../../../contexts/MediaPlayer';
+
 import { EVENTS } from '../../../constants/events';
-import { useMediaPlayerCurrentTime } from '../../../contexts/MediaPlayerCurrentTime';
-import { getApiRequestService } from '../../../factories/apiRequestService';
-import { useQueues } from '../../../contexts/Queue';
-import { useMediaPlayerResourceUpdate } from '../../../hooks/useMediaPlayerResourceUpdate';
-import { usePlayAddByRSS } from '../../../hooks/usePlayAddByRSS';
 import type { AutoQueueResourcesMapRow } from '../../../contexts/AutoQueue';
 import { checkIsActiveRowHighestKey, useAutoQueue } from '../../../contexts/AutoQueue';
-import { updateLayoutForMediaPlayer } from '../../../utils/mediaPlayer/mediaPlayerLayout';
+import { useMediaPlayer } from '../../../contexts/MediaPlayer';
+import { useMediaPlayerCurrentTime } from '../../../contexts/MediaPlayerCurrentTime';
+import { useQueues } from '../../../contexts/Queue';
+import { getApiRequestService } from '../../../factories/apiRequestService';
 import { useAutoQueueLoadResources } from '../../../hooks/useAutoQueueLoadResources';
+import { useMediaPlayerResourceUpdate } from '../../../hooks/useMediaPlayerResourceUpdate';
+import { usePlayAddByRSS } from '../../../hooks/usePlayAddByRSS';
 import { loadAddByRSSIndexItemFromResourceData } from '../../../utils/addByRSS/playFromQueueResource';
-import { MediaPlayerVideoWrapper } from './Video/MediaPlayerVideoWrapper';
-import { MediaPlayerLiveStreamVideoWrapper } from './LiveStream/MediaPlayerLiveStreamVideoWrapper';
+import { updateLayoutForMediaPlayer } from '../../../utils/mediaPlayer/mediaPlayerLayout';
+import { MediaPlayerControllerAudio } from './Audio/MediaPlayerControllerAudio';
 import { MediaPlayerControllerLiveStreamAudio } from './LiveStream/MediaPlayerControllerLiveStreamAudio';
+import { MediaPlayerLiveStreamVideoWrapper } from './LiveStream/MediaPlayerLiveStreamVideoWrapper';
+import { MediaPlayerVideoWrapper } from './Video/MediaPlayerVideoWrapper';
 
 export const MediaPlayerController: React.FC = () => {
   const apiRequestService = getApiRequestService();

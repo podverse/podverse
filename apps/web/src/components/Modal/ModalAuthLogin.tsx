@@ -1,19 +1,22 @@
 'use client';
 
+import { useRouter } from 'next/navigation';
 import { useLocale, useTranslations } from 'next-intl';
 import React, { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { Button } from '../Button/Button';
-import { Modal, MODAL_CONTENT_MAX_WIDTH } from './Modal';
-import { TextInput } from '../Form/TextInput';
+
+import { ERROR_MESSAGES } from '@podverse/helpers';
+
 import { useModals } from '../../contexts/Modals';
 import { getApiRequestService } from '../../factories/apiRequestService';
+import { handleRateLimitAlert } from '../../utils/rateLimit/rateLimitAlert';
+import { Button } from '../Button/Button';
 import Form from '../Form/Form';
 import { FormErrorMessageText } from '../Form/FormErrorMessageText';
-import styles from '../../styles/components/Modal/ModalAuthLogin.module.scss';
-import { ERROR_MESSAGES } from '@podverse/helpers';
 import { FormInfoMessageText } from '../Form/FormInfoMessageText';
-import { handleRateLimitAlert } from '../../utils/rateLimit/rateLimitAlert';
+import { TextInput } from '../Form/TextInput';
+import { Modal, MODAL_CONTENT_MAX_WIDTH } from './Modal';
+
+import styles from '../../styles/components/Modal/ModalAuthLogin.module.scss';
 
 export const ModalAuthLogin: React.FC = () => {
   const { modalAuthLogin, setModalAuthLogin } = useModals();

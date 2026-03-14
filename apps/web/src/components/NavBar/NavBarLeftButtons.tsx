@@ -1,9 +1,11 @@
 'use client';
 
-import React from 'react';
-import NavArrowButton from '../NavArrowButton/NavArrowButton';
-import styles from '../../styles/components/NavBar/NavBarLeftButtons.module.scss';
 import { useRouter } from 'next/navigation';
+import React from 'react';
+
+import NavArrowButton from '../NavArrowButton/NavArrowButton';
+
+import styles from '../../styles/components/NavBar/NavBarLeftButtons.module.scss';
 
 const NavBarLeftButtons: React.FC = () => {
   const router = useRouter();

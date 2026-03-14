@@ -2,11 +2,12 @@
 
 import React from 'react';
 
+import { IMAGES } from '../../../constants/images';
 import { Divider } from '../../Divider/Divider';
 import { Image } from '../../Image/Image';
-import { IMAGES } from '../../../constants/images';
-import headerStyles from '../../../styles/components/Common/Media/Podcast/Episode/EpisodeHeader.module.scss';
+
 import styles from '../../../styles/components/Common/Item/CommonItemHeader.module.scss';
+import headerStyles from '../../../styles/components/Common/Media/Podcast/Episode/EpisodeHeader.module.scss';
 
 type CommonItemHeaderProps = {
   titleNode: React.ReactNode;

@@ -1,25 +1,9 @@
-import type { CategoryMappingKeys, QueryParamsMedium } from '@podverse/helpers';
-import { getCategoryEnumValue, SharableStatusEnum } from '@podverse/helpers';
-import type { ApiListResponse, QueryParamsStatsRange } from '@podverse/helpers-requests';
-import { emptyApiListResponse } from '@podverse/helpers-requests';
-import type { NextFunction, Request, Response } from 'express';
+import { getFollowedChannelIds } from '@api/lib/followed.js';
+import { getParamRequired } from '@api/lib/params.js';
+import { getStatsOrder } from '@api/lib/stats.js';
 import {
-  ensureAuthenticated,
-  optionalEnsureAuthenticated,
-  getAuthenticatedUser,
-} from '../lib/auth/index.js';
-import Joi from 'joi';
-import type { Clip, FindManyOptions, StatsAggregatedClip } from '@podverse/orm';
-import {
-  ChannelService,
-  ClipService,
-  ItemService,
-  StatsAggregatedClipService,
-} from '@podverse/orm';
-import { handleGenericErrorResponse } from './helpers/error.js';
-import {
-  clipIdTextParamSchema,
   channelIdTextParamSchema,
+  clipIdTextParamSchema,
   itemIdTextParamSchema,
   mediumCategoryPageQuerySchema,
   mediumCategoryPageRangeQuerySchema,
@@ -31,10 +15,28 @@ import {
   validateParamsObject,
   validateQueryObject,
 } from '@api/lib/validation/index.js';
+import type { NextFunction, Request, Response } from 'express';
+import Joi from 'joi';
+
+import type { CategoryMappingKeys, QueryParamsMedium } from '@podverse/helpers';
+import { getCategoryEnumValue, SharableStatusEnum } from '@podverse/helpers';
+import type { ApiListResponse, QueryParamsStatsRange } from '@podverse/helpers-requests';
+import { emptyApiListResponse } from '@podverse/helpers-requests';
+import type { Clip, FindManyOptions, StatsAggregatedClip } from '@podverse/orm';
+import {
+  ChannelService,
+  ClipService,
+  ItemService,
+  StatsAggregatedClipService,
+} from '@podverse/orm';
+
+import {
+  ensureAuthenticated,
+  getAuthenticatedUser,
+  optionalEnsureAuthenticated,
+} from '../lib/auth/index.js';
+import { handleGenericErrorResponse } from './helpers/error.js';
 import { getPaginationParams } from './helpers/pagination.js';
-import { getStatsOrder } from '@api/lib/stats.js';
-import { getFollowedChannelIds } from '@api/lib/followed.js';
-import { getParamRequired } from '@api/lib/params.js';
 
 const clipPublicManyRelations = [
   'item',

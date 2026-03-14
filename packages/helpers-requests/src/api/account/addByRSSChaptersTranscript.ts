@@ -1,5 +1,6 @@
-import type { ApiRequestService } from '../_request.js';
 import type { DTOItemChapterCreate } from '@podverse/helpers';
+
+import type { ApiRequestService } from '../_request.js';
 
 /** Chapter shape returned by add-by-RSS chapters-transcript API (no DB id). */
 export type AddByRSSChapterResponse = DTOItemChapterCreate & { id_text: string };

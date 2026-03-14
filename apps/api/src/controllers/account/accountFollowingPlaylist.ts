@@ -1,20 +1,22 @@
-import type { Request, Response } from 'express';
-import Joi from 'joi';
-import { AccountFollowingPlaylistService, AccountService } from '@podverse/orm';
 import {
   ensureAuthenticated,
-  optionalEnsureAuthenticated,
   getAuthenticatedUser,
+  optionalEnsureAuthenticated,
 } from '@api/lib/auth/index.js';
-import { handleGenericErrorResponse } from '../helpers/error.js';
+import { getParamRequired } from '@api/lib/params.js';
 import {
   accountIdTextParamSchema,
   playlistIdTextParamSchema,
   validateBodyObject,
   validateParamsObject,
 } from '@api/lib/validation/index.js';
+import type { Request, Response } from 'express';
+import Joi from 'joi';
+
 import { SharableStatusEnum } from '@podverse/helpers';
-import { getParamRequired } from '@api/lib/params.js';
+import { AccountFollowingPlaylistService, AccountService } from '@podverse/orm';
+
+import { handleGenericErrorResponse } from '../helpers/error.js';
 
 class AccountFollowingPlaylistController {
   private static accountFollowingPlaylistService = new AccountFollowingPlaylistService();

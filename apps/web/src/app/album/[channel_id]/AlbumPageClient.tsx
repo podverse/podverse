@@ -1,13 +1,14 @@
 import type { DTOChannel, DTOItem, RemoteItemsResponse } from '@podverse/helpers';
 import type { QueryParamsChannelMusicAlbum } from '@podverse/helpers-requests';
+
+import { CoreAlbumHeader } from '../../../components/Core/Artist/Album/CoreAlbumHeader';
+import { MainInnerContentWrapper } from '../../../components/Main/MainInnerContentWrapper';
+import { MainInnerWrapper } from '../../../components/Main/MainInnerWrapper';
 import { MainWrapper } from '../../../components/Main/MainWrapper';
 import { AlbumPageContextProvider } from './AlbumPageContext';
-import { AlbumPageListHeader } from './AlbumPageListHeader';
 import { AlbumPageList } from './AlbumPageList';
-import { MainInnerWrapper } from '../../../components/Main/MainInnerWrapper';
-import { MainInnerContentWrapper } from '../../../components/Main/MainInnerContentWrapper';
+import { AlbumPageListHeader } from './AlbumPageListHeader';
 import { AlbumPageSideContent } from './AlbumPageSideContent';
-import { CoreAlbumHeader } from '../../../components/Core/Artist/Album/CoreAlbumHeader';
 
 interface AlbumPageClientProps {
   initialQueryParams: QueryParamsChannelMusicAlbum;

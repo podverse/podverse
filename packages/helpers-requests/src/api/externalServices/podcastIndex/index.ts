@@ -1,6 +1,7 @@
 import type { PodcastIndexSearchPodcastsResponse } from '@podverse/helpers';
-import type { ApiRequestService } from '../../_request.js';
 import type { PodcastIndexPodcastByIdResponse } from '@podverse/helpers';
+
+import type { ApiRequestService } from '../../_request.js';
 
 export async function reqPodcastIndexFeedById(api: ApiRequestService, podcast_index_id: string) {
   return api.apiRequest<PodcastIndexPodcastByIdResponse>({

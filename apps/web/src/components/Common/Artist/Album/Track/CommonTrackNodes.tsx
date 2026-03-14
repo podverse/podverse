@@ -1,14 +1,16 @@
 'use client';
 
 import React from 'react';
+
 import type { DTOChannel, DTOItem } from '@podverse/helpers';
 
-import type { ViewSelectedOption } from '../../../../ViewSelector/ViewSelector';
 import { Divider } from '../../../../Divider/Divider';
 import { ListLiveItemRow } from '../../../../List/LiveItem/ListLiveItemRow';
-import styles from '../../../../../styles/components/Common/List/ListNodes.module.scss';
+import type { ViewSelectedOption } from '../../../../ViewSelector/ViewSelector';
 import { CommonTrackListGridNode } from './CommonTrackGridNode';
 import { CommonTrackListRow } from './CommonTrackListRow';
+
+import styles from '../../../../../styles/components/Common/List/ListNodes.module.scss';
 
 type CommonTrackListNodesProps = {
   channel: DTOChannel | null;

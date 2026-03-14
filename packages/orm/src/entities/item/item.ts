@@ -1,21 +1,6 @@
-import { DATABASE_CONSTANTS } from '@podverse/helpers';
-import {
-  Entity,
-  PrimaryGeneratedColumn,
-  Column,
-  ManyToOne,
-  JoinColumn,
-  Index,
-  BeforeInsert,
-  OneToOne,
-  OneToMany,
-  BeforeUpdate,
-} from 'typeorm';
-import type { Relation } from 'typeorm';
 import type { Channel } from '@orm/entities/channel/channel.js';
-import type { ItemChaptersFeed } from '@orm/entities/item/itemChaptersFeed.js';
-import type { ItemValue } from '@orm/entities/item/itemValue.js';
 import type { ItemAbout } from '@orm/entities/item/itemAbout.js';
+import type { ItemChaptersFeed } from '@orm/entities/item/itemChaptersFeed.js';
 import type { ItemChat } from '@orm/entities/item/itemChat.js';
 import type { ItemContentLink } from '@orm/entities/item/itemContentLink.js';
 import type { ItemDescription } from '@orm/entities/item/itemDescription.js';
@@ -31,9 +16,26 @@ import type { ItemSocialInteract } from '@orm/entities/item/itemSocialInteract.j
 import type { ItemSoundbite } from '@orm/entities/item/itemSoundbite.js';
 import type { ItemTranscript } from '@orm/entities/item/itemTranscript.js';
 import type { ItemTxt } from '@orm/entities/item/itemTxt.js';
-import type { ItemFlagStatus } from './itemFlagStatus.js';
-import type { LiveItem } from '../liveItem/liveItem.js';
+import type { ItemValue } from '@orm/entities/item/itemValue.js';
 import { generateRandomIdText } from '@orm/lib/nanoid.js';
+import type { Relation } from 'typeorm';
+import {
+  BeforeInsert,
+  BeforeUpdate,
+  Column,
+  Entity,
+  Index,
+  JoinColumn,
+  ManyToOne,
+  OneToMany,
+  OneToOne,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
+
+import { DATABASE_CONSTANTS } from '@podverse/helpers';
+
+import type { LiveItem } from '../liveItem/liveItem.js';
+import type { ItemFlagStatus } from './itemFlagStatus.js';
 
 @Entity()
 @Index('item_slug', ['slug'], { unique: true, where: 'slug IS NOT NULL' })

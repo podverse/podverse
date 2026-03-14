@@ -1,4 +1,5 @@
 import { useTranslations } from 'next-intl';
+
 import { AuthResetPasswordForm } from '../../components/Auth/AuthResetPasswordForm';
 import { MainHeader } from '../../components/Main/MainHeader';
 import { MainInnerContentWrapper } from '../../components/Main/MainInnerContentWrapper';

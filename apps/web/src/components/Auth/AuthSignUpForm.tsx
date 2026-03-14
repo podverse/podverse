@@ -1,21 +1,24 @@
 'use client';
 
+import { useRouter } from 'next/navigation';
 import { useLocale, useTranslations } from 'next-intl';
+import React, { useState } from 'react';
+
 import {
   getEmailErrorKey,
-  getPasswordErrorKey,
   getPassword2ErrorKey,
+  getPasswordErrorKey,
   getPasswordRequirementsInfoKey,
 } from '@podverse/helpers-validation/client';
-import React, { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { Button } from '../Button/Button';
-import { TextInput } from '../Form/TextInput';
-import Form from '../Form/Form';
-import styles from '../../styles/components/Auth/AuthSignUpForm.module.scss';
+
 import { getApiRequestService } from '../../factories/apiRequestService';
 import { handleRateLimitAlert } from '../../utils/rateLimit/rateLimitAlert';
+import { Button } from '../Button/Button';
+import Form from '../Form/Form';
 import { FormInfoMessageText } from '../Form/FormInfoMessageText';
+import { TextInput } from '../Form/TextInput';
+
+import styles from '../../styles/components/Auth/AuthSignUpForm.module.scss';
 
 export const AuthSignUpForm: React.FC = () => {
   const [email, setEmail] = useState('');

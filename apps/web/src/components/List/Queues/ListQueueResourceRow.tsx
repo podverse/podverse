@@ -1,23 +1,26 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
+import React from 'react';
+import { FaGripLines } from 'react-icons/fa6';
+
 import type { DTOQueueResource } from '@podverse/helpers';
 import { MediumEnum } from '@podverse/helpers';
-import React from 'react';
-import { useTranslations } from 'next-intl';
-import ListEpisodeRow from '../Podcasts/Episodes/ListEpisodeRow';
+
+import { IMAGES } from '../../../constants/images';
+import { useQueues } from '../../../contexts/Queue';
+import { getApiRequestService } from '../../../factories/apiRequestService';
+import { Button } from '../../Button/Button';
+import { ImagesPerView } from '../../Image/ImagesPerView';
+import { MoreButton } from '../../MoreButton/MoreButton';
+import { ReadableDate } from '../../Time/ReadableDate';
+import { ReadableDuration } from '../../Time/ReadableDuration';
+import { showToastPromise } from '../../Toast/Toast';
 import { ListClipRow } from '../Clips/ListClipRow';
 import { ListItemSoundbiteRow } from '../ItemSoundbites/ListItemSoundbiteRow';
 import { ListTrackRow } from '../Music/Albums/Tracks/ListTrackRow';
-import { useQueues } from '../../../contexts/Queue';
-import { getApiRequestService } from '../../../factories/apiRequestService';
-import { showToastPromise } from '../../Toast/Toast';
-import { MoreButton } from '../../MoreButton/MoreButton';
-import { FaGripLines } from 'react-icons/fa6';
-import { ImagesPerView } from '../../Image/ImagesPerView';
-import { IMAGES } from '../../../constants/images';
-import { ReadableDate } from '../../Time/ReadableDate';
-import { ReadableDuration } from '../../Time/ReadableDuration';
-import { Button } from '../../Button/Button';
+import ListEpisodeRow from '../Podcasts/Episodes/ListEpisodeRow';
+
 import styles from '../../../styles/components/Common/List/Podcasts/Episodes/ListEpisodeRow.module.scss';
 
 interface Props {

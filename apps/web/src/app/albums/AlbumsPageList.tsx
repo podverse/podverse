@@ -1,11 +1,12 @@
 'use client';
 
 import React from 'react';
-import { useAlbumsPageContext } from './AlbumsPageContext';
+
 import { CoreAlbums } from '../../components/Core/Artist/Album/CoreAlbums';
+import { HowToStartInfo } from '../../components/InfoWrapper/HowToStartInfo';
 import LoadingSpinnerOverlay from '../../components/LoadingSpinner/LoadingSpinnerOverlay';
 import { useLocalSettings } from '../../contexts/LocalSettings';
-import { HowToStartInfo } from '../../components/InfoWrapper/HowToStartInfo';
+import { useAlbumsPageContext } from './AlbumsPageContext';
 
 export const AlbumsPageList: React.FC = () => {
   const { filterParams, setFilterParams, channels, totalPages, isLoading, showSubscribeMessage } =

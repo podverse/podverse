@@ -1,4 +1,5 @@
 import React from 'react';
+
 import styles from './FormInput.module.scss';
 
 type FormInputProps = React.InputHTMLAttributes<HTMLInputElement>;

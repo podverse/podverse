@@ -1,9 +1,10 @@
 import type {
-  QueryParamsChannelType,
   QueryParamsChannelSort,
-  QueryParamsStatsRange,
+  QueryParamsChannelType,
   QueryParamsGlobalSort,
+  QueryParamsStatsRange,
 } from '@podverse/helpers-requests';
+
 import { getRangeDropdownItems } from '../../../utils/dropdownMenuItems';
 
 export function getPodcastPageDropdownConfig({

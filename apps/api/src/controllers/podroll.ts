@@ -1,10 +1,11 @@
+import { getParamRequired } from '@api/lib/params.js';
+import { buildRemoteItemsFinalResult } from '@api/lib/remoteItems.js';
+import { idOrIdTextParamSchema, validateParamsObject } from '@api/lib/validation/index.js';
 import type { Request, Response } from 'express';
 import Joi from 'joi';
-import { ChannelPodrollService } from '@podverse/orm';
+
 import type { DTOChannel, DTOItem } from '@podverse/helpers';
-import { idOrIdTextParamSchema, validateParamsObject } from '@api/lib/validation/index.js';
-import { buildRemoteItemsFinalResult } from '@api/lib/remoteItems.js';
-import { getParamRequired } from '@api/lib/params.js';
+import { ChannelPodrollService } from '@podverse/orm';
 
 export class PodrollController {
   private static channelPodrollService = new ChannelPodrollService();

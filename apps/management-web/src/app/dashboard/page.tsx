@@ -1,11 +1,13 @@
 'use client';
 
-import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { getCurrentUser, type CurrentUser } from '../../lib/requests/auth';
-import { CenterContainer } from '../../components/ui/CenterContainer/CenterContainer';
+import { useEffect, useState } from 'react';
+
 import { Card } from '../../components/ui/Card/Card';
+import { CenterContainer } from '../../components/ui/CenterContainer/CenterContainer';
 import { LoadingText } from '../../components/ui/LoadingText/LoadingText';
+import { type CurrentUser, getCurrentUser } from '../../lib/requests/auth';
+
 import styles from './page.module.scss';
 
 export default function DashboardPage() {

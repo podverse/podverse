@@ -1,4 +1,5 @@
 import type { AppValueRecipient } from '@podverse/helpers';
+
 import styles from '../../styles/components/Boost/BoostRecipientInfoRow.module.scss';
 
 type BoostRecipientInfoRowProps = {

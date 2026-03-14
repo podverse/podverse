@@ -1,13 +1,14 @@
 'use client';
 
-import { useTranslations } from 'next-intl';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import React from 'react';
 
-import { Image } from '../../../Image/Image';
 import { IMAGES } from '../../../../constants/images';
-import styles from '../../../../styles/components/Common/List/Podcasts/ListPodcastRow.module.scss';
+import { Image } from '../../../Image/Image';
 import type { AlbumListItem } from './types';
+
+import styles from '../../../../styles/components/Common/List/Podcasts/ListPodcastRow.module.scss';
 
 type CommonAlbumListRowProps = {
   item: AlbumListItem;

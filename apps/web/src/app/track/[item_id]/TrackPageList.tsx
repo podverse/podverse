@@ -1,12 +1,14 @@
 'use client';
 
-import React from 'react';
 import dynamic from 'next/dynamic';
+import React from 'react';
+
 import type { DTOItem } from '@podverse/helpers';
-import { useTrackPageContext } from './TrackPageContext';
-import LoadingSpinnerOverlay from '../../../components/LoadingSpinner/LoadingSpinnerOverlay';
-import { DetailListWrapper } from '../../../components/List/DetailListWrapper';
+
 import { CoreEpisodeSummary } from '../../../components/Core/Podcast/Episodes/CoreEpisodeSummary';
+import { DetailListWrapper } from '../../../components/List/DetailListWrapper';
+import LoadingSpinnerOverlay from '../../../components/LoadingSpinner/LoadingSpinnerOverlay';
+import { useTrackPageContext } from './TrackPageContext';
 
 const ItemTranscript = dynamic(
   () =>

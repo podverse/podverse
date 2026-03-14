@@ -1,5 +1,7 @@
 import React from 'react';
+
 import { Button } from '../Button/Button';
+
 import styles from '../../styles/components/Tabs/ButtonTabs.module.scss';
 
 type ButtonTab = {

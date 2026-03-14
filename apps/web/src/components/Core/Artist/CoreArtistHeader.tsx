@@ -1,7 +1,8 @@
 'use client';
 
-import type { DTOChannel } from '@podverse/helpers';
 import React from 'react';
+
+import type { DTOChannel } from '@podverse/helpers';
 
 import { CommonArtistHeader } from '../../Common/Artist/CommonArtistHeader';
 import { CoreArtistHeaderViewDesktop } from './CoreArtistHeaderViewDesktop';

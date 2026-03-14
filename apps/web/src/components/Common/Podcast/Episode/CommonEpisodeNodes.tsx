@@ -6,10 +6,11 @@ import type { DTOChannel, DTOItem } from '@podverse/helpers';
 
 import { Divider } from '../../../Divider/Divider';
 import { ListLiveItemRow } from '../../../List/LiveItem/ListLiveItemRow';
-import styles from '../../../../styles/components/Common/List/ListNodes.module.scss';
 import { CommonEpisodeListGridNode } from './CommonEpisodeGridNode';
 import { CommonEpisodeListRow } from './CommonEpisodeRow';
 import type { EpisodeListNodesProps } from './types';
+
+import styles from '../../../../styles/components/Common/List/ListNodes.module.scss';
 
 export const CommonEpisodeListNodes: React.FC<EpisodeListNodesProps> = ({
   channel,

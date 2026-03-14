@@ -2,12 +2,14 @@
 
 import { useTranslations } from 'next-intl';
 import React from 'react';
-import { Modal } from '../../Modal/Modal';
+
 import { useMediaPlayer } from '../../../contexts/MediaPlayer';
-import { MediaPlayerInfoModal } from './MediaPlayerInfoModal';
-import styles from '../../../styles/components/MediaPlayer/Modal/MediaPlayerModal.module.scss';
-import { MediaPlayerControlsModal } from './MediaPlayerControlsModal';
+import { Modal } from '../../Modal/Modal';
 import { MediaPlayerButtonsModal } from './MediaPlayerButtonsModal';
+import { MediaPlayerControlsModal } from './MediaPlayerControlsModal';
+import { MediaPlayerInfoModal } from './MediaPlayerInfoModal';
+
+import styles from '../../../styles/components/MediaPlayer/Modal/MediaPlayerModal.module.scss';
 
 export const MediaPlayerModal: React.FC = () => {
   const tMediaPlayer = useTranslations('media_player');

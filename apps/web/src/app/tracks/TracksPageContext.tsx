@@ -2,14 +2,16 @@
 
 import type { ReactNode } from 'react';
 import { createContext, useContext, useState } from 'react';
+
 import type { DTOItem } from '@podverse/helpers';
 import { getTotalPages } from '@podverse/helpers';
 import type { QueryParamsGetManyPartialMusic } from '@podverse/helpers-requests';
-import { getApiRequestService } from '../../factories/apiRequestService';
+
 import { useAccount } from '../../contexts/Account';
-import { useSkipInitialEffect } from '../../hooks/useSkipInitialEffect';
+import { getApiRequestService } from '../../factories/apiRequestService';
 import { useFilterDefaults } from '../../hooks/useFilterDefaults';
 import { useListPageCache } from '../../hooks/useListPageCache';
+import { useSkipInitialEffect } from '../../hooks/useSkipInitialEffect';
 import { getTracksPageFilterParams } from './TracksPageDropdownConfig';
 
 interface TracksPageContextType {

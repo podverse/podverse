@@ -1,8 +1,8 @@
-import { Router } from 'express';
+import { config } from '@api/config/index.js';
 import { AccountSettingsLocaleController } from '@api/controllers/account/accountSettings/accountSettingsLocale.js';
 import { AccountSettingsNotificationTypeController } from '@api/controllers/account/accountSettings/accountSettingsNotificationType.js';
 import { asyncHandler } from '@api/middleware/asyncHandler.js';
-import { config } from '@api/config/index.js';
+import { Router } from 'express';
 
 const router = Router();
 

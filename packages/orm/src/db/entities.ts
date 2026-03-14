@@ -20,8 +20,8 @@ import { AccountSettingsLocale } from '@orm/entities/account/accountSettings/acc
 import { AccountSettingsNotification } from '@orm/entities/account/accountSettings/accountSettingsNotification.js';
 import { AccountSettingsNotificationType } from '@orm/entities/account/accountSettings/accountSettingsNotificationType.js';
 import { AccountUPDevice } from '@orm/entities/account/accountUPDevice.js';
-import { AccountWebPushDevice } from '@orm/entities/account/accountWebPushDevice.js';
 import { AccountVerification } from '@orm/entities/account/accountVerification.js';
+import { AccountWebPushDevice } from '@orm/entities/account/accountWebPushDevice.js';
 import { Category } from '@orm/entities/category.js';
 import { Channel } from '@orm/entities/channel/channel.js';
 import { ChannelAbout } from '@orm/entities/channel/channelAbout.js';
@@ -51,14 +51,13 @@ import { Clip } from '@orm/entities/clip.js';
 import { Feed } from '@orm/entities/feed/feed.js';
 import { FeedFlagStatus } from '@orm/entities/feed/feedFlagStatus.js';
 import { FeedLog } from '@orm/entities/feed/feedLog.js';
-import { ImageShrinkSource } from '../entities/imageShrinkSource.js';
 import { Item } from '@orm/entities/item/item.js';
 import { ItemAbout } from '@orm/entities/item/itemAbout.js';
 import { ItemChapter } from '@orm/entities/item/itemChapter.js';
 import { ItemChapterLocation } from '@orm/entities/item/itemChapterLocation.js';
 import { ItemChaptersFeed } from '@orm/entities/item/itemChaptersFeed.js';
-import { ItemChaptersObject } from '@orm/entities/item/itemChaptersObject.js';
 import { ItemChaptersFeedLog } from '@orm/entities/item/itemChaptersFeedLog.js';
+import { ItemChaptersObject } from '@orm/entities/item/itemChaptersObject.js';
 import { ItemChat } from '@orm/entities/item/itemChat.js';
 import { ItemContentLink } from '@orm/entities/item/itemContentLink.js';
 import { ItemDescription } from '@orm/entities/item/itemDescription.js';
@@ -105,6 +104,8 @@ import { StatsTrackEventChannel } from '@orm/entities/stats/statsTrackEventChann
 import { StatsTrackEventClip } from '@orm/entities/stats/statsTrackEventClip.js';
 import { StatsTrackEventItem } from '@orm/entities/stats/statsTrackEventItem.js';
 import { StatsTrackEventPlaylist } from '@orm/entities/stats/statsTrackEventPlaylist.js';
+
+import { ImageShrinkSource } from '../entities/imageShrinkSource.js';
 
 export const entities = [
   Account,

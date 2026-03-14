@@ -1,12 +1,14 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { copyToClipboard } from '@podverse/helpers-browser';
 import React, { useRef, useState } from 'react';
-import { Modal, MODAL_CONTENT_MAX_WIDTH } from './Modal';
-import { useModals } from '../../contexts/Modals';
+
+import { copyToClipboard } from '@podverse/helpers-browser';
+
 import { WEB } from '../../constants/web';
+import { useModals } from '../../contexts/Modals';
 import { TextInput } from '../Form/TextInput';
+import { Modal, MODAL_CONTENT_MAX_WIDTH } from './Modal';
 
 export const ModalClipCreated: React.FC = () => {
   const tFeatures = useTranslations('features');

@@ -1,10 +1,11 @@
-import Form from '../Form/Form';
-import TextInputNumber from '../Form/TextInputNumber';
-import { TextInput } from '../Form/TextInput';
-import { TextArea } from '../Form/TextArea';
 import type { MetaBoost } from '@podverse/v4v-metaboost';
 
 import { Button } from '../Button/Button';
+import Form from '../Form/Form';
+import { TextArea } from '../Form/TextArea';
+import { TextInput } from '../Form/TextInput';
+import TextInputNumber from '../Form/TextInputNumber';
+
 import styles from '../../styles/components/Boost/BoostForm.module.scss';
 
 type Translator = (key: string, values?: Record<string, string | number>) => string;

@@ -1,15 +1,17 @@
 'use client';
 
-import React from 'react';
 import dynamic from 'next/dynamic';
-import { useEpisodePageContext } from './EpisodePageContext';
-import LoadingSpinnerOverlay from '../../../components/LoadingSpinner/LoadingSpinnerOverlay';
-import { DetailListWrapper } from '../../../components/List/DetailListWrapper';
+import React from 'react';
+
+import type { DTOChannel, DTOItem } from '@podverse/helpers';
+
 import { CoreEpisodeSummary } from '../../../components/Core/Podcast/Episodes/CoreEpisodeSummary';
 import { ListClips } from '../../../components/List/Clips/ListClips';
-import type { DTOChannel, DTOItem } from '@podverse/helpers';
-import { ListItemSoundbites } from '../../../components/List/ItemSoundbites/ListItemSoundbites';
+import { DetailListWrapper } from '../../../components/List/DetailListWrapper';
 import { ListItemChapters } from '../../../components/List/ItemChapters/ListItemChapters';
+import { ListItemSoundbites } from '../../../components/List/ItemSoundbites/ListItemSoundbites';
+import LoadingSpinnerOverlay from '../../../components/LoadingSpinner/LoadingSpinnerOverlay';
+import { useEpisodePageContext } from './EpisodePageContext';
 
 const ItemTranscript = dynamic(
   () =>

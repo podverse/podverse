@@ -2,6 +2,7 @@ import type { CommandLineArgs } from '@workers/commands/index.js';
 import { getImageShrinkConfig, isImageShrinkEnabled } from '@workers/config/index.js';
 import { getActiveMQArtemisService } from '@workers/factories/activeMQArtemisService.js';
 import { getLoggerService } from '@workers/factories/loggerService.js';
+
 import { MQ_IMAGE_SHRINK_HINTS_CONFIG } from '@podverse/helpers';
 import { mqImageShrinkHintAdd } from '@podverse/mq';
 import { ChannelImageService, ItemImageService } from '@podverse/orm';

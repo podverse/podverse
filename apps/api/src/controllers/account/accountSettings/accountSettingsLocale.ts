@@ -1,9 +1,10 @@
-import Joi from 'joi';
-import type { Request, Response } from 'express';
-import { AccountSettingsLocaleService } from '@podverse/orm';
-import { localeBodySchema, validateBodyObject } from '@api/lib/validation/index.js';
-import { ensureAuthenticated, getAuthenticatedUser } from '@api/lib/auth/index.js';
 import { handleGenericErrorResponse } from '@api/controllers/helpers/error.js';
+import { ensureAuthenticated, getAuthenticatedUser } from '@api/lib/auth/index.js';
+import { localeBodySchema, validateBodyObject } from '@api/lib/validation/index.js';
+import type { Request, Response } from 'express';
+import Joi from 'joi';
+
+import { AccountSettingsLocaleService } from '@podverse/orm';
 
 export class AccountSettingsLocaleController {
   static async update(req: Request, res: Response): Promise<void> {

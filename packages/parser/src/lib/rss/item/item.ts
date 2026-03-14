@@ -1,10 +1,8 @@
-import type { Episode } from 'podverse-partytime';
-import { chunkArray, DATABASE_CONSTANTS, formatGuidEnclosureUrl } from '@podverse/helpers';
-import type { Channel, ChannelSeasonIndex, EntityManager } from '@podverse/orm';
-import { AppDataSourceReadWrite, ItemService, ItemContentLinkService } from '@podverse/orm';
-import { compatItemDto, compatItemContentLinkDtos } from '@podverse/parser-mapping';
+import { loggerService } from '@parser/factories/loggerService.js';
+import { timerManager } from '@parser/factories/timerManager.js';
 import { handleParsedItemAbout } from '@parser/lib/rss/item/itemAbout.js';
 import { handleParsedItemChaptersFeed } from '@parser/lib/rss/item/itemChaptersFeed.js';
+import { handleParsedItemChat } from '@parser/lib/rss/item/itemChat.js';
 import { handleParsedItemDescription } from '@parser/lib/rss/item/itemDescription.js';
 import { handleParsedItemEnclosure } from '@parser/lib/rss/item/itemEnclosure.js';
 import { handleParsedItemImage } from '@parser/lib/rss/item/itemImage.js';
@@ -18,10 +16,13 @@ import { handleParsedItemSoundbite } from '@parser/lib/rss/item/itemSoundbite.js
 import { handleParsedItemTranscript } from '@parser/lib/rss/item/itemTranscript.js';
 import { handleParsedItemTxt } from '@parser/lib/rss/item/itemTxt.js';
 import { handleParsedItemValue } from '@parser/lib/rss/item/itemValue.js';
-import { handleParsedItemChat } from '@parser/lib/rss/item/itemChat.js';
+import type { Episode } from 'podverse-partytime';
+
+import { chunkArray, DATABASE_CONSTANTS, formatGuidEnclosureUrl } from '@podverse/helpers';
+import type { Channel, ChannelSeasonIndex, EntityManager } from '@podverse/orm';
+import { AppDataSourceReadWrite, ItemContentLinkService, ItemService } from '@podverse/orm';
 import { ItemFlagStatusStatusEnum } from '@podverse/orm';
-import { timerManager } from '@parser/factories/timerManager.js';
-import { loggerService } from '@parser/factories/loggerService.js';
+import { compatItemContentLinkDtos, compatItemDto } from '@podverse/parser-mapping';
 
 const removeInvalidItems = (parsedItems: Episode[]): Episode[] => {
   const seenEnclosureUrls = new Set<string>();

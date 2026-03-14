@@ -1,15 +1,17 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import React from 'react';
 import { FaMagnifyingGlass } from 'react-icons/fa6';
-import { useTranslations } from 'next-intl';
+
 import { ROUTES } from '../../constants/routes';
-import SideBarDivider from './SideBarDivider';
-import SideBarBrand from './SideBarBrand';
-import SideBarLink from './SideBarLink';
-import SideBarHeader from './SideBarHeader';
-import Accordion from '../Accordian/AccordianClient';
 import { useLocalSettings } from '../../contexts/LocalSettings';
+import Accordion from '../Accordian/AccordianClient';
+import SideBarBrand from './SideBarBrand';
+import SideBarDivider from './SideBarDivider';
+import SideBarHeader from './SideBarHeader';
+import SideBarLink from './SideBarLink';
+
 import styles from '../../styles/components/SideBar/SideBar.module.scss';
 
 type AccordionState = {

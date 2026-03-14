@@ -1,14 +1,15 @@
 import type { DTOChannel, DTOItem } from '@podverse/helpers';
 import type { QueryParamsItem } from '@podverse/helpers-requests';
+
+import { CorePodcastHeader } from '../../../components/Core/Podcast/CorePodcastHeader';
+import { CoreEpisodeHeader } from '../../../components/Core/Podcast/Episodes/CoreEpisodeHeader';
+import { MainInnerContentWrapper } from '../../../components/Main/MainInnerContentWrapper';
+import { MainInnerWrapper } from '../../../components/Main/MainInnerWrapper';
 import { MainWrapper } from '../../../components/Main/MainWrapper';
+import { SideContent } from '../../../components/SideContent/SideContent';
 import { EpisodePageContextProvider } from './EpisodePageContext';
 import { EpisodePageList } from './EpisodePageList';
 import { EpisodePageListHeader } from './EpisodePageListHeader';
-import { MainInnerWrapper } from '../../../components/Main/MainInnerWrapper';
-import { MainInnerContentWrapper } from '../../../components/Main/MainInnerContentWrapper';
-import { CorePodcastHeader } from '../../../components/Core/Podcast/CorePodcastHeader';
-import { SideContent } from '../../../components/SideContent/SideContent';
-import { CoreEpisodeHeader } from '../../../components/Core/Podcast/Episodes/CoreEpisodeHeader';
 
 interface EpisodePageClientProps {
   initialQueryParams: QueryParamsItem;

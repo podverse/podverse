@@ -1,6 +1,8 @@
 import { FaPause, FaPlay } from 'react-icons/fa6';
-import styles from '../../../styles/components/MediaPlayer/Buttons/PlayButtonMobile.module.scss';
+
 import { useMediaPlayer } from '../../../contexts/MediaPlayer';
+
+import styles from '../../../styles/components/MediaPlayer/Buttons/PlayButtonMobile.module.scss';
 
 export const PlayButtonMobile = () => {
   const { mpIsPlaying, setMPIsPlaying } = useMediaPlayer();

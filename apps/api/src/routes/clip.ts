@@ -1,7 +1,7 @@
-import { Router } from 'express';
 import { config } from '@api/config/index.js';
 import { ClipController } from '@api/controllers/clip.js';
 import { asyncHandler } from '@api/middleware/asyncHandler.js';
+import { Router } from 'express';
 
 const router = Router();
 router.use(`${config.api.prefix}${config.api.version}/clip`, router);

@@ -1,12 +1,14 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
+
 import type {
   AppValueRecipient,
   DTOChannelValueRecipient,
   DTOItemValueRecipient,
 } from '@podverse/helpers';
 import { calculateRecipientAmounts } from '@podverse/v4v-helpers';
+
 import { BoostRecipientInfoRow } from './BoostRecipientInfoRow';
 
 import styles from '../../styles/components/Boost/BoostRecipientInfo.module.scss';

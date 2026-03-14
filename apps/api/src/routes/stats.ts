@@ -1,11 +1,11 @@
-import { Router } from 'express';
 import { config } from '@api/config/index.js';
-import { StatsTrackEventChannelController } from '@api/controllers/stats/statsTrackEventChannel.js';
-import { asyncHandler } from '@api/middleware/asyncHandler.js';
 import { StatsTrackEventAccountController } from '@api/controllers/stats/statsTrackEventAccount.js';
+import { StatsTrackEventChannelController } from '@api/controllers/stats/statsTrackEventChannel.js';
 import { StatsTrackEventClipController } from '@api/controllers/stats/statsTrackEventClip.js';
 import { StatsTrackEventItemController } from '@api/controllers/stats/statsTrackEventItem.js';
 import { StatsTrackEventPlaylistController } from '@api/controllers/stats/statsTrackEventPlaylist.js';
+import { asyncHandler } from '@api/middleware/asyncHandler.js';
+import { Router } from 'express';
 
 const router = Router();
 

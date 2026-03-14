@@ -1,11 +1,13 @@
-import type { QueryParamsQueueMedium } from '@podverse/helpers';
-import { getQueueMediumIdFromType, SharableStatusEnum } from '@podverse/helpers';
+import { StatsAggregatedPlaylist } from '@orm/entities/stats/statsAggregatedPlaylist.js';
 import type { FindManyOptions } from 'typeorm';
 import { Equal, In } from 'typeorm';
-import { StatsAggregatedPlaylist } from '@orm/entities/stats/statsAggregatedPlaylist.js';
-import { StatsTrackEventPlaylistService } from './statsTrackEventPlaylist.js';
+
+import type { QueryParamsQueueMedium } from '@podverse/helpers';
+import { getQueueMediumIdFromType, SharableStatusEnum } from '@podverse/helpers';
+
 import type { UpdateHistoricalOptions } from './baseStatsAggregated.js';
 import { BaseStatsAggregatedService, STATS_AGGREGATED_SELECT_ALL } from './baseStatsAggregated.js';
+import { StatsTrackEventPlaylistService } from './statsTrackEventPlaylist.js';
 
 export class StatsAggregatedPlaylistService extends BaseStatsAggregatedService<
   StatsAggregatedPlaylist,

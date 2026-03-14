@@ -4,8 +4,8 @@ import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { useMemo, useState } from 'react';
 
-import { BoostFormBase } from './BoostFormBase';
 import { useConfig } from '../../contexts/Config';
+import { BoostFormBase } from './BoostFormBase';
 
 import styles from './BoostAppDonateForm.module.scss';
 

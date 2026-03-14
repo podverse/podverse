@@ -1,5 +1,6 @@
-import type { LabeledItemEnclosure } from '@podverse/helpers';
 import { useTranslations } from 'next-intl';
+
+import type { LabeledItemEnclosure } from '@podverse/helpers';
 
 // Hook-style helper that returns a translated label for a selected enclosure.
 // Result rules:

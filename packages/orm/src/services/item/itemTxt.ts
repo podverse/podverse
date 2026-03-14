@@ -1,7 +1,7 @@
-import type { EntityManager } from 'typeorm';
 import type { Item } from '@orm/entities/item/item.js';
 import { ItemTxt } from '@orm/entities/item/itemTxt.js';
 import { BaseManyService } from '@orm/services/base/baseManyService.js';
+import type { EntityManager } from 'typeorm';
 
 type ItemTxtDto = {
   purpose: string | null;

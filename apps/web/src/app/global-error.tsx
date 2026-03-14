@@ -1,7 +1,9 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+
 import { Button } from '../components/Button/Button';
+
 import styles from '../styles/components/ErrorBoundary/ErrorBoundary.module.scss';
 
 type GlobalErrorProps = {

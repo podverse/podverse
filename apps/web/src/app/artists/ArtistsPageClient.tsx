@@ -2,12 +2,13 @@
 
 import type { DTOChannel } from '@podverse/helpers';
 import type { QueryParamsGetManyMusic } from '@podverse/helpers-requests';
-import { ArtistsPageContextProvider } from './ArtistsPageContext';
+
+import { MainInnerContentWrapper } from '../../components/Main/MainInnerContentWrapper';
+import { MainInnerWrapper } from '../../components/Main/MainInnerWrapper';
 import { MainWrapper } from '../../components/Main/MainWrapper';
+import { ArtistsPageContextProvider } from './ArtistsPageContext';
 import { ArtistsPageHeader } from './ArtistsPageHeader';
 import { ArtistsPageList } from './ArtistsPageList';
-import { MainInnerWrapper } from '../../components/Main/MainInnerWrapper';
-import { MainInnerContentWrapper } from '../../components/Main/MainInnerContentWrapper';
 
 interface ArtistsPageClientProps {
   initialQueryParams: QueryParamsGetManyMusic;

@@ -1,12 +1,13 @@
 'use client';
 
-import React from 'react';
 import { useTranslations } from 'next-intl';
-import { FormDropdown } from '../../../Form/FormDropdown';
-import type { DropdownMenuItem } from '../../../Dropdown/Dropdown';
+import React from 'react';
+
 import { useLocalSettings } from '../../../../contexts/LocalSettings';
 import type { UITheme } from '../../../../utils/localSettings/uiTheme';
 import { getValidThemes } from '../../../../utils/localSettings/uiTheme';
+import type { DropdownMenuItem } from '../../../Dropdown/Dropdown';
+import { FormDropdown } from '../../../Form/FormDropdown';
 
 export const SettingsThemeSelector: React.FC = () => {
   const tSettings = useTranslations('settings');

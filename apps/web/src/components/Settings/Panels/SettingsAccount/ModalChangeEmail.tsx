@@ -1,16 +1,19 @@
 'use client';
 
-import React, { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { useLocale } from 'next-intl';
+import React, { useState } from 'react';
+
 import { getEmailErrorKey } from '@podverse/helpers-validation/client';
-import { Modal, MODAL_CONTENT_MAX_WIDTH } from '../../../Modal/Modal';
-import { TextInput } from '../../../Form/TextInput';
-import { Button } from '../../../Button/Button';
-import { FormInfoMessageText } from '../../../Form/FormInfoMessageText';
-import styles from '../../../../styles/components/Modal/ModalChangeEmail.module.scss';
+
 import { getApiRequestService } from '../../../../factories/apiRequestService';
 import { handleRateLimitAlert } from '../../../../utils/rateLimit/rateLimitAlert';
+import { Button } from '../../../Button/Button';
+import { FormInfoMessageText } from '../../../Form/FormInfoMessageText';
+import { TextInput } from '../../../Form/TextInput';
+import { Modal, MODAL_CONTENT_MAX_WIDTH } from '../../../Modal/Modal';
+
+import styles from '../../../../styles/components/Modal/ModalChangeEmail.module.scss';
 
 type ModalChangeEmailProps = {
   isOpen: boolean;

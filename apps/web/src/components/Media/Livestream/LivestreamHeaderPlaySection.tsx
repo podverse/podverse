@@ -1,15 +1,18 @@
 'use client';
 
+import React from 'react';
+
 import type { DTOChannel, DTOItem } from '@podverse/helpers';
 import { getShuffleHash } from '@podverse/helpers-requests';
-import React from 'react';
-import { PlayButtonLarge } from '../../MediaPlayer/Buttons/PlayButtonLarge';
-import { useMediaPlayer } from '../../../contexts/MediaPlayer';
-import { ReadableDate } from '../../Time/ReadableDate';
-import { useMediaPlayerResourceUpdate } from '../../../hooks/useMediaPlayerResourceUpdate';
+
 import { useAutoQueue } from '../../../contexts/AutoQueue';
-import { ReadableTime } from '../../Time/ReadableTime';
+import { useMediaPlayer } from '../../../contexts/MediaPlayer';
+import { useMediaPlayerResourceUpdate } from '../../../hooks/useMediaPlayerResourceUpdate';
 import { LiveItemStatus } from '../../LiveItem/LiveItemStatus';
+import { PlayButtonLarge } from '../../MediaPlayer/Buttons/PlayButtonLarge';
+import { ReadableDate } from '../../Time/ReadableDate';
+import { ReadableTime } from '../../Time/ReadableTime';
+
 import styles from '../../../styles/components/Common/Media/Podcast/Episode/EpisodeHeaderPlaySection.module.scss';
 
 type LivestreamHeaderPlaySectionProps = {

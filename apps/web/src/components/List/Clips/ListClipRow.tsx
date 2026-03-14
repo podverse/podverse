@@ -1,7 +1,10 @@
 'use client';
 
-import { useTranslations } from 'next-intl';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
+import React from 'react';
+import { FaGripLines } from 'react-icons/fa6';
+
 import type { DTOChannel, DTOClip, DTOItem } from '@podverse/helpers';
 import {
   findDTOChannelImageForList,
@@ -9,24 +12,24 @@ import {
   getQueueForMedium,
 } from '@podverse/helpers';
 import { getShuffleHash } from '@podverse/helpers-requests';
-import React from 'react';
-import { FaGripLines } from 'react-icons/fa6';
-import { ImagesPerView } from '../../Image/ImagesPerView';
-import { ROUTES } from '../../../constants/routes';
+
 import { IMAGES } from '../../../constants/images';
+import { ROUTES } from '../../../constants/routes';
+import { useAccount } from '../../../contexts/Account';
+import { useAutoQueue } from '../../../contexts/AutoQueue';
+import { useMediaPlayer } from '../../../contexts/MediaPlayer';
+import { useModals } from '../../../contexts/Modals';
+import { useQueues } from '../../../contexts/Queue';
+import { getApiRequestService } from '../../../factories/apiRequestService';
+import { useMediaPlayerResourceUpdate } from '../../../hooks/useMediaPlayerResourceUpdate';
+import { ImagesPerView } from '../../Image/ImagesPerView';
 import { PlayButtonRow } from '../../MediaPlayer/Buttons/PlayButtonRow';
 import type { MoreButtonMenuItem } from '../../MoreButton/MoreButton';
 import { MoreButton } from '../../MoreButton/MoreButton';
-import { useMediaPlayer } from '../../../contexts/MediaPlayer';
 import { ReadableDate } from '../../Time/ReadableDate';
 import { ReadableTimeRange } from '../../Time/ReadableTimeRange';
-import { useAccount } from '../../../contexts/Account';
-import { useQueues } from '../../../contexts/Queue';
 import { showToastPromise } from '../../Toast/Toast';
-import { getApiRequestService } from '../../../factories/apiRequestService';
-import { useModals } from '../../../contexts/Modals';
-import { useMediaPlayerResourceUpdate } from '../../../hooks/useMediaPlayerResourceUpdate';
-import { useAutoQueue } from '../../../contexts/AutoQueue';
+
 import styles from '../../../styles/components/List/Clips/ListClipRow.module.scss';
 
 interface Props {

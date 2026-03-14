@@ -1,17 +1,19 @@
 'use client';
 
+import { useRouter } from 'next/navigation';
 import type { ReactNode } from 'react';
 import { createContext, useContext, useState } from 'react';
-import { useRouter } from 'next/navigation';
+
 import type { DTOItem } from '@podverse/helpers';
 import { getTotalPages, removeQueryParamByPattern } from '@podverse/helpers';
 import type { QueryParamsGetManyLivestreams } from '@podverse/helpers-requests';
-import { getApiRequestService } from '../../../factories/apiRequestService';
+
+import { ROUTES } from '../../../constants/routes';
 import { useAccount } from '../../../contexts/Account';
-import { useSkipInitialEffect } from '../../../hooks/useSkipInitialEffect';
+import { getApiRequestService } from '../../../factories/apiRequestService';
 import { useFilterDefaults } from '../../../hooks/useFilterDefaults';
 import { useListPageCache } from '../../../hooks/useListPageCache';
-import { ROUTES } from '../../../constants/routes';
+import { useSkipInitialEffect } from '../../../hooks/useSkipInitialEffect';
 import { getEpisodesPageFilterParams } from '../../episodes/EpisodesPageDropdownConfig';
 
 interface LivestreamsPageContextType {

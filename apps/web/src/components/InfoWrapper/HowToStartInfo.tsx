@@ -1,8 +1,9 @@
 import { useTranslations } from 'next-intl';
-import { Link } from '../Link/Link';
+
 import { ROUTES } from '../../constants/routes';
-import { InfoWrapper } from './InfoWrapper';
 import { useAccount } from '../../contexts/Account';
+import { Link } from '../Link/Link';
+import { InfoWrapper } from './InfoWrapper';
 
 type HowToStartInfoProps = {
   rows: unknown[];
