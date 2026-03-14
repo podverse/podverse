@@ -1,7 +1,7 @@
-import { Entity, PrimaryGeneratedColumn, JoinColumn, OneToOne, OneToMany } from 'typeorm';
-import type { Relation } from 'typeorm';
 import type { Channel } from '@orm/entities/channel/channel.js';
 import type { ChannelPodrollRemoteItem } from '@orm/entities/channel/channelPodrollRemoteItem.js';
+import type { Relation } from 'typeorm';
+import { Entity, JoinColumn, OneToMany, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity()
 export class ChannelPodroll {

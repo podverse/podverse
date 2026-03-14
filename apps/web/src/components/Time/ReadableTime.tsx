@@ -1,7 +1,7 @@
 'use client';
 
-import type React from 'react';
 import { useLocale, useTranslations } from 'next-intl';
+import type React from 'react';
 
 type ReadableTimeProps = {
   start: string;

@@ -2,14 +2,15 @@
 
 import type { DTOQueue } from '@podverse/helpers';
 import type { QueryParamsQueues } from '@podverse/helpers-requests';
+
+import { MainInnerContentWrapper } from '../../components/Main/MainInnerContentWrapper';
+import { MainInnerWrapper } from '../../components/Main/MainInnerWrapper';
 import { MainWrapper } from '../../components/Main/MainWrapper';
+import { SideContent } from '../../components/SideContent/SideContent';
 import { QueuesPageContextProvider } from './QueuesPageContext';
 import { QueuesPageHeader } from './QueuesPageHeader';
 import { QueuesPageList } from './QueuesPageList';
 import { QueuesPageListHeader } from './QueuesPageListHeader';
-import { MainInnerWrapper } from '../../components/Main/MainInnerWrapper';
-import { MainInnerContentWrapper } from '../../components/Main/MainInnerContentWrapper';
-import { SideContent } from '../../components/SideContent/SideContent';
 
 interface QueuesPageClientProps {
   initialQueryParams: QueryParamsQueues;

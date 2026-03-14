@@ -2,9 +2,10 @@
 
 import React from 'react';
 
+import { PlayButtonLarge } from '../../MediaPlayer/Buttons/PlayButtonLarge';
 import type { MoreButtonMenuItem } from '../../MoreButton/MoreButton';
 import { MoreButton } from '../../MoreButton/MoreButton';
-import { PlayButtonLarge } from '../../MediaPlayer/Buttons/PlayButtonLarge';
+
 import styles from '../../../styles/components/Common/Media/Podcast/Episode/EpisodeHeaderPlaySection.module.scss';
 
 type AddByRSSItemHeaderPlaySectionProps = {

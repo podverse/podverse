@@ -1,7 +1,8 @@
-import { DATABASE_CONSTANTS } from '@podverse/helpers';
-import { Entity, PrimaryGeneratedColumn, Column, JoinColumn, OneToOne } from 'typeorm';
-import type { Relation } from 'typeorm';
 import type { Item } from '@orm/entities/item/item.js';
+import type { Relation } from 'typeorm';
+import { Column, Entity, JoinColumn, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
+
+import { DATABASE_CONSTANTS } from '@podverse/helpers';
 
 @Entity()
 export class ItemChat {

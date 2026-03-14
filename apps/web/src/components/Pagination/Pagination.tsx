@@ -1,9 +1,11 @@
 'use client';
 
-import React from 'react';
 import classNames from 'classnames';
-import NavArrowButton from '../NavArrowButton/NavArrowButton';
+import React from 'react';
+
 import { PAGINATION_MAX_BUTTONS } from '../../constants/pagination';
+import NavArrowButton from '../NavArrowButton/NavArrowButton';
+
 import styles from '../../styles/components/Pagination/Pagination.module.scss';
 
 interface PaginationProps {

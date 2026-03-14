@@ -1,17 +1,19 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
+import React from 'react';
+
 import type { QueryParamsMedium } from '@podverse/helpers';
 import { QUERY_PARAMS_MEDIUMS } from '@podverse/helpers';
 import type { QueryParamsHomeSort } from '@podverse/helpers-requests';
 import { QUERY_PARAMS_HOME_SORT_VALUES } from '@podverse/helpers-requests';
-import React from 'react';
+
+import { CommonListPageHeader } from '../components/Common/List/CommonListPageHeader';
 import Dropdown from '../components/Dropdown/Dropdown';
 import { ViewSelector } from '../components/ViewSelector/ViewSelector';
 import { useLocalSettings } from '../contexts/LocalSettings';
 import { useHomePageContext } from './HomePageContext';
 import { getHomePageDropdownConfig } from './HomePageDropdownConfig';
-import { CommonListPageHeader } from '../components/Common/List/CommonListPageHeader';
 
 export const HomePageHeader: React.FC = () => {
   const { filterParams, setFilterParams } = useHomePageContext();

@@ -1,15 +1,16 @@
+import { handleGenericErrorResponse } from '@api/controllers/helpers/error.js';
+import { _request } from '@api/lib/_request.js';
+import { ensureAuthenticated, getAuthenticatedUser } from '@api/lib/auth/index.js';
+import { assignChapterEndTimes } from '@api/lib/chapters.js';
+import { normalizeTranscriptResponseData } from '@api/lib/transcript.js';
+import { validateBodyObject } from '@api/lib/validation/index.js';
 import type { Request, Response } from 'express';
 import Joi from 'joi';
+
 import type { AddByRSSChapterResponse } from '@podverse/helpers-requests';
 import { AccountFollowingAddByRSSChannelService } from '@podverse/orm';
-import { compatParsedChapters } from '@podverse/parser-mapping';
 import type { PIChapter } from '@podverse/parser-mapping';
-import { assignChapterEndTimes } from '@api/lib/chapters.js';
-import { _request } from '@api/lib/_request.js';
-import { normalizeTranscriptResponseData } from '@api/lib/transcript.js';
-import { ensureAuthenticated, getAuthenticatedUser } from '@api/lib/auth/index.js';
-import { handleGenericErrorResponse } from '@api/controllers/helpers/error.js';
-import { validateBodyObject } from '@api/lib/validation/index.js';
+import { compatParsedChapters } from '@podverse/parser-mapping';
 
 const bodySchema = Joi.object({
   itemIdText: Joi.string().required(),

@@ -4,10 +4,11 @@ import React from 'react';
 
 import { Divider } from '../../Divider/Divider';
 import type { ViewSelectedOption } from '../../ViewSelector/ViewSelector';
-import styles from '../../../styles/components/Common/List/ListNodes.module.scss';
 import { CommonPodcastListGridNode } from './CommonPodcastGridNode';
 import { CommonPodcastListRow } from './CommonPodcastRow';
 import type { PodcastListItem } from './types';
+
+import styles from '../../../styles/components/Common/List/ListNodes.module.scss';
 
 type CommonPodcastListNodesProps = {
   items: PodcastListItem[];

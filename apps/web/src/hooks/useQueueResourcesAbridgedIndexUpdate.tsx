@@ -1,10 +1,12 @@
+import { useCallback, useEffect, useRef } from 'react';
+
 import type { QueueResourceAbridgedUpdates } from '@podverse/helpers';
 import { updateQueueResourceAbridgedIndex } from '@podverse/helpers';
-import { useRef, useEffect, useCallback } from 'react';
-import { useMediaPlayer } from '../contexts/MediaPlayer';
-import { useQueueResourcesAbridgedIndex } from '../contexts/QueueResourcesAbridgedIndex';
-import { useMediaPlayerCurrentTime } from '../contexts/MediaPlayerCurrentTime';
+
 import { useAccount } from '../contexts/Account';
+import { useMediaPlayer } from '../contexts/MediaPlayer';
+import { useMediaPlayerCurrentTime } from '../contexts/MediaPlayerCurrentTime';
+import { useQueueResourcesAbridgedIndex } from '../contexts/QueueResourcesAbridgedIndex';
 
 export function useQueueResourcesAbridgedIndexUpdate() {
   const { mpClip, mpItemSoundbite, mpItem, mpDuration } = useMediaPlayer();

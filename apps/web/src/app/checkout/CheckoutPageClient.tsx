@@ -1,15 +1,17 @@
 'use client';
 
-import { useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { MainHeader } from '../../components/Main/MainHeader';
-import { MainWrapper } from '../../components/Main/MainWrapper';
-import { MainInnerWrapper } from '../../components/Main/MainInnerWrapper';
-import { MainInnerContentWrapper } from '../../components/Main/MainInnerContentWrapper';
-import { SideContent } from '../../components/SideContent/SideContent';
-import { RadioButton } from '../../components/Form/RadioButton';
-import { Checkbox } from '../../components/Form/Checkbox';
+import { useState } from 'react';
+
 import { Button } from '../../components/Button/Button';
+import { Checkbox } from '../../components/Form/Checkbox';
+import { RadioButton } from '../../components/Form/RadioButton';
+import { MainHeader } from '../../components/Main/MainHeader';
+import { MainInnerContentWrapper } from '../../components/Main/MainInnerContentWrapper';
+import { MainInnerWrapper } from '../../components/Main/MainInnerWrapper';
+import { MainWrapper } from '../../components/Main/MainWrapper';
+import { SideContent } from '../../components/SideContent/SideContent';
+
 import styles from '../../styles/app/checkout/Checkout.module.scss';
 
 type MembershipPricingData = {

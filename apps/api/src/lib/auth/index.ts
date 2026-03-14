@@ -1,11 +1,13 @@
-import type { Request, Response, NextFunction, CookieOptions } from 'express';
+import { config } from '@api/config/index.js';
+import type { CookieOptions, NextFunction, Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
 import passport from 'passport';
+import { ExtractJwt, Strategy as JwtStrategy } from 'passport-jwt';
 import { Strategy as LocalStrategy } from 'passport-local';
-import { Strategy as JwtStrategy, ExtractJwt } from 'passport-jwt';
-import { AuthCookieName, ERROR_MESSAGES, AccountMembershipEnum } from '@podverse/helpers';
+
+import { AccountMembershipEnum, AuthCookieName, ERROR_MESSAGES } from '@podverse/helpers';
 import { AccountService } from '@podverse/orm';
-import { config } from '@api/config/index.js';
+
 import { verifyPassword } from './password.js';
 
 const isProduction = config.nodeEnv === 'production';

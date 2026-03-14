@@ -1,13 +1,15 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
+import React from 'react';
+
 import type { QueryParamsChannelMusicArtistType } from '@podverse/helpers-requests';
 import { QUERY_PARAMS_CHANNEL_MUSIC_ARTIST_TYPE_VALUES } from '@podverse/helpers-requests';
-import React from 'react';
+
+import { CommonDetailListHeader } from '../../../components/Common/List/CommonDetailListHeader';
 import { Tabs } from '../../../components/Tabs/Tabs';
 import { useAccount } from '../../../contexts/Account';
 import { useArtistPageContext } from './ArtistPageContext';
-import { CommonDetailListHeader } from '../../../components/Common/List/CommonDetailListHeader';
 
 type ArtistPageListHeaderProps = {
   ssrHasPodroll: boolean;

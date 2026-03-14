@@ -1,5 +1,7 @@
 import React from 'react';
+
 import { Tab } from './Tab';
+
 import styles from '../../styles/components/Tabs/Tabs.module.scss';
 
 type TabData = {

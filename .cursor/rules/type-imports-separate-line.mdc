@@ -28,4 +28,4 @@ import type { DataSourceOptions } from 'typeorm';
 
 ## Enforcement
 
-ESLint `@typescript-eslint/consistent-type-imports` with `fixStyle: 'separate-type-imports'` enforces this. Run `npm run lint:fix` to auto-fix.
+ESLint `@typescript-eslint/consistent-type-imports` with `fixStyle: 'separate-type-imports'` enforces this. Import order (groups and styles last) is also enforced by ESLint and fixed by the same `npm run lint:fix` command.

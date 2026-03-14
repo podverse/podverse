@@ -1,13 +1,15 @@
 import Image from 'next/image';
 import { getTranslations } from 'next-intl/server';
-import { MainHeader } from '../../components/Main/MainHeader';
-import { MainWrapper } from '../../components/Main/MainWrapper';
-import { MainInnerWrapper } from '../../components/Main/MainInnerWrapper';
-import { MainInnerContentWrapper } from '../../components/Main/MainInnerContentWrapper';
-import { SideContent } from '../../components/SideContent/SideContent';
+
 import { FeatureComparison } from '../../components/FeatureComparison/FeatureComparison';
+import { MainHeader } from '../../components/Main/MainHeader';
+import { MainInnerContentWrapper } from '../../components/Main/MainInnerContentWrapper';
+import { MainInnerWrapper } from '../../components/Main/MainInnerWrapper';
+import { MainWrapper } from '../../components/Main/MainWrapper';
+import { SideContent } from '../../components/SideContent/SideContent';
 import { FEATURES } from '../../constants/features';
 import { IMAGES } from '../../constants/images';
+
 import styles from '../../styles/app/about/About.module.scss';
 
 export default async function AboutPage() {

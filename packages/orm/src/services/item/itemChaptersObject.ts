@@ -1,8 +1,8 @@
-import { ItemChaptersObject } from '@orm/entities/item/itemChaptersObject.js';
-import type { ItemChaptersFeed } from '@orm/entities/item/itemChaptersFeed.js';
-import { BaseOneService } from '@orm/services/base/baseOneService.js';
-import { applyProperties } from '@orm/lib/applyProperties.js';
 import { getDataSourceReadWrite } from '@orm/context.js';
+import type { ItemChaptersFeed } from '@orm/entities/item/itemChaptersFeed.js';
+import { ItemChaptersObject } from '@orm/entities/item/itemChaptersObject.js';
+import { applyProperties } from '@orm/lib/applyProperties.js';
+import { BaseOneService } from '@orm/services/base/baseOneService.js';
 
 export type ItemChaptersObjectMetadataDto = {
   version?: string | null;

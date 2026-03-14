@@ -1,23 +1,25 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
+import React from 'react';
+
 import type {
   QueryParamsStatsRange,
-  QueryParamsSubscribedPartialSort,
   QueryParamsSubscribedMusicType,
+  QueryParamsSubscribedPartialSort,
 } from '@podverse/helpers-requests';
 import {
   QUERY_PARAMS_STATS_RANGE_VALUES,
-  QUERY_PARAMS_SUBSCRIBED_PARTIAL_SORT,
   QUERY_PARAMS_SUBSCRIBED_MUSIC_TYPE,
+  QUERY_PARAMS_SUBSCRIBED_PARTIAL_SORT,
 } from '@podverse/helpers-requests';
-import React from 'react';
+
+import { CommonListPageHeader } from '../../components/Common/List/CommonListPageHeader';
 import Dropdown from '../../components/Dropdown/Dropdown';
 import { ViewSelector } from '../../components/ViewSelector/ViewSelector';
 import { useLocalSettings } from '../../contexts/LocalSettings';
 import { useTracksPageContext } from './TracksPageContext';
 import { getTracksPageDropdownConfig } from './TracksPageDropdownConfig';
-import { CommonListPageHeader } from '../../components/Common/List/CommonListPageHeader';
 
 export const TracksPageHeader: React.FC = () => {
   const { filterParams, setFilterParams } = useTracksPageContext();

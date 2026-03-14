@@ -1,8 +1,9 @@
-import type { FeedObject } from 'podverse-partytime';
-import type { Channel, EntityManager } from '@podverse/orm';
-import { ChannelPublisherService, ChannelPublisherRemoteItemService } from '@podverse/orm';
-import { compatChannelPublisherRemoteItemDtos } from '@podverse/parser-mapping';
 import { timerManager } from '@parser/factories/timerManager.js';
+import type { FeedObject } from 'podverse-partytime';
+
+import type { Channel, EntityManager } from '@podverse/orm';
+import { ChannelPublisherRemoteItemService, ChannelPublisherService } from '@podverse/orm';
+import { compatChannelPublisherRemoteItemDtos } from '@podverse/parser-mapping';
 
 export const handleParsedChannelPublisher = async (
   parsedFeed: FeedObject,

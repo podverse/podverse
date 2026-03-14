@@ -1,9 +1,10 @@
 import { useTranslations } from 'next-intl';
+
+import { AuthForgotPasswordForm } from '../../components/Auth/AuthForgotPasswordForm';
 import { MainHeader } from '../../components/Main/MainHeader';
 import { MainInnerContentWrapper } from '../../components/Main/MainInnerContentWrapper';
 import { MainInnerWrapper } from '../../components/Main/MainInnerWrapper';
 import { MainWrapper } from '../../components/Main/MainWrapper';
-import { AuthForgotPasswordForm } from '../../components/Auth/AuthForgotPasswordForm';
 
 export function ForgotPasswordPageClient() {
   const tAuthentication = useTranslations('authentication');

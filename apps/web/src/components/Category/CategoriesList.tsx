@@ -1,8 +1,11 @@
 import { useTranslations } from 'next-intl';
-import type { DTOCategory } from '@podverse/helpers';
 import React from 'react';
-import { Link } from '../Link/Link';
+
+import type { DTOCategory } from '@podverse/helpers';
+
 import { useCategories } from '../../contexts/Categories';
+import { Link } from '../Link/Link';
+
 import styles from '../../styles/components/Category/CategoriesList.module.scss';
 
 type CategoriesListProps = {

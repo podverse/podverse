@@ -1,21 +1,24 @@
 'use client';
 
 import type { DropResult } from '@hello-pangea/dnd';
-import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
+import { DragDropContext, Draggable, Droppable } from '@hello-pangea/dnd';
+import React from 'react';
+
 import type { DTOPlaylist, DTOPlaylistResource } from '@podverse/helpers';
 import { MediumEnum } from '@podverse/helpers';
-import React from 'react';
-import { ListPlaylistResourceRow } from './ListPlaylistResourceRow';
+import { getShuffleHash } from '@podverse/helpers-requests';
+
+import { useAutoQueue } from '../../../contexts/AutoQueue';
 import { getApiRequestService } from '../../../factories/apiRequestService';
-import Pagination from '../../Pagination/Pagination';
-import { useSkipInitialEffect } from '../../../hooks/useSkipInitialEffect';
-import { scrollMainToTop } from '../../../utils/scroll';
-import { Divider } from '../../Divider/Divider';
 import { useMediaPlayerResourceUpdate } from '../../../hooks/useMediaPlayerResourceUpdate';
 import { usePlayAddByRSS } from '../../../hooks/usePlayAddByRSS';
-import { useAutoQueue } from '../../../contexts/AutoQueue';
-import { getShuffleHash } from '@podverse/helpers-requests';
+import { useSkipInitialEffect } from '../../../hooks/useSkipInitialEffect';
 import { loadAddByRSSIndexItemFromResourceData } from '../../../utils/addByRSS/playFromQueueResource';
+import { scrollMainToTop } from '../../../utils/scroll';
+import { Divider } from '../../Divider/Divider';
+import Pagination from '../../Pagination/Pagination';
+import { ListPlaylistResourceRow } from './ListPlaylistResourceRow';
+
 import styles from '../../../styles/components/List/Playlists/ListPlaylistResources.module.scss';
 
 type Props = {

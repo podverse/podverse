@@ -1,5 +1,7 @@
-import { stringifyData, chunkArray } from '@podverse/helpers';
 import type { MulticastMessage } from 'firebase-admin/messaging';
+
+import { chunkArray, stringifyData } from '@podverse/helpers';
+
 import type { FirebaseContext } from '../../../factory.js';
 
 type IOSPayload = {

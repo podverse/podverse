@@ -1,11 +1,13 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
+
 import type { DTOChannel } from '@podverse/helpers';
 import { findDTOChannelImageBySize } from '@podverse/helpers';
 
-import { Image } from '../../../Image/Image';
 import { IMAGES } from '../../../../constants/images';
+import { Image } from '../../../Image/Image';
+
 import styles from '../../../../styles/components/Common/Media/Podcast/PodcastHeaderImage.module.scss';
 
 type CoreAlbumHeaderImageProps = {

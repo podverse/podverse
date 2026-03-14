@@ -1,14 +1,16 @@
-import { DATABASE_CONSTANTS } from '@podverse/helpers';
+import type { Relation } from 'typeorm';
 import {
-  Entity,
-  PrimaryGeneratedColumn,
-  Column,
-  ManyToOne,
-  JoinColumn,
   BeforeInsert,
   BeforeUpdate,
+  Column,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  PrimaryGeneratedColumn,
 } from 'typeorm';
-import type { Relation } from 'typeorm';
+
+import { DATABASE_CONSTANTS } from '@podverse/helpers';
+
 import type { Item } from './item.js';
 
 @Entity()

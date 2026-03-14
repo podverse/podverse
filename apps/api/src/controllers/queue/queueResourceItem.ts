@@ -1,9 +1,7 @@
-import type { Request, Response } from 'express';
-import Joi from 'joi';
-import { QueueResourceService } from '@podverse/orm';
 import { handleGenericErrorResponse } from '@api/controllers/helpers/error.js';
-import { ensureAuthenticated } from '@api/lib/auth/index.js';
 import { verifyQueueOwnership } from '@api/controllers/queue/queue.js';
+import { ensureAuthenticated } from '@api/lib/auth/index.js';
+import { getParamRequired } from '@api/lib/params.js';
 import {
   itemIdTextParamSchema,
   positionBetweenBodySchema,
@@ -11,7 +9,10 @@ import {
   validateBodyObject,
   validateParamsObject,
 } from '@api/lib/validation/index.js';
-import { getParamRequired } from '@api/lib/params.js';
+import type { Request, Response } from 'express';
+import Joi from 'joi';
+
+import { QueueResourceService } from '@podverse/orm';
 
 export const queueResourceNowPlayingSchema = Joi.object({
   playback_position: Joi.number().min(0).optional(),

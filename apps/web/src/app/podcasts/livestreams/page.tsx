@@ -1,5 +1,6 @@
-import z from 'zod';
 import { cookies } from 'next/headers';
+import z from 'zod';
+
 import type { DTOItem, QueryParamsMedium } from '@podverse/helpers';
 import { CATEGORY_MAPPING_KEYS, getTotalPages, LIVE_ITEM_STATUSES } from '@podverse/helpers';
 import type { ApiListResponse } from '@podverse/helpers-requests';
@@ -8,16 +9,17 @@ import {
   QUERY_PARAMS_SUBSCRIBED_PARTIAL_SORT,
   QUERY_PARAMS_SUBSCRIBED_TYPE,
 } from '@podverse/helpers-requests';
+
 import { getSSRAuthService } from '../../../utils/auth/ssrAuth';
-import { LivestreamsPageClient } from './LivestreamsPageClient';
-import type { LivestreamsPageDropdownConfigCurrentParams } from './LivestreamsPageDropdownConfig';
-import { getLivestreamsPageFilterParams } from './LivestreamsPageDropdownConfig';
 import {
   guardSubscribedSsrFilter,
   safeSsrListRequest,
 } from '../../../utils/filters/ssrFilterGuards';
 import type { PodcastsLivestreamsFilterDefaults } from '../../../utils/localSettings/localSettings';
 import { getParsedLocalSettings } from '../../../utils/localSettings/localSettings';
+import { LivestreamsPageClient } from './LivestreamsPageClient';
+import type { LivestreamsPageDropdownConfigCurrentParams } from './LivestreamsPageDropdownConfig';
+import { getLivestreamsPageFilterParams } from './LivestreamsPageDropdownConfig';
 
 const searchParamsSchema = z.object({
   page: z

@@ -1,4 +1,5 @@
-import { Entity, PrimaryGeneratedColumn, Column, OneToMany, OneToOne, JoinColumn } from 'typeorm';
+import { Column, Entity, JoinColumn, OneToMany, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
+
 import type { AccountSettings } from './accountSettings.js';
 import type { AccountSettingsNotificationType } from './accountSettingsNotificationType.js';
 

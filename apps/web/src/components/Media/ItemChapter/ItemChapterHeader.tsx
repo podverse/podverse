@@ -1,15 +1,17 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
+import React from 'react';
+
 import type { DTOChannel, DTOItem, DTOItemChapter } from '@podverse/helpers';
 import { findDTOItemImageBySize } from '@podverse/helpers';
-import React from 'react';
-import { useTranslations } from 'next-intl';
 
+import { IMAGES } from '../../../constants/images';
+import { ROUTES } from '../../../constants/routes';
 import { CommonItemHeader } from '../../Common/Item/CommonItemHeader';
 import { Link } from '../../Link/Link';
-import { ROUTES } from '../../../constants/routes';
-import { IMAGES } from '../../../constants/images';
 import { ItemChapterHeaderPlaySection } from './ItemChapterHeaderPlaySection';
+
 import styles from '../../../styles/components/Media/ItemChapter/ItemChapterHeader.module.scss';
 
 type ItemChapterHeaderProps = {

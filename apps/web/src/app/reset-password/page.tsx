@@ -1,4 +1,5 @@
 import { z } from 'zod';
+
 import { ResetPasswordPageClient } from './ResetPasswordPageClient';
 
 const searchParamsSchema = z.object({

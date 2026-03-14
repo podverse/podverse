@@ -1,10 +1,12 @@
-import type { QueryParamsMedium } from '@podverse/helpers';
-import type { FindManyOptions } from 'typeorm';
 import { StatsAggregatedChannel } from '@orm/entities/stats/statsAggregatedChannel.js';
-import { StatsTrackEventChannelService } from './statsTrackEventChannel.js';
+import { getActiveFeedWhere } from '@orm/lib/feedFlagHelpers.js';
+import type { FindManyOptions } from 'typeorm';
+
+import type { QueryParamsMedium } from '@podverse/helpers';
+
 import type { UpdateHistoricalOptions } from './baseStatsAggregated.js';
 import { BaseStatsAggregatedService } from './baseStatsAggregated.js';
-import { getActiveFeedWhere } from '@orm/lib/feedFlagHelpers.js';
+import { StatsTrackEventChannelService } from './statsTrackEventChannel.js';
 
 export class StatsAggregatedChannelService extends BaseStatsAggregatedService<
   StatsAggregatedChannel,

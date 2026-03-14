@@ -1,17 +1,19 @@
 'use client';
 
 import { useParams } from 'next/navigation';
+import type { ReactNode } from 'react';
+import { createContext, useContext, useRef, useState } from 'react';
+
 import type { DTOClip, DTOItem, DTOItemSoundbite } from '@podverse/helpers';
 import { getTotalPages } from '@podverse/helpers';
 import type { QueryParamsChannel } from '@podverse/helpers-requests';
-import type { ReactNode } from 'react';
-import { createContext, useContext, useState, useRef } from 'react';
-import { getApiRequestService } from '../../../factories/apiRequestService';
+
 import { useAccount } from '../../../contexts/Account';
 import { checkBackNavFlag } from '../../../contexts/Navigation';
-import { useSkipInitialEffect } from '../../../hooks/useSkipInitialEffect';
+import { getApiRequestService } from '../../../factories/apiRequestService';
 import { usePageStateCache } from '../../../hooks/usePageStateCache';
-import { getPageState, definedProps } from '../../../utils/pageStateCache';
+import { useSkipInitialEffect } from '../../../hooks/useSkipInitialEffect';
+import { definedProps, getPageState } from '../../../utils/pageStateCache';
 import { getPodcastPageFilterParams } from './PodcastPageDropdownConfig';
 
 // Type for cached data

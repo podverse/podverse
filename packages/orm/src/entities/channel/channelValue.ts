@@ -1,17 +1,18 @@
-import { DATABASE_CONSTANTS } from '@podverse/helpers';
-import {
-  Entity,
-  PrimaryGeneratedColumn,
-  Column,
-  ManyToOne,
-  JoinColumn,
-  OneToMany,
-  OneToOne,
-} from 'typeorm';
-import type { Relation } from 'typeorm';
 import type { Channel } from '@orm/entities/channel/channel.js';
 import type { ChannelValueMetaBoost } from '@orm/entities/channel/channelValueMetaBoost.js';
 import type { ChannelValueRecipient } from '@orm/entities/channel/channelValueRecipient.js';
+import type { Relation } from 'typeorm';
+import {
+  Column,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  OneToMany,
+  OneToOne,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
+
+import { DATABASE_CONSTANTS } from '@podverse/helpers';
 
 @Entity({ name: 'channel_value' })
 export class ChannelValue {

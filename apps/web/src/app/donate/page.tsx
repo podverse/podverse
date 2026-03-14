@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from 'react';
 import { useTranslations } from 'next-intl';
+import { useState } from 'react';
 import { FaCommentDollar } from 'react-icons/fa6';
 
 import { BoostAppDonateForm } from '../../components/Boost/BoostAppDonateForm';

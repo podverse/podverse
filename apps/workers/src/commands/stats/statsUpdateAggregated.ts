@@ -1,7 +1,10 @@
+import type { CommandLineArgs } from '@workers/commands/index.js';
+import { getTimerManager } from '@workers/factories/timerManager.js';
+
 import { TIME_CONSTANTS } from '@podverse/helpers';
 import {
-  StatsAggregatedChannelService,
   StatsAggregatedAccountService,
+  StatsAggregatedChannelService,
   StatsAggregatedClipService,
   StatsAggregatedItemService,
   StatsAggregatedPlaylistService,
@@ -11,8 +14,6 @@ import {
   StatsTrackEventItemService,
   StatsTrackEventPlaylistService,
 } from '@podverse/orm';
-import type { CommandLineArgs } from '@workers/commands/index.js';
-import { getTimerManager } from '@workers/factories/timerManager.js';
 
 const limit = 500;
 

@@ -1,4 +1,5 @@
 import { notFound } from 'next/navigation';
+
 import { AddByRSSDetailClient } from '../../../../components/AddByRSS/Detail/AddByRSSDetailClient';
 import type { AddByRSSResourceType } from '../../../../utils/addByRSS/types';
 

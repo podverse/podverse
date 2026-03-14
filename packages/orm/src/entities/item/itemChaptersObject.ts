@@ -1,8 +1,9 @@
-import { DATABASE_CONSTANTS } from '@podverse/helpers';
-import { Entity, PrimaryGeneratedColumn, Column, OneToOne, OneToMany, JoinColumn } from 'typeorm';
-import type { Relation } from 'typeorm';
-import type { ItemChaptersFeed } from '@orm/entities/item/itemChaptersFeed.js';
 import type { ItemChapter } from '@orm/entities/item/itemChapter.js';
+import type { ItemChaptersFeed } from '@orm/entities/item/itemChaptersFeed.js';
+import type { Relation } from 'typeorm';
+import { Column, Entity, JoinColumn, OneToMany, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
+
+import { DATABASE_CONSTANTS } from '@podverse/helpers';
 
 @Entity('item_chapters_object')
 export class ItemChaptersObject {

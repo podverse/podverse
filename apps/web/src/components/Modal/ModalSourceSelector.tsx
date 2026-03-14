@@ -1,7 +1,8 @@
 import { useTranslations } from 'next-intl';
-import { Modal, MODAL_CONTENT_MAX_WIDTH } from './Modal';
+
 import { useModals } from '../../contexts/Modals';
 import { SourceSelectors } from '../SourceSelectors/SourceSelectors';
+import { Modal, MODAL_CONTENT_MAX_WIDTH } from './Modal';
 
 export const ModalSourceSelector: React.FC = () => {
   const tMediaPlayer = useTranslations('media_player');

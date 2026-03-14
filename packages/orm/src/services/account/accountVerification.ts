@@ -1,7 +1,7 @@
-import type { EntityManager } from 'typeorm';
 import type { Account } from '@orm/entities/account/account.js';
 import { AccountVerification } from '@orm/entities/account/accountVerification.js';
 import { BaseOneService } from '@orm/services/base/baseOneService.js';
+import type { EntityManager } from 'typeorm';
 
 export type AccountVerificationDto = {
   verification_token: string;

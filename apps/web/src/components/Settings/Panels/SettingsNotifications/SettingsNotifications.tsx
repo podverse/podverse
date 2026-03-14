@@ -1,26 +1,29 @@
 'use client';
 
-import { useState } from 'react';
 import { useTranslations } from 'next-intl';
+import { useState } from 'react';
+
 import { validateHttpsUrl } from '@podverse/helpers-validation/client';
-import { requestNotificationPermission } from '../../../../lib/notifications/webpush/requestNotificationPermission';
-import { disableNotificationPermission } from '../../../../lib/notifications/webpush/disableNotificationPermission';
-import { getApiRequestService } from '../../../../factories/apiRequestService';
-import { useNotifications } from '../../../../contexts/Notifications';
-import { useAccount } from '../../../../contexts/Account';
-import { useModals } from '../../../../contexts/Modals';
-import { SwitchButton } from '../../../Form/SwitchButton';
-import { useLoadingMap } from '../../../../hooks/useLoadingMap';
-import { Divider } from '../../../../components/Divider/Divider';
-import { TextInput } from '../../../../components/Form/TextInput';
+
 import { Button } from '../../../../components/Button/Button';
+import { Divider } from '../../../../components/Divider/Divider';
 import {
   InlineForm,
-  InlineFormInfo,
   InlineFormButtons,
   InlineFormFieldGroup,
+  InlineFormInfo,
 } from '../../../../components/Form/InlineForm';
+import { TextInput } from '../../../../components/Form/TextInput';
+import { useAccount } from '../../../../contexts/Account';
+import { useModals } from '../../../../contexts/Modals';
+import { useNotifications } from '../../../../contexts/Notifications';
+import { getApiRequestService } from '../../../../factories/apiRequestService';
+import { useLoadingMap } from '../../../../hooks/useLoadingMap';
+import { disableNotificationPermission } from '../../../../lib/notifications/webpush/disableNotificationPermission';
+import { requestNotificationPermission } from '../../../../lib/notifications/webpush/requestNotificationPermission';
+import { SwitchButton } from '../../../Form/SwitchButton';
 import { SettingsSection } from '../../SettingsSection';
+
 import styles from '../../../../styles/components/Settings/Panels/SettingsNotifications/SettingsNotifications.module.scss';
 
 export function SettingsNotifications() {

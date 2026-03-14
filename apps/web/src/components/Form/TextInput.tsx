@@ -1,10 +1,12 @@
+import classNames from 'classnames';
 import type { AriaAttributes } from 'react';
 import React, { useRef } from 'react';
-import styles from '../../styles/components/Form/TextInput.module.scss';
+
+import { cssClass } from '../../utils/cssModule';
 import { Button } from '../Button/Button';
 import { TextInputNumberIncrement } from './TextInputNumberIncrements';
-import classNames from 'classnames';
-import { cssClass } from '../../utils/cssModule';
+
+import styles from '../../styles/components/Form/TextInput.module.scss';
 
 type TextInputProps = {
   value: string;

@@ -1,13 +1,15 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import type { DTOChannel } from '@podverse/helpers';
 import { FaBell, FaBellSlash } from 'react-icons/fa6';
+
+import type { DTOChannel } from '@podverse/helpers';
+
 import { useAccount } from '../../../contexts/Account';
 import { useModals } from '../../../contexts/Modals';
-import { IconButton } from '../Header/IconButton';
 import { getApiRequestService } from '../../../factories/apiRequestService';
 import { requestNotificationPermission } from '../../../lib/notifications/webpush/requestNotificationPermission';
+import { IconButton } from '../Header/IconButton';
 
 type NotificationIconButtonProps = {
   channel: DTOChannel;

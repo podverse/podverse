@@ -1,12 +1,14 @@
 'use client';
 
-import React from 'react';
-import type { DTOCategory } from '@podverse/helpers';
 import { useRouter } from 'next/navigation';
+import React from 'react';
+
+import type { DTOCategory } from '@podverse/helpers';
+
 import { CoreEpisodes } from '../../components/Core/Podcast/Episodes/CoreEpisodes';
+import { HowToStartInfo } from '../../components/InfoWrapper/HowToStartInfo';
 import LoadingSpinnerOverlay from '../../components/LoadingSpinner/LoadingSpinnerOverlay';
 import { ModalCategoriesSelect } from '../../components/Modal/ModalCategoriesSelect';
-import { HowToStartInfo } from '../../components/InfoWrapper/HowToStartInfo';
 import { ROUTES } from '../../constants/routes';
 import { useLocalSettings } from '../../contexts/LocalSettings';
 import { onClickCategory } from '../../utils/categories';

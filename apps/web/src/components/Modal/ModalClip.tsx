@@ -2,11 +2,13 @@
 
 import { useTranslations } from 'next-intl';
 import React from 'react';
-import { Modal, MODAL_CONTENT_MAX_WIDTH } from './Modal';
-import { useModals } from '../../contexts/Modals';
-import { ClipForm } from '../Clip/ClipForm';
+
 import { hhmmssToSecondsNumeric, SharableStatusEnum } from '@podverse/helpers';
+
+import { useModals } from '../../contexts/Modals';
 import { getApiRequestService } from '../../factories/apiRequestService';
+import { ClipForm } from '../Clip/ClipForm';
+import { Modal, MODAL_CONTENT_MAX_WIDTH } from './Modal';
 
 export const ModalClip: React.FC = () => {
   const tFeatures = useTranslations('features');

@@ -1,8 +1,9 @@
-import type { RemoteItemDto } from '@podverse/helpers';
-import type { EntityManager } from 'typeorm';
 import type { ItemValueTimeSplit } from '@orm/entities/item/itemValueTimeSplit.js';
 import { ItemValueTimeSplitRemoteItem } from '@orm/entities/item/itemValueTimeSplitRemoteItem.js';
 import { BaseRemoteItemsService } from '@orm/services/base/baseRemoteItemsService.js';
+import type { EntityManager } from 'typeorm';
+
+import type { RemoteItemDto } from '@podverse/helpers';
 
 export class ItemValueTimeSplitRemoteItemService extends BaseRemoteItemsService<
   ItemValueTimeSplitRemoteItem,

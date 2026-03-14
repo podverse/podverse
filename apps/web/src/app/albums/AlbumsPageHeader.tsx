@@ -1,6 +1,8 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
+import React from 'react';
+
 import type {
   QueryParamsStatsRange,
   QueryParamsSubscribedFullSort,
@@ -11,13 +13,13 @@ import {
   QUERY_PARAMS_SUBSCRIBED_FULL_SORT,
   QUERY_PARAMS_SUBSCRIBED_MUSIC_TYPE,
 } from '@podverse/helpers-requests';
-import React from 'react';
+
+import { CommonListPageHeader } from '../../components/Common/List/CommonListPageHeader';
 import Dropdown from '../../components/Dropdown/Dropdown';
 import { ViewSelector } from '../../components/ViewSelector/ViewSelector';
 import { useLocalSettings } from '../../contexts/LocalSettings';
 import { useAlbumsPageContext } from './AlbumsPageContext';
 import { getAlbumsPageDropdownConfig } from './AlbumsPageDropdownConfig';
-import { CommonListPageHeader } from '../../components/Common/List/CommonListPageHeader';
 
 export const AlbumsPageHeader: React.FC = () => {
   const { filterParams, setFilterParams } = useAlbumsPageContext();

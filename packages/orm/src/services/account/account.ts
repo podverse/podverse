@@ -1,28 +1,30 @@
-import {
-  AccountMembershipEnum,
-  SharableStatusEnum,
-  AccountNotificationTypeEnum,
-  ERROR_MESSAGES,
-  getSharableStatusIdsForProfileType,
-} from '@podverse/helpers';
-import { validateEmail, validatePassword } from '@podverse/helpers-validation';
-import type { FindManyOptions, FindOneOptions, Repository } from 'typeorm';
-import { In, Not, IsNull } from 'typeorm';
-import { Account } from '@orm/entities/account/account.js';
+import { getDefaultLocale } from '@orm/config/index.js';
 import { AppDataSourceRead, AppDataSourceReadWrite } from '@orm/db/index.js';
-import { SharableStatus } from '@orm/entities/sharableStatus.js';
-import { hashPassword } from '@orm/lib/password.js';
-import { AccountCredentialsService } from './accountCredentials.js';
-import { AccountMembershipStatusService } from './accountMembershipStatus.js';
-import { AccountVerificationService } from './accountVerification.js';
-import { AccountResetPasswordService } from './accountResetPassword.js';
-import { AccountProfileService } from './accountProfile.js';
+import { Account } from '@orm/entities/account/account.js';
 import { AccountProfile } from '@orm/entities/account/accountProfile.js';
 import { AccountSettings } from '@orm/entities/account/accountSettings/accountSettings.js';
 import { AccountSettingsLocale } from '@orm/entities/account/accountSettings/accountSettingsLocale.js';
 import { AccountSettingsNotification } from '@orm/entities/account/accountSettings/accountSettingsNotification.js';
 import { AccountSettingsNotificationType } from '@orm/entities/account/accountSettings/accountSettingsNotificationType.js';
-import { getDefaultLocale } from '@orm/config/index.js';
+import { SharableStatus } from '@orm/entities/sharableStatus.js';
+import { hashPassword } from '@orm/lib/password.js';
+import type { FindManyOptions, FindOneOptions, Repository } from 'typeorm';
+import { In, IsNull, Not } from 'typeorm';
+
+import {
+  AccountMembershipEnum,
+  AccountNotificationTypeEnum,
+  ERROR_MESSAGES,
+  getSharableStatusIdsForProfileType,
+  SharableStatusEnum,
+} from '@podverse/helpers';
+import { validateEmail, validatePassword } from '@podverse/helpers-validation';
+
+import { AccountCredentialsService } from './accountCredentials.js';
+import { AccountMembershipStatusService } from './accountMembershipStatus.js';
+import { AccountProfileService } from './accountProfile.js';
+import { AccountResetPasswordService } from './accountResetPassword.js';
+import { AccountVerificationService } from './accountVerification.js';
 
 type CreateAccountDto = {
   email: string;

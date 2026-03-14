@@ -1,8 +1,9 @@
+import { MediaPlayerButtonsDesktop } from './MediaPlayerButtonsDesktop';
 import { MediaPlayerControlsDesktop } from './MediaPlayerControlsDesktop';
 import { MediaPlayerInfoDesktop } from './MediaPlayerInfoDesktop';
-import { MediaPlayerButtonsDesktop } from './MediaPlayerButtonsDesktop';
-import styles from '../../../styles/components/MediaPlayer/Desktop/MediaPlayerDesktop.module.scss';
 import { MediaPlayerMarqueeDesktop } from './MediaPlayerMarqueeDesktop';
+
+import styles from '../../../styles/components/MediaPlayer/Desktop/MediaPlayerDesktop.module.scss';
 
 export const MediaPlayerDesktop = () => {
   return (

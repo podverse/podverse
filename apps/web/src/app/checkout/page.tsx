@@ -1,5 +1,5 @@
-import { getSSRApiRequestService } from '../../factories/apiRequestService';
 import { getConfig } from '../../config';
+import { getSSRApiRequestService } from '../../factories/apiRequestService';
 import { CheckoutPageClient } from './CheckoutPageClient';
 
 type MembershipPricingData = {

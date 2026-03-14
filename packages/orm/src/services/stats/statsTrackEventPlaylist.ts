@@ -1,7 +1,8 @@
 import type { Playlist } from '@orm/entities/playlist/playlist.js';
-import { BaseStatsTrackEventService } from './baseStatsTrackEvent.js';
 import { StatsTrackEventPlaylist } from '@orm/entities/stats/statsTrackEventPlaylist.js';
 import { PlaylistService } from '@orm/services/playlist/playlist.js';
+
+import { BaseStatsTrackEventService } from './baseStatsTrackEvent.js';
 
 export class StatsTrackEventPlaylistService extends BaseStatsTrackEventService<StatsTrackEventPlaylist> {
   protected entity = StatsTrackEventPlaylist;

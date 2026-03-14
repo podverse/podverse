@@ -1,5 +1,7 @@
-import { Link } from '../Link/Link';
 import React from 'react';
+
+import { Link } from '../Link/Link';
+
 import styles from '../../styles/components/SideBar/SideBarLink.module.scss';
 
 type Props = {

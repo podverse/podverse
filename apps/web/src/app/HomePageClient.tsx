@@ -1,11 +1,12 @@
 import type { DTOChannel } from '@podverse/helpers';
 import type { QueryParamsHome } from '@podverse/helpers-requests';
-import { MainWrapper } from '../components/Main/MainWrapper';
-import { MainInnerWrapper } from '../components/Main/MainInnerWrapper';
+
 import { MainInnerContentWrapper } from '../components/Main/MainInnerContentWrapper';
+import { MainInnerWrapper } from '../components/Main/MainInnerWrapper';
+import { MainWrapper } from '../components/Main/MainWrapper';
 import { HomePageContextProvider } from './HomePageContext';
-import { HomePageList } from './HomePageList';
 import { HomePageHeader } from './HomePageHeader';
+import { HomePageList } from './HomePageList';
 
 type HomePageClientProps = {
   initialQueryParams: QueryParamsHome;

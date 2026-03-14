@@ -1,6 +1,7 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { TextInput } from './TextInput';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { FaMagnifyingGlass } from 'react-icons/fa6';
+
+import { TextInput } from './TextInput';
 
 type SearchInputProps = {
   onChange?: (event: React.ChangeEvent<HTMLInputElement>) => void;

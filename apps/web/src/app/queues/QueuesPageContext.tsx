@@ -1,12 +1,14 @@
 'use client';
 
+import type { ReactNode } from 'react';
+import { createContext, useContext, useEffect, useState } from 'react';
+
 import type { DTOQueue, DTOQueueResource } from '@podverse/helpers';
 import { getQueueMediumIdFromType, MediumEnum } from '@podverse/helpers';
 import type { QueryParamsQueues } from '@podverse/helpers-requests';
-import type { ReactNode } from 'react';
-import { createContext, useContext, useState, useEffect } from 'react';
-import { getApiRequestService } from '../../factories/apiRequestService';
+
 import { useAccount } from '../../contexts/Account';
+import { getApiRequestService } from '../../factories/apiRequestService';
 
 interface QueuesPageContextType {
   filterParams: QueryParamsQueues;

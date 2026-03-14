@@ -1,5 +1,5 @@
-import type { DTOChannelValueRecipient } from './channelValueRecipient.js';
 import type { DTOValueMetaBoost } from '../valueMetaBoost.js';
+import type { DTOChannelValueRecipient } from './channelValueRecipient.js';
 
 export interface DTOChannelValue {
   id: number;

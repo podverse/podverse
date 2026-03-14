@@ -1,6 +1,7 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
+
 import type { DTOChannelCategory } from '@podverse/helpers';
 
 import { Link } from '../../Link/Link';

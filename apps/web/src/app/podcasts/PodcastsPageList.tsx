@@ -1,9 +1,10 @@
-import React from 'react';
 import { useRouter } from 'next/navigation';
+import React from 'react';
+
 import type { DTOCategory } from '@podverse/helpers';
 
-import { HowToStartInfo } from '../../components/InfoWrapper/HowToStartInfo';
 import { CorePodcasts } from '../../components/Core/Podcast/CorePodcasts';
+import { HowToStartInfo } from '../../components/InfoWrapper/HowToStartInfo';
 import LoadingSpinnerOverlay from '../../components/LoadingSpinner/LoadingSpinnerOverlay';
 import { ModalCategoriesSelect } from '../../components/Modal/ModalCategoriesSelect';
 import { ROUTES } from '../../constants/routes';

@@ -1,30 +1,32 @@
 'use client';
 
-import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
+import React from 'react';
+
 import type { QueryParamsQueueMedium } from '@podverse/helpers';
+import type { DTOPlaylist } from '@podverse/helpers';
 import {
   getQueryParamFromQueueMediumId,
   getQueueMediumIdForChannelMediumId,
   MediumEnum,
 } from '@podverse/helpers';
-import React from 'react';
-import { Modal, MODAL_CONTENT_MAX_WIDTH } from './Modal';
+import { getTotalPages } from '@podverse/helpers';
+
 import { MEDIUM } from '../../constants/medium';
 import { ROUTES } from '../../constants/routes';
+import { useAccount } from '../../contexts/Account';
 import type { ModalPlaylistAddToState } from '../../contexts/Modals';
 import { useModals } from '../../contexts/Modals';
-import { MediaHeaderMini } from '../MediaHeaderMini/MediaHeaderMini';
-import { ButtonTabs } from '../Tabs/ButtonTabs';
 import { getApiRequestService } from '../../factories/apiRequestService';
-import type { DTOPlaylist } from '@podverse/helpers';
-import { getTotalPages } from '@podverse/helpers';
-import { ListPlaylists } from '../List/Playlists/ListPlaylists';
-import { useAccount } from '../../contexts/Account';
 import { useSkipInitialEffect } from '../../hooks/useSkipInitialEffect';
-import { showToastPromise } from '../Toast/Toast';
 import { CallToActionMessage } from '../CallToActionMessage/CallToActionMessage';
 import { FormStack } from '../Form/FormStack';
+import { ListPlaylists } from '../List/Playlists/ListPlaylists';
+import { MediaHeaderMini } from '../MediaHeaderMini/MediaHeaderMini';
+import { ButtonTabs } from '../Tabs/ButtonTabs';
+import { showToastPromise } from '../Toast/Toast';
+import { Modal, MODAL_CONTENT_MAX_WIDTH } from './Modal';
 
 import styles from '../../styles/components/Modal/ModalPlaylistAddTo.module.scss';
 

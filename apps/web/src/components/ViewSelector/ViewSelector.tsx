@@ -1,11 +1,13 @@
 'use client';
 
-import { FaGear } from 'react-icons/fa6';
-import styles from '../../styles/components/ViewSelector/ViewSelector.module.scss';
 import { useTranslations } from 'next-intl';
 import { useRef } from 'react';
-import { DropdownMenu } from '../Dropdown/DropdownMenu';
+import { FaGear } from 'react-icons/fa6';
+
 import { useDropdownKeyboardNavigation } from '../../hooks/useDropdownKeyboardNavigation';
+import { DropdownMenu } from '../Dropdown/DropdownMenu';
+
+import styles from '../../styles/components/ViewSelector/ViewSelector.module.scss';
 
 export type ViewSelectedOption = 'grid' | 'rows';
 

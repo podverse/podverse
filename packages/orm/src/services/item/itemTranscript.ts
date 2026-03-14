@@ -1,7 +1,7 @@
-import type { EntityManager, FindManyOptions } from 'typeorm';
 import type { Item } from '@orm/entities/item/item.js';
 import { ItemTranscript } from '@orm/entities/item/itemTranscript.js';
 import { BaseManyService } from '@orm/services/base/baseManyService.js';
+import type { EntityManager, FindManyOptions } from 'typeorm';
 
 type ItemTranscriptDto = {
   url: string;

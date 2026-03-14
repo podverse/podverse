@@ -24,26 +24,28 @@
  * Console output is intentional for startup diagnostics.
  */
 
+import { KNOWN_COMMANDS } from '@workers/commands/commandNames.js';
+import { hasAnyImageShrinkEnvSet } from '@workers/config/index.js';
+
 import { getEffectiveUserAgent } from '@podverse/helpers';
 import type { ValidationResult, ValidationSummary } from '@podverse/helpers-config';
 import {
-  validateRequired,
-  validateOptional,
   displayValidationResults,
+  validateOptional,
+  validateRequired,
 } from '@podverse/helpers-config';
-import { KNOWN_COMMANDS } from '@workers/commands/commandNames.js';
+
 import {
-  getCategoriesForCommand,
   CATEGORY_BASE,
-  CATEGORY_ORM,
+  CATEGORY_IMAGE_SHRINK,
+  CATEGORY_KEYVALDB,
   CATEGORY_MQ,
+  CATEGORY_ORM,
   CATEGORY_PARSER,
   CATEGORY_PODCAST_INDEX,
   CATEGORY_WEB_NOTIFICATIONS,
-  CATEGORY_KEYVALDB,
-  CATEGORY_IMAGE_SHRINK,
+  getCategoriesForCommand,
 } from './categoriesForCommand.js';
-import { hasAnyImageShrinkEnvSet } from '@workers/config/index.js';
 
 const USER_AGENT_PATTERN = /^[^/]+\/[^/]+\/[^/]+$/;
 

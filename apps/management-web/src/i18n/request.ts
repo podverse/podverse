@@ -1,7 +1,9 @@
+import { cookies, headers } from 'next/headers';
+import { getRequestConfig } from 'next-intl/server';
+
 import type { DTOAccount } from '@podverse/helpers';
 import { SUPPORTED_LOCALES } from '@podverse/helpers';
-import { getRequestConfig } from 'next-intl/server';
-import { headers, cookies } from 'next/headers';
+
 import { getConfig } from '../config';
 
 function getSupportedLocales(): string[] {

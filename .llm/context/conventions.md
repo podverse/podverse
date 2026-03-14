@@ -56,6 +56,8 @@ import { Podcast } from '@podverse/orm';
 import { config } from './config';
 ```
 
+Enforced by ESLint (`simple-import-sort/imports`); fix with `npm run lint:fix`. Styles (CSS/SCSS) are ordered last in components/pages.
+
 ## Error Handling
 
 ### API Errors

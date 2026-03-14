@@ -1,10 +1,11 @@
+import { getParamRequired } from '@api/lib/params.js';
+import { buildRemoteItemsFinalResult } from '@api/lib/remoteItems.js';
+import { idOrIdTextParamSchema, validateParamsObject } from '@api/lib/validation/index.js';
 import type { Request, Response } from 'express';
 import Joi from 'joi';
-import { PublisherFeedService } from '@podverse/orm';
+
 import type { DTOChannel, DTOItem } from '@podverse/helpers';
-import { idOrIdTextParamSchema, validateParamsObject } from '@api/lib/validation/index.js';
-import { buildRemoteItemsFinalResult } from '@api/lib/remoteItems.js';
-import { getParamRequired } from '@api/lib/params.js';
+import { PublisherFeedService } from '@podverse/orm';
 
 export class PublisherFeedController {
   private static publisherFeedService = new PublisherFeedService();

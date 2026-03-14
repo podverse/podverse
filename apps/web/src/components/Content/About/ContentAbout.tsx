@@ -1,7 +1,9 @@
 import type { DTOChannelPerson, DTOItemPerson } from '@podverse/helpers';
+
 import { ContentAboutAccordion } from './ContentAboutAccordion';
 import { ContentAboutDescription } from './ContentAboutDescription';
 import { ContentPeopleRows } from './ContentPeopleRows';
+
 import styles from '../../../styles/components/Content/About/ContentAbout.module.scss';
 
 type ContentAbout = {

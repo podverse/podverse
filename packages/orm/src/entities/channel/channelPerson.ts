@@ -1,15 +1,16 @@
-import { DATABASE_CONSTANTS } from '@podverse/helpers';
+import type { Channel } from '@orm/entities/channel/channel.js';
+import type { Relation } from 'typeorm';
 import {
-  Entity,
-  PrimaryGeneratedColumn,
-  Column,
-  ManyToOne,
-  JoinColumn,
   BeforeInsert,
   BeforeUpdate,
+  Column,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  PrimaryGeneratedColumn,
 } from 'typeorm';
-import type { Relation } from 'typeorm';
-import type { Channel } from '@orm/entities/channel/channel.js';
+
+import { DATABASE_CONSTANTS } from '@podverse/helpers';
 
 @Entity()
 export class ChannelPerson {

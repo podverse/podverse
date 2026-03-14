@@ -1,7 +1,10 @@
 import { useTranslations } from 'next-intl';
-import type { DTOClip, DTOItem, DTOItemChapter, DTOItemSoundbite } from '@podverse/helpers';
 import { FaPause, FaPlay } from 'react-icons/fa6';
+
+import type { DTOClip, DTOItem, DTOItemChapter, DTOItemSoundbite } from '@podverse/helpers';
+
 import { useMediaPlayer } from '../../../contexts/MediaPlayer';
+
 import styles from '../../../styles/components/MediaPlayer/Buttons/PlayButtonLarge.module.scss';
 
 type PlayButtonLargeProps = {

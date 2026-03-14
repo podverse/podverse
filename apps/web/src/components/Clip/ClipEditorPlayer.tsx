@@ -6,6 +6,7 @@ import { JumpBackButton } from '../MediaPlayer/Buttons/JumpBackButton';
 import { JumpForwardButton } from '../MediaPlayer/Buttons/JumpForwardButton';
 import { PlayButton } from '../MediaPlayer/Buttons/PlayButton';
 import { MediaPlayerProgress } from '../MediaPlayer/Sliders/MediaPlayerProgress';
+
 import styles from '../../styles/components/Clip/ClipEditorPlayer.module.scss';
 
 type ClipEditorPlayerProps = {

@@ -1,6 +1,6 @@
-import rateLimit from 'express-rate-limit';
-import type { Request, Response, NextFunction } from 'express';
 import { ensureAuthenticated } from '@api/lib/auth/index.js';
+import type { NextFunction, Request, Response } from 'express';
+import rateLimit from 'express-rate-limit';
 
 export interface RateLimiterOptions {
   windowMs: number;

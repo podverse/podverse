@@ -1,8 +1,10 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
+
 import { ButtonTabs } from '../../../../components/Tabs/ButtonTabs';
 import { usePlaylistEditPageContext } from './PlaylistEditPageContext';
+
 import styles from '../../../../styles/app/playlist/edit/PlaylistEditButtonTabs.module.scss';
 
 export function PlaylistEditPageButtonTabs() {

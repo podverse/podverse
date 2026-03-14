@@ -3,8 +3,8 @@
 import { useTranslations } from 'next-intl';
 import React from 'react';
 
-import { CommonTrackRow } from '../../../../Common/Artist/Album/Track/CommonTrackRow';
 import type { AddByRSSFeedRecord } from '../../../../../utils/addByRSS/types';
+import { CommonTrackRow } from '../../../../Common/Artist/Album/Track/CommonTrackRow';
 
 type AddByRSSTrackFeedRowProps = {
   feed: AddByRSSFeedRecord;

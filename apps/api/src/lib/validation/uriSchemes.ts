@@ -1,6 +1,5 @@
-import Joi from 'joi';
-
 import { config } from '@api/config/index.js';
+import Joi from 'joi';
 
 /**
  * Returns a Joi string schema for a URI that requires HTTPS unless SERVER_ENV

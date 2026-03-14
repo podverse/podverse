@@ -1,23 +1,25 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
+import React from 'react';
+
 import type {
-  QueryParamsStatsRange,
-  QueryParamsChannelMusicAlbumType,
   QueryParamsChannelMusicAlbumSort,
+  QueryParamsChannelMusicAlbumType,
+  QueryParamsStatsRange,
 } from '@podverse/helpers-requests';
 import {
-  QUERY_PARAMS_STATS_RANGE_VALUES,
-  QUERY_PARAMS_CHANNEL_MUSIC_ALBUM_TYPE_VALUES,
   QUERY_PARAMS_CHANNEL_MUSIC_ALBUM_SORT_VALUES,
+  QUERY_PARAMS_CHANNEL_MUSIC_ALBUM_TYPE_VALUES,
+  QUERY_PARAMS_STATS_RANGE_VALUES,
 } from '@podverse/helpers-requests';
-import React from 'react';
+
+import { CommonDetailListHeader } from '../../../components/Common/List/CommonDetailListHeader';
 import Dropdown from '../../../components/Dropdown/Dropdown';
 import { Tabs } from '../../../components/Tabs/Tabs';
 import { useAccount } from '../../../contexts/Account';
 import { useAlbumPageContext } from './AlbumPageContext';
 import { getAlbumPageDropdownConfig } from './AlbumPageDropdownConfig';
-import { CommonDetailListHeader } from '../../../components/Common/List/CommonDetailListHeader';
 
 type AlbumPageListHeaderProps = {
   ssrHasPodroll?: boolean;

@@ -1,19 +1,21 @@
 'use client';
 
 import { useParams } from 'next/navigation';
+import type { ReactNode } from 'react';
+import { createContext, useContext, useRef, useState } from 'react';
+
 import type { DTOClip, DTOItemChapter, DTOItemSoundbite, TranscriptRow } from '@podverse/helpers';
 import { getTotalPages } from '@podverse/helpers';
 import type { QueryParamsItem } from '@podverse/helpers-requests';
-import type { ReactNode } from 'react';
-import { createContext, useContext, useState, useRef } from 'react';
+
 import { useAccount } from '../../../contexts/Account';
 import { checkBackNavFlag } from '../../../contexts/Navigation';
-import { useSkipInitialEffect } from '../../../hooks/useSkipInitialEffect';
-import { usePageStateCache } from '../../../hooks/usePageStateCache';
-import { getPageState, definedProps } from '../../../utils/pageStateCache';
-import { getEpisodePageFilterParams } from './EpisodePageDropdownConfig';
 import { getApiRequestService } from '../../../factories/apiRequestService';
+import { usePageStateCache } from '../../../hooks/usePageStateCache';
+import { useSkipInitialEffect } from '../../../hooks/useSkipInitialEffect';
+import { definedProps, getPageState } from '../../../utils/pageStateCache';
 import { getTranscriptRowsFromTranscriptString } from '../../../utils/transcript';
+import { getEpisodePageFilterParams } from './EpisodePageDropdownConfig';
 
 // Type for cached data
 interface EpisodePageCachedData {

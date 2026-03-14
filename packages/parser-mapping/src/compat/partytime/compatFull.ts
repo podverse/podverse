@@ -1,5 +1,4 @@
 import type { FeedObject } from '../../types/partytime.js';
-import type { CompatLiveItemDto } from './liveItem.js';
 import {
   compatChannelAboutDto,
   compatChannelCategoryDtos,
@@ -22,8 +21,8 @@ import {
 } from './channel.js';
 import {
   compatItemAboutDto,
-  compatItemChatDto,
   compatItemChaptersFeedDto,
+  compatItemChatDto,
   compatItemDescriptionDto,
   compatItemDto,
   compatItemEnclosureDtos,
@@ -39,6 +38,7 @@ import {
   compatItemTxtDtos,
   compatItemValueDtos,
 } from './item.js';
+import type { CompatLiveItemDto } from './liveItem.js';
 import { compatLiveItemsDtos } from './liveItem.js';
 
 export type ParsedRSSFeedCompatBundle = {

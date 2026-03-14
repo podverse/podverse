@@ -1,23 +1,26 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
+import React from 'react';
+
 import type {
-  QueryParamsStatsRange,
   QueryParamsPlaylistsType,
+  QueryParamsStatsRange,
   QueryParamsSubscribedFullSort,
 } from '@podverse/helpers-requests';
 import {
-  QUERY_PARAMS_STATS_RANGE_VALUES,
   QUERY_PARAMS_PLAYLISTS_TYPE_VALUES,
+  QUERY_PARAMS_STATS_RANGE_VALUES,
   QUERY_PARAMS_SUBSCRIBED_FULL_SORT,
 } from '@podverse/helpers-requests';
-import React from 'react';
+
 import Dropdown from '../../components/Dropdown/Dropdown';
 import { ListHeader } from '../../components/List/ListHeader';
-import { getPlaylistsPageDropdownConfig } from './PlaylistsPageDropdownConfig';
+import { ButtonTabs } from '../../components/Tabs/ButtonTabs';
 import { Tabs } from '../../components/Tabs/Tabs';
 import { usePlaylistsPageContext } from './PlaylistsPageContext';
-import { ButtonTabs } from '../../components/Tabs/ButtonTabs';
+import { getPlaylistsPageDropdownConfig } from './PlaylistsPageDropdownConfig';
+
 import styles from '../../styles/app/playlists/PlaylistsListHeader.module.scss';
 
 export const PlaylistsPageListHeader: React.FC = () => {

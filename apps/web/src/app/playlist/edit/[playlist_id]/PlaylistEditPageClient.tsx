@@ -1,15 +1,16 @@
 'use client';
 
 import type { DTOPlaylist } from '@podverse/helpers';
+
+import { MainInnerContentWrapper } from '../../../../components/Main/MainInnerContentWrapper';
+import { MainInnerWrapper } from '../../../../components/Main/MainInnerWrapper';
+import { MainWrapper } from '../../../../components/Main/MainWrapper';
+import { SideContent } from '../../../../components/SideContent/SideContent';
+import { PlaylistEditPageButtonTabs } from './PlaylistEditPageButtonTabs';
 import { PlaylistEditPageContextProvider } from './PlaylistEditPageContext';
 import { PlaylistEditPageForm } from './PlaylistEditPageForm';
 import { PlaylistEditPageHeader } from './PlaylistEditPageHeader';
-import { MainWrapper } from '../../../../components/Main/MainWrapper';
-import { MainInnerWrapper } from '../../../../components/Main/MainInnerWrapper';
-import { MainInnerContentWrapper } from '../../../../components/Main/MainInnerContentWrapper';
-import { PlaylistEditPageButtonTabs } from './PlaylistEditPageButtonTabs';
 import { PlaylistEditPageList } from './PlaylistEditPageList';
-import { SideContent } from '../../../../components/SideContent/SideContent';
 
 type PlaylistEditPageClientProps = {
   ssrPlaylist: DTOPlaylist;

@@ -1,7 +1,8 @@
 import type { DTOChannel, RemoteItemsResponse } from '@podverse/helpers';
-import { SideContent } from '../../../components/SideContent/SideContent';
+
 import { ContentAbout } from '../../../components/Content/About/ContentAbout';
 import { ContentPodroll } from '../../../components/Content/Podroll/ContentPodroll';
+import { SideContent } from '../../../components/SideContent/SideContent';
 
 type AlbumPageSideContentProps = {
   channel: DTOChannel;

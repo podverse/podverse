@@ -1,12 +1,13 @@
 'use client';
 
 import type { DTOClip } from '@podverse/helpers';
+
+import { MainInnerContentWrapper } from '../../../../components/Main/MainInnerContentWrapper';
+import { MainInnerWrapper } from '../../../../components/Main/MainInnerWrapper';
+import { MainWrapper } from '../../../../components/Main/MainWrapper';
 import { ClipEditPageContextProvider } from './ClipEditPageContext';
 import { ClipEditPageForm } from './ClipEditPageForm';
 import { ClipEditPageHeader } from './ClipEditPageHeader';
-import { MainWrapper } from '../../../../components/Main/MainWrapper';
-import { MainInnerWrapper } from '../../../../components/Main/MainInnerWrapper';
-import { MainInnerContentWrapper } from '../../../../components/Main/MainInnerContentWrapper';
 
 type ClipEditPageClientProps = {
   ssrClip: DTOClip;

@@ -1,20 +1,23 @@
 'use client';
 
-import { useTranslations } from 'next-intl';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
+import React from 'react';
+
 import type { DTOChannel, DTOItem, DTOItemChapter } from '@podverse/helpers';
 import { findDTOChannelImageForList, findDTOItemImageForList } from '@podverse/helpers';
 import { getShuffleHash } from '@podverse/helpers-requests';
-import React from 'react';
-import { ImagesPerView } from '../../Image/ImagesPerView';
-import { ROUTES } from '../../../constants/routes';
+
 import { IMAGES } from '../../../constants/images';
-import { PlayButtonRow } from '../../MediaPlayer/Buttons/PlayButtonRow';
-import { useMediaPlayer } from '../../../contexts/MediaPlayer';
-import { ReadableTimeRange } from '../../Time/ReadableTimeRange';
-import { ReadableDate } from '../../Time/ReadableDate';
-import { useMediaPlayerResourceUpdate } from '../../../hooks/useMediaPlayerResourceUpdate';
+import { ROUTES } from '../../../constants/routes';
 import { useAutoQueue } from '../../../contexts/AutoQueue';
+import { useMediaPlayer } from '../../../contexts/MediaPlayer';
+import { useMediaPlayerResourceUpdate } from '../../../hooks/useMediaPlayerResourceUpdate';
+import { ImagesPerView } from '../../Image/ImagesPerView';
+import { PlayButtonRow } from '../../MediaPlayer/Buttons/PlayButtonRow';
+import { ReadableDate } from '../../Time/ReadableDate';
+import { ReadableTimeRange } from '../../Time/ReadableTimeRange';
+
 import styles from '../../../styles/components/List/ItemChapters/ListItemChapterRow.module.scss';
 
 interface ListItemChapterRowProps {

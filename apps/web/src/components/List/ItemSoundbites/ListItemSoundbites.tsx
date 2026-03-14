@@ -1,12 +1,14 @@
 'use client';
 
+import React from 'react';
+
 import type { CategoryMappingKeys, DTOChannel, DTOItem, DTOItemSoundbite } from '@podverse/helpers';
 import type { QueryParamsItemsType } from '@podverse/helpers-requests';
-import React from 'react';
-import { ListItemSoundbiteRow } from './ListItemSoundbiteRow';
-import Pagination from '../../Pagination/Pagination';
+
 import { useSkipInitialEffect } from '../../../hooks/useSkipInitialEffect';
 import { scrollMainToTop } from '../../../utils/scroll';
+import Pagination from '../../Pagination/Pagination';
+import { ListItemSoundbiteRow } from './ListItemSoundbiteRow';
 
 type Props = {
   page: number;

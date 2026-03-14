@@ -1,15 +1,17 @@
 'use client';
 
-import type { FormEvent } from 'react';
-import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { login, getCurrentUser } from '../lib/requests/auth';
+import type { FormEvent } from 'react';
+import { useEffect, useState } from 'react';
+
+import { Alert } from '../components/ui/Alert/Alert';
 import { Button } from '../components/ui/Button/Button';
-import { FormGroup, FormLabel, FormInput } from '../components/ui/Form';
 import { Card } from '../components/ui/Card/Card';
 import { CenterContainer } from '../components/ui/CenterContainer/CenterContainer';
-import { Alert } from '../components/ui/Alert/Alert';
+import { FormGroup, FormInput, FormLabel } from '../components/ui/Form';
 import { LoadingText } from '../components/ui/LoadingText/LoadingText';
+import { getCurrentUser, login } from '../lib/requests/auth';
+
 import styles from './page.module.scss';
 
 export default function HomePage() {

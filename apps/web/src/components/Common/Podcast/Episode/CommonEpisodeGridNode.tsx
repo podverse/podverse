@@ -1,7 +1,7 @@
 'use client';
 
-import { useLocale, useTranslations } from 'next-intl';
 import Link from 'next/link';
+import { useLocale, useTranslations } from 'next-intl';
 import React from 'react';
 
 import {
@@ -10,11 +10,12 @@ import {
   formatDateAbbrev,
 } from '@podverse/helpers';
 
-import { Image } from '../../../Image/Image';
 import { IMAGES } from '../../../../constants/images';
 import { ROUTES } from '../../../../constants/routes';
-import styles from '../../../../styles/components/Common/List/ListGridNode.module.scss';
+import { Image } from '../../../Image/Image';
 import type { EpisodeListGridNodeProps } from './types';
+
+import styles from '../../../../styles/components/Common/List/ListGridNode.module.scss';
 
 export const CommonEpisodeListGridNode: React.FC<EpisodeListGridNodeProps> = ({
   channel,

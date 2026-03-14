@@ -2,9 +2,10 @@
 
 import { useTranslations } from 'next-intl';
 import React from 'react';
+
 import { ListHeader } from '../../components/List/ListHeader';
-import { useQueuesPageContext } from './QueuesPageContext';
 import { ButtonTabs } from '../../components/Tabs/ButtonTabs';
+import { useQueuesPageContext } from './QueuesPageContext';
 
 export const QueuesPageListHeader: React.FC = () => {
   const { filterParams, setFilterParams } = useQueuesPageContext();

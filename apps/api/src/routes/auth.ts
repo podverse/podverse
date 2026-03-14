@@ -1,9 +1,9 @@
-import { Router } from 'express';
 import { config } from '@api/config/index.js';
 import { AccountController } from '@api/controllers/account/account.js';
 import { authenticate, logout } from '@api/lib/auth/index.js';
 import { rateLimitEndpoint } from '@api/lib/rateLimiter.js';
 import { asyncHandler } from '@api/middleware/asyncHandler.js';
+import { Router } from 'express';
 
 const router = Router();
 

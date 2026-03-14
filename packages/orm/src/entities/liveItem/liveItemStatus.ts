@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
+import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
 export { LiveItemStatusEnum, getLiveItemStatusEnumValue } from '@podverse/helpers';
 

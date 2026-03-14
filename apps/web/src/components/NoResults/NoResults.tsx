@@ -1,7 +1,9 @@
 'use client';
 
 import React from 'react';
+
 import { InfoWrapper } from '../InfoWrapper/InfoWrapper';
+
 import styles from '../../styles/components/NoResults/NoResults.module.scss';
 
 type NoResultsProps = {

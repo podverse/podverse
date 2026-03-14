@@ -1,6 +1,8 @@
 import { cookies } from 'next/headers';
+
 import type { DTOAccount } from '@podverse/helpers';
 import { AuthCookieName } from '@podverse/helpers';
+
 import { getSSRApiRequestService } from '../../factories/apiRequestService';
 
 export async function getSSRJwtFromCookies(): Promise<string | undefined> {

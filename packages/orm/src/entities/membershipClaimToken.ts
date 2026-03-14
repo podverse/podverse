@@ -1,6 +1,7 @@
-import type { AccountMembershipEnum } from '@podverse/helpers';
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from 'typeorm';
 import type { AccountMembership } from '@orm/entities/account/accountMembership.js';
+import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+
+import type { AccountMembershipEnum } from '@podverse/helpers';
 
 @Entity()
 export class MembershipClaimToken {

@@ -1,15 +1,17 @@
+import { verifyQueueOwnership } from '@api/controllers/queue/queue.js';
+import { ensureAuthenticated, getAuthenticatedUser } from '@api/lib/auth/index.js';
+import { getParamRequired } from '@api/lib/params.js';
+import { queueIdTextParamSchema, validateParamsObject } from '@api/lib/validation/index.js';
 import type { Request, Response } from 'express';
 import Joi from 'joi';
+
 import type { DTOQueueResourceAbridgedResponseData } from '@podverse/helpers';
 import type { ApiListResponse } from '@podverse/helpers-requests';
 import type { QueueResource } from '@podverse/orm';
 import { QueueResourceService } from '@podverse/orm';
+
 import { handleGenericErrorResponse } from '../helpers/error.js';
-import { ensureAuthenticated, getAuthenticatedUser } from '@api/lib/auth/index.js';
-import { verifyQueueOwnership } from '@api/controllers/queue/queue.js';
-import { queueIdTextParamSchema, validateParamsObject } from '@api/lib/validation/index.js';
 import { getPaginationParams } from '../helpers/pagination.js';
-import { getParamRequired } from '@api/lib/params.js';
 
 class QueueResourceController {
   private static queueResourceService = new QueueResourceService();

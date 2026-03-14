@@ -1,30 +1,32 @@
 'use client';
 
-import { useTranslations } from 'next-intl';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import React, { useState } from 'react';
 import { FaCircleDollarToSlot, FaCommentDollar, FaGlobe, FaRss } from 'react-icons/fa6';
 
+import { buildAddByRssBoostChannel } from '@podverse/parser-mapping';
+
+import { IMAGES } from '../../../constants/images';
+import { useAccount } from '../../../contexts/Account';
+import { useModals } from '../../../contexts/Modals';
+import {
+  followAddByRSSChannelAndQueue,
+  unfollowAddByRSSChannelAndClear,
+} from '../../../utils/addByRSS/actions';
+import type { AddByRSSFeedRecord } from '../../../utils/addByRSS/types';
 import { Button } from '../../Button/Button';
-import { Image } from '../../Image/Image';
-import { IconButton } from '../../Media/Header/IconButton';
 import { CommonArtistHeader } from '../../Common/Artist/CommonArtistHeader';
 import { CommonArtistHeaderViewDesktop } from '../../Common/Artist/CommonArtistHeaderViewDesktop';
 import { CommonArtistHeaderViewTablet } from '../../Common/Artist/CommonArtistHeaderViewTablet';
-import { useAccount } from '../../../contexts/Account';
-import { useModals } from '../../../contexts/Modals';
-import { IMAGES } from '../../../constants/images';
-import { buildAddByRssBoostChannel } from '@podverse/parser-mapping';
-import {
-  unfollowAddByRSSChannelAndClear,
-  followAddByRSSChannelAndQueue,
-} from '../../../utils/addByRSS/actions';
-import type { AddByRSSFeedRecord } from '../../../utils/addByRSS/types';
-import headerDesktopStyles from '../../../styles/components/Common/Media/Podcast/PodcastHeaderViewDesktop.module.scss';
-import headerTabletStyles from '../../../styles/components/Common/Media/Podcast/PodcastHeaderViewTablet.module.scss';
-import imageStyles from '../../../styles/components/Common/Media/Podcast/PodcastHeaderImage.module.scss';
+import { Image } from '../../Image/Image';
+import { IconButton } from '../../Media/Header/IconButton';
+
 import headerButtonsStyles from '../../../styles/components/Common/Media/Header/HeaderButtons.module.scss';
 import subscribeButtonStyles from '../../../styles/components/Common/Media/Header/SubscribeButton.module.scss';
+import imageStyles from '../../../styles/components/Common/Media/Podcast/PodcastHeaderImage.module.scss';
+import headerDesktopStyles from '../../../styles/components/Common/Media/Podcast/PodcastHeaderViewDesktop.module.scss';
+import headerTabletStyles from '../../../styles/components/Common/Media/Podcast/PodcastHeaderViewTablet.module.scss';
 
 const alertPlaceholder = (label: string) => () => {
   window.alert(`Add by RSS: ${label}`);

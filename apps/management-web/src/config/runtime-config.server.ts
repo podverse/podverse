@@ -1,8 +1,8 @@
-import 'server-only';
-
 import { fetchWithTimeout } from '@podverse/helpers-backend';
 
 import type { ManagementWebRuntimeConfig } from './runtime-config';
+
+import 'server-only';
 
 const getRuntimeConfigUrl = (): string => {
   const url = process.env.RUNTIME_CONFIG_URL;

@@ -1,14 +1,16 @@
 'use client';
 
-import type { DTOChannel, RemoteItemsResponse } from '@podverse/helpers';
 import React from 'react';
-import { useAlbumPageContext } from './AlbumPageContext';
-import LoadingSpinnerOverlay from '../../../components/LoadingSpinner/LoadingSpinnerOverlay';
-import { ListTracks } from '../../../components/List/Music/Albums/Tracks/ListTracks';
+
+import type { DTOChannel, RemoteItemsResponse } from '@podverse/helpers';
+
 import { ContentAbout } from '../../../components/Content/About/ContentAbout';
 import { ContentPodroll } from '../../../components/Content/Podroll/ContentPodroll';
 import { DetailListWrapper } from '../../../components/List/DetailListWrapper';
 import { ListChannelSettings } from '../../../components/List/ListChannelSettings';
+import { ListTracks } from '../../../components/List/Music/Albums/Tracks/ListTracks';
+import LoadingSpinnerOverlay from '../../../components/LoadingSpinner/LoadingSpinnerOverlay';
+import { useAlbumPageContext } from './AlbumPageContext';
 
 type AlbumPageListProps = {
   podroll: RemoteItemsResponse | null;

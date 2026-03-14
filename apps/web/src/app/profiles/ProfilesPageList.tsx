@@ -1,8 +1,9 @@
 import React from 'react';
-import { ListProfiles } from '../../components/List/Profiles/ListProfiles';
-import { useProfilesPageContext } from './ProfilesPageContext';
-import LoadingSpinnerOverlay from '../../components/LoadingSpinner/LoadingSpinnerOverlay';
+
 import { HowToStartInfo } from '../../components/InfoWrapper/HowToStartInfo';
+import { ListProfiles } from '../../components/List/Profiles/ListProfiles';
+import LoadingSpinnerOverlay from '../../components/LoadingSpinner/LoadingSpinnerOverlay';
+import { useProfilesPageContext } from './ProfilesPageContext';
 
 export const ProfilesPageList: React.FC = () => {
   const { filterParams, setFilterParams, accounts, totalPages, isLoading, showSubscribeMessage } =

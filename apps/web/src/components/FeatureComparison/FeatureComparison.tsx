@@ -1,8 +1,9 @@
 'use client';
 
-import React from 'react';
 import { useTranslations } from 'next-intl';
+import React from 'react';
 import { FaCircleCheck } from 'react-icons/fa6';
+
 import styles from '../../styles/components/FeatureComparison/FeatureComparison.module.scss';
 
 type Feature = {

@@ -1,6 +1,6 @@
-import type { EntityManager } from 'typeorm';
 import { ItemValueMetaBoost } from '@orm/entities/item/itemValueMetaBoost.js';
 import { BaseOneService } from '@orm/services/base/baseOneService.js';
+import type { EntityManager } from 'typeorm';
 
 export type ItemValueMetaBoostDto = {
   type: string;

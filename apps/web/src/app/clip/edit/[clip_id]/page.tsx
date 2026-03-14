@@ -1,5 +1,6 @@
 import { notFound } from 'next/navigation';
 import { z } from 'zod';
+
 import { getSSRAuthService } from '../../../../utils/auth/ssrAuth';
 import { ClipEditPageClient } from './ClipEditPageClient';
 

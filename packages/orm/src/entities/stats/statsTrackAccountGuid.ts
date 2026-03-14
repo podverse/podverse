@@ -1,13 +1,13 @@
+import type { Account } from '@orm/entities/account/account.js';
+import type { Relation } from 'typeorm';
 import {
-  Entity,
-  PrimaryGeneratedColumn,
   Column,
   CreateDateColumn,
-  ManyToOne,
+  Entity,
   JoinColumn,
+  ManyToOne,
+  PrimaryGeneratedColumn,
 } from 'typeorm';
-import type { Relation } from 'typeorm';
-import type { Account } from '@orm/entities/account/account.js';
 
 @Entity('stats_track_account_guid')
 export class StatsTrackAccountGuid {

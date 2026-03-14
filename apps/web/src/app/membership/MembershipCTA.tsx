@@ -1,9 +1,11 @@
 'use client';
 
-import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
+
 import { Button } from '../../components/Button/Button';
 import { ROUTES } from '../../constants/routes';
+
 import styles from '../../styles/app/membership/Membership.module.scss';
 
 type MembershipCTAProps = {

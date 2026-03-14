@@ -1,9 +1,10 @@
+import { config } from '@api/config/index.js';
+import { loggerService } from '@api/factories/loggerService.js';
+import { uriRequireHttpsInProduction, validateBodyObject } from '@api/lib/validation/index.js';
 import type { Request, Response } from 'express';
 import Joi from 'joi';
-import { loggerService } from '@api/factories/loggerService.js';
+
 import { fetchWithTimeout } from '@podverse/helpers-backend';
-import { uriRequireHttpsInProduction, validateBodyObject } from '@api/lib/validation/index.js';
-import { config } from '@api/config/index.js';
 
 const BOOSTBOX_LOCAL_API_KEY = 'v4v4me';
 

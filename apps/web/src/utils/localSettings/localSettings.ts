@@ -1,7 +1,3 @@
-import type { UITheme } from './uiTheme';
-import { setUIThemeOnDocument, toUITheme, getDefaultTheme } from './uiTheme';
-import type { ViewSelectedOption } from '../../components/ViewSelector/ViewSelector';
-import { clearCookie, readCookie, writeCookie } from '../cookie';
 import type {
   CategoryMappingKeys,
   LiveItemStatus,
@@ -17,6 +13,11 @@ import type {
   QueryParamsSubscribedPartialSort,
   QueryParamsSubscribedType,
 } from '@podverse/helpers-requests';
+
+import type { ViewSelectedOption } from '../../components/ViewSelector/ViewSelector';
+import { clearCookie, readCookie, writeCookie } from '../cookie';
+import type { UITheme } from './uiTheme';
+import { getDefaultTheme, setUIThemeOnDocument, toUITheme } from './uiTheme';
 
 /*
 

@@ -1,7 +1,7 @@
-import type { EntityManager } from 'typeorm';
-import { Between, LessThan } from 'typeorm';
 import { AppDataSourceReadWrite } from '@orm/db/index.js';
 import { StatsTrackAccountGuidService } from '@orm/services/stats/statsTrackAccountGuid.js';
+import type { EntityManager } from 'typeorm';
+import { Between, LessThan } from 'typeorm';
 
 export abstract class BaseStatsTrackEventService<T> {
   protected abstract entity: new () => T;

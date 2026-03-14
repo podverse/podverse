@@ -1,15 +1,17 @@
 'use client';
 
+import type { ReactNode } from 'react';
+import { createContext, useContext, useState } from 'react';
+
 import type { DTOPlaylist } from '@podverse/helpers';
 import { getTotalPages } from '@podverse/helpers';
 import type { QueryParamsPlaylists } from '@podverse/helpers-requests';
-import type { ReactNode } from 'react';
-import { createContext, useContext, useState } from 'react';
-import { getApiRequestService } from '../../factories/apiRequestService';
+
 import { useAccount } from '../../contexts/Account';
-import { useSkipInitialEffect } from '../../hooks/useSkipInitialEffect';
+import { getApiRequestService } from '../../factories/apiRequestService';
 import { useFilterDefaults } from '../../hooks/useFilterDefaults';
 import { useListPageCache } from '../../hooks/useListPageCache';
+import { useSkipInitialEffect } from '../../hooks/useSkipInitialEffect';
 import { getPlaylistsPageFilterParams } from './PlaylistsPageDropdownConfig';
 
 interface PlaylistsPageContextType {

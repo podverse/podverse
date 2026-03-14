@@ -1,19 +1,21 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import type { CategoryMappingKeys, DTOChannel } from '@podverse/helpers';
-import type { QueryParamsSubscribedType } from '@podverse/helpers-requests';
 import React, { useRef } from 'react';
 
-import { CallToActionMessage } from '../../CallToActionMessage/CallToActionMessage';
-import Pagination from '../../Pagination/Pagination';
+import type { CategoryMappingKeys, DTOChannel } from '@podverse/helpers';
+import type { QueryParamsSubscribedType } from '@podverse/helpers-requests';
+
 import { useModals } from '../../../contexts/Modals';
 import { checkBackNavFlag } from '../../../contexts/Navigation';
 import { useSkipInitialEffect } from '../../../hooks/useSkipInitialEffect';
 import { scrollMainToTop } from '../../../utils/scroll';
+import { CallToActionMessage } from '../../CallToActionMessage/CallToActionMessage';
+import Pagination from '../../Pagination/Pagination';
 import type { ViewSelectedOption } from '../../ViewSelector/ViewSelector';
-import styles from '../../../styles/components/Common/List/Podcasts/ListPodcasts.module.scss';
 import { CorePodcastNodes } from './CorePodcastNodes';
+
+import styles from '../../../styles/components/Common/List/Podcasts/ListPodcasts.module.scss';
 
 type Props = {
   page: number;

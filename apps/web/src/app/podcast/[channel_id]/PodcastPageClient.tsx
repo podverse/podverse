@@ -7,13 +7,13 @@ import type {
 } from '@podverse/helpers';
 import type { QueryParamsChannel } from '@podverse/helpers-requests';
 
+import { CorePodcastHeader } from '../../../components/Core/Podcast/CorePodcastHeader';
 import { MainInnerContentWrapper } from '../../../components/Main/MainInnerContentWrapper';
 import { MainInnerWrapper } from '../../../components/Main/MainInnerWrapper';
 import { MainWrapper } from '../../../components/Main/MainWrapper';
-import { CorePodcastHeader } from '../../../components/Core/Podcast/CorePodcastHeader';
 import { PodcastPageContextProvider } from './PodcastPageContext';
-import { PodcastPageListHeader } from './PodcastPageListHeader';
 import { PodcastPageList } from './PodcastPageList';
+import { PodcastPageListHeader } from './PodcastPageListHeader';
 import { PodcastPageSideContent } from './PodcastPageSideContent';
 
 interface PodcastPageClientProps {

@@ -1,5 +1,6 @@
-import { DATABASE_CONSTANTS } from '@podverse/helpers';
 import Joi from 'joi';
+
+import { DATABASE_CONSTANTS } from '@podverse/helpers';
 
 const passwordSchema = Joi.string()
   .min(8)

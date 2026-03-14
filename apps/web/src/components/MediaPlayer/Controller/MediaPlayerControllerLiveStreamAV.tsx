@@ -1,4 +1,6 @@
-import React, { useRef, useEffect, useMemo } from 'react';
+import React, { useEffect, useMemo, useRef } from 'react';
+import videojs from 'video.js';
+
 import type {
   DTOItem,
   EnclosureSelectedParams,
@@ -6,7 +8,7 @@ import type {
   SelectedLabeledItemEnclosureAndSource,
 } from '@podverse/helpers';
 import { getSelectedLabeledItemEnclosureAndSource, isEqual } from '@podverse/helpers';
-import videojs from 'video.js';
+
 import 'video.js/dist/video-js.css';
 
 export interface MediaPlayerControllerLiveStreamAVProps {

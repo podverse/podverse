@@ -1,8 +1,8 @@
+import { _requestWithHeaders } from '@parser/lib/_request.js';
 import type { FeedObject } from 'podverse-partytime';
 import { parseFeed } from 'podverse-partytime';
 
 import { sleep } from '@podverse/helpers';
-import { _requestWithHeaders } from '@parser/lib/_request.js';
 
 import { getRawFeedMd5Hash } from './hash/rawFeed.js';
 

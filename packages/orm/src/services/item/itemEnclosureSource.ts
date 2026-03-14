@@ -1,7 +1,7 @@
-import type { EntityManager } from 'typeorm';
 import type { ItemEnclosure } from '@orm/entities/item/itemEnclosure.js';
 import { ItemEnclosureSource } from '@orm/entities/item/itemEnclosureSource.js';
 import { BaseManyService } from '@orm/services/base/baseManyService.js';
+import type { EntityManager } from 'typeorm';
 
 type ItemEnclosureDto = {
   uri: string;

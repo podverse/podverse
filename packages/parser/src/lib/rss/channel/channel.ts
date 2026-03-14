@@ -1,7 +1,4 @@
-import type { FeedObject } from 'podverse-partytime';
-import type { Channel, ChannelSeasonIndex, EntityManager } from '@podverse/orm';
-import { AppDataSourceReadWrite, ChannelService } from '@podverse/orm';
-import { compatChannelDto } from '@podverse/parser-mapping';
+import { timerManager } from '@parser/factories/timerManager.js';
 import { handleParsedChannelAbout } from '@parser/lib/rss/channel/channelAbout.js';
 import { handleParsedChannelCategory } from '@parser/lib/rss/channel/channelCategory.js';
 import { handleParsedChannelChat } from '@parser/lib/rss/channel/channelChat.js';
@@ -18,7 +15,11 @@ import { handleParsedChannelSocialInteract } from '@parser/lib/rss/channel/chann
 import { handleParsedChannelTrailer } from '@parser/lib/rss/channel/channelTrailer.js';
 import { handleParsedChannelTxt } from '@parser/lib/rss/channel/channelTxt.js';
 import { handleParsedChannelValue } from '@parser/lib/rss/channel/channelValue.js';
-import { timerManager } from '@parser/factories/timerManager.js';
+import type { FeedObject } from 'podverse-partytime';
+
+import type { Channel, ChannelSeasonIndex, EntityManager } from '@podverse/orm';
+import { AppDataSourceReadWrite, ChannelService } from '@podverse/orm';
+import { compatChannelDto } from '@podverse/parser-mapping';
 
 export const handleParsedChannel = async (
   parsedFeed: FeedObject,

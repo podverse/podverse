@@ -7,7 +7,7 @@
 
 import { getEffectiveUserAgent, isValidUUID } from '@podverse/helpers';
 import type { ValidationResult, ValidationSummary } from '@podverse/helpers-config';
-import { validateRequired, validateOptional } from '@podverse/helpers-config';
+import { validateOptional, validateRequired } from '@podverse/helpers-config';
 
 /**
  * Validates critical environment variables and configuration at application startup.

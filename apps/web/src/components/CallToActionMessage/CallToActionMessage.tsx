@@ -1,4 +1,5 @@
 import React from 'react';
+
 import styles from '../../styles/components/CallToActionMessage/CallToActionMessage.module.scss';
 
 type CallToActionMessageProps = {

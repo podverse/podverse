@@ -1,7 +1,10 @@
 import { useTranslations } from 'next-intl';
+
 import type { DTOChannelPerson, DTOItemPerson } from '@podverse/helpers';
-import styles from '../../../styles/components/Content/About/ContentPeopleRow.module.scss';
+
 import { Link } from '../../Link/Link';
+
+import styles from '../../../styles/components/Content/About/ContentPeopleRow.module.scss';
 
 type ContentPeopleRowProps = {
   channel_person?: DTOChannelPerson;

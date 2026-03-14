@@ -8,8 +8,9 @@ import {
   QUERY_PARAMS_GLOBAL_SORT_VALUES,
   QUERY_PARAMS_SUBSCRIBED_FULL_SORT,
 } from '@podverse/helpers-requests';
-import { getRangeDropdownItems } from '../../utils/dropdownMenuItems';
+
 import type { DropdownMenuItem } from '../../components/Dropdown/Dropdown';
+import { getRangeDropdownItems } from '../../utils/dropdownMenuItems';
 
 export function getAlbumsPageDropdownConfig({
   type,

@@ -1,13 +1,15 @@
 'use client';
 
 import { useParams } from 'next/navigation';
-import type { TranscriptRow } from '@podverse/helpers';
-import type { QueryParamsItemMusic } from '@podverse/helpers-requests';
 import type { ReactNode } from 'react';
 import { createContext, useContext, useState } from 'react';
+
+import type { TranscriptRow } from '@podverse/helpers';
+import type { QueryParamsItemMusic } from '@podverse/helpers-requests';
+
 import { useAccount } from '../../../contexts/Account';
-import { useSkipInitialEffect } from '../../../hooks/useSkipInitialEffect';
 import { getApiRequestService } from '../../../factories/apiRequestService';
+import { useSkipInitialEffect } from '../../../hooks/useSkipInitialEffect';
 import { getTranscriptRowsFromTranscriptString } from '../../../utils/transcript';
 
 interface TrackPageContextType {

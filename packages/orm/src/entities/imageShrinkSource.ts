@@ -1,12 +1,13 @@
-import { DATABASE_CONSTANTS } from '@podverse/helpers';
 import {
-  Entity,
-  PrimaryGeneratedColumn,
   Column,
-  Index,
   CreateDateColumn,
+  Entity,
+  Index,
+  PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
+
+import { DATABASE_CONSTANTS } from '@podverse/helpers';
 
 @Entity({ name: 'image_shrink_source' })
 export class ImageShrinkSource {

@@ -1,6 +1,9 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
+import React from 'react';
+import { FaCircleDollarToSlot, FaCommentDollar, FaGlobe, FaRss, FaShare } from 'react-icons/fa6';
+
 import type {
   DTOChannel,
   DTOClip,
@@ -8,12 +11,12 @@ import type {
   DTOItemChapter,
   DTOItemSoundbite,
 } from '@podverse/helpers';
-import React from 'react';
-import { FaCircleDollarToSlot, FaCommentDollar, FaGlobe, FaRss, FaShare } from 'react-icons/fa6';
-import { IconButton } from './IconButton';
+
 import { useModals } from '../../../contexts/Modals';
+import { IconButton } from './IconButton';
 import { NotificationIconButton } from './NotificationIconButton';
 import { SubscribeButton } from './SubscribeButton';
+
 import styles from '../../../styles/components/Common/Media/Header/HeaderButtons.module.scss';
 
 type ShareArgs = {

@@ -1,11 +1,13 @@
 'use client';
 
 import { useEffect } from 'react';
+
+import { useMediaPlayer } from '../../contexts/MediaPlayer';
+import { updateLayoutForMediaPlayer } from '../../utils/mediaPlayer/mediaPlayerLayout';
 import { MediaPlayerDesktop } from './Desktop/MediaPlayerDesktop';
 import { MediaPlayerMobile } from './Mobile/MediaPlayerMobile';
 import { MediaPlayerModal } from './Modal/MediaPlayerModal';
-import { useMediaPlayer } from '../../contexts/MediaPlayer';
-import { updateLayoutForMediaPlayer } from '../../utils/mediaPlayer/mediaPlayerLayout';
+
 import styles from '../../styles/components/MediaPlayer/MediaPlayer.module.scss';
 
 export const MediaPlayer = () => {

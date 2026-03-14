@@ -1,12 +1,15 @@
 'use client';
 
-import { useTranslations } from 'next-intl';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import React from 'react';
+
 import type { PodcastBatchByFeedGuidResponse } from '@podverse/helpers';
-import { Image } from '../../../Image/Image';
-import { ROUTES } from '../../../../constants/routes';
+
 import { IMAGES } from '../../../../constants/images';
+import { ROUTES } from '../../../../constants/routes';
+import { Image } from '../../../Image/Image';
+
 import styles from '../../../../styles/components/Common/List/ListGridNode.module.scss';
 
 interface Props {

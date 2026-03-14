@@ -1,12 +1,13 @@
 'use client';
 
 import React from 'react';
+
 import { CoreCombinedChannels } from '../components/Core/CombinedChannels/CoreCombinedChannels';
+import { HowToStartInfo } from '../components/InfoWrapper/HowToStartInfo';
 import LoadingSpinnerOverlay from '../components/LoadingSpinner/LoadingSpinnerOverlay';
-import { useHomePageContext } from './HomePageContext';
 import { useAccount } from '../contexts/Account';
 import { useLocalSettings } from '../contexts/LocalSettings';
-import { HowToStartInfo } from '../components/InfoWrapper/HowToStartInfo';
+import { useHomePageContext } from './HomePageContext';
 
 export const HomePageList: React.FC = () => {
   const { filterParams, setFilterParams, channels, totalPages, isLoading } = useHomePageContext();

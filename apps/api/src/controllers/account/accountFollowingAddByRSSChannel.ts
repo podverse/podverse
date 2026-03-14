@@ -1,14 +1,16 @@
-import type { Request, Response } from 'express';
-import Joi from 'joi';
-import { AccountFollowingAddByRSSChannelService, AccountService } from '@podverse/orm';
 import { ensureAuthenticated, getAuthenticatedUser } from '@api/lib/auth/index.js';
-import { handleGenericErrorResponse } from '../helpers/error.js';
+import { getParamRequired } from '@api/lib/params.js';
 import {
   accountIdTextParamSchema,
   validateBodyObject,
   validateParamsObject,
 } from '@api/lib/validation/index.js';
-import { getParamRequired } from '@api/lib/params.js';
+import type { Request, Response } from 'express';
+import Joi from 'joi';
+
+import { AccountFollowingAddByRSSChannelService, AccountService } from '@podverse/orm';
+
+import { handleGenericErrorResponse } from '../helpers/error.js';
 
 class AccountFollowingAddByRSSChannelController {
   private static accountService = new AccountService();
