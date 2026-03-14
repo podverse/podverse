@@ -34,7 +34,7 @@ alpha_db_init: infra/config/alpha/db.env
 	docker exec -i podverse_alpha_db psql -U postgres -d "$${POSTGRES_DB:-postgres}" -f /opt/database/combined/init_database.sql
 	@echo "Creating read/read_write roles (idempotent)..."
 	@set -a; . infra/config/alpha/db.env; set +a; \
-	docker compose -f infra/docker/alpha/db/docker-compose.yml exec podverse_alpha_db bash -c "POSTGRES_READ_PASSWORD=$$POSTGRES_READ_PASSWORD POSTGRES_READ_WRITE_PASSWORD=$$POSTGRES_READ_WRITE_PASSWORD /opt/database/init-scripts/01-create-users.sh"
+	docker compose -f infra/docker/alpha/db/docker-compose.yml exec podverse_alpha_db bash -c "POSTGRES_READ_USER=$$POSTGRES_READ_USER POSTGRES_READ_PASSWORD=$$POSTGRES_READ_PASSWORD POSTGRES_READ_WRITE_USER=$$POSTGRES_READ_WRITE_USER POSTGRES_READ_WRITE_PASSWORD=$$POSTGRES_READ_WRITE_PASSWORD /opt/database/init-scripts/01-create-users.sh"
 
 alpha_mq_up: infra/config/alpha/mq.env
 	docker compose -f infra/docker/alpha/mq/docker-compose.yml up podverse_alpha_mq -d
@@ -153,7 +153,7 @@ alpha_management_db_init: infra/config/alpha/management-db.env
 	docker exec -i podverse_alpha_management_db psql -U postgres -d "$${POSTGRES_DB:-postgres}" -f /opt/database/management/init_management_database.sql
 	@echo "Creating read/read_write roles (idempotent)..."
 	@set -a; . infra/config/alpha/management-db.env; set +a; \
-	docker compose -f infra/docker/alpha/management-db/docker-compose.yml exec podverse_alpha_management_db bash -c "POSTGRES_READ_PASSWORD=$$POSTGRES_READ_PASSWORD POSTGRES_READ_WRITE_PASSWORD=$$POSTGRES_READ_WRITE_PASSWORD /opt/database/management/init-scripts/01-create-users.sh"
+	docker compose -f infra/docker/alpha/management-db/docker-compose.yml exec podverse_alpha_management_db bash -c "POSTGRES_MANAGEMENT_DB=$$POSTGRES_MANAGEMENT_DB POSTGRES_MANAGEMENT_USER=$$POSTGRES_MANAGEMENT_USER POSTGRES_MANAGEMENT_READ_USER=$$POSTGRES_MANAGEMENT_READ_USER POSTGRES_MANAGEMENT_READ_PASSWORD=$$POSTGRES_MANAGEMENT_READ_PASSWORD POSTGRES_MANAGEMENT_READ_WRITE_USER=$$POSTGRES_MANAGEMENT_READ_WRITE_USER POSTGRES_MANAGEMENT_READ_WRITE_PASSWORD=$$POSTGRES_MANAGEMENT_READ_WRITE_PASSWORD /opt/database/management/init-scripts/01-create-users.sh"
 	@echo "Creating superuser account..."
 	@set -a; . infra/config/alpha/management-db.env; set +a; \
 	docker run --rm \

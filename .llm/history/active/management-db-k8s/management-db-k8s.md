@@ -409,3 +409,51 @@ the changes made to the commands in infra/k8s/base/ops/ should be pulling their 
 - infra/k8s/base/ops/db-drop-everything.cronjob.yaml
 
 ---
+
+### Session 16 - 2026-03-14
+
+#### Prompt (Developer)
+
+the infra db init scripts that create the users need to be adjusted to pull the username and passwords from the secrets. currently they are hardcoded to things like read and read_write
+
+#### Key Decisions
+
+- Switched init scripts to use POSTGRES_READ_USER and POSTGRES_READ_WRITE_USER from secrets while keeping passwords aligned to the same secret values.
+- Updated alpha/local init targets and env templates to pass and document the new username variables.
+
+#### Files Modified
+
+- infra/database/init-scripts/01-create-users.sh
+- infra/database/management/init-scripts/01-create-users.sh
+- infra/k8s/base/db/init-scripts.configmap.yaml
+- infra/k8s/base/db/management-init-scripts.configmap.yaml
+- makefiles/alpha/Makefile.alpha.infra.mk
+- makefiles/local/Makefile.local.infra.mk
+- infra/config/env-templates/db.env.example
+- infra/config/env-templates/management-db.env.example
+- scripts/local-env/setup.sh
+
+---
+
+### Session 17 - 2026-03-14
+
+#### Prompt (Developer)
+
+now update the management-db scripts so they won't collide with the app scripts
+the beginning of the name should be something like POSTGRES_MANAGEMENT like what was done in the k8s scripts create management-db script
+
+#### Key Decisions
+
+- Switched management DB init scripts and env templates to use POSTGRES*MANAGEMENT*\* variables to avoid collisions with app DB env.
+- Updated local/alpha init targets and local env setup to source the management-prefixed credentials.
+
+#### Files Modified
+
+- infra/database/management/init-scripts/01-create-users.sh
+- infra/k8s/base/db/management-init-scripts.configmap.yaml
+- makefiles/alpha/Makefile.alpha.infra.mk
+- makefiles/local/Makefile.local.infra.mk
+- infra/config/env-templates/management-db.env.example
+- scripts/local-env/setup.sh
+- infra/docker/alpha/management-db/docker-compose.yml
+- infra/docker/local/management-db/docker-compose.yml

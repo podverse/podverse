@@ -40,7 +40,7 @@ local_db_init: infra/config/local/db.env
 	docker exec -i podverse_local_db psql -U postgres -d "$${POSTGRES_DB:-podverse_main}" -f /opt/database/combined/init_database.sql
 	@echo "Creating read/read_write roles and grants (idempotent)..."
 	@set -a; . infra/config/local/db.env; set +a; \
-	docker compose -f infra/docker/local/db/docker-compose.yml exec podverse_local_db bash -c "POSTGRES_READ_PASSWORD=$$POSTGRES_READ_PASSWORD POSTGRES_READ_WRITE_PASSWORD=$$POSTGRES_READ_WRITE_PASSWORD POSTGRES_DB=$${POSTGRES_DB:-podverse_main} /opt/database/init-scripts/01-create-users.sh"
+	docker compose -f infra/docker/local/db/docker-compose.yml exec podverse_local_db bash -c "POSTGRES_READ_USER=$$POSTGRES_READ_USER POSTGRES_READ_PASSWORD=$$POSTGRES_READ_PASSWORD POSTGRES_READ_WRITE_USER=$$POSTGRES_READ_WRITE_USER POSTGRES_READ_WRITE_PASSWORD=$$POSTGRES_READ_WRITE_PASSWORD POSTGRES_DB=$${POSTGRES_DB:-podverse_main} /opt/database/init-scripts/01-create-users.sh"
 	@echo "Seeding local dev account..."
 	@set -a; . infra/config/local/db.env; set +a; \
 	docker exec -i podverse_local_db psql -U postgres -d "$${POSTGRES_DB:-podverse_main}" -f /opt/database/seed-scripts/local-dev-account.sql
@@ -90,7 +90,7 @@ local_management_db_init: infra/config/local/management-db.env
 	docker exec -i podverse_local_management_db psql -U postgres -d "$${POSTGRES_DB:-podverse_management}" -f /opt/database/management/init_management_database.sql
 	@echo "Creating read/read_write roles and grants (idempotent)..."
 	@set -a; . infra/config/local/management-db.env; set +a; \
-	docker compose -f infra/docker/local/management-db/docker-compose.yml exec podverse_local_management_db bash -c "POSTGRES_READ_PASSWORD=$$POSTGRES_READ_PASSWORD POSTGRES_READ_WRITE_PASSWORD=$$POSTGRES_READ_WRITE_PASSWORD POSTGRES_DB=$${POSTGRES_DB:-podverse_management} /opt/database/management/init-scripts/01-create-users.sh"
+	docker compose -f infra/docker/local/management-db/docker-compose.yml exec podverse_local_management_db bash -c "POSTGRES_MANAGEMENT_DB=$${POSTGRES_MANAGEMENT_DB:-podverse_management} POSTGRES_MANAGEMENT_USER=$$POSTGRES_MANAGEMENT_USER POSTGRES_MANAGEMENT_READ_USER=$$POSTGRES_MANAGEMENT_READ_USER POSTGRES_MANAGEMENT_READ_PASSWORD=$$POSTGRES_MANAGEMENT_READ_PASSWORD POSTGRES_MANAGEMENT_READ_WRITE_USER=$$POSTGRES_MANAGEMENT_READ_WRITE_USER POSTGRES_MANAGEMENT_READ_WRITE_PASSWORD=$$POSTGRES_MANAGEMENT_READ_WRITE_PASSWORD /opt/database/management/init-scripts/01-create-users.sh"
 	@echo "Creating superuser account..."
 	@set -a; . infra/config/local/management-db.env; set +a; \
 	docker run --rm \
