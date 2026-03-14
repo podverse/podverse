@@ -132,6 +132,38 @@ implement @.llm/plans/active/dependabot-prs/plan-pr-109.md
 
 ---
 
+### Session 6 - 2026-03-13
+
+#### Prompt (Developer)
+
+implement @.llm/plans/active/dependabot-prs/plan-pr-110.md
+
+#### Key Decisions
+
+- Applied PR #110 dev-dependencies group (9 updates): root (@types/node, globals, lint-staged, typescript-eslint); workspaces @dotenvx/dotenvx, nodemon, openai, webpack, inquirer, @types/node across apps and tools.
+- Plan moved to `.llm/plans/completed/dependabot-prs/plan-pr-110.md`.
+
+#### Files Created/Modified
+
+- package.json
+- apps/api/package.json
+- apps/management-api/package.json
+- apps/management-web/package.json
+- apps/workers/package.json
+- apps/web/package.json
+- packages/helpers/package.json
+- packages/helpers-backend/package.json
+- packages/helpers-config/package.json
+- tools/qa/package.json
+- tools/test-assets/package.json
+- tools/web-perf/lighthouse/package.json
+- tools/web-perf/bundle-analyzer/package.json
+- package-lock.json (from npm install)
+- .llm/history/active/module-updates-2026-03-12/module-updates-2026-03-12-part-01.md
+- .llm/plans/completed/dependabot-prs/plan-pr-110.md (moved from active)
+
+---
+
 ## Related Resources
 
 - [Link to PR]
