@@ -1,8 +1,9 @@
 import type {
-  QueryParamsStatsRange,
-  QueryParamsItemType,
   QueryParamsItemSort,
+  QueryParamsItemType,
+  QueryParamsStatsRange,
 } from '@podverse/helpers-requests';
+
 import { getRangeDropdownItems } from '../../../utils/dropdownMenuItems';
 
 export function getEpisodePageDropdownConfig({

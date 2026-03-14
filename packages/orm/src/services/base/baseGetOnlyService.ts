@@ -1,3 +1,4 @@
+import { getDataSourceRead } from '@orm/context.js';
 import type {
   FindManyOptions,
   FindOneOptions,
@@ -5,7 +6,6 @@ import type {
   ObjectLiteral,
   Repository,
 } from 'typeorm';
-import { getDataSourceRead } from '@orm/context.js';
 
 interface EntityWithId extends ObjectLiteral {
   id: number;

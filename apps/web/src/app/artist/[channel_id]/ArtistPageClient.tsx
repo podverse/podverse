@@ -6,14 +6,15 @@ import type {
   RemoteItemsResponse,
 } from '@podverse/helpers';
 import type { QueryParamsChannelMusicArtist } from '@podverse/helpers-requests';
+
+import { CoreArtistHeader } from '../../../components/Core/Artist/CoreArtistHeader';
+import { MainInnerContentWrapper } from '../../../components/Main/MainInnerContentWrapper';
+import { MainInnerWrapper } from '../../../components/Main/MainInnerWrapper';
 import { MainWrapper } from '../../../components/Main/MainWrapper';
 import { ArtistPageContextProvider } from './ArtistPageContext';
-import { ArtistPageListHeader } from './ArtistPageListHeader';
 import { ArtistPageList } from './ArtistPageList';
-import { MainInnerWrapper } from '../../../components/Main/MainInnerWrapper';
-import { MainInnerContentWrapper } from '../../../components/Main/MainInnerContentWrapper';
+import { ArtistPageListHeader } from './ArtistPageListHeader';
 import { ArtistPageSideContent } from './ArtistPageSideContent';
-import { CoreArtistHeader } from '../../../components/Core/Artist/CoreArtistHeader';
 
 interface ArtistPageClientProps {
   initialQueryParams: QueryParamsChannelMusicArtist;

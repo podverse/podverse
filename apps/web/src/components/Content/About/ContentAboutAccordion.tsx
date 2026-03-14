@@ -1,8 +1,10 @@
 import type { DTOChannelPerson, DTOItemPerson } from '@podverse/helpers';
+
+import Accordion from '../../Accordian/Accordian';
 import { ContentAboutDescription } from './ContentAboutDescription';
 import { ContentAboutHeader } from './ContentAboutHeader';
-import Accordion from '../../Accordian/Accordian';
 import { ContentPeopleRows } from './ContentPeopleRows';
+
 import styles from '../../../styles/components/Content/About/ContentAboutAccordion.module.scss';
 
 type ContentAboutAccordion = {

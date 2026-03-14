@@ -1,14 +1,14 @@
-import {
-  Entity,
-  PrimaryGeneratedColumn,
-  CreateDateColumn,
-  ManyToOne,
-  JoinColumn,
-  Column,
-} from 'typeorm';
-import type { Relation } from 'typeorm';
-import type { StatsTrackAccountGuid } from '@orm/entities/stats/statsTrackAccountGuid.js';
 import type { Item } from '@orm/entities/item/item.js';
+import type { StatsTrackAccountGuid } from '@orm/entities/stats/statsTrackAccountGuid.js';
+import type { Relation } from 'typeorm';
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 
 @Entity('stats_track_event_item')
 export class StatsTrackEventItem {

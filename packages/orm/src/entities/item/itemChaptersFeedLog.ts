@@ -1,6 +1,6 @@
-import { Entity, PrimaryGeneratedColumn, Column, OneToOne, JoinColumn } from 'typeorm';
-import type { Relation } from 'typeorm';
 import type { ItemChaptersFeed } from '@orm/entities/item/itemChaptersFeed.js';
+import type { Relation } from 'typeorm';
+import { Column, Entity, JoinColumn, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity('item_chapters_feed_log')
 export class ItemChaptersFeedLog {

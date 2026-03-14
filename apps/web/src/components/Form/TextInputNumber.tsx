@@ -1,5 +1,7 @@
 import React from 'react';
+
 import { TextInput } from './TextInput';
+
 import styles from '../../styles/components/Form/TextInputNumber.module.scss';
 
 type TextInputNumberProps = React.InputHTMLAttributes<HTMLInputElement> & {

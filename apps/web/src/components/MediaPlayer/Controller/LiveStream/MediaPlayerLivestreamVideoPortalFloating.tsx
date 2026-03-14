@@ -1,12 +1,15 @@
 'use client';
 
+import classNames from 'classnames';
 import React, { useEffect, useState } from 'react';
 import ReactDOM from 'react-dom';
-import classNames from 'classnames';
+
 import { getSelectedLabeledItemEnclosureAndSource } from '@podverse/helpers';
+
 import { useMediaPlayer } from '../../../../contexts/MediaPlayer';
-import styles from '../../../../styles/components/MediaPlayer/Controller/LiveStream/MediaPlayerLiveStreamVideoPortalFloating.module.scss';
 import { cssClass } from '../../../../utils/cssModule';
+
+import styles from '../../../../styles/components/MediaPlayer/Controller/LiveStream/MediaPlayerLiveStreamVideoPortalFloating.module.scss';
 
 export const MediaPlayerLivestreamVideoPortalFloating: React.FC<{ children: React.ReactNode }> = ({
   children,

@@ -1,7 +1,8 @@
 import { useEffect, useRef } from 'react';
+
 import type {
-  FilterDefaultsPage,
   FilterDefaultsForPage,
+  FilterDefaultsPage,
 } from '../utils/localSettings/localSettings';
 import { updateFilterDefaults } from '../utils/localSettings/localSettings';
 

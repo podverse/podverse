@@ -1,13 +1,14 @@
-import type {
-  PodcastBatchByFeedGuidResponse,
-  EpisodeByGuidResponse,
-  DTOChannel,
-  DTOItem,
-  RemoteItemGeneric,
-} from '@podverse/helpers';
+import { config } from '@api/config/index.js';
 import { podcastIndexService } from '@api/factories/podcastIndexService.js';
 import { cacheGetJson, cacheSetJson } from '@api/lib/keyvaldb/keyvaldb.js';
-import { config } from '@api/config/index.js';
+
+import type {
+  DTOChannel,
+  DTOItem,
+  EpisodeByGuidResponse,
+  PodcastBatchByFeedGuidResponse,
+  RemoteItemGeneric,
+} from '@podverse/helpers';
 
 function isLocalFeedUrl(url: string | null | undefined): boolean {
   if (url === null || url === '' || url === undefined) return true;

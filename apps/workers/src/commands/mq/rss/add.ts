@@ -1,9 +1,10 @@
-import type { MQQueueNameParamKey } from '@podverse/helpers';
-import { MQ_QUEUES, validMQQueueNamesParamKeys } from '@podverse/helpers';
-import { mqRSSAdd as mqRSSAddFunction } from '@podverse/mq';
 import type { CommandLineArgs } from '@workers/commands/index.js';
 import { getActiveMQArtemisService } from '@workers/factories/activeMQArtemisService.js';
 import { getPodcastIndexService } from '@workers/factories/podcastIndexService.js';
+
+import type { MQQueueNameParamKey } from '@podverse/helpers';
+import { MQ_QUEUES, validMQQueueNamesParamKeys } from '@podverse/helpers';
+import { mqRSSAdd as mqRSSAddFunction } from '@podverse/mq';
 
 export const mqRSSAdd = async (args: CommandLineArgs) => {
   const mqQueueNameParamKey = (Array.isArray(args.q) ? args.q[0] : args.q) as

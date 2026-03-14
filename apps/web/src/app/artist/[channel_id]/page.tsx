@@ -1,9 +1,11 @@
-import { QUERY_PARAMS_CHANNEL_MUSIC_ARTIST_TYPE_VALUES } from '@podverse/helpers-requests';
 import { z } from 'zod';
+
+import { QUERY_PARAMS_CHANNEL_MUSIC_ARTIST_TYPE_VALUES } from '@podverse/helpers-requests';
+
+import { getSSRAuthService } from '../../../utils/auth/ssrAuth';
+import { ArtistPageClient } from './ArtistPageClient';
 import type { ArtistPageDropdownConfigCurrentParams } from './ArtistPageDropdownConfig';
 import { getArtistPageFilterParams } from './ArtistPageDropdownConfig';
-import { ArtistPageClient } from './ArtistPageClient';
-import { getSSRAuthService } from '../../../utils/auth/ssrAuth';
 
 const searchParamsSchema = z.object({
   type: z.enum(QUERY_PARAMS_CHANNEL_MUSIC_ARTIST_TYPE_VALUES).optional().default('albums'),

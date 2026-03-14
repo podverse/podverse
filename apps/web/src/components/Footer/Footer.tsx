@@ -1,13 +1,15 @@
 'use client';
 
-import { SiMatrix } from 'react-icons/si';
 import { useTranslations } from 'next-intl';
-import FooterBrand from './FooterBrand';
-import FooterCopyright from './FooterCopyright';
-import { ROUTES } from '../../constants/routes';
 import { FaDiscord, FaGithub, FaMastodon, FaXTwitter } from 'react-icons/fa6';
+import { SiMatrix } from 'react-icons/si';
+
+import { ROUTES } from '../../constants/routes';
 import { SOCIALS } from '../../constants/socials';
 import { Link } from '../Link/Link';
+import FooterBrand from './FooterBrand';
+import FooterCopyright from './FooterCopyright';
+
 import styles from '../../styles/components/Footer/Footer.module.scss';
 
 export const Footer: React.FC = () => {

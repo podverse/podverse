@@ -121,6 +121,8 @@ import { Podcast } from '@podverse/orm';
 import { config } from './config'; // 4. Relative imports
 ```
 
+Enforced by ESLint; fix with `npm run lint:fix`. Styles (CSS/SCSS) go last in components/pages.
+
 ### ESM and import type
 
 - **ESM**: Relative imports use `.js` extensions. Packages and apps use ESM (NodeNext in `tsconfig.base.json`).

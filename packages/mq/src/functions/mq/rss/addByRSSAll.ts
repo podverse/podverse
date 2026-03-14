@@ -1,10 +1,11 @@
 import { randomUUID } from 'node:crypto';
 
-import { getRecordValue } from '@podverse/helpers';
-import { AccountFollowingAddByRSSChannelService } from '@podverse/orm';
 import type { ActiveMQArtemisService } from '@queue/services/activeMQArtemis/index.js';
 import type { MQAddByRSSMessage } from '@queue/types/mq.js';
+
 import type { MQQueueConfigFunctionParams } from '@podverse/helpers';
+import { getRecordValue } from '@podverse/helpers';
+import { AccountFollowingAddByRSSChannelService } from '@podverse/orm';
 
 type MQAddByRSSAddAllConfig = MQQueueConfigFunctionParams & {
   accountId: number;

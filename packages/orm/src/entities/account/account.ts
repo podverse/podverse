@@ -1,17 +1,18 @@
-import {
-  Entity,
-  PrimaryGeneratedColumn,
-  Column,
-  ManyToOne,
-  JoinColumn,
-  BeforeInsert,
-  OneToOne,
-  OneToMany,
-} from 'typeorm';
-import type { Relation } from 'typeorm';
+import type { AccountCredentials } from '@orm/entities/account/accountCredentials.js';
 import type { SharableStatus } from '@orm/entities/sharableStatus.js';
 import { generateRandomIdText } from '@orm/lib/nanoid.js';
-import type { AccountCredentials } from '@orm/entities/account/accountCredentials.js';
+import type { Relation } from 'typeorm';
+import {
+  BeforeInsert,
+  Column,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  OneToMany,
+  OneToOne,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
+
 import type { AccountAppStorePurchase } from './accountAppStorePurchase.js';
 import type { AccountFCMDevice } from './accountFCMDevice.js';
 import type { AccountFollowingAccount } from './accountFollowingAccount.js';

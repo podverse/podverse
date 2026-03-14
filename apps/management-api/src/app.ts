@@ -1,13 +1,14 @@
-import 'reflect-metadata';
+import { config } from '@mgmt-api/config/index.js';
+import { initializePassport } from '@mgmt-api/lib/auth/index.js';
+import { adminAccountRouter } from '@mgmt-api/routes/adminAccount.js';
+import { authRouter } from '@mgmt-api/routes/auth.js';
 import bodyParser from 'body-parser';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import type { NextFunction, Request, Response } from 'express';
 import express from 'express';
-import { config } from '@mgmt-api/config/index.js';
-import { initializePassport } from '@mgmt-api/lib/auth/index.js';
-import { authRouter } from '@mgmt-api/routes/auth.js';
-import { adminAccountRouter } from '@mgmt-api/routes/adminAccount.js';
+
+import 'reflect-metadata';
 
 export const app = express();
 const port = config.api.port;

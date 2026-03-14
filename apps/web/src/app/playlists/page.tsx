@@ -1,3 +1,6 @@
+import { cookies } from 'next/headers';
+import { z } from 'zod';
+
 import type { DTOPlaylist, QueryParamsQueueMedium } from '@podverse/helpers';
 import { getTotalPages, QUERY_PARAMS_QUEUE_MEDIUMS } from '@podverse/helpers';
 import type {
@@ -6,18 +9,17 @@ import type {
   QueryParamsSubscribedFullSort,
 } from '@podverse/helpers-requests';
 import {
-  QUERY_PARAMS_STATS_RANGE_VALUES,
   QUERY_PARAMS_PLAYLISTS_TYPE_VALUES,
+  QUERY_PARAMS_STATS_RANGE_VALUES,
   QUERY_PARAMS_SUBSCRIBED_FULL_SORT,
 } from '@podverse/helpers-requests';
-import { cookies } from 'next/headers';
-import { z } from 'zod';
-import { PlaylistsPageClient } from './PlaylistsPageClient';
-import { getPlaylistsPageFilterParams } from './PlaylistsPageDropdownConfig';
+
 import { getSSRAuthService } from '../../utils/auth/ssrAuth';
 import { guardSubscribedSsrFilter, safeSsrListRequest } from '../../utils/filters/ssrFilterGuards';
 import type { PlaylistsFilterDefaults } from '../../utils/localSettings/localSettings';
 import { getParsedLocalSettings } from '../../utils/localSettings/localSettings';
+import { PlaylistsPageClient } from './PlaylistsPageClient';
+import { getPlaylistsPageFilterParams } from './PlaylistsPageDropdownConfig';
 
 const searchParamsSchema = z.object({
   page: z

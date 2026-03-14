@@ -1,9 +1,10 @@
-import { DATABASE_CONSTANTS } from '@podverse/helpers';
-import { Entity, PrimaryGeneratedColumn, Column, JoinColumn, OneToOne } from 'typeorm';
-import type { Relation } from 'typeorm';
 import type { Item } from '@orm/entities/item/item.js';
 import type { ItemChaptersFeedLog } from '@orm/entities/item/itemChaptersFeedLog.js';
 import type { ItemChaptersObject } from '@orm/entities/item/itemChaptersObject.js';
+import type { Relation } from 'typeorm';
+import { Column, Entity, JoinColumn, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
+
+import { DATABASE_CONSTANTS } from '@podverse/helpers';
 
 @Entity('item_chapters_feed')
 export class ItemChaptersFeed {

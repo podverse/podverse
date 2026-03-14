@@ -1,18 +1,20 @@
 'use client';
 
-import React, { useState, useMemo, useEffect } from 'react';
-import { useTranslations, useLocale } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
+import React, { useEffect, useMemo, useState } from 'react';
+
 import { DATABASE_CONSTANTS, SharableStatusEnum } from '@podverse/helpers';
-import { useAccount } from '../../../../contexts/Account';
-import { Button } from '../../../Button/Button';
-import { SettingsSection } from '../../SettingsSection';
-import Form from '../../../Form/Form';
-import { TextInput } from '../../../Form/TextInput';
-import { TextArea } from '../../../Form/TextArea';
-import { FormDropdown } from '../../../Form/FormDropdown';
+
 import { SHARABLE_STATUS } from '../../../../constants/sharableStatus';
+import { useAccount } from '../../../../contexts/Account';
 import { getApiRequestService } from '../../../../factories/apiRequestService';
+import { Button } from '../../../Button/Button';
+import Form from '../../../Form/Form';
+import { FormDropdown } from '../../../Form/FormDropdown';
+import { TextArea } from '../../../Form/TextArea';
+import { TextInput } from '../../../Form/TextInput';
 import { showToast } from '../../../Toast/Toast';
+import { SettingsSection } from '../../SettingsSection';
 
 export function SettingsProfile() {
   const tSettings = useTranslations('settings');

@@ -1,7 +1,10 @@
 'use client';
 
-import { useTranslations } from 'next-intl';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
+import React from 'react';
+import { FaGripLines } from 'react-icons/fa6';
+
 import type { DTOChannel, DTOItem } from '@podverse/helpers';
 import {
   findDTOChannelImageForList,
@@ -10,27 +13,26 @@ import {
   stripAndDecodeHtml,
 } from '@podverse/helpers';
 import { getShuffleHash } from '@podverse/helpers-requests';
-import React from 'react';
-import { FaGripLines } from 'react-icons/fa6';
-import { ImagesPerView } from '../../../Image/ImagesPerView';
-import { ROUTES } from '../../../../constants/routes';
+
 import { IMAGES } from '../../../../constants/images';
-import { PlayButtonRow } from '../../../MediaPlayer/Buttons/PlayButtonRow';
-import { getDurationAndPositionStr, ReadableDuration } from '../../../Time/ReadableDuration';
-import type { MoreButtonMenuItem } from '../../../MoreButton/MoreButton';
-import { MoreButton } from '../../../MoreButton/MoreButton';
+import { ROUTES } from '../../../../constants/routes';
+import { useAccount } from '../../../../contexts/Account';
+import { useAutoQueue } from '../../../../contexts/AutoQueue';
 import { useMediaPlayer } from '../../../../contexts/MediaPlayer';
-import { ReadableDate } from '../../../Time/ReadableDate';
 import { useModals } from '../../../../contexts/Modals';
 import { useQueues } from '../../../../contexts/Queue';
-import { getApiRequestService } from '../../../../factories/apiRequestService';
-import { showToastPromise, showToastPromiseWithLoading } from '../../../Toast/Toast';
-import { downloadAndSaveFile } from '../../../../utils/fileDownloader';
-import { useMediaPlayerResourceUpdate } from '../../../../hooks/useMediaPlayerResourceUpdate';
 import { useQueueResourcesAbridgedIndex } from '../../../../contexts/QueueResourcesAbridgedIndex';
-import { useAutoQueue } from '../../../../contexts/AutoQueue';
+import { getApiRequestService } from '../../../../factories/apiRequestService';
+import { useMediaPlayerResourceUpdate } from '../../../../hooks/useMediaPlayerResourceUpdate';
 import { downloadEpisodeWithModal } from '../../../../utils/downloadModal/downloadEpisodeWithModal';
-import { useAccount } from '../../../../contexts/Account';
+import { downloadAndSaveFile } from '../../../../utils/fileDownloader';
+import { ImagesPerView } from '../../../Image/ImagesPerView';
+import { PlayButtonRow } from '../../../MediaPlayer/Buttons/PlayButtonRow';
+import type { MoreButtonMenuItem } from '../../../MoreButton/MoreButton';
+import { MoreButton } from '../../../MoreButton/MoreButton';
+import { ReadableDate } from '../../../Time/ReadableDate';
+import { getDurationAndPositionStr, ReadableDuration } from '../../../Time/ReadableDuration';
+import { showToastPromise, showToastPromiseWithLoading } from '../../../Toast/Toast';
 
 import styles from '../../../../styles/components/Common/List/Podcasts/Episodes/ListEpisodeRow.module.scss';
 

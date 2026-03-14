@@ -1,19 +1,19 @@
-import { Router } from 'express';
 import { config } from '@api/config/index.js';
 import { AccountController } from '@api/controllers/account/account.js';
-import { AccountFollowingAccountController } from '@api/controllers/account/accountFollowingAccount.js';
-import { AccountFollowingAddByRSSChannelController } from '@api/controllers/account/accountFollowingAddByRSSChannel.js';
 import { AccountAddByRSSChaptersTranscriptController } from '@api/controllers/account/accountAddByRSSChaptersTranscript.js';
 import { AccountAddByRSSParseController } from '@api/controllers/account/accountAddByRSSParse.js';
+import { AccountFCMDeviceController } from '@api/controllers/account/accountFCMDevice.js';
+import { AccountFollowingAccountController } from '@api/controllers/account/accountFollowingAccount.js';
+import { AccountFollowingAddByRSSChannelController } from '@api/controllers/account/accountFollowingAddByRSSChannel.js';
 import { AccountFollowingChannelController } from '@api/controllers/account/accountFollowingChannel.js';
-import { asyncHandler } from '@api/middleware/asyncHandler.js';
 import { AccountFollowingPlaylistController } from '@api/controllers/account/accountFollowingPlaylist.js';
 import { AccountNotificationChannelController } from '@api/controllers/account/accountNotificationChannel.js';
 import { AccountNotificationChannelTypeController } from '@api/controllers/account/accountNotificationChannelType.js';
-import { AccountFCMDeviceController } from '@api/controllers/account/accountFCMDevice.js';
-import { AccountWebPushDeviceController } from '@api/controllers/account/accountWebPushDevice.js';
 import { AccountUPDeviceController } from '@api/controllers/account/accountUPDevice.js';
-import { rateLimitEndpoint, rateLimitAuthEndpoint } from '@api/lib/rateLimiter.js';
+import { AccountWebPushDeviceController } from '@api/controllers/account/accountWebPushDevice.js';
+import { rateLimitAuthEndpoint, rateLimitEndpoint } from '@api/lib/rateLimiter.js';
+import { asyncHandler } from '@api/middleware/asyncHandler.js';
+import { Router } from 'express';
 
 const router = Router();
 

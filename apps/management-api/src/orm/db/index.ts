@@ -1,10 +1,10 @@
-import type { DataSourceOptions } from 'typeorm';
-import { DataSource } from 'typeorm';
-import { SnakeNamingStrategy } from 'typeorm-naming-strategies';
 import { config } from '@mgmt-api/config/index.js';
 import { AdminAccount } from '@mgmt-api/orm/entities/adminAccount.js';
 import { AdminAccountCredentials } from '@mgmt-api/orm/entities/adminAccountCredentials.js';
 import { AdminAccountRole } from '@mgmt-api/orm/entities/adminAccountRole.js';
+import type { DataSourceOptions } from 'typeorm';
+import { DataSource } from 'typeorm';
+import { SnakeNamingStrategy } from 'typeorm-naming-strategies';
 
 const commonConfig: DataSourceOptions = {
   type: 'postgres',

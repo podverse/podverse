@@ -1,34 +1,36 @@
 'use client';
 
-import React from 'react';
-import { useTranslations, useLocale } from 'next-intl';
 import { useRouter } from 'next/navigation';
+import { useLocale, useTranslations } from 'next-intl';
+import React from 'react';
+
 import { formatDateAbbrev } from '@podverse/helpers';
 
-import { MainHeader } from '../../Main/MainHeader';
-import { MainWrapper } from '../../Main/MainWrapper';
-import { MainInnerWrapper } from '../../Main/MainInnerWrapper';
-import { MainInnerContentWrapper } from '../../Main/MainInnerContentWrapper';
-import { Image } from '../../Image/Image';
-import { DescriptionRenderer } from '../../Description/DescriptionRenderer';
-import { NoResults } from '../../NoResults/NoResults';
-import { DetailListWrapper } from '../../List/DetailListWrapper';
-import { SideContent } from '../../SideContent/SideContent';
-import LoadingSpinnerOverlay from '../../LoadingSpinner/LoadingSpinnerOverlay';
-import { IMAGES } from '../../../constants/images';
-import { AddByRSSPodcastPageDetailClient } from '../../../app/add-by-rss/podcast/AddByRSSPodcastPageDetailClient';
 import { AddByRSSAlbumPageClient } from '../../../app/add-by-rss/album/AddByRSSAlbumPageClient';
-import { AddByRSSArtistHeader } from '../Artist/AddByRSSArtistHeader';
-import { AddByRSSLivestreamHeader } from '../Livestream/AddByRSSLivestreamHeader';
-import { AddByRSSTrackHeader } from '../Artist/Album/Track/AddByRSSTrackHeader';
+import { AddByRSSPodcastPageDetailClient } from '../../../app/add-by-rss/podcast/AddByRSSPodcastPageDetailClient';
+import { IMAGES } from '../../../constants/images';
 import { useAccount } from '../../../contexts/Account';
-import { syncAddByRSSCacheWithServer } from '../../../utils/addByRSS/sync';
 import { getAddByRSSFeedByIdText } from '../../../utils/addByRSS/storage';
+import { syncAddByRSSCacheWithServer } from '../../../utils/addByRSS/sync';
 import type {
   AddByRSSFeedRecord,
   AddByRSSMappedFeed,
   AddByRSSResourceType,
 } from '../../../utils/addByRSS/types';
+import { DescriptionRenderer } from '../../Description/DescriptionRenderer';
+import { Image } from '../../Image/Image';
+import { DetailListWrapper } from '../../List/DetailListWrapper';
+import LoadingSpinnerOverlay from '../../LoadingSpinner/LoadingSpinnerOverlay';
+import { MainHeader } from '../../Main/MainHeader';
+import { MainInnerContentWrapper } from '../../Main/MainInnerContentWrapper';
+import { MainInnerWrapper } from '../../Main/MainInnerWrapper';
+import { MainWrapper } from '../../Main/MainWrapper';
+import { NoResults } from '../../NoResults/NoResults';
+import { SideContent } from '../../SideContent/SideContent';
+import { AddByRSSArtistHeader } from '../Artist/AddByRSSArtistHeader';
+import { AddByRSSTrackHeader } from '../Artist/Album/Track/AddByRSSTrackHeader';
+import { AddByRSSLivestreamHeader } from '../Livestream/AddByRSSLivestreamHeader';
+
 import styles from '../../../styles/components/AddByRSS/Detail/AddByRSSDetail.module.scss';
 
 type AddByRSSDetailClientProps = {

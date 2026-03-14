@@ -1,16 +1,17 @@
-import type { FeedObject, Phase4PodcastImage } from '../../types/partytime.js';
-import { Phase4Medium } from '../../types/partytime.js';
 import {
   createSortableTitle,
   DATABASE_CONSTANTS,
-  getChannelItunesTypeItunesTypeEnumValue,
   getBooleanOrNull,
   getCategoryEnumValue,
+  getChannelItunesTypeItunesTypeEnumValue,
   getMediumEnumValue,
 } from '@podverse/helpers';
 import { isValidHttpUrl } from '@podverse/helpers-validation';
-import { compatChannelValue, compatChannelValueWithMethodAndRecipients } from './value.js';
+
+import type { FeedObject, Phase4PodcastImage } from '../../types/partytime.js';
+import { Phase4Medium } from '../../types/partytime.js';
 import { detectDuckTypedPublisherMediumId } from './publisher.js';
+import { compatChannelValue, compatChannelValueWithMethodAndRecipients } from './value.js';
 
 export const compatChannelDto = (parsedFeed: FeedObject) => {
   // TODO: tighten medium type once partytime enum is modeled locally

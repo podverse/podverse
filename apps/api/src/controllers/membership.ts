@@ -1,6 +1,6 @@
-import type { Request, Response } from 'express';
 import { config } from '@api/config/index.js';
 import { handleGenericErrorResponse } from '@api/controllers/helpers/error.js';
+import type { Request, Response } from 'express';
 
 export class MembershipController {
   static async getPricing(_req: Request, res: Response): Promise<void> {

@@ -1,7 +1,7 @@
-import { Router } from 'express';
 import { config } from '@api/config/index.js';
 import { ChannelController } from '@api/controllers/channel.js';
 import { asyncHandler } from '@api/middleware/asyncHandler.js';
+import { Router } from 'express';
 
 const router = Router();
 

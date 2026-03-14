@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useEffect, useState, useCallback } from 'react';
+import { createContext, useCallback, useContext, useEffect, useState } from 'react';
 
 type NavigationType = 'push' | 'pop' | null;
 

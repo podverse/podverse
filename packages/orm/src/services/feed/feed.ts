@@ -1,8 +1,9 @@
 import { AppDataSourceRead, AppDataSourceReadWrite } from '@orm/db/index.js';
 import { Feed } from '@orm/entities/feed/feed.js';
 import { FeedFlagStatusStatusEnum } from '@orm/entities/feed/feedFlagStatus.js';
-import { FeedFlagStatusService } from './feedFlagStatus.js';
 import { applyProperties } from '@orm/lib/applyProperties.js';
+
+import { FeedFlagStatusService } from './feedFlagStatus.js';
 
 type FeedCreateDto = {
   url: string;

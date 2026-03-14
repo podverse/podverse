@@ -1,8 +1,9 @@
 'use client';
 
+import React from 'react';
+
 import type { DTOChannel } from '@podverse/helpers';
 import { findDTOChannelImageBySize } from '@podverse/helpers';
-import React from 'react';
 
 import { IMAGES } from '../../../../constants/images';
 import { ROUTES } from '../../../../constants/routes';

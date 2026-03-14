@@ -1,8 +1,10 @@
 import type { ActiveMQArtemisService, MQQueueName } from '@queue/services/activeMQArtemis/index.js';
+import WebSocket from 'ws';
+
 import { MQ_QUEUES } from '@podverse/helpers';
 import type { Feed } from '@podverse/orm';
 import { FeedService } from '@podverse/orm';
-import WebSocket from 'ws';
+
 import { mqRSSAdd } from './add.js';
 
 export const mqRSSRunLiveItemListener = (activeMQArtemisService: ActiveMQArtemisService) => {
@@ -81,9 +83,8 @@ export const mqRSSRunLiveItemListener = (activeMQArtemisService: ActiveMQArtemis
                         if (podcast_index_id) {
                           addRSSObjs.push({ url, podcast_index_id: numPodcastIndexId });
                         }
-                      } else {
-                        console.warn('feed url not found');
                       }
+                      // Feed not in our DB: expected for many Podping signals; ignore and do not log (see #106).
                     }
                   } catch (err) {
                     console.warn(`p.p.iris error ${err}, connectionId: ${connectionId}`);

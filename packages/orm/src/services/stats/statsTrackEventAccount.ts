@@ -1,7 +1,8 @@
 import type { Account } from '@orm/entities/account/account.js';
-import { BaseStatsTrackEventService } from './baseStatsTrackEvent.js';
 import { StatsTrackEventAccount } from '@orm/entities/stats/statsTrackEventAccount.js';
 import { AccountService } from '@orm/services/account/account.js';
+
+import { BaseStatsTrackEventService } from './baseStatsTrackEvent.js';
 
 export class StatsTrackEventAccountService extends BaseStatsTrackEventService<StatsTrackEventAccount> {
   protected entity = StatsTrackEventAccount;

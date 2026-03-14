@@ -1,6 +1,6 @@
-import { Entity, PrimaryGeneratedColumn, Column, OneToOne, JoinColumn } from 'typeorm';
-import type { Relation } from 'typeorm';
 import type { Feed } from '@orm/entities/feed/feed.js';
+import type { Relation } from 'typeorm';
+import { Column, Entity, JoinColumn, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity('feed_log')
 export class FeedLog {

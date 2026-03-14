@@ -1,5 +1,7 @@
-import { AccountNotificationTypeEnum } from '@podverse/helpers';
 import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+
+import { AccountNotificationTypeEnum } from '@podverse/helpers';
+
 import type { AccountSettingsNotification } from './accountSettingsNotification.js';
 
 @Entity('account_settings_notification_type')

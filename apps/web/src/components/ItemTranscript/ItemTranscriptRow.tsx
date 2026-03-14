@@ -1,5 +1,6 @@
 import type { TranscriptRow } from '@podverse/helpers';
 import { decodeHtmlEntities } from '@podverse/helpers';
+
 import styles from '../../styles/components/ItemTranscript/ItemTranscriptRow.module.scss';
 interface ItemTranscriptRowProps {
   row: TranscriptRow;

@@ -1,6 +1,6 @@
 import type { NotificationsContext } from '../../factory.js';
-import { sendUPNotificationBatch } from './unifiedpushNotification.js';
 import type { UPSubscription } from './unifiedpushHelpers.js';
+import { sendUPNotificationBatch } from './unifiedpushNotification.js';
 
 type UPOrchestratorParams = {
   subscriptions: UPSubscription[];

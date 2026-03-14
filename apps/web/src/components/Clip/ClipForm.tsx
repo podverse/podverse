@@ -1,25 +1,28 @@
 'use client';
 
-import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
+
 import type { DTOChannel, DTOItem } from '@podverse/helpers';
 import { hhmmssToSecondsNumber } from '@podverse/helpers';
-import Form from '../Form/Form';
-import styles from '../../styles/components/Clip/ClipForm.module.scss';
-import { MediaHeaderMini } from '../MediaHeaderMini/MediaHeaderMini';
-import { FormDropdown } from '../Form/FormDropdown';
+
+import { EVENTS } from '../../constants/events';
 import { SHARABLE_STATUS } from '../../constants/sharableStatus';
+import { useAccount } from '../../contexts/Account';
+import { useMediaPlayer } from '../../contexts/MediaPlayer';
+import { useModals } from '../../contexts/Modals';
+import { getApiRequestService } from '../../factories/apiRequestService';
+import { Button } from '../Button/Button';
+import { CallToActionMessage } from '../CallToActionMessage/CallToActionMessage';
+import { Divider } from '../Divider/Divider';
+import Form from '../Form/Form';
+import { FormDropdown } from '../Form/FormDropdown';
 import { TextInput } from '../Form/TextInput';
 import { TextInputHHMMSS } from '../Form/TextInputHHMMSS';
+import { MediaHeaderMini } from '../MediaHeaderMini/MediaHeaderMini';
 import { ClipEditorPlayer } from './ClipEditorPlayer';
-import { Button } from '../Button/Button';
-import { EVENTS } from '../../constants/events';
-import { useMediaPlayer } from '../../contexts/MediaPlayer';
-import { Divider } from '../Divider/Divider';
-import { getApiRequestService } from '../../factories/apiRequestService';
-import { useAccount } from '../../contexts/Account';
-import { CallToActionMessage } from '../CallToActionMessage/CallToActionMessage';
-import { useModals } from '../../contexts/Modals';
+
+import styles from '../../styles/components/Clip/ClipForm.module.scss';
 
 type ClipFormProps = {
   channel: DTOChannel;

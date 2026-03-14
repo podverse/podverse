@@ -1,7 +1,8 @@
-import { DATABASE_CONSTANTS } from '@podverse/helpers';
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from 'typeorm';
-import type { Relation } from 'typeorm';
 import type { ChannelValue } from '@orm/entities/channel/channelValue.js';
+import type { Relation } from 'typeorm';
+import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+
+import { DATABASE_CONSTANTS } from '@podverse/helpers';
 
 @Entity({ name: 'channel_value_recipient' })
 export class ChannelValueRecipient {

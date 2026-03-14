@@ -1,10 +1,11 @@
-import type { Request, Response } from 'express';
-import Joi from 'joi';
-import { CategoryService } from '@podverse/orm';
 import { handleReturnDataOrNotFound } from '@api/controllers/helpers/data.js';
 import { handleGenericErrorResponse } from '@api/controllers/helpers/error.js';
-import { validateParamsObject } from '@api/lib/validation/index.js';
 import { getParamRequired } from '@api/lib/params.js';
+import { validateParamsObject } from '@api/lib/validation/index.js';
+import type { Request, Response } from 'express';
+import Joi from 'joi';
+
+import { CategoryService } from '@podverse/orm';
 
 export class CategoryController {
   private static categoryService = new CategoryService();

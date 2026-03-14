@@ -2,7 +2,9 @@
 
 import { useTranslations } from 'next-intl';
 import React from 'react';
+
 import LoadingSpinner from '../LoadingSpinner/LoadingSpinner';
+
 import styles from '../../styles/components/LazyLoadPlaceholder/LazyLoadPlaceholder.module.scss';
 
 export const LazyLoadPlaceholder: React.FC = () => {

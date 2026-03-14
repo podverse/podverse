@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import type { Response } from 'express';
 import { config } from '@api/config/index.js';
 import { loggerService } from '@api/factories/loggerService.js';
+import type { Response } from 'express';
 
 export function handleGenericErrorResponse(res: Response, error: any) {
   // TODO: how to handle logging of unknown server errors?

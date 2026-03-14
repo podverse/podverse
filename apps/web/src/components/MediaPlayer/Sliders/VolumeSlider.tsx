@@ -1,5 +1,7 @@
 import React, { useRef } from 'react';
+
 import { useMediaPlayer } from '../../../contexts/MediaPlayer';
+
 import styles from '../../../styles/components/MediaPlayer/Sliders/VolumeSlider.module.scss';
 
 export const VolumeSlider: React.FC = () => {

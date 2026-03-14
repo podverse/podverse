@@ -1,10 +1,13 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
+
 import { findDTOChannelImageBySize, findDTOItemImageBySize } from '@podverse/helpers';
-import { Image } from '../../Image/Image';
+
 import { IMAGES } from '../../../constants/images';
 import { useMediaPlayer } from '../../../contexts/MediaPlayer';
+import { Image } from '../../Image/Image';
+
 import styles from '../../../styles/components/MediaPlayer/Desktop/MediaPlayerInfoDesktop.module.scss';
 
 export const MediaPlayerInfoDesktop: React.FC = () => {

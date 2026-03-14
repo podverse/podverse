@@ -1,6 +1,7 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, Unique } from 'typeorm';
-import type { Relation } from 'typeorm';
 import type { Playlist } from '@orm/entities/playlist/playlist.js';
+import type { Relation } from 'typeorm';
+import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, Unique } from 'typeorm';
+
 import type { Clip } from '../clip.js';
 import type { Item } from '../item/item.js';
 import type { ItemSoundbite } from '../item/itemSoundbite.js';

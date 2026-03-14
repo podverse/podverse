@@ -3,9 +3,9 @@
 import { useTranslations } from 'next-intl';
 import React from 'react';
 
-import { CommonTrackGridNodeSimple } from '../../../../Common/Artist/Album/Track/CommonTrackGridNodeSimple';
 import { getAddByRSSItemPath } from '../../../../../utils/addByRSS/itemPath';
 import type { AddByRSSItemIndexItem } from '../../../../../utils/addByRSS/types';
+import { CommonTrackGridNodeSimple } from '../../../../Common/Artist/Album/Track/CommonTrackGridNodeSimple';
 
 type AddByRSSTrackGridCardProps = {
   item: AddByRSSItemIndexItem;

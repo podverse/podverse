@@ -1,9 +1,7 @@
-import type { Request, Response } from 'express';
-import Joi from 'joi';
-import { PlaylistResourceService } from '@podverse/orm';
 import { handleGenericErrorResponse } from '@api/controllers/helpers/error.js';
 import { verifyPlaylistOwnership } from '@api/controllers/playlist/playlist.js';
 import { ensureAuthenticated } from '@api/lib/auth/index.js';
+import { getParamRequired } from '@api/lib/params.js';
 import {
   clipIdTextParamSchema,
   playlistIdTextParamSchema,
@@ -11,7 +9,10 @@ import {
   validateBodyObject,
   validateParamsObject,
 } from '@api/lib/validation/index.js';
-import { getParamRequired } from '@api/lib/params.js';
+import type { Request, Response } from 'express';
+import Joi from 'joi';
+
+import { PlaylistResourceService } from '@podverse/orm';
 
 class PlaylistResourceClipController {
   private static playlistResourceService = new PlaylistResourceService();

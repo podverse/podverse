@@ -1,5 +1,5 @@
-import { getApiRequestService } from '../../../factories/apiRequestService';
 import { getConfig } from '../../../config';
+import { getApiRequestService } from '../../../factories/apiRequestService';
 
 /**
  * Converts a base64 VAPID public key to a Uint8Array for the Push API

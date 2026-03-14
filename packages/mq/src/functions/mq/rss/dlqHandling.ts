@@ -1,8 +1,9 @@
+import type { EventContext, Receiver } from 'rhea';
+
 import type {
   ActiveMQArtemisService,
   MQQueueName,
 } from '../../../services/activeMQArtemis/index.js';
-import type { EventContext, Receiver } from 'rhea';
 
 export type DQLMessageLogger = (logMessage: string) => void;
 

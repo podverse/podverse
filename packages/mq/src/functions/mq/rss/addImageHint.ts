@@ -1,5 +1,6 @@
 import type { ActiveMQArtemisService } from '@queue/services/activeMQArtemis/index.js';
 import type { MQImageShrinkHintMessage } from '@queue/types/mq.js';
+
 import type { MQQueueConfigFunctionParams } from '@podverse/helpers';
 
 type MQImageShrinkHintAddOptions = MQQueueConfigFunctionParams;

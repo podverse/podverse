@@ -2,12 +2,13 @@
 
 import { useTranslations } from 'next-intl';
 import React, { useEffect, useState } from 'react';
-import { Modal, MODAL_CONTENT_MAX_WIDTH } from './Modal';
+
 import { useConfig } from '../../contexts/Config';
+import { useLocalSettings } from '../../contexts/LocalSettings';
 import { useModals } from '../../contexts/Modals';
 import { Button } from '../Button/Button';
 import { TextCheckboxes } from '../Form/TextCheckboxes';
-import { useLocalSettings } from '../../contexts/LocalSettings';
+import { Modal, MODAL_CONTENT_MAX_WIDTH } from './Modal';
 
 import styles from '../../styles/components/Modal/ModalDisclaimer.module.scss';
 

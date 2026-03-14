@@ -1,13 +1,15 @@
-import 'reflect-metadata';
+import { config } from '@api/config/index.js';
+import { loggerService } from '@api/factories/loggerService.js';
+import { initializePassport } from '@api/lib/auth/index.js';
 import bodyParser from 'body-parser';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import type { NextFunction, Request, Response } from 'express';
 import express from 'express';
+
 import { CategoryService } from '@podverse/orm';
-import { config } from '@api/config/index.js';
-import { loggerService } from '@api/factories/loggerService.js';
-import { initializePassport } from '@api/lib/auth/index.js';
+
+import 'reflect-metadata';
 // Route imports are deferred until after ORM initialization (see startApp function)
 
 export const app = express();

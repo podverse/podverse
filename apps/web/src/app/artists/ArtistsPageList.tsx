@@ -1,10 +1,11 @@
 'use client';
 
 import React from 'react';
+
 import { CoreArtists } from '../../components/Core/Artist/CoreArtists';
+import { HowToStartInfo } from '../../components/InfoWrapper/HowToStartInfo';
 import LoadingSpinnerOverlay from '../../components/LoadingSpinner/LoadingSpinnerOverlay';
 import { useLocalSettings } from '../../contexts/LocalSettings';
-import { HowToStartInfo } from '../../components/InfoWrapper/HowToStartInfo';
 import { useArtistsPageContext } from './ArtistsPageContext';
 
 export const ArtistsPageList: React.FC = () => {

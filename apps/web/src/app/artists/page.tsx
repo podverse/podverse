@@ -1,4 +1,7 @@
-import type { QueryParamsMedium, DTOChannel } from '@podverse/helpers';
+import { cookies } from 'next/headers';
+import { z } from 'zod';
+
+import type { DTOChannel, QueryParamsMedium } from '@podverse/helpers';
 import { getTotalPages } from '@podverse/helpers';
 import type { ApiListResponse } from '@podverse/helpers-requests';
 import {
@@ -6,15 +9,14 @@ import {
   QUERY_PARAMS_SUBSCRIBED_FULL_SORT,
   QUERY_PARAMS_SUBSCRIBED_MUSIC_TYPE,
 } from '@podverse/helpers-requests';
-import { cookies } from 'next/headers';
-import { z } from 'zod';
-import { ArtistsPageClient } from './ArtistsPageClient';
+
 import { getSSRAuthService } from '../../utils/auth/ssrAuth';
 import { guardSubscribedSsrFilter, safeSsrListRequest } from '../../utils/filters/ssrFilterGuards';
-import type { ArtistsPageDropdownConfigCurrentParams } from './ArtistsPageDropdownConfig';
-import { getArtistsPageFilterParams } from './ArtistsPageDropdownConfig';
 import type { ArtistsFilterDefaults } from '../../utils/localSettings/localSettings';
 import { getParsedLocalSettings } from '../../utils/localSettings/localSettings';
+import { ArtistsPageClient } from './ArtistsPageClient';
+import type { ArtistsPageDropdownConfigCurrentParams } from './ArtistsPageDropdownConfig';
+import { getArtistsPageFilterParams } from './ArtistsPageDropdownConfig';
 
 const searchParamsSchema = z.object({
   page: z

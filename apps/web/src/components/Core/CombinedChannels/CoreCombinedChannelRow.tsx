@@ -1,8 +1,9 @@
 'use client';
 
+import React from 'react';
+
 import type { DTOChannel, QueryParamsMedium } from '@podverse/helpers';
 import { MediumEnum } from '@podverse/helpers';
-import React from 'react';
 
 import { CoreAlbumRow } from '../Artist/Album/CoreAlbumRow';
 import { CorePodcastRow } from '../Podcast/CorePodcastRow';

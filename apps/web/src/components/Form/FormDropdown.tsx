@@ -1,10 +1,12 @@
 'use client';
 
-import React, { useRef, useMemo } from 'react';
+import React, { useMemo, useRef } from 'react';
 import { FaChevronDown } from 'react-icons/fa6';
-import { DropdownMenu } from '../Dropdown/DropdownMenu';
+
 import { useDropdownKeyboardNavigation } from '../../hooks/useDropdownKeyboardNavigation';
 import type { DropdownMenuItem } from '../Dropdown/Dropdown';
+import { DropdownMenu } from '../Dropdown/DropdownMenu';
+
 import styles from '../../styles/components/Form/FormDropdown.module.scss';
 
 export interface FormDropdownProps {

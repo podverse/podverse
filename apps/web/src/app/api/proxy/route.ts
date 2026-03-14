@@ -1,9 +1,11 @@
 import type { NextRequest } from 'next/server';
+
 import { fetchWithTimeout } from '@podverse/helpers-backend';
+
+import { getConfig } from '../../../config';
+import { PROXY } from '../../../utils/proxy/constants';
 import { checkRateLimit } from '../../../utils/proxy/rateLimiter';
 import { validateProxyUrl } from '../../../utils/proxy/urlValidator';
-import { PROXY } from '../../../utils/proxy/constants';
-import { getConfig } from '../../../config';
 
 export async function GET(req: NextRequest) {
   const config = getConfig();

@@ -2,8 +2,10 @@ import classNames from 'classnames';
 import type { AriaAttributes } from 'react';
 import React from 'react';
 import { FaChevronDown, FaSpinner } from 'react-icons/fa';
-import styles from '../../styles/components/Button/Button.module.scss';
+
 import { cssClass } from '../../utils/cssModule';
+
+import styles from '../../styles/components/Button/Button.module.scss';
 
 export type ButtonVariant =
   | 'primary'

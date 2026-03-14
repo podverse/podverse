@@ -3,6 +3,7 @@ import { useTranslations } from 'next-intl';
 import type { MetaBoost } from '@podverse/v4v-metaboost';
 
 import { Link } from '../Link/Link';
+
 import styles from '../../styles/components/Boost/BoostForm.module.scss';
 
 type BoostMetaBoostInfoProps = {

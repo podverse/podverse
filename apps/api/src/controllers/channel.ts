@@ -1,25 +1,10 @@
-import type { Request, Response } from 'express';
-import Joi from 'joi';
-import type { CategoryMappingKeys, QueryParamsMedium } from '@podverse/helpers';
-import { getCategoryEnumValue } from '@podverse/helpers';
-import type { ApiListResponse, QueryParamsStatsRange } from '@podverse/helpers-requests';
-import type {
-  Channel,
-  FindManyOptions,
-  AccountFollowingChannel,
-  StatsAggregatedChannel,
-} from '@podverse/orm';
-import {
-  channelGetOneRelations,
-  channelGetManyRelations,
-  ChannelService,
-  AccountFollowingChannelService,
-  StatsAggregatedChannelService,
-  subChannelGetManyRelations,
-} from '@podverse/orm';
 import { handleReturnDataOrNotFound } from '@api/controllers/helpers/data.js';
 import { handleGenericErrorResponse } from '@api/controllers/helpers/error.js';
 import { getPaginationParams } from '@api/controllers/helpers/pagination.js';
+import { ensureAuthenticated, getAuthenticatedUser } from '@api/lib/auth/index.js';
+import { getFollowedChannelIds } from '@api/lib/followed.js';
+import { getParamRequired } from '@api/lib/params.js';
+import { getStatsOrder } from '@api/lib/stats.js';
 import {
   idOrIdTextParamSchema,
   mediumCategoryPageQuerySchema,
@@ -29,10 +14,26 @@ import {
   validateParamsObject,
   validateQueryObject,
 } from '@api/lib/validation/index.js';
-import { ensureAuthenticated, getAuthenticatedUser } from '@api/lib/auth/index.js';
-import { getStatsOrder } from '@api/lib/stats.js';
-import { getFollowedChannelIds } from '@api/lib/followed.js';
-import { getParamRequired } from '@api/lib/params.js';
+import type { Request, Response } from 'express';
+import Joi from 'joi';
+
+import type { CategoryMappingKeys, QueryParamsMedium } from '@podverse/helpers';
+import { getCategoryEnumValue } from '@podverse/helpers';
+import type { ApiListResponse, QueryParamsStatsRange } from '@podverse/helpers-requests';
+import type {
+  AccountFollowingChannel,
+  Channel,
+  FindManyOptions,
+  StatsAggregatedChannel,
+} from '@podverse/orm';
+import {
+  AccountFollowingChannelService,
+  channelGetManyRelations,
+  channelGetOneRelations,
+  ChannelService,
+  StatsAggregatedChannelService,
+  subChannelGetManyRelations,
+} from '@podverse/orm';
 
 export class ChannelController {
   private static channelService = new ChannelService();

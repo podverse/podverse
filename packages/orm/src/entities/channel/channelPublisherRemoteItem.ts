@@ -1,7 +1,8 @@
-import { DATABASE_CONSTANTS } from '@podverse/helpers';
-import { Entity, PrimaryGeneratedColumn, Column, JoinColumn, OneToOne } from 'typeorm';
-import type { Relation } from 'typeorm';
 import type { ChannelPublisher } from '@orm/entities/channel/channelPublisher.js';
+import type { Relation } from 'typeorm';
+import { Column, Entity, JoinColumn, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
+
+import { DATABASE_CONSTANTS } from '@podverse/helpers';
 
 @Entity({ name: 'channel_publisher_remote_item' })
 export class ChannelPublisherRemoteItem {

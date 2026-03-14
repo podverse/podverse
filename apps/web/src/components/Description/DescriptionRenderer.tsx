@@ -2,6 +2,7 @@
 
 import { sanitize } from 'isomorphic-dompurify';
 import React from 'react';
+
 import styles from './SafeHtmlDescription.module.scss';
 
 const ALLOWED_TAGS = [

@@ -2,12 +2,13 @@
 
 import React from 'react';
 
-import { Divider } from '../../../../Divider/Divider';
-import type { ViewSelectedOption } from '../../../../ViewSelector/ViewSelector';
 import type { AddByRSSListSortOrder } from '../../../../../contexts/AddByRSSListContext';
 import type { AddByRSSItemIndexItem } from '../../../../../utils/addByRSS/types';
+import { Divider } from '../../../../Divider/Divider';
+import type { ViewSelectedOption } from '../../../../ViewSelector/ViewSelector';
 import { AddByRSSTrackGridCard } from './AddByRSSTrackGridCard';
 import { AddByRSSTrackRow } from './AddByRSSTrackRow';
+
 import styles from '../../../../../styles/components/Common/List/ListNodes.module.scss';
 
 type AddByRSSTrackNodesProps = {

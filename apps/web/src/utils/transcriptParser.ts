@@ -1,7 +1,8 @@
-import type { TranscriptRow } from '@podverse/helpers';
-import { formatHHMMSS } from '@podverse/helpers';
 import { convertFile } from 'transcriptator';
 import { TimestampFormatter } from 'transcriptator/timestamp';
+
+import type { TranscriptRow } from '@podverse/helpers';
+import { formatHHMMSS } from '@podverse/helpers';
 
 /**
  * Parses transcript string into rows. Loaded only when transcript tab is used

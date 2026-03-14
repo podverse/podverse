@@ -2,13 +2,14 @@
 
 import type { DTOChannel, DTOItem } from '@podverse/helpers';
 
+import { ROUTES } from '../../../../constants/routes';
 import { CommonAlbumHeaderViewTablet } from '../../../Common/Artist/Album/CommonAlbumHeaderViewTablet';
 import { Link } from '../../../Link/Link';
-import { ROUTES } from '../../../../constants/routes';
-import styles from '../../../../styles/components/Common/Media/Podcast/PodcastHeaderViewTablet.module.scss';
 import { CoreAlbumHeaderButtons } from './CoreAlbumHeaderButtons';
 import { CoreAlbumHeaderImage } from './CoreAlbumHeaderImage';
 import { CoreAlbumHeaderSubtitle } from './CoreAlbumHeaderSubtitle';
+
+import styles from '../../../../styles/components/Common/Media/Podcast/PodcastHeaderViewTablet.module.scss';
 
 type CoreAlbumHeaderViewTabletProps = {
   channel: DTOChannel;

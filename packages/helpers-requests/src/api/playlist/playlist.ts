@@ -1,7 +1,8 @@
 import type { QueryParamsQueueMedium } from '@podverse/helpers';
+import type { DTOPlaylist, DTOPlaylistFavorites } from '@podverse/helpers';
+
 import type { ApiListResponse } from '../../index.js';
 import { emptyApiListResponse } from '../../index.js';
-import type { DTOPlaylist, DTOPlaylistFavorites } from '@podverse/helpers';
 import type { ApiRequestService } from '../_request.js';
 import type {
   QueryParamsGlobalRecent,

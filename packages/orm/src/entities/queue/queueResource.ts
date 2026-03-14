@@ -1,6 +1,7 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from 'typeorm';
-import type { Relation } from 'typeorm';
 import type { Queue } from '@orm/entities/queue/queue.js';
+import type { Relation } from 'typeorm';
+import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+
 import type { Clip } from '../clip.js';
 import type { Item } from '../item/item.js';
 import type { ItemSoundbite } from '../item/itemSoundbite.js';

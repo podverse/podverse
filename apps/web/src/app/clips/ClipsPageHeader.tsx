@@ -1,6 +1,8 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
+import React from 'react';
+
 import type {
   QueryParamsStatsRange,
   QueryParamsSubscribedPartialSort,
@@ -11,13 +13,13 @@ import {
   QUERY_PARAMS_SUBSCRIBED_PARTIAL_SORT,
   QUERY_PARAMS_SUBSCRIBED_TYPE,
 } from '@podverse/helpers-requests';
-import React from 'react';
+
 import Dropdown from '../../components/Dropdown/Dropdown';
 import { MainHeader } from '../../components/Main/MainHeader';
 import { ViewSelector } from '../../components/ViewSelector/ViewSelector';
 import { useLocalSettings } from '../../contexts/LocalSettings';
-import { useClipsPageContext } from './ClipsPageContext';
 import { getEpisodesPageDropdownConfig } from '../episodes/EpisodesPageDropdownConfig';
+import { useClipsPageContext } from './ClipsPageContext';
 
 export const ClipsPageHeader: React.FC = () => {
   const { filterParams, setFilterParams, setShowCategoriesModal } = useClipsPageContext();

@@ -1,6 +1,8 @@
+import type { DTOAccount } from '@podverse/helpers';
 import { createAddByRSSId, createAddByRSSIdText, sleep } from '@podverse/helpers';
 import { convertParsedRSSFeedToCompat } from '@podverse/parser-mapping';
 
+import type { AddByRSSParseStatusResponse } from './api';
 import {
   enqueueAddByRSSParse,
   followAddByRSSChannel,
@@ -8,8 +10,6 @@ import {
   unfollowAddByRSSChannel,
 } from './api';
 import { getAddByRSSFeedByUrl, removeAddByRSSFeed, upsertAddByRSSFeed } from './storage';
-import type { AddByRSSParseStatusResponse } from './api';
-import type { DTOAccount } from '@podverse/helpers';
 import type { AddByRSSFeedRecord, AddByRSSParsedFeed, AddByRSSResourceType } from './types';
 
 const STATUS_POLL_DELAY_MS = 3000;

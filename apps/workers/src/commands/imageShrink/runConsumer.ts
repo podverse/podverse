@@ -1,11 +1,12 @@
-import type { CommandLineArgs } from '@workers/commands/index.js';
 import { createImageShrinkProcessor } from '@workers/commands/imageShrink/batch.js';
+import type { CommandLineArgs } from '@workers/commands/index.js';
+import { isImageShrinkEnabled } from '@workers/config/index.js';
 import { getActiveMQArtemisService } from '@workers/factories/activeMQArtemisService.js';
 import { getLoggerService } from '@workers/factories/loggerService.js';
-import { isImageShrinkEnabled } from '@workers/config/index.js';
+
 import { MQ_IMAGE_SHRINK_HINTS_CONFIG, sleep } from '@podverse/helpers';
-import { ChannelImageService, ItemImageService } from '@podverse/orm';
 import { createActiveMQShutdown } from '@podverse/mq';
+import { ChannelImageService, ItemImageService } from '@podverse/orm';
 
 type ImageShrinkHintMessage = {
   url: string;

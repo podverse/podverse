@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import React from 'react';
+
 import { useConfig } from '../../contexts/Config';
 import { useLocalSettings } from '../../contexts/LocalSettings';
 import { getBrandLogoSrc } from '../../utils/brandLogo';

@@ -1,7 +1,8 @@
 import ReactMarkdown from 'react-markdown';
-import { MainWrapper } from '../../components/Main/MainWrapper';
-import { MainInnerWrapper } from '../../components/Main/MainInnerWrapper';
+
 import { MainInnerContentWrapper } from '../../components/Main/MainInnerContentWrapper';
+import { MainInnerWrapper } from '../../components/Main/MainInnerWrapper';
+import { MainWrapper } from '../../components/Main/MainWrapper';
 import { SideContent } from '../../components/SideContent/SideContent';
 
 type UpdatesPageClientProps = {

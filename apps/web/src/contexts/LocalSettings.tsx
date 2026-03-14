@@ -1,15 +1,16 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import type { UITheme } from '../utils/localSettings/uiTheme';
-import { toUITheme } from '../utils/localSettings/uiTheme';
+import React, { createContext, useContext, useEffect, useState } from 'react';
+
 import type { ViewSelectedOption } from '../components/ViewSelector/ViewSelector';
 import type {
-  LocalSettingsState,
   BoostFormDefaultsByValueKey,
+  LocalSettingsState,
 } from '../utils/localSettings/localSettings';
 import {
-  handleLocalSettingsUpdate,
   getParsedLocalSettings,
+  handleLocalSettingsUpdate,
 } from '../utils/localSettings/localSettings';
+import type { UITheme } from '../utils/localSettings/uiTheme';
+import { toUITheme } from '../utils/localSettings/uiTheme';
 
 type LocalSettingsContextType = {
   uiTheme: UITheme;

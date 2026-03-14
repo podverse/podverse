@@ -1,4 +1,5 @@
 import { z } from 'zod';
+
 import { VerifyEmailPageClient } from './VerifyEmailPageClient';
 
 const searchParamsSchema = z.object({

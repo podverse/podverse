@@ -1,13 +1,15 @@
-import React from 'react';
-import type { DTOCategory } from '@podverse/helpers';
 import { useRouter } from 'next/navigation';
+import React from 'react';
+
+import type { DTOCategory } from '@podverse/helpers';
+
+import { HowToStartInfo } from '../../components/InfoWrapper/HowToStartInfo';
+import { ListClips } from '../../components/List/Clips/ListClips';
 import LoadingSpinnerOverlay from '../../components/LoadingSpinner/LoadingSpinnerOverlay';
 import { ModalCategoriesSelect } from '../../components/Modal/ModalCategoriesSelect';
-import { onClickCategory } from '../../utils/categories';
 import { ROUTES } from '../../constants/routes';
-import { ListClips } from '../../components/List/Clips/ListClips';
+import { onClickCategory } from '../../utils/categories';
 import { useClipsPageContext } from './ClipsPageContext';
-import { HowToStartInfo } from '../../components/InfoWrapper/HowToStartInfo';
 
 export const ClipsPageList: React.FC = () => {
   const {

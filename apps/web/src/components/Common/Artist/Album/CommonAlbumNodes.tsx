@@ -4,10 +4,11 @@ import React from 'react';
 
 import { Divider } from '../../../Divider/Divider';
 import type { ViewSelectedOption } from '../../../ViewSelector/ViewSelector';
-import styles from '../../../../styles/components/Common/List/ListNodes.module.scss';
 import { CommonAlbumListGridNode } from './CommonAlbumGridNode';
 import { CommonAlbumListRow } from './CommonAlbumRow';
 import type { AlbumListItem } from './types';
+
+import styles from '../../../../styles/components/Common/List/ListNodes.module.scss';
 
 type CommonAlbumListNodesProps = {
   items: AlbumListItem[];

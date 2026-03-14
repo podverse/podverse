@@ -1,5 +1,5 @@
-import type { DTOItemValueRecipient } from './itemValueRecipient.js';
 import type { DTOValueMetaBoost } from '../valueMetaBoost.js';
+import type { DTOItemValueRecipient } from './itemValueRecipient.js';
 
 export interface DTOItemValue {
   id: number;

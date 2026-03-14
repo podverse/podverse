@@ -1,14 +1,16 @@
-import type { Request, Response } from 'express';
 import { ensureAuthenticated, getAuthenticatedUser } from '@api/lib/auth/index.js';
-import { AccountNotificationChannelService } from '@podverse/orm';
-import { handleGenericErrorResponse } from '../helpers/error.js';
+import { getParamRequired } from '@api/lib/params.js';
 import {
   channelIdTextParamSchema,
   validateBodyObject,
   validateParamsObject,
 } from '@api/lib/validation/index.js';
+import type { Request, Response } from 'express';
 import Joi from 'joi';
-import { getParamRequired } from '@api/lib/params.js';
+
+import { AccountNotificationChannelService } from '@podverse/orm';
+
+import { handleGenericErrorResponse } from '../helpers/error.js';
 
 class AccountNotificationChannelController {
   private static accountNotificationChannelService = new AccountNotificationChannelService();

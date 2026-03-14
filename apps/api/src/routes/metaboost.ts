@@ -1,5 +1,6 @@
-import { Router } from 'express';
 import { config } from '@api/config/index.js';
+import { Router } from 'express';
+
 import { boostboxRouter } from './metaboost/boostbox.js';
 
 const router = Router();

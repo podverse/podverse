@@ -2,6 +2,7 @@
 
 import type { ReactNode } from 'react';
 import React from 'react';
+
 import { ErrorBoundary } from './ErrorBoundary';
 
 type ErrorBoundaryWrapperProps = {

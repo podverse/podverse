@@ -1,24 +1,26 @@
 'use client';
 
 import { NextIntlClientProvider } from 'next-intl';
+
 import type { DTOAccount, DTOCategory, QueueResourcesAbridgedIndex } from '@podverse/helpers';
+
+import type { WebConfig } from '../config';
 import { AccountProvider } from '../contexts/Account';
+import { AddByRSSListContextProvider } from '../contexts/AddByRSSListContext';
+import { AutoQueueProvider } from '../contexts/AutoQueue';
+import { CategoriesProvider } from '../contexts/Categories';
 import { ConfigProvider } from '../contexts/Config';
 import { LocalSettingsProvider } from '../contexts/LocalSettings';
-import { ModalsProvider } from '../contexts/Modals';
-import { CategoriesProvider } from '../contexts/Categories';
 import { MediaPlayerProvider } from '../contexts/MediaPlayer';
 import { MediaPlayerCurrentTimeProvider } from '../contexts/MediaPlayerCurrentTime';
+import { MediaPlayerVideoProvider } from '../contexts/MediaPlayerVideo';
+import { ModalsProvider } from '../contexts/Modals';
+import { NavigationProvider } from '../contexts/Navigation';
+import { NotificationsProvider } from '../contexts/Notifications';
 import { PlaylistsFavoritesProvider } from '../contexts/PlaylistsFavorites';
 import { QueuesProvider } from '../contexts/Queue';
 import { QueueResourcesAbridgedIndexProvider } from '../contexts/QueueResourcesAbridgedIndex';
-import { AutoQueueProvider } from '../contexts/AutoQueue';
-import { AddByRSSListContextProvider } from '../contexts/AddByRSSListContext';
-import { MediaPlayerVideoProvider } from '../contexts/MediaPlayerVideo';
 import type { LocalSettingsState } from '../utils/localSettings/localSettings';
-import { NotificationsProvider } from '../contexts/Notifications';
-import { NavigationProvider } from '../contexts/Navigation';
-import type { WebConfig } from '../config';
 
 export default function Providers({
   children,

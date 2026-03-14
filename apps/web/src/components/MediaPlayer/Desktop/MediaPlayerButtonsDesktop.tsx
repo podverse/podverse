@@ -1,13 +1,15 @@
 import { MediumEnum } from '@podverse/helpers';
+
+import { useMediaPlayer } from '../../../contexts/MediaPlayer';
+import { useQueues } from '../../../contexts/Queue';
 import { ClipButton } from '../Buttons/ClipButton';
 import { MuteButton } from '../Buttons/MuteButton';
 import { PlaylistAddToButton } from '../Buttons/PlaylistAddToButton';
 import { RepeatButton } from '../Buttons/RepeatButton';
+import { SettingsButton } from '../Buttons/SettingsButton';
 import { ShuffleButton } from '../Buttons/ShuffleButton';
 import { VolumeSlider } from '../Sliders/VolumeSlider';
-import { SettingsButton } from '../Buttons/SettingsButton';
-import { useMediaPlayer } from '../../../contexts/MediaPlayer';
-import { useQueues } from '../../../contexts/Queue';
+
 import styles from '../../../styles/components/MediaPlayer/Desktop/MediaPlayerButtonsDesktop.module.scss';
 
 export const MediaPlayerButtonsDesktop = () => {

@@ -1,8 +1,9 @@
+import type { CommandLineArgs } from '@workers/commands/index.js';
+import { getActiveMQArtemisService } from '@workers/factories/activeMQArtemisService.js';
+
 import type { MQQueueNameParamKey } from '@podverse/helpers';
 import { MQ_QUEUES, validMQQueueNamesParamKeys } from '@podverse/helpers';
 import { mqRSSAddAll as mqRSSAddAllFunction } from '@podverse/mq';
-import type { CommandLineArgs } from '@workers/commands/index.js';
-import { getActiveMQArtemisService } from '@workers/factories/activeMQArtemisService.js';
 
 export const mqRSSAddAll = async (args: CommandLineArgs) => {
   const mqQueueNameParamKey = (Array.isArray(args.q) ? args.q[0] : args.q) as

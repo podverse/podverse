@@ -1,7 +1,8 @@
 import React from 'react';
+
 import { ListPlaylists } from '../../components/List/Playlists/ListPlaylists';
-import { usePlaylistsPageContext } from './PlaylistsPageContext';
 import LoadingSpinnerOverlay from '../../components/LoadingSpinner/LoadingSpinnerOverlay';
+import { usePlaylistsPageContext } from './PlaylistsPageContext';
 
 export const PlaylistsPageList: React.FC = () => {
   const { filterParams, setFilterParams, playlists, totalPages, isLoading, showLoginMessage } =

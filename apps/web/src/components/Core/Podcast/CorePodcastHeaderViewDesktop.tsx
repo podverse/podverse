@@ -8,13 +8,14 @@ import type {
   DTOItemSoundbite,
 } from '@podverse/helpers';
 
+import { ROUTES } from '../../../constants/routes';
 import { CommonPodcastHeaderViewDesktop } from '../../Common/Podcast/CommonPodcastHeaderViewDesktop';
 import { Link } from '../../Link/Link';
-import { ROUTES } from '../../../constants/routes';
-import styles from '../../../styles/components/Common/Media/Podcast/PodcastHeaderViewDesktop.module.scss';
 import { CorePodcastHeaderButtons } from './CorePodcastHeaderButtons';
 import { CorePodcastHeaderImage } from './CorePodcastHeaderImage';
 import { CorePodcastHeaderSubtitle } from './CorePodcastHeaderSubtitle';
+
+import styles from '../../../styles/components/Common/Media/Podcast/PodcastHeaderViewDesktop.module.scss';
 
 type CorePodcastHeaderViewDesktopProps = {
   channel: DTOChannel;

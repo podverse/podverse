@@ -1,12 +1,15 @@
 'use client';
 
-import { useTranslations } from 'next-intl';
 import Link from 'next/link';
-import type { PodcastBatchByFeedGuidResponse } from '@podverse/helpers';
+import { useTranslations } from 'next-intl';
 import React from 'react';
-import { Image } from '../../../Image/Image';
-import { ROUTES } from '../../../../constants/routes';
+
+import type { PodcastBatchByFeedGuidResponse } from '@podverse/helpers';
+
 import { IMAGES } from '../../../../constants/images';
+import { ROUTES } from '../../../../constants/routes';
+import { Image } from '../../../Image/Image';
+
 import styles from '../../../../styles/components/Common/List/Podcasts/ListPodcastRow.module.scss';
 
 interface Props {

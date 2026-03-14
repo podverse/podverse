@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
+
 import { getApiRequestService } from '../../factories/apiRequestService';
 
 interface AuthSessionCheckerProps {

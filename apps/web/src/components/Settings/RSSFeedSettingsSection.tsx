@@ -1,8 +1,9 @@
+import { useTranslations } from 'next-intl';
 import React from 'react';
+
 import type { ButtonVariant } from '../Button/Button';
 import { Button } from '../Button/Button';
 import { SettingsSection } from './SettingsSection';
-import { useTranslations } from 'next-intl';
 
 type RSSFeedSettingsSectionProps = {
   title: string;

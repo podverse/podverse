@@ -1,20 +1,22 @@
 'use client';
 
-import React, { useRef, useEffect, useMemo } from 'react';
+import React, { useEffect, useMemo, useRef } from 'react';
+
 import type {
-  QueueResourcesAbridgedIndex,
+  DTOChannel,
   DTOClip,
   DTOItem,
   DTOItemChapter,
   DTOItemSoundbite,
-  LabeledItemEnclosure,
   EnclosureSelectedParams,
-  DTOChannel,
+  LabeledItemEnclosure,
+  QueueResourcesAbridgedIndex,
   SelectedLabeledItemEnclosureAndSource,
 } from '@podverse/helpers';
-import type { MediaPlayerAddByRSSState } from '../../../contexts/MediaPlayer';
 import { getSelectedLabeledItemEnclosureAndSource, isEqual, MediumEnum } from '@podverse/helpers';
+
 import { EVENTS } from '../../../constants/events';
+import type { MediaPlayerAddByRSSState } from '../../../contexts/MediaPlayer';
 import type { MoveNowPlayingToHistoryCallbackParams } from '../../../hooks/useQueueResourceMoveNowPlayingToHistory';
 import type { QueueResourcesLoadActiveResult } from '../../../hooks/useQueueResourcesLoadActive';
 import type { UpdateNowPlayingParams } from '../../../hooks/useQueueResourceUpdateNowPlaying';

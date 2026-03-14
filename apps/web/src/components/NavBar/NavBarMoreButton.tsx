@@ -3,8 +3,10 @@
 import classNames from 'classnames';
 import React from 'react';
 import { FaBars, FaXmark } from 'react-icons/fa6';
-import styles from '../../styles/components/NavBar/NavBarMoreButton.module.scss';
+
 import { toggleMobileSidebar } from '../../utils/mobileNavMenu';
+
+import styles from '../../styles/components/NavBar/NavBarMoreButton.module.scss';
 
 const NavBarMoreButton: React.FC = () => {
   return (

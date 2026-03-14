@@ -1,12 +1,14 @@
-import type { QueryParamsMedium } from '@podverse/helpers';
-import { getMediumIdArrayFromType } from '@podverse/helpers';
+import { AccountFollowingChannel } from '@orm/entities/account/accountFollowingChannel.js';
+import { FeedFlagStatusStatusEnum } from '@orm/entities/feed/feedFlagStatus.js';
+import { AccountService } from '@orm/services/account/account.js';
+import { BaseManyService } from '@orm/services/base/baseManyService.js';
 import type { EntityManager, FindManyOptions } from 'typeorm';
 import { Equal, In } from 'typeorm';
-import { AccountFollowingChannel } from '@orm/entities/account/accountFollowingChannel.js';
-import { BaseManyService } from '@orm/services/base/baseManyService.js';
-import { AccountService } from '@orm/services/account/account.js';
+
+import type { QueryParamsMedium } from '@podverse/helpers';
+import { getMediumIdArrayFromType } from '@podverse/helpers';
+
 import { ChannelService } from '../channel/channel.js';
-import { FeedFlagStatusStatusEnum } from '@orm/entities/feed/feedFlagStatus.js';
 
 export class AccountFollowingChannelService extends BaseManyService<
   AccountFollowingChannel,

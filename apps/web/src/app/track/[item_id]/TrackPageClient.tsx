@@ -1,14 +1,15 @@
 import type { DTOChannel, DTOItem } from '@podverse/helpers';
 import type { QueryParamsItemMusic } from '@podverse/helpers-requests';
+
+import { CoreAlbumHeader } from '../../../components/Core/Artist/Album/CoreAlbumHeader';
+import { CoreTrackHeader } from '../../../components/Core/Artist/Album/Track/CoreTrackHeader';
+import { MainInnerContentWrapper } from '../../../components/Main/MainInnerContentWrapper';
+import { MainInnerWrapper } from '../../../components/Main/MainInnerWrapper';
 import { MainWrapper } from '../../../components/Main/MainWrapper';
+import { SideContent } from '../../../components/SideContent/SideContent';
 import { TrackPageContextProvider } from './TrackPageContext';
 import { TrackPageList } from './TrackPageList';
 import { TrackPageListHeader } from './TrackPageListHeader';
-import { MainInnerWrapper } from '../../../components/Main/MainInnerWrapper';
-import { MainInnerContentWrapper } from '../../../components/Main/MainInnerContentWrapper';
-import { SideContent } from '../../../components/SideContent/SideContent';
-import { CoreAlbumHeader } from '../../../components/Core/Artist/Album/CoreAlbumHeader';
-import { CoreTrackHeader } from '../../../components/Core/Artist/Album/Track/CoreTrackHeader';
 
 interface TrackPageClientProps {
   initialQueryParams: QueryParamsItemMusic;

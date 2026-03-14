@@ -1,9 +1,10 @@
 import type { Episode } from 'podverse-partytime';
+
 import type { EntityManager, Item } from '@podverse/orm';
 import {
+  ItemEnclosureIntegrityService,
   ItemEnclosureService,
   ItemEnclosureSourceService,
-  ItemEnclosureIntegrityService,
 } from '@podverse/orm';
 import { compatItemEnclosureDtos } from '@podverse/parser-mapping';
 

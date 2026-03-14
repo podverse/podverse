@@ -1,16 +1,18 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
+import React, { useRef } from 'react';
+
 import type { CategoryMappingKeys, DTOChannel, DTOClip, DTOItem } from '@podverse/helpers';
 import type { QueryParamsItemsType } from '@podverse/helpers-requests';
-import React, { useRef } from 'react';
-import { ListClipRow } from './ListClipRow';
-import { CallToActionMessage } from '../../CallToActionMessage/CallToActionMessage';
-import Pagination from '../../Pagination/Pagination';
+
 import { useModals } from '../../../contexts/Modals';
 import { checkBackNavFlag } from '../../../contexts/Navigation';
 import { useSkipInitialEffect } from '../../../hooks/useSkipInitialEffect';
 import { scrollMainToTop } from '../../../utils/scroll';
+import { CallToActionMessage } from '../../CallToActionMessage/CallToActionMessage';
+import Pagination from '../../Pagination/Pagination';
+import { ListClipRow } from './ListClipRow';
 
 type Props = {
   page: number;

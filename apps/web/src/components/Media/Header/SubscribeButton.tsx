@@ -1,12 +1,15 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import type { DTOAccount, DTOChannel, DTOPlaylist } from '@podverse/helpers';
 import React from 'react';
-import { Button } from '../../Button/Button';
+
+import type { DTOAccount, DTOChannel, DTOPlaylist } from '@podverse/helpers';
+
 import { useAccount } from '../../../contexts/Account';
 import { useModals } from '../../../contexts/Modals';
 import { getApiRequestService } from '../../../factories/apiRequestService';
+import { Button } from '../../Button/Button';
+
 import styles from '../../../styles/components/Common/Media/Header/SubscribeButton.module.scss';
 
 type SubscribeButtonProps = {

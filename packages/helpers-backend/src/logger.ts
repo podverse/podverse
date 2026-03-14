@@ -2,8 +2,9 @@
 
 import type { Logger } from 'winston';
 import { createLogger, format, transports } from 'winston';
-import 'winston-daily-rotate-file';
 import type * as TransportStream from 'winston-transport';
+
+import 'winston-daily-rotate-file';
 
 const { combine, timestamp, printf, colorize, json } = format;
 

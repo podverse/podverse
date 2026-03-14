@@ -1,19 +1,22 @@
 'use client';
 
-import { useTranslations } from 'next-intl';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import React from 'react';
+
 import type { DTOChannel, DTOItem, DTOLiveItem } from '@podverse/helpers';
 import {
   findDTOChannelImageForList,
   findDTOItemImageForList,
   getQueryParamFromQueueMediumId,
 } from '@podverse/helpers';
-import { Image } from '../../Image/Image';
-import { ROUTES } from '../../../constants/routes';
+
 import { IMAGES } from '../../../constants/images';
+import { ROUTES } from '../../../constants/routes';
+import { Image } from '../../Image/Image';
 import { ReadableDate } from '../../Time/ReadableDate';
 import { ReadableTime } from '../../Time/ReadableTime';
+
 import styles from '../../../styles/components/Common/List/ListGridNode.module.scss';
 
 interface Props {

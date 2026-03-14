@@ -1,13 +1,14 @@
 'use client';
 
 import type { DTOPlaylist } from '@podverse/helpers';
-import { MainWrapper } from '../../../components/Main/MainWrapper';
-import { MainInnerWrapper } from '../../../components/Main/MainInnerWrapper';
+
 import { MainInnerContentWrapper } from '../../../components/Main/MainInnerContentWrapper';
-import { PlaylistPageHeader } from './PlaylistPageHeader';
-import { PlaylistPageContextProvider } from './PlaylistPageContext';
-import { PlaylistPageList } from './PlaylistPageList';
+import { MainInnerWrapper } from '../../../components/Main/MainInnerWrapper';
+import { MainWrapper } from '../../../components/Main/MainWrapper';
 import { SideContent } from '../../../components/SideContent/SideContent';
+import { PlaylistPageContextProvider } from './PlaylistPageContext';
+import { PlaylistPageHeader } from './PlaylistPageHeader';
+import { PlaylistPageList } from './PlaylistPageList';
 
 interface PlaylistPageClientProps {
   ssrPlaylist: DTOPlaylist;

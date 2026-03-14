@@ -1,8 +1,9 @@
-import type { EntityManager } from 'typeorm';
+import type { ChannelSeason } from '@orm/entities/channel/channelSeason.js';
 import type { Item } from '@orm/entities/item/item.js';
 import { ItemSeason } from '@orm/entities/item/itemSeason.js';
+import type { EntityManager } from 'typeorm';
+
 import { BaseOneService } from '../base/baseOneService.js';
-import type { ChannelSeason } from '@orm/entities/channel/channelSeason.js';
 
 export type ItemSeasonDto = {
   title: string | null;

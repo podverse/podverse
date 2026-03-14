@@ -1,10 +1,13 @@
 'use client';
 
+import { useLocale, useTranslations } from 'next-intl';
+
 import type { DTOPlaylist } from '@podverse/helpers';
 import { formatDateAbbrev } from '@podverse/helpers';
-import styles from '../../../styles/app/playlist/PlaylistHeaderInfo.module.scss';
-import { useLocale, useTranslations } from 'next-intl';
+
 import { MEDIUM } from '../../../constants/medium';
+
+import styles from '../../../styles/app/playlist/PlaylistHeaderInfo.module.scss';
 
 type PlaylistPageHeaderInfoProps = {
   playlist: DTOPlaylist;

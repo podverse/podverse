@@ -1,14 +1,15 @@
-import { OnDemandParserEventType } from '@podverse/helpers';
-import {
-  Entity,
-  PrimaryGeneratedColumn,
-  Column,
-  ManyToOne,
-  JoinColumn,
-  CreateDateColumn,
-} from 'typeorm';
-import type { Relation } from 'typeorm';
 import type { Account } from '@orm/entities/account/account.js';
+import type { Relation } from 'typeorm';
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
+
+import { OnDemandParserEventType } from '@podverse/helpers';
 
 @Entity()
 export class OnDemandParserEvent {

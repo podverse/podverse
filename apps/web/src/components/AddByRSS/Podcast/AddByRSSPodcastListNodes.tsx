@@ -2,10 +2,10 @@
 
 import React from 'react';
 
+import type { AddByRSSFeedRecord } from '../../../utils/addByRSS/types';
 import { CommonPodcastListNodes } from '../../Common/Podcast/CommonPodcastNodes';
 import type { PodcastListItem } from '../../Common/Podcast/types';
 import type { ViewSelectedOption } from '../../ViewSelector/ViewSelector';
-import type { AddByRSSFeedRecord } from '../../../utils/addByRSS/types';
 
 type AddByRSSPodcastListNodesProps = {
   feeds: AddByRSSFeedRecord[];

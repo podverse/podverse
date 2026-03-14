@@ -1,7 +1,7 @@
-import type { EntityManager } from 'typeorm';
 import type { Channel } from '@orm/entities/channel/channel.js';
 import { ChannelLicense } from '@orm/entities/channel/channelLicense.js';
 import { BaseOneService } from '@orm/services/base/baseOneService.js';
+import type { EntityManager } from 'typeorm';
 
 type ChannelLicenseDto = {
   identifier: string;

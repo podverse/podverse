@@ -1,8 +1,10 @@
 import type { AriaAttributes } from 'react';
 import React from 'react';
-import styles from '../../styles/components/Form/TextInputHHMMSS.module.scss';
 import { FaPlay } from 'react-icons/fa6';
+
 import { formatInputToHHMMSS } from '@podverse/helpers';
+
+import styles from '../../styles/components/Form/TextInputHHMMSS.module.scss';
 
 type TextInputHHMMSSProps = {
   value: string;

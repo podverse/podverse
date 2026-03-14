@@ -1,5 +1,5 @@
 import { getFollowedAddByRSSChannels } from './api';
-import { getAllAddByRSSFeeds, bulkRemoveAddByRSSFeeds, clearAddByRSSItemsIndex } from './storage';
+import { bulkRemoveAddByRSSFeeds, clearAddByRSSItemsIndex, getAllAddByRSSFeeds } from './storage';
 
 /**
  * Syncs Add by RSS IndexedDB cache with the server: removes any feeds from IDB

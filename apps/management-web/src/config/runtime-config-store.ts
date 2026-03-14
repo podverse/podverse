@@ -1,8 +1,8 @@
 /* eslint-disable no-console */
 import {
-  managementWebRuntimeConfigEnvKeys,
   type ManagementWebRuntimeConfig,
   type ManagementWebRuntimeConfigEnvKey,
+  managementWebRuntimeConfigEnvKeys,
 } from './runtime-config';
 
 declare global {

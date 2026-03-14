@@ -1,7 +1,6 @@
-import type { Redis } from 'ioredis';
-
 import type { KeyvaldbConfig } from '@workers/config/index.js';
 import { getLoggerService } from '@workers/factories/loggerService.js';
+import type { Redis } from 'ioredis';
 
 let keyvaldb: Redis | null = null;
 let defaultCacheTTLSeconds: number | null = null;

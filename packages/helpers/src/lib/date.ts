@@ -1,9 +1,9 @@
-import { format } from 'date-fns/format';
 import type { Locale } from 'date-fns';
+import { format } from 'date-fns/format';
+import { el } from 'date-fns/locale/el';
 import { enUS } from 'date-fns/locale/en-US';
 import { es } from 'date-fns/locale/es';
 import { fr } from 'date-fns/locale/fr';
-import { el } from 'date-fns/locale/el';
 
 import { SUPPORTED_LOCALES } from './constants/locales.js';
 

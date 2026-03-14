@@ -1,15 +1,16 @@
-import {
-  Entity,
-  PrimaryGeneratedColumn,
-  Column,
-  ManyToOne,
-  JoinColumn,
-  OneToMany,
-  Unique,
-} from 'typeorm';
-import type { Relation } from 'typeorm';
 import type { Account } from '@orm/entities/account/account.js';
 import type { Channel } from '@orm/entities/channel/channel.js';
+import type { Relation } from 'typeorm';
+import {
+  Column,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  OneToMany,
+  PrimaryGeneratedColumn,
+  Unique,
+} from 'typeorm';
+
 import type { AccountNotificationChannelType } from './accountNotificationChannelType.js';
 
 @Entity()

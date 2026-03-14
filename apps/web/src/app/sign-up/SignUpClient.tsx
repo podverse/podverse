@@ -1,10 +1,11 @@
 import { useTranslations } from 'next-intl';
+
+import { AuthContactOnlyMessage } from '../../components/Auth/AuthContactOnlyMessage';
+import { AuthSignUpForm } from '../../components/Auth/AuthSignUpForm';
 import { MainHeader } from '../../components/Main/MainHeader';
 import { MainInnerContentWrapper } from '../../components/Main/MainInnerContentWrapper';
 import { MainInnerWrapper } from '../../components/Main/MainInnerWrapper';
 import { MainWrapper } from '../../components/Main/MainWrapper';
-import { AuthSignUpForm } from '../../components/Auth/AuthSignUpForm';
-import { AuthContactOnlyMessage } from '../../components/Auth/AuthContactOnlyMessage';
 import { getConfig } from '../../config';
 
 export function SignUpClient() {

@@ -1,18 +1,21 @@
-import React from 'react';
-import type { DTOCategory } from '@podverse/helpers';
-import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
+import React from 'react';
+
+import type { DTOCategory } from '@podverse/helpers';
+
 import { CoreLivestreams } from '../../../components/Core/Livestream/CoreLivestreams';
-import { ButtonTabs } from '../../../components/Tabs/ButtonTabs';
 import { HowToStartInfo } from '../../../components/InfoWrapper/HowToStartInfo';
 import LoadingSpinnerOverlay from '../../../components/LoadingSpinner/LoadingSpinnerOverlay';
 import { ModalCategoriesSelect } from '../../../components/Modal/ModalCategoriesSelect';
+import { ButtonTabs } from '../../../components/Tabs/ButtonTabs';
 import { ROUTES } from '../../../constants/routes';
 import { useAccount } from '../../../contexts/Account';
 import { useLocalSettings } from '../../../contexts/LocalSettings';
 import { onClickCategory } from '../../../utils/categories';
-import styles from '../../../styles/app/podcasts/livestreams/LivestreamsList.module.scss';
 import { useLivestreamsPageContext } from './LivestreamsPageContext';
+
+import styles from '../../../styles/app/podcasts/livestreams/LivestreamsList.module.scss';
 
 type LivestreamsPageListProps = {
   medium: 'av' | 'music';

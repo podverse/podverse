@@ -1,9 +1,11 @@
+import { timerManager } from '@parser/factories/timerManager.js';
 import type { FeedObject } from 'podverse-partytime';
+
 import type { Channel, EntityManager } from '@podverse/orm';
 import { ChannelPersonService } from '@podverse/orm';
 import { compatChannelPersonDtos } from '@podverse/parser-mapping';
+
 import { handleParsedManyData } from '../base/handleParsedManyData.js';
-import { timerManager } from '@parser/factories/timerManager.js';
 
 export const handleParsedChannelPerson = async (
   parsedFeed: FeedObject,

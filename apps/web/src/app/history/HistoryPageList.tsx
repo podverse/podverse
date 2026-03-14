@@ -1,7 +1,8 @@
 import React from 'react';
+
+import { ListHistoryResources } from '../../components/List/Queues/ListHistoryResources';
 import LoadingSpinnerOverlay from '../../components/LoadingSpinner/LoadingSpinnerOverlay';
 import { useHistoryPageContext } from './HistoryPageContext';
-import { ListHistoryResources } from '../../components/List/Queues/ListHistoryResources';
 
 export const HistoryPageList: React.FC = () => {
   const { filterParams, setFilterParams, queueResources, isLoading, showLoginMessage, totalPages } =

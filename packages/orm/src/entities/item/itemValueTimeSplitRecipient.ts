@@ -1,7 +1,8 @@
-import { DATABASE_CONSTANTS } from '@podverse/helpers';
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from 'typeorm';
-import type { Relation } from 'typeorm';
 import type { ItemValueTimeSplit } from '@orm/entities/item/itemValueTimeSplit.js';
+import type { Relation } from 'typeorm';
+import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+
+import { DATABASE_CONSTANTS } from '@podverse/helpers';
 
 @Entity()
 export class ItemValueTimeSplitRecipient {

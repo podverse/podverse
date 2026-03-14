@@ -3,9 +3,9 @@
 import React from 'react';
 
 import { Button } from '../../Button/Button';
-import { ViewSelector } from '../../ViewSelector/ViewSelector';
-import type { ViewSelectedOption } from '../../ViewSelector/ViewSelector';
 import { CommonListPageHeader } from '../../Common/List/CommonListPageHeader';
+import type { ViewSelectedOption } from '../../ViewSelector/ViewSelector';
+import { ViewSelector } from '../../ViewSelector/ViewSelector';
 
 type AddByRSSListHeaderProps = {
   title: string;

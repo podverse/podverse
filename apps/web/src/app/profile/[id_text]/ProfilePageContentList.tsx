@@ -1,13 +1,15 @@
 'use client';
 
 import React from 'react';
-import { useProfilePageContentContext } from './ProfilePageContentContext';
+
 import { CorePodcasts } from '../../../components/Core/Podcast/CorePodcasts';
+import { ListClips } from '../../../components/List/Clips/ListClips';
 import { ListAlbums } from '../../../components/List/Music/Albums/ListAlbums';
 import { ListPlaylists } from '../../../components/List/Playlists/ListPlaylists';
-import { ListClips } from '../../../components/List/Clips/ListClips';
-import { NoResults } from '../../../components/NoResults/NoResults';
 import LoadingSpinnerOverlay from '../../../components/LoadingSpinner/LoadingSpinnerOverlay';
+import { NoResults } from '../../../components/NoResults/NoResults';
+import { useProfilePageContentContext } from './ProfilePageContentContext';
+
 import styles from '../../../styles/app/profile/ProfileContentList.module.scss';
 
 export const ProfilePageContentList: React.FC = () => {

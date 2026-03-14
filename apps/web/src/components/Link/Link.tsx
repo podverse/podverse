@@ -1,6 +1,7 @@
-import React from 'react';
-import NextLink from 'next/link';
 import classNames from 'classnames';
+import NextLink from 'next/link';
+import React from 'react';
+
 import styles from '../../styles/components/Link/Link.module.scss';
 
 type CustomLinkProps = {

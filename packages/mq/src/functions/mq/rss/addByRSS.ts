@@ -1,5 +1,6 @@
 import type { ActiveMQArtemisService } from '@queue/services/activeMQArtemis/index.js';
 import type { MQAddByRSSMessage } from '@queue/types/mq.js';
+
 import type { MQQueueConfigFunctionParams } from '@podverse/helpers';
 
 type MQAddByRSSAddOptions = MQQueueConfigFunctionParams & {

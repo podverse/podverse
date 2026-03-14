@@ -1,40 +1,18 @@
-import type { Request, Response } from 'express';
-import Joi from 'joi';
-import archiver from 'archiver';
-import {
-  ERROR_MESSAGES,
-  SharableStatusEnum,
-  getSharableStatusIdsForProfileType,
-} from '@podverse/helpers';
-import type { QueryParamsStatsRange } from '@podverse/helpers-requests';
-import type {
-  FindManyOptions,
-  StatsAggregatedAccount,
-  Account,
-  AccountFollowingAccount,
-} from '@podverse/orm';
-import {
-  AccountCredentialsService,
-  AccountEmailChangeVerificationService,
-  AccountResetPasswordService,
-  AccountService,
-  AccountVerificationService,
-  AccountFollowingAccountService,
-  StatsAggregatedAccountService,
-  AccountDataExportService,
-} from '@podverse/orm';
-import { v4 as uuidv4 } from 'uuid';
 import { config } from '@api/config/index.js';
 import { handleReturnDataOrNotFound } from '@api/controllers/helpers/data.js';
 import { handleGenericErrorResponse } from '@api/controllers/helpers/error.js';
 import { getPaginationParams } from '@api/controllers/helpers/pagination.js';
 import {
   ensureAuthenticated,
-  optionalEnsureAuthenticated,
   getAuthenticatedUser,
+  optionalEnsureAuthenticated,
 } from '@api/lib/auth//index.js';
-import { sendVerificationEmail } from '@api/lib/mailer/sendVerificationEmail.js';
+import { getFollowedAccountIds } from '@api/lib/followed.js';
+import { sendEmailChangeVerificationEmail } from '@api/lib/mailer/sendChangeEmailVerificationEmail.js';
 import { sendResetPasswordEmail } from '@api/lib/mailer/sendResetPasswordEmail.js';
+import { sendVerificationEmail } from '@api/lib/mailer/sendVerificationEmail.js';
+import { getParamRequired } from '@api/lib/params.js';
+import { getStatsOrder } from '@api/lib/stats.js';
 import {
   emailBodySchema,
   pageQuerySchema,
@@ -44,10 +22,33 @@ import {
   validateParamsObject,
   validateQueryObject,
 } from '@api/lib/validation/index.js';
-import { sendEmailChangeVerificationEmail } from '@api/lib/mailer/sendChangeEmailVerificationEmail.js';
-import { getParamRequired } from '@api/lib/params.js';
-import { getStatsOrder } from '@api/lib/stats.js';
-import { getFollowedAccountIds } from '@api/lib/followed.js';
+import archiver from 'archiver';
+import type { Request, Response } from 'express';
+import Joi from 'joi';
+import { v4 as uuidv4 } from 'uuid';
+
+import {
+  ERROR_MESSAGES,
+  getSharableStatusIdsForProfileType,
+  SharableStatusEnum,
+} from '@podverse/helpers';
+import type { QueryParamsStatsRange } from '@podverse/helpers-requests';
+import type {
+  Account,
+  AccountFollowingAccount,
+  FindManyOptions,
+  StatsAggregatedAccount,
+} from '@podverse/orm';
+import {
+  AccountCredentialsService,
+  AccountDataExportService,
+  AccountEmailChangeVerificationService,
+  AccountFollowingAccountService,
+  AccountResetPasswordService,
+  AccountService,
+  AccountVerificationService,
+  StatsAggregatedAccountService,
+} from '@podverse/orm';
 
 const publicRelations = ['account_following_channels', 'account_profile'];
 

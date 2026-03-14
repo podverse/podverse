@@ -1,11 +1,13 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { useMediaPlayer } from '../../../contexts/MediaPlayer';
-import styles from '../../../styles/components/MediaPlayer/Mobile/MediaPlayerMarqueeMobile.module.scss';
 import { FaArrowLeft } from 'react-icons/fa';
 import { FaArrowRight } from 'react-icons/fa6';
+
+import { useMediaPlayer } from '../../../contexts/MediaPlayer';
 import { getAdjacentChapter } from '../../../utils/itemChapter';
+
+import styles from '../../../styles/components/MediaPlayer/Mobile/MediaPlayerMarqueeMobile.module.scss';
 
 export const MediaPlayerMarqueeMobile = () => {
   const tMisc = useTranslations('misc');

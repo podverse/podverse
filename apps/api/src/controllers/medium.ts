@@ -1,4 +1,5 @@
 import type { Request, Response } from 'express';
+
 import { MediumService } from '@podverse/orm';
 
 export class MediumController {

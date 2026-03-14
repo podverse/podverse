@@ -1,12 +1,13 @@
+import { timerManager } from '@parser/factories/timerManager.js';
 import type { FeedObject } from 'podverse-partytime';
+
 import type { Channel, EntityManager } from '@podverse/orm';
 import {
   ChannelValueMetaBoostService,
-  ChannelValueService,
   ChannelValueRecipientService,
+  ChannelValueService,
 } from '@podverse/orm';
 import { compatChannelValueDtos } from '@podverse/parser-mapping';
-import { timerManager } from '@parser/factories/timerManager.js';
 
 export const handleParsedChannelValue = async (
   parsedFeed: FeedObject,

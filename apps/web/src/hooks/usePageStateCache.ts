@@ -1,13 +1,14 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
 import { usePathname } from 'next/navigation';
+import { useEffect, useRef } from 'react';
+
 import { checkBackNavFlag, clearBackNavFlag } from '../contexts/Navigation';
 import {
-  savePageState,
   getPageState,
   getScrollPosition,
   restoreScrollPosition,
+  savePageState,
 } from '../utils/pageStateCache';
 
 interface UsePageStateCacheOptions<TParams, TData = unknown> {

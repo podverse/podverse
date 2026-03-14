@@ -1,8 +1,10 @@
 import classNames from 'classnames';
 import { FaInfinity } from 'react-icons/fa6';
+
 import { useMediaPlayer } from '../../../contexts/MediaPlayer';
-import styles from '../../../styles/components/MediaPlayer/Buttons/PlaybackMode.module.scss';
 import { cssClass } from '../../../utils/cssModule';
+
+import styles from '../../../styles/components/MediaPlayer/Buttons/PlaybackMode.module.scss';
 
 export const PlaybackModeButton = () => {
   const { mpPlaybackMode, setMPPlaybackMode } = useMediaPlayer();

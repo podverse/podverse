@@ -1,20 +1,22 @@
-import type { QueryParamsMedium, DTOChannel } from '@podverse/helpers';
+import { cookies } from 'next/headers';
+import { z } from 'zod';
+
+import type { DTOChannel, QueryParamsMedium } from '@podverse/helpers';
 import { CATEGORY_MAPPING_KEYS, getTotalPages } from '@podverse/helpers';
 import type { ApiListResponse } from '@podverse/helpers-requests';
 import {
   QUERY_PARAMS_STATS_RANGE_VALUES,
-  QUERY_PARAMS_SUBSCRIBED_TYPE,
   QUERY_PARAMS_SUBSCRIBED_FULL_SORT,
+  QUERY_PARAMS_SUBSCRIBED_TYPE,
 } from '@podverse/helpers-requests';
-import { cookies } from 'next/headers';
-import { z } from 'zod';
-import { PodcastsPageClient } from './PodcastsPageClient';
-import type { PodcastsPageDropdownConfigCurrentParams } from './PodcastsPageDropdownConfig';
-import { getPodcastsPageFilterParams } from './PodcastsPageDropdownConfig';
+
 import { getSSRAuthService } from '../../utils/auth/ssrAuth';
 import { guardSubscribedSsrFilter, safeSsrListRequest } from '../../utils/filters/ssrFilterGuards';
 import type { PodcastsFilterDefaults } from '../../utils/localSettings/localSettings';
 import { getParsedLocalSettings } from '../../utils/localSettings/localSettings';
+import { PodcastsPageClient } from './PodcastsPageClient';
+import type { PodcastsPageDropdownConfigCurrentParams } from './PodcastsPageDropdownConfig';
+import { getPodcastsPageFilterParams } from './PodcastsPageDropdownConfig';
 
 const searchParamsSchema = z.object({
   page: z

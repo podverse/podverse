@@ -1,12 +1,15 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import type { EpisodeByGuidResponse } from '@podverse/helpers';
 import React from 'react';
-import { ImagesPerView } from '../../../../Image/ImagesPerView';
-import { ROUTES } from '../../../../../constants/routes';
+
+import type { EpisodeByGuidResponse } from '@podverse/helpers';
+
 import { IMAGES } from '../../../../../constants/images';
+import { ROUTES } from '../../../../../constants/routes';
+import { ImagesPerView } from '../../../../Image/ImagesPerView';
 import { Link } from '../../../../Link/Link';
+
 import styles from '../../../../../styles/components/Common/List/Podcasts/Episodes/ListEpisodeRow.module.scss';
 
 interface Props {

@@ -1,3 +1,6 @@
+import type { ReactNode } from 'react';
+import { createContext, useContext, useState } from 'react';
+
 import type {
   AddByRSSResourceData,
   DTOChannel,
@@ -10,8 +13,6 @@ import type {
   PlaybackMode,
   PlaybackSpeedValue,
 } from '@podverse/helpers';
-import type { ReactNode } from 'react';
-import { createContext, useContext, useState } from 'react';
 
 /** State for "now playing" when the source is add-by-RSS (no DTO item). */
 export type MediaPlayerAddByRSSState = {

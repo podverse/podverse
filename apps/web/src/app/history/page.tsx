@@ -1,8 +1,10 @@
+import { z } from 'zod';
+
 import type { DTOQueue, QueryParamsQueueMedium } from '@podverse/helpers';
 import { QUERY_PARAMS_QUEUE_MEDIUMS } from '@podverse/helpers';
-import { z } from 'zod';
-import { HistoryPageClient } from './HistoryPageClient';
+
 import { getSSRAuthService } from '../../utils/auth/ssrAuth';
+import { HistoryPageClient } from './HistoryPageClient';
 
 const searchParamsSchema = z.object({
   medium: z.enum(QUERY_PARAMS_QUEUE_MEDIUMS).optional().default('av'),

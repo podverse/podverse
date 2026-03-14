@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+
 import styles from '../../styles/components/Main/MainHeader.module.scss';
 
 type MainHeaderProps = {
