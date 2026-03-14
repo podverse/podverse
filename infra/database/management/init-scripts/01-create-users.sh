@@ -2,6 +2,8 @@
 set -e
 
 # Ensure required env vars exist
+: "${POSTGRES_USER:?Missing POSTGRES_USER}"
+: "${POSTGRES_DB:?Missing POSTGRES_DB}"
 : "${POSTGRES_MANAGEMENT_DB:?Missing POSTGRES_MANAGEMENT_DB}"
 : "${POSTGRES_MANAGEMENT_USER:?Missing POSTGRES_MANAGEMENT_USER}"
 : "${POSTGRES_MANAGEMENT_READ_USER:?Missing POSTGRES_MANAGEMENT_READ_USER}"
@@ -9,6 +11,26 @@ set -e
 : "${POSTGRES_MANAGEMENT_READ_WRITE_USER:?Missing POSTGRES_MANAGEMENT_READ_WRITE_USER}"
 : "${POSTGRES_MANAGEMENT_READ_WRITE_PASSWORD:?Missing POSTGRES_MANAGEMENT_READ_WRITE_PASSWORD}"
 
+# Step 1: Create the Management Database and Management Superuser using the default superuser credentials
+psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<SQL
+DO \$\$
+BEGIN
+    IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = '${POSTGRES_MANAGEMENT_USER}') THEN
+        EXECUTE format('CREATE USER %I WITH SUPERUSER', '${POSTGRES_MANAGEMENT_USER}');
+    END IF;
+END
+\$\$;
+
+-- You cannot run CREATE DATABASE inside a DO block (transaction), so we do it outside.
+-- The easiest way to check if a DB exists without a transaction is via bash and grep.
+SQL
+
+DB_EXISTS=$(psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -tAc "SELECT 1 FROM pg_database WHERE datname='${POSTGRES_MANAGEMENT_DB}'")
+if [ "$DB_EXISTS" != "1" ]; then
+  psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c "CREATE DATABASE ${POSTGRES_MANAGEMENT_DB} OWNER ${POSTGRES_MANAGEMENT_USER};"
+fi
+
+# Step 2: Now connect to the Management Database and create the read/write roles
 psql -v ON_ERROR_STOP=1 --username "$POSTGRES_MANAGEMENT_USER" --dbname "$POSTGRES_MANAGEMENT_DB" <<SQL
 DO \$\$
 BEGIN
@@ -26,7 +48,7 @@ BEGIN
 END
 \$\$;
 
--- Always sync passwords from env so DB stays aligned with local_env_setup (management-db.env)
+-- Always sync passwords from env so DB stays aligned with secret values
 DO \$\$
 BEGIN
     EXECUTE format('ALTER USER %I WITH PASSWORD %L', '${POSTGRES_MANAGEMENT_READ_USER}', '${POSTGRES_MANAGEMENT_READ_PASSWORD}');
