@@ -81,9 +81,8 @@ export const mqRSSRunLiveItemListener = (activeMQArtemisService: ActiveMQArtemis
                         if (podcast_index_id) {
                           addRSSObjs.push({ url, podcast_index_id: numPodcastIndexId });
                         }
-                      } else {
-                        console.warn('feed url not found');
                       }
+                      // Feed not in our DB: expected for many Podping signals; ignore and do not log (see #106).
                     }
                   } catch (err) {
                     console.warn(`p.p.iris error ${err}, connectionId: ${connectionId}`);
