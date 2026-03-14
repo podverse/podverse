@@ -1,20 +1,23 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
+import React from 'react';
+
 import type { DTOChannel, DTOItem, DTOItemChapter } from '@podverse/helpers';
 import { getShuffleHash } from '@podverse/helpers-requests';
-import React from 'react';
-import { PlayButtonLarge } from '../../MediaPlayer/Buttons/PlayButtonLarge';
-import { useMediaPlayer } from '../../../contexts/MediaPlayer';
-import { ReadableDate } from '../../Time/ReadableDate';
-import { MoreButton } from '../../MoreButton/MoreButton';
-import { showToastPromiseWithLoading } from '../../Toast/Toast';
-import { downloadAndSaveFile } from '../../../utils/fileDownloader';
-import { useMediaPlayerResourceUpdate } from '../../../hooks/useMediaPlayerResourceUpdate';
+
 import { useAutoQueue } from '../../../contexts/AutoQueue';
-import { ReadableTimeRange } from '../../Time/ReadableTimeRange';
+import { useMediaPlayer } from '../../../contexts/MediaPlayer';
 import { useModals } from '../../../contexts/Modals';
+import { useMediaPlayerResourceUpdate } from '../../../hooks/useMediaPlayerResourceUpdate';
 import { downloadEpisodeWithModal } from '../../../utils/downloadModal/downloadEpisodeWithModal';
+import { downloadAndSaveFile } from '../../../utils/fileDownloader';
+import { PlayButtonLarge } from '../../MediaPlayer/Buttons/PlayButtonLarge';
+import { MoreButton } from '../../MoreButton/MoreButton';
+import { ReadableDate } from '../../Time/ReadableDate';
+import { ReadableTimeRange } from '../../Time/ReadableTimeRange';
+import { showToastPromiseWithLoading } from '../../Toast/Toast';
+
 import styles from '../../../styles/components/Media/ItemChapter/ItemChapterHeaderPlaySection.module.scss';
 
 type ItemChapterHeaderPlaySectionProps = {

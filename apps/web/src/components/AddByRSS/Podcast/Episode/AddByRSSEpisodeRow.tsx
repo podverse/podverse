@@ -1,31 +1,33 @@
 'use client';
 
-import { getQueueForMedium } from '@podverse/helpers';
-import { useTranslations } from 'next-intl';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import React from 'react';
 
+import { getQueueForMedium } from '@podverse/helpers';
 import { stripAndDecodeHtml } from '@podverse/helpers';
-import { ImagesPerView } from '../../../Image/ImagesPerView';
-import { PlayButtonRow } from '../../../MediaPlayer/Buttons/PlayButtonRow';
-import { MoreButton } from '../../../MoreButton/MoreButton';
-import { ReadableDate } from '../../../Time/ReadableDate';
-import { IMAGES } from '../../../../constants/images';
-import styles from '../../../../styles/components/Common/List/Podcasts/Episodes/ListEpisodeRow.module.scss';
-import { getAddByRSSItemPath } from '../../../../utils/addByRSS/itemPath';
 import { buildAddByRSSResourceData, getAddByRSSHashId } from '@podverse/parser-mapping';
-import type { AddByRSSMappedFeed, AddByRSSItemIndexItem } from '../../../../utils/addByRSS/types';
-import type { AddByRSSListContextState } from '../../../../contexts/AddByRSSListContext';
+
+import { IMAGES } from '../../../../constants/images';
 import { useAccount } from '../../../../contexts/Account';
+import type { AddByRSSListContextState } from '../../../../contexts/AddByRSSListContext';
 import { useAddByRSSListContext } from '../../../../contexts/AddByRSSListContext';
 import { useMediaPlayer } from '../../../../contexts/MediaPlayer';
 import { useModals } from '../../../../contexts/Modals';
 import { useQueues } from '../../../../contexts/Queue';
 import { getApiRequestService } from '../../../../factories/apiRequestService';
 import { usePlayAddByRSS } from '../../../../hooks/usePlayAddByRSS';
-import { showToastPromise, showToastPromiseWithLoading } from '../../../Toast/Toast';
-import { downloadAndSaveFile } from '../../../../utils/fileDownloader';
+import { getAddByRSSItemPath } from '../../../../utils/addByRSS/itemPath';
+import type { AddByRSSItemIndexItem, AddByRSSMappedFeed } from '../../../../utils/addByRSS/types';
 import { downloadAddByRSSMediaWithModal } from '../../../../utils/downloadModal/downloadAddByRSSMediaWithModal';
+import { downloadAndSaveFile } from '../../../../utils/fileDownloader';
+import { ImagesPerView } from '../../../Image/ImagesPerView';
+import { PlayButtonRow } from '../../../MediaPlayer/Buttons/PlayButtonRow';
+import { MoreButton } from '../../../MoreButton/MoreButton';
+import { ReadableDate } from '../../../Time/ReadableDate';
+import { showToastPromise, showToastPromiseWithLoading } from '../../../Toast/Toast';
+
+import styles from '../../../../styles/components/Common/List/Podcasts/Episodes/ListEpisodeRow.module.scss';
 
 const alertPlaceholder = (label: string) => () => {
   window.alert(`Add by RSS: ${label}`);

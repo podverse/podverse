@@ -1,5 +1,6 @@
 import { cookies } from 'next/headers';
 import { getLocale } from 'next-intl/server';
+
 import type { DTOAccount } from '@podverse/helpers';
 
 /**

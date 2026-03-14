@@ -1,12 +1,14 @@
 'use client';
 
-import React from 'react';
 import { useTranslations } from 'next-intl';
+import React from 'react';
+
+import Dropdown from '../../components/Dropdown/Dropdown';
 import { ListHeader } from '../../components/List/ListHeader';
 import { Tabs } from '../../components/Tabs/Tabs';
-import Dropdown from '../../components/Dropdown/Dropdown';
 import type { MyProfilePageContentTab } from './MyProfilePageContentContext';
 import { useMyProfilePageContentContext } from './MyProfilePageContentContext';
+
 import styles from '../../styles/app/profile/ProfileContentListHeader.module.scss';
 
 export const MyProfilePageContentListHeader: React.FC = () => {

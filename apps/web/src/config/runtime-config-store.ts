@@ -2,9 +2,9 @@
 import { getEffectiveUserAgent } from '@podverse/helpers';
 
 import {
-  webRuntimeConfigEnvKeys,
   type WebRuntimeConfig,
   type WebRuntimeConfigEnvKey,
+  webRuntimeConfigEnvKeys,
 } from './runtime-config';
 
 declare global {

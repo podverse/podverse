@@ -1,15 +1,16 @@
-import { DATABASE_CONSTANTS, AccountFCMDevicePlatformEnum } from '@podverse/helpers';
+import type { Account } from '@orm/entities/account/account.js';
+import type { Relation } from 'typeorm';
 import {
-  Entity,
   Column,
-  ManyToOne,
-  JoinColumn,
-  PrimaryGeneratedColumn,
   CreateDateColumn,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import type { Relation } from 'typeorm';
-import type { Account } from '@orm/entities/account/account.js';
+
+import { AccountFCMDevicePlatformEnum, DATABASE_CONSTANTS } from '@podverse/helpers';
 
 @Entity()
 export class AccountFCMDevice {

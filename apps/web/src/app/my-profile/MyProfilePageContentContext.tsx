@@ -1,10 +1,12 @@
 'use client';
 
+import { useRouter, useSearchParams } from 'next/navigation';
+import type { ReactNode } from 'react';
+import React, { createContext, useCallback, useContext, useState } from 'react';
+
 import type { DTOAccount, DTOChannel, DTOClip, DTOPlaylist } from '@podverse/helpers';
 import { getTotalPages } from '@podverse/helpers';
-import type { ReactNode } from 'react';
-import React, { createContext, useContext, useState, useCallback } from 'react';
-import { useSearchParams, useRouter } from 'next/navigation';
+
 import { getApiRequestService } from '../../factories/apiRequestService';
 import { useSkipInitialEffect } from '../../hooks/useSkipInitialEffect';
 

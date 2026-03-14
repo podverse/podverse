@@ -2,9 +2,10 @@
 
 import { useTranslations } from 'next-intl';
 import React from 'react';
+
 import { ListHeader } from '../../components/List/ListHeader';
-import { useHistoryPageContext } from './HistoryPageContext';
 import { ButtonTabs } from '../../components/Tabs/ButtonTabs';
+import { useHistoryPageContext } from './HistoryPageContext';
 
 export const HistoryPageListHeader: React.FC = () => {
   const { filterParams, setFilterParams } = useHistoryPageContext();

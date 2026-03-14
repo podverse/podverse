@@ -1,5 +1,14 @@
+import { getParamRequired } from '@api/lib/params.js';
+import {
+  channelIdTextParamSchema,
+  itemIdTextParamSchema,
+  itemSoundbiteIdTextParamSchema,
+  validateParamsObject,
+  validateQueryObject,
+} from '@api/lib/validation/index.js';
 import type { Request, Response } from 'express';
 import Joi from 'joi';
+
 import type {
   ApiListResponse,
   QueryParamsItemSoundbitesByChannelSort,
@@ -11,16 +20,9 @@ import {
 } from '@podverse/helpers-requests';
 import type { ItemSoundbite } from '@podverse/orm';
 import { ItemSoundbiteService } from '@podverse/orm';
+
 import { handleGenericErrorResponse } from './helpers/error.js';
-import {
-  channelIdTextParamSchema,
-  itemIdTextParamSchema,
-  itemSoundbiteIdTextParamSchema,
-  validateParamsObject,
-  validateQueryObject,
-} from '@api/lib/validation/index.js';
 import { getPaginationParams } from './helpers/pagination.js';
-import { getParamRequired } from '@api/lib/params.js';
 
 const itemSoundbiteService = new ItemSoundbiteService();
 

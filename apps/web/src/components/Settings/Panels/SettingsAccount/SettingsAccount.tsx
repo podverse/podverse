@@ -1,16 +1,17 @@
 'use client';
 
+import { useLocale, useTranslations } from 'next-intl';
 import { useState } from 'react';
-import { useTranslations, useLocale } from 'next-intl';
+
 import { useAccount } from '../../../../contexts/Account';
-import { Button } from '../../../Button/Button';
-import { ModalDeleteAccount } from './ModalDeleteAccount';
-import { ModalChangeEmail } from './ModalChangeEmail';
-import { SettingsSection } from '../../SettingsSection';
-import { Divider } from '../../../Divider/Divider';
 import { getApiRequestService } from '../../../../factories/apiRequestService';
-import { showToast, showToastLoading, dismissToast } from '../../../Toast/Toast';
 import { handleRateLimitAlert } from '../../../../utils/rateLimit/rateLimitAlert';
+import { Button } from '../../../Button/Button';
+import { Divider } from '../../../Divider/Divider';
+import { dismissToast, showToast, showToastLoading } from '../../../Toast/Toast';
+import { SettingsSection } from '../../SettingsSection';
+import { ModalChangeEmail } from './ModalChangeEmail';
+import { ModalDeleteAccount } from './ModalDeleteAccount';
 
 export function SettingsAccount() {
   const tSettings = useTranslations('settings');

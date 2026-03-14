@@ -1,6 +1,6 @@
+import LoadingSpinner from '../LoadingSpinner/LoadingSpinner';
 import type { RecipientStatus } from './types.js';
 
-import LoadingSpinner from '../LoadingSpinner/LoadingSpinner';
 import styles from '../../styles/components/Boost/BoostForm.module.scss';
 
 type Translator = (key: string, values?: Record<string, string | number>) => string;

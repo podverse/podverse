@@ -1,8 +1,8 @@
+import type { AddByRSSChapterResponse } from '@podverse/helpers-requests';
 import {
   getChaptersAndTranscriptUrls,
   mapAddByRSSChaptersToDTOItemChapters,
 } from '@podverse/parser-mapping';
-import type { AddByRSSChapterResponse } from '@podverse/helpers-requests';
 
 /** Cached chapters/transcript API response keyed by itemIdText (in-memory; cleared on reload). */
 export type CachedChaptersTranscriptEntry = {

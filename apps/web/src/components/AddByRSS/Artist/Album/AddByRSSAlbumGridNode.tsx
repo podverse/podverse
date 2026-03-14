@@ -2,8 +2,8 @@
 
 import React from 'react';
 
-import { CommonAlbumListGridNode } from '../../../Common/Artist/Album/CommonAlbumGridNode';
 import type { AddByRSSFeedRecord } from '../../../../utils/addByRSS/types';
+import { CommonAlbumListGridNode } from '../../../Common/Artist/Album/CommonAlbumGridNode';
 import type { AlbumListItem } from '../../../Common/Artist/Album/types';
 
 type AddByRSSAlbumGridNodeProps = {

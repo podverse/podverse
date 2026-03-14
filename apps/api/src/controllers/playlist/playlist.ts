@@ -1,5 +1,22 @@
+import {
+  ensureAuthenticated,
+  getAuthenticatedUser,
+  optionalEnsureAuthenticated,
+} from '@api/lib/auth/index.js';
+import { getFollowedPlaylistIdsPrivate } from '@api/lib/followed.js';
+import { getParamRequired } from '@api/lib/params.js';
+import { getStatsOrder } from '@api/lib/stats.js';
+import {
+  mediumPageQuerySchema,
+  mediumPageRangeQuerySchema,
+  playlistIdTextParamSchema,
+  validateBodyObject,
+  validateParamsObject,
+  validateQueryObject,
+} from '@api/lib/validation/index.js';
 import type { NextFunction, Request, Response } from 'express';
 import Joi from 'joi';
+
 import type { QueryParamsQueueMedium } from '@podverse/helpers';
 import {
   getQueueMediumIdFromType,
@@ -18,24 +35,9 @@ import {
   PlaylistService,
   StatsAggregatedPlaylistService,
 } from '@podverse/orm';
-import {
-  ensureAuthenticated,
-  optionalEnsureAuthenticated,
-  getAuthenticatedUser,
-} from '@api/lib/auth/index.js';
+
 import { handleGenericErrorResponse } from '../helpers/error.js';
-import {
-  mediumPageQuerySchema,
-  mediumPageRangeQuerySchema,
-  playlistIdTextParamSchema,
-  validateBodyObject,
-  validateParamsObject,
-  validateQueryObject,
-} from '@api/lib/validation/index.js';
 import { getPaginationParams } from '../helpers/pagination.js';
-import { getStatsOrder } from '@api/lib/stats.js';
-import { getFollowedPlaylistIdsPrivate } from '@api/lib/followed.js';
-import { getParamRequired } from '@api/lib/params.js';
 
 const playlistService = new PlaylistService();
 

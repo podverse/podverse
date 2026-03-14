@@ -1,7 +1,7 @@
-import { Entity, PrimaryColumn, ManyToOne, JoinColumn } from 'typeorm';
-import type { Relation } from 'typeorm';
 import type { Account } from '@orm/entities/account/account.js';
 import type { Channel } from '@orm/entities/channel/channel.js';
+import type { Relation } from 'typeorm';
+import { Entity, JoinColumn, ManyToOne, PrimaryColumn } from 'typeorm';
 
 @Entity()
 export class AccountFollowingChannel {

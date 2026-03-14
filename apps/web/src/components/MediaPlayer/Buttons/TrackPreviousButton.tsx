@@ -1,4 +1,6 @@
+import { useCallback } from 'react';
 import { FaBackwardStep } from 'react-icons/fa6';
+
 import type {
   DTOChannel,
   DTOClip,
@@ -7,18 +9,19 @@ import type {
   DTOItemSoundbite,
   DTOPlaylistResource,
 } from '@podverse/helpers';
-import { useCallback } from 'react';
-import { EVENTS } from '../../../constants/events';
-import { useMediaPlayer } from '../../../contexts/MediaPlayer';
-import { useAddByRSSListContext } from '../../../contexts/AddByRSSListContext';
 import { MediumEnum } from '@podverse/helpers';
+
+import { EVENTS } from '../../../constants/events';
+import { useAddByRSSListContext } from '../../../contexts/AddByRSSListContext';
+import { useAutoQueue } from '../../../contexts/AutoQueue';
+import { useMediaPlayer } from '../../../contexts/MediaPlayer';
+import { useMediaPlayerCurrentTime } from '../../../contexts/MediaPlayerCurrentTime';
 import { getApiRequestService } from '../../../factories/apiRequestService';
 import { useAddByRSSPlayPrevious } from '../../../hooks/useAddByRSSPlayPrevious';
 import { useLongPress } from '../../../hooks/useLongPress';
 import { useMediaPlayerResourceUpdate } from '../../../hooks/useMediaPlayerResourceUpdate';
-import { useAutoQueue } from '../../../contexts/AutoQueue';
-import { useMediaPlayerCurrentTime } from '../../../contexts/MediaPlayerCurrentTime';
 import { resolveAddByRSSListContextFromCurrentItem } from '../../../utils/addByRSS/resolveListContextFromCurrentItem';
+
 import styles from '../../../styles/components/MediaPlayer/Buttons/TrackPreviousButton.module.scss';
 
 export const TrackPreviousButton = () => {

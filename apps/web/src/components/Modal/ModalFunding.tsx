@@ -2,11 +2,13 @@
 
 import { useTranslations } from 'next-intl';
 import React from 'react';
-import { Modal, MODAL_CONTENT_MAX_WIDTH } from './Modal';
+
+import { useModals } from '../../contexts/Modals';
 import { FormStack } from '../Form/FormStack';
 import { Link } from '../Link/Link';
+import { Modal, MODAL_CONTENT_MAX_WIDTH } from './Modal';
+
 import styles from '../../styles/components/Modal/ModalFunding.module.scss';
-import { useModals } from '../../contexts/Modals';
 
 export const ModalFunding: React.FC = () => {
   const tInfo = useTranslations('info');

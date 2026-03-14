@@ -1,7 +1,8 @@
-import type { DTOCategory } from '@podverse/helpers';
 import type { ReactNode } from 'react';
 import { createContext, useState } from 'react';
 import { useContext } from 'react';
+
+import type { DTOCategory } from '@podverse/helpers';
 
 type CategoriesContextType = {
   categories: DTOCategory[];

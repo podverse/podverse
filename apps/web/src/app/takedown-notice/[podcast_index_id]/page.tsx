@@ -1,5 +1,5 @@
-import { TakedownNoticeClient } from './TakedownNoticeClient';
 import { getSSRAuthService } from '../../../utils/auth/ssrAuth';
+import { TakedownNoticeClient } from './TakedownNoticeClient';
 
 type TakedownNoticePageProps = {
   params: Promise<{ podcast_index_id: string }>;

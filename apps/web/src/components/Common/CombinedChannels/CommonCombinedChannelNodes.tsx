@@ -4,8 +4,9 @@ import React from 'react';
 
 import { Divider } from '../../Divider/Divider';
 import type { ViewSelectedOption } from '../../ViewSelector/ViewSelector';
-import styles from '../../../styles/components/Common/List/ListNodes.module.scss';
 import type { CombinedChannelListItem } from './types';
+
+import styles from '../../../styles/components/Common/List/ListNodes.module.scss';
 
 type CommonCombinedChannelNodesProps = {
   items: CombinedChannelListItem[];

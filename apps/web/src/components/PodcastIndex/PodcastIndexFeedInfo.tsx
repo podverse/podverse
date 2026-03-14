@@ -1,20 +1,22 @@
 'use client';
 
+import { useRouter } from 'next/navigation';
 import { useLocale, useTranslations } from 'next-intl';
+import { useEffect, useRef, useState } from 'react';
+import { FaPlus, FaRss } from 'react-icons/fa6';
+
 import type { PodcastByIdFeed } from '@podverse/helpers';
 import { formatDateAbbrev } from '@podverse/helpers';
-import { useState, useRef, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { FaPlus, FaRss } from 'react-icons/fa6';
-import { Image } from '../Image/Image';
+
 import { IMAGES } from '../../constants/images';
-import { Button } from '../Button/Button';
-import { getApiRequestService } from '../../factories/apiRequestService';
-import { handleRateLimitAlert } from '../../utils/rateLimit/rateLimitAlert';
-import { redirectToChannelPageByMediumClient } from '../../utils/redirect/redirectToChannelPageByMedium';
 import { useAccount } from '../../contexts/Account';
 import { useConfig } from '../../contexts/Config';
 import { useModals } from '../../contexts/Modals';
+import { getApiRequestService } from '../../factories/apiRequestService';
+import { handleRateLimitAlert } from '../../utils/rateLimit/rateLimitAlert';
+import { redirectToChannelPageByMediumClient } from '../../utils/redirect/redirectToChannelPageByMedium';
+import { Button } from '../Button/Button';
+import { Image } from '../Image/Image';
 
 import styles from '../../styles/components/PodcastIndex/PodcastIndexFeedInfo.module.scss';
 

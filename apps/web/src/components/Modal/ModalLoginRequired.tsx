@@ -2,9 +2,10 @@
 
 import { useTranslations } from 'next-intl';
 import React from 'react';
-import { Modal, MODAL_CONTENT_MAX_WIDTH } from './Modal';
+
 import { useModals } from '../../contexts/Modals';
 import { CallToActionMessage } from '../CallToActionMessage/CallToActionMessage';
+import { Modal, MODAL_CONTENT_MAX_WIDTH } from './Modal';
 
 export const ModalLoginRequired: React.FC = () => {
   const tInstructions = useTranslations('instructions');

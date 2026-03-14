@@ -1,9 +1,10 @@
-import type { RemoteItemDto } from '@podverse/helpers';
-import { filterInvalidFeedUuids } from '@podverse/helpers';
-import type { EntityManager } from 'typeorm';
 import type { ChannelPodroll } from '@orm/entities/channel/channelPodroll.js';
 import { ChannelPodrollRemoteItem } from '@orm/entities/channel/channelPodrollRemoteItem.js';
 import { BaseRemoteItemsService } from '@orm/services/base/baseRemoteItemsService.js';
+import type { EntityManager } from 'typeorm';
+
+import type { RemoteItemDto } from '@podverse/helpers';
+import { filterInvalidFeedUuids } from '@podverse/helpers';
 
 export class ChannelPodrollRemoteItemService extends BaseRemoteItemsService<
   ChannelPodrollRemoteItem,

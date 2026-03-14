@@ -1,15 +1,16 @@
 'use client';
 
-import { useLocale, useTranslations } from 'next-intl';
 import Link from 'next/link';
+import { useLocale, useTranslations } from 'next-intl';
 import React from 'react';
 
 import { formatDateAbbrev } from '@podverse/helpers';
 
-import { Image } from '../../../Image/Image';
 import { IMAGES } from '../../../../constants/images';
-import styles from '../../../../styles/components/Common/List/ListGridNode.module.scss';
 import type { AddByRSSFeedRecord } from '../../../../utils/addByRSS/types';
+import { Image } from '../../../Image/Image';
+
+import styles from '../../../../styles/components/Common/List/ListGridNode.module.scss';
 
 type AddByRSSEpisodeGridNodeProps = {
   feed: AddByRSSFeedRecord;

@@ -1,11 +1,12 @@
 'use client';
 
-import type { DTOChannel, QueryParamsMedium } from '@podverse/helpers';
 import React from 'react';
 
+import type { DTOChannel, QueryParamsMedium } from '@podverse/helpers';
+
 import { CommonCombinedChannelNodes } from '../../Common/CombinedChannels/CommonCombinedChannelNodes';
-import type { ViewSelectedOption } from '../../ViewSelector/ViewSelector';
 import type { CombinedChannelListItem } from '../../Common/CombinedChannels/types';
+import type { ViewSelectedOption } from '../../ViewSelector/ViewSelector';
 import { CoreCombinedChannelGridNode } from './CoreCombinedChannelGridNode';
 import { CoreCombinedChannelRow } from './CoreCombinedChannelRow';
 

@@ -1,7 +1,7 @@
-import type { EntityManager } from 'typeorm';
 import type { Account } from '@orm/entities/account/account.js';
 import { AccountProfile } from '@orm/entities/account/accountProfile.js';
 import { BaseOneService } from '@orm/services/base/baseOneService.js';
+import type { EntityManager } from 'typeorm';
 
 export type AccountProfileDto = {
   display_name?: string | null;

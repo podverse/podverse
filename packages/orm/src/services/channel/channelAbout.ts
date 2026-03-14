@@ -1,8 +1,8 @@
-import type { EntityManager } from 'typeorm';
 import type { Channel } from '@orm/entities/channel/channel.js';
 import { ChannelAbout } from '@orm/entities/channel/channelAbout.js';
 import type { ChannelItunesTypeItunesTypeEnum } from '@orm/entities/channel/channelItunesType.js';
 import { BaseOneService } from '@orm/services/base/baseOneService.js';
+import type { EntityManager } from 'typeorm';
 
 type ChannelAboutDto = {
   author: string | null;

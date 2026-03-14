@@ -1,14 +1,9 @@
-import type { Request, Response } from 'express';
-import Joi from 'joi';
-import { AccountFollowingChannelService, AccountService } from '@podverse/orm';
-import type { QueryParamsMedium } from '@podverse/helpers';
-import { QUERY_PARAMS_MEDIUMS, SharableStatusEnum } from '@podverse/helpers';
 import {
   ensureAuthenticated,
-  optionalEnsureAuthenticated,
   getAuthenticatedUser,
+  optionalEnsureAuthenticated,
 } from '@api/lib/auth/index.js';
-import { handleGenericErrorResponse } from '../helpers/error.js';
+import { getParamRequired } from '@api/lib/params.js';
 import {
   accountIdTextParamSchema,
   channelIdTextParamSchema,
@@ -16,7 +11,14 @@ import {
   validateParamsObject,
   validateQueryObject,
 } from '@api/lib/validation/index.js';
-import { getParamRequired } from '@api/lib/params.js';
+import type { Request, Response } from 'express';
+import Joi from 'joi';
+
+import type { QueryParamsMedium } from '@podverse/helpers';
+import { QUERY_PARAMS_MEDIUMS, SharableStatusEnum } from '@podverse/helpers';
+import { AccountFollowingChannelService, AccountService } from '@podverse/orm';
+
+import { handleGenericErrorResponse } from '../helpers/error.js';
 
 class AccountFollowingChannelController {
   private static accountFollowingChannelService = new AccountFollowingChannelService();

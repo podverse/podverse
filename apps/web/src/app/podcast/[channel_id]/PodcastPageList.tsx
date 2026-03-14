@@ -1,15 +1,16 @@
 'use client';
 
 import React from 'react';
+
 import type { DTOChannel, RemoteItemsResponse } from '@podverse/helpers';
 
 import { ContentAbout } from '../../../components/Content/About/ContentAbout';
 import { ContentPodroll } from '../../../components/Content/Podroll/ContentPodroll';
-import { DetailListWrapper } from '../../../components/List/DetailListWrapper';
 import { ListClips } from '../../../components/List/Clips/ListClips';
-import { ListEpisodes } from '../../../components/List/Podcasts/Episodes/ListEpisodes';
+import { DetailListWrapper } from '../../../components/List/DetailListWrapper';
 import { ListItemSoundbites } from '../../../components/List/ItemSoundbites/ListItemSoundbites';
 import { ListChannelSettings } from '../../../components/List/ListChannelSettings';
+import { ListEpisodes } from '../../../components/List/Podcasts/Episodes/ListEpisodes';
 import LoadingSpinnerOverlay from '../../../components/LoadingSpinner/LoadingSpinnerOverlay';
 import { usePodcastPageContext } from './PodcastPageContext';
 

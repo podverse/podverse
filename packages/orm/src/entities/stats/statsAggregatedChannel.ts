@@ -1,6 +1,6 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from 'typeorm';
-import type { Relation } from 'typeorm';
 import type { Channel } from '@orm/entities/channel/channel.js';
+import type { Relation } from 'typeorm';
+import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity('stats_aggregated_channel')
 export class StatsAggregatedChannel {

@@ -1,8 +1,9 @@
 'use client';
 
-import React from 'react';
 import classNames from 'classnames';
+import React from 'react';
 import { FaChevronRight } from 'react-icons/fa6';
+
 import styles from '../../styles/components/Accordian/Accordian.module.scss';
 
 type AccordionClientProps = {

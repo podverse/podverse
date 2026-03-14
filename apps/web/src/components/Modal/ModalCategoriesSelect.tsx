@@ -1,10 +1,12 @@
 'use client';
 
-import React from 'react';
 import { useTranslations } from 'next-intl';
+import React from 'react';
+
 import type { DTOCategory } from '@podverse/helpers';
-import { Modal, MODAL_CONTENT_MAX_WIDTH } from './Modal';
+
 import { CategoriesList } from '../Category/CategoriesList';
+import { Modal, MODAL_CONTENT_MAX_WIDTH } from './Modal';
 
 type ModalCategoriesSelectProps = {
   isOpen: boolean;

@@ -1,6 +1,8 @@
 import { FaPlus } from 'react-icons/fa6';
-import { useModals } from '../../../contexts/Modals';
+
 import { useMediaPlayer } from '../../../contexts/MediaPlayer';
+import { useModals } from '../../../contexts/Modals';
+
 import styles from '../../../styles/components/MediaPlayer/Buttons/PlaylistAddToButton.module.scss';
 
 export const PlaylistAddToButton = () => {

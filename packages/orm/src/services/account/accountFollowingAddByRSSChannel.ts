@@ -1,12 +1,12 @@
-import type { EntityManager, FindManyOptions } from 'typeorm';
 import { AccountFollowingAddByRSSChannel } from '@orm/entities/account/accountFollowingAddByRSSChannel.js';
-import { BaseManyService } from '@orm/services/base/baseManyService.js';
-import { AccountService } from '@orm/services/account/account.js';
 import {
   decryptCredentials,
   encryptCredentials,
   isEncryptionConfigured,
 } from '@orm/lib/credentialsEncryption.js';
+import { AccountService } from '@orm/services/account/account.js';
+import { BaseManyService } from '@orm/services/base/baseManyService.js';
+import type { EntityManager, FindManyOptions } from 'typeorm';
 
 export type AccountFollowingAddByRSSChannelDto = {
   feed_url: string;

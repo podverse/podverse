@@ -1,18 +1,26 @@
 'use client';
 
-import React, { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
+import React, { useEffect, useMemo, useState } from 'react';
+
+import { isAlbumMediumId, parseMediumId } from '@podverse/helpers';
+import { createAddByRSSIdText } from '@podverse/helpers';
 
 import { AddByRSSArtistHeader } from '../../../components/AddByRSS/Artist/AddByRSSArtistHeader';
+import Dropdown from '../../../components/Dropdown/Dropdown';
+import LoadingSpinnerOverlay from '../../../components/LoadingSpinner/LoadingSpinnerOverlay';
 import { MainInnerContentWrapper } from '../../../components/Main/MainInnerContentWrapper';
 import { MainInnerWrapper } from '../../../components/Main/MainInnerWrapper';
 import { MainWrapper } from '../../../components/Main/MainWrapper';
-import LoadingSpinnerOverlay from '../../../components/LoadingSpinner/LoadingSpinnerOverlay';
 import { NoResults } from '../../../components/NoResults/NoResults';
 import { SideContent } from '../../../components/SideContent/SideContent';
-import Dropdown from '../../../components/Dropdown/Dropdown';
 import { useLocalSettings } from '../../../contexts/LocalSettings';
+import {
+  buildAddByRSSItemsIndex,
+  buildAddByRSSLivestreamIndex,
+  buildItemIdTextMap,
+} from '../../../utils/addByRSS/itemIndex';
 import {
   getAddByRSSFeedByIdText,
   getAddByRSSFeedsByResourceType,
@@ -22,16 +30,9 @@ import type {
   AddByRSSItemIndexItem,
   AddByRSSLivestreamIndexItem,
 } from '../../../utils/addByRSS/types';
-import { isAlbumMediumId, parseMediumId } from '@podverse/helpers';
-import {
-  buildAddByRSSLivestreamIndex,
-  buildAddByRSSItemsIndex,
-  buildItemIdTextMap,
-} from '../../../utils/addByRSS/itemIndex';
-import { createAddByRSSIdText } from '@podverse/helpers';
-import { AddByRSSArtistPageListHeader } from './AddByRSSArtistPageListHeader';
-import type { AddByRSSArtistPageTabKey } from './AddByRSSArtistPageListHeader';
 import { AddByRSSArtistPageList } from './AddByRSSArtistPageList';
+import type { AddByRSSArtistPageTabKey } from './AddByRSSArtistPageListHeader';
+import { AddByRSSArtistPageListHeader } from './AddByRSSArtistPageListHeader';
 
 type SortOption = 'recent' | 'oldest';
 

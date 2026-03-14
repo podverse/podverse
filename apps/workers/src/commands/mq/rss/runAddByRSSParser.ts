@@ -3,12 +3,12 @@ import { getActiveMQArtemisService } from '@workers/factories/activeMQArtemisSer
 import { getLoggerService } from '@workers/factories/loggerService.js';
 import { setAddByRSSParseCacheEntry } from '@workers/lib/addByRSSParseCache.js';
 
-import { parseRSSFeedForAddByRSS } from '@podverse/parser';
-import { MQ_QUEUES } from '@podverse/helpers';
 import type { MQQueueNameParamKey } from '@podverse/helpers';
+import { MQ_QUEUES } from '@podverse/helpers';
 import type { MQAddByRSSMessage } from '@podverse/mq';
 import { createActiveMQShutdown } from '@podverse/mq';
 import { AccountFollowingAddByRSSChannelService } from '@podverse/orm';
+import { parseRSSFeedForAddByRSS } from '@podverse/parser';
 
 const allowedQueueParamKeys: MQQueueNameParamKey[] = [
   'add-by-rss-on-demand',

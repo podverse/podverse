@@ -1,10 +1,12 @@
 'use client';
 
 import React from 'react';
-import styles from '../../styles/components/NavBar/NavBar.module.scss';
+
 import NavBarBrand from './NavBarBrand';
 import NavBarLeftButtons from './NavBarLeftButtons';
 import NavBarRightButtons from './NavBarRightButtons';
+
+import styles from '../../styles/components/NavBar/NavBar.module.scss';
 
 const NavBar: React.FC = () => {
   return (

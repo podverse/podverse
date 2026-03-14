@@ -1,7 +1,7 @@
-import type { EntityManager } from 'typeorm';
 import type { Item } from '@orm/entities/item/item.js';
 import { ItemSocialInteract } from '@orm/entities/item/itemSocialInteract.js';
 import { BaseManyService } from '@orm/services/base/baseManyService.js';
+import type { EntityManager } from 'typeorm';
 
 type ItemSocialInteractDto = {
   protocol: string;

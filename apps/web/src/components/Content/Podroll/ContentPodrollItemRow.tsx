@@ -1,10 +1,13 @@
 import { useTranslations } from 'next-intl';
+
 import type { DTOItem } from '@podverse/helpers';
 import { findDTOItemImageBySize } from '@podverse/helpers';
-import { Link } from '../../Link/Link';
-import { WEB } from '../../../constants/web';
+
 import { IMAGES } from '../../../constants/images';
+import { WEB } from '../../../constants/web';
 import { Image } from '../../Image/Image';
+import { Link } from '../../Link/Link';
+
 import styles from '../../../styles/components/Content/Podroll/ContentPodrollItemRow.module.scss';
 
 type ContentPodrollItemRowProps = {

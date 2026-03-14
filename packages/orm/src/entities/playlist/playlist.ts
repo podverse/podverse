@@ -1,21 +1,23 @@
+import type { Account } from '@orm/entities/account/account.js';
+import type { Medium } from '@orm/entities/medium.js';
+import type { SharableStatus } from '@orm/entities/sharableStatus.js';
+import { generateRandomIdText } from '@orm/lib/nanoid.js';
+import type { Relation } from 'typeorm';
+import {
+  BeforeInsert,
+  Column,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  OneToMany,
+  PrimaryGeneratedColumn,
+  Unique,
+} from 'typeorm';
+
 import type { MediumEnum, SharableStatusEnum } from '@podverse/helpers';
 import { DATABASE_CONSTANTS } from '@podverse/helpers';
-import {
-  Entity,
-  PrimaryGeneratedColumn,
-  Column,
-  ManyToOne,
-  JoinColumn,
-  BeforeInsert,
-  Unique,
-  OneToMany,
-} from 'typeorm';
-import type { Relation } from 'typeorm';
-import type { Account } from '@orm/entities/account/account.js';
-import type { SharableStatus } from '@orm/entities/sharableStatus.js';
-import type { Medium } from '@orm/entities/medium.js';
+
 import type { PlaylistResource } from './playlistResource.js';
-import { generateRandomIdText } from '@orm/lib/nanoid.js';
 
 @Entity()
 @Unique(['account', 'medium', 'is_default_favorites'])

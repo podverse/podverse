@@ -1,12 +1,12 @@
-import { Router } from 'express';
 import { config } from '@api/config/index.js';
 import { PlaylistController } from '@api/controllers/playlist/playlist.js';
 import { PlaylistResourceController } from '@api/controllers/playlist/playlistResource.js';
 import { PlaylistResourceClipController } from '@api/controllers/playlist/playlistResourceClip.js';
 import { PlaylistResourceItemController } from '@api/controllers/playlist/playlistResourceItem.js';
-import { asyncHandler } from '@api/middleware/asyncHandler.js';
 import { PlaylistResourceItemAddByRSSController } from '@api/controllers/playlist/playlistResourceItemAddByRSS.js';
 import { PlaylistResourceItemSoundbiteController } from '@api/controllers/playlist/playlistResourceItemSoundbite.js';
+import { asyncHandler } from '@api/middleware/asyncHandler.js';
+import { Router } from 'express';
 
 const router = Router();
 router.use(`${config.api.prefix}${config.api.version}/playlist`, router);

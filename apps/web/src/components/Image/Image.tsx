@@ -1,10 +1,12 @@
 'use client';
 
 import classNames from 'classnames';
-import React, { useState } from 'react';
 import NextImage from 'next/image';
-import { PROXY } from '../../constants/proxy';
+import React, { useState } from 'react';
+
 import { IMAGES } from '../../constants/images';
+import { PROXY } from '../../constants/proxy';
+
 import styles from '../../styles/components/Image/Image.module.scss';
 
 interface ImageProps {

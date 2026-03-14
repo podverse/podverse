@@ -1,6 +1,7 @@
 'use client';
 
 import dynamic from 'next/dynamic';
+
 import { ErrorBoundaryWrapper } from '../ErrorBoundary/ErrorBoundaryWrapper';
 
 const LazyMediaPlayer = dynamic(

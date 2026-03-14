@@ -1,6 +1,8 @@
 import { FaScissors } from 'react-icons/fa6';
-import { useModals } from '../../../contexts/Modals';
+
 import { useMediaPlayer } from '../../../contexts/MediaPlayer';
+import { useModals } from '../../../contexts/Modals';
+
 import styles from '../../../styles/components/MediaPlayer/Buttons/ClipButton.module.scss';
 
 export const ClipButton = () => {

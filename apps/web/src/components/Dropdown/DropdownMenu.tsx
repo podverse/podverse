@@ -1,8 +1,10 @@
 import classNames from 'classnames';
 import type { RefObject } from 'react';
 import React from 'react';
-import styles from '../../styles/components/Dropdown/DropdownMenu.module.scss';
+
 import { cssClass } from '../../utils/cssModule';
+
+import styles from '../../styles/components/Dropdown/DropdownMenu.module.scss';
 
 interface DropdownMenuItemsWithHandlers {
   label: string;

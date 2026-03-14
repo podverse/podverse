@@ -1,16 +1,18 @@
 import { useLocale, useTranslations } from 'use-intl';
-import { DEDUPE_WINDOW_RSS_ON_DEMAND_MS, formatDateTimeAbbrev } from '@podverse/helpers';
+
 import type { DTOAccount, DTOChannel } from '@podverse/helpers';
+import { DEDUPE_WINDOW_RSS_ON_DEMAND_MS, formatDateTimeAbbrev } from '@podverse/helpers';
 import { getStatusCodeFromError } from '@podverse/helpers-requests';
+
 import { useAccount } from '../../contexts/Account';
 import { useModals } from '../../contexts/Modals';
 import { getApiRequestService } from '../../factories/apiRequestService';
-import { handleRateLimitAlert } from '../../utils/rateLimit/rateLimitAlert';
-import { SwitchButton } from '../Form/SwitchButton';
-import { Divider } from '../Divider/Divider';
 import { useLoadingMap } from '../../hooks/useLoadingMap';
-import { SettingsSection } from '../Settings/SettingsSection';
+import { handleRateLimitAlert } from '../../utils/rateLimit/rateLimitAlert';
+import { Divider } from '../Divider/Divider';
+import { SwitchButton } from '../Form/SwitchButton';
 import { RSSFeedSettingsSection } from '../Settings/RSSFeedSettingsSection';
+import { SettingsSection } from '../Settings/SettingsSection';
 import { SettingsWrapper } from '../Settings/SettingsWrapper';
 
 type ListChannelSettingsProps = {

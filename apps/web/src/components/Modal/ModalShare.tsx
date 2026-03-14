@@ -1,14 +1,16 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
+import React, { useRef, useState } from 'react';
+
 import { MediumEnum } from '@podverse/helpers';
 import { copyToClipboard } from '@podverse/helpers-browser';
-import React, { useRef, useState } from 'react';
-import { Modal, MODAL_CONTENT_MAX_WIDTH } from './Modal';
+
+import { WEB } from '../../constants/web';
+import { useModals } from '../../contexts/Modals';
 import { FormStack } from '../Form/FormStack';
 import { TextInput } from '../Form/TextInput';
-import { useModals } from '../../contexts/Modals';
-import { WEB } from '../../constants/web';
+import { Modal, MODAL_CONTENT_MAX_WIDTH } from './Modal';
 
 type ModalShareInput = {
   name: string;

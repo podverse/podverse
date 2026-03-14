@@ -1,18 +1,8 @@
 import { randomUUID } from 'node:crypto';
 
-import type { Request, Response } from 'express';
-import Joi from 'joi';
-import { MQ_QUEUES, getDedupeTTLSeconds, getRecordValue } from '@podverse/helpers';
-import { AccountFollowingAddByRSSChannelService } from '@podverse/orm';
-import { mqAddByRSSAdd } from '@podverse/mq';
 import { config } from '@api/config/index.js';
-import { ensureAuthenticated, getAuthenticatedUser } from '@api/lib/auth/index.js';
-import { handleGenericErrorResponse } from '../helpers/error.js';
 import { activeMQArtemisService } from '@api/factories/activeMQArtemisService.js';
 import { loggerService } from '@api/factories/loggerService.js';
-import { rateLimitAuthEndpoint } from '@api/lib/rateLimiter.js';
-import { validateBodyObject, validateParamsObject } from '@api/lib/validation/index.js';
-import { getParamRequired } from '@api/lib/params.js';
 import {
   getAddByRSSParseCacheEntry,
   setAddByRSSParseCacheEntry,
@@ -21,6 +11,18 @@ import {
   getAddByRSSParseDedupeEntry,
   setAddByRSSParseDedupeEntry,
 } from '@api/lib/addByRSSParseDedupeCache.js';
+import { ensureAuthenticated, getAuthenticatedUser } from '@api/lib/auth/index.js';
+import { getParamRequired } from '@api/lib/params.js';
+import { rateLimitAuthEndpoint } from '@api/lib/rateLimiter.js';
+import { validateBodyObject, validateParamsObject } from '@api/lib/validation/index.js';
+import type { Request, Response } from 'express';
+import Joi from 'joi';
+
+import { getDedupeTTLSeconds, getRecordValue, MQ_QUEUES } from '@podverse/helpers';
+import { mqAddByRSSAdd } from '@podverse/mq';
+import { AccountFollowingAddByRSSChannelService } from '@podverse/orm';
+
+import { handleGenericErrorResponse } from '../helpers/error.js';
 
 type FeedHashMap = Record<string, string>;
 

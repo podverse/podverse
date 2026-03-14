@@ -1,11 +1,13 @@
 'use client';
 
+import type { ReactNode } from 'react';
+import { createContext, useContext, useEffect, useState } from 'react';
+
 import type { DTOClip } from '@podverse/helpers';
 import { formatNumericToHHMMSS } from '@podverse/helpers';
-import type { ReactNode } from 'react';
-import { createContext, useContext, useState, useEffect } from 'react';
-import { useMediaPlayerResourceUpdate } from '../../../../hooks/useMediaPlayerResourceUpdate';
+
 import { useAutoQueue } from '../../../../contexts/AutoQueue';
+import { useMediaPlayerResourceUpdate } from '../../../../hooks/useMediaPlayerResourceUpdate';
 
 interface ClipEditPageContextType {
   sharableStatus: string;

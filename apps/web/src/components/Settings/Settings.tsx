@@ -1,16 +1,17 @@
 'use client';
 
-import React from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
-import { useSearchParams, useRouter } from 'next/navigation';
-import { ListHeader } from '../List/ListHeader';
-import { SettingsWrapper } from './SettingsWrapper';
-import { Tabs } from '../Tabs/Tabs';
+import React from 'react';
+
 import { useAccount } from '../../contexts/Account';
-import { SettingsGeneral } from './Panels/SettingsGeneral/SettingsGeneral';
+import { ListHeader } from '../List/ListHeader';
+import { Tabs } from '../Tabs/Tabs';
 import { SettingsAccount } from './Panels/SettingsAccount/SettingsAccount';
-import { SettingsProfile } from './Panels/SettingsProfile/SettingsProfile';
+import { SettingsGeneral } from './Panels/SettingsGeneral/SettingsGeneral';
 import { SettingsNotifications } from './Panels/SettingsNotifications/SettingsNotifications';
+import { SettingsProfile } from './Panels/SettingsProfile/SettingsProfile';
+import { SettingsWrapper } from './SettingsWrapper';
 
 type TabKey = 'account' | 'general' | 'notifications' | 'profile';
 

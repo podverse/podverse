@@ -1,9 +1,10 @@
 import eslint from '@eslint/js';
-import tseslint from 'typescript-eslint';
-import globals from 'globals';
 import eslintConfigPrettier from 'eslint-config-prettier/flat';
-import { fileURLToPath } from 'url';
+import simpleImportSort from 'eslint-plugin-simple-import-sort';
+import globals from 'globals';
 import { dirname } from 'path';
+import tseslint from 'typescript-eslint';
+import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -53,6 +54,31 @@ export default tseslint.config(
     files: ['tools/**/*.{ts,tsx,js,mjs,cjs}'],
     rules: {
       'no-console': 'off',
+    },
+  },
+  {
+    plugins: {
+      'simple-import-sort': simpleImportSort,
+    },
+    rules: {
+      'simple-import-sort/imports': [
+        'error',
+        {
+          groups: [
+            ['^node:'],
+            ['^(?!@podverse/)[@a-zA-Z0-9]'],
+            ['^@podverse/'],
+            ['^\\.'],
+            ['^.+\\.(css|scss|sass)$'],
+          ],
+        },
+      ],
+    },
+  },
+  {
+    files: ['**/apps/management-web/src/app/layout.tsx'],
+    rules: {
+      'simple-import-sort/imports': 'off',
     },
   },
   {

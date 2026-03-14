@@ -1,10 +1,11 @@
 import type { DTOChannel, DTOItem, DTOItemSoundbite } from '@podverse/helpers';
-import { MainWrapper } from '../../../components/Main/MainWrapper';
-import { MainInnerWrapper } from '../../../components/Main/MainInnerWrapper';
-import { MainInnerContentWrapper } from '../../../components/Main/MainInnerContentWrapper';
+
 import { CorePodcastHeader } from '../../../components/Core/Podcast/CorePodcastHeader';
-import { SideContent } from '../../../components/SideContent/SideContent';
+import { MainInnerContentWrapper } from '../../../components/Main/MainInnerContentWrapper';
+import { MainInnerWrapper } from '../../../components/Main/MainInnerWrapper';
+import { MainWrapper } from '../../../components/Main/MainWrapper';
 import { ItemSoundbiteHeader } from '../../../components/Media/ItemSoundbite/ItemSoundbiteHeader';
+import { SideContent } from '../../../components/SideContent/SideContent';
 
 interface OfficialClipClientProps {
   ssrChannel: DTOChannel;

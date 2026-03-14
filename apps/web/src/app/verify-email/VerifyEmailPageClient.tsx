@@ -1,16 +1,18 @@
 'use client';
 
-import { useEffect, useState } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
+import { useEffect, useState } from 'react';
+
+import { FormErrorMessageText } from '../../components/Form/FormErrorMessageText';
+import { FormInfoMessageText } from '../../components/Form/FormInfoMessageText';
+import LoadingSpinner from '../../components/LoadingSpinner/LoadingSpinner';
 import { MainHeader } from '../../components/Main/MainHeader';
 import { MainInnerContentWrapper } from '../../components/Main/MainInnerContentWrapper';
 import { MainInnerWrapper } from '../../components/Main/MainInnerWrapper';
 import { MainWrapper } from '../../components/Main/MainWrapper';
-import { FormInfoMessageText } from '../../components/Form/FormInfoMessageText';
-import { FormErrorMessageText } from '../../components/Form/FormErrorMessageText';
 import { getApiRequestService } from '../../factories/apiRequestService';
 import { handleRateLimitAlert } from '../../utils/rateLimit/rateLimitAlert';
-import LoadingSpinner from '../../components/LoadingSpinner/LoadingSpinner';
+
 import styles from '../../styles/app/verify-email/VerifyEmailClient.module.scss';
 
 type VerifyEmailPageClientProps = {

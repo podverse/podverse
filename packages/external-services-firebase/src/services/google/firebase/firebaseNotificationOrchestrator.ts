@@ -1,7 +1,7 @@
 import type { FirebaseContext } from '../../../factory.js';
-import { sendFirebaseNotificationBatchWeb } from './firebaseNotificationWeb.js';
 import { sendFirebaseNotificationBatchAndroid } from './firebaseNotificationAndroid.js';
 import { sendFirebaseNotificationBatchIOS } from './firebaseNotificationIOS.js';
+import { sendFirebaseNotificationBatchWeb } from './firebaseNotificationWeb.js';
 
 type NotificationPlatform = 'web' | 'android' | 'ios';
 

@@ -1,8 +1,11 @@
-import type { DTOChannel, DTOItem, DTOItemSoundbite } from '@podverse/helpers';
 import React from 'react';
-import { Link } from '../../Link/Link';
+
+import type { DTOChannel, DTOItem, DTOItemSoundbite } from '@podverse/helpers';
+
 import { ROUTES } from '../../../constants/routes';
+import { Link } from '../../Link/Link';
 import { ItemSoundbiteHeaderPlaySection } from './ItemSoundbiteHeaderPlaySection';
+
 import styles from '../../../styles/components/Media/ItemSoundbite/ItemSoundbiteHeader.module.scss';
 
 type ItemSoundbiteHeaderProps = {

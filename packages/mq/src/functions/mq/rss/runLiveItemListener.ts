@@ -1,8 +1,10 @@
 import type { ActiveMQArtemisService, MQQueueName } from '@queue/services/activeMQArtemis/index.js';
+import WebSocket from 'ws';
+
 import { MQ_QUEUES } from '@podverse/helpers';
 import type { Feed } from '@podverse/orm';
 import { FeedService } from '@podverse/orm';
-import WebSocket from 'ws';
+
 import { mqRSSAdd } from './add.js';
 
 export const mqRSSRunLiveItemListener = (activeMQArtemisService: ActiveMQArtemisService) => {

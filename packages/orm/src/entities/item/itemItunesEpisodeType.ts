@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, Unique, Check } from 'typeorm';
+import { Check, Column, Entity, PrimaryGeneratedColumn, Unique } from 'typeorm';
 
 export { ItemItunesEpisodeTypeEnum, getItemItunesEpisodeTypeEnumValue } from '@podverse/helpers';
 

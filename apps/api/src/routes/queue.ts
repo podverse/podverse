@@ -1,12 +1,12 @@
-import { Router } from 'express';
-import { QueueController } from '@api/controllers/queue/queue.js';
-import { asyncHandler } from '@api/middleware/asyncHandler.js';
 import { config } from '@api/config/index.js';
+import { QueueController } from '@api/controllers/queue/queue.js';
 import { QueueResourceController } from '@api/controllers/queue/queueResource.js';
-import { QueueResourceItemController } from '@api/controllers/queue/queueResourceItem.js';
 import { QueueResourceClipController } from '@api/controllers/queue/queueResourceClip.js';
+import { QueueResourceItemController } from '@api/controllers/queue/queueResourceItem.js';
 import { QueueResourceItemAddByRSSController } from '@api/controllers/queue/queueResourceItemAddByRSS.js';
 import { QueueResourceItemSoundbiteController } from '@api/controllers/queue/queueResourceItemSoundbite.js';
+import { asyncHandler } from '@api/middleware/asyncHandler.js';
+import { Router } from 'express';
 
 const router = Router();
 router.use(`${config.api.prefix}${config.api.version}/queue`, router);

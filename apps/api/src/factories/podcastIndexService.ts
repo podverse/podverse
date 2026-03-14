@@ -1,6 +1,7 @@
 import { PodcastIndexService } from '@podverse/external-services-podcast-index';
-import { loggerService } from './loggerService.js';
+
 import { config } from '../config/index.js';
+import { loggerService } from './loggerService.js';
 
 export const podcastIndexService = new PodcastIndexService({
   userAgent: config.userAgent,

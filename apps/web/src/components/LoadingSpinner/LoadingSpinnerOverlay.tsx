@@ -1,5 +1,7 @@
 import React from 'react';
+
 import LoadingSpinner from './LoadingSpinner';
+
 import styles from '../../styles/components/LoadingSpinner/LoadingSpinnerOverlay.module.scss';
 
 type Props = {

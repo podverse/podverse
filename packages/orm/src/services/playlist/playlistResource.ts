@@ -1,21 +1,23 @@
 // TODO: get rid of "any" in the file
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import type { PlaylistResourceIdTextOptions } from '@podverse/helpers';
-import { getAddByRSSHashId, PAGINATION } from '@podverse/helpers';
+import { PlaylistResource } from '@orm/entities/playlist/playlistResource.js';
+import { BaseManyService } from '@orm/services/base/baseManyService.js';
 import type {
   EntityManager,
   FindManyOptions,
   FindOptionsOrderValue,
   FindOptionsWhere,
 } from 'typeorm';
-import { MoreThan, LessThan } from 'typeorm';
-import { PlaylistResource } from '@orm/entities/playlist/playlistResource.js';
-import { PlaylistService } from './playlist.js';
-import { BaseManyService } from '@orm/services/base/baseManyService.js';
+import { LessThan, MoreThan } from 'typeorm';
+
+import type { PlaylistResourceIdTextOptions } from '@podverse/helpers';
+import { getAddByRSSHashId, PAGINATION } from '@podverse/helpers';
+
 import { ClipService } from '../clip.js';
 import { ItemService } from '../item/item.js';
 import { ItemSoundbiteService } from '../item/itemSoundbite.js';
 import { listResourceRelations } from '../queue/queueResource.js';
+import { PlaylistService } from './playlist.js';
 
 const PLAYLIST_LIST_POSITION_INCREMENT = 0.00000001;
 

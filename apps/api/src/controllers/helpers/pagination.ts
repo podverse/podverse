@@ -1,4 +1,5 @@
 import type { Request } from 'express';
+
 import { PAGINATION } from '@podverse/helpers';
 
 export function getPaginationParams(req: Request) {

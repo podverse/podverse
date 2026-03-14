@@ -2,13 +2,14 @@
 
 import type { DTOChannel } from '@podverse/helpers';
 
+import { ROUTES } from '../../../constants/routes';
 import { CommonArtistHeaderViewDesktop } from '../../Common/Artist/CommonArtistHeaderViewDesktop';
 import { Link } from '../../Link/Link';
-import { ROUTES } from '../../../constants/routes';
-import styles from '../../../styles/components/Common/Media/Podcast/PodcastHeaderViewDesktop.module.scss';
 import { CoreArtistHeaderButtons } from './CoreArtistHeaderButtons';
 import { CoreArtistHeaderImage } from './CoreArtistHeaderImage';
 import { CoreArtistHeaderSubtitle } from './CoreArtistHeaderSubtitle';
+
+import styles from '../../../styles/components/Common/Media/Podcast/PodcastHeaderViewDesktop.module.scss';
 
 type CoreArtistHeaderViewDesktopProps = {
   channel: DTOChannel;

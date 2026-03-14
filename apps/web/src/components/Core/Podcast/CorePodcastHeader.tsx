@@ -1,5 +1,7 @@
 'use client';
 
+import React from 'react';
+
 import type {
   DTOChannel,
   DTOClip,
@@ -7,7 +9,6 @@ import type {
   DTOItemChapter,
   DTOItemSoundbite,
 } from '@podverse/helpers';
-import React from 'react';
 
 import { CommonPodcastHeader } from '../../Common/Podcast/CommonPodcastHeader';
 import { CorePodcastHeaderViewDesktop } from './CorePodcastHeaderViewDesktop';

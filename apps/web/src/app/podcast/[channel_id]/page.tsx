@@ -1,16 +1,18 @@
-import type { DTOItem, DTOClip, DTOItemSoundbite } from '@podverse/helpers';
+import { z } from 'zod';
+
+import type { DTOClip, DTOItem, DTOItemSoundbite } from '@podverse/helpers';
 import { getTotalPages } from '@podverse/helpers';
 import type { ApiListResponse } from '@podverse/helpers-requests';
 import {
-  QUERY_PARAMS_STATS_RANGE_VALUES,
-  QUERY_PARAMS_CHANNEL_TYPE_VALUES,
   QUERY_PARAMS_CHANNEL_SORT_VALUES,
+  QUERY_PARAMS_CHANNEL_TYPE_VALUES,
+  QUERY_PARAMS_STATS_RANGE_VALUES,
 } from '@podverse/helpers-requests';
-import { z } from 'zod';
+
+import { getSSRAuthService } from '../../../utils/auth/ssrAuth';
+import { PodcastPageClient } from './PodcastPageClient';
 import type { PodcastPageDropdownConfigCurrentParams } from './PodcastPageDropdownConfig';
 import { getPodcastPageFilterParams } from './PodcastPageDropdownConfig';
-import { PodcastPageClient } from './PodcastPageClient';
-import { getSSRAuthService } from '../../../utils/auth/ssrAuth';
 
 const searchParamsSchema = z.object({
   page: z

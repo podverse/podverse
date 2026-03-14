@@ -1,10 +1,13 @@
 'use client';
 
-import type { DTOPlaylist } from '@podverse/helpers';
-import React from 'react';
 import { useRouter } from 'next/navigation';
-import { PlaylistPageHeaderInfo } from './PlaylistPageHeaderInfo';
+import React from 'react';
+
+import type { DTOPlaylist } from '@podverse/helpers';
+
 import { SubscribeButton } from '../../../components/Media/Header/SubscribeButton';
+import { PlaylistPageHeaderInfo } from './PlaylistPageHeaderInfo';
+
 import styles from '../../../styles/app/playlist/PlaylistHeader.module.scss';
 
 type PlaylistPageHeaderProps = {

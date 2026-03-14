@@ -1,6 +1,7 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
+
 import styles from '../../../styles/components/Content/About/ContentAboutHeader.module.scss';
 
 export const ContentAboutHeader = () => {

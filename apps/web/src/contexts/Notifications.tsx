@@ -1,9 +1,10 @@
 import type { ReactNode } from 'react';
-import { createContext, useState, useEffect, useCallback } from 'react';
+import { createContext, useCallback, useEffect, useState } from 'react';
 import { useContext } from 'react';
+
+import { getApiRequestService } from '../factories/apiRequestService';
 import { useAccount } from './Account';
 import { useConfig } from './Config';
-import { getApiRequestService } from '../factories/apiRequestService';
 
 type NotificationsContextType = {
   permission: NotificationPermission;

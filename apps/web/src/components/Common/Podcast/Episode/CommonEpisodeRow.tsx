@@ -1,7 +1,7 @@
 'use client';
 
-import { useTranslations } from 'next-intl';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import React from 'react';
 import { FaGripLines } from 'react-icons/fa6';
 
@@ -13,13 +13,6 @@ import {
 } from '@podverse/helpers';
 import { getShuffleHash } from '@podverse/helpers-requests';
 
-import { ImagesPerView } from '../../../Image/ImagesPerView';
-import { PlayButtonRow } from '../../../MediaPlayer/Buttons/PlayButtonRow';
-import type { MoreButtonMenuItem } from '../../../MoreButton/MoreButton';
-import { MoreButton } from '../../../MoreButton/MoreButton';
-import { ReadableDate } from '../../../Time/ReadableDate';
-import { getDurationAndPositionStr, ReadableDuration } from '../../../Time/ReadableDuration';
-import { showToastPromise, showToastPromiseWithLoading } from '../../../Toast/Toast';
 import { IMAGES } from '../../../../constants/images';
 import { ROUTES } from '../../../../constants/routes';
 import { useAccount } from '../../../../contexts/Account';
@@ -32,8 +25,16 @@ import { getApiRequestService } from '../../../../factories/apiRequestService';
 import { useMediaPlayerResourceUpdate } from '../../../../hooks/useMediaPlayerResourceUpdate';
 import { downloadEpisodeWithModal } from '../../../../utils/downloadModal/downloadEpisodeWithModal';
 import { downloadAndSaveFile } from '../../../../utils/fileDownloader';
-import styles from '../../../../styles/components/Common/List/Podcasts/Episodes/ListEpisodeRow.module.scss';
+import { ImagesPerView } from '../../../Image/ImagesPerView';
+import { PlayButtonRow } from '../../../MediaPlayer/Buttons/PlayButtonRow';
+import type { MoreButtonMenuItem } from '../../../MoreButton/MoreButton';
+import { MoreButton } from '../../../MoreButton/MoreButton';
+import { ReadableDate } from '../../../Time/ReadableDate';
+import { getDurationAndPositionStr, ReadableDuration } from '../../../Time/ReadableDuration';
+import { showToastPromise, showToastPromiseWithLoading } from '../../../Toast/Toast';
 import type { EpisodeListRowProps } from './types';
+
+import styles from '../../../../styles/components/Common/List/Podcasts/Episodes/ListEpisodeRow.module.scss';
 
 export const CommonEpisodeListRow: React.FC<EpisodeListRowProps> = ({
   channel,

@@ -1,7 +1,7 @@
-import type { EntityManager } from 'typeorm';
 import type { ItemValue } from '@orm/entities/item/itemValue.js';
 import { ItemValueRecipient } from '@orm/entities/item/itemValueRecipient.js';
 import { BaseManyService } from '@orm/services/base/baseManyService.js';
+import type { EntityManager } from 'typeorm';
 
 type ItemValueRecipientDto = {
   type: string;

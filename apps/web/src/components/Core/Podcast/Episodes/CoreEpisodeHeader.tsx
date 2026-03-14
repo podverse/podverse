@@ -1,15 +1,17 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
+import React from 'react';
+
 import type { DTOChannel, DTOItem } from '@podverse/helpers';
 import { findDTOItemImageBySize } from '@podverse/helpers';
-import React from 'react';
-import { useTranslations } from 'next-intl';
 
-import { CommonItemHeader } from '../../../Common/Item/CommonItemHeader';
-import { CoreEpisodeHeaderPlaySection } from './CoreEpisodeHeaderPlaySection';
-import { Link } from '../../../Link/Link';
-import { ROUTES } from '../../../../constants/routes';
 import { IMAGES } from '../../../../constants/images';
+import { ROUTES } from '../../../../constants/routes';
+import { CommonItemHeader } from '../../../Common/Item/CommonItemHeader';
+import { Link } from '../../../Link/Link';
+import { CoreEpisodeHeaderPlaySection } from './CoreEpisodeHeaderPlaySection';
+
 import styles from '../../../../styles/components/Common/Media/Podcast/Episode/EpisodeHeader.module.scss';
 
 type CoreEpisodeHeaderProps = {

@@ -1,6 +1,8 @@
+import type { ActiveMQArtemisService, MQQueueName } from '@queue/services/activeMQArtemis/index.js';
+
 import { hasImageHints, MQ_IMAGE_SHRINK_HINTS_CONFIG, MQ_QUEUES } from '@podverse/helpers';
 import { parseRSSFeedAndSaveToDatabase } from '@podverse/parser';
-import type { MQQueueName, ActiveMQArtemisService } from '@queue/services/activeMQArtemis/index.js';
+
 import { mqRSSAdd } from './add.js';
 import { mqImageShrinkHintAdd } from './addImageHint.js';
 

@@ -1,5 +1,6 @@
+import { Check, Column, Entity, PrimaryGeneratedColumn, Unique } from 'typeorm';
+
 import { ChannelItunesTypeItunesTypeEnum } from '@podverse/helpers';
-import { Entity, PrimaryGeneratedColumn, Column, Unique, Check } from 'typeorm';
 
 export {
   ChannelItunesTypeItunesTypeEnum,

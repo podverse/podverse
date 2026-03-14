@@ -1,3 +1,4 @@
+import type { DTOFeed } from '../feed/feed.js';
 import type { DTOChannelAbout } from './channelAbout.js';
 import type { DTOChannelCategory } from './channelCategory.js';
 import type { DTOChannelChat } from './channelChat.js';
@@ -16,7 +17,6 @@ import type { DTOChannelSocialInteract } from './channelSocialInteract.js';
 import type { DTOChannelTrailer } from './channelTrailer.js';
 import type { DTOChannelTxt } from './channelTxt.js';
 import type { DTOChannelValue } from './channelValue.js';
-import type { DTOFeed } from '../feed/feed.js';
 
 export interface DTOChannel {
   id: number;

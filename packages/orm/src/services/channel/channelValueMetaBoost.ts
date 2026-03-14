@@ -1,6 +1,6 @@
-import type { EntityManager } from 'typeorm';
 import { ChannelValueMetaBoost } from '@orm/entities/channel/channelValueMetaBoost.js';
 import { BaseOneService } from '@orm/services/base/baseOneService.js';
+import type { EntityManager } from 'typeorm';
 
 export type ChannelValueMetaBoostDto = {
   type: string;

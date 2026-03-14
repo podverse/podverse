@@ -1,7 +1,9 @@
-import { Entity, PrimaryGeneratedColumn, Column, OneToOne, JoinColumn } from 'typeorm';
 import type { Relation } from 'typeorm';
-import type { AccountSettings } from './accountSettings.js';
+import { Column, Entity, JoinColumn, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
+
 import { DATABASE_CONSTANTS } from '@podverse/helpers';
+
+import type { AccountSettings } from './accountSettings.js';
 
 @Entity()
 export class AccountSettingsLocale {

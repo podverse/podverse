@@ -1,15 +1,17 @@
 import {
-  Entity,
-  PrimaryGeneratedColumn,
-  Column,
-  OneToOne,
-  ManyToOne,
-  JoinColumn,
   BeforeInsert,
+  Column,
   CreateDateColumn,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  OneToOne,
+  PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
+
 import { generateRandomIdText } from '@podverse/orm';
+
 import type { AdminAccountCredentials } from './adminAccountCredentials.js';
 import type { AdminAccountRole } from './adminAccountRole.js';
 

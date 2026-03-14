@@ -3,9 +3,10 @@
 import Link from 'next/link';
 import React from 'react';
 
+import { IMAGES } from '../../../../../constants/images';
 import { Button } from '../../../../Button/Button';
 import { ImagesPerView } from '../../../../Image/ImagesPerView';
-import { IMAGES } from '../../../../../constants/images';
+
 import styles from '../../../../../styles/components/Common/List/Podcasts/Episodes/ListEpisodeRow.module.scss';
 
 type CommonTrackRowProps = {

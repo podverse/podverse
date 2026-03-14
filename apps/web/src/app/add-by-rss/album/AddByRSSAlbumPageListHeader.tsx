@@ -3,8 +3,8 @@
 import { useTranslations } from 'next-intl';
 import React from 'react';
 
-import { Tabs } from '../../../components/Tabs/Tabs';
 import { CommonDetailListHeader } from '../../../components/Common/List/CommonDetailListHeader';
+import { Tabs } from '../../../components/Tabs/Tabs';
 
 export type AddByRSSAlbumPageTabKey = 'tracks' | 'about' | 'settings';
 

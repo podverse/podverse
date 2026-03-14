@@ -1,22 +1,25 @@
 'use client';
 
 import type { DropResult } from '@hello-pangea/dnd';
-import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
+import { DragDropContext, Draggable, Droppable } from '@hello-pangea/dnd';
 import { useTranslations } from 'next-intl';
+import React from 'react';
+
 import type { DTOQueueResource, QueryParamsQueueMedium } from '@podverse/helpers';
 import { getQueueMediumIdFromType, MediumEnum } from '@podverse/helpers';
 import { getShuffleHash } from '@podverse/helpers-requests';
-import React from 'react';
-import { CallToActionMessage } from '../../CallToActionMessage/CallToActionMessage';
+
+import { useAutoQueue } from '../../../contexts/AutoQueue';
 import { useModals } from '../../../contexts/Modals';
-import { ListQueueResourceRow } from './ListQueueResourceRow';
-import { getApiRequestService } from '../../../factories/apiRequestService';
 import { useQueues } from '../../../contexts/Queue';
-import { useQueueResourcesLoadActive } from '../../../hooks/useQueueResourcesLoadActive';
+import { getApiRequestService } from '../../../factories/apiRequestService';
 import { useMediaPlayerResourceUpdate } from '../../../hooks/useMediaPlayerResourceUpdate';
 import { usePlayAddByRSS } from '../../../hooks/usePlayAddByRSS';
-import { useAutoQueue } from '../../../contexts/AutoQueue';
+import { useQueueResourcesLoadActive } from '../../../hooks/useQueueResourcesLoadActive';
 import { loadAddByRSSIndexItemFromResourceData } from '../../../utils/addByRSS/playFromQueueResource';
+import { CallToActionMessage } from '../../CallToActionMessage/CallToActionMessage';
+import { ListQueueResourceRow } from './ListQueueResourceRow';
+
 import styles from '../../../styles/components/List/Queues/ListQueueResources.module.scss';
 
 type Props = {

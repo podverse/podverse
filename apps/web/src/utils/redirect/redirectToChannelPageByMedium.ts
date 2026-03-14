@@ -1,7 +1,9 @@
-import { redirect } from 'next/navigation';
-import { MediumEnum } from '@podverse/helpers';
-import { ROUTES } from '../../constants/routes';
 import type { AppRouterInstance } from 'next/dist/shared/lib/app-router-context.shared-runtime';
+import { redirect } from 'next/navigation';
+
+import { MediumEnum } from '@podverse/helpers';
+
+import { ROUTES } from '../../constants/routes';
 
 export const getChannelPathByMedium = (medium_id: number, channel_id_text: string) => {
   if (medium_id === MediumEnum.Podcast || medium_id === MediumEnum.Video) {

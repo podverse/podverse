@@ -1,17 +1,18 @@
-import { DATABASE_CONSTANTS } from '@podverse/helpers';
+import type { Item } from '@orm/entities/item/item.js';
+import type { ItemEnclosureIntegrity } from '@orm/entities/item/itemEnclosureIntegrity.js';
+import type { ItemEnclosureSource } from '@orm/entities/item/itemEnclosureSource.js';
+import type { Relation } from 'typeorm';
 import {
-  Entity,
-  PrimaryGeneratedColumn,
   Column,
-  ManyToOne,
+  Entity,
   JoinColumn,
+  ManyToOne,
   OneToMany,
   OneToOne,
+  PrimaryGeneratedColumn,
 } from 'typeorm';
-import type { Relation } from 'typeorm';
-import type { Item } from '@orm/entities/item/item.js';
-import type { ItemEnclosureSource } from '@orm/entities/item/itemEnclosureSource.js';
-import type { ItemEnclosureIntegrity } from '@orm/entities/item/itemEnclosureIntegrity.js';
+
+import { DATABASE_CONSTANTS } from '@podverse/helpers';
 
 @Entity()
 export class ItemEnclosure {

@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
+
 import { useQueueResourcesLoadActive } from '../../hooks/useQueueResourcesLoadActive';
 
 export const QueueController: React.FC = () => {

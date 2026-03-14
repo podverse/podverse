@@ -1,7 +1,8 @@
 import { notFound } from 'next/navigation';
-import { PodcastIndexFeedClient } from './PodcastIndexFeedClient';
-import { redirectToChannelPageByMediumServer } from '../../../../utils/redirect/redirectToChannelPageByMedium';
+
 import { getSSRAuthService } from '../../../../utils/auth/ssrAuth';
+import { redirectToChannelPageByMediumServer } from '../../../../utils/redirect/redirectToChannelPageByMedium';
+import { PodcastIndexFeedClient } from './PodcastIndexFeedClient';
 
 export default async function PodcastIndexFeedPage(props: {
   params: Promise<{ podcast_index_id: string }>;

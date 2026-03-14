@@ -1,11 +1,12 @@
+import { handleGenericErrorResponse } from '@api/controllers/helpers/error.js';
+import { ensureAuthenticated, getAuthenticatedUser } from '@api/lib/auth/index.js';
+import { localeBodySchema, validateBodyObject } from '@api/lib/validation/index.js';
 import type { Request, Response } from 'express';
 import Joi from 'joi';
+
 import type { AccountFCMDevicePlatformValues } from '@podverse/helpers';
 import { ACCOUNT_FCM_DEVICE_PLATFORM_VALUES } from '@podverse/helpers';
 import { AccountFCMDeviceService } from '@podverse/orm';
-import { handleGenericErrorResponse } from '@api/controllers/helpers/error.js';
-import { localeBodySchema, validateBodyObject } from '@api/lib/validation/index.js';
-import { ensureAuthenticated, getAuthenticatedUser } from '@api/lib/auth/index.js';
 
 export class AccountFCMDeviceController {
   private static accountFCMDeviceService = new AccountFCMDeviceService();

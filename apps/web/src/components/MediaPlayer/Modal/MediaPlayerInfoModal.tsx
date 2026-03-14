@@ -1,7 +1,8 @@
 'use client';
 
-import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
+
 import type {
   DTOChannel,
   DTOClip,
@@ -10,11 +11,13 @@ import type {
   DTOItemSoundbite,
 } from '@podverse/helpers';
 import { findDTOChannelImageBySize, findDTOItemImageBySize, MediumEnum } from '@podverse/helpers';
-import { useMediaPlayer, type MediaPlayerAddByRSSState } from '../../../contexts/MediaPlayer';
+
+import { type MediaPlayerAddByRSSState, useMediaPlayer } from '../../../contexts/MediaPlayer';
 import { getAddByRSSItemPath, getAddByRSSLivestreamPath } from '../../../utils/addByRSS/itemPath';
 import { ImageNonReact } from '../../Image/ImageNonReact';
 import { Link } from '../../Link/Link';
 import { ReadableTimeRange } from '../../Time/ReadableTimeRange';
+
 import styles from '../../../styles/components/MediaPlayer/Modal/MediaPlayerInfoModal.module.scss';
 
 type UseLinkHelperParams = {

@@ -1,9 +1,10 @@
 'use client';
 
-import { useCallback, useRef } from 'react';
-import { FaChevronUp, FaChevronDown } from 'react-icons/fa';
-import styles from '../../styles/components/Form/TextInputNumberIncrements.module.scss';
 import { useTranslations } from 'next-intl';
+import { useCallback, useRef } from 'react';
+import { FaChevronDown, FaChevronUp } from 'react-icons/fa';
+
+import styles from '../../styles/components/Form/TextInputNumberIncrements.module.scss';
 
 /** Delay (ms) before repeat starts after initial press */
 const INITIAL_HOLD_DELAY_MS = 400;

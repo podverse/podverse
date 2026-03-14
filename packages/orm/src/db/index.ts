@@ -1,5 +1,5 @@
-import type { DataSource, EntityTarget, ObjectLiteral, Repository } from 'typeorm';
 import { getDataSourceRead, getDataSourceReadWrite } from '@orm/context.js';
+import type { DataSource, EntityTarget, ObjectLiteral, Repository } from 'typeorm';
 
 // Re-export entities
 export { entities } from './entities.js';

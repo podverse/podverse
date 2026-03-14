@@ -1,9 +1,10 @@
 'use client';
 
-import React from 'react';
 import dynamic from 'next/dynamic';
-import { useModals } from '../../contexts/Modals';
+import React from 'react';
+
 import { useLocalSettings } from '../../contexts/LocalSettings';
+import { useModals } from '../../contexts/Modals';
 
 const LazyModalAuthLogin = dynamic(
   () => import('../Modal/ModalAuthLogin').then((m) => ({ default: m.ModalAuthLogin })),

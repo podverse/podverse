@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react';
+
 import type {
   DTOChannel,
   DTOClip,
@@ -8,13 +9,14 @@ import type {
   EnclosureSelectedParams,
 } from '@podverse/helpers';
 import { MediumEnum } from '@podverse/helpers';
-import { useMediaPlayer } from '../contexts/MediaPlayer';
+
 import { useAddByRSSListContext } from '../contexts/AddByRSSListContext';
-import { useQueueResourcesUpdateNowPlaying } from './useQueueResourceUpdateNowPlaying';
-import { useMediaPlayerCurrentTime } from '../contexts/MediaPlayerCurrentTime';
-import { useQueueResourcesAbridgedIndex } from '../contexts/QueueResourcesAbridgedIndex';
 import type { AutoQueueConfig } from '../contexts/AutoQueue';
 import { useAutoQueue } from '../contexts/AutoQueue';
+import { useMediaPlayer } from '../contexts/MediaPlayer';
+import { useMediaPlayerCurrentTime } from '../contexts/MediaPlayerCurrentTime';
+import { useQueueResourcesAbridgedIndex } from '../contexts/QueueResourcesAbridgedIndex';
+import { useQueueResourcesUpdateNowPlaying } from './useQueueResourceUpdateNowPlaying';
 
 export function useMediaPlayerResourceUpdate() {
   const {

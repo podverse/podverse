@@ -1,23 +1,24 @@
+import { config as projectConfig } from '@parser/config/index.js';
+import { getFirebaseContext, getNotificationsContext } from '@parser/context.js';
+import { loggerService } from '@parser/factories/loggerService.js';
+
 import type { AccountNotificationTypeEnum } from '@podverse/helpers';
 import { AccountFCMDevicePlatformEnum, hasValidMembership } from '@podverse/helpers';
+import type {
+  NotificationMessageType,
+  NotificationPlatform,
+  UPSubscription,
+  WebPushSubscription,
+} from '@podverse/notifications';
+import { notificationOrchestrator } from '@podverse/notifications';
 import type { AccountNotificationChannelType, Channel, ChannelImage, Item } from '@podverse/orm';
 import {
   AccountFCMDeviceService,
   AccountNotificationChannelService,
-  AccountWebPushDeviceService,
   AccountUPDeviceService,
+  AccountWebPushDeviceService,
   ChannelService,
 } from '@podverse/orm';
-import type {
-  NotificationMessageType,
-  NotificationPlatform,
-  WebPushSubscription,
-  UPSubscription,
-} from '@podverse/notifications';
-import { notificationOrchestrator } from '@podverse/notifications';
-import { loggerService } from '@parser/factories/loggerService.js';
-import { config as projectConfig } from '@parser/config/index.js';
-import { getNotificationsContext, getFirebaseContext } from '@parser/context.js';
 
 /**
  * Gets the default locale from config, throwing if not configured.

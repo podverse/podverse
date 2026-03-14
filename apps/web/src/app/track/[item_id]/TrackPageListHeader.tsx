@@ -1,13 +1,15 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
+import React from 'react';
+
 import type { QueryParamsItemMusicType } from '@podverse/helpers-requests';
 import { QUERY_PARAMS_ITEM_MUSIC_TYPE_VALUES } from '@podverse/helpers-requests';
-import React from 'react';
-import { Tabs } from '../../../components/Tabs/Tabs';
+
 import { Button } from '../../../components/Button/Button';
-import { useTrackPageContext } from './TrackPageContext';
 import { CommonDetailListHeader } from '../../../components/Common/List/CommonDetailListHeader';
+import { Tabs } from '../../../components/Tabs/Tabs';
+import { useTrackPageContext } from './TrackPageContext';
 
 type TrackPageListHeaderProps = {
   ssrHasTranscripts: boolean;

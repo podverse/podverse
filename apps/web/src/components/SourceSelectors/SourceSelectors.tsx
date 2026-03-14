@@ -1,13 +1,16 @@
+import { useTranslations } from 'next-intl';
+import { Fragment } from 'react';
+
 import type { LabeledItemEnclosure } from '@podverse/helpers';
 import { getDownloadFilenameFromSource } from '@podverse/helpers';
-import { Fragment } from 'react';
-import { useTranslations } from 'next-intl';
-import { SourceSelectorRow } from './SourceSelectorRow';
-import { Divider } from '../Divider/Divider';
+
 import { useMediaPlayer } from '../../contexts/MediaPlayer';
 import { useModals } from '../../contexts/Modals';
-import { showToast, showToastPromiseWithLoading } from '../Toast/Toast';
 import { downloadAndSaveFile } from '../../utils/fileDownloader';
+import { Divider } from '../Divider/Divider';
+import { showToast, showToastPromiseWithLoading } from '../Toast/Toast';
+import { SourceSelectorRow } from './SourceSelectorRow';
+
 import styles from '../../styles/components/SourceSelectors/SourceSelectors.module.scss';
 
 export type SourceSelectorActionType =

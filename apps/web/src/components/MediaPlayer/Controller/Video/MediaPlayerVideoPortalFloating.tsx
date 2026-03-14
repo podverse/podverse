@@ -1,9 +1,9 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
-import ReactDOM from 'react-dom';
 import classNames from 'classnames';
 import { useTranslations } from 'next-intl';
+import React, { useEffect, useState } from 'react';
+import ReactDOM from 'react-dom';
 import { FaXmark } from 'react-icons/fa6';
 
 import { useMediaPlayer } from '../../../../contexts/MediaPlayer';

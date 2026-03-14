@@ -1,14 +1,16 @@
+import { cookies } from 'next/headers';
+import z from 'zod';
+
 import type { DTOChannel } from '@podverse/helpers';
 import { getTotalPages, QUERY_PARAMS_MEDIUMS } from '@podverse/helpers';
 import { QUERY_PARAMS_HOME_SORT_VALUES } from '@podverse/helpers-requests';
-import { cookies } from 'next/headers';
-import z from 'zod';
-import { HomePageClient } from './HomePageClient';
+
 import { getSSRAuthService } from '../utils/auth/ssrAuth';
-import type { HomePageDropdownConfigCurrentParams } from './HomePageDropdownConfig';
-import { getHomePageFilterParams } from './HomePageDropdownConfig';
 import type { HomeFilterDefaults } from '../utils/localSettings/localSettings';
 import { getParsedLocalSettings } from '../utils/localSettings/localSettings';
+import { HomePageClient } from './HomePageClient';
+import type { HomePageDropdownConfigCurrentParams } from './HomePageDropdownConfig';
+import { getHomePageFilterParams } from './HomePageDropdownConfig';
 
 const searchParamsSchema = z.object({
   page: z

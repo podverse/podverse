@@ -1,9 +1,10 @@
+import type { CommandLineArgs } from '@workers/commands/index.js';
+import { getActiveMQArtemisService } from '@workers/factories/activeMQArtemisService.js';
+import { getPodcastIndexService } from '@workers/factories/podcastIndexService.js';
+
 import { hasImageHints, MQ_IMAGE_SHRINK_HINTS_CONFIG, MQ_QUEUES } from '@podverse/helpers';
 import { mqImageShrinkHintAdd, mqRSSAdd as mqRSSAddFunction } from '@podverse/mq';
 import { parseRSSFeedAndSaveToDatabase } from '@podverse/parser';
-import type { CommandLineArgs } from '@workers/commands/index.js';
-import { getPodcastIndexService } from '@workers/factories/podcastIndexService.js';
-import { getActiveMQArtemisService } from '@workers/factories/activeMQArtemisService.js';
 
 export const parserRSSParseFeed = async (args: CommandLineArgs) => {
   const podcast_index_id = Array.isArray(args.p) ? args.p[0] : args.p;

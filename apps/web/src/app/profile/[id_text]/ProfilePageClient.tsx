@@ -1,11 +1,13 @@
 'use client';
 
-import type { DTOAccount } from '@podverse/helpers';
-import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { MainWrapper } from '../../../components/Main/MainWrapper';
-import { MainInnerWrapper } from '../../../components/Main/MainInnerWrapper';
+import { useEffect } from 'react';
+
+import type { DTOAccount } from '@podverse/helpers';
+
 import { MainInnerContentWrapper } from '../../../components/Main/MainInnerContentWrapper';
+import { MainInnerWrapper } from '../../../components/Main/MainInnerWrapper';
+import { MainWrapper } from '../../../components/Main/MainWrapper';
 import { ProfileHeader } from '../../../components/Media/Profile/ProfileHeader';
 import { useAccount } from '../../../contexts/Account';
 import { ProfilePageContentContextProvider } from './ProfilePageContentContext';

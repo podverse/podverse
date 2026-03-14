@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+
 import styles from '../../styles/components/InfoWrapper/InfoWrapper.module.scss';
 
 type InfoWrapperProps = {

@@ -1,18 +1,20 @@
+import { getTranslations } from 'next-intl/server';
 import React from 'react';
+
 import type { DTOAccount } from '@podverse/helpers';
 import { AccountMembershipEnum, calculateTimeRemaining } from '@podverse/helpers';
-import { getTranslations } from 'next-intl/server';
-import { MainHeader } from '../../components/Main/MainHeader';
-import { MainWrapper } from '../../components/Main/MainWrapper';
-import { MainInnerWrapper } from '../../components/Main/MainInnerWrapper';
-import { MainInnerContentWrapper } from '../../components/Main/MainInnerContentWrapper';
-import { SideContent } from '../../components/SideContent/SideContent';
+
 import { FeatureComparison } from '../../components/FeatureComparison/FeatureComparison';
-import { MembershipCTA } from './MembershipCTA';
-import { getSSRLoggedInAccount } from '../../utils/auth/ssrAuth';
-import { getSSRApiRequestService } from '../../factories/apiRequestService';
+import { MainHeader } from '../../components/Main/MainHeader';
+import { MainInnerContentWrapper } from '../../components/Main/MainInnerContentWrapper';
+import { MainInnerWrapper } from '../../components/Main/MainInnerWrapper';
+import { MainWrapper } from '../../components/Main/MainWrapper';
+import { SideContent } from '../../components/SideContent/SideContent';
 import { getConfig } from '../../config';
 import { FEATURES } from '../../constants/features';
+import { getSSRApiRequestService } from '../../factories/apiRequestService';
+import { getSSRLoggedInAccount } from '../../utils/auth/ssrAuth';
+import { MembershipCTA } from './MembershipCTA';
 
 import styles from '../../styles/app/membership/Membership.module.scss';
 

@@ -1,8 +1,9 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { formatHHMMSS } from '@podverse/helpers';
 import type React from 'react';
+
+import { formatHHMMSS } from '@podverse/helpers';
 
 type ReadableTimeRangeProps = {
   startTime: string;

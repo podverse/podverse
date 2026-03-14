@@ -1,5 +1,7 @@
 import type { DTOChannelPerson, DTOItemPerson } from '@podverse/helpers';
+
 import { ContentPeopleRow } from './ContentPeopleRow';
+
 import styles from '../../../styles/components/Content/About/ContentPeopleRows.module.scss';
 
 type ContentPeopleRowsProps = {

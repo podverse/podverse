@@ -2,12 +2,13 @@
 
 import type { DTOItem } from '@podverse/helpers';
 import type { QueryParamsGetManyLivestreams } from '@podverse/helpers-requests';
+
+import { MainInnerContentWrapper } from '../../../components/Main/MainInnerContentWrapper';
+import { MainInnerWrapper } from '../../../components/Main/MainInnerWrapper';
+import { MainWrapper } from '../../../components/Main/MainWrapper';
 import { LivestreamsPageContextProvider } from './LivestreamsPageContext';
 import { LivestreamsPageHeader } from './LivestreamsPageHeader';
 import { LivestreamsPageList } from './LivestreamsPageList';
-import { MainWrapper } from '../../../components/Main/MainWrapper';
-import { MainInnerWrapper } from '../../../components/Main/MainInnerWrapper';
-import { MainInnerContentWrapper } from '../../../components/Main/MainInnerContentWrapper';
 
 interface LivestreamsPageClientProps {
   initialQueryParams: QueryParamsGetManyLivestreams;

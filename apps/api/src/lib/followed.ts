@@ -1,8 +1,8 @@
 import type { QueryParamsMedium, QueryParamsQueueMedium } from '@podverse/helpers';
 import {
+  AccountFollowingAccountService,
   AccountFollowingChannelService,
   AccountFollowingPlaylistService,
-  AccountFollowingAccountService,
 } from '@podverse/orm';
 
 export async function getFollowedChannelIds(

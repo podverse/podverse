@@ -1,7 +1,9 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
+
 import { Button } from '../components/Button/Button';
+
 import styles from '../styles/components/ErrorBoundary/ErrorBoundary.module.scss';
 
 type ErrorPageProps = {

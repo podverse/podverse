@@ -1,4 +1,5 @@
 import type { AppRouterInstance } from 'next/dist/shared/lib/app-router-context.shared-runtime';
+
 import type { DTOCategory } from '@podverse/helpers';
 import type { QueryParamsGlobalSort } from '@podverse/helpers-requests';
 import { QUERY_PARAMS_GLOBAL_SORT_VALUES } from '@podverse/helpers-requests';

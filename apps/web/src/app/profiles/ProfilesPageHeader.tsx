@@ -1,6 +1,8 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
+import React from 'react';
+
 import type {
   QueryParamsStatsRange,
   QueryParamsSubscribedFullSort,
@@ -11,7 +13,7 @@ import {
   QUERY_PARAMS_SUBSCRIBED_FULL_SORT,
   QUERY_PARAMS_SUBSCRIBED_TYPE,
 } from '@podverse/helpers-requests';
-import React from 'react';
+
 import Dropdown from '../../components/Dropdown/Dropdown';
 import { MainHeader } from '../../components/Main/MainHeader';
 import { useProfilesPageContext } from './ProfilesPageContext';

@@ -1,11 +1,12 @@
-import { DATABASE_CONSTANTS } from '@podverse/helpers';
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, OneToOne } from 'typeorm';
-import type { Relation } from 'typeorm';
 import type { Channel } from '@orm/entities/channel/channel.js';
 import type {
   ChannelItunesType,
   ChannelItunesTypeItunesTypeEnum,
 } from '@orm/entities/channel/channelItunesType.js';
+import type { Relation } from 'typeorm';
+import { Column, Entity, JoinColumn, ManyToOne, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
+
+import { DATABASE_CONSTANTS } from '@podverse/helpers';
 
 @Entity()
 export class ChannelAbout {

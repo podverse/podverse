@@ -1,6 +1,6 @@
 import fs from 'fs';
-import path from 'path';
 import dynamic from 'next/dynamic';
+import path from 'path';
 
 const UpdatesClient = dynamic(
   () => import('./UpdatesPageClient').then((mod) => ({ default: mod.UpdatesPageClient })),

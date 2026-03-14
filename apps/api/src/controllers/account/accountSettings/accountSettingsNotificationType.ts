@@ -1,10 +1,11 @@
-import Joi from 'joi';
+import { handleGenericErrorResponse } from '@api/controllers/helpers/error.js';
+import { ensureAuthenticated, getAuthenticatedUser } from '@api/lib/auth/index.js';
+import { validateBodyObject } from '@api/lib/validation/index.js';
 import type { Request, Response } from 'express';
+import Joi from 'joi';
+
 import { ACCOUNT_NOTIFICATION_TYPE_VALUES } from '@podverse/helpers';
 import { AccountSettingsNotificationTypeService } from '@podverse/orm';
-import { validateBodyObject } from '@api/lib/validation/index.js';
-import { ensureAuthenticated, getAuthenticatedUser } from '@api/lib/auth/index.js';
-import { handleGenericErrorResponse } from '@api/controllers/helpers/error.js';
 
 export class AccountSettingsNotificationTypeController {
   static async create(req: Request, res: Response): Promise<void> {

@@ -2,8 +2,10 @@
 
 import classNames from 'classnames';
 import React, { useState } from 'react';
-import { PROXY } from '../../constants/proxy';
+
 import { IMAGES } from '../../constants/images';
+import { PROXY } from '../../constants/proxy';
+
 import styles from '../../styles/components/Image/ImageNonReact.module.scss';
 
 interface ImageNonReactProps {

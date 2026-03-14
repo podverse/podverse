@@ -1,10 +1,13 @@
+import { useTranslations } from 'next-intl';
 import React from 'react';
-import styles from '../../styles/components/MediaHeaderMini/MediaHeaderMini.module.scss';
+
 import type { DTOChannel, DTOItem, DTOItemSoundbite } from '@podverse/helpers';
 import { findDTOChannelImageBySize, findDTOItemImageBySize } from '@podverse/helpers';
-import { Image } from '../Image/Image';
+
 import { IMAGES } from '../../constants/images';
-import { useTranslations } from 'next-intl';
+import { Image } from '../Image/Image';
+
+import styles from '../../styles/components/MediaHeaderMini/MediaHeaderMini.module.scss';
 
 type MediaHeaderMiniProps = {
   channel: DTOChannel;

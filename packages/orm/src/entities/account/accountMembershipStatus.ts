@@ -1,7 +1,7 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, OneToOne } from 'typeorm';
-import type { Relation } from 'typeorm';
 import type { Account } from '@orm/entities/account/account.js';
 import type { AccountMembership } from '@orm/entities/account/accountMembership.js';
+import type { Relation } from 'typeorm';
+import { Column, Entity, JoinColumn, ManyToOne, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity()
 export class AccountMembershipStatus {

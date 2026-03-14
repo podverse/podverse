@@ -1,9 +1,11 @@
 'use client';
 
-import React, { useState } from 'react';
 import { useTranslations } from 'next-intl';
+import React, { useState } from 'react';
+
 import { Button } from '../../components/Button/Button';
 import { ErrorBoundary } from '../../components/ErrorBoundary/ErrorBoundary';
+
 import styles from '../../styles/app/test-error-boundaries/TestErrorBoundaries.module.scss';
 
 // Component that throws an error when rendered

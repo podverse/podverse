@@ -1,16 +1,18 @@
+import { z } from 'zod';
+
 import type { DTOItem } from '@podverse/helpers';
 import { getTotalPages } from '@podverse/helpers';
 import type { ApiListResponse } from '@podverse/helpers-requests';
 import {
-  QUERY_PARAMS_STATS_RANGE_VALUES,
-  QUERY_PARAMS_CHANNEL_MUSIC_ALBUM_TYPE_VALUES,
   QUERY_PARAMS_CHANNEL_MUSIC_ALBUM_SORT_VALUES,
+  QUERY_PARAMS_CHANNEL_MUSIC_ALBUM_TYPE_VALUES,
+  QUERY_PARAMS_STATS_RANGE_VALUES,
 } from '@podverse/helpers-requests';
-import { z } from 'zod';
+
+import { getSSRAuthService } from '../../../utils/auth/ssrAuth';
+import { AlbumPageClient } from './AlbumPageClient';
 import type { AlbumPageDropdownConfigCurrentParams } from './AlbumPageDropdownConfig';
 import { getAlbumPageFilterParams } from './AlbumPageDropdownConfig';
-import { AlbumPageClient } from './AlbumPageClient';
-import { getSSRAuthService } from '../../../utils/auth/ssrAuth';
 
 const searchParamsSchema = z.object({
   page: z

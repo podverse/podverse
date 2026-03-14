@@ -1,31 +1,32 @@
 'use client';
 
-import React from 'react';
 import dynamic from 'next/dynamic';
 import { useTranslations } from 'next-intl';
+import React from 'react';
+
 import type { TranscriptRow } from '@podverse/helpers';
 
-import { MainWrapper } from '../../../components/Main/MainWrapper';
-import { MainInnerWrapper } from '../../../components/Main/MainInnerWrapper';
-import { MainInnerContentWrapper } from '../../../components/Main/MainInnerContentWrapper';
-import { SideContent } from '../../../components/SideContent/SideContent';
-import { DetailListWrapper } from '../../../components/List/DetailListWrapper';
-import LoadingSpinnerOverlay from '../../../components/LoadingSpinner/LoadingSpinnerOverlay';
-import { NoResults } from '../../../components/NoResults/NoResults';
-import { CoreEpisodeSummary } from '../../../components/Core/Podcast/Episodes/CoreEpisodeSummary';
-import { CommonDetailListHeader } from '../../../components/Common/List/CommonDetailListHeader';
-import { Tabs } from '../../../components/Tabs/Tabs';
 import { AddByRSSAlbumHeader } from '../../../components/AddByRSS/Artist/Album/AddByRSSAlbumHeader';
 import { AddByRSSTrackDetailHeader } from '../../../components/AddByRSS/Artist/Album/Track/AddByRSSTrackDetailHeader';
+import { CommonDetailListHeader } from '../../../components/Common/List/CommonDetailListHeader';
+import { CoreEpisodeSummary } from '../../../components/Core/Podcast/Episodes/CoreEpisodeSummary';
+import { DetailListWrapper } from '../../../components/List/DetailListWrapper';
+import LoadingSpinnerOverlay from '../../../components/LoadingSpinner/LoadingSpinnerOverlay';
+import { MainInnerContentWrapper } from '../../../components/Main/MainInnerContentWrapper';
+import { MainInnerWrapper } from '../../../components/Main/MainInnerWrapper';
+import { MainWrapper } from '../../../components/Main/MainWrapper';
+import { NoResults } from '../../../components/NoResults/NoResults';
+import { SideContent } from '../../../components/SideContent/SideContent';
+import { Tabs } from '../../../components/Tabs/Tabs';
 import { useAccount } from '../../../contexts/Account';
 import { getApiRequestService } from '../../../factories/apiRequestService';
-import { syncAddByRSSCacheWithServer } from '../../../utils/addByRSS/sync';
-import { getAddByRSSFeedByIdText, getAddByRSSItemByIdText } from '../../../utils/addByRSS/storage';
 import {
   getCachedChaptersTranscript,
   getChaptersAndTranscriptUrls,
   setCachedChaptersTranscript,
 } from '../../../utils/addByRSS/chaptersTranscript';
+import { getAddByRSSFeedByIdText, getAddByRSSItemByIdText } from '../../../utils/addByRSS/storage';
+import { syncAddByRSSCacheWithServer } from '../../../utils/addByRSS/sync';
 import type { AddByRSSFeedRecord, AddByRSSItemIndexItem } from '../../../utils/addByRSS/types';
 import { getTranscriptRowsFromTranscriptString } from '../../../utils/transcript';
 

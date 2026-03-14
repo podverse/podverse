@@ -1,12 +1,15 @@
 'use client';
 
+import React, { useCallback, useRef, useState } from 'react';
+
 import type { DTOClip, DTOItemChapter } from '@podverse/helpers';
 import { formatHHMMSS } from '@podverse/helpers';
-import React, { useRef, useState, useCallback } from 'react';
+
 import { EVENTS } from '../../../constants/events';
 import { useMediaPlayer } from '../../../contexts/MediaPlayer';
 import { useMediaPlayerCurrentTime } from '../../../contexts/MediaPlayerCurrentTime';
 import { ChapterProgressTooltip } from './ChapterProgressTooltip';
+
 import styles from '../../../styles/components/MediaPlayer/Sliders/MediaPlayerProgress.module.scss';
 
 const LONG_PRESS_MS = 500;

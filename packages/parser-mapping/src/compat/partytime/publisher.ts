@@ -1,5 +1,6 @@
-import type { FeedObject } from '../../types/partytime.js';
 import { getMediumEnumValue } from '@podverse/helpers';
+
+import type { FeedObject } from '../../types/partytime.js';
 
 // Determine the most-appropriate publisher medium based on podcastRemoteItems
 export const detectDuckTypedPublisherMediumId = (parsedFeed: FeedObject) => {

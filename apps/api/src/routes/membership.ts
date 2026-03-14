@@ -1,7 +1,7 @@
-import { Router } from 'express';
 import { config } from '@api/config/index.js';
 import { MembershipController } from '@api/controllers/membership.js';
 import { asyncHandler } from '@api/middleware/asyncHandler.js';
+import { Router } from 'express';
 
 const router = Router();
 

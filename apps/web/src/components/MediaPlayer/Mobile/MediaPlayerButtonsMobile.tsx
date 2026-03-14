@@ -1,13 +1,15 @@
 'use client';
 
 import { MediumEnum } from '@podverse/helpers';
+
+import { useQueues } from '../../../contexts/Queue';
 import { JumpBackButtonMobile } from '../Buttons/JumpBackButtonMobile';
 import { JumpForwardButtonMobile } from '../Buttons/JumpForwardButtonMobile';
 import { PlayButtonMobile } from '../Buttons/PlayButtonMobile';
 import { SettingsButton } from '../Buttons/SettingsButton';
-import { useQueues } from '../../../contexts/Queue';
-import { TrackPreviousButtonMobile } from '../Buttons/TrackPreviousButtonMobile';
 import { TrackNextButtonMobile } from '../Buttons/TrackNextButtonMobile';
+import { TrackPreviousButtonMobile } from '../Buttons/TrackPreviousButtonMobile';
+
 import styles from '../../../styles/components/MediaPlayer/Mobile/MediaPlayerButtonsMobile.module.scss';
 
 export const MediaPlayerButtonsMobile = () => {

@@ -1,16 +1,18 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
-import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
+import { useEffect, useRef } from 'react';
+
 import { AccountMembershipEnum } from '@podverse/helpers';
+
+import { ROUTES } from '../../constants/routes';
 import { useAccount } from '../../contexts/Account';
 import {
   getParsedLocalSettings,
   handleLocalSettingsUpdate,
 } from '../../utils/localSettings/localSettings';
-import { ROUTES } from '../../constants/routes';
-import { showToastCustom, dismissToast } from './Toast';
+import { dismissToast, showToastCustom } from './Toast';
 
 export function MembershipExpirationToast() {
   const { loggedInAccount } = useAccount();

@@ -1,17 +1,20 @@
 'use client';
 
-import { useLocale, useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
-import { getApiRequestService } from '../../../factories/apiRequestService';
-import { redirectToChannelPageByMediumClient } from '../../../utils/redirect/redirectToChannelPageByMedium';
+import { useLocale, useTranslations } from 'next-intl';
+import React from 'react';
+
 import type { SearchPodcastsFeed } from '@podverse/helpers';
 import { formatDateAbbrev } from '@podverse/helpers';
-import React from 'react';
-import { Image } from '../../Image/Image';
-import { ROUTES } from '../../../constants/routes';
+
 import { IMAGES } from '../../../constants/images';
-import styles from '../../../styles/components/List/SearchResults/ListSearchResultPodcastIndexFeedRow.module.scss';
+import { ROUTES } from '../../../constants/routes';
+import { getApiRequestService } from '../../../factories/apiRequestService';
+import { redirectToChannelPageByMediumClient } from '../../../utils/redirect/redirectToChannelPageByMedium';
+import { Image } from '../../Image/Image';
 import { Link } from '../../Link/Link';
+
+import styles from '../../../styles/components/List/SearchResults/ListSearchResultPodcastIndexFeedRow.module.scss';
 
 interface Props {
   searchResultPodcastIndexFeed: SearchPodcastsFeed;

@@ -1,5 +1,6 @@
+import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+
 import { MediumEnum } from '@podverse/helpers';
-import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
 
 @Entity({ name: 'medium' })
 export class Medium {

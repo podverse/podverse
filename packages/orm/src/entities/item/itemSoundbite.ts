@@ -1,15 +1,16 @@
-import { DATABASE_CONSTANTS } from '@podverse/helpers';
-import {
-  Entity,
-  PrimaryGeneratedColumn,
-  Column,
-  ManyToOne,
-  JoinColumn,
-  BeforeInsert,
-} from 'typeorm';
-import type { Relation } from 'typeorm';
 import type { Item } from '@orm/entities/item/item.js';
 import { generateRandomIdText } from '@orm/lib/nanoid.js';
+import type { Relation } from 'typeorm';
+import {
+  BeforeInsert,
+  Column,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
+
+import { DATABASE_CONSTANTS } from '@podverse/helpers';
 
 @Entity()
 export class ItemSoundbite {

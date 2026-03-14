@@ -1,4 +1,5 @@
 import React from 'react';
+
 import styles from '../../styles/components/List/DetailListWrapper.module.scss';
 
 type DetailListWrapperProps = {
