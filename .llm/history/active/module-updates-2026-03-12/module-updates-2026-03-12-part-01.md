@@ -53,6 +53,28 @@ implement @.llm/plans/active/dependabot-prs/plan-pr-99.md
 
 ---
 
+### Session 2 - 2026-03-13
+
+#### Prompt (Developer)
+
+implement @.llm/plans/active/dependabot-prs/plan-pr-100.md
+
+#### Key Decisions
+
+- Bumped `isomorphic-dompurify` from ^2.36.0 to ^3.0.0 in apps/web and apps/management-web.
+- Switched to named import `sanitize` from `isomorphic-dompurify` in DescriptionRenderer (v3 ESM/named exports); no `clearWindow()` (client-only component).
+- Plan moved to `.llm/plans/completed/dependabot-prs/plan-pr-100.md`.
+
+#### Files Created/Modified
+
+- apps/web/package.json
+- apps/management-web/package.json
+- apps/web/src/components/Description/DescriptionRenderer.tsx
+- .llm/history/active/module-updates-2026-03-12/module-updates-2026-03-12-part-01.md
+- .llm/plans/completed/dependabot-prs/plan-pr-100.md (moved from active)
+
+---
+
 ## Related Resources
 
 - [Link to PR]
