@@ -365,3 +365,47 @@ Skipped optional variables (not set):
 - infra/k8s/base/db/management-init-scripts.configmap.yaml
 
 ---
+
+### Session 14 - 2026-03-14
+
+#### Prompt (Developer)
+
+in the infra dir update the db name to podverse_app. and look in the /home/brentano/wip/gitea.ser.ink/ser.ink/k.ser.ink/feature/mr01 for mentions of postgres as the db name and change them to podverse_app. do the same for sort of thing for management-db call it podverse_management
+
+#### Key Decisions
+
+- Updated infra defaults and ops scripts to use podverse_app as the main DB name.
+- Set management DB defaults to podverse_management in secret generation and configmap comments.
+
+#### Files Modified
+
+- infra/config/env-templates/db.env.example
+- infra/k8s/scripts/create_db_secret.sh
+- infra/k8s/scripts/create_management_db_secret.sh
+- infra/k8s/base/api/configmap.yaml
+- infra/k8s/base/management-api/configmap.yaml
+- infra/k8s/base/workers/configmap.yaml
+- infra/k8s/base/ops/db-verify-account.cronjob.yaml
+- infra/k8s/base/ops/db-verify-all-account.cronjob.yaml
+- infra/k8s/base/ops/db-drop-everything.cronjob.yaml
+
+---
+
+### Session 15 - 2026-03-14
+
+#### Prompt (Developer)
+
+the changes made to the commands in infra/k8s/base/ops/ should be pulling their info from the config for the db and not hard coding the connection strings
+
+#### Key Decisions
+
+- Switched ops cronjobs to use DB env vars (host/port/user/db) from secrets and service env instead of hard-coded connection strings.
+- Updated psql auth to use DB_READ_WRITE_PASSWORD for verify jobs.
+
+#### Files Modified
+
+- infra/k8s/base/ops/db-verify-account.cronjob.yaml
+- infra/k8s/base/ops/db-verify-all-account.cronjob.yaml
+- infra/k8s/base/ops/db-drop-everything.cronjob.yaml
+
+---
