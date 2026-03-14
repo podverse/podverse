@@ -43,8 +43,6 @@ export default async function PodcastPage({ params, searchParams }: PodcastPageP
 
   let ssrItems: DTOItem[] = [];
   let ssrClips: DTOClip[] = [];
-  let ssrItemSoundbites: DTOItemSoundbite[] = [];
-  let ssrHasItemSoundbites = false;
   let ssrTotalPages = 1;
 
   const responseItemSoundbites = await ssrApiRequestService.reqItemSoundbiteGetManyByChannelIdText(
@@ -54,8 +52,8 @@ export default async function PodcastPage({ params, searchParams }: PodcastPageP
       sort: currentSort !== 'top' ? currentSort : 'recent',
     }
   );
-  ssrItemSoundbites = responseItemSoundbites.data;
-  ssrHasItemSoundbites = responseItemSoundbites.data.length > 0;
+  const ssrItemSoundbites = responseItemSoundbites.data;
+  const ssrHasItemSoundbites = responseItemSoundbites.data.length > 0;
 
   const ssrItemsWithLiveItem = await ssrApiRequestService.reqLiveItemGetManyByChannel(
     ssrChannel.id_text

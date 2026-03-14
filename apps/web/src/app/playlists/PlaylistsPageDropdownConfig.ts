@@ -65,7 +65,7 @@ export function getPlaylistsPageFilterParams(
   { type, sort, range, medium, page }: PlaylistsPageDropdownConfigParams,
   isValidAuthSession: boolean
 ): PlaylistsPageDropdownConfigCurrentParams {
-  let currentType = type;
+  let currentType: QueryParamsPlaylistsType;
   let currentSort = sort;
   const currentRange = range;
   const currentMedium = medium;

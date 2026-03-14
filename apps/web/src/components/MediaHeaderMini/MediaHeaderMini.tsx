@@ -30,8 +30,8 @@ export const MediaHeaderMini: React.FC<MediaHeaderMiniProps> = ({
   );
   const image_url = item_image?.url || channel_image?.url;
 
-  let title = '';
-  let subtitle = '';
+  let title: string;
+  let subtitle: string;
 
   if (item_soundbite?.title) {
     title = item_soundbite.title || tMisc('untitled');

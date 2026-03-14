@@ -71,7 +71,7 @@ export function getProfilesPageFilterParams(
   { type, sort, range, page }: ProfilesPageDropdownConfigParams,
   isValidAuthSession: boolean
 ): ProfilesPageDropdownConfigCurrentParams {
-  let currentType = type;
+  let currentType: QueryParamsSubscribedType;
   let currentSort = sort;
   let currentRange = range;
   let currentPage = page;

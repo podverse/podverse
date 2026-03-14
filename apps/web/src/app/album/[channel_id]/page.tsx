@@ -41,9 +41,6 @@ export default async function AlbumPage({ params, searchParams }: AlbumPageProps
 
   const ssrChannel = await ssrApiRequestService.reqChannelGetByIdOrIdText(channel_id);
 
-  let ssrItems: DTOItem[] = [];
-  let ssrTotalPages = 1;
-
   const ssrItemsWithLiveItem = await ssrApiRequestService.reqLiveItemGetManyByChannel(
     ssrChannel.id_text
   );
@@ -55,8 +52,8 @@ export default async function AlbumPage({ params, searchParams }: AlbumPageProps
     range: currentRange,
   });
 
-  ssrItems = [...ssrItemsWithLiveItem, ...responseItems.data];
-  ssrTotalPages = getCurrentTotalPages({ currentType, responseItems, currentPage });
+  const ssrItems = [...ssrItemsWithLiveItem, ...responseItems.data];
+  const ssrTotalPages = getCurrentTotalPages({ currentType, responseItems, currentPage });
 
   let ssrPodroll = null;
   if ((ssrChannel?.channel_podroll?.channel_podroll_remote_items?.length ?? 0) > 0) {

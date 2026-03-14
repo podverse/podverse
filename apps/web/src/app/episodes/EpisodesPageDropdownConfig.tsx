@@ -90,7 +90,7 @@ export function getEpisodesPageFilterParams(
   { type, sort, range, category, page }: EpisodesPageDropdownConfigParams,
   isValidAuthSession: boolean
 ): EpisodesPageDropdownConfigCurrentParams {
-  let currentType = type;
+  let currentType: QueryParamsSubscribedType;
   let currentSort = sort;
   let currentRange = range;
   let currentCategory = category;

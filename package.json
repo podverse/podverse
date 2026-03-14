@@ -33,10 +33,10 @@
     "glob": "^13.0.1"
   },
   "devDependencies": {
-    "@eslint/js": "^9.39.2",
+    "@eslint/js": "^10.0.1",
     "@types/node": "^24.10.12",
     "concurrently": "^9.2.1",
-    "eslint": "^9.39.2",
+    "eslint": "^10.0.1",
     "eslint-config-prettier": "^10.1.8",
     "globals": "^17.2.0",
     "lint-staged": "^16.2.7",
