@@ -78,11 +78,9 @@ Plans organized by status:
 
 ## Plan Completion
 
-After verifying a plan is complete, ask:
-
-> "Would you like me to mark this plan as completed?"
-
-If yes, move the plan from `active/` to `completed/`.
+When you finish executing a plan in `active/`, **automatically** move it to `completed/` (do not
+ask). If it's the last plan in its set (execution order, copy-pasta, or feature directory), move
+the whole set. See **[Plan Completion](../plan-completion/SKILL.md)** for full behavior.
 
 ### Grouping Sub-Plans
 
@@ -229,6 +227,7 @@ Or for multi-part features:
 
 ## Related Skills
 
+- **[Plan Completion](../plan-completion/SKILL.md)** - Auto-archive completed plans (and full set when last)
 - **[LLM History](../llm-history/SKILL.md)** - History tracking and 10-session split rule
 - **[GitHub Workflows](../github/SKILL.md)** - PR/issue management and GitHub CLI usage
 - **[Web Patterns](../web/SKILL.md)** - Next.js app patterns (`apps/web/`)

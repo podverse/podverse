@@ -1,6 +1,6 @@
 'use client';
 
-import DOMPurify from 'isomorphic-dompurify';
+import { sanitize } from 'isomorphic-dompurify';
 import React from 'react';
 import styles from './SafeHtmlDescription.module.scss';
 
@@ -31,7 +31,7 @@ export function isHtmlString(str: string): boolean {
 
 export function SafeHtmlDescription({ html }: { html: string }) {
   const cleanHtml = React.useMemo(() => {
-    return DOMPurify.sanitize(html, {
+    return sanitize(html, {
       ALLOWED_TAGS,
       ALLOWED_ATTR,
       RETURN_TRUSTED_TYPE: false,

@@ -82,7 +82,7 @@ export function getLivestreamsPageFilterParams(
   { type, sort, range, category, page, liveItemType }: LivestreamsPageDropdownConfigParams,
   isValidAuthSession: boolean
 ): LivestreamsPageDropdownConfigCurrentParams {
-  let currentType = type;
+  let currentType: QueryParamsSubscribedType;
   let currentSort = sort;
   let currentRange = range;
   let currentCategory = category;

@@ -50,9 +50,9 @@
     "@podverse/orm": "*",
     "@podverse/parser": "*",
     "amqplib": "^0.10.9",
-    "axios": "^1.13.5",
-    "ioredis": "^5.9.2",
-    "pg": "^8.16.3",
+    "axios": "^1.13.6",
+    "ioredis": "^5.10.0",
+    "pg": "^8.20.0",
     "typeorm": "^0.3.26",
     "typeorm-naming-strategies": "^4.1.0",
     "sharp": "^0.34.5",
@@ -60,9 +60,9 @@
     "winston-daily-rotate-file": "^5.0.0"
   },
   "devDependencies": {
-    "@dotenvx/dotenvx": "^1.49.0",
-    "@types/node": "^24.10.12",
-    "nodemon": "^3.1.10",
+    "@dotenvx/dotenvx": "^1.54.1",
+    "@types/node": "^24.12.0",
+    "nodemon": "^3.1.14",
     "ts-node": "^10.9.2",
     "tsc-alias": "^1.8.16",
     "tsconfig-paths": "^4.2.0"

@@ -71,7 +71,7 @@ export function getTracksPageFilterParams(
   { type, sort, range, page }: TracksPageDropdownConfigParams,
   isValidAuthSession: boolean
 ): TracksPageDropdownConfigCurrentParams {
-  let currentType = type;
+  let currentType: QueryParamsSubscribedMusicType;
   let currentSort = sort;
   let currentRange = range;
   let currentPage = page;

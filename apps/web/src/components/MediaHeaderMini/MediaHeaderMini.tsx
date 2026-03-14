@@ -30,8 +30,8 @@ export const MediaHeaderMini: React.FC<MediaHeaderMiniProps> = ({
   );
   const image_url = item_image?.url || channel_image?.url;
 
-  let title = '';
-  let subtitle = '';
+  let title: string;
+  let subtitle: string;
 
   if (item_soundbite?.title) {
     title = item_soundbite.title || tMisc('untitled');
@@ -41,6 +41,7 @@ export const MediaHeaderMini: React.FC<MediaHeaderMiniProps> = ({
     subtitle = channel.title || tMisc('untitled');
   } else {
     title = channel.title || tMisc('untitled');
+    subtitle = '';
   }
 
   return (
@@ -48,7 +49,7 @@ export const MediaHeaderMini: React.FC<MediaHeaderMiniProps> = ({
       <Image
         className={styles.image}
         src={image_url}
-        alt={`${title} - ${subtitle}`}
+        alt={subtitle ? `${title} - ${subtitle}` : title}
         width={IMAGES.MEDIA_HEADER_MINI.SQUARE.SIZE}
         height={IMAGES.MEDIA_HEADER_MINI.SQUARE.SIZE}
       />
