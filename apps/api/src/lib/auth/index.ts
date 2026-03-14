@@ -12,6 +12,10 @@ import { verifyPassword } from './password.js';
 
 const isProduction = config.nodeEnv === 'production';
 
+function normalizeEmailForBinding(email: string): string {
+  return email.trim().toLowerCase();
+}
+
 const setAuthCookie = (res: Response, token: string) => {
   if (isProduction) {
     const prodCookieOptions: CookieOptions = {
@@ -84,14 +88,30 @@ passport.use(
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       secretOrKey: config.auth.jwtSecret,
     },
-    async (jwtPayload, done) => {
+    async (jwtPayload: { id: number; email?: string }, done) => {
       try {
-        const account = await accountService.get(jwtPayload.id);
-        if (account) {
-          return done(null, account);
-        } else {
+        console.log('jwtPayload', jwtPayload);
+        if (jwtPayload.email === undefined || jwtPayload.email === '') {
           return done(null, false);
         }
+        const account = await accountService.get(jwtPayload.id, {
+          relations: ['account_credentials'],
+        });
+        if (!account) {
+          return done(null, false);
+        }
+        const accountEmail =
+          account.account_credentials?.email !== undefined &&
+          account.account_credentials?.email !== ''
+            ? normalizeEmailForBinding(account.account_credentials.email)
+            : undefined;
+        if (
+          accountEmail === undefined ||
+          accountEmail !== normalizeEmailForBinding(jwtPayload.email)
+        ) {
+          return done(null, false);
+        }
+        return done(null, account);
       } catch (error) {
         return done(error, false);
       }
@@ -130,7 +150,21 @@ export const authenticate = (req: Request, res: Response, next: NextFunction) =>
         }
       }
 
-      const token = jwt.sign({ id: user.id }, config.auth.jwtSecret, { expiresIn: '365d' });
+      const accountWithCredentials = user as {
+        id: number;
+        account_credentials?: { email?: string };
+      };
+      const rawEmail =
+        accountWithCredentials.account_credentials?.email !== undefined &&
+        accountWithCredentials.account_credentials?.email !== ''
+          ? accountWithCredentials.account_credentials.email
+          : undefined;
+      if (!rawEmail) {
+        return res.status(401).json({ message: 'Unauthorized' });
+      }
+      const email = normalizeEmailForBinding(rawEmail);
+
+      const token = jwt.sign({ id: user.id, email }, config.auth.jwtSecret, { expiresIn: '365d' });
 
       setAuthCookie(res, token);
 
@@ -157,6 +191,7 @@ const verifyTokenAndMembership = (
 ): void => {
   interface DecodedToken {
     id: number;
+    email?: string;
     [key: string]: unknown;
   }
   jwt.verify(
@@ -174,6 +209,10 @@ const verifyTokenAndMembership = (
         return;
       }
       const payload = decoded as DecodedToken;
+      if (payload.email === undefined || payload.email === '') {
+        res.status(401).json({ message: 'Re-authentication required' });
+        return;
+      }
       req.user = { id: payload.id } as unknown as globalThis.Express.User;
 
       if (!req?.user?.id) {
@@ -182,17 +221,32 @@ const verifyTokenAndMembership = (
         return;
       }
 
+      const relations = ['account_credentials'];
       if (!options.skipMembershipStatus) {
-        const relations = options.noFreeTrial
-          ? ['account_membership_status', 'account_membership_status.account_membership']
-          : ['account_membership_status'];
-        const account = await accountService.get(req.user.id, { relations });
-        if (!account) {
-          console.error('[verifyTokenAndMembership] No account found for user id:', req.user.id);
-          res.status(401).json({ message: 'Unauthorized' });
-          return;
-        }
+        relations.push(
+          ...(options.noFreeTrial
+            ? ['account_membership_status', 'account_membership_status.account_membership']
+            : ['account_membership_status'])
+        );
+      }
+      const account = await accountService.get(req.user.id, { relations });
+      if (!account) {
+        console.error('[verifyTokenAndMembership] No account found for user id:', req.user.id);
+        res.status(401).json({ message: 'Unauthorized' });
+        return;
+      }
 
+      const accountEmail =
+        account.account_credentials?.email !== undefined &&
+        account.account_credentials?.email !== ''
+          ? normalizeEmailForBinding(account.account_credentials.email)
+          : undefined;
+      if (accountEmail === undefined || accountEmail !== normalizeEmailForBinding(payload.email)) {
+        res.status(401).json({ message: 'Unauthorized' });
+        return;
+      }
+
+      if (!options.skipMembershipStatus) {
         const membershipStatus = account.account_membership_status;
 
         if (
