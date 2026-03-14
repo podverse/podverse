@@ -7,10 +7,11 @@ alwaysApply: false
 
 # Plan Lifecycle
 
-When a plan's status is changed to "Complete":
+When you finish executing a plan in `active/`, move it to `completed/` automatically (no prompt).
+See **Plan Completion** skill for: single-file move vs. moving the whole set when it's the last plan.
 
-1. Move the file from `active/` to `completed/` (preserving subdirectory structure)
-2. Update any references in `00-master-plan.md` if needed
+1. Move the file (or whole set) from `active/` to `completed/` (preserving subdirectory structure)
+2. Update any references in `00-master-plan.md` or `LLM-PLANS.md` if needed
 
 Example:
 
