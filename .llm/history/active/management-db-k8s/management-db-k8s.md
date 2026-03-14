@@ -230,3 +230,138 @@ the management-api will need access to both DBs
 - infra/k8s/base/management-api/deployment.yaml
 
 ---
+
+### Session 12 - 2026-03-14
+
+#### Prompt (Developer)
+
+Running startup validation...
+=== Environment Variable Validation ===
+[API]
+✓ API_PORT - Set
+✓ API_PREFIX - Set
+✓ API_VERSION - Set
+✓ COOKIE_DOMAIN - Set
+✓ API_ALLOWED_CORS_ORIGINS - Set
+[Auth & Security]
+✓ AUTH_JWT_SECRET - Valid UUID
+✗ BRAND_NAME - Missing or empty
+✓ USER_AGENT - Valid format
+[Database]
+✓ DB_HOST - Set
+✓ DB_PORT - Set
+✓ DB_READ_USERNAME - Set
+✓ DB_READ_PASSWORD - Set
+✓ DB_READ_WRITE_USERNAME - Set
+✓ DB_READ_WRITE_PASSWORD - Set
+✓ DB_DATABASE - Set
+[General]
+✓ NODE_ENV - Set
+✓ LOG_LEVEL - Set
+[Web]
+✓ WEB_PROTOCOL - Set
+✓ WEB_DOMAIN - Set
+✓ DB_SSL_CONNECTION (optional) - Use Default (false)
+The following environment variables failed validation:
+=== Validation Summary ===
+Total: 20
+Passed: 18
+Skipped: 1
+
+- BRAND_NAME (required): Missing or empty
+  Failed: 1
+  Required Missing: 1
+  Skipped optional variables (not set):
+  FATAL: 1 required environment variable(s) are missing or invalid. Please check the validation output above for details.
+- DB_SSL_CONNECTION
+
+#### Key Decisions
+
+- Added the BRAND_NAME value to the management API base configmap to satisfy required startup validation.
+
+#### Files Modified
+
+- infra/k8s/base/management-api/configmap.yaml
+
+---
+
+### Session 13 - 2026-03-14
+
+#### Prompt (Developer)
+
+Running startup validation...
+=== Environment Variable Validation ===
+[API]
+✓ API_PORT - Set
+✓ API_PREFIX - Set
+✓ API_VERSION - Set
+✓ COOKIE_DOMAIN - Set
+✓ API_ALLOWED_CORS_ORIGINS - Set
+[Auth & Security]
+✓ AUTH_JWT_SECRET - Valid UUID
+✓ BRAND_NAME - Set
+✓ USER_AGENT - Valid format
+[Database]
+✓ DB_HOST - Set
+✓ DB_PORT - Set
+✓ DB_READ_USERNAME - Set
+✓ DB_READ_PASSWORD - Set
+✓ DB_READ_WRITE_USERNAME - Set
+✓ DB_READ_WRITE_PASSWORD - Set
+✓ DB_DATABASE - Set
+[General]
+✓ NODE_ENV - Set
+✓ LOG_LEVEL - Set
+[Web]
+✓ WEB_PROTOCOL - Set
+✓ WEB_DOMAIN - Set
+=== Validation Summary ===
+Total: 20
+Passed: 19
+Skipped: 1
+Failed: 0
+Required Missing: 0
+Skipped optional variables (not set):
+
+- DB_SSL_CONNECTION
+  Startup validation completed successfully
+  ✓ DB_SSL_CONNECTION (optional) - Use Default (false)
+  Connecting to the management database
+  Error during application startup: error: password authentication failed for user "read"
+  at parseErrorMessage (/opt/node_modules/pg-protocol/dist/parser.js:305:11)
+  at Parser.handlePacket (/opt/node_modules/pg-protocol/dist/parser.js:143:27)
+  at Parser.parse (/opt/node_modules/pg-protocol/dist/parser.js:37:38)
+  at Socket.<anonymous> (/opt/node_modules/pg-protocol/dist/index.js:11:42)
+  at Socket.emit (node:events:508:28)
+  at addChunk (node:internal/streams/readable:563:12)
+  at readableAddChunkPushByteMode (node:internal/streams/readable:514:3)
+  at Readable.push (node:internal/streams/readable:394:5)
+  at TCP.onStreamRead (node:internal/stream_base_commons:189:23) {
+  length: 100,
+  severity: 'FATAL',
+  code: '28P01',
+  detail: undefined,
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'auth.c',
+  line: '317',
+  routine: 'auth_failed'
+  }
+
+#### Key Decisions
+
+- Synced the management DB init script to always update read/read_write passwords from env on startup.
+
+#### Files Modified
+
+- infra/k8s/base/db/management-init-scripts.configmap.yaml
+
+---

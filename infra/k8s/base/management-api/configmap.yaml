@@ -16,6 +16,7 @@ data:
   #####
 
   NODE_ENV: "production"
+  BRAND_NAME: "Podverse"
   LOG_LEVEL: "info"
   # No default. Leave empty for console-only (e.g. local/dev or container without file logging).
   # When using Docker with a log volume, set to the container path (e.g. /opt/logs).

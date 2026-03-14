@@ -28,6 +28,14 @@ data:
     END
     $$;
 
+    -- Always sync passwords from env so DB stays aligned with secret values
+    DO $$
+    BEGIN
+        EXECUTE format('ALTER USER read WITH PASSWORD %L', '${POSTGRES_READ_PASSWORD}');
+        EXECUTE format('ALTER USER read_write WITH PASSWORD %L', '${POSTGRES_READ_WRITE_PASSWORD}');
+    END
+    $$;
+
     GRANT CONNECT ON DATABASE ${POSTGRES_DB} TO read, read_write;
     GRANT USAGE ON SCHEMA public TO read, read_write;
 
