@@ -1,6 +1,9 @@
 # --- Local env setup and copy rules. ---
 
-.PHONY: local_env_prepare local_env_setup local_env_clean
+.PHONY: local_env_prepare local_env_link local_env_setup local_env_clean
+
+local_env_link:
+	bash scripts/local-env/link-overrides.sh
 
 local_env_clean:
 	@running=$$(docker ps -q --filter "name=podverse_local_" 2>/dev/null); \

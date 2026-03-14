@@ -34,6 +34,14 @@ make local_env_prepare
 This creates `dev/env-overrides/local/*.env` files from committed examples.
 Update those files with any private or external values you use locally, then continue.
 
+**Work trees / multiple clones:** To share one set of overrides across all work trees and clones,
+use home-directory overrides: run `make local_env_link` so overrides live in
+`~/.config/podverse/local-env-overrides/` and are symlinked into this repo; then run
+`make local_env_setup`. In each new work tree, run `make local_env_link` then `make local_env_setup`
+and you will not need to re-enter values. To create a new branch in a new work tree with env and
+history ready in one step, use `make start_feature_worktree`. See [Local Env Overrides (home
+directory)](development/LOCAL-ENV-OVERRIDES.md).
+
 ### 3. Generate Local Env Files and Start Infrastructure
 
 ```bash
@@ -55,7 +63,7 @@ when you run with npm (e.g. `npm run dev:web`), use the app `.env`/`.env.local` 
 - Starts pgAdmin (database browser) at `http://localhost:5051`
 - Initializes database schemas and users
 
-**Note**: Only run `local_setup` once for initial setup. To restart services later, use `make local_infra_up`.
+**Note**: Only run `local_setup` once for initial setup. To restart services later, use `make local_infra_up`. If you ran `local_env_setup` and `local_infra_up` separately (e.g. after the [prepare → link → setup](development/LOCAL-ENV-OVERRIDES.md) flow), run `make local_db_init` before starting apps so the Postgres `read`/`read_write` users exist.
 
 ### 4. Build Packages
 

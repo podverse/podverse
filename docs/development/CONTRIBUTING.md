@@ -34,6 +34,22 @@ This interactive script:
 - Creates an LLM history file in `.llm/history/active/`
 - Links to GitHub issues (optional)
 
+To start a feature in a **new work tree** (so the main clone stays on `develop`), with env overrides
+symlinked and local env files generated so you can work immediately:
+
+```bash
+make start_feature_worktree
+```
+
+This uses the same prompts as `npm run start-feature`, then creates the work tree and branch, runs
+`make local_env_link` and `make local_env_setup` in the new work tree, runs `direnv allow` and
+`npm install` (via Nix when available) so the new window is ready to use, and creates the LLM
+history file there. You can set `PODVERSE_NIX_DEV_SHELL=.#fish` (or another flake shell) so the
+Nix environment used for npm install matches your preferred shell. See [Local Env Overrides (home
+directory)](LOCAL-ENV-OVERRIDES.md). When doing local setup (prepare/link/setup), after
+`local_env_setup` you must start infra and create DB users: run `make local_infra_up` then
+`make local_db_init`, or run `make local_setup` to do env setup, infra up, and DB init in one go.
+
 ### During Development
 
 1. Code and lint: `npm run lint`

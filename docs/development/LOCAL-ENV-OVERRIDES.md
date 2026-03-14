@@ -1,0 +1,170 @@
+# Local Env Overrides (Home Directory)
+
+Use a single set of override files in your home directory and symlink them into each clone or work
+tree so you do not have to re-enter secrets or preferences when creating new work trees. The
+canonical place for override values is `~/.config/podverse/local-env-overrides/` (or
+`PODVERSE_HOME_OVERRIDES_DIR`).
+
+## Recommended flow (one consistent process)
+
+1. **Prepare** — Create initial override files in the home directory from examples:
+
+   ```bash
+   make local_env_prepare
+   ```
+
+   This creates (or leaves unchanged) files in `~/.config/podverse/local-env-overrides/` from
+   `dev/env-overrides/local/*.env.example`. It does not create any files in the repo.
+
+2. **Edit** — Fill in your private or external values (API keys, encryption key, etc.) in the
+   files under that home directory.
+
+3. **Link** — Make the repo use those files:
+
+   ```bash
+   make local_env_link
+   ```
+
+   This creates symlinks in `dev/env-overrides/local/*.env` pointing to the home directory. The
+   repo now sees your override values when setup or apps read them.
+
+4. **Setup** — Generate app and infra env files from the overrides:
+
+   ```bash
+   make local_env_setup
+   ```
+
+5. **Start infrastructure and create DB users** — Start containers and create the `read` /
+   `read_write` Postgres users so app credentials match the database:
+
+   ```bash
+   make local_infra_up
+   make local_db_init
+   ```
+
+   `local_db_init` creates the `read` and `read_write` roles in Postgres using the passwords
+   from `infra/config/local/db.env` and `management-db.env`. Without it, apps fail with
+   "password authentication failed for user read".
+
+   Alternatively, you can run **`make local_setup`** once (after prepare, edit, and link): it
+   runs `local_env_setup`, `local_infra_up`, and `local_db_init` in order, so you do not need
+   to run steps 4 and 5 separately.
+
+You can skip step 1 and run `make local_env_link` first; link will create the home files from
+examples when they are missing. Then edit the home directory and run `make local_env_setup`.
+
+## Why
+
+- Git work trees and separate clones do not share untracked or ignored files.
+- `dev/env-overrides/local/*.env` are gitignored, so each new work tree has no override files.
+- Re-running `make local_env_prepare` only creates fresh copies from examples, forcing you to
+  re-enter values everywhere.
+
+By keeping the real override files in a directory under your home and symlinking
+`dev/env-overrides/local/*.env` to that directory, every work tree (and the main repo) uses the
+same overrides.
+
+## Default location
+
+Override files live in:
+
+- **Default**: `~/.config/podverse/local-env-overrides/`
+- **Override**: set `PODVERSE_HOME_OVERRIDES_DIR` to a different path (e.g.
+  `$HOME/.podverse/overrides`).
+
+## One-time setup (summary)
+
+Follow the [recommended flow](#recommended-flow-one-consistent-process) above: `make local_env_prepare`, edit the home directory files, `make local_env_link`, `make local_env_setup`, then `make local_infra_up` and `make local_db_init` (or run `make local_setup` to do env setup, infra up, and DB init in one go). After that, the same home directory is used by this repo and any other clone or work tree where you run `make local_env_link`.
+
+## New work tree or clone
+
+1. Clone or create the work tree and `cd` into it.
+
+2. Run:
+
+   ```bash
+   make local_env_link
+   make local_env_setup
+   ```
+
+   No need to re-enter override values; the symlinks point to your existing home directory files.
+
+3. Continue with the rest of setup (e.g. `make local_setup`, `npm run build:packages`).
+
+## Start a feature in a new work tree (one command)
+
+To create a new branch in a new work tree and have env overrides and local env files ready in one
+step, run from your main clone (or any existing work tree):
+
+```bash
+make start_feature_worktree
+```
+
+This interactive command uses the same prompts as `npm run start-feature` (feature type, short name,
+optional issue numbers), then:
+
+- Creates a new work tree and branch (e.g. `feature/add-chapters` from `develop`)
+- Runs `make local_env_link` and `make local_env_setup` in the new work tree so overrides are
+  symlinked and runtime env files are generated
+- Runs `direnv allow` in the work tree (if direnv is installed) so the first terminal there loads
+  the Nix flake
+- Runs `npm install` in the work tree (via Nix when available) so `node_modules` is ready
+- Creates the LLM history file in the new work tree
+
+Optional: set `PODVERSE_NIX_DEV_SHELL` (e.g. `.#fish`) so the Nix shell used for `npm install`
+matches your preferred interactive shell. Example: `PODVERSE_NIX_DEV_SHELL=.#fish make start_feature_worktree`.
+
+You can then `cd` into the new work tree and start working immediately. See
+[QUICKSTART.md](../QUICKSTART.md) and [CONTRIBUTING.md](CONTRIBUTING.md) for the full workflow.
+
+## In-repo overrides (no home directory)
+
+If you prefer not to use the home directory at all (single clone only):
+
+- Manually copy `dev/env-overrides/local/*.env.example` to `dev/env-overrides/local/*.env` (e.g.
+  `cp private-services.env.example private-services.env`).
+- Edit those files in the repo.
+- Run `make local_env_setup`.
+
+In each new work tree you will need to copy and edit again. For work trees or multiple clones,
+use the [recommended flow](#recommended-flow-one-consistent-process) with prepare and link so
+overrides live in ~/.config and are shared.
+
+## Custom home directory path
+
+Set `PODVERSE_HOME_OVERRIDES_DIR` before running `make local_env_prepare` or `make local_env_link`:
+
+```bash
+export PODVERSE_HOME_OVERRIDES_DIR="$HOME/.podverse/overrides"
+make local_env_link
+```
+
+Use the same value in every work tree so all of them point at the same directory.
+
+## Behavior details
+
+- **Prepare**: `make local_env_prepare` creates initial override files in the home directory
+  (`~/.config/podverse/local-env-overrides/` or `PODVERSE_HOME_OVERRIDES_DIR`) from
+  `dev/env-overrides/local/*.env.example`. It only creates files that are missing; it does not
+  write into the repo. Use the same `PODVERSE_HOME_OVERRIDES_DIR` for both prepare and link.
+- **Link (idempotent)**: Running `make local_env_link` again does not overwrite existing
+  `dev/env-overrides/local/*.env` files. If a file already exists (as a regular file or symlink),
+  it is left unchanged.
+- **Link (bootstrap)**: If a file is missing in the home directory, link creates it by copying the
+  corresponding `*.env.example` from the repo (or the repo’s real override file when present). So
+  you can run link first without running prepare.
+- **Sync from repo once**: If the home file already exists but was filled from example (e.g.
+  `ADD_BY_RSS_CREDENTIALS_ENCRYPTION_KEY` is empty) and the repo has a real override file with
+  values, link copies the repo file into the home directory and replaces the repo file with a
+  symlink to home. That way existing repo values move into ~/.config once; after that, edit only
+  the home directory.
+- **Symlink target**: Scripts use the absolute path for the home directory so symlinks work
+  regardless of the current working directory.
+
+## See also
+
+- [QUICKSTART.md](../QUICKSTART.md) – Full local setup and “Clean start” flow.
+- [CONTRIBUTING.md](CONTRIBUTING.md) – Workflow and `make start_feature_worktree`.
+- `make start_feature_worktree` – Create a new branch in a new work tree with env and history ready.
+- `make local_env_clean` – Removes generated env files but keeps `dev/env-overrides/local/*.env`
+  (and thus your symlinks) intact.

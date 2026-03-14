@@ -109,6 +109,7 @@ local_management_db_init: infra/config/local/management-db.env
 
 local_infra_up: local_db_up local_pgadmin_up local_mq_up local_keyvaldb_up local_management_db_up
 	@echo "All local infrastructure services started"
+	@echo "To create read/read_write DB users (required before first use): make local_db_init"
 
 local_setup: local_env_setup local_infra_up local_db_init
 	@echo ""
