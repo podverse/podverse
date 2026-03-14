@@ -37,6 +37,8 @@ spec:
           env:
             - name: NODE_ENV
               value: "production"
+            - name: DATABASE_URL
+              value: "postgresql://$(POSTGRES_MANAGEMENT_READ_WRITE_USER):$(POSTGRES_MANAGEMENT_READ_WRITE_PASSWORD)@podverse-db:5432/$(POSTGRES_MANAGEMENT_DB)"
           envFrom:
             - configMapRef:
                 name: podverse-management-api-config
