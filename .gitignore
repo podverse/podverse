@@ -34,7 +34,8 @@ apps/*/i18n/compiled/
 
 # Infra config files (gitignored - contain secrets)
 infra/config/local/
-infra/config/alpha/
+infra/config/alpha/*
+!infra/config/alpha/.gitkeep
 infra/pipelines/jenkins/alpha/setup/jenkins-sync.env
 dev/env-overrides/local/*.env
 !dev/env-overrides/local/*.env.example
