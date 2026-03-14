@@ -4,8 +4,8 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ALPHA_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 
-# Calculate repo root (4 levels up from alpha directory)
-REPO_ROOT="$(cd "$SCRIPT_DIR/../../../.." && pwd)"
+# Repo root (5 levels up from setup: setup → alpha → jenkins → pipelines → infra → root)
+REPO_ROOT="$(cd "$SCRIPT_DIR/../../../../../" && pwd)"
 JENKINSFILES_DIR="$ALPHA_DIR"
 SCM_JOB_XML_PATH="$ALPHA_DIR/scm-job.xml"
 

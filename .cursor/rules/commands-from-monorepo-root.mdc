@@ -9,10 +9,13 @@ alwaysApply: true
 
 **Copy button:** Always put runnable commands inside a **fenced code block** (e.g. ` ```bash ` … ` ``` `) so the IDE shows a copy button next to them. Never give only inline commands when the user might want to run them.
 
+**Verification commands:** When your response includes steps the user should run (e.g. to verify a change, smoke-test, or apply something), always end the response with a fenced code block containing the exact, copy-pasteable command(s). Do not omit this block or describe commands only in prose.
+
 ## Do
 
 - Put every runnable command in a fenced code block so a copy button appears.
 - When you change flake, env, or scripts and the user will want to run something to verify, end with a fenced code block containing the exact command(s) to run.
+- When giving verification or run instructions (smoke test, apply, confirm), always provide a final fenced code block with one command per line so the user can copy-paste.
 - From repo root: `npm run <script> -w apps/workers -- <args>`
 - From repo root: `npm run build:packages` then `npm run build -w apps/workers`
 - From repo root: `node apps/workers/dist/index.js devPiBulkFeedsAddFromFile -startId 1 -endId 10 -q rss-slow` (uses hardcoded path `infra/data/dev/podcast-index-feeds` relative to monorepo root)

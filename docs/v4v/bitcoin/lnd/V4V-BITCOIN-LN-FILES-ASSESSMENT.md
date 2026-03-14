@@ -42,9 +42,9 @@ metaBoost, diagram). This list is for everything else in the repo.
 
 ## 3. Makefile
 
-| Path                 | Role                                                                                                                                                                                                             | Move under v4v/bitcoin/lnd?                                                                                         |
-| -------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
-| `Makefile.local.v4v` | Targets: `local_ln_up`, `local_ln_down`, `local_ln_clean`, `local_lnd_http_proxy_*`, `local_ln_recipient_nodes_*`; invokes `scripts/v4v/btc/ln/*` and docker compose under `infra/docker/local/v4v/bitcoin/lnd/` | No – single Makefile for all V4V local targets; comment already points to `docs/v4v/bitcoin/lnd/LOCAL-LIGHTNING.md` |
+| Path                                    | Role                                                                                                                                                                                                             | Move under v4v/bitcoin/lnd?                                                                                         |
+| --------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| `makefiles/local/Makefile.local.v4v.mk` | Targets: `local_ln_up`, `local_ln_down`, `local_ln_clean`, `local_lnd_http_proxy_*`, `local_ln_recipient_nodes_*`; invokes `scripts/v4v/btc/ln/*` and docker compose under `infra/docker/local/v4v/bitcoin/lnd/` | No – single Makefile for all V4V local targets; comment already points to `docs/v4v/bitcoin/lnd/LOCAL-LIGHTNING.md` |
 
 ---
 
@@ -156,7 +156,7 @@ metaBoost, diagram). This list is for everything else in the repo.
 
 - **Already under a “v4v/btc/ln” path:** `scripts/v4v/btc/ln/lnd-http-proxy.js` (and all docs under `docs/v4v/bitcoin/lnd/`).
 - **Strong candidates to document only (no move):** Infra Docker, Nix, Makefile, config, parser-mapping, web Boost components, API metaboost, i18n, history. Reason: either shared across payment types, or moving would break build paths / require large refactors.
-- **Optional consolidation (scripts):** Move `scripts/ln/*` into `scripts/v4v/btc/ln/` so all Bitcoin LN automation lives under `scripts/v4v/btc/ln/`. Requires updating `Makefile.local.v4v` and any callers.
+- **Optional consolidation (scripts):** Move `scripts/ln/*` into `scripts/v4v/btc/ln/` so all Bitcoin LN automation lives under `scripts/v4v/btc/ln/`. Requires updating `makefiles/local/Makefile.local.v4v.mk` and any callers.
 - **Done:** `packages/v4v-btc-ln` holds LN-specific logic; `helpers-v4v` was split into `v4v-metaboost` and `v4v-helpers`; `helpers-v4v-web` was removed (code moved into v4v-btc-ln). Test-assets LN value-tag config/constants live in `v4v-btc-ln/test-data`.
 
 Use this list to decide which, if any, moves or new paths you want before changing layout.

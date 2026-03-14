@@ -21,7 +21,7 @@ pipeline {
                         // (Jenkins sh defaults to -e automatically)
                         sh '''
                             set -ux
-                            make alpha_keyvaldb_down
+                            make -f makefiles/alpha/Makefile.alpha.mk alpha_keyvaldb_down
                         '''
                     }
                 }

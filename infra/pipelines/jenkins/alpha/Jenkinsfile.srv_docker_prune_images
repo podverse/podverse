@@ -17,7 +17,7 @@ pipeline {
                     // Maps to 'pushd /opt/podverse'
                     dir('/opt/podverse') {
                         // Maps to 'make docker_prune_images'
-                        sh 'make docker_prune_images'
+                        sh 'make -f makefiles/alpha/Makefile.alpha.mk docker_prune_images'
                     }
                 }
             }

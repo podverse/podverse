@@ -74,7 +74,7 @@ pipeline {
                         // Preserving 'set -eux' from the XML for verbose output
                         sh '''
                             set -eux
-                            make alpha_workers_pull
+                            make -f makefiles/alpha/Makefile.alpha.mk alpha_workers_pull
                         '''
                     }
                 }

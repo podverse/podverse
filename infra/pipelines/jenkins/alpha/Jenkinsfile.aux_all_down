@@ -18,7 +18,7 @@ pipeline {
                     // The dir() block sets the working directory for the contained steps
                     dir('/opt/podverse') {
                         // Maps to 'make alpha_all_down'
-                        sh 'make alpha_all_down'
+                        sh 'make -f makefiles/alpha/Makefile.alpha.mk alpha_all_down'
                     }
                 }
             }

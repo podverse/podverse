@@ -70,7 +70,8 @@ Script paths: `scripts/v4v/btc/ln/*.sh` (and `lnd-http-proxy.js` in the same dir
 
 ### local_ln_up sequence
 
-`Makefile.local.v4v` (included via Makefile.local.infra) defines `local_ln_up`. The sequence:
+`makefiles/local/Makefile.local.v4v.mk` (included via makefiles/local/Makefile.local.infra.mk) defines
+`local_ln_up`. The sequence:
 
 ```mermaid
 sequenceDiagram

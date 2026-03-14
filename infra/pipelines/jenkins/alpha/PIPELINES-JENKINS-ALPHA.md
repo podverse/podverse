@@ -41,6 +41,11 @@ username:api_token
 
 ### 3) Smoke test (safe, no writes)
 
+**Always run the detailed smoke before applying.** It shows exactly which jobs would be created or
+updated and for what (including script path). It compares each job’s `scriptPath` to
+`./infra/pipelines/jenkins/alpha/Jenkinsfile.<jobname>` and reports mismatches (e.g. missing
+`infra/`). No jobs are modified.
+
 Quick summary:
 
 ```bash
@@ -56,6 +61,8 @@ make alpha_jenkins_sync_smoke_detailed
 These targets call verify scripts only and do not create/update Jenkins jobs.
 
 ### 4) Apply sync changes
+
+Run this only after reviewing the output of `make alpha_jenkins_sync_smoke_detailed`:
 
 ```bash
 make alpha_jenkins_sync_apply
@@ -88,6 +95,12 @@ Success criteria: `Total jobs that will be modified: 0`.
   `pipelines/alpha` -> `job/pipelines/job/alpha`).
 
 ## Troubleshooting
+
+Pipeline reports "file not found" when running:
+
+- The job’s Script Path in Jenkins must be `infra/pipelines/jenkins/alpha/Jenkinsfile.<name>` (with
+  the `infra/` prefix). Run `make alpha_jenkins_sync_smoke_detailed` to see current vs expected
+  script path; then run `make alpha_jenkins_sync_apply` to fix all jobs.
 
 Authentication errors:
 

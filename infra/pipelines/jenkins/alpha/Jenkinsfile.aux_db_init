@@ -17,7 +17,7 @@ pipeline {
                     // Maps to 'pushd /opt/podverse'
                     dir('/opt/podverse') {
                         // Maps to 'make alpha_db_init'
-                        sh 'make alpha_db_init'
+                        sh 'make -f makefiles/alpha/Makefile.alpha.mk alpha_db_init'
                     }
                 }
             }

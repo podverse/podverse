@@ -20,7 +20,7 @@ pipeline {
                         // Preserving 'set -ux' for verbose logging and unset variable checks.
                         sh '''
                             set -ux
-                            make alpha_keyvaldb_up
+                            make -f makefiles/alpha/Makefile.alpha.mk alpha_keyvaldb_up
                         '''
                     }
                 }

@@ -1,10 +1,10 @@
 # ==========================================
 # V4V local services (Boostbox + Lightning Network)
 # ==========================================
-# Included by Makefile.local.infra so targets are available for local_infra_up,
-# local_infra_up_full, local_all_down, local_clean. Can also be used standalone:
-#   make -f Makefile.local.v4v local_ln_up
-# Requires: Makefile.local.infra (for local_network_create and config paths).
+# Included by makefiles/local/Makefile.local.infra.mk so targets are available for local_infra_up,
+# local_infra_up_full, local_all_down, local_clean. Can also be used standalone from repo root:
+#   make -f makefiles/local/Makefile.local.v4v.mk local_ln_up
+# Requires: makefiles/local/Makefile.local.infra.mk (for local_network_create and config paths).
 
 # Boostbox (V4V boost metadata API; repo is sibling to podverse - see docs/infra/LOCAL-BOOSTBOX.md)
 .PHONY: local_build_boostbox

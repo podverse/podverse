@@ -13,7 +13,7 @@ pipeline {
             steps {
                 script {
                     dir('/opt/podverse') {
-                        sh 'make alpha_management_db_init'
+                        sh 'make -f makefiles/alpha/Makefile.alpha.mk alpha_management_db_init'
                     }
                 }
             }

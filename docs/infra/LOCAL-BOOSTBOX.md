@@ -8,7 +8,8 @@ source lives in a **separate repository**, not inside the Podverse monorepo.
 
 Boostbox is developed as its own project (e.g. [podverse/boostbox](https://github.com/podverse/boostbox)
 or [noblepayne/boostbox](https://github.com/noblepayne/boostbox)). It is cloned as a **sibling** of the
-Podverse repo so the Makefile can build its Docker image and start it as part of local infra (targets live in `Makefile.local.v4v`, included by `Makefile.local.infra`).
+Podverse repo so the Makefile can build its Docker image and start it as part of local infra (targets
+live in `makefiles/local/Makefile.local.v4v.mk`, included by `makefiles/local/Makefile.local.infra.mk`).
 
 ## Expected layout
 
