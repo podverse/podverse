@@ -72,8 +72,12 @@ export const startApp = async () => {
     const { profileContentRouter, myProfileContentRouter } =
       await import('./routes/profileContent.js');
 
+    app.get('/', (_req: Request, res: Response) => {
+      res.status(200).json({ status: 'ok', message: 'API is online' });
+    });
+
     app.get(`${baseUrl}/`, (_req: Request, res: Response) => {
-      res.send(`The server is running on port ${port}`);
+      res.status(200).json({ status: 'ok', message: 'API is online' });
     });
 
     app.get(`${baseUrl}/meta`, (_req: Request, res: Response) => {
