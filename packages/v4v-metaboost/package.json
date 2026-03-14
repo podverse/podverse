@@ -1,6 +1,6 @@
 {
   "name": "@podverse/v4v-metaboost",
-  "version": "5.4.4",
+  "version": "5.4.5",
   "description": "V4V metaBoost feed type and BoostBox API types and helpers",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
