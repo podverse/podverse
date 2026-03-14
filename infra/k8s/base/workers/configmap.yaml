@@ -41,7 +41,7 @@ data:
   ##DB_READ_PASSWORD: "your_read_password"              # in secrets
   ##DB_READ_WRITE_USERNAME: "read_write"                # in secrets
   ##DB_READ_WRITE_PASSWORD: "your_read_write_password"  # in secrets
-  # DB_DATABASE: "postgres"                             # in secrets
+  # DB_DATABASE: "podverse_app"                         # in secrets
   # Set to true for SSL connection
   DB_SSL_CONNECTION: ""
 

@@ -62,7 +62,7 @@ fi
 # ------------------------------------------------------------------
 # INPUTS
 # ------------------------------------------------------------------
-DEFAULT_DB="postgres"
+DEFAULT_DB="podverse_app"
 DEFAULT_USER="postgres"
 DEFAULT_READ_USER="read"
 DEFAULT_READ_WRITE_USER="read_write"
