@@ -14,7 +14,7 @@ services:
     ports:
       - 127.0.0.1:1234:1234
     volumes:
-      - ../../../../logs/api:/opt/logs
+      - /var/log/podverse/api:/opt/logs
     command: ["node", "apps/api/dist/index.js"]
     logging:
       driver: "syslog"
