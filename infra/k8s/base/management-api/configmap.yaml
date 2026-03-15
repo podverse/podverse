@@ -16,6 +16,7 @@ data:
   #####
 
   NODE_ENV: "production"
+  BRAND_NAME: "Podverse"
   LOG_LEVEL: "info"
   # No default. Leave empty for console-only (e.g. local/dev or container without file logging).
   # When using Docker with a log volume, set to the container path (e.g. /opt/logs).
@@ -55,6 +56,7 @@ data:
   #####
   ##### Database (Postgres - Management Database)
   #####
+  # DB_* values are supplied by secret podverse-management-db-opaque.
 
   DB_HOST: "podverse-db"
   DB_PORT: "5432"
@@ -62,6 +64,6 @@ data:
   # DB_READ_PASSWORD: "your_read_password"  # in secrets
   # DB_READ_WRITE_USERNAME: "read_write"    # in secrets
   # DB_READ_WRITE_PASSWORD: "read_write"    # in secrets
-  # DB_DATABASE: "postgres"                 # in secrets
+  # DB_DATABASE: "podverse_management"      # in secrets
   # Set to true for SSL connection
   DB_SSL_CONNECTION: ""

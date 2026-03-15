@@ -34,7 +34,7 @@ alpha_db_init: infra/config/alpha/db.env
 	docker exec -i podverse_alpha_db psql -U postgres -d "$${POSTGRES_DB:-postgres}" -f /opt/database/combined/init_database.sql
 	@echo "Creating read/read_write roles (idempotent)..."
 	@set -a; . infra/config/alpha/db.env; set +a; \
-	docker compose -f infra/docker/alpha/db/docker-compose.yml exec podverse_alpha_db bash -c "POSTGRES_READ_PASSWORD=$$POSTGRES_READ_PASSWORD POSTGRES_READ_WRITE_PASSWORD=$$POSTGRES_READ_WRITE_PASSWORD /opt/database/init-scripts/01-create-users.sh"
+	docker compose -f infra/docker/alpha/db/docker-compose.yml exec podverse_alpha_db bash -c "POSTGRES_READ_USER=$$POSTGRES_READ_USER POSTGRES_READ_PASSWORD=$$POSTGRES_READ_PASSWORD POSTGRES_READ_WRITE_USER=$$POSTGRES_READ_WRITE_USER POSTGRES_READ_WRITE_PASSWORD=$$POSTGRES_READ_WRITE_PASSWORD /opt/database/init-scripts/01-create-users.sh"
 
 alpha_mq_up: infra/config/alpha/mq.env
 	docker compose -f infra/docker/alpha/mq/docker-compose.yml up podverse_alpha_mq -d
@@ -129,6 +129,7 @@ alpha_setup: alpha_infra_up alpha_db_init alpha_management_db_init
 	@echo ""
 
 alpha_management_db_up: infra/config/alpha/management-db.env
+	@set -a; . infra/config/alpha/management-db.env; set +a; \
 	docker compose -f infra/docker/alpha/management-db/docker-compose.yml up podverse_alpha_management_db -d
 
 alpha_management_db_down:
@@ -136,37 +137,39 @@ alpha_management_db_down:
 
 alpha_management_db_reset:
 	@echo "Dropping and recreating public schema..."
-	docker exec -i podverse_alpha_management_db psql -U postgres -d postgres -c "DROP SCHEMA public CASCADE; CREATE SCHEMA public; GRANT ALL ON SCHEMA public TO postgres; GRANT ALL ON SCHEMA public TO public;"
+	@set -a; . infra/config/alpha/management-db.env; set +a; \
+	docker exec -i podverse_alpha_management_db psql -U "$$POSTGRES_MANAGEMENT_USER" -d "$${POSTGRES_MANAGEMENT_DB:-podverse_management}" -c "DROP SCHEMA public CASCADE; CREATE SCHEMA public; GRANT ALL ON SCHEMA public TO \"$$POSTGRES_MANAGEMENT_USER\"; GRANT ALL ON SCHEMA public TO public;"
 
 alpha_management_db_init: infra/config/alpha/management-db.env
 	@echo "Validating required environment variables..."
 	@set -a; . infra/config/alpha/management-db.env; set +a; \
-	: "$${SUPERUSER_EMAIL:?Missing SUPERUSER_EMAIL}" \
-	: "$${SUPERUSER_PASSWORD:?Missing SUPERUSER_PASSWORD}"
+	: "$${SUPERUSER_MANAGEMENT_EMAIL:?Missing SUPERUSER_MANAGEMENT_EMAIL}" \
+	: "$${SUPERUSER_MANAGEMENT_PASSWORD:?Missing SUPERUSER_MANAGEMENT_PASSWORD}"
 	@echo "Waiting for management database to be ready..."
-	@until docker exec podverse_alpha_management_db pg_isready -U postgres > /dev/null 2>&1; do \
+	@set -a; . infra/config/alpha/management-db.env; set +a; \
+	until docker exec podverse_alpha_management_db pg_isready -U "$$POSTGRES_MANAGEMENT_USER" > /dev/null 2>&1; do \
 		echo "  Management database not ready, waiting..."; \
 		sleep 2; \
 	done
 	@echo "Applying schema (init_management_database.sql)..."
 	@set -a; . infra/config/alpha/management-db.env; set +a; \
-	docker exec -i podverse_alpha_management_db psql -U postgres -d "$${POSTGRES_DB:-postgres}" -f /opt/database/management/init_management_database.sql
+	docker exec -i podverse_alpha_management_db psql -U "$$POSTGRES_MANAGEMENT_USER" -d "$${POSTGRES_MANAGEMENT_DB:-podverse_management}" -f /opt/database/management/init_management_database.sql
 	@echo "Creating read/read_write roles (idempotent)..."
 	@set -a; . infra/config/alpha/management-db.env; set +a; \
-	docker compose -f infra/docker/alpha/management-db/docker-compose.yml exec podverse_alpha_management_db bash -c "POSTGRES_READ_PASSWORD=$$POSTGRES_READ_PASSWORD POSTGRES_READ_WRITE_PASSWORD=$$POSTGRES_READ_WRITE_PASSWORD /opt/database/management/init-scripts/01-create-users.sh"
+	docker compose -f infra/docker/alpha/management-db/docker-compose.yml exec podverse_alpha_management_db bash -c "POSTGRES_MANAGEMENT_DB=$$POSTGRES_MANAGEMENT_DB POSTGRES_MANAGEMENT_USER=$$POSTGRES_MANAGEMENT_USER POSTGRES_MANAGEMENT_READ_USER=$$POSTGRES_MANAGEMENT_READ_USER POSTGRES_MANAGEMENT_READ_PASSWORD=$$POSTGRES_MANAGEMENT_READ_PASSWORD POSTGRES_MANAGEMENT_READ_WRITE_USER=$$POSTGRES_MANAGEMENT_READ_WRITE_USER POSTGRES_MANAGEMENT_READ_WRITE_PASSWORD=$$POSTGRES_MANAGEMENT_READ_WRITE_PASSWORD /opt/database/management/init-scripts/01-create-users.sh"
 	@echo "Creating superuser account..."
 	@set -a; . infra/config/alpha/management-db.env; set +a; \
 	docker run --rm \
 	  --network podverse_alpha_network \
 	  -v "$$(pwd)/scripts/management:/opt/scripts/management" \
 	  -w /opt/scripts/management \
-	  -e SUPERUSER_EMAIL="$$SUPERUSER_EMAIL" \
-	  -e SUPERUSER_PASSWORD="$$SUPERUSER_PASSWORD" \
+	  -e SUPERUSER_MANAGEMENT_EMAIL="$$SUPERUSER_MANAGEMENT_EMAIL" \
+	  -e SUPERUSER_MANAGEMENT_PASSWORD="$$SUPERUSER_MANAGEMENT_PASSWORD" \
 	  -e DB_HOST="podverse_alpha_management_db" \
 	  -e DB_PORT="5432" \
-	  -e DB_DATABASE="$${POSTGRES_DB:-postgres}" \
-	  -e POSTGRES_USER="$${POSTGRES_USER:-postgres}" \
-	  -e POSTGRES_PASSWORD="$$POSTGRES_PASSWORD" \
+	  -e DB_DATABASE="$${POSTGRES_MANAGEMENT_DB:-podverse_management}" \
+	  -e POSTGRES_USER="$$POSTGRES_MANAGEMENT_USER" \
+	  -e POSTGRES_PASSWORD="$$POSTGRES_MANAGEMENT_PASSWORD" \
 	  node:24-slim \
 	  sh -c "npm install && node create-superuser.mjs"
 

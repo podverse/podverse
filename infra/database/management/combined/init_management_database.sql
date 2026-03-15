@@ -1,7 +1,10 @@
--- Combined migrations generated Fri Mar 13 14:22:34 CDT 2026
+-- Combined migrations generated Sat Mar 14 06:16:37 PM PDT 2026
 -- DO NOT EDIT - regenerate with scripts/database/combine-migrations.sh
 
 -- Including: 0000_init_helpers.sql
+-- Connect to the management database explicitly before running migrations
+\c podverse_management
+
 -- 0000 migration
 
 -- Extensions

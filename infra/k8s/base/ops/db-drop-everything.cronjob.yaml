@@ -18,7 +18,11 @@ spec:
             - name: psql
               image: postgres
               command:
-                ["psql", "-h", "podverse-db", "-U", "postgres", "-d", "postgres", "-c", "DROP SCHEMA public CASCADE; CREATE SCHEMA public;"]
+                - "sh"
+                - "-c"
+                - >-
+                  psql -h "$PODVERSE_DB_SERVICE_HOST" -p "$PODVERSE_DB_SERVICE_PORT" -U "$POSTGRES_USER" -d "$DB_DATABASE" -c
+                  "DROP SCHEMA public CASCADE; CREATE SCHEMA public;"
 
               envFrom:
                 - secretRef:

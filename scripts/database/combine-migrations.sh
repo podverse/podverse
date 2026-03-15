@@ -14,25 +14,25 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 
 append_indented_file() {
-	local source_file="$1"
-	local indent="$2"
-	local target_file="$3"
+  local source_file="$1"
+  local indent="$2"
+  local target_file="$3"
 
-	while IFS= read -r line || [[ -n "$line" ]]; do
-		if [[ -z "${line//[[:space:]]/}" ]]; then
-			printf '\n' >>"$target_file"
-			continue
-		fi
-		printf '%s%s\n' "$indent" "$line" >>"$target_file"
-	done <"$source_file"
+  while IFS= read -r line || [[ -n "$line" ]]; do
+    if [[ -z "${line//[[:space:]]/}" ]]; then
+      printf '\n' >>"$target_file"
+      continue
+    fi
+    printf '%s%s\n' "$indent" "$line" >>"$target_file"
+  done <"$source_file"
 }
 
 ensure_parent_dir() {
-	local target_path="$1"
-	local target_dir
+  local target_path="$1"
+  local target_dir
 
-	target_dir="$(dirname "$target_path")"
-	mkdir -p "$target_dir"
+  target_dir="$(dirname "$target_path")"
+  mkdir -p "$target_dir"
 }
 
 # Main database
@@ -49,15 +49,15 @@ echo "" >>"$MAIN_COMBINED"
 
 main_migrations=("$MAIN_MIGRATIONS"/*.sql)
 if ((${#main_migrations[@]} > 0)); then
-	mapfile -t main_migrations_sorted < <(printf '%s\n' "${main_migrations[@]}" | sort)
-	for migration in "${main_migrations_sorted[@]}"; do
-		{
-			echo "-- Including: $(basename "$migration")"
-			cat "$migration"
-			echo ""
-			echo ""
-		} >>"$MAIN_COMBINED"
-	done
+  mapfile -t main_migrations_sorted < <(printf '%s\n' "${main_migrations[@]}" | sort)
+  for migration in "${main_migrations_sorted[@]}"; do
+    {
+      echo "-- Including: $(basename "$migration")"
+      cat "$migration"
+      echo ""
+      echo ""
+    } >>"$MAIN_COMBINED"
+  done
 fi
 
 echo "✓ Main database combined: $MAIN_COMBINED"
@@ -84,6 +84,8 @@ echo "✓ K8s ConfigMap written: $MAIN_CONFIGMAP"
 # Management database
 MGMT_MIGRATIONS="$REPO_ROOT/infra/database/management/migrations"
 MGMT_COMBINED="$REPO_ROOT/infra/database/management/combined/init_management_database.sql"
+MGMT_INIT_SCRIPTS="$REPO_ROOT/infra/database/management/init-scripts/01-create-users.sh"
+MGMT_CONFIGMAP="$REPO_ROOT/infra/k8s/base/db/management-init-scripts.configmap.yaml"
 
 echo "Combining management database migrations..."
 ensure_parent_dir "$MGMT_COMBINED"
@@ -93,17 +95,36 @@ echo "" >>"$MGMT_COMBINED"
 
 mgmt_migrations=("$MGMT_MIGRATIONS"/*.sql)
 if ((${#mgmt_migrations[@]} > 0)); then
-	mapfile -t mgmt_migrations_sorted < <(printf '%s\n' "${mgmt_migrations[@]}" | sort)
-	for migration in "${mgmt_migrations_sorted[@]}"; do
-		{
-			echo "-- Including: $(basename "$migration")"
-			cat "$migration"
-			echo ""
-			echo ""
-		} >>"$MGMT_COMBINED"
-	done
+  mapfile -t mgmt_migrations_sorted < <(printf '%s\n' "${mgmt_migrations[@]}" | sort)
+  for migration in "${mgmt_migrations_sorted[@]}"; do
+    {
+      echo "-- Including: $(basename "$migration")"
+      cat "$migration"
+      echo ""
+      echo ""
+    } >>"$MGMT_COMBINED"
+  done
 fi
 
 echo "✓ Management database combined: $MGMT_COMBINED"
+
+echo "Generating Management K8s init scripts ConfigMap..."
+ensure_parent_dir "$MGMT_CONFIGMAP"
+cat <<EOF >"$MGMT_CONFIGMAP"
+apiVersion: v1
+kind: ConfigMap
+# DO NOT EDIT - regenerate with scripts/database/combine-migrations.sh
+metadata:
+  name: podverse-management-db-init-scripts
+data:
+  01-create-users.sh: |
+EOF
+append_indented_file "$MGMT_INIT_SCRIPTS" "    " "$MGMT_CONFIGMAP"
+cat <<EOF >>"$MGMT_CONFIGMAP"
+  00_init_management_database.sql: |
+EOF
+append_indented_file "$MGMT_COMBINED" "    " "$MGMT_CONFIGMAP"
+
+echo "✓ Management K8s ConfigMap written: $MGMT_CONFIGMAP"
 echo ""
 echo "Done! Both databases combined successfully."
