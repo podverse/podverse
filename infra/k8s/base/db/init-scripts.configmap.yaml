@@ -5,7 +5,7 @@ metadata:
   name: podverse-db-init-scripts
 data:
   00_init_database.sql: |
-    -- Combined migrations generated Fri Mar 13 14:22:34 CDT 2026
+    -- Combined migrations generated Sat Mar 14 06:16:36 PM PDT 2026
     -- DO NOT EDIT - regenerate with scripts/database/combine-migrations.sh
 
     -- Including: 0000_init_helpers.sql
@@ -1952,6 +1952,7 @@ data:
         UNIQUE (item_value_id)
     );
 
+
   01-create-users.sh: |
     #!/bin/bash
     set -e
@@ -1962,7 +1963,7 @@ data:
     : "${POSTGRES_READ_WRITE_USER:?Missing POSTGRES_READ_WRITE_USER}"
     : "${POSTGRES_READ_WRITE_PASSWORD:?Missing POSTGRES_READ_WRITE_PASSWORD}"
 
-    psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" << SQL
+    psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<SQL
     DO \$\$
     BEGIN
         IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = '${POSTGRES_READ_USER}') THEN
