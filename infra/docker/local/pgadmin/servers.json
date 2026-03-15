@@ -5,18 +5,18 @@
       "Group": "Local Dev",
       "Host": "podverse_local_db",
       "Port": 5432,
-      "MaintenanceDB": "podverse_main",
-      "Username": "postgres",
+      "MaintenanceDB": "podverse_app",
+      "Username": "postgres_user_app",
       "PassFile": "/var/lib/pgadmin/.pgpass",
       "SSLMode": "prefer"
     },
     "2": {
       "Name": "Local Management",
       "Group": "Local Dev",
-      "Host": "podverse_local_management_db",
+      "Host": "podverse_local_db",
       "Port": 5432,
       "MaintenanceDB": "podverse_management",
-      "Username": "postgres",
+      "Username": "postgres_user_management",
       "PassFile": "/var/lib/pgadmin/.pgpass",
       "SSLMode": "prefer"
     }

@@ -10,6 +10,7 @@ set -e
 : "${POSTGRES_MANAGEMENT_READ_PASSWORD:?Missing POSTGRES_MANAGEMENT_READ_PASSWORD}"
 : "${POSTGRES_MANAGEMENT_READ_WRITE_USER:?Missing POSTGRES_MANAGEMENT_READ_WRITE_USER}"
 : "${POSTGRES_MANAGEMENT_READ_WRITE_PASSWORD:?Missing POSTGRES_MANAGEMENT_READ_WRITE_PASSWORD}"
+: "${POSTGRES_MANAGEMENT_PASSWORD:?Missing POSTGRES_MANAGEMENT_PASSWORD}"
 
 # 1. Connect to the default database as the default superuser to bootstrap the management DB
 psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<SQL
@@ -26,6 +27,10 @@ DB_EXISTS=$(psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -tAc "SELECT 1 FROM pg_da
 if [ "$DB_EXISTS" != "1" ]; then
   psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c "CREATE DATABASE ${POSTGRES_MANAGEMENT_DB} OWNER ${POSTGRES_MANAGEMENT_USER};"
 fi
+
+# Set password for management superuser so create-superuser (and other TCP clients) can authenticate.
+# DB passwords must not contain single quotes; automatic generators (setup.sh, create_management_db_secret.sh) emit hex-only.
+psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" -c "ALTER USER \"${POSTGRES_MANAGEMENT_USER}\" WITH PASSWORD '${POSTGRES_MANAGEMENT_PASSWORD}';"
 
 # 2. Connect to the new management DB as the management superuser to create access roles
 psql -v ON_ERROR_STOP=1 --username "$POSTGRES_MANAGEMENT_USER" --dbname "$POSTGRES_MANAGEMENT_DB" <<SQL

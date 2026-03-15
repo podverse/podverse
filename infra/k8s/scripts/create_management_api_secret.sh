@@ -7,7 +7,6 @@ set -euo pipefail
 # ------------------------------------------------------------------
 # CONFIGURATION
 # ------------------------------------------------------------------
-PASSWORD_LENGTH=20
 AUTO_GEN=false
 OUTPUT_FILE_OVERRIDE=""
 
@@ -28,9 +27,9 @@ while [[ $# -gt 0 ]]; do
 	esac
 done
 
-# Generate secure random password
+# Generate secure random JWT secret (UUID format; consistent with setup.sh AUTH_JWT_SECRET)
 generate_password() {
-	uuidgen
+	uuidgen | tr '[:upper:]' '[:lower:]' | tr -d '\n'
 }
 
 echo "Running create_management-api_secret.sh"

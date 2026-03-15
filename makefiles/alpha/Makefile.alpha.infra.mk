@@ -21,17 +21,19 @@ alpha_db_down:
 
 alpha_db_reset:
 	@echo "Dropping and recreating public schema..."
-	docker exec -i podverse_alpha_db psql -U postgres -d postgres -c "DROP SCHEMA public CASCADE; CREATE SCHEMA public; GRANT ALL ON SCHEMA public TO postgres; GRANT ALL ON SCHEMA public TO public;"
+	@set -a; . infra/config/alpha/db.env; set +a; \
+	docker exec -i podverse_alpha_db psql -U "$$POSTGRES_USER" -d "$${POSTGRES_DB:-podverse_app}" -c "DROP SCHEMA public CASCADE; CREATE SCHEMA public; GRANT ALL ON SCHEMA public TO \"$$POSTGRES_USER\"; GRANT ALL ON SCHEMA public TO public;"
 
 alpha_db_init: infra/config/alpha/db.env
 	@echo "Waiting for database to be ready..."
-	@until docker exec podverse_alpha_db pg_isready -U postgres > /dev/null 2>&1; do \
+	@set -a; . infra/config/alpha/db.env; set +a; \
+	until docker exec podverse_alpha_db pg_isready -U "$$POSTGRES_USER" > /dev/null 2>&1; do \
 		echo "  Database not ready, waiting..."; \
 		sleep 2; \
 	done
 	@echo "Applying schema (init_database.sql)..."
 	@set -a; . infra/config/alpha/db.env; set +a; \
-	docker exec -i podverse_alpha_db psql -U postgres -d "$${POSTGRES_DB:-postgres}" -f /opt/database/combined/init_database.sql
+	docker exec -i podverse_alpha_db psql -U "$$POSTGRES_USER" -d "$${POSTGRES_DB:-podverse_app}" -f /opt/database/combined/init_database.sql
 	@echo "Creating read/read_write roles (idempotent)..."
 	@set -a; . infra/config/alpha/db.env; set +a; \
 	docker compose -f infra/docker/alpha/db/docker-compose.yml exec podverse_alpha_db bash -c "POSTGRES_READ_USER=$$POSTGRES_READ_USER POSTGRES_READ_PASSWORD=$$POSTGRES_READ_PASSWORD POSTGRES_READ_WRITE_USER=$$POSTGRES_READ_WRITE_USER POSTGRES_READ_WRITE_PASSWORD=$$POSTGRES_READ_WRITE_PASSWORD /opt/database/init-scripts/01-create-users.sh"
@@ -107,7 +109,6 @@ alpha_clean:
 	docker compose -f infra/docker/alpha/db/docker-compose.yml down -v --rmi all 2>/dev/null || true
 	docker compose -f infra/docker/alpha/mq/docker-compose.yml down -v --rmi all 2>/dev/null || true
 	docker compose -f infra/docker/alpha/keyvaldb/docker-compose.yml down -v --rmi all 2>/dev/null || true
-	docker compose -f infra/docker/alpha/management-db/docker-compose.yml down -v --rmi all 2>/dev/null || true
 	-$(MAKE) alpha_web_down
 	-$(MAKE) alpha_api_down
 	-$(MAKE) alpha_workers_down
@@ -116,7 +117,7 @@ alpha_clean:
 	-$(MAKE) alpha_network_remove
 	@echo "Alpha environment cleaned."
 
-alpha_infra_up: alpha_db_up alpha_mq_up alpha_keyvaldb_up alpha_management_db_up
+alpha_infra_up: alpha_db_up alpha_mq_up alpha_keyvaldb_up
 	@echo "All alpha infrastructure services started"
 
 alpha_setup: alpha_infra_up alpha_db_init alpha_management_db_init
@@ -128,44 +129,44 @@ alpha_setup: alpha_infra_up alpha_db_init alpha_management_db_init
 	@echo "To restart services later: make alpha_infra_up"
 	@echo ""
 
-alpha_management_db_up: infra/config/alpha/management-db.env
-	@set -a; . infra/config/alpha/management-db.env; set +a; \
-	docker compose -f infra/docker/alpha/management-db/docker-compose.yml up podverse_alpha_management_db -d
+alpha_management_db_up: alpha_db_up
+	@echo "Management DB is hosted in podverse_alpha_db (single-container mode)."
 
 alpha_management_db_down:
-	docker compose -f infra/docker/alpha/management-db/docker-compose.yml down --remove-orphans --rmi all
+	@echo "Management DB is hosted in podverse_alpha_db; stopping Postgres container."
+	@$(MAKE) alpha_db_down
 
 alpha_management_db_reset:
 	@echo "Dropping and recreating public schema..."
-	@set -a; . infra/config/alpha/management-db.env; set +a; \
-	docker exec -i podverse_alpha_management_db psql -U "$$POSTGRES_MANAGEMENT_USER" -d "$${POSTGRES_MANAGEMENT_DB:-podverse_management}" -c "DROP SCHEMA public CASCADE; CREATE SCHEMA public; GRANT ALL ON SCHEMA public TO \"$$POSTGRES_MANAGEMENT_USER\"; GRANT ALL ON SCHEMA public TO public;"
+	@set -a; . infra/config/alpha/db.env; set +a; \
+	docker exec -i podverse_alpha_db psql -U "$$POSTGRES_MANAGEMENT_USER" -d "$${POSTGRES_MANAGEMENT_DB:-podverse_management}" -c "DROP SCHEMA public CASCADE; CREATE SCHEMA public; GRANT ALL ON SCHEMA public TO \"$$POSTGRES_MANAGEMENT_USER\"; GRANT ALL ON SCHEMA public TO public;"
 
-alpha_management_db_init: infra/config/alpha/management-db.env
+alpha_management_db_init: infra/config/alpha/db.env
 	@echo "Validating required environment variables..."
-	@set -a; . infra/config/alpha/management-db.env; set +a; \
-	: "$${SUPERUSER_MANAGEMENT_EMAIL:?Missing SUPERUSER_MANAGEMENT_EMAIL}" \
-	: "$${SUPERUSER_MANAGEMENT_PASSWORD:?Missing SUPERUSER_MANAGEMENT_PASSWORD}"
+	@set -a; . infra/config/alpha/db.env; set +a; \
+	: "$${MANAGEMENT_SUPERUSER_EMAIL:?Missing MANAGEMENT_SUPERUSER_EMAIL}" \
+	: "$${MANAGEMENT_SUPERUSER_PASSWORD:?Missing MANAGEMENT_SUPERUSER_PASSWORD}"
 	@echo "Waiting for management database to be ready..."
-	@set -a; . infra/config/alpha/management-db.env; set +a; \
-	until docker exec podverse_alpha_management_db pg_isready -U "$$POSTGRES_MANAGEMENT_USER" > /dev/null 2>&1; do \
+	@set -a; . infra/config/alpha/db.env; set +a; \
+	until docker exec podverse_alpha_db pg_isready -U "$$POSTGRES_USER" > /dev/null 2>&1; do \
 		echo "  Management database not ready, waiting..."; \
 		sleep 2; \
 	done
+	@echo "Creating management database and roles (idempotent)..."
+	@set -a; . infra/config/alpha/db.env; set +a; \
+	docker compose -f infra/docker/alpha/db/docker-compose.yml exec podverse_alpha_db bash -c "POSTGRES_USER=$$POSTGRES_USER POSTGRES_DB=$${POSTGRES_DB:-podverse_app} POSTGRES_MANAGEMENT_DB=$${POSTGRES_MANAGEMENT_DB:-podverse_management} POSTGRES_MANAGEMENT_USER=$$POSTGRES_MANAGEMENT_USER POSTGRES_MANAGEMENT_PASSWORD=$$POSTGRES_MANAGEMENT_PASSWORD POSTGRES_MANAGEMENT_READ_USER=$$POSTGRES_MANAGEMENT_READ_USER POSTGRES_MANAGEMENT_READ_PASSWORD=$$POSTGRES_MANAGEMENT_READ_PASSWORD POSTGRES_MANAGEMENT_READ_WRITE_USER=$$POSTGRES_MANAGEMENT_READ_WRITE_USER POSTGRES_MANAGEMENT_READ_WRITE_PASSWORD=$$POSTGRES_MANAGEMENT_READ_WRITE_PASSWORD /opt/database/management/init-scripts/01-create-users.sh"
 	@echo "Applying schema (init_management_database.sql)..."
-	@set -a; . infra/config/alpha/management-db.env; set +a; \
-	docker exec -i podverse_alpha_management_db psql -U "$$POSTGRES_MANAGEMENT_USER" -d "$${POSTGRES_MANAGEMENT_DB:-podverse_management}" -f /opt/database/management/init_management_database.sql
-	@echo "Creating read/read_write roles (idempotent)..."
-	@set -a; . infra/config/alpha/management-db.env; set +a; \
-	docker compose -f infra/docker/alpha/management-db/docker-compose.yml exec podverse_alpha_management_db bash -c "POSTGRES_MANAGEMENT_DB=$$POSTGRES_MANAGEMENT_DB POSTGRES_MANAGEMENT_USER=$$POSTGRES_MANAGEMENT_USER POSTGRES_MANAGEMENT_READ_USER=$$POSTGRES_MANAGEMENT_READ_USER POSTGRES_MANAGEMENT_READ_PASSWORD=$$POSTGRES_MANAGEMENT_READ_PASSWORD POSTGRES_MANAGEMENT_READ_WRITE_USER=$$POSTGRES_MANAGEMENT_READ_WRITE_USER POSTGRES_MANAGEMENT_READ_WRITE_PASSWORD=$$POSTGRES_MANAGEMENT_READ_WRITE_PASSWORD /opt/database/management/init-scripts/01-create-users.sh"
+	@set -a; . infra/config/alpha/db.env; set +a; \
+	docker exec -i podverse_alpha_db psql -U "$$POSTGRES_MANAGEMENT_USER" -d "$${POSTGRES_MANAGEMENT_DB:-podverse_management}" -f /opt/database/management/init_management_database.sql
 	@echo "Creating superuser account..."
-	@set -a; . infra/config/alpha/management-db.env; set +a; \
+	@set -a; . infra/config/alpha/db.env; set +a; \
 	docker run --rm \
 	  --network podverse_alpha_network \
 	  -v "$$(pwd)/scripts/management:/opt/scripts/management" \
 	  -w /opt/scripts/management \
-	  -e SUPERUSER_MANAGEMENT_EMAIL="$$SUPERUSER_MANAGEMENT_EMAIL" \
-	  -e SUPERUSER_MANAGEMENT_PASSWORD="$$SUPERUSER_MANAGEMENT_PASSWORD" \
-	  -e DB_HOST="podverse_alpha_management_db" \
+	  -e MANAGEMENT_SUPERUSER_EMAIL="$$MANAGEMENT_SUPERUSER_EMAIL" \
+	  -e MANAGEMENT_SUPERUSER_PASSWORD="$$MANAGEMENT_SUPERUSER_PASSWORD" \
+	  -e DB_HOST="podverse_alpha_db" \
 	  -e DB_PORT="5432" \
 	  -e DB_DATABASE="$${POSTGRES_MANAGEMENT_DB:-podverse_management}" \
 	  -e POSTGRES_USER="$$POSTGRES_MANAGEMENT_USER" \

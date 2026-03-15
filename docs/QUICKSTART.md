@@ -63,7 +63,7 @@ when you run with npm (e.g. `npm run dev:web`), use the app `.env`/`.env.local` 
 - Starts pgAdmin (database browser) at `http://localhost:5051`
 - Initializes database schemas and users
 
-**Note**: Only run `local_setup` once for initial setup. To restart services later, use `make local_infra_up`. If you ran `local_env_setup` and `local_infra_up` separately (e.g. after the [prepare → link → setup](development/LOCAL-ENV-OVERRIDES.md) flow), run `make local_db_init` before starting apps so the Postgres `read`/`read_write` users exist.
+**Note**: Only run `local_setup` once for initial setup. To restart services later, use `make local_infra_up`. If you ran `local_env_setup` and `local_infra_up` separately (e.g. after the [prepare → link → setup](development/LOCAL-ENV-OVERRIDES.md) flow), run `make local_db_init` before starting apps so the Postgres roles (`podverse_app_read`, `podverse_app_read_write`, `podverse_management_read`, `podverse_management_read_write`) exist.
 
 ### 4. Build Packages
 
@@ -111,16 +111,16 @@ This account is pre-verified with a trial membership (expires in 1 year).
 
 ## Verification Checklist
 
-| Component     | URL                                   | Expected                                                                        |
-| ------------- | ------------------------------------- | ------------------------------------------------------------------------------- |
-| API           | http://localhost:1234/api/v2/meta     | JSON response with version info                                                 |
-| Web           | http://localhost:3000                 | Podverse homepage loads                                                         |
-| Database      | `docker ps \| grep podverse_local_db` | Container running                                                               |
-| pgAdmin       | http://localhost:5051                 | Two servers: Local Main (podverse_main), Local Management (podverse_management) |
-| Message Queue | http://localhost:8161                 | Artemis console (user/mysecretpw)                                               |
-| Cache         | http://localhost:8001                 | RedisInsight GUI                                                                |
+| Component     | URL                                   | Expected                                                                       |
+| ------------- | ------------------------------------- | ------------------------------------------------------------------------------ |
+| API           | http://localhost:1234/api/v2/meta     | JSON response with version info                                                |
+| Web           | http://localhost:3000                 | Podverse homepage loads                                                        |
+| Database      | `docker ps \| grep podverse_local_db` | Container running                                                              |
+| pgAdmin       | http://localhost:5051                 | Two servers: Local Main (podverse_app), Local Management (podverse_management) |
+| Message Queue | http://localhost:8161                 | Artemis console (user/mysecretpw)                                              |
+| Cache         | http://localhost:8001                 | RedisInsight GUI                                                               |
 
-**pgAdmin:** The password is read from a pgpass file, so you can expand Local Main or Local Management without entering a password. For local DBs, set `POSTGRES_DB=podverse_main` in `infra/config/local/db.env` and `POSTGRES_DB=podverse_management` in `infra/config/local/management-db.env` (e.g. via `make local_env_setup`). If you see "database podverse_main does not exist", either **(A)** set those env values, remove the DB volume(s), and run `make local_db_up` so Postgres creates the DBs on first init, or **(B)** create the databases manually: `docker exec -it podverse_local_db psql -U postgres -c 'CREATE DATABASE podverse_main;'` and for management: `docker exec -it podverse_local_management_db psql -U postgres -c 'CREATE DATABASE podverse_management;'`.
+**pgAdmin:** The password is read from a pgpass file, so you can expand Local Main or Local Management without entering a password. For local DBs, set `POSTGRES_DB=podverse_app` and `POSTGRES_MANAGEMENT_DB=podverse_management` in `infra/config/local/db.env` (e.g. via `make local_env_setup`). If you see missing database errors, either **(A)** set those env values, remove the DB volume(s), and run `make local_db_up` so Postgres creates the DBs on first init, or **(B)** create the databases manually: `docker exec -it podverse_local_db psql -U postgres_user_app -c 'CREATE DATABASE podverse_app;'` and `docker exec -it podverse_local_db psql -U postgres_user_app -c 'CREATE DATABASE podverse_management;'`.
 
 ## Development Workflow
 
@@ -251,7 +251,7 @@ make local_db_up
 ### Management Database Connection Refused
 
 ```
-Error: connect ECONNREFUSED 127.0.0.1:5999
+Error: connect ECONNREFUSED 127.0.0.1:5432
 ```
 
 This error occurs when the management database isn't running.
@@ -339,7 +339,7 @@ Note: `local_clean` removes containers and data volumes but preserves Docker ima
 ### Clean start and correct alignment
 
 Use this sequence when you want a clean slate and to ensure DB passwords stay aligned with env
-files (e.g. after changing overrides or fixing "password authentication failed for user read"):
+files (e.g. after changing overrides or fixing authentication failures for `podverse_app_read` / `podverse_management_read`):
 
 **Minimal (recommended):**
 
@@ -358,9 +358,9 @@ make local_setup
 npm run build:packages
 ```
 
-`local_setup` runs `local_env_setup` (which populates `infra/config/local/db.env` and
-`infra/config/local/management-db.env`), then starts infra and runs DB inits. The init scripts
-sync the `read` / `read_write` user passwords from those env files every time, so the databases
+`local_setup` runs `local_env_setup` (which populates `infra/config/local/db.env`), then starts
+infra and runs DB inits. The init scripts
+sync the app/management read and read_write user passwords from those env files every time, so the databases
 stay aligned with `local_env_setup` results.
 
 To remove only the generated local env files (infra + app .env) and keep
@@ -470,7 +470,6 @@ Docker services use configs in `infra/config/local/`:
 - `management-web.env` - Management web runtime-config sidecar values
 - `mq.env` - ActiveMQ Artemis settings
 - `keyvaldb.env` - Valkey/Redis settings
-- `management-db.env` - Management PostgreSQL settings
 
 ### Customizing Configuration
 
