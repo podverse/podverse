@@ -106,24 +106,6 @@ Success criteria: `Total jobs that will be modified: 0`.
   is empty. These two jobs replace the manual one-time clean-slate procedure (wipe DB data, re-init
   both DBs) documented elsewhere.
 
-## One-time setup on alpha agents (srv and aux)
-
-Alpha Docker services (api, management-api, workers) write logs to **host paths outside the
-workspace** (`/var/log/podverse/<service>`) so that Jenkins checkout never hits root-owned
-directories and `git clean` does not fail with "Permission denied".
-
-On **each** alpha agent (srv and aux), run **once** as root (e.g. when provisioning a new server or
-a new Jenkins agent):
-
-```bash
-sudo mkdir -p /var/log/podverse
-sudo chown <jenkins_agent_user>:<jenkins_agent_user> /var/log/podverse
-```
-
-Replace `<jenkins_agent_user>` with the user that runs the Jenkins agent on that node (e.g.
-`pv-jenkins`). After this, Jenkins jobs create service subdirs (`management-api`, `api`, `workers`)
-and Docker containers write logs there; the workspace stays clean and checkout always succeeds.
-
 ## Troubleshooting
 
 Pipeline reports "file not found" when running:
@@ -145,12 +127,3 @@ No local Jenkinsfiles detected:
 Template not found:
 
 - Confirm `infra/pipelines/jenkins/alpha/scm-job.xml` exists
-
-Checkout fails with "Permission denied" on `logs/...` (git clean):
-
-- Alpha log dirs are now under `/var/log/podverse/`, not in the workspace. If you still see
-  permission errors on `logs/management-api` (or similar), the agent may have been used before this
-  change. Fix the current workspace once: on the agent run
-  `sudo chown -R <jenkins_user>:<jenkins_user> /home/<jenkins_user>/workspace/pipelines/alpha/srv_management_api_up`
-  (or the reported workspace path). Ensure the one-time setup above is done so future runs never
-  create root-owned dirs in the workspace.

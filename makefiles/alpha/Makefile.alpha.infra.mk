@@ -6,12 +6,6 @@
 .PHONY: alpha_infra_up alpha_setup
 .PHONY: alpha_management_db_up alpha_management_db_down alpha_management_db_reset alpha_management_db_init
 .PHONY: alpha_management_api_up alpha_management_api_down alpha_management_web_up alpha_management_web_down
-.PHONY: alpha_ensure_log_dirs
-
-# Create log dirs outside workspace so Jenkins checkout (git clean) never hits root-owned dirs.
-# Requires one-time setup on each alpha agent: sudo mkdir -p /var/log/podverse && sudo chown <jenkins_user>:<jenkins_user> /var/log/podverse
-alpha_ensure_log_dirs:
-	mkdir -p /var/log/podverse/management-api /var/log/podverse/api /var/log/podverse/workers
 
 alpha_network_create:
 	docker network create podverse_alpha_network
@@ -71,7 +65,7 @@ alpha_workers_down:
 		docker rmi $$(docker images --filter=reference='ghcr.io/podverse/podverse/workers/*' -q) 2>/dev/null || true; \
 	fi
 
-alpha_api_up: alpha_ensure_log_dirs infra/config/alpha/api.env
+alpha_api_up: infra/config/alpha/api.env
 	docker compose -f infra/docker/alpha/api/docker-compose.yml up podverse_alpha_api -d
 
 alpha_api_down:
@@ -180,7 +174,7 @@ alpha_management_db_init: infra/config/alpha/db.env
 	  node:24-slim \
 	  sh -c "npm install && node create-superuser.mjs"
 
-alpha_management_api_up: alpha_ensure_log_dirs infra/config/alpha/management-api.env
+alpha_management_api_up: infra/config/alpha/management-api.env
 	docker compose -f infra/docker/alpha/management-api/docker-compose.yml up podverse_alpha_management_api -d
 
 alpha_management_api_down:

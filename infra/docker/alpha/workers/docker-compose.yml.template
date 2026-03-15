@@ -13,7 +13,7 @@ services:
       - podverse_alpha_network
     volumes:
       - ../../../config/google/firebase/firebase-admin.json:/opt/config/google/firebase/firebase-admin.json:ro
-      - /var/log/podverse/workers:/opt/logs
+      - ../../../../logs/workers:/opt/logs
       - ../../../../infra/data/dev/podcast-index-feeds:/opt/infra/data/dev/podcast-index-feeds
     logging:
       driver: "syslog"
