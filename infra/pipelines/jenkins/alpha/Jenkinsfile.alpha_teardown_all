@@ -1,0 +1,96 @@
+pipeline {
+    agent none
+
+    options {
+        disableConcurrentBuilds()
+        timestamps()
+        buildDiscarder(logRotator(numToKeepStr: '5'))
+    }
+
+    parameters {
+        choice(
+            name: 'CONFIRM_TEARDOWN',
+            choices: ['No', 'Yes, tear down alpha and delete all database data'],
+            description: 'DESTRUCTIVE: This job removes all containers, images, and volumes on both alpha aux and alpha srv, and deletes all database data on the alpha server. Select the second option only when you intend to perform a full teardown.'
+        )
+    }
+
+    stages {
+        stage('1. Confirm destructive action') {
+            steps {
+                script {
+                    if (params.CONFIRM_TEARDOWN != 'Yes, tear down alpha and delete all database data') {
+                        error('Teardown aborted: CONFIRM_TEARDOWN must be set to "Yes, tear down alpha and delete all database data" to run this job.')
+                    }
+                }
+            }
+        }
+
+        stage('2. Teardown Alpha (aux + srv)') {
+            parallel {
+                stage('Teardown on Aux') {
+                    agent {
+                        label 'pv-alpha-aux'
+                    }
+                    steps {
+                        script {
+                            sh '''
+                                set +e
+                                echo "Stopping all containers..."
+                                docker ps -aq | xargs -r docker stop
+                                echo "Removing all containers..."
+                                docker container prune -f
+                                echo "Removing all volumes..."
+                                docker volume prune -af
+                                echo "Removing all images..."
+                                docker image prune -af
+                                echo "Removing alpha network..."
+                                docker network rm podverse_alpha_network || true
+                                echo "Wiping main DB host data at /mnt/podverse_alpha_db_data..."
+                                sudo rm -rf /mnt/podverse_alpha_db_data
+                                sudo mkdir -p /mnt/podverse_alpha_db_data
+                                echo "Aux teardown complete."
+                            '''
+                        }
+                    }
+                }
+
+                stage('Teardown on Srv') {
+                    agent {
+                        label 'pv-alpha-srv'
+                    }
+                    steps {
+                        script {
+                            sh '''
+                                set +e
+                                echo "Stopping all containers..."
+                                docker ps -aq | xargs -r docker stop
+                                echo "Removing all containers..."
+                                docker container prune -f
+                                echo "Removing all volumes..."
+                                docker volume prune -af
+                                echo "Removing all images..."
+                                docker image prune -af
+                                echo "Removing alpha network..."
+                                docker network rm podverse_alpha_network || true
+                                echo "Srv teardown complete."
+                            '''
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    post {
+        success {
+            echo 'Alpha teardown completed. Run alpha_rebuild_all to bring the environment back up.'
+        }
+        failure {
+            echo 'Teardown failed or was aborted. Check the failed stage above.'
+        }
+        always {
+            echo "Teardown finished at: ${new Date()}"
+        }
+    }
+}
