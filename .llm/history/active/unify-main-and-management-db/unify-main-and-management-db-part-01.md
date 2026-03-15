@@ -125,6 +125,71 @@ Rename Database to podverse_app and Superusers to postgres_user_app / postgres_u
 
 ---
 
+### Session 5 - 2026-03-15
+
+#### Prompt (Developer)
+
+do not allow an empty password. implement the plan.
+
+#### Key Decisions
+
+- Require non-empty `POSTGRES_MANAGEMENT_PASSWORD` via `: "${POSTGRES_MANAGEMENT_PASSWORD:?Missing POSTGRES_MANAGEMENT_PASSWORD}"` (fails when unset or empty).
+- After creating management DB, run as app user: `ALTER USER <management_user> WITH PASSWORD '...'` with password escaped for SQL (single quotes doubled).
+- Pass `POSTGRES_MANAGEMENT_PASSWORD` from both local and alpha Makefiles into the init script env.
+
+#### Files Created/Modified
+
+- `infra/database/management/init-scripts/01-create-users.sh`
+- `makefiles/local/Makefile.local.infra.mk`
+- `makefiles/alpha/Makefile.alpha.infra.mk`
+- `.llm/history/active/unify-main-and-management-db/unify-main-and-management-db-part-01.md`
+
+---
+
+### Session 6 - 2026-03-15
+
+#### Prompt (Developer)
+
+No Escaping: Constrain Password Generation Instead — Implement the plan as specified.
+
+#### Key Decisions
+
+- Removed ESCAPED_PASS from init script; use raw POSTGRES_MANAGEMENT_PASSWORD. DB passwords must not contain single quotes; automatic generators emit hex-only.
+- setup.sh: use generate_hex_32 for the five DB password variables (POSTGRES_READ_PASSWORD, POSTGRES_READ_WRITE_PASSWORD, POSTGRES_MANAGEMENT_PASSWORD, POSTGRES_MANAGEMENT_READ_PASSWORD, POSTGRES_MANAGEMENT_READ_WRITE_PASSWORD).
+- create_management_db_secret.sh: generate_password() uses openssl rand -hex 32 (hex-only); removed PASSWORD_LENGTH.
+- db.env.example: added one-line note that DB passwords must not contain single quotes (auto-generated values comply).
+
+#### Files Created/Modified
+
+- `infra/database/management/init-scripts/01-create-users.sh`
+- `scripts/local-env/setup.sh`
+- `infra/k8s/scripts/create_management_db_secret.sh`
+- `infra/config/env-templates/db.env.example`
+- `.llm/history/active/unify-main-and-management-db/unify-main-and-management-db-part-01.md`
+
+---
+
+### Session 7 - 2026-03-15
+
+#### Prompt (Developer)
+
+Default to Auto-Gen for create_management_db_secret.sh — Implement the plan as specified.
+
+#### Key Decisions
+
+- Default AUTO_GEN=true so script auto-generates all passwords and uses default DB/user names; optional environment as first arg.
+- Added --interactive flag to set AUTO_GEN=false for prompt-based flow when dev wants to supply own values.
+- Kept --auto-gen as valid flag for backward compatibility with create_all_secrets_auto_gen.sh.
+- README: documented default = auto-gen and --interactive for manual flow; updated Execution example.
+
+#### Files Created/Modified
+
+- `infra/k8s/scripts/create_management_db_secret.sh`
+- `infra/k8s/README.md`
+- `.llm/history/active/unify-main-and-management-db/unify-main-and-management-db-part-01.md`
+
+---
+
 ## Related Resources
 
 - [Link to PR]
