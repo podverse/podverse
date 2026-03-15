@@ -1,3 +1,6 @@
+-- Connect to the management database explicitly before running migrations
+\c podverse_management
+
 -- 0000 migration
 
 -- Extensions

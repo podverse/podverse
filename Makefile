@@ -17,10 +17,6 @@ endif
 say_hello:
 	@echo "Hello Podverse"
 
-.PHONY: docker_prune_images
-docker_prune_images:
-	docker image prune -a -f
-
 # ==========================================
 # Include makefile fragments
 # ==========================================

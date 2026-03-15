@@ -11,6 +11,10 @@ services:
     container_name: podverse_alpha_management_db
     env_file:
       - ../../../config/alpha/management-db.env
+    environment:
+      POSTGRES_DB: ${POSTGRES_MANAGEMENT_DB}
+      POSTGRES_USER: ${POSTGRES_MANAGEMENT_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_MANAGEMENT_PASSWORD}
     ports:
       - "5999:5432"
     networks:

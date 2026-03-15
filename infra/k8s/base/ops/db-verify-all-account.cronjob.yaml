@@ -18,15 +18,11 @@ spec:
             - name: psql
               image: postgres
               command:
-                - "psql"
-                - "-h"
-                - "podverse-db"
-                - "-U"
-                - "postgres"
-                - "-d"
-                - "postgres"
+                - "sh"
                 - "-c"
-                - "UPDATE account SET verified = true;"
+                - >-
+                  psql -h "$PODVERSE_DB_SERVICE_HOST" -p "$PODVERSE_DB_SERVICE_PORT" -U "$DB_READ_WRITE_USERNAME" -d "$DB_DATABASE" -c
+                  "UPDATE account SET verified = true;"
 
               # Load all vars (optional, but good for debugging)
               envFrom:
@@ -39,6 +35,6 @@ spec:
                   valueFrom:
                     secretKeyRef:
                       name: podverse-db-opaque
-                      key: POSTGRES_PASSWORD
+                      key: DB_READ_WRITE_PASSWORD
 
           restartPolicy: Never

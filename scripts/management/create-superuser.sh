@@ -2,8 +2,8 @@
 set -e
 
 # Ensure required env vars exist
-: "${SUPERUSER_EMAIL:?Missing SUPERUSER_EMAIL}"
-: "${SUPERUSER_PASSWORD:?Missing SUPERUSER_PASSWORD}"
+: "${SUPERUSER_MANAGEMENT_EMAIL:?Missing SUPERUSER_MANAGEMENT_EMAIL}"
+: "${SUPERUSER_MANAGEMENT_PASSWORD:?Missing SUPERUSER_MANAGEMENT_PASSWORD}"
 
 # Get the directory of this script
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
