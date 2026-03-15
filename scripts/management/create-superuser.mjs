@@ -6,12 +6,12 @@ import pg from 'pg';
 const { Client } = pg;
 
 async function createSuperuser() {
-  const email = process.env.SUPERUSER_EMAIL;
-  const password = process.env.SUPERUSER_PASSWORD;
+  const email = process.env.SUPERUSER_MANAGEMENT_EMAIL;
+  const password = process.env.SUPERUSER_MANAGEMENT_PASSWORD;
 
   if (!email || !password) {
     console.error(
-      'ERROR: SUPERUSER_EMAIL and SUPERUSER_PASSWORD environment variables are required'
+      'ERROR: SUPERUSER_MANAGEMENT_EMAIL and SUPERUSER_MANAGEMENT_PASSWORD environment variables are required'
     );
     process.exit(1);
   }

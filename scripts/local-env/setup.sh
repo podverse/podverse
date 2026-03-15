@@ -29,6 +29,8 @@ API_ENV_FILES=("$API_APP_ENV" "$API_INFRA_ENV")
 WORKERS_ENV_FILES=("$WORKERS_APP_ENV" "$WORKERS_INFRA_ENV")
 API_AND_WORKERS_ENV_FILES=("$API_APP_ENV" "$WORKERS_APP_ENV" "$API_INFRA_ENV" "$WORKERS_INFRA_ENV")
 WEB_ENV_FILES=("$WEB_APP_ENV" "$WEB_INFRA_ENV")
+MANAGEMENT_API_ENV_FILES=("$MANAGEMENT_API_APP_ENV" "$MANAGEMENT_API_INFRA_ENV")
+MANAGEMENT_WEB_ENV_FILES=("$MANAGEMENT_WEB_APP_ENV" "$MANAGEMENT_WEB_INFRA_ENV")
 MANAGEMENT_DB_ENV_FILES=("$MANAGEMENT_DB_ENV")
 
 escape_sed_replacement() {
@@ -223,9 +225,11 @@ set_if_empty_or_equals "$MANAGEMENT_API_INFRA_ENV" "DB_PORT" "5432" "5999"
 set_if_empty "$DB_ENV" "POSTGRES_DB" "podverse_main"
 set_if_empty "$MANAGEMENT_DB_ENV" "POSTGRES_MANAGEMENT_DB" "podverse_management"
 
+POSTGRES_DB="$(first_non_empty_or_default "podverse_main" "$DB_ENV:POSTGRES_DB")"
 POSTGRES_PASSWORD="$(first_non_empty_or_generate generate_base64_32 "$DB_ENV:POSTGRES_PASSWORD")"
 POSTGRES_READ_USER="$(first_non_empty_or_default "podverse_app_read" "$DB_ENV:POSTGRES_READ_USER")"
 POSTGRES_READ_WRITE_USER="$(first_non_empty_or_default "podverse_app_read_write" "$DB_ENV:POSTGRES_READ_WRITE_USER")"
+POSTGRES_MANAGEMENT_DB="$(first_non_empty_or_default "podverse_management" "$MANAGEMENT_DB_ENV:POSTGRES_MANAGEMENT_DB")"
 POSTGRES_MANAGEMENT_USER="$(first_non_empty_or_default "podverse_management" "$MANAGEMENT_DB_ENV:POSTGRES_MANAGEMENT_USER")"
 POSTGRES_MANAGEMENT_READ_USER="$(first_non_empty_or_default "management_read" "$MANAGEMENT_DB_ENV:POSTGRES_MANAGEMENT_READ_USER")"
 POSTGRES_MANAGEMENT_READ_WRITE_USER="$(first_non_empty_or_default "management_read_write" "$MANAGEMENT_DB_ENV:POSTGRES_MANAGEMENT_READ_WRITE_USER")"
@@ -261,14 +265,20 @@ upsert_var "$MQ_ENV" "ARTEMIS_PASSWORD" "$ARTEMIS_PASSWORD"
 
 upsert_var "$KEYVALDB_ENV" "KEYVALDB_PASSWORD" "$KEYVALDB_PASSWORD"
 
-# Shared app-level sync (DB passwords; DB_DATABASE comes from app .env.example)
+# Shared app-level sync (main DB: names + passwords so app matches init script)
 for file in "$API_APP_ENV" "$WORKERS_APP_ENV" "$API_INFRA_ENV" "$WORKERS_INFRA_ENV"; do
+	upsert_var "$file" "DB_DATABASE" "$POSTGRES_DB"
+	upsert_var "$file" "DB_READ_USERNAME" "$POSTGRES_READ_USER"
 	upsert_var "$file" "DB_READ_PASSWORD" "$POSTGRES_READ_PASSWORD"
+	upsert_var "$file" "DB_READ_WRITE_USERNAME" "$POSTGRES_READ_WRITE_USER"
 	upsert_var "$file" "DB_READ_WRITE_PASSWORD" "$POSTGRES_READ_WRITE_PASSWORD"
 done
 for file in "$MANAGEMENT_API_APP_ENV" "$MANAGEMENT_API_INFRA_ENV"; do
-	upsert_var "$file" "DB_READ_PASSWORD" "$POSTGRES_READ_PASSWORD"
-	upsert_var "$file" "DB_READ_WRITE_PASSWORD" "$POSTGRES_READ_WRITE_PASSWORD"
+	upsert_var "$file" "DB_DATABASE" "$POSTGRES_MANAGEMENT_DB"
+	upsert_var "$file" "DB_READ_USERNAME" "$POSTGRES_MANAGEMENT_READ_USER"
+	upsert_var "$file" "DB_READ_PASSWORD" "$POSTGRES_MANAGEMENT_READ_PASSWORD"
+	upsert_var "$file" "DB_READ_WRITE_USERNAME" "$POSTGRES_MANAGEMENT_READ_WRITE_USER"
+	upsert_var "$file" "DB_READ_WRITE_PASSWORD" "$POSTGRES_MANAGEMENT_READ_WRITE_PASSWORD"
 done
 
 for file in "$API_APP_ENV" "$WORKERS_APP_ENV" "$API_INFRA_ENV" "$WORKERS_INFRA_ENV"; do
@@ -331,12 +341,12 @@ for v in NEXT_PUBLIC_CONTACT_EMAIL NEXT_PUBLIC_SOCIAL_ACTIVITY_PUB NEXT_PUBLIC_S
 done
 
 # From management-superuser.env
-for v in SUPERUSER_EMAIL SUPERUSER_PASSWORD; do
+for v in SUPERUSER_MANAGEMENT_EMAIL SUPERUSER_MANAGEMENT_PASSWORD; do
 	apply_override "$v" "${MANAGEMENT_DB_ENV_FILES[@]}"
 done
 
 # From brand.env (API, workers, and management-api all use BRAND_NAME)
-apply_override "BRAND_NAME" "${API_AND_WORKERS_ENV_FILES[@]}" "$MANAGEMENT_API_APP_ENV" "$MANAGEMENT_API_INFRA_ENV"
+apply_override "BRAND_NAME" "${API_AND_WORKERS_ENV_FILES[@]}" "${MANAGEMENT_API_ENV_FILES[@]}"
 
 # Construct USER_AGENT from BRAND_NAME (format: BrandName Bot Local/AppName/5)
 if [ -n "${BRAND_NAME:-}" ]; then
@@ -351,9 +361,11 @@ if [ -n "${BRAND_NAME:-}" ]; then
 	upsert_var "$WEB_APP_ENV" "NEXT_PUBLIC_PROXY_USER_AGENT" "${BRAND_NAME} Bot Local/Web-API/5"
 	upsert_var "$WEB_INFRA_ENV" "NEXT_PUBLIC_PROXY_USER_AGENT" "${BRAND_NAME} Bot Local/Web-API/5"
 fi
+# From brand.env (Management Web: MANAGEMENT_BRAND_NAME → NEXT_PUBLIC_BRAND_NAME)
 if [ -n "${MANAGEMENT_BRAND_NAME:-}" ]; then
-	upsert_var "$MANAGEMENT_WEB_APP_ENV" "NEXT_PUBLIC_BRAND_NAME" "$MANAGEMENT_BRAND_NAME"
-	upsert_var "$MANAGEMENT_WEB_INFRA_ENV" "NEXT_PUBLIC_BRAND_NAME" "$MANAGEMENT_BRAND_NAME"
+	for file in "${MANAGEMENT_WEB_ENV_FILES[@]}"; do
+		upsert_var "$file" "NEXT_PUBLIC_BRAND_NAME" "$MANAGEMENT_BRAND_NAME"
+	done
 fi
 
 # From lightning.env

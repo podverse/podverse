@@ -161,6 +161,28 @@ Use the same value in every work tree so all of them point at the same directory
 - **Symlink target**: Scripts use the absolute path for the home directory so symlinks work
   regardless of the current working directory.
 
+## Override files and which apps they affect
+
+When you run `make local_env_setup`, each override file in `dev/env-overrides/local/*.env` is
+sourced, then specific variables are written into app and infra env files. Main apps (API,
+Workers, Web) and management apps (Management API, Management Web, Management DB) receive
+different subsets.
+
+| Override file            | Apps / env files that receive its values                                          |
+| ------------------------ | --------------------------------------------------------------------------------- |
+| brand.env                | API, Workers, Management API (BRAND_NAME); Management Web (MANAGEMENT_BRAND_NAME) |
+| email-template.env       | API only                                                                          |
+| lightning.env            | Web only                                                                          |
+| management-superuser.env | Management DB only (`infra/config/local/management-db.env`)                       |
+| notifications.env        | Workers; Web gets NEXT_PUBLIC_WEBPUSH_VAPID_PUBLIC_KEY                            |
+| podcast-index.env        | API + Workers                                                                     |
+| private-services.env     | API + Workers (ADD_BY_RSS_CREDENTIALS_ENCRYPTION_KEY); API (mailer, PayPal)       |
+| socials.env              | API (email template social links); Web (contact + social)                         |
+| storage.env              | Workers only                                                                      |
+
+Management API and Management Web do not receive mailer, PayPal, email-template, socials,
+storage, notifications, podcast-index, or lightning overrides; those apps do not use those vars.
+
 ## See also
 
 - [QUICKSTART.md](../QUICKSTART.md) – Full local setup and “Clean start” flow.
