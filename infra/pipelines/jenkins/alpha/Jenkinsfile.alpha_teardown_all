@@ -37,10 +37,8 @@ pipeline {
                         script {
                             sh '''
                                 set +e
-                                echo "Stopping all containers..."
-                                docker ps -aq | xargs -r docker stop
-                                echo "Removing all containers..."
-                                docker container prune -f
+                                echo "Force-removing all containers..."
+                                docker rm -f $(docker ps -aq) 2>/dev/null || true
                                 echo "Removing all volumes..."
                                 docker volume prune -af
                                 echo "Removing all images..."
@@ -64,10 +62,8 @@ pipeline {
                         script {
                             sh '''
                                 set +e
-                                echo "Stopping all containers..."
-                                docker ps -aq | xargs -r docker stop
-                                echo "Removing all containers..."
-                                docker container prune -f
+                                echo "Force-removing all containers..."
+                                docker rm -f $(docker ps -aq) 2>/dev/null || true
                                 echo "Removing all volumes..."
                                 docker volume prune -af
                                 echo "Removing all images..."

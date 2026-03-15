@@ -66,6 +66,22 @@ To-do's from the plan have already been created. Do not create them again. Mark 
 #### Files Modified
 
 - `.llm/history/active/monorepo-deploys-alpha-part-01.md`
+- `infra/pipelines/jenkins/alpha/Jenkinsfile.alpha_teardown_all`
+
+### Session - 2026-03-15
+
+#### Prompt (Developer)
+
+Add the durable hardening
+
+#### Key Decisions
+
+- Harden teardown container removal to use force-remove semantics (`docker rm -f $(docker ps -aq)`), avoiding hangs caused by graceful stop of problematic containers.
+- Keep volume/image/network prune and DB path wipe behavior intact.
+
+#### Files Modified
+
+- `.llm/history/active/monorepo-deploys-alpha-part-01.md`
 - `infra/pipelines/jenkins/alpha/setup/verify-jobs-detailed.sh`
 
 ### Session - 2026-03-12
