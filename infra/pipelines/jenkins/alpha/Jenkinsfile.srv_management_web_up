@@ -8,6 +8,7 @@ pipeline {
     options {
         disableConcurrentBuilds()
         timestamps()
+        skipDefaultCheckout(true)
     }
 
     parameters {
@@ -34,7 +35,7 @@ pipeline {
         stage('Prepare Configuration') {
             steps {
                 script {
-                    dir("${env.WORKSPACE}/infra/docker/alpha/management-web") {
+                    dir('/opt/podverse/infra/docker/alpha/management-web') {
                         // Maps to the templating logic.
                         // We use triple single quotes (''') so that shell variables (like $WEB_VERSION)
                         // are evaluated by bash, not Groovy. Parameters (like $IMAGE_VERSION) 
@@ -43,7 +44,7 @@ pipeline {
                         if (params.IMAGE_VERSION == 'alpha') {
                                 withEnv(["GHCR_IMAGE_PATH=${params.GHCR_IMAGE_PATH}"]) {
                                     withCredentials([string(credentialsId: params.GHCR_REGISTRY_TOKEN, variable: 'GHCR_REGISTRY_TOKEN')]) {
-                                        webVersion = sh(script: "${env.WORKSPACE}/scripts/ghcr/getLatestAlphaTag.sh", returnStdout: true).trim()
+                                        webVersion = sh(script: '/opt/podverse/scripts/ghcr/getLatestAlphaTag.sh', returnStdout: true).trim()
                                     }
                                 }
                                 if (!webVersion) {
@@ -69,7 +70,9 @@ pipeline {
         stage('Start Alpha Management Web') {
             steps {
                 script {
-                    sh 'make -f makefiles/alpha/Makefile.alpha.mk alpha_management_web_up'
+                    dir('/opt/podverse') {
+                        sh 'make -f makefiles/alpha/Makefile.alpha.mk alpha_management_web_up'
+                    }
                 }
             }
         }
