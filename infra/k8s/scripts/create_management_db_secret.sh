@@ -63,9 +63,9 @@ fi
 # INPUTS
 # ------------------------------------------------------------------
 DEFAULT_DB="podverse_management"
-DEFAULT_USER="podverse_management"
-DEFAULT_READ_USER="management_read"
-DEFAULT_READ_WRITE_USER="management_read_write"
+DEFAULT_USER="postgres_user_management"
+DEFAULT_READ_USER="podverse_management_read"
+DEFAULT_READ_WRITE_USER="podverse_management_read_write"
 
 if [ "$AUTO_GEN" = true ]; then
   echo "Auto-generating secrets..."
@@ -76,15 +76,15 @@ if [ "$AUTO_GEN" = true ]; then
   POSTGRES_MANAGEMENT_PASSWORD=$(generate_password)
   POSTGRES_MANAGEMENT_READ_PASSWORD=$(generate_password)
   POSTGRES_MANAGEMENT_READ_WRITE_PASSWORD=$(generate_password)
-  SUPERUSER_MANAGEMENT_EMAIL=""
-  SUPERUSER_MANAGEMENT_PASSWORD=$(generate_password)
+  MANAGEMENT_SUPERUSER_EMAIL=""
+  MANAGEMENT_SUPERUSER_PASSWORD=$(generate_password)
   echo "  POSTGRES_MANAGEMENT_DB: $POSTGRES_MANAGEMENT_DB"
   echo "  POSTGRES_MANAGEMENT_USER: $POSTGRES_MANAGEMENT_USER"
   echo "  POSTGRES_MANAGEMENT_PASSWORD: [generated]"
   echo "  POSTGRES_MANAGEMENT_READ_PASSWORD: [generated]"
   echo "  POSTGRES_MANAGEMENT_READ_WRITE_PASSWORD: [generated]"
-  echo "  SUPERUSER_MANAGEMENT_EMAIL: [empty]"
-  echo "  SUPERUSER_MANAGEMENT_PASSWORD: [generated]"
+  echo "  MANAGEMENT_SUPERUSER_EMAIL: [empty]"
+  echo "  MANAGEMENT_SUPERUSER_PASSWORD: [generated]"
 else
   echo "You are generating the Management DB credentials."
   echo "Press Enter to use the default value."
@@ -110,9 +110,9 @@ else
 
   echo ""
   echo "--- SUPERUSER ACCOUNT ---"
-  read -r -p "SUPERUSER_MANAGEMENT_EMAIL: " SUPERUSER_MANAGEMENT_EMAIL
-  if [ -z "$SUPERUSER_MANAGEMENT_EMAIL" ]; then
-    echo "Error: SUPERUSER_MANAGEMENT_EMAIL required."
+  read -r -p "MANAGEMENT_SUPERUSER_EMAIL: " MANAGEMENT_SUPERUSER_EMAIL
+  if [ -z "$MANAGEMENT_SUPERUSER_EMAIL" ]; then
+    echo "Error: MANAGEMENT_SUPERUSER_EMAIL required."
     exit 1
   fi
 
@@ -139,9 +139,9 @@ else
     exit 1
   fi
 
-  read -r -s -p "Enter SUPERUSER_MANAGEMENT_PASSWORD: " SUPERUSER_MANAGEMENT_PASSWORD
+  read -r -s -p "Enter MANAGEMENT_SUPERUSER_PASSWORD: " MANAGEMENT_SUPERUSER_PASSWORD
   echo ""
-  if [ -z "$SUPERUSER_MANAGEMENT_PASSWORD" ]; then
+  if [ -z "$MANAGEMENT_SUPERUSER_PASSWORD" ]; then
     echo "Error: Password required."
     exit 1
   fi
@@ -173,8 +173,8 @@ kubectl create secret generic "${SECRET_NAME}" \
   --from-literal=DB_READ_PASSWORD="${POSTGRES_MANAGEMENT_READ_PASSWORD}" \
   --from-literal=DB_READ_WRITE_USERNAME="${POSTGRES_MANAGEMENT_READ_WRITE_USER}" \
   --from-literal=DB_READ_WRITE_PASSWORD="${POSTGRES_MANAGEMENT_READ_WRITE_PASSWORD}" \
-  --from-literal=SUPERUSER_MANAGEMENT_EMAIL="${SUPERUSER_MANAGEMENT_EMAIL}" \
-  --from-literal=SUPERUSER_MANAGEMENT_PASSWORD="${SUPERUSER_MANAGEMENT_PASSWORD}" \
+  --from-literal=MANAGEMENT_SUPERUSER_EMAIL="${MANAGEMENT_SUPERUSER_EMAIL}" \
+  --from-literal=MANAGEMENT_SUPERUSER_PASSWORD="${MANAGEMENT_SUPERUSER_PASSWORD}" \
   --dry-run=client -o yaml >"$TMP_FILE"
 
 sops --config .sops.yaml --encrypt --encrypted-regex '^(data|stringData)$' \
@@ -191,4 +191,4 @@ echo ""
 echo "You can apply the values (if you have the key) by running:"
 echo "sops -d ${OUTPUT_FILE} | kubectl apply -f -"
 echo ""
-echo "Note: If you had an existing management-db secret, re-apply after re-running this script so it contains DB_* keys (and no longer DB_MANAGEMET_*)."
+echo "Note: If you had an existing management-db secret, re-apply after re-running this script so it contains DB_* and MANAGEMENT_* keys."

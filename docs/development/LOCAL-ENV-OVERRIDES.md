@@ -34,21 +34,23 @@ canonical place for override values is `~/.config/podverse/local-env-overrides/`
    make local_env_setup
    ```
 
-5. **Start infrastructure and create DB users** — Start containers and create the `read` /
-   `read_write` Postgres users so app credentials match the database:
+5. **Start infrastructure and create DB users** — Start containers and create the app and
+   management Postgres users so credentials match the database:
 
    ```bash
    make local_infra_up
    make local_db_init
    ```
 
-   `local_db_init` creates the `read` and `read_write` roles in Postgres using the passwords
-   from `infra/config/local/db.env` and `management-db.env`. Without it, apps fail with
-   "password authentication failed for user read".
+`local_db_init` creates/updates these roles in Postgres:
+`podverse_app_read`, `podverse_app_read_write`,
+`podverse_management_read`, and `podverse_management_read_write`.
+Passwords come from `infra/config/local/db.env` (main + management DB credentials in one file).
+Without it, apps fail with "password authentication failed" for the configured DB user.
 
-   Alternatively, you can run **`make local_setup`** once (after prepare, edit, and link): it
-   runs `local_env_setup`, `local_infra_up`, and `local_db_init` in order, so you do not need
-   to run steps 4 and 5 separately.
+Alternatively, you can run **`make local_setup`** once (after prepare, edit, and link): it
+runs `local_env_setup`, `local_infra_up`, and `local_db_init` in order, so you do not need
+to run steps 4 and 5 separately.
 
 You can skip step 1 and run `make local_env_link` first; link will create the home files from
 examples when they are missing. Then edit the home directory and run `make local_env_setup`.
@@ -173,7 +175,7 @@ different subsets.
 | brand.env                | API, Workers, Management API (BRAND_NAME); Management Web (MANAGEMENT_BRAND_NAME) |
 | email-template.env       | API only                                                                          |
 | lightning.env            | Web only                                                                          |
-| management-superuser.env | Management DB only (`infra/config/local/management-db.env`)                       |
+| management-superuser.env | Local DB env (`infra/config/local/db.env`) for management superuser bootstrap     |
 | notifications.env        | Workers; Web gets NEXT_PUBLIC_WEBPUSH_VAPID_PUBLIC_KEY                            |
 | podcast-index.env        | API + Workers                                                                     |
 | private-services.env     | API + Workers (ADD_BY_RSS_CREDENTIALS_ENCRYPTION_KEY); API (mailer, PayPal)       |

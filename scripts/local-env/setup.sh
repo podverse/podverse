@@ -11,7 +11,6 @@ OVERRIDES_DIR="dev/env-overrides/local"
 DB_ENV="infra/config/local/db.env"
 MQ_ENV="infra/config/local/mq.env"
 KEYVALDB_ENV="infra/config/local/keyvaldb.env"
-MANAGEMENT_DB_ENV="infra/config/local/management-db.env"
 API_INFRA_ENV="infra/config/local/api.env"
 WORKERS_INFRA_ENV="infra/config/local/workers.env"
 MANAGEMENT_API_INFRA_ENV="infra/config/local/management-api.env"
@@ -31,7 +30,6 @@ API_AND_WORKERS_ENV_FILES=("$API_APP_ENV" "$WORKERS_APP_ENV" "$API_INFRA_ENV" "$
 WEB_ENV_FILES=("$WEB_APP_ENV" "$WEB_INFRA_ENV")
 MANAGEMENT_API_ENV_FILES=("$MANAGEMENT_API_APP_ENV" "$MANAGEMENT_API_INFRA_ENV")
 MANAGEMENT_WEB_ENV_FILES=("$MANAGEMENT_WEB_APP_ENV" "$MANAGEMENT_WEB_INFRA_ENV")
-MANAGEMENT_DB_ENV_FILES=("$MANAGEMENT_DB_ENV")
 
 escape_sed_replacement() {
 	printf '%s' "$1" | sed -e 's/[\/&]/\\&/g'
@@ -218,54 +216,54 @@ set_if_empty_or_equals "$WORKERS_INFRA_ENV" "KEYVALDB_PORT" "6379" "6379"
 set_if_empty_or_equals "$WORKERS_INFRA_ENV" "MESSAGE_QUEUE_HOST" "podverse_local_mq" "localhost"
 set_if_empty_or_equals "$WORKERS_INFRA_ENV" "MESSAGE_QUEUE_PORT" "5672" "5672"
 
-set_if_empty_or_equals "$MANAGEMENT_API_INFRA_ENV" "DB_HOST" "podverse_local_management_db" "localhost"
+set_if_empty_or_equals "$MANAGEMENT_API_INFRA_ENV" "DB_HOST" "podverse_local_db" "localhost"
 set_if_empty_or_equals "$MANAGEMENT_API_INFRA_ENV" "DB_PORT" "5432" "5999"
 
-# Ensure DB names so Postgres creates podverse_main / podverse_management on first run (pgAdmin and apps expect these).
-set_if_empty "$DB_ENV" "POSTGRES_DB" "podverse_main"
-set_if_empty "$MANAGEMENT_DB_ENV" "POSTGRES_MANAGEMENT_DB" "podverse_management"
+# Ensure DB names so Postgres creates podverse_app / podverse_management on first run (pgAdmin and apps expect these).
+set_if_empty "$DB_ENV" "POSTGRES_DB" "podverse_app"
+set_if_empty "$DB_ENV" "POSTGRES_MANAGEMENT_DB" "podverse_management"
 
-POSTGRES_DB="$(first_non_empty_or_default "podverse_main" "$DB_ENV:POSTGRES_DB")"
+POSTGRES_DB="$(first_non_empty_or_default "podverse_app" "$DB_ENV:POSTGRES_DB")"
 POSTGRES_PASSWORD="$(first_non_empty_or_generate generate_base64_32 "$DB_ENV:POSTGRES_PASSWORD")"
 POSTGRES_READ_USER="$(first_non_empty_or_default "podverse_app_read" "$DB_ENV:POSTGRES_READ_USER")"
 POSTGRES_READ_WRITE_USER="$(first_non_empty_or_default "podverse_app_read_write" "$DB_ENV:POSTGRES_READ_WRITE_USER")"
-POSTGRES_MANAGEMENT_DB="$(first_non_empty_or_default "podverse_management" "$MANAGEMENT_DB_ENV:POSTGRES_MANAGEMENT_DB")"
-POSTGRES_MANAGEMENT_USER="$(first_non_empty_or_default "podverse_management" "$MANAGEMENT_DB_ENV:POSTGRES_MANAGEMENT_USER")"
-POSTGRES_MANAGEMENT_READ_USER="$(first_non_empty_or_default "management_read" "$MANAGEMENT_DB_ENV:POSTGRES_MANAGEMENT_READ_USER")"
-POSTGRES_MANAGEMENT_READ_WRITE_USER="$(first_non_empty_or_default "management_read_write" "$MANAGEMENT_DB_ENV:POSTGRES_MANAGEMENT_READ_WRITE_USER")"
+POSTGRES_MANAGEMENT_DB="$(first_non_empty_or_default "podverse_management" "$DB_ENV:POSTGRES_MANAGEMENT_DB")"
+POSTGRES_MANAGEMENT_USER="$(first_non_empty_or_default "postgres_user_management" "$DB_ENV:POSTGRES_MANAGEMENT_USER")"
+POSTGRES_MANAGEMENT_READ_USER="$(first_non_empty_or_default "podverse_management_read" "$DB_ENV:POSTGRES_MANAGEMENT_READ_USER")"
+POSTGRES_MANAGEMENT_READ_WRITE_USER="$(first_non_empty_or_default "podverse_management_read_write" "$DB_ENV:POSTGRES_MANAGEMENT_READ_WRITE_USER")"
 # DB read/read-write passwords: dynamically generated (secure) when empty or placeholder; then assigned to infra + app env files.
 POSTGRES_READ_PASSWORD="$(generate_if_empty_or_placeholder "$(first_non_empty_or_generate generate_base64_32 "$DB_ENV:POSTGRES_READ_PASSWORD")" "your_read_password" "your_read_write_password")"
 POSTGRES_READ_WRITE_PASSWORD="$(generate_if_empty_or_placeholder "$(first_non_empty_or_generate generate_base64_32 "$DB_ENV:POSTGRES_READ_WRITE_PASSWORD")" "your_read_password" "your_read_write_password")"
-POSTGRES_MANAGEMENT_PASSWORD="$(generate_if_empty_or_placeholder "$(first_non_empty_or_generate generate_base64_32 "$MANAGEMENT_DB_ENV:POSTGRES_MANAGEMENT_PASSWORD")" "your_postgres_password")"
-POSTGRES_MANAGEMENT_READ_PASSWORD="$(generate_if_empty_or_placeholder "$(first_non_empty_or_generate generate_base64_32 "$MANAGEMENT_DB_ENV:POSTGRES_MANAGEMENT_READ_PASSWORD")" "your_read_password" "your_read_write_password")"
-POSTGRES_MANAGEMENT_READ_WRITE_PASSWORD="$(generate_if_empty_or_placeholder "$(first_non_empty_or_generate generate_base64_32 "$MANAGEMENT_DB_ENV:POSTGRES_MANAGEMENT_READ_WRITE_PASSWORD")" "your_read_password" "your_read_write_password")"
+POSTGRES_MANAGEMENT_PASSWORD="$(generate_if_empty_or_placeholder "$(first_non_empty_or_generate generate_base64_32 "$DB_ENV:POSTGRES_MANAGEMENT_PASSWORD")" "your_postgres_password")"
+POSTGRES_MANAGEMENT_READ_PASSWORD="$(generate_if_empty_or_placeholder "$(first_non_empty_or_generate generate_base64_32 "$DB_ENV:POSTGRES_MANAGEMENT_READ_PASSWORD")" "your_read_password" "your_read_write_password")"
+POSTGRES_MANAGEMENT_READ_WRITE_PASSWORD="$(generate_if_empty_or_placeholder "$(first_non_empty_or_generate generate_base64_32 "$DB_ENV:POSTGRES_MANAGEMENT_READ_WRITE_PASSWORD")" "your_read_password" "your_read_write_password")"
 ARTEMIS_PASSWORD="$(generate_if_empty_or_placeholder "$(first_non_empty_or_generate generate_base64_32 "$MQ_ENV:ARTEMIS_PASSWORD" "$API_APP_ENV:MESSAGE_QUEUE_PASSWORD" "$WORKERS_APP_ENV:MESSAGE_QUEUE_PASSWORD" "$API_INFRA_ENV:MESSAGE_QUEUE_PASSWORD" "$WORKERS_INFRA_ENV:MESSAGE_QUEUE_PASSWORD")" "your_mq_password")"
 KEYVALDB_PASSWORD="$(generate_if_empty_or_placeholder "$(first_non_empty_or_generate generate_base64_32 "$KEYVALDB_ENV:KEYVALDB_PASSWORD" "$API_APP_ENV:KEYVALDB_PASSWORD" "$WORKERS_APP_ENV:KEYVALDB_PASSWORD" "$API_INFRA_ENV:KEYVALDB_PASSWORD" "$WORKERS_INFRA_ENV:KEYVALDB_PASSWORD")" "your_redis_password" "# required" " # required")"
 PODCAST_INDEX_AUTH_KEY="$(generate_if_empty_or_placeholder "$(first_non_empty_or_generate generate_base64_32 "$API_APP_ENV:PODCAST_INDEX_AUTH_KEY" "$WORKERS_APP_ENV:PODCAST_INDEX_AUTH_KEY" "$API_INFRA_ENV:PODCAST_INDEX_AUTH_KEY" "$WORKERS_INFRA_ENV:PODCAST_INDEX_AUTH_KEY")" "your_podcast_index_auth_key" "test")"
 PODCAST_INDEX_SECRET_KEY="$(generate_if_empty_or_placeholder "$(first_non_empty_or_generate generate_base64_32 "$API_APP_ENV:PODCAST_INDEX_SECRET_KEY" "$WORKERS_APP_ENV:PODCAST_INDEX_SECRET_KEY" "$API_INFRA_ENV:PODCAST_INDEX_SECRET_KEY" "$WORKERS_INFRA_ENV:PODCAST_INDEX_SECRET_KEY")" "your_podcast_index_secret_key" "test")"
 AUTH_JWT_SECRET="$(first_non_empty_or_generate generate_uuid "$API_APP_ENV:AUTH_JWT_SECRET" "$MANAGEMENT_API_APP_ENV:AUTH_JWT_SECRET")"
 
-# Core infra secrets (POSTGRES_DB comes from env-templates: podverse_main / podverse_management)
+# Core infra secrets (POSTGRES_DB comes from env-templates: podverse_app / podverse_management)
 upsert_var "$DB_ENV" "POSTGRES_PASSWORD" "$POSTGRES_PASSWORD"
 upsert_var "$DB_ENV" "POSTGRES_READ_USER" "$POSTGRES_READ_USER"
 upsert_var "$DB_ENV" "POSTGRES_READ_PASSWORD" "$POSTGRES_READ_PASSWORD"
 upsert_var "$DB_ENV" "POSTGRES_READ_WRITE_USER" "$POSTGRES_READ_WRITE_USER"
 upsert_var "$DB_ENV" "POSTGRES_READ_WRITE_PASSWORD" "$POSTGRES_READ_WRITE_PASSWORD"
 
-upsert_var "$MANAGEMENT_DB_ENV" "POSTGRES_MANAGEMENT_DB" "podverse_management"
-upsert_var "$MANAGEMENT_DB_ENV" "POSTGRES_MANAGEMENT_USER" "$POSTGRES_MANAGEMENT_USER"
-upsert_var "$MANAGEMENT_DB_ENV" "POSTGRES_MANAGEMENT_PASSWORD" "$POSTGRES_MANAGEMENT_PASSWORD"
-upsert_var "$MANAGEMENT_DB_ENV" "POSTGRES_MANAGEMENT_READ_USER" "$POSTGRES_MANAGEMENT_READ_USER"
-upsert_var "$MANAGEMENT_DB_ENV" "POSTGRES_MANAGEMENT_READ_PASSWORD" "$POSTGRES_MANAGEMENT_READ_PASSWORD"
-upsert_var "$MANAGEMENT_DB_ENV" "POSTGRES_MANAGEMENT_READ_WRITE_USER" "$POSTGRES_MANAGEMENT_READ_WRITE_USER"
-upsert_var "$MANAGEMENT_DB_ENV" "POSTGRES_MANAGEMENT_READ_WRITE_PASSWORD" "$POSTGRES_MANAGEMENT_READ_WRITE_PASSWORD"
+upsert_var "$DB_ENV" "POSTGRES_MANAGEMENT_DB" "$POSTGRES_MANAGEMENT_DB"
+upsert_var "$DB_ENV" "POSTGRES_MANAGEMENT_USER" "$POSTGRES_MANAGEMENT_USER"
+upsert_var "$DB_ENV" "POSTGRES_MANAGEMENT_PASSWORD" "$POSTGRES_MANAGEMENT_PASSWORD"
+upsert_var "$DB_ENV" "POSTGRES_MANAGEMENT_READ_USER" "$POSTGRES_MANAGEMENT_READ_USER"
+upsert_var "$DB_ENV" "POSTGRES_MANAGEMENT_READ_PASSWORD" "$POSTGRES_MANAGEMENT_READ_PASSWORD"
+upsert_var "$DB_ENV" "POSTGRES_MANAGEMENT_READ_WRITE_USER" "$POSTGRES_MANAGEMENT_READ_WRITE_USER"
+upsert_var "$DB_ENV" "POSTGRES_MANAGEMENT_READ_WRITE_PASSWORD" "$POSTGRES_MANAGEMENT_READ_WRITE_PASSWORD"
 
 set_if_empty "$MQ_ENV" "ARTEMIS_USER" "user"
 upsert_var "$MQ_ENV" "ARTEMIS_PASSWORD" "$ARTEMIS_PASSWORD"
 
 upsert_var "$KEYVALDB_ENV" "KEYVALDB_PASSWORD" "$KEYVALDB_PASSWORD"
 
-# Shared app-level sync (main DB: names + passwords so app matches init script)
+# Shared app-level sync (App DB: names + passwords so app matches init script)
 for file in "$API_APP_ENV" "$WORKERS_APP_ENV" "$API_INFRA_ENV" "$WORKERS_INFRA_ENV"; do
 	upsert_var "$file" "DB_DATABASE" "$POSTGRES_DB"
 	upsert_var "$file" "DB_READ_USERNAME" "$POSTGRES_READ_USER"
@@ -341,8 +339,8 @@ for v in NEXT_PUBLIC_CONTACT_EMAIL NEXT_PUBLIC_SOCIAL_ACTIVITY_PUB NEXT_PUBLIC_S
 done
 
 # From management-superuser.env
-for v in SUPERUSER_MANAGEMENT_EMAIL SUPERUSER_MANAGEMENT_PASSWORD; do
-	apply_override "$v" "${MANAGEMENT_DB_ENV_FILES[@]}"
+for v in MANAGEMENT_SUPERUSER_EMAIL MANAGEMENT_SUPERUSER_PASSWORD; do
+	apply_override "$v" "$DB_ENV"
 done
 
 # From brand.env (API, workers, and management-api all use BRAND_NAME)

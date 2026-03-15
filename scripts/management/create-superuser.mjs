@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+/* eslint-disable no-console */
 
 import bcrypt from 'bcrypt';
 import pg from 'pg';
@@ -6,12 +7,12 @@ import pg from 'pg';
 const { Client } = pg;
 
 async function createSuperuser() {
-  const email = process.env.SUPERUSER_MANAGEMENT_EMAIL;
-  const password = process.env.SUPERUSER_MANAGEMENT_PASSWORD;
+  const email = process.env.MANAGEMENT_SUPERUSER_EMAIL;
+  const password = process.env.MANAGEMENT_SUPERUSER_PASSWORD;
 
   if (!email || !password) {
     console.error(
-      'ERROR: SUPERUSER_MANAGEMENT_EMAIL and SUPERUSER_MANAGEMENT_PASSWORD environment variables are required'
+      'ERROR: MANAGEMENT_SUPERUSER_EMAIL and MANAGEMENT_SUPERUSER_PASSWORD environment variables are required'
     );
     process.exit(1);
   }
@@ -19,10 +20,17 @@ async function createSuperuser() {
   // Database connection config from environment
   const client = new Client({
     host: process.env.DB_HOST || 'localhost',
-    port: parseInt(process.env.DB_PORT || '5999', 10),
-    database: process.env.DB_DATABASE || process.env.POSTGRES_DB || 'podverse_management',
-    user: process.env.POSTGRES_USER || 'postgres',
-    password: process.env.POSTGRES_PASSWORD || '',
+    port: parseInt(process.env.DB_PORT || '5432', 10),
+    database:
+      process.env.DB_DATABASE ||
+      process.env.POSTGRES_MANAGEMENT_DB ||
+      process.env.POSTGRES_DB ||
+      'podverse_management',
+    user:
+      process.env.POSTGRES_USER ||
+      process.env.POSTGRES_MANAGEMENT_USER ||
+      'postgres_user_management',
+    password: process.env.POSTGRES_PASSWORD || process.env.POSTGRES_MANAGEMENT_PASSWORD || '',
   });
 
   try {

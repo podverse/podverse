@@ -97,10 +97,11 @@ Success criteria: `Total jobs that will be modified: 0`.
 ## Full teardown and rebuild
 
 - **alpha_teardown_all**: Destructive job that removes all containers, images, and volumes on both
-  alpha aux and alpha srv, and wipes main DB data at `/mnt/podverse_alpha_db_data`. It requires an
+  alpha aux and alpha srv, and wipes Postgres data at `/mnt/podverse_alpha_db_data`. It requires an
   explicit confirmation parameter (choice) before running. Does not rely on Make or compose files.
 - **alpha_rebuild_all**: Brings alpha from a clean state (Docker only) to fully running: creates
-  network on both nodes, git pull, main DB + management DB up and init, keyvaldb, MQ, workers,
+  network on both nodes, git pull, Postgres up, App DB init, Management DB init (same Postgres
+  container), keyvaldb, MQ, workers,
   then API/management-api/web/management-web. Use after alpha_teardown_all or when the environment
   is empty. These two jobs replace the manual one-time clean-slate procedure (wipe DB data, re-init
   both DBs) documented elsewhere.

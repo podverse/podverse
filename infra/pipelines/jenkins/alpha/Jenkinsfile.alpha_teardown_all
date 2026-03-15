@@ -45,7 +45,7 @@ pipeline {
                                 docker image prune -af
                                 echo "Removing alpha network..."
                                 docker network rm podverse_alpha_network || true
-                                echo "Wiping main DB host data at /mnt/podverse_alpha_db_data..."
+                                echo "Wiping Postgres host data at /mnt/podverse_alpha_db_data..."
                                 sudo rm -rf /mnt/podverse_alpha_db_data
                                 sudo mkdir -p /mnt/podverse_alpha_db_data
                                 echo "Aux teardown complete."

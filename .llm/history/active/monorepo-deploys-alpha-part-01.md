@@ -66,7 +66,62 @@ To-do's from the plan have already been created. Do not create them again. Mark 
 #### Files Modified
 
 - `.llm/history/active/monorepo-deploys-alpha-part-01.md`
+
+### Session - 2026-03-15
+
+#### Prompt (Developer)
+
+Single Postgres for Alpha + Local
+
+Implement the plan as specified, it is attached for your reference. Do NOT edit the plan file itself.
+
+To-do's from the plan have already been created. Do not create them again. Mark them as in_progress as you work, starting with the first one. Don't stop until you have completed all the to-dos.
+
+#### Key Decisions
+
+- In progress.
+
+#### Files Modified
+
+- `.llm/history/active/monorepo-deploys-alpha-part-01.md`
+
+### Session - 2026-03-15
+
+#### Prompt (Developer)
+
+implement the plan
+
+#### Key Decisions
+
+- In progress.
+
+#### Files Modified
+
+- `.llm/history/active/monorepo-deploys-alpha-part-01.md`
 - `infra/pipelines/jenkins/alpha/Jenkinsfile.alpha_teardown_all`
+
+### Session - 2026-03-15
+
+#### Prompt (Developer)
+
+implement the plan
+
+#### Key Decisions
+
+- Kept a single-Postgres model for alpha/local where management DB credentials are sourced from `db.env` and management-db env files stay deprecated.
+- Standardized management role defaults to be explicitly distinct from app roles: `podverse_management_read` and `podverse_management_read_write`.
+- Updated both local runtime defaults and template defaults so generated env files and checked-in examples stay aligned.
+
+#### Files Modified
+
+- `.llm/history/active/monorepo-deploys-alpha-part-01.md`
+- `scripts/local-env/setup.sh`
+- `apps/management-api/.env.example`
+- `infra/config/env-templates/management-api.env.example`
+- `infra/config/env-templates/db.env.example`
+- `infra/config/local/db.env`
+- `infra/config/local/management-api.env`
+- `infra/k8s/scripts/create_management_db_secret.sh`
 
 ### Session - 2026-03-15
 
