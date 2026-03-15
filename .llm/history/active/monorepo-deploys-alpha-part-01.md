@@ -87,6 +87,8 @@ make the changes needed
 - `infra/pipelines/jenkins/alpha/Jenkinsfile.aux_workers_dev_pi_bulk_feeds_add_from_file`
 - `infra/docker/alpha/api/docker-compose.yml.template`
 - `infra/docker/alpha/management-api/docker-compose.yml.template`
+- `infra/pipelines/jenkins/alpha/Jenkinsfile.srv_web_up`
+- `infra/pipelines/jenkins/alpha/Jenkinsfile.srv_management_web_up`
 
 ### Session - 2026-03-15
 
