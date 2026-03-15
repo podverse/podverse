@@ -14,7 +14,7 @@ services:
     ports:
       - 127.0.0.1:1999:1999
     volumes:
-      - ../../../../logs/management-api:/opt/logs
+      - /opt/podverse/logs/management-api:/opt/logs
     command: ["node", "apps/management-api/dist/index.js"]
     restart: unless-stopped
     logging:

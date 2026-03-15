@@ -44,17 +44,11 @@ pipeline {
             steps {
                 script {
                     def forceParseFlag = params.FORCE_PARSE ? '-f' : ''
-                    // Mount workspace as repo root so path infra/data/dev/podcast-index-feeds exists;
-                    // worker reads podcastindex_feeds.csv from that dir (upload for alpha).
-                    def workspaceMount = "${WORKSPACE}:/workspace"
-                    def workDir = '/workspace'
 
                     dir('/opt/podverse/infra/docker/alpha/workers') {
                         sh """
                             set -eux
                             docker compose -f docker-compose.yml run --rm \
-                                -v "${workspaceMount}" \
-                                -w "${workDir}" \
                                 podverse_alpha_workers \
                                 node apps/workers/dist/index.js devPiBulkFeedsAddFromFile \
                                 -startId "${params.START_ID}" \

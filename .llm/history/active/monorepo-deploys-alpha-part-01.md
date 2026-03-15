@@ -71,6 +71,27 @@ To-do's from the plan have already been created. Do not create them again. Mark 
 
 #### Prompt (Developer)
 
+make the changes needed
+
+#### Key Decisions
+
+- Move alpha srv API and management API Jenkins jobs from `${env.WORKSPACE}` to `/opt/podverse` for template generation, GHCR tag resolution, and make execution.
+- Change alpha API and management API compose log bind mounts to absolute host paths under `/opt/podverse/logs` so runtime writes never target Jenkins workspaces.
+- Remove the explicit `${WORKSPACE}` bind mount from the `aux_workers_dev_pi_bulk_feeds_add_from_file` job to avoid workspace-coupled container writes.
+
+#### Files Modified
+
+- `.llm/history/active/monorepo-deploys-alpha-part-01.md`
+- `infra/pipelines/jenkins/alpha/Jenkinsfile.srv_api_up`
+- `infra/pipelines/jenkins/alpha/Jenkinsfile.srv_management_api_up`
+- `infra/pipelines/jenkins/alpha/Jenkinsfile.aux_workers_dev_pi_bulk_feeds_add_from_file`
+- `infra/docker/alpha/api/docker-compose.yml.template`
+- `infra/docker/alpha/management-api/docker-compose.yml.template`
+
+### Session - 2026-03-15
+
+#### Prompt (Developer)
+
 Single Postgres for Alpha + Local
 
 Implement the plan as specified, it is attached for your reference. Do NOT edit the plan file itself.
