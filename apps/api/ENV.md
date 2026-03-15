@@ -97,12 +97,13 @@ These variables are **required only when `ACCOUNT_SIGNUP_MODE` is set to `'sign-
 
 ### Mailer
 
+- **`MAILER_DISABLED`** (Optional) - Disable mailer (default: `false`)
+- **`MAILER_SERVICE`** (Optional) - Email service name (e.g. for nodemailer); optional when using SMTP host/port
 - **`MAILER_HOST`** (Required when signup mode is 'sign-up') - SMTP server hostname
 - **`MAILER_PORT`** (Required when signup mode is 'sign-up') - SMTP server port (must be a valid number)
 - **`MAILER_USERNAME`** (Required when signup mode is 'sign-up') - SMTP username
 - **`MAILER_PASSWORD`** (Required when signup mode is 'sign-up') - SMTP password
 - **`MAILER_FROM`** (Required when signup mode is 'sign-up') - Email sender address
-- **`MAILER_DISABLED`** (Optional) - Disable mailer (default: `false`)
 
 ### Email Configuration
 

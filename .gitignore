@@ -82,3 +82,5 @@ tools/test-assets/config/ln-recipients.local.json
 .direnv
 
 secrets
+
+temp/
