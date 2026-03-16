@@ -14,6 +14,9 @@ updates:
   - package-ecosystem: "npm"
     directory: "/"
     target-branch: "develop"
+    # Only production deps get PRs; dev dep vulnerabilities remain visible as alerts (Security tab).
+    allow:
+      - dependency-type: "production"
     schedule:
       interval: "weekly"
       day: "monday"
@@ -47,13 +50,6 @@ updates:
           - "typescript"
           - "@types/*"
           - "eslint*"
-      # Dev dependencies grouped separately
-      dev-dependencies:
-        applies-to: version-updates
-        dependency-type: "development"
-        update-types:
-          - "minor"
-          - "patch"
 
   # Docker images
   - package-ecosystem: "docker"
