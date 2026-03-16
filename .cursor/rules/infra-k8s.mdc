@@ -28,7 +28,7 @@ K8s YAML is formatted with Prettier using **k8s-specific overrides** (see root `
 
 - **Sync with env-templates:** ConfigMaps in `base/<component>/01-configmap.yaml` mirror structure of `infra/config/env-templates/<component>.env.example`
 - **Section headers:** Use comments like `##### App / General #####`
-- **No secrets:** Mark sensitive vars with `# in secrets` comment; actual secrets go in SOPS-encrypted files
+- **No secrets:** Mark sensitive vars with `# in secrets` comment; actual secrets go in SOPS-encrypted files. When several consecutive lines have `# in secrets`, align that comment vertically (same column).
 - **String values:** Use double quotes (e.g., `NODE_ENV: "production"`)
 - **Comments:** Reference source (e.g., `# Mapped from config/podverse-api.env.example`)
 
