@@ -22,8 +22,8 @@ services:
       - /bin/sh
       - -c
       - >-
-        echo "podverse_local_db:5432:*:postgres:$$POSTGRES_PASSWORD" > /tmp/pgpass &&
-        echo "podverse_local_management_db:5432:*:postgres:$$POSTGRES_PASSWORD" >> /tmp/pgpass &&
+        echo "podverse_local_db:5432:*:postgres_user_app:$$POSTGRES_PASSWORD" > /tmp/pgpass &&
+        echo "podverse_local_db:5432:*:postgres_user_management:$$POSTGRES_MANAGEMENT_PASSWORD" >> /tmp/pgpass &&
         chmod 0600 /tmp/pgpass &&
         /entrypoint.sh
     volumes:

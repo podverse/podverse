@@ -38,6 +38,8 @@ Validation occurs in `src/lib/startup/validation.ts` during application startup.
 - **`DB_DATABASE`** (Required) - Database name
 - **`DB_SSL_CONNECTION`** (Optional) - Use SSL for database connection (default: `false`)
 
+In Kubernetes, `DB_*` values are supplied by the management DB secret (`podverse-management-db-opaque`).
+
 ### API Configuration
 
 - **`API_PORT`** (Required) - API server port (must be a valid number)

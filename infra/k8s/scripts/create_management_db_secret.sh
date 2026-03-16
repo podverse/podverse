@@ -1,14 +1,13 @@
 #!/usr/bin/env bash
 # VERSION: 1
 # Helper to create the encrypted Management DB secret.
-# It includes ALIASES so the same secret works for the DB (POSTGRES_MANAGEMENT_*) and Apps (DB_MANAGEMET_*).
+# It includes both POSTGRES_MANAGEMENT_* (for DB container/init) and DB_* (for apps, same shape as create_db_secret.sh).
 
 set -euo pipefail
 
 # ------------------------------------------------------------------
 # CONFIGURATION
 # ------------------------------------------------------------------
-PASSWORD_LENGTH=20
 AUTO_GEN=false
 OUTPUT_FILE_OVERRIDE=""
 
@@ -29,9 +28,9 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-# Generate secure random password
+# Generate secure random password (hex-only, 32 chars = 128 bits; consistent with other create_* scripts)
 generate_password() {
-  pwgen -s "$PASSWORD_LENGTH" 1
+  openssl rand -hex 32 | tr -d '\n'
 }
 
 echo "Running create_management_db_secret.sh"
@@ -63,9 +62,9 @@ fi
 # INPUTS
 # ------------------------------------------------------------------
 DEFAULT_DB="podverse_management"
-DEFAULT_USER="podverse_management"
-DEFAULT_READ_USER="management_read"
-DEFAULT_READ_WRITE_USER="management_read_write"
+DEFAULT_USER="postgres_user_management"
+DEFAULT_READ_USER="podverse_management_read"
+DEFAULT_READ_WRITE_USER="podverse_management_read_write"
 
 if [ "$AUTO_GEN" = true ]; then
   echo "Auto-generating secrets..."
@@ -76,15 +75,15 @@ if [ "$AUTO_GEN" = true ]; then
   POSTGRES_MANAGEMENT_PASSWORD=$(generate_password)
   POSTGRES_MANAGEMENT_READ_PASSWORD=$(generate_password)
   POSTGRES_MANAGEMENT_READ_WRITE_PASSWORD=$(generate_password)
-  SUPERUSER_MANAGEMENT_EMAIL=""
-  SUPERUSER_MANAGEMENT_PASSWORD=$(generate_password)
+  MANAGEMENT_SUPERUSER_EMAIL=""
+  MANAGEMENT_SUPERUSER_PASSWORD=$(generate_password)
   echo "  POSTGRES_MANAGEMENT_DB: $POSTGRES_MANAGEMENT_DB"
   echo "  POSTGRES_MANAGEMENT_USER: $POSTGRES_MANAGEMENT_USER"
   echo "  POSTGRES_MANAGEMENT_PASSWORD: [generated]"
   echo "  POSTGRES_MANAGEMENT_READ_PASSWORD: [generated]"
   echo "  POSTGRES_MANAGEMENT_READ_WRITE_PASSWORD: [generated]"
-  echo "  SUPERUSER_MANAGEMENT_EMAIL: [empty]"
-  echo "  SUPERUSER_MANAGEMENT_PASSWORD: [generated]"
+  echo "  MANAGEMENT_SUPERUSER_EMAIL: [empty]"
+  echo "  MANAGEMENT_SUPERUSER_PASSWORD: [generated]"
 else
   echo "You are generating the Management DB credentials."
   echo "Press Enter to use the default value."
@@ -110,7 +109,11 @@ else
 
   echo ""
   echo "--- SUPERUSER ACCOUNT ---"
-  read -r -p "SUPERUSER_MANAGEMENT_EMAIL (optional): " SUPERUSER_MANAGEMENT_EMAIL
+  read -r -p "MANAGEMENT_SUPERUSER_EMAIL: " MANAGEMENT_SUPERUSER_EMAIL
+  if [ -z "$MANAGEMENT_SUPERUSER_EMAIL" ]; then
+    echo "Error: MANAGEMENT_SUPERUSER_EMAIL required."
+    exit 1
+  fi
 
   echo ""
   echo "--- SENSITIVE INPUTS ---"
@@ -135,9 +138,9 @@ else
     exit 1
   fi
 
-  read -r -s -p "Enter SUPERUSER_MANAGEMENT_PASSWORD: " SUPERUSER_MANAGEMENT_PASSWORD
+  read -r -s -p "Enter MANAGEMENT_SUPERUSER_PASSWORD: " MANAGEMENT_SUPERUSER_PASSWORD
   echo ""
-  if [ -z "$SUPERUSER_MANAGEMENT_PASSWORD" ]; then
+  if [ -z "$MANAGEMENT_SUPERUSER_PASSWORD" ]; then
     echo "Error: Password required."
     exit 1
   fi
@@ -157,7 +160,6 @@ mv "$TMP_FILE_BASE" "$TMP_FILE"
 
 kubectl create secret generic "${SECRET_NAME}" \
   --namespace "${NAMESPACE}" \
-  --from-literal=DB_MANAGEMET_DATABASE="${POSTGRES_MANAGEMENT_DB}" \
   --from-literal=POSTGRES_MANAGEMENT_DB="${POSTGRES_MANAGEMENT_DB}" \
   --from-literal=POSTGRES_MANAGEMENT_USER="${POSTGRES_MANAGEMENT_USER}" \
   --from-literal=POSTGRES_MANAGEMENT_PASSWORD="${POSTGRES_MANAGEMENT_PASSWORD}" \
@@ -165,12 +167,13 @@ kubectl create secret generic "${SECRET_NAME}" \
   --from-literal=POSTGRES_MANAGEMENT_READ_PASSWORD="${POSTGRES_MANAGEMENT_READ_PASSWORD}" \
   --from-literal=POSTGRES_MANAGEMENT_READ_WRITE_USER="${POSTGRES_MANAGEMENT_READ_WRITE_USER}" \
   --from-literal=POSTGRES_MANAGEMENT_READ_WRITE_PASSWORD="${POSTGRES_MANAGEMENT_READ_WRITE_PASSWORD}" \
-  --from-literal=DB_MANAGEMET_READ_USERNAME="${POSTGRES_MANAGEMENT_READ_USER}" \
-  --from-literal=DB_MANAGEMET_READ_PASSWORD="${POSTGRES_MANAGEMENT_READ_PASSWORD}" \
-  --from-literal=DB_MANAGEMET_READ_WRITE_USERNAME="${POSTGRES_MANAGEMENT_READ_WRITE_USER}" \
-  --from-literal=DB_MANAGEMET_READ_WRITE_PASSWORD="${POSTGRES_MANAGEMENT_READ_WRITE_PASSWORD}" \
-  --from-literal=SUPERUSER_MANAGEMENT_EMAIL="${SUPERUSER_MANAGEMENT_EMAIL}" \
-  --from-literal=SUPERUSER_MANAGEMENT_PASSWORD="${SUPERUSER_MANAGEMENT_PASSWORD}" \
+  --from-literal=DB_DATABASE="${POSTGRES_MANAGEMENT_DB}" \
+  --from-literal=DB_READ_USERNAME="${POSTGRES_MANAGEMENT_READ_USER}" \
+  --from-literal=DB_READ_PASSWORD="${POSTGRES_MANAGEMENT_READ_PASSWORD}" \
+  --from-literal=DB_READ_WRITE_USERNAME="${POSTGRES_MANAGEMENT_READ_WRITE_USER}" \
+  --from-literal=DB_READ_WRITE_PASSWORD="${POSTGRES_MANAGEMENT_READ_WRITE_PASSWORD}" \
+  --from-literal=MANAGEMENT_SUPERUSER_EMAIL="${MANAGEMENT_SUPERUSER_EMAIL}" \
+  --from-literal=MANAGEMENT_SUPERUSER_PASSWORD="${MANAGEMENT_SUPERUSER_PASSWORD}" \
   --dry-run=client -o yaml >"$TMP_FILE"
 
 sops --config .sops.yaml --encrypt --encrypted-regex '^(data|stringData)$' \
@@ -186,3 +189,5 @@ echo "sops -d ${OUTPUT_FILE}"
 echo ""
 echo "You can apply the values (if you have the key) by running:"
 echo "sops -d ${OUTPUT_FILE} | kubectl apply -f -"
+echo ""
+echo "Note: If you had an existing management-db secret, re-apply after re-running this script so it contains DB_* and MANAGEMENT_* keys."

@@ -24,8 +24,9 @@ while [[ $# -gt 0 ]]; do
 	esac
 done
 
+# Generate secure random key (hex-only, 32 chars = 128 bits; consistent with other create_* scripts)
 generate_key() {
-	openssl rand -hex 32
+	openssl rand -hex 32 | tr -d '\n'
 }
 
 echo "Running create_workers_add_by_rss_secret.sh"

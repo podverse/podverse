@@ -34,13 +34,13 @@ pipeline {
         stage('Prepare Configuration') {
             steps {
                 script {
-                    dir("${env.WORKSPACE}/infra/docker/alpha/management-api") {
+                    dir('/opt/podverse/infra/docker/alpha/management-api') {
                         // We use a multi-line shell script to preserve the logic from the XML
                         def apiVersion
                         if (params.IMAGE_VERSION == 'alpha') {
                             withEnv(["GHCR_IMAGE_PATH=${params.GHCR_IMAGE_PATH}"]) {
                                 withCredentials([string(credentialsId: params.GHCR_REGISTRY_TOKEN, variable: 'GHCR_REGISTRY_TOKEN')]) {
-                                    apiVersion = sh(script: "${env.WORKSPACE}/scripts/ghcr/getLatestAlphaTag.sh", returnStdout: true).trim()
+                                    apiVersion = sh(script: '/opt/podverse/scripts/ghcr/getLatestAlphaTag.sh', returnStdout: true).trim()
                                 }
                             }
                             if (!apiVersion) {
@@ -64,7 +64,9 @@ pipeline {
         stage('Start Alpha Management API') {
             steps {
                 script {
-                    sh 'make -f makefiles/alpha/Makefile.alpha.mk alpha_management_api_up'
+                    dir('/opt/podverse') {
+                        sh 'make -f makefiles/alpha/Makefile.alpha.mk alpha_management_api_up'
+                    }
                 }
             }
         }

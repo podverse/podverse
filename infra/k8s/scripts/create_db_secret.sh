@@ -8,7 +8,6 @@ set -euo pipefail
 # ------------------------------------------------------------------
 # CONFIGURATION
 # ------------------------------------------------------------------
-PASSWORD_LENGTH=20
 AUTO_GEN=false
 OUTPUT_FILE_OVERRIDE=""
 
@@ -29,9 +28,9 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-# Generate secure random password
+# Generate secure random password (hex-only, 32 chars = 128 bits; consistent with other create_* scripts)
 generate_password() {
-  pwgen -s "$PASSWORD_LENGTH" 1
+  openssl rand -hex 32 | tr -d '\n'
 }
 
 echo "Running create_db_secret.sh"
@@ -63,7 +62,7 @@ fi
 # INPUTS
 # ------------------------------------------------------------------
 DEFAULT_DB="podverse_app"
-DEFAULT_USER="podverse_app"
+DEFAULT_USER="postgres_user_app"
 DEFAULT_READ_USER="podverse_app_read"
 DEFAULT_READ_WRITE_USER="podverse_app_read_write"
 

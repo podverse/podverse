@@ -1952,7 +1952,6 @@ data:
         UNIQUE (item_value_id)
     );
 
-
   01-create-users.sh: |
     #!/bin/bash
     set -e

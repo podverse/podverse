@@ -18,7 +18,6 @@ local_env_clean:
 		infra/config/local/db.env \
 		infra/config/local/mq.env \
 		infra/config/local/keyvaldb.env \
-		infra/config/local/management-db.env \
 		infra/config/local/api.env \
 		infra/config/local/workers.env \
 		infra/config/local/management-api.env \
@@ -38,7 +37,7 @@ local_env_prepare:
 # - Create missing runtime env files from templates/examples
 # - Generate passwords/keys when empty
 # - Apply manual overrides from dev/env-overrides/local/*.env
-local_env_setup: infra/config/local/db.env infra/config/local/mq.env infra/config/local/keyvaldb.env infra/config/local/management-db.env infra/config/local/api.env infra/config/local/workers.env infra/config/local/management-api.env infra/config/local/web.env infra/config/local/management-web.env apps/api/.env apps/workers/.env apps/management-api/.env apps/web/.env.local apps/management-web/.env.local
+local_env_setup: infra/config/local/db.env infra/config/local/mq.env infra/config/local/keyvaldb.env infra/config/local/api.env infra/config/local/workers.env infra/config/local/management-api.env infra/config/local/web.env infra/config/local/management-web.env apps/api/.env apps/workers/.env apps/management-api/.env apps/web/.env.local apps/management-web/.env.local
 	bash scripts/local-env/setup.sh
 	@echo "Local env setup complete."
 
@@ -72,12 +71,6 @@ infra/config/local/workers.env:
 	@echo "Copying from example file"
 	mkdir -p infra/config/local
 	cp ./apps/workers/.env.example ./$@
-
-infra/config/local/management-db.env:
-	@echo "Missing: $@"
-	@echo "Copying from example file"
-	mkdir -p infra/config/local
-	cp ./infra/config/env-templates/management-db.env.example ./$@
 
 infra/config/local/management-api.env:
 	@echo "Missing: $@"

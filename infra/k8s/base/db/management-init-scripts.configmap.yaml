@@ -155,5 +155,3 @@ data:
     );
 
     CREATE INDEX idx_admin_account_credentials_admin_account_id ON admin_account_credentials(admin_account_id);
-
-

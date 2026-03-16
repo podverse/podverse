@@ -34,7 +34,7 @@ From the Podverse repo root, the path to Boostbox must be `../boostbox` (not con
    make local_build_boostbox
    ```
 
-4. After that, `make local_infra_up` will start Boostbox with db, mq, keyvaldb, and management-db.
+4. After that, `make local_infra_up` will start Boostbox with db (main + management databases), mq, and keyvaldb.
 
 ## Running and stopping
 

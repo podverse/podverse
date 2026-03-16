@@ -2,7 +2,7 @@
 
 .PHONY: alpha_validate_init
 
-alpha_validate_init: infra/config/alpha/db.env infra/config/alpha/mq.env infra/config/alpha/keyvaldb.env infra/config/alpha/workers.env infra/config/alpha/api.env infra/config/alpha/web.env infra/config/alpha/management-db.env infra/config/alpha/management-api.env infra/config/alpha/management-web.env
+alpha_validate_init: infra/config/alpha/db.env infra/config/alpha/mq.env infra/config/alpha/keyvaldb.env infra/config/alpha/workers.env infra/config/alpha/api.env infra/config/alpha/web.env infra/config/alpha/management-api.env infra/config/alpha/management-web.env
 
 # Auto-copy missing alpha env files from templates (infra/config/alpha/ exists via .gitkeep)
 infra/config/alpha/db.env:
@@ -34,11 +34,6 @@ infra/config/alpha/web.env:
 	@echo "Missing: $@"
 	@echo "Copying from example file"
 	cp ./infra/config/env-templates/web.env.example ./$@
-
-infra/config/alpha/management-db.env:
-	@echo "Missing: $@"
-	@echo "Copying from example file"
-	cp ./infra/config/env-templates/management-db.env.example ./$@
 
 infra/config/alpha/management-api.env:
 	@echo "Missing: $@"

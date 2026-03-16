@@ -7,7 +7,6 @@ set -euo pipefail
 # ------------------------------------------------------------------
 # CONFIGURATION
 # ------------------------------------------------------------------
-PASSWORD_LENGTH=20
 AUTO_GEN=false
 OUTPUT_FILE_OVERRIDE=""
 
@@ -28,9 +27,9 @@ while [[ $# -gt 0 ]]; do
 	esac
 done
 
-# Generate secure random password
+# Generate secure random password (hex-only, 32 chars = 128 bits; consistent with other create_* scripts)
 generate_password() {
-	uuidgen
+	openssl rand -hex 32 | tr -d '\n'
 }
 
 echo "Running create_api_secret.sh"
@@ -58,7 +57,7 @@ fi
 # ------------------------------------------------------------------
 if [ "$AUTO_GEN" = true ]; then
 	echo "Auto-generating secrets..."
-	AUTH_JWT_SECRET=$(generate_password)
+	AUTH_JWT_SECRET=$(uuidgen | tr '[:upper:]' '[:lower:]' | tr -d '\n')
 	MAILER_PASSWORD=$(generate_password)
 	echo "  AUTH_JWT_SECRET: [generated]"
 	echo "  MAILER_PASSWORD: [generated]"

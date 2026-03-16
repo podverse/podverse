@@ -9,6 +9,8 @@ alwaysApply: false
 
 # Environment File Formatting
 
+This rule applies to **all** env var files in the repo: app `.env.example` files, `infra/config/env-templates/*.env.example`, and `dev/env-overrides/local/*.env.example`. Scripts that write env content (e.g. `scripts/local-env/setup.sh`) must follow the same pattern.
+
 ## Formatting Rules
 
 1. **Non-empty values** must be surrounded with double quotation marks

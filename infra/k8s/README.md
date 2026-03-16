@@ -57,10 +57,11 @@ Before running the scripts, ensure you have the following ready:
 
 - **Management DB Credentials** (`create_management_db_secret.sh`):
   - You will need to invent 4 passwords:
-    - `POSTGRES_PASSWORD` (Superuser)
-    - `POSTGRES_READ_PASSWORD` (Read-only user)
-    - `POSTGRES_READ_WRITE_PASSWORD` (Application user)
-    - `SUPERUSER_PASSWORD` (Management superuser account)
+    - `POSTGRES_MANAGEMENT_PASSWORD` (Superuser)
+    - `POSTGRES_MANAGEMENT_READ_PASSWORD` (Read-only user)
+    - `POSTGRES_MANAGEMENT_READ_WRITE_PASSWORD` (Application user)
+    - `MANAGEMENT_SUPERUSER_PASSWORD` (Management bootstrap superuser)
+  - Required: `MANAGEMENT_SUPERUSER_EMAIL` (bootstrap superuser account email).
 
 - **Message Queue Credentials** (`create_mq_secret.sh`):
   - An `MQ_PASSWORD` for the admin user.

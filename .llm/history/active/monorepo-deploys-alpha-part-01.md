@@ -66,6 +66,100 @@ To-do's from the plan have already been created. Do not create them again. Mark 
 #### Files Modified
 
 - `.llm/history/active/monorepo-deploys-alpha-part-01.md`
+
+### Session - 2026-03-15
+
+#### Prompt (Developer)
+
+make the changes needed
+
+#### Key Decisions
+
+- Move alpha srv API and management API Jenkins jobs from `${env.WORKSPACE}` to `/opt/podverse` for template generation, GHCR tag resolution, and make execution.
+- Change alpha API and management API compose log bind mounts to absolute host paths under `/opt/podverse/logs` so runtime writes never target Jenkins workspaces.
+- Remove the explicit `${WORKSPACE}` bind mount from the `aux_workers_dev_pi_bulk_feeds_add_from_file` job to avoid workspace-coupled container writes.
+
+#### Files Modified
+
+- `.llm/history/active/monorepo-deploys-alpha-part-01.md`
+- `infra/pipelines/jenkins/alpha/Jenkinsfile.srv_api_up`
+- `infra/pipelines/jenkins/alpha/Jenkinsfile.srv_management_api_up`
+- `infra/pipelines/jenkins/alpha/Jenkinsfile.aux_workers_dev_pi_bulk_feeds_add_from_file`
+- `infra/docker/alpha/api/docker-compose.yml.template`
+- `infra/docker/alpha/management-api/docker-compose.yml.template`
+- `infra/pipelines/jenkins/alpha/Jenkinsfile.srv_web_up`
+- `infra/pipelines/jenkins/alpha/Jenkinsfile.srv_management_web_up`
+
+### Session - 2026-03-15
+
+#### Prompt (Developer)
+
+Single Postgres for Alpha + Local
+
+Implement the plan as specified, it is attached for your reference. Do NOT edit the plan file itself.
+
+To-do's from the plan have already been created. Do not create them again. Mark them as in_progress as you work, starting with the first one. Don't stop until you have completed all the to-dos.
+
+#### Key Decisions
+
+- In progress.
+
+#### Files Modified
+
+- `.llm/history/active/monorepo-deploys-alpha-part-01.md`
+
+### Session - 2026-03-15
+
+#### Prompt (Developer)
+
+implement the plan
+
+#### Key Decisions
+
+- In progress.
+
+#### Files Modified
+
+- `.llm/history/active/monorepo-deploys-alpha-part-01.md`
+- `infra/pipelines/jenkins/alpha/Jenkinsfile.alpha_teardown_all`
+
+### Session - 2026-03-15
+
+#### Prompt (Developer)
+
+implement the plan
+
+#### Key Decisions
+
+- Kept a single-Postgres model for alpha/local where management DB credentials are sourced from `db.env` and management-db env files stay deprecated.
+- Standardized management role defaults to be explicitly distinct from app roles: `podverse_management_read` and `podverse_management_read_write`.
+- Updated both local runtime defaults and template defaults so generated env files and checked-in examples stay aligned.
+
+#### Files Modified
+
+- `.llm/history/active/monorepo-deploys-alpha-part-01.md`
+- `scripts/local-env/setup.sh`
+- `apps/management-api/.env.example`
+- `infra/config/env-templates/management-api.env.example`
+- `infra/config/env-templates/db.env.example`
+- `infra/config/local/db.env`
+- `infra/config/local/management-api.env`
+- `infra/k8s/scripts/create_management_db_secret.sh`
+
+### Session - 2026-03-15
+
+#### Prompt (Developer)
+
+Add the durable hardening
+
+#### Key Decisions
+
+- Harden teardown container removal to use force-remove semantics (`docker rm -f $(docker ps -aq)`), avoiding hangs caused by graceful stop of problematic containers.
+- Keep volume/image/network prune and DB path wipe behavior intact.
+
+#### Files Modified
+
+- `.llm/history/active/monorepo-deploys-alpha-part-01.md`
 - `infra/pipelines/jenkins/alpha/setup/verify-jobs-detailed.sh`
 
 ### Session - 2026-03-12
@@ -81,6 +175,12 @@ the jenkins-sync.env should be in the gitignore
 #### Files Modified
 
 - `.llm/history/active/monorepo-deploys-alpha-part-01.md`
+- `infra/pipelines/jenkins/alpha/Jenkinsfile.srv_api_up`
+- `infra/pipelines/jenkins/alpha/Jenkinsfile.srv_management_api_up`
+- `infra/pipelines/jenkins/alpha/Jenkinsfile.srv_web_up`
+- `infra/pipelines/jenkins/alpha/Jenkinsfile.srv_management_web_up`
+- `infra/pipelines/jenkins/alpha/Jenkinsfile.alpha_rebuild_all`
+- `infra/pipelines/jenkins/alpha/Jenkinsfile.alpha_teardown_all`
 - `Makefile`
 - `Makefile.jenkins-alpha`
 - `infra/pipelines/jenkins/alpha/setup/jenkins-sync.env.example`
@@ -100,6 +200,22 @@ patch it. this command should never throw an error like this
 - Patch `verify-jobs-detailed.sh` to be non-fragile under `set -euo pipefail`.
 - Replace post-increment arithmetic counters with assignment-based increments to avoid non-zero arithmetic exit statuses.
 - Improve branch extraction to read the branch from the `<branches>` block instead of the first generic `<name>` tag.
+
+#### Files Modified
+
+- `.llm/history/active/monorepo-deploys-alpha-part-01.md`
+
+### Session - 2026-03-15
+
+#### Prompt (Developer)
+
+apply the durable fix. i want to run teardown again, and then run rebuild again, on alpha, and have it run everything all the way through successfully this time. also, if you anticipate the "logs" directory being a problem like before, that needs a durable fix as well
+
+#### Key Decisions
+
+- Make alpha srv "up" Jenkins jobs independent from Jenkins workspace checkout by setting `skipDefaultCheckout(true)` and using `/opt/podverse` paths.
+- Generate docker-compose files and run make targets from `/opt/podverse` in `srv_api_up`, `srv_management_api_up`, `srv_web_up`, and `srv_management_web_up`.
+- Keep image tag resolution via `scripts/ghcr/getLatestAlphaTag.sh`, but execute it from `/opt/podverse` to ensure env/config consistency and avoid workspace permission issues.
 
 #### Files Modified
 
