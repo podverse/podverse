@@ -40,7 +40,7 @@ data:
   #####
 
   # Must be a valid UUID - generate with: uuidgen
-  ##AUTH_JWT_SECRET: "your-secret-whatever" # in secrets
+  ##AUTH_JWT_SECRET: ""                    # in secrets
 
   # Format: BrandName Bot Environment/AppName/Version
   USER_AGENT: "Podverse Bot base/API/5" # in prod change to "Podverse Bot/API/5", in base change to "Podverse Bot base/API/5", etc.
@@ -64,11 +64,11 @@ data:
 
   DB_HOST: "podverse-db"
   DB_PORT: "5432"
-  # DB_READ_USERNAME: "read"                # in secrets
-  # DB_PASSWORD: "your-db-password"         # in secrets
-  # DB_READ_WRITE_USERNAME: "read_write"    # in secrets
-  # DB_READ_WRITE_PASSWORD: "read_write"    # in secrets
-  # DB_DATABASE: "podverse_app"             # in secrets
+  # DB_READ_USERNAME: ""                  # in secrets
+  # DB_PASSWORD: ""                       # in secrets
+  # DB_READ_WRITE_USERNAME: ""            # in secrets
+  # DB_READ_WRITE_PASSWORD: ""            # in secrets
+  # DB_DATABASE: ""                       # in secrets
   # Set to true for SSL connection
   DB_SSL_CONNECTION: ""
 
@@ -78,7 +78,7 @@ data:
 
   KEYVALDB_HOST: "podverse-keyvaldb"
   KEYVALDB_PORT: "6379"
-  ##KEYVALDB_PASSWORD: ""             # in secrets
+  ##KEYVALDB_PASSWORD: ""                 # in secrets
   KEYVALDB_CACHE_TTL_SECONDS: "86400" # 1 day
 
   #####
@@ -96,8 +96,8 @@ data:
   #####
 
   PODCAST_INDEX_BASE_URL: "https://api.podcastindex.org/api/1.0"
-  #PODCAST_INDEX_AUTH_KEY:      "" # in secrets
-  #PODCAST_INDEX_SECRET_KEY:    "" # in secrets
+  #PODCAST_INDEX_AUTH_KEY: ""             # in secrets
+  #PODCAST_INDEX_SECRET_KEY: ""           # in secrets
   # Optional: Delay in milliseconds between Podcast Index API requests in the parser's remote item handling
   # Default is 200ms if not specified. Set to 0 to disable.
   PODCAST_INDEX_API_RATE_LIMIT_DELAY: "200"

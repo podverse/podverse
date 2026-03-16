@@ -36,11 +36,11 @@ data:
 
   DB_HOST: "podverse-db"
   DB_PORT: "5432"
-  ##DB_READ_USERNAME: "read"                            # in secrets
-  ##DB_READ_PASSWORD: "your_read_password"              # in secrets
-  ##DB_READ_WRITE_USERNAME: "read_write"                # in secrets
-  ##DB_READ_WRITE_PASSWORD: "your_read_write_password"  # in secrets
-  # DB_DATABASE: "podverse_app"                         # in secrets
+  ##DB_READ_USERNAME: ""                  # in secrets
+  ##DB_READ_PASSWORD: ""                  # in secrets
+  ##DB_READ_WRITE_USERNAME: ""            # in secrets
+  ##DB_READ_WRITE_PASSWORD: ""            # in secrets
+  # DB_DATABASE: ""                       # in secrets
   # Set to true for SSL connection
   DB_SSL_CONNECTION: ""
 
@@ -48,8 +48,8 @@ data:
   ##### Podcast Index
   #####
   PODCAST_INDEX_BASE_URL: "https://api.podcastindex.org/api/1.0"
-  #PODCAST_INDEX_AUTH_KEY: ""     # in secrets
-  #PODCAST_INDEX_SECRET_KEY: ""   # in secrets
+  #PODCAST_INDEX_AUTH_KEY: ""             # in secrets
+  #PODCAST_INDEX_SECRET_KEY: ""           # in secrets
   # Optional: Delay in milliseconds between Podcast Index API requests in the parser's remote item handling
   # Default is 200ms if not specified. Set to 0 to disable.
   PODCAST_INDEX_API_RATE_LIMIT_DELAY: "200"
@@ -59,8 +59,8 @@ data:
   #####
   MESSAGE_QUEUE_PROTOCOL: "amqp"
   MESSAGE_QUEUE_HOST: "podverse-mq"
-  #MESSAGE_QUEUE_USERNAME: "admin"  # in secrets
-  #MESSAGE_QUEUE_PASSWORD: ""       # in secrets
+  #MESSAGE_QUEUE_USERNAME: ""             # in secrets
+  #MESSAGE_QUEUE_PASSWORD: ""             # in secrets
   MESSAGE_QUEUE_PORT: "5672"
 
   #####
@@ -68,8 +68,8 @@ data:
   #####
 
   BUCKET_PROVIDER: ""
-  ##BUCKET_ACCESS_KEY: ""  # in secrets
-  ##BUCKET_SECRET_KEY: ""  # in secrets
+  ##BUCKET_ACCESS_KEY: ""                 # in secrets
+  ##BUCKET_SECRET_KEY: ""                 # in secrets
   BUCKET_REGION: ""
   BUCKET_NAME: "" #
   BUCKET_CDN_BASE_URL: ""
@@ -99,7 +99,7 @@ data:
   #####
   KEYVALDB_HOST: "podverse-keyvaldb"
   KEYVALDB_PORT: "6379"
-  ##KEYVALDB_PASSWORD: ""  # in secrets (podverse-keyvaldb-opaque)
+  ##KEYVALDB_PASSWORD: ""                 # in secrets (podverse-keyvaldb-opaque)
   KEYVALDB_CACHE_TTL_SECONDS: "3600"
 
   #####
@@ -147,7 +147,7 @@ data:
   #####
   # Required: 64 hex characters (32 bytes) for AES-256-GCM encryption of Basic Auth
   # credentials at rest. Generate with: openssl rand -hex 32
-  ##ADD_BY_RSS_CREDENTIALS_ENCRYPTION_KEY: ""  # in secrets
+  ##ADD_BY_RSS_CREDENTIALS_ENCRYPTION_KEY: ""        # in secrets
 
   #####
   ##### Parser

@@ -123,15 +123,18 @@ ConfigMaps in `base/<component>/01-configmap.yaml` should mirror the structure o
 
 - **Never** put secrets in ConfigMaps
 - Mark sensitive variables with `# in secrets` comment
+- **Align comments:** When several consecutive lines have `# in secrets` (or `# in secrets (...)`), align the `# in secrets` part vertically (same column) by padding with spaces after the value so the comment starts at the same position
 - Actual secrets go in SOPS-encrypted files under `k8s/secrets/`
 - Use `secretRef` in Deployment `envFrom` to load secrets
 
-**Example:**
+**Example (aligned `# in secrets` in a sequence):**
 
 ```yaml
-# In ConfigMap
-API_PORT: '1234'
-##AUTH_JWT_SECRET: "your-secret-whatever" # in secrets
+# In ConfigMap – consecutive "in secrets" lines aligned
+  # DB_READ_USERNAME: ""                  # in secrets
+  # DB_PASSWORD: ""                       # in secrets
+  # DB_READ_WRITE_USERNAME: ""            # in secrets
+  # DB_READ_WRITE_PASSWORD: ""            # in secrets
 
 # In Deployment
 envFrom:
