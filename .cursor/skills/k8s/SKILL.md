@@ -130,12 +130,11 @@ ConfigMaps in `base/<component>/01-configmap.yaml` should mirror the structure o
 **Example (aligned `# in secrets` in a sequence):**
 
 ```yaml
-# In ConfigMap
-API_PORT: '1234'
+# In ConfigMap – consecutive "in secrets" lines aligned
   # DB_READ_USERNAME: ""                  # in secrets
   # DB_PASSWORD: ""                       # in secrets
   # DB_READ_WRITE_USERNAME: ""            # in secrets
-##AUTH_JWT_SECRET: ""                     # in secrets
+  # DB_READ_WRITE_PASSWORD: ""            # in secrets
 
 # In Deployment
 envFrom:
