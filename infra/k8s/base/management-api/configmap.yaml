@@ -59,10 +59,10 @@ data:
 
   DB_HOST: "podverse-db"
   DB_PORT: "5432"
-  # DB_READ_USERNAME: "read"                # in secrets
-  # DB_READ_PASSWORD: "your_read_password"  # in secrets
-  # DB_READ_WRITE_USERNAME: "read_write"    # in secrets
-  # DB_READ_WRITE_PASSWORD: "read_write"    # in secrets
-  # DB_DATABASE: "podverse_management"      # in secrets
+  # DB_MANAGEMENT_READ_USERNAME: "read"                # in secrets
+  # DB_MANAGEMENT_READ_PASSWORD: "your_read_password"  # in secrets
+  # DB_MANAGEMENT_READ_WRITE_USERNAME: "read_write"    # in secrets
+  # DB_MANAGEMENT_READ_WRITE_PASSWORD: "read_write"    # in secrets
+  # DB_MANAGEMENT_DATABASE: "podverse_management"      # in secrets
   # Set to true for SSL connection
   DB_SSL_CONNECTION: ""
