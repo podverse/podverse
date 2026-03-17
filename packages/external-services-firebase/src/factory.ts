@@ -1,5 +1,7 @@
-import admin from 'firebase-admin';
+import { existsSync } from 'fs';
 import { createRequire } from 'module';
+
+import admin from 'firebase-admin';
 
 import type { ExternalServicesConfig } from './config/types.js';
 
@@ -37,23 +39,33 @@ export function createFirebaseContext(config: ExternalServicesConfig): FirebaseC
       firebaseAdminInstance = null;
       isFirebaseEnabled = false;
     } else {
-      try {
-        const settings = require(config.firebase.admin_json_key_path);
-        const serviceAccount = settings as admin.ServiceAccount;
-
-        if (!admin.apps.length) {
-          admin.initializeApp({
-            credential: admin.credential.cert(serviceAccount),
-          });
-          console.warn('Firebase Admin Initialized Successfully');
-        }
-
-        firebaseAdminInstance = admin;
-        isFirebaseEnabled = true;
-      } catch (error) {
-        console.error('Firebase Admin Initialization Failed:', error);
+      const adminJsonPath = config.firebase.admin_json_key_path.trim();
+      if (!existsSync(adminJsonPath)) {
+        console.error(
+          'Firebase Admin Initialization Failed: admin JSON key file not found at',
+          adminJsonPath
+        );
         firebaseAdminInstance = null;
         isFirebaseEnabled = false;
+      } else {
+        try {
+          const settings = require(adminJsonPath);
+          const serviceAccount = settings as admin.ServiceAccount;
+
+          if (!admin.apps.length) {
+            admin.initializeApp({
+              credential: admin.credential.cert(serviceAccount),
+            });
+            console.warn('Firebase Admin Initialized Successfully');
+          }
+
+          firebaseAdminInstance = admin;
+          isFirebaseEnabled = true;
+        } catch (error) {
+          console.error('Firebase Admin Initialization Failed:', error);
+          firebaseAdminInstance = null;
+          isFirebaseEnabled = false;
+        }
       }
     }
   }
