@@ -78,7 +78,7 @@ alpha_api_down:
 		docker rmi $$(docker images --filter=reference='ghcr.io/podverse/podverse/api/*' -q) 2>/dev/null || true; \
 	fi
 
-alpha_web_up: infra/config/alpha/web.env
+alpha_web_up: infra/config/alpha/web.env infra/config/alpha/web-sidecar.env
 	docker compose -f infra/docker/alpha/web/docker-compose.yml up podverse_alpha_web -d
 
 alpha_web_down:
@@ -187,7 +187,7 @@ alpha_management_api_down:
 		docker rmi $$(docker images --filter=reference='ghcr.io/podverse/podverse/management-api/*' -q) 2>/dev/null || true; \
 	fi
 
-alpha_management_web_up:
+alpha_management_web_up: infra/config/alpha/management-web.env infra/config/alpha/management-web-sidecar.env
 	docker compose -f infra/docker/alpha/management-web/docker-compose.yml up podverse_alpha_management_web -d
 
 alpha_management_web_down:

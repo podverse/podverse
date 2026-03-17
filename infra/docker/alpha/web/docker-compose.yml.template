@@ -28,7 +28,7 @@ services:
     image: ghcr.io/podverse/podverse/web-runtime-config:REPLACE_WITH_WEB_RUNTIME_CONFIG_VERSION
     container_name: podverse_alpha_web_runtime_config
     env_file:
-      - ../../../config/alpha/web.env
+      - ../../../config/alpha/web-sidecar.env
     environment:
       PORT: "3001"
     networks:
