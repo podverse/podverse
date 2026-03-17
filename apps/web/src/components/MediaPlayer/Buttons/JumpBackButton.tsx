@@ -1,5 +1,6 @@
-import { MEDIA_JUMP_BACK_SECONDS } from '@podverse/helpers';
 import { FaRotateLeft } from 'react-icons/fa6';
+
+import { MEDIA_JUMP_BACK_SECONDS } from '@podverse/helpers';
 
 import { EVENTS } from '../../../constants/events';
 
