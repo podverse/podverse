@@ -27,7 +27,7 @@ configMapGenerator:
   - name: podverse-api-config
     behavior: merge
     literals:
-      - API_ALLOWED_CORS_ORIGINS="http://podverse-web:3000,https://api-alpha-podverse.k.podverse.fm,https://alpha-podverse.k.podverse.fm,https://k.podverse.fm"
+      - API_ALLOWED_CORS_ORIGINS="http://podverse-web:3002,https://api-alpha-podverse.k.podverse.fm,https://alpha-podverse.k.podverse.fm,https://k.podverse.fm"
       - COOKIE_DOMAIN=".k.podverse.fm"
       - WEB_DOMAIN="alpha-podverse.k.podverse.fm"
 

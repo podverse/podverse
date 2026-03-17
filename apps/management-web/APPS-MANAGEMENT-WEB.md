@@ -111,7 +111,7 @@ See [ENV.md](ENV.md) for complete documentation of all environment variables.
 Key configuration:
 
 - `NEXT_PUBLIC_API_HOST` - Management API host
-- `NEXT_PUBLIC_API_PORT` - Management API port (default: 1999)
+- `NEXT_PUBLIC_API_PORT` - Management API port (default: 3100)
 
 ## License
 

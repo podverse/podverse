@@ -15,6 +15,5 @@ RUN echo '{"type":"module"}' > package.json
 COPY --from=builder /app/apps/management-web/sidecar/dist/server.js ./server.js
 
 USER node
-ENV NODE_ENV=production
 
 CMD ["node", "server.js"]

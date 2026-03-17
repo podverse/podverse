@@ -29,8 +29,8 @@ make local_setup
 npm run build:packages
 
 # 5. Run apps (in separate terminals)
-npm run dev:api # http://localhost:1234
-npm run dev:web # http://localhost:3000
+npm run dev:api # http://localhost:3000
+npm run dev:web # http://localhost:3002
 ```
 
 See [docs/QUICKSTART.md](docs/QUICKSTART.md) for detailed setup instructions, verification steps, and troubleshooting.

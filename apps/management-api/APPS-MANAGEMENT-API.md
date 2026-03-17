@@ -86,7 +86,7 @@ See [ENV.md](ENV.md) for complete documentation of all environment variables.
 
 Key configuration:
 
-- `API_PORT` - Default: 1999
+- `API_PORT` - Default: 3100
 - `AUTH_JWT_SECRET` - Must be a valid UUID
 - Database connection settings
 

@@ -1,7 +1,7 @@
 import type { ActiveMQArtemisService, MQQueueName } from '@queue/services/activeMQArtemis/index.js';
 import WebSocket from 'ws';
 
-import { MQ_QUEUES } from '@podverse/helpers';
+import { LIVE_ITEM_POLL_INTERVAL_MS, MQ_QUEUES } from '@podverse/helpers';
 import type { Feed } from '@podverse/orm';
 import { FeedService } from '@podverse/orm';
 
@@ -20,7 +20,7 @@ export const mqRSSRunLiveItemListener = (activeMQArtemisService: ActiveMQArtemis
   }, 100000000);
 
   let openedSocket: boolean | null = null;
-  const timeInterval = 5000;
+  const timeInterval = LIVE_ITEM_POLL_INTERVAL_MS;
   const url = 'wss://api.livewire.io/ws/podping';
 
   let connectionIdCount = 0;

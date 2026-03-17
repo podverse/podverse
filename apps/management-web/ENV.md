@@ -2,7 +2,7 @@
 
 ## Overview
 
-The `podverse-management-web` app is a Next.js app that reads `NEXT_PUBLIC_*` values at runtime via an internal runtime-config sidecar. The app's `.env.example` contains only `RUNTIME_CONFIG_URL`; the sidecar env (and `infra/config/env-templates/management-web-sidecar.env.example`) holds the full variable list. These values are exposed to the browser, so do not include secrets.
+The `podverse-management-web` app is a Next.js app that reads `NEXT_PUBLIC_*` values at runtime via an internal runtime-config sidecar. The app's `.env.example` contains only `RUNTIME_CONFIG_URL`; the sidecar env (and `apps/management-web/sidecar/.env.example`) holds the full variable list. These values are exposed to the browser, so do not include secrets.
 
 **No environment variables are required at build time.** The app can be built without any `.env` file. All configuration is fetched from the sidecar at runtime.
 
@@ -22,7 +22,7 @@ The sidecar uses the same validation helpers as the rest of the monorepo (`@podv
 
 - **`NEXT_PUBLIC_SSR_API_PROTOCOL`** (Required) - Protocol for server-side API requests (`http` or `https`)
 - **`NEXT_PUBLIC_SSR_API_HOST`** (Required) - Host for server-side API requests. Use Docker service name (`podverse_local_management_api`) in `infra/config/local/management-web.env` when running in Compose; `make local_env_setup` sets it.
-- **`NEXT_PUBLIC_SSR_API_PORT`** (Required) - Port for server-side API requests (e.g. `1999`)
+- **`NEXT_PUBLIC_SSR_API_PORT`** (Required) - Port for server-side API requests (e.g. `3100`)
 
 ### API Configuration (Client)
 

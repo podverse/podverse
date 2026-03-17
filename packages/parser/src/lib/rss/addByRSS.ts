@@ -2,7 +2,7 @@ import { _requestWithHeaders } from '@parser/lib/_request.js';
 import type { FeedObject } from 'podverse-partytime';
 import { parseFeed } from 'podverse-partytime';
 
-import { sleep } from '@podverse/helpers';
+import { DEFAULT_HTTP_TIMEOUT_MS, sleep } from '@podverse/helpers';
 
 import { getRawFeedMd5Hash } from './hash/rawFeed.js';
 
@@ -31,7 +31,9 @@ export type ParseRSSFeedForAddByRSSResult =
 
 // Handle request delay for specific domains to avoid rate limiting
 async function handleRateLimitRequestDelay(url: string) {
-  const delayConfig = [{ regex: /^https?:\/\/(www\.)?wavlake\.com/, delay: 5000 }];
+  const delayConfig = [
+    { regex: /^https?:\/\/(www\.)?wavlake\.com/, delay: DEFAULT_HTTP_TIMEOUT_MS },
+  ];
 
   for (const { regex, delay } of delayConfig) {
     if (regex.test(url)) {

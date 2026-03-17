@@ -80,12 +80,12 @@ This builds all shared packages in dependency order:
 npm run dev:api
 ```
 
-The API starts at **http://localhost:1234**
+The API starts at **http://localhost:3000**
 
 Verify it's running:
 
 ```bash
-curl http://localhost:1234/api/v2/meta
+curl http://localhost:3000/api/v2/meta
 ```
 
 ### 6. Start the Web App
@@ -96,9 +96,9 @@ In a new terminal:
 npm run dev:web
 ```
 
-The web app starts at **http://localhost:3000**
+The web app starts at **http://localhost:3002**
 
-Open http://localhost:3000 in your browser - you should see the Podverse homepage.
+Open http://localhost:3002 in your browser - you should see the Podverse homepage.
 
 ### Local Dev Account
 
@@ -113,8 +113,8 @@ This account is pre-verified with a trial membership (expires in 1 year).
 
 | Component     | URL                                   | Expected                                                                       |
 | ------------- | ------------------------------------- | ------------------------------------------------------------------------------ |
-| API           | http://localhost:1234/api/v2/meta     | JSON response with version info                                                |
-| Web           | http://localhost:3000                 | Podverse homepage loads                                                        |
+| API           | http://localhost:3000/api/v2/meta     | JSON response with version info                                                |
+| Web           | http://localhost:3002                 | Podverse homepage loads                                                        |
 | Database      | `docker ps \| grep podverse_local_db` | Container running                                                              |
 | pgAdmin       | http://localhost:5051                 | Two servers: Local Main (podverse_app), Local Management (podverse_management) |
 | Message Queue | http://localhost:8161                 | Artemis console (user/mysecretpw)                                              |
@@ -206,8 +206,8 @@ The management apps provide an admin interface for Podverse operations. The mana
 npm run dev:management:all
 
 # Or individually
-npm run dev:management-api # http://localhost:1235
-npm run dev:management-web # http://localhost:3999
+npm run dev:management-api # http://localhost:3100
+npm run dev:management-web # http://localhost:3102
 ```
 
 ## Workers (Optional)
@@ -271,13 +271,13 @@ make local_setup
 ### Port Already in Use
 
 ```
-Error: listen EADDRINUSE: address already in use :::1234
+Error: listen EADDRINUSE: address already in use :::3000
 ```
 
 **Solution**: Find and stop the process using the port:
 
 ```bash
-lsof -i :1234
+lsof -i :3000
 kill -9 <PID>
 ```
 
@@ -487,7 +487,7 @@ See the ENV.md files in each app directory for detailed variable documentation:
 ├─────────────┬─────────────┬─────────────┬───────────────┤
 │   Web App   │     API     │   Workers   │  Management   │
 │  (Next.js)  │  (Express)  │  (Node.js)  │   Apps        │
-│  :3000      │  :1234      │             │  :1235/:3001  │
+│  :3002      │  :3000      │             │  :3100/:3101  │
 └──────┬──────┴──────┬──────┴──────┬──────┴───────────────┘
        │             │             │
        └─────────────┼─────────────┘

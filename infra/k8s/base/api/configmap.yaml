@@ -28,12 +28,12 @@ data:
   ##### API Configuration
   #####
 
-  API_PORT: "1234"
+  API_PORT: "3000"
   API_PREFIX: "/api"
   API_VERSION: "/v2"
 
   # Comma-separated list of allowed CORS origins
-  API_ALLOWED_CORS_ORIGINS: "http://podverse-web:3000" # Override in environment kustomization.yaml
+  API_ALLOWED_CORS_ORIGINS: "http://podverse-web:3002" # Override in environment kustomization.yaml
 
   #####
   ##### Auth & Security
@@ -55,7 +55,7 @@ data:
   # Web App TODO: Update these to your actual web app domain and protocol
   BRAND_NAME: "Podverse"
   WEB_PROTOCOL: "http"
-  WEB_DOMAIN: "podverse-web:3000"
+  WEB_DOMAIN: "podverse-web:3002"
   WEB_ICON_IMAGE_PATH: "/favicon/web-app-manifest-192x192.png"
 
   #####

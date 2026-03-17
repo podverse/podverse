@@ -52,8 +52,8 @@ For more on provisioning (what runs, troubleshooting), see [LOCAL-LIGHTNING.md](
 
 **Expected outcome:**
 
-- Web app: http://localhost:3000
-- API: http://localhost:1234
+- Web app: http://localhost:3002
+- API: http://localhost:3000
 - Boostbox: http://localhost:8080
 - LNURL server: http://localhost:3003
 - Chopsticks (faucet): http://localhost:3030
@@ -81,7 +81,7 @@ Confirm when prompted. This requires the test-assets server and DB to be availab
 
 ## Step 4: Navigate to a media page and open Boost
 
-1. Open the web app: http://localhost:3000
+1. Open the web app: http://localhost:3002
 2. Find a podcast that has value data: search or browse for a podcast that was parsed from the generated feeds (e.g. the title from `feed-podcast-1.rss`).
 3. Go to the **podcast page** (e.g. click the podcast from search; URL will be `/podcast/<channel_id>`).
 4. Optionally open an **episode** (click an episode to go to `/episode/<item_id>`).
@@ -126,7 +126,7 @@ See [LOCAL-LIGHTNING.md](LOCAL-LIGHTNING.md) for full CLI payment steps.
 
 - **BoostBox**: If using metaBoost, check that the boost message appears (BoostBox store or logs; Boostbox runs at http://localhost:8080).
 - **LND**: Run `nigiri lnd listpayments` (outgoing) or `nigiri lnd listinvoices` (incoming) to see payments.
-- **Web app**: The Boost modal should show success; you can also visit http://localhost:3000/v4v/boost-messages for context on boost messages.
+- **Web app**: The Boost modal should show success; you can also visit http://localhost:3002/v4v/boost-messages for context on boost messages.
 
 ## Test path: LNAddress implementation
 

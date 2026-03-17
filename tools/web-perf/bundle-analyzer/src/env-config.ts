@@ -7,18 +7,18 @@ export const WEB_APP_ENV = {
   // API Configuration (Client)
   NEXT_PUBLIC_API_PROTOCOL: 'http',
   NEXT_PUBLIC_API_HOST: 'localhost',
-  NEXT_PUBLIC_API_PORT: '1234',
+  NEXT_PUBLIC_API_PORT: '3000',
   NEXT_PUBLIC_API_PREFIX: '/api',
   NEXT_PUBLIC_API_VERSION: '/v2',
 
   // API Configuration (SSR)
   NEXT_PUBLIC_SSR_API_PROTOCOL: 'http',
   NEXT_PUBLIC_SSR_API_HOST: 'localhost',
-  NEXT_PUBLIC_SSR_API_PORT: '1234',
+  NEXT_PUBLIC_SSR_API_PORT: '3000',
 
   // Web Configuration
   NEXT_PUBLIC_WEB_PROTOCOL: 'http',
-  NEXT_PUBLIC_WEB_DOMAIN: 'localhost:3000',
+  NEXT_PUBLIC_WEB_DOMAIN: 'localhost:3002',
   NEXT_PUBLIC_BRAND_NAME: 'Podverse',
   NEXT_PUBLIC_POLLING_INTERVAL_MS: '3000',
 

@@ -172,13 +172,14 @@ different subsets.
 
 | Override file            | Apps / env files that receive its values                                                                                                                               |
 | ------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| app.env                  | API + Workers + Management API (LOG_DIR); API (ACCOUNT_SIGNUP_MODE); Web (NEXT_PUBLIC_ACCOUNT_SIGNUP_MODE from ACCOUNT_SIGNUP_MODE).                                   |
 | brand.env                | api/web = BRAND_NAME; mgmt api/mgmt web = MANAGEMENT_BRAND_NAME. Do not set NEXT_PUBLIC_BRAND_NAME in overrides.                                                       |
 | email-template.env       | API only                                                                                                                                                               |
 | lightning.env            | Web only                                                                                                                                                               |
 | locale.env               | Web + Management Web (app, infra, sidecars): NEXT*PUBLIC_FEATURES*\* from DEFAULT_LOCALE, SUPPORTED_LOCALES. Single source; do not set locale in other override files. |
 | management-superuser.env | Local DB env (`infra/config/local/db.env`) for management superuser bootstrap                                                                                          |
 | notifications.env        | Workers; Web gets NEXT_PUBLIC_WEBPUSH_VAPID_PUBLIC_KEY                                                                                                                 |
-| podcast-index.env        | API + Workers                                                                                                                                                          |
+| podcast-index.env        | API + Workers (PODCAST_INDEX_AUTH_KEY, PODCAST_INDEX_SECRET_KEY; not auto-generated—only from this override).                                                          |
 | private-services.env     | API + Workers (ADD_BY_RSS_CREDENTIALS_ENCRYPTION_KEY); API (mailer, PayPal)                                                                                            |
 | socials.env              | API (email template social links); Web (contact + social)                                                                                                              |
 | storage.env              | Workers only                                                                                                                                                           |

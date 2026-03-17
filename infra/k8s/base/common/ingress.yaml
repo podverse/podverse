@@ -23,7 +23,7 @@ spec:
               service:
                 name: podverse-api
                 port:
-                  number: 1234
+                  number: 3000
     - host: web.example.com # Override in environment overlay
       http:
         paths:
@@ -33,4 +33,4 @@ spec:
               service:
                 name: podverse-web
                 port:
-                  number: 3000
+                  number: 3002

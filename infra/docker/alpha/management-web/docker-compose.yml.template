@@ -11,10 +11,12 @@ services:
       - podverse_alpha_management_web_runtime_config
     env_file:
       - ../../../config/alpha/management-web.env
+    environment:
+      PORT: "3102"
     networks:
       - podverse_alpha_network
     ports:
-      - 127.0.0.1:3100:3100
+      - 127.0.0.1:3102:3102
     restart: unless-stopped
     logging:
       driver: 'json-file'

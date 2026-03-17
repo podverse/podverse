@@ -36,6 +36,8 @@ spec:
           env:
             - name: NODE_ENV
               value: "production"
+            - name: PORT
+              value: "3002"
           envFrom:
             - configMapRef:
                 name: podverse-web-config
@@ -55,7 +57,7 @@ spec:
               memory: "1Gi"
               cpu: "1000m"
           ports:
-            - containerPort: 3000
+            - containerPort: 3002
               name: http
               protocol: TCP
           volumeMounts:
@@ -64,7 +66,7 @@ spec:
           livenessProbe:
             httpGet:
               path: /
-              port: 3000
+              port: 3002
               scheme: HTTP
             initialDelaySeconds: 10
             periodSeconds: 20
@@ -81,7 +83,7 @@ spec:
           readinessProbe:
             httpGet:
               path: /
-              port: 3000
+              port: 3002
               scheme: HTTP
             initialDelaySeconds: 5
             periodSeconds: 10

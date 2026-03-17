@@ -1,5 +1,5 @@
 # Version: 1
-# This Service exposes the Management API internally on port 1999.
+# This Service exposes the Management API internally on port 3100.
 
 apiVersion: v1
 kind: Service
@@ -11,6 +11,6 @@ spec:
     app: podverse-management-api
   ports:
     - name: http
-      port: 1999
-      targetPort: 1999
+      port: 3100
+      targetPort: 3100
       protocol: TCP

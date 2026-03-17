@@ -16,7 +16,7 @@ services:
         aliases:
           - podverse_local_management_api
     ports:
-      - 127.0.0.1:1999:1999
+      - 127.0.0.1:3100:3100
     logging:
       driver: "json-file"
       options:

@@ -107,10 +107,12 @@ These variables are **required only when `ACCOUNT_SIGNUP_MODE` is set to `'sign-
 
 ### Email Configuration
 
-- **`EMAIL_BRAND_COLOR`** (Required when signup mode is 'sign-up') - Brand color for email templates
-- **`EMAIL_HEADER_IMAGE_URL`** (Required when signup mode is 'sign-up') - URL for email header image
-- **`LEGAL_NAME`** (Required when signup mode is 'sign-up') - Legal business name
-- **`LEGAL_ADDRESS`** (Required when signup mode is 'sign-up') - Legal business address
+- **`EMAIL_BRAND_COLOR`** (Required when signup mode is 'sign-up') - Brand color for email templates (default: #2968B1)
+- **`EMAIL_HEADER_IMAGE_URL`** (Required when signup mode is 'sign-up') - URL for email header image (default: Podverse logo)
+- **`LEGAL_NAME`** (Required when signup mode is 'sign-up') - Legal business name (default: Podverse LLC)
+- **`LEGAL_ADDRESS`** (Required when signup mode is 'sign-up') - Legal business address (default: Chicago, IL, USA)
+
+For local setup, these can be customized via `dev/env-overrides/local/email-template.env`; run `make local_env_setup` to apply.
 
 ### Token Expiration
 
@@ -130,13 +132,13 @@ These variables are optional but will still be validated if set:
 
 ### Premium/Membership
 
-- **`PREMIUM_MEMBERSHIP_COST_MONTHLY`** (Optional) - Monthly premium membership cost
-- **`PREMIUM_MEMBERSHIP_COST_ANNUALLY`** (Optional) - Annual premium membership cost
-- **`FREE_TRIAL_EXPIRATION`** (Optional) - Free trial expiration duration
+- **`PREMIUM_MEMBERSHIP_COST_MONTHLY`** (Optional) - Monthly premium membership cost (default: 3)
+- **`PREMIUM_MEMBERSHIP_COST_ANNUALLY`** (Optional) - Annual premium membership cost (default: 30)
+- **`FREE_TRIAL_EXPIRATION`** (Optional) - Free trial expiration duration in days (default: 31)
 
 ### Social Media
 
-These variables are used when signup mode is 'sign-up' but are not required:
+These variables are used when signup mode is 'sign-up' but are not required (defaults: Podverse URLs and images for Facebook, GitHub, Twitter; Reddit optional/empty).
 
 - **`SOCIAL_FACEBOOK_PAGE_URL`** (Optional) - Facebook page URL
 - **`SOCIAL_FACEBOOK_IMAGE_URL`** (Optional) - Facebook image URL
@@ -146,6 +148,8 @@ These variables are used when signup mode is 'sign-up' but are not required:
 - **`SOCIAL_REDDIT_IMAGE_URL`** (Optional) - Reddit image URL
 - **`SOCIAL_TWITTER_PAGE_URL`** (Optional) - Twitter/X page URL
 - **`SOCIAL_TWITTER_IMAGE_URL`** (Optional) - Twitter/X image URL
+
+For local setup, these can be customized via `dev/env-overrides/local/socials.env`; run `make local_env_setup` to apply.
 
 ### PayPal
 

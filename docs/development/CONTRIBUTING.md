@@ -13,8 +13,8 @@ See [QUICKSTART.md](../QUICKSTART.md) for complete setup instructions including:
 ```bash
 npm run lint    # Run linting
 npm run build   # Build all
-npm run dev:api # Start API (localhost:1234)
-npm run dev:web # Start web app (localhost:3000)
+npm run dev:api # Start API (localhost:3000)
+npm run dev:web # Start web app (localhost:3002)
 ```
 
 ## Workflow

@@ -82,7 +82,7 @@ When you run `make local_ln_up`, the following services start:
 | LND HTTP Proxy           | 8181                                                             | Plain HTTP proxy for LND REST API (auto-injects macaroon; no TLS needed)              |
 | Core Lightning           | 9835 (P2P on host); 9935 (P2P in container, for LND→CLN connect) | c-lightning implementation                                                            |
 | Electrs                  | 60001                                                            | Electrum server (TCP/Electrum RPC; no web UI in browser)                              |
-| Chopsticks               | 3030                                                             | Faucet and block mining (3030 to avoid conflict with web app on 3000)                 |
+| Chopsticks               | 3030                                                             | Faucet and block mining (3030 to avoid conflict with web app on 3002)                 |
 | LNURL Server             | 3003                                                             | Lightning Address support; try http://localhost:3003/ or /health                      |
 
 The block explorer uses port **8282** (not Nigiri's default 5000). Because Docker Compose does not auto-merge an override when Nigiri uses `-f`, `make local_ln_up` runs `scripts/v4v/btc/ln/start-nigiri-with-esplora-port.sh`, which tries `nigiri start --ln` and, if it fails (e.g. port 5000 in use), patches the compose file and runs `docker compose` with the override so Esplora binds to 8282. No system settings (e.g. AirPlay) need to be changed.
@@ -296,7 +296,7 @@ If ports are in use:
 
 - Port 18080: LND REST API (Nigiri). Boostbox uses 8080; they do not conflict.
 - Port 8181: LND HTTP proxy. Check for other services on this port; test with `curl http://localhost:8181/v1/getinfo`.
-- Port 3000: Podverse web app. Chopsticks is moved to 3030 by the override to avoid conflict.
+- Port 3002: Podverse web app. Chopsticks is moved to 3030 by the override to avoid conflict.
 - Port 3003: LNURL server. Check for other services on this port; visit http://localhost:3003/ or http://localhost:3003/health to confirm it is up.
 
 The Bitcoin block explorer (Esplora) is exposed on **8282** (not 5000), so port 5000 is not used and conflicts with e.g. macOS AirPlay Receiver are avoided.

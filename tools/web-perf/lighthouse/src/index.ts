@@ -13,6 +13,7 @@ import { generateComparisonSummary } from './openai-summary.js';
 import { DatabaseSetup } from './database-setup.js';
 import { WebAppManager } from './web-app-manager.js';
 import { ApiManager } from './api-manager.js';
+import { DEFAULT_HTTP_TIMEOUT_MS } from '@podverse/helpers';
 import { killProcessOnPort } from './port-killer.js';
 import {
   generateFeedAndAssets,
@@ -171,7 +172,7 @@ async function main() {
 
   // Check that the assets server is reachable (user must run it separately)
   try {
-    await checkAssetsServerReachable({ timeoutMs: 5000 });
+    await checkAssetsServerReachable({ timeoutMs: DEFAULT_HTTP_TIMEOUT_MS });
     console.log('✅ Assets server reachable\n');
   } catch (err) {
     console.error(

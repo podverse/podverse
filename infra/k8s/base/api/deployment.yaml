@@ -22,7 +22,7 @@ spec:
           image: ghcr.io/podverse/podverse/api
           command: ["node", "apps/api/dist/index.js"]
           ports:
-            - containerPort: 1234
+            - containerPort: 3000
               name: http
           securityContext:
             readOnlyRootFilesystem: true
@@ -60,13 +60,13 @@ spec:
           readinessProbe:
             httpGet:
               path: /
-              port: 1234
+              port: 3000
             initialDelaySeconds: 15
             periodSeconds: 10
           livenessProbe:
             httpGet:
               path: /
-              port: 1234
+              port: 3000
             initialDelaySeconds: 30
             periodSeconds: 20
       volumes:

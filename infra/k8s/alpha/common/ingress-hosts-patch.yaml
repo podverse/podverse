@@ -25,7 +25,7 @@ spec:
               service:
                 name: podverse-api
                 port:
-                  number: 1234
+                  number: 3000
 
     # 2. Web (Frontend) Route
     - host: alpha-podverse.k.podverse.fm
@@ -37,4 +37,4 @@ spec:
               service:
                 name: podverse-web
                 port:
-                  number: 3000
+                  number: 3002

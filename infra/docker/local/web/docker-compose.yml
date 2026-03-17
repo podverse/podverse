@@ -13,10 +13,12 @@ services:
       - podverse_local_web_runtime_config
     env_file:
       - ../../../config/local/web.env
+    environment:
+      PORT: "3002"
     networks:
       - podverse_local_network
     ports:
-      - 127.0.0.1:3000:3000
+      - 127.0.0.1:3002:3002
     logging:
       driver: "json-file"
       options:

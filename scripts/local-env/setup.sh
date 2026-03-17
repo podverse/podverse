@@ -30,8 +30,11 @@ API_ENV_FILES=("$API_APP_ENV" "$API_INFRA_ENV")
 WORKERS_ENV_FILES=("$WORKERS_APP_ENV" "$WORKERS_INFRA_ENV")
 API_AND_WORKERS_ENV_FILES=("$API_APP_ENV" "$WORKERS_APP_ENV" "$API_INFRA_ENV" "$WORKERS_INFRA_ENV")
 WEB_ENV_FILES=("$WEB_APP_ENV" "$WEB_INFRA_ENV" "$WEB_SIDECAR_INFRA_ENV")
+# Main web/management-web containers (Docker) only use RUNTIME_CONFIG_URL; app + sidecar get the rest.
+WEB_ENV_FILES_APP_AND_SIDECAR=("$WEB_APP_ENV" "$WEB_SIDECAR_INFRA_ENV")
 MANAGEMENT_API_ENV_FILES=("$MANAGEMENT_API_APP_ENV" "$MANAGEMENT_API_INFRA_ENV")
 MANAGEMENT_WEB_ENV_FILES=("$MANAGEMENT_WEB_APP_ENV" "$MANAGEMENT_WEB_INFRA_ENV" "$MANAGEMENT_WEB_SIDECAR_INFRA_ENV")
+MANAGEMENT_WEB_ENV_FILES_APP_AND_SIDECAR=("$MANAGEMENT_WEB_APP_ENV" "$MANAGEMENT_WEB_SIDECAR_INFRA_ENV")
 
 escape_sed_replacement() {
 	printf '%s' "$1" | sed -e 's/[\/&]/\\&/g'
@@ -241,8 +244,7 @@ POSTGRES_MANAGEMENT_READ_PASSWORD="$(generate_if_empty_or_placeholder "$(first_n
 POSTGRES_MANAGEMENT_READ_WRITE_PASSWORD="$(generate_if_empty_or_placeholder "$(first_non_empty_or_generate generate_hex_32 "$DB_ENV:POSTGRES_MANAGEMENT_READ_WRITE_PASSWORD")" "your_read_password" "your_read_write_password")"
 ARTEMIS_PASSWORD="$(generate_if_empty_or_placeholder "$(first_non_empty_or_generate generate_hex_32 "$MQ_ENV:ARTEMIS_PASSWORD" "$API_APP_ENV:MESSAGE_QUEUE_PASSWORD" "$WORKERS_APP_ENV:MESSAGE_QUEUE_PASSWORD" "$API_INFRA_ENV:MESSAGE_QUEUE_PASSWORD" "$WORKERS_INFRA_ENV:MESSAGE_QUEUE_PASSWORD")" "your_mq_password")"
 KEYVALDB_PASSWORD="$(generate_if_empty_or_placeholder "$(first_non_empty_or_generate generate_hex_32 "$KEYVALDB_ENV:KEYVALDB_PASSWORD" "$API_APP_ENV:KEYVALDB_PASSWORD" "$WORKERS_APP_ENV:KEYVALDB_PASSWORD" "$API_INFRA_ENV:KEYVALDB_PASSWORD" "$WORKERS_INFRA_ENV:KEYVALDB_PASSWORD")" "your_redis_password" "# required" " # required")"
-PODCAST_INDEX_AUTH_KEY="$(generate_if_empty_or_placeholder "$(first_non_empty_or_generate generate_base64_32 "$API_APP_ENV:PODCAST_INDEX_AUTH_KEY" "$WORKERS_APP_ENV:PODCAST_INDEX_AUTH_KEY" "$API_INFRA_ENV:PODCAST_INDEX_AUTH_KEY" "$WORKERS_INFRA_ENV:PODCAST_INDEX_AUTH_KEY")" "your_podcast_index_auth_key" "test")"
-PODCAST_INDEX_SECRET_KEY="$(generate_if_empty_or_placeholder "$(first_non_empty_or_generate generate_base64_32 "$API_APP_ENV:PODCAST_INDEX_SECRET_KEY" "$WORKERS_APP_ENV:PODCAST_INDEX_SECRET_KEY" "$API_INFRA_ENV:PODCAST_INDEX_SECRET_KEY" "$WORKERS_INFRA_ENV:PODCAST_INDEX_SECRET_KEY")" "your_podcast_index_secret_key" "test")"
+# Podcast Index keys are never auto-generated; only populated from override (e.g. podcast-index.env in ~/.config).
 # API and management-api use different JWT secrets (so Podverse and Boilerplate each have distinct API vs management JWTs).
 AUTH_JWT_SECRET_API="$(first_non_empty_or_generate generate_uuid "$API_APP_ENV:AUTH_JWT_SECRET" "$API_INFRA_ENV:AUTH_JWT_SECRET")"
 AUTH_JWT_SECRET_MANAGEMENT="$(first_non_empty_or_generate generate_uuid "$MANAGEMENT_API_APP_ENV:AUTH_JWT_SECRET" "$MANAGEMENT_API_INFRA_ENV:AUTH_JWT_SECRET")"
@@ -287,8 +289,6 @@ for file in "$API_APP_ENV" "$WORKERS_APP_ENV" "$API_INFRA_ENV" "$WORKERS_INFRA_E
 	upsert_var "$file" "KEYVALDB_PASSWORD" "$KEYVALDB_PASSWORD"
 	upsert_var "$file" "MESSAGE_QUEUE_USERNAME" "user"
 	upsert_var "$file" "MESSAGE_QUEUE_PASSWORD" "$ARTEMIS_PASSWORD"
-	upsert_var "$file" "PODCAST_INDEX_AUTH_KEY" "$PODCAST_INDEX_AUTH_KEY"
-	upsert_var "$file" "PODCAST_INDEX_SECRET_KEY" "$PODCAST_INDEX_SECRET_KEY"
 done
 
 for file in "$API_APP_ENV" "$WORKERS_APP_ENV" "$API_INFRA_ENV" "$WORKERS_INFRA_ENV"; do
@@ -306,9 +306,18 @@ done
 # From private-services.env
 apply_override "ADD_BY_RSS_CREDENTIALS_ENCRYPTION_KEY" "${API_AND_WORKERS_ENV_FILES[@]}"
 
-# From podcast-index.env
+# From podcast-index.env (API + Workers; override generated placeholders with real keys here)
 for v in PODCAST_INDEX_AUTH_KEY PODCAST_INDEX_SECRET_KEY; do
 	apply_override "$v" "${API_AND_WORKERS_ENV_FILES[@]}"
+done
+
+# From app.env (LOG_DIR, ACCOUNT_SIGNUP_MODE)
+apply_override "LOG_DIR" "${API_ENV_FILES[@]}" "${WORKERS_ENV_FILES[@]}" "${MANAGEMENT_API_ENV_FILES[@]}"
+apply_override "ACCOUNT_SIGNUP_MODE" "${API_ENV_FILES[@]}"
+# Sync API's effective ACCOUNT_SIGNUP_MODE to web/sidecar so both use the same .config value (app.env or template default).
+ACCOUNT_SIGNUP_MODE_EFFECTIVE="$(first_non_empty_or_default "contact-only" "$API_APP_ENV:ACCOUNT_SIGNUP_MODE" "$API_INFRA_ENV:ACCOUNT_SIGNUP_MODE")"
+for file in "${WEB_ENV_FILES_APP_AND_SIDECAR[@]}"; do
+	upsert_var "$file" "NEXT_PUBLIC_ACCOUNT_SIGNUP_MODE" "$ACCOUNT_SIGNUP_MODE_EFFECTIVE"
 done
 
 # From storage.env
@@ -322,7 +331,7 @@ for v in GOOGLE_FIREBASE_NOTIFICATIONS_ENABLED GOOGLE_FIREBASE_ADMIN_JSON_KEY_PA
 done
 if [ -n "${WEBPUSH_VAPID_PUBLIC_KEY:-}" ]; then
 	upsert_var "$WEB_APP_ENV" "NEXT_PUBLIC_WEBPUSH_VAPID_PUBLIC_KEY" "$WEBPUSH_VAPID_PUBLIC_KEY"
-	upsert_var "$WEB_INFRA_ENV" "NEXT_PUBLIC_WEBPUSH_VAPID_PUBLIC_KEY" "$WEBPUSH_VAPID_PUBLIC_KEY"
+	upsert_var "$WEB_SIDECAR_INFRA_ENV" "NEXT_PUBLIC_WEBPUSH_VAPID_PUBLIC_KEY" "$WEBPUSH_VAPID_PUBLIC_KEY"
 fi
 
 # From private-services.env (mailer + PayPal)
@@ -342,7 +351,7 @@ done
 
 # From socials.env (web contact + social links)
 for v in NEXT_PUBLIC_CONTACT_EMAIL NEXT_PUBLIC_SOCIAL_ACTIVITY_PUB NEXT_PUBLIC_SOCIAL_DISCORD NEXT_PUBLIC_SOCIAL_GITHUB NEXT_PUBLIC_SOCIAL_MATRIX NEXT_PUBLIC_SOCIAL_X; do
-	apply_override "$v" "${WEB_ENV_FILES[@]}"
+	apply_override "$v" "${WEB_ENV_FILES_APP_AND_SIDECAR[@]}"
 done
 
 # From management-superuser.env
@@ -359,36 +368,35 @@ if [ -n "${BRAND_NAME:-}" ]; then
 	upsert_var "$WORKERS_APP_ENV" "USER_AGENT" "${BRAND_NAME} Bot Local/Workers/5"
 	upsert_var "$WORKERS_INFRA_ENV" "USER_AGENT" "${BRAND_NAME} Bot Local/Workers/5"
 	upsert_var "$WEB_APP_ENV" "NEXT_PUBLIC_BRAND_NAME" "$BRAND_NAME"
-	upsert_var "$WEB_INFRA_ENV" "NEXT_PUBLIC_BRAND_NAME" "$BRAND_NAME"
 	upsert_var "$WEB_SIDECAR_INFRA_ENV" "NEXT_PUBLIC_BRAND_NAME" "$BRAND_NAME"
 	upsert_var "$WEB_APP_ENV" "NEXT_PUBLIC_PROXY_USER_AGENT" "${BRAND_NAME} Bot Local/Web-API/5"
-	upsert_var "$WEB_INFRA_ENV" "NEXT_PUBLIC_PROXY_USER_AGENT" "${BRAND_NAME} Bot Local/Web-API/5"
+	upsert_var "$WEB_SIDECAR_INFRA_ENV" "NEXT_PUBLIC_PROXY_USER_AGENT" "${BRAND_NAME} Bot Local/Web-API/5"
 fi
 if [ -n "${MANAGEMENT_BRAND_NAME:-}" ]; then
 	upsert_var "$MANAGEMENT_API_APP_ENV" "BRAND_NAME" "$MANAGEMENT_BRAND_NAME"
 	upsert_var "$MANAGEMENT_API_INFRA_ENV" "BRAND_NAME" "$MANAGEMENT_BRAND_NAME"
 	upsert_var "$MANAGEMENT_API_APP_ENV" "USER_AGENT" "${MANAGEMENT_BRAND_NAME} Bot Local/Management-API/5"
 	upsert_var "$MANAGEMENT_API_INFRA_ENV" "USER_AGENT" "${MANAGEMENT_BRAND_NAME} Bot Local/Management-API/5"
-	for file in "${MANAGEMENT_WEB_ENV_FILES[@]}"; do
+	for file in "${MANAGEMENT_WEB_ENV_FILES_APP_AND_SIDECAR[@]}"; do
 		upsert_var "$file" "NEXT_PUBLIC_BRAND_NAME" "$MANAGEMENT_BRAND_NAME"
 	done
 fi
 
 # From locale.env: one place for DEFAULT_LOCALE and SUPPORTED_LOCALES; setup applies to web and management-web (NEXT_PUBLIC_FEATURES_*).
 if [ -n "${DEFAULT_LOCALE:-}" ]; then
-	for file in "${WEB_ENV_FILES[@]}" "${MANAGEMENT_WEB_ENV_FILES[@]}"; do
+	for file in "${WEB_ENV_FILES_APP_AND_SIDECAR[@]}" "${MANAGEMENT_WEB_ENV_FILES_APP_AND_SIDECAR[@]}"; do
 		upsert_var "$file" "NEXT_PUBLIC_FEATURES_DEFAULT_LOCALE" "$DEFAULT_LOCALE"
 	done
 fi
 if [ -n "${SUPPORTED_LOCALES:-}" ]; then
-	for file in "${WEB_ENV_FILES[@]}" "${MANAGEMENT_WEB_ENV_FILES[@]}"; do
+	for file in "${WEB_ENV_FILES_APP_AND_SIDECAR[@]}" "${MANAGEMENT_WEB_ENV_FILES_APP_AND_SIDECAR[@]}"; do
 		upsert_var "$file" "NEXT_PUBLIC_FEATURES_SUPPORTED_LOCALES" "$SUPPORTED_LOCALES"
 	done
 fi
 
 # From lightning.env
 for v in NEXT_PUBLIC_APP_VALUE_LIGHTNING_NODE_NAME NEXT_PUBLIC_APP_VALUE_LIGHTNING_NODE_ADDRESS NEXT_PUBLIC_APP_VALUE_LIGHTNING_NODE_CUSTOM_KEY NEXT_PUBLIC_APP_VALUE_LIGHTNING_NODE_CUSTOM_VALUE NEXT_PUBLIC_APP_VALUE_LIGHTNING_LNADDRESS_NAME NEXT_PUBLIC_APP_VALUE_LIGHTNING_LNADDRESS_ADDRESS; do
-	apply_override "$v" "${WEB_ENV_FILES[@]}"
+	apply_override "$v" "${WEB_ENV_FILES_APP_AND_SIDECAR[@]}"
 done
 
 # Docker-only: infra env used by Compose gets production NODE_ENV and service-name URLs.
@@ -396,19 +404,20 @@ done
 upsert_var "$API_INFRA_ENV" "NODE_ENV" "production"
 upsert_var "$WORKERS_INFRA_ENV" "NODE_ENV" "production"
 upsert_var "$MANAGEMENT_API_INFRA_ENV" "NODE_ENV" "production"
-upsert_var "$WEB_INFRA_ENV" "NODE_ENV" "production"
-upsert_var "$MANAGEMENT_WEB_INFRA_ENV" "NODE_ENV" "production"
+# Web and management-web (Next.js) main container env: only RUNTIME_CONFIG_URL (app fetches config from sidecar).
 upsert_var "$WEB_INFRA_ENV" "RUNTIME_CONFIG_URL" "http://podverse_local_web_runtime_config:3001"
-upsert_var "$WEB_INFRA_ENV" "NEXT_PUBLIC_SSR_API_HOST" "podverse_local_api"
-upsert_var "$WEB_INFRA_ENV" "NEXT_PUBLIC_SSR_API_PORT" "1234"
-upsert_var "$WEB_SIDECAR_INFRA_ENV" "NODE_ENV" "production"
-upsert_var "$WEB_SIDECAR_INFRA_ENV" "NEXT_PUBLIC_SSR_API_HOST" "podverse_local_api"
-upsert_var "$WEB_SIDECAR_INFRA_ENV" "NEXT_PUBLIC_SSR_API_PORT" "1234"
 upsert_var "$MANAGEMENT_WEB_INFRA_ENV" "RUNTIME_CONFIG_URL" "http://podverse_local_management_web_runtime_config:3101"
-upsert_var "$MANAGEMENT_WEB_INFRA_ENV" "NEXT_PUBLIC_SSR_API_HOST" "podverse_local_management_api"
-upsert_var "$MANAGEMENT_WEB_INFRA_ENV" "NEXT_PUBLIC_SSR_API_PORT" "1999"
-upsert_var "$MANAGEMENT_WEB_SIDECAR_INFRA_ENV" "NODE_ENV" "production"
+upsert_var "$WEB_SIDECAR_INFRA_ENV" "NEXT_PUBLIC_SSR_API_HOST" "podverse_local_api"
+upsert_var "$WEB_SIDECAR_INFRA_ENV" "NEXT_PUBLIC_SSR_API_PORT" "3000"
 upsert_var "$MANAGEMENT_WEB_SIDECAR_INFRA_ENV" "NEXT_PUBLIC_SSR_API_HOST" "podverse_local_management_api"
-upsert_var "$MANAGEMENT_WEB_SIDECAR_INFRA_ENV" "NEXT_PUBLIC_SSR_API_PORT" "1999"
+upsert_var "$MANAGEMENT_WEB_SIDECAR_INFRA_ENV" "NEXT_PUBLIC_SSR_API_PORT" "3100"
+
+# Sidecars do not use NODE_ENV; remove it if present (e.g. from an older setup).
+for file in "$WEB_SIDECAR_INFRA_ENV" "$MANAGEMENT_WEB_SIDECAR_INFRA_ENV"; do
+	if [ -f "$file" ] && grep -q -E '^NODE_ENV=' "$file" 2>/dev/null; then
+		sed -i.bak '/^NODE_ENV=/d' "$file"
+		rm -f "${file}.bak"
+	fi
+done
 
 echo "Applied local env values from generated defaults and overrides."

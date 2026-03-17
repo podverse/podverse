@@ -12,7 +12,7 @@ services:
     networks:
       - podverse_alpha_network
     ports:
-      - 127.0.0.1:1999:1999
+      - 127.0.0.1:3100:3100
     volumes:
       - /opt/podverse/logs/management-api:/opt/logs
     command: ["node", "apps/management-api/dist/index.js"]

@@ -1,3 +1,4 @@
+import { MEDIA_JUMP_INCREMENT_SECONDS } from '@podverse/helpers';
 import { FaChevronRight } from 'react-icons/fa6';
 
 import { EVENTS } from '../../../constants/events';
@@ -7,7 +8,9 @@ import styles from '../../../styles/components/MediaPlayer/Buttons/IncrementForw
 export const IncrementForwardButton = () => {
   const handleClick = () => {
     window.dispatchEvent(
-      new CustomEvent(EVENTS.MEDIA_PLAYER.JUMP_FORWARD, { detail: { seconds: 1 } })
+      new CustomEvent(EVENTS.MEDIA_PLAYER.JUMP_FORWARD, {
+        detail: { seconds: MEDIA_JUMP_INCREMENT_SECONDS },
+      })
     );
   };
 

@@ -7,19 +7,21 @@ import type { Toast as ToastType, ToastOptions } from 'react-hot-toast';
 import toast, { Toaster } from 'react-hot-toast';
 import { FaXmark } from 'react-icons/fa6';
 
+import { TOAST_DURATION_MS } from '@podverse/helpers';
+
 import styles from '../../styles/components/Toast/Toast.module.scss';
 
-const duration = 4000;
+const duration = TOAST_DURATION_MS;
 
 export function showToast(message: string, type: 'success' | 'error' | 'warning' | 'danger') {
   if (type === 'success') {
-    toast.success(message, { duration, className: styles.toast });
+    toast.success(message, { duration: TOAST_DURATION_MS, className: styles.toast });
   } else if (type === 'error') {
-    toast.error(message, { duration, className: styles.toastDanger });
+    toast.error(message, { duration: TOAST_DURATION_MS, className: styles.toastDanger });
   } else if (type === 'warning') {
-    toast(message, { duration, className: styles.toastWarning });
+    toast(message, { duration: TOAST_DURATION_MS, className: styles.toastWarning });
   } else if (type === 'danger') {
-    toast(message, { duration, className: styles.toastDanger });
+    toast(message, { duration: TOAST_DURATION_MS, className: styles.toastDanger });
   }
 }
 

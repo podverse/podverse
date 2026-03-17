@@ -6,6 +6,12 @@ import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 import { promisify } from 'util';
 import { exec } from 'child_process';
+import {
+  DEFAULT_HTTP_TIMEOUT_MS,
+  DEFAULT_POLL_DELAY_MS,
+  SERVER_READY_WAIT_MAX_ATTEMPTS_API,
+  SHUTDOWN_DELAY_MS,
+} from '@podverse/helpers';
 import { fetchWithTimeout } from '@podverse/helpers-backend';
 import { killProcessOnPort } from './port-killer.js';
 
@@ -37,12 +43,12 @@ export class ApiManager {
 
   private async waitForServerReady(
     url: string,
-    maxAttempts: number = 120,
-    delay: number = 1000
+    maxAttempts: number = SERVER_READY_WAIT_MAX_ATTEMPTS_API,
+    delay: number = DEFAULT_POLL_DELAY_MS
   ): Promise<boolean> {
     for (let i = 0; i < maxAttempts; i++) {
       try {
-        const response = await fetchWithTimeout(url, { timeoutMs: 5000 });
+        const response = await fetchWithTimeout(url, { timeoutMs: DEFAULT_HTTP_TIMEOUT_MS });
         if (response.ok || response.status === 404 || response.status === 401) {
           // Server is responding (401 is OK, means auth is required but server is up)
           return true;
@@ -180,7 +186,11 @@ export class ApiManager {
     let checkInterval: NodeJS.Timeout | null = null;
     let checkTimeout: NodeJS.Timeout | null = null;
     const isReady = await Promise.race([
-      this.waitForServerReady(`${this.getApiUrl()}/api/v2/`, 180, 1000), // Wait up to 3 minutes
+      this.waitForServerReady(
+        `${this.getApiUrl()}/api/v2/`,
+        SERVER_READY_WAIT_MAX_ATTEMPTS_API,
+        DEFAULT_POLL_DELAY_MS
+      ),
       new Promise<boolean>((resolve) => {
         checkInterval = setInterval(() => {
           if (processExitedWithError || !this.apiProcess || this.apiProcess.killed) {
@@ -261,7 +271,7 @@ export class ApiManager {
         // Also try killing by port in case process reference is stale
         await killProcessOnPort(this.getApiPort());
         resolve();
-      }, 5000);
+      }, SHUTDOWN_DELAY_MS);
 
       process.on('exit', () => {
         clearTimeout(timeout);

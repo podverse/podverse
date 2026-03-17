@@ -11,10 +11,12 @@ services:
       - podverse_alpha_web_runtime_config
     env_file:
       - ../../../config/alpha/web.env
+    environment:
+      PORT: "3002"
     networks:
       - podverse_alpha_network
     ports:
-      - 127.0.0.1:3000:3000
+      - 127.0.0.1:3002:3002
     logging:
       driver: "syslog"
       options:

@@ -26,7 +26,7 @@ data:
   ##### API Configuration
   #####
 
-  API_PORT: "1999"
+  API_PORT: "3100"
   API_PREFIX: "/api"
   API_VERSION: "/v1"
 
@@ -34,7 +34,7 @@ data:
   COOKIE_DOMAIN: "base.podverse.fm"
 
   # Comma-separated list of allowed CORS origins
-  API_ALLOWED_CORS_ORIGINS: "http://podverse-management-web:3999"
+  API_ALLOWED_CORS_ORIGINS: "http://podverse-management-web:3102"
 
   #####
   ##### Auth & Security
@@ -51,7 +51,7 @@ data:
   #####
 
   WEB_PROTOCOL: "http"
-  WEB_DOMAIN: "podverse-management-api:3999"
+  WEB_DOMAIN: "podverse-management-web:3102"
 
   #####
   ##### Database (Postgres - Management Database)

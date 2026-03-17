@@ -57,15 +57,12 @@ if [ "$DATABASE" != "main" ] && [ "$DATABASE" != "management" ]; then
   exit 1
 fi
 
-# Set paths based on database
+# Set paths based on database (both use db.env; management uses POSTGRES_MANAGEMENT_* vars)
+ENV_FILE="$REPO_ROOT/infra/config/local/db.env"
 if [ "$DATABASE" = "main" ]; then
   MIGRATIONS_DIR="$REPO_ROOT/infra/database/migrations"
-  ENV_FILE="$REPO_ROOT/infra/config/local/db.env"
-  DB_NAME="podverse_db"
 else
   MIGRATIONS_DIR="$REPO_ROOT/infra/database/management/migrations"
-  ENV_FILE="$REPO_ROOT/infra/config/local/management-db.env"
-  DB_NAME="podverse_management_db"
 fi
 
 MIGRATION_PATH="$MIGRATIONS_DIR/$MIGRATION_FILE"
@@ -104,13 +101,23 @@ fi
 # shellcheck disable=SC1090
 source "$ENV_FILE"
 
+if [ "$DATABASE" = "main" ]; then
+  PSQL_USER="${POSTGRES_USER}"
+  PSQL_PASSWORD="${POSTGRES_PASSWORD}"
+  PSQL_DB="${POSTGRES_DB:-podverse_app}"
+else
+  PSQL_USER="${POSTGRES_MANAGEMENT_USER}"
+  PSQL_PASSWORD="${POSTGRES_MANAGEMENT_PASSWORD}"
+  PSQL_DB="${POSTGRES_MANAGEMENT_DB:-podverse_management}"
+fi
+
 # Apply migration
 echo "Applying migration..."
-PGPASSWORD="${POSTGRES_PASSWORD}" psql \
+PGPASSWORD="${PSQL_PASSWORD}" psql \
   -h localhost \
   -p 5432 \
-  -U "${POSTGRES_USER}" \
-  -d "${DB_NAME}" \
+  -U "${PSQL_USER}" \
+  -d "${PSQL_DB}" \
   -f "$MIGRATION_PATH"
 
 echo ""

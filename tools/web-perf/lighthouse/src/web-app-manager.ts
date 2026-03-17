@@ -6,6 +6,12 @@ import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 import { promisify } from 'util';
 import { exec } from 'child_process';
+import {
+  DEFAULT_HTTP_TIMEOUT_MS,
+  DEFAULT_POLL_DELAY_MS,
+  SERVER_READY_WAIT_MAX_ATTEMPTS_WEB,
+  SHUTDOWN_DELAY_MS,
+} from '@podverse/helpers';
 import { fetchWithTimeout } from '@podverse/helpers-backend';
 import { killProcessOnPort } from './port-killer.js';
 
@@ -39,11 +45,11 @@ export class WebAppManager {
   private async waitForServerReady(
     url: string,
     maxAttempts: number = 60,
-    delay: number = 1000
+    delay: number = DEFAULT_POLL_DELAY_MS
   ): Promise<boolean> {
     for (let i = 0; i < maxAttempts; i++) {
       try {
-        const response = await fetchWithTimeout(url, { timeoutMs: 5000 });
+        const response = await fetchWithTimeout(url, { timeoutMs: DEFAULT_HTTP_TIMEOUT_MS });
         if (response.ok || response.status === 404) {
           // Server is responding (404 is OK, means server is up)
           return true;
@@ -107,7 +113,7 @@ export class WebAppManager {
     const runtimeConfigReady = await this.waitForServerReady(
       `${runtimeConfigUrl}/runtime-config`,
       60,
-      500
+      500 // shorter delay for sidecar
     );
     if (!runtimeConfigReady) {
       await this.stop();
@@ -211,7 +217,11 @@ export class WebAppManager {
 
     // Wait for server to be ready
     console.log(`   → Waiting for server to be ready...`);
-    const isReady = await this.waitForServerReady(this.getWebUrl(), 120, 1000); // Wait up to 2 minutes
+    const isReady = await this.waitForServerReady(
+      this.getWebUrl(),
+      SERVER_READY_WAIT_MAX_ATTEMPTS_WEB,
+      DEFAULT_POLL_DELAY_MS
+    );
 
     if (!isReady) {
       await this.stop();
@@ -265,7 +275,7 @@ export class WebAppManager {
         await killProcessOnPort(this.getWebPort());
         await this.stopRuntimeConfigSidecar(runtimeConfigProcess);
         resolve();
-      }, 5000);
+      }, SHUTDOWN_DELAY_MS);
 
       process.on('exit', async () => {
         clearTimeout(timeout);
@@ -333,7 +343,7 @@ export class WebAppManager {
         }
         await killProcessOnPort(this.getRuntimeConfigPort());
         resolve(null);
-      }, 5000);
+      }, SHUTDOWN_DELAY_MS);
 
       process.on('exit', () => {
         clearTimeout(timeout);

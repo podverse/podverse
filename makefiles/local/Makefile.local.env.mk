@@ -90,7 +90,7 @@ infra/config/local/web-sidecar.env:
 	@echo "Missing: $@"
 	@echo "Copying from example file"
 	mkdir -p infra/config/local
-	cp ./infra/config/env-templates/web-sidecar.env.example ./$@
+	cp ./apps/web/sidecar/.env.example ./$@
 
 infra/config/local/management-web.env:
 	@echo "Missing: $@"
@@ -102,7 +102,7 @@ infra/config/local/management-web-sidecar.env:
 	@echo "Missing: $@"
 	@echo "Copying from example file"
 	mkdir -p infra/config/local
-	cp ./infra/config/env-templates/management-web-sidecar.env.example ./$@
+	cp ./apps/management-web/sidecar/.env.example ./$@
 
 apps/api/.env:
 	@echo "Missing: $@"

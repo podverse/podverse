@@ -1,6 +1,6 @@
 import type webpush from 'web-push';
 
-import { chunkArray } from '@podverse/helpers';
+import { chunkArray, ONE_DAY_SECONDS } from '@podverse/helpers';
 
 import type { NotificationsContext } from '../../factory.js';
 import type { WebPushSubscription } from './webpushHelpers.js';
@@ -52,7 +52,7 @@ export async function sendWebPushNotificationBatch(
             },
             notificationPayload,
             {
-              TTL: 86400, // 24 hours
+              TTL: ONE_DAY_SECONDS,
               urgency: 'normal',
             }
           );

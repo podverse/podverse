@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion -- env vars validated at startup in lib/startup/validation.ts */
 
 import type { AccountSignupMode } from '@podverse/helpers';
-import { getEffectiveUserAgent } from '@podverse/helpers';
+import { getEffectiveUserAgent, ONE_DAY_SECONDS } from '@podverse/helpers';
 
 type SocialConfig = {
   pageUrl: string;
@@ -209,7 +209,7 @@ export const config: Config = {
     costMonthly: Number(process.env.PREMIUM_MEMBERSHIP_COST_MONTHLY!),
     costAnnually: Number(process.env.PREMIUM_MEMBERSHIP_COST_ANNUALLY!),
     signupMode: process.env.ACCOUNT_SIGNUP_MODE! as AccountSignupMode,
-    freeTrialExpiration: parseInt(process.env.FREE_TRIAL_EXPIRATION!, 10),
+    freeTrialExpiration: parseInt(process.env.FREE_TRIAL_EXPIRATION!, 10) * ONE_DAY_SECONDS, // env is in days
   },
   boostbox: {
     internalBaseUrl: process.env.BOOSTBOX_INTERNAL_BASE_URL ?? null,

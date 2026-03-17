@@ -18,8 +18,8 @@ All commands below are run **from the monorepo root** (do not `cd` into apps fir
 ```bash
 npm run build:packages # Build packages (required before apps)
 npm run lint           # Lint all packages and apps
-npm run dev:api        # Start API (localhost:1234)
-npm run dev:web        # Start web app (localhost:3000)
+npm run dev:api        # Start API (localhost:3000)
+npm run dev:web        # Start web app (localhost:3002)
 npm run dev:all        # Start everything with watch mode
 ```
 

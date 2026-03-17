@@ -6,7 +6,12 @@ import type { VerifiedCallback } from 'passport-jwt';
 import { ExtractJwt, Strategy as JwtStrategy } from 'passport-jwt';
 import { Strategy as LocalStrategy } from 'passport-local';
 
-import { AccountMembershipEnum, AuthCookieName, ERROR_MESSAGES } from '@podverse/helpers';
+import {
+  AccountMembershipEnum,
+  AuthCookieName,
+  ERROR_MESSAGES,
+  ONE_YEAR_MS,
+} from '@podverse/helpers';
 import { AccountService } from '@podverse/orm';
 
 import { verifyPassword } from './password.js';
@@ -25,7 +30,7 @@ const setAuthCookie = (res: Response, token: string) => {
       sameSite: 'lax',
       domain: config.api.cookie.domain,
       path: '/',
-      maxAge: 365 * 24 * 60 * 60 * 1000,
+      maxAge: ONE_YEAR_MS,
     };
     res.cookie(AuthCookieName, token, prodCookieOptions);
   } else {
@@ -34,7 +39,7 @@ const setAuthCookie = (res: Response, token: string) => {
       secure: false, // dev only
       sameSite: 'strict',
       path: '/',
-      maxAge: 365 * 24 * 60 * 60 * 1000,
+      maxAge: ONE_YEAR_MS,
     });
   }
 };

@@ -89,13 +89,13 @@ local_test_management_api: local_build_management_api
 
 local_test_web: local_build_web local_build_web_runtime_config infra/config/local/web.env
 	docker compose -f infra/docker/local/web/docker-compose.yml up -d
-	@echo "Web started at http://localhost:3000"
+	@echo "Web started at http://localhost:3002"
 	@echo "Check logs with: docker compose -f infra/docker/local/web/docker-compose.yml logs -f"
 	@echo "Stop with: docker compose -f infra/docker/local/web/docker-compose.yml down"
 
 local_test_management_web: local_build_management_web local_build_management_web_runtime_config infra/config/local/management-web.env
 	docker compose -f infra/docker/local/management-web/docker-compose.yml up -d
-	@echo "Management Web started at http://localhost:3100"
+	@echo "Management Web started at http://localhost:3102"
 	@echo "Check logs with: docker compose -f infra/docker/local/management-web/docker-compose.yml logs -f"
 	@echo "Stop with: docker compose -f infra/docker/local/management-web/docker-compose.yml down"
 
@@ -106,11 +106,11 @@ local_test_all_apps: local_build_all infra/config/local/web.env infra/config/loc
 	docker compose -f infra/docker/local/management-web/docker-compose.yml up -d
 	@echo ""
 	@echo "All apps started:"
-	@echo "  - API:            http://localhost:1234"
-	@echo "  - Web:            http://localhost:3000"
+	@echo "  - API:            http://localhost:3000"
+	@echo "  - Web:            http://localhost:3002"
 	@echo "  - Web Sidecar:    podverse_local_web_runtime_config:3001"
-	@echo "  - Management API: http://localhost:3998"
-	@echo "  - Management Web: http://localhost:3100"
+	@echo "  - Management API: http://localhost:3100"
+	@echo "  - Management Web: http://localhost:3102"
 	@echo "  - Management Sidecar: podverse_local_management_web_runtime_config:3101"
 	@echo ""
 	@echo "Stop all with: make local_stop_all_apps"
@@ -129,11 +129,11 @@ local_start_all_apps: infra/config/local/web.env infra/config/local/management-w
 	docker compose -f infra/docker/local/management-web/docker-compose.yml up -d
 	@echo ""
 	@echo "All apps started:"
-	@echo "  - API:            http://localhost:1234"
-	@echo "  - Web:            http://localhost:3000"
+	@echo "  - API:            http://localhost:3000"
+	@echo "  - Web:            http://localhost:3002"
 	@echo "  - Web Sidecar:    podverse_local_web_runtime_config:3001"
-	@echo "  - Management API: http://localhost:3998"
-	@echo "  - Management Web: http://localhost:3100"
+	@echo "  - Management API: http://localhost:3100"
+	@echo "  - Management Web: http://localhost:3102"
 	@echo "  - Management Sidecar: podverse_local_management_web_runtime_config:3101"
 	@echo ""
 	@echo "Stop all with: make local_stop_all_apps"

@@ -64,7 +64,7 @@ spec:
               memory: "512Mi"
               cpu: "500m"
           ports:
-            - containerPort: 1999
+            - containerPort: 3100
               name: http
               protocol: TCP
           volumeMounts:
@@ -73,7 +73,7 @@ spec:
           readinessProbe:
             httpGet:
               path: /
-              port: 1999
+              port: 3100
               scheme: HTTP
             initialDelaySeconds: 10
             periodSeconds: 10
@@ -83,7 +83,7 @@ spec:
           livenessProbe:
             httpGet:
               path: /
-              port: 1999
+              port: 3100
               scheme: HTTP
             initialDelaySeconds: 20
             periodSeconds: 20

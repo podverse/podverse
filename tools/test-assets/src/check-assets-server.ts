@@ -1,3 +1,4 @@
+import { DEFAULT_HTTP_TIMEOUT_MS } from '@podverse/helpers';
 import { fetchWithTimeout } from '@podverse/helpers-backend';
 
 import { DEFAULT_ASSETS_BASE_URL } from './constants.js';
@@ -16,7 +17,7 @@ export type CheckAssetsServerReachableOptions = {
 export async function checkAssetsServerReachable(
   options: CheckAssetsServerReachableOptions = {}
 ): Promise<void> {
-  const { baseUrl = DEFAULT_ASSETS_BASE_URL, timeoutMs = 5000 } = options;
+  const { baseUrl = DEFAULT_ASSETS_BASE_URL, timeoutMs = DEFAULT_HTTP_TIMEOUT_MS } = options;
   const url = baseUrl.endsWith('/') ? baseUrl : `${baseUrl}/`;
   try {
     const res = await fetchWithTimeout(url, { timeoutMs });

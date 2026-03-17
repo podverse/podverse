@@ -19,6 +19,7 @@ import { parseFeed } from 'podverse-partytime';
 
 import type { ImageShrinkHint } from '@podverse/helpers';
 import {
+  DEFAULT_HTTP_TIMEOUT_MS,
   getOnDemandParserEventDateRange,
   ON_DEMAND_ADD_PARSER_LIMIT,
   ON_DEMAND_REFRESH_PARSER_LIMIT,
@@ -86,7 +87,9 @@ export type ParseRSSFeedAndSaveToDatabaseResult = {
 
 // Handle request delay for specific domains to avoid rate limiting
 async function handleRateLimitRequestDelay(url: string) {
-  const delayConfig = [{ regex: /^https?:\/\/(www\.)?wavlake\.com/, delay: 5000 }];
+  const delayConfig = [
+    { regex: /^https?:\/\/(www\.)?wavlake\.com/, delay: DEFAULT_HTTP_TIMEOUT_MS },
+  ];
 
   for (const { regex, delay } of delayConfig) {
     if (regex.test(url)) {
