@@ -1,6 +1,8 @@
 /* eslint-disable no-console */
 /**
- * Validates that all required environment variables are set before build.
+ * Validates the management-web app process env before build. The app only needs RUNTIME_CONFIG_URL;
+ * all other config is loaded from the runtime-config sidecar at runtime.
+ * The sidecar has its own validation (apps/management-web/sidecar/src/server.ts) for the full list.
  * Aborts the build process if any required variables are missing or invalid.
  */
 
