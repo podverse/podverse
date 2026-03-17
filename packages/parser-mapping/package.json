@@ -1,6 +1,6 @@
 {
   "name": "@podverse/parser-mapping",
-  "version": "5.4.7",
+  "version": "5.4.8",
   "description": "Browser-safe mapping helpers for parsed feeds",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
