@@ -124,3 +124,22 @@ Local env and read/read_write password alignment. Implement the plan as specifie
 - `makefiles/local/Makefile.local.infra.mk` (reminder echo after local_infra_up)
 - `docs/QUICKSTART.md` (note on local_db_init when using separate setup + infra_up)
 - `docs/development/CONTRIBUTING.md` (note on local_infra_up + local_db_init or local_setup)
+
+---
+
+### Session 7 - 2026-03-16
+
+#### Prompt (Developer)
+
+@/Users/mitcheldowney/.cursor/projects/Users-mitcheldowney-repos-pv-pv-code-workspace/terminals/11.txt:1568-1619 it looks like in podverse monorepo that when i run the nuke path with docker containers that the internal ip address is not used make sure that for the configs that get used in the docker container apps processes are properly mapped to the container names
+
+#### Key Decisions
+
+- Root cause is Dockerized web SSR using loopback (`localhost:1234`) from runtime-config sidecar env, which resolves inside the web container instead of the API container.
+- Enforce container DNS host mapping in generated infra sidecar env files during `local_env_setup` so `local_nuke_rebuild_run` produces container-safe config.
+
+#### Files Created/Modified
+
+- `scripts/local-env/setup.sh` (ensure Docker sidecar env uses container DNS for web SSR API host/port)
+- `infra/config/env-templates/web-sidecar.env.example` (default SSR API host to `podverse_local_api`)
+- `infra/config/env-templates/management-web-sidecar.env.example` (default SSR API host to `podverse_local_management_api`)

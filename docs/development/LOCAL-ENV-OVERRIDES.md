@@ -170,17 +170,18 @@ sourced, then specific variables are written into app and infra env files. Main 
 Workers, Web) and management apps (Management API, Management Web, Management DB) receive
 different subsets.
 
-| Override file            | Apps / env files that receive its values                                          |
-| ------------------------ | --------------------------------------------------------------------------------- |
-| brand.env                | API, Workers, Management API (BRAND_NAME); Management Web (MANAGEMENT_BRAND_NAME) |
-| email-template.env       | API only                                                                          |
-| lightning.env            | Web only                                                                          |
-| management-superuser.env | Local DB env (`infra/config/local/db.env`) for management superuser bootstrap     |
-| notifications.env        | Workers; Web gets NEXT_PUBLIC_WEBPUSH_VAPID_PUBLIC_KEY                            |
-| podcast-index.env        | API + Workers                                                                     |
-| private-services.env     | API + Workers (ADD_BY_RSS_CREDENTIALS_ENCRYPTION_KEY); API (mailer, PayPal)       |
-| socials.env              | API (email template social links); Web (contact + social)                         |
-| storage.env              | Workers only                                                                      |
+| Override file            | Apps / env files that receive its values                                                                                                                               |
+| ------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| brand.env                | api/web = BRAND_NAME; mgmt api/mgmt web = MANAGEMENT_BRAND_NAME. Do not set NEXT_PUBLIC_BRAND_NAME in overrides.                                                       |
+| email-template.env       | API only                                                                                                                                                               |
+| lightning.env            | Web only                                                                                                                                                               |
+| locale.env               | Web + Management Web (app, infra, sidecars): NEXT*PUBLIC_FEATURES*\* from DEFAULT_LOCALE, SUPPORTED_LOCALES. Single source; do not set locale in other override files. |
+| management-superuser.env | Local DB env (`infra/config/local/db.env`) for management superuser bootstrap                                                                                          |
+| notifications.env        | Workers; Web gets NEXT_PUBLIC_WEBPUSH_VAPID_PUBLIC_KEY                                                                                                                 |
+| podcast-index.env        | API + Workers                                                                                                                                                          |
+| private-services.env     | API + Workers (ADD_BY_RSS_CREDENTIALS_ENCRYPTION_KEY); API (mailer, PayPal)                                                                                            |
+| socials.env              | API (email template social links); Web (contact + social)                                                                                                              |
+| storage.env              | Workers only                                                                                                                                                           |
 
 Management API and Management Web do not receive mailer, PayPal, email-template, socials,
 storage, notifications, podcast-index, or lightning overrides; those apps do not use those vars.

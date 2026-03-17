@@ -283,6 +283,11 @@ const server = http.createServer((req: http.IncomingMessage, res: http.ServerRes
     return;
   }
 
+  if (requestUrl.pathname === '/' || requestUrl.pathname === '') {
+    sendJson(res, 200, { status: 'ok', message: 'Web runtime-config sidecar is online' });
+    return;
+  }
+
   if (requestUrl.pathname !== '/runtime-config') {
     res.writeHead(404, { 'Cache-Control': 'no-store' });
     res.end('Not Found');

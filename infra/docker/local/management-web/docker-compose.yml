@@ -22,11 +22,12 @@ services:
       options:
         max-file: "1"
         max-size: "50m"
+  # Sidecar is internal-only: no ports exposed. Only management-web container reaches it via RUNTIME_CONFIG_URL.
   podverse_local_management_web_runtime_config:
     image: podverse-management-web-runtime-config:latest
     container_name: podverse_local_management_web_runtime_config
     env_file:
-      - ../../../config/local/management-web.env
+      - ../../../config/local/management-web-sidecar.env
     environment:
       PORT: "3101"
     networks:

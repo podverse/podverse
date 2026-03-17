@@ -15,7 +15,9 @@ API_INFRA_ENV="infra/config/local/api.env"
 WORKERS_INFRA_ENV="infra/config/local/workers.env"
 MANAGEMENT_API_INFRA_ENV="infra/config/local/management-api.env"
 WEB_INFRA_ENV="infra/config/local/web.env"
+WEB_SIDECAR_INFRA_ENV="infra/config/local/web-sidecar.env"
 MANAGEMENT_WEB_INFRA_ENV="infra/config/local/management-web.env"
+MANAGEMENT_WEB_SIDECAR_INFRA_ENV="infra/config/local/management-web-sidecar.env"
 
 API_APP_ENV="apps/api/.env"
 WORKERS_APP_ENV="apps/workers/.env"
@@ -27,9 +29,9 @@ MANAGEMENT_WEB_APP_ENV="apps/management-web/.env.local"
 API_ENV_FILES=("$API_APP_ENV" "$API_INFRA_ENV")
 WORKERS_ENV_FILES=("$WORKERS_APP_ENV" "$WORKERS_INFRA_ENV")
 API_AND_WORKERS_ENV_FILES=("$API_APP_ENV" "$WORKERS_APP_ENV" "$API_INFRA_ENV" "$WORKERS_INFRA_ENV")
-WEB_ENV_FILES=("$WEB_APP_ENV" "$WEB_INFRA_ENV")
+WEB_ENV_FILES=("$WEB_APP_ENV" "$WEB_INFRA_ENV" "$WEB_SIDECAR_INFRA_ENV")
 MANAGEMENT_API_ENV_FILES=("$MANAGEMENT_API_APP_ENV" "$MANAGEMENT_API_INFRA_ENV")
-MANAGEMENT_WEB_ENV_FILES=("$MANAGEMENT_WEB_APP_ENV" "$MANAGEMENT_WEB_INFRA_ENV")
+MANAGEMENT_WEB_ENV_FILES=("$MANAGEMENT_WEB_APP_ENV" "$MANAGEMENT_WEB_INFRA_ENV" "$MANAGEMENT_WEB_SIDECAR_INFRA_ENV")
 
 escape_sed_replacement() {
 	printf '%s' "$1" | sed -e 's/[\/&]/\\&/g'
@@ -241,7 +243,9 @@ ARTEMIS_PASSWORD="$(generate_if_empty_or_placeholder "$(first_non_empty_or_gener
 KEYVALDB_PASSWORD="$(generate_if_empty_or_placeholder "$(first_non_empty_or_generate generate_hex_32 "$KEYVALDB_ENV:KEYVALDB_PASSWORD" "$API_APP_ENV:KEYVALDB_PASSWORD" "$WORKERS_APP_ENV:KEYVALDB_PASSWORD" "$API_INFRA_ENV:KEYVALDB_PASSWORD" "$WORKERS_INFRA_ENV:KEYVALDB_PASSWORD")" "your_redis_password" "# required" " # required")"
 PODCAST_INDEX_AUTH_KEY="$(generate_if_empty_or_placeholder "$(first_non_empty_or_generate generate_base64_32 "$API_APP_ENV:PODCAST_INDEX_AUTH_KEY" "$WORKERS_APP_ENV:PODCAST_INDEX_AUTH_KEY" "$API_INFRA_ENV:PODCAST_INDEX_AUTH_KEY" "$WORKERS_INFRA_ENV:PODCAST_INDEX_AUTH_KEY")" "your_podcast_index_auth_key" "test")"
 PODCAST_INDEX_SECRET_KEY="$(generate_if_empty_or_placeholder "$(first_non_empty_or_generate generate_base64_32 "$API_APP_ENV:PODCAST_INDEX_SECRET_KEY" "$WORKERS_APP_ENV:PODCAST_INDEX_SECRET_KEY" "$API_INFRA_ENV:PODCAST_INDEX_SECRET_KEY" "$WORKERS_INFRA_ENV:PODCAST_INDEX_SECRET_KEY")" "your_podcast_index_secret_key" "test")"
-AUTH_JWT_SECRET="$(first_non_empty_or_generate generate_uuid "$API_APP_ENV:AUTH_JWT_SECRET" "$MANAGEMENT_API_APP_ENV:AUTH_JWT_SECRET")"
+# API and management-api use different JWT secrets (so Podverse and Boilerplate each have distinct API vs management JWTs).
+AUTH_JWT_SECRET_API="$(first_non_empty_or_generate generate_uuid "$API_APP_ENV:AUTH_JWT_SECRET" "$API_INFRA_ENV:AUTH_JWT_SECRET")"
+AUTH_JWT_SECRET_MANAGEMENT="$(first_non_empty_or_generate generate_uuid "$MANAGEMENT_API_APP_ENV:AUTH_JWT_SECRET" "$MANAGEMENT_API_INFRA_ENV:AUTH_JWT_SECRET")"
 
 # Core infra secrets (POSTGRES_DB comes from env-templates: podverse_app / podverse_management)
 upsert_var "$DB_ENV" "POSTGRES_PASSWORD" "$POSTGRES_PASSWORD"
@@ -287,8 +291,11 @@ for file in "$API_APP_ENV" "$WORKERS_APP_ENV" "$API_INFRA_ENV" "$WORKERS_INFRA_E
 	upsert_var "$file" "PODCAST_INDEX_SECRET_KEY" "$PODCAST_INDEX_SECRET_KEY"
 done
 
-for file in "$API_APP_ENV" "$MANAGEMENT_API_APP_ENV" "$API_INFRA_ENV" "$MANAGEMENT_API_INFRA_ENV"; do
-	upsert_var "$file" "AUTH_JWT_SECRET" "$AUTH_JWT_SECRET"
+for file in "$API_APP_ENV" "$WORKERS_APP_ENV" "$API_INFRA_ENV" "$WORKERS_INFRA_ENV"; do
+	upsert_var "$file" "AUTH_JWT_SECRET" "$AUTH_JWT_SECRET_API"
+done
+for file in "$MANAGEMENT_API_APP_ENV" "$MANAGEMENT_API_INFRA_ENV"; do
+	upsert_var "$file" "AUTH_JWT_SECRET" "$AUTH_JWT_SECRET_MANAGEMENT"
 done
 
 for file in "$WORKERS_APP_ENV" "$WORKERS_INFRA_ENV"; do
@@ -343,26 +350,39 @@ for v in MANAGEMENT_SUPERUSER_EMAIL MANAGEMENT_SUPERUSER_PASSWORD; do
 	apply_override "$v" "$DB_ENV"
 done
 
-# From brand.env (API, workers, and management-api all use BRAND_NAME)
-apply_override "BRAND_NAME" "${API_AND_WORKERS_ENV_FILES[@]}" "${MANAGEMENT_API_ENV_FILES[@]}"
+# From brand.env: api/web = BRAND_NAME; mgmt api/mgmt web = MANAGEMENT_BRAND_NAME. Do not set NEXT_PUBLIC_BRAND_NAME in overrides.
+apply_override "BRAND_NAME" "${API_AND_WORKERS_ENV_FILES[@]}"
 
-# Construct USER_AGENT from BRAND_NAME (format: BrandName Bot Local/AppName/5)
 if [ -n "${BRAND_NAME:-}" ]; then
 	upsert_var "$API_APP_ENV" "USER_AGENT" "${BRAND_NAME} Bot Local/API/5"
 	upsert_var "$API_INFRA_ENV" "USER_AGENT" "${BRAND_NAME} Bot Local/API/5"
 	upsert_var "$WORKERS_APP_ENV" "USER_AGENT" "${BRAND_NAME} Bot Local/Workers/5"
 	upsert_var "$WORKERS_INFRA_ENV" "USER_AGENT" "${BRAND_NAME} Bot Local/Workers/5"
-	upsert_var "$MANAGEMENT_API_APP_ENV" "USER_AGENT" "${BRAND_NAME} Bot Local/Management-API/5"
-	upsert_var "$MANAGEMENT_API_INFRA_ENV" "USER_AGENT" "${BRAND_NAME} Bot Local/Management-API/5"
 	upsert_var "$WEB_APP_ENV" "NEXT_PUBLIC_BRAND_NAME" "$BRAND_NAME"
 	upsert_var "$WEB_INFRA_ENV" "NEXT_PUBLIC_BRAND_NAME" "$BRAND_NAME"
+	upsert_var "$WEB_SIDECAR_INFRA_ENV" "NEXT_PUBLIC_BRAND_NAME" "$BRAND_NAME"
 	upsert_var "$WEB_APP_ENV" "NEXT_PUBLIC_PROXY_USER_AGENT" "${BRAND_NAME} Bot Local/Web-API/5"
 	upsert_var "$WEB_INFRA_ENV" "NEXT_PUBLIC_PROXY_USER_AGENT" "${BRAND_NAME} Bot Local/Web-API/5"
 fi
-# From brand.env (Management Web: MANAGEMENT_BRAND_NAME → NEXT_PUBLIC_BRAND_NAME)
 if [ -n "${MANAGEMENT_BRAND_NAME:-}" ]; then
+	upsert_var "$MANAGEMENT_API_APP_ENV" "BRAND_NAME" "$MANAGEMENT_BRAND_NAME"
+	upsert_var "$MANAGEMENT_API_INFRA_ENV" "BRAND_NAME" "$MANAGEMENT_BRAND_NAME"
+	upsert_var "$MANAGEMENT_API_APP_ENV" "USER_AGENT" "${MANAGEMENT_BRAND_NAME} Bot Local/Management-API/5"
+	upsert_var "$MANAGEMENT_API_INFRA_ENV" "USER_AGENT" "${MANAGEMENT_BRAND_NAME} Bot Local/Management-API/5"
 	for file in "${MANAGEMENT_WEB_ENV_FILES[@]}"; do
 		upsert_var "$file" "NEXT_PUBLIC_BRAND_NAME" "$MANAGEMENT_BRAND_NAME"
+	done
+fi
+
+# From locale.env: one place for DEFAULT_LOCALE and SUPPORTED_LOCALES; setup applies to web and management-web (NEXT_PUBLIC_FEATURES_*).
+if [ -n "${DEFAULT_LOCALE:-}" ]; then
+	for file in "${WEB_ENV_FILES[@]}" "${MANAGEMENT_WEB_ENV_FILES[@]}"; do
+		upsert_var "$file" "NEXT_PUBLIC_FEATURES_DEFAULT_LOCALE" "$DEFAULT_LOCALE"
+	done
+fi
+if [ -n "${SUPPORTED_LOCALES:-}" ]; then
+	for file in "${WEB_ENV_FILES[@]}" "${MANAGEMENT_WEB_ENV_FILES[@]}"; do
+		upsert_var "$file" "NEXT_PUBLIC_FEATURES_SUPPORTED_LOCALES" "$SUPPORTED_LOCALES"
 	done
 fi
 
@@ -381,8 +401,14 @@ upsert_var "$MANAGEMENT_WEB_INFRA_ENV" "NODE_ENV" "production"
 upsert_var "$WEB_INFRA_ENV" "RUNTIME_CONFIG_URL" "http://podverse_local_web_runtime_config:3001"
 upsert_var "$WEB_INFRA_ENV" "NEXT_PUBLIC_SSR_API_HOST" "podverse_local_api"
 upsert_var "$WEB_INFRA_ENV" "NEXT_PUBLIC_SSR_API_PORT" "1234"
+upsert_var "$WEB_SIDECAR_INFRA_ENV" "NODE_ENV" "production"
+upsert_var "$WEB_SIDECAR_INFRA_ENV" "NEXT_PUBLIC_SSR_API_HOST" "podverse_local_api"
+upsert_var "$WEB_SIDECAR_INFRA_ENV" "NEXT_PUBLIC_SSR_API_PORT" "1234"
 upsert_var "$MANAGEMENT_WEB_INFRA_ENV" "RUNTIME_CONFIG_URL" "http://podverse_local_management_web_runtime_config:3101"
 upsert_var "$MANAGEMENT_WEB_INFRA_ENV" "NEXT_PUBLIC_SSR_API_HOST" "podverse_local_management_api"
 upsert_var "$MANAGEMENT_WEB_INFRA_ENV" "NEXT_PUBLIC_SSR_API_PORT" "1999"
+upsert_var "$MANAGEMENT_WEB_SIDECAR_INFRA_ENV" "NODE_ENV" "production"
+upsert_var "$MANAGEMENT_WEB_SIDECAR_INFRA_ENV" "NEXT_PUBLIC_SSR_API_HOST" "podverse_local_management_api"
+upsert_var "$MANAGEMENT_WEB_SIDECAR_INFRA_ENV" "NEXT_PUBLIC_SSR_API_PORT" "1999"
 
 echo "Applied local env values from generated defaults and overrides."

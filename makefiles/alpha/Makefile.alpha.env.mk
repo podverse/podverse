@@ -2,7 +2,7 @@
 
 .PHONY: alpha_validate_init
 
-alpha_validate_init: infra/config/alpha/db.env infra/config/alpha/mq.env infra/config/alpha/keyvaldb.env infra/config/alpha/workers.env infra/config/alpha/api.env infra/config/alpha/web.env infra/config/alpha/management-api.env infra/config/alpha/management-web.env
+alpha_validate_init: infra/config/alpha/db.env infra/config/alpha/mq.env infra/config/alpha/keyvaldb.env infra/config/alpha/workers.env infra/config/alpha/api.env infra/config/alpha/web.env infra/config/alpha/web-sidecar.env infra/config/alpha/management-api.env infra/config/alpha/management-web.env infra/config/alpha/management-web-sidecar.env
 
 # Auto-copy missing alpha env files from templates (infra/config/alpha/ exists via .gitkeep)
 infra/config/alpha/db.env:
@@ -35,6 +35,11 @@ infra/config/alpha/web.env:
 	@echo "Copying from example file"
 	cp ./infra/config/env-templates/web.env.example ./$@
 
+infra/config/alpha/web-sidecar.env:
+	@echo "Missing: $@"
+	@echo "Copying from example file"
+	cp ./infra/config/env-templates/web-sidecar.env.example ./$@
+
 infra/config/alpha/management-api.env:
 	@echo "Missing: $@"
 	@echo "Copying from example file"
@@ -44,3 +49,8 @@ infra/config/alpha/management-web.env:
 	@echo "Missing: $@"
 	@echo "Copying from example file"
 	cp ./infra/config/env-templates/management-web.env.example ./$@
+
+infra/config/alpha/management-web-sidecar.env:
+	@echo "Missing: $@"
+	@echo "Copying from example file"
+	cp ./infra/config/env-templates/management-web-sidecar.env.example ./$@

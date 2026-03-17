@@ -1,6 +1,6 @@
 # Version: 1
-# Configuration for the web runtime-config container.
-# Mirrors podverse-web-config to satisfy runtime validation.
+# Configuration for the web runtime-config container (sidecar).
+# Full set of vars served at /runtime-config; keep in sync with apps/web/sidecar and apps/web/.env.example.
 
 apiVersion: v1
 kind: ConfigMap
@@ -34,6 +34,20 @@ data:
   NEXT_PUBLIC_WEB_DOMAIN: "alpha.podverse.fm" # Override in environment overlay
   NEXT_PUBLIC_BRAND_NAME: "Podverse"
   NEXT_PUBLIC_POLLING_INTERVAL_MS: "3000"
+
+  #####
+  ##### App Lightning Node (Optional)
+  #####
+  NEXT_PUBLIC_APP_VALUE_LIGHTNING_NODE_NAME: ""
+  NEXT_PUBLIC_APP_VALUE_LIGHTNING_NODE_ADDRESS: ""
+  NEXT_PUBLIC_APP_VALUE_LIGHTNING_NODE_CUSTOM_KEY: ""
+  NEXT_PUBLIC_APP_VALUE_LIGHTNING_NODE_CUSTOM_VALUE: ""
+
+  #####
+  ##### App Lightning LNAddress (Optional)
+  #####
+  NEXT_PUBLIC_APP_VALUE_LIGHTNING_LNADDRESS_NAME: "Podverse"
+  NEXT_PUBLIC_APP_VALUE_LIGHTNING_LNADDRESS_ADDRESS: "podverse@getalby.com"
 
   #####
   ##### Website Features

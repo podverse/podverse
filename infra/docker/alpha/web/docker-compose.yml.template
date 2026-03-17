@@ -21,6 +21,7 @@ services:
         tag: "{{.ImageName}}/{{.Name}}/{{.ID}}"
     restart: unless-stopped
 
+  # Sidecar is internal-only: no ports exposed. Only web container reaches it via RUNTIME_CONFIG_URL.
   podverse_alpha_web_runtime_config:
     image: ghcr.io/podverse/podverse/web-runtime-config:REPLACE_WITH_WEB_RUNTIME_CONFIG_VERSION
     container_name: podverse_alpha_web_runtime_config
