@@ -59,7 +59,7 @@ directory)](LOCAL-ENV-OVERRIDES.md). When doing local setup (prepare/link/setup)
 
 ### Dependencies and lockfile
 
-If you **add or change dependencies** (or bump version), the lockfile must be generated under Linux so CI gets the correct optional native deps. Run `./scripts/development/update-lockfile-linux.sh` (requires Docker) and commit the updated `package-lock.json`. The bump-version script runs this step automatically. See [Lockfile (Linux)](LOCKFILE-LINUX.md) for details.
+If you **add or change dependencies** (or bump version), the lockfile must be generated under Linux x64 so CI gets the correct optional native deps. Run `./scripts/development/update-lockfile-linux.sh` (requires Docker) and commit the updated `package-lock.json`. The bump-version script runs this step automatically. See [Lockfile (Linux)](LOCKFILE-LINUX.md) for details.
 
 ### Completing a Feature
 

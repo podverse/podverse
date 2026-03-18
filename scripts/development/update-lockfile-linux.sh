@@ -18,6 +18,7 @@ fi
 NODE_IMAGE="node:24"
 echo "Regenerating package-lock.json under Linux ($NODE_IMAGE)..."
 docker run --rm \
+  --platform linux/amd64 \
   -v "$REPO_ROOT:/app" \
   -w /app \
   "$NODE_IMAGE" \
