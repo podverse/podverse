@@ -78,6 +78,17 @@ jobs:
           fi
           node -e "require('@parcel/watcher'); console.log('watcher runtime check ok');"
 
+      - name: Verify @next/swc native binding (platform preflight)
+        run: |
+          echo "platform=$(node -p process.platform) arch=$(node -p process.arch)"
+          if ! node -e "require('@next/swc-linux-x64-gnu')" 2>/dev/null; then
+            echo '@next/swc-linux-x64-gnu missing, attempting fallback install...'
+            NEXT_VERSION=$(node -p "require('./node_modules/next/package.json').version")
+            echo "Installing @next/swc-linux-x64-gnu@${NEXT_VERSION}"
+            npm install --no-save "@next/swc-linux-x64-gnu@${NEXT_VERSION}"
+          fi
+          node -e "require('@next/swc-linux-x64-gnu'); console.log('@next/swc runtime check ok');"
+
       - name: Build packages
         id: build-packages
         run: npm run build:packages

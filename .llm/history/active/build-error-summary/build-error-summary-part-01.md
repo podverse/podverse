@@ -86,6 +86,31 @@ implement your recommendations so that the github action will complete finally
 - .github/workflows/ci.yml
 - .llm/history/active/build-error-summary/build-error-summary-part-01.md
 
+### Session 9 - 2026-03-18
+
+#### Prompt (Developer)
+
+it looks like the error happened yet again :( https://github.com/podverse/podverse/actions/runs/23230856668/job/67523861335
+
+Add @next/swc Linux Binary Preflight
+
+Implement the plan as specified, it is attached for your reference. Do NOT edit the plan file itself.
+
+#### Key Decisions
+
+- Confirmed `node_modules/@next/` only contains `swc-darwin-arm64` on macOS — `@next/swc-linux-x64-gnu`
+  is absent from the lockfile. Next.js 16 initializes SWC unconditionally at startup (before loading
+  config), so `next build` fails on Linux even with `.mjs` config.
+- Fix: add a `Verify @next/swc native binding` preflight step immediately after the parcel watcher step
+  in all 4 CI workflow files. Uses the same bash subprocess pattern to avoid require-cache poisoning.
+- Applied to both podverse and boilerplate workflows.
+
+#### Files Modified
+
+- .github/workflows/publish-alpha.yml
+- .github/workflows/ci.yml
+- .llm/history/active/build-error-summary/build-error-summary-part-01.md
+
 ### Session 8 - 2026-03-18
 
 #### Prompt (Developer)
