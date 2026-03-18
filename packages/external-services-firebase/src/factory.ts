@@ -1,7 +1,6 @@
+import admin from 'firebase-admin';
 import { existsSync } from 'fs';
 import { createRequire } from 'module';
-
-import admin from 'firebase-admin';
 
 import type { ExternalServicesConfig } from './config/types.js';
 
