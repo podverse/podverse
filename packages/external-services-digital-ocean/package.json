@@ -1,6 +1,6 @@
 {
   "name": "@podverse/external-services-digital-ocean",
-  "version": "5.4.10",
+  "version": "5.4.11",
   "description": "DigitalOcean integrations for Podverse",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
