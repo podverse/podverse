@@ -1,6 +1,6 @@
 {
   "name": "podverse-test-assets",
-  "version": "5.4.9",
+  "version": "5.4.10",
   "description": "Local test asset generation and serving utilities",
   "private": true,
   "type": "module",
