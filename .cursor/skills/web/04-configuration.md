@@ -319,6 +319,7 @@ userAgent: process.env.PROXY_USER_AGENT || 'Podverse Bot Local/Web-API/5';
 
 - Validation script loads `.env.local` first (if exists), then falls back to `.env`
 - This matches Next.js's priority order for development
+- In local dev, `.env.local` contains only `RUNTIME_CONFIG_URL`; the runtime-config sidecar loads `sidecar/.env` (see QUICKSTART and LOCAL-ENV-OVERRIDES)
 
 **Pattern for validation scripts**:
 

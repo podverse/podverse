@@ -187,6 +187,15 @@ different subsets.
 Management API and Management Web do not receive mailer, PayPal, email-template, socials,
 storage, notifications, podcast-index, or lightning overrides; those apps do not use those vars.
 
+### Web and Management Web env file split
+
+`make local_env_setup` writes only `RUNTIME_CONFIG_URL` into `apps/web/.env.local` and
+`apps/management-web/.env.local` (used by the Next.js app when you run `npm run dev:web` or
+`npm run dev:management-web`). All other web/management-web runtime values (brand, locale,
+VAPID, etc.) are written to `infra/config/local/web-sidecar.env` and
+`infra/config/local/management-web-sidecar.env`, and the script copies those into
+`apps/web/sidecar/.env` and `apps/management-web/sidecar/.env` for local `npm run dev:sidecar`.
+
 ## See also
 
 - [QUICKSTART.md](../QUICKSTART.md) – Full local setup and “Clean start” flow.

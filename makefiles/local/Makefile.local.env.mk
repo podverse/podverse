@@ -29,7 +29,9 @@ local_env_clean:
 		apps/workers/.env \
 		apps/management-api/.env \
 		apps/web/.env.local \
-		apps/management-web/.env.local
+		apps/web/sidecar/.env \
+		apps/management-web/.env.local \
+		apps/management-web/sidecar/.env
 	@echo "Local env files removed. Run make local_env_setup to regenerate."
 
 local_env_prepare:
@@ -39,7 +41,7 @@ local_env_prepare:
 # - Create missing runtime env files from templates/examples
 # - Generate passwords/keys when empty
 # - Apply manual overrides from dev/env-overrides/local/*.env
-local_env_setup: infra/config/local/db.env infra/config/local/mq.env infra/config/local/keyvaldb.env infra/config/local/api.env infra/config/local/workers.env infra/config/local/management-api.env infra/config/local/web.env infra/config/local/web-sidecar.env infra/config/local/management-web.env infra/config/local/management-web-sidecar.env apps/api/.env apps/workers/.env apps/management-api/.env apps/web/.env.local apps/management-web/.env.local
+local_env_setup: infra/config/local/db.env infra/config/local/mq.env infra/config/local/keyvaldb.env infra/config/local/api.env infra/config/local/workers.env infra/config/local/management-api.env infra/config/local/web.env infra/config/local/web-sidecar.env infra/config/local/management-web.env infra/config/local/management-web-sidecar.env apps/api/.env apps/workers/.env apps/management-api/.env apps/web/.env.local apps/web/sidecar/.env apps/management-web/.env.local apps/management-web/sidecar/.env
 	bash scripts/local-env/setup.sh
 	@echo "Local env setup complete."
 
@@ -124,7 +126,19 @@ apps/web/.env.local:
 	@echo "Copying from example file"
 	cp ./apps/web/.env.example ./$@
 
+apps/web/sidecar/.env:
+	@echo "Missing: $@"
+	@echo "Copying from example file"
+	mkdir -p apps/web/sidecar
+	cp ./apps/web/sidecar/.env.example ./$@
+
 apps/management-web/.env.local:
 	@echo "Missing: $@"
 	@echo "Copying from example file"
 	cp ./apps/management-web/.env.example ./$@
+
+apps/management-web/sidecar/.env:
+	@echo "Missing: $@"
+	@echo "Copying from example file"
+	mkdir -p apps/management-web/sidecar
+	cp ./apps/management-web/sidecar/.env.example ./$@

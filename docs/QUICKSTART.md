@@ -52,7 +52,7 @@ make local_setup
 `local_env_setup` creates missing runtime env files, auto-generates passwords/keys,
 and applies override values. When you run the app stack via Docker Compose, it uses
 `infra/config/local/*.env` (with Docker service names for container-to-container calls);
-when you run with npm (e.g. `npm run dev:web`), use the app `.env`/`.env.local` files (localhost).
+when you run with npm (e.g. `npm run dev:web`), use the app `.env`/`.env.local` files (localhost). For web and management-web, `.env.local` contains only `RUNTIME_CONFIG_URL`; the runtime-config sidecar uses `apps/web/sidecar/.env` and `apps/management-web/sidecar/.env` (created by `make local_env_setup`).
 
 `local_setup` then:
 
@@ -399,7 +399,7 @@ docker build -f apps/management-web/Dockerfile -t podverse-management-web:latest
 docker build -f apps/management-web/sidecar/Dockerfile -t podverse-management-web-runtime-config:latest .
 ```
 
-Provide runtime env values to the sidecar at deploy time (see `apps/web/env/` and `apps/management-web/env/`).
+Provide runtime env values to the sidecar at deploy time (see `apps/web/sidecar/.env.example` and `apps/management-web/sidecar/.env.example`).
 
 ### Testing Docker Images
 
@@ -450,13 +450,13 @@ Final images are ~300-500MB (vs 800MB+ with single-stage builds).
 
 Local development uses pre-configured environment files:
 
-| App            | Config File                      |
-| -------------- | -------------------------------- |
-| API            | `apps/api/.env`                  |
-| Web            | `apps/web/.env.local`            |
-| Workers        | `apps/workers/.env`              |
-| Management API | `apps/management-api/.env`       |
-| Management Web | `apps/management-web/.env.local` |
+| App            | Config File                                                                                                   |
+| -------------- | ------------------------------------------------------------------------------------------------------------- |
+| API            | `apps/api/.env`                                                                                               |
+| Web            | `apps/web/.env.local` (only `RUNTIME_CONFIG_URL`); sidecar uses `apps/web/sidecar/.env`                       |
+| Workers        | `apps/workers/.env`                                                                                           |
+| Management API | `apps/management-api/.env`                                                                                    |
+| Management Web | `apps/management-web/.env.local` (only `RUNTIME_CONFIG_URL`); sidecar uses `apps/management-web/sidecar/.env` |
 
 ### Infrastructure Config
 
@@ -466,8 +466,10 @@ Docker services use configs in `infra/config/local/`:
 - `api.env` - API container settings
 - `workers.env` - Workers container settings
 - `management-api.env` - Management API container settings
-- `web.env` - Web runtime-config sidecar values
-- `management-web.env` - Management web runtime-config sidecar values
+- `web.env` - Web main container (only `RUNTIME_CONFIG_URL`; app fetches config from sidecar)
+- `web-sidecar.env` - Web runtime-config sidecar values
+- `management-web.env` - Management web main container (only `RUNTIME_CONFIG_URL`)
+- `management-web-sidecar.env` - Management web runtime-config sidecar values
 - `mq.env` - ActiveMQ Artemis settings
 - `keyvaldb.env` - Valkey/Redis settings
 
