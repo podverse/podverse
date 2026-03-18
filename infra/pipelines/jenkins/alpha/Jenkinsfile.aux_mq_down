@@ -13,18 +13,11 @@ pipeline {
     stages {
         stage('Stop Alpha MQ') {
             steps {
-                script {
-                    // Maps to 'pushd /opt/podverse'
-                    dir('/opt/podverse') {
-                        // Maps to 'make alpha_mq_down'
-                        // We include 'set -ux' to match the XML's 'set -eux'
-                        // (Jenkins sh defaults to -e automatically)
-                        sh '''
-                            set -ux
-                            make -f makefiles/alpha/Makefile.alpha.mk alpha_mq_down
-                        '''
-                    }
-                }
+                // Run make in workspace so we use the checked-out repo; /opt/podverse may not exist on aux.
+                sh '''
+                    set -ux
+                    make -f makefiles/alpha/Makefile.alpha.mk alpha_mq_down
+                '''
             }
         }
     }
