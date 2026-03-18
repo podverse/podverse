@@ -65,10 +65,7 @@ jobs:
 
       - name: Install dependencies
         id: install
-        run: npm ci
-
-      - name: Ensure parcel watcher is available
-        run: node -e "try { require('@parcel/watcher'); console.log('watcher runtime present'); } catch (error) { console.error(error); process.exit(1); }" || npm install --no-save @parcel/watcher @parcel/watcher-linux-x64-glibc
+        run: npm ci --include=optional
 
       - name: Verify parcel watcher runtime (platform preflight)
         run: node -e "console.log('platform=' + process.platform + ' arch=' + process.arch); require('@parcel/watcher'); console.log('watcher runtime check ok');"

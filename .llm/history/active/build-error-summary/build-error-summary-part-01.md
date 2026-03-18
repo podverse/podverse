@@ -67,3 +67,21 @@ include the hardening and implement the plan
 - .github/workflows/publish-alpha.yml
 - .github/workflows/ci.yml
 - .llm/history/active/build-error-summary/build-error-summary-part-01.md
+
+### Session 5 - 2026-03-18
+
+#### Prompt (Developer)
+
+implement your recommendations so that the github action will complete finally
+
+#### Key Decisions
+
+- Stop mutating dependencies after `npm ci` and instead install with optional dependencies included via `npm ci --include=optional`.
+- Replace watcher fallback install logic with non-mutating runtime verification checks for `@parcel/watcher`.
+- Keep verification in both publish-alpha and ci workflows for cross-platform visibility.
+
+#### Files Modified
+
+- .github/workflows/publish-alpha.yml
+- .github/workflows/ci.yml
+- .llm/history/active/build-error-summary/build-error-summary-part-01.md
