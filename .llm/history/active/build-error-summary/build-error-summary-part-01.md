@@ -85,3 +85,21 @@ implement your recommendations so that the github action will complete finally
 - .github/workflows/publish-alpha.yml
 - .github/workflows/ci.yml
 - .llm/history/active/build-error-summary/build-error-summary-part-01.md
+
+### Session 6 - 2026-03-18
+
+#### Prompt (Developer)
+
+implement. also consider that boilerplate may need similar fixes since it is a next js project too
+
+#### Key Decisions
+
+- Replace strict preflight with targeted Linux binary self-heal that installs `@parcel/watcher-linux-x64-glibc` at the already-installed watcher version when runtime load fails.
+- Keep `npm ci --include=optional` and avoid broad watcher package reinstall.
+- Apply equivalent defensive install/preflight workflow pattern to Boilerplate Next.js CI workflows.
+
+#### Files Modified
+
+- .github/workflows/publish-alpha.yml
+- .github/workflows/ci.yml
+- .llm/history/active/build-error-summary/build-error-summary-part-01.md

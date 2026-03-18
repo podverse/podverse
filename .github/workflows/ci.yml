@@ -68,7 +68,8 @@ jobs:
         run: npm ci --include=optional
 
       - name: Verify parcel watcher runtime (platform preflight)
-        run: node -e "console.log('platform=' + process.platform + ' arch=' + process.arch); require('@parcel/watcher'); console.log('watcher runtime check ok');"
+        run: |
+          node -e "const { execSync } = require('node:child_process'); const canLoad = () => { try { require('@parcel/watcher'); return true; } catch { return false; } }; console.log('platform=' + process.platform + ' arch=' + process.arch); if (!canLoad() && process.platform === 'linux' && process.arch === 'x64') { const version = require('./node_modules/@parcel/watcher/package.json').version; console.log('Installing Linux watcher binary version ' + version); execSync('npm install --no-save @parcel/watcher-linux-x64-glibc@' + version, { stdio: 'inherit' }); } if (!canLoad()) { throw new Error('parcel watcher runtime still unavailable after fallback'); } console.log('watcher runtime check ok');"
 
       - name: Build packages
         id: build-packages
