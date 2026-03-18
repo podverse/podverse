@@ -16,6 +16,9 @@ fi
 
 # Use Node 24 to match .nvmrc and CI
 NODE_IMAGE="node:24"
+echo "Removing existing package-lock.json before Linux regeneration..."
+rm -f "$REPO_ROOT/package-lock.json"
+
 echo "Regenerating package-lock.json under Linux ($NODE_IMAGE)..."
 docker run --rm \
   --platform linux/amd64 \
