@@ -29,6 +29,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Ensure parcel watcher is available
+        run: node -e "try { require.resolve('@parcel/watcher'); console.log('watcher present'); } catch { process.exit(1); }" || npm install --no-save @parcel/watcher
+
       - name: Security audit
         run: npm audit --omit=dev --audit-level=moderate
 

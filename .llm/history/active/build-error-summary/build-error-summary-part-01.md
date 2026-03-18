@@ -27,3 +27,25 @@ with the npm run build and related build commands, it would be nice if all the e
 #### Files Modified
 
 - scripts/ci/run-workspaces.mjs
+
+### Session 3 - 2026-03-18
+
+#### Prompt (Developer)
+
+Debug and Resilience Plan for Publish Alpha Build
+
+Implement the plan as specified, it is attached for your reference. Do NOT edit the plan file itself.
+
+To-do's from the plan have already been created. Do not create them again. Mark them as in_progress as you work, starting with the first one. Don't stop until you have completed all the to-dos.
+
+#### Key Decisions
+
+- Add a deterministic `@parcel/watcher` presence check + fallback install after `npm ci` in publish-alpha validate.
+- Mirror the same guard in ci validate for consistency across workflows.
+- Use `npm install --no-save @parcel/watcher` as the fallback so CI can recover from platform-specific lockfile optional dependency gaps without mutating `package-lock.json`.
+
+#### Files Modified
+
+- .github/workflows/publish-alpha.yml
+- .github/workflows/ci.yml
+- .llm/history/active/build-error-summary/build-error-summary-part-01.md
