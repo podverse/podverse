@@ -14,7 +14,7 @@ To keep the lockfile correct for CI, generate or refresh it **under Linux**.
 From the repo root (requires Docker):
 
 ```bash
-./scripts/update-lockfile-linux.sh
+./scripts/development/update-lockfile-linux.sh
 ```
 
 This runs `npm install --include=optional` inside a Node 24 Linux container and writes the resulting `package-lock.json` into the repo. Commit the updated lockfile so CI and Docker builds use it.

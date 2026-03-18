@@ -57,7 +57,7 @@ cd "$REPO_ROOT"
 
 # Regenerate lockfile under Linux so CI (Linux) gets correct optional deps
 echo -e "${YELLOW}Regenerating package-lock.json under Linux (Docker)...${NC}"
-bash "$REPO_ROOT/scripts/update-lockfile-linux.sh"
+bash "$REPO_ROOT/scripts/development/update-lockfile-linux.sh"
 
 # Stage changes (root + all workspaces from same list used for bumping)
 git add package.json package-lock.json
