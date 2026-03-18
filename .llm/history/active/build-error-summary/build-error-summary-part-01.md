@@ -86,6 +86,35 @@ implement your recommendations so that the github action will complete finally
 - .github/workflows/ci.yml
 - .llm/history/active/build-error-summary/build-error-summary-part-01.md
 
+### Session 7 - 2026-03-18
+
+#### Prompt (Developer)
+
+what the heck is going on? we have tried fixing this many times now. https://github.com/podverse/podverse/actions/runs/23230212034/job/67521911754 could the module we need just be missing? is there an outage? what is wrong? it adding log statements to the action will help you debug then add them.
+
+Fix Node.js require-cache Bug in Watcher Preflight
+
+Implement the plan as specified, it is attached for your reference. Do NOT edit the plan file itself.
+
+To-do's from the plan have already been created. Do not create them again. Mark them as in_progress as you work, starting with the first one. Don't stop until you have completed all the to-dos.
+
+#### Key Decisions
+
+- Root cause identified: Node.js `require` caches module failures within the same process. After the fallback
+  `npm install --no-save` succeeded ("added 1 package"), the second `canLoad()` call in the same process
+  returned the cached failure instead of re-evaluating the module — causing the preflight to always throw
+  even though the binary was correctly installed.
+- Fix: replace single `node -e "..."` one-liner with bash-controlled flow that uses separate `node`
+  subprocess invocations for each check. Each subprocess starts with a fresh `require.cache`, so the
+  post-install verification genuinely tests the newly-installed binary.
+- Applied identical fix to podverse and boilerplate (both `publish-alpha.yml` and `ci.yml`).
+
+#### Files Modified
+
+- .github/workflows/publish-alpha.yml
+- .github/workflows/ci.yml
+- .llm/history/active/build-error-summary/build-error-summary-part-01.md
+
 ### Session 6 - 2026-03-18
 
 #### Prompt (Developer)

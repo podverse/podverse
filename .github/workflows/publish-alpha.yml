@@ -31,7 +31,14 @@ jobs:
 
       - name: Verify parcel watcher runtime (platform preflight)
         run: |
-          node -e "const { execSync } = require('node:child_process'); const canLoad = () => { try { require('@parcel/watcher'); return true; } catch { return false; } }; console.log('platform=' + process.platform + ' arch=' + process.arch); if (!canLoad() && process.platform === 'linux' && process.arch === 'x64') { const version = require('./node_modules/@parcel/watcher/package.json').version; console.log('Installing Linux watcher binary version ' + version); execSync('npm install --no-save @parcel/watcher-linux-x64-glibc@' + version, { stdio: 'inherit' }); } if (!canLoad()) { throw new Error('parcel watcher runtime still unavailable after fallback'); } console.log('watcher runtime check ok');"
+          echo "platform=$(node -p process.platform) arch=$(node -p process.arch)"
+          if ! node -e "require('@parcel/watcher')" 2>/dev/null; then
+            echo "watcher native binary missing, attempting Linux fallback..."
+            WATCHER_VERSION=$(node -p "require('./node_modules/@parcel/watcher/package.json').version")
+            echo "Installing @parcel/watcher-linux-x64-glibc@${WATCHER_VERSION}"
+            npm install --no-save "@parcel/watcher-linux-x64-glibc@${WATCHER_VERSION}"
+          fi
+          node -e "require('@parcel/watcher'); console.log('watcher runtime check ok');"
 
       - name: Security audit
         run: npm audit --omit=dev --audit-level=moderate
