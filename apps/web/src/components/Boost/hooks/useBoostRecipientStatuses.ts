@@ -11,7 +11,9 @@ type UseBoostRecipientStatusesResult = {
   updateRecipientStatus: (
     recipientId: string,
     status: RecipientStatus['status'],
-    error?: string
+    error?: string,
+    errorRetries?: number,
+    errorProviderMessage?: string
   ) => void;
 };
 
@@ -25,10 +27,14 @@ const updateRecipientStatusList = (
   statuses: RecipientStatus[],
   recipientId: string,
   status: RecipientStatus['status'],
-  error?: string
+  error?: string,
+  errorRetries?: number,
+  errorProviderMessage?: string
 ): RecipientStatus[] =>
   statuses.map((recipient) =>
-    recipient.id === recipientId ? { ...recipient, status, error } : recipient
+    recipient.id === recipientId
+      ? { ...recipient, status, error, errorRetries, errorProviderMessage }
+      : recipient
   );
 
 export const useBoostRecipientStatuses = (): UseBoostRecipientStatusesResult => {
@@ -37,9 +43,20 @@ export const useBoostRecipientStatuses = (): UseBoostRecipientStatusesResult => 
   const updateRecipientStatus = (
     recipientId: string,
     status: RecipientStatus['status'],
-    error?: string
+    error?: string,
+    errorRetries?: number,
+    errorProviderMessage?: string
   ) => {
-    setRecipientStatuses((prev) => updateRecipientStatusList(prev, recipientId, status, error));
+    setRecipientStatuses((prev) =>
+      updateRecipientStatusList(
+        prev,
+        recipientId,
+        status,
+        error,
+        errorRetries,
+        errorProviderMessage
+      )
+    );
   };
 
   return {

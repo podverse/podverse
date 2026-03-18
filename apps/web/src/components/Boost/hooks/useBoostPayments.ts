@@ -10,6 +10,7 @@ import {
   sendLnaddressPayment,
   serializeBlip10Metadata,
 } from '@podverse/v4v-btc-ln';
+import { PROVIDER_FAILURE_PROP } from '@podverse/v4v-helpers';
 import type { MetaBoost } from '@podverse/v4v-metaboost';
 import {
   buildBoostMetadataRequest,
@@ -73,7 +74,9 @@ type UseBoostPaymentsParams = {
   updateRecipientStatus: (
     recipientId: string,
     status: RecipientStatus['status'],
-    error?: string
+    error?: string,
+    errorRetries?: number,
+    errorProviderMessage?: string
   ) => void;
   setRecipientStatuses: Dispatch<SetStateAction<RecipientStatus[]>>;
   setIsSubmitting: Dispatch<SetStateAction<boolean>>;
@@ -87,8 +90,12 @@ const buildCustomRecordsForRecipient = (
 ): Record<string, string> | undefined =>
   buildCustomRecords(blipPayload, recipient.custom_key, recipient.custom_value);
 
+/** V4vProviderFailure shape (reason = provider response body message when present). */
+type ProviderFailureLike = { status?: number; reason?: string; retries?: number };
+
 /**
- * Extract a user-facing message from a thrown value (e.g. Error, Alby response body).
+ * Extract a user-facing message from a thrown value (e.g. Error, response body).
+ * Also checks response.data.message and body.message for provider error payloads.
  */
 function getErrorMessage(error: unknown, fallback: string): string {
   if (error instanceof Error && typeof error.message === 'string' && error.message.trim() !== '') {
@@ -103,6 +110,10 @@ function getErrorMessage(error: unknown, fallback: string): string {
   const dataMsg = withData?.data?.message;
   if (typeof dataMsg === 'string' && dataMsg.trim() !== '') {
     return dataMsg.trim();
+  }
+  const withMessage = error as { message?: string };
+  if (typeof withMessage?.message === 'string' && withMessage.message.trim() !== '') {
+    return withMessage.message.trim();
   }
   return fallback;
 }
@@ -200,10 +211,41 @@ export const useBoostPayments = ({
             (error as { code?: string }).code === 'ERR_CANCELED') ||
           (error instanceof Error &&
             (error.message === 'canceled' || error.message === 'Request aborted'));
+        const providerFailure = (error as Record<string, ProviderFailureLike | undefined>)?.[
+          PROVIDER_FAILURE_PROP
+        ];
+        const errorRetries =
+          providerFailure !== undefined && providerFailure !== null
+            ? providerFailure.retries
+            : undefined;
+        const responseBodyMessage = (error as { response?: { data?: { message?: string } } })
+          ?.response?.data?.message;
+        const errorProviderMessage =
+          providerFailure !== undefined &&
+          providerFailure !== null &&
+          typeof providerFailure.reason === 'string' &&
+          providerFailure.reason.trim() !== ''
+            ? providerFailure.reason.trim()
+            : typeof responseBodyMessage === 'string' && responseBodyMessage.trim() !== ''
+              ? responseBodyMessage.trim()
+              : undefined;
+        const axiosStatus = (error as { response?: { status?: number } })?.response?.status;
         const errorMessage = isTimeoutOrCancel
           ? tValue('boost_messages.invoice_timeout')
-          : getErrorMessage(error, tValue('boost_messages.status_failed'));
-        updateRecipientStatus(recipient.id, 'failed', errorMessage);
+          : providerFailure !== undefined &&
+              providerFailure !== null &&
+              providerFailure.status !== undefined
+            ? `Request failed with status code ${providerFailure.status}`
+            : axiosStatus !== undefined
+              ? `Request failed with status code ${axiosStatus}`
+              : getErrorMessage(error, tValue('boost_messages.status_failed'));
+        updateRecipientStatus(
+          recipient.id,
+          'failed',
+          errorMessage,
+          errorRetries,
+          errorProviderMessage
+        );
       }
     }
 

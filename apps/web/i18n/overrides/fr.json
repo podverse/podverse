@@ -262,6 +262,34 @@
     },
     "total": "",
     "message": "",
+    "meta_boost": {
+      "title": "",
+      "type_label": "",
+      "schema_label": "",
+      "license_label": "",
+      "node_label": "",
+      "message_receive": "",
+      "terms_message": "",
+      "no_terms": ""
+    },
+    "boost_messages": {
+      "not_enabled": "",
+      "not_enabled_app": "",
+      "more_info": "",
+      "server_error_title": "",
+      "server_error_message": "",
+      "pay_anyway": "",
+      "status_pending": "",
+      "status_paying": "",
+      "status_success": "",
+      "status_failed": "",
+      "invoice_timeout": "",
+      "status_summary": "",
+      "successfully_sent": "",
+      "failed_to_send": "",
+      "error_details_heading": "",
+      "retried_requests": ""
+    },
     "types": {
       "lightning": {
         "label": "",
@@ -285,6 +313,16 @@
       "app": ""
     },
     "your_name": ""
+  },
+  "v4v": {
+    "boost_messages": {
+      "title": "",
+      "description": "",
+      "example_heading": "",
+      "example": "",
+      "boostbox_label": "",
+      "boostbox_url": ""
+    }
   },
   "filters": {
     "type": {
@@ -320,6 +358,7 @@
   },
   "misc": {
     "more_info": "",
+    "hide_info": "",
     "info": "",
     "items": "",
     "increment": "",
@@ -332,6 +371,8 @@
     "saving": "",
     "cancel": "",
     "close": "",
+    "go_back": "",
+    "close_video_player": "",
     "dismiss": "",
     "on": "",
     "off": "",
@@ -371,6 +412,15 @@
     "try_again": "",
     "reload_page": "",
     "return_to_home_page": ""
+  },
+  "donate": {
+    "title": "",
+    "app_donation_notice": "",
+    "app_not_configured": "",
+    "creator_donation_hint_prefix": "",
+    "creator_donation_hint_suffix": "",
+    "success_thank_you": "",
+    "success_message": ""
   },
   "errors": {
     "generic": "",

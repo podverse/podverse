@@ -13,4 +13,6 @@ export type PaymentRecipient = {
 export type RecipientStatus = PaymentRecipient & {
   status: 'pending' | 'paying' | 'success' | 'failed';
   error?: string;
+  errorProviderMessage?: string;
+  errorRetries?: number;
 };

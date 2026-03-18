@@ -41,7 +41,7 @@ BoostBox lives in a separate repo cloned as a sibling of Podverse; see
 Notes:
 
 - The client sends the BoostBox base URL in the request body (`baseUrl`) when calling the Podverse API proxy; the API forwards to that URL and uses a fixed API key. See [LOCAL-BOOSTBOX.md](../../../infra/LOCAL-BOOSTBOX.md).
-- Alby Sandbox base URL and getalby.com LNURL endpoints are hardcoded in `@podverse/external-services-alby` for development only.
+- Lightning Address (LNURLp) resolution and invoice requests are implemented in `@podverse/v4v-btc-ln` using **LUD-16 only**: the app fetches `https://<domain>/.well-known/lnurlp/<user>` (or the same path over http for localhost). Invoice requests use the callback URL from the resolved details, so the Donate page and LNAddress flows work with any LUD-16-compliant provider (Strike, Alby, etc.).
 
 ## Local Lightning Network Setup
 
@@ -79,10 +79,10 @@ it falls back to built-in fake data.
 - `type="node"` for keysend (WebLN keysend)
 - `type="lnaddress"` for LNAddress (LNURLp -> invoice)
 
-## Alby vs WebLN responsibilities
+## LNURLp vs WebLN responsibilities
 
-- `@podverse/external-services-alby` only handles LNURLp lookups and invoice requests for LNAddress payments.
-- Keysend is performed through WebLN `keysend` for `type="node"` recipients, not via Alby HTTP APIs.
+- `@podverse/v4v-btc-ln` handles LNURLp lookups (LUD-16 only) and invoice requests for LNAddress payments.
+- Keysend is performed through WebLN `keysend` for `type="node"` recipients, not via any external HTTP API.
 - WebLN supports both `sendPayment` (invoice-based LNURL) and `keysend`; wallet support for keysend is required.
 - When RSS `method="keysend"` and a recipient uses `type="lnaddress"`, the app resolves
   `/.well-known/keysend/<user>` and sends keysend via WebLN using the returned pubkey/custom data.

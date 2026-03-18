@@ -31,8 +31,9 @@
     "access": "public"
   },
   "dependencies": {
-    "@podverse/external-services-alby": "*",
-    "@podverse/helpers-requests": "*"
+    "@podverse/helpers": "*",
+    "@podverse/helpers-requests": "*",
+    "@podverse/v4v-helpers": "*"
   },
   "type": "module",
   "sideEffects": false

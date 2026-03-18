@@ -286,7 +286,9 @@
       "invoice_timeout": "Payment server did not respond in time. If using a local Lightning node, ensure it is running and reachable.",
       "status_summary": "Summary",
       "successfully_sent": "Successful: ",
-      "failed_to_send": "Failed: "
+      "failed_to_send": "Failed: ",
+      "error_details_heading": "Error details",
+      "retried_requests": "We retried the request {count, plural, one {# time} other {# times}} before it failed."
     },
     "types": {
       "lightning": {

@@ -52,6 +52,12 @@ export const BoostRecipientStatusList = ({
                   recipient.error !== tValue('boost_messages.status_failed') && (
                     <div className={styles.recipientStatusError}>{recipient.error}</div>
                   )}
+                {recipient.errorProviderMessage !== undefined &&
+                  recipient.errorProviderMessage !== '' && (
+                    <div className={styles.recipientStatusError}>
+                      {recipient.errorProviderMessage}
+                    </div>
+                  )}
               </>
             )}
           </div>

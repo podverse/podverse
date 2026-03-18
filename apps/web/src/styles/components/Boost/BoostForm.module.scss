@@ -128,6 +128,43 @@
   color: var(--text-color-danger);
 }
 
+.paymentErrorSummary {
+  margin-top: var(--spacing-lg);
+  padding: var(--spacing-md);
+  border: 1px solid var(--form-element-border-color);
+  border-radius: var(--border-radius);
+  background: var(--background-color-secondary);
+}
+
+.paymentErrorSummaryHeading {
+  margin: 0 0 var(--spacing-sm);
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-bold);
+  color: var(--text-color-danger);
+}
+
+.paymentErrorSummaryRetries {
+  margin: 0 0 var(--spacing-sm);
+  font-size: var(--font-size-sm);
+  color: var(--text-color-secondary);
+}
+
+.paymentErrorSummaryList {
+  margin: 0;
+  padding-left: var(--spacing-lg);
+  font-size: var(--font-size-sm);
+  color: var(--text-color-danger);
+}
+
+.paymentErrorSummaryRecipient {
+  font-weight: var(--font-weight-bold);
+}
+
+.paymentErrorSummaryProviderMessage {
+  display: block;
+  margin-top: var(--spacing-xs);
+}
+
 .donateSuccessWrapper {
   position: relative;
 }

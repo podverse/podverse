@@ -61,8 +61,10 @@ COPY --from=builder /opt/packages/mq/dist/ ./packages/mq/dist/
 COPY --from=builder /opt/apps/workers/package.json ./apps/workers/
 COPY --from=builder /opt/apps/workers/dist/ ./apps/workers/dist/
 
-# Install production dependencies only
-RUN npm ci --omit=dev --ignore-scripts
+# Install production dependencies only; then run sharp's install so its script
+# fetches the correct native binary for this platform (e.g. linux-arm64).
+# (npm rebuild sharp does not run the install script; npm install sharp does.)
+RUN npm ci --omit=dev --ignore-scripts && npm install --include=optional sharp
 
 # Env is provided at runtime via env_file / K8s; skip .env loading so dotenvx is not needed
 ENV NODE_ENV=production

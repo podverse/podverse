@@ -262,6 +262,34 @@
     },
     "total": "Σύνολο",
     "message": "Μήνυμα",
+    "meta_boost": {
+      "title": "MetaBoost",
+      "type_label": "Τύπος:",
+      "schema_label": "Σχήμα:",
+      "license_label": "Άδεια:",
+      "node_label": "Κόμβος:",
+      "message_receive": "Ο δημιουργός περιεχομένου θα λάβει το μήνυμά του στο <link>{domain}</link>.",
+      "terms_message": "<link>Κάντε κλικ εδώ</link> για να αναθεωρήσετε τους Όρους Παροχής Υπηρεσιών τους.",
+      "no_terms": "Ο δημιουργός περιεχομένου δεν παρέσχε έγγραφο Όρων Παροχής Υπηρεσιών."
+    },
+    "boost_messages": {
+      "not_enabled": "Οι ενισχυμένες μηνύματα δεν είναι ενεργοποιημένες για αυτό το podcast.",
+      "not_enabled_app": "Οι ενισχυμένες μηνύματα δεν είναι ενεργοποιημένες για αυτή τη δωρεά.",
+      "more_info": "Περισσότερες Πληροφορίες",
+      "server_error_title": "Σφάλμα διακομιστή ενισχυμένων μηνυμάτων",
+      "server_error_message": "Υπάρχει ένα σφάλμα με τον διακομιστή μηνυμάτων. Ένα μήνυμα δεν μπορεί να αποσταλεί, αλλά μπορείτε να συνεχίσετε να στέλνετε την πληρωμή σας ούτως ή άλλως.",
+      "pay_anyway": "Πληρώστε Ούτως Ή Αλλιώς",
+      "status_pending": "Εκκρεμεί…",
+      "status_paying": "Πληρώνω…",
+      "status_success": "Απεστάλη",
+      "status_failed": "Απέτυχε",
+      "invoice_timeout": "Ο διακομιστής πληρωμής δεν απάντησε εγκαίρως. Εάν χρησιμοποιείτε ένα τοπικό Lightning node, βεβαιωθείτε ότι λειτουργεί και είναι προσβάσιμο.",
+      "status_summary": "Περίληψη",
+      "successfully_sent": "Επιτυχώς:",
+      "failed_to_send": "Απέτυχε:",
+      "error_details_heading": "Λεπτομέρειες σφάλματος",
+      "retried_requests": "Επαναλάβαμε το αίτημα Lightning Address {count, plural, one {# φορά} other {# φορές}} πριν αποτύχει."
+    },
     "types": {
       "lightning": {
         "label": "Bitcoin Lightning",
@@ -285,6 +313,16 @@
       "app": "Στείλε σε {brand_name}"
     },
     "your_name": "Το Όνομά Σου"
+  },
+  "v4v": {
+    "boost_messages": {
+      "title": "Ενισχυμένα Μηνύματα",
+      "description": "Για να ενεργοποιήσετε τα ενισχυμένα μηνύματα για το περιεχόμενό σας, προσθέστε το podcast:metaBoost RSS tag στη ροή σας μέσα στο podcast:value block σας. Αυτό το tag λέει στις εφαρμογές πού να στείλουν προαιρετικά μηνύματα ακροατών (για παράδειγμα, μέσω ενός διακομιστή BoostBox). Χωρίς αυτό, οι ακροατές μπορούν να στέλνουν πληρωμές αλλά δεν μπορούν να επισυνάψουν μήνυμα.",
+      "example_heading": "Παράδειγμα RSS τμήματος με podcast:metaBoost",
+      "example": "'<'podcast:value type=\"lightning\" method=\"keysend\"'>'\n  '<'podcast:metaBoost schema=\"boostbox\"'>'https://your-boostbox.example/boost'<'/podcast:metaBoost'>'\n  '<'podcast:valueRecipient type=\"lnaddress\" address=\"you@example.com\" split=\"100\" /'>'\n'<'/podcast:value'>'",
+      "boostbox_label": "BoostBox στο GitHub",
+      "boostbox_url": "https://github.com/noblepayne/boostbox"
+    }
   },
   "filters": {
     "type": {
@@ -320,6 +358,7 @@
   },
   "misc": {
     "more_info": "Περισσότερες Πληροφορίες",
+    "hide_info": "Απόκρυψη πληροφοριών",
     "info": "Πληροφορίες",
     "items": "Στοιχεία",
     "increment": "Αύξηση",
@@ -332,6 +371,8 @@
     "saving": "Αποθήκευση...",
     "cancel": "Ακύρωση",
     "close": "Κλείσιμο",
+    "go_back": "Επιστροφή",
+    "close_video_player": "Κλείσιμο αναπαραγωγής βίντεο",
     "dismiss": "Απόρριψη",
     "on": "Ενεργό",
     "off": "Ανενεργό",
@@ -371,6 +412,15 @@
     "try_again": "Δοκιμάστε ξανά",
     "reload_page": "Αναφόρτωση σελίδας",
     "return_to_home_page": "Μετάβαση στην Αρχική"
+  },
+  "donate": {
+    "title": "Δωρεά",
+    "app_donation_notice": "Αυτή η δωρεά θα σταλεί στο {brand_name}.",
+    "app_not_configured": "Οι δωρεές εφαρμογών δεν είναι ρυθμισμένες. Για να ενεργοποιήσετε τις δωρεές προς το {brand_name}, ρυθμίστε το Lightning LNAddress ή τον Κόμβο στη ρύθμιση της εφαρμογής.",
+    "creator_donation_hint_prefix": "Για να κάνετε δωρεά σε έναν podcaster ή καλλιτέχνη, χρησιμοποιήστε το",
+    "creator_donation_hint_suffix": "κουμπί ενίσχυσης στη σελίδα τους.",
+    "success_thank_you": "Σας ευχαριστούμε για τη δωρεά σας!",
+    "success_message": "Η υποστήριξή σας μας βοηθά να διατηρήσουμε το {brand_name} σε λειτουργία."
   },
   "errors": {
     "generic": "Κάτι πήγε στραβά. Παρακαλώ δοκιμάστε ξανά αργότερα, ή επικοινωνήστε με την υποστήριξη για βοήθεια.",

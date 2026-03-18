@@ -1,5 +1,7 @@
-import type { AlbyLnurlDetailsResponse } from '@podverse/external-services-alby';
-import { fetchLnurlDetails, fetchLnurlInvoice } from '@podverse/external-services-alby';
+import { attachProviderFailure, buildProviderErrorMessage } from '@podverse/v4v-helpers';
+
+import type { LnurlpDetailsResponse } from './lnurlp.js';
+import { fetchLnurlDetails, fetchLnurlInvoice } from './lnurlp.js';
 
 export type WeblnKeysendOptions = {
   destination: string;
@@ -27,7 +29,7 @@ export type SendKeysendPaymentParams = {
 };
 
 export const getLnurlComment = (
-  details: AlbyLnurlDetailsResponse,
+  details: LnurlpDetailsResponse,
   desc: string | null
 ): string | undefined => {
   if (!desc) {
@@ -39,25 +41,38 @@ export const getLnurlComment = (
   return desc.length <= details.commentAllowed ? desc : undefined;
 };
 
+const stepLabelFor = (step: 'details' | 'invoice'): string =>
+  step === 'details' ? 'LNURL details' : 'LNURL invoice';
+
 export const sendLnaddressPayment = async ({
   recipientAddress,
   amountMsat,
   desc,
   provider,
 }: SendLnaddressPaymentParams): Promise<void> => {
-  const lnurlDetails = await fetchLnurlDetails({ lnurlOrAddress: recipientAddress });
-  if (!lnurlDetails) {
-    throw new Error('Unable to resolve LNURL details.');
+  const detailsResult = await fetchLnurlDetails({ lnurlOrAddress: recipientAddress });
+  if (!detailsResult.ok) {
+    const msg = buildProviderErrorMessage(detailsResult.failure, stepLabelFor('details'));
+    const err = new Error(msg);
+    attachProviderFailure(err, detailsResult.failure);
+    throw err;
   }
+  const lnurlDetails = detailsResult.data;
   if (amountMsat < lnurlDetails.minSendable || amountMsat > lnurlDetails.maxSendable) {
     throw new Error('Payment amount outside LNURL limits.');
   }
   const comment = getLnurlComment(lnurlDetails, desc);
-  const invoice = await fetchLnurlInvoice({
-    lnurlOrAddress: recipientAddress,
-    amountMsat,
-    comment,
-  });
+  const invoiceResult = await fetchLnurlInvoice(
+    { lnurlOrAddress: recipientAddress, amountMsat, comment },
+    lnurlDetails
+  );
+  if (!invoiceResult.ok) {
+    const msg = buildProviderErrorMessage(invoiceResult.failure, stepLabelFor('invoice'));
+    const err = new Error(msg);
+    attachProviderFailure(err, invoiceResult.failure);
+    throw err;
+  }
+  const invoice = invoiceResult.data;
   if (!invoice?.pr) {
     throw new Error('Unable to fetch LNURL invoice.');
   }

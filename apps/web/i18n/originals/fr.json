@@ -262,6 +262,34 @@
     },
     "total": "Total",
     "message": "Message",
+    "meta_boost": {
+      "title": "MetaBoost",
+      "type_label": "Type :",
+      "schema_label": "Schéma :",
+      "license_label": "Licence :",
+      "node_label": "Nœud :",
+      "message_receive": "Le créateur de contenu recevra son message à <link>{domain}</link>.",
+      "terms_message": "<link>Cliquez ici</link> pour consulter leurs Conditions d'utilisation.",
+      "no_terms": "Le créateur de contenu n'a pas fourni de document de Conditions d'utilisation."
+    },
+    "boost_messages": {
+      "not_enabled": "Les messages boost ne sont pas activés pour ce podcast.",
+      "not_enabled_app": "Les messages boost ne sont pas activés pour ce don.",
+      "more_info": "Plus d'infos",
+      "server_error_title": "Erreur du serveur de messages boost",
+      "server_error_message": "Il y a une erreur avec le serveur de messages. Un message ne peut pas être envoyé, mais vous pouvez continuer à envoyer votre paiement de toute façon.",
+      "pay_anyway": "Payer de toute façon",
+      "status_pending": "En attente…",
+      "status_paying": "Paiement en cours…",
+      "status_success": "Envoyé",
+      "status_failed": "Échoué",
+      "invoice_timeout": "Le serveur de paiement n'a pas répondu à temps. Si vous utilisez un nœud Lightning local, assurez-vous qu'il fonctionne et est accessible.",
+      "status_summary": "Résumé",
+      "successfully_sent": "Réussi :",
+      "failed_to_send": "Échec :",
+      "error_details_heading": "Détails de l'erreur",
+      "retried_requests": "Nous avons réessayé la demande d'adresse Lightning {count, plural, one {# fois} other {# fois}} avant qu'elle échoue."
+    },
     "types": {
       "lightning": {
         "label": "Bitcoin Lightning",
@@ -285,6 +313,16 @@
       "app": "Envoyer à {brand_name}"
     },
     "your_name": "Votre nom"
+  },
+  "v4v": {
+    "boost_messages": {
+      "title": "Messages Boost",
+      "description": "Pour activer les messages boost pour votre contenu, ajoutez la balise RSS podcast:metaBoost à votre flux dans votre bloc podcast:value. Cette balise indique aux applications où envoyer des messages optionnels des auditeurs (par exemple, via un serveur BoostBox). Sans cela, les auditeurs peuvent toujours envoyer des paiements mais ne peuvent pas joindre de message.",
+      "example_heading": "Exemple de snippet RSS avec podcast:metaBoost",
+      "example": "'<'podcast:value type=\"lightning\" method=\"keysend\"'>'\n  '<'podcast:metaBoost schema=\"boostbox\"'>'https://your-boostbox.example/boost'<'/podcast:metaBoost'>'\n  '<'podcast:valueRecipient type=\"lnaddress\" address=\"you@example.com\" split=\"100\" /'>'\n'<'/podcast:value'>'",
+      "boostbox_label": "BoostBox sur GitHub",
+      "boostbox_url": "https://github.com/noblepayne/boostbox"
+    }
   },
   "filters": {
     "type": {
@@ -320,6 +358,7 @@
   },
   "misc": {
     "more_info": "Plus d'infos",
+    "hide_info": "Cacher les informations",
     "info": "Infos",
     "items": "Articles",
     "increment": "Incrémenter",
@@ -332,6 +371,8 @@
     "saving": "En cours d'enregistrement...",
     "cancel": "Annuler",
     "close": "Fermer",
+    "go_back": "Retourner",
+    "close_video_player": "Fermer le lecteur vidéo",
     "dismiss": "Fermer",
     "on": "Activé",
     "off": "Désactivé",
@@ -371,6 +412,15 @@
     "try_again": "Réessayez",
     "reload_page": "Rcharger la page",
     "return_to_home_page": "Aller à l'accueil"
+  },
+  "donate": {
+    "title": "Faire un don",
+    "app_donation_notice": "Ce don sera envoyé à {brand_name}.",
+    "app_not_configured": "Les dons d'applications ne sont pas configurés. Pour activer les dons à {brand_name}, définissez l'adresse LN ou le nœud Lightning dans la configuration de l'application.",
+    "creator_donation_hint_prefix": "Pour faire un don à un podcasteur ou un artiste, utilisez le",
+    "creator_donation_hint_suffix": "bouton Boost sur leur page.",
+    "success_thank_you": "Merci pour votre don !",
+    "success_message": "Votre soutien nous aide à faire fonctionner {brand_name}."
   },
   "errors": {
     "generic": "Quelque chose a mal tourné. Veuillez réessayer plus tard ou contacter le support pour obtenir de l'aide.",

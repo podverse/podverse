@@ -21,7 +21,6 @@
   "license": "AGPL-3.0",
   "dependencies": {
     "@hello-pangea/dnd": "^18.0.1",
-    "@podverse/external-services-alby": "*",
     "@podverse/helpers": "*",
     "@podverse/helpers-backend": "*",
     "@podverse/helpers-browser": "*",
