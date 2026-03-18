@@ -1,6 +1,6 @@
 {
   "name": "@podverse/helpers-requests",
-  "version": "5.4.11",
+  "version": "5.4.12",
   "sideEffects": false,
   "description": "API client utilities for Podverse web application",
   "main": "dist/index.js",

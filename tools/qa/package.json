@@ -1,6 +1,6 @@
 {
   "name": "@podverse/qa",
-  "version": "5.4.11",
+  "version": "5.4.12",
   "description": "QA tools and faker utilities for Podverse testing",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

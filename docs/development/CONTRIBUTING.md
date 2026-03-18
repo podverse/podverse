@@ -57,6 +57,10 @@ directory)](LOCAL-ENV-OVERRIDES.md). When doing local setup (prepare/link/setup)
 3. Commit with issue reference: `Fix bug #123`
 4. Keep LLM history updated if using AI assistance
 
+### Dependencies and lockfile
+
+If you **add or change dependencies** (or bump version), the lockfile must be generated under Linux so CI gets the correct optional native deps. Run `./scripts/update-lockfile-linux.sh` (requires Docker) and commit the updated `package-lock.json`. The bump-version script runs this step automatically. See [Lockfile (Linux)](LOCKFILE-LINUX.md) for details.
+
 ### Completing a Feature
 
 When ready to submit a PR, simply push your branch and open a PR.
