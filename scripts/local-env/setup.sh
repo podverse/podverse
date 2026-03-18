@@ -24,17 +24,19 @@ WORKERS_APP_ENV="apps/workers/.env"
 MANAGEMENT_API_APP_ENV="apps/management-api/.env"
 WEB_APP_ENV="apps/web/.env.local"
 MANAGEMENT_WEB_APP_ENV="apps/management-web/.env.local"
+WEB_APP_SIDECAR_ENV="apps/web/sidecar/.env"
+MANAGEMENT_WEB_APP_SIDECAR_ENV="apps/management-web/sidecar/.env"
 
 # Target-file arrays for apply_override (app + infra envs per app)
 API_ENV_FILES=("$API_APP_ENV" "$API_INFRA_ENV")
 WORKERS_ENV_FILES=("$WORKERS_APP_ENV" "$WORKERS_INFRA_ENV")
 API_AND_WORKERS_ENV_FILES=("$API_APP_ENV" "$WORKERS_APP_ENV" "$API_INFRA_ENV" "$WORKERS_INFRA_ENV")
 WEB_ENV_FILES=("$WEB_APP_ENV" "$WEB_INFRA_ENV" "$WEB_SIDECAR_INFRA_ENV")
-# Main web/management-web .env.local has only RUNTIME_CONFIG_URL; overrides go to sidecar infra env only.
-WEB_ENV_FILES_APP_AND_SIDECAR=("$WEB_SIDECAR_INFRA_ENV")
+# Overrides go to infra sidecar (Docker) and app sidecar (npm run dev); app sidecar uses localhost only.
+WEB_ENV_FILES_APP_AND_SIDECAR=("$WEB_SIDECAR_INFRA_ENV" "$WEB_APP_SIDECAR_ENV")
 MANAGEMENT_API_ENV_FILES=("$MANAGEMENT_API_APP_ENV" "$MANAGEMENT_API_INFRA_ENV")
 MANAGEMENT_WEB_ENV_FILES=("$MANAGEMENT_WEB_APP_ENV" "$MANAGEMENT_WEB_INFRA_ENV" "$MANAGEMENT_WEB_SIDECAR_INFRA_ENV")
-MANAGEMENT_WEB_ENV_FILES_APP_AND_SIDECAR=("$MANAGEMENT_WEB_SIDECAR_INFRA_ENV")
+MANAGEMENT_WEB_ENV_FILES_APP_AND_SIDECAR=("$MANAGEMENT_WEB_SIDECAR_INFRA_ENV" "$MANAGEMENT_WEB_APP_SIDECAR_ENV")
 
 escape_sed_replacement() {
 	printf '%s' "$1" | sed -e 's/[\/&]/\\&/g'
@@ -330,7 +332,9 @@ for v in GOOGLE_FIREBASE_NOTIFICATIONS_ENABLED GOOGLE_FIREBASE_ADMIN_JSON_KEY_PA
 	apply_override "$v" "${WORKERS_ENV_FILES[@]}"
 done
 if [ -n "${WEBPUSH_VAPID_PUBLIC_KEY:-}" ]; then
-	upsert_var "$WEB_SIDECAR_INFRA_ENV" "NEXT_PUBLIC_WEBPUSH_VAPID_PUBLIC_KEY" "$WEBPUSH_VAPID_PUBLIC_KEY"
+	for file in "${WEB_ENV_FILES_APP_AND_SIDECAR[@]}"; do
+		[ -f "$file" ] && upsert_var "$file" "NEXT_PUBLIC_WEBPUSH_VAPID_PUBLIC_KEY" "$WEBPUSH_VAPID_PUBLIC_KEY"
+	done
 fi
 
 # From private-services.env (mailer + PayPal)
@@ -366,8 +370,10 @@ if [ -n "${BRAND_NAME:-}" ]; then
 	upsert_var "$API_INFRA_ENV" "USER_AGENT" "${BRAND_NAME} Bot Local/API/5"
 	upsert_var "$WORKERS_APP_ENV" "USER_AGENT" "${BRAND_NAME} Bot Local/Workers/5"
 	upsert_var "$WORKERS_INFRA_ENV" "USER_AGENT" "${BRAND_NAME} Bot Local/Workers/5"
-	upsert_var "$WEB_SIDECAR_INFRA_ENV" "NEXT_PUBLIC_BRAND_NAME" "$BRAND_NAME"
-	upsert_var "$WEB_SIDECAR_INFRA_ENV" "NEXT_PUBLIC_PROXY_USER_AGENT" "${BRAND_NAME} Bot Local/Web-API/5"
+	for file in "${WEB_ENV_FILES_APP_AND_SIDECAR[@]}"; do
+		[ -f "$file" ] && upsert_var "$file" "NEXT_PUBLIC_BRAND_NAME" "$BRAND_NAME"
+		[ -f "$file" ] && upsert_var "$file" "NEXT_PUBLIC_PROXY_USER_AGENT" "${BRAND_NAME} Bot Local/Web-API/5"
+	done
 fi
 if [ -n "${MANAGEMENT_BRAND_NAME:-}" ]; then
 	upsert_var "$MANAGEMENT_API_APP_ENV" "BRAND_NAME" "$MANAGEMENT_BRAND_NAME"
@@ -409,6 +415,10 @@ upsert_var "$WEB_SIDECAR_INFRA_ENV" "NEXT_PUBLIC_SSR_API_PORT" "3000"
 upsert_var "$MANAGEMENT_WEB_SIDECAR_INFRA_ENV" "NEXT_PUBLIC_SSR_API_HOST" "podverse_local_management_api"
 upsert_var "$MANAGEMENT_WEB_SIDECAR_INFRA_ENV" "NEXT_PUBLIC_SSR_API_PORT" "3100"
 
+# App sidecar .env is for npm run dev only; use localhost, never Docker container names.
+[ -f "$WEB_APP_SIDECAR_ENV" ] && upsert_var "$WEB_APP_SIDECAR_ENV" "NEXT_PUBLIC_SSR_API_HOST" "localhost"
+[ -f "$MANAGEMENT_WEB_APP_SIDECAR_ENV" ] && upsert_var "$MANAGEMENT_WEB_APP_SIDECAR_ENV" "NEXT_PUBLIC_SSR_API_HOST" "localhost"
+
 # Sidecars do not use NODE_ENV; remove it if present (e.g. from an older setup).
 for file in "$WEB_SIDECAR_INFRA_ENV" "$MANAGEMENT_WEB_SIDECAR_INFRA_ENV"; do
 	if [ -f "$file" ] && grep -q -E '^NODE_ENV=' "$file" 2>/dev/null; then
@@ -420,9 +430,5 @@ done
 # .env.local: only RUNTIME_CONFIG_URL (Next.js app uses it to fetch config from sidecar).
 printf '%s\n' '#####' '##### Runtime Config Sidecar' '#####' "RUNTIME_CONFIG_URL=\"http://localhost:3001\"" >"$WEB_APP_ENV"
 printf '%s\n' '#####' '##### Runtime Config Sidecar' '#####' "RUNTIME_CONFIG_URL=\"http://localhost:3101\"" >"$MANAGEMENT_WEB_APP_ENV"
-
-# Sync infra sidecar env into app sidecar dir so npm run dev:sidecar loads sidecar/.env.
-[ -f "$WEB_SIDECAR_INFRA_ENV" ] && cp "$WEB_SIDECAR_INFRA_ENV" apps/web/sidecar/.env
-[ -f "$MANAGEMENT_WEB_SIDECAR_INFRA_ENV" ] && cp "$MANAGEMENT_WEB_SIDECAR_INFRA_ENV" apps/management-web/sidecar/.env
 
 echo "Applied local env values from generated defaults and overrides."

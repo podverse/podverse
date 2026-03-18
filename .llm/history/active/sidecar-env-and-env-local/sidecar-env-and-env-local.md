@@ -60,3 +60,25 @@ check if any documentation or skills or rules or agents need to be updated due t
 - docs/development/LOCAL-ENV-OVERRIDES.md
 - AGENTS.md
 - .cursor/skills/web/04-configuration.md (note that .env.local is only RUNTIME_CONFIG_URL and sidecar uses sidecar/.env)
+
+### Session 3 - 2026-03-17
+
+#### Prompt (Developer)
+
+all the .env and .env.local files that do NOT appear in infra/config/local/ should NOT use docker container names for host env vars because those files are intended to only be used with the npm run dev commands
+
+#### Key Decisions
+
+- App-level .env and .env.local (and sidecar .env) are for npm run dev only; they must use localhost for host vars, not Docker container names (e.g. podverse_local_api).
+- Sidecar .env.example and app sidecar .env: NEXT_PUBLIC_SSR_API_HOST set to "localhost". Infra config/local sidecar env files keep Docker hostnames for Compose.
+- Setup script: no longer copies infra sidecar env into apps/web/sidecar/.env and apps/management-web/sidecar/.env. App sidecar is created from .env.example (localhost) and receives same overrides (brand, locale, VAPID, etc.) as infra; setup explicitly upserts localhost for NEXT_PUBLIC_SSR_API_HOST in app sidecar only.
+- WEB_APP_SIDECAR_ENV and MANAGEMENT_WEB_APP_SIDECAR_ENV added; WEB_ENV_FILES_APP_AND_SIDECAR and MANAGEMENT_WEB_ENV_FILES_APP_AND_SIDECAR now include app sidecar so overrides apply to both infra and app sidecar. Brand and VAPID blocks updated to write to both via the arrays.
+
+#### Files Created/Modified
+
+- apps/web/sidecar/.env.example
+- apps/management-web/sidecar/.env.example
+- apps/web/sidecar/.env
+- apps/management-web/sidecar/.env
+- scripts/local-env/setup.sh
+- docs/development/LOCAL-ENV-OVERRIDES.md

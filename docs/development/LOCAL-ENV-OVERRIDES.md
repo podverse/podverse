@@ -192,9 +192,11 @@ storage, notifications, podcast-index, or lightning overrides; those apps do not
 `make local_env_setup` writes only `RUNTIME_CONFIG_URL` into `apps/web/.env.local` and
 `apps/management-web/.env.local` (used by the Next.js app when you run `npm run dev:web` or
 `npm run dev:management-web`). All other web/management-web runtime values (brand, locale,
-VAPID, etc.) are written to `infra/config/local/web-sidecar.env` and
-`infra/config/local/management-web-sidecar.env`, and the script copies those into
-`apps/web/sidecar/.env` and `apps/management-web/sidecar/.env` for local `npm run dev:sidecar`.
+VAPID, etc.) are written to both infra sidecar env files
+(`infra/config/local/web-sidecar.env`, `infra/config/local/management-web-sidecar.env`) and
+app sidecar `.env` files (`apps/web/sidecar/.env`, `apps/management-web/sidecar/.env`). App-level
+env files (including sidecar `.env`) use **localhost** only and are for `npm run dev`; files under
+`infra/config/local/` use Docker container hostnames for Compose.
 
 ## See also
 
