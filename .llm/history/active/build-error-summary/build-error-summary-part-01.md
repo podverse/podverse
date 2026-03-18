@@ -185,3 +185,29 @@ implement. also consider that boilerplate may need similar fixes since it is a n
 - .github/workflows/publish-alpha.yml
 - .github/workflows/ci.yml
 - .llm/history/active/build-error-summary/build-error-summary-part-01.md
+
+### Session 10 - 2026-03-18
+
+#### Prompt (Developer)
+
+Fix Recurring Native Binding CI Failure
+
+Implement the plan as specified, it is attached for your reference. Do NOT edit the plan file itself.
+
+To-do's from the plan have already been created. Do not create them again. Mark them as in_progress as you work, starting with the first one. Don't stop until you have completed all the to-dos.
+
+#### Key Decisions
+
+- Refined root cause from `@next/swc` to `next-intl`'s `@swc/core` native loader: CI preflight passed for
+  `@next/swc-linux-x64-gnu`, but `next build` still failed during `next.config.mjs` load with `Failed to load
+native binding` from `@swc/core`.
+- Added explicit `next-intl @swc/core` runtime preflight in both Podverse workflows with Linux fallback install
+  of `@swc/core-linux-x64-gnu` pinned to the resolved `@swc/core` version.
+- Added detailed native error-cause logging (`error.cause`) and a final pre-build native sanity gate that checks
+  `@parcel/watcher`, `@next/swc-linux-x64-gnu`, and `next-intl @swc/core` before `build:apps`.
+
+#### Files Modified
+
+- .llm/history/active/build-error-summary/build-error-summary-part-01.md
+- .github/workflows/publish-alpha.yml
+- .github/workflows/ci.yml
