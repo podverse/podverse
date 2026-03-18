@@ -49,3 +49,21 @@ To-do's from the plan have already been created. Do not create them again. Mark 
 - .github/workflows/publish-alpha.yml
 - .github/workflows/ci.yml
 - .llm/history/active/build-error-summary/build-error-summary-part-01.md
+
+### Session 4 - 2026-03-18
+
+#### Prompt (Developer)
+
+include the hardening and implement the plan
+
+#### Key Decisions
+
+- Replace the watcher check from `require.resolve` to runtime `require` so native binding load is validated.
+- Add Linux explicit fallback package `@parcel/watcher-linux-x64-glibc` in CI guard fallback install.
+- Add a preflight step that logs platform and verifies runtime watcher load before app builds.
+
+#### Files Modified
+
+- .github/workflows/publish-alpha.yml
+- .github/workflows/ci.yml
+- .llm/history/active/build-error-summary/build-error-summary-part-01.md
