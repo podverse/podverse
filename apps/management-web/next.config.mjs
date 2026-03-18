@@ -1,13 +1,12 @@
 import path from 'path';
 
-import type { NextConfig } from 'next';
 import createNextIntlPlugin from 'next-intl/plugin';
 
-const nextConfig: NextConfig = {
+const nextConfig = {
   output: 'standalone',
-  outputFileTracingRoot: path.join(__dirname, '../../'),
+  outputFileTracingRoot: path.join(import.meta.dirname, '../../'),
   sassOptions: {
-    includePaths: [__dirname + '/src/styles/variables'],
+    includePaths: [import.meta.dirname + '/src/styles/variables'],
   },
   transpilePackages: ['@podverse/helpers'],
   images: {

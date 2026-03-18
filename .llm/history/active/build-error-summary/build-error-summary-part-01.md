@@ -86,6 +86,34 @@ implement your recommendations so that the github action will complete finally
 - .github/workflows/ci.yml
 - .llm/history/active/build-error-summary/build-error-summary-part-01.md
 
+### Session 8 - 2026-03-18
+
+#### Prompt (Developer)
+
+https://github.com/podverse/podverse/actions/runs/23230401297 there is another error. should we remove "webpack" since we don't use webpack locally? what is going wrong?
+
+implement
+
+#### Key Decisions
+
+- Root cause: `next.config.ts` requires `@next/swc-linux-x64-gnu` (Rust SWC compiler) to load TypeScript
+  config files. That Linux binary is absent from the macOS-generated lockfile, causing `Failed to load
+native binding` before any build starts.
+- Fix: convert both `apps/web/next.config.ts` and `apps/management-web/next.config.ts` to `.mjs`. Next.js
+  loads `.mjs` as plain ESM — no SWC compiler or native bindings required.
+- Revert `--webpack` flag from both build scripts (it was a wrong workaround; `next build` already uses
+  Webpack by default). Remove `webpack` devDep from `apps/management-web` (it was only added for the flag).
+- Applied identical changes to boilerplate since it has the same setup.
+
+#### Files Modified
+
+- apps/web/next.config.mjs (new, replaces next.config.ts)
+- apps/management-web/next.config.mjs (new, replaces next.config.ts)
+- apps/web/package.json
+- apps/management-web/package.json
+- package-lock.json
+- .llm/history/active/build-error-summary/build-error-summary-part-01.md
+
 ### Session 7 - 2026-03-18
 
 #### Prompt (Developer)

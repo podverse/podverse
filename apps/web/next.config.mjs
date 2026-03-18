@@ -2,7 +2,6 @@ import path from 'path';
 
 import withBundleAnalyzerInit from '@next/bundle-analyzer';
 import { DATE_FNS_LOCALE_IDS } from '@podverse/helpers';
-import type { NextConfig } from 'next';
 import createNextIntlPlugin from 'next-intl/plugin';
 import webpack from 'webpack';
 
@@ -12,7 +11,7 @@ const withBundleAnalyzer = withBundleAnalyzerInit({
   openAnalyzer: false,
 });
 
-const nextConfig: NextConfig = {
+const nextConfig = {
   output: 'standalone',
   outputFileTracingRoot: path.join(import.meta.dirname, '../../'),
   serverExternalPackages: ['winston'],
@@ -26,7 +25,7 @@ const nextConfig: NextConfig = {
       dgram: { browser: './turbopack-empty.ts' },
     },
   },
-  // Webpack config for production builds (using --webpack flag)
+  // Webpack config for production builds
   webpack: (config, { isServer }) => {
     // Restrict date-fns/locale to SUPPORTED_LOCALES only (en-US, es, fr, el)
     config.plugins = config.plugins ?? [];
