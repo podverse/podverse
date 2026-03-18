@@ -32,8 +32,10 @@ local_db_reset:
 local_db_init: infra/config/local/db.env
 	@echo "Waiting for database to be ready..."
 	@set -a; . infra/config/local/db.env; set +a; \
-	until docker exec podverse_local_db pg_isready -U "$$POSTGRES_USER" > /dev/null 2>&1; do \
-		echo "  Database not ready, waiting..."; \
+	for i in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30; do \
+		if docker exec podverse_local_db pg_isready -U "$$POSTGRES_USER" > /dev/null 2>&1; then break; fi; \
+		echo "  Database not ready, waiting... ($$i/30)"; \
+		if [ "$$i" -eq 30 ]; then echo "Database did not become ready in time."; exit 1; fi; \
 		sleep 2; \
 	done
 	@echo "Initializing main database schema..."
@@ -56,8 +58,7 @@ local_mq_down:
 	docker compose -f infra/docker/local/mq/docker-compose.yml down --remove-orphans
 
 local_keyvaldb_up: local_network_create infra/config/local/keyvaldb.env
-	docker compose -f infra/docker/local/keyvaldb/docker-compose.yml up podverse_local_keyvaldb -d
-	docker compose -f infra/docker/local/keyvaldb/docker-compose.yml up podverse_local_keyvaldb_gui -d
+	docker compose -f infra/docker/local/keyvaldb/docker-compose.yml up -d
 
 local_keyvaldb_down:
 	docker compose -f infra/docker/local/keyvaldb/docker-compose.yml down --remove-orphans
@@ -84,8 +85,10 @@ local_management_db_init: infra/config/local/db.env
 	: "$${MANAGEMENT_SUPERUSER_PASSWORD:?Missing MANAGEMENT_SUPERUSER_PASSWORD}"
 	@echo "Waiting for management database to be ready..."
 	@set -a; . infra/config/local/db.env; set +a; \
-	until docker exec podverse_local_db pg_isready -U "$$POSTGRES_USER" > /dev/null 2>&1; do \
-		echo "  Management database not ready, waiting..."; \
+	for i in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30; do \
+		if docker exec podverse_local_db pg_isready -U "$$POSTGRES_USER" > /dev/null 2>&1; then break; fi; \
+		echo "  Management database not ready, waiting... ($$i/30)"; \
+		if [ "$$i" -eq 30 ]; then echo "Management database did not become ready in time."; exit 1; fi; \
 		sleep 2; \
 	done
 	@echo "Creating management database and roles (idempotent)..."
