@@ -72,11 +72,9 @@ jobs:
           echo "platform=$(node -p process.platform) arch=$(node -p process.arch)"
           if ! node - <<'NODE'
           const path = require('node:path');
+          const nextIntlPkgRoot = path.join(path.dirname(require.resolve('next-intl')), '..');
           try {
-            const nextIntlPkgPath = require.resolve('next-intl/package.json');
-            const nextIntlDir = path.dirname(nextIntlPkgPath);
-            const swcCorePkgPath = require.resolve('@swc/core/package.json', { paths: [nextIntlDir] });
-            const swcCoreDir = path.dirname(swcCorePkgPath);
+            const swcCoreDir = path.dirname(require.resolve('@swc/core', { paths: [nextIntlPkgRoot] }));
             require(swcCoreDir);
             console.log(`next-intl @swc/core load check ok (${swcCoreDir})`);
           } catch (error) {
@@ -95,10 +93,11 @@ jobs:
             echo '@swc/core Linux native binding missing, attempting fallback install...'
             SWC_CORE_VERSION=$(node - <<'NODE'
           const path = require('node:path');
-          const nextIntlPkgPath = require.resolve('next-intl/package.json');
-          const nextIntlDir = path.dirname(nextIntlPkgPath);
-          const swcCorePkgPath = require.resolve('@swc/core/package.json', { paths: [nextIntlDir] });
-          process.stdout.write(require(swcCorePkgPath).version);
+          const fs = require('node:fs');
+          const nextIntlPkgRoot = path.join(path.dirname(require.resolve('next-intl')), '..');
+          const swcCoreDir = path.dirname(require.resolve('@swc/core', { paths: [nextIntlPkgRoot] }));
+          const pkg = JSON.parse(fs.readFileSync(path.join(swcCoreDir, 'package.json'), 'utf8'));
+          process.stdout.write(pkg.version);
           NODE
             )
             echo "Installing @swc/core-linux-x64-gnu@${SWC_CORE_VERSION}"
@@ -106,10 +105,8 @@ jobs:
           fi
           node - <<'NODE'
           const path = require('node:path');
-          const nextIntlPkgPath = require.resolve('next-intl/package.json');
-          const nextIntlDir = path.dirname(nextIntlPkgPath);
-          const swcCorePkgPath = require.resolve('@swc/core/package.json', { paths: [nextIntlDir] });
-          const swcCoreDir = path.dirname(swcCorePkgPath);
+          const nextIntlPkgRoot = path.join(path.dirname(require.resolve('next-intl')), '..');
+          const swcCoreDir = path.dirname(require.resolve('@swc/core', { paths: [nextIntlPkgRoot] }));
           require(swcCoreDir);
           console.log(`next-intl @swc/core runtime check ok (${swcCoreDir})`);
           NODE
@@ -136,10 +133,8 @@ jobs:
             {
               name: 'next-intl @swc/core',
               load: () => {
-                const nextIntlPkgPath = require.resolve('next-intl/package.json');
-                const nextIntlDir = path.dirname(nextIntlPkgPath);
-                const swcCorePkgPath = require.resolve('@swc/core/package.json', { paths: [nextIntlDir] });
-                const swcCoreDir = path.dirname(swcCorePkgPath);
+                const nextIntlPkgRoot = path.join(path.dirname(require.resolve('next-intl')), '..');
+                const swcCoreDir = path.dirname(require.resolve('@swc/core', { paths: [nextIntlPkgRoot] }));
                 return require(swcCoreDir);
               },
             },
