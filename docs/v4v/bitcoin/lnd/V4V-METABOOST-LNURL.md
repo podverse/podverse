@@ -88,6 +88,17 @@ it falls back to built-in fake data.
   `/.well-known/keysend/<user>` and sends keysend via WebLN using the returned pubkey/custom data.
 - The app follows the RSS `method` exactly and does not fall back between keysend and LNURLp invoices.
 
+## Error handling and retries
+
+- **LNURL details**: The app retries only on **429** (rate limit) and **5xx** (server errors).
+- **LNURL invoice**: The app retries on **400**, **429**, and **5xx** (so "Recipient wallet error"
+  and similar 400s may be retried). There are **3 total attempts** (2 retries). Each failed attempt
+  is reported in real time on the boost form: first attempt as the raw error, then "Retry 2: …",
+  "Retry 3: …", and finally "Failed".
+- **In-wallet failures**: Payment failure reasons (e.g. "RecipientRejected", 400 from the wallet
+  or recipient) may not be available to the app if the WebLN provider only rejects the Promise
+  when the user cancels; the boost form displays whatever the provider includes on rejection.
+
 ## MetaBoost tag format
 
 MetaBoost is emitted as a sub-tag of `<podcast:value>`:

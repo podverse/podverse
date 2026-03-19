@@ -47,19 +47,45 @@ export const BoostRecipientStatusList = ({
             {recipient.status === 'failed' && (
               <>
                 {tValue('boost_messages.status_failed')}
-                {recipient.error !== undefined &&
+                {recipient.errorDetails !== undefined && recipient.errorDetails.length > 0
+                  ? recipient.errorDetails.map((line, idx) => (
+                      <div key={idx} className={styles.recipientStatusError}>
+                        {idx === 0
+                          ? line
+                          : tValue('boost_messages.retry_attempt', { number: idx + 1 }) + line}
+                      </div>
+                    ))
+                  : null}
+                {recipient.errorDetails === undefined &&
+                  recipient.error !== undefined &&
                   recipient.error !== '' &&
                   recipient.error !== tValue('boost_messages.status_failed') && (
                     <div className={styles.recipientStatusError}>{recipient.error}</div>
                   )}
                 {recipient.errorProviderMessage !== undefined &&
-                  recipient.errorProviderMessage !== '' && (
+                  recipient.errorProviderMessage !== '' &&
+                  (recipient.error === undefined ||
+                    !recipient.error.includes(recipient.errorProviderMessage)) &&
+                  (recipient.errorDetails === undefined || recipient.errorDetails.length === 0) && (
                     <div className={styles.recipientStatusError}>
                       {recipient.errorProviderMessage}
                     </div>
                   )}
               </>
             )}
+            {recipient.status === 'paying' &&
+              recipient.errorDetails !== undefined &&
+              recipient.errorDetails.length > 0 && (
+                <div className={styles.recipientStatusError}>
+                  {recipient.errorDetails.map((line, idx) => (
+                    <div key={idx}>
+                      {idx === 0
+                        ? line
+                        : tValue('boost_messages.retry_attempt', { number: idx + 1 }) + line}
+                    </div>
+                  ))}
+                </div>
+              )}
           </div>
         </div>
       ))}

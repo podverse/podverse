@@ -48,13 +48,32 @@ export const BoostPaymentErrorSummary = ({
         {failed.map((r) => (
           <li key={r.id}>
             <span className={styles.paymentErrorSummaryRecipient}>{r.name ?? r.address}:</span>{' '}
-            {r.error ?? tValue('boost_messages.status_failed')}
-            {r.errorProviderMessage !== undefined && r.errorProviderMessage !== '' && (
+            {r.errorDetails !== undefined && r.errorDetails.length > 0 ? (
               <>
-                <br />
-                <span className={styles.paymentErrorSummaryProviderMessage}>
-                  {r.errorProviderMessage}
-                </span>
+                {tValue('boost_messages.status_failed')}
+                <div className={styles.paymentErrorSummaryAttempts}>
+                  {r.errorDetails.map((line, idx) => (
+                    <div key={idx}>
+                      {idx === 0
+                        ? line
+                        : tValue('boost_messages.retry_attempt', { number: idx + 1 }) + line}
+                    </div>
+                  ))}
+                </div>
+              </>
+            ) : (
+              <>
+                {r.error ?? tValue('boost_messages.status_failed')}
+                {r.errorProviderMessage !== undefined &&
+                  r.errorProviderMessage !== '' &&
+                  (r.error === undefined || !r.error.includes(r.errorProviderMessage)) && (
+                    <>
+                      <br />
+                      <span className={styles.paymentErrorSummaryProviderMessage}>
+                        {r.errorProviderMessage}
+                      </span>
+                    </>
+                  )}
               </>
             )}
           </li>

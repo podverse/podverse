@@ -76,7 +76,8 @@ type UseBoostPaymentsParams = {
     status: RecipientStatus['status'],
     error?: string,
     errorRetries?: number,
-    errorProviderMessage?: string
+    errorProviderMessage?: string,
+    errorDetails?: string[] | ((prev: string[] | undefined) => string[])
   ) => void;
   setRecipientStatuses: Dispatch<SetStateAction<RecipientStatus[]>>;
   setIsSubmitting: Dispatch<SetStateAction<boolean>>;
@@ -95,25 +96,50 @@ type ProviderFailureLike = { status?: number; reason?: string; retries?: number 
 
 /**
  * Extract a user-facing message from a thrown value (e.g. Error, response body).
- * Also checks response.data.message and body.message for provider error payloads.
+ * Checks Error.message, response.data (message/reason/detail), data.message, and
+ * top-level reason/message so we display whatever the provider or LNURL layer sends.
  */
 function getErrorMessage(error: unknown, fallback: string): string {
   if (error instanceof Error && typeof error.message === 'string' && error.message.trim() !== '') {
     return error.message.trim();
   }
-  const withResponse = error as { response?: { data?: { message?: string } } };
-  const msg = withResponse?.response?.data?.message;
-  if (typeof msg === 'string' && msg.trim() !== '') {
-    return msg.trim();
+  const withResponse = error as {
+    response?: { data?: { message?: string; reason?: string; detail?: string } };
+  };
+  const responseData = withResponse?.response?.data;
+  if (typeof responseData === 'object' && responseData !== null) {
+    const msg =
+      (typeof responseData.message === 'string' && responseData.message.trim() !== ''
+        ? responseData.message.trim()
+        : undefined) ??
+      (typeof responseData.reason === 'string' && responseData.reason.trim() !== ''
+        ? responseData.reason.trim()
+        : undefined) ??
+      (typeof responseData.detail === 'string' && responseData.detail.trim() !== ''
+        ? responseData.detail.trim()
+        : undefined);
+    if (msg !== undefined) return msg;
   }
-  const withData = error as { data?: { message?: string } };
-  const dataMsg = withData?.data?.message;
-  if (typeof dataMsg === 'string' && dataMsg.trim() !== '') {
-    return dataMsg.trim();
+  const withData = error as { data?: { message?: string; reason?: string; error?: string } };
+  const data = withData?.data;
+  if (typeof data === 'object' && data !== null) {
+    const dataMsg =
+      (typeof data.message === 'string' && data.message.trim() !== ''
+        ? data.message.trim()
+        : undefined) ??
+      (typeof data.reason === 'string' && data.reason.trim() !== ''
+        ? data.reason.trim()
+        : undefined) ??
+      (typeof data.error === 'string' && data.error.trim() !== '' ? data.error.trim() : undefined);
+    if (dataMsg !== undefined) return dataMsg;
   }
   const withMessage = error as { message?: string };
   if (typeof withMessage?.message === 'string' && withMessage.message.trim() !== '') {
     return withMessage.message.trim();
+  }
+  const withReason = error as { reason?: string };
+  if (typeof withReason?.reason === 'string' && withReason.reason.trim() !== '') {
+    return withReason.reason.trim();
   }
   return fallback;
 }
@@ -167,6 +193,16 @@ export const useBoostPayments = ({
             amountMsat: Math.max(0, Math.round(recipient.final_amount * 1000)),
             desc,
             provider,
+            onAttemptFailed: (_, message) => {
+              updateRecipientStatus(
+                recipient.id,
+                'paying',
+                undefined,
+                undefined,
+                undefined,
+                (prev) => [...(prev ?? []), message]
+              );
+            },
           });
         } else if (recipient.type === 'lightning' && recipient.recipient_type === 'node') {
           updateRecipientStatus(recipient.id, 'paying');
@@ -205,6 +241,12 @@ export const useBoostPayments = ({
         updateRecipientStatus(recipient.id, 'success');
       } catch (error) {
         anyFailed = true;
+        // In-wallet payment failure reasons (e.g. RecipientRejected, 400) may not be available
+        // if the WebLN provider only rejects when the user cancels; we display whatever the
+        // provider includes on the rejected Promise (or LNURL layer attaches via providerFailure).
+        if (process.env.NODE_ENV === 'development') {
+          console.warn('Boost payment error', error);
+        }
         const isTimeoutOrCancel =
           (error !== null &&
             error !== undefined &&
@@ -230,15 +272,22 @@ export const useBoostPayments = ({
               ? responseBodyMessage.trim()
               : undefined;
         const axiosStatus = (error as { response?: { status?: number } })?.response?.status;
-        const errorMessage = isTimeoutOrCancel
-          ? tValue('boost_messages.invoice_timeout')
-          : providerFailure !== undefined &&
-              providerFailure !== null &&
-              providerFailure.status !== undefined
+        const genericByStatus =
+          providerFailure !== undefined &&
+          providerFailure !== null &&
+          providerFailure.status !== undefined
             ? `Request failed with status code ${providerFailure.status}`
             : axiosStatus !== undefined
               ? `Request failed with status code ${axiosStatus}`
-              : getErrorMessage(error, tValue('boost_messages.status_failed'));
+              : tValue('boost_messages.status_failed');
+        let errorMessage = isTimeoutOrCancel
+          ? tValue('boost_messages.invoice_timeout')
+          : getErrorMessage(error, genericByStatus);
+        if (errorRetries !== undefined && errorRetries > 0) {
+          const attemptNumber = errorRetries + 1;
+          errorMessage =
+            tValue('boost_messages.retry_attempt', { number: attemptNumber }) + errorMessage;
+        }
         updateRecipientStatus(
           recipient.id,
           'failed',

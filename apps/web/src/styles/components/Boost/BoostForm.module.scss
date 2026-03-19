@@ -156,6 +156,17 @@
   color: var(--text-color-danger);
 }
 
+.paymentErrorSummaryAttempts {
+  margin-top: var(--spacing-xs);
+  padding-left: var(--spacing-md);
+  font-size: var(--font-size-sm);
+  color: var(--text-color-danger);
+
+  > div + div {
+    margin-top: var(--spacing-xs);
+  }
+}
+
 .paymentErrorSummaryRecipient {
   font-weight: var(--font-weight-bold);
 }

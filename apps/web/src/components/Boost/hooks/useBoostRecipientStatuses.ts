@@ -13,7 +13,8 @@ type UseBoostRecipientStatusesResult = {
     status: RecipientStatus['status'],
     error?: string,
     errorRetries?: number,
-    errorProviderMessage?: string
+    errorProviderMessage?: string,
+    errorDetails?: string[] | ((prev: string[] | undefined) => string[])
   ) => void;
 };
 
@@ -29,13 +30,26 @@ const updateRecipientStatusList = (
   status: RecipientStatus['status'],
   error?: string,
   errorRetries?: number,
-  errorProviderMessage?: string
+  errorProviderMessage?: string,
+  errorDetails?: string[] | ((prev: string[] | undefined) => string[])
 ): RecipientStatus[] =>
-  statuses.map((recipient) =>
-    recipient.id === recipientId
-      ? { ...recipient, status, error, errorRetries, errorProviderMessage }
-      : recipient
-  );
+  statuses.map((recipient) => {
+    if (recipient.id !== recipientId) return recipient;
+    const resolvedDetails =
+      errorDetails === undefined
+        ? recipient.errorDetails
+        : typeof errorDetails === 'function'
+          ? errorDetails(recipient.errorDetails)
+          : errorDetails;
+    return {
+      ...recipient,
+      status,
+      error,
+      errorRetries,
+      errorProviderMessage,
+      errorDetails: resolvedDetails,
+    };
+  });
 
 export const useBoostRecipientStatuses = (): UseBoostRecipientStatusesResult => {
   const [recipientStatuses, setRecipientStatuses] = useState<RecipientStatus[]>([]);
@@ -45,7 +59,8 @@ export const useBoostRecipientStatuses = (): UseBoostRecipientStatusesResult => 
     status: RecipientStatus['status'],
     error?: string,
     errorRetries?: number,
-    errorProviderMessage?: string
+    errorProviderMessage?: string,
+    errorDetails?: string[] | ((prev: string[] | undefined) => string[])
   ) => {
     setRecipientStatuses((prev) =>
       updateRecipientStatusList(
@@ -54,7 +69,8 @@ export const useBoostRecipientStatuses = (): UseBoostRecipientStatusesResult => 
         status,
         error,
         errorRetries,
-        errorProviderMessage
+        errorProviderMessage,
+        errorDetails
       )
     );
   };

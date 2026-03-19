@@ -288,7 +288,8 @@
       "successfully_sent": "Exitoso:",
       "failed_to_send": "Fallido:",
       "error_details_heading": "Detalles del error",
-      "retried_requests": "Reintentos de la solicitud de Dirección Lightning {count, plural, one {# vez} other {# veces}} antes de que fallara."
+      "retried_requests": "Reintentos de la solicitud de Dirección Lightning {count, plural, one {# vez} other {# veces}} antes de que fallara.",
+      "retry_attempt": "Reintento {number}: "
     },
     "types": {
       "lightning": {
