@@ -46,10 +46,10 @@ export type LnurlpFailure = V4VProviderFailure & {
 export type FetchLnurlDetailsResult = V4VResult<LnurlpDetailsResponse, LnurlpFailure>;
 export type FetchLnurlInvoiceResult = V4VResult<LnurlpInvoiceResponse, LnurlpFailure>;
 
-/** LNURL details step (well-known URL): max retries before giving up. 5 retries = 6 total attempts. Retries only on 429 or 5xx. */
-const MAX_RETRIES_DETAILS = 5;
-/** LNURL invoice step (callback URL): max retries before giving up. 2 retries = 3 total attempts. Retries on 400, 429, or 5xx. */
-const MAX_RETRIES_INVOICE = 2;
+/** LNURL details step (well-known URL): max retries before giving up. 1 retry = 2 total attempts. Retries only on 429 or 5xx. */
+const MAX_RETRIES_DETAILS = 1;
+/** LNURL invoice step (callback URL): max retries before giving up. 1 retry = 2 total attempts. Retries on 400, 429, or 5xx. */
+const MAX_RETRIES_INVOICE = 1;
 const RETRY_DELAY_MS = 500;
 
 const isRetryableStatus = (status: number): boolean =>
@@ -175,7 +175,7 @@ export const fetchLnurlDetails = async ({
 
 /**
  * Requests an invoice from the LNURLp callback URL.
- * Retries up to MAX_RETRIES_INVOICE (2 retries = 3 total attempts) on 400, 429, or 5xx.
+ * Retries up to MAX_RETRIES_INVOICE (1 retry = 2 total attempts) on 400, 429, or 5xx.
  * Calls onAttemptFailed after each failed attempt with 1-based attempt number and message.
  */
 const fetchInvoiceFromCallback = async (
