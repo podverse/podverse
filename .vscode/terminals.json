@@ -49,6 +49,13 @@
       "cwd": "../boilerplate",
       "open": true,
       "command": "clear"
+    },
+    {
+      "name": "Boilerplate Ansible",
+      "description": "Boilerplate Ansible development",
+      "cwd": "../boilerplate-ansible",
+      "open": true,
+      "command": "clear"
     }
   ]
 }
