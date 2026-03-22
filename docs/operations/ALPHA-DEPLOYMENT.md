@@ -46,8 +46,11 @@ flowchart TD
 
 See [Secrets Configuration](SECRETS.md) for details:
 
-- `GHCR_REGISTRY_TOKEN` - Query existing Docker tags for version incrementing
+- `GHCR_REGISTRY_TOKEN` - Recommended for GHCR tag discovery (`packages:read`)
 - `GITHUB_TOKEN` - Automatic, used for GHCR push
+
+If `GHCR_REGISTRY_TOKEN` is unavailable or fails with auth errors, the workflow retries tag
+discovery with `GITHUB_TOKEN`.
 
 ### Local Tools (Optional, for CLI workflows)
 
@@ -275,20 +278,25 @@ The version is determined by:
 1. `version_override` input (if manually triggered with override)
 2. Otherwise: base version from root `package.json` with an incremented alpha number from existing GHCR tags (e.g. `5.2.0-alpha.0`)
 
+For first-ever publish when GHCR has no package path yet, `404` from tag discovery is treated as
+an expected bootstrap state and the workflow starts at `X.Y.Z-alpha.0` automatically.
+
 ## Troubleshooting
 
-| Issue                                       | Cause                                  | Solution                                                                                              |
-| ------------------------------------------- | -------------------------------------- | ----------------------------------------------------------------------------------------------------- |
-| "not possible to fast-forward" error        | `alpha` branch diverged from `develop` | Reset alpha: `git checkout alpha && git reset --hard origin/develop && git push --force origin alpha` |
-| Workflow fails at "Security audit"          | npm vulnerabilities found              | Run `./scripts/audit/audit.sh --fix` locally                                                          |
-| Workflow fails at "Lint"                    | Linting errors                         | Run `npm run lint` locally to see errors                                                              |
-| Workflow fails at "Type check"              | TypeScript errors                      | Run `npm run type-check` locally                                                                      |
-| Workflow fails at "Build all apps"          | Build errors                           | Run `npm run build:apps` locally                                                                      |
-| Docker build fails                          | Dockerfile or dependency issue         | Build locally with `docker build -f apps/<app>/Dockerfile .`                                          |
-| Container fails at start (MODULE_NOT_FOUND) | Workspace package missing from image   | See [Reproducing runtime errors locally](#reproducing-runtime-errors-locally) below                   |
-| GHCR push fails                             | Permission issue                       | Verify GITHUB_TOKEN has `packages:write` scope                                                        |
-| Version conflict                            | Tag already exists                     | Use `version_override` with a different version                                                       |
-| Images not updating on server               | Docker cache                           | Run `docker pull` with `--no-cache` or prune images                                                   |
+| Issue                                       | Cause                                   | Solution                                                                                              |
+| ------------------------------------------- | --------------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| "not possible to fast-forward" error        | `alpha` branch diverged from `develop`  | Reset alpha: `git checkout alpha && git reset --hard origin/develop && git push --force origin alpha` |
+| Workflow fails at "Security audit"          | npm vulnerabilities found               | Run `./scripts/audit/audit.sh --fix` locally                                                          |
+| Workflow fails at "Lint"                    | Linting errors                          | Run `npm run lint` locally to see errors                                                              |
+| Workflow fails at "Type check"              | TypeScript errors                       | Run `npm run type-check` locally                                                                      |
+| Workflow fails at "Build all apps"          | Build errors                            | Run `npm run build:apps` locally                                                                      |
+| Docker build fails                          | Dockerfile or dependency issue          | Build locally with `docker build -f apps/<app>/Dockerfile .`                                          |
+| Container fails at start (MODULE_NOT_FOUND) | Workspace package missing from image    | See [Reproducing runtime errors locally](#reproducing-runtime-errors-locally) below                   |
+| GHCR push fails                             | Permission issue                        | Verify GITHUB_TOKEN has `packages:write` scope                                                        |
+| GHCR tag discovery returns 401/403          | Token scope or org policy restriction   | Ensure GHCR_REGISTRY_TOKEN has `packages:read` and org secret visibility includes this repository     |
+| GHCR tag discovery returns 404              | First publish, package path not created | Expected bootstrap case; workflow starts at `X.Y.Z-alpha.0` automatically                             |
+| Version conflict                            | Tag already exists                      | Use `version_override` with a different version                                                       |
+| Images not updating on server               | Docker cache                            | Run `docker pull` with `--no-cache` or prune images                                                   |
 
 ### Reproducing runtime errors locally
 

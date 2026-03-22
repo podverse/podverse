@@ -4,12 +4,12 @@ This document describes the GitHub Secrets required for the monorepo's CI/CD wor
 
 ## Required Secrets
 
-| Secret                | Used By                        | Purpose                                                   |
-| --------------------- | ------------------------------ | --------------------------------------------------------- |
-| `GHCR_REGISTRY_TOKEN` | publish-alpha.yml              | Query existing Docker image tags for version incrementing |
-| `OPENAI_API_KEY`      | i18n.yml                       | Auto-generate translations after merge to develop         |
-| `APP_ID`              | complete-feature.yml, i18n.yml | GitHub App authentication for protected branch pushes     |
-| `APP_PRIVATE_KEY`     | complete-feature.yml, i18n.yml | GitHub App authentication for protected branch pushes     |
+| Secret                | Used By                        | Purpose                                                  |
+| --------------------- | ------------------------------ | -------------------------------------------------------- |
+| `GHCR_REGISTRY_TOKEN` | publish-alpha.yml              | Preferred token for querying GHCR tags during versioning |
+| `OPENAI_API_KEY`      | i18n.yml                       | Auto-generate translations after merge to develop        |
+| `APP_ID`              | complete-feature.yml, i18n.yml | GitHub App authentication for protected branch pushes    |
+| `APP_PRIVATE_KEY`     | complete-feature.yml, i18n.yml | GitHub App authentication for protected branch pushes    |
 
 ## Automatic Secrets
 
@@ -21,7 +21,9 @@ This document describes the GitHub Secrets required for the monorepo's CI/CD wor
 
 ### GHCR_REGISTRY_TOKEN
 
-Used to query existing Docker image tags in GitHub Container Registry for auto-incrementing alpha versions (e.g., `5.2.0-alpha.0`, `5.2.0-alpha.1`, etc.).
+Used to query existing Docker image tags in GitHub Container Registry for auto-incrementing alpha
+versions (e.g., `5.2.0-alpha.0`, `5.2.0-alpha.1`, etc.). This token is recommended, and
+`publish-alpha.yml` falls back to `GITHUB_TOKEN` for tag discovery when needed.
 
 1. Go to GitHub **Settings** → **Developer settings** → **Personal access tokens** → **Fine-grained tokens**
 2. Click **Generate new token**
@@ -107,6 +109,8 @@ Triggers on push to `alpha` branch or manual `workflow_dispatch`:
 
 1. Validates build (lint, type-check, security audit)
 2. Queries GHCR for existing tags to calculate next alpha version (e.g., `5.2.0-alpha.3`)
+   - First-run `404` (package not created yet) is treated as bootstrap and starts at `alpha.0`
+   - `401/403` indicates auth/permission issue and fails with guidance
 3. Builds Docker images from source (packages included in build context)
 4. Pushes Docker images to GHCR with incrementing version tag and `alpha` rolling tag
 
