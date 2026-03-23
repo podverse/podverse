@@ -51,7 +51,7 @@
     "@podverse/parser": "*",
     "amqplib": "^0.10.9",
     "axios": "^1.13.6",
-    "ioredis": "^5.10.0",
+    "ioredis": "^5.10.1",
     "pg": "^8.20.0",
     "typeorm": "^0.3.26",
     "typeorm-naming-strategies": "^4.1.0",
