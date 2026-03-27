@@ -1,4 +1,5 @@
-#!/bin/bash
+#!/usr/bin/env bash
+# Version: 2
 # Verify that combined database files match the migration files
 #
 # This script is used by CI to ensure developers haven't forgotten to run
@@ -29,15 +30,15 @@ combine_to_temp() {
   local migrations_dir="$1"
   local output_file="$2"
 
-  echo "-- Combined migrations (verification)" > "$output_file"
-  echo "-- DO NOT EDIT - regenerate with scripts/database/combine-migrations.sh" >> "$output_file"
-  echo "" >> "$output_file"
+  echo "-- Combined migrations (verification)" >"$output_file"
+  echo "-- DO NOT EDIT - regenerate with scripts/database/combine-migrations.sh" >>"$output_file"
+  echo "" >>"$output_file"
 
   for migration in $(ls "$migrations_dir"/*.sql | sort); do
-    echo "-- Including: $(basename $migration)" >> "$output_file"
-    cat "$migration" >> "$output_file"
-    echo "" >> "$output_file"
-    echo "" >> "$output_file"
+    echo "-- Including: $(basename $migration)" >>"$output_file"
+    cat "$migration" >>"$output_file"
+    echo "" >>"$output_file"
+    echo "" >>"$output_file"
   done
 }
 
@@ -48,7 +49,7 @@ compare_files() {
   local name="$3"
 
   # Compare from line 2 onwards (skip timestamp line)
-  if diff -q <(tail -n +2 "$expected") <(tail -n +2 "$actual") > /dev/null 2>&1; then
+  if diff -q <(tail -n +2 "$expected") <(tail -n +2 "$actual") >/dev/null 2>&1; then
     echo -e "${GREEN}✓ $name is up to date${NC}"
     return 0
   else
@@ -62,13 +63,15 @@ compare_files() {
 
 ERRORS=0
 
+SOURCE_DIR="$REPO_ROOT/infra/k8s/base/db/source"
+
 # Check main database
 MAIN_MIGRATIONS="$REPO_ROOT/infra/database/migrations"
-MAIN_COMBINED="$REPO_ROOT/infra/database/combined/init_database.sql"
-MAIN_TEMP="$TEMP_DIR/init_database.sql"
+MAIN_COMBINED="$SOURCE_DIR/00_init_database.sql"
+MAIN_TEMP="$TEMP_DIR/00_init_database.sql"
 
 combine_to_temp "$MAIN_MIGRATIONS" "$MAIN_TEMP"
-if ! compare_files "$MAIN_TEMP" "$MAIN_COMBINED" "Main database (init_database.sql)"; then
+if ! compare_files "$MAIN_TEMP" "$MAIN_COMBINED" "Main database (00_init_database.sql)"; then
   ERRORS=$((ERRORS + 1))
 fi
 
@@ -76,11 +79,11 @@ echo ""
 
 # Check management database
 MGMT_MIGRATIONS="$REPO_ROOT/infra/database/management/migrations"
-MGMT_COMBINED="$REPO_ROOT/infra/database/management/combined/init_management_database.sql"
-MGMT_TEMP="$TEMP_DIR/init_management_database.sql"
+MGMT_COMBINED="$SOURCE_DIR/00_init_management_database.sql"
+MGMT_TEMP="$TEMP_DIR/00_init_management_database.sql"
 
 combine_to_temp "$MGMT_MIGRATIONS" "$MGMT_TEMP"
-if ! compare_files "$MGMT_TEMP" "$MGMT_COMBINED" "Management database (init_management_database.sql)"; then
+if ! compare_files "$MGMT_TEMP" "$MGMT_COMBINED" "Management database (00_init_management_database.sql)"; then
   ERRORS=$((ERRORS + 1))
 fi
 

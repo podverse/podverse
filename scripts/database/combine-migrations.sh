@@ -1,31 +1,18 @@
 #!/usr/bin/env bash
+# Version: 2
 # Combine all migrations into init_database.sql files
 #
 # Usage: ./scripts/database/combine-migrations.sh
 # Requires Bash 4+ (use from repo dev shell or: ./scripts/nix/with-env ./scripts/database/combine-migrations.sh)
 #
 # This script combines migration files for both main and management databases
-# into their respective combined/init_*.sql files.
+# into infra/k8s/base/db/source/
 
 set -e
 shopt -s nullglob
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
-
-append_indented_file() {
-  local source_file="$1"
-  local indent="$2"
-  local target_file="$3"
-
-  while IFS= read -r line || [[ -n "$line" ]]; do
-    if [[ -z "${line//[[:space:]]/}" ]]; then
-      printf '\n' >>"$target_file"
-      continue
-    fi
-    printf '%s%s\n' "$indent" "$line" >>"$target_file"
-  done <"$source_file"
-}
 
 ensure_parent_dir() {
   local target_path="$1"
@@ -35,11 +22,13 @@ ensure_parent_dir() {
   mkdir -p "$target_dir"
 }
 
+SOURCE_DIR="$REPO_ROOT/infra/k8s/base/db/source"
+mkdir -p "$SOURCE_DIR"
+
 # Main database
 MAIN_MIGRATIONS="$REPO_ROOT/infra/database/migrations"
-MAIN_COMBINED="$REPO_ROOT/infra/database/combined/init_database.sql"
+MAIN_COMBINED="$SOURCE_DIR/00_init_database.sql"
 MAIN_INIT_SCRIPTS="$REPO_ROOT/infra/database/init-scripts/01-create-users.sh"
-MAIN_CONFIGMAP="$REPO_ROOT/infra/k8s/base/db/init-scripts.configmap.yaml"
 
 echo "Combining main database migrations..."
 ensure_parent_dir "$MAIN_COMBINED"
@@ -60,32 +49,15 @@ if ((${#main_migrations[@]} > 0)); then
   done
 fi
 
+echo "Copying main init script..."
+cp "$MAIN_INIT_SCRIPTS" "$SOURCE_DIR/01_create_app_users.sh"
+
 echo "✓ Main database combined: $MAIN_COMBINED"
-
-echo "Generating K8s init scripts ConfigMap..."
-ensure_parent_dir "$MAIN_CONFIGMAP"
-cat <<EOF >"$MAIN_CONFIGMAP"
-apiVersion: v1
-kind: ConfigMap
-# DO NOT EDIT - regenerate with scripts/database/combine-migrations.sh
-metadata:
-  name: podverse-db-init-scripts
-data:
-  00_init_database.sql: |
-EOF
-append_indented_file "$MAIN_COMBINED" "    " "$MAIN_CONFIGMAP"
-cat <<EOF >>"$MAIN_CONFIGMAP"
-  01-create-users.sh: |
-EOF
-append_indented_file "$MAIN_INIT_SCRIPTS" "    " "$MAIN_CONFIGMAP"
-
-echo "✓ K8s ConfigMap written: $MAIN_CONFIGMAP"
 
 # Management database
 MGMT_MIGRATIONS="$REPO_ROOT/infra/database/management/migrations"
-MGMT_COMBINED="$REPO_ROOT/infra/database/management/combined/init_management_database.sql"
+MGMT_COMBINED="$SOURCE_DIR/00_init_management_database.sql"
 MGMT_INIT_SCRIPTS="$REPO_ROOT/infra/database/management/init-scripts/01-create-users.sh"
-MGMT_CONFIGMAP="$REPO_ROOT/infra/k8s/base/db/management-init-scripts.configmap.yaml"
 
 echo "Combining management database migrations..."
 ensure_parent_dir "$MGMT_COMBINED"
@@ -106,25 +78,9 @@ if ((${#mgmt_migrations[@]} > 0)); then
   done
 fi
 
+echo "Copying management init script..."
+cp "$MGMT_INIT_SCRIPTS" "$SOURCE_DIR/01_create_management_users.sh"
+
 echo "✓ Management database combined: $MGMT_COMBINED"
-
-echo "Generating Management K8s init scripts ConfigMap..."
-ensure_parent_dir "$MGMT_CONFIGMAP"
-cat <<EOF >"$MGMT_CONFIGMAP"
-apiVersion: v1
-kind: ConfigMap
-# DO NOT EDIT - regenerate with scripts/database/combine-migrations.sh
-metadata:
-  name: podverse-management-db-init-scripts
-data:
-  01-create-users.sh: |
-EOF
-append_indented_file "$MGMT_INIT_SCRIPTS" "    " "$MGMT_CONFIGMAP"
-cat <<EOF >>"$MGMT_CONFIGMAP"
-  00_init_management_database.sql: |
-EOF
-append_indented_file "$MGMT_COMBINED" "    " "$MGMT_CONFIGMAP"
-
-echo "✓ Management K8s ConfigMap written: $MGMT_CONFIGMAP"
 echo ""
-echo "Done! Both databases combined successfully."
+echo "Done! Both databases combined successfully into $SOURCE_DIR."
