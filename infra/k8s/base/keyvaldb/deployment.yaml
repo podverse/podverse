@@ -1,7 +1,7 @@
-# Version: 3
-# Filename: 04-valkey-deployments.yaml
+# Version: 4
+# Filename: deployment.yaml
 # Description: Deployments for Valkey DB and RedisInsight GUI.
-# UPDATE: Removed image tags to strictly enforce Kustomize version management.
+# UPDATE: Using configMapGenerator to mount entrypoint and healthcheck scripts.
 
 apiVersion: apps/v1
 kind: Deployment
@@ -23,8 +23,7 @@ spec:
         - name: valkey
           # PLACEHOLDER: Kustomize will find this name and append the tag (e.g., :9.0.1)
           image: valkey/valkey
-          command: ["sh", "-c"]
-          args: ['valkey-server --requirepass "$KEYVALDB_PASSWORD" --save 900 1 --appendonly yes']
+          command: ["/opt/keyvaldb/valkey-entrypoint.sh"]
           ports:
             - containerPort: 6379
           envFrom:
@@ -33,6 +32,8 @@ spec:
           volumeMounts:
             - name: data
               mountPath: /var/lib/valkey
+            - name: scripts
+              mountPath: /opt/keyvaldb
           securityContext:
             runAsUser: 999
             runAsGroup: 999
@@ -40,18 +41,22 @@ spec:
             allowPrivilegeEscalation: false
           livenessProbe:
             exec:
-              command: ["sh", "-c", 'valkey-cli -a "$KEYVALDB_PASSWORD" ping']
+              command: ["/opt/keyvaldb/valkey-healthcheck.sh"]
             initialDelaySeconds: 10
             periodSeconds: 10
           readinessProbe:
             exec:
-              command: ["sh", "-c", 'valkey-cli -a "$KEYVALDB_PASSWORD" ping']
+              command: ["/opt/keyvaldb/valkey-healthcheck.sh"]
             initialDelaySeconds: 5
             periodSeconds: 10
       volumes:
         # EPHEMERAL STORAGE: Data is lost when pod restarts
         - name: data
           emptyDir: {}
+        - name: scripts
+          configMap:
+            name: podverse-keyvaldb-scripts
+            defaultMode: 0755
 
 ---
 apiVersion: apps/v1
