@@ -1,4 +1,4 @@
-# Version: 1
+# Version: 2
 # Filename: kustomization.yaml
 # Description: Bundles the Management Web resources and centralizes the image tag.
 
@@ -6,7 +6,7 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
 resources:
-  - github.com/podverse/podverse/infra/k8s/base/management-web?ref=feature/alpha
+  - github.com/podverse/podverse/infra/k8s/base/management-web?ref=alpha
 
 namespace: podverse-alpha
 
@@ -14,24 +14,19 @@ labels:
   - pairs:
       app: podverse-management-web
       environment: alpha
-    # This ensures the labels are also applied to the selectors,
-    # so the Service correctly finds the Pods.
     includeSelectors: true
 
 configMapGenerator:
   - name: podverse-management-web-config
     behavior: merge
-    literals:
-      - RUNTIME_CONFIG_URL="http://localhost:3101"
-      - NEXT_PUBLIC_API_HOST="management-api.alpha.podverse.fm"
-      - NEXT_PUBLIC_API_PORT=""
-      - NEXT_PUBLIC_API_PROTOCOL="https"
+    envs:
+      - source/management-web.env
 
 images:
   - name: ghcr.io/podverse/podverse/management-web-deploy
-    newTag: "5.1.28-alpha.0"
+    newTag: "5.4.12-alpha.0"
   - name: ghcr.io/podverse/podverse/management-web-runtime-config
-    newTag: "5.1.28-alpha.0"
+    newTag: "5.4.12-alpha.0"
 
 patches:
   - path: deployment-link-patch.yaml
