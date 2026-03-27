@@ -1,11 +1,10 @@
-# Version: 2
+# Version: 3
 # Filename: kustomization.yaml
 # Description: Bundles resources and manages image versions for the API.
 
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
-# 1. Resources to include
 resources:
   - github.com/podverse/podverse/infra/k8s/base/api?ref=feature/alpha
 
@@ -26,10 +25,8 @@ labels:
 configMapGenerator:
   - name: podverse-api-config
     behavior: merge
-    literals:
-      - API_ALLOWED_CORS_ORIGINS="http://podverse-web:3002,https://api-alpha-podverse.k.podverse.fm,https://alpha-podverse.k.podverse.fm,https://k.podverse.fm"
-      - COOKIE_DOMAIN=".k.podverse.fm"
-      - WEB_DOMAIN="alpha-podverse.k.podverse.fm"
+    envs:
+      - source/api.env
 
 patches:
   - path: deployment-link-patch.yaml
@@ -37,5 +34,5 @@ patches:
 # 4. Image Variables
 # We define the specific version here.
 images:
-  - name: ghcr.io/podverse/podverse-api/podverse-api
-    newTag: "5.1.28-alpha.0"
+  - name: ghcr.io/podverse/podverse/api
+    newTag: "5.4.12-alpha.0"
