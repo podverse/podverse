@@ -4,3 +4,4 @@ metadata:
   name: podverse-workers-config
 data:
   LOG_LEVEL: "debug"
+
