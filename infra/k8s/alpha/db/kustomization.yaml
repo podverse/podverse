@@ -5,9 +5,8 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
-# 1. Resources to include
 resources:
-  - github.com/podverse/podverse/infra/k8s/base/db?ref=feature/alpha
+  - github.com/podverse/podverse/infra/k8s/base/db?ref=alpha
 
 # 2. Namespace
 namespace: podverse-alpha
@@ -28,6 +27,6 @@ images:
     newTag: "18.1"
 
 # This patch applies the Tailscale configuration ONLY for this environment
-patches:
-  # Temporarily disabled to verify core DB deployment first
-  # - path: tailscale-patch.yaml
+#patches:
+# Temporarily disabled to verify core DB deployment first
+# - path: tailscale-patch.yaml
