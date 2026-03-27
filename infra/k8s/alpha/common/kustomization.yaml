@@ -1,16 +1,17 @@
-# Version: 2
-# This kustomization file bundles common infrastructure components.
-# It includes the namespace, ingress rules, and TLS security policies.
-
+# Version: 4
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
 resources:
-  - ./namespace.yaml
+  - namespace.yaml
   - github.com/podverse/podverse/infra/k8s/base/common?ref=feature/alpha
 
 patches:
   - path: ingress-hosts-patch.yaml
+    # Add this target block to force a match regardless of the base namespace
+    target:
+      kind: Ingress
+      name: podverse-ingress
 
 # Updated from commonLabels to labels
 labels:
