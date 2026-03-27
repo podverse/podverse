@@ -10,4 +10,3 @@ metadata:
     name: podverse-alpha
     environment: alpha
     managed-by: argocd
-

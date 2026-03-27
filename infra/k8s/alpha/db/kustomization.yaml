@@ -25,7 +25,6 @@ labels:
 images:
   - name: postgres
     newTag: "18.1"
-
 # This patch applies the Tailscale configuration ONLY for this environment
 #patches:
 # Temporarily disabled to verify core DB deployment first
