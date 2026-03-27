@@ -9,7 +9,8 @@ export async function register(): Promise<void> {
   if (!process.env.RUNTIME_CONFIG_URL) {
     return;
   }
-  const { fetchManagementWebRuntimeConfigFromSidecar } =
-    await import('./src/config/runtime-config.server');
+  const { fetchManagementWebRuntimeConfigFromSidecar } = await import(
+    './src/config/runtime-config.server'
+  );
   await fetchManagementWebRuntimeConfigFromSidecar();
 }

@@ -78,8 +78,9 @@ const run = async () => {
   const { setTimerManager } = await import('./factories/timerManager.js');
   const { setActiveMQArtemisService } = await import('./factories/activeMQArtemisService.js');
   const { setImageStorageService } = await import('./factories/imageStorageService.js');
-  const { initKeyvaldb, testKeyvaldbConnection, waitForKeyvaldbConnection } =
-    await import('./lib/keyvaldb/keyvaldb.js');
+  const { initKeyvaldb, testKeyvaldbConnection, waitForKeyvaldbConnection } = await import(
+    './lib/keyvaldb/keyvaldb.js'
+  );
   const { ActiveMQArtemisService } = await import('@podverse/mq');
   const { setPodcastIndexService } = await import('./factories/podcastIndexService.js');
 
