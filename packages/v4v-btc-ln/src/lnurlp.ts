@@ -34,6 +34,8 @@ export type FetchLnurlInvoiceParams = {
   amountMsat: number;
   comment?: string;
   zapRequest?: string;
+  /** Called after each failed attempt (1-based) with the error message for that attempt. */
+  onAttemptFailed?: (attemptNumber: number, message: string) => void;
 };
 
 /** LN-specific failure (step is either details or invoice). Reuses shared V4VProviderFailure shape for consistent UI handling. */
@@ -44,17 +46,24 @@ export type LnurlpFailure = V4VProviderFailure & {
 export type FetchLnurlDetailsResult = V4VResult<LnurlpDetailsResponse, LnurlpFailure>;
 export type FetchLnurlInvoiceResult = V4VResult<LnurlpInvoiceResponse, LnurlpFailure>;
 
-const MAX_RETRIES = 5;
-const RETRY_DELAY_MS = 1000;
+/** LNURL details step (well-known URL): max retries before giving up. 1 retry = 2 total attempts. Retries only on 429 or 5xx. */
+const MAX_RETRIES_DETAILS = 1;
+/** LNURL invoice step (callback URL): max retries before giving up. 1 retry = 2 total attempts. Retries on 400, 429, or 5xx. */
+const MAX_RETRIES_INVOICE = 1;
+const RETRY_DELAY_MS = 500;
 
 const isRetryableStatus = (status: number): boolean =>
   status === 429 || (status >= 500 && status < 600);
+
+/** Invoice step only: also retry on 400 (e.g. "Recipient wallet error" may be transient). */
+const isRetryableStatusForInvoice = (status: number): boolean =>
+  status === 400 || isRetryableStatus(status);
 
 const extractReason = (data: unknown): string | undefined => {
   if (typeof data !== 'object' || data === null) return undefined;
   const obj = data as Record<string, unknown>;
   const s = (v: unknown) => (typeof v === 'string' && v.trim() !== '' ? v.trim() : undefined);
-  return s(obj.reason) ?? s(obj.message) ?? s(obj.detail);
+  return s(obj.reason) ?? s(obj.message) ?? s(obj.detail) ?? s(obj.error);
 };
 
 const getRecordValue = (value: unknown, key: string): unknown => {
@@ -122,14 +131,14 @@ const fetchDetailsFromWellKnown = async (
   let lastStatus = 0;
   let lastData: unknown;
   let retries = 0;
-  for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+  for (let attempt = 0; attempt <= MAX_RETRIES_DETAILS; attempt++) {
     const { status, data } = await request<unknown>(wellKnownUrl);
     lastStatus = status;
     lastData = data;
     if (status >= 200 && status < 300 && isLnurlpDetailsResponse(data)) {
       return { ok: true, data };
     }
-    if (attempt < MAX_RETRIES && isRetryableStatus(status)) {
+    if (attempt < MAX_RETRIES_DETAILS && isRetryableStatus(status)) {
       retries++;
       await sleep(RETRY_DELAY_MS);
       continue;
@@ -149,7 +158,7 @@ const fetchDetailsFromWellKnown = async (
 
 /**
  * Fetches LNURLp details using LUD-16 only (well-known URL).
- * Retries up to MAX_RETRIES on 429 or 5xx. Returns structured success or failure.
+ * Retries up to MAX_RETRIES_DETAILS on 429 or 5xx. Returns structured success or failure.
  */
 export const fetchLnurlDetails = async ({
   lnurlOrAddress,
@@ -166,14 +175,16 @@ export const fetchLnurlDetails = async ({
 
 /**
  * Requests an invoice from the LNURLp callback URL.
- * Retries up to MAX_RETRIES on 429 or 5xx. Returns structured success or failure.
+ * Retries up to MAX_RETRIES_INVOICE (1 retry = 2 total attempts) on 400, 429, or 5xx.
+ * Calls onAttemptFailed after each failed attempt with 1-based attempt number and message.
  */
 const fetchInvoiceFromCallback = async (
   callback: string,
   amountMsat: number,
   lnurlOrAddress: string,
   comment?: string,
-  zapRequest?: string
+  zapRequest?: string,
+  onAttemptFailed?: (attemptNumber: number, message: string) => void
 ): Promise<FetchLnurlInvoiceResult> => {
   const callbackUrl = new URL(callback);
   if (isLocalhostAddress(lnurlOrAddress)) {
@@ -193,9 +204,20 @@ const fetchInvoiceFromCallback = async (
   let lastStatus = 0;
   let lastData: unknown;
   let retries = 0;
-  for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+  for (let attempt = 0; attempt <= MAX_RETRIES_INVOICE; attempt++) {
     const controller = new AbortController();
     const timeoutMs = 20_000;
+    const attemptNumber = attempt + 1;
+    const reportFailure = (status: number, data: unknown) => {
+      const failure: LnurlpFailure = {
+        step: 'invoice',
+        status,
+        reason: extractReason(data),
+        retries: 0,
+      };
+      const message = buildProviderErrorMessage(failure, 'LNURL invoice');
+      onAttemptFailed?.(attemptNumber, message);
+    };
     try {
       const { status, data } = await request<unknown>(callbackUrlStr, undefined, {
         controller,
@@ -206,7 +228,8 @@ const fetchInvoiceFromCallback = async (
       if (status >= 200 && status < 300 && isLnurlpInvoiceResponse(data)) {
         return { ok: true, data };
       }
-      if (attempt < MAX_RETRIES && isRetryableStatus(status)) {
+      reportFailure(lastStatus, lastData);
+      if (attempt < MAX_RETRIES_INVOICE && isRetryableStatusForInvoice(status)) {
         retries++;
         await sleep(RETRY_DELAY_MS);
         continue;
@@ -215,10 +238,18 @@ const fetchInvoiceFromCallback = async (
     } catch (err) {
       const response = (err as { response?: { status?: number; data?: unknown } })?.response;
       if (response !== undefined) {
+        lastStatus = response.status ?? 0;
+        lastData = response.data;
+        reportFailure(lastStatus, lastData);
+        if (attempt < MAX_RETRIES_INVOICE && isRetryableStatusForInvoice(lastStatus)) {
+          retries++;
+          await sleep(RETRY_DELAY_MS);
+          continue;
+        }
         const failure: LnurlpFailure = {
           step: 'invoice',
-          status: response.status ?? 0,
-          reason: extractReason(response.data),
+          status: lastStatus,
+          reason: extractReason(lastData),
           retries,
         };
         const msg = buildProviderErrorMessage(failure, 'LNURL invoice');
@@ -244,12 +275,13 @@ export const fetchLnurlInvoice = async (
   params: FetchLnurlInvoiceParams,
   details: LnurlpDetailsResponse
 ): Promise<FetchLnurlInvoiceResult> => {
-  const { lnurlOrAddress, amountMsat, comment, zapRequest } = params;
+  const { lnurlOrAddress, amountMsat, comment, zapRequest, onAttemptFailed } = params;
   return fetchInvoiceFromCallback(
     details.callback,
     amountMsat,
     lnurlOrAddress,
     comment,
-    zapRequest
+    zapRequest,
+    onAttemptFailed
   );
 };

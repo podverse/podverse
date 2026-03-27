@@ -19,6 +19,8 @@ export type SendLnaddressPaymentParams = {
   amountMsat: number;
   desc: string | null;
   provider: WeblnProvider;
+  /** Called after each failed invoice attempt (1-based) with the error message for that attempt. */
+  onAttemptFailed?: (attemptNumber: number, message: string) => void;
 };
 
 export type SendKeysendPaymentParams = {
@@ -49,6 +51,7 @@ export const sendLnaddressPayment = async ({
   amountMsat,
   desc,
   provider,
+  onAttemptFailed,
 }: SendLnaddressPaymentParams): Promise<void> => {
   const detailsResult = await fetchLnurlDetails({ lnurlOrAddress: recipientAddress });
   if (!detailsResult.ok) {
@@ -63,7 +66,7 @@ export const sendLnaddressPayment = async ({
   }
   const comment = getLnurlComment(lnurlDetails, desc);
   const invoiceResult = await fetchLnurlInvoice(
-    { lnurlOrAddress: recipientAddress, amountMsat, comment },
+    { lnurlOrAddress: recipientAddress, amountMsat, comment, onAttemptFailed },
     lnurlDetails
   );
   if (!invoiceResult.ok) {

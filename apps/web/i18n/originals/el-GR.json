@@ -288,7 +288,8 @@
       "successfully_sent": "Επιτυχώς:",
       "failed_to_send": "Απέτυχε:",
       "error_details_heading": "Λεπτομέρειες σφάλματος",
-      "retried_requests": "Επαναλάβαμε το αίτημα Lightning Address {count, plural, one {# φορά} other {# φορές}} πριν αποτύχει."
+      "retried_requests": "Επαναλάβαμε το αίτημα Lightning Address {count, plural, one {# φορά} other {# φορές}} πριν αποτύχει.",
+      "retry_attempt": "Επανάληψη {number}: "
     },
     "types": {
       "lightning": {

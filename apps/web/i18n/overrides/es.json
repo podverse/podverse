@@ -288,7 +288,8 @@
       "successfully_sent": "",
       "failed_to_send": "",
       "error_details_heading": "",
-      "retried_requests": ""
+      "retried_requests": "",
+      "retry_attempt": ""
     },
     "types": {
       "lightning": {

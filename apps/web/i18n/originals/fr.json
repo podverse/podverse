@@ -288,7 +288,8 @@
       "successfully_sent": "Réussi :",
       "failed_to_send": "Échec :",
       "error_details_heading": "Détails de l'erreur",
-      "retried_requests": "Nous avons réessayé la demande d'adresse Lightning {count, plural, one {# fois} other {# fois}} avant qu'elle échoue."
+      "retried_requests": "Nous avons réessayé la demande d'adresse Lightning {count, plural, one {# fois} other {# fois}} avant qu'elle échoue.",
+      "retry_attempt": "Réessai {number} : "
     },
     "types": {
       "lightning": {

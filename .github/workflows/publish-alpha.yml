@@ -47,7 +47,8 @@ jobs:
       - name: Calculate unified version
         id: version
         env:
-          GHCR_TOKEN: ${{ secrets.GHCR_REGISTRY_TOKEN }}
+          GHCR_TOKEN_PRIMARY: ${{ secrets.GHCR_REGISTRY_TOKEN }}
+          GHCR_TOKEN_FALLBACK: ${{ secrets.GITHUB_TOKEN }}
         run: |
           # If version override is provided, use it
           if [ -n "${{ inputs.version_override }}" ]; then
@@ -64,11 +65,86 @@ jobs:
           echo "Base version: $BASE_VERSION"
           echo "Reference image path: $IMAGE_PATH"
 
-          # Query GHCR for existing tags
-          TAGS_JSON=$(curl -s -H "Authorization: Bearer $GHCR_TOKEN" \
-            "https://ghcr.io/v2/${IMAGE_PATH}/tags/list" || echo '{"tags":[]}')
+          query_tags() {
+            local token="$1"
+            local token_name="$2"
 
-          echo "Raw tags JSON: $TAGS_JSON"
+            if [ -z "$token" ]; then
+              return 2
+            fi
+
+            echo "Attempting GHCR tag discovery with ${token_name}..."
+            local tags_response
+            tags_response=$(curl -s -w "\n%{http_code}" \
+              -H "Authorization: Bearer $token" \
+              "https://ghcr.io/v2/${IMAGE_PATH}/tags/list")
+            TAGS_JSON=$(echo "$tags_response" | sed '$d')
+            TAGS_STATUS=$(echo "$tags_response" | tail -n1)
+            TAGS_TOKEN_USED="$token_name"
+
+            if [ "$TAGS_STATUS" = "200" ]; then
+              return 0
+            fi
+            if [ "$TAGS_STATUS" = "404" ]; then
+              return 4
+            fi
+            if [ "$TAGS_STATUS" = "401" ] || [ "$TAGS_STATUS" = "403" ]; then
+              return 3
+            fi
+            return 1
+          }
+
+          BOOTSTRAP_EMPTY_STATE=false
+          TAGS_TOKEN_USED=""
+          TAGS_JSON='{"tags":[]}'
+          TAGS_STATUS=""
+          QUERY_RESULT=1
+
+          if query_tags "$GHCR_TOKEN_PRIMARY" "GHCR_REGISTRY_TOKEN"; then
+            QUERY_RESULT=0
+          else
+            QUERY_RESULT=$?
+          fi
+
+          if [ "$QUERY_RESULT" = "2" ]; then
+            echo "GHCR_REGISTRY_TOKEN not set; falling back to GITHUB_TOKEN for tag discovery."
+            if query_tags "$GHCR_TOKEN_FALLBACK" "GITHUB_TOKEN"; then
+              QUERY_RESULT=0
+            else
+              QUERY_RESULT=$?
+            fi
+          elif [ "$QUERY_RESULT" = "3" ]; then
+            echo "GHCR_REGISTRY_TOKEN returned HTTP ${TAGS_STATUS}; retrying with GITHUB_TOKEN."
+            if query_tags "$GHCR_TOKEN_FALLBACK" "GITHUB_TOKEN"; then
+              QUERY_RESULT=0
+            else
+              QUERY_RESULT=$?
+            fi
+          fi
+
+          if [ "$QUERY_RESULT" = "4" ]; then
+            BOOTSTRAP_EMPTY_STATE=true
+            TAGS_JSON='{"tags":[]}'
+            echo "GHCR package path not found yet (HTTP 404). Treating as first publish bootstrap."
+          elif [ "$QUERY_RESULT" = "3" ]; then
+            echo "Failed to list GHCR tags for ${IMAGE_PATH} due to auth/permission (HTTP ${TAGS_STATUS})."
+            echo "Ensure GHCR_REGISTRY_TOKEN has packages:read (or org allows GITHUB_TOKEN package reads)."
+            echo "You can also run with version_override for a one-off publish."
+            exit 1
+          elif [ "$QUERY_RESULT" = "2" ]; then
+            echo "Failed to list GHCR tags for ${IMAGE_PATH}: no usable token available."
+            echo "Set GHCR_REGISTRY_TOKEN or ensure GITHUB_TOKEN can read packages."
+            exit 1
+          elif [ "$QUERY_RESULT" != "0" ]; then
+            echo "Failed to list GHCR tags for ${IMAGE_PATH} (HTTP ${TAGS_STATUS})."
+            echo "Unexpected GHCR response; re-run or use version_override for a one-off publish."
+            exit 1
+          fi
+
+          if [ "$BOOTSTRAP_EMPTY_STATE" = "false" ]; then
+            echo "GHCR tag discovery succeeded with ${TAGS_TOKEN_USED}."
+            echo "Raw tags JSON: $TAGS_JSON"
+          fi
 
           # Extract alpha tags for this base version
           TAGS=$(echo "$TAGS_JSON" | jq -r '.tags[]?' 2>/dev/null | grep "^${BASE_VERSION}-alpha\." || true)
@@ -76,7 +152,11 @@ jobs:
 
           # Find the latest alpha version number
           if [ -z "$TAGS" ]; then
-            echo "No existing alpha tags found for ${BASE_VERSION}. Starting at alpha.0"
+            if [ "$BOOTSTRAP_EMPTY_STATE" = "true" ]; then
+              echo "No existing GHCR package/tags found. Bootstrapping at ${BASE_VERSION}-alpha.0"
+            else
+              echo "No existing alpha tags found for ${BASE_VERSION}. Starting at alpha.0"
+            fi
             NEXT_VERSION="${BASE_VERSION}-alpha.0"
           else
             # Get the highest alpha number
