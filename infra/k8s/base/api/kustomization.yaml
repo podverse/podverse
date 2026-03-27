@@ -1,4 +1,4 @@
-# Version: 2
+# Version: 3
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
@@ -21,6 +21,11 @@ replacements:
       name: podverse-api
       fieldPath: spec.ports.0.port
     targets:
+      - select:
+          kind: Service
+          name: podverse-api
+        fieldPaths:
+          - spec.ports.0.targetPort
       - select:
           kind: Deployment
           name: podverse-api

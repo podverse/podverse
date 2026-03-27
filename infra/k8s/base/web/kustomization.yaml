@@ -1,4 +1,4 @@
-# Version: 2
+# Version: 4
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
@@ -16,3 +16,23 @@ configMapGenerator:
 
 generatorOptions:
   disableNameSuffixHash: true
+
+replacements:
+  - source:
+      kind: Service
+      name: podverse-web
+      fieldPath: spec.ports.0.port
+    targets:
+      - select:
+          kind: Service
+          name: podverse-web
+        fieldPaths:
+          - spec.ports.0.targetPort
+      - select:
+          kind: Deployment
+          name: podverse-web
+        fieldPaths:
+          - spec.template.spec.containers.0.ports.0.containerPort
+          - spec.template.spec.containers.0.readinessProbe.httpGet.port
+          - spec.template.spec.containers.0.livenessProbe.httpGet.port
+          - spec.template.spec.containers.0.env.1.value # <--- Dynamically updates PORT var
