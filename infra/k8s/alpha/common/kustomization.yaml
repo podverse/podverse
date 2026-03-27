@@ -4,7 +4,7 @@ kind: Kustomization
 
 resources:
   - namespace.yaml
-  - github.com/podverse/podverse/infra/k8s/base/common?ref=feature/alpha
+  - https://github.com/podverse/podverse//infra/k8d/base/common?ref=alpha
 
 patches:
   - path: ingress-hosts-patch.yaml
