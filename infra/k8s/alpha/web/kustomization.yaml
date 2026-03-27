@@ -1,4 +1,4 @@
-# Version: 1
+# Version: 2
 # Filename: kustomization.yaml
 # Description: Bundles the Web frontend resources and centralizes the web image tag.
 
@@ -6,7 +6,7 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
 resources:
-  - github.com/podverse/podverse/infra/k8s/base/web?ref=feature/alpha
+  - github.com/podverse/podverse/infra/k8s/base/web?ref=alpha
 
 namespace: podverse-alpha
 
@@ -18,11 +18,18 @@ labels:
     # so the Service correctly finds the Pods.
     includeSelectors: true
 
+configMapGenerator:
+  - name: podverse-web-runtime-config
+    behavior: merge
+    envs:
+      - source/web-sidecar.env
+
 images:
-  - name: ghcr.io/podverse/podverse-web-deploy
-    newTag: "5.1.28-alpha.0"
+  - name: ghcr.io/podverse/podverse/web-deploy
+    newTag: "5.4.12-alpha.0"
   - name: ghcr.io/podverse/podverse/web-runtime-config
-    newTag: "5.1.28-alpha.0"
+    newTag: "5.4.12-alpha.0"
 
 patches:
   - path: deployment-link-patch.yaml
+  - path: node-configmap-patch.yaml
