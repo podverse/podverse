@@ -13,3 +13,18 @@ configMapGenerator:
 
 generatorOptions:
   disableNameSuffixHash: true
+
+# This block makes the Service the source of truth for the port
+replacements:
+  - source:
+      kind: Service
+      name: podverse-api
+      fieldPath: spec.ports.0.port
+    targets:
+      - select:
+          kind: Deployment
+          name: podverse-api
+        fieldPaths:
+          - spec.template.spec.containers.0.ports.0.containerPort
+          - spec.template.spec.containers.0.readinessProbe.httpGet.port
+          - spec.template.spec.containers.0.livenessProbe.httpGet.port
