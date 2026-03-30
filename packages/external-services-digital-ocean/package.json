@@ -21,7 +21,7 @@
     "access": "public"
   },
   "dependencies": {
-    "s3mini": "^0.9.1"
+    "s3mini": "^0.9.2"
   },
   "type": "module"
 }

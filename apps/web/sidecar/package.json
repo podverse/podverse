@@ -10,7 +10,10 @@
   },
   "dependencies": {
     "@podverse/helpers": "*",
-    "@podverse/helpers-config": "*"
+    "@podverse/helpers-config": "*",
+    "axios": "^1.14.0",
+    "isomorphic-dompurify": "^3.7.1",
+    "next": "^16.2.1"
   },
   "devDependencies": {
     "esbuild": "^0.27.4",
