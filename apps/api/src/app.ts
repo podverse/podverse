@@ -69,9 +69,8 @@ export const startApp = async () => {
     const { feedRouter } = await import('./routes/feed.js');
     const { publisherFeedRouter } = await import('./routes/publisherFeed.js');
     const { accountSettingsRouter } = await import('./routes/accountSettings.js');
-    const { profileContentRouter, myProfileContentRouter } = await import(
-      './routes/profileContent.js'
-    );
+    const { profileContentRouter, myProfileContentRouter } =
+      await import('./routes/profileContent.js');
 
     app.get('/', (_req: Request, res: Response) => {
       res.status(200).json({ status: 'ok', message: 'API is online' });
