@@ -19,32 +19,44 @@
       let
         pkgs = nixpkgs.legacyPackages.${system};
 
-        defaultBuildInputs = with pkgs; [
-          bash
-          nodejs_24
-          prettier
-          argocd
-          kompose
-          kubectl
-          kubernetes-helm
-          kustomize
-          postgresql
-          redis
-          sqlite
-          git
-          sops
-          yq
-          yamllint
-          jq
-          k9s
-          curl
-          gnumake
-          pkg-config
-          openssl
-          moreutils
-          pwgen
-          libuuid
-        ] ++ (if pkgs.stdenv.isLinux then [ docker docker-compose ] else [ ]);
+        defaultBuildInputs =
+          with pkgs;
+          [
+            bash
+            nodejs_24
+            prettier
+            argocd
+            kompose
+            kubectl
+            kubernetes-helm
+            kustomize
+            postgresql
+            redis
+            sqlite
+            git
+            sops
+            yq
+            yamllint
+            jq
+            k9s
+            curl
+            gnumake
+            pkg-config
+            openssl
+            moreutils
+            pwgen
+            libuuid
+            eslint
+          ]
+          ++ (
+            if pkgs.stdenv.isLinux then
+              [
+                docker
+                docker-compose
+              ]
+            else
+              [ ]
+          );
 
         defaultShellHook = ''
           echo "Podverse Monorepo Development Environment"
@@ -69,7 +81,12 @@
 
         # V4V/Lightning shells: Nigiri and hook live in nix/v4v.nix to keep this flake minimal.
         v4v = import ./nix/v4v.nix {
-          inherit pkgs system defaultBuildInputs defaultShellHook;
+          inherit
+            pkgs
+            system
+            defaultBuildInputs
+            defaultShellHook
+            ;
         };
 
       in

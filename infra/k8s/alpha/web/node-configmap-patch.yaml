@@ -1,0 +1,12 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: podverse-web
+spec:
+  template:
+    spec:
+      containers:
+        - name: web
+          env:
+            - name: NODE_TLS_REJECT_UNAUTHORIZED
+              value: "0"

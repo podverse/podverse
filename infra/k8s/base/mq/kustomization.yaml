@@ -1,8 +1,16 @@
+# Version: 2
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
 resources:
-  - scripts.configmap.yaml
   - service.yaml
   - statefulset.yaml
   - provisioner.job.yaml
+
+configMapGenerator:
+  - name: podverse-mq-scripts
+    files:
+      - provision-queues.sh=source/provision-queues.sh
+
+generatorOptions:
+  disableNameSuffixHash: true

@@ -1,7 +1,39 @@
+# Version: 4
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
 resources:
-  - configmap.yaml
   - service.yaml
   - deployment.yaml
+
+configMapGenerator:
+  - name: podverse-management-api-config
+    envs:
+      - source/management-api.env
+
+generatorOptions:
+  disableNameSuffixHash: true
+
+replacements:
+  - source:
+      kind: Service
+      name: podverse-management-api
+      fieldPath: spec.ports.0.port
+    targets:
+      - select:
+          kind: Service
+          name: podverse-management-api
+        fieldPaths:
+          - spec.ports.0.targetPort
+      - select:
+          kind: Deployment
+          name: podverse-management-api
+        fieldPaths:
+          - spec.template.spec.containers.0.ports.0.containerPort
+          - spec.template.spec.containers.0.readinessProbe.httpGet.port
+          - spec.template.spec.containers.0.livenessProbe.httpGet.port
+      - select:
+          kind: ConfigMap
+          name: podverse-management-api-config
+        fieldPaths:
+          - data.API_PORT # <--- Dynamically updates the API_PORT env var

@@ -1,0 +1,8 @@
+# Disable image-shrink-consumer until bucket storage is configured.
+# Set replicas back to 1 after BUCKET_PROVIDER and related env vars are populated.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: worker-image-shrink-consumer
+spec:
+  replicas: 0
