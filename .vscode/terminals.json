@@ -44,16 +44,9 @@
       "command": "clear"
     },
     {
-      "name": "Boilerplate",
-      "description": "Boilerplate development",
-      "cwd": "../boilerplate",
-      "open": true,
-      "command": "clear"
-    },
-    {
-      "name": "Boilerplate Ansible",
-      "description": "Boilerplate Ansible development",
-      "cwd": "../boilerplate-ansible",
+      "name": "Metaboost",
+      "description": "Metaboost development",
+      "cwd": "../metaboost",
       "open": true,
       "command": "clear"
     }
