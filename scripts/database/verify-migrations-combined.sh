@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Version: 2
+# Version: 4
 # Verify that combined database files match the migration files
 #
 # This script is used by CI to ensure developers haven't forgotten to run
@@ -67,11 +67,11 @@ SOURCE_DIR="$REPO_ROOT/infra/k8s/base/db/source"
 
 # Check main database
 MAIN_MIGRATIONS="$REPO_ROOT/infra/database/migrations"
-MAIN_COMBINED="$SOURCE_DIR/00_init_database.sql"
-MAIN_TEMP="$TEMP_DIR/00_init_database.sql"
+MAIN_COMBINED="$SOURCE_DIR/0001_init_database.sql"
+MAIN_TEMP="$TEMP_DIR/0001_init_database.sql"
 
 combine_to_temp "$MAIN_MIGRATIONS" "$MAIN_TEMP"
-if ! compare_files "$MAIN_TEMP" "$MAIN_COMBINED" "Main database (00_init_database.sql)"; then
+if ! compare_files "$MAIN_TEMP" "$MAIN_COMBINED" "Main database (0001_init_database.sql)"; then
   ERRORS=$((ERRORS + 1))
 fi
 
@@ -79,11 +79,11 @@ echo ""
 
 # Check management database
 MGMT_MIGRATIONS="$REPO_ROOT/infra/database/management/migrations"
-MGMT_COMBINED="$SOURCE_DIR/00_init_management_database.sql"
-MGMT_TEMP="$TEMP_DIR/00_init_management_database.sql"
+MGMT_COMBINED="$SOURCE_DIR/0003_init_management_database.sql"
+MGMT_TEMP="$TEMP_DIR/0003_init_management_database.sql"
 
 combine_to_temp "$MGMT_MIGRATIONS" "$MGMT_TEMP"
-if ! compare_files "$MGMT_TEMP" "$MGMT_COMBINED" "Management database (00_init_management_database.sql)"; then
+if ! compare_files "$MGMT_TEMP" "$MGMT_COMBINED" "Management database (0003_init_management_database.sql)"; then
   ERRORS=$((ERRORS + 1))
 fi
 

@@ -34,12 +34,17 @@ K8s YAML is formatted with Prettier using **k8s-specific overrides** (see root `
 
 ## Base Resource Naming
 
-Use numbered prefixes for ordering:
+Many component bases use numbered YAML prefixes for ordering:
 
 - `01-configmap.yaml` - Configuration
 - `02-service.yaml` - Service
 - `03-deployment.yaml` or `03-statefulset.yaml` - Workload
 - Additional resources: `04-`, `05-`, etc.
+
+**`base/db/`** uses `service.yaml` and `statefulset.yaml` only. Combined DB artifacts live under
+`source/` with **four-digit prefixes** (`0000_…`, `0001_…`, …) so files sort in execution order and
+new steps can be added over time. The StatefulSet **mountPath** basenames under
+`/docker-entrypoint-initdb.d/` match those filenames (see `statefulset.yaml` comments).
 
 ## Kustomize
 

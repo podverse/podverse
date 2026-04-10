@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Version: 2
-# Combine all migrations into init_database.sql files
+# Version: 5
+# Combine migrations into prefixed files under infra/k8s/base/db/source/
 #
 # Usage: ./scripts/database/combine-migrations.sh
 # Requires Bash 4+ (use from repo dev shell or: ./scripts/nix/with-env ./scripts/database/combine-migrations.sh)
@@ -27,7 +27,7 @@ mkdir -p "$SOURCE_DIR"
 
 # Main database
 MAIN_MIGRATIONS="$REPO_ROOT/infra/database/migrations"
-MAIN_COMBINED="$SOURCE_DIR/00_init_database.sql"
+MAIN_COMBINED="$SOURCE_DIR/0001_init_database.sql"
 MAIN_INIT_SCRIPTS="$REPO_ROOT/infra/database/init-scripts/01-create-users.sh"
 
 echo "Combining main database migrations..."
@@ -50,13 +50,13 @@ if ((${#main_migrations[@]} > 0)); then
 fi
 
 echo "Copying main init script..."
-cp "$MAIN_INIT_SCRIPTS" "$SOURCE_DIR/01_create_app_users.sh"
+cp "$MAIN_INIT_SCRIPTS" "$SOURCE_DIR/0000_create_app_db_users.sh"
 
 echo "✓ Main database combined: $MAIN_COMBINED"
 
 # Management database
 MGMT_MIGRATIONS="$REPO_ROOT/infra/database/management/migrations"
-MGMT_COMBINED="$SOURCE_DIR/00_init_management_database.sql"
+MGMT_COMBINED="$SOURCE_DIR/0003_init_management_database.sql"
 MGMT_INIT_SCRIPTS="$REPO_ROOT/infra/database/management/init-scripts/01-create-users.sh"
 
 echo "Combining management database migrations..."
@@ -79,7 +79,7 @@ if ((${#mgmt_migrations[@]} > 0)); then
 fi
 
 echo "Copying management init script..."
-cp "$MGMT_INIT_SCRIPTS" "$SOURCE_DIR/01_create_management_users.sh"
+cp "$MGMT_INIT_SCRIPTS" "$SOURCE_DIR/0002_create_management_db_users.sh"
 
 echo "✓ Management database combined: $MGMT_COMBINED"
 echo ""

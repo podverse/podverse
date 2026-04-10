@@ -17,11 +17,11 @@ services:
       - podverse_local_network
     volumes:
       - podverse_local_db_data:/var/lib/postgresql/data
-      - ../../../k8s/base/db/source/00_init_database.sql:/opt/database/combined/init_database.sql
-      - ../../../k8s/base/db/source/01_create_app_users.sh:/opt/database/init-scripts/01-create-users.sh
+      - ../../../k8s/base/db/source/0000_create_app_db_users.sh:/opt/database/init-scripts/01-create-users.sh
+      - ../../../k8s/base/db/source/0001_init_database.sql:/opt/database/combined/init_database.sql
       - ../../../database/seeds:/opt/database/seed-scripts
-      - ../../../k8s/base/db/source/00_init_management_database.sql:/opt/database/management/init_management_database.sql
-      - ../../../k8s/base/db/source/01_create_management_users.sh:/opt/database/management/init-scripts/01-create-users.sh
+      - ../../../k8s/base/db/source/0002_create_management_db_users.sh:/opt/database/management/init-scripts/01-create-users.sh
+      - ../../../k8s/base/db/source/0003_init_management_database.sql:/opt/database/management/init_management_database.sql
       - ../../../database/management/seeds:/opt/database/management/seed-scripts
     command: >
       postgres -c max_connections=200
