@@ -21,6 +21,7 @@ import { BoostMessageNotice } from './BoostMessageNotice';
 import { BoostMetaBoostInfo } from './BoostMetaBoostInfo';
 import { BoostRecipientInfo } from './BoostRecipientInfo';
 import { BoostRecipientStatusList } from './BoostRecipientStatusList';
+import type { Mb1RssContext } from './donateMb1RssContext';
 import { DonateSuccessConfetti } from './DonateSuccessConfetti';
 import { useBoostAppRecipients } from './hooks/useBoostAppRecipients';
 import { useBoostPayments } from './hooks/useBoostPayments';
@@ -61,6 +62,8 @@ type BoostFormBaseProps = {
   successPrimaryButtonLabel?: string;
   successPrimaryButtonOnClick?: () => void;
   noRecipientsFallback?: ReactNode;
+  /** Donate flow: RSS fields aligned with podverse-boosts-feed.xml for mb1/BLIP. */
+  mb1RssContext?: Mb1RssContext | null;
 };
 
 export const BoostFormBase: React.FC<BoostFormBaseProps> = ({
@@ -86,6 +89,7 @@ export const BoostFormBase: React.FC<BoostFormBaseProps> = ({
   successPrimaryButtonLabel,
   successPrimaryButtonOnClick,
   noRecipientsFallback,
+  mb1RssContext,
 }) => {
   const config = useConfig();
   const { boostFormDefaults, setBoostFormDefaults } = useLocalSettings();
@@ -221,6 +225,7 @@ export const BoostFormBase: React.FC<BoostFormBaseProps> = ({
   const { handleSubmitBoost } = useBoostPayments({
     channel,
     item,
+    mb1RssContext,
     config,
     tValue,
     message,

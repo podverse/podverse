@@ -63,3 +63,24 @@ just go ahead and move these to completed
 - .llm/plans/active/boost-flow-readability-refactor/deployment-artifacts/remote-k8s.md (moved)
 - .llm/plans/active/boost-flow-readability-refactor/verification-artifacts/phase-10-verification-2026-04-14.md (moved)
 - .llm/plans/active/boost-flow-readability-refactor/verification-artifacts/phase-12-helper-consolidation-verification-2026-04-14.md (moved)
+
+### Session 26 - 2026-04-15
+
+#### Prompt (Developer)
+
+add metaboost to the env-overrides process. it should be in its own file metaboost.env.example
+
+#### Key Decisions
+
+- Logged prompt before adding metaboost override file and wiring setup.
+- Added `dev/env-overrides/local/metaboost.env.example` and moved MetaBoost vars out of `lightning.env.example`.
+- Updated `setup.sh` to apply MetaBoost from `metaboost.env` and to source `lightning.env` after other overrides so existing MetaBoost-only-in-lightning installs keep working.
+
+#### Files Modified
+
+- .llm/history/active/boost-flow-readability-refactor/boost-flow-readability-refactor-part-02.md
+- dev/env-overrides/local/metaboost.env.example
+- dev/env-overrides/local/lightning.env.example
+- scripts/local-env/setup.sh
+- docs/development/LOCAL-ENV-OVERRIDES.md
+- apps/web/ENV.md

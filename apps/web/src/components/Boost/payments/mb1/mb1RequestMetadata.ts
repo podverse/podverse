@@ -1,11 +1,19 @@
 import type { DTOChannel, DTOItem } from '@podverse/helpers';
 import { request } from '@podverse/helpers-requests';
 import type { MetaBoost } from '@podverse/v4v-metaboost';
-import { buildBoostMetadataRequest, isBoostMetadataResponse } from '@podverse/v4v-metaboost';
+import {
+  buildMb1CreateBoostRequest,
+  isMetaboostMb1CreateBoostResponse,
+  mb1ConfirmPaymentUrlFromBoostPostUrl,
+} from '@podverse/v4v-metaboost';
+
+import { WEB_APP_VERSION } from '../../../../config/webAppVersion';
+import type { Mb1RssContext } from '../../donateMb1RssContext';
 
 type RequestMb1MetadataParams = {
   channel: DTOChannel | null;
   item: DTOItem | null;
+  mb1RssContext?: Mb1RssContext | null;
   appName: string;
   message: string;
   yourName: string;
@@ -20,9 +28,18 @@ export type Mb1MetadataResult = {
   confirmUrl: string;
 };
 
+const derivePaymentDesc = (message: string, appName: string): string => {
+  const trimmed = message.trim();
+  if (trimmed.length > 0) {
+    return trimmed;
+  }
+  return `${appName} boost`;
+};
+
 export const requestMb1Metadata = async ({
   channel,
   item,
+  mb1RssContext,
   appName,
   message,
   yourName,
@@ -31,18 +48,31 @@ export const requestMb1Metadata = async ({
   totalAmountToApp,
 }: RequestMb1MetadataParams): Promise<Mb1MetadataResult> => {
   const totalMsat = Math.max(0, Math.round((totalAmountToCreator + totalAmountToApp) * 1000));
-  const requestBody = buildBoostMetadataRequest({
+  const feedGuidRaw = mb1RssContext?.feedGuid ?? channel?.podcast_guid;
+  const feedTitleRaw = mb1RssContext?.feedTitle ?? channel?.title;
+  if (feedGuidRaw === undefined || feedGuidRaw === null || feedGuidRaw.trim() === '') {
+    throw new Error('MetaBoost MB1 boost requires feed_guid');
+  }
+  if (feedTitleRaw === undefined || feedTitleRaw === null || feedTitleRaw.trim() === '') {
+    throw new Error('MetaBoost MB1 boost requires feed_title');
+  }
+  const feedGuid = feedGuidRaw;
+  const feedTitle = feedTitleRaw;
+
+  const itemGuid = mb1RssContext?.itemGuid ?? item?.guid;
+  const itemTitle = mb1RssContext?.itemTitle ?? item?.title;
+
+  const requestBody = buildMb1CreateBoostRequest({
+    totalMsat,
+    appName,
+    appVersion: WEB_APP_VERSION,
     action: 'boost',
-    split: 1,
-    value_msat: totalMsat,
-    value_msat_total: totalMsat,
-    message: message.trim() || undefined,
-    app_name: appName,
-    sender_name: yourName.trim() || undefined,
-    feed_guid: channel?.podcast_guid ?? undefined,
-    feed_title: channel?.title ?? undefined,
-    item_guid: item?.guid ?? undefined,
-    item_title: item?.title ?? undefined,
+    feedGuid,
+    feedTitle,
+    message,
+    yourName,
+    itemGuid: itemGuid === null || itemGuid === undefined ? undefined : itemGuid,
+    itemTitle: itemTitle === null || itemTitle === undefined ? undefined : itemTitle,
   });
 
   const { status, data: responseData } = await request<unknown>(metaBoost.node, {
@@ -53,13 +83,13 @@ export const requestMb1Metadata = async ({
     throw new Error('MetaBoost metadata request failed');
   }
 
-  if (!isBoostMetadataResponse(responseData)) {
-    throw new Error('Invalid MetaBoost metadata response');
+  if (!isMetaboostMb1CreateBoostResponse(responseData)) {
+    throw new Error('Invalid MetaBoost MB1 response');
   }
 
   return {
-    desc: responseData.desc,
-    messageGuid: responseData.id,
-    confirmUrl: responseData.url,
+    desc: derivePaymentDesc(message, appName),
+    messageGuid: responseData.message_guid,
+    confirmUrl: mb1ConfirmPaymentUrlFromBoostPostUrl(metaBoost.node),
   };
 };

@@ -19,7 +19,7 @@ export type LocalLnRecipientsConfig = {
 };
 
 /** Default MetaBoost URL for local test value tags. */
-export const METABOOST_URL = 'http://localhost:8080/boost';
+export const METABOOST_URL = 'http://localhost:8080/bucket/somefakeid';
 
 /** Fallback LNURL addresses when no local config is present. */
 export const LNURL_TEST_ADDRESSES = [

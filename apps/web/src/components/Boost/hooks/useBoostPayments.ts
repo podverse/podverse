@@ -19,6 +19,7 @@ import type { MetaBoost } from '@podverse/v4v-metaboost';
 import { resolveBoostExecutionStrategy } from '@podverse/v4v-metaboost';
 
 import { ensureWeblnEnabled } from '../../../utils/value/webln';
+import type { Mb1RssContext } from '../donateMb1RssContext';
 import { buildCustomRecordsForRecipient } from '../payments/boostBlipCustomRecords';
 import { getProviderFailure } from '../payments/boostPaymentProviderFailure';
 import type { Mb1ConfirmTarget } from '../payments/mb1/mb1ConfirmPayment';
@@ -46,6 +47,7 @@ type BoostPaymentAppConfig = {
 type UseBoostPaymentsParams = {
   channel: DTOChannel | null;
   item: DTOItem | null;
+  mb1RssContext?: Mb1RssContext | null;
   config: BoostPaymentAppConfig;
   tValue: Translator;
   message: string;
@@ -72,6 +74,7 @@ type UseBoostPaymentsParams = {
 export const useBoostPayments = ({
   channel,
   item,
+  mb1RssContext,
   config,
   tValue,
   message,
@@ -87,6 +90,11 @@ export const useBoostPayments = ({
   setModalBoostMessageError,
   onBoostSuccess,
 }: UseBoostPaymentsParams) => {
+  const resolvedBlipFeedGuid = mb1RssContext?.feedGuid ?? channel?.podcast_guid ?? undefined;
+  const resolvedBlipFeedTitle = mb1RssContext?.feedTitle ?? channel?.title ?? undefined;
+  const resolvedBlipItemGuid = mb1RssContext?.itemGuid ?? item?.guid ?? undefined;
+  const resolvedBlipItemTitle = mb1RssContext?.itemTitle ?? item?.title ?? undefined;
+
   const sendPayments = async (
     desc: string | null,
     allowBlipFallback: boolean,
@@ -187,10 +195,10 @@ export const useBoostPayments = ({
                   app_name: config.public.brand.name,
                   sender_name: effectiveSenderName || undefined,
                   message: blipMessage,
-                  guid: channel?.podcast_guid ?? undefined,
-                  podcast: channel?.title ?? undefined,
-                  episode: item?.title ?? undefined,
-                  episode_guid: item?.guid ?? undefined,
+                  guid: resolvedBlipFeedGuid,
+                  podcast: resolvedBlipFeedTitle,
+                  episode: resolvedBlipItemTitle,
+                  episode_guid: resolvedBlipItemGuid,
                   name: recipient.name ?? undefined,
                 })
               )
@@ -284,6 +292,7 @@ export const useBoostPayments = ({
         const metadata = await requestMb1Metadata({
           channel,
           item,
+          mb1RssContext,
           appName: config.public.brand.name,
           message,
           yourName,

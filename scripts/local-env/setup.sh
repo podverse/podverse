@@ -184,14 +184,28 @@ generate_uuid() {
 }
 
 load_overrides() {
-	if [ -d "$OVERRIDES_DIR" ]; then
-		for file in "$OVERRIDES_DIR"/*.env; do
-			[ -f "$file" ] || continue
-			set -a
-			# shellcheck disable=SC1090
-			. "$file"
-			set +a
-		done
+	local lightning_file="$OVERRIDES_DIR/lightning.env"
+	if [ ! -d "$OVERRIDES_DIR" ]; then
+		return 0
+	fi
+	# Source all override files except lightning.env, then lightning.env last.
+	# This keeps migration-safe ordering: MetaBoost moved to metaboost.env.example, but existing
+	# installs may still define NEXT_PUBLIC_APP_VALUE_METABOOST_* only in lightning.env; sourcing
+	# lightning.env last preserves those values over empty assignments in metaboost.env.
+	local file
+	for file in "$OVERRIDES_DIR"/*.env; do
+		[ -f "$file" ] || continue
+		[ "$file" = "$lightning_file" ] && continue
+		set -a
+		# shellcheck disable=SC1090
+		. "$file"
+		set +a
+	done
+	if [ -f "$lightning_file" ]; then
+		set -a
+		# shellcheck disable=SC1090
+		. "$lightning_file"
+		set +a
 	fi
 }
 
@@ -398,7 +412,12 @@ if [ -n "${SUPPORTED_LOCALES:-}" ]; then
 fi
 
 # From lightning.env
-for v in NEXT_PUBLIC_APP_VALUE_LIGHTNING_NODE_NAME NEXT_PUBLIC_APP_VALUE_LIGHTNING_NODE_ADDRESS NEXT_PUBLIC_APP_VALUE_LIGHTNING_NODE_CUSTOM_KEY NEXT_PUBLIC_APP_VALUE_LIGHTNING_NODE_CUSTOM_VALUE NEXT_PUBLIC_APP_VALUE_LIGHTNING_LNADDRESS_NAME NEXT_PUBLIC_APP_VALUE_LIGHTNING_LNADDRESS_ADDRESS NEXT_PUBLIC_APP_VALUE_METABOOST_STANDARD NEXT_PUBLIC_APP_VALUE_METABOOST_NODE; do
+for v in NEXT_PUBLIC_APP_VALUE_LIGHTNING_NODE_NAME NEXT_PUBLIC_APP_VALUE_LIGHTNING_NODE_ADDRESS NEXT_PUBLIC_APP_VALUE_LIGHTNING_NODE_CUSTOM_KEY NEXT_PUBLIC_APP_VALUE_LIGHTNING_NODE_CUSTOM_VALUE NEXT_PUBLIC_APP_VALUE_LIGHTNING_LNADDRESS_NAME NEXT_PUBLIC_APP_VALUE_LIGHTNING_LNADDRESS_ADDRESS; do
+	apply_override "$v" "${WEB_ENV_FILES_APP_AND_SIDECAR[@]}"
+done
+
+# From metaboost.env
+for v in NEXT_PUBLIC_APP_VALUE_METABOOST_STANDARD NEXT_PUBLIC_APP_VALUE_METABOOST_NODE; do
 	apply_override "$v" "${WEB_ENV_FILES_APP_AND_SIDECAR[@]}"
 done
 

@@ -175,7 +175,8 @@ different subsets.
 | app.env                  | API + Workers + Management API (LOG_DIR); API (ACCOUNT_SIGNUP_MODE); Web (NEXT_PUBLIC_ACCOUNT_SIGNUP_MODE from ACCOUNT_SIGNUP_MODE).                                   |
 | brand.env                | api/web = BRAND_NAME; mgmt api/mgmt web = MANAGEMENT_BRAND_NAME. Do not set NEXT_PUBLIC_BRAND_NAME in overrides.                                                       |
 | email-template.env       | API only                                                                                                                                                               |
-| lightning.env            | Web only                                                                                                                                                               |
+| lightning.env            | Web only (Lightning LNAddress / node app-value vars)                                                                                                                   |
+| metaboost.env            | Web only (`NEXT_PUBLIC_APP_VALUE_METABOOST_STANDARD`, `NEXT_PUBLIC_APP_VALUE_METABOOST_NODE`)                                                                          |
 | locale.env               | Web + Management Web (app, infra, sidecars): NEXT*PUBLIC_FEATURES*\* from DEFAULT_LOCALE, SUPPORTED_LOCALES. Single source; do not set locale in other override files. |
 | management-superuser.env | Local DB env (`infra/config/local/db.env`) for management superuser bootstrap                                                                                          |
 | notifications.env        | Workers; Web gets NEXT_PUBLIC_WEBPUSH_VAPID_PUBLIC_KEY                                                                                                                 |
