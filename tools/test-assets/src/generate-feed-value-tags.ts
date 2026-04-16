@@ -172,7 +172,7 @@ export const buildChannelValueBlock = (_recipientCount: number): string => {
   ].join('\n');
 };
 
-/** Build channel-level standalone <podcast:metaBoost> tag (not nested in podcast:value). */
+/** Build channel-level `<podcast:metaBoost>` for test feeds (alongside `<podcast:value>` blocks). */
 export const buildChannelMetaBoostTag = (): string => {
   return `<podcast:metaBoost standard="mb1">${METABOOST_URL}</podcast:metaBoost>`;
 };

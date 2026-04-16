@@ -22,19 +22,10 @@ import { ensureWeblnEnabled } from '../../../utils/value/webln';
 import type { Mb1RssContext } from '../donateMb1RssContext';
 import { buildCustomRecordsForRecipient } from '../payments/boostBlipCustomRecords';
 import { getProviderFailure } from '../payments/boostPaymentProviderFailure';
-import type { Mb1ConfirmTarget } from '../payments/mb1/mb1ConfirmPayment';
-import { confirmMb1Payment } from '../payments/mb1/mb1ConfirmPayment';
-import { requestMb1Metadata } from '../payments/mb1/mb1RequestMetadata';
+import { getMb1PaymentDesc, postMb1BoostMessage } from '../payments/mb1/mb1RequestMetadata';
 import type { PaymentRecipient, RecipientStatus } from '../types.js';
 
 type Translator = (key: string, values?: Record<string, string | number>) => string;
-
-type BoostMessageModalParams = {
-  title: string;
-  message: string;
-  onSendAnyway: () => void;
-  onCancel: () => void;
-};
 
 type BoostPaymentAppConfig = {
   public: {
@@ -67,8 +58,9 @@ type UseBoostPaymentsParams = {
   ) => void;
   setRecipientStatuses: Dispatch<SetStateAction<RecipientStatus[]>>;
   setIsSubmitting: Dispatch<SetStateAction<boolean>>;
-  setModalBoostMessageError: (params: BoostMessageModalParams) => void;
   onBoostSuccess?: () => void;
+  /** MB1 HTTP POST after payment only when GET capability succeeded; Lightning still runs if false. */
+  mb1HttpMessagingEnabled: boolean;
 };
 
 export const useBoostPayments = ({
@@ -87,18 +79,33 @@ export const useBoostPayments = ({
   updateRecipientStatus,
   setRecipientStatuses,
   setIsSubmitting,
-  setModalBoostMessageError,
   onBoostSuccess,
+  mb1HttpMessagingEnabled,
 }: UseBoostPaymentsParams) => {
   const resolvedBlipFeedGuid = mb1RssContext?.feedGuid ?? channel?.podcast_guid ?? undefined;
   const resolvedBlipFeedTitle = mb1RssContext?.feedTitle ?? channel?.title ?? undefined;
   const resolvedBlipItemGuid = mb1RssContext?.itemGuid ?? item?.guid ?? undefined;
   const resolvedBlipItemTitle = mb1RssContext?.itemTitle ?? item?.title ?? undefined;
+  const getLargestSplitRecipient = (): PaymentRecipient | null => {
+    let largest: PaymentRecipient | null = null;
+    for (const recipient of paymentRecipients) {
+      if (recipient.final_amount <= 0) {
+        continue;
+      }
+      const recipientSplit = recipient.normalized_split ?? recipient.split ?? 0;
+      const currentSplit = largest?.normalized_split ?? largest?.split ?? 0;
+      if (largest === null || recipientSplit > currentSplit) {
+        largest = recipient;
+      }
+    }
+    return largest;
+  };
 
   const sendPayments = async (
     desc: string | null,
     allowBlipFallback: boolean,
-    confirmTarget?: Mb1ConfirmTarget
+    shouldPostMb1: boolean,
+    omitBlipMetadataInKeysend: boolean
   ) => {
     const provider = await ensureWeblnEnabled();
     let finalRecipientStatuses = toRecipientStatuses(paymentRecipients);
@@ -109,9 +116,6 @@ export const useBoostPayments = ({
         error: 'WebLN wallet not available.',
       }));
       setRecipientStatuses(finalRecipientStatuses);
-      if (confirmTarget !== undefined) {
-        await confirmMb1Payment(confirmTarget, finalRecipientStatuses);
-      }
       setIsSubmitting(false);
       return;
     }
@@ -182,7 +186,8 @@ export const useBoostPayments = ({
           updateRecipientStatus(recipient.id, 'paying');
           setLocalRecipientStatus(recipient.id, 'paying');
           const amountMsat = Math.max(0, Math.round(recipient.final_amount * 1000));
-          const shouldIncludeBlip = desc !== null || allowBlipFallback;
+          const shouldIncludeBlip =
+            !omitBlipMetadataInKeysend && (desc !== null || allowBlipFallback);
           const effectiveMessage = allowBlipFallback ? '' : message;
           const effectiveSenderName = allowBlipFallback ? '' : yourName.trim();
           const blipMessage = buildBlipMessage(desc, allowBlipFallback, effectiveMessage);
@@ -273,8 +278,30 @@ export const useBoostPayments = ({
       }
     }
 
-    if (confirmTarget !== undefined) {
-      await confirmMb1Payment(confirmTarget, finalRecipientStatuses);
+    if (shouldPostMb1 && metaBoost !== null) {
+      const largestRecipient = getLargestSplitRecipient();
+      const largestRecipientStatus = finalRecipientStatuses.find(
+        (recipient) => recipient.id === largestRecipient?.id
+      );
+      if (largestRecipientStatus?.status === 'success') {
+        try {
+          await postMb1BoostMessage({
+            channel,
+            item,
+            mb1RssContext,
+            appName: config.public.brand.name,
+            message,
+            yourName,
+            metaBoost,
+            totalAmountToCreator,
+            totalAmountToApp,
+          });
+        } catch (error) {
+          if (process.env.NODE_ENV === 'development') {
+            console.warn('MetaBoost MB1 post failed', error);
+          }
+        }
+      }
     }
 
     if (!anyFailed) {
@@ -288,42 +315,12 @@ export const useBoostPayments = ({
     const { shouldUseMb1, allowBlipFallback } = resolveBoostExecutionStrategy(metaBoost);
 
     if (shouldUseMb1 && metaBoost !== null) {
-      try {
-        const metadata = await requestMb1Metadata({
-          channel,
-          item,
-          mb1RssContext,
-          appName: config.public.brand.name,
-          message,
-          yourName,
-          metaBoost,
-          totalAmountToCreator,
-          totalAmountToApp,
-        });
-        await sendPayments(metadata.desc, false, {
-          messageGuid: metadata.messageGuid,
-          confirmUrl: metadata.confirmUrl,
-        });
-        return;
-      } catch (error) {
-        console.error(error);
-        setIsSubmitting(false);
-        setModalBoostMessageError({
-          title: tValue('boost_messages.server_error_title'),
-          message: tValue('boost_messages.server_error_message'),
-          onSendAnyway: () => {
-            setIsSubmitting(true);
-            void sendPayments(null, false);
-          },
-          onCancel: () => {
-            setIsSubmitting(false);
-          },
-        });
-        return;
-      }
+      const desc = getMb1PaymentDesc(message, config.public.brand.name);
+      await sendPayments(desc, false, mb1HttpMessagingEnabled, true);
+      return;
     }
 
-    await sendPayments(null, allowBlipFallback);
+    await sendPayments(null, allowBlipFallback, false, false);
   };
 
   return { handleSubmitBoost, sendPayments };

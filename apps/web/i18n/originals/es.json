@@ -289,7 +289,9 @@
       "failed_to_send": "Fallido:",
       "error_details_heading": "Detalles del error",
       "retried_requests": "Reintentos de la solicitud de Dirección Lightning {count, plural, one {# vez} other {# veces}} antes de que fallara.",
-      "retry_attempt": "Reintento {number}: "
+      "retry_attempt": "Reintento {number}: ",
+      "mb1_capability_loading_status": "Comprobando disponibilidad de mensajes de refuerzo",
+      "mb1_capability_unavailable": "Los mensajes de refuerzo no están disponibles para este creador en este momento debido a un problema del servidor, pero aún puedes usar el formulario para enviar una donación."
     },
     "types": {
       "lightning": {

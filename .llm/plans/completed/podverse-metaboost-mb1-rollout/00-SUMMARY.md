@@ -51,7 +51,7 @@ Primary files:
 - `apps/web/src/components/Boost/hooks/useBoostSelection.ts`
 - `apps/web/src/components/Boost/hooks/useBoostPayments.ts`
 - `packages/v4v-metaboost/src/metaBoost.ts`
-- `packages/v4v-metaboost/src/mb1ConfirmPayment.ts`
+- `packages/v4v-metaboost/src/mb1CreateBoost.ts`
 
 ### Donation flow gap
 

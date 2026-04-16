@@ -1,14 +1,10 @@
 import { describe, expect, it } from 'vitest';
 
-import {
-  buildMb1CreateBoostRequest,
-  isMetaboostMb1CreateBoostResponse,
-  MB1_FORBIDDEN_LEGACY_BODY_KEYS,
-  mb1ConfirmPaymentUrlFromBoostPostUrl,
-} from './mb1CreateBoost.js';
+import { BLIP0010_BTC_LN_BOOST_JSON_KEYS } from './blip0010BtcLnBoostJsonKeys.js';
+import { buildMb1CreateBoostRequest, isMetaboostMb1CreateBoostResponse } from './mb1CreateBoost.js';
 
 describe('buildMb1CreateBoostRequest', () => {
-  it('produces MB1 ingest fields and omits legacy Blip keys', () => {
+  it('produces MB1 ingest fields only (no bLIP-0010 BTC/LN keysend JSON keys)', () => {
     const body = buildMb1CreateBoostRequest({
       totalMsat: 5_000_000,
       appName: 'Podverse',
@@ -34,7 +30,7 @@ describe('buildMb1CreateBoostRequest', () => {
     expect(body.item_title).toBe('Episode 1');
 
     const serialized = JSON.stringify(body);
-    for (const key of MB1_FORBIDDEN_LEGACY_BODY_KEYS) {
+    for (const key of BLIP0010_BTC_LN_BOOST_JSON_KEYS) {
       expect(serialized.includes(`"${key}"`)).toBe(false);
     }
   });
@@ -53,14 +49,6 @@ describe('buildMb1CreateBoostRequest', () => {
 
     expect(body.item_guid).toBeUndefined();
     expect(body.item_title).toBeUndefined();
-  });
-});
-
-describe('mb1ConfirmPaymentUrlFromBoostPostUrl', () => {
-  it('appends confirm-payment to boost URL', () => {
-    expect(mb1ConfirmPaymentUrlFromBoostPostUrl('http://localhost:4000/v1/s/mb1/boost/abc/')).toBe(
-      'http://localhost:4000/v1/s/mb1/boost/abc/confirm-payment'
-    );
   });
 });
 

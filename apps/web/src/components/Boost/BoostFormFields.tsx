@@ -26,6 +26,12 @@ type BoostFormFieldsProps = {
   setYourName: (value: string) => void;
   message: string;
   setMessage: (value: string) => void;
+  /** Max length for message; omit when MB1 capability is still loading (no counter yet). */
+  messageMaxLength?: number;
+  /** MB1: message field blocked until capability succeeds; show overlay while loading. */
+  mb1MessageFieldBlocked: boolean;
+  mb1MessageLoading: boolean;
+  mb1CapabilityFailed: boolean;
   tValue: Translator;
   tMisc: Translator;
   brandName: string;
@@ -49,70 +55,89 @@ export const BoostFormFields = ({
   setYourName,
   message,
   setMessage,
+  messageMaxLength,
+  mb1MessageFieldBlocked,
+  mb1MessageLoading,
+  mb1CapabilityFailed,
   tValue,
   tMisc,
   brandName,
   metaBoost = null,
   showMetaBoostInfo = false,
   onToggleMetaBoostInfo,
-}: BoostFormFieldsProps) => (
-  <Form
-    onSubmit={(e) => {
-      e.preventDefault();
-    }}
-  >
-    <div className={styles.boostAmountInputs}>
-      {showCreatorInput && (
-        <TextInputNumber
-          eyebrow={tValue('send_to.creator')}
-          value={totalAmountToCreator}
-          min={0}
-          onChange={(e) => setTotalAmountToCreator(Number(e.target.value))}
-          sideText={selectedValueKey ? tValue(`types.${selectedValueKey}.denomination`) : undefined}
-          disabled={isSubmitting || hasStatusUpdates}
-        />
+}: BoostFormFieldsProps) => {
+  const nameMessageFieldsDisabled = isSubmitting || hasStatusUpdates || mb1MessageFieldBlocked;
+
+  return (
+    <Form
+      onSubmit={(e) => {
+        e.preventDefault();
+      }}
+    >
+      <div className={styles.boostAmountInputs}>
+        {showCreatorInput && (
+          <TextInputNumber
+            eyebrow={tValue('send_to.creator')}
+            value={totalAmountToCreator}
+            min={0}
+            onChange={(e) => setTotalAmountToCreator(Number(e.target.value))}
+            sideText={
+              selectedValueKey ? tValue(`types.${selectedValueKey}.denomination`) : undefined
+            }
+            disabled={isSubmitting || hasStatusUpdates}
+          />
+        )}
+        {showAppInput && (
+          <TextInputNumber
+            eyebrow={tValue('send_to.app', { brand_name: brandName })}
+            value={totalAmountToApp}
+            min={0}
+            onChange={(e) => setTotalAmountToApp(Number(e.target.value))}
+            sideText={
+              selectedValueKey ? tValue(`types.${selectedValueKey}.denomination`) : undefined
+            }
+            disabled={isSubmitting || hasStatusUpdates}
+          />
+        )}
+      </div>
+      {showNameAndMessage && (
+        <>
+          {mb1CapabilityFailed && (
+            <p className={styles.mb1CapabilityError} role="status">
+              {tValue('boost_messages.mb1_capability_unavailable')}
+            </p>
+          )}
+          <TextInput
+            eyebrow={tValue('your_name')}
+            value={yourName}
+            placeholder={tMisc('anonymous')}
+            onChange={(e) => setYourName(e.target.value)}
+            disabled={nameMessageFieldsDisabled}
+          />
+          <TextArea
+            eyebrow={tValue('message')}
+            value={message}
+            placeholder={tMisc('optional')}
+            onChange={(e) => setMessage(e.target.value)}
+            maxLength={messageMaxLength}
+            disabled={nameMessageFieldsDisabled}
+            showLoadingOverlay={mb1MessageLoading}
+            loadingOverlayStatusText={tValue('boost_messages.mb1_capability_loading_status')}
+            footerLeftContent={
+              metaBoost && onToggleMetaBoostInfo ? (
+                <Button
+                  type="button"
+                  variant="link"
+                  className={styles.metaBoostInfoToggle}
+                  onClick={onToggleMetaBoostInfo}
+                >
+                  {showMetaBoostInfo ? tMisc('hide_info') : tMisc('more_info')}
+                </Button>
+              ) : undefined
+            }
+          />
+        </>
       )}
-      {showAppInput && (
-        <TextInputNumber
-          eyebrow={tValue('send_to.app', { brand_name: brandName })}
-          value={totalAmountToApp}
-          min={0}
-          onChange={(e) => setTotalAmountToApp(Number(e.target.value))}
-          sideText={selectedValueKey ? tValue(`types.${selectedValueKey}.denomination`) : undefined}
-          disabled={isSubmitting || hasStatusUpdates}
-        />
-      )}
-    </div>
-    {showNameAndMessage && (
-      <>
-        <TextInput
-          eyebrow={tValue('your_name')}
-          value={yourName}
-          placeholder={tMisc('anonymous')}
-          onChange={(e) => setYourName(e.target.value)}
-          disabled={isSubmitting || hasStatusUpdates}
-        />
-        <TextArea
-          eyebrow={tValue('message')}
-          value={message}
-          placeholder={tMisc('optional')}
-          onChange={(e) => setMessage(e.target.value)}
-          maxLength={500}
-          disabled={isSubmitting || hasStatusUpdates}
-          footerLeftContent={
-            metaBoost && onToggleMetaBoostInfo ? (
-              <Button
-                type="button"
-                variant="link"
-                className={styles.metaBoostInfoToggle}
-                onClick={onToggleMetaBoostInfo}
-              >
-                {showMetaBoostInfo ? tMisc('hide_info') : tMisc('more_info')}
-              </Button>
-            ) : undefined
-          }
-        />
-      </>
-    )}
-  </Form>
-);
+    </Form>
+  );
+};

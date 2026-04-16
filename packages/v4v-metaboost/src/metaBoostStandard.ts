@@ -1,5 +1,5 @@
 import type { MetaBoost } from './metaBoost.js';
-import { META_BOOST_SCHEMA_MB1, META_BOOST_TYPE_POST, toMetaBoost } from './metaBoost.js';
+import { createMetaBoostFromNode } from './metaBoost.js';
 
 export const META_BOOST_STANDARD_MB1 = 'mb1' as const;
 
@@ -34,12 +34,32 @@ type ResolveMetaBoostStandardParams = {
   node: string | null | undefined;
 };
 
-type MetaBoostLike = {
+/**
+ * RSS `<podcast:metaBoost>` tag fields as parsed by Partytime (`PhasePendingMetaBoost`):
+ * `standard` attribute + normalized `node` URL text — see `partytime` `phase-pending.ts` `metaBoost`.
+ */
+export type MetaBoostTagFields = {
   standard?: string | null;
-  type?: string | null;
-  schema?: string | null;
-  license?: string | null;
   node?: string | null;
+};
+
+/**
+ * Maps `{ standard, node }` from `DTOChannel.channel_meta_boost` (API/ORM relation payload) to
+ * {@link MetaBoostTagFields}.
+ */
+export const metaBoostTagFieldsFromApiDto = (
+  dto: { standard?: string | null; node?: string | null } | null | undefined
+): MetaBoostTagFields | null => {
+  if (dto === null || dto === undefined) {
+    return null;
+  }
+  const node = typeof dto.node === 'string' && dto.node.trim() !== '' ? dto.node : null;
+  const standardRaw =
+    typeof dto.standard === 'string' && dto.standard.trim() !== '' ? dto.standard.trim() : null;
+  if (standardRaw === null || node === null) {
+    return null;
+  }
+  return { standard: standardRaw, node };
 };
 
 const normalizeStandard = (standard: string | null | undefined): string | null => {
@@ -53,8 +73,7 @@ const normalizeStandard = (standard: string | null | undefined): string | null =
 const mb1StandardHandler: MetaBoostStandardHandler = {
   standard: META_BOOST_STANDARD_MB1,
   supportedCurrencies: [PODVERSE_META_BOOST_CURRENCY_BTC],
-  resolveMetaBoost: ({ node }) =>
-    toMetaBoost(META_BOOST_TYPE_POST, META_BOOST_SCHEMA_MB1, null, node),
+  resolveMetaBoost: ({ node }) => createMetaBoostFromNode(node),
 };
 
 const standardHandlers: MetaBoostStandardHandler[] = [mb1StandardHandler];
@@ -87,47 +106,41 @@ export const resolveMetaBoostStandard = (
   };
 };
 
+/**
+ * Resolve a supported MetaBoost standard from RSS tag fields only (Partytime `PhasePendingMetaBoost`).
+ * For Podverse API `channel_meta_boost` on a channel (same `{ standard, node }` shape), use
+ * {@link metaBoostTagFieldsFromApiDto} or {@link resolveMetaBoostFromApiValueMetadata}.
+ */
 export const resolveMetaBoostFromValueMetadata = (
-  value: MetaBoostLike | null | undefined
+  value: MetaBoostTagFields | null | undefined
 ): ResolvedMetaBoostStandard | null => {
   if (value === null || value === undefined) {
     return null;
   }
 
-  const standardResolved = resolveMetaBoostStandard({
+  return resolveMetaBoostStandard({
     standard: value.standard ?? null,
     node: value.node ?? null,
   });
-  if (standardResolved !== null) {
-    return standardResolved;
-  }
-
-  const legacyMetaBoost = toMetaBoost(
-    value.type ?? null,
-    value.schema ?? null,
-    value.license ?? null,
-    value.node ?? null
-  );
-  if (legacyMetaBoost === null) {
-    return null;
-  }
-
-  if (
-    legacyMetaBoost.type === META_BOOST_TYPE_POST &&
-    legacyMetaBoost.schema === META_BOOST_SCHEMA_MB1
-  ) {
-    return {
-      normalizedStandard: META_BOOST_STANDARD_MB1,
-      metaBoost: legacyMetaBoost,
-      handler: mb1StandardHandler,
-    };
-  }
-
-  return null;
 };
 
-export const isMb1MetaBoost = (metaBoost: MetaBoost): boolean =>
-  metaBoost.type === META_BOOST_TYPE_POST && metaBoost.schema === META_BOOST_SCHEMA_MB1;
+/**
+ * Convenience: `channel_meta_boost`-shaped JSON from API or storage (`standard` + `node`) → resolved
+ * standard (see {@link metaBoostTagFieldsFromApiDto}). Used for `DTOChannel.channel_meta_boost`, not
+ * per-value rows.
+ */
+export const resolveMetaBoostFromApiValueMetadata = (
+  dto: { standard?: string | null; node?: string | null } | null | undefined
+): ResolvedMetaBoostStandard | null => {
+  const fields = metaBoostTagFieldsFromApiDto(dto);
+  if (fields === null) {
+    return null;
+  }
+  return resolveMetaBoostFromValueMetadata(fields);
+};
+
+export const isMb1MetaBoost = (metaBoost: MetaBoost | null | undefined): boolean =>
+  Boolean(metaBoost?.node);
 
 export const resolveBoostExecutionStrategy = (
   metaBoost: MetaBoost | null | undefined

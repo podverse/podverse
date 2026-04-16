@@ -15,16 +15,15 @@ flowchart TD
   Mapping[Parser mapping compat]
   Parser[Podverse parser ingest]
   ORM[ORM services]
-  DB[(DB: channel_value_meta_boost<br/>item_value_meta_boost)]
-  API[API responses with value + metaBoost]
+  DB[(DB: channel_meta_boost)]
+  API[API responses with channel values + channel metaBoost]
   Web[Web client boost flow]
   MetaBoostServer[MetaBoost server /boost]
   Alby[Alby Sandbox LNURL<br/>invoice endpoints]
 
   Feed --> Partytime --> Mapping --> Parser --> ORM --> DB
   DB --> API --> Web
-  Web -->|metaBoost metadata| MetaBoostServer
-  Web -->|mb1 recipient_outcomes confirm| MetaBoostServer
+  Web -->|POST /boost after largest split recipient succeeds| MetaBoostServer
   Web -->|LNURL invoice request| Alby
   Alby -->|invoice response| Web
 ```

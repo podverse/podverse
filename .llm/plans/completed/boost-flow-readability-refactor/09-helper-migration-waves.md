@@ -22,7 +22,7 @@ Migrate duplicate generic helpers to shared modules incrementally, starting with
 ### Scope
 
 - Replace local generic helpers in:
-  - `packages/v4v-metaboost/src/mb1ConfirmPayment.ts`
+  - `packages/v4v-metaboost/src/mb1CreateBoost.ts`
   - other `v4v-metaboost` files where generic patterns match
   - `packages/v4v-btc-ln` safe candidates
 

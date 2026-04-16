@@ -1,6 +1,6 @@
 import { getOwnPropertyValue, isObjectLike } from '@podverse/helpers';
 
-/** Aligns with MetaBoost MB1 ingest / `createMb1BoostSchema` (no Blip/value_msat fields). */
+/** Aligns with MetaBoost MB1 ingest / `createMb1BoostSchema`. */
 export const MB1_CURRENCY_BTC = 'BTC';
 
 /** Metaboost uses `satoshis` (see `@metaboost/helpers` `MB1_SATOSHIS_UNIT`). */
@@ -10,14 +10,6 @@ export const MB1_BOOST_ACTION = 'boost' as const;
 export const MB1_STREAM_ACTION = 'stream' as const;
 
 export type Mb1CreateBoostAction = typeof MB1_BOOST_ACTION | typeof MB1_STREAM_ACTION;
-
-/** Keys that must never appear on the Metaboost MB1 HTTP POST body (Blip / legacy layer only). */
-export const MB1_FORBIDDEN_LEGACY_BODY_KEYS = [
-  'value_msat',
-  'value_msat_total',
-  'timestamp',
-  'split',
-] as const;
 
 export type Mb1CreateBoostIngestBody = {
   currency: typeof MB1_CURRENCY_BTC;
@@ -94,11 +86,6 @@ export const buildMb1CreateBoostRequest = (
   }
 
   return body;
-};
-
-export const mb1ConfirmPaymentUrlFromBoostPostUrl = (boostPostUrl: string): string => {
-  const trimmed = boostPostUrl.replace(/\/+$/, '');
-  return `${trimmed}/confirm-payment`;
 };
 
 export type MetaboostMb1CreateBoostResponse = {

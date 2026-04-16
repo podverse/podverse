@@ -7,8 +7,7 @@ Prove behavior parity and preserve core MetaBoost/bLIP invariants after refactor
 ## Required Behavior Matrix
 
 1. MB1 available/supported:
-   - metadata request path runs
-   - confirm-payment path runs
+   - MB1 POST (single-send after largest recipient success) runs when enabled
    - bLIP fallback is not used for that submission path
 2. MB1 unavailable/unsupported:
    - non-MB1 fallback path works as before
@@ -35,8 +34,7 @@ Run from repo root:
 Capture artifacts proving behavior, not only lint/build:
 
 1. MB1 available/supported submission evidence:
-   - proof of metadata request call
-   - proof of confirm-payment call
+   - proof of MB1 ingest POST after successful recipient payment
    - proof that bLIP fallback path was not used for the same submission
 2. MB1 unavailable/unsupported submission evidence:
    - proof non-MB1 fallback path executed successfully

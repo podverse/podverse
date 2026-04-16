@@ -93,7 +93,9 @@ export const TextInput: React.FC<TextInputProps> = ({
 
   return (
     <div className={`${styles.textInput} ${className || ''}`} style={style}>
-      <div className={styles.textInputWrapper}>
+      <div
+        className={classNames(styles.textInputWrapper, disabled && styles.textInputWrapperDisabled)}
+      >
         {buttonIcon?.position === 'start' && (
           <button
             className={classNames(

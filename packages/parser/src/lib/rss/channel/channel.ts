@@ -7,6 +7,7 @@ import { handleParsedChannelFunding } from '@parser/lib/rss/channel/channelFundi
 import { handleParsedChannelImage } from '@parser/lib/rss/channel/channelImage.js';
 import { handleParsedChannelLicense } from '@parser/lib/rss/channel/channelLicense.js';
 import { handleParsedChannelLocation } from '@parser/lib/rss/channel/channelLocation.js';
+import { handleParsedChannelMetaBoost } from '@parser/lib/rss/channel/channelMetaBoost.js';
 import { handleParsedChannelPerson } from '@parser/lib/rss/channel/channelPerson.js';
 import { handleParsedChannelPodroll } from '@parser/lib/rss/channel/channelPodroll.js';
 import { handleParsedChannelPublisher } from '@parser/lib/rss/channel/channelPublisher.js';
@@ -74,5 +75,6 @@ const handleParsingTables = async (
     transactionalEntityManager
   );
   await handleParsedChannelTxt(parsedFeed, channel, transactionalEntityManager);
+  await handleParsedChannelMetaBoost(parsedFeed, channel, transactionalEntityManager);
   await handleParsedChannelValue(parsedFeed, channel, transactionalEntityManager);
 };

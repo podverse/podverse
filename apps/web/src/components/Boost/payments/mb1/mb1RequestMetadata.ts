@@ -4,13 +4,12 @@ import type { MetaBoost } from '@podverse/v4v-metaboost';
 import {
   buildMb1CreateBoostRequest,
   isMetaboostMb1CreateBoostResponse,
-  mb1ConfirmPaymentUrlFromBoostPostUrl,
 } from '@podverse/v4v-metaboost';
 
 import { WEB_APP_VERSION } from '../../../../config/webAppVersion';
 import type { Mb1RssContext } from '../../donateMb1RssContext';
 
-type RequestMb1MetadataParams = {
+type PostMb1BoostMessageParams = {
   channel: DTOChannel | null;
   item: DTOItem | null;
   mb1RssContext?: Mb1RssContext | null;
@@ -22,13 +21,7 @@ type RequestMb1MetadataParams = {
   totalAmountToApp: number;
 };
 
-export type Mb1MetadataResult = {
-  desc: string;
-  messageGuid: string;
-  confirmUrl: string;
-};
-
-const derivePaymentDesc = (message: string, appName: string): string => {
+export const getMb1PaymentDesc = (message: string, appName: string): string => {
   const trimmed = message.trim();
   if (trimmed.length > 0) {
     return trimmed;
@@ -36,7 +29,7 @@ const derivePaymentDesc = (message: string, appName: string): string => {
   return `${appName} boost`;
 };
 
-export const requestMb1Metadata = async ({
+export const postMb1BoostMessage = async ({
   channel,
   item,
   mb1RssContext,
@@ -46,7 +39,7 @@ export const requestMb1Metadata = async ({
   metaBoost,
   totalAmountToCreator,
   totalAmountToApp,
-}: RequestMb1MetadataParams): Promise<Mb1MetadataResult> => {
+}: PostMb1BoostMessageParams): Promise<string> => {
   const totalMsat = Math.max(0, Math.round((totalAmountToCreator + totalAmountToApp) * 1000));
   const feedGuidRaw = mb1RssContext?.feedGuid ?? channel?.podcast_guid;
   const feedTitleRaw = mb1RssContext?.feedTitle ?? channel?.title;
@@ -87,9 +80,5 @@ export const requestMb1Metadata = async ({
     throw new Error('Invalid MetaBoost MB1 response');
   }
 
-  return {
-    desc: derivePaymentDesc(message, appName),
-    messageGuid: responseData.message_guid,
-    confirmUrl: mb1ConfirmPaymentUrlFromBoostPostUrl(metaBoost.node),
-  };
+  return responseData.message_guid;
 };

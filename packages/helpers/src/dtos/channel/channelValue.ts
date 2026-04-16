@@ -1,4 +1,3 @@
-import type { DTOValueMetaBoost } from '../valueMetaBoost.js';
 import type { DTOChannelValueRecipient } from './channelValueRecipient.js';
 
 export interface DTOChannelValue {
@@ -6,6 +5,5 @@ export interface DTOChannelValue {
   type: string;
   method: string;
   suggested: number | null;
-  meta_boost?: DTOValueMetaBoost | null;
   channel_value_recipients: DTOChannelValueRecipient[];
 }

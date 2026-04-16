@@ -34,6 +34,7 @@ import { ChannelInternalSettings } from '@orm/entities/channel/channelInternalSe
 import { ChannelItunesType } from '@orm/entities/channel/channelItunesType.js';
 import { ChannelLicense } from '@orm/entities/channel/channelLicense.js';
 import { ChannelLocation } from '@orm/entities/channel/channelLocation.js';
+import { ChannelMetaBoost } from '@orm/entities/channel/channelMetaBoost.js';
 import { ChannelPerson } from '@orm/entities/channel/channelPerson.js';
 import { ChannelPodroll } from '@orm/entities/channel/channelPodroll.js';
 import { ChannelPodrollRemoteItem } from '@orm/entities/channel/channelPodrollRemoteItem.js';
@@ -45,7 +46,6 @@ import { ChannelSocialInteract } from '@orm/entities/channel/channelSocialIntera
 import { ChannelTrailer } from '@orm/entities/channel/channelTrailer.js';
 import { ChannelTxt } from '@orm/entities/channel/channelTxt.js';
 import { ChannelValue } from '@orm/entities/channel/channelValue.js';
-import { ChannelValueMetaBoost } from '@orm/entities/channel/channelValueMetaBoost.js';
 import { ChannelValueRecipient } from '@orm/entities/channel/channelValueRecipient.js';
 import { Clip } from '@orm/entities/clip.js';
 import { Feed } from '@orm/entities/feed/feed.js';
@@ -78,7 +78,6 @@ import { ItemSoundbite } from '@orm/entities/item/itemSoundbite.js';
 import { ItemTranscript } from '@orm/entities/item/itemTranscript.js';
 import { ItemTxt } from '@orm/entities/item/itemTxt.js';
 import { ItemValue } from '@orm/entities/item/itemValue.js';
-import { ItemValueMetaBoost } from '@orm/entities/item/itemValueMetaBoost.js';
 import { ItemValueRecipient } from '@orm/entities/item/itemValueRecipient.js';
 import { ItemValueTimeSplit } from '@orm/entities/item/itemValueTimeSplit.js';
 import { ItemValueTimeSplitRecipient } from '@orm/entities/item/itemValueTimeSplitRecipient.js';
@@ -154,8 +153,8 @@ export const entities = [
   ChannelSocialInteract,
   ChannelTrailer,
   ChannelTxt,
+  ChannelMetaBoost,
   ChannelValue,
-  ChannelValueMetaBoost,
   ChannelValueRecipient,
   Clip,
   Feed,
@@ -189,7 +188,6 @@ export const entities = [
   ItemTranscript,
   ItemTxt,
   ItemValue,
-  ItemValueMetaBoost,
   ItemValueRecipient,
   ItemValueTimeSplit,
   ItemValueTimeSplitRecipient,

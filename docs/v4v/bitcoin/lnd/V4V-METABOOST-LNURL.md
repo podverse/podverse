@@ -109,8 +109,8 @@ MetaBoost is emitted at the channel level with a required `standard` attribute:
 </channel>
 ```
 
-Podverse currently supports `mb1` (BTC flow only). Unknown/unsupported standards safely fall back
-to legacy V4V behavior (no MetaBoost metadata/confirm flow).
+Podverse currently supports `mb1` (BTC flow only). Unknown or unsupported `standard` values use
+the standard V4V path without MB1 messaging.
 
 ## Generate test assets (includes metaBoost + LNAddress + keysend)
 
@@ -131,24 +131,17 @@ npm run generate -w tools/test-assets -- --add-fake-value-tags
 ## Parse and store metaBoost
 
 1. Parse a feed (via `tools/test-assets` or ingest tooling).
-2. Confirm `channel_value_meta_boost` rows exist in the DB (channel tag is mapped into value metadata
-   for runtime compatibility).
+2. Confirm `channel_meta_boost` rows exist in the DB (at most one row per channel, FK to `channel`,
+   from channel-level `<podcast:metaBoost>` in the parsed feed).
 3. Parsing generated assets is the official "seeding" step for local testing.
 
 ## MetaBoost (MB1) flow
 
-When supported `<podcast:metaBoost standard="mb1">` metadata is present, the client must obtain
-MetaBoost metadata before sending payments:
+When `<podcast:metaBoost standard="mb1">` is present:
 
-1. POST boost metadata directly to the mb1 endpoint from `<podcast:metaBoost standard="mb1">`.
-2. Use the metadata response `desc` string (`rss::payment::{action} {url} {truncated message}`) for:
-   - LNAddress invoice comment (when allowed by LNURL).
-   - Keysend bLIP-0010 `message` field (so the payload carries the metadata URL).
-3. After attempting recipient payments, POST MB1 `recipient_outcomes` back to the confirm endpoint
-   from the metadata response.
-
-If metadata fetch fails, a modal warns that the message cannot be sent and the user can "Pay Anyway."
-Payments continue with **no memo** (no comment and no bLIP-0010 record).
+1. Attempt recipient payments.
+2. Determine whether the largest split recipient payment succeeded.
+3. If it succeeded, POST the MB1 boost body to the URL from `<podcast:metaBoost standard="mb1">`.
 
 ## Keysend (bLIP-0010) fallback
 
@@ -171,16 +164,15 @@ disabled **for LNURL invoice flows**. The boost form shows a notice with a "More
 ## Manual test checklist
 
 - MetaBoost tag appears in generated RSS at channel level.
-- Partytime parses `feed.metaBoost` and mapper persists channel value metaBoost rows.
-- API responses that include V4V value data include metaBoost fields.
+- Partytime parses `feed.metaBoost` and ingestion persists `channel_meta_boost` on the channel.
+- API responses that include V4V data expose `channel_meta_boost` on the channel when the feed had metaBoost.
 - Web UI shows per-recipient send status and amounts.
-- Metadata success: LNAddress invoices include metadata `desc` comment where allowed.
-- Metadata failure: modal appears; "Pay Anyway" sends payments with no message metadata.
+- MB1 post happens only when the largest split recipient payment succeeds.
 - Keysend without metaBoost: bLIP-0010 record is attached (TLV 7629169).
 - LNAddress without metaBoost: notice shown; payments sent without message metadata.
 - `/v4v/boost-messages` page loads and explains requirements.
 
-## Production follow-ups (not implemented)
+## Future production hardening (not implemented)
 
 - Replace hardcoded Alby Sandbox constants with production config.
 - Add production-grade error handling and retries.

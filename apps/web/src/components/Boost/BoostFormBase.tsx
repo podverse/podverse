@@ -2,7 +2,7 @@
 
 import { useTranslations } from 'next-intl';
 import type { ReactNode } from 'react';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 import type { DTOChannel, DTOItem } from '@podverse/helpers';
 import { isLnaddressRecipient } from '@podverse/v4v-btc-ln';
@@ -27,6 +27,10 @@ import { useBoostAppRecipients } from './hooks/useBoostAppRecipients';
 import { useBoostPayments } from './hooks/useBoostPayments';
 import { useBoostRecipients } from './hooks/useBoostRecipients';
 import { useBoostRecipientStatuses } from './hooks/useBoostRecipientStatuses';
+import {
+  BLIP0010_BTC_LN_BOOST_MESSAGE_CHAR_LIMIT,
+  useMb1BoostCapability,
+} from './hooks/useMb1BoostCapability';
 
 import styles from '../../styles/components/Boost/BoostForm.module.scss';
 
@@ -93,7 +97,7 @@ export const BoostFormBase: React.FC<BoostFormBaseProps> = ({
 }) => {
   const config = useConfig();
   const { boostFormDefaults, setBoostFormDefaults } = useLocalSettings();
-  const { setModalBoost, setModalBoostMessageError } = useModals();
+  const { setModalBoost } = useModals();
   const tValue = useTranslations('value');
   const tMisc = useTranslations('misc');
   const tDonate = useTranslations('donate');
@@ -222,6 +226,36 @@ export const BoostFormBase: React.FC<BoostFormBaseProps> = ({
 
   const shouldShowBoostMessageNotice = hasLnaddressRecipients && !metaBoost;
 
+  const {
+    status: mb1CapabilityStatus,
+    messageCharLimit: mb1MessageCharLimit,
+    termsOfServiceUrl: mb1TermsOfServiceUrl,
+  } = useMb1BoostCapability(metaBoost);
+
+  const messageMaxLength = useMemo((): number | undefined => {
+    if (metaBoost === null) {
+      return BLIP0010_BTC_LN_BOOST_MESSAGE_CHAR_LIMIT;
+    }
+    if (mb1CapabilityStatus === 'success' && mb1MessageCharLimit !== null) {
+      return mb1MessageCharLimit;
+    }
+    return undefined;
+  }, [metaBoost, mb1CapabilityStatus, mb1MessageCharLimit]);
+
+  const mb1MessageFieldBlocked = metaBoost !== null && mb1CapabilityStatus !== 'success';
+  const mb1MessageLoading = metaBoost !== null && mb1CapabilityStatus === 'loading';
+  const mb1CapabilityFailed = metaBoost !== null && mb1CapabilityStatus === 'error';
+  const mb1HttpMessagingEnabled = metaBoost !== null && mb1CapabilityStatus === 'success';
+
+  useEffect(() => {
+    if (typeof messageMaxLength !== 'number') {
+      return;
+    }
+    setMessage((previous) =>
+      previous.length > messageMaxLength ? previous.slice(0, messageMaxLength) : previous
+    );
+  }, [messageMaxLength]);
+
   const { handleSubmitBoost } = useBoostPayments({
     channel,
     item,
@@ -238,8 +272,8 @@ export const BoostFormBase: React.FC<BoostFormBaseProps> = ({
     updateRecipientStatus,
     setRecipientStatuses,
     setIsSubmitting,
-    setModalBoostMessageError,
     onBoostSuccess: () => setMessage(''),
+    mb1HttpMessagingEnabled,
   });
 
   const effectiveTotal =
@@ -295,6 +329,10 @@ export const BoostFormBase: React.FC<BoostFormBaseProps> = ({
               setYourName={setYourName}
               message={message}
               setMessage={setMessage}
+              messageMaxLength={messageMaxLength}
+              mb1MessageFieldBlocked={mb1MessageFieldBlocked}
+              mb1MessageLoading={mb1MessageLoading}
+              mb1CapabilityFailed={mb1CapabilityFailed}
               tValue={tValue}
               tMisc={tMisc}
               brandName={config.public.brand.name}
@@ -311,7 +349,12 @@ export const BoostFormBase: React.FC<BoostFormBaseProps> = ({
             <div className={styles.moreInfo}>
               {metaBoost && showMetaBoostInfo && (
                 <Callout>
-                  <BoostMetaBoostInfo metaBoost={metaBoost} />
+                  <BoostMetaBoostInfo
+                    boostNodeUrl={metaBoost.node}
+                    termsOfServiceUrl={
+                      mb1CapabilityStatus === 'success' ? mb1TermsOfServiceUrl : null
+                    }
+                  />
                 </Callout>
               )}
               <BoostRecipientInfo

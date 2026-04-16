@@ -130,9 +130,10 @@ asset generation.
   `podverse-test-assets`). Optional: `generate_and_parse` to also populate the DB.
 - When `--add-fake-value-tags` is set, the CLI uses `@podverse/v4v-btc-ln/test-data`
   (`readLocalLnRecipientsConfig`, `LNURL_TEST_ADDRESSES`, `VALUE_RECIPIENT_SPLITS`, `METABOOST_URL`)
-  to read `ln-recipients.local.json` (or fall back to built-in fake data) and emits RSS with
-  `<podcast:value>`, `<podcast:metaBoost>`, and `<podcast:valueRecipient>` where each value block
-  can mix `type="node"` and `type="lnaddress"` recipients.
+  to read `ln-recipients.local.json` (or fall back to built-in fake data) and emits RSS with a
+  channel-level `<podcast:metaBoost>`, plus `<podcast:value>` blocks that contain
+  `<podcast:valueRecipient>` children; each value block can mix `type="node"` and `type="lnaddress"`
+  recipients.
 
 ```mermaid
 flowchart LR
@@ -155,10 +156,11 @@ Value tags reference real local keysend pubkeys and LNURL addresses so E2E payme
 
 ## Parsing and storage
 
-RSS feed URL → **Partytime** (podverse-partytime) parses XML → `FeedObject` with `value`,
-`valueRecipient`, and `metaBoost` (channel and item). **Parser-mapping** (`compat/partytime/value`,
-`channel`, `item`) produces compat DTOs including `toMetaBoost`. **Parser** ingest
-(`handleParsedChannelValue`, item equivalent) → **ORM** services → **DB**.
+RSS feed URL → **Partytime** (podverse-partytime) parses XML → `FeedObject` with channel `values`,
+channel `metaBoost`, item-level value data, and related fields. **Parser-mapping**
+(`compat/partytime/channel`, `value`, `item`) produces compat DTOs. **Parser** ingest
+(`handleParsedChannelMetaBoost`, `handleParsedChannelValue`, item value handlers) → **ORM** services →
+**DB**.
 
 ```mermaid
 flowchart LR
@@ -167,7 +169,7 @@ flowchart LR
   Mapping[Parser mapping]
   Parser[Parser ingest]
   ORM[ORM services]
-  DB[(channel_value, channel_value_meta_boost, channel_value_recipient, item_value, item_value_meta_boost, item_value_recipient, item_value_time_split)]
+  DB[(channel_value, channel_meta_boost, channel_value_recipient, item_value, item_value_recipient, item_value_time_split)]
 
   Feed --> Partytime --> Mapping --> Parser --> ORM --> DB
 ```
@@ -178,7 +180,8 @@ See [V4V-METABOOST-FLOW.md](V4V-METABOOST-FLOW.md) for the metaBoost-focused dia
 
 ## API and MetaBoost metadata
 
-- Value and metaBoost are part of channel/item DTOs returned by existing API routes.
+- V4V value recipients map to channel/item value rows; channel `<podcast:metaBoost>` maps to
+  `channel_meta_boost` on the channel in API payloads (same relation name as ORM).
 - The web client posts metadata directly to the MB1 endpoint URL from `<podcast:metaBoost>`.
 
 ```mermaid

@@ -289,7 +289,9 @@
       "failed_to_send": "Failed: ",
       "error_details_heading": "Error details",
       "retried_requests": "We retried the request {count, plural, one {# time} other {# times}} before it failed.",
-      "retry_attempt": "Retry {number}: "
+      "retry_attempt": "Retry {number}: ",
+      "mb1_capability_loading_status": "Checking boost message availability",
+      "mb1_capability_unavailable": "Boost messages are not available for this creator at this time due to a server issue, but you can still use the form to send a donation."
     },
     "types": {
       "lightning": {

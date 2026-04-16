@@ -9,7 +9,5 @@ implementation.
   keysend, metaBoost flow, and full setup diagram.
 - **Podverse public RSS asset (mb1 integration/testing):**
   `apps/web/public/feeds/podverse-boosts-feed.xml` (served at `/feeds/podverse-boosts-feed.xml`).
-- **MB1 confirm-payment signaling:** Podverse web boost flow posts recipient-level
-  `recipient_outcomes` (type/address/split/name/custom_key/custom_value/fee/status) to the
-  confirmation endpoint returned by mb1 boost metadata, with legacy boolean fallback for older
-  endpoints.
+- **MB1 boost messages:** After split payments, Podverse posts one MB1 boost to the channel’s
+  `metaBoost` URL once the largest split recipient’s payment succeeds.

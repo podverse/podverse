@@ -1,3 +1,5 @@
+**Note:** Historical transcript. References to removed MB1 follow-up modules or paths in this file are obsolete.
+
 ### Session 1 - 2026-04-14
 
 #### Prompt (Developer)
@@ -55,7 +57,7 @@ To-do's from the plan have already been created. Do not create them again. Mark 
 - apps/web/src/components/Boost/payments/boostAppConfig.ts
 - apps/web/src/components/Boost/payments/boostBlipCustomRecords.ts
 - apps/web/src/components/Boost/payments/boostPaymentErrors.ts
-- apps/web/src/components/Boost/payments/mb1/mb1ConfirmPayment.ts
+- removed web MB1 helper module
 - apps/web/src/components/Boost/payments/mb1/mb1RequestMetadata.ts
 - .llm/history/active/boost-flow-readability-refactor/boost-flow-readability-refactor-part-01.md
 
@@ -153,8 +155,8 @@ do it
 
 #### Files Modified
 
-- apps/web/src/components/Boost/payments/mb1/mb1ConfirmPayment.ts
-- packages/v4v-metaboost/src/mb1ConfirmPayment.ts
+- removed web MB1 helper module
+- packages/v4v-metaboost/src/mb1CreateBoost.ts
 - .llm/history/active/boost-flow-readability-refactor/boost-flow-readability-refactor-part-01.md
 
 ### Session 19 - 2026-04-14
@@ -171,8 +173,8 @@ do it
 
 #### Files Modified
 
-- apps/web/src/components/Boost/payments/mb1/mb1ConfirmPayment.ts
-- packages/v4v-metaboost/src/mb1ConfirmPayment.ts
+- removed web MB1 helper module
+- packages/v4v-metaboost/src/mb1CreateBoost.ts
 - .llm/history/active/boost-flow-readability-refactor/boost-flow-readability-refactor-part-01.md
 
 ### Session 20 - 2026-04-14
@@ -459,7 +461,7 @@ To-do's from the plan have already been created. Do not create them again. Mark 
 - packages/v4v-btc-ln/src/lnurlp.ts
 - packages/v4v-metaboost/package.json
 - packages/v4v-metaboost/src/boostbox.ts
-- packages/v4v-metaboost/src/mb1ConfirmPayment.ts
+- packages/v4v-metaboost/src/mb1CreateBoost.ts
 - packages/v4v-metaboost/src/metaBoost.ts
 
 ### Session 5 - 2026-04-14
@@ -480,7 +482,7 @@ make the fixes
 
 #### Prompt (Developer)
 
-@podverse/packages/v4v-metaboost/src/mb1ConfirmPayment.ts:35-49 it seems like generic helpers like this should be defined in a sharable module and imported whenever needed. scan through the whole podverse monorepo for generic helpers of this nature, and move them to a sharable module and import them as needed. add the plan files for this work within the boost-flow- plans the and save those plan files locally
+@podverse/packages/v4v-metaboost/src/mb1CreateBoost.ts:35-49 it seems like generic helpers like this should be defined in a sharable module and imported whenever needed. scan through the whole podverse monorepo for generic helpers of this nature, and move them to a sharable module and import them as needed. add the plan files for this work within the boost-flow- plans the and save those plan files locally
 
 #### Key Decisions
 

@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import type { DTOChannel, DTOItem } from '@podverse/helpers';
 import {
   isPodverseMetaBoostCurrencySupported,
-  resolveMetaBoostFromValueMetadata,
+  resolveMetaBoostFromApiValueMetadata,
 } from '@podverse/v4v-metaboost';
 
 type Translator = (key: string, values?: Record<string, string | number>) => string;
@@ -54,13 +54,9 @@ const mergeLightningChannelValues = (values: ChannelValue[]): ChannelValue[] => 
     (acc, value) => [...acc, ...value.channel_value_recipients],
     []
   );
-  const mergedMetaBoost =
-    lightningValues.find((value) => value.meta_boost !== null && value.meta_boost !== undefined)
-      ?.meta_boost ?? null;
   const mergedLightning: ChannelValue = {
     ...firstLightning,
     method: 'keysend',
-    meta_boost: mergedMetaBoost,
     channel_value_recipients: mergedRecipients,
   };
   const mergedValues: ChannelValue[] = [];
@@ -91,13 +87,9 @@ const mergeLightningItemValues = (values: ItemValue[]): ItemValue[] => {
     (acc, value) => [...acc, ...value.item_value_recipients],
     []
   );
-  const mergedMetaBoost =
-    lightningValues.find((value) => value.meta_boost !== null && value.meta_boost !== undefined)
-      ?.meta_boost ?? null;
   const mergedLightning: ItemValue = {
     ...firstLightning,
     method: 'keysend',
-    meta_boost: mergedMetaBoost,
     item_value_recipients: mergedRecipients,
   };
   const mergedValues: ItemValue[] = [];
@@ -138,9 +130,7 @@ export const useBoostSelection = ({ channel, item, tValue }: UseBoostSelectionPa
       (value) => selectedChannelValue && getValueKey(value) === getValueKey(selectedChannelValue)
     ) ?? itemValues[0];
 
-  const resolvedMetaBoost =
-    resolveMetaBoostFromValueMetadata(selectedItemValue?.meta_boost) ??
-    resolveMetaBoostFromValueMetadata(selectedChannelValue?.meta_boost);
+  const resolvedMetaBoost = resolveMetaBoostFromApiValueMetadata(channel.channel_meta_boost);
 
   const supportsPodverseCurrency =
     (selectedItemValue?.type === 'lightning' || selectedChannelValue?.type === 'lightning') &&
