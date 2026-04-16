@@ -49,6 +49,13 @@
       "cwd": "../metaboost",
       "open": true,
       "command": "clear"
+    },
+    {
+      "name": "Metaboost Registry",
+      "description": "Metaboost registry development",
+      "cwd": "../metaboost-registry",
+      "open": true,
+      "command": "clear"
     }
   ]
 }
