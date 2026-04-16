@@ -1,6 +1,9 @@
+import { randomUUID } from 'node:crypto';
+
 import { getDefaultLocale } from '@orm/config/index.js';
 import { AppDataSourceRead, AppDataSourceReadWrite } from '@orm/db/index.js';
 import { Account } from '@orm/entities/account/account.js';
+import { AccountMetaboost } from '@orm/entities/account/accountMetaboost.js';
 import { AccountProfile } from '@orm/entities/account/accountProfile.js';
 import { AccountSettings } from '@orm/entities/account/accountSettings/accountSettings.js';
 import { AccountSettingsLocale } from '@orm/entities/account/accountSettings/accountSettingsLocale.js';
@@ -192,6 +195,13 @@ export class AccountService {
       account_membership_id: AccountMembershipEnum.Trial,
       membership_expires_at,
     });
+
+    const accountMetaboostRepo = AppDataSourceReadWrite.getRepository(AccountMetaboost);
+    const accountMetaboost = accountMetaboostRepo.create({
+      account,
+      sender_guid: randomUUID(),
+    });
+    await accountMetaboostRepo.save(accountMetaboost);
   }
 
   async update(account_id: number, dto: UpdateAccountDto): Promise<Account | null> {

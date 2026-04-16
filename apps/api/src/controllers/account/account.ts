@@ -44,6 +44,7 @@ import {
   AccountDataExportService,
   AccountEmailChangeVerificationService,
   AccountFollowingAccountService,
+  AccountMetaboostService,
   AccountResetPasswordService,
   AccountService,
   AccountVerificationService,
@@ -82,6 +83,7 @@ const subAccountGetManyRelations = [
 
 export class AccountController {
   private static accountService = new AccountService();
+  private static accountMetaboostService = new AccountMetaboostService();
   private static accountCredentialsService = new AccountCredentialsService();
   private static accountEmailChangeVerificationService =
     new AccountEmailChangeVerificationService();
@@ -153,10 +155,21 @@ export class AccountController {
             relations: [...publicRelations, ...privateRelations],
           });
 
-          if (data?.account_credentials) {
+          if (data === null) {
+            handleReturnDataOrNotFound(res, null, 'Account');
+            return;
+          }
+
+          if (data.account_credentials) {
             const { password: _password, ...credentialsWithoutPassword } = data.account_credentials;
             data.account_credentials =
               credentialsWithoutPassword as typeof data.account_credentials;
+          }
+
+          const sender_guid =
+            await AccountController.accountMetaboostService.getSenderGuidByAccountId(account_id);
+          if (sender_guid !== null) {
+            Object.assign(data, { sender_guid });
           }
 
           handleReturnDataOrNotFound(res, data, 'Account');

@@ -8,6 +8,7 @@ import type { DTOChannel, DTOItem } from '@podverse/helpers';
 import { isLnaddressRecipient } from '@podverse/v4v-btc-ln';
 import type { MetaBoost } from '@podverse/v4v-metaboost';
 
+import { useAccount } from '../../contexts/Account';
 import { useConfig } from '../../contexts/Config';
 import { useLocalSettings } from '../../contexts/LocalSettings';
 import { useModals } from '../../contexts/Modals';
@@ -96,6 +97,7 @@ export const BoostFormBase: React.FC<BoostFormBaseProps> = ({
   mbrssV1RssContext,
 }) => {
   const config = useConfig();
+  const { loggedInAccount } = useAccount();
   const { boostFormDefaults, setBoostFormDefaults } = useLocalSettings();
   const { setModalBoost } = useModals();
   const tValue = useTranslations('value');
@@ -274,6 +276,7 @@ export const BoostFormBase: React.FC<BoostFormBaseProps> = ({
     setIsSubmitting,
     onBoostSuccess: () => setMessage(''),
     mbrssV1HttpMessagingEnabled,
+    mbrssV1SenderGuid: loggedInAccount?.sender_guid ?? null,
   });
 
   const effectiveTotal =

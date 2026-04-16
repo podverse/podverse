@@ -21,6 +21,7 @@ import type { AccountFollowingChannel } from './accountFollowingChannel.js';
 import type { AccountFollowingPlaylist } from './accountFollowingPlaylist.js';
 import type { AccountGooglePlayPurchase } from './accountGooglePlayPurchase.js';
 import type { AccountMembershipStatus } from './accountMembershipStatus.js';
+import type { AccountMetaboost } from './accountMetaboost.js';
 import type { AccountNotificationChannel } from './accountNotificationChannel.js';
 import type { AccountPayPalOrder } from './accountPayPalOrder.js';
 import type { AccountProfile } from './accountProfile.js';
@@ -96,6 +97,9 @@ export class Account {
     (accountMembershipStatus: AccountMembershipStatus) => accountMembershipStatus.account
   )
   account_membership_status!: AccountMembershipStatus;
+
+  @OneToOne('AccountMetaboost', (accountMetaboost: AccountMetaboost) => accountMetaboost.account)
+  account_metaboost?: Relation<AccountMetaboost>;
 
   @OneToMany(
     'AccountNotificationChannel',

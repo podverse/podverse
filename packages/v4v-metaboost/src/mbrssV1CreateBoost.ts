@@ -11,7 +11,8 @@ export const MBRSS_V1_STREAM_ACTION = 'stream' as const;
 
 export type MbrssV1CreateBoostAction = typeof MBRSS_V1_BOOST_ACTION | typeof MBRSS_V1_STREAM_ACTION;
 
-export type MbrssV1CreateBoostIngestBody = {
+/** Fields built client-side; `sender_guid` comes from Podverse `GET /auth/me` and is merged for POST. */
+export type MbrssV1CreateBoostClientPayload = {
   currency: typeof MBRSS_V1_CURRENCY_BTC;
   amount: number;
   amount_unit: typeof MBRSS_V1_AMOUNT_UNIT_SATOSHIS;
@@ -21,12 +22,16 @@ export type MbrssV1CreateBoostIngestBody = {
   feed_title: string;
   app_version?: string;
   sender_name?: string;
-  sender_id?: string;
   message?: string | null;
   podcast_index_feed_id?: number;
   item_guid?: string;
   item_title?: string;
   time_position?: number;
+};
+
+/** Full mbrss-v1 POST body including `sender_guid` (MetaBoost ingest). */
+export type MbrssV1CreateBoostIngestBody = MbrssV1CreateBoostClientPayload & {
+  sender_guid: string;
 };
 
 export type BuildMbrssV1CreateBoostRequestParams = {
@@ -44,13 +49,13 @@ export type BuildMbrssV1CreateBoostRequestParams = {
 
 export const buildMbrssV1CreateBoostRequest = (
   params: BuildMbrssV1CreateBoostRequestParams
-): MbrssV1CreateBoostIngestBody => {
+): MbrssV1CreateBoostClientPayload => {
   const amountSat = params.totalMsat / 1000;
   if (!(amountSat > 0)) {
     throw new Error('mbrss-v1 boost amount must be positive');
   }
 
-  const body: MbrssV1CreateBoostIngestBody = {
+  const body: MbrssV1CreateBoostClientPayload = {
     currency: MBRSS_V1_CURRENCY_BTC,
     amount: amountSat,
     amount_unit: MBRSS_V1_AMOUNT_UNIT_SATOSHIS,

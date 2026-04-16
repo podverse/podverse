@@ -1,6 +1,6 @@
 import type { DTOChannel, DTOItem } from '@podverse/helpers';
 import { request } from '@podverse/helpers-requests';
-import type { MetaBoost } from '@podverse/v4v-metaboost';
+import type { MbrssV1CreateBoostIngestBody, MetaBoost } from '@podverse/v4v-metaboost';
 import {
   buildMbrssV1CreateBoostRequest,
   isMetaboostMbrssV1CreateBoostResponse,
@@ -19,6 +19,7 @@ type PostMbrssV1BoostMessageParams = {
   metaBoost: MetaBoost;
   totalAmountToCreator: number;
   totalAmountToApp: number;
+  senderGuid: string;
 };
 
 export const getMbrssV1PaymentDesc = (message: string, appName: string): string => {
@@ -39,6 +40,7 @@ export const postMbrssV1BoostMessage = async ({
   metaBoost,
   totalAmountToCreator,
   totalAmountToApp,
+  senderGuid,
 }: PostMbrssV1BoostMessageParams): Promise<string> => {
   const totalMsat = Math.max(0, Math.round((totalAmountToCreator + totalAmountToApp) * 1000));
   const feedGuidRaw = mbrssV1RssContext?.feedGuid ?? channel?.podcast_guid;
@@ -68,10 +70,16 @@ export const postMbrssV1BoostMessage = async ({
     itemTitle: itemTitle === null || itemTitle === undefined ? undefined : itemTitle,
   });
 
+  const body: MbrssV1CreateBoostIngestBody = {
+    ...requestBody,
+    sender_guid: senderGuid,
+  };
+
   const { status, data: responseData } = await request<unknown>(metaBoost.node, {
-    data: requestBody,
     method: 'POST',
+    data: body,
   });
+
   if (status < 200 || status >= 300) {
     throw new Error('MetaBoost metadata request failed');
   }

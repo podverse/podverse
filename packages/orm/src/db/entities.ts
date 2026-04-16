@@ -10,6 +10,7 @@ import { AccountFollowingPlaylist } from '@orm/entities/account/accountFollowing
 import { AccountGooglePlayPurchase } from '@orm/entities/account/accountGooglePlayPurchase.js';
 import { AccountMembership } from '@orm/entities/account/accountMembership.js';
 import { AccountMembershipStatus } from '@orm/entities/account/accountMembershipStatus.js';
+import { AccountMetaboost } from '@orm/entities/account/accountMetaboost.js';
 import { AccountNotificationChannel } from '@orm/entities/account/accountNotificationChannel.js';
 import { AccountNotificationChannelType } from '@orm/entities/account/accountNotificationChannelType.js';
 import { AccountPayPalOrder } from '@orm/entities/account/accountPayPalOrder.js';
@@ -119,6 +120,7 @@ export const entities = [
   AccountGooglePlayPurchase,
   AccountMembership,
   AccountMembershipStatus,
+  AccountMetaboost,
   AccountNotificationChannel,
   AccountNotificationChannelType,
   AccountPayPalOrder,

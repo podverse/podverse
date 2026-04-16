@@ -64,6 +64,8 @@ type UseBoostPaymentsParams = {
   onBoostSuccess?: () => void;
   /** mbrss-v1 HTTP POST after payment only when GET capability succeeded; Lightning still runs if false. */
   mbrssV1HttpMessagingEnabled: boolean;
+  /** From `GET /auth/me` only; required to complete mbrss-v1 ingest (with sender_guid). */
+  mbrssV1SenderGuid: string | null;
 };
 
 export const useBoostPayments = ({
@@ -84,6 +86,7 @@ export const useBoostPayments = ({
   setIsSubmitting,
   onBoostSuccess,
   mbrssV1HttpMessagingEnabled,
+  mbrssV1SenderGuid,
 }: UseBoostPaymentsParams) => {
   const resolvedBlipFeedGuid = mbrssV1RssContext?.feedGuid ?? channel?.podcast_guid ?? undefined;
   const resolvedBlipFeedTitle = mbrssV1RssContext?.feedTitle ?? channel?.title ?? undefined;
@@ -283,7 +286,12 @@ export const useBoostPayments = ({
       }
     }
 
-    if (shouldPostMbrssV1 && metaBoost !== null) {
+    if (
+      shouldPostMbrssV1 &&
+      metaBoost !== null &&
+      mbrssV1SenderGuid !== null &&
+      mbrssV1SenderGuid !== ''
+    ) {
       const largestRecipient = getLargestSplitRecipient();
       const largestRecipientStatus = finalRecipientStatuses.find(
         (recipient) => recipient.id === largestRecipient?.id
@@ -300,6 +308,7 @@ export const useBoostPayments = ({
             metaBoost,
             totalAmountToCreator,
             totalAmountToApp,
+            senderGuid: mbrssV1SenderGuid,
           });
         } catch (error) {
           if (process.env.NODE_ENV === 'development') {
