@@ -19,10 +19,13 @@ import type { MetaBoost } from '@podverse/v4v-metaboost';
 import { resolveBoostExecutionStrategy } from '@podverse/v4v-metaboost';
 
 import { ensureWeblnEnabled } from '../../../utils/value/webln';
-import type { Mb1RssContext } from '../donateMb1RssContext';
+import type { MbrssV1RssContext } from '../donateMbrssV1RssContext';
 import { buildCustomRecordsForRecipient } from '../payments/boostBlipCustomRecords';
 import { getProviderFailure } from '../payments/boostPaymentProviderFailure';
-import { getMb1PaymentDesc, postMb1BoostMessage } from '../payments/mb1/mb1RequestMetadata';
+import {
+  getMbrssV1PaymentDesc,
+  postMbrssV1BoostMessage,
+} from '../payments/mbrssV1/mbrssV1RequestMetadata';
 import type { PaymentRecipient, RecipientStatus } from '../types.js';
 
 type Translator = (key: string, values?: Record<string, string | number>) => string;
@@ -38,7 +41,7 @@ type BoostPaymentAppConfig = {
 type UseBoostPaymentsParams = {
   channel: DTOChannel | null;
   item: DTOItem | null;
-  mb1RssContext?: Mb1RssContext | null;
+  mbrssV1RssContext?: MbrssV1RssContext | null;
   config: BoostPaymentAppConfig;
   tValue: Translator;
   message: string;
@@ -59,14 +62,14 @@ type UseBoostPaymentsParams = {
   setRecipientStatuses: Dispatch<SetStateAction<RecipientStatus[]>>;
   setIsSubmitting: Dispatch<SetStateAction<boolean>>;
   onBoostSuccess?: () => void;
-  /** MB1 HTTP POST after payment only when GET capability succeeded; Lightning still runs if false. */
-  mb1HttpMessagingEnabled: boolean;
+  /** mbrss-v1 HTTP POST after payment only when GET capability succeeded; Lightning still runs if false. */
+  mbrssV1HttpMessagingEnabled: boolean;
 };
 
 export const useBoostPayments = ({
   channel,
   item,
-  mb1RssContext,
+  mbrssV1RssContext,
   config,
   tValue,
   message,
@@ -80,12 +83,12 @@ export const useBoostPayments = ({
   setRecipientStatuses,
   setIsSubmitting,
   onBoostSuccess,
-  mb1HttpMessagingEnabled,
+  mbrssV1HttpMessagingEnabled,
 }: UseBoostPaymentsParams) => {
-  const resolvedBlipFeedGuid = mb1RssContext?.feedGuid ?? channel?.podcast_guid ?? undefined;
-  const resolvedBlipFeedTitle = mb1RssContext?.feedTitle ?? channel?.title ?? undefined;
-  const resolvedBlipItemGuid = mb1RssContext?.itemGuid ?? item?.guid ?? undefined;
-  const resolvedBlipItemTitle = mb1RssContext?.itemTitle ?? item?.title ?? undefined;
+  const resolvedBlipFeedGuid = mbrssV1RssContext?.feedGuid ?? channel?.podcast_guid ?? undefined;
+  const resolvedBlipFeedTitle = mbrssV1RssContext?.feedTitle ?? channel?.title ?? undefined;
+  const resolvedBlipItemGuid = mbrssV1RssContext?.itemGuid ?? item?.guid ?? undefined;
+  const resolvedBlipItemTitle = mbrssV1RssContext?.itemTitle ?? item?.title ?? undefined;
   const getLargestSplitRecipient = (): PaymentRecipient | null => {
     let largest: PaymentRecipient | null = null;
     for (const recipient of paymentRecipients) {
@@ -104,7 +107,7 @@ export const useBoostPayments = ({
   const sendPayments = async (
     desc: string | null,
     allowBlipFallback: boolean,
-    shouldPostMb1: boolean,
+    shouldPostMbrssV1: boolean,
     omitBlipMetadataInKeysend: boolean
   ) => {
     const provider = await ensureWeblnEnabled();
@@ -278,17 +281,17 @@ export const useBoostPayments = ({
       }
     }
 
-    if (shouldPostMb1 && metaBoost !== null) {
+    if (shouldPostMbrssV1 && metaBoost !== null) {
       const largestRecipient = getLargestSplitRecipient();
       const largestRecipientStatus = finalRecipientStatuses.find(
         (recipient) => recipient.id === largestRecipient?.id
       );
       if (largestRecipientStatus?.status === 'success') {
         try {
-          await postMb1BoostMessage({
+          await postMbrssV1BoostMessage({
             channel,
             item,
-            mb1RssContext,
+            mbrssV1RssContext,
             appName: config.public.brand.name,
             message,
             yourName,
@@ -298,7 +301,7 @@ export const useBoostPayments = ({
           });
         } catch (error) {
           if (process.env.NODE_ENV === 'development') {
-            console.warn('MetaBoost MB1 post failed', error);
+            console.warn('MetaBoost mbrss-v1 post failed', error);
           }
         }
       }
@@ -312,11 +315,11 @@ export const useBoostPayments = ({
 
   const handleSubmitBoost = async () => {
     setIsSubmitting(true);
-    const { shouldUseMb1, allowBlipFallback } = resolveBoostExecutionStrategy(metaBoost);
+    const { shouldUseMbrssV1, allowBlipFallback } = resolveBoostExecutionStrategy(metaBoost);
 
-    if (shouldUseMb1 && metaBoost !== null) {
-      const desc = getMb1PaymentDesc(message, config.public.brand.name);
-      await sendPayments(desc, false, mb1HttpMessagingEnabled, true);
+    if (shouldUseMbrssV1 && metaBoost !== null) {
+      const desc = getMbrssV1PaymentDesc(message, config.public.brand.name);
+      await sendPayments(desc, false, mbrssV1HttpMessagingEnabled, true);
       return;
     }
 

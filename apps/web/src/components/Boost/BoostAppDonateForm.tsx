@@ -7,7 +7,7 @@ import { useMemo, useState } from 'react';
 import { useConfig } from '../../contexts/Config';
 import { getAppValueMetaBoost } from '../../utils/value/metaBoost';
 import { BoostFormBase } from './BoostFormBase';
-import { DONATE_MB1_RSS_CONTEXT } from './donateMb1RssContext';
+import { DONATE_MBRSS_V1_RSS_CONTEXT } from './donateMbrssV1RssContext';
 
 import styles from './BoostAppDonateForm.module.scss';
 
@@ -104,7 +104,7 @@ export const BoostAppDonateForm: React.FC<BoostAppDonateFormProps> = ({ onDonati
           {tDonate('app_not_configured', { brand_name: config.public.brand.name })}
         </p>
       }
-      mb1RssContext={DONATE_MB1_RSS_CONTEXT}
+      mbrssV1RssContext={DONATE_MBRSS_V1_RSS_CONTEXT}
     />
   );
 };

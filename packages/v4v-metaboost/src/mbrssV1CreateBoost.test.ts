@@ -1,11 +1,14 @@
 import { describe, expect, it } from 'vitest';
 
 import { BLIP0010_BTC_LN_BOOST_JSON_KEYS } from './blip0010BtcLnBoostJsonKeys.js';
-import { buildMb1CreateBoostRequest, isMetaboostMb1CreateBoostResponse } from './mb1CreateBoost.js';
+import {
+  buildMbrssV1CreateBoostRequest,
+  isMetaboostMbrssV1CreateBoostResponse,
+} from './mbrssV1CreateBoost.js';
 
-describe('buildMb1CreateBoostRequest', () => {
-  it('produces MB1 ingest fields only (no bLIP-0010 BTC/LN keysend JSON keys)', () => {
-    const body = buildMb1CreateBoostRequest({
+describe('buildMbrssV1CreateBoostRequest', () => {
+  it('produces mbrss-v1 ingest fields only (no bLIP-0010 BTC/LN keysend JSON keys)', () => {
+    const body = buildMbrssV1CreateBoostRequest({
       totalMsat: 5_000_000,
       appName: 'Podverse',
       action: 'boost',
@@ -36,7 +39,7 @@ describe('buildMb1CreateBoostRequest', () => {
   });
 
   it('omits item fields when guid/title pair is incomplete', () => {
-    const body = buildMb1CreateBoostRequest({
+    const body = buildMbrssV1CreateBoostRequest({
       totalMsat: 1_000,
       appName: 'Podverse',
       action: 'boost',
@@ -52,11 +55,13 @@ describe('buildMb1CreateBoostRequest', () => {
   });
 });
 
-describe('isMetaboostMb1CreateBoostResponse', () => {
+describe('isMetaboostMbrssV1CreateBoostResponse', () => {
   it('accepts Metaboost create response shape', () => {
     expect(
-      isMetaboostMb1CreateBoostResponse({ message_guid: '550e8400-e29b-41d4-a716-446655440000' })
+      isMetaboostMbrssV1CreateBoostResponse({
+        message_guid: '550e8400-e29b-41d4-a716-446655440000',
+      })
     ).toBe(true);
-    expect(isMetaboostMb1CreateBoostResponse({ id: 'x', url: 'y', desc: 'z' })).toBe(false);
+    expect(isMetaboostMbrssV1CreateBoostResponse({ id: 'x', url: 'y', desc: 'z' })).toBe(false);
   });
 });

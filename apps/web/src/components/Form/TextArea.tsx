@@ -28,7 +28,7 @@ type TextAreaProps = {
   'aria-describedby'?: string;
   'aria-required'?: AriaAttributes['aria-required'];
   'aria-invalid'?: AriaAttributes['aria-invalid'];
-  /** Centered spinner overlay over the textarea (e.g. MB1 capability loading). */
+  /** Centered spinner overlay over the textarea (e.g. mbrss-v1 capability loading). */
   showLoadingOverlay?: boolean;
   /** Accessible status for the loading overlay (e.g. translated string). */
   loadingOverlayStatusText?: string;

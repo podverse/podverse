@@ -1,17 +1,17 @@
 import { getOwnPropertyValue, isObjectLike, toNonEmptyTrimmedString } from '@podverse/helpers';
 
-/** MB1 schema slug (RSS `standard="mb1"`, capability JSON `schema`). */
-export const META_BOOST_SCHEMA_MB1 = 'mb1' as const;
+/** mbrss-v1 schema slug (RSS `standard="mbrss-v1"`, capability JSON `schema`). */
+export const META_BOOST_SCHEMA_MBRSS_V1 = 'mbrss-v1' as const;
 
-export type MetaBoostSchema = typeof META_BOOST_SCHEMA_MB1;
+export type MetaBoostSchema = typeof META_BOOST_SCHEMA_MBRSS_V1;
 
 export type MetaBoost = {
-  /** Normalized MB1 boost base URL (GET/POST capability + ingest). */
+  /** Normalized mbrss-v1 boost base URL (GET/POST capability + ingest). */
   node: string;
 };
 
 export const isMetaBoostSchema = (value: unknown): value is MetaBoostSchema =>
-  value === META_BOOST_SCHEMA_MB1;
+  value === META_BOOST_SCHEMA_MBRSS_V1;
 
 const normalizeMetaBoostUrl = (value: string): string | null => {
   try {

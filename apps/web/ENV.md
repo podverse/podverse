@@ -116,7 +116,7 @@ These variables are used for client-side API requests:
 
 ### App MetaBoost (Optional)
 
-- **`NEXT_PUBLIC_APP_VALUE_METABOOST_STANDARD`** (Optional) - MetaBoost standard id for Donate boosts (currently supports `mb1`)
+- **`NEXT_PUBLIC_APP_VALUE_METABOOST_STANDARD`** (Optional) - MetaBoost standard id for Donate boosts (currently supports `mbrss-v1`)
 - **`NEXT_PUBLIC_APP_VALUE_METABOOST_NODE`** (Optional) - MetaBoost endpoint URL for Donate boosts
 - **Local overrides:** Set these in `dev/env-overrides/local/metaboost.env` (see `metaboost.env.example`), then run `make local_env_setup`.
 

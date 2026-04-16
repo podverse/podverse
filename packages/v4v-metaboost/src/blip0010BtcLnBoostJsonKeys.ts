@@ -1,7 +1,7 @@
 /**
  * JSON keys used when encoding the **bLIP-0010 BTC/LN** (keysend TLV) boost payload in Podverse.
  *
- * This is separate from the MetaBoost MB1 HTTP ingest schema ([`Mb1CreateBoostIngestBody`](./mb1CreateBoost.ts));
+ * This is separate from the MetaBoost mbrss-v1 HTTP ingest schema ([`MbrssV1CreateBoostIngestBody`](./mbrssV1CreateBoost.ts));
  * the two protocols are not assumed to share field names.
  */
 export const BLIP0010_BTC_LN_BOOST_JSON_KEYS = [

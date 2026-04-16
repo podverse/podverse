@@ -26,12 +26,12 @@ type BoostFormFieldsProps = {
   setYourName: (value: string) => void;
   message: string;
   setMessage: (value: string) => void;
-  /** Max length for message; omit when MB1 capability is still loading (no counter yet). */
+  /** Max length for message; omit when mbrss-v1 capability is still loading (no counter yet). */
   messageMaxLength?: number;
-  /** MB1: message field blocked until capability succeeds; show overlay while loading. */
-  mb1MessageFieldBlocked: boolean;
-  mb1MessageLoading: boolean;
-  mb1CapabilityFailed: boolean;
+  /** mbrss-v1: message field blocked until capability succeeds; show overlay while loading. */
+  mbrssV1MessageFieldBlocked: boolean;
+  mbrssV1MessageLoading: boolean;
+  mbrssV1CapabilityFailed: boolean;
   tValue: Translator;
   tMisc: Translator;
   brandName: string;
@@ -56,9 +56,9 @@ export const BoostFormFields = ({
   message,
   setMessage,
   messageMaxLength,
-  mb1MessageFieldBlocked,
-  mb1MessageLoading,
-  mb1CapabilityFailed,
+  mbrssV1MessageFieldBlocked,
+  mbrssV1MessageLoading,
+  mbrssV1CapabilityFailed,
   tValue,
   tMisc,
   brandName,
@@ -66,7 +66,7 @@ export const BoostFormFields = ({
   showMetaBoostInfo = false,
   onToggleMetaBoostInfo,
 }: BoostFormFieldsProps) => {
-  const nameMessageFieldsDisabled = isSubmitting || hasStatusUpdates || mb1MessageFieldBlocked;
+  const nameMessageFieldsDisabled = isSubmitting || hasStatusUpdates || mbrssV1MessageFieldBlocked;
 
   return (
     <Form
@@ -102,9 +102,9 @@ export const BoostFormFields = ({
       </div>
       {showNameAndMessage && (
         <>
-          {mb1CapabilityFailed && (
-            <p className={styles.mb1CapabilityError} role="status">
-              {tValue('boost_messages.mb1_capability_unavailable')}
+          {mbrssV1CapabilityFailed && (
+            <p className={styles.mbrssV1CapabilityError} role="status">
+              {tValue('boost_messages.mbrssV1_capability_unavailable')}
             </p>
           )}
           <TextInput
@@ -121,8 +121,8 @@ export const BoostFormFields = ({
             onChange={(e) => setMessage(e.target.value)}
             maxLength={messageMaxLength}
             disabled={nameMessageFieldsDisabled}
-            showLoadingOverlay={mb1MessageLoading}
-            loadingOverlayStatusText={tValue('boost_messages.mb1_capability_loading_status')}
+            showLoadingOverlay={mbrssV1MessageLoading}
+            loadingOverlayStatusText={tValue('boost_messages.mbrssV1_capability_loading_status')}
             footerLeftContent={
               metaBoost && onToggleMetaBoostInfo ? (
                 <Button

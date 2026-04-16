@@ -290,8 +290,8 @@
       "error_details_heading": "",
       "retried_requests": "",
       "retry_attempt": "",
-      "mb1_capability_loading_status": "",
-      "mb1_capability_unavailable": ""
+      "mbrssV1_capability_loading_status": "",
+      "mbrssV1_capability_unavailable": ""
     },
     "types": {
       "lightning": {

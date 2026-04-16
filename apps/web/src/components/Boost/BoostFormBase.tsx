@@ -21,7 +21,7 @@ import { BoostMessageNotice } from './BoostMessageNotice';
 import { BoostMetaBoostInfo } from './BoostMetaBoostInfo';
 import { BoostRecipientInfo } from './BoostRecipientInfo';
 import { BoostRecipientStatusList } from './BoostRecipientStatusList';
-import type { Mb1RssContext } from './donateMb1RssContext';
+import type { MbrssV1RssContext } from './donateMbrssV1RssContext';
 import { DonateSuccessConfetti } from './DonateSuccessConfetti';
 import { useBoostAppRecipients } from './hooks/useBoostAppRecipients';
 import { useBoostPayments } from './hooks/useBoostPayments';
@@ -29,8 +29,8 @@ import { useBoostRecipients } from './hooks/useBoostRecipients';
 import { useBoostRecipientStatuses } from './hooks/useBoostRecipientStatuses';
 import {
   BLIP0010_BTC_LN_BOOST_MESSAGE_CHAR_LIMIT,
-  useMb1BoostCapability,
-} from './hooks/useMb1BoostCapability';
+  useMbrssV1BoostCapability,
+} from './hooks/useMbrssV1BoostCapability';
 
 import styles from '../../styles/components/Boost/BoostForm.module.scss';
 
@@ -66,8 +66,8 @@ type BoostFormBaseProps = {
   successPrimaryButtonLabel?: string;
   successPrimaryButtonOnClick?: () => void;
   noRecipientsFallback?: ReactNode;
-  /** Donate flow: RSS fields aligned with podverse-boosts-feed.xml for mb1/BLIP. */
-  mb1RssContext?: Mb1RssContext | null;
+  /** Donate flow: RSS fields aligned with podverse-boosts-feed.xml for mbrss-v1/BLIP. */
+  mbrssV1RssContext?: MbrssV1RssContext | null;
 };
 
 export const BoostFormBase: React.FC<BoostFormBaseProps> = ({
@@ -93,7 +93,7 @@ export const BoostFormBase: React.FC<BoostFormBaseProps> = ({
   successPrimaryButtonLabel,
   successPrimaryButtonOnClick,
   noRecipientsFallback,
-  mb1RssContext,
+  mbrssV1RssContext,
 }) => {
   const config = useConfig();
   const { boostFormDefaults, setBoostFormDefaults } = useLocalSettings();
@@ -227,25 +227,25 @@ export const BoostFormBase: React.FC<BoostFormBaseProps> = ({
   const shouldShowBoostMessageNotice = hasLnaddressRecipients && !metaBoost;
 
   const {
-    status: mb1CapabilityStatus,
-    messageCharLimit: mb1MessageCharLimit,
-    termsOfServiceUrl: mb1TermsOfServiceUrl,
-  } = useMb1BoostCapability(metaBoost);
+    status: mbrssV1CapabilityStatus,
+    messageCharLimit: mbrssV1MessageCharLimit,
+    termsOfServiceUrl: mbrssV1TermsOfServiceUrl,
+  } = useMbrssV1BoostCapability(metaBoost);
 
   const messageMaxLength = useMemo((): number | undefined => {
     if (metaBoost === null) {
       return BLIP0010_BTC_LN_BOOST_MESSAGE_CHAR_LIMIT;
     }
-    if (mb1CapabilityStatus === 'success' && mb1MessageCharLimit !== null) {
-      return mb1MessageCharLimit;
+    if (mbrssV1CapabilityStatus === 'success' && mbrssV1MessageCharLimit !== null) {
+      return mbrssV1MessageCharLimit;
     }
     return undefined;
-  }, [metaBoost, mb1CapabilityStatus, mb1MessageCharLimit]);
+  }, [metaBoost, mbrssV1CapabilityStatus, mbrssV1MessageCharLimit]);
 
-  const mb1MessageFieldBlocked = metaBoost !== null && mb1CapabilityStatus !== 'success';
-  const mb1MessageLoading = metaBoost !== null && mb1CapabilityStatus === 'loading';
-  const mb1CapabilityFailed = metaBoost !== null && mb1CapabilityStatus === 'error';
-  const mb1HttpMessagingEnabled = metaBoost !== null && mb1CapabilityStatus === 'success';
+  const mbrssV1MessageFieldBlocked = metaBoost !== null && mbrssV1CapabilityStatus !== 'success';
+  const mbrssV1MessageLoading = metaBoost !== null && mbrssV1CapabilityStatus === 'loading';
+  const mbrssV1CapabilityFailed = metaBoost !== null && mbrssV1CapabilityStatus === 'error';
+  const mbrssV1HttpMessagingEnabled = metaBoost !== null && mbrssV1CapabilityStatus === 'success';
 
   useEffect(() => {
     if (typeof messageMaxLength !== 'number') {
@@ -259,7 +259,7 @@ export const BoostFormBase: React.FC<BoostFormBaseProps> = ({
   const { handleSubmitBoost } = useBoostPayments({
     channel,
     item,
-    mb1RssContext,
+    mbrssV1RssContext,
     config,
     tValue,
     message,
@@ -273,7 +273,7 @@ export const BoostFormBase: React.FC<BoostFormBaseProps> = ({
     setRecipientStatuses,
     setIsSubmitting,
     onBoostSuccess: () => setMessage(''),
-    mb1HttpMessagingEnabled,
+    mbrssV1HttpMessagingEnabled,
   });
 
   const effectiveTotal =
@@ -330,9 +330,9 @@ export const BoostFormBase: React.FC<BoostFormBaseProps> = ({
               message={message}
               setMessage={setMessage}
               messageMaxLength={messageMaxLength}
-              mb1MessageFieldBlocked={mb1MessageFieldBlocked}
-              mb1MessageLoading={mb1MessageLoading}
-              mb1CapabilityFailed={mb1CapabilityFailed}
+              mbrssV1MessageFieldBlocked={mbrssV1MessageFieldBlocked}
+              mbrssV1MessageLoading={mbrssV1MessageLoading}
+              mbrssV1CapabilityFailed={mbrssV1CapabilityFailed}
               tValue={tValue}
               tMisc={tMisc}
               brandName={config.public.brand.name}
@@ -352,7 +352,7 @@ export const BoostFormBase: React.FC<BoostFormBaseProps> = ({
                   <BoostMetaBoostInfo
                     boostNodeUrl={metaBoost.node}
                     termsOfServiceUrl={
-                      mb1CapabilityStatus === 'success' ? mb1TermsOfServiceUrl : null
+                      mbrssV1CapabilityStatus === 'success' ? mbrssV1TermsOfServiceUrl : null
                     }
                   />
                 </Callout>

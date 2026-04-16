@@ -290,8 +290,8 @@
       "error_details_heading": "Error details",
       "retried_requests": "We retried the request {count, plural, one {# time} other {# times}} before it failed.",
       "retry_attempt": "Retry {number}: ",
-      "mb1_capability_loading_status": "Checking boost message availability",
-      "mb1_capability_unavailable": "Boost messages are not available for this creator at this time due to a server issue, but you can still use the form to send a donation."
+      "mbrssV1_capability_loading_status": "Checking boost message availability",
+      "mbrssV1_capability_unavailable": "Boost messages are not available for this creator at this time due to a server issue, but you can still use the form to send a donation."
     },
     "types": {
       "lightning": {
@@ -322,7 +322,7 @@
       "title": "Boost Messages",
       "description": "To enable boost messages for your content, add the podcast:metaBoost RSS tag to your feed inside your podcast:value block. This tag tells apps where to send optional listener messages. Without it, listeners can still send payments but cannot attach a message.",
       "example_heading": "Example RSS snippet with podcast:metaBoost",
-      "example": "'<'podcast:value type=\"lightning\" method=\"keysend\"'>'\n  '<'podcast:metaBoost standard=\"mb1\"'>'https://metaboost.example/boost'<'/podcast:metaBoost'>'\n  '<'podcast:valueRecipient type=\"lnaddress\" address=\"you@example.com\" split=\"100\" /'>'\n'<'/podcast:value'>'"
+      "example": "'<'podcast:value type=\"lightning\" method=\"keysend\"'>'\n  '<'podcast:metaBoost standard=\"mbrss-v1\"'>'https://metaboost.example/boost'<'/podcast:metaBoost'>'\n  '<'podcast:valueRecipient type=\"lnaddress\" address=\"you@example.com\" split=\"100\" /'>'\n'<'/podcast:value'>'"
     }
   },
   "filters": {

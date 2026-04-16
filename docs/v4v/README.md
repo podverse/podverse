@@ -7,7 +7,7 @@ implementation.
 
 - **Bitcoin / Lightning (LND):** [bitcoin/lnd/](bitcoin/lnd/) — local Nigiri setup, LNAddress,
   keysend, metaBoost flow, and full setup diagram.
-- **Podverse public RSS asset (mb1 integration/testing):**
+- **Podverse public RSS asset (mbrss-v1 integration/testing):**
   `apps/web/public/feeds/podverse-boosts-feed.xml` (served at `/feeds/podverse-boosts-feed.xml`).
-- **MB1 boost messages:** After split payments, Podverse posts one MB1 boost to the channel’s
+- **mbrss-v1 boost messages:** After split payments, Podverse posts one mbrss-v1 boost to the channel’s
   `metaBoost` URL once the largest split recipient’s payment succeeds.

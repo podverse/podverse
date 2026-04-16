@@ -182,7 +182,7 @@ See [V4V-METABOOST-FLOW.md](V4V-METABOOST-FLOW.md) for the metaBoost-focused dia
 
 - V4V value recipients map to channel/item value rows; channel `<podcast:metaBoost>` maps to
   `channel_meta_boost` on the channel in API payloads (same relation name as ORM).
-- The web client posts metadata directly to the MB1 endpoint URL from `<podcast:metaBoost>`.
+- The web client posts metadata directly to the mbrss-v1 endpoint URL from `<podcast:metaBoost>`.
 
 ```mermaid
 flowchart LR
@@ -191,7 +191,7 @@ flowchart LR
   MetaBoostServer[MetaBoost server /boost]
 
   Web -->|value in responses| API
-  Web -->|POST metadata to mb1 URL| MetaBoostServer
+  Web -->|POST metadata to mbrss-v1 URL| MetaBoostServer
 ```
 
 ---
@@ -200,7 +200,7 @@ flowchart LR
 
 - **When Boost is shown:** Channel has value data; `BoostForm` uses `useBoostSelection`,
   `useBoostRecipients`, and `useBoostPayments`.
-- **MetaBoost:** If present, client fetches metadata from the MB1 URL; `desc` is used as
+- **MetaBoost:** If present, client fetches metadata from the mbrss-v1 URL; `desc` is used as
   LNURL comment (LNAddress) or bLIP-0010 message (keysend). If metadata fetch fails, "Pay Anyway"
   sends without message.
 

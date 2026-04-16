@@ -2,17 +2,17 @@ import type { DTOChannel, DTOItem } from '@podverse/helpers';
 import { request } from '@podverse/helpers-requests';
 import type { MetaBoost } from '@podverse/v4v-metaboost';
 import {
-  buildMb1CreateBoostRequest,
-  isMetaboostMb1CreateBoostResponse,
+  buildMbrssV1CreateBoostRequest,
+  isMetaboostMbrssV1CreateBoostResponse,
 } from '@podverse/v4v-metaboost';
 
 import { WEB_APP_VERSION } from '../../../../config/webAppVersion';
-import type { Mb1RssContext } from '../../donateMb1RssContext';
+import type { MbrssV1RssContext } from '../../donateMbrssV1RssContext';
 
-type PostMb1BoostMessageParams = {
+type PostMbrssV1BoostMessageParams = {
   channel: DTOChannel | null;
   item: DTOItem | null;
-  mb1RssContext?: Mb1RssContext | null;
+  mbrssV1RssContext?: MbrssV1RssContext | null;
   appName: string;
   message: string;
   yourName: string;
@@ -21,7 +21,7 @@ type PostMb1BoostMessageParams = {
   totalAmountToApp: number;
 };
 
-export const getMb1PaymentDesc = (message: string, appName: string): string => {
+export const getMbrssV1PaymentDesc = (message: string, appName: string): string => {
   const trimmed = message.trim();
   if (trimmed.length > 0) {
     return trimmed;
@@ -29,33 +29,33 @@ export const getMb1PaymentDesc = (message: string, appName: string): string => {
   return `${appName} boost`;
 };
 
-export const postMb1BoostMessage = async ({
+export const postMbrssV1BoostMessage = async ({
   channel,
   item,
-  mb1RssContext,
+  mbrssV1RssContext,
   appName,
   message,
   yourName,
   metaBoost,
   totalAmountToCreator,
   totalAmountToApp,
-}: PostMb1BoostMessageParams): Promise<string> => {
+}: PostMbrssV1BoostMessageParams): Promise<string> => {
   const totalMsat = Math.max(0, Math.round((totalAmountToCreator + totalAmountToApp) * 1000));
-  const feedGuidRaw = mb1RssContext?.feedGuid ?? channel?.podcast_guid;
-  const feedTitleRaw = mb1RssContext?.feedTitle ?? channel?.title;
+  const feedGuidRaw = mbrssV1RssContext?.feedGuid ?? channel?.podcast_guid;
+  const feedTitleRaw = mbrssV1RssContext?.feedTitle ?? channel?.title;
   if (feedGuidRaw === undefined || feedGuidRaw === null || feedGuidRaw.trim() === '') {
-    throw new Error('MetaBoost MB1 boost requires feed_guid');
+    throw new Error('MetaBoost mbrss-v1 boost requires feed_guid');
   }
   if (feedTitleRaw === undefined || feedTitleRaw === null || feedTitleRaw.trim() === '') {
-    throw new Error('MetaBoost MB1 boost requires feed_title');
+    throw new Error('MetaBoost mbrss-v1 boost requires feed_title');
   }
   const feedGuid = feedGuidRaw;
   const feedTitle = feedTitleRaw;
 
-  const itemGuid = mb1RssContext?.itemGuid ?? item?.guid;
-  const itemTitle = mb1RssContext?.itemTitle ?? item?.title;
+  const itemGuid = mbrssV1RssContext?.itemGuid ?? item?.guid;
+  const itemTitle = mbrssV1RssContext?.itemTitle ?? item?.title;
 
-  const requestBody = buildMb1CreateBoostRequest({
+  const requestBody = buildMbrssV1CreateBoostRequest({
     totalMsat,
     appName,
     appVersion: WEB_APP_VERSION,
@@ -76,8 +76,8 @@ export const postMb1BoostMessage = async ({
     throw new Error('MetaBoost metadata request failed');
   }
 
-  if (!isMetaboostMb1CreateBoostResponse(responseData)) {
-    throw new Error('Invalid MetaBoost MB1 response');
+  if (!isMetaboostMbrssV1CreateBoostResponse(responseData)) {
+    throw new Error('Invalid MetaBoost mbrss-v1 response');
   }
 
   return responseData.message_guid;

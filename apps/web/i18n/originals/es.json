@@ -290,8 +290,8 @@
       "error_details_heading": "Detalles del error",
       "retried_requests": "Reintentos de la solicitud de Dirección Lightning {count, plural, one {# vez} other {# veces}} antes de que fallara.",
       "retry_attempt": "Reintento {number}: ",
-      "mb1_capability_loading_status": "Comprobando disponibilidad de mensajes de refuerzo",
-      "mb1_capability_unavailable": "Los mensajes de refuerzo no están disponibles para este creador en este momento debido a un problema del servidor, pero aún puedes usar el formulario para enviar una donación."
+      "mbrssV1_capability_loading_status": "Comprobando disponibilidad de mensajes de refuerzo",
+      "mbrssV1_capability_unavailable": "Los mensajes de refuerzo no están disponibles para este creador en este momento debido a un problema del servidor, pero aún puedes usar el formulario para enviar una donación."
     },
     "types": {
       "lightning": {
@@ -322,7 +322,7 @@
       "title": "Mensajes de Refuerzo",
       "description": "Para habilitar mensajes de refuerzo para tu contenido, añade la etiqueta RSS podcast:metaBoost a tu feed dentro de tu bloque podcast:value. Esta etiqueta indica a las aplicaciones dónde enviar mensajes opcionales de los oyentes. Sin ella, los oyentes aún pueden enviar pagos pero no pueden adjuntar un mensaje.",
       "example_heading": "Ejemplo de fragmento RSS con podcast:metaBoost",
-      "example": "'<'podcast:value type=\"lightning\" method=\"keysend\"'>'\n  '<'podcast:metaBoost standard=\"mb1\"'>'https://metaboost.example/boost'<'/podcast:metaBoost'>'\n  '<'podcast:valueRecipient type=\"lnaddress\" address=\"you@example.com\" split=\"100\" /'>'\n'<'/podcast:value'>'"
+      "example": "'<'podcast:value type=\"lightning\" method=\"keysend\"'>'\n  '<'podcast:metaBoost standard=\"mbrss-v1\"'>'https://metaboost.example/boost'<'/podcast:metaBoost'>'\n  '<'podcast:valueRecipient type=\"lnaddress\" address=\"you@example.com\" split=\"100\" /'>'\n'<'/podcast:value'>'"
     }
   },
   "filters": {

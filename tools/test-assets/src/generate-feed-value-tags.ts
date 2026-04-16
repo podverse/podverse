@@ -174,7 +174,7 @@ export const buildChannelValueBlock = (_recipientCount: number): string => {
 
 /** Build channel-level `<podcast:metaBoost>` for test feeds (alongside `<podcast:value>` blocks). */
 export const buildChannelMetaBoostTag = (): string => {
-  return `<podcast:metaBoost standard="mb1">${METABOOST_URL}</podcast:metaBoost>`;
+  return `<podcast:metaBoost standard="mbrss-v1">${METABOOST_URL}</podcast:metaBoost>`;
 };
 
 /** 07a: Build item <podcast:value> blocks (lightning only). */

@@ -1,19 +1,19 @@
 import type { MetaBoost } from './metaBoost.js';
 import { createMetaBoostFromNode } from './metaBoost.js';
 
-export const META_BOOST_STANDARD_MB1 = 'mb1' as const;
+export const META_BOOST_STANDARD_MBRSS_V1 = 'mbrss-v1' as const;
 
 export const PODVERSE_META_BOOST_CURRENCY_BTC = 'btc' as const;
-export const BOOST_EXECUTION_MODE_MB1 = 'mb1' as const;
+export const BOOST_EXECUTION_MODE_MBRSS_V1 = 'mbrss-v1' as const;
 export const BOOST_EXECUTION_MODE_FALLBACK = 'fallback' as const;
 
 export type BoostExecutionMode =
-  | typeof BOOST_EXECUTION_MODE_MB1
+  | typeof BOOST_EXECUTION_MODE_MBRSS_V1
   | typeof BOOST_EXECUTION_MODE_FALLBACK;
 
 export type BoostExecutionStrategy = {
   mode: BoostExecutionMode;
-  shouldUseMb1: boolean;
+  shouldUseMbrssV1: boolean;
   allowBlipFallback: boolean;
 };
 
@@ -70,13 +70,13 @@ const normalizeStandard = (standard: string | null | undefined): string | null =
   return normalized.length > 0 ? normalized : null;
 };
 
-const mb1StandardHandler: MetaBoostStandardHandler = {
-  standard: META_BOOST_STANDARD_MB1,
+const mbrssV1StandardHandler: MetaBoostStandardHandler = {
+  standard: META_BOOST_STANDARD_MBRSS_V1,
   supportedCurrencies: [PODVERSE_META_BOOST_CURRENCY_BTC],
   resolveMetaBoost: ({ node }) => createMetaBoostFromNode(node),
 };
 
-const standardHandlers: MetaBoostStandardHandler[] = [mb1StandardHandler];
+const standardHandlers: MetaBoostStandardHandler[] = [mbrssV1StandardHandler];
 
 export const isPodverseMetaBoostCurrencySupported = (currency: string): boolean =>
   currency.trim().toLowerCase() === PODVERSE_META_BOOST_CURRENCY_BTC;
@@ -139,16 +139,17 @@ export const resolveMetaBoostFromApiValueMetadata = (
   return resolveMetaBoostFromValueMetadata(fields);
 };
 
-export const isMb1MetaBoost = (metaBoost: MetaBoost | null | undefined): boolean =>
+export const isMbrssV1MetaBoost = (metaBoost: MetaBoost | null | undefined): boolean =>
   Boolean(metaBoost?.node);
 
 export const resolveBoostExecutionStrategy = (
   metaBoost: MetaBoost | null | undefined
 ): BoostExecutionStrategy => {
-  const shouldUseMb1 = metaBoost !== null && metaBoost !== undefined && isMb1MetaBoost(metaBoost);
+  const shouldUseMbrssV1 =
+    metaBoost !== null && metaBoost !== undefined && isMbrssV1MetaBoost(metaBoost);
   return {
-    mode: shouldUseMb1 ? BOOST_EXECUTION_MODE_MB1 : BOOST_EXECUTION_MODE_FALLBACK,
-    shouldUseMb1,
-    allowBlipFallback: !shouldUseMb1,
+    mode: shouldUseMbrssV1 ? BOOST_EXECUTION_MODE_MBRSS_V1 : BOOST_EXECUTION_MODE_FALLBACK,
+    shouldUseMbrssV1,
+    allowBlipFallback: !shouldUseMbrssV1,
   };
 };

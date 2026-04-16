@@ -33,7 +33,7 @@ test assets, parsing, web boost flow), see [V4V-BITCOIN-LN-SETUP-DIAGRAM.md](V4V
 - Test assets server running (`npm run dev:test-assets`)
 - WebLN-compatible wallet (Alby or similar)
 
-**MetaBoost server (local):** Start any MB1-compatible metadata server on `http://localhost:8080`
+**MetaBoost server (local):** Start any mbrss-v1-compatible metadata server on `http://localhost:8080`
 before testing.
 
 Notes:
@@ -102,22 +102,22 @@ MetaBoost is emitted at the channel level with a required `standard` attribute:
 
 ```xml
 <channel>
-  <podcast:metaBoost standard="mb1">https://api.metaboost.cc/v1/s/mb1/boost/JAyJS6QnNV/</podcast:metaBoost>
+  <podcast:metaBoost standard="mbrss-v1">https://api.metaboost.cc/v1/s/mbrss-v1/boost/JAyJS6QnNV/</podcast:metaBoost>
   <podcast:value type="lightning" method="keysend" suggested="0.00000005000">
     <podcast:valueRecipient ... />
   </podcast:value>
 </channel>
 ```
 
-Podverse currently supports `mb1` (BTC flow only). Unknown or unsupported `standard` values use
-the standard V4V path without MB1 messaging.
+Podverse currently supports `mbrss-v1` (BTC flow only). Unknown or unsupported `standard` values use
+the standard V4V path without mbrss-v1 messaging.
 
 ## Generate test assets (includes metaBoost + LNAddress + keysend)
 
-The test assets generator emits a channel-level `podcast:metaBoost standard="mb1"` URL and can mix
+The test assets generator emits a channel-level `podcast:metaBoost standard="mbrss-v1"` URL and can mix
 `lnaddress` and `node` recipients per value-tagged item (per-recipient randomization):
 
-- metaBoost URL: `https://api.metaboost.cc/v1/s/mb1/boost/BtBwcc9mdz/`
+- metaBoost URL: `https://api.metaboost.cc/v1/s/mbrss-v1/boost/BtBwcc9mdz/`
 - Each value set includes three recipients with splits `60`, `40`, and `1` (fee).
 - Placeholder addresses are used for both recipient types.
 
@@ -135,13 +135,13 @@ npm run generate -w tools/test-assets -- --add-fake-value-tags
    from channel-level `<podcast:metaBoost>` in the parsed feed).
 3. Parsing generated assets is the official "seeding" step for local testing.
 
-## MetaBoost (MB1) flow
+## MetaBoost (mbrss-v1) flow
 
-When `<podcast:metaBoost standard="mb1">` is present:
+When `<podcast:metaBoost standard="mbrss-v1">` is present:
 
 1. Attempt recipient payments.
 2. Determine whether the largest split recipient payment succeeded.
-3. If it succeeded, POST the MB1 boost body to the URL from `<podcast:metaBoost standard="mb1">`.
+3. If it succeeded, POST the mbrss-v1 boost body to the URL from `<podcast:metaBoost standard="mbrss-v1">`.
 
 ## Keysend (bLIP-0010) fallback
 
@@ -167,7 +167,7 @@ disabled **for LNURL invoice flows**. The boost form shows a notice with a "More
 - Partytime parses `feed.metaBoost` and ingestion persists `channel_meta_boost` on the channel.
 - API responses that include V4V data expose `channel_meta_boost` on the channel when the feed had metaBoost.
 - Web UI shows per-recipient send status and amounts.
-- MB1 post happens only when the largest split recipient payment succeeds.
+- mbrss-v1 post happens only when the largest split recipient payment succeeds.
 - Keysend without metaBoost: bLIP-0010 record is attached (TLV 7629169).
 - LNAddress without metaBoost: notice shown; payments sent without message metadata.
 - `/v4v/boost-messages` page loads and explains requirements.

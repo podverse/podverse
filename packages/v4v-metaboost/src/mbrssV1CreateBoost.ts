@@ -1,21 +1,21 @@
 import { getOwnPropertyValue, isObjectLike } from '@podverse/helpers';
 
-/** Aligns with MetaBoost MB1 ingest / `createMb1BoostSchema`. */
-export const MB1_CURRENCY_BTC = 'BTC';
+/** Aligns with MetaBoost mbrss-v1 ingest / `createMbrssV1BoostSchema`. */
+export const MBRSS_V1_CURRENCY_BTC = 'BTC';
 
-/** Metaboost uses `satoshis` (see `@metaboost/helpers` `MB1_SATOSHIS_UNIT`). */
-export const MB1_AMOUNT_UNIT_SATOSHIS = 'satoshis';
+/** Metaboost uses `satoshis` (see `@metaboost/helpers` `MBRSS_V1_SATOSHIS_UNIT`). */
+export const MBRSS_V1_AMOUNT_UNIT_SATOSHIS = 'satoshis';
 
-export const MB1_BOOST_ACTION = 'boost' as const;
-export const MB1_STREAM_ACTION = 'stream' as const;
+export const MBRSS_V1_BOOST_ACTION = 'boost' as const;
+export const MBRSS_V1_STREAM_ACTION = 'stream' as const;
 
-export type Mb1CreateBoostAction = typeof MB1_BOOST_ACTION | typeof MB1_STREAM_ACTION;
+export type MbrssV1CreateBoostAction = typeof MBRSS_V1_BOOST_ACTION | typeof MBRSS_V1_STREAM_ACTION;
 
-export type Mb1CreateBoostIngestBody = {
-  currency: typeof MB1_CURRENCY_BTC;
+export type MbrssV1CreateBoostIngestBody = {
+  currency: typeof MBRSS_V1_CURRENCY_BTC;
   amount: number;
-  amount_unit: typeof MB1_AMOUNT_UNIT_SATOSHIS;
-  action: Mb1CreateBoostAction;
+  amount_unit: typeof MBRSS_V1_AMOUNT_UNIT_SATOSHIS;
+  action: MbrssV1CreateBoostAction;
   app_name: string;
   feed_guid: string;
   feed_title: string;
@@ -29,10 +29,10 @@ export type Mb1CreateBoostIngestBody = {
   time_position?: number;
 };
 
-export type BuildMb1CreateBoostRequestParams = {
+export type BuildMbrssV1CreateBoostRequestParams = {
   totalMsat: number;
   appName: string;
-  action: Mb1CreateBoostAction;
+  action: MbrssV1CreateBoostAction;
   feedGuid: string;
   feedTitle: string;
   message: string;
@@ -42,18 +42,18 @@ export type BuildMb1CreateBoostRequestParams = {
   appVersion?: string;
 };
 
-export const buildMb1CreateBoostRequest = (
-  params: BuildMb1CreateBoostRequestParams
-): Mb1CreateBoostIngestBody => {
+export const buildMbrssV1CreateBoostRequest = (
+  params: BuildMbrssV1CreateBoostRequestParams
+): MbrssV1CreateBoostIngestBody => {
   const amountSat = params.totalMsat / 1000;
   if (!(amountSat > 0)) {
-    throw new Error('MB1 boost amount must be positive');
+    throw new Error('mbrss-v1 boost amount must be positive');
   }
 
-  const body: Mb1CreateBoostIngestBody = {
-    currency: MB1_CURRENCY_BTC,
+  const body: MbrssV1CreateBoostIngestBody = {
+    currency: MBRSS_V1_CURRENCY_BTC,
     amount: amountSat,
-    amount_unit: MB1_AMOUNT_UNIT_SATOSHIS,
+    amount_unit: MBRSS_V1_AMOUNT_UNIT_SATOSHIS,
     action: params.action,
     app_name: params.appName,
     feed_guid: params.feedGuid.trim(),
@@ -88,13 +88,13 @@ export const buildMb1CreateBoostRequest = (
   return body;
 };
 
-export type MetaboostMb1CreateBoostResponse = {
+export type MetaboostMbrssV1CreateBoostResponse = {
   message_guid: string;
 };
 
-export const isMetaboostMb1CreateBoostResponse = (
+export const isMetaboostMbrssV1CreateBoostResponse = (
   value: unknown
-): value is MetaboostMb1CreateBoostResponse => {
+): value is MetaboostMbrssV1CreateBoostResponse => {
   if (!isObjectLike(value)) {
     return false;
   }

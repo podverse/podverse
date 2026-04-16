@@ -4,7 +4,7 @@ title: "V4V MetaBoost Flow"
 
 # V4V MetaBoost Flow
 
-This diagram shows how V4V and channel-level `<podcast:metaBoost standard="mb1">` data moves from
+This diagram shows how V4V and channel-level `<podcast:metaBoost standard="mbrss-v1">` data moves from
 RSS ingestion through Podverse parsing and storage, into API responses, and finally into the web
 boost flow with client-side calls to a MetaBoost server and Alby Sandbox.
 
