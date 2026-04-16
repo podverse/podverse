@@ -5,6 +5,7 @@ import { useTranslations } from 'next-intl';
 import { useMemo, useState } from 'react';
 
 import { useConfig } from '../../contexts/Config';
+import { getAppValueMetaBoost } from '../../utils/value/metaBoost';
 import { BoostFormBase } from './BoostFormBase';
 
 import styles from './BoostAppDonateForm.module.scss';
@@ -52,6 +53,7 @@ export const BoostAppDonateForm: React.FC<BoostAppDonateFormProps> = ({ onDonati
 
   const [selectedKey, setSelectedKey] = useState<string>(defaultValueKey);
   const selectedValueKey = selectedKey !== '' ? selectedKey : null;
+  const appValueMetaBoost = useMemo(() => getAppValueMetaBoost(config), [config]);
 
   const buttonTabs = [
     {
@@ -82,7 +84,7 @@ export const BoostAppDonateForm: React.FC<BoostAppDonateFormProps> = ({ onDonati
       selectedValueKey={selectedValueKey}
       selectedChannelValue={undefined}
       selectedItemValue={undefined}
-      metaBoost={null}
+      metaBoost={appValueMetaBoost}
       includeCreatorRecipients={false}
       includeAppRecipient
       appRecipientType="lightning"

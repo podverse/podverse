@@ -7,5 +7,9 @@ implementation.
 
 - **Bitcoin / Lightning (LND):** [bitcoin/lnd/](bitcoin/lnd/) — local Nigiri setup, LNAddress,
   keysend, metaBoost flow, and full setup diagram.
-- **BoostBox (boost messages):** [boostbox/BOOSTBOX-REGISTRY-SPEC.md](boostbox/BOOSTBOX-REGISTRY-SPEC.md)
-  — registry, auth, and mitigation options; payment-agnostic.
+- **Podverse public RSS asset (mb1 integration/testing):**
+  `apps/web/public/feeds/podverse-boosts-feed.xml` (served at `/feeds/podverse-boosts-feed.xml`).
+- **MB1 confirm-payment signaling:** Podverse web boost flow posts recipient-level
+  `recipient_outcomes` (type/address/split/name/custom_key/custom_value/fee/status) to the
+  confirmation endpoint returned by mb1 boost metadata, with legacy boolean fallback for older
+  endpoints.

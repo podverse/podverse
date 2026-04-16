@@ -49,5 +49,6 @@ export * from './lib/time.js';
 export * from './lib/timeConstants.js';
 export * from './lib/throughputLimiter.js';
 export * from './lib/url.js';
+export * from './lib/guards.js';
 export * from './lib/userAgent.js';
 export * from './lib/value.js';

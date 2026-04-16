@@ -97,7 +97,7 @@ sequenceDiagram
 ```
 packages/                 # Publishable npm packages (@podverse/*)
   helpers/                # Core utilities, types, DTOs, mediums
-  v4v-metaboost/          # V4V metaBoost feed type and BoostBox API types/helpers
+  v4v-metaboost/          # V4V MetaBoost feed type and MB1 helper utilities
   v4v-helpers/            # V4V payment-agnostic: recipient split and amount calculation
   helpers-validation/     # Validation utilities (email, password, URL, etc.)
   v4v-btc-ln/             # Bitcoin Lightning: lnaddress, keysend/blip10, web payments

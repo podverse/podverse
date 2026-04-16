@@ -318,11 +318,9 @@
   "v4v": {
     "boost_messages": {
       "title": "Boost Messages",
-      "description": "To enable boost messages for your content, add the podcast:metaBoost RSS tag to your feed inside your podcast:value block. This tag tells apps where to send optional listener messages (for example, via a BoostBox server). Without it, listeners can still send payments but cannot attach a message.",
+      "description": "To enable boost messages for your content, add the podcast:metaBoost RSS tag to your feed inside your podcast:value block. This tag tells apps where to send optional listener messages. Without it, listeners can still send payments but cannot attach a message.",
       "example_heading": "Example RSS snippet with podcast:metaBoost",
-      "example": "'<'podcast:value type=\"lightning\" method=\"keysend\"'>'\n  '<'podcast:metaBoost schema=\"boostbox\"'>'https://your-boostbox.example/boost'<'/podcast:metaBoost'>'\n  '<'podcast:valueRecipient type=\"lnaddress\" address=\"you@example.com\" split=\"100\" /'>'\n'<'/podcast:value'>'",
-      "boostbox_label": "BoostBox on GitHub",
-      "boostbox_url": "https://github.com/noblepayne/boostbox"
+      "example": "'<'podcast:value type=\"lightning\" method=\"keysend\"'>'\n  '<'podcast:metaBoost standard=\"mb1\"'>'https://metaboost.example/boost'<'/podcast:metaBoost'>'\n  '<'podcast:valueRecipient type=\"lnaddress\" address=\"you@example.com\" split=\"100\" /'>'\n'<'/podcast:value'>'"
     }
   },
   "filters": {

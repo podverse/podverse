@@ -162,5 +162,5 @@ local_teardown_apps:
 	$(MAKE) local_stop_all_apps
 	$(MAKE) local_prune_podverse_images
 
-# V4V/Lightning targets (local_ln_up, local_build_boostbox, etc.); run from repo root.
+# V4V/Lightning targets (local_ln_up, etc.); run from repo root.
 include makefiles/local/Makefile.local.v4v.mk

@@ -48,10 +48,8 @@ export type Phase4ValueRecipient = {
   fee: boolean;
 };
 
-export type Phase4MetaBoost = {
-  type: string;
-  schema: string;
-  license?: string | null;
+export type PhasePendingMetaBoost = {
+  standard: string;
   node: string;
 };
 
@@ -93,7 +91,6 @@ export type Phase4Value = {
   suggested?: string | null;
   recipients: Phase4ValueRecipient[];
   valueTimeSplits?: Phase6ValueTimeSplit[];
-  metaBoost?: Phase4MetaBoost;
 };
 
 export type Phase4PodcastLiveItemItem = Pick<Episode, 'guid' | 'enclosure'> &
@@ -279,6 +276,7 @@ export type FeedObject = {
     purpose?: string | null;
     value: string;
   }>;
+  metaBoost?: PhasePendingMetaBoost;
   values?: Phase4Value[];
 };
 

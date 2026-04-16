@@ -1,7 +1,10 @@
 import { useEffect, useState } from 'react';
 
 import type { DTOChannel, DTOItem } from '@podverse/helpers';
-import { toMetaBoost } from '@podverse/v4v-metaboost';
+import {
+  isPodverseMetaBoostCurrencySupported,
+  resolveMetaBoostFromValueMetadata,
+} from '@podverse/v4v-metaboost';
 
 type Translator = (key: string, values?: Record<string, string | number>) => string;
 
@@ -135,19 +138,15 @@ export const useBoostSelection = ({ channel, item, tValue }: UseBoostSelectionPa
       (value) => selectedChannelValue && getValueKey(value) === getValueKey(selectedChannelValue)
     ) ?? itemValues[0];
 
+  const resolvedMetaBoost =
+    resolveMetaBoostFromValueMetadata(selectedItemValue?.meta_boost) ??
+    resolveMetaBoostFromValueMetadata(selectedChannelValue?.meta_boost);
+
+  const supportsPodverseCurrency =
+    (selectedItemValue?.type === 'lightning' || selectedChannelValue?.type === 'lightning') &&
+    isPodverseMetaBoostCurrencySupported('btc');
   const metaBoost =
-    toMetaBoost(
-      selectedItemValue?.meta_boost?.type ?? null,
-      selectedItemValue?.meta_boost?.schema ?? null,
-      selectedItemValue?.meta_boost?.license ?? null,
-      selectedItemValue?.meta_boost?.node ?? null
-    ) ??
-    toMetaBoost(
-      selectedChannelValue?.meta_boost?.type ?? null,
-      selectedChannelValue?.meta_boost?.schema ?? null,
-      selectedChannelValue?.meta_boost?.license ?? null,
-      selectedChannelValue?.meta_boost?.node ?? null
-    );
+    resolvedMetaBoost !== null && supportsPodverseCurrency ? resolvedMetaBoost.metaBoost : null;
 
   const buttonTabs = buildButtonTabs(channelValues, tValue, setSelectedKey);
 

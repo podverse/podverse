@@ -43,6 +43,10 @@ const buildConfig = () => {
           custom_key: opt(env.NEXT_PUBLIC_APP_VALUE_LIGHTNING_NODE_CUSTOM_KEY),
           custom_value: opt(env.NEXT_PUBLIC_APP_VALUE_LIGHTNING_NODE_CUSTOM_VALUE),
         },
+        metaboost: {
+          standard: opt(env.NEXT_PUBLIC_APP_VALUE_METABOOST_STANDARD),
+          node: opt(env.NEXT_PUBLIC_APP_VALUE_METABOOST_NODE),
+        },
       },
       polling: {
         interval_ms: Number(env.NEXT_PUBLIC_POLLING_INTERVAL_MS!),

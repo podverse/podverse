@@ -1,4 +1,10 @@
-import { sleep } from '@podverse/helpers';
+import {
+  getOwnPropertyValue,
+  isFiniteNumber,
+  isObjectLike,
+  sleep,
+  toNonEmptyTrimmedString,
+} from '@podverse/helpers';
 import { request } from '@podverse/helpers-requests';
 import type { V4VProviderFailure, V4VResult } from '@podverse/v4v-helpers';
 import { attachProviderFailure, buildProviderErrorMessage } from '@podverse/v4v-helpers';
@@ -60,43 +66,38 @@ const isRetryableStatusForInvoice = (status: number): boolean =>
   status === 400 || isRetryableStatus(status);
 
 const extractReason = (data: unknown): string | undefined => {
-  if (typeof data !== 'object' || data === null) return undefined;
-  const obj = data as Record<string, unknown>;
-  const s = (v: unknown) => (typeof v === 'string' && v.trim() !== '' ? v.trim() : undefined);
-  return s(obj.reason) ?? s(obj.message) ?? s(obj.detail) ?? s(obj.error);
+  if (!isObjectLike(data)) return undefined;
+  const toOptionalNonEmpty = (value: unknown): string | undefined =>
+    toNonEmptyTrimmedString(value) ?? undefined;
+  return (
+    toOptionalNonEmpty(data.reason) ??
+    toOptionalNonEmpty(data.message) ??
+    toOptionalNonEmpty(data.detail) ??
+    toOptionalNonEmpty(data.error)
+  );
 };
-
-const getRecordValue = (value: unknown, key: string): unknown => {
-  if (typeof value !== 'object' || value === null) {
-    return undefined;
-  }
-  return Object.getOwnPropertyDescriptor(value, key)?.value;
-};
-
-const isNumber = (value: unknown): value is number =>
-  typeof value === 'number' && !Number.isNaN(value);
 
 const isLnurlpDetailsResponse = (value: unknown): value is LnurlpDetailsResponse => {
-  const callback = getRecordValue(value, 'callback');
-  const maxSendable = getRecordValue(value, 'maxSendable');
-  const minSendable = getRecordValue(value, 'minSendable');
-  const metadata = getRecordValue(value, 'metadata');
-  const tag = getRecordValue(value, 'tag');
-  const commentAllowed = getRecordValue(value, 'commentAllowed');
+  const callback = getOwnPropertyValue(value, 'callback');
+  const maxSendable = getOwnPropertyValue(value, 'maxSendable');
+  const minSendable = getOwnPropertyValue(value, 'minSendable');
+  const metadata = getOwnPropertyValue(value, 'metadata');
+  const tag = getOwnPropertyValue(value, 'tag');
+  const commentAllowed = getOwnPropertyValue(value, 'commentAllowed');
 
   return (
     typeof callback === 'string' &&
     typeof metadata === 'string' &&
     typeof tag === 'string' &&
-    isNumber(maxSendable) &&
-    isNumber(minSendable) &&
-    (commentAllowed === undefined || isNumber(commentAllowed))
+    isFiniteNumber(maxSendable) &&
+    isFiniteNumber(minSendable) &&
+    (commentAllowed === undefined || isFiniteNumber(commentAllowed))
   );
 };
 
 const isLnurlpInvoiceResponse = (value: unknown): value is LnurlpInvoiceResponse => {
-  const pr = getRecordValue(value, 'pr');
-  const routes = getRecordValue(value, 'routes');
+  const pr = getOwnPropertyValue(value, 'pr');
+  const routes = getOwnPropertyValue(value, 'routes');
   return typeof pr === 'string' && Array.isArray(routes);
 };
 

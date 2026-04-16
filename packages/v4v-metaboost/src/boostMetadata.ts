@@ -1,3 +1,5 @@
+import { getOwnPropertyValue, isObjectLike } from '@podverse/helpers';
+
 export type BoostAction = 'boost' | 'stream';
 
 export type BoostMetadataRequest = {
@@ -128,11 +130,11 @@ export const buildBoostMetadataRequest = (
 };
 
 export const isBoostMetadataResponse = (value: unknown): value is BoostMetadataResponse => {
-  if (typeof value !== 'object' || value === null) {
+  if (!isObjectLike(value)) {
     return false;
   }
-  const id = Object.getOwnPropertyDescriptor(value, 'id')?.value;
-  const url = Object.getOwnPropertyDescriptor(value, 'url')?.value;
-  const desc = Object.getOwnPropertyDescriptor(value, 'desc')?.value;
+  const id = getOwnPropertyValue(value, 'id');
+  const url = getOwnPropertyValue(value, 'url');
+  const desc = getOwnPropertyValue(value, 'desc');
   return typeof id === 'string' && typeof url === 'string' && typeof desc === 'string';
 };

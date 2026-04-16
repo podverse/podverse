@@ -318,11 +318,9 @@
   "v4v": {
     "boost_messages": {
       "title": "Messages Boost",
-      "description": "Pour activer les messages boost pour votre contenu, ajoutez la balise RSS podcast:metaBoost à votre flux dans votre bloc podcast:value. Cette balise indique aux applications où envoyer des messages optionnels des auditeurs (par exemple, via un serveur BoostBox). Sans cela, les auditeurs peuvent toujours envoyer des paiements mais ne peuvent pas joindre de message.",
+      "description": "Pour activer les messages boost pour votre contenu, ajoutez la balise RSS podcast:metaBoost à votre flux dans votre bloc podcast:value. Cette balise indique aux applications où envoyer des messages optionnels des auditeurs. Sans cela, les auditeurs peuvent toujours envoyer des paiements mais ne peuvent pas joindre de message.",
       "example_heading": "Exemple de snippet RSS avec podcast:metaBoost",
-      "example": "'<'podcast:value type=\"lightning\" method=\"keysend\"'>'\n  '<'podcast:metaBoost schema=\"boostbox\"'>'https://your-boostbox.example/boost'<'/podcast:metaBoost'>'\n  '<'podcast:valueRecipient type=\"lnaddress\" address=\"you@example.com\" split=\"100\" /'>'\n'<'/podcast:value'>'",
-      "boostbox_label": "BoostBox sur GitHub",
-      "boostbox_url": "https://github.com/noblepayne/boostbox"
+      "example": "'<'podcast:value type=\"lightning\" method=\"keysend\"'>'\n  '<'podcast:metaBoost standard=\"mb1\"'>'https://metaboost.example/boost'<'/podcast:metaBoost'>'\n  '<'podcast:valueRecipient type=\"lnaddress\" address=\"you@example.com\" split=\"100\" /'>'\n'<'/podcast:value'>'"
     }
   },
   "filters": {

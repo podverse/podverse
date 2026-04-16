@@ -11,7 +11,11 @@ import { isValidHttpUrl } from '@podverse/helpers-validation';
 import type { FeedObject, Phase4PodcastImage } from '../../types/partytime.js';
 import { Phase4Medium } from '../../types/partytime.js';
 import { detectDuckTypedPublisherMediumId } from './publisher.js';
-import { compatChannelValue, compatChannelValueWithMethodAndRecipients } from './value.js';
+import {
+  compatChannelMetaBoost,
+  compatChannelValue,
+  compatChannelValueWithMethodAndRecipients,
+} from './value.js';
 
 export const compatChannelDto = (parsedFeed: FeedObject) => {
   // TODO: tighten medium type once partytime enum is modeled locally
@@ -392,6 +396,7 @@ function sortChannelValueDtos<T extends { channel_value: { type: string; method:
 export const compatChannelValueDtos = (parsedFeed: FeedObject) => {
   const sourceValues = parsedFeed.values ?? [];
   if (sourceValues.length === 0) return [];
+  const channelMetaBoost = compatChannelMetaBoost(parsedFeed.metaBoost);
 
   if (sourceValues.length > 1) {
     const dtos = sourceValues.map((value) => {
@@ -402,7 +407,7 @@ export const compatChannelValueDtos = (parsedFeed: FeedObject) => {
           method: dto.method.slice(0, DATABASE_CONSTANTS.varchar_short),
           suggested: dto.suggested || null,
         },
-        channel_value_meta_boost: dto.meta_boost ?? null,
+        channel_value_meta_boost: channelMetaBoost,
         channel_value_recipients: dto.channel_value_recipients,
       };
     });
@@ -434,7 +439,7 @@ export const compatChannelValueDtos = (parsedFeed: FeedObject) => {
             method: dto.method.slice(0, DATABASE_CONSTANTS.varchar_short),
             suggested: dto.suggested || null,
           },
-          channel_value_meta_boost: dto.meta_boost ?? null,
+          channel_value_meta_boost: channelMetaBoost,
           channel_value_recipients: dto.channel_value_recipients,
         });
       }
@@ -453,7 +458,7 @@ export const compatChannelValueDtos = (parsedFeed: FeedObject) => {
             method: dto.method.slice(0, DATABASE_CONSTANTS.varchar_short),
             suggested: dto.suggested || null,
           },
-          channel_value_meta_boost: dto.meta_boost ?? null,
+          channel_value_meta_boost: channelMetaBoost,
           channel_value_recipients: dto.channel_value_recipients,
         },
       ];
@@ -468,7 +473,7 @@ export const compatChannelValueDtos = (parsedFeed: FeedObject) => {
         method: dto.method.slice(0, DATABASE_CONSTANTS.varchar_short),
         suggested: dto.suggested || null,
       },
-      channel_value_meta_boost: dto.meta_boost ?? null,
+      channel_value_meta_boost: channelMetaBoost,
       channel_value_recipients: dto.channel_value_recipients,
     },
   ];

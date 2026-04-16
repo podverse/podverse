@@ -1,8 +1,15 @@
+import {
+  getOwnPropertyValue,
+  isObjectLike,
+  toNonEmptyTrimmedString,
+  toNullableTrimmedString,
+} from '@podverse/helpers';
+
 export const META_BOOST_TYPE_POST = 'post' as const;
-export const META_BOOST_SCHEMA_BOOSTBOX = 'boostbox' as const;
+export const META_BOOST_SCHEMA_MB1 = 'mb1' as const;
 
 export type MetaBoostType = typeof META_BOOST_TYPE_POST;
-export type MetaBoostSchema = typeof META_BOOST_SCHEMA_BOOSTBOX;
+export type MetaBoostSchema = typeof META_BOOST_SCHEMA_MB1;
 
 export type MetaBoost = {
   type: MetaBoostType;
@@ -15,7 +22,7 @@ export const isMetaBoostType = (value: unknown): value is MetaBoostType =>
   value === META_BOOST_TYPE_POST;
 
 export const isMetaBoostSchema = (value: unknown): value is MetaBoostSchema =>
-  value === META_BOOST_SCHEMA_BOOSTBOX;
+  value === META_BOOST_SCHEMA_MB1;
 
 const normalizeMetaBoostUrl = (value: string): string | null => {
   try {
@@ -30,33 +37,35 @@ const normalizeMetaBoostUrl = (value: string): string | null => {
 };
 
 export const isMetaBoost = (value: unknown): value is MetaBoost => {
-  if (typeof value !== 'object' || value === null) {
+  if (!isObjectLike(value)) {
     return false;
   }
 
-  const type = Object.getOwnPropertyDescriptor(value, 'type')?.value;
-  const schema = Object.getOwnPropertyDescriptor(value, 'schema')?.value;
-  const license = Object.getOwnPropertyDescriptor(value, 'license')?.value;
-  const node = Object.getOwnPropertyDescriptor(value, 'node')?.value;
+  const type = getOwnPropertyValue(value, 'type');
+  const schema = getOwnPropertyValue(value, 'schema');
+  const license = getOwnPropertyValue(value, 'license');
+  const node = getOwnPropertyValue(value, 'node');
 
   if (!isMetaBoostType(type) || !isMetaBoostSchema(schema)) {
     return false;
   }
 
-  if (typeof node !== 'string' || node.trim().length === 0) {
+  const nodeString = toNonEmptyTrimmedString(node);
+  if (nodeString === null) {
     return false;
   }
 
-  const normalizedNode = normalizeMetaBoostUrl(node);
+  const normalizedNode = normalizeMetaBoostUrl(nodeString);
   if (!normalizedNode) {
     return false;
   }
 
   if (license !== undefined && license !== null) {
-    if (typeof license !== 'string') {
+    const licenseString = toNullableTrimmedString(license);
+    if (licenseString === null) {
       return false;
     }
-    if (license.trim().length > 0 && !normalizeMetaBoostUrl(license)) {
+    if (licenseString.length > 0 && !normalizeMetaBoostUrl(licenseString)) {
       return false;
     }
   }

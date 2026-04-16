@@ -18,7 +18,7 @@ export type LocalLnRecipientsConfig = {
   lnaddress: LocalLnRecipient[];
 };
 
-/** Default BoostBox URL for local test value tags. */
+/** Default MetaBoost URL for local test value tags. */
 export const METABOOST_URL = 'http://localhost:8080/boost';
 
 /** Fallback LNURL addresses when no local config is present. */

@@ -53,6 +53,8 @@ const getPaymentRecipients = (
       name: recipient.name ?? null,
       custom_key: recipient.custom_key ?? null,
       custom_value: recipient.custom_value ?? null,
+      fee: recipient.fee,
+      split: recipient.split,
       normalized_split: recipient.normalized_split,
       final_amount: recipient.final_amount,
     };

@@ -16,18 +16,6 @@ export default async function BoostMessagesPage() {
         <MainInnerWrapper>
           <SideContent />
           <MainInnerContentWrapper>
-            {/* <section>
-              <p>{t('boost_messages.description')}</p>
-              <h2 className={styles.exampleHeading}>{t('boost_messages.example_heading')}</h2>
-              <pre className={styles.exampleBlock}>
-                <code>{t('boost_messages.example')}</code>
-              </pre>
-              <p>
-                <Link href={t('boost_messages.boostbox_url')} target="_blank">
-                  {t('boost_messages.boostbox_label')}
-                </Link>
-              </p>
-            </section> */}
             <section>
               <p>Coming Soon</p>
             </section>

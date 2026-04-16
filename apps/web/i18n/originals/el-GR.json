@@ -318,11 +318,9 @@
   "v4v": {
     "boost_messages": {
       "title": "Ενισχυμένα Μηνύματα",
-      "description": "Για να ενεργοποιήσετε τα ενισχυμένα μηνύματα για το περιεχόμενό σας, προσθέστε το podcast:metaBoost RSS tag στη ροή σας μέσα στο podcast:value block σας. Αυτό το tag λέει στις εφαρμογές πού να στείλουν προαιρετικά μηνύματα ακροατών (για παράδειγμα, μέσω ενός διακομιστή BoostBox). Χωρίς αυτό, οι ακροατές μπορούν να στέλνουν πληρωμές αλλά δεν μπορούν να επισυνάψουν μήνυμα.",
+      "description": "Για να ενεργοποιήσετε τα ενισχυμένα μηνύματα για το περιεχόμενό σας, προσθέστε το podcast:metaBoost RSS tag στη ροή σας μέσα στο podcast:value block σας. Αυτό το tag λέει στις εφαρμογές πού να στείλουν προαιρετικά μηνύματα ακροατών. Χωρίς αυτό, οι ακροατές μπορούν να στέλνουν πληρωμές αλλά δεν μπορούν να επισυνάψουν μήνυμα.",
       "example_heading": "Παράδειγμα RSS τμήματος με podcast:metaBoost",
-      "example": "'<'podcast:value type=\"lightning\" method=\"keysend\"'>'\n  '<'podcast:metaBoost schema=\"boostbox\"'>'https://your-boostbox.example/boost'<'/podcast:metaBoost'>'\n  '<'podcast:valueRecipient type=\"lnaddress\" address=\"you@example.com\" split=\"100\" /'>'\n'<'/podcast:value'>'",
-      "boostbox_label": "BoostBox στο GitHub",
-      "boostbox_url": "https://github.com/noblepayne/boostbox"
+      "example": "'<'podcast:value type=\"lightning\" method=\"keysend\"'>'\n  '<'podcast:metaBoost standard=\"mb1\"'>'https://metaboost.example/boost'<'/podcast:metaBoost'>'\n  '<'podcast:valueRecipient type=\"lnaddress\" address=\"you@example.com\" split=\"100\" /'>'\n'<'/podcast:value'>'"
     }
   },
   "filters": {

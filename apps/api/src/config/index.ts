@@ -98,9 +98,6 @@ type Config = {
     signupMode: AccountSignupMode;
     freeTrialExpiration: number;
   };
-  boostbox: {
-    internalBaseUrl: string | null;
-  };
 };
 
 export const config: Config = {
@@ -210,8 +207,5 @@ export const config: Config = {
     costAnnually: Number(process.env.PREMIUM_MEMBERSHIP_COST_ANNUALLY!),
     signupMode: process.env.ACCOUNT_SIGNUP_MODE! as AccountSignupMode,
     freeTrialExpiration: parseInt(process.env.FREE_TRIAL_EXPIRATION!, 10) * ONE_DAY_SECONDS, // env is in days
-  },
-  boostbox: {
-    internalBaseUrl: process.env.BOOSTBOX_INTERNAL_BASE_URL ?? null,
   },
 };

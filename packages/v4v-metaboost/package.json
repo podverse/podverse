@@ -1,7 +1,7 @@
 {
   "name": "@podverse/v4v-metaboost",
   "version": "5.4.12",
-  "description": "V4V metaBoost feed type and BoostBox API types and helpers",
+  "description": "V4V MetaBoost feed types and MB1 helper utilities",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "files": [
@@ -20,7 +20,9 @@
   "publishConfig": {
     "access": "public"
   },
-  "dependencies": {},
+  "dependencies": {
+    "@podverse/helpers": "*"
+  },
   "type": "module",
   "sideEffects": false
 }

@@ -16,7 +16,7 @@ and **node/keysend** implementations.
 4. [Local stack (ports)](#local-stack-ports)
 5. [Test asset generation](#test-asset-generation)
 6. [Parsing and storage](#parsing-and-storage)
-7. [API and BoostBox proxy](#api-and-boostbox-proxy)
+7. [API and MetaBoost metadata](#api-and-metaboost-metadata)
 8. [Web app: Boost and payment paths](#web-app-boost-and-payment-paths)
 
 ---
@@ -114,7 +114,7 @@ sequenceDiagram
 | LND recipient alice | 18081 REST                       | Keysend recipient only                     |
 | LND recipient bob   | 18082 REST                       | Keysend recipient only                     |
 | LND recipient fee   | 18083 REST                       | Keysend recipient only                     |
-| BoostBox            | 8080                             | Sibling repo; boost metadata               |
+| MetaBoost server    | 8080                             | Optional local metadata endpoint           |
 
 `discover-recipients.sh` reads pubkeys from `podverse_local_lnd_alice`, `podverse_local_lnd_bob`,
 and `podverse_local_lnd_fee` via `lncli --network=regtest getinfo`, and writes
@@ -176,21 +176,19 @@ See [V4V-METABOOST-FLOW.md](V4V-METABOOST-FLOW.md) for the metaBoost-focused dia
 
 ---
 
-## API and BoostBox proxy
+## API and MetaBoost metadata
 
 - Value and metaBoost are part of channel/item DTOs returned by existing API routes.
-- **MetaBoost proxy:** Web client POSTs to `/api/v1/metaboost/boostbox/boost` with `baseUrl` and
-  boost metadata; the API forwards to `{baseUrl}/boost` and returns the BoostBox response (e.g.
-  `desc` for message).
+- The web client posts metadata directly to the MB1 endpoint URL from `<podcast:metaBoost>`.
 
 ```mermaid
 flowchart LR
   Web[Web client]
   API[Podverse API]
-  BoostBox[BoostBox /boost]
+  MetaBoostServer[MetaBoost server /boost]
 
   Web -->|value in responses| API
-  Web -->|POST metaboost/boostbox/boost| API --> BoostBox
+  Web -->|POST metadata to mb1 URL| MetaBoostServer
 ```
 
 ---
@@ -199,13 +197,13 @@ flowchart LR
 
 - **When Boost is shown:** Channel has value data; `BoostForm` uses `useBoostSelection`,
   `useBoostRecipients`, and `useBoostPayments`.
-- **MetaBoost:** If present, client fetches BoostBox metadata via API proxy; `desc` is used as
-  LNURL comment (LNAddress) or bLIP-0010 message (keysend). If BoostBox fails, "Pay Anyway"
+- **MetaBoost:** If present, client fetches metadata from the MB1 URL; `desc` is used as
+  LNURL comment (LNAddress) or bLIP-0010 message (keysend). If metadata fetch fails, "Pay Anyway"
   sends without message.
 
 ### LNAddress (type="lnaddress")
 
-LNURL-pay: resolve Lightning Address → fetch invoice (optional comment = BoostBox `desc`) →
+LNURL-pay: resolve Lightning Address → fetch invoice (optional comment = metadata `desc`) →
 WebLN `sendPayment(invoice)`. Implemented in `@podverse/v4v-btc-ln` and
 `@podverse/external-services-alby` (dev).
 
@@ -217,7 +215,7 @@ destination, amount, customRecords })`. No invoice.
 ```mermaid
 flowchart TD
   Submit[Boost submit]
-  MetaBoost[Fetch BoostBox metadata if metaBoost]
+  MetaBoost[Fetch metadata if metaBoost]
   LNAddr[LNAddress: fetchLnurlDetails → fetchLnurlInvoice → sendPayment]
   Keysend[Keysend: buildCustomRecords → keysend]
 

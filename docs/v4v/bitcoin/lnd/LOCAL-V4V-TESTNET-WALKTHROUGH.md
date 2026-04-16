@@ -6,8 +6,7 @@ title: "Local V4V Testnet Walkthrough"
 
 This document gives **concrete steps** to go from a clean slate to successfully sending a boost on the local Lightning regtest and verifying it. It covers Nix activation, nuke/rebuild with V4V, test asset generation, navigating to a media page to use the Boost feature, browser wallet recommendation and testnet configuration, verification, and separate test paths for **LNAddress** and **Keysend**.
 
-For deeper setup (Nigiri install options, Boostbox repo layout), see [LOCAL-LIGHTNING.md](LOCAL-LIGHTNING.md) and
-[LOCAL-BOOSTBOX.md](../../../infra/LOCAL-BOOSTBOX.md).
+For deeper setup (Nigiri install options and local service setup), see [LOCAL-LIGHTNING.md](LOCAL-LIGHTNING.md).
 
 ## Prerequisites
 
@@ -43,7 +42,7 @@ This single command:
 
 1. Tears down all local infra (including the Lightning stack via `scripts/ln/stop-nigiri-stack.sh`)
 2. Prunes Podverse Docker images
-3. Builds all images (including Boostbox)
+3. Builds all images
 4. Starts the Lightning Network (`make local_ln_up`), which **provisions** the regtest: syncs the chain, funds LND and CLN with 1 BTC each, and opens an LND–CLN channel—no manual block generation or channel opening needed
 5. Runs setup (DB init, management DB init, etc.)
 6. Starts all apps and workers
@@ -54,7 +53,7 @@ For more on provisioning (what runs, troubleshooting), see [LOCAL-LIGHTNING.md](
 
 - Web app: http://localhost:3002
 - API: http://localhost:3000
-- Boostbox: http://localhost:8080
+- MetaBoost server (if running): http://localhost:8080
 - LNURL server: http://localhost:3003
 - Chopsticks (faucet): http://localhost:3030
 - Esplora (block explorer): http://localhost:8282
@@ -124,7 +123,7 @@ See [LOCAL-LIGHTNING.md](LOCAL-LIGHTNING.md) for full CLI payment steps.
 
 ## Verification that a boost worked
 
-- **BoostBox**: If using metaBoost, check that the boost message appears (BoostBox store or logs; Boostbox runs at http://localhost:8080).
+- **MetaBoost server**: If using metaBoost, check that the boost message appears in your server logs/store.
 - **LND**: Run `nigiri lnd listpayments` (outgoing) or `nigiri lnd listinvoices` (incoming) to see payments.
 - **Web app**: The Boost modal should show success; you can also visit http://localhost:3002/v4v/boost-messages for context on boost messages.
 
@@ -137,7 +136,7 @@ See [LOCAL-LIGHTNING.md](LOCAL-LIGHTNING.md) for full CLI payment steps.
 1. Use a podcast or episode that has value recipients (the generated feeds include lnaddress recipients).
 2. Open the Boost modal, enter amount and (optionally) message.
 3. Confirm the wallet prompts for an **invoice-based** payment (LNURL-pay).
-4. After payment, verify with `nigiri lnd listpayments` and optionally in BoostBox if metaBoost is used.
+4. After payment, verify with `nigiri lnd listpayments` and optionally in your MetaBoost server if metaBoost is used.
 
 ## Test path: Keysend implementation
 
@@ -148,7 +147,7 @@ See [LOCAL-LIGHTNING.md](LOCAL-LIGHTNING.md) for full CLI payment steps.
 1. Use the same podcast/episode (or any with value recipients).
 2. Open the Boost modal; the app may show multiple recipients (node vs lnaddress).
 3. The wallet should trigger **keysend** for node recipients.
-4. Verify with `nigiri lnd listpayments` and BoostBox if metaBoost is used.
+4. Verify with `nigiri lnd listpayments` and your MetaBoost server if metaBoost is used.
 
 ## Troubleshooting
 
