@@ -5,7 +5,7 @@
     <link>https://podverse.fm</link>
     <description>Public Podverse RSS asset for mbrss-v1 integration and testing.</description>
     <podcast:guid>urn:uuid:8f251367-7d2e-4e5a-a8ba-1f1f8d9a6f11</podcast:guid>
-    <podcast:metaBoost standard="mbrss-v1">http://localhost:4000/v1/s/mbrss-v1/boost/aRXM5TmN5y/</podcast:metaBoost>
+    <podcast:metaBoost standard="mbrss-v1">http://localhost:4000/v1/s/mbrss-v1/boost/9ra29BpJxu/</podcast:metaBoost>
     <item>
       <title>Podverse Donation Page</title>
       <link>https://podverse.fm/donate</link>

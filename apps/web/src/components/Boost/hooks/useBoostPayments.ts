@@ -14,7 +14,7 @@ import {
   sendLnaddressPayment,
   serializeBlip10Metadata,
 } from '@podverse/v4v-btc-ln';
-import { PROVIDER_FAILURE_PROP } from '@podverse/v4v-helpers';
+import { PROVIDER_FAILURE_PROP, sortRecipientsBySplitDescending } from '@podverse/v4v-helpers';
 import type { MetaBoost } from '@podverse/v4v-metaboost';
 import { resolveBoostExecutionStrategy } from '@podverse/v4v-metaboost';
 
@@ -125,6 +125,8 @@ export const useBoostPayments = ({
 
     const totalMsat = Math.max(0, Math.round((totalAmountToCreator + totalAmountToApp) * 1000));
 
+    const orderedRecipients = sortRecipientsBySplitDescending(paymentRecipients);
+
     setRecipientStatuses(finalRecipientStatuses);
     const setLocalRecipientStatus = (
       recipientId: string,
@@ -153,7 +155,7 @@ export const useBoostPayments = ({
     };
 
     let anyFailed = false;
-    for (const recipient of paymentRecipients) {
+    for (const recipient of orderedRecipients) {
       if (recipient.final_amount <= 0) {
         continue;
       }
