@@ -1,5 +1,6 @@
 import { getOwnPropertyValue, isObjectLike } from '@podverse/helpers';
 
+import { normalizeMetaboostMbrssV1IngestNodeUrl } from './mbrssV1IngestUrl.js';
 import { META_BOOST_SCHEMA_MBRSS_V1 } from './metaBoost.js';
 
 /**
@@ -67,7 +68,9 @@ const normalizeCapabilityUrl = (metaBoostNodeUrl: string): string => {
 export const fetchMbrssV1BoostCapability = async (
   metaBoostNodeUrl: string
 ): Promise<{ messageCharLimit: number; termsOfServiceUrl: string }> => {
-  const urlString = normalizeCapabilityUrl(metaBoostNodeUrl);
+  const urlString = normalizeMetaboostMbrssV1IngestNodeUrl(
+    normalizeCapabilityUrl(metaBoostNodeUrl)
+  );
   const res = await fetch(urlString, {
     method: 'GET',
     headers: { Accept: 'application/json' },

@@ -114,6 +114,10 @@ import {
 import { reqItemTranscriptGet } from './itemTranscript/itemTranscript.js';
 import { reqLiveItemGetMany, reqLiveItemGetManyByChannel } from './liveItem/liveItem.js';
 import { reqMembershipGetPricing } from './membership/membership.js';
+import {
+  reqMetaboostMbrssV1MintAppAssertion,
+  type ReqMetaboostMbrssV1MintAppAssertionParams,
+} from './metaboost/mbrssV1AppAssertion.js';
 import { reqMQRSSAddOnDemand, reqMQRSSRefreshOnDemand } from './mq/mq.js';
 import type { ReqPlaylistCreateParams, ReqPlaylistEditParams } from './playlist/playlist.js';
 import {
@@ -724,6 +728,12 @@ export class ApiRequestService {
 
   reqMembershipGetPricing() {
     return reqMembershipGetPricing(this);
+  }
+
+  /* METABOOST */
+
+  reqMetaboostMbrssV1MintAppAssertion(params: ReqMetaboostMbrssV1MintAppAssertionParams) {
+    return reqMetaboostMbrssV1MintAppAssertion(this, params);
   }
 
   /* MQ */

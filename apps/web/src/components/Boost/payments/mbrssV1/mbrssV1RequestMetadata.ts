@@ -1,12 +1,15 @@
 import type { DTOChannel, DTOItem } from '@podverse/helpers';
 import { request } from '@podverse/helpers-requests';
-import type { MbrssV1CreateBoostIngestBody, MetaBoost } from '@podverse/v4v-metaboost';
 import {
   buildMbrssV1CreateBoostRequest,
   isMetaboostMbrssV1CreateBoostResponse,
+  type MbrssV1CreateBoostIngestBody,
+  type MetaBoost,
+  normalizeMetaboostMbrssV1IngestNodeUrl,
 } from '@podverse/v4v-metaboost';
 
 import { WEB_APP_VERSION } from '../../../../config/webAppVersion';
+import { getApiRequestService } from '../../../../factories/apiRequestService';
 import type { MbrssV1RssContext } from '../../donateMbrssV1RssContext';
 
 type PostMbrssV1BoostMessageParams = {
@@ -75,9 +78,20 @@ export const postMbrssV1BoostMessage = async ({
     sender_guid: senderGuid,
   };
 
-  const { status, data: responseData } = await request<unknown>(metaBoost.node, {
+  const normalizedIngestUrl = normalizeMetaboostMbrssV1IngestNodeUrl(metaBoost.node);
+  const bodyJson = JSON.stringify(body);
+  const mint = await getApiRequestService().reqMetaboostMbrssV1MintAppAssertion({
+    ingest_url: normalizedIngestUrl,
+    body_json: bodyJson,
+  });
+
+  const { status, data: responseData } = await request<unknown>(mint.ingest_url, {
     method: 'POST',
-    data: body,
+    data: bodyJson,
+    headers: {
+      Authorization: mint.authorization,
+      'Content-Type': 'application/json',
+    },
   });
 
   if (status < 200 || status >= 300) {

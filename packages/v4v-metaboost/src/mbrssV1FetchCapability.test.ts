@@ -76,10 +76,13 @@ describe('fetchMbrssV1BoostCapability', () => {
       'https://api.example.com/v1/s/mbrss-v1/boost/abc/'
     );
 
-    expect(fetchMock).toHaveBeenCalledWith('https://api.example.com/v1/s/mbrss-v1/boost/abc/', {
-      method: 'GET',
-      headers: { Accept: 'application/json' },
-    });
+    expect(fetchMock).toHaveBeenCalledWith(
+      'https://api.example.com/v1/standard/mbrss-v1/boost/abc/',
+      {
+        method: 'GET',
+        headers: { Accept: 'application/json' },
+      }
+    );
     expect(result).toEqual({
       messageCharLimit: 1200,
       termsOfServiceUrl: 'https://example.com/tos',

@@ -15,6 +15,73 @@ import {
   validateRequired,
 } from '@podverse/helpers-config';
 
+/** MetaBoost AppAssertion: optional, but if one signing var is set the other is required. */
+const validateMetaboostAppAssertionPair = (): ValidationResult[] => {
+  const trimEnv = (name: string): string => (process.env[name] ?? '').trim();
+  const pem = trimEnv('METABOOST_SIGNING_KEY_PEM');
+  const iss = trimEnv('METABOOST_APP_ASSERTION_ISS');
+  const pemSet = pem !== '';
+  const issSet = iss !== '';
+
+  if (!pemSet && !issSet) {
+    return [
+      {
+        name: 'METABOOST_SIGNING_KEY_PEM / METABOOST_APP_ASSERTION_ISS',
+        isSet: false,
+        isValid: true,
+        isRequired: false,
+        message: 'Skipped (MetaBoost AppAssertion optional)',
+        category: 'MetaBoost',
+      },
+    ];
+  }
+
+  if (pemSet && issSet) {
+    return [
+      {
+        name: 'METABOOST_SIGNING_KEY_PEM',
+        isSet: true,
+        isValid: true,
+        isRequired: false,
+        message: 'Set',
+        category: 'MetaBoost',
+      },
+      {
+        name: 'METABOOST_APP_ASSERTION_ISS',
+        isSet: true,
+        isValid: true,
+        isRequired: false,
+        message: 'Set',
+        category: 'MetaBoost',
+      },
+    ];
+  }
+
+  if (pemSet) {
+    return [
+      {
+        name: 'METABOOST_APP_ASSERTION_ISS',
+        isSet: false,
+        isValid: false,
+        isRequired: true,
+        message: 'Required when METABOOST_SIGNING_KEY_PEM is set',
+        category: 'MetaBoost',
+      },
+    ];
+  }
+
+  return [
+    {
+      name: 'METABOOST_SIGNING_KEY_PEM',
+      isSet: false,
+      isValid: false,
+      isRequired: true,
+      message: 'Required when METABOOST_APP_ASSERTION_ISS is set',
+      category: 'MetaBoost',
+    },
+  ];
+};
+
 /**
  * Validates critical environment variables and configuration at application startup.
  * This function runs early in the initialization process to catch configuration errors
@@ -236,6 +303,9 @@ const validateAllEnvironmentVariables = (): ValidationSummary => {
   // PayPal (optional, but validated)
   results.push(validateOptional('PAYPAL_CLIENT_ID', 'PayPal'));
   results.push(validateOptional('PAYPAL_CLIENT_SECRET', 'PayPal'));
+
+  // MetaBoost AppAssertion (optional pair)
+  results.push(...validateMetaboostAppAssertionPair());
 
   // Defaults
   results.push(validateRequired('DEFAULT_ACCOUNT_SETTINGS_LOCALE', 'Defaults'));

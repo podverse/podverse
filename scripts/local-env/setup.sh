@@ -420,6 +420,9 @@ done
 for v in NEXT_PUBLIC_APP_VALUE_METABOOST_STANDARD NEXT_PUBLIC_APP_VALUE_METABOOST_NODE; do
 	apply_override "$v" "${WEB_ENV_FILES_APP_AND_SIDECAR[@]}"
 done
+for v in METABOOST_SIGNING_KEY_PEM METABOOST_APP_ASSERTION_ISS; do
+	apply_override "$v" "${API_ENV_FILES[@]}"
+done
 
 # Docker-only: infra env used by Compose gets production NODE_ENV and service-name URLs.
 # Run after all overrides so infra files always get these values when used by Compose.

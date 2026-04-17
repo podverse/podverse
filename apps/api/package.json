@@ -48,7 +48,9 @@
     "uuid": "^13.0.0",
     "@podverse/helpers-backend": "*",
     "@podverse/helpers-config": "*",
-    "@podverse/helpers-requests": "*"
+    "@podverse/helpers-requests": "*",
+    "@podverse/v4v-metaboost": "*",
+    "metaboost-signing": "^0.2.1"
   },
   "devDependencies": {
     "@dotenvx/dotenvx": "^1.54.1",
