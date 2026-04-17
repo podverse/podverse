@@ -1,6 +1,7 @@
 import { randomUUID } from 'node:crypto';
 
-import { rateLimitAuthEndpoint } from '@api/lib/rateLimiter.js';
+import { ensureAuthenticated, getAuthenticatedUser } from '@api/lib/auth/index.js';
+import { peekMetaboostMintRateLimit } from '@api/lib/metaboostMintRateLimit.js';
 import type { Request, Response } from 'express';
 import Joi from 'joi';
 import {
@@ -65,11 +66,6 @@ const assertMbrssV1IngestPayload = (parsed: unknown): void => {
 };
 
 export class MetaboostMbrssV1AppAssertionController {
-  static mintRateLimiter = rateLimitAuthEndpoint({
-    windowMs: 60 * 60 * 1000,
-    max: 120,
-  });
-
   static mintAppAssertionBody = async (req: Request, res: Response): Promise<void> => {
     const privateKeyPem = getSigningKeyPem();
     const iss = getAppAssertionIss();
@@ -151,5 +147,26 @@ export class MetaboostMbrssV1AppAssertionController {
       const msg = err instanceof Error ? err.message : 'Signing failed';
       res.status(500).json({ message: msg });
     }
+  };
+
+  /** GET: peek mint rate limit (does not consume a slot). Session required. */
+  static mintRateLimitStatus = async (req: Request, res: Response): Promise<void> => {
+    ensureAuthenticated(
+      req,
+      res,
+      () => {
+        const user = getAuthenticatedUser(req);
+        const info = peekMetaboostMintRateLimit(user.id);
+        const minutesRemainingRaw = Math.ceil(info.timeUntilResetMs / 60000);
+        const minutesRemaining = minutesRemainingRaw < 1 ? 1 : minutesRemainingRaw;
+        res.status(200).json({
+          allowed: info.allowed,
+          retryAfterMs: info.retryAfterMs,
+          timeUntilResetMs: info.timeUntilResetMs,
+          ...(!info.allowed ? { minutesRemaining } : {}),
+        });
+      },
+      { skipMembershipStatus: true }
+    );
   };
 }

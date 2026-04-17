@@ -10,6 +10,22 @@ export type ReqMetaboostMbrssV1MintAppAssertionResponse = {
   ingest_url: string;
 };
 
+/** GET /metaboost/mbrss-v1/mint-app-assertion/rate-limit-status */
+export type ReqMetaboostMbrssV1MintRateLimitStatusResponse = {
+  allowed: boolean;
+  retryAfterMs: number;
+  timeUntilResetMs: number;
+  minutesRemaining?: number;
+};
+
+export async function reqMetaboostMbrssV1MintRateLimitStatus(api: ApiRequestService) {
+  return api.apiRequest<ReqMetaboostMbrssV1MintRateLimitStatusResponse>({
+    path: '/metaboost/mbrss-v1/mint-app-assertion/rate-limit-status',
+    method: 'GET',
+    config: { withCredentials: true },
+  });
+}
+
 export async function reqMetaboostMbrssV1MintAppAssertion(
   api: ApiRequestService,
   params: ReqMetaboostMbrssV1MintAppAssertionParams

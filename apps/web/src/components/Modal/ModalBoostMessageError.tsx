@@ -22,6 +22,7 @@ export const ModalBoostMessageError: React.FC = () => {
     setModalBoostMessageError({
       title: null,
       message: null,
+      primaryActionI18nKey: null,
       onSendAnyway: null,
       onCancel: null,
     });
@@ -58,7 +59,9 @@ export const ModalBoostMessageError: React.FC = () => {
         <Button variant="secondary" onClick={handleCancel}>
           {tMisc('cancel')}
         </Button>
-        <Button onClick={handleSendAnyway}>{tValue('boost_messages.pay_anyway')}</Button>
+        <Button onClick={handleSendAnyway}>
+          {tValue(modalBoostMessageError.primaryActionI18nKey ?? 'boost_messages.pay_anyway')}
+        </Button>
       </div>
     </Modal>
   );

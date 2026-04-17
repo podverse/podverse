@@ -1,4 +1,5 @@
 import type { Dispatch, SetStateAction } from 'react';
+import { useCallback } from 'react';
 
 import type { DTOChannel, DTOItem } from '@podverse/helpers';
 import {
@@ -18,6 +19,8 @@ import { PROVIDER_FAILURE_PROP, sortRecipientsBySplitDescending } from '@podvers
 import type { MetaBoost } from '@podverse/v4v-metaboost';
 import { resolveBoostExecutionStrategy } from '@podverse/v4v-metaboost';
 
+import { useModals } from '../../../contexts/Modals';
+import { getApiRequestService } from '../../../factories/apiRequestService';
 import { ensureWeblnEnabled } from '../../../utils/value/webln';
 import type { MbrssV1RssContext } from '../donateMbrssV1RssContext';
 import { buildCustomRecordsForRecipient } from '../payments/boostBlipCustomRecords';
@@ -88,6 +91,20 @@ export const useBoostPayments = ({
   mbrssV1HttpMessagingEnabled,
   mbrssV1SenderGuid,
 }: UseBoostPaymentsParams) => {
+  const { setModalBoostMessageError, setModalBoostMintRateLimit } = useModals();
+
+  const promptMetaboostUnreachable = useCallback((): Promise<void> => {
+    return new Promise((resolve) => {
+      setModalBoostMessageError({
+        title: tValue('boost_messages.mbrss_offline_modal_title'),
+        message: tValue('boost_messages.mbrss_offline_modal_body'),
+        primaryActionI18nKey: 'boost_messages.mbrss_offline_continue',
+        onSendAnyway: () => resolve(),
+        onCancel: () => resolve(),
+      });
+    });
+  }, [setModalBoostMessageError, tValue]);
+
   const resolvedBlipFeedGuid = mbrssV1RssContext?.feedGuid ?? channel?.podcast_guid ?? undefined;
   const resolvedBlipFeedTitle = mbrssV1RssContext?.feedTitle ?? channel?.title ?? undefined;
   const resolvedBlipItemGuid = mbrssV1RssContext?.itemGuid ?? item?.guid ?? undefined;
@@ -309,6 +326,7 @@ export const useBoostPayments = ({
             totalAmountToCreator,
             totalAmountToApp,
             senderGuid: mbrssV1SenderGuid,
+            onMetaboostUnreachable: promptMetaboostUnreachable,
           });
         } catch (error) {
           if (process.env.NODE_ENV === 'development') {
@@ -329,6 +347,30 @@ export const useBoostPayments = ({
     const { shouldUseMbrssV1, allowBlipFallback } = resolveBoostExecutionStrategy(metaBoost);
 
     if (shouldUseMbrssV1 && metaBoost !== null) {
+      if (mbrssV1HttpMessagingEnabled && mbrssV1SenderGuid !== null && mbrssV1SenderGuid !== '') {
+        try {
+          const rateStatus = await getApiRequestService().reqMetaboostMbrssV1MintRateLimitStatus();
+          if (!rateStatus.allowed) {
+            const ms = rateStatus.retryAfterMs;
+            const sec = Math.ceil(ms / 1000);
+            const bodyMessage =
+              sec <= 90
+                ? tValue('boost_messages.mint_rate_limit_wait_seconds', { seconds: sec })
+                : tValue('boost_messages.mint_rate_limit_wait_minutes', {
+                    minutes: Math.max(1, Math.ceil(ms / 60000)),
+                  });
+            setModalBoostMintRateLimit({ message: bodyMessage });
+            setIsSubmitting(false);
+            return;
+          }
+        } catch {
+          setModalBoostMintRateLimit({
+            message: tValue('boost_messages.mint_rate_limit_preflight_error'),
+          });
+          setIsSubmitting(false);
+          return;
+        }
+      }
       const desc = getMbrssV1PaymentDesc(message, config.public.brand.name);
       await sendPayments(desc, false, mbrssV1HttpMessagingEnabled, true);
       return;

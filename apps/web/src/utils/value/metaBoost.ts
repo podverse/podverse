@@ -6,9 +6,12 @@ import {
 import type { WebConfig } from '../../config';
 
 export const getAppValueMetaBoost = (config: WebConfig) => {
+  const standard = config.public.app_value.metaboost.standard;
+  const node = config.public.app_value.metaboost.node;
+
   const resolved = resolveMetaBoostStandard({
-    standard: config.public.app_value.metaboost.standard,
-    node: config.public.app_value.metaboost.node,
+    standard,
+    node,
   });
   if (resolved === null) {
     return null;

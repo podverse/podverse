@@ -117,6 +117,7 @@ import { reqMembershipGetPricing } from './membership/membership.js';
 import {
   reqMetaboostMbrssV1MintAppAssertion,
   type ReqMetaboostMbrssV1MintAppAssertionParams,
+  reqMetaboostMbrssV1MintRateLimitStatus,
 } from './metaboost/mbrssV1AppAssertion.js';
 import { reqMQRSSAddOnDemand, reqMQRSSRefreshOnDemand } from './mq/mq.js';
 import type { ReqPlaylistCreateParams, ReqPlaylistEditParams } from './playlist/playlist.js';
@@ -731,6 +732,10 @@ export class ApiRequestService {
   }
 
   /* METABOOST */
+
+  reqMetaboostMbrssV1MintRateLimitStatus() {
+    return reqMetaboostMbrssV1MintRateLimitStatus(this);
+  }
 
   reqMetaboostMbrssV1MintAppAssertion(params: ReqMetaboostMbrssV1MintAppAssertionParams) {
     return reqMetaboostMbrssV1MintAppAssertion(this, params);

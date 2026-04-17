@@ -1,4 +1,4 @@
--- Combined migrations generated Thu Mar 26 05:43:23 PM PDT 2026
+-- Combined migrations generated Fri Apr 17 14:09:40 CDT 2026
 -- DO NOT EDIT - regenerate with scripts/database/combine-migrations.sh
 
 -- Including: 0000_init_helpers.sql
@@ -1924,5 +1924,16 @@ CREATE TABLE channel_meta_boost (
     node varchar_url NOT NULL,
     UNIQUE (channel_id)
 );
+
+
+-- Including: 0016_account_metaboost.sql
+-- 0016: Stable per-account sender_guid for MetaBoost mbrss-v1 (never exposed on public Podverse APIs).
+
+CREATE TABLE account_metaboost (
+    account_id integer NOT NULL PRIMARY KEY REFERENCES account(id) ON DELETE CASCADE,
+    sender_guid uuid NOT NULL UNIQUE
+);
+
+CREATE INDEX idx_account_metaboost_sender_guid ON account_metaboost(sender_guid);
 
 

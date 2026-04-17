@@ -291,7 +291,15 @@
       "retried_requests": "We retried the request {count, plural, one {# time} other {# times}} before it failed.",
       "retry_attempt": "Retry {number}: ",
       "mbrssV1_capability_loading_status": "Checking boost message availability",
-      "mbrssV1_capability_unavailable": "Boost messages are not available for this creator at this time due to a server issue, but you can still use the form to send a donation."
+      "mbrssV1_capability_unavailable": "Boost messages are not available for this creator at this time due to a server issue, but you can still use the form to send a donation.",
+      "login_required_for_mbrss_messages": "You can send a donation without a Podverse account. To include a message with your donation, log in to Podverse.",
+      "mbrss_offline_modal_title": "Message collection unavailable",
+      "mbrss_offline_modal_body": "The message collection server appears to be offline. If you would like to send your donation without a message, press Continue.",
+      "mbrss_offline_continue": "Continue",
+      "mint_rate_limit_modal_title": "Boost message limit",
+      "mint_rate_limit_wait_seconds": "You can send another boost with a message in {seconds, plural, one {# second} other {# seconds}}.",
+      "mint_rate_limit_wait_minutes": "You can send another boost with a message in {minutes, plural, one {# minute} other {# minutes}}.",
+      "mint_rate_limit_preflight_error": "Could not check message send limit. Please try again."
     },
     "types": {
       "lightning": {

@@ -53,6 +53,21 @@ describe('buildMbrssV1CreateBoostRequest', () => {
     expect(body.item_guid).toBeUndefined();
     expect(body.item_title).toBeUndefined();
   });
+
+  it('omits sender_name and message when both empty (logged-in user may send blank boost message)', () => {
+    const body = buildMbrssV1CreateBoostRequest({
+      totalMsat: 2_000,
+      appName: 'Podverse',
+      action: 'boost',
+      feedGuid: 'urn:guid:feed',
+      feedTitle: 'Test feed',
+      message: '',
+      yourName: '',
+    });
+
+    expect(body.sender_name).toBeUndefined();
+    expect(body.message).toBeUndefined();
+  });
 });
 
 describe('isMetaboostMbrssV1CreateBoostResponse', () => {

@@ -291,7 +291,11 @@
       "retried_requests": "Reintentos de la solicitud de Dirección Lightning {count, plural, one {# vez} other {# veces}} antes de que fallara.",
       "retry_attempt": "Reintento {number}: ",
       "mbrssV1_capability_loading_status": "Comprobando disponibilidad de mensajes de refuerzo",
-      "mbrssV1_capability_unavailable": "Los mensajes de refuerzo no están disponibles para este creador en este momento debido a un problema del servidor, pero aún puedes usar el formulario para enviar una donación."
+      "mbrssV1_capability_unavailable": "Los mensajes de refuerzo no están disponibles para este creador en este momento debido a un problema del servidor, pero aún puedes usar el formulario para enviar una donación.",
+      "login_required_for_mbrss_messages": "Puedes enviar una donación sin cuenta de Podverse. Para incluir un mensaje con tu donación, inicia sesión en Podverse.",
+      "mbrss_offline_modal_title": "Recopilación de mensajes no disponible",
+      "mbrss_offline_modal_body": "El servidor de recopilación de mensajes parece estar fuera de línea. Si deseas enviar tu donación sin mensaje, pulsa Continuar.",
+      "mbrss_offline_continue": "Continuar"
     },
     "types": {
       "lightning": {

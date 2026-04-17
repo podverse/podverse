@@ -36,6 +36,8 @@ type BoostFormFieldsProps = {
   tMisc: Translator;
   brandName: string;
   metaBoost?: MetaBoost | null;
+  /** When false and MetaBoost is set, name/message require login (mbrss-v1). */
+  isLoggedIn: boolean;
   showMetaBoostInfo?: boolean;
   onToggleMetaBoostInfo?: () => void;
 };
@@ -63,10 +65,15 @@ export const BoostFormFields = ({
   tMisc,
   brandName,
   metaBoost = null,
+  isLoggedIn,
   showMetaBoostInfo = false,
   onToggleMetaBoostInfo,
 }: BoostFormFieldsProps) => {
-  const nameMessageFieldsDisabled = isSubmitting || hasStatusUpdates || mbrssV1MessageFieldBlocked;
+  const nameMessageFieldsDisabled =
+    isSubmitting ||
+    hasStatusUpdates ||
+    mbrssV1MessageFieldBlocked ||
+    (metaBoost !== null && !isLoggedIn);
 
   return (
     <Form

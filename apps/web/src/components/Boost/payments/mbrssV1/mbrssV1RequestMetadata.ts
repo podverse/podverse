@@ -2,6 +2,7 @@ import type { DTOChannel, DTOItem } from '@podverse/helpers';
 import { request } from '@podverse/helpers-requests';
 import {
   buildMbrssV1CreateBoostRequest,
+  fetchMbrssV1BoostCapability,
   isMetaboostMbrssV1CreateBoostResponse,
   type MbrssV1CreateBoostIngestBody,
   type MetaBoost,
@@ -23,6 +24,8 @@ type PostMbrssV1BoostMessageParams = {
   totalAmountToCreator: number;
   totalAmountToApp: number;
   senderGuid: string;
+  /** After a failed preflight GET, show UI; resolves when user dismisses (Continue or Cancel). */
+  onMetaboostUnreachable: () => Promise<void>;
 };
 
 export const getMbrssV1PaymentDesc = (message: string, appName: string): string => {
@@ -44,7 +47,15 @@ export const postMbrssV1BoostMessage = async ({
   totalAmountToCreator,
   totalAmountToApp,
   senderGuid,
-}: PostMbrssV1BoostMessageParams): Promise<string> => {
+  onMetaboostUnreachable,
+}: PostMbrssV1BoostMessageParams): Promise<string | null> => {
+  try {
+    await fetchMbrssV1BoostCapability(metaBoost.node);
+  } catch {
+    await onMetaboostUnreachable();
+    return null;
+  }
+
   const totalMsat = Math.max(0, Math.round((totalAmountToCreator + totalAmountToApp) * 1000));
   const feedGuidRaw = mbrssV1RssContext?.feedGuid ?? channel?.podcast_guid;
   const feedTitleRaw = mbrssV1RssContext?.feedTitle ?? channel?.title;

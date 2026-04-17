@@ -54,8 +54,14 @@ type ModalBoost = {
 type ModalBoostMessageError = {
   title: string | null;
   message: string | null;
+  /** `value.*` i18n key for primary button; default `boost_messages.pay_anyway`. */
+  primaryActionI18nKey?: string | null;
   onSendAnyway?: (() => void) | null;
   onCancel?: (() => void) | null;
+};
+
+type ModalBoostMintRateLimit = {
+  message: string | null;
 };
 
 export type ModalSourceSelector = {
@@ -96,6 +102,8 @@ type ModalsContextType = {
   setModalBoost: (val: ModalBoost) => void;
   modalBoostMessageError: ModalBoostMessageError;
   setModalBoostMessageError: (val: ModalBoostMessageError) => void;
+  modalBoostMintRateLimit: ModalBoostMintRateLimit;
+  setModalBoostMintRateLimit: (val: ModalBoostMintRateLimit) => void;
   modalLoginRequired: ModalMessage;
   setModalLoginRequired: (val: ModalMessage) => void;
   modalDisclaimer: ModalBasic;
@@ -154,8 +162,13 @@ const defaultModalLoginRequired = {
 const defaultModalBoostMessageError = {
   title: null,
   message: null,
+  primaryActionI18nKey: null,
   onSendAnyway: null,
   onCancel: null,
+};
+
+const defaultModalBoostMintRateLimit: ModalBoostMintRateLimit = {
+  message: null,
 };
 
 export const ModalsProvider = ({ children }: { children: ReactNode }) => {
@@ -175,6 +188,9 @@ export const ModalsProvider = ({ children }: { children: ReactNode }) => {
   const [modalBoost, setModalBoost] = useState<ModalBoost>(defaultModalBoost);
   const [modalBoostMessageError, setModalBoostMessageError] = useState<ModalBoostMessageError>(
     defaultModalBoostMessageError
+  );
+  const [modalBoostMintRateLimit, setModalBoostMintRateLimit] = useState<ModalBoostMintRateLimit>(
+    defaultModalBoostMintRateLimit
   );
   const [modalLoginRequired, setModalLoginRequired] =
     useState<ModalMessage>(defaultModalLoginRequired);
@@ -205,6 +221,8 @@ export const ModalsProvider = ({ children }: { children: ReactNode }) => {
         setModalBoost,
         modalBoostMessageError,
         setModalBoostMessageError,
+        modalBoostMintRateLimit,
+        setModalBoostMintRateLimit,
         modalLoginRequired,
         setModalLoginRequired,
         modalDisclaimer,

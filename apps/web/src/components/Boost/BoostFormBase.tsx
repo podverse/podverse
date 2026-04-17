@@ -317,6 +317,11 @@ export const BoostFormBase: React.FC<BoostFormBaseProps> = ({
             {buttonTabs.length > 0 && (
               <ButtonTabs buttonTabs={buttonTabs} selectedKey={selectedKey} />
             )}
+            {metaBoost !== null && !loggedInAccount && (
+              <Callout>
+                <p>{tValue('boost_messages.login_required_for_mbrss_messages')}</p>
+              </Callout>
+            )}
             <BoostFormFields
               totalAmountToCreator={totalAmountToCreator}
               totalAmountToApp={totalAmountToApp}
@@ -340,6 +345,7 @@ export const BoostFormBase: React.FC<BoostFormBaseProps> = ({
               tMisc={tMisc}
               brandName={config.public.brand.name}
               metaBoost={metaBoost}
+              isLoggedIn={loggedInAccount !== null}
               showMetaBoostInfo={showMetaBoostInfo}
               onToggleMetaBoostInfo={() => setShowMetaBoostInfo((s) => !s)}
             />
