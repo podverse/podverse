@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 
 import type { MetaBoost } from '@podverse/v4v-metaboost';
-import { fetchMbrssV1BoostCapability } from '@podverse/v4v-metaboost';
+import { fetchMbrssV1BoostCapability, fetchMbV1BoostCapability } from '@podverse/v4v-metaboost';
 
 /**
  * Max length for boost message text on the **bLIP-0010 BTC/LN** (keysend TLV) path when no
@@ -20,22 +20,44 @@ export type UseMbrssV1BoostCapabilityResult = {
   termsOfServiceUrl: string | null;
 };
 
+export type UseMbrssV1BoostCapabilityOptions = {
+  /**
+   * When false, skip GET capability for MetaBoost (no loading state, no network).
+   * Use when the user cannot use MetaBoost HTTP messaging anyway (e.g. not logged in).
+   */
+  fetchEnabled?: boolean;
+};
+
 /**
- * When `metaBoost` is set (mbrss-v1), GET capability for `message_char_limit` and `terms_of_service_url`.
+ * When `metaBoost` is set (mbrss-v1 / mb-v1), GET capability for `message_char_limit` and
+ * `terms_of_service_url`.
  * When `metaBoost` is null (Blip0010 BTC/LN path only), skip network — caller uses
  * {@link BLIP0010_BTC_LN_BOOST_MESSAGE_CHAR_LIMIT}.
  */
 export const useMbrssV1BoostCapability = (
-  metaBoost: MetaBoost | null
+  metaBoost: MetaBoost | null,
+  options?: UseMbrssV1BoostCapabilityOptions
 ): UseMbrssV1BoostCapabilityResult => {
-  const [status, setStatus] = useState<MbrssV1BoostCapabilityStatus>(() =>
-    metaBoost === null ? 'idle' : 'loading'
-  );
+  const fetchEnabled = options?.fetchEnabled ?? true;
+
+  const [status, setStatus] = useState<MbrssV1BoostCapabilityStatus>(() => {
+    if (metaBoost === null) {
+      return 'idle';
+    }
+    return fetchEnabled ? 'loading' : 'idle';
+  });
   const [messageCharLimit, setMessageCharLimit] = useState<number | null>(null);
   const [termsOfServiceUrl, setTermsOfServiceUrl] = useState<string | null>(null);
 
   useEffect(() => {
     if (metaBoost === null) {
+      setStatus('idle');
+      setMessageCharLimit(null);
+      setTermsOfServiceUrl(null);
+      return;
+    }
+
+    if (!fetchEnabled) {
       setStatus('idle');
       setMessageCharLimit(null);
       setTermsOfServiceUrl(null);
@@ -49,8 +71,13 @@ export const useMbrssV1BoostCapability = (
 
     void (async () => {
       try {
-        const { messageCharLimit: limit, termsOfServiceUrl: tos } =
-          await fetchMbrssV1BoostCapability(metaBoost.node);
+        const node = metaBoost.node;
+        const isMbV1 =
+          metaBoost.standard === 'mb-v1' ||
+          (typeof node === 'string' && node.includes('/standard/mb-v1/'));
+        const { messageCharLimit: limit, termsOfServiceUrl: tos } = isMbV1
+          ? await fetchMbV1BoostCapability(node)
+          : await fetchMbrssV1BoostCapability(node);
         if (cancelled) {
           return;
         }
@@ -70,7 +97,7 @@ export const useMbrssV1BoostCapability = (
     return () => {
       cancelled = true;
     };
-  }, [metaBoost]);
+  }, [metaBoost, fetchEnabled]);
 
   return { status, messageCharLimit, termsOfServiceUrl };
 };

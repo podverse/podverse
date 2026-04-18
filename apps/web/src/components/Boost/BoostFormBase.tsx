@@ -232,7 +232,9 @@ export const BoostFormBase: React.FC<BoostFormBaseProps> = ({
     status: mbrssV1CapabilityStatus,
     messageCharLimit: mbrssV1MessageCharLimit,
     termsOfServiceUrl: mbrssV1TermsOfServiceUrl,
-  } = useMbrssV1BoostCapability(metaBoost);
+  } = useMbrssV1BoostCapability(metaBoost, {
+    fetchEnabled: loggedInAccount !== null,
+  });
 
   const messageMaxLength = useMemo((): number | undefined => {
     if (metaBoost === null) {

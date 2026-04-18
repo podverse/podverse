@@ -5,3 +5,6 @@ export * from './boostMetadata.js';
 export * from './mbrssV1CreateBoost.js';
 export * from './mbrssV1FetchCapability.js';
 export * from './mbrssV1IngestUrl.js';
+export * from './mbV1CreateBoost.js';
+export * from './mbV1FetchCapability.js';
+export * from './mbV1IngestUrl.js';

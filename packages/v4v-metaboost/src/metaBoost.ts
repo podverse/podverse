@@ -3,15 +3,20 @@ import { getOwnPropertyValue, isObjectLike, toNonEmptyTrimmedString } from '@pod
 /** mbrss-v1 schema slug (RSS `standard="mbrss-v1"`, capability JSON `schema`). */
 export const META_BOOST_SCHEMA_MBRSS_V1 = 'mbrss-v1' as const;
 
-export type MetaBoostSchema = typeof META_BOOST_SCHEMA_MBRSS_V1;
+/** mb-v1 schema slug (non-RSS MetaBoost standard). */
+export const META_BOOST_SCHEMA_MB_V1 = 'mb-v1' as const;
+
+export type MetaBoostSchema = typeof META_BOOST_SCHEMA_MBRSS_V1 | typeof META_BOOST_SCHEMA_MB_V1;
 
 export type MetaBoost = {
-  /** Normalized mbrss-v1 boost base URL (GET/POST capability + ingest). */
+  /** Normalized boost base URL (GET/POST capability + ingest). */
   node: string;
+  /** When resolved from `channel_meta_boost.standard` or inferred from the node URL path. */
+  standard?: 'mbrss-v1' | 'mb-v1';
 };
 
 export const isMetaBoostSchema = (value: unknown): value is MetaBoostSchema =>
-  value === META_BOOST_SCHEMA_MBRSS_V1;
+  value === META_BOOST_SCHEMA_MBRSS_V1 || value === META_BOOST_SCHEMA_MB_V1;
 
 const normalizeMetaBoostUrl = (value: string): string | null => {
   try {

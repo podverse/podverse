@@ -29,6 +29,7 @@ import {
   getMbrssV1PaymentDesc,
   postMbrssV1BoostMessage,
 } from '../payments/mbrssV1/mbrssV1RequestMetadata';
+import { postMbV1BoostMessage } from '../payments/mbV1/mbV1RequestMetadata';
 import type { PaymentRecipient, RecipientStatus } from '../types.js';
 
 type Translator = (key: string, values?: Record<string, string | number>) => string;
@@ -127,8 +128,9 @@ export const useBoostPayments = ({
   const sendPayments = async (
     desc: string | null,
     allowBlipFallback: boolean,
-    shouldPostMbrssV1: boolean,
-    omitBlipMetadataInKeysend: boolean
+    shouldPostMetaboostStandard: boolean,
+    omitBlipMetadataInKeysend: boolean,
+    useMbV1Post: boolean
   ) => {
     const provider = await ensureWeblnEnabled();
     let finalRecipientStatuses = toRecipientStatuses(paymentRecipients);
@@ -304,7 +306,7 @@ export const useBoostPayments = ({
     }
 
     if (
-      shouldPostMbrssV1 &&
+      shouldPostMetaboostStandard &&
       metaBoost !== null &&
       mbrssV1SenderGuid !== null &&
       mbrssV1SenderGuid !== ''
@@ -315,22 +317,35 @@ export const useBoostPayments = ({
       );
       if (largestRecipientStatus?.status === 'success') {
         try {
-          await postMbrssV1BoostMessage({
-            channel,
-            item,
-            mbrssV1RssContext,
-            appName: config.public.brand.name,
-            message,
-            yourName,
-            metaBoost,
-            totalAmountToCreator,
-            totalAmountToApp,
-            senderGuid: mbrssV1SenderGuid,
-            onMetaboostUnreachable: promptMetaboostUnreachable,
-          });
+          if (useMbV1Post) {
+            await postMbV1BoostMessage({
+              appName: config.public.brand.name,
+              message,
+              yourName,
+              metaBoost,
+              totalAmountToCreator,
+              totalAmountToApp,
+              senderGuid: mbrssV1SenderGuid,
+              onMetaboostUnreachable: promptMetaboostUnreachable,
+            });
+          } else {
+            await postMbrssV1BoostMessage({
+              channel,
+              item,
+              mbrssV1RssContext,
+              appName: config.public.brand.name,
+              message,
+              yourName,
+              metaBoost,
+              totalAmountToCreator,
+              totalAmountToApp,
+              senderGuid: mbrssV1SenderGuid,
+              onMetaboostUnreachable: promptMetaboostUnreachable,
+            });
+          }
         } catch (error) {
           if (process.env.NODE_ENV === 'development') {
-            console.warn('MetaBoost mbrss-v1 post failed', error);
+            console.warn('MetaBoost standard post failed', error);
           }
         }
       }
@@ -344,9 +359,10 @@ export const useBoostPayments = ({
 
   const handleSubmitBoost = async () => {
     setIsSubmitting(true);
-    const { shouldUseMbrssV1, allowBlipFallback } = resolveBoostExecutionStrategy(metaBoost);
+    const { shouldUseMbrssV1, shouldUseMbV1, allowBlipFallback } =
+      resolveBoostExecutionStrategy(metaBoost);
 
-    if (shouldUseMbrssV1 && metaBoost !== null) {
+    if ((shouldUseMbrssV1 || shouldUseMbV1) && metaBoost !== null) {
       if (mbrssV1HttpMessagingEnabled && mbrssV1SenderGuid !== null && mbrssV1SenderGuid !== '') {
         try {
           const rateStatus = await getApiRequestService().reqMetaboostMbrssV1MintRateLimitStatus();
@@ -372,11 +388,11 @@ export const useBoostPayments = ({
         }
       }
       const desc = getMbrssV1PaymentDesc(message, config.public.brand.name);
-      await sendPayments(desc, false, mbrssV1HttpMessagingEnabled, true);
+      await sendPayments(desc, false, mbrssV1HttpMessagingEnabled, true, shouldUseMbV1);
       return;
     }
 
-    await sendPayments(null, allowBlipFallback, false, false);
+    await sendPayments(null, allowBlipFallback, false, false, false);
   };
 
   return { handleSubmitBoost, sendPayments };

@@ -1,19 +1,27 @@
 import type { MetaBoost } from './metaBoost.js';
-import { createMetaBoostFromNode } from './metaBoost.js';
+import {
+  createMetaBoostFromNode,
+  META_BOOST_SCHEMA_MB_V1,
+  META_BOOST_SCHEMA_MBRSS_V1,
+} from './metaBoost.js';
 
-export const META_BOOST_STANDARD_MBRSS_V1 = 'mbrss-v1' as const;
+export const META_BOOST_STANDARD_MBRSS_V1 = META_BOOST_SCHEMA_MBRSS_V1;
+export const META_BOOST_STANDARD_MB_V1 = META_BOOST_SCHEMA_MB_V1;
 
 export const PODVERSE_META_BOOST_CURRENCY_BTC = 'btc' as const;
 export const BOOST_EXECUTION_MODE_MBRSS_V1 = 'mbrss-v1' as const;
+export const BOOST_EXECUTION_MODE_MB_V1 = 'mb-v1' as const;
 export const BOOST_EXECUTION_MODE_FALLBACK = 'fallback' as const;
 
 export type BoostExecutionMode =
   | typeof BOOST_EXECUTION_MODE_MBRSS_V1
+  | typeof BOOST_EXECUTION_MODE_MB_V1
   | typeof BOOST_EXECUTION_MODE_FALLBACK;
 
 export type BoostExecutionStrategy = {
   mode: BoostExecutionMode;
   shouldUseMbrssV1: boolean;
+  shouldUseMbV1: boolean;
   allowBlipFallback: boolean;
 };
 
@@ -76,7 +84,13 @@ const mbrssV1StandardHandler: MetaBoostStandardHandler = {
   resolveMetaBoost: ({ node }) => createMetaBoostFromNode(node),
 };
 
-const standardHandlers: MetaBoostStandardHandler[] = [mbrssV1StandardHandler];
+const mbV1StandardHandler: MetaBoostStandardHandler = {
+  standard: META_BOOST_STANDARD_MB_V1,
+  supportedCurrencies: [PODVERSE_META_BOOST_CURRENCY_BTC],
+  resolveMetaBoost: ({ node }) => createMetaBoostFromNode(node),
+};
+
+const standardHandlers: MetaBoostStandardHandler[] = [mbrssV1StandardHandler, mbV1StandardHandler];
 
 export const isPodverseMetaBoostCurrencySupported = (currency: string): boolean =>
   currency.trim().toLowerCase() === PODVERSE_META_BOOST_CURRENCY_BTC;
@@ -99,9 +113,12 @@ export const resolveMetaBoostStandard = (
     return null;
   }
 
+  const standard: 'mbrss-v1' | 'mb-v1' =
+    normalizedStandard === META_BOOST_STANDARD_MB_V1 ? 'mb-v1' : 'mbrss-v1';
+
   return {
     normalizedStandard,
-    metaBoost,
+    metaBoost: { ...metaBoost, standard },
     handler,
   };
 };
@@ -145,11 +162,35 @@ export const isMbrssV1MetaBoost = (metaBoost: MetaBoost | null | undefined): boo
 export const resolveBoostExecutionStrategy = (
   metaBoost: MetaBoost | null | undefined
 ): BoostExecutionStrategy => {
+  if (metaBoost === null || metaBoost === undefined || !isMbrssV1MetaBoost(metaBoost)) {
+    return {
+      mode: BOOST_EXECUTION_MODE_FALLBACK,
+      shouldUseMbrssV1: false,
+      shouldUseMbV1: false,
+      allowBlipFallback: true,
+    };
+  }
+
+  const nodeStr = typeof metaBoost.node === 'string' ? metaBoost.node : '';
+  const isMbV1 = metaBoost.standard === 'mb-v1' || nodeStr.includes('/standard/mb-v1/');
+  if (isMbV1) {
+    return {
+      mode: BOOST_EXECUTION_MODE_MB_V1,
+      shouldUseMbrssV1: false,
+      shouldUseMbV1: true,
+      allowBlipFallback: false,
+    };
+  }
+
   const shouldUseMbrssV1 =
-    metaBoost !== null && metaBoost !== undefined && isMbrssV1MetaBoost(metaBoost);
+    metaBoost.standard === 'mbrss-v1' ||
+    nodeStr.includes('/standard/mbrss-v1/') ||
+    (metaBoost.standard === undefined && !nodeStr.includes('/standard/mb-v1/'));
+
   return {
     mode: shouldUseMbrssV1 ? BOOST_EXECUTION_MODE_MBRSS_V1 : BOOST_EXECUTION_MODE_FALLBACK,
     shouldUseMbrssV1,
+    shouldUseMbV1: false,
     allowBlipFallback: !shouldUseMbrssV1,
   };
 };

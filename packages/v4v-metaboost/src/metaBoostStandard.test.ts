@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import {
   metaBoostTagFieldsFromApiDto,
+  resolveBoostExecutionStrategy,
   resolveMetaBoostFromApiValueMetadata,
   resolveMetaBoostFromValueMetadata,
 } from './metaBoostStandard.js';
@@ -52,5 +53,46 @@ describe('resolveMetaBoostFromApiValueMetadata', () => {
     });
     expect(resolved).not.toBeNull();
     expect(resolved?.normalizedStandard).toBe('mbrss-v1');
+  });
+});
+
+describe('resolveBoostExecutionStrategy', () => {
+  it('uses mb-v1 mode when standard is explicitly mb-v1', () => {
+    const strategy = resolveBoostExecutionStrategy({
+      node: 'https://api.example.com/v1/standard/mb-v1/boost/abc/',
+      standard: 'mb-v1',
+    });
+    expect(strategy.mode).toBe('mb-v1');
+    expect(strategy.shouldUseMbV1).toBe(true);
+    expect(strategy.shouldUseMbrssV1).toBe(false);
+    expect(strategy.allowBlipFallback).toBe(false);
+  });
+
+  it('uses mb-v1 mode when node URL contains /standard/mb-v1/', () => {
+    const strategy = resolveBoostExecutionStrategy({
+      node: 'https://api.example.com/v1/standard/mb-v1/boost/abc/',
+    });
+    expect(strategy.mode).toBe('mb-v1');
+    expect(strategy.shouldUseMbV1).toBe(true);
+    expect(strategy.shouldUseMbrssV1).toBe(false);
+  });
+
+  it('keeps mbrss-v1 behavior unchanged for mbrss URLs', () => {
+    const strategy = resolveBoostExecutionStrategy({
+      node: 'https://api.example.com/v1/standard/mbrss-v1/boost/abc/',
+      standard: 'mbrss-v1',
+    });
+    expect(strategy.mode).toBe('mbrss-v1');
+    expect(strategy.shouldUseMbrssV1).toBe(true);
+    expect(strategy.shouldUseMbV1).toBe(false);
+    expect(strategy.allowBlipFallback).toBe(false);
+  });
+
+  it('keeps fallback behavior for null metaboost', () => {
+    const strategy = resolveBoostExecutionStrategy(null);
+    expect(strategy.mode).toBe('fallback');
+    expect(strategy.shouldUseMbrssV1).toBe(false);
+    expect(strategy.shouldUseMbV1).toBe(false);
+    expect(strategy.allowBlipFallback).toBe(true);
   });
 });
