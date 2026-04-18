@@ -2,6 +2,11 @@ import { getOwnPropertyValue, isObjectLike } from '@podverse/helpers';
 
 import { normalizeMetaboostMbrssV1IngestNodeUrl } from './mbrssV1IngestUrl.js';
 import { META_BOOST_SCHEMA_MBRSS_V1 } from './metaBoost.js';
+import type { MetaBoostCapabilityFetchResult } from './metaBoostCapabilityFetchResult.js';
+import {
+  appendSenderGuidToUrl,
+  parseSenderBlockedCapabilityFields,
+} from './metaBoostCapabilityParseSenderBlocked.js';
 
 /**
  * Raw JSON shape from Metaboost mbrss-v1 GET capability (snake_case).
@@ -24,7 +29,7 @@ const isValidHttpUrlString = (value: string): boolean => {
 
 export const parseMbrssV1BoostCapabilityResponse = (
   data: unknown
-): { messageCharLimit: number; termsOfServiceUrl: string } => {
+): MetaBoostCapabilityFetchResult => {
   if (!isObjectLike(data)) {
     throw new Error('mbrss-v1 capability response is not an object');
   }
@@ -44,9 +49,12 @@ export const parseMbrssV1BoostCapabilityResponse = (
   ) {
     throw new Error('mbrss-v1 capability terms_of_service_url is invalid');
   }
+  const blocked = parseSenderBlockedCapabilityFields(data);
   return {
     messageCharLimit: Math.floor(limitRaw),
     termsOfServiceUrl: termsRaw.trim(),
+    senderBlocked: blocked.senderBlocked,
+    senderBlockMessage: blocked.senderBlockMessage,
   };
 };
 
@@ -62,15 +70,21 @@ const normalizeCapabilityUrl = (metaBoostNodeUrl: string): string => {
   }
 };
 
+export type FetchMbrssV1BoostCapabilityOptions = {
+  senderGuid?: string | null;
+};
+
 /**
  * GET the mbrss-v1 capability document from the MetaBoost ingest base URL (same URL as POST).
  */
 export const fetchMbrssV1BoostCapability = async (
-  metaBoostNodeUrl: string
-): Promise<{ messageCharLimit: number; termsOfServiceUrl: string }> => {
-  const urlString = normalizeMetaboostMbrssV1IngestNodeUrl(
+  metaBoostNodeUrl: string,
+  options?: FetchMbrssV1BoostCapabilityOptions
+): Promise<MetaBoostCapabilityFetchResult> => {
+  const normalizedBase = normalizeMetaboostMbrssV1IngestNodeUrl(
     normalizeCapabilityUrl(metaBoostNodeUrl)
   );
+  const urlString = appendSenderGuidToUrl(normalizedBase, options?.senderGuid);
   const res = await fetch(urlString, {
     method: 'GET',
     headers: { Accept: 'application/json' },

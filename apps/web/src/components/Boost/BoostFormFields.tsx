@@ -32,6 +32,8 @@ type BoostFormFieldsProps = {
   mbrssV1MessageFieldBlocked: boolean;
   mbrssV1MessageLoading: boolean;
   mbrssV1CapabilityFailed: boolean;
+  /** When set, recipient blocks this Podverse sender from MetaBoost messages (preflight GET). */
+  mbrssV1SenderBlockedPreflightMessage?: string | null;
   tValue: Translator;
   tMisc: Translator;
   brandName: string;
@@ -61,6 +63,7 @@ export const BoostFormFields = ({
   mbrssV1MessageFieldBlocked,
   mbrssV1MessageLoading,
   mbrssV1CapabilityFailed,
+  mbrssV1SenderBlockedPreflightMessage = null,
   tValue,
   tMisc,
   brandName,
@@ -109,6 +112,12 @@ export const BoostFormFields = ({
       </div>
       {showNameAndMessage && (
         <>
+          {mbrssV1SenderBlockedPreflightMessage !== null &&
+            mbrssV1SenderBlockedPreflightMessage !== '' && (
+              <p className={styles.mbrssV1CapabilityError} role="alert">
+                {mbrssV1SenderBlockedPreflightMessage}
+              </p>
+            )}
           {mbrssV1CapabilityFailed && (
             <p className={styles.mbrssV1CapabilityError} role="status">
               {tValue('boost_messages.mbrssV1_capability_unavailable')}

@@ -1,4 +1,10 @@
-import type { DTOChannel, DTOItem } from '@podverse/helpers';
+import {
+  type DTOChannel,
+  type DTOItem,
+  getErrorResponseBodyCode,
+  getErrorResponseBodyMessage,
+  getErrorResponseStatus,
+} from '@podverse/helpers';
 import { request } from '@podverse/helpers-requests';
 import {
   buildMbrssV1CreateBoostRequest,
@@ -6,6 +12,7 @@ import {
   isMetaboostMbrssV1CreateBoostResponse,
   type MbrssV1CreateBoostIngestBody,
   type MetaBoost,
+  MetaboostSenderBlockedPostError,
   normalizeMetaboostMbrssV1IngestNodeUrl,
 } from '@podverse/v4v-metaboost';
 
@@ -50,7 +57,7 @@ export const postMbrssV1BoostMessage = async ({
   onMetaboostUnreachable,
 }: PostMbrssV1BoostMessageParams): Promise<string | null> => {
   try {
-    await fetchMbrssV1BoostCapability(metaBoost.node);
+    await fetchMbrssV1BoostCapability(metaBoost.node, { senderGuid });
   } catch {
     await onMetaboostUnreachable();
     return null;
@@ -96,17 +103,28 @@ export const postMbrssV1BoostMessage = async ({
     body_json: bodyJson,
   });
 
-  const { status, data: responseData } = await request<unknown>(mint.ingest_url, {
-    method: 'POST',
-    data: bodyJson,
-    headers: {
-      Authorization: mint.authorization,
-      'Content-Type': 'application/json',
-    },
-  });
-
-  if (status < 200 || status >= 300) {
-    throw new Error('MetaBoost metadata request failed');
+  let responseData: unknown;
+  try {
+    const res = await request<unknown>(mint.ingest_url, {
+      method: 'POST',
+      data: bodyJson,
+      headers: {
+        Authorization: mint.authorization,
+        'Content-Type': 'application/json',
+      },
+    });
+    responseData = res.data;
+  } catch (error: unknown) {
+    if (
+      getErrorResponseStatus(error) === 403 &&
+      getErrorResponseBodyCode(error) === 'sender_blocked'
+    ) {
+      const msg = getErrorResponseBodyMessage(error);
+      throw new MetaboostSenderBlockedPostError(
+        msg !== undefined && msg.trim() !== '' ? msg.trim() : ''
+      );
+    }
+    throw error;
   }
 
   if (!isMetaboostMbrssV1CreateBoostResponse(responseData)) {

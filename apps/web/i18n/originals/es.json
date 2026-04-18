@@ -295,7 +295,15 @@
       "login_required_for_mbrss_messages": "Puedes enviar una donación sin cuenta de Podverse. Para incluir un mensaje con tu donación, inicia sesión en Podverse.",
       "mbrss_offline_modal_title": "Recopilación de mensajes no disponible",
       "mbrss_offline_modal_body": "El servidor de recopilación de mensajes parece estar fuera de línea. Si deseas enviar tu donación sin mensaje, pulsa Continuar.",
-      "mbrss_offline_continue": "Continuar"
+      "mbrss_offline_continue": "Continuar",
+      "mint_rate_limit_modal_title": "Límite de mensajes de refuerzo",
+      "mint_rate_limit_wait_seconds": "Podrás enviar otro refuerzo con mensaje en {seconds, plural, one {# segundo} other {# segundos}}.",
+      "mint_rate_limit_wait_minutes": "Podrás enviar otro refuerzo con mensaje en {minutes, plural, one {# minuto} other {# minutos}}.",
+      "mint_rate_limit_preflight_error": "No se pudo comprobar el límite de envío de mensajes. Inténtalo de nuevo.",
+      "sender_blocked_preflight_fallback": "Has sido bloqueado para enviar mensajes a este destinatario.",
+      "sender_blocked_modal_title": "Mensaje no aceptado",
+      "sender_blocked_modal_primary": "Cerrar",
+      "sender_blocked_post_fallback": "Has sido bloqueado para enviar mensajes a este destinatario."
     },
     "types": {
       "lightning": {

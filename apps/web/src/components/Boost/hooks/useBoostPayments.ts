@@ -17,7 +17,10 @@ import {
 } from '@podverse/v4v-btc-ln';
 import { PROVIDER_FAILURE_PROP, sortRecipientsBySplitDescending } from '@podverse/v4v-helpers';
 import type { MetaBoost } from '@podverse/v4v-metaboost';
-import { resolveBoostExecutionStrategy } from '@podverse/v4v-metaboost';
+import {
+  MetaboostSenderBlockedPostError,
+  resolveBoostExecutionStrategy,
+} from '@podverse/v4v-metaboost';
 
 import { useModals } from '../../../contexts/Modals';
 import { getApiRequestService } from '../../../factories/apiRequestService';
@@ -343,7 +346,20 @@ export const useBoostPayments = ({
               onMetaboostUnreachable: promptMetaboostUnreachable,
             });
           }
-        } catch (error) {
+        } catch (error: unknown) {
+          if (error instanceof MetaboostSenderBlockedPostError) {
+            setModalBoostMessageError({
+              title: tValue('boost_messages.sender_blocked_modal_title'),
+              message:
+                error.detailMessage.trim() !== ''
+                  ? error.detailMessage
+                  : tValue('boost_messages.sender_blocked_post_fallback'),
+              primaryActionI18nKey: 'boost_messages.sender_blocked_modal_primary',
+              onSendAnyway: () => {},
+              onCancel: () => {},
+            });
+            return;
+          }
           if (process.env.NODE_ENV === 'development') {
             console.warn('MetaBoost standard post failed', error);
           }

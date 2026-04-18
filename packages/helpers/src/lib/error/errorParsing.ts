@@ -16,6 +16,17 @@ export const getErrorResponseBodyMessage = (error: unknown): string | undefined 
   return message ?? undefined;
 };
 
+/** When response.data is JSON with a string `code` (e.g. MetaBoost `sender_blocked`). */
+export const getErrorResponseBodyCode = (error: unknown): string | undefined => {
+  const response = getOwnPropertyValue(error, 'response');
+  const data = getOwnPropertyValue(response, 'data');
+  if (!isObjectLike(data)) {
+    return undefined;
+  }
+  const code = getOwnPropertyValue(data, 'code');
+  return typeof code === 'string' ? code : undefined;
+};
+
 export const getErrorCode = (error: unknown): string | undefined => {
   const code = getOwnPropertyValue(error, 'code');
   return typeof code === 'string' ? code : undefined;

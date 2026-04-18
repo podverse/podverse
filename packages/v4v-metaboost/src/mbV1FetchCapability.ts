@@ -2,6 +2,11 @@ import { getOwnPropertyValue, isObjectLike } from '@podverse/helpers';
 
 import { normalizeMetaboostMbV1IngestNodeUrl } from './mbV1IngestUrl.js';
 import { META_BOOST_SCHEMA_MB_V1 } from './metaBoost.js';
+import type { MetaBoostCapabilityFetchResult } from './metaBoostCapabilityFetchResult.js';
+import {
+  appendSenderGuidToUrl,
+  parseSenderBlockedCapabilityFields,
+} from './metaBoostCapabilityParseSenderBlocked.js';
 
 export type MbV1BoostCapabilityApiResponse = {
   schema: string;
@@ -18,9 +23,7 @@ const isValidHttpUrlString = (value: string): boolean => {
   }
 };
 
-export const parseMbV1BoostCapabilityResponse = (
-  data: unknown
-): { messageCharLimit: number; termsOfServiceUrl: string } => {
+export const parseMbV1BoostCapabilityResponse = (data: unknown): MetaBoostCapabilityFetchResult => {
   if (!isObjectLike(data)) {
     throw new Error('mb-v1 capability response is not an object');
   }
@@ -40,9 +43,12 @@ export const parseMbV1BoostCapabilityResponse = (
   ) {
     throw new Error('mb-v1 capability terms_of_service_url is invalid');
   }
+  const blocked = parseSenderBlockedCapabilityFields(data);
   return {
     messageCharLimit: Math.floor(limitRaw),
     termsOfServiceUrl: termsRaw.trim(),
+    senderBlocked: blocked.senderBlocked,
+    senderBlockMessage: blocked.senderBlockMessage,
   };
 };
 
@@ -58,10 +64,18 @@ const normalizeCapabilityUrl = (metaBoostNodeUrl: string): string => {
   }
 };
 
+export type FetchMbV1BoostCapabilityOptions = {
+  senderGuid?: string | null;
+};
+
 export const fetchMbV1BoostCapability = async (
-  metaBoostNodeUrl: string
-): Promise<{ messageCharLimit: number; termsOfServiceUrl: string }> => {
-  const urlString = normalizeMetaboostMbV1IngestNodeUrl(normalizeCapabilityUrl(metaBoostNodeUrl));
+  metaBoostNodeUrl: string,
+  options?: FetchMbV1BoostCapabilityOptions
+): Promise<MetaBoostCapabilityFetchResult> => {
+  const normalizedBase = normalizeMetaboostMbV1IngestNodeUrl(
+    normalizeCapabilityUrl(metaBoostNodeUrl)
+  );
+  const urlString = appendSenderGuidToUrl(normalizedBase, options?.senderGuid);
   const res = await fetch(urlString, {
     method: 'GET',
     headers: { Accept: 'application/json' },

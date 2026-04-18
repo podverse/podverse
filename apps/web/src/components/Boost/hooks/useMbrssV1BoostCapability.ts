@@ -18,6 +18,8 @@ export type UseMbrssV1BoostCapabilityResult = {
   status: MbrssV1BoostCapabilityStatus;
   messageCharLimit: number | null;
   termsOfServiceUrl: string | null;
+  senderBlocked: boolean;
+  senderBlockMessage: string | null;
 };
 
 export type UseMbrssV1BoostCapabilityOptions = {
@@ -26,6 +28,8 @@ export type UseMbrssV1BoostCapabilityOptions = {
    * Use when the user cannot use MetaBoost HTTP messaging anyway (e.g. not logged in).
    */
   fetchEnabled?: boolean;
+  /** Passed as `sender_guid` query on capability GET so MetaBoost can return `sender_blocked`. */
+  senderGuid?: string | null;
 };
 
 /**
@@ -39,6 +43,7 @@ export const useMbrssV1BoostCapability = (
   options?: UseMbrssV1BoostCapabilityOptions
 ): UseMbrssV1BoostCapabilityResult => {
   const fetchEnabled = options?.fetchEnabled ?? true;
+  const senderGuid = options?.senderGuid ?? null;
 
   const [status, setStatus] = useState<MbrssV1BoostCapabilityStatus>(() => {
     if (metaBoost === null) {
@@ -48,12 +53,16 @@ export const useMbrssV1BoostCapability = (
   });
   const [messageCharLimit, setMessageCharLimit] = useState<number | null>(null);
   const [termsOfServiceUrl, setTermsOfServiceUrl] = useState<string | null>(null);
+  const [senderBlocked, setSenderBlocked] = useState(false);
+  const [senderBlockMessage, setSenderBlockMessage] = useState<string | null>(null);
 
   useEffect(() => {
     if (metaBoost === null) {
       setStatus('idle');
       setMessageCharLimit(null);
       setTermsOfServiceUrl(null);
+      setSenderBlocked(false);
+      setSenderBlockMessage(null);
       return;
     }
 
@@ -61,6 +70,8 @@ export const useMbrssV1BoostCapability = (
       setStatus('idle');
       setMessageCharLimit(null);
       setTermsOfServiceUrl(null);
+      setSenderBlocked(false);
+      setSenderBlockMessage(null);
       return;
     }
 
@@ -68,6 +79,8 @@ export const useMbrssV1BoostCapability = (
     setStatus('loading');
     setMessageCharLimit(null);
     setTermsOfServiceUrl(null);
+    setSenderBlocked(false);
+    setSenderBlockMessage(null);
 
     void (async () => {
       try {
@@ -75,14 +88,17 @@ export const useMbrssV1BoostCapability = (
         const isMbV1 =
           metaBoost.standard === 'mb-v1' ||
           (typeof node === 'string' && node.includes('/standard/mb-v1/'));
-        const { messageCharLimit: limit, termsOfServiceUrl: tos } = isMbV1
-          ? await fetchMbV1BoostCapability(node)
-          : await fetchMbrssV1BoostCapability(node);
+        const capOptions = { senderGuid };
+        const result = isMbV1
+          ? await fetchMbV1BoostCapability(node, capOptions)
+          : await fetchMbrssV1BoostCapability(node, capOptions);
         if (cancelled) {
           return;
         }
-        setMessageCharLimit(limit);
-        setTermsOfServiceUrl(tos);
+        setMessageCharLimit(result.messageCharLimit);
+        setTermsOfServiceUrl(result.termsOfServiceUrl);
+        setSenderBlocked(result.senderBlocked);
+        setSenderBlockMessage(result.senderBlockMessage);
         setStatus('success');
       } catch {
         if (cancelled) {
@@ -90,6 +106,8 @@ export const useMbrssV1BoostCapability = (
         }
         setMessageCharLimit(null);
         setTermsOfServiceUrl(null);
+        setSenderBlocked(false);
+        setSenderBlockMessage(null);
         setStatus('error');
       }
     })();
@@ -97,7 +115,13 @@ export const useMbrssV1BoostCapability = (
     return () => {
       cancelled = true;
     };
-  }, [metaBoost, fetchEnabled]);
+  }, [metaBoost, fetchEnabled, senderGuid]);
 
-  return { status, messageCharLimit, termsOfServiceUrl };
+  return {
+    status,
+    messageCharLimit,
+    termsOfServiceUrl,
+    senderBlocked,
+    senderBlockMessage,
+  };
 };

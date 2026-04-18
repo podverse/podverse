@@ -136,17 +136,23 @@ export const BoostFormBase: React.FC<BoostFormBaseProps> = ({
     }
   }, [showAppInput]);
 
+  const boostFormDefaultsRef = useRef(boostFormDefaults);
+  boostFormDefaultsRef.current = boostFormDefaults;
+
   const lastSavedRef = useRef<{
     key: string;
     totalAmountToCreator: number;
     totalAmountToApp: number;
     yourName: string;
   } | null>(null);
-  const justLoadedKeyRef = useRef<string | null>(null);
+  /** After a value-tab change, skip one persist pass — save effect still sees pre-load state in its closure. */
+  const skipPersistAfterKeyLoadRef = useRef(false);
 
+  // Load cached defaults only when the value tab (selectedValueKey) changes — not on every boostFormDefaults
+  // save — so local edits stay authoritative and saves are not skipped by a competing reload effect.
   useEffect(() => {
     if (selectedValueKey === null || selectedValueKey === '') return;
-    const saved = boostFormDefaults[selectedValueKey];
+    const saved = boostFormDefaultsRef.current[selectedValueKey];
     if (saved) {
       setTotalAmountToCreator(saved.totalAmountToCreator);
       setTotalAmountToApp(saved.totalAmountToApp);
@@ -160,13 +166,13 @@ export const BoostFormBase: React.FC<BoostFormBaseProps> = ({
     } else {
       lastSavedRef.current = null;
     }
-    justLoadedKeyRef.current = selectedValueKey;
-  }, [selectedValueKey, boostFormDefaults]);
+    skipPersistAfterKeyLoadRef.current = true;
+  }, [selectedValueKey]);
 
   useEffect(() => {
     if (selectedValueKey === null || selectedValueKey === '') return;
-    if (justLoadedKeyRef.current === selectedValueKey) {
-      justLoadedKeyRef.current = null;
+    if (skipPersistAfterKeyLoadRef.current) {
+      skipPersistAfterKeyLoadRef.current = false;
       return;
     }
     const last = lastSavedRef.current;
@@ -232,8 +238,11 @@ export const BoostFormBase: React.FC<BoostFormBaseProps> = ({
     status: mbrssV1CapabilityStatus,
     messageCharLimit: mbrssV1MessageCharLimit,
     termsOfServiceUrl: mbrssV1TermsOfServiceUrl,
+    senderBlocked: mbrssV1SenderBlocked,
+    senderBlockMessage: mbrssV1SenderBlockMessage,
   } = useMbrssV1BoostCapability(metaBoost, {
     fetchEnabled: loggedInAccount !== null,
+    senderGuid: loggedInAccount?.sender_guid ?? null,
   });
 
   const messageMaxLength = useMemo((): number | undefined => {
@@ -246,10 +255,22 @@ export const BoostFormBase: React.FC<BoostFormBaseProps> = ({
     return undefined;
   }, [metaBoost, mbrssV1CapabilityStatus, mbrssV1MessageCharLimit]);
 
-  const mbrssV1MessageFieldBlocked = metaBoost !== null && mbrssV1CapabilityStatus !== 'success';
+  const mbrssV1MessageFieldBlocked =
+    metaBoost !== null &&
+    (mbrssV1CapabilityStatus !== 'success' ||
+      (mbrssV1CapabilityStatus === 'success' && mbrssV1SenderBlocked));
   const mbrssV1MessageLoading = metaBoost !== null && mbrssV1CapabilityStatus === 'loading';
   const mbrssV1CapabilityFailed = metaBoost !== null && mbrssV1CapabilityStatus === 'error';
-  const mbrssV1HttpMessagingEnabled = metaBoost !== null && mbrssV1CapabilityStatus === 'success';
+  const mbrssV1HttpMessagingEnabled =
+    metaBoost !== null && mbrssV1CapabilityStatus === 'success' && !mbrssV1SenderBlocked;
+
+  const mbrssV1SenderBlockedPreflightMessage =
+    metaBoost !== null &&
+    loggedInAccount !== null &&
+    mbrssV1CapabilityStatus === 'success' &&
+    mbrssV1SenderBlocked
+      ? (mbrssV1SenderBlockMessage ?? tValue('boost_messages.sender_blocked_preflight_fallback'))
+      : null;
 
   useEffect(() => {
     if (typeof messageMaxLength !== 'number') {
@@ -343,6 +364,7 @@ export const BoostFormBase: React.FC<BoostFormBaseProps> = ({
               mbrssV1MessageFieldBlocked={mbrssV1MessageFieldBlocked}
               mbrssV1MessageLoading={mbrssV1MessageLoading}
               mbrssV1CapabilityFailed={mbrssV1CapabilityFailed}
+              mbrssV1SenderBlockedPreflightMessage={mbrssV1SenderBlockedPreflightMessage}
               tValue={tValue}
               tMisc={tMisc}
               brandName={config.public.brand.name}

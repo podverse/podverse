@@ -295,7 +295,15 @@
       "login_required_for_mbrss_messages": "Μπορείτε να στείλετε δωρεά χωρίς λογαριασμό Podverse. Για να συμπεριλάβετε μήνυμα με τη δωρεά σας, συνδεθείτε στο Podverse.",
       "mbrss_offline_modal_title": "Η συλλογή μηνυμάτων δεν είναι διαθέσιμη",
       "mbrss_offline_modal_body": "Ο διακομιστής συλλογής μηνυμάτων φαίνεται εκτός σύνδεσης. Εάν θέλετε να στείλετε τη δωρεά σας χωρίς μήνυμα, πατήστε Συνέχεια.",
-      "mbrss_offline_continue": "Συνέχεια"
+      "mbrss_offline_continue": "Συνέχεια",
+      "mint_rate_limit_modal_title": "Όριο μηνυμάτων boost",
+      "mint_rate_limit_wait_seconds": "Μπορείτε να στείλετε άλλο boost με μήνυμα σε {seconds, plural, one {# δευτερόλεπτο} other {# δευτερόλεπτα}}.",
+      "mint_rate_limit_wait_minutes": "Μπορείτε να στείλετε άλλο boost με μήνυμα σε {minutes, plural, one {# λεπτό} other {# λεπτά}}.",
+      "mint_rate_limit_preflight_error": "Δεν ήταν δυνατός ο έλεγχος του ορίου αποστολής μηνυμάτων. Δοκιμάστε ξανά.",
+      "sender_blocked_preflight_fallback": "Έχετε αποκλειστεί από την αποστολή μηνυμάτων σε αυτόν τον παραλήπτη.",
+      "sender_blocked_modal_title": "Το μήνυμα δεν έγινε αποδεκτό",
+      "sender_blocked_modal_primary": "Κλείσιμο",
+      "sender_blocked_post_fallback": "Έχετε αποκλειστεί από την αποστολή μηνυμάτων σε αυτόν τον παραλήπτη."
     },
     "types": {
       "lightning": {

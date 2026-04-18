@@ -295,7 +295,15 @@
       "login_required_for_mbrss_messages": "",
       "mbrss_offline_modal_title": "",
       "mbrss_offline_modal_body": "",
-      "mbrss_offline_continue": ""
+      "mbrss_offline_continue": "",
+      "mint_rate_limit_modal_title": "",
+      "mint_rate_limit_wait_seconds": "",
+      "mint_rate_limit_wait_minutes": "",
+      "mint_rate_limit_preflight_error": "",
+      "sender_blocked_preflight_fallback": "",
+      "sender_blocked_modal_title": "",
+      "sender_blocked_modal_primary": "",
+      "sender_blocked_post_fallback": ""
     },
     "types": {
       "lightning": {

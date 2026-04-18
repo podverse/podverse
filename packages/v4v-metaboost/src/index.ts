@@ -1,5 +1,7 @@
 export * from './metaBoost.js';
 export * from './metaBoostStandard.js';
+export * from './metaBoostCapabilityFetchResult.js';
+export * from './metaboostSenderBlockedPostError.js';
 export * from './blip0010BtcLnBoostJsonKeys.js';
 export * from './boostMetadata.js';
 export * from './mbrssV1CreateBoost.js';

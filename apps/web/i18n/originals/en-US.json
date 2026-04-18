@@ -299,7 +299,11 @@
       "mint_rate_limit_modal_title": "Boost message limit",
       "mint_rate_limit_wait_seconds": "You can send another boost with a message in {seconds, plural, one {# second} other {# seconds}}.",
       "mint_rate_limit_wait_minutes": "You can send another boost with a message in {minutes, plural, one {# minute} other {# minutes}}.",
-      "mint_rate_limit_preflight_error": "Could not check message send limit. Please try again."
+      "mint_rate_limit_preflight_error": "Could not check message send limit. Please try again.",
+      "sender_blocked_preflight_fallback": "You have been blocked from sending messages to this recipient.",
+      "sender_blocked_modal_title": "Message not accepted",
+      "sender_blocked_modal_primary": "Close",
+      "sender_blocked_post_fallback": "You have been blocked from sending messages to this recipient."
     },
     "types": {
       "lightning": {
