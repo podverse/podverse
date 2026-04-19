@@ -59,7 +59,7 @@ Always keep the same relative path under `completed/` as under `active/`:
 
 ## Optional: Update References
 
-If a master plan or index (e.g. `LLM-PLANS.md` or a `00-master-plan.md`) references the moved
+If a master plan or index (e.g. `00-master-plan.md`, `00-SUMMARY.md`, or `.llm/LLM.md`) references the moved
 plan(s) by path, update those references to point at `completed/` instead of `active/` where
 appropriate.
 

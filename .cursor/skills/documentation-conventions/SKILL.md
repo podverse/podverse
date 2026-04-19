@@ -25,7 +25,6 @@ apps/web/APPS-WEB.md
 tools/qa/TOOLS-QA.md
 infra/docker/ci/INFRA-DOCKER-CI.md
 .llm/LLM.md
-.llm/plans/LLM-PLANS.md
 
 ❌ Incorrect:
 apps/api/README.md
@@ -52,7 +51,7 @@ Convert the directory path to uppercase, replacing slashes with hyphens:
 
 - `apps/api/` → `APPS-API.md`
 - `packages/orm/` → `PACKAGES-ORM.md`
-- `.llm/plans/active/` → `LLM-PLANS-ACTIVE.md`
+- `.llm/plans/active/` → place plan files under `active/<project>/` (see `.llm/LLM.md`)
 
 ### Examples
 
@@ -73,7 +72,8 @@ Convert the directory path to uppercase, replacing slashes with hyphens:
 | `scripts/github/`                | `SCRIPTS-GITHUB.md`                |
 | `infra/pipelines/jenkins/alpha/` | `INFRA-PIPELINES-JENKINS-ALPHA.md` |
 | `.llm/`                          | `LLM.md`                           |
-| `.llm/plans/`                    | `LLM-PLANS.md`                     |
+
+Per-project plans live under `.llm/plans/active/` and `.llm/plans/completed/` (see `.llm/LLM.md`). There is no single markdown file at the `.llm/plans/` root.
 
 ### Special Cases
 
