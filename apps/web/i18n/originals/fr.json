@@ -331,10 +331,17 @@
   },
   "v4v": {
     "boost_messages": {
-      "title": "Messages Boost",
+      "title": "Metaboost",
       "description": "Pour activer les messages boost pour votre contenu, ajoutez la balise RSS podcast:metaBoost à votre flux dans votre bloc podcast:value. Cette balise indique aux applications où envoyer des messages optionnels des auditeurs. Sans cela, les auditeurs peuvent toujours envoyer des paiements mais ne peuvent pas joindre de message.",
       "example_heading": "Exemple de snippet RSS avec podcast:metaBoost",
-      "example": "'<'podcast:value type=\"lightning\" method=\"keysend\"'>'\n  '<'podcast:metaBoost standard=\"mbrss-v1\"'>'https://metaboost.example/boost'<'/podcast:metaBoost'>'\n  '<'podcast:valueRecipient type=\"lnaddress\" address=\"you@example.com\" split=\"100\" /'>'\n'<'/podcast:value'>'"
+      "example": "'<'podcast:value type=\"lightning\" method=\"keysend\"'>'\n  '<'podcast:metaBoost standard=\"mbrss-v1\"'>'https://metaboost.example/boost'<'/podcast:metaBoost'>'\n  '<'podcast:valueRecipient type=\"lnaddress\" address=\"you@example.com\" split=\"100\" /'>'\n'<'/podcast:value'>'",
+      "page_intro": "Metaboost est un logiciel open source et une norme ouverte pour héberger des messages d’auditeurs aux côtés des boosts value-for-value du podcast.",
+      "page_signup": "Si un podcast souhaite que ses auditeurs puissent joindre des messages aux boosts dans Podverse, il peut s’inscrire sur un serveur Metaboost open source (<link>metaboost.cc</link> est une option, et elle est maintenue par Podverse).",
+      "page_rss_tag": "Metaboost fournit au podcasteur une balise simple <rssTag>podcast:metaBoost</rssTag> à ajouter à son flux RSS, ce qui lui permet de commencer à recevoir des messages boost.",
+      "page_open_standard": "Comme Metaboost est une norme ouverte, toute application qui adopte la norme (pas seulement Podverse) peut envoyer des messages au point de terminaison Metaboost du podcasteur.",
+      "page_how_to_heading": "En savoir plus sur Metaboost",
+      "page_how_to_creators": "Guide pour les créateurs",
+      "page_how_to_developers": "Guide pour les développeurs"
     }
   },
   "filters": {

@@ -125,7 +125,7 @@ See [LOCAL-LIGHTNING.md](LOCAL-LIGHTNING.md) for full CLI payment steps.
 
 - **MetaBoost server**: If using metaBoost, check that the boost message appears in your server logs/store.
 - **LND**: Run `nigiri lnd listpayments` (outgoing) or `nigiri lnd listinvoices` (incoming) to see payments.
-- **Web app**: The Boost modal should show success; you can also visit http://localhost:3002/v4v/boost-messages for context on boost messages.
+- **Web app**: The Boost modal should show success; you can also visit http://localhost:3002/v4v/metaboost for context on Metaboost and boost messages.
 
 ## Test path: LNAddress implementation
 

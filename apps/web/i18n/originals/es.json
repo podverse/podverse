@@ -331,10 +331,17 @@
   },
   "v4v": {
     "boost_messages": {
-      "title": "Mensajes de Refuerzo",
+      "title": "Metaboost",
       "description": "Para habilitar mensajes de refuerzo para tu contenido, añade la etiqueta RSS podcast:metaBoost a tu feed dentro de tu bloque podcast:value. Esta etiqueta indica a las aplicaciones dónde enviar mensajes opcionales de los oyentes. Sin ella, los oyentes aún pueden enviar pagos pero no pueden adjuntar un mensaje.",
       "example_heading": "Ejemplo de fragmento RSS con podcast:metaBoost",
-      "example": "'<'podcast:value type=\"lightning\" method=\"keysend\"'>'\n  '<'podcast:metaBoost standard=\"mbrss-v1\"'>'https://metaboost.example/boost'<'/podcast:metaBoost'>'\n  '<'podcast:valueRecipient type=\"lnaddress\" address=\"you@example.com\" split=\"100\" /'>'\n'<'/podcast:value'>'"
+      "example": "'<'podcast:value type=\"lightning\" method=\"keysend\"'>'\n  '<'podcast:metaBoost standard=\"mbrss-v1\"'>'https://metaboost.example/boost'<'/podcast:metaBoost'>'\n  '<'podcast:valueRecipient type=\"lnaddress\" address=\"you@example.com\" split=\"100\" /'>'\n'<'/podcast:value'>'",
+      "page_intro": "Metaboost es software de código abierto y un estándar abierto para alojar mensajes de oyentes junto con los boosts value-for-value del podcast.",
+      "page_signup": "Si un podcast quiere que sus oyentes puedan adjuntar mensajes a los boosts en Podverse, puede registrarse en cualquier servidor Metaboost de código abierto (<link>metaboost.cc</link> es una opción, y está mantenida por Podverse).",
+      "page_rss_tag": "Metaboost ofrece al podcaster una etiqueta simple <rssTag>podcast:metaBoost</rssTag> que puede añadir a su RSS, lo que le permitirá empezar a recibir mensajes de refuerzo.",
+      "page_open_standard": "Como Metaboost es un estándar abierto, cualquier aplicación que adopte el estándar (no solo Podverse) puede enviar mensajes al endpoint Metaboost del podcaster.",
+      "page_how_to_heading": "Más sobre Metaboost",
+      "page_how_to_creators": "Guía para creadores",
+      "page_how_to_developers": "Guía para desarrolladores"
     }
   },
   "filters": {

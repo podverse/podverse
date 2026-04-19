@@ -12,6 +12,15 @@ const withBundleAnalyzer = withBundleAnalyzerInit({
 });
 
 const nextConfig = {
+  async redirects() {
+    return [
+      {
+        source: '/v4v/boost-messages',
+        destination: '/v4v/metaboost',
+        permanent: true,
+      },
+    ];
+  },
   output: 'standalone',
   outputFileTracingRoot: path.join(import.meta.dirname, '../../'),
   serverExternalPackages: ['winston'],

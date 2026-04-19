@@ -334,7 +334,14 @@
       "title": "",
       "description": "",
       "example_heading": "",
-      "example": ""
+      "example": "",
+      "page_intro": "",
+      "page_signup": "",
+      "page_rss_tag": "",
+      "page_open_standard": "",
+      "page_how_to_heading": "",
+      "page_how_to_creators": "",
+      "page_how_to_developers": ""
     }
   },
   "filters": {

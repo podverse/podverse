@@ -1,5 +1,6 @@
 import type { DTOChannel, DTOItem } from '@podverse/helpers';
 import type { QueryParamsItem } from '@podverse/helpers-requests';
+import { resolveMetaBoostFromApiValueMetadata } from '@podverse/v4v-metaboost';
 
 import { CorePodcastHeader } from '../../../components/Core/Podcast/CorePodcastHeader';
 import { CoreEpisodeHeader } from '../../../components/Core/Podcast/Episodes/CoreEpisodeHeader';
@@ -29,6 +30,11 @@ export function EpisodePageClient(props: EpisodePageClientProps) {
     ssrHasSoundbites,
     ssrHasTranscripts,
   } = props;
+  const resolvedMetaBoost = resolveMetaBoostFromApiValueMetadata(ssrChannel.channel_meta_boost);
+  const ssrCanShowBoosts =
+    resolvedMetaBoost?.metaBoost.standard === 'mbrss-v1' &&
+    Boolean(ssrChannel.podcast_guid) &&
+    Boolean(ssrItem.guid);
 
   return (
     <EpisodePageContextProvider initialQueryParams={initialQueryParams}>
@@ -42,6 +48,7 @@ export function EpisodePageClient(props: EpisodePageClientProps) {
               ssrHasChapters={ssrHasChapters}
               ssrHasTranscripts={ssrHasTranscripts}
               ssrHasSoundbites={ssrHasSoundbites}
+              ssrCanShowBoosts={ssrCanShowBoosts}
             />
             <EpisodePageList ssrChannel={ssrChannel} ssrItem={ssrItem} />
           </MainInnerContentWrapper>

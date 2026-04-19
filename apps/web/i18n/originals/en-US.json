@@ -303,7 +303,11 @@
       "sender_blocked_preflight_fallback": "You have been blocked from sending messages to this recipient.",
       "sender_blocked_modal_title": "Message not accepted",
       "sender_blocked_modal_primary": "Close",
-      "sender_blocked_post_fallback": "You have been blocked from sending messages to this recipient."
+      "sender_blocked_post_fallback": "You have been blocked from sending messages to this recipient.",
+      "public_messages_loading": "Loading messages…",
+      "public_messages_unavailable": "messages from this server are not publicly available at this time",
+      "public_messages_empty": "No messages are available yet.",
+      "public_amount_btc_token": "BTC"
     },
     "types": {
       "lightning": {
@@ -331,10 +335,17 @@
   },
   "v4v": {
     "boost_messages": {
-      "title": "Boost Messages",
+      "title": "Metaboost",
       "description": "To enable boost messages for your content, add the podcast:metaBoost RSS tag to your feed inside your podcast:value block. This tag tells apps where to send optional listener messages. Without it, listeners can still send payments but cannot attach a message.",
       "example_heading": "Example RSS snippet with podcast:metaBoost",
-      "example": "'<'podcast:value type=\"lightning\" method=\"keysend\"'>'\n  '<'podcast:metaBoost standard=\"mbrss-v1\"'>'https://metaboost.example/boost'<'/podcast:metaBoost'>'\n  '<'podcast:valueRecipient type=\"lnaddress\" address=\"you@example.com\" split=\"100\" /'>'\n'<'/podcast:value'>'"
+      "example": "'<'podcast:value type=\"lightning\" method=\"keysend\"'>'\n  '<'podcast:metaBoost standard=\"mbrss-v1\"'>'https://metaboost.example/boost'<'/podcast:metaBoost'>'\n  '<'podcast:valueRecipient type=\"lnaddress\" address=\"you@example.com\" split=\"100\" /'>'\n'<'/podcast:value'>'",
+      "page_intro": "Metaboost is open-source software and an open standard for hosting listener messages alongside podcast value-for-value boosts.",
+      "page_signup": "If a podcast wants their listeners to be able to attach messages to boosts in Podverse, they can sign up with any open-source Metaboost server (<link>metaboost.cc</link> is one option, and it is maintained by Podverse).",
+      "page_rss_tag": "Metaboost gives the podcaster a simple <rssTag>podcast:metaBoost</rssTag> tag that they can add to their RSS feed, which will allow them to begin receiving boost messages.",
+      "page_open_standard": "Since Metaboost is an open standard, any app that adopts the standard (not just Podverse), can send messages to the podcaster's Metaboost endpoint.",
+      "page_how_to_heading": "More on Metaboost",
+      "page_how_to_creators": "How to for creators",
+      "page_how_to_developers": "How to for developers"
     }
   },
   "filters": {

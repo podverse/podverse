@@ -1,15 +1,19 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { FaCommentDollar } from 'react-icons/fa6';
 
 import { BoostAppDonateForm } from '../../components/Boost/BoostAppDonateForm';
+import { BoostMessagesSection } from '../../components/Boost/messages/BoostMessagesSection';
+import { createBoostMessagesPageFetcher } from '../../components/Boost/messages/fetchPublicBoostMessages';
+import { Divider } from '../../components/Divider/Divider';
 import { MainHeader } from '../../components/Main/MainHeader';
 import { MainInnerContentWrapper } from '../../components/Main/MainInnerContentWrapper';
 import { MainInnerWrapper } from '../../components/Main/MainInnerWrapper';
 import { MainWrapper } from '../../components/Main/MainWrapper';
 import { useConfig } from '../../contexts/Config';
+import { getAppValueMetaBoost } from '../../utils/value/metaBoost';
 
 import styles from '../../styles/app/donate/Donate.module.scss';
 
@@ -17,6 +21,18 @@ export default function DonatePage() {
   const config = useConfig();
   const [donationSucceeded, setDonationSucceeded] = useState(false);
   const tDonate = useTranslations('donate');
+  const tV4VBoostMessages = useTranslations('v4v.boost_messages');
+
+  const appValueMetaBoost = useMemo(() => getAppValueMetaBoost(config), [config]);
+  const donateMessagesPageFetcher = useMemo(() => {
+    if (appValueMetaBoost === null || appValueMetaBoost.standard !== 'mb-v1') {
+      return null;
+    }
+    return createBoostMessagesPageFetcher({
+      type: 'mb-v1',
+      metaBoost: appValueMetaBoost,
+    });
+  }, [appValueMetaBoost]);
 
   return (
     <>
@@ -38,6 +54,16 @@ export default function DonatePage() {
                 </div>
               )}
               <BoostAppDonateForm onDonationSuccess={() => setDonationSucceeded(true)} />
+              {donateMessagesPageFetcher !== null && (
+                <div className={styles.messagesWrapper}>
+                  <Divider className={styles.messagesDivider} />
+                  <BoostMessagesSection
+                    heading={tV4VBoostMessages('title')}
+                    pageFetcher={donateMessagesPageFetcher}
+                    className={styles.messagesSection}
+                  />
+                </div>
+              )}
             </div>
           </MainInnerContentWrapper>
         </MainInnerWrapper>

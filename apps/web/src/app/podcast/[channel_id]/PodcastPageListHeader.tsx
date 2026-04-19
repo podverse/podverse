@@ -24,11 +24,13 @@ import { getPodcastPageDropdownConfig } from './PodcastPageDropdownConfig';
 type PodcastPageListHeaderProps = {
   ssrHasPodroll?: boolean;
   ssrHasItemSoundbites?: boolean;
+  ssrCanShowBoosts?: boolean;
 };
 
 export const PodcastPageListHeader: React.FC<PodcastPageListHeaderProps> = ({
   ssrHasPodroll,
   ssrHasItemSoundbites,
+  ssrCanShowBoosts,
 }) => {
   const { filterParams, setFilterParams } = usePodcastPageContext();
   const { type, sort, range } = filterParams;
@@ -37,6 +39,7 @@ export const PodcastPageListHeader: React.FC<PodcastPageListHeaderProps> = ({
   const tInfo = useTranslations('info');
   const tFeatures = useTranslations('features');
   const tSettings = useTranslations('settings');
+  const tValue = useTranslations('value');
   const { loggedInAccount } = useAccount();
 
   const { sortMenuItems, rangeMenuItems, showRangeDropdown } = getPodcastPageDropdownConfig({
@@ -105,12 +108,22 @@ export const PodcastPageListHeader: React.FC<PodcastPageListHeaderProps> = ({
     zIndex: 4,
   });
 
+  if (ssrCanShowBoosts) {
+    tabData.push({
+      key: 'boosts',
+      label: tValue('boost'),
+      onClick: () => handleTypeChange('boosts'),
+      hideDesktop: false,
+      zIndex: 3,
+    });
+  }
+
   tabData.push({
     key: 'about',
     label: tInfo('about'),
     onClick: () => handleTypeChange('about'),
     hideDesktop: true,
-    zIndex: 3,
+    zIndex: 2,
   });
 
   if (ssrHasPodroll) {
@@ -119,7 +132,7 @@ export const PodcastPageListHeader: React.FC<PodcastPageListHeaderProps> = ({
       label: tInfo('podroll'),
       onClick: () => handleTypeChange('podroll'),
       hideDesktop: true,
-      zIndex: 2,
+      zIndex: 1,
     });
   }
 
@@ -129,7 +142,7 @@ export const PodcastPageListHeader: React.FC<PodcastPageListHeaderProps> = ({
       label: tSettings('settings'),
       onClick: () => handleTypeChange('settings'),
       hideDesktop: false,
-      zIndex: 1,
+      zIndex: 0,
     });
   }
 

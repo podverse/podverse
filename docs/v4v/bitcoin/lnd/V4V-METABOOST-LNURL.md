@@ -159,7 +159,7 @@ and rounded down to the nearest integer (e.g., 60 + 40 + 1 is valid and normaliz
 
 When metaBoost is **not** present for LNAddress recipients (`type="lnaddress"`), boost messages are
 disabled **for LNURL invoice flows**. The boost form shows a notice with a "More Info" link to
-`/v4v/boost-messages`, and the payment proceeds **without** any message metadata.
+`/v4v/metaboost`, and the payment proceeds **without** any message metadata.
 
 ## Manual test checklist
 
@@ -170,7 +170,7 @@ disabled **for LNURL invoice flows**. The boost form shows a notice with a "More
 - mbrss-v1 post happens only when the largest split recipient payment succeeds.
 - Keysend without metaBoost: bLIP-0010 record is attached (TLV 7629169).
 - LNAddress without metaBoost: notice shown; payments sent without message metadata.
-- `/v4v/boost-messages` page loads and explains requirements.
+- `/v4v/metaboost` page loads and explains requirements.
 
 ## Future production hardening (not implemented)
 

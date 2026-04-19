@@ -6,6 +6,7 @@ import type {
   RemoteItemsResponse,
 } from '@podverse/helpers';
 import type { QueryParamsChannel } from '@podverse/helpers-requests';
+import { resolveMetaBoostFromApiValueMetadata } from '@podverse/v4v-metaboost';
 
 import { CorePodcastHeader } from '../../../components/Core/Podcast/CorePodcastHeader';
 import { MainInnerContentWrapper } from '../../../components/Main/MainInnerContentWrapper';
@@ -40,6 +41,9 @@ export function PodcastPageClient(props: PodcastPageClientProps) {
     ssrTotalPages,
     ssrPodroll,
   } = props;
+  const resolvedMetaBoost = resolveMetaBoostFromApiValueMetadata(ssrChannel.channel_meta_boost);
+  const ssrCanShowBoosts =
+    resolvedMetaBoost?.metaBoost.standard === 'mbrss-v1' && Boolean(ssrChannel.podcast_guid);
 
   return (
     <PodcastPageContextProvider
@@ -58,6 +62,7 @@ export function PodcastPageClient(props: PodcastPageClientProps) {
             <PodcastPageListHeader
               ssrHasPodroll={!!ssrPodroll}
               ssrHasItemSoundbites={ssrHasItemSoundbites}
+              ssrCanShowBoosts={ssrCanShowBoosts}
             />
             <PodcastPageList ssrChannel={ssrChannel} podroll={ssrPodroll} />
           </MainInnerContentWrapper>

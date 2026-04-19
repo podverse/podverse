@@ -10,3 +10,4 @@ export * from './mbrssV1IngestUrl.js';
 export * from './mbV1CreateBoost.js';
 export * from './mbV1FetchCapability.js';
 export * from './mbV1IngestUrl.js';
+export * from './publicMessages.js';

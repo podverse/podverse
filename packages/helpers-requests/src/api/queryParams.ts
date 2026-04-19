@@ -189,6 +189,7 @@ export const QUERY_PARAMS_CHANNEL_TYPE_VALUES = [
   'episodes',
   'soundbites',
   'clips',
+  'boosts',
   'about',
   'podroll',
   'settings',
@@ -283,6 +284,7 @@ export const QUERY_PARAMS_ITEM_TYPE_VALUES = [
   'chapters',
   'soundbites',
   'clips',
+  'boosts',
   'transcript',
 ] as const;
 export const QUERY_PARAMS_ITEM_SORT_VALUES = SORT_RECENT_OLDEST_TOP;

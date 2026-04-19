@@ -331,10 +331,17 @@
   },
   "v4v": {
     "boost_messages": {
-      "title": "Ενισχυμένα Μηνύματα",
+      "title": "Metaboost",
       "description": "Για να ενεργοποιήσετε τα ενισχυμένα μηνύματα για το περιεχόμενό σας, προσθέστε το podcast:metaBoost RSS tag στη ροή σας μέσα στο podcast:value block σας. Αυτό το tag λέει στις εφαρμογές πού να στείλουν προαιρετικά μηνύματα ακροατών. Χωρίς αυτό, οι ακροατές μπορούν να στέλνουν πληρωμές αλλά δεν μπορούν να επισυνάψουν μήνυμα.",
       "example_heading": "Παράδειγμα RSS τμήματος με podcast:metaBoost",
-      "example": "'<'podcast:value type=\"lightning\" method=\"keysend\"'>'\n  '<'podcast:metaBoost standard=\"mbrss-v1\"'>'https://metaboost.example/boost'<'/podcast:metaBoost'>'\n  '<'podcast:valueRecipient type=\"lnaddress\" address=\"you@example.com\" split=\"100\" /'>'\n'<'/podcast:value'>'"
+      "example": "'<'podcast:value type=\"lightning\" method=\"keysend\"'>'\n  '<'podcast:metaBoost standard=\"mbrss-v1\"'>'https://metaboost.example/boost'<'/podcast:metaBoost'>'\n  '<'podcast:valueRecipient type=\"lnaddress\" address=\"you@example.com\" split=\"100\" /'>'\n'<'/podcast:value'>'",
+      "page_intro": "Το Metaboost είναι λογισμικό ανοικτού κώδικα και ανοιχτό πρότυπο για τη φιλοξενία μηνυμάτων ακροατών μαζί με τα value-for-value boosts του podcast.",
+      "page_signup": "Αν ένα podcast θέλει οι ακροατές του να μπορούν να επισυνάπτουν μηνύματα στα boosts στο Podverse, μπορούν να εγγραφούν σε οποιονδήποτε διακομιστή Metaboost ανοικτού κώδικα (<link>metaboost.cc</link> είναι μία επιλογή, και συντηρείται από το Podverse).",
+      "page_rss_tag": "Το Metaboost δίνει στον podcaster μια απλή ετικέτα <rssTag>podcast:metaBoost</rssTag> που μπορεί να προσθέσει στη ροή RSS του, ώστε να αρχίσει να λαμβάνει μηνύματα ενίσχυσης.",
+      "page_open_standard": "Επειδή το Metaboost είναι ανοιχτό πρότυπο, οποιαδήποτε εφαρμογή που υιοθετεί το πρότυπο (όχι μόνο το Podverse) μπορεί να στέλνει μηνύματα στο σημείο πρόσβασης Metaboost του podcaster.",
+      "page_how_to_heading": "Περισσότερα για το Metaboost",
+      "page_how_to_creators": "Οδηγός για δημιουργούς",
+      "page_how_to_developers": "Οδηγός για προγραμματιστές"
     }
   },
   "filters": {

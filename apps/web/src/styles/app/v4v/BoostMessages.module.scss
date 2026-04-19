@@ -1,3 +1,48 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2xl);
+  margin: 0;
+  max-width: var(--form-max-width);
+}
+
+.paragraph {
+  margin: 0;
+}
+
+.tagInline {
+  font-size: var(--font-size-sm);
+}
+
+.inlineLink {
+  color: var(--text-color-link);
+}
+
+.inlineLink:hover {
+  color: var(--text-color-link-hover);
+}
+
+.howToSection {
+  padding-top: var(--spacing-2xl);
+  margin-top: var(--spacing-md);
+  border-top: 1px solid var(--border-color-opaque);
+}
+
+.howToHeading {
+  margin: 0;
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-bold);
+}
+
+.howToList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+  margin: var(--spacing-md) 0 0;
+  padding-left: var(--spacing-xl);
+  list-style: disc;
+}
+
 .exampleHeading {
   margin: var(--spacing-lg) 0 var(--spacing-sm);
   font-size: var(--font-size-md);
