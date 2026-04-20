@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 
 import type { PublicBoostMessage, PublicBoostMessagesPage } from '@podverse/v4v-metaboost';
 
+import { getPublicBoostMessageLinkKey } from './getPublicBoostMessageLinkKey';
 import type { BoostBreadcrumbLinkResolver, BoostMessagesPageFetcher } from './types';
 
 type Status = 'idle' | 'loading' | 'success' | 'error';
@@ -11,6 +12,7 @@ type UseBoostMessagesSectionOptions = {
   initialPage?: number;
   limit?: number;
   breadcrumbLinkResolver?: BoostBreadcrumbLinkResolver;
+  refreshTrigger?: number;
 };
 
 type UseBoostMessagesSectionResult = {
@@ -30,9 +32,6 @@ const EMPTY_PAGE: PublicBoostMessagesPage = {
   total: 0,
   totalPages: 1,
 };
-
-const getMessageLinkKey = (message: PublicBoostMessage): string =>
-  message.messageGuid || message.id;
 
 const getResolverCacheKey = (message: PublicBoostMessage): string | null => {
   const context = message.breadcrumbContext;
@@ -56,6 +55,7 @@ export const useBoostMessagesSection = ({
   initialPage = 1,
   limit = DEFAULT_LIMIT,
   breadcrumbLinkResolver,
+  refreshTrigger = 0,
 }: UseBoostMessagesSectionOptions): UseBoostMessagesSectionResult => {
   const [status, setStatus] = useState<Status>('idle');
   const [page, setPage] = useState(initialPage);
@@ -96,7 +96,7 @@ export const useBoostMessagesSection = ({
     return () => {
       cancelled = true;
     };
-  }, [limit, page, pageFetcher]);
+  }, [limit, page, pageFetcher, refreshTrigger]);
 
   const resolvableMessages = useMemo(
     () =>
@@ -117,7 +117,7 @@ export const useBoostMessagesSection = ({
       const next = { ...previous };
       let changed = false;
       for (const message of data.messages) {
-        const messageKey = getMessageLinkKey(message);
+        const messageKey = getPublicBoostMessageLinkKey(message);
         const cacheKey = getResolverCacheKey(message);
         if (cacheKey === null) {
           if (next[messageKey] !== null) {
@@ -148,7 +148,7 @@ export const useBoostMessagesSection = ({
 
       await Promise.all(
         resolvableMessages.map(async (message) => {
-          const key = getMessageLinkKey(message);
+          const key = getPublicBoostMessageLinkKey(message);
           const cacheKey = getResolverCacheKey(message);
           if (cacheKey === null) {
             nextEntries[key] = null;

@@ -4,6 +4,7 @@ import { BLIP0010_BTC_LN_BOOST_JSON_KEYS } from './blip0010BtcLnBoostJsonKeys.js
 import {
   buildMbrssV1CreateBoostRequest,
   isMetaboostMbrssV1CreateBoostResponse,
+  V4V_ACTION_TYPE,
 } from './mbrssV1CreateBoost.js';
 
 describe('buildMbrssV1CreateBoostRequest', () => {
@@ -11,7 +12,7 @@ describe('buildMbrssV1CreateBoostRequest', () => {
     const body = buildMbrssV1CreateBoostRequest({
       totalMsat: 5_000_000,
       appName: 'Podverse',
-      action: 'boost',
+      action: V4V_ACTION_TYPE.BOOST,
       feedGuid: 'urn:guid:feed',
       feedTitle: 'Test feed',
       message: 'Hello',
@@ -22,7 +23,7 @@ describe('buildMbrssV1CreateBoostRequest', () => {
 
     expect(body.currency).toBe('BTC');
     expect(body.amount).toBe(5000);
-    expect(body.amount_unit).toBe('satoshi');
+    expect(body.amount_unit).toBe('satoshis');
     expect(body.action).toBe('boost');
     expect(body.app_name).toBe('Podverse');
     expect(body.feed_guid).toBe('urn:guid:feed');
@@ -42,7 +43,7 @@ describe('buildMbrssV1CreateBoostRequest', () => {
     const body = buildMbrssV1CreateBoostRequest({
       totalMsat: 1_000,
       appName: 'Podverse',
-      action: 'boost',
+      action: V4V_ACTION_TYPE.BOOST,
       feedGuid: 'urn:guid:feed',
       feedTitle: 'Test feed',
       message: '',
@@ -58,7 +59,7 @@ describe('buildMbrssV1CreateBoostRequest', () => {
     const body = buildMbrssV1CreateBoostRequest({
       totalMsat: 2_000,
       appName: 'Podverse',
-      action: 'boost',
+      action: V4V_ACTION_TYPE.BOOST,
       feedGuid: 'urn:guid:feed',
       feedTitle: 'Test feed',
       message: '',

@@ -6,12 +6,12 @@ import type {
   RemoteItemsResponse,
 } from '@podverse/helpers';
 import type { QueryParamsChannel } from '@podverse/helpers-requests';
-import { resolveMetaBoostFromApiValueMetadata } from '@podverse/v4v-metaboost';
 
 import { CorePodcastHeader } from '../../../components/Core/Podcast/CorePodcastHeader';
 import { MainInnerContentWrapper } from '../../../components/Main/MainInnerContentWrapper';
 import { MainInnerWrapper } from '../../../components/Main/MainInnerWrapper';
 import { MainWrapper } from '../../../components/Main/MainWrapper';
+import { getBoostEligibilityForContent } from '../../../utils/value/boostEligibility';
 import { PodcastPageContextProvider } from './PodcastPageContext';
 import { PodcastPageList } from './PodcastPageList';
 import { PodcastPageListHeader } from './PodcastPageListHeader';
@@ -41,9 +41,10 @@ export function PodcastPageClient(props: PodcastPageClientProps) {
     ssrTotalPages,
     ssrPodroll,
   } = props;
-  const resolvedMetaBoost = resolveMetaBoostFromApiValueMetadata(ssrChannel.channel_meta_boost);
-  const ssrCanShowBoosts =
-    resolvedMetaBoost?.metaBoost.standard === 'mbrss-v1' && Boolean(ssrChannel.podcast_guid);
+  const { canShowBoostMessagesTab: ssrCanShowBoosts } = getBoostEligibilityForContent({
+    channel: ssrChannel,
+    item: null,
+  });
 
   return (
     <PodcastPageContextProvider
@@ -64,7 +65,11 @@ export function PodcastPageClient(props: PodcastPageClientProps) {
               ssrHasItemSoundbites={ssrHasItemSoundbites}
               ssrCanShowBoosts={ssrCanShowBoosts}
             />
-            <PodcastPageList ssrChannel={ssrChannel} podroll={ssrPodroll} />
+            <PodcastPageList
+              ssrChannel={ssrChannel}
+              podroll={ssrPodroll}
+              ssrCanShowBoosts={ssrCanShowBoosts}
+            />
           </MainInnerContentWrapper>
         </MainInnerWrapper>
       </MainWrapper>

@@ -1,6 +1,5 @@
 import type { DTOChannel, DTOItem } from '@podverse/helpers';
 import type { QueryParamsItem } from '@podverse/helpers-requests';
-import { resolveMetaBoostFromApiValueMetadata } from '@podverse/v4v-metaboost';
 
 import { CorePodcastHeader } from '../../../components/Core/Podcast/CorePodcastHeader';
 import { CoreEpisodeHeader } from '../../../components/Core/Podcast/Episodes/CoreEpisodeHeader';
@@ -8,6 +7,7 @@ import { MainInnerContentWrapper } from '../../../components/Main/MainInnerConte
 import { MainInnerWrapper } from '../../../components/Main/MainInnerWrapper';
 import { MainWrapper } from '../../../components/Main/MainWrapper';
 import { SideContent } from '../../../components/SideContent/SideContent';
+import { getBoostEligibilityForContent } from '../../../utils/value/boostEligibility';
 import { EpisodePageContextProvider } from './EpisodePageContext';
 import { EpisodePageList } from './EpisodePageList';
 import { EpisodePageListHeader } from './EpisodePageListHeader';
@@ -30,11 +30,10 @@ export function EpisodePageClient(props: EpisodePageClientProps) {
     ssrHasSoundbites,
     ssrHasTranscripts,
   } = props;
-  const resolvedMetaBoost = resolveMetaBoostFromApiValueMetadata(ssrChannel.channel_meta_boost);
-  const ssrCanShowBoosts =
-    resolvedMetaBoost?.metaBoost.standard === 'mbrss-v1' &&
-    Boolean(ssrChannel.podcast_guid) &&
-    Boolean(ssrItem.guid);
+  const { canShowBoostMessagesTab: ssrCanShowBoosts } = getBoostEligibilityForContent({
+    channel: ssrChannel,
+    item: ssrItem,
+  });
 
   return (
     <EpisodePageContextProvider initialQueryParams={initialQueryParams}>
@@ -50,7 +49,11 @@ export function EpisodePageClient(props: EpisodePageClientProps) {
               ssrHasSoundbites={ssrHasSoundbites}
               ssrCanShowBoosts={ssrCanShowBoosts}
             />
-            <EpisodePageList ssrChannel={ssrChannel} ssrItem={ssrItem} />
+            <EpisodePageList
+              ssrChannel={ssrChannel}
+              ssrItem={ssrItem}
+              ssrCanShowBoosts={ssrCanShowBoosts}
+            />
           </MainInnerContentWrapper>
         </MainInnerWrapper>
       </MainWrapper>

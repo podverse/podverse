@@ -1,6 +1,7 @@
 import { getOwnPropertyValue, isObjectLike } from '@podverse/helpers';
+import type { BoostAction } from '@podverse/helpers';
 
-export type BoostAction = 'boost' | 'stream';
+export type { BoostAction };
 
 export type BoostMetadataRequest = {
   action: BoostAction;

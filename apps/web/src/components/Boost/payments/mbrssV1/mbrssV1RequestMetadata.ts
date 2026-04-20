@@ -10,9 +10,12 @@ import {
   buildMbrssV1CreateBoostRequest,
   fetchMbrssV1BoostCapability,
   isMetaboostMbrssV1CreateBoostResponse,
+  MBRSS_V1_AMOUNT_UNIT_SATOSHI,
+  MBRSS_V1_AMOUNT_UNIT_SATOSHIS,
+  V4V_ACTION_TYPE,
+  MetaboostSenderBlockedPostError,
   type MbrssV1CreateBoostIngestBody,
   type MetaBoost,
-  MetaboostSenderBlockedPostError,
   normalizeMetaboostMbrssV1IngestNodeUrl,
 } from '@podverse/v4v-metaboost';
 
@@ -82,7 +85,7 @@ export const postMbrssV1BoostMessage = async ({
     totalMsat,
     appName,
     appVersion: WEB_APP_VERSION,
-    action: 'boost',
+    action: V4V_ACTION_TYPE.BOOST,
     feedGuid,
     feedTitle,
     message,
@@ -97,14 +100,12 @@ export const postMbrssV1BoostMessage = async ({
   };
 
   const normalizedIngestUrl = normalizeMetaboostMbrssV1IngestNodeUrl(metaBoost.node);
-  const bodyJson = JSON.stringify(body);
-  const mint = await getApiRequestService().reqMetaboostMbrssV1MintAppAssertion({
-    ingest_url: normalizedIngestUrl,
-    body_json: bodyJson,
-  });
+  const postIngestBody = async (bodyJson: string): Promise<unknown> => {
+    const mint = await getApiRequestService().reqMetaboostMbrssV1MintAppAssertion({
+      ingest_url: normalizedIngestUrl,
+      body_json: bodyJson,
+    });
 
-  let responseData: unknown;
-  try {
     const res = await request<unknown>(mint.ingest_url, {
       method: 'POST',
       data: bodyJson,
@@ -113,8 +114,10 @@ export const postMbrssV1BoostMessage = async ({
         'Content-Type': 'application/json',
       },
     });
-    responseData = res.data;
-  } catch (error: unknown) {
+    return res.data;
+  };
+
+  const throwIfSenderBlockedError = (error: unknown): void => {
     if (
       getErrorResponseStatus(error) === 403 &&
       getErrorResponseBodyCode(error) === 'sender_blocked'
@@ -124,7 +127,33 @@ export const postMbrssV1BoostMessage = async ({
         msg !== undefined && msg.trim() !== '' ? msg.trim() : ''
       );
     }
-    throw error;
+  };
+
+  let responseData: unknown;
+  try {
+    responseData = await postIngestBody(JSON.stringify(body));
+  } catch (error: unknown) {
+    throwIfSenderBlockedError(error);
+    const message = getErrorResponseBodyMessage(error)?.toLowerCase() ?? '';
+    const shouldRetryWithSingularAmountUnit =
+      getErrorResponseStatus(error) === 400 &&
+      requestBody.amount_unit === MBRSS_V1_AMOUNT_UNIT_SATOSHIS &&
+      message.includes('amount_unit');
+    if (!shouldRetryWithSingularAmountUnit) {
+      throw error;
+    }
+
+    try {
+      responseData = await postIngestBody(
+        JSON.stringify({
+          ...body,
+          amount_unit: MBRSS_V1_AMOUNT_UNIT_SATOSHI,
+        })
+      );
+    } catch (retryError: unknown) {
+      throwIfSenderBlockedError(retryError);
+      throw retryError;
+    }
   }
 
   if (!isMetaboostMbrssV1CreateBoostResponse(responseData)) {

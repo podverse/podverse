@@ -6,13 +6,14 @@ import React from 'react';
 import { CommonDetailListHeader } from '../../../components/Common/List/CommonDetailListHeader';
 import { Tabs } from '../../../components/Tabs/Tabs';
 
-export type AddByRSSArtistPageTabKey = 'albums' | 'tracks' | 'about';
+export type AddByRSSArtistPageTabKey = 'albums' | 'tracks' | 'boosts' | 'about';
 
 type AddByRSSArtistPageListHeaderProps = {
   selectedKey: AddByRSSArtistPageTabKey;
   onSelect: (key: AddByRSSArtistPageTabKey) => void;
   hasAlbums: boolean;
   hasTracks: boolean;
+  canShowBoosts?: boolean;
   hasDescription: boolean;
   sideButtons?: React.ReactNode | null;
 };
@@ -22,11 +23,13 @@ export const AddByRSSArtistPageListHeader: React.FC<AddByRSSArtistPageListHeader
   onSelect,
   hasAlbums,
   hasTracks,
+  canShowBoosts = false,
   hasDescription,
   sideButtons = null,
 }) => {
   const tMedia = useTranslations('media');
   const tInfo = useTranslations('info');
+  const tValue = useTranslations('value');
 
   const tabData = [];
 
@@ -47,6 +50,16 @@ export const AddByRSSArtistPageListHeader: React.FC<AddByRSSArtistPageListHeader
       onClick: () => onSelect('tracks'),
       hideDesktop: false,
       zIndex: 6,
+    });
+  }
+
+  if (canShowBoosts) {
+    tabData.push({
+      key: 'boosts',
+      label: tValue('boost'),
+      onClick: () => onSelect('boosts'),
+      hideDesktop: false,
+      zIndex: 5,
     });
   }
 

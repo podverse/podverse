@@ -20,6 +20,17 @@ type UseBoostSelectionParams = {
 const getValueKey = (value: ChannelValue | ItemValue): string =>
   value.type === 'lightning' ? 'lightning' : `${value.type}_${value.method}`;
 
+const getSelectedValueCurrencyCode = (
+  selectedChannelValue?: ChannelValue,
+  selectedItemValue?: ItemValue
+): string | null => {
+  const selectedType = selectedChannelValue?.type ?? selectedItemValue?.type ?? null;
+  if (selectedType === 'lightning') {
+    return 'btc';
+  }
+  return null;
+};
+
 const buildButtonTabs = (
   values: ChannelValue[],
   tValue: Translator,
@@ -131,10 +142,14 @@ export const useBoostSelection = ({ channel, item, tValue }: UseBoostSelectionPa
     ) ?? itemValues[0];
 
   const resolvedMetaBoost = resolveMetaBoostFromApiValueMetadata(channel.channel_meta_boost);
+  const selectedValueCurrencyCode = getSelectedValueCurrencyCode(
+    selectedChannelValue,
+    selectedItemValue
+  );
 
   const supportsPodverseCurrency =
-    (selectedItemValue?.type === 'lightning' || selectedChannelValue?.type === 'lightning') &&
-    isPodverseMetaBoostCurrencySupported('btc');
+    selectedValueCurrencyCode !== null &&
+    isPodverseMetaBoostCurrencySupported(selectedValueCurrencyCode);
   const metaBoost =
     resolvedMetaBoost !== null && supportsPodverseCurrency ? resolvedMetaBoost.metaBoost : null;
 

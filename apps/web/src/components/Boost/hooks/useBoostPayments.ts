@@ -20,6 +20,7 @@ import type { MetaBoost } from '@podverse/v4v-metaboost';
 import {
   MetaboostSenderBlockedPostError,
   resolveBoostExecutionStrategy,
+  V4V_ACTION_TYPE,
 } from '@podverse/v4v-metaboost';
 
 import { useModals } from '../../../contexts/Modals';
@@ -250,7 +251,7 @@ export const useBoostPayments = ({
           const blipPayload = shouldIncludeBlip
             ? serializeBlip10Metadata(
                 buildBlip10Metadata({
-                  action: 'boost',
+                  action: V4V_ACTION_TYPE.BOOST,
                   value_msat_total: totalMsat,
                   value_msat: amountMsat,
                   app_name: config.public.brand.name,
@@ -404,6 +405,10 @@ export const useBoostPayments = ({
     setIsSubmitting(true);
     const { shouldUseMbrssV1, shouldUseMbV1, allowBlipFallback } =
       resolveBoostExecutionStrategy(metaBoost);
+    const normalizedSourceCurrency = sourceCurrency?.trim() ?? '';
+    const normalizedSourceAmountUnit = sourceAmountUnit?.trim() ?? '';
+    const normalizedThresholdPreferredCurrency = thresholdPreferredCurrency?.trim() ?? '';
+    const normalizedThresholdConversionEndpointUrl = thresholdConversionEndpointUrl?.trim() ?? '';
 
     if ((shouldUseMbrssV1 || shouldUseMbV1) && metaBoost !== null) {
       if (mbrssV1HttpMessagingEnabled && mbrssV1SenderGuid !== null && mbrssV1SenderGuid !== '') {
@@ -436,19 +441,19 @@ export const useBoostPayments = ({
         effectiveMessage.trim() !== '' &&
         mbrssV1HttpMessagingEnabled &&
         thresholdAmountMinor > 0 &&
-        sourceCurrency !== null &&
-        sourceAmountUnit !== null &&
-        thresholdPreferredCurrency !== null &&
-        thresholdConversionEndpointUrl !== null
+        normalizedSourceCurrency !== '' &&
+        normalizedSourceAmountUnit !== '' &&
+        normalizedThresholdPreferredCurrency !== '' &&
+        normalizedThresholdConversionEndpointUrl !== ''
       ) {
         const conversionResult = await convertBoostThresholdAmount({
-          sourceCurrency,
+          sourceCurrency: normalizedSourceCurrency,
           sourceAmountMinor: Math.max(0, Math.round(sourceAmountMinor)),
-          sourceAmountUnit,
+          sourceAmountUnit: normalizedSourceAmountUnit,
           context: {
-            preferredCurrency: thresholdPreferredCurrency,
+            preferredCurrency: normalizedThresholdPreferredCurrency,
             minimumMessageAmountMinor: thresholdAmountMinor,
-            conversionEndpointUrl: thresholdConversionEndpointUrl,
+            conversionEndpointUrl: normalizedThresholdConversionEndpointUrl,
           },
         });
 

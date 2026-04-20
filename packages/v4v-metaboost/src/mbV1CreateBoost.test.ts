@@ -4,13 +4,14 @@ import {
   buildMbV1CreateBoostRequest,
   isMetaboostMbV1CreateBoostResponse,
 } from './mbV1CreateBoost.js';
+import { V4V_ACTION_TYPE } from './mbrssV1CreateBoost.js';
 
 describe('buildMbV1CreateBoostRequest', () => {
   it('builds required mb-v1 request fields for boost action', () => {
     const body = buildMbV1CreateBoostRequest({
       totalMsat: 5_000_000,
       appName: 'Podverse',
-      action: 'boost',
+      action: V4V_ACTION_TYPE.BOOST,
       message: 'Hello mb-v1',
       yourName: 'Alice',
       appVersion: '1.2.3',
@@ -19,8 +20,8 @@ describe('buildMbV1CreateBoostRequest', () => {
     expect(body).toEqual({
       currency: 'BTC',
       amount: 5000,
-      amount_unit: 'satoshi',
-      action: 'boost',
+      amount_unit: 'satoshis',
+      action: V4V_ACTION_TYPE.BOOST,
       app_name: 'Podverse',
       app_version: '1.2.3',
       sender_name: 'Alice',
@@ -32,7 +33,7 @@ describe('buildMbV1CreateBoostRequest', () => {
     const body = buildMbV1CreateBoostRequest({
       totalMsat: 1000,
       appName: 'Podverse',
-      action: 'stream',
+      action: V4V_ACTION_TYPE.STREAM,
       message: 'ignored',
       yourName: 'Alice',
     });
@@ -44,7 +45,7 @@ describe('buildMbV1CreateBoostRequest', () => {
     const body = buildMbV1CreateBoostRequest({
       totalMsat: 2000,
       appName: 'Podverse',
-      action: 'boost',
+      action: V4V_ACTION_TYPE.BOOST,
       message: '',
       yourName: '   ',
       appVersion: '   ',
@@ -60,7 +61,7 @@ describe('buildMbV1CreateBoostRequest', () => {
       buildMbV1CreateBoostRequest({
         totalMsat: 0,
         appName: 'Podverse',
-        action: 'boost',
+        action: V4V_ACTION_TYPE.BOOST,
         message: 'x',
         yourName: 'y',
       })
@@ -70,7 +71,7 @@ describe('buildMbV1CreateBoostRequest', () => {
       buildMbV1CreateBoostRequest({
         totalMsat: -1,
         appName: 'Podverse',
-        action: 'boost',
+        action: V4V_ACTION_TYPE.BOOST,
         message: 'x',
         yourName: 'y',
       })

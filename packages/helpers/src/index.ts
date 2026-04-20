@@ -15,6 +15,7 @@ export * from './lib/addByRSS/enclosure.js';
 export * from './lib/addByRSS/ids.js';
 export * from './lib/addByRSS/types.js';
 export * from './lib/bitrate.js';
+export * from './lib/boostAction.js';
 export * from './lib/boolean.js';
 export * from './lib/category.js';
 export * from './lib/comparison/isEqual.js';

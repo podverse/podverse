@@ -7,6 +7,8 @@ import {
 } from '@podverse/helpers';
 import { parseHttpOrHttpsUrl } from '@podverse/helpers-validation';
 
+import { toSingularAmountUnitFallback } from './boostCurrencyInput.js';
+
 export type PublicBucketConversionSuccess = {
   ok: true;
   didSkipNetwork: boolean;
@@ -217,51 +219,77 @@ export const convertPublicBucketAmount = async (
     };
   }
 
-  const requestUrl = new URL(conversionEndpointUrl);
-  requestUrl.searchParams.set('source_currency', normalizedSourceCurrency);
-  requestUrl.searchParams.set('source_amount', String(params.sourceAmountMinor));
-  requestUrl.searchParams.set('amount_unit', amountUnit);
+  const singularFallbackAmountUnit = toSingularAmountUnitFallback(amountUnit);
+  const amountUnitAttempts =
+    singularFallbackAmountUnit !== amountUnit
+      ? [amountUnit, singularFallbackAmountUnit]
+      : [amountUnit];
 
-  const response = await fetch(requestUrl.toString(), {
-    method: 'GET',
-    headers: { Accept: 'application/json' },
-  });
+  for (const [attemptIndex, requestedAmountUnit] of amountUnitAttempts.entries()) {
+    const requestUrl = new URL(conversionEndpointUrl);
+    requestUrl.searchParams.set('source_currency', normalizedSourceCurrency);
+    requestUrl.searchParams.set('source_amount', String(params.sourceAmountMinor));
+    requestUrl.searchParams.set('amount_unit', requestedAmountUnit);
 
-  if (response.status < 200 || response.status >= 300) {
-    let payload: unknown;
-    try {
-      payload = await response.json();
-    } catch {
-      // Non-JSON error payloads are handled by generic fallback message.
-    }
-    return {
-      ok: false,
-      code: toRequestErrorCode(response.status),
-      message:
+    const response = await fetch(requestUrl.toString(), {
+      method: 'GET',
+      headers: { Accept: 'application/json' },
+    });
+
+    if (response.status < 200 || response.status >= 300) {
+      let payload: unknown;
+      try {
+        payload = await response.json();
+      } catch {
+        // Non-JSON error payloads are handled by generic fallback message.
+      }
+
+      const message =
         parseErrorPayloadMessage(payload) ??
-        `Conversion request failed with status ${response.status}.`,
-      status: response.status,
-    };
+        `Conversion request failed with status ${response.status}.`;
+      const shouldRetryWithSingularFallback =
+        response.status === 400 &&
+        attemptIndex === 0 &&
+        amountUnitAttempts.length > 1 &&
+        message.toLowerCase().includes('amount_unit');
+      if (shouldRetryWithSingularFallback) {
+        continue;
+      }
+
+      return {
+        ok: false,
+        code: toRequestErrorCode(response.status),
+        message,
+        status: response.status,
+      };
+    }
+
+    let data: unknown;
+    try {
+      data = await response.json();
+    } catch {
+      return {
+        ok: false,
+        code: 'invalid_response',
+        message: 'Conversion response is not valid JSON.',
+        status: response.status,
+      };
+    }
+
+    const parsed = parseResponsePayload(data);
+    if (!parsed.ok) {
+      return {
+        ...parsed,
+        status: response.status,
+      };
+    }
+    return parsed;
   }
 
-  let data: unknown;
-  try {
-    data = await response.json();
-  } catch {
-    return {
-      ok: false,
-      code: 'invalid_response',
-      message: 'Conversion response is not valid JSON.',
-      status: response.status,
-    };
-  }
-
-  const parsed = parseResponsePayload(data);
-  if (!parsed.ok) {
-    return {
-      ...parsed,
-      status: response.status,
-    };
-  }
-  return parsed;
+  return {
+    ok: false,
+    code: 'request_failed',
+    message: 'Conversion request failed before a response could be parsed.',
+    status: null,
+  };
 };

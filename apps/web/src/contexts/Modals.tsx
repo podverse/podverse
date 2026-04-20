@@ -100,6 +100,8 @@ type ModalsContextType = {
   setModalSourceSelector: (val: ModalSourceSelector) => void;
   modalBoost: ModalBoost;
   setModalBoost: (val: ModalBoost) => void;
+  publicBoostMessagesRefreshTrigger: number;
+  bumpPublicBoostMessagesRefresh: () => void;
   modalBoostMessageError: ModalBoostMessageError;
   setModalBoostMessageError: (val: ModalBoostMessageError) => void;
   modalBoostMintRateLimit: ModalBoostMintRateLimit;
@@ -186,6 +188,10 @@ export const ModalsProvider = ({ children }: { children: ReactNode }) => {
     defaultModalSourceSelector
   );
   const [modalBoost, setModalBoost] = useState<ModalBoost>(defaultModalBoost);
+  const [publicBoostMessagesRefreshTrigger, setPublicBoostMessagesRefreshTrigger] = useState(0);
+  const bumpPublicBoostMessagesRefresh = () => {
+    setPublicBoostMessagesRefreshTrigger((previous) => previous + 1);
+  };
   const [modalBoostMessageError, setModalBoostMessageError] = useState<ModalBoostMessageError>(
     defaultModalBoostMessageError
   );
@@ -219,6 +225,8 @@ export const ModalsProvider = ({ children }: { children: ReactNode }) => {
         setModalSourceSelector,
         modalBoost,
         setModalBoost,
+        publicBoostMessagesRefreshTrigger,
+        bumpPublicBoostMessagesRefresh,
         modalBoostMessageError,
         setModalBoostMessageError,
         modalBoostMintRateLimit,

@@ -27,7 +27,7 @@ describe('convertPublicBucketAmount', () => {
     const result = await convertPublicBucketAmount({
       sourceCurrency: 'btc',
       sourceAmountMinor: 25_000,
-      amountUnit: 'satoshi',
+      amountUnit: 'satoshis',
       conversionEndpointUrl: 'https://example.com/v1/standard/mb-v1/messages/public/a/conversion',
       targetCurrency: 'BTC',
     });
@@ -39,12 +39,12 @@ describe('convertPublicBucketAmount', () => {
       source: {
         currency: 'BTC',
         amountMinor: 25_000,
-        amountUnit: 'satoshi',
+        amountUnit: 'satoshis',
       },
       target: {
         currency: 'BTC',
         amountMinor: 25_000,
-        amountUnit: 'satoshi',
+        amountUnit: 'satoshis',
       },
       metadata: {
         exchangeRatesFetchedAt: null,
@@ -82,14 +82,14 @@ describe('convertPublicBucketAmount', () => {
     const result = await convertPublicBucketAmount({
       sourceCurrency: 'btc',
       sourceAmountMinor: 1000,
-      amountUnit: 'satoshi',
+      amountUnit: 'satoshis',
       conversionEndpointUrl:
         'https://example.com/v1/standard/mbrss-v1/messages/public/a/conversion',
       targetCurrency: 'USD',
     });
 
     expect(fetchMock).toHaveBeenCalledWith(
-      'https://example.com/v1/standard/mbrss-v1/messages/public/a/conversion?source_currency=BTC&source_amount=1000&amount_unit=satoshi',
+      'https://example.com/v1/standard/mbrss-v1/messages/public/a/conversion?source_currency=BTC&source_amount=1000&amount_unit=satoshis',
       {
         method: 'GET',
         headers: { Accept: 'application/json' },
@@ -142,6 +142,85 @@ describe('convertPublicBucketAmount', () => {
       code: 'invalid_amount_unit',
       message: 'amount_unit must be satoshi for BTC',
       status: 400,
+    });
+
+    vi.unstubAllGlobals();
+  });
+
+  it('retries with singular amount_unit when plural token is rejected', async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce({
+        status: 400,
+        json: async () => ({
+          message: 'amount_unit must be satoshi for BTC',
+        }),
+      })
+      .mockResolvedValueOnce({
+        status: 200,
+        json: async () => ({
+          source: {
+            currency: 'BTC',
+            amountMinor: 1000,
+            amountUnit: 'satoshi',
+          },
+          target: {
+            currency: 'USD',
+            amountMinor: 62,
+            amountUnit: 'cent',
+          },
+          metadata: {
+            exchangeRatesFetchedAt: '2026-04-18T12:00:00.000Z',
+            fiatBaseCurrency: 'USD',
+            serverStandardCurrency: 'BTC',
+          },
+        }),
+      });
+    vi.stubGlobal('fetch', fetchMock);
+
+    const result = await convertPublicBucketAmount({
+      sourceCurrency: 'BTC',
+      sourceAmountMinor: 1000,
+      amountUnit: 'satoshis',
+      conversionEndpointUrl:
+        'https://example.com/v1/standard/mbrss-v1/messages/public/a/conversion',
+      targetCurrency: 'USD',
+    });
+
+    expect(fetchMock).toHaveBeenNthCalledWith(
+      1,
+      'https://example.com/v1/standard/mbrss-v1/messages/public/a/conversion?source_currency=BTC&source_amount=1000&amount_unit=satoshis',
+      {
+        method: 'GET',
+        headers: { Accept: 'application/json' },
+      }
+    );
+    expect(fetchMock).toHaveBeenNthCalledWith(
+      2,
+      'https://example.com/v1/standard/mbrss-v1/messages/public/a/conversion?source_currency=BTC&source_amount=1000&amount_unit=satoshi',
+      {
+        method: 'GET',
+        headers: { Accept: 'application/json' },
+      }
+    );
+    expect(result).toEqual({
+      ok: true,
+      didSkipNetwork: false,
+      source: {
+        currency: 'BTC',
+        amountMinor: 1000,
+        amountUnit: 'satoshi',
+      },
+      target: {
+        currency: 'USD',
+        amountMinor: 62,
+        amountUnit: 'cent',
+      },
+      metadata: {
+        exchangeRatesFetchedAt: '2026-04-18T12:00:00.000Z',
+        fiatBaseCurrency: 'USD',
+        serverStandardCurrency: 'BTC',
+      },
     });
 
     vi.unstubAllGlobals();

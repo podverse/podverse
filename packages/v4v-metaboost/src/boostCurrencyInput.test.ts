@@ -4,23 +4,27 @@ import {
   getBoostCurrencyInputFormatMetadata,
   getBoostCurrencyInputSpec,
   parseMajorUnitToMinorAmount,
+  toSingularAmountUnitFallback,
 } from './boostCurrencyInput.js';
 
 describe('getBoostCurrencyInputSpec', () => {
   it('returns denomination spec for representative currencies', () => {
     expect(getBoostCurrencyInputSpec('USD')).toEqual({
       currency: 'USD',
-      canonicalAmountUnit: 'cent',
+      canonicalAmountUnit: 'cents',
+      singularAmountUnitFallback: 'cent',
       minorUnitExponent: 2,
     });
     expect(getBoostCurrencyInputSpec('BTC')).toEqual({
       currency: 'BTC',
-      canonicalAmountUnit: 'satoshi',
+      canonicalAmountUnit: 'satoshis',
+      singularAmountUnitFallback: 'satoshi',
       minorUnitExponent: 0,
     });
     expect(getBoostCurrencyInputSpec('JPY')).toEqual({
       currency: 'JPY',
       canonicalAmountUnit: 'yen',
+      singularAmountUnitFallback: 'yen',
       minorUnitExponent: 0,
     });
   });
@@ -31,14 +35,16 @@ describe('getBoostCurrencyInputFormatMetadata', () => {
     expect(getBoostCurrencyInputFormatMetadata('USD', 'en-US')).toEqual({
       currency: 'USD',
       minorUnitExponent: 2,
-      canonicalAmountUnit: 'cent',
+      canonicalAmountUnit: 'cents',
+      singularAmountUnitFallback: 'cent',
       inputStep: '0.01',
       symbolPrefix: '$',
     });
     expect(getBoostCurrencyInputFormatMetadata('BTC', 'en-US')).toEqual({
       currency: 'BTC',
       minorUnitExponent: 0,
-      canonicalAmountUnit: 'satoshi',
+      canonicalAmountUnit: 'satoshis',
+      singularAmountUnitFallback: 'satoshi',
       inputStep: '1',
       symbolPrefix: null,
     });
@@ -46,16 +52,26 @@ describe('getBoostCurrencyInputFormatMetadata', () => {
       currency: 'KRW',
       minorUnitExponent: 0,
       canonicalAmountUnit: 'won',
+      singularAmountUnitFallback: 'won',
       inputStep: '1',
       symbolPrefix: '₩',
     });
     expect(getBoostCurrencyInputFormatMetadata('EUR', 'de-DE')).toEqual({
       currency: 'EUR',
       minorUnitExponent: 2,
-      canonicalAmountUnit: 'cent',
+      canonicalAmountUnit: 'cents',
+      singularAmountUnitFallback: 'cent',
       inputStep: '0.01',
       symbolPrefix: '€',
     });
+  });
+});
+
+describe('toSingularAmountUnitFallback', () => {
+  it('returns singular compatibility unit for plural aliases', () => {
+    expect(toSingularAmountUnitFallback('satoshis')).toBe('satoshi');
+    expect(toSingularAmountUnitFallback('cents')).toBe('cent');
+    expect(toSingularAmountUnitFallback('won')).toBe('won');
   });
 });
 

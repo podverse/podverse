@@ -49,6 +49,13 @@ type BoostTab = {
   onClick: () => void;
 };
 
+const resolveSourceCurrencyFromValueType = (valueType?: string | null): string | null => {
+  if (valueType === 'lightning') {
+    return 'BTC';
+  }
+  return null;
+};
+
 type BoostFormBaseProps = {
   channel: DTOChannel | null;
   item: DTOItem | null;
@@ -104,7 +111,7 @@ export const BoostFormBase: React.FC<BoostFormBaseProps> = ({
   const config = useConfig();
   const { loggedInAccount } = useAccount();
   const { boostFormDefaults, setBoostFormDefaults } = useLocalSettings();
-  const { setModalBoost } = useModals();
+  const { setModalBoost, bumpPublicBoostMessagesRefresh } = useModals();
   const tValue = useTranslations('value');
   const tMisc = useTranslations('misc');
   const tDonate = useTranslations('donate');
@@ -299,8 +306,12 @@ export const BoostFormBase: React.FC<BoostFormBaseProps> = ({
     mbrssV1SenderBlocked
       ? (mbrssV1SenderBlockMessage ?? tValue('boost_messages.sender_blocked_preflight_fallback'))
       : null;
+  const selectedValueType = selectedItemValue?.type ?? selectedChannelValue?.type ?? null;
+  const sourceAmountCurrencyCode = resolveSourceCurrencyFromValueType(selectedValueType);
   const sourceAmountMetadata =
-    metaBoost !== null ? getBoostCurrencyInputFormatMetadata('BTC') : null;
+    metaBoost !== null && sourceAmountCurrencyCode !== null
+      ? getBoostCurrencyInputFormatMetadata(sourceAmountCurrencyCode)
+      : null;
   const sourceAmountCurrency = sourceAmountMetadata?.currency ?? null;
   const sourceAmountUnit = sourceAmountMetadata?.canonicalAmountUnit ?? null;
 
@@ -337,7 +348,10 @@ export const BoostFormBase: React.FC<BoostFormBaseProps> = ({
     updateRecipientStatus,
     setRecipientStatuses,
     setIsSubmitting,
-    onBoostSuccess: () => setMessage(''),
+    onBoostSuccess: () => {
+      setMessage('');
+      bumpPublicBoostMessagesRefresh();
+    },
     mbrssV1HttpMessagingEnabled,
     mbrssV1SenderGuid: loggedInAccount?.sender_guid ?? null,
     sourceAmountMinor: normalizedBoostAmountMinor,
@@ -378,11 +392,19 @@ export const BoostFormBase: React.FC<BoostFormBaseProps> = ({
         setThresholdNotice(getThresholdConversionErrorNotice('missing_metadata'));
         return;
       }
+      if (sourceAmountCurrency === null || sourceAmountUnit === null) {
+        if (cancelled) {
+          return;
+        }
+        setThresholdNameMessageBlocked(true);
+        setThresholdNotice(getThresholdConversionErrorNotice('missing_metadata'));
+        return;
+      }
 
       const conversionResult = await convertBoostThresholdAmount({
-        sourceCurrency: sourceAmountCurrency ?? 'BTC',
+        sourceCurrency: sourceAmountCurrency,
         sourceAmountMinor: normalizedBoostAmountMinor,
-        sourceAmountUnit: sourceAmountUnit ?? 'satoshi',
+        sourceAmountUnit: sourceAmountUnit,
         context: {
           preferredCurrency,
           minimumMessageAmountMinor: thresholdAmountMinor,
@@ -489,6 +511,7 @@ export const BoostFormBase: React.FC<BoostFormBaseProps> = ({
               thresholdMessageNotice={thresholdNotice}
               thresholdPreferredCurrency={mbrssV1PreferredCurrency}
               thresholdConversionEndpointUrl={mbrssV1ConversionEndpointUrl}
+              sourceCurrencyCode={sourceAmountCurrencyCode}
               tValue={tValue}
               tMisc={tMisc}
               brandName={config.public.brand.name}

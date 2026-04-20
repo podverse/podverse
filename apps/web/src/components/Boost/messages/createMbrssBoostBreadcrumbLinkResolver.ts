@@ -9,6 +9,9 @@ import type { BoostBreadcrumbLinkResolver } from './types';
 type ResolverParams = {
   channelIdText: string;
   podcastGuid: string | null;
+  resolveChannelHref?: (channelIdText: string) => string;
+  resolveItemIdTextByGuid?: (itemGuid: string) => Promise<string | null> | string | null;
+  resolveItemHref?: (itemIdText: string) => string;
 };
 
 const getTotalPages = (count: number, limit: number): number => {
@@ -47,6 +50,9 @@ const findItemIdTextByGuid = async (
 export const createMbrssBoostBreadcrumbLinkResolver = ({
   channelIdText,
   podcastGuid,
+  resolveChannelHref = (resolvedChannelIdText) => `/podcast/${resolvedChannelIdText}`,
+  resolveItemIdTextByGuid,
+  resolveItemHref = (resolvedItemIdText) => `/episode/${resolvedItemIdText}`,
 }: ResolverParams): BoostBreadcrumbLinkResolver => {
   const itemHrefCache = new Map<string, string | null>();
   const itemPendingMap = new Map<string, Promise<string | null>>();
@@ -69,8 +75,11 @@ export const createMbrssBoostBreadcrumbLinkResolver = ({
       }
 
       const pendingRequest = (async () => {
-        const idText = await findItemIdTextByGuid(channelIdText, contextItemGuid);
-        const href = idText ? `/episode/${idText}` : null;
+        const resolvedItemIdText = resolveItemIdTextByGuid
+          ? await resolveItemIdTextByGuid(contextItemGuid)
+          : await findItemIdTextByGuid(channelIdText, contextItemGuid);
+        const idText = resolvedItemIdText ?? null;
+        const href = idText ? resolveItemHref(idText) : null;
         itemHrefCache.set(contextItemGuid, href);
         itemPendingMap.delete(contextItemGuid);
         return href;
@@ -87,7 +96,7 @@ export const createMbrssBoostBreadcrumbLinkResolver = ({
       podcastGuid !== null &&
       contextPodcastGuid === podcastGuid
     ) {
-      return `/podcast/${channelIdText}`;
+      return resolveChannelHref(channelIdText);
     }
 
     return null;

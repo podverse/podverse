@@ -1,26 +1,32 @@
 const BOOST_INPUT_CURRENCY_SPECS = {
   BTC: {
-    canonicalAmountUnit: 'satoshi',
+    canonicalAmountUnit: 'satoshis',
+    singularAmountUnitFallback: 'satoshi',
     minorUnitExponent: 0,
   },
   USD: {
-    canonicalAmountUnit: 'cent',
+    canonicalAmountUnit: 'cents',
+    singularAmountUnitFallback: 'cent',
     minorUnitExponent: 2,
   },
   EUR: {
-    canonicalAmountUnit: 'cent',
+    canonicalAmountUnit: 'cents',
+    singularAmountUnitFallback: 'cent',
     minorUnitExponent: 2,
   },
   GBP: {
     canonicalAmountUnit: 'pence',
+    singularAmountUnitFallback: 'pence',
     minorUnitExponent: 2,
   },
   JPY: {
     canonicalAmountUnit: 'yen',
+    singularAmountUnitFallback: 'yen',
     minorUnitExponent: 0,
   },
   KRW: {
     canonicalAmountUnit: 'won',
+    singularAmountUnitFallback: 'won',
     minorUnitExponent: 0,
   },
 } as const;
@@ -34,12 +40,20 @@ const FALLBACK_CURRENCY_SYMBOLS: Record<string, string> = {
 };
 
 const MAJOR_UNIT_INPUT_REGEX = /^-?\d+(\.\d+)?$/;
+const PLURAL_TO_SINGULAR_AMOUNT_UNIT_FALLBACKS: Record<string, string> = {
+  satoshis: 'satoshi',
+  cents: 'cent',
+  pence: 'pence',
+  yen: 'yen',
+  won: 'won',
+};
 
 type SupportedBoostInputCurrency = keyof typeof BOOST_INPUT_CURRENCY_SPECS;
 
 export type BoostCurrencyInputSpec = {
   currency: SupportedBoostInputCurrency;
   canonicalAmountUnit: (typeof BOOST_INPUT_CURRENCY_SPECS)[SupportedBoostInputCurrency]['canonicalAmountUnit'];
+  singularAmountUnitFallback: (typeof BOOST_INPUT_CURRENCY_SPECS)[SupportedBoostInputCurrency]['singularAmountUnitFallback'];
   minorUnitExponent: (typeof BOOST_INPUT_CURRENCY_SPECS)[SupportedBoostInputCurrency]['minorUnitExponent'];
 };
 
@@ -47,6 +61,7 @@ export type BoostCurrencyInputFormatMetadata = {
   currency: SupportedBoostInputCurrency;
   minorUnitExponent: number;
   canonicalAmountUnit: string;
+  singularAmountUnitFallback: string;
   inputStep: string;
   symbolPrefix: string | null;
 };
@@ -107,6 +122,7 @@ export const getBoostCurrencyInputSpec = (currency: string): BoostCurrencyInputS
   return {
     currency: normalizedCurrency,
     canonicalAmountUnit: spec.canonicalAmountUnit,
+    singularAmountUnitFallback: spec.singularAmountUnitFallback,
     minorUnitExponent: spec.minorUnitExponent,
   };
 };
@@ -127,9 +143,15 @@ export const getBoostCurrencyInputFormatMetadata = (
     currency: spec.currency,
     minorUnitExponent: spec.minorUnitExponent,
     canonicalAmountUnit: spec.canonicalAmountUnit,
+    singularAmountUnitFallback: spec.singularAmountUnitFallback,
     inputStep,
     symbolPrefix: resolveSymbolPrefix(spec.currency, locale),
   };
+};
+
+export const toSingularAmountUnitFallback = (amountUnit: string): string => {
+  const normalizedUnit = amountUnit.trim().toLowerCase();
+  return PLURAL_TO_SINGULAR_AMOUNT_UNIT_FALLBACKS[normalizedUnit] ?? normalizedUnit;
 };
 
 export const parseMajorUnitToMinorAmount = (

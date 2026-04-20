@@ -20,6 +20,7 @@ import styles from '../../styles/app/donate/Donate.module.scss';
 export default function DonatePage() {
   const config = useConfig();
   const [donationSucceeded, setDonationSucceeded] = useState(false);
+  const [messagesRefreshTrigger, setMessagesRefreshTrigger] = useState(0);
   const tDonate = useTranslations('donate');
 
   const appValueMetaBoost = useMemo(() => getAppValueMetaBoost(config), [config]);
@@ -52,7 +53,12 @@ export default function DonatePage() {
                   </p>
                 </div>
               )}
-              <BoostAppDonateForm onDonationSuccess={() => setDonationSucceeded(true)} />
+              <BoostAppDonateForm
+                onDonationSuccess={() => {
+                  setDonationSucceeded(true);
+                  setMessagesRefreshTrigger((previous) => previous + 1);
+                }}
+              />
               {donateMessagesPageFetcher !== null && (
                 <div className={styles.messagesWrapper}>
                   <Divider className={styles.messagesDivider} />
@@ -60,6 +66,7 @@ export default function DonatePage() {
                     heading={tDonate('boost_messages_heading')}
                     pageFetcher={donateMessagesPageFetcher}
                     className={styles.messagesSection}
+                    refreshTrigger={messagesRefreshTrigger}
                   />
                 </div>
               )}

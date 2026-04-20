@@ -15,6 +15,7 @@ import {
   unfollowAddByRSSChannelAndClear,
 } from '../../../utils/addByRSS/actions';
 import type { AddByRSSFeedRecord } from '../../../utils/addByRSS/types';
+import { getBoostEligibilityForContent } from '../../../utils/value/boostEligibility';
 import { Button } from '../../Button/Button';
 import { CommonArtistHeader } from '../../Common/Artist/CommonArtistHeader';
 import { CommonArtistHeaderViewDesktop } from '../../Common/Artist/CommonArtistHeaderViewDesktop';
@@ -50,7 +51,11 @@ export const AddByRSSArtistHeader: React.FC<AddByRSSArtistHeaderProps> = ({ feed
   const feedUrl = feed.feedUrl;
   const websiteUrl = feed.mappedFeed?.channel?.about?.website_link_url ?? null;
   const hasFunding = (feed.mappedFeed?.channel?.funding?.length ?? 0) > 0;
-  const hasValue = (feed.mappedFeed?.channel?.value?.length ?? 0) > 0;
+  const boostChannel = buildAddByRssBoostChannel(feed);
+  const { canShowBoostAction } = getBoostEligibilityForContent({
+    channel: boostChannel,
+    item: null,
+  });
   const imageUrl = feed.imageUrl ?? feed.mappedFeed?.channel?.images?.[0]?.url ?? undefined;
   const detailUrl = `/add-by-rss/artist/${feed.idText}`;
   const isSubscribed = loggedInAccount?.account_following_add_by_rss_channels?.some(
@@ -89,7 +94,6 @@ export const AddByRSSArtistHeader: React.FC<AddByRSSArtistHeaderProps> = ({ feed
   };
 
   const handleBoostClick = () => {
-    const boostChannel = buildAddByRssBoostChannel(feed);
     if (!boostChannel) {
       alertPlaceholder(tValue('boost'))();
       return;
@@ -142,7 +146,7 @@ export const AddByRSSArtistHeader: React.FC<AddByRSSArtistHeaderProps> = ({ feed
           <FaCircleDollarToSlot />
         </IconButton>
       )}
-      {hasValue && (
+      {canShowBoostAction && (
         <IconButton
           type="button"
           onClick={handleBoostClick}

@@ -9,7 +9,11 @@ type MbrssV1MessagesSource = {
   scope:
     | { type: 'bucket' }
     | { type: 'channel'; podcastGuid: string }
-    | { type: 'item'; itemGuid: string };
+    | { type: 'item'; itemGuid: string }
+    | { type: 'artist'; podcastGuid: string }
+    | { type: 'album'; podcastGuid: string }
+    | { type: 'track'; itemGuid: string }
+    | { type: 'livestream'; itemGuid: string };
 };
 
 type MbV1MessagesSource = {
@@ -18,6 +22,16 @@ type MbV1MessagesSource = {
 };
 
 export type BoostMessagesSource = MbrssV1MessagesSource | MbV1MessagesSource;
+
+const toMbrssApiScope = (scope: MbrssV1MessagesSource['scope']) => {
+  if (scope.type === 'artist' || scope.type === 'album') {
+    return { type: 'channel' as const, podcastGuid: scope.podcastGuid };
+  }
+  if (scope.type === 'track' || scope.type === 'livestream') {
+    return { type: 'item' as const, itemGuid: scope.itemGuid };
+  }
+  return scope;
+};
 
 const normalizeMessagesPage = (data: PublicBoostMessagesPage): PublicBoostMessagesPage => ({
   messages: data.messages,
@@ -41,8 +55,9 @@ export const createBoostMessagesPageFetcher = (
         })
       );
     }
+    const apiScope = toMbrssApiScope(source.scope);
     return normalizeMessagesPage(
-      await fetchMbrssV1PublicMessages(source.metaBoost.node, source.scope, {
+      await fetchMbrssV1PublicMessages(source.metaBoost.node, apiScope, {
         page,
         limit: requestedLimit,
       })

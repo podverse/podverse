@@ -1,21 +1,30 @@
 import { getOwnPropertyValue, isObjectLike } from '@podverse/helpers';
+import type { BoostAction } from '@podverse/helpers';
 
 /** Aligns with MetaBoost mbrss-v1 ingest / `createMbrssV1BoostSchema`. */
 export const MBRSS_V1_CURRENCY_BTC = 'BTC';
 
-/** Metaboost uses `satoshi` for BTC amount_unit. */
+/** Preferred plural unit token for BTC amount_unit. */
+export const MBRSS_V1_AMOUNT_UNIT_SATOSHIS = 'satoshis';
+/** Singular compatibility fallback for BTC amount_unit. */
 export const MBRSS_V1_AMOUNT_UNIT_SATOSHI = 'satoshi';
+export type MbrssV1AmountUnit =
+  | typeof MBRSS_V1_AMOUNT_UNIT_SATOSHIS
+  | typeof MBRSS_V1_AMOUNT_UNIT_SATOSHI;
 
-export const MBRSS_V1_BOOST_ACTION = 'boost' as const;
-export const MBRSS_V1_STREAM_ACTION = 'stream' as const;
+/** Canonical string literals for Value 4 Value boost vs streaming payments (mbrss-v1, mb-v1, BLIP, etc.). */
+export const V4V_ACTION_TYPE = {
+  BOOST: 'boost',
+  STREAM: 'stream',
+} as const;
 
-export type MbrssV1CreateBoostAction = typeof MBRSS_V1_BOOST_ACTION | typeof MBRSS_V1_STREAM_ACTION;
+export type MbrssV1CreateBoostAction = BoostAction;
 
 /** Fields built client-side; `sender_guid` comes from Podverse `GET /auth/me` and is merged for POST. */
 export type MbrssV1CreateBoostClientPayload = {
   currency: typeof MBRSS_V1_CURRENCY_BTC;
   amount: number;
-  amount_unit: typeof MBRSS_V1_AMOUNT_UNIT_SATOSHI;
+  amount_unit: MbrssV1AmountUnit;
   action: MbrssV1CreateBoostAction;
   app_name: string;
   feed_guid: string;
@@ -58,7 +67,7 @@ export const buildMbrssV1CreateBoostRequest = (
   const body: MbrssV1CreateBoostClientPayload = {
     currency: MBRSS_V1_CURRENCY_BTC,
     amount: amountSat,
-    amount_unit: MBRSS_V1_AMOUNT_UNIT_SATOSHI,
+    amount_unit: MBRSS_V1_AMOUNT_UNIT_SATOSHIS,
     action: params.action,
     app_name: params.appName,
     feed_guid: params.feedGuid.trim(),
@@ -74,7 +83,7 @@ export const buildMbrssV1CreateBoostRequest = (
     body.sender_name = sender;
   }
 
-  if (params.action === 'stream') {
+  if (params.action === V4V_ACTION_TYPE.STREAM) {
     body.message = null;
   } else {
     const msg = params.message.trim();

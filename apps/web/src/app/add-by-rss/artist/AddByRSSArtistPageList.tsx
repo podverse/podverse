@@ -5,6 +5,11 @@ import React from 'react';
 import { AddByRSSAlbumNodes } from '../../../components/AddByRSS/Artist/Album/AddByRSSAlbumNodes';
 import { AddByRSSTrackNodes } from '../../../components/AddByRSS/Artist/Album/Track/AddByRSSTrackNodes';
 import { AddByRSSLivestreamNodes } from '../../../components/AddByRSS/Livestream/AddByRSSLivestreamNodes';
+import { BoostMessagesSection } from '../../../components/Boost/messages/BoostMessagesSection';
+import type {
+  BoostBreadcrumbLinkResolver,
+  BoostMessagesPageFetcher,
+} from '../../../components/Boost/messages/types';
 import { ContentAbout } from '../../../components/Content/About/ContentAbout';
 import { DetailListWrapper } from '../../../components/List/DetailListWrapper';
 import type { ViewSelectedOption } from '../../../components/ViewSelector/ViewSelector';
@@ -22,6 +27,10 @@ type AddByRSSArtistPageListProps = {
   liveItems: AddByRSSLivestreamIndexItem[];
   description: string | null;
   viewSelected: ViewSelectedOption;
+  boostsPageFetcher: BoostMessagesPageFetcher | null;
+  breadcrumbLinkResolver?: BoostBreadcrumbLinkResolver;
+  refreshTrigger: number;
+  boostsHeading: string;
 };
 
 export const AddByRSSArtistPageList: React.FC<AddByRSSArtistPageListProps> = ({
@@ -31,6 +40,10 @@ export const AddByRSSArtistPageList: React.FC<AddByRSSArtistPageListProps> = ({
   liveItems,
   description,
   viewSelected,
+  boostsPageFetcher,
+  breadcrumbLinkResolver,
+  refreshTrigger,
+  boostsHeading,
 }) => {
   return (
     <DetailListWrapper>
@@ -50,6 +63,14 @@ export const AddByRSSArtistPageList: React.FC<AddByRSSArtistPageListProps> = ({
         </>
       )}
       {activeTab === 'about' && <ContentAbout description={description ?? undefined} />}
+      {activeTab === 'boosts' && boostsPageFetcher !== null && (
+        <BoostMessagesSection
+          heading={boostsHeading}
+          pageFetcher={boostsPageFetcher}
+          breadcrumbLinkResolver={breadcrumbLinkResolver}
+          refreshTrigger={refreshTrigger}
+        />
+      )}
     </DetailListWrapper>
   );
 };

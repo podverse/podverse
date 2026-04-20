@@ -1,13 +1,19 @@
 import { getOwnPropertyValue, isObjectLike } from '@podverse/helpers';
+import type { BoostAction } from '@podverse/helpers';
 
-import { MBRSS_V1_AMOUNT_UNIT_SATOSHI, MBRSS_V1_CURRENCY_BTC } from './mbrssV1CreateBoost.js';
+import type { MbrssV1AmountUnit } from './mbrssV1CreateBoost.js';
+import {
+  MBRSS_V1_AMOUNT_UNIT_SATOSHIS,
+  MBRSS_V1_CURRENCY_BTC,
+  V4V_ACTION_TYPE,
+} from './mbrssV1CreateBoost.js';
 
 /** Aligns with MetaBoost mb-v1 ingest (no RSS identity fields). */
 export type MbV1CreateBoostClientPayload = {
   currency: typeof MBRSS_V1_CURRENCY_BTC;
   amount: number;
-  amount_unit: typeof MBRSS_V1_AMOUNT_UNIT_SATOSHI;
-  action: 'boost' | 'stream';
+  amount_unit: MbrssV1AmountUnit;
+  action: BoostAction;
   app_name: string;
   app_version?: string;
   sender_name?: string;
@@ -21,7 +27,7 @@ export type MbV1CreateBoostIngestBody = MbV1CreateBoostClientPayload & {
 export type BuildMbV1CreateBoostRequestParams = {
   totalMsat: number;
   appName: string;
-  action: 'boost' | 'stream';
+  action: BoostAction;
   message: string;
   yourName: string;
   appVersion?: string;
@@ -38,7 +44,7 @@ export const buildMbV1CreateBoostRequest = (
   const body: MbV1CreateBoostClientPayload = {
     currency: MBRSS_V1_CURRENCY_BTC,
     amount: amountSat,
-    amount_unit: MBRSS_V1_AMOUNT_UNIT_SATOSHI,
+    amount_unit: MBRSS_V1_AMOUNT_UNIT_SATOSHIS,
     action: params.action,
     app_name: params.appName,
   };
@@ -52,7 +58,7 @@ export const buildMbV1CreateBoostRequest = (
     body.sender_name = sender;
   }
 
-  if (params.action === 'stream') {
+  if (params.action === V4V_ACTION_TYPE.STREAM) {
     body.message = null;
   } else {
     const msg = params.message.trim();

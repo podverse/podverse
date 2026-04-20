@@ -13,13 +13,18 @@ import { useTrackPageContext } from './TrackPageContext';
 
 type TrackPageListHeaderProps = {
   ssrHasTranscripts: boolean;
+  ssrCanShowBoosts: boolean;
 };
 
-export const TrackPageListHeader: React.FC<TrackPageListHeaderProps> = ({ ssrHasTranscripts }) => {
+export const TrackPageListHeader: React.FC<TrackPageListHeaderProps> = ({
+  ssrHasTranscripts,
+  ssrCanShowBoosts,
+}) => {
   const { filterParams, setFilterParams, autoScrollOn, setAutoScrollOn } = useTrackPageContext();
   const { type } = filterParams;
   const tInfo = useTranslations('info');
   const tMisc = useTranslations('misc');
+  const tValue = useTranslations('value');
 
   function isItemType(val: string): val is QueryParamsItemMusicType {
     return QUERY_PARAMS_ITEM_MUSIC_TYPE_VALUES.includes(val as QueryParamsItemMusicType);
@@ -46,6 +51,15 @@ export const TrackPageListHeader: React.FC<TrackPageListHeaderProps> = ({ ssrHas
       label: tInfo('transcript.lyrics'),
       onClick: () => handleTypeChange('transcript'),
       zIndex: 1,
+    });
+  }
+
+  if (ssrCanShowBoosts) {
+    tabData.push({
+      key: 'boosts',
+      label: tValue('boost'),
+      onClick: () => handleTypeChange('boosts'),
+      zIndex: 2,
     });
   }
 

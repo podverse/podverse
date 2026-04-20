@@ -1,6 +1,6 @@
 'use client';
 
-import { useSearchParams } from 'next/navigation';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useLocale, useTranslations } from 'next-intl';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
@@ -11,10 +11,13 @@ import {
   PAGINATION,
 } from '@podverse/helpers';
 import { getStatusCodeFromError } from '@podverse/helpers-requests';
+import { buildAddByRssBoostChannel } from '@podverse/parser-mapping';
 
 import { AddByRSSLivestreamNodes } from '../../../components/AddByRSS/Livestream/AddByRSSLivestreamNodes';
 import { AddByRSSPodcastHeader } from '../../../components/AddByRSS/Podcast/AddByRSSPodcastHeader';
 import { AddByRSSEpisodeNodes } from '../../../components/AddByRSS/Podcast/Episode/AddByRSSEpisodeNodes';
+import { BoostMessagesSection } from '../../../components/Boost/messages/BoostMessagesSection';
+import { useBoostMessagesView } from '../../../components/Boost/messages/useBoostMessagesView';
 import { CallToActionMessage } from '../../../components/CallToActionMessage/CallToActionMessage';
 import { DescriptionRenderer } from '../../../components/Description/DescriptionRenderer';
 import { Divider } from '../../../components/Divider/Divider';
@@ -36,14 +39,21 @@ import {
   buildAddByRSSLivestreamIndex,
   buildItemIdTextMap,
 } from '../../../utils/addByRSS/itemIndex';
-import { getAddByRSSFeedByUrl } from '../../../utils/addByRSS/storage';
+import {
+  getAddByRSSFeedByUrl,
+  getAddByRSSItemByGuid,
+  getAddByRSSLivestreamByGuid,
+} from '../../../utils/addByRSS/storage';
 import type {
   AddByRSSFeedRecord,
   AddByRSSLivestreamIndexItem,
   AddByRSSParsedFeed,
 } from '../../../utils/addByRSS/types';
 import { scrollMainToTop } from '../../../utils/scroll';
-import { AddByRSSPodcastPageListHeader } from './AddByRSSPodcastPageListHeader';
+import {
+  AddByRSSPodcastPageListHeader,
+  type AddByRSSPodcastPageTabKey,
+} from './AddByRSSPodcastPageListHeader';
 
 import listNodesStyles from '../../../styles/components/Common/List/ListNodes.module.scss';
 
@@ -51,7 +61,6 @@ type AddByRSSPodcastPageDetailClientProps = {
   feed: AddByRSSFeedRecord;
 };
 
-type AddByRSSPodcastPageTabKey = 'episodes' | 'about' | 'settings';
 type AddByRSSPodcastSort = 'recent' | 'oldest';
 
 export const AddByRSSPodcastPageDetailClient: React.FC<AddByRSSPodcastPageDetailClientProps> = ({
@@ -63,11 +72,21 @@ export const AddByRSSPodcastPageDetailClient: React.FC<AddByRSSPodcastPageDetail
   const tInfo = useTranslations('info');
   const tSettings = useTranslations('settings');
   const tFilters = useTranslations('filters');
+  const tV4VBoostMessages = useTranslations('v4v.boost_messages');
   const locale = useLocale();
+  const pathname = usePathname();
+  const router = useRouter();
   const searchParams = useSearchParams();
   const { loggedInAccount } = useAccount();
   const { setModalAuthLogin } = useModals();
-  const [activeTab, setActiveTab] = useState<AddByRSSPodcastPageTabKey>('episodes');
+  const initialType = useMemo<AddByRSSPodcastPageTabKey>(() => {
+    const typeParam = searchParams.get('type');
+    if (typeParam === 'about' || typeParam === 'settings' || typeParam === 'boosts') {
+      return typeParam;
+    }
+    return 'episodes';
+  }, [searchParams]);
+  const [activeTab, setActiveTab] = useState<AddByRSSPodcastPageTabKey>(initialType);
   const [localFeed, setLocalFeed] = useState(feed);
   const [isUpdating, setIsUpdating] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -101,11 +120,12 @@ export const AddByRSSPodcastPageDetailClient: React.FC<AddByRSSPodcastPageDetail
   }, [localFeed]);
 
   useEffect(() => {
-    if (searchParams.has('page') || searchParams.has('sort')) {
+    if (searchParams.has('page') || searchParams.has('sort') || searchParams.has('type')) {
       setCurrentPage(initialPage);
       setSort(initialSort);
+      setActiveTab(initialType);
     }
-  }, [initialPage, initialSort, searchParams]);
+  }, [initialPage, initialSort, initialType, searchParams]);
 
   const mappedFeed = localFeed.mappedFeed;
   const mappedChannel = mappedFeed?.channel;
@@ -291,6 +311,44 @@ export const AddByRSSPodcastPageDetailClient: React.FC<AddByRSSPodcastPageDetail
   }, [liveItems]);
 
   const showLiveItems = activeTab === 'episodes' && currentPage === 1 && sortedLiveItems.length > 0;
+  const handleTabSelect = useCallback(
+    (key: AddByRSSPodcastPageTabKey) => {
+      setActiveTab(key);
+      const nextParams = new URLSearchParams(searchParams.toString());
+      if (key === 'episodes') {
+        nextParams.delete('type');
+      } else {
+        nextParams.set('type', key);
+      }
+      const nextQuery = nextParams.toString();
+      router.replace(nextQuery === '' ? pathname : `${pathname}?${nextQuery}`, { scroll: false });
+    },
+    [pathname, router, searchParams]
+  );
+  const boostChannel = useMemo(() => buildAddByRssBoostChannel(localFeed), [localFeed]);
+  const { canShowBoostTab, boostsPageFetcher, breadcrumbLinkResolver, refreshTrigger } =
+    useBoostMessagesView({
+      channel: boostChannel,
+      scopeType: 'channel',
+      channelIdText: localFeed.idText,
+      resolveChannelHref: (channelIdText) => `/add-by-rss/podcast/${channelIdText}`,
+      resolveItemIdTextByGuid: async (itemGuid) => {
+        const item = await getAddByRSSItemByGuid(itemGuid);
+        if (item?.idText) {
+          return item.idText;
+        }
+
+        const livestream = await getAddByRSSLivestreamByGuid(itemGuid);
+        return livestream?.idText ?? null;
+      },
+      resolveItemHref: (itemIdText) => `/add-by-rss/episode/${itemIdText}`,
+    });
+
+  useEffect(() => {
+    if (!canShowBoostTab && activeTab === 'boosts') {
+      handleTabSelect('episodes');
+    }
+  }, [activeTab, canShowBoostTab, handleTabSelect]);
 
   return (
     <MainWrapper>
@@ -300,7 +358,8 @@ export const AddByRSSPodcastPageDetailClient: React.FC<AddByRSSPodcastPageDetail
         <MainInnerContentWrapper>
           <AddByRSSPodcastPageListHeader
             selectedKey={activeTab}
-            onSelect={(key) => setActiveTab(key)}
+            onSelect={handleTabSelect}
+            canShowBoosts={canShowBoostTab}
             sideButtons={sideButtons}
           />
           <DetailListWrapper>
@@ -333,6 +392,14 @@ export const AddByRSSPodcastPageDetailClient: React.FC<AddByRSSPodcastPageDetail
             )}
             {activeTab === 'about' && channelDescription && (
               <DescriptionRenderer description={channelDescription} />
+            )}
+            {activeTab === 'boosts' && boostsPageFetcher !== null && (
+              <BoostMessagesSection
+                heading={tV4VBoostMessages('title')}
+                pageFetcher={boostsPageFetcher}
+                breadcrumbLinkResolver={breadcrumbLinkResolver}
+                refreshTrigger={refreshTrigger}
+              />
             )}
             {activeTab === 'settings' && (
               <SettingsWrapper removeWrapperMargin>

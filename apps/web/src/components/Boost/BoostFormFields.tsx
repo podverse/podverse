@@ -47,6 +47,7 @@ type BoostFormFieldsProps = {
   thresholdMessageNotice?: string | null;
   thresholdPreferredCurrency?: string | null;
   thresholdConversionEndpointUrl?: string | null;
+  sourceCurrencyCode?: string | null;
   tValue: Translator;
   tMisc: Translator;
   brandName: string;
@@ -81,6 +82,7 @@ export const BoostFormFields = ({
   thresholdMessageNotice = null,
   thresholdPreferredCurrency = null,
   thresholdConversionEndpointUrl = null,
+  sourceCurrencyCode = null,
   tValue,
   tMisc,
   brandName,
@@ -96,7 +98,9 @@ export const BoostFormFields = ({
     thresholdNameMessageBlocked ||
     (metaBoost !== null && !isLoggedIn);
   const boostCurrencyFormatMetadata =
-    metaBoost !== null ? getBoostCurrencyInputFormatMetadata('BTC') : null;
+    metaBoost !== null && sourceCurrencyCode !== null
+      ? getBoostCurrencyInputFormatMetadata(sourceCurrencyCode)
+      : null;
   const locale = useLocale();
   const sourceCurrency = boostCurrencyFormatMetadata?.currency ?? null;
   const sourceAmountUnit = boostCurrencyFormatMetadata?.canonicalAmountUnit ?? null;
@@ -150,7 +154,7 @@ export const BoostFormFields = ({
     if (valueText.trim() === '') {
       return 0;
     }
-    const parsed = parseMajorUnitToMinorAmount(valueText, 'BTC');
+    const parsed = parseMajorUnitToMinorAmount(valueText, boostCurrencyFormatMetadata.currency);
     return parsed.ok ? parsed.minorAmount : null;
   };
 

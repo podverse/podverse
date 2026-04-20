@@ -1,14 +1,18 @@
 'use client';
 
 import dynamic from 'next/dynamic';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import React from 'react';
 
 import type { DTOItemChapter } from '@podverse/helpers';
 import type { TranscriptRow } from '@podverse/helpers';
+import { buildAddByRssBoostChannel } from '@podverse/parser-mapping';
 
 import { AddByRSSPodcastHeader } from '../../../components/AddByRSS/Podcast/AddByRSSPodcastHeader';
 import { AddByRSSEpisodeDetailHeader } from '../../../components/AddByRSS/Podcast/Episode/AddByRSSEpisodeDetailHeader';
+import { BoostMessagesSection } from '../../../components/Boost/messages/BoostMessagesSection';
+import { useBoostMessagesView } from '../../../components/Boost/messages/useBoostMessagesView';
 import { CommonDetailListHeader } from '../../../components/Common/List/CommonDetailListHeader';
 import { CoreEpisodeSummary } from '../../../components/Core/Podcast/Episodes/CoreEpisodeSummary';
 import { DetailListWrapper } from '../../../components/List/DetailListWrapper';
@@ -30,7 +34,12 @@ import {
   mapAddByRSSChaptersToDTOItemChapters,
   setCachedChaptersTranscript,
 } from '../../../utils/addByRSS/chaptersTranscript';
-import { getAddByRSSFeedByIdText, getAddByRSSItemByIdText } from '../../../utils/addByRSS/storage';
+import {
+  getAddByRSSFeedByIdText,
+  getAddByRSSItemByGuid,
+  getAddByRSSItemByIdText,
+  getAddByRSSLivestreamByGuid,
+} from '../../../utils/addByRSS/storage';
 import { syncAddByRSSCacheWithServer } from '../../../utils/addByRSS/sync';
 import type { AddByRSSFeedRecord, AddByRSSItemIndexItem } from '../../../utils/addByRSS/types';
 import { getTranscriptRowsFromTranscriptString } from '../../../utils/transcript';
@@ -56,14 +65,26 @@ export const AddByRSSEpisodePageClient: React.FC<AddByRSSEpisodePageClientProps>
   const tFeatures = useTranslations('features');
   const tInfo = useTranslations('info');
   const tMisc = useTranslations('misc');
+  const tValue = useTranslations('value');
+  const tV4VBoostMessages = useTranslations('v4v.boost_messages');
+  const pathname = usePathname();
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const { loggedInAccount } = useAccount();
   const { mpAddByRSS, setMPItemChapter, setMPItemChapterShouldSeek } = useMediaPlayer();
   const [feed, setFeed] = React.useState<AddByRSSFeedRecord | null>(null);
   const [episode, setEpisode] = React.useState<AddByRSSItemIndexItem | null>(null);
   const [isLoading, setIsLoading] = React.useState(true);
-  const [selectedTab, setSelectedTab] = React.useState<'summary' | 'chapters' | 'transcript'>(
-    'summary'
-  );
+  const initialType = React.useMemo<'summary' | 'boosts' | 'chapters' | 'transcript'>(() => {
+    const typeParam = searchParams.get('type');
+    if (typeParam === 'boosts' || typeParam === 'chapters' || typeParam === 'transcript') {
+      return typeParam;
+    }
+    return 'summary';
+  }, [searchParams]);
+  const [selectedTab, setSelectedTab] = React.useState<
+    'summary' | 'boosts' | 'chapters' | 'transcript'
+  >(initialType);
   const [itemChapters, setItemChapters] = React.useState<DTOItemChapter[]>([]);
   const [transcriptRows, setTranscriptRows] = React.useState<TranscriptRow[]>([]);
   const [chaptersTranscriptLoading, setChaptersTranscriptLoading] = React.useState(false);
@@ -76,6 +97,66 @@ export const AddByRSSEpisodePageClient: React.FC<AddByRSSEpisodePageClientProps>
   }, [episode]);
 
   const hasChaptersOrTranscript = Boolean(chaptersFeedUrl || transcriptUrl);
+  const boostChannel = React.useMemo(() => (feed ? buildAddByRssBoostChannel(feed) : null), [feed]);
+  const { canShowBoostTab, boostsPageFetcher, breadcrumbLinkResolver, refreshTrigger } =
+    useBoostMessagesView({
+      channel: boostChannel,
+      itemGuid: episode?.itemGuid ?? null,
+      scopeType: 'item',
+      channelIdText: feed?.idText ?? null,
+      resolveChannelHref: (channelIdText) => `/add-by-rss/podcast/${channelIdText}`,
+      resolveItemIdTextByGuid: async (itemGuid) => {
+        const item = await getAddByRSSItemByGuid(itemGuid);
+        if (item?.idText) {
+          return item.idText;
+        }
+
+        const livestream = await getAddByRSSLivestreamByGuid(itemGuid);
+        return livestream?.idText ?? null;
+      },
+      resolveItemHref: (itemIdText) => `/add-by-rss/episode/${itemIdText}`,
+    });
+
+  const handleTabSelect = React.useCallback(
+    (tab: 'summary' | 'boosts' | 'chapters' | 'transcript') => {
+      setSelectedTab(tab);
+      const nextParams = new URLSearchParams(searchParams.toString());
+      if (tab === 'summary') {
+        nextParams.delete('type');
+      } else {
+        nextParams.set('type', tab);
+      }
+      const nextQuery = nextParams.toString();
+      router.replace(nextQuery === '' ? pathname : `${pathname}?${nextQuery}`, { scroll: false });
+    },
+    [pathname, router, searchParams]
+  );
+
+  React.useEffect(() => {
+    if (!canShowBoostTab && selectedTab === 'boosts') {
+      handleTabSelect('summary');
+    }
+  }, [canShowBoostTab, handleTabSelect, selectedTab]);
+
+  React.useEffect(() => {
+    if (searchParams.has('type')) {
+      setSelectedTab(initialType);
+    }
+  }, [initialType, searchParams]);
+
+  React.useEffect(() => {
+    if (selectedTab === 'chapters' && !chaptersFeedUrl) {
+      handleTabSelect('summary');
+      return;
+    }
+    if (selectedTab === 'transcript' && !transcriptUrl) {
+      handleTabSelect('summary');
+      return;
+    }
+    if (selectedTab === 'boosts' && boostsPageFetcher === null) {
+      handleTabSelect('summary');
+    }
+  }, [boostsPageFetcher, chaptersFeedUrl, handleTabSelect, selectedTab, transcriptUrl]);
 
   React.useEffect(() => {
     if (!episode || !hasChaptersOrTranscript) return;
@@ -217,7 +298,7 @@ export const AddByRSSEpisodePageClient: React.FC<AddByRSSEpisodePageClientProps>
 
   const tabData = React.useMemo(() => {
     const tabs: Array<{
-      key: 'summary' | 'chapters' | 'transcript';
+      key: 'summary' | 'boosts' | 'chapters' | 'transcript';
       label: string;
       onClick: () => void;
       zIndex: number;
@@ -225,15 +306,23 @@ export const AddByRSSEpisodePageClient: React.FC<AddByRSSEpisodePageClientProps>
       {
         key: 'summary',
         label: tInfo('summary.summary'),
-        onClick: () => setSelectedTab('summary'),
+        onClick: () => handleTabSelect('summary'),
         zIndex: 1,
       },
     ];
+    if (canShowBoostTab) {
+      tabs.push({
+        key: 'boosts',
+        label: tValue('boost'),
+        onClick: () => handleTabSelect('boosts'),
+        zIndex: 3,
+      });
+    }
     if (chaptersFeedUrl) {
       tabs.push({
         key: 'chapters',
         label: tInfo('chapter.chapters'),
-        onClick: () => setSelectedTab('chapters'),
+        onClick: () => handleTabSelect('chapters'),
         zIndex: 2,
       });
     }
@@ -241,12 +330,12 @@ export const AddByRSSEpisodePageClient: React.FC<AddByRSSEpisodePageClientProps>
       tabs.push({
         key: 'transcript',
         label: tInfo('transcript.transcript'),
-        onClick: () => setSelectedTab('transcript'),
+        onClick: () => handleTabSelect('transcript'),
         zIndex: 3,
       });
     }
     return tabs;
-  }, [chaptersFeedUrl, transcriptUrl, tInfo]);
+  }, [canShowBoostTab, chaptersFeedUrl, handleTabSelect, tInfo, tValue, transcriptUrl]);
 
   const handlePlayChapter = React.useCallback(
     (chapter: DTOItemChapter) => {
@@ -298,6 +387,14 @@ export const AddByRSSEpisodePageClient: React.FC<AddByRSSEpisodePageClientProps>
           <DetailListWrapper>
             {selectedTab === 'summary' &&
               (description ? <CoreEpisodeSummary description={description} /> : null)}
+            {selectedTab === 'boosts' && boostsPageFetcher !== null && (
+              <BoostMessagesSection
+                heading={tV4VBoostMessages('title')}
+                pageFetcher={boostsPageFetcher}
+                breadcrumbLinkResolver={breadcrumbLinkResolver}
+                refreshTrigger={refreshTrigger}
+              />
+            )}
             {selectedTab === 'chapters' && (
               <>
                 {chaptersTranscriptError ? (

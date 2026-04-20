@@ -5,11 +5,11 @@ import { useLocale, useTranslations } from 'next-intl';
 import { useMemo, useRef } from 'react';
 
 import { formatDateTimeAbbrev } from '@podverse/helpers';
-import type { PublicBoostMessage } from '@podverse/v4v-metaboost';
 
 import LoadingSpinner from '../../LoadingSpinner/LoadingSpinner';
 import Pagination from '../../Pagination/Pagination';
 import { formatPublicBoostAmountLine } from './formatPublicBoostAmountLine';
+import { getPublicBoostMessageLinkKey } from './getPublicBoostMessageLinkKey';
 import type { BoostBreadcrumbLinkResolver, BoostMessagesPageFetcher } from './types';
 import { useBoostMessagesSection } from './useBoostMessagesSection';
 
@@ -22,10 +22,8 @@ type BoostMessagesSectionProps = {
   limit?: number;
   breadcrumbLinkResolver?: BoostBreadcrumbLinkResolver;
   className?: string;
+  refreshTrigger?: number;
 };
-
-const getMessageLinkKey = (message: PublicBoostMessage): string =>
-  message.messageGuid || message.id;
 
 const getContainerScrollTopForSection = (sectionEl: HTMLElement): number | null => {
   const containerEl = document.getElementById('mainOuterWrapper');
@@ -45,6 +43,7 @@ export const BoostMessagesSection: React.FC<BoostMessagesSectionProps> = ({
   limit = 20,
   breadcrumbLinkResolver,
   className = '',
+  refreshTrigger = 0,
 }) => {
   const tBoost = useTranslations('value.boost_messages');
   const tValue = useTranslations('value');
@@ -57,6 +56,7 @@ export const BoostMessagesSection: React.FC<BoostMessagesSectionProps> = ({
     initialPage,
     limit,
     breadcrumbLinkResolver,
+    refreshTrigger,
   });
 
   const loadingLabel = useMemo(() => tBoost('public_messages_loading'), [tBoost]);
@@ -105,7 +105,7 @@ export const BoostMessagesSection: React.FC<BoostMessagesSectionProps> = ({
           <div className={styles.messageList}>
             {data.messages.map((message) => {
               const breadcrumb = message.breadcrumbContext;
-              const key = getMessageLinkKey(message);
+              const key = getPublicBoostMessageLinkKey(message);
               const href = messageLinkMap[key] ?? null;
               const displaySender =
                 message.senderName !== null && message.senderName.trim() !== ''

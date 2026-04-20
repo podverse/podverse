@@ -5,7 +5,7 @@ const isSatoshisUnit = (amountUnit: string | null): boolean => {
     return false;
   }
   const normalized = amountUnit.trim().toLowerCase();
-  return normalized === 'satoshi';
+  return normalized === 'satoshi' || normalized === 'satoshis';
 };
 
 const joinUnknownAmountParts = (

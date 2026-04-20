@@ -16,6 +16,7 @@ type ArtistPageListHeaderProps = {
   ssrHasAlbums: boolean;
   ssrHasTracks: boolean;
   ssrHasDescription: boolean;
+  ssrCanShowBoosts: boolean;
 };
 
 export const ArtistPageListHeader: React.FC<ArtistPageListHeaderProps> = ({
@@ -23,12 +24,14 @@ export const ArtistPageListHeader: React.FC<ArtistPageListHeaderProps> = ({
   ssrHasAlbums,
   ssrHasTracks,
   ssrHasDescription,
+  ssrCanShowBoosts,
 }) => {
   const { filterParams, setFilterParams } = useArtistPageContext();
   const { type } = filterParams;
   const tMedia = useTranslations('media');
   const tInfo = useTranslations('info');
   const tSettings = useTranslations('settings');
+  const tValue = useTranslations('value');
   const { loggedInAccount } = useAccount();
 
   function isChannelType(val: string): val is QueryParamsChannelMusicArtistType {
@@ -62,6 +65,16 @@ export const ArtistPageListHeader: React.FC<ArtistPageListHeaderProps> = ({
       onClick: () => handleTypeChange('tracks'),
       hideDesktop: false,
       zIndex: 6,
+    });
+  }
+
+  if (ssrCanShowBoosts) {
+    tabData.push({
+      key: 'boosts',
+      label: tValue('boost'),
+      onClick: () => handleTypeChange('boosts'),
+      hideDesktop: false,
+      zIndex: 5,
     });
   }
 
