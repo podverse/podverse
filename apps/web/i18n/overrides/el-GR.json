@@ -305,6 +305,9 @@
       "sender_blocked_modal_primary": "",
       "sender_blocked_post_fallback": "",
       "threshold_notice": "",
+      "threshold_below_minimum_modal_title": "",
+      "threshold_below_minimum_modal_body": "",
+      "threshold_send_without_message": "",
       "threshold_missing_metadata": "",
       "threshold_amount_unit_missing": "",
       "threshold_amount_unit_invalid": "",
@@ -448,6 +451,7 @@
   },
   "donate": {
     "title": "",
+    "boost_messages_heading": "",
     "app_donation_notice": "",
     "app_not_configured": "",
     "creator_donation_hint_prefix": "",

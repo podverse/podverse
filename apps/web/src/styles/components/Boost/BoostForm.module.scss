@@ -29,7 +29,24 @@
 }
 
 .boostAmountInputs {
-  max-width: 220px;
+  display: grid;
+  gap: var(--spacing-md);
+}
+
+.boostAmountInputRow {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.boostAmountInputControl {
+  width: 220px;
+}
+
+.boostAmountEstimate {
+  color: var(--text-color-secondary);
+  font-size: var(--font-size-sm);
+  white-space: nowrap;
 }
 
 .mbrssV1CapabilityError {

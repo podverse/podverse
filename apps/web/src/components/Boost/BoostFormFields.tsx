@@ -1,3 +1,4 @@
+import { useLocale } from 'next-intl';
 import { useState } from 'react';
 
 import type { MetaBoost } from '@podverse/v4v-metaboost';
@@ -12,6 +13,7 @@ import Form from '../Form/Form';
 import { TextArea } from '../Form/TextArea';
 import { TextInput } from '../Form/TextInput';
 import TextInputNumber from '../Form/TextInputNumber';
+import { useBoostBaselineEstimate } from './hooks/useBoostBaselineEstimate';
 
 import styles from '../../styles/components/Boost/BoostForm.module.scss';
 
@@ -43,6 +45,8 @@ type BoostFormFieldsProps = {
   mbrssV1SenderBlockedPreflightMessage?: string | null;
   thresholdNameMessageBlocked?: boolean;
   thresholdMessageNotice?: string | null;
+  thresholdPreferredCurrency?: string | null;
+  thresholdConversionEndpointUrl?: string | null;
   tValue: Translator;
   tMisc: Translator;
   brandName: string;
@@ -75,6 +79,8 @@ export const BoostFormFields = ({
   mbrssV1SenderBlockedPreflightMessage = null,
   thresholdNameMessageBlocked = false,
   thresholdMessageNotice = null,
+  thresholdPreferredCurrency = null,
+  thresholdConversionEndpointUrl = null,
   tValue,
   tMisc,
   brandName,
@@ -91,10 +97,31 @@ export const BoostFormFields = ({
     (metaBoost !== null && !isLoggedIn);
   const boostCurrencyFormatMetadata =
     metaBoost !== null ? getBoostCurrencyInputFormatMetadata('BTC') : null;
+  const locale = useLocale();
+  const sourceCurrency = boostCurrencyFormatMetadata?.currency ?? null;
+  const sourceAmountUnit = boostCurrencyFormatMetadata?.canonicalAmountUnit ?? null;
   const [creatorAmountInputError, setCreatorAmountInputError] = useState<string | undefined>(
     undefined
   );
   const [appAmountInputError, setAppAmountInputError] = useState<string | undefined>(undefined);
+  const creatorBaselineEstimate = useBoostBaselineEstimate({
+    sourceAmountMinor: Math.max(0, Math.round(totalAmountToCreator)),
+    sourceCurrency,
+    sourceAmountUnit,
+    preferredCurrency: thresholdPreferredCurrency,
+    conversionEndpointUrl: thresholdConversionEndpointUrl,
+    locale,
+    enabled: metaBoost !== null,
+  });
+  const appBaselineEstimate = useBoostBaselineEstimate({
+    sourceAmountMinor: Math.max(0, Math.round(totalAmountToApp)),
+    sourceCurrency,
+    sourceAmountUnit,
+    preferredCurrency: thresholdPreferredCurrency,
+    conversionEndpointUrl: thresholdConversionEndpointUrl,
+    locale,
+    enabled: metaBoost !== null,
+  });
 
   const getAmountInputErrorMessage = (
     result: ParseMajorUnitToMinorResult,
@@ -135,110 +162,124 @@ export const BoostFormFields = ({
     >
       <div className={styles.boostAmountInputs}>
         {showCreatorInput && (
-          <TextInputNumber
-            eyebrow={tValue('send_to.creator')}
-            value={totalAmountToCreator}
-            min={0}
-            step={
-              boostCurrencyFormatMetadata !== null
-                ? Number(boostCurrencyFormatMetadata.inputStep)
-                : 1
-            }
-            onChange={(e) => {
-              if (boostCurrencyFormatMetadata === null) {
-                const parsedAmount = parseBoostAmountInput(e.target.value);
-                if (parsedAmount !== null) {
-                  setTotalAmountToCreator(parsedAmount);
-                  setCreatorAmountInputError(undefined);
+          <div className={styles.boostAmountInputRow}>
+            <div className={styles.boostAmountInputControl}>
+              <TextInputNumber
+                eyebrow={tValue('send_to.creator')}
+                value={totalAmountToCreator}
+                min={0}
+                step={
+                  boostCurrencyFormatMetadata !== null
+                    ? Number(boostCurrencyFormatMetadata.inputStep)
+                    : 1
                 }
-                return;
-              }
+                onChange={(e) => {
+                  if (boostCurrencyFormatMetadata === null) {
+                    const parsedAmount = parseBoostAmountInput(e.target.value);
+                    if (parsedAmount !== null) {
+                      setTotalAmountToCreator(parsedAmount);
+                      setCreatorAmountInputError(undefined);
+                    }
+                    return;
+                  }
 
-              if (e.target.value.trim() === '') {
-                setTotalAmountToCreator(0);
-                setCreatorAmountInputError(undefined);
-                return;
-              }
+                  if (e.target.value.trim() === '') {
+                    setTotalAmountToCreator(0);
+                    setCreatorAmountInputError(undefined);
+                    return;
+                  }
 
-              const parsed = parseMajorUnitToMinorAmount(
-                e.target.value,
-                boostCurrencyFormatMetadata.currency
-              );
-              const parsedAmount = parsed.ok ? parsed.minorAmount : null;
-              if (parsedAmount !== null) {
-                setTotalAmountToCreator(parsedAmount);
-                setCreatorAmountInputError(undefined);
-                return;
-              }
-              setCreatorAmountInputError(
-                getAmountInputErrorMessage(
-                  parsed,
-                  boostCurrencyFormatMetadata.currency,
-                  boostCurrencyFormatMetadata.minorUnitExponent
-                )
-              );
-            }}
-            sideText={
-              boostCurrencyFormatMetadata?.canonicalAmountUnit ??
-              (selectedValueKey ? tValue(`types.${selectedValueKey}.denomination`) : undefined)
-            }
-            prefix={boostCurrencyFormatMetadata?.symbolPrefix ?? undefined}
-            infoError={creatorAmountInputError}
-            disabled={isSubmitting || hasStatusUpdates}
-          />
+                  const parsed = parseMajorUnitToMinorAmount(
+                    e.target.value,
+                    boostCurrencyFormatMetadata.currency
+                  );
+                  const parsedAmount = parsed.ok ? parsed.minorAmount : null;
+                  if (parsedAmount !== null) {
+                    setTotalAmountToCreator(parsedAmount);
+                    setCreatorAmountInputError(undefined);
+                    return;
+                  }
+                  setCreatorAmountInputError(
+                    getAmountInputErrorMessage(
+                      parsed,
+                      boostCurrencyFormatMetadata.currency,
+                      boostCurrencyFormatMetadata.minorUnitExponent
+                    )
+                  );
+                }}
+                sideText={
+                  boostCurrencyFormatMetadata?.canonicalAmountUnit ??
+                  (selectedValueKey ? tValue(`types.${selectedValueKey}.denomination`) : undefined)
+                }
+                prefix={boostCurrencyFormatMetadata?.symbolPrefix ?? undefined}
+                infoError={creatorAmountInputError}
+                disabled={isSubmitting || hasStatusUpdates}
+              />
+            </div>
+            {creatorBaselineEstimate ? (
+              <span className={styles.boostAmountEstimate}>~ {creatorBaselineEstimate}</span>
+            ) : null}
+          </div>
         )}
         {showAppInput && (
-          <TextInputNumber
-            eyebrow={tValue('send_to.app', { brand_name: brandName })}
-            value={totalAmountToApp}
-            min={0}
-            step={
-              boostCurrencyFormatMetadata !== null
-                ? Number(boostCurrencyFormatMetadata.inputStep)
-                : 1
-            }
-            onChange={(e) => {
-              if (boostCurrencyFormatMetadata === null) {
-                const parsedAmount = parseBoostAmountInput(e.target.value);
-                if (parsedAmount !== null) {
-                  setTotalAmountToApp(parsedAmount);
-                  setAppAmountInputError(undefined);
+          <div className={styles.boostAmountInputRow}>
+            <div className={styles.boostAmountInputControl}>
+              <TextInputNumber
+                eyebrow={tValue('send_to.app', { brand_name: brandName })}
+                value={totalAmountToApp}
+                min={0}
+                step={
+                  boostCurrencyFormatMetadata !== null
+                    ? Number(boostCurrencyFormatMetadata.inputStep)
+                    : 1
                 }
-                return;
-              }
+                onChange={(e) => {
+                  if (boostCurrencyFormatMetadata === null) {
+                    const parsedAmount = parseBoostAmountInput(e.target.value);
+                    if (parsedAmount !== null) {
+                      setTotalAmountToApp(parsedAmount);
+                      setAppAmountInputError(undefined);
+                    }
+                    return;
+                  }
 
-              if (e.target.value.trim() === '') {
-                setTotalAmountToApp(0);
-                setAppAmountInputError(undefined);
-                return;
-              }
+                  if (e.target.value.trim() === '') {
+                    setTotalAmountToApp(0);
+                    setAppAmountInputError(undefined);
+                    return;
+                  }
 
-              const parsed = parseMajorUnitToMinorAmount(
-                e.target.value,
-                boostCurrencyFormatMetadata.currency
-              );
-              const parsedAmount = parsed.ok ? parsed.minorAmount : null;
-              if (parsedAmount !== null) {
-                setTotalAmountToApp(parsedAmount);
-                setAppAmountInputError(undefined);
-                return;
-              }
-              setAppAmountInputError(
-                getAmountInputErrorMessage(
-                  parsed,
-                  boostCurrencyFormatMetadata.currency,
-                  boostCurrencyFormatMetadata.minorUnitExponent
-                )
-              );
-            }}
-            sideText={
-              boostCurrencyFormatMetadata?.canonicalAmountUnit ??
-              (selectedValueKey ? tValue(`types.${selectedValueKey}.denomination`) : undefined)
-            }
-            prefix={boostCurrencyFormatMetadata?.symbolPrefix ?? undefined}
-            infoError={appAmountInputError}
-            disabled={isSubmitting || hasStatusUpdates}
-          />
+                  const parsed = parseMajorUnitToMinorAmount(
+                    e.target.value,
+                    boostCurrencyFormatMetadata.currency
+                  );
+                  const parsedAmount = parsed.ok ? parsed.minorAmount : null;
+                  if (parsedAmount !== null) {
+                    setTotalAmountToApp(parsedAmount);
+                    setAppAmountInputError(undefined);
+                    return;
+                  }
+                  setAppAmountInputError(
+                    getAmountInputErrorMessage(
+                      parsed,
+                      boostCurrencyFormatMetadata.currency,
+                      boostCurrencyFormatMetadata.minorUnitExponent
+                    )
+                  );
+                }}
+                sideText={
+                  boostCurrencyFormatMetadata?.canonicalAmountUnit ??
+                  (selectedValueKey ? tValue(`types.${selectedValueKey}.denomination`) : undefined)
+                }
+                prefix={boostCurrencyFormatMetadata?.symbolPrefix ?? undefined}
+                infoError={appAmountInputError}
+                disabled={isSubmitting || hasStatusUpdates}
+              />
+            </div>
+            {appBaselineEstimate ? (
+              <span className={styles.boostAmountEstimate}>~ {appBaselineEstimate}</span>
+            ) : null}
+          </div>
         )}
       </div>
       {showNameAndMessage && (

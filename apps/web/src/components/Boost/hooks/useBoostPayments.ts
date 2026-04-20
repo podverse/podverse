@@ -34,6 +34,7 @@ import {
 } from '../payments/mbrssV1/mbrssV1RequestMetadata';
 import { postMbV1BoostMessage } from '../payments/mbV1/mbV1RequestMetadata';
 import type { PaymentRecipient, RecipientStatus } from '../types.js';
+import { convertBoostThresholdAmount } from './boostThresholdConversion';
 
 type Translator = (key: string, values?: Record<string, string | number>) => string;
 
@@ -73,6 +74,12 @@ type UseBoostPaymentsParams = {
   mbrssV1HttpMessagingEnabled: boolean;
   /** From `GET /auth/me` only; required to complete mbrss-v1 ingest (with sender_guid). */
   mbrssV1SenderGuid: string | null;
+  sourceAmountMinor: number;
+  sourceCurrency: string | null;
+  sourceAmountUnit: string | null;
+  thresholdPreferredCurrency: string | null;
+  thresholdMinimumMessageAmountMinor: number | null;
+  thresholdConversionEndpointUrl: string | null;
 };
 
 export const useBoostPayments = ({
@@ -94,6 +101,12 @@ export const useBoostPayments = ({
   onBoostSuccess,
   mbrssV1HttpMessagingEnabled,
   mbrssV1SenderGuid,
+  sourceAmountMinor,
+  sourceCurrency,
+  sourceAmountUnit,
+  thresholdPreferredCurrency,
+  thresholdMinimumMessageAmountMinor,
+  thresholdConversionEndpointUrl,
 }: UseBoostPaymentsParams) => {
   const { setModalBoostMessageError, setModalBoostMintRateLimit } = useModals();
 
@@ -108,6 +121,18 @@ export const useBoostPayments = ({
       });
     });
   }, [setModalBoostMessageError, tValue]);
+  const promptThresholdBelowMinimum = useCallback(
+    (onSendWithoutMessage: () => void): void => {
+      setModalBoostMessageError({
+        title: tValue('boost_messages.threshold_below_minimum_modal_title'),
+        message: tValue('boost_messages.threshold_below_minimum_modal_body'),
+        primaryActionI18nKey: 'boost_messages.threshold_send_without_message',
+        onSendAnyway: onSendWithoutMessage,
+        onCancel: () => {},
+      });
+    },
+    [setModalBoostMessageError, tValue]
+  );
 
   const resolvedBlipFeedGuid = mbrssV1RssContext?.feedGuid ?? channel?.podcast_guid ?? undefined;
   const resolvedBlipFeedTitle = mbrssV1RssContext?.feedTitle ?? channel?.title ?? undefined;
@@ -130,6 +155,7 @@ export const useBoostPayments = ({
 
   const sendPayments = async (
     desc: string | null,
+    effectiveMessage: string,
     allowBlipFallback: boolean,
     shouldPostMetaboostStandard: boolean,
     omitBlipMetadataInKeysend: boolean,
@@ -218,9 +244,9 @@ export const useBoostPayments = ({
           const amountMsat = Math.max(0, Math.round(recipient.final_amount * 1000));
           const shouldIncludeBlip =
             !omitBlipMetadataInKeysend && (desc !== null || allowBlipFallback);
-          const effectiveMessage = allowBlipFallback ? '' : message;
+          const effectiveBlipMessage = allowBlipFallback ? '' : effectiveMessage;
           const effectiveSenderName = allowBlipFallback ? '' : yourName.trim();
-          const blipMessage = buildBlipMessage(desc, allowBlipFallback, effectiveMessage);
+          const blipMessage = buildBlipMessage(desc, allowBlipFallback, effectiveBlipMessage);
           const blipPayload = shouldIncludeBlip
             ? serializeBlip10Metadata(
                 buildBlip10Metadata({
@@ -323,7 +349,7 @@ export const useBoostPayments = ({
           if (useMbV1Post) {
             await postMbV1BoostMessage({
               appName: config.public.brand.name,
-              message,
+              message: effectiveMessage,
               yourName,
               metaBoost,
               totalAmountToCreator,
@@ -337,7 +363,7 @@ export const useBoostPayments = ({
               item,
               mbrssV1RssContext,
               appName: config.public.brand.name,
-              message,
+              message: effectiveMessage,
               yourName,
               metaBoost,
               totalAmountToCreator,
@@ -373,7 +399,8 @@ export const useBoostPayments = ({
     setIsSubmitting(false);
   };
 
-  const handleSubmitBoost = async () => {
+  const submitBoost = async (omitMessage: boolean): Promise<void> => {
+    const effectiveMessage = omitMessage ? '' : message;
     setIsSubmitting(true);
     const { shouldUseMbrssV1, shouldUseMbV1, allowBlipFallback } =
       resolveBoostExecutionStrategy(metaBoost);
@@ -403,12 +430,53 @@ export const useBoostPayments = ({
           return;
         }
       }
-      const desc = getMbrssV1PaymentDesc(message, config.public.brand.name);
-      await sendPayments(desc, false, mbrssV1HttpMessagingEnabled, true, shouldUseMbV1);
+      const thresholdAmountMinor = thresholdMinimumMessageAmountMinor ?? 0;
+      if (
+        !omitMessage &&
+        effectiveMessage.trim() !== '' &&
+        mbrssV1HttpMessagingEnabled &&
+        thresholdAmountMinor > 0 &&
+        sourceCurrency !== null &&
+        sourceAmountUnit !== null &&
+        thresholdPreferredCurrency !== null &&
+        thresholdConversionEndpointUrl !== null
+      ) {
+        const conversionResult = await convertBoostThresholdAmount({
+          sourceCurrency,
+          sourceAmountMinor: Math.max(0, Math.round(sourceAmountMinor)),
+          sourceAmountUnit,
+          context: {
+            preferredCurrency: thresholdPreferredCurrency,
+            minimumMessageAmountMinor: thresholdAmountMinor,
+            conversionEndpointUrl: thresholdConversionEndpointUrl,
+          },
+        });
+
+        if (conversionResult.ok && conversionResult.target.amountMinor < thresholdAmountMinor) {
+          setIsSubmitting(false);
+          promptThresholdBelowMinimum(() => {
+            void submitBoost(true);
+          });
+          return;
+        }
+      }
+      const desc = getMbrssV1PaymentDesc(effectiveMessage, config.public.brand.name);
+      await sendPayments(
+        desc,
+        effectiveMessage,
+        false,
+        mbrssV1HttpMessagingEnabled,
+        true,
+        shouldUseMbV1
+      );
       return;
     }
 
-    await sendPayments(null, allowBlipFallback, false, false, false);
+    await sendPayments(null, effectiveMessage, allowBlipFallback, false, false, false);
+  };
+
+  const handleSubmitBoost = async () => {
+    await submitBoost(false);
   };
 
   return { handleSubmitBoost, sendPayments };

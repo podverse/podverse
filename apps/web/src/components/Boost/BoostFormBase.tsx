@@ -6,7 +6,11 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 
 import type { DTOChannel, DTOItem } from '@podverse/helpers';
 import { isLnaddressRecipient } from '@podverse/v4v-btc-ln';
-import type { MetaBoost, PublicBucketConversionErrorCode } from '@podverse/v4v-metaboost';
+import {
+  getBoostCurrencyInputFormatMetadata,
+  type MetaBoost,
+  type PublicBucketConversionErrorCode,
+} from '@podverse/v4v-metaboost';
 
 import { useAccount } from '../../contexts/Account';
 import { useConfig } from '../../contexts/Config';
@@ -295,6 +299,10 @@ export const BoostFormBase: React.FC<BoostFormBaseProps> = ({
     mbrssV1SenderBlocked
       ? (mbrssV1SenderBlockMessage ?? tValue('boost_messages.sender_blocked_preflight_fallback'))
       : null;
+  const sourceAmountMetadata =
+    metaBoost !== null ? getBoostCurrencyInputFormatMetadata('BTC') : null;
+  const sourceAmountCurrency = sourceAmountMetadata?.currency ?? null;
+  const sourceAmountUnit = sourceAmountMetadata?.canonicalAmountUnit ?? null;
 
   useEffect(() => {
     if (typeof messageMaxLength !== 'number') {
@@ -304,6 +312,14 @@ export const BoostFormBase: React.FC<BoostFormBaseProps> = ({
       previous.length > messageMaxLength ? previous.slice(0, messageMaxLength) : previous
     );
   }, [messageMaxLength]);
+
+  const effectiveTotal =
+    includeAppRecipient && !includeCreatorRecipients
+      ? totalAmountToApp
+      : !includeAppRecipient && includeCreatorRecipients
+        ? totalAmountToCreator
+        : totalAmountToCreator + totalAmountToApp;
+  const normalizedBoostAmountMinor = Math.max(0, Math.round(effectiveTotal));
 
   const { handleSubmitBoost } = useBoostPayments({
     channel,
@@ -324,15 +340,13 @@ export const BoostFormBase: React.FC<BoostFormBaseProps> = ({
     onBoostSuccess: () => setMessage(''),
     mbrssV1HttpMessagingEnabled,
     mbrssV1SenderGuid: loggedInAccount?.sender_guid ?? null,
+    sourceAmountMinor: normalizedBoostAmountMinor,
+    sourceCurrency: sourceAmountCurrency,
+    sourceAmountUnit,
+    thresholdPreferredCurrency: mbrssV1PreferredCurrency,
+    thresholdMinimumMessageAmountMinor: mbrssV1MinimumMessageAmountMinor,
+    thresholdConversionEndpointUrl: mbrssV1ConversionEndpointUrl,
   });
-
-  const effectiveTotal =
-    includeAppRecipient && !includeCreatorRecipients
-      ? totalAmountToApp
-      : !includeAppRecipient && includeCreatorRecipients
-        ? totalAmountToCreator
-        : totalAmountToCreator + totalAmountToApp;
-  const normalizedBoostAmountMinor = Math.max(0, Math.round(effectiveTotal));
 
   useEffect(() => {
     let cancelled = false;
@@ -366,9 +380,9 @@ export const BoostFormBase: React.FC<BoostFormBaseProps> = ({
       }
 
       const conversionResult = await convertBoostThresholdAmount({
-        sourceCurrency: 'BTC',
+        sourceCurrency: sourceAmountCurrency ?? 'BTC',
         sourceAmountMinor: normalizedBoostAmountMinor,
-        sourceAmountUnit: 'satoshi',
+        sourceAmountUnit: sourceAmountUnit ?? 'satoshi',
         context: {
           preferredCurrency,
           minimumMessageAmountMinor: thresholdAmountMinor,
@@ -410,6 +424,8 @@ export const BoostFormBase: React.FC<BoostFormBaseProps> = ({
     mbrssV1PreferredCurrency,
     metaBoost,
     normalizedBoostAmountMinor,
+    sourceAmountCurrency,
+    sourceAmountUnit,
   ]);
 
   const totalAmountZeroOrLess = effectiveTotal <= 0;
@@ -471,6 +487,8 @@ export const BoostFormBase: React.FC<BoostFormBaseProps> = ({
               mbrssV1SenderBlockedPreflightMessage={mbrssV1SenderBlockedPreflightMessage}
               thresholdNameMessageBlocked={thresholdNameMessageBlocked}
               thresholdMessageNotice={thresholdNotice}
+              thresholdPreferredCurrency={mbrssV1PreferredCurrency}
+              thresholdConversionEndpointUrl={mbrssV1ConversionEndpointUrl}
               tValue={tValue}
               tMisc={tMisc}
               brandName={config.public.brand.name}
