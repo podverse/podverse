@@ -29,8 +29,6 @@ export type UseMbrssV1BoostCapabilityOptions = {
   /**
    * When false, skip GET capability for MetaBoost (no loading state, no network).
    * When true, loads baseline currency, conversion endpoint, message limits, etc.
-   * Keep enabled whenever metaBoost is set if the UI needs conversion estimates (e.g. donate
-   * while logged out); HTTP messaging may still be gated separately by login in the form.
    */
   fetchEnabled?: boolean;
   /** Passed as `sender_guid` query on capability GET so MetaBoost can return `sender_blocked`. */

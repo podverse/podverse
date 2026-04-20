@@ -292,7 +292,7 @@
       "retry_attempt": "Retry {number}: ",
       "mbrssV1_capability_loading_status": "Checking boost message availability",
       "mbrssV1_capability_unavailable": "Boost messages are not available for this creator at this time due to a server issue, but you can still use the form to send a donation.",
-      "login_required_for_mbrss_messages": "You can send a donation without a Podverse account. To include a message with your donation, log in to Podverse.",
+      "login_required_to_send_boosts": "Log in to Podverse to send boosts.",
       "mbrss_offline_modal_title": "Message collection unavailable",
       "mbrss_offline_modal_body": "The message collection server appears to be offline. If you would like to send your donation without a message, press Continue.",
       "mbrss_offline_continue": "Continue",

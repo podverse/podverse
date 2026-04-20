@@ -54,7 +54,7 @@ type BoostFormFieldsProps = {
   tMisc: Translator;
   brandName: string;
   metaBoost?: MetaBoost | null;
-  /** When false and MetaBoost is set, name/message require login (mbrss-v1). */
+  /** When false, boost amounts and send-related fields are read-only (must log in to Podverse). */
   isLoggedIn: boolean;
   showMetaBoostInfo?: boolean;
   onToggleMetaBoostInfo?: () => void;
@@ -179,9 +179,9 @@ export const BoostFormFields = ({
   const nameMessageFieldsDisabled =
     isSubmitting ||
     hasStatusUpdates ||
+    !isLoggedIn ||
     mbrssV1MessageFieldBlocked ||
-    thresholdNameMessageBlocked ||
-    (metaBoost !== null && !isLoggedIn);
+    thresholdNameMessageBlocked;
   const boostCurrencyFormatMetadata =
     metaBoost !== null && sourceCurrencyCode !== null
       ? getBoostCurrencyInputFormatMetadata(sourceCurrencyCode)
@@ -304,7 +304,7 @@ export const BoostFormFields = ({
                 }
                 prefix={boostCurrencyFormatMetadata?.symbolPrefix ?? undefined}
                 infoError={creatorAmountInputError}
-                disabled={isSubmitting || hasStatusUpdates}
+                disabled={isSubmitting || hasStatusUpdates || !isLoggedIn}
               />
             </div>
             {creatorBaselineEstimate ? (
@@ -369,7 +369,7 @@ export const BoostFormFields = ({
                 }
                 prefix={boostCurrencyFormatMetadata?.symbolPrefix ?? undefined}
                 infoError={appAmountInputError}
-                disabled={isSubmitting || hasStatusUpdates}
+                disabled={isSubmitting || hasStatusUpdates || !isLoggedIn}
               />
             </div>
             {appBaselineEstimate ? (
@@ -422,6 +422,7 @@ export const BoostFormFields = ({
                   variant="link"
                   className={styles.metaBoostInfoToggle}
                   onClick={onToggleMetaBoostInfo}
+                  disabled={nameMessageFieldsDisabled}
                 >
                   {showMetaBoostInfo ? tMisc('hide_info') : tMisc('more_info')}
                 </Button>

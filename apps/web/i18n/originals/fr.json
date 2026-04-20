@@ -292,7 +292,7 @@
       "retry_attempt": "Réessai {number} : ",
       "mbrssV1_capability_loading_status": "Vérification de la disponibilité des messages boost",
       "mbrssV1_capability_unavailable": "Les messages boost ne sont pas disponibles pour ce créateur pour le moment en raison d'un problème de serveur, mais vous pouvez toujours utiliser le formulaire pour envoyer un don.",
-      "login_required_for_mbrss_messages": "Vous pouvez envoyer un don sans compte Podverse. Pour inclure un message avec votre don, connectez-vous à Podverse.",
+      "login_required_to_send_boosts": "Connectez-vous à Podverse pour envoyer des boosts.",
       "mbrss_offline_modal_title": "Collecte de messages indisponible",
       "mbrss_offline_modal_body": "Le serveur de collecte de messages semble hors ligne. Si vous souhaitez envoyer votre don sans message, appuyez sur Continuer.",
       "mbrss_offline_continue": "Continuer",

@@ -79,6 +79,8 @@ type UseBoostPaymentsParams = {
   thresholdPreferredCurrency: string | null;
   thresholdMinimumMessageAmountMinor: number | null;
   thresholdConversionEndpointUrl: string | null;
+  /** When false, `submitBoost` is a no-op (no WebLN / Lightning). */
+  isLoggedIn: boolean;
 };
 
 const sumRecipientFinalAmountSats = (recipients: PaymentRecipient[]): number =>
@@ -107,6 +109,7 @@ export const useBoostPayments = ({
   thresholdPreferredCurrency,
   thresholdMinimumMessageAmountMinor,
   thresholdConversionEndpointUrl,
+  isLoggedIn,
 }: UseBoostPaymentsParams) => {
   const { setModalBoostMessageError, setModalBoostMintRateLimit } = useModals();
 
@@ -401,6 +404,10 @@ export const useBoostPayments = ({
   const submitBoost = async (omitMessage: boolean): Promise<void> => {
     const effectiveMessage = omitMessage ? '' : message;
     setIsSubmitting(true);
+    if (!isLoggedIn) {
+      setIsSubmitting(false);
+      return;
+    }
     const { shouldUseMbrssV1, shouldUseMbV1, allowBlipFallback } =
       resolveBoostExecutionStrategy(metaBoost);
     const normalizedSourceCurrency = sourceCurrency?.trim() ?? '';

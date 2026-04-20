@@ -274,7 +274,7 @@ export const BoostFormBase: React.FC<BoostFormBaseProps> = ({
     minimumMessageAmountMinor: mbrssV1MinimumMessageAmountMinor,
     conversionEndpointUrl: mbrssV1ConversionEndpointUrl,
   } = useMbrssV1BoostCapability(metaBoost, {
-    fetchEnabled: metaBoost !== null,
+    fetchEnabled: metaBoost !== null && loggedInAccount !== null,
     senderGuid: loggedInAccount?.sender_guid ?? null,
   });
   const [thresholdNameMessageBlocked, setThresholdNameMessageBlocked] = useState(false);
@@ -372,6 +372,7 @@ export const BoostFormBase: React.FC<BoostFormBaseProps> = ({
     thresholdPreferredCurrency: mbrssV1PreferredCurrency,
     thresholdMinimumMessageAmountMinor: mbrssV1MinimumMessageAmountMinor,
     thresholdConversionEndpointUrl: mbrssV1ConversionEndpointUrl,
+    isLoggedIn: loggedInAccount !== null,
   });
 
   useEffect(() => {
@@ -494,9 +495,9 @@ export const BoostFormBase: React.FC<BoostFormBaseProps> = ({
             {buttonTabs.length > 0 && (
               <ButtonTabs buttonTabs={buttonTabs} selectedKey={selectedKey} />
             )}
-            {metaBoost !== null && !loggedInAccount && (
+            {loggedInAccount === null && (
               <Callout>
-                <p>{tValue('boost_messages.login_required_for_mbrss_messages')}</p>
+                <p>{tValue('boost_messages.login_required_to_send_boosts')}</p>
               </Callout>
             )}
             <BoostFormFields
@@ -606,7 +607,7 @@ export const BoostFormBase: React.FC<BoostFormBaseProps> = ({
               <Button
                 onClick={handleSubmitBoost}
                 isLoading={isSubmitting}
-                disabled={isSubmitting || totalAmountZeroOrLess}
+                disabled={isSubmitting || totalAmountZeroOrLess || loggedInAccount === null}
               >
                 {tMisc('submit')}
               </Button>
