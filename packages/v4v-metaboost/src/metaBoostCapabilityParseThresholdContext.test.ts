@@ -8,7 +8,6 @@ describe('parseCapabilityThresholdContextFields', () => {
       preferredCurrency: null,
       minimumMessageAmountMinor: null,
       conversionEndpointUrl: null,
-      conversionSnapshotEndpointUrl: null,
     });
   });
 
@@ -19,15 +18,11 @@ describe('parseCapabilityThresholdContextFields', () => {
         minimum_message_amount_minor: 200,
         conversion_endpoint_url:
           'https://example.com/v1/standard/mb-v1/messages/public/a/conversion',
-        conversion_snapshot_endpoint_url:
-          'https://example.com/v1/standard/mb-v1/messages/public/a/conversion-snapshot',
       })
     ).toEqual({
       preferredCurrency: 'USD',
       minimumMessageAmountMinor: 200,
       conversionEndpointUrl: 'https://example.com/v1/standard/mb-v1/messages/public/a/conversion',
-      conversionSnapshotEndpointUrl:
-        'https://example.com/v1/standard/mb-v1/messages/public/a/conversion-snapshot',
     });
   });
 
@@ -51,13 +46,5 @@ describe('parseCapabilityThresholdContextFields', () => {
         conversion_endpoint_url: 'not-a-url',
       })
     ).toThrow('conversion_endpoint_url');
-  });
-
-  it('rejects invalid conversion_snapshot_endpoint_url values', () => {
-    expect(() =>
-      parseCapabilityThresholdContextFields({
-        conversion_snapshot_endpoint_url: 'not-a-url',
-      })
-    ).toThrow('conversion_snapshot_endpoint_url');
   });
 });

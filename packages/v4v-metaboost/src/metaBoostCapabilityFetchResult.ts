@@ -10,8 +10,6 @@ export type MetaBoostCapabilityFetchResult = {
   preferredCurrency: string | null;
   /** Bucket threshold minimum in integer minor units when provided. */
   minimumMessageAmountMinor: number | null;
-  /** Public bucket conversion endpoint URL when provided. */
+  /** Public bucket conversion (ratio) endpoint URL when provided. */
   conversionEndpointUrl: string | null;
-  /** Public bucket conversion snapshot endpoint URL when provided. */
-  conversionSnapshotEndpointUrl: string | null;
 };

@@ -49,7 +49,6 @@ export const parseMbV1BoostCapabilityResponse = (data: unknown): MetaBoostCapabi
     preferredCurrency: thresholdContext.preferredCurrency,
     minimumMessageAmountMinor: thresholdContext.minimumMessageAmountMinor,
     conversionEndpointUrl: thresholdContext.conversionEndpointUrl,
-    conversionSnapshotEndpointUrl: thresholdContext.conversionSnapshotEndpointUrl,
   };
 };
 

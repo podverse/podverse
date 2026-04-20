@@ -6,11 +6,7 @@ export const MBRSS_V1_CURRENCY_BTC = 'BTC';
 
 /** Preferred plural unit token for BTC amount_unit. */
 export const MBRSS_V1_AMOUNT_UNIT_SATOSHIS = 'satoshis';
-/** Singular compatibility fallback for BTC amount_unit. */
-export const MBRSS_V1_AMOUNT_UNIT_SATOSHI = 'satoshi';
-export type MbrssV1AmountUnit =
-  | typeof MBRSS_V1_AMOUNT_UNIT_SATOSHIS
-  | typeof MBRSS_V1_AMOUNT_UNIT_SATOSHI;
+export type MbrssV1AmountUnit = typeof MBRSS_V1_AMOUNT_UNIT_SATOSHIS;
 
 /** Canonical string literals for Value 4 Value boost vs streaming payments (mbrss-v1, mb-v1, BLIP, etc.). */
 export const V4V_ACTION_TYPE = {

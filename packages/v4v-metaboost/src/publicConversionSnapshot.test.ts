@@ -7,8 +7,8 @@ describe('fetchPublicBucketConversionSnapshot', () => {
     const result = await fetchPublicBucketConversionSnapshot({
       sourceCurrency: 'BTC',
       amountUnit: null,
-      conversionSnapshotEndpointUrl:
-        'https://example.com/v1/standard/mbrss-v1/messages/public/a/conversion-snapshot',
+      conversionEndpointUrl:
+        'https://example.com/v1/standard/mbrss-v1/messages/public/a/conversion',
     });
 
     expect(result).toEqual({
@@ -25,12 +25,12 @@ describe('fetchPublicBucketConversionSnapshot', () => {
       json: async () => ({
         source: {
           currency: 'BTC',
-          amountUnit: 'satoshi',
+          amountUnit: 'satoshis',
           minorUnitExponent: 8,
         },
         target: {
           currency: 'USD',
-          amountUnit: 'cent',
+          amountUnit: 'cents',
           minorUnitExponent: 2,
         },
         ratio: {
@@ -50,12 +50,12 @@ describe('fetchPublicBucketConversionSnapshot', () => {
     const result = await fetchPublicBucketConversionSnapshot({
       sourceCurrency: 'btc',
       amountUnit: 'satoshis',
-      conversionSnapshotEndpointUrl:
-        'https://example.com/v1/standard/mbrss-v1/messages/public/a/conversion-snapshot',
+      conversionEndpointUrl:
+        'https://example.com/v1/standard/mbrss-v1/messages/public/a/conversion',
     });
 
     expect(fetchMock).toHaveBeenCalledWith(
-      'https://example.com/v1/standard/mbrss-v1/messages/public/a/conversion-snapshot?source_currency=BTC&amount_unit=satoshis',
+      'https://example.com/v1/standard/mbrss-v1/messages/public/a/conversion?source_currency=BTC&amount_unit=satoshis',
       {
         method: 'GET',
         headers: { Accept: 'application/json' },
@@ -65,12 +65,12 @@ describe('fetchPublicBucketConversionSnapshot', () => {
       ok: true,
       source: {
         currency: 'BTC',
-        amountUnit: 'satoshi',
+        amountUnit: 'satoshis',
         minorUnitExponent: 8,
       },
       target: {
         currency: 'USD',
-        amountUnit: 'cent',
+        amountUnit: 'cents',
         minorUnitExponent: 2,
       },
       ratio: {

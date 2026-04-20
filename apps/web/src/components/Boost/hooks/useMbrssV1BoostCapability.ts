@@ -23,7 +23,6 @@ export type UseMbrssV1BoostCapabilityResult = {
   preferredCurrency: string | null;
   minimumMessageAmountMinor: number | null;
   conversionEndpointUrl: string | null;
-  conversionSnapshotEndpointUrl: string | null;
 };
 
 export type UseMbrssV1BoostCapabilityOptions = {
@@ -64,9 +63,6 @@ export const useMbrssV1BoostCapability = (
   const [preferredCurrency, setPreferredCurrency] = useState<string | null>(null);
   const [minimumMessageAmountMinor, setMinimumMessageAmountMinor] = useState<number | null>(null);
   const [conversionEndpointUrl, setConversionEndpointUrl] = useState<string | null>(null);
-  const [conversionSnapshotEndpointUrl, setConversionSnapshotEndpointUrl] = useState<string | null>(
-    null
-  );
 
   useEffect(() => {
     if (metaBoost === null) {
@@ -78,7 +74,6 @@ export const useMbrssV1BoostCapability = (
       setPreferredCurrency(null);
       setMinimumMessageAmountMinor(null);
       setConversionEndpointUrl(null);
-      setConversionSnapshotEndpointUrl(null);
       return;
     }
 
@@ -91,7 +86,6 @@ export const useMbrssV1BoostCapability = (
       setPreferredCurrency(null);
       setMinimumMessageAmountMinor(null);
       setConversionEndpointUrl(null);
-      setConversionSnapshotEndpointUrl(null);
       return;
     }
 
@@ -104,7 +98,6 @@ export const useMbrssV1BoostCapability = (
     setPreferredCurrency(null);
     setMinimumMessageAmountMinor(null);
     setConversionEndpointUrl(null);
-    setConversionSnapshotEndpointUrl(null);
 
     void (async () => {
       try {
@@ -126,7 +119,6 @@ export const useMbrssV1BoostCapability = (
         setPreferredCurrency(result.preferredCurrency);
         setMinimumMessageAmountMinor(result.minimumMessageAmountMinor);
         setConversionEndpointUrl(result.conversionEndpointUrl);
-        setConversionSnapshotEndpointUrl(result.conversionSnapshotEndpointUrl);
         setStatus('success');
       } catch {
         if (cancelled) {
@@ -139,7 +131,6 @@ export const useMbrssV1BoostCapability = (
         setPreferredCurrency(null);
         setMinimumMessageAmountMinor(null);
         setConversionEndpointUrl(null);
-        setConversionSnapshotEndpointUrl(null);
         setStatus('error');
       }
     })();
@@ -158,6 +149,5 @@ export const useMbrssV1BoostCapability = (
     preferredCurrency,
     minimumMessageAmountMinor,
     conversionEndpointUrl,
-    conversionSnapshotEndpointUrl,
   };
 };

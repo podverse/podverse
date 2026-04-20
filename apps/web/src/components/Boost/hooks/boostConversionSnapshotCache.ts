@@ -34,26 +34,10 @@ type ResolveCachedConversionSnapshotParams = {
   sourceAmountUnit: string;
   preferredCurrency: string;
   conversionEndpointUrl: string | null;
-  conversionSnapshotEndpointUrl: string | null;
 };
 
 const snapshotCache = new Map<SnapshotCacheKey, CachedConversionSnapshot>();
 const inflightSnapshotCache = new Map<SnapshotCacheKey, Promise<CachedConversionSnapshotResult>>();
-
-const resolveConversionSnapshotEndpointUrl = (
-  conversionEndpointUrl: string | null,
-  conversionSnapshotEndpointUrl: string | null
-): string | null => {
-  const explicitSnapshotUrl = conversionSnapshotEndpointUrl?.trim() ?? '';
-  if (explicitSnapshotUrl !== '') {
-    return explicitSnapshotUrl;
-  }
-  const conversionUrl = conversionEndpointUrl?.trim() ?? '';
-  if (conversionUrl === '') {
-    return null;
-  }
-  return conversionUrl.replace(/\/conversion\/?$/i, '/conversion-snapshot');
-};
 
 const toCacheKey = (input: {
   endpointUrl: string;
@@ -110,7 +94,6 @@ export const resolveCachedConversionSnapshot = async ({
   sourceAmountUnit,
   preferredCurrency,
   conversionEndpointUrl,
-  conversionSnapshotEndpointUrl,
 }: ResolveCachedConversionSnapshotParams): Promise<CachedConversionSnapshotResult> => {
   const normalizedSourceCurrency = sourceCurrency.trim().toUpperCase();
   const normalizedPreferredCurrency = preferredCurrency.trim().toUpperCase();
@@ -131,21 +114,18 @@ export const resolveCachedConversionSnapshot = async ({
     return buildIdentitySnapshot(normalizedSourceCurrency, normalizedSourceAmountUnit);
   }
 
-  const resolvedSnapshotEndpointUrl = resolveConversionSnapshotEndpointUrl(
-    conversionEndpointUrl,
-    conversionSnapshotEndpointUrl
-  );
-  if (resolvedSnapshotEndpointUrl === null || resolvedSnapshotEndpointUrl === '') {
+  const resolvedConversionEndpointUrl = conversionEndpointUrl?.trim() ?? '';
+  if (resolvedConversionEndpointUrl === '') {
     return {
       ok: false,
       code: 'missing_metadata',
-      message: 'conversion_snapshot_endpoint_url is required.',
+      message: 'conversion_endpoint_url is required.',
       status: null,
     };
   }
 
   const key = toCacheKey({
-    endpointUrl: resolvedSnapshotEndpointUrl,
+    endpointUrl: resolvedConversionEndpointUrl,
     sourceCurrency: normalizedSourceCurrency,
     targetCurrency: normalizedPreferredCurrency,
     sourceAmountUnit: normalizedSourceAmountUnit,
@@ -165,7 +145,7 @@ export const resolveCachedConversionSnapshot = async ({
       const snapshotResult = await fetchPublicBucketConversionSnapshot({
         sourceCurrency: normalizedSourceCurrency,
         amountUnit: normalizedSourceAmountUnit,
-        conversionSnapshotEndpointUrl: resolvedSnapshotEndpointUrl,
+        conversionEndpointUrl: resolvedConversionEndpointUrl,
       });
       if (!snapshotResult.ok) {
         return snapshotResult;

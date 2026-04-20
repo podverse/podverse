@@ -56,8 +56,6 @@ type UseBoostPaymentsParams = {
   message: string;
   yourName: string;
   metaBoost: MetaBoost | null;
-  totalAmountToCreator: number;
-  totalAmountToApp: number;
   paymentRecipients: PaymentRecipient[];
   toRecipientStatuses: (recipients: PaymentRecipient[]) => RecipientStatus[];
   updateRecipientStatus: (
@@ -81,8 +79,10 @@ type UseBoostPaymentsParams = {
   thresholdPreferredCurrency: string | null;
   thresholdMinimumMessageAmountMinor: number | null;
   thresholdConversionEndpointUrl: string | null;
-  thresholdConversionSnapshotEndpointUrl: string | null;
 };
+
+const sumRecipientFinalAmountSats = (recipients: PaymentRecipient[]): number =>
+  recipients.reduce((sum, recipient) => sum + recipient.final_amount, 0);
 
 export const useBoostPayments = ({
   channel,
@@ -93,8 +93,6 @@ export const useBoostPayments = ({
   message,
   yourName,
   metaBoost,
-  totalAmountToCreator,
-  totalAmountToApp,
   paymentRecipients,
   toRecipientStatuses,
   updateRecipientStatus,
@@ -109,7 +107,6 @@ export const useBoostPayments = ({
   thresholdPreferredCurrency,
   thresholdMinimumMessageAmountMinor,
   thresholdConversionEndpointUrl,
-  thresholdConversionSnapshotEndpointUrl,
 }: UseBoostPaymentsParams) => {
   const { setModalBoostMessageError, setModalBoostMintRateLimit } = useModals();
 
@@ -177,7 +174,8 @@ export const useBoostPayments = ({
       return;
     }
 
-    const totalMsat = Math.max(0, Math.round((totalAmountToCreator + totalAmountToApp) * 1000));
+    const totalSatsPlanned = sumRecipientFinalAmountSats(paymentRecipients);
+    const totalMsat = Math.max(0, Math.round(totalSatsPlanned * 1000));
 
     const orderedRecipients = sortRecipientsBySplitDescending(paymentRecipients);
 
@@ -355,8 +353,7 @@ export const useBoostPayments = ({
               message: effectiveMessage,
               yourName,
               metaBoost,
-              totalAmountToCreator,
-              totalAmountToApp,
+              metaboostTotalMsat: totalMsat,
               senderGuid: mbrssV1SenderGuid,
               onMetaboostUnreachable: promptMetaboostUnreachable,
             });
@@ -369,8 +366,7 @@ export const useBoostPayments = ({
               message: effectiveMessage,
               yourName,
               metaBoost,
-              totalAmountToCreator,
-              totalAmountToApp,
+              metaboostTotalMsat: totalMsat,
               senderGuid: mbrssV1SenderGuid,
               onMetaboostUnreachable: promptMetaboostUnreachable,
             });
@@ -456,7 +452,6 @@ export const useBoostPayments = ({
             preferredCurrency: normalizedThresholdPreferredCurrency,
             minimumMessageAmountMinor: thresholdAmountMinor,
             conversionEndpointUrl: normalizedThresholdConversionEndpointUrl,
-            conversionSnapshotEndpointUrl: thresholdConversionSnapshotEndpointUrl,
           },
         });
 

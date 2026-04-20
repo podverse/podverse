@@ -6,8 +6,6 @@ import {
 } from '@podverse/helpers';
 import { parseHttpOrHttpsUrl } from '@podverse/helpers-validation';
 
-import { toSingularAmountUnitFallback } from './boostCurrencyInput.js';
-
 export type PublicBucketConversionSnapshotSuccess = {
   ok: true;
   source: {
@@ -53,7 +51,7 @@ export type PublicBucketConversionSnapshotResult =
 export type FetchPublicBucketConversionSnapshotParams = {
   sourceCurrency: string;
   amountUnit: string | null | undefined;
-  conversionSnapshotEndpointUrl: string;
+  conversionEndpointUrl: string;
 };
 
 const normalizeUrl = (urlRaw: string): string | null => {
@@ -205,83 +203,60 @@ export const fetchPublicBucketConversionSnapshot = async (
       status: null,
     };
   }
-  const conversionSnapshotEndpointUrl = normalizeUrl(params.conversionSnapshotEndpointUrl);
-  if (conversionSnapshotEndpointUrl === null) {
+  const conversionEndpointUrl = normalizeUrl(params.conversionEndpointUrl);
+  if (conversionEndpointUrl === null) {
     return {
       ok: false,
       code: 'invalid_input',
-      message: 'conversionSnapshotEndpointUrl must be an HTTP(S) URL.',
+      message: 'conversionEndpointUrl must be an HTTP(S) URL.',
       status: null,
     };
   }
   const normalizedSourceCurrency = normalizeUpperCaseToken(sourceCurrency);
-  const singularFallbackAmountUnit = toSingularAmountUnitFallback(amountUnit);
-  const amountUnitAttempts =
-    singularFallbackAmountUnit !== amountUnit
-      ? [amountUnit, singularFallbackAmountUnit]
-      : [amountUnit];
+  const requestUrl = new URL(conversionEndpointUrl);
+  requestUrl.searchParams.set('source_currency', normalizedSourceCurrency);
+  requestUrl.searchParams.set('amount_unit', amountUnit);
 
-  for (const [attemptIndex, requestedAmountUnit] of amountUnitAttempts.entries()) {
-    const requestUrl = new URL(conversionSnapshotEndpointUrl);
-    requestUrl.searchParams.set('source_currency', normalizedSourceCurrency);
-    requestUrl.searchParams.set('amount_unit', requestedAmountUnit);
-    const response = await fetch(requestUrl.toString(), {
-      method: 'GET',
-      headers: { Accept: 'application/json' },
-    });
-    if (response.status < 200 || response.status >= 300) {
-      let payload: unknown;
-      try {
-        payload = await response.json();
-      } catch {
-        // Non-JSON error payloads are handled by generic fallback message.
-      }
-
-      const message =
-        parseErrorPayloadMessage(payload) ??
-        `Conversion snapshot request failed with status ${response.status}.`;
-      const shouldRetryWithSingularFallback =
-        response.status === 400 &&
-        attemptIndex === 0 &&
-        amountUnitAttempts.length > 1 &&
-        message.toLowerCase().includes('amount_unit');
-      if (shouldRetryWithSingularFallback) {
-        continue;
-      }
-
-      return {
-        ok: false,
-        code: toRequestErrorCode(response.status),
-        message,
-        status: response.status,
-      };
-    }
-
-    let data: unknown;
+  const response = await fetch(requestUrl.toString(), {
+    method: 'GET',
+    headers: { Accept: 'application/json' },
+  });
+  if (response.status < 200 || response.status >= 300) {
+    let payload: unknown;
     try {
-      data = await response.json();
+      payload = await response.json();
     } catch {
-      return {
-        ok: false,
-        code: 'invalid_response',
-        message: 'Conversion snapshot response is not valid JSON.',
-        status: response.status,
-      };
+      // Non-JSON error payloads are handled by generic fallback message.
     }
-    const parsed = parseResponsePayload(data);
-    if (!parsed.ok) {
-      return {
-        ...parsed,
-        status: response.status,
-      };
-    }
-    return parsed;
+
+    const message =
+      parseErrorPayloadMessage(payload) ??
+      `Conversion snapshot request failed with status ${response.status}.`;
+    return {
+      ok: false,
+      code: toRequestErrorCode(response.status),
+      message,
+      status: response.status,
+    };
   }
 
-  return {
-    ok: false,
-    code: 'request_failed',
-    message: 'Conversion snapshot request failed before a response could be parsed.',
-    status: null,
-  };
+  let data: unknown;
+  try {
+    data = await response.json();
+  } catch {
+    return {
+      ok: false,
+      code: 'invalid_response',
+      message: 'Conversion snapshot response is not valid JSON.',
+      status: response.status,
+    };
+  }
+  const parsed = parseResponsePayload(data);
+  if (!parsed.ok) {
+    return {
+      ...parsed,
+      status: response.status,
+    };
+  }
+  return parsed;
 };

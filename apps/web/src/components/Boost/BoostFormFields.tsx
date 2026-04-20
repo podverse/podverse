@@ -25,6 +25,8 @@ type BoostFormFieldsProps = {
   setTotalAmountToCreator: (value: number) => void;
   setTotalAmountToApp: (value: number) => void;
   selectedValueKey: string | null;
+  /** If set, used for `types.*.denomination` (e.g. /donate storage key differs from `lightning` i18n). */
+  denominationTypeKeyOverride?: string | null;
   isSubmitting: boolean;
   hasStatusUpdates: boolean;
   showCreatorInput: boolean;
@@ -47,7 +49,6 @@ type BoostFormFieldsProps = {
   thresholdMessageNotice?: string | null;
   thresholdPreferredCurrency?: string | null;
   thresholdConversionEndpointUrl?: string | null;
-  thresholdConversionSnapshotEndpointUrl?: string | null;
   sourceCurrencyCode?: string | null;
   tValue: Translator;
   tMisc: Translator;
@@ -146,6 +147,7 @@ export const BoostFormFields = ({
   setTotalAmountToCreator,
   setTotalAmountToApp,
   selectedValueKey,
+  denominationTypeKeyOverride = null,
   isSubmitting,
   hasStatusUpdates,
   showCreatorInput,
@@ -164,7 +166,6 @@ export const BoostFormFields = ({
   thresholdMessageNotice = null,
   thresholdPreferredCurrency = null,
   thresholdConversionEndpointUrl = null,
-  thresholdConversionSnapshotEndpointUrl = null,
   sourceCurrencyCode = null,
   tValue,
   tMisc,
@@ -174,6 +175,7 @@ export const BoostFormFields = ({
   showMetaBoostInfo = false,
   onToggleMetaBoostInfo,
 }: BoostFormFieldsProps) => {
+  const denominationTypeKey = denominationTypeKeyOverride ?? selectedValueKey;
   const nameMessageFieldsDisabled =
     isSubmitting ||
     hasStatusUpdates ||
@@ -197,7 +199,6 @@ export const BoostFormFields = ({
     sourceAmountUnit,
     preferredCurrency: thresholdPreferredCurrency,
     conversionEndpointUrl: thresholdConversionEndpointUrl,
-    conversionSnapshotEndpointUrl: thresholdConversionSnapshotEndpointUrl,
     locale,
     enabled: metaBoost !== null,
   });
@@ -207,7 +208,6 @@ export const BoostFormFields = ({
     sourceAmountUnit,
     preferredCurrency: thresholdPreferredCurrency,
     conversionEndpointUrl: thresholdConversionEndpointUrl,
-    conversionSnapshotEndpointUrl: thresholdConversionSnapshotEndpointUrl,
     locale,
     enabled: metaBoost !== null,
   });
@@ -298,7 +298,9 @@ export const BoostFormFields = ({
                 }}
                 sideText={
                   boostCurrencyFormatMetadata?.canonicalAmountUnit ??
-                  (selectedValueKey ? tValue(`types.${selectedValueKey}.denomination`) : undefined)
+                  (denominationTypeKey
+                    ? tValue(`types.${denominationTypeKey}.denomination`)
+                    : undefined)
                 }
                 prefix={boostCurrencyFormatMetadata?.symbolPrefix ?? undefined}
                 infoError={creatorAmountInputError}
@@ -361,7 +363,9 @@ export const BoostFormFields = ({
                 }}
                 sideText={
                   boostCurrencyFormatMetadata?.canonicalAmountUnit ??
-                  (selectedValueKey ? tValue(`types.${selectedValueKey}.denomination`) : undefined)
+                  (denominationTypeKey
+                    ? tValue(`types.${denominationTypeKey}.denomination`)
+                    : undefined)
                 }
                 prefix={boostCurrencyFormatMetadata?.symbolPrefix ?? undefined}
                 infoError={appAmountInputError}

@@ -9,7 +9,7 @@ import { isLnaddressRecipient } from '@podverse/v4v-btc-ln';
 import {
   getBoostCurrencyInputFormatMetadata,
   type MetaBoost,
-  type PublicBucketConversionErrorCode,
+  type PublicBucketConversionSnapshotErrorCode,
 } from '@podverse/v4v-metaboost';
 
 import { useAccount } from '../../contexts/Account';
@@ -24,6 +24,7 @@ import { ButtonTabs } from '../Tabs/ButtonTabs';
 import { BoostFormFields } from './BoostFormFields';
 import { BoostMessageNotice } from './BoostMessageNotice';
 import { BoostMetaBoostInfo } from './BoostMetaBoostInfo';
+import type { BoostPaymentScope } from './boostPaymentScope';
 import { BoostRecipientInfo } from './BoostRecipientInfo';
 import { BoostRecipientStatusList } from './BoostRecipientStatusList';
 import type { MbrssV1RssContext } from './donateMbrssV1RssContext';
@@ -65,8 +66,7 @@ type BoostFormBaseProps = {
   selectedChannelValue?: ChannelValue;
   selectedItemValue?: ItemValue;
   metaBoost: MetaBoost | null;
-  includeCreatorRecipients: boolean;
-  includeAppRecipient: boolean;
+  boostPaymentScope: BoostPaymentScope;
   appRecipientType?: string | null;
   appRecipientRecipientType?: string | null;
   showCreatorInput: boolean;
@@ -92,8 +92,7 @@ export const BoostFormBase: React.FC<BoostFormBaseProps> = ({
   selectedChannelValue,
   selectedItemValue,
   metaBoost,
-  includeCreatorRecipients,
-  includeAppRecipient,
+  boostPaymentScope,
   appRecipientType,
   appRecipientRecipientType,
   showCreatorInput,
@@ -108,6 +107,9 @@ export const BoostFormBase: React.FC<BoostFormBaseProps> = ({
   noRecipientsFallback,
   mbrssV1RssContext,
 }) => {
+  const includeCreatorRecipients = boostPaymentScope === 'creator_only';
+  const includeAppRecipient = boostPaymentScope === 'app_only';
+
   const config = useConfig();
   const { loggedInAccount } = useAccount();
   const { boostFormDefaults, setBoostFormDefaults } = useLocalSettings();
@@ -118,11 +120,17 @@ export const BoostFormBase: React.FC<BoostFormBaseProps> = ({
   const hasSuccessOverride =
     successPrimaryButtonLabel !== undefined && successPrimaryButtonOnClick !== undefined;
   const [totalAmountToCreator, setTotalAmountToCreator] = useState<number>(() => {
+    if (boostPaymentScope === 'app_only') {
+      return 0;
+    }
     if (selectedValueKey === null || selectedValueKey === '') return defaultTotalAmountToCreator;
     const s = boostFormDefaults[selectedValueKey];
     return s !== undefined ? s.totalAmountToCreator : defaultTotalAmountToCreator;
   });
   const [totalAmountToApp, setTotalAmountToApp] = useState<number>(() => {
+    if (boostPaymentScope === 'creator_only') {
+      return 0;
+    }
     if (selectedValueKey === null || selectedValueKey === '') return defaultTotalAmountToApp;
     const s = boostFormDefaults[selectedValueKey];
     return s !== undefined ? s.totalAmountToApp : defaultTotalAmountToApp;
@@ -137,16 +145,12 @@ export const BoostFormBase: React.FC<BoostFormBaseProps> = ({
   const [showMetaBoostInfo, setShowMetaBoostInfo] = useState(false);
 
   useEffect(() => {
-    if (!showCreatorInput) {
+    if (boostPaymentScope === 'app_only') {
       setTotalAmountToCreator(0);
-    }
-  }, [showCreatorInput]);
-
-  useEffect(() => {
-    if (!showAppInput) {
+    } else {
       setTotalAmountToApp(0);
     }
-  }, [showAppInput]);
+  }, [boostPaymentScope]);
 
   const boostFormDefaultsRef = useRef(boostFormDefaults);
   boostFormDefaultsRef.current = boostFormDefaults;
@@ -166,20 +170,25 @@ export const BoostFormBase: React.FC<BoostFormBaseProps> = ({
     if (selectedValueKey === null || selectedValueKey === '') return;
     const saved = boostFormDefaultsRef.current[selectedValueKey];
     if (saved) {
-      setTotalAmountToCreator(saved.totalAmountToCreator);
-      setTotalAmountToApp(saved.totalAmountToApp);
+      if (boostPaymentScope === 'app_only') {
+        setTotalAmountToCreator(0);
+        setTotalAmountToApp(saved.totalAmountToApp);
+      } else {
+        setTotalAmountToCreator(saved.totalAmountToCreator);
+        setTotalAmountToApp(0);
+      }
       setYourName(saved.yourName);
       lastSavedRef.current = {
         key: selectedValueKey,
-        totalAmountToCreator: saved.totalAmountToCreator,
-        totalAmountToApp: saved.totalAmountToApp,
+        totalAmountToCreator: boostPaymentScope === 'app_only' ? 0 : saved.totalAmountToCreator,
+        totalAmountToApp: boostPaymentScope === 'creator_only' ? 0 : saved.totalAmountToApp,
         yourName: saved.yourName,
       };
     } else {
       lastSavedRef.current = null;
     }
     skipPersistAfterKeyLoadRef.current = true;
-  }, [selectedValueKey]);
+  }, [selectedValueKey, boostPaymentScope]);
 
   useEffect(() => {
     if (selectedValueKey === null || selectedValueKey === '') return;
@@ -189,27 +198,36 @@ export const BoostFormBase: React.FC<BoostFormBaseProps> = ({
     }
     const last = lastSavedRef.current;
     const sameKey = last !== null && last.key === selectedValueKey;
+    const persistedCreator = boostPaymentScope === 'app_only' ? 0 : totalAmountToCreator;
+    const persistedApp = boostPaymentScope === 'creator_only' ? 0 : totalAmountToApp;
     const unchanged =
       sameKey &&
-      last.totalAmountToCreator === totalAmountToCreator &&
-      last.totalAmountToApp === totalAmountToApp &&
+      last.totalAmountToCreator === persistedCreator &&
+      last.totalAmountToApp === persistedApp &&
       last.yourName === yourName;
     if (unchanged) return;
     lastSavedRef.current = {
       key: selectedValueKey,
-      totalAmountToCreator,
-      totalAmountToApp,
+      totalAmountToCreator: persistedCreator,
+      totalAmountToApp: persistedApp,
       yourName,
     };
     setBoostFormDefaults((prev) => ({
       ...prev,
       [selectedValueKey]: {
-        totalAmountToCreator,
-        totalAmountToApp,
+        totalAmountToCreator: persistedCreator,
+        totalAmountToApp: persistedApp,
         yourName,
       },
     }));
-  }, [selectedValueKey, totalAmountToCreator, totalAmountToApp, yourName, setBoostFormDefaults]);
+  }, [
+    selectedValueKey,
+    boostPaymentScope,
+    totalAmountToCreator,
+    totalAmountToApp,
+    yourName,
+    setBoostFormDefaults,
+  ]);
 
   const { appValueRecipient, paymentRecipients: appPaymentRecipients } = useBoostAppRecipients({
     config,
@@ -255,7 +273,6 @@ export const BoostFormBase: React.FC<BoostFormBaseProps> = ({
     preferredCurrency: mbrssV1PreferredCurrency,
     minimumMessageAmountMinor: mbrssV1MinimumMessageAmountMinor,
     conversionEndpointUrl: mbrssV1ConversionEndpointUrl,
-    conversionSnapshotEndpointUrl: mbrssV1ConversionSnapshotEndpointUrl,
   } = useMbrssV1BoostCapability(metaBoost, {
     fetchEnabled: metaBoost !== null,
     senderGuid: loggedInAccount?.sender_guid ?? null,
@@ -264,7 +281,7 @@ export const BoostFormBase: React.FC<BoostFormBaseProps> = ({
   const [thresholdNotice, setThresholdNotice] = useState<string | null>(null);
 
   const getThresholdConversionErrorNotice = (
-    code: PublicBucketConversionErrorCode | 'missing_metadata'
+    code: PublicBucketConversionSnapshotErrorCode | 'missing_metadata'
   ): string => {
     if (code === 'missing_metadata') {
       return tValue('boost_messages.threshold_missing_metadata');
@@ -326,12 +343,7 @@ export const BoostFormBase: React.FC<BoostFormBaseProps> = ({
     );
   }, [messageMaxLength]);
 
-  const effectiveTotal =
-    includeAppRecipient && !includeCreatorRecipients
-      ? totalAmountToApp
-      : !includeAppRecipient && includeCreatorRecipients
-        ? totalAmountToCreator
-        : totalAmountToCreator + totalAmountToApp;
+  const effectiveTotal = boostPaymentScope === 'app_only' ? totalAmountToApp : totalAmountToCreator;
   const normalizedBoostAmountMinor = Math.max(0, Math.round(effectiveTotal));
 
   const { handleSubmitBoost } = useBoostPayments({
@@ -343,8 +355,6 @@ export const BoostFormBase: React.FC<BoostFormBaseProps> = ({
     message,
     yourName,
     metaBoost,
-    totalAmountToCreator,
-    totalAmountToApp,
     paymentRecipients,
     toRecipientStatuses,
     updateRecipientStatus,
@@ -362,7 +372,6 @@ export const BoostFormBase: React.FC<BoostFormBaseProps> = ({
     thresholdPreferredCurrency: mbrssV1PreferredCurrency,
     thresholdMinimumMessageAmountMinor: mbrssV1MinimumMessageAmountMinor,
     thresholdConversionEndpointUrl: mbrssV1ConversionEndpointUrl,
-    thresholdConversionSnapshotEndpointUrl: mbrssV1ConversionSnapshotEndpointUrl,
   });
 
   useEffect(() => {
@@ -412,7 +421,6 @@ export const BoostFormBase: React.FC<BoostFormBaseProps> = ({
           preferredCurrency,
           minimumMessageAmountMinor: thresholdAmountMinor,
           conversionEndpointUrl: mbrssV1ConversionEndpointUrl,
-          conversionSnapshotEndpointUrl: mbrssV1ConversionSnapshotEndpointUrl,
         },
       });
 
@@ -446,7 +454,6 @@ export const BoostFormBase: React.FC<BoostFormBaseProps> = ({
   }, [
     mbrssV1CapabilityStatus,
     mbrssV1ConversionEndpointUrl,
-    mbrssV1ConversionSnapshotEndpointUrl,
     mbrssV1MinimumMessageAmountMinor,
     mbrssV1PreferredCurrency,
     metaBoost,
@@ -498,6 +505,7 @@ export const BoostFormBase: React.FC<BoostFormBaseProps> = ({
               setTotalAmountToCreator={setTotalAmountToCreator}
               setTotalAmountToApp={setTotalAmountToApp}
               selectedValueKey={selectedValueKey}
+              denominationTypeKeyOverride={boostPaymentScope === 'app_only' ? 'lightning' : null}
               isSubmitting={isSubmitting}
               hasStatusUpdates={hasStatusUpdates}
               showCreatorInput={showCreatorInput}
@@ -516,7 +524,6 @@ export const BoostFormBase: React.FC<BoostFormBaseProps> = ({
               thresholdMessageNotice={thresholdNotice}
               thresholdPreferredCurrency={mbrssV1PreferredCurrency}
               thresholdConversionEndpointUrl={mbrssV1ConversionEndpointUrl}
-              thresholdConversionSnapshotEndpointUrl={mbrssV1ConversionSnapshotEndpointUrl}
               sourceCurrencyCode={sourceAmountCurrencyCode}
               tValue={tValue}
               tMisc={tMisc}
@@ -527,10 +534,7 @@ export const BoostFormBase: React.FC<BoostFormBaseProps> = ({
               onToggleMetaBoostInfo={() => setShowMetaBoostInfo((s) => !s)}
             />
             {shouldShowBoostMessageNotice && (
-              <BoostMessageNotice
-                tValue={tValue}
-                isAppDonate={includeAppRecipient && !includeCreatorRecipients}
-              />
+              <BoostMessageNotice tValue={tValue} isAppDonate={boostPaymentScope === 'app_only'} />
             )}
             <div className={styles.moreInfo}>
               {metaBoost && showMetaBoostInfo && (
@@ -557,7 +561,7 @@ export const BoostFormBase: React.FC<BoostFormBaseProps> = ({
         <BoostRecipientStatusList
           recipientStatuses={recipientStatuses}
           tValue={tValue}
-          selectedValueKey={selectedValueKey}
+          selectedValueKey={boostPaymentScope === 'app_only' ? 'lightning' : selectedValueKey}
         />
         {isSuccess && hasSuccessOverride && (
           <div className={styles.donateSuccessWrapper}>

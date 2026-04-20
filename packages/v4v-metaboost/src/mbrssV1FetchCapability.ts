@@ -55,7 +55,6 @@ export const parseMbrssV1BoostCapabilityResponse = (
     preferredCurrency: thresholdContext.preferredCurrency,
     minimumMessageAmountMinor: thresholdContext.minimumMessageAmountMinor,
     conversionEndpointUrl: thresholdContext.conversionEndpointUrl,
-    conversionSnapshotEndpointUrl: thresholdContext.conversionSnapshotEndpointUrl,
   };
 };
 

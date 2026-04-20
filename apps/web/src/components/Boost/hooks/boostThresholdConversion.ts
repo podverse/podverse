@@ -7,7 +7,6 @@ export type BoostThresholdConversionContext = {
   preferredCurrency: string | null;
   minimumMessageAmountMinor: number | null;
   conversionEndpointUrl: string | null;
-  conversionSnapshotEndpointUrl?: string | null;
 };
 
 export type ConvertBoostThresholdAmountParams = {
@@ -38,7 +37,6 @@ export const convertBoostThresholdAmount = async ({
     sourceAmountUnit: normalizedSourceAmountUnit,
     preferredCurrency: normalizedPreferredCurrency,
     conversionEndpointUrl: context.conversionEndpointUrl,
-    conversionSnapshotEndpointUrl: context.conversionSnapshotEndpointUrl ?? null,
   });
   if (!snapshotResult.ok) {
     return snapshotResult;

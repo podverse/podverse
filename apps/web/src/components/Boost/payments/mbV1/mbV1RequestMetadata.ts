@@ -10,8 +10,6 @@ import {
   fetchMbV1BoostCapability,
   isMetaboostMbV1CreateBoostResponse,
   isMetaboostMbV1IngestNodeUrl,
-  MBRSS_V1_AMOUNT_UNIT_SATOSHI,
-  MBRSS_V1_AMOUNT_UNIT_SATOSHIS,
   MetaboostSenderBlockedPostError,
   normalizeMetaboostMbV1IngestNodeUrl,
   V4V_ACTION_TYPE,
@@ -25,8 +23,8 @@ type PostMbV1BoostMessageParams = {
   message: string;
   yourName: string;
   metaBoost: MetaBoost;
-  totalAmountToCreator: number;
-  totalAmountToApp: number;
+  /** Total millisats for the boost; must match summed Lightning recipient plan. */
+  metaboostTotalMsat: number;
   senderGuid: string;
   onMetaboostUnreachable: () => Promise<void>;
 };
@@ -36,8 +34,7 @@ export const postMbV1BoostMessage = async ({
   message,
   yourName,
   metaBoost,
-  totalAmountToCreator,
-  totalAmountToApp,
+  metaboostTotalMsat,
   senderGuid,
   onMetaboostUnreachable,
 }: PostMbV1BoostMessageParams): Promise<string | null> => {
@@ -48,7 +45,7 @@ export const postMbV1BoostMessage = async ({
     return null;
   }
 
-  const totalMsat = Math.max(0, Math.round((totalAmountToCreator + totalAmountToApp) * 1000));
+  const totalMsat = Math.max(0, Math.round(metaboostTotalMsat));
 
   const requestBody = buildMbV1CreateBoostRequest({
     totalMsat,
@@ -102,26 +99,7 @@ export const postMbV1BoostMessage = async ({
     responseData = await postIngestBody(JSON.stringify(body));
   } catch (error: unknown) {
     throwIfSenderBlockedError(error);
-    const message = getErrorResponseBodyMessage(error)?.toLowerCase() ?? '';
-    const shouldRetryWithSingularAmountUnit =
-      getErrorResponseStatus(error) === 400 &&
-      requestBody.amount_unit === MBRSS_V1_AMOUNT_UNIT_SATOSHIS &&
-      message.includes('amount_unit');
-    if (!shouldRetryWithSingularAmountUnit) {
-      throw error;
-    }
-
-    try {
-      responseData = await postIngestBody(
-        JSON.stringify({
-          ...body,
-          amount_unit: MBRSS_V1_AMOUNT_UNIT_SATOSHI,
-        })
-      );
-    } catch (retryError: unknown) {
-      throwIfSenderBlockedError(retryError);
-      throw retryError;
-    }
+    throw error;
   }
 
   if (!isMetaboostMbV1CreateBoostResponse(responseData)) {

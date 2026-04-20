@@ -10,7 +10,6 @@ type UseBoostBaselineEstimateParams = {
   sourceAmountUnit: string | null;
   preferredCurrency: string | null;
   conversionEndpointUrl: string | null;
-  conversionSnapshotEndpointUrl: string | null;
   locale: string;
   enabled: boolean;
 };
@@ -48,7 +47,6 @@ export const useBoostBaselineEstimate = ({
   sourceAmountUnit,
   preferredCurrency,
   conversionEndpointUrl,
-  conversionSnapshotEndpointUrl,
   locale,
   enabled,
 }: UseBoostBaselineEstimateParams): string | null => {
@@ -87,7 +85,6 @@ export const useBoostBaselineEstimate = ({
             preferredCurrency: normalizedPreferredCurrency,
             minimumMessageAmountMinor: null,
             conversionEndpointUrl,
-            conversionSnapshotEndpointUrl,
           },
         });
         if (cancelled) {
@@ -111,7 +108,6 @@ export const useBoostBaselineEstimate = ({
     };
   }, [
     conversionEndpointUrl,
-    conversionSnapshotEndpointUrl,
     enabled,
     locale,
     preferredCurrency,
