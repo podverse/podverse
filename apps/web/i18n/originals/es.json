@@ -448,6 +448,7 @@
   },
   "donate": {
     "title": "Donar",
+    "boost_messages_heading": "Refuerzos",
     "app_donation_notice": "Esta donación se enviará a {brand_name}.",
     "app_not_configured": "Las donaciones de la aplicación no están configuradas. Para habilitar donaciones a {brand_name}, configura Lightning LNAddress o Nodo en la configuración de la aplicación.",
     "creator_donation_hint_prefix": "Para donar a un podcaster o artista, usa el",

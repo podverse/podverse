@@ -448,6 +448,7 @@
   },
   "donate": {
     "title": "Faire un don",
+    "boost_messages_heading": "Boosts",
     "app_donation_notice": "Ce don sera envoyé à {brand_name}.",
     "app_not_configured": "Les dons d'applications ne sont pas configurés. Pour activer les dons à {brand_name}, définissez l'adresse LN ou le nœud Lightning dans la configuration de l'application.",
     "creator_donation_hint_prefix": "Pour faire un don à un podcasteur ou un artiste, utilisez le",

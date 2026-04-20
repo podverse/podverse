@@ -21,7 +21,6 @@ export default function DonatePage() {
   const config = useConfig();
   const [donationSucceeded, setDonationSucceeded] = useState(false);
   const tDonate = useTranslations('donate');
-  const tV4VBoostMessages = useTranslations('v4v.boost_messages');
 
   const appValueMetaBoost = useMemo(() => getAppValueMetaBoost(config), [config]);
   const donateMessagesPageFetcher = useMemo(() => {
@@ -58,7 +57,7 @@ export default function DonatePage() {
                 <div className={styles.messagesWrapper}>
                   <Divider className={styles.messagesDivider} />
                   <BoostMessagesSection
-                    heading={tV4VBoostMessages('title')}
+                    heading={tDonate('boost_messages_heading')}
                     pageFetcher={donateMessagesPageFetcher}
                     className={styles.messagesSection}
                   />

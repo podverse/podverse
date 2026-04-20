@@ -448,6 +448,7 @@
   },
   "donate": {
     "title": "Δωρεά",
+    "boost_messages_heading": "Ενισχύσεις",
     "app_donation_notice": "Αυτή η δωρεά θα σταλεί στο {brand_name}.",
     "app_not_configured": "Οι δωρεές εφαρμογών δεν είναι ρυθμισμένες. Για να ενεργοποιήσετε τις δωρεές προς το {brand_name}, ρυθμίστε το Lightning LNAddress ή τον Κόμβο στη ρύθμιση της εφαρμογής.",
     "creator_donation_hint_prefix": "Για να κάνετε δωρεά σε έναν podcaster ή καλλιτέχνη, χρησιμοποιήστε το",
