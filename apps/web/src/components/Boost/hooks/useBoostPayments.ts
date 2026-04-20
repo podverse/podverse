@@ -81,6 +81,7 @@ type UseBoostPaymentsParams = {
   thresholdPreferredCurrency: string | null;
   thresholdMinimumMessageAmountMinor: number | null;
   thresholdConversionEndpointUrl: string | null;
+  thresholdConversionSnapshotEndpointUrl: string | null;
 };
 
 export const useBoostPayments = ({
@@ -108,6 +109,7 @@ export const useBoostPayments = ({
   thresholdPreferredCurrency,
   thresholdMinimumMessageAmountMinor,
   thresholdConversionEndpointUrl,
+  thresholdConversionSnapshotEndpointUrl,
 }: UseBoostPaymentsParams) => {
   const { setModalBoostMessageError, setModalBoostMintRateLimit } = useModals();
 
@@ -454,6 +456,7 @@ export const useBoostPayments = ({
             preferredCurrency: normalizedThresholdPreferredCurrency,
             minimumMessageAmountMinor: thresholdAmountMinor,
             conversionEndpointUrl: normalizedThresholdConversionEndpointUrl,
+            conversionSnapshotEndpointUrl: thresholdConversionSnapshotEndpointUrl,
           },
         });
 

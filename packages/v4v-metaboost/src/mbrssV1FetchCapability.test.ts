@@ -21,6 +21,7 @@ describe('parseMbrssV1BoostCapabilityResponse', () => {
       preferredCurrency: null,
       minimumMessageAmountMinor: null,
       conversionEndpointUrl: null,
+      conversionSnapshotEndpointUrl: null,
     });
   });
 
@@ -39,6 +40,7 @@ describe('parseMbrssV1BoostCapabilityResponse', () => {
       preferredCurrency: null,
       minimumMessageAmountMinor: null,
       conversionEndpointUrl: null,
+      conversionSnapshotEndpointUrl: null,
     });
   });
 
@@ -56,6 +58,7 @@ describe('parseMbrssV1BoostCapabilityResponse', () => {
       preferredCurrency: null,
       minimumMessageAmountMinor: null,
       conversionEndpointUrl: null,
+      conversionSnapshotEndpointUrl: null,
     });
   });
 
@@ -67,6 +70,8 @@ describe('parseMbrssV1BoostCapabilityResponse', () => {
         minimum_message_amount_minor: 100,
         conversion_endpoint_url:
           'https://example.com/v1/standard/mbrss-v1/messages/public/bucket/conversion',
+        conversion_snapshot_endpoint_url:
+          'https://example.com/v1/standard/mbrss-v1/messages/public/bucket/conversion-snapshot',
       })
     ).toEqual({
       messageCharLimit: 500,
@@ -77,6 +82,8 @@ describe('parseMbrssV1BoostCapabilityResponse', () => {
       minimumMessageAmountMinor: 100,
       conversionEndpointUrl:
         'https://example.com/v1/standard/mbrss-v1/messages/public/bucket/conversion',
+      conversionSnapshotEndpointUrl:
+        'https://example.com/v1/standard/mbrss-v1/messages/public/bucket/conversion-snapshot',
     });
   });
 
@@ -152,6 +159,7 @@ describe('fetchMbrssV1BoostCapability', () => {
       preferredCurrency: null,
       minimumMessageAmountMinor: null,
       conversionEndpointUrl: null,
+      conversionSnapshotEndpointUrl: null,
     });
 
     vi.unstubAllGlobals();

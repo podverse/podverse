@@ -23,12 +23,15 @@ export type UseMbrssV1BoostCapabilityResult = {
   preferredCurrency: string | null;
   minimumMessageAmountMinor: number | null;
   conversionEndpointUrl: string | null;
+  conversionSnapshotEndpointUrl: string | null;
 };
 
 export type UseMbrssV1BoostCapabilityOptions = {
   /**
    * When false, skip GET capability for MetaBoost (no loading state, no network).
-   * Use when the user cannot use MetaBoost HTTP messaging anyway (e.g. not logged in).
+   * When true, loads baseline currency, conversion endpoint, message limits, etc.
+   * Keep enabled whenever metaBoost is set if the UI needs conversion estimates (e.g. donate
+   * while logged out); HTTP messaging may still be gated separately by login in the form.
    */
   fetchEnabled?: boolean;
   /** Passed as `sender_guid` query on capability GET so MetaBoost can return `sender_blocked`. */
@@ -61,6 +64,9 @@ export const useMbrssV1BoostCapability = (
   const [preferredCurrency, setPreferredCurrency] = useState<string | null>(null);
   const [minimumMessageAmountMinor, setMinimumMessageAmountMinor] = useState<number | null>(null);
   const [conversionEndpointUrl, setConversionEndpointUrl] = useState<string | null>(null);
+  const [conversionSnapshotEndpointUrl, setConversionSnapshotEndpointUrl] = useState<string | null>(
+    null
+  );
 
   useEffect(() => {
     if (metaBoost === null) {
@@ -72,6 +78,7 @@ export const useMbrssV1BoostCapability = (
       setPreferredCurrency(null);
       setMinimumMessageAmountMinor(null);
       setConversionEndpointUrl(null);
+      setConversionSnapshotEndpointUrl(null);
       return;
     }
 
@@ -84,6 +91,7 @@ export const useMbrssV1BoostCapability = (
       setPreferredCurrency(null);
       setMinimumMessageAmountMinor(null);
       setConversionEndpointUrl(null);
+      setConversionSnapshotEndpointUrl(null);
       return;
     }
 
@@ -96,6 +104,7 @@ export const useMbrssV1BoostCapability = (
     setPreferredCurrency(null);
     setMinimumMessageAmountMinor(null);
     setConversionEndpointUrl(null);
+    setConversionSnapshotEndpointUrl(null);
 
     void (async () => {
       try {
@@ -117,6 +126,7 @@ export const useMbrssV1BoostCapability = (
         setPreferredCurrency(result.preferredCurrency);
         setMinimumMessageAmountMinor(result.minimumMessageAmountMinor);
         setConversionEndpointUrl(result.conversionEndpointUrl);
+        setConversionSnapshotEndpointUrl(result.conversionSnapshotEndpointUrl);
         setStatus('success');
       } catch {
         if (cancelled) {
@@ -129,6 +139,7 @@ export const useMbrssV1BoostCapability = (
         setPreferredCurrency(null);
         setMinimumMessageAmountMinor(null);
         setConversionEndpointUrl(null);
+        setConversionSnapshotEndpointUrl(null);
         setStatus('error');
       }
     })();
@@ -147,5 +158,6 @@ export const useMbrssV1BoostCapability = (
     preferredCurrency,
     minimumMessageAmountMinor,
     conversionEndpointUrl,
+    conversionSnapshotEndpointUrl,
   };
 };

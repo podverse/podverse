@@ -10,9 +10,9 @@ type UseBoostBaselineEstimateParams = {
   sourceAmountUnit: string | null;
   preferredCurrency: string | null;
   conversionEndpointUrl: string | null;
+  conversionSnapshotEndpointUrl: string | null;
   locale: string;
   enabled: boolean;
-  debounceMs?: number;
 };
 
 const formatBaselineAmountFromMinor = (
@@ -48,9 +48,9 @@ export const useBoostBaselineEstimate = ({
   sourceAmountUnit,
   preferredCurrency,
   conversionEndpointUrl,
+  conversionSnapshotEndpointUrl,
   locale,
   enabled,
-  debounceMs = 350,
 }: UseBoostBaselineEstimateParams): string | null => {
   const [estimateText, setEstimateText] = useState<string | null>(null);
 
@@ -77,8 +77,8 @@ export const useBoostBaselineEstimate = ({
     }
 
     let cancelled = false;
-    const timeoutId = window.setTimeout(() => {
-      void (async () => {
+    void (async () => {
+      try {
         const result = await convertBoostThresholdAmount({
           sourceCurrency: normalizedSourceCurrency,
           sourceAmountMinor: Math.max(0, Math.round(sourceAmountMinor)),
@@ -87,6 +87,7 @@ export const useBoostBaselineEstimate = ({
             preferredCurrency: normalizedPreferredCurrency,
             minimumMessageAmountMinor: null,
             conversionEndpointUrl,
+            conversionSnapshotEndpointUrl,
           },
         });
         if (cancelled) {
@@ -99,16 +100,18 @@ export const useBoostBaselineEstimate = ({
         setEstimateText(
           formatBaselineAmountFromMinor(result.target.amountMinor, result.target.currency, locale)
         );
-      })();
-    }, debounceMs);
+      } catch {
+        setEstimateText(null);
+        return;
+      }
+    })();
 
     return () => {
       cancelled = true;
-      window.clearTimeout(timeoutId);
     };
   }, [
     conversionEndpointUrl,
-    debounceMs,
+    conversionSnapshotEndpointUrl,
     enabled,
     locale,
     preferredCurrency,

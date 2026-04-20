@@ -5,6 +5,7 @@ export type MetaBoostCapabilityThresholdContext = {
   preferredCurrency: string | null;
   minimumMessageAmountMinor: number | null;
   conversionEndpointUrl: string | null;
+  conversionSnapshotEndpointUrl: string | null;
 };
 
 const parseOptionalNonEmptyString = (value: unknown, fieldName: string): string | null => {
@@ -61,6 +62,10 @@ export const parseCapabilityThresholdContextFields = (
     conversionEndpointUrl: parseOptionalHttpUrl(
       getOwnPropertyValue(data, 'conversion_endpoint_url'),
       'conversion_endpoint_url'
+    ),
+    conversionSnapshotEndpointUrl: parseOptionalHttpUrl(
+      getOwnPropertyValue(data, 'conversion_snapshot_endpoint_url'),
+      'conversion_snapshot_endpoint_url'
     ),
   };
 };

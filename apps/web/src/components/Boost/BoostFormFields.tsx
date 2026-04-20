@@ -1,5 +1,5 @@
 import { useLocale } from 'next-intl';
-import { useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 
 import type { MetaBoost } from '@podverse/v4v-metaboost';
 import {
@@ -47,6 +47,7 @@ type BoostFormFieldsProps = {
   thresholdMessageNotice?: string | null;
   thresholdPreferredCurrency?: string | null;
   thresholdConversionEndpointUrl?: string | null;
+  thresholdConversionSnapshotEndpointUrl?: string | null;
   sourceCurrencyCode?: string | null;
   tValue: Translator;
   tMisc: Translator;
@@ -56,6 +57,87 @@ type BoostFormFieldsProps = {
   isLoggedIn: boolean;
   showMetaBoostInfo?: boolean;
   onToggleMetaBoostInfo?: () => void;
+};
+
+type EstimateWithTooltipProps = {
+  estimateText: string;
+  tooltipText: string;
+};
+
+const EstimateWithTooltip = ({ estimateText, tooltipText }: EstimateWithTooltipProps) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [isPinned, setIsPinned] = useState(false);
+  const tooltipId = useId();
+  const containerRef = useRef<HTMLSpanElement>(null);
+
+  useEffect(() => {
+    if (!isOpen || !isPinned) {
+      return;
+    }
+
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target;
+      if (!(target instanceof Node)) {
+        return;
+      }
+      if (containerRef.current?.contains(target)) {
+        return;
+      }
+      setIsOpen(false);
+      setIsPinned(false);
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isOpen, isPinned]);
+
+  const handleMouseEnter = () => {
+    if (!isPinned) {
+      setIsOpen(true);
+    }
+  };
+
+  const handleMouseLeave = () => {
+    if (!isPinned) {
+      setIsOpen(false);
+    }
+  };
+
+  const handleClick = () => {
+    if (isPinned) {
+      setIsPinned(false);
+      setIsOpen(false);
+      return;
+    }
+    setIsPinned(true);
+    setIsOpen(true);
+  };
+
+  return (
+    <span
+      ref={containerRef}
+      className={styles.boostAmountEstimateContainer}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+    >
+      <button
+        type="button"
+        className={styles.boostAmountEstimateButton}
+        onClick={handleClick}
+        aria-expanded={isOpen}
+        aria-describedby={isOpen ? tooltipId : undefined}
+      >
+        {estimateText}*
+      </button>
+      {isOpen ? (
+        <span id={tooltipId} role="tooltip" className={styles.boostAmountEstimateTooltip}>
+          {tooltipText}
+        </span>
+      ) : null}
+    </span>
+  );
 };
 
 export const BoostFormFields = ({
@@ -82,6 +164,7 @@ export const BoostFormFields = ({
   thresholdMessageNotice = null,
   thresholdPreferredCurrency = null,
   thresholdConversionEndpointUrl = null,
+  thresholdConversionSnapshotEndpointUrl = null,
   sourceCurrencyCode = null,
   tValue,
   tMisc,
@@ -114,6 +197,7 @@ export const BoostFormFields = ({
     sourceAmountUnit,
     preferredCurrency: thresholdPreferredCurrency,
     conversionEndpointUrl: thresholdConversionEndpointUrl,
+    conversionSnapshotEndpointUrl: thresholdConversionSnapshotEndpointUrl,
     locale,
     enabled: metaBoost !== null,
   });
@@ -123,6 +207,7 @@ export const BoostFormFields = ({
     sourceAmountUnit,
     preferredCurrency: thresholdPreferredCurrency,
     conversionEndpointUrl: thresholdConversionEndpointUrl,
+    conversionSnapshotEndpointUrl: thresholdConversionSnapshotEndpointUrl,
     locale,
     enabled: metaBoost !== null,
   });
@@ -221,7 +306,10 @@ export const BoostFormFields = ({
               />
             </div>
             {creatorBaselineEstimate ? (
-              <span className={styles.boostAmountEstimate}>~ {creatorBaselineEstimate}</span>
+              <EstimateWithTooltip
+                estimateText={creatorBaselineEstimate}
+                tooltipText={tValue('boost_messages.baseline_estimate_tooltip_text')}
+              />
             ) : null}
           </div>
         )}
@@ -281,7 +369,10 @@ export const BoostFormFields = ({
               />
             </div>
             {appBaselineEstimate ? (
-              <span className={styles.boostAmountEstimate}>~ {appBaselineEstimate}</span>
+              <EstimateWithTooltip
+                estimateText={appBaselineEstimate}
+                tooltipText={tValue('boost_messages.baseline_estimate_tooltip_text')}
+              />
             ) : null}
           </div>
         )}

@@ -255,8 +255,9 @@ export const BoostFormBase: React.FC<BoostFormBaseProps> = ({
     preferredCurrency: mbrssV1PreferredCurrency,
     minimumMessageAmountMinor: mbrssV1MinimumMessageAmountMinor,
     conversionEndpointUrl: mbrssV1ConversionEndpointUrl,
+    conversionSnapshotEndpointUrl: mbrssV1ConversionSnapshotEndpointUrl,
   } = useMbrssV1BoostCapability(metaBoost, {
-    fetchEnabled: loggedInAccount !== null,
+    fetchEnabled: metaBoost !== null,
     senderGuid: loggedInAccount?.sender_guid ?? null,
   });
   const [thresholdNameMessageBlocked, setThresholdNameMessageBlocked] = useState(false);
@@ -306,7 +307,8 @@ export const BoostFormBase: React.FC<BoostFormBaseProps> = ({
     mbrssV1SenderBlocked
       ? (mbrssV1SenderBlockMessage ?? tValue('boost_messages.sender_blocked_preflight_fallback'))
       : null;
-  const selectedValueType = selectedItemValue?.type ?? selectedChannelValue?.type ?? null;
+  const selectedValueType =
+    selectedItemValue?.type ?? selectedChannelValue?.type ?? appRecipientType ?? selectedValueKey;
   const sourceAmountCurrencyCode = resolveSourceCurrencyFromValueType(selectedValueType);
   const sourceAmountMetadata =
     metaBoost !== null && sourceAmountCurrencyCode !== null
@@ -360,6 +362,7 @@ export const BoostFormBase: React.FC<BoostFormBaseProps> = ({
     thresholdPreferredCurrency: mbrssV1PreferredCurrency,
     thresholdMinimumMessageAmountMinor: mbrssV1MinimumMessageAmountMinor,
     thresholdConversionEndpointUrl: mbrssV1ConversionEndpointUrl,
+    thresholdConversionSnapshotEndpointUrl: mbrssV1ConversionSnapshotEndpointUrl,
   });
 
   useEffect(() => {
@@ -409,6 +412,7 @@ export const BoostFormBase: React.FC<BoostFormBaseProps> = ({
           preferredCurrency,
           minimumMessageAmountMinor: thresholdAmountMinor,
           conversionEndpointUrl: mbrssV1ConversionEndpointUrl,
+          conversionSnapshotEndpointUrl: mbrssV1ConversionSnapshotEndpointUrl,
         },
       });
 
@@ -442,6 +446,7 @@ export const BoostFormBase: React.FC<BoostFormBaseProps> = ({
   }, [
     mbrssV1CapabilityStatus,
     mbrssV1ConversionEndpointUrl,
+    mbrssV1ConversionSnapshotEndpointUrl,
     mbrssV1MinimumMessageAmountMinor,
     mbrssV1PreferredCurrency,
     metaBoost,
@@ -511,6 +516,7 @@ export const BoostFormBase: React.FC<BoostFormBaseProps> = ({
               thresholdMessageNotice={thresholdNotice}
               thresholdPreferredCurrency={mbrssV1PreferredCurrency}
               thresholdConversionEndpointUrl={mbrssV1ConversionEndpointUrl}
+              thresholdConversionSnapshotEndpointUrl={mbrssV1ConversionSnapshotEndpointUrl}
               sourceCurrencyCode={sourceAmountCurrencyCode}
               tValue={tValue}
               tMisc={tMisc}

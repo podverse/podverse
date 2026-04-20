@@ -12,4 +12,6 @@ export type MetaBoostCapabilityFetchResult = {
   minimumMessageAmountMinor: number | null;
   /** Public bucket conversion endpoint URL when provided. */
   conversionEndpointUrl: string | null;
+  /** Public bucket conversion snapshot endpoint URL when provided. */
+  conversionSnapshotEndpointUrl: string | null;
 };

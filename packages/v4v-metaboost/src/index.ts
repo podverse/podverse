@@ -13,3 +13,4 @@ export * from './mbV1FetchCapability.js';
 export * from './mbV1IngestUrl.js';
 export * from './publicMessages.js';
 export * from './publicConversion.js';
+export * from './publicConversionSnapshot.js';

@@ -313,6 +313,7 @@
       "threshold_amount_unit_invalid": "Boost message threshold cannot be verified because amount unit metadata is invalid.",
       "threshold_conversion_unavailable": "Boost message threshold conversion is temporarily unavailable.",
       "threshold_conversion_unavailable_guidance": "Try again in a moment, or continue with a higher amount to include a message.",
+      "baseline_estimate_tooltip_text": "This conversion estimate uses recent rate data and may differ when the payment settles. Please verify the conversion rate independently.",
       "amount_input_invalid_number": "Enter a valid amount.",
       "amount_input_too_many_decimals": "This amount allows up to {decimals} decimal places for {currency}.",
       "amount_input_not_supported": "Currency formatting is not supported for {currency}.",

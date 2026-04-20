@@ -36,17 +36,43 @@
 .boostAmountInputRow {
   display: flex;
   align-items: center;
-  gap: var(--spacing-sm);
+  gap: var(--spacing-lg);
 }
 
 .boostAmountInputControl {
   width: 220px;
 }
 
-.boostAmountEstimate {
+.boostAmountEstimateContainer {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.boostAmountEstimateButton {
+  cursor: pointer;
+  border: 0;
+  padding: 0;
+  margin: 0;
+  background: transparent;
   color: var(--text-color-secondary);
-  font-size: var(--font-size-sm);
+  font-size: var(--font-size-md);
   white-space: nowrap;
+}
+
+.boostAmountEstimateTooltip {
+  position: absolute;
+  top: calc(100% + var(--spacing-sm));
+  left: 0;
+  z-index: 2;
+  width: min(320px, 80vw);
+  padding: var(--spacing-base);
+  border: 1px solid var(--border-color-opaque);
+  border-radius: var(--border-radius);
+  background: var(--background-color-primary);
+  color: var(--text-color-primary);
+  font-size: var(--font-size-sm);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
 .mbrssV1CapabilityError {
