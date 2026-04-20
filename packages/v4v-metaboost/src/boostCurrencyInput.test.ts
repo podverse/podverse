@@ -97,7 +97,7 @@ describe('parseMajorUnitToMinorAmount', () => {
     expect(parseMajorUnitToMinorAmount('abc', 'USD')).toEqual({
       ok: false,
       code: 'invalid_number',
-      message: 'Amount must be a valid non-negative number.',
+      message: 'Amount must be a valid number.',
     });
   });
 });

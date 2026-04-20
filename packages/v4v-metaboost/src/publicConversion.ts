@@ -1,4 +1,11 @@
-import { getOwnPropertyValue, isObjectLike } from '@podverse/helpers';
+import {
+  getOwnPropertyValue,
+  isObjectLike,
+  normalizeUpperCaseToken,
+  parseFiniteNumber,
+  parseNonEmptyString,
+} from '@podverse/helpers';
+import { parseHttpOrHttpsUrl } from '@podverse/helpers-validation';
 
 export type PublicBucketConversionSuccess = {
   ok: true;
@@ -46,33 +53,9 @@ export type ConvertPublicBucketAmountParams = {
   targetCurrency?: string | null;
 };
 
-const parseNonEmptyString = (value: unknown): string | null => {
-  if (typeof value !== 'string') {
-    return null;
-  }
-  const trimmed = value.trim();
-  return trimmed === '' ? null : trimmed;
-};
-
-const parseRequiredNumber = (value: unknown): number | null => {
-  if (typeof value !== 'number' || !Number.isFinite(value)) {
-    return null;
-  }
-  return value;
-};
-
-const normalizeCurrencyCode = (currency: string): string => currency.trim().toUpperCase();
-
 const normalizeUrl = (urlRaw: string): string | null => {
-  try {
-    const parsed = new URL(urlRaw);
-    if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
-      return null;
-    }
-    return parsed.toString();
-  } catch {
-    return null;
-  }
+  const parsed = parseHttpOrHttpsUrl(urlRaw);
+  return parsed ? parsed.toString() : null;
 };
 
 const parseResponsePayload = (
@@ -100,10 +83,10 @@ const parseResponsePayload = (
   }
 
   const sourceCurrency = parseNonEmptyString(getOwnPropertyValue(source, 'currency'));
-  const sourceAmountMinor = parseRequiredNumber(getOwnPropertyValue(source, 'amountMinor'));
+  const sourceAmountMinor = parseFiniteNumber(getOwnPropertyValue(source, 'amountMinor'));
   const sourceAmountUnit = parseNonEmptyString(getOwnPropertyValue(source, 'amountUnit'));
   const targetCurrency = parseNonEmptyString(getOwnPropertyValue(target, 'currency'));
-  const targetAmountMinor = parseRequiredNumber(getOwnPropertyValue(target, 'amountMinor'));
+  const targetAmountMinor = parseFiniteNumber(getOwnPropertyValue(target, 'amountMinor'));
   const targetAmountUnit = parseNonEmptyString(getOwnPropertyValue(target, 'amountUnit'));
 
   if (
@@ -206,11 +189,11 @@ export const convertPublicBucketAmount = async (
     };
   }
 
-  const normalizedSourceCurrency = normalizeCurrencyCode(sourceCurrency);
+  const normalizedSourceCurrency = normalizeUpperCaseToken(sourceCurrency);
   const normalizedTargetCurrency =
     params.targetCurrency === null || params.targetCurrency === undefined
       ? null
-      : normalizeCurrencyCode(params.targetCurrency);
+      : normalizeUpperCaseToken(params.targetCurrency);
 
   if (normalizedTargetCurrency !== null && normalizedTargetCurrency === normalizedSourceCurrency) {
     return {

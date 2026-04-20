@@ -18,16 +18,16 @@ export type AddByRSSParseCacheEntry<TParsedFeed> = {
 export type CacheGetJson = <T>(key: string) => Promise<T | null>;
 export type CacheSetJson = <T>(key: string, value: T, ttlSeconds?: number | null) => Promise<void>;
 
-export const buildAddByRSSParseCacheKey = (requestId: string): string =>
-  `addByRSS:parse:${requestId}`;
+/** Keep in sync with `@podverse/helpers-backend` `buildAddByRSSParseCacheKey` (avoid helpers → helpers-backend cycle). */
+const addByRSSParseCacheKey = (requestId: string): string => `addByRSS:parse:${requestId}`;
 
 export const getAddByRSSParseCacheEntry = async <TParsedFeed>(
   cacheGetJson: CacheGetJson,
   requestId: string
 ): Promise<AddByRSSParseCacheEntry<TParsedFeed> | null> =>
-  cacheGetJson<AddByRSSParseCacheEntry<TParsedFeed>>(buildAddByRSSParseCacheKey(requestId));
+  cacheGetJson<AddByRSSParseCacheEntry<TParsedFeed>>(addByRSSParseCacheKey(requestId));
 
 export const setAddByRSSParseCacheEntry = async <TParsedFeed>(
   cacheSetJson: CacheSetJson,
   entry: AddByRSSParseCacheEntry<TParsedFeed>
-): Promise<void> => cacheSetJson(buildAddByRSSParseCacheKey(entry.requestId), entry);
+): Promise<void> => cacheSetJson(addByRSSParseCacheKey(entry.requestId), entry);

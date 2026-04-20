@@ -22,6 +22,7 @@
     "@hello-pangea/dnd": "^18.0.1",
     "@podverse/helpers": "*",
     "@podverse/helpers-backend": "*",
+    "@podverse/helpers-browser": "*",
     "axios": "^1.13.6",
     "classnames": "^2.5.1",
     "isomorphic-dompurify": "^3.0.0",

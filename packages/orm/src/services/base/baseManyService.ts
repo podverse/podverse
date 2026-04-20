@@ -1,7 +1,6 @@
 import { getDataSourceRead, getDataSourceReadWrite, getLoggerService } from '@orm/context.js';
 import { applyProperties } from '@orm/lib/applyProperties.js';
 import { hasDifferentValues } from '@orm/lib/hasDifferentValues.js';
-import { redactForLog } from '@orm/lib/redactForLog.js';
 import type {
   EntityManager,
   FindManyOptions,
@@ -10,6 +9,8 @@ import type {
   ObjectLiteral,
   Repository,
 } from 'typeorm';
+
+import { redactForLog } from '@podverse/helpers-backend';
 
 export class BaseManyService<T extends ObjectLiteral, K extends keyof T> {
   protected repositoryRead: Repository<T>;

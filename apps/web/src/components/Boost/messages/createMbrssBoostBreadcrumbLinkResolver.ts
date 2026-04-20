@@ -37,7 +37,7 @@ const findItemIdTextByGuid = async (
     if (found?.id_text) {
       return found.id_text;
     }
-    totalPages = getTotalPages(response.meta.count, response.meta.limit);
+    totalPages = getTotalPages(response.meta.count ?? 0, Math.max(1, response.meta.limit ?? 20));
     page += 1;
   }
 

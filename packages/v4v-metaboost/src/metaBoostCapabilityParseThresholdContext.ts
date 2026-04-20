@@ -1,4 +1,5 @@
-import { getOwnPropertyValue, isObjectLike } from '@podverse/helpers';
+import { getOwnPropertyValue, isObjectLike, parseNonEmptyString } from '@podverse/helpers';
+import { parseHttpOrHttpsUrl } from '@podverse/helpers-validation';
 
 export type MetaBoostCapabilityThresholdContext = {
   preferredCurrency: string | null;
@@ -13,11 +14,11 @@ const parseOptionalNonEmptyString = (value: unknown, fieldName: string): string 
   if (typeof value !== 'string') {
     throw new Error(`${fieldName} must be a string when provided`);
   }
-  const trimmed = value.trim();
-  if (trimmed === '') {
+  const parsed = parseNonEmptyString(value);
+  if (parsed === null) {
     throw new Error(`${fieldName} must be a non-empty string when provided`);
   }
-  return trimmed;
+  return parsed;
 };
 
 const parseOptionalNonNegativeInteger = (value: unknown, fieldName: string): number | null => {
@@ -35,12 +36,7 @@ const parseOptionalHttpUrl = (value: unknown, fieldName: string): string | null 
   if (parsedString === null) {
     return null;
   }
-  try {
-    const parsed = new URL(parsedString);
-    if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
-      throw new Error(`${fieldName} must be an HTTP(S) URL when provided`);
-    }
-  } catch {
+  if (!parseHttpOrHttpsUrl(parsedString)) {
     throw new Error(`${fieldName} must be an HTTP(S) URL when provided`);
   }
   return parsedString;

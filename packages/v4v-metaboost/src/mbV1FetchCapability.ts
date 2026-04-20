@@ -8,20 +8,15 @@ import {
   parseSenderBlockedCapabilityFields,
 } from './metaBoostCapabilityParseSenderBlocked.js';
 import { parseCapabilityThresholdContextFields } from './metaBoostCapabilityParseThresholdContext.js';
+import {
+  isValidTermsOfServiceHttpUrl,
+  normalizeCapabilityBaseUrl,
+} from './metaBoostCapabilityUrlHelpers.js';
 
 export type MbV1BoostCapabilityApiResponse = {
   schema: string;
   message_char_limit: number;
   terms_of_service_url: string;
-};
-
-const isValidHttpUrlString = (value: string): boolean => {
-  try {
-    const parsed = new URL(value);
-    return parsed.protocol === 'http:' || parsed.protocol === 'https:';
-  } catch {
-    return false;
-  }
 };
 
 export const parseMbV1BoostCapabilityResponse = (data: unknown): MetaBoostCapabilityFetchResult => {
@@ -40,7 +35,7 @@ export const parseMbV1BoostCapabilityResponse = (data: unknown): MetaBoostCapabi
   if (
     typeof termsRaw !== 'string' ||
     termsRaw.trim() === '' ||
-    !isValidHttpUrlString(termsRaw.trim())
+    !isValidTermsOfServiceHttpUrl(termsRaw.trim())
   ) {
     throw new Error('mb-v1 capability terms_of_service_url is invalid');
   }
@@ -57,18 +52,6 @@ export const parseMbV1BoostCapabilityResponse = (data: unknown): MetaBoostCapabi
   };
 };
 
-const normalizeCapabilityUrl = (metaBoostNodeUrl: string): string => {
-  const trimmed = metaBoostNodeUrl.trim();
-  if (trimmed === '') {
-    throw new Error('MetaBoost node URL is empty');
-  }
-  try {
-    return new URL(trimmed).toString();
-  } catch {
-    throw new Error('MetaBoost node URL is invalid');
-  }
-};
-
 export type FetchMbV1BoostCapabilityOptions = {
   senderGuid?: string | null;
 };
@@ -78,7 +61,7 @@ export const fetchMbV1BoostCapability = async (
   options?: FetchMbV1BoostCapabilityOptions
 ): Promise<MetaBoostCapabilityFetchResult> => {
   const normalizedBase = normalizeMetaboostMbV1IngestNodeUrl(
-    normalizeCapabilityUrl(metaBoostNodeUrl)
+    normalizeCapabilityBaseUrl(metaBoostNodeUrl)
   );
   const urlString = appendSenderGuidToUrl(normalizedBase, options?.senderGuid);
   const res = await fetch(urlString, {

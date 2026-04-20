@@ -37,6 +37,7 @@ export * from './lib/mq/dedupeWindows.js';
 export * from './lib/mq/getDedupeTTLSeconds.js';
 export * from './lib/onDemandParserEvent.js';
 export * from './lib/pagination.js';
+export * from './lib/primitives.js';
 export * from './lib/queue/queue.js';
 export * from './lib/queue/queueResourceAbridged.js';
 export * from './lib/remoteItem.js';

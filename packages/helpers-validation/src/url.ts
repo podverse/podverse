@@ -1,3 +1,30 @@
+/**
+ * Parses a trimmed string as an HTTP or HTTPS URL with a non-empty hostname.
+ * Returns null if the input is not a valid http(s) URL for this contract.
+ */
+export function parseHttpOrHttpsUrl(urlRaw: string): URL | null {
+  const trimmedUrl = urlRaw.trim();
+  if (trimmedUrl === '') {
+    return null;
+  }
+
+  try {
+    const parsed = new URL(trimmedUrl);
+
+    if (parsed.protocol !== 'https:' && parsed.protocol !== 'http:') {
+      return null;
+    }
+
+    if (!parsed.hostname || parsed.hostname.length === 0) {
+      return null;
+    }
+
+    return parsed;
+  } catch {
+    return null;
+  }
+}
+
 export function isValidHttpUrl(url?: string | null): true | null {
   if (!url) {
     return null;
@@ -17,16 +44,18 @@ export function validateHttpsUrl(url?: string | null): { isValid: boolean; error
 
   const trimmedUrl = url.trim();
 
-  // Check for valid URL format
+  const parsedOk = parseHttpOrHttpsUrl(trimmedUrl);
+  if (parsedOk && parsedOk.protocol === 'https:') {
+    return { isValid: true };
+  }
+
   try {
     const parsed = new URL(trimmedUrl);
 
-    // Must be HTTPS
     if (parsed.protocol !== 'https:') {
       return { isValid: false, error: 'URL must use HTTPS' };
     }
 
-    // Must have a valid hostname
     if (!parsed.hostname || parsed.hostname.length === 0) {
       return { isValid: false, error: 'URL must have a valid hostname' };
     }
@@ -48,6 +77,11 @@ export function validateHttpOrHttpsUrl(url?: string | null): { isValid: boolean;
 
   const trimmedUrl = url.trim();
 
+  const parsedOk = parseHttpOrHttpsUrl(trimmedUrl);
+  if (parsedOk) {
+    return { isValid: true };
+  }
+
   try {
     const parsed = new URL(trimmedUrl);
 
@@ -58,11 +92,11 @@ export function validateHttpOrHttpsUrl(url?: string | null): { isValid: boolean;
     if (!parsed.hostname || parsed.hostname.length === 0) {
       return { isValid: false, error: 'URL must have a valid hostname' };
     }
-
-    return { isValid: true };
   } catch {
     return { isValid: false, error: 'Invalid URL format' };
   }
+
+  return { isValid: false, error: 'Invalid URL format' };
 }
 
 /**

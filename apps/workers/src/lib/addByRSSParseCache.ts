@@ -3,7 +3,6 @@ import { cacheGetJson, cacheSetJson } from '@workers/lib/keyvaldb/keyvaldb.js';
 import {
   type AddByRSSParseCacheEntry as AddByRSSParseCacheEntryBase,
   type AddByRSSParseStatus,
-  buildAddByRSSParseCacheKey as buildAddByRSSParseCacheKeyShared,
   getAddByRSSParseCacheEntry as getAddByRSSParseCacheEntryShared,
   setAddByRSSParseCacheEntry as setAddByRSSParseCacheEntryShared,
 } from '@podverse/helpers';
@@ -14,9 +13,6 @@ type ParsedFeedResult = Extract<ParseRSSFeedForAddByRSSResult, { status: 'parsed
 export type AddByRSSParseCacheEntry = AddByRSSParseCacheEntryBase<ParsedFeedResult['parsedFeed']>;
 
 export type { AddByRSSParseStatus };
-
-export const buildAddByRSSParseCacheKey = (requestId: string): string =>
-  buildAddByRSSParseCacheKeyShared(requestId);
 
 export const getAddByRSSParseCacheEntry = async (
   requestId: string

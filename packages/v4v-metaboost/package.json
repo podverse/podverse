@@ -22,7 +22,8 @@
     "access": "public"
   },
   "dependencies": {
-    "@podverse/helpers": "*"
+    "@podverse/helpers": "*",
+    "@podverse/helpers-validation": "*"
   },
   "devDependencies": {
     "vitest": "^3.2.4"
