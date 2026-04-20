@@ -1,4 +1,11 @@
+import { useState } from 'react';
+
 import type { MetaBoost } from '@podverse/v4v-metaboost';
+import {
+  getBoostCurrencyInputFormatMetadata,
+  parseMajorUnitToMinorAmount,
+  type ParseMajorUnitToMinorResult,
+} from '@podverse/v4v-metaboost';
 
 import { Button } from '../Button/Button';
 import Form from '../Form/Form';
@@ -34,6 +41,8 @@ type BoostFormFieldsProps = {
   mbrssV1CapabilityFailed: boolean;
   /** When set, recipient blocks this Podverse sender from MetaBoost messages (preflight GET). */
   mbrssV1SenderBlockedPreflightMessage?: string | null;
+  thresholdNameMessageBlocked?: boolean;
+  thresholdMessageNotice?: string | null;
   tValue: Translator;
   tMisc: Translator;
   brandName: string;
@@ -64,6 +73,8 @@ export const BoostFormFields = ({
   mbrssV1MessageLoading,
   mbrssV1CapabilityFailed,
   mbrssV1SenderBlockedPreflightMessage = null,
+  thresholdNameMessageBlocked = false,
+  thresholdMessageNotice = null,
   tValue,
   tMisc,
   brandName,
@@ -76,7 +87,45 @@ export const BoostFormFields = ({
     isSubmitting ||
     hasStatusUpdates ||
     mbrssV1MessageFieldBlocked ||
+    thresholdNameMessageBlocked ||
     (metaBoost !== null && !isLoggedIn);
+  const boostCurrencyFormatMetadata =
+    metaBoost !== null ? getBoostCurrencyInputFormatMetadata('BTC') : null;
+  const [creatorAmountInputError, setCreatorAmountInputError] = useState<string | undefined>(
+    undefined
+  );
+  const [appAmountInputError, setAppAmountInputError] = useState<string | undefined>(undefined);
+
+  const getAmountInputErrorMessage = (
+    result: ParseMajorUnitToMinorResult,
+    currencyCode: string,
+    minorUnitExponent: number
+  ): string | undefined => {
+    if (result.ok) {
+      return undefined;
+    }
+    if (result.code === 'too_many_decimals') {
+      return tValue('boost_messages.amount_input_too_many_decimals', {
+        currency: currencyCode,
+        decimals: minorUnitExponent,
+      });
+    }
+    if (result.code === 'not_supported') {
+      return tValue('boost_messages.amount_input_not_supported', { currency: currencyCode });
+    }
+    return tValue('boost_messages.amount_input_invalid_number');
+  };
+
+  const parseBoostAmountInput = (valueText: string): number | null => {
+    if (boostCurrencyFormatMetadata === null) {
+      return Number(valueText);
+    }
+    if (valueText.trim() === '') {
+      return 0;
+    }
+    const parsed = parseMajorUnitToMinorAmount(valueText, 'BTC');
+    return parsed.ok ? parsed.minorAmount : null;
+  };
 
   return (
     <Form
@@ -90,10 +139,51 @@ export const BoostFormFields = ({
             eyebrow={tValue('send_to.creator')}
             value={totalAmountToCreator}
             min={0}
-            onChange={(e) => setTotalAmountToCreator(Number(e.target.value))}
-            sideText={
-              selectedValueKey ? tValue(`types.${selectedValueKey}.denomination`) : undefined
+            step={
+              boostCurrencyFormatMetadata !== null
+                ? Number(boostCurrencyFormatMetadata.inputStep)
+                : 1
             }
+            onChange={(e) => {
+              if (boostCurrencyFormatMetadata === null) {
+                const parsedAmount = parseBoostAmountInput(e.target.value);
+                if (parsedAmount !== null) {
+                  setTotalAmountToCreator(parsedAmount);
+                  setCreatorAmountInputError(undefined);
+                }
+                return;
+              }
+
+              if (e.target.value.trim() === '') {
+                setTotalAmountToCreator(0);
+                setCreatorAmountInputError(undefined);
+                return;
+              }
+
+              const parsed = parseMajorUnitToMinorAmount(
+                e.target.value,
+                boostCurrencyFormatMetadata.currency
+              );
+              const parsedAmount = parsed.ok ? parsed.minorAmount : null;
+              if (parsedAmount !== null) {
+                setTotalAmountToCreator(parsedAmount);
+                setCreatorAmountInputError(undefined);
+                return;
+              }
+              setCreatorAmountInputError(
+                getAmountInputErrorMessage(
+                  parsed,
+                  boostCurrencyFormatMetadata.currency,
+                  boostCurrencyFormatMetadata.minorUnitExponent
+                )
+              );
+            }}
+            sideText={
+              boostCurrencyFormatMetadata?.canonicalAmountUnit ??
+              (selectedValueKey ? tValue(`types.${selectedValueKey}.denomination`) : undefined)
+            }
+            prefix={boostCurrencyFormatMetadata?.symbolPrefix ?? undefined}
+            infoError={creatorAmountInputError}
             disabled={isSubmitting || hasStatusUpdates}
           />
         )}
@@ -102,10 +192,51 @@ export const BoostFormFields = ({
             eyebrow={tValue('send_to.app', { brand_name: brandName })}
             value={totalAmountToApp}
             min={0}
-            onChange={(e) => setTotalAmountToApp(Number(e.target.value))}
-            sideText={
-              selectedValueKey ? tValue(`types.${selectedValueKey}.denomination`) : undefined
+            step={
+              boostCurrencyFormatMetadata !== null
+                ? Number(boostCurrencyFormatMetadata.inputStep)
+                : 1
             }
+            onChange={(e) => {
+              if (boostCurrencyFormatMetadata === null) {
+                const parsedAmount = parseBoostAmountInput(e.target.value);
+                if (parsedAmount !== null) {
+                  setTotalAmountToApp(parsedAmount);
+                  setAppAmountInputError(undefined);
+                }
+                return;
+              }
+
+              if (e.target.value.trim() === '') {
+                setTotalAmountToApp(0);
+                setAppAmountInputError(undefined);
+                return;
+              }
+
+              const parsed = parseMajorUnitToMinorAmount(
+                e.target.value,
+                boostCurrencyFormatMetadata.currency
+              );
+              const parsedAmount = parsed.ok ? parsed.minorAmount : null;
+              if (parsedAmount !== null) {
+                setTotalAmountToApp(parsedAmount);
+                setAppAmountInputError(undefined);
+                return;
+              }
+              setAppAmountInputError(
+                getAmountInputErrorMessage(
+                  parsed,
+                  boostCurrencyFormatMetadata.currency,
+                  boostCurrencyFormatMetadata.minorUnitExponent
+                )
+              );
+            }}
+            sideText={
+              boostCurrencyFormatMetadata?.canonicalAmountUnit ??
+              (selectedValueKey ? tValue(`types.${selectedValueKey}.denomination`) : undefined)
+            }
+            prefix={boostCurrencyFormatMetadata?.symbolPrefix ?? undefined}
+            infoError={appAmountInputError}
             disabled={isSubmitting || hasStatusUpdates}
           />
         )}
@@ -121,6 +252,11 @@ export const BoostFormFields = ({
           {mbrssV1CapabilityFailed && (
             <p className={styles.mbrssV1CapabilityError} role="status">
               {tValue('boost_messages.mbrssV1_capability_unavailable')}
+            </p>
+          )}
+          {thresholdMessageNotice !== null && thresholdMessageNotice !== '' && (
+            <p className={styles.mbrssV1CapabilityError} role="status">
+              {thresholdMessageNotice}
             </p>
           )}
           <TextInput

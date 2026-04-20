@@ -20,6 +20,9 @@ export type UseMbrssV1BoostCapabilityResult = {
   termsOfServiceUrl: string | null;
   senderBlocked: boolean;
   senderBlockMessage: string | null;
+  preferredCurrency: string | null;
+  minimumMessageAmountMinor: number | null;
+  conversionEndpointUrl: string | null;
 };
 
 export type UseMbrssV1BoostCapabilityOptions = {
@@ -55,6 +58,9 @@ export const useMbrssV1BoostCapability = (
   const [termsOfServiceUrl, setTermsOfServiceUrl] = useState<string | null>(null);
   const [senderBlocked, setSenderBlocked] = useState(false);
   const [senderBlockMessage, setSenderBlockMessage] = useState<string | null>(null);
+  const [preferredCurrency, setPreferredCurrency] = useState<string | null>(null);
+  const [minimumMessageAmountMinor, setMinimumMessageAmountMinor] = useState<number | null>(null);
+  const [conversionEndpointUrl, setConversionEndpointUrl] = useState<string | null>(null);
 
   useEffect(() => {
     if (metaBoost === null) {
@@ -63,6 +69,9 @@ export const useMbrssV1BoostCapability = (
       setTermsOfServiceUrl(null);
       setSenderBlocked(false);
       setSenderBlockMessage(null);
+      setPreferredCurrency(null);
+      setMinimumMessageAmountMinor(null);
+      setConversionEndpointUrl(null);
       return;
     }
 
@@ -72,6 +81,9 @@ export const useMbrssV1BoostCapability = (
       setTermsOfServiceUrl(null);
       setSenderBlocked(false);
       setSenderBlockMessage(null);
+      setPreferredCurrency(null);
+      setMinimumMessageAmountMinor(null);
+      setConversionEndpointUrl(null);
       return;
     }
 
@@ -81,6 +93,9 @@ export const useMbrssV1BoostCapability = (
     setTermsOfServiceUrl(null);
     setSenderBlocked(false);
     setSenderBlockMessage(null);
+    setPreferredCurrency(null);
+    setMinimumMessageAmountMinor(null);
+    setConversionEndpointUrl(null);
 
     void (async () => {
       try {
@@ -99,6 +114,9 @@ export const useMbrssV1BoostCapability = (
         setTermsOfServiceUrl(result.termsOfServiceUrl);
         setSenderBlocked(result.senderBlocked);
         setSenderBlockMessage(result.senderBlockMessage);
+        setPreferredCurrency(result.preferredCurrency);
+        setMinimumMessageAmountMinor(result.minimumMessageAmountMinor);
+        setConversionEndpointUrl(result.conversionEndpointUrl);
         setStatus('success');
       } catch {
         if (cancelled) {
@@ -108,6 +126,9 @@ export const useMbrssV1BoostCapability = (
         setTermsOfServiceUrl(null);
         setSenderBlocked(false);
         setSenderBlockMessage(null);
+        setPreferredCurrency(null);
+        setMinimumMessageAmountMinor(null);
+        setConversionEndpointUrl(null);
         setStatus('error');
       }
     })();
@@ -123,5 +144,8 @@ export const useMbrssV1BoostCapability = (
     termsOfServiceUrl,
     senderBlocked,
     senderBlockMessage,
+    preferredCurrency,
+    minimumMessageAmountMinor,
+    conversionEndpointUrl,
   };
 };

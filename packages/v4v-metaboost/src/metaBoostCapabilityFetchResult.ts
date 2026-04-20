@@ -6,4 +6,10 @@ export type MetaBoostCapabilityFetchResult = {
   senderBlocked: boolean;
   /** Server message when blocked; otherwise null. */
   senderBlockMessage: string | null;
+  /** Bucket-preferred threshold compare currency from capability context when provided. */
+  preferredCurrency: string | null;
+  /** Bucket threshold minimum in integer minor units when provided. */
+  minimumMessageAmountMinor: number | null;
+  /** Public bucket conversion endpoint URL when provided. */
+  conversionEndpointUrl: string | null;
 };

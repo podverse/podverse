@@ -53,12 +53,26 @@
   padding: var(--spacing-form-input-inner);
 }
 
-.inputWithSuffixRow {
+.inputWithAffixesRow {
   display: flex;
   align-items: center;
   flex: 1;
   min-width: 0;
   gap: 0;
+}
+
+.prefix {
+  flex-shrink: 0;
+  font-size: var(--font-size-md);
+  font-weight: inherit;
+  color: var(--text-color-primary);
+  cursor: default;
+}
+
+.prefixSpacer {
+  width: 0.5ch;
+  flex-shrink: 0;
+  cursor: default;
 }
 
 .inputWithSuffix {

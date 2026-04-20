@@ -7,6 +7,7 @@ import {
   appendSenderGuidToUrl,
   parseSenderBlockedCapabilityFields,
 } from './metaBoostCapabilityParseSenderBlocked.js';
+import { parseCapabilityThresholdContextFields } from './metaBoostCapabilityParseThresholdContext.js';
 
 export type MbV1BoostCapabilityApiResponse = {
   schema: string;
@@ -44,11 +45,15 @@ export const parseMbV1BoostCapabilityResponse = (data: unknown): MetaBoostCapabi
     throw new Error('mb-v1 capability terms_of_service_url is invalid');
   }
   const blocked = parseSenderBlockedCapabilityFields(data);
+  const thresholdContext = parseCapabilityThresholdContextFields(data);
   return {
     messageCharLimit: Math.floor(limitRaw),
     termsOfServiceUrl: termsRaw.trim(),
     senderBlocked: blocked.senderBlocked,
     senderBlockMessage: blocked.senderBlockMessage,
+    preferredCurrency: thresholdContext.preferredCurrency,
+    minimumMessageAmountMinor: thresholdContext.minimumMessageAmountMinor,
+    conversionEndpointUrl: thresholdContext.conversionEndpointUrl,
   };
 };
 

@@ -1,6 +1,7 @@
 export * from './metaBoost.js';
 export * from './metaBoostStandard.js';
 export * from './metaBoostCapabilityFetchResult.js';
+export * from './boostCurrencyInput.js';
 export * from './metaboostSenderBlockedPostError.js';
 export * from './blip0010BtcLnBoostJsonKeys.js';
 export * from './boostMetadata.js';
@@ -11,3 +12,4 @@ export * from './mbV1CreateBoost.js';
 export * from './mbV1FetchCapability.js';
 export * from './mbV1IngestUrl.js';
 export * from './publicMessages.js';
+export * from './publicConversion.js';

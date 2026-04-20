@@ -19,7 +19,7 @@ describe('buildMbV1CreateBoostRequest', () => {
     expect(body).toEqual({
       currency: 'BTC',
       amount: 5000,
-      amount_unit: 'satoshis',
+      amount_unit: 'satoshi',
       action: 'boost',
       app_name: 'Podverse',
       app_version: '1.2.3',

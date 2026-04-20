@@ -7,6 +7,7 @@ import {
   appendSenderGuidToUrl,
   parseSenderBlockedCapabilityFields,
 } from './metaBoostCapabilityParseSenderBlocked.js';
+import { parseCapabilityThresholdContextFields } from './metaBoostCapabilityParseThresholdContext.js';
 
 /**
  * Raw JSON shape from Metaboost mbrss-v1 GET capability (snake_case).
@@ -50,11 +51,15 @@ export const parseMbrssV1BoostCapabilityResponse = (
     throw new Error('mbrss-v1 capability terms_of_service_url is invalid');
   }
   const blocked = parseSenderBlockedCapabilityFields(data);
+  const thresholdContext = parseCapabilityThresholdContextFields(data);
   return {
     messageCharLimit: Math.floor(limitRaw),
     termsOfServiceUrl: termsRaw.trim(),
     senderBlocked: blocked.senderBlocked,
     senderBlockMessage: blocked.senderBlockMessage,
+    preferredCurrency: thresholdContext.preferredCurrency,
+    minimumMessageAmountMinor: thresholdContext.minimumMessageAmountMinor,
+    conversionEndpointUrl: thresholdContext.conversionEndpointUrl,
   };
 };
 

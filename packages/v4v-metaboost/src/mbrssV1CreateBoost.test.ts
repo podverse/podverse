@@ -22,7 +22,7 @@ describe('buildMbrssV1CreateBoostRequest', () => {
 
     expect(body.currency).toBe('BTC');
     expect(body.amount).toBe(5000);
-    expect(body.amount_unit).toBe('satoshis');
+    expect(body.amount_unit).toBe('satoshi');
     expect(body.action).toBe('boost');
     expect(body.app_name).toBe('Podverse');
     expect(body.feed_guid).toBe('urn:guid:feed');

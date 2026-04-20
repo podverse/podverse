@@ -303,7 +303,20 @@
       "sender_blocked_preflight_fallback": "Vous ne pouvez plus envoyer de messages à ce destinataire.",
       "sender_blocked_modal_title": "Message refusé",
       "sender_blocked_modal_primary": "Fermer",
-      "sender_blocked_post_fallback": "Vous ne pouvez plus envoyer de messages à ce destinataire."
+      "sender_blocked_post_fallback": "Vous ne pouvez plus envoyer de messages à ce destinataire.",
+      "threshold_notice": "Le montant minimum pour envoyer un message avec votre don est {minimumAmountMinor} {preferredCurrency} (valeur convertie : {convertedAmountMinor} {preferredCurrency}).",
+      "threshold_missing_metadata": "Le seuil des messages boost ne peut pas être vérifié, car des métadonnées de devise requises sont manquantes.",
+      "threshold_amount_unit_missing": "Le seuil des messages boost ne peut pas être vérifié, car les métadonnées d'unité de montant sont manquantes.",
+      "threshold_amount_unit_invalid": "Le seuil des messages boost ne peut pas être vérifié, car les métadonnées d'unité de montant sont invalides.",
+      "threshold_conversion_unavailable": "La conversion du seuil des messages boost est temporairement indisponible.",
+      "threshold_conversion_unavailable_guidance": "Réessayez dans un instant, ou continuez avec un montant plus élevé pour inclure un message.",
+      "amount_input_invalid_number": "Saisissez un montant valide.",
+      "amount_input_too_many_decimals": "Ce montant autorise jusqu'à {decimals} décimales pour {currency}.",
+      "amount_input_not_supported": "Le format de devise n'est pas pris en charge pour {currency}.",
+      "public_messages_loading": "Chargement des messages…",
+      "public_messages_unavailable": "les messages de ce serveur ne sont pas accessibles publiquement pour le moment",
+      "public_messages_empty": "Aucun message n'est encore disponible.",
+      "public_amount_btc_token": "BTC"
     },
     "types": {
       "lightning": {

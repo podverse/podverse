@@ -18,6 +18,9 @@ describe('parseMbrssV1BoostCapabilityResponse', () => {
       termsOfServiceUrl: 'https://example.com/terms',
       senderBlocked: false,
       senderBlockMessage: null,
+      preferredCurrency: null,
+      minimumMessageAmountMinor: null,
+      conversionEndpointUrl: null,
     });
   });
 
@@ -33,6 +36,9 @@ describe('parseMbrssV1BoostCapabilityResponse', () => {
       termsOfServiceUrl: 'https://example.com/terms',
       senderBlocked: true,
       senderBlockMessage: 'Blocked by recipient',
+      preferredCurrency: null,
+      minimumMessageAmountMinor: null,
+      conversionEndpointUrl: null,
     });
   });
 
@@ -47,6 +53,30 @@ describe('parseMbrssV1BoostCapabilityResponse', () => {
       termsOfServiceUrl: 'https://example.com/terms',
       senderBlocked: false,
       senderBlockMessage: null,
+      preferredCurrency: null,
+      minimumMessageAmountMinor: null,
+      conversionEndpointUrl: null,
+    });
+  });
+
+  it('parses threshold context fields when present', () => {
+    expect(
+      parseMbrssV1BoostCapabilityResponse({
+        ...validPayload,
+        preferred_currency: 'USD',
+        minimum_message_amount_minor: 100,
+        conversion_endpoint_url:
+          'https://example.com/v1/standard/mbrss-v1/messages/public/bucket/conversion',
+      })
+    ).toEqual({
+      messageCharLimit: 500,
+      termsOfServiceUrl: 'https://example.com/terms',
+      senderBlocked: false,
+      senderBlockMessage: null,
+      preferredCurrency: 'USD',
+      minimumMessageAmountMinor: 100,
+      conversionEndpointUrl:
+        'https://example.com/v1/standard/mbrss-v1/messages/public/bucket/conversion',
     });
   });
 
@@ -119,6 +149,9 @@ describe('fetchMbrssV1BoostCapability', () => {
       termsOfServiceUrl: 'https://example.com/tos',
       senderBlocked: false,
       senderBlockMessage: null,
+      preferredCurrency: null,
+      minimumMessageAmountMinor: null,
+      conversionEndpointUrl: null,
     });
 
     vi.unstubAllGlobals();

@@ -1,12 +1,12 @@
 import { getOwnPropertyValue, isObjectLike } from '@podverse/helpers';
 
-import { MBRSS_V1_AMOUNT_UNIT_SATOSHIS, MBRSS_V1_CURRENCY_BTC } from './mbrssV1CreateBoost.js';
+import { MBRSS_V1_AMOUNT_UNIT_SATOSHI, MBRSS_V1_CURRENCY_BTC } from './mbrssV1CreateBoost.js';
 
 /** Aligns with MetaBoost mb-v1 ingest (no RSS identity fields). */
 export type MbV1CreateBoostClientPayload = {
   currency: typeof MBRSS_V1_CURRENCY_BTC;
   amount: number;
-  amount_unit: typeof MBRSS_V1_AMOUNT_UNIT_SATOSHIS;
+  amount_unit: typeof MBRSS_V1_AMOUNT_UNIT_SATOSHI;
   action: 'boost' | 'stream';
   app_name: string;
   app_version?: string;
@@ -38,7 +38,7 @@ export const buildMbV1CreateBoostRequest = (
   const body: MbV1CreateBoostClientPayload = {
     currency: MBRSS_V1_CURRENCY_BTC,
     amount: amountSat,
-    amount_unit: MBRSS_V1_AMOUNT_UNIT_SATOSHIS,
+    amount_unit: MBRSS_V1_AMOUNT_UNIT_SATOSHI,
     action: params.action,
     app_name: params.appName,
   };

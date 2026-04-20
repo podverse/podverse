@@ -303,7 +303,20 @@
       "sender_blocked_preflight_fallback": "Has sido bloqueado para enviar mensajes a este destinatario.",
       "sender_blocked_modal_title": "Mensaje no aceptado",
       "sender_blocked_modal_primary": "Cerrar",
-      "sender_blocked_post_fallback": "Has sido bloqueado para enviar mensajes a este destinatario."
+      "sender_blocked_post_fallback": "Has sido bloqueado para enviar mensajes a este destinatario.",
+      "threshold_notice": "La cantidad minima para enviar un mensaje con tu donacion es {minimumAmountMinor} {preferredCurrency} (valor convertido: {convertedAmountMinor} {preferredCurrency}).",
+      "threshold_missing_metadata": "No se puede verificar el umbral del mensaje de refuerzo porque faltan metadatos de moneda requeridos.",
+      "threshold_amount_unit_missing": "No se puede verificar el umbral del mensaje de refuerzo porque faltan metadatos de unidad de cantidad.",
+      "threshold_amount_unit_invalid": "No se puede verificar el umbral del mensaje de refuerzo porque los metadatos de unidad de cantidad no son validos.",
+      "threshold_conversion_unavailable": "La conversion del umbral del mensaje de refuerzo no esta disponible temporalmente.",
+      "threshold_conversion_unavailable_guidance": "Intentalo de nuevo en un momento, o continua con una cantidad mayor para incluir un mensaje.",
+      "amount_input_invalid_number": "Ingresa una cantidad valida.",
+      "amount_input_too_many_decimals": "Esta cantidad permite hasta {decimals} decimales para {currency}.",
+      "amount_input_not_supported": "El formato de moneda no es compatible para {currency}.",
+      "public_messages_loading": "Cargando mensajes…",
+      "public_messages_unavailable": "los mensajes de este servidor no estan disponibles publicamente en este momento",
+      "public_messages_empty": "Aun no hay mensajes disponibles.",
+      "public_amount_btc_token": "BTC"
     },
     "types": {
       "lightning": {

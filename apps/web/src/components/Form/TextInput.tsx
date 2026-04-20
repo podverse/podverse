@@ -37,6 +37,8 @@ type TextInputProps = {
   step?: number;
   /** Rendered inside the input box, aligned right (e.g. "satoshis"); input remains numeric-only when type="number" */
   suffix?: string;
+  /** Rendered inside the input box, aligned left before the value (e.g. "$"). */
+  prefix?: string;
 };
 
 export type TextInputButton = {
@@ -81,6 +83,7 @@ export const TextInput: React.FC<TextInputProps> = ({
   max,
   step,
   suffix,
+  prefix,
   ...rest
 }) => {
   const inputId = id || name || undefined;
@@ -88,8 +91,10 @@ export const TextInput: React.FC<TextInputProps> = ({
   const infoErrorId = infoError ? `${inputId || 'textinput'}-error` : undefined;
 
   const inputRef = useRef<HTMLInputElement>(null);
-  const suffixInputWidthCh =
-    suffix !== undefined && suffix !== '' ? Math.max(2, (value === '' ? '0' : value).length) : null;
+  const hasSuffix = suffix !== undefined && suffix !== '';
+  const hasPrefix = prefix !== undefined && prefix !== '';
+  const hasAffixes = hasPrefix || hasSuffix;
+  const suffixInputWidthCh = hasSuffix ? Math.max(2, (value === '' ? '0' : value).length) : null;
 
   return (
     <div className={`${styles.textInput} ${className || ''}`} style={style}>
@@ -118,9 +123,9 @@ export const TextInput: React.FC<TextInputProps> = ({
               {eyebrow}
             </label>
           )}
-          {suffix !== undefined && suffix !== '' ? (
+          {hasAffixes ? (
             <div
-              className={styles.inputWithSuffixRow}
+              className={styles.inputWithAffixesRow}
               onClick={() => inputRef.current?.focus()}
               onKeyDown={(e) => {
                 if (e.key === 'Enter' || e.key === ' ') {
@@ -130,6 +135,14 @@ export const TextInput: React.FC<TextInputProps> = ({
               }}
               role="presentation"
             >
+              {hasPrefix && (
+                <>
+                  <span className={styles.prefix} aria-hidden="true">
+                    {prefix}
+                  </span>
+                  <span className={styles.prefixSpacer} aria-hidden="true" />
+                </>
+              )}
               <input
                 ref={inputRef}
                 id={inputId}
@@ -146,7 +159,7 @@ export const TextInput: React.FC<TextInputProps> = ({
                 aria-label={ariaLabel}
                 aria-describedby={info ? infoId : ariaDescribedBy}
                 aria-required={ariaRequired}
-                className={classNames(styles.input, styles.inputWithSuffix, {
+                className={classNames(styles.input, hasSuffix && styles.inputWithSuffix, {
                   [cssClass(styles, 'numberInput')]: type === 'number',
                   [cssClass(styles, 'numberInputWithSuffix')]: type === 'number' && suffix,
                 })}
@@ -162,10 +175,14 @@ export const TextInput: React.FC<TextInputProps> = ({
                 step={step}
                 {...rest}
               />
-              <span className={styles.suffixSpacer} aria-hidden="true" />
-              <span className={styles.suffix} aria-hidden="true">
-                {suffix}
-              </span>
+              {hasSuffix && (
+                <>
+                  <span className={styles.suffixSpacer} aria-hidden="true" />
+                  <span className={styles.suffix} aria-hidden="true">
+                    {suffix}
+                  </span>
+                </>
+              )}
             </div>
           ) : (
             <input

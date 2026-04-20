@@ -3,8 +3,8 @@ import { getOwnPropertyValue, isObjectLike } from '@podverse/helpers';
 /** Aligns with MetaBoost mbrss-v1 ingest / `createMbrssV1BoostSchema`. */
 export const MBRSS_V1_CURRENCY_BTC = 'BTC';
 
-/** Metaboost uses `satoshis` (see `@metaboost/helpers` `MBRSS_V1_SATOSHIS_UNIT`). */
-export const MBRSS_V1_AMOUNT_UNIT_SATOSHIS = 'satoshis';
+/** Metaboost uses `satoshi` for BTC amount_unit. */
+export const MBRSS_V1_AMOUNT_UNIT_SATOSHI = 'satoshi';
 
 export const MBRSS_V1_BOOST_ACTION = 'boost' as const;
 export const MBRSS_V1_STREAM_ACTION = 'stream' as const;
@@ -15,7 +15,7 @@ export type MbrssV1CreateBoostAction = typeof MBRSS_V1_BOOST_ACTION | typeof MBR
 export type MbrssV1CreateBoostClientPayload = {
   currency: typeof MBRSS_V1_CURRENCY_BTC;
   amount: number;
-  amount_unit: typeof MBRSS_V1_AMOUNT_UNIT_SATOSHIS;
+  amount_unit: typeof MBRSS_V1_AMOUNT_UNIT_SATOSHI;
   action: MbrssV1CreateBoostAction;
   app_name: string;
   feed_guid: string;
@@ -58,7 +58,7 @@ export const buildMbrssV1CreateBoostRequest = (
   const body: MbrssV1CreateBoostClientPayload = {
     currency: MBRSS_V1_CURRENCY_BTC,
     amount: amountSat,
-    amount_unit: MBRSS_V1_AMOUNT_UNIT_SATOSHIS,
+    amount_unit: MBRSS_V1_AMOUNT_UNIT_SATOSHI,
     action: params.action,
     app_name: params.appName,
     feed_guid: params.feedGuid.trim(),

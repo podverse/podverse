@@ -303,7 +303,20 @@
       "sender_blocked_preflight_fallback": "",
       "sender_blocked_modal_title": "",
       "sender_blocked_modal_primary": "",
-      "sender_blocked_post_fallback": ""
+      "sender_blocked_post_fallback": "",
+      "threshold_notice": "",
+      "threshold_missing_metadata": "",
+      "threshold_amount_unit_missing": "",
+      "threshold_amount_unit_invalid": "",
+      "threshold_conversion_unavailable": "",
+      "threshold_conversion_unavailable_guidance": "",
+      "amount_input_invalid_number": "",
+      "amount_input_too_many_decimals": "",
+      "amount_input_not_supported": "",
+      "public_messages_loading": "",
+      "public_messages_unavailable": "",
+      "public_messages_empty": "",
+      "public_amount_btc_token": ""
     },
     "types": {
       "lightning": {

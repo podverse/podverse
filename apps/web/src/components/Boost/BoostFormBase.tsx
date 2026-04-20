@@ -6,7 +6,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 
 import type { DTOChannel, DTOItem } from '@podverse/helpers';
 import { isLnaddressRecipient } from '@podverse/v4v-btc-ln';
-import type { MetaBoost } from '@podverse/v4v-metaboost';
+import type { MetaBoost, PublicBucketConversionErrorCode } from '@podverse/v4v-metaboost';
 
 import { useAccount } from '../../contexts/Account';
 import { useConfig } from '../../contexts/Config';
@@ -24,6 +24,7 @@ import { BoostRecipientInfo } from './BoostRecipientInfo';
 import { BoostRecipientStatusList } from './BoostRecipientStatusList';
 import type { MbrssV1RssContext } from './donateMbrssV1RssContext';
 import { DonateSuccessConfetti } from './DonateSuccessConfetti';
+import { convertBoostThresholdAmount } from './hooks/boostThresholdConversion';
 import { useBoostAppRecipients } from './hooks/useBoostAppRecipients';
 import { useBoostPayments } from './hooks/useBoostPayments';
 import { useBoostRecipients } from './hooks/useBoostRecipients';
@@ -240,10 +241,33 @@ export const BoostFormBase: React.FC<BoostFormBaseProps> = ({
     termsOfServiceUrl: mbrssV1TermsOfServiceUrl,
     senderBlocked: mbrssV1SenderBlocked,
     senderBlockMessage: mbrssV1SenderBlockMessage,
+    preferredCurrency: mbrssV1PreferredCurrency,
+    minimumMessageAmountMinor: mbrssV1MinimumMessageAmountMinor,
+    conversionEndpointUrl: mbrssV1ConversionEndpointUrl,
   } = useMbrssV1BoostCapability(metaBoost, {
     fetchEnabled: loggedInAccount !== null,
     senderGuid: loggedInAccount?.sender_guid ?? null,
   });
+  const [thresholdNameMessageBlocked, setThresholdNameMessageBlocked] = useState(false);
+  const [thresholdNotice, setThresholdNotice] = useState<string | null>(null);
+
+  const getThresholdConversionErrorNotice = (
+    code: PublicBucketConversionErrorCode | 'missing_metadata'
+  ): string => {
+    if (code === 'missing_metadata') {
+      return tValue('boost_messages.threshold_missing_metadata');
+    }
+    if (code === 'missing_amount_unit') {
+      return tValue('boost_messages.threshold_amount_unit_missing');
+    }
+    if (code === 'invalid_amount_unit') {
+      return tValue('boost_messages.threshold_amount_unit_invalid');
+    }
+    if (code === 'request_failed') {
+      return tValue('boost_messages.threshold_conversion_unavailable');
+    }
+    return tValue('boost_messages.threshold_conversion_unavailable_guidance');
+  };
 
   const messageMaxLength = useMemo((): number | undefined => {
     if (metaBoost === null) {
@@ -308,6 +332,86 @@ export const BoostFormBase: React.FC<BoostFormBaseProps> = ({
       : !includeAppRecipient && includeCreatorRecipients
         ? totalAmountToCreator
         : totalAmountToCreator + totalAmountToApp;
+  const normalizedBoostAmountMinor = Math.max(0, Math.round(effectiveTotal));
+
+  useEffect(() => {
+    let cancelled = false;
+    setThresholdNameMessageBlocked(false);
+    setThresholdNotice(null);
+
+    const evaluateThreshold = async (): Promise<void> => {
+      if (metaBoost === null || mbrssV1CapabilityStatus !== 'success') {
+        return;
+      }
+      const thresholdAmountMinor = mbrssV1MinimumMessageAmountMinor ?? 0;
+      if (thresholdAmountMinor <= 0) {
+        return;
+      }
+      const preferredCurrency = mbrssV1PreferredCurrency?.trim().toUpperCase() ?? null;
+      if (preferredCurrency === null || preferredCurrency === '') {
+        if (cancelled) {
+          return;
+        }
+        setThresholdNameMessageBlocked(true);
+        setThresholdNotice(getThresholdConversionErrorNotice('missing_metadata'));
+        return;
+      }
+      if (mbrssV1ConversionEndpointUrl === null || mbrssV1ConversionEndpointUrl.trim() === '') {
+        if (cancelled) {
+          return;
+        }
+        setThresholdNameMessageBlocked(true);
+        setThresholdNotice(getThresholdConversionErrorNotice('missing_metadata'));
+        return;
+      }
+
+      const conversionResult = await convertBoostThresholdAmount({
+        sourceCurrency: 'BTC',
+        sourceAmountMinor: normalizedBoostAmountMinor,
+        sourceAmountUnit: 'satoshi',
+        context: {
+          preferredCurrency,
+          minimumMessageAmountMinor: thresholdAmountMinor,
+          conversionEndpointUrl: mbrssV1ConversionEndpointUrl,
+        },
+      });
+
+      if (cancelled) {
+        return;
+      }
+      if (!conversionResult.ok) {
+        setThresholdNameMessageBlocked(true);
+        setThresholdNotice(getThresholdConversionErrorNotice(conversionResult.code));
+        return;
+      }
+
+      const convertedAmountMinor = conversionResult.target.amountMinor;
+      const belowThreshold = convertedAmountMinor < thresholdAmountMinor;
+
+      setThresholdNameMessageBlocked(belowThreshold);
+      setThresholdNotice(
+        tValue('boost_messages.threshold_notice', {
+          minimumAmountMinor: thresholdAmountMinor,
+          preferredCurrency,
+          convertedAmountMinor,
+        })
+      );
+    };
+
+    void evaluateThreshold();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    mbrssV1CapabilityStatus,
+    mbrssV1ConversionEndpointUrl,
+    mbrssV1MinimumMessageAmountMinor,
+    mbrssV1PreferredCurrency,
+    metaBoost,
+    normalizedBoostAmountMinor,
+  ]);
+
   const totalAmountZeroOrLess = effectiveTotal <= 0;
   const hasResults = recipientStatuses.length > 0 && !isSubmitting;
   const allFailed =
@@ -365,6 +469,8 @@ export const BoostFormBase: React.FC<BoostFormBaseProps> = ({
               mbrssV1MessageLoading={mbrssV1MessageLoading}
               mbrssV1CapabilityFailed={mbrssV1CapabilityFailed}
               mbrssV1SenderBlockedPreflightMessage={mbrssV1SenderBlockedPreflightMessage}
+              thresholdNameMessageBlocked={thresholdNameMessageBlocked}
+              thresholdMessageNotice={thresholdNotice}
               tValue={tValue}
               tMisc={tMisc}
               brandName={config.public.brand.name}

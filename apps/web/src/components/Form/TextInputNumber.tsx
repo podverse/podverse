@@ -12,6 +12,8 @@ type TextInputNumberProps = React.InputHTMLAttributes<HTMLInputElement> & {
   step?: number;
   eyebrow?: string;
   sideText?: string;
+  prefix?: string;
+  infoError?: string;
 };
 
 const TextInputNumber: React.FC<TextInputNumberProps> = ({
@@ -22,6 +24,8 @@ const TextInputNumber: React.FC<TextInputNumberProps> = ({
   step = 1,
   eyebrow,
   sideText,
+  prefix,
+  infoError,
   ...rest
 }) => {
   // Only allow numbers and empty string
@@ -43,6 +47,8 @@ const TextInputNumber: React.FC<TextInputNumberProps> = ({
         step={step}
         eyebrow={eyebrow}
         suffix={sideText}
+        prefix={prefix}
+        infoError={infoError}
         onWheel={(e) => (e.target as HTMLInputElement).blur()} // Prevent scroll changing value
         {...rest}
       />

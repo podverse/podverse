@@ -303,7 +303,20 @@
       "sender_blocked_preflight_fallback": "Έχετε αποκλειστεί από την αποστολή μηνυμάτων σε αυτόν τον παραλήπτη.",
       "sender_blocked_modal_title": "Το μήνυμα δεν έγινε αποδεκτό",
       "sender_blocked_modal_primary": "Κλείσιμο",
-      "sender_blocked_post_fallback": "Έχετε αποκλειστεί από την αποστολή μηνυμάτων σε αυτόν τον παραλήπτη."
+      "sender_blocked_post_fallback": "Έχετε αποκλειστεί από την αποστολή μηνυμάτων σε αυτόν τον παραλήπτη.",
+      "threshold_notice": "Το ελάχιστο ποσό για να στείλετε μήνυμα με τη δωρεά σας είναι {minimumAmountMinor} {preferredCurrency} (μετατρεπόμενη τιμή: {convertedAmountMinor} {preferredCurrency}).",
+      "threshold_missing_metadata": "Δεν είναι δυνατή η επαλήθευση του ορίου μηνύματος boost επειδή λείπουν απαιτούμενα μεταδεδομένα νομίσματος.",
+      "threshold_amount_unit_missing": "Δεν είναι δυνατή η επαλήθευση του ορίου μηνύματος boost επειδή λείπουν μεταδεδομένα μονάδας ποσού.",
+      "threshold_amount_unit_invalid": "Δεν είναι δυνατή η επαλήθευση του ορίου μηνύματος boost επειδή τα μεταδεδομένα μονάδας ποσού δεν είναι έγκυρα.",
+      "threshold_conversion_unavailable": "Η μετατροπή του ορίου μηνύματος boost δεν είναι προσωρινά διαθέσιμη.",
+      "threshold_conversion_unavailable_guidance": "Δοκιμάστε ξανά σε λίγο, ή συνεχίστε με μεγαλύτερο ποσό για να συμπεριλάβετε μήνυμα.",
+      "amount_input_invalid_number": "Εισαγάγετε έγκυρο ποσό.",
+      "amount_input_too_many_decimals": "Αυτό το ποσό επιτρέπει έως {decimals} δεκαδικά για {currency}.",
+      "amount_input_not_supported": "Η μορφοποίηση νομίσματος δεν υποστηρίζεται για {currency}.",
+      "public_messages_loading": "Φόρτωση μηνυμάτων…",
+      "public_messages_unavailable": "τα μηνύματα από αυτόν τον διακομιστή δεν είναι δημόσια διαθέσιμα αυτή τη στιγμή",
+      "public_messages_empty": "Δεν υπάρχουν ακόμα διαθέσιμα μηνύματα.",
+      "public_amount_btc_token": "BTC"
     },
     "types": {
       "lightning": {
