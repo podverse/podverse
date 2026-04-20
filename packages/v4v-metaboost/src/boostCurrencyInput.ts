@@ -23,15 +23,59 @@ const BOOST_INPUT_CURRENCY_SPECS = {
     canonicalAmountUnit: 'won',
     minorUnitExponent: 0,
   },
+  CAD: {
+    canonicalAmountUnit: 'cents',
+    minorUnitExponent: 2,
+  },
+  AUD: {
+    canonicalAmountUnit: 'cents',
+    minorUnitExponent: 2,
+  },
+  CHF: {
+    canonicalAmountUnit: 'rappen',
+    minorUnitExponent: 2,
+  },
+  NZD: {
+    canonicalAmountUnit: 'cents',
+    minorUnitExponent: 2,
+  },
+  SEK: {
+    canonicalAmountUnit: 'ore',
+    minorUnitExponent: 2,
+  },
+  NOK: {
+    canonicalAmountUnit: 'ore',
+    minorUnitExponent: 2,
+  },
+  DKK: {
+    canonicalAmountUnit: 'ore',
+    minorUnitExponent: 2,
+  },
+  INR: {
+    canonicalAmountUnit: 'paise',
+    minorUnitExponent: 2,
+  },
+  BRL: {
+    canonicalAmountUnit: 'centavos',
+    minorUnitExponent: 2,
+  },
+  MXN: {
+    canonicalAmountUnit: 'centavos',
+    minorUnitExponent: 2,
+  },
+  ZAR: {
+    canonicalAmountUnit: 'cents',
+    minorUnitExponent: 2,
+  },
+  SGD: {
+    canonicalAmountUnit: 'cents',
+    minorUnitExponent: 2,
+  },
+  HKD: {
+    canonicalAmountUnit: 'cents',
+    minorUnitExponent: 2,
+  },
 } as const;
-
-const FALLBACK_CURRENCY_SYMBOLS: Record<string, string> = {
-  USD: '$',
-  EUR: '€',
-  GBP: '£',
-  JPY: '¥',
-  KRW: '₩',
-};
 
 const MAJOR_UNIT_INPUT_REGEX = /^-?\d+(\.\d+)?$/;
 
@@ -62,6 +106,17 @@ export type ParseMajorUnitToMinorResult =
       message: string;
     };
 
+export type FormatMinorAmountDisplayParams = {
+  amountMinor: number;
+  currency: string;
+  locale?: string;
+  resolveAmountUnitLabel: (input: {
+    canonicalAmountUnit: string;
+    currency: SupportedBoostInputCurrency;
+    amountMinor: number;
+  }) => string;
+};
+
 const normalizeCurrencyCode = (currency: string): SupportedBoostInputCurrency | null => {
   const normalized = currency.trim().toUpperCase();
   if (Object.hasOwn(BOOST_INPUT_CURRENCY_SPECS, normalized)) {
@@ -91,10 +146,10 @@ const resolveSymbolPrefix = (
       return part.value;
     }
   } catch {
-    // Fallback map handles unsupported runtime formatting cases.
+    return null;
   }
 
-  return FALLBACK_CURRENCY_SYMBOLS[currency] ?? null;
+  return null;
 };
 
 export const getBoostCurrencyInputSpec = (currency: string): BoostCurrencyInputSpec | null => {
@@ -178,4 +233,40 @@ export const parseMajorUnitToMinorAmount = (
     ok: true,
     minorAmount,
   };
+};
+
+export const formatMinorAmountDisplay = ({
+  amountMinor,
+  currency,
+  locale,
+  resolveAmountUnitLabel,
+}: FormatMinorAmountDisplayParams): string | null => {
+  const spec = getBoostCurrencyInputSpec(currency);
+  if (spec === null) {
+    return null;
+  }
+
+  const normalizedAmountMinor = Math.max(0, Math.round(amountMinor));
+  if (spec.currency !== 'BTC') {
+    const amountMajor = normalizedAmountMinor / 10 ** spec.minorUnitExponent;
+    try {
+      return new Intl.NumberFormat(locale, {
+        style: 'currency',
+        currency: spec.currency,
+      }).format(amountMajor);
+    } catch {
+      return null;
+    }
+  }
+
+  const formattedAmountMinor = new Intl.NumberFormat(locale, {
+    maximumFractionDigits: 0,
+  }).format(normalizedAmountMinor);
+  const formattedUnit = resolveAmountUnitLabel({
+    canonicalAmountUnit: spec.canonicalAmountUnit,
+    currency: spec.currency,
+    amountMinor: normalizedAmountMinor,
+  }).trim();
+
+  return formattedUnit === '' ? formattedAmountMinor : `${formattedAmountMinor} ${formattedUnit}`;
 };

@@ -305,6 +305,9 @@
       "sender_blocked_modal_primary": "",
       "sender_blocked_post_fallback": "",
       "threshold_notice": "",
+      "currency_minor_units": {
+        "satoshis": ""
+      },
       "threshold_below_minimum_modal_title": "",
       "threshold_below_minimum_modal_body": "",
       "threshold_send_without_message": "",

@@ -304,7 +304,10 @@
       "sender_blocked_modal_title": "Mensaje no aceptado",
       "sender_blocked_modal_primary": "Cerrar",
       "sender_blocked_post_fallback": "Has sido bloqueado para enviar mensajes a este destinatario.",
-      "threshold_notice": "La cantidad minima para enviar un mensaje con tu donacion es {minimumAmountMinor} {preferredCurrency} (valor convertido: {convertedAmountMinor} {preferredCurrency}).",
+      "threshold_notice": "El monto minimo de boost requerido por este servidor MetaBoost es {minimumAmountDisplay}.",
+      "currency_minor_units": {
+        "satoshis": "{count, plural, one {sat} other {sats}}"
+      },
       "threshold_below_minimum_modal_title": "Cantidad por debajo del minimo para mensaje",
       "threshold_below_minimum_modal_body": "Esta cantidad ahora está por debajo del minimo necesario para incluir un mensaje. ¿Quieres enviar este boost sin mensaje?",
       "threshold_send_without_message": "Enviar sin mensaje",

@@ -1,12 +1,13 @@
 'use client';
 
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import type { ReactNode } from 'react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 
 import type { DTOChannel, DTOItem } from '@podverse/helpers';
 import { isLnaddressRecipient } from '@podverse/v4v-btc-ln';
 import {
+  formatMinorAmountDisplay,
   getBoostCurrencyInputFormatMetadata,
   type MetaBoost,
   type PublicBucketConversionSnapshotErrorCode,
@@ -117,6 +118,7 @@ export const BoostFormBase: React.FC<BoostFormBaseProps> = ({
   const tValue = useTranslations('value');
   const tMisc = useTranslations('misc');
   const tDonate = useTranslations('donate');
+  const locale = useLocale();
   const hasSuccessOverride =
     successPrimaryButtonLabel !== undefined && successPrimaryButtonOnClick !== undefined;
   const [totalAmountToCreator, setTotalAmountToCreator] = useState<number>(() => {
@@ -436,14 +438,28 @@ export const BoostFormBase: React.FC<BoostFormBaseProps> = ({
 
       const convertedAmountMinor = conversionResult.target.amountMinor;
       const belowThreshold = convertedAmountMinor < thresholdAmountMinor;
+      const minimumAmountDisplay = formatMinorAmountDisplay({
+        amountMinor: thresholdAmountMinor,
+        currency: preferredCurrency,
+        locale,
+        resolveAmountUnitLabel: ({ canonicalAmountUnit, amountMinor }) =>
+          tValue(`boost_messages.currency_minor_units.${canonicalAmountUnit}`, {
+            count: amountMinor,
+          }),
+      });
+      if (minimumAmountDisplay === null) {
+        setThresholdNameMessageBlocked(true);
+        setThresholdNotice(tValue('boost_messages.threshold_missing_metadata'));
+        return;
+      }
 
       setThresholdNameMessageBlocked(belowThreshold);
       setThresholdNotice(
-        tValue('boost_messages.threshold_notice', {
-          minimumAmountMinor: thresholdAmountMinor,
-          preferredCurrency,
-          convertedAmountMinor,
-        })
+        belowThreshold
+          ? tValue('boost_messages.threshold_notice', {
+              minimumAmountDisplay,
+            })
+          : null
       );
     };
 
@@ -461,6 +477,7 @@ export const BoostFormBase: React.FC<BoostFormBaseProps> = ({
     normalizedBoostAmountMinor,
     sourceAmountCurrency,
     sourceAmountUnit,
+    locale,
   ]);
 
   const totalAmountZeroOrLess = effectiveTotal <= 0;

@@ -124,18 +124,6 @@ export const useBoostPayments = ({
       });
     });
   }, [setModalBoostMessageError, tValue]);
-  const promptThresholdBelowMinimum = useCallback(
-    (onSendWithoutMessage: () => void): void => {
-      setModalBoostMessageError({
-        title: tValue('boost_messages.threshold_below_minimum_modal_title'),
-        message: tValue('boost_messages.threshold_below_minimum_modal_body'),
-        primaryActionI18nKey: 'boost_messages.threshold_send_without_message',
-        onSendAnyway: onSendWithoutMessage,
-        onCancel: () => {},
-      });
-    },
-    [setModalBoostMessageError, tValue]
-  );
 
   const resolvedBlipFeedGuid = mbrssV1RssContext?.feedGuid ?? channel?.podcast_guid ?? undefined;
   const resolvedBlipFeedTitle = mbrssV1RssContext?.feedTitle ?? channel?.title ?? undefined;
@@ -441,15 +429,13 @@ export const useBoostPayments = ({
         }
       }
       const thresholdAmountMinor = thresholdMinimumMessageAmountMinor ?? 0;
+      let shouldPostMetaboostStandard = mbrssV1HttpMessagingEnabled;
       if (
-        !omitMessage &&
-        effectiveMessage.trim() !== '' &&
-        mbrssV1HttpMessagingEnabled &&
+        shouldPostMetaboostStandard &&
         thresholdAmountMinor > 0 &&
         normalizedSourceCurrency !== '' &&
         normalizedSourceAmountUnit !== '' &&
-        normalizedThresholdPreferredCurrency !== '' &&
-        normalizedThresholdConversionEndpointUrl !== ''
+        normalizedThresholdPreferredCurrency !== ''
       ) {
         const conversionResult = await convertBoostThresholdAmount({
           sourceCurrency: normalizedSourceCurrency,
@@ -458,16 +444,15 @@ export const useBoostPayments = ({
           context: {
             preferredCurrency: normalizedThresholdPreferredCurrency,
             minimumMessageAmountMinor: thresholdAmountMinor,
-            conversionEndpointUrl: normalizedThresholdConversionEndpointUrl,
+            conversionEndpointUrl:
+              normalizedThresholdConversionEndpointUrl === ''
+                ? null
+                : normalizedThresholdConversionEndpointUrl,
           },
         });
 
         if (conversionResult.ok && conversionResult.target.amountMinor < thresholdAmountMinor) {
-          setIsSubmitting(false);
-          promptThresholdBelowMinimum(() => {
-            void submitBoost(true);
-          });
-          return;
+          shouldPostMetaboostStandard = false;
         }
       }
       const desc = getMbrssV1PaymentDesc(effectiveMessage, config.public.brand.name);
@@ -475,7 +460,7 @@ export const useBoostPayments = ({
         desc,
         effectiveMessage,
         false,
-        mbrssV1HttpMessagingEnabled,
+        shouldPostMetaboostStandard,
         true,
         shouldUseMbV1
       );

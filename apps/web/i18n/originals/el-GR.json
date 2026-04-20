@@ -304,7 +304,10 @@
       "sender_blocked_modal_title": "Το μήνυμα δεν έγινε αποδεκτό",
       "sender_blocked_modal_primary": "Κλείσιμο",
       "sender_blocked_post_fallback": "Έχετε αποκλειστεί από την αποστολή μηνυμάτων σε αυτόν τον παραλήπτη.",
-      "threshold_notice": "Το ελάχιστο ποσό για να στείλετε μήνυμα με τη δωρεά σας είναι {minimumAmountMinor} {preferredCurrency} (μετατρεπόμενη τιμή: {convertedAmountMinor} {preferredCurrency}).",
+      "threshold_notice": "Το ελάχιστο ποσό boost που απαιτεί αυτός ο διακομιστής MetaBoost είναι {minimumAmountDisplay}.",
+      "currency_minor_units": {
+        "satoshis": "{count, plural, one {sat} other {sats}}"
+      },
       "threshold_below_minimum_modal_title": "Ποσό κάτω από το ελάχιστο για μήνυμα",
       "threshold_below_minimum_modal_body": "Αυτό το ποσό είναι τώρα κάτω από το ελάχιστο που απαιτείται για να συμπεριληφθεί μήνυμα. Θέλετε να στείλετε αυτό το boost χωρίς μήνυμα;",
       "threshold_send_without_message": "Αποστολή χωρίς μήνυμα",
