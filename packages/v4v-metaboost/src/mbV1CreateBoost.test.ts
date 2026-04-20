@@ -1,10 +1,10 @@
 import { describe, expect, it } from 'vitest';
 
+import { V4V_ACTION_TYPE } from './mbrssV1CreateBoost.js';
 import {
   buildMbV1CreateBoostRequest,
   isMetaboostMbV1CreateBoostResponse,
 } from './mbV1CreateBoost.js';
-import { V4V_ACTION_TYPE } from './mbrssV1CreateBoost.js';
 
 describe('buildMbV1CreateBoostRequest', () => {
   it('builds required mb-v1 request fields for boost action', () => {

@@ -1,5 +1,5 @@
-import { getOwnPropertyValue, isObjectLike } from '@podverse/helpers';
 import type { BoostAction } from '@podverse/helpers';
+import { getOwnPropertyValue, isObjectLike } from '@podverse/helpers';
 
 export type { BoostAction };
 

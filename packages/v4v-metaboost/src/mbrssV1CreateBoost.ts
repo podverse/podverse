@@ -1,5 +1,5 @@
-import { getOwnPropertyValue, isObjectLike } from '@podverse/helpers';
 import type { BoostAction } from '@podverse/helpers';
+import { getOwnPropertyValue, isObjectLike } from '@podverse/helpers';
 
 /** Aligns with MetaBoost mbrss-v1 ingest / `createMbrssV1BoostSchema`. */
 export const MBRSS_V1_CURRENCY_BTC = 'BTC';

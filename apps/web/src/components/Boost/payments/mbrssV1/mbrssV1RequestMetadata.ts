@@ -12,11 +12,11 @@ import {
   isMetaboostMbrssV1CreateBoostResponse,
   MBRSS_V1_AMOUNT_UNIT_SATOSHI,
   MBRSS_V1_AMOUNT_UNIT_SATOSHIS,
-  V4V_ACTION_TYPE,
-  MetaboostSenderBlockedPostError,
   type MbrssV1CreateBoostIngestBody,
   type MetaBoost,
+  MetaboostSenderBlockedPostError,
   normalizeMetaboostMbrssV1IngestNodeUrl,
+  V4V_ACTION_TYPE,
 } from '@podverse/v4v-metaboost';
 
 import { WEB_APP_VERSION } from '../../../../config/webAppVersion';
