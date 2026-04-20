@@ -288,7 +288,7 @@
       "successfully_sent": "Επιτυχώς:",
       "failed_to_send": "Απέτυχε:",
       "error_details_heading": "Λεπτομέρειες σφάλματος",
-      "retried_requests": "Επαναλάβαμε το αίτημα Lightning Address {count, plural, one {# φορά} other {# φορές}} πριν αποτύχει.",
+      "retried_requests": "Επαναλάβαμε το αίτημα {count, plural, one {# φορά} other {# φορές}} πριν αποτύχει.",
       "retry_attempt": "Επανάληψη {number}: ",
       "mbrssV1_capability_loading_status": "Έλεγχος διαθεσιμότητας μηνυμάτων boost",
       "mbrssV1_capability_unavailable": "Τα μηνύματα boost δεν είναι διαθέσιμα για αυτόν τον δημιουργό αυτή τη στιγμή λόγω προβλήματος διακομιστή, αλλά μπορείτε ακόμα να χρησιμοποιήσετε τη φόρμα για να στείλετε δωρεά.",
@@ -304,7 +304,7 @@
       "sender_blocked_modal_title": "Το μήνυμα δεν έγινε αποδεκτό",
       "sender_blocked_modal_primary": "Κλείσιμο",
       "sender_blocked_post_fallback": "Έχετε αποκλειστεί από την αποστολή μηνυμάτων σε αυτόν τον παραλήπτη.",
-      "threshold_notice": "Το ελάχιστο ποσό boost που απαιτεί αυτός ο διακομιστής MetaBoost είναι {minimumAmountDisplay}.",
+      "threshold_notice": "Το ελάχιστο ποσό ενίσχυσης που απαιτεί αυτός ο δημιουργός είναι {minimumAmountDisplay}.",
       "currency_minor_units": {
         "satoshis": "{count, plural, one {sat} other {sats}}"
       },
@@ -316,6 +316,7 @@
       "threshold_amount_unit_invalid": "Δεν είναι δυνατή η επαλήθευση του ορίου μηνύματος boost επειδή τα μεταδεδομένα μονάδας ποσού δεν είναι έγκυρα.",
       "threshold_conversion_unavailable": "Η μετατροπή του ορίου μηνύματος boost δεν είναι προσωρινά διαθέσιμη.",
       "threshold_conversion_unavailable_guidance": "Δοκιμάστε ξανά σε λίγο, ή συνεχίστε με μεγαλύτερο ποσό για να συμπεριλάβετε μήνυμα.",
+      "baseline_estimate_tooltip_text": "Αυτή η εκτίμηση μετατροπής χρησιμοποιεί πρόσφατα δεδομένα συναλλαγματικής και μπορεί να διαφέρει κατά τον διακανονισμό της πληρωμής. Επαληθεύστε τη συναλλαγματική ισοτιμία ανεξάρτητα.",
       "amount_input_invalid_number": "Εισαγάγετε έγκυρο ποσό.",
       "amount_input_too_many_decimals": "Αυτό το ποσό επιτρέπει έως {decimals} δεκαδικά για {currency}.",
       "amount_input_not_supported": "Η μορφοποίηση νομίσματος δεν υποστηρίζεται για {currency}.",

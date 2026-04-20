@@ -316,6 +316,7 @@
       "threshold_amount_unit_invalid": "",
       "threshold_conversion_unavailable": "",
       "threshold_conversion_unavailable_guidance": "",
+      "baseline_estimate_tooltip_text": "",
       "amount_input_invalid_number": "",
       "amount_input_too_many_decimals": "",
       "amount_input_not_supported": "",

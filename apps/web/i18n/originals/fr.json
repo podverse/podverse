@@ -288,7 +288,7 @@
       "successfully_sent": "Réussi :",
       "failed_to_send": "Échec :",
       "error_details_heading": "Détails de l'erreur",
-      "retried_requests": "Nous avons réessayé la demande d'adresse Lightning {count, plural, one {# fois} other {# fois}} avant qu'elle échoue.",
+      "retried_requests": "Nous avons réessayé la demande {count, plural, one {# fois} other {# fois}} avant qu'elle échoue.",
       "retry_attempt": "Réessai {number} : ",
       "mbrssV1_capability_loading_status": "Vérification de la disponibilité des messages boost",
       "mbrssV1_capability_unavailable": "Les messages boost ne sont pas disponibles pour ce créateur pour le moment en raison d'un problème de serveur, mais vous pouvez toujours utiliser le formulaire pour envoyer un don.",
@@ -304,7 +304,7 @@
       "sender_blocked_modal_title": "Message refusé",
       "sender_blocked_modal_primary": "Fermer",
       "sender_blocked_post_fallback": "Vous ne pouvez plus envoyer de messages à ce destinataire.",
-      "threshold_notice": "Le montant minimum de boost requis par ce serveur MetaBoost est {minimumAmountDisplay}.",
+      "threshold_notice": "Le montant minimum de boost exigé par ce créateur est de {minimumAmountDisplay}.",
       "currency_minor_units": {
         "satoshis": "{count, plural, one {sat} other {sats}}"
       },
@@ -316,6 +316,7 @@
       "threshold_amount_unit_invalid": "Le seuil des messages boost ne peut pas être vérifié, car les métadonnées d'unité de montant sont invalides.",
       "threshold_conversion_unavailable": "La conversion du seuil des messages boost est temporairement indisponible.",
       "threshold_conversion_unavailable_guidance": "Réessayez dans un instant, ou continuez avec un montant plus élevé pour inclure un message.",
+      "baseline_estimate_tooltip_text": "Cette estimation de conversion utilise des données de cours récents et peut différer lors du règlement du paiement. Veuillez vérifier le taux de conversion vous-même.",
       "amount_input_invalid_number": "Saisissez un montant valide.",
       "amount_input_too_many_decimals": "Ce montant autorise jusqu'à {decimals} décimales pour {currency}.",
       "amount_input_not_supported": "Le format de devise n'est pas pris en charge pour {currency}.",
@@ -449,7 +450,7 @@
       "minutes_remaining": "Limite de fréquence : {minutes} minutes avant que vous puissiez utiliser à nouveau cette action."
     },
     "try_again": "Réessayez",
-    "reload_page": "Rcharger la page",
+    "reload_page": "Recharger la page",
     "return_to_home_page": "Aller à l'accueil"
   },
   "donate": {
