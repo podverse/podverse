@@ -5,12 +5,14 @@ import { useTranslations } from 'next-intl';
 import { SearchInput } from '../../components/Form/SearchInput';
 import { useSearchPageContext } from './SearchPageContext';
 
+import styles from './SearchPageListHeader.module.scss';
+
 export function SearchPageListHeader() {
   const { setSearchParams } = useSearchPageContext();
   const tFeatures = useTranslations('features');
 
   return (
-    <div>
+    <div className={styles.searchInputWrapper}>
       <SearchInput
         onSearch={(value: string) => {
           setSearchParams({ q: value });
