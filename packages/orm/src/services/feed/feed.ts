@@ -158,6 +158,20 @@ export class FeedService {
     return this.repositoryReadWrite.save(feed);
   }
 
+  async tryStartParsing(id: number, maxParsingAgeMinutes = 15): Promise<boolean> {
+    const parsingStaleBefore = new Date(Date.now() - maxParsingAgeMinutes * 60 * 1000);
+    const now = new Date();
+    const result = await this.repositoryReadWrite
+      .createQueryBuilder()
+      .update(Feed)
+      .set({ is_parsing: now })
+      .where('id = :id', { id })
+      .andWhere('(is_parsing IS NULL OR is_parsing < :parsingStaleBefore)', { parsingStaleBefore })
+      .execute();
+
+    return (result.affected ?? 0) > 0;
+  }
+
   async updateFlagStatus(feed: Feed, feed_flag_status_id: FeedFlagStatusStatusEnum): Promise<Feed> {
     const feedFlagStatusService = new FeedFlagStatusService();
     const feed_flag_status = await feedFlagStatusService.get(feed_flag_status_id);

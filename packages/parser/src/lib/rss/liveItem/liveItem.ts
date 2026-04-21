@@ -2,6 +2,7 @@ import { loggerService } from '@parser/factories/loggerService.js';
 import { timerManager } from '@parser/factories/timerManager.js';
 import type { ItemTimerAccumulator } from '@parser/lib/rss/item/item.js';
 import { createItemTimerAccumulator, handleParsedItem } from '@parser/lib/rss/item/item.js';
+import { dedupeByStableKey, getParsedItemStableKey } from '@parser/lib/rss/itemStableKey.js';
 import type { Episode } from 'podverse-partytime';
 import type { Phase4PodcastLiveItem } from 'podverse-partytime/dist/parser/phase/phase-4.js';
 
@@ -20,6 +21,17 @@ export type HandleParsedLiveItemsResult = {
 };
 
 type LiveItemObjDto = CompatLiveItemDto;
+
+const dedupeLiveItemObjDtos = (
+  liveItemObjDtos: LiveItemObjDto[],
+  itemKeysToSkip: Set<string>
+): LiveItemObjDto[] => {
+  return dedupeByStableKey(
+    liveItemObjDtos,
+    (liveItemObjDto) => getParsedItemStableKey(liveItemObjDto.item),
+    itemKeysToSkip
+  );
+};
 
 const processLiveItemBatch = async (
   liveItemObjDtosBatch: LiveItemObjDto[],
@@ -87,7 +99,8 @@ const logTimerAccumulator = (timerAccumulator: Record<string, number>) => {
 export const handleParsedLiveItems = async (
   parsedLiveItems: Phase4PodcastLiveItem[],
   channel: Channel,
-  channelSeasonIndex: ChannelSeasonIndex
+  channelSeasonIndex: ChannelSeasonIndex,
+  itemKeysToSkip: Set<string> = new Set()
 ): Promise<HandleParsedLiveItemsResult> => {
   const itemService = new ItemService();
   const liveItemService = new LiveItemService();
@@ -103,7 +116,10 @@ export const handleParsedLiveItems = async (
   const updatedLiveItemItemIds: number[] = [];
   const pendingItemGuids: string[] = [];
   const liveItemGuids: string[] = [];
-  const liveItemObjDtos = compatLiveItemsDtos(parsedLiveItems);
+  const liveItemObjDtos = dedupeLiveItemObjDtos(
+    compatLiveItemsDtos(parsedLiveItems),
+    itemKeysToSkip
+  );
 
   const timerAccumulator = createItemTimerAccumulator();
 

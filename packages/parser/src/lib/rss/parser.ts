@@ -47,6 +47,7 @@ import { handleNewItemNotifications } from '../notifications/handleNewItemNotifi
 import { handleNewLiveItemNotifications } from '../notifications/handleNewLiveItemNotifications.js';
 import { FeedIsParsingError, FeedNoChangesSinceLastParsedError } from './errors.js';
 import { getParsedFeedMd5Hash } from './hash/parsedFeed.js';
+import { createParsedItemStableKeySet } from './itemStableKey.js';
 
 /*
   NOTE: All RSS feeds that have a podcast_index_id will be saved to the database.
@@ -135,6 +136,7 @@ export const parseRSSFeedAndSaveToDatabase = async (
   const feedService = new FeedService();
   let feed = null;
   let channel = null;
+  let parsingLockAcquired = false;
 
   const timerFullRunLabel = `parseRSSFeedAndSaveToDatabase ${url} ${podcast_index_id}`;
   timerManager.start(timerFullRunLabel);
@@ -162,10 +164,13 @@ export const parseRSSFeedAndSaveToDatabase = async (
       );
     }
 
+    parsingLockAcquired = await feedService.tryStartParsing(feed.id);
+    if (!parsingLockAcquired) {
+      throw new FeedIsParsingError(feed.id);
+    }
+
     parsedFeed = await handleRequestRSSFeed(feed);
     feed = await handleParsedFeed(parsedFeed, feed, options);
-    // A race condition is possible. Save "is_parsing" state to valkey instead?
-    await feedService.update(feed.id, { is_parsing: new Date() });
 
     if (checkIfSpamFeed(parsedFeed)) {
       await feedService.updateFlagStatus(feed, FeedFlagStatusStatusEnum.Spam);
@@ -197,6 +202,8 @@ export const parseRSSFeedAndSaveToDatabase = async (
 
     loggerService.info(`item count: ${parsedFeed.items.length}`);
 
+    const parsedItemStableKeys = createParsedItemStableKeySet(parsedFeed.items);
+
     const newItemIdentifiers: HandleParsedItemsResult = await handleParsedItems(
       parsedFeed.items,
       channel,
@@ -223,7 +230,8 @@ export const parseRSSFeedAndSaveToDatabase = async (
       newLiveItemIdentifiers = await handleParsedLiveItems(
         parsedFeed.podcastLiveItems,
         channel,
-        channelSeasonIndex
+        channelSeasonIndex,
+        parsedItemStableKeys
       );
     }
 
@@ -267,14 +275,17 @@ export const parseRSSFeedAndSaveToDatabase = async (
       `Finished parsing channel: ${channel?.id} ${channel?.id_text} feed: ${feed?.id} url: ${url} podcast_index_id: ${podcast_index_id}`
     );
     timerManager.endAll();
-    if (feed) {
+    if (feed && parsingLockAcquired) {
+      const feedUpdateDto: {
+        is_parsing: null;
+        last_parsed_file_hash?: string;
+      } = {
+        is_parsing: null,
+      };
       if (parsedFeed) {
-        const currentFeedFileHash = getParsedFeedMd5Hash(parsedFeed);
-        await feedService.update(feed.id, {
-          is_parsing: null,
-          last_parsed_file_hash: currentFeedFileHash,
-        });
+        feedUpdateDto.last_parsed_file_hash = getParsedFeedMd5Hash(parsedFeed);
       }
+      await feedService.update(feed.id, feedUpdateDto);
     }
 
     if (onDemandParserEvent) {
