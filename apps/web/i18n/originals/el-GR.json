@@ -304,6 +304,12 @@
       "sender_blocked_modal_title": "Το μήνυμα δεν έγινε αποδεκτό",
       "sender_blocked_modal_primary": "Κλείσιμο",
       "sender_blocked_post_fallback": "Έχετε αποκλειστεί από την αποστολή μηνυμάτων σε αυτόν τον παραλήπτη.",
+      "owner_terms_not_accepted_modal_title": "Το μήνυμα δεν έγινε αποδεκτό",
+      "owner_terms_not_accepted_modal_primary": "Κλείσιμο",
+      "owner_terms_not_accepted_post_fallback": "Αυτός ο δημιουργός δεν μπορεί να λάβει μεταδεδομένα μηνυμάτων μέχρι να αποδεχτεί τους πιο πρόσφατους όρους.",
+      "metaboost_post_failed_modal_title": "Το μήνυμα δεν έγινε αποδεκτό",
+      "metaboost_post_failed_modal_primary": "Κλείσιμο",
+      "metaboost_post_failed_fallback": "Αυτός ο διακομιστής δεν μπόρεσε να καταγράψει το μήνυμα.",
       "threshold_notice": "Το ελάχιστο ποσό ενίσχυσης που απαιτεί αυτός ο δημιουργός είναι {minimumAmountDisplay}.",
       "currency_minor_units": {
         "satoshis": "{count, plural, one {sat} other {sats}}"

@@ -304,6 +304,12 @@
       "sender_blocked_modal_title": "",
       "sender_blocked_modal_primary": "",
       "sender_blocked_post_fallback": "",
+      "owner_terms_not_accepted_modal_title": "",
+      "owner_terms_not_accepted_modal_primary": "",
+      "owner_terms_not_accepted_post_fallback": "",
+      "metaboost_post_failed_modal_title": "",
+      "metaboost_post_failed_modal_primary": "",
+      "metaboost_post_failed_fallback": "",
       "threshold_notice": "",
       "currency_minor_units": {
         "satoshis": ""

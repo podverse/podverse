@@ -1,10 +1,4 @@
-import {
-  type DTOChannel,
-  type DTOItem,
-  getErrorResponseBodyCode,
-  getErrorResponseBodyMessage,
-  getErrorResponseStatus,
-} from '@podverse/helpers';
+import { type DTOChannel, type DTOItem } from '@podverse/helpers';
 import { request } from '@podverse/helpers-requests';
 import {
   buildMbrssV1CreateBoostRequest,
@@ -12,8 +6,9 @@ import {
   isMetaboostMbrssV1CreateBoostResponse,
   type MbrssV1CreateBoostIngestBody,
   type MetaBoost,
-  MetaboostSenderBlockedPostError,
+  MetaboostCapabilityPreflightError,
   normalizeMetaboostMbrssV1IngestNodeUrl,
+  throwKnownMetaboostPostError,
   V4V_ACTION_TYPE,
 } from '@podverse/v4v-metaboost';
 
@@ -55,12 +50,12 @@ export const postMbrssV1BoostMessage = async ({
   metaboostTotalMsat,
   senderGuid,
   onMetaboostUnreachable,
-}: PostMbrssV1BoostMessageParams): Promise<string | null> => {
+}: PostMbrssV1BoostMessageParams): Promise<string> => {
   try {
     await fetchMbrssV1BoostCapability(metaBoost.node, { senderGuid });
   } catch {
     await onMetaboostUnreachable();
-    return null;
+    throw new MetaboostCapabilityPreflightError();
   }
 
   const totalMsat = Math.max(0, Math.round(metaboostTotalMsat));
@@ -114,23 +109,11 @@ export const postMbrssV1BoostMessage = async ({
     return res.data;
   };
 
-  const throwIfSenderBlockedError = (error: unknown): void => {
-    if (
-      getErrorResponseStatus(error) === 403 &&
-      getErrorResponseBodyCode(error) === 'sender_blocked'
-    ) {
-      const msg = getErrorResponseBodyMessage(error);
-      throw new MetaboostSenderBlockedPostError(
-        msg !== undefined && msg.trim() !== '' ? msg.trim() : ''
-      );
-    }
-  };
-
   let responseData: unknown;
   try {
     responseData = await postIngestBody(JSON.stringify(body));
   } catch (error: unknown) {
-    throwIfSenderBlockedError(error);
+    throwKnownMetaboostPostError(error);
     throw error;
   }
 

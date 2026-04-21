@@ -304,6 +304,12 @@
       "sender_blocked_modal_title": "Message refusé",
       "sender_blocked_modal_primary": "Fermer",
       "sender_blocked_post_fallback": "Vous ne pouvez plus envoyer de messages à ce destinataire.",
+      "owner_terms_not_accepted_modal_title": "Message refusé",
+      "owner_terms_not_accepted_modal_primary": "Fermer",
+      "owner_terms_not_accepted_post_fallback": "Ce créateur ne peut pas recevoir de métadonnées de message tant qu'il n'a pas accepté les derniers termes.",
+      "metaboost_post_failed_modal_title": "Message refusé",
+      "metaboost_post_failed_modal_primary": "Fermer",
+      "metaboost_post_failed_fallback": "Ce serveur n'a pas pu enregistrer le message.",
       "threshold_notice": "Le montant minimum de boost exigé par ce créateur est de {minimumAmountDisplay}.",
       "currency_minor_units": {
         "satoshis": "{count, plural, one {sat} other {sats}}"

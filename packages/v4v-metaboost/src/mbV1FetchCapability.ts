@@ -29,6 +29,7 @@ export const parseMbV1BoostCapabilityResponse = (data: unknown): MetaBoostCapabi
   if (schema !== META_BOOST_SCHEMA_MB_V1) {
     throw new Error('mb-v1 capability schema is not mb-v1');
   }
+  // Strict policy: required capability fields must be valid or the response is rejected.
   if (typeof limitRaw !== 'number' || !Number.isFinite(limitRaw) || limitRaw < 0) {
     throw new Error('mb-v1 capability message_char_limit is invalid');
   }

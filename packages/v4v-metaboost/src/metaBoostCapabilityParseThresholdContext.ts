@@ -49,6 +49,8 @@ export const parseCapabilityThresholdContextFields = (
     throw new Error('capability response must be an object');
   }
 
+  // Strict policy: optional threshold fields may be omitted, but if provided
+  // they must be valid. Invalid provided values hard-fail capability parsing.
   return {
     preferredCurrency: parseOptionalNonEmptyString(
       getOwnPropertyValue(data, 'preferred_currency'),

@@ -35,6 +35,7 @@ export const parseMbrssV1BoostCapabilityResponse = (
   if (schema !== META_BOOST_SCHEMA_MBRSS_V1) {
     throw new Error('mbrss-v1 capability schema is not mbrss-v1');
   }
+  // Strict policy: required capability fields must be valid or the response is rejected.
   if (typeof limitRaw !== 'number' || !Number.isFinite(limitRaw) || limitRaw < 0) {
     throw new Error('mbrss-v1 capability message_char_limit is invalid');
   }

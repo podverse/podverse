@@ -304,6 +304,12 @@
       "sender_blocked_modal_title": "Message not accepted",
       "sender_blocked_modal_primary": "Close",
       "sender_blocked_post_fallback": "You have been blocked from sending messages to this recipient.",
+      "owner_terms_not_accepted_modal_title": "Message not accepted",
+      "owner_terms_not_accepted_modal_primary": "Close",
+      "owner_terms_not_accepted_post_fallback": "This creator cannot receive message metadata until they accept the latest terms.",
+      "metaboost_post_failed_modal_title": "Message not accepted",
+      "metaboost_post_failed_modal_primary": "Close",
+      "metaboost_post_failed_fallback": "The message could not be recorded by this server.",
       "threshold_notice": "The minimum boost amount required by this creator is {minimumAmountDisplay}.",
       "currency_minor_units": {
         "satoshis": "{count, plural, one {sat} other {sats}}"
