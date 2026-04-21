@@ -3,6 +3,10 @@ import { AccountFollowingChannel } from '@orm/entities/account/accountFollowingC
 import { Clip } from '@orm/entities/clip.js';
 import { Item } from '@orm/entities/item/item.js';
 import { PlaylistResource } from '@orm/entities/playlist/playlistResource.js';
+import {
+  buildItemMapsForDedup,
+  findDuplicateItemForDedup,
+} from '@orm/services/deduplicator.helpers.js';
 import type { EntityManager } from 'typeorm';
 
 export class DeduplicatorService {
@@ -49,17 +53,7 @@ export class DeduplicatorService {
     guidMap: Map<string, Item>;
     guidEnclosureUrlMap: Map<string, Item>;
   } {
-    const guidMap = new Map<string, Item>();
-    const guidEnclosureUrlMap = new Map<string, Item>();
-    for (const item of items) {
-      if (item.guid) {
-        guidMap.set(item.guid, item);
-      }
-      if (item.guid_enclosure_url) {
-        guidEnclosureUrlMap.set(item.guid_enclosure_url, item);
-      }
-    }
-    return { guidMap, guidEnclosureUrlMap };
+    return buildItemMapsForDedup(items);
   }
 
   private findDuplicateItem(
@@ -67,16 +61,7 @@ export class DeduplicatorService {
     guidMap: Map<string, Item>,
     guidEnclosureUrlMap: Map<string, Item>
   ): Item | undefined {
-    if (itemToArchive.guid && guidMap.has(itemToArchive.guid)) {
-      return guidMap.get(itemToArchive.guid);
-    }
-    if (
-      itemToArchive.guid_enclosure_url &&
-      guidEnclosureUrlMap.has(itemToArchive.guid_enclosure_url)
-    ) {
-      return guidEnclosureUrlMap.get(itemToArchive.guid_enclosure_url);
-    }
-    return undefined;
+    return findDuplicateItemForDedup(itemToArchive, guidMap, guidEnclosureUrlMap);
   }
 
   private async updateClipAndPlaylistResource(

@@ -3,6 +3,7 @@ import { Feed } from '@orm/entities/feed/feed.js';
 import { FeedFlagStatusStatusEnum } from '@orm/entities/feed/feedFlagStatus.js';
 import { applyProperties } from '@orm/lib/applyProperties.js';
 
+import { computeParsingStaleBefore, deriveHttpsAndHttpUrlsFromInput } from './feed.helpers.js';
 import { FeedFlagStatusService } from './feedFlagStatus.js';
 
 type FeedCreateDto = {
@@ -47,9 +48,7 @@ export class FeedService {
   }
 
   async getByUrl({ url }: { url: string }): Promise<Feed | null> {
-    const base = url.replace(/^https?:\/\//i, '');
-    const httpsUrl = `https://${base}`;
-    const httpUrl = `http://${base}`;
+    const { httpsUrl, httpUrl } = deriveHttpsAndHttpUrlsFromInput(url);
 
     const httpsFeed = await this.repositoryRead.findOne({
       where: {
@@ -159,7 +158,7 @@ export class FeedService {
   }
 
   async tryStartParsing(id: number, maxParsingAgeMinutes = 15): Promise<boolean> {
-    const parsingStaleBefore = new Date(Date.now() - maxParsingAgeMinutes * 60 * 1000);
+    const parsingStaleBefore = computeParsingStaleBefore(Date.now(), maxParsingAgeMinutes);
     const now = new Date();
     const result = await this.repositoryReadWrite
       .createQueryBuilder()

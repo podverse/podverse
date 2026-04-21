@@ -9,6 +9,7 @@ import { Strategy as LocalStrategy } from 'passport-local';
 import { AccountMembershipEnum, AuthCookieName, ERROR_MESSAGES } from '@podverse/helpers';
 import { AccountService } from '@podverse/orm';
 
+import { normalizeEmailForBinding } from './normalizeEmailForBinding.js';
 import { verifyPassword } from './password.js';
 
 /**
@@ -16,10 +17,6 @@ import { verifyPassword } from './password.js';
  * `token` unless AUTH_ALLOW_TOKEN_IN_RESPONSE_BODY=true and the client sends includeTokenInResponseBody.
  */
 const isProduction = config.nodeEnv === 'production';
-
-function normalizeEmailForBinding(email: string): string {
-  return email.trim().toLowerCase();
-}
 
 const setAuthCookie = (res: Response, token: string) => {
   const maxAge = config.auth.sessionCookieMaxAgeMs;

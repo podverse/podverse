@@ -2,6 +2,8 @@ import { ensureAuthenticated } from '@api/lib/auth/index.js';
 import type { NextFunction, Request, Response } from 'express';
 import rateLimit from 'express-rate-limit';
 
+import { buildRateLimit429Body, deriveRateLimitResetTimeMs } from './rateLimitPayload.js';
+
 export interface RateLimiterOptions {
   windowMs: number;
   max: number;
@@ -15,14 +17,10 @@ function buildHandler(windowMs: number) {
   return (req: Request, res: Response) => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const resetTime = (req as any).rateLimit?.resetTime as Date | undefined;
-    const timeUntilResetMs = resetTime ? resetTime.getTime() : Date.now() + windowMs;
-    const minutesRemainingRaw = Math.ceil((timeUntilResetMs - Date.now()) / 60000);
-    const minutesRemaining = minutesRemainingRaw < 1 ? 1 : minutesRemainingRaw;
-    res.status(429).json({
-      tooManyRequests: true,
-      timeUntilResetMs,
-      minutesRemaining,
-    });
+    const nowMs = Date.now();
+    const resetTimeMs = deriveRateLimitResetTimeMs(resetTime, windowMs, nowMs);
+    const timeUntilResetMs = resetTimeMs - nowMs;
+    res.status(429).json(buildRateLimit429Body(timeUntilResetMs));
   };
 }
 

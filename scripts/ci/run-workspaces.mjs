@@ -126,8 +126,21 @@ const failures = [];
 for (const workspace of workspaces) {
   const collector = createLineCollector(80);
 
+  /** When stdout is piped (stdio pipe), Vitest/tinyrainbow disable ANSI; FORCE_COLOR restores colors in the parent terminal. */
+  const spawnEnv = { ...process.env };
+  if (
+    scriptName === 'test' &&
+    process.stdout.isTTY &&
+    spawnEnv.FORCE_COLOR === undefined &&
+    spawnEnv.NO_COLOR === undefined &&
+    spawnEnv.NODE_DISABLE_COLORS === undefined
+  ) {
+    spawnEnv.FORCE_COLOR = '1';
+  }
+
   const child = spawn('npm', ['run', scriptName, '--if-present', '-w', workspace.id], {
     stdio: ['inherit', 'pipe', 'pipe'],
+    env: spawnEnv,
   });
 
   child.stdout.on('data', (chunk) => {
