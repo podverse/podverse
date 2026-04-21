@@ -12,7 +12,7 @@ import type {
   PodcastIndexSearchPodcastsResponse,
   PodcastsByTagResponse,
 } from '@podverse/helpers';
-import type { ILoggerLike } from '@podverse/helpers-backend';
+import { type ILoggerLike, summarizeUpstreamHttpErrorForLog } from '@podverse/helpers-backend';
 import { type AxiosRequestConfig, requestWithUserAgent } from '@podverse/helpers-requests';
 
 type Constructor = {
@@ -77,18 +77,9 @@ export class PodcastIndexService {
       );
 
       return response?.data;
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error: any) {
-      const errorDetails = {
-        url,
-        errorMessage: error?.message,
-        errorStack: error?.stack,
-        errorResponse: error?.response?.data,
-        errorStatus: error?.response?.status,
-      };
-      this.loggerService.logError(
-        `[PodcastIndex] Request failed: ${JSON.stringify(errorDetails, null, 2)}`
-      );
+    } catch (error: unknown) {
+      const summary = summarizeUpstreamHttpErrorForLog(error, { requestUrl: url });
+      this.loggerService.logError(`[PodcastIndex] Request failed: ${JSON.stringify(summary)}`);
       throw error;
     }
   };
@@ -380,8 +371,14 @@ export class PodcastIndexService {
     try {
       const response = await this.podcastIndexAPIRequest(url);
       return response || [];
-    } catch (error) {
-      this.loggerService.logError('[PodcastIndex] searchPodcasts failed', { term, error });
+    } catch (error: unknown) {
+      const summary = summarizeUpstreamHttpErrorForLog(error, { requestUrl: url });
+      this.loggerService.logError(
+        `[PodcastIndex] searchPodcasts failed: ${JSON.stringify({
+          ...summary,
+          searchTermCharCount: term.length,
+        })}`
+      );
       return null;
     }
   };
@@ -451,8 +448,11 @@ export class PodcastIndexService {
     try {
       const data = await this.podcastIndexAPIRequest(url);
       return data as EpisodeByGuidResponse;
-    } catch (error) {
-      console.error('PodcastIndex episodeGetByGuid error', error);
+    } catch (error: unknown) {
+      const summary = summarizeUpstreamHttpErrorForLog(error, { requestUrl: url });
+      this.loggerService.logError(
+        `[PodcastIndex] episodeGetByGuid failed: ${JSON.stringify(summary)}`
+      );
       return null;
     }
   };

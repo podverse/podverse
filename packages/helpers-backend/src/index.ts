@@ -7,3 +7,4 @@ export * from './logTimer.js';
 export * from './os.js';
 export * from './playlistResource.js';
 export * from './redactForLog.js';
+export * from './summarizeUpstreamHttpErrorForLog.js';

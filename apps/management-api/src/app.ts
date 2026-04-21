@@ -37,23 +37,23 @@ app.use(initializePassport());
 
 const baseUrl = `${config.api.prefix}${config.api.version}`;
 
+app.get(`${baseUrl}/`, (_req: Request, res: Response) => {
+  res.send(`Podverse Management API is running on port ${port}`);
+});
+
+app.use(authRouter);
+app.use(adminAccountRouter);
+
+app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
+  console.error('API Router Error:', err);
+
+  if (!res.headersSent) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
 export const startApp = async (): Promise<import('http').Server | undefined> => {
   try {
-    app.get(`${baseUrl}/`, (_req: Request, res: Response) => {
-      res.send(`Podverse Management API is running on port ${port}`);
-    });
-
-    app.use(authRouter);
-    app.use(adminAccountRouter);
-
-    app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
-      console.error('API Router Error:', err);
-
-      if (!res.headersSent) {
-        res.status(500).json({ message: err.message });
-      }
-    });
-
     const server = app.listen(port, () => {
       // eslint-disable-next-line no-console
       console.log(`Podverse Management API is running on port ${port}`);

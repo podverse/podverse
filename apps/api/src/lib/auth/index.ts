@@ -1,21 +1,20 @@
 import { config } from '@api/config/index.js';
 import type { CookieOptions, NextFunction, Request, Response } from 'express';
-import jwt from 'jsonwebtoken';
+import jwt, { type SignOptions } from 'jsonwebtoken';
 import passport from 'passport';
 import type { VerifiedCallback } from 'passport-jwt';
 import { ExtractJwt, Strategy as JwtStrategy } from 'passport-jwt';
 import { Strategy as LocalStrategy } from 'passport-local';
 
-import {
-  AccountMembershipEnum,
-  AuthCookieName,
-  ERROR_MESSAGES,
-  ONE_YEAR_MS,
-} from '@podverse/helpers';
+import { AccountMembershipEnum, AuthCookieName, ERROR_MESSAGES } from '@podverse/helpers';
 import { AccountService } from '@podverse/orm';
 
 import { verifyPassword } from './password.js';
 
+/**
+ * Sessions: JWT TTL and cookie max-age come from AUTH_JWT_EXPIRES_IN (default `365d`). Login responses omit
+ * `token` unless AUTH_ALLOW_TOKEN_IN_RESPONSE_BODY=true and the client sends includeTokenInResponseBody.
+ */
 const isProduction = config.nodeEnv === 'production';
 
 function normalizeEmailForBinding(email: string): string {
@@ -23,6 +22,7 @@ function normalizeEmailForBinding(email: string): string {
 }
 
 const setAuthCookie = (res: Response, token: string) => {
+  const maxAge = config.auth.sessionCookieMaxAgeMs;
   if (isProduction) {
     const prodCookieOptions: CookieOptions = {
       httpOnly: true,
@@ -30,7 +30,7 @@ const setAuthCookie = (res: Response, token: string) => {
       sameSite: 'lax',
       domain: config.api.cookie.domain,
       path: '/',
-      maxAge: ONE_YEAR_MS,
+      maxAge,
     };
     res.cookie(AuthCookieName, token, prodCookieOptions);
   } else {
@@ -39,7 +39,7 @@ const setAuthCookie = (res: Response, token: string) => {
       secure: false, // dev only
       sameSite: 'strict',
       path: '/',
-      maxAge: ONE_YEAR_MS,
+      maxAge,
     });
   }
 };
@@ -169,15 +169,18 @@ export const authenticate = (req: Request, res: Response, next: NextFunction) =>
       }
       const email = normalizeEmailForBinding(rawEmail);
 
-      const token = jwt.sign({ id: user.id, email }, config.auth.jwtSecret, { expiresIn: '365d' });
+      const token = jwt.sign({ id: user.id, email }, config.auth.jwtSecret, {
+        expiresIn: config.auth.jwtExpiresIn,
+      } as SignOptions);
 
       setAuthCookie(res, token);
 
       const response: { message: string; token?: string } = {
         message: 'Authenticated successfully',
       };
-      if (req.body.includeTokenInResponseBody) {
-        response['token'] = token;
+      const body = req.body as { includeTokenInResponseBody?: unknown } | undefined;
+      if (config.auth.allowTokenInResponseBody && Boolean(body?.includeTokenInResponseBody)) {
+        response.token = token;
       }
 
       return res.json(response);
@@ -328,12 +331,12 @@ export const getAuthenticatedUser = (req: Request): Express.User => {
 };
 
 export const logout = (_req: Request, res: Response) => {
-  // Clear possible host-only cookie (older deployments or dev)
+  // Clear cookie without Domain (covers host-only cookies without a trailing dot domain).
   res.clearCookie(AuthCookieName, {
     path: '/',
   });
 
-  // If in production and you set a domain cookie, clear that too
+  // In production also clear the cookie scoped to COOKIE_DOMAIN (cross-subdomain auth).
   if (isProduction) {
     res.clearCookie(AuthCookieName, {
       path: '/',

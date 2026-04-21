@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion -- env vars validated at startup in lib/startup/validation.ts */
 
-import { getEffectiveUserAgent } from '@podverse/helpers';
+import { getEffectiveUserAgent, jwtExpiresInToMilliseconds } from '@podverse/helpers';
 
 type Config = {
   nodeEnv: string;
@@ -10,6 +10,9 @@ type Config = {
   };
   auth: {
     jwtSecret: string;
+    jwtExpiresIn: string;
+    sessionCookieMaxAgeMs: number;
+    allowTokenInResponseBody: boolean;
   };
   api: {
     port: number;
@@ -46,9 +49,16 @@ export const config: Config = {
   log: {
     level: process.env.LOG_LEVEL!,
   },
-  auth: {
-    jwtSecret: process.env.AUTH_JWT_SECRET!,
-  },
+  auth: (() => {
+    const jwtExpiresIn = (process.env.AUTH_JWT_EXPIRES_IN ?? '365d').trim();
+
+    return {
+      jwtSecret: process.env.AUTH_JWT_SECRET!,
+      jwtExpiresIn,
+      sessionCookieMaxAgeMs: jwtExpiresInToMilliseconds(jwtExpiresIn),
+      allowTokenInResponseBody: process.env.AUTH_ALLOW_TOKEN_IN_RESPONSE_BODY === 'true',
+    };
+  })(),
   api: {
     port: parseInt(process.env.API_PORT!, 10),
     prefix: process.env.API_PREFIX!,

@@ -11,6 +11,7 @@
     "dev:sidecar": "env PORT=3101 DOTENV_CONFIG_PATH=sidecar/.env node -r dotenv/config sidecar/dist/server.js",
     "lint": "eslint ./src --max-warnings 0",
     "lint:fix": "eslint ./src --fix",
+    "test": "vitest run",
     "start": "next start",
     "clean": "rm -rf .next",
     "validate-env": "ts-node --project tsconfig.scripts.json scripts/validate-env.ts",
@@ -50,6 +51,7 @@
     "nodemon": "^3.1.14",
     "openai": "^6.27.0",
     "ts-node": "^10.9.2",
-    "typescript": "^5.9.2"
+    "typescript": "^5.9.2",
+    "vitest": "^3.2.4"
   }
 }

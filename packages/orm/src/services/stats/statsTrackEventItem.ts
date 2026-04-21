@@ -6,9 +6,7 @@ import { BaseStatsTrackEventService } from './baseStatsTrackEvent.js';
 
 export class StatsTrackEventItemService extends BaseStatsTrackEventService<StatsTrackEventItem> {
   protected entity = StatsTrackEventItem;
-  protected entityName = 'stats_track_event_item';
   protected entityIdField = 'item_id';
-  protected entityIdTextField = 'item_id_text';
   private itemService: ItemService;
 
   constructor() {

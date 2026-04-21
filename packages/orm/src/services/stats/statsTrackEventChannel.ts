@@ -6,9 +6,7 @@ import { BaseStatsTrackEventService } from './baseStatsTrackEvent.js';
 
 export class StatsTrackEventChannelService extends BaseStatsTrackEventService<StatsTrackEventChannel> {
   protected entity = StatsTrackEventChannel;
-  protected entityName = 'stats_track_event_channel';
   protected entityIdField = 'channel_id';
-  protected entityIdTextField = 'channel_id_text';
   private channelService: ChannelService;
 
   constructor() {

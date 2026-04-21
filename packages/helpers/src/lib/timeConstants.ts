@@ -44,6 +44,38 @@ export const ONE_YEAR_MS =
 /** Default HTTP request timeout in ms. */
 export const DEFAULT_HTTP_TIMEOUT_MS = 5000;
 
+/**
+ * Converts a jsonwebtoken-style `expiresIn` string (or seconds as decimal digits) to milliseconds
+ * for cookie max-age alignment. Supports `s`, `m`, `h`, `d` suffixes (e.g. `365d`, `12h`, `3600` seconds).
+ * Unknown shapes fall back to {@link ONE_YEAR_MS}.
+ */
+export function jwtExpiresInToMilliseconds(expiresIn: string): number {
+  const s = expiresIn.trim().toLowerCase();
+  const secondsOnly = /^(\d+)$/.exec(s);
+  const secNum = secondsOnly?.[1];
+  if (secNum !== undefined) {
+    return parseInt(secNum, 10) * MS_PER_SECOND;
+  }
+  const unit = /^(\d+)\s*([smhd])$/.exec(s);
+  if (!unit?.[1] || !unit[2]) {
+    return ONE_YEAR_MS;
+  }
+  const n = parseInt(unit[1], 10);
+  const mult = unit[2];
+  switch (mult) {
+    case 's':
+      return n * MS_PER_SECOND;
+    case 'm':
+      return n * ONE_MINUTE_MS;
+    case 'h':
+      return n * ONE_HOUR_MS;
+    case 'd':
+      return n * HOURS_PER_DAY * ONE_HOUR_MS;
+    default:
+      return ONE_YEAR_MS;
+  }
+}
+
 /** Default delay between poll attempts in ms (e.g. server-ready checks). */
 export const DEFAULT_POLL_DELAY_MS = 1000;
 

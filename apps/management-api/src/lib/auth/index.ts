@@ -1,7 +1,11 @@
+/**
+ * Sessions: JWT TTL/cookie max-age use AUTH_JWT_EXPIRES_IN (default `365d`). Login JSON includes `token`
+ * only when AUTH_ALLOW_TOKEN_IN_RESPONSE_BODY=true and the client sends includeTokenInResponseBody.
+ */
 import { config } from '@mgmt-api/config/index.js';
 import { AdminAccountService } from '@mgmt-api/orm/services/adminAccount.js';
 import type { CookieOptions, NextFunction, Request, Response } from 'express';
-import jwt from 'jsonwebtoken';
+import jwt, { type SignOptions } from 'jsonwebtoken';
 import passport from 'passport';
 import { ExtractJwt, Strategy as JwtStrategy } from 'passport-jwt';
 import { Strategy as LocalStrategy } from 'passport-local';
@@ -10,6 +14,7 @@ const isProduction = config.nodeEnv === 'production';
 const ADMIN_AUTH_COOKIE_NAME = 'pv_mgmt_auth';
 
 const setAuthCookie = (res: Response, token: string) => {
+  const maxAge = config.auth.sessionCookieMaxAgeMs;
   if (isProduction) {
     const prodCookieOptions: CookieOptions = {
       httpOnly: true,
@@ -17,7 +22,7 @@ const setAuthCookie = (res: Response, token: string) => {
       sameSite: 'lax',
       domain: config.api.cookie.domain,
       path: '/',
-      maxAge: 365 * 24 * 60 * 60 * 1000,
+      maxAge,
     };
     res.cookie(ADMIN_AUTH_COOKIE_NAME, token, prodCookieOptions);
   } else {
@@ -26,7 +31,7 @@ const setAuthCookie = (res: Response, token: string) => {
       secure: false,
       sameSite: 'strict',
       path: '/',
-      maxAge: 365 * 24 * 60 * 60 * 1000,
+      maxAge,
     });
   }
 };
@@ -106,15 +111,18 @@ export const authenticate = (req: Request, res: Response, next: NextFunction) =>
         return res.status(401).json({ message: info?.message || 'Unauthorized' });
       }
 
-      const token = jwt.sign({ id: user.id }, config.auth.jwtSecret, { expiresIn: '365d' });
+      const token = jwt.sign({ id: user.id }, config.auth.jwtSecret, {
+        expiresIn: config.auth.jwtExpiresIn,
+      } as SignOptions);
 
       setAuthCookie(res, token);
 
       const response: { message: string; token?: string } = {
         message: 'Authenticated successfully',
       };
-      if (req.body.includeTokenInResponseBody) {
-        response['token'] = token;
+      const body = req.body as { includeTokenInResponseBody?: unknown } | undefined;
+      if (config.auth.allowTokenInResponseBody && Boolean(body?.includeTokenInResponseBody)) {
+        response.token = token;
       }
 
       return res.json(response);

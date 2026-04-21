@@ -2,6 +2,8 @@ import classNames from 'classnames';
 import NextLink from 'next/link';
 import React from 'react';
 
+import { getSafeLinkHref } from '@podverse/helpers';
+
 import styles from '../../styles/components/Link/Link.module.scss';
 
 type CustomLinkProps = {
@@ -39,7 +41,23 @@ export const Link: React.FC<CustomLinkProps> = ({
 }) => {
   const linkClassName = color === 'primary' ? styles.link : styles.linkSecondary;
 
-  if (href) {
+  const safeHref = href !== undefined ? getSafeLinkHref(href) : undefined;
+  const hrefBlocked = Boolean(href) && safeHref === undefined;
+
+  if (hrefBlocked) {
+    return (
+      <span
+        className={classNames(linkClassName, className, styles.disabled)}
+        aria-disabled="true"
+        style={style}
+        title={title}
+      >
+        {children}
+      </span>
+    );
+  }
+
+  if (safeHref) {
     if (disabled) {
       return (
         <span
@@ -56,7 +74,7 @@ export const Link: React.FC<CustomLinkProps> = ({
     if (fullPageLoad) {
       return (
         <a
-          href={href}
+          href={safeHref}
           className={classNames(linkClassName, className)}
           tabIndex={tabIndex}
           aria-label={ariaLabel}
@@ -72,7 +90,7 @@ export const Link: React.FC<CustomLinkProps> = ({
 
     return (
       <NextLink
-        href={href}
+        href={safeHref}
         className={classNames(linkClassName, className)}
         tabIndex={tabIndex}
         aria-label={ariaLabel}

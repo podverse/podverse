@@ -5,6 +5,8 @@
   "type": "module",
   "description": "Runtime-config sidecar for podverse-web",
   "scripts": {
+    "test": "exit 0",
+    "lint": "exit 0",
     "build": "tsc",
     "bundle": "esbuild src/server.ts --bundle --platform=node --format=esm --outfile=dist/server.js"
   },

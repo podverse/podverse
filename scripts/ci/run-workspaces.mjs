@@ -155,8 +155,15 @@ for (const workspace of workspaces) {
   }
 }
 
+const summaryTitle =
+  scriptName === 'test'
+    ? 'Test Summary'
+    : scriptName === 'build' || scriptName === 'build:prod'
+      ? 'Build Summary'
+      : `${scriptName} summary`;
+
 if (failures.length > 0) {
-  console.error('\n=== Build Summary ===');
+  console.error(`\n=== ${summaryTitle} ===`);
   for (const failure of failures) {
     console.error(`\n- ${failure.workspace} (exit ${failure.exitCode})`);
     for (const line of failure.tail) {
@@ -166,4 +173,4 @@ if (failures.length > 0) {
   process.exit(1);
 }
 
-console.log('\nAll workspace builds completed successfully.');
+console.log(`\nAll workspace "${scriptName}" runs completed successfully.`);

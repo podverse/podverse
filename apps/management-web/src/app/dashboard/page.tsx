@@ -1,66 +1,13 @@
-'use client';
+import { redirect } from 'next/navigation';
 
-import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { getManagementSessionUser } from '../../lib/auth/serverManagementSession';
+import { DashboardPageClient } from './DashboardPageClient';
 
-import { Card } from '../../components/ui/Card/Card';
-import { CenterContainer } from '../../components/ui/CenterContainer/CenterContainer';
-import { LoadingText } from '../../components/ui/LoadingText/LoadingText';
-import { type CurrentUser, getCurrentUser } from '../../lib/requests/auth';
-
-import styles from './page.module.scss';
-
-export default function DashboardPage() {
-  const [user, setUser] = useState<CurrentUser | null>(null);
-  const [loading, setLoading] = useState(true);
-  const router = useRouter();
-
-  useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        const currentUser = await getCurrentUser();
-        if (!currentUser) {
-          // Not authenticated, redirect to login
-          router.push('/');
-          return;
-        }
-        setUser(currentUser);
-      } catch (error) {
-        console.error('Authentication check error:', error);
-        router.push('/');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    checkAuth();
-  }, [router]);
-
-  // Show loading state while checking authentication
-  if (loading) {
-    return (
-      <CenterContainer>
-        <LoadingText>Loading...</LoadingText>
-      </CenterContainer>
-    );
-  }
-
-  // If no user, don't render (redirect is happening)
+export default async function DashboardPage() {
+  const user = await getManagementSessionUser();
   if (!user) {
-    return null;
+    redirect('/');
   }
 
-  return (
-    <div className="container">
-      <div className="page-header">
-        <h1 className="page-title">Dashboard</h1>
-        <p className="page-subtitle">Welcome to Podverse Management</p>
-      </div>
-      <main>
-        <Card variant="bordered" className={styles.placeholderCard}>
-          <p className={styles.placeholderText}>This is a placeholder dashboard page.</p>
-        </Card>
-      </main>
-    </div>
-  );
+  return <DashboardPageClient initialUser={user} />;
 }

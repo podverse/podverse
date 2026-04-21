@@ -6,9 +6,7 @@ import { BaseStatsTrackEventService } from './baseStatsTrackEvent.js';
 
 export class StatsTrackEventAccountService extends BaseStatsTrackEventService<StatsTrackEventAccount> {
   protected entity = StatsTrackEventAccount;
-  protected entityName = 'stats_track_event_account';
   protected entityIdField = 'tracked_account_id';
-  protected entityIdTextField = 'account_id_text';
   private accountService: AccountService;
 
   constructor() {

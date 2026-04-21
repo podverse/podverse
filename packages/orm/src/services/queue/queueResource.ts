@@ -12,6 +12,11 @@ import { getAddByRSSHashId } from '@podverse/helpers';
 import { ClipService } from '../clip.js';
 import { ItemService } from '../item/item.js';
 import { ItemSoundbiteService } from '../item/itemSoundbite.js';
+import {
+  chunkIdsForInClause,
+  mergeHistoryListOptions,
+  QUEUE_IN_CLAUSE_MAX_IDS,
+} from './queueResourceListGuardrails.js';
 
 const QUEUE_LIST_POSITION_INCREMENT = 0.00000001;
 
@@ -76,22 +81,29 @@ export class QueueResourceService extends BaseManyService<QueueResource, 'queue'
       throw new Error('No queues found for account.');
     }
     const queueIds = queues.map((q) => q.id);
+    const idChunks = chunkIdsForInClause(queueIds, QUEUE_IN_CLAUSE_MAX_IDS);
 
-    return this.repositoryRead
-      .createQueryBuilder('qr')
-      .select([
-        'qr.id AS i',
-        'qr.playback_position AS p',
-        'qr.media_file_duration AS d',
-        'qr.completed AS z',
-        'qr.clip_id AS c',
-        'qr.item_id AS t',
-        'qr.item_soundbite_id AS s',
-        'qr.add_by_rss_hash_id AS a',
-      ])
-      .where('qr.queue_id IN (:...queueIds)', { queueIds })
-      .orderBy('qr.list_position', 'ASC')
-      .getRawMany();
+    const merged: any[] = [];
+    for (const ids of idChunks) {
+      const rows = await this.repositoryRead
+        .createQueryBuilder('qr')
+        .select([
+          'qr.id AS i',
+          'qr.playback_position AS p',
+          'qr.media_file_duration AS d',
+          'qr.completed AS z',
+          'qr.clip_id AS c',
+          'qr.item_id AS t',
+          'qr.item_soundbite_id AS s',
+          'qr.add_by_rss_hash_id AS a',
+        ])
+        .where('qr.queue_id IN (:...queueIds)', { queueIds: ids })
+        .orderBy('qr.list_position', 'ASC')
+        .getRawMany();
+      merged.push(...rows);
+    }
+
+    return merged;
   }
 
   async getNowPlayingByQueueIdText(queue_id_text: string): Promise<QueueResource | null> {
@@ -150,12 +162,16 @@ export class QueueResourceService extends BaseManyService<QueueResource, 'queue'
       throw new Error('Queue not found.');
     }
 
-    return this.repositoryRead.findAndCount({
-      where: { queue: { id: queue.id }, list_position: LessThanOrEqual(0) as any },
-      order: { list_position: 'DESC' as FindOptionsOrderValue },
-      relations: listResourceRelations,
-      ...options,
-    });
+    const merged = mergeHistoryListOptions(
+      {
+        where: { queue: { id: queue.id }, list_position: LessThanOrEqual(0) as any },
+        order: { list_position: 'DESC' as FindOptionsOrderValue },
+        relations: listResourceRelations,
+      },
+      options
+    );
+
+    return this.repositoryRead.findAndCount(merged);
   }
 
   async getItemsByQueueIdTextAndPosition(

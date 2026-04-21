@@ -40,6 +40,16 @@ const validateAllEnvironmentVariables = (): ValidationSummary => {
 
   // Auth & Security
   results.push(validateJwtSecret());
+  results.push(
+    validateOptional('AUTH_JWT_EXPIRES_IN', 'Auth & Security', 'Blank uses default (365d)')
+  );
+  results.push(
+    validateOptional(
+      'AUTH_ALLOW_TOKEN_IN_RESPONSE_BODY',
+      'Auth & Security',
+      'Blank/false: omit token from login JSON; true: allow token when client sends includeTokenInResponseBody'
+    )
+  );
   results.push(validateRequired('BRAND_NAME', 'Auth & Security'));
   results.push(validateUserAgent());
 
