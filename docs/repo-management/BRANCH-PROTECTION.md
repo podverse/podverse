@@ -1,10 +1,18 @@
-# Branch Protection Rules
+# Branch Protection and Required Checks
 
-This document describes the branch protection rules that should be configured in GitHub.
+This document describes merge protection for Podverse.
 
 ## Configuration Location
 
-GitHub Repository > Settings > Branches > Add branch protection rule
+Primary configuration lives in GitHub Rulesets:
+
+- GitHub Repository -> Settings -> Rules -> Rulesets
+
+Podverse currently uses an active ruleset (`develop-protection`) that applies to
+`develop`, `main`, and `alpha` and requires `validate` as a status check.
+
+Do not duplicate the same merge policy under Settings -> Branches. Keep Rulesets
+as the single source of truth to avoid conflicting enforcement behavior.
 
 ## Branch: `develop`
 
@@ -112,3 +120,10 @@ To prevent abuse of GitHub Actions by spam PRs, CI does not run automatically on
 - Collaborators with write access
 
 The workflow adds a 🚀 reaction to the `/test` comment to confirm CI has started.
+
+## Vendor-Specific Note
+
+This guide is GitHub-specific (Rulesets, branch protection, required status
+checks). Forks hosted on other git platforms (GitLab, Gitea, Bitbucket, etc.)
+must configure equivalent protected-branch and required-pipeline/check policies
+using that host's native controls.
