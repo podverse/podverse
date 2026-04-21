@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { validateOutboundFetchUrl } from '@podverse/helpers-requests';
+import { validateOutboundFetchUrl } from '@podverse/helpers-requests/outbound-http-policy';
 
 /**
  * Ensures the parser workspace resolves outbound policy from helpers-requests (same guardrails as RSS/chapter fetches).

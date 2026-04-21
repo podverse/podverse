@@ -10,6 +10,10 @@ export default defineConfig({
     alias: {
       '@parser': path.resolve(__dirname, 'src'),
       /* Tests must read current source exports before dist is rebuilt */
+      '@podverse/helpers-requests/outbound-http-policy': path.resolve(
+        __dirname,
+        '../helpers-requests/src/outboundHttpPolicy.ts'
+      ),
       '@podverse/helpers-requests': path.resolve(__dirname, '../helpers-requests/src/index.ts'),
     },
   },

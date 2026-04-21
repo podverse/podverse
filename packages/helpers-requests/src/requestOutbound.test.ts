@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { DEFAULT_OUTBOUND_MAX_RESPONSE_BYTES, requestForOutbound } from './_request.js';
+import { DEFAULT_OUTBOUND_MAX_RESPONSE_BYTES, requestForOutbound } from './_requestOutbound.js';
 import { OutboundUrlBlockedError } from './outboundHttpPolicy.js';
 
 vi.mock('axios', () => ({
