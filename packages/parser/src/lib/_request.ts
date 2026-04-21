@@ -2,7 +2,7 @@ import type { AxiosRequestConfig } from '@podverse/helpers-requests';
 import {
   requestWithHeadersWithUserAgentForOutbound,
   requestWithUserAgentForOutbound,
-} from '@podverse/helpers-requests';
+} from '@podverse/helpers-requests/outbound-requests';
 
 import { config } from '../config/index.js';
 

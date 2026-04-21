@@ -14,6 +14,10 @@ export default defineConfig({
         __dirname,
         '../helpers-requests/src/outboundHttpPolicy.ts'
       ),
+      '@podverse/helpers-requests/outbound-requests': path.resolve(
+        __dirname,
+        '../helpers-requests/src/_requestOutbound.ts'
+      ),
       '@podverse/helpers-requests': path.resolve(__dirname, '../helpers-requests/src/index.ts'),
     },
   },

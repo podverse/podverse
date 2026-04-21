@@ -11,6 +11,11 @@
       "import": "./dist/index.js",
       "default": "./dist/index.js"
     },
+    "./outbound-requests": {
+      "types": "./dist/_requestOutbound.d.ts",
+      "import": "./dist/_requestOutbound.js",
+      "default": "./dist/_requestOutbound.js"
+    },
     "./outbound-http-policy": {
       "types": "./dist/outboundHttpPolicy.d.ts",
       "import": "./dist/outboundHttpPolicy.js",
