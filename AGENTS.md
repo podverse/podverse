@@ -246,20 +246,56 @@ logger.error('Feed parsing failed', { error, feedUrl });
 
 ## Testing and Verification
 
+When implementing features or executing plans that touch **api** or **management-api**, include **integration tests** (see api-testing skill). When they touch **web** or **management-web**, include **E2E tests** (see e2e-page-tests skill).
+
+### Root npm scripts
+
+| Script                         | What it runs                                                            | Services needed                                       |
+| ------------------------------ | ----------------------------------------------------------------------- | ----------------------------------------------------- |
+| `npm run test:unit`            | Vitest in packages and apps (excludes api/management-api)               | None (pure Node)                                      |
+| `npm run test:e2e:api`         | `check-test-requirements` then Vitest in apps/api + apps/management-api | Postgres **5732**, Valkey **6679** (`make test_deps`) |
+| `npm run test:e2e:web`         | `make e2e_test` (Playwright: web + management-web)                      | Full E2E stack                                        |
+| `npm run test:e2e:web:reports` | `make e2e_test_report` (HTML step-screenshot reports)                   | Same as test:e2e:web                                  |
+| `npm run test:reports`         | `test:unit` then `test:e2e:api` then `test:e2e:web:reports`             | All tiers                                             |
+| `npm test`                     | `test:unit` then `test:e2e:api` then `test:e2e:web`                     | All tiers                                             |
+
+### Test infrastructure
+
+- **`make test_deps`** — starts Postgres (port **5732**), Valkey (port **6679**), creates test DBs (`podverse_app_test`, `podverse_management_test`), applies schema. Port coexistence: Metaboost test uses 5632/6579; Podverse dev uses 5432/6379.
+- **`scripts/check-test-requirements.mjs`** — TCP check for 5732/6679; exits with instructions if unreachable.
+- **`make help_test`** — prints test ports, container names, and instructions.
+- **Playwright browsers:** one-time install: `npx playwright install chromium`.
+
+### API integration tests
+
+- `apps/api/src/test/setup.ts` sets smart-default env (ports 5732/6679, test DB names).
+- `apps/management-api/vitest.setup.ts` sets management-api test env.
+- Run: `npm run test:e2e:api` (or `npm run test -w apps/api` for api only).
+
+### E2E (Playwright)
+
+- Web ports: API 4030, sidecar 4031, web 4032. Management-web ports: 4130, 4131, 4132.
+- Seed data: `make e2e_seed` (deterministic test users).
+- Reports: `make e2e_test_report` produces HTML with step screenshots in `.artifacts/e2e-reports/`.
+- Apps must be built before E2E: `npm run build:packages && npm run build -w apps/api && npm run build -w apps/management-api`.
+
 ### Before Submitting Changes
 
 1. **Lint passes**: `npm run lint`
 2. **Builds succeed**: `npm run build:packages`
-3. **App starts**: Test affected app with `npm run dev:api` or `npm run dev:web`
-4. **Manual verification**: Test the specific feature/fix in browser or via API
+3. **Tests pass**: `npm run test:unit` (no DB needed) and `npm run test:e2e:api` (requires `make test_deps`)
+4. **E2E pass** (if UI changed): `make e2e_test_web` or `make e2e_test_management_web`
 
-### What "Done" Means
+### Skills and rules
 
-- Code compiles without errors
-- Linting passes
-- Feature works as specified (manual test)
-- No unrelated changes included
-- Documentation updated if behavior changed
+- **feature-implementation-testing** — tests are required when touching api/management-api/web/management-web
+- **api-testing** — how to write API integration tests
+- **e2e-page-tests** — how to write E2E Playwright specs
+- **unit-test-priority-confident** — prioritize unit tests by risk
+- **unit-test-design-no-overgranularity** — avoid over-testing
+- **unit-test-new-code-gate** — require tests for new critical logic
+- **response-ending-make-verify** (skill + rule) — end responses with verification commands
+- **e2e-run-with-make-only** (rule) — always use make targets for E2E
 
 ## LLM History Tracking
 

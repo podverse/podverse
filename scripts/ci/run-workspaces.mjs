@@ -19,6 +19,15 @@ if (!scriptName) {
 const hasAll = args.includes('--all');
 const workspacesFlagIndex = args.indexOf('--workspaces');
 
+// Parse --exclude flags (repeatable): e.g. --exclude apps/api --exclude apps/management-api
+const excludedPaths = [];
+for (let i = 0; i < args.length; i += 1) {
+  if (args[i] === '--exclude' && args[i + 1] && !args[i + 1].startsWith('--')) {
+    excludedPaths.push(args[i + 1]);
+    i += 1;
+  }
+}
+
 const readWorkspacePatterns = () => {
   const packageJsonPath = path.resolve(process.cwd(), 'package.json');
   const raw = fs.readFileSync(packageJsonPath, 'utf8');
@@ -91,7 +100,16 @@ const resolveExplicitWorkspaces = () => {
 
 const workspaces = hasAll ? resolveAllWorkspaces() : resolveExplicitWorkspaces();
 
-if (workspaces.length === 0) {
+// Filter out excluded workspaces (normalize to repo-relative paths)
+const filteredWorkspaces =
+  excludedPaths.length > 0
+    ? workspaces.filter((ws) => {
+        const relPath = path.relative(process.cwd(), ws.id);
+        return !excludedPaths.includes(relPath);
+      })
+    : workspaces;
+
+if (filteredWorkspaces.length === 0) {
   console.error('No workspaces resolved. Use --all or --workspaces <list>.');
   process.exit(1);
 }
@@ -123,7 +141,7 @@ const createLineCollector = (maxLines) => {
 
 const failures = [];
 
-for (const workspace of workspaces) {
+for (const workspace of filteredWorkspaces) {
   const collector = createLineCollector(80);
 
   /** When stdout is piped (stdio pipe), Vitest/tinyrainbow disable ANSI; FORCE_COLOR restores colors in the parent terminal. */

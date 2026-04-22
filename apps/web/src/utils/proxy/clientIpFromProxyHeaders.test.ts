@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { getClientIpFromProxyHeaders } from './clientIpFromProxyHeaders.js';
+import { getClientIpFromProxyHeaders } from './clientIpFromProxyHeaders';
 
 describe('getClientIpFromProxyHeaders', () => {
   it('prefers first X-Forwarded-For address', () => {

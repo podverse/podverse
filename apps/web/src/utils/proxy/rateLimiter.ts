@@ -1,6 +1,6 @@
 import type { NextRequest } from 'next/server';
 
-import { getClientIpFromProxyHeaders } from './clientIpFromProxyHeaders.js';
+import { getClientIpFromProxyHeaders } from './clientIpFromProxyHeaders';
 import { PROXY } from './constants';
 
 interface RateLimitEntry {

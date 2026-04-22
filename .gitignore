@@ -84,3 +84,5 @@ tools/test-assets/config/ln-recipients.local.json
 secrets
 
 temp/
+
+.artifacts/

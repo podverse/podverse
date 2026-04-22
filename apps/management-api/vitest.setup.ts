@@ -1,6 +1,3 @@
-/**
- * Load before any app modules so `@mgmt-api/config` reads valid test env (see vitest.config.ts setupFiles).
- */
 process.env.NODE_ENV = 'test';
 process.env.LOG_LEVEL = 'error';
 process.env.BRAND_NAME = 'VitestBrand';
@@ -14,9 +11,9 @@ process.env.API_ALLOWED_CORS_ORIGINS = 'http://localhost:3000';
 process.env.WEB_PROTOCOL = 'http';
 process.env.WEB_DOMAIN = 'localhost';
 process.env.DB_HOST = '127.0.0.1';
-process.env.DB_PORT = '5432';
-process.env.DB_READ_USERNAME = 'test';
+process.env.DB_PORT = '5732';
+process.env.DB_READ_USERNAME = 'podverse_management_read';
 process.env.DB_READ_PASSWORD = 'test';
-process.env.DB_READ_WRITE_USERNAME = 'test';
+process.env.DB_READ_WRITE_USERNAME = 'podverse_management_read_write';
 process.env.DB_READ_WRITE_PASSWORD = 'test';
-process.env.DB_DATABASE = 'test';
+process.env.DB_DATABASE = 'podverse_management_test';
