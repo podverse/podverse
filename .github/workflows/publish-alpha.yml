@@ -1,9 +1,11 @@
-name: Publish Alpha
+name: Publish (alpha, beta, main)
 
 on:
   push:
     branches:
       - alpha
+      - beta
+      - main
   workflow_dispatch:
     inputs:
       version_override:
@@ -11,12 +13,21 @@ on:
         required: false
         type: string
 
+permissions:
+  contents: read
+  packages: read
+
 jobs:
   # Step 1: Validate everything builds and calculate unified version
   validate:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: read
     outputs:
       version: ${{ steps.version.outputs.VERSION }}
+      float_tag: ${{ steps.version.outputs.FLOAT_TAG }}
+      is_prod: ${{ steps.version.outputs.is_prod }}
     steps:
       - uses: actions/checkout@v6
 
@@ -54,13 +65,44 @@ jobs:
           if [ -n "${{ inputs.version_override }}" ]; then
             echo "Using version override: ${{ inputs.version_override }}"
             echo "VERSION=${{ inputs.version_override }}" >> $GITHUB_OUTPUT
+            R="${{ github.ref_name }}"
+            if [ "$R" = "main" ]; then
+              echo "FLOAT_TAG=prod" >> $GITHUB_OUTPUT
+              echo "is_prod=true" >> $GITHUB_OUTPUT
+            elif [ "$R" = "beta" ]; then
+              echo "FLOAT_TAG=beta" >> $GITHUB_OUTPUT
+              echo "is_prod=false" >> $GITHUB_OUTPUT
+            else
+              echo "FLOAT_TAG=alpha" >> $GITHUB_OUTPUT
+              echo "is_prod=false" >> $GITHUB_OUTPUT
+            fi
             exit 0
           fi
 
-          # Get base version from package.json (strip any existing suffix)
+          # Get base version from package.json (strip any existing suffix for prerelease; full X.Y.Z for main)
           BASE_VERSION=$(node -p "require('./package.json').version" | sed 's/-.*//')
           # Use 'api' as reference image for unified version calculation
           IMAGE_PATH="${{ github.repository }}/api"
+          REF_NAME="${{ github.ref_name }}"
+
+          if [ "$REF_NAME" = "main" ]; then
+            echo "RTM (main) publish: base $BASE_VERSION (must match clean SemVer in package.json)"
+            echo "VERSION=$BASE_VERSION" >> $GITHUB_OUTPUT
+            echo "FLOAT_TAG=prod" >> $GITHUB_OUTPUT
+            echo "is_prod=true" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          echo "is_prod=false" >> $GITHUB_OUTPUT
+          SUFFIX=alpha
+          if [ "$REF_NAME" = "beta" ]; then
+            SUFFIX=beta
+          elif [ "$REF_NAME" != "alpha" ]; then
+            echo "Unexpected ref $REF_NAME" >&2
+            exit 1
+          fi
+          echo "FLOAT_TAG=$SUFFIX" >> $GITHUB_OUTPUT
+          echo "Prerelease suffix: $SUFFIX (branch $REF_NAME)"
 
           echo "Base version: $BASE_VERSION"
           echo "Reference image path: $IMAGE_PATH"
@@ -146,30 +188,27 @@ jobs:
             echo "Raw tags JSON: $TAGS_JSON"
           fi
 
-          # Extract alpha tags for this base version
-          TAGS=$(echo "$TAGS_JSON" | jq -r '.tags[]?' 2>/dev/null | grep "^${BASE_VERSION}-alpha\." || true)
-          echo "Filtered alpha tags for ${BASE_VERSION}: $TAGS"
+          # Extract ${SUFFIX} prerelease tags for this base
+          TAGS=$(echo "$TAGS_JSON" | jq -r '.tags[]?' 2>/dev/null | grep "^${BASE_VERSION}-${SUFFIX}\." || true)
+          echo "Filtered ${SUFFIX} tags for ${BASE_VERSION}: $TAGS"
 
-          # Find the latest alpha version number
           if [ -z "$TAGS" ]; then
             if [ "$BOOTSTRAP_EMPTY_STATE" = "true" ]; then
-              echo "No existing GHCR package/tags found. Bootstrapping at ${BASE_VERSION}-alpha.0"
+              echo "No existing GHCR package found. Bootstrapping at ${BASE_VERSION}-${SUFFIX}.0"
             else
-              echo "No existing alpha tags found for ${BASE_VERSION}. Starting at alpha.0"
+              echo "No ${SUFFIX} tags for ${BASE_VERSION}. Starting at ${SUFFIX}.0"
             fi
-            NEXT_VERSION="${BASE_VERSION}-alpha.0"
+            NEXT_VERSION="${BASE_VERSION}-${SUFFIX}.0"
           else
-            # Get the highest alpha number
-            LATEST=$(echo "$TAGS" | sort -t. -k4 -n | tail -n1)
-            CURRENT_NUM=$(echo "$LATEST" | sed -En 's/.*alpha\.([0-9]+)$/\1/p')
-
+            LATEST=$(echo "$TAGS" | sort -V | tail -n1)
+            CURRENT_NUM=$(echo "$LATEST" | sed -En "s/.*[.]${SUFFIX}\.([0-9]+)\$/\1/p")
             if [ -z "$CURRENT_NUM" ]; then
-              NEXT_VERSION="${BASE_VERSION}-alpha.0"
+              NEXT_VERSION="${BASE_VERSION}-${SUFFIX}.0"
             else
               NEXT_NUM=$((CURRENT_NUM + 1))
-              NEXT_VERSION="${BASE_VERSION}-alpha.${NEXT_NUM}"
+              NEXT_VERSION="${BASE_VERSION}-${SUFFIX}.${NEXT_NUM}"
             fi
-            echo "Latest existing: $LATEST, incrementing to: $NEXT_VERSION"
+            echo "Latest existing: $LATEST, next: $NEXT_VERSION"
           fi
 
           echo "Unified version for all images: $NEXT_VERSION"
@@ -180,6 +219,9 @@ jobs:
   publish-base-images:
     needs: validate
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
     strategy:
       matrix:
         include:
@@ -214,7 +256,7 @@ jobs:
           push: true
           tags: |
             ghcr.io/${{ github.repository }}/${{ matrix.app }}:${{ steps.version.outputs.VERSION }}
-            ghcr.io/${{ github.repository }}/${{ matrix.app }}:alpha
+            ghcr.io/${{ github.repository }}/${{ matrix.app }}:${{ needs.validate.outputs.float_tag }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -223,6 +265,9 @@ jobs:
   publish-docker:
     needs: [validate, publish-base-images]
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
     strategy:
       matrix:
         include:
@@ -273,6 +318,253 @@ jobs:
             ${{ matrix.base_image_name && format('BASE_IMAGE=ghcr.io/{0}/{1}:{2}', github.repository, matrix.base_image_name, steps.version.outputs.VERSION) }}
           tags: |
             ghcr.io/${{ github.repository }}/${{ matrix.app }}:${{ steps.version.outputs.VERSION }}
-            ghcr.io/${{ github.repository }}/${{ matrix.app }}:alpha
+            ghcr.io/${{ github.repository }}/${{ matrix.app }}:${{ needs.validate.outputs.float_tag }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+  verify-published-tags:
+    needs: [validate, publish-base-images, publish-docker]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: read
+    steps:
+      - name: Verify expected tags in GHCR
+        env:
+          VERSION: ${{ needs.validate.outputs.version }}
+          FLOAT_TAG: ${{ needs.validate.outputs.float_tag }}
+          GHCR_TOKEN_PRIMARY: ${{ secrets.GHCR_REGISTRY_TOKEN }}
+          GHCR_TOKEN_FALLBACK: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          GHCR_TOKEN="$GHCR_TOKEN_PRIMARY"
+          if [ -z "$GHCR_TOKEN" ]; then
+            GHCR_TOKEN="$GHCR_TOKEN_FALLBACK"
+            echo "GHCR_REGISTRY_TOKEN not set; falling back to GITHUB_TOKEN for verification."
+          fi
+
+          APPS="web-base management-web-base api workers management-api web-deploy management-web-deploy web-runtime-config management-web-runtime-config"
+          for APP in $APPS; do
+            IMAGE_PATH="${{ github.repository }}/${APP}"
+            echo "Checking tags for ${IMAGE_PATH}"
+
+            TAGS_RESPONSE=$(curl -s -w "\n%{http_code}" \
+              -H "Authorization: Bearer $GHCR_TOKEN" \
+              "https://ghcr.io/v2/${IMAGE_PATH}/tags/list")
+            TAGS_JSON=$(echo "$TAGS_RESPONSE" | sed '$d')
+            TAGS_STATUS=$(echo "$TAGS_RESPONSE" | tail -n1)
+
+            if [ "$TAGS_STATUS" != "200" ]; then
+              echo "Tag verification failed for ${IMAGE_PATH} (HTTP ${TAGS_STATUS})."
+              exit 1
+            fi
+
+            if ! echo "$TAGS_JSON" | jq -e --arg VERSION "$VERSION" '.tags | index($VERSION)' >/dev/null; then
+              echo "Missing version tag ${VERSION} for ${IMAGE_PATH}."
+              exit 1
+            fi
+
+            if ! echo "$TAGS_JSON" | jq -e --arg T "$FLOAT_TAG" '.tags | index($T)' >/dev/null; then
+              echo "Missing floating tag ${FLOAT_TAG} for ${IMAGE_PATH}."
+              exit 1
+            fi
+          done
+
+  workflow-summary:
+    needs: [validate, verify-published-tags]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Published image version (workflow summary)
+        run: |
+          {
+            echo "## Published Docker images"
+            echo ""
+            echo "**Image version (semver tag):** \`${{ needs.validate.outputs.version }}\`"
+            echo ""
+            echo "Each image was also tagged **\`${{ needs.validate.outputs.float_tag }}\`** (floating)."
+            echo ""
+            echo "Pin GitOps to the version tag or the floating tag. Git tag **\`${{ needs.validate.outputs.version }}\`** is created on this run commit if missing."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  git-tag-prerelease:
+    needs: [validate, verify-published-tags]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Create or verify Git tag (matches GHCR prerelease tag)
+        uses: actions/github-script@v7
+        env:
+          VERSION_TAG: ${{ needs.validate.outputs.version }}
+          TARGET_SHA: ${{ github.sha }}
+        with:
+          script: |
+            const tag = process.env.VERSION_TAG;
+            const targetSha = process.env.TARGET_SHA;
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+
+            async function resolveTagToCommitSha() {
+              const { data } = await github.rest.git.getRef({
+                owner,
+                repo,
+                ref: `tags/${tag}`,
+              });
+              const obj = data.object;
+              if (obj.type === 'commit') {
+                return obj.sha;
+              }
+              if (obj.type === 'tag') {
+                const { data: tagObj } = await github.rest.git.getTag({
+                  owner,
+                  repo,
+                  tag_sha: obj.sha,
+                });
+                return tagObj.object.sha;
+              }
+              throw new Error(`Unexpected git ref object type: ${obj.type}`);
+            }
+
+            try {
+              const existingSha = await resolveTagToCommitSha();
+              if (existingSha === targetSha) {
+                core.info(`Tag ${tag} already points at ${targetSha}; noop.`);
+                return;
+              }
+              core.setFailed(
+                `Refusing to move tag ${tag}: it points at ${existingSha}, workflow commit is ${targetSha}`,
+              );
+            } catch (err) {
+              if (err.status !== 404) {
+                throw err;
+              }
+              await github.rest.git.createRef({
+                owner,
+                repo,
+                ref: `refs/tags/${tag}`,
+                sha: targetSha,
+              });
+              core.info(`Created tag ${tag} -> ${targetSha}`);
+            }
+
+  github-prerelease-create:
+    needs: [git-tag-prerelease, validate]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.sha }}
+      - name: Create GitHub release
+        uses: actions/github-script@v7
+        env:
+          IS_PROD: ${{ needs.validate.outputs.is_prod }}
+        with:
+          script: |
+            const version = "${{ needs.validate.outputs.version }}";
+            const path = "docs/operations/CHANGELOG-UPCOMING.md";
+            const fs = require("fs");
+            const isProd = process.env.IS_PROD === "true";
+            let body;
+            if (fs.existsSync(path)) {
+              body = fs.readFileSync(path, "utf8");
+            } else {
+              body = (isProd ? "Production" : "Prerelease") + " build; no " + path + " at this commit. Add the file on develop to populate future notes.";
+            }
+            const tag = version;
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const { data: list } = await github.rest.repos.listReleases({ owner, repo, per_page: 100 });
+            if (list.some((r) => r.tag_name === tag)) {
+              core.info("Release for tag " + tag + " already exists; skip.");
+              return;
+            }
+            const rel = await github.rest.repos.createRelease({
+              owner,
+              repo,
+              tag_name: tag,
+              name: tag,
+              body,
+              prerelease: !isProd,
+            });
+            core.info("Created release: " + rel.data.html_url);
+
+  changelog-pr-to-develop:
+    needs: [github-prerelease-create, git-tag-prerelease, validate]
+    if: success()
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - name: Check out develop
+        uses: actions/checkout@v6
+        with:
+          ref: develop
+      - name: Write archive and reset UPCOMING markers
+        uses: actions/github-script@v7
+        env:
+          PUBLISH_SHA: ${{ github.sha }}
+          PUBLISH_VERSION: ${{ needs.validate.outputs.version }}
+          RUN_ID: ${{ github.run_id }}
+          REF_NAME: ${{ github.ref_name }}
+        with:
+          script: |
+            const fs = require("fs");
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const ref = process.env.PUBLISH_SHA;
+            const version = process.env.PUBLISH_VERSION;
+            const runId = process.env.RUN_ID;
+            const refName = process.env.REF_NAME || "unknown";
+            const label = refName === "main" ? "production" : refName;
+            const upcomingPath = "docs/operations/CHANGELOG-UPCOMING.md";
+            let upcoming = "";
+            try {
+              const { data } = await github.rest.repos.getContent({ owner, repo, path: upcomingPath, ref });
+              if (data && data.type === "file" && "content" in data && "encoding" in data && data.encoding === "base64") {
+                upcoming = Buffer.from(String(data.content).replace(/\n/g, ""), "base64").toString("utf8");
+              }
+            } catch (e) {
+              if (e.status === 404) {
+                core.info("No " + upcomingPath + " on publish commit: " + ref);
+                upcoming = "";
+              } else {
+                throw e;
+              }
+            }
+            const safe = version.replace(/\./g, "-");
+            const dir = "docs/operations/CHANGELOG-ARCHIVE";
+            fs.mkdirSync(dir, { recursive: true });
+            const head =
+              "# Release " + version + " (" + label + ")\n\n" +
+              "From [`" + ref.substring(0, 7) + "`](https://github.com/" + owner + "/" + repo + "/commit/" + ref + "]) — " +
+              "[workflow run](" + "https://github.com/" + owner + "/" + repo + "/actions/runs/" + runId + ").\n\n";
+            fs.writeFileSync(dir + "/RELEASE-" + safe + ".md", head + (upcoming || "_(no CHANGELOG-UPCOMING.md at that commit.)_\n"));
+            if (fs.existsSync(upcomingPath)) {
+              let s = fs.readFileSync(upcomingPath, "utf8");
+              if (s.includes("UPCOMING-AUTO-START") && s.includes("UPCOMING-AUTO-END")) {
+                s = s.replace(
+                  /<!--\s*UPCOMING-AUTO-START\s*-->[\s\S]*?<!--\s*UPCOMING-AUTO-END\s*-->/m,
+                  "<!-- UPCOMING-AUTO-START -->\n" +
+                    "<!-- Add concise bullets (most important first) for the next significant changes. -->\n" +
+                    "<!-- UPCOMING-AUTO-END -->\n"
+                );
+                fs.writeFileSync(upcomingPath, s, "utf8");
+                core.setOutput("changed", "1");
+              }
+            }
+      - name: Open pull request
+        uses: peter-evans/create-pull-request@v6
+        with:
+          commit-message: "chore: archive changelog for ${{ github.ref_name }} ${{ needs.validate.outputs.version }}"
+          title: "chore: archive changelog for ${{ needs.validate.outputs.version }} (${{ github.ref_name }})"
+          body: |
+            Automated follow-up to a successful [publish](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}) on \`${{ github.ref_name }}\`.
+
+            - Archives a copy of [CHANGELOG-UPCOMING](docs/operations/CHANGELOG-UPCOMING.md) as it was on the **publish** commit, under [CHANGELOG-ARCHIVE](docs/operations/CHANGELOG-ARCHIVE/).
+            - Resets the `UPCOMING-AUTO-START` / `UPCOMING-AUTO-END` block on **develop** (when that file exists) so you can add entries for the next window.
+          base: develop
+          branch: automation/changelog-${{ github.ref_name }}-${{ needs.validate.outputs.version }}-${{ github.run_id }}
+          delete-branch: true
+          signoff: false
