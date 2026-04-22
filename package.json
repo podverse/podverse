@@ -87,7 +87,7 @@
     "dev:all:watch": "npm run build:packages && npm run build -w apps/api && npm run build -w apps/management-api && concurrently -n pkg,workers,api,web-sc,test-assets,web,mgmt-api,mgmt-sc,mgmt-web -c gray,yellow,blue,cyan,magenta,green,magentaBright,cyanBright,greenBright \"npm run watch:packages\" \"sleep 25 && npm run watch:workers\" \"sleep 21 && npm run dev:api:watch\" \"sleep 20 && npm run dev:web-sidecar\" \"sleep 24 && npm run dev:test-assets\" \"sleep 30 && npm run dev -w apps/web\" \"sleep 33 && npm run dev:management-api:watch\" \"sleep 32 && npm run dev:management-web-sidecar\" \"sleep 39 && npm run dev -w apps/management-web\"",
     "test:unit": "node scripts/ci/run-workspaces.mjs --script test --all --exclude apps/api --exclude apps/management-api",
     "test:e2e:api": "node scripts/check-test-requirements.mjs && npm run test -w apps/api && npm run test -w apps/management-api",
-    "test:e2e:web": "make e2e_test",
+    "test:e2e:web": "make e2e_test_playwright",
     "test:e2e:web:reports": "make e2e_test_report",
     "test:reports": "npm run test:unit && npm run test:e2e:api && npm run test:e2e:web:reports",
     "test": "npm run test:unit && npm run test:e2e:api && npm run test:e2e:web",

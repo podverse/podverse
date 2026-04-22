@@ -24,16 +24,19 @@ import { ItemSoundbiteService } from '@podverse/orm';
 import { handleGenericErrorResponse } from './helpers/error.js';
 import { getPaginationParams } from './helpers/pagination.js';
 
-const itemSoundbiteService = new ItemSoundbiteService();
-
 export class ItemSoundbiteController {
+  private static itemSoundbiteService = new ItemSoundbiteService();
+
   static async getItemSoundbiteById(req: Request, res: Response): Promise<void> {
     validateParamsObject(Joi.object(itemSoundbiteIdTextParamSchema), req, res, async () => {
       try {
         const item_soundbite_id_text = getParamRequired(req, 'item_soundbite_id_text');
-        const itemSoundbite = await itemSoundbiteService.getByIdText(item_soundbite_id_text, {
-          relations: ['item'],
-        });
+        const itemSoundbite = await ItemSoundbiteController.itemSoundbiteService.getByIdText(
+          item_soundbite_id_text,
+          {
+            relations: ['item'],
+          }
+        );
         if (itemSoundbite) {
           res.status(200).json(itemSoundbite);
         } else {
@@ -67,22 +70,23 @@ export class ItemSoundbiteController {
             order = { item: { pub_date: 'ASC' } };
           }
 
-          const [item_soundbites, count] = await itemSoundbiteService.getManyAndCount({
-            where: {
-              item: {
-                channel: { id_text: channel_id_text },
+          const [item_soundbites, count] =
+            await ItemSoundbiteController.itemSoundbiteService.getManyAndCount({
+              where: {
+                item: {
+                  channel: { id_text: channel_id_text },
+                },
               },
-            },
-            order,
-            skip: offset,
-            take: limit,
-            relations: [
-              'item',
-              'item.item_enclosures',
-              'item.item_enclosures.item_enclosure_sources',
-              'item.item_images',
-            ],
-          });
+              order,
+              skip: offset,
+              take: limit,
+              relations: [
+                'item',
+                'item.item_enclosures',
+                'item.item_enclosures.item_enclosure_sources',
+                'item.item_images',
+              ],
+            });
 
           const response: ApiListResponse<ItemSoundbite> = {
             data: item_soundbites,
@@ -119,20 +123,21 @@ export class ItemSoundbiteController {
             order = { item: { pub_date: 'ASC' } };
           }
 
-          const [item_soundbites, count] = await itemSoundbiteService.getManyAndCount({
-            where: {
-              item: { id_text: item_id_text },
-            },
-            order,
-            skip: offset,
-            take: limit,
-            relations: [
-              'item',
-              'item.item_enclosures',
-              'item.item_enclosures.item_enclosure_sources',
-              'item.item_images',
-            ],
-          });
+          const [item_soundbites, count] =
+            await ItemSoundbiteController.itemSoundbiteService.getManyAndCount({
+              where: {
+                item: { id_text: item_id_text },
+              },
+              order,
+              skip: offset,
+              take: limit,
+              relations: [
+                'item',
+                'item.item_enclosures',
+                'item.item_enclosures.item_enclosure_sources',
+                'item.item_images',
+              ],
+            });
 
           const response: ApiListResponse<ItemSoundbite> = {
             data: item_soundbites,

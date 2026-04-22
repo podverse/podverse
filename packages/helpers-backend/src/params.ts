@@ -14,7 +14,19 @@ export function getParam(params: Record<string, unknown>, key: string): string |
     return typeof first === 'string' ? first : null;
   }
 
-  return typeof value === 'string' ? value : null;
+  if (typeof value === 'string') {
+    return value;
+  }
+
+  if (typeof value === 'number' && !Number.isNaN(value) && Number.isFinite(value)) {
+    return String(value);
+  }
+
+  if (typeof value === 'boolean') {
+    return value ? 'true' : 'false';
+  }
+
+  return null;
 }
 
 export function getParamRequired(params: Record<string, unknown>, key: string): string {

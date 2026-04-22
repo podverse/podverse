@@ -3,7 +3,7 @@
 #     Depends on Makefile.local.test.mk (test_deps, test containers). ---
 
 .PHONY: e2e_deps e2e_seed e2e_seed_web e2e_seed_management_web
-.PHONY: e2e_test e2e_test_api e2e_test_web e2e_test_management_web
+.PHONY: e2e_test e2e_test_playwright e2e_test_api e2e_test_web e2e_test_management_web
 .PHONY: e2e_test_report e2e_test_web_report_spec e2e_test_management_web_report_spec e2e_test_report_scoped
 .PHONY: e2e_teardown
 
@@ -40,6 +40,14 @@ e2e_test_api:
 	@echo "Running API integration tests..."
 	@npm run test -w apps/api && npm run test -w apps/management-api
 
+# Web + management-web Playwright only (seeds both DBs). Does not run API Vitest; use with `npm run test:e2e:api` (or the `npm test` root script) to avoid running apps/api tests twice and duplicate Valkey/HTTP side effects.
+e2e_test_playwright: e2e_deps e2e_seed
+	@echo "=== Playwright E2E (web + management-web) ==="
+	@exit_code=0; \
+	npm run test:e2e -w @podverse/web -- --reporter=list || exit_code=$$?; \
+	npm run test:e2e -w @podverse/management-web -- --reporter=list || exit_code=$$?; \
+	exit $$exit_code
+
 # Run web Playwright tests (default list reporter)
 e2e_test_web: e2e_deps e2e_seed_web
 	@echo "Running web E2E tests..."
@@ -50,7 +58,7 @@ e2e_test_management_web: e2e_deps e2e_seed_management_web
 	@echo "Running management-web E2E tests..."
 	@npm run test:e2e -w @podverse/management-web -- --reporter=list
 
-# Full E2E: API + web + management-web
+# Full E2E: API Vitest (apps/api + management-api) + both Playwright apps. For local `npm test`, prefer `test:e2e:api` + `e2e_test_playwright` instead; this target remains for a single all-in-one run.
 e2e_test: e2e_deps e2e_seed
 	@echo "=== Full E2E suite ==="
 	@exit_code=0; \

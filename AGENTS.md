@@ -250,14 +250,14 @@ When implementing features or executing plans that touch **api** or **management
 
 ### Root npm scripts
 
-| Script                         | What it runs                                                            | Services needed                                       |
-| ------------------------------ | ----------------------------------------------------------------------- | ----------------------------------------------------- |
-| `npm run test:unit`            | Vitest in packages and apps (excludes api/management-api)               | None (pure Node)                                      |
-| `npm run test:e2e:api`         | `check-test-requirements` then Vitest in apps/api + apps/management-api | Postgres **5732**, Valkey **6679** (`make test_deps`) |
-| `npm run test:e2e:web`         | `make e2e_test` (Playwright: web + management-web)                      | Full E2E stack                                        |
-| `npm run test:e2e:web:reports` | `make e2e_test_report` (HTML step-screenshot reports)                   | Same as test:e2e:web                                  |
-| `npm run test:reports`         | `test:unit` then `test:e2e:api` then `test:e2e:web:reports`             | All tiers                                             |
-| `npm test`                     | `test:unit` then `test:e2e:api` then `test:e2e:web`                     | All tiers                                             |
+| Script                         | What it runs                                                             | Services needed                                       |
+| ------------------------------ | ------------------------------------------------------------------------ | ----------------------------------------------------- |
+| `npm run test:unit`            | Vitest in packages and apps (excludes api/management-api)                | None (pure Node)                                      |
+| `npm run test:e2e:api`         | `check-test-requirements` then Vitest in apps/api + apps/management-api  | Postgres **5732**, Valkey **6679** (`make test_deps`) |
+| `npm run test:e2e:web`         | `make e2e_test_playwright` (Playwright only; does not re-run API Vitest) | After `test:e2e:api` in `npm test`                    |
+| `npm run test:e2e:web:reports` | `make e2e_test_report` (HTML step-screenshot reports)                    | API Vitest + Playwright reports                       |
+| `npm run test:reports`         | `test:unit` then `test:e2e:api` then `test:e2e:web:reports`              | All tiers                                             |
+| `npm test`                     | `test:unit` then `test:e2e:api` then `test:e2e:web`                      | All tiers                                             |
 
 ### Test infrastructure
 

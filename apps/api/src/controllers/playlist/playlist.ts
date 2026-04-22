@@ -104,7 +104,6 @@ export const verifyPrivatePlaylistOwnershipIfNeeded = () => {
 };
 
 class PlaylistController {
-  private static playlistService = new PlaylistService();
   private static statsAggregatedPlaylistService = new StatsAggregatedPlaylistService();
 
   static async createPlaylist(req: Request, res: Response): Promise<void> {
@@ -146,7 +145,7 @@ class PlaylistController {
           };
 
           try {
-            const playlist = await PlaylistController.playlistService.create(account.id, dto);
+            const playlist = await playlistService.create(account.id, dto);
             res.status(201).json(playlist);
           } catch (err) {
             handleGenericErrorResponse(res, err);
@@ -199,11 +198,7 @@ class PlaylistController {
               };
 
               try {
-                const playlist = await PlaylistController.playlistService.update(
-                  account.id,
-                  playlist_id_text,
-                  dto
-                );
+                const playlist = await playlistService.update(account.id, playlist_id_text, dto);
                 res.status(200).json(playlist);
               } catch (err) {
                 handleGenericErrorResponse(res, err);
@@ -227,7 +222,7 @@ class PlaylistController {
             const playlist_id_text = getParamRequired(req, 'playlist_id_text');
 
             try {
-              await PlaylistController.playlistService.delete(account.id, playlist_id_text);
+              await playlistService.delete(account.id, playlist_id_text);
               res.status(204).end();
             } catch (err) {
               handleGenericErrorResponse(res, err);
@@ -341,11 +336,7 @@ class PlaylistController {
               order: { last_updated: 'DESC' },
             };
 
-            const results = await PlaylistController.playlistService.getManyPrivate(
-              account.id,
-              medium,
-              config
-            );
+            const results = await playlistService.getManyPrivate(account.id, medium, config);
 
             const response: ApiListResponse<Playlist> = {
               data: results[0],
@@ -381,11 +372,7 @@ class PlaylistController {
               order: { last_updated: 'ASC' },
             };
 
-            const results = await PlaylistController.playlistService.getManyPrivate(
-              account.id,
-              medium,
-              config
-            );
+            const results = await playlistService.getManyPrivate(account.id, medium, config);
 
             const response: ApiListResponse<Playlist> = {
               data: results[0],
@@ -421,11 +408,7 @@ class PlaylistController {
               order: { title: 'ASC' },
             };
 
-            const results = await PlaylistController.playlistService.getManyPrivate(
-              account.id,
-              medium,
-              config
-            );
+            const results = await playlistService.getManyPrivate(account.id, medium, config);
 
             const response: ApiListResponse<Playlist> = {
               data: results[0],
@@ -628,9 +611,7 @@ class PlaylistController {
       async () => {
         try {
           const account = getAuthenticatedUser(req);
-          const favorites = await PlaylistController.playlistService.getAllFavoritesPrivate(
-            account.id
-          );
+          const favorites = await playlistService.getAllFavoritesPrivate(account.id);
           res.status(200).json(favorites);
         } catch (err) {
           handleGenericErrorResponse(res, err);
@@ -649,18 +630,15 @@ class PlaylistController {
           verifyPrivatePlaylistOwnershipIfNeeded()(req, res, async () => {
             try {
               const playlist_id_text = getParamRequired(req, 'playlist_id_text');
-              const account = getAuthenticatedUser(req);
+              const account = req.user;
 
               // eslint-disable-next-line @typescript-eslint/no-explicit-any
               let playlist: any | null = null;
 
               if (account) {
-                playlist = await PlaylistController.playlistService.getOnePrivate(
-                  account.id_text,
-                  playlist_id_text
-                );
+                playlist = await playlistService.getOnePrivate(account.id_text, playlist_id_text);
               } else {
-                playlist = await PlaylistController.playlistService.getOnePublic(playlist_id_text);
+                playlist = await playlistService.getOnePublic(playlist_id_text);
               }
 
               if (playlist?.account?.id) {

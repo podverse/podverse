@@ -12,7 +12,7 @@ import { mqRSSAdd } from '@podverse/mq';
 
 import { handleGenericErrorResponse } from '../helpers/error.js';
 
-const buildRSSOnDemandDedupeKey = (
+export const buildRSSOnDemandDedupeKey = (
   accountId: number,
   type: OnDemandParserEventType,
   feedUrl: string

@@ -1,3 +1,11 @@
+import {
+  reqStatsTrackAccount,
+  reqStatsTrackChannel,
+  reqStatsTrackClip,
+  reqStatsTrackItem,
+  reqStatsTrackPlaylist,
+} from '@podverse/helpers-requests';
+
 import { getApiRequestService } from '../../factories/apiRequestService';
 
 function fireStatsRequest(promise: Promise<unknown>): void {
@@ -20,21 +28,26 @@ export function trackStatsAccountVisit(
   if (viewerAccountId === viewedAccountId) {
     return;
   }
-  fireStatsRequest(getApiRequestService().reqStatsTrackAccount(accountIdText));
+  const api = getApiRequestService();
+  fireStatsRequest(reqStatsTrackAccount(api, accountIdText));
 }
 
 export function trackStatsChannel(channelIdText: string): void {
-  fireStatsRequest(getApiRequestService().reqStatsTrackChannel(channelIdText));
+  const api = getApiRequestService();
+  fireStatsRequest(reqStatsTrackChannel(api, channelIdText));
 }
 
 export function trackStatsClip(clipIdText: string): void {
-  fireStatsRequest(getApiRequestService().reqStatsTrackClip(clipIdText));
+  const api = getApiRequestService();
+  fireStatsRequest(reqStatsTrackClip(api, clipIdText));
 }
 
 export function trackStatsItem(itemIdText: string): void {
-  fireStatsRequest(getApiRequestService().reqStatsTrackItem(itemIdText));
+  const api = getApiRequestService();
+  fireStatsRequest(reqStatsTrackItem(api, itemIdText));
 }
 
 export function trackStatsPlaylist(playlistIdText: string): void {
-  fireStatsRequest(getApiRequestService().reqStatsTrackPlaylist(playlistIdText));
+  const api = getApiRequestService();
+  fireStatsRequest(reqStatsTrackPlaylist(api, playlistIdText));
 }

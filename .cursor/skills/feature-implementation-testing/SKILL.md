@@ -29,10 +29,10 @@ Apply the relevant skill for _how_ to write the tests (api-testing for integrati
 
 ## Test command reference
 
-| Script                 | What it runs                                                            | Services needed                                       |
-| ---------------------- | ----------------------------------------------------------------------- | ----------------------------------------------------- |
-| `npm run test:unit`    | Vitest in packages and apps (excludes api/management-api)               | None                                                  |
-| `npm run test:e2e:api` | `check-test-requirements` then Vitest in apps/api + apps/management-api | Postgres **5732**, Valkey **6679** (`make test_deps`) |
-| `npm run test:e2e:web` | `make e2e_test` (Playwright: web + management-web)                      | Full E2E stack                                        |
-| `npm run test:reports` | `test:unit` then `test:e2e:api` then `test:e2e:web:reports`             | All tiers                                             |
-| `npm test`             | `test:unit` then `test:e2e:api` then `test:e2e:web`                     | All tiers                                             |
+| Script                 | What it runs                                                                  | Services needed                                       |
+| ---------------------- | ----------------------------------------------------------------------------- | ----------------------------------------------------- |
+| `npm run test:unit`    | Vitest in packages and apps (excludes api/management-api)                     | None                                                  |
+| `npm run test:e2e:api` | `check-test-requirements` then Vitest in apps/api + apps/management-api       | Postgres **5732**, Valkey **6679** (`make test_deps`) |
+| `npm run test:e2e:web` | `make e2e_test_playwright` (Playwright: web + management-web; not API Vitest) | Pairs with `test:e2e:api` in `npm test`               |
+| `npm run test:reports` | `test:unit` then `test:e2e:api` then `test:e2e:web:reports`                   | All tiers                                             |
+| `npm test`             | `test:unit` then `test:e2e:api` then `test:e2e:web`                           | All tiers                                             |

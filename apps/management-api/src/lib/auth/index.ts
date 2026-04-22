@@ -103,7 +103,7 @@ export const authenticate = (req: Request, res: Response, next: NextFunction) =>
   passport.authenticate(
     'local',
     { session: false },
-    (err: Error, user: Express.User, info: { message: string }) => {
+    (err: Error, user: { id: number } | false, info: { message: string }) => {
       if (err) {
         return next(err);
       }
@@ -154,9 +154,12 @@ const verifyToken = (req: Request, res: Response, next: NextFunction, token: str
         return;
       }
       const payload = decoded as DecodedToken;
-      req.user = { id: payload.id } as Express.User;
-
-      if (!req?.user?.id) {
+      if (
+        typeof payload.id !== 'number' ||
+        !Number.isInteger(payload.id) ||
+        !Number.isFinite(payload.id) ||
+        payload.id <= 0
+      ) {
         console.error('[verifyToken] Decoded JWT missing user id');
         if (!res.headersSent) {
           res.status(401).json({ message: 'Unauthorized' });
@@ -164,14 +167,16 @@ const verifyToken = (req: Request, res: Response, next: NextFunction, token: str
         return;
       }
 
-      const adminAccount = await adminAccountService.get(req.user.id);
+      const adminAccount = await adminAccountService.get(payload.id);
       if (!adminAccount) {
-        console.error('[verifyToken] No admin account found for user id:', req.user.id);
+        console.error('[verifyToken] No admin account found for user id:', payload.id);
         if (!res.headersSent) {
           res.status(401).json({ message: 'Unauthorized' });
         }
         return;
       }
+
+      req.user = { id: adminAccount.id };
 
       next();
     }

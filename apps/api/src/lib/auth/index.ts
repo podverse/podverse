@@ -140,7 +140,11 @@ export const authenticate = (req: Request, res: Response, next: NextFunction) =>
   passport.authenticate(
     'local',
     { session: false },
-    (err: Error, user: globalThis.Express.User, info: { message: string }) => {
+    (
+      err: Error,
+      user: { id: number; account_credentials?: { email?: string } } | false,
+      info: { message: string }
+    ) => {
       if (err) {
         return next(err);
       }
@@ -152,14 +156,9 @@ export const authenticate = (req: Request, res: Response, next: NextFunction) =>
         }
       }
 
-      const accountWithCredentials = user as {
-        id: number;
-        account_credentials?: { email?: string };
-      };
       const rawEmail =
-        accountWithCredentials.account_credentials?.email !== undefined &&
-        accountWithCredentials.account_credentials?.email !== ''
-          ? accountWithCredentials.account_credentials.email
+        user.account_credentials?.email !== undefined && user.account_credentials?.email !== ''
+          ? user.account_credentials.email
           : undefined;
       if (!rawEmail) {
         return res.status(401).json({ message: 'Unauthorized' });
@@ -218,9 +217,12 @@ const verifyTokenAndMembership = (
         res.status(401).json({ message: 'Re-authentication required' });
         return;
       }
-      req.user = { id: payload.id } as unknown as globalThis.Express.User;
-
-      if (!req?.user?.id) {
+      if (
+        typeof payload.id !== 'number' ||
+        !Number.isInteger(payload.id) ||
+        !Number.isFinite(payload.id) ||
+        payload.id <= 0
+      ) {
         console.error('[verifyTokenAndMembership] Decoded JWT missing user id');
         res.status(401).json({ message: 'Unauthorized' });
         return;
@@ -234,9 +236,9 @@ const verifyTokenAndMembership = (
             : ['account_membership_status'])
         );
       }
-      const account = await accountService.get(req.user.id, { relations });
+      const account = await accountService.get(payload.id, { relations });
       if (!account) {
-        console.error('[verifyTokenAndMembership] No account found for user id:', req.user.id);
+        console.error('[verifyTokenAndMembership] No account found for user id:', payload.id);
         res.status(401).json({ message: 'Unauthorized' });
         return;
       }
@@ -250,6 +252,13 @@ const verifyTokenAndMembership = (
         res.status(401).json({ message: 'Unauthorized' });
         return;
       }
+
+      req.user = {
+        id: account.id,
+        id_text:
+          typeof account.id_text === 'string' && account.id_text !== '' ? account.id_text : '',
+        verified: typeof account.verified === 'boolean' ? account.verified : true,
+      };
 
       if (!options.skipMembershipStatus) {
         const membershipStatus = account.account_membership_status;

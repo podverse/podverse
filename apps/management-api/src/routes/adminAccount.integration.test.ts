@@ -61,4 +61,28 @@ describe('GET admin-account/:id authz', () => {
     expect(res.status).toBe(403);
     expect(res.body).toMatchObject({ message: 'Forbidden' });
   });
+
+  it('returns 401 without auth', async () => {
+    const res = await request(app).get(`${adminBase}/1`);
+
+    expect(res.status).toBe(401);
+  });
+
+  it('returns 404 when admin account does not exist', async () => {
+    // First call: auth middleware verifyToken (needs valid account for id 2)
+    // Second call: route handler get (returns null to simulate not found)
+    adminAccountGetMock
+      .mockResolvedValueOnce({
+        id: 2,
+        id_text: 'admin-2',
+        created_at: new Date('2020-01-01T00:00:00.000Z'),
+      })
+      .mockResolvedValueOnce(null);
+
+    const token = jwt.sign({ id: 2 }, JWT_SECRET, { expiresIn: '1h' });
+
+    const res = await request(app).get(`${adminBase}/2`).set('Authorization', `Bearer ${token}`);
+
+    expect(res.status).toBe(404);
+  });
 });

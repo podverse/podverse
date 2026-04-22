@@ -39,8 +39,6 @@ export const verifyQueueOwnership = () => {
 };
 
 class QueueController {
-  private static queueService = new QueueService();
-
   static async getAllPrivate(req: Request, res: Response): Promise<void> {
     ensureAuthenticated(
       req,
@@ -48,7 +46,7 @@ class QueueController {
       async () => {
         try {
           const account = getAuthenticatedUser(req);
-          const queues = await QueueController.queueService.getAllPrivate(account.id, {
+          const queues = await queueService.getAllPrivate(account.id, {
             relations: ['medium'],
           });
           res.status(200).json(queues);
@@ -82,11 +80,7 @@ class QueueController {
               }
 
               try {
-                await QueueController.queueService.updateIsActiveQueue(
-                  account.id,
-                  queue_id_text,
-                  is_active_queue
-                );
+                await queueService.updateIsActiveQueue(account.id, queue_id_text, is_active_queue);
                 res.status(200).json({ message: 'Queue updated successfully' });
               } catch (err) {
                 handleGenericErrorResponse(res, err);
