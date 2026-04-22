@@ -292,7 +292,7 @@
       "retry_attempt": "Επανάληψη {number}: ",
       "mbrssV1_capability_loading_status": "Έλεγχος διαθεσιμότητας μηνυμάτων boost",
       "mbrssV1_capability_unavailable": "Τα μηνύματα boost δεν είναι διαθέσιμα για αυτόν τον δημιουργό αυτή τη στιγμή λόγω προβλήματος διακομιστή, αλλά μπορείτε ακόμα να χρησιμοποιήσετε τη φόρμα για να στείλετε δωρεά.",
-      "login_required_to_send_boosts": "Συνδεθείτε στο Podverse για να στείλετε boosts.",
+      "login_required_to_send_boosts": "Συνδεθείτε στο {brand_name} για να στείλετε boosts.",
       "mbrss_offline_modal_title": "Η συλλογή μηνυμάτων δεν είναι διαθέσιμη",
       "mbrss_offline_modal_body": "Ο διακομιστής συλλογής μηνυμάτων φαίνεται εκτός σύνδεσης. Εάν θέλετε να στείλετε τη δωρεά σας χωρίς μήνυμα, πατήστε Συνέχεια.",
       "mbrss_offline_continue": "Συνέχεια",
@@ -362,9 +362,9 @@
       "example_heading": "Παράδειγμα RSS τμήματος με podcast:metaBoost",
       "example": "'<'podcast:value type=\"lightning\" method=\"keysend\"'>'\n  '<'podcast:metaBoost standard=\"mbrss-v1\"'>'https://metaboost.example/boost'<'/podcast:metaBoost'>'\n  '<'podcast:valueRecipient type=\"lnaddress\" address=\"you@example.com\" split=\"100\" /'>'\n'<'/podcast:value'>'",
       "page_intro": "Το Metaboost είναι λογισμικό ανοικτού κώδικα και ανοιχτό πρότυπο για τη φιλοξενία μηνυμάτων ακροατών μαζί με τα value-for-value boosts του podcast.",
-      "page_signup": "Αν ένα podcast θέλει οι ακροατές του να μπορούν να επισυνάπτουν μηνύματα στα boosts στο Podverse, μπορούν να εγγραφούν σε οποιονδήποτε διακομιστή Metaboost ανοικτού κώδικα (<link>metaboost.cc</link> είναι μία επιλογή, και συντηρείται από το Podverse).",
+      "page_signup": "Αν ένα podcast θέλει οι ακροατές του να μπορούν να επισυνάπτουν μηνύματα στα boosts στο {brand_name}, μπορούν να εγγραφούν σε οποιονδήποτε διακομιστή Metaboost ανοικτού κώδικα (<link>metaboost.cc</link> είναι μία επιλογή, και συντηρείται από το {brand_name}).",
       "page_rss_tag": "Το Metaboost δίνει στον podcaster μια απλή ετικέτα <rssTag>podcast:metaBoost</rssTag> που μπορεί να προσθέσει στη ροή RSS του, ώστε να αρχίσει να λαμβάνει μηνύματα ενίσχυσης.",
-      "page_open_standard": "Επειδή το Metaboost είναι ανοιχτό πρότυπο, οποιαδήποτε εφαρμογή που υιοθετεί το πρότυπο (όχι μόνο το Podverse) μπορεί να στέλνει μηνύματα στο σημείο πρόσβασης Metaboost του podcaster.",
+      "page_open_standard": "Επειδή το Metaboost είναι ανοιχτό πρότυπο, οποιαδήποτε εφαρμογή που υιοθετεί το πρότυπο (όχι μόνο το {brand_name}) μπορεί να στέλνει μηνύματα στο σημείο πρόσβασης Metaboost του podcaster.",
       "page_how_to_heading": "Περισσότερα για το Metaboost",
       "page_how_to_creators": "Οδηγός για δημιουργούς",
       "page_how_to_developers": "Οδηγός για προγραμματιστές"
@@ -598,11 +598,11 @@
   },
   "about": {
     "title": "Σχετικά",
-    "intro_text": "Η Podverse είναι ένα διαχειριστής podcast FOSS για iOS, Android, F-Droid και ιστοσελίδα.",
+    "intro_text": "Η {brand_name} είναι ένα διαχειριστής podcast FOSS για iOS, Android, F-Droid και ιστοσελίδα.",
     "download_app_store": "Λήψη από το App Store",
     "download_google_play": "ΛΑΒΕ ΤΟ ΣΤΟ Google Play",
     "download_f_droid": "ΛΑΒΕ ΤΟ ΣΤΟ F-Droid",
-    "licensing_text": "Όλο το λογισμικό Podverse παρέχεται υπό άδεια δωρεάν και ανοικτού κώδικα (FOSS). Δυνατότητες που απαιτούν ενημέρωση των διακομιστών μας είναι διαθέσιμες μόνο με μια Ακριβή συνδρομή. Εγγραφείτε σήμερα και αποκτήστε μια δωρεάν δοκιμή 3 μηνών. 🥳",
+    "licensing_text": "Όλο το λογισμικό {brand_name} παρέχεται υπό άδεια δωρεάν και ανοικτού κώδικα (FOSS). Δυνατότητες που απαιτούν ενημέρωση των διακομιστών μας είναι διαθέσιμες μόνο με μια Ακριβή συνδρομή. Εγγραφείτε σήμερα και αποκτήστε μια δωρεάν δοκιμή 3 μηνών. 🥳",
     "features_title": "Δυνατότητες"
   },
   "checkout": {
@@ -712,11 +712,11 @@
   },
   "terms": {
     "terms": "Όροι",
-    "never_sell_data": "Η Podverse δεν θα πουλήσει ή θα μοιραστεί ποτέ τα ιδιωτικά δεδομένα των χρηστών.",
+    "never_sell_data": "Η {brand_name} δεν θα πουλήσει ή θα μοιραστεί ποτέ τα ιδιωτικά δεδομένα των χρηστών.",
     "no_ads_without_permission": "Δεν θα τοποθετήσουμε ποτέ διαφημίσεις δίπλα ή μέσα στο περιεχόμενο ενός podcast χωρίς την άδεια αυτού του podcast.",
-    "audio_video_hosting": "Όλα τα αρχεία ήχου ή βίντεο που βρίσκονται στο podverse.fm φορτώνουν από τον δημόσιο διακομιστή του podcaster. Δεν φιλοξενούμε αρχεία ήχου ή βίντεο podcast εμείς οι ίδιοι.",
+    "audio_video_hosting": "Όλα τα αρχεία ήχου ή βίντεο που βρίσκονται στο {brand_domain} φορτώνουν από τον δημόσιο διακομιστή του podcaster. Δεν φιλοξενούμε αρχεία ήχου ή βίντεο podcast εμείς οι ίδιοι.",
     "third_party_feeds": "Φιλοξενούμε συνδέσμους podcast και περιεχόμενο από τρίτους παρόχους podcast και ιστοσελίδες. Αυτά έχουν τις δικές τους ανεξάρτητες πολιτικές απορρήτου, και δεν έχουμε καμία ευθύνη για το περιεχόμενο ή τις δραστηριότητές τους.",
-    "clips_crowdsourced": "Όλα τα κλιπ που φιλοξενούνται στο podverse.fm είναι crowdsourced και ανεπίσημα, εκτός αν αναφέρεται διαφορετικά από τον ίδιο τον podcaster.",
+    "clips_crowdsourced": "Όλα τα κλιπ που φιλοξενούνται στο {brand_domain} είναι crowdsourced και ανεπίσημα, εκτός αν αναφέρεται διαφορετικά από τον ίδιο τον podcaster.",
     "clips_load_full_episode": "Τα κλιπ φορτώνουν μέσα στο πλήρες αρχείο πολυμέσων του επεισοδίου, έτσι ώστε ο χρήστης να έχει πάντα πρόσβαση στην πλήρη ηχογράφηση.",
     "reduced_size_images": "Φιλοξενούμε επίσης εικόνες podcast μειωμένου μεγέθους από τις ροές των podcasters, για να εξοικονομήσουμε δεδομένα δικτύου των χρηστών και να επιταχύνουμε τους χρόνους φόρτωσης της σελίδας."
   },

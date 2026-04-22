@@ -126,10 +126,12 @@ export const useBoostMessagesSection = ({
           }
           continue;
         }
-        const cachedHref = resolverCacheRef.current.get(cacheKey);
-        if (cachedHref !== undefined && next[messageKey] !== cachedHref) {
-          next[messageKey] = cachedHref;
-          changed = true;
+        {
+          const cached = resolverCacheRef.current.get(cacheKey);
+          if (cached !== undefined && next[messageKey] !== cached) {
+            next[messageKey] = cached;
+            changed = true;
+          }
         }
       }
       return changed ? next : previous;
@@ -169,9 +171,8 @@ export const useBoostMessagesSection = ({
         return;
       }
 
-      const cache = resolverCacheRef.current;
       for (const [cacheKey, href] of Object.entries(nextCacheEntries)) {
-        cache.set(cacheKey, href);
+        resolverCacheRef.current.set(cacheKey, href);
       }
 
       setMessageLinkMap((previous) => ({

@@ -67,17 +67,16 @@ export const BoostMessagesSection: React.FC<BoostMessagesSectionProps> = ({
     }
     setPage(nextPage);
     requestAnimationFrame(() => {
-      const sectionEl = sectionRef.current;
-      if (sectionEl === null) {
+      if (sectionRef.current === null) {
         return;
       }
-      const nextTop = getContainerScrollTopForSection(sectionEl);
+      const nextTop = getContainerScrollTopForSection(sectionRef.current);
       if (nextTop !== null) {
         const containerEl = document.getElementById('mainOuterWrapper');
         containerEl?.scrollTo({ top: nextTop });
         return;
       }
-      sectionEl.scrollIntoView({ block: 'start' });
+      sectionRef.current.scrollIntoView({ block: 'start' });
     });
   };
 

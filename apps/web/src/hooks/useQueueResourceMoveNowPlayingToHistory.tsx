@@ -31,25 +31,27 @@ export function useQueueResourcesMoveNowPlayingToHistory() {
 
   return useCallback(async (params: MoveNowPlayingToHistoryCallbackParams) => {
     const apiRequestService = getApiRequestService();
-    const activeQueue = activeQueueRef.current;
-    const loggedInAccount = loggedInAccountRef.current;
     const { completed, mpClip, mpItem, mpItemSoundbite } = params;
     const isLiveItem = !!mpItem?.live_item;
 
-    if (!loggedInAccount || !activeQueue || isLiveItem) {
+    if (!loggedInAccountRef.current || !activeQueueRef.current || isLiveItem) {
       return;
     }
 
     updateAbridgedIndex(completed);
 
     if (mpClip) {
-      await apiRequestService.reqQueueResourceClipAddHistory(activeQueue.id_text, mpClip.id_text, {
-        playback_position: mpClip.start_time,
-        ...(completed !== undefined ? { completed } : {}),
-      });
+      await apiRequestService.reqQueueResourceClipAddHistory(
+        activeQueueRef.current.id_text,
+        mpClip.id_text,
+        {
+          playback_position: mpClip.start_time,
+          ...(completed !== undefined ? { completed } : {}),
+        }
+      );
     } else if (mpItemSoundbite) {
       await apiRequestService.reqQueueResourceItemSoundbiteAddHistory(
-        activeQueue.id_text,
+        activeQueueRef.current.id_text,
         mpItemSoundbite.id_text,
         {
           playback_position: mpItemSoundbite.start_time,
@@ -57,10 +59,14 @@ export function useQueueResourcesMoveNowPlayingToHistory() {
         }
       );
     } else if (mpItem) {
-      await apiRequestService.reqQueueResourceItemAddHistory(activeQueue.id_text, mpItem.id_text, {
-        ...(completed ? { playback_position: '0' } : {}),
-        ...(completed !== undefined ? { completed } : {}),
-      });
+      await apiRequestService.reqQueueResourceItemAddHistory(
+        activeQueueRef.current.id_text,
+        mpItem.id_text,
+        {
+          ...(completed ? { playback_position: '0' } : {}),
+          ...(completed !== undefined ? { completed } : {}),
+        }
+      );
     }
   }, []);
 }

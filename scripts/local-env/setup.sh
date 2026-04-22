@@ -399,6 +399,13 @@ if [ -n "${MANAGEMENT_BRAND_NAME:-}" ]; then
 	done
 fi
 
+# From brand.env: BRAND_DOMAIN -> NEXT_PUBLIC_BRAND_DOMAIN for web and management-web sidecars.
+if [ -n "${BRAND_DOMAIN:-}" ]; then
+	for file in "${WEB_ENV_FILES_APP_AND_SIDECAR[@]}" "${MANAGEMENT_WEB_ENV_FILES_APP_AND_SIDECAR[@]}"; do
+		upsert_var "$file" "NEXT_PUBLIC_BRAND_DOMAIN" "$BRAND_DOMAIN"
+	done
+fi
+
 # From locale.env: one place for DEFAULT_LOCALE and SUPPORTED_LOCALES; setup applies to web and management-web (NEXT_PUBLIC_FEATURES_*).
 if [ -n "${DEFAULT_LOCALE:-}" ]; then
 	for file in "${WEB_ENV_FILES_APP_AND_SIDECAR[@]}" "${MANAGEMENT_WEB_ENV_FILES_APP_AND_SIDECAR[@]}"; do

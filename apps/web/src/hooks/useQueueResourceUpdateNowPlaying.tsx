@@ -34,18 +34,16 @@ export function useQueueResourcesUpdateNowPlaying() {
 
   return useCallback(async (params: UpdateNowPlayingParams) => {
     const apiRequestService = getApiRequestService();
-    const loggedInAccount = loggedInAccountRef.current;
-    const queues = queuesRef.current;
 
     const { mpChannel, mpClip, mpItem, mpItemSoundbite, mpDuration, mpCurrentTime } = params;
 
-    const activeQueue = queues.find((q) => {
+    const activeQueue = queuesRef.current.find((q) => {
       return (
         q.medium_id === (mpChannel?.medium_id && getQueueMediumIdFromMediumId(mpChannel?.medium_id))
       );
     });
 
-    if (!loggedInAccount || !activeQueue) {
+    if (!loggedInAccountRef.current || !activeQueue) {
       return;
     }
 

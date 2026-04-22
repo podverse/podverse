@@ -1,7 +1,7 @@
 {
   "app": {
-    "name": "Διαχείριση Podverse",
-    "description": "Διαχειριστικό περιβάλλον για το Podverse"
+    "name": "Διαχείριση {brand_name}",
+    "description": "Διαχειριστικό περιβάλλον για το {brand_name}"
   },
   "common": {
     "loading": "Φόρτωση...",

@@ -43,22 +43,23 @@ export const PopoverIcon: React.FC<PopoverIconProps> = ({ text, ariaLabel }) => 
         return;
       }
 
-      const buttonRect = buttonRef.current.getBoundingClientRect();
       const viewportWidth = window.innerWidth;
       const viewportPadding = 16; // Padding from viewport edges
       const minWidth = 200;
       const maxWidth = 400;
 
       // Calculate available space
-      const spaceToLeft = buttonRect.left;
-      const spaceToRight = viewportWidth - buttonRect.right;
+      const spaceToLeft = buttonRef.current.getBoundingClientRect().left;
+      const spaceToRight = viewportWidth - buttonRef.current.getBoundingClientRect().right;
       const totalAvailableSpace = spaceToLeft + spaceToRight - viewportPadding * 2;
 
       // Determine optimal width
       let popoverWidth = Math.min(maxWidth, Math.max(minWidth, totalAvailableSpace));
 
       // Calculate horizontal position - center relative to button
-      const buttonCenterX = buttonRect.left + buttonRect.width / 2;
+      const buttonCenterX =
+        buttonRef.current.getBoundingClientRect().left +
+        buttonRef.current.getBoundingClientRect().width / 2;
       let popoverLeft = buttonCenterX - popoverWidth / 2;
 
       // Adjust if popover goes off-screen on the left
@@ -104,7 +105,8 @@ export const PopoverIcon: React.FC<PopoverIconProps> = ({ text, ariaLabel }) => 
       // The popover will render and the arrow will point to the button
       const marginFromButton = 8; // Space between popover and button
       const estimatedPopoverHeight = 100; // Rough estimate, will adjust if needed
-      const popoverTop = buttonRect.top - estimatedPopoverHeight - marginFromButton;
+      const popoverTop =
+        buttonRef.current.getBoundingClientRect().top - estimatedPopoverHeight - marginFromButton;
 
       setPosition({
         top: popoverTop,

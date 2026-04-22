@@ -170,21 +170,21 @@ export const BoostFormBase: React.FC<BoostFormBaseProps> = ({
   // save — so local edits stay authoritative and saves are not skipped by a competing reload effect.
   useEffect(() => {
     if (selectedValueKey === null || selectedValueKey === '') return;
-    const saved = boostFormDefaultsRef.current[selectedValueKey];
-    if (saved) {
+    const entry = boostFormDefaultsRef.current[selectedValueKey];
+    if (entry) {
       if (boostPaymentScope === 'app_only') {
         setTotalAmountToCreator(0);
-        setTotalAmountToApp(saved.totalAmountToApp);
+        setTotalAmountToApp(entry.totalAmountToApp);
       } else {
-        setTotalAmountToCreator(saved.totalAmountToCreator);
+        setTotalAmountToCreator(entry.totalAmountToCreator);
         setTotalAmountToApp(0);
       }
-      setYourName(saved.yourName);
+      setYourName(entry.yourName);
       lastSavedRef.current = {
         key: selectedValueKey,
-        totalAmountToCreator: boostPaymentScope === 'app_only' ? 0 : saved.totalAmountToCreator,
-        totalAmountToApp: boostPaymentScope === 'creator_only' ? 0 : saved.totalAmountToApp,
-        yourName: saved.yourName,
+        totalAmountToCreator: boostPaymentScope === 'app_only' ? 0 : entry.totalAmountToCreator,
+        totalAmountToApp: boostPaymentScope === 'creator_only' ? 0 : entry.totalAmountToApp,
+        yourName: entry.yourName,
       };
     } else {
       lastSavedRef.current = null;
@@ -198,15 +198,15 @@ export const BoostFormBase: React.FC<BoostFormBaseProps> = ({
       skipPersistAfterKeyLoadRef.current = false;
       return;
     }
-    const last = lastSavedRef.current;
-    const sameKey = last !== null && last.key === selectedValueKey;
+    const sameKey = lastSavedRef.current !== null && lastSavedRef.current.key === selectedValueKey;
     const persistedCreator = boostPaymentScope === 'app_only' ? 0 : totalAmountToCreator;
     const persistedApp = boostPaymentScope === 'creator_only' ? 0 : totalAmountToApp;
     const unchanged =
       sameKey &&
-      last.totalAmountToCreator === persistedCreator &&
-      last.totalAmountToApp === persistedApp &&
-      last.yourName === yourName;
+      lastSavedRef.current !== null &&
+      lastSavedRef.current.totalAmountToCreator === persistedCreator &&
+      lastSavedRef.current.totalAmountToApp === persistedApp &&
+      lastSavedRef.current.yourName === yourName;
     if (unchanged) return;
     lastSavedRef.current = {
       key: selectedValueKey,
@@ -514,7 +514,11 @@ export const BoostFormBase: React.FC<BoostFormBaseProps> = ({
             )}
             {loggedInAccount === null && (
               <Callout>
-                <p>{tValue('boost_messages.login_required_to_send_boosts')}</p>
+                <p>
+                  {tValue('boost_messages.login_required_to_send_boosts', {
+                    brand_name: config.public.brand.name,
+                  })}
+                </p>
               </Callout>
             )}
             <BoostFormFields

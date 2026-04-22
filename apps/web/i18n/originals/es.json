@@ -292,7 +292,7 @@
       "retry_attempt": "Reintento {number}: ",
       "mbrssV1_capability_loading_status": "Comprobando disponibilidad de mensajes de refuerzo",
       "mbrssV1_capability_unavailable": "Los mensajes de refuerzo no están disponibles para este creador en este momento debido a un problema del servidor, pero aún puedes usar el formulario para enviar una donación.",
-      "login_required_to_send_boosts": "Inicia sesión en Podverse para enviar boosts.",
+      "login_required_to_send_boosts": "Inicia sesión en {brand_name} para enviar boosts.",
       "mbrss_offline_modal_title": "Recopilación de mensajes no disponible",
       "mbrss_offline_modal_body": "El servidor de recopilación de mensajes parece estar fuera de línea. Si deseas enviar tu donación sin mensaje, pulsa Continuar.",
       "mbrss_offline_continue": "Continuar",
@@ -362,9 +362,9 @@
       "example_heading": "Ejemplo de fragmento RSS con podcast:metaBoost",
       "example": "'<'podcast:value type=\"lightning\" method=\"keysend\"'>'\n  '<'podcast:metaBoost standard=\"mbrss-v1\"'>'https://metaboost.example/boost'<'/podcast:metaBoost'>'\n  '<'podcast:valueRecipient type=\"lnaddress\" address=\"you@example.com\" split=\"100\" /'>'\n'<'/podcast:value'>'",
       "page_intro": "Metaboost es software de código abierto y un estándar abierto para alojar mensajes de oyentes junto con los boosts value-for-value del podcast.",
-      "page_signup": "Si un podcast quiere que sus oyentes puedan adjuntar mensajes a los boosts en Podverse, puede registrarse en cualquier servidor Metaboost de código abierto (<link>metaboost.cc</link> es una opción, y está mantenida por Podverse).",
+      "page_signup": "Si un podcast quiere que sus oyentes puedan adjuntar mensajes a los boosts en {brand_name}, puede registrarse en cualquier servidor Metaboost de código abierto (<link>metaboost.cc</link> es una opción, y está mantenida por {brand_name}).",
       "page_rss_tag": "Metaboost ofrece al podcaster una etiqueta simple <rssTag>podcast:metaBoost</rssTag> que puede añadir a su RSS, lo que le permitirá empezar a recibir mensajes de refuerzo.",
-      "page_open_standard": "Como Metaboost es un estándar abierto, cualquier aplicación que adopte el estándar (no solo Podverse) puede enviar mensajes al endpoint Metaboost del podcaster.",
+      "page_open_standard": "Como Metaboost es un estándar abierto, cualquier aplicación que adopte el estándar (no solo {brand_name}) puede enviar mensajes al endpoint Metaboost del podcaster.",
       "page_how_to_heading": "Más sobre Metaboost",
       "page_how_to_creators": "Guía para creadores",
       "page_how_to_developers": "Guía para desarrolladores"
@@ -598,11 +598,11 @@
   },
   "about": {
     "title": "Acerca de",
-    "intro_text": "Podverse es un gestor de podcasts FOSS para iOS, Android, F-Droid y web.",
+    "intro_text": "{brand_name} es un gestor de podcasts FOSS para iOS, Android, F-Droid y web.",
     "download_app_store": "Descargar en la App Store",
     "download_google_play": "OBTENER EN Google Play",
     "download_f_droid": "OBTENER EN F-Droid",
-    "licensing_text": "Todo el software de Podverse se proporciona bajo una licencia de código abierto y libre (FOSS). Las funciones que requieren actualizar nuestros servidores están disponibles solo con una membresía Premium. Regístrate hoy y obtén una prueba gratuita de 3 meses. 🥳",
+    "licensing_text": "Todo el software de {brand_name} se proporciona bajo una licencia de código abierto y libre (FOSS). Las funciones que requieren actualizar nuestros servidores están disponibles solo con una membresía Premium. Regístrate hoy y obtén una prueba gratuita de 3 meses. 🥳",
     "features_title": "Funciones"
   },
   "checkout": {
@@ -712,11 +712,11 @@
   },
   "terms": {
     "terms": "Términos",
-    "never_sell_data": "Podverse nunca venderá ni compartirá datos privados de los usuarios.",
+    "never_sell_data": "{brand_name} nunca venderá ni compartirá datos privados de los usuarios.",
     "no_ads_without_permission": "Nunca pondremos anuncios al lado o dentro del contenido de un podcast sin el permiso de ese podcast.",
-    "audio_video_hosting": "Todos los archivos de audio o video encontrados en podverse.fm se cargan desde el propio servidor público del podcaster. No alojamos archivos de audio o video de podcasts nosotros mismos.",
+    "audio_video_hosting": "Todos los archivos de audio o video encontrados en {brand_domain} se cargan desde el propio servidor público del podcaster. No alojamos archivos de audio o video de podcasts nosotros mismos.",
     "third_party_feeds": "Alojamos enlaces y contenido de podcasts de fuentes y sitios de terceros. Estos tienen sus propias políticas de privacidad independientes, y no tenemos responsabilidad por su contenido o actividades.",
-    "clips_crowdsourced": "Todos los clips alojados en podverse.fm son obtenidos de forma colaborativa y no oficiales, a menos que el propio podcaster indique lo contrario.",
+    "clips_crowdsourced": "Todos los clips alojados en {brand_domain} son obtenidos de forma colaborativa y no oficiales, a menos que el propio podcaster indique lo contrario.",
     "clips_load_full_episode": "Los clips se cargan dentro del archivo de medios del episodio completo, por lo que el usuario siempre tiene acceso a la grabación completa.",
     "reduced_size_images": "También alojamos imágenes de podcasts de tamaño reducido de los feeds de los podcasters, para ahorrar datos de red del usuario y acelerar los tiempos de carga de la página."
   },

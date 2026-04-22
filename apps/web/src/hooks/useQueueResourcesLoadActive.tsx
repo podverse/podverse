@@ -55,12 +55,8 @@ export function useQueueResourcesLoadActive() {
    */
   return useCallback(async (medium_id?: number): Promise<QueueResourcesLoadActiveResult> => {
     const apiRequestService = getApiRequestService();
-    const loggedInAccount = loggedInAccountRef.current;
-    const autoQueueConfig = autoQueueConfigRef.current;
-    const autoQueueActiveRow = autoQueueActiveRowRef.current;
-    const autoQueueResources = autoQueueResourcesRef.current;
 
-    if (!loggedInAccount) {
+    if (!loggedInAccountRef.current) {
       setQueues([]);
       return { upcomingManualCount: 0 };
     }
@@ -129,11 +125,11 @@ export function useQueueResourcesLoadActive() {
 
       let hasAutoQueueNext = false;
       if (combinedQueueResources.length === 0) {
-        const nextAutoQueueActiveRow = autoQueueIncrementActiveRow(autoQueueActiveRow);
-        if (autoQueueResources[nextAutoQueueActiveRow]) {
+        const nextAutoQueueActiveRow = autoQueueIncrementActiveRow(autoQueueActiveRowRef.current);
+        if (autoQueueResourcesRef.current[nextAutoQueueActiveRow]) {
           hasAutoQueueNext = true;
           setAutoQueueActiveRow(nextAutoQueueActiveRow);
-        } else if (autoQueueConfig.repeat) {
+        } else if (autoQueueConfigRef.current.repeat) {
           setAutoQueueActiveRow(0);
         }
       }

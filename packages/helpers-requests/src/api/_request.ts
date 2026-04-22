@@ -223,6 +223,13 @@ import {
   reqQueueResourceItemSoundbiteAddNowPlaying,
   reqQueueResourceItemSoundbiteDelete,
 } from './queue/queueResource/queueResourceItemSoundbite.js';
+import {
+  reqStatsTrackAccount,
+  reqStatsTrackChannel,
+  reqStatsTrackClip,
+  reqStatsTrackItem,
+  reqStatsTrackPlaylist,
+} from './stats/stats.js';
 
 export type {
   AddByRSSChapterResponse,
@@ -1120,6 +1127,28 @@ export class ApiRequestService {
 
   reqQueueResourceItemSoundbiteDelete(queue_id_text: string, item_soundbite_id_text: string) {
     return reqQueueResourceItemSoundbiteDelete(this, queue_id_text, item_soundbite_id_text);
+  }
+
+  /* STATS TRACK */
+
+  reqStatsTrackAccount(account_id_text: string) {
+    return reqStatsTrackAccount(this, account_id_text);
+  }
+
+  reqStatsTrackChannel(channel_id_text: string) {
+    return reqStatsTrackChannel(this, channel_id_text);
+  }
+
+  reqStatsTrackClip(clip_id_text: string) {
+    return reqStatsTrackClip(this, clip_id_text);
+  }
+
+  reqStatsTrackItem(item_id_text: string) {
+    return reqStatsTrackItem(this, item_id_text);
+  }
+
+  reqStatsTrackPlaylist(playlist_id_text: string) {
+    return reqStatsTrackPlaylist(this, playlist_id_text);
   }
 
   /* PROFILE CONTENT */

@@ -146,14 +146,13 @@ export const MediaPlayerControllerLiveStreamAV: React.FC<
 
   // Play / pause sync.
   useEffect(() => {
-    const p = videoJsPlayerRef.current;
-    if (!p || p.isDisposed()) {
+    if (!videoJsPlayerRef.current || videoJsPlayerRef.current.isDisposed()) {
       return;
     }
     if (mpIsPlaying) {
-      p.play();
+      videoJsPlayerRef.current.play();
     } else {
-      p.pause();
+      videoJsPlayerRef.current.pause();
     }
   }, [mpIsPlaying]);
 

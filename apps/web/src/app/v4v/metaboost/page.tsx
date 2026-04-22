@@ -5,11 +5,13 @@ import { MainInnerContentWrapper } from '../../../components/Main/MainInnerConte
 import { MainInnerWrapper } from '../../../components/Main/MainInnerWrapper';
 import { MainWrapper } from '../../../components/Main/MainWrapper';
 import { SideContent } from '../../../components/SideContent/SideContent';
+import { getConfig } from '../../../config';
 
 import styles from '../../../styles/app/v4v/BoostMessages.module.scss';
 
 export default async function MetaboostPage() {
   const t = await getTranslations('v4v');
+  const config = getConfig();
 
   return (
     <>
@@ -22,6 +24,7 @@ export default async function MetaboostPage() {
               <p className={styles.paragraph}>{t('boost_messages.page_intro')}</p>
               <p className={styles.paragraph}>
                 {t.rich('boost_messages.page_signup', {
+                  brand_name: config.public.brand.name,
                   link: (chunks) => (
                     <a
                       href="https://metaboost.cc"
@@ -45,7 +48,9 @@ export default async function MetaboostPage() {
                   ),
                 })}
               </p>
-              <p className={styles.paragraph}>{t('boost_messages.page_open_standard')}</p>
+              <p className={styles.paragraph}>
+                {t('boost_messages.page_open_standard', { brand_name: config.public.brand.name })}
+              </p>
               <nav className={styles.howToSection} aria-labelledby="metaboost-how-to-heading">
                 <h2 id="metaboost-how-to-heading" className={styles.howToHeading}>
                   {t('boost_messages.page_how_to_heading')}

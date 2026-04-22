@@ -1,7 +1,7 @@
 {
   "app": {
-    "name": "Podverse Management",
-    "description": "Administrative management interface for Podverse"
+    "name": "{brand_name} Management",
+    "description": "Administrative management interface for {brand_name}"
   },
   "common": {
     "loading": "Loading...",

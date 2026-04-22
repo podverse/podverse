@@ -9,6 +9,7 @@ const buildConfig = () => {
     public: {
       brand: {
         name: env.NEXT_PUBLIC_BRAND_NAME,
+        domain: env.NEXT_PUBLIC_BRAND_DOMAIN,
       },
       api: {
         ssr: {

@@ -51,116 +51,112 @@ export function useAutoQueueLoadResources() {
 
   return useCallback(async () => {
     const apiRequestService = getApiRequestService();
-    const mpItem = mpItemRef.current;
-    const mpChannel = mpChannelRef.current;
-    const mpClip = mpClipRef.current;
-    const mpItemSoundbite = mpItemSoundbiteRef.current;
-    const autoQueueConfig = autoQueueConfigRef.current;
 
-    if (!mpItem || !mpChannel) {
+    if (!mpItemRef.current || !mpChannelRef.current) {
       setAutoQueueResources({});
       return;
     }
 
-    const autoQueueResources = autoQueueResourcesRef.current;
-
     let newAutoQueueResources: AutoQueueResourcesMap = {};
 
-    if (!autoQueueResources[0]) {
+    if (!autoQueueResourcesRef.current[0]) {
       newAutoQueueResources[0] = {
-        item: mpItem,
-        clip: mpClip,
-        item_soundbite: mpItemSoundbite,
-        channel: mpChannel,
+        item: mpItemRef.current,
+        clip: mpClipRef.current,
+        item_soundbite: mpItemSoundbiteRef.current,
+        channel: mpChannelRef.current,
       };
     } else {
-      newAutoQueueResources = { ...autoQueueResources };
+      newAutoQueueResources = { ...autoQueueResourcesRef.current };
     }
 
     let playlistResourcesResponse: DTOPlaylistResource[] = [];
     let itemsResponse: DTOItemQueueItem[] = [];
 
-    if (autoQueueConfig.playlist_id_text) {
-      if (autoQueueConfig.random) {
+    if (autoQueueConfigRef.current.playlist_id_text) {
+      if (autoQueueConfigRef.current.random) {
         const response = await apiRequestService.reqPlaylistResourceGetManyByShuffle(
-          autoQueueConfig.playlist_id_text,
-          autoQueueConfig.shuffleHash,
-          autoQueueConfig.nextPage
+          autoQueueConfigRef.current.playlist_id_text,
+          autoQueueConfigRef.current.shuffleHash,
+          autoQueueConfigRef.current.nextPage
         );
         playlistResourcesResponse = response.data;
-        if (autoQueueConfig.repeat && playlistResourcesResponse.length === 0) {
+        if (autoQueueConfigRef.current.repeat && playlistResourcesResponse.length === 0) {
           const response = await apiRequestService.reqPlaylistResourceGetManyByShuffle(
-            autoQueueConfig.playlist_id_text,
-            autoQueueConfig.shuffleHash,
+            autoQueueConfigRef.current.playlist_id_text,
+            autoQueueConfigRef.current.shuffleHash,
             1
           );
           playlistResourcesResponse = response.data;
           setAutoQueueConfig({
-            ...autoQueueConfig,
+            ...autoQueueConfigRef.current,
             nextPage: 2,
-            shuffleHash: autoQueueConfig.shuffleHash,
+            shuffleHash: autoQueueConfigRef.current.shuffleHash,
           });
         } else {
           setAutoQueueConfig({
-            ...autoQueueConfig,
-            nextPage: autoQueueConfig.nextPage + 1,
+            ...autoQueueConfigRef.current,
+            nextPage: autoQueueConfigRef.current.nextPage + 1,
           });
         }
       } else {
         const response = await apiRequestService.reqPlaylistResourceGetManyForQueueByListPosition(
-          autoQueueConfig.playlist_id_text,
+          autoQueueConfigRef.current.playlist_id_text,
           {
-            clip_id_text: mpClip?.id_text,
-            item_soundbite_id_text: mpItemSoundbite?.id_text,
-            item_id_text: mpItem.id_text,
+            clip_id_text: mpClipRef.current?.id_text,
+            item_soundbite_id_text: mpItemSoundbiteRef.current?.id_text,
+            item_id_text: mpItemRef.current.id_text,
           },
           'forward'
         );
         playlistResourcesResponse = response.data;
 
-        if (autoQueueConfig.repeat && playlistResourcesResponse.length === 0) {
+        if (autoQueueConfigRef.current.repeat && playlistResourcesResponse.length === 0) {
           const response = await apiRequestService.reqPlaylistResourceGetManyByPlaylistIdText(
-            autoQueueConfig.playlist_id_text,
+            autoQueueConfigRef.current.playlist_id_text,
             { page: 1 }
           );
           playlistResourcesResponse = response.data;
         }
       }
     } else {
-      if (autoQueueConfig.random) {
-        const response = await apiRequestService.reqItemGetManyByChannelShuffle(mpChannel.id_text, {
-          page: autoQueueConfig.nextPage,
-          shuffleHash: autoQueueConfig.shuffleHash,
-        });
+      if (autoQueueConfigRef.current.random) {
+        const response = await apiRequestService.reqItemGetManyByChannelShuffle(
+          mpChannelRef.current.id_text,
+          {
+            page: autoQueueConfigRef.current.nextPage,
+            shuffleHash: autoQueueConfigRef.current.shuffleHash,
+          }
+        );
         itemsResponse = response.data;
-        if (autoQueueConfig.repeat && itemsResponse.length === 0) {
+        if (autoQueueConfigRef.current.repeat && itemsResponse.length === 0) {
           const response = await apiRequestService.reqItemGetManyByChannelShuffle(
-            mpChannel.id_text,
+            mpChannelRef.current.id_text,
             {
               page: 1,
-              shuffleHash: autoQueueConfig.shuffleHash,
+              shuffleHash: autoQueueConfigRef.current.shuffleHash,
             }
           );
           itemsResponse = response.data;
           setAutoQueueConfig({
-            ...autoQueueConfig,
+            ...autoQueueConfigRef.current,
             nextPage: 1 + 1,
-            shuffleHash: autoQueueConfig.shuffleHash,
+            shuffleHash: autoQueueConfigRef.current.shuffleHash,
           });
         } else {
           setAutoQueueConfig({
-            ...autoQueueConfig,
-            nextPage: autoQueueConfig.nextPage + 1,
+            ...autoQueueConfigRef.current,
+            nextPage: autoQueueConfigRef.current.nextPage + 1,
           });
         }
-      } else if (mpChannel?.medium_id === MediumEnum.Music) {
+      } else if (mpChannelRef.current?.medium_id === MediumEnum.Music) {
         itemsResponse = await apiRequestService.reqItemGetManyForQueueBySeason(
-          mpItem.id_text,
+          mpItemRef.current.id_text,
           'forward'
         );
-        if (autoQueueConfig.repeat && itemsResponse.length === 0) {
+        if (autoQueueConfigRef.current.repeat && itemsResponse.length === 0) {
           const response = await apiRequestService.reqItemGetManyByChannelBySeason({
-            idOrIdText: mpChannel.id_text,
+            idOrIdText: mpChannelRef.current.id_text,
             page: 1,
             sort: 'forward',
             range: null,
@@ -169,12 +165,12 @@ export function useAutoQueueLoadResources() {
         }
       } else {
         itemsResponse = await apiRequestService.reqItemGetManyForQueueByPubDate(
-          mpItem.id_text,
+          mpItemRef.current.id_text,
           'forward'
         );
-        if (autoQueueConfig.repeat && itemsResponse.length === 0) {
+        if (autoQueueConfigRef.current.repeat && itemsResponse.length === 0) {
           const response = await apiRequestService.reqItemGetManyByChannel({
-            idOrIdText: mpChannel.id_text,
+            idOrIdText: mpChannelRef.current.id_text,
             page: 1,
             sort: 'recent',
             range: null,
@@ -187,7 +183,7 @@ export function useAutoQueueLoadResources() {
     const existingKeys = Object.keys(newAutoQueueResources).map(Number);
     const startKey = existingKeys.length > 0 ? Math.max(...existingKeys) + 1 : 0;
 
-    if (autoQueueConfig.playlist_id_text) {
+    if (autoQueueConfigRef.current.playlist_id_text) {
       let validIdx = 0;
       playlistResourcesResponse.forEach((playlistResource) => {
         if (playlistResource.clip && playlistResource.clip.item) {
@@ -228,7 +224,7 @@ export function useAutoQueueLoadResources() {
     }
 
     // If random is enabled, remove duplicate id_text items, keeping the first occurrence
-    if (autoQueueConfig.random) {
+    if (autoQueueConfigRef.current.random) {
       const seenClipIds = new Set<string>();
       const seenSoundbiteIds = new Set<string>();
       const seenItemIds = new Set<string>();

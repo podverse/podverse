@@ -29,14 +29,16 @@ export const ChapterProgressTooltip: React.FC<ChapterProgressTooltipProps> = ({
       setClampedLeft(null);
       return;
     }
-    const rect = tooltipRef.current.getBoundingClientRect();
     const anchorX = barRect.left + percent * barRect.width;
     const viewportWidth = window.innerWidth;
-    let left = anchorX - rect.width / 2;
+    let left = anchorX - tooltipRef.current.getBoundingClientRect().width / 2;
     if (left < VIEWPORT_PADDING) {
       left = VIEWPORT_PADDING;
-    } else if (left + rect.width > viewportWidth - VIEWPORT_PADDING) {
-      left = viewportWidth - VIEWPORT_PADDING - rect.width;
+    } else if (
+      left + tooltipRef.current.getBoundingClientRect().width >
+      viewportWidth - VIEWPORT_PADDING
+    ) {
+      left = viewportWidth - VIEWPORT_PADDING - tooltipRef.current.getBoundingClientRect().width;
     }
     setClampedLeft(left);
   }, [visible, barRect, percent]);
