@@ -1,6 +1,6 @@
 {
   "name": "@podverse/web",
-  "version": "5.4.13",
+  "version": "5.4.14",
   "description": "Website for the Podverse podcast app",
   "private": true,
   "scripts": {
