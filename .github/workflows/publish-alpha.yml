@@ -1,3 +1,17 @@
+# Publish Docker images to GHCR on alpha, beta, or main.
+#
+# Version selection is atomic: the `reserve-version` job creates
+# `refs/tags/X.Y.Z-{suffix}.N` at the workflow commit via the GitHub Git Refs API
+# (POST /git/refs). HTTP 422 ("Reference already exists") increments N and retries.
+# `git ls-remote --tags` is used only as a starting hint.
+#
+# Tag schema:
+#   alpha branch -> X.Y.Z-alpha.N + :alpha (FLOAT_TAG=alpha)
+#   beta  branch -> X.Y.Z-beta.N  + :beta
+#   main  branch -> X.Y.Z         + :prod
+#
+# GHCR is image storage and verification only -- it is not used to pick the next N.
+
 name: Publish (alpha, beta, main)
 
 on:
@@ -9,7 +23,7 @@ on:
   workflow_dispatch:
     inputs:
       version_override:
-        description: "Optional version override (default: auto-increment from GHCR)"
+        description: "Optional version override (default: atomic Git tag reservation)"
         required: false
         type: string
 
@@ -18,16 +32,12 @@ permissions:
   packages: read
 
 jobs:
-  # Step 1: Validate everything builds and calculate unified version
+  # Step 1: Validate everything builds
   validate:
     runs-on: ubuntu-latest
     permissions:
       contents: read
       packages: read
-    outputs:
-      version: ${{ steps.version.outputs.VERSION }}
-      float_tag: ${{ steps.version.outputs.FLOAT_TAG }}
-      is_prod: ${{ steps.version.outputs.is_prod }}
     steps:
       - uses: actions/checkout@v6
 
@@ -55,169 +65,199 @@ jobs:
       - name: Build all apps
         run: npm run build:apps
 
-      - name: Calculate unified version
-        id: version
+  reserve-version:
+    needs: validate
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    outputs:
+      version: ${{ steps.reserve.outputs.version }}
+      float_tag: ${{ steps.reserve.outputs.float_tag }}
+      is_prod: ${{ steps.reserve.outputs.is_prod }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Reserve next version
+        id: reserve
         env:
-          GHCR_TOKEN_PRIMARY: ${{ secrets.GHCR_REGISTRY_TOKEN }}
-          GHCR_TOKEN_FALLBACK: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REF_NAME: ${{ github.ref_name }}
+          SHA: ${{ github.sha }}
+          OVERRIDE: ${{ inputs.version_override }}
+          REPO: ${{ github.repository }}
         run: |
-          # If version override is provided, use it
-          if [ -n "${{ inputs.version_override }}" ]; then
-            echo "Using version override: ${{ inputs.version_override }}"
-            echo "VERSION=${{ inputs.version_override }}" >> $GITHUB_OUTPUT
-            R="${{ github.ref_name }}"
-            if [ "$R" = "main" ]; then
-              echo "FLOAT_TAG=prod" >> $GITHUB_OUTPUT
-              echo "is_prod=true" >> $GITHUB_OUTPUT
-            elif [ "$R" = "beta" ]; then
-              echo "FLOAT_TAG=beta" >> $GITHUB_OUTPUT
-              echo "is_prod=false" >> $GITHUB_OUTPUT
-            else
-              echo "FLOAT_TAG=alpha" >> $GITHUB_OUTPUT
-              echo "is_prod=false" >> $GITHUB_OUTPUT
+          set -euo pipefail
+
+          BASE=$(node -p "require('./package.json').version" | sed 's/-.*//')
+          case "$REF_NAME" in
+            main)  SUFFIX=""      ; FLOAT=prod  ; IS_PROD=true  ;;
+            alpha) SUFFIX="alpha" ; FLOAT=alpha ; IS_PROD=false ;;
+            beta)  SUFFIX="beta"  ; FLOAT=beta  ; IS_PROD=false ;;
+            *)
+              echo "Unsupported ref $REF_NAME" >&2
+              exit 1
+              ;;
+          esac
+
+          create_tag() {
+            # $1 tag, $2 sha; sets LAST_CREATE_CODE and LAST_CREATE_BODY
+            local tag="$1"
+            local sha="$2"
+            local body
+
+            body=$(mktemp)
+            LAST_CREATE_CODE=$(curl -sS -o "$body" -w "%{http_code}" \
+              -H "Authorization: Bearer $GH_TOKEN" \
+              -H "Accept: application/vnd.github+json" \
+              -X POST "https://api.github.com/repos/${REPO}/git/refs" \
+              -d "{\"ref\":\"refs/tags/${tag}\",\"sha\":\"${sha}\"}")
+            LAST_CREATE_BODY=$(cat "$body")
+            rm -f "$body"
+
+            echo "create-ref attempt: tag=${tag} status=${LAST_CREATE_CODE}"
+            if [ "$LAST_CREATE_CODE" != "201" ] && [ "$LAST_CREATE_CODE" != "422" ]; then
+              echo "GitHub API error ${LAST_CREATE_CODE} while creating tag ${tag}:" >&2
+              printf '%s\n' "$LAST_CREATE_BODY" >&2
+              return 1
             fi
-            exit 0
-          fi
+          }
 
-          # Get base version from package.json (strip any existing suffix for prerelease; full X.Y.Z for main)
-          BASE_VERSION=$(node -p "require('./package.json').version" | sed 's/-.*//')
-          # Use 'api' as reference image for unified version calculation
-          IMAGE_PATH="${{ github.repository }}/api"
-          REF_NAME="${{ github.ref_name }}"
+          resolve_tag_commit_sha() {
+            # $1 tag; echoes commit SHA that the tag resolves to
+            local tag="$1"
+            local ref_body ref_code obj_type obj_sha tag_body tag_code commit_sha
 
-          if [ "$REF_NAME" = "main" ]; then
-            echo "RTM (main) publish: base $BASE_VERSION (must match clean SemVer in package.json)"
-            echo "VERSION=$BASE_VERSION" >> $GITHUB_OUTPUT
-            echo "FLOAT_TAG=prod" >> $GITHUB_OUTPUT
-            echo "is_prod=true" >> $GITHUB_OUTPUT
-            exit 0
-          fi
-
-          echo "is_prod=false" >> $GITHUB_OUTPUT
-          SUFFIX=alpha
-          if [ "$REF_NAME" = "beta" ]; then
-            SUFFIX=beta
-          elif [ "$REF_NAME" != "alpha" ]; then
-            echo "Unexpected ref $REF_NAME" >&2
-            exit 1
-          fi
-          echo "FLOAT_TAG=$SUFFIX" >> $GITHUB_OUTPUT
-          echo "Prerelease suffix: $SUFFIX (branch $REF_NAME)"
-
-          echo "Base version: $BASE_VERSION"
-          echo "Reference image path: $IMAGE_PATH"
-
-          query_tags() {
-            local token="$1"
-            local token_name="$2"
-
-            if [ -z "$token" ]; then
-              return 2
+            ref_body=$(mktemp)
+            ref_code=$(curl -sS -o "$ref_body" -w "%{http_code}" \
+              -H "Authorization: Bearer $GH_TOKEN" \
+              -H "Accept: application/vnd.github+json" \
+              "https://api.github.com/repos/${REPO}/git/ref/tags/${tag}")
+            if [ "$ref_code" != "200" ]; then
+              echo "Failed to resolve existing tag ${tag} (HTTP ${ref_code})" >&2
+              cat "$ref_body" >&2
+              rm -f "$ref_body"
+              return 1
             fi
 
-            echo "Attempting GHCR tag discovery with ${token_name}..."
-            local tags_response
-            tags_response=$(curl -s -w "\n%{http_code}" \
-              -H "Authorization: Bearer $token" \
-              "https://ghcr.io/v2/${IMAGE_PATH}/tags/list")
-            TAGS_JSON=$(echo "$tags_response" | sed '$d')
-            TAGS_STATUS=$(echo "$tags_response" | tail -n1)
-            TAGS_TOKEN_USED="$token_name"
+            obj_type=$(jq -r '.object.type // ""' "$ref_body")
+            obj_sha=$(jq -r '.object.sha // ""' "$ref_body")
+            rm -f "$ref_body"
 
-            if [ "$TAGS_STATUS" = "200" ]; then
+            if [ "$obj_type" = "commit" ]; then
+              printf '%s\n' "$obj_sha"
               return 0
             fi
-            if [ "$TAGS_STATUS" = "404" ]; then
-              return 4
+
+            if [ "$obj_type" = "tag" ]; then
+              tag_body=$(mktemp)
+              tag_code=$(curl -sS -o "$tag_body" -w "%{http_code}" \
+                -H "Authorization: Bearer $GH_TOKEN" \
+                -H "Accept: application/vnd.github+json" \
+                "https://api.github.com/repos/${REPO}/git/tags/${obj_sha}")
+              if [ "$tag_code" != "200" ]; then
+                echo "Failed to resolve annotated tag object for ${tag} (HTTP ${tag_code})" >&2
+                cat "$tag_body" >&2
+                rm -f "$tag_body"
+                return 1
+              fi
+              commit_sha=$(jq -r '.object.sha // ""' "$tag_body")
+              rm -f "$tag_body"
+              printf '%s\n' "$commit_sha"
+              return 0
             fi
-            if [ "$TAGS_STATUS" = "401" ] || [ "$TAGS_STATUS" = "403" ]; then
-              return 3
-            fi
+
+            echo "Unexpected Git ref object type '${obj_type}' for tag ${tag}" >&2
             return 1
           }
 
-          BOOTSTRAP_EMPTY_STATE=false
-          TAGS_TOKEN_USED=""
-          TAGS_JSON='{"tags":[]}'
-          TAGS_STATUS=""
-          QUERY_RESULT=1
+          require_same_sha_on_422() {
+            # $1 tag
+            local tag="$1"
+            local existing_sha
 
-          if query_tags "$GHCR_TOKEN_PRIMARY" "GHCR_REGISTRY_TOKEN"; then
-            QUERY_RESULT=0
+            existing_sha=$(resolve_tag_commit_sha "$tag")
+            if [ "$existing_sha" = "$SHA" ]; then
+              echo "Tag ${tag} already points at ${SHA}; accepting 422."
+              return 0
+            fi
+
+            echo "Refusing to reuse tag ${tag}: it points at ${existing_sha}, workflow commit is ${SHA}" >&2
+            return 1
+          }
+
+          if [ -n "$OVERRIDE" ]; then
+            VERSION="$OVERRIDE"
+            create_tag "$VERSION" "$SHA"
+            if [ "$LAST_CREATE_CODE" = "201" ]; then
+              echo "Reserved explicit override tag ${VERSION}."
+            elif [ "$LAST_CREATE_CODE" = "422" ]; then
+              require_same_sha_on_422 "$VERSION"
+            fi
+          elif [ "$REF_NAME" = "main" ]; then
+            VERSION="$BASE"
+            create_tag "$VERSION" "$SHA"
+            if [ "$LAST_CREATE_CODE" = "201" ]; then
+              echo "Reserved RTM tag ${VERSION}."
+            elif [ "$LAST_CREATE_CODE" = "422" ]; then
+              require_same_sha_on_422 "$VERSION"
+            fi
           else
-            QUERY_RESULT=$?
-          fi
-
-          if [ "$QUERY_RESULT" = "2" ]; then
-            echo "GHCR_REGISTRY_TOKEN not set; falling back to GITHUB_TOKEN for tag discovery."
-            if query_tags "$GHCR_TOKEN_FALLBACK" "GITHUB_TOKEN"; then
-              QUERY_RESULT=0
+            START=0
+            if TAG_LINES=$(git ls-remote --tags origin "refs/tags/${BASE}-${SUFFIX}.*" 2>/dev/null); then
+              MAX=$(printf '%s\n' "$TAG_LINES" | awk -v prefix="refs/tags/${BASE}-${SUFFIX}." '
+                {
+                  ref=$2
+                  sub(/\^\{\}$/, "", ref)
+                  if (index(ref, prefix) == 1) {
+                    n=substr(ref, length(prefix) + 1)
+                    if (n ~ /^[0-9]+$/) {
+                      if (max == "" || (n + 0) > (max + 0)) {
+                        max=n + 0
+                      }
+                    }
+                  }
+                }
+                END {
+                  if (max != "") {
+                    print max
+                  }
+                }
+              ')
+              if [ -n "$MAX" ]; then
+                START=$((MAX + 1))
+              fi
+              echo "Smart-start candidate N=${START}."
             else
-              QUERY_RESULT=$?
+              echo "git ls-remote failed for ${BASE}-${SUFFIX}; starting at N=0."
             fi
-          elif [ "$QUERY_RESULT" = "3" ]; then
-            echo "GHCR_REGISTRY_TOKEN returned HTTP ${TAGS_STATUS}; retrying with GITHUB_TOKEN."
-            if query_tags "$GHCR_TOKEN_FALLBACK" "GITHUB_TOKEN"; then
-              QUERY_RESULT=0
-            else
-              QUERY_RESULT=$?
-            fi
+
+            N=$START
+            while :; do
+              VERSION="${BASE}-${SUFFIX}.${N}"
+              create_tag "$VERSION" "$SHA"
+              if [ "$LAST_CREATE_CODE" = "201" ]; then
+                break
+              fi
+              if [ "$LAST_CREATE_CODE" = "422" ]; then
+                echo "Tag ${VERSION} exists; incrementing N."
+                N=$((N + 1))
+                continue
+              fi
+              exit 1
+            done
           fi
 
-          if [ "$QUERY_RESULT" = "4" ]; then
-            BOOTSTRAP_EMPTY_STATE=true
-            TAGS_JSON='{"tags":[]}'
-            echo "GHCR package path not found yet (HTTP 404). Treating as first publish bootstrap."
-          elif [ "$QUERY_RESULT" = "3" ]; then
-            echo "Failed to list GHCR tags for ${IMAGE_PATH} due to auth/permission (HTTP ${TAGS_STATUS})."
-            echo "Ensure GHCR_REGISTRY_TOKEN has packages:read (or org allows GITHUB_TOKEN package reads)."
-            echo "You can also run with version_override for a one-off publish."
-            exit 1
-          elif [ "$QUERY_RESULT" = "2" ]; then
-            echo "Failed to list GHCR tags for ${IMAGE_PATH}: no usable token available."
-            echo "Set GHCR_REGISTRY_TOKEN or ensure GITHUB_TOKEN can read packages."
-            exit 1
-          elif [ "$QUERY_RESULT" != "0" ]; then
-            echo "Failed to list GHCR tags for ${IMAGE_PATH} (HTTP ${TAGS_STATUS})."
-            echo "Unexpected GHCR response; re-run or use version_override for a one-off publish."
-            exit 1
-          fi
-
-          if [ "$BOOTSTRAP_EMPTY_STATE" = "false" ]; then
-            echo "GHCR tag discovery succeeded with ${TAGS_TOKEN_USED}."
-            echo "Raw tags JSON: $TAGS_JSON"
-          fi
-
-          # Extract ${SUFFIX} prerelease tags for this base
-          TAGS=$(echo "$TAGS_JSON" | jq -r '.tags[]?' 2>/dev/null | grep "^${BASE_VERSION}-${SUFFIX}\." || true)
-          echo "Filtered ${SUFFIX} tags for ${BASE_VERSION}: $TAGS"
-
-          if [ -z "$TAGS" ]; then
-            if [ "$BOOTSTRAP_EMPTY_STATE" = "true" ]; then
-              echo "No existing GHCR package found. Bootstrapping at ${BASE_VERSION}-${SUFFIX}.0"
-            else
-              echo "No ${SUFFIX} tags for ${BASE_VERSION}. Starting at ${SUFFIX}.0"
-            fi
-            NEXT_VERSION="${BASE_VERSION}-${SUFFIX}.0"
-          else
-            LATEST=$(echo "$TAGS" | sort -V | tail -n1)
-            CURRENT_NUM=$(echo "$LATEST" | sed -En "s/.*[.]${SUFFIX}\.([0-9]+)\$/\1/p")
-            if [ -z "$CURRENT_NUM" ]; then
-              NEXT_VERSION="${BASE_VERSION}-${SUFFIX}.0"
-            else
-              NEXT_NUM=$((CURRENT_NUM + 1))
-              NEXT_VERSION="${BASE_VERSION}-${SUFFIX}.${NEXT_NUM}"
-            fi
-            echo "Latest existing: $LATEST, next: $NEXT_VERSION"
-          fi
-
-          echo "Unified version for all images: $NEXT_VERSION"
-          echo "VERSION=$NEXT_VERSION" >> $GITHUB_OUTPUT
+          echo "Reserved version: $VERSION"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "float_tag=$FLOAT" >> "$GITHUB_OUTPUT"
+          echo "is_prod=$IS_PROD" >> "$GITHUB_OUTPUT"
 
   # Step 2: Build and publish base images (web-base, management-web-base)
   # These are used as the builder base for web-deploy and management-web-deploy.
   publish-base-images:
-    needs: validate
+    needs: [validate, reserve-version]
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -235,8 +275,8 @@ jobs:
       - name: Get unified version
         id: version
         run: |
-          echo "VERSION=${{ needs.validate.outputs.version }}" >> $GITHUB_OUTPUT
-          echo "Using unified version: ${{ needs.validate.outputs.version }}"
+          echo "VERSION=${{ needs.reserve-version.outputs.version }}" >> $GITHUB_OUTPUT
+          echo "Using unified version: ${{ needs.reserve-version.outputs.version }}"
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v4
@@ -256,14 +296,14 @@ jobs:
           push: true
           tags: |
             ghcr.io/${{ github.repository }}/${{ matrix.app }}:${{ steps.version.outputs.VERSION }}
-            ghcr.io/${{ github.repository }}/${{ matrix.app }}:${{ needs.validate.outputs.float_tag }}
+            ghcr.io/${{ github.repository }}/${{ matrix.app }}:${{ needs.reserve-version.outputs.float_tag }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
   # Step 3: Build and publish Docker images (parallel)
   # Note: Packages are built from source inside Docker, no npm publishing needed
   publish-docker:
-    needs: [validate, publish-base-images]
+    needs: [validate, reserve-version, publish-base-images]
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -295,8 +335,8 @@ jobs:
       - name: Get unified version
         id: version
         run: |
-          echo "VERSION=${{ needs.validate.outputs.version }}" >> $GITHUB_OUTPUT
-          echo "Using unified version: ${{ needs.validate.outputs.version }}"
+          echo "VERSION=${{ needs.reserve-version.outputs.version }}" >> $GITHUB_OUTPUT
+          echo "Using unified version: ${{ needs.reserve-version.outputs.version }}"
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v4
@@ -318,12 +358,12 @@ jobs:
             ${{ matrix.base_image_name && format('BASE_IMAGE=ghcr.io/{0}/{1}:{2}', github.repository, matrix.base_image_name, steps.version.outputs.VERSION) }}
           tags: |
             ghcr.io/${{ github.repository }}/${{ matrix.app }}:${{ steps.version.outputs.VERSION }}
-            ghcr.io/${{ github.repository }}/${{ matrix.app }}:${{ needs.validate.outputs.float_tag }}
+            ghcr.io/${{ github.repository }}/${{ matrix.app }}:${{ needs.reserve-version.outputs.float_tag }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
   verify-published-tags:
-    needs: [validate, publish-base-images, publish-docker]
+    needs: [reserve-version, publish-base-images, publish-docker]
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -331,8 +371,8 @@ jobs:
     steps:
       - name: Verify expected tags in GHCR
         env:
-          VERSION: ${{ needs.validate.outputs.version }}
-          FLOAT_TAG: ${{ needs.validate.outputs.float_tag }}
+          VERSION: ${{ needs.reserve-version.outputs.version }}
+          FLOAT_TAG: ${{ needs.reserve-version.outputs.float_tag }}
           GHCR_TOKEN_PRIMARY: ${{ secrets.GHCR_REGISTRY_TOKEN }}
           GHCR_TOKEN_FALLBACK: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -370,7 +410,7 @@ jobs:
           done
 
   workflow-summary:
-    needs: [validate, verify-published-tags]
+    needs: [reserve-version, verify-published-tags]
     runs-on: ubuntu-latest
     steps:
       - name: Published image version (workflow summary)
@@ -378,76 +418,15 @@ jobs:
           {
             echo "## Published Docker images"
             echo ""
-            echo "**Image version (semver tag):** \`${{ needs.validate.outputs.version }}\`"
+            echo "**Image version (semver tag):** \`${{ needs.reserve-version.outputs.version }}\`"
             echo ""
-            echo "Each image was also tagged **\`${{ needs.validate.outputs.float_tag }}\`** (floating)."
+            echo "Each image was also tagged **\`${{ needs.reserve-version.outputs.float_tag }}\`** (floating)."
             echo ""
-            echo "Pin GitOps to the version tag or the floating tag. Git tag **\`${{ needs.validate.outputs.version }}\`** is created on this run commit if missing."
+            echo "Pin GitOps to the version tag or the floating tag. Git tag **\`${{ needs.reserve-version.outputs.version }}\`** is created during reserve-version on this run commit."
           } >> "$GITHUB_STEP_SUMMARY"
 
-  git-tag-prerelease:
-    needs: [validate, verify-published-tags]
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-    steps:
-      - name: Create or verify Git tag (matches GHCR prerelease tag)
-        uses: actions/github-script@v7
-        env:
-          VERSION_TAG: ${{ needs.validate.outputs.version }}
-          TARGET_SHA: ${{ github.sha }}
-        with:
-          script: |
-            const tag = process.env.VERSION_TAG;
-            const targetSha = process.env.TARGET_SHA;
-            const owner = context.repo.owner;
-            const repo = context.repo.repo;
-
-            async function resolveTagToCommitSha() {
-              const { data } = await github.rest.git.getRef({
-                owner,
-                repo,
-                ref: `tags/${tag}`,
-              });
-              const obj = data.object;
-              if (obj.type === 'commit') {
-                return obj.sha;
-              }
-              if (obj.type === 'tag') {
-                const { data: tagObj } = await github.rest.git.getTag({
-                  owner,
-                  repo,
-                  tag_sha: obj.sha,
-                });
-                return tagObj.object.sha;
-              }
-              throw new Error(`Unexpected git ref object type: ${obj.type}`);
-            }
-
-            try {
-              const existingSha = await resolveTagToCommitSha();
-              if (existingSha === targetSha) {
-                core.info(`Tag ${tag} already points at ${targetSha}; noop.`);
-                return;
-              }
-              core.setFailed(
-                `Refusing to move tag ${tag}: it points at ${existingSha}, workflow commit is ${targetSha}`,
-              );
-            } catch (err) {
-              if (err.status !== 404) {
-                throw err;
-              }
-              await github.rest.git.createRef({
-                owner,
-                repo,
-                ref: `refs/tags/${tag}`,
-                sha: targetSha,
-              });
-              core.info(`Created tag ${tag} -> ${targetSha}`);
-            }
-
   github-prerelease-create:
-    needs: [git-tag-prerelease, validate]
+    needs: [reserve-version, verify-published-tags]
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -458,10 +437,10 @@ jobs:
       - name: Create GitHub release
         uses: actions/github-script@v7
         env:
-          IS_PROD: ${{ needs.validate.outputs.is_prod }}
+          IS_PROD: ${{ needs.reserve-version.outputs.is_prod }}
         with:
           script: |
-            const version = "${{ needs.validate.outputs.version }}";
+            const version = "${{ needs.reserve-version.outputs.version }}";
             const path = "docs/operations/CHANGELOG-UPCOMING.md";
             const fs = require("fs");
             const isProd = process.env.IS_PROD === "true";
@@ -490,7 +469,7 @@ jobs:
             core.info("Created release: " + rel.data.html_url);
 
   changelog-pr-to-develop:
-    needs: [github-prerelease-create, git-tag-prerelease, validate]
+    needs: [github-prerelease-create, reserve-version, verify-published-tags]
     if: success()
     runs-on: ubuntu-latest
     permissions:
@@ -501,11 +480,13 @@ jobs:
         uses: actions/checkout@v6
         with:
           ref: develop
+          # Avoid duplicate Authorization on HTTPS (checkout extraheader + create-pr creds) -> HTTP 400.
+          persist-credentials: false
       - name: Write archive and reset UPCOMING markers
         uses: actions/github-script@v7
         env:
           PUBLISH_SHA: ${{ github.sha }}
-          PUBLISH_VERSION: ${{ needs.validate.outputs.version }}
+          PUBLISH_VERSION: ${{ needs.reserve-version.outputs.version }}
           RUN_ID: ${{ github.run_id }}
           REF_NAME: ${{ github.ref_name }}
         with:
@@ -557,14 +538,18 @@ jobs:
       - name: Open pull request
         uses: peter-evans/create-pull-request@v6
         with:
-          commit-message: "chore: archive changelog for ${{ github.ref_name }} ${{ needs.validate.outputs.version }}"
-          title: "chore: archive changelog for ${{ needs.validate.outputs.version }} (${{ github.ref_name }})"
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: "chore: archive changelog for ${{ github.ref_name }} ${{
+            needs.reserve-version.outputs.version }}"
+          title: "chore: archive changelog for ${{ needs.reserve-version.outputs.version
+            }} (${{ github.ref_name }})"
           body: |
             Automated follow-up to a successful [publish](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}) on \`${{ github.ref_name }}\`.
 
             - Archives a copy of [CHANGELOG-UPCOMING](docs/operations/CHANGELOG-UPCOMING.md) as it was on the **publish** commit, under [CHANGELOG-ARCHIVE](docs/operations/CHANGELOG-ARCHIVE/).
             - Resets the `UPCOMING-AUTO-START` / `UPCOMING-AUTO-END` block on **develop** (when that file exists) so you can add entries for the next window.
           base: develop
-          branch: automation/changelog-${{ github.ref_name }}-${{ needs.validate.outputs.version }}-${{ github.run_id }}
+          branch: automation/changelog-${{ github.ref_name }}-${{
+            needs.reserve-version.outputs.version }}-${{ github.run_id }}
           delete-branch: true
           signoff: false
