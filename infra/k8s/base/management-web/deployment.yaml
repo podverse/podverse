@@ -3,17 +3,13 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: podverse-management-web
-
   annotations:
-    # ArgoCD Application endpoint annotation for clickable link
     argocd.argoproj.io/refresh: "hard"
     argocd.argoproj.io/managed-by: "argocd"
     argocd.argoproj.io/compare-options: "IgnoreExtraneous"
-    # This is the endpoint that will show up as a clickable link in ArgoCD UI
-    link.argocd.argoproj.io/external-link: https://management-web.example.com/ # Override in environment overlay
+    link.argocd.argoproj.io/external-link: https://management-web.example.com/
 spec:
   progressDeadlineSeconds: 600
-  # replicas: 2
   revisionHistoryLimit: 10
   strategy:
     rollingUpdate:
@@ -28,6 +24,8 @@ spec:
       labels:
         app: podverse-management-web
         environment: base
+      annotations:
+        backup.velero.io/backup-volumes-excludes: "nextjs-cache"
     spec:
       containers:
         - name: management-web
@@ -41,11 +39,9 @@ spec:
           envFrom:
             - configMapRef:
                 name: podverse-management-web-config
-          # Container security hardening
           securityContext:
             readOnlyRootFilesystem: true
             allowPrivilegeEscalation: false
-            # Explicitly set UID/GID to satisfy runAsNonRoot when image user is named (node)
             runAsUser: 1000
             runAsGroup: 1000
             runAsNonRoot: true

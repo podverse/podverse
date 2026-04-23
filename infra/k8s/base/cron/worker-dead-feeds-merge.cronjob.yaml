@@ -6,14 +6,15 @@ metadata:
     app: podverse-workers
     task: dead-feeds
 spec:
-  # TODO: Fix the dead feeds merge job - currently broken
   suspend: true
-  # Schedule: Run at 2am daily (Change this to match your Jenkins schedule)
   schedule: "0 2 * * *"
   concurrencyPolicy: Forbid
   jobTemplate:
     spec:
       template:
+        metadata:
+          annotations:
+            backup.velero.io/backup-volumes-excludes: "logs-volume,tmp-volume"
         spec:
           containers:
             - name: worker
@@ -53,20 +54,9 @@ spec:
                   mountPath: /opt/logs
                 - name: tmp-volume
                   mountPath: /opt/node_modules/podverse-external-services/dist/services/podcast-index/tmp
-
-          #   volumeMounts:
-          #   - name: firebase-config
-          #     mountPath: /opt/config/firebase-key.json
-          #     subPath: firebase-key.json
-          #     readOnly: true
-
           volumes:
             - name: logs-volume
               emptyDir: {}
             - name: tmp-volume
               emptyDir: {}
-          # - name: firebase-config
-          #   secret:
-          #     secretName: podverse-workers-firebase-opaque
-
           restartPolicy: OnFailure

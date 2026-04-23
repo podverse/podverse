@@ -9,8 +9,7 @@ metadata:
     argocd.argoproj.io/refresh: "hard"
     argocd.argoproj.io/managed-by: "argocd"
     argocd.argoproj.io/compare-options: "IgnoreExtraneous"
-    # This is the endpoint that will show up as a clickable link in ArgoCD UI
-    link.argocd.argoproj.io/external-link: https://management-api.example.com/ # Override in environment overlay
+    backup.velero.io/backup-volumes-excludes: "logs-volume"
 spec:
   progressDeadlineSeconds: 600
   # replicas: 1

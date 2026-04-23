@@ -3,19 +3,18 @@ kind: Deployment
 metadata:
   name: podverse-api
   annotations:
-    # ArgoCD Application endpoint annotation for clickable link
     argocd.argoproj.io/refresh: "hard"
     argocd.argoproj.io/managed-by: "argocd"
     argocd.argoproj.io/compare-options: "IgnoreExtraneous"
-    # This is the endpoint that will show up as a clickable link in ArgoCD UI
-    link.argocd.argoproj.io/external-link: https://api.example.com/ # Override in environment overlay
+    link.argocd.argoproj.io/external-link: https://api.example.com/
 spec:
-  # replicas: 1
   selector:
     matchLabels:
       app: podverse-api
   template:
     metadata:
+      annotations:
+        backup.velero.io/backup-volumes-excludes: "logs-volume"
     spec:
       containers:
         - name: api

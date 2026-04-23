@@ -8,6 +8,9 @@ spec:
   jobTemplate:
     spec:
       template:
+        metadata:
+          annotations:
+            backup.velero.io/backup-volumes-excludes: "logs-volume"
         spec:
           containers:
             - name: worker
@@ -34,8 +37,6 @@ spec:
                     name: podverse-workers-config
                 - secretRef:
                     name: podverse-db-opaque
-                #- secretRef:
-                #    name: podverse-workers-digital-ocean-opaque
                 - secretRef:
                     name: podverse-workers-add-by-rss-opaque
               volumeMounts:
