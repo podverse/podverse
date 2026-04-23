@@ -125,11 +125,11 @@ const run = async () => {
           database: {
             host: process.env.DB_HOST!,
             port: parseInt(process.env.DB_PORT!, 10),
-            read_username: process.env.DB_READ_USERNAME!,
-            read_password: process.env.DB_READ_PASSWORD!,
-            read_write_username: process.env.DB_READ_WRITE_USERNAME!,
-            read_write_password: process.env.DB_READ_WRITE_PASSWORD!,
-            database: process.env.DB_DATABASE!,
+            read_username: process.env.DB_APP_READ_USER!,
+            read_password: process.env.DB_APP_READ_PASSWORD!,
+            read_write_username: process.env.DB_APP_READ_WRITE_USER!,
+            read_write_password: process.env.DB_APP_READ_WRITE_PASSWORD!,
+            database: process.env.DB_APP_NAME!,
             ssl_connection: process.env.DB_SSL_CONNECTION === 'true',
           },
           log: {

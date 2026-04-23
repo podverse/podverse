@@ -103,14 +103,14 @@ function validateBase(): ValidationResult[] {
 /** Category: ORM/Database */
 function validateORM(): ValidationResult[] {
   const results: ValidationResult[] = [];
-  results.push(validateRequired('DB_HOST', 'Database'));
-  results.push(validateRequired('DB_PORT', 'Database'));
-  results.push(validateRequired('DB_READ_USERNAME', 'Database'));
-  results.push(validateRequired('DB_READ_PASSWORD', 'Database'));
-  results.push(validateRequired('DB_READ_WRITE_USERNAME', 'Database'));
-  results.push(validateRequired('DB_READ_WRITE_PASSWORD', 'Database'));
-  results.push(validateRequired('DB_DATABASE', 'Database'));
-  results.push(validateOptional('DB_SSL_CONNECTION', 'Database', 'Use Default (false)'));
+  results.push(validateRequired('DB_HOST', 'App database'));
+  results.push(validateRequired('DB_PORT', 'App database'));
+  results.push(validateRequired('DB_APP_NAME', 'App database'));
+  results.push(validateRequired('DB_APP_READ_USER', 'App database'));
+  results.push(validateRequired('DB_APP_READ_PASSWORD', 'App database'));
+  results.push(validateRequired('DB_APP_READ_WRITE_USER', 'App database'));
+  results.push(validateRequired('DB_APP_READ_WRITE_PASSWORD', 'App database'));
+  results.push(validateOptional('DB_SSL_CONNECTION', 'App database', 'Use Default (false)'));
   results.push(validateRequired('DEFAULT_ACCOUNT_SETTINGS_LOCALE', 'Defaults'));
   results.push(validateRequired('ADD_BY_RSS_CREDENTIALS_ENCRYPTION_KEY', 'Add-by-RSS'));
   return results;

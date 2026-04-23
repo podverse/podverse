@@ -64,11 +64,11 @@ export async function populateDatabaseFromFeed(
 ): Promise<void> {
   const dbHost = process.env.DB_HOST;
   const dbPort = process.env.DB_PORT;
-  const dbDatabase = process.env.DB_DATABASE;
-  const dbReadUsername = process.env.DB_READ_USERNAME;
-  const dbReadPassword = process.env.DB_READ_PASSWORD;
-  const dbReadWriteUsername = process.env.DB_READ_WRITE_USERNAME;
-  const dbReadWritePassword = process.env.DB_READ_WRITE_PASSWORD;
+  const dbDatabase = process.env.DB_APP_NAME;
+  const dbReadUsername = process.env.DB_APP_READ_USER;
+  const dbReadPassword = process.env.DB_APP_READ_PASSWORD;
+  const dbReadWriteUsername = process.env.DB_APP_READ_WRITE_USER;
+  const dbReadWritePassword = process.env.DB_APP_READ_WRITE_PASSWORD;
 
   if (
     !dbHost ||
@@ -80,7 +80,7 @@ export async function populateDatabaseFromFeed(
     !dbReadWritePassword
   ) {
     throw new Error(
-      'populateDatabaseFromFeed: DB_* env vars required (DB_HOST, DB_PORT, DB_DATABASE, DB_READ_USERNAME, DB_READ_PASSWORD, DB_READ_WRITE_USERNAME, DB_READ_WRITE_PASSWORD). Create .env.api from tools/web-perf/lighthouse/.env.api.example and set DB_* there (or set DB_* in the environment).'
+      'populateDatabaseFromFeed: DB_* env vars required (DB_HOST, DB_PORT, DB_APP_NAME, DB_APP_READ_USER, DB_APP_READ_PASSWORD, DB_APP_READ_WRITE_USER, DB_APP_READ_WRITE_PASSWORD). Create .env.api from tools/web-perf/lighthouse/.env.api.example and set DB_* there (or set DB_* in the environment).'
     );
   }
 

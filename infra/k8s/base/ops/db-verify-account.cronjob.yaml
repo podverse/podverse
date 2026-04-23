@@ -21,7 +21,7 @@ spec:
                 - "sh"
                 - "-c"
                 - >-
-                  psql -h "$PODVERSE_DB_SERVICE_HOST" -p "$PODVERSE_DB_SERVICE_PORT" -U "$DB_READ_WRITE_USERNAME" -d "$DB_DATABASE" -c
+                  psql -h "$PODVERSE_DB_SERVICE_HOST" -p "$PODVERSE_DB_SERVICE_PORT" -U "$DB_APP_READ_WRITE_USER" -d "$DB_APP_NAME" -c
                   "UPDATE account SET verified = true where id = 1;"
 
               # Load all vars (optional, but good for debugging)
@@ -35,6 +35,6 @@ spec:
                   valueFrom:
                     secretKeyRef:
                       name: podverse-db-opaque
-                      key: DB_READ_WRITE_PASSWORD
+                      key: DB_APP_READ_WRITE_PASSWORD
 
           restartPolicy: Never

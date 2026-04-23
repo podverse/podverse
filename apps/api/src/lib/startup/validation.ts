@@ -137,14 +137,14 @@ const validateAllEnvironmentVariables = (): ValidationSummary => {
   results.push(validateUserAgent());
 
   // Database (from podverse-orm, but validated here)
-  results.push(validateRequired('DB_HOST', 'Database'));
-  results.push(validateRequired('DB_PORT', 'Database'));
-  results.push(validateRequired('DB_READ_USERNAME', 'Database'));
-  results.push(validateRequired('DB_READ_PASSWORD', 'Database'));
-  results.push(validateRequired('DB_READ_WRITE_USERNAME', 'Database'));
-  results.push(validateRequired('DB_READ_WRITE_PASSWORD', 'Database'));
-  results.push(validateRequired('DB_DATABASE', 'Database'));
-  results.push(validateOptional('DB_SSL_CONNECTION', 'Database', 'Use Default (false)'));
+  results.push(validateRequired('DB_HOST', 'App database'));
+  results.push(validateRequired('DB_PORT', 'App database'));
+  results.push(validateRequired('DB_APP_NAME', 'App database'));
+  results.push(validateRequired('DB_APP_READ_USER', 'App database'));
+  results.push(validateRequired('DB_APP_READ_PASSWORD', 'App database'));
+  results.push(validateRequired('DB_APP_READ_WRITE_USER', 'App database'));
+  results.push(validateRequired('DB_APP_READ_WRITE_PASSWORD', 'App database'));
+  results.push(validateOptional('DB_SSL_CONNECTION', 'App database', 'Use Default (false)'));
 
   // API Configuration
   results.push(validateRequired('API_PORT', 'API'));

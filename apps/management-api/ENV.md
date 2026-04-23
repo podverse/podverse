@@ -29,7 +29,7 @@ Validation occurs in `src/lib/startup/validation.ts` during application startup.
 
 ### Database (one Postgres, shared `DB_HOST` / `DB_PORT`)
 
-The main API and workers use unprefixed `DB_HOST`, `DB_PORT`, and `DB_READ_*` for the **app** database only. Management-api takes a **single** host and port for the instance, then `DB_APP_*` for the main `podverse_app` database and `DB_MANAGEMENT_*` for the admin `podverse_management` database. Credential key names use `*_USER` (not `*_USERNAME`).
+The main API, workers, and management-api all use shared `DB_HOST` and `DB_PORT` for a single PostgreSQL instance. The **app** data uses `DB_APP_*`; the **management** (admin) database uses `DB_MANAGEMENT_*` (management-api only). Credential key names use `*_USER` (not `*_USERNAME`).
 
 **Shared (one connection endpoint):**
 
@@ -49,7 +49,7 @@ The main API and workers use unprefixed `DB_HOST`, `DB_PORT`, and `DB_READ_*` fo
 - **`DB_MANAGEMENT_READ_USER`** / **`DB_MANAGEMENT_READ_PASSWORD`**
 - **`DB_MANAGEMENT_READ_WRITE_USER`** / **`DB_MANAGEMENT_READ_WRITE_PASSWORD`**
 
-**Kubernetes:** `DB_HOST` / `DB_PORT` / `DB_SSL_CONNECTION` are non-secret in the management-api ConfigMap. `DB_MANAGEMENT_*` credentials come from `podverse-management-db-opaque`. `DB_APP_*` credentials are expected from the same main DB secret as the API (`podverse-db-opaque`), which also carries legacy `DB_READ_*` for api/workers; the management-api Deployment includes both secrets. Re-run `infra/k8s/scripts/create_db_secret.sh` after this layout so `podverse-db-opaque` includes `DB_APP_*` keys.
+**Kubernetes:** `DB_HOST` / `DB_PORT` / `DB_SSL_CONNECTION` are non-secret in the management-api ConfigMap. `DB_MANAGEMENT_*` credentials come from `podverse-management-db-opaque`. `DB_APP_*` credentials for the app database come from the same main DB secret as the API (`podverse-db-opaque`); the management-api Deployment includes both secrets. Generate with `infra/k8s/scripts/create_db_secret.sh` and `create_management_db_secret.sh` as needed.
 
 ### API Configuration
 

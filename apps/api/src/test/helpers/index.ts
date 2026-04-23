@@ -37,11 +37,11 @@ export async function startTestApp(): Promise<TestAppResult> {
     database: {
       host: readRequiredTestEnv('DB_HOST'),
       port: parseInt(readRequiredTestEnv('DB_PORT'), 10),
-      read_username: readRequiredTestEnv('DB_READ_USERNAME'),
-      read_password: readRequiredTestEnv('DB_READ_PASSWORD'),
-      read_write_username: readRequiredTestEnv('DB_READ_WRITE_USERNAME'),
-      read_write_password: readRequiredTestEnv('DB_READ_WRITE_PASSWORD'),
-      database: readRequiredTestEnv('DB_DATABASE'),
+      read_username: readRequiredTestEnv('DB_APP_READ_USER'),
+      read_password: readRequiredTestEnv('DB_APP_READ_PASSWORD'),
+      read_write_username: readRequiredTestEnv('DB_APP_READ_WRITE_USER'),
+      read_write_password: readRequiredTestEnv('DB_APP_READ_WRITE_PASSWORD'),
+      database: readRequiredTestEnv('DB_APP_NAME'),
       ssl_connection: process.env.DB_SSL_CONNECTION === 'true',
     },
     log: {

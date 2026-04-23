@@ -130,11 +130,11 @@ export class WebAppManager {
       NODE_ENV: process.env.NODE_ENV,
       DB_HOST: process.env.DB_HOST,
       DB_PORT: process.env.DB_PORT,
-      DB_DATABASE: process.env.DB_DATABASE,
-      DB_READ_USERNAME: process.env.DB_READ_USERNAME,
-      DB_READ_PASSWORD: process.env.DB_READ_PASSWORD,
-      DB_READ_WRITE_USERNAME: process.env.DB_READ_WRITE_USERNAME,
-      DB_READ_WRITE_PASSWORD: process.env.DB_READ_WRITE_PASSWORD,
+      DB_APP_NAME: process.env.DB_APP_NAME,
+      DB_APP_READ_USER: process.env.DB_APP_READ_USER,
+      DB_APP_READ_PASSWORD: process.env.DB_APP_READ_PASSWORD,
+      DB_APP_READ_WRITE_USER: process.env.DB_APP_READ_WRITE_USER,
+      DB_APP_READ_WRITE_PASSWORD: process.env.DB_APP_READ_WRITE_PASSWORD,
       DB_SSL_CONNECTION: process.env.DB_SSL_CONNECTION,
       NEXT_PUBLIC_WEB_DOMAIN: process.env.NEXT_PUBLIC_WEB_DOMAIN,
       NEXT_PUBLIC_WEB_PROTOCOL: process.env.NEXT_PUBLIC_WEB_PROTOCOL,
@@ -161,7 +161,7 @@ export class WebAppManager {
     console.log('   → Web app DB config:');
     console.log(`     DB_HOST=${env.DB_HOST ?? ''}`);
     console.log(`     DB_PORT=${env.DB_PORT ?? ''}`);
-    console.log(`     DB_DATABASE=${env.DB_DATABASE ?? ''}`);
+    console.log(`     DB_APP_NAME=${env.DB_APP_NAME ?? ''}`);
 
     // Build the Next.js app (production) before starting
     console.log('   → Building web app (next build)...');

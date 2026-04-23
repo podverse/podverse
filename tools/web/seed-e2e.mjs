@@ -18,7 +18,7 @@ const DB_HOST = process.env.DB_HOST ?? 'localhost';
 const DB_PORT = Number(process.env.DB_PORT ?? '5732');
 const DB_USER = process.env.SEED_DB_USER ?? 'podverse_app_read_write';
 const DB_PASSWORD = process.env.SEED_DB_PASSWORD ?? 'test';
-const DB_NAME = process.env.DB_DATABASE ?? 'podverse_app_test';
+const DB_NAME = process.env.DB_APP_NAME ?? 'podverse_app_test';
 
 const TEST_PASSWORD = 'Test!1Aa';
 

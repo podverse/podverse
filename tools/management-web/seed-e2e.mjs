@@ -19,7 +19,7 @@ const DB_HOST = process.env.DB_HOST ?? 'localhost';
 const DB_PORT = Number(process.env.DB_PORT ?? '5732');
 const DB_USER = process.env.SEED_DB_USER ?? 'podverse_management_read_write';
 const DB_PASSWORD = process.env.SEED_DB_PASSWORD ?? 'test';
-const DB_NAME = process.env.DB_DATABASE ?? 'podverse_management_test';
+const DB_NAME = process.env.DB_MANAGEMENT_NAME ?? 'podverse_management_test';
 
 async function main() {
   const passwordHash = await bcrypt.hash('Test!1Aa', 10);

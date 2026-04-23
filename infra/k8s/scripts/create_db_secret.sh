@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# VERSION: 3 (Aliases + Secure Pipe)
+# VERSION: 4
 # Helper to create the encrypted Database secret.
-# It includes ALIASES so the same secret works for the DB (POSTGRES_*) and Apps (DB_*).
+# POSTGRES_* for the server image; DB_APP_* for the API, workers, and management-api (app database).
 
 set -euo pipefail
 
@@ -138,16 +138,14 @@ mkdir -p "$(dirname "$OUTPUT_FILE")"
 echo "Generating and encrypting secret..."
 
 # We pipe kubectl output directly to sops.
-# We include both the standard POSTGRES_* keys AND the DB_* aliases
-# so the API and Workers can use this secret directly.
-# DB_APP_* mirror the app database name and role credentials (management-api also reads these from this secret).
+# We include the standard POSTGRES_* keys and DB_APP_* (Metaboost-aligned) so
+# the API, Workers, and management-api can use this secret.
 
 TMP_FILE_BASE="$(mktemp -t "${SECRET_NAME}.XXXXXX")"
 TMP_FILE="${TMP_FILE_BASE}.yaml"
 mv "$TMP_FILE_BASE" "$TMP_FILE"
 kubectl create secret generic "${SECRET_NAME}" \
   --namespace "${NAMESPACE}" \
-  --from-literal=DB_DATABASE="${POSTGRES_DB}" \
   --from-literal=POSTGRES_DB="${POSTGRES_DB}" \
   --from-literal=POSTGRES_USER="${POSTGRES_USER}" \
   --from-literal=POSTGRES_PASSWORD="${POSTGRES_PASSWORD}" \
@@ -155,10 +153,6 @@ kubectl create secret generic "${SECRET_NAME}" \
   --from-literal=POSTGRES_READ_PASSWORD="${POSTGRES_READ_PASSWORD}" \
   --from-literal=POSTGRES_READ_WRITE_USER="${POSTGRES_READ_WRITE_USER}" \
   --from-literal=POSTGRES_READ_WRITE_PASSWORD="${POSTGRES_READ_WRITE_PASSWORD}" \
-  --from-literal=DB_READ_USERNAME="${POSTGRES_READ_USER}" \
-  --from-literal=DB_READ_PASSWORD="${POSTGRES_READ_PASSWORD}" \
-  --from-literal=DB_READ_WRITE_USERNAME="${POSTGRES_READ_WRITE_USER}" \
-  --from-literal=DB_READ_WRITE_PASSWORD="${POSTGRES_READ_WRITE_PASSWORD}" \
   --from-literal=DB_APP_NAME="${POSTGRES_DB}" \
   --from-literal=DB_APP_READ_USER="${POSTGRES_READ_USER}" \
   --from-literal=DB_APP_READ_PASSWORD="${POSTGRES_READ_PASSWORD}" \

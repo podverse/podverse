@@ -26,11 +26,11 @@ const testEnv: Record<string, string> = {
   // Database (test stack: port 5732)
   DB_HOST: '127.0.0.1',
   DB_PORT: '5732',
-  DB_READ_USERNAME: 'podverse_app_read',
-  DB_READ_PASSWORD: 'test',
-  DB_READ_WRITE_USERNAME: 'podverse_app_read_write',
-  DB_READ_WRITE_PASSWORD: 'test',
-  DB_DATABASE: 'podverse_app_test',
+  DB_APP_NAME: 'podverse_app_test',
+  DB_APP_READ_USER: 'podverse_app_read',
+  DB_APP_READ_PASSWORD: 'test',
+  DB_APP_READ_WRITE_USER: 'podverse_app_read_write',
+  DB_APP_READ_WRITE_PASSWORD: 'test',
   // Web
   WEB_PROTOCOL: 'http',
   WEB_DOMAIN: 'localhost',

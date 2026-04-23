@@ -33,15 +33,15 @@ These variables are **always required** regardless of configuration:
 - **`BRAND_NAME`** (Required)
   - Validated at startup. Used when `USER_AGENT` is blank to build the effective User-Agent string.
 
-### Database
+### App database (same pattern as `DB_APP_*` in management-api; Metaboost-aligned `*_USER` keys)
 
 - **`DB_HOST`** (Required) - Database hostname
 - **`DB_PORT`** (Required) - Database port (must be a valid number)
-- **`DB_READ_USERNAME`** (Required) - Read-only database username
-- **`DB_READ_PASSWORD`** (Required) - Read-only database password
-- **`DB_READ_WRITE_USERNAME`** (Required) - Read-write database username
-- **`DB_READ_WRITE_PASSWORD`** (Required) - Read-write database password
-- **`DB_DATABASE`** (Required) - Database name
+- **`DB_APP_NAME`** (Required) - App database name (e.g. `podverse_app`)
+- **`DB_APP_READ_USER`** (Required) - Read-only database user
+- **`DB_APP_READ_PASSWORD`** (Required) - Read-only database password
+- **`DB_APP_READ_WRITE_USER`** (Required) - Read-write database user
+- **`DB_APP_READ_WRITE_PASSWORD`** (Required) - Read-write database password
 - **`DB_SSL_CONNECTION`** (Optional) - Use SSL for database connection (default: `false`)
 
 ### API Configuration
@@ -221,9 +221,10 @@ Example output:
   ✓ BRAND_NAME - Set
   ✓ USER_AGENT - Valid format
 
-[Database]
+[App database]
   ✓ DB_HOST - Set
   ✓ DB_PORT - Set
+  ✓ DB_APP_NAME - Set
   ...
 
 === Validation Summary ===

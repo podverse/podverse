@@ -132,11 +132,11 @@ These variables are used to build the ORM configuration:
 
 - **`DB_HOST`** (Required) - Database hostname
 - **`DB_PORT`** (Required) - Database port (must be a valid number)
-- **`DB_READ_USERNAME`** (Required) - Read-only database username
-- **`DB_READ_PASSWORD`** (Required) - Read-only database password
-- **`DB_READ_WRITE_USERNAME`** (Required) - Read-write database username
-- **`DB_READ_WRITE_PASSWORD`** (Required) - Read-write database password
-- **`DB_DATABASE`** (Required) - Database name
+- **`DB_APP_NAME`** (Required) - App database name
+- **`DB_APP_READ_USER`** (Required) - Read-only database user
+- **`DB_APP_READ_PASSWORD`** (Required) - Read-only database password
+- **`DB_APP_READ_WRITE_USER`** (Required) - Read-write database user
+- **`DB_APP_READ_WRITE_PASSWORD`** (Required) - Read-write database password
 - **`DB_SSL_CONNECTION`** (Optional) - Use SSL for database connection (default: `false`)
   - Set to `"true"` to enable
 

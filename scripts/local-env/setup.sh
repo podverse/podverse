@@ -291,11 +291,11 @@ upsert_var "$KEYVALDB_ENV" "KEYVALDB_PASSWORD" "$KEYVALDB_PASSWORD"
 
 # Shared app-level sync (App DB: names + passwords so app matches init script)
 for file in "$API_APP_ENV" "$WORKERS_APP_ENV" "$API_INFRA_ENV" "$WORKERS_INFRA_ENV"; do
-	upsert_var "$file" "DB_DATABASE" "$POSTGRES_DB"
-	upsert_var "$file" "DB_READ_USERNAME" "$POSTGRES_READ_USER"
-	upsert_var "$file" "DB_READ_PASSWORD" "$POSTGRES_READ_PASSWORD"
-	upsert_var "$file" "DB_READ_WRITE_USERNAME" "$POSTGRES_READ_WRITE_USER"
-	upsert_var "$file" "DB_READ_WRITE_PASSWORD" "$POSTGRES_READ_WRITE_PASSWORD"
+	upsert_var "$file" "DB_APP_NAME" "$POSTGRES_DB"
+	upsert_var "$file" "DB_APP_READ_USER" "$POSTGRES_READ_USER"
+	upsert_var "$file" "DB_APP_READ_PASSWORD" "$POSTGRES_READ_PASSWORD"
+	upsert_var "$file" "DB_APP_READ_WRITE_USER" "$POSTGRES_READ_WRITE_USER"
+	upsert_var "$file" "DB_APP_READ_WRITE_PASSWORD" "$POSTGRES_READ_WRITE_PASSWORD"
 done
 for file in "$MANAGEMENT_API_APP_ENV" "$MANAGEMENT_API_INFRA_ENV"; do
 	upsert_var "$file" "DB_MANAGEMENT_NAME" "$POSTGRES_MANAGEMENT_DB"

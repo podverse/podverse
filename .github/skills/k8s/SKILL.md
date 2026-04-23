@@ -131,10 +131,10 @@ ConfigMaps in `base/<component>/01-configmap.yaml` should mirror the structure o
 
 ```yaml
 # In ConfigMap – consecutive "in secrets" lines aligned
-  # DB_READ_USERNAME: ""                  # in secrets
-  # DB_PASSWORD: ""                       # in secrets
-  # DB_READ_WRITE_USERNAME: ""            # in secrets
-  # DB_READ_WRITE_PASSWORD: ""            # in secrets
+  # DB_APP_NAME: ""                      # in secrets
+  # DB_APP_READ_USER: ""                 # in secrets
+  # DB_APP_READ_WRITE_USER: ""           # in secrets
+  # DB_APP_READ_WRITE_PASSWORD: ""      # in secrets
 
 # In Deployment
 envFrom:

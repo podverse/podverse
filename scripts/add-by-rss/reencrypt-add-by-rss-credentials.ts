@@ -4,8 +4,8 @@
  * Run during key rotation. Requires (no defaults; validation fails fast if missing):
  *   ADD_BY_RSS_CREDENTIALS_ENCRYPTION_KEY (new key, 64 hex chars)
  *   ADD_BY_RSS_CREDENTIALS_ENCRYPTION_KEY_OLD (current key, 64 hex chars)
- *   DB_HOST, DB_PORT, DB_READ_USERNAME, DB_READ_PASSWORD, DB_READ_WRITE_USERNAME,
- *   DB_READ_WRITE_PASSWORD, DB_DATABASE, DEFAULT_ACCOUNT_SETTINGS_LOCALE,
+ *   DB_HOST, DB_PORT, DB_APP_NAME, DB_APP_READ_USER, DB_APP_READ_PASSWORD,
+ *   DB_APP_READ_WRITE_USER, DB_APP_READ_WRITE_PASSWORD, DEFAULT_ACCOUNT_SETTINGS_LOCALE,
  *   NODE_ENV, LOG_LEVEL
  *   Optionally: DB_SSL_CONNECTION=true
  *
@@ -50,11 +50,11 @@ function main(): void {
     database: {
       host: getEnv('DB_HOST'),
       port: parseInt(getEnv('DB_PORT'), 10),
-      read_username: getEnv('DB_READ_USERNAME'),
-      read_password: getEnv('DB_READ_PASSWORD'),
-      read_write_username: getEnv('DB_READ_WRITE_USERNAME'),
-      read_write_password: getEnv('DB_READ_WRITE_PASSWORD'),
-      database: getEnv('DB_DATABASE'),
+      read_username: getEnv('DB_APP_READ_USER'),
+      read_password: getEnv('DB_APP_READ_PASSWORD'),
+      read_write_username: getEnv('DB_APP_READ_WRITE_USER'),
+      read_write_password: getEnv('DB_APP_READ_WRITE_PASSWORD'),
+      database: getEnv('DB_APP_NAME'),
       ssl_connection: process.env.DB_SSL_CONNECTION === 'true',
     },
     log: { level: getEnv('LOG_LEVEL'), dir: '', timer: false },

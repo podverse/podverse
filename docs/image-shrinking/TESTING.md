@@ -21,7 +21,7 @@ Ensure the database has some channel and/or item images (from normal RSS parsing
 
 2. **Set Base, ORM, and MQ variables** so the worker can start. See `apps/workers/ENV.md` for required vars. At minimum you need:
    - Base: `USER_AGENT`, `LOG_LEVEL`, `LOG_DIR` (optional)
-   - ORM: `DB_HOST`, `DB_PORT`, `DB_READ_*`, `DB_READ_WRITE_*`, `DB_DATABASE`, `DB_SSL_CONNECTION`
+   - ORM: `DB_HOST`, `DB_PORT`, `DB_APP_*` (name and role credentials), `DB_SSL_CONNECTION`
    - MQ: `MESSAGE_QUEUE_PROTOCOL`, `MESSAGE_QUEUE_HOST`, `MESSAGE_QUEUE_USERNAME`, `MESSAGE_QUEUE_PASSWORD`, `MESSAGE_QUEUE_PORT`
 
 3. **Set Image Shrink variables** for the implementation you are using. For Digital Ocean Spaces, follow [Digital Ocean Spaces Setup](DIGITAL-OCEAN-SETUP.md) and set:

@@ -21,7 +21,7 @@ spec:
                 - "sh"
                 - "-c"
                 - >-
-                  psql -h "$PODVERSE_DB_SERVICE_HOST" -p "$PODVERSE_DB_SERVICE_PORT" -U "$POSTGRES_USER" -d "$DB_DATABASE" -c
+                  psql -h "$PODVERSE_DB_SERVICE_HOST" -p "$PODVERSE_DB_SERVICE_PORT" -U "$POSTGRES_USER" -d "$DB_APP_NAME" -c
                   "DROP SCHEMA public CASCADE; CREATE SCHEMA public;"
 
               envFrom:

@@ -57,7 +57,8 @@ import { validateRequired } from '@podverse/helpers';
 
 export const validateStartupRequirements = (): void => {
   const results = [];
-  results.push(validateRequired('DB_HOST', 'Database'));
+  results.push(validateRequired('DB_HOST', 'App database'));
+  results.push(validateRequired('DB_APP_NAME', 'App database'));
   results.push(validateRequired('API_PORT', 'API'));
   // ... validate all required env vars
   
