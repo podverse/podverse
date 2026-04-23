@@ -24,7 +24,7 @@ describe('getManagementSessionUser', () => {
   it('returns null when the auth cookie is absent', async () => {
     vi.mocked(cookies).mockResolvedValue({
       get: () => undefined,
-    });
+    } as unknown as Awaited<ReturnType<typeof cookies>>);
 
     await expect(getManagementSessionUser()).resolves.toBeNull();
     expect(ManagementApiRequestService).not.toHaveBeenCalled();
@@ -46,8 +46,10 @@ describe('getManagementSessionUser', () => {
 
     vi.mocked(cookies).mockResolvedValue({
       get: (name: string) =>
-        name === MANAGEMENT_AUTH_COOKIE_NAME ? { value: 'jwt-token' } : undefined,
-    });
+        name === MANAGEMENT_AUTH_COOKIE_NAME
+          ? { name: MANAGEMENT_AUTH_COOKIE_NAME, value: 'jwt-token' }
+          : undefined,
+    } as unknown as Awaited<ReturnType<typeof cookies>>);
 
     vi.mocked(ManagementApiRequestService).mockImplementation(
       () =>
@@ -63,8 +65,10 @@ describe('getManagementSessionUser', () => {
   it('returns null when /auth/me responds with 401', async () => {
     vi.mocked(cookies).mockResolvedValue({
       get: (name: string) =>
-        name === MANAGEMENT_AUTH_COOKIE_NAME ? { value: 'expired' } : undefined,
-    });
+        name === MANAGEMENT_AUTH_COOKIE_NAME
+          ? { name: MANAGEMENT_AUTH_COOKIE_NAME, value: 'expired' }
+          : undefined,
+    } as unknown as Awaited<ReturnType<typeof cookies>>);
 
     vi.mocked(ManagementApiRequestService).mockImplementation(
       () =>
