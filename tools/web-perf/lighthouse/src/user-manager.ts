@@ -25,7 +25,7 @@ export class UserManager {
     const dbHost = process.env.DB_HOST || 'localhost';
     const dbPort = parseInt(process.env.DB_PORT || '5111', 10);
     const dbDatabase = process.env.DB_APP_NAME || 'postgres';
-    const dbUsername = process.env.DB_APP_READ_WRITE_USER || 'read_write';
+    const dbUsername = process.env.DB_APP_READ_WRITE_USER || 'podverse_app_read_write';
     const dbPassword = process.env.DB_APP_READ_WRITE_PASSWORD || '';
 
     this.dataSource = new DataSource({

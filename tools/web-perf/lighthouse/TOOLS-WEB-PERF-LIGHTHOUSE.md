@@ -302,7 +302,10 @@ to keep the tool aligned with infra changes.
   `docker ps | grep podverse_lighthouse_test_db`
 - Check that `.env` has the correct port (5111) and credentials
 - The reset step runs `/opt/database/init-scripts/01-create-users.sh` to ensure
-  `read`/`read_write` users exist with the Lighthouse DB passwords.
+  app roles from `tools/web-perf/lighthouse/docker/env/db.env` exist (`POSTGRES_READ_USER` /
+  `POSTGRES_READ_WRITE_USER`, e.g. `podverse_app_read` and `podverse_app_read_write`) with
+  the Lighthouse DB passwords. If you previously had generic `read` / `read_write` roles
+  in this dev database, run `docker compose -f tools/web-perf/lighthouse/docker/docker-compose.yml down -v` once, then bring services back up so the init script can create the prefixed roles.
 - Check Postgres readiness and logs:
   `docker logs podverse_lighthouse_test_db`
 - If schema creation fails, Lighthouse now verifies `category` exists after reset.
