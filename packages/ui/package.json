@@ -19,12 +19,12 @@
   },
   "license": "AGPL-3.0",
   "peerDependencies": {
-    "react": "^19.2.4"
+    "react": "^19.2.5"
   },
   "devDependencies": {
     "@types/react": "^19.2.11",
-    "react": "^19.2.4",
-    "sass": "^1.98.0",
+    "react": "^19.2.5",
+    "sass": "^1.99.0",
     "typescript": "^5.9.2"
   },
   "dependencies": {
