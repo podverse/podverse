@@ -32,7 +32,7 @@ type PermissionState = {
   stats_crud: number;
 };
 
-const RESOURCE_LABEL_KEYS: Record<string, string> = {
+const RESOURCE_LABEL_KEYS: Record<(typeof RESOURCE_KEYS)[number], string> = {
   feeds_crud: 'feeds',
   feed_flag_statuses_crud: 'flagStatuses',
   feed_flag_status_reasons_crud: 'statusReasons',
