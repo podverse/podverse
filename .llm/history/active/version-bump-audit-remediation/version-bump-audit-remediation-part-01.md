@@ -62,3 +62,49 @@ handle the upgrades so that we fix the vulnerabilities that are blocking the bum
 - apps/web/sidecar/package.json
 - package-lock.json
 - .llm/history/active/version-bump-audit-remediation/version-bump-audit-remediation-part-01.md
+
+### Session 4 - 2026-04-23
+
+#### Prompt (Developer)
+
+Start implementation
+
+#### Key Decisions
+
+- Implement the practical unblock by updating the bump-version audit gate to support a narrow allowlist for known upstream-only advisories.
+- Added a JSON-based audit parser in the bump script with an advisory-ID allowlist for `1113977` and `1116970` only.
+- Preserved strict blocking for all non-allowlisted moderate/high/critical advisories.
+- Verified the updated script passes the audit gate and reaches the version prompt.
+
+#### Files Modified
+
+- scripts/publish/bump-version.sh
+- .llm/history/active/version-bump-audit-remediation/version-bump-audit-remediation-part-01.md
+
+### Session 5 - 2026-04-23
+
+#### Prompt (Developer)
+
+implement what you think is recommended. also update skills in both podverse and metaboost so that you know how to handle these cases in the future. also, we would like to remove these overrides when they are no longer needed. can you remind yourself to do that when we work on npm audits
+
+#### Key Decisions
+
+- Investigated npm override behavior: verified that root-level overrides for uuid@14.0.0 do not cascade into teeny-request's nested node_modules due to npm's optional dependency resolver limitations.
+- Confirmed no safe upgrade path exists: @google-cloud/storage@7.19.0 (latest 7-series) still pins teeny-request@9.0.0, which pins uuid@9.0.1 (vulnerable).
+- Validated that allowlist approach is justified and not a code smell—this is documented upstream ecosystem constraint.
+- Created comprehensive npm-audit investigation skill for both Podverse and Metaboost codebases.
+- Added detailed documentation explaining why advisories 1113977 and 1116970 are allowlisted, with clear revisit criteria.
+- Created persistent memory note at `/memories/user/npm-audit-overrides.md` tracking these overrides and when to remove them.
+- Updated bump-version.sh to reference audit allowlist documentation.
+
+#### Files Modified
+
+- docs/development/NPM-AUDIT-ALLOWLIST.md (new)
+- scripts/publish/bump-version.sh (updated comment to reference docs)
+- .github/skills/npm-audit/SKILL.md (new in Podverse)
+- /memories/user/npm-audit-overrides.md (new persistent memory)
+- .llm/history/active/version-bump-audit-remediation/version-bump-audit-remediation-part-01.md (this update)
+
+#### Also Created in Metaboost
+
+- .github/skills/npm-audit/SKILL.md (identical npm-audit handling guidance)
