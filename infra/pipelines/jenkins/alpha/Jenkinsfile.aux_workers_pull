@@ -44,11 +44,11 @@ pipeline {
                         if (params.IMAGE_VERSION == 'alpha') {
                                 withEnv(["GHCR_IMAGE_PATH=${params.GHCR_IMAGE_PATH}"]) {
                                     withCredentials([string(credentialsId: params.GHCR_REGISTRY_TOKEN, variable: 'GHCR_REGISTRY_TOKEN')]) {
-                                        workersVersion = sh(script: '/opt/podverse/scripts/ghcr/getLatestAlphaTag.sh', returnStdout: true).trim()
+                                        workersVersion = sh(script: '/opt/podverse/scripts/ghcr/getLatestStagingTag.sh', returnStdout: true).trim()
                                     }
                                 }
                                 if (!workersVersion) {
-                                        error('ERROR: No alpha tag found from getLatestAlphaTag.sh')
+                                        error('ERROR: No staging line tag found from getLatestStagingTag.sh')
                                 }
                         } else {
                                 workersVersion = params.IMAGE_VERSION

@@ -1,0 +1,154 @@
+# On push to `main`: promote the latest per-image `X.Y.Z-staging.N` to immutable `X.Y.Z` and `:prod`
+# (X.Y from root package.json on the push commit; no *-prod.N tag).
+
+name: Publish (main)
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+concurrency:
+  group: publish-main-${{ github.repository }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  packages: read
+
+jobs:
+  promote-and-release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: write
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Install crane
+        run: |
+          set -euo pipefail
+          TAR="go-containerregistry_Linux_x86_64.tar.gz"
+          curl -fsSL "https://github.com/google/go-containerregistry/releases/download/v0.20.2/${TAR}" -o /tmp/c.tgz
+          tar -xzf /tmp/c.tgz -C /tmp crane
+          sudo install -m755 /tmp/crane /usr/local/bin/crane
+
+      - name: Read base version from package.json
+        id: version
+        run: |
+          BASE=$(node -p "require('./package.json').version" | sed 's/-.*//')
+          echo "base_version=$BASE" >> "$GITHUB_OUTPUT"
+          echo "Base version: $BASE"
+
+      - name: Promote images (same staging N for all; min of per-image max N)
+        id: promote
+        env:
+          REPO: ${{ github.repository }}
+          GITHUB_ACTOR: ${{ github.actor }}
+        run: |
+          set -euo pipefail
+          if [ -n "${{ secrets.GHCR_REGISTRY_TOKEN }}" ]; then
+            GHCR_TOKEN="${{ secrets.GHCR_REGISTRY_TOKEN }}"
+          else
+            GHCR_TOKEN="${{ secrets.GITHUB_TOKEN }}"
+            echo "Using GITHUB_TOKEN for GHCR (read/write)."
+          fi
+          echo "${{ secrets.GITHUB_TOKEN }}" | crane auth login ghcr.io -u "${GITHUB_ACTOR}" --password-stdin
+
+          BASE="${{ steps.version.outputs.base_version }}"
+          PREFIX="${BASE}-staging."
+          APPS="web-base management-web-base api workers management-api web-deploy management-web-deploy web-runtime-config management-web-runtime-config"
+          MINS=""
+
+          max_staging_n() {
+            local app="$1"
+            local tags_json
+            tags_json=$(curl -fsS -H "Authorization: Bearer ${GHCR_TOKEN}" "https://ghcr.io/v2/${REPO}/${app}/tags/list")
+            local best=-1
+            local t n
+            while IFS= read -r t; do
+              case "$t" in
+                ${PREFIX}*) n="${t#${PREFIX}}"
+                  if [[ "$n" =~ ^[0-9]+$ ]]; then
+                    if [ "$n" -gt "$best" ]; then best="$n"; fi
+                  fi
+                  ;;
+              esac
+            done < <(echo "$tags_json" | jq -r '.tags[]? // empty' | tr -d '\r')
+            echo "$best"
+          }
+
+          for APP in $APPS; do
+            m=$(max_staging_n "$APP")
+            if [ "$m" -lt 0 ]; then
+              echo "::error::No ${BASE}-staging.N tag for ${REPO}/${APP}"
+              exit 1
+            fi
+            MINS="${MINS} $m"
+          done
+          M=$(printf '%s\n' $MINS | sort -n | head -1)
+          echo "Using staging line ${BASE}-staging.$M (minimum of per-image max N so every image has this tag)."
+          for APP in $APPS; do
+            IMAGE="ghcr.io/${REPO}/${APP}"
+            SRC_TAG="${BASE}-staging.${M}"
+            echo "Promoting ${IMAGE}:${SRC_TAG} -> :${BASE} and :prod"
+            crane copy "${IMAGE}:${SRC_TAG}" "${IMAGE}:${BASE}"
+            crane copy "${IMAGE}:${SRC_TAG}" "${IMAGE}:prod"
+          done
+          echo "staging_n=$M" >> "$GITHUB_OUTPUT"
+
+      - name: Create Git tag and production release
+        if: success()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const base = "${{ steps.version.outputs.base_version }}";
+            const sha = context.sha;
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const fs = require("fs");
+            const path = "docs/operations/CHANGELOG-UPCOMING.md";
+            let body;
+            if (fs.existsSync(path)) {
+              body = fs.readFileSync(path, "utf8");
+            } else {
+              body = "Production build; no " + path + " at this commit.";
+            }
+            try {
+              await github.rest.git.createRef({
+                owner, repo, ref: "refs/tags/" + base, sha
+              });
+              core.info("Created ref refs/tags/" + base);
+            } catch (e) {
+              if (e.status === 422) {
+                core.info("Ref refs/tags/" + base + " may already exist; continue.");
+              } else {
+                throw e;
+              }
+            }
+            const { data: list } = await github.rest.repos.listReleases({ owner, repo, per_page: 100 });
+            if (list.some((r) => r.tag_name === base)) {
+              core.info("Release for tag " + base + " already exists; skip.");
+            } else {
+              await github.rest.repos.createRelease({
+                owner, repo, tag_name: base, name: base, body, prerelease: false,
+              });
+            }
+
+      - name: Main promotion summary
+        if: success()
+        env:
+          BASE: ${{ steps.version.outputs.base_version }}
+        run: |
+          {
+            echo "## Production images (promoted from staging line)"
+            echo ""
+            echo "Immutable tag: \`$BASE\` and floating \`prod\` (from latest \`$BASE-staging.N\` in GHCR per image)."
+            echo ""
+            echo "| Image | Pinned as |"
+            echo "|-------|-----------|"
+            for a in web-base management-web-base api workers management-api web-deploy management-web-deploy web-runtime-config management-web-runtime-config; do
+              echo "| \`ghcr.io/${{ github.repository }}/${a}\` | \`$BASE\`, \`prod\` |"
+            done
+          } >> "$GITHUB_STEP_SUMMARY"

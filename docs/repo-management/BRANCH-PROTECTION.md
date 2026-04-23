@@ -8,84 +8,42 @@ Primary configuration lives in GitHub Rulesets:
 
 - GitHub Repository -> Settings -> Rules -> Rulesets
 
-Podverse currently uses an active ruleset (`develop-protection`) that applies to
-`develop`, `main`, and `alpha` and requires `validate` as a status check.
+The active ruleset **`develop-protection`** targets **`develop`**, **`main`**, and **`staging`** and requires
+`validate` as a status check, plus PR, code review, and branch safety rules (see table below). The
+`staging` branch is the preprod / publish-train trigger (replacing the old `alpha` branch in GitHub
+rules; in-cluster “alpha” environment names in K8s are separate).
 
 Do not duplicate the same merge policy under Settings -> Branches. Keep Rulesets
 as the single source of truth to avoid conflicting enforcement behavior.
 
-## Branch: `develop`
+## Ruleset: `develop-protection` (covered branches)
 
-**Pattern**: `develop`
+**Include ref patterns:** `refs/heads/develop`, `refs/heads/main`, `refs/heads/staging`
 
 | Setting                               | Value      |
 | ------------------------------------- | ---------- |
 | Require a pull request before merging | Yes        |
 | Required approving reviews            | 1          |
 | Dismiss stale pull request approvals  | Yes        |
+| Require review from Code Owners       | Yes        |
 | Require status checks to pass         | Yes        |
 | Required status checks                | `validate` |
 | Require branches to be up to date     | Yes        |
+| Block deletions / non-FF              | Yes        |
 | Allow force pushes                    | No         |
 | Allow deletions                       | No         |
 
-## Branch: `alpha`
+Bypass: configured teams/integrations in the ruleset (e.g. for automation that must push to these branches with `--no-verify` only where policy allows).
 
-**Pattern**: `alpha`
-
-| Setting                               | Value                 |
-| ------------------------------------- | --------------------- |
-| Require a pull request before merging | Yes                   |
-| Required approving reviews            | 2                     |
-| Dismiss stale pull request approvals  | Yes                   |
-| Require status checks to pass         | Yes                   |
-| Required status checks                | `validate`            |
-| Require branches to be up to date     | Yes                   |
-| Restrict who can push                 | @podverse/maintainers |
-| Allow force pushes                    | No                    |
-| Allow deletions                       | No                    |
-
-## Branch: `beta`
-
-**Pattern**: `beta`
-
-| Setting                               | Value                 |
-| ------------------------------------- | --------------------- |
-| Require a pull request before merging | Yes                   |
-| Required approving reviews            | 2                     |
-| Dismiss stale pull request approvals  | Yes                   |
-| Require review from Code Owners       | Yes                   |
-| Require status checks to pass         | Yes                   |
-| Required status checks                | `validate`            |
-| Require branches to be up to date     | Yes                   |
-| Restrict who can push                 | @podverse/maintainers |
-| Require linear history                | Yes                   |
-| Allow force pushes                    | No                    |
-| Allow deletions                       | No                    |
-
-## Branch: `main`
-
-**Pattern**: `main`
-
-| Setting                               | Value                 |
-| ------------------------------------- | --------------------- |
-| Require a pull request before merging | Yes                   |
-| Required approving reviews            | 2                     |
-| Dismiss stale pull request approvals  | Yes                   |
-| Require review from Code Owners       | Yes                   |
-| Require status checks to pass         | Yes                   |
-| Required status checks                | `validate`            |
-| Require branches to be up to date     | Yes                   |
-| Restrict who can push                 | @podverse/maintainers |
-| Require linear history                | Yes                   |
-| Allow force pushes                    | No                    |
-| Allow deletions                       | No                    |
+**Legacy:** Older docs referred to separate policies for `alpha` / `beta` Git branches. The current
+**`staging`** line uses the same ruleset as `develop` and `main` above. Retired `alpha` / `beta` Git
+branches are no longer listed in this ruleset.
 
 ## Local Enforcement
 
 In addition to GitHub branch protection, local git hooks enforce:
 
-- **pre-push**: Blocks direct pushes to protected branches (main, beta, alpha, develop)
+- **pre-push**: Blocks direct pushes to protected branches (main, staging, develop)
 - **pre-push**: Validates branch naming conventions (feature/_, fix/_, chore/_, docs/_, hotfix/_, release/_)
 
 Commit message template (`.gitmessage`) suggests optional GitHub issue references (#123). See `scripts/git-hooks/` for implementation details.

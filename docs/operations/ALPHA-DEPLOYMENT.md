@@ -6,29 +6,28 @@ This document describes how to deploy to the alpha environment for testing.
 
 The alpha environment is a pre-production testing environment. Docker images are built and pushed to GitHub Container Registry (GHCR) when:
 
-1. Changes are pushed to the `alpha` branch
-2. The workflow is manually triggered via GitHub Actions UI or CLI
+1. Changes are pushed to the **`staging`** branch (or the build workflow is manually triggered)
+2. For production, pushes to **`main`** run a **separate** promote-only workflow (no app rebuild; see [PUBLISH](PUBLISH.md))
 
-**Important:** The `alpha` branch (and, when you use them, `beta` and `main`) are **promotion / trigger** branches. Do **not** land feature work on them. Work happens on `develop` (or feature branches merged to `develop`); you **fast-forward** a promotion branch to the commit you want to build.
+**Important:** The **`staging`** and **`main`** branches are **promotion / trigger** branches. Do **not** land feature work on them. Work happens on `develop` (or feature branches merged to `develop`); you **fast-forward** a promotion branch to the commit you want to build or ship.
 
-### Release train (alpha → beta → prod) and changelogs
+### Release train (staging preprod → main RTM) and changelogs
 
 - **Base version** `X.Y.Z` in the repo root and workspace `package.json` files: you set this when you choose, using `./scripts/publish/bump-version.sh` on `develop` (it does not create a Git tag).
-- **Build version** (what is pushed to GHCR, what matches the **Git** tag, and the **GitHub Release** name) is chosen in CI:
-  - **`alpha`**: `X.Y.Z-alpha.N` (N increments from existing GHCR tags for that **base**), plus floating image tag `:alpha`.
-  - **`beta`**: `X.Y.Z-beta.N` + `:beta`.
-  - **`main` (production)**: `X.Y.Z` exactly (must match the bumped `package.json` on the commit you ship), plus floating `:prod`.
-- After a successful build, the workflow **creates the Git tag** (same string as the immutable image tag) if missing, **creates a GitHub Release** (prerelease for alpha/beta, **full release** for `main`, body from [`CHANGELOG-UPCOMING.md`](CHANGELOG-UPCOMING.md) when that file exists on the build commit), and **opens a PR to `develop`** to append an archive under [`CHANGELOG-ARCHIVE/`](CHANGELOG-ARCHIVE/DOCS-OPERATIONS-CHANGELOG-ARCHIVE.md) and clear the `UPCOMING-AUTO-START` / `UPCOMING-AUTO-END` block.
-- Edit [`CHANGELOG-UPCOMING.md`](CHANGELOG-UPCOMING.md) only on **`develop`**. See the [release-changelog skill](../../.cursor/skills/release-changelog/SKILL.md).
+- **Build version** (what is pushed to GHCR, what matches the **Git** tag, and the **prerelease GitHub Release** name on **staging** builds) is chosen in CI: **`X.Y.Z-staging.N`** (N reserved atomically via Git tag; see [PUBLISH](PUBLISH.md)), plus floating image tag **`:staging`**.
+- **`main` (production):** a dedicated workflow **promotes** the existing `X.Y.Z-staging.N` line to immutable **`X.Y.Z`** and **`:prod`**; it then creates the **`X.Y.Z` Git tag** and a **full** (non-prerelease) **GitHub Release** from [`CHANGELOG-UPCOMING.md`](CHANGELOG-UPCOMING.md) on the promote commit. It does not rebuild app images in that run.
+- After a successful **staging** build, the **Publish (staging)** workflow **creates the Git tag** (same string as the immutable image tag) if missing, **creates a prerelease GitHub Release**, and **opens a PR to `develop`** to append an archive under [`CHANGELOG-ARCHIVE/`](CHANGELOG-ARCHIVE/DOCS-OPERATIONS-CHANGELOG-ARCHIVE.md) and clear the `UPCOMING-AUTO-START` / `UPCOMING-AUTO-END` block.
+- Edit [`CHANGELOG-UPCOMING.md`](CHANGELOG-UPCOMING.md) only on **`develop`**. See the [release-changelog skill](../../.cursor/skills/release-changelog/SKILL.md) and the canonical [PUBLISH](PUBLISH.md) table.
 
-Promotion: `./scripts/publish/sync-develop-to-alpha.sh`, `./scripts/publish/sync-develop-to-beta.sh`, `./scripts/publish/sync-develop-to-main.sh`.
+Promotion: `./scripts/publish/sync-develop-to-staging.sh`, `./scripts/publish/sync-develop-to-main.sh`.
 
-The workflow file is still [`.github/workflows/publish-alpha.yml`](../.github/workflows/publish-alpha.yml) but the workflow name in GitHub Actions is **“Publish (alpha, beta, main)”** and it runs on pushes to **alpha**, **beta**, or **main**.
+- **Build + push to GHCR:** [`.github/workflows/publish-staging.yml`](../.github/workflows/publish-staging.yml) — display name **“Publish (staging)”**, on pushes to **`staging`** (or `workflow_dispatch`).
+- **Promote to RTM:** [`.github/workflows/publish-main.yml`](../.github/workflows/publish-main.yml) — **“Publish (main)”**, on pushes to **`main`**.
 
 ```mermaid
 flowchart TD
     subgraph trigger [Trigger Options]
-        A[Push to alpha branch]
+        A[Push to staging branch]
         B[Manual workflow_dispatch]
     end
 
@@ -54,7 +53,7 @@ flowchart TD
 ### GitHub Access
 
 - Write access to the podverse/podverse repository
-- Ability to push to the `alpha` branch (bypass branch protection if enabled)
+- Ability to push to the **`staging`** branch (bypass branch protection if enabled) for preprod builds
 
 ### Required Secrets (Already Configured)
 
@@ -79,7 +78,7 @@ brew install --cask docker
 
 ## Testing Locally (Before Pushing)
 
-Before triggering the alpha workflow, validate your changes locally.
+Before triggering the **staging** build workflow, validate your changes locally.
 
 ### Quick Validation (Recommended)
 
@@ -97,7 +96,7 @@ This runs: security audit, build packages, lint, type-check, local env setup, an
 make validate_docker
 ```
 
-This is the most thorough test - if this passes, the alpha workflow should succeed. It builds the same images as CI: base images (web-base, management-web-base), then api, web-deploy, web-runtime-config, workers, management-api, management-web-deploy, and management-web-runtime-config.
+This is the most thorough test; if this passes, the **staging** publish workflow should succeed. It builds the same images as CI: base images (web-base, management-web-base), then api, web-deploy, web-runtime-config, workers, management-api, management-web-deploy, and management-web-runtime-config.
 
 ### Manual Steps (Alternative)
 
@@ -141,35 +140,35 @@ If releasing a new version:
 
 **Note:** This script bypasses git hooks and pushes directly. To push to protected branches like `develop`, your GitHub user must have "Allow specified actors to bypass required pull requests" permission configured in the repository's branch protection rules.
 
-### Step 2: Push to Alpha Branch
+### Step 2: Fast-forward `staging` from `develop`
 
-Since `alpha` is a trigger branch that should mirror `develop`, merge develop into alpha:
+The **`staging`** branch should be a fast-forward of `develop` when you want a new preprod build.
 
-**Recommended: Use the helper script** (validates state and ensures safety):
+**Recommended: use the helper script** (validates state and ensures safety):
 
 ```bash
-./scripts/publish/sync-develop-to-alpha.sh
+./scripts/publish/sync-develop-to-staging.sh
 ```
 
 The script will:
 
 - Check for uncommitted changes (prevents unexpected results)
-- Verify that alpha can fast-forward merge from develop
-- Ensure alpha is a perfect mirror of develop
+- Verify that `staging` can fast-forward merge from `develop`
+- Ensure `staging` is a perfect mirror of `develop`
 - Perform the merge and push automatically
 
-**Note:** The script uses `--no-verify` to bypass git hooks when pushing, similar to `bump-version.sh`. To push to the protected `alpha` branch, your GitHub user must have "Allow specified actors to bypass required pull requests" permission configured in the repository's branch protection rules. If you don't have this permission, the script will provide guidance on creating a PR instead.
+**Note:** The script uses `--no-verify` to bypass git hooks when pushing, similar to `bump-version.sh`. To push to the protected `staging` branch, your GitHub user must have "Allow specified actors to bypass required pull requests" permission configured in the repository's branch protection rules. If you don't have this permission, the script will provide guidance on creating a PR instead.
 
 **Manual method** (if you prefer to do it manually):
 
 ```bash
-# Merge develop into alpha (fast-forward)
-git checkout alpha
+# Fast-forward merge develop into staging
+git checkout staging
 git merge develop --ff-only
-git push --no-verify origin alpha
+git push --no-verify origin staging
 ```
 
-**Note:** The manual method also requires bypass permissions for the protected `alpha` branch. If you don't have permissions, you'll need to create a Pull Request from `develop` to `alpha` instead.
+**Note:** The manual method also requires bypass permissions for the protected `staging` branch. If you don't have permissions, create a Pull Request from `develop` to `staging` instead.
 
 ### Step 3: Monitor the Workflow
 
@@ -177,8 +176,8 @@ git push --no-verify origin alpha
 # Watch the workflow run
 gh run watch
 
-# Or list recent runs (workflow file name unchanged; it also covers beta and main)
-gh run list --workflow=publish-alpha.yml
+# Or list recent staging build runs
+gh run list --workflow=publish-staging.yml
 
 # View specific run logs
 gh run view <run-id> --log
@@ -188,19 +187,19 @@ gh run view <run-id> --log
 
 ### Via GitHub UI
 
-1. Go to **Actions** > **Publish Alpha**
+1. Go to **Actions** > **Publish (staging)**
 2. Click **Run workflow** dropdown
-3. Optionally enter a version override (e.g., `5.2.1-hotfix`)
+3. Optionally enter a version override (e.g., `5.2.1-staging.99` for the staging line)
 4. Click **Run workflow**
 
 ### Via CLI
 
 ```bash
-# Trigger with default version (from package.json)
-gh workflow run publish-alpha.yml
+# Trigger with default version (from package.json on the target ref)
+gh workflow run publish-staging.yml
 
-# Trigger with custom version
-gh workflow run publish-alpha.yml -f version_override=5.2.1-hotfix
+# Trigger with custom version (staging line)
+gh workflow run publish-staging.yml -f version_override=5.2.1-staging.99
 
 # Watch the triggered run
 gh run watch
@@ -212,7 +211,7 @@ gh run watch
 
 ```bash
 # List recent workflow runs
-gh run list --workflow=publish-alpha.yml
+gh run list --workflow=publish-staging.yml
 
 # View detailed logs for a run
 gh run view <run-id> --log
@@ -226,14 +225,16 @@ gh run view <run-id> --log-failed
 Note: web app images are published as `web-deploy` and `management-web-deploy` (Next.js requires env at build time). Runtime config is in separate sidecar images.
 
 ```bash
-# Pull and verify images exist
-docker pull ghcr.io/podverse/podverse/api:alpha
-docker pull ghcr.io/podverse/podverse/web-deploy:alpha
-docker pull ghcr.io/podverse/podverse/web-runtime-config:alpha
-docker pull ghcr.io/podverse/podverse/workers:alpha
-docker pull ghcr.io/podverse/podverse/management-api:alpha
-docker pull ghcr.io/podverse/podverse/management-web-deploy:alpha
-docker pull ghcr.io/podverse/podverse/management-web-runtime-config:alpha
+# Pull and verify images exist (floating :staging = latest from the staging branch pipeline)
+docker pull ghcr.io/podverse/podverse/web-base:staging
+docker pull ghcr.io/podverse/podverse/management-web-base:staging
+docker pull ghcr.io/podverse/podverse/api:staging
+docker pull ghcr.io/podverse/podverse/web-deploy:staging
+docker pull ghcr.io/podverse/podverse/web-runtime-config:staging
+docker pull ghcr.io/podverse/podverse/workers:staging
+docker pull ghcr.io/podverse/podverse/management-api:staging
+docker pull ghcr.io/podverse/podverse/management-web-deploy:staging
+docker pull ghcr.io/podverse/podverse/management-web-runtime-config:staging
 
 # Check image tags via GitHub API
 gh api /orgs/podverse/packages/container/podverse%2Fapi/versions --jq '.[0:3]'
@@ -284,35 +285,36 @@ make alpha_management_web_up
 
 Docker images are tagged with:
 
-- `X.Y.Z-alpha.N` (on **`alpha`**) or `X.Y.Z-beta.N` (on **`beta`**) or `X.Y.Z` (on **`main`**) — immutable, version-specific tag
-- A **floating** tag: `alpha`, `beta`, or `prod` (latest build for that branch from this workflow)
+- `X.Y.Z-staging.N` (from the **`staging`** branch **Publish (staging)** workflow) — immutable, version-specific tag; **`X.Y.Z`** / **`:prod`** after **Publish (main)** on **`main`**
+- A **floating** tag: **`staging`** (latest preprod build) or **`prod`** (after promote)
 
-A **matching Git tag** (same string as the immutable image tag) is created on the publish commit by the workflow if it does not already exist; it is **not** moved if it would point to a different commit (see the `git-tag-prerelease` job in the workflow file).
+A **matching Git tag** (same string as the immutable image tag) is created on the publish commit by the `reserve-version` job if it does not already exist; it is **not** reused if it would point to a different commit (the workflow fails instead).
 
 The version is determined by:
 
-1. `version_override` input (if manually triggered with override)
-2. Otherwise: base version from root `package.json` with an incremented prerelease number from existing GHCR tags for that line (`alpha` / `beta`); for **`main`**, the version is exactly the **base** `X.Y.Z` in `package.json` (no `.N` suffix)
+1. `version_override` input (if manually triggered with override) on the **staging** workflow
+2. Otherwise on **staging**: base version from root `package.json` with an incremented prerelease `N` reserved via the Git ref API (see [PUBLISH](PUBLISH.md))
+3. On **main** promote: the same **`X.Y.Z` base** in `package.json` on the push; images are **copied** from the chosen `X.Y.Z-staging.M` line, not built fresh in that workflow
 
-For first-ever publish when GHCR has no package path yet, `404` from tag discovery is treated as
-an expected bootstrap state and the workflow starts at `X.Y.Z-alpha.0` automatically.
+For first-ever publish when GHCR has no package path yet, `404` from tag listing can be part of
+an expected bootstrap; the `reserve-version` job starts the staging line at **`X.Y.Z-staging.0`**.
 
 ## Troubleshooting
 
-| Issue                                       | Cause                                   | Solution                                                                                              |
-| ------------------------------------------- | --------------------------------------- | ----------------------------------------------------------------------------------------------------- |
-| "not possible to fast-forward" error        | `alpha` branch diverged from `develop`  | Reset alpha: `git checkout alpha && git reset --hard origin/develop && git push --force origin alpha` |
-| Workflow fails at "Security audit"          | npm vulnerabilities found               | Run `./scripts/audit/audit.sh --fix` locally                                                          |
-| Workflow fails at "Lint"                    | Linting errors                          | Run `npm run lint` locally to see errors                                                              |
-| Workflow fails at "Type check"              | TypeScript errors                       | Run `npm run type-check` locally                                                                      |
-| Workflow fails at "Build all apps"          | Build errors                            | Run `npm run build:apps` locally                                                                      |
-| Docker build fails                          | Dockerfile or dependency issue          | Build locally with `docker build -f apps/<app>/Dockerfile .`                                          |
-| Container fails at start (MODULE_NOT_FOUND) | Workspace package missing from image    | See [Reproducing runtime errors locally](#reproducing-runtime-errors-locally) below                   |
-| GHCR push fails                             | Permission issue                        | Verify GITHUB_TOKEN has `packages:write` scope                                                        |
-| GHCR tag discovery returns 401/403          | Token scope or org policy restriction   | Ensure GHCR_REGISTRY_TOKEN has `packages:read` and org secret visibility includes this repository     |
-| GHCR tag discovery returns 404              | First publish, package path not created | Expected bootstrap case; workflow starts at `X.Y.Z-alpha.0` automatically                             |
-| Version conflict                            | Tag already exists                      | Use `version_override` with a different version                                                       |
-| Images not updating on server               | Docker cache                            | Run `docker pull` with `--no-cache` or prune images                                                   |
+| Issue                                       | Cause                                    | Solution                                                                                                                                    |
+| ------------------------------------------- | ---------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| "not possible to fast-forward" error        | `staging` branch diverged from `develop` | Reset `staging` only with team agreement: e.g. `git checkout staging && git reset --hard origin/develop && git push --force origin staging` |
+| Workflow fails at "Security audit"          | npm vulnerabilities found                | Run `./scripts/audit/audit.sh --fix` locally                                                                                                |
+| Workflow fails at "Lint"                    | Linting errors                           | Run `npm run lint` locally to see errors                                                                                                    |
+| Workflow fails at "Type check"              | TypeScript errors                        | Run `npm run type-check` locally                                                                                                            |
+| Workflow fails at "Build all apps"          | Build errors                             | Run `npm run build:apps` locally                                                                                                            |
+| Docker build fails                          | Dockerfile or dependency issue           | Build locally with `docker build -f apps/<app>/Dockerfile .`                                                                                |
+| Container fails at start (MODULE_NOT_FOUND) | Workspace package missing from image     | See [Reproducing runtime errors locally](#reproducing-runtime-errors-locally) below                                                         |
+| GHCR push fails                             | Permission issue                         | Verify GITHUB_TOKEN has `packages:write` scope                                                                                              |
+| GHCR tag discovery returns 401/403          | Token scope or org policy restriction    | Ensure GHCR_REGISTRY_TOKEN has `packages:read` and org secret visibility includes this repository                                           |
+| GHCR tag discovery returns 404              | First publish, package path not created  | Expected bootstrap case; reserve-version can start the staging line at `X.Y.Z-staging.0`                                                    |
+| Version conflict                            | Tag already exists                       | Use `version_override` with a different version                                                                                             |
+| Images not updating on server               | Docker cache                             | Run `docker pull` with `--no-cache` or prune images                                                                                         |
 
 ### Reproducing runtime errors locally
 
@@ -350,7 +352,7 @@ similar), reproduce and debug locally:
 
 ```bash
 # Get the run ID
-gh run list --workflow=publish-alpha.yml --limit 5
+gh run list --workflow=publish-staging.yml --limit 5
 
 # View full logs
 gh run view <run-id> --log
@@ -374,6 +376,7 @@ gh run rerun <run-id> --failed
 
 ## Related Documentation
 
+- [Publish: branch → semver → floating tag](PUBLISH.md)
 - [Branch Protection Rules](../repo-management/BRANCH-PROTECTION.md)
 - [Secrets Configuration](SECRETS.md)
 - [Quick Start Guide](../QUICKSTART.md)

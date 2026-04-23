@@ -13,7 +13,7 @@ spec:
   project: podverse
   source:
     repoURL: https://github.com/podverse/podverse.git
-    targetRevision: alpha
+    targetRevision: staging
     path: k8s/alpha/db
   destination:
     server: https://kubernetes.default.svc

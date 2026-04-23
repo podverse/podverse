@@ -6,7 +6,7 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
 resources:
-  - https://github.com/podverse/podverse//infra/k8d/base/api?ref=alpha
+  - https://github.com/podverse/podverse//infra/k8d/base/api?ref=staging
 
 # 2. Namespace (optional, ensures all resources are in this namespace)
 namespace: podverse-alpha
@@ -35,4 +35,4 @@ patches:
 # We define the specific version here.
 images:
   - name: ghcr.io/podverse/podverse/api
-    newTag: "5.4.12-alpha.0"
+    newTag: "5.4.12-staging.0"

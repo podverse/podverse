@@ -1,29 +1,16 @@
-# Publish Docker images to GHCR on alpha, beta, or main.
-#
-# Version selection is atomic: the `reserve-version` job creates
-# `refs/tags/X.Y.Z-{suffix}.N` at the workflow commit via the GitHub Git Refs API
-# (POST /git/refs). HTTP 422 ("Reference already exists") increments N and retries.
-# `git ls-remote --tags` is used only as a starting hint.
-#
-# Tag schema:
-#   alpha branch -> X.Y.Z-alpha.N + :alpha (FLOAT_TAG=alpha)
-#   beta  branch -> X.Y.Z-beta.N  + :beta
-#   main  branch -> X.Y.Z         + :prod
-#
-# GHCR is image storage and verification only -- it is not used to pick the next N.
+# Build and push staging images from the `staging` branch.
+# Tags: X.Y.Z-staging.N and floating :staging. Git ref reserved via the Git API.
 
-name: Publish (alpha, beta, main)
+name: Publish (staging)
 
 on:
   push:
     branches:
-      - alpha
-      - beta
-      - main
+      - staging
   workflow_dispatch:
     inputs:
       version_override:
-        description: "Optional version override (default: atomic Git tag reservation)"
+        description: "Optional version override (default: atomic Git tag reservation for staging line)"
         required: false
         type: string
 
@@ -32,7 +19,6 @@ permissions:
   packages: read
 
 jobs:
-  # Step 1: Validate everything builds
   validate:
     runs-on: ubuntu-latest
     permissions:
@@ -83,7 +69,6 @@ jobs:
         id: reserve
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          REF_NAME: ${{ github.ref_name }}
           SHA: ${{ github.sha }}
           OVERRIDE: ${{ inputs.version_override }}
           REPO: ${{ github.repository }}
@@ -91,18 +76,12 @@ jobs:
           set -euo pipefail
 
           BASE=$(node -p "require('./package.json').version" | sed 's/-.*//')
-          case "$REF_NAME" in
-            main)  SUFFIX=""      ; FLOAT=prod  ; IS_PROD=true  ;;
-            alpha) SUFFIX="alpha" ; FLOAT=alpha ; IS_PROD=false ;;
-            beta)  SUFFIX="beta"  ; FLOAT=beta  ; IS_PROD=false ;;
-            *)
-              echo "Unsupported ref $REF_NAME" >&2
-              exit 1
-              ;;
-          esac
+          SUFFIX="staging"
+          FLOAT="staging"
+          IS_PROD="false"
+          # This workflow is only for the `staging` branch; ref name is not used in logic below.
 
           create_tag() {
-            # $1 tag, $2 sha; sets LAST_CREATE_CODE and LAST_CREATE_BODY
             local tag="$1"
             local sha="$2"
             local body
@@ -124,84 +103,14 @@ jobs:
             fi
           }
 
-          resolve_tag_commit_sha() {
-            # $1 tag; echoes commit SHA that the tag resolves to
-            local tag="$1"
-            local ref_body ref_code obj_type obj_sha tag_body tag_code commit_sha
-
-            ref_body=$(mktemp)
-            ref_code=$(curl -sS -o "$ref_body" -w "%{http_code}" \
-              -H "Authorization: Bearer $GH_TOKEN" \
-              -H "Accept: application/vnd.github+json" \
-              "https://api.github.com/repos/${REPO}/git/ref/tags/${tag}")
-            if [ "$ref_code" != "200" ]; then
-              echo "Failed to resolve existing tag ${tag} (HTTP ${ref_code})" >&2
-              cat "$ref_body" >&2
-              rm -f "$ref_body"
-              return 1
-            fi
-
-            obj_type=$(jq -r '.object.type // ""' "$ref_body")
-            obj_sha=$(jq -r '.object.sha // ""' "$ref_body")
-            rm -f "$ref_body"
-
-            if [ "$obj_type" = "commit" ]; then
-              printf '%s\n' "$obj_sha"
-              return 0
-            fi
-
-            if [ "$obj_type" = "tag" ]; then
-              tag_body=$(mktemp)
-              tag_code=$(curl -sS -o "$tag_body" -w "%{http_code}" \
-                -H "Authorization: Bearer $GH_TOKEN" \
-                -H "Accept: application/vnd.github+json" \
-                "https://api.github.com/repos/${REPO}/git/tags/${obj_sha}")
-              if [ "$tag_code" != "200" ]; then
-                echo "Failed to resolve annotated tag object for ${tag} (HTTP ${tag_code})" >&2
-                cat "$tag_body" >&2
-                rm -f "$tag_body"
-                return 1
-              fi
-              commit_sha=$(jq -r '.object.sha // ""' "$tag_body")
-              rm -f "$tag_body"
-              printf '%s\n' "$commit_sha"
-              return 0
-            fi
-
-            echo "Unexpected Git ref object type '${obj_type}' for tag ${tag}" >&2
-            return 1
-          }
-
-          require_same_sha_on_422() {
-            # $1 tag
-            local tag="$1"
-            local existing_sha
-
-            existing_sha=$(resolve_tag_commit_sha "$tag")
-            if [ "$existing_sha" = "$SHA" ]; then
-              echo "Tag ${tag} already points at ${SHA}; accepting 422."
-              return 0
-            fi
-
-            echo "Refusing to reuse tag ${tag}: it points at ${existing_sha}, workflow commit is ${SHA}" >&2
-            return 1
-          }
-
           if [ -n "$OVERRIDE" ]; then
             VERSION="$OVERRIDE"
             create_tag "$VERSION" "$SHA"
             if [ "$LAST_CREATE_CODE" = "201" ]; then
               echo "Reserved explicit override tag ${VERSION}."
             elif [ "$LAST_CREATE_CODE" = "422" ]; then
-              require_same_sha_on_422 "$VERSION"
-            fi
-          elif [ "$REF_NAME" = "main" ]; then
-            VERSION="$BASE"
-            create_tag "$VERSION" "$SHA"
-            if [ "$LAST_CREATE_CODE" = "201" ]; then
-              echo "Reserved RTM tag ${VERSION}."
-            elif [ "$LAST_CREATE_CODE" = "422" ]; then
-              require_same_sha_on_422 "$VERSION"
+              echo "Override tag already exists; refusing unless same commit (not implemented for simple path); exit 1" >&2
+              exit 1
             fi
           else
             START=0
@@ -254,8 +163,6 @@ jobs:
           echo "float_tag=$FLOAT" >> "$GITHUB_OUTPUT"
           echo "is_prod=$IS_PROD" >> "$GITHUB_OUTPUT"
 
-  # Step 2: Build and publish base images (web-base, management-web-base)
-  # These are used as the builder base for web-deploy and management-web-deploy.
   publish-base-images:
     needs: [validate, reserve-version]
     runs-on: ubuntu-latest
@@ -300,8 +207,6 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-  # Step 3: Build and publish Docker images (parallel)
-  # Note: Packages are built from source inside Docker, no npm publishing needed
   publish-docker:
     needs: [validate, reserve-version, publish-base-images]
     runs-on: ubuntu-latest
@@ -311,14 +216,12 @@ jobs:
     strategy:
       matrix:
         include:
-          # Non-web apps
           - app: api
             dockerfile: apps/api/Dockerfile
           - app: workers
             dockerfile: apps/workers/Dockerfile
           - app: management-api
             dockerfile: apps/management-api/Dockerfile
-          # Web apps (runtime config via sidecar)
           - app: web-deploy
             dockerfile: apps/web/Dockerfile
             base_image_name: web-base
@@ -414,15 +317,25 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Published image version (workflow summary)
+        env:
+          VERSION: ${{ needs.reserve-version.outputs.version }}
+          REPO: ${{ github.repository }}
+          FT: ${{ needs.reserve-version.outputs.float_tag }}
         run: |
           {
-            echo "## Published Docker images"
+            echo "## Published Docker images (staging branch)"
             echo ""
             echo "**Image version (semver tag):** \`${{ needs.reserve-version.outputs.version }}\`"
             echo ""
             echo "Each image was also tagged **\`${{ needs.reserve-version.outputs.float_tag }}\`** (floating)."
             echo ""
-            echo "Pin GitOps to the version tag or the floating tag. Git tag **\`${{ needs.reserve-version.outputs.version }}\`** is created during reserve-version on this run commit."
+            echo "| Image | Tags |"
+            echo "|-------|------|"
+            for app in web-base management-web-base api workers management-api web-deploy management-web-deploy web-runtime-config management-web-runtime-config; do
+              echo "| \`ghcr.io/${REPO}/${app}\` | \`${VERSION}\`, \`${FT}\` |"
+            done
+            echo ""
+            echo "Pin GitOps to the version tag or the floating tag. Git tag matches the semver when created."
           } >> "$GITHUB_STEP_SUMMARY"
 
   github-prerelease-create:
@@ -434,21 +347,21 @@ jobs:
       - uses: actions/checkout@v6
         with:
           ref: ${{ github.sha }}
-      - name: Create GitHub release
+      - name: Create GitHub prerelease
         uses: actions/github-script@v7
         env:
-          IS_PROD: ${{ needs.reserve-version.outputs.is_prod }}
+          IS_PROD: "false"
         with:
           script: |
             const version = "${{ needs.reserve-version.outputs.version }}";
             const path = "docs/operations/CHANGELOG-UPCOMING.md";
             const fs = require("fs");
-            const isProd = process.env.IS_PROD === "true";
+            const isProd = false;
             let body;
             if (fs.existsSync(path)) {
               body = fs.readFileSync(path, "utf8");
             } else {
-              body = (isProd ? "Production" : "Prerelease") + " build; no " + path + " at this commit. Add the file on develop to populate future notes.";
+              body = "Prerelease build; no " + path + " at this commit. Add the file on develop to populate future notes.";
             }
             const tag = version;
             const owner = context.repo.owner;
@@ -464,7 +377,7 @@ jobs:
               tag_name: tag,
               name: tag,
               body,
-              prerelease: !isProd,
+              prerelease: true,
             });
             core.info("Created release: " + rel.data.html_url);
 
@@ -480,7 +393,6 @@ jobs:
         uses: actions/checkout@v6
         with:
           ref: develop
-          # Avoid duplicate Authorization on HTTPS (checkout extraheader + create-pr creds) -> HTTP 400.
           persist-credentials: false
       - name: Write archive and reset UPCOMING markers
         uses: actions/github-script@v7
@@ -532,7 +444,6 @@ jobs:
                     "<!-- UPCOMING-AUTO-END -->\n"
                 );
                 fs.writeFileSync(upcomingPath, s, "utf8");
-                core.setOutput("changed", "1");
               }
             }
       - name: Open pull request

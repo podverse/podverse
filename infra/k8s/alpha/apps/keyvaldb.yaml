@@ -12,7 +12,7 @@ spec:
   source:
     # Points to your git repository
     repoURL: https://github.com/podverse/podverse.git
-    targetRevision: alpha
+    targetRevision: staging
 
     # Path to the valkey manifests (Deployment, Service, ConfigMap)
     path: k8s/alpha/keyvaldb

@@ -24,8 +24,7 @@ Use this skill when:
 This shared utility is called by:
 
 - `scripts/publish/bump-version.sh`
-- `scripts/publish/sync-develop-to-alpha.sh` (passes allowlist as argument)
-- `scripts/publish/sync-develop-to-beta.sh` (passes allowlist as argument)
+- `scripts/publish/sync-develop-to-staging.sh` (passes allowlist as argument)
 - `scripts/publish/sync-develop-to-main.sh` (passes allowlist as argument)
 
 When you update the allowlist:

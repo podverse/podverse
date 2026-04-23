@@ -1,6 +1,6 @@
 # Changelog (upcoming)
 
-**Edit on `develop` only.** This file powers GitHub release notes and archived snapshots when a publish runs from `alpha`, `beta`, or `main` (see [ALPHA-DEPLOYMENT](ALPHA-DEPLOYMENT.md)).
+**Edit on `develop` only.** This file powers GitHub release notes and archived snapshots when a publish runs from `alpha`, `beta`, or `main`. Prerelease tags from the **`alpha`** branch are `X.Y.Z-staging.N` with floating **`:staging`** (see [PUBLISH](PUBLISH.md) and [ALPHA-DEPLOYMENT](ALPHA-DEPLOYMENT.md)).
 
 Put the **most significant** user-facing or operations-relevant changes first. Keep items concise, not a duplicate of the git log.
 

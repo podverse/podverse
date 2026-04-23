@@ -173,7 +173,7 @@ configMapGenerator:
 ```yaml
 images:
   - name: ghcr.io/podverse/podverse-api/podverse-api
-    newTag: '5.1.28-alpha.0'
+    newTag: '5.1.28-staging.0'
 ```
 
 ## ArgoCD Applications
@@ -183,7 +183,7 @@ Child applications in `alpha/apps/<component>.yaml` define:
 - `metadata.name`: e.g., `podverse-alpha-api`
 - `spec.project`: `podverse`
 - `spec.source.repoURL`: GitHub repo URL
-- `spec.source.targetRevision`: branch name (e.g., `alpha`)
+- `spec.source.targetRevision`: branch or tag in the app repo (e.g., `staging`)
 - `spec.source.path`: path to overlay (e.g., `k8s/alpha/api`)
 - `spec.destination.namespace`: `podverse-alpha`
 - `spec.syncPolicy.automated`: `prune: true`, `selfHeal: true`
@@ -303,7 +303,7 @@ Edit the overlay's `kustomization.yaml` (e.g., `alpha/api/kustomization.yaml`):
 ```yaml
 images:
   - name: ghcr.io/podverse/podverse-api/podverse-api
-    newTag: '5.1.29-alpha.0' # Update this
+    newTag: '5.1.29-staging.0' # Update this
 ```
 
 ArgoCD will detect the change and sync automatically.

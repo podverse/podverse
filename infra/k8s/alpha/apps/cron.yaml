@@ -12,7 +12,7 @@ spec:
   source:
     # Points to your git repository
     repoURL: https://github.com/podverse/podverse.git
-    targetRevision: alpha
+    targetRevision: staging
 
     # Path to the Cron manifests (CronJobs for reports, archiving, etc.)
     path: k8s/alpha/cron
