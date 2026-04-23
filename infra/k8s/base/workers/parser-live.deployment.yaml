@@ -12,6 +12,8 @@ spec:
     metadata:
       labels:
         app: worker-parser-live
+      annotations:
+        backup.velero.io/backup-volumes-excludes: "logs-volume"
     spec:
       containers:
         - name: worker
@@ -22,8 +24,6 @@ spec:
             - mqRSSRunParser
             - -q
             - rss-live
-          # TODO: The worker process currently needs to run as root. Address
-          # this in the podverse-worker repo so images can run without root.
           securityContext:
             runAsUser: 1000
             runAsGroup: 1000
@@ -71,10 +71,6 @@ spec:
                 name: podverse-api.podcastindex.org-opaque
             - secretRef:
                 name: podverse-workers-add-by-rss-opaque
-          # TODO: The application creates a local `logs` directory and fails
-          # if it does not exist. Prefer logs to stdout so K3s/journald
-          # pick them up. Short-term workaround: mount an `emptyDir` at
-          # /opt/logs or ensure the image creates the directory at startup.
           volumeMounts:
             - name: logs-volume
               mountPath: /logs
