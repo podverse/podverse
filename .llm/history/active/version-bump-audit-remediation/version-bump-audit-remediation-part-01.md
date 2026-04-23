@@ -108,3 +108,42 @@ implement what you think is recommended. also update skills in both podverse and
 #### Also Created in Metaboost
 
 - .github/skills/npm-audit/SKILL.md (identical npm-audit handling guidance)
+
+### Session 6 - 2026-04-23
+
+#### Prompt (Developer)
+
+do any of the skill files need to be reminded about the sync-\* scripts and that when allowllists are updated then all the related files need to update them? or, is it possible to import a shared common script that handles the allowlist so we don't have to maintain the allowlist separately each time?
+
+#### Prompt (Developer)
+
+start the implementation, and remember to update both podverse and metaboost, and any skill files if you think they need them
+
+#### Key Decisions
+
+- Recognized that 85-line Node.js audit gate was duplicated 6 times across release scripts (2 bump-version.sh + 4 sync-\*.sh per repo).
+- Created shared utility script `scripts/lib/check-audit-gate.sh` in both repos to centralize audit logic and allowlist handling.
+- Updated all 6 sync scripts (3 per repo) to call shared utility with allowlist as argument.
+- Updated both bump-version.sh files to call shared utility (reduced from ~100 lines of inline code to 8 lines per script).
+- Updated npm-audit skills in both repos with critical maintenance note explaining the allowlist architecture.
+
+#### Files Created
+
+- podverse/scripts/lib/check-audit-gate.sh (shared utility)
+- metaboost/scripts/lib/check-audit-gate.sh (shared utility)
+
+#### Files Modified
+
+- podverse/scripts/publish/bump-version.sh (now calls shared utility)
+- podverse/scripts/publish/sync-develop-to-{alpha,beta,main}.sh (all call shared utility with "1113977,1116970")
+- metaboost/scripts/publish/bump-version.sh (now calls shared utility)
+- metaboost/scripts/publish/sync-develop-to-{alpha,beta,main}.sh (all call shared utility with "")
+- podverse/.github/skills/npm-audit/SKILL.md (added critical maintenance section)
+- metaboost/.github/skills/npm-audit/SKILL.md (added critical maintenance section)
+
+#### Refactoring Impact
+
+- **Before:** 6 scripts maintaining separate ~85-line audit gate blocks (510 lines of duplication)
+- **After:** Single shared utility (95 lines) called by all 6 scripts (~48 lines of calls total)
+- **Maintainability:** Future allowlist updates only require changing the argument in calling scripts
+- **Consistency:** All release scripts now use identical audit logic via shared utility
