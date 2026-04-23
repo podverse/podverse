@@ -1,0 +1,29 @@
+@use '../../../styles/variables' as *;
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: $spacing-md;
+}
+
+.card {
+  display: block;
+  padding: $spacing-lg;
+  border: $border-width solid $color-border;
+  border-radius: $border-radius-md;
+  background-color: $color-background-card;
+  text-decoration: none;
+  color: inherit;
+}
+
+.cardTitle {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  margin: 0 0 $spacing-xs 0;
+}
+
+.cardDescription {
+  font-size: $font-size-base;
+  color: $color-text-secondary;
+  margin: 0;
+}

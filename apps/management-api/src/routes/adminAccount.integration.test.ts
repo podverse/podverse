@@ -6,21 +6,65 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const JWT_SECRET = process.env.AUTH_JWT_SECRET ?? '';
 
-const { adminAccountGetMock } = vi.hoisted(() => {
+const makeMockAdmin = (id: number) => ({
+  id,
+  id_text: String(id),
+  admin_account_role_id: id === 1 ? 1 : 2,
+  admin_account_role: { role: id === 1 ? 'superuser' : 'admin' },
+  admin_account_credentials: {
+    email: `admin${id}@example.com`,
+    password: 'hash',
+    id,
+    admin_account_id: id,
+  },
+  permissions:
+    id === 1
+      ? {
+          id: 1,
+          admin_account_id: 1,
+          feedsCrud: 15,
+          feedFlagStatusesCrud: 15,
+          feedFlagStatusReasonsCrud: 15,
+          adminsCrud: 15,
+          statsCrud: 15,
+          created_at: new Date('2020-01-01T00:00:00.000Z'),
+          updated_at: new Date('2020-01-01T00:00:00.000Z'),
+        }
+      : {
+          id: 2,
+          admin_account_id: 2,
+          feedsCrud: 0,
+          feedFlagStatusesCrud: 0,
+          feedFlagStatusReasonsCrud: 0,
+          adminsCrud: 0,
+          statsCrud: 0,
+          created_at: new Date('2020-01-01T00:00:00.000Z'),
+          updated_at: new Date('2020-01-01T00:00:00.000Z'),
+        },
+  created_at: new Date('2020-01-01T00:00:00.000Z'),
+  updated_at: new Date('2020-01-01T00:00:00.000Z'),
+});
+
+const { adminAccountGetWithRoleAndPermsMock, adminAccountGetMock } = vi.hoisted(() => {
+  const adminAccountGetWithRoleAndPermsMock = vi.fn<
+    Promise<typeof ReturnType<typeof makeMockAdmin> | null>,
+    [number]
+  >(async (id: number) => {
+    if (id === 1 || id === 2) {
+      return makeMockAdmin(id);
+    }
+    return null;
+  });
   const adminAccountGetMock = vi.fn<
     Promise<{ id: number; id_text: string; created_at: Date } | null>,
     [number]
   >(async (id: number) => {
     if (id === 1 || id === 2) {
-      return {
-        id,
-        id_text: String(id),
-        created_at: new Date('2020-01-01T00:00:00.000Z'),
-      };
+      return { id, id_text: String(id), created_at: new Date('2020-01-01T00:00:00.000Z') };
     }
     return null;
   });
-  return { adminAccountGetMock };
+  return { adminAccountGetWithRoleAndPermsMock, adminAccountGetMock };
 });
 
 vi.mock('@mgmt-api/orm/services/adminAccount.js', () => {
@@ -28,14 +72,27 @@ vi.mock('@mgmt-api/orm/services/adminAccount.js', () => {
     async get(id: number) {
       return adminAccountGetMock(id);
     }
+    async getWithRoleAndPermissions(id: number) {
+      return adminAccountGetWithRoleAndPermsMock(id);
+    }
   }
   return { AdminAccountService };
+});
+
+vi.mock('@mgmt-api/lib/database/auditLog.js', () => {
+  class AuditLogService {
+    async record() {
+      return;
+    }
+  }
+  return { AuditLogService };
 });
 
 const adminBase = `${config.api.prefix}${config.api.version}/admin-account`;
 
 describe('GET admin-account/:id authz', () => {
   beforeEach(() => {
+    adminAccountGetWithRoleAndPermsMock.mockClear();
     adminAccountGetMock.mockClear();
   });
 
@@ -69,15 +126,11 @@ describe('GET admin-account/:id authz', () => {
   });
 
   it('returns 404 when admin account does not exist', async () => {
-    // First call: auth middleware verifyToken (needs valid account for id 2)
-    // Second call: route handler get (returns null to simulate not found)
-    adminAccountGetMock
-      .mockResolvedValueOnce({
-        id: 2,
-        id_text: 'admin-2',
-        created_at: new Date('2020-01-01T00:00:00.000Z'),
-      })
-      .mockResolvedValueOnce(null);
+    adminAccountGetWithRoleAndPermsMock
+      .mockResolvedValueOnce(makeMockAdmin(2))
+      .mockResolvedValueOnce(makeMockAdmin(2));
+
+    adminAccountGetMock.mockResolvedValueOnce(null);
 
     const token = jwt.sign({ id: 2 }, JWT_SECRET, { expiresIn: '1h' });
 

@@ -53,15 +53,24 @@ const validateAllEnvironmentVariables = (): ValidationSummary => {
   results.push(validateRequired('BRAND_NAME', 'Auth & Security'));
   results.push(validateUserAgent());
 
-  // Database
-  results.push(validateRequired('DB_HOST', 'Database'));
-  results.push(validateRequired('DB_PORT', 'Database'));
-  results.push(validateRequired('DB_READ_USERNAME', 'Database'));
-  results.push(validateRequired('DB_READ_PASSWORD', 'Database'));
-  results.push(validateRequired('DB_READ_WRITE_USERNAME', 'Database'));
-  results.push(validateRequired('DB_READ_WRITE_PASSWORD', 'Database'));
-  results.push(validateRequired('DB_DATABASE', 'Database'));
-  results.push(validateOptional('DB_SSL_CONNECTION', 'Database', 'Use Default (false)'));
+  // One Postgres instance: shared host/port; DB_APP_* and DB_MANAGEMENT_* name each database and its roles.
+  results.push(validateRequired('DB_HOST', 'Postgres'));
+  results.push(validateRequired('DB_PORT', 'Postgres'));
+  results.push(validateOptional('DB_SSL_CONNECTION', 'Postgres', 'Use Default (false)'));
+
+  // Main app database
+  results.push(validateRequired('DB_APP_NAME', 'App Database'));
+  results.push(validateRequired('DB_APP_READ_USER', 'App Database'));
+  results.push(validateRequired('DB_APP_READ_PASSWORD', 'App Database'));
+  results.push(validateRequired('DB_APP_READ_WRITE_USER', 'App Database'));
+  results.push(validateRequired('DB_APP_READ_WRITE_PASSWORD', 'App Database'));
+
+  // Management (admin) database
+  results.push(validateRequired('DB_MANAGEMENT_NAME', 'Management Database'));
+  results.push(validateRequired('DB_MANAGEMENT_READ_USER', 'Management Database'));
+  results.push(validateRequired('DB_MANAGEMENT_READ_PASSWORD', 'Management Database'));
+  results.push(validateRequired('DB_MANAGEMENT_READ_WRITE_USER', 'Management Database'));
+  results.push(validateRequired('DB_MANAGEMENT_READ_WRITE_PASSWORD', 'Management Database'));
 
   // API Configuration
   results.push(validateRequired('API_PORT', 'API'));

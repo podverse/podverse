@@ -31,7 +31,18 @@ describe('getManagementSessionUser', () => {
   });
 
   it('returns the user when the cookie is present and /auth/me succeeds', async () => {
-    const mockUser = { id: 1, id_text: 'abc', created_at: '2020-01-01T00:00:00.000Z' };
+    const mockUser = {
+      id: 1,
+      id_text: 'abc',
+      role: 'superuser',
+      permissions: {
+        feeds_crud: 15,
+        feed_flag_statuses_crud: 15,
+        feed_flag_status_reasons_crud: 15,
+        admins_crud: 15,
+        stats_crud: 15,
+      },
+    };
 
     vi.mocked(cookies).mockResolvedValue({
       get: (name: string) =>

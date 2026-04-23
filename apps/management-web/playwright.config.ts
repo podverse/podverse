@@ -3,8 +3,8 @@ import { defineConfig } from '@playwright/test';
 const E2E_REPORT_BASE = '.artifacts/e2e-reports';
 
 /**
- * Management-api uses the same env var names as the main API (API_PORT, AUTH_JWT_SECRET, etc).
- * Values mirror apps/api/src/test/setup.ts pattern for consistency.
+ * Management-api test server env: shared `DB_HOST`/`DB_PORT` plus `DB_APP_*` and
+ * `DB_MANAGEMENT_*`. Test stack uses Postgres on 5732; see apps/management-api/vitest.setup.ts.
  */
 const MANAGEMENT_API_ENV = [
   `NODE_ENV=test`,
@@ -24,11 +24,16 @@ const MANAGEMENT_API_ENV = [
   // Database (test stack: port 5732)
   `DB_HOST=127.0.0.1`,
   `DB_PORT=5732`,
-  `DB_READ_USERNAME=podverse_management_read`,
-  `DB_READ_PASSWORD=test`,
-  `DB_READ_WRITE_USERNAME=podverse_management_read_write`,
-  `DB_READ_WRITE_PASSWORD=test`,
-  `DB_DATABASE=podverse_management_test`,
+  `DB_APP_NAME=podverse_app_test`,
+  `DB_APP_READ_USER=podverse_app_read`,
+  `DB_APP_READ_PASSWORD=test`,
+  `DB_APP_READ_WRITE_USER=podverse_app_read_write`,
+  `DB_APP_READ_WRITE_PASSWORD=test`,
+  `DB_MANAGEMENT_NAME=podverse_management_test`,
+  `DB_MANAGEMENT_READ_USER=podverse_management_read`,
+  `DB_MANAGEMENT_READ_PASSWORD=test`,
+  `DB_MANAGEMENT_READ_WRITE_USER=podverse_management_read_write`,
+  `DB_MANAGEMENT_READ_WRITE_PASSWORD=test`,
   // Web
   `WEB_PROTOCOL=http`,
   `WEB_DOMAIN=localhost`,

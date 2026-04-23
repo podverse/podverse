@@ -1,0 +1,33 @@
+{
+  "name": "@podverse/ui",
+  "version": "5.4.12",
+  "private": true,
+  "type": "module",
+  "sideEffects": false,
+  "description": "Shared UI components for Podverse applications",
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "import": "./src/index.ts",
+      "default": "./src/index.ts"
+    }
+  },
+  "scripts": {
+    "lint": "eslint ./src --max-warnings 0",
+    "lint:fix": "eslint ./src --fix",
+    "type-check": "tsc --noEmit"
+  },
+  "license": "AGPL-3.0",
+  "peerDependencies": {
+    "react": "^19.2.4"
+  },
+  "devDependencies": {
+    "@types/react": "^19.2.11",
+    "react": "^19.2.4",
+    "sass": "^1.98.0",
+    "typescript": "^5.9.2"
+  },
+  "dependencies": {
+    "recharts": "^3.8.1"
+  }
+}

@@ -71,6 +71,7 @@ export * from './entities/channel/channelValueRecipient.js';
 
 export * from './entities/feed/feed.js';
 export * from './entities/feed/feedFlagStatus.js';
+export * from './entities/feed/feedFlagStatusReason.js';
 export * from './entities/feed/feedLog.js';
 
 export * from './entities/item/item.js';

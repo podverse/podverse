@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation';
 
-import { getManagementSessionUser } from '../../lib/auth/serverManagementSession';
+import { getManagementSessionUser } from '../../../lib/auth/serverManagementSession';
 import { DashboardPageClient } from './DashboardPageClient';
 
 export default async function DashboardPage() {

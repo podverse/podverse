@@ -4,7 +4,7 @@ import { BaseManyService } from '@orm/services/base/baseManyService.js';
 import { QueueService } from '@orm/services/queue/queue.js';
 import { Mutex } from 'async-mutex';
 import type { EntityManager, FindManyOptions, FindOptionsOrderValue } from 'typeorm';
-import { Between, LessThan, LessThanOrEqual, MoreThan } from 'typeorm';
+import { Between, In, LessThan, LessThanOrEqual, MoreThan } from 'typeorm';
 
 import type { QueueExtraParams } from '@podverse/helpers';
 import { getAddByRSSHashId } from '@podverse/helpers';
@@ -12,6 +12,7 @@ import { getAddByRSSHashId } from '@podverse/helpers';
 import { ClipService } from '../clip.js';
 import { ItemService } from '../item/item.js';
 import { ItemSoundbiteService } from '../item/itemSoundbite.js';
+import { applyResolvesToActiveItemOrAddByRss } from './queueResourceActiveItemFilter.js';
 import {
   chunkIdsForInClause,
   mergeHistoryListOptions,
@@ -75,6 +76,22 @@ export class QueueResourceService extends BaseManyService<QueueResource, 'queue'
     this.itemSoundbiteService = new ItemSoundbiteService();
   }
 
+  private async findQueueResourcesByIdListOrdered(
+    ids: number[],
+    relations: FindManyOptions<QueueResource>['relations'] = listResourceRelations
+  ): Promise<QueueResource[]> {
+    if (ids.length === 0) {
+      return [];
+    }
+    const rel = relations ?? listResourceRelations;
+    const rows = await this.repositoryRead.find({
+      where: { id: In(ids) },
+      relations: rel as never,
+    });
+    const byId = new Map<number, QueueResource>(rows.map((r) => [r.id, r]));
+    return ids.map((id) => byId.get(id)).filter((r): r is QueueResource => r !== undefined);
+  }
+
   async getAllByAccountAbridged(account_id: number): Promise<any[]> {
     const queues = await this.queueService.getAllPrivate(account_id);
     if (!queues.length) {
@@ -85,7 +102,7 @@ export class QueueResourceService extends BaseManyService<QueueResource, 'queue'
 
     const merged: any[] = [];
     for (const ids of idChunks) {
-      const rows = await this.repositoryRead
+      const abridgedQb = this.repositoryRead
         .createQueryBuilder('qr')
         .select([
           'qr.id AS i',
@@ -97,9 +114,9 @@ export class QueueResourceService extends BaseManyService<QueueResource, 'queue'
           'qr.item_soundbite_id AS s',
           'qr.add_by_rss_hash_id AS a',
         ])
-        .where('qr.queue_id IN (:...queueIds)', { queueIds: ids })
-        .orderBy('qr.list_position', 'ASC')
-        .getRawMany();
+        .where('qr.queue_id IN (:...queueIds)', { queueIds: ids });
+      applyResolvesToActiveItemOrAddByRss('qr', abridgedQb);
+      const rows = await abridgedQb.orderBy('qr.list_position', 'ASC').getRawMany();
       merged.push(...rows);
     }
 
@@ -112,23 +129,20 @@ export class QueueResourceService extends BaseManyService<QueueResource, 'queue'
       throw new Error('Queue not found.');
     }
 
-    const options = {
-      where: { queue: { id: queue.id }, list_position: Between(-epsilon, epsilon) as any },
-      order: { list_position: 'ASC' as FindOptionsOrderValue },
-      relations: listResourceRelations,
-    };
-
-    const rows = await this.repositoryRead.find(options);
-
-    if (!rows || rows.length === 0) {
+    const idQb = this.repositoryRead
+      .createQueryBuilder('qr')
+      .where('qr.queue_id = :qid', { qid: queue.id })
+      .andWhere('qr.list_position BETWEEN :minP AND :maxP', { minP: -epsilon, maxP: epsilon });
+    applyResolvesToActiveItemOrAddByRss('qr', idQb);
+    const hit = await idQb.orderBy('qr.list_position', 'ASC').getOne();
+    if (!hit) {
       return null;
     }
-
-    const firstRow = rows[0];
+    const loaded = await this.findQueueResourcesByIdListOrdered([hit.id]);
+    const firstRow = loaded[0] ?? null;
     if (!firstRow) {
       return null;
     }
-
     if (parseFloat(firstRow.list_position) === 0) {
       return firstRow;
     } else {
@@ -144,13 +158,14 @@ export class QueueResourceService extends BaseManyService<QueueResource, 'queue'
       throw new Error('Queue not found.');
     }
 
-    const options = {
-      where: { queue: { id: queue.id }, list_position: MoreThan(0) as any },
-      order: { list_position: 'ASC' as FindOptionsOrderValue },
-      relations: listResourceRelations,
-    };
-
-    return this.repositoryRead.find(options);
+    const idQb = this.repositoryRead
+      .createQueryBuilder('qr')
+      .where('qr.queue_id = :qid', { qid: queue.id })
+      .andWhere('qr.list_position > 0');
+    applyResolvesToActiveItemOrAddByRss('qr', idQb);
+    const hits = await idQb.orderBy('qr.list_position', 'ASC').getMany();
+    const ids = hits.map((e) => e.id);
+    return this.findQueueResourcesByIdListOrdered(ids);
   }
 
   async getHistoryResourcesByQueueIdText(
@@ -170,8 +185,25 @@ export class QueueResourceService extends BaseManyService<QueueResource, 'queue'
       },
       options
     );
+    const take = merged.take ?? 0;
+    const skip = merged.skip ?? 0;
 
-    return this.repositoryRead.findAndCount(merged);
+    const countQb = this.repositoryRead
+      .createQueryBuilder('qr')
+      .where('qr.queue_id = :qid', { qid: queue.id })
+      .andWhere('qr.list_position <= 0');
+    applyResolvesToActiveItemOrAddByRss('qr', countQb);
+    const total = await countQb.getCount();
+
+    const idQb = this.repositoryRead
+      .createQueryBuilder('qr')
+      .where('qr.queue_id = :qid', { qid: queue.id })
+      .andWhere('qr.list_position <= 0');
+    applyResolvesToActiveItemOrAddByRss('qr', idQb);
+    const hits = await idQb.orderBy('qr.list_position', 'DESC').skip(skip).take(take).getMany();
+    const ids = hits.map((e) => e.id);
+    const data = await this.findQueueResourcesByIdListOrdered(ids, merged.relations);
+    return [data, total];
   }
 
   async getItemsByQueueIdTextAndPosition(

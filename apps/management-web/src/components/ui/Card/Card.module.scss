@@ -4,10 +4,12 @@
   background-color: theme.$color-background;
   border-radius: theme.$border-radius-md;
   box-shadow: theme.$shadow-card;
+  padding: theme.$spacing-lg;
 }
 
 .cardBordered {
   border: theme.$border-width solid theme.$color-border;
   border-radius: theme.$border-radius-md;
   background-color: theme.$color-background-card;
+  padding: theme.$spacing-lg;
 }

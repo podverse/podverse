@@ -11,6 +11,8 @@ const run = async () => {
   await loadEnv();
 
   const { AppDataSourceRead, AppDataSourceReadWrite } = await import('@mgmt-api/orm/db/index.js');
+  const { AppDbDataSourceRead, AppDbDataSourceReadWrite } =
+    await import('@mgmt-api/orm/db/appDb.js');
   const { startApp } = await import('./app.js');
   const { validateStartupRequirements } = await import('./lib/startup/validation.js');
 
@@ -29,6 +31,12 @@ const run = async () => {
         }
         if (AppDataSourceReadWrite.isInitialized) {
           await AppDataSourceReadWrite.destroy();
+        }
+        if (AppDbDataSourceRead.isInitialized) {
+          await AppDbDataSourceRead.destroy();
+        }
+        if (AppDbDataSourceReadWrite.isInitialized) {
+          await AppDbDataSourceReadWrite.destroy();
         }
         console.warn('Database connections closed');
       } catch (err) {
@@ -51,6 +59,11 @@ const run = async () => {
     await AppDataSourceRead.initialize();
     await AppDataSourceReadWrite.initialize();
     console.warn('Connected to the management database');
+
+    console.warn('Connecting to the app database (database console queries)');
+    await AppDbDataSourceRead.initialize();
+    await AppDbDataSourceReadWrite.initialize();
+    console.warn('Connected to the app database');
 
     const maybeServer = await startApp();
     if (maybeServer) {

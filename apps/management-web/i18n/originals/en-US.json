@@ -7,27 +7,173 @@
     "loading": "Loading...",
     "error": "An error occurred",
     "save": "Save",
+    "saveChanges": "Save Changes",
+    "saving": "Saving...",
     "cancel": "Cancel",
     "delete": "Delete",
     "edit": "Edit",
     "create": "Create",
+    "creating": "Creating...",
     "search": "Search",
     "back": "Back",
     "submit": "Submit",
     "confirm": "Confirm",
     "yes": "Yes",
-    "no": "No"
+    "no": "No",
+    "actions": "Actions",
+    "view": "View",
+    "none": "None",
+    "new": "New",
+    "createNew": "Create New",
+    "readOnly": "Read-only",
+    "readOnlyTable": "Read-only table",
+    "noDataFound": "No data found.",
+    "previous": "Previous",
+    "next": "Next"
   },
   "auth": {
     "login": "Login",
     "logout": "Logout",
     "email": "Email",
-    "password": "Password"
+    "password": "Password",
+    "newPassword": "New Password",
+    "leaveBlankToKeepCurrent": "Leave blank to keep current"
   },
   "nav": {
     "dashboard": "Dashboard",
     "users": "Users",
     "content": "Content",
     "settings": "Settings"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "welcome": "Welcome to Podverse Management",
+    "feedFlagStatus": {
+      "title": "Feed flag status",
+      "description": "Set takedown, spam, and other statuses with a reason and note (not the table browser)"
+    },
+    "database": {
+      "title": "Database",
+      "description": "Browse and manage feed data, statuses, and reasons"
+    },
+    "admins": {
+      "title": "Admins",
+      "description": "Manage admin accounts and permissions"
+    },
+    "workers": {
+      "title": "Workers",
+      "description": "Background job management"
+    }
+  },
+  "admins": {
+    "title": "Admins",
+    "createAdmin": "Create Admin",
+    "editAdmin": "Edit Admin",
+    "editAdminItem": "Edit {email}",
+    "failedToLoad": "Failed to load admin accounts",
+    "failedToCreate": "Failed to create admin",
+    "failedToUpdate": "Failed to update admin",
+    "createdSuccessfully": "Admin created successfully.",
+    "updatedSuccessfully": "Admin updated successfully.",
+    "tableHeaders": {
+      "id": "ID",
+      "email": "Email",
+      "role": "Role",
+      "feeds": "Feeds",
+      "flagStatuses": "Flag Statuses",
+      "statusReasons": "Status Reasons",
+      "admins": "Admins",
+      "stats": "Stats",
+      "actions": "Actions"
+    },
+    "permissions": {
+      "legend": "Permissions",
+      "resource": "Resource",
+      "create": "Create",
+      "read": "Read",
+      "update": "Update",
+      "deletePerm": "Delete",
+      "feeds": "Feeds",
+      "flagStatuses": "Flag Statuses",
+      "statusReasons": "Status Reasons",
+      "admins": "Admins",
+      "stats": "Stats"
+    }
+  },
+  "database": {
+    "title": "Database",
+    "failedToLoadTables": "Failed to load tables",
+    "failedToLoadMeta": "Failed to load table metadata",
+    "failedToLoadData": "Failed to load data",
+    "failedToCreateRow": "Failed to create row",
+    "failedToUpdateRow": "Failed to update row",
+    "failedToDeleteRow": "Failed to delete row",
+    "rowUpdatedSuccessfully": "Row updated successfully.",
+    "loadingTables": "Loading tables...",
+    "createRowTitle": "Create {table} Row",
+    "rowDetailTitle": "{table} #{id}",
+    "manageTableData": "Manage table data",
+    "fieldCount": "{count} fields",
+    "paginationSummary": "{total} rows total | Page {page} of {totalPages}",
+    "paginationSummarySingular": "{total} row total | Page {page} of {totalPages}",
+    "deleteConfirm": "Are you sure you want to delete this row? This cannot be undone.",
+    "tables": {
+      "feed": {
+        "label": "Feeds",
+        "labelSingular": "Feed",
+        "description": "RSS feed URLs and parsing status"
+      },
+      "feed_flag_status": {
+        "label": "Feed Flag Statuses",
+        "labelSingular": "Feed Flag Status",
+        "description": "Feed status values (active, spam, archived, takedown, etc.)"
+      },
+      "feed_flag_status_reason": {
+        "label": "Feed Flag Status Reasons",
+        "labelSingular": "Feed Flag Status Reason",
+        "description": "Predefined reasons for feed status changes"
+      }
+    }
+  },
+  "workers": {
+    "title": "Workers",
+    "backToDashboard": "Back to Dashboard",
+    "comingSoon": "Coming Soon",
+    "comingSoonDescription": "Worker management features are not yet available. Check back later.",
+    "intro": "All Podverse background jobs are invoked from the <code>apps/workers</code> CLI. Run them from a terminal with a proper environment; this page is a read-only catalog with copyable examples. In-browser enqueue and live invoke are not available yet and require follow-up work (message broker wiring).",
+    "copiedToClipboard": "Copied to clipboard",
+    "copyFailed": "Copy failed: allow clipboard, or copy the example line manually.",
+    "superuserOnly": "Superuser only",
+    "superuserOnlyDescription": "Only superuser accounts can view the full worker job catalog. Use a superuser account, or work from the monorepo terminal using <code>apps/workers</code> (see <code>apps/workers/APPS-WORKERS.md</code>).",
+    "loadingCommands": "Loading command list…",
+    "failedToLoad": "Failed to load worker command list. Try again later.",
+    "searchPlaceholder": "Name, label, description, or category",
+    "commandCount": "{shown} of {total} commands",
+    "noMatchingCommands": "No commands match the filter.",
+    "tableHeaders": {
+      "command": "Command",
+      "description": "Description",
+      "category": "Category",
+      "risk": "Risk",
+      "actions": "Actions"
+    },
+    "copyExample": "Copy example",
+    "openRelatedTool": "Open related tool",
+    "categories": {
+      "archival": "Archival",
+      "on_demand_parser": "On-demand parser",
+      "image": "Image shrink",
+      "mq": "Message queue",
+      "orm": "ORM / app DB",
+      "parser": "Parser (one-off)",
+      "podcast_index": "Podcast Index",
+      "stats": "Statistics",
+      "dev": "Development"
+    },
+    "riskLabels": {
+      "normal": "Normal / batch",
+      "long_running": "Long-running consumer",
+      "dev_only": "Dev only"
+    }
   }
 }

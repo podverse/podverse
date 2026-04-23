@@ -42,7 +42,7 @@ Many Podverse features behave differently based on membership state. When testin
 | apps/web            | `apps/web/e2e/`            | `apps/web/playwright.config.ts`            |
 | apps/management-web | `apps/management-web/e2e/` | `apps/management-web/playwright.config.ts` |
 
-- **Ports:** Web E2E uses API 4030, sidecar 4031, web 4032. Management-web uses management-api 4130, sidecar 4131, web 4132. No overlap with Metaboost (401x/411x) or dev ports.
+- **Ports:** Web E2E uses API 4030, sidecar 4031, web 4032. Management-web uses management-api 4130, sidecar 4131, web 4132. Avoid colliding with 401x/411x ranges used by other local stacks, and with dev app ports.
 - **Seed data:** Use deterministic E2E seed (`make e2e_seed`). See `tools/web/seed-e2e.mjs` and `tools/management-web/seed-e2e.mjs`.
 
 ## Timeout increases are almost never the fix

@@ -38,6 +38,8 @@ Tier 1 → Tier 2 → ... → Tier 5. Only depend on lower tiers.
 
 Avoid type assertions (`as`) when a better approach exists (types, narrowing, type guards).
 
+Prefer **named exports** in TypeScript modules; avoid `export default` when a named export works. See [prefer-named-exports](./prefer-named-exports/SKILL.md) (Next.js `page` defaults excepted).
+
 ## Package Structure
 
 ```

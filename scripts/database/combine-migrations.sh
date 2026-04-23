@@ -2,6 +2,10 @@
 # Version: 5
 # Combine migrations into prefixed files under infra/k8s/base/db/source/
 #
+# After adding or editing infra/database/migrations/*.sql or
+# infra/database/management/migrations/*.sql, run this script and commit the
+# updated combined files in infra/k8s/base/db/source/ (local init + k3d use them).
+#
 # Usage: ./scripts/database/combine-migrations.sh
 # Requires Bash 4+ (use from repo dev shell or: ./scripts/nix/with-env ./scripts/database/combine-migrations.sh)
 #

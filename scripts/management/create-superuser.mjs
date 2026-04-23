@@ -17,12 +17,12 @@ async function createSuperuser() {
     process.exit(1);
   }
 
-  // Database connection config from environment
+  // Database: shared DB_HOST/DB_PORT; DB_MANAGEMENT_NAME selects the management database
   const client = new Client({
     host: process.env.DB_HOST || 'localhost',
     port: parseInt(process.env.DB_PORT || '5432', 10),
     database:
-      process.env.DB_DATABASE ||
+      process.env.DB_MANAGEMENT_NAME ||
       process.env.POSTGRES_MANAGEMENT_DB ||
       process.env.POSTGRES_DB ||
       'podverse_management',

@@ -261,7 +261,7 @@ When implementing features or executing plans that touch **api** or **management
 
 ### Test infrastructure
 
-- **`make test_deps`** — starts Postgres (port **5732**), Valkey (port **6679**), creates test DBs (`podverse_app_test`, `podverse_management_test`), applies schema. Port coexistence: Metaboost test uses 5632/6579; Podverse dev uses 5432/6379.
+- **`make test_deps`** — starts Postgres (port **5732**), Valkey (port **6679**), creates test DBs (`podverse_app_test`, `podverse_management_test`), applies schema. Port coexistence: Podverse dev uses 5432/6379; the dedicated test ports avoid clashing with those and with other local toolchains that may use different test ports.
 - **`scripts/check-test-requirements.mjs`** — TCP check for 5732/6679; exits with instructions if unreachable.
 - **`make help_test`** — prints test ports, container names, and instructions.
 - **Playwright browsers:** one-time install: `npx playwright install chromium`.

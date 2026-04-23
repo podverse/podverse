@@ -20,7 +20,7 @@ fi
 # Export environment variables needed by the Node.js script
 export DB_HOST="${DB_HOST:-localhost}"
 export DB_PORT="${DB_PORT:-5432}"
-export DB_DATABASE="${DB_DATABASE:-${POSTGRES_MANAGEMENT_DB:-podverse_management}}"
+export DB_MANAGEMENT_NAME="${DB_MANAGEMENT_NAME:-${POSTGRES_MANAGEMENT_DB:-podverse_management}}"
 export POSTGRES_USER="${POSTGRES_USER:-${POSTGRES_MANAGEMENT_USER:-postgres_user_management}}"
 export POSTGRES_PASSWORD="${POSTGRES_PASSWORD:-${POSTGRES_MANAGEMENT_PASSWORD:-}}"
 

@@ -33,6 +33,16 @@ type Config = {
     database: string;
     ssl_connection: boolean;
   };
+  appDatabase: {
+    host: string;
+    port: number;
+    read_username: string;
+    read_password: string;
+    read_write_username: string;
+    read_write_password: string;
+    database: string;
+    ssl_connection: boolean;
+  };
   web: {
     protocol: string;
     domain: string;
@@ -73,11 +83,21 @@ export const config: Config = {
   database: {
     host: process.env.DB_HOST!,
     port: parseInt(process.env.DB_PORT!, 10),
-    read_username: process.env.DB_READ_USERNAME!,
-    read_password: process.env.DB_READ_PASSWORD!,
-    read_write_username: process.env.DB_READ_WRITE_USERNAME!,
-    read_write_password: process.env.DB_READ_WRITE_PASSWORD!,
-    database: process.env.DB_DATABASE!,
+    read_username: process.env.DB_MANAGEMENT_READ_USER!,
+    read_password: process.env.DB_MANAGEMENT_READ_PASSWORD!,
+    read_write_username: process.env.DB_MANAGEMENT_READ_WRITE_USER!,
+    read_write_password: process.env.DB_MANAGEMENT_READ_WRITE_PASSWORD!,
+    database: process.env.DB_MANAGEMENT_NAME!,
+    ssl_connection: process.env.DB_SSL_CONNECTION === 'true',
+  },
+  appDatabase: {
+    host: process.env.DB_HOST!,
+    port: parseInt(process.env.DB_PORT!, 10),
+    read_username: process.env.DB_APP_READ_USER!,
+    read_password: process.env.DB_APP_READ_PASSWORD!,
+    read_write_username: process.env.DB_APP_READ_WRITE_USER!,
+    read_write_password: process.env.DB_APP_READ_WRITE_PASSWORD!,
+    database: process.env.DB_APP_NAME!,
     ssl_connection: process.env.DB_SSL_CONNECTION === 'true',
   },
   web: {

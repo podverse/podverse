@@ -1,5 +1,5 @@
 # --- Podverse E2E testing (local). Ports 403x (web), 413x (management-web).
-#     Mirrors Metaboost Makefile.local.e2e.mk with Podverse-specific ports and paths.
+#     Same overall shape as the shared Makefile.local.e2e pattern; Podverse-specific ports and paths.
 #     Depends on Makefile.local.test.mk (test_deps, test containers). ---
 
 .PHONY: e2e_deps e2e_seed e2e_seed_web e2e_seed_management_web

@@ -6,14 +6,27 @@ vi.mock('next/navigation', () => ({
   }),
 }));
 
-vi.mock('../../lib/auth/serverManagementSession.js', () => ({
+vi.mock('../../../lib/auth/serverManagementSession.js', () => ({
   getManagementSessionUser: vi.fn(),
 }));
 
 import { redirect } from 'next/navigation';
 
-import { getManagementSessionUser } from '../../lib/auth/serverManagementSession.js';
+import { getManagementSessionUser } from '../../../lib/auth/serverManagementSession.js';
 import DashboardPage from './page.js';
+
+const mockUser = {
+  id: 1,
+  id_text: 'u1',
+  role: 'superuser',
+  permissions: {
+    feeds_crud: 15,
+    feed_flag_statuses_crud: 15,
+    feed_flag_status_reasons_crud: 15,
+    admins_crud: 15,
+    stats_crud: 15,
+  },
+};
 
 describe('DashboardPage (server)', () => {
   it('redirects to login when there is no session', async () => {
@@ -27,12 +40,11 @@ describe('DashboardPage (server)', () => {
   });
 
   it('renders the dashboard client when the session is valid', async () => {
-    const user = { id: 1, id_text: 'u1', created_at: '2024-01-01T00:00:00.000Z' };
-    vi.mocked(getManagementSessionUser).mockResolvedValue(user);
+    vi.mocked(getManagementSessionUser).mockResolvedValue(mockUser);
 
     const tree = await DashboardPage();
 
     expect(tree).not.toBeNull();
-    expect((tree as { props?: { initialUser?: unknown } }).props?.initialUser).toEqual(user);
+    expect((tree as { props?: { initialUser?: unknown } }).props?.initialUser).toEqual(mockUser);
   });
 });

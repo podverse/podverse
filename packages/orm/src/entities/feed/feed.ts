@@ -1,5 +1,6 @@
 import type { Channel } from '@orm/entities/channel/channel.js';
 import type { FeedFlagStatus } from '@orm/entities/feed/feedFlagStatus.js';
+import type { FeedFlagStatusReason } from '@orm/entities/feed/feedFlagStatusReason.js';
 import type { Relation } from 'typeorm';
 import { Column, Entity, JoinColumn, ManyToOne, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
 
@@ -21,6 +22,16 @@ export class Feed {
   @ManyToOne('FeedFlagStatus', (feed_flag_status: FeedFlagStatus) => feed_flag_status.id)
   @JoinColumn({ name: 'feed_flag_status_id' })
   feed_flag_status!: Relation<FeedFlagStatus>;
+
+  @ManyToOne(
+    'FeedFlagStatusReason',
+    (feed_flag_status_reason: FeedFlagStatusReason) => feed_flag_status_reason.id
+  )
+  @JoinColumn({ name: 'feed_flag_status_reason_id' })
+  feed_flag_status_reason!: Relation<FeedFlagStatusReason> | null;
+
+  @Column({ type: 'text', nullable: true })
+  feed_flag_status_reason_note!: string | null;
 
   @OneToOne('FeedLog', (feed_log: FeedLog) => feed_log.feed)
   feed_log!: Relation<FeedLog>;

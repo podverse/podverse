@@ -6,24 +6,22 @@ import { hasImageHints, MQ_IMAGE_SHRINK_HINTS_CONFIG, MQ_QUEUES } from '@podvers
 import { mqImageShrinkHintAdd, mqRSSAdd as mqRSSAddFunction } from '@podverse/mq';
 import { parseRSSFeedAndSaveToDatabase } from '@podverse/parser';
 
-export const parserRSSParseFeed = async (args: CommandLineArgs) => {
-  const podcast_index_id = Array.isArray(args.p) ? args.p[0] : args.p;
-  if (!podcast_index_id) {
-    throw new Error('podcast_index_id (-p) parameter is required');
-  }
-
-  if (isNaN(Number(podcast_index_id))) {
-    throw new Error('podcast_index_id (-p) must be a number');
-  }
-
-  const feedData = await getPodcastIndexService().podcastGetById(Number(podcast_index_id));
+/**
+ * Fetches the feed URL from the Podcast Index, parses the RSS, persists to the DB, and
+ * enqueues follow-up MQ work (remote items, image hints). Used by `parserRSSParseFeed` and
+ * dev/bulk commands such as `devParserRSSParseTrendingFeeds`.
+ */
+export async function parsePodcastIndexFeedById(
+  podcastIndexId: number,
+  forceParse: boolean
+): Promise<void> {
+  const feedData = await getPodcastIndexService().podcastGetById(podcastIndexId);
   const feedUrl = feedData?.feed?.url;
   if (!feedUrl) {
-    throw new Error(`No feedUrl found for podcast_index_id ${podcast_index_id}`);
+    throw new Error(`No feedUrl found for podcast_index_id ${podcastIndexId}`);
   }
 
-  const hasForceParse = typeof args.f !== 'undefined' || typeof args.forceParse !== 'undefined';
-  const options = hasForceParse
+  const options = forceParse
     ? {
         forceParse: true,
         onDemandParserEvent: {
@@ -41,7 +39,7 @@ export const parserRSSParseFeed = async (args: CommandLineArgs) => {
         },
       };
 
-  const result = await parseRSSFeedAndSaveToDatabase(feedUrl, Number(podcast_index_id), options);
+  const result = await parseRSSFeedAndSaveToDatabase(feedUrl, podcastIndexId, options);
 
   const activeMQArtemisService = getActiveMQArtemisService();
   let sentMessages = 0;
@@ -95,4 +93,18 @@ export const parserRSSParseFeed = async (args: CommandLineArgs) => {
   if (sentMessages > 0) {
     await activeMQArtemisService.close();
   }
+}
+
+export const parserRSSParseFeed = async (args: CommandLineArgs) => {
+  const podcast_index_id = Array.isArray(args.p) ? args.p[0] : args.p;
+  if (!podcast_index_id) {
+    throw new Error('podcast_index_id (-p) parameter is required');
+  }
+
+  if (isNaN(Number(podcast_index_id))) {
+    throw new Error('podcast_index_id (-p) must be a number');
+  }
+
+  const hasForceParse = typeof args.f !== 'undefined' || typeof args.forceParse !== 'undefined';
+  await parsePodcastIndexFeedById(Number(podcast_index_id), hasForceParse);
 };

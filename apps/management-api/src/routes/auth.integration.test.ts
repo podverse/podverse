@@ -7,7 +7,33 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 const JWT_SECRET = process.env.AUTH_JWT_SECRET ?? '';
 const ADMIN_AUTH_COOKIE_NAME = 'pv_mgmt_auth';
 
-const { verifyPasswordMock, getMock } = vi.hoisted(() => ({
+const mockSuperuserAdmin = {
+  id: 1,
+  id_text: 'admin-1',
+  admin_account_role_id: 1,
+  admin_account_role: { role: 'superuser' },
+  admin_account_credentials: {
+    email: 'admin@example.com',
+    password: 'hash',
+    id: 1,
+    admin_account_id: 1,
+  },
+  permissions: {
+    id: 1,
+    admin_account_id: 1,
+    feedsCrud: 15,
+    feedFlagStatusesCrud: 15,
+    feedFlagStatusReasonsCrud: 15,
+    adminsCrud: 15,
+    statsCrud: 15,
+    created_at: new Date('2020-01-01T00:00:00.000Z'),
+    updated_at: new Date('2020-01-01T00:00:00.000Z'),
+  },
+  created_at: new Date('2020-01-01T00:00:00.000Z'),
+  updated_at: new Date('2020-01-01T00:00:00.000Z'),
+};
+
+const { verifyPasswordMock, getWithRoleAndPermissionsMock } = vi.hoisted(() => ({
   verifyPasswordMock: vi.fn<
     Promise<{ id: number; id_text: string; created_at: Date } | null>,
     [string, string]
@@ -16,10 +42,10 @@ const { verifyPasswordMock, getMock } = vi.hoisted(() => ({
     id_text: 'admin-1',
     created_at: new Date('2020-01-01T00:00:00.000Z'),
   })),
-  getMock: vi.fn<Promise<{ id: number; id_text: string; created_at: Date } | null>, [number]>(
+  getWithRoleAndPermissionsMock: vi.fn<Promise<typeof mockSuperuserAdmin | null>, [number]>(
     async (id: number) => {
       if (id === 1) {
-        return { id: 1, id_text: 'admin-1', created_at: new Date('2020-01-01T00:00:00.000Z') };
+        return mockSuperuserAdmin;
       }
       return null;
     }
@@ -31,11 +57,21 @@ vi.mock('@mgmt-api/orm/services/adminAccount.js', () => {
     async verifyPassword(email: string, password: string) {
       return verifyPasswordMock(email, password);
     }
-    async get(id: number) {
-      return getMock(id);
+    async getWithRoleAndPermissions(id: number) {
+      return getWithRoleAndPermissionsMock(id);
     }
   }
   return { AdminAccountService };
+});
+
+// Avoid loading management orm/entities (auditLog imports orm DataSource; see feedFlagStatus test).
+vi.mock('@mgmt-api/lib/database/auditLog.js', () => {
+  class AuditLogService {
+    async record() {
+      return;
+    }
+  }
+  return { AuditLogService };
 });
 
 const authBase = `${config.api.prefix}${config.api.version}/auth`;
@@ -47,7 +83,7 @@ const adminAuthHeaders = (userId: number = 1): { Authorization: string } => ({
 describe('management-api auth routes', () => {
   beforeEach(() => {
     verifyPasswordMock.mockClear();
-    getMock.mockClear();
+    getWithRoleAndPermissionsMock.mockClear();
   });
 
   describe('POST /auth/login', () => {
@@ -122,13 +158,20 @@ describe('management-api auth routes', () => {
   });
 
   describe('GET /auth/me', () => {
-    it('returns 200 with admin data when authenticated', async () => {
+    it('returns 200 with admin data including role and permissions when authenticated', async () => {
       const res = await request(app).get(`${authBase}/me`).set(adminAuthHeaders(1));
 
       expect(res.status).toBe(200);
       expect(res.body).toMatchObject({
         id: 1,
         id_text: 'admin-1',
+        role: 'superuser',
+        permissions: {
+          feeds_crud: 15,
+          feed_flag_statuses_crud: 15,
+          feed_flag_status_reasons_crud: 15,
+          admins_crud: 15,
+        },
       });
     });
 

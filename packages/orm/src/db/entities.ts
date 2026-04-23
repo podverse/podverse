@@ -51,6 +51,7 @@ import { ChannelValueRecipient } from '@orm/entities/channel/channelValueRecipie
 import { Clip } from '@orm/entities/clip.js';
 import { Feed } from '@orm/entities/feed/feed.js';
 import { FeedFlagStatus } from '@orm/entities/feed/feedFlagStatus.js';
+import { FeedFlagStatusReason } from '@orm/entities/feed/feedFlagStatusReason.js';
 import { FeedLog } from '@orm/entities/feed/feedLog.js';
 import { Item } from '@orm/entities/item/item.js';
 import { ItemAbout } from '@orm/entities/item/itemAbout.js';
@@ -161,6 +162,7 @@ export const entities = [
   Clip,
   Feed,
   FeedFlagStatus,
+  FeedFlagStatusReason,
   FeedLog,
   ImageShrinkSource,
   Item,

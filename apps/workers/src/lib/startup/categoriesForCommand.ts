@@ -58,7 +58,10 @@ const BASE_ORM_IMAGE_SHRINK_COMMANDS = [
   'imageShrinkSourcePrune',
 ] as const;
 
-const BASE_ORM_PARSER_PODCAST_INDEX_COMMANDS = ['parserRSSParseFeed'] as const;
+const BASE_ORM_PARSER_PODCAST_INDEX_COMMANDS = [
+  'parserRSSParseFeed',
+  'devParserRSSParseTrendingFeeds',
+] as const;
 
 const FULL_STACK_COMMANDS = [
   'mqRSSRunParser',

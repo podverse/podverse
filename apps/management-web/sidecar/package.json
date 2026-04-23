@@ -12,7 +12,9 @@
   },
   "dependencies": {
     "@podverse/helpers": "*",
-    "@podverse/helpers-config": "*"
+    "@podverse/helpers-config": "*",
+    "@tanstack/react-query": "^5.99.2",
+    "@tanstack/react-table": "^8.21.3"
   },
   "devDependencies": {
     "esbuild": "^0.27.4",

@@ -7,11 +7,14 @@ import RuntimeConfigScript from '../components/Head/RuntimeConfigScript';
 import FavIcons from '../components/Head/FavIcons';
 import Manifest from '../components/Head/Manifest';
 import { getConfig } from '../config';
-import { getRuntimeConfig } from '../config/runtime-config-store';
+import { fetchManagementWebRuntimeConfigFromSidecar } from '../config/runtime-config.server';
+import { setRuntimeConfig } from '../config/runtime-config-store';
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  // Runtime config is initialized in instrumentation.ts at server startup
-  const runtimeConfig = getRuntimeConfig();
+  // Fetch from sidecar on each request so config is correct if sidecar was not ready at startup.
+  // instrumentation.ts also fetches and setRuntimeConfig at process start.
+  const runtimeConfig = await fetchManagementWebRuntimeConfigFromSidecar();
+  setRuntimeConfig(runtimeConfig);
   const config = getConfig();
   const brandName = config.public.brand.name ?? 'Podverse Management';
   const locale = await getLocale();

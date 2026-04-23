@@ -30,7 +30,7 @@ Use this skill when adding or changing auth endpoints, routes, or any API behavi
 
 ### apps/management-api
 
-- `apps/management-api/vitest.setup.ts` sets test env (DB port 5732, `podverse_management_test`).
+- `apps/management-api/vitest.setup.ts` sets test env (`DB_HOST`/`DB_PORT`, `DB_APP_*`, `DB_MANAGEMENT_*`, port 5732, test DB names).
 - `apps/management-api/vitest.config.ts` references the setup file.
 - For ORM-dependent tests, mock the ORM layer or ensure test DB is populated.
 

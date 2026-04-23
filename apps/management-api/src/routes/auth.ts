@@ -1,6 +1,5 @@
 import { config } from '@mgmt-api/config/index.js';
 import { authenticate, ensureAuthenticated, logout } from '@mgmt-api/lib/auth/index.js';
-import { AdminAccountService } from '@mgmt-api/orm/services/adminAccount.js';
 import express from 'express';
 
 const router = express.Router();
@@ -13,34 +12,19 @@ router.post(`${baseUrl}/auth/login`, authenticate);
 router.post(`${baseUrl}/auth/logout`, logout);
 
 // Get current user
-router.get(`${baseUrl}/auth/me`, ensureAuthenticated, async (req, res) => {
-  try {
-    const userId = req.user?.id;
-    if (!userId) {
-      res.status(401).json({ message: 'Unauthorized' });
-      return;
-    }
-
-    const adminAccountService = new AdminAccountService();
-    const adminAccount = await adminAccountService.get(userId);
-
-    if (!adminAccount) {
-      res.status(404).json({ message: 'Admin account not found' });
-      return;
-    }
-
-    res.json({
-      id: adminAccount.id,
-      id_text: adminAccount.id_text,
-      created_at: adminAccount.created_at,
-    });
-  } catch (error) {
-    console.error('Error getting current user:', error);
-    if (!res.headersSent) {
-      res.status(500).json({ message: 'Internal server error' });
-    }
+router.get(`${baseUrl}/auth/me`, ensureAuthenticated, (req, res) => {
+  const admin = req.user;
+  if (!admin) {
+    res.status(401).json({ message: 'Unauthorized' });
     return;
   }
+
+  res.json({
+    id: admin.id,
+    id_text: admin.id_text,
+    role: admin.role,
+    permissions: admin.permissions,
+  });
 });
 
 export const authRouter = router;
