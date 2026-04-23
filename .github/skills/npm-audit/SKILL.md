@@ -99,6 +99,7 @@ podverse@5.4.12
 
 - Direct dependency upgrade resolves it
 - A recent major version of an intermediate package resolves it
+
 - npm overrides can successfully force the resolution (verify in `package-lock.json`)
 - The vulnerability is directly exploitable in Podverse's usage
 
@@ -160,6 +161,7 @@ Update `/memories/user/npm-audit-overrides.md` with:
 
 ```bash
 # Check the lockfile for nested node_modules
+
 grep -A2 'node_modules/teeny-request/node_modules/uuid' package-lock.json
 ```
 
