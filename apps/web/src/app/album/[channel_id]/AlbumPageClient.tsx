@@ -5,6 +5,7 @@ import { CoreAlbumHeader } from '../../../components/Core/Artist/Album/CoreAlbum
 import { MainInnerContentWrapper } from '../../../components/Main/MainInnerContentWrapper';
 import { MainInnerWrapper } from '../../../components/Main/MainInnerWrapper';
 import { MainWrapper } from '../../../components/Main/MainWrapper';
+import { getBoostEligibilityForContent } from '../../../utils/value/boostEligibility';
 import { AlbumPageContextProvider } from './AlbumPageContext';
 import { AlbumPageList } from './AlbumPageList';
 import { AlbumPageListHeader } from './AlbumPageListHeader';
@@ -28,6 +29,10 @@ export function AlbumPageClient(props: AlbumPageClientProps) {
     ssrTotalPages,
     ssrPodroll,
   } = props;
+  const { canShowBoostMessagesTab: ssrCanShowBoosts } = getBoostEligibilityForContent({
+    channel: ssrChannel,
+    item: null,
+  });
 
   return (
     <AlbumPageContextProvider
@@ -41,8 +46,12 @@ export function AlbumPageClient(props: AlbumPageClientProps) {
         <MainInnerWrapper>
           <AlbumPageSideContent channel={ssrChannel} podroll={ssrPodroll} />
           <MainInnerContentWrapper>
-            <AlbumPageListHeader ssrHasPodroll={!!ssrPodroll} />
-            <AlbumPageList ssrChannel={ssrChannel} podroll={ssrPodroll} />
+            <AlbumPageListHeader ssrHasPodroll={!!ssrPodroll} ssrCanShowBoosts={ssrCanShowBoosts} />
+            <AlbumPageList
+              ssrChannel={ssrChannel}
+              podroll={ssrPodroll}
+              ssrCanShowBoosts={ssrCanShowBoosts}
+            />
           </MainInnerContentWrapper>
         </MainInnerWrapper>
       </MainWrapper>

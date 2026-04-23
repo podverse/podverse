@@ -61,8 +61,7 @@ export function useDropdownKeyboardNavigation({
 
   useEffect(() => {
     if (open && menuRef.current && focusedIndex >= 0) {
-      const item = menuRef.current.children[focusedIndex] as HTMLElement;
-      item?.focus();
+      (menuRef.current.children[focusedIndex] as HTMLElement | undefined)?.focus();
     }
   }, [focusedIndex, open, menuRef]);
 

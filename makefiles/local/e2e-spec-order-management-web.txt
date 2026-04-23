@@ -1,0 +1,1 @@
+apps/management-web/e2e/smoke.spec.ts

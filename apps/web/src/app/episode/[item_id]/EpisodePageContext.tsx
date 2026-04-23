@@ -115,7 +115,7 @@ export const EpisodePageContextProvider = ({
       return;
     }
 
-    if (filterParams.type === 'summary') {
+    if (filterParams.type === 'summary' || filterParams.type === 'boosts') {
       return;
     }
 

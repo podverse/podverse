@@ -1,10 +1,13 @@
 'use client';
 
 import dynamic from 'next/dynamic';
+import { useTranslations } from 'next-intl';
 import React from 'react';
 
 import type { DTOChannel, DTOItem } from '@podverse/helpers';
 
+import { BoostMessagesSection } from '../../../components/Boost/messages/BoostMessagesSection';
+import { useBoostMessagesView } from '../../../components/Boost/messages/useBoostMessagesView';
 import { CoreEpisodeSummary } from '../../../components/Core/Podcast/Episodes/CoreEpisodeSummary';
 import { ListClips } from '../../../components/List/Clips/ListClips';
 import { DetailListWrapper } from '../../../components/List/DetailListWrapper';
@@ -27,9 +30,15 @@ const ItemTranscript = dynamic(
 type EpisodePageListProps = {
   ssrChannel: DTOChannel;
   ssrItem: DTOItem;
+  ssrCanShowBoosts: boolean;
 };
 
-export const EpisodePageList: React.FC<EpisodePageListProps> = ({ ssrChannel, ssrItem }) => {
+export const EpisodePageList: React.FC<EpisodePageListProps> = ({
+  ssrChannel,
+  ssrItem,
+  ssrCanShowBoosts,
+}) => {
+  const tV4VBoostMessages = useTranslations('v4v.boost_messages');
   const {
     filterParams,
     setFilterParams,
@@ -42,6 +51,13 @@ export const EpisodePageList: React.FC<EpisodePageListProps> = ({ ssrChannel, ss
     autoScrollOn,
   } = useEpisodePageContext();
   const { page, type } = filterParams;
+  const { boostsPageFetcher, breadcrumbLinkResolver, refreshTrigger } = useBoostMessagesView({
+    channel: ssrChannel,
+    itemGuid: ssrItem.guid ?? null,
+    scopeType: 'item',
+    channelIdText: ssrChannel.id_text ?? null,
+    ssrCanShowBoosts,
+  });
 
   return (
     <DetailListWrapper>
@@ -76,6 +92,14 @@ export const EpisodePageList: React.FC<EpisodePageListProps> = ({ ssrChannel, ss
           item={ssrItem}
           totalPages={totalPages}
           showSubscribeMessage={false}
+        />
+      )}
+      {type === 'boosts' && boostsPageFetcher !== null && (
+        <BoostMessagesSection
+          heading={tV4VBoostMessages('title')}
+          pageFetcher={boostsPageFetcher}
+          breadcrumbLinkResolver={breadcrumbLinkResolver}
+          refreshTrigger={refreshTrigger}
         />
       )}
       {type === 'transcript' && (

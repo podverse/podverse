@@ -10,10 +10,19 @@ export type LoginResponse = {
   token?: string;
 };
 
+export type CrudPermissions = {
+  feeds_crud: number;
+  feed_flag_statuses_crud: number;
+  feed_flag_status_reasons_crud: number;
+  admins_crud: number;
+  stats_crud: number;
+};
+
 export type CurrentUser = {
   id: number;
   id_text: string;
-  created_at: string;
+  role: string;
+  permissions: CrudPermissions | null;
 };
 
 export async function login(params: LoginParams): Promise<LoginResponse> {
@@ -27,15 +36,12 @@ export async function login(params: LoginParams): Promise<LoginResponse> {
 
 export async function getCurrentUser(): Promise<CurrentUser | null> {
   try {
-    // Don't read the HTTP-only cookie - it's not accessible via JavaScript
-    // The browser will send it automatically with withCredentials: true
     const service = new ManagementApiRequestService();
     return await service.apiRequest<CurrentUser>({
       path: '/auth/me',
       method: 'GET',
     });
   } catch (error) {
-    // 401 is expected when user is not logged in - don't log as error
     const isUnauthorized =
       error &&
       typeof error === 'object' &&

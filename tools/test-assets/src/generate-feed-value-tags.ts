@@ -1,6 +1,6 @@
+import { faker } from '@faker-js/faker';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { faker } from '@faker-js/faker';
 
 import type { LocalLnRecipientsConfig } from '@podverse/v4v-btc-ln/test-data';
 import {
@@ -9,9 +9,9 @@ import {
   readLocalLnRecipientsConfig,
   VALUE_RECIPIENT_SPLITS,
 } from '@podverse/v4v-btc-ln/test-data';
-import { METABOOST_LICENSE_URL } from './generate-feed-constants.js';
-import { buildRemoteItemXml, escapeXml } from './generate-feed-xml.js';
+
 import { type WrittenFeedInfo } from './generate-feed-types.js';
+import { buildRemoteItemXml, escapeXml } from './generate-feed-xml.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const LOCAL_LN_RECIPIENTS_PATH = path.resolve(
@@ -162,16 +162,19 @@ const buildMixedValueRecipients = (recipients: LocalLnRecipientsConfig | null): 
 /** 07a: Build channel <podcast:value> blocks for lightning. */
 export const buildChannelValueBlock = (_recipientCount: number): string => {
   const suggested = '0.00000005000';
-  const metaBoost = `<podcast:metaBoost type="post" schema="boostbox" license="${METABOOST_LICENSE_URL}">${METABOOST_URL}</podcast:metaBoost>`;
   const localRecipients = readLocalLnRecipientsConfig(LOCAL_LN_RECIPIENTS_PATH);
   const recipients = buildMixedValueRecipients(localRecipients);
 
   return [
     `<podcast:value type="lightning" method="keysend" suggested="${suggested}">`,
-    `    ${metaBoost}`,
     `    ${recipients}`,
     `    </podcast:value>`,
   ].join('\n');
+};
+
+/** Build channel-level `<podcast:metaBoost>` for test feeds (alongside `<podcast:value>` blocks). */
+export const buildChannelMetaBoostTag = (): string => {
+  return `<podcast:metaBoost standard="mbrss-v1">${METABOOST_URL}</podcast:metaBoost>`;
 };
 
 /** 07a: Build item <podcast:value> blocks (lightning only). */
@@ -180,7 +183,6 @@ export const buildItemValueBlock = (
   remoteItemTarget?: WrittenFeedInfo | null
 ): string => {
   const suggested = '0.00000005000';
-  const metaBoost = `<podcast:metaBoost type="post" schema="boostbox" license="${METABOOST_LICENSE_URL}">${METABOOST_URL}</podcast:metaBoost>`;
   const localRecipients = readLocalLnRecipientsConfig(LOCAL_LN_RECIPIENTS_PATH);
   const recipients = buildMixedValueRecipients(localRecipients);
   let valueTimeSplitBlock = '';
@@ -215,7 +217,6 @@ export const buildItemValueBlock = (
   }
   return [
     `<podcast:value type="lightning" method="keysend" suggested="${suggested}">`,
-    `      ${metaBoost}`,
     `      ${recipients}${valueTimeSplitBlock}`,
     `      </podcast:value>`,
   ].join('\n');

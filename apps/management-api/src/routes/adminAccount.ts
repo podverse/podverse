@@ -1,5 +1,6 @@
 import { config } from '@mgmt-api/config/index.js';
 import { ensureAuthenticated } from '@mgmt-api/lib/auth/index.js';
+import { checkAdminAccountSelfAccess } from '@mgmt-api/lib/authz/adminSelfOnly.js';
 import { getParamRequired } from '@mgmt-api/lib/params.js';
 import { AdminAccountService } from '@mgmt-api/orm/services/adminAccount.js';
 import express from 'express';
@@ -16,6 +17,16 @@ router.get(`${baseUrl}/admin-account/:id`, ensureAuthenticated, async (req, res)
 
     if (isNaN(id)) {
       res.status(400).json({ message: 'Invalid id' });
+      return;
+    }
+
+    const access = checkAdminAccountSelfAccess(req.user?.id, id);
+    if (!access.allowed) {
+      if (access.reason === 'unauthenticated') {
+        res.status(401).json({ message: 'Unauthorized' });
+      } else {
+        res.status(403).json({ message: 'Forbidden' });
+      }
       return;
     }
 

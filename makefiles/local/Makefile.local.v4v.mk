@@ -1,31 +1,10 @@
 # ==========================================
-# V4V local services (Boostbox + Lightning Network)
+# V4V local services (Lightning Network)
 # ==========================================
 # Included by makefiles/local/Makefile.local.infra.mk so targets are available for local_infra_up,
 # local_infra_up_full, local_all_down, local_clean. Can also be used standalone from repo root:
 #   make -f makefiles/local/Makefile.local.v4v.mk local_ln_up
 # Requires: makefiles/local/Makefile.local.infra.mk (for local_network_create and config paths).
-
-# Boostbox (V4V boost metadata API; repo is sibling to podverse - see docs/infra/LOCAL-BOOSTBOX.md)
-.PHONY: local_build_boostbox
-local_build_boostbox:
-	@if [ ! -d "../boostbox" ]; then \
-		echo "ERROR: ../boostbox is not a directory. Clone the boostbox repo as a sibling of the podverse monorepo (see docs/infra/LOCAL-BOOSTBOX.md)."; \
-		exit 1; \
-	fi
-	@if [ ! -f "../boostbox/Dockerfile" ]; then \
-		echo "ERROR: ../boostbox/Dockerfile not found. Add a Dockerfile to the boostbox repo."; \
-		exit 1; \
-	fi
-	docker build -f ../boostbox/Dockerfile -t boostbox:latest ../boostbox
-
-.PHONY: local_boostbox_up
-local_boostbox_up: local_network_create infra/config/local/boostbox.env
-	docker compose -f infra/docker/local/boostbox/docker-compose.yml up podverse_local_boostbox -d
-
-.PHONY: local_boostbox_down
-local_boostbox_down:
-	docker compose -f infra/docker/local/boostbox/docker-compose.yml down --remove-orphans
 
 # LND HTTP proxy (plain HTTP → LND HTTPS REST; auto-injects macaroon)
 .PHONY: local_lnd_http_proxy_up

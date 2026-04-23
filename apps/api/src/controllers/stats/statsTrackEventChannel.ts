@@ -33,7 +33,7 @@ export class StatsTrackEventChannelController {
           }
         });
       },
-      { skipMembershipStatus: false }
+      { skipMembershipStatus: false, noFreeTrial: true }
     );
   }
 }

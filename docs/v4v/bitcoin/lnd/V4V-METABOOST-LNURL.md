@@ -5,7 +5,7 @@ title: "V4V MetaBoost + LNURL (Local)"
 # V4V MetaBoost + LNURL (Local)
 
 This guide describes the local, end-to-end workflow for parsing `<podcast:metaBoost>`, storing it,
-and sending boost messages with BoostBox + WebLN (Alby or compatible). It also documents the
+and sending boost messages with a MetaBoost server + WebLN (Alby or compatible). It also documents the
 keysend bLIP-0010 fallback when metaBoost is absent, and the LNAddress behavior when messages are
 not enabled.
 
@@ -28,19 +28,16 @@ test assets, parsing, web boost flow), see [V4V-BITCOIN-LN-SETUP-DIAGRAM.md](V4V
 
 ## Prerequisites
 
-- BoostBox running at `http://localhost:8080`
+- MetaBoost server running at `http://localhost:8080`
 - Podverse monorepo running locally
 - Test assets server running (`npm run dev:test-assets`)
 - WebLN-compatible wallet (Alby or similar)
 
-**BoostBox (local):** You can start BoostBox as part of local infra: run `make local_infra_up` (which
-includes BoostBox), or build once with `make local_build_boostbox` then `make local_boostbox_up`.
-BoostBox lives in a separate repo cloned as a sibling of Podverse; see
-[LOCAL-BOOSTBOX.md](../../../infra/LOCAL-BOOSTBOX.md).
+**MetaBoost server (local):** Start any mbrss-v1-compatible metadata server on `http://localhost:8080`
+before testing.
 
 Notes:
 
-- The client sends the BoostBox base URL in the request body (`baseUrl`) when calling the Podverse API proxy; the API forwards to that URL and uses a fixed API key. See [LOCAL-BOOSTBOX.md](../../../infra/LOCAL-BOOSTBOX.md).
 - Lightning Address (LNURLp) resolution and invoice requests are implemented in `@podverse/v4v-btc-ln` using **LUD-16 only**: the app fetches `https://<domain>/.well-known/lnurlp/<user>` (or the same path over http for localhost). Invoice requests use the callback URL from the resolved details, so the Donate page and LNAddress flows work with any LUD-16-compliant provider (Strike, Alby, etc.).
 
 ## Local Lightning Network Setup
@@ -101,25 +98,26 @@ it falls back to built-in fake data.
 
 ## MetaBoost tag format
 
-MetaBoost is emitted as a sub-tag of `<podcast:value>`:
+MetaBoost is emitted at the channel level with a required `standard` attribute:
 
 ```xml
-<podcast:value type="lightning" method="keysend" suggested="0.00000005000">
-  <podcast:metaBoost type="post" schema="boostbox" license="https://example.com/license">
-    http://localhost:8080/boost
-  </podcast:metaBoost>
-  <podcast:valueRecipient ... />
-</podcast:value>
+<channel>
+  <podcast:metaBoost standard="mbrss-v1">https://api.metaboost.cc/v1/s/mbrss-v1/boost/JAyJS6QnNV/</podcast:metaBoost>
+  <podcast:value type="lightning" method="keysend" suggested="0.00000005000">
+    <podcast:valueRecipient ... />
+  </podcast:value>
+</channel>
 ```
 
-Only `schema="boostbox"` is accepted for now.
+Podverse currently supports `mbrss-v1` (BTC flow only). Unknown or unsupported `standard` values use
+the standard V4V path without mbrss-v1 messaging.
 
 ## Generate test assets (includes metaBoost + LNAddress + keysend)
 
-The test assets generator emits a single hardcoded metaBoost URL and can mix `lnaddress`
-and `node` recipients per value-tagged item (per-recipient randomization):
+The test assets generator emits a channel-level `podcast:metaBoost standard="mbrss-v1"` URL and can mix
+`lnaddress` and `node` recipients per value-tagged item (per-recipient randomization):
 
-- metaBoost URL: `http://localhost:8080/boost`
+- metaBoost URL: `https://api.metaboost.cc/v1/s/mbrss-v1/boost/BtBwcc9mdz/`
 - Each value set includes three recipients with splits `60`, `40`, and `1` (fee).
 - Placeholder addresses are used for both recipient types.
 
@@ -133,23 +131,17 @@ npm run generate -w tools/test-assets -- --add-fake-value-tags
 ## Parse and store metaBoost
 
 1. Parse a feed (via `tools/test-assets` or ingest tooling).
-2. Confirm `channel_value_meta_boost` and `item_value_meta_boost` rows exist in the DB.
+2. Confirm `channel_meta_boost` rows exist in the DB (at most one row per channel, FK to `channel`,
+   from channel-level `<podcast:metaBoost>` in the parsed feed).
 3. Parsing generated assets is the official "seeding" step for local testing.
 
-## MetaBoost (BoostBox) flow
+## MetaBoost (mbrss-v1) flow
 
-When `<podcast:metaBoost>` is present, the client must obtain BoostBox metadata before sending payments:
+When `<podcast:metaBoost standard="mbrss-v1">` is present:
 
-1. POST to the Podverse API at **`/api/v1/metaboost/boostbox/boost`** with a body that includes
-   **`baseUrl`** (BoostBox base URL; must be HTTPS in production, `http://localhost` is allowed
-   locally) and the boost metadata. The API proxies to BoostBox at `{baseUrl}/boost` and returns
-   the response.
-2. Use the BoostBox `desc` string (`rss::payment::{action} {url} {truncated message}`) for:
-   - LNAddress invoice comment (when allowed by LNURL).
-   - Keysend bLIP-0010 `message` field (so the payload carries the BoostBox metadata URL).
-
-If BoostBox fails, a modal warns that the message cannot be sent and the user can "Pay Anyway."
-Payments continue with **no memo** (no comment and no bLIP-0010 record).
+1. Attempt recipient payments.
+2. Determine whether the largest split recipient payment succeeded.
+3. If it succeeded, POST the mbrss-v1 boost body to the URL from `<podcast:metaBoost standard="mbrss-v1">`.
 
 ## Keysend (bLIP-0010) fallback
 
@@ -167,27 +159,20 @@ and rounded down to the nearest integer (e.g., 60 + 40 + 1 is valid and normaliz
 
 When metaBoost is **not** present for LNAddress recipients (`type="lnaddress"`), boost messages are
 disabled **for LNURL invoice flows**. The boost form shows a notice with a "More Info" link to
-`/v4v/boost-messages`, and the payment proceeds **without** any message metadata.
+`/v4v/metaboost`, and the payment proceeds **without** any message metadata.
 
 ## Manual test checklist
 
-- MetaBoost tag appears in generated RSS.
-- Partytime parses `value.metaBoost` and mapper persists metaBoost rows.
-- API responses that include V4V value data include metaBoost fields.
+- MetaBoost tag appears in generated RSS at channel level.
+- Partytime parses `feed.metaBoost` and ingestion persists `channel_meta_boost` on the channel.
+- API responses that include V4V data expose `channel_meta_boost` on the channel when the feed had metaBoost.
 - Web UI shows per-recipient send status and amounts.
-- BoostBox success: LNAddress invoices include BoostBox `desc` comment where allowed.
-- BoostBox failure: modal appears; "Pay Anyway" sends payments with no message metadata.
+- mbrss-v1 post happens only when the largest split recipient payment succeeds.
 - Keysend without metaBoost: bLIP-0010 record is attached (TLV 7629169).
 - LNAddress without metaBoost: notice shown; payments sent without message metadata.
-- `/v4v/boost-messages` page loads and explains requirements.
+- `/v4v/metaboost` page loads and explains requirements.
 
-## CORS notes
+## Future production hardening (not implemented)
 
-BoostBox must allow browser requests from the Podverse web app origin. For local development,
-ensure `localhost` origins are permitted in BoostBox CORS settings.
-
-## Production follow-ups (not implemented)
-
-- The BoostBox base URL is supplied by the client in the request body; the API key is fixed. Production may require different key handling or validation.
 - Replace hardcoded Alby Sandbox constants with production config.
 - Add production-grade error handling and retries.

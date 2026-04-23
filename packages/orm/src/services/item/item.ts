@@ -23,7 +23,6 @@ import { ItemSoundbiteService } from './itemSoundbite.js';
 import { ItemTranscriptService } from './itemTranscript.js';
 import { ItemTxtService } from './itemTxt.js';
 import { ItemValueService } from './itemValue.js';
-import { ItemValueMetaBoostService } from './itemValueMetaBoost.js';
 import { ItemValueRecipientService } from './itemValueRecipient.js';
 import { ItemValueTimeSplitService } from './itemValueTimeSplit.js';
 import { ItemValueTimeSplitRecipientService } from './itemValueTimeSplitRecipient.js';
@@ -159,18 +158,12 @@ export class ItemService {
     if (relations.item_values) {
       const itemValueService = new ItemValueService();
       const item_values = await itemValueService._getAll(item);
-      const itemValueMetaBoostService = new ItemValueMetaBoostService();
 
       for (const item_value of item_values) {
         const itemValueRecipientsService = new ItemValueRecipientService();
         const item_value_recipients = await itemValueRecipientsService._getAll(item_value);
         if (item_value_recipients) {
           item_value.item_value_recipients = item_value_recipients;
-        }
-
-        const item_value_meta_boost = await itemValueMetaBoostService._get(item_value);
-        if (item_value_meta_boost) {
-          item_value.meta_boost = item_value_meta_boost;
         }
 
         const itemValueTimeSplitService = new ItemValueTimeSplitService();

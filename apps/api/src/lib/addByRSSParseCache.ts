@@ -3,7 +3,6 @@ import { cacheGetJson, cacheSetJson } from '@api/lib/keyvaldb/keyvaldb.js';
 import {
   type AddByRSSParseCacheEntry as AddByRSSParseCacheEntryBase,
   type AddByRSSParseStatus,
-  buildAddByRSSParseCacheKey as buildAddByRSSParseCacheKeyShared,
   type CacheSetJson,
   getAddByRSSParseCacheEntry as getAddByRSSParseCacheEntryShared,
   setAddByRSSParseCacheEntry as setAddByRSSParseCacheEntryShared,
@@ -18,9 +17,6 @@ export type { AddByRSSParseStatus };
 
 const cacheSetJsonAdapter: CacheSetJson = (key, value, ttlSeconds) =>
   cacheSetJson(key, value, ttlSeconds ?? undefined);
-
-export const buildAddByRSSParseCacheKey = (requestId: string): string =>
-  buildAddByRSSParseCacheKeyShared(requestId);
 
 export const getAddByRSSParseCacheEntry = async (
   requestId: string

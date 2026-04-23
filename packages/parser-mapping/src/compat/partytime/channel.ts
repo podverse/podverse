@@ -402,7 +402,6 @@ export const compatChannelValueDtos = (parsedFeed: FeedObject) => {
           method: dto.method.slice(0, DATABASE_CONSTANTS.varchar_short),
           suggested: dto.suggested || null,
         },
-        channel_value_meta_boost: dto.meta_boost ?? null,
         channel_value_recipients: dto.channel_value_recipients,
       };
     });
@@ -434,7 +433,6 @@ export const compatChannelValueDtos = (parsedFeed: FeedObject) => {
             method: dto.method.slice(0, DATABASE_CONSTANTS.varchar_short),
             suggested: dto.suggested || null,
           },
-          channel_value_meta_boost: dto.meta_boost ?? null,
           channel_value_recipients: dto.channel_value_recipients,
         });
       }
@@ -453,7 +451,6 @@ export const compatChannelValueDtos = (parsedFeed: FeedObject) => {
             method: dto.method.slice(0, DATABASE_CONSTANTS.varchar_short),
             suggested: dto.suggested || null,
           },
-          channel_value_meta_boost: dto.meta_boost ?? null,
           channel_value_recipients: dto.channel_value_recipients,
         },
       ];
@@ -468,7 +465,6 @@ export const compatChannelValueDtos = (parsedFeed: FeedObject) => {
         method: dto.method.slice(0, DATABASE_CONSTANTS.varchar_short),
         suggested: dto.suggested || null,
       },
-      channel_value_meta_boost: dto.meta_boost ?? null,
       channel_value_recipients: dto.channel_value_recipients,
     },
   ];

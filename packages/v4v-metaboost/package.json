@@ -1,7 +1,7 @@
 {
   "name": "@podverse/v4v-metaboost",
   "version": "5.4.12",
-  "description": "V4V metaBoost feed type and BoostBox API types and helpers",
+  "description": "V4V MetaBoost feed types and mbrss-v1 helper utilities",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "files": [
@@ -14,13 +14,20 @@
     "lint": "eslint ./src --max-warnings 0",
     "lint:fix": "eslint ./src --fix",
     "clean": "rm -rf dist",
-    "type-check": "tsc --noEmit"
+    "type-check": "tsc --noEmit",
+    "test": "vitest run"
   },
   "license": "AGPL-3.0",
   "publishConfig": {
     "access": "public"
   },
-  "dependencies": {},
+  "dependencies": {
+    "@podverse/helpers": "*",
+    "@podverse/helpers-validation": "*"
+  },
+  "devDependencies": {
+    "vitest": "^3.2.4"
+  },
   "type": "module",
   "sideEffects": false
 }

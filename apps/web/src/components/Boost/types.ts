@@ -6,6 +6,8 @@ export type PaymentRecipient = {
   name: string | null;
   custom_key?: string | null;
   custom_value?: string | null;
+  fee?: boolean;
+  split?: number;
   normalized_split: number;
   final_amount: number;
 };

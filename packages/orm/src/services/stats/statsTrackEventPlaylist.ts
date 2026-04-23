@@ -6,9 +6,7 @@ import { BaseStatsTrackEventService } from './baseStatsTrackEvent.js';
 
 export class StatsTrackEventPlaylistService extends BaseStatsTrackEventService<StatsTrackEventPlaylist> {
   protected entity = StatsTrackEventPlaylist;
-  protected entityName = 'stats_track_event_playlist';
   protected entityIdField = 'playlist_id';
-  protected entityIdTextField = 'playlist_id_text';
   private playlistService: PlaylistService;
 
   constructor() {

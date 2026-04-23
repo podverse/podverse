@@ -7,9 +7,9 @@ import { ItemChapterService } from '@podverse/orm';
 
 import { handleGenericErrorResponse } from './helpers/error.js';
 
-const itemChapterService = new ItemChapterService();
-
 export class ItemChapterController {
+  private static itemChapterService = new ItemChapterService();
+
   static async getItemChapterByIdText(req: Request, res: Response): Promise<void> {
     const paramsSchema = Joi.object({
       item_chapter_id_text: Joi.string().required(),
@@ -18,9 +18,12 @@ export class ItemChapterController {
     validateParamsObject(paramsSchema, req, res, async () => {
       try {
         const item_chapter_id_text = getParamRequired(req, 'item_chapter_id_text');
-        const itemChapter = await itemChapterService.getByIdText(item_chapter_id_text, {
-          relations: ['item_chapters_feed', 'item_chapters_feed.item'],
-        });
+        const itemChapter = await ItemChapterController.itemChapterService.getByIdText(
+          item_chapter_id_text,
+          {
+            relations: ['item_chapters_feed', 'item_chapters_feed.item'],
+          }
+        );
         if (itemChapter) {
           res.status(200).json(itemChapter);
         } else {

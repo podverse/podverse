@@ -8,6 +8,7 @@ import type { DTOChannelImage } from './channelImage.js';
 import type { DTOChannelInternalSettings } from './channelInternalSettings.js';
 import type { DTOChannelLicense } from './channelLicense.js';
 import type { DTOChannelLocation } from './channelLocation.js';
+import type { DTOChannelMetaBoost } from './channelMetaBoost.js';
 import type { DTOChannelPerson } from './channelPerson.js';
 import type { DTOChannelPodroll } from './channelPodroll.js';
 import type { DTOChannelPublisher } from './channelPublisher.js';
@@ -39,6 +40,7 @@ export interface DTOChannel {
   channel_internal_settings?: DTOChannelInternalSettings;
   channel_license?: DTOChannelLicense;
   channel_location?: DTOChannelLocation;
+  channel_meta_boost?: DTOChannelMetaBoost | null;
   channel_persons?: DTOChannelPerson[];
   channel_podroll?: DTOChannelPodroll;
   channel_publisher?: DTOChannelPublisher;

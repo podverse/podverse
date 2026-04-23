@@ -1,0 +1,110 @@
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  margin-top: var(--spacing-lg);
+}
+
+.heading {
+  margin: 0;
+}
+
+.loadingContainer {
+  align-items: center;
+  display: flex;
+  gap: var(--spacing-sm);
+}
+
+.statusMessage {
+  margin: 0;
+}
+
+.messageList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xl);
+}
+
+.messageCard {
+  background-color: var(--background-color-tertiary);
+  border: 1px solid var(--border-color-opaque);
+  border-radius: var(--border-radius);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  min-width: 0;
+  padding: var(--spacing-lg);
+}
+
+.breadcrumbRow {
+  align-items: center;
+  color: var(--text-color-secondary);
+  display: flex;
+  flex-wrap: wrap;
+  font-size: var(--font-size-sm);
+  gap: var(--spacing-xs);
+}
+
+.breadcrumbSeparator {
+  margin: 0 var(--spacing-xxs);
+}
+
+.breadcrumbLabel {
+  color: inherit;
+}
+
+.breadcrumbLink {
+  color: var(--text-color-link);
+}
+
+.headerRow {
+  align-items: baseline;
+  display: flex;
+  gap: var(--spacing-md);
+  justify-content: space-between;
+  min-width: 0;
+}
+
+.senderName {
+  color: var(--text-color-primary);
+  flex: 1;
+  font-weight: var(--font-weight-bold);
+  font-size: var(--font-size-md);
+  min-width: 0;
+}
+
+.dateAt {
+  color: var(--text-color-secondary);
+  flex-shrink: 0;
+  font-size: var(--font-size-sm);
+}
+
+.amountRow {
+  align-items: baseline;
+  display: flex;
+  gap: var(--spacing-md);
+  justify-content: space-between;
+  min-width: 0;
+}
+
+.amountLinePrimary {
+  color: var(--text-color-primary);
+  flex: 1;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  min-width: 0;
+}
+
+.amountLineApp {
+  color: var(--text-color-secondary);
+  flex-shrink: 0;
+  font-size: var(--font-size-sm);
+  text-align: right;
+}
+
+.messageBody {
+  margin: 0;
+  padding-top: var(--spacing-md);
+  white-space: pre-wrap;
+  word-break: break-word;
+}

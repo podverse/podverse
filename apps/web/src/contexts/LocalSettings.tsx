@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useLayoutEffect, useState } from 'react';
 
 import type { ViewSelectedOption } from '../components/ViewSelector/ViewSelector';
 import type {
@@ -52,7 +52,7 @@ export const LocalSettingsProvider: React.FC<LocalSettingsProps> = ({
     ssrLocalSettings.bfd ?? {}
   );
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const existingSettings = getParsedLocalSettings();
     // Remember to update this when new properties are added to the LocalSettingsState
     // or the settings will be lost when the page is refreshed twice.

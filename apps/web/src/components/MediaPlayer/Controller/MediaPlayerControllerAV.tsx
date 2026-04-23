@@ -16,6 +16,7 @@ import type {
 import { getSelectedLabeledItemEnclosureAndSource, isEqual, MediumEnum } from '@podverse/helpers';
 
 import { EVENTS } from '../../../constants/events';
+import { useAccount } from '../../../contexts/Account';
 import type { MediaPlayerAddByRSSState } from '../../../contexts/MediaPlayer';
 import type { MoveNowPlayingToHistoryCallbackParams } from '../../../hooks/useQueueResourceMoveNowPlayingToHistory';
 import type { QueueResourcesLoadActiveResult } from '../../../hooks/useQueueResourcesLoadActive';
@@ -27,6 +28,11 @@ import {
 } from '../../../utils/mediaPlayer/mediaPlayerItemEnclosureType';
 import { playMediaWhenReady } from '../../../utils/mediaPlayer/mediaPlayerPlayMediaWhenReady';
 import { waitForSourceUri } from '../../../utils/mediaPlayer/mediaPlayerPlayMediaWhenReady';
+import {
+  trackStatsChannel,
+  trackStatsClip,
+  trackStatsItem,
+} from '../../../utils/statsTracking/statsTracking';
 
 export interface MediaPlayerControllerAVProps {
   mediaType: 'audio' | 'video';
@@ -75,6 +81,12 @@ export interface MediaPlayerControllerAVProps {
 let globalPauseAtTime: number | null = null;
 
 export const MediaPlayerControllerAV: React.FC<MediaPlayerControllerAVProps> = (props) => {
+  const { loggedInAccount } = useAccount();
+  const loggedInAccountRef = useRef(loggedInAccount);
+  useEffect(() => {
+    loggedInAccountRef.current = loggedInAccount;
+  }, [loggedInAccount]);
+
   const {
     mediaType,
     preload = 'auto',
@@ -197,8 +209,7 @@ export const MediaPlayerControllerAV: React.FC<MediaPlayerControllerAVProps> = (
       : null;
 
   useEffect(() => {
-    const media = mediaRef.current;
-    if (!media || !mpAddByRSS?.resourceData) return;
+    if (!mediaRef.current || !mpAddByRSS?.resourceData) return;
 
     const mediumId = mpAddByRSS.resourceData.medium_id;
     const addByRSSMediaType =
@@ -226,26 +237,30 @@ export const MediaPlayerControllerAV: React.FC<MediaPlayerControllerAVProps> = (
     const seekTime = isRestoredSeek && addByRSSSeekToTime >= 0 ? addByRSSSeekToTime : 0;
 
     // Only set src/load if not already set (e.g. declarative src from JSX may already match).
-    if (media.src !== url) {
-      media.src = url;
-      media.load();
+    if (mediaRef.current.src !== url) {
+      mediaRef.current.src = url;
+      mediaRef.current.load();
     }
 
     const applySeek = () => {
       if (isRestoredSeek) {
-        media.currentTime = seekTime;
+        if (mediaRef.current) {
+          mediaRef.current.currentTime = seekTime;
+        }
         setAddByRSSSeekToTime(null);
       }
     };
 
-    if (media.readyState >= 1) {
+    if (mediaRef.current.readyState >= 1) {
       applySeek();
     } else {
-      media.addEventListener('loadedmetadata', applySeek, { once: true });
+      mediaRef.current.addEventListener('loadedmetadata', applySeek, { once: true });
     }
 
     if (mpShouldPlay) {
-      playMediaWhenReady(media, () => setMPShouldPlay(false));
+      if (mediaRef.current) {
+        playMediaWhenReady(mediaRef.current, () => setMPShouldPlay(false));
+      }
     }
   }, [
     mpAddByRSS,
@@ -271,25 +286,21 @@ export const MediaPlayerControllerAV: React.FC<MediaPlayerControllerAVProps> = (
       return;
     }
 
-    const media = mediaRef.current;
-    const mpItem = mpItemRef.current;
-    const mpShouldPlay = mpShouldPlayRef.current;
-
-    if (media) {
+    if (mediaRef.current) {
       const isAudioFile = checkIfIsAudioFile(selectedItemEnclosureAndSource);
       const isVideoFile = checkIfIsVideoFile(selectedItemEnclosureAndSource);
-      const isLiveItem = checkIsLiveItem(mpItem);
+      const isLiveItem = checkIsLiveItem(mpItemRef.current);
 
       if ((mediaType === 'audio' ? isAudioFile : isVideoFile) && !isLiveItem) {
-        media.currentTime = 0;
-        media.load();
-        if (mpShouldPlay) {
-          playMediaWhenReady(media, () => setMPShouldPlay(false));
+        mediaRef.current.currentTime = 0;
+        mediaRef.current.load();
+        if (mpShouldPlayRef.current) {
+          playMediaWhenReady(mediaRef.current, () => setMPShouldPlay(false));
         }
       } else {
-        media.pause();
-        media.removeAttribute('src');
-        media.load();
+        mediaRef.current.pause();
+        mediaRef.current.removeAttribute('src');
+        mediaRef.current.load();
       }
     }
   }, [mpAddByRSS, mpItemLabeledEnclosures.length, selectedItemEnclosureAndSource]);
@@ -297,33 +308,33 @@ export const MediaPlayerControllerAV: React.FC<MediaPlayerControllerAVProps> = (
   useEffect(() => {
     const handleSeek = (e: Event) => {
       const customEvent = e as CustomEvent<{ time: number }>;
-      const media = mediaRef.current;
-      if (media && typeof customEvent.detail.time === 'number') {
-        media.currentTime = customEvent.detail.time;
+      if (mediaRef.current && typeof customEvent.detail.time === 'number') {
+        mediaRef.current.currentTime = customEvent.detail.time;
         setMPCurrentTime(customEvent.detail.time);
       }
     };
 
     const handleJumpBack = (e: Event) => {
       const customEvent = e as CustomEvent<{ seconds: number }>;
-      const media = mediaRef.current;
-      if (media && typeof customEvent.detail.seconds === 'number') {
-        const newTime = Math.max(media.currentTime - customEvent.detail.seconds, 0);
-        media.currentTime = newTime;
+      if (mediaRef.current && typeof customEvent.detail.seconds === 'number') {
+        const newTime = Math.max(mediaRef.current.currentTime - customEvent.detail.seconds, 0);
+        mediaRef.current.currentTime = newTime;
         setMPCurrentTime(newTime);
       }
     };
 
     const handleJumpForward = (e: Event) => {
       const customEvent = e as CustomEvent<{ seconds: number }>;
-      const media = mediaRef.current;
       if (
-        media &&
+        mediaRef.current &&
         typeof customEvent.detail.seconds === 'number' &&
-        typeof media.duration === 'number'
+        typeof mediaRef.current.duration === 'number'
       ) {
-        const newTime = Math.min(media.currentTime + customEvent.detail.seconds, media.duration);
-        media.currentTime = newTime;
+        const newTime = Math.min(
+          mediaRef.current.currentTime + customEvent.detail.seconds,
+          mediaRef.current.duration
+        );
+        mediaRef.current.currentTime = newTime;
         setMPCurrentTime(newTime);
       }
     };
@@ -349,17 +360,15 @@ export const MediaPlayerControllerAV: React.FC<MediaPlayerControllerAVProps> = (
   }, []);
 
   useEffect(() => {
-    const media = mediaRef?.current;
-    if (!media) {
+    if (!mediaRef.current) {
       return;
     }
 
     const handleLoadedMetadata = () => {
-      const newDuration = media.duration;
-      const channel = mpChannelRef.current;
-      const clip = mpClipRef.current;
-      const itemSoundbite = mpItemSoundbiteRef.current;
-      const item = mpItemRef.current;
+      if (!mediaRef.current) {
+        return;
+      }
+      const newDuration = mediaRef.current.duration;
       let newCurrentTime: number | null = null;
 
       if (mpClipRef.current) {
@@ -382,23 +391,44 @@ export const MediaPlayerControllerAV: React.FC<MediaPlayerControllerAVProps> = (
         }
       }
 
-      if ((clip || itemSoundbite || item) && newCurrentTime !== null) {
-        media.currentTime = newCurrentTime;
+      if (
+        (mpClipRef.current || mpItemSoundbiteRef.current || mpItemRef.current) &&
+        newCurrentTime !== null
+      ) {
+        mediaRef.current.currentTime = newCurrentTime;
       }
 
       setMPDuration(newDuration);
       updateNowPlaying({
-        mpChannel: channel,
-        mpClip: clip,
-        mpItem: item,
-        mpItemSoundbite: itemSoundbite,
+        mpChannel: mpChannelRef.current,
+        mpClip: mpClipRef.current,
+        mpItem: mpItemRef.current,
+        mpItemSoundbite: mpItemSoundbiteRef.current,
         mpDuration: newDuration,
         mpCurrentTime: newCurrentTime !== null ? newCurrentTime : 0,
       });
+
+      if (!loggedInAccountRef.current || mpAddByRSSRef.current) {
+        return;
+      }
+      if (mpChannelRef.current) {
+        trackStatsChannel(mpChannelRef.current.id_text);
+      }
+      if (mpClipRef.current) {
+        trackStatsClip(mpClipRef.current.id_text);
+      }
+      const itemIdText =
+        mpItemRef.current?.id_text ?? mpItemSoundbiteRef.current?.item?.id_text ?? null;
+      if (itemIdText) {
+        trackStatsItem(itemIdText);
+      }
     };
 
     const handlePlay = () => {
-      const newCurrentTime = media.currentTime;
+      if (!mediaRef.current) {
+        return;
+      }
+      const newCurrentTime = mediaRef.current.currentTime;
       if (mpAddByRSSRef.current && onAddByRSSPositionSaveRef.current) {
         try {
           onAddByRSSPositionSaveRef.current(newCurrentTime);
@@ -406,7 +436,7 @@ export const MediaPlayerControllerAV: React.FC<MediaPlayerControllerAVProps> = (
           // Best-effort; do not block play state
         }
       }
-      if (newCurrentTime < media.duration) {
+      if (newCurrentTime < mediaRef.current.duration) {
         updateNowPlaying({
           mpChannel: mpChannelRef.current,
           mpClip: mpClipRef.current,
@@ -421,7 +451,10 @@ export const MediaPlayerControllerAV: React.FC<MediaPlayerControllerAVProps> = (
     };
 
     const handlePause = () => {
-      const newCurrentTime = media.currentTime;
+      if (!mediaRef.current) {
+        return;
+      }
+      const newCurrentTime = mediaRef.current.currentTime;
       if (mpAddByRSSRef.current && onAddByRSSPositionSaveRef.current) {
         try {
           onAddByRSSPositionSaveRef.current(newCurrentTime);
@@ -429,7 +462,7 @@ export const MediaPlayerControllerAV: React.FC<MediaPlayerControllerAVProps> = (
           // Best-effort; do not block pause state
         }
       }
-      if (newCurrentTime < media.duration) {
+      if (newCurrentTime < mediaRef.current.duration) {
         updateNowPlaying({
           mpChannel: mpChannelRef.current,
           mpClip: mpClipRef.current,
@@ -444,14 +477,12 @@ export const MediaPlayerControllerAV: React.FC<MediaPlayerControllerAVProps> = (
     };
 
     const handleTimeUpdate = () => {
-      const channel = mpChannelRef.current;
-      const clip = mpClipRef.current;
-      const item = mpItemRef.current;
-      const itemSoundbite = mpItemSoundbiteRef.current;
-      const chapters = mpItemChaptersRef.current;
-      const newCurrentTime = media.currentTime;
+      if (!mediaRef.current) {
+        return;
+      }
+      const newCurrentTime = mediaRef.current.currentTime;
 
-      const shouldUpdateCurrentTime = !mpAddByRSSRef.current || !media.paused;
+      const shouldUpdateCurrentTime = !mpAddByRSSRef.current || !mediaRef.current.paused;
       if (shouldUpdateCurrentTime) {
         setMPCurrentTime(newCurrentTime);
       }
@@ -473,10 +504,10 @@ export const MediaPlayerControllerAV: React.FC<MediaPlayerControllerAVProps> = (
           }
         }
         updateNowPlaying({
-          mpChannel: channel,
-          mpClip: clip,
-          mpItem: item,
-          mpItemSoundbite: itemSoundbite,
+          mpChannel: mpChannelRef.current,
+          mpClip: mpClipRef.current,
+          mpItem: mpItemRef.current,
+          mpItemSoundbite: mpItemSoundbiteRef.current,
           mpCurrentTime: newCurrentTime,
         });
         playbackElapsedRef.current = 0;
@@ -487,9 +518,11 @@ export const MediaPlayerControllerAV: React.FC<MediaPlayerControllerAVProps> = (
         globalPauseAtTime = null;
       }
 
-      if (clip && clip.end_time) {
+      if (mpClipRef.current && mpClipRef.current.end_time) {
         const endTimeNum =
-          typeof clip.end_time === 'string' ? parseFloat(clip.end_time) : clip.end_time;
+          typeof mpClipRef.current.end_time === 'string'
+            ? parseFloat(mpClipRef.current.end_time)
+            : mpClipRef.current.end_time;
         const endTimeNumAdjusted = endTimeNum + 1;
         if (!isNaN(endTimeNumAdjusted) && newCurrentTime >= endTimeNumAdjusted) {
           setMPClip(null);
@@ -498,15 +531,15 @@ export const MediaPlayerControllerAV: React.FC<MediaPlayerControllerAVProps> = (
         }
       }
 
-      if (itemSoundbite && itemSoundbite.duration) {
+      if (mpItemSoundbiteRef.current && mpItemSoundbiteRef.current.duration) {
         const startNum =
-          typeof itemSoundbite.start_time === 'string'
-            ? parseFloat(itemSoundbite.start_time)
-            : itemSoundbite.start_time;
+          typeof mpItemSoundbiteRef.current.start_time === 'string'
+            ? parseFloat(mpItemSoundbiteRef.current.start_time)
+            : mpItemSoundbiteRef.current.start_time;
         const durationNum =
-          typeof itemSoundbite.duration === 'string'
-            ? parseFloat(itemSoundbite.duration)
-            : itemSoundbite.duration;
+          typeof mpItemSoundbiteRef.current.duration === 'string'
+            ? parseFloat(mpItemSoundbiteRef.current.duration)
+            : mpItemSoundbiteRef.current.duration;
         const endTimeNum = startNum + durationNum;
         const endTimeNumAdjusted = endTimeNum + 1;
         if (!isNaN(endTimeNumAdjusted) && newCurrentTime >= endTimeNumAdjusted) {
@@ -516,8 +549,13 @@ export const MediaPlayerControllerAV: React.FC<MediaPlayerControllerAVProps> = (
         }
       }
 
-      if (!itemSoundbite && !clip && Array.isArray(chapters) && chapters.length > 0) {
-        const matchingChapters = chapters.filter((ch) => {
+      if (
+        !mpItemSoundbiteRef.current &&
+        !mpClipRef.current &&
+        Array.isArray(mpItemChaptersRef.current) &&
+        mpItemChaptersRef.current.length > 0
+      ) {
+        const matchingChapters = mpItemChaptersRef.current.filter((ch) => {
           const start =
             typeof ch.start_time === 'string' ? parseFloat(ch.start_time) : ch.start_time;
           const end = typeof ch.end_time === 'string' ? parseFloat(ch.end_time) : ch.end_time;
@@ -541,22 +579,25 @@ export const MediaPlayerControllerAV: React.FC<MediaPlayerControllerAVProps> = (
     };
 
     const handleEnded = async () => {
-      const onAddByRSSEndedFn = onAddByRSSEndedRef.current;
-      const onAddByRSSPlayNextFn = onAddByRSSPlayNextRef.current;
-      if (mpAddByRSSRef.current && onAddByRSSEndedFn) {
-        const positionSeconds = media.currentTime;
+      if (mpAddByRSSRef.current && onAddByRSSEndedRef.current) {
+        if (!mediaRef.current) {
+          return;
+        }
+        const positionSeconds = mediaRef.current.currentTime;
         // Capture medium_id before potentially clearing mpAddByRSS so we can find the correct queue
         const medium_id =
           typeof mpAddByRSSRef.current.resourceData?.medium_id === 'number'
             ? mpAddByRSSRef.current.resourceData.medium_id
             : undefined;
-        await onAddByRSSEndedFn(positionSeconds);
+        await onAddByRSSEndedRef.current(positionSeconds);
         setMPShouldPlay(false);
         const { upcomingManualCount } = await queueResourcesLoadActive(medium_id);
         if (upcomingManualCount > 0) {
           return;
         }
-        const playedNext = onAddByRSSPlayNextFn ? await onAddByRSSPlayNextFn() : false;
+        const playedNext = onAddByRSSPlayNextRef.current
+          ? await onAddByRSSPlayNextRef.current()
+          : false;
         if (!playedNext) {
           clearNowPlayingRef.current?.();
         }
@@ -578,81 +619,77 @@ export const MediaPlayerControllerAV: React.FC<MediaPlayerControllerAVProps> = (
       }
     };
 
-    media.addEventListener('loadedmetadata', handleLoadedMetadata);
-    media.addEventListener('play', handlePlay);
-    media.addEventListener('pause', handlePause);
-    media.addEventListener('timeupdate', handleTimeUpdate);
-    media.addEventListener('ended', handleEnded);
+    mediaRef.current.addEventListener('loadedmetadata', handleLoadedMetadata);
+    mediaRef.current.addEventListener('play', handlePlay);
+    mediaRef.current.addEventListener('pause', handlePause);
+    mediaRef.current.addEventListener('timeupdate', handleTimeUpdate);
+    mediaRef.current.addEventListener('ended', handleEnded);
 
     return () => {
-      media.removeEventListener('loadedmetadata', handleLoadedMetadata);
-      media.removeEventListener('play', handlePlay);
-      media.removeEventListener('pause', handlePause);
-      media.removeEventListener('timeupdate', handleTimeUpdate);
-      media.removeEventListener('ended', handleEnded);
+      if (mediaRef.current) {
+        mediaRef.current.removeEventListener('loadedmetadata', handleLoadedMetadata);
+        mediaRef.current.removeEventListener('play', handlePlay);
+        mediaRef.current.removeEventListener('pause', handlePause);
+        mediaRef.current.removeEventListener('timeupdate', handleTimeUpdate);
+        mediaRef.current.removeEventListener('ended', handleEnded);
+      }
     };
   }, [mediaRef]);
 
   useEffect(() => {
-    const media = mediaRef?.current;
-    if (!media) {
+    if (!mediaRef.current) {
       return;
     }
     if (mpIsPlaying) {
-      playMediaWhenReady(media);
+      playMediaWhenReady(mediaRef.current);
     } else {
-      media.pause();
+      mediaRef.current.pause();
     }
   }, [mpIsPlaying]);
 
   useEffect(() => {
-    const media = mediaRef?.current;
-    if (!media) {
+    if (!mediaRef.current) {
       return;
     }
-    media.volume = mpVolume;
+    mediaRef.current.volume = mpVolume;
   }, [mpVolume]);
 
   useEffect(() => {
-    const media = mediaRef?.current;
-    if (!media) {
+    if (!mediaRef.current) {
       return;
     }
-    media.muted = mpIsMuted;
+    mediaRef.current.muted = mpIsMuted;
   }, [mpIsMuted]);
 
   useEffect(() => {
-    const media = mediaRef?.current;
-    if (!media) {
+    if (!mediaRef.current) {
       return;
     }
-    media.playbackRate = mpPlaybackSpeed;
+    mediaRef.current.playbackRate = mpPlaybackSpeed;
   }, [mpPlaybackSpeed]);
 
   useEffect(() => {
-    const mpShouldPlay = mpShouldPlayRef.current;
-    const media = mediaRef.current;
     const playWhenReady = async () => {
-      if (mpClip && media) {
-        media.currentTime = Number(mpClip.start_time);
-        if (mpShouldPlay) {
-          const uri = await waitForSourceUri(media, 1000, 50);
+      if (mpClip && mediaRef.current) {
+        mediaRef.current.currentTime = Number(mpClip.start_time);
+        if (mpShouldPlayRef.current) {
+          const uri = await waitForSourceUri(mediaRef.current, 1000, 50);
           if (uri) {
-            playMediaWhenReady(media, () => setMPShouldPlay(false));
+            playMediaWhenReady(mediaRef.current, () => setMPShouldPlay(false));
           }
         }
         if (mpClip.end_time) {
           globalPauseAtTime = Number(mpClip.end_time);
         }
       }
-      if (mpItemChapter && media) {
+      if (mpItemChapter && mediaRef.current) {
         if (mpItemChapterShouldSeek) {
           setMPItemChapterShouldSeek(false);
-          media.currentTime = Number(mpItemChapter.start_time);
-          if (mpShouldPlay) {
-            const uri = await waitForSourceUri(media, 1000, 50);
+          mediaRef.current.currentTime = Number(mpItemChapter.start_time);
+          if (mpShouldPlayRef.current) {
+            const uri = await waitForSourceUri(mediaRef.current, 1000, 50);
             if (uri) {
-              playMediaWhenReady(media, () => setMPShouldPlay(false));
+              playMediaWhenReady(mediaRef.current, () => setMPShouldPlay(false));
             }
           }
         }
@@ -660,12 +697,12 @@ export const MediaPlayerControllerAV: React.FC<MediaPlayerControllerAVProps> = (
           globalPauseAtTime = null;
         }
       }
-      if (mpItemSoundbite && media) {
-        media.currentTime = Number(mpItemSoundbite.start_time);
-        if (mpShouldPlay) {
-          const uri = await waitForSourceUri(media, 1000, 50);
+      if (mpItemSoundbite && mediaRef.current) {
+        mediaRef.current.currentTime = Number(mpItemSoundbite.start_time);
+        if (mpShouldPlayRef.current) {
+          const uri = await waitForSourceUri(mediaRef.current, 1000, 50);
           if (uri) {
-            playMediaWhenReady(media, () => setMPShouldPlay(false));
+            playMediaWhenReady(mediaRef.current, () => setMPShouldPlay(false));
           }
         }
         if (mpItemSoundbite.duration) {

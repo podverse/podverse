@@ -127,9 +127,15 @@ export interface DTOAccountDataExportAccount {
   account_profile?: DTOAccountDataExportAccountProfile | null;
 }
 
+/** MetaBoost linkage stored for the account (value-for-value sender identity). */
+export interface DTOAccountDataExportAccountMetaboost {
+  sender_guid: string;
+}
+
 export interface DTOAccountDataExport {
   export_date: string;
   account: DTOAccountDataExportAccount;
+  account_metaboost: DTOAccountDataExportAccountMetaboost | null;
   following: DTOAccountDataExportFollowing;
   playlists: DTOAccountDataExportPlaylist[];
   clips: DTOAccountDataExportClip[];

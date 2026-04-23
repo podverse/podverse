@@ -7,6 +7,7 @@ import type { ChannelImage } from '@orm/entities/channel/channelImage.js';
 import type { ChannelInternalSettings } from '@orm/entities/channel/channelInternalSettings.js';
 import type { ChannelLicense } from '@orm/entities/channel/channelLicense.js';
 import type { ChannelLocation } from '@orm/entities/channel/channelLocation.js';
+import type { ChannelMetaBoost } from '@orm/entities/channel/channelMetaBoost.js';
 import type { ChannelPerson } from '@orm/entities/channel/channelPerson.js';
 import type { ChannelPodroll } from '@orm/entities/channel/channelPodroll.js';
 import type { ChannelPublisher } from '@orm/entities/channel/channelPublisher.js';
@@ -113,6 +114,12 @@ export class Channel {
 
   @OneToOne('ChannelLocation', (channel_location: ChannelLocation) => channel_location.channel)
   channel_location!: ChannelLocation;
+
+  @OneToOne(
+    'ChannelMetaBoost',
+    (channel_meta_boost: ChannelMetaBoost) => channel_meta_boost.channel
+  )
+  channel_meta_boost?: ChannelMetaBoost;
 
   @OneToMany('ChannelPerson', (channel_person: ChannelPerson) => channel_person.channel)
   channel_persons!: ChannelPerson[];

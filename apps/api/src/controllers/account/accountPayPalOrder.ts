@@ -40,10 +40,11 @@ class AccountPayPalOrderController {
             const jwtUser = getAuthenticatedUser(req);
             const payment_id = getParamRequired(req, 'payment_id');
 
-            const accountPayPalOrder = await this.accountPayPalOrderService.get(
-              jwtUser.id,
-              payment_id
-            );
+            const accountPayPalOrder =
+              await AccountPayPalOrderController.accountPayPalOrderService.get(
+                jwtUser.id,
+                payment_id
+              );
 
             if (!accountPayPalOrder) {
               res.status(404).json({ error: 'PayPal Order not found' });
@@ -70,11 +71,12 @@ class AccountPayPalOrderController {
             const jwtUser = getAuthenticatedUser(req);
             const { payment_id, state } = req.body;
 
-            const accountPayPalOrder = await this.accountPayPalOrderService.create(
-              jwtUser.id,
-              payment_id,
-              state
-            );
+            const accountPayPalOrder =
+              await AccountPayPalOrderController.accountPayPalOrderService.create(
+                jwtUser.id,
+                payment_id,
+                state
+              );
             res.status(201).json(accountPayPalOrder);
           } catch (err) {
             handleGenericErrorResponse(res, err);
@@ -102,7 +104,11 @@ class AccountPayPalOrderController {
                 throw new Error('PayPal capture status missing');
               }
               const isV2 = true;
-              await this.accountPayPalOrderService.completePayPalOrder(paymentID, state, isV2);
+              await AccountPayPalOrderController.accountPayPalOrderService.completePayPalOrder(
+                paymentID,
+                state,
+                isV2
+              );
             } else if (event_version === '1.0') {
               const paymentID = resource.parent_payment;
               const order = await paypalService.getPaymentInfo(paymentID);
@@ -111,7 +117,11 @@ class AccountPayPalOrderController {
                 throw new Error('PayPal order status missing');
               }
               const isV2 = false;
-              await this.accountPayPalOrderService.completePayPalOrder(paymentID, state, isV2);
+              await AccountPayPalOrderController.accountPayPalOrderService.completePayPalOrder(
+                paymentID,
+                state,
+                isV2
+              );
             }
 
             res.status(200).json({ message: 'Payment completed successfully' });

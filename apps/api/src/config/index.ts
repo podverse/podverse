@@ -1,7 +1,11 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion -- env vars validated at startup in lib/startup/validation.ts */
 
 import type { AccountSignupMode } from '@podverse/helpers';
-import { getEffectiveUserAgent, ONE_DAY_SECONDS } from '@podverse/helpers';
+import {
+  getEffectiveUserAgent,
+  jwtExpiresInToMilliseconds,
+  ONE_DAY_SECONDS,
+} from '@podverse/helpers';
 
 type SocialConfig = {
   pageUrl: string;
@@ -18,6 +22,10 @@ type Config = {
   };
   auth: {
     jwtSecret: string;
+    jwtExpiresIn: string;
+    sessionCookieMaxAgeMs: number;
+    /** When true, login may include JWT in JSON if the client sends includeTokenInResponseBody (non-cookie clients only). */
+    allowTokenInResponseBody: boolean;
   };
   api: {
     port: string;
@@ -98,9 +106,6 @@ type Config = {
     signupMode: AccountSignupMode;
     freeTrialExpiration: number;
   };
-  boostbox: {
-    internalBaseUrl: string | null;
-  };
 };
 
 export const config: Config = {
@@ -115,9 +120,16 @@ export const config: Config = {
     level: process.env.LOG_LEVEL!,
     dir: process.env.LOG_DIR ?? '',
   },
-  auth: {
-    jwtSecret: process.env.AUTH_JWT_SECRET!,
-  },
+  auth: (() => {
+    const jwtExpiresIn = (process.env.AUTH_JWT_EXPIRES_IN ?? '365d').trim();
+
+    return {
+      jwtSecret: process.env.AUTH_JWT_SECRET!,
+      jwtExpiresIn,
+      sessionCookieMaxAgeMs: jwtExpiresInToMilliseconds(jwtExpiresIn),
+      allowTokenInResponseBody: process.env.AUTH_ALLOW_TOKEN_IN_RESPONSE_BODY === 'true',
+    };
+  })(),
   api: {
     port: process.env.API_PORT!,
     prefix: process.env.API_PREFIX!,
@@ -210,8 +222,5 @@ export const config: Config = {
     costAnnually: Number(process.env.PREMIUM_MEMBERSHIP_COST_ANNUALLY!),
     signupMode: process.env.ACCOUNT_SIGNUP_MODE! as AccountSignupMode,
     freeTrialExpiration: parseInt(process.env.FREE_TRIAL_EXPIRATION!, 10) * ONE_DAY_SECONDS, // env is in days
-  },
-  boostbox: {
-    internalBaseUrl: process.env.BOOSTBOX_INTERNAL_BASE_URL ?? null,
   },
 };

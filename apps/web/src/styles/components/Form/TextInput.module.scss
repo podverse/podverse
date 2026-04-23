@@ -11,6 +11,28 @@
   @include formInputWrapper;
 }
 
+.textInputWrapperDisabled {
+  cursor: not-allowed;
+  background-color: color-mix(
+    in srgb,
+    var(--background-color-tertiary) 55%,
+    var(--background-color-primary)
+  );
+
+  .eyebrow {
+    color: var(--text-color-secondary);
+  }
+
+  .input {
+    cursor: not-allowed;
+    color: var(--text-color-secondary);
+  }
+
+  .suffix {
+    color: var(--text-color-secondary);
+  }
+}
+
 .textInnerInputWrapper {
   @include flexColumn;
   flex: 1 1;
@@ -31,12 +53,26 @@
   padding: var(--spacing-form-input-inner);
 }
 
-.inputWithSuffixRow {
+.inputWithAffixesRow {
   display: flex;
   align-items: center;
   flex: 1;
   min-width: 0;
   gap: 0;
+}
+
+.prefix {
+  flex-shrink: 0;
+  font-size: var(--font-size-md);
+  font-weight: inherit;
+  color: var(--text-color-primary);
+  cursor: default;
+}
+
+.prefixSpacer {
+  width: 0.5ch;
+  flex-shrink: 0;
+  cursor: default;
 }
 
 .inputWithSuffix {

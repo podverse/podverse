@@ -1,0 +1,23 @@
+---
+description: End implementation responses with targeted make screenshot-report verification commands.
+alwaysApply: true
+---
+
+# End With Targeted Make Report Verify
+
+For implementation responses in this repo:
+
+1. **Give the user** one or more runnable `make` commands they can copy and run to verify the change; place them in a fenced `bash` code block at the end of your response.
+2. **MANDATORY when the change affects E2E:** If you modified UI (apps/web or apps/management-web), E2E spec files, or any code that E2E tests cover, you **MUST** end the response with a fenced `bash` block containing the **EXACT** command(s) needed to run the affected E2E test(s). Example: `make e2e_test_web_report_spec SPEC=e2e/smoke.spec.ts`.
+3. Prefer screenshot-report targets scoped to the changed feature area.
+4. Use full-suite report mode only when change scope is broad or cross-cutting.
+
+Preferred commands:
+
+- Web: `make e2e_test_web_report_spec SPEC=e2e/<spec>.spec.ts`
+- Management-web: `make e2e_test_management_web_report_spec SPEC=e2e/<spec>.spec.ts`
+- Both: `make e2e_test_report_scoped WEB_SPEC=e2e/<web>.spec.ts MGMT_SPEC=e2e/<mgmt>.spec.ts`
+- Full regression: `make e2e_test_report`
+- API only: `npm run test:e2e:api`
+
+Extended reference: **response-ending-make-verify** skill.

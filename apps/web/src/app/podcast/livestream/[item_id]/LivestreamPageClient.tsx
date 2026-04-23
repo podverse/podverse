@@ -7,6 +7,7 @@ import { MainInnerWrapper } from '../../../../components/Main/MainInnerWrapper';
 import { MainWrapper } from '../../../../components/Main/MainWrapper';
 import { LivestreamHeader } from '../../../../components/Media/Livestream/LivestreamHeader';
 import { SideContent } from '../../../../components/SideContent/SideContent';
+import { getBoostEligibilityForContent } from '../../../../utils/value/boostEligibility';
 import { LivestreamPageContextProvider } from './LivestreamPageContext';
 import { LivestreamPageList } from './LivestreamPageList';
 import { LivestreamPageListHeader } from './LivestreamPageListHeader';
@@ -20,6 +21,10 @@ interface LivestreamPageClientProps {
 
 export function LivestreamPageClient(props: LivestreamPageClientProps) {
   const { initialQueryParams, ssrItem, ssrChannel, medium } = props;
+  const { canShowBoostMessagesTab: ssrCanShowBoosts } = getBoostEligibilityForContent({
+    channel: ssrChannel,
+    item: ssrItem,
+  });
 
   return (
     <LivestreamPageContextProvider initialQueryParams={initialQueryParams}>
@@ -29,8 +34,13 @@ export function LivestreamPageClient(props: LivestreamPageClientProps) {
           <SideContent />
           <MainInnerContentWrapper>
             <LivestreamHeader channel={ssrChannel} item={ssrItem} medium={medium} />
-            <LivestreamPageListHeader />
-            <LivestreamPageList ssrItem={ssrItem} />
+            <LivestreamPageListHeader ssrCanShowBoosts={ssrCanShowBoosts} />
+            <LivestreamPageList
+              ssrChannel={ssrChannel}
+              ssrItem={ssrItem}
+              medium={medium}
+              ssrCanShowBoosts={ssrCanShowBoosts}
+            />
           </MainInnerContentWrapper>
         </MainInnerWrapper>
       </MainWrapper>

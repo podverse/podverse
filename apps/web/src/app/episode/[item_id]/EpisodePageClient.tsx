@@ -7,6 +7,7 @@ import { MainInnerContentWrapper } from '../../../components/Main/MainInnerConte
 import { MainInnerWrapper } from '../../../components/Main/MainInnerWrapper';
 import { MainWrapper } from '../../../components/Main/MainWrapper';
 import { SideContent } from '../../../components/SideContent/SideContent';
+import { getBoostEligibilityForContent } from '../../../utils/value/boostEligibility';
 import { EpisodePageContextProvider } from './EpisodePageContext';
 import { EpisodePageList } from './EpisodePageList';
 import { EpisodePageListHeader } from './EpisodePageListHeader';
@@ -29,6 +30,10 @@ export function EpisodePageClient(props: EpisodePageClientProps) {
     ssrHasSoundbites,
     ssrHasTranscripts,
   } = props;
+  const { canShowBoostMessagesTab: ssrCanShowBoosts } = getBoostEligibilityForContent({
+    channel: ssrChannel,
+    item: ssrItem,
+  });
 
   return (
     <EpisodePageContextProvider initialQueryParams={initialQueryParams}>
@@ -42,8 +47,13 @@ export function EpisodePageClient(props: EpisodePageClientProps) {
               ssrHasChapters={ssrHasChapters}
               ssrHasTranscripts={ssrHasTranscripts}
               ssrHasSoundbites={ssrHasSoundbites}
+              ssrCanShowBoosts={ssrCanShowBoosts}
             />
-            <EpisodePageList ssrChannel={ssrChannel} ssrItem={ssrItem} />
+            <EpisodePageList
+              ssrChannel={ssrChannel}
+              ssrItem={ssrItem}
+              ssrCanShowBoosts={ssrCanShowBoosts}
+            />
           </MainInnerContentWrapper>
         </MainInnerWrapper>
       </MainWrapper>

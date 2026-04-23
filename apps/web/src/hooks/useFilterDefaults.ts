@@ -17,11 +17,10 @@ export function useFilterDefaults<P extends FilterDefaultsPage, T extends object
   const previousFilterParamsRef = useRef<T | null>(null);
 
   useEffect(() => {
-    const prev = previousFilterParamsRef.current as Record<string, unknown> | null;
     const current = filterParams as Record<string, unknown>;
 
     // Skip on first render
-    if (!prev) {
+    if (!previousFilterParamsRef.current) {
       previousFilterParamsRef.current = filterParams;
       return;
     }
@@ -29,7 +28,10 @@ export function useFilterDefaults<P extends FilterDefaultsPage, T extends object
     // Only update cookie if non-page params changed
     // Page changes should not be persisted as default filter preference
     const paramsToCheck = ['type', 'sort', 'range', 'category', 'medium', 'liveItemType'];
-    const didFiltersChange = paramsToCheck.some((param) => prev[param] !== current[param]);
+    const didFiltersChange = paramsToCheck.some(
+      (param) =>
+        (previousFilterParamsRef.current as Record<string, unknown>)[param] !== current[param]
+    );
 
     if (didFiltersChange) {
       // Extract only the filter params, exclude page number

@@ -1,21 +1,13 @@
 import { DATABASE_CONSTANTS, getMediumEnumValue } from '@podverse/helpers';
 import { isValidHttpUrl } from '@podverse/helpers-validation';
-import { toMetaBoost } from '@podverse/v4v-metaboost';
 
 import type { Phase4Value, Phase4ValueRecipient } from '../../types/partytime.js';
 
 export const compatChannelValue = (value: Phase4Value) => {
-  const metaBoost = toMetaBoost(
-    value.metaBoost?.type ?? null,
-    value.metaBoost?.schema ?? null,
-    value.metaBoost?.license ?? null,
-    value.metaBoost?.node ?? null
-  );
   return {
     type: value.type.slice(0, DATABASE_CONSTANTS.varchar_short),
     method: value.method.slice(0, DATABASE_CONSTANTS.varchar_short),
     suggested: parseFloat(value.suggested ?? '0') || null,
-    meta_boost: metaBoost,
     channel_value_recipients: compatValueRecipients(value.recipients),
   };
 };
@@ -29,33 +21,19 @@ export const compatChannelValueWithMethodAndRecipients = (
   method: string,
   recipients: Phase4ValueRecipient[]
 ) => {
-  const metaBoost = toMetaBoost(
-    value.metaBoost?.type ?? null,
-    value.metaBoost?.schema ?? null,
-    value.metaBoost?.license ?? null,
-    value.metaBoost?.node ?? null
-  );
   return {
     type: value.type.slice(0, DATABASE_CONSTANTS.varchar_short),
     method: method.slice(0, DATABASE_CONSTANTS.varchar_short),
     suggested: parseFloat(value.suggested ?? '0') || null,
-    meta_boost: metaBoost,
     channel_value_recipients: compatValueRecipients(recipients),
   };
 };
 
 export const compatItemValue = (value: Phase4Value) => {
-  const metaBoost = toMetaBoost(
-    value.metaBoost?.type ?? null,
-    value.metaBoost?.schema ?? null,
-    value.metaBoost?.license ?? null,
-    value.metaBoost?.node ?? null
-  );
   return {
     type: value.type.slice(0, DATABASE_CONSTANTS.varchar_short),
     method: value.method.slice(0, DATABASE_CONSTANTS.varchar_long),
     suggested: parseFloat(value.suggested ?? '0') || null,
-    meta_boost: metaBoost,
     item_value_recipients: compatValueRecipients(value.recipients),
     item_value_time_splits: buildItemValueTimeSplits(value),
   };
@@ -70,17 +48,10 @@ export const compatItemValueWithMethodAndRecipients = (
   method: string,
   recipients: Phase4ValueRecipient[]
 ) => {
-  const metaBoost = toMetaBoost(
-    value.metaBoost?.type ?? null,
-    value.metaBoost?.schema ?? null,
-    value.metaBoost?.license ?? null,
-    value.metaBoost?.node ?? null
-  );
   return {
     type: value.type.slice(0, DATABASE_CONSTANTS.varchar_short),
     method: method.slice(0, DATABASE_CONSTANTS.varchar_long),
     suggested: parseFloat(value.suggested ?? '0') || null,
-    meta_boost: metaBoost,
     item_value_recipients: compatValueRecipients(recipients),
     item_value_time_splits: buildItemValueTimeSplits(value),
   };

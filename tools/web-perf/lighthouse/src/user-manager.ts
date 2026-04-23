@@ -160,6 +160,11 @@ export class UserManager {
         [accountId, membershipExpires]
       );
 
+      await manager.query(
+        `INSERT INTO account_metaboost (account_id, sender_guid) VALUES ($1, gen_random_uuid())`,
+        [accountId]
+      );
+
       // Get account_settings id for locale insert
       const settingsResult = await manager.query(
         `SELECT id FROM account_settings WHERE account_id = $1`,

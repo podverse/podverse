@@ -166,7 +166,6 @@ local_nuke_rebuild_run_v4v:
 	$(MAKE) local_env_clean
 	$(MAKE) local_prune_podverse_images
 	$(MAKE) local_build_all
-	$(MAKE) local_build_boostbox
 	$(MAKE) local_ln_clean
 	$(MAKE) local_ln_up
 	$(MAKE) local_setup

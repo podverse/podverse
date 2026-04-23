@@ -168,7 +168,7 @@ alpha_management_db_init: infra/config/alpha/db.env
 	  -e MANAGEMENT_SUPERUSER_PASSWORD="$$MANAGEMENT_SUPERUSER_PASSWORD" \
 	  -e DB_HOST="podverse_alpha_db" \
 	  -e DB_PORT="5432" \
-	  -e DB_DATABASE="$${POSTGRES_MANAGEMENT_DB:-podverse_management}" \
+	  -e DB_MANAGEMENT_NAME="$${POSTGRES_MANAGEMENT_DB:-podverse_management}" \
 	  -e POSTGRES_USER="$$POSTGRES_MANAGEMENT_USER" \
 	  -e POSTGRES_PASSWORD="$$POSTGRES_MANAGEMENT_PASSWORD" \
 	  node:24-slim \

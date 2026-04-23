@@ -6,9 +6,7 @@ import { BaseStatsTrackEventService } from './baseStatsTrackEvent.js';
 
 export class StatsTrackEventClipService extends BaseStatsTrackEventService<StatsTrackEventClip> {
   protected entity = StatsTrackEventClip;
-  protected entityName = 'stats_track_event_clip';
   protected entityIdField = 'clip_id';
-  protected entityIdTextField = 'clip_id_text';
   private clipService: ClipService;
 
   constructor() {

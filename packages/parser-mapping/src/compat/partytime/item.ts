@@ -367,7 +367,6 @@ export const compatItemValueDtos = (parsedItem: Episode) => {
           method: dto.method.slice(0, DATABASE_CONSTANTS.varchar_short),
           suggested: dto.suggested || null,
         },
-        item_value_meta_boost: dto.meta_boost ?? null,
         item_value_recipients: dto.item_value_recipients,
         item_value_time_splits: dto.item_value_time_splits,
       };
@@ -400,7 +399,6 @@ export const compatItemValueDtos = (parsedItem: Episode) => {
             method: dto.method.slice(0, DATABASE_CONSTANTS.varchar_short),
             suggested: dto.suggested || null,
           },
-          item_value_meta_boost: dto.meta_boost ?? null,
           item_value_recipients: dto.item_value_recipients,
           item_value_time_splits: dto.item_value_time_splits,
         });
@@ -420,7 +418,6 @@ export const compatItemValueDtos = (parsedItem: Episode) => {
             method: dto.method.slice(0, DATABASE_CONSTANTS.varchar_short),
             suggested: dto.suggested || null,
           },
-          item_value_meta_boost: dto.meta_boost ?? null,
           item_value_recipients: dto.item_value_recipients,
           item_value_time_splits: dto.item_value_time_splits,
         },
@@ -436,7 +433,6 @@ export const compatItemValueDtos = (parsedItem: Episode) => {
         method: dto.method.slice(0, DATABASE_CONSTANTS.varchar_short),
         suggested: dto.suggested || null,
       },
-      item_value_meta_boost: dto.meta_boost ?? null,
       item_value_recipients: dto.item_value_recipients,
       item_value_time_splits: dto.item_value_time_splits,
     },

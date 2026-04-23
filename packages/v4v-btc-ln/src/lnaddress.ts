@@ -1,3 +1,4 @@
+import { getOwnPropertyValue, isFiniteNumber, isObjectLike } from '@podverse/helpers';
 import { request } from '@podverse/helpers-requests';
 
 export type LnaddressKeysendCustomData = {
@@ -22,18 +23,11 @@ export const buildLnaddressKeysendUrl = (lnaddress: string): string | null => {
   return `https://${domain}/.well-known/keysend/${encodeURIComponent(username)}`;
 };
 
-const getRecordValue = (value: unknown, key: string): unknown => {
-  if (typeof value !== 'object' || value === null) {
-    return undefined;
-  }
-  return Object.getOwnPropertyDescriptor(value, key)?.value;
-};
-
 const toCustomKey = (value: unknown): string | null => {
   if (typeof value === 'string') {
     return value.trim().length > 0 ? value : null;
   }
-  if (typeof value === 'number' && !Number.isNaN(value)) {
+  if (isFiniteNumber(value)) {
     return String(value);
   }
   return null;
@@ -43,7 +37,7 @@ const toCustomValue = (value: unknown): string | null => {
   if (typeof value === 'string') {
     return value;
   }
-  if (typeof value === 'number' && !Number.isNaN(value)) {
+  if (isFiniteNumber(value)) {
     return String(value);
   }
   return null;
@@ -55,8 +49,8 @@ const parseCustomData = (value: unknown): LnaddressKeysendCustomData[] | undefin
   }
   const customData: LnaddressKeysendCustomData[] = [];
   for (const entry of value) {
-    const customKey = toCustomKey(getRecordValue(entry, 'customKey'));
-    const customValue = toCustomValue(getRecordValue(entry, 'customValue'));
+    const customKey = toCustomKey(getOwnPropertyValue(entry, 'customKey'));
+    const customValue = toCustomValue(getOwnPropertyValue(entry, 'customValue'));
     if (customKey && customValue !== null) {
       customData.push({ customKey, customValue });
     }
@@ -65,15 +59,15 @@ const parseCustomData = (value: unknown): LnaddressKeysendCustomData[] | undefin
 };
 
 export const parseLnaddressKeysendDetails = (value: unknown): LnaddressKeysendDetails | null => {
-  if (typeof value !== 'object' || value === null) {
+  if (!isObjectLike(value)) {
     return null;
   }
-  const tag = getRecordValue(value, 'tag');
-  const pubkey = getRecordValue(value, 'pubkey');
+  const tag = getOwnPropertyValue(value, 'tag');
+  const pubkey = getOwnPropertyValue(value, 'pubkey');
   if (tag !== 'keysend' || typeof pubkey !== 'string' || pubkey.trim().length === 0) {
     return null;
   }
-  const customData = parseCustomData(getRecordValue(value, 'customData'));
+  const customData = parseCustomData(getOwnPropertyValue(value, 'customData'));
   return customData ? { pubkey, customData } : { pubkey };
 };
 

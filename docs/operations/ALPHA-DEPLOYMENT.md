@@ -9,7 +9,21 @@ The alpha environment is a pre-production testing environment. Docker images are
 1. Changes are pushed to the `alpha` branch
 2. The workflow is manually triggered via GitHub Actions UI or CLI
 
-**Important:** The `alpha` branch is a trigger branch only - it should always mirror `develop` exactly with no divergent commits.
+**Important:** The `alpha` branch (and, when you use them, `beta` and `main`) are **promotion / trigger** branches. Do **not** land feature work on them. Work happens on `develop` (or feature branches merged to `develop`); you **fast-forward** a promotion branch to the commit you want to build.
+
+### Release train (alpha → beta → prod) and changelogs
+
+- **Base version** `X.Y.Z` in the repo root and workspace `package.json` files: you set this when you choose, using `./scripts/publish/bump-version.sh` on `develop` (it does not create a Git tag).
+- **Build version** (what is pushed to GHCR, what matches the **Git** tag, and the **GitHub Release** name) is chosen in CI:
+  - **`alpha`**: `X.Y.Z-alpha.N` (N increments from existing GHCR tags for that **base**), plus floating image tag `:alpha`.
+  - **`beta`**: `X.Y.Z-beta.N` + `:beta`.
+  - **`main` (production)**: `X.Y.Z` exactly (must match the bumped `package.json` on the commit you ship), plus floating `:prod`.
+- After a successful build, the workflow **creates the Git tag** (same string as the immutable image tag) if missing, **creates a GitHub Release** (prerelease for alpha/beta, **full release** for `main`, body from [`CHANGELOG-UPCOMING.md`](CHANGELOG-UPCOMING.md) when that file exists on the build commit), and **opens a PR to `develop`** to append an archive under [`CHANGELOG-ARCHIVE/`](CHANGELOG-ARCHIVE/DOCS-OPERATIONS-CHANGELOG-ARCHIVE.md) and clear the `UPCOMING-AUTO-START` / `UPCOMING-AUTO-END` block.
+- Edit [`CHANGELOG-UPCOMING.md`](CHANGELOG-UPCOMING.md) only on **`develop`**. See the [release-changelog skill](../../.cursor/skills/release-changelog/SKILL.md).
+
+Promotion: `./scripts/publish/sync-develop-to-alpha.sh`, `./scripts/publish/sync-develop-to-beta.sh`, `./scripts/publish/sync-develop-to-main.sh`.
+
+The workflow file is still [`.github/workflows/publish-alpha.yml`](../.github/workflows/publish-alpha.yml) but the workflow name in GitHub Actions is **“Publish (alpha, beta, main)”** and it runs on pushes to **alpha**, **beta**, or **main**.
 
 ```mermaid
 flowchart TD
@@ -163,7 +177,7 @@ git push --no-verify origin alpha
 # Watch the workflow run
 gh run watch
 
-# Or list recent runs
+# Or list recent runs (workflow file name unchanged; it also covers beta and main)
 gh run list --workflow=publish-alpha.yml
 
 # View specific run logs
@@ -270,13 +284,15 @@ make alpha_management_web_up
 
 Docker images are tagged with:
 
-- `X.Y.Z-alpha.N` - Version-specific tag (e.g., `5.2.0-alpha.0`, `5.2.0-alpha.1`)
-- `alpha` - Always points to latest alpha build
+- `X.Y.Z-alpha.N` (on **`alpha`**) or `X.Y.Z-beta.N` (on **`beta`**) or `X.Y.Z` (on **`main`**) — immutable, version-specific tag
+- A **floating** tag: `alpha`, `beta`, or `prod` (latest build for that branch from this workflow)
+
+A **matching Git tag** (same string as the immutable image tag) is created on the publish commit by the workflow if it does not already exist; it is **not** moved if it would point to a different commit (see the `git-tag-prerelease` job in the workflow file).
 
 The version is determined by:
 
 1. `version_override` input (if manually triggered with override)
-2. Otherwise: base version from root `package.json` with an incremented alpha number from existing GHCR tags (e.g. `5.2.0-alpha.0`)
+2. Otherwise: base version from root `package.json` with an incremented prerelease number from existing GHCR tags for that line (`alpha` / `beta`); for **`main`**, the version is exactly the **base** `X.Y.Z` in `package.json` (no `.N` suffix)
 
 For first-ever publish when GHCR has no package path yet, `404` from tag discovery is treated as
 an expected bootstrap state and the workflow starts at `X.Y.Z-alpha.0` automatically.

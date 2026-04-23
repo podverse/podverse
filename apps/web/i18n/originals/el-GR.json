@@ -288,8 +288,48 @@
       "successfully_sent": "Επιτυχώς:",
       "failed_to_send": "Απέτυχε:",
       "error_details_heading": "Λεπτομέρειες σφάλματος",
-      "retried_requests": "Επαναλάβαμε το αίτημα Lightning Address {count, plural, one {# φορά} other {# φορές}} πριν αποτύχει.",
-      "retry_attempt": "Επανάληψη {number}: "
+      "retried_requests": "Επαναλάβαμε το αίτημα {count, plural, one {# φορά} other {# φορές}} πριν αποτύχει.",
+      "retry_attempt": "Επανάληψη {number}: ",
+      "mbrssV1_capability_loading_status": "Έλεγχος διαθεσιμότητας μηνυμάτων boost",
+      "mbrssV1_capability_unavailable": "Τα μηνύματα boost δεν είναι διαθέσιμα για αυτόν τον δημιουργό αυτή τη στιγμή λόγω προβλήματος διακομιστή, αλλά μπορείτε ακόμα να χρησιμοποιήσετε τη φόρμα για να στείλετε δωρεά.",
+      "login_required_to_send_boosts": "Συνδεθείτε στο {brand_name} για να στείλετε boosts.",
+      "mbrss_offline_modal_title": "Η συλλογή μηνυμάτων δεν είναι διαθέσιμη",
+      "mbrss_offline_modal_body": "Ο διακομιστής συλλογής μηνυμάτων φαίνεται εκτός σύνδεσης. Εάν θέλετε να στείλετε τη δωρεά σας χωρίς μήνυμα, πατήστε Συνέχεια.",
+      "mbrss_offline_continue": "Συνέχεια",
+      "mint_rate_limit_modal_title": "Όριο μηνυμάτων boost",
+      "mint_rate_limit_wait_seconds": "Μπορείτε να στείλετε άλλο boost με μήνυμα σε {seconds, plural, one {# δευτερόλεπτο} other {# δευτερόλεπτα}}.",
+      "mint_rate_limit_wait_minutes": "Μπορείτε να στείλετε άλλο boost με μήνυμα σε {minutes, plural, one {# λεπτό} other {# λεπτά}}.",
+      "mint_rate_limit_preflight_error": "Δεν ήταν δυνατός ο έλεγχος του ορίου αποστολής μηνυμάτων. Δοκιμάστε ξανά.",
+      "sender_blocked_preflight_fallback": "Έχετε αποκλειστεί από την αποστολή μηνυμάτων σε αυτόν τον παραλήπτη.",
+      "sender_blocked_modal_title": "Το μήνυμα δεν έγινε αποδεκτό",
+      "sender_blocked_modal_primary": "Κλείσιμο",
+      "sender_blocked_post_fallback": "Έχετε αποκλειστεί από την αποστολή μηνυμάτων σε αυτόν τον παραλήπτη.",
+      "owner_terms_not_accepted_modal_title": "Το μήνυμα δεν έγινε αποδεκτό",
+      "owner_terms_not_accepted_modal_primary": "Κλείσιμο",
+      "owner_terms_not_accepted_post_fallback": "Αυτός ο δημιουργός δεν μπορεί να λάβει μεταδεδομένα μηνυμάτων μέχρι να αποδεχτεί τους πιο πρόσφατους όρους.",
+      "metaboost_post_failed_modal_title": "Το μήνυμα δεν έγινε αποδεκτό",
+      "metaboost_post_failed_modal_primary": "Κλείσιμο",
+      "metaboost_post_failed_fallback": "Αυτός ο διακομιστής δεν μπόρεσε να καταγράψει το μήνυμα.",
+      "threshold_notice": "Το ελάχιστο ποσό ενίσχυσης που απαιτεί αυτός ο δημιουργός είναι {minimumAmountDisplay}.",
+      "currency_minor_units": {
+        "satoshis": "{count, plural, one {sat} other {sats}}"
+      },
+      "threshold_below_minimum_modal_title": "Ποσό κάτω από το ελάχιστο για μήνυμα",
+      "threshold_below_minimum_modal_body": "Αυτό το ποσό είναι τώρα κάτω από το ελάχιστο που απαιτείται για να συμπεριληφθεί μήνυμα. Θέλετε να στείλετε αυτό το boost χωρίς μήνυμα;",
+      "threshold_send_without_message": "Αποστολή χωρίς μήνυμα",
+      "threshold_missing_metadata": "Δεν είναι δυνατή η επαλήθευση του ορίου μηνύματος boost επειδή λείπουν απαιτούμενα μεταδεδομένα νομίσματος.",
+      "threshold_amount_unit_missing": "Δεν είναι δυνατή η επαλήθευση του ορίου μηνύματος boost επειδή λείπουν μεταδεδομένα μονάδας ποσού.",
+      "threshold_amount_unit_invalid": "Δεν είναι δυνατή η επαλήθευση του ορίου μηνύματος boost επειδή τα μεταδεδομένα μονάδας ποσού δεν είναι έγκυρα.",
+      "threshold_conversion_unavailable": "Η μετατροπή του ορίου μηνύματος boost δεν είναι προσωρινά διαθέσιμη.",
+      "threshold_conversion_unavailable_guidance": "Δοκιμάστε ξανά σε λίγο, ή συνεχίστε με μεγαλύτερο ποσό για να συμπεριλάβετε μήνυμα.",
+      "baseline_estimate_tooltip_text": "Αυτή η εκτίμηση μετατροπής χρησιμοποιεί πρόσφατα δεδομένα συναλλαγματικής και μπορεί να διαφέρει κατά τον διακανονισμό της πληρωμής. Επαληθεύστε τη συναλλαγματική ισοτιμία ανεξάρτητα.",
+      "amount_input_invalid_number": "Εισαγάγετε έγκυρο ποσό.",
+      "amount_input_too_many_decimals": "Αυτό το ποσό επιτρέπει έως {decimals} δεκαδικά για {currency}.",
+      "amount_input_not_supported": "Η μορφοποίηση νομίσματος δεν υποστηρίζεται για {currency}.",
+      "public_messages_loading": "Φόρτωση μηνυμάτων…",
+      "public_messages_unavailable": "τα μηνύματα από αυτόν τον διακομιστή δεν είναι δημόσια διαθέσιμα αυτή τη στιγμή",
+      "public_messages_empty": "Δεν υπάρχουν ακόμα διαθέσιμα μηνύματα.",
+      "public_amount_btc_token": "BTC"
     },
     "types": {
       "lightning": {
@@ -317,12 +357,17 @@
   },
   "v4v": {
     "boost_messages": {
-      "title": "Ενισχυμένα Μηνύματα",
-      "description": "Για να ενεργοποιήσετε τα ενισχυμένα μηνύματα για το περιεχόμενό σας, προσθέστε το podcast:metaBoost RSS tag στη ροή σας μέσα στο podcast:value block σας. Αυτό το tag λέει στις εφαρμογές πού να στείλουν προαιρετικά μηνύματα ακροατών (για παράδειγμα, μέσω ενός διακομιστή BoostBox). Χωρίς αυτό, οι ακροατές μπορούν να στέλνουν πληρωμές αλλά δεν μπορούν να επισυνάψουν μήνυμα.",
+      "title": "Metaboost",
+      "description": "Για να ενεργοποιήσετε τα ενισχυμένα μηνύματα για το περιεχόμενό σας, προσθέστε το podcast:metaBoost RSS tag στη ροή σας μέσα στο podcast:value block σας. Αυτό το tag λέει στις εφαρμογές πού να στείλουν προαιρετικά μηνύματα ακροατών. Χωρίς αυτό, οι ακροατές μπορούν να στέλνουν πληρωμές αλλά δεν μπορούν να επισυνάψουν μήνυμα.",
       "example_heading": "Παράδειγμα RSS τμήματος με podcast:metaBoost",
-      "example": "'<'podcast:value type=\"lightning\" method=\"keysend\"'>'\n  '<'podcast:metaBoost schema=\"boostbox\"'>'https://your-boostbox.example/boost'<'/podcast:metaBoost'>'\n  '<'podcast:valueRecipient type=\"lnaddress\" address=\"you@example.com\" split=\"100\" /'>'\n'<'/podcast:value'>'",
-      "boostbox_label": "BoostBox στο GitHub",
-      "boostbox_url": "https://github.com/noblepayne/boostbox"
+      "example": "'<'podcast:value type=\"lightning\" method=\"keysend\"'>'\n  '<'podcast:metaBoost standard=\"mbrss-v1\"'>'https://metaboost.example/boost'<'/podcast:metaBoost'>'\n  '<'podcast:valueRecipient type=\"lnaddress\" address=\"you@example.com\" split=\"100\" /'>'\n'<'/podcast:value'>'",
+      "page_intro": "Το Metaboost είναι λογισμικό ανοικτού κώδικα και ανοιχτό πρότυπο για τη φιλοξενία μηνυμάτων ακροατών μαζί με τα value-for-value boosts του podcast.",
+      "page_signup": "Αν ένα podcast θέλει οι ακροατές του να μπορούν να επισυνάπτουν μηνύματα στα boosts στο {brand_name}, μπορούν να εγγραφούν σε οποιονδήποτε διακομιστή Metaboost ανοικτού κώδικα (<link>metaboost.cc</link> είναι μία επιλογή, και συντηρείται από το {brand_name}).",
+      "page_rss_tag": "Το Metaboost δίνει στον podcaster μια απλή ετικέτα <rssTag>podcast:metaBoost</rssTag> που μπορεί να προσθέσει στη ροή RSS του, ώστε να αρχίσει να λαμβάνει μηνύματα ενίσχυσης.",
+      "page_open_standard": "Επειδή το Metaboost είναι ανοιχτό πρότυπο, οποιαδήποτε εφαρμογή που υιοθετεί το πρότυπο (όχι μόνο το {brand_name}) μπορεί να στέλνει μηνύματα στο σημείο πρόσβασης Metaboost του podcaster.",
+      "page_how_to_heading": "Περισσότερα για το Metaboost",
+      "page_how_to_creators": "Οδηγός για δημιουργούς",
+      "page_how_to_developers": "Οδηγός για προγραμματιστές"
     }
   },
   "filters": {
@@ -416,6 +461,7 @@
   },
   "donate": {
     "title": "Δωρεά",
+    "boost_messages_heading": "Ενισχύσεις",
     "app_donation_notice": "Αυτή η δωρεά θα σταλεί στο {brand_name}.",
     "app_not_configured": "Οι δωρεές εφαρμογών δεν είναι ρυθμισμένες. Για να ενεργοποιήσετε τις δωρεές προς το {brand_name}, ρυθμίστε το Lightning LNAddress ή τον Κόμβο στη ρύθμιση της εφαρμογής.",
     "creator_donation_hint_prefix": "Για να κάνετε δωρεά σε έναν podcaster ή καλλιτέχνη, χρησιμοποιήστε το",
@@ -552,11 +598,11 @@
   },
   "about": {
     "title": "Σχετικά",
-    "intro_text": "Η Podverse είναι ένα διαχειριστής podcast FOSS για iOS, Android, F-Droid και ιστοσελίδα.",
+    "intro_text": "Η {brand_name} είναι ένα διαχειριστής podcast FOSS για iOS, Android, F-Droid και ιστοσελίδα.",
     "download_app_store": "Λήψη από το App Store",
     "download_google_play": "ΛΑΒΕ ΤΟ ΣΤΟ Google Play",
     "download_f_droid": "ΛΑΒΕ ΤΟ ΣΤΟ F-Droid",
-    "licensing_text": "Όλο το λογισμικό Podverse παρέχεται υπό άδεια δωρεάν και ανοικτού κώδικα (FOSS). Δυνατότητες που απαιτούν ενημέρωση των διακομιστών μας είναι διαθέσιμες μόνο με μια Ακριβή συνδρομή. Εγγραφείτε σήμερα και αποκτήστε μια δωρεάν δοκιμή 3 μηνών. 🥳",
+    "licensing_text": "Όλο το λογισμικό {brand_name} παρέχεται υπό άδεια δωρεάν και ανοικτού κώδικα (FOSS). Δυνατότητες που απαιτούν ενημέρωση των διακομιστών μας είναι διαθέσιμες μόνο με μια Ακριβή συνδρομή. Εγγραφείτε σήμερα και αποκτήστε μια δωρεάν δοκιμή 3 μηνών. 🥳",
     "features_title": "Δυνατότητες"
   },
   "checkout": {
@@ -666,11 +712,11 @@
   },
   "terms": {
     "terms": "Όροι",
-    "never_sell_data": "Η Podverse δεν θα πουλήσει ή θα μοιραστεί ποτέ τα ιδιωτικά δεδομένα των χρηστών.",
+    "never_sell_data": "Η {brand_name} δεν θα πουλήσει ή θα μοιραστεί ποτέ τα ιδιωτικά δεδομένα των χρηστών.",
     "no_ads_without_permission": "Δεν θα τοποθετήσουμε ποτέ διαφημίσεις δίπλα ή μέσα στο περιεχόμενο ενός podcast χωρίς την άδεια αυτού του podcast.",
-    "audio_video_hosting": "Όλα τα αρχεία ήχου ή βίντεο που βρίσκονται στο podverse.fm φορτώνουν από τον δημόσιο διακομιστή του podcaster. Δεν φιλοξενούμε αρχεία ήχου ή βίντεο podcast εμείς οι ίδιοι.",
+    "audio_video_hosting": "Όλα τα αρχεία ήχου ή βίντεο που βρίσκονται στο {brand_domain} φορτώνουν από τον δημόσιο διακομιστή του podcaster. Δεν φιλοξενούμε αρχεία ήχου ή βίντεο podcast εμείς οι ίδιοι.",
     "third_party_feeds": "Φιλοξενούμε συνδέσμους podcast και περιεχόμενο από τρίτους παρόχους podcast και ιστοσελίδες. Αυτά έχουν τις δικές τους ανεξάρτητες πολιτικές απορρήτου, και δεν έχουμε καμία ευθύνη για το περιεχόμενο ή τις δραστηριότητές τους.",
-    "clips_crowdsourced": "Όλα τα κλιπ που φιλοξενούνται στο podverse.fm είναι crowdsourced και ανεπίσημα, εκτός αν αναφέρεται διαφορετικά από τον ίδιο τον podcaster.",
+    "clips_crowdsourced": "Όλα τα κλιπ που φιλοξενούνται στο {brand_domain} είναι crowdsourced και ανεπίσημα, εκτός αν αναφέρεται διαφορετικά από τον ίδιο τον podcaster.",
     "clips_load_full_episode": "Τα κλιπ φορτώνουν μέσα στο πλήρες αρχείο πολυμέσων του επεισοδίου, έτσι ώστε ο χρήστης να έχει πάντα πρόσβαση στην πλήρη ηχογράφηση.",
     "reduced_size_images": "Φιλοξενούμε επίσης εικόνες podcast μειωμένου μεγέθους από τις ροές των podcasters, για να εξοικονομήσουμε δεδομένα δικτύου των χρηστών και να επιταχύνουμε τους χρόνους φόρτωσης της σελίδας."
   },

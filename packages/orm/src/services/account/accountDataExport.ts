@@ -8,11 +8,13 @@ import { PlaylistService } from '../playlist/playlist.js';
 import { PlaylistResourceService } from '../playlist/playlistResource.js';
 import { QueueService } from '../queue/queue.js';
 import { listResourceRelations, QueueResourceService } from '../queue/queueResource.js';
+import { QUEUE_HISTORY_MAX_TAKE } from '../queue/queueResourceListGuardrails.js';
 import { AccountService } from './account.js';
 import { AccountFollowingAccountService } from './accountFollowingAccount.js';
 import { AccountFollowingAddByRSSChannelService } from './accountFollowingAddByRSSChannel.js';
 import { AccountFollowingChannelService } from './accountFollowingChannel.js';
 import { AccountFollowingPlaylistService } from './accountFollowingPlaylist.js';
+import { AccountMetaboostService } from './accountMetaboost.js';
 
 export class AccountDataExportService {
   private accountService: AccountService;
@@ -47,6 +49,7 @@ export class AccountDataExportService {
         image_url: string | null;
       }>;
     };
+    account_metaboost: { sender_guid: string } | null;
     playlists: Array<unknown>;
     clips: Array<unknown>;
     queues: Array<unknown>;
@@ -71,6 +74,11 @@ export class AccountDataExportService {
           }
         : null,
     };
+
+    const accountMetaboostService = new AccountMetaboostService();
+    const metaboostSenderGuid = await accountMetaboostService.getSenderGuidByAccountId(account_id);
+    const accountMetaboost =
+      metaboostSenderGuid !== null ? { sender_guid: metaboostSenderGuid } : null;
 
     // Get following relationships
     const accountFollowingAccountService = new AccountFollowingAccountService();
@@ -275,13 +283,28 @@ export class AccountDataExportService {
     // Process queues with resources
     const queuesData = await Promise.all(
       queues.map(async (queue) => {
-        // Get all queue resources for this queue (both history and upcoming)
-        const [historyResources] = await queueResourceService.getHistoryResourcesByQueueIdText(
-          queue.id_text,
-          {
-            relations: listResourceRelations,
+        // History is paginated at the ORM layer — fetch in bounded batches for full export.
+        const historyResources: QueueResource[] = [];
+        let historySkip = 0;
+        while (true) {
+          const [batch, historyTotal] = await queueResourceService.getHistoryResourcesByQueueIdText(
+            queue.id_text,
+            {
+              relations: listResourceRelations,
+              skip: historySkip,
+              take: QUEUE_HISTORY_MAX_TAKE,
+            }
+          );
+          historyResources.push(...batch);
+          if (
+            batch.length < QUEUE_HISTORY_MAX_TAKE ||
+            historyResources.length >= historyTotal ||
+            batch.length === 0
+          ) {
+            break;
           }
-        );
+          historySkip += QUEUE_HISTORY_MAX_TAKE;
+        }
         const upcomingResources = await queueResourceService.getAllUpcomingByQueueIdText(
           queue.id_text
         );
@@ -356,6 +379,7 @@ export class AccountDataExportService {
     const exportData = {
       export_date: new Date().toISOString(),
       account: accountData,
+      account_metaboost: accountMetaboost,
       following: {
         accounts: followingAccounts.map((fa) => ({
           id_text: fa.following_account.id_text,

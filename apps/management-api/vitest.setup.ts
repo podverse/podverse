@@ -1,0 +1,26 @@
+import 'reflect-metadata';
+
+process.env.NODE_ENV = 'test';
+process.env.LOG_LEVEL = 'error';
+process.env.BRAND_NAME = 'VitestBrand';
+process.env.USER_AGENT = '';
+process.env.AUTH_JWT_SECRET = '11111111-1111-4111-8111-111111111111';
+process.env.API_PORT = '19999';
+process.env.API_PREFIX = '/api';
+process.env.API_VERSION = '/v1';
+process.env.COOKIE_DOMAIN = 'localhost';
+process.env.API_ALLOWED_CORS_ORIGINS = 'http://localhost:3000';
+process.env.WEB_PROTOCOL = 'http';
+process.env.WEB_DOMAIN = 'localhost';
+process.env.DB_HOST = '127.0.0.1';
+process.env.DB_PORT = '5732';
+process.env.DB_APP_NAME = 'podverse_app_test';
+process.env.DB_APP_READ_USER = 'podverse_app_read';
+process.env.DB_APP_READ_PASSWORD = 'test';
+process.env.DB_APP_READ_WRITE_USER = 'podverse_app_read_write';
+process.env.DB_APP_READ_WRITE_PASSWORD = 'test';
+process.env.DB_MANAGEMENT_NAME = 'podverse_management_test';
+process.env.DB_MANAGEMENT_READ_USER = 'podverse_management_read';
+process.env.DB_MANAGEMENT_READ_PASSWORD = 'test';
+process.env.DB_MANAGEMENT_READ_WRITE_USER = 'podverse_management_read_write';
+process.env.DB_MANAGEMENT_READ_WRITE_PASSWORD = 'test';

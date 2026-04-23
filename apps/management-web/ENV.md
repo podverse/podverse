@@ -15,7 +15,7 @@ The sidecar uses the same validation helpers as the rest of the monorepo (`@podv
 - **`RUNTIME_CONFIG_URL`** (Required at runtime only)
   - Internal URL for the runtime-config sidecar (e.g., `http://localhost:3101`). Use 3101 so it does not collide with the web app sidecar (3001).
   - When running via Docker Compose, `infra/config/local/management-web.env` is used and must use the sidecar **service name** (`http://podverse_local_management_web_runtime_config:3101`); `make local_env_setup` sets this automatically.
-  - Used by the Next.js server to fetch runtime config at startup via `instrumentation.ts`
+  - Used by the Next.js server to fetch runtime config at startup via root `instrumentation.ts` and again on each request in `src/app/layout.tsx` (fetches `/runtime-config` from the sidecar and calls `setRuntimeConfig` so the in-memory config matches the sidecar)
   - **Not needed at build time** - the sidecar architecture allows builds without any env vars
 
 ### API Configuration (SSR)
@@ -105,7 +105,7 @@ Required Missing: 0
 
 - **Public variables**: All `NEXT_PUBLIC_*` variables are exposed to the browser. Do not include sensitive information.
 - **No build-time validation**: The app can be built without any environment variables. All validation happens at runtime.
-- **Runtime validation**: The sidecar validates all required `NEXT_PUBLIC_*` values at startup. The app fetches config from the sidecar via `instrumentation.ts` before any requests are served.
+- **Runtime validation**: The sidecar validates all required `NEXT_PUBLIC_*` values at startup. The app loads that config by fetching the sidecar in `instrumentation.ts` and in the root layout (so the store is always populated, not only the sidecar process's env).
 - **Validation file**: See `apps/management-web/sidecar/src/server.ts` for sidecar validation logic. The `scripts/validate-env.ts` script is available for manual validation but does not run automatically during builds.
 
 ## Adding New Environment Variables

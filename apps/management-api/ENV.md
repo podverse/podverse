@@ -27,18 +27,29 @@ Validation occurs in `src/lib/startup/validation.ts` during application startup.
   - Example: `Podverse Bot Local/Management-API/5`
   - Used for external API requests
 
-### Database
+### Database (one Postgres, shared `DB_HOST` / `DB_PORT`)
 
-- **`DB_HOST`** (Required) - Database hostname
-- **`DB_PORT`** (Required) - Database port (must be a valid number)
-- **`DB_READ_USERNAME`** (Required) - Read-only database username
-- **`DB_READ_PASSWORD`** (Required) - Read-only database password
-- **`DB_READ_WRITE_USERNAME`** (Required) - Read-write database username
-- **`DB_READ_WRITE_PASSWORD`** (Required) - Read-write database password
-- **`DB_DATABASE`** (Required) - Database name
-- **`DB_SSL_CONNECTION`** (Optional) - Use SSL for database connection (default: `false`)
+The main API and workers use unprefixed `DB_HOST`, `DB_PORT`, and `DB_READ_*` for the **app** database only. Management-api takes a **single** host and port for the instance, then `DB_APP_*` for the main `podverse_app` database and `DB_MANAGEMENT_*` for the admin `podverse_management` database. Credential key names use `*_USER` (not `*_USERNAME`).
 
-In Kubernetes, `DB_*` values are supplied by the management DB secret (`podverse-management-db-opaque`).
+**Shared (one connection endpoint):**
+
+- **`DB_HOST`** (Required) - PostgreSQL hostname
+- **`DB_PORT`** (Required) - PostgreSQL port (must be a valid number)
+- **`DB_SSL_CONNECTION`** (Optional) - Use SSL to this host (default: `false`; applies to both logical databases on this host)
+
+**Main app database (`DB_APP_*`):**
+
+- **`DB_APP_NAME`** (Required) - Database name (e.g. `podverse_app`)
+- **`DB_APP_READ_USER`** / **`DB_APP_READ_PASSWORD`**
+- **`DB_APP_READ_WRITE_USER`** / **`DB_APP_READ_WRITE_PASSWORD`**
+
+**Management database (`DB_MANAGEMENT_*`):**
+
+- **`DB_MANAGEMENT_NAME`** (Required) - Database name (e.g. `podverse_management`)
+- **`DB_MANAGEMENT_READ_USER`** / **`DB_MANAGEMENT_READ_PASSWORD`**
+- **`DB_MANAGEMENT_READ_WRITE_USER`** / **`DB_MANAGEMENT_READ_WRITE_PASSWORD`**
+
+**Kubernetes:** `DB_HOST` / `DB_PORT` / `DB_SSL_CONNECTION` are non-secret in the management-api ConfigMap. `DB_MANAGEMENT_*` credentials come from `podverse-management-db-opaque`. `DB_APP_*` credentials are expected from the same main DB secret as the API (`podverse-db-opaque`), which also carries legacy `DB_READ_*` for api/workers; the management-api Deployment includes both secrets. Re-run `infra/k8s/scripts/create_db_secret.sh` after this layout so `podverse-db-opaque` includes `DB_APP_*` keys.
 
 ### API Configuration
 
@@ -95,7 +106,7 @@ Example output:
   ✓ AUTH_JWT_SECRET - Valid UUID
   ✓ USER_AGENT - Valid format
 
-[Database]
+[Postgres]
   ✓ DB_HOST - Set
   ✓ DB_PORT - Set
   ...

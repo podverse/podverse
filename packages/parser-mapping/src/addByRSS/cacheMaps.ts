@@ -1,5 +1,6 @@
 import type { AddByRSSFeedRecord, AddByRSSParseAllParams } from '@podverse/helpers';
 
+/** Intentionally local: folds Add-by-RSS feed records into parser queue params; not a generic utility. */
 export const buildCacheMaps = (feeds: AddByRSSFeedRecord[]): AddByRSSParseAllParams => {
   const feedHashesByUrl: Record<string, string> = {};
   const etagsByUrl: Record<string, string> = {};

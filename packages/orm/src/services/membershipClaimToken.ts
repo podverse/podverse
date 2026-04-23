@@ -3,6 +3,10 @@ import { MembershipClaimToken } from '@orm/entities/membershipClaimToken.js';
 import { AccountService } from '@orm/services/account/account.js';
 import { AccountMembershipService } from '@orm/services/account/accountMembership.js';
 import { AccountMembershipStatusService } from '@orm/services/account/accountMembershipStatus.js';
+import {
+  assertValidMonthsToAdd,
+  calculateMembershipExpirationDate,
+} from '@orm/services/membershipClaimToken.helpers.js';
 import type { Repository } from 'typeorm';
 
 import type { AccountMembershipEnum } from '@podverse/helpers';
@@ -26,9 +30,7 @@ export class MembershipClaimTokenService {
     account_membership_id: AccountMembershipEnum,
     months_to_add: number
   ): Promise<MembershipClaimToken> {
-    if (!Number.isInteger(months_to_add) || months_to_add < 1) {
-      throw new Error('months_to_add must be an integer 1 or larger');
-    }
+    assertValidMonthsToAdd(months_to_add);
 
     const accountMembership = await this.accountMembershipService.get(account_membership_id);
 
@@ -63,12 +65,10 @@ export class MembershipClaimTokenService {
     }
 
     const accountMembershipStatus = await this.accountMembershipStatusService._get(account);
-    const currentDate = new Date();
-    const newExpirationDate = accountMembershipStatus?.membership_expires_at
-      ? new Date(accountMembershipStatus.membership_expires_at)
-      : currentDate;
-
-    newExpirationDate.setMonth(newExpirationDate.getMonth() + membershipClaimToken.months_to_add);
+    const newExpirationDate = calculateMembershipExpirationDate(
+      accountMembershipStatus?.membership_expires_at,
+      membershipClaimToken.months_to_add
+    );
 
     await this.accountMembershipStatusService.update(account, {
       account_membership_id: membershipClaimToken.account_membership_id,

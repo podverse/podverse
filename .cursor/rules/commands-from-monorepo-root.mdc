@@ -19,6 +19,7 @@ alwaysApply: true
 - From repo root: `npm run <script> -w apps/workers -- <args>`
 - From repo root: `npm run build:packages` then `npm run build -w apps/workers`
 - From repo root: `node apps/workers/dist/index.js devPiBulkFeedsAddFromFile -startId 1 -endId 10 -q rss-slow` (uses hardcoded path `infra/data/dev/podcast-index-feeds` relative to monorepo root)
+- From repo root: `npm run workers:parse_trending_feeds --` (optionally with `-max N` after `--`; run after `npm run build -w apps/workers`); same as `devParserRSSParseTrendingFeeds`
 
 ## Don't
 

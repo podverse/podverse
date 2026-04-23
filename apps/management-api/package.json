@@ -12,6 +12,7 @@
     "dev:watch": "tsc --build --watch --preserveWatchOutput & tsc-alias --watch & nodemon --delay 1000ms --watch dist --watch ../../packages/helpers/dist --watch ../../packages/orm/dist --watch ../../packages/notifications/dist --watch ../../packages/parser/dist --watch ../../packages/mq/dist dist/index.js",
     "lint": "eslint ./src --max-warnings 0",
     "lint:fix": "eslint ./src --fix",
+    "test": "vitest run",
     "start": "node ./dist/index.js",
     "clean": "rm -rf dist",
     "type-check": "tsc --noEmit"
@@ -20,6 +21,7 @@
   "dependencies": {
     "@podverse/helpers": "*",
     "@podverse/orm": "*",
+    "@podverse/worker-commands": "*",
     "bcrypt": "^6.0.0",
     "body-parser": "^2.2.0",
     "cookie-parser": "^1.4.7",
@@ -50,6 +52,9 @@
     "@types/passport-jwt": "^4.0.1",
     "@types/passport-local": "^1.0.38",
     "nodemon": "^3.1.14",
-    "tsc-alias": "^1.8.16"
+    "supertest": "^7.1.4",
+    "tsc-alias": "^1.8.16",
+    "vitest": "^3.2.4",
+    "@types/supertest": "^6.0.3"
   }
 }

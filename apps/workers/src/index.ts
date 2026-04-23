@@ -1,7 +1,21 @@
+import { existsSync } from 'node:fs';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
 const loadEnv = async () => {
   if (process.env.NODE_ENV !== 'production') {
     const dotenvx = await import('@dotenvx/dotenvx');
-    dotenvx.config({ path: '.env' });
+    // Resolve relative to this file so `node apps/workers/dist/index.js` from the monorepo root
+    // still loads `apps/workers/.env` (not cwd-based `.env`).
+    const distDir = dirname(fileURLToPath(import.meta.url));
+    const workersEnv = join(distDir, '..', '.env');
+    const monorepoRootEnv = join(distDir, '..', '..', '..', '.env');
+    const envFilePath = existsSync(workersEnv)
+      ? workersEnv
+      : existsSync(monorepoRootEnv)
+        ? monorepoRootEnv
+        : workersEnv;
+    dotenvx.config({ path: envFilePath });
   }
 };
 

@@ -1,13 +1,15 @@
 'use client';
 
-import { useSearchParams } from 'next/navigation';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import React, { useEffect, useMemo, useState } from 'react';
 
 import { isAlbumMediumId, parseMediumId } from '@podverse/helpers';
 import { createAddByRSSIdText } from '@podverse/helpers';
+import { buildAddByRssBoostChannel } from '@podverse/parser-mapping';
 
 import { AddByRSSArtistHeader } from '../../../components/AddByRSS/Artist/AddByRSSArtistHeader';
+import { useBoostMessagesView } from '../../../components/Boost/messages/useBoostMessagesView';
 import Dropdown from '../../../components/Dropdown/Dropdown';
 import LoadingSpinnerOverlay from '../../../components/LoadingSpinner/LoadingSpinnerOverlay';
 import { MainInnerContentWrapper } from '../../../components/Main/MainInnerContentWrapper';
@@ -24,6 +26,8 @@ import {
 import {
   getAddByRSSFeedByIdText,
   getAddByRSSFeedsByResourceType,
+  getAddByRSSItemByGuid,
+  getAddByRSSLivestreamByGuid,
 } from '../../../utils/addByRSS/storage';
 import type {
   AddByRSSFeedRecord,
@@ -80,6 +84,9 @@ export const AddByRSSArtistPageClient: React.FC<AddByRSSArtistPageClientProps> =
   const tFeatures = useTranslations('features');
   const tFilters = useTranslations('filters');
   const tMisc = useTranslations('misc');
+  const tV4VBoostMessages = useTranslations('v4v.boost_messages');
+  const pathname = usePathname();
+  const router = useRouter();
   const searchParams = useSearchParams();
   const { viewSelected } = useLocalSettings();
 
@@ -87,17 +94,25 @@ export const AddByRSSArtistPageClient: React.FC<AddByRSSArtistPageClientProps> =
   const [albumFeeds, setAlbumFeeds] = useState<AddByRSSFeedRecord[]>([]);
   const [trackItems, setTrackItems] = useState<AddByRSSItemIndexItem[]>([]);
   const [liveItems, setLiveItems] = useState<AddByRSSLivestreamIndexItem[]>([]);
-  const [activeTab, setActiveTab] = useState<AddByRSSArtistPageTabKey>('albums');
+  const initialType = useMemo<AddByRSSArtistPageTabKey>(() => {
+    const typeParam = searchParams.get('type');
+    if (typeParam === 'tracks' || typeParam === 'boosts' || typeParam === 'about') {
+      return typeParam;
+    }
+    return 'albums';
+  }, [searchParams]);
+  const [activeTab, setActiveTab] = useState<AddByRSSArtistPageTabKey>(initialType);
   const [isLoading, setIsLoading] = useState(true);
 
   const initialSort = useMemo(() => toSortOption(searchParams.get('sort')), [searchParams]);
   const [sort, setSort] = useState<SortOption>(initialSort);
 
   useEffect(() => {
-    if (searchParams.has('sort')) {
+    if (searchParams.has('sort') || searchParams.has('type')) {
       setSort(initialSort);
+      setActiveTab(initialType);
     }
-  }, [initialSort, searchParams]);
+  }, [initialSort, initialType, searchParams]);
 
   useEffect(() => {
     let cancelled = false;
@@ -224,6 +239,38 @@ export const AddByRSSArtistPageClient: React.FC<AddByRSSArtistPageClientProps> =
   const hasAlbums = sortedAlbums.length > 0;
   const hasTracks = sortedTrackItems.length > 0;
   const hasDescription = !!description;
+  const boostChannel = useMemo(() => (feed ? buildAddByRssBoostChannel(feed) : null), [feed]);
+  const { canShowBoostTab, boostsPageFetcher, breadcrumbLinkResolver, refreshTrigger } =
+    useBoostMessagesView({
+      channel: boostChannel,
+      scopeType: 'artist',
+      channelIdText: feed?.idText ?? null,
+      resolveChannelHref: (channelIdText) => `/add-by-rss/artist/${channelIdText}`,
+      resolveItemIdTextByGuid: async (itemGuid) => {
+        const item = await getAddByRSSItemByGuid(itemGuid);
+        if (item?.idText) {
+          return item.idText;
+        }
+
+        const livestream = await getAddByRSSLivestreamByGuid(itemGuid);
+        return livestream?.idText ?? null;
+      },
+      resolveItemHref: (itemIdText) => `/add-by-rss/track/${itemIdText}`,
+    });
+  const handleTabSelect = React.useCallback(
+    (key: AddByRSSArtistPageTabKey) => {
+      setActiveTab(key);
+      const nextParams = new URLSearchParams(searchParams.toString());
+      if (key === 'albums') {
+        nextParams.delete('type');
+      } else {
+        nextParams.set('type', key);
+      }
+      const nextQuery = nextParams.toString();
+      router.replace(nextQuery === '' ? pathname : `${pathname}?${nextQuery}`, { scroll: false });
+    },
+    [pathname, router, searchParams]
+  );
 
   useEffect(() => {
     const availableTabs: AddByRSSArtistPageTabKey[] = [];
@@ -232,6 +279,9 @@ export const AddByRSSArtistPageClient: React.FC<AddByRSSArtistPageClientProps> =
     }
     if (hasTracks) {
       availableTabs.push('tracks');
+    }
+    if (canShowBoostTab) {
+      availableTabs.push('boosts');
     }
     if (hasDescription) {
       availableTabs.push('about');
@@ -242,10 +292,10 @@ export const AddByRSSArtistPageClient: React.FC<AddByRSSArtistPageClientProps> =
     if (!availableTabs.includes(activeTab)) {
       const nextTab = availableTabs[0];
       if (nextTab) {
-        setActiveTab(nextTab);
+        handleTabSelect(nextTab);
       }
     }
-  }, [activeTab, hasAlbums, hasDescription, hasTracks]);
+  }, [activeTab, canShowBoostTab, handleTabSelect, hasAlbums, hasDescription, hasTracks]);
 
   if (isLoading) {
     return <LoadingSpinnerOverlay isLoading message={tMisc('loading_your_content')} />;
@@ -281,6 +331,7 @@ export const AddByRSSArtistPageClient: React.FC<AddByRSSArtistPageClientProps> =
   const isEmptyActiveTab =
     (activeTab === 'albums' && !hasAlbums) ||
     (activeTab === 'tracks' && !hasTracks) ||
+    (activeTab === 'boosts' && boostsPageFetcher === null) ||
     (activeTab === 'about' && !hasDescription);
 
   return (
@@ -291,9 +342,10 @@ export const AddByRSSArtistPageClient: React.FC<AddByRSSArtistPageClientProps> =
         <MainInnerContentWrapper>
           <AddByRSSArtistPageListHeader
             selectedKey={activeTab}
-            onSelect={setActiveTab}
+            onSelect={handleTabSelect}
             hasAlbums={hasAlbums}
             hasTracks={hasTracks}
+            canShowBoosts={canShowBoostTab}
             hasDescription={hasDescription}
             sideButtons={sideButtons}
           />
@@ -307,6 +359,10 @@ export const AddByRSSArtistPageClient: React.FC<AddByRSSArtistPageClientProps> =
               liveItems={sortedLiveItems}
               description={description}
               viewSelected={viewSelected}
+              boostsPageFetcher={boostsPageFetcher}
+              breadcrumbLinkResolver={breadcrumbLinkResolver}
+              refreshTrigger={refreshTrigger}
+              boostsHeading={tV4VBoostMessages('title')}
             />
           )}
         </MainInnerContentWrapper>

@@ -1,17 +1,8 @@
 import type { Item } from '@orm/entities/item/item.js';
-import type { ItemValueMetaBoost } from '@orm/entities/item/itemValueMetaBoost.js';
 import type { ItemValueRecipient } from '@orm/entities/item/itemValueRecipient.js';
 import type { ItemValueTimeSplit } from '@orm/entities/item/itemValueTimeSplit.js';
 import type { Relation } from 'typeorm';
-import {
-  Column,
-  Entity,
-  JoinColumn,
-  ManyToOne,
-  OneToMany,
-  OneToOne,
-  PrimaryGeneratedColumn,
-} from 'typeorm';
+import { Column, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 
 import { DATABASE_CONSTANTS } from '@podverse/helpers';
 
@@ -44,10 +35,4 @@ export class ItemValue {
 
   @Column({ type: 'float', nullable: true })
   suggested?: number | null;
-
-  @OneToOne(
-    'ItemValueMetaBoost',
-    (item_value_meta_boost: ItemValueMetaBoost) => item_value_meta_boost.item_value
-  )
-  meta_boost?: Relation<ItemValueMetaBoost>;
 }

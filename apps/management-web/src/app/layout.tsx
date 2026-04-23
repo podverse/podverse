@@ -10,7 +10,8 @@ import { getConfig } from '../config';
 import { getRuntimeConfig } from '../config/runtime-config-store';
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  // Runtime config is initialized in instrumentation.ts at server startup
+  // Like apps/web: config comes from instrumentation (sidecar) when RUNTIME_CONFIG_URL is set;
+  // otherwise the store falls back to process.env (e.g. next build / CI with no .env or sidecar).
   const runtimeConfig = getRuntimeConfig();
   const config = getConfig();
   const brandName = config.public.brand.name ?? 'Podverse Management';

@@ -60,12 +60,10 @@ export const TextInputNumberIncrement: React.FC<NumberStepperProps> = ({
 
   const fireStep = useCallback(
     (direction: 1 | -1) => {
-      const onChangeFn = onChangeRef.current;
-      if (onChangeFn === undefined) {
+      if (onChangeRef.current === undefined) {
         return;
       }
-      const currentValue = valueRef.current;
-      const current = currentValue === '' ? 0 : Number(currentValue);
+      const current = valueRef.current === '' ? 0 : Number(valueRef.current);
       const stepVal = step ?? 1;
       let next = current + stepVal * direction;
       if (typeof min === 'number') {
@@ -79,14 +77,13 @@ export const TextInputNumberIncrement: React.FC<NumberStepperProps> = ({
         ...({} as React.ChangeEvent<HTMLInputElement>),
         target: { value: String(next) },
       };
-      onChangeFn(event as React.ChangeEvent<HTMLInputElement>);
+      onChangeRef.current(event as React.ChangeEvent<HTMLInputElement>);
     },
     [step, min, max]
   );
 
   const scheduleRepeat = useCallback(() => {
-    const direction = directionRef.current;
-    if (direction === null) {
+    if (directionRef.current === null) {
       return;
     }
     repeatCountRef.current += 1;
@@ -96,7 +93,11 @@ export const TextInputNumberIncrement: React.FC<NumberStepperProps> = ({
     const interval = Math.max(MIN_REPEAT_INTERVAL_MS, rawInterval);
     repeatTimeoutRef.current = setTimeout(() => {
       repeatTimeoutRef.current = null;
-      fireStep(direction);
+      if (directionRef.current === null) {
+        return;
+      }
+      const stepDirection = directionRef.current;
+      fireStep(stepDirection);
       scheduleRepeat();
     }, interval);
   }, [fireStep]);

@@ -114,7 +114,13 @@ These variables are used for client-side API requests:
 - **`NEXT_PUBLIC_APP_VALUE_LIGHTNING_LNADDRESS_ADDRESS`** (Optional) - Lightning LNAddress address
 - **Note**: Set either LNAddress or Node app value vars, not both.
 
-**Donate page:** The Boost form on the **Donate** page (`/donate`) only appears when at least one app value Lightning method is configured (either LNAddress or Node). Both name and address must be set for the chosen method. If neither is set, the page shows an explanatory message instead of the form.
+### App MetaBoost (Optional)
+
+- **`NEXT_PUBLIC_APP_VALUE_METABOOST_STANDARD`** (Optional) - MetaBoost standard id for Donate boosts (currently supports `mbrss-v1`)
+- **`NEXT_PUBLIC_APP_VALUE_METABOOST_NODE`** (Optional) - MetaBoost endpoint URL for Donate boosts
+- **Local overrides:** Set these in `dev/env-overrides/local/metaboost.env` (see `metaboost.env.example`), then run `make local_env_setup`.
+
+**Donate page:** The Boost form on the **Donate** page (`/donate`) only appears when at least one app value Lightning method is configured (either LNAddress or Node). Both name and address must be set for the chosen method. If neither is set, the page shows an explanatory message instead of the form. Donate MetaBoost behavior is optional and only activates when both `NEXT_PUBLIC_APP_VALUE_METABOOST_STANDARD` and `NEXT_PUBLIC_APP_VALUE_METABOOST_NODE` resolve to a supported standard.
 
 ### Notifications
 

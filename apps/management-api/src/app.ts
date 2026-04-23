@@ -1,14 +1,20 @@
+// reflect-metadata before any import that can load TypeORM entities
+// eslint-disable-next-line simple-import-sort/imports
+import 'reflect-metadata';
 import { config } from '@mgmt-api/config/index.js';
 import { initializePassport } from '@mgmt-api/lib/auth/index.js';
 import { adminAccountRouter } from '@mgmt-api/routes/adminAccount.js';
+import { adminsRouter } from '@mgmt-api/routes/admins.js';
 import { authRouter } from '@mgmt-api/routes/auth.js';
+import { databaseRouter } from '@mgmt-api/routes/database.js';
+import { feedFlagStatusRouter } from '@mgmt-api/routes/feedFlagStatus.js';
+import { statsRouter } from '@mgmt-api/routes/stats.js';
+import { workerCommandsRouter } from '@mgmt-api/routes/workerCommands.js';
 import bodyParser from 'body-parser';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import type { NextFunction, Request, Response } from 'express';
 import express from 'express';
-
-import 'reflect-metadata';
 
 export const app = express();
 const port = config.api.port;
@@ -37,23 +43,28 @@ app.use(initializePassport());
 
 const baseUrl = `${config.api.prefix}${config.api.version}`;
 
+app.get(`${baseUrl}/`, (_req: Request, res: Response) => {
+  res.send(`Podverse Management API is running on port ${port}`);
+});
+
+app.use(authRouter);
+app.use(adminAccountRouter);
+app.use(adminsRouter);
+app.use(databaseRouter);
+app.use(feedFlagStatusRouter);
+app.use(statsRouter);
+app.use(workerCommandsRouter);
+
+app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
+  console.error('API Router Error:', err);
+
+  if (!res.headersSent) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
 export const startApp = async (): Promise<import('http').Server | undefined> => {
   try {
-    app.get(`${baseUrl}/`, (_req: Request, res: Response) => {
-      res.send(`Podverse Management API is running on port ${port}`);
-    });
-
-    app.use(authRouter);
-    app.use(adminAccountRouter);
-
-    app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
-      console.error('API Router Error:', err);
-
-      if (!res.headersSent) {
-        res.status(500).json({ message: err.message });
-      }
-    });
-
     const server = app.listen(port, () => {
       // eslint-disable-next-line no-console
       console.log(`Podverse Management API is running on port ${port}`);

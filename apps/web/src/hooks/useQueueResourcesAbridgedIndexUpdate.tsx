@@ -46,47 +46,42 @@ export function useQueueResourcesAbridgedIndexUpdate() {
       return;
     }
 
-    const clip = mpClipRef.current;
-    const itemSoundbite = mpItemSoundbiteRef.current;
-    const item = mpItemRef.current;
-    const mpDuration = mpDurationRef.current;
-    const mpCurrentTime = mpCurrentTimeRef.current;
-
-    const progressValue = completed ? '0' : (mpCurrentTime?.toString() ?? '0');
+    const progressValue = completed ? '0' : (mpCurrentTimeRef.current?.toString() ?? '0');
 
     const updates: QueueResourceAbridgedUpdates = {
-      clip: clip
+      clip: mpClipRef.current
         ? {
-            i: clip.id,
+            i: mpClipRef.current.id,
             p: progressValue,
-            d: mpDuration?.toString() ?? '0',
+            d: mpDurationRef.current?.toString() ?? '0',
             z:
               completed !== undefined
                 ? completed
-                : queueResourcesAbridgedIndexRef.current.clips[clip.id]?.z === true,
+                : queueResourcesAbridgedIndexRef.current.clips[mpClipRef.current.id]?.z === true,
           }
         : null,
-      item_soundbite: itemSoundbite
+      item_soundbite: mpItemSoundbiteRef.current
         ? {
-            i: itemSoundbite.id,
+            i: mpItemSoundbiteRef.current.id,
             p: progressValue,
-            d: mpDuration?.toString() ?? '0',
+            d: mpDurationRef.current?.toString() ?? '0',
             z:
               completed !== undefined
                 ? completed
-                : queueResourcesAbridgedIndexRef.current.item_soundbites[itemSoundbite.id]?.z ===
-                  true,
+                : queueResourcesAbridgedIndexRef.current.item_soundbites[
+                    mpItemSoundbiteRef.current.id
+                  ]?.z === true,
           }
         : null,
-      item: item
+      item: mpItemRef.current
         ? {
-            i: item.id,
+            i: mpItemRef.current.id,
             p: progressValue,
-            d: mpDuration?.toString() ?? '0',
+            d: mpDurationRef.current?.toString() ?? '0',
             z:
               completed !== undefined
                 ? completed
-                : queueResourcesAbridgedIndexRef.current.items[item.id]?.z === true,
+                : queueResourcesAbridgedIndexRef.current.items[mpItemRef.current.id]?.z === true,
           }
         : null,
       add_by_rss_resource_data: null,

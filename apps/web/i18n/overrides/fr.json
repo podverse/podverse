@@ -289,7 +289,47 @@
       "failed_to_send": "",
       "error_details_heading": "",
       "retried_requests": "",
-      "retry_attempt": ""
+      "retry_attempt": "",
+      "mbrssV1_capability_loading_status": "",
+      "mbrssV1_capability_unavailable": "",
+      "login_required_to_send_boosts": "",
+      "mbrss_offline_modal_title": "",
+      "mbrss_offline_modal_body": "",
+      "mbrss_offline_continue": "",
+      "mint_rate_limit_modal_title": "",
+      "mint_rate_limit_wait_seconds": "",
+      "mint_rate_limit_wait_minutes": "",
+      "mint_rate_limit_preflight_error": "",
+      "sender_blocked_preflight_fallback": "",
+      "sender_blocked_modal_title": "",
+      "sender_blocked_modal_primary": "",
+      "sender_blocked_post_fallback": "",
+      "owner_terms_not_accepted_modal_title": "",
+      "owner_terms_not_accepted_modal_primary": "",
+      "owner_terms_not_accepted_post_fallback": "",
+      "metaboost_post_failed_modal_title": "",
+      "metaboost_post_failed_modal_primary": "",
+      "metaboost_post_failed_fallback": "",
+      "threshold_notice": "",
+      "currency_minor_units": {
+        "satoshis": ""
+      },
+      "threshold_below_minimum_modal_title": "",
+      "threshold_below_minimum_modal_body": "",
+      "threshold_send_without_message": "",
+      "threshold_missing_metadata": "",
+      "threshold_amount_unit_missing": "",
+      "threshold_amount_unit_invalid": "",
+      "threshold_conversion_unavailable": "",
+      "threshold_conversion_unavailable_guidance": "",
+      "baseline_estimate_tooltip_text": "",
+      "amount_input_invalid_number": "",
+      "amount_input_too_many_decimals": "",
+      "amount_input_not_supported": "",
+      "public_messages_loading": "",
+      "public_messages_unavailable": "",
+      "public_messages_empty": "",
+      "public_amount_btc_token": ""
     },
     "types": {
       "lightning": {
@@ -321,8 +361,13 @@
       "description": "",
       "example_heading": "",
       "example": "",
-      "boostbox_label": "",
-      "boostbox_url": ""
+      "page_intro": "",
+      "page_signup": "",
+      "page_rss_tag": "",
+      "page_open_standard": "",
+      "page_how_to_heading": "",
+      "page_how_to_creators": "",
+      "page_how_to_developers": ""
     }
   },
   "filters": {
@@ -416,6 +461,7 @@
   },
   "donate": {
     "title": "",
+    "boost_messages_heading": "",
     "app_donation_notice": "",
     "app_not_configured": "",
     "creator_donation_hint_prefix": "",

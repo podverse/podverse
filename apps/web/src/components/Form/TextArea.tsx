@@ -1,6 +1,7 @@
 import classNames from 'classnames';
 import type { AriaAttributes } from 'react';
 import React from 'react';
+import { FaSpinner } from 'react-icons/fa';
 
 import styles from '../../styles/components/Form/TextArea.module.scss';
 
@@ -27,6 +28,10 @@ type TextAreaProps = {
   'aria-describedby'?: string;
   'aria-required'?: AriaAttributes['aria-required'];
   'aria-invalid'?: AriaAttributes['aria-invalid'];
+  /** Centered spinner overlay over the textarea (e.g. mbrss-v1 capability loading). */
+  showLoadingOverlay?: boolean;
+  /** Accessible status for the loading overlay (e.g. translated string). */
+  loadingOverlayStatusText?: string;
 };
 
 export const TextArea: React.FC<TextAreaProps> = ({
@@ -51,6 +56,8 @@ export const TextArea: React.FC<TextAreaProps> = ({
   'aria-describedby': ariaDescribedBy,
   'aria-required': ariaRequired,
   'aria-invalid': ariaInvalid,
+  showLoadingOverlay = false,
+  loadingOverlayStatusText,
   ...rest
 }) => {
   const textAreaId = id || name || undefined;
@@ -65,32 +72,47 @@ export const TextArea: React.FC<TextAreaProps> = ({
 
   return (
     <div className={classNames(styles.wrapper, className)} style={style}>
-      <div className={styles.textAreaWrapper}>
+      <div
+        className={classNames(styles.textAreaWrapper, disabled && styles.textAreaWrapperDisabled)}
+      >
         <div className={styles.textInnerAreaWrapper}>
           {eyebrow && (
             <label htmlFor={textAreaId} className={styles.eyebrow}>
               {eyebrow}
             </label>
           )}
-          <textarea
-            id={textAreaId}
-            className={styles.textArea}
-            name={name}
-            value={value}
-            onChange={handleChange}
-            placeholder={placeholder}
-            disabled={disabled}
-            readOnly={readOnly}
-            rows={rows}
-            autoFocus={autoFocus}
-            tabIndex={tabIndex}
-            maxLength={maxLength}
-            aria-label={ariaLabel}
-            aria-describedby={info ? infoId : ariaDescribedBy}
-            aria-required={ariaRequired}
-            aria-invalid={ariaInvalid}
-            {...rest}
-          />
+          <div className={styles.textAreaFieldShell}>
+            <textarea
+              id={textAreaId}
+              className={styles.textArea}
+              name={name}
+              value={value}
+              onChange={handleChange}
+              placeholder={placeholder}
+              disabled={disabled}
+              readOnly={readOnly}
+              rows={rows}
+              autoFocus={autoFocus}
+              tabIndex={tabIndex}
+              maxLength={maxLength}
+              aria-label={ariaLabel}
+              aria-describedby={info ? infoId : ariaDescribedBy}
+              aria-required={ariaRequired}
+              aria-invalid={ariaInvalid}
+              aria-busy={showLoadingOverlay ? true : undefined}
+              {...rest}
+            />
+            {showLoadingOverlay && (
+              <div
+                className={styles.loadingOverlay}
+                role="status"
+                aria-live="polite"
+                aria-label={loadingOverlayStatusText}
+              >
+                <FaSpinner className={styles.loadingSpinner} aria-hidden />
+              </div>
+            )}
+          </div>
         </div>
       </div>
       {(info || typeof maxLength === 'number' || footerLeftContent) && (

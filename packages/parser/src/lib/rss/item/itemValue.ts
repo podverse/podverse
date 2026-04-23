@@ -4,7 +4,6 @@ import { hasValidFeedUuid } from '@podverse/helpers';
 import type { Channel, EntityManager, Item } from '@podverse/orm';
 import {
   ChannelService,
-  ItemValueMetaBoostService,
   ItemValueRecipientService,
   ItemValueService,
   ItemValueTimeSplitRecipientService,
@@ -22,7 +21,6 @@ export const handleParsedItemValue = async (
   const itemValueService = new ItemValueService(transactionalEntityManager);
   const itemValueDtos = compatItemValueDtos(parsedItem);
   const itemValueRecipientService = new ItemValueRecipientService(transactionalEntityManager);
-  const itemValueMetaBoostService = new ItemValueMetaBoostService(transactionalEntityManager);
   const itemValueTimeSplitService = new ItemValueTimeSplitService(transactionalEntityManager);
   const itemValueTimeSplitRecipientService = new ItemValueTimeSplitRecipientService(
     transactionalEntityManager
@@ -34,13 +32,6 @@ export const handleParsedItemValue = async (
   if (itemValueDtos.length > 0) {
     for (const itemValueDto of itemValueDtos) {
       const item_value = await itemValueService.update(item, itemValueDto.item_value);
-
-      const itemValueMetaBoostDto = itemValueDto.item_value_meta_boost;
-      if (itemValueMetaBoostDto) {
-        await itemValueMetaBoostService.update(item_value, itemValueMetaBoostDto);
-      } else {
-        await itemValueMetaBoostService.delete(item_value);
-      }
 
       const itemValueRecipientDtos = itemValueDto.item_value_recipients;
       if (itemValueRecipientDtos.length > 0) {

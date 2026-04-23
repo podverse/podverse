@@ -3,8 +3,25 @@
   "version": "5.4.12",
   "sideEffects": false,
   "description": "API client utilities for Podverse web application",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    },
+    "./outbound-requests": {
+      "types": "./dist/_requestOutbound.d.ts",
+      "import": "./dist/_requestOutbound.js",
+      "default": "./dist/_requestOutbound.js"
+    },
+    "./outbound-http-policy": {
+      "types": "./dist/outboundHttpPolicy.d.ts",
+      "import": "./dist/outboundHttpPolicy.js",
+      "default": "./dist/outboundHttpPolicy.js"
+    }
+  },
   "files": [
     "dist/**/*"
   ],
@@ -14,6 +31,7 @@
     "build:watch": "tsc --build --watch --preserveWatchOutput",
     "lint": "eslint ./src --max-warnings 0",
     "lint:fix": "eslint ./src --fix",
+    "test": "vitest run",
     "clean": "rm -rf dist",
     "type-check": "tsc --noEmit"
   },
@@ -23,7 +41,11 @@
   },
   "dependencies": {
     "@podverse/helpers": "*",
-    "axios": "^1.13.6"
+    "axios": "^1.13.6",
+    "ipaddr.js": "^1.9.1"
   },
-  "type": "module"
+  "type": "module",
+  "devDependencies": {
+    "vitest": "^3.2.4"
+  }
 }

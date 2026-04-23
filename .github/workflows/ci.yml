@@ -79,6 +79,13 @@ jobs:
         id: build-apps
         run: npm run build:apps
 
+      - name: Test (skipped in CI; run locally)
+        id: test
+        if: always()
+        run: |
+          echo "::warning::Tests are intentionally skipped in GitHub Actions for this workflow."
+          echo "::warning::Run tests locally before merge: make test_deps, then npm run test:unit, npm run test:e2e:api, and npm run test:e2e:web once those scripts exist (see AGENTS.md)."
+
       - name: Report success
         if: success()
         uses: actions/github-script@v8
@@ -99,6 +106,9 @@ jobs:
               '| Build packages | ✅ |',
               '| Lint (type-check, ESLint, Prettier) | ✅ |',
               '| Build apps | ✅ |',
+              '| Test | ⏭️ Skipped in CI (run locally) |',
+              '',
+              '> Reminder: run `make test_deps` and full test scripts locally before merging once they are wired (see AGENTS.md).',
               '',
               `[View full run](${process.env.RUN_URL})`
             ].join('\n');

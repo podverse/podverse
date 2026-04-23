@@ -33,7 +33,7 @@ export class StatsTrackEventPlaylistController {
           }
         });
       },
-      { skipMembershipStatus: false }
+      { skipMembershipStatus: false, noFreeTrial: true }
     );
   }
 }

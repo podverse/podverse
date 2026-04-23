@@ -97,15 +97,13 @@ export const MediaPlayerController: React.FC = () => {
     };
 
     const fetchAutoQueueResources = async () => {
-      const autoQueueResources = autoQueueResourcesRef.current;
-      const autoQueueActiveRow = autoQueueActiveRowRef.current;
-
       const isActiveRowHighestKey = checkIsActiveRowHighestKey(
-        autoQueueActiveRow,
-        autoQueueResources
+        autoQueueActiveRowRef.current,
+        autoQueueResourcesRef.current
       );
 
-      const isAutoQueueResourcesEmpty = Object.keys(autoQueueResources).map(Number).length === 0;
+      const isAutoQueueResourcesEmpty =
+        Object.keys(autoQueueResourcesRef.current).map(Number).length === 0;
 
       if (isActiveRowHighestKey || isAutoQueueResourcesEmpty) {
         if (mpItem?.id_text) {
@@ -300,9 +298,8 @@ export const MediaPlayerController: React.FC = () => {
   }, [activeQueueUpcomingResources]);
 
   useEffect(() => {
-    const autoQueueResources = autoQueueResourcesRef.current;
     if (autoQueueActiveRow || autoQueueActiveRow === 0) {
-      const newResource = autoQueueResources[autoQueueActiveRow];
+      const newResource = autoQueueResourcesRef.current[autoQueueActiveRow];
       if (newResource) {
         handleLoadAutoQueueItem(newResource);
       }

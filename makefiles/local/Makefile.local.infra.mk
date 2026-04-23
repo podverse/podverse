@@ -107,7 +107,7 @@ local_management_db_init: infra/config/local/db.env
 	  -e MANAGEMENT_SUPERUSER_PASSWORD="$$MANAGEMENT_SUPERUSER_PASSWORD" \
 	  -e DB_HOST="podverse_local_db" \
 	  -e DB_PORT="5432" \
-	  -e DB_DATABASE="$${POSTGRES_MANAGEMENT_DB:-podverse_management}" \
+	  -e DB_MANAGEMENT_NAME="$${POSTGRES_MANAGEMENT_DB:-podverse_management}" \
 	  -e POSTGRES_USER="$$POSTGRES_MANAGEMENT_USER" \
 	  -e POSTGRES_PASSWORD="$$POSTGRES_MANAGEMENT_PASSWORD" \
 	  node:24-slim \
@@ -162,5 +162,5 @@ local_teardown_apps:
 	$(MAKE) local_stop_all_apps
 	$(MAKE) local_prune_podverse_images
 
-# V4V/Lightning targets (local_ln_up, local_build_boostbox, etc.); run from repo root.
+# V4V/Lightning targets (local_ln_up, etc.); run from repo root.
 include makefiles/local/Makefile.local.v4v.mk

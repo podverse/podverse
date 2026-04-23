@@ -167,11 +167,11 @@ kubectl create secret generic "${SECRET_NAME}" \
   --from-literal=POSTGRES_MANAGEMENT_READ_PASSWORD="${POSTGRES_MANAGEMENT_READ_PASSWORD}" \
   --from-literal=POSTGRES_MANAGEMENT_READ_WRITE_USER="${POSTGRES_MANAGEMENT_READ_WRITE_USER}" \
   --from-literal=POSTGRES_MANAGEMENT_READ_WRITE_PASSWORD="${POSTGRES_MANAGEMENT_READ_WRITE_PASSWORD}" \
-  --from-literal=DB_DATABASE="${POSTGRES_MANAGEMENT_DB}" \
-  --from-literal=DB_READ_USERNAME="${POSTGRES_MANAGEMENT_READ_USER}" \
-  --from-literal=DB_READ_PASSWORD="${POSTGRES_MANAGEMENT_READ_PASSWORD}" \
-  --from-literal=DB_READ_WRITE_USERNAME="${POSTGRES_MANAGEMENT_READ_WRITE_USER}" \
-  --from-literal=DB_READ_WRITE_PASSWORD="${POSTGRES_MANAGEMENT_READ_WRITE_PASSWORD}" \
+  --from-literal=DB_MANAGEMENT_NAME="${POSTGRES_MANAGEMENT_DB}" \
+  --from-literal=DB_MANAGEMENT_READ_USER="${POSTGRES_MANAGEMENT_READ_USER}" \
+  --from-literal=DB_MANAGEMENT_READ_PASSWORD="${POSTGRES_MANAGEMENT_READ_PASSWORD}" \
+  --from-literal=DB_MANAGEMENT_READ_WRITE_USER="${POSTGRES_MANAGEMENT_READ_WRITE_USER}" \
+  --from-literal=DB_MANAGEMENT_READ_WRITE_PASSWORD="${POSTGRES_MANAGEMENT_READ_WRITE_PASSWORD}" \
   --from-literal=MANAGEMENT_SUPERUSER_EMAIL="${MANAGEMENT_SUPERUSER_EMAIL}" \
   --from-literal=MANAGEMENT_SUPERUSER_PASSWORD="${MANAGEMENT_SUPERUSER_PASSWORD}" \
   --dry-run=client -o yaml >"$TMP_FILE"
@@ -190,4 +190,4 @@ echo ""
 echo "You can apply the values (if you have the key) by running:"
 echo "sops -d ${OUTPUT_FILE} | kubectl apply -f -"
 echo ""
-echo "Note: If you had an existing management-db secret, re-apply after re-running this script so it contains DB_* and MANAGEMENT_* keys."
+echo "Note: If you had an existing management-db secret, re-apply after re-running this script so it contains DB_MANAGEMENT_* and superuser keys."

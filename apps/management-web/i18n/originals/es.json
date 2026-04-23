@@ -1,7 +1,7 @@
 {
   "app": {
-    "name": "Gestión de Podverse",
-    "description": "Interfaz de gestión administrativa para Podverse"
+    "name": "Gestión de {brand_name}",
+    "description": "Interfaz de gestión administrativa para {brand_name}"
   },
   "common": {
     "loading": "Cargando...",

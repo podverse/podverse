@@ -1,13 +1,17 @@
 'use client';
 
 import dynamic from 'next/dynamic';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import React from 'react';
 
 import type { TranscriptRow } from '@podverse/helpers';
+import { buildAddByRssBoostChannel } from '@podverse/parser-mapping';
 
 import { AddByRSSAlbumHeader } from '../../../components/AddByRSS/Artist/Album/AddByRSSAlbumHeader';
 import { AddByRSSTrackDetailHeader } from '../../../components/AddByRSS/Artist/Album/Track/AddByRSSTrackDetailHeader';
+import { BoostMessagesSection } from '../../../components/Boost/messages/BoostMessagesSection';
+import { useBoostMessagesView } from '../../../components/Boost/messages/useBoostMessagesView';
 import { CommonDetailListHeader } from '../../../components/Common/List/CommonDetailListHeader';
 import { CoreEpisodeSummary } from '../../../components/Core/Podcast/Episodes/CoreEpisodeSummary';
 import { DetailListWrapper } from '../../../components/List/DetailListWrapper';
@@ -25,7 +29,12 @@ import {
   getChaptersAndTranscriptUrls,
   setCachedChaptersTranscript,
 } from '../../../utils/addByRSS/chaptersTranscript';
-import { getAddByRSSFeedByIdText, getAddByRSSItemByIdText } from '../../../utils/addByRSS/storage';
+import {
+  getAddByRSSFeedByIdText,
+  getAddByRSSItemByGuid,
+  getAddByRSSItemByIdText,
+  getAddByRSSLivestreamByGuid,
+} from '../../../utils/addByRSS/storage';
 import { syncAddByRSSCacheWithServer } from '../../../utils/addByRSS/sync';
 import type { AddByRSSFeedRecord, AddByRSSItemIndexItem } from '../../../utils/addByRSS/types';
 import { getTranscriptRowsFromTranscriptString } from '../../../utils/transcript';
@@ -51,11 +60,25 @@ export const AddByRSSTrackItemPageClient: React.FC<AddByRSSTrackItemPageClientPr
   const tFeatures = useTranslations('features');
   const tInfo = useTranslations('info');
   const tMisc = useTranslations('misc');
+  const tValue = useTranslations('value');
+  const tV4VBoostMessages = useTranslations('v4v.boost_messages');
+  const pathname = usePathname();
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const { loggedInAccount } = useAccount();
   const [feed, setFeed] = React.useState<AddByRSSFeedRecord | null>(null);
   const [track, setTrack] = React.useState<AddByRSSItemIndexItem | null>(null);
   const [isLoading, setIsLoading] = React.useState(true);
-  const [selectedTab, setSelectedTab] = React.useState<'summary' | 'transcript'>('summary');
+  const initialType = React.useMemo<'summary' | 'boosts' | 'transcript'>(() => {
+    const typeParam = searchParams.get('type');
+    if (typeParam === 'boosts' || typeParam === 'transcript') {
+      return typeParam;
+    }
+    return 'summary';
+  }, [searchParams]);
+  const [selectedTab, setSelectedTab] = React.useState<'summary' | 'boosts' | 'transcript'>(
+    initialType
+  );
   const [transcriptRows, setTranscriptRows] = React.useState<TranscriptRow[]>([]);
   const [transcriptLoading, setTranscriptLoading] = React.useState(false);
   const [transcriptError, setTranscriptError] = React.useState<string | null>(null);
@@ -64,6 +87,62 @@ export const AddByRSSTrackItemPageClient: React.FC<AddByRSSTrackItemPageClientPr
     if (!track) return undefined;
     return getChaptersAndTranscriptUrls(track.bundle).transcriptUrl;
   }, [track]);
+  const boostChannel = React.useMemo(() => (feed ? buildAddByRssBoostChannel(feed) : null), [feed]);
+  const { canShowBoostTab, boostsPageFetcher, breadcrumbLinkResolver, refreshTrigger } =
+    useBoostMessagesView({
+      channel: boostChannel,
+      itemGuid: track?.itemGuid ?? null,
+      scopeType: 'track',
+      channelIdText: feed?.idText ?? null,
+      resolveChannelHref: (channelIdText) => `/add-by-rss/album/${channelIdText}`,
+      resolveItemIdTextByGuid: async (itemGuid) => {
+        const item = await getAddByRSSItemByGuid(itemGuid);
+        if (item?.idText) {
+          return item.idText;
+        }
+
+        const livestream = await getAddByRSSLivestreamByGuid(itemGuid);
+        return livestream?.idText ?? null;
+      },
+      resolveItemHref: (itemIdText) => `/add-by-rss/track/${itemIdText}`,
+    });
+
+  const handleTabSelect = React.useCallback(
+    (tab: 'summary' | 'boosts' | 'transcript') => {
+      setSelectedTab(tab);
+      const nextParams = new URLSearchParams(searchParams.toString());
+      if (tab === 'summary') {
+        nextParams.delete('type');
+      } else {
+        nextParams.set('type', tab);
+      }
+      const nextQuery = nextParams.toString();
+      router.replace(nextQuery === '' ? pathname : `${pathname}?${nextQuery}`, { scroll: false });
+    },
+    [pathname, router, searchParams]
+  );
+
+  React.useEffect(() => {
+    if (!canShowBoostTab && selectedTab === 'boosts') {
+      handleTabSelect('summary');
+    }
+  }, [canShowBoostTab, handleTabSelect, selectedTab]);
+
+  React.useEffect(() => {
+    if (searchParams.has('type')) {
+      setSelectedTab(initialType);
+    }
+  }, [initialType, searchParams]);
+
+  React.useEffect(() => {
+    if (selectedTab === 'transcript' && !transcriptUrl) {
+      handleTabSelect('summary');
+      return;
+    }
+    if (selectedTab === 'boosts' && boostsPageFetcher === null) {
+      handleTabSelect('summary');
+    }
+  }, [boostsPageFetcher, handleTabSelect, selectedTab, transcriptUrl]);
 
   React.useEffect(() => {
     let cancelled = false;
@@ -177,7 +256,7 @@ export const AddByRSSTrackItemPageClient: React.FC<AddByRSSTrackItemPageClientPr
 
   const tabData = React.useMemo(() => {
     const tabs: Array<{
-      key: 'summary' | 'transcript';
+      key: 'summary' | 'boosts' | 'transcript';
       label: string;
       onClick: () => void;
       zIndex: number;
@@ -185,20 +264,28 @@ export const AddByRSSTrackItemPageClient: React.FC<AddByRSSTrackItemPageClientPr
       {
         key: 'summary',
         label: tInfo('summary.summary'),
-        onClick: () => setSelectedTab('summary'),
+        onClick: () => handleTabSelect('summary'),
         zIndex: 1,
       },
     ];
+    if (canShowBoostTab) {
+      tabs.push({
+        key: 'boosts',
+        label: tValue('boost'),
+        onClick: () => handleTabSelect('boosts'),
+        zIndex: 2,
+      });
+    }
     if (transcriptUrl) {
       tabs.push({
         key: 'transcript',
         label: tInfo('transcript.lyrics'),
-        onClick: () => setSelectedTab('transcript'),
-        zIndex: 2,
+        onClick: () => handleTabSelect('transcript'),
+        zIndex: 1,
       });
     }
     return tabs;
-  }, [transcriptUrl, tInfo]);
+  }, [canShowBoostTab, handleTabSelect, tInfo, tValue, transcriptUrl]);
 
   if (isLoading) {
     return <LoadingSpinnerOverlay isLoading message={tMisc('loading_your_content')} />;
@@ -231,6 +318,14 @@ export const AddByRSSTrackItemPageClient: React.FC<AddByRSSTrackItemPageClientPr
           <DetailListWrapper>
             {selectedTab === 'summary' &&
               (description ? <CoreEpisodeSummary description={description} /> : null)}
+            {selectedTab === 'boosts' && boostsPageFetcher !== null && (
+              <BoostMessagesSection
+                heading={tV4VBoostMessages('title')}
+                pageFetcher={boostsPageFetcher}
+                breadcrumbLinkResolver={breadcrumbLinkResolver}
+                refreshTrigger={refreshTrigger}
+              />
+            )}
             {selectedTab === 'transcript' && (
               <>
                 {transcriptError ? (

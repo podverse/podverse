@@ -1,5 +1,9 @@
+'use client';
+
+import { useRouter } from 'next/navigation';
 import { FaCircleQuestion } from 'react-icons/fa6';
 
+import { useModals } from '../../contexts/Modals';
 import { IconButton } from '../Media/Header/IconButton';
 
 import styles from '../../styles/components/Boost/BoostForm.module.scss';
@@ -13,6 +17,8 @@ type BoostMessageNoticeProps = {
 };
 
 export const BoostMessageNotice = ({ tValue, isAppDonate = false }: BoostMessageNoticeProps) => {
+  const router = useRouter();
+  const { setModalBoost } = useModals();
   const notEnabledKey = isAppDonate
     ? 'boost_messages.not_enabled_app'
     : 'boost_messages.not_enabled';
@@ -21,7 +27,10 @@ export const BoostMessageNotice = ({ tValue, isAppDonate = false }: BoostMessage
     <div className={styles.boostMessageNotice}>
       <span>{tValue(notEnabledKey)}</span>
       <IconButton
-        href="/v4v/boost-messages"
+        onClick={() => {
+          setModalBoost({ channel: null, item: null });
+          router.push('/v4v/metaboost');
+        }}
         ariaLabel={moreInfoLabel}
         title={moreInfoLabel}
         color="secondary"

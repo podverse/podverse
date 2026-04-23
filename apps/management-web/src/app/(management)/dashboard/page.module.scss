@@ -1,0 +1,10 @@
+@use '../../../styles/theme/variables' as theme;
+
+.placeholderCard {
+  padding: theme.$spacing-xl;
+}
+
+.placeholderText {
+  font-size: theme.$font-size-lg;
+  color: theme.$color-text-secondary;
+}

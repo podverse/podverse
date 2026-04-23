@@ -111,13 +111,23 @@
  * live_item / live_item_status — POPULATED (07c: podcast:liveItem on channel)
  */
 
+import { faker } from '@faker-js/faker';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { faker } from '@faker-js/faker';
+
 import { generateGuidWithRandomVersion } from '@podverse/helpers';
+
 import { AssetGenerator, AUDIO_FREQ_MAX, AUDIO_FREQ_MIN } from './asset-generator.js';
 import { BASIC_AUTH_BASE_URL, BASIC_AUTH_SUBDIR, DEFAULT_ASSETS_BASE_URL } from './constants.js';
+import { buildChaptersForItem, buildChaptersJson } from './generate-feed-chapters.js';
+import {
+  confirmAddFakeValueTags,
+  getPositionalCount,
+  getValueFromConfig,
+  parseNumericArg,
+} from './generate-feed-cli-utils.js';
+import { type MultiConfig } from './generate-feed-cli-utils.js';
 import {
   BASIC_AUTH_FEED_FILENAME,
   BASIC_AUTH_FEED_ITEMS,
@@ -126,8 +136,8 @@ import {
   DEFAULT_MULTI,
   FEED_KINDS,
   IMAGE_SIZES,
-  ITUNES_CATEGORIES,
   ITEMS_PER_SEASON,
+  ITUNES_CATEGORIES,
   MAX_ASSETS_PER_TYPE,
   MAX_FEEDS,
   MIN_SEASONS,
@@ -138,15 +148,19 @@ import {
   SOCIAL_INTERACT_PROTOCOL,
   SOCIAL_INTERACT_URI,
 } from './generate-feed-constants.js';
+import { type FeedKind } from './generate-feed-constants.js';
 import {
-  confirmAddFakeValueTags,
-  getPositionalCount,
-  getValueFromConfig,
-  parseNumericArg,
-} from './generate-feed-cli-utils.js';
-import { type MultiConfig } from './generate-feed-cli-utils.js';
-import { buildChaptersForItem, buildChaptersJson } from './generate-feed-chapters.js';
+  type BuildFeedResult,
+  type RunGenerateFeedAndAssetsOptions,
+  type RunGenerateFeedAndAssetsResult,
+  type WrittenFeedInfo,
+} from './generate-feed-types.js';
 import { buildPodcastImagesSrcset, getImagePoolSize, pad3 } from './generate-feed-utils.js';
+import {
+  buildChannelMetaBoostTag,
+  buildChannelValueBlock,
+  buildItemValueBlock,
+} from './generate-feed-value-tags.js';
 import {
   buildLiveItemBlock,
   buildPublisherRemoteItemXml,
@@ -154,14 +168,6 @@ import {
   escapeXml,
   toRfc2822,
 } from './generate-feed-xml.js';
-import { buildChannelValueBlock, buildItemValueBlock } from './generate-feed-value-tags.js';
-import {
-  type BuildFeedResult,
-  type RunGenerateFeedAndAssetsOptions,
-  type RunGenerateFeedAndAssetsResult,
-  type WrittenFeedInfo,
-} from './generate-feed-types.js';
-import { type FeedKind } from './generate-feed-constants.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -499,6 +505,7 @@ function buildFeed(
     txtBlocks,
     channelSocialInteractTag,
     `<podcast:chat server="${escapeXml(chatServer)}" protocol="${chatProtocol}" accountId="${escapeXml(chatAccountId)}" space="${escapeXml(chatSpace)}" embedUrl="${escapeXml(chatEmbedUrl)}"/>`,
+    includeValueTags ? buildChannelMetaBoostTag() : '',
     includeValueTags ? buildChannelValueBlock(multiCount) : '',
     ...remoteItemPodrollPublisherBlocks,
     liveItemStatus !== undefined

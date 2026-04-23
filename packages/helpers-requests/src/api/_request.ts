@@ -114,6 +114,11 @@ import {
 import { reqItemTranscriptGet } from './itemTranscript/itemTranscript.js';
 import { reqLiveItemGetMany, reqLiveItemGetManyByChannel } from './liveItem/liveItem.js';
 import { reqMembershipGetPricing } from './membership/membership.js';
+import {
+  reqMetaboostMbrssV1MintAppAssertion,
+  type ReqMetaboostMbrssV1MintAppAssertionParams,
+  reqMetaboostMbrssV1MintRateLimitStatus,
+} from './metaboost/mbrssV1AppAssertion.js';
 import { reqMQRSSAddOnDemand, reqMQRSSRefreshOnDemand } from './mq/mq.js';
 import type { ReqPlaylistCreateParams, ReqPlaylistEditParams } from './playlist/playlist.js';
 import {
@@ -218,6 +223,13 @@ import {
   reqQueueResourceItemSoundbiteAddNowPlaying,
   reqQueueResourceItemSoundbiteDelete,
 } from './queue/queueResource/queueResourceItemSoundbite.js';
+import {
+  reqStatsTrackAccount,
+  reqStatsTrackChannel,
+  reqStatsTrackClip,
+  reqStatsTrackItem,
+  reqStatsTrackPlaylist,
+} from './stats/stats.js';
 
 export type {
   AddByRSSChapterResponse,
@@ -726,6 +738,16 @@ export class ApiRequestService {
     return reqMembershipGetPricing(this);
   }
 
+  /* METABOOST */
+
+  reqMetaboostMbrssV1MintRateLimitStatus() {
+    return reqMetaboostMbrssV1MintRateLimitStatus(this);
+  }
+
+  reqMetaboostMbrssV1MintAppAssertion(params: ReqMetaboostMbrssV1MintAppAssertionParams) {
+    return reqMetaboostMbrssV1MintAppAssertion(this, params);
+  }
+
   /* MQ */
 
   reqMQRSSAddOnDemand(params: { url: string; podcast_index_id: number }) {
@@ -1105,6 +1127,28 @@ export class ApiRequestService {
 
   reqQueueResourceItemSoundbiteDelete(queue_id_text: string, item_soundbite_id_text: string) {
     return reqQueueResourceItemSoundbiteDelete(this, queue_id_text, item_soundbite_id_text);
+  }
+
+  /* STATS TRACK */
+
+  reqStatsTrackAccount(account_id_text: string) {
+    return reqStatsTrackAccount(this, account_id_text);
+  }
+
+  reqStatsTrackChannel(channel_id_text: string) {
+    return reqStatsTrackChannel(this, channel_id_text);
+  }
+
+  reqStatsTrackClip(clip_id_text: string) {
+    return reqStatsTrackClip(this, clip_id_text);
+  }
+
+  reqStatsTrackItem(item_id_text: string) {
+    return reqStatsTrackItem(this, item_id_text);
+  }
+
+  reqStatsTrackPlaylist(playlist_id_text: string) {
+    return reqStatsTrackPlaylist(this, playlist_id_text);
   }
 
   /* PROFILE CONTENT */

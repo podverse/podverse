@@ -1,7 +1,10 @@
 import { useEffect, useState } from 'react';
 
 import type { DTOChannel, DTOItem } from '@podverse/helpers';
-import { toMetaBoost } from '@podverse/v4v-metaboost';
+import {
+  isPodverseMetaBoostCurrencySupported,
+  resolveMetaBoostFromApiValueMetadata,
+} from '@podverse/v4v-metaboost';
 
 type Translator = (key: string, values?: Record<string, string | number>) => string;
 
@@ -16,6 +19,17 @@ type UseBoostSelectionParams = {
 
 const getValueKey = (value: ChannelValue | ItemValue): string =>
   value.type === 'lightning' ? 'lightning' : `${value.type}_${value.method}`;
+
+const getSelectedValueCurrencyCode = (
+  selectedChannelValue?: ChannelValue,
+  selectedItemValue?: ItemValue
+): string | null => {
+  const selectedType = selectedChannelValue?.type ?? selectedItemValue?.type ?? null;
+  if (selectedType === 'lightning') {
+    return 'btc';
+  }
+  return null;
+};
 
 const buildButtonTabs = (
   values: ChannelValue[],
@@ -51,13 +65,9 @@ const mergeLightningChannelValues = (values: ChannelValue[]): ChannelValue[] => 
     (acc, value) => [...acc, ...value.channel_value_recipients],
     []
   );
-  const mergedMetaBoost =
-    lightningValues.find((value) => value.meta_boost !== null && value.meta_boost !== undefined)
-      ?.meta_boost ?? null;
   const mergedLightning: ChannelValue = {
     ...firstLightning,
     method: 'keysend',
-    meta_boost: mergedMetaBoost,
     channel_value_recipients: mergedRecipients,
   };
   const mergedValues: ChannelValue[] = [];
@@ -88,13 +98,9 @@ const mergeLightningItemValues = (values: ItemValue[]): ItemValue[] => {
     (acc, value) => [...acc, ...value.item_value_recipients],
     []
   );
-  const mergedMetaBoost =
-    lightningValues.find((value) => value.meta_boost !== null && value.meta_boost !== undefined)
-      ?.meta_boost ?? null;
   const mergedLightning: ItemValue = {
     ...firstLightning,
     method: 'keysend',
-    meta_boost: mergedMetaBoost,
     item_value_recipients: mergedRecipients,
   };
   const mergedValues: ItemValue[] = [];
@@ -135,19 +141,17 @@ export const useBoostSelection = ({ channel, item, tValue }: UseBoostSelectionPa
       (value) => selectedChannelValue && getValueKey(value) === getValueKey(selectedChannelValue)
     ) ?? itemValues[0];
 
+  const resolvedMetaBoost = resolveMetaBoostFromApiValueMetadata(channel.channel_meta_boost);
+  const selectedValueCurrencyCode = getSelectedValueCurrencyCode(
+    selectedChannelValue,
+    selectedItemValue
+  );
+
+  const supportsPodverseCurrency =
+    selectedValueCurrencyCode !== null &&
+    isPodverseMetaBoostCurrencySupported(selectedValueCurrencyCode);
   const metaBoost =
-    toMetaBoost(
-      selectedItemValue?.meta_boost?.type ?? null,
-      selectedItemValue?.meta_boost?.schema ?? null,
-      selectedItemValue?.meta_boost?.license ?? null,
-      selectedItemValue?.meta_boost?.node ?? null
-    ) ??
-    toMetaBoost(
-      selectedChannelValue?.meta_boost?.type ?? null,
-      selectedChannelValue?.meta_boost?.schema ?? null,
-      selectedChannelValue?.meta_boost?.license ?? null,
-      selectedChannelValue?.meta_boost?.node ?? null
-    );
+    resolvedMetaBoost !== null && supportsPodverseCurrency ? resolvedMetaBoost.metaBoost : null;
 
   const buttonTabs = buildButtonTabs(channelValues, tValue, setSelectedKey);
 

@@ -1,4 +1,3 @@
-import type { DTOValueMetaBoost } from '../valueMetaBoost.js';
 import type { DTOItemValueRecipient } from './itemValueRecipient.js';
 
 export interface DTOItemValue {
@@ -7,6 +6,5 @@ export interface DTOItemValue {
   type: string;
   method: string;
   suggested?: number | null;
-  meta_boost?: DTOValueMetaBoost | null;
   item_value_recipients: DTOItemValueRecipient[];
 }

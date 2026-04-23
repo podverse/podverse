@@ -1,13 +1,12 @@
 import { useTranslations } from 'next-intl';
 
-import type { MetaBoost } from '@podverse/v4v-metaboost';
-
 import { Link } from '../Link/Link';
 
 import styles from '../../styles/components/Boost/BoostForm.module.scss';
 
 type BoostMetaBoostInfoProps = {
-  metaBoost: MetaBoost;
+  boostNodeUrl: string;
+  termsOfServiceUrl: string | null;
 };
 
 function getDomainFromUrl(url: string): string {
@@ -18,17 +17,20 @@ function getDomainFromUrl(url: string): string {
   }
 }
 
-export const BoostMetaBoostInfo = ({ metaBoost }: BoostMetaBoostInfoProps) => {
+export const BoostMetaBoostInfo = ({
+  boostNodeUrl,
+  termsOfServiceUrl,
+}: BoostMetaBoostInfoProps) => {
   const tValue = useTranslations('value');
 
   return (
     <div className={styles.metaBoostInfo}>
-      {metaBoost.node && (
+      {boostNodeUrl !== '' && (
         <div>
           {tValue.rich('meta_boost.message_receive', {
-            domain: getDomainFromUrl(metaBoost.node),
+            domain: getDomainFromUrl(boostNodeUrl),
             link: (chunks) => (
-              <Link href={metaBoost.node ?? ''} target="_blank" rel="noopener noreferrer">
+              <Link href={boostNodeUrl} target="_blank" rel="noopener noreferrer">
                 {chunks}
               </Link>
             ),
@@ -36,10 +38,10 @@ export const BoostMetaBoostInfo = ({ metaBoost }: BoostMetaBoostInfoProps) => {
         </div>
       )}
       <div>
-        {metaBoost.license
+        {termsOfServiceUrl !== null && termsOfServiceUrl !== ''
           ? tValue.rich('meta_boost.terms_message', {
               link: (chunks) => (
-                <Link href={metaBoost.license ?? ''} target="_blank" rel="noopener noreferrer">
+                <Link href={termsOfServiceUrl} target="_blank" rel="noopener noreferrer">
                   {chunks}
                 </Link>
               ),

@@ -1,0 +1,158 @@
+@use '../../../styles/theme/variables' as theme;
+
+.filterRow {
+  display: flex;
+  flex-direction: column;
+  gap: theme.$spacing-sm;
+  margin-bottom: theme.$spacing-md;
+}
+
+.filterLabel {
+  font-size: theme.$font-size-xs;
+  color: theme.$color-text-secondary;
+}
+
+.filterInput {
+  max-width: 32rem;
+  width: 100%;
+  padding: theme.$spacing-sm theme.$spacing-md;
+  border: theme.$border-width solid theme.$color-border;
+  border-radius: theme.$border-radius-sm;
+  font-size: theme.$font-size-base;
+  background: theme.$color-background;
+  color: theme.$color-text-primary;
+}
+
+.countHint {
+  font-size: theme.$font-size-xs;
+  color: theme.$color-text-secondary;
+}
+
+.tableScroll {
+  overflow-x: auto;
+  border: theme.$border-width solid theme.$color-border;
+  border-radius: theme.$border-radius-md;
+}
+
+.dataTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: theme.$font-size-base;
+}
+
+.dataTable th,
+.dataTable td {
+  padding: theme.$spacing-sm theme.$spacing-md;
+  text-align: left;
+  vertical-align: top;
+  border-bottom: 1px solid theme.$color-border;
+}
+
+.dataTable th {
+  font-weight: 600;
+  color: theme.$color-text-secondary;
+  background: theme.$color-background-light;
+  white-space: nowrap;
+}
+
+.commandName {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: theme.$font-size-xs;
+  word-break: break-all;
+}
+
+.exampleCli {
+  display: block;
+  margin-top: theme.$spacing-xs;
+  max-width: 20rem;
+  font-size: theme.$font-size-xs;
+  word-break: break-word;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+.desc {
+  color: theme.$color-text-primary;
+  max-width: 28rem;
+}
+
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: theme.$spacing-xs;
+  align-items: flex-start;
+}
+
+.badgeNormal,
+.badgeLong,
+.badgeDev {
+  display: inline-block;
+  font-size: theme.$font-size-xs;
+  font-weight: 500;
+  padding: 0.1rem 0.45rem;
+  border-radius: theme.$border-radius-sm;
+  text-transform: capitalize;
+  white-space: nowrap;
+  color: theme.$color-text-primary;
+}
+
+.badgeNormal {
+  border: 1px solid theme.$color-border;
+}
+
+.badgeLong {
+  background: color-mix(in srgb, theme.$color-primary 12%, theme.$color-background);
+  border: 1px solid color-mix(in srgb, theme.$color-primary 35%, theme.$color-border);
+}
+
+.badgeDev {
+  background: color-mix(in srgb, theme.$color-text-secondary 20%, theme.$color-background);
+  border: 1px solid theme.$color-border;
+}
+
+.link {
+  color: theme.$color-primary;
+  text-decoration: none;
+  font-size: theme.$font-size-xs;
+}
+
+.link:hover {
+  text-decoration: underline;
+}
+
+.copyBtn {
+  font: inherit;
+  color: theme.$color-primary;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  text-align: left;
+  text-decoration: underline;
+}
+
+.copyBtn:disabled {
+  color: theme.$color-text-secondary;
+  cursor: default;
+  text-decoration: none;
+}
+
+.loadingText {
+  color: theme.$color-text-secondary;
+}
+
+.errorText {
+  color: theme.$color-error;
+}
+
+.restrictedText {
+  max-width: 40rem;
+  line-height: 1.5;
+  color: theme.$color-text-primary;
+}
+
+.intro {
+  margin: 0 0 theme.$spacing-md;
+  color: theme.$color-text-secondary;
+  line-height: 1.5;
+  max-width: 48rem;
+}

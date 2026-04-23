@@ -51,6 +51,8 @@ export const useBoostAppRecipients = ({
             name: appValueRecipient.name ?? null,
             custom_key: appValueRecipient.custom_key ?? null,
             custom_value: appValueRecipient.custom_value ?? null,
+            fee: false,
+            split: appValueRecipient.normalized_split,
             normalized_split: appValueRecipient.normalized_split,
             final_amount: appValueRecipient.final_amount,
           },

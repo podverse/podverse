@@ -288,8 +288,48 @@
       "successfully_sent": "Exitoso:",
       "failed_to_send": "Fallido:",
       "error_details_heading": "Detalles del error",
-      "retried_requests": "Reintentos de la solicitud de Dirección Lightning {count, plural, one {# vez} other {# veces}} antes de que fallara.",
-      "retry_attempt": "Reintento {number}: "
+      "retried_requests": "Volvimos a intentar la solicitud {count, plural, one {# vez} other {# veces}} antes de que fallara.",
+      "retry_attempt": "Reintento {number}: ",
+      "mbrssV1_capability_loading_status": "Comprobando disponibilidad de mensajes de refuerzo",
+      "mbrssV1_capability_unavailable": "Los mensajes de refuerzo no están disponibles para este creador en este momento debido a un problema del servidor, pero aún puedes usar el formulario para enviar una donación.",
+      "login_required_to_send_boosts": "Inicia sesión en {brand_name} para enviar boosts.",
+      "mbrss_offline_modal_title": "Recopilación de mensajes no disponible",
+      "mbrss_offline_modal_body": "El servidor de recopilación de mensajes parece estar fuera de línea. Si deseas enviar tu donación sin mensaje, pulsa Continuar.",
+      "mbrss_offline_continue": "Continuar",
+      "mint_rate_limit_modal_title": "Límite de mensajes de refuerzo",
+      "mint_rate_limit_wait_seconds": "Podrás enviar otro refuerzo con mensaje en {seconds, plural, one {# segundo} other {# segundos}}.",
+      "mint_rate_limit_wait_minutes": "Podrás enviar otro refuerzo con mensaje en {minutes, plural, one {# minuto} other {# minutos}}.",
+      "mint_rate_limit_preflight_error": "No se pudo comprobar el límite de envío de mensajes. Inténtalo de nuevo.",
+      "sender_blocked_preflight_fallback": "Has sido bloqueado para enviar mensajes a este destinatario.",
+      "sender_blocked_modal_title": "Mensaje no aceptado",
+      "sender_blocked_modal_primary": "Cerrar",
+      "sender_blocked_post_fallback": "Has sido bloqueado para enviar mensajes a este destinatario.",
+      "owner_terms_not_accepted_modal_title": "Mensaje no aceptado",
+      "owner_terms_not_accepted_modal_primary": "Cerrar",
+      "owner_terms_not_accepted_post_fallback": "Este creador no puede recibir metadatos de mensajes hasta que acepte los términos más recientes.",
+      "metaboost_post_failed_modal_title": "Mensaje no aceptado",
+      "metaboost_post_failed_modal_primary": "Cerrar",
+      "metaboost_post_failed_fallback": "Este servidor no pudo registrar el mensaje.",
+      "threshold_notice": "El importe mínimo de boost requerido por este creador es {minimumAmountDisplay}.",
+      "currency_minor_units": {
+        "satoshis": "{count, plural, one {sat} other {sats}}"
+      },
+      "threshold_below_minimum_modal_title": "Cantidad por debajo del mínimo para mensaje",
+      "threshold_below_minimum_modal_body": "Esta cantidad está por debajo del mínimo necesario para incluir un mensaje. ¿Quieres enviar este boost sin mensaje?",
+      "threshold_send_without_message": "Enviar sin mensaje",
+      "threshold_missing_metadata": "No se puede verificar el umbral del mensaje de refuerzo porque faltan metadatos de moneda requeridos.",
+      "threshold_amount_unit_missing": "No se puede verificar el umbral del mensaje de refuerzo porque faltan metadatos de unidad de cantidad.",
+      "threshold_amount_unit_invalid": "No se puede verificar el umbral del mensaje de refuerzo porque los metadatos de unidad de cantidad no son válidos.",
+      "threshold_conversion_unavailable": "La conversión del umbral del mensaje de refuerzo no está disponible temporalmente.",
+      "threshold_conversion_unavailable_guidance": "Inténtalo de nuevo en un momento, o continúa con una cantidad mayor para incluir un mensaje.",
+      "baseline_estimate_tooltip_text": "Esta estimación de conversión usa datos recientes de tipo de cambio y puede diferir cuando se liquide el pago. Verifica el tipo de cambio de forma independiente.",
+      "amount_input_invalid_number": "Ingresa una cantidad válida.",
+      "amount_input_too_many_decimals": "Esta cantidad permite hasta {decimals} decimales para {currency}.",
+      "amount_input_not_supported": "El formato de moneda no es compatible para {currency}.",
+      "public_messages_loading": "Cargando mensajes…",
+      "public_messages_unavailable": "Los mensajes de este servidor no están disponibles públicamente en este momento",
+      "public_messages_empty": "Aún no hay mensajes disponibles.",
+      "public_amount_btc_token": "BTC"
     },
     "types": {
       "lightning": {
@@ -317,12 +357,17 @@
   },
   "v4v": {
     "boost_messages": {
-      "title": "Mensajes de Refuerzo",
-      "description": "Para habilitar mensajes de refuerzo para tu contenido, añade la etiqueta RSS podcast:metaBoost a tu feed dentro de tu bloque podcast:value. Esta etiqueta indica a las aplicaciones dónde enviar mensajes opcionales de los oyentes (por ejemplo, a través de un servidor BoostBox). Sin ella, los oyentes aún pueden enviar pagos pero no pueden adjuntar un mensaje.",
+      "title": "Metaboost",
+      "description": "Para habilitar mensajes de refuerzo para tu contenido, añade la etiqueta RSS podcast:metaBoost a tu feed dentro de tu bloque podcast:value. Esta etiqueta indica a las aplicaciones dónde enviar mensajes opcionales de los oyentes. Sin ella, los oyentes aún pueden enviar pagos pero no pueden adjuntar un mensaje.",
       "example_heading": "Ejemplo de fragmento RSS con podcast:metaBoost",
-      "example": "'<'podcast:value type=\"lightning\" method=\"keysend\"'>'\n  '<'podcast:metaBoost schema=\"boostbox\"'>'https://your-boostbox.example/boost'<'/podcast:metaBoost'>'\n  '<'podcast:valueRecipient type=\"lnaddress\" address=\"you@example.com\" split=\"100\" /'>'\n'<'/podcast:value'>'",
-      "boostbox_label": "BoostBox en GitHub",
-      "boostbox_url": "https://github.com/noblepayne/boostbox"
+      "example": "'<'podcast:value type=\"lightning\" method=\"keysend\"'>'\n  '<'podcast:metaBoost standard=\"mbrss-v1\"'>'https://metaboost.example/boost'<'/podcast:metaBoost'>'\n  '<'podcast:valueRecipient type=\"lnaddress\" address=\"you@example.com\" split=\"100\" /'>'\n'<'/podcast:value'>'",
+      "page_intro": "Metaboost es software de código abierto y un estándar abierto para alojar mensajes de oyentes junto con los boosts value-for-value del podcast.",
+      "page_signup": "Si un podcast quiere que sus oyentes puedan adjuntar mensajes a los boosts en {brand_name}, puede registrarse en cualquier servidor Metaboost de código abierto (<link>metaboost.cc</link> es una opción, y está mantenida por {brand_name}).",
+      "page_rss_tag": "Metaboost ofrece al podcaster una etiqueta simple <rssTag>podcast:metaBoost</rssTag> que puede añadir a su RSS, lo que le permitirá empezar a recibir mensajes de refuerzo.",
+      "page_open_standard": "Como Metaboost es un estándar abierto, cualquier aplicación que adopte el estándar (no solo {brand_name}) puede enviar mensajes al endpoint Metaboost del podcaster.",
+      "page_how_to_heading": "Más sobre Metaboost",
+      "page_how_to_creators": "Guía para creadores",
+      "page_how_to_developers": "Guía para desarrolladores"
     }
   },
   "filters": {
@@ -416,6 +461,7 @@
   },
   "donate": {
     "title": "Donar",
+    "boost_messages_heading": "Boosts",
     "app_donation_notice": "Esta donación se enviará a {brand_name}.",
     "app_not_configured": "Las donaciones de la aplicación no están configuradas. Para habilitar donaciones a {brand_name}, configura Lightning LNAddress o Nodo en la configuración de la aplicación.",
     "creator_donation_hint_prefix": "Para donar a un podcaster o artista, usa el",
@@ -552,11 +598,11 @@
   },
   "about": {
     "title": "Acerca de",
-    "intro_text": "Podverse es un gestor de podcasts FOSS para iOS, Android, F-Droid y web.",
+    "intro_text": "{brand_name} es un gestor de podcasts FOSS para iOS, Android, F-Droid y web.",
     "download_app_store": "Descargar en la App Store",
     "download_google_play": "OBTENER EN Google Play",
     "download_f_droid": "OBTENER EN F-Droid",
-    "licensing_text": "Todo el software de Podverse se proporciona bajo una licencia de código abierto y libre (FOSS). Las funciones que requieren actualizar nuestros servidores están disponibles solo con una membresía Premium. Regístrate hoy y obtén una prueba gratuita de 3 meses. 🥳",
+    "licensing_text": "Todo el software de {brand_name} se proporciona bajo una licencia de código abierto y libre (FOSS). Las funciones que requieren actualizar nuestros servidores están disponibles solo con una membresía Premium. Regístrate hoy y obtén una prueba gratuita de 3 meses. 🥳",
     "features_title": "Funciones"
   },
   "checkout": {
@@ -666,11 +712,11 @@
   },
   "terms": {
     "terms": "Términos",
-    "never_sell_data": "Podverse nunca venderá ni compartirá datos privados de los usuarios.",
+    "never_sell_data": "{brand_name} nunca venderá ni compartirá datos privados de los usuarios.",
     "no_ads_without_permission": "Nunca pondremos anuncios al lado o dentro del contenido de un podcast sin el permiso de ese podcast.",
-    "audio_video_hosting": "Todos los archivos de audio o video encontrados en podverse.fm se cargan desde el propio servidor público del podcaster. No alojamos archivos de audio o video de podcasts nosotros mismos.",
+    "audio_video_hosting": "Todos los archivos de audio o video encontrados en {brand_domain} se cargan desde el propio servidor público del podcaster. No alojamos archivos de audio o video de podcasts nosotros mismos.",
     "third_party_feeds": "Alojamos enlaces y contenido de podcasts de fuentes y sitios de terceros. Estos tienen sus propias políticas de privacidad independientes, y no tenemos responsabilidad por su contenido o actividades.",
-    "clips_crowdsourced": "Todos los clips alojados en podverse.fm son obtenidos de forma colaborativa y no oficiales, a menos que el propio podcaster indique lo contrario.",
+    "clips_crowdsourced": "Todos los clips alojados en {brand_domain} son obtenidos de forma colaborativa y no oficiales, a menos que el propio podcaster indique lo contrario.",
     "clips_load_full_episode": "Los clips se cargan dentro del archivo de medios del episodio completo, por lo que el usuario siempre tiene acceso a la grabación completa.",
     "reduced_size_images": "También alojamos imágenes de podcasts de tamaño reducido de los feeds de los podcasters, para ahorrar datos de red del usuario y acelerar los tiempos de carga de la página."
   },

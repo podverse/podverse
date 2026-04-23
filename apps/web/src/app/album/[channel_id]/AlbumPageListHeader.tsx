@@ -23,15 +23,20 @@ import { getAlbumPageDropdownConfig } from './AlbumPageDropdownConfig';
 
 type AlbumPageListHeaderProps = {
   ssrHasPodroll?: boolean;
+  ssrCanShowBoosts: boolean;
 };
 
-export const AlbumPageListHeader: React.FC<AlbumPageListHeaderProps> = ({ ssrHasPodroll }) => {
+export const AlbumPageListHeader: React.FC<AlbumPageListHeaderProps> = ({
+  ssrHasPodroll,
+  ssrCanShowBoosts,
+}) => {
   const { filterParams, setFilterParams } = useAlbumPageContext();
   const { type, sort, range } = filterParams;
   const tFilters = useTranslations('filters');
   const tMedia = useTranslations('media');
   const tInfo = useTranslations('info');
   const tSettings = useTranslations('settings');
+  const tValue = useTranslations('value');
   const { loggedInAccount } = useAccount();
 
   const { sortMenuItems, rangeMenuItems, showRangeDropdown } = getAlbumPageDropdownConfig({
@@ -93,6 +98,16 @@ export const AlbumPageListHeader: React.FC<AlbumPageListHeaderProps> = ({ ssrHas
     hideDesktop: true,
     zIndex: 3,
   });
+
+  if (ssrCanShowBoosts) {
+    tabData.push({
+      key: 'boosts',
+      label: tValue('boost'),
+      onClick: () => handleTypeChange('boosts'),
+      hideDesktop: false,
+      zIndex: 2,
+    });
+  }
 
   if (ssrHasPodroll) {
     tabData.push({

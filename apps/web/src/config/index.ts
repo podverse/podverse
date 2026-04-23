@@ -13,6 +13,7 @@ const buildConfig = () => {
     public: {
       brand: {
         name: env.NEXT_PUBLIC_BRAND_NAME!,
+        domain: env.NEXT_PUBLIC_BRAND_DOMAIN!,
       },
       api: {
         ssr: {
@@ -42,6 +43,10 @@ const buildConfig = () => {
           address: opt(env.NEXT_PUBLIC_APP_VALUE_LIGHTNING_NODE_ADDRESS),
           custom_key: opt(env.NEXT_PUBLIC_APP_VALUE_LIGHTNING_NODE_CUSTOM_KEY),
           custom_value: opt(env.NEXT_PUBLIC_APP_VALUE_LIGHTNING_NODE_CUSTOM_VALUE),
+        },
+        metaboost: {
+          standard: opt(env.NEXT_PUBLIC_APP_VALUE_METABOOST_STANDARD),
+          node: opt(env.NEXT_PUBLIC_APP_VALUE_METABOOST_NODE),
         },
       },
       polling: {

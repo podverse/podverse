@@ -1,0 +1,101 @@
+/**
+ * Vitest setup: set test env before any module that reads process.env is loaded.
+ * Uses dedicated test databases (podverse_app_test, podverse_management_test) on port 5732.
+ * Valkey test instance on port 6679.
+ * All values are hardcoded so test runs are deterministic and not affected by ambient env.
+ * Ports 5732/6679 are Podverse test-only; dev uses 5432/6379; Metaboost test uses 5632/6579.
+ */
+
+const testEnv: Record<string, string> = {
+  NODE_ENV: 'test',
+  SERVER_ENV: 'development',
+  LOG_LEVEL: 'error',
+  LOG_DIR: '',
+  BRAND_NAME: 'PodverseTest',
+  USER_AGENT: '',
+  // Auth
+  AUTH_JWT_SECRET: '11111111-1111-4111-8111-111111111111',
+  AUTH_JWT_EXPIRES_IN: '365d',
+  AUTH_ALLOW_TOKEN_IN_RESPONSE_BODY: 'false',
+  // API
+  API_PORT: '29999',
+  API_PREFIX: '/api',
+  API_VERSION: '/v1',
+  COOKIE_DOMAIN: 'localhost',
+  API_ALLOWED_CORS_ORIGINS: 'http://localhost:3000',
+  // Database (test stack: port 5732)
+  DB_HOST: '127.0.0.1',
+  DB_PORT: '5732',
+  DB_READ_USERNAME: 'podverse_app_read',
+  DB_READ_PASSWORD: 'test',
+  DB_READ_WRITE_USERNAME: 'podverse_app_read_write',
+  DB_READ_WRITE_PASSWORD: 'test',
+  DB_DATABASE: 'podverse_app_test',
+  // Web
+  WEB_PROTOCOL: 'http',
+  WEB_DOMAIN: 'localhost',
+  // Message Queue (stubs — not needed for unit-level API tests)
+  MESSAGE_QUEUE_PROTOCOL: 'tcp',
+  MESSAGE_QUEUE_HOST: 'localhost',
+  MESSAGE_QUEUE_USERNAME: 'test',
+  MESSAGE_QUEUE_PASSWORD: 'test',
+  MESSAGE_QUEUE_PORT: '61616',
+  // Key-Value DB (test stack: port 6679)
+  KEYVALDB_HOST: '127.0.0.1',
+  KEYVALDB_PORT: '6679',
+  KEYVALDB_PASSWORD: '',
+  KEYVALDB_CACHE_TTL_SECONDS: '300',
+  // Mailer (disabled for tests)
+  MAILER_DISABLED: 'true',
+  MAILER_HOST: 'localhost',
+  MAILER_PORT: '1025',
+  MAILER_USERNAME: 'test',
+  MAILER_PASSWORD: 'test',
+  MAILER_FROM: 'test@localhost',
+  // Email
+  EMAIL_BRAND_COLOR: '#000000',
+  EMAIL_HEADER_IMAGE_URL: '',
+  EMAIL_CHANGE_VERIFICATION_PAGE_PATH: '/verify-email-change',
+  EMAIL_CHANGE_VERIFICATION_TOKEN_EXPIRATION: '3600',
+  // Legal
+  LEGAL_NAME: 'Test Legal',
+  LEGAL_ADDRESS: 'Test Address',
+  // PayPal (stubs)
+  PAYPAL_CLIENT_ID: 'test',
+  PAYPAL_CLIENT_SECRET: 'test',
+  // Podcast Index (stubs)
+  PODCAST_INDEX_AUTH_KEY: 'test',
+  PODCAST_INDEX_BASE_URL: 'https://api.podcastindex.org/api/1.8.1',
+  PODCAST_INDEX_SECRET_KEY: 'test',
+  // Social (stubs)
+  SOCIAL_FACEBOOK_PAGE_URL: '',
+  SOCIAL_FACEBOOK_IMAGE_URL: '',
+  SOCIAL_GITHUB_PAGE_URL: '',
+  SOCIAL_GITHUB_IMAGE_URL: '',
+  SOCIAL_REDDIT_PAGE_URL: '',
+  SOCIAL_REDDIT_IMAGE_URL: '',
+  SOCIAL_TWITTER_PAGE_URL: '',
+  SOCIAL_TWITTER_IMAGE_URL: '',
+  // Verify email
+  VERIFY_EMAIL_PAGE_PATH: '/verify-email',
+  VERIFY_EMAIL_TOKEN_EXPIRATION: '3600',
+  // Reset password
+  RESET_PASSWORD_PAGE_PATH: '/reset-password',
+  RESET_PASSWORD_TOKEN_EXPIRATION: '3600',
+  // Premium / signup
+  PREMIUM_COST_MONTHLY: '5',
+  PREMIUM_COST_ANNUALLY: '50',
+  ACCOUNT_SIGNUP_MODE: 'admin-only',
+  FREE_TRIAL_EXPIRATION: '30',
+  // V4V / Metaboost signing (stubs)
+  METABOOST_SIGNING_KEY_PEM: '',
+  METABOOST_APP_ASSERTION_ISS: '',
+  // Podcast feed
+  PODCAST_FEED_URL: '',
+  // Public base URL
+  API_PUBLIC_BASE_URL: 'http://localhost:29999',
+};
+
+for (const [key, value] of Object.entries(testEnv)) {
+  process.env[key] = value;
+}

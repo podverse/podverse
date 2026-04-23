@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion -- env vars validated at startup in lib/startup/validation.ts */
 
-import { getEffectiveUserAgent } from '@podverse/helpers';
+import { getEffectiveUserAgent, jwtExpiresInToMilliseconds } from '@podverse/helpers';
 
 type Config = {
   nodeEnv: string;
@@ -10,6 +10,9 @@ type Config = {
   };
   auth: {
     jwtSecret: string;
+    jwtExpiresIn: string;
+    sessionCookieMaxAgeMs: number;
+    allowTokenInResponseBody: boolean;
   };
   api: {
     port: number;
@@ -21,6 +24,16 @@ type Config = {
     allowedCORSOrigins: string[];
   };
   database: {
+    host: string;
+    port: number;
+    read_username: string;
+    read_password: string;
+    read_write_username: string;
+    read_write_password: string;
+    database: string;
+    ssl_connection: boolean;
+  };
+  appDatabase: {
     host: string;
     port: number;
     read_username: string;
@@ -46,9 +59,16 @@ export const config: Config = {
   log: {
     level: process.env.LOG_LEVEL!,
   },
-  auth: {
-    jwtSecret: process.env.AUTH_JWT_SECRET!,
-  },
+  auth: (() => {
+    const jwtExpiresIn = (process.env.AUTH_JWT_EXPIRES_IN ?? '365d').trim();
+
+    return {
+      jwtSecret: process.env.AUTH_JWT_SECRET!,
+      jwtExpiresIn,
+      sessionCookieMaxAgeMs: jwtExpiresInToMilliseconds(jwtExpiresIn),
+      allowTokenInResponseBody: process.env.AUTH_ALLOW_TOKEN_IN_RESPONSE_BODY === 'true',
+    };
+  })(),
   api: {
     port: parseInt(process.env.API_PORT!, 10),
     prefix: process.env.API_PREFIX!,
@@ -63,11 +83,21 @@ export const config: Config = {
   database: {
     host: process.env.DB_HOST!,
     port: parseInt(process.env.DB_PORT!, 10),
-    read_username: process.env.DB_READ_USERNAME!,
-    read_password: process.env.DB_READ_PASSWORD!,
-    read_write_username: process.env.DB_READ_WRITE_USERNAME!,
-    read_write_password: process.env.DB_READ_WRITE_PASSWORD!,
-    database: process.env.DB_DATABASE!,
+    read_username: process.env.DB_MANAGEMENT_READ_USER!,
+    read_password: process.env.DB_MANAGEMENT_READ_PASSWORD!,
+    read_write_username: process.env.DB_MANAGEMENT_READ_WRITE_USER!,
+    read_write_password: process.env.DB_MANAGEMENT_READ_WRITE_PASSWORD!,
+    database: process.env.DB_MANAGEMENT_NAME!,
+    ssl_connection: process.env.DB_SSL_CONNECTION === 'true',
+  },
+  appDatabase: {
+    host: process.env.DB_HOST!,
+    port: parseInt(process.env.DB_PORT!, 10),
+    read_username: process.env.DB_APP_READ_USER!,
+    read_password: process.env.DB_APP_READ_PASSWORD!,
+    read_write_username: process.env.DB_APP_READ_WRITE_USER!,
+    read_write_password: process.env.DB_APP_READ_WRITE_PASSWORD!,
+    database: process.env.DB_APP_NAME!,
     ssl_connection: process.env.DB_SSL_CONNECTION === 'true',
   },
   web: {

@@ -156,6 +156,15 @@ For local setup, these can be customized via `dev/env-overrides/local/socials.en
 - **`PAYPAL_CLIENT_ID`** (Optional) - PayPal client ID for payment processing
 - **`PAYPAL_CLIENT_SECRET`** (Optional) - PayPal client secret for payment processing
 
+### MetaBoost Standard Endpoint (mbrss-v1)
+
+Signing keys for [AppAssertion](https://github.com/podverse/metaboost/blob/main/docs/api/STANDARD-ENDPOINT-APP-SIGNING.md) JWTs minted by `POST /api/v2/metaboost/mbrss-v1/mint-app-assertion`. The public key must be registered in [metaboost-registry](https://github.com/v4v-io/metaboost-registry) for the same `app_id` as **`METABOOST_APP_ASSERTION_ISS`**.
+
+Clients must send an **authenticated Podverse session** (cookie or `Authorization` bearer JWT); mint returns **401** without a logged-in user. Signing env vars alone are not sufficient. The mint endpoint is rate-limited to **one mint per user per minute** (HTTP **429** when exceeded). **`GET /api/v2/metaboost/mbrss-v1/mint-app-assertion/rate-limit-status`** uses the same limit (peek only; does not consume a slot) and returns JSON including **`allowed`**, **`retryAfterMs`**, and **`timeUntilResetMs`** so clients can show wait time before attempting payment.
+
+- **`METABOOST_SIGNING_KEY_PEM`** (Optional; required together with **`METABOOST_APP_ASSERTION_ISS`** to enable minting) – Ed25519 private key in PKCS#8 PEM format. Use `\n` in the env file for newlines when storing on one line. If either this or **`METABOOST_APP_ASSERTION_ISS`** is unset, `POST .../mint-app-assertion` returns **503** with a message that Metaboost is not configured.
+- **`METABOOST_APP_ASSERTION_ISS`** (Optional; required together with **`METABOOST_SIGNING_KEY_PEM`** to enable minting) – `iss` claim / registered `app_id`. **No default.** Leave unset when this Podverse deployment does not use Metaboost AppAssertion. Startup validation treats the pair as optional but **fails** if exactly one of the two is set (set both or neither).
+
 ### Add-by-RSS
 
 Add-by-RSS allows users to follow RSS feeds (podcasts, music) not in the main directory. Optional HTTP Basic Auth credentials (username/password) can be provided when adding a feed; they are stored per-feed in the database (`account_following_add_by_rss_channel`).

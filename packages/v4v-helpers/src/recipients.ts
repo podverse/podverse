@@ -91,3 +91,19 @@ export const calculateRecipientAmounts = <T extends RecipientSplitInput>(
     final_amount: Math.floor((recipient.normalized_split / 100) * totalAmountToCreator),
   }));
 };
+
+/** Split key for ordering (prefer normalized integer percent when present). */
+export const recipientSplitSortKey = (recipient: {
+  normalized_split?: number;
+  split?: number;
+}): number => recipient.normalized_split ?? recipient.split ?? 0;
+
+/**
+ * Copy of recipients sorted by split descending (largest first). Used for payment send order.
+ * Equal splits keep relative order (stable sort).
+ */
+export const sortRecipientsBySplitDescending = <
+  T extends { normalized_split?: number; split?: number },
+>(
+  recipients: T[]
+): T[] => [...recipients].sort((a, b) => recipientSplitSortKey(b) - recipientSplitSortKey(a));

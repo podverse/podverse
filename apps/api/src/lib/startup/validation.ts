@@ -15,6 +15,73 @@ import {
   validateRequired,
 } from '@podverse/helpers-config';
 
+/** MetaBoost AppAssertion: optional, but if one signing var is set the other is required. */
+const validateMetaboostAppAssertionPair = (): ValidationResult[] => {
+  const trimEnv = (name: string): string => (process.env[name] ?? '').trim();
+  const pem = trimEnv('METABOOST_SIGNING_KEY_PEM');
+  const iss = trimEnv('METABOOST_APP_ASSERTION_ISS');
+  const pemSet = pem !== '';
+  const issSet = iss !== '';
+
+  if (!pemSet && !issSet) {
+    return [
+      {
+        name: 'METABOOST_SIGNING_KEY_PEM / METABOOST_APP_ASSERTION_ISS',
+        isSet: false,
+        isValid: true,
+        isRequired: false,
+        message: 'Skipped (MetaBoost AppAssertion optional)',
+        category: 'MetaBoost',
+      },
+    ];
+  }
+
+  if (pemSet && issSet) {
+    return [
+      {
+        name: 'METABOOST_SIGNING_KEY_PEM',
+        isSet: true,
+        isValid: true,
+        isRequired: false,
+        message: 'Set',
+        category: 'MetaBoost',
+      },
+      {
+        name: 'METABOOST_APP_ASSERTION_ISS',
+        isSet: true,
+        isValid: true,
+        isRequired: false,
+        message: 'Set',
+        category: 'MetaBoost',
+      },
+    ];
+  }
+
+  if (pemSet) {
+    return [
+      {
+        name: 'METABOOST_APP_ASSERTION_ISS',
+        isSet: false,
+        isValid: false,
+        isRequired: true,
+        message: 'Required when METABOOST_SIGNING_KEY_PEM is set',
+        category: 'MetaBoost',
+      },
+    ];
+  }
+
+  return [
+    {
+      name: 'METABOOST_SIGNING_KEY_PEM',
+      isSet: false,
+      isValid: false,
+      isRequired: true,
+      message: 'Required when METABOOST_APP_ASSERTION_ISS is set',
+      category: 'MetaBoost',
+    },
+  ];
+};
+
 /**
  * Validates critical environment variables and configuration at application startup.
  * This function runs early in the initialization process to catch configuration errors
@@ -56,6 +123,16 @@ const validateAllEnvironmentVariables = (): ValidationSummary => {
 
   // Auth & Security
   results.push(validateJwtSecret());
+  results.push(
+    validateOptional('AUTH_JWT_EXPIRES_IN', 'Auth & Security', 'Blank uses default (365d)')
+  );
+  results.push(
+    validateOptional(
+      'AUTH_ALLOW_TOKEN_IN_RESPONSE_BODY',
+      'Auth & Security',
+      'Blank/false: omit token from login JSON; true: allow token when client sends includeTokenInResponseBody'
+    )
+  );
   results.push(validateRequired('BRAND_NAME', 'Auth & Security'));
   results.push(validateUserAgent());
 
@@ -233,14 +310,12 @@ const validateAllEnvironmentVariables = (): ValidationSummary => {
     }
   }
 
-  // BoostBox (optional - local dev only; when set, overrides client-supplied baseUrl)
-  results.push(
-    validateOptional('BOOSTBOX_INTERNAL_BASE_URL', 'BoostBox', 'Use Default (client-supplied)')
-  );
-
   // PayPal (optional, but validated)
   results.push(validateOptional('PAYPAL_CLIENT_ID', 'PayPal'));
   results.push(validateOptional('PAYPAL_CLIENT_SECRET', 'PayPal'));
+
+  // MetaBoost AppAssertion (optional pair)
+  results.push(...validateMetaboostAppAssertionPair());
 
   // Defaults
   results.push(validateRequired('DEFAULT_ACCOUNT_SETTINGS_LOCALE', 'Defaults'));

@@ -1,6 +1,8 @@
+import type { BoostAction } from '@podverse/helpers';
+
 export const BLIP10_TLV_RECORD_KEY = '7629169';
 
-export type Blip10Action = 'boost' | 'stream' | 'auto';
+export type Blip10Action = BoostAction | 'auto';
 
 export type Blip10Metadata = {
   guid?: string;

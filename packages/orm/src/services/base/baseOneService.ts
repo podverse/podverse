@@ -1,14 +1,16 @@
 import { getDataSourceRead, getDataSourceReadWrite, getLoggerService } from '@orm/context.js';
 import { applyProperties } from '@orm/lib/applyProperties.js';
 import { hasDifferentValues } from '@orm/lib/hasDifferentValues.js';
-import { redactForLog } from '@orm/lib/redactForLog.js';
 import type {
   EntityManager,
+  EntityTarget,
   FindOneOptions,
   FindOptionsWhere,
   ObjectLiteral,
   Repository,
 } from 'typeorm';
+
+import { redactForLog } from '@podverse/helpers-backend';
 
 export class BaseOneService<T extends ObjectLiteral, K extends keyof T> {
   private parentEntityKey: K;
@@ -36,8 +38,25 @@ export class BaseOneService<T extends ObjectLiteral, K extends keyof T> {
     return this.repositoryRead.findOne({ where, ...config });
   }
 
+  private getWriteRepository(): Repository<T> {
+    if (this.transactionalEntityManager !== undefined) {
+      return this.transactionalEntityManager.getRepository(
+        this.repositoryReadWrite.target as EntityTarget<T>
+      );
+    }
+
+    return this.repositoryReadWrite;
+  }
+
+  private async _getForWrite(parentEntity: T[K], config?: FindOneOptions<T>): Promise<T | null> {
+    const where: FindOptionsWhere<T> = {
+      [this.parentEntityKey]: { id: parentEntity.id },
+    } as FindOptionsWhere<T>;
+    return this.getWriteRepository().findOne({ where, ...config });
+  }
+
   async _update(parentEntity: T[K], dto: Partial<T>, config?: FindOneOptions<T>): Promise<T> {
-    let entity = await this._get(parentEntity, config);
+    let entity = await this._getForWrite(parentEntity, config);
     const loggerService = getLoggerService();
 
     loggerService.debug(`parentEntityKey: ${this.parentEntityKey as string}`);
@@ -63,15 +82,13 @@ export class BaseOneService<T extends ObjectLiteral, K extends keyof T> {
     );
     loggerService.debug(`With DTO ${JSON.stringify(redactForLog(dto as Record<string, unknown>))}`);
 
-    return ((this.transactionalEntityManager as EntityManager) ?? this.repositoryReadWrite).save(
-      entity
-    );
+    return this.getWriteRepository().save(entity);
   }
 
   public async _delete(parentEntity: T[K]): Promise<void> {
-    const rowToDelete = await this._get(parentEntity);
+    const rowToDelete = await this._getForWrite(parentEntity);
     if (rowToDelete) {
-      await this.repositoryReadWrite.remove(rowToDelete);
+      await this.getWriteRepository().remove(rowToDelete);
     }
   }
 }

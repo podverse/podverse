@@ -1,21 +1,22 @@
-export const META_BOOST_TYPE_POST = 'post' as const;
-export const META_BOOST_SCHEMA_BOOSTBOX = 'boostbox' as const;
+import { getOwnPropertyValue, isObjectLike, toNonEmptyTrimmedString } from '@podverse/helpers';
 
-export type MetaBoostType = typeof META_BOOST_TYPE_POST;
-export type MetaBoostSchema = typeof META_BOOST_SCHEMA_BOOSTBOX;
+/** mbrss-v1 schema slug (RSS `standard="mbrss-v1"`, capability JSON `schema`). */
+export const META_BOOST_SCHEMA_MBRSS_V1 = 'mbrss-v1' as const;
+
+/** mb-v1 schema slug (non-RSS MetaBoost standard). */
+export const META_BOOST_SCHEMA_MB_V1 = 'mb-v1' as const;
+
+export type MetaBoostSchema = typeof META_BOOST_SCHEMA_MBRSS_V1 | typeof META_BOOST_SCHEMA_MB_V1;
 
 export type MetaBoost = {
-  type: MetaBoostType;
-  schema: MetaBoostSchema;
-  license?: string | null;
+  /** Normalized boost base URL (GET/POST capability + ingest). */
   node: string;
+  /** When resolved from `channel_meta_boost.standard` or inferred from the node URL path. */
+  standard?: 'mbrss-v1' | 'mb-v1';
 };
 
-export const isMetaBoostType = (value: unknown): value is MetaBoostType =>
-  value === META_BOOST_TYPE_POST;
-
 export const isMetaBoostSchema = (value: unknown): value is MetaBoostSchema =>
-  value === META_BOOST_SCHEMA_BOOSTBOX;
+  value === META_BOOST_SCHEMA_MBRSS_V1 || value === META_BOOST_SCHEMA_MB_V1;
 
 const normalizeMetaBoostUrl = (value: string): string | null => {
   try {
@@ -29,70 +30,33 @@ const normalizeMetaBoostUrl = (value: string): string | null => {
   }
 };
 
-export const isMetaBoost = (value: unknown): value is MetaBoost => {
-  if (typeof value !== 'object' || value === null) {
-    return false;
+/**
+ * Build runtime MetaBoost from a node URL string (e.g. RSS `<podcast:metaBoost>` text).
+ */
+export const createMetaBoostFromNode = (node: string | null | undefined): MetaBoost | null => {
+  if (node === null || node === undefined) {
+    return null;
   }
-
-  const type = Object.getOwnPropertyDescriptor(value, 'type')?.value;
-  const schema = Object.getOwnPropertyDescriptor(value, 'schema')?.value;
-  const license = Object.getOwnPropertyDescriptor(value, 'license')?.value;
-  const node = Object.getOwnPropertyDescriptor(value, 'node')?.value;
-
-  if (!isMetaBoostType(type) || !isMetaBoostSchema(schema)) {
-    return false;
+  const trimmed = toNonEmptyTrimmedString(node);
+  if (trimmed === null) {
+    return null;
   }
-
-  if (typeof node !== 'string' || node.trim().length === 0) {
-    return false;
+  const normalizedNode = normalizeMetaBoostUrl(trimmed);
+  if (normalizedNode === null) {
+    return null;
   }
-
-  const normalizedNode = normalizeMetaBoostUrl(node);
-  if (!normalizedNode) {
-    return false;
-  }
-
-  if (license !== undefined && license !== null) {
-    if (typeof license !== 'string') {
-      return false;
-    }
-    if (license.trim().length > 0 && !normalizeMetaBoostUrl(license)) {
-      return false;
-    }
-  }
-
-  return true;
+  return { node: normalizedNode };
 };
 
-export const toMetaBoost = (
-  type: string | null | undefined,
-  schema: string | null | undefined,
-  license: string | null | undefined,
-  node: string | null | undefined
-): MetaBoost | null => {
-  if (!type || !schema || !node) {
-    return null;
+export const isMetaBoost = (value: unknown): value is MetaBoost => {
+  if (!isObjectLike(value)) {
+    return false;
   }
-
-  if (!isMetaBoostType(type) || !isMetaBoostSchema(schema)) {
-    return null;
+  const node = getOwnPropertyValue(value, 'node');
+  const nodeString = toNonEmptyTrimmedString(node);
+  if (nodeString === null) {
+    return false;
   }
-
-  const normalizedNode = normalizeMetaBoostUrl(node);
-  if (!normalizedNode) {
-    return null;
-  }
-
-  const normalizedLicense =
-    license && license.trim().length > 0 ? normalizeMetaBoostUrl(license) : null;
-  if (license && !normalizedLicense) {
-    return null;
-  }
-
-  return {
-    type,
-    schema,
-    license: normalizedLicense,
-    node: normalizedNode,
-  };
+  const normalizedNode = normalizeMetaBoostUrl(nodeString);
+  return normalizedNode !== null;
 };

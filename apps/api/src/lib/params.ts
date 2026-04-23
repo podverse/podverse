@@ -1,5 +1,10 @@
 import type { Request } from 'express';
 
+import {
+  getParam as getParamFromBag,
+  getParamRequired as getParamRequiredFromBag,
+} from '@podverse/helpers-backend';
+
 /**
  * Safely extracts a route parameter from req.params as a string.
  *
@@ -12,12 +17,8 @@ import type { Request } from 'express';
  * @returns The parameter value as a string, or undefined if not present
  */
 export const getParam = (req: Request, key: string): string | undefined => {
-  const value = req.params[key];
-  if (value === undefined) {
-    return undefined;
-  }
-  // If it's an array (shouldn't happen with standard routes), take first element
-  return Array.isArray(value) ? value[0] : value;
+  const value = getParamFromBag(req.params as Record<string, unknown>, key);
+  return value === null ? undefined : value;
 };
 
 /**
@@ -28,10 +29,5 @@ export const getParam = (req: Request, key: string): string | undefined => {
  * @returns The parameter value as a string
  * @throws Error if parameter is missing
  */
-export const getParamRequired = (req: Request, key: string): string => {
-  const value = getParam(req, key);
-  if (value === undefined) {
-    throw new Error(`Required parameter '${key}' is missing`);
-  }
-  return value;
-};
+export const getParamRequired = (req: Request, key: string): string =>
+  getParamRequiredFromBag(req.params as Record<string, unknown>, key);

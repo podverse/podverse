@@ -13,6 +13,7 @@ import {
 import { generateRandomIdText } from '@podverse/orm';
 
 import type { AdminAccountCredentials } from './adminAccountCredentials.js';
+import type { AdminAccountPermissions } from './adminAccountPermissions.js';
 import type { AdminAccountRole } from './adminAccountRole.js';
 
 @Entity('admin_account')
@@ -38,6 +39,9 @@ export class AdminAccount {
 
   @OneToOne('AdminAccountCredentials', 'admin_account')
   admin_account_credentials!: AdminAccountCredentials;
+
+  @OneToOne('AdminAccountPermissions', 'admin_account', { nullable: true })
+  permissions?: AdminAccountPermissions | null;
 
   @BeforeInsert()
   generateIdText() {

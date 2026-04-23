@@ -15,7 +15,8 @@
  * checkmarks, summary, and a FATAL message with the list of missing required vars when validation
  * fails.
  *
- * **Adding a new command**: (1) Add the command to KNOWN_COMMANDS in commandNames.ts. (2) Add
+ * **Adding a new command**: (1) Add the command in `@podverse/worker-commands` (re-exported from
+ * commandNames). (2) Add
  * the command to the appropriate group(s) in categoriesForCommand.ts so it gets the right
  * categories. (3) Update apps/workers/ENV.md with that command's env requirements. (4) Ensure
  * index.ts only builds/creates the module contexts (ORM, MQ, Parser, etc.) that the command needs

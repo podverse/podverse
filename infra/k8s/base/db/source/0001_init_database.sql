@@ -1,4 +1,4 @@
--- Combined migrations generated Thu Mar 26 05:43:23 PM PDT 2026
+-- Combined migrations generated Thu Apr 23 01:17:28 CDT 2026
 -- DO NOT EDIT - regenerate with scripts/database/combine-migrations.sh
 
 -- Including: 0000_init_helpers.sql
@@ -1915,34 +1915,59 @@ CREATE TRIGGER set_updated_at_image_shrink_source
 
 
 -- Including: 0015_metaboost.sql
--- 0015: Add metaBoost tables linked to value records.
+-- 0015: Add channel-level metaBoost table (RSS podcast:metaBoost standard + node).
 
-ALTER TABLE channel_value
-    DROP COLUMN IF EXISTS meta_boost_schema,
-    DROP COLUMN IF EXISTS meta_boost_url;
-
-ALTER TABLE item_value
-    DROP COLUMN IF EXISTS meta_boost_schema,
-    DROP COLUMN IF EXISTS meta_boost_url;
-
-CREATE TABLE channel_value_meta_boost (
+CREATE TABLE channel_meta_boost (
     id serial PRIMARY KEY,
-    channel_value_id int NOT NULL REFERENCES channel_value(id) ON DELETE CASCADE,
-    type varchar_short NOT NULL,
-    schema varchar_short NOT NULL,
-    license varchar_url,
+    channel_id int NOT NULL REFERENCES channel(id) ON DELETE CASCADE,
+    standard varchar_short NOT NULL,
     node varchar_url NOT NULL,
-    UNIQUE (channel_value_id)
+    UNIQUE (channel_id)
 );
 
-CREATE TABLE item_value_meta_boost (
-    id serial PRIMARY KEY,
-    item_value_id int NOT NULL REFERENCES item_value(id) ON DELETE CASCADE,
-    type varchar_short NOT NULL,
-    schema varchar_short NOT NULL,
-    license varchar_url,
-    node varchar_url NOT NULL,
-    UNIQUE (item_value_id)
+
+-- Including: 0016_account_metaboost.sql
+-- 0016: Stable per-account sender_guid for MetaBoost mbrss-v1 (never exposed on public Podverse APIs).
+
+CREATE TABLE account_metaboost (
+    account_id integer NOT NULL PRIMARY KEY REFERENCES account(id) ON DELETE CASCADE,
+    sender_guid uuid NOT NULL UNIQUE
 );
+
+CREATE INDEX idx_account_metaboost_sender_guid ON account_metaboost(sender_guid);
+
+
+-- Including: 0017_feed_flag_status_reason.sql
+-- 0017 migration
+
+-- Feed Flag Status Reason lookup table
+-- Predefined reasons for why a feed flag status was set (especially for takedown/moderation).
+CREATE TABLE feed_flag_status_reason (
+    id SERIAL PRIMARY KEY,
+    reason TEXT UNIQUE NOT NULL,
+    created_at server_time_with_default,
+    updated_at server_time_with_default
+);
+
+CREATE TRIGGER set_updated_at_feed_flag_status_reason
+BEFORE UPDATE ON feed_flag_status_reason
+FOR EACH ROW
+EXECUTE FUNCTION set_updated_at_field();
+
+-- Seed predefined reasons
+INSERT INTO feed_flag_status_reason (reason) VALUES
+    ('copyright'),
+    ('illegal_content'),
+    ('spam'),
+    ('malware'),
+    ('dead_feed'),
+    ('owner_request'),
+    ('other');
+
+-- Add reason columns to the feed table
+ALTER TABLE feed ADD COLUMN feed_flag_status_reason_id INTEGER REFERENCES feed_flag_status_reason(id);
+ALTER TABLE feed ADD COLUMN feed_flag_status_reason_note TEXT;
+
+CREATE INDEX idx_feed_feed_flag_status_reason_id ON feed(feed_flag_status_reason_id);
 
 

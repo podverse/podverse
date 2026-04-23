@@ -2,6 +2,8 @@ import type { DTOChannel, DTOChannelValue } from '@podverse/helpers';
 
 import type { AddByRSSMappedFeed } from './types.js';
 
+type MappedChannelBundle = AddByRSSMappedFeed['channel'];
+
 /** Feed record with mapped feed for boost channel building (parser-mapping shape). */
 export type AddByRSSFeedRecordWithMapped = {
   id: number;
@@ -13,14 +15,13 @@ export type AddByRSSFeedRecordWithMapped = {
   [key: string]: unknown;
 };
 
-const mapChannelValues = (feed: AddByRSSFeedRecordWithMapped): DTOChannelValue[] => {
-  const values = feed.mappedFeed?.channel?.value ?? [];
+const mapChannelValues = (mapped: MappedChannelBundle | undefined): DTOChannelValue[] => {
+  const values = mapped?.value ?? [];
   return values.map((value, index) => ({
     id: index + 1,
     type: value.channel_value.type,
     method: value.channel_value.method,
     suggested: value.channel_value.suggested ?? null,
-    meta_boost: value.channel_value_meta_boost ?? null,
     channel_value_recipients: value.channel_value_recipients.map((recipient, recipientIndex) => ({
       id: recipientIndex + 1,
       type: recipient.type,
@@ -44,12 +45,13 @@ const getHasValueTimeSplits = (feed: AddByRSSFeedRecordWithMapped): boolean => {
 export const buildAddByRssBoostChannel = (
   feed: AddByRSSFeedRecordWithMapped
 ): DTOChannel | null => {
-  const mappedChannel = feed.mappedFeed?.channel?.channel;
+  const mapped = feed.mappedFeed?.channel;
+  const mappedChannel = mapped?.channel;
   if (!mappedChannel) {
     return null;
   }
 
-  const channelValues = mapChannelValues(feed);
+  const channelValues = mapChannelValues(mapped);
 
   return {
     id: feed.id,
@@ -62,6 +64,7 @@ export const buildAddByRssBoostChannel = (
     medium_id: mappedChannel.medium_id ?? 0,
     has_podcast_index_value: channelValues.length > 0,
     has_value_time_splits: getHasValueTimeSplits(feed),
+    channel_meta_boost: mapped.meta_boost ?? null,
     channel_values: channelValues,
   };
 };

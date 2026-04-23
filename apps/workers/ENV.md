@@ -6,7 +6,7 @@ The `podverse-workers` application uses environment variables to configure vario
 
 ### Build requirement
 
-Worker commands run the built output (`node ./dist/index.js <command>`). You must build before running any command: from repo root run `npm run build:packages`, then from `apps/workers` run `npm run build` (or run both from root so packages and workers are built). This matches how the API is run (build then node). Environment variables are loaded from `.env` in development (production expects them in the environment). This repo consumes multiple modules (ORM, Parser, External Services, Notifications); the variables below are used to build the configuration objects passed to those module factories.
+Worker commands run the built output (`node ./dist/index.js <command>`). You must build before running any command: from repo root run `npm run build:packages`, then from `apps/workers` run `npm run build` (or run both from root so packages and workers are built). This matches how the API is run (build then node). In development, environment variables are loaded from `apps/workers/.env` (path is resolved from the built entry file, not the shell’s current directory, so `node apps/workers/dist/index.js` from the monorepo root still works). If that file is missing, the loader falls back to a `.env` at the monorepo root. Production expects variables in the environment. This repo consumes multiple modules (ORM, Parser, External Services, Notifications); the variables below are used to build the configuration objects passed to those module factories.
 
 ## Per-command validation
 
@@ -28,7 +28,7 @@ The workers app validates environment variables **per command**. Each job only v
 | Base + MQ                           | Base, MQ                                 | devPiBulkFeedsAddFromFile                                   |
 | Base + ORM + MQ + Podcast Index     | Base, ORM, MQ, PodcastIndex              | mqRSSAdd                                                    |
 | Base + MQ + Parser + KeyValDB       | Base, MQ, Parser, KeyValDB               | mqAddByRSSRunParser                                         |
-| Base + ORM + MQ + Parser + PI + Web | Base, ORM, MQ, Parser, PodcastIndex, Web | parserRSSParseFeed                                          |
+| Base + ORM + MQ + Parser + PI + Web | Base, ORM, MQ, Parser, PodcastIndex, Web | parserRSSParseFeed, devParserRSSParseTrendingFeeds          |
 | Base + ORM + MQ + Image Shrink      | Base, ORM, MQ, ImageShrink               | imageShrinkRunConsumer, imageShrinkBackfill                 |
 | Base + ORM + Image Shrink           | Base, ORM, ImageShrink                   | imageShrinkCleanupOrphans, imageShrinkSourcePrune           |
 | Full stack                          | Base, ORM, MQ, Parser, PodcastIndex, Web | mqRSSRunParser, mqRSSRunLiveItemListener                    |
@@ -86,7 +86,9 @@ These variables are required only for commands that include the Podcast Index ca
 - **`PODCAST_INDEX_BASE_URL`** (Required) - Podcast Index API base URL
 - **`PODCAST_INDEX_SECRET_KEY`** (Required) - Podcast Index API secret key
 - **`PODCAST_INDEX_API_RATE_LIMIT_DELAY`** (Optional) - Rate limit delay in milliseconds for
-  Podcast Index API requests
+  Podcast Index API requests. For **`devParserRSSParseTrendingFeeds`**, the same delay is also
+  applied between trending fetches and between per-feed parse steps, so long runs (many feeds)
+  stay within polite bounds when set to a non-zero value.
 
 ## Message Queue (commands that use MQ)
 

@@ -83,3 +83,13 @@ BEGIN
 
     RAISE NOTICE 'Local dev account created: localdev@example.com / Test!1Aa (id: %)', new_account_id;
 END $$;
+
+-- Stable sender_guid for MetaBoost mbrss-v1 (matches signup). Idempotent: fixes pre-existing
+-- localdev rows created before account_metaboost existed, and runs after new-account creation above.
+INSERT INTO account_metaboost (account_id, sender_guid)
+SELECT ac.account_id, gen_random_uuid()
+FROM account_credentials ac
+WHERE ac.email = 'localdev@example.com'
+  AND NOT EXISTS (
+    SELECT 1 FROM account_metaboost am WHERE am.account_id = ac.account_id
+  );

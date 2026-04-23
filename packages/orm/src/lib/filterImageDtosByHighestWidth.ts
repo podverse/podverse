@@ -3,6 +3,7 @@ interface FilterImageDto {
   image_width_size: number | null;
 }
 
+/** Intentionally local: DTO/image merge semantics are ORM-adjacent; keep here until a second non-ORM caller exists. */
 export function filterDtosByHighestWidth<T extends FilterImageDto>(dtos: Partial<T>[]): T[] {
   const dtoMap = new Map<string, T>();
 

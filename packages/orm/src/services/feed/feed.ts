@@ -1,9 +1,11 @@
 import { AppDataSourceRead, AppDataSourceReadWrite } from '@orm/db/index.js';
 import { Feed } from '@orm/entities/feed/feed.js';
 import { FeedFlagStatusStatusEnum } from '@orm/entities/feed/feedFlagStatus.js';
+import type { FeedFlagStatusReasonEnum } from '@orm/entities/feed/feedFlagStatusReason.js';
 import { applyProperties } from '@orm/lib/applyProperties.js';
 
-import { FeedFlagStatusService } from './feedFlagStatus.js';
+import { computeParsingStaleBefore, deriveHttpsAndHttpUrlsFromInput } from './feed.helpers.js';
+import { FeedFlagStatusReasonService, FeedFlagStatusService } from './feedFlagStatus.js';
 
 type FeedCreateDto = {
   url: string;
@@ -16,6 +18,11 @@ type FeedUpdateDto = {
   parsing_priority?: number;
   last_parsed_file_hash?: string | null;
   container_id?: string | null;
+};
+
+type UpdateFlagStatusOptions = {
+  feed_flag_status_reason_id?: FeedFlagStatusReasonEnum;
+  feed_flag_status_reason_note?: string;
 };
 
 export class FeedService {
@@ -47,9 +54,7 @@ export class FeedService {
   }
 
   async getByUrl({ url }: { url: string }): Promise<Feed | null> {
-    const base = url.replace(/^https?:\/\//i, '');
-    const httpsUrl = `https://${base}`;
-    const httpUrl = `http://${base}`;
+    const { httpsUrl, httpUrl } = deriveHttpsAndHttpUrlsFromInput(url);
 
     const httpsFeed = await this.repositoryRead.findOne({
       where: {
@@ -158,7 +163,25 @@ export class FeedService {
     return this.repositoryReadWrite.save(feed);
   }
 
-  async updateFlagStatus(feed: Feed, feed_flag_status_id: FeedFlagStatusStatusEnum): Promise<Feed> {
+  async tryStartParsing(id: number, maxParsingAgeMinutes = 15): Promise<boolean> {
+    const parsingStaleBefore = computeParsingStaleBefore(Date.now(), maxParsingAgeMinutes);
+    const now = new Date();
+    const result = await this.repositoryReadWrite
+      .createQueryBuilder()
+      .update(Feed)
+      .set({ is_parsing: now })
+      .where('id = :id', { id })
+      .andWhere('(is_parsing IS NULL OR is_parsing < :parsingStaleBefore)', { parsingStaleBefore })
+      .execute();
+
+    return (result.affected ?? 0) > 0;
+  }
+
+  async updateFlagStatus(
+    feed: Feed,
+    feed_flag_status_id: FeedFlagStatusStatusEnum,
+    options?: UpdateFlagStatusOptions
+  ): Promise<Feed> {
     const feedFlagStatusService = new FeedFlagStatusService();
     const feed_flag_status = await feedFlagStatusService.get(feed_flag_status_id);
 
@@ -167,6 +190,21 @@ export class FeedService {
     }
 
     feed.feed_flag_status = feed_flag_status;
+
+    if (options?.feed_flag_status_reason_id !== undefined) {
+      const reasonService = new FeedFlagStatusReasonService();
+      const reason = await reasonService.get(options.feed_flag_status_reason_id);
+      if (!reason) {
+        throw new Error(
+          `FeedService.updateFlagStatus: reason ${options.feed_flag_status_reason_id} not found`
+        );
+      }
+      feed.feed_flag_status_reason = reason;
+    } else {
+      feed.feed_flag_status_reason = null;
+    }
+
+    feed.feed_flag_status_reason_note = options?.feed_flag_status_reason_note ?? null;
 
     return this.repositoryReadWrite.save(feed);
   }

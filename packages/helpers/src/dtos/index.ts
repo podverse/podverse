@@ -7,8 +7,6 @@ export * from './membershipClaimToken.js';
 export * from './onDemandParserEvent.js';
 export * from './queueExtraParams.js';
 export * from './sharableStatus.js';
-export * from './valueMetaBoost.js';
-
 export * from './account/account.js';
 export * from './account/accountAppStorePurchase.js';
 export * from './account/accountCredentials.js';
@@ -46,6 +44,7 @@ export * from './channel/channelInternalSettings.js';
 export * from './channel/channelItunesType.js';
 export * from './channel/channelLicense.js';
 export * from './channel/channelLocation.js';
+export * from './channel/channelMetaBoost.js';
 export * from './channel/channelPerson.js';
 export * from './channel/channelPodroll.js';
 export * from './channel/channelPodrollRemoteItem.js';

@@ -8,6 +8,7 @@ import { mqRSSRunParser } from '@workers/commands/mq/rss/runParser.js';
 import { reencryptAddByRSSCredentials } from '@workers/commands/orm/addByRSS/reencryptCredentials.js';
 import { ormFeedUpdateFlagStatus } from '@workers/commands/orm/feed/updateFlagStatus.js';
 import { parserRSSParseFeed } from '@workers/commands/parser/rss/parseFeed.js';
+import { devParserRSSParseTrendingFeeds } from '@workers/commands/parser/rss/parseTrendingFeeds.js';
 import {
   podcastIndexDeadFeedsDeleteCache,
   podcastIndexDeadFeedsFlagAndMerge,
@@ -33,6 +34,7 @@ export default {
   ormFeedUpdateFlagStatus,
   reencryptAddByRSSCredentials,
   parserRSSParseFeed,
+  devParserRSSParseTrendingFeeds,
   podcastIndexDeadFeedsDeleteCache,
   podcastIndexDeadFeedsFlagAndMerge,
   podcastIndexTrendingPodcastsGet,

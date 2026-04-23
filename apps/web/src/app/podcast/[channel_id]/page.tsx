@@ -63,6 +63,8 @@ export default async function PodcastPage({ params, searchParams }: PodcastPageP
 
   if (currentType === 'clips') {
     ssrClips = [];
+  } else if (currentType === 'boosts') {
+    ssrTotalPages = 1;
   } else if (currentType === 'soundbites' && currentSort !== 'top') {
     ssrTotalPages = getCurrentTotalPages({ currentType, responseItemSoundbites, currentPage });
   } else {

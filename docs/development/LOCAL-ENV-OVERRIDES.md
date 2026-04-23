@@ -13,8 +13,10 @@ canonical place for override values is `~/.config/podverse/local-env-overrides/`
    make local_env_prepare
    ```
 
-   This creates (or leaves unchanged) files in `~/.config/podverse/local-env-overrides/` from
-   `dev/env-overrides/local/*.env.example`. It does not create any files in the repo.
+   This ensures files exist in `~/.config/podverse/local-env-overrides/` by copying each missing
+   file from `dev/env-overrides/local/*.env.example`. For files that already exist, it **appends**
+   any keys present in the example but missing from your home copy (defaults from the example line;
+   existing `KEY=` lines are never overwritten). It does not create any files in the repo.
 
 2. **Edit** — Fill in your private or external values (API keys, encryption key, etc.) in the
    files under that home directory.
@@ -59,8 +61,8 @@ examples when they are missing. Then edit the home directory and run `make local
 
 - Git work trees and separate clones do not share untracked or ignored files.
 - `dev/env-overrides/local/*.env` are gitignored, so each new work tree has no override files.
-- Re-running `make local_env_prepare` only creates fresh copies from examples, forcing you to
-  re-enter values everywhere.
+- Re-running `make local_env_prepare` does **not** replace your home override files wholesale; it
+  creates missing files from examples and merges **missing** keys from examples into existing files.
 
 By keeping the real override files in a directory under your home and symlinking
 `dev/env-overrides/local/*.env` to that directory, every work tree (and the main repo) uses the
@@ -175,7 +177,8 @@ different subsets.
 | app.env                  | API + Workers + Management API (LOG_DIR); API (ACCOUNT_SIGNUP_MODE); Web (NEXT_PUBLIC_ACCOUNT_SIGNUP_MODE from ACCOUNT_SIGNUP_MODE).                                   |
 | brand.env                | api/web = BRAND_NAME; mgmt api/mgmt web = MANAGEMENT_BRAND_NAME. Do not set NEXT_PUBLIC_BRAND_NAME in overrides.                                                       |
 | email-template.env       | API only                                                                                                                                                               |
-| lightning.env            | Web only                                                                                                                                                               |
+| lightning.env            | Web only (Lightning LNAddress / node app-value vars)                                                                                                                   |
+| metaboost.env            | Web (`NEXT_PUBLIC_APP_VALUE_METABOOST_STANDARD`, `NEXT_PUBLIC_APP_VALUE_METABOOST_NODE`); API (`METABOOST_SIGNING_KEY_PEM`, `METABOOST_APP_ASSERTION_ISS`)             |
 | locale.env               | Web + Management Web (app, infra, sidecars): NEXT*PUBLIC_FEATURES*\* from DEFAULT_LOCALE, SUPPORTED_LOCALES. Single source; do not set locale in other override files. |
 | management-superuser.env | Local DB env (`infra/config/local/db.env`) for management superuser bootstrap                                                                                          |
 | notifications.env        | Workers; Web gets NEXT_PUBLIC_WEBPUSH_VAPID_PUBLIC_KEY                                                                                                                 |

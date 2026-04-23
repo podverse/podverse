@@ -17,8 +17,9 @@ export const hasRuntimeConfig = (): boolean =>
   globalThis.__PODVERSE_MANAGEMENT_RUNTIME_CONFIG__ !== undefined;
 
 /**
- * Build runtime config from process.env (used at build/prerender time
- * when instrumentation hasn't run yet).
+ * Build runtime config from process.env (e.g. build / prerender when
+ * instrumentation and root layout have not set the store yet, or
+ * E2E with full NEXT_PUBLIC_* in env).
  */
 function buildRuntimeConfigFromProcessEnv(): ManagementWebRuntimeConfig {
   const allKeys = [
@@ -36,8 +37,8 @@ function buildRuntimeConfigFromProcessEnv(): ManagementWebRuntimeConfig {
 export const getRuntimeConfig = (): ManagementWebRuntimeConfig => {
   const runtimeConfig = globalThis.__PODVERSE_MANAGEMENT_RUNTIME_CONFIG__;
   if (!runtimeConfig) {
-    // Build/prerender time: instrumentation hasn't run yet.
-    // Fall back to process.env (same values as sidecar will serve).
+    // No store yet: prerender, or `RUNTIME_CONFIG_URL` not used; fall back to process.env
+    // (use inline NEXT_PUBLIC_* in .env.local if not using the sidecar in this run).
     if (process.env.NODE_ENV !== 'production') {
       console.log('[runtime-config] Using build-time process.env fallback');
     }

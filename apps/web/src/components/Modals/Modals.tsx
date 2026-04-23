@@ -49,6 +49,14 @@ const LazyModalBoostMessageError = dynamic(
   { ssr: false }
 );
 
+const LazyModalBoostMintRateLimit = dynamic(
+  () =>
+    import('../Modal/ModalBoostMintRateLimit').then((m) => ({
+      default: m.ModalBoostMintRateLimit,
+    })),
+  { ssr: false }
+);
+
 const LazyModalSourceSelector = dynamic(
   () => import('../Modal/ModalSourceSelector').then((m) => ({ default: m.ModalSourceSelector })),
   { ssr: false }
@@ -75,6 +83,7 @@ export const Modals: React.FC = () => {
     modalSourceSelector,
     modalBoost,
     modalBoostMessageError,
+    modalBoostMintRateLimit,
     modalLoginRequired,
   } = useModals();
   const { serverEnvironmentDisclaimerAccepted } = useLocalSettings();
@@ -97,6 +106,7 @@ export const Modals: React.FC = () => {
       )}
       {(modalBoost.channel !== null || modalBoost.item !== null) && <LazyModalBoost />}
       {modalBoostMessageError.message && <LazyModalBoostMessageError />}
+      {modalBoostMintRateLimit.message && <LazyModalBoostMintRateLimit />}
       {(modalSourceSelector.labeledItemEnclosures?.length ?? 0) > 0 && <LazyModalSourceSelector />}
       {(modalLoginRequired.title !== null || modalLoginRequired.message !== null) && (
         <LazyModalLoginRequired />

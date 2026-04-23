@@ -13,6 +13,7 @@ import type {
 } from '@podverse/helpers';
 
 import { useModals } from '../../../contexts/Modals';
+import { getBoostEligibilityForContent } from '../../../utils/value/boostEligibility';
 import { IconButton } from './IconButton';
 import { NotificationIconButton } from './NotificationIconButton';
 import { SubscribeButton } from './SubscribeButton';
@@ -40,6 +41,10 @@ export const HeaderButtons: React.FC<HeaderButtonsProps> = ({ channel, shareArgs
   const { setModalShare, setModalFunding, setModalBoost } = useModals();
 
   const { item = null, clip = null, item_chapter = null, item_soundbite = null } = shareArgs;
+  const { canShowBoostAction } = getBoostEligibilityForContent({
+    channel,
+    item,
+  });
 
   return (
     <div className={styles.buttons}>
@@ -91,7 +96,7 @@ export const HeaderButtons: React.FC<HeaderButtonsProps> = ({ channel, shareArgs
           <FaCircleDollarToSlot />
         </IconButton>
       )}
-      {(channel?.channel_values?.length ?? 0) > 0 && (
+      {canShowBoostAction && (
         <IconButton
           type="button"
           onClick={() => setModalBoost({ channel, item })}

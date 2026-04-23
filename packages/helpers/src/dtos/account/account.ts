@@ -20,6 +20,8 @@ export interface DTOAccount {
   id: number;
   id_text: string;
   verified: boolean;
+  /** Present only on `GET /auth/me` for the logged-in user. Omitted on all other account responses. */
+  sender_guid?: string;
   sharable_status_id?: number;
   account_app_store_purchases?: DTOAccountAppStorePurchase[];
   account_credentials?: DTOAccountCredentials;

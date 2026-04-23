@@ -40,6 +40,7 @@ import {
 } from './item.js';
 import type { CompatLiveItemDto } from './liveItem.js';
 import { compatLiveItemsDtos } from './liveItem.js';
+import { compatChannelMetaBoost } from './metaBoost.js';
 
 export type ParsedRSSFeedCompatBundle = {
   channel: {
@@ -60,6 +61,7 @@ export type ParsedRSSFeedCompatBundle = {
     seasons: ReturnType<typeof compatChannelSeasonDtos>;
     trailers: ReturnType<typeof compatChannelTrailerDtos>;
     txt: ReturnType<typeof compatChannelTxtDtos>;
+    meta_boost: ReturnType<typeof compatChannelMetaBoost>;
     value: ReturnType<typeof compatChannelValueDtos>;
   };
   items: Array<{
@@ -128,6 +130,7 @@ export const convertParsedRSSFeedToCompat = (parsedFeed: FeedObject): ParsedRSSF
       seasons: compatChannelSeasonDtos(parsedFeed),
       trailers: compatChannelTrailerDtos(parsedFeed),
       txt: compatChannelTxtDtos(parsedFeed),
+      meta_boost: compatChannelMetaBoost(parsedFeed.metaBoost),
       value: compatChannelValueDtos(parsedFeed),
     },
     items,

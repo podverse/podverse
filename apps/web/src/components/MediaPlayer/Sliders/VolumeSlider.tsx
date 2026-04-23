@@ -13,9 +13,10 @@ export const VolumeSlider: React.FC = () => {
     if (!barRef.current) {
       return;
     }
-    const rect = barRef.current.getBoundingClientRect();
-    const x = (e instanceof MouseEvent ? e.clientX : e.nativeEvent.clientX) - rect.left;
-    const percent = Math.min(Math.max(x / rect.width, 0), 1);
+    const x =
+      (e instanceof MouseEvent ? e.clientX : e.nativeEvent.clientX) -
+      barRef.current.getBoundingClientRect().left;
+    const percent = Math.min(Math.max(x / barRef.current.getBoundingClientRect().width, 0), 1);
     setMPVolume(Number(percent.toFixed(2)));
   };
 

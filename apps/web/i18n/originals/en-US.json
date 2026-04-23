@@ -289,7 +289,47 @@
       "failed_to_send": "Failed: ",
       "error_details_heading": "Error details",
       "retried_requests": "We retried the request {count, plural, one {# time} other {# times}} before it failed.",
-      "retry_attempt": "Retry {number}: "
+      "retry_attempt": "Retry {number}: ",
+      "mbrssV1_capability_loading_status": "Checking boost message availability",
+      "mbrssV1_capability_unavailable": "Boost messages are not available for this creator at this time due to a server issue, but you can still use the form to send a donation.",
+      "login_required_to_send_boosts": "Log in to {brand_name} to send boosts.",
+      "mbrss_offline_modal_title": "Message collection unavailable",
+      "mbrss_offline_modal_body": "The message collection server appears to be offline. If you would like to send your donation without a message, press Continue.",
+      "mbrss_offline_continue": "Continue",
+      "mint_rate_limit_modal_title": "Boost message limit",
+      "mint_rate_limit_wait_seconds": "You can send another boost with a message in {seconds, plural, one {# second} other {# seconds}}.",
+      "mint_rate_limit_wait_minutes": "You can send another boost with a message in {minutes, plural, one {# minute} other {# minutes}}.",
+      "mint_rate_limit_preflight_error": "Could not check message send limit. Please try again.",
+      "sender_blocked_preflight_fallback": "You have been blocked from sending messages to this recipient.",
+      "sender_blocked_modal_title": "Message not accepted",
+      "sender_blocked_modal_primary": "Close",
+      "sender_blocked_post_fallback": "You have been blocked from sending messages to this recipient.",
+      "owner_terms_not_accepted_modal_title": "Message not accepted",
+      "owner_terms_not_accepted_modal_primary": "Close",
+      "owner_terms_not_accepted_post_fallback": "This creator cannot receive message metadata until they accept the latest terms.",
+      "metaboost_post_failed_modal_title": "Message not accepted",
+      "metaboost_post_failed_modal_primary": "Close",
+      "metaboost_post_failed_fallback": "The message could not be recorded by this server.",
+      "threshold_notice": "The minimum boost amount required by this creator is {minimumAmountDisplay}.",
+      "currency_minor_units": {
+        "satoshis": "{count, plural, one {sat} other {sats}}"
+      },
+      "threshold_below_minimum_modal_title": "Amount below message minimum",
+      "threshold_below_minimum_modal_body": "This amount is currently below the minimum required to include a message. Send this boost without a message instead?",
+      "threshold_send_without_message": "Send without message",
+      "threshold_missing_metadata": "Boost message threshold cannot be verified because required currency metadata is missing.",
+      "threshold_amount_unit_missing": "Boost message threshold cannot be verified because amount unit metadata is missing.",
+      "threshold_amount_unit_invalid": "Boost message threshold cannot be verified because amount unit metadata is invalid.",
+      "threshold_conversion_unavailable": "Boost message threshold conversion is temporarily unavailable.",
+      "threshold_conversion_unavailable_guidance": "Try again in a moment, or continue with a higher amount to include a message.",
+      "baseline_estimate_tooltip_text": "This conversion estimate uses recent rate data and may differ when the payment settles. Please verify the conversion rate independently.",
+      "amount_input_invalid_number": "Enter a valid amount.",
+      "amount_input_too_many_decimals": "This amount allows up to {decimals} decimal places for {currency}.",
+      "amount_input_not_supported": "Currency formatting is not supported for {currency}.",
+      "public_messages_loading": "Loading messages…",
+      "public_messages_unavailable": "messages from this server are not publicly available at this time",
+      "public_messages_empty": "No messages are available yet.",
+      "public_amount_btc_token": "BTC"
     },
     "types": {
       "lightning": {
@@ -317,12 +357,17 @@
   },
   "v4v": {
     "boost_messages": {
-      "title": "Boost Messages",
-      "description": "To enable boost messages for your content, add the podcast:metaBoost RSS tag to your feed inside your podcast:value block. This tag tells apps where to send optional listener messages (for example, via a BoostBox server). Without it, listeners can still send payments but cannot attach a message.",
+      "title": "Metaboost",
+      "description": "To enable boost messages for your content, add the podcast:metaBoost RSS tag to your feed inside your podcast:value block. This tag tells apps where to send optional listener messages. Without it, listeners can still send payments but cannot attach a message.",
       "example_heading": "Example RSS snippet with podcast:metaBoost",
-      "example": "'<'podcast:value type=\"lightning\" method=\"keysend\"'>'\n  '<'podcast:metaBoost schema=\"boostbox\"'>'https://your-boostbox.example/boost'<'/podcast:metaBoost'>'\n  '<'podcast:valueRecipient type=\"lnaddress\" address=\"you@example.com\" split=\"100\" /'>'\n'<'/podcast:value'>'",
-      "boostbox_label": "BoostBox on GitHub",
-      "boostbox_url": "https://github.com/noblepayne/boostbox"
+      "example": "'<'podcast:value type=\"lightning\" method=\"keysend\"'>'\n  '<'podcast:metaBoost standard=\"mbrss-v1\"'>'https://metaboost.example/boost'<'/podcast:metaBoost'>'\n  '<'podcast:valueRecipient type=\"lnaddress\" address=\"you@example.com\" split=\"100\" /'>'\n'<'/podcast:value'>'",
+      "page_intro": "Metaboost is open-source software and an open standard for hosting listener messages alongside podcast value-for-value boosts.",
+      "page_signup": "If a podcast wants their listeners to be able to attach messages to boosts in {brand_name}, they can sign up with any open-source Metaboost server (<link>metaboost.cc</link> is one option, and it is maintained by {brand_name}).",
+      "page_rss_tag": "Metaboost gives the podcaster a simple <rssTag>podcast:metaBoost</rssTag> tag that they can add to their RSS feed, which will allow them to begin receiving boost messages.",
+      "page_open_standard": "Since Metaboost is an open standard, any app that adopts the standard (not just {brand_name}), can send messages to the podcaster's Metaboost endpoint.",
+      "page_how_to_heading": "More on Metaboost",
+      "page_how_to_creators": "How to for creators",
+      "page_how_to_developers": "How to for developers"
     }
   },
   "filters": {
@@ -416,6 +461,7 @@
   },
   "donate": {
     "title": "Donate",
+    "boost_messages_heading": "Boosts",
     "app_donation_notice": "This donation will be sent to {brand_name}.",
     "app_not_configured": "App donations are not configured. To enable donations to {brand_name}, set Lightning LNAddress or Node in the app configuration.",
     "creator_donation_hint_prefix": "To donate to a podcaster or artist, use the",
@@ -552,11 +598,11 @@
   },
   "about": {
     "title": "About",
-    "intro_text": "Podverse is a FOSS podcast manager for iOS, Android, F-Droid, and web.",
+    "intro_text": "{brand_name} is a FOSS podcast manager for iOS, Android, F-Droid, and web.",
     "download_app_store": "Download on the App Store",
     "download_google_play": "GET IT ON Google Play",
     "download_f_droid": "GET IT ON F-Droid",
-    "licensing_text": "All Podverse software is provided under a free and open source (FOSS) licence. Features that require updating our servers are available only with a Premium membership. Sign up today and get a 3 month free trial. 🥳",
+    "licensing_text": "All {brand_name} software is provided under a free and open source (FOSS) licence. Features that require updating our servers are available only with a Premium membership. Sign up today and get a 3 month free trial. 🥳",
     "features_title": "Features"
   },
   "checkout": {
@@ -666,11 +712,11 @@
   },
   "terms": {
     "terms": "Terms",
-    "never_sell_data": "Podverse will never sell or share private user data.",
+    "never_sell_data": "{brand_name} will never sell or share private user data.",
     "no_ads_without_permission": "We will never put advertisements next to or within a podcast's content without that podcast's permission.",
-    "audio_video_hosting": "All audio or video files found on podverse.fm load from the podcaster's own public server. We do not host podcast audio or video files ourselves.",
+    "audio_video_hosting": "All audio or video files found on {brand_domain} load from the podcaster's own public server. We do not host podcast audio or video files ourselves.",
     "third_party_feeds": "We host podcast links and content from third-party podcast feeds and sites. These have their own independent privacy policies, and we have no responsibility for their content or activities.",
-    "clips_crowdsourced": "All clips hosted on podverse.fm are crowd-sourced and unofficial, unless otherwise noted by the podcaster themselves.",
+    "clips_crowdsourced": "All clips hosted on {brand_domain} are crowd-sourced and unofficial, unless otherwise noted by the podcaster themselves.",
     "clips_load_full_episode": "Clips load within the full episode's media file, so the user always has access to the full recording.",
     "reduced_size_images": "We also host reduced size podcast images from podcasters' feeds, to save user network data and speed up page loading times."
   },

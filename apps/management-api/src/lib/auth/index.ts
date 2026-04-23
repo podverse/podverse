@@ -1,7 +1,13 @@
+/**
+ * Sessions: JWT TTL/cookie max-age use AUTH_JWT_EXPIRES_IN (default `365d`). Login JSON includes `token`
+ * only when AUTH_ALLOW_TOKEN_IN_RESPONSE_BODY=true and the client sends includeTokenInResponseBody.
+ */
+import type { AuthenticatedAdmin } from '@mgmt-api/@types/express.js';
 import { config } from '@mgmt-api/config/index.js';
+import type { AdminAccount } from '@mgmt-api/orm/entities/adminAccount.js';
 import { AdminAccountService } from '@mgmt-api/orm/services/adminAccount.js';
 import type { CookieOptions, NextFunction, Request, Response } from 'express';
-import jwt from 'jsonwebtoken';
+import jwt, { type SignOptions } from 'jsonwebtoken';
 import passport from 'passport';
 import { ExtractJwt, Strategy as JwtStrategy } from 'passport-jwt';
 import { Strategy as LocalStrategy } from 'passport-local';
@@ -10,6 +16,7 @@ const isProduction = config.nodeEnv === 'production';
 const ADMIN_AUTH_COOKIE_NAME = 'pv_mgmt_auth';
 
 const setAuthCookie = (res: Response, token: string) => {
+  const maxAge = config.auth.sessionCookieMaxAgeMs;
   if (isProduction) {
     const prodCookieOptions: CookieOptions = {
       httpOnly: true,
@@ -17,7 +24,7 @@ const setAuthCookie = (res: Response, token: string) => {
       sameSite: 'lax',
       domain: config.api.cookie.domain,
       path: '/',
-      maxAge: 365 * 24 * 60 * 60 * 1000,
+      maxAge,
     };
     res.cookie(ADMIN_AUTH_COOKIE_NAME, token, prodCookieOptions);
   } else {
@@ -26,12 +33,33 @@ const setAuthCookie = (res: Response, token: string) => {
       secure: false,
       sameSite: 'strict',
       path: '/',
-      maxAge: 365 * 24 * 60 * 60 * 1000,
+      maxAge,
     });
   }
 };
 
 const adminAccountService = new AdminAccountService();
+
+function mapAdminToAuthenticatedUser(admin: AdminAccount): AuthenticatedAdmin | null {
+  if (!admin.admin_account_role) {
+    return null;
+  }
+  return {
+    id: admin.id,
+    id_text: admin.id_text,
+    admin_account_role_id: admin.admin_account_role_id,
+    role: admin.admin_account_role.role,
+    permissions: admin.permissions
+      ? {
+          feeds_crud: admin.permissions.feedsCrud,
+          feed_flag_statuses_crud: admin.permissions.feedFlagStatusesCrud,
+          feed_flag_status_reasons_crud: admin.permissions.feedFlagStatusReasonsCrud,
+          admins_crud: admin.permissions.adminsCrud,
+          stats_crud: admin.permissions.statsCrud,
+        }
+      : null,
+  };
+}
 
 passport.use(
   new LocalStrategy(
@@ -50,7 +78,16 @@ passport.use(
           return done(null, false, { message: 'Invalid credentials.' });
         }
 
-        return done(null, adminAccount);
+        const withRelations = await adminAccountService.getWithRoleAndPermissions(adminAccount.id);
+        if (!withRelations) {
+          return done(null, false, { message: 'Invalid credentials.' });
+        }
+        const user = mapAdminToAuthenticatedUser(withRelations);
+        if (!user) {
+          return done(null, false, { message: 'Invalid credentials.' });
+        }
+
+        return done(null, user);
       } catch (error) {
         return done(error);
       }
@@ -66,9 +103,13 @@ passport.use(
     },
     async (jwtPayload, done) => {
       try {
-        const adminAccount = await adminAccountService.get(jwtPayload.id);
+        const adminAccount = await adminAccountService.getWithRoleAndPermissions(jwtPayload.id);
         if (adminAccount) {
-          return done(null, adminAccount);
+          const user = mapAdminToAuthenticatedUser(adminAccount);
+          if (user) {
+            return done(null, user);
+          }
+          return done(null, false);
         } else {
           return done(null, false);
         }
@@ -85,8 +126,13 @@ passport.serializeUser((user, done) => {
 
 passport.deserializeUser(async (id: number, done) => {
   try {
-    const adminAccount = await adminAccountService.get(id);
-    done(null, adminAccount);
+    const adminAccount = await adminAccountService.getWithRoleAndPermissions(id);
+    if (!adminAccount) {
+      done(null, null);
+      return;
+    }
+    const user = mapAdminToAuthenticatedUser(adminAccount);
+    done(null, user);
   } catch (error) {
     done(error);
   }
@@ -98,7 +144,7 @@ export const authenticate = (req: Request, res: Response, next: NextFunction) =>
   passport.authenticate(
     'local',
     { session: false },
-    (err: Error, user: Express.User, info: { message: string }) => {
+    (err: Error, user: { id: number } | false, info: { message: string }) => {
       if (err) {
         return next(err);
       }
@@ -106,15 +152,18 @@ export const authenticate = (req: Request, res: Response, next: NextFunction) =>
         return res.status(401).json({ message: info?.message || 'Unauthorized' });
       }
 
-      const token = jwt.sign({ id: user.id }, config.auth.jwtSecret, { expiresIn: '365d' });
+      const token = jwt.sign({ id: user.id }, config.auth.jwtSecret, {
+        expiresIn: config.auth.jwtExpiresIn,
+      } as SignOptions);
 
       setAuthCookie(res, token);
 
       const response: { message: string; token?: string } = {
         message: 'Authenticated successfully',
       };
-      if (req.body.includeTokenInResponseBody) {
-        response['token'] = token;
+      const body = req.body as { includeTokenInResponseBody?: unknown } | undefined;
+      if (config.auth.allowTokenInResponseBody && Boolean(body?.includeTokenInResponseBody)) {
+        response.token = token;
       }
 
       return res.json(response);
@@ -146,9 +195,12 @@ const verifyToken = (req: Request, res: Response, next: NextFunction, token: str
         return;
       }
       const payload = decoded as DecodedToken;
-      req.user = { id: payload.id } as Express.User;
-
-      if (!req?.user?.id) {
+      if (
+        typeof payload.id !== 'number' ||
+        !Number.isInteger(payload.id) ||
+        !Number.isFinite(payload.id) ||
+        payload.id <= 0
+      ) {
         console.error('[verifyToken] Decoded JWT missing user id');
         if (!res.headersSent) {
           res.status(401).json({ message: 'Unauthorized' });
@@ -156,14 +208,25 @@ const verifyToken = (req: Request, res: Response, next: NextFunction, token: str
         return;
       }
 
-      const adminAccount = await adminAccountService.get(req.user.id);
+      const adminAccount = await adminAccountService.getWithRoleAndPermissions(payload.id);
       if (!adminAccount) {
-        console.error('[verifyToken] No admin account found for user id:', req.user.id);
+        console.error('[verifyToken] No admin account found for user id:', payload.id);
         if (!res.headersSent) {
           res.status(401).json({ message: 'Unauthorized' });
         }
         return;
       }
+
+      const user = mapAdminToAuthenticatedUser(adminAccount);
+      if (!user) {
+        console.error('[verifyToken] Admin account missing role relation');
+        if (!res.headersSent) {
+          res.status(401).json({ message: 'Unauthorized' });
+        }
+        return;
+      }
+
+      req.user = user;
 
       next();
     }

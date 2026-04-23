@@ -90,8 +90,6 @@ export function useMediaPlayerResourceUpdate() {
     newAutoQueueConfig: AutoQueueConfig;
     autoQueueShouldClear: boolean;
   }) => {
-    const previousItemId = mpItemRef.current?.id;
-
     setMPAddByRSS(null);
     setAddByRSSListContext(null);
 
@@ -100,10 +98,9 @@ export function useMediaPlayerResourceUpdate() {
       setAutoQueueActiveRow(0);
     }
 
-    const oldAutoQueueConfig = autoQueueConfigRef.current;
     if (newAutoQueueConfig !== undefined) {
       setAutoQueueConfig({
-        ...oldAutoQueueConfig,
+        ...autoQueueConfigRef.current,
         ...newAutoQueueConfig,
       });
     }
@@ -120,7 +117,7 @@ export function useMediaPlayerResourceUpdate() {
     setMPItemSoundbite(itemSoundbite);
 
     if (enclosureSelectedParams === 'use-active-item-or-default' || !enclosureSelectedParams) {
-      if (previousItemId && item && item.id === previousItemId) {
+      if (mpItemRef.current?.id && item && item.id === mpItemRef.current.id) {
         setMPEnclosureSelectedParams(mpEnclosureSelectedParamsRef.current);
       } else {
         setMPEnclosureSelectedParams({

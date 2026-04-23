@@ -6,22 +6,25 @@ import React from 'react';
 import { CommonDetailListHeader } from '../../../components/Common/List/CommonDetailListHeader';
 import { Tabs } from '../../../components/Tabs/Tabs';
 
-type AddByRSSPodcastPageTabKey = 'episodes' | 'about' | 'settings';
+export type AddByRSSPodcastPageTabKey = 'episodes' | 'boosts' | 'about' | 'settings';
 
 type AddByRSSPodcastPageListHeaderProps = {
   selectedKey: AddByRSSPodcastPageTabKey;
   onSelect: (key: AddByRSSPodcastPageTabKey) => void;
+  canShowBoosts?: boolean;
   sideButtons?: React.ReactNode | null;
 };
 
 export const AddByRSSPodcastPageListHeader: React.FC<AddByRSSPodcastPageListHeaderProps> = ({
   selectedKey,
   onSelect,
+  canShowBoosts = false,
   sideButtons = null,
 }) => {
   const tMedia = useTranslations('media');
   const tInfo = useTranslations('info');
   const tSettings = useTranslations('settings');
+  const tValue = useTranslations('value');
 
   const tabData = [
     {
@@ -30,6 +33,13 @@ export const AddByRSSPodcastPageListHeader: React.FC<AddByRSSPodcastPageListHead
       onClick: () => onSelect('episodes'),
       hideDesktop: false,
       zIndex: 6,
+    },
+    {
+      key: 'boosts',
+      label: tValue('boost'),
+      onClick: () => onSelect('boosts'),
+      hideDesktop: false,
+      zIndex: 5,
     },
     {
       key: 'about',
@@ -46,10 +56,11 @@ export const AddByRSSPodcastPageListHeader: React.FC<AddByRSSPodcastPageListHead
       zIndex: 1,
     },
   ];
+  const filteredTabData = canShowBoosts ? tabData : tabData.filter((tab) => tab.key !== 'boosts');
 
   return (
     <CommonDetailListHeader
-      tabs={<Tabs tabData={tabData} selectedKey={selectedKey} />}
+      tabs={<Tabs tabData={filteredTabData} selectedKey={selectedKey} />}
       sideButtons={sideButtons}
     />
   );

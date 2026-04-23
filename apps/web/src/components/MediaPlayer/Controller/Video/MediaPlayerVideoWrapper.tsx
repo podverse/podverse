@@ -86,8 +86,7 @@ export function MediaPlayerVideoWrapper() {
       lastVideoKeyRef.current = null;
       return;
     }
-    const isNewSelection = lastVideoKeyRef.current !== currentVideoKey;
-    if (isNewSelection) {
+    if (lastVideoKeyRef.current !== currentVideoKey) {
       lastVideoKeyRef.current = currentVideoKey;
       if (mpAddByRSS && isAddByRSSVideo) {
         setVideoLocation('floating');

@@ -11,11 +11,13 @@
     "build:watch": "tsc --build --watch --preserveWatchOutput & tsc-alias --watch",
     "lint": "eslint ./src --max-warnings 0",
     "lint:fix": "eslint ./src --fix",
+    "test": "vitest run",
     "clean": "rm -rf dist",
     "type-check": "tsc --noEmit",
     "start": "node ./dist/index.js",
     "archive_all": "node ./dist/index.js archiveAll",
     "dev_pi_bulk_feeds_add_from_file": "node ./dist/index.js devPiBulkFeedsAddFromFile",
+    "dev_parser_rss_parse_trending_feeds": "node ./dist/index.js devParserRSSParseTrendingFeeds",
     "image_shrink_backfill": "node ./dist/index.js imageShrinkBackfill",
     "image_shrink_cleanup_orphans": "node ./dist/index.js imageShrinkCleanupOrphans",
     "image_shrink_run_consumer": "node ./dist/index.js imageShrinkRunConsumer",
@@ -35,7 +37,9 @@
     "podcast_index_dead_feeds_flag_and_merge": "node ./dist/index.js podcastIndexDeadFeedsFlagAndMerge",
     "podcast_index_trending_podcasts_get": "node ./dist/index.js podcastIndexTrendingPodcastsGet",
     "podcast_index_value_update_all": "node ./dist/index.js podcastIndexValueUpdateAll",
-    "stats_update_aggregated": "node ./dist/index.js statsUpdateAggregated"
+    "stats_update_aggregated": "node ./dist/index.js statsUpdateAggregated",
+    "stats_update_aggregated_rolling": "node ./dist/index.js statsUpdateAggregatedRolling",
+    "reencrypt_add_by_rss_credentials": "node ./dist/index.js reencryptAddByRSSCredentials"
   },
   "license": "AGPL-3.0",
   "dependencies": {
@@ -48,6 +52,7 @@
     "@podverse/mq": "*",
     "@podverse/notifications": "*",
     "@podverse/orm": "*",
+    "@podverse/worker-commands": "*",
     "@podverse/parser": "*",
     "amqplib": "^0.10.9",
     "axios": "^1.13.6",
@@ -65,6 +70,7 @@
     "nodemon": "^3.1.14",
     "ts-node": "^10.9.2",
     "tsc-alias": "^1.8.16",
-    "tsconfig-paths": "^4.2.0"
+    "tsconfig-paths": "^4.2.0",
+    "vitest": "^3.2.4"
   }
 }

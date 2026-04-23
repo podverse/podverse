@@ -12,8 +12,11 @@
     "dev:watch": "nodemon",
     "lint": "eslint ./src --max-warnings 0",
     "lint:fix": "eslint ./src --fix",
+    "test": "vitest run",
+    "test:e2e": "playwright test",
     "start": "next start",
     "clean": "rm -rf .next",
+    "type-check": "tsc --noEmit -p .",
     "validate-env": "ts-node --project tsconfig.scripts.json scripts/validate-env.ts",
     "i18n-compile": "ts-node --project tsconfig.scripts.json scripts/i18n/i18n-compile.ts",
     "i18n-llm-translations": "ts-node --project tsconfig.scripts.json scripts/i18n/i18n-llm-translations.ts"
@@ -27,10 +30,10 @@
     "@podverse/helpers-config": "*",
     "@podverse/helpers-requests": "*",
     "@podverse/helpers-validation": "*",
+    "@podverse/parser-mapping": "*",
     "@podverse/v4v-btc-ln": "*",
     "@podverse/v4v-helpers": "*",
     "@podverse/v4v-metaboost": "*",
-    "@podverse/parser-mapping": "*",
     "classnames": "^2.5.1",
     "isomorphic-dompurify": "^3.0.0",
     "next": "^16.1.6",
@@ -50,7 +53,7 @@
   },
   "devDependencies": {
     "@next/bundle-analyzer": "^16.1.6",
-    "webpack": "^5.105.4",
+    "@playwright/test": "^1.59.1",
     "@types/node": "^24.12.0",
     "@types/react": "^19.2.11",
     "@types/react-dom": "^19.2.2",
@@ -60,6 +63,8 @@
     "nodemon": "^3.1.14",
     "openai": "^6.27.0",
     "ts-node": "^10.9.2",
-    "typescript": "^5.9.2"
+    "typescript": "^5.9.2",
+    "vitest": "^3.2.4",
+    "webpack": "^5.105.4"
   }
 }

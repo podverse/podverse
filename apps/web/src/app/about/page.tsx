@@ -7,6 +7,7 @@ import { MainInnerContentWrapper } from '../../components/Main/MainInnerContentW
 import { MainInnerWrapper } from '../../components/Main/MainInnerWrapper';
 import { MainWrapper } from '../../components/Main/MainWrapper';
 import { SideContent } from '../../components/SideContent/SideContent';
+import { getConfig } from '../../config';
 import { FEATURES } from '../../constants/features';
 import { IMAGES } from '../../constants/images';
 
@@ -14,6 +15,7 @@ import styles from '../../styles/app/about/About.module.scss';
 
 export default async function AboutPage() {
   const t = await getTranslations('about');
+  const config = getConfig();
 
   return (
     <>
@@ -23,7 +25,7 @@ export default async function AboutPage() {
           <SideContent />
           <MainInnerContentWrapper>
             <section className={styles.intro}>
-              <p>{t('intro_text')}</p>
+              <p>{t('intro_text', { brand_name: config.public.brand.name })}</p>
             </section>
 
             <section className={styles.downloadButtons}>
@@ -84,7 +86,7 @@ export default async function AboutPage() {
             </section>
 
             <section className={styles.licensing}>
-              <p>{t('licensing_text')}</p>
+              <p>{t('licensing_text', { brand_name: config.public.brand.name })}</p>
             </section>
 
             <section className={styles.featuresSection}>

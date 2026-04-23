@@ -1,0 +1,14 @@
+.chartContainer {
+  width: 100%;
+  min-height: 300px;
+}
+
+.loading,
+.empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 300px;
+  color: var(--pv-color-text-muted, #666);
+  font-size: 0.875rem;
+}

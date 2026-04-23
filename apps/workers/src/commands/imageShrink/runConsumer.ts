@@ -4,7 +4,7 @@ import { isImageShrinkEnabled } from '@workers/config/index.js';
 import { getActiveMQArtemisService } from '@workers/factories/activeMQArtemisService.js';
 import { getLoggerService } from '@workers/factories/loggerService.js';
 
-import { MQ_IMAGE_SHRINK_HINTS_CONFIG, sleep } from '@podverse/helpers';
+import { isObjectLike, MQ_IMAGE_SHRINK_HINTS_CONFIG, sleep } from '@podverse/helpers';
 import { createActiveMQShutdown } from '@podverse/mq';
 import { ChannelImageService, ItemImageService } from '@podverse/orm';
 
@@ -16,11 +16,8 @@ type ImageShrinkHintMessage = {
 
 const HINT_FRESHNESS_MS = 24 * 60 * 60 * 1000;
 
-const isRecord = (value: unknown): value is Record<string, unknown> =>
-  typeof value === 'object' && value !== null;
-
 const isImageShrinkHintMessage = (value: unknown): value is ImageShrinkHintMessage => {
-  if (!isRecord(value)) {
+  if (!isObjectLike(value)) {
     return false;
   }
   const url = value.url;

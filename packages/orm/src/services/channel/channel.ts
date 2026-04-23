@@ -12,6 +12,7 @@ import { getMediumIdArrayFromType, MediumEnum } from '@podverse/helpers';
 import { ChannelCategoryService } from './channelCategory.js';
 import { ChannelFundingService } from './channelFunding.js';
 import { ChannelImageService } from './channelImage.js';
+import { ChannelMetaBoostService } from './channelMetaBoost.js';
 import { ChannelPersonService } from './channelPerson.js';
 import { ChannelRemoteItemService } from './channelRemoteItem.js';
 import { ChannelSeasonService } from './channelSeason.js';
@@ -19,7 +20,6 @@ import { ChannelSocialInteractService } from './channelSocialInteract.js';
 import { ChannelTrailerService } from './channelTrailer.js';
 import { ChannelTxtService } from './channelTxt.js';
 import { ChannelValueService } from './channelValue.js';
-import { ChannelValueMetaBoostService } from './channelValueMetaBoost.js';
 import { ChannelValueRecipientService } from './channelValueRecipient.js';
 
 type ChannelDto = {
@@ -79,6 +79,7 @@ export const channelGetOneRelations: FindOptionsRelations<Channel> = {
   channel_internal_settings: true,
   channel_license: true,
   channel_location: true,
+  channel_meta_boost: true,
   channel_persons: true,
   channel_podroll: true,
   channel_publisher: true,
@@ -99,6 +100,7 @@ const getChannelOneToOneRelations = (relations: FindOptionsRelations<Channel>) =
     ...(relations.channel_internal_settings ? { channel_internal_settings: true } : {}),
     ...(relations.channel_license ? { channel_license: true } : {}),
     ...(relations.channel_location ? { channel_location: true } : {}),
+    ...(relations.channel_meta_boost ? { channel_meta_boost: true } : {}),
     ...(relations.channel_podroll
       ? { channel_podroll: { channel_podroll_remote_items: true } }
       : {}),
@@ -196,21 +198,23 @@ export class ChannelService {
       channel.channel_txts = channel_txts;
     }
 
+    if (relations.channel_meta_boost) {
+      const channelMetaBoostService = new ChannelMetaBoostService();
+      const channel_meta_boost = await channelMetaBoostService._get(channel);
+      if (channel_meta_boost) {
+        channel.channel_meta_boost = channel_meta_boost;
+      }
+    }
+
     if (relations.channel_values) {
       const channelValueService = new ChannelValueService();
       const channel_values = await channelValueService._getAll(channel);
-      const channelValueMetaBoostService = new ChannelValueMetaBoostService();
 
       for (const channel_value of channel_values) {
         const channelValueRecipientsService = new ChannelValueRecipientService();
         const channel_value_recipients = await channelValueRecipientsService._getAll(channel_value);
         if (channel_value_recipients) {
           channel_value.channel_value_recipients = channel_value_recipients;
-        }
-
-        const channel_value_meta_boost = await channelValueMetaBoostService._get(channel_value);
-        if (channel_value_meta_boost) {
-          channel_value.meta_boost = channel_value_meta_boost;
         }
       }
 

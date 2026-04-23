@@ -1,3 +1,4 @@
+@use '../../keyframes/' as *;
 @use '../../mixins/form' as *;
 @use '../../mixins/flexbox' as *;
 
@@ -11,10 +12,49 @@
   @include formInputWrapper;
 }
 
+.textAreaWrapperDisabled {
+  cursor: not-allowed;
+  background-color: color-mix(
+    in srgb,
+    var(--background-color-tertiary) 55%,
+    var(--background-color-primary)
+  );
+
+  .eyebrow {
+    color: var(--text-color-secondary);
+  }
+
+  .textArea {
+    cursor: not-allowed;
+    color: var(--text-color-secondary);
+  }
+}
+
 .textInnerAreaWrapper {
   @include flexColumn;
   flex: 1 1;
   justify-content: center;
+}
+
+.textAreaFieldShell {
+  position: relative;
+  width: 100%;
+}
+
+.loadingOverlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: color-mix(in srgb, var(--background-primary) 65%, transparent);
+  z-index: 1;
+}
+
+.loadingSpinner {
+  font-size: var(--font-size-xl);
+  color: var(--text-color-secondary);
+  animation: spin 0.8s linear infinite;
 }
 
 .eyebrow {

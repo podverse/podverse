@@ -11,6 +11,7 @@ import { CorePodcastHeader } from '../../../components/Core/Podcast/CorePodcastH
 import { MainInnerContentWrapper } from '../../../components/Main/MainInnerContentWrapper';
 import { MainInnerWrapper } from '../../../components/Main/MainInnerWrapper';
 import { MainWrapper } from '../../../components/Main/MainWrapper';
+import { getBoostEligibilityForContent } from '../../../utils/value/boostEligibility';
 import { PodcastPageContextProvider } from './PodcastPageContext';
 import { PodcastPageList } from './PodcastPageList';
 import { PodcastPageListHeader } from './PodcastPageListHeader';
@@ -40,6 +41,10 @@ export function PodcastPageClient(props: PodcastPageClientProps) {
     ssrTotalPages,
     ssrPodroll,
   } = props;
+  const { canShowBoostMessagesTab: ssrCanShowBoosts } = getBoostEligibilityForContent({
+    channel: ssrChannel,
+    item: null,
+  });
 
   return (
     <PodcastPageContextProvider
@@ -58,8 +63,13 @@ export function PodcastPageClient(props: PodcastPageClientProps) {
             <PodcastPageListHeader
               ssrHasPodroll={!!ssrPodroll}
               ssrHasItemSoundbites={ssrHasItemSoundbites}
+              ssrCanShowBoosts={ssrCanShowBoosts}
             />
-            <PodcastPageList ssrChannel={ssrChannel} podroll={ssrPodroll} />
+            <PodcastPageList
+              ssrChannel={ssrChannel}
+              podroll={ssrPodroll}
+              ssrCanShowBoosts={ssrCanShowBoosts}
+            />
           </MainInnerContentWrapper>
         </MainInnerWrapper>
       </MainWrapper>

@@ -25,12 +25,14 @@ type EpisodePageListHeaderProps = {
   ssrHasChapters: boolean;
   ssrHasSoundbites: boolean;
   ssrHasTranscripts: boolean;
+  ssrCanShowBoosts?: boolean;
 };
 
 export const EpisodePageListHeader: React.FC<EpisodePageListHeaderProps> = ({
   ssrHasChapters,
   ssrHasSoundbites,
   ssrHasTranscripts,
+  ssrCanShowBoosts,
 }) => {
   const { filterParams, setFilterParams, autoScrollOn, setAutoScrollOn } = useEpisodePageContext();
   const { type, sort, range } = filterParams;
@@ -38,6 +40,7 @@ export const EpisodePageListHeader: React.FC<EpisodePageListHeaderProps> = ({
   const tInfo = useTranslations('info');
   const tFeatures = useTranslations('features');
   const tMisc = useTranslations('misc');
+  const tValue = useTranslations('value');
 
   const { sortMenuItems, rangeMenuItems, showRangeDropdown } = getEpisodePageDropdownConfig({
     sort,
@@ -110,12 +113,21 @@ export const EpisodePageListHeader: React.FC<EpisodePageListHeaderProps> = ({
     zIndex: 2,
   });
 
+  if (ssrCanShowBoosts) {
+    tabData.push({
+      key: 'boosts',
+      label: tValue('boost'),
+      onClick: () => handleTypeChange('boosts'),
+      zIndex: 1,
+    });
+  }
+
   if (ssrHasTranscripts) {
     tabData.push({
       key: 'transcript',
       label: tInfo('transcript.transcript'),
       onClick: () => handleTypeChange('transcript'),
-      zIndex: 1,
+      zIndex: 0,
     });
   }
 

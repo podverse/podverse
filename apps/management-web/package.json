@@ -11,8 +11,11 @@
     "dev:sidecar": "env PORT=3101 DOTENV_CONFIG_PATH=sidecar/.env node -r dotenv/config sidecar/dist/server.js",
     "lint": "eslint ./src --max-warnings 0",
     "lint:fix": "eslint ./src --fix",
+    "test": "vitest run",
+    "test:e2e": "playwright test",
     "start": "next start",
     "clean": "rm -rf .next",
+    "type-check": "tsc --noEmit -p .",
     "validate-env": "ts-node --project tsconfig.scripts.json scripts/validate-env.ts",
     "i18n-compile": "ts-node --project tsconfig.scripts.json scripts/i18n/i18n-compile.ts",
     "i18n-llm-translations": "ts-node --project tsconfig.scripts.json scripts/i18n/i18n-llm-translations.ts"
@@ -22,6 +25,10 @@
     "@hello-pangea/dnd": "^18.0.1",
     "@podverse/helpers": "*",
     "@podverse/helpers-backend": "*",
+    "@podverse/helpers-browser": "*",
+    "@podverse/ui": "*",
+    "@tanstack/react-query": "^5.99.2",
+    "@tanstack/react-table": "^8.21.3",
     "axios": "^1.13.6",
     "classnames": "^2.5.1",
     "isomorphic-dompurify": "^3.0.0",
@@ -41,6 +48,7 @@
     "zod": "^4.3.6"
   },
   "devDependencies": {
+    "@playwright/test": "^1.59.1",
     "@types/node": "^24.12.0",
     "@types/react": "^19.2.11",
     "@types/react-dom": "^19.2.2",
@@ -49,6 +57,7 @@
     "nodemon": "^3.1.14",
     "openai": "^6.27.0",
     "ts-node": "^10.9.2",
-    "typescript": "^5.9.2"
+    "typescript": "^5.9.2",
+    "vitest": "^3.2.4"
   }
 }

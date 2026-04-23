@@ -8,6 +8,7 @@ import { ItemFlagStatusStatusEnum } from '@orm/entities/item/itemFlagStatus.js';
 import { PlaylistResource } from '@orm/entities/playlist/playlistResource.js';
 
 import { ItemFlagStatusService } from './item/itemFlagStatus.js';
+import { pruneNonActiveItemBackedQueueResourceRows } from './queue/queueResourceActiveItemFilter.js';
 
 export class ArchiverService {
   private itemRepositoryRead = AppDataSourceRead.getRepository(Item);
@@ -152,5 +153,6 @@ export class ArchiverService {
     await this.processPendingArchiveFeeds();
     await this.processPendingArchiveItems();
     await this.removeAllItemsForTakedownFeeds();
+    await pruneNonActiveItemBackedQueueResourceRows();
   }
 }

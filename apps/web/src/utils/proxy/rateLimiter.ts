@@ -1,5 +1,6 @@
 import type { NextRequest } from 'next/server';
 
+import { getClientIpFromProxyHeaders } from './clientIpFromProxyHeaders';
 import { PROXY } from './constants';
 
 interface RateLimitEntry {
@@ -39,22 +40,10 @@ function cleanupExpiredEntries(): void {
  * Extracts the client IP address from the request, handling X-Forwarded-For headers
  */
 function getClientIP(req: NextRequest): string {
-  // Check X-Forwarded-For header (first IP in chain)
-  const forwardedFor = req.headers.get('x-forwarded-for');
-  if (forwardedFor) {
-    const ips = forwardedFor.split(',').map((ip) => ip.trim());
-    return ips[0] || 'unknown';
-  }
-
-  // Check X-Real-IP header
-  const realIP = req.headers.get('x-real-ip');
-  if (realIP) {
-    return realIP;
-  }
-
-  // Fallback if no IP headers are available
-  // In production behind a proxy, one of the above headers should always be present
-  return 'unknown';
+  return getClientIpFromProxyHeaders({
+    forwardedFor: req.headers.get('x-forwarded-for'),
+    realIp: req.headers.get('x-real-ip'),
+  });
 }
 
 /**

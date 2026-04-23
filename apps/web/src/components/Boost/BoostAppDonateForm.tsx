@@ -5,12 +5,12 @@ import { useTranslations } from 'next-intl';
 import { useMemo, useState } from 'react';
 
 import { useConfig } from '../../contexts/Config';
+import { getAppValueMetaBoost } from '../../utils/value/metaBoost';
 import { BoostFormBase } from './BoostFormBase';
+import { DONATE_APP_BOOST_VALUE_KEY } from './boostPaymentScope';
+import { DONATE_MBRSS_V1_RSS_CONTEXT } from './donateMbrssV1RssContext';
 
 import styles from './BoostAppDonateForm.module.scss';
-
-/** Value key for app donate when lightning is configured (lnaddress or node). */
-const APP_DONATE_LIGHTNING_KEY = 'lightning';
 
 type BoostAppDonateFormProps = {
   onDonationSuccess?: () => void;
@@ -47,17 +47,18 @@ export const BoostAppDonateForm: React.FC<BoostAppDonateFormProps> = ({ onDonati
 
   const defaultValueKey = useMemo<string>(() => {
     if (appRecipientType === null) return '';
-    return APP_DONATE_LIGHTNING_KEY;
+    return DONATE_APP_BOOST_VALUE_KEY;
   }, [appRecipientType]);
 
   const [selectedKey, setSelectedKey] = useState<string>(defaultValueKey);
   const selectedValueKey = selectedKey !== '' ? selectedKey : null;
+  const appValueMetaBoost = useMemo(() => getAppValueMetaBoost(config), [config]);
 
   const buttonTabs = [
     {
-      key: APP_DONATE_LIGHTNING_KEY,
+      key: DONATE_APP_BOOST_VALUE_KEY,
       label: tValue('types.lightning.label'),
-      onClick: () => setSelectedKey(APP_DONATE_LIGHTNING_KEY),
+      onClick: () => setSelectedKey(DONATE_APP_BOOST_VALUE_KEY),
     },
   ];
 
@@ -82,9 +83,8 @@ export const BoostAppDonateForm: React.FC<BoostAppDonateFormProps> = ({ onDonati
       selectedValueKey={selectedValueKey}
       selectedChannelValue={undefined}
       selectedItemValue={undefined}
-      metaBoost={null}
-      includeCreatorRecipients={false}
-      includeAppRecipient
+      metaBoost={appValueMetaBoost}
+      boostPaymentScope="app_only"
       appRecipientType="lightning"
       appRecipientRecipientType={appRecipientType}
       showCreatorInput={false}
@@ -101,6 +101,7 @@ export const BoostAppDonateForm: React.FC<BoostAppDonateFormProps> = ({ onDonati
           {tDonate('app_not_configured', { brand_name: config.public.brand.name })}
         </p>
       }
+      mbrssV1RssContext={DONATE_MBRSS_V1_RSS_CONTEXT}
     />
   );
 };

@@ -184,14 +184,28 @@ generate_uuid() {
 }
 
 load_overrides() {
-	if [ -d "$OVERRIDES_DIR" ]; then
-		for file in "$OVERRIDES_DIR"/*.env; do
-			[ -f "$file" ] || continue
-			set -a
-			# shellcheck disable=SC1090
-			. "$file"
-			set +a
-		done
+	local lightning_file="$OVERRIDES_DIR/lightning.env"
+	if [ ! -d "$OVERRIDES_DIR" ]; then
+		return 0
+	fi
+	# Source all override files except lightning.env, then lightning.env last.
+	# This keeps migration-safe ordering: MetaBoost moved to metaboost.env.example, but existing
+	# installs may still define NEXT_PUBLIC_APP_VALUE_METABOOST_* only in lightning.env; sourcing
+	# lightning.env last preserves those values over empty assignments in metaboost.env.
+	local file
+	for file in "$OVERRIDES_DIR"/*.env; do
+		[ -f "$file" ] || continue
+		[ "$file" = "$lightning_file" ] && continue
+		set -a
+		# shellcheck disable=SC1090
+		. "$file"
+		set +a
+	done
+	if [ -f "$lightning_file" ]; then
+		set -a
+		# shellcheck disable=SC1090
+		. "$lightning_file"
+		set +a
 	fi
 }
 
@@ -223,8 +237,12 @@ set_if_empty_or_equals "$WORKERS_INFRA_ENV" "KEYVALDB_PORT" "6379" "6379"
 set_if_empty_or_equals "$WORKERS_INFRA_ENV" "MESSAGE_QUEUE_HOST" "podverse_local_mq" "localhost"
 set_if_empty_or_equals "$WORKERS_INFRA_ENV" "MESSAGE_QUEUE_PORT" "5672" "5672"
 
+# Management API: like api/workers, only the infra .env (Docker) uses the compose DB hostname;
+# apps/management-api/.env is for `npm run dev` on the host and must use localhost.
 set_if_empty_or_equals "$MANAGEMENT_API_INFRA_ENV" "DB_HOST" "podverse_local_db" "localhost"
 set_if_empty_or_equals "$MANAGEMENT_API_INFRA_ENV" "DB_PORT" "5432" "5999"
+set_if_empty_or_equals "$MANAGEMENT_API_APP_ENV" "DB_HOST" "localhost" "podverse_local_db"
+set_if_empty_or_equals "$MANAGEMENT_API_APP_ENV" "DB_PORT" "5432" "5999"
 
 # Ensure DB names so Postgres creates podverse_app / podverse_management on first run (pgAdmin and apps expect these).
 set_if_empty "$DB_ENV" "POSTGRES_DB" "podverse_app"
@@ -280,11 +298,16 @@ for file in "$API_APP_ENV" "$WORKERS_APP_ENV" "$API_INFRA_ENV" "$WORKERS_INFRA_E
 	upsert_var "$file" "DB_READ_WRITE_PASSWORD" "$POSTGRES_READ_WRITE_PASSWORD"
 done
 for file in "$MANAGEMENT_API_APP_ENV" "$MANAGEMENT_API_INFRA_ENV"; do
-	upsert_var "$file" "DB_DATABASE" "$POSTGRES_MANAGEMENT_DB"
-	upsert_var "$file" "DB_READ_USERNAME" "$POSTGRES_MANAGEMENT_READ_USER"
-	upsert_var "$file" "DB_READ_PASSWORD" "$POSTGRES_MANAGEMENT_READ_PASSWORD"
-	upsert_var "$file" "DB_READ_WRITE_USERNAME" "$POSTGRES_MANAGEMENT_READ_WRITE_USER"
-	upsert_var "$file" "DB_READ_WRITE_PASSWORD" "$POSTGRES_MANAGEMENT_READ_WRITE_PASSWORD"
+	upsert_var "$file" "DB_MANAGEMENT_NAME" "$POSTGRES_MANAGEMENT_DB"
+	upsert_var "$file" "DB_MANAGEMENT_READ_USER" "$POSTGRES_MANAGEMENT_READ_USER"
+	upsert_var "$file" "DB_MANAGEMENT_READ_PASSWORD" "$POSTGRES_MANAGEMENT_READ_PASSWORD"
+	upsert_var "$file" "DB_MANAGEMENT_READ_WRITE_USER" "$POSTGRES_MANAGEMENT_READ_WRITE_USER"
+	upsert_var "$file" "DB_MANAGEMENT_READ_WRITE_PASSWORD" "$POSTGRES_MANAGEMENT_READ_WRITE_PASSWORD"
+	upsert_var "$file" "DB_APP_NAME" "$POSTGRES_DB"
+	upsert_var "$file" "DB_APP_READ_USER" "$POSTGRES_READ_USER"
+	upsert_var "$file" "DB_APP_READ_PASSWORD" "$POSTGRES_READ_PASSWORD"
+	upsert_var "$file" "DB_APP_READ_WRITE_USER" "$POSTGRES_READ_WRITE_USER"
+	upsert_var "$file" "DB_APP_READ_WRITE_PASSWORD" "$POSTGRES_READ_WRITE_PASSWORD"
 done
 
 for file in "$API_APP_ENV" "$WORKERS_APP_ENV" "$API_INFRA_ENV" "$WORKERS_INFRA_ENV"; do
@@ -385,6 +408,13 @@ if [ -n "${MANAGEMENT_BRAND_NAME:-}" ]; then
 	done
 fi
 
+# From brand.env: BRAND_DOMAIN -> NEXT_PUBLIC_BRAND_DOMAIN for web and management-web sidecars.
+if [ -n "${BRAND_DOMAIN:-}" ]; then
+	for file in "${WEB_ENV_FILES_APP_AND_SIDECAR[@]}" "${MANAGEMENT_WEB_ENV_FILES_APP_AND_SIDECAR[@]}"; do
+		upsert_var "$file" "NEXT_PUBLIC_BRAND_DOMAIN" "$BRAND_DOMAIN"
+	done
+fi
+
 # From locale.env: one place for DEFAULT_LOCALE and SUPPORTED_LOCALES; setup applies to web and management-web (NEXT_PUBLIC_FEATURES_*).
 if [ -n "${DEFAULT_LOCALE:-}" ]; then
 	for file in "${WEB_ENV_FILES_APP_AND_SIDECAR[@]}" "${MANAGEMENT_WEB_ENV_FILES_APP_AND_SIDECAR[@]}"; do
@@ -400,6 +430,14 @@ fi
 # From lightning.env
 for v in NEXT_PUBLIC_APP_VALUE_LIGHTNING_NODE_NAME NEXT_PUBLIC_APP_VALUE_LIGHTNING_NODE_ADDRESS NEXT_PUBLIC_APP_VALUE_LIGHTNING_NODE_CUSTOM_KEY NEXT_PUBLIC_APP_VALUE_LIGHTNING_NODE_CUSTOM_VALUE NEXT_PUBLIC_APP_VALUE_LIGHTNING_LNADDRESS_NAME NEXT_PUBLIC_APP_VALUE_LIGHTNING_LNADDRESS_ADDRESS; do
 	apply_override "$v" "${WEB_ENV_FILES_APP_AND_SIDECAR[@]}"
+done
+
+# From metaboost.env
+for v in NEXT_PUBLIC_APP_VALUE_METABOOST_STANDARD NEXT_PUBLIC_APP_VALUE_METABOOST_NODE; do
+	apply_override "$v" "${WEB_ENV_FILES_APP_AND_SIDECAR[@]}"
+done
+for v in METABOOST_SIGNING_KEY_PEM METABOOST_APP_ASSERTION_ISS; do
+	apply_override "$v" "${API_ENV_FILES[@]}"
 done
 
 # Docker-only: infra env used by Compose gets production NODE_ENV and service-name URLs.

@@ -34,8 +34,7 @@ export const BoostForm: React.FC<BoostFormProps> = ({ channel, item }) => {
       selectedChannelValue={selectedChannelValue}
       selectedItemValue={selectedItemValue}
       metaBoost={metaBoost}
-      includeCreatorRecipients
-      includeAppRecipient={false}
+      boostPaymentScope="creator_only"
       showCreatorInput
       showAppInput={false}
       showAppRecipientInfo={false}

@@ -1,9 +1,9 @@
-import path from 'path';
-
 import withBundleAnalyzerInit from '@next/bundle-analyzer';
-import { DATE_FNS_LOCALE_IDS } from '@podverse/helpers';
 import createNextIntlPlugin from 'next-intl/plugin';
+import path from 'path';
 import webpack from 'webpack';
+
+import { DATE_FNS_LOCALE_IDS } from '@podverse/helpers';
 
 const withBundleAnalyzer = withBundleAnalyzerInit({
   enabled: process.env.ANALYZE === 'true',
@@ -12,6 +12,15 @@ const withBundleAnalyzer = withBundleAnalyzerInit({
 });
 
 const nextConfig = {
+  async redirects() {
+    return [
+      {
+        source: '/v4v/boost-messages',
+        destination: '/v4v/metaboost',
+        permanent: true,
+      },
+    ];
+  },
   output: 'standalone',
   outputFileTracingRoot: path.join(import.meta.dirname, '../../'),
   serverExternalPackages: ['winston'],

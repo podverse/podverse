@@ -59,9 +59,8 @@ export const MediaPlayerProgress: React.FC<MediaPlayerProgressProps> = ({
       if (!barRef.current || mpDuration === 0) {
         return null;
       }
-      const rect = barRef.current.getBoundingClientRect();
-      const x = clientX - rect.left;
-      return Math.min(Math.max(x / rect.width, 0), 1);
+      const x = clientX - barRef.current.getBoundingClientRect().left;
+      return Math.min(Math.max(x / barRef.current.getBoundingClientRect().width, 0), 1);
     },
     [mpDuration]
   );
@@ -91,9 +90,10 @@ export const MediaPlayerProgress: React.FC<MediaPlayerProgressProps> = ({
     if (!barRef.current || mpDuration === 0) {
       return;
     }
-    const rect = barRef.current.getBoundingClientRect();
-    const x = (e instanceof MouseEvent ? e.clientX : e.nativeEvent.clientX) - rect.left;
-    const percent = Math.min(Math.max(x / rect.width, 0), 1);
+    const x =
+      (e instanceof MouseEvent ? e.clientX : e.nativeEvent.clientX) -
+      barRef.current.getBoundingClientRect().left;
+    const percent = Math.min(Math.max(x / barRef.current.getBoundingClientRect().width, 0), 1);
     const newTime = Math.round(percent * mpDuration);
     window.dispatchEvent(new CustomEvent(EVENTS.MEDIA_PLAYER.SEEK, { detail: { time: newTime } }));
   };
@@ -148,9 +148,8 @@ export const MediaPlayerProgress: React.FC<MediaPlayerProgressProps> = ({
       touchClientXRef.current = touch.clientX;
       longPressTimerRef.current = setTimeout(() => {
         longPressTimerRef.current = null;
-        const clientX = touchClientXRef.current;
-        if (clientX !== null) {
-          const percent = getPercentFromClientX(clientX);
+        if (touchClientXRef.current !== null) {
+          const percent = getPercentFromClientX(touchClientXRef.current);
           if (percent !== null) {
             showTooltipForPercent(percent, true);
             ignoreNextClickRef.current = true;
