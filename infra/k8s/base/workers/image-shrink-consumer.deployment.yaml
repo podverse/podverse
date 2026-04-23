@@ -1,6 +1,5 @@
 ---
 # Version: 1
-
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -14,6 +13,8 @@ spec:
     metadata:
       labels:
         app: worker-image-shrink-consumer
+      annotations:
+        backup.velero.io/backup-volumes-excludes: "logs-volume"
     spec:
       containers:
         - name: worker
@@ -62,8 +63,6 @@ spec:
                 name: podverse-db-opaque
             - secretRef:
                 name: podverse-mq-opaque
-            # - secretRef:
-            #    name: podverse-workers-digital-ocean-opaque
             - secretRef:
                 name: podverse-workers-add-by-rss-opaque
           volumeMounts:

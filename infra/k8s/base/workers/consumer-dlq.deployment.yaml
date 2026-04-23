@@ -1,4 +1,3 @@
-# Source: Jenkinsfile.aux_workers_mq_rss_run_dlq_consumer
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -11,13 +10,13 @@ spec:
     metadata:
       labels:
         app: worker-consumer-dlq
+      annotations:
+        backup.velero.io/backup-volumes-excludes: "logs-volume"
     spec:
       containers:
         - name: worker
           image: ghcr.io/podverse/podverse/workers
           command: ["node", "apps/workers/dist/index.js", "mqRSSRunDlqConsumer"]
-          # TODO: The worker process currently needs to run as root. Address
-          # this in the podverse-worker repo so images can run without root.
           securityContext:
             runAsUser: 1000
             runAsGroup: 1000
@@ -63,27 +62,13 @@ spec:
                 name: podverse-mq-opaque
             - secretRef:
                 name: podverse-api.podcastindex.org-opaque
-            #- secretRef:
-            #    name: podverse-workers-digital-ocean-opaque
             - secretRef:
                 name: podverse-workers-add-by-rss-opaque
-          # TODO: The application creates a local `logs` directory and fails
-          # if it does not exist. Prefer logs to stdout so K3s/journald
-          # pick them up. Short-term workaround: mount an `emptyDir` at
-          # /opt/logs or ensure the image creates the directory at startup.
           volumeMounts:
             - name: logs-volume
               mountPath: /logs
             - name: logs-volume
               mountPath: /opt/logs
-      #   volumeMounts:
-      #   - name: firebase-config
-      #     mountPath: /opt/config/firebase-key.json
-      #     subPath: firebase-key.json
-      #     readOnly: true
       volumes:
         - name: logs-volume
           emptyDir: {}
-      # - name: firebase-config
-      #   secret:
-      #     secretName: podverse-workers-firebase-opaque
