@@ -58,6 +58,8 @@ COPY --from=builder /opt/packages/parser/package.json ./packages/parser/
 COPY --from=builder /opt/packages/parser/dist/ ./packages/parser/dist/
 COPY --from=builder /opt/packages/mq/package.json ./packages/mq/
 COPY --from=builder /opt/packages/mq/dist/ ./packages/mq/dist/
+COPY --from=builder /opt/packages/worker-commands/package.json ./packages/worker-commands/
+COPY --from=builder /opt/packages/worker-commands/dist/ ./packages/worker-commands/dist/
 COPY --from=builder /opt/apps/workers/package.json ./apps/workers/
 COPY --from=builder /opt/apps/workers/dist/ ./apps/workers/dist/
 
