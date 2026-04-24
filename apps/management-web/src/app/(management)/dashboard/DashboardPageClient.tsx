@@ -2,12 +2,17 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
 
 import type { NavCard } from '@podverse/ui';
 import { NavCardGrid } from '@podverse/ui';
 
-import { canReadFeeds, canReadStats } from '../../../lib/managementPermissions';
+import {
+  dashboardI18nDescriptionKey,
+  dashboardI18nTitleKey,
+  getManagementAppRoutesForUser,
+} from '../../../lib/managementNavRoutes';
 import { type CurrentUser, getCurrentUser } from '../../../lib/requests/auth';
 
 export type DashboardPageClientProps = {
@@ -18,6 +23,7 @@ export type DashboardPageClientProps = {
 export function DashboardPageClient({ initialUser }: DashboardPageClientProps) {
   const [user, setUser] = useState<CurrentUser>(initialUser);
   const router = useRouter();
+  const t = useTranslations('dashboard');
 
   useEffect(() => {
     let cancelled = false;
@@ -51,64 +57,11 @@ export function DashboardPageClient({ initialUser }: DashboardPageClientProps) {
     return null;
   }
 
-  const isAdminsReadable =
-    user.role === 'superuser' || (user.permissions && user.permissions.admins_crud >= 2);
-
-  const isDatabaseReadable =
-    user.role === 'superuser' ||
-    (user.permissions &&
-      (user.permissions.feeds_crud >= 2 ||
-        user.permissions.feed_flag_statuses_crud >= 2 ||
-        user.permissions.feed_flag_status_reasons_crud >= 2));
-
-  const isFeedFlagStatusToolVisible = canReadFeeds(user);
-  const isStatsVisible = canReadStats(user);
-
-  const cards: NavCard[] = [
-    ...(isFeedFlagStatusToolVisible
-      ? [
-          {
-            href: '/feed-operations/flag-status',
-            title: 'Feed flag status',
-            description:
-              'Set takedown, spam, and other statuses with a reason and note (not the table browser)',
-          },
-        ]
-      : []),
-    ...(isStatsVisible
-      ? [
-          {
-            href: '/stats',
-            title: 'Stats',
-            description:
-              'View popularity and view count statistics across podcasts, episodes, clips, playlists, and profiles',
-          },
-        ]
-      : []),
-    ...(isDatabaseReadable
-      ? [
-          {
-            href: '/database',
-            title: 'Database',
-            description: 'Browse and manage feed data, statuses, and reasons',
-          },
-        ]
-      : []),
-    ...(isAdminsReadable
-      ? [
-          {
-            href: '/admins',
-            title: 'Admins',
-            description: 'Manage admin accounts and permissions',
-          },
-        ]
-      : []),
-    {
-      href: '/workers',
-      title: 'Workers',
-      description: 'Background job management',
-    },
-  ];
+  const cards: NavCard[] = getManagementAppRoutesForUser(user).map((r) => ({
+    href: r.href,
+    title: t(dashboardI18nTitleKey(r.section)),
+    description: t(dashboardI18nDescriptionKey(r.section)),
+  }));
 
   return (
     <div className="container">

@@ -29,6 +29,7 @@ import { MoreButton } from '../../MoreButton/MoreButton';
 import { ReadableDate } from '../../Time/ReadableDate';
 import { ReadableTimeRange } from '../../Time/ReadableTimeRange';
 import { showToastPromise } from '../../Toast/Toast';
+import type { ListEpisodeRowLike } from '../Podcasts/Episodes/ListEpisodeRow';
 
 import styles from '../../../styles/components/List/Clips/ListClipRow.module.scss';
 
@@ -44,6 +45,7 @@ interface Props {
   removeFromPlaylist?: () => void;
   playlist_id_text: string | null;
   onPlayAndRemove?: () => void;
+  likeRow?: ListEpisodeRowLike;
 }
 
 export const ListClipRow: React.FC<Props> = ({
@@ -58,6 +60,7 @@ export const ListClipRow: React.FC<Props> = ({
   removeFromPlaylist,
   playlist_id_text,
   onPlayAndRemove,
+  likeRow,
 }) => {
   const apiRequestService = getApiRequestService();
   const url = `${ROUTES.CLIP}/${clip.id_text}`;
@@ -217,6 +220,17 @@ export const ListClipRow: React.FC<Props> = ({
     });
   };
 
+  const onLikeFromMenu = () => {
+    if (!loggedInAccount) {
+      setModalLoginRequired({
+        title: null,
+        message: tInstructions('login_to_like'),
+      });
+      return;
+    }
+    likeRow?.onToggle();
+  };
+
   const moreButtonMenuItems: MoreButtonMenuItem[] = isEditModePlaylist
     ? [
         {
@@ -242,6 +256,16 @@ export const ListClipRow: React.FC<Props> = ({
           label: tFeatures('playlist.add_to_playlist'),
           onClick: addToPlaylistOnClick,
         },
+        ...(likeRow
+          ? [
+              {
+                label: likeRow.isLiked
+                  ? tFeatures('playlist.remove_from_liked')
+                  : tFeatures('playlist.add_to_liked'),
+                onClick: onLikeFromMenu,
+              } satisfies MoreButtonMenuItem,
+            ]
+          : []),
       ];
 
   if (isEditModeQueue) {

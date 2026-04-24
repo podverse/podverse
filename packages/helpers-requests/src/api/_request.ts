@@ -120,14 +120,22 @@ import {
   reqMetaboostMbrssV1MintRateLimitStatus,
 } from './metaboost/mbrssV1AppAssertion.js';
 import { reqMQRSSAddOnDemand, reqMQRSSRefreshOnDemand } from './mq/mq.js';
-import type { ReqPlaylistCreateParams, ReqPlaylistEditParams } from './playlist/playlist.js';
+import type {
+  ReqPlaylistCreateParams,
+  ReqPlaylistEditParams,
+  ReqPlaylistGetAllLikesPrivateParams,
+  ReqPlaylistLikesMembershipParams,
+  ReqPlaylistToggleLikeParams,
+} from './playlist/playlist.js';
 import {
   reqPlaylistCreate,
   reqPlaylistDelete,
   reqPlaylistEdit,
   reqPlaylistGet,
-  reqPlaylistGetAllFavoritesPrivate,
+  reqPlaylistGetAllLikesPrivate,
   reqPlaylistGetMany,
+  reqPlaylistLikesMembership,
+  reqPlaylistToggleLike,
 } from './playlist/playlist.js';
 import {
   reqPlaylistResourceGetAllByPlaylistIdTextPrivate,
@@ -768,8 +776,16 @@ export class ApiRequestService {
     return reqPlaylistGetMany(this, params);
   }
 
-  reqPlaylistGetAllFavoritesPrivate() {
-    return reqPlaylistGetAllFavoritesPrivate(this);
+  reqPlaylistGetAllLikesPrivate(params?: ReqPlaylistGetAllLikesPrivateParams) {
+    return reqPlaylistGetAllLikesPrivate(this, params);
+  }
+
+  reqPlaylistLikesMembership(params: ReqPlaylistLikesMembershipParams) {
+    return reqPlaylistLikesMembership(this, params);
+  }
+
+  reqPlaylistToggleLike(params: ReqPlaylistToggleLikeParams) {
+    return reqPlaylistToggleLike(this, params);
   }
 
   reqPlaylistCreate(params: ReqPlaylistCreateParams) {

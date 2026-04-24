@@ -18,6 +18,7 @@ import WorkersPage from './page.js';
 const mockUser = {
   id: 1,
   id_text: 'u1',
+  email: 'u1@example.com',
   role: 'superuser',
   permissions: {
     feeds_crud: 15,

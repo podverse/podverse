@@ -20,7 +20,7 @@ import { DATABASE_CONSTANTS } from '@podverse/helpers';
 import type { PlaylistResource } from './playlistResource.js';
 
 @Entity()
-@Unique(['account', 'medium', 'is_default_favorites'])
+@Unique(['account', 'medium', 'is_default_likes'])
 export class Playlist {
   @PrimaryGeneratedColumn()
   id!: number;
@@ -50,7 +50,7 @@ export class Playlist {
   description?: string | null;
 
   @Column({ type: 'boolean', default: false })
-  is_default_favorites!: boolean;
+  is_default_likes!: boolean;
 
   @Column({ type: 'int', default: 0 })
   item_count!: number;

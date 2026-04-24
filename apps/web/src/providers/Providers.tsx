@@ -17,7 +17,7 @@ import { MediaPlayerVideoProvider } from '../contexts/MediaPlayerVideo';
 import { ModalsProvider } from '../contexts/Modals';
 import { NavigationProvider } from '../contexts/Navigation';
 import { NotificationsProvider } from '../contexts/Notifications';
-import { PlaylistsFavoritesProvider } from '../contexts/PlaylistsFavorites';
+import { PlaylistsLikesProvider } from '../contexts/PlaylistsFavorites';
 import { QueuesProvider } from '../contexts/Queue';
 import { QueueResourcesAbridgedIndexProvider } from '../contexts/QueueResourcesAbridgedIndex';
 import type { LocalSettingsState } from '../utils/localSettings/localSettings';
@@ -52,7 +52,7 @@ export default function Providers({
                   <QueueResourcesAbridgedIndexProvider
                     ssrQueueResourcesAbridgedIndex={ssrQueueResourcesAbridgedIndex}
                   >
-                    <PlaylistsFavoritesProvider>
+                    <PlaylistsLikesProvider>
                       <MediaPlayerCurrentTimeProvider>
                         <MediaPlayerProvider>
                           <MediaPlayerVideoProvider>
@@ -68,7 +68,7 @@ export default function Providers({
                           </MediaPlayerVideoProvider>
                         </MediaPlayerProvider>
                       </MediaPlayerCurrentTimeProvider>
-                    </PlaylistsFavoritesProvider>
+                    </PlaylistsLikesProvider>
                   </QueueResourcesAbridgedIndexProvider>
                 </QueuesProvider>
               </NotificationsProvider>

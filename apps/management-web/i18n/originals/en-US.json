@@ -43,7 +43,9 @@
     "dashboard": "Dashboard",
     "users": "Users",
     "content": "Content",
-    "settings": "Settings"
+    "settings": "Settings",
+    "userMenu": "Account menu",
+    "userRole": "Role: {role}"
   },
   "dashboard": {
     "title": "Dashboard",
@@ -51,6 +53,10 @@
     "feedFlagStatus": {
       "title": "Feed flag status",
       "description": "Set takedown, spam, and other statuses with a reason and note (not the table browser)"
+    },
+    "stats": {
+      "title": "Stats",
+      "description": "View popularity and view count statistics across podcasts, episodes, clips, playlists, and profiles"
     },
     "database": {
       "title": "Database",

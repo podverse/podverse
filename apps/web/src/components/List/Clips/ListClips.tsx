@@ -1,14 +1,16 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import React, { useRef } from 'react';
+import React, { useMemo, useRef } from 'react';
 
 import type { CategoryMappingKeys, DTOChannel, DTOClip, DTOItem } from '@podverse/helpers';
 import type { QueryParamsItemsType } from '@podverse/helpers-requests';
 
 import { useModals } from '../../../contexts/Modals';
 import { checkBackNavFlag } from '../../../contexts/Navigation';
+import { useLikesClipBatch } from '../../../hooks/useLikesClipBatch';
 import { useSkipInitialEffect } from '../../../hooks/useSkipInitialEffect';
+import { buildListLikeRow } from '../../../utils/likes/buildListLikeRow';
 import { scrollMainToTop } from '../../../utils/scroll';
 import { CallToActionMessage } from '../../CallToActionMessage/CallToActionMessage';
 import Pagination from '../../Pagination/Pagination';
@@ -40,6 +42,9 @@ export const ListClips: React.FC<Props> = ({
   const tInstructions = useTranslations('instructions');
   const tAuthentication = useTranslations('authentication');
   const { setModalAuthLogin } = useModals();
+
+  const clipIdTexts = useMemo(() => clips.map((c) => c.id_text), [clips]);
+  const { isLiked, toggle } = useLikesClipBatch(clipIdTexts);
 
   // Track if we should skip scroll on the first effect run (back navigation case)
   const skipScrollOnceRef = useRef(checkBackNavFlag());
@@ -75,6 +80,7 @@ export const ListClips: React.FC<Props> = ({
               clip={clip}
               showItemInfo={showItemInfo}
               playlist_id_text={null}
+              likeRow={buildListLikeRow(clip.id_text, { isLiked, toggle })}
             />
           ))}
         </Pagination>

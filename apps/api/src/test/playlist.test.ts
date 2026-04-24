@@ -2,6 +2,7 @@ import type { Server } from 'http';
 import request from 'supertest';
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { PLAYLIST_LIKES_MEMBERSHIP_MAX_IDS } from '@podverse/helpers';
 import type { ORMContext } from '@podverse/orm';
 
 import {
@@ -28,7 +29,12 @@ const {
   playlistGetOnePrivateMock,
   playlistGetOnePublicMock,
   playlistGetManyPrivateMock,
-  playlistGetAllFavoritesPrivateMock,
+  playlistGetAllLikesPrivateMock,
+  playlistGetLikesMembershipMock,
+  playlistGetOrCreateDefaultLikesPlaylistMock,
+  playlistHasItemLikeMock,
+  playlistHasClipLikeMock,
+  playlistHasAddByRSSLikeMock,
   statsPlGetManyPublicMock,
   statsPlGetManyPrivateMock,
   statsPlGetManyPrivateByPlaylistsMock,
@@ -54,6 +60,8 @@ const {
   plResourceAddSbBetweenMock,
   plResourceAddSbLastMock,
   plResourceRemoveSbMock,
+  itemGetByIdTextMock,
+  clipGetByIdTextMock,
   getAccountMock,
 } = vi.hoisted(() => ({
   playlistCreateMock: vi.fn(async () => ({ id: 1, playlist_id_text: PLAYLIST_ID_TEXT })),
@@ -85,7 +93,19 @@ const {
     account: { id: TEST_USER_ID },
   })),
   playlistGetManyPrivateMock: vi.fn(async () => [[{ id: 1 }], 1]),
-  playlistGetAllFavoritesPrivateMock: vi.fn(async () => [{ id: 1, title: 'Fav' }]),
+  playlistGetAllLikesPrivateMock: vi.fn(async () => [{ id: 1, title: 'Like' }]),
+  playlistGetLikesMembershipMock: vi.fn(async () => ({
+    item_id_texts: [],
+    clip_id_texts: [],
+    add_by_rss_hash_ids: [],
+  })),
+  playlistGetOrCreateDefaultLikesPlaylistMock: vi.fn(async () => ({
+    id: 1,
+    id_text: PLAYLIST_ID_TEXT,
+  })),
+  playlistHasItemLikeMock: vi.fn(async () => false),
+  playlistHasClipLikeMock: vi.fn(async () => false),
+  playlistHasAddByRSSLikeMock: vi.fn(async () => false),
   statsPlGetManyPublicMock: vi.fn(async () => [{ playlist: { id: 1, title: 'Top' } }]),
   statsPlGetManyPrivateMock: vi.fn(async () => [[{ playlist: { id: 1 } }], 1]),
   statsPlGetManyPrivateByPlaylistsMock: vi.fn(async () => [
@@ -117,6 +137,15 @@ const {
   plResourceAddSbBetweenMock: vi.fn(async () => ({ id: 1 })),
   plResourceAddSbLastMock: vi.fn(async () => ({ id: 1 })),
   plResourceRemoveSbMock: vi.fn(async () => {}),
+  itemGetByIdTextMock: vi.fn(async () => ({
+    id: 10,
+    id_text: ITEM_ID_TEXT,
+    channel: { medium_id: 20 },
+  })),
+  clipGetByIdTextMock: vi.fn(async () => ({
+    id: 11,
+    id_text: CLIP_ID_TEXT,
+  })),
   getAccountMock: vi.fn(async () => ({
     id: TEST_USER_ID,
     id_text: 'playlist-test-user',
@@ -157,7 +186,12 @@ vi.mock('@podverse/orm', async (importOriginal) => {
     getOnePrivate = playlistGetOnePrivateMock;
     getOnePublic = playlistGetOnePublicMock;
     getManyPrivate = playlistGetManyPrivateMock;
-    getAllFavoritesPrivate = playlistGetAllFavoritesPrivateMock;
+    getAllLikesPrivate = playlistGetAllLikesPrivateMock;
+    getLikesMembership = playlistGetLikesMembershipMock;
+    getOrCreateDefaultLikesPlaylist = playlistGetOrCreateDefaultLikesPlaylistMock;
+    hasItemLike = playlistHasItemLikeMock;
+    hasClipLike = playlistHasClipLikeMock;
+    hasAddByRSSLike = playlistHasAddByRSSLikeMock;
   }
 
   class MockPlaylistResourceService {
@@ -194,12 +228,22 @@ vi.mock('@podverse/orm', async (importOriginal) => {
     getFollowedPlaylistsPrivateWithCount = followingPlGetFollowedPlaylistsPrivateWithCountMock;
   }
 
+  class MockItemService {
+    getByIdText = itemGetByIdTextMock;
+  }
+
+  class MockClipService {
+    getByIdText = clipGetByIdTextMock;
+  }
+
   return {
     ...actual,
     CategoryService: MockCategoryService,
     AccountService: MockAccountService,
     PlaylistService: MockPlaylistService,
     PlaylistResourceService: MockPlaylistResourceService,
+    ItemService: MockItemService,
+    ClipService: MockClipService,
     StatsAggregatedPlaylistService: MockStatsAggregatedPlaylistService,
     AccountFollowingPlaylistService: MockAccountFollowingPlaylistService,
   };
@@ -215,7 +259,6 @@ const validCreateBody = {
 const validUpdateBody = {
   title: 'Updated',
   description: '',
-  medium: 'music',
   sharable_status_id: 1,
 };
 
@@ -510,7 +553,7 @@ describe('playlist routes', () => {
       expect(res.status).toBe(401);
     });
 
-    it('GET /private/favorites returns 200 with auth', async () => {
+    it('GET /private/likes returns 200 with auth', async () => {
       getAccountMock.mockResolvedValueOnce({
         id: TEST_USER_ID,
         account_credentials: { email: TEST_EMAIL },
@@ -519,17 +562,97 @@ describe('playlist routes', () => {
         },
       });
       const res = await request(app)
-        .get(`${playlistBase}/private/favorites`)
+        .get(`${playlistBase}/private/likes`)
         .set(authHeaders(TEST_USER_ID, TEST_EMAIL));
 
       expect(res.status).toBe(200);
       expect(Array.isArray(res.body)).toBe(true);
     });
 
-    it('GET /private/favorites returns 401 without auth', async () => {
-      const res = await request(app).get(`${playlistBase}/private/favorites`);
+    it('GET /private/likes?include_resources=0 calls getAllLikesPrivate with false', async () => {
+      getAccountMock.mockResolvedValueOnce({
+        id: TEST_USER_ID,
+        account_credentials: { email: TEST_EMAIL },
+        account_membership_status: {
+          membership_expires_at: new Date(Date.now() + 86400000 * 365),
+        },
+      });
+      playlistGetAllLikesPrivateMock.mockClear();
+      const res = await request(app)
+        .get(`${playlistBase}/private/likes?include_resources=0`)
+        .set(authHeaders(TEST_USER_ID, TEST_EMAIL));
+
+      expect(res.status).toBe(200);
+      expect(playlistGetAllLikesPrivateMock).toHaveBeenCalledWith(TEST_USER_ID, false);
+    });
+
+    it('GET /private/likes returns 401 without auth', async () => {
+      const res = await request(app).get(`${playlistBase}/private/likes`);
 
       expect(res.status).toBe(401);
+    });
+
+    it('POST /private/likes/membership returns 200 with auth', async () => {
+      playlistGetLikesMembershipMock.mockResolvedValueOnce({
+        item_id_texts: [ITEM_ID_TEXT],
+        clip_id_texts: [],
+        add_by_rss_hash_ids: [],
+      });
+
+      const res = await request(app)
+        .post(`${playlistBase}/private/likes/membership`)
+        .set(authHeaders(TEST_USER_ID, TEST_EMAIL))
+        .send({ item_id_texts: [ITEM_ID_TEXT, 'item-not-liked'] });
+
+      expect(res.status).toBe(200);
+      expect(res.body.item_id_texts).toEqual([ITEM_ID_TEXT]);
+    });
+
+    it('POST /private/likes/membership returns 400 when ids exceed max', async () => {
+      const overLimit = Array.from(
+        { length: PLAYLIST_LIKES_MEMBERSHIP_MAX_IDS + 1 },
+        (_, index) => `item-${index}`
+      );
+
+      const res = await request(app)
+        .post(`${playlistBase}/private/likes/membership`)
+        .set(authHeaders(TEST_USER_ID, TEST_EMAIL))
+        .send({ item_id_texts: overLimit });
+
+      expect(res.status).toBe(400);
+    });
+
+    it('POST /private/likes/membership accepts exactly max ids', async () => {
+      const atLimit = Array.from(
+        { length: PLAYLIST_LIKES_MEMBERSHIP_MAX_IDS },
+        (_, index) => `item-${index}`
+      );
+
+      playlistGetLikesMembershipMock.mockResolvedValueOnce({
+        item_id_texts: [],
+        clip_id_texts: [],
+        add_by_rss_hash_ids: [],
+      });
+
+      const res = await request(app)
+        .post(`${playlistBase}/private/likes/membership`)
+        .set(authHeaders(TEST_USER_ID, TEST_EMAIL))
+        .send({ item_id_texts: atLimit });
+
+      expect(res.status).toBe(200);
+    });
+
+    it('POST /private/likes/toggle toggles item likes with auth', async () => {
+      playlistHasItemLikeMock.mockResolvedValueOnce(false);
+
+      const res = await request(app)
+        .post(`${playlistBase}/private/likes/toggle`)
+        .set(authHeaders(TEST_USER_ID, TEST_EMAIL))
+        .send({ resource_type: 'item', item_id_text: ITEM_ID_TEXT });
+
+      expect(res.status).toBe(200);
+      expect(res.body.liked).toBe(true);
+      expect(plResourceAddItemLastMock).toHaveBeenCalled();
     });
   });
 

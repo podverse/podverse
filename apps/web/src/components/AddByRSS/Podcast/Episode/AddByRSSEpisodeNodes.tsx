@@ -1,16 +1,18 @@
 'use client';
 
-import React from 'react';
+import React, { useMemo } from 'react';
 
 import { MediumEnum } from '@podverse/helpers';
-import { getItemMediumIdFromBundle } from '@podverse/parser-mapping';
+import { getAddByRSSHashId, getItemMediumIdFromBundle } from '@podverse/parser-mapping';
 
 import type { AddByRSSListSortOrder } from '../../../../contexts/AddByRSSListContext';
+import { useLikesAddByRssBatch } from '../../../../hooks/useLikesAddByRssBatch';
 import type {
   AddByRSSFeedRecord,
   AddByRSSItemIndexItem,
   AddByRSSMappedFeed,
 } from '../../../../utils/addByRSS/types';
+import { buildListLikeRow } from '../../../../utils/likes/buildListLikeRow';
 import { Divider } from '../../../Divider/Divider';
 import type { ViewSelectedOption } from '../../../ViewSelector/ViewSelector';
 import { AddByRSSEpisodeGridNode } from './AddByRSSEpisodeGridNode';
@@ -40,6 +42,93 @@ type AddByRSSEpisodeNodesProps = AddByRSSEpisodeNodesFeedsProps | AddByRSSEpisod
 function isFeedsProps(props: AddByRSSEpisodeNodesProps): props is AddByRSSEpisodeNodesFeedsProps {
   return 'feeds' in props;
 }
+
+type AddByRSSEpisodeItemsRowsProps = {
+  channelIdText: string;
+  channelTitle: string;
+  channelImageUrl?: string;
+  items: AddByRSSMappedFeed['items'];
+  itemIdTextMap: Map<string, string>;
+  mediumId: number;
+  sortOrder: AddByRSSListSortOrder;
+};
+
+const AddByRSSEpisodeItemsListView: React.FC<AddByRSSEpisodeItemsRowsProps> = ({
+  channelIdText,
+  channelTitle,
+  channelImageUrl,
+  items,
+  itemIdTextMap,
+  mediumId,
+  sortOrder,
+}) => {
+  const addByRssLikeRows = useMemo(() => {
+    return items.map((bundle, idx) => {
+      const itemGuid = bundle.item?.guid ?? `${channelIdText}-${idx}`;
+      const itemIdText = getItemIdText(itemIdTextMap, channelIdText, itemGuid);
+      const pubDateMs = bundle.item?.pub_date ? new Date(bundle.item.pub_date).getTime() : 0;
+      const indexItem: AddByRSSItemIndexItem = {
+        id: `${channelIdText}-${itemGuid}`,
+        idText: itemIdText,
+        itemGuid,
+        channelIdText,
+        channelTitle,
+        channelImageUrl,
+        mediumId: getItemMediumIdFromBundle(bundle, mediumId),
+        bundle,
+        pubDateMs,
+      };
+      return { hashId: getAddByRSSHashId(indexItem), indexItem };
+    });
+  }, [channelIdText, channelImageUrl, channelTitle, itemIdTextMap, items, mediumId]);
+
+  const { isLiked, toggle } = useLikesAddByRssBatch(addByRssLikeRows);
+  const itemIdTexts = items.map((bundle, i) => {
+    const itemGuid = bundle.item?.guid ?? `${channelIdText}-${i}`;
+    return getItemIdText(itemIdTextMap, channelIdText, itemGuid);
+  });
+
+  return (
+    <div key="list" className={styles.list}>
+      {items.map((bundle, idx) => {
+        const itemGuid = bundle.item?.guid ?? `${channelIdText}-${idx}`;
+        const itemIdText = getItemIdText(itemIdTextMap, channelIdText, itemGuid);
+        const pubDateMs = bundle.item?.pub_date ? new Date(bundle.item.pub_date).getTime() : 0;
+        const indexItem: AddByRSSItemIndexItem = {
+          id: `${channelIdText}-${itemGuid}`,
+          idText: itemIdText,
+          itemGuid,
+          channelIdText,
+          channelTitle,
+          channelImageUrl,
+          mediumId: getItemMediumIdFromBundle(bundle, mediumId),
+          bundle,
+          pubDateMs,
+        };
+        const hashId = getAddByRSSHashId(indexItem);
+        return (
+          <React.Fragment key={bundle.item?.guid ?? idx}>
+            <AddByRSSEpisodeRow
+              itemIdText={itemIdText}
+              channelTitle={channelTitle}
+              channelImageUrl={channelImageUrl}
+              bundle={bundle}
+              indexItem={indexItem}
+              listContext={{
+                feedIdText: channelIdText,
+                itemIdTexts,
+                currentIndex: idx,
+                sortOrder,
+              }}
+              likeRow={itemIdText ? buildListLikeRow(hashId, { isLiked, toggle }) : undefined}
+            />
+            {idx < items.length - 1 && <Divider />}
+          </React.Fragment>
+        );
+      })}
+    </div>
+  );
+};
 
 const getItemIdText = (
   map: Map<string, string> | undefined,
@@ -101,47 +190,16 @@ export const AddByRSSEpisodeNodes: React.FC<AddByRSSEpisodeNodesProps> = (props)
     sortOrder = 'recent',
   } = props;
   if (viewSelected === 'rows') {
-    const itemIdTexts = items.map((bundle, i) => {
-      const itemGuid = bundle.item?.guid ?? `${channelIdText}-${i}`;
-      return getItemIdText(itemIdTextMap, channelIdText, itemGuid);
-    });
     return (
-      <div key="list" className={styles.list}>
-        {items.map((bundle, idx) => {
-          const itemGuid = bundle.item?.guid ?? `${channelIdText}-${idx}`;
-          const itemIdText = getItemIdText(itemIdTextMap, channelIdText, itemGuid);
-          const pubDateMs = bundle.item?.pub_date ? new Date(bundle.item.pub_date).getTime() : 0;
-          const indexItem: AddByRSSItemIndexItem = {
-            id: `${channelIdText}-${itemGuid}`,
-            idText: itemIdText,
-            itemGuid,
-            channelIdText,
-            channelTitle,
-            channelImageUrl,
-            mediumId: getItemMediumIdFromBundle(bundle, mediumId ?? MediumEnum.Podcast),
-            bundle,
-            pubDateMs,
-          };
-          return (
-            <React.Fragment key={bundle.item?.guid ?? idx}>
-              <AddByRSSEpisodeRow
-                itemIdText={itemIdText}
-                channelTitle={channelTitle}
-                channelImageUrl={channelImageUrl}
-                bundle={bundle}
-                indexItem={indexItem}
-                listContext={{
-                  feedIdText: channelIdText,
-                  itemIdTexts,
-                  currentIndex: idx,
-                  sortOrder,
-                }}
-              />
-              {idx < items.length - 1 && <Divider />}
-            </React.Fragment>
-          );
-        })}
-      </div>
+      <AddByRSSEpisodeItemsListView
+        channelIdText={channelIdText}
+        channelTitle={channelTitle}
+        channelImageUrl={channelImageUrl}
+        items={items}
+        itemIdTextMap={itemIdTextMap}
+        mediumId={mediumId ?? MediumEnum.Podcast}
+        sortOrder={sortOrder}
+      />
     );
   }
   if (viewSelected === 'grid') {

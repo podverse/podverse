@@ -21,6 +21,7 @@ export type CrudPermissions = {
 export type CurrentUser = {
   id: number;
   id_text: string;
+  email: string;
   role: string;
   permissions: CrudPermissions | null;
 };

@@ -22,6 +22,7 @@ import type { AddByRSSItemIndexItem, AddByRSSMappedFeed } from '../../../../util
 import { downloadAddByRSSMediaWithModal } from '../../../../utils/downloadModal/downloadAddByRSSMediaWithModal';
 import { downloadAndSaveFile } from '../../../../utils/fileDownloader';
 import { ImagesPerView } from '../../../Image/ImagesPerView';
+import type { ListEpisodeRowLike } from '../../../List/Podcasts/Episodes/ListEpisodeRow';
 import { PlayButtonRow } from '../../../MediaPlayer/Buttons/PlayButtonRow';
 import { MoreButton } from '../../../MoreButton/MoreButton';
 import { ReadableDate } from '../../../Time/ReadableDate';
@@ -41,6 +42,7 @@ type AddByRSSEpisodeRowProps = {
   indexItem?: AddByRSSItemIndexItem | null;
   /** When set, play will set this list context for autoplay-next from list. */
   listContext?: AddByRSSListContextState | null;
+  likeRow?: ListEpisodeRowLike;
 };
 
 export const AddByRSSEpisodeRow: React.FC<AddByRSSEpisodeRowProps> = ({
@@ -50,6 +52,7 @@ export const AddByRSSEpisodeRow: React.FC<AddByRSSEpisodeRowProps> = ({
   bundle,
   indexItem,
   listContext: listContextProp,
+  likeRow,
 }) => {
   const tMedia = useTranslations('media');
   const tMediaPlayer = useTranslations('media_player');
@@ -167,6 +170,14 @@ export const AddByRSSEpisodeRow: React.FC<AddByRSSEpisodeRowProps> = ({
     }
   };
 
+  const onLikeFromMenu = () => {
+    if (!loggedInAccount) {
+      setModalLoginRequired({ title: null, message: tInstructions('login_to_like') });
+      return;
+    }
+    likeRow?.onToggle();
+  };
+
   const moreButtonMenuItems = [
     {
       label: tMediaPlayer('play'),
@@ -190,6 +201,16 @@ export const AddByRSSEpisodeRow: React.FC<AddByRSSEpisodeRowProps> = ({
         ? ensureLoggedIn(addToPlaylist, 'login_to_add_to_playlist')
         : alertPlaceholder(tFeatures('playlist.add_to_playlist')),
     },
+    ...(likeRow
+      ? [
+          {
+            label: likeRow.isLiked
+              ? tFeatures('playlist.remove_from_liked')
+              : tFeatures('playlist.add_to_liked'),
+            onClick: onLikeFromMenu,
+          },
+        ]
+      : []),
     {
       label: tFeatures('history.mark_as_played'),
       onClick: indexItem

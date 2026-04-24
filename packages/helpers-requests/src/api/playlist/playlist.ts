@@ -1,5 +1,5 @@
 import type { QueryParamsQueueMedium } from '@podverse/helpers';
-import type { DTOPlaylist, DTOPlaylistFavorites } from '@podverse/helpers';
+import type { DTOPlaylist, DTOPlaylistLikes } from '@podverse/helpers';
 
 import type { ApiListResponse } from '../../index.js';
 import { emptyApiListResponse } from '../../index.js';
@@ -203,13 +203,81 @@ export async function reqPlaylistGetMany(api: ApiRequestService, params: QueryPa
   return emptyApiListResponse;
 }
 
-export async function reqPlaylistGetAllFavoritesPrivate(api: ApiRequestService) {
-  return api.apiRequest<DTOPlaylistFavorites[]>({
-    path: '/playlist/private/favorites',
+export type ReqPlaylistGetAllLikesPrivateParams = {
+  /** When false, adds `?include_resources=0` to omit playlist_resources (metadata-only). */
+  includeResources?: boolean;
+};
+
+export async function reqPlaylistGetAllLikesPrivate(
+  api: ApiRequestService,
+  params: ReqPlaylistGetAllLikesPrivateParams = {}
+) {
+  const includeResources = params.includeResources !== false;
+  const path = includeResources
+    ? '/playlist/private/likes'
+    : '/playlist/private/likes?include_resources=0';
+  return api.apiRequest<DTOPlaylistLikes[]>({
+    path,
     method: 'GET',
     config: {
       withCredentials: true,
     },
+  });
+}
+
+export type ReqPlaylistLikesMembershipParams = {
+  item_id_texts?: string[];
+  clip_id_texts?: string[];
+  add_by_rss_hash_ids?: string[];
+};
+
+export async function reqPlaylistLikesMembership(
+  api: ApiRequestService,
+  params: ReqPlaylistLikesMembershipParams
+) {
+  return api.apiRequest<{
+    item_id_texts: string[];
+    clip_id_texts: string[];
+    add_by_rss_hash_ids: string[];
+  }>({
+    path: '/playlist/private/likes/membership',
+    method: 'POST',
+    config: {
+      withCredentials: true,
+    },
+    data: params,
+  });
+}
+
+export type ReqPlaylistToggleLikeParams =
+  | {
+      resource_type: 'item';
+      item_id_text: string;
+    }
+  | {
+      resource_type: 'clip';
+      clip_id_text: string;
+    }
+  | {
+      resource_type: 'add_by_rss';
+      add_by_rss_hash_id?: string;
+      add_by_rss_resource_data: object;
+    };
+
+export async function reqPlaylistToggleLike(
+  api: ApiRequestService,
+  params: ReqPlaylistToggleLikeParams
+) {
+  return api.apiRequest<{
+    liked: boolean;
+    resource_type: 'item' | 'clip' | 'add_by_rss';
+  }>({
+    path: '/playlist/private/likes/toggle',
+    method: 'POST',
+    config: {
+      withCredentials: true,
+    },
+    data: params,
   });
 }
 
@@ -235,7 +303,6 @@ export type ReqPlaylistEditParams = {
   id_text: string;
   title: string;
   description?: string;
-  medium: QueryParamsQueueMedium;
   sharable_status_id: number;
 };
 
@@ -249,7 +316,6 @@ export async function reqPlaylistEdit(api: ApiRequestService, params: ReqPlaylis
     data: {
       title: params.title,
       description: params.description,
-      medium: params.medium,
       sharable_status_id: params.sharable_status_id,
     },
   });

@@ -13,6 +13,7 @@ import { useMediaPlayer } from '../../../contexts/MediaPlayer';
 import { useModals } from '../../../contexts/Modals';
 import { useQueues } from '../../../contexts/Queue';
 import { getApiRequestService } from '../../../factories/apiRequestService';
+import { useLikesClipBatch } from '../../../hooks/useLikesClipBatch';
 import { useMediaPlayerResourceUpdate } from '../../../hooks/useMediaPlayerResourceUpdate';
 import { downloadEpisodeWithModal } from '../../../utils/downloadModal/downloadEpisodeWithModal';
 import { downloadAndSaveFile } from '../../../utils/fileDownloader';
@@ -45,6 +46,18 @@ export const ClipHeaderPlaySection: React.FC<ClipHeaderPlaySectionProps> = ({
   const { mpClip, mpIsPlaying, setMPIsPlaying } = useMediaPlayer();
   const mediaPlayerResourceUpdate = useMediaPlayerResourceUpdate();
   const { autoQueueConfig } = useAutoQueue();
+  const { isLiked, toggle } = useLikesClipBatch([clip.id_text]);
+
+  const onLikeFromMenu = () => {
+    if (!loggedInAccount) {
+      setModalLoginRequired({
+        title: null,
+        message: tInstructions('login_to_like'),
+      });
+      return;
+    }
+    void toggle(clip.id_text);
+  };
 
   const playButtonOnClick = () => {
     if (clip.id_text === mpClip?.id_text) {
@@ -176,6 +189,12 @@ export const ClipHeaderPlaySection: React.FC<ClipHeaderPlaySectionProps> = ({
     {
       label: tFeatures('playlist.add_to_playlist'),
       onClick: addToPlaylistOnClick,
+    },
+    {
+      label: isLiked(clip.id_text)
+        ? tFeatures('playlist.remove_from_liked')
+        : tFeatures('playlist.add_to_liked'),
+      onClick: onLikeFromMenu,
     },
     {
       label: tFeatures('history.mark_as_played'),

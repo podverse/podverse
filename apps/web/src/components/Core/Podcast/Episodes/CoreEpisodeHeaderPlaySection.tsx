@@ -14,6 +14,7 @@ import { useModals } from '../../../../contexts/Modals';
 import { useQueues } from '../../../../contexts/Queue';
 import { useQueueResourcesAbridgedIndex } from '../../../../contexts/QueueResourcesAbridgedIndex';
 import { getApiRequestService } from '../../../../factories/apiRequestService';
+import { useLikesItemBatch } from '../../../../hooks/useLikesItemBatch';
 import { useMediaPlayerResourceUpdate } from '../../../../hooks/useMediaPlayerResourceUpdate';
 import { downloadEpisodeWithModal } from '../../../../utils/downloadModal/downloadEpisodeWithModal';
 import { downloadAndSaveFile } from '../../../../utils/fileDownloader';
@@ -46,6 +47,18 @@ export const CoreEpisodeHeaderPlaySection: React.FC<CoreEpisodeHeaderPlaySection
   const { queueResourcesAbridgedIndex } = useQueueResourcesAbridgedIndex();
   const { durationStr, positionStr } = getDurationAndPositionStr(item, queueResourcesAbridgedIndex);
   const { autoQueueConfig } = useAutoQueue();
+  const { isLiked, toggle } = useLikesItemBatch([item.id_text]);
+
+  const onLikeFromMenu = () => {
+    if (!loggedInAccount) {
+      setModalLoginRequired({
+        title: null,
+        message: tInstructions('login_to_like'),
+      });
+      return;
+    }
+    void toggle(item.id_text);
+  };
 
   const playButtonOnClick = () => {
     if (item.id === mpItem?.id && !mpClip && !mpItemSoundbite) {
@@ -177,6 +190,12 @@ export const CoreEpisodeHeaderPlaySection: React.FC<CoreEpisodeHeaderPlaySection
     {
       label: tFeatures('playlist.add_to_playlist'),
       onClick: addToPlaylistOnClick,
+    },
+    {
+      label: isLiked(item.id_text)
+        ? tFeatures('playlist.remove_from_liked')
+        : tFeatures('playlist.add_to_liked'),
+      onClick: onLikeFromMenu,
     },
     {
       label: tFeatures('history.mark_as_played'),

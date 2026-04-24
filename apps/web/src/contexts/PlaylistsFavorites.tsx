@@ -2,52 +2,54 @@ import type { ReactNode } from 'react';
 import { createContext, useEffect, useState } from 'react';
 import { useContext } from 'react';
 
-import type { DTOPlaylist /*, generatePlaylistFavoritesIndex */ } from '@podverse/helpers';
+import type { DTOPlaylistLikes } from '@podverse/helpers';
 
-// import { apiRequestService } from "../factories/apiRequestService";
 import { useAccount } from './Account';
 
-type PlaylistsFavoritesContextType = {
-  playlistsFavorites: DTOPlaylist[];
-  setPlaylistsFavorites: (val: DTOPlaylist[]) => void;
+type PlaylistsLikesContextType = {
+  playlistsLikes: DTOPlaylistLikes[];
+  setPlaylistsLikes: (val: DTOPlaylistLikes[]) => void;
 };
 
-export const PlaylistsFavoritesContext = createContext<PlaylistsFavoritesContextType>({
-  playlistsFavorites: [],
-  setPlaylistsFavorites: () => {},
+export const PlaylistsLikesContext = createContext<PlaylistsLikesContextType>({
+  playlistsLikes: [],
+  setPlaylistsLikes: () => {},
 });
 
-type PlaylistsFavoritesProviderProps = {
+type PlaylistsLikesProviderProps = {
   children: ReactNode;
 };
 
-export const PlaylistsFavoritesProvider = ({ children }: PlaylistsFavoritesProviderProps) => {
-  const [playlistsFavorites, setPlaylistsFavorites] = useState<DTOPlaylist[]>([]);
+export const PlaylistsLikesProvider = ({ children }: PlaylistsLikesProviderProps) => {
+  const [playlistsLikes, setPlaylistsLikes] = useState<DTOPlaylistLikes[]>([]);
   const { loggedInAccount } = useAccount();
 
   useEffect(() => {
     (async () => {
       if (!loggedInAccount) {
-        setPlaylistsFavorites([]);
+        setPlaylistsLikes([]);
         return;
       }
 
-      // const data = await apiRequestService.reqPlaylistGetAllFavoritesPrivate();
-      // const index = generatePlaylistFavoritesIndex(data);
+      const { getApiRequestService } = await import('../factories/apiRequestService');
+      const data = await getApiRequestService().reqPlaylistGetAllLikesPrivate({
+        includeResources: false,
+      });
+      setPlaylistsLikes(data);
     })();
-  }, []);
+  }, [loggedInAccount]);
 
   return (
-    <PlaylistsFavoritesContext.Provider value={{ playlistsFavorites, setPlaylistsFavorites }}>
+    <PlaylistsLikesContext.Provider value={{ playlistsLikes, setPlaylistsLikes }}>
       {children}
-    </PlaylistsFavoritesContext.Provider>
+    </PlaylistsLikesContext.Provider>
   );
 };
 
-export function usePlaylistsFavorites() {
-  const ctx = useContext(PlaylistsFavoritesContext);
+export function usePlaylistsLikes() {
+  const ctx = useContext(PlaylistsLikesContext);
   if (!ctx) {
-    throw new Error('usePlaylistsFavorites must be used within a PlaylistsFavoritesProvider');
+    throw new Error('usePlaylistsLikes must be used within a PlaylistsLikesProvider');
   }
   return ctx;
 }

@@ -13,10 +13,13 @@ import type {
 import { findDTOChannelImageBySize, findDTOItemImageBySize, MediumEnum } from '@podverse/helpers';
 
 import { type MediaPlayerAddByRSSState, useMediaPlayer } from '../../../contexts/MediaPlayer';
+import { useMediaPlayerCurrentTime } from '../../../contexts/MediaPlayerCurrentTime';
 import { getAddByRSSItemPath, getAddByRSSLivestreamPath } from '../../../utils/addByRSS/itemPath';
+import { getResolvedVtsLikeTargetItem } from '../../../utils/mediaPlayer/vtsOverrideLikeItem';
 import { ImageNonReact } from '../../Image/ImageNonReact';
 import { Link } from '../../Link/Link';
 import { ReadableTimeRange } from '../../Time/ReadableTimeRange';
+import { MediaPlayerVtsOverrideLikeButton } from './MediaPlayerVtsOverrideLikeButton';
 
 import styles from '../../../styles/components/MediaPlayer/Modal/MediaPlayerInfoModal.module.scss';
 
@@ -115,6 +118,7 @@ export const MediaPlayerInfoModal: React.FC = () => {
     mpItemSoundbite,
     setPlayerModalIsOpen,
   } = useMediaPlayer();
+  const { mpCurrentTime } = useMediaPlayerCurrentTime();
   const tMediaPlayer = useTranslations('media_player');
   const router = useRouter();
 
@@ -151,6 +155,8 @@ export const MediaPlayerInfoModal: React.FC = () => {
     mpChannel?.title ??
     null;
 
+  const vtsOverrideLikeItem = mpItem && getResolvedVtsLikeTargetItem(mpItem, mpCurrentTime);
+
   return (
     <div className={styles.info}>
       <div className={styles.titleSection}>
@@ -170,6 +176,11 @@ export const MediaPlayerInfoModal: React.FC = () => {
         ) : channelTitle ? (
           <div className={styles.channelTitle}>{String(channelTitle)}</div>
         ) : null}
+        {vtsOverrideLikeItem && (
+          <div className={styles.vtsLike}>
+            <MediaPlayerVtsOverrideLikeButton likeTarget={vtsOverrideLikeItem} />
+          </div>
+        )}
       </div>
       <div className={styles.imageWrapper}>
         <ImageNonReact

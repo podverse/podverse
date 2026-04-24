@@ -92,8 +92,10 @@ export class LiveItemController {
   static async getManyByChannel(req: Request, res: Response): Promise<void> {
     const channelIdOrIdText = getParamRequired(req, 'channelIdOrIdText');
 
-    const channel = await LiveItemController.channelService.getByIdOrIdText(channelIdOrIdText);
-    if (!channel) {
+    const channel = await LiveItemController.channelService.getByIdOrIdText(channelIdOrIdText, {
+      channel_about: true,
+    });
+    if (!channel || !channel.channel_about) {
       res.status(404).json({ error: 'Channel not found' });
       return;
     }

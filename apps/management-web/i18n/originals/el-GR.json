@@ -28,6 +28,14 @@
     "dashboard": "Πίνακας Ελέγχου",
     "users": "Χρήστες",
     "content": "Περιεχόμενο",
-    "settings": "Ρυθμίσεις"
+    "settings": "Ρυθμίσεις",
+    "userMenu": "Μενού λογαριασμού",
+    "userRole": "Ρόλος: {role}"
+  },
+  "dashboard": {
+    "stats": {
+      "title": "Στατιστικά",
+      "description": "Δείτε στατιστικά δημοτικότητας και προβολών για podcast, επεισόδια, clips, playlists και προφίλ"
+    }
   }
 }

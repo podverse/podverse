@@ -1,6 +1,7 @@
 export type AuthenticatedAdmin = {
   id: number;
   id_text: string;
+  email: string;
   admin_account_role_id: number;
   role: string;
   permissions: {

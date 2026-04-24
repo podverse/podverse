@@ -165,6 +165,7 @@ describe('management-api auth routes', () => {
       expect(res.body).toMatchObject({
         id: 1,
         id_text: 'admin-1',
+        email: 'admin@example.com',
         role: 'superuser',
         permissions: {
           feeds_crud: 15,

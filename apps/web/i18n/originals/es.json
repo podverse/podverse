@@ -116,7 +116,9 @@
       "removed_from_playlist": "Eliminado de la Lista de Reproducción",
       "remove_error": "Error al eliminar de la Lista de Reproducción",
       "item_count": "Elementos: {count}",
-      "playlist_type": "Tipo de Lista de Reproducción"
+      "playlist_type": "Tipo de Lista de Reproducción",
+      "add_to_liked": "Añadir a Me gusta",
+      "remove_from_liked": "Quitar de Me gusta"
     },
     "clip": {
       "clip": "Clip",
@@ -515,6 +517,7 @@
     "login_to_subscribe": "Por favor, inicia sesión para suscribirte.",
     "login_to_add_to_queue": "Por favor, inicia sesión para agregar a tu cola.",
     "login_to_add_to_playlist": "Por favor, inicia sesión para agregar a tu lista de reproducción.",
+    "login_to_like": "Por favor, inicia sesión para añadir elementos a tu lista de Me gusta.",
     "login_to_mark_as_played": "Por favor, inicia sesión para marcar elementos como reproducidos.",
     "login_to_enable_notifications": "Por favor, inicia sesión para habilitar notificaciones.",
     "login_to_disable_notifications": "Por favor, inicia sesión para deshabilitar notificaciones."

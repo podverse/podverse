@@ -19,7 +19,10 @@ import Joi from 'joi';
 
 import type { QueryParamsQueueMedium } from '@podverse/helpers';
 import {
+  getAddByRSSHashId,
   getQueueMediumIdFromType,
+  MediumEnum,
+  PLAYLIST_LIKES_MEMBERSHIP_MAX_IDS,
   QUERY_PARAMS_QUEUE_MEDIUMS,
   SharableStatusEnum,
 } from '@podverse/helpers';
@@ -32,6 +35,9 @@ import type {
 } from '@podverse/orm';
 import {
   AccountFollowingPlaylistService,
+  ClipService,
+  ItemService,
+  PlaylistResourceService,
   PlaylistService,
   StatsAggregatedPlaylistService,
 } from '@podverse/orm';
@@ -105,6 +111,9 @@ export const verifyPrivatePlaylistOwnershipIfNeeded = () => {
 
 class PlaylistController {
   private static statsAggregatedPlaylistService = new StatsAggregatedPlaylistService();
+  private static playlistResourceService = new PlaylistResourceService();
+  private static itemService = new ItemService();
+  private static clipService = new ClipService();
 
   static async createPlaylist(req: Request, res: Response): Promise<void> {
     ensureAuthenticated(
@@ -166,9 +175,6 @@ class PlaylistController {
             const schema = Joi.object({
               title: Joi.string().allow(null, ''),
               description: Joi.string().allow(null, ''),
-              medium: Joi.string()
-                .valid(...QUERY_PARAMS_QUEUE_MEDIUMS)
-                .required(),
               sharable_status_id: Joi.number().min(1).required(),
             });
 
@@ -176,24 +182,15 @@ class PlaylistController {
               const account = getAuthenticatedUser(req);
               const playlist_id_text = getParamRequired(req, 'playlist_id_text');
 
-              const { title, description, medium, sharable_status_id } = req.body as {
+              const { title, description, sharable_status_id } = req.body as {
                 title: string;
                 description: string;
-                medium: QueryParamsQueueMedium;
                 sharable_status_id: number;
               };
-
-              const medium_id = getQueueMediumIdFromType(medium);
-
-              if (!medium_id) {
-                res.status(400).json({ message: 'Invalid medium type' });
-                return;
-              }
 
               const dto = {
                 title,
                 description,
-                medium_id,
                 sharable_status_id,
               };
 
@@ -604,18 +601,209 @@ class PlaylistController {
     );
   }
 
-  static async getAllFavoritesPrivate(req: Request, res: Response): Promise<void> {
+  static async getAllLikesPrivate(req: Request, res: Response): Promise<void> {
     ensureAuthenticated(
       req,
       res,
       async () => {
         try {
           const account = getAuthenticatedUser(req);
-          const favorites = await playlistService.getAllFavoritesPrivate(account.id);
-          res.status(200).json(favorites);
+          const includeResources = req.query['include_resources'] !== '0';
+          const likes = await playlistService.getAllLikesPrivate(account.id, includeResources);
+          res.status(200).json(likes);
         } catch (err) {
           handleGenericErrorResponse(res, err);
         }
+      },
+      { skipMembershipStatus: true }
+    );
+  }
+
+  static async getLikesMembership(req: Request, res: Response): Promise<void> {
+    ensureAuthenticated(
+      req,
+      res,
+      async () => {
+        validateBodyObject(
+          Joi.object({
+            item_id_texts: Joi.array()
+              .items(Joi.string())
+              .max(PLAYLIST_LIKES_MEMBERSHIP_MAX_IDS)
+              .default([]),
+            clip_id_texts: Joi.array()
+              .items(Joi.string())
+              .max(PLAYLIST_LIKES_MEMBERSHIP_MAX_IDS)
+              .default([]),
+            add_by_rss_hash_ids: Joi.array()
+              .items(Joi.string())
+              .max(PLAYLIST_LIKES_MEMBERSHIP_MAX_IDS)
+              .default([]),
+          }),
+          req,
+          res,
+          async () => {
+            try {
+              const account = getAuthenticatedUser(req);
+              const membership = await playlistService.getLikesMembership(account.id, req.body);
+              res.status(200).json(membership);
+            } catch (err) {
+              handleGenericErrorResponse(res, err);
+            }
+          }
+        );
+      },
+      { skipMembershipStatus: true }
+    );
+  }
+
+  static async toggleLike(req: Request, res: Response): Promise<void> {
+    ensureAuthenticated(
+      req,
+      res,
+      async () => {
+        validateBodyObject(
+          Joi.object({
+            resource_type: Joi.string().valid('item', 'clip', 'add_by_rss').required(),
+            item_id_text: Joi.string().when('resource_type', {
+              is: 'item',
+              then: Joi.required(),
+              otherwise: Joi.optional(),
+            }),
+            clip_id_text: Joi.string().when('resource_type', {
+              is: 'clip',
+              then: Joi.required(),
+              otherwise: Joi.optional(),
+            }),
+            add_by_rss_hash_id: Joi.string().when('resource_type', {
+              is: 'add_by_rss',
+              then: Joi.required(),
+              otherwise: Joi.optional(),
+            }),
+            add_by_rss_resource_data: Joi.object().when('resource_type', {
+              is: 'add_by_rss',
+              then: Joi.required(),
+              otherwise: Joi.optional(),
+            }),
+          }),
+          req,
+          res,
+          async () => {
+            try {
+              const account = getAuthenticatedUser(req);
+              const resourceTypeRaw = req.body.resource_type;
+              if (
+                resourceTypeRaw !== 'item' &&
+                resourceTypeRaw !== 'clip' &&
+                resourceTypeRaw !== 'add_by_rss'
+              ) {
+                res.status(400).json({ message: 'Invalid resource type' });
+                return;
+              }
+              const resourceType = resourceTypeRaw;
+              const itemIdText =
+                typeof req.body.item_id_text === 'string' ? req.body.item_id_text : '';
+              const clipIdText =
+                typeof req.body.clip_id_text === 'string' ? req.body.clip_id_text : '';
+              const addByRSSHashIdFromBody =
+                typeof req.body.add_by_rss_hash_id === 'string' ? req.body.add_by_rss_hash_id : '';
+              const addByRSSResourceData =
+                req.body.add_by_rss_resource_data &&
+                typeof req.body.add_by_rss_resource_data === 'object'
+                  ? req.body.add_by_rss_resource_data
+                  : {};
+
+              if (resourceType === 'item') {
+                const item = await PlaylistController.itemService.getByIdText(itemIdText, {
+                  channel: true,
+                });
+                if (!item) {
+                  res.status(404).json({ message: 'Item not found' });
+                  return;
+                }
+
+                const mediumId =
+                  item.channel.medium_id === MediumEnum.Music ||
+                  item.channel.medium_id === MediumEnum.PublisherMusic
+                    ? MediumEnum.Music
+                    : MediumEnum.AV;
+                const likesPlaylist = await playlistService.getOrCreateDefaultLikesPlaylist(
+                  account.id,
+                  mediumId
+                );
+                const liked = await playlistService.hasItemLike(likesPlaylist.id, item.id);
+
+                if (liked) {
+                  await PlaylistController.playlistResourceService.removeItemFromPlaylist(
+                    likesPlaylist.id_text,
+                    item.id_text
+                  );
+                } else {
+                  await PlaylistController.playlistResourceService.addItemToPlaylistLast(
+                    likesPlaylist.id_text,
+                    item.id_text
+                  );
+                }
+
+                res.status(200).json({ liked: !liked, resource_type: resourceType });
+                return;
+              }
+
+              if (resourceType === 'clip') {
+                const clip = await PlaylistController.clipService.getByIdText(clipIdText);
+                if (!clip) {
+                  res.status(404).json({ message: 'Clip not found' });
+                  return;
+                }
+
+                const likesPlaylist = await playlistService.getOrCreateDefaultLikesPlaylist(
+                  account.id,
+                  MediumEnum.AV
+                );
+                const liked = await playlistService.hasClipLike(likesPlaylist.id, clip.id);
+
+                if (liked) {
+                  await PlaylistController.playlistResourceService.removeClipFromPlaylist(
+                    likesPlaylist.id_text,
+                    clip.id_text
+                  );
+                } else {
+                  await PlaylistController.playlistResourceService.addClipToPlaylistLast(
+                    likesPlaylist.id_text,
+                    clip.id_text
+                  );
+                }
+
+                res.status(200).json({ liked: !liked, resource_type: resourceType });
+                return;
+              }
+
+              const addByRSSHashId =
+                addByRSSHashIdFromBody || getAddByRSSHashId(addByRSSResourceData);
+
+              const likesPlaylist = await playlistService.getOrCreateDefaultLikesPlaylist(
+                account.id,
+                MediumEnum.AV
+              );
+              const liked = await playlistService.hasAddByRSSLike(likesPlaylist.id, addByRSSHashId);
+
+              if (liked) {
+                await PlaylistController.playlistResourceService.removeItemAddByRSSFromPlaylist(
+                  likesPlaylist.id_text,
+                  addByRSSHashId
+                );
+              } else {
+                await PlaylistController.playlistResourceService.addItemAddByRSSToPlaylistLast(
+                  likesPlaylist.id_text,
+                  addByRSSResourceData
+                );
+              }
+
+              res.status(200).json({ liked: !liked, resource_type: resourceType });
+            } catch (err) {
+              handleGenericErrorResponse(res, err);
+            }
+          }
+        );
       },
       { skipMembershipStatus: true }
     );

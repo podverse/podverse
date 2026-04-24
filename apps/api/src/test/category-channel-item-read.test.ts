@@ -406,6 +406,16 @@ describe('category, channel, item, chapters, soundbites, transcripts, live, podr
       expect(res.status).toBe(404);
     });
 
+    it('GET /channel/:idOrIdText returns 404 when channel exists but is not parsed-ready', async () => {
+      channelGetByIdOrIdTextMock.mockResolvedValueOnce({
+        id: 9,
+        id_text: 'placeholder-ch',
+        channel_about: null,
+      });
+      const res = await request(app).get(`${channelBase}/placeholder-ch`);
+      expect(res.status).toBe(404);
+    });
+
     it('GET /channel/subscribed/recent returns 200 when authenticated', async () => {
       getAccountMock.mockResolvedValueOnce({
         id: TEST_USER_ID,
@@ -429,6 +439,17 @@ describe('category, channel, item, chapters, soundbites, transcripts, live, podr
       const res = await request(app).get(`${channelBase}/podcast-index/12345`);
       expect(res.status).toBe(200);
     });
+
+    it('GET /channel/podcast-index/:id returns null when channel is not parsed-ready', async () => {
+      channelGetByPodcastIndexIdMock.mockResolvedValueOnce({
+        id: 7,
+        id_text: 'by-pi',
+        channel_about: null,
+      });
+      const res = await request(app).get(`${channelBase}/podcast-index/12345`);
+      expect(res.status).toBe(200);
+      expect(res.body).toBeNull();
+    });
   });
 
   describe('item', () => {
@@ -450,6 +471,18 @@ describe('category, channel, item, chapters, soundbites, transcripts, live, podr
     it('GET /item/channel/recent/:channelId returns 200', async () => {
       const res = await request(app).get(`${itemBase}/channel/recent/ch-1`).query({ page: 1 });
       expect(res.status).toBe(200);
+    });
+
+    it('GET /item/channel/recent/:channelId returns 404 when channel is not parsed-ready', async () => {
+      channelGetByIdOrIdTextMock.mockResolvedValueOnce({
+        id: 1,
+        id_text: 'ch-placeholder',
+        channel_about: null,
+      });
+      const res = await request(app)
+        .get(`${itemBase}/channel/recent/ch-placeholder`)
+        .query({ page: 1 });
+      expect(res.status).toBe(404);
     });
 
     it('GET /item/channel/shuffle/:channelId returns 200 with shuffleHash', async () => {
@@ -581,6 +614,16 @@ describe('category, channel, item, chapters, soundbites, transcripts, live, podr
       const res = await request(app).get(`${liveItemBase}/channel/ch-1`);
       expect(res.status).toBe(200);
       expect(Array.isArray(res.body)).toBe(true);
+    });
+
+    it('GET /live-item/channel/:id returns 404 when channel is not parsed-ready', async () => {
+      channelGetByIdOrIdTextMock.mockResolvedValueOnce({
+        id: 1,
+        id_text: 'ch-placeholder',
+        channel_about: null,
+      });
+      const res = await request(app).get(`${liveItemBase}/channel/ch-placeholder`);
+      expect(res.status).toBe(404);
     });
 
     it('GET /live-item/subscribed/recent returns 200 when authenticated', async () => {

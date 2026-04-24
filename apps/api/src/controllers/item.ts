@@ -63,6 +63,10 @@ export class ItemController {
   private static statsAggregatedItemService: StatsAggregatedItemService =
     new StatsAggregatedItemService();
 
+  private static isParsedReadyChannel(channel: { channel_about?: unknown } | null): boolean {
+    return Boolean(channel?.channel_about);
+  }
+
   static async getByIdOrIdText(req: Request, res: Response): Promise<void> {
     validateParamsObject(Joi.object(idOrIdTextParamSchema), req, res, async () => {
       try {
@@ -423,7 +427,7 @@ export class ItemController {
             channel_about: true,
           });
 
-          if (!channel) {
+          if (!channel || !ItemController.isParsedReadyChannel(channel)) {
             res.status(404).json({ message: 'Channel not found' });
             return;
           }
@@ -462,7 +466,7 @@ export class ItemController {
             channel_about: true,
           });
 
-          if (!channel) {
+          if (!channel || !ItemController.isParsedReadyChannel(channel)) {
             res.status(404).json({ message: 'Channel not found' });
             return;
           }
@@ -509,7 +513,7 @@ export class ItemController {
             channel_about: true,
           });
 
-          if (!channel) {
+          if (!channel || !ItemController.isParsedReadyChannel(channel)) {
             res.status(404).json({ message: 'Channel not found' });
             return;
           }
@@ -557,7 +561,7 @@ export class ItemController {
             channel_about: true,
           });
 
-          if (!channel) {
+          if (!channel || !ItemController.isParsedReadyChannel(channel)) {
             res.status(404).json({ message: 'Channel not found' });
             return;
           }
@@ -598,7 +602,7 @@ export class ItemController {
             channel_about: true,
           });
 
-          if (!channel) {
+          if (!channel || !ItemController.isParsedReadyChannel(channel)) {
             res.status(404).json({ message: 'Channel not found' });
             return;
           }
@@ -644,7 +648,7 @@ export class ItemController {
             channel_about: true,
           });
 
-          if (!channel) {
+          if (!channel || !ItemController.isParsedReadyChannel(channel)) {
             res.status(404).json({ message: 'Channel not found' });
             return;
           }

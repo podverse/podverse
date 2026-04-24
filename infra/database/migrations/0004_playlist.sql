@@ -7,15 +7,15 @@ CREATE TABLE playlist (
     sharable_status_id INTEGER NOT NULL REFERENCES sharable_status(id),
     title varchar_normal,
     description varchar_long,
-    is_default_favorites BOOLEAN DEFAULT FALSE,
+    is_default_likes BOOLEAN DEFAULT FALSE,
     item_count INTEGER DEFAULT 0,
     medium_id INTEGER NOT NULL REFERENCES medium(id),
     last_updated server_time_with_default NOT NULL
 );
 
-CREATE UNIQUE INDEX idx_playlist_account_medium_default_favorites
+CREATE UNIQUE INDEX idx_playlist_account_medium_default_likes
     ON playlist (account_id, medium_id)
-    WHERE is_default_favorites = TRUE;
+    WHERE is_default_likes = TRUE;
 
 CREATE INDEX idx_playlist_account_id ON playlist(account_id);
 CREATE INDEX idx_playlist_sharable_status_id ON playlist(sharable_status_id);

@@ -265,6 +265,9 @@ export class ItemService {
       ...config,
       where: {
         channel: {
+          channel_about: {
+            id: Not(IsNull()),
+          },
           feed: {
             feed_flag_status: In([1, 2]),
           },
@@ -767,7 +770,12 @@ export class ItemService {
 
     return this.repositoryRead.find({
       where: {
-        channel: { id: In(channel_ids) },
+        channel: {
+          id: In(channel_ids),
+          channel_about: {
+            id: Not(IsNull()),
+          },
+        },
         live_item: {
           id: itemType === 'live-item' ? Not(IsNull()) : IsNull(),
           ...(live_item_status_id ? { live_item_status_id: Equal(live_item_status_id) } : {}),

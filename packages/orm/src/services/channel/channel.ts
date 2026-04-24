@@ -4,7 +4,7 @@ import { Feed } from '@orm/entities/feed/feed.js';
 import { FeedFlagStatusStatusEnum } from '@orm/entities/feed/feedFlagStatus.js';
 import { applyProperties } from '@orm/lib/applyProperties.js';
 import type { FindManyOptions, FindOptionsRelations, FindOptionsWhere, Repository } from 'typeorm';
-import { Equal, In } from 'typeorm';
+import { Equal, In, IsNull, Not } from 'typeorm';
 
 import type { QueryParamsMedium } from '@podverse/helpers';
 import { getMediumIdArrayFromType, MediumEnum } from '@podverse/helpers';
@@ -289,6 +289,9 @@ export class ChannelService {
 
     return this.repositoryRead.find({
       where: {
+        channel_about: {
+          id: Not(IsNull()),
+        },
         feed: {
           feed_flag_status: In([
             FeedFlagStatusStatusEnum.Active,
@@ -305,6 +308,9 @@ export class ChannelService {
   async getManyCount(config: FindManyOptions<Channel>): Promise<number> {
     return this.repositoryRead.count({
       where: {
+        channel_about: {
+          id: Not(IsNull()),
+        },
         feed: {
           feed_flag_status: In([
             FeedFlagStatusStatusEnum.Active,

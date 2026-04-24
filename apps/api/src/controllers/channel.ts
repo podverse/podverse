@@ -39,6 +39,10 @@ export class ChannelController {
   private static channelService = new ChannelService();
   private static statsAggregatedChannelService = new StatsAggregatedChannelService();
 
+  private static isParsedReadyChannel(channel: Channel | null): channel is Channel {
+    return Boolean(channel?.channel_about);
+  }
+
   static async getByIdOrIdText(req: Request, res: Response): Promise<void> {
     validateParamsObject(Joi.object(idOrIdTextParamSchema), req, res, async () => {
       try {
@@ -47,7 +51,8 @@ export class ChannelController {
           idOrIdText,
           channelGetOneRelations
         );
-        handleReturnDataOrNotFound(res, data, 'Channel');
+        const parsedReadyChannel = ChannelController.isParsedReadyChannel(data) ? data : null;
+        handleReturnDataOrNotFound(res, parsedReadyChannel, 'Channel');
       } catch (error) {
         handleGenericErrorResponse(res, error);
       }
@@ -71,7 +76,8 @@ export class ChannelController {
           podcastIndexId,
           channelGetOneRelations
         );
-        res.json(data || null);
+        const parsedReadyChannel = ChannelController.isParsedReadyChannel(data) ? data : null;
+        res.json(parsedReadyChannel || null);
       } catch (error) {
         handleGenericErrorResponse(res, error);
       }

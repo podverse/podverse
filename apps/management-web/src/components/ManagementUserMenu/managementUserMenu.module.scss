@@ -1,0 +1,141 @@
+@use '../../styles/theme/variables' as theme;
+
+$focus-padding: 0.25rem;
+
+.wrapper {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: theme.$spacing-sm;
+  padding: theme.$spacing-sm theme.$spacing-md;
+  font-size: theme.$font-size-base;
+  font-family: inherit;
+  color: theme.$color-text-primary;
+  background-color: theme.$color-background-light;
+  border: theme.$border-width solid theme.$color-border-light;
+  border-radius: theme.$border-radius-md;
+  cursor: pointer;
+
+  &:focus {
+    outline: none;
+  }
+
+  &:focus-visible {
+    outline: 2px solid theme.$color-primary;
+    outline-offset: 2px;
+  }
+}
+
+.userIcon {
+  flex-shrink: 0;
+  font-size: 1rem;
+  opacity: 0.9;
+}
+
+.userLabel {
+  min-width: 0;
+  max-width: 16rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  display: none;
+  font-weight: theme.$font-weight-medium;
+}
+
+.chevron {
+  flex-shrink: 0;
+  font-size: 0.65rem;
+  opacity: 0.6;
+}
+
+@media (min-width: 36rem) {
+  .userLabel {
+    display: inline;
+  }
+}
+
+.panel {
+  position: absolute;
+  right: 0;
+  top: 100%;
+  z-index: 100;
+  margin-top: theme.$spacing-xs;
+  min-width: 12rem;
+  max-width: min(18rem, 100vw - 2rem);
+  padding: theme.$spacing-xs 0;
+  background: theme.$color-background;
+  border: theme.$border-width solid theme.$color-border;
+  border-radius: theme.$border-radius-md;
+  box-shadow: theme.$shadow-card;
+}
+
+.menuLink {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  padding: theme.$spacing-sm theme.$spacing-md;
+  font: inherit;
+  text-align: left;
+  text-decoration: none;
+  color: theme.$color-text-primary;
+  background: transparent;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+
+  &:hover,
+  &:focus {
+    background-color: theme.$color-background-light;
+  }
+
+  &:focus {
+    outline: none;
+  }
+
+  &:focus-visible {
+    outline: 2px solid theme.$color-primary;
+    outline-offset: -2px;
+  }
+}
+
+.meta {
+  margin-top: theme.$spacing-xs;
+  padding: theme.$spacing-sm theme.$spacing-md;
+  font-size: theme.$font-size-xs;
+  color: theme.$color-text-secondary;
+  line-height: 1.3;
+  border-top: theme.$border-width solid theme.$color-border-light;
+  border-bottom: theme.$border-width solid theme.$color-border-light;
+}
+
+.menuItem {
+  display: block;
+  width: 100%;
+  padding: theme.$spacing-sm theme.$spacing-md;
+  font: inherit;
+  text-align: left;
+  color: theme.$color-text-primary;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+
+  &:hover,
+  &:focus {
+    background-color: theme.$color-background-light;
+  }
+
+  &:focus {
+    outline: none;
+  }
+
+  &:focus-visible {
+    outline: 2px solid theme.$color-primary;
+    outline-offset: -2px;
+  }
+}

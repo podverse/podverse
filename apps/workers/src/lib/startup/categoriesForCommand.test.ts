@@ -41,4 +41,19 @@ describe('getCategoriesForCommand', () => {
       )
     );
   });
+
+  it('maps devParserRSSParsePodcasting20Feeds to full parser stack categories', () => {
+    expect(sortCategories(getCategoriesForCommand('devParserRSSParsePodcasting20Feeds'))).toEqual(
+      sortCategories(
+        new Set([
+          CATEGORY_BASE,
+          CATEGORY_ORM,
+          CATEGORY_MQ,
+          CATEGORY_PARSER,
+          CATEGORY_PODCAST_INDEX,
+          CATEGORY_WEB_NOTIFICATIONS,
+        ])
+      )
+    );
+  });
 });

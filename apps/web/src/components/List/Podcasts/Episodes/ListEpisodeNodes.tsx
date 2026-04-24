@@ -1,9 +1,11 @@
 'use client';
 
-import React from 'react';
+import React, { useMemo } from 'react';
 
 import type { DTOChannel, DTOItem } from '@podverse/helpers';
 
+import { useLikesItemBatch } from '../../../../hooks/useLikesItemBatch';
+import { buildListLikeRow } from '../../../../utils/likes/buildListLikeRow';
 import { Divider } from '../../../Divider/Divider';
 import type { ViewSelectedOption } from '../../../ViewSelector/ViewSelector';
 import { ListLiveItemRow } from '../../LiveItem/ListLiveItemRow';
@@ -29,6 +31,12 @@ export function ListEpisodeNodes({
     channel ? true : !!item.channel
   );
 
+  const likeableIdTexts = useMemo(
+    () => filteredItems.filter((i) => !i.live_item).map((i) => i.id_text),
+    [filteredItems]
+  );
+  const { isLiked, toggle } = useLikesItemBatch(likeableIdTexts);
+
   if (viewSelected === 'rows') {
     return (
       <div key="list" className={styles.list}>
@@ -50,6 +58,7 @@ export function ListEpisodeNodes({
                   item={item}
                   showChannelInfo={showChannelInfo}
                   playlist_id_text={null}
+                  likeRow={buildListLikeRow(item.id_text, { isLiked, toggle })}
                 />
               )}
               {idx < items.length - 1 && <Divider />}
