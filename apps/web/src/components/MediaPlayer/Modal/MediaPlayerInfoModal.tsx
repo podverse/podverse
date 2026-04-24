@@ -131,18 +131,17 @@ export const MediaPlayerInfoModal: React.FC = () => {
     mpAddByRSS,
   });
 
-  const channel_image = findDTOChannelImageBySize(
-    mpChannel?.channel_images ?? mpAddByRSS?.resourceData?.channel_images,
-    'largest'
-  );
-  const item_image = findDTOItemImageBySize(
-    mpItem?.item_images ?? mpAddByRSS?.resourceData?.item_images,
-    'largest'
-  );
+  const channelImagesSource =
+    mpChannel?.channel_images ??
+    mpItem?.channel?.channel_images ??
+    mpAddByRSS?.resourceData?.channel_images;
+  const itemImagesSource = mpItem?.item_images ?? mpAddByRSS?.resourceData?.item_images;
+
+  const channel_image = findDTOChannelImageBySize(channelImagesSource, 'largest');
+  const item_image = findDTOItemImageBySize(itemImagesSource, 'largest');
   const defaultImageUrl = item_image?.url || channel_image?.url || undefined;
-  const imageUrl = mpItemChapter
-    ? mpItemChapter.img || defaultImageUrl || ''
-    : defaultImageUrl || '';
+  const chapterImageUrl = typeof mpItemChapter?.img === 'string' ? mpItemChapter.img.trim() : '';
+  const imageUrl = mpItemChapter ? chapterImageUrl || defaultImageUrl || '' : defaultImageUrl || '';
 
   const itemTitle =
     (typeof mpAddByRSS?.resourceData?.title === 'string' ? mpAddByRSS.resourceData.title : null) ??
@@ -183,11 +182,13 @@ export const MediaPlayerInfoModal: React.FC = () => {
         )}
       </div>
       <div className={styles.imageWrapper}>
-        <ImageNonReact
-          className={styles.image}
-          src={imageUrl}
-          alt={tMediaPlayer('media_player_image')}
-        />
+        <div className={styles.imageInner}>
+          <ImageNonReact
+            className={styles.image}
+            src={imageUrl}
+            alt={tMediaPlayer('media_player_image')}
+          />
+        </div>
       </div>
       <div className={styles.subtitleSection}>
         {mpClip && (

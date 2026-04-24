@@ -1,7 +1,7 @@
 'use client';
 
 import classNames from 'classnames';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 import { IMAGES } from '../../constants/images';
 import { PROXY } from '../../constants/proxy';
@@ -17,6 +17,10 @@ interface ImageNonReactProps {
 
 export const ImageNonReact: React.FC<ImageNonReactProps> = ({ src, alt, className, skipProxy }) => {
   const [imageError, setImageError] = useState(false);
+
+  useEffect(() => {
+    setImageError(false);
+  }, [src]);
 
   if (!src || imageError) {
     return (

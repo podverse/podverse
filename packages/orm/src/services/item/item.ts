@@ -988,7 +988,9 @@ export const itemGetOneRelations: FindOptionsRelations<Item> = {
 };
 
 const getItemOneToOneRelations = (relations: FindOptionsRelations<Item>) => {
+  const channelRelation = relations.channel;
   const oneToOneRelations: FindOptionsRelations<Item> = {
+    ...(channelRelation ? { channel: channelRelation } : {}),
     ...(relations.item_about ? { item_about: { item_itunes_episode_type: true } } : {}),
     ...(relations.item_chat ? { item_chat: true } : {}),
     ...(relations.item_description ? { item_description: true } : {}),

@@ -14,5 +14,6 @@ export const PROXY = {
     'image/gif',
     'image/webp',
     'image/svg+xml',
+    'image/*', // Some CDNs (e.g. CloudFront) respond with a wildcard content-type
   ],
 } as const;
