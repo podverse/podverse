@@ -2,6 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
+import { useMemo } from 'react';
 
 import type {
   DTOChannel,
@@ -139,9 +140,27 @@ export const MediaPlayerInfoModal: React.FC = () => {
 
   const channel_image = findDTOChannelImageBySize(channelImagesSource, 'largest');
   const item_image = findDTOItemImageBySize(itemImagesSource, 'largest');
-  const defaultImageUrl = item_image?.url || channel_image?.url || undefined;
+  const inChapterContextForArt = Boolean(mpItemChapter && !mpClip && !mpItemSoundbite);
   const chapterImageUrl = typeof mpItemChapter?.img === 'string' ? mpItemChapter.img.trim() : '';
-  const imageUrl = mpItemChapter ? chapterImageUrl || defaultImageUrl || '' : defaultImageUrl || '';
+  const artImageCandidates = useMemo(() => {
+    const urls: string[] = [];
+    if (inChapterContextForArt && chapterImageUrl) {
+      urls.push(chapterImageUrl);
+    }
+    if (item_image?.url) {
+      const u = String(item_image.url).trim();
+      if (u) {
+        urls.push(u);
+      }
+    }
+    if (channel_image?.url) {
+      const u = String(channel_image.url).trim();
+      if (u) {
+        urls.push(u);
+      }
+    }
+    return urls.filter((u, i, a) => a.indexOf(u) === i);
+  }, [inChapterContextForArt, chapterImageUrl, item_image?.url, channel_image?.url]);
 
   const itemTitle =
     (typeof mpAddByRSS?.resourceData?.title === 'string' ? mpAddByRSS.resourceData.title : null) ??
@@ -185,7 +204,7 @@ export const MediaPlayerInfoModal: React.FC = () => {
         <div className={styles.imageInner}>
           <ImageNonReact
             className={styles.image}
-            src={imageUrl}
+            candidates={artImageCandidates}
             alt={tMediaPlayer('media_player_image')}
           />
         </div>

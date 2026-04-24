@@ -41,16 +41,15 @@
   margin-top: var(--spacing-sm);
 }
 
-// Square in the modal flex column: do not use cqw/cqh for width — in some flex + container
-// size layouts min(100cqw, 100cqh) resolves to 0, collapsing the art box while URLs still
-// exist. Use width: 100% + max-height: 100% + aspect-ratio so the used size clamps to the
-// slot’s smaller axis (WIP behavior in our layout engine).
+// Square art region inside the modal flex column. The wrapper fills remaining vertical space
+// (flex: 1). The inner is sized from the HEIGHT axis (height: 100%) so that aspect-ratio: 1/1
+// produces a square equal to the shorter dimension. max-width: 100% prevents it from being
+// wider than the column when the slot is taller than it is wide.
 .imageWrapper {
   margin-top: var(--spacing-xl);
   flex: 1 1 0;
   min-width: 0;
-  min-height: 0;
-  position: relative;
+  min-height: min(45vh, 80vw);
   display: flex;
   width: 100%;
   box-sizing: border-box;
@@ -60,16 +59,12 @@
 
 .imageInner {
   box-sizing: border-box;
-  flex: 0 0 auto;
+  height: 100%;
   max-width: 100%;
-  max-height: 100%;
-  width: 100%;
   aspect-ratio: 1 / 1;
   display: flex;
   align-items: center;
   justify-content: center;
-  min-width: 0;
-  min-height: 0;
 }
 
 .image {
