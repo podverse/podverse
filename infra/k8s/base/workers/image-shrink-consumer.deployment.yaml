@@ -19,7 +19,8 @@ spec:
       containers:
         - name: worker
           image: ghcr.io/podverse/podverse/workers
-          command: ["node", "apps/workers/dist/index.js", "imageShrinkRunConsumer"]
+          command:
+            ["node", "apps/workers/dist/index.js", "imageShrinkRunConsumer"]
           securityContext:
             runAsUser: 1000
             runAsGroup: 1000
@@ -31,8 +32,8 @@ spec:
                 - ALL
           resources:
             requests:
-              cpu: "100m"
-              memory: "512Mi"
+              cpu: "50m"
+              memory: "32Mi"
             limits:
               cpu: "1000m"
               memory: "2Gi"
