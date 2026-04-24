@@ -140,15 +140,25 @@ jobs:
         if: success()
         env:
           BASE: ${{ steps.version.outputs.base_version }}
+          STAGING_N: ${{ steps.promote.outputs.staging_n }}
+          REPO: ${{ github.repository }}
         run: |
           {
             echo "## Production images (promoted from staging line)"
+            echo ""
+            echo "Promoted from: \`$BASE-staging.$STAGING_N\` (per-image source in GHCR)."
             echo ""
             echo "Immutable tag: \`$BASE\` and floating \`prod\` (from latest \`$BASE-staging.N\` in GHCR per image)."
             echo ""
             echo "| Image | Pinned as |"
             echo "|-------|-----------|"
             for a in web-base management-web-base api workers management-api web-deploy management-web-deploy web-runtime-config management-web-runtime-config; do
-              echo "| \`ghcr.io/${{ github.repository }}/${a}\` | \`$BASE\`, \`prod\` |"
+              echo "| \`ghcr.io/${REPO}/${a}\` | \`$BASE\`, \`prod\` |"
+            done
+            echo ""
+            echo "## All published image references"
+            for a in web-base management-web-base api workers management-api web-deploy management-web-deploy web-runtime-config management-web-runtime-config; do
+              echo "- \`ghcr.io/${REPO}/${a}:${BASE}\` (immutable)"
+              echo "- \`ghcr.io/${REPO}/${a}:prod\` (floating)"
             done
           } >> "$GITHUB_STEP_SUMMARY"

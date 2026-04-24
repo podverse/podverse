@@ -336,6 +336,12 @@ jobs:
             done
             echo ""
             echo "Pin GitOps to the version tag or the floating tag. Git tag matches the semver when created."
+            echo ""
+            echo "## All published image references"
+            for app in web-base management-web-base api workers management-api web-deploy management-web-deploy web-runtime-config management-web-runtime-config; do
+              echo "- \`ghcr.io/${REPO}/${app}:${VERSION}\` (version tag)"
+              echo "- \`ghcr.io/${REPO}/${app}:${FT}\` (floating tag)"
+            done
           } >> "$GITHUB_STEP_SUMMARY"
 
   github-prerelease-create:
