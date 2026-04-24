@@ -2,7 +2,6 @@
 
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
-import { useMemo } from 'react';
 
 import type {
   DTOChannel,
@@ -11,11 +10,16 @@ import type {
   DTOItemChapter,
   DTOItemSoundbite,
 } from '@podverse/helpers';
-import { findDTOChannelImageBySize, findDTOItemImageBySize, MediumEnum } from '@podverse/helpers';
+import { MediumEnum } from '@podverse/helpers';
 
 import { type MediaPlayerAddByRSSState, useMediaPlayer } from '../../../contexts/MediaPlayer';
 import { useMediaPlayerCurrentTime } from '../../../contexts/MediaPlayerCurrentTime';
 import { getAddByRSSItemPath, getAddByRSSLivestreamPath } from '../../../utils/addByRSS/itemPath';
+import {
+  buildMediaPlayerArtworkImageCandidates,
+  getMediaPlayerArtworkSources,
+  shouldUseChapterArtwork,
+} from '../../../utils/mediaPlayer/mediaPlayerArtwork';
 import { getResolvedVtsLikeTargetItem } from '../../../utils/mediaPlayer/vtsOverrideLikeItem';
 import { ImageNonReact } from '../../Image/ImageNonReact';
 import { Link } from '../../Link/Link';
@@ -132,35 +136,22 @@ export const MediaPlayerInfoModal: React.FC = () => {
     mpAddByRSS,
   });
 
-  const channelImagesSource =
-    mpChannel?.channel_images ??
-    mpItem?.channel?.channel_images ??
-    mpAddByRSS?.resourceData?.channel_images;
-  const itemImagesSource = mpItem?.item_images ?? mpAddByRSS?.resourceData?.item_images;
-
-  const channel_image = findDTOChannelImageBySize(channelImagesSource, 'largest');
-  const item_image = findDTOItemImageBySize(itemImagesSource, 'largest');
-  const inChapterContextForArt = Boolean(mpItemChapter && !mpClip && !mpItemSoundbite);
-  const chapterImageUrl = typeof mpItemChapter?.img === 'string' ? mpItemChapter.img.trim() : '';
-  const artImageCandidates = useMemo(() => {
-    const urls: string[] = [];
-    if (inChapterContextForArt && chapterImageUrl) {
-      urls.push(chapterImageUrl);
-    }
-    if (item_image?.url) {
-      const u = String(item_image.url).trim();
-      if (u) {
-        urls.push(u);
-      }
-    }
-    if (channel_image?.url) {
-      const u = String(channel_image.url).trim();
-      if (u) {
-        urls.push(u);
-      }
-    }
-    return urls.filter((u, i, a) => a.indexOf(u) === i);
-  }, [inChapterContextForArt, chapterImageUrl, item_image?.url, channel_image?.url]);
+  const { channelImages, itemImages } = getMediaPlayerArtworkSources({
+    mpChannel,
+    mpItem,
+    mpAddByRSSResourceData: mpAddByRSS?.resourceData,
+  });
+  const artImageCandidates = buildMediaPlayerArtworkImageCandidates({
+    channelImages,
+    itemImages,
+    chapterImageUrl: mpItemChapter?.img,
+    includeChapterImage: shouldUseChapterArtwork({
+      mpItemChapter,
+      mpClip,
+      mpItemSoundbite,
+    }),
+    imageSizeTarget: 'largest',
+  });
 
   const itemTitle =
     (typeof mpAddByRSS?.resourceData?.title === 'string' ? mpAddByRSS.resourceData.title : null) ??

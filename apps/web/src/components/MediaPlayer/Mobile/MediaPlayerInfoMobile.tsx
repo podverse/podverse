@@ -2,16 +2,27 @@
 
 import { useTranslations } from 'next-intl';
 
-import { findDTOChannelImageBySize, findDTOItemImageBySize } from '@podverse/helpers';
-
 import { IMAGES } from '../../../constants/images';
 import { useMediaPlayer } from '../../../contexts/MediaPlayer';
-import { Image } from '../../Image/Image';
+import {
+  buildMediaPlayerArtworkImageCandidates,
+  getMediaPlayerArtworkSources,
+  shouldUseChapterArtwork,
+} from '../../../utils/mediaPlayer/mediaPlayerArtwork';
+import { ImageNonReact } from '../../Image/ImageNonReact';
 
 import styles from '../../../styles/components/MediaPlayer/Mobile/MediaPlayerInfoMobile.module.scss';
 
 export const MediaPlayerInfoMobile: React.FC = () => {
-  const { mpChannel, mpItem, mpAddByRSS, setPlayerModalIsOpen } = useMediaPlayer();
+  const {
+    mpChannel,
+    mpItem,
+    mpAddByRSS,
+    mpItemChapter,
+    mpClip,
+    mpItemSoundbite,
+    setPlayerModalIsOpen,
+  } = useMediaPlayer();
   const tMediaPlayer = useTranslations('media_player');
   const tMisc = useTranslations('misc');
 
@@ -31,17 +42,23 @@ export const MediaPlayerInfoMobile: React.FC = () => {
       tMisc('untitled')
     : '';
 
-  const channel_image = findDTOChannelImageBySize(
-    mpChannel?.channel_images ?? mpAddByRSS?.resourceData?.channel_images,
-    IMAGES.MEDIA_PLAYER.MOBILE.MINI.SIZE_FIND_TARGET,
-    'greater'
-  );
-  const item_image = findDTOItemImageBySize(
-    mpItem?.item_images ?? mpAddByRSS?.resourceData?.item_images,
-    IMAGES.MEDIA_PLAYER.MOBILE.MINI.SIZE_FIND_TARGET,
-    'greater'
-  );
-  const imageUrl = item_image?.url || channel_image?.url || undefined;
+  const { channelImages, itemImages } = getMediaPlayerArtworkSources({
+    mpChannel,
+    mpItem,
+    mpAddByRSSResourceData: mpAddByRSS?.resourceData,
+  });
+  const artImageCandidates = buildMediaPlayerArtworkImageCandidates({
+    channelImages,
+    itemImages,
+    chapterImageUrl: mpItemChapter?.img,
+    includeChapterImage: shouldUseChapterArtwork({
+      mpItemChapter,
+      mpClip,
+      mpItemSoundbite,
+    }),
+    imageSizeTarget: IMAGES.MEDIA_PLAYER.MOBILE.MINI.SIZE_FIND_TARGET,
+    imageSizeComparison: 'greater',
+  });
 
   return (
     <div className={styles.info}>
@@ -51,12 +68,13 @@ export const MediaPlayerInfoMobile: React.FC = () => {
         type="button"
         onClick={() => setPlayerModalIsOpen(true)}
       >
-        <Image
-          src={imageUrl}
-          height={IMAGES.MEDIA_PLAYER.MOBILE.MINI.SIZE}
-          width={IMAGES.MEDIA_PLAYER.MOBILE.MINI.SIZE}
-          alt={tMediaPlayer('media_player_image')}
-        />
+        <div className={styles.imageWrapper}>
+          <ImageNonReact
+            className={styles.image}
+            candidates={artImageCandidates}
+            alt={tMediaPlayer('media_player_image')}
+          />
+        </div>
         <div className={styles.textSection}>
           <div className={styles.title}>{title}</div>
           <div className={styles.subtitle}>{subtitle}</div>
