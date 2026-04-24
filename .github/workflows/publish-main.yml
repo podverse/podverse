@@ -108,12 +108,12 @@ jobs:
             const owner = context.repo.owner;
             const repo = context.repo.repo;
             const fs = require("fs");
-            const path = "docs/operations/CHANGELOG-UPCOMING.md";
+            const path = "docs/development/CHANGELOGS/" + base + ".md";
             let body;
             if (fs.existsSync(path)) {
               body = fs.readFileSync(path, "utf8");
             } else {
-              body = "Production build; no " + path + " at this commit.";
+              body = "Production build; no " + path + " at this commit. Bump version on develop at the start of work and write notes continuously in that file.";
             }
             try {
               await github.rest.git.createRef({

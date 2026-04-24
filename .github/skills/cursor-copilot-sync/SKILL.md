@@ -44,4 +44,5 @@ Use this workflow whenever customization files are changed.
 
 - Rules are transformed from Cursor frontmatter (`globs`, `alwaysApply`) to Copilot frontmatter (`applyTo`).
 - Skill frontmatter is normalized so `name` matches the skill folder name.
+- Skill markdown should keep exactly one blank line between closing frontmatter (`---`) and content.
 - Validation enforces source/mirror parity for skills, rules, and `.cursorrules`/`copilot-instructions`.

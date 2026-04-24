@@ -10,7 +10,8 @@ on:
   workflow_dispatch:
     inputs:
       version_override:
-        description: "Optional version override (default: atomic Git tag reservation for staging line)"
+        description: "Optional version override (default: atomic Git tag reservation for
+          staging line)"
         required: false
         type: string
 
@@ -355,19 +356,17 @@ jobs:
           ref: ${{ github.sha }}
       - name: Create GitHub prerelease
         uses: actions/github-script@v7
-        env:
-          IS_PROD: "false"
         with:
           script: |
             const version = "${{ needs.reserve-version.outputs.version }}";
-            const path = "docs/operations/CHANGELOG-UPCOMING.md";
+            const baseVersion = version.replace(/-(staging|alpha|beta)\.\d+$/, "");
+            const path = "docs/development/CHANGELOGS/" + baseVersion + ".md";
             const fs = require("fs");
-            const isProd = false;
             let body;
             if (fs.existsSync(path)) {
               body = fs.readFileSync(path, "utf8");
             } else {
-              body = "Prerelease build; no " + path + " at this commit. Add the file on develop to populate future notes.";
+              body = "Prerelease build; no " + path + " at this commit. Bump version on develop at the start of work and write notes continuously in that file.";
             }
             const tag = version;
             const owner = context.repo.owner;
@@ -386,87 +385,3 @@ jobs:
               prerelease: true,
             });
             core.info("Created release: " + rel.data.html_url);
-
-  changelog-pr-to-develop:
-    needs: [github-prerelease-create, reserve-version, verify-published-tags]
-    if: success()
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      pull-requests: write
-    steps:
-      - name: Check out develop
-        uses: actions/checkout@v6
-        with:
-          ref: develop
-          persist-credentials: false
-      - name: Write archive and reset UPCOMING markers
-        uses: actions/github-script@v7
-        env:
-          PUBLISH_SHA: ${{ github.sha }}
-          PUBLISH_VERSION: ${{ needs.reserve-version.outputs.version }}
-          RUN_ID: ${{ github.run_id }}
-          REF_NAME: ${{ github.ref_name }}
-        with:
-          script: |
-            const fs = require("fs");
-            const owner = context.repo.owner;
-            const repo = context.repo.repo;
-            const ref = process.env.PUBLISH_SHA;
-            const version = process.env.PUBLISH_VERSION;
-            const runId = process.env.RUN_ID;
-            const refName = process.env.REF_NAME || "unknown";
-            const label = refName === "main" ? "production" : refName;
-            const upcomingPath = "docs/operations/CHANGELOG-UPCOMING.md";
-            let upcoming = "";
-            try {
-              const { data } = await github.rest.repos.getContent({ owner, repo, path: upcomingPath, ref });
-              if (data && data.type === "file" && "content" in data && "encoding" in data && data.encoding === "base64") {
-                upcoming = Buffer.from(String(data.content).replace(/\n/g, ""), "base64").toString("utf8");
-              }
-            } catch (e) {
-              if (e.status === 404) {
-                core.info("No " + upcomingPath + " on publish commit: " + ref);
-                upcoming = "";
-              } else {
-                throw e;
-              }
-            }
-            const safe = version.replace(/\./g, "-");
-            const dir = "docs/operations/CHANGELOG-ARCHIVE";
-            fs.mkdirSync(dir, { recursive: true });
-            const head =
-              "# Release " + version + " (" + label + ")\n\n" +
-              "From [`" + ref.substring(0, 7) + "`](https://github.com/" + owner + "/" + repo + "/commit/" + ref + "]) — " +
-              "[workflow run](" + "https://github.com/" + owner + "/" + repo + "/actions/runs/" + runId + ").\n\n";
-            fs.writeFileSync(dir + "/RELEASE-" + safe + ".md", head + (upcoming || "_(no CHANGELOG-UPCOMING.md at that commit.)_\n"));
-            if (fs.existsSync(upcomingPath)) {
-              let s = fs.readFileSync(upcomingPath, "utf8");
-              if (s.includes("UPCOMING-AUTO-START") && s.includes("UPCOMING-AUTO-END")) {
-                s = s.replace(
-                  /<!--\s*UPCOMING-AUTO-START\s*-->[\s\S]*?<!--\s*UPCOMING-AUTO-END\s*-->/m,
-                  "<!-- UPCOMING-AUTO-START -->\n" +
-                    "<!-- Add concise bullets (most important first) for the next significant changes. -->\n" +
-                    "<!-- UPCOMING-AUTO-END -->\n"
-                );
-                fs.writeFileSync(upcomingPath, s, "utf8");
-              }
-            }
-      - name: Open pull request
-        uses: peter-evans/create-pull-request@v6
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          commit-message: "chore: archive changelog for ${{ github.ref_name }} ${{
-            needs.reserve-version.outputs.version }}"
-          title: "chore: archive changelog for ${{ needs.reserve-version.outputs.version
-            }} (${{ github.ref_name }})"
-          body: |
-            Automated follow-up to a successful [publish](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}) on \`${{ github.ref_name }}\`.
-
-            - Archives a copy of [CHANGELOG-UPCOMING](docs/operations/CHANGELOG-UPCOMING.md) as it was on the **publish** commit, under [CHANGELOG-ARCHIVE](docs/operations/CHANGELOG-ARCHIVE/).
-            - Resets the `UPCOMING-AUTO-START` / `UPCOMING-AUTO-END` block on **develop** (when that file exists) so you can add entries for the next window.
-          base: develop
-          branch: automation/changelog-${{ github.ref_name }}-${{
-            needs.reserve-version.outputs.version }}-${{ github.run_id }}
-          delete-branch: true
-          signoff: false
