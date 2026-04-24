@@ -15,9 +15,9 @@ The alpha environment is a pre-production testing environment. Docker images are
 
 - **Base version** `X.Y.Z` in the repo root and workspace `package.json` files: you set this when you choose, using `./scripts/publish/bump-version.sh` on `develop` (it does not create a Git tag).
 - **Build version** (what is pushed to GHCR, what matches the **Git** tag, and the **prerelease GitHub Release** name on **staging** builds) is chosen in CI: **`X.Y.Z-staging.N`** (N reserved atomically via Git tag; see [PUBLISH](PUBLISH.md)), plus floating image tag **`:staging`**.
-- **`main` (production):** a dedicated workflow **promotes** the existing `X.Y.Z-staging.N` line to immutable **`X.Y.Z`** and **`:prod`**; it then creates the **`X.Y.Z` Git tag** and a **full** (non-prerelease) **GitHub Release** from [`CHANGELOG-UPCOMING.md`](CHANGELOG-UPCOMING.md) on the promote commit. It does not rebuild app images in that run.
-- After a successful **staging** build, the **Publish (staging)** workflow **creates the Git tag** (same string as the immutable image tag) if missing, **creates a prerelease GitHub Release**, and **opens a PR to `develop`** to append an archive under [`CHANGELOG-ARCHIVE/`](CHANGELOG-ARCHIVE/DOCS-OPERATIONS-CHANGELOG-ARCHIVE.md) and clear the `UPCOMING-AUTO-START` / `UPCOMING-AUTO-END` block.
-- Edit [`CHANGELOG-UPCOMING.md`](CHANGELOG-UPCOMING.md) only on **`develop`**. See the [release-changelog skill](../../.cursor/skills/release-changelog/SKILL.md) and the canonical [PUBLISH](PUBLISH.md) table.
+- **`main` (production):** a dedicated workflow **promotes** the existing `X.Y.Z-staging.N` line to immutable **`X.Y.Z`** and **`:prod`**; it then creates the **`X.Y.Z` Git tag** and a **full** (non-prerelease) **GitHub Release** from [`docs/development/CHANGELOGS/X.Y.Z.md`](../development/CHANGELOGS/) on the promote commit. It does not rebuild app images in that run.
+- **Staging** prerelease releases and **main** production releases both use the same base semver changelog file `docs/development/CHANGELOGS/X.Y.Z.md`.
+- Bump the version on **`develop`** at the start of work using `./scripts/publish/bump-version.sh`; this creates the `X.Y.Z.md` changelog file so release notes can be updated continuously as changes land.
 
 Promotion: `./scripts/publish/sync-develop-to-staging.sh`, `./scripts/publish/sync-develop-to-main.sh`.
 

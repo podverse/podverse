@@ -10,7 +10,7 @@ Two separate workflows build or promote release artifacts:
 | `staging`  | Full build + push | `X.Y.Z-staging.N` (N via Git ref API)   | `staging`         |
 | `main`     | Promote only      | `X.Y.Z` (from root `package.json` base) | `prod`            |
 
-**Changelog (staging only):** The **staging** workflow reads [`CHANGELOG-UPCOMING.md`](CHANGELOG-UPCOMING.md) on the build commit, creates a **prerelease** GitHub Release, and opens a **PR to `develop`** to append [`CHANGELOG-ARCHIVE/`](CHANGELOG-ARCHIVE/DOCS-OPERATIONS-CHANGELOG-ARCHIVE.md) and clear the `UPCOMING` auto block. See the [release-changelog skill](../../.cursor/skills/release-changelog/SKILL.md). The **main** promote workflow reuses the RTM `CHANGELOG-UPCOMING` on that commit for the full release.
+**Changelog:** Both **staging** prereleases (`X.Y.Z-staging.N`) and **main** RTM releases (`X.Y.Z`) read release notes from [`docs/development/CHANGELOGS/X.Y.Z.md`](../development/CHANGELOGS/). Bump the base version at the start of work with `scripts/publish/bump-version.sh` so the semver changelog file exists immediately, then update that file continuously as work lands.
 
 **Promotion scripts** (under `scripts/publish/`): `sync-develop-to-staging.sh`, `sync-develop-to-main.sh`. There is no separate `beta` publish line; use **`staging`** for preprod builds and **`main`** to ship.
 
