@@ -30,6 +30,7 @@
     "tools/*/*"
   ],
   "overrides": {
+    "postcss@8.4.31": "8.5.10",
     "glob": "^13.0.1",
     "uuid": "14.0.0",
     "@tootallnate/once": "3.0.1",
