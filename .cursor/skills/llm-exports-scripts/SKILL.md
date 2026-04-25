@@ -11,6 +11,8 @@ Use this skill whenever you add or change files under `scripts/llm/` (import/exp
 
 **Policy and source of truth** live in the **llm-cursor-source** skill. **Podverse and Metaboost** share the same pipeline shape; keep the mirrored scripts aligned when behavior should match.
 
+The **`llm-exports-sync`** GitHub Action runs `node scripts/llm/export-from-cursor.mjs sync` (no root `npm install`); that matches `npm run llm:exports:sync` from a full clone.
+
 ## Console and CLI output
 
 - Do **not** use `console.log`, `console.info`, or `console.debug`.

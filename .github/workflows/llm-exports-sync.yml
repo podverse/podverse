@@ -1,5 +1,5 @@
 # Deterministic sync from .cursor to .llm/exports (see scripts/llm/ and docs/development/llm/).
-# Does not use cloud LLM APIs.
+# Does not use cloud LLM APIs. Export is plain Node (no root npm install); see package.json llm:exports:sync.
 
 name: LLM exports sync
 
@@ -39,21 +39,14 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version-file: .nvmrc
-          cache: npm
-
-      - name: Install (root)
-        run: npm ci
 
       - name: Sync smoke check
-        run: npm run llm:exports:sync
+        run: node scripts/llm/export-from-cursor.mjs sync
 
   publish_llm_pr:
     if: github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && github.ref == 'refs/heads/develop')
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    # npm prepare installs pre-commit, which runs scripts/llm/guard-exports-prompt.sh. That guard must allow this job to commit .llm/exports (same as local ALLOW_DERIVED_EXPORT_EDIT=1).
-    env:
-      ALLOW_DERIVED_EXPORT_EDIT: "1"
     permissions:
       contents: write
       pull-requests: write
@@ -69,13 +62,9 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version-file: .nvmrc
-          cache: npm
-
-      - name: Install (root)
-        run: npm ci
 
       - name: Generate exports
-        run: npm run llm:exports:sync
+        run: node scripts/llm/export-from-cursor.mjs sync
 
       - name: Create or update llm PR
         id: cpr
