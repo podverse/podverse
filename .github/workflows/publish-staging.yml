@@ -355,7 +355,7 @@ jobs:
         with:
           ref: ${{ github.sha }}
       - name: Create GitHub prerelease
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         with:
           script: |
             const version = "${{ needs.reserve-version.outputs.version }}";
