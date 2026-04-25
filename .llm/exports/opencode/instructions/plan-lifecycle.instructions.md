@@ -1,0 +1,19 @@
+---
+description: "Plan lifecycle management - moving completed plans"
+applyTo: ".llm/plans/**/*.md"
+---
+
+# Plan Lifecycle
+
+When you finish executing a plan in `active/`, move it to `completed/` automatically (no prompt).
+See **Plan Completion** skill for: single-file move vs. moving the whole set when it's the last plan.
+
+1. Move the file (or whole set) from `active/` to `completed/` (preserving subdirectory structure)
+2. Update any references in `00-master-plan.md`, a project `00-SUMMARY.md`, or `.llm/LLM.md` if needed
+
+Example:
+
+```bash
+mv .llm/plans/active/monorepo-migration/02-packages-outline.md \
+   .llm/plans/completed/monorepo-migration/
+```
