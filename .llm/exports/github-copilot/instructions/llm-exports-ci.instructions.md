@@ -7,5 +7,6 @@ applyTo:
 
 # LLM machine exports (`.llm/exports/*`)
 
-- Source of truth: `.cursor/`, `.cursorrules`. The **`llm-exports-sync`** GitHub Action on **`develop`** runs the deterministic export; use **`git add -f` there only**.
-- **Do not** hand-commit generated paths (`skills/`, `instructions/`, per-target `copilot-instructions.md`); they are **gitignored**. See the **`llm-cursor-source`** skill and [`.llm/exports/README.md`](../../.llm/exports/README.md).
+- Source of truth: `.cursor/`, `.cursorrules`. The **`llm-exports-sync`** Action (push to **`develop`**, or `workflow_dispatch`) runs incremental `sync`, then updates branch **`llm`**, and **`peter-evans/create-pull-request`** opens or updates a PR from **`llm`** into **`develop`**. The **`llm-exports-full`** Action (`workflow_dispatch` only) runs `sync --full` and updates branch **`llm-full`**. The workflow uses `git add -f` of ignored export paths on the runner only. Do not mirror that with local hand-commits; generated trees stay **gitignored** for normal work.
+- **Do not** hand-commit generated paths (`skills/`, `instructions/`, per-target `*-instructions.md` such as `copilot-instructions.md`) except allowlisted files (e.g. target `.gitkeep`); they are under ignore rules. See the **`llm-cursor-source`** and **`llm-exports-scripts`** skills, [docs/development/llm/EXPORT-TARGETS.md](../../docs/development/llm/EXPORT-TARGETS.md), and [`.llm/exports/README.md`](../../.llm/exports/README.md).
+- When editing files under `scripts/llm/**`, follow the **`llm-exports-scripts`** skill.
