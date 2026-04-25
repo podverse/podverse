@@ -183,7 +183,7 @@ describe('account follows and notification routes', () => {
     it('returns 201 when following an account with valid auth', async () => {
       const res = await request(app)
         .post(`${accountBase}/follow/account`)
-        .set(authHeaders(TEST_USER_ID, TEST_EMAIL))
+        .set(authHeaders(TEST_USER_ID))
         .send({ following_account_id_text: 'some-user' });
 
       expect(res.status).toBe(201);
@@ -206,7 +206,7 @@ describe('account follows and notification routes', () => {
     it('returns 204 when unfollowing an account with valid auth', async () => {
       const res = await request(app)
         .post(`${accountBase}/unfollow/account`)
-        .set(authHeaders(TEST_USER_ID, TEST_EMAIL))
+        .set(authHeaders(TEST_USER_ID))
         .send({ following_account_id_text: 'some-user' });
 
       expect(res.status).toBe(204);
@@ -230,7 +230,7 @@ describe('account follows and notification routes', () => {
     it('returns 201 when following a channel with valid auth', async () => {
       const res = await request(app)
         .post(`${accountBase}/follow/channel`)
-        .set(authHeaders(TEST_USER_ID, TEST_EMAIL))
+        .set(authHeaders(TEST_USER_ID))
         .send({ channel_id_text: 'some-channel' });
 
       expect(res.status).toBe(201);
@@ -251,7 +251,7 @@ describe('account follows and notification routes', () => {
     it('returns 204 when unfollowing a channel with valid auth', async () => {
       const res = await request(app)
         .post(`${accountBase}/unfollow/channel`)
-        .set(authHeaders(TEST_USER_ID, TEST_EMAIL))
+        .set(authHeaders(TEST_USER_ID))
         .send({ channel_id_text: 'some-channel' });
 
       expect(res.status).toBe(204);
@@ -273,7 +273,7 @@ describe('account follows and notification routes', () => {
     it('returns 201 when following a playlist with valid auth', async () => {
       const res = await request(app)
         .post(`${accountBase}/follow/playlist`)
-        .set(authHeaders(TEST_USER_ID, TEST_EMAIL))
+        .set(authHeaders(TEST_USER_ID))
         .send({ playlist_id_text: 'some-playlist' });
 
       expect(res.status).toBe(201);
@@ -294,7 +294,7 @@ describe('account follows and notification routes', () => {
     it('returns 204 when unfollowing a playlist with valid auth', async () => {
       const res = await request(app)
         .post(`${accountBase}/unfollow/playlist`)
-        .set(authHeaders(TEST_USER_ID, TEST_EMAIL))
+        .set(authHeaders(TEST_USER_ID))
         .send({ playlist_id_text: 'some-playlist' });
 
       expect(res.status).toBe(204);
@@ -316,7 +316,7 @@ describe('account follows and notification routes', () => {
     it('returns 201 when adding an RSS channel with valid auth', async () => {
       const res = await request(app)
         .post(`${accountBase}/follow/add-by-rss-channel`)
-        .set(authHeaders(TEST_USER_ID, TEST_EMAIL))
+        .set(authHeaders(TEST_USER_ID))
         .send({ feed_url: 'https://example.com/feed.xml' });
 
       expect(res.status).toBe(201);
@@ -345,7 +345,7 @@ describe('account follows and notification routes', () => {
 
       const res = await request(app)
         .get(`${accountBase}/follow/add-by-rss-channel/${TEST_ACCOUNT_ID_TEXT}`)
-        .set(authHeaders(TEST_USER_ID, TEST_EMAIL));
+        .set(authHeaders(TEST_USER_ID));
 
       expect(res.status).toBe(200);
       expect(Array.isArray(res.body)).toBe(true);
@@ -364,7 +364,7 @@ describe('account follows and notification routes', () => {
     it('returns 204 when removing an RSS channel with valid auth', async () => {
       const res = await request(app)
         .post(`${accountBase}/unfollow/add-by-rss-channel`)
-        .set(authHeaders(TEST_USER_ID, TEST_EMAIL))
+        .set(authHeaders(TEST_USER_ID))
         .send({ feed_url: 'https://example.com/feed.xml' });
 
       expect(res.status).toBe(204);
@@ -393,7 +393,7 @@ describe('account follows and notification routes', () => {
 
       const res = await request(app)
         .get(`${accountBase}/notification/channels`)
-        .set(authHeaders(TEST_USER_ID, TEST_EMAIL));
+        .set(authHeaders(TEST_USER_ID));
 
       expect(res.status).toBe(200);
       expect(Array.isArray(res.body)).toBe(true);
@@ -415,7 +415,7 @@ describe('account follows and notification routes', () => {
 
       const res = await request(app)
         .get(`${accountBase}/notification/channel/test-channel`)
-        .set(authHeaders(TEST_USER_ID, TEST_EMAIL));
+        .set(authHeaders(TEST_USER_ID));
 
       expect(res.status).toBe(200);
     });
@@ -425,7 +425,7 @@ describe('account follows and notification routes', () => {
 
       const res = await request(app)
         .get(`${accountBase}/notification/channel/nonexistent`)
-        .set(authHeaders(TEST_USER_ID, TEST_EMAIL));
+        .set(authHeaders(TEST_USER_ID));
 
       expect(res.status).toBe(404);
       expect(res.body.message).toBe('Notification channel not found');
@@ -447,7 +447,7 @@ describe('account follows and notification routes', () => {
 
       const res = await request(app)
         .post(`${accountBase}/notification/channel`)
-        .set(authHeaders(TEST_USER_ID, TEST_EMAIL))
+        .set(authHeaders(TEST_USER_ID))
         .send({ channel_id_text: 'new-channel' });
 
       expect(res.status).toBe(201);
@@ -467,7 +467,7 @@ describe('account follows and notification routes', () => {
     it('returns 204 when deleting a notification channel', async () => {
       const res = await request(app)
         .delete(`${accountBase}/notification/channel/test-channel`)
-        .set(authHeaders(TEST_USER_ID, TEST_EMAIL));
+        .set(authHeaders(TEST_USER_ID));
 
       expect(res.status).toBe(204);
       expect(notificationChannelDeleteMock).toHaveBeenCalledWith(TEST_USER_ID, 'test-channel');
@@ -492,7 +492,7 @@ describe('account follows and notification routes', () => {
 
       const res = await request(app)
         .post(`${accountBase}/notification/channel/type`)
-        .set(authHeaders(TEST_USER_ID, TEST_EMAIL))
+        .set(authHeaders(TEST_USER_ID))
         .send({ channel_id_text: 'test-channel', type: 'new-item' });
 
       expect(res.status).toBe(201);
@@ -525,7 +525,7 @@ describe('account follows and notification routes', () => {
       const res = await withMutedExpectedErrorLogs(async () =>
         request(app)
           .post(`${accountBase}/notification/channel/type`)
-          .set(authHeaders(TEST_USER_ID, TEST_EMAIL))
+          .set(authHeaders(TEST_USER_ID))
           .send({ channel_id_text: 'test-channel', type: 'new-item' })
       );
 
@@ -538,7 +538,7 @@ describe('account follows and notification routes', () => {
     it('returns 204 when deleting a notification channel type', async () => {
       const res = await request(app)
         .delete(`${accountBase}/notification/channel/test-channel/type/new-item`)
-        .set(authHeaders(TEST_USER_ID, TEST_EMAIL));
+        .set(authHeaders(TEST_USER_ID));
 
       expect(res.status).toBe(204);
       expect(notificationChannelTypeDeleteMock).toHaveBeenCalledWith(
@@ -598,7 +598,7 @@ describe('account follows and notification routes', () => {
 
       const res = await request(app)
         .get(`${accountBase}/subscribed/az?page=1`)
-        .set(authHeaders(TEST_USER_ID, TEST_EMAIL));
+        .set(authHeaders(TEST_USER_ID));
 
       expect(res.status).toBe(200);
       expect(res.body).toHaveProperty('data');
@@ -625,7 +625,7 @@ describe('account follows and notification routes', () => {
 
       const res = await request(app)
         .get(`${accountBase}/subscribed/recent?page=1`)
-        .set(authHeaders(TEST_USER_ID, TEST_EMAIL));
+        .set(authHeaders(TEST_USER_ID));
 
       expect(res.status).toBe(200);
       expect(res.body).toHaveProperty('data');
@@ -644,7 +644,7 @@ describe('account follows and notification routes', () => {
 
       const res = await request(app)
         .get(`${accountBase}/subscribed/top?page=1&range=day`)
-        .set(authHeaders(TEST_USER_ID, TEST_EMAIL));
+        .set(authHeaders(TEST_USER_ID));
 
       expect(res.status).toBe(200);
       expect(res.body).toHaveProperty('data');
@@ -663,7 +663,7 @@ describe('account follows and notification routes', () => {
     it('returns 400 when neither chaptersFeedUrl nor transcriptUrl is provided', async () => {
       const res = await request(app)
         .post(`${accountBase}/add-by-rss/chapters-transcript`)
-        .set(authHeaders(TEST_USER_ID, TEST_EMAIL))
+        .set(authHeaders(TEST_USER_ID))
         .send({ itemIdText: 'item-1' });
 
       expect(res.status).toBe(400);

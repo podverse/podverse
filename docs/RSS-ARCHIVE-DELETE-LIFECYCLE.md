@@ -42,7 +42,7 @@ Defined in `FeedFlagStatusStatusEnum`:
 Sources:
 
 - `packages/orm/src/entities/feed/feedFlagStatus.ts`
-- `infra/database/migrations/0001_init_podcasting_20_database.sql`
+- `infra/k8s/base/db/source/app` (linear migration chain)
 
 ### Item statuses
 
@@ -56,7 +56,7 @@ Defined in `ItemFlagStatusStatusEnum`:
 Sources:
 
 - `packages/orm/src/entities/item/itemFlagStatus.ts`
-- `infra/database/migrations/0001_init_podcasting_20_database.sql`
+- `infra/k8s/base/db/source/app` (linear migration chain)
 
 ## Who Changes Statuses
 

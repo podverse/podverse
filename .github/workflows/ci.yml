@@ -53,9 +53,9 @@ jobs:
         with:
           ref: ${{ steps.pr-comment.outputs.head_sha }}
 
-      - name: Verify database migrations combined
+      - name: Validate linear migration files
         id: db-verify
-        run: bash scripts/database/verify-migrations-combined.sh
+        run: bash scripts/database/validate-linear-migrations.sh
 
       - name: Setup Node.js
         uses: actions/setup-node@v6
@@ -101,7 +101,7 @@ jobs:
               '',
               '| Check | Status |',
               '|-------|--------|',
-              '| Database migrations synced | ✅ |',
+              '| Linear migration files valid | ✅ |',
               '| Dependencies installed | ✅ |',
               '| Build packages | ✅ |',
               '| Lint (type-check, ESLint, Prettier) | ✅ |',
@@ -164,7 +164,7 @@ jobs:
               '',
               '| Check | Status |',
               '|-------|--------|',
-              `| Database migrations synced | ${status(process.env.DB_VERIFY)} |`,
+              `| Linear migration files valid | ${status(process.env.DB_VERIFY)} |`,
               `| Dependencies installed | ${status(process.env.INSTALL)} |`,
               `| Build packages | ${status(process.env.BUILD_PACKAGES)} |`,
               `| Lint (type-check, ESLint, Prettier) | ${status(process.env.LINT)} |`,

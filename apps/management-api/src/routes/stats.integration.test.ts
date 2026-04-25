@@ -9,7 +9,7 @@ const statsBase = `${config.api.prefix}${config.api.version}/stats`;
 
 const superuserWithAllPerms = {
   id: 1,
-  id_text: 'su-1',
+  id_text: 'pvMgtSu001',
   admin_account_role_id: 1,
   admin_account_role: { role: 'superuser' },
   admin_account_credentials: { email: 'super@example.com' },
@@ -30,7 +30,7 @@ const superuserWithAllPerms = {
 
 const adminWithStatsRead = {
   id: 2,
-  id_text: 'admin-2',
+  id_text: 'pvMgtAd002',
   admin_account_role_id: 2,
   admin_account_role: { role: 'admin' },
   admin_account_credentials: { email: 'reader@example.com' },
@@ -51,7 +51,7 @@ const adminWithStatsRead = {
 
 const adminWithNoPerms = {
   id: 3,
-  id_text: 'admin-3',
+  id_text: 'pvMgtAd003',
   admin_account_role_id: 2,
   admin_account_role: { role: 'admin' },
   admin_account_credentials: { email: 'noperms@example.com' },
@@ -92,8 +92,28 @@ vi.mock('@mgmt-api/orm/db/appDb.js', () => ({
   },
 }));
 
+// Avoid loading management ORM DataSource and entities (see database routes mock pattern).
+vi.mock('@mgmt-api/lib/database/auditLog.js', () => {
+  class AuditLogService {
+    async record() {
+      return;
+    }
+  }
+  return { AuditLogService };
+});
+
+const adminIdTextByUserId: Record<number, string> = {
+  1: 'pvMgtSu001',
+  2: 'pvMgtAd002',
+  3: 'pvMgtAd003',
+};
+
 function authHeaders(userId: number) {
-  const token = jwt.sign({ id: userId }, JWT_SECRET, { expiresIn: '1h' });
+  const token = jwt.sign(
+    { id: userId, id_text: adminIdTextByUserId[userId] ?? 'pvMgtSu001' },
+    JWT_SECRET,
+    { expiresIn: '1h' }
+  );
   return { Authorization: `Bearer ${token}` };
 }
 

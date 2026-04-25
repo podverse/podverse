@@ -1,7 +1,7 @@
 import type { Account } from '@orm/entities/account/account.js';
 import type { Medium } from '@orm/entities/medium.js';
 import type { SharableStatus } from '@orm/entities/sharableStatus.js';
-import { generateRandomIdText } from '@orm/lib/nanoid.js';
+import { generateRandomIdText, NANO_ID_V2_MAX_LENGTH } from '@orm/lib/nanoid.js';
 import type { Relation } from 'typeorm';
 import {
   BeforeInsert,
@@ -25,7 +25,7 @@ export class Playlist {
   @PrimaryGeneratedColumn()
   id!: number;
 
-  @Column({ type: 'varchar', unique: true })
+  @Column({ type: 'varchar', unique: true, length: NANO_ID_V2_MAX_LENGTH })
   id_text!: string;
 
   @ManyToOne('Account', (account: Account) => account.id, { onDelete: 'CASCADE' })

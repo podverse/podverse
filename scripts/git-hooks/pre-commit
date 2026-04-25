@@ -6,6 +6,12 @@
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+GUARD_EXPORTS="$REPO_ROOT/scripts/llm/guard-exports-prompt.sh"
+
+if [[ -f "$GUARD_EXPORTS" ]]; then
+  bash "$GUARD_EXPORTS" || exit 1
+fi
+
 LINT_STAGED="$REPO_ROOT/node_modules/.bin/lint-staged"
 
 if [[ ! -x "$LINT_STAGED" ]]; then

@@ -11,18 +11,20 @@ services:
     container_name: podverse_local_db
     env_file:
       - ../../../config/local/db.env
+    environment:
+      POSTGRES_DB: ${DB_APP_NAME}
+      POSTGRES_USER: ${DB_APP_ADMIN_USER}
+      POSTGRES_PASSWORD: ${DB_APP_ADMIN_PASSWORD}
     ports:
       - "5432:5432"
     networks:
       - podverse_local_network
+    # Bootstrap scripts: same mount targets as K8s statefulset + Metaboost local (official image only runs /docker-entrypoint-initdb.d/* on first init).
     volumes:
       - podverse_local_db_data:/var/lib/postgresql/data
-      - ../../../k8s/base/db/source/0000_create_app_db_users.sh:/opt/database/init-scripts/01-create-users.sh
-      - ../../../k8s/base/db/source/0001_init_database.sql:/opt/database/combined/init_database.sql
-      - ../../../database/seeds:/opt/database/seed-scripts
-      - ../../../k8s/base/db/source/0002_create_management_db_users.sh:/opt/database/management/init-scripts/01-create-users.sh
-      - ../../../k8s/base/db/source/0003_init_management_database.sql:/opt/database/management/init_management_database.sql
-      - ../../../database/management/seeds:/opt/database/management/seed-scripts
+      - ../../../k8s/base/db/source/bootstrap/0001_create_app_db_users.sh:/docker-entrypoint-initdb.d/0001_create_app_db_users.sh:ro
+      - ../../../k8s/base/db/source/bootstrap/0002_create_management_db_users.sh:/docker-entrypoint-initdb.d/0002_create_management_db_users.sh:ro
+      - ../../../development/seeds/local-dev-account.sql:/opt/database/seed-scripts/local-dev-account.sql
     command: >
       postgres -c max_connections=200
                -c superuser_reserved_connections=20
@@ -42,7 +44,7 @@ services:
                -c max_parallel_workers=4
     restart: unless-stopped
     healthcheck:
-      test: ["CMD-SHELL", 'pg_isready -U "${POSTGRES_USER:-postgres}"']
+      test: ["CMD-SHELL", 'pg_isready -U "${DB_APP_ADMIN_USER:-postgres}"']
       interval: 2s
       timeout: 5s
       retries: 10

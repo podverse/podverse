@@ -1,4 +1,5 @@
-# Version: 2
+# yaml-language-server: $schema=https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/argoproj.io/application_v1alpha1.json
+# Version: 3
 # Application for Ops (Maintenance Jobs)
 apiVersion: argoproj.io/v1alpha1
 kind: Application
@@ -12,7 +13,7 @@ spec:
   source:
     repoURL: https://github.com/podverse/podverse.git
     targetRevision: staging
-    path: k8s/alpha/ops
+    path: infra/k8s/alpha/ops
   destination:
     server: https://kubernetes.default.svc
     namespace: podverse-alpha

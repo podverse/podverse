@@ -1,0 +1,48 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: ops-management-superuser-update
+spec:
+  schedule: "* * * * *"
+  suspend: true
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      ttlSecondsAfterFinished: 300
+      template:
+        metadata:
+          labels:
+            app: podverse-ops
+          annotations:
+            podverse.fm/management-superuser-job: "update"
+        spec:
+          restartPolicy: Never
+          containers:
+            - name: management-superuser-update
+              image: node:24-slim
+              imagePullPolicy: Always
+              command:
+                - /bin/sh
+                - -ceu
+                - |
+                  cp -R /opt/scripts/management /tmp/management;
+                  cd /tmp/management;
+                  npm install --silent;
+                  node update-superuser.mjs --random-password;
+              envFrom:
+                - secretRef:
+                    name: podverse-management-db-opaque
+              env:
+                - name: DB_HOST
+                  value: "podverse-db"
+                - name: DB_PORT
+                  value: "5432"
+              volumeMounts:
+                - name: management-superuser-scripts
+                  mountPath: /opt/scripts/management
+                  readOnly: true
+          volumes:
+            - name: management-superuser-scripts
+              configMap:
+                name: podverse-ops-management-superuser-scripts
+                defaultMode: 0444

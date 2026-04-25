@@ -2,6 +2,10 @@
 
 This document provides rules and patterns for AI coding assistants working on the Podverse monorepo. It consolidates critical information that helps AI tools generate correct, consistent code.
 
+### LLM / editor guidance (read early)
+
+Authoritative AI rules and skills: **`.cursor/`**, **`.cursorrules`**. **Machine-generated** mirrors for other tools are under [`.llm/exports/`](.llm/exports/) (updated by CI via branch **`llm`** PR into **`develop`**; gitignored; do not hand-commit; see [`llm-cursor-source`](.cursor/skills/llm-cursor-source/SKILL.md)). If you use a non-Cursor LLM, start from those exports, then the alignment prompt if needed: [docs/development/llm/LLM-EDITOR-ALIGNMENT-PROMPT.md](docs/development/llm/LLM-EDITOR-ALIGNMENT-PROMPT.md). Full policy, **`llm` label**, and `gh` setup: [docs/development/llm/README.md](docs/development/llm/README.md) and [docs/development/llm/GH-EXPORTS-SETUP.md](docs/development/llm/GH-EXPORTS-SETUP.md).
+
 ## Quick Reference
 
 | Item            | Value                                              |

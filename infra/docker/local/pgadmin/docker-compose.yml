@@ -9,12 +9,12 @@ services:
     env_file:
       - ../../../config/local/db.env
     environment:
-      PGADMIN_DEFAULT_EMAIL: admin@local.dev
+      PGADMIN_DEFAULT_EMAIL: admin@example.com
       PGADMIN_DEFAULT_PASSWORD: admin
       PGADMIN_CONFIG_SERVER_MODE: "False"
       PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED: "False"
-      # Value must be single-quoted so image writes valid Python (DESKTOP_USER = 'admin@local.dev'). See pgadmin-org/pgadmin4#9154.
-      PGADMIN_CONFIG_DESKTOP_USER: "'admin@local.dev'"
+      # Value must be single-quoted so image writes valid Python (DESKTOP_USER = 'admin@example.com'). See pgadmin-org/pgadmin4#9154.
+      PGADMIN_CONFIG_DESKTOP_USER: "'admin@example.com'"
       # Avoid gunicorn "invalid int value: ''" when timeout env is empty.
       PGADMIN_GUNICORN_TIMEOUT: "300"
       PGPASS_FILE: /tmp/pgpass
@@ -22,10 +22,11 @@ services:
       - /bin/sh
       - -c
       - >-
-        echo "podverse_local_db:5432:*:postgres_user_app:$$POSTGRES_PASSWORD" > /tmp/pgpass &&
-        echo "podverse_local_db:5432:*:postgres_user_management:$$POSTGRES_MANAGEMENT_PASSWORD" >> /tmp/pgpass &&
-        chmod 0600 /tmp/pgpass &&
-        /entrypoint.sh
+        echo
+        "podverse_local_db:5432:*:postgres_user_app:$$DB_APP_ADMIN_PASSWORD" >
+        /tmp/pgpass && echo
+        "podverse_local_db:5432:*:postgres_user_management:$$DB_MANAGEMENT_ADMIN_PASSWORD"
+        >> /tmp/pgpass && chmod 0600 /tmp/pgpass && /entrypoint.sh
     volumes:
       - ./servers.json:/pgadmin4/servers.json:ro
     ports:

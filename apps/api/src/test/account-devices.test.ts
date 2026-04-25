@@ -135,7 +135,7 @@ describe('account device routes', () => {
 
       const res = await request(app)
         .post(`${accountBase}/fcm-device/create`)
-        .set(authHeaders(TEST_USER_ID, TEST_EMAIL))
+        .set(authHeaders(TEST_USER_ID))
         .send({ fcm_token: 'fcm-token-abc', installation_id: 'inst-1', platform: 'android' });
 
       expect(res.status).toBe(200);
@@ -159,7 +159,7 @@ describe('account device routes', () => {
 
       const res = await request(app)
         .put(`${accountBase}/fcm-device/update`)
-        .set(authHeaders(TEST_USER_ID, TEST_EMAIL))
+        .set(authHeaders(TEST_USER_ID))
         .send({
           new_fcm_token: 'new-token',
           installation_id: 'inst-1',
@@ -181,7 +181,7 @@ describe('account device routes', () => {
 
       const res = await request(app)
         .delete(`${accountBase}/fcm-device/delete`)
-        .set(authHeaders(TEST_USER_ID, TEST_EMAIL))
+        .set(authHeaders(TEST_USER_ID))
         .send({ fcm_token: 'fcm-token-abc', installation_id: 'inst-1' });
 
       expect(res.status).toBe(200);
@@ -193,7 +193,7 @@ describe('account device routes', () => {
 
       const res = await request(app)
         .get(`${accountBase}/fcm-device/all-for-account`)
-        .set(authHeaders(TEST_USER_ID, TEST_EMAIL));
+        .set(authHeaders(TEST_USER_ID));
 
       expect(res.status).toBe(200);
       expect(Array.isArray(res.body)).toBe(true);
@@ -204,7 +204,7 @@ describe('account device routes', () => {
 
       const res = await request(app)
         .put(`${accountBase}/fcm-device/update-locale`)
-        .set(authHeaders(TEST_USER_ID, TEST_EMAIL))
+        .set(authHeaders(TEST_USER_ID))
         .send({ locale: 'es' });
 
       expect(res.status).toBe(200);
@@ -218,7 +218,7 @@ describe('account device routes', () => {
 
       const res = await request(app)
         .post(`${accountBase}/webpush-device/create`)
-        .set(authHeaders(TEST_USER_ID, TEST_EMAIL))
+        .set(authHeaders(TEST_USER_ID))
         .send({
           endpoint: 'https://push.example.com/subscribe',
           p256dh: 'p256dh-key',
@@ -246,7 +246,7 @@ describe('account device routes', () => {
 
       const res = await request(app)
         .put(`${accountBase}/webpush-device/update`)
-        .set(authHeaders(TEST_USER_ID, TEST_EMAIL))
+        .set(authHeaders(TEST_USER_ID))
         .send({
           endpoint: 'https://push.example.com/subscribe',
           p256dh: 'new-p256dh',
@@ -261,7 +261,7 @@ describe('account device routes', () => {
 
       const res = await request(app)
         .delete(`${accountBase}/webpush-device/delete`)
-        .set(authHeaders(TEST_USER_ID, TEST_EMAIL))
+        .set(authHeaders(TEST_USER_ID))
         .send({ endpoint: 'https://push.example.com/subscribe' });
 
       expect(res.status).toBe(200);
@@ -273,7 +273,7 @@ describe('account device routes', () => {
 
       const res = await request(app)
         .get(`${accountBase}/webpush-device/all-for-account`)
-        .set(authHeaders(TEST_USER_ID, TEST_EMAIL));
+        .set(authHeaders(TEST_USER_ID));
 
       expect(res.status).toBe(200);
       expect(Array.isArray(res.body)).toBe(true);
@@ -284,7 +284,7 @@ describe('account device routes', () => {
 
       const res = await request(app)
         .put(`${accountBase}/webpush-device/update-locale`)
-        .set(authHeaders(TEST_USER_ID, TEST_EMAIL))
+        .set(authHeaders(TEST_USER_ID))
         .send({ locale: 'fr' });
 
       expect(res.status).toBe(200);
@@ -298,7 +298,7 @@ describe('account device routes', () => {
 
       const res = await request(app)
         .post(`${accountBase}/up-device/create`)
-        .set(authHeaders(TEST_USER_ID, TEST_EMAIL))
+        .set(authHeaders(TEST_USER_ID))
         .send({ up_endpoint: 'https://up.example.com', up_auth_key: 'auth-key' });
 
       expect(res.status).toBe(200);
@@ -321,7 +321,7 @@ describe('account device routes', () => {
 
       const res = await request(app)
         .put(`${accountBase}/up-device/update`)
-        .set(authHeaders(TEST_USER_ID, TEST_EMAIL))
+        .set(authHeaders(TEST_USER_ID))
         .send({ up_endpoint: 'https://up.example.com/new', up_auth_key: null });
 
       expect(res.status).toBe(200);
@@ -332,7 +332,7 @@ describe('account device routes', () => {
 
       const res = await request(app)
         .delete(`${accountBase}/up-device/delete`)
-        .set(authHeaders(TEST_USER_ID, TEST_EMAIL));
+        .set(authHeaders(TEST_USER_ID));
 
       expect(res.status).toBe(200);
       expect(res.body.message).toBe('UP device deleted successfully');
@@ -343,7 +343,7 @@ describe('account device routes', () => {
 
       const res = await request(app)
         .get(`${accountBase}/up-device/for-account`)
-        .set(authHeaders(TEST_USER_ID, TEST_EMAIL));
+        .set(authHeaders(TEST_USER_ID));
 
       expect(res.status).toBe(200);
     });
@@ -353,7 +353,7 @@ describe('account device routes', () => {
 
       const res = await request(app)
         .put(`${accountBase}/up-device/update-locale`)
-        .set(authHeaders(TEST_USER_ID, TEST_EMAIL))
+        .set(authHeaders(TEST_USER_ID))
         .send({ locale: 'de' });
 
       expect(res.status).toBe(200);
@@ -365,7 +365,7 @@ describe('account device routes', () => {
 
       const res = await request(app)
         .delete(`${accountBase}/up-device/delete-all`)
-        .set(authHeaders(TEST_USER_ID, TEST_EMAIL));
+        .set(authHeaders(TEST_USER_ID));
 
       expect(res.status).toBe(200);
       expect(res.body.message).toBe('All UP devices deleted successfully');

@@ -306,7 +306,7 @@ describe('category, channel, item, chapters, soundbites, transcripts, live, podr
   let podrollBase: string;
   let publisherFeedBase: string;
 
-  const auth = () => authHeaders(TEST_USER_ID, TEST_EMAIL);
+  const auth = () => authHeaders(TEST_USER_ID);
 
   beforeAll(async () => {
     const result = await startTestApp();

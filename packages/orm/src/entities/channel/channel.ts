@@ -19,7 +19,7 @@ import type { ChannelTxt } from '@orm/entities/channel/channelTxt.js';
 import type { ChannelValue } from '@orm/entities/channel/channelValue.js';
 import type { Feed } from '@orm/entities/feed/feed.js';
 import type { Medium } from '@orm/entities/medium.js';
-import { generateRandomIdText } from '@orm/lib/nanoid.js';
+import { generateRandomIdText, NANO_ID_V2_MAX_LENGTH } from '@orm/lib/nanoid.js';
 import {
   BeforeInsert,
   BeforeUpdate,
@@ -47,7 +47,7 @@ export class Channel {
   @PrimaryGeneratedColumn()
   id!: number;
 
-  @Column({ type: 'varchar', unique: true })
+  @Column({ type: 'varchar', unique: true, length: NANO_ID_V2_MAX_LENGTH })
   id_text!: string;
 
   @Column({ type: 'varchar', nullable: true, length: DATABASE_CONSTANTS.varchar_slug })

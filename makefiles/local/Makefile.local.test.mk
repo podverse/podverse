@@ -1,6 +1,6 @@
 # --- Test requirements (local). Default host ports 5732 (Postgres) and 6679 (Valkey).
 #     Metaboost test stack uses 5632/6579; Podverse dev uses 5432/6379. No overlaps.
-#     Schema applied from combined migration artifacts (infra/k8s/base/db/source/). ---
+#     Schema bootstrapped by forward-only linear migrations. ---
 
 .PHONY: test_deps test_postgres_up test_valkey_up test_db_init test_db_init_management test_db_list help_test test_clean
 
@@ -92,15 +92,16 @@ test_valkey_up:
 		echo "Test Valkey ready on port $(TEST_VALKEY_PORT)."; \
 	fi
 
-# Create test database, apply combined migration schema, create DB users and grants.
+# Create test database, apply linear migrations, create DB users and grants.
 # Drops and recreates the test DB each run so schema stays in sync with migrations.
-# Uses combined migration artifact from scripts/database/combine-migrations.sh.
+# Forward-only migrations are validated/applied via scripts/database/run-linear-migrations.sh.
 test_db_init: test_postgres_up
 	@echo "Creating test database and users..."
 	@docker exec $(TEST_PG_CONTAINER) psql -U $(TEST_PG_USER) -d postgres -c "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = '$(TEST_DB_NAME)' AND pid <> pg_backend_pid();" 2>/dev/null || true
 	@docker exec $(TEST_PG_CONTAINER) psql -U $(TEST_PG_USER) -d postgres -c "DROP DATABASE IF EXISTS $(TEST_DB_NAME);"
 	@docker exec $(TEST_PG_CONTAINER) psql -U $(TEST_PG_USER) -d postgres -c "CREATE DATABASE $(TEST_DB_NAME);"
-	@cat infra/k8s/base/db/source/0001_init_database.sql | docker exec -i $(TEST_PG_CONTAINER) psql -U $(TEST_PG_USER) -d $(TEST_DB_NAME)
+	@DB_HOST="127.0.0.1" DB_PORT="$(TEST_DB_PORT)" DB_USER="$(TEST_PG_USER)" DB_PASSWORD="$(TEST_PG_PASSWORD)" DB_NAME="$(TEST_DB_NAME)" \
+	bash scripts/database/run-linear-migrations.sh --database app
 	@docker exec $(TEST_PG_CONTAINER) psql -U $(TEST_PG_USER) -d postgres -c "DO \$$$$ BEGIN IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = '$(TEST_APP_READ_USER)') THEN CREATE USER $(TEST_APP_READ_USER) WITH PASSWORD '$(TEST_APP_READ_PASSWORD)'; END IF; IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = '$(TEST_APP_READ_WRITE_USER)') THEN CREATE USER $(TEST_APP_READ_WRITE_USER) WITH PASSWORD '$(TEST_APP_READ_WRITE_PASSWORD)'; END IF; END \$$$$;"
 	@docker exec $(TEST_PG_CONTAINER) psql -U $(TEST_PG_USER) -d $(TEST_DB_NAME) -c " \
 		GRANT CONNECT ON DATABASE $(TEST_DB_NAME) TO $(TEST_APP_READ_USER), $(TEST_APP_READ_WRITE_USER); \
@@ -115,16 +116,15 @@ test_db_init: test_postgres_up
 		ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT, USAGE, UPDATE ON SEQUENCES TO $(TEST_APP_READ_WRITE_USER);"
 	@echo "Test database $(TEST_DB_NAME) and users ready."
 
-# Create management test database and apply management schema.
-# Note: the combined management SQL contains \c podverse_management which must be
-# remapped to the test DB name. We filter via sed before piping to psql.
+# Create management test database and apply management linear migrations.
 test_db_init_management: test_db_init
 	@echo "Creating management test database..."
 	@docker exec $(TEST_PG_CONTAINER) psql -U $(TEST_PG_USER) -d postgres -c "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = '$(TEST_MANAGEMENT_DB_NAME)' AND pid <> pg_backend_pid();" 2>/dev/null || true
 	@docker exec $(TEST_PG_CONTAINER) psql -U $(TEST_PG_USER) -d postgres -c "DROP DATABASE IF EXISTS $(TEST_MANAGEMENT_DB_NAME);"
 	@docker exec $(TEST_PG_CONTAINER) psql -U $(TEST_PG_USER) -d postgres -c "CREATE DATABASE $(TEST_MANAGEMENT_DB_NAME);"
 	@docker exec $(TEST_PG_CONTAINER) psql -U $(TEST_PG_USER) -d postgres -c "DO \$$$$ BEGIN IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = '$(TEST_MGMT_READ_USER)') THEN CREATE USER $(TEST_MGMT_READ_USER) WITH PASSWORD '$(TEST_MGMT_READ_PASSWORD)'; END IF; IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = '$(TEST_MGMT_READ_WRITE_USER)') THEN CREATE USER $(TEST_MGMT_READ_WRITE_USER) WITH PASSWORD '$(TEST_MGMT_READ_WRITE_PASSWORD)'; END IF; END \$$$$;"
-	@sed 's/\\c podverse_management/\\c $(TEST_MANAGEMENT_DB_NAME)/' infra/k8s/base/db/source/0003_init_management_database.sql | docker exec -i $(TEST_PG_CONTAINER) psql -U $(TEST_PG_USER) -d $(TEST_MANAGEMENT_DB_NAME)
+	@DB_HOST="127.0.0.1" DB_PORT="$(TEST_DB_PORT)" DB_USER="$(TEST_PG_USER)" DB_PASSWORD="$(TEST_PG_PASSWORD)" DB_NAME="$(TEST_MANAGEMENT_DB_NAME)" \
+	bash scripts/database/run-linear-migrations.sh --database management
 	@docker exec $(TEST_PG_CONTAINER) psql -U $(TEST_PG_USER) -d $(TEST_MANAGEMENT_DB_NAME) -c " \
 		GRANT CONNECT ON DATABASE $(TEST_MANAGEMENT_DB_NAME) TO $(TEST_MGMT_READ_USER), $(TEST_MGMT_READ_WRITE_USER); \
 		GRANT USAGE ON SCHEMA public TO $(TEST_MGMT_READ_USER), $(TEST_MGMT_READ_WRITE_USER); \
@@ -159,10 +159,11 @@ help_test:
 	@echo "This will:"
 	@echo "  1. Start Postgres on port $(TEST_DB_PORT) (if not already running)."
 	@echo "  2. Start Valkey on port $(TEST_VALKEY_PORT) (if not already running)."
-	@echo "  3. Drop and recreate $(TEST_DB_NAME), apply combined migrations (infra/k8s/base/db/source/0001_init_database.sql)."
-	@echo "  4. Drop and recreate $(TEST_MANAGEMENT_DB_NAME), apply combined migrations (infra/k8s/base/db/source/0003_init_management_database.sql)."
+	@echo "  3. Drop and recreate $(TEST_DB_NAME), then run linear migrations (--database app)."
+	@echo "  4. Drop and recreate $(TEST_MANAGEMENT_DB_NAME), then run linear migrations (--database management)."
 	@echo ""
-	@echo "Schema is regenerated by: scripts/database/combine-migrations.sh"
+	@echo "Forward-only migration checks: scripts/database/validate-linear-migrations.sh"
+	@echo "Forward-only migration apply:  scripts/database/run-linear-migrations.sh --database app|management"
 	@echo ""
 	@echo "Port coexistence: Metaboost test uses 5632/6579. Podverse dev uses 5432/6379."
 	@echo "Podverse test uses $(TEST_DB_PORT)/$(TEST_VALKEY_PORT) — no conflicts."

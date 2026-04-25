@@ -81,6 +81,7 @@ LABELS=(
   "scripts|5319e7|Changes to scripts/"
   "tools|e99695|Changes to tools/"
   "i18n|c5def5|Changes to internationalization files"
+  "llm|6e5499|Changes to .cursor skills, rules, or .cursorrules—non-Cursor devs re-run the LLM alignment prompt when pulling"
   
   # === WORKFLOW & SECURITY (2) ===
   "blocked|990099|The work on this issue is blocked by another issue"

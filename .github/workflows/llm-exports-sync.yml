@@ -1,0 +1,109 @@
+# Deterministic sync from .cursor to .llm/exports (see scripts/llm/ and docs/development/llm/).
+# Does not use cloud LLM APIs.
+
+name: LLM exports sync
+
+on:
+  push:
+    branches: [develop]
+    paths:
+      - ".cursor/**"
+      - ".cursorrules"
+      - "scripts/llm/**"
+  pull_request:
+    branches: [develop]
+    paths:
+      - ".cursor/**"
+      - ".cursorrules"
+      - "scripts/llm/**"
+  workflow_dispatch: {}
+
+concurrency:
+  group: llm-exports-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Use Node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Install (root)
+        run: npm ci
+
+      - name: Sync smoke check
+        run: npm run llm:exports:sync
+
+  publish_llm_pr:
+    if: github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && github.ref == 'refs/heads/develop')
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - name: Checkout develop
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          ref: develop
+          fetch-depth: 0
+
+      - name: Use Node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Install (root)
+        run: npm ci
+
+      - name: Generate exports
+        run: npm run llm:exports:sync
+
+      - name: Create or update llm PR
+        id: cpr
+        uses: peter-evans/create-pull-request@v7
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          branch: llm
+          base: develop
+          add-paths: |
+            .llm/exports
+          commit-message: "chore(llm): sync .llm/exports from .cursor"
+          title: "chore(llm): sync .llm/exports from .cursor"
+          body: |
+            Automated LLM export sync from `.cursor` + `.cursorrules`.
+
+            - Source of truth remains `.cursor/**` and `.cursorrules`
+            - Generated mirrors under `.llm/exports/**`
+          labels: |
+            llm
+          delete-branch: false
+
+      - name: Keep only the latest open llm PR
+        if: always()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          prs_json=$(gh api "repos/${{ github.repository }}/pulls?state=open&head=${{ github.repository_owner }}:llm&base=develop&per_page=100")
+          mapfile -t prs < <(node -e "const prs=JSON.parse(process.argv[1]||'[]'); prs.sort((a,b)=>new Date(b.updated_at)-new Date(a.updated_at)); for (const pr of prs) console.log(pr.number);" "$prs_json")
+          if [ "${#prs[@]}" -le 1 ]; then
+            echo "No duplicate llm PRs to close."
+            exit 0
+          fi
+          echo "Keeping PR #${prs[0]} and closing ${#prs[@]}-1 duplicate(s)."
+          for n in "${prs[@]:1}"; do
+            gh pr close "$n" --repo "${{ github.repository }}" --comment "Closing duplicate llm automation PR; branch llm reuses a single rolling PR into develop."
+          done

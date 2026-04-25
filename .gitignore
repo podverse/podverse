@@ -86,3 +86,16 @@ secrets
 temp/
 
 .artifacts/
+
+# LLM / editor: see docs/development/llm/README.md. Canonical: .llm/exports/<id>/.gitkeep, allowed-targets.mjs
+# Machine-generated under each target (CI on develop writes with git add -f; do not hand-commit):
+# allowlisted ids — scripts/llm/allowed-targets.mjs (ALLOWED_TARGET_IDS)
+/.llm/exports/github-copilot/skills/
+/.llm/exports/github-copilot/instructions/
+/.llm/exports/github-copilot/copilot-instructions.md
+# .copilot/
+# .github/copilot-instructions.md.local
+# --- other local editors (not necessarily in the allowlist) ---
+# .windsurf/
+# .aider*
+# .cline/

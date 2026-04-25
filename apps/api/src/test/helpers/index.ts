@@ -4,6 +4,8 @@ import { type Mock, vi } from 'vitest';
 
 import type { ORMContext } from '@podverse/orm';
 
+import { TEST_ADMIN_E2E_ID_TEXT, TEST_USER_ACCOUNT_ID_TEXT } from './testAccountIds.js';
+
 const JWT_SECRET = process.env.AUTH_JWT_SECRET ?? '';
 
 export type TestAppResult = {
@@ -87,22 +89,24 @@ export async function stopTestApp(
   }
 }
 
+export { TEST_ADMIN_E2E_ID_TEXT, TEST_USER_ACCOUNT_ID_TEXT } from './testAccountIds.js';
+
 export function authHeaders(
   userId: number = 1,
-  email: string = 'stats-track-test@example.com'
+  idText: string = TEST_USER_ACCOUNT_ID_TEXT
 ): { Authorization: string } {
   return {
-    Authorization: `Bearer ${jwt.sign({ id: userId, email }, JWT_SECRET, { expiresIn: '1h' })}`,
+    Authorization: `Bearer ${jwt.sign({ id: userId, id_text: idText }, JWT_SECRET, { expiresIn: '1h' })}`,
   };
 }
 
-/** Same as {@link authHeaders} with admin-flavored default email (for admin-scoped routes in tests). */
+/** Same as {@link authHeaders} with a distinct default id_text (for admin-scoped API routes in tests). */
 export function adminAuthHeaders(
   userId: number = 1,
-  email: string = 'admin-e2e@example.com'
+  idText: string = TEST_ADMIN_E2E_ID_TEXT
 ): { Authorization: string } {
   return {
-    Authorization: `Bearer ${jwt.sign({ id: userId, email }, JWT_SECRET, { expiresIn: '1h' })}`,
+    Authorization: `Bearer ${jwt.sign({ id: userId, id_text: idText }, JWT_SECRET, { expiresIn: '1h' })}`,
   };
 }
 

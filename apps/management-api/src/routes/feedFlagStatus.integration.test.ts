@@ -9,7 +9,7 @@ const opBase = `${config.api.prefix}${config.api.version}/feed-operations`;
 
 const superuserWithAllPerms = {
   id: 1,
-  id_text: 'su-1',
+  id_text: 'pvMgtSu001',
   admin_account_role_id: 1,
   admin_account_role: { role: 'superuser' },
   admin_account_credentials: { email: 'super@example.com' },
@@ -30,7 +30,7 @@ const superuserWithAllPerms = {
 
 const adminWithFeedsReadOnly = {
   id: 2,
-  id_text: 'admin-2',
+  id_text: 'pvMgtAd002',
   admin_account_role_id: 2,
   admin_account_role: { role: 'admin' },
   admin_account_credentials: { email: 'reader@example.com' },
@@ -51,7 +51,7 @@ const adminWithFeedsReadOnly = {
 
 const adminWithFeedsReadUpdate = {
   id: 4,
-  id_text: 'admin-4',
+  id_text: 'pvMgtAd004',
   admin_account_role_id: 2,
   admin_account_role: { role: 'admin' },
   admin_account_credentials: { email: 'feedwriter@example.com' },
@@ -72,7 +72,7 @@ const adminWithFeedsReadUpdate = {
 
 const adminWithNoFeedPerms = {
   id: 3,
-  id_text: 'admin-3',
+  id_text: 'pvMgtAd003',
   admin_account_role_id: 2,
   admin_account_role: { role: 'admin' },
   admin_account_credentials: { email: 'none@example.com' },
@@ -180,8 +180,19 @@ vi.mock('@mgmt-api/lib/database/auditLog.js', () => {
   return { AuditLogService };
 });
 
+const adminIdTextByUserId: Record<number, string> = {
+  1: 'pvMgtSu001',
+  2: 'pvMgtAd002',
+  3: 'pvMgtAd003',
+  4: 'pvMgtAd004',
+};
+
 const adminAuthHeaders = (userId: number = 1): { Authorization: string } => ({
-  Authorization: `Bearer ${jwt.sign({ id: userId }, JWT_SECRET, { expiresIn: '1h' })}`,
+  Authorization: `Bearer ${jwt.sign(
+    { id: userId, id_text: adminIdTextByUserId[userId] ?? 'pvMgtSu001' },
+    JWT_SECRET,
+    { expiresIn: '1h' }
+  )}`,
 });
 
 describe('feed-operations routes', () => {

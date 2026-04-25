@@ -190,7 +190,7 @@ describe('queue routes', () => {
     await stopTestApp(server, ormContext);
   });
 
-  const auth = () => authHeaders(TEST_USER_ID, TEST_EMAIL);
+  const auth = () => authHeaders(TEST_USER_ID);
 
   describe('read endpoints', () => {
     it('GET /all-for-account/private returns 200', async () => {

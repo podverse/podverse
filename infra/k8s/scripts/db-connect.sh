@@ -54,18 +54,18 @@ if [ ! -f "$SECRET_FILE" ]; then
 fi
 
 # Decrypt and extract credentials
-POSTGRES_DB=$(sops -d "$SECRET_FILE" | grep -A 100 "^data:" | grep "POSTGRES_DB:" | awk '{print $2}' | base64 -d)
-POSTGRES_USER=$(sops -d "$SECRET_FILE" | grep -A 100 "^data:" | grep "POSTGRES_USER:" | awk '{print $2}' | base64 -d)
-POSTGRES_PASSWORD=$(sops -d "$SECRET_FILE" | grep -A 100 "^data:" | grep "POSTGRES_PASSWORD:" | awk '{print $2}' | base64 -d)
+DB_APP_NAME=$(sops -d "$SECRET_FILE" | grep -A 100 "^data:" | grep "DB_APP_NAME:" | awk '{print $2}' | base64 -d)
+DB_APP_ADMIN_USER=$(sops -d "$SECRET_FILE" | grep -A 100 "^data:" | grep "DB_APP_ADMIN_USER:" | awk '{print $2}' | base64 -d)
+DB_APP_ADMIN_PASSWORD=$(sops -d "$SECRET_FILE" | grep -A 100 "^data:" | grep "DB_APP_ADMIN_PASSWORD:" | awk '{print $2}' | base64 -d)
 
-if [ -z "$POSTGRES_DB" ] || [ -z "$POSTGRES_USER" ] || [ -z "$POSTGRES_PASSWORD" ]; then
+if [ -z "$DB_APP_NAME" ] || [ -z "$DB_APP_ADMIN_USER" ] || [ -z "$DB_APP_ADMIN_PASSWORD" ]; then
     echo -e "${RED}Error: Failed to extract credentials from secret${NC}"
     exit 1
 fi
 
 echo -e "${GREEN}✓ Credentials extracted${NC}"
-echo -e "  Database: ${POSTGRES_DB}"
-echo -e "  User: ${POSTGRES_USER}"
+echo -e "  Database: ${DB_APP_NAME}"
+echo -e "  User: ${DB_APP_ADMIN_USER}"
 
 # ------------------------------------------------------------------
 # START PORT FORWARD
@@ -114,6 +114,6 @@ echo -e "${GREEN}Connecting to database...${NC}"
 echo -e "${YELLOW}(Press Ctrl+D or type \q to exit)${NC}\n"
 
 # Connect using psql
-PGPASSWORD="$POSTGRES_PASSWORD" psql -h localhost -p ${LOCAL_PORT} -U "${POSTGRES_USER}" -d "${POSTGRES_DB}"
+PGPASSWORD="$DB_APP_ADMIN_PASSWORD" psql -h localhost -p ${LOCAL_PORT} -U "${DB_APP_ADMIN_USER}" -d "${DB_APP_NAME}"
 
 # Cleanup will run automatically on exit

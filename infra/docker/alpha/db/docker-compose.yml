@@ -12,17 +12,19 @@ services:
     container_name: podverse_alpha_db
     env_file:
       - ../../../config/alpha/db.env
+    environment:
+      POSTGRES_DB: ${DB_APP_NAME}
+      POSTGRES_USER: ${DB_APP_ADMIN_USER}
+      POSTGRES_PASSWORD: ${DB_APP_ADMIN_PASSWORD}
     ports:
       - "5432:5432"
     networks:
       - podverse_alpha_network
+    # Bootstrap: same as local + K8s (docker-entrypoint-initdb.d for first init).
     volumes:
       - /mnt/podverse_alpha_db_data:/var/lib/postgresql/data
-      - ../../../k8s/base/db/source/0000_create_app_db_users.sh:/opt/database/init-scripts/01-create-users.sh
-      - ../../../k8s/base/db/source/0001_init_database.sql:/opt/database/combined/init_database.sql
-      - ../../../k8s/base/db/source/0002_create_management_db_users.sh:/opt/database/management/init-scripts/01-create-users.sh
-      - ../../../k8s/base/db/source/0003_init_management_database.sql:/opt/database/management/init_management_database.sql
-      - ../../../database/management/seeds:/opt/database/management/seed-scripts
+      - ../../../k8s/base/db/source/bootstrap/0001_create_app_db_users.sh:/docker-entrypoint-initdb.d/0001_create_app_db_users.sh:ro
+      - ../../../k8s/base/db/source/bootstrap/0002_create_management_db_users.sh:/docker-entrypoint-initdb.d/0002_create_management_db_users.sh:ro
     command: >
       postgres -c max_connections=100
                -c superuser_reserved_connections=5

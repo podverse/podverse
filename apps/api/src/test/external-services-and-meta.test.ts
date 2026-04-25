@@ -53,12 +53,14 @@ const {
         id: number
       ): Promise<{
         id: number;
+        id_text: string;
         account_credentials: { email: string };
         account_membership_status: { membership_expires_at: Date };
       } | null> => {
         if (id === uid1) {
           return {
             id: uid1,
+            id_text: 'es-meta-1',
             account_credentials: { email: 'es-meta-test@example.com' },
             account_membership_status: {
               membership_expires_at: new Date(Date.now() + 86400000 * 365),
@@ -68,6 +70,7 @@ const {
         if (id === uid2) {
           return {
             id: uid2,
+            id_text: 'es-meta-mint-ok',
             account_credentials: { email: 'es-meta-mint-ok@example.com' },
             account_membership_status: {
               membership_expires_at: new Date(Date.now() + 86400000 * 365),
@@ -132,13 +135,13 @@ const mintRequestBody = () => ({
 });
 
 function auth(userId: number = TEST_USER_ID) {
-  const email =
+  const idText =
     userId === MINT_OK_USER_ID
-      ? MINT_OK_EMAIL
+      ? 'es-meta-mint-ok'
       : userId === TEST_USER_ID
-        ? TEST_EMAIL
-        : `u${userId}@t.com`;
-  return authHeaders(userId, email);
+        ? 'es-meta-1'
+        : `esmeta${String(userId).padStart(4, '0')}`;
+  return authHeaders(userId, idText);
 }
 
 describe('external services, feed, medium-value, membership, claim, metaboost, mq', () => {

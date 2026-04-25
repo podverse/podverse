@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # VERSION: 4
 # Helper to create the encrypted Database secret.
-# POSTGRES_* for the server image; DB_APP_* for the API, workers, and management-api (app database).
+# Emits only DB_APP_* keys; runtime POSTGRES_* mapping happens in manifests/compose.
 
 set -euo pipefail
 
@@ -68,61 +68,61 @@ DEFAULT_READ_WRITE_USER="podverse_app_read_write"
 
 if [ "$AUTO_GEN" = true ]; then
   echo "Auto-generating secrets..."
-  POSTGRES_DB="$DEFAULT_DB"
-  POSTGRES_USER="$DEFAULT_USER"
-  POSTGRES_READ_USER="$DEFAULT_READ_USER"
-  POSTGRES_READ_WRITE_USER="$DEFAULT_READ_WRITE_USER"
-  POSTGRES_PASSWORD=$(generate_password)
-  POSTGRES_READ_PASSWORD=$(generate_password)
-  POSTGRES_READ_WRITE_PASSWORD=$(generate_password)
-  echo "  POSTGRES_DB: $POSTGRES_DB"
-  echo "  POSTGRES_USER: $POSTGRES_USER"
-  echo "  POSTGRES_PASSWORD: [generated]"
-  echo "  POSTGRES_READ_PASSWORD: [generated]"
-  echo "  POSTGRES_READ_WRITE_PASSWORD: [generated]"
+  DB_APP_NAME="$DEFAULT_DB"
+  DB_APP_ADMIN_USER="$DEFAULT_USER"
+  DB_APP_READ_USER="$DEFAULT_READ_USER"
+  DB_APP_READ_WRITE_USER="$DEFAULT_READ_WRITE_USER"
+  DB_APP_ADMIN_PASSWORD=$(generate_password)
+  DB_APP_READ_PASSWORD=$(generate_password)
+  DB_APP_READ_WRITE_PASSWORD=$(generate_password)
+  echo "  DB_APP_NAME: $DB_APP_NAME"
+  echo "  DB_APP_ADMIN_USER: $DB_APP_ADMIN_USER"
+  echo "  DB_APP_ADMIN_PASSWORD: [generated]"
+  echo "  DB_APP_READ_PASSWORD: [generated]"
+  echo "  DB_APP_READ_WRITE_PASSWORD: [generated]"
 else
-  echo "You are generating the PostgreSQL credentials."
+  echo "You are generating the app database credentials."
   echo "Press Enter to use the default value."
   echo ""
 
   echo ""
   echo "--- DBNAME INPUTS ---"
-  read -r -p "POSTGRES_DB [${DEFAULT_DB}]: " INPUT_DB
-  POSTGRES_DB="${INPUT_DB:-$DEFAULT_DB}"
+  read -r -p "DB_APP_NAME [${DEFAULT_DB}]: " INPUT_DB
+  DB_APP_NAME="${INPUT_DB:-$DEFAULT_DB}"
   echo ""
   echo "--- USERNAME INPUTS ---"
   echo "--- ADMIN USER ---"
-  read -r -p "POSTGRES_USER [${DEFAULT_USER}]: " INPUT_USER
-  POSTGRES_USER="${INPUT_USER:-$DEFAULT_USER}"
+  read -r -p "DB_APP_ADMIN_USER [${DEFAULT_USER}]: " INPUT_USER
+  DB_APP_ADMIN_USER="${INPUT_USER:-$DEFAULT_USER}"
   echo ""
   echo "--- READ-ONLY USER ---"
-  read -r -p "POSTGRES_READ_USER [${DEFAULT_READ_USER}]: " INPUT_READ_USER
-  POSTGRES_READ_USER="${INPUT_READ_USER:-$DEFAULT_READ_USER}"
+  read -r -p "DB_APP_READ_USER [${DEFAULT_READ_USER}]: " INPUT_READ_USER
+  DB_APP_READ_USER="${INPUT_READ_USER:-$DEFAULT_READ_USER}"
   echo ""
   echo "--- READ-WRITE USER ---"
-  read -r -p "POSTGRES_READ_WRITE_USER [${DEFAULT_READ_WRITE_USER}]: " INPUT_READ_WRITE_USER
-  POSTGRES_READ_WRITE_USER="${INPUT_READ_WRITE_USER:-$DEFAULT_READ_WRITE_USER}"
+  read -r -p "DB_APP_READ_WRITE_USER [${DEFAULT_READ_WRITE_USER}]: " INPUT_READ_WRITE_USER
+  DB_APP_READ_WRITE_USER="${INPUT_READ_WRITE_USER:-$DEFAULT_READ_WRITE_USER}"
 
   echo ""
   echo "--- SENSITIVE INPUTS ---"
   # -s hides input
-  read -r -s -p "Enter POSTGRES_PASSWORD (Superuser): " POSTGRES_PASSWORD
+  read -r -s -p "Enter DB_APP_ADMIN_PASSWORD (Admin): " DB_APP_ADMIN_PASSWORD
   echo ""
-  if [ -z "$POSTGRES_PASSWORD" ]; then
+  if [ -z "$DB_APP_ADMIN_PASSWORD" ]; then
     echo "Error: Password required."
     exit 1
   fi
 
-  read -r -s -p "Enter POSTGRES_READ_PASSWORD (Read-only User): " POSTGRES_READ_PASSWORD
+  read -r -s -p "Enter DB_APP_READ_PASSWORD (Read-only User): " DB_APP_READ_PASSWORD
   echo ""
-  if [ -z "$POSTGRES_READ_PASSWORD" ]; then
+  if [ -z "$DB_APP_READ_PASSWORD" ]; then
     echo "Error: Password required."
     exit 1
   fi
 
-  read -r -s -p "Enter POSTGRES_READ_WRITE_PASSWORD (App User): " POSTGRES_READ_WRITE_PASSWORD
+  read -r -s -p "Enter DB_APP_READ_WRITE_PASSWORD (App User): " DB_APP_READ_WRITE_PASSWORD
   echo ""
-  if [ -z "$POSTGRES_READ_WRITE_PASSWORD" ]; then
+  if [ -z "$DB_APP_READ_WRITE_PASSWORD" ]; then
     echo "Error: Password required."
     exit 1
   fi
@@ -138,26 +138,20 @@ mkdir -p "$(dirname "$OUTPUT_FILE")"
 echo "Generating and encrypting secret..."
 
 # We pipe kubectl output directly to sops.
-# We include the standard POSTGRES_* keys and DB_APP_* (Metaboost-aligned) so
-# the API, Workers, and management-api can use this secret.
+# This secret is consumed by workloads directly as DB_APP_*.
 
 TMP_FILE_BASE="$(mktemp -t "${SECRET_NAME}.XXXXXX")"
 TMP_FILE="${TMP_FILE_BASE}.yaml"
 mv "$TMP_FILE_BASE" "$TMP_FILE"
 kubectl create secret generic "${SECRET_NAME}" \
   --namespace "${NAMESPACE}" \
-  --from-literal=POSTGRES_DB="${POSTGRES_DB}" \
-  --from-literal=POSTGRES_USER="${POSTGRES_USER}" \
-  --from-literal=POSTGRES_PASSWORD="${POSTGRES_PASSWORD}" \
-  --from-literal=POSTGRES_READ_USER="${POSTGRES_READ_USER}" \
-  --from-literal=POSTGRES_READ_PASSWORD="${POSTGRES_READ_PASSWORD}" \
-  --from-literal=POSTGRES_READ_WRITE_USER="${POSTGRES_READ_WRITE_USER}" \
-  --from-literal=POSTGRES_READ_WRITE_PASSWORD="${POSTGRES_READ_WRITE_PASSWORD}" \
-  --from-literal=DB_APP_NAME="${POSTGRES_DB}" \
-  --from-literal=DB_APP_READ_USER="${POSTGRES_READ_USER}" \
-  --from-literal=DB_APP_READ_PASSWORD="${POSTGRES_READ_PASSWORD}" \
-  --from-literal=DB_APP_READ_WRITE_USER="${POSTGRES_READ_WRITE_USER}" \
-  --from-literal=DB_APP_READ_WRITE_PASSWORD="${POSTGRES_READ_WRITE_PASSWORD}" \
+  --from-literal=DB_APP_NAME="${DB_APP_NAME}" \
+  --from-literal=DB_APP_ADMIN_USER="${DB_APP_ADMIN_USER}" \
+  --from-literal=DB_APP_ADMIN_PASSWORD="${DB_APP_ADMIN_PASSWORD}" \
+  --from-literal=DB_APP_READ_USER="${DB_APP_READ_USER}" \
+  --from-literal=DB_APP_READ_PASSWORD="${DB_APP_READ_PASSWORD}" \
+  --from-literal=DB_APP_READ_WRITE_USER="${DB_APP_READ_WRITE_USER}" \
+  --from-literal=DB_APP_READ_WRITE_PASSWORD="${DB_APP_READ_WRITE_PASSWORD}" \
   --dry-run=client -o yaml >"$TMP_FILE"
 
 sops --config .sops.yaml --encrypt --encrypted-regex '^(data|stringData)$' \

@@ -12,3 +12,6 @@
 !.env
 # !.env.local
 # !.env.*
+
+# Copilot export mirror: generated on develop by CI; source of truth is .cursor (see llm-cursor-source)
+.llm/exports/github-copilot/

@@ -1,7 +1,10 @@
+import { TEST_USER_ACCOUNT_ID_TEXT } from './testAccountIds.js';
+
 const DEFAULT_INTEGRATION_TEST_EMAIL = 'stats-track-test@example.com';
 
 export type AuthIntegrationAccountGetResult = {
   id: number;
+  id_text: string;
   account_credentials: { email: string };
   account_membership_status: { membership_expires_at: Date };
 };
@@ -21,6 +24,7 @@ export function createDefaultAccountGet(
     }
     return {
       id: 1,
+      id_text: TEST_USER_ACCOUNT_ID_TEXT,
       account_credentials: { email },
       account_membership_status: {
         membership_expires_at: new Date(Date.now() + 86400000 * 365),

@@ -1,0 +1,60 @@
+# Version: 1
+# Pattern: Suspended CronJob (Manual Trigger Only)
+# Runs forward-only linear migrations against the app database.
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: ops-db-migrate-app
+spec:
+  schedule: "* * * * *"
+  suspend: true
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      ttlSecondsAfterFinished: 300
+      template:
+        metadata:
+          labels:
+            app: podverse-ops
+          annotations:
+            # ConfigMap hash in referenced names provides rollout-on-change behavior.
+            podverse.fm/migration-job: "app-linear"
+        spec:
+          restartPolicy: Never
+          containers:
+            - name: linear-migrate-app
+              image: postgres:18.1
+              imagePullPolicy: Always
+              command:
+                - "bash"
+                - "/opt/scripts/database/run-linear-migrations-k8s.sh"
+                - "--database"
+                - "app"
+              envFrom:
+                - secretRef:
+                    name: podverse-db-opaque
+              env:
+                - name: DB_HOST
+                  value: "podverse-db"
+                - name: DB_PORT
+                  value: "5432"
+                - name: MIGRATION_BUNDLE_SHA
+                  valueFrom:
+                    configMapKeyRef:
+                      name: podverse-ops-migration-scripts
+                      key: MIGRATION_BUNDLE_SHA
+              volumeMounts:
+                - name: migration-scripts
+                  mountPath: /opt/scripts/database
+                  readOnly: true
+                - name: app-linear-migrations
+                  mountPath: /opt/infra/k8s/base/db/source/app
+                  readOnly: true
+          volumes:
+            - name: migration-scripts
+              configMap:
+                name: podverse-ops-migration-scripts
+                defaultMode: 0555
+            - name: app-linear-migrations
+              configMap:
+                name: podverse-ops-app-linear-migrations

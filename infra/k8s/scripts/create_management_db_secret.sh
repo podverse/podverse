@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # VERSION: 1
 # Helper to create the encrypted Management DB secret.
-# It includes both POSTGRES_MANAGEMENT_* (for DB container/init) and DB_* (for apps, same shape as create_db_secret.sh).
+# Emits only DB_MANAGEMENT_* keys; runtime POSTGRES_* mapping happens in manifests/compose.
 
 set -euo pipefail
 
@@ -68,22 +68,18 @@ DEFAULT_READ_WRITE_USER="podverse_management_read_write"
 
 if [ "$AUTO_GEN" = true ]; then
   echo "Auto-generating secrets..."
-  POSTGRES_MANAGEMENT_DB="$DEFAULT_DB"
-  POSTGRES_MANAGEMENT_USER="$DEFAULT_USER"
-  POSTGRES_MANAGEMENT_READ_USER="$DEFAULT_READ_USER"
-  POSTGRES_MANAGEMENT_READ_WRITE_USER="$DEFAULT_READ_WRITE_USER"
-  POSTGRES_MANAGEMENT_PASSWORD=$(generate_password)
-  POSTGRES_MANAGEMENT_READ_PASSWORD=$(generate_password)
-  POSTGRES_MANAGEMENT_READ_WRITE_PASSWORD=$(generate_password)
-  MANAGEMENT_SUPERUSER_EMAIL=""
-  MANAGEMENT_SUPERUSER_PASSWORD=$(generate_password)
-  echo "  POSTGRES_MANAGEMENT_DB: $POSTGRES_MANAGEMENT_DB"
-  echo "  POSTGRES_MANAGEMENT_USER: $POSTGRES_MANAGEMENT_USER"
-  echo "  POSTGRES_MANAGEMENT_PASSWORD: [generated]"
-  echo "  POSTGRES_MANAGEMENT_READ_PASSWORD: [generated]"
-  echo "  POSTGRES_MANAGEMENT_READ_WRITE_PASSWORD: [generated]"
-  echo "  MANAGEMENT_SUPERUSER_EMAIL: [empty]"
-  echo "  MANAGEMENT_SUPERUSER_PASSWORD: [generated]"
+  DB_MANAGEMENT_NAME="$DEFAULT_DB"
+  DB_MANAGEMENT_ADMIN_USER="$DEFAULT_USER"
+  DB_MANAGEMENT_READ_USER="$DEFAULT_READ_USER"
+  DB_MANAGEMENT_READ_WRITE_USER="$DEFAULT_READ_WRITE_USER"
+  DB_MANAGEMENT_ADMIN_PASSWORD=$(generate_password)
+  DB_MANAGEMENT_READ_PASSWORD=$(generate_password)
+  DB_MANAGEMENT_READ_WRITE_PASSWORD=$(generate_password)
+  echo "  DB_MANAGEMENT_NAME: $DB_MANAGEMENT_NAME"
+  echo "  DB_MANAGEMENT_ADMIN_USER: $DB_MANAGEMENT_ADMIN_USER"
+  echo "  DB_MANAGEMENT_ADMIN_PASSWORD: [generated]"
+  echo "  DB_MANAGEMENT_READ_PASSWORD: [generated]"
+  echo "  DB_MANAGEMENT_READ_WRITE_PASSWORD: [generated]"
 else
   echo "You are generating the Management DB credentials."
   echo "Press Enter to use the default value."
@@ -91,59 +87,45 @@ else
 
   echo ""
   echo "--- DBNAME INPUTS ---"
-  read -r -p "POSTGRES_MANAGEMENT_DB [${DEFAULT_DB}]: " INPUT_DB
-  POSTGRES_MANAGEMENT_DB="${INPUT_DB:-$DEFAULT_DB}"
+  read -r -p "DB_MANAGEMENT_NAME [${DEFAULT_DB}]: " INPUT_DB
+  DB_MANAGEMENT_NAME="${INPUT_DB:-$DEFAULT_DB}"
   echo ""
   echo "--- USERNAME INPUTS ---"
   echo "--- ADMIN USER ---"
-  read -r -p "POSTGRES_MANAGEMENT_USER [${DEFAULT_USER}]: " INPUT_USER
-  POSTGRES_MANAGEMENT_USER="${INPUT_USER:-$DEFAULT_USER}"
+  read -r -p "DB_MANAGEMENT_ADMIN_USER [${DEFAULT_USER}]: " INPUT_USER
+  DB_MANAGEMENT_ADMIN_USER="${INPUT_USER:-$DEFAULT_USER}"
   echo ""
   echo "--- READ-ONLY USER ---"
-  read -r -p "POSTGRES_MANAGEMENT_READ_USER [${DEFAULT_READ_USER}]: " INPUT_READ_USER
-  POSTGRES_MANAGEMENT_READ_USER="${INPUT_READ_USER:-$DEFAULT_READ_USER}"
+  read -r -p "DB_MANAGEMENT_READ_USER [${DEFAULT_READ_USER}]: " INPUT_READ_USER
+  DB_MANAGEMENT_READ_USER="${INPUT_READ_USER:-$DEFAULT_READ_USER}"
   echo ""
   echo "--- READ-WRITE USER ---"
-  read -r -p "POSTGRES_MANAGEMENT_READ_WRITE_USER [${DEFAULT_READ_WRITE_USER}]: " INPUT_READ_WRITE_USER
-  POSTGRES_MANAGEMENT_READ_WRITE_USER="${INPUT_READ_WRITE_USER:-$DEFAULT_READ_WRITE_USER}"
-
-  echo ""
-  echo "--- SUPERUSER ACCOUNT ---"
-  read -r -p "MANAGEMENT_SUPERUSER_EMAIL: " MANAGEMENT_SUPERUSER_EMAIL
-  if [ -z "$MANAGEMENT_SUPERUSER_EMAIL" ]; then
-    echo "Error: MANAGEMENT_SUPERUSER_EMAIL required."
-    exit 1
-  fi
+  read -r -p "DB_MANAGEMENT_READ_WRITE_USER [${DEFAULT_READ_WRITE_USER}]: " INPUT_READ_WRITE_USER
+  DB_MANAGEMENT_READ_WRITE_USER="${INPUT_READ_WRITE_USER:-$DEFAULT_READ_WRITE_USER}"
 
   echo ""
   echo "--- SENSITIVE INPUTS ---"
-  read -r -s -p "Enter POSTGRES_MANAGEMENT_PASSWORD (Superuser): " POSTGRES_MANAGEMENT_PASSWORD
+  read -r -s -p "Enter DB_MANAGEMENT_ADMIN_PASSWORD (Admin): " DB_MANAGEMENT_ADMIN_PASSWORD
   echo ""
-  if [ -z "$POSTGRES_MANAGEMENT_PASSWORD" ]; then
+  if [ -z "$DB_MANAGEMENT_ADMIN_PASSWORD" ]; then
     echo "Error: Password required."
     exit 1
   fi
 
-  read -r -s -p "Enter POSTGRES_MANAGEMENT_READ_PASSWORD (Read-only User): " POSTGRES_MANAGEMENT_READ_PASSWORD
+  read -r -s -p "Enter DB_MANAGEMENT_READ_PASSWORD (Read-only User): " DB_MANAGEMENT_READ_PASSWORD
   echo ""
-  if [ -z "$POSTGRES_MANAGEMENT_READ_PASSWORD" ]; then
+  if [ -z "$DB_MANAGEMENT_READ_PASSWORD" ]; then
     echo "Error: Password required."
     exit 1
   fi
 
-  read -r -s -p "Enter POSTGRES_MANAGEMENT_READ_WRITE_PASSWORD (App User): " POSTGRES_MANAGEMENT_READ_WRITE_PASSWORD
+  read -r -s -p "Enter DB_MANAGEMENT_READ_WRITE_PASSWORD (App User): " DB_MANAGEMENT_READ_WRITE_PASSWORD
   echo ""
-  if [ -z "$POSTGRES_MANAGEMENT_READ_WRITE_PASSWORD" ]; then
+  if [ -z "$DB_MANAGEMENT_READ_WRITE_PASSWORD" ]; then
     echo "Error: Password required."
     exit 1
   fi
 
-  read -r -s -p "Enter MANAGEMENT_SUPERUSER_PASSWORD: " MANAGEMENT_SUPERUSER_PASSWORD
-  echo ""
-  if [ -z "$MANAGEMENT_SUPERUSER_PASSWORD" ]; then
-    echo "Error: Password required."
-    exit 1
-  fi
 fi
 
 # ------------------------------------------------------------------
@@ -160,20 +142,13 @@ mv "$TMP_FILE_BASE" "$TMP_FILE"
 
 kubectl create secret generic "${SECRET_NAME}" \
   --namespace "${NAMESPACE}" \
-  --from-literal=POSTGRES_MANAGEMENT_DB="${POSTGRES_MANAGEMENT_DB}" \
-  --from-literal=POSTGRES_MANAGEMENT_USER="${POSTGRES_MANAGEMENT_USER}" \
-  --from-literal=POSTGRES_MANAGEMENT_PASSWORD="${POSTGRES_MANAGEMENT_PASSWORD}" \
-  --from-literal=POSTGRES_MANAGEMENT_READ_USER="${POSTGRES_MANAGEMENT_READ_USER}" \
-  --from-literal=POSTGRES_MANAGEMENT_READ_PASSWORD="${POSTGRES_MANAGEMENT_READ_PASSWORD}" \
-  --from-literal=POSTGRES_MANAGEMENT_READ_WRITE_USER="${POSTGRES_MANAGEMENT_READ_WRITE_USER}" \
-  --from-literal=POSTGRES_MANAGEMENT_READ_WRITE_PASSWORD="${POSTGRES_MANAGEMENT_READ_WRITE_PASSWORD}" \
-  --from-literal=DB_MANAGEMENT_NAME="${POSTGRES_MANAGEMENT_DB}" \
-  --from-literal=DB_MANAGEMENT_READ_USER="${POSTGRES_MANAGEMENT_READ_USER}" \
-  --from-literal=DB_MANAGEMENT_READ_PASSWORD="${POSTGRES_MANAGEMENT_READ_PASSWORD}" \
-  --from-literal=DB_MANAGEMENT_READ_WRITE_USER="${POSTGRES_MANAGEMENT_READ_WRITE_USER}" \
-  --from-literal=DB_MANAGEMENT_READ_WRITE_PASSWORD="${POSTGRES_MANAGEMENT_READ_WRITE_PASSWORD}" \
-  --from-literal=MANAGEMENT_SUPERUSER_EMAIL="${MANAGEMENT_SUPERUSER_EMAIL}" \
-  --from-literal=MANAGEMENT_SUPERUSER_PASSWORD="${MANAGEMENT_SUPERUSER_PASSWORD}" \
+  --from-literal=DB_MANAGEMENT_NAME="${DB_MANAGEMENT_NAME}" \
+  --from-literal=DB_MANAGEMENT_ADMIN_USER="${DB_MANAGEMENT_ADMIN_USER}" \
+  --from-literal=DB_MANAGEMENT_ADMIN_PASSWORD="${DB_MANAGEMENT_ADMIN_PASSWORD}" \
+  --from-literal=DB_MANAGEMENT_READ_USER="${DB_MANAGEMENT_READ_USER}" \
+  --from-literal=DB_MANAGEMENT_READ_PASSWORD="${DB_MANAGEMENT_READ_PASSWORD}" \
+  --from-literal=DB_MANAGEMENT_READ_WRITE_USER="${DB_MANAGEMENT_READ_WRITE_USER}" \
+  --from-literal=DB_MANAGEMENT_READ_WRITE_PASSWORD="${DB_MANAGEMENT_READ_WRITE_PASSWORD}" \
   --dry-run=client -o yaml >"$TMP_FILE"
 
 sops --config .sops.yaml --encrypt --encrypted-regex '^(data|stringData)$' \
@@ -190,4 +165,4 @@ echo ""
 echo "You can apply the values (if you have the key) by running:"
 echo "sops -d ${OUTPUT_FILE} | kubectl apply -f -"
 echo ""
-echo "Note: If you had an existing management-db secret, re-apply after re-running this script so it contains DB_MANAGEMENT_* and superuser keys."
+echo "Note: If you had an existing management-db secret, re-apply after re-running this script so it contains DB_MANAGEMENT_* keys."

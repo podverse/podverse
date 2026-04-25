@@ -197,7 +197,7 @@ async function main() {
     console.error('\nYou can try running manually from the monorepo root:');
     console.error('  docker compose -f tools/web-perf/lighthouse/docker/docker-compose.yml up -d');
     console.error(
-      '  docker exec -i podverse_lighthouse_test_db psql -U postgres -d postgres -f /opt/database/combined/init_database.sql'
+      '  DB_HOST=127.0.0.1 DB_PORT=5111 DB_USER=postgres DB_PASSWORD=mysecretpw DB_NAME=postgres bash scripts/database/run-linear-migrations.sh --database app'
     );
     console.error(
       '  Then ensure DB_* env vars are set and run parser (see tools/test-assets docs).'

@@ -285,7 +285,7 @@ describe('playlist routes', () => {
     it('returns 201 with valid data', async () => {
       const res = await request(app)
         .post(`${playlistBase}/`)
-        .set(authHeaders(TEST_USER_ID, TEST_EMAIL))
+        .set(authHeaders(TEST_USER_ID))
         .send(validCreateBody);
 
       expect(res.status).toBe(201);
@@ -308,7 +308,7 @@ describe('playlist routes', () => {
     it('returns 400 with missing required fields', async () => {
       const res = await request(app)
         .post(`${playlistBase}/`)
-        .set(authHeaders(TEST_USER_ID, TEST_EMAIL))
+        .set(authHeaders(TEST_USER_ID))
         .send({ title: 'x' });
 
       expect(res.status).toBe(400);
@@ -322,10 +322,7 @@ describe('playlist routes', () => {
       });
 
       const res = await withMutedExpectedErrorLogs(async () =>
-        request(app)
-          .post(`${playlistBase}/`)
-          .set(authHeaders(TEST_USER_ID, TEST_EMAIL))
-          .send(validCreateBody)
+        request(app).post(`${playlistBase}/`).set(authHeaders(TEST_USER_ID)).send(validCreateBody)
       );
 
       expect(res.status).toBe(403);
@@ -338,7 +335,7 @@ describe('playlist routes', () => {
 
       const res = await request(app)
         .patch(`${playlistBase}/${PLAYLIST_ID_TEXT}`)
-        .set(authHeaders(TEST_USER_ID, TEST_EMAIL))
+        .set(authHeaders(TEST_USER_ID))
         .send(validUpdateBody);
 
       expect(res.status).toBe(200);
@@ -350,7 +347,7 @@ describe('playlist routes', () => {
 
       const res = await request(app)
         .patch(`${playlistBase}/${PLAYLIST_ID_TEXT}`)
-        .set(authHeaders(TEST_USER_ID, TEST_EMAIL))
+        .set(authHeaders(TEST_USER_ID))
         .send(validUpdateBody);
 
       expect(res.status).toBe(403);
@@ -361,7 +358,7 @@ describe('playlist routes', () => {
 
       const res = await request(app)
         .patch(`${playlistBase}/${PLAYLIST_ID_TEXT}`)
-        .set(authHeaders(TEST_USER_ID, TEST_EMAIL))
+        .set(authHeaders(TEST_USER_ID))
         .send(validUpdateBody);
 
       expect(res.status).toBe(404);
@@ -386,7 +383,7 @@ describe('playlist routes', () => {
       const res = await withMutedExpectedErrorLogs(async () =>
         request(app)
           .patch(`${playlistBase}/${PLAYLIST_ID_TEXT}`)
-          .set(authHeaders(TEST_USER_ID, TEST_EMAIL))
+          .set(authHeaders(TEST_USER_ID))
           .send(validUpdateBody)
       );
 
@@ -405,7 +402,7 @@ describe('playlist routes', () => {
 
       const res = await request(app)
         .delete(`${playlistBase}/${PLAYLIST_ID_TEXT}`)
-        .set(authHeaders(TEST_USER_ID, TEST_EMAIL));
+        .set(authHeaders(TEST_USER_ID));
 
       expect(res.status).toBe(204);
     });
@@ -415,7 +412,7 @@ describe('playlist routes', () => {
 
       const res = await request(app)
         .delete(`${playlistBase}/${PLAYLIST_ID_TEXT}`)
-        .set(authHeaders(TEST_USER_ID, TEST_EMAIL));
+        .set(authHeaders(TEST_USER_ID));
 
       expect(res.status).toBe(403);
     });
@@ -425,7 +422,7 @@ describe('playlist routes', () => {
 
       const res = await request(app)
         .delete(`${playlistBase}/${PLAYLIST_ID_TEXT}`)
-        .set(authHeaders(TEST_USER_ID, TEST_EMAIL));
+        .set(authHeaders(TEST_USER_ID));
 
       expect(res.status).toBe(404);
     });
@@ -469,7 +466,7 @@ describe('playlist routes', () => {
 
       const res = await request(app)
         .get(`${playlistBase}/${PLAYLIST_ID_TEXT}`)
-        .set(authHeaders(TEST_USER_ID, TEST_EMAIL));
+        .set(authHeaders(TEST_USER_ID));
 
       expect(res.status).toBe(200);
       expect(playlistGetOnePrivateMock).toHaveBeenCalledWith(
@@ -488,7 +485,7 @@ describe('playlist routes', () => {
 
       const res = await request(app)
         .get(`${playlistBase}/${PLAYLIST_ID_TEXT}`)
-        .set(authHeaders(TEST_USER_ID, TEST_EMAIL));
+        .set(authHeaders(TEST_USER_ID));
 
       expect(res.status).toBe(404);
     });
@@ -518,7 +515,7 @@ describe('playlist routes', () => {
       });
       const res = await request(app)
         .get(`${playlistBase}/private/top?medium=music&page=1&range=day`)
-        .set(authHeaders(TEST_USER_ID, TEST_EMAIL));
+        .set(authHeaders(TEST_USER_ID));
 
       expect(res.status).toBe(200);
       expect(res.body).toHaveProperty('data');
@@ -542,7 +539,7 @@ describe('playlist routes', () => {
       });
       const res = await request(app)
         .get(`${playlistBase}/private/recent?medium=music&page=1`)
-        .set(authHeaders(TEST_USER_ID, TEST_EMAIL));
+        .set(authHeaders(TEST_USER_ID));
 
       expect(res.status).toBe(200);
     });
@@ -563,7 +560,7 @@ describe('playlist routes', () => {
       });
       const res = await request(app)
         .get(`${playlistBase}/private/likes`)
-        .set(authHeaders(TEST_USER_ID, TEST_EMAIL));
+        .set(authHeaders(TEST_USER_ID));
 
       expect(res.status).toBe(200);
       expect(Array.isArray(res.body)).toBe(true);
@@ -580,7 +577,7 @@ describe('playlist routes', () => {
       playlistGetAllLikesPrivateMock.mockClear();
       const res = await request(app)
         .get(`${playlistBase}/private/likes?include_resources=0`)
-        .set(authHeaders(TEST_USER_ID, TEST_EMAIL));
+        .set(authHeaders(TEST_USER_ID));
 
       expect(res.status).toBe(200);
       expect(playlistGetAllLikesPrivateMock).toHaveBeenCalledWith(TEST_USER_ID, false);
@@ -601,7 +598,7 @@ describe('playlist routes', () => {
 
       const res = await request(app)
         .post(`${playlistBase}/private/likes/membership`)
-        .set(authHeaders(TEST_USER_ID, TEST_EMAIL))
+        .set(authHeaders(TEST_USER_ID))
         .send({ item_id_texts: [ITEM_ID_TEXT, 'item-not-liked'] });
 
       expect(res.status).toBe(200);
@@ -616,7 +613,7 @@ describe('playlist routes', () => {
 
       const res = await request(app)
         .post(`${playlistBase}/private/likes/membership`)
-        .set(authHeaders(TEST_USER_ID, TEST_EMAIL))
+        .set(authHeaders(TEST_USER_ID))
         .send({ item_id_texts: overLimit });
 
       expect(res.status).toBe(400);
@@ -636,7 +633,7 @@ describe('playlist routes', () => {
 
       const res = await request(app)
         .post(`${playlistBase}/private/likes/membership`)
-        .set(authHeaders(TEST_USER_ID, TEST_EMAIL))
+        .set(authHeaders(TEST_USER_ID))
         .send({ item_id_texts: atLimit });
 
       expect(res.status).toBe(200);
@@ -647,7 +644,7 @@ describe('playlist routes', () => {
 
       const res = await request(app)
         .post(`${playlistBase}/private/likes/toggle`)
-        .set(authHeaders(TEST_USER_ID, TEST_EMAIL))
+        .set(authHeaders(TEST_USER_ID))
         .send({ resource_type: 'item', item_id_text: ITEM_ID_TEXT });
 
       expect(res.status).toBe(200);
@@ -672,7 +669,7 @@ describe('playlist routes', () => {
 
       const res = await request(app)
         .get(`${playlistBase}/private/followed/top?medium=music&page=1&range=day`)
-        .set(authHeaders(TEST_USER_ID, TEST_EMAIL));
+        .set(authHeaders(TEST_USER_ID));
 
       expect(res.status).toBe(200);
       expect(res.body).toHaveProperty('data');
@@ -725,7 +722,7 @@ describe('playlist routes', () => {
 
       const res = await request(app)
         .get(`${playlistBase}/${PLAYLIST_ID_TEXT}/resources/private-all`)
-        .set(authHeaders(TEST_USER_ID, TEST_EMAIL));
+        .set(authHeaders(TEST_USER_ID));
 
       expect(res.status).toBe(200);
     });
@@ -763,7 +760,7 @@ describe('playlist routes', () => {
           `${playlistBase}/${PLAYLIST_ID_TEXT}/resources/queue-by-list-position?` +
             'clip_id_text=clip&direction=forward'
         )
-        .set(authHeaders(TEST_USER_ID, TEST_EMAIL));
+        .set(authHeaders(TEST_USER_ID));
 
       expect(res.status).toBe(200);
       expect(res.body).toHaveProperty('data');
@@ -780,7 +777,7 @@ describe('playlist routes', () => {
     it('POST .../clip/.../first returns 201', async () => {
       const res = await request(app)
         .post(`${playlistBase}/${PLAYLIST_ID_TEXT}/clip/${CLIP_ID_TEXT}/first`)
-        .set(authHeaders(TEST_USER_ID, TEST_EMAIL));
+        .set(authHeaders(TEST_USER_ID));
 
       expect(res.status).toBe(201);
       expect(plResourceAddClipFirstMock).toHaveBeenCalledWith(PLAYLIST_ID_TEXT, CLIP_ID_TEXT);
@@ -789,7 +786,7 @@ describe('playlist routes', () => {
     it('POST .../clip/.../between returns 201', async () => {
       const res = await request(app)
         .post(`${playlistBase}/${PLAYLIST_ID_TEXT}/clip/${CLIP_ID_TEXT}/between`)
-        .set(authHeaders(TEST_USER_ID, TEST_EMAIL))
+        .set(authHeaders(TEST_USER_ID))
         .send({ position1: 0, position2: 1 });
 
       expect(res.status).toBe(201);
@@ -798,7 +795,7 @@ describe('playlist routes', () => {
     it('POST .../clip/.../last returns 201', async () => {
       const res = await request(app)
         .post(`${playlistBase}/${PLAYLIST_ID_TEXT}/clip/${CLIP_ID_TEXT}/last`)
-        .set(authHeaders(TEST_USER_ID, TEST_EMAIL));
+        .set(authHeaders(TEST_USER_ID));
 
       expect(res.status).toBe(201);
     });
@@ -806,7 +803,7 @@ describe('playlist routes', () => {
     it('DELETE .../clip/... returns 204', async () => {
       const res = await request(app)
         .delete(`${playlistBase}/${PLAYLIST_ID_TEXT}/clip/${CLIP_ID_TEXT}`)
-        .set(authHeaders(TEST_USER_ID, TEST_EMAIL));
+        .set(authHeaders(TEST_USER_ID));
 
       expect(res.status).toBe(204);
     });
@@ -816,7 +813,7 @@ describe('playlist routes', () => {
       playlistGetByIdTextMock.mockResolvedValueOnce(ownershipPlaylist(OTHER_USER_ID) as never);
       const res = await request(app)
         .post(`${playlistBase}/${PLAYLIST_ID_TEXT}/clip/${CLIP_ID_TEXT}/first`)
-        .set(authHeaders(TEST_USER_ID, TEST_EMAIL));
+        .set(authHeaders(TEST_USER_ID));
 
       expect(res.status).toBe(403);
     });
@@ -841,23 +838,23 @@ describe('playlist routes', () => {
     it('add first, between, last, remove return expected statuses', async () => {
       let res = await request(app)
         .post(`${playlistBase}/${PLAYLIST_ID_TEXT}/item/${ITEM_ID_TEXT}/first`)
-        .set(authHeaders(TEST_USER_ID, TEST_EMAIL));
+        .set(authHeaders(TEST_USER_ID));
       expect(res.status).toBe(201);
 
       res = await request(app)
         .post(`${playlistBase}/${PLAYLIST_ID_TEXT}/item/${ITEM_ID_TEXT}/between`)
-        .set(authHeaders(TEST_USER_ID, TEST_EMAIL))
+        .set(authHeaders(TEST_USER_ID))
         .send({ position1: 0, position2: 2 });
       expect(res.status).toBe(201);
 
       res = await request(app)
         .post(`${playlistBase}/${PLAYLIST_ID_TEXT}/item/${ITEM_ID_TEXT}/last`)
-        .set(authHeaders(TEST_USER_ID, TEST_EMAIL));
+        .set(authHeaders(TEST_USER_ID));
       expect(res.status).toBe(201);
 
       res = await request(app)
         .delete(`${playlistBase}/${PLAYLIST_ID_TEXT}/item/${ITEM_ID_TEXT}`)
-        .set(authHeaders(TEST_USER_ID, TEST_EMAIL));
+        .set(authHeaders(TEST_USER_ID));
       expect(res.status).toBe(204);
     });
 
@@ -866,7 +863,7 @@ describe('playlist routes', () => {
       playlistGetByIdTextMock.mockResolvedValueOnce(ownershipPlaylist(OTHER_USER_ID) as never);
       const res = await request(app)
         .post(`${playlistBase}/${PLAYLIST_ID_TEXT}/item/${ITEM_ID_TEXT}/first`)
-        .set(authHeaders(TEST_USER_ID, TEST_EMAIL));
+        .set(authHeaders(TEST_USER_ID));
       expect(res.status).toBe(403);
     });
   });
@@ -882,7 +879,7 @@ describe('playlist routes', () => {
     it('add first returns 201 with add_by_rss_resource_data', async () => {
       const res = await request(app)
         .post(`${playlistBase}/${PLAYLIST_ID_TEXT}/item-add-by-rss/first`)
-        .set(authHeaders(TEST_USER_ID, TEST_EMAIL))
+        .set(authHeaders(TEST_USER_ID))
         .send({ add_by_rss_resource_data: { feed_url: 'https://a.com' } });
 
       expect(res.status).toBe(201);
@@ -901,12 +898,12 @@ describe('playlist routes', () => {
     it('add and remove return expected statuses', async () => {
       let res = await request(app)
         .post(`${playlistBase}/${PLAYLIST_ID_TEXT}/item-soundbite/${SOUNDBITE_ID_TEXT}/first`)
-        .set(authHeaders(TEST_USER_ID, TEST_EMAIL));
+        .set(authHeaders(TEST_USER_ID));
       expect(res.status).toBe(201);
 
       res = await request(app)
         .delete(`${playlistBase}/${PLAYLIST_ID_TEXT}/item-soundbite/${SOUNDBITE_ID_TEXT}`)
-        .set(authHeaders(TEST_USER_ID, TEST_EMAIL));
+        .set(authHeaders(TEST_USER_ID));
       expect(res.status).toBe(204);
     });
   });

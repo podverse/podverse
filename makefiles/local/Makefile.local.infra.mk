@@ -1,9 +1,15 @@
 # --- Local Docker: network, db (main + management), mq, keyvaldb, infra up/down, clean. ---
 
+# Compose interpolation: postgres.environment and healthcheck use ${DB_APP_*};
+# the service env_file does not supply the compose parser — pass the same file here (see Metaboost COMPOSE_LOCAL_ENV).
+COMPOSE_LOCAL_DB_ENV ?= --env-file infra/config/local/db.env
+
 .PHONY: local_network_create local_network_remove local_db_up local_pgadmin_up local_pgadmin_down
 .PHONY: local_db_down local_db_reset local_db_init local_mq_up local_mq_down
 .PHONY: local_keyvaldb_up local_keyvaldb_down local_management_db_up local_management_db_down
 .PHONY: local_workers_down local_management_db_reset local_management_db_init
+.PHONY: local_management_superuser_create local_management_superuser_update
+.PHONY: local_management_superuser_create_k8s local_management_superuser_update_k8s
 .PHONY: local_infra_up local_setup local_all_down local_clean local_prune_podverse_images local_teardown_apps
 
 local_network_create:
@@ -13,7 +19,7 @@ local_network_remove:
 	docker network rm podverse_local_network
 
 local_db_up: local_network_create infra/config/local/db.env
-	docker compose -f infra/docker/local/db/docker-compose.yml up podverse_local_db -d
+	docker compose $(COMPOSE_LOCAL_DB_ENV) -f infra/docker/local/db/docker-compose.yml up podverse_local_db -d
 
 local_pgadmin_up: local_network_create infra/config/local/db.env
 	docker compose -f infra/docker/local/pgadmin/docker-compose.yml up -d
@@ -22,33 +28,35 @@ local_pgadmin_down:
 	docker compose -f infra/docker/local/pgadmin/docker-compose.yml down
 
 local_db_down:
-	docker compose -f infra/docker/local/db/docker-compose.yml down --remove-orphans
+	docker compose $(COMPOSE_LOCAL_DB_ENV) -f infra/docker/local/db/docker-compose.yml down --remove-orphans
 
 local_db_reset:
 	@echo "Dropping and recreating public schema..."
 	@set -a; . infra/config/local/db.env; set +a; \
-	docker exec -i podverse_local_db psql -U "$$POSTGRES_USER" -d "$${POSTGRES_DB:-podverse_app}" -c "DROP SCHEMA public CASCADE; CREATE SCHEMA public; GRANT ALL ON SCHEMA public TO \"$$POSTGRES_USER\"; GRANT ALL ON SCHEMA public TO public;"
+	docker exec -i podverse_local_db psql -U "$$DB_APP_ADMIN_USER" -d "$${DB_APP_NAME:-podverse_app}" -c "DROP SCHEMA public CASCADE; CREATE SCHEMA public; GRANT ALL ON SCHEMA public TO \"$$DB_APP_ADMIN_USER\"; GRANT ALL ON SCHEMA public TO public;"
 
 local_db_init: infra/config/local/db.env
 	@echo "Waiting for database to be ready..."
 	@set -a; . infra/config/local/db.env; set +a; \
 	for i in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30; do \
-		if docker exec podverse_local_db pg_isready -U "$$POSTGRES_USER" > /dev/null 2>&1; then break; fi; \
+		if docker exec podverse_local_db pg_isready -U "$$DB_APP_ADMIN_USER" > /dev/null 2>&1; then break; fi; \
 		echo "  Database not ready, waiting... ($$i/30)"; \
 		if [ "$$i" -eq 30 ]; then echo "Database did not become ready in time."; exit 1; fi; \
 		sleep 2; \
 	done
-	@echo "Initializing main database schema..."
+	@echo "Applying app linear migrations..."
 	@set -a; . infra/config/local/db.env; set +a; \
-	docker exec -i podverse_local_db psql -U "$$POSTGRES_USER" -d "$${POSTGRES_DB:-podverse_app}" -f /opt/database/combined/init_database.sql
-	@echo "Creating read/read_write roles and grants (idempotent)..."
+	DB_HOST="localhost" DB_PORT="5432" DB_NAME="$${DB_APP_NAME:-podverse_app}" DB_USER="$$DB_APP_ADMIN_USER" DB_PASSWORD="$$DB_APP_ADMIN_PASSWORD" \
+	bash scripts/database/run-linear-migrations.sh --database app
+	@echo "Syncing app read roles and grants (bootstrap 0001)..."
 	@set -a; . infra/config/local/db.env; set +a; \
-	docker compose -f infra/docker/local/db/docker-compose.yml exec podverse_local_db bash -c "POSTGRES_READ_USER=$$POSTGRES_READ_USER POSTGRES_READ_PASSWORD=$$POSTGRES_READ_PASSWORD POSTGRES_READ_WRITE_USER=$$POSTGRES_READ_WRITE_USER POSTGRES_READ_WRITE_PASSWORD=$$POSTGRES_READ_WRITE_PASSWORD POSTGRES_DB=$${POSTGRES_DB:-podverse_app} /opt/database/init-scripts/01-create-users.sh"
+	bash scripts/database/run-postgres-bootstrap-in-container.sh podverse_local_db infra/config/local/db.env 1
 	@echo "Seeding local dev account..."
 	@set -a; . infra/config/local/db.env; set +a; \
-	docker exec -i podverse_local_db psql -U "$$POSTGRES_USER" -d "$${POSTGRES_DB:-podverse_app}" -f /opt/database/seed-scripts/local-dev-account.sql
-	@echo "Initializing management database..."
+	docker exec -i podverse_local_db psql -U "$$DB_APP_ADMIN_USER" -d "$${DB_APP_NAME:-podverse_app}" -f /opt/database/seed-scripts/local-dev-account.sql
+	@echo "Applying management linear migrations..."
 	@$(MAKE) local_management_db_init
+	@echo "Next step: make local_management_superuser_create"
 
 local_mq_up: local_network_create infra/config/local/mq.env
 	docker compose -f infra/docker/local/mq/docker-compose.yml up podverse_local_mq -d
@@ -76,42 +84,65 @@ local_workers_down:
 local_management_db_reset:
 	@echo "Dropping and recreating public schema..."
 	@set -a; . infra/config/local/db.env; set +a; \
-	docker exec -i podverse_local_db psql -U "$$POSTGRES_MANAGEMENT_USER" -d "$${POSTGRES_MANAGEMENT_DB:-podverse_management}" -c "DROP SCHEMA public CASCADE; CREATE SCHEMA public; GRANT ALL ON SCHEMA public TO \"$$POSTGRES_MANAGEMENT_USER\"; GRANT ALL ON SCHEMA public TO public;"
+	docker exec -i podverse_local_db psql -U "$$DB_MANAGEMENT_ADMIN_USER" -d "$${DB_MANAGEMENT_NAME:-podverse_management}" -c "DROP SCHEMA public CASCADE; CREATE SCHEMA public; GRANT ALL ON SCHEMA public TO \"$$DB_MANAGEMENT_ADMIN_USER\"; GRANT ALL ON SCHEMA public TO public;"
 
 local_management_db_init: infra/config/local/db.env
-	@echo "Validating required environment variables..."
+	@echo "Syncing management DB roles and passwords (bootstrap 0002)..."
 	@set -a; . infra/config/local/db.env; set +a; \
-	: "$${MANAGEMENT_SUPERUSER_EMAIL:?Missing MANAGEMENT_SUPERUSER_EMAIL}" \
-	: "$${MANAGEMENT_SUPERUSER_PASSWORD:?Missing MANAGEMENT_SUPERUSER_PASSWORD}"
+	bash scripts/database/run-postgres-bootstrap-in-container.sh podverse_local_db infra/config/local/db.env 2
 	@echo "Waiting for management database to be ready..."
 	@set -a; . infra/config/local/db.env; set +a; \
 	for i in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30; do \
-		if docker exec podverse_local_db pg_isready -U "$$POSTGRES_USER" > /dev/null 2>&1; then break; fi; \
+		if docker exec podverse_local_db pg_isready -U "$$DB_APP_ADMIN_USER" > /dev/null 2>&1; then break; fi; \
 		echo "  Management database not ready, waiting... ($$i/30)"; \
 		if [ "$$i" -eq 30 ]; then echo "Management database did not become ready in time."; exit 1; fi; \
 		sleep 2; \
 	done
-	@echo "Creating management database and roles (idempotent)..."
+	@echo "Applying management linear migrations..."
 	@set -a; . infra/config/local/db.env; set +a; \
-	docker compose -f infra/docker/local/db/docker-compose.yml exec podverse_local_db bash -c "POSTGRES_USER=$$POSTGRES_USER POSTGRES_DB=$${POSTGRES_DB:-podverse_app} POSTGRES_MANAGEMENT_DB=$${POSTGRES_MANAGEMENT_DB:-podverse_management} POSTGRES_MANAGEMENT_USER=$$POSTGRES_MANAGEMENT_USER POSTGRES_MANAGEMENT_PASSWORD=$$POSTGRES_MANAGEMENT_PASSWORD POSTGRES_MANAGEMENT_READ_USER=$$POSTGRES_MANAGEMENT_READ_USER POSTGRES_MANAGEMENT_READ_PASSWORD=$$POSTGRES_MANAGEMENT_READ_PASSWORD POSTGRES_MANAGEMENT_READ_WRITE_USER=$$POSTGRES_MANAGEMENT_READ_WRITE_USER POSTGRES_MANAGEMENT_READ_WRITE_PASSWORD=$$POSTGRES_MANAGEMENT_READ_WRITE_PASSWORD /opt/database/management/init-scripts/01-create-users.sh"
-	@echo "Initializing management database schema..."
-	@set -a; . infra/config/local/db.env; set +a; \
-	docker exec -i podverse_local_db psql -U "$$POSTGRES_MANAGEMENT_USER" -d "$${POSTGRES_MANAGEMENT_DB:-podverse_management}" -f /opt/database/management/init_management_database.sql
-	@echo "Creating superuser account..."
+	DB_HOST="localhost" DB_PORT="5432" DB_NAME="$${DB_MANAGEMENT_NAME:-podverse_management}" DB_USER="$$DB_MANAGEMENT_ADMIN_USER" DB_PASSWORD="$$DB_MANAGEMENT_ADMIN_PASSWORD" \
+	bash scripts/database/run-linear-migrations.sh --database management
+	@echo "Next step: make local_management_superuser_create"
+
+local_management_superuser_create: infra/config/local/db.env
+	@echo "Creating management superuser..."
 	@set -a; . infra/config/local/db.env; set +a; \
 	docker run --rm \
 	  --network podverse_local_network \
 	  -v "$$(pwd)/scripts/management:/opt/scripts/management" \
 	  -w /opt/scripts/management \
-	  -e MANAGEMENT_SUPERUSER_EMAIL="$$MANAGEMENT_SUPERUSER_EMAIL" \
-	  -e MANAGEMENT_SUPERUSER_PASSWORD="$$MANAGEMENT_SUPERUSER_PASSWORD" \
 	  -e DB_HOST="podverse_local_db" \
 	  -e DB_PORT="5432" \
-	  -e DB_MANAGEMENT_NAME="$${POSTGRES_MANAGEMENT_DB:-podverse_management}" \
-	  -e POSTGRES_USER="$$POSTGRES_MANAGEMENT_USER" \
-	  -e POSTGRES_PASSWORD="$$POSTGRES_MANAGEMENT_PASSWORD" \
+	  -e DB_MANAGEMENT_NAME="$${DB_MANAGEMENT_NAME:-podverse_management}" \
+	  -e DB_USER="$$DB_MANAGEMENT_READ_WRITE_USER" \
+	  -e DB_PASSWORD="$$DB_MANAGEMENT_READ_WRITE_PASSWORD" \
 	  node:24-slim \
-	  sh -c "npm install && node create-superuser.mjs"
+	  sh -c "npm install && node create-superuser.mjs $$SUPERUSER_ARGS"
+	@echo "Next step: make local_start_all_apps"
+
+local_management_superuser_update: infra/config/local/db.env
+	@echo "Updating management superuser..."
+	@set -a; . infra/config/local/db.env; set +a; \
+	docker run --rm \
+	  --network podverse_local_network \
+	  -v "$$(pwd)/scripts/management:/opt/scripts/management" \
+	  -w /opt/scripts/management \
+	  -e DB_HOST="podverse_local_db" \
+	  -e DB_PORT="5432" \
+	  -e DB_MANAGEMENT_NAME="$${DB_MANAGEMENT_NAME:-podverse_management}" \
+	  -e DB_USER="$$DB_MANAGEMENT_READ_WRITE_USER" \
+	  -e DB_PASSWORD="$$DB_MANAGEMENT_READ_WRITE_PASSWORD" \
+	  node:24-slim \
+	  sh -c "npm install && node update-superuser.mjs $$SUPERUSER_ARGS"
+	@echo "Next step: make local_start_all_apps"
+
+local_management_superuser_create_k8s:
+	@K8S_NAMESPACE="$${K8S_NAMESPACE:-podverse-local}" npm run management:superuser:create:k8s
+	@echo "Next step: watch job logs with kubectl -n $$K8S_NAMESPACE logs -f job/<name>"
+
+local_management_superuser_update_k8s:
+	@K8S_NAMESPACE="$${K8S_NAMESPACE:-podverse-local}" npm run management:superuser:update:k8s
+	@echo "Next step: watch job logs with kubectl -n $$K8S_NAMESPACE logs -f job/<name>"
 
 local_infra_up: local_db_up local_pgadmin_up local_mq_up local_keyvaldb_up
 	@echo "All local infrastructure services started"
@@ -143,7 +174,7 @@ local_clean:
 	-$(MAKE) local_stop_all_apps
 	-$(MAKE) local_pgadmin_down
 	-$(MAKE) local_ln_down
-	docker compose -f infra/docker/local/db/docker-compose.yml down -v 2>/dev/null || true
+	docker compose $(COMPOSE_LOCAL_DB_ENV) -f infra/docker/local/db/docker-compose.yml down -v 2>/dev/null || true
 	docker compose -f infra/docker/local/mq/docker-compose.yml down -v 2>/dev/null || true
 	docker compose -f infra/docker/local/keyvaldb/docker-compose.yml down -v 2>/dev/null || true
 	-$(MAKE) local_workers_down

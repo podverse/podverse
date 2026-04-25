@@ -6,9 +6,14 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const JWT_SECRET = process.env.AUTH_JWT_SECRET ?? '';
 
+const mockIdTextByAdminId: Record<number, string> = {
+  1: 'pvMgtAc001',
+  2: 'pvMgtAc002',
+};
+
 const makeMockAdmin = (id: number) => ({
   id,
-  id_text: String(id),
+  id_text: mockIdTextByAdminId[id] ?? `pvMgtAc00${id}`,
   admin_account_role_id: id === 1 ? 1 : 2,
   admin_account_role: { role: id === 1 ? 'superuser' : 'admin' },
   admin_account_credentials: {
@@ -60,7 +65,11 @@ const { adminAccountGetWithRoleAndPermsMock, adminAccountGetMock } = vi.hoisted(
     [number]
   >(async (id: number) => {
     if (id === 1 || id === 2) {
-      return { id, id_text: String(id), created_at: new Date('2020-01-01T00:00:00.000Z') };
+      return {
+        id,
+        id_text: mockIdTextByAdminId[id] ?? `pvMgtAc00${id}`,
+        created_at: new Date('2020-01-01T00:00:00.000Z'),
+      };
     }
     return null;
   });
@@ -97,21 +106,21 @@ describe('GET admin-account/:id authz', () => {
   });
 
   it('returns admin data when the path id matches the JWT subject', async () => {
-    const token = jwt.sign({ id: 1 }, JWT_SECRET, { expiresIn: '1h' });
+    const token = jwt.sign({ id: 1, id_text: 'pvMgtAc001' }, JWT_SECRET, { expiresIn: '1h' });
 
     const res = await request(app).get(`${adminBase}/1`).set('Authorization', `Bearer ${token}`);
 
     expect(res.status).toBe(200);
     expect(res.body).toMatchObject({
       id: 1,
-      id_text: '1',
+      id_text: 'pvMgtAc001',
       created_at: expect.any(String),
     });
     expect(adminAccountGetMock).toHaveBeenCalled();
   });
 
   it('returns 403 when the path id does not match the JWT subject', async () => {
-    const token = jwt.sign({ id: 1 }, JWT_SECRET, { expiresIn: '1h' });
+    const token = jwt.sign({ id: 1, id_text: 'pvMgtAc001' }, JWT_SECRET, { expiresIn: '1h' });
 
     const res = await request(app).get(`${adminBase}/2`).set('Authorization', `Bearer ${token}`);
 
@@ -132,7 +141,7 @@ describe('GET admin-account/:id authz', () => {
 
     adminAccountGetMock.mockResolvedValueOnce(null);
 
-    const token = jwt.sign({ id: 2 }, JWT_SECRET, { expiresIn: '1h' });
+    const token = jwt.sign({ id: 2, id_text: 'pvMgtAc002' }, JWT_SECRET, { expiresIn: '1h' });
 
     const res = await request(app).get(`${adminBase}/2`).set('Authorization', `Bearer ${token}`);
 

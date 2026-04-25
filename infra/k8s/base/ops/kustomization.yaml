@@ -5,3 +5,48 @@ resources:
   - db-drop-everything.cronjob.yaml
   - db-verify-account.cronjob.yaml
   - db-verify-all-account.cronjob.yaml
+  - db-migrate-app.cronjob.yaml
+  - db-migrate-management.cronjob.yaml
+  - management-superuser-create.cronjob.yaml
+  - management-superuser-update.cronjob.yaml
+
+# Keep hash suffixes enabled so config content changes produce new names.
+# This prevents stale script/migration data from being reused by job pods.
+configMapGenerator:
+  - name: podverse-ops-migration-scripts
+    literals:
+      - MIGRATION_BUNDLE_SHA=linear-migrations-v1
+    files:
+      - ../../../../scripts/database/run-linear-migrations.sh
+      - ../../../../scripts/database/run-linear-migrations-k8s.sh
+  - name: podverse-ops-app-linear-migrations
+    files:
+      - ../../../../infra/k8s/base/db/source/app/0000_init_helpers.sql
+      - ../../../../infra/k8s/base/db/source/app/0001_init_podcasting_20_database.sql
+      - ../../../../infra/k8s/base/db/source/app/0002_account.sql
+      - ../../../../infra/k8s/base/db/source/app/0003_clip.sql
+      - ../../../../infra/k8s/base/db/source/app/0004_playlist.sql
+      - ../../../../infra/k8s/base/db/source/app/0005_queue.sql
+      - ../../../../infra/k8s/base/db/source/app/0006_account_following_tables.sql
+      - ../../../../infra/k8s/base/db/source/app/0007_notifications.sql
+      - ../../../../infra/k8s/base/db/source/app/0008_purchases_paypal_apple_google.sql
+      - ../../../../infra/k8s/base/db/source/app/0009_membership_claim_token.sql
+      - ../../../../infra/k8s/base/db/source/app/0010_stats.sql
+      - ../../../../infra/k8s/base/db/source/app/0011_on_demand_parser_event.sql
+      - ../../../../infra/k8s/base/db/source/app/0012_account_settings.sql
+      - ../../../../infra/k8s/base/db/source/app/0013_add_by_rss_basic_auth.sql
+      - ../../../../infra/k8s/base/db/source/app/0014_image_shrink_source.sql
+      - ../../../../infra/k8s/base/db/source/app/0015_metaboost.sql
+      - ../../../../infra/k8s/base/db/source/app/0016_account_metaboost.sql
+      - ../../../../infra/k8s/base/db/source/app/0017_feed_flag_status_reason.sql
+  - name: podverse-ops-management-linear-migrations
+    files:
+      - ../../../../infra/k8s/base/db/source/management/0000_init_helpers.sql
+      - ../../../../infra/k8s/base/db/source/management/0001_init_admin_accounts.sql
+      - ../../../../infra/k8s/base/db/source/management/0002_admin_account_permissions.sql
+      - ../../../../infra/k8s/base/db/source/management/0003_database_audit_log.sql
+  - name: podverse-ops-management-superuser-scripts
+    files:
+      - ../../../../scripts/management/package.json
+      - ../../../../scripts/management/create-superuser.mjs
+      - ../../../../scripts/management/update-superuser.mjs

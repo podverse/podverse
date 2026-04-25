@@ -278,6 +278,16 @@ labels:
     includeSelectors: true
 ```
 
+## Database: linear migrations and bootstrap
+
+- **One source of truth for SQL migrations:** `infra/k8s/base/db/source/app/` and `infra/k8s/base/db/source/management/`. Additive, ordered files (`0001_*.sql`, …); the migration runner applies them in order and records them in `linear_migration_history` (the runner creates that table; do not add a “history table” migration for it).
+- **Bootstrap only in init:** `infra/k8s/base/db/source/bootstrap/` (shell scripts) runs with the DB container; it creates users/roles and related grants, **not** full application schema. Schema comes from the linear chain (often first applied via **ops** migration jobs after the pod is up).
+- **Runners and validation:** From repo root, `bash scripts/database/run-linear-migrations.sh --database app|management` (always pass `--database`); `bash scripts/database/validate-linear-migrations.sh` checks filenames, ordering, and that every SQL file in `source/app` and `source/management` is listed in `infra/k8s/base/ops/kustomization.yaml` (ops bundle must stay in sync with disk).
+- **Kustomize and ops:** When rendering `infra/k8s/base/ops/`, Kustomize may include files under `scripts/`; use a load policy that allows files outside the ops directory, e.g. `kubectl kustomize infra/k8s/base/ops --load-restrictor LoadRestrictionsNone`.
+- **DB credentials naming:** Authoritative admin keys in secrets and env are `DB_APP_ADMIN_USER` / `DB_APP_ADMIN_PASSWORD` and `DB_MANAGEMENT_ADMIN_USER` / `DB_MANAGEMENT_ADMIN_PASSWORD` (plus read/write keys per `infra/config/env-templates/db.env.example`). The official **postgres** image still expects `POSTGRES_USER` / `POSTGRES_PASSWORD` / `POSTGRES_DB` **inside the container** only—map from the `DB_*` keys in StatefulSet or Compose, not the other way around.
+
+**Read more:** [docs/operations/DB-MIGRATIONS.md](../../docs/operations/DB-MIGRATIONS.md), [docs/operations/LINEAR-MIGRATIONS.md](../../docs/operations/LINEAR-MIGRATIONS.md).
+
 ## Common Tasks
 
 ### Adding a New Environment Variable
@@ -329,6 +339,8 @@ See [infra/k8s/scripts/README.md](../../infra/k8s/scripts/README.md) for details
 
 - [infra/k8s/README.md](../../infra/k8s/README.md) - Full K8s documentation
 - [docs/operations/ALPHA-DEPLOYMENT.md](../../docs/operations/ALPHA-DEPLOYMENT.md) - Docker/CI and alpha deployment
+- [docs/operations/DB-MIGRATIONS.md](../../docs/operations/DB-MIGRATIONS.md) - DB migrations and ops jobs
+- [docs/operations/LINEAR-MIGRATIONS.md](../../docs/operations/LINEAR-MIGRATIONS.md) - Linear migration contract
 - [.cursor/rules/infra-k8s.mdc](../.cursor/rules/infra-k8s.mdc) - K8s cursor rules
 - [.prettierrc.json](../../.prettierrc.json) - Prettier config with k8s overrides
 

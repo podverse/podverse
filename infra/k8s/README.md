@@ -51,17 +51,17 @@ Before running the scripts, ensure you have the following ready:
 
 - **Database Credentials** (`create_db_secret.sh`):
   - You will need to invent 3 passwords:
-    - `POSTGRES_PASSWORD` (Superuser)
-    - `POSTGRES_READ_PASSWORD` (Read-only user)
-    - `POSTGRES_READ_WRITE_PASSWORD` (Application user)
+    - `DB_APP_ADMIN_PASSWORD` (app database admin role, for bootstrap)
+    - `DB_APP_READ_PASSWORD` (read-only app DB user)
+    - `DB_APP_READ_WRITE_PASSWORD` (read/write app DB user)
 
 - **Management DB Credentials** (`create_management_db_secret.sh`):
-  - You will need to invent 4 passwords:
-    - `POSTGRES_MANAGEMENT_PASSWORD` (Superuser)
-    - `POSTGRES_MANAGEMENT_READ_PASSWORD` (Read-only user)
-    - `POSTGRES_MANAGEMENT_READ_WRITE_PASSWORD` (Application user)
-    - `MANAGEMENT_SUPERUSER_PASSWORD` (Management bootstrap superuser)
-  - Required: `MANAGEMENT_SUPERUSER_EMAIL` (bootstrap superuser account email).
+  - You will need to invent 3 passwords:
+    - `DB_MANAGEMENT_ADMIN_PASSWORD` (management database admin role, for bootstrap)
+    - `DB_MANAGEMENT_READ_PASSWORD` (read-only management DB user)
+    - `DB_MANAGEMENT_READ_WRITE_PASSWORD` (read/write management DB user)
+  - Note: this secret does **not** include management app superuser credentials.
+    Create/update the management app superuser separately via the on-demand ops jobs after migrations.
 
 - **Message Queue Credentials** (`create_mq_secret.sh`):
   - An `MQ_PASSWORD` for the admin user.

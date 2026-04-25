@@ -12,6 +12,8 @@ import passport from 'passport';
 import { ExtractJwt, Strategy as JwtStrategy } from 'passport-jwt';
 import { Strategy as LocalStrategy } from 'passport-local';
 
+import { isValidNanoIdV2IdText } from '@podverse/orm';
+
 const isProduction = config.nodeEnv === 'production';
 const ADMIN_AUTH_COOKIE_NAME = 'pv_mgmt_auth';
 
@@ -102,10 +104,20 @@ passport.use(
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       secretOrKey: config.auth.jwtSecret,
     },
-    async (jwtPayload, done) => {
+    async (jwtPayload: { id?: number; id_text?: string }, done) => {
       try {
+        if (
+          jwtPayload.id === undefined ||
+          jwtPayload.id_text === undefined ||
+          jwtPayload.id_text === ''
+        ) {
+          return done(null, false);
+        }
+        if (!isValidNanoIdV2IdText(jwtPayload.id_text)) {
+          return done(null, false);
+        }
         const adminAccount = await adminAccountService.getWithRoleAndPermissions(jwtPayload.id);
-        if (adminAccount) {
+        if (adminAccount && adminAccount.id_text === jwtPayload.id_text) {
           const user = mapAdminToAuthenticatedUser(adminAccount);
           if (user) {
             return done(null, user);
@@ -145,7 +157,7 @@ export const authenticate = (req: Request, res: Response, next: NextFunction) =>
   passport.authenticate(
     'local',
     { session: false },
-    (err: Error, user: { id: number } | false, info: { message: string }) => {
+    (err: Error, user: { id: number; id_text: string } | false, info: { message: string }) => {
       if (err) {
         return next(err);
       }
@@ -153,7 +165,7 @@ export const authenticate = (req: Request, res: Response, next: NextFunction) =>
         return res.status(401).json({ message: info?.message || 'Unauthorized' });
       }
 
-      const token = jwt.sign({ id: user.id }, config.auth.jwtSecret, {
+      const token = jwt.sign({ id: user.id, id_text: user.id_text }, config.auth.jwtSecret, {
         expiresIn: config.auth.jwtExpiresIn,
       } as SignOptions);
 
@@ -175,6 +187,7 @@ export const authenticate = (req: Request, res: Response, next: NextFunction) =>
 const verifyToken = (req: Request, res: Response, next: NextFunction, token: string): void => {
   interface DecodedToken {
     id: number;
+    id_text?: string;
     [key: string]: unknown;
   }
   jwt.verify(
@@ -196,6 +209,18 @@ const verifyToken = (req: Request, res: Response, next: NextFunction, token: str
         return;
       }
       const payload = decoded as DecodedToken;
+      if (payload.id_text === undefined || payload.id_text === '') {
+        if (!res.headersSent) {
+          res.status(401).json({ message: 'Unauthorized' });
+        }
+        return;
+      }
+      if (!isValidNanoIdV2IdText(payload.id_text)) {
+        if (!res.headersSent) {
+          res.status(401).json({ message: 'Unauthorized' });
+        }
+        return;
+      }
       if (
         typeof payload.id !== 'number' ||
         !Number.isInteger(payload.id) ||
@@ -212,6 +237,12 @@ const verifyToken = (req: Request, res: Response, next: NextFunction, token: str
       const adminAccount = await adminAccountService.getWithRoleAndPermissions(payload.id);
       if (!adminAccount) {
         console.error('[verifyToken] No admin account found for user id:', payload.id);
+        if (!res.headersSent) {
+          res.status(401).json({ message: 'Unauthorized' });
+        }
+        return;
+      }
+      if (adminAccount.id_text !== payload.id_text) {
         if (!res.headersSent) {
           res.status(401).json({ message: 'Unauthorized' });
         }
