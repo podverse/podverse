@@ -100,7 +100,7 @@ jobs:
 
       - name: Create Git tag and production release
         if: success()
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         with:
           script: |
             const base = "${{ steps.version.outputs.base_version }}";
