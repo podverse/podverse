@@ -3,12 +3,12 @@
 Two separate workflows build or promote release artifacts:
 
 1. [`.github/workflows/publish-staging.yml`](../../.github/workflows/publish-staging.yml) (display name **“Publish (staging)”**) — runs on every push to **`staging`** (or `workflow_dispatch`).
-2. [`.github/workflows/publish-main.yml`](../../.github/workflows/publish-main.yml) (display name **“Publish (main)”**) — runs on every push to **`main`**. It does **not** rebuild app images; it **promotes** the existing `X.Y.Z-staging.N` line from GHCR to immutable `X.Y.Z` and floating **`:prod`**, then creates the Git tag and a **non-prerelease** GitHub Release.
+2. [`.github/workflows/publish-main.yml`](../../.github/workflows/publish-main.yml) (display name **“Publish (main)”**) — runs on every push to **`main`**. It does **not** rebuild app images; it **promotes** the existing `X.Y.Z-staging.N` line from GHCR to immutable `X.Y.Z` and floating **`:latest`**, then creates the Git tag and a **non-prerelease** GitHub Release, and moves **refs/tags/latest** to the promote commit.
 
 | Git branch | What happens      | Immutable image / tag pattern           | Floating GHCR tag |
 | ---------- | ----------------- | --------------------------------------- | ----------------- |
 | `staging`  | Full build + push | `X.Y.Z-staging.N` (N via Git ref API)   | `staging`         |
-| `main`     | Promote only      | `X.Y.Z` (from root `package.json` base) | `prod`            |
+| `main`     | Promote only      | `X.Y.Z` (from root `package.json` base) | `latest`          |
 
 **Changelog:** Both **staging** prereleases (`X.Y.Z-staging.N`) and **main** RTM releases (`X.Y.Z`) read release notes from [`docs/development/CHANGELOGS/X.Y.Z.md`](../development/CHANGELOGS/). Bump the base version at the start of work with `scripts/publish/bump-version.sh` so the semver changelog file exists immediately, then update that file continuously as work lands.
 
@@ -58,7 +58,7 @@ Base images (for Next.js app builds) are built first, then app images. All are p
 | `web-runtime-config`            | Web runtime-config sidecar                |
 | `management-web-runtime-config` | Management web runtime-config sidecar     |
 
-Each image is tagged with **`:staging`** and an immutable **version** tag `X.Y.Z-staging.N`. The base `X.Y.Z` comes from root `package.json` (prerelease stripped). The `reserve-version` job creates `refs/tags/X.Y.Z-staging.N` at the workflow commit via the GitHub Git Refs API.
+Each image is tagged with **`:staging`** and an immutable **version** tag `X.Y.Z-staging.N`. The base `X.Y.Z` comes from root `package.json` (prerelease stripped). The `reserve-version` job creates `refs/tags/X.Y.Z-staging.N` at the workflow commit via the GitHub Git Refs API. After a successful run, the workflow also moves the lightweight **Git** tag **refs/tags/staging** to that same commit (branch `refs/heads/staging` is unrelated; no conflict).
 
 On first publish when GHCR has no package for an image, tag discovery can bootstrap at **`X.Y.Z-staging.0`**.
 
@@ -66,7 +66,7 @@ On first publish when GHCR has no package for an image, tag discovery can bootst
 
 ## Main workflow (promote)
 
-Pushes to **`main`** do not run `docker build` for these apps. The job picks a single staging line: **the minimum, across all images, of each image’s maximum `N` for the base `X.Y.Z` from `package.json`** on the push commit, so the same `BASE-staging.M` is used for every app. [crane](https://github.com/google/go-containerregistry) copies each image to **`X.Y.Z`** and **`:prod`**, then a Git tag `X.Y.Z` and a **non-prerelease** GitHub Release are created. See [`.github/workflows/publish-main.yml`](../../.github/workflows/publish-main.yml).
+Pushes to **`main`** do not run `docker build` for these apps. The job picks a single staging line: **the minimum, across all images, of each image’s maximum `N` for the base `X.Y.Z` from `package.json`** on the push commit, so the same `BASE-staging.M` is used for every app. [crane](https://github.com/google/go-containerregistry) copies each image to **`X.Y.Z`** and **`:latest`**, then a Git tag `X.Y.Z` and a **non-prerelease** GitHub Release are created, and **refs/tags/latest** is moved to the **main** push commit. See [`.github/workflows/publish-main.yml`](../../.github/workflows/publish-main.yml).
 
 ---
 
@@ -104,7 +104,14 @@ docker pull ghcr.io/podverse/podverse/management-web-runtime-config:staging
 
 **Immutable (staging line):** pin a specific `X.Y.Z-staging.N` (same as the Git tag) for reproducible deploys.
 
-**Production:** use **`X.Y.Z`** or **`:prod`** after a successful `Publish (main)` run for that version.
+**Production:** use **`X.Y.Z`** or **`:latest`** after a successful `Publish (main)` run for that version. Moving Git tags **`staging`** and **`latest`** are convenience pointers for “current preprod” and “current production” commits; for reproducible checkouts, prefer the immutable version tags or branch tips.
+
+## Moving Git tags (`refs/tags/staging`, `refs/tags/latest`)
+
+- **`refs/tags/staging`** is updated to the build commit at the end of each **successful** Publish (staging) run. It is separate from the branch **`staging`** and from immutable tags **`X.Y.Z-staging.N`**.
+- **`refs/tags/latest`** is updated to the **main** push commit after each **successful** Publish (main) promote. **Do not** create GitHub Releases for these two refs; releases remain on **`X.Y.Z`** and **`X.Y.Z-staging.N`**.
+
+If a moving tag was fetched locally, `git pull --tags` may show surprising behavior; pin to **`X.Y.Z`** or a branch for deterministic history.
 
 See [ALPHA-DEPLOYMENT](ALPHA-DEPLOYMENT.md) for the full preprod flow, and the [K8S skill](../../.cursor/skills/k8s/SKILL.md) for overlay `newTag` conventions under `infra/k8s/alpha/`.
 
