@@ -1,4 +1,4 @@
-import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 const mockGetConfig = vi.fn();
 
@@ -26,7 +26,6 @@ describe('ManagementApiRequestService', () => {
   });
 
   afterEach(() => {
-    // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
     delete (globalThis as { window?: unknown }).window;
   });
 

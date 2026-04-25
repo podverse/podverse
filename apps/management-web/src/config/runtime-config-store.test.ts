@@ -1,7 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 const clearRuntimeConfigGlobal = () => {
-  // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
   delete (
     globalThis as {
       __PODVERSE_MANAGEMENT_RUNTIME_CONFIG__?: unknown;
