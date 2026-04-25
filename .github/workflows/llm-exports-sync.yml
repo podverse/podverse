@@ -9,12 +9,14 @@ on:
     paths:
       - ".cursor/**"
       - ".cursorrules"
+      - ".cursorignore"
       - "scripts/llm/**"
   pull_request:
     branches: [develop]
     paths:
       - ".cursor/**"
       - ".cursorrules"
+      - ".cursorignore"
       - "scripts/llm/**"
   workflow_dispatch: {}
 

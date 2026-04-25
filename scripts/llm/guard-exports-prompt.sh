@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
-# Do not hand-commit machine-generated .llm/exports (see .llm/exports/README). CI on develop
-# rewrites those paths. Allow README, target .gitkeep, and .state only, unless bypass is set.
+# Do not hand-commit machine-generated .llm/exports (see .llm/exports/README). Pushes to
+# develop trigger llm-exports-sync; published exports go through branch llm and its PR to
+# develop. Allow README, target .gitkeep, and .state only, unless bypass is set.
 # Does not run the full sync (keeps pre-commit fast).
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
@@ -38,7 +39,7 @@ fi
 cat << 'EOF' >&2
 llm-exports: You are trying to commit paths under .llm/exports that are machine exports (or not allowlisted for manual commit).
 
-Policy: .cursor/ and .cursorrules are the source of truth. Develop branch GitHub Actions runs npm run llm:exports:sync and commits with git add -f. Do not hand-commit skills/, instructions/, or copilot-instructions.md. See .llm/exports/README.md and docs/development/llm/
+Policy: .cursor/ and .cursorrules are the source of truth. The llm-exports-sync workflow runs npm run llm:exports:sync on the runner, updates branch llm, and opens/updates a PR to develop. Do not hand-commit skills/, instructions/, or copilot-instructions.md. See .llm/exports/README.md and docs/development/llm/
 
 To bypass (rare, emergencies only): ALLOW_DERIVED_EXPORT_EDIT=1 git commit ...
 EOF

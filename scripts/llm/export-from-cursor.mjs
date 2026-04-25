@@ -11,6 +11,7 @@ import { fileURLToPath } from 'node:url';
 
 import { assertTargetIdAllowed, MAX_EXPORT_TARGETS } from './allowed-targets.mjs';
 import { exportGithubCopilot } from './lib/copilot-adapter.mjs';
+import { resolveActiveVendorIds } from './vendor-config.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -75,20 +76,20 @@ function main() {
   }
 
   if (discovered.length === 0) {
-    // eslint-disable-next-line no-console
-    console.log('No registered export targets under .llm/exports/ (add <id>/.gitkeep).');
+    console.warn('No registered export targets under .llm/exports/ (add <id>/.gitkeep).');
   } else {
-    // eslint-disable-next-line no-console
-    console.log(`llm-exports: targets ${discovered.join(', ')}`);
+    const activeVendorIds = resolveActiveVendorIds(repoRoot);
+    console.warn(
+      `llm-exports: targets ${discovered.join(', ')} | vendors ${activeVendorIds.join(', ')}`
+    );
     runAdapters(discovered);
   }
 
   if (cmd === 'check') {
     const ci = process.env.CI === 'true' || process.env.CI === '1';
     if (!ci) {
-      // eslint-disable-next-line no-console
-      console.log(
-        'llm-exports: check skipped (CI= not set). Machine export files are gitignored; develop bot commits them.'
+      console.warn(
+        'llm-exports: check skipped (CI not set). In CI this diffs .llm/exports after sync; published exports use branch llm and a PR to develop (see llm-exports-sync workflow).'
       );
     } else {
       execSync('git add -A -f -- .llm/exports', { cwd: repoRoot, stdio: 'inherit' });
@@ -96,7 +97,7 @@ function main() {
         execSync('git diff --quiet --exit-code HEAD', { cwd: repoRoot, stdio: 'pipe' });
       } catch {
         console.error(
-          'llm:exports:check: .llm/exports (including ignored paths) does not match the current commit. Run the llm-exports sync workflow on develop, or re-run with a clean tree.'
+          'llm:exports:check: .llm/exports (including ignored paths) does not match the current commit. Merge or rebase the latest llm automation PR, or re-run on a clean tree; see docs/development/llm/.'
         );
         process.exit(1);
       }

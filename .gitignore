@@ -88,6 +88,7 @@ temp/
 .artifacts/
 
 # LLM / editor: see docs/development/llm/README.md. Canonical: .llm/exports/<id>/.gitkeep, allowed-targets.mjs
+/.llm/local/vendors.json
 # Machine-generated under each target (CI on develop writes with git add -f; do not hand-commit):
 # allowlisted ids — scripts/llm/allowed-targets.mjs (ALLOWED_TARGET_IDS)
 /.llm/exports/github-copilot/skills/

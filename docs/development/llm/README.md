@@ -8,7 +8,7 @@ This repository’s **authoritative** AI guidance is:
 - `.cursor/rules/**` — Cursor rules (`.mdc`)
 - `.cursorrules` — root-level rules
 
-**Optional machine-generated** copies for other tools live under [`.llm/exports/`](../../.llm/exports/) (for example the `github-copilot` tree). The **`llm-exports-sync`** workflow is the **canonical updater**; it updates branch **`llm`** and opens/updates one PR into **`develop`**; generated paths are **`.gitignore`d** and **`.llm/exports/github-copilot/`** is in **`.cursorignore`** so Cursor and local agents are not nudged to hand-edit the mirror. **Do not** commit or push changes to the generated `skills/`, `instructions/`, or `copilot-instructions.md` in PRs. See [`.llm/exports/README.md`](../../.llm/exports/README.md) for **naming**, the **`.github/` exception for `github-copilot`**, and merge steps for local Copilot use.
+**Optional machine-generated** copies for other tools live under [`.llm/exports/`](../../.llm/exports/) (for example the `github-copilot` tree). The **`llm-exports-sync`** workflow is the **canonical updater**; it updates branch **`llm`** and opens/updates one PR into **`develop`**; generated paths are **`.gitignore`d** and **`.llm/exports/`** is in **`.cursorignore`** so Cursor and local agents are not nudged to hand-edit the mirror. **Do not** commit or push changes to the generated `skills/`, `instructions/`, or `copilot-instructions.md` in PRs. See [`.llm/exports/README.md`](../../.llm/exports/README.md) for **naming**, the **`.github/` exception for `github-copilot`**, and merge steps for local Copilot use.
 
 We do **not** commit a duplicate Copilot mirror as ad-hoc tracked files under `.github/`; that directory stays for CI, workflows, and other repo config. For Copilot project instructions, **map** the `github-copilot` export from `.llm/exports/` into `.github/` on your side when you need that layout, per the exports README.
 
@@ -36,3 +36,5 @@ Pull requests that touch `.cursor/**` or `.cursorrules` are labeled **`llm`** so
 ## History
 
 - The old “Cursor to Copilot sync” flow is retired. See [CURSOR-COPILOT-SYNC.md](CURSOR-COPILOT-SYNC.md) for a one-line pointer.
+
+Local vendor setup is opt-in via `npm run llm:vendors` (default active vendor: `cursor`).

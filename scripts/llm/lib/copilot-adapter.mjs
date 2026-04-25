@@ -220,6 +220,7 @@ function walkMarkdownFiles(dirPath, out = []) {
  * @param {string} targetRoot - absolute path to export dir
  * @param {string} exportPathPosix - relative path from repo root, e.g. .llm/exports/github-copilot
  */
+
 function rewriteCursorRefsToExportRoot(targetRoot, exportPathPosix) {
   const basePosix = exportPathPosix.replace(/\/$/, '');
   const files = walkMarkdownFiles(targetRoot);
@@ -240,7 +241,7 @@ function rewriteCursorRefsToExportRoot(targetRoot, exportPathPosix) {
     }
   }
   if (changed > 0) {
-    console.log(`  Rewrote .cursor path references in ${changed} file(s) under ${basePosix}/`);
+    console.warn(`  Rewrote .cursor path references in ${changed} file(s) under ${basePosix}/`);
   }
 }
 
@@ -308,7 +309,7 @@ export function exportGithubCopilot(repoRoot, targetRoot, exportPathPosix) {
 
   rewriteCursorRefsToExportRoot(targetRoot, exportPathPosix);
 
-  console.log(
+  console.warn(
     `  github-copilot: ${skillCount} skills, ${ruleCount} instruction files → ${path.relative(repoRoot, targetRoot)}`
   );
 }

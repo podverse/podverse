@@ -32,3 +32,5 @@ Unknown directory names without an allowlist entry **fail CI**.
 ## `.state`
 
 [`.state/`](.state/) is reserved for future incremental-export metadata. Do not treat it as an export target.
+
+Local vendor setup is opt-in via `npm run llm:vendors` (default active vendor: `cursor`).

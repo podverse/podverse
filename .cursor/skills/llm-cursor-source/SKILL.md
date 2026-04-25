@@ -34,3 +34,9 @@ Overview and policy:
 
 - Skill frontmatter `name` should match the skill folder name.
 - Keep exactly one blank line between closing frontmatter (`---`) and body content.
+
+## Export / sync implementation
+
+When you change the deterministic export (files under `scripts/llm/`), use the **llm-exports-scripts** skill. **Podverse and Metaboost** share the same pipeline shape; keep the mirrored `scripts/llm/**` files aligned when behavior should match.
+
+Local vendor setup is opt-in via `npm run llm:vendors` (default active vendor: `cursor`).
