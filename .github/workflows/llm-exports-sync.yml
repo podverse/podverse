@@ -66,6 +66,10 @@ jobs:
       - name: Generate exports
         run: node scripts/llm/export-from-cursor.mjs sync
 
+      # peter-evans/create-pull-request respects .gitignore; machine output is ignored locally — match llm:exports:check
+      - name: Stage export tree (include gitignored generated paths)
+        run: git add -A -f -- .llm/exports
+
       - name: Create or update llm PR
         id: cpr
         uses: peter-evans/create-pull-request@v7
