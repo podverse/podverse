@@ -9,7 +9,7 @@ const ADMIN_AUTH_COOKIE_NAME = 'pv_mgmt_auth';
 
 const mockSuperuserAdmin = {
   id: 1,
-  id_text: 'admin-1',
+  id_text: 'pvMgtAu001',
   admin_account_role_id: 1,
   admin_account_role: { role: 'superuser' },
   admin_account_credentials: {
@@ -39,7 +39,7 @@ const { verifyPasswordMock, getWithRoleAndPermissionsMock } = vi.hoisted(() => (
     [string, string]
   >(async () => ({
     id: 1,
-    id_text: 'admin-1',
+    id_text: 'pvMgtAu001',
     created_at: new Date('2020-01-01T00:00:00.000Z'),
   })),
   getWithRoleAndPermissionsMock: vi.fn<Promise<typeof mockSuperuserAdmin | null>, [number]>(
@@ -77,7 +77,9 @@ vi.mock('@mgmt-api/lib/database/auditLog.js', () => {
 const authBase = `${config.api.prefix}${config.api.version}/auth`;
 
 const adminAuthHeaders = (userId: number = 1): { Authorization: string } => ({
-  Authorization: `Bearer ${jwt.sign({ id: userId }, JWT_SECRET, { expiresIn: '1h' })}`,
+  Authorization: `Bearer ${jwt.sign({ id: userId, id_text: 'pvMgtAu001' }, JWT_SECRET, {
+    expiresIn: '1h',
+  })}`,
 });
 
 describe('management-api auth routes', () => {
@@ -90,7 +92,7 @@ describe('management-api auth routes', () => {
     it('returns 200 and sets JWT cookie with valid credentials', async () => {
       verifyPasswordMock.mockResolvedValueOnce({
         id: 1,
-        id_text: 'admin-1',
+        id_text: 'pvMgtAu001',
         created_at: new Date('2020-01-01T00:00:00.000Z'),
       });
 
@@ -164,7 +166,8 @@ describe('management-api auth routes', () => {
       expect(res.status).toBe(200);
       expect(res.body).toMatchObject({
         id: 1,
-        id_text: 'admin-1',
+        id_text: 'pvMgtAu001',
+        email: 'admin@example.com',
         role: 'superuser',
         permissions: {
           feeds_crud: 15,

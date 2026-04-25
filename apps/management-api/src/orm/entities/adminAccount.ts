@@ -10,7 +10,7 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 
-import { generateRandomIdText } from '@podverse/orm';
+import { generateRandomIdText, NANO_ID_V2_MAX_LENGTH } from '@podverse/orm';
 
 import type { AdminAccountCredentials } from './adminAccountCredentials.js';
 import type { AdminAccountPermissions } from './adminAccountPermissions.js';
@@ -21,7 +21,7 @@ export class AdminAccount {
   @PrimaryGeneratedColumn()
   id!: number;
 
-  @Column({ type: 'varchar', unique: true, length: 15 })
+  @Column({ type: 'varchar', unique: true, length: NANO_ID_V2_MAX_LENGTH })
   id_text!: string;
 
   @ManyToOne('AdminAccountRole', 'admin_accounts')

@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
-import React from 'react';
+import React, { useMemo } from 'react';
 
 import { getQueueForMedium } from '@podverse/helpers';
 import { buildAddByRSSResourceData, getAddByRSSHashId } from '@podverse/parser-mapping';
@@ -12,6 +12,7 @@ import { useMediaPlayer } from '../../../../contexts/MediaPlayer';
 import { useModals } from '../../../../contexts/Modals';
 import { useQueues } from '../../../../contexts/Queue';
 import { getApiRequestService } from '../../../../factories/apiRequestService';
+import { useLikesAddByRssBatch } from '../../../../hooks/useLikesAddByRssBatch';
 import { usePlayAddByRSS } from '../../../../hooks/usePlayAddByRSS';
 import { getAddByRSSItemPath } from '../../../../utils/addByRSS/itemPath';
 import type { AddByRSSItemIndexItem } from '../../../../utils/addByRSS/types';
@@ -47,6 +48,15 @@ export const AddByRSSEpisodeDetailHeader: React.FC<AddByRSSEpisodeDetailHeaderPr
   const { mpAddByRSS, mpIsPlaying, setMPIsPlaying } = useMediaPlayer();
   const playAddByRSS = usePlayAddByRSS();
   const apiRequestService = getApiRequestService();
+
+  const addByRssLikeRows = useMemo(() => {
+    if (!indexItem) {
+      return [];
+    }
+    return [{ hashId: getAddByRSSHashId(indexItem), indexItem }];
+  }, [indexItem]);
+  const { isLiked, toggle } = useLikesAddByRssBatch(addByRssLikeRows);
+  const likeHashId = indexItem ? getAddByRSSHashId(indexItem) : '';
 
   const itemImageUrl = indexItem?.bundle?.images?.[0]?.url ?? null;
 
@@ -149,6 +159,16 @@ export const AddByRSSEpisodeDetailHeader: React.FC<AddByRSSEpisodeDetailHeaderPr
     }
   };
 
+  const onLikeFromMenu = () => {
+    if (!loggedInAccount) {
+      setModalLoginRequired({ title: null, message: tInstructions('login_to_like') });
+      return;
+    }
+    if (likeHashId) {
+      void toggle(likeHashId);
+    }
+  };
+
   const moreButtonMenuItems = [
     {
       label: tMediaPlayer('play'),
@@ -172,6 +192,16 @@ export const AddByRSSEpisodeDetailHeader: React.FC<AddByRSSEpisodeDetailHeaderPr
         ? ensureLoggedIn(addToPlaylist, 'login_to_add_to_playlist')
         : alertPlaceholder(tFeatures('playlist.add_to_playlist')),
     },
+    ...(likeHashId
+      ? [
+          {
+            label: isLiked(likeHashId)
+              ? tFeatures('playlist.remove_from_liked')
+              : tFeatures('playlist.add_to_liked'),
+            onClick: onLikeFromMenu,
+          },
+        ]
+      : []),
     {
       label: tFeatures('history.mark_as_played'),
       onClick: indexItem

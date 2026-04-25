@@ -12,6 +12,18 @@
   flex: 1;
 }
 
+.imageWrapper {
+  width: 76px;
+  height: 76px;
+  min-width: 76px;
+  min-height: 76px;
+}
+
+.image {
+  width: 100%;
+  height: 100%;
+}
+
 .textSection {
   display: flex;
   flex-direction: column;

@@ -35,22 +35,42 @@
   margin-top: var(--spacing-sm);
 }
 
+.vtsLike {
+  display: flex;
+  justify-content: center;
+  margin-top: var(--spacing-sm);
+}
+
+// Square art region inside the modal flex column. The wrapper fills remaining vertical space
+// (flex: 1). The inner is sized from the HEIGHT axis (height: 100%) so that aspect-ratio: 1/1
+// produces a square equal to the shorter dimension. max-width: 100% prevents it from being
+// wider than the column when the slot is taller than it is wide.
 .imageWrapper {
   margin-top: var(--spacing-xl);
   flex: 1 1 0;
-  min-height: 0;
-  position: relative;
+  min-width: 0;
+  min-height: min(45vh, 80vw);
   display: flex;
-  align-self: stretch;
-  align-items: stretch;
   width: 100%;
+  box-sizing: border-box;
+  align-items: center;
+  justify-content: center;
+}
+
+.imageInner {
+  box-sizing: border-box;
+  height: 100%;
+  max-width: 100%;
+  aspect-ratio: 1 / 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .image {
+  display: block;
   width: 100%;
   height: 100%;
-  aspect-ratio: 1 / 1;
-  flex: 1 1 0;
   object-fit: contain;
 }
 

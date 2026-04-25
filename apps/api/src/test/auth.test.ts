@@ -14,6 +14,7 @@ import {
 } from './helpers/index.js';
 
 const TEST_EMAIL = 'auth-test@example.com';
+const TEST_ACCOUNT_ID_TEXT = 'auth-test-user';
 const TEST_PASSWORD = 'test-password-123';
 const TEST_USER_ID = 1;
 const JWT_SECRET = process.env.AUTH_JWT_SECRET ?? '';
@@ -22,11 +23,13 @@ const { getByEmailMock, getMock, verifyPasswordMock, getSenderGuidByAccountIdMoc
   () => ({
     getByEmailMock: vi.fn(async () => ({
       id: TEST_USER_ID,
+      id_text: TEST_ACCOUNT_ID_TEXT,
       verified: true,
       account_credentials: { email: TEST_EMAIL, password: 'hashed-password' },
     })),
     getMock: vi.fn(async () => ({
       id: TEST_USER_ID,
+      id_text: TEST_ACCOUNT_ID_TEXT,
       account_credentials: { email: TEST_EMAIL },
       account_membership_status: {
         membership_expires_at: new Date(Date.now() + 86400000 * 365),
@@ -213,6 +216,7 @@ describe('auth routes', () => {
     it('returns 200 with account data when authenticated', async () => {
       getMock.mockResolvedValueOnce({
         id: TEST_USER_ID,
+        id_text: TEST_ACCOUNT_ID_TEXT,
         account_credentials: { email: TEST_EMAIL },
         account_membership_status: {
           membership_expires_at: new Date(Date.now() + 86400000 * 365),
@@ -222,7 +226,7 @@ describe('auth routes', () => {
 
       const res = await request(app)
         .get(`${authBase}/me`)
-        .set(authHeaders(TEST_USER_ID, TEST_EMAIL));
+        .set(authHeaders(TEST_USER_ID, TEST_ACCOUNT_ID_TEXT));
 
       expect(res.status).toBe(200);
       expect(res.body.id).toBe(TEST_USER_ID);
@@ -245,7 +249,9 @@ describe('auth routes', () => {
     });
 
     it('returns 401 when JWT is missing id', async () => {
-      const tokenMissingId = jwt.sign({ email: TEST_EMAIL }, JWT_SECRET, { expiresIn: '1h' });
+      const tokenMissingId = jwt.sign({ id_text: TEST_ACCOUNT_ID_TEXT }, JWT_SECRET, {
+        expiresIn: '1h',
+      });
       const res = await withMutedExpectedErrorLogs(async () =>
         request(app).get(`${authBase}/me`).set('Authorization', `Bearer ${tokenMissingId}`)
       );
@@ -253,8 +259,17 @@ describe('auth routes', () => {
       expect(res.status).toBe(401);
     });
 
+    it('returns 401 when JWT is missing id_text', async () => {
+      const tokenMissingIdText = jwt.sign({ id: TEST_USER_ID }, JWT_SECRET, { expiresIn: '1h' });
+      const res = await withMutedExpectedErrorLogs(async () =>
+        request(app).get(`${authBase}/me`).set('Authorization', `Bearer ${tokenMissingIdText}`)
+      );
+
+      expect(res.status).toBe(401);
+    });
+
     it('returns 401 when JWT id is not a number', async () => {
-      const tokenStringId = jwt.sign({ id: '1', email: TEST_EMAIL }, JWT_SECRET, {
+      const tokenStringId = jwt.sign({ id: '1', id_text: TEST_ACCOUNT_ID_TEXT }, JWT_SECRET, {
         expiresIn: '1h',
       });
       const res = await withMutedExpectedErrorLogs(async () =>
@@ -269,7 +284,7 @@ describe('auth routes', () => {
     it('returns 200 with valid auth', async () => {
       const res = await request(app)
         .get(`${authBase}/check-session`)
-        .set(authHeaders(TEST_USER_ID, TEST_EMAIL));
+        .set(authHeaders(TEST_USER_ID, TEST_ACCOUNT_ID_TEXT));
 
       expect(res.status).toBe(200);
       expect(res.body.message).toBe('Valid auth session');

@@ -47,17 +47,6 @@ export abstract class BaseStatsTrackEventService<T extends ObjectLiteral> {
     }
 
     const repo = this.readWriteEntityManager.getRepository(this.entity);
-    const idPath = this.targetEntityIdColumnPropertyPath();
-
-    const existingCount = await repo
-      .createQueryBuilder('e')
-      .where('e.account_guid = :ag', { ag: accountGuid.account_guid })
-      .andWhere(`e.${idPath} = :tid`, { tid: entity.id })
-      .getCount();
-
-    if (existingCount > 0) {
-      return;
-    }
 
     const insertValues = {
       account_guid: accountGuid.account_guid,
@@ -65,7 +54,7 @@ export abstract class BaseStatsTrackEventService<T extends ObjectLiteral> {
       created_at: new Date(),
     } as unknown as QueryDeepPartialEntity<T>;
 
-    await repo.insert(insertValues);
+    await repo.createQueryBuilder().insert().values(insertValues).orIgnore().execute();
   }
 
   async _getCountWithinTimeFrame(entity_id: number, minutes: number): Promise<number> {

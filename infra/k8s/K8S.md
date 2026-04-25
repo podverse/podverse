@@ -51,9 +51,9 @@ Before running the scripts, ensure you have the following ready:
 
 - **Database Credentials** (`create_db_secret.sh`):
   - You will need to invent 3 passwords:
-    - `POSTGRES_PASSWORD` (Superuser)
-    - `POSTGRES_READ_PASSWORD` (Read-only user)
-    - `POSTGRES_READ_WRITE_PASSWORD` (Application user)
+    - `DB_APP_ADMIN_PASSWORD` (app database admin role, for bootstrap)
+    - `DB_APP_READ_PASSWORD` (read-only app DB user)
+    - `DB_APP_READ_WRITE_PASSWORD` (read/write app DB user)
 
 - **Message Queue Credentials** (`create_mq_secret.sh`):
   - An `MQ_PASSWORD` for the admin user.

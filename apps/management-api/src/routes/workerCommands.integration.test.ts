@@ -9,16 +9,23 @@ const base = `${config.api.prefix}${config.api.version}/worker-commands`;
 
 type MockAdmin = {
   id: number;
+  id_text: string;
   admin_account_role: { role: string };
   permissions: null;
 };
 
 const superuser: MockAdmin = {
   id: 1,
+  id_text: 'pvMgtWk001',
   admin_account_role: { role: 'superuser' },
   permissions: null,
 };
-const admin: MockAdmin = { id: 2, admin_account_role: { role: 'admin' }, permissions: null };
+const admin: MockAdmin = {
+  id: 2,
+  id_text: 'pvMgtWk002',
+  admin_account_role: { role: 'admin' },
+  permissions: null,
+};
 
 const { getWithRoleAndPermissionsMock } = vi.hoisted(() => ({
   getWithRoleAndPermissionsMock: vi.fn<Promise<MockAdmin | null>, [number]>(async (id: number) => {
@@ -51,8 +58,17 @@ vi.mock('@mgmt-api/lib/database/auditLog.js', () => {
   return { AuditLogService };
 });
 
+const adminIdTextByUserId: Record<number, string> = {
+  1: 'pvMgtWk001',
+  2: 'pvMgtWk002',
+};
+
 const adminAuthHeaders = (userId: number): { Authorization: string } => ({
-  Authorization: `Bearer ${jwt.sign({ id: userId }, JWT_SECRET, { expiresIn: '1h' })}`,
+  Authorization: `Bearer ${jwt.sign(
+    { id: userId, id_text: adminIdTextByUserId[userId] ?? 'pvMgtWk001' },
+    JWT_SECRET,
+    { expiresIn: '1h' }
+  )}`,
 });
 
 describe('management-api GET /worker-commands', () => {

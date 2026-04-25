@@ -7,9 +7,8 @@ import { ExtractJwt, Strategy as JwtStrategy } from 'passport-jwt';
 import { Strategy as LocalStrategy } from 'passport-local';
 
 import { AccountMembershipEnum, AuthCookieName, ERROR_MESSAGES } from '@podverse/helpers';
-import { AccountService } from '@podverse/orm';
+import { AccountService, isValidNanoIdV2IdText } from '@podverse/orm';
 
-import { normalizeEmailForBinding } from './normalizeEmailForBinding.js';
 import { verifyPassword } from './password.js';
 
 /**
@@ -91,9 +90,12 @@ passport.use(
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       secretOrKey: config.auth.jwtSecret,
     },
-    async (jwtPayload: { id: number; email?: string }, done: VerifiedCallback) => {
+    async (jwtPayload: { id: number; id_text?: string }, done: VerifiedCallback) => {
       try {
-        if (jwtPayload.email === undefined || jwtPayload.email === '') {
+        if (jwtPayload.id_text === undefined || jwtPayload.id_text === '') {
+          return done(null, false);
+        }
+        if (!isValidNanoIdV2IdText(jwtPayload.id_text)) {
           return done(null, false);
         }
         const account = await accountService.get(jwtPayload.id, {
@@ -102,15 +104,11 @@ passport.use(
         if (!account) {
           return done(null, false);
         }
-        const accountEmail =
-          account.account_credentials?.email !== undefined &&
-          account.account_credentials?.email !== ''
-            ? normalizeEmailForBinding(account.account_credentials.email)
+        const accountIdText =
+          typeof account.id_text === 'string' && account.id_text !== ''
+            ? account.id_text
             : undefined;
-        if (
-          accountEmail === undefined ||
-          accountEmail !== normalizeEmailForBinding(jwtPayload.email)
-        ) {
+        if (accountIdText === undefined || accountIdText !== jwtPayload.id_text) {
           return done(null, false);
         }
         return done(null, account);
@@ -142,7 +140,13 @@ export const authenticate = (req: Request, res: Response, next: NextFunction) =>
     { session: false },
     (
       err: Error,
-      user: { id: number; account_credentials?: { email?: string } } | false,
+      user:
+        | {
+            id: number;
+            id_text?: string;
+            account_credentials?: { email?: string };
+          }
+        | false,
       info: { message: string }
     ) => {
       if (err) {
@@ -163,9 +167,13 @@ export const authenticate = (req: Request, res: Response, next: NextFunction) =>
       if (!rawEmail) {
         return res.status(401).json({ message: 'Unauthorized' });
       }
-      const email = normalizeEmailForBinding(rawEmail);
+      const idText =
+        typeof user.id_text === 'string' && user.id_text !== '' ? user.id_text : undefined;
+      if (!idText) {
+        return res.status(401).json({ message: 'Unauthorized' });
+      }
 
-      const token = jwt.sign({ id: user.id, email }, config.auth.jwtSecret, {
+      const token = jwt.sign({ id: user.id, id_text: idText }, config.auth.jwtSecret, {
         expiresIn: config.auth.jwtExpiresIn,
       } as SignOptions);
 
@@ -195,7 +203,7 @@ const verifyTokenAndMembership = (
 ): void => {
   interface DecodedToken {
     id: number;
-    email?: string;
+    id_text?: string;
     [key: string]: unknown;
   }
   jwt.verify(
@@ -213,8 +221,12 @@ const verifyTokenAndMembership = (
         return;
       }
       const payload = decoded as DecodedToken;
-      if (payload.email === undefined || payload.email === '') {
+      if (payload.id_text === undefined || payload.id_text === '') {
         res.status(401).json({ message: 'Re-authentication required' });
+        return;
+      }
+      if (!isValidNanoIdV2IdText(payload.id_text)) {
+        res.status(401).json({ message: 'Unauthorized' });
         return;
       }
       if (
@@ -243,12 +255,9 @@ const verifyTokenAndMembership = (
         return;
       }
 
-      const accountEmail =
-        account.account_credentials?.email !== undefined &&
-        account.account_credentials?.email !== ''
-          ? normalizeEmailForBinding(account.account_credentials.email)
-          : undefined;
-      if (accountEmail === undefined || accountEmail !== normalizeEmailForBinding(payload.email)) {
+      const accountIdText =
+        typeof account.id_text === 'string' && account.id_text !== '' ? account.id_text : undefined;
+      if (accountIdText === undefined || accountIdText !== payload.id_text) {
         res.status(401).json({ message: 'Unauthorized' });
         return;
       }

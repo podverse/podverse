@@ -25,7 +25,7 @@ type MockAdmin = {
 
 const superuserAdmin: MockAdmin = {
   id: 1,
-  id_text: 'su-1',
+  id_text: 'pvMgtSu001',
   admin_account_role_id: 1,
   admin_account_role: { role: 'superuser' },
   admin_account_credentials: { email: 'super@example.com' },
@@ -41,7 +41,7 @@ const superuserAdmin: MockAdmin = {
 
 const adminWithAdminsRead: MockAdmin = {
   id: 2,
-  id_text: 'admin-2',
+  id_text: 'pvMgtAd002',
   admin_account_role_id: 2,
   admin_account_role: { role: 'admin' },
   admin_account_credentials: { email: 'reader@example.com' },
@@ -57,7 +57,7 @@ const adminWithAdminsRead: MockAdmin = {
 
 const adminWithNoPermissions: MockAdmin = {
   id: 3,
-  id_text: 'admin-3',
+  id_text: 'pvMgtAd003',
   admin_account_role_id: 2,
   admin_account_role: { role: 'admin' },
   admin_account_credentials: { email: 'noperms@example.com' },
@@ -125,8 +125,18 @@ vi.mock('@mgmt-api/lib/database/auditLog.js', () => {
   return { AuditLogService };
 });
 
+const adminIdTextByUserId: Record<number, string> = {
+  1: 'pvMgtSu001',
+  2: 'pvMgtAd002',
+  3: 'pvMgtAd003',
+};
+
 const adminAuthHeaders = (userId: number = 1): { Authorization: string } => ({
-  Authorization: `Bearer ${jwt.sign({ id: userId }, JWT_SECRET, { expiresIn: '1h' })}`,
+  Authorization: `Bearer ${jwt.sign(
+    { id: userId, id_text: adminIdTextByUserId[userId] ?? 'pvMgtSu001' },
+    JWT_SECRET,
+    { expiresIn: '1h' }
+  )}`,
 });
 
 describe('management-api admins routes', () => {
@@ -189,7 +199,7 @@ describe('management-api admins routes', () => {
     it('returns 201 for superuser creating an admin', async () => {
       createMock.mockResolvedValueOnce({
         id: 4,
-        id_text: 'new-1',
+        id_text: 'pvMgtNw001',
         admin_account_role_id: 2,
         admin_account_role: { role: 'admin' },
         admin_account_credentials: { email: 'new@example.com' },
@@ -236,7 +246,7 @@ describe('management-api admins routes', () => {
     it('returns 200 for superuser updating another admin', async () => {
       updateMock.mockResolvedValueOnce({
         id: 2,
-        id_text: 'admin-2',
+        id_text: 'pvMgtAd002',
         admin_account_role_id: 2,
         admin_account_role: { role: 'admin' },
         admin_account_credentials: { email: 'reader@example.com' },

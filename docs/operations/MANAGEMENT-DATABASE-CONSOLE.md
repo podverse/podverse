@@ -79,8 +79,8 @@ See [Audit and Rollback Runbook](../../.llm/plans/active/management-web-database
 
 ## Database Migrations
 
-| File                                                                      | Description                                    |
-| ------------------------------------------------------------------------- | ---------------------------------------------- |
-| `infra/database/management/migrations/0002_admin_account_permissions.sql` | Admin CRUD permissions table                   |
-| `infra/database/management/migrations/0003_database_audit_log.sql`        | Audit log table for database console writes    |
-| `infra/database/migrations/0017_feed_flag_status_reason.sql`              | Feed flag status reason table and feed columns |
+| File                                                                     | Description                                    |
+| ------------------------------------------------------------------------ | ---------------------------------------------- |
+| `infra/k8s/base/db/source/management/0002_admin_account_permissions.sql` | Admin CRUD permissions table                   |
+| `infra/k8s/base/db/source/management/0003_database_audit_log.sql`        | Audit log table for database console writes    |
+| `infra/k8s/base/db/source/app/0017_feed_flag_status_reason.sql`          | Feed flag status reason table and feed columns |

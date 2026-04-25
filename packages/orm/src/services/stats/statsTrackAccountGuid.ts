@@ -19,6 +19,9 @@ export class StatsTrackAccountGuidService {
   async getByAccountId(account_id: number): Promise<StatsTrackAccountGuid | null> {
     let entity = await this.repositoryRead.findOne({ where: { account: { id: account_id } } });
     if (!entity) {
+      entity = await this.repositoryReadWrite.findOne({ where: { account: { id: account_id } } });
+    }
+    if (!entity) {
       entity = await this.create(account_id);
     } else if (
       entity &&
@@ -36,8 +39,21 @@ export class StatsTrackAccountGuidService {
       throw new Error('Account not found.');
     }
     const account_guid = generateGuidV4();
-    const newEntity = this.repositoryReadWrite.create({ account, account_guid });
-    return this.repositoryReadWrite.save(newEntity);
+    await this.repositoryReadWrite
+      .createQueryBuilder()
+      .insert()
+      .into(StatsTrackAccountGuid)
+      .values({ account: { id: account_id }, account_guid })
+      .orIgnore()
+      .execute();
+
+    const existing = await this.repositoryReadWrite.findOne({
+      where: { account: { id: account_id } },
+    });
+    if (!existing) {
+      throw new Error('Account not found.');
+    }
+    return existing;
   }
 
   async delete(account_id: number): Promise<void> {

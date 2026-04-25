@@ -36,6 +36,11 @@ import { showToastPromise, showToastPromiseWithLoading } from '../../../Toast/To
 
 import styles from '../../../../styles/components/Common/List/Podcasts/Episodes/ListEpisodeRow.module.scss';
 
+export type ListEpisodeRowLike = {
+  isLiked: boolean;
+  onToggle: () => void;
+};
+
 interface Props {
   channel: DTOChannel;
   item: DTOItem;
@@ -46,6 +51,8 @@ interface Props {
   removeFromPlaylist?: () => void;
   playlist_id_text: string | null;
   onPlayAndRemove?: () => void;
+  /** When set, adds Add to Liked / Remove from Liked to the more menu. Omit for e.g. playlist edit-only rows. */
+  likeRow?: ListEpisodeRowLike;
 }
 
 const ListEpisodeRow: React.FC<Props> = ({
@@ -58,6 +65,7 @@ const ListEpisodeRow: React.FC<Props> = ({
   removeFromPlaylist,
   playlist_id_text,
   onPlayAndRemove,
+  likeRow,
 }) => {
   const apiRequestService = getApiRequestService();
   const url = `${ROUTES.EPISODE}/${item.id_text}`;
@@ -228,6 +236,17 @@ const ListEpisodeRow: React.FC<Props> = ({
     });
   };
 
+  const onLikeFromMenu = () => {
+    if (!loggedInAccount) {
+      setModalLoginRequired({
+        title: null,
+        message: tInstructions('login_to_like'),
+      });
+      return;
+    }
+    likeRow?.onToggle();
+  };
+
   const moreButtonMenuItems: MoreButtonMenuItem[] = isEditModePlaylist
     ? [
         {
@@ -253,6 +272,16 @@ const ListEpisodeRow: React.FC<Props> = ({
           label: tFeatures('playlist.add_to_playlist'),
           onClick: addToPlaylistOnClick,
         },
+        ...(likeRow
+          ? [
+              {
+                label: likeRow.isLiked
+                  ? tFeatures('playlist.remove_from_liked')
+                  : tFeatures('playlist.add_to_liked'),
+                onClick: onLikeFromMenu,
+              } satisfies MoreButtonMenuItem,
+            ]
+          : []),
         {
           label: tFeatures('history.mark_as_played'),
           onClick: markAsPlayedOnClick,

@@ -3,6 +3,7 @@ import crypto from 'crypto';
 import type { Connection, EventContext, Receiver, Sender } from 'rhea';
 import rhea from 'rhea';
 
+import { MQ_IMAGE_SHRINK_HINTS_QUEUE_NAME } from '@podverse/helpers';
 import type { ILoggerLike } from '@podverse/helpers-backend';
 import { getContainerIpPart } from '@podverse/helpers-backend';
 import type { ParseRSSFeedAndSaveToDatabaseOptions } from '@podverse/parser';
@@ -356,7 +357,12 @@ export class ActiveMQArtemisService {
         });
         const onAccepted = (context: EventContext) => {
           if (context.delivery === delivery) {
-            this.logger.info(`Message sent to queue ${queueName}: ${bodyString}`);
+            const message = `Message sent to queue ${queueName}: ${bodyString}`;
+            if (queueName === MQ_IMAGE_SHRINK_HINTS_QUEUE_NAME) {
+              this.logger.debug(message);
+            } else {
+              this.logger.info(message);
+            }
             sender.removeListener('accepted', onAccepted);
             sender.removeListener('rejected', onRejected);
             resolve();

@@ -9,7 +9,7 @@ pipeline {
         )
         choice(
             name: 'DATABASE',
-            choices: ['main', 'management'],
+            choices: ['app', 'management'],
             description: 'Database to migrate'
         )
         string(
@@ -95,23 +95,23 @@ pipeline {
 
 def getMigrationPath(database, migrationFile) {
     if (database == 'management') {
-        return "infra/database/management/migrations/${migrationFile}"
+        return "infra/k8s/base/db/source/management/${migrationFile}"
     }
-    return "infra/database/migrations/${migrationFile}"
+    return "infra/k8s/base/db/source/app/${migrationFile}"
 }
 
 def getDbHost(environment, database) {
     def hosts = [
         'alpha': [
-            'main': 'alpha-db.podverse.internal',
+            'app': 'alpha-db.podverse.internal',
             'management': 'alpha-management-db.podverse.internal'
         ],
         'beta': [
-            'main': 'beta-db.podverse.internal',
+            'app': 'beta-db.podverse.internal',
             'management': 'beta-management-db.podverse.internal'
         ],
         'prod': [
-            'main': 'prod-db.podverse.internal',
+            'app': 'prod-db.podverse.internal',
             'management': 'prod-management-db.podverse.internal'
         ]
     ]

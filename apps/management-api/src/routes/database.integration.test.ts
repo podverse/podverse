@@ -9,7 +9,7 @@ const dbBase = `${config.api.prefix}${config.api.version}/database`;
 
 const superuserWithAllPerms = {
   id: 1,
-  id_text: 'su-1',
+  id_text: 'pvMgtSu001',
   admin_account_role_id: 1,
   admin_account_role: { role: 'superuser' },
   admin_account_credentials: { email: 'super@example.com' },
@@ -30,7 +30,7 @@ const superuserWithAllPerms = {
 
 const adminWithFeedsRead = {
   id: 2,
-  id_text: 'admin-2',
+  id_text: 'pvMgtAd002',
   admin_account_role_id: 2,
   admin_account_role: { role: 'admin' },
   admin_account_credentials: { email: 'reader@example.com' },
@@ -51,7 +51,7 @@ const adminWithFeedsRead = {
 
 const adminWithNoPerms = {
   id: 3,
-  id_text: 'admin-3',
+  id_text: 'pvMgtAd003',
   admin_account_role_id: 2,
   admin_account_role: { role: 'admin' },
   admin_account_credentials: { email: 'noperms@example.com' },
@@ -143,8 +143,18 @@ vi.mock('@mgmt-api/lib/database/auditLog.js', () => {
   return { AuditLogService };
 });
 
+const adminIdTextByUserId: Record<number, string> = {
+  1: 'pvMgtSu001',
+  2: 'pvMgtAd002',
+  3: 'pvMgtAd003',
+};
+
 const adminAuthHeaders = (userId: number = 1): { Authorization: string } => ({
-  Authorization: `Bearer ${jwt.sign({ id: userId }, JWT_SECRET, { expiresIn: '1h' })}`,
+  Authorization: `Bearer ${jwt.sign(
+    { id: userId, id_text: adminIdTextByUserId[userId] ?? 'pvMgtSu001' },
+    JWT_SECRET,
+    { expiresIn: '1h' }
+  )}`,
 });
 
 describe('management-api database routes', () => {
@@ -163,11 +173,16 @@ describe('management-api database routes', () => {
       const res = await request(app).get(`${dbBase}/tables`).set(adminAuthHeaders(1));
 
       expect(res.status).toBe(200);
-      expect(res.body.tables).toHaveLength(3);
+      expect(res.body.tables).toHaveLength(8);
       const names = res.body.tables.map((t: { tableName: string }) => t.tableName);
       expect(names).toContain('feed');
       expect(names).toContain('feed_flag_status');
       expect(names).toContain('feed_flag_status_reason');
+      expect(names).toContain('stats_aggregated_channel');
+      expect(names).toContain('stats_aggregated_item');
+      expect(names).toContain('stats_aggregated_clip');
+      expect(names).toContain('stats_aggregated_playlist');
+      expect(names).toContain('stats_aggregated_account');
     });
 
     it('includes readOnly flag in table metadata', async () => {

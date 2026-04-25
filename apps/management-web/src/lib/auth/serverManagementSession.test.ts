@@ -34,6 +34,7 @@ describe('getManagementSessionUser', () => {
     const mockUser = {
       id: 1,
       id_text: 'abc',
+      email: 'abc@example.com',
       role: 'superuser',
       permissions: {
         feeds_crud: 15,

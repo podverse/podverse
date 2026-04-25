@@ -18,7 +18,7 @@ Podverse does **not** mirror Metaboost’s single `infra/k8s/base/db/postgres-in
 
 | Approach | Notes |
 | -------- | ----- |
-| **Combined migration artifact** | Reuse output of [`scripts/database/combine-migrations.sh`](../../../../scripts/database/combine-migrations.sh) (or equivalent) applied with `psql` into fresh `podverse_app_test` / `podverse_management_test`. |
+| **Canonical bootstrap SQL snapshot** | Reuse canonical SQL from [`infra/k8s/base/db/source/`](../../../../infra/k8s/base/db/source/) applied with `psql` into fresh `podverse_app_test` / `podverse_management_test`, then run forward-only migrations as needed. |
 | **Ordered source SQL** | Apply [`infra/k8s/base/db/source/*.sql`](../../../../infra/k8s/base/db/source/) / shell bootstrap in **documented order**, consistent with [`infra/docker/local/db/docker-compose.yml`](../../../../infra/docker/local/db/docker-compose.yml) mounts. |
 | **Parity with dev docker-init** | Mirror what local dev Postgres loads on first boot so test stack matches developer expectations. |
 

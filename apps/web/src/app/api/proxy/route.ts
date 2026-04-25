@@ -61,9 +61,14 @@ export async function GET(req: NextRequest) {
     if (!contentTypeLower) {
       return new Response('Invalid Content-Type header', { status: 400 });
     }
-    const isAllowedType = PROXY.ALLOWED_CONTENT_TYPES.some(
-      (allowedType) => contentTypeLower.trim() === allowedType.toLowerCase()
-    );
+    const isAllowedType = PROXY.ALLOWED_CONTENT_TYPES.some((allowedType) => {
+      const allowed = allowedType.toLowerCase();
+      const actual = contentTypeLower.trim();
+      if (allowed.endsWith('/*')) {
+        return actual.startsWith(allowed.slice(0, -1)); // e.g. 'image/' prefix matches 'image/*'
+      }
+      return actual === allowed;
+    });
 
     if (!isAllowedType) {
       return new Response(`Content-Type not allowed: ${contentType}`, { status: 403 });

@@ -28,6 +28,14 @@
     "dashboard": "",
     "users": "",
     "content": "",
-    "settings": ""
+    "settings": "",
+    "userMenu": "",
+    "userRole": ""
+  },
+  "dashboard": {
+    "stats": {
+      "title": "",
+      "description": ""
+    }
   }
 }

@@ -3,7 +3,7 @@ import { FeedFlagStatusStatusEnum } from '@orm/entities/feed/feedFlagStatus.js';
 import { AccountService } from '@orm/services/account/account.js';
 import { BaseManyService } from '@orm/services/base/baseManyService.js';
 import type { EntityManager, FindManyOptions } from 'typeorm';
-import { Equal, In } from 'typeorm';
+import { Equal, In, IsNull, Not } from 'typeorm';
 
 import type { QueryParamsMedium } from '@podverse/helpers';
 import { getMediumIdArrayFromType } from '@podverse/helpers';
@@ -70,6 +70,9 @@ export class AccountFollowingChannelService extends BaseManyService<
     const where: FindManyOptions<AccountFollowingChannel>['where'] = {
       account_id: Equal(account.id),
       channel: {
+        channel_about: {
+          id: Not(IsNull()),
+        },
         feed: {
           feed_flag_status: In([
             FeedFlagStatusStatusEnum.Active,
@@ -136,6 +139,9 @@ export class AccountFollowingChannelService extends BaseManyService<
     const where: FindManyOptions<AccountFollowingChannel>['where'] = {
       account_id: Equal(account.id),
       channel: {
+        channel_about: {
+          id: Not(IsNull()),
+        },
         feed: {
           feed_flag_status: In([
             FeedFlagStatusStatusEnum.Active,

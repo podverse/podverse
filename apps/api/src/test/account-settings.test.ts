@@ -90,7 +90,7 @@ describe('account settings routes', () => {
 
       const res = await request(app)
         .patch(`${settingsBase}/locale`)
-        .set(authHeaders(TEST_USER_ID, TEST_EMAIL))
+        .set(authHeaders(TEST_USER_ID))
         .send({ locale: 'es' });
 
       expect(res.status).toBe(200);
@@ -107,7 +107,7 @@ describe('account settings routes', () => {
     it('returns 400 with missing locale', async () => {
       const res = await request(app)
         .patch(`${settingsBase}/locale`)
-        .set(authHeaders(TEST_USER_ID, TEST_EMAIL))
+        .set(authHeaders(TEST_USER_ID))
         .send({});
 
       expect(res.status).toBe(400);
@@ -123,7 +123,7 @@ describe('account settings routes', () => {
 
       const res = await request(app)
         .post(`${settingsBase}/notification-type`)
-        .set(authHeaders(TEST_USER_ID, TEST_EMAIL))
+        .set(authHeaders(TEST_USER_ID))
         .send({ type: 'new-item' });
 
       expect(res.status).toBe(200);
@@ -145,7 +145,7 @@ describe('account settings routes', () => {
     it('returns 400 with invalid notification type', async () => {
       const res = await request(app)
         .post(`${settingsBase}/notification-type`)
-        .set(authHeaders(TEST_USER_ID, TEST_EMAIL))
+        .set(authHeaders(TEST_USER_ID))
         .send({ type: 'invalid-type' });
 
       expect(res.status).toBe(400);
@@ -159,7 +159,7 @@ describe('account settings routes', () => {
       const res = await request(app)
         .delete(`${settingsBase}/notification-type`)
         .set('Content-Type', 'application/json')
-        .set(authHeaders(TEST_USER_ID, TEST_EMAIL))
+        .set(authHeaders(TEST_USER_ID))
         .send({ type: 'new-item' });
 
       expect(res.status).toBe(200);
@@ -180,7 +180,7 @@ describe('account settings routes', () => {
       const res = await request(app)
         .delete(`${settingsBase}/notification-type`)
         .set('Content-Type', 'application/json')
-        .set(authHeaders(TEST_USER_ID, TEST_EMAIL))
+        .set(authHeaders(TEST_USER_ID))
         .send({ type: 'not-a-real-type' });
 
       expect(res.status).toBe(400);

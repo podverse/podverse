@@ -21,6 +21,22 @@ spec:
                 name: podverse-db-opaque
             - secretRef:
                 name: podverse-management-db-opaque
+          env:
+            - name: POSTGRES_DB
+              valueFrom:
+                secretKeyRef:
+                  name: podverse-db-opaque
+                  key: DB_APP_NAME
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: podverse-db-opaque
+                  key: DB_APP_ADMIN_USER
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: podverse-db-opaque
+                  key: DB_APP_ADMIN_PASSWORD
           args:
             - "-c"
             - "max_connections=100"
@@ -59,26 +75,17 @@ spec:
             - name: db-data
               mountPath: /var/lib/postgresql
 
-            # 1–4: Four-digit prefixes sort lexically; subPath matches ConfigMap keys (source filenames).
-            # 1. Main App Users
+            # Bootstrap scripts only: DB/user creation and grants.
+            # Schema migration chain is applied by ops migration jobs.
+            # 1. App DB users
             - name: init-scripts
-              mountPath: /docker-entrypoint-initdb.d/0000_create_app_db_users.sh
-              subPath: 0000_create_app_db_users.sh
+              mountPath: /docker-entrypoint-initdb.d/0001_create_app_db_users.sh
+              subPath: 0001_create_app_db_users.sh
 
-            # 2. Main App Schema
-            - name: init-scripts
-              mountPath: /docker-entrypoint-initdb.d/0001_init_database.sql
-              subPath: 0001_init_database.sql
-
-            # 3. Management DB & Users
+            # 2. Management DB and users
             - name: management-init-scripts
               mountPath: /docker-entrypoint-initdb.d/0002_create_management_db_users.sh
               subPath: 0002_create_management_db_users.sh
-
-            # 4. Management Schema
-            - name: management-init-scripts
-              mountPath: /docker-entrypoint-initdb.d/0003_init_management_database.sql
-              subPath: 0003_init_management_database.sql
 
             - name: run-dir
               mountPath: /var/run/postgresql

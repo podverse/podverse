@@ -11,13 +11,16 @@ services:
     container_name: podverse_lighthouse_test_db
     env_file:
       - ./env/db.env
+    environment:
+      POSTGRES_DB: ${DB_APP_NAME}
+      POSTGRES_USER: ${DB_APP_ADMIN_USER}
+      POSTGRES_PASSWORD: ${DB_APP_ADMIN_PASSWORD}
     ports:
       - "5111:5432" # Use port 5111 for the test database so it doesn't conflict with dev
     networks:
       - podverse_lighthouse_network
     volumes:
-      - ../../../../infra/database/combined/init_database.sql:/opt/database/combined/init_database.sql
-      - ../../../../infra/database/init-scripts:/opt/database/init-scripts
+      - ../../../../infra/k8s/base/db/source/bootstrap/0001_create_app_db_users.sh:/docker-entrypoint-initdb.d/0001_create_app_db_users.sh:ro
     command: >
       postgres -c max_connections=200
                -c superuser_reserved_connections=20

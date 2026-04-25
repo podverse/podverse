@@ -116,7 +116,9 @@
       "removed_from_playlist": "",
       "remove_error": "",
       "item_count": "",
-      "playlist_type": ""
+      "playlist_type": "",
+      "add_to_liked": "",
+      "remove_from_liked": ""
     },
     "clip": {
       "clip": "",
@@ -515,6 +517,7 @@
     "login_to_subscribe": "",
     "login_to_add_to_queue": "",
     "login_to_add_to_playlist": "",
+    "login_to_like": "",
     "login_to_mark_as_played": "",
     "login_to_enable_notifications": "",
     "login_to_disable_notifications": ""

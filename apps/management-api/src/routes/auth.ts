@@ -22,6 +22,7 @@ router.get(`${baseUrl}/auth/me`, ensureAuthenticated, (req, res) => {
   res.json({
     id: admin.id,
     id_text: admin.id_text,
+    email: admin.email,
     role: admin.role,
     permissions: admin.permissions,
   });

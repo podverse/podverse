@@ -89,8 +89,8 @@ Run `npx playwright install` before your first Lighthouse run; it is required fo
 
       ```bash
       docker compose -f tools/web-perf/lighthouse/docker/docker-compose.yml up -d
-      cat ../../infra/database/combined/init_database.sql | \
-        docker exec -i podverse_lighthouse_test_db psql -U postgres -d postgres
+      DB_HOST=127.0.0.1 DB_PORT=5111 DB_USER=postgres DB_PASSWORD=mysecretpw DB_NAME=postgres \
+        bash scripts/database/run-linear-migrations.sh --database app
       # Then load .env.api and run: npm run generate_and_parse -w podverse-test-assets
       # (or let Lighthouse do the reset + populate when you run npm run lighthouse)
       ```
@@ -265,8 +265,8 @@ No manual seed script is used.
 
 ## Database Setup
 
-The test database is reset (DROP/CREATE schema, init from `infra/database/combined/init_database.sql`,
-init-scripts for users), then populated by the **parser** in test-assets mode using the
+The test database is reset (DROP/CREATE schema, then linear migrations for `--database app`,
+bootstrap user-role script), then populated by the **parser** in test-assets mode using the
 generated feed URL. The parser creates the feed, channel, and items from the RSS feed;
 no SQL seed file is used. This happens automatically when you run `npm run lighthouse`.
 
@@ -301,7 +301,7 @@ to keep the tool aligned with infra changes.
 - Verify the test database container is running:
   `docker ps | grep podverse_lighthouse_test_db`
 - Check that `.env` has the correct port (5111) and credentials
-- The reset step runs `/opt/database/init-scripts/01-create-users.sh` to ensure
+- The reset step runs `/docker-entrypoint-initdb.d/0001_create_app_db_users.sh` to ensure
   app roles from `tools/web-perf/lighthouse/docker/env/db.env` exist (`POSTGRES_READ_USER` /
   `POSTGRES_READ_WRITE_USER`, e.g. `podverse_app_read` and `podverse_app_read_write`) with
   the Lighthouse DB passwords. If you previously had generic `read` / `read_write` roles
@@ -309,15 +309,15 @@ to keep the tool aligned with infra changes.
 - Check Postgres readiness and logs:
   `docker logs podverse_lighthouse_test_db`
 - If schema creation fails, Lighthouse now verifies `category` exists after reset.
-  A failure usually means the combined schema SQL was not applied.
-- If automatic setup fails, manually run the schema init, then ensure `.env.api` has
+  A failure usually means linear migrations did not apply.
+- If automatic setup fails, manually run the migration step, then ensure `.env.api` has
   DB\_\* set and run `npm run generate_and_parse -w podverse-test-assets` from the repo
   root to populate the database from the generated feed:
 
   ```bash
   docker compose -f tools/web-perf/lighthouse/docker/docker-compose.yml up -d
-  cat ../../infra/database/combined/init_database.sql | \
-    docker exec -i podverse_lighthouse_test_db psql -U postgres -d postgres
+  DB_HOST=127.0.0.1 DB_PORT=5111 DB_USER=postgres DB_PASSWORD=mysecretpw DB_NAME=postgres \
+    bash scripts/database/run-linear-migrations.sh --database app
   # Load .env.api, then: npm run generate_and_parse -w podverse-test-assets
   ```
 

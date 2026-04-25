@@ -1,0 +1,14 @@
+# Placeholder for a future opt-in job that could call a cloud LLM (requires org secrets, budgets, and review).
+# Disabled: does not run until you set `if: true` and implement the job with strict timeouts and no logging of PII.
+
+name: LLM exports optional (cloud) — disabled
+
+on:
+  workflow_dispatch: {}
+
+jobs:
+  not_implemented:
+    if: false
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Intentionally disabled. See scripts/llm/ and docs/development/llm/GH-EXPORTS-SETUP.md."

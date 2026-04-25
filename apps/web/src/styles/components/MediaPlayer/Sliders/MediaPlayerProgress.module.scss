@@ -38,6 +38,7 @@
 }
 
 .customProgressBarInner {
+  position: relative;
   display: flex;
   border-radius: var(--border-radius-round);
   height: 0.75rem;
@@ -55,21 +56,24 @@
   height: 100%;
 }
 
+.highlightedSection {
+  z-index: 1;
+  position: absolute;
+  top: 0;
+  height: 100%;
+  background-color: var(--progress-bar-highlighted);
+  pointer-events: none;
+}
+
 .chapterMarker {
+  z-index: 2;
   position: absolute;
   width: 1px;
   height: 100%;
   top: 0;
   transform: translateX(-50%);
-  background-color: var(--text-color-primary);
+  background-color: var(--progress-chapter-marker);
   pointer-events: none;
-}
-
-.highlightedSection {
-  position: absolute;
-  height: 2rem;
-  top: -0.625rem;
-  background-color: var(--progress-bar-highlighted);
 }
 
 @media (max-width: breakpoints.$breakpoint-md-max) {

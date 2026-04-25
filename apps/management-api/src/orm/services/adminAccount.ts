@@ -58,7 +58,7 @@ export class AdminAccountService {
     }
     return this.repositoryRead.findOne({
       where: { id },
-      relations: ['admin_account_role', 'permissions'],
+      relations: ['admin_account_role', 'permissions', 'admin_account_credentials'],
     });
   }
 

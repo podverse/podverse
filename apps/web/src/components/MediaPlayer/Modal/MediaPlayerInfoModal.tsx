@@ -10,13 +10,21 @@ import type {
   DTOItemChapter,
   DTOItemSoundbite,
 } from '@podverse/helpers';
-import { findDTOChannelImageBySize, findDTOItemImageBySize, MediumEnum } from '@podverse/helpers';
+import { MediumEnum } from '@podverse/helpers';
 
 import { type MediaPlayerAddByRSSState, useMediaPlayer } from '../../../contexts/MediaPlayer';
+import { useMediaPlayerCurrentTime } from '../../../contexts/MediaPlayerCurrentTime';
 import { getAddByRSSItemPath, getAddByRSSLivestreamPath } from '../../../utils/addByRSS/itemPath';
+import {
+  buildMediaPlayerArtworkImageCandidates,
+  getMediaPlayerArtworkSources,
+  shouldUseChapterArtwork,
+} from '../../../utils/mediaPlayer/mediaPlayerArtwork';
+import { getResolvedVtsLikeTargetItem } from '../../../utils/mediaPlayer/vtsOverrideLikeItem';
 import { ImageNonReact } from '../../Image/ImageNonReact';
 import { Link } from '../../Link/Link';
 import { ReadableTimeRange } from '../../Time/ReadableTimeRange';
+import { MediaPlayerVtsOverrideLikeButton } from './MediaPlayerVtsOverrideLikeButton';
 
 import styles from '../../../styles/components/MediaPlayer/Modal/MediaPlayerInfoModal.module.scss';
 
@@ -115,6 +123,7 @@ export const MediaPlayerInfoModal: React.FC = () => {
     mpItemSoundbite,
     setPlayerModalIsOpen,
   } = useMediaPlayer();
+  const { mpCurrentTime } = useMediaPlayerCurrentTime();
   const tMediaPlayer = useTranslations('media_player');
   const router = useRouter();
 
@@ -127,18 +136,22 @@ export const MediaPlayerInfoModal: React.FC = () => {
     mpAddByRSS,
   });
 
-  const channel_image = findDTOChannelImageBySize(
-    mpChannel?.channel_images ?? mpAddByRSS?.resourceData?.channel_images,
-    'largest'
-  );
-  const item_image = findDTOItemImageBySize(
-    mpItem?.item_images ?? mpAddByRSS?.resourceData?.item_images,
-    'largest'
-  );
-  const defaultImageUrl = item_image?.url || channel_image?.url || undefined;
-  const imageUrl = mpItemChapter
-    ? mpItemChapter.img || defaultImageUrl || ''
-    : defaultImageUrl || '';
+  const { channelImages, itemImages } = getMediaPlayerArtworkSources({
+    mpChannel,
+    mpItem,
+    mpAddByRSSResourceData: mpAddByRSS?.resourceData,
+  });
+  const artImageCandidates = buildMediaPlayerArtworkImageCandidates({
+    channelImages,
+    itemImages,
+    chapterImageUrl: mpItemChapter?.img,
+    includeChapterImage: shouldUseChapterArtwork({
+      mpItemChapter,
+      mpClip,
+      mpItemSoundbite,
+    }),
+    imageSizeTarget: 'largest',
+  });
 
   const itemTitle =
     (typeof mpAddByRSS?.resourceData?.title === 'string' ? mpAddByRSS.resourceData.title : null) ??
@@ -150,6 +163,8 @@ export const MediaPlayerInfoModal: React.FC = () => {
       : null) ??
     mpChannel?.title ??
     null;
+
+  const vtsOverrideLikeItem = mpItem && getResolvedVtsLikeTargetItem(mpItem, mpCurrentTime);
 
   return (
     <div className={styles.info}>
@@ -170,13 +185,20 @@ export const MediaPlayerInfoModal: React.FC = () => {
         ) : channelTitle ? (
           <div className={styles.channelTitle}>{String(channelTitle)}</div>
         ) : null}
+        {vtsOverrideLikeItem && (
+          <div className={styles.vtsLike}>
+            <MediaPlayerVtsOverrideLikeButton likeTarget={vtsOverrideLikeItem} />
+          </div>
+        )}
       </div>
       <div className={styles.imageWrapper}>
-        <ImageNonReact
-          className={styles.image}
-          src={imageUrl}
-          alt={tMediaPlayer('media_player_image')}
-        />
+        <div className={styles.imageInner}>
+          <ImageNonReact
+            className={styles.image}
+            candidates={artImageCandidates}
+            alt={tMediaPlayer('media_player_image')}
+          />
+        </div>
       </div>
       <div className={styles.subtitleSection}>
         {mpClip && (

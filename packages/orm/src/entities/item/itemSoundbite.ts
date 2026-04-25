@@ -1,5 +1,5 @@
 import type { Item } from '@orm/entities/item/item.js';
-import { generateRandomIdText } from '@orm/lib/nanoid.js';
+import { generateRandomIdText, NANO_ID_V2_MAX_LENGTH } from '@orm/lib/nanoid.js';
 import type { Relation } from 'typeorm';
 import {
   BeforeInsert,
@@ -17,7 +17,7 @@ export class ItemSoundbite {
   @PrimaryGeneratedColumn()
   id!: number;
 
-  @Column({ type: 'varchar', unique: true })
+  @Column({ type: 'varchar', unique: true, length: NANO_ID_V2_MAX_LENGTH })
   id_text!: string;
 
   @ManyToOne('Item', (item: Item) => item.id, { onDelete: 'CASCADE' })

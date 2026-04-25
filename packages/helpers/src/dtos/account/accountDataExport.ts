@@ -44,7 +44,7 @@ export interface DTOAccountDataExportPlaylist {
   id_text: string;
   title: string | null;
   description: string | null;
-  is_default_favorites: boolean;
+  is_default_likes: boolean;
   item_count: number;
   last_updated: string;
   medium_id: number | null;

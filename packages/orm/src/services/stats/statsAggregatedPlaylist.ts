@@ -48,7 +48,7 @@ export class StatsAggregatedPlaylistService extends BaseStatsAggregatedService<
           id_text: true,
           title: true,
           description: true,
-          is_default_favorites: true,
+          is_default_likes: true,
           item_count: true,
           account: {
             id_text: true,
@@ -89,7 +89,7 @@ export class StatsAggregatedPlaylistService extends BaseStatsAggregatedService<
           id_text: true,
           title: true,
           description: true,
-          is_default_favorites: true,
+          is_default_likes: true,
           item_count: true,
           account: {
             id_text: true,

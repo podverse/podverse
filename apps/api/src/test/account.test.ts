@@ -9,6 +9,7 @@ import {
   getBaseApiUrl,
   startTestApp,
   stopTestApp,
+  TEST_USER_ACCOUNT_ID_TEXT,
   withMutedExpectedErrorLogs,
 } from './helpers/index.js';
 
@@ -40,12 +41,13 @@ const {
   createMock: vi.fn(async () => ({})),
   getByEmailMock: vi.fn(async () => ({
     id: TEST_USER_ID,
-    id_text: 'test-user-id-text',
+    id_text: TEST_USER_ACCOUNT_ID_TEXT,
     verified: true,
     account_credentials: { email: TEST_EMAIL, password: 'hashed-password' },
   })),
   getMock: vi.fn(async () => ({
     id: TEST_USER_ID,
+    id_text: TEST_USER_ACCOUNT_ID_TEXT,
     account_credentials: { email: TEST_EMAIL },
     account_membership_status: {
       membership_expires_at: new Date(Date.now() + 86400000 * 365),
@@ -228,15 +230,12 @@ describe('account CRUD and email routes', () => {
     it('returns 200 with valid data and active membership', async () => {
       updateMock.mockResolvedValueOnce({ id: TEST_USER_ID, display_name: 'Updated Name' });
 
-      const res = await request(app)
-        .put(`${accountBase}/`)
-        .set(authHeaders(TEST_USER_ID, TEST_EMAIL))
-        .send({
-          display_name: 'Updated Name',
-          bio: 'Updated bio',
-          sharable_status: 1,
-          locale: 'en-US',
-        });
+      const res = await request(app).put(`${accountBase}/`).set(authHeaders(TEST_USER_ID)).send({
+        display_name: 'Updated Name',
+        bio: 'Updated bio',
+        sharable_status: 1,
+        locale: 'en-US',
+      });
 
       expect(res.status).toBe(200);
       expect(updateMock).toHaveBeenCalledTimes(1);
@@ -263,7 +262,7 @@ describe('account CRUD and email routes', () => {
       });
 
       const res = await withMutedExpectedErrorLogs(async () =>
-        request(app).put(`${accountBase}/`).set(authHeaders(TEST_USER_ID, TEST_EMAIL)).send({
+        request(app).put(`${accountBase}/`).set(authHeaders(TEST_USER_ID)).send({
           display_name: 'Test',
           bio: null,
           sharable_status: 1,
@@ -279,9 +278,7 @@ describe('account CRUD and email routes', () => {
     it('returns 200 with valid auth', async () => {
       deleteMock.mockResolvedValueOnce({});
 
-      const res = await request(app)
-        .delete(`${accountBase}/delete`)
-        .set(authHeaders(TEST_USER_ID, TEST_EMAIL));
+      const res = await request(app).delete(`${accountBase}/delete`).set(authHeaders(TEST_USER_ID));
 
       expect(res.status).toBe(200);
       expect(res.body.message).toBe('Account deleted successfully');
@@ -351,7 +348,7 @@ describe('account CRUD and email routes', () => {
 
       const res = await request(app)
         .post(`${accountBase}/send-change-email-address-email`)
-        .set(authHeaders(TEST_USER_ID, TEST_EMAIL))
+        .set(authHeaders(TEST_USER_ID))
         .send({ new_email: 'newemail@example.com' });
 
       expect(res.status).toBe(200);
@@ -378,7 +375,7 @@ describe('account CRUD and email routes', () => {
       const res = await withMutedExpectedErrorLogs(async () =>
         request(app)
           .post(`${accountBase}/send-change-email-address-email`)
-          .set(authHeaders(TEST_USER_ID, TEST_EMAIL))
+          .set(authHeaders(TEST_USER_ID))
           .send({ new_email: 'newemail@example.com' })
       );
 
@@ -475,7 +472,7 @@ describe('account CRUD and email routes', () => {
 
       const res = await request(app)
         .get(`${accountBase}/download-data`)
-        .set(authHeaders(TEST_USER_ID, TEST_EMAIL));
+        .set(authHeaders(TEST_USER_ID));
 
       expect(res.status).toBe(200);
       expect(res.headers['content-type']).toContain('application/zip');
@@ -514,7 +511,7 @@ describe('account CRUD and email routes', () => {
 
       const res = await request(app)
         .get(`${accountBase}/my-account`)
-        .set(authHeaders(TEST_USER_ID, TEST_EMAIL));
+        .set(authHeaders(TEST_USER_ID));
 
       expect(res.status).toBe(200);
       expect(res.body.id_text).toBe('my-account');

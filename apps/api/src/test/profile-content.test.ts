@@ -8,7 +8,7 @@ import { authHeaders, getBaseApiUrl, startTestApp, stopTestApp } from './helpers
 
 const TEST_EMAIL = 'profile-content-test@example.com';
 const TEST_USER_ID = 1;
-const ACCOUNT_ID_TEXT = 'test-profile-id-text';
+const ACCOUNT_ID_TEXT = 'pvprofid01';
 const mockChannel = { id: 101, title: 'Test channel', sortable_title: 'test channel' };
 const mockPlaylist = { id: 201, title: 'A playlist' };
 const mockClip = { id: 301, title: 'A clip' };
@@ -197,10 +197,10 @@ describe('profile content GET routes (public + my-profile)', () => {
     it('returns 404 when account is private (not public/unlisted)', async () => {
       getByIdTextMock.mockResolvedValueOnce({
         id: 2,
-        id_text: 'private',
+        id_text: 'prvaccnt01',
         sharable_status: { id: 3 },
       });
-      const res = await request(app).get(`${profileBase}/private/albums/az`).query(page1);
+      const res = await request(app).get(`${profileBase}/prvaccnt01/albums/az`).query(page1);
       expect(res.status).toBe(404);
       expect(res.body.message).toBe('Account not found');
     });
@@ -212,7 +212,7 @@ describe('profile content GET routes (public + my-profile)', () => {
       const res = await request(app)
         .get(`${myProfileBase}/podcasts/az`)
         .query(page1)
-        .set(authHeaders(TEST_USER_ID, TEST_EMAIL));
+        .set(authHeaders(TEST_USER_ID, ACCOUNT_ID_TEXT));
       expect(res.status).toBe(200);
       expect(res.body.data[0].id).toBe(102);
       expect(res.body.meta).toMatchObject({ page: 1, count: 1 });
@@ -227,7 +227,7 @@ describe('profile content GET routes (public + my-profile)', () => {
       const res = await request(app)
         .get(`${myProfileBase}/albums/az`)
         .query(page1)
-        .set(authHeaders(TEST_USER_ID, TEST_EMAIL));
+        .set(authHeaders(TEST_USER_ID, ACCOUNT_ID_TEXT));
       expect(res.status).toBe(200);
       expect(res.body.meta).toMatchObject({ page: 1, count: 1 });
     });
@@ -238,7 +238,7 @@ describe('profile content GET routes (public + my-profile)', () => {
       const res = await request(app)
         .get(`${myProfileBase}/playlists/az`)
         .query(page1)
-        .set(authHeaders(TEST_USER_ID, TEST_EMAIL));
+        .set(authHeaders(TEST_USER_ID, ACCOUNT_ID_TEXT));
       expect(res.status).toBe(200);
       expect(res.body.data[0].id).toBe(202);
       expect(playlistGetManyAndCountMock).toHaveBeenCalled();
@@ -255,7 +255,7 @@ describe('profile content GET routes (public + my-profile)', () => {
       const res = await request(app)
         .get(`${myProfileBase}/clips/recent`)
         .query(page1)
-        .set(authHeaders(TEST_USER_ID, TEST_EMAIL));
+        .set(authHeaders(TEST_USER_ID, ACCOUNT_ID_TEXT));
       expect(res.status).toBe(200);
       expect(res.body.data[0].id).toBe(302);
       expect(clipGetManyAndCountMock).toHaveBeenCalled();

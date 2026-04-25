@@ -9,21 +9,21 @@ export interface DTOPlaylist {
   sharable_status_id: number;
   title?: string | null;
   description?: string | null;
-  is_default_favorites: boolean;
+  is_default_likes: boolean;
   item_count: number;
   medium_id: number;
   last_updated: string;
   playlist_resources?: DTOPlaylistResource[];
 }
 
-export interface DTOPlaylistFavorites {
+export interface DTOPlaylistLikes {
   id: number;
   id_text: number;
   medium: DTOMedium;
   playlist_resources?: DTOPlaylistResourceIdsOnly[];
 }
 
-export interface PlaylistFavoritesIndexRows {
+export interface PlaylistLikesIndexRows {
   item_ids: {
     [item_id: number]: boolean;
   };
@@ -38,14 +38,12 @@ export interface PlaylistFavoritesIndexRows {
   };
 }
 
-export interface PlaylistFavoritesIndex {
-  [medium_id: number]: PlaylistFavoritesIndexRows;
+export interface PlaylistLikesIndex {
+  [medium_id: number]: PlaylistLikesIndexRows;
 }
 
-export const generatePlaylistFavoritesIndex = (
-  playlists: DTOPlaylistFavorites[]
-): PlaylistFavoritesIndex => {
-  const index: PlaylistFavoritesIndex = {};
+export const generatePlaylistLikesIndex = (playlists: DTOPlaylistLikes[]): PlaylistLikesIndex => {
+  const index: PlaylistLikesIndex = {};
 
   for (const playlist of playlists) {
     const mediumId = playlist.medium.id;

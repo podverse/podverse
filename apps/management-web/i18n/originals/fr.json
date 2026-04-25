@@ -28,6 +28,14 @@
     "dashboard": "Tableau de bord",
     "users": "Utilisateurs",
     "content": "Contenu",
-    "settings": "Paramètres"
+    "settings": "Paramètres",
+    "userMenu": "Menu du compte",
+    "userRole": "Rôle : {role}"
+  },
+  "dashboard": {
+    "stats": {
+      "title": "Statistiques",
+      "description": "Afficher les statistiques de popularité et de vues pour les podcasts, épisodes, clips, playlists et profils"
+    }
   }
 }

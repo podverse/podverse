@@ -24,3 +24,25 @@ To-do's from the plan have already been created. Do not create them again. Mark 
 - apps/api/src/test/playlist.test.ts
 - apps/management-api/src/routes/auth.integration.test.ts
 - .llm/history/active/user-shape-consistency/user-shape-consistency-part-01.md
+
+---
+
+### Session 2 - 2026-04-23
+
+#### Prompt (Developer)
+
+apply the missing
+
+#### Key Decisions
+
+- Apply the missing Podverse management-web i18n dashboard stats keys in non-English locale files and keep override key structure aligned.
+
+#### Files Modified
+
+- .llm/history/active/user-shape-consistency/user-shape-consistency-part-01.md
+- apps/management-web/i18n/originals/es.json
+- apps/management-web/i18n/originals/fr.json
+- apps/management-web/i18n/originals/el-GR.json
+- apps/management-web/i18n/overrides/es.json
+- apps/management-web/i18n/overrides/fr.json
+- apps/management-web/i18n/overrides/el-GR.json

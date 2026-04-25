@@ -249,7 +249,7 @@ export class AccountDataExportService {
           id_text: playlist.id_text,
           title: playlist.title,
           description: playlist.description,
-          is_default_favorites: playlist.is_default_favorites,
+          is_default_likes: playlist.is_default_likes,
           item_count: playlist.item_count,
           last_updated: playlist.last_updated,
           medium_id: playlist.medium_id,

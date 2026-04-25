@@ -28,6 +28,7 @@ import {
 } from '../../../utils/mediaPlayer/mediaPlayerItemEnclosureType';
 import { playMediaWhenReady } from '../../../utils/mediaPlayer/mediaPlayerPlayMediaWhenReady';
 import { waitForSourceUri } from '../../../utils/mediaPlayer/mediaPlayerPlayMediaWhenReady';
+import { selectItemChapterForTime } from '../../../utils/mediaPlayer/selectItemChapterForTime';
 import {
   trackStatsChannel,
   trackStatsClip,
@@ -306,11 +307,31 @@ export const MediaPlayerControllerAV: React.FC<MediaPlayerControllerAVProps> = (
   }, [mpAddByRSS, mpItemLabeledEnclosures.length, selectedItemEnclosureAndSource]);
 
   useEffect(() => {
+    const syncItemChapterToTime = (t: number) => {
+      if (mpItemSoundbiteRef.current || mpClipRef.current) {
+        return;
+      }
+      const chapters = mpItemChaptersRef.current;
+      if (!Array.isArray(chapters) || chapters.length === 0) {
+        return;
+      }
+      const selectedChapter = selectItemChapterForTime(chapters, t);
+      if (selectedChapter) {
+        if (!mpItemChapterRef.current || mpItemChapterRef.current.id !== selectedChapter.id) {
+          setMPItemChapter(selectedChapter);
+        }
+      } else if (mpItemChapterRef.current) {
+        setMPItemChapter(null);
+      }
+    };
+
     const handleSeek = (e: Event) => {
       const customEvent = e as CustomEvent<{ time: number }>;
       if (mediaRef.current && typeof customEvent.detail.time === 'number') {
-        mediaRef.current.currentTime = customEvent.detail.time;
-        setMPCurrentTime(customEvent.detail.time);
+        const t = customEvent.detail.time;
+        mediaRef.current.currentTime = t;
+        setMPCurrentTime(t);
+        syncItemChapterToTime(t);
       }
     };
 
@@ -320,6 +341,7 @@ export const MediaPlayerControllerAV: React.FC<MediaPlayerControllerAVProps> = (
         const newTime = Math.max(mediaRef.current.currentTime - customEvent.detail.seconds, 0);
         mediaRef.current.currentTime = newTime;
         setMPCurrentTime(newTime);
+        syncItemChapterToTime(newTime);
       }
     };
 
@@ -336,6 +358,7 @@ export const MediaPlayerControllerAV: React.FC<MediaPlayerControllerAVProps> = (
         );
         mediaRef.current.currentTime = newTime;
         setMPCurrentTime(newTime);
+        syncItemChapterToTime(newTime);
       }
     };
 
@@ -357,7 +380,7 @@ export const MediaPlayerControllerAV: React.FC<MediaPlayerControllerAVProps> = (
       window.removeEventListener(EVENTS.MEDIA_PLAYER.JUMP_FORWARD, handleJumpForward);
       window.removeEventListener(EVENTS.MEDIA_PLAYER.PAUSE_AT, handlePauseAt);
     };
-  }, []);
+  }, [setMPItemChapter]);
 
   useEffect(() => {
     if (!mediaRef.current) {
@@ -549,31 +572,17 @@ export const MediaPlayerControllerAV: React.FC<MediaPlayerControllerAVProps> = (
         }
       }
 
-      if (
-        !mpItemSoundbiteRef.current &&
-        !mpClipRef.current &&
-        Array.isArray(mpItemChaptersRef.current) &&
-        mpItemChaptersRef.current.length > 0
-      ) {
-        const matchingChapters = mpItemChaptersRef.current.filter((ch) => {
-          const start =
-            typeof ch.start_time === 'string' ? parseFloat(ch.start_time) : ch.start_time;
-          const end = typeof ch.end_time === 'string' ? parseFloat(ch.end_time) : ch.end_time;
-          if (typeof end !== 'number' || isNaN(end)) {
-            return false;
+      if (!mpItemSoundbiteRef.current && !mpClipRef.current) {
+        const list = mpItemChaptersRef.current;
+        if (Array.isArray(list) && list.length > 0) {
+          const selectedChapter = selectItemChapterForTime(list, newCurrentTime);
+          if (selectedChapter) {
+            if (!mpItemChapterRef.current || mpItemChapterRef.current.id !== selectedChapter.id) {
+              setMPItemChapter(selectedChapter);
+            }
+          } else if (mpItemChapterRef.current) {
+            setMPItemChapter(null);
           }
-          return newCurrentTime >= start && newCurrentTime < end;
-        });
-        let selectedChapter = null;
-        if (matchingChapters.length > 0) {
-          selectedChapter =
-            matchingChapters.find((ch) => ch.table_of_contents === false) || matchingChapters[0];
-        }
-        if (
-          selectedChapter &&
-          (!mpItemChapterRef.current || mpItemChapterRef.current.id !== selectedChapter.id)
-        ) {
-          setMPItemChapter(selectedChapter);
         }
       }
     };

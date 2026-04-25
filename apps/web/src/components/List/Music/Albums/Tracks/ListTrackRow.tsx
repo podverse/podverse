@@ -29,6 +29,7 @@ import { ImagesPerView } from '../../../../Image/ImagesPerView';
 import type { MoreButtonMenuItem } from '../../../../MoreButton/MoreButton';
 import { MoreButton } from '../../../../MoreButton/MoreButton';
 import { showToastPromise, showToastPromiseWithLoading } from '../../../../Toast/Toast';
+import type { ListEpisodeRowLike } from '../../../Podcasts/Episodes/ListEpisodeRow';
 
 import styles from '../../../../../styles/components/Common/List/Podcasts/Episodes/ListEpisodeRow.module.scss';
 
@@ -42,6 +43,7 @@ interface Props {
   removeFromPlaylist?: () => void;
   playlist_id_text: string | null;
   onPlayAndRemove?: () => void;
+  likeRow?: ListEpisodeRowLike;
 }
 
 export const ListTrackRow: React.FC<Props> = ({
@@ -54,6 +56,7 @@ export const ListTrackRow: React.FC<Props> = ({
   removeFromPlaylist,
   playlist_id_text,
   onPlayAndRemove,
+  likeRow,
 }) => {
   const apiRequestService = getApiRequestService();
   const router = useRouter();
@@ -201,6 +204,17 @@ export const ListTrackRow: React.FC<Props> = ({
     });
   };
 
+  const onLikeFromMenu = () => {
+    if (!loggedInAccount) {
+      setModalLoginRequired({
+        title: null,
+        message: tInstructions('login_to_like'),
+      });
+      return;
+    }
+    likeRow?.onToggle();
+  };
+
   const moreButtonMenuItems: MoreButtonMenuItem[] = isEditModePlaylist
     ? [
         {
@@ -226,6 +240,16 @@ export const ListTrackRow: React.FC<Props> = ({
           label: tFeatures('playlist.add_to_playlist'),
           onClick: addToPlaylistOnClick,
         },
+        ...(likeRow
+          ? [
+              {
+                label: likeRow.isLiked
+                  ? tFeatures('playlist.remove_from_liked')
+                  : tFeatures('playlist.add_to_liked'),
+                onClick: onLikeFromMenu,
+              } satisfies MoreButtonMenuItem,
+            ]
+          : []),
         {
           label: tMedia('music.track_go_to'),
           onClick: goToTrackPage,

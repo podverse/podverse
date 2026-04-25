@@ -11,7 +11,9 @@ import { Router } from 'express';
 const router = Router();
 router.use(`${config.api.prefix}${config.api.version}/playlist`, router);
 
-router.get('/private/favorites', asyncHandler(PlaylistController.getAllFavoritesPrivate));
+router.get('/private/likes', asyncHandler(PlaylistController.getAllLikesPrivate));
+router.post('/private/likes/membership', asyncHandler(PlaylistController.getLikesMembership));
+router.post('/private/likes/toggle', asyncHandler(PlaylistController.toggleLike));
 
 router.get('/private/top', asyncHandler(PlaylistController.getManyPrivateTop));
 router.get('/private/recent', asyncHandler(PlaylistController.getManyPrivateRecent));

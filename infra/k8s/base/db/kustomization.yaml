@@ -9,12 +9,10 @@ resources:
 configMapGenerator:
   - name: podverse-db-init-scripts
     files:
-      - 0000_create_app_db_users.sh=source/0000_create_app_db_users.sh
-      - 0001_init_database.sql=source/0001_init_database.sql
+      - 0001_create_app_db_users.sh=source/bootstrap/0001_create_app_db_users.sh
   - name: podverse-management-db-init-scripts
     files:
-      - 0002_create_management_db_users.sh=source/0002_create_management_db_users.sh
-      - 0003_init_management_database.sql=source/0003_init_management_database.sql
+      - 0002_create_management_db_users.sh=source/bootstrap/0002_create_management_db_users.sh
 
 generatorOptions:
   disableNameSuffixHash: true

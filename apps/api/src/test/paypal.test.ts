@@ -102,7 +102,7 @@ describe('account PayPal order routes', () => {
   let ormContext: ORMContext | undefined;
   let app: import('express').Express;
 
-  const auth = () => authHeaders(TEST_USER_ID, TEST_EMAIL);
+  const auth = () => authHeaders(TEST_USER_ID);
 
   beforeAll(async () => {
     const result = await startTestApp();

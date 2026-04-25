@@ -116,7 +116,9 @@
       "removed_from_playlist": "Retiré de la Playlist",
       "remove_error": "Erreur lors du retrait de la Playlist",
       "item_count": "Éléments : {count}",
-      "playlist_type": "Type de Playlist"
+      "playlist_type": "Type de Playlist",
+      "add_to_liked": "Ajouter aux j'aime",
+      "remove_from_liked": "Retirer des j'aime"
     },
     "clip": {
       "clip": "Clip",
@@ -515,6 +517,7 @@
     "login_to_subscribe": "Veuillez vous connecter pour vous abonner.",
     "login_to_add_to_queue": "Veuillez vous connecter pour ajouter à votre file d'attente.",
     "login_to_add_to_playlist": "Veuillez vous connecter pour ajouter à votre playlist.",
+    "login_to_like": "Veuillez vous connecter pour ajouter des éléments à votre liste d'aimés.",
     "login_to_mark_as_played": "Veuillez vous connecter pour marquer les éléments comme lus.",
     "login_to_enable_notifications": "Veuillez vous connecter pour activer les notifications.",
     "login_to_disable_notifications": "Veuillez vous connecter pour désactiver les notifications."

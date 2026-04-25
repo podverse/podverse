@@ -156,7 +156,7 @@ describe('clip routes', () => {
 
       const res = await request(app)
         .post(`${clipBase}/`)
-        .set(authHeaders(TEST_USER_ID, TEST_EMAIL))
+        .set(authHeaders(TEST_USER_ID))
         .send(validClipBody);
 
       expect(res.status).toBe(201);
@@ -181,7 +181,7 @@ describe('clip routes', () => {
     it('returns 400 with missing required fields', async () => {
       const res = await request(app)
         .post(`${clipBase}/`)
-        .set(authHeaders(TEST_USER_ID, TEST_EMAIL))
+        .set(authHeaders(TEST_USER_ID))
         .send({ title: 'Missing fields' });
 
       expect(res.status).toBe(400);
@@ -209,7 +209,7 @@ describe('clip routes', () => {
 
       const res = await request(app)
         .patch(`${clipBase}/${CLIP_ID_TEXT}`)
-        .set(authHeaders(TEST_USER_ID, TEST_EMAIL))
+        .set(authHeaders(TEST_USER_ID))
         .send(validClipBody);
 
       expect(res.status).toBe(200);
@@ -229,7 +229,7 @@ describe('clip routes', () => {
 
       const res = await request(app)
         .patch(`${clipBase}/${CLIP_ID_TEXT}`)
-        .set(authHeaders(TEST_USER_ID, TEST_EMAIL))
+        .set(authHeaders(TEST_USER_ID))
         .send(validClipBody);
 
       expect(res.status).toBe(403);
@@ -241,7 +241,7 @@ describe('clip routes', () => {
 
       const res = await request(app)
         .patch(`${clipBase}/${CLIP_ID_TEXT}`)
-        .set(authHeaders(TEST_USER_ID, TEST_EMAIL))
+        .set(authHeaders(TEST_USER_ID))
         .send(validClipBody);
 
       expect(res.status).toBe(404);
@@ -268,7 +268,7 @@ describe('clip routes', () => {
 
       const res = await request(app)
         .delete(`${clipBase}/${CLIP_ID_TEXT}`)
-        .set(authHeaders(TEST_USER_ID, TEST_EMAIL));
+        .set(authHeaders(TEST_USER_ID));
 
       expect(res.status).toBe(204);
       expect(clipDeleteMock).toHaveBeenCalledWith(TEST_USER_ID, CLIP_ID_TEXT);
@@ -283,7 +283,7 @@ describe('clip routes', () => {
 
       const res = await request(app)
         .delete(`${clipBase}/${CLIP_ID_TEXT}`)
-        .set(authHeaders(TEST_USER_ID, TEST_EMAIL));
+        .set(authHeaders(TEST_USER_ID));
 
       expect(res.status).toBe(403);
     });
@@ -293,7 +293,7 @@ describe('clip routes', () => {
 
       const res = await request(app)
         .delete(`${clipBase}/${CLIP_ID_TEXT}`)
-        .set(authHeaders(TEST_USER_ID, TEST_EMAIL));
+        .set(authHeaders(TEST_USER_ID));
 
       expect(res.status).toBe(404);
     });
@@ -331,7 +331,7 @@ describe('clip routes', () => {
 
       const res = await request(app)
         .get(`${clipBase}/${CLIP_ID_TEXT}`)
-        .set(authHeaders(TEST_USER_ID, TEST_EMAIL));
+        .set(authHeaders(TEST_USER_ID));
 
       expect(res.status).toBe(200);
     });
@@ -346,7 +346,7 @@ describe('clip routes', () => {
 
       const res = await request(app)
         .get(`${clipBase}/${CLIP_ID_TEXT}`)
-        .set(authHeaders(TEST_USER_ID, TEST_EMAIL));
+        .set(authHeaders(TEST_USER_ID));
 
       expect(res.status).toBe(404);
     });
@@ -371,9 +371,7 @@ describe('clip routes', () => {
     it('returns 200 with user clips when authenticated', async () => {
       clipGetManyByAccountMock.mockResolvedValueOnce([{ id: 1 }, { id: 2 }]);
 
-      const res = await request(app)
-        .get(`${clipBase}/private`)
-        .set(authHeaders(TEST_USER_ID, TEST_EMAIL));
+      const res = await request(app).get(`${clipBase}/private`).set(authHeaders(TEST_USER_ID));
 
       expect(res.status).toBe(200);
       expect(Array.isArray(res.body)).toBe(true);
@@ -469,7 +467,7 @@ describe('clip routes', () => {
 
       const res = await request(app)
         .get(`${clipBase}/public/subscribed/recent?medium=all&page=1`)
-        .set(authHeaders(TEST_USER_ID, TEST_EMAIL));
+        .set(authHeaders(TEST_USER_ID));
 
       expect(res.status).toBe(200);
       expect(res.body).toHaveProperty('data');
@@ -488,7 +486,7 @@ describe('clip routes', () => {
 
       const res = await request(app)
         .get(`${clipBase}/public/subscribed/top?medium=all&page=1&range=day`)
-        .set(authHeaders(TEST_USER_ID, TEST_EMAIL));
+        .set(authHeaders(TEST_USER_ID));
 
       expect(res.status).toBe(200);
       expect(res.body).toHaveProperty('data');

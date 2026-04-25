@@ -31,6 +31,7 @@ export type PlaylistFormProps = {
   isValidSubmit: () => boolean;
   tFeatures: (key: string) => string;
   tMisc: (key: string) => string;
+  /** When set, the form is in edit mode: playlist type (medium) is read-only. */
   edit_playlist_id_text: string | null;
   className?: string;
 };
@@ -75,14 +76,24 @@ export const PlaylistForm: React.FC<PlaylistFormProps> = ({
           eyebrow={tMisc('id')}
         />
       )}
-      <FormDropdown
-        key="medium"
-        id="medium"
-        eyebrow={tFeatures('playlist.playlist_type')}
-        value={`${medium}`}
-        menuItems={mediumDropdownMenuItems}
-        onChange={setMedium}
-      />
+      {edit_playlist_id_text ? (
+        <TextInput
+          type="text"
+          name="medium_locked"
+          value={mediumDropdownMenuItems.find((i) => i.value === `${medium}`)?.label ?? `${medium}`}
+          disabled
+          eyebrow={tFeatures('playlist.playlist_type')}
+        />
+      ) : (
+        <FormDropdown
+          key="medium"
+          id="medium"
+          eyebrow={tFeatures('playlist.playlist_type')}
+          value={`${medium}`}
+          menuItems={mediumDropdownMenuItems}
+          onChange={setMedium}
+        />
+      )}
       <FormDropdown
         key="sharable_status"
         id="sharable_status"

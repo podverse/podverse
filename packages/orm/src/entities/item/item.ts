@@ -17,7 +17,7 @@ import type { ItemSoundbite } from '@orm/entities/item/itemSoundbite.js';
 import type { ItemTranscript } from '@orm/entities/item/itemTranscript.js';
 import type { ItemTxt } from '@orm/entities/item/itemTxt.js';
 import type { ItemValue } from '@orm/entities/item/itemValue.js';
-import { generateRandomIdText } from '@orm/lib/nanoid.js';
+import { generateRandomIdText, NANO_ID_V2_MAX_LENGTH } from '@orm/lib/nanoid.js';
 import type { Relation } from 'typeorm';
 import {
   BeforeInsert,
@@ -43,7 +43,7 @@ export class Item {
   @PrimaryGeneratedColumn()
   id!: number;
 
-  @Column({ type: 'varchar', unique: true })
+  @Column({ type: 'varchar', unique: true, length: NANO_ID_V2_MAX_LENGTH })
   id_text!: string;
 
   @Column({

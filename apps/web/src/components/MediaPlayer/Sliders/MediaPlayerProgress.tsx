@@ -194,24 +194,24 @@ export const MediaPlayerProgress: React.FC<MediaPlayerProgressProps> = ({
         <div className={styles.customProgressBarInner}>
           <div className={styles.progressLevel} style={{ width: `${progress * 100}%` }} />
           <div className={styles.progressRemaining} style={{ width: `${(1 - progress) * 100}%` }} />
+          {highlightStartPosition !== null && highlightEndPosition !== null && (
+            <div
+              className={styles.highlightedSection}
+              style={{
+                left: `${highlightStartPosition * 100}%`,
+                width: `${Math.min(highlightEndPosition - highlightStartPosition, 1 - highlightStartPosition) * 100}%`,
+              }}
+            />
+          )}
+          {chapterBoundaryRatios.map((ratio) => (
+            <div
+              key={ratio}
+              className={styles.chapterMarker}
+              style={{ left: `${ratio * 100}%` }}
+              aria-hidden
+            />
+          ))}
         </div>
-        {chapterBoundaryRatios.map((ratio) => (
-          <div
-            key={ratio}
-            className={styles.chapterMarker}
-            style={{ left: `${ratio * 100}%` }}
-            aria-hidden
-          />
-        ))}
-        {highlightStartPosition !== null && highlightEndPosition !== null && (
-          <div
-            className={styles.highlightedSection}
-            style={{
-              left: `${highlightStartPosition * 100}%`,
-              width: `${Math.min(highlightEndPosition - highlightStartPosition, 1 - highlightStartPosition) * 100}%`,
-            }}
-          />
-        )}
       </div>
       {tooltipChapter && (
         <ChapterProgressTooltip

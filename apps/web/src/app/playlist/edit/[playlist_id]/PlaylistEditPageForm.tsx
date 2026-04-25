@@ -5,7 +5,6 @@ import { useTranslations } from 'next-intl';
 import React from 'react';
 
 import type { DTOPlaylist } from '@podverse/helpers';
-import { getQueryParamFromQueueMediumId } from '@podverse/helpers';
 
 import { PlaylistForm } from '../../../../components/Playlist/PlaylistForm';
 import { MEDIUM } from '../../../../constants/medium';
@@ -54,7 +53,6 @@ export const PlaylistEditPageForm: React.FC<PlaylistEditPageFormProps> = ({ ssrP
       id_text: ssrPlaylist.id_text,
       title,
       description,
-      medium: getQueryParamFromQueueMediumId(Number(medium)),
       sharable_status_id: Number(sharableStatus),
     });
 

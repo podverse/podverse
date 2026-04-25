@@ -245,23 +245,23 @@ set_if_empty_or_equals "$MANAGEMENT_API_APP_ENV" "DB_HOST" "localhost" "podverse
 set_if_empty_or_equals "$MANAGEMENT_API_APP_ENV" "DB_PORT" "5432" "5999"
 
 # Ensure DB names so Postgres creates podverse_app / podverse_management on first run (pgAdmin and apps expect these).
-set_if_empty "$DB_ENV" "POSTGRES_DB" "podverse_app"
-set_if_empty "$DB_ENV" "POSTGRES_MANAGEMENT_DB" "podverse_management"
+set_if_empty "$DB_ENV" "DB_APP_NAME" "podverse_app"
+set_if_empty "$DB_ENV" "DB_MANAGEMENT_NAME" "podverse_management"
 
-POSTGRES_DB="$(first_non_empty_or_default "podverse_app" "$DB_ENV:POSTGRES_DB")"
-POSTGRES_PASSWORD="$(first_non_empty_or_generate generate_hex_32 "$DB_ENV:POSTGRES_PASSWORD")"
-POSTGRES_READ_USER="$(first_non_empty_or_default "podverse_app_read" "$DB_ENV:POSTGRES_READ_USER")"
-POSTGRES_READ_WRITE_USER="$(first_non_empty_or_default "podverse_app_read_write" "$DB_ENV:POSTGRES_READ_WRITE_USER")"
-POSTGRES_MANAGEMENT_DB="$(first_non_empty_or_default "podverse_management" "$DB_ENV:POSTGRES_MANAGEMENT_DB")"
-POSTGRES_MANAGEMENT_USER="$(first_non_empty_or_default "postgres_user_management" "$DB_ENV:POSTGRES_MANAGEMENT_USER")"
-POSTGRES_MANAGEMENT_READ_USER="$(first_non_empty_or_default "podverse_management_read" "$DB_ENV:POSTGRES_MANAGEMENT_READ_USER")"
-POSTGRES_MANAGEMENT_READ_WRITE_USER="$(first_non_empty_or_default "podverse_management_read_write" "$DB_ENV:POSTGRES_MANAGEMENT_READ_WRITE_USER")"
+DB_APP_NAME="$(first_non_empty_or_default "podverse_app" "$DB_ENV:DB_APP_NAME")"
+DB_APP_ADMIN_PASSWORD="$(first_non_empty_or_generate generate_hex_32 "$DB_ENV:DB_APP_ADMIN_PASSWORD")"
+DB_APP_READ_USER="$(first_non_empty_or_default "podverse_app_read" "$DB_ENV:DB_APP_READ_USER")"
+DB_APP_READ_WRITE_USER="$(first_non_empty_or_default "podverse_app_read_write" "$DB_ENV:DB_APP_READ_WRITE_USER")"
+DB_MANAGEMENT_NAME="$(first_non_empty_or_default "podverse_management" "$DB_ENV:DB_MANAGEMENT_NAME")"
+DB_MANAGEMENT_ADMIN_USER="$(first_non_empty_or_default "postgres_user_management" "$DB_ENV:DB_MANAGEMENT_ADMIN_USER")"
+DB_MANAGEMENT_READ_USER="$(first_non_empty_or_default "podverse_management_read" "$DB_ENV:DB_MANAGEMENT_READ_USER")"
+DB_MANAGEMENT_READ_WRITE_USER="$(first_non_empty_or_default "podverse_management_read_write" "$DB_ENV:DB_MANAGEMENT_READ_WRITE_USER")"
 # DB read/read-write passwords: dynamically generated (hex-only, no chars that need escaping) when empty or placeholder; then assigned to infra + app env files.
-POSTGRES_READ_PASSWORD="$(generate_if_empty_or_placeholder "$(first_non_empty_or_generate generate_hex_32 "$DB_ENV:POSTGRES_READ_PASSWORD")" "your_read_password" "your_read_write_password")"
-POSTGRES_READ_WRITE_PASSWORD="$(generate_if_empty_or_placeholder "$(first_non_empty_or_generate generate_hex_32 "$DB_ENV:POSTGRES_READ_WRITE_PASSWORD")" "your_read_password" "your_read_write_password")"
-POSTGRES_MANAGEMENT_PASSWORD="$(generate_if_empty_or_placeholder "$(first_non_empty_or_generate generate_hex_32 "$DB_ENV:POSTGRES_MANAGEMENT_PASSWORD")" "your_postgres_password")"
-POSTGRES_MANAGEMENT_READ_PASSWORD="$(generate_if_empty_or_placeholder "$(first_non_empty_or_generate generate_hex_32 "$DB_ENV:POSTGRES_MANAGEMENT_READ_PASSWORD")" "your_read_password" "your_read_write_password")"
-POSTGRES_MANAGEMENT_READ_WRITE_PASSWORD="$(generate_if_empty_or_placeholder "$(first_non_empty_or_generate generate_hex_32 "$DB_ENV:POSTGRES_MANAGEMENT_READ_WRITE_PASSWORD")" "your_read_password" "your_read_write_password")"
+DB_APP_READ_PASSWORD="$(generate_if_empty_or_placeholder "$(first_non_empty_or_generate generate_hex_32 "$DB_ENV:DB_APP_READ_PASSWORD")" "your_read_password" "your_read_write_password")"
+DB_APP_READ_WRITE_PASSWORD="$(generate_if_empty_or_placeholder "$(first_non_empty_or_generate generate_hex_32 "$DB_ENV:DB_APP_READ_WRITE_PASSWORD")" "your_read_password" "your_read_write_password")"
+DB_MANAGEMENT_ADMIN_PASSWORD="$(generate_if_empty_or_placeholder "$(first_non_empty_or_generate generate_hex_32 "$DB_ENV:DB_MANAGEMENT_ADMIN_PASSWORD")" "your_postgres_password")"
+DB_MANAGEMENT_READ_PASSWORD="$(generate_if_empty_or_placeholder "$(first_non_empty_or_generate generate_hex_32 "$DB_ENV:DB_MANAGEMENT_READ_PASSWORD")" "your_read_password" "your_read_write_password")"
+DB_MANAGEMENT_READ_WRITE_PASSWORD="$(generate_if_empty_or_placeholder "$(first_non_empty_or_generate generate_hex_32 "$DB_ENV:DB_MANAGEMENT_READ_WRITE_PASSWORD")" "your_read_password" "your_read_write_password")"
 ARTEMIS_PASSWORD="$(generate_if_empty_or_placeholder "$(first_non_empty_or_generate generate_hex_32 "$MQ_ENV:ARTEMIS_PASSWORD" "$API_APP_ENV:MESSAGE_QUEUE_PASSWORD" "$WORKERS_APP_ENV:MESSAGE_QUEUE_PASSWORD" "$API_INFRA_ENV:MESSAGE_QUEUE_PASSWORD" "$WORKERS_INFRA_ENV:MESSAGE_QUEUE_PASSWORD")" "your_mq_password")"
 KEYVALDB_PASSWORD="$(generate_if_empty_or_placeholder "$(first_non_empty_or_generate generate_hex_32 "$KEYVALDB_ENV:KEYVALDB_PASSWORD" "$API_APP_ENV:KEYVALDB_PASSWORD" "$WORKERS_APP_ENV:KEYVALDB_PASSWORD" "$API_INFRA_ENV:KEYVALDB_PASSWORD" "$WORKERS_INFRA_ENV:KEYVALDB_PASSWORD")" "your_redis_password" "# required" " # required")"
 # Podcast Index keys are never auto-generated; only populated from override (e.g. podcast-index.env in ~/.config).
@@ -269,20 +269,20 @@ KEYVALDB_PASSWORD="$(generate_if_empty_or_placeholder "$(first_non_empty_or_gene
 AUTH_JWT_SECRET_API="$(first_non_empty_or_generate generate_uuid "$API_APP_ENV:AUTH_JWT_SECRET" "$API_INFRA_ENV:AUTH_JWT_SECRET")"
 AUTH_JWT_SECRET_MANAGEMENT="$(first_non_empty_or_generate generate_uuid "$MANAGEMENT_API_APP_ENV:AUTH_JWT_SECRET" "$MANAGEMENT_API_INFRA_ENV:AUTH_JWT_SECRET")"
 
-# Core infra secrets (POSTGRES_DB comes from env-templates: podverse_app / podverse_management)
-upsert_var "$DB_ENV" "POSTGRES_PASSWORD" "$POSTGRES_PASSWORD"
-upsert_var "$DB_ENV" "POSTGRES_READ_USER" "$POSTGRES_READ_USER"
-upsert_var "$DB_ENV" "POSTGRES_READ_PASSWORD" "$POSTGRES_READ_PASSWORD"
-upsert_var "$DB_ENV" "POSTGRES_READ_WRITE_USER" "$POSTGRES_READ_WRITE_USER"
-upsert_var "$DB_ENV" "POSTGRES_READ_WRITE_PASSWORD" "$POSTGRES_READ_WRITE_PASSWORD"
+# Core infra secrets (DB_APP_NAME comes from env-templates: podverse_app / podverse_management)
+upsert_var "$DB_ENV" "DB_APP_ADMIN_PASSWORD" "$DB_APP_ADMIN_PASSWORD"
+upsert_var "$DB_ENV" "DB_APP_READ_USER" "$DB_APP_READ_USER"
+upsert_var "$DB_ENV" "DB_APP_READ_PASSWORD" "$DB_APP_READ_PASSWORD"
+upsert_var "$DB_ENV" "DB_APP_READ_WRITE_USER" "$DB_APP_READ_WRITE_USER"
+upsert_var "$DB_ENV" "DB_APP_READ_WRITE_PASSWORD" "$DB_APP_READ_WRITE_PASSWORD"
 
-upsert_var "$DB_ENV" "POSTGRES_MANAGEMENT_DB" "$POSTGRES_MANAGEMENT_DB"
-upsert_var "$DB_ENV" "POSTGRES_MANAGEMENT_USER" "$POSTGRES_MANAGEMENT_USER"
-upsert_var "$DB_ENV" "POSTGRES_MANAGEMENT_PASSWORD" "$POSTGRES_MANAGEMENT_PASSWORD"
-upsert_var "$DB_ENV" "POSTGRES_MANAGEMENT_READ_USER" "$POSTGRES_MANAGEMENT_READ_USER"
-upsert_var "$DB_ENV" "POSTGRES_MANAGEMENT_READ_PASSWORD" "$POSTGRES_MANAGEMENT_READ_PASSWORD"
-upsert_var "$DB_ENV" "POSTGRES_MANAGEMENT_READ_WRITE_USER" "$POSTGRES_MANAGEMENT_READ_WRITE_USER"
-upsert_var "$DB_ENV" "POSTGRES_MANAGEMENT_READ_WRITE_PASSWORD" "$POSTGRES_MANAGEMENT_READ_WRITE_PASSWORD"
+upsert_var "$DB_ENV" "DB_MANAGEMENT_NAME" "$DB_MANAGEMENT_NAME"
+upsert_var "$DB_ENV" "DB_MANAGEMENT_ADMIN_USER" "$DB_MANAGEMENT_ADMIN_USER"
+upsert_var "$DB_ENV" "DB_MANAGEMENT_ADMIN_PASSWORD" "$DB_MANAGEMENT_ADMIN_PASSWORD"
+upsert_var "$DB_ENV" "DB_MANAGEMENT_READ_USER" "$DB_MANAGEMENT_READ_USER"
+upsert_var "$DB_ENV" "DB_MANAGEMENT_READ_PASSWORD" "$DB_MANAGEMENT_READ_PASSWORD"
+upsert_var "$DB_ENV" "DB_MANAGEMENT_READ_WRITE_USER" "$DB_MANAGEMENT_READ_WRITE_USER"
+upsert_var "$DB_ENV" "DB_MANAGEMENT_READ_WRITE_PASSWORD" "$DB_MANAGEMENT_READ_WRITE_PASSWORD"
 
 set_if_empty "$MQ_ENV" "ARTEMIS_USER" "user"
 upsert_var "$MQ_ENV" "ARTEMIS_PASSWORD" "$ARTEMIS_PASSWORD"
@@ -291,23 +291,23 @@ upsert_var "$KEYVALDB_ENV" "KEYVALDB_PASSWORD" "$KEYVALDB_PASSWORD"
 
 # Shared app-level sync (App DB: names + passwords so app matches init script)
 for file in "$API_APP_ENV" "$WORKERS_APP_ENV" "$API_INFRA_ENV" "$WORKERS_INFRA_ENV"; do
-	upsert_var "$file" "DB_APP_NAME" "$POSTGRES_DB"
-	upsert_var "$file" "DB_APP_READ_USER" "$POSTGRES_READ_USER"
-	upsert_var "$file" "DB_APP_READ_PASSWORD" "$POSTGRES_READ_PASSWORD"
-	upsert_var "$file" "DB_APP_READ_WRITE_USER" "$POSTGRES_READ_WRITE_USER"
-	upsert_var "$file" "DB_APP_READ_WRITE_PASSWORD" "$POSTGRES_READ_WRITE_PASSWORD"
+	upsert_var "$file" "DB_APP_NAME" "$DB_APP_NAME"
+	upsert_var "$file" "DB_APP_READ_USER" "$DB_APP_READ_USER"
+	upsert_var "$file" "DB_APP_READ_PASSWORD" "$DB_APP_READ_PASSWORD"
+	upsert_var "$file" "DB_APP_READ_WRITE_USER" "$DB_APP_READ_WRITE_USER"
+	upsert_var "$file" "DB_APP_READ_WRITE_PASSWORD" "$DB_APP_READ_WRITE_PASSWORD"
 done
 for file in "$MANAGEMENT_API_APP_ENV" "$MANAGEMENT_API_INFRA_ENV"; do
-	upsert_var "$file" "DB_MANAGEMENT_NAME" "$POSTGRES_MANAGEMENT_DB"
-	upsert_var "$file" "DB_MANAGEMENT_READ_USER" "$POSTGRES_MANAGEMENT_READ_USER"
-	upsert_var "$file" "DB_MANAGEMENT_READ_PASSWORD" "$POSTGRES_MANAGEMENT_READ_PASSWORD"
-	upsert_var "$file" "DB_MANAGEMENT_READ_WRITE_USER" "$POSTGRES_MANAGEMENT_READ_WRITE_USER"
-	upsert_var "$file" "DB_MANAGEMENT_READ_WRITE_PASSWORD" "$POSTGRES_MANAGEMENT_READ_WRITE_PASSWORD"
-	upsert_var "$file" "DB_APP_NAME" "$POSTGRES_DB"
-	upsert_var "$file" "DB_APP_READ_USER" "$POSTGRES_READ_USER"
-	upsert_var "$file" "DB_APP_READ_PASSWORD" "$POSTGRES_READ_PASSWORD"
-	upsert_var "$file" "DB_APP_READ_WRITE_USER" "$POSTGRES_READ_WRITE_USER"
-	upsert_var "$file" "DB_APP_READ_WRITE_PASSWORD" "$POSTGRES_READ_WRITE_PASSWORD"
+	upsert_var "$file" "DB_MANAGEMENT_NAME" "$DB_MANAGEMENT_NAME"
+	upsert_var "$file" "DB_MANAGEMENT_READ_USER" "$DB_MANAGEMENT_READ_USER"
+	upsert_var "$file" "DB_MANAGEMENT_READ_PASSWORD" "$DB_MANAGEMENT_READ_PASSWORD"
+	upsert_var "$file" "DB_MANAGEMENT_READ_WRITE_USER" "$DB_MANAGEMENT_READ_WRITE_USER"
+	upsert_var "$file" "DB_MANAGEMENT_READ_WRITE_PASSWORD" "$DB_MANAGEMENT_READ_WRITE_PASSWORD"
+	upsert_var "$file" "DB_APP_NAME" "$DB_APP_NAME"
+	upsert_var "$file" "DB_APP_READ_USER" "$DB_APP_READ_USER"
+	upsert_var "$file" "DB_APP_READ_PASSWORD" "$DB_APP_READ_PASSWORD"
+	upsert_var "$file" "DB_APP_READ_WRITE_USER" "$DB_APP_READ_WRITE_USER"
+	upsert_var "$file" "DB_APP_READ_WRITE_PASSWORD" "$DB_APP_READ_WRITE_PASSWORD"
 done
 
 for file in "$API_APP_ENV" "$WORKERS_APP_ENV" "$API_INFRA_ENV" "$WORKERS_INFRA_ENV"; do
@@ -378,11 +378,6 @@ done
 # From socials.env (web contact + social links)
 for v in NEXT_PUBLIC_CONTACT_EMAIL NEXT_PUBLIC_SOCIAL_ACTIVITY_PUB NEXT_PUBLIC_SOCIAL_DISCORD NEXT_PUBLIC_SOCIAL_GITHUB NEXT_PUBLIC_SOCIAL_MATRIX NEXT_PUBLIC_SOCIAL_X; do
 	apply_override "$v" "${WEB_ENV_FILES_APP_AND_SIDECAR[@]}"
-done
-
-# From management-superuser.env
-for v in MANAGEMENT_SUPERUSER_EMAIL MANAGEMENT_SUPERUSER_PASSWORD; do
-	apply_override "$v" "$DB_ENV"
 done
 
 # From brand.env: api/web = BRAND_NAME; mgmt api/mgmt web = MANAGEMENT_BRAND_NAME. Do not set NEXT_PUBLIC_BRAND_NAME in overrides.

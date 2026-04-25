@@ -1,9 +1,9 @@
 import { exec } from 'child_process';
-import { promisify } from 'util';
-import path from 'path';
 import fs from 'fs';
-import { fileURLToPath } from 'url';
+import path from 'path';
 import { dirname } from 'path';
+import { fileURLToPath } from 'url';
+import { promisify } from 'util';
 
 // ES modules __dirname equivalent
 const __filename = fileURLToPath(import.meta.url);
@@ -16,7 +16,6 @@ export class DatabaseSetup {
   private dockerComposeFile: string;
   private containerName = 'podverse_lighthouse_test_db';
   private networkName = 'podverse_lighthouse_network';
-  private hostInitSqlPath: string;
 
   constructor() {
     // Monorepo is at: /path/to/podverse
@@ -27,7 +26,6 @@ export class DatabaseSetup {
       monorepoRoot,
       'tools/web-perf/lighthouse/docker/docker-compose.yml'
     );
-    this.hostInitSqlPath = path.join(monorepoRoot, 'infra/database/combined/init_database.sql');
   }
 
   async checkContainerRunning(): Promise<boolean> {
@@ -120,19 +118,19 @@ export class DatabaseSetup {
     console.log('🔄 Resetting test database...');
     try {
       await this.runPsqlCommand('DROP SCHEMA IF EXISTS public CASCADE; CREATE SCHEMA public;');
-      await this.runInitDatabaseFromHost();
+      await this.runLinearMigrations();
       await this.runInitScript();
       await this.verifyCategoryTable();
       console.log('✅ Test database reset and initialized');
     } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : String(error);
       console.error('❌ Failed to reset test database:', error);
       throw new Error(
         'Failed to reset test database. Please ensure:\n' +
           '1. Docker is running\n' +
           `2. The compose file exists at ${this.dockerComposeFile}\n` +
           '3. You can run the reset manually (see tools/web-perf/lighthouse/TOOLS-WEB-PERF-LIGHTHOUSE.md)\n' +
-          `4. The test database container is accessible\n\nOriginal error: ${errorMessage}`
+          '4. The test database container is accessible',
+        { cause: error }
       );
     }
   }
@@ -183,8 +181,7 @@ export class DatabaseSetup {
         }
       }
     } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : String(error);
-      throw new Error(`Docker compose command failed: ${errorMessage}`);
+      throw new Error('Docker compose command failed', { cause: error });
     }
   }
 
@@ -196,19 +193,9 @@ export class DatabaseSetup {
     });
   }
 
-  private async runPsqlFile(filePath: string): Promise<void> {
-    const command = `docker exec -i ${this.containerName} psql -U postgres -d postgres -v ON_ERROR_STOP=1 -f "${filePath}"`;
-    await execAsync(command, {
-      env: { ...process.env },
-      maxBuffer: 10 * 1024 * 1024,
-    });
-  }
-
-  private async runInitDatabaseFromHost(): Promise<void> {
-    if (!fs.existsSync(this.hostInitSqlPath)) {
-      throw new Error(`Init SQL not found at: ${this.hostInitSqlPath}`);
-    }
-    const command = `cat "${this.hostInitSqlPath}" | docker exec -i ${this.containerName} psql -U postgres -d postgres -v ON_ERROR_STOP=1`;
+  private async runLinearMigrations(): Promise<void> {
+    const command =
+      'DB_HOST="127.0.0.1" DB_PORT="5111" DB_USER="postgres" DB_PASSWORD="mysecretpw" DB_NAME="postgres" bash scripts/database/run-linear-migrations.sh --database app';
     await execAsync(command, {
       env: { ...process.env },
       maxBuffer: 10 * 1024 * 1024,
@@ -228,7 +215,7 @@ export class DatabaseSetup {
   }
 
   private async runInitScript(): Promise<void> {
-    const command = `docker exec -i ${this.containerName} /opt/database/init-scripts/01-create-users.sh`;
+    const command = `docker exec -i ${this.containerName} bash /docker-entrypoint-initdb.d/0001_create_app_db_users.sh`;
     await execAsync(command, {
       env: { ...process.env },
       maxBuffer: 10 * 1024 * 1024,

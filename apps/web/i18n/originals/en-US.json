@@ -116,7 +116,9 @@
       "removed_from_playlist": "Removed from Playlist",
       "remove_error": "Error removing from Playlist",
       "item_count": "Items: {count}",
-      "playlist_type": "Playlist Type"
+      "playlist_type": "Playlist Type",
+      "add_to_liked": "Add to Liked",
+      "remove_from_liked": "Remove from Liked"
     },
     "clip": {
       "clip": "Clip",
@@ -515,6 +517,7 @@
     "login_to_subscribe": "Please login to subscribe.",
     "login_to_add_to_queue": "Please login to add to your queue.",
     "login_to_add_to_playlist": "Please login to add to your playlist.",
+    "login_to_like": "Please login to add items to your liked list.",
     "login_to_mark_as_played": "Please login to mark items as played.",
     "login_to_enable_notifications": "Please login to enable notifications.",
     "login_to_disable_notifications": "Please login to disable notifications."
