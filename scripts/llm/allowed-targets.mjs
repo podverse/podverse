@@ -9,7 +9,8 @@
  */
 export const MAX_EXPORT_TARGETS = 10;
 
-export const ALLOWED_TARGET_IDS = new Set(['github-copilot']);
+// Keep in sync with `.gitignore` `/.llm/exports/<id>/…` comment blocks and adapter wiring in `export-from-cursor.mjs`.
+export const ALLOWED_TARGET_IDS = new Set(['github-copilot', 'opencode']);
 
 export function assertTargetIdAllowed(id) {
   if (!ALLOWED_TARGET_IDS.has(id)) {

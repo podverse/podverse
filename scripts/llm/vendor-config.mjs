@@ -1,6 +1,11 @@
 import fs from 'node:fs';
 import path from 'node:path';
 
+/**
+ * Local `llm:vendors` “which editors matter” (plus required `cursor`).
+ * Export **target** ids for generated trees are separate — see `allowed-targets.mjs`
+ * (e.g. `github-copilot` is a Copilot export layout, not a “vendor” here).
+ */
 export const SUPPORTED_VENDOR_IDS = ['cursor', 'vscode', 'opencode'];
 export const REQUIRED_VENDOR_ID = 'cursor';
 export const STATE_RELATIVE_PATH = path.join('.llm', 'local', 'vendors.json');

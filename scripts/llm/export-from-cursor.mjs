@@ -11,6 +11,7 @@ import { fileURLToPath } from 'node:url';
 
 import { assertTargetIdAllowed, MAX_EXPORT_TARGETS } from './allowed-targets.mjs';
 import { exportGithubCopilot } from './lib/copilot-adapter.mjs';
+import { exportOpencode } from './lib/opencode-adapter.mjs';
 import { resolveActiveVendorIds } from './vendor-config.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -48,7 +49,7 @@ function discoverRegisteredTargets() {
   return names.sort();
 }
 
-function runAdapters(registered) {
+function runAdapters(registered, { full = false } = {}) {
   for (const id of registered) {
     assertTargetIdAllowed(id);
   }
@@ -59,13 +60,17 @@ function runAdapters(registered) {
     const exportPathPosix = rel.split(path.sep).join('/');
 
     if (id === 'github-copilot') {
-      exportGithubCopilot(repoRoot, targetRoot, exportPathPosix);
+      exportGithubCopilot(repoRoot, targetRoot, exportPathPosix, { full });
+    } else if (id === 'opencode') {
+      exportOpencode(repoRoot, targetRoot, exportPathPosix, { full });
     }
   }
 }
 
 function main() {
-  const args = process.argv.slice(2).filter((a) => a !== '--full');
+  const argv = process.argv.slice(2);
+  const full = argv.includes('--full');
+  const args = argv.filter((a) => a !== '--full');
   const cmd = args[0] || 'sync';
 
   const discovered = discoverRegisteredTargets();
@@ -82,7 +87,7 @@ function main() {
     console.warn(
       `llm-exports: targets ${discovered.join(', ')} | vendors ${activeVendorIds.join(', ')}`
     );
-    runAdapters(discovered);
+    runAdapters(discovered, { full });
   }
 
   if (cmd === 'check') {

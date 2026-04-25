@@ -94,6 +94,9 @@ temp/
 /.llm/exports/github-copilot/skills/
 /.llm/exports/github-copilot/instructions/
 /.llm/exports/github-copilot/copilot-instructions.md
+/.llm/exports/opencode/skills/
+/.llm/exports/opencode/instructions/
+/.llm/exports/opencode/opencode-instructions.md
 # .copilot/
 # .github/copilot-instructions.md.local
 # --- other local editors (not necessarily in the allowlist) ---

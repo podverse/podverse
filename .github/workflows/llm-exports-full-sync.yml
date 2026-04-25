@@ -1,0 +1,72 @@
+# Full regen: wipe per-target generated subtrees, then re-export (removes orphans from renames/deletes in .cursor).
+# Rolling incremental updates use "LLM exports sync" and branch `llm`. This workflow is on-demand; branch `llm-full`.
+# Plain Node (no root npm install); see package.json llm:exports:sync:full.
+
+name: LLM exports full
+
+on:
+  workflow_dispatch: {}
+
+concurrency:
+  group: llm-exports-full-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  publish_llm_full_pr:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - name: Checkout develop
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          ref: develop
+          fetch-depth: 0
+
+      - name: Use Node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+
+      - name: Generate exports (full)
+        run: node scripts/llm/export-from-cursor.mjs sync --full
+
+      - name: Create or update llm-full PR
+        id: cpr
+        uses: peter-evans/create-pull-request@v7
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          branch: llm-full
+          base: develop
+          add-paths: |
+            .llm/exports
+          commit-message: "chore(llm): full regen .llm/exports from .cursor"
+          title: "chore(llm): full regen .llm/exports from .cursor"
+          body: |
+            On-demand full LLM export regen from `.cursor` + `.cursorrules`.
+
+            - Source of truth remains `.cursor/**` and `.cursorrules`
+            - Generated trees under `.llm/exports/**` were fully regenerated for each export target (orphans removed)
+            - For day-to-day updates use workflow **LLM exports sync** (branch `llm`); use **LLM exports full** for catch-up / after large renames
+          labels: |
+            llm
+          delete-branch: false
+
+      - name: Keep only the latest open llm-full PR
+        if: always()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          prs_json=$(gh api "repos/${{ github.repository }}/pulls?state=open&head=${{ github.repository_owner }}:llm-full&base=develop&per_page=100")
+          mapfile -t prs < <(node -e "const prs=JSON.parse(process.argv[1]||'[]'); prs.sort((a,b)=>new Date(b.updated_at)-new Date(a.updated_at)); for (const pr of prs) console.log(pr.number);" "$prs_json")
+          if [ "${#prs[@]}" -le 1 ]; then
+            echo "No duplicate llm-full PRs to close."
+            exit 0
+          fi
+          echo "Keeping PR #${prs[0]} and closing ${#prs[@]}-1 duplicate(s)."
+          for n in "${prs[@]:1}"; do
+            gh pr close "$n" --repo "${{ github.repository }}" --comment "Closing duplicate llm-full automation PR; branch llm-full reuses a single rolling PR into develop."
+          done

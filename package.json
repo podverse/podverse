@@ -77,6 +77,7 @@
     "prepare": "bash scripts/git-hooks/install-hooks.sh",
     "start-feature": "bash scripts/start-feature.sh",
     "llm:exports:sync": "node scripts/llm/export-from-cursor.mjs sync",
+    "llm:exports:sync:full": "node scripts/llm/export-from-cursor.mjs sync --full",
     "llm:exports:check": "node scripts/llm/export-from-cursor.mjs check",
     "llm:vendors": "node scripts/llm/vendor-selector.mjs",
     "build": "node scripts/ci/run-workspaces.mjs --script build --all",

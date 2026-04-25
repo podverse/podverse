@@ -1,6 +1,6 @@
 ---
 name: llm-cursor-source
-description: Repository source of truth for AI editor guidance is under .cursor and .cursorrules only. Use when adding, editing, or deleting skills, rules, or .cursorrules.
+description: Repository source of truth for AI editor guidance is under .cursor, .cursorrules, and .cursorignore. Use when adding, editing, or deleting skills, rules, .cursorrules, or .cursorignore.
 ---
 
 # LLM / Cursor source of truth
@@ -12,8 +12,9 @@ Only these paths define shared guidance for this repo:
 - `.cursor/skills/**`
 - `.cursor/rules/**`
 - `.cursorrules` (repo root)
+- `.cursorignore` (repo root) — path-level ignores for Cursor and some tooling
 
-Do not commit ad-hoc skill/rule trees under `.github/`. **Machine export trees** (for example `.llm/exports/github-copilot/`) are **not** a human or local-agent write target: the **`llm-exports-sync`** GitHub Action runs `npm run llm:exports:sync`, updates branch **`llm`**, and creates or updates a PR from **`llm`** into **`develop`**. You may run `llm:exports:sync` locally to inspect; generated paths are **`.gitignore`d** and listed in **`.cursorignore`**, so do **not** commit or hand-edit them. PRs that add or modify those files are blocked in CI (see [`.llm/exports/README.md`](../../../.llm/exports/README.md)).
+Do not commit ad-hoc skill/rule trees under `.github/`. **Machine export trees** under [`.llm/exports/`](../../../.llm/exports/) (per-target, allowlisted; see [EXPORT-TARGETS.md](../../../docs/development/llm/EXPORT-TARGETS.md)) are **not** a human or local-agent write target. **Rolling:** the **`llm-exports-sync`** action runs `llm:exports:sync` (incremental), updates branch **`llm`**, and its PR to **`develop`**. **On-demand full regen** (removes orphan files in exports): the **`llm-exports-full`** action runs `llm:exports:sync:full` and PR branch **`llm-full`**. You may run the same `npm` scripts locally to inspect. Generated content is **`.gitignore`d**; **`.llm/exports/`** is in **`.cursorignore`** for Cursor—do not commit or hand-edit generated `skills/`, `instructions/`, or `*-instructions.md` in feature PRs. See [`.llm/exports/README.md`](../../../.llm/exports/README.md) and the **`llm-exports-ci`** rule.
 
 ## Other LLM editors
 
@@ -27,8 +28,8 @@ Overview and policy:
 
 ## When .cursor changes
 
-- Edit skills and rules in `.cursor` (and `.cursorrules` if needed) and commit them like any other source.
-- **Do not** commit or push changes under the generated parts of **`.llm/exports`**. After your change lands on `develop` (or you run `workflow_dispatch`), automation refreshes branch `llm` and its rolling PR to `develop`; pull to refresh once that PR merges. Re-run the alignment prompt only if you use tooling that is not covered by the exports tree, or watch for PRs/issues labeled `llm`.
+- Edit skills, rules, `.cursorrules`, and (when needed) `.cursorignore`, and commit them like any other source.
+- **Do not** commit or push changes under the generated parts of **`.llm/exports`**. After your change lands on `develop` (or you run the **`llm-exports-sync`** `workflow_dispatch`), rolling automation updates branch `llm` and its PR to `develop`. Use **`llm-exports-full`** (or `llm:exports:sync:full` locally) when you need a full regen. Pull to refresh once the automation PR merges, or watch for PRs/issues labeled `llm`. Re-run the alignment prompt only if you use tooling that is not fully covered by the opt-in export targets.
 
 ## Skill file hygiene
 
