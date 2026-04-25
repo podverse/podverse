@@ -12,9 +12,9 @@ Two separate workflows build or promote release artifacts:
 
 **Changelog:** Both **staging** prereleases (`X.Y.Z-staging.N`) and **main** RTM releases (`X.Y.Z`) read release notes from [`docs/development/CHANGELOGS/X.Y.Z.md`](../development/CHANGELOGS/). Bump the base version at the start of work with `scripts/publish/bump-version.sh` so the semver changelog file exists immediately, then update that file continuously as work lands.
 
-**Promotion scripts** (under `scripts/publish/`): `sync-develop-to-staging.sh`, `sync-develop-to-main.sh`. There is no separate `beta` publish line; use **`staging`** for preprod builds and **`main`** to ship.
+**Promotion scripts** (under `scripts/publish/`): `sync-develop-to-staging.sh`, then (after a green staging build, when you want RTM) `sync-staging-to-main.sh`. There is no separate `beta` publish line; use **`staging`** for preprod builds and **`main`** to ship.
 
-**Promotion:** all product changes land on **`develop`**; **`staging`** and **`main`** are **triggers only** (fast-forward mirrors from `develop` when you promote).
+**Promotion:** all product changes land on **`develop`**. **Order:** fast-forward **`staging` from `develop`**, then after **Publish (staging)** succeeds, fast-forward **`main` from `staging`** (do **not** point `main` directly at `develop`). **`staging` and `main` have no feature commits of their own**; they are mirrors at different milestones in the same train.
 
 ---
 
@@ -24,11 +24,12 @@ Pushes to the **`staging`** branch build images tagged **`X.Y.Z-staging.N`** and
 
 ## Naming (Git branch, semver, cluster)
 
-| Name                                                | Meaning                                                                                            |
-| --------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
-| Git branch **`staging`**                            | Triggers the build-and-push publish workflow; fast-forwarded from `develop` when you want a build. |
-| **`X.Y.Z-staging.N`** / **`:staging`**              | **Image** tags. Not a Kubernetes namespace name (e.g. `podverse-alpha` in-cluster is separate).    |
-| **Environment / namespace** (e.g. `podverse-alpha`) | **Deployment** target. Independent of the word “staging” in the image tag.                         |
+| Name                                                | Meaning                                                                                                                                     |
+| --------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| Git branch **`staging`**                            | Triggers the build-and-push publish workflow; fast-forward from `develop` (see `sync-develop-to-staging.sh`).                               |
+| Git branch **`main`**                               | Triggers the promote-only workflow; fast-forward from `staging` after preprod, not directly from `develop` (see `sync-staging-to-main.sh`). |
+| **`X.Y.Z-staging.N`** / **`:staging`**              | **Image** tags. Not a Kubernetes namespace name (e.g. `podverse-alpha` in-cluster is separate).                                             |
+| **Environment / namespace** (e.g. `podverse-alpha`) | **Deployment** target. Independent of the word “staging” in the image tag.                                                                  |
 
 ---
 
@@ -62,11 +63,13 @@ Pushes to **`main`** do not run `docker build` for these apps. The job picks a s
 
 ## How to publish
 
-1. **Sync `develop` to a promotion branch** (fast-forward only from `develop`):
+1. **Preprod (staging):** fast-forward **`staging` from `develop`** (fast-forward only):
    - `./scripts/publish/sync-develop-to-staging.sh`
-   - `./scripts/publish/sync-develop-to-main.sh`
-2. The corresponding workflow runs on the push, or use **Run workflow** in the Actions tab.
-3. **Optional (staging only):** `version_override` on manual dispatch to reserve a specific tag (e.g. `1.0.0-staging.5`).
+2. Wait for **Publish (staging)** to finish and verify.
+3. **RTM (main):** when that staging line is what you want in production, fast-forward **`main` from `staging`** (not from `develop`):
+   - `./scripts/publish/sync-staging-to-main.sh`
+4. **Publish (main)** runs on the **main** push. You can also use **Run workflow** in the Actions tab for staging only.
+5. **Optional (staging only):** `version_override` on manual dispatch to reserve a specific tag (e.g. `1.0.0-staging.5`).
 
 For bumping the base `X.Y.Z` on `develop`, use `./scripts/publish/bump-version.sh` (see [ALPHA-DEPLOYMENT](ALPHA-DEPLOYMENT.md)).
 

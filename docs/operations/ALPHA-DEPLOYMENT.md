@@ -19,7 +19,7 @@ The alpha environment is a pre-production testing environment. Docker images are
 - **Staging** prerelease releases and **main** production releases both use the same base semver changelog file `docs/development/CHANGELOGS/X.Y.Z.md`.
 - Bump the version on **`develop`** at the start of work using `./scripts/publish/bump-version.sh`; this creates the `X.Y.Z.md` changelog file so release notes can be updated continuously as changes land.
 
-Promotion: `./scripts/publish/sync-develop-to-staging.sh`, `./scripts/publish/sync-develop-to-main.sh`.
+Promotion: `./scripts/publish/sync-develop-to-staging.sh` (preprod), then when ready for RTM `./scripts/publish/sync-staging-to-main.sh` (do not sync `develop` directly to `main`).
 
 - **Build + push to GHCR:** [`.github/workflows/publish-staging.yml`](../.github/workflows/publish-staging.yml) — display name **“Publish (staging)”**, on pushes to **`staging`** (or `workflow_dispatch`).
 - **Promote to RTM:** [`.github/workflows/publish-main.yml`](../.github/workflows/publish-main.yml) — **“Publish (main)”**, on pushes to **`main`**.
@@ -170,7 +170,34 @@ git push --no-verify origin staging
 
 **Note:** The manual method also requires bypass permissions for the protected `staging` branch. If you don't have permissions, create a Pull Request from `develop` to `staging` instead.
 
-### Step 3: Monitor the Workflow
+### Step 3: Fast-forward `main` from `staging` (RTM, production promote)
+
+When **Publish (staging)** has **succeeded** and you are ready to ship that same line to production, advance **`main`** to match **`staging`** (not `develop`):
+
+**Recommended: use the helper script:**
+
+```bash
+./scripts/publish/sync-staging-to-main.sh
+```
+
+The script:
+
+- Verifies a fast-forward of **`main` from `staging`** (both branches are mirrors with no long-lived feature commits; **main lags** staging in the same train)
+- Runs the same npm **audit** gate on the **staging** tree before pushing
+- Pushes **`main`**, which triggers **Publish (main)** (crane promote to **`X.Y.Z` / `:prod`**, no rebuild)
+
+If you do not have bypass permissions for `main`, use a **Pull Request** from `staging` to `main` instead. Do **not** use the removed **`develop` → `main`** one-hop sync; the promote workflow expects images to exist from the **staging** pipeline for the `X.Y.Z` base in `package.json` on the **`main` push** commit, which is aligned with **`staging`**.
+
+**Manual method:**
+
+```bash
+git checkout main
+git pull origin main
+git merge staging --ff-only
+git push --no-verify origin main
+```
+
+### Step 4: Monitor the workflow(s)
 
 ```bash
 # Watch the workflow run
@@ -301,20 +328,21 @@ an expected bootstrap; the `reserve-version` job starts the staging line at **`X
 
 ## Troubleshooting
 
-| Issue                                       | Cause                                    | Solution                                                                                                                                    |
-| ------------------------------------------- | ---------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
-| "not possible to fast-forward" error        | `staging` branch diverged from `develop` | Reset `staging` only with team agreement: e.g. `git checkout staging && git reset --hard origin/develop && git push --force origin staging` |
-| Workflow fails at "Security audit"          | npm vulnerabilities found                | Run `./scripts/audit/audit.sh --fix` locally                                                                                                |
-| Workflow fails at "Lint"                    | Linting errors                           | Run `npm run lint` locally to see errors                                                                                                    |
-| Workflow fails at "Type check"              | TypeScript errors                        | Run `npm run type-check` locally                                                                                                            |
-| Workflow fails at "Build all apps"          | Build errors                             | Run `npm run build:apps` locally                                                                                                            |
-| Docker build fails                          | Dockerfile or dependency issue           | Build locally with `docker build -f apps/<app>/Dockerfile .`                                                                                |
-| Container fails at start (MODULE_NOT_FOUND) | Workspace package missing from image     | See [Reproducing runtime errors locally](#reproducing-runtime-errors-locally) below                                                         |
-| GHCR push fails                             | Permission issue                         | Verify GITHUB_TOKEN has `packages:write` scope                                                                                              |
-| GHCR tag discovery returns 401/403          | Token scope or org policy restriction    | Ensure GHCR_REGISTRY_TOKEN has `packages:read` and org secret visibility includes this repository                                           |
-| GHCR tag discovery returns 404              | First publish, package path not created  | Expected bootstrap case; reserve-version can start the staging line at `X.Y.Z-staging.0`                                                    |
-| Version conflict                            | Tag already exists                       | Use `version_override` with a different version                                                                                             |
-| Images not updating on server               | Docker cache                             | Run `docker pull` with `--no-cache` or prune images                                                                                         |
+| Issue                                                  | Cause                                                                   | Solution                                                                                                                                                                                              |
+| ------------------------------------------------------ | ----------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| "not possible to fast-forward" (develop → `staging`)   | `staging` diverged from `develop`                                       | With team agreement: e.g. `git checkout staging && git reset --hard origin/develop && git push --force origin staging`                                                                                |
+| "not possible to fast-forward" (`main` from `staging`) | `main` and `staging` not linear (e.g. old direct `main` from `develop`) | Align with process: `main` should only get **`staging`**. With team agreement, reset or merge as needed, then re-run `sync-staging-to-main.sh` when `main` is a strict fast-forward behind `staging`. |
+| Workflow fails at "Security audit"                     | npm vulnerabilities found                                               | Run `./scripts/audit/audit.sh --fix` locally                                                                                                                                                          |
+| Workflow fails at "Lint"                               | Linting errors                                                          | Run `npm run lint` locally to see errors                                                                                                                                                              |
+| Workflow fails at "Type check"                         | TypeScript errors                                                       | Run `npm run type-check` locally                                                                                                                                                                      |
+| Workflow fails at "Build all apps"                     | Build errors                                                            | Run `npm run build:apps` locally                                                                                                                                                                      |
+| Docker build fails                                     | Dockerfile or dependency issue                                          | Build locally with `docker build -f apps/<app>/Dockerfile .`                                                                                                                                          |
+| Container fails at start (MODULE_NOT_FOUND)            | Workspace package missing from image                                    | See [Reproducing runtime errors locally](#reproducing-runtime-errors-locally) below                                                                                                                   |
+| GHCR push fails                                        | Permission issue                                                        | Verify GITHUB_TOKEN has `packages:write` scope                                                                                                                                                        |
+| GHCR tag discovery returns 401/403                     | Token scope or org policy restriction                                   | Ensure GHCR_REGISTRY_TOKEN has `packages:read` and org secret visibility includes this repository                                                                                                     |
+| GHCR tag discovery returns 404                         | First publish, package path not created                                 | Expected bootstrap case; reserve-version can start the staging line at `X.Y.Z-staging.0`                                                                                                              |
+| Version conflict                                       | Tag already exists                                                      | Use `version_override` with a different version                                                                                                                                                       |
+| Images not updating on server                          | Docker cache                                                            | Run `docker pull` with `--no-cache` or prune images                                                                                                                                                   |
 
 ### Reproducing runtime errors locally
 

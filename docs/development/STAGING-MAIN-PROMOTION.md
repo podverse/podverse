@@ -2,6 +2,12 @@
 
 This document describes how **Publish (staging)** and **Publish (main)** work in this repository. Workflows: [`.github/workflows/publish-staging.yml`](../../.github/workflows/publish-staging.yml), [`.github/workflows/publish-main.yml`](../../.github/workflows/publish-main.yml).
 
+## Git branch mirrors (develop → staging → main)
+
+- **`develop`:** all product work lands here.
+- **`staging`:** a **fast-forward mirror of `develop`** at the preprod milestone when you run [`sync-develop-to-staging.sh`](../../scripts/publish/sync-develop-to-staging.sh) (or the equivalent PR). It should not accrue its own long-lived feature commits.
+- **`main`:** a **fast-forward mirror of `staging`** when you run [`sync-staging-to-main.sh`](../../scripts/publish/sync-staging-to-main.sh) (or the equivalent PR) after **Publish (staging)** is green. **Do not** advance **`main` directly from `develop`**; it should reflect the line you already built in the staging pipeline.
+
 ## Staging branch: `X.Y.Z-staging.N`
 
 - **Base version** `X.Y.Z` comes from the root `package.json` `version` field (prerelease suffix stripped for `BASE`).
