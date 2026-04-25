@@ -51,6 +51,9 @@ jobs:
     if: github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && github.ref == 'refs/heads/develop')
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    # npm prepare installs pre-commit, which runs scripts/llm/guard-exports-prompt.sh. That guard must allow this job to commit .llm/exports (same as local ALLOW_DERIVED_EXPORT_EDIT=1).
+    env:
+      ALLOW_DERIVED_EXPORT_EDIT: "1"
     permissions:
       contents: write
       pull-requests: write
