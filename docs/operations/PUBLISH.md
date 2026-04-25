@@ -16,6 +16,15 @@ Two separate workflows build or promote release artifacts:
 
 **Promotion:** all product changes land on **`develop`**. **Order:** fast-forward **`staging` from `develop`**, then after **Publish (staging)** succeeds, fast-forward **`main` from `staging`** (do **not** point `main` directly at `develop`). **`staging` and `main` have no feature commits of their own**; they are mirrors at different milestones in the same train.
 
+## Runtime config lifecycle (web + management-web)
+
+For local CLI and local Docker parity, both Next.js apps use the same runtime-config contract:
+
+- `RUNTIME_CONFIG_URL` is the only required app-process env var.
+- `instrumentation.ts` prewarms sidecar config when available.
+- Root layout performs request-time hydration (`setRuntimeConfig`) and injects `RuntimeConfigScript` for the browser.
+- `getRuntimeConfig()` falls back to `process.env` if sidecar config is temporarily unavailable in the current process.
+
 ---
 
 ## Git branch `staging`: prerelease `X.Y.Z-staging.N` (detail)

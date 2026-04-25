@@ -34,13 +34,18 @@ function buildRuntimeConfigFromProcessEnv(): ManagementWebRuntimeConfig {
   return { env };
 }
 
+let hasLoggedFallback = false;
+
 export const getRuntimeConfig = (): ManagementWebRuntimeConfig => {
   const runtimeConfig = globalThis.__PODVERSE_MANAGEMENT_RUNTIME_CONFIG__;
   if (!runtimeConfig) {
-    // No store yet: prerender, or `RUNTIME_CONFIG_URL` not used; fall back to process.env
-    // (use inline NEXT_PUBLIC_* in .env.local if not using the sidecar in this run).
-    if (process.env.NODE_ENV !== 'production') {
-      console.log('[runtime-config] Using build-time process.env fallback');
+    // Build/prerender or worker without instrumentation: fall back to process.env.
+    // In dev, request handlers may run in a different process than instrumentation.
+    if (process.env.NODE_ENV !== 'production' && !hasLoggedFallback) {
+      hasLoggedFallback = true;
+      console.log(
+        '[runtime-config] Using process.env (sidecar config not set in this process; normal in dev if handlers run in a separate worker).'
+      );
     }
     return buildRuntimeConfigFromProcessEnv();
   }
