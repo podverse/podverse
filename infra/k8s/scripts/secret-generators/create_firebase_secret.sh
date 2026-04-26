@@ -28,7 +28,7 @@ ENVIRONMENT="${ENVIRONMENT:-alpha}"
 
 SECRET_NAME="podverse-workers-firebase-opaque"
 NAMESPACE="podverse-${ENVIRONMENT}"
-OUTPUT_FILE="./infra/k8s/secrets/podverse-${ENVIRONMENT}-workers-firebase-opaque.enc.yaml"
+OUTPUT_FILE="./secrets/podverse-${ENVIRONMENT}-workers-firebase-opaque.enc.yaml"
 
 # ------------------------------------------------------------------
 # INPUTS

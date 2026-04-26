@@ -125,6 +125,40 @@ export function validateOptional(
   };
 }
 
+const ABSOLUTE_HTTP_URL_RE = /^https?:\/\//i;
+
+/**
+ * Optional web branding image URL: if set, must be an absolute `http://` or `https://` URL
+ * (so assets are not required to be bundled in the app image).
+ */
+export function validateOptionalAbsoluteHttpUrlIfSet(
+  varName: string,
+  category: string,
+  notSetMessage: string = 'Skipped'
+): ValidationResult {
+  const raw = process.env[varName] || '';
+  const value = raw.trim();
+  if (value === '') {
+    return {
+      name: varName,
+      isSet: false,
+      isValid: true,
+      isRequired: false,
+      message: notSetMessage,
+      category,
+    };
+  }
+  const ok = ABSOLUTE_HTTP_URL_RE.test(value);
+  return {
+    name: varName,
+    isSet: true,
+    isValid: ok,
+    isRequired: false,
+    message: ok ? 'Set' : 'Must be an absolute http:// or https:// URL',
+    category,
+  };
+}
+
 /**
  * Validates a conditionally optional environment variable (only logs if set but not needed)
  * Returns null if variable is not set (so it won't be included in results)
@@ -662,6 +696,7 @@ export function validateSignupMode(varName: string, category: string): Validatio
 
 /**
  * Validates SERVER_ENV / NEXT_PUBLIC_SERVER_ENV using helpers constants.
+ * Blank/empty is valid (disclaimer modal is skipped when unset).
  */
 export function validateServerEnv(varName: string, category: string): ValidationResult {
   const value = process.env[varName];
@@ -672,9 +707,9 @@ export function validateServerEnv(varName: string, category: string): Validation
     return {
       name: varName,
       isSet: false,
-      isValid: false,
-      isRequired: true,
-      message: `Missing - must be one of: ${SERVER_ENV_VALUES.join(', ')}`,
+      isValid: true,
+      isRequired: false,
+      message: 'Blank - disclaimer modal skipped',
       category,
     };
   }

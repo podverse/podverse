@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# VERSION: 1
-# Helper to create the encrypted Management DB secret.
-# Emits only DB_MANAGEMENT_* keys; runtime POSTGRES_* mapping happens in manifests/compose.
+# VERSION: 4
+# Helper to create the encrypted Database secret.
+# Emits only DB_APP_* keys; runtime POSTGRES_* mapping happens in manifests/compose.
 
 set -euo pipefail
 
@@ -33,7 +33,7 @@ generate_password() {
   openssl rand -hex 32 | tr -d '\n'
 }
 
-echo "Running create_management_db_secret.sh"
+echo "Running create_db_secret.sh"
 
 # ------------------------------------------------------------------
 # ENVIRONMENT INPUT
@@ -49,9 +49,9 @@ ENVIRONMENT="${ENVIRONMENT:-alpha}"
 # ------------------------------------------------------------------
 # CONFIGURATION
 # ------------------------------------------------------------------
-SECRET_NAME="podverse-management-db-opaque"
+SECRET_NAME="podverse-db-opaque"
 NAMESPACE="podverse-${ENVIRONMENT}"
-OUTPUT_FILE="./infra/k8s/secrets/podverse-${ENVIRONMENT}-management-db-opaque.enc.yaml"
+OUTPUT_FILE="./secrets/podverse-${ENVIRONMENT}-db-opaque.enc.yaml"
 
 # Allow orchestrator to override output path
 if [ -n "$OUTPUT_FILE_OVERRIDE" ]; then
@@ -61,94 +61,97 @@ fi
 # ------------------------------------------------------------------
 # INPUTS
 # ------------------------------------------------------------------
-DEFAULT_DB="podverse_management"
-DEFAULT_USER="postgres_user_management"
-DEFAULT_READ_USER="podverse_management_read"
-DEFAULT_READ_WRITE_USER="podverse_management_read_write"
+DEFAULT_DB="podverse_app"
+DEFAULT_USER="postgres_user_app"
+DEFAULT_READ_USER="podverse_app_read"
+DEFAULT_READ_WRITE_USER="podverse_app_read_write"
 
 if [ "$AUTO_GEN" = true ]; then
   echo "Auto-generating secrets..."
-  DB_MANAGEMENT_NAME="$DEFAULT_DB"
-  DB_MANAGEMENT_ADMIN_USER="$DEFAULT_USER"
-  DB_MANAGEMENT_READ_USER="$DEFAULT_READ_USER"
-  DB_MANAGEMENT_READ_WRITE_USER="$DEFAULT_READ_WRITE_USER"
-  DB_MANAGEMENT_ADMIN_PASSWORD=$(generate_password)
-  DB_MANAGEMENT_READ_PASSWORD=$(generate_password)
-  DB_MANAGEMENT_READ_WRITE_PASSWORD=$(generate_password)
-  echo "  DB_MANAGEMENT_NAME: $DB_MANAGEMENT_NAME"
-  echo "  DB_MANAGEMENT_ADMIN_USER: $DB_MANAGEMENT_ADMIN_USER"
-  echo "  DB_MANAGEMENT_ADMIN_PASSWORD: [generated]"
-  echo "  DB_MANAGEMENT_READ_PASSWORD: [generated]"
-  echo "  DB_MANAGEMENT_READ_WRITE_PASSWORD: [generated]"
+  DB_APP_NAME="$DEFAULT_DB"
+  DB_APP_ADMIN_USER="$DEFAULT_USER"
+  DB_APP_READ_USER="$DEFAULT_READ_USER"
+  DB_APP_READ_WRITE_USER="$DEFAULT_READ_WRITE_USER"
+  DB_APP_ADMIN_PASSWORD=$(generate_password)
+  DB_APP_READ_PASSWORD=$(generate_password)
+  DB_APP_READ_WRITE_PASSWORD=$(generate_password)
+  echo "  DB_APP_NAME: $DB_APP_NAME"
+  echo "  DB_APP_ADMIN_USER: $DB_APP_ADMIN_USER"
+  echo "  DB_APP_ADMIN_PASSWORD: [generated]"
+  echo "  DB_APP_READ_PASSWORD: [generated]"
+  echo "  DB_APP_READ_WRITE_PASSWORD: [generated]"
 else
-  echo "You are generating the Management DB credentials."
+  echo "You are generating the app database credentials."
   echo "Press Enter to use the default value."
   echo ""
 
   echo ""
   echo "--- DBNAME INPUTS ---"
-  read -r -p "DB_MANAGEMENT_NAME [${DEFAULT_DB}]: " INPUT_DB
-  DB_MANAGEMENT_NAME="${INPUT_DB:-$DEFAULT_DB}"
+  read -r -p "DB_APP_NAME [${DEFAULT_DB}]: " INPUT_DB
+  DB_APP_NAME="${INPUT_DB:-$DEFAULT_DB}"
   echo ""
   echo "--- USERNAME INPUTS ---"
   echo "--- ADMIN USER ---"
-  read -r -p "DB_MANAGEMENT_ADMIN_USER [${DEFAULT_USER}]: " INPUT_USER
-  DB_MANAGEMENT_ADMIN_USER="${INPUT_USER:-$DEFAULT_USER}"
+  read -r -p "DB_APP_ADMIN_USER [${DEFAULT_USER}]: " INPUT_USER
+  DB_APP_ADMIN_USER="${INPUT_USER:-$DEFAULT_USER}"
   echo ""
   echo "--- READ-ONLY USER ---"
-  read -r -p "DB_MANAGEMENT_READ_USER [${DEFAULT_READ_USER}]: " INPUT_READ_USER
-  DB_MANAGEMENT_READ_USER="${INPUT_READ_USER:-$DEFAULT_READ_USER}"
+  read -r -p "DB_APP_READ_USER [${DEFAULT_READ_USER}]: " INPUT_READ_USER
+  DB_APP_READ_USER="${INPUT_READ_USER:-$DEFAULT_READ_USER}"
   echo ""
   echo "--- READ-WRITE USER ---"
-  read -r -p "DB_MANAGEMENT_READ_WRITE_USER [${DEFAULT_READ_WRITE_USER}]: " INPUT_READ_WRITE_USER
-  DB_MANAGEMENT_READ_WRITE_USER="${INPUT_READ_WRITE_USER:-$DEFAULT_READ_WRITE_USER}"
+  read -r -p "DB_APP_READ_WRITE_USER [${DEFAULT_READ_WRITE_USER}]: " INPUT_READ_WRITE_USER
+  DB_APP_READ_WRITE_USER="${INPUT_READ_WRITE_USER:-$DEFAULT_READ_WRITE_USER}"
 
   echo ""
   echo "--- SENSITIVE INPUTS ---"
-  read -r -s -p "Enter DB_MANAGEMENT_ADMIN_PASSWORD (Admin): " DB_MANAGEMENT_ADMIN_PASSWORD
+  # -s hides input
+  read -r -s -p "Enter DB_APP_ADMIN_PASSWORD (Admin): " DB_APP_ADMIN_PASSWORD
   echo ""
-  if [ -z "$DB_MANAGEMENT_ADMIN_PASSWORD" ]; then
+  if [ -z "$DB_APP_ADMIN_PASSWORD" ]; then
     echo "Error: Password required."
     exit 1
   fi
 
-  read -r -s -p "Enter DB_MANAGEMENT_READ_PASSWORD (Read-only User): " DB_MANAGEMENT_READ_PASSWORD
+  read -r -s -p "Enter DB_APP_READ_PASSWORD (Read-only User): " DB_APP_READ_PASSWORD
   echo ""
-  if [ -z "$DB_MANAGEMENT_READ_PASSWORD" ]; then
+  if [ -z "$DB_APP_READ_PASSWORD" ]; then
     echo "Error: Password required."
     exit 1
   fi
 
-  read -r -s -p "Enter DB_MANAGEMENT_READ_WRITE_PASSWORD (App User): " DB_MANAGEMENT_READ_WRITE_PASSWORD
+  read -r -s -p "Enter DB_APP_READ_WRITE_PASSWORD (App User): " DB_APP_READ_WRITE_PASSWORD
   echo ""
-  if [ -z "$DB_MANAGEMENT_READ_WRITE_PASSWORD" ]; then
+  if [ -z "$DB_APP_READ_WRITE_PASSWORD" ]; then
     echo "Error: Password required."
     exit 1
   fi
-
 fi
 
 # ------------------------------------------------------------------
 # GENERATION
 # ------------------------------------------------------------------
 
+# Ensure secrets dir exists
 mkdir -p "$(dirname "$OUTPUT_FILE")"
 
 echo "Generating and encrypting secret..."
 
+# We pipe kubectl output directly to sops.
+# This secret is consumed by workloads directly as DB_APP_*.
+
 TMP_FILE_BASE="$(mktemp -t "${SECRET_NAME}.XXXXXX")"
 TMP_FILE="${TMP_FILE_BASE}.yaml"
 mv "$TMP_FILE_BASE" "$TMP_FILE"
-
 kubectl create secret generic "${SECRET_NAME}" \
   --namespace "${NAMESPACE}" \
-  --from-literal=DB_MANAGEMENT_NAME="${DB_MANAGEMENT_NAME}" \
-  --from-literal=DB_MANAGEMENT_ADMIN_USER="${DB_MANAGEMENT_ADMIN_USER}" \
-  --from-literal=DB_MANAGEMENT_ADMIN_PASSWORD="${DB_MANAGEMENT_ADMIN_PASSWORD}" \
-  --from-literal=DB_MANAGEMENT_READ_USER="${DB_MANAGEMENT_READ_USER}" \
-  --from-literal=DB_MANAGEMENT_READ_PASSWORD="${DB_MANAGEMENT_READ_PASSWORD}" \
-  --from-literal=DB_MANAGEMENT_READ_WRITE_USER="${DB_MANAGEMENT_READ_WRITE_USER}" \
-  --from-literal=DB_MANAGEMENT_READ_WRITE_PASSWORD="${DB_MANAGEMENT_READ_WRITE_PASSWORD}" \
+  --from-literal=DB_APP_NAME="${DB_APP_NAME}" \
+  --from-literal=DB_APP_ADMIN_USER="${DB_APP_ADMIN_USER}" \
+  --from-literal=DB_APP_ADMIN_PASSWORD="${DB_APP_ADMIN_PASSWORD}" \
+  --from-literal=DB_APP_READ_USER="${DB_APP_READ_USER}" \
+  --from-literal=DB_APP_READ_PASSWORD="${DB_APP_READ_PASSWORD}" \
+  --from-literal=DB_APP_READ_WRITE_USER="${DB_APP_READ_WRITE_USER}" \
+  --from-literal=DB_APP_READ_WRITE_PASSWORD="${DB_APP_READ_WRITE_PASSWORD}" \
   --dry-run=client -o yaml >"$TMP_FILE"
 
 sops --config .sops.yaml --encrypt --encrypted-regex '^(data|stringData)$' \
@@ -164,5 +167,3 @@ echo "sops -d ${OUTPUT_FILE}"
 echo ""
 echo "You can apply the values (if you have the key) by running:"
 echo "sops -d ${OUTPUT_FILE} | kubectl apply -f -"
-echo ""
-echo "Note: If you had an existing management-db secret, re-apply after re-running this script so it contains DB_MANAGEMENT_* keys."

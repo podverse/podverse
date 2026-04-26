@@ -1,11 +1,7 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion -- env vars validated at startup in lib/startup/validation.ts */
 
 import type { AccountSignupMode } from '@podverse/helpers';
-import {
-  getEffectiveUserAgent,
-  jwtExpiresInToMilliseconds,
-  ONE_DAY_SECONDS,
-} from '@podverse/helpers';
+import { jwtExpiresInToMilliseconds, ONE_DAY_SECONDS } from '@podverse/helpers';
 
 type SocialConfig = {
   pageUrl: string;
@@ -16,6 +12,7 @@ type Config = {
   nodeEnv: string;
   serverEnv: string;
   userAgent: string;
+  brandName: string;
   log: {
     level: string;
     dir: string;
@@ -45,7 +42,6 @@ type Config = {
     };
   };
   emailChangeVerification: {
-    pagePath: string;
     tokenExpiration: number;
   };
   legal: {
@@ -84,7 +80,6 @@ type Config = {
   };
   resetPassword: {
     tokenExpiration: number;
-    pagePath: string;
   };
   social: {
     facebook: SocialConfig;
@@ -93,7 +88,6 @@ type Config = {
     twitter: SocialConfig;
   };
   verifyEmail: {
-    pagePath: string;
     tokenExpiration: number;
   };
   web: {
@@ -111,11 +105,8 @@ type Config = {
 export const config: Config = {
   nodeEnv: process.env.NODE_ENV!,
   serverEnv: process.env.SERVER_ENV!,
-  userAgent: getEffectiveUserAgent({
-    userAgentRaw: process.env.USER_AGENT,
-    brandName: process.env.BRAND_NAME!,
-    suffix: ' Bot Local/API/5',
-  }),
+  userAgent: process.env.USER_AGENT!,
+  brandName: process.env.BRAND_NAME!,
   log: {
     level: process.env.LOG_LEVEL!,
     dir: process.env.LOG_DIR ?? '',
@@ -150,7 +141,6 @@ export const config: Config = {
     },
   },
   emailChangeVerification: {
-    pagePath: process.env.EMAIL_CHANGE_VERIFICATION_PAGE_PATH!,
     tokenExpiration: parseInt(process.env.EMAIL_CHANGE_VERIFICATION_TOKEN_EXPIRATION!, 10),
   },
   legal: {
@@ -189,7 +179,6 @@ export const config: Config = {
   },
   resetPassword: {
     tokenExpiration: parseInt(process.env.RESET_PASSWORD_TOKEN_EXPIRATION!, 10),
-    pagePath: process.env.RESET_PASSWORD_PAGE_PATH!,
   },
   social: {
     facebook: {
@@ -210,7 +199,6 @@ export const config: Config = {
     },
   },
   verifyEmail: {
-    pagePath: process.env.VERIFY_EMAIL_PAGE_PATH!,
     tokenExpiration: parseInt(process.env.VERIFY_EMAIL_TOKEN_EXPIRATION!, 10),
   },
   web: {

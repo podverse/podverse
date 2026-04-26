@@ -52,9 +52,12 @@ infra/k8s/
 ├── system/                   # Cluster-wide config
 │   └── traefik-config.yaml
 └── scripts/                  # Helper scripts
-    ├── create_*_secret.sh
-    ├── db-connect.sh
-    └── README.md
+    ├── README.md
+    ├── secret-generators/   # SOPS: create_*_secret.sh, create_all_*.sh
+    ├── db/                 # db-connect.sh
+    ├── mq/                 # mq-connect.sh
+    ├── keyvaldb/            # keyvaldb-gui-connect.sh
+    └── list_images.sh      # list cluster image refs (monorepo root)
 ```
 
 ## Architecture: App of Apps Pattern
@@ -124,7 +127,7 @@ ConfigMaps in `base/<component>/01-configmap.yaml` should mirror the structure o
 - **Never** put secrets in ConfigMaps
 - Mark sensitive variables with `# in secrets` comment
 - **Align comments:** When several consecutive lines have `# in secrets` (or `# in secrets (...)`), align the `# in secrets` part vertically (same column) by padding with spaces after the value so the comment starts at the same position
-- Actual secrets go in SOPS-encrypted files under `k8s/secrets/`
+- Actual secrets go in SOPS-encrypted files under repo-root `secrets/`
 - Use `secretRef` in Deployment `envFrom` to load secrets
 
 **Example (aligned `# in secrets` in a sequence):**
@@ -192,24 +195,24 @@ Child applications in `alpha/apps/<component>.yaml` define:
 
 ### Creating Secrets
 
-Use helper scripts in `infra/k8s/scripts/`:
+Use secret generator scripts in `infra/k8s/scripts/secret-generators/`:
 
 ```bash
 # Run from repo root with nix develop
-bash infra/k8s/scripts/create_db_secret.sh
-bash infra/k8s/scripts/create_api_secret.sh
-bash infra/k8s/scripts/create_mq_secret.sh
+bash infra/k8s/scripts/secret-generators/create_db_secret.sh
+bash infra/k8s/scripts/secret-generators/create_api_secret.sh
+bash infra/k8s/scripts/secret-generators/create_mq_secret.sh
 # ... etc
 ```
 
 ### Applying Secrets
 
-Secrets are SOPS-encrypted and stored in `k8s/secrets/podverse-<env>-<component>-opaque.enc.yaml`.
+Secrets are SOPS-encrypted and stored in `secrets/podverse-<env>-<component>-opaque.enc.yaml` (monorepo root).
 
 **Manual apply:**
 
 ```bash
-sops -d k8s/secrets/podverse-alpha-db-opaque.enc.yaml | kubectl apply -f -
+sops -d secrets/podverse-alpha-db-opaque.enc.yaml | kubectl apply -f -
 ```
 
 **ArgoCD:** Consumes encrypted files directly (SOPS plugin configured).
@@ -304,7 +307,7 @@ labels:
 3. Create `base/<component>/kustomization.yaml` listing resources
 4. Create `alpha/<component>/` overlay with `kustomization.yaml`
 5. Add ArgoCD Application in `alpha/apps/<component>.yaml`
-6. Create secrets script in `infra/k8s/scripts/create_<component>_secret.sh`
+6. Create secrets script in `infra/k8s/scripts/secret-generators/create_<component>_secret.sh`
 
 ### Updating Image Versions
 
@@ -320,7 +323,7 @@ ArgoCD will detect the change and sync automatically.
 
 ## Helper Scripts
 
-Located in `infra/k8s/scripts/`:
+**Secret generators** live in `infra/k8s/scripts/secret-generators/` (see [INFRA-K8S-SCRIPTS-SECRET-GENERATORS.md](../../infra/k8s/scripts/secret-generators/INFRA-K8S-SCRIPTS-SECRET-GENERATORS.md)):
 
 | Script                      | Purpose                                      |
 | --------------------------- | -------------------------------------------- |
@@ -329,9 +332,15 @@ Located in `infra/k8s/scripts/`:
 | `create_mq_secret.sh`       | Generate encrypted message queue credentials |
 | `create_keyvaldb_secret.sh` | Generate encrypted Valkey/Redis password     |
 | `create_firebase_secret.sh` | Generate encrypted Firebase service account  |
-| `db-connect.sh`             | Port-forward and connect to PostgreSQL       |
-| `keyvaldb-gui-connect.sh`   | Port-forward to RedisInsight GUI             |
-| `mq-connect.sh`             | Port-forward to message queue                |
+
+**Other** scripts (DB/MQ/Valkey connect, image listing) under `infra/k8s/scripts/<topic>/` and `list_images.sh` at `scripts/`:
+
+| Path / script                      | Purpose                                   |
+| ---------------------------------- | ----------------------------------------- |
+| `db/db-connect.sh`                 | Port-forward and connect to PostgreSQL    |
+| `keyvaldb/keyvaldb-gui-connect.sh` | Port-forward to RedisInsight GUI          |
+| `mq/mq-connect.sh`                 | Port-forward to message queue             |
+| `list_images.sh`                   | List image references in use (see script) |
 
 See [infra/k8s/scripts/README.md](../../infra/k8s/scripts/README.md) for details.
 

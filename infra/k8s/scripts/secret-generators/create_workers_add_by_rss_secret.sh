@@ -1,12 +1,9 @@
 #!/usr/bin/env bash
 # VERSION: 1
-# Helper to create the encrypted API secret.
+# Helper to create the encrypted Workers Add-by-RSS secret.
 
 set -euo pipefail
 
-# ------------------------------------------------------------------
-# CONFIGURATION
-# ------------------------------------------------------------------
 AUTO_GEN=false
 OUTPUT_FILE_OVERRIDE=""
 
@@ -27,12 +24,12 @@ while [[ $# -gt 0 ]]; do
 	esac
 done
 
-# Generate secure random JWT secret (UUID format; consistent with setup.sh AUTH_JWT_SECRET)
-generate_password() {
-	uuidgen | tr '[:upper:]' '[:lower:]' | tr -d '\n'
+# Generate secure random key (hex-only, 32 chars = 128 bits; consistent with other create_* scripts)
+generate_key() {
+	openssl rand -hex 32 | tr -d '\n'
 }
 
-echo "Running create_management-api_secret.sh"
+echo "Running create_workers_add_by_rss_secret.sh"
 
 # ENVIRONMENT INPUT
 if [ "$AUTO_GEN" = true ]; then
@@ -43,9 +40,9 @@ else
 fi
 ENVIRONMENT="${ENVIRONMENT:-alpha}"
 
-SECRET_NAME="podverse-management-api-opaque"
+SECRET_NAME="podverse-workers-add-by-rss-opaque"
 NAMESPACE="podverse-${ENVIRONMENT}"
-OUTPUT_FILE="./infra/k8s/secrets/podverse-${ENVIRONMENT}-management-api-opaque.enc.yaml"
+OUTPUT_FILE="./secrets/podverse-${ENVIRONMENT}-workers-add-by-rss-opaque.enc.yaml"
 
 # Allow orchestrator to override output path
 if [ -n "$OUTPUT_FILE_OVERRIDE" ]; then
@@ -57,30 +54,26 @@ fi
 # ------------------------------------------------------------------
 if [ "$AUTO_GEN" = true ]; then
 	echo "Auto-generating secrets..."
-	AUTH_JWT_SECRET=$(generate_password)
-	echo "  AUTH_JWT_SECRET: [generated]"
+	ADD_BY_RSS_CREDENTIALS_ENCRYPTION_KEY=$(generate_key)
+	echo "  ADD_BY_RSS_CREDENTIALS_ENCRYPTION_KEY: [generated]"
 else
-	echo "--- AUTHENTICATION ---"
-	read -r -s -p "Enter AUTH_JWT_SECRET (Random String): " AUTH_JWT_SECRET
+	echo "--- ADD BY RSS ---"
+	read -r -s -p "Enter ADD_BY_RSS_CREDENTIALS_ENCRYPTION_KEY: " ADD_BY_RSS_CREDENTIALS_ENCRYPTION_KEY
 	echo ""
-	if [ -z "$AUTH_JWT_SECRET" ]; then
-		echo "Error: JWT Secret required."
+	if [ -z "$ADD_BY_RSS_CREDENTIALS_ENCRYPTION_KEY" ]; then
+		echo "Error: ADD_BY_RSS_CREDENTIALS_ENCRYPTION_KEY required."
 		exit 1
 	fi
-
-	echo ""
 fi
 
 # --- GENERATION ---
 mkdir -p "$(dirname "$OUTPUT_FILE")"
 echo "Generating and encrypting secret..."
 
-TMP_FILE_BASE="$(mktemp -t "${SECRET_NAME}.XXXXXX")"
-TMP_FILE="${TMP_FILE_BASE}.yaml"
-mv "$TMP_FILE_BASE" "$TMP_FILE"
+TMP_FILE="$(mktemp -t "${SECRET_NAME}.XXXXXX.yaml")"
 kubectl create secret generic "${SECRET_NAME}" \
 	--namespace "${NAMESPACE}" \
-	--from-literal=AUTH_JWT_SECRET="${AUTH_JWT_SECRET}" \
+	--from-literal=ADD_BY_RSS_CREDENTIALS_ENCRYPTION_KEY="${ADD_BY_RSS_CREDENTIALS_ENCRYPTION_KEY}" \
 	--dry-run=client -o yaml >"$TMP_FILE"
 
 sops --encrypt --encrypted-regex '^(data|stringData)$' \

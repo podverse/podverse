@@ -1,11 +1,10 @@
 /* eslint-disable no-console */
-/* eslint-disable @typescript-eslint/no-non-null-assertion -- BRAND_NAME validated required at startup before getEffectiveUserAgent */
 /**
  * Startup validation module - console output is intentional for startup diagnostics.
  * This module validates environment variables before the application starts.
  */
 
-import { getEffectiveUserAgent, isValidUUID } from '@podverse/helpers';
+import { isValidUUID } from '@podverse/helpers';
 import type { ValidationResult, ValidationSummary } from '@podverse/helpers-config';
 import { validateOptional, validateRequired } from '@podverse/helpers-config';
 
@@ -152,35 +151,41 @@ const validateJwtSecret = (): ValidationResult => {
 const USER_AGENT_PATTERN = /^[^/]+\/[^/]+\/[^/]+$/;
 
 /**
- * Validates USER_AGENT (or effective value when blank, built from BRAND_NAME).
- * Format: BrandName Bot Environment/AppName/Version, e.g. "Podverse Bot Local/Management-API/5"
+ * Validates `USER_AGENT` (required, non-blank; no inference from `BRAND_NAME`).
+ * Format: `BrandName Bot Environment/AppName/Version`, e.g. `Example Bot local/Management-API/5`
  */
 const validateUserAgent = (): ValidationResult => {
-  const effectiveUserAgent = getEffectiveUserAgent({
-    userAgentRaw: process.env.USER_AGENT,
-    brandName: process.env.BRAND_NAME!,
-    suffix: ' Bot Local/Management-API/5',
-  });
-
-  if (!USER_AGENT_PATTERN.test(effectiveUserAgent)) {
+  const raw = (process.env.USER_AGENT ?? '').trim();
+  if (raw === '') {
     return {
       name: 'USER_AGENT',
-      isSet: process.env.USER_AGENT?.trim() !== '',
+      isSet: false,
       isValid: false,
       isRequired: true,
-      message: `Invalid format: "${effectiveUserAgent}" - must follow format: BrandName Bot Environment/AppName/Version`,
+      message: 'Missing (required)',
       category: 'Auth & Security',
     };
   }
 
-  const firstPart = effectiveUserAgent.split('/')[0];
+  if (!USER_AGENT_PATTERN.test(raw)) {
+    return {
+      name: 'USER_AGENT',
+      isSet: true,
+      isValid: false,
+      isRequired: true,
+      message: `Invalid format: "${raw}" - must follow format: BrandName Bot Environment/AppName/Version`,
+      category: 'Auth & Security',
+    };
+  }
+
+  const firstPart = raw.split('/')[0];
   if (firstPart && !firstPart.includes('Bot')) {
     return {
       name: 'USER_AGENT',
-      isSet: process.env.USER_AGENT?.trim() !== '',
+      isSet: true,
       isValid: false,
       isRequired: true,
-      message: `Missing "Bot" in first part: "${effectiveUserAgent}"`,
+      message: `Missing "Bot" in first part: "${raw}"`,
       category: 'Auth & Security',
     };
   }

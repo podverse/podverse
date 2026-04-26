@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 # VERSION: 1
-# Helper to create the encrypted MQ secret.
-# Includes aliases: ARTEMIS_* (for Broker) and MESSAGE_QUEUE_* (for Workers).
+# Helper to create the encrypted API secret.
 
 set -euo pipefail
 
@@ -33,7 +32,7 @@ generate_password() {
 	openssl rand -hex 32 | tr -d '\n'
 }
 
-echo "Running create_mq_secret.sh"
+echo "Running create_api_secret.sh"
 
 # ENVIRONMENT INPUT
 if [ "$AUTO_GEN" = true ]; then
@@ -44,9 +43,9 @@ else
 fi
 ENVIRONMENT="${ENVIRONMENT:-alpha}"
 
-SECRET_NAME="podverse-mq-opaque"
+SECRET_NAME="podverse-api-opaque"
 NAMESPACE="podverse-${ENVIRONMENT}"
-OUTPUT_FILE="./infra/k8s/secrets/podverse-${ENVIRONMENT}-mq-opaque.enc.yaml"
+OUTPUT_FILE="./secrets/podverse-${ENVIRONMENT}-api-opaque.enc.yaml"
 
 # Allow orchestrator to override output path
 if [ -n "$OUTPUT_FILE_OVERRIDE" ]; then
@@ -56,29 +55,28 @@ fi
 # ------------------------------------------------------------------
 # INPUTS
 # ------------------------------------------------------------------
-DEFAULT_USER="admin"
-
 if [ "$AUTO_GEN" = true ]; then
 	echo "Auto-generating secrets..."
-	MQ_USER="$DEFAULT_USER"
-	MQ_PASSWORD=$(generate_password)
-	echo "  MQ_USER: $MQ_USER"
-	echo "  MQ_PASSWORD: [generated]"
+	AUTH_JWT_SECRET=$(uuidgen | tr '[:upper:]' '[:lower:]' | tr -d '\n')
+	MAILER_USERNAME=""
+	MAILER_PASSWORD=$(generate_password)
+	echo "  AUTH_JWT_SECRET: [generated]"
+	echo "  MAILER_USERNAME: [empty]"
+	echo "  MAILER_PASSWORD: [generated]"
 else
+	echo "--- AUTHENTICATION ---"
+	read -r -s -p "Enter AUTH_JWT_SECRET (Random String): " AUTH_JWT_SECRET
 	echo ""
-	echo "--- USERNAME INPUTS ---"
-
-	read -r -p "Enter MQ Username [${DEFAULT_USER}]: " INPUT_USER
-	MQ_USER="${INPUT_USER:-$DEFAULT_USER}"
-
-	echo ""
-	echo "--- SENSITIVE INPUTS ---"
-	read -r -s -p "Enter MQ Password: " MQ_PASSWORD
-	echo ""
-	if [ -z "$MQ_PASSWORD" ]; then
-		echo "Error: Password required."
+	if [ -z "$AUTH_JWT_SECRET" ]; then
+		echo "Error: JWT Secret required."
 		exit 1
 	fi
+
+	echo ""
+	echo "--- MAILER (Optional - Press Enter to skip) ---"
+	read -r -p "Enter MAILER_USERNAME: " MAILER_USERNAME
+	read -r -s -p "Enter MAILER_PASSWORD: " MAILER_PASSWORD
+	echo ""
 fi
 
 # --- GENERATION ---
@@ -90,12 +88,9 @@ TMP_FILE="${TMP_FILE_BASE}.yaml"
 mv "$TMP_FILE_BASE" "$TMP_FILE"
 kubectl create secret generic "${SECRET_NAME}" \
 	--namespace "${NAMESPACE}" \
-	--from-literal=ARTEMIS_USER="${MQ_USER}" \
-	--from-literal=ARTEMIS_PASSWORD="${MQ_PASSWORD}" \
-	\
-	--from-literal=MESSAGE_QUEUE_USERNAME="${MQ_USER}" \
-	--from-literal=MESSAGE_QUEUE_PASSWORD="${MQ_PASSWORD}" \
-	\
+	--from-literal=AUTH_JWT_SECRET="${AUTH_JWT_SECRET}" \
+	--from-literal=MAILER_USERNAME="${MAILER_USERNAME}" \
+	--from-literal=MAILER_PASSWORD="${MAILER_PASSWORD}" \
 	--dry-run=client -o yaml >"$TMP_FILE"
 
 sops --encrypt --encrypted-regex '^(data|stringData)$' \

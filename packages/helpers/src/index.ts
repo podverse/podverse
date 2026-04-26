@@ -54,5 +54,4 @@ export * from './lib/throughputLimiter.js';
 export * from './lib/safeLinkHref.js';
 export * from './lib/url.js';
 export * from './lib/guards.js';
-export * from './lib/userAgent.js';
 export * from './lib/value.js';

@@ -14,12 +14,10 @@ import {
 
 import { WEB_APP_VERSION } from '../../../../config/webAppVersion';
 import { getApiRequestService } from '../../../../factories/apiRequestService';
-import type { MbrssV1RssContext } from '../../donateMbrssV1RssContext';
 
 type PostMbrssV1BoostMessageParams = {
   channel: DTOChannel | null;
   item: DTOItem | null;
-  mbrssV1RssContext?: MbrssV1RssContext | null;
   appName: string;
   message: string;
   yourName: string;
@@ -42,7 +40,6 @@ export const getMbrssV1PaymentDesc = (message: string, appName: string): string 
 export const postMbrssV1BoostMessage = async ({
   channel,
   item,
-  mbrssV1RssContext,
   appName,
   message,
   yourName,
@@ -59,8 +56,8 @@ export const postMbrssV1BoostMessage = async ({
   }
 
   const totalMsat = Math.max(0, Math.round(metaboostTotalMsat));
-  const feedGuidRaw = mbrssV1RssContext?.feedGuid ?? channel?.podcast_guid;
-  const feedTitleRaw = mbrssV1RssContext?.feedTitle ?? channel?.title;
+  const feedGuidRaw = channel?.podcast_guid;
+  const feedTitleRaw = channel?.title;
   if (feedGuidRaw === undefined || feedGuidRaw === null || feedGuidRaw.trim() === '') {
     throw new Error('MetaBoost mbrss-v1 boost requires feed_guid');
   }
@@ -70,8 +67,8 @@ export const postMbrssV1BoostMessage = async ({
   const feedGuid = feedGuidRaw;
   const feedTitle = feedTitleRaw;
 
-  const itemGuid = mbrssV1RssContext?.itemGuid ?? item?.guid;
-  const itemTitle = mbrssV1RssContext?.itemTitle ?? item?.title;
+  const itemGuid = item?.guid;
+  const itemTitle = item?.title;
 
   const requestBody = buildMbrssV1CreateBoostRequest({
     totalMsat,

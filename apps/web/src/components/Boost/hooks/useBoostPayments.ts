@@ -30,7 +30,7 @@ import {
 import { useModals } from '../../../contexts/Modals';
 import { getApiRequestService } from '../../../factories/apiRequestService';
 import { ensureWeblnEnabled } from '../../../utils/value/webln';
-import type { MbrssV1RssContext } from '../donateMbrssV1RssContext';
+import type { BoostPaymentScope } from '../boostPaymentScope';
 import { buildCustomRecordsForRecipient } from '../payments/boostBlipCustomRecords';
 import { getProviderFailure } from '../payments/boostPaymentProviderFailure';
 import {
@@ -54,7 +54,8 @@ type BoostPaymentAppConfig = {
 type UseBoostPaymentsParams = {
   channel: DTOChannel | null;
   item: DTOItem | null;
-  mbrssV1RssContext?: MbrssV1RssContext | null;
+  /** `app_only` = /donate: only Lightning + mb-v1 HTTP post, never mbrss-v1. */
+  boostPaymentScope: BoostPaymentScope;
   config: BoostPaymentAppConfig;
   tValue: Translator;
   message: string;
@@ -93,7 +94,7 @@ const sumRecipientFinalAmountSats = (recipients: PaymentRecipient[]): number =>
 export const useBoostPayments = ({
   channel,
   item,
-  mbrssV1RssContext,
+  boostPaymentScope,
   config,
   tValue,
   message,
@@ -129,10 +130,10 @@ export const useBoostPayments = ({
     });
   }, [setModalBoostMessageError, tValue]);
 
-  const resolvedBlipFeedGuid = mbrssV1RssContext?.feedGuid ?? channel?.podcast_guid ?? undefined;
-  const resolvedBlipFeedTitle = mbrssV1RssContext?.feedTitle ?? channel?.title ?? undefined;
-  const resolvedBlipItemGuid = mbrssV1RssContext?.itemGuid ?? item?.guid ?? undefined;
-  const resolvedBlipItemTitle = mbrssV1RssContext?.itemTitle ?? item?.title ?? undefined;
+  const resolvedBlipFeedGuid = channel?.podcast_guid ?? undefined;
+  const resolvedBlipFeedTitle = channel?.title ?? undefined;
+  const resolvedBlipItemGuid = item?.guid ?? undefined;
+  const resolvedBlipItemTitle = item?.title ?? undefined;
   const getLargestSplitRecipient = (): PaymentRecipient | null => {
     let largest: PaymentRecipient | null = null;
     for (const recipient of paymentRecipients) {
@@ -353,11 +354,10 @@ export const useBoostPayments = ({
                 senderGuid: mbrssV1SenderGuid,
                 onMetaboostUnreachable: promptMetaboostUnreachable,
               });
-            } else {
+            } else if (boostPaymentScope !== 'app_only') {
               await postMbrssV1BoostMessage({
                 channel,
                 item,
-                mbrssV1RssContext,
                 appName: config.public.brand.name,
                 message: effectiveMessage,
                 yourName,

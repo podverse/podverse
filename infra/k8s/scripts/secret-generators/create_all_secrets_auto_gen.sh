@@ -33,8 +33,7 @@ AUTO_GEN_SCRIPTS=(
 MANUAL_SCRIPTS=(
 	"create_api.podcastindex.org_secret.sh  (requires Podcast Index API keys)"
 	"create_firebase_secret.sh              (requires firebase-key.json file)"
-	"create_workers_bucket_secret.sh        (requires bucket access/secret keys)"
-	"create_workers_digital_ocean_secret.sh (requires DigitalOcean Spaces keys)"
+	"create_workers_digital_ocean_secret.sh (requires DigitalOcean Spaces access/secret keys)"
 )
 
 # -------------------------------------------------------------------
@@ -42,13 +41,13 @@ MANUAL_SCRIPTS=(
 # Used to print verify / apply commands at the end.
 # -------------------------------------------------------------------
 OUTPUT_FILES=(
-	"./infra/k8s/secrets/podverse-${ENVIRONMENT}-api-opaque.enc.yaml"
-	"./infra/k8s/secrets/podverse-${ENVIRONMENT}-management-api-opaque.enc.yaml"
-	"./infra/k8s/secrets/podverse-${ENVIRONMENT}-db-opaque.enc.yaml"
-	"./infra/k8s/secrets/podverse-${ENVIRONMENT}-management-db-opaque.enc.yaml"
-	"./infra/k8s/secrets/podverse-${ENVIRONMENT}-keyvaldb-opaque.enc.yaml"
-	"./infra/k8s/secrets/podverse-${ENVIRONMENT}-mq-opaque.enc.yaml"
-	"./infra/k8s/secrets/podverse-${ENVIRONMENT}-workers-add-by-rss-opaque.enc.yaml"
+	"./secrets/podverse-${ENVIRONMENT}-api-opaque.enc.yaml"
+	"./secrets/podverse-${ENVIRONMENT}-management-api-opaque.enc.yaml"
+	"./secrets/podverse-${ENVIRONMENT}-db-opaque.enc.yaml"
+	"./secrets/podverse-${ENVIRONMENT}-management-db-opaque.enc.yaml"
+	"./secrets/podverse-${ENVIRONMENT}-keyvaldb-opaque.enc.yaml"
+	"./secrets/podverse-${ENVIRONMENT}-mq-opaque.enc.yaml"
+	"./secrets/podverse-${ENVIRONMENT}-workers-add-by-rss-opaque.enc.yaml"
 )
 
 CREATED_FILES=()

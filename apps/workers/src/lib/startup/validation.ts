@@ -1,5 +1,4 @@
 /* eslint-disable no-console */
-/* eslint-disable @typescript-eslint/no-non-null-assertion -- BRAND_NAME validated required at startup before getEffectiveUserAgent */
 /**
  * Startup validation for the workers app.
  *
@@ -28,11 +27,11 @@
 import { KNOWN_COMMANDS } from '@workers/commands/commandNames.js';
 import { hasAnyImageShrinkEnvSet } from '@workers/config/index.js';
 
-import { getEffectiveUserAgent } from '@podverse/helpers';
 import type { ValidationResult, ValidationSummary } from '@podverse/helpers-config';
 import {
   displayValidationResults,
   validateOptional,
+  validateOptionalAbsoluteHttpUrlIfSet,
   validateRequired,
 } from '@podverse/helpers-config';
 
@@ -51,29 +50,35 @@ import {
 const USER_AGENT_PATTERN = /^[^/]+\/[^/]+\/[^/]+$/;
 
 function validateUserAgentEffective(): ValidationResult {
-  const effective = getEffectiveUserAgent({
-    userAgentRaw: process.env.USER_AGENT,
-    brandName: process.env.BRAND_NAME!,
-    suffix: ' Bot Local/Workers/5',
-  });
-  if (!USER_AGENT_PATTERN.test(effective)) {
+  const raw = (process.env.USER_AGENT ?? '').trim();
+  if (raw === '') {
     return {
       name: 'USER_AGENT',
-      isSet: process.env.USER_AGENT?.trim() !== '',
+      isSet: false,
       isValid: false,
       isRequired: true,
-      message: `Invalid format (or set USER_AGENT / BRAND_NAME) - must follow format: BrandName Bot Environment/AppName/Version`,
+      message: 'Missing (required)',
       category: 'Config',
     };
   }
-  const firstPart = effective.split('/')[0];
+  if (!USER_AGENT_PATTERN.test(raw)) {
+    return {
+      name: 'USER_AGENT',
+      isSet: true,
+      isValid: false,
+      isRequired: true,
+      message: `Invalid format: "${raw}" - must follow format: BrandName Bot Environment/AppName/Version`,
+      category: 'Config',
+    };
+  }
+  const firstPart = raw.split('/')[0];
   if (firstPart && !firstPart.includes('Bot')) {
     return {
       name: 'USER_AGENT',
-      isSet: process.env.USER_AGENT?.trim() !== '',
+      isSet: true,
       isValid: false,
       isRequired: true,
-      message: `Missing "Bot" in first part: "${effective}"`,
+      message: `Missing "Bot" in first part: "${raw}"`,
       category: 'Config',
     };
   }
@@ -212,7 +217,7 @@ function validateWebNotifications(): ValidationResult[] {
   results.push(validateOptional('GOOGLE_FIREBASE_ADMIN_JSON_KEY_PATH', 'Firebase', 'Skipped'));
   results.push(validateRequired('WEB_PROTOCOL', 'Web'));
   results.push(validateRequired('WEB_DOMAIN', 'Web'));
-  results.push(validateOptional('WEB_ICON_IMAGE_PATH', 'Web', 'Skipped'));
+  results.push(validateOptionalAbsoluteHttpUrlIfSet('WEB_ICON_IMAGE_PATH', 'Web'));
   results.push(validateRequired('BRAND_NAME', 'Notifications'));
   results.push(validateOptional('WEBPUSH_ENABLED', 'WebPush', 'Use Default (false)'));
   results.push(validateOptional('WEBPUSH_VAPID_PUBLIC_KEY', 'WebPush', 'Skipped'));

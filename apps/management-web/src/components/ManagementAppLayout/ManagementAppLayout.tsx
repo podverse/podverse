@@ -20,7 +20,7 @@ export async function ManagementAppLayout({ children }: ManagementAppLayoutProps
   }
 
   const config = getConfig();
-  const brandName = config.public.brand.name ?? 'Podverse Management';
+  const brandName = config.public.brand.name ?? 'Management';
 
   return (
     <>

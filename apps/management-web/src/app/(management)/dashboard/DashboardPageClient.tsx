@@ -8,6 +8,7 @@ import { useEffect, useState } from 'react';
 import type { NavCard } from '@podverse/ui';
 import { NavCardGrid } from '@podverse/ui';
 
+import { getConfig } from '../../../config';
 import {
   dashboardI18nDescriptionKey,
   dashboardI18nTitleKey,
@@ -67,7 +68,9 @@ export function DashboardPageClient({ initialUser }: DashboardPageClientProps) {
     <div className="container">
       <div className="page-header">
         <h1 className="page-title">Dashboard</h1>
-        <p className="page-subtitle">Welcome to Podverse Management</p>
+        <p className="page-subtitle">
+          {t('welcome', { brandName: getConfig().public.brand.name ?? 'Management' })}
+        </p>
       </div>
       <main>
         <NavCardGrid cards={cards} LinkComponent={Link} />

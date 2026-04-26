@@ -1,19 +1,32 @@
+# Version: 3
+# Public hostnames use example.com (IANA); replace with your real apex domain in forks/overlays.
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: podverse-ingress
   namespace: podverse-alpha
   annotations:
-    # This overrides the base 'letsencrypt-prod' annotation
-    #cert-manager.io/cluster-issuer: "letsencrypt-staging"
+    # Tell ArgoCD that this Ingress is "Healthy" even without an IP address immediately
+    argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
+    argocd.argoproj.io/compare-options: IgnoreExtraneous
+
+    # Explicitly configure cert-manager and Traefik (overriding any upstream Nginx defaults).
+    # Use letsencrypt-staging by default to reduce ACME rate-limit risk while iterating; set
+    # cert-manager.io/cluster-issuer to letsencrypt-prod in your GitOps repo when you want production certs.
+    cert-manager.io/cluster-issuer: letsencrypt-staging
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
+    traefik.ingress.kubernetes.io/router.tls: "true"
 spec:
+  ingressClassName: traefik
   tls:
-    - secretName: podverse-tls-cert
+    - secretName: podverse-alpha-tls
       hosts:
-        - api-alpha-podverse.k.podverse.fm
-        - alpha-podverse.k.podverse.fm
+        - api.alpha.example.com
+        - alpha.example.com
+        - management-api.alpha.example.com
+        - management.alpha.example.com
   rules:
-    - host: api-alpha-podverse.k.podverse.fm
+    - host: api.alpha.example.com
       http:
         paths:
           - path: /
@@ -23,7 +36,7 @@ spec:
                 name: podverse-api
                 port:
                   number: 3000
-    - host: alpha-podverse.k.podverse.fm
+    - host: alpha.example.com
       http:
         paths:
           - path: /
@@ -33,7 +46,7 @@ spec:
                 name: podverse-web
                 port:
                   number: 3002
-    - host: management-api-alpha-podverse.k.podcastdj.com
+    - host: management-api.alpha.example.com
       http:
         paths:
           - path: /
@@ -43,7 +56,7 @@ spec:
                 name: podverse-management-api
                 port:
                   number: 3100
-    - host: management-alpha-podverse.k.podcastdj.com
+    - host: management.alpha.example.com
       http:
         paths:
           - path: /

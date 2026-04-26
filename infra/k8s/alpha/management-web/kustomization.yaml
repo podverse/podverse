@@ -1,4 +1,4 @@
-# Version: 2
+# Version: 4
 # Filename: kustomization.yaml
 # Description: Bundles the Management Web resources and centralizes the image tag.
 
@@ -16,17 +16,22 @@ labels:
       environment: alpha
     includeSelectors: true
 
+# Matches base: podverse-management-web-config from management-web.env, podverse-management-web-runtime-config from management-web-sidecar.env
 configMapGenerator:
   - name: podverse-management-web-config
     behavior: merge
     envs:
       - source/management-web.env
+  - name: podverse-management-web-runtime-config
+    behavior: merge
+    envs:
+      - source/management-web-sidecar.env
 
 images:
   - name: ghcr.io/podverse/podverse/management-web-deploy
-    newTag: "5.4.12-staging.0"
+    newTag: "staging"
   - name: ghcr.io/podverse/podverse/management-web-runtime-config
-    newTag: "5.4.12-staging.0"
+    newTag: "staging"
 
 patches:
   - path: deployment-link-patch.yaml

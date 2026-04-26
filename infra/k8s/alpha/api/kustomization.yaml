@@ -1,4 +1,4 @@
-# Version: 3
+# Version: 5
 # Filename: kustomization.yaml
 # Description: Bundles resources and manages image versions for the API.
 
@@ -21,7 +21,7 @@ labels:
     # so the Service correctly finds the Pods.
     includeSelectors: true
 
-# 3. ConfigMap overrides for alpha environment
+# 3. ConfigMap overrides for alpha (non-sensitive defaults in `source/api.env`)
 configMapGenerator:
   - name: podverse-api-config
     behavior: merge
@@ -35,4 +35,4 @@ patches:
 # We define the specific version here.
 images:
   - name: ghcr.io/podverse/podverse/api
-    newTag: "5.4.12-staging.0"
+    newTag: "staging"

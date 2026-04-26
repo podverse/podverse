@@ -70,9 +70,7 @@ export function createNotificationsContext(config: NotificationsConfig): Notific
     return `${base}${cleanPath}`;
   };
 
-  const getWebIconImageUrl = (): string => {
-    return `${getWebBaseUrl()}${config.web.icon_image_path}`;
-  };
+  const getWebIconImageUrl = (): string => (config.web.icon_image_path ?? '').trim();
 
   return {
     config,

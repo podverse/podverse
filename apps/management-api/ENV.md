@@ -22,9 +22,9 @@ Validation occurs in `src/lib/startup/validation.ts` during application startup.
   - Generate with: `uuidgen` (macOS/Linux) or use an online UUID generator
 
 - **`USER_AGENT`** (Required)
-  - Format: `BrandName Bot Environment/AppName/Version`
+  - Non-blank. Format: `BrandName Bot Environment/AppName/Version`
   - Must include "Bot" in the first part (before the first slash)
-  - Example: `Podverse Bot Local/Management-API/5`
+  - Example: `Example Bot local/Management-API/5`
   - Used for external API requests
 
 ### Database (one Postgres, shared `DB_HOST` / `DB_PORT`)
@@ -49,7 +49,7 @@ The main API, workers, and management-api all use shared `DB_HOST` and `DB_PORT`
 - **`DB_MANAGEMENT_READ_USER`** / **`DB_MANAGEMENT_READ_PASSWORD`**
 - **`DB_MANAGEMENT_READ_WRITE_USER`** / **`DB_MANAGEMENT_READ_WRITE_PASSWORD`**
 
-**Kubernetes:** `DB_HOST` / `DB_PORT` / `DB_SSL_CONNECTION` are non-secret in the management-api ConfigMap. `DB_MANAGEMENT_*` credentials come from `podverse-management-db-opaque`. `DB_APP_*` credentials for the app database come from the same main DB secret as the API (`podverse-db-opaque`); the management-api Deployment includes both secrets. Generate with `infra/k8s/scripts/create_db_secret.sh` and `create_management_db_secret.sh` as needed.
+**Kubernetes:** `DB_HOST` / `DB_PORT` / `DB_SSL_CONNECTION` are non-secret in the management-api ConfigMap. `DB_MANAGEMENT_*` credentials come from `podverse-management-db-opaque`. `DB_APP_*` credentials for the app database come from the same main DB secret as the API (`podverse-db-opaque`); the management-api Deployment includes both secrets. Generate with `infra/k8s/scripts/secret-generators/create_db_secret.sh` and `infra/k8s/scripts/secret-generators/create_management_db_secret.sh` as needed.
 
 ### API Configuration
 

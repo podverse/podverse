@@ -12,7 +12,7 @@ const testEnv: Record<string, string> = {
   LOG_LEVEL: 'error',
   LOG_DIR: '',
   BRAND_NAME: 'PodverseTest',
-  USER_AGENT: '',
+  USER_AGENT: 'Example Bot test/API/5',
   // Auth
   AUTH_JWT_SECRET: '11111111-1111-4111-8111-111111111111',
   AUTH_JWT_EXPIRES_IN: '365d',
@@ -55,7 +55,6 @@ const testEnv: Record<string, string> = {
   // Email
   EMAIL_BRAND_COLOR: '#000000',
   EMAIL_HEADER_IMAGE_URL: '',
-  EMAIL_CHANGE_VERIFICATION_PAGE_PATH: '/verify-email-change',
   EMAIL_CHANGE_VERIFICATION_TOKEN_EXPIRATION: '3600',
   // Legal
   LEGAL_NAME: 'Test Legal',
@@ -77,10 +76,8 @@ const testEnv: Record<string, string> = {
   SOCIAL_TWITTER_PAGE_URL: '',
   SOCIAL_TWITTER_IMAGE_URL: '',
   // Verify email
-  VERIFY_EMAIL_PAGE_PATH: '/verify-email',
   VERIFY_EMAIL_TOKEN_EXPIRATION: '3600',
   // Reset password
-  RESET_PASSWORD_PAGE_PATH: '/reset-password',
   RESET_PASSWORD_TOKEN_EXPIRATION: '3600',
   // Premium / signup
   PREMIUM_COST_MONTHLY: '5',

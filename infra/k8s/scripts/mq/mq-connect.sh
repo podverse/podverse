@@ -41,7 +41,7 @@ fi
 # ------------------------------------------------------------------
 echo -e "${YELLOW}Extracting credentials from secret...${NC}"
 
-SECRET_FILE="./k8s/secrets/${SECRET_NAME}.enc.yaml"
+SECRET_FILE="./secrets/${SECRET_NAME}.enc.yaml"
 
 if [ ! -f "$SECRET_FILE" ]; then
     echo -e "${RED}Error: Secret file not found at ${SECRET_FILE}${NC}"

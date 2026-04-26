@@ -1,4 +1,4 @@
-# Version: 2
+# Version: 4
 # Filename: kustomization.yaml
 # Description: Bundles the Web frontend resources and centralizes the web image tag.
 
@@ -18,7 +18,12 @@ labels:
     # so the Service correctly finds the Pods.
     includeSelectors: true
 
+# Matches base: podverse-web-config from web.env, podverse-web-runtime-config from web-sidecar.env
 configMapGenerator:
+  - name: podverse-web-config
+    behavior: merge
+    envs:
+      - source/web.env
   - name: podverse-web-runtime-config
     behavior: merge
     envs:
@@ -26,9 +31,9 @@ configMapGenerator:
 
 images:
   - name: ghcr.io/podverse/podverse/web-deploy
-    newTag: "5.4.12-staging.0"
+    newTag: "staging"
   - name: ghcr.io/podverse/podverse/web-runtime-config
-    newTag: "5.4.12-staging.0"
+    newTag: "staging"
 
 patches:
   - path: deployment-link-patch.yaml

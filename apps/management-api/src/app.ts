@@ -44,7 +44,7 @@ app.use(initializePassport());
 const baseUrl = `${config.api.prefix}${config.api.version}`;
 
 app.get(`${baseUrl}/`, (_req: Request, res: Response) => {
-  res.send(`Podverse Management API is running on port ${port}`);
+  res.send(`${config.brandName} Management API is running on port ${port}`);
 });
 
 app.use(authRouter);
@@ -67,7 +67,7 @@ export const startApp = async (): Promise<import('http').Server | undefined> => 
   try {
     const server = app.listen(port, () => {
       // eslint-disable-next-line no-console
-      console.log(`Podverse Management API is running on port ${port}`);
+      console.log(`${config.brandName} Management API is running on port ${port}`);
     });
 
     return server;

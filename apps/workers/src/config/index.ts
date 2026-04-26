@@ -5,8 +5,6 @@
  * Call only the getters for the command's categories (see getCategoriesForCommand).
  */
 
-import { getEffectiveUserAgent } from '@podverse/helpers';
-
 export type BaseConfig = {
   userAgent: string;
   log: {
@@ -18,11 +16,7 @@ export type BaseConfig = {
 
 export function getBaseConfig(): BaseConfig {
   return {
-    userAgent: getEffectiveUserAgent({
-      userAgentRaw: process.env.USER_AGENT,
-      brandName: process.env.BRAND_NAME!,
-      suffix: ' Bot Local/Workers/5',
-    }),
+    userAgent: process.env.USER_AGENT!,
     log: {
       level: process.env.LOG_LEVEL!,
       dir: process.env.LOG_DIR ?? '',

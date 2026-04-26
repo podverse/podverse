@@ -160,7 +160,7 @@ Add non-sensitive values to `infra/k8s/base/workers/configmap.yaml` using the sa
 
 ### Secret
 
-Use `infra/k8s/scripts/create_workers_digital_ocean_secret.sh` to create:
+Use `infra/k8s/scripts/secret-generators/create_workers_digital_ocean_secret.sh` to create:
 
 ```
 podverse-${ENV}-workers-digital-ocean-opaque.enc.yaml

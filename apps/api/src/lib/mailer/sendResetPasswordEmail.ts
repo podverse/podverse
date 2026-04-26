@@ -1,4 +1,5 @@
 import { config } from '@api/config/index.js';
+import { resetPasswordPagePath } from '@api/constants/webAuthPagePaths.js';
 import { loggerService } from '@api/factories/loggerService.js';
 import { emailTemplate } from '@api/lib/mailer/emailTemplate.js';
 import { createTransporter } from '@api/lib/mailer/transporter.js';
@@ -24,21 +25,21 @@ export const sendResetPasswordEmail = async (
   const daysToExpire = convertSecondsToDaysText(`${config.resetPassword.tokenExpiration}`);
 
   const emailFields = {
-    buttonLink: `${config.web.protocol}://${config.web.domain}${config.resetPassword.pagePath}${token}`,
+    buttonLink: `${config.web.protocol}://${config.web.domain}${resetPasswordPagePath}${token}`,
     buttonText: 'Reset Password',
     closing: '',
-    headerText: 'Reset your Podverse password',
-    paragraphText: `Please click the button below to reset your Podverse password. This link will expire in ${daysToExpire}.`,
+    headerText: `Reset your ${config.brandName} password`,
+    paragraphText: `Please click the button below to reset your ${config.brandName} password. This link will expire in ${daysToExpire}.`,
     unsubscribeLink: '',
   };
 
   try {
     await transporter.sendMail({
-      from: `Podverse <${config.mailer.from}>`,
+      from: `${config.brandName} <${config.mailer.from}>`,
       to: email,
-      subject: 'Reset your Podverse password',
+      subject: `Reset your ${config.brandName} password`,
       html: emailTemplate(emailFields),
-      text: `Reset your Podverse password by visiting the following: ${emailFields.buttonLink}`,
+      text: `Reset your ${config.brandName} password by visiting the following: ${emailFields.buttonLink}`,
     });
   } catch (error) {
     loggerService.logError('Failed to send reset password email', error as Error);

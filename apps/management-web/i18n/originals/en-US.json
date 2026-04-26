@@ -49,7 +49,7 @@
   },
   "dashboard": {
     "title": "Dashboard",
-    "welcome": "Welcome to Podverse Management",
+    "welcome": "Welcome to {brandName}",
     "feedFlagStatus": {
       "title": "Feed flag status",
       "description": "Set takedown, spam, and other statuses with a reason and note (not the table browser)"
@@ -146,7 +146,7 @@
     "backToDashboard": "Back to Dashboard",
     "comingSoon": "Coming Soon",
     "comingSoonDescription": "Worker management features are not yet available. Check back later.",
-    "intro": "All Podverse background jobs are invoked from the <code>apps/workers</code> CLI. Run them from a terminal with a proper environment; this page is a read-only catalog with copyable examples. In-browser enqueue and live invoke are not available yet and require follow-up work (message broker wiring).",
+    "intro": "Background jobs are invoked from the <code>apps/workers</code> CLI. Run them from a terminal with a proper environment; this page is a read-only catalog with copyable examples. In-browser enqueue and live invoke are not available yet and require follow-up work (message broker wiring).",
     "copiedToClipboard": "Copied to clipboard",
     "copyFailed": "Copy failed: allow clipboard, or copy the example line manually.",
     "superuserOnly": "Superuser only",

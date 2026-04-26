@@ -24,7 +24,7 @@ ENVIRONMENT="${ENVIRONMENT:-alpha}"
 
 SECRET_NAME="podverse-api.podcastindex.org-opaque"
 NAMESPACE="podverse-${ENVIRONMENT}"
-OUTPUT_FILE="./infra/k8s/secrets/podverse-${ENVIRONMENT}-api.podcastindex.org-opaque.enc.yaml"
+OUTPUT_FILE="./secrets/podverse-${ENVIRONMENT}-api.podcastindex.org-opaque.enc.yaml"
 
 # ------------------------------------------------------------------
 # INPUTS

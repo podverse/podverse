@@ -115,7 +115,7 @@ export async function populateDatabaseFromFeed(
   await ormContext.dataSourceReadWrite.initialize();
 
   const parserConfig = {
-    userAgent: process.env.USER_AGENT ?? 'Podverse-Test-Assets/1.0',
+    userAgent: process.env.USER_AGENT ?? 'Example-Test-Assets/1.0',
     log: { level: ormConfig.log.level, timer: ormConfig.log.timer },
     firebase: { notifications_enabled: false },
     defaults: ormConfig.defaults,

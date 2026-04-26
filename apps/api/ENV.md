@@ -24,14 +24,13 @@ These variables are **always required** regardless of configuration:
   - Example: `123e4567-e89b-12d3-a456-426614174000`
   - Generate with: `uuidgen` (macOS/Linux) or use an online UUID generator
 
-- **`USER_AGENT`** (Required when set; may be blank)
-  - When set, must follow format: `BrandName Bot Environment/AppName/Version` and include "Bot" in the first part
-  - When blank, effective value is built from `BRAND_NAME` + suffix at runtime
-  - Example: `Podverse Bot Local/API/5`
+- **`USER_AGENT`** (Required)
+  - Non-blank. Must follow format: `BrandName Bot Environment/AppName/Version` and include "Bot" in the first part. Set an app-specific value for your deployment; do not copy another product’s string.
+  - Example: `Example Bot local/API/5`
   - Used for external API requests
 
 - **`BRAND_NAME`** (Required)
-  - Validated at startup. Used when `USER_AGENT` is blank to build the effective User-Agent string.
+  - Validated at startup. Used in transactional email display name, subject line, and HTML `title` (e.g. verification and password-reset mail).
 
 ### App database (same pattern as `DB_APP_*` in management-api; Metaboost-aligned `*_USER` keys)
 
@@ -62,6 +61,7 @@ These variables are **always required** regardless of configuration:
 
 - **`WEB_PROTOCOL`** (Required) - Web protocol (`http` or `https`)
 - **`WEB_DOMAIN`** (Required) - Web domain (e.g., `localhost:3000` or `podverse.fm`)
+- **`WEB_ICON_IMAGE_PATH`** (Optional) - **Absolute** URL for the web app icon in notifications/push. When set, must start with `http://` or `https://`. If unset, the icon URL is left empty. For local dev, a typical value is `http://localhost:3002/favicon/web-app-manifest-192x192.png` (Next.js on port 3002). See `apps/workers/ENV.md` for the same variable.
 
 ### Message Queue
 
@@ -101,8 +101,8 @@ These variables are **required only when `ACCOUNT_SIGNUP_MODE` is set to `'sign-
 - **`MAILER_SERVICE`** (Optional) - Email service name (e.g. for nodemailer); optional when using SMTP host/port
 - **`MAILER_HOST`** (Required when signup mode is 'sign-up') - SMTP server hostname
 - **`MAILER_PORT`** (Required when signup mode is 'sign-up') - SMTP server port (must be a valid number)
-- **`MAILER_USERNAME`** (Required when signup mode is 'sign-up') - SMTP username
-- **`MAILER_PASSWORD`** (Required when signup mode is 'sign-up') - SMTP password
+- **`MAILER_USERNAME`** (Required when signup mode is 'sign-up') - SMTP username. On Kubernetes, set in the `podverse-api-opaque` Secret (`create_api_secret.sh`), not the ConfigMap.
+- **`MAILER_PASSWORD`** (Required when signup mode is 'sign-up') - SMTP password. On Kubernetes, set in the `podverse-api-opaque` Secret, not the ConfigMap.
 - **`MAILER_FROM`** (Required when signup mode is 'sign-up') - Email sender address
 
 ### Email Configuration
@@ -119,12 +119,6 @@ For local setup, these can be customized via `dev/env-overrides/local/email-temp
 - **`VERIFY_EMAIL_TOKEN_EXPIRATION`** (Required when signup mode is 'sign-up') - Email verification token expiration in seconds (must be a valid number)
 - **`EMAIL_CHANGE_VERIFICATION_TOKEN_EXPIRATION`** (Required when signup mode is 'sign-up') - Email change verification token expiration in seconds (must be a valid number)
 - **`RESET_PASSWORD_TOKEN_EXPIRATION`** (Required when signup mode is 'sign-up') - Password reset token expiration in seconds (must be a valid number)
-
-### Page Paths
-
-- **`VERIFY_EMAIL_PAGE_PATH`** (Required when signup mode is 'sign-up') - Path to email verification page (e.g., `/verify-email`)
-- **`EMAIL_CHANGE_VERIFICATION_PAGE_PATH`** (Required when signup mode is 'sign-up') - Path to email change verification page (e.g., `/verify-email-change`)
-- **`RESET_PASSWORD_PAGE_PATH`** (Required when signup mode is 'sign-up') - Path to password reset page (e.g., `/reset-password`)
 
 ## Optional Variables
 
@@ -197,7 +191,7 @@ Variables containing `PORT`, `EXPIRATION`, or `CACHE_TTL` are automatically vali
 ### Format Validation
 
 - **UUID Format**: `AUTH_JWT_SECRET` must be a valid UUID
-- **User-Agent Format**: `USER_AGENT` (when set) or the effective value built from `BRAND_NAME` must follow `BrandName Bot Environment/AppName/Version` and include "Bot" in the first part
+- **User-Agent Format**: `USER_AGENT` must be set and follow `BrandName Bot Environment/AppName/Version` and include "Bot" in the first part
 - **CORS Origins**: `API_ALLOWED_CORS_ORIGINS` must contain at least one origin (comma-separated)
 
 ## Validation Output

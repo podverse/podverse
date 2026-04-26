@@ -1,17 +1,12 @@
-/* eslint-disable @typescript-eslint/no-non-null-assertion -- BRAND_NAME validated required at startup before getEffectiveUserAgent */
 import { loggerService } from '@api/factories/loggerService.js';
 
 import type { AccountSignupMode } from '@podverse/helpers';
-import {
-  getEffectiveUserAgent,
-  isValidServerEnv,
-  isValidUUID,
-  SERVER_ENV_VALUES,
-} from '@podverse/helpers';
+import { isValidServerEnv, isValidUUID, SERVER_ENV_VALUES } from '@podverse/helpers';
 import type { ValidationResult, ValidationSummary } from '@podverse/helpers-config';
 import {
   validateConditionalOptional,
   validateOptional,
+  validateOptionalAbsoluteHttpUrlIfSet,
   validateRequired,
 } from '@podverse/helpers-config';
 
@@ -156,6 +151,7 @@ const validateAllEnvironmentVariables = (): ValidationSummary => {
   // Web
   results.push(validateRequired('WEB_PROTOCOL', 'Web'));
   results.push(validateRequired('WEB_DOMAIN', 'Web'));
+  results.push(validateOptionalAbsoluteHttpUrlIfSet('WEB_ICON_IMAGE_PATH', 'Web'));
 
   // Message Queue
   results.push(validateRequired('MESSAGE_QUEUE_PROTOCOL', 'Message Queue'));
@@ -284,32 +280,6 @@ const validateAllEnvironmentVariables = (): ValidationSummary => {
     }
   }
 
-  // Page Paths (conditionally required when signup mode is 'sign-up')
-  if (isSignupModeEnabled) {
-    results.push(validateRequired('VERIFY_EMAIL_PAGE_PATH', 'Page Paths'));
-    results.push(validateRequired('EMAIL_CHANGE_VERIFICATION_PAGE_PATH', 'Page Paths'));
-    results.push(validateRequired('RESET_PASSWORD_PAGE_PATH', 'Page Paths'));
-  } else {
-    const verifyEmailPagePath = validateConditionalOptional('VERIFY_EMAIL_PAGE_PATH', 'Page Paths');
-    if (verifyEmailPagePath) {
-      results.push(verifyEmailPagePath);
-    }
-    const emailChangePagePath = validateConditionalOptional(
-      'EMAIL_CHANGE_VERIFICATION_PAGE_PATH',
-      'Page Paths'
-    );
-    if (emailChangePagePath) {
-      results.push(emailChangePagePath);
-    }
-    const resetPasswordPagePath = validateConditionalOptional(
-      'RESET_PASSWORD_PAGE_PATH',
-      'Page Paths'
-    );
-    if (resetPasswordPagePath) {
-      results.push(resetPasswordPagePath);
-    }
-  }
-
   // PayPal (optional, but validated)
   results.push(validateOptional('PAYPAL_CLIENT_ID', 'PayPal'));
   results.push(validateOptional('PAYPAL_CLIENT_SECRET', 'PayPal'));
@@ -393,35 +363,41 @@ const validateJwtSecret = (): ValidationResult => {
 const USER_AGENT_PATTERN = /^[^/]+\/[^/]+\/[^/]+$/;
 
 /**
- * Validates USER_AGENT (or effective value when blank, built from BRAND_NAME).
- * Format: BrandName Bot Environment/AppName/Version, e.g. "Podverse Bot Local/API/5"
+ * Validates `USER_AGENT` (required, non-blank; no inference from `BRAND_NAME`).
+ * Format: `BrandName Bot Environment/AppName/Version`, e.g. `Example Bot local/API/5`
  */
 const validateUserAgent = (): ValidationResult => {
-  const effectiveUserAgent = getEffectiveUserAgent({
-    userAgentRaw: process.env.USER_AGENT,
-    brandName: process.env.BRAND_NAME!,
-    suffix: ' Bot Local/API/5',
-  });
-
-  if (!USER_AGENT_PATTERN.test(effectiveUserAgent)) {
+  const raw = (process.env.USER_AGENT ?? '').trim();
+  if (raw === '') {
     return {
       name: 'USER_AGENT',
-      isSet: process.env.USER_AGENT?.trim() !== '',
+      isSet: false,
       isValid: false,
       isRequired: true,
-      message: `Invalid format: "${effectiveUserAgent}" - must follow format: BrandName Bot Environment/AppName/Version`,
+      message: 'Missing (required)',
       category: 'Auth & Security',
     };
   }
 
-  const firstPart = effectiveUserAgent.split('/')[0];
+  if (!USER_AGENT_PATTERN.test(raw)) {
+    return {
+      name: 'USER_AGENT',
+      isSet: true,
+      isValid: false,
+      isRequired: true,
+      message: `Invalid format: "${raw}" - must follow format: BrandName Bot Environment/AppName/Version`,
+      category: 'Auth & Security',
+    };
+  }
+
+  const firstPart = raw.split('/')[0];
   if (firstPart && !firstPart.includes('Bot')) {
     return {
       name: 'USER_AGENT',
-      isSet: process.env.USER_AGENT?.trim() !== '',
+      isSet: true,
       isValid: false,
       isRequired: true,
-      message: `Missing "Bot" in first part: "${effectiveUserAgent}"`,
+      message: `Missing "Bot" in first part: "${raw}"`,
       category: 'Auth & Security',
     };
   }
@@ -551,9 +527,6 @@ const displayValidationResults = (summary: ValidationSummary): void => {
     'VERIFY_EMAIL_TOKEN_EXPIRATION',
     'EMAIL_CHANGE_VERIFICATION_TOKEN_EXPIRATION',
     'RESET_PASSWORD_TOKEN_EXPIRATION',
-    'VERIFY_EMAIL_PAGE_PATH',
-    'EMAIL_CHANGE_VERIFICATION_PAGE_PATH',
-    'RESET_PASSWORD_PAGE_PATH',
   ];
 
   // Display by category

@@ -11,7 +11,7 @@ namespace: podverse-alpha
 
 images:
   - name: ghcr.io/podverse/podverse/workers
-    newTag: "5.4.12-staging.0"
+    newTag: "staging"
 
 labels:
   - pairs:

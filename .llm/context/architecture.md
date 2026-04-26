@@ -110,6 +110,6 @@ Alpha environment runs on K3s with GitOps via ArgoCD:
 - **Alpha overlays:** `infra/k8s/alpha/` (environment-specific config, image tags)
 - **ArgoCD:** App of Apps pattern; root app syncs `alpha/apps/` which deploys all components
 - **Kustomize:** Used for overlays; requires `--load-restrictor LoadRestrictionsNone`
-- **Secrets:** SOPS-encrypted in `k8s/secrets/`; scripts in `infra/k8s/scripts/`
+- **Secrets:** SOPS-encrypted in repo-root `secrets/`; generators in `infra/k8s/scripts/secret-generators/`
 
 See `infra/k8s/README.md` and `.cursor/skills/k8s/SKILL.md` for details.
