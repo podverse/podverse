@@ -25,8 +25,8 @@ When you land user-visible, security/ops, or other **significant** work that sho
 
 ## Naming in CI
 
-- Git branch **`staging`** runs **Publish (staging)**: **`X.Y.Z-staging.N`** and float **`staging`** in GHCR. **refs/tags/staging** moves to the build commit. In-cluster “alpha” (e.g. namespace) in GitOps is separate.
-- Pushes to **`main`** run **Publish (main)**: promote to RTM **`X.Y.Z`** and **`:latest`** (no app rebuild in that workflow). **refs/tags/latest** is updated to the promote commit.
+- Git branch **`staging`** runs **Publish (staging)**: **`X.Y.Z-staging.N`** and float **`staging`** in GHCR. In-cluster “alpha” (e.g. namespace) in GitOps is separate.
+- Pushes to **`main`** run **Publish (main)**: promote to RTM **`X.Y.Z`** and **`:latest`** (no app rebuild in that workflow).
 - Canonical table: [`docs/operations/PUBLISH.md`](../../docs/operations/PUBLISH.md). See also [`docs/operations/ALPHA-DEPLOYMENT.md`](../../docs/operations/ALPHA-DEPLOYMENT.md).
 
 ## Related automation
