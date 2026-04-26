@@ -25,7 +25,7 @@ This shared utility is called by:
 
 - `scripts/publish/bump-version.sh`
 - `scripts/publish/sync-develop-to-staging.sh` (passes allowlist as argument)
-- `scripts/publish/sync-develop-to-main.sh` (passes allowlist as argument)
+- `scripts/publish/sync-staging-to-main.sh` (passes allowlist as argument; RTM: fast-forward `main` from `staging` only)
 
 When you update the allowlist:
 

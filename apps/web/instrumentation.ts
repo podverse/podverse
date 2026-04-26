@@ -9,8 +9,12 @@ export async function register(): Promise<void> {
   if (!process.env.RUNTIME_CONFIG_URL) {
     return;
   }
-  const { fetchWebRuntimeConfigFromSidecar } = await import('./src/config/runtime-config.server');
-  const { setRuntimeConfig } = await import('./src/config/runtime-config-store');
-  const runtimeConfig = await fetchWebRuntimeConfigFromSidecar();
-  setRuntimeConfig(runtimeConfig);
+  try {
+    const { fetchWebRuntimeConfigFromSidecar } = await import('./src/config/runtime-config.server');
+    const { setRuntimeConfig } = await import('./src/config/runtime-config-store');
+    const runtimeConfig = await fetchWebRuntimeConfigFromSidecar();
+    setRuntimeConfig(runtimeConfig);
+  } catch {
+    // Sidecar unreachable at startup; request-time layout hydration/fallback handles this.
+  }
 }

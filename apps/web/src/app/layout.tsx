@@ -18,7 +18,8 @@ import { QueueResourcesAbridgedController } from '../components/Queue/QueueResou
 import { SideBar } from '../components/SideBar/SideBar';
 import WindowWrapper from '../components/Window/WindowWrapper';
 import { getConfig } from '../config';
-import { getRuntimeConfig } from '../config/runtime-config-store';
+import { fetchWebRuntimeConfigFromSidecar } from '../config/runtime-config.server';
+import { getRuntimeConfig, setRuntimeConfig } from '../config/runtime-config-store';
 import { getSSRApiRequestService } from '../factories/apiRequestService';
 import { useLocaleDetect } from '../hooks/useLocaleDetect';
 import { setSSRAccountForLocale } from '../i18n/request';
@@ -30,8 +31,15 @@ import { toUITheme } from '../utils/localSettings/uiTheme';
 import '../styles/index.scss';
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  // Runtime config is initialized in instrumentation.ts at server startup
-  const runtimeConfig = getRuntimeConfig();
+  let runtimeConfig = getRuntimeConfig();
+  if (process.env.RUNTIME_CONFIG_URL) {
+    try {
+      runtimeConfig = await fetchWebRuntimeConfigFromSidecar();
+      setRuntimeConfig(runtimeConfig);
+    } catch {
+      runtimeConfig = getRuntimeConfig();
+    }
+  }
   const config = getConfig();
   const cookieStore = await cookies();
   const ssrLocalSettings = getParsedLocalSettings(cookieStore);

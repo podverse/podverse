@@ -6,6 +6,13 @@ The `podverse-web` application is a Next.js app that reads `NEXT_PUBLIC_*` value
 
 **No environment variables are required at build time.** The app can be built without any `.env` file. All configuration is fetched from the sidecar at runtime.
 
+## Runtime config lifecycle (standardized with `apps/management-web`)
+
+1. `instrumentation.ts` runs once per server process. If `RUNTIME_CONFIG_URL` is set, it attempts to fetch sidecar config and seeds the global runtime-config store (`setRuntimeConfig`).
+2. Root layout executes on requests and embeds runtime config via `RuntimeConfigScript`. When `RUNTIME_CONFIG_URL` is set, layout also attempts a sidecar fetch and refreshes the store.
+3. If sidecar fetch is temporarily unavailable, `getRuntimeConfig()` safely falls back to `process.env` (dev/test or non-sidecar runs), and logs this fallback once in non-production.
+4. Browser request helpers read the inlined runtime config from `globalThis.__PODVERSE_RUNTIME_CONFIG__`, so API protocol/host/port match the current server context.
+
 The sidecar uses the same validation helpers as the rest of the monorepo (`@podverse/helpers-config`). It runs full environment validation at startup (every required and optional `NEXT_PUBLIC_*` and `PORT`), logs each variable's status by category, and exits with code 1 if any required variable is missing or invalid; it also validates required presence on each `/runtime-config` request. For local dev, run `npm run build:sidecar:web` from the repo root once before using `npm run dev:web-sidecar` or `npm run dev:all` (the sidecar runs from a bundled `sidecar/dist/server.js`).
 
 ## Required Variables
@@ -200,7 +207,7 @@ Required Missing: 0
 
 - **Public variables**: All `NEXT_PUBLIC_*` variables are exposed to the browser. Do not include sensitive information.
 - **No build-time validation**: The app can be built without any environment variables. All validation happens at runtime.
-- **Runtime validation**: The sidecar validates all required `NEXT_PUBLIC_*` values at startup. The app fetches config from the sidecar via `instrumentation.ts` before any requests are served.
+- **Runtime validation**: The sidecar validates all required `NEXT_PUBLIC_*` values at startup. The app uses `instrumentation.ts` prewarm plus request-time root layout hydration, with safe `process.env` fallback when sidecar data is unavailable.
 - **Validation file**: See `apps/web/sidecar/src/server.ts` for sidecar validation logic. The `scripts/validate-env.ts` script is available for manual validation but does not run automatically during builds.
 
 ## Adding New Environment Variables

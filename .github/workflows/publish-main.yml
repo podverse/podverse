@@ -1,5 +1,5 @@
-# On push to `main`: promote the latest per-image `X.Y.Z-staging.N` to immutable `X.Y.Z` and `:prod`
-# (X.Y from root package.json on the push commit; no *-prod.N tag).
+# On push to `main`: promote the latest per-image `X.Y.Z-staging.N` to immutable `X.Y.Z` and `:latest`
+# (X.Y from root package.json on the push commit; no separate *-prod.N line like staging).
 
 name: Publish (main)
 
@@ -92,9 +92,9 @@ jobs:
           for APP in $APPS; do
             IMAGE="ghcr.io/${REPO}/${APP}"
             SRC_TAG="${BASE}-staging.${M}"
-            echo "Promoting ${IMAGE}:${SRC_TAG} -> :${BASE} and :prod"
+            echo "Promoting ${IMAGE}:${SRC_TAG} -> :${BASE} and :latest"
             crane copy "${IMAGE}:${SRC_TAG}" "${IMAGE}:${BASE}"
-            crane copy "${IMAGE}:${SRC_TAG}" "${IMAGE}:prod"
+            crane copy "${IMAGE}:${SRC_TAG}" "${IMAGE}:latest"
           done
           echo "staging_n=$M" >> "$GITHUB_OUTPUT"
 
@@ -135,6 +135,19 @@ jobs:
                 owner, repo, tag_name: base, name: base, body, prerelease: false,
               });
             }
+            try {
+              await github.rest.git.deleteRef({ owner, repo, ref: "tags/latest" });
+            } catch (e) {
+              if (e.status === 404 || e.status === 422) {
+                core.info("refs/tags/latest did not exist; creating.");
+              } else {
+                throw e;
+              }
+            }
+            await github.rest.git.createRef({
+              owner, repo, ref: "refs/tags/latest", sha
+            });
+            core.info("Moved refs/tags/latest to " + sha);
 
       - name: Main promotion summary
         if: success()
@@ -148,17 +161,17 @@ jobs:
             echo ""
             echo "Promoted from: \`$BASE-staging.$STAGING_N\` (per-image source in GHCR)."
             echo ""
-            echo "Immutable tag: \`$BASE\` and floating \`prod\` (from latest \`$BASE-staging.N\` in GHCR per image)."
+            echo "Immutable tag: \`$BASE\` and floating \`latest\` (from latest \`$BASE-staging.N\` in GHCR per image)."
             echo ""
             echo "| Image | Pinned as |"
             echo "|-------|-----------|"
             for a in web-base management-web-base api workers management-api web-deploy management-web-deploy web-runtime-config management-web-runtime-config; do
-              echo "| \`ghcr.io/${REPO}/${a}\` | \`$BASE\`, \`prod\` |"
+              echo "| \`ghcr.io/${REPO}/${a}\` | \`$BASE\`, \`latest\` |"
             done
             echo ""
             echo "## All published image references"
             for a in web-base management-web-base api workers management-api web-deploy management-web-deploy web-runtime-config management-web-runtime-config; do
               echo "- \`ghcr.io/${REPO}/${a}:${BASE}\` (immutable)"
-              echo "- \`ghcr.io/${REPO}/${a}:prod\` (floating)"
+              echo "- \`ghcr.io/${REPO}/${a}:latest\` (floating)"
             done
           } >> "$GITHUB_STEP_SUMMARY"

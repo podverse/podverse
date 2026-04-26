@@ -6,12 +6,16 @@ export async function register(): Promise<void> {
   if (process.env.NEXT_RUNTIME !== 'nodejs') {
     return;
   }
-  if (process.env.RUNTIME_CONFIG_URL === undefined || process.env.RUNTIME_CONFIG_URL === '') {
+  if (!process.env.RUNTIME_CONFIG_URL) {
     return;
   }
-  const { fetchManagementWebRuntimeConfigFromSidecar } =
-    await import('./src/config/runtime-config.server');
-  const { setRuntimeConfig } = await import('./src/config/runtime-config-store');
-  const runtimeConfig = await fetchManagementWebRuntimeConfigFromSidecar();
-  setRuntimeConfig(runtimeConfig);
+  try {
+    const { fetchManagementWebRuntimeConfigFromSidecar } =
+      await import('./src/config/runtime-config.server');
+    const { setRuntimeConfig } = await import('./src/config/runtime-config-store');
+    const runtimeConfig = await fetchManagementWebRuntimeConfigFromSidecar();
+    setRuntimeConfig(runtimeConfig);
+  } catch {
+    // Sidecar unreachable at startup; request-time layout hydration/fallback handles this.
+  }
 }
