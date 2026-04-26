@@ -2,6 +2,9 @@
 
 Deployment scripts and Kubernetes manifests for the Podverse ecosystem.
 
+For a domain-agnostic remote-cluster guide that uses a separate GitOps repository, see
+[`docs/development/REMOTE-K8S-GITOPS.md`](../../docs/development/REMOTE-K8S-GITOPS.md).
+
 ## Architecture Overview
 
 This repository uses a GitOps workflow (via ArgoCD) to manage the Podverse infrastructure on a K3s cluster.
@@ -20,7 +23,7 @@ This repository uses a GitOps workflow (via ArgoCD) to manage the Podverse infra
 
 ## Prerequisites
 
-Before deploying the Application manifests (in `k8s/alpha`), ensure the following Infrastructure is running:
+Before deploying the Application manifests (in `infra/k8s/alpha`), ensure the following Infrastructure is running:
 
 1.  **K3s Cluster**: Up and running (e.g., on NixOS/Proxmox).
 2.  **Cert-Manager**: Installed in `cert-manager` namespace.
@@ -32,7 +35,7 @@ Before deploying the Application manifests (in `k8s/alpha`), ensure the followin
 
 ## Directory Structure
 
-- `k8s/`
+- `infra/k8s/`
   - `system/`: Cluster-wide configs (Traefik defaults, etc.).
   - `alpha/`: Manifests for the Alpha environment.
     - `00-namespace.yaml`: Isolation boundary.
@@ -43,7 +46,7 @@ Before deploying the Application manifests (in `k8s/alpha`), ensure the followin
 
 ### 1. Generate Secrets
 
-We use SOPS to encrypt secrets. Run the helper scripts in `k8s/scripts/` to generate the required encrypted files.
+We use SOPS to encrypt secrets. Run the helper scripts in `infra/k8s/scripts/` to generate the required encrypted files.
 
 **Requirements Checklist:**
 
@@ -83,39 +86,39 @@ Before running the scripts, ensure you have the following ready:
 
 ```bash
 # Run each script and follow the prompts
-bash ./k8s/scripts/create_db_secret.sh
-bash ./k8s/scripts/create_management_db_secret.sh
-bash ./k8s/scripts/create_mq_secret.sh
-bash ./k8s/scripts/create_api_secret.sh
-bash ./k8s/scripts/create_workers_secret.sh
-bash ./k8s/scripts/create_firebase_secret.sh
+bash ./infra/k8s/scripts/create_db_secret.sh
+bash ./infra/k8s/scripts/create_management_db_secret.sh
+bash ./infra/k8s/scripts/create_mq_secret.sh
+bash ./infra/k8s/scripts/create_api_secret.sh
+bash ./infra/k8s/scripts/create_workers_secret.sh
+bash ./infra/k8s/scripts/create_firebase_secret.sh
 ```
 
 **Apply**
 
 ```bash
 kubectl create namespace podverse-alpha
-kubectl apply -f k8s/system/traefik-config.yaml
+kubectl apply -f infra/k8s/system/traefik-config.yaml
 
 
-for file in k8s/secrets/podverse-alpha-*-opaque.enc.yaml; do
+for file in infra/k8s/secrets/podverse-alpha-*-opaque.enc.yaml; do
     sops -d "$file" | kubectl apply -f -
 done
 
-kubectl apply -f k8s/alpha-application.yaml
+kubectl apply -f infra/k8s/alpha-application.yaml
 
 ```
 
 ```fish
 kubectl create namespace podverse-alpha
-kubectl apply -f k8s/system/traefik-config.yaml
+kubectl apply -f infra/k8s/system/traefik-config.yaml
 
 
-for file in k8s/secrets/podverse-alpha-*-opaque.enc.yaml
+for file in infra/k8s/secrets/podverse-alpha-*-opaque.enc.yaml
     sops -d $file | kubectl apply -f -
 end
 
-kubectl apply -f k8s/alpha-application.yaml
+kubectl apply -f infra/k8s/alpha-application.yaml
 
 
 ```
@@ -125,21 +128,21 @@ kubectl apply -f k8s/alpha-application.yaml
 Use Kustomize to render overlays locally, matching what ArgoCD applies. Because bases live outside the overlay folders, include the relaxed load restrictor flag.
 
 ```bash
-kustomize build --load-restrictor LoadRestrictionsNone k8s/alpha/workers/
+kustomize build --load-restrictor LoadRestrictionsNone infra/k8s/alpha/workers/
 ```
 
-Other overlays render the same way (e.g., `k8s/alpha/api`, `k8s/alpha/web`, `k8s/alpha/db`). Add `| kubectl apply -f - --dry-run=client` to validate locally before pushing to Git.
+Other overlays render the same way (e.g., `infra/k8s/alpha/api`, `infra/k8s/alpha/web`, `infra/k8s/alpha/db`). Add `| kubectl apply -f - --dry-run=client` to validate locally before pushing to Git.
 
 ## ArgoCD bootstrap (App of Apps)
 
-- Update `repoURL` and `targetRevision` in [k8s/alpha-application.yaml](k8s/alpha-application.yaml) if deploying from a fork or different branch.
-- Apply the root application once: `kubectl apply -f k8s/alpha-application.yaml`. ArgoCD will create child apps for common, api, web, db, mq, workers, and cron.
+- Update `repoURL` and `targetRevision` in [infra/k8s/alpha-application.yaml](alpha-application.yaml) if deploying from a fork or different branch.
+- Apply the root application once: `kubectl apply -f infra/k8s/alpha-application.yaml`. ArgoCD will create child apps for common, api, web, db, mq, workers, and cron.
 - Leave automated sync, prune, and self-heal enabled (already configured in manifests).
 
 ## Secrets and SOPS
 
-- Encrypted secrets live under [k8s/secrets/](k8s/secrets/). Decrypt with `sops -d` when applying manually.
-- Helper scripts in [k8s/scripts/](k8s/scripts/README.md) generate secrets for DB, MQ, API, workers, Firebase, and Valkey. They assume SOPS keys are available and `nix develop` provides required binaries.
+- Encrypted secrets live under [infra/k8s/secrets/](secrets/). Decrypt with `sops -d` when applying manually.
+- Helper scripts in [infra/k8s/scripts/](scripts/README.md) generate secrets for DB, MQ, API, workers, Firebase, and Valkey. They assume SOPS keys are available and `nix develop` provides required binaries.
 - Never commit decrypted secrets; ArgoCD consumes the encrypted files directly.
 
 ## Linting and Formatting
@@ -197,7 +200,7 @@ Instead of manually managing individual resources (Deployments, Services, etc.) 
 ## Directory Structure
 
 ```text
-k8s/
+infra/k8s/
 ├── alpha-application.yaml      # ROOT APP: The entry point for ArgoCD
 ├── alpha/                      # The actual infrastructure and application code
 │   ├── apps/                   # CHILD APPS: ArgoCD Application definitions

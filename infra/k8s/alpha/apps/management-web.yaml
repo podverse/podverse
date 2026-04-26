@@ -15,7 +15,7 @@ spec:
     targetRevision: staging
 
     # Path to the Management Web manifests (Deployment, Service, ConfigMap)
-    path: k8s/alpha/management-web
+    path: infra/k8s/alpha/management-web
 
   destination:
     server: https://kubernetes.default.svc

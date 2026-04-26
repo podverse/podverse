@@ -2,6 +2,10 @@
 
 This document describes how to deploy to the alpha environment for testing.
 
+For remote Kubernetes + Argo CD deployments with a separate GitOps repository, use
+[REMOTE-K8S-GITOPS](../development/REMOTE-K8S-GITOPS.md). This guide focuses on image
+publish and local/server alpha workflows from this repository.
+
 ## Overview
 
 The alpha environment is a pre-production testing environment. Docker images are built and pushed to GitHub Container Registry (GHCR) when:
@@ -405,6 +409,7 @@ gh run rerun <run-id> --failed
 ## Related Documentation
 
 - [Publish: branch → semver → floating tag](PUBLISH.md)
+- [Remote Kubernetes (GitOps)](../development/REMOTE-K8S-GITOPS.md)
 - [Branch Protection Rules](../repo-management/BRANCH-PROTECTION.md)
 - [Secrets Configuration](SECRETS.md)
 - [Quick Start Guide](../QUICKSTART.md)
