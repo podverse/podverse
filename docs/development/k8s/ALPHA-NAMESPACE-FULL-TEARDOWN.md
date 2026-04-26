@@ -1,9 +1,9 @@
 # Alpha Namespace Full Teardown (Safety-First)
 
-This runbook is for fully tearing down Kubernetes namespaces such as:
+This runbook is for fully tearing down one Kubernetes alpha namespace family at a time:
 
-- `podverse-alpha`
-- `boilerplate-alpha`
+- Podverse family: `podverse-alpha`
+- Boilerplate family: `boilerplate-alpha`
 
 It is intentionally command-driven (no helper script required) and focuses on avoiding deletion from the wrong cluster.
 
@@ -36,12 +36,46 @@ If any gate fails, stop immediately.
 
 ## 1) Hard cluster identity gate (required)
 
-Set these values first:
+Pick exactly one target profile first.
+
+Podverse profile (`bash`/`zsh`):
 
 ```bash
 export EXPECTED_CONTEXT="<your-context>"
 export EXPECTED_SERVER_FRAGMENT="<unique-api-server-fragment>"
-export TARGET_NAMESPACES="podverse-alpha boilerplate-alpha"
+export TARGET_KIND="podverse"
+export TARGET_NAMESPACES="podverse-alpha"
+export TARGET_PATTERN="podverse-alpha"
+```
+
+Podverse profile (`fish`):
+
+```fish
+set -x EXPECTED_CONTEXT <your-context>
+set -x EXPECTED_SERVER_FRAGMENT <unique-api-server-fragment>
+set -x TARGET_KIND podverse
+set -x TARGET_NAMESPACES podverse-alpha
+set -x TARGET_PATTERN podverse-alpha
+```
+
+Boilerplate profile (`bash`/`zsh`):
+
+```bash
+export EXPECTED_CONTEXT="<your-context>"
+export EXPECTED_SERVER_FRAGMENT="<unique-api-server-fragment>"
+export TARGET_KIND="boilerplate"
+export TARGET_NAMESPACES="boilerplate-alpha"
+export TARGET_PATTERN="boilerplate-alpha"
+```
+
+Boilerplate profile (`fish`):
+
+```fish
+set -x EXPECTED_CONTEXT <your-context>
+set -x EXPECTED_SERVER_FRAGMENT <unique-api-server-fragment>
+set -x TARGET_KIND boilerplate
+set -x TARGET_NAMESPACES boilerplate-alpha
+set -x TARGET_PATTERN boilerplate-alpha
 ```
 
 Run and validate:
@@ -49,7 +83,7 @@ Run and validate:
 ```bash
 kubectl config current-context
 kubectl config view --minify -o jsonpath='{.clusters[0].cluster.server}'; echo
-kubectl get ns | rg '^(podverse-alpha|boilerplate-alpha)$'
+kubectl get ns | rg "^${TARGET_PATTERN}$"
 ```
 
 Block execution if mismatch:
@@ -64,11 +98,21 @@ kubectl config view --minify -o jsonpath='{.clusters[0].cluster.server}' | rg "$
 ```bash
 for ns in $TARGET_NAMESPACES; do
   echo "===== $ns ====="
-  kubectl -n "$ns" get all,ingress,pvc,cm,secret,job,cronjob || true
+  kubectl --request-timeout=10s -n "$ns" get all,ingress,pvc,cm,secret,job,cronjob || true
 done
+kubectl --request-timeout=10s get pv -o wide | rg "$TARGET_PATTERN" || true
+kubectl --request-timeout=10s -n argocd get applications | rg "$TARGET_PATTERN" || true
+```
 
-kubectl get pv -o wide | rg '(podverse-alpha|boilerplate-alpha)' || true
-kubectl -n argocd get applications | rg '(podverse-alpha|boilerplate-alpha)' || true
+`fish` equivalent:
+
+```fish
+for ns in $TARGET_NAMESPACES
+  echo "===== $ns ====="
+  kubectl --request-timeout=10s -n "$ns" get all,ingress,pvc,cm,secret,job,cronjob; or true
+end
+kubectl --request-timeout=10s get pv -o wide | rg "$TARGET_PATTERN"; or true
+kubectl --request-timeout=10s -n argocd get applications | rg "$TARGET_PATTERN"; or true
 ```
 
 ## 3) Remove Argo CD ownership first (GitOps-first)
@@ -78,7 +122,7 @@ Recommended: remove/disable the related `Application` manifests in your GitOps r
 If using imperative delete for Argo apps, verify each app name carefully first:
 
 ```bash
-kubectl -n argocd get applications | rg '(podverse-alpha|boilerplate-alpha)'
+kubectl -n argocd get applications | rg "$TARGET_PATTERN"
 ```
 
 Then delete only confirmed targets:
@@ -92,7 +136,7 @@ kubectl -n argocd delete application <app-name-2>
 Wait until no matching apps remain:
 
 ```bash
-kubectl -n argocd get applications | rg '(podverse-alpha|boilerplate-alpha)' || true
+kubectl -n argocd get applications | rg "$TARGET_PATTERN" || true
 ```
 
 ## 4) Delete namespaces
@@ -107,14 +151,13 @@ kubectl config view --minify -o jsonpath='{.clusters[0].cluster.server}' | rg "$
 Delete:
 
 ```bash
-kubectl delete namespace podverse-alpha --wait=false
-kubectl delete namespace boilerplate-alpha --wait=false
+for ns in $TARGET_NAMESPACES; do kubectl delete namespace "$ns" --wait=false; done
 ```
 
 Track progress:
 
 ```bash
-kubectl get ns | rg '(podverse-alpha|boilerplate-alpha)' || true
+kubectl get ns | rg "$TARGET_PATTERN" || true
 ```
 
 ## 5) Cleanup retained PersistentVolumes (if any)
@@ -122,7 +165,7 @@ kubectl get ns | rg '(podverse-alpha|boilerplate-alpha)' || true
 Identify PVs still bound/released for deleted namespaces:
 
 ```bash
-kubectl get pv -o wide | rg '(podverse-alpha|boilerplate-alpha)' || true
+kubectl get pv -o wide | rg "$TARGET_PATTERN" || true
 ```
 
 Inspect reclaim policy and claim reference before deleting:
@@ -142,9 +185,9 @@ If your storage class uses external cloud disks with `Retain`, remove backing di
 ## 6) Final verification checklist
 
 ```bash
-kubectl get ns | rg '(podverse-alpha|boilerplate-alpha)' || true
-kubectl -n argocd get applications | rg '(podverse-alpha|boilerplate-alpha)' || true
-kubectl get pv -o wide | rg '(podverse-alpha|boilerplate-alpha)' || true
+kubectl get ns | rg "$TARGET_PATTERN" || true
+kubectl -n argocd get applications | rg "$TARGET_PATTERN" || true
+kubectl get pv -o wide | rg "$TARGET_PATTERN" || true
 ```
 
 Success criteria:
@@ -162,8 +205,7 @@ If a namespace is stuck in `Terminating`:
 3. only then remove finalizers
 
 ```bash
-kubectl get namespace podverse-alpha -o yaml
-kubectl get namespace boilerplate-alpha -o yaml
+for ns in $TARGET_NAMESPACES; do kubectl get namespace "$ns" -o yaml; done
 ```
 
 See also: [REMOTE-K8S-GITOPS](./REMOTE-K8S-GITOPS.md).
