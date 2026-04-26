@@ -1,6 +1,9 @@
 # Full regen: wipe per-target generated subtrees, then re-export (removes orphans from renames/deletes in .cursor).
 # Rolling incremental updates use "LLM exports sync" and branch `llm`. This workflow is on-demand; branch `llm-full`.
 # Plain Node (no root npm install); see package.json llm:exports:sync:full.
+#
+# Do not add push, pull_request, schedule, workflow_run, or other automatic triggers. Manual run only
+# (Actions → LLM exports full → Run workflow).
 
 name: LLM exports full
 
@@ -13,6 +16,7 @@ concurrency:
 
 jobs:
   publish_llm_full_pr:
+    if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
