@@ -125,6 +125,40 @@ export function validateOptional(
   };
 }
 
+const ABSOLUTE_HTTP_URL_RE = /^https?:\/\//i;
+
+/**
+ * Optional web branding image URL: if set, must be an absolute `http://` or `https://` URL
+ * (so assets are not required to be bundled in the app image).
+ */
+export function validateOptionalAbsoluteHttpUrlIfSet(
+  varName: string,
+  category: string,
+  notSetMessage: string = 'Skipped'
+): ValidationResult {
+  const raw = process.env[varName] || '';
+  const value = raw.trim();
+  if (value === '') {
+    return {
+      name: varName,
+      isSet: false,
+      isValid: true,
+      isRequired: false,
+      message: notSetMessage,
+      category,
+    };
+  }
+  const ok = ABSOLUTE_HTTP_URL_RE.test(value);
+  return {
+    name: varName,
+    isSet: true,
+    isValid: ok,
+    isRequired: false,
+    message: ok ? 'Set' : 'Must be an absolute http:// or https:// URL',
+    category,
+  };
+}
+
 /**
  * Validates a conditionally optional environment variable (only logs if set but not needed)
  * Returns null if variable is not set (so it won't be included in results)

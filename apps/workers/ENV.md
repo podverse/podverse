@@ -53,14 +53,13 @@ Add-by-RSS feed parsing (e.g. `mqAddByRSSRunParser`) uses optional HTTP Basic Au
 
 ## General Configuration (Base — every command)
 
-- **`USER_AGENT`** (Required when set; may be blank)
-  - When set, must follow format: `BrandName Bot Environment/AppName/Version` and include "Bot" in the first part
-  - When blank, effective value is built from `BRAND_NAME` + suffix at runtime
-  - Example: `Podverse Bot Local/Workers/5`
-  - Used for external API requests
+- **`USER_AGENT`** (Required)
+  - Non-blank. Must follow format: `BrandName Bot Environment/AppName/Version` and include "Bot" in the first part. Use a deployment-specific value; do not copy another product’s string.
+  - Example: `Example Bot local/Workers/5`
+  - Used for external API requests and HTTP clients
 
 - **`BRAND_NAME`** (Required)
-  - Validated at startup. Used when `USER_AGENT` is blank to build the effective User-Agent string; also used for notifications.
+  - Validated at startup. Used for notifications.
 
 - **`LOG_LEVEL`** (Required) - Logging level
   - Valid values: `error`, `warn`, `info`, `debug`, `verbose`, `silly`, `silent`
@@ -159,7 +158,7 @@ These variables are used by both External Services and Notifications modules:
 
 - **`WEB_PROTOCOL`** (Required) - Web protocol (`http` or `https`)
 - **`WEB_DOMAIN`** (Required) - Web domain (e.g., `localhost:3000` or `podverse.fm`)
-- **`WEB_ICON_IMAGE_PATH`** (Required) - Path to web icon image (e.g., `/icon.png`)
+- **`WEB_ICON_IMAGE_PATH`** (Optional) - **Absolute** URL for the web app icon used in push/FCM branding. When set, the value must start with `http://` or `https://` (validated at startup) so the asset can live on a CDN or the public web host and does not have to be bundled in the API or workers image. If unset, the icon URL is left empty. For local dev, use the icon URL your web app actually serves, for example `http://localhost:3002/favicon/web-app-manifest-192x192.png` when the Next.js app uses port 3002.
 
 ## Notifications (WebPush)
 

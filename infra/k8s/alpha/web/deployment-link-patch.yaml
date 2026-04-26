@@ -3,4 +3,4 @@ kind: Deployment
 metadata:
   name: podverse-web
   annotations:
-    link.argocd.argoproj.io/external-link: https://alpha-podverse.k.podcastdj.com/
+    link.argocd.argoproj.io/external-link: https://alpha.example.com/

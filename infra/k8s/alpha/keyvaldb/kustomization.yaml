@@ -1,4 +1,4 @@
-# Version: 2
+# Version: 3
 # Filename: kustomization.yaml
 # Description: Bundles resources and acts as the "Variable" manager for images.
 
@@ -8,7 +8,7 @@ kind: Kustomization
 resources:
   - https://github.com/podverse/podverse//infra/k8s/base/keyvaldb?ref=staging
   # Note: We will uncomment the secret line below once you run the generation script
-  # - k8s/secrets/podverse-keyvaldb-secret.enc.yaml
+  # - secrets/podverse-keyvaldb-secret.enc.yaml
 
 # 2. Namespace to apply to all resources (optional, but good practice)
 namespace: podverse-alpha
@@ -28,3 +28,16 @@ images:
     newTag: "9.0.1" # The actual version to deploy
   - name: redislabs/redisinsight
     newTag: "latest"
+
+# Base keyvaldDB GUI `Service` is LoadBalancer; for alpha, use ClusterIP to avoid Argo/LoadBalancer progress hangs.
+patches:
+  - target:
+      kind: Service
+      name: podverse-keyvaldb-gui
+    patch: |-
+      apiVersion: v1
+      kind: Service
+      metadata:
+        name: podverse-keyvaldb-gui
+      spec:
+        type: ClusterIP

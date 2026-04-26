@@ -30,8 +30,8 @@ The sidecar uses the same validation helpers as the rest of the monorepo (`@podv
 - **`NEXT_PUBLIC_PROXY_USER_AGENT`** (Required)
   - Format: `BrandName Bot Environment/AppName/Version`
   - Must include "Bot" in the first part (before the first slash)
-  - Example: `Podverse Bot Local/Web-API/5`
-  - Used when proxying external image requests
+  - Example: `Example Bot local/Web-API/5`
+  - Set a value specific to your deployment. Used when proxying external image requests
 
 ### API Configuration (SSR)
 
@@ -123,11 +123,11 @@ These variables are used for client-side API requests:
 
 ### App MetaBoost (Optional)
 
-- **`NEXT_PUBLIC_APP_VALUE_METABOOST_STANDARD`** (Optional) - MetaBoost standard id for Donate boosts (currently supports `mbrss-v1`)
+- **`NEXT_PUBLIC_APP_VALUE_METABOOST_STANDARD`** (Optional) - MetaBoost standard id for the **Donate** page (`/donate`): use **`mb-v1`**. mbrss-v1 is for channel/item boosts, not the Donate-to-app flow.
 - **`NEXT_PUBLIC_APP_VALUE_METABOOST_NODE`** (Optional) - MetaBoost endpoint URL for Donate boosts
 - **Local overrides:** Set these in `dev/env-overrides/local/metaboost.env` (see `metaboost.env.example`), then run `make local_env_setup`.
 
-**Donate page:** The Boost form on the **Donate** page (`/donate`) only appears when at least one app value Lightning method is configured (either LNAddress or Node). Both name and address must be set for the chosen method. If neither is set, the page shows an explanatory message instead of the form. Donate MetaBoost behavior is optional and only activates when both `NEXT_PUBLIC_APP_VALUE_METABOOST_STANDARD` and `NEXT_PUBLIC_APP_VALUE_METABOOST_NODE` resolve to a supported standard.
+**Donate page:** The Boost form on the **Donate** page (`/donate`) only appears when at least one app value Lightning method is configured (either LNAddress or Node). Both name and address must be set for the chosen method. If neither is set, the page shows an explanatory message instead of the form. After Lightning payment, the app may post a MetaBoost **mb-v1** message when `NEXT_PUBLIC_APP_VALUE_METABOOST_STANDARD` and `NEXT_PUBLIC_APP_VALUE_METABOOST_NODE` are configured for **mb-v1**; the Donate page does not use mbrss-v1 (that standard remains for channel/item boost flows only).
 
 ### Notifications
 

@@ -28,7 +28,6 @@ import { BoostMetaBoostInfo } from './BoostMetaBoostInfo';
 import type { BoostPaymentScope } from './boostPaymentScope';
 import { BoostRecipientInfo } from './BoostRecipientInfo';
 import { BoostRecipientStatusList } from './BoostRecipientStatusList';
-import type { MbrssV1RssContext } from './donateMbrssV1RssContext';
 import { DonateSuccessConfetti } from './DonateSuccessConfetti';
 import { convertBoostThresholdAmount } from './hooks/boostThresholdConversion';
 import { useBoostAppRecipients } from './hooks/useBoostAppRecipients';
@@ -80,8 +79,6 @@ type BoostFormBaseProps = {
   successPrimaryButtonLabel?: string;
   successPrimaryButtonOnClick?: () => void;
   noRecipientsFallback?: ReactNode;
-  /** Donate flow: RSS fields aligned with podverse-boosts-feed.xml for mbrss-v1/BLIP. */
-  mbrssV1RssContext?: MbrssV1RssContext | null;
 };
 
 export const BoostFormBase: React.FC<BoostFormBaseProps> = ({
@@ -106,7 +103,6 @@ export const BoostFormBase: React.FC<BoostFormBaseProps> = ({
   successPrimaryButtonLabel,
   successPrimaryButtonOnClick,
   noRecipientsFallback,
-  mbrssV1RssContext,
 }) => {
   const includeCreatorRecipients = boostPaymentScope === 'creator_only';
   const includeAppRecipient = boostPaymentScope === 'app_only';
@@ -351,7 +347,7 @@ export const BoostFormBase: React.FC<BoostFormBaseProps> = ({
   const { handleSubmitBoost } = useBoostPayments({
     channel,
     item,
-    mbrssV1RssContext,
+    boostPaymentScope,
     config,
     tValue,
     message,

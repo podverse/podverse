@@ -48,7 +48,7 @@ ENVIRONMENT="${ENVIRONMENT:-alpha}"
 # Matches the secret name defined in podverse-alpha.yaml
 SECRET_NAME="podverse-keyvaldb-opaque"
 NAMESPACE="podverse-${ENVIRONMENT}"
-OUTPUT_FILE="./infra/k8s/secrets/podverse-${ENVIRONMENT}-keyvaldb-opaque.enc.yaml"
+OUTPUT_FILE="./secrets/podverse-${ENVIRONMENT}-keyvaldb-opaque.enc.yaml"
 
 # Allow orchestrator to override output path
 if [ -n "$OUTPUT_FILE_OVERRIDE" ]; then

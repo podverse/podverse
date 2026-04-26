@@ -1,4 +1,4 @@
-# Version: 2
+# Version: 4
 # Filename: kustomization.yaml
 # Description: Bundles the Management Web resources and centralizes the image tag.
 
@@ -24,9 +24,9 @@ configMapGenerator:
 
 images:
   - name: ghcr.io/podverse/podverse/management-web-deploy
-    newTag: "5.4.12-staging.0"
+    newTag: "staging"
   - name: ghcr.io/podverse/podverse/management-web-runtime-config
-    newTag: "5.4.12-staging.0"
+    newTag: "staging"
 
 patches:
   - path: deployment-link-patch.yaml

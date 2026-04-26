@@ -10,6 +10,7 @@ import { Card } from '../components/ui/Card/Card';
 import { CenterContainer } from '../components/ui/CenterContainer/CenterContainer';
 import { FormGroup, FormInput, FormLabel } from '../components/ui/Form';
 import { LoadingText } from '../components/ui/LoadingText/LoadingText';
+import { getConfig } from '../config';
 import { getCurrentUser, login } from '../lib/requests/auth';
 
 import styles from './page.module.scss';
@@ -79,7 +80,7 @@ export default function HomePage() {
     <CenterContainer>
       <Card className={styles.loginCard}>
         <div className={styles.loginHeader}>
-          <h1 className={styles.loginTitle}>Podverse Management</h1>
+          <h1 className={styles.loginTitle}>{getConfig().public.brand.name ?? 'Management'}</h1>
           <p className={styles.loginSubtitle}>Please sign in to continue</p>
         </div>
 

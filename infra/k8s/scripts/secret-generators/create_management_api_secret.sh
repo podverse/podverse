@@ -27,12 +27,12 @@ while [[ $# -gt 0 ]]; do
 	esac
 done
 
-# Generate secure random password (hex-only, 32 chars = 128 bits; consistent with other create_* scripts)
+# Generate secure random JWT secret (UUID format; consistent with setup.sh AUTH_JWT_SECRET)
 generate_password() {
-	openssl rand -hex 32 | tr -d '\n'
+	uuidgen | tr '[:upper:]' '[:lower:]' | tr -d '\n'
 }
 
-echo "Running create_api_secret.sh"
+echo "Running create_management-api_secret.sh"
 
 # ENVIRONMENT INPUT
 if [ "$AUTO_GEN" = true ]; then
@@ -43,9 +43,9 @@ else
 fi
 ENVIRONMENT="${ENVIRONMENT:-alpha}"
 
-SECRET_NAME="podverse-api-opaque"
+SECRET_NAME="podverse-management-api-opaque"
 NAMESPACE="podverse-${ENVIRONMENT}"
-OUTPUT_FILE="./infra/k8s/secrets/podverse-${ENVIRONMENT}-api-opaque.enc.yaml"
+OUTPUT_FILE="./secrets/podverse-${ENVIRONMENT}-management-api-opaque.enc.yaml"
 
 # Allow orchestrator to override output path
 if [ -n "$OUTPUT_FILE_OVERRIDE" ]; then
@@ -57,10 +57,8 @@ fi
 # ------------------------------------------------------------------
 if [ "$AUTO_GEN" = true ]; then
 	echo "Auto-generating secrets..."
-	AUTH_JWT_SECRET=$(uuidgen | tr '[:upper:]' '[:lower:]' | tr -d '\n')
-	MAILER_PASSWORD=$(generate_password)
+	AUTH_JWT_SECRET=$(generate_password)
 	echo "  AUTH_JWT_SECRET: [generated]"
-	echo "  MAILER_PASSWORD: [generated]"
 else
 	echo "--- AUTHENTICATION ---"
 	read -r -s -p "Enter AUTH_JWT_SECRET (Random String): " AUTH_JWT_SECRET
@@ -70,9 +68,6 @@ else
 		exit 1
 	fi
 
-	echo ""
-	echo "--- MAILER (Optional - Press Enter to skip) ---"
-	read -r -s -p "Enter MAILER_PASSWORD: " MAILER_PASSWORD
 	echo ""
 fi
 
@@ -86,7 +81,6 @@ mv "$TMP_FILE_BASE" "$TMP_FILE"
 kubectl create secret generic "${SECRET_NAME}" \
 	--namespace "${NAMESPACE}" \
 	--from-literal=AUTH_JWT_SECRET="${AUTH_JWT_SECRET}" \
-	--from-literal=MAILER_PASSWORD="${MAILER_PASSWORD}" \
 	--dry-run=client -o yaml >"$TMP_FILE"
 
 sops --encrypt --encrypted-regex '^(data|stringData)$' \

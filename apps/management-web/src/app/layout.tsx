@@ -22,7 +22,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     }
   }
   const config = getConfig();
-  const brandName = config.public.brand.name ?? 'Podverse Management';
+  const brandName = config.public.brand.name ?? 'Management';
   const locale = await getLocale();
   const messages = (await import(`../../i18n/originals/${locale}.json`)).default;
 

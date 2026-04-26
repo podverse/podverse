@@ -1,6 +1,10 @@
 import { getConfig } from '../config';
 
+const encode = (s: string): string => encodeURIComponent(s);
+
 export const getContactEmail = (): string => getConfig().public.contact.email;
+
+const brandNameForBody = (): string => getConfig().public.brand.name;
 
 export const CONTACT_EMAIL_LINKS = {
   get BUG_REPORT(): string {
@@ -9,7 +13,9 @@ export const CONTACT_EMAIL_LINKS = {
   },
   get FEATURE_REQUEST(): string {
     const email = getContactEmail();
-    return `mailto:${email}?subject=Feature%20Request%3A%20&body=Please%20describe%20the%20feature%20you%20would%20like%20added%20to%20Podverse.`;
+    return `mailto:${email}?subject=Feature%20Request%3A%20&body=${encode(
+      `Please describe the feature you would like added to ${brandNameForBody()}.`
+    )}`;
   },
   get PODCAST_REQUEST(): string {
     const email = getContactEmail();
@@ -17,7 +23,9 @@ export const CONTACT_EMAIL_LINKS = {
   },
   get CONTENT_ISSUE(): string {
     const email = getContactEmail();
-    return `mailto:${email}?subject=Content%20Issue%20Report%3A%20&body=To%20help%20expedite%20our%20response%2C%20please%20provide%20a%20link%20on%20Podverse%20to%20the%20content%20that%20you%20are%20reporting.`;
+    return `mailto:${email}?subject=Content%20Issue%20Report%3A%20&body=${encode(
+      `To help expedite our response, please provide a link on ${brandNameForBody()} to the content that you are reporting.`
+    )}`;
   },
   get GENERAL(): string {
     const email = getContactEmail();

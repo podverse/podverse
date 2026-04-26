@@ -19,7 +19,7 @@ export const emailTemplate = ({
   <html lang="en-US">
     <head>
       <meta charset="utf-8">
-      <title>Podverse</title>
+      <title>${config.brandName}</title>
     </head>
     <body style="margin: 0; padding: 0;">
       <div class="container" style="background-color: #D8D8D8; font-family: 'Arial', sans-serif; margin: 0; padding: 0 0 32px 0;">

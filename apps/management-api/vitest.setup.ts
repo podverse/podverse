@@ -3,7 +3,7 @@ import 'reflect-metadata';
 process.env.NODE_ENV = 'test';
 process.env.LOG_LEVEL = 'error';
 process.env.BRAND_NAME = 'VitestBrand';
-process.env.USER_AGENT = '';
+process.env.USER_AGENT = 'Example Bot test/Management-API/5';
 process.env.AUTH_JWT_SECRET = '11111111-1111-4111-8111-111111111111';
 process.env.API_PORT = '19999';
 process.env.API_PREFIX = '/api';

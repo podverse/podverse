@@ -5,6 +5,15 @@ Deployment scripts and Kubernetes manifests for the Podverse ecosystem.
 For a domain-agnostic remote-cluster guide that uses a separate GitOps repository, see
 [`docs/development/k8s/REMOTE-K8S-GITOPS.md`](../../docs/development/k8s/REMOTE-K8S-GITOPS.md).
 
+### Local ops bundle validation (monorepo only)
+
+Remote GitOps uses a **separate repository**; it does not include this step. When you edit
+`infra/k8s/base/ops` here, compile from **monorepo root** to catch kustomize errors:
+
+```bash
+kubectl kustomize infra/k8s/base/ops --load-restrictor LoadRestrictionsNone >/dev/null
+```
+
 ## Architecture Overview
 
 This repository uses a GitOps workflow (via ArgoCD) to manage the Podverse infrastructure on a K3s cluster.
@@ -40,13 +49,13 @@ Before deploying the Application manifests (in `infra/k8s/alpha`), ensure the fo
   - `alpha/`: Manifests for the Alpha environment.
     - `00-namespace.yaml`: Isolation boundary.
     - `api/`, `web/`, `db/`, `mq/`, `workers/`: Component manifests.
-  - `scripts/`: Helper scripts to generate sealed secrets.
+  - `scripts/`: Helper scripts; secret generators under `scripts/secret-generators/`.
 
 ## Getting Started (Alpha Environment)
 
 ### 1. Generate Secrets
 
-We use SOPS to encrypt secrets. Run the helper scripts in `infra/k8s/scripts/` to generate the required encrypted files.
+We use SOPS to encrypt secrets. Run the helper scripts in `infra/k8s/scripts/secret-generators/` to generate the required encrypted files.
 
 **Requirements Checklist:**
 
@@ -71,11 +80,11 @@ Before running the scripts, ensure you have the following ready:
 
 - **API Secrets** (`create_api_secret.sh`):
   - `AUTH_JWT_SECRET`: A long random string for signing tokens.
-  - `MAILER_PASSWORD` (Optional): If using SMTP.
+  - `MAILER_USERNAME` and `MAILER_PASSWORD` (Optional): If using SMTP, set in this Secret, not the ConfigMap.
 
 - **API / management API non-secret auth (ConfigMap env)**: `AUTH_JWT_EXPIRES_IN` and `AUTH_ALLOW_TOKEN_IN_RESPONSE_BODY` are set in `base/api/source/api.env` and `base/management-api/source/management-api.env` (session length and whether login may return a token in JSON when the client requests it).
 
-- **Worker API Keys** (`create_workers_secret.sh`):
+- **Worker (add-by-RSS) keys** (`create_workers_add_by_rss_secret.sh`):
   - `PODCAST_INDEX_AUTH_KEY`: From your PodcastIndex account.
   - `PODCAST_INDEX_SECRET_KEY`: From your PodcastIndex account.
 
@@ -86,12 +95,12 @@ Before running the scripts, ensure you have the following ready:
 
 ```bash
 # Run each script and follow the prompts
-bash ./infra/k8s/scripts/create_db_secret.sh
-bash ./infra/k8s/scripts/create_management_db_secret.sh
-bash ./infra/k8s/scripts/create_mq_secret.sh
-bash ./infra/k8s/scripts/create_api_secret.sh
-bash ./infra/k8s/scripts/create_workers_secret.sh
-bash ./infra/k8s/scripts/create_firebase_secret.sh
+bash ./infra/k8s/scripts/secret-generators/create_db_secret.sh
+bash ./infra/k8s/scripts/secret-generators/create_management_db_secret.sh
+bash ./infra/k8s/scripts/secret-generators/create_mq_secret.sh
+bash ./infra/k8s/scripts/secret-generators/create_api_secret.sh
+bash ./infra/k8s/scripts/secret-generators/create_workers_add_by_rss_secret.sh
+bash ./infra/k8s/scripts/secret-generators/create_firebase_secret.sh
 ```
 
 **Apply**
@@ -101,7 +110,7 @@ kubectl create namespace podverse-alpha
 kubectl apply -f infra/k8s/system/traefik-config.yaml
 
 
-for file in infra/k8s/secrets/podverse-alpha-*-opaque.enc.yaml; do
+for file in secrets/podverse-alpha-*-opaque.enc.yaml; do
     sops -d "$file" | kubectl apply -f -
 done
 
@@ -114,7 +123,7 @@ kubectl create namespace podverse-alpha
 kubectl apply -f infra/k8s/system/traefik-config.yaml
 
 
-for file in infra/k8s/secrets/podverse-alpha-*-opaque.enc.yaml
+for file in secrets/podverse-alpha-*-opaque.enc.yaml
     sops -d $file | kubectl apply -f -
 end
 
@@ -141,8 +150,8 @@ Other overlays render the same way (e.g., `infra/k8s/alpha/api`, `infra/k8s/alph
 
 ## Secrets and SOPS
 
-- Encrypted secrets live under [infra/k8s/secrets/](secrets/). Decrypt with `sops -d` when applying manually.
-- Helper scripts in [infra/k8s/scripts/](scripts/README.md) generate secrets for DB, MQ, API, workers, Firebase, and Valkey. They assume SOPS keys are available and `nix develop` provides required binaries.
+- Encrypted secrets live under [secrets/](secrets/) at the monorepo root. Decrypt with `sops -d` when applying manually.
+- Secret generators in [infra/k8s/scripts/secret-generators/](scripts/secret-generators/INFRA-K8S-SCRIPTS-SECRET-GENERATORS.md) and other scripts in [infra/k8s/scripts/](scripts/README.md) assume SOPS keys are available and `nix develop` provides required binaries.
 - Never commit decrypted secrets; ArgoCD consumes the encrypted files directly.
 
 ## Linting and Formatting

@@ -79,9 +79,7 @@ export function createFirebaseContext(config: ExternalServicesConfig): FirebaseC
     return `${baseUrl}${path}`;
   };
 
-  const getWebIconImageUrl = (): string => {
-    return `${getWebBaseUrl()}/${config.web.icon_image_url}`;
-  };
+  const getWebIconImageUrl = (): string => (config.web.icon_image_url ?? '').trim();
 
   return {
     firebaseAdmin: firebaseAdminInstance,

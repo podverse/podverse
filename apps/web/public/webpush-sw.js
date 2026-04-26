@@ -24,7 +24,8 @@ self.addEventListener('push', async (event) => {
     // Parse the push message data
     const data = event.data ? event.data.json() : {};
 
-    const notificationTitle = data.title || 'Podverse';
+    const notificationTitle =
+      data.title && String(data.title).trim() !== '' ? data.title : 'New notification';
     const notificationOptions = {
       body: data.body || '',
       icon: data.icon || '/favicon/web-app-manifest-192x192.png',

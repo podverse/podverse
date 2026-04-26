@@ -63,7 +63,7 @@ kustomize build --load-restrictor LoadRestrictionsNone infra/k8s/alpha/api/
 
 - Never commit decrypted secrets
 - Use SOPS for encryption
-- Create secrets via scripts in `infra/k8s/scripts/`
+- Create secrets via scripts in `infra/k8s/scripts/secret-generators/`
 - Reference secrets with `secretRef` in Deployment `envFrom`
 
 ## Full Documentation

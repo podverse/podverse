@@ -1,4 +1,5 @@
 import { config } from '@api/config/index.js';
+import { verifyEmailPagePath } from '@api/constants/webAuthPagePaths.js';
 import { loggerService } from '@api/factories/loggerService.js';
 import { emailTemplate } from '@api/lib/mailer/emailTemplate.js';
 import { createTransporter } from '@api/lib/mailer/transporter.js';
@@ -27,7 +28,7 @@ export const sendVerificationEmail = async (
   }
 
   const emailFields = {
-    buttonLink: `${config.web.protocol}://${config.web.domain}${config.verifyEmail.pagePath}${token}`,
+    buttonLink: `${config.web.protocol}://${config.web.domain}${verifyEmailPagePath}${token}`,
     buttonText: 'Verify Email',
     closing: '',
     headerText: 'Verify your email',
@@ -37,9 +38,9 @@ export const sendVerificationEmail = async (
 
   try {
     await transporter.sendMail({
-      from: `Podverse <${config.mailer.from}>`,
+      from: `${config.brandName} <${config.mailer.from}>`,
       to: email,
-      subject: 'Verify your email address with Podverse',
+      subject: `Verify your email address with ${config.brandName}`,
       html: emailTemplate(emailFields),
       text: `Verify your email by visiting the following: ${emailFields.buttonLink}`,
     });

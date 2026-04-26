@@ -1,4 +1,5 @@
 import { config } from '@api/config/index.js';
+import { emailChangeVerificationPagePath } from '@api/constants/webAuthPagePaths.js';
 import { loggerService } from '@api/factories/loggerService.js';
 import { emailTemplate } from '@api/lib/mailer/emailTemplate.js';
 import { createTransporter } from '@api/lib/mailer/transporter.js';
@@ -28,7 +29,7 @@ export const sendEmailChangeVerificationEmail = async (
   }
 
   const emailFields = {
-    buttonLink: `${config.web.protocol}://${config.web.domain}${config.emailChangeVerification.pagePath}${token}`,
+    buttonLink: `${config.web.protocol}://${config.web.domain}${emailChangeVerificationPagePath}${token}`,
     buttonText: 'Verify Email Change',
     closing: '',
     headerText: 'Verify your change of email',
@@ -38,9 +39,9 @@ export const sendEmailChangeVerificationEmail = async (
 
   try {
     await transporter.sendMail({
-      from: `Podverse <${config.mailer.from}>`,
+      from: `${config.brandName} <${config.mailer.from}>`,
       to: pending_email_address,
-      subject: 'Verify your change of email with Podverse',
+      subject: `Verify your change of email with ${config.brandName}`,
       html: emailTemplate(emailFields),
       text: `Verify your email change request by visiting the following: ${emailFields.buttonLink}`,
     });
