@@ -113,7 +113,7 @@ In your repo’s equivalent of AGENTS.md or CONTRIBUTING.md, add a short section
 - [ ] `scripts/nix/with-env` created and executable.
 - [ ] Cursor rule (e.g. `.cursor/rules/nix-terminal-wrapper.mdc`) added and points to your wrapper path.
 - [ ] AGENTS.md or similar updated with one paragraph and a link to the full doc.
-- [ ] Optional: copy or adapt this doc into your repo (e.g. `docs/development/CURSOR-NIX-WITH-ENV.md`) so others can replicate or debug.
+- [ ] Optional: copy or adapt this doc into your repo (e.g. `docs/development/tooling/CURSOR-NIX-WITH-ENV.md`) so others can replicate or debug.
 
 ## Troubleshooting
 

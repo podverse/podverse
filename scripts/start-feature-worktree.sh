@@ -6,7 +6,7 @@
 #
 # Optional: set PODVERSE_NIX_DEV_SHELL (e.g. .#fish) to use a non-default Nix dev shell
 # for npm install and so the environment matches your preferred interactive shell.
-# The repo uses Nix + direnv; see docs/development/CURSOR-NIX-WITH-ENV.md.
+# The repo uses Nix + direnv; see docs/development/tooling/CURSOR-NIX-WITH-ENV.md.
 
 set -euo pipefail
 

@@ -74,7 +74,7 @@ fi
 echo -e "${YELLOW}Running security audit on staging (moderate and above; low permitted)...${NC}"
 npm ci
 
-# Keep allowlist as narrow as possible. See docs/development/NPM-AUDIT-ALLOWLIST.md
+# Keep allowlist as narrow as possible. See docs/development/security/NPM-AUDIT-ALLOWLIST.md
 if ! "$SCRIPT_DIR/../lib/check-audit-gate.sh" "1113977,1116970" "promote to main (staging to main)"; then
   echo -e "${RED}Error: npm audit found disallowed moderate or higher vulnerabilities. Fix them before promoting to main.${NC}"
   exit 1

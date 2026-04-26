@@ -29,7 +29,7 @@ This document describes how **Publish (staging)** and **Publish (main)** work in
 
 ## Other repositories
 
-**Metaboost** uses the same pattern with different app image names. See the Metaboost copy of this doc under `metaboost/docs/development/STAGING-MAIN-PROMOTION.md` if you work across both monorepos.
+**Metaboost** uses the same pattern with different app image names. See the Metaboost copy of this doc under `metaboost/docs/development/release/STAGING-MAIN-PROMOTION.md` if you work across both monorepos.
 
 ## Optional stricter policy (not implemented)
 

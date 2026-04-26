@@ -33,7 +33,7 @@ Node and npm are provided by the repo's Nix flake, not a global install. When ru
 
 - **Wrapper:** `./scripts/nix/with-env <command> [args...]`
 - **Examples:** `./scripts/nix/with-env npm run build:packages`, `./scripts/nix/with-env npm run lint`
-- Run from repo root. Full explanation and setup-in-other-repos: [docs/development/CURSOR-NIX-WITH-ENV.md](docs/development/CURSOR-NIX-WITH-ENV.md).
+- Run from repo root. Full explanation and setup-in-other-repos: [docs/development/tooling/CURSOR-NIX-WITH-ENV.md](docs/development/tooling/CURSOR-NIX-WITH-ENV.md).
 
 ### Lock file and workspace dependencies
 
@@ -331,6 +331,6 @@ See `.llm/LLM.md` for full guidelines.
 - [Architecture](docs/architecture/ARCHITECTURE.md) - System design and data flow
 - [V4V MetaBoost + LNURL](docs/v4v/bitcoin/lnd/V4V-METABOOST-LNURL.md) - Value-for-value boost flow and local setup
 - [Contributing](docs/development/CONTRIBUTING.md) - Workflow and PR guidelines
-- [Lockfile (Linux)](docs/development/LOCKFILE-LINUX.md) - Generating package-lock.json for CI
+- [Lockfile (Linux)](docs/development/tooling/LOCKFILE-LINUX.md) - Generating package-lock.json for CI
 - [i18n Guide](docs/localization/I18N.md) - Translation system details
 - [IDE Setup](docs/development/IDE-SETUP.md) - VS Code configuration

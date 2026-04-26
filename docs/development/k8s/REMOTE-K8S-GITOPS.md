@@ -107,9 +107,9 @@ curl -sI https://api.example.com/v1/health
 
 ## Related docs
 
-- [PUBLISH](../operations/PUBLISH.md)
-- [ALPHA-DEPLOYMENT](../operations/ALPHA-DEPLOYMENT.md)
-- [infra/k8s/README](../../infra/k8s/README.md)
+- [PUBLISH](../../operations/PUBLISH.md)
+- [ALPHA-DEPLOYMENT](../../operations/ALPHA-DEPLOYMENT.md)
+- [infra/k8s/README](../../../infra/k8s/README.md)
 
 ## Documentation guardrails (must pass)
 

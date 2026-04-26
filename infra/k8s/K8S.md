@@ -3,7 +3,7 @@
 Deployment scripts and Kubernetes manifests for the Podverse ecosystem.
 
 For a domain-agnostic remote-cluster guide that uses a separate GitOps repository, see
-[`docs/development/REMOTE-K8S-GITOPS.md`](../../docs/development/REMOTE-K8S-GITOPS.md).
+[`docs/development/k8s/REMOTE-K8S-GITOPS.md`](../../docs/development/k8s/REMOTE-K8S-GITOPS.md).
 
 ## Architecture Overview
 
