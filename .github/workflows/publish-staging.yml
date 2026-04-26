@@ -1,5 +1,5 @@
 # Build and push staging images from the `staging` branch.
-# Tags: X.Y.Z-staging.N and floating :staging. Version Git ref reserved via the Git API; refs/tags/staging updated to the build commit after successful publish.
+# Tags: X.Y.Z-staging.N and floating :staging. Version Git ref reserved via the Git API.
 
 name: Publish (staging)
 
@@ -313,37 +313,8 @@ jobs:
             fi
           done
 
-  move-staging-git-tag:
-    needs: [verify-published-tags]
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-    steps:
-      - name: Move refs/tags/staging to build commit
-        uses: actions/github-script@v9
-        with:
-          script: |
-            const owner = context.repo.owner;
-            const repo = context.repo.repo;
-            const sha = context.sha;
-            try {
-              await github.rest.git.deleteRef({ owner, repo, ref: "tags/staging" });
-            } catch (e) {
-              if (e.status === 404 || e.status === 422) {
-                core.info("refs/tags/staging did not exist; creating.");
-              } else {
-                throw e;
-              }
-            }
-            await github.rest.git.createRef({
-              owner, repo,
-              ref: "refs/tags/staging",
-              sha,
-            });
-            core.info("Moved refs/tags/staging to " + sha);
-
   workflow-summary:
-    needs: [reserve-version, verify-published-tags, move-staging-git-tag]
+    needs: [reserve-version, verify-published-tags]
     runs-on: ubuntu-latest
     steps:
       - name: Published image version (workflow summary)

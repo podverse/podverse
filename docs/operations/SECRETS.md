@@ -122,7 +122,7 @@ Triggers on push to the `staging` branch or manual `workflow_dispatch`:
 
 **Secrets used**: `GHCR_REGISTRY_TOKEN` (to list staging tags; optional but recommended), `GITHUB_TOKEN` (crane copy, tag, release)
 
-Triggers on push to `main` (or `workflow_dispatch`): promotes existing `X.Y.Z-staging.N` images to `X.Y.Z` and `:latest`, then creates the `X.Y.Z` Git tag and a non-prerelease release, and moves **refs/tags/latest**. Does not build app images in this workflow.
+Triggers on push to `main` (or `workflow_dispatch`): promotes existing `X.Y.Z-staging.N` images to `X.Y.Z` and `:latest`, then creates the `X.Y.Z` Git tag and a non-prerelease release. Does not build app images in this workflow.
 
 ### i18n.yml
 

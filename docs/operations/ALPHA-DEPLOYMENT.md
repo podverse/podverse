@@ -18,8 +18,8 @@ The alpha environment is a pre-production testing environment. Docker images are
 ### Release train (staging preprod → main RTM) and changelogs
 
 - **Base version** `X.Y.Z` in the repo root and workspace `package.json` files: you set this when you choose, using `./scripts/publish/bump-version.sh` on `develop` (it does not create a Git tag).
-- **Build version** (what is pushed to GHCR, what matches the **Git** tag, and the **prerelease GitHub Release** name on **staging** builds) is chosen in CI: **`X.Y.Z-staging.N`** (N reserved atomically via Git tag; see [PUBLISH](PUBLISH.md)), plus floating image tag **`:staging`**.
-- **`main` (production):** a dedicated workflow **promotes** the existing `X.Y.Z-staging.N` line to immutable **`X.Y.Z`** and **`:latest`**; it then creates the **`X.Y.Z` Git tag** and a **full** (non-prerelease) **GitHub Release** from [`docs/development/CHANGELOGS/X.Y.Z.md`](../development/CHANGELOGS/) on the promote commit, and moves **refs/tags/latest** to the promote commit. It does not rebuild app images in that run.
+- **Build version** (what is pushed to GHCR, what matches the immutable **Git** tag, and the **prerelease GitHub Release** name on **staging** builds) is chosen in CI: **`X.Y.Z-staging.N`** (N reserved atomically via Git tag; see [PUBLISH](PUBLISH.md)), plus floating image tag **`:staging`**.
+- **`main` (production):** a dedicated workflow **promotes** the existing `X.Y.Z-staging.N` line to immutable **`X.Y.Z`** and **`:latest`**; it then creates the **`X.Y.Z` Git tag** and a **full** (non-prerelease) **GitHub Release** from [`docs/development/CHANGELOGS/X.Y.Z.md`](../development/CHANGELOGS/) on the promote commit. It does not rebuild app images in that run.
 - **Staging** prerelease releases and **main** production releases both use the same base semver changelog file `docs/development/CHANGELOGS/X.Y.Z.md`.
 - Bump the version on **`develop`** at the start of work using `./scripts/publish/bump-version.sh`; this creates the `X.Y.Z.md` changelog file so release notes can be updated continuously as changes land.
 
@@ -317,7 +317,7 @@ make alpha_management_web_up
 Docker images are tagged with:
 
 - `X.Y.Z-staging.N` (from the **`staging`** branch **Publish (staging)** workflow) — immutable, version-specific tag; **`X.Y.Z`** / **`:latest`** after **Publish (main)** on **`main`**
-- A **floating** GHCR tag: **`staging`** (latest preprod build) or **`latest`** (after promote); **Git** also has moving lightweight tags **refs/tags/staging** and **refs/tags/latest** (see [PUBLISH](PUBLISH.md))
+- A **floating** GHCR tag: **`staging`** (latest preprod build) or **`latest`** (after promote)
 
 A **matching Git tag** (same string as the immutable image tag) is created on the publish commit by the `reserve-version` job if it does not already exist; it is **not** reused if it would point to a different commit (the workflow fails instead).
 

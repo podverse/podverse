@@ -135,19 +135,7 @@ jobs:
                 owner, repo, tag_name: base, name: base, body, prerelease: false,
               });
             }
-            try {
-              await github.rest.git.deleteRef({ owner, repo, ref: "tags/latest" });
-            } catch (e) {
-              if (e.status === 404 || e.status === 422) {
-                core.info("refs/tags/latest did not exist; creating.");
-              } else {
-                throw e;
-              }
-            }
-            await github.rest.git.createRef({
-              owner, repo, ref: "refs/tags/latest", sha
-            });
-            core.info("Moved refs/tags/latest to " + sha);
+            core.info("Branch-only promotion refs enabled: skipping moving refs/tags/latest.");
 
       - name: Main promotion summary
         if: success()
