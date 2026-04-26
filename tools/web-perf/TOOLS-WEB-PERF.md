@@ -65,7 +65,7 @@ npm test
 **Prerequisites**:
 
 - Docker running
-- `podverse-ops` repo available as a sibling to the monorepo (for test database)
+- Podverse monorepo available locally (for test database fixtures)
 - Chrome/Chromium browser
 
 **Output**: JSON reports and comparison summaries in `lighthouse/reports/{app}/`

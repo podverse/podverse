@@ -4,7 +4,7 @@ The CI/CD infrastructure (Jenkins setup with nginx proxy and Let's Encrypt) has 
 
 ## Reasoning
 
-The CI docker-compose.yml from podverse-ops contains:
+The CI docker-compose definition contains:
 
 - nginx reverse proxy (jwilder/nginx-proxy)
 - Let's Encrypt SSL companion
@@ -18,9 +18,8 @@ This is server infrastructure setup rather than application-level Docker configu
 
 ## Location
 
-The original file can be found at:
-
-- `podverse-ops/docker-compose/ci/docker-compose.yml`
+This monorepo does not maintain the CI docker-compose source of truth.
+Keep that definition in infrastructure-owned tooling (for example `podverse-ansible`).
 
 ## Migration Decision
 

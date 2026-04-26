@@ -1,7 +1,6 @@
 # Version: 1
 # Filename: kustomization.yaml
 # Description: Bundles the ops CronJobs with shared labels and image tagging control.
-
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 

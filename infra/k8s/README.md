@@ -1,4 +1,4 @@
-# podverse-ops
+# Podverse Kubernetes
 
 Deployment scripts and Kubernetes manifests for the Podverse ecosystem.
 
