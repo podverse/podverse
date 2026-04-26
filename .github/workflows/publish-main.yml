@@ -138,7 +138,7 @@ jobs:
             try {
               await github.rest.git.deleteRef({ owner, repo, ref: "tags/latest" });
             } catch (e) {
-              if (e.status === 404) {
+              if (e.status === 404 || e.status === 422) {
                 core.info("refs/tags/latest did not exist; creating.");
               } else {
                 throw e;
