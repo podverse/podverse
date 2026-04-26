@@ -42,14 +42,18 @@ execute
 
 #### Prompt (Developer)
 
-fix, and fix metaboost if you anticipate similar issue
+fix it and make sure metaboost is fixed as well
 
 #### Key Decisions
 
-- Root cause identified as ambiguous short ref names (`staging`, `main`, `develop`) when both branch and moving tag names exist.
-- Harden promotion scripts by using fully-qualified refs (`refs/heads/...`) for checkout, pull, merge-base, merge, rev-parse, and push.
+- Replace detached-HEAD-prone branch updates with branch-safe updates:
+  - `git switch <branch>`
+  - `git merge --ff-only refs/remotes/origin/<branch>`
+- Keep explicit refs for comparisons and merges to avoid branch/tag ambiguity:
+  - `refs/heads/...` and `refs/remotes/origin/...`
+- Preserve mirror semantics (`develop -> staging -> main`) and push branch refs explicitly.
 - Apply the same hardening pattern in Metaboost to prevent the same branch/tag collision.
-- Update publish docs in both repos to explicitly warn about branch/tag name ambiguity and require explicit refs in scripts/ops.
+- Update publish docs to warn about branch/tag ambiguity and prefer fully-qualified refs in scripts/operations.
 
 #### Files Modified
 

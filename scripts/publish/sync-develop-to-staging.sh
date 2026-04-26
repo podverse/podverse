@@ -57,11 +57,11 @@ CURRENT_BRANCH=$(git branch --show-current)
 echo -e "${YELLOW}Current branch: $CURRENT_BRANCH${NC}"
 
 echo -e "${YELLOW}Updating local develop to match origin/develop...${NC}"
-git checkout refs/heads/develop
-git pull origin refs/heads/develop:refs/heads/develop
+git switch develop
+git merge --ff-only refs/remotes/origin/develop
 
 DEVELOP_COMMIT=$(git rev-parse refs/heads/develop)
-ORIGIN_DEVELOP_COMMIT=$(git rev-parse origin/develop)
+ORIGIN_DEVELOP_COMMIT=$(git rev-parse refs/remotes/origin/develop)
 
 if [ "$DEVELOP_COMMIT" != "$ORIGIN_DEVELOP_COMMIT" ]; then
   echo -e "${RED}Error: Local develop ($DEVELOP_COMMIT) does not match origin/develop ($ORIGIN_DEVELOP_COMMIT)${NC}"
@@ -78,11 +78,11 @@ fi
 echo ""
 
 echo -e "${YELLOW}Updating local staging to match origin/staging...${NC}"
-git checkout refs/heads/staging
-git pull origin refs/heads/staging:refs/heads/staging
+git switch staging
+git merge --ff-only refs/remotes/origin/staging
 
 STAGING_COMMIT=$(git rev-parse refs/heads/staging)
-ORIGIN_STAGING_COMMIT=$(git rev-parse origin/staging)
+ORIGIN_STAGING_COMMIT=$(git rev-parse refs/remotes/origin/staging)
 
 if [ "$STAGING_COMMIT" != "$ORIGIN_STAGING_COMMIT" ]; then
   echo -e "${RED}Error: Local staging ($STAGING_COMMIT) does not match origin/staging ($ORIGIN_STAGING_COMMIT)${NC}"
@@ -129,8 +129,8 @@ fi
 
 echo -e "${YELLOW}Verifying staging matches develop after push...${NC}"
 git fetch origin
-FINAL_STAGING_COMMIT=$(git rev-parse origin/staging)
-FINAL_DEVELOP_COMMIT=$(git rev-parse origin/develop)
+FINAL_STAGING_COMMIT=$(git rev-parse refs/remotes/origin/staging)
+FINAL_DEVELOP_COMMIT=$(git rev-parse refs/remotes/origin/develop)
 
 if [ "$FINAL_STAGING_COMMIT" != "$FINAL_DEVELOP_COMMIT" ]; then
   echo -e "${RED}Error: After push, origin/staging ($FINAL_STAGING_COMMIT) does not match origin/develop ($FINAL_DEVELOP_COMMIT)${NC}"
