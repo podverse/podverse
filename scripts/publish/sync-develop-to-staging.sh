@@ -57,10 +57,10 @@ CURRENT_BRANCH=$(git branch --show-current)
 echo -e "${YELLOW}Current branch: $CURRENT_BRANCH${NC}"
 
 echo -e "${YELLOW}Updating local develop to match origin/develop...${NC}"
-git checkout develop
-git pull origin develop
+git checkout refs/heads/develop
+git pull origin refs/heads/develop:refs/heads/develop
 
-DEVELOP_COMMIT=$(git rev-parse develop)
+DEVELOP_COMMIT=$(git rev-parse refs/heads/develop)
 ORIGIN_DEVELOP_COMMIT=$(git rev-parse origin/develop)
 
 if [ "$DEVELOP_COMMIT" != "$ORIGIN_DEVELOP_COMMIT" ]; then
@@ -78,10 +78,10 @@ fi
 echo ""
 
 echo -e "${YELLOW}Updating local staging to match origin/staging...${NC}"
-git checkout staging
-git pull origin staging
+git checkout refs/heads/staging
+git pull origin refs/heads/staging:refs/heads/staging
 
-STAGING_COMMIT=$(git rev-parse staging)
+STAGING_COMMIT=$(git rev-parse refs/heads/staging)
 ORIGIN_STAGING_COMMIT=$(git rev-parse origin/staging)
 
 if [ "$STAGING_COMMIT" != "$ORIGIN_STAGING_COMMIT" ]; then
@@ -90,10 +90,10 @@ if [ "$STAGING_COMMIT" != "$ORIGIN_STAGING_COMMIT" ]; then
 fi
 
 echo -e "${YELLOW}Verifying staging can fast-forward merge from develop...${NC}"
-if ! git merge-base --is-ancestor staging develop; then
+if ! git merge-base --is-ancestor refs/heads/staging refs/heads/develop; then
   echo -e "${RED}Error: staging is not an ancestor of develop. Fast-forward merge is not possible.${NC}"
   echo -e "${YELLOW}Commits in staging but not in develop:${NC}"
-  git log develop..staging --oneline
+  git log refs/heads/develop..refs/heads/staging --oneline
   exit 1
 fi
 
@@ -106,12 +106,12 @@ if [ "$STAGING_COMMIT" == "$DEVELOP_COMMIT" ]; then
 fi
 
 echo -e "${YELLOW}Merging develop into staging (fast-forward only)...${NC}"
-if ! git merge develop --ff-only; then
+if ! git merge refs/heads/develop --ff-only; then
   echo -e "${RED}Error: Fast-forward merge failed.${NC}"
   exit 1
 fi
 
-NEW_STAGING_COMMIT=$(git rev-parse staging)
+NEW_STAGING_COMMIT=$(git rev-parse refs/heads/staging)
 if [ "$NEW_STAGING_COMMIT" != "$DEVELOP_COMMIT" ]; then
   echo -e "${RED}Error: After merge, staging ($NEW_STAGING_COMMIT) does not match develop ($DEVELOP_COMMIT)${NC}"
   exit 1
@@ -120,7 +120,7 @@ fi
 echo -e "${GREEN}Staging successfully merged with develop.${NC}"
 
 echo -e "${YELLOW}Pushing staging to origin (bypassing hooks)...${NC}"
-if ! git push --no-verify origin staging; then
+if ! git push --no-verify origin refs/heads/staging:refs/heads/staging; then
   echo -e "${RED}Error: Failed to push to origin/staging${NC}"
   echo -e "${YELLOW}  1. Missing bypass permissions for protected branch 'staging'${NC}"
   echo -e "${YELLOW}  2. Or use a PR from develop to staging${NC}"

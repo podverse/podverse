@@ -58,7 +58,7 @@ Base images (for Next.js app builds) are built first, then app images. All are p
 | `web-runtime-config`            | Web runtime-config sidecar                |
 | `management-web-runtime-config` | Management web runtime-config sidecar     |
 
-Each image is tagged with **`:staging`** and an immutable **version** tag `X.Y.Z-staging.N`. The base `X.Y.Z` comes from root `package.json` (prerelease stripped). The `reserve-version` job creates `refs/tags/X.Y.Z-staging.N` at the workflow commit via the GitHub Git Refs API. After a successful run, the workflow also moves the lightweight **Git** tag **refs/tags/staging** to that same commit (branch `refs/heads/staging` is unrelated; no conflict).
+Each image is tagged with **`:staging`** and an immutable **version** tag `X.Y.Z-staging.N`. The base `X.Y.Z` comes from root `package.json` (prerelease stripped). The `reserve-version` job creates `refs/tags/X.Y.Z-staging.N` at the workflow commit via the GitHub Git Refs API. After a successful run, the workflow also moves the lightweight **Git** tag **refs/tags/staging** to that same commit. Because both a branch and tag named `staging` exist, local scripts and operators should use fully-qualified refs (for example, `refs/heads/staging`, `refs/tags/staging`) to avoid ambiguous resolution warnings.
 
 On first publish when GHCR has no package for an image, tag discovery can bootstrap at **`X.Y.Z-staging.0`**.
 

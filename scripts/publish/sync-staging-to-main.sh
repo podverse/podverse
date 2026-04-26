@@ -59,10 +59,10 @@ CURRENT_BRANCH=$(git branch --show-current)
 echo -e "${YELLOW}Current branch: $CURRENT_BRANCH${NC}"
 
 echo -e "${YELLOW}Updating local staging to match origin/staging...${NC}"
-git checkout staging
-git pull origin staging
+git checkout refs/heads/staging
+git pull origin refs/heads/staging:refs/heads/staging
 
-STAGING_COMMIT=$(git rev-parse staging)
+STAGING_COMMIT=$(git rev-parse refs/heads/staging)
 ORIGIN_STAGING_COMMIT=$(git rev-parse origin/staging)
 
 if [ "$STAGING_COMMIT" != "$ORIGIN_STAGING_COMMIT" ]; then
@@ -82,10 +82,10 @@ fi
 echo ""
 
 echo -e "${YELLOW}Updating local main to match origin/main...${NC}"
-git checkout main
-git pull origin main
+git checkout refs/heads/main
+git pull origin refs/heads/main:refs/heads/main
 
-MAIN_COMMIT=$(git rev-parse main)
+MAIN_COMMIT=$(git rev-parse refs/heads/main)
 ORIGIN_MAIN_COMMIT=$(git rev-parse origin/main)
 
 if [ "$MAIN_COMMIT" != "$ORIGIN_MAIN_COMMIT" ]; then
@@ -95,11 +95,11 @@ if [ "$MAIN_COMMIT" != "$ORIGIN_MAIN_COMMIT" ]; then
 fi
 
 echo -e "${YELLOW}Verifying main can fast-forward merge from staging...${NC}"
-if ! git merge-base --is-ancestor main staging; then
+if ! git merge-base --is-ancestor refs/heads/main refs/heads/staging; then
   echo -e "${RED}Error: main is not an ancestor of staging. Fast-forward merge is not possible.${NC}"
   echo -e "${YELLOW}This means main has commits that staging doesn't have, or the branches have diverged.${NC}"
   echo -e "${YELLOW}Commits in main but not in staging:${NC}"
-  git log staging..main --oneline
+  git log refs/heads/staging..refs/heads/main --oneline
   exit 1
 fi
 
@@ -112,12 +112,12 @@ if [ "$MAIN_COMMIT" == "$STAGING_COMMIT" ]; then
 fi
 
 echo -e "${YELLOW}Merging staging into main (fast-forward only)...${NC}"
-if ! git merge staging --ff-only; then
+if ! git merge refs/heads/staging --ff-only; then
   echo -e "${RED}Error: Fast-forward merge failed. This should not happen after validation.${NC}"
   exit 1
 fi
 
-NEW_MAIN_COMMIT=$(git rev-parse main)
+NEW_MAIN_COMMIT=$(git rev-parse refs/heads/main)
 if [ "$NEW_MAIN_COMMIT" != "$STAGING_COMMIT" ]; then
   echo -e "${RED}Error: After merge, main ($NEW_MAIN_COMMIT) does not match staging ($STAGING_COMMIT)${NC}"
   exit 1
@@ -126,7 +126,7 @@ fi
 echo -e "${GREEN}Main successfully merged with staging.${NC}"
 
 echo -e "${YELLOW}Pushing main to origin (bypassing hooks)...${NC}"
-if ! git push --no-verify origin main; then
+if ! git push --no-verify origin refs/heads/main:refs/heads/main; then
   echo -e "${RED}Error: Failed to push to origin/main${NC}"
   echo -e "${YELLOW}This may be due to:${NC}"
   echo -e "${YELLOW}  1. Missing bypass permissions for protected branch 'main'${NC}"

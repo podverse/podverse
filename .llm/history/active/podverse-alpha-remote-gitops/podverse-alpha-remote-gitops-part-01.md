@@ -37,3 +37,22 @@ execute
 - infra/k8s/alpha/apps/mq.yaml
 - infra/k8s/alpha/apps/web.yaml
 - infra/k8s/alpha/apps/workers.yaml
+
+### Session 2 - 2026-04-25
+
+#### Prompt (Developer)
+
+fix, and fix metaboost if you anticipate similar issue
+
+#### Key Decisions
+
+- Root cause identified as ambiguous short ref names (`staging`, `main`, `develop`) when both branch and moving tag names exist.
+- Harden promotion scripts by using fully-qualified refs (`refs/heads/...`) for checkout, pull, merge-base, merge, rev-parse, and push.
+- Apply the same hardening pattern in Metaboost to prevent the same branch/tag collision.
+- Update publish docs in both repos to explicitly warn about branch/tag name ambiguity and require explicit refs in scripts/ops.
+
+#### Files Modified
+
+- scripts/publish/sync-develop-to-staging.sh
+- scripts/publish/sync-staging-to-main.sh
+- docs/operations/PUBLISH.md
