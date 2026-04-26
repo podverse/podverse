@@ -696,6 +696,7 @@ export function validateSignupMode(varName: string, category: string): Validatio
 
 /**
  * Validates SERVER_ENV / NEXT_PUBLIC_SERVER_ENV using helpers constants.
+ * Blank/empty is valid (disclaimer modal is skipped when unset).
  */
 export function validateServerEnv(varName: string, category: string): ValidationResult {
   const value = process.env[varName];
@@ -706,9 +707,9 @@ export function validateServerEnv(varName: string, category: string): Validation
     return {
       name: varName,
       isSet: false,
-      isValid: false,
-      isRequired: true,
-      message: `Missing - must be one of: ${SERVER_ENV_VALUES.join(', ')}`,
+      isValid: true,
+      isRequired: false,
+      message: 'Blank - disclaimer modal skipped',
       category,
     };
   }

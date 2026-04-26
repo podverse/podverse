@@ -10,6 +10,9 @@ configMapGenerator:
   - name: podverse-management-web-config
     envs:
       - source/management-web.env
+  - name: podverse-management-web-runtime-config
+    envs:
+      - source/management-web-sidecar.env
 
 generatorOptions:
   disableNameSuffixHash: true

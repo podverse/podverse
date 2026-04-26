@@ -16,11 +16,16 @@ labels:
       environment: alpha
     includeSelectors: true
 
+# Matches base: podverse-management-web-config from management-web.env, podverse-management-web-runtime-config from management-web-sidecar.env
 configMapGenerator:
   - name: podverse-management-web-config
     behavior: merge
     envs:
       - source/management-web.env
+  - name: podverse-management-web-runtime-config
+    behavior: merge
+    envs:
+      - source/management-web-sidecar.env
 
 images:
   - name: ghcr.io/podverse/podverse/management-web-deploy

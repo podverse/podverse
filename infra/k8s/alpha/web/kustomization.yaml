@@ -18,16 +18,16 @@ labels:
     # so the Service correctly finds the Pods.
     includeSelectors: true
 
-# Shared keys merged into both the web deploy and runtime/sidecar config maps; keep in sync.
+# Matches base: podverse-web-config from web.env, podverse-web-runtime-config from web-sidecar.env
 configMapGenerator:
   - name: podverse-web-config
     behavior: merge
     envs:
-      - source/alpha-web-common.env
+      - source/web.env
   - name: podverse-web-runtime-config
     behavior: merge
     envs:
-      - source/alpha-web-common.env
+      - source/web-sidecar.env
 
 images:
   - name: ghcr.io/podverse/podverse/web-deploy

@@ -1,20 +1,21 @@
 /* eslint-disable no-console */
 import http from 'node:http';
 import { URL } from 'node:url';
+
 import type { ValidationResult, ValidationSummary } from '@podverse/helpers-config';
 import {
-  validateRequired,
-  validateOptional,
-  validateWebProtocol,
-  validateSignupMode,
-  validateServerEnv,
-  validateProxyUserAgent,
-  validateSupportedLocalesList,
-  validateLocale,
-  validateSupportedThemesList,
-  validateDefaultTheme,
-  validatePositiveNumber,
   displayValidationResults,
+  validateDefaultTheme,
+  validateLocale,
+  validateOptional,
+  validatePositiveNumber,
+  validateProxyUserAgent,
+  validateRequired,
+  validateServerEnv,
+  validateSignupMode,
+  validateSupportedLocalesList,
+  validateSupportedThemesList,
+  validateWebProtocol,
 } from '@podverse/helpers-config';
 
 // Keep key lists in sync with apps/web/src/config/runtime-config.ts.
@@ -28,7 +29,6 @@ const requiredKeys = [
   'NEXT_PUBLIC_FEATURES_DEFAULT_LOCALE',
   'NEXT_PUBLIC_FEATURES_SUPPORTED_LOCALES',
   'NEXT_PUBLIC_PROXY_USER_AGENT',
-  'NEXT_PUBLIC_SERVER_ENV',
   'NEXT_PUBLIC_SSR_API_HOST',
   'NEXT_PUBLIC_SSR_API_PROTOCOL',
   'NEXT_PUBLIC_SUPPORTED_THEMES',
@@ -49,6 +49,7 @@ const optionalKeys = [
   'NEXT_PUBLIC_BRAND_NAME',
   'NEXT_PUBLIC_CONTACT_EMAIL',
   'NEXT_PUBLIC_POLLING_INTERVAL_MS',
+  'NEXT_PUBLIC_SERVER_ENV',
   'NEXT_PUBLIC_SOCIAL_ACTIVITY_PUB',
   'NEXT_PUBLIC_SOCIAL_DISCORD',
   'NEXT_PUBLIC_SOCIAL_GITHUB',
