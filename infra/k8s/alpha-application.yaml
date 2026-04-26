@@ -17,7 +17,7 @@ spec:
     targetRevision: staging
 
     # This path points to where the "Child" App manifests are stored
-    path: k8s/alpha/apps
+    path: infra/k8s/alpha/apps
 
     directory:
       recurse: true

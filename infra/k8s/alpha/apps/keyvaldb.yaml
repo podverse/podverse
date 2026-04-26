@@ -15,7 +15,7 @@ spec:
     targetRevision: staging
 
     # Path to the valkey manifests (Deployment, Service, ConfigMap)
-    path: k8s/alpha/keyvaldb
+    path: infra/k8s/alpha/keyvaldb
 
   destination:
     server: https://kubernetes.default.svc
