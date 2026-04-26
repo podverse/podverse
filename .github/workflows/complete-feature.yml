@@ -91,7 +91,7 @@ jobs:
           if git diff --staged --quiet; then
             echo "No changes to commit"
           else
-            git commit --no-verify -m "chore: complete LLM history for ${{ steps.feature.outputs.name }} [skip ci]"
+            git commit --no-verify -m "chore: complete LLM history for ${{ steps.feature.outputs.name }} [bot]"
             
             # Pull latest changes (in case i18n workflow pushed)
             git pull --rebase origin ${{ github.event.pull_request.base.ref }} || true
