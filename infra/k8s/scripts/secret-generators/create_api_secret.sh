@@ -59,10 +59,10 @@ if [ "$AUTO_GEN" = true ]; then
 	echo "Auto-generating secrets..."
 	AUTH_JWT_SECRET=$(uuidgen | tr '[:upper:]' '[:lower:]' | tr -d '\n')
 	MAILER_USERNAME=""
-	MAILER_PASSWORD=$(generate_password)
+	MAILER_PASSWORD=""
 	echo "  AUTH_JWT_SECRET: [generated]"
-	echo "  MAILER_USERNAME: [empty]"
-	echo "  MAILER_PASSWORD: [generated]"
+	echo "  MAILER_USERNAME: [empty - supply via sops edit]"
+	echo "  MAILER_PASSWORD: [empty - supply via sops edit]"
 else
 	echo "--- AUTHENTICATION ---"
 	read -r -s -p "Enter AUTH_JWT_SECRET (Random String): " AUTH_JWT_SECRET
