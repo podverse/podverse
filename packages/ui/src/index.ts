@@ -1,3 +1,5 @@
+export { Disclosure } from './components/layout/Disclosure';
+export type { DisclosureProps } from './components/layout/Disclosure';
 export { NavBar } from './components/navigation/NavBar';
 export type { NavBarProps } from './components/navigation/NavBar';
 export { NavCardGrid } from './components/navigation/NavCardGrid';

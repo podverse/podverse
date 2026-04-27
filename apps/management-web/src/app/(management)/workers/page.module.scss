@@ -28,8 +28,21 @@
   color: var(--text-color-secondary);
 }
 
+.categoryStack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+}
+
 .tableScroll {
   overflow-x: auto;
+  border: 1px solid var(--border-color-tertiary);
+  border-radius: var(--border-radius);
+}
+
+.tableScrollInDisclosure {
+  overflow-x: auto;
+  margin: 0;
   border: 1px solid var(--border-color-tertiary);
   border-radius: var(--border-radius);
 }
