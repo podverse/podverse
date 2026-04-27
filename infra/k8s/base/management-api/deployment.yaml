@@ -39,7 +39,9 @@ spec:
             - name: NODE_ENV
               value: "production"
             - name: DATABASE_URL
-              value: "postgresql://$(POSTGRES_MANAGEMENT_READ_WRITE_USER):$(POSTGRES_MANAGEMENT_READ_WRITE_PASSWORD)@podverse-db:5432/$(POSTGRES_MANAGEMENT_DB)"
+              value: "postgresql://$(POSTGRES_MANAGEMENT_READ_WRITE_USER):$(POSTGRES_MANAGEME\
+                NT_READ_WRITE_PASSWORD)@podverse-db:5432/$(POSTGRES_MANAGEMENT_\
+                DB)"
           envFrom:
             - configMapRef:
                 name: podverse-management-api-config
@@ -73,7 +75,7 @@ spec:
               mountPath: /opt/logs
           readinessProbe:
             httpGet:
-              path: /
+              path: /api/v1/
               port: 3100
               scheme: HTTP
             initialDelaySeconds: 10
@@ -83,7 +85,7 @@ spec:
             timeoutSeconds: 5
           livenessProbe:
             httpGet:
-              path: /
+              path: /api/v1/
               port: 3100
               scheme: HTTP
             initialDelaySeconds: 20
