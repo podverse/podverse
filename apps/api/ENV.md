@@ -107,14 +107,19 @@ The mailer is automatically disabled when `ACCOUNT_SIGNUP_MODE` is not `'user_si
 - **`MAILER_PASSWORD`** (Required when signup mode is 'user_signup_email') - SMTP password. On Kubernetes, set in the `podverse-api-opaque` Secret, not the ConfigMap.
 - **`MAILER_FROM`** (Required when signup mode is 'user_signup_email') - Email sender address
 
+### Legal entity
+
+- **`LEGAL_NAME`** (Required when signup mode is 'user_signup_email') - Legal or display business name (e.g. Podverse LLC). `config.legal.name` (e.g. HTML email footer, other call sites).
+- **`LEGAL_ADDRESS`** (Required when signup mode is 'user_signup_email') - Legal or mailing address. `config.legal.address`.
+
+For local development, set both in [`legal.env`](../../dev/env-overrides/local/legal.env.example). Run `make local_env_setup` to apply.
+
 ### Email Configuration
 
-- **`EMAIL_BRAND_COLOR`** (Required when signup mode is 'user_signup_email') - Brand color for email templates (default: #2968B1)
-- **`EMAIL_HEADER_IMAGE_URL`** (Required when signup mode is 'user_signup_email') - URL for email header image (default: Podverse logo)
-- **`LEGAL_NAME`** (Required when signup mode is 'user_signup_email') - Legal business name (default: Podverse LLC)
-- **`LEGAL_ADDRESS`** (Required when signup mode is 'user_signup_email') - Legal business address (default: Chicago, IL, USA)
+- **`BRAND_COLOR_PRIMARY`** (Required when signup mode is 'user_signup_email') - Primary brand accent as a CSS color (e.g. hex). Used for **HTML email** CTAs and other server-side brand styling. For local development, set in [`brand.env`](../../dev/env-overrides/local/brand.env.example). If **`NEXT_PUBLIC_BRAND_THEME_COLOR`** is not set in `brand.env`, `make local_env_setup` copies **`BRAND_COLOR_PRIMARY`** into the web/management-web sidecar as the app UI / browser-chrome tint unless you override.
+- **`BRAND_BANNER_IMAGE_3X1_URL`** (Required when signup mode is 'user_signup_email') - Absolute **`http`/`https` URL** for the 3:1 brand banner image. Today this is used in the API’s HTML **email** template; set it in [`brand.env`](../../dev/env-overrides/local/brand.env.example) for local overrides. The conventional path on the public web app is **`/branding/banner_3x1.png`** (file: `apps/web/public/branding/banner_3x1.png` in the repo). For local email testing, use your dev web origin, e.g. `http://localhost:3000/branding/banner_3x1.png` if the web app serves on that port.
 
-For local setup, these can be customized via `dev/env-overrides/local/email-template.env`; run `make local_env_setup` to apply.
+For local setup, set [legal entity](#legal-entity) in [`legal.env`](../../dev/env-overrides/local/legal.env.example), **`BRAND_COLOR_PRIMARY`** and **`BRAND_BANNER_IMAGE_3X1_URL`** in [`brand.env`](../../dev/env-overrides/local/brand.env.example), then run `make local_env_setup`.
 
 ### Token Expiration
 

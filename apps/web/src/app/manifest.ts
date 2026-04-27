@@ -13,10 +13,12 @@ export default function manifest(): MetadataRoute.Manifest {
   const { env } = getRuntimeConfig();
   const name = opt(env.NEXT_PUBLIC_BRAND_NAME) ?? 'Podverse';
   const shortName = name;
-  const icon192 = opt(env.NEXT_PUBLIC_PWA_ICON_192_URL) ?? '/favicon/web-app-manifest-192x192.png';
-  const icon512 = opt(env.NEXT_PUBLIC_PWA_ICON_512_URL) ?? '/favicon/web-app-manifest-512x512.png';
-  const theme = opt(env.NEXT_PUBLIC_PWA_THEME_COLOR) ?? '#ffffff';
-  const background = opt(env.NEXT_PUBLIC_PWA_BACKGROUND_COLOR) ?? '#ffffff';
+  const icon192 =
+    opt(env.NEXT_PUBLIC_BRAND_APP_ICON_192_URL) ?? '/favicon/web-app-manifest-192x192.png';
+  const icon512 =
+    opt(env.NEXT_PUBLIC_BRAND_APP_ICON_512_URL) ?? '/favicon/web-app-manifest-512x512.png';
+  const theme = opt(env.NEXT_PUBLIC_BRAND_THEME_COLOR) ?? '#ffffff';
+  const background = opt(env.NEXT_PUBLIC_BRAND_BACKGROUND_COLOR) ?? '#ffffff';
 
   return {
     name,

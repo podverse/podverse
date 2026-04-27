@@ -365,11 +365,6 @@ for v in MAILER_SERVICE MAILER_HOST MAILER_PORT MAILER_USERNAME MAILER_PASSWORD 
 	apply_override "$v" "${API_ENV_FILES[@]}"
 done
 
-# From email-template.env
-for v in EMAIL_BRAND_COLOR EMAIL_HEADER_IMAGE_URL LEGAL_NAME LEGAL_ADDRESS; do
-	apply_override "$v" "${API_ENV_FILES[@]}"
-done
-
 # From socials.env (API/email template social links)
 for v in SOCIAL_FACEBOOK_IMAGE_URL SOCIAL_FACEBOOK_PAGE_URL SOCIAL_GITHUB_IMAGE_URL SOCIAL_GITHUB_PAGE_URL SOCIAL_TWITTER_IMAGE_URL SOCIAL_TWITTER_PAGE_URL SOCIAL_REDDIT_IMAGE_URL SOCIAL_REDDIT_PAGE_URL; do
 	apply_override "$v" "${API_ENV_FILES[@]}"
@@ -422,10 +417,32 @@ if [ -n "${BRAND_LOGO_LIGHT:-}" ]; then
 	done
 fi
 
-# From pwa-favicon.env (manifest icon/theme + head favicons; path-absolute = public/favicon/; names from BRAND)
-for v in NEXT_PUBLIC_PWA_ICON_192_URL NEXT_PUBLIC_PWA_ICON_512_URL NEXT_PUBLIC_PWA_THEME_COLOR NEXT_PUBLIC_PWA_BACKGROUND_COLOR NEXT_PUBLIC_FAVICON_ICO_URL NEXT_PUBLIC_FAVICON_SVG_URL NEXT_PUBLIC_FAVICON_PNG_96_URL NEXT_PUBLIC_APPLE_TOUCH_ICON_URL; do
+# From brand.env: primary brand accent and 3:1 brand banner URL (API, etc.)
+apply_override "BRAND_COLOR_PRIMARY" "${API_ENV_FILES[@]}"
+apply_override "BRAND_BANNER_IMAGE_3X1_URL" "${API_ENV_FILES[@]}"
+
+# From legal.env: registered legal name and address (API)
+for v in LEGAL_NAME LEGAL_ADDRESS; do
+	apply_override "$v" "${API_ENV_FILES[@]}"
+done
+
+# When brand UI theme tint is not set, align with BRAND_COLOR_PRIMARY (set NEXT_PUBLIC_BRAND_THEME_COLOR in brand.env to override)
+if [ -n "${BRAND_COLOR_PRIMARY:-}" ] && [ -z "${NEXT_PUBLIC_BRAND_THEME_COLOR:-}" ]; then
+	NEXT_PUBLIC_BRAND_THEME_COLOR="$BRAND_COLOR_PRIMARY"
+fi
+
+# From brand.env: app icons, theme, document-head icons (path-absolute = public/favicon/; override with https://…)
+for v in NEXT_PUBLIC_BRAND_APP_ICON_192_URL NEXT_PUBLIC_BRAND_APP_ICON_512_URL NEXT_PUBLIC_BRAND_THEME_COLOR NEXT_PUBLIC_BRAND_FAVICON_ICO_URL NEXT_PUBLIC_BRAND_FAVICON_SVG_URL NEXT_PUBLIC_BRAND_FAVICON_PNG_96_URL NEXT_PUBLIC_BRAND_APPLE_TOUCH_ICON_URL; do
 	apply_override "$v" "${WEB_ENV_FILES_APP_AND_SIDECAR[@]}" "${MANAGEMENT_WEB_ENV_FILES_APP_AND_SIDECAR[@]}"
 done
+
+# From brand.env: app/shell background (maps to NEXT_PUBLIC_BRAND_BACKGROUND_COLOR in sidecar). Legacy: BRAND_COLOR_BACKGROUND.
+if [ -n "${BRAND_BACKGROUND_COLOR:-${BRAND_COLOR_BACKGROUND:-}}" ]; then
+	_bg_val="${BRAND_BACKGROUND_COLOR:-${BRAND_COLOR_BACKGROUND:-}}"
+	for file in "${WEB_ENV_FILES_APP_AND_SIDECAR[@]}" "${MANAGEMENT_WEB_ENV_FILES_APP_AND_SIDECAR[@]}"; do
+		upsert_var "$file" "NEXT_PUBLIC_BRAND_BACKGROUND_COLOR" "$_bg_val"
+	done
+fi
 
 # From locale.env: one place for DEFAULT_LOCALE and SUPPORTED_LOCALES; setup applies to web and management-web (NEXT_PUBLIC_FEATURES_*).
 if [ -n "${DEFAULT_LOCALE:-}" ]; then

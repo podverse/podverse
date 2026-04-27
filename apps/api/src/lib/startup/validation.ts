@@ -217,27 +217,27 @@ const validateAllEnvironmentVariables = (): ValidationSummary => {
 
   // Email Configuration (conditionally required when signup mode uses email flows)
   if (usesEmailFlows) {
-    results.push(validateRequired('EMAIL_BRAND_COLOR', 'Email Config'));
-    results.push(validateRequired('EMAIL_HEADER_IMAGE_URL', 'Email Config'));
-    results.push(validateRequired('LEGAL_NAME', 'Email Config'));
-    results.push(validateRequired('LEGAL_ADDRESS', 'Email Config'));
+    results.push(validateRequired('BRAND_COLOR_PRIMARY', 'Brand'));
+    results.push(validateRequired('BRAND_BANNER_IMAGE_3X1_URL', 'Email Config'));
+    results.push(validateRequired('LEGAL_NAME', 'Legal'));
+    results.push(validateRequired('LEGAL_ADDRESS', 'Legal'));
   } else {
-    const emailBrandColor = validateConditionalOptional('EMAIL_BRAND_COLOR', 'Email Config');
-    if (emailBrandColor) {
-      results.push(emailBrandColor);
+    const brandColor = validateConditionalOptional('BRAND_COLOR_PRIMARY', 'Brand');
+    if (brandColor) {
+      results.push(brandColor);
     }
-    const emailHeaderImageUrl = validateConditionalOptional(
-      'EMAIL_HEADER_IMAGE_URL',
+    const brandBannerImage3x1Url = validateConditionalOptional(
+      'BRAND_BANNER_IMAGE_3X1_URL',
       'Email Config'
     );
-    if (emailHeaderImageUrl) {
-      results.push(emailHeaderImageUrl);
+    if (brandBannerImage3x1Url) {
+      results.push(brandBannerImage3x1Url);
     }
-    const legalName = validateConditionalOptional('LEGAL_NAME', 'Email Config');
+    const legalName = validateConditionalOptional('LEGAL_NAME', 'Legal');
     if (legalName) {
       results.push(legalName);
     }
-    const legalAddress = validateConditionalOptional('LEGAL_ADDRESS', 'Email Config');
+    const legalAddress = validateConditionalOptional('LEGAL_ADDRESS', 'Legal');
     if (legalAddress) {
       results.push(legalAddress);
     }
@@ -524,8 +524,8 @@ const displayValidationResults = (summary: ValidationSummary): void => {
     'MAILER_USERNAME',
     'MAILER_PASSWORD',
     'MAILER_FROM',
-    'EMAIL_BRAND_COLOR',
-    'EMAIL_HEADER_IMAGE_URL',
+    'BRAND_COLOR_PRIMARY',
+    'BRAND_BANNER_IMAGE_3X1_URL',
     'LEGAL_NAME',
     'LEGAL_ADDRESS',
     'VERIFY_EMAIL_TOKEN_EXPIRATION',

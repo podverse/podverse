@@ -1,15 +1,16 @@
 /* eslint-disable no-console */
 import http from 'node:http';
 import { URL } from 'node:url';
+
 import type { ValidationResult, ValidationSummary } from '@podverse/helpers-config';
 import {
-  validateRequired,
-  validateOptional,
-  validateWebProtocol,
-  validateSupportedLocalesList,
-  validateLocale,
-  validatePositiveNumber,
   displayValidationResults,
+  validateLocale,
+  validateOptional,
+  validatePositiveNumber,
+  validateRequired,
+  validateSupportedLocalesList,
+  validateWebProtocol,
 } from '@podverse/helpers-config';
 
 // Keep key lists in sync with apps/management-web/src/config/runtime-config.ts.
@@ -27,15 +28,15 @@ const requiredKeys = [
 
 const optionalKeys = [
   'NEXT_PUBLIC_API_PORT',
-  'NEXT_PUBLIC_APPLE_TOUCH_ICON_URL',
+  'NEXT_PUBLIC_BRAND_APPLE_TOUCH_ICON_URL',
+  'NEXT_PUBLIC_BRAND_APP_ICON_192_URL',
+  'NEXT_PUBLIC_BRAND_APP_ICON_512_URL',
+  'NEXT_PUBLIC_BRAND_BACKGROUND_COLOR',
+  'NEXT_PUBLIC_BRAND_FAVICON_ICO_URL',
+  'NEXT_PUBLIC_BRAND_FAVICON_PNG_96_URL',
+  'NEXT_PUBLIC_BRAND_FAVICON_SVG_URL',
   'NEXT_PUBLIC_BRAND_NAME',
-  'NEXT_PUBLIC_FAVICON_ICO_URL',
-  'NEXT_PUBLIC_FAVICON_PNG_96_URL',
-  'NEXT_PUBLIC_FAVICON_SVG_URL',
-  'NEXT_PUBLIC_PWA_BACKGROUND_COLOR',
-  'NEXT_PUBLIC_PWA_ICON_192_URL',
-  'NEXT_PUBLIC_PWA_ICON_512_URL',
-  'NEXT_PUBLIC_PWA_THEME_COLOR',
+  'NEXT_PUBLIC_BRAND_THEME_COLOR',
 ] as const;
 
 const allKeys = [...requiredKeys, ...optionalKeys];
@@ -109,20 +110,20 @@ function getCategory(key: string): string {
     NEXT_PUBLIC_API_PROTOCOL: 'API',
     NEXT_PUBLIC_API_VERSION: 'API',
     NEXT_PUBLIC_API_PORT: 'API',
-    NEXT_PUBLIC_APPLE_TOUCH_ICON_URL: 'Brand',
+    NEXT_PUBLIC_BRAND_APPLE_TOUCH_ICON_URL: 'Brand',
+    NEXT_PUBLIC_BRAND_APP_ICON_192_URL: 'Brand',
+    NEXT_PUBLIC_BRAND_APP_ICON_512_URL: 'Brand',
+    NEXT_PUBLIC_BRAND_BACKGROUND_COLOR: 'Brand',
+    NEXT_PUBLIC_BRAND_FAVICON_ICO_URL: 'Brand',
+    NEXT_PUBLIC_BRAND_FAVICON_PNG_96_URL: 'Brand',
+    NEXT_PUBLIC_BRAND_FAVICON_SVG_URL: 'Brand',
+    NEXT_PUBLIC_BRAND_NAME: 'Brand',
+    NEXT_PUBLIC_BRAND_THEME_COLOR: 'Brand',
     NEXT_PUBLIC_SSR_API_HOST: 'API',
     NEXT_PUBLIC_SSR_API_PORT: 'API',
     NEXT_PUBLIC_SSR_API_PROTOCOL: 'API',
     NEXT_PUBLIC_FEATURES_DEFAULT_LOCALE: 'Features',
     NEXT_PUBLIC_FEATURES_SUPPORTED_LOCALES: 'Features',
-    NEXT_PUBLIC_FAVICON_ICO_URL: 'Brand',
-    NEXT_PUBLIC_FAVICON_PNG_96_URL: 'Brand',
-    NEXT_PUBLIC_FAVICON_SVG_URL: 'Brand',
-    NEXT_PUBLIC_PWA_BACKGROUND_COLOR: 'Brand',
-    NEXT_PUBLIC_PWA_ICON_192_URL: 'Brand',
-    NEXT_PUBLIC_PWA_ICON_512_URL: 'Brand',
-    NEXT_PUBLIC_PWA_THEME_COLOR: 'Brand',
-    NEXT_PUBLIC_BRAND_NAME: 'Brand',
   };
   return map[key] ?? 'Config';
 }

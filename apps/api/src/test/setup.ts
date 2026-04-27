@@ -52,8 +52,8 @@ const testEnv: Record<string, string> = {
   MAILER_PASSWORD: 'test',
   MAILER_FROM: 'test@localhost',
   // Email
-  EMAIL_BRAND_COLOR: '#000000',
-  EMAIL_HEADER_IMAGE_URL: '',
+  BRAND_COLOR_PRIMARY: '#000000',
+  BRAND_BANNER_IMAGE_3X1_URL: '',
   EMAIL_CHANGE_VERIFICATION_TOKEN_EXPIRATION: '3600',
   // Legal
   LEGAL_NAME: 'Test Legal',

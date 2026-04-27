@@ -66,21 +66,20 @@ The sidecar uses the same validation helpers as the rest of the monorepo (`@podv
 
 - **`NEXT_PUBLIC_BRAND_NAME`** (Optional) - Brand name for the application
 
-### PWA and browser icons (optional, white-label)
+### Brand: app + document chrome (optional, white-label)
 
-The app serves the PWA manifest from **`/manifest.webmanifest`** (Next.js `app/manifest.ts`) using runtime config. The manifest `name` and `short_name` are **`NEXT_PUBLIC_BRAND_NAME`** (with a built-in fallback if unset). The variables below only override **icons, theme, and head favicon** URLs. When they are unset, icon URLs default to `/favicon/` in the image; set **absolute** `https://…` URLs to use your own assets without a custom build.
+The installable app manifest is served from **`/manifest.webmanifest`** (`app/manifest.ts`) using runtime config. Manifest `name` and `short_name` are **`NEXT_PUBLIC_BRAND_NAME`** (with a built-in fallback if unset). The variables below override **app icons, theme/background, and head icon** URLs; they are not limited to a single feature. When unset, paths default to `/favicon/`; set **absolute** `https://…` URLs for CDN-hosted assets.
 
-- **`NEXT_PUBLIC_PWA_ICON_192_URL`** (Optional) - 192×192 maskable icon URL for the manifest
-- **`NEXT_PUBLIC_PWA_ICON_512_URL`** (Optional) - 512×512 maskable icon URL for the manifest
-- **`NEXT_PUBLIC_PWA_THEME_COLOR`** (Optional) - Theme color (CSS color / hex)
-- **`NEXT_PUBLIC_PWA_BACKGROUND_COLOR`** (Optional) - Background color for the web app manifest
+- **`NEXT_PUBLIC_BRAND_APP_ICON_192_URL`** (Optional) - 192×192 maskable icon
+- **`NEXT_PUBLIC_BRAND_APP_ICON_512_URL`** (Optional) - 512×512 maskable icon
+- **`NEXT_PUBLIC_BRAND_THEME_COLOR`** (Optional) - UI / browser chrome tint (CSS color)
+- **`NEXT_PUBLIC_BRAND_BACKGROUND_COLOR`** (Optional) - App shell / launch background. For local [`brand.env`](../../dev/env-overrides/local/brand.env.example), set **`BRAND_BACKGROUND_COLOR`** (legacy: `BRAND_COLOR_BACKGROUND`); `make local_env_setup` writes it to this key in the sidecar.
+- **`NEXT_PUBLIC_BRAND_FAVICON_ICO_URL`** (Optional) - `.ico` favicon URL
+- **`NEXT_PUBLIC_BRAND_FAVICON_SVG_URL`** (Optional) - SVG favicon URL
+- **`NEXT_PUBLIC_BRAND_FAVICON_PNG_96_URL`** (Optional) - 96×96 PNG favicon URL
+- **`NEXT_PUBLIC_BRAND_APPLE_TOUCH_ICON_URL`** (Optional) - Apple touch icon URL
 
-- **`NEXT_PUBLIC_FAVICON_ICO_URL`** (Optional) - `.ico` favicon URL
-- **`NEXT_PUBLIC_FAVICON_SVG_URL`** (Optional) - SVG favicon URL
-- **`NEXT_PUBLIC_FAVICON_PNG_96_URL`** (Optional) - 96×96 PNG favicon URL
-- **`NEXT_PUBLIC_APPLE_TOUCH_ICON_URL`** (Optional) - Apple touch icon URL
-
-**Local development:** Default path-absolute values for the variables above are applied from `dev/env-overrides/local/pwa-favicon.env` (see `pwa-favicon.env.example`); after editing, run `make local_env_setup`.
+**Local development:** Default path-absolute values are in `dev/env-overrides/local/brand.env` (see `brand.env.example`); after editing, run `make local_env_setup`.
 
 ## Value Rules
 

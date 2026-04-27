@@ -17,8 +17,8 @@ const buildConfig = () => {
       brand: {
         name: env.NEXT_PUBLIC_BRAND_NAME!,
         domain: env.NEXT_PUBLIC_BRAND_DOMAIN!,
-        logoDark: opt(env.NEXT_PUBLIC_BRAND_LOGO_DARK) ?? ASSETS.IMAGES.BRANDING.BRAND.WHITE,
-        logoLight: opt(env.NEXT_PUBLIC_BRAND_LOGO_LIGHT) ?? ASSETS.IMAGES.BRANDING.BRAND.BLACK,
+        logoDark: opt(env.NEXT_PUBLIC_BRAND_LOGO_DARK) ?? ASSETS.IMAGES.BRANDING.BRAND.LOGO_DARK,
+        logoLight: opt(env.NEXT_PUBLIC_BRAND_LOGO_LIGHT) ?? ASSETS.IMAGES.BRANDING.BRAND.LOGO,
       },
       api: {
         ssr: {
