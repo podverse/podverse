@@ -1,15 +1,18 @@
 /* eslint-disable no-console */
 import http from 'node:http';
 import { URL } from 'node:url';
+
 import type { ValidationResult, ValidationSummary } from '@podverse/helpers-config';
 import {
-  validateRequired,
-  validateOptional,
-  validateWebProtocol,
-  validateSupportedLocalesList,
-  validateLocale,
-  validatePositiveNumber,
   displayValidationResults,
+  validateDefaultTheme,
+  validateLocale,
+  validateOptional,
+  validatePositiveNumber,
+  validateRequired,
+  validateSupportedLocalesList,
+  validateSupportedThemesList,
+  validateWebProtocol,
 } from '@podverse/helpers-config';
 
 // Keep key lists in sync with apps/management-web/src/config/runtime-config.ts.
@@ -18,6 +21,8 @@ const requiredKeys = [
   'NEXT_PUBLIC_API_PREFIX',
   'NEXT_PUBLIC_API_PROTOCOL',
   'NEXT_PUBLIC_API_VERSION',
+  'NEXT_PUBLIC_DEFAULT_THEME',
+  'NEXT_PUBLIC_SUPPORTED_THEMES',
   'NEXT_PUBLIC_FEATURES_DEFAULT_LOCALE',
   'NEXT_PUBLIC_FEATURES_SUPPORTED_LOCALES',
   'NEXT_PUBLIC_SSR_API_HOST',
@@ -25,7 +30,18 @@ const requiredKeys = [
   'NEXT_PUBLIC_SSR_API_PROTOCOL',
 ] as const;
 
-const optionalKeys = ['NEXT_PUBLIC_API_PORT', 'NEXT_PUBLIC_BRAND_NAME'] as const;
+const optionalKeys = [
+  'NEXT_PUBLIC_API_PORT',
+  'NEXT_PUBLIC_BRAND_APPLE_TOUCH_ICON_URL',
+  'NEXT_PUBLIC_BRAND_APP_ICON_192_URL',
+  'NEXT_PUBLIC_BRAND_APP_ICON_512_URL',
+  'NEXT_PUBLIC_BRAND_BACKGROUND_COLOR',
+  'NEXT_PUBLIC_BRAND_FAVICON_ICO_URL',
+  'NEXT_PUBLIC_BRAND_FAVICON_PNG_96_URL',
+  'NEXT_PUBLIC_BRAND_FAVICON_SVG_URL',
+  'NEXT_PUBLIC_BRAND_NAME',
+  'NEXT_PUBLIC_BRAND_THEME_COLOR',
+] as const;
 
 const allKeys = [...requiredKeys, ...optionalKeys];
 
@@ -75,6 +91,12 @@ function validateOne(key: string, isRequired: boolean): ValidationResult {
   if (key === 'NEXT_PUBLIC_FEATURES_DEFAULT_LOCALE') {
     return validateLocale(key, category, true);
   }
+  if (key === 'NEXT_PUBLIC_SUPPORTED_THEMES') {
+    return validateSupportedThemesList(key, category);
+  }
+  if (key === 'NEXT_PUBLIC_DEFAULT_THEME') {
+    return validateDefaultTheme(key, category);
+  }
   if (key === 'NEXT_PUBLIC_API_PORT') {
     return validatePositiveNumber(key, category, false);
   }
@@ -98,12 +120,22 @@ function getCategory(key: string): string {
     NEXT_PUBLIC_API_PROTOCOL: 'API',
     NEXT_PUBLIC_API_VERSION: 'API',
     NEXT_PUBLIC_API_PORT: 'API',
+    NEXT_PUBLIC_BRAND_APPLE_TOUCH_ICON_URL: 'Brand',
+    NEXT_PUBLIC_BRAND_APP_ICON_192_URL: 'Brand',
+    NEXT_PUBLIC_BRAND_APP_ICON_512_URL: 'Brand',
+    NEXT_PUBLIC_BRAND_BACKGROUND_COLOR: 'Brand',
+    NEXT_PUBLIC_BRAND_FAVICON_ICO_URL: 'Brand',
+    NEXT_PUBLIC_BRAND_FAVICON_PNG_96_URL: 'Brand',
+    NEXT_PUBLIC_BRAND_FAVICON_SVG_URL: 'Brand',
+    NEXT_PUBLIC_BRAND_NAME: 'Brand',
+    NEXT_PUBLIC_BRAND_THEME_COLOR: 'Brand',
     NEXT_PUBLIC_SSR_API_HOST: 'API',
     NEXT_PUBLIC_SSR_API_PORT: 'API',
     NEXT_PUBLIC_SSR_API_PROTOCOL: 'API',
     NEXT_PUBLIC_FEATURES_DEFAULT_LOCALE: 'Features',
     NEXT_PUBLIC_FEATURES_SUPPORTED_LOCALES: 'Features',
-    NEXT_PUBLIC_BRAND_NAME: 'Brand',
+    NEXT_PUBLIC_DEFAULT_THEME: 'Themes',
+    NEXT_PUBLIC_SUPPORTED_THEMES: 'Themes',
   };
   return map[key] ?? 'Config';
 }

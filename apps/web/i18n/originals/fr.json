@@ -556,7 +556,13 @@
     "changing_email_address": "Changement d'adresse e-mail...",
     "change_email_address_email_failed": "Échec du changement d'e-mail. Le lien de confirmation peut avoir expiré. Veuillez réessayer.",
     "change_email_address_email_success": "Adresse e-mail changée avec succès. Vous pouvez maintenant vous connecter avec votre nouvelle adresse e-mail.",
-    "contact_only_text_before": "Pour créer un compte, veuillez contacter le support à"
+    "contact_only_text_before": "Pour créer un compte, veuillez contacter le support à",
+    "username": "Nom d'utilisateur",
+    "email_or_username": "E-mail ou nom d'utilisateur",
+    "set_password": "Définir le mot de passe",
+    "set_password_complete_message": "Votre mot de passe a été défini avec succès. Vous pouvez maintenant vous connecter.",
+    "set_password_email_optional": "E-mail (facultatif)",
+    "set_password_email_required": "E-mail"
   },
   "membership": {
     "membership": "Abonnement",
@@ -630,7 +636,8 @@
       "theme": "Thème",
       "light": "☀️ Clair",
       "dark": "🌙 Sombre",
-      "dracula": "🧛 Dracula"
+      "dracula": "🧛 Dracula",
+      "violet": "💜 Violet"
     },
     "feed": {
       "check_feed_for_updates": "Vérifier le flux pour les mises à jour",

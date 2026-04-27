@@ -1,11 +1,12 @@
 import type { ChildProcess } from 'child_process';
 import { spawn } from 'child_process';
-import * as path from 'path';
-import * as fs from 'fs';
-import { fileURLToPath } from 'url';
-import { dirname } from 'path';
-import { promisify } from 'util';
 import { exec } from 'child_process';
+import * as fs from 'fs';
+import * as path from 'path';
+import { dirname } from 'path';
+import { fileURLToPath } from 'url';
+import { promisify } from 'util';
+
 import {
   DEFAULT_HTTP_TIMEOUT_MS,
   DEFAULT_POLL_DELAY_MS,
@@ -13,6 +14,7 @@ import {
   SHUTDOWN_DELAY_MS,
 } from '@podverse/helpers';
 import { fetchWithTimeout } from '@podverse/helpers-backend';
+
 import { killProcessOnPort } from './port-killer.js';
 
 const execAsync = promisify(exec);
@@ -97,7 +99,6 @@ export class ApiManager {
       API_PREFIX: process.env.API_PREFIX,
       API_VERSION: process.env.API_VERSION,
       COOKIE_DOMAIN: process.env.COOKIE_DOMAIN,
-      MAILER_DISABLED: process.env.MAILER_DISABLED,
       MESSAGE_QUEUE_PROTOCOL: process.env.MESSAGE_QUEUE_PROTOCOL,
       MESSAGE_QUEUE_HOST: process.env.MESSAGE_QUEUE_HOST,
       MESSAGE_QUEUE_PORT: process.env.MESSAGE_QUEUE_PORT,

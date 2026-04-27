@@ -1,10 +1,10 @@
-@use '../../../styles/theme/variables' as theme;
+@use '../../../../../../packages/ui/src/styles/variables' as *;
 
 .placeholderCard {
-  padding: theme.$spacing-xl;
+  padding: var(--spacing-4xl);
 }
 
 .placeholderText {
-  font-size: theme.$font-size-lg;
-  color: theme.$color-text-secondary;
+  font-size: var(--font-size-lg);
+  color: var(--text-color-secondary);
 }

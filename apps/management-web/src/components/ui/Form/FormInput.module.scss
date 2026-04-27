@@ -1,11 +1,11 @@
-@use '../../../styles/theme/variables' as theme;
+@use '../../../../../../packages/ui/src/styles/variables' as *;
 
 .formInput {
   width: 100%;
-  padding: theme.$spacing-sm;
-  font-size: theme.$font-size-base;
-  border: theme.$border-width solid theme.$color-border;
-  border-radius: theme.$border-radius-sm;
+  padding: var(--spacing-base);
+  font-size: var(--font-size-base);
+  border: 1px solid var(--border-color-tertiary);
+  border-radius: var(--border-radius);
   box-sizing: border-box;
 
   &:disabled {
@@ -15,6 +15,6 @@
 
   &:focus {
     outline: none;
-    border-color: theme.$color-primary;
+    border-color: var(--border-color-primary);
   }
 }

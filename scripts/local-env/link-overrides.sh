@@ -60,7 +60,7 @@ for example_file in "$OVERRIDES_DIR"/*.env.example; do
   fi
 
   # Sync repo -> home when home exists but looks like example (e.g. ADD_BY_RSS key empty); then point repo at home
-  if [ -f "$home_file" ] && [ "$target_name" = "private-services.env" ]; then
+  if [ -f "$home_file" ] && [ "$target_name" = "add-by-rss.env" ]; then
     home_val="$(get_var "$home_file" "ADD_BY_RSS_CREDENTIALS_ENCRYPTION_KEY")"
     if [ -z "$home_val" ] && [ -f "$repo_file" ] && [ ! -L "$repo_file" ]; then
       repo_val="$(get_var "$repo_file" "ADD_BY_RSS_CREDENTIALS_ENCRYPTION_KEY")"

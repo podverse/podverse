@@ -1,0 +1,62 @@
+@use '../../../styles/variables' as *;
+
+.root {
+  border: $border-width solid $color-border;
+  border-radius: $border-radius-md;
+  background: $color-background;
+}
+
+.summary {
+  list-style: none;
+  cursor: pointer;
+  user-select: none;
+  padding: $spacing-sm $spacing-md;
+  color: $color-text;
+
+  &::-webkit-details-marker {
+    display: none;
+  }
+}
+
+.summaryInner {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+}
+
+.chevron {
+  display: block;
+  flex-shrink: 0;
+  width: 0.45rem;
+  height: 0.45rem;
+  border-right: 2px solid $color-text-secondary;
+  border-bottom: 2px solid $color-text-secondary;
+  transform: rotate(-45deg);
+  transition: transform 0.2s ease;
+  margin-top: 0.1rem;
+}
+
+.root[open] .chevron {
+  transform: rotate(45deg);
+  margin-top: -0.1rem;
+}
+
+.title {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+}
+
+.content {
+  padding: $spacing-lg $spacing-md $spacing-md;
+  border-top: $border-width solid $color-border-light;
+}
+
+.summary:focus {
+  outline: none;
+}
+
+.summary:focus-visible {
+  outline: 2px solid $color-primary;
+  outline-offset: 2px;
+  border-radius: $border-radius-sm;
+}

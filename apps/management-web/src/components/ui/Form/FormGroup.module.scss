@@ -1,9 +1,9 @@
-@use '../../../styles/theme/variables' as theme;
+@use '../../../../../../packages/ui/src/styles/variables' as *;
 
 .formGroup {
-  margin-bottom: theme.$spacing-md;
+  margin-bottom: var(--spacing-lg);
 
   &:last-of-type {
-    margin-bottom: theme.$spacing-lg;
+    margin-bottom: var(--spacing-2xl);
   }
 }

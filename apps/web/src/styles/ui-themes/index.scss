@@ -1,3 +1,1 @@
-@use 'dark'; // includes :root, must be the top line to be the default theme
-@use 'light';
-@use 'dracula';
+@forward '../../../../../packages/ui/src/styles/themes';

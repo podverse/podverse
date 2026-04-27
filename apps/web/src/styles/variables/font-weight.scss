@@ -1,6 +1,1 @@
-:root {
-  --font-weight-light: 300;
-  --font-weight-normal: 400;
-  --font-weight-medium: 500;
-  --font-weight-bold: 700;
-}
+@forward '../../../../../packages/ui/src/styles/variables';

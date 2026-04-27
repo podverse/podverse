@@ -24,7 +24,7 @@ const nextConfig = {
   output: 'standalone',
   outputFileTracingRoot: path.join(import.meta.dirname, '../../'),
   serverExternalPackages: ['winston'],
-  transpilePackages: ['@podverse/helpers'],
+  transpilePackages: ['@podverse/helpers', '@podverse/ui'],
   // Turbopack config for development (Next.js 16 default bundler)
   turbopack: {
     resolveAlias: {

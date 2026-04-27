@@ -5,7 +5,7 @@ import type { Request, Response } from 'express';
 export class MembershipController {
   static async getPricing(_req: Request, res: Response): Promise<void> {
     try {
-      if (config.premium.signupMode !== 'sign-up') {
+      if (config.premium.signupMode !== 'user_signup_email') {
         res
           .status(400)
           .json({ message: 'Paid premium memberships are not enabled for this server' });

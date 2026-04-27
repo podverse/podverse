@@ -18,7 +18,7 @@ const nextConfig = {
   sassOptions: {
     includePaths: [import.meta.dirname + '/src/styles/variables'],
   },
-  transpilePackages: ['@podverse/helpers'],
+  transpilePackages: ['@podverse/helpers', '@podverse/ui'],
   images: {
     remotePatterns: [
       {

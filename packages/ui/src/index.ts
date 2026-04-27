@@ -1,6 +1,12 @@
+export { Disclosure } from './components/layout/Disclosure';
+export type { DisclosureProps } from './components/layout/Disclosure';
 export { NavBar } from './components/navigation/NavBar';
 export type { NavBarProps } from './components/navigation/NavBar';
 export { NavCardGrid } from './components/navigation/NavCardGrid';
 export type { NavCard, NavCardGridProps } from './components/navigation/NavCardGrid';
+export { Pagination } from './components/navigation/Pagination';
+export type { PaginationProps } from './components/navigation/Pagination';
 export { StatsBarChart } from './components/stats/StatsBarChart';
 export type { StatsBarChartProps, StatsBarChartDatum } from './components/stats/StatsBarChart';
+export { Table } from './components/table/Table';
+export type { TableProps } from './components/table/Table';

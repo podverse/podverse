@@ -556,7 +556,13 @@
     "changing_email_address": "",
     "change_email_address_email_failed": "",
     "change_email_address_email_success": "",
-    "contact_only_text_before": ""
+    "contact_only_text_before": "",
+    "username": "",
+    "email_or_username": "",
+    "set_password": "",
+    "set_password_complete_message": "",
+    "set_password_email_optional": "",
+    "set_password_email_required": ""
   },
   "membership": {
     "membership": "",
@@ -630,7 +636,8 @@
       "theme": "",
       "light": "",
       "dark": "",
-      "dracula": ""
+      "dracula": "",
+      "violet": ""
     },
     "feed": {
       "check_feed_for_updates": "",

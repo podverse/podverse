@@ -81,6 +81,7 @@ Before running the scripts, ensure you have the following ready:
 - **API Secrets** (`create_api_secret.sh`):
   - `AUTH_JWT_SECRET`: A long random string for signing tokens.
   - `MAILER_USERNAME` and `MAILER_PASSWORD` (Optional): If using SMTP, set in this Secret, not the ConfigMap.
+  - `METABOOST_SIGNING_KEY_PEM` and `METABOOST_APP_ASSERTION_ISS` (Optional): For AppAssertion minting; the generator always includes these keys (may be left empty; set both or neither).
 
 - **API / management API non-secret auth (ConfigMap env)**: `AUTH_JWT_EXPIRES_IN` and `AUTH_ALLOW_TOKEN_IN_RESPONSE_BODY` are set in `base/api/source/api.env` and `base/management-api/source/management-api.env` (session length and whether login may return a token in JSON when the client requests it).
 
@@ -153,6 +154,7 @@ Other overlays render the same way (e.g., `infra/k8s/alpha/api`, `infra/k8s/alph
 - Encrypted secrets live under [secrets/](secrets/) at the monorepo root. Decrypt with `sops -d` when applying manually.
 - Secret generators in [infra/k8s/scripts/secret-generators/](scripts/secret-generators/INFRA-K8S-SCRIPTS-SECRET-GENERATORS.md) and other scripts in [infra/k8s/scripts/](scripts/README.md) assume SOPS keys are available and `nix develop` provides required binaries.
 - Never commit decrypted secrets; ArgoCD consumes the encrypted files directly.
+- If an older `podverse-*-api-opaque.enc.yaml` or `podverse-*-workers-add-by-rss-opaque.enc.yaml` is missing keys the generators now always emit, merge them in with `sops` (empty values are fine for optional Metaboost keys or a placeholder add-by-RSS key) rather than regenerating the whole Secret, unless you intend to replace all material.
 
 ## Linting and Formatting
 

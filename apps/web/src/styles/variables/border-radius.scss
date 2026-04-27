@@ -1,4 +1,1 @@
-:root {
-  --border-radius: 0.625rem;
-  --border-radius-round: 100rem;
-}
+@forward '../../../../../packages/ui/src/styles/variables';

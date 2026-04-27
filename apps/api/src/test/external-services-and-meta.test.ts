@@ -157,7 +157,7 @@ describe('external services, feed, medium-value, membership, claim, metaboost, m
   let mqBase: string;
 
   beforeAll(async () => {
-    process.env.ACCOUNT_SIGNUP_MODE = 'sign-up';
+    process.env.ACCOUNT_SIGNUP_MODE = 'user_signup_email';
     process.env.PREMIUM_MEMBERSHIP_COST_MONTHLY = '5';
     process.env.PREMIUM_MEMBERSHIP_COST_ANNUALLY = '50';
 
@@ -280,7 +280,7 @@ describe('external services, feed, medium-value, membership, claim, metaboost, m
   });
 
   describe('Membership pricing', () => {
-    it('GET /pricing returns data when sign-up is enabled, 400 when disabled (see MembershipController.getPricing)', async () => {
+    it('GET /pricing returns data when user_signup_email is enabled, 400 when disabled (see MembershipController.getPricing)', async () => {
       const res = await request(app).get(`${membershipBase}/pricing`);
       if (res.status === 200) {
         expect(res.body).toHaveProperty('data');

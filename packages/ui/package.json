@@ -10,7 +10,13 @@
       "types": "./src/index.ts",
       "import": "./src/index.ts",
       "default": "./src/index.ts"
-    }
+    },
+    "./styles/variables": "./src/styles/_variables.scss",
+    "./styles/breakpoints": "./src/styles/_breakpoints.scss",
+    "./styles/mixins": "./src/styles/_mixins.scss",
+    "./styles/themes": "./src/styles/_themes.scss",
+    "./styles/font-faces": "./src/styles/_font-faces.scss",
+    "./styles": "./src/styles/index.scss"
   },
   "scripts": {
     "lint": "eslint ./src --max-warnings 0",

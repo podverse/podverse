@@ -21,7 +21,7 @@ import {
   getSharableStatusIdsForProfileType,
   SharableStatusEnum,
 } from '@podverse/helpers';
-import { validateEmail, validatePassword } from '@podverse/helpers-validation';
+import { validateEmail, validatePassword, validateUsername } from '@podverse/helpers-validation';
 
 import { AccountCredentialsService } from './accountCredentials.js';
 import { AccountMembershipStatusService } from './accountMembershipStatus.js';
@@ -30,7 +30,8 @@ import { AccountResetPasswordService } from './accountResetPassword.js';
 import { AccountVerificationService } from './accountVerification.js';
 
 type CreateAccountDto = {
-  email: string;
+  email?: string;
+  username?: string;
   password: string;
   locale: string;
 };
@@ -94,6 +95,16 @@ export class AccountService {
     return this.get(accountCredentials.account_id, config);
   }
 
+  async getByUsername(username: string, config?: FindOneOptions<Account>): Promise<Account | null> {
+    const accountCredentialsService = new AccountCredentialsService();
+    const accountCredentials = await accountCredentialsService.getByUsername(username);
+    if (!accountCredentials) {
+      return null;
+    }
+
+    return this.get(accountCredentials.account_id, config);
+  }
+
   async getByIdText(id_text: string, config?: FindOneOptions<Account>): Promise<Account | null> {
     if (!id_text) {
       return null;
@@ -142,8 +153,16 @@ export class AccountService {
   }
 
   async create(dto: CreateAccountDto, qaVerified?: boolean) {
-    if (!validateEmail(dto.email)) {
+    if (!dto.email && !dto.username) {
+      throw new Error('At least one of email or username is required');
+    }
+
+    if (dto.email && !validateEmail(dto.email)) {
       throw new Error('Invalid email');
+    }
+
+    if (dto.username && !validateUsername(dto.username)) {
+      throw new Error('Invalid username');
     }
 
     if (!validatePassword(dto.password)) {
@@ -159,10 +178,19 @@ export class AccountService {
     }
 
     const accountCredentialsService = new AccountCredentialsService();
-    const accountCredentials = await accountCredentialsService.getByEmail(dto.email);
 
-    if (accountCredentials) {
-      throw new Error(ERROR_MESSAGES.ACCOUNT.ALREADY_EXISTS);
+    if (dto.email) {
+      const existingByEmail = await accountCredentialsService.getByEmail(dto.email);
+      if (existingByEmail) {
+        throw new Error(ERROR_MESSAGES.ACCOUNT.ALREADY_EXISTS);
+      }
+    }
+
+    if (dto.username) {
+      const existingByUsername = await accountCredentialsService.getByUsername(dto.username);
+      if (existingByUsername) {
+        throw new Error(ERROR_MESSAGES.ACCOUNT.ALREADY_EXISTS);
+      }
     }
 
     const accountObj = this.repositoryReadWrite.create({
@@ -184,7 +212,8 @@ export class AccountService {
     const saltedPassword = await hashPassword(dto.password);
 
     await accountCredentialsService.update(account, {
-      email: dto.email,
+      email: dto.email ?? null,
+      username: dto.username ?? null,
       password: saltedPassword,
     });
 

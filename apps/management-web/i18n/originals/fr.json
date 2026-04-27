@@ -7,22 +7,37 @@
     "loading": "Chargement...",
     "error": "Une erreur est survenue",
     "save": "Enregistrer",
+    "saveChanges": "Enregistrer les modifications",
+    "saving": "Enregistrement...",
     "cancel": "Annuler",
     "delete": "Supprimer",
     "edit": "Modifier",
     "create": "Créer",
+    "creating": "Création...",
     "search": "Rechercher",
     "back": "Retour",
     "submit": "Soumettre",
     "confirm": "Confirmer",
     "yes": "Oui",
-    "no": "Non"
+    "no": "Non",
+    "actions": "Actions",
+    "view": "Vue",
+    "none": "Aucun",
+    "new": "Nouveau",
+    "createNew": "Créer nouveau",
+    "readOnly": "Lecture seule",
+    "readOnlyTable": "Tableau en lecture seule",
+    "noDataFound": "Aucune donnée trouvée",
+    "previous": "Précédent",
+    "next": "Suivant"
   },
   "auth": {
     "login": "Se connecter",
     "logout": "Se déconnecter",
     "email": "Email",
-    "password": "Mot de passe"
+    "password": "Mot de passe",
+    "newPassword": "Nouveau mot de passe",
+    "leaveBlankToKeepCurrent": "Laissez vide pour garder l'actuel"
   },
   "nav": {
     "dashboard": "Tableau de bord",
@@ -30,12 +45,220 @@
     "content": "Contenu",
     "settings": "Paramètres",
     "userMenu": "Menu du compte",
-    "userRole": "Rôle : {role}"
+    "userRole": "Rôle : {role}",
+    "mySettings": "Mes paramètres"
   },
   "dashboard": {
+    "title": "Tableau de bord",
+    "welcome": "Bienvenue à {brandName}",
+    "feedFlagStatus": {
+      "title": "État des drapeaux de contenu",
+      "description": "Définir des retraits, du spam et d'autres états avec une raison et une note (pas le navigateur de tableau)"
+    },
     "stats": {
       "title": "Statistiques",
       "description": "Afficher les statistiques de popularité et de vues pour les podcasts, épisodes, clips, playlists et profils"
+    },
+    "database": {
+      "title": "Base de données",
+      "description": "Parcourir et gérer les données, états et raisons de contenu"
+    },
+    "admins": {
+      "title": "Administrateurs",
+      "description": "Gérer les comptes et permissions des administrateurs"
+    },
+    "workers": {
+      "title": "Travailleurs",
+      "description": "Gestion des tâches en arrière-plan"
+    },
+    "users": {
+      "title": "Utilisateurs",
+      "description": "Créer et gérer les comptes utilisateurs de l'application"
+    }
+  },
+  "admins": {
+    "title": "Administrateurs",
+    "createAdmin": "Créer un administrateur",
+    "editAdmin": "Modifier un administrateur",
+    "editAdminItem": "Modifier {email}",
+    "failedToLoad": "Échec du chargement des comptes administrateurs",
+    "failedToCreate": "Échec de la création de l'administrateur",
+    "failedToUpdate": "Échec de la mise à jour de l'administrateur",
+    "createdSuccessfully": "Administrateur créé avec succès",
+    "updatedSuccessfully": "Administrateur mis à jour avec succès",
+    "tableHeaders": {
+      "id": "ID",
+      "email": "Email",
+      "role": "Rôle",
+      "feeds": "Contenus",
+      "flagStatuses": "État des drapeaux",
+      "statusReasons": "Raisons d'état",
+      "admins": "Administrateurs",
+      "stats": "Statistiques",
+      "actions": "Actions"
+    },
+    "permissions": {
+      "legend": "Permissions",
+      "resource": "Ressource",
+      "create": "Créer",
+      "read": "Lire",
+      "update": "Mettre à jour",
+      "deletePerm": "Supprimer",
+      "feeds": "Flux",
+      "flagStatuses": "Statuts de signalement",
+      "statusReasons": "Raisons de statut",
+      "admins": "Admins",
+      "stats": "Statistiques"
+    }
+  },
+  "users": {
+    "title": "Utilisateurs",
+    "createUser": "Créer un utilisateur",
+    "failedToCreate": "Échec de la création de l'utilisateur",
+    "failedToLoad": "Échec du chargement des utilisateurs",
+    "failedToDelete": "Échec de la suppression de l'utilisateur",
+    "failedToUpdate": "Échec de la mise à jour de l'utilisateur",
+    "createdSuccessfully": "Utilisateur créé avec succès.",
+    "createdWithLink": "Utilisateur créé. Partagez le lien d'invitation ci-dessous afin que l'utilisateur puisse définir son mot de passe.",
+    "updatedSuccessfully": "Utilisateur mis à jour avec succès.",
+    "deletedSuccessfully": "Utilisateur supprimé avec succès.",
+    "inviteLinkLabel": "Lien d'invitation",
+    "copyLink": "Copier le lien",
+    "linkCopied": "Copié !",
+    "backToList": "Retour aux utilisateurs",
+    "usernameOptional": "Nom d'utilisateur (facultatif)",
+    "emailOptional": "Email (facultatif)",
+    "passwordOptional": "Mot de passe (facultatif)",
+    "emailOrUsernameHint": "Au moins l'un des noms d'utilisateur ou emails est requis.",
+    "emailOrUsernameRequired": "Au moins l'un des noms d'utilisateur ou emails est requis.",
+    "invalidUsername": "Le nom d'utilisateur doit contenir entre 3 et 32 caractères, lettres, chiffres, underscores et tirets uniquement.",
+    "invalidEmail": "Adresse email invalide.",
+    "passwordMinLength": "Le mot de passe doit comporter au moins 8 caractères.",
+    "searchPlaceholder": "Rechercher par email ou nom d'utilisateur...",
+    "noResults": "Aucun utilisateur ne correspond à votre recherche.",
+    "noUsers": "Aucun utilisateur trouvé.",
+    "confirmDelete": "Êtes-vous sûr de vouloir supprimer cet utilisateur ? Cette action ne peut pas être annulée.",
+    "userDetail": "Détails de l'utilisateur",
+    "editUser": "Modifier l'utilisateur",
+    "verified": "Vérifié",
+    "unverified": "Non vérifié",
+    "profile": "Profil",
+    "changePassword": "Changer le mot de passe",
+    "passwordChanged": "Mot de passe changé avec succès.",
+    "inviteLinks": "Liens d'invitation",
+    "noActiveInviteLinks": "Aucun lien d'invitation actif.",
+    "activeInviteLink": "Lien d'invitation actif",
+    "expiresAt": "Expire : {date}",
+    "revokeLink": "Révoquer le lien",
+    "generateInviteLink": "Générer un lien d'invitation",
+    "tableHeaders": {
+      "id": "ID",
+      "email": "Email",
+      "username": "Nom d'utilisateur",
+      "verified": "Vérifié",
+      "createdAt": "Créé",
+      "actions": "Actions"
+    }
+  },
+  "database": {
+    "title": "Base de données",
+    "failedToLoadTables": "Échec du chargement des tables",
+    "failedToLoadMeta": "Échec du chargement des métadonnées de la table",
+    "failedToLoadData": "Échec du chargement des données",
+    "failedToCreateRow": "Échec de la création de la ligne",
+    "failedToUpdateRow": "Échec de la mise à jour de la ligne",
+    "failedToDeleteRow": "Échec de la suppression de la ligne",
+    "rowUpdatedSuccessfully": "Ligne mise à jour avec succès",
+    "loadingTables": "Chargement des tables...",
+    "createRowTitle": "Créer une ligne {table}",
+    "rowDetailTitle": "{table} #{id}",
+    "manageTableData": "Gérer les données de la table",
+    "fieldCount": "{count} champs",
+    "paginationSummary": "{total} lignes au total | Page {page} sur {totalPages}",
+    "paginationSummarySingular": "{total} ligne au total | Page {page} sur {totalPages}",
+    "deleteConfirm": "Êtes-vous sûr de vouloir supprimer cette ligne ? Cette action est irréversible.",
+    "tables": {
+      "feed": {
+        "label": "Flux",
+        "labelSingular": "Flux",
+        "description": "URLs des flux RSS et statut d'analyse"
+      },
+      "feed_flag_status": {
+        "label": "Statuts des drapeaux de flux",
+        "labelSingular": "Statut du drapeau de flux",
+        "description": "Valeurs du statut du flux (actif, spam, archivé, retrait, etc.)"
+      },
+      "feed_flag_status_reason": {
+        "label": "Raisons des statuts de drapeau de flux",
+        "labelSingular": "Raison du statut de drapeau de flux",
+        "description": "Raisons prédéfinies pour les changements de statut de flux"
+      }
+    }
+  },
+  "workers": {
+    "title": "Travailleurs",
+    "backToDashboard": "Retour au tableau de bord",
+    "comingSoon": "Bientôt disponible",
+    "comingSoonDescription": "Les fonctionnalités de gestion des travailleurs ne sont pas encore disponibles. Revenez plus tard.",
+    "intro": "Les tâches en arrière-plan sont invoquées depuis le <code>apps/workers</code> CLI. Exécutez-les depuis un terminal avec un environnement approprié ; cette page est un catalogue en lecture seule avec des exemples copiables. L'en-queue dans le navigateur et l'invocation en direct ne sont pas encore disponibles et nécessitent un travail de suivi (câblage du courtier de messages).",
+    "copiedToClipboard": "Copié dans le presse-papiers",
+    "copyFailed": "Échec de la copie : autorisez le presse-papiers ou copiez la ligne d'exemple manuellement.",
+    "superuserOnly": "Réservé aux superutilisateurs",
+    "superuserOnlyDescription": "Seuls les comptes superutilisateurs peuvent voir le catalogue complet des tâches des travailleurs. Utilisez un compte superutilisateur ou travaillez depuis le terminal du monorepo en utilisant <code>apps/workers</code> (voir <code>apps/workers/APPS-WORKERS.md</code>).",
+    "loadingCommands": "Chargement de la liste des commandes...",
+    "failedToLoad": "Échec du chargement de la liste des commandes des travailleurs. Réessayez plus tard.",
+    "searchPlaceholder": "Nom, étiquette, description ou catégorie",
+    "commandCount": "{shown} sur {total} commandes",
+    "noMatchingCommands": "Aucune commande ne correspond au filtre.",
+    "tableHeaders": {
+      "command": "Commande",
+      "description": "Description",
+      "category": "Catégorie",
+      "risk": "Risque",
+      "actions": "Actions"
+    },
+    "copyExample": "Copier l'exemple",
+    "openRelatedTool": "Ouvrir l'outil associé",
+    "categories": {
+      "archival": "Archivage",
+      "on_demand_parser": "Parseur à la demande",
+      "image": "Réduction d'image",
+      "mq": "File de messages",
+      "orm": "ORM / base de données app",
+      "parser": "Analyseur (ponctuel)",
+      "podcast_index": "Index des podcasts",
+      "stats": "Statistiques",
+      "dev": "Développement"
+    },
+    "riskLabels": {
+      "normal": "Normal / traitement par lots",
+      "long_running": "Consommateur à long terme",
+      "dev_only": "Développement uniquement"
+    }
+  },
+  "language": {
+    "language": "Langue",
+    "languages": {
+      "en-US": "Anglais",
+      "es": "Espagnol",
+      "fr": "Français",
+      "el-GR": "Grec"
+    }
+  },
+  "settings": {
+    "title": "Paramètres",
+    "subtitle": "Choisissez votre langue et thème",
+    "theme": {
+      "label": "Thème",
+      "options": {
+        "dark": "Sombre",
+        "light": "Clair",
+        "dracula": "Dracula",
+        "violet": "Violet"
+      }
+    },
+    "language": {
+      "label": "Langue"
     }
   }
 }

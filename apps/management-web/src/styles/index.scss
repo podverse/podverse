@@ -1,7 +1,8 @@
-// Minimal functional styling for admin interface
-
-// Import theme variables
-@use './theme/variables' as theme;
+// Root styles for management-web. Tokens, themes, mixins, and font-faces all
+// come from @podverse/ui so management-web stays in sync with apps/web.
+@use '../../../../packages/ui/src/styles/font-faces';
+@use '../../../../packages/ui/src/styles/variables' as *;
+@use '../../../../packages/ui/src/styles/themes';
 
 // Global Reset
 * {
@@ -11,40 +12,37 @@
 }
 
 body {
-  font-family:
-    -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell',
-    'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  line-height: 1.6;
-  color: theme.$color-text-primary;
-  background-color: theme.$color-background;
+  line-height: var(--text-line-height);
+  color: var(--text-color-primary);
+  background-color: var(--background-color-secondary);
 }
 
 #root {
   min-height: 100vh;
 }
 
-// Basic utility classes
+// Basic utility classes (used across many management pages)
 .container {
   max-width: 1200px;
   margin: 0 auto;
-  padding: theme.$spacing-md;
+  padding: var(--spacing-lg);
 }
 
 .page-header {
-  margin-bottom: theme.$spacing-xl;
-  padding-bottom: theme.$spacing-md;
-  border-bottom: theme.$border-width solid theme.$color-border-light;
+  margin-bottom: var(--spacing-4xl);
+  padding-bottom: var(--spacing-lg);
+  border-bottom: 1px solid var(--border-color-opaque);
 }
 
 .page-title {
-  font-size: theme.$font-size-xxl;
-  font-weight: theme.$font-weight-semibold;
-  margin-bottom: theme.$spacing-xs;
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
+  margin-bottom: var(--spacing-md);
 }
 
 .page-subtitle {
-  color: theme.$color-text-secondary;
-  font-size: theme.$font-size-base;
+  color: var(--text-color-secondary);
+  font-size: var(--font-size-base);
 }

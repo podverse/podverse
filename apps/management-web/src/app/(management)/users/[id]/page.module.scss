@@ -1,0 +1,99 @@
+@use '../../../../../../../packages/ui/src/styles/variables' as *;
+
+.detailGrid {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: var(--spacing-base) var(--spacing-2xl);
+  font-size: var(--font-size-base);
+}
+
+.label {
+  font-weight: var(--font-weight-bold);
+  color: var(--text-color-secondary);
+}
+
+.value {
+  color: var(--text-color-primary);
+}
+
+.editLink {
+  display: inline-block;
+  padding: var(--spacing-md) var(--spacing-lg);
+  background-color: var(--border-color-primary);
+  color: var(--text-color-tertiary);
+  text-decoration: none;
+  border-radius: var(--border-radius);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-medium);
+  margin-top: var(--spacing-lg);
+}
+
+.backLink {
+  font-size: var(--font-size-base);
+  color: var(--border-color-primary);
+  text-decoration: none;
+  margin-bottom: var(--spacing-lg);
+  display: inline-block;
+}
+
+.loadingText {
+  font-size: var(--font-size-lg);
+  color: var(--text-color-secondary);
+}
+
+.errorText {
+  font-size: var(--font-size-lg);
+  color: var(--text-color-danger);
+}
+
+.verifiedBadge {
+  font-size: 0.8rem;
+  padding: 0.15rem 0.4rem;
+  border-radius: var(--border-radius);
+  font-weight: var(--font-weight-medium);
+}
+
+.verifiedYes {
+  background-color: var(--background-color-success);
+  color: var(--text-color-success);
+}
+
+.verifiedNo {
+  background-color: var(--background-color-warning);
+  color: var(--text-color-warning);
+}
+
+.actionsRow {
+  margin-top: var(--spacing-lg);
+}
+
+.divider {
+  margin: var(--spacing-2xl) 0;
+  border: none;
+  border-top: 1px solid var(--border-color-tertiary);
+}
+
+.inviteSectionTitle {
+  font-size: var(--font-size-xl);
+  margin-bottom: var(--spacing-base);
+}
+
+.inviteUrl {
+  word-break: break-all;
+  margin: var(--spacing-md) 0;
+}
+
+.inviteExpiry {
+  font-size: var(--font-size-xs);
+  color: var(--text-color-secondary);
+}
+
+.inviteActions {
+  display: flex;
+  gap: var(--spacing-md);
+  margin-top: var(--spacing-md);
+}
+
+.noInviteText {
+  color: var(--text-color-secondary);
+}

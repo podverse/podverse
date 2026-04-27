@@ -328,7 +328,7 @@ for file in "$WORKERS_APP_ENV" "$WORKERS_INFRA_ENV"; do
 done
 
 # Manual/private override values (each block from one override file)
-# From private-services.env
+# From add-by-rss.env
 apply_override "ADD_BY_RSS_CREDENTIALS_ENCRYPTION_KEY" "${API_AND_WORKERS_ENV_FILES[@]}"
 
 # From podcast-index.env (API + Workers; override generated placeholders with real keys here)
@@ -340,7 +340,7 @@ done
 apply_override "LOG_DIR" "${API_ENV_FILES[@]}" "${WORKERS_ENV_FILES[@]}" "${MANAGEMENT_API_ENV_FILES[@]}"
 apply_override "ACCOUNT_SIGNUP_MODE" "${API_ENV_FILES[@]}"
 # Sync API's effective ACCOUNT_SIGNUP_MODE to web/sidecar so both use the same .config value (app.env or template default).
-ACCOUNT_SIGNUP_MODE_EFFECTIVE="$(first_non_empty_or_default "contact-only" "$API_APP_ENV:ACCOUNT_SIGNUP_MODE" "$API_INFRA_ENV:ACCOUNT_SIGNUP_MODE")"
+ACCOUNT_SIGNUP_MODE_EFFECTIVE="$(first_non_empty_or_default "admin_only_email" "$API_APP_ENV:ACCOUNT_SIGNUP_MODE" "$API_INFRA_ENV:ACCOUNT_SIGNUP_MODE")"
 for file in "${WEB_ENV_FILES_APP_AND_SIDECAR[@]}"; do
 	upsert_var "$file" "NEXT_PUBLIC_ACCOUNT_SIGNUP_MODE" "$ACCOUNT_SIGNUP_MODE_EFFECTIVE"
 done
@@ -360,13 +360,8 @@ if [ -n "${WEBPUSH_VAPID_PUBLIC_KEY:-}" ]; then
 	done
 fi
 
-# From private-services.env (mailer + PayPal)
-for v in MAILER_SERVICE MAILER_HOST MAILER_PORT MAILER_USERNAME MAILER_PASSWORD MAILER_FROM PAYPAL_CLIENT_ID PAYPAL_CLIENT_SECRET; do
-	apply_override "$v" "${API_ENV_FILES[@]}"
-done
-
-# From email-template.env
-for v in EMAIL_BRAND_COLOR EMAIL_HEADER_IMAGE_URL LEGAL_NAME LEGAL_ADDRESS; do
+# From mailer.env + paypal.env
+for v in MAILER_HOST MAILER_PORT MAILER_USERNAME MAILER_PASSWORD MAILER_FROM PAYPAL_CLIENT_ID PAYPAL_CLIENT_SECRET; do
 	apply_override "$v" "${API_ENV_FILES[@]}"
 done
 
@@ -410,6 +405,45 @@ if [ -n "${BRAND_DOMAIN:-}" ]; then
 	done
 fi
 
+# From brand.env: BRAND_LOGO_DARK/LIGHT -> NEXT_PUBLIC_BRAND_LOGO_DARK/LIGHT for web sidecars.
+if [ -n "${BRAND_LOGO_DARK:-}" ]; then
+	for file in "${WEB_ENV_FILES_APP_AND_SIDECAR[@]}"; do
+		upsert_var "$file" "NEXT_PUBLIC_BRAND_LOGO_DARK" "$BRAND_LOGO_DARK"
+	done
+fi
+if [ -n "${BRAND_LOGO_LIGHT:-}" ]; then
+	for file in "${WEB_ENV_FILES_APP_AND_SIDECAR[@]}"; do
+		upsert_var "$file" "NEXT_PUBLIC_BRAND_LOGO_LIGHT" "$BRAND_LOGO_LIGHT"
+	done
+fi
+
+# From brand.env: primary brand accent and 3:1 brand banner URL (API, etc.)
+apply_override "BRAND_COLOR_PRIMARY" "${API_ENV_FILES[@]}"
+apply_override "BRAND_BANNER_IMAGE_3X1_URL" "${API_ENV_FILES[@]}"
+
+# From legal.env: registered legal name and address (API)
+for v in LEGAL_NAME LEGAL_ADDRESS; do
+	apply_override "$v" "${API_ENV_FILES[@]}"
+done
+
+# When brand UI theme tint is not set, align with BRAND_COLOR_PRIMARY (set NEXT_PUBLIC_BRAND_THEME_COLOR in brand.env to override)
+if [ -n "${BRAND_COLOR_PRIMARY:-}" ] && [ -z "${NEXT_PUBLIC_BRAND_THEME_COLOR:-}" ]; then
+	NEXT_PUBLIC_BRAND_THEME_COLOR="$BRAND_COLOR_PRIMARY"
+fi
+
+# From brand.env: app icons, theme, document-head icons (path-absolute = public/favicon/; override with https://…)
+for v in NEXT_PUBLIC_BRAND_APP_ICON_192_URL NEXT_PUBLIC_BRAND_APP_ICON_512_URL NEXT_PUBLIC_BRAND_THEME_COLOR NEXT_PUBLIC_BRAND_FAVICON_ICO_URL NEXT_PUBLIC_BRAND_FAVICON_SVG_URL NEXT_PUBLIC_BRAND_FAVICON_PNG_96_URL NEXT_PUBLIC_BRAND_APPLE_TOUCH_ICON_URL; do
+	apply_override "$v" "${WEB_ENV_FILES_APP_AND_SIDECAR[@]}" "${MANAGEMENT_WEB_ENV_FILES_APP_AND_SIDECAR[@]}"
+done
+
+# From brand.env: app/shell background (maps to NEXT_PUBLIC_BRAND_BACKGROUND_COLOR in sidecar). Legacy: BRAND_COLOR_BACKGROUND.
+if [ -n "${BRAND_BACKGROUND_COLOR:-${BRAND_COLOR_BACKGROUND:-}}" ]; then
+	_bg_val="${BRAND_BACKGROUND_COLOR:-${BRAND_COLOR_BACKGROUND:-}}"
+	for file in "${WEB_ENV_FILES_APP_AND_SIDECAR[@]}" "${MANAGEMENT_WEB_ENV_FILES_APP_AND_SIDECAR[@]}"; do
+		upsert_var "$file" "NEXT_PUBLIC_BRAND_BACKGROUND_COLOR" "$_bg_val"
+	done
+fi
+
 # From locale.env: one place for DEFAULT_LOCALE and SUPPORTED_LOCALES; setup applies to web and management-web (NEXT_PUBLIC_FEATURES_*).
 if [ -n "${DEFAULT_LOCALE:-}" ]; then
 	for file in "${WEB_ENV_FILES_APP_AND_SIDECAR[@]}" "${MANAGEMENT_WEB_ENV_FILES_APP_AND_SIDECAR[@]}"; do
@@ -419,6 +453,18 @@ fi
 if [ -n "${SUPPORTED_LOCALES:-}" ]; then
 	for file in "${WEB_ENV_FILES_APP_AND_SIDECAR[@]}" "${MANAGEMENT_WEB_ENV_FILES_APP_AND_SIDECAR[@]}"; do
 		upsert_var "$file" "NEXT_PUBLIC_FEATURES_SUPPORTED_LOCALES" "$SUPPORTED_LOCALES"
+	done
+fi
+
+# From theme.env: default and supported UI themes; applies to web and management-web sidecars (NEXT_PUBLIC_*).
+if [ -n "${DEFAULT_UI_THEME:-}" ]; then
+	for file in "${WEB_ENV_FILES_APP_AND_SIDECAR[@]}" "${MANAGEMENT_WEB_ENV_FILES_APP_AND_SIDECAR[@]}"; do
+		upsert_var "$file" "NEXT_PUBLIC_DEFAULT_THEME" "$DEFAULT_UI_THEME"
+	done
+fi
+if [ -n "${SUPPORTED_UI_THEMES:-}" ]; then
+	for file in "${WEB_ENV_FILES_APP_AND_SIDECAR[@]}" "${MANAGEMENT_WEB_ENV_FILES_APP_AND_SIDECAR[@]}"; do
+		upsert_var "$file" "NEXT_PUBLIC_SUPPORTED_THEMES" "$SUPPORTED_UI_THEMES"
 	done
 fi
 

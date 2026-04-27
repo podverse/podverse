@@ -1,0 +1,49 @@
+@use '../../../styles/variables' as *;
+
+.root {
+  display: flex;
+  align-items: center;
+  gap: $spacing-xs;
+  margin-top: $spacing-md;
+  flex-wrap: wrap;
+}
+
+.pageButton {
+  padding: calc(var(--spacing-md) * 0.7) $spacing-sm;
+  border: $border-width solid $color-border;
+  border-radius: $border-radius-sm;
+  background: $color-background;
+  color: $color-text;
+  cursor: pointer;
+  font-size: $font-size-sm;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2rem;
+
+  &:hover:not(:disabled) {
+    background: $color-background-card;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: default;
+  }
+}
+
+.activePage {
+  background: $color-primary;
+  color: $color-on-primary;
+  border-color: $color-primary;
+
+  &:hover {
+    background: var(--button-primary-bg-hover);
+  }
+}
+
+.pageInfo {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  margin-left: $spacing-xs;
+}

@@ -45,7 +45,8 @@
     "content": "Content",
     "settings": "Settings",
     "userMenu": "Account menu",
-    "userRole": "Role: {role}"
+    "userRole": "Role: {role}",
+    "mySettings": "My Settings"
   },
   "dashboard": {
     "title": "Dashboard",
@@ -69,6 +70,10 @@
     "workers": {
       "title": "Workers",
       "description": "Background job management"
+    },
+    "users": {
+      "title": "Users",
+      "description": "Create and manage app user accounts"
     }
   },
   "admins": {
@@ -104,6 +109,55 @@
       "statusReasons": "Status Reasons",
       "admins": "Admins",
       "stats": "Stats"
+    }
+  },
+  "users": {
+    "title": "Users",
+    "createUser": "Create User",
+    "failedToCreate": "Failed to create user",
+    "failedToLoad": "Failed to load users",
+    "failedToDelete": "Failed to delete user",
+    "failedToUpdate": "Failed to update user",
+    "createdSuccessfully": "User created successfully.",
+    "createdWithLink": "User created. Share the invite link below so the user can set their password.",
+    "updatedSuccessfully": "User updated successfully.",
+    "deletedSuccessfully": "User deleted successfully.",
+    "inviteLinkLabel": "Invite Link",
+    "copyLink": "Copy Link",
+    "linkCopied": "Copied!",
+    "backToList": "Back to Users",
+    "usernameOptional": "Username (optional)",
+    "emailOptional": "Email (optional)",
+    "passwordOptional": "Password (optional)",
+    "emailOrUsernameHint": "At least one of username or email is required.",
+    "emailOrUsernameRequired": "At least one of username or email is required.",
+    "invalidUsername": "Username must be 3-32 characters, letters, numbers, underscores, and dashes only.",
+    "invalidEmail": "Invalid email address.",
+    "passwordMinLength": "Password must be at least 8 characters.",
+    "searchPlaceholder": "Search by email or username...",
+    "noResults": "No users match your search.",
+    "noUsers": "No users found.",
+    "confirmDelete": "Are you sure you want to delete this user? This cannot be undone.",
+    "userDetail": "User Detail",
+    "editUser": "Edit User",
+    "verified": "Verified",
+    "unverified": "Unverified",
+    "profile": "Profile",
+    "changePassword": "Change Password",
+    "passwordChanged": "Password changed successfully.",
+    "inviteLinks": "Invite Links",
+    "noActiveInviteLinks": "No active invite links.",
+    "activeInviteLink": "Active Invite Link",
+    "expiresAt": "Expires: {date}",
+    "revokeLink": "Revoke Link",
+    "generateInviteLink": "Generate Invite Link",
+    "tableHeaders": {
+      "id": "ID",
+      "email": "Email",
+      "username": "Username",
+      "verified": "Verified",
+      "createdAt": "Created",
+      "actions": "Actions"
     }
   },
   "database": {
@@ -180,6 +234,31 @@
       "normal": "Normal / batch",
       "long_running": "Long-running consumer",
       "dev_only": "Dev only"
+    }
+  },
+  "language": {
+    "language": "Language",
+    "languages": {
+      "en-US": "English",
+      "es": "Spanish",
+      "fr": "French",
+      "el-GR": "Greek"
+    }
+  },
+  "settings": {
+    "title": "Settings",
+    "subtitle": "Choose your language and theme",
+    "theme": {
+      "label": "Theme",
+      "options": {
+        "dark": "Dark",
+        "light": "Light",
+        "dracula": "Dracula",
+        "violet": "Violet"
+      }
+    },
+    "language": {
+      "label": "Language"
     }
   }
 }

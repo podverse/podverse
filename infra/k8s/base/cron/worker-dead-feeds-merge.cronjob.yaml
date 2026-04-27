@@ -47,6 +47,8 @@ spec:
                     name: podverse-api.podcastindex.org-opaque
                 - secretRef:
                     name: podverse-workers-add-by-rss-opaque
+                - secretRef:
+                    name: podverse-workers-webpush-opaque
               volumeMounts:
                 - name: logs-volume
                   mountPath: /logs
@@ -54,9 +56,16 @@ spec:
                   mountPath: /opt/logs
                 - name: tmp-volume
                   mountPath: /opt/node_modules/podverse-external-services/dist/services/podcast-index/tmp
+                - name: firebase-key
+                  mountPath: /var/secrets/firebase
+                  readOnly: true
           volumes:
             - name: logs-volume
               emptyDir: {}
             - name: tmp-volume
               emptyDir: {}
+            - name: firebase-key
+              secret:
+                secretName: podverse-workers-firebase-opaque
+                optional: true
           restartPolicy: OnFailure

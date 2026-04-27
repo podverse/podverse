@@ -30,7 +30,7 @@ The sidecar uses the same validation helpers as the rest of the monorepo (`@podv
 - **`NEXT_PUBLIC_PROXY_USER_AGENT`** (Required)
   - Format: `BrandName Bot Environment/AppName/Version`
   - Must include "Bot" in the first part (before the first slash)
-  - Example: `Example Bot local/Web-API/5`
+  - Example: `Example Bot/Web-API/5`
   - Set a value specific to your deployment. Used when proxying external image requests
 
 ### API Configuration (SSR)
@@ -76,11 +76,11 @@ These variables are used for client-side API requests:
 
 - **`NEXT_PUBLIC_SUPPORTED_THEMES`** (Required)
   - Must be `"all-available"` or a comma-delimited list of valid themes
-  - Valid themes: `dark`, `light`, `dracula`
+  - Valid themes: `dark`, `light`, `dracula`, `violet`
   - Example: `"all-available"` or `"dark,light"`
 
 - **`NEXT_PUBLIC_DEFAULT_THEME`** (Required)
-  - Must be one of the valid themes: `dark`, `light`, or `dracula`
+  - Must be one of the valid themes: `dark`, `light`, `dracula`, or `violet`
   - Example: `"dark"`
 
 ## Optional Variables
@@ -107,6 +107,21 @@ These variables are used for client-side API requests:
 - **`NEXT_PUBLIC_POLLING_INTERVAL_MS`** (Optional) - Polling interval in milliseconds (default: `3000`)
   - Must be a positive number if set
 
+### Brand: app + document chrome (optional, white-label)
+
+The installable app manifest is served from **`/manifest.webmanifest`** (`app/manifest.ts`) using runtime config. Manifest `name` and `short_name` are **`NEXT_PUBLIC_BRAND_NAME`** (with a built-in fallback if unset). The variables below override **app icons, theme/background, and head icon** URLs for the manifest, browser chrome, and `<head>`; they are not limited to a single feature. When unset, paths default to files under `/favicon/`; set **absolute** `https://…` URLs for CDN-hosted assets.
+
+- **`NEXT_PUBLIC_BRAND_APP_ICON_192_URL`** (Optional) - 192×192 maskable icon (install / launcher, manifest, and other app surfaces)
+- **`NEXT_PUBLIC_BRAND_APP_ICON_512_URL`** (Optional) - 512×512 maskable icon
+- **`NEXT_PUBLIC_BRAND_THEME_COLOR`** (Optional) - UI / browser chrome tint (CSS color)
+- **`NEXT_PUBLIC_BRAND_BACKGROUND_COLOR`** (Optional) - App shell / launch background. For local [`brand.env`](../../dev/env-overrides/local/brand.env.example), set **`BRAND_BACKGROUND_COLOR`** (legacy: `BRAND_COLOR_BACKGROUND`); `make local_env_setup` writes it to this key in the sidecar.
+- **`NEXT_PUBLIC_BRAND_FAVICON_ICO_URL`** (Optional) - `.ico` favicon URL
+- **`NEXT_PUBLIC_BRAND_FAVICON_SVG_URL`** (Optional) - SVG favicon URL
+- **`NEXT_PUBLIC_BRAND_FAVICON_PNG_96_URL`** (Optional) - 96×96 PNG favicon URL
+- **`NEXT_PUBLIC_BRAND_APPLE_TOUCH_ICON_URL`** (Optional) - Apple touch icon URL
+
+**Local development:** Default path-absolute values are in `dev/env-overrides/local/brand.env` (see `brand.env.example`); after editing, run `make local_env_setup`.
+
 ### App Lightning Node
 
 - **`NEXT_PUBLIC_APP_VALUE_LIGHTNING_NODE_NAME`** (Optional) - Lightning node name
@@ -131,12 +146,12 @@ These variables are used for client-side API requests:
 
 ### Notifications
 
-- **`NEXT_PUBLIC_WEBPUSH_VAPID_PUBLIC_KEY`** (Optional) - WebPush VAPID public key for browser notifications
+- **`NEXT_PUBLIC_WEBPUSH_VAPID_PUBLIC_KEY`** (Optional) - WebPush VAPID **public** key for browser notifications. The **private** key is never set here: on Kubernetes it is in the Secret **`podverse-workers-webpush-opaque`** (see workers/API env docs). When you run `create_workers_webpush_secret.sh` with `--auto-gen` (or generate interactively) from a normal monorepo or GitOps root, this public key and `WEBPUSH_VAPID_PUBLIC_KEY` in the workers source env are updated in lockstep with the generated keypair. Otherwise set both public keys to match a pair from `npx web-push generate-vapid-keys` (private key in SOPS only).
 
 ### Account
 
 - **`NEXT_PUBLIC_ACCOUNT_SIGNUP_MODE`** (Required) - Account signup mode (no default value)
-  - Valid values: `"sign-up"` or `"contact-only"`
+  - Valid values: `"admin_only_username"`, `"admin_only_email"`, or `"user_signup_email"`
   - Must be explicitly set - no default value is assumed
 
 - **`NEXT_PUBLIC_CONTACT_EMAIL`** (Optional) - Contact email address
@@ -168,7 +183,7 @@ Variables containing `PORT` or `INTERVAL` are validated to ensure they are valid
 ### Format Validation
 
 - **User-Agent Format**: `NEXT_PUBLIC_PROXY_USER_AGENT` must follow `BrandName Bot Environment/AppName/Version` and include "Bot" in the first part
-- **Theme Validation**: `NEXT_PUBLIC_SUPPORTED_THEMES` must be `"all-available"` or a comma-delimited list of valid themes (`dark`, `light`, `dracula`)
+- **Theme Validation**: `NEXT_PUBLIC_SUPPORTED_THEMES` must be `"all-available"` or a comma-delimited list of valid themes (`dark`, `light`, `dracula`, `violet`)
 - **Theme Default**: `NEXT_PUBLIC_DEFAULT_THEME` must be one of the valid themes
 - **Locale Validation**: `NEXT_PUBLIC_FEATURES_SUPPORTED_LOCALES` must be `"all-available"` or a comma-delimited list of valid locales
 - **Locale Default**: `NEXT_PUBLIC_FEATURES_DEFAULT_LOCALE` must be a valid locale

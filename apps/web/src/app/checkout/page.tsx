@@ -17,7 +17,7 @@ export default async function CheckoutPage() {
   const config = getConfig();
   const ssrApiRequestService = getSSRApiRequestService();
   const signupMode = config.public.account.signupMode;
-  const isContactOnlyMode = signupMode === 'contact-only';
+  const isContactOnlyMode = signupMode !== 'user_signup_email';
 
   let pricingData: MembershipPricingData | null = null;
   if (!isContactOnlyMode) {

@@ -102,7 +102,7 @@ See [ENV.md](ENV.md) for complete documentation of all environment variables.
 
 Key configuration:
 
-- `ACCOUNT_SIGNUP_MODE` - `'sign-up'` or `'contact-only'`
+- `ACCOUNT_SIGNUP_MODE` - `'admin_only_username'`, `'admin_only_email'`, or `'user_signup_email'`
 - `AUTH_JWT_SECRET` - Must be a valid UUID
 - Database, Redis, and RabbitMQ connections
 

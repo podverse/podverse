@@ -6,10 +6,6 @@ import { useTranslations } from 'next-intl';
 import { type KeyboardEvent, useCallback, useEffect, useRef, useState } from 'react';
 import { FaChevronDown, FaUser } from 'react-icons/fa6';
 
-import {
-  dashboardI18nTitleKey,
-  getManagementAppRoutesForUser,
-} from '../../lib/managementNavRoutes';
 import { ManagementApiRequestService } from '../../lib/requests/apiRequestService';
 import type { CurrentUser } from '../../lib/requests/auth';
 
@@ -22,9 +18,7 @@ type ManagementUserMenuProps = {
 export function ManagementUserMenu({ user }: ManagementUserMenuProps) {
   const tNav = useTranslations('nav');
   const tAuth = useTranslations('auth');
-  const tDash = useTranslations('dashboard');
   const router = useRouter();
-  const appRoutes = getManagementAppRoutesForUser(user);
   const [open, setOpen] = useState(false);
   const wrapperRef = useRef<HTMLDivElement>(null);
   const close = useCallback(() => setOpen(false), []);
@@ -93,20 +87,12 @@ export function ManagementUserMenu({ user }: ManagementUserMenuProps) {
       </button>
       {open && (
         <div className={styles.panel} role="menu">
-          {appRoutes.map((r) => (
-            <Link
-              key={r.href}
-              className={styles.menuLink}
-              href={r.href}
-              role="menuitem"
-              onClick={close}
-            >
-              {tDash(dashboardI18nTitleKey(r.section))}
-            </Link>
-          ))}
           <div className={styles.meta} role="presentation">
             {tNav('userRole', { role: user.role })}
           </div>
+          <Link className={styles.menuLink} href="/settings" role="menuitem" onClick={close}>
+            {tNav('mySettings')}
+          </Link>
           <button className={styles.menuItem} type="button" role="menuitem" onClick={handleLogout}>
             {tAuth('logout')}
           </button>

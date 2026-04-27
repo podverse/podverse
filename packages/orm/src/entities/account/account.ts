@@ -5,6 +5,7 @@ import type { Relation } from 'typeorm';
 import {
   BeforeInsert,
   Column,
+  CreateDateColumn,
   Entity,
   JoinColumn,
   ManyToOne,
@@ -41,6 +42,9 @@ export class Account {
 
   @Column({ type: 'boolean', default: false })
   verified!: boolean;
+
+  @CreateDateColumn({ type: 'timestamp' })
+  created_at!: Date;
 
   @ManyToOne('SharableStatus', (sharableStatus: SharableStatus) => sharableStatus.id)
   @JoinColumn({ name: 'sharable_status_id' })

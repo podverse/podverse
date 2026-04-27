@@ -1,0 +1,20 @@
+// Layout and positioning utility mixins
+
+@mixin absoluteCenter {
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+}
+
+@mixin fullCoverage($position: absolute) {
+  position: #{$position};
+  inset: 0;
+}
+
+@mixin fullCoverageWithBackdrop($position: absolute, $backdrop-blur: null) {
+  @include fullCoverage($position);
+  @if $backdrop-blur {
+    backdrop-filter: blur($backdrop-blur);
+    -webkit-backdrop-filter: blur($backdrop-blur);
+  }
+}

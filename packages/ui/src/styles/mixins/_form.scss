@@ -1,0 +1,46 @@
+@mixin formHeaderRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--spacing-lg);
+}
+
+@mixin formHeaderLabel {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-light);
+}
+
+@mixin formButtonsWrapper {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--spacing-2xl);
+}
+
+@mixin formInputWrapper {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  flex-direction: row;
+  border-radius: var(--border-radius);
+  border: var(--button-border-size) solid transparent;
+  padding: var(--spacing-form-input);
+  background-color: var(--background-color-tertiary);
+}
+
+@mixin formInfoText(
+  $margin: var(--spacing-lg) var(--spacing-lg) var(--spacing-none) var(--spacing-lg)
+) {
+  margin: $margin;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-light);
+  color: var(--text-color-secondary);
+}
+
+@mixin formInfoTextError(
+  $margin: var(--spacing-lg) var(--spacing-lg) var(--spacing-none) var(--spacing-lg)
+) {
+  margin: $margin;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-light);
+  color: var(--text-color-danger);
+}

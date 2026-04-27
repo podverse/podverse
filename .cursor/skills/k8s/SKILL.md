@@ -1,7 +1,7 @@
 ---
 name: podverse-k8s-patterns
 description: Common patterns for Kubernetes manifests in infra/k8s. Use when editing or adding K8s manifests, changing deployment config, adding env vars to ConfigMaps, or working with ArgoCD/Kustomize/SOPS.
-version: 1.0.0
+version: 1.0.3
 ---
 
 # Podverse K8s Development Patterns
@@ -73,6 +73,10 @@ The deployment uses ArgoCD's **App of Apps** pattern:
 ```
 alpha-application.yaml → alpha/apps/*.yaml → alpha/<component>/kustomization.yaml → base/<component>/*.yaml
 ```
+
+### Argo CD `Application` YAML named `ops.yaml` (editors / GitOps repos)
+
+The [JSON Schema Store](https://www.schemastore.org/) maps **`ops.yaml` / `ops.yml`** to an unrelated "Ops configuration" spec, so editors can mis-validate a real Argo CD `Application`. **Podverse** uses a **line 1** `# yaml-language-server: $schema=...` modeline in [`infra/k8s/alpha/apps/ops.yaml`](../../../infra/k8s/alpha/apps/ops.yaml). A matching GitOps checkout (e.g. k.podcastdj.com) should add the same **first-line modeline** on `argocd/.../ops.yaml` and may also commit `.vscode/settings.json` for backup. **Prefer the modeline**; rename or user `yaml.schemas` if needed. For the operator GitOps repo, see the **argocd-yaml-schema-ops-filename** skill (`.cursor/skills/` there).
 
 ## Kustomize Usage
 
@@ -325,13 +329,14 @@ ArgoCD will detect the change and sync automatically.
 
 **Secret generators** live in `infra/k8s/scripts/secret-generators/` (see [INFRA-K8S-SCRIPTS-SECRET-GENERATORS.md](../../infra/k8s/scripts/secret-generators/INFRA-K8S-SCRIPTS-SECRET-GENERATORS.md)):
 
-| Script                      | Purpose                                      |
-| --------------------------- | -------------------------------------------- |
-| `create_db_secret.sh`       | Generate encrypted DB credentials            |
-| `create_api_secret.sh`      | Generate encrypted API secrets (JWT, mailer) |
-| `create_mq_secret.sh`       | Generate encrypted message queue credentials |
-| `create_keyvaldb_secret.sh` | Generate encrypted Valkey/Redis password     |
-| `create_firebase_secret.sh` | Generate encrypted Firebase service account  |
+| Script                             | Purpose                                                                                                                               |
+| ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| `create_db_secret.sh`              | Generate encrypted DB credentials                                                                                                     |
+| `create_api_secret.sh`             | Generate encrypted API secrets (JWT, mailer)                                                                                          |
+| `create_mq_secret.sh`              | Generate encrypted message queue credentials                                                                                          |
+| `create_keyvaldb_secret.sh`        | Generate encrypted Valkey/Redis password                                                                                              |
+| `create_firebase_secret.sh`        | `podverse-workers-firebase-opaque`; base mounts it at `/var/secrets/firebase` (optional volume) for API + workers + cron              |
+| `create_workers_webpush_secret.sh` | VAPID private key in `podverse-workers-webpush-opaque`; `--auto-gen` also sets public keys in workers/web source env when paths exist |
 
 **Other** scripts (DB/MQ/Valkey connect, image listing) under `infra/k8s/scripts/<topic>/` and `list_images.sh` at `scripts/`:
 

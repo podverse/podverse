@@ -24,7 +24,7 @@ Validation occurs in `src/lib/startup/validation.ts` during application startup.
 - **`USER_AGENT`** (Required)
   - Non-blank. Format: `BrandName Bot Environment/AppName/Version`
   - Must include "Bot" in the first part (before the first slash)
-  - Example: `Example Bot local/Management-API/5`
+  - Example: `Example Bot/Management-API/5`
   - Used for external API requests
 
 ### Database (one Postgres, shared `DB_HOST` / `DB_PORT`)

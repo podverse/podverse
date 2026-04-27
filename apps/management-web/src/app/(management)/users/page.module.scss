@@ -1,0 +1,78 @@
+@use '../../../../../../packages/ui/src/styles/variables' as *;
+
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-lg);
+}
+
+.createButton {
+  display: inline-block;
+  padding: var(--spacing-md) var(--spacing-lg);
+  background-color: var(--border-color-primary);
+  color: var(--text-color-tertiary);
+  text-decoration: none;
+  border-radius: var(--border-radius);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-medium);
+}
+
+.loadingText {
+  font-size: var(--font-size-lg);
+  color: var(--text-color-secondary);
+}
+
+.errorText {
+  font-size: var(--font-size-lg);
+  color: var(--text-color-danger);
+}
+
+.emptyText {
+  font-size: var(--font-size-lg);
+  color: var(--text-color-secondary);
+  padding: var(--spacing-2xl) 0;
+}
+
+.editLink {
+  font-size: var(--font-size-base);
+  color: var(--border-color-primary);
+  text-decoration: none;
+  font-weight: var(--font-weight-medium);
+  margin-right: var(--spacing-lg);
+}
+
+.deleteButton {
+  font-size: var(--font-size-base);
+  color: var(--text-color-danger);
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-weight: var(--font-weight-medium);
+  padding: 0;
+}
+
+.searchInput {
+  padding: var(--spacing-md) var(--spacing-lg);
+  border: 1px solid var(--border-color-tertiary);
+  border-radius: var(--border-radius);
+  font-size: var(--font-size-base);
+  width: 250px;
+  margin-bottom: var(--spacing-lg);
+}
+
+.verifiedBadge {
+  font-size: 0.8rem;
+  padding: 0.15rem 0.4rem;
+  border-radius: var(--border-radius);
+  font-weight: var(--font-weight-medium);
+}
+
+.verifiedYes {
+  background-color: var(--background-color-success);
+  color: var(--text-color-success);
+}
+
+.verifiedNo {
+  background-color: var(--background-color-warning);
+  color: var(--text-color-warning);
+}

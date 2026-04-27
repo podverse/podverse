@@ -1,8 +1,1 @@
-@use 'border-radius';
-@use 'breakpoints';
-@use 'element-sizes';
-@use 'font-size';
-@use 'font-weight';
-@use 'image-sizes';
-@use 'list-item-sizes';
-@use 'spacing';
+@forward '../../../../../packages/ui/src/styles/variables';

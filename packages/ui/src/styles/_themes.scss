@@ -1,0 +1,305 @@
+// Canonical Podverse themes. apps/web is the source of truth for values.
+// Do NOT rename any CSS custom property.
+// Default theme is dark (declared on :root).
+
+// Default theme (dark)
+:root,
+[data-ui-theme='dark'] {
+  --background-color-primary: #030626;
+  --background-color-secondary: #000000;
+  --background-color-tertiary: #0f1235;
+  --background-color-quaternary: #20244e;
+  --background-color-special: #1e2a44;
+  --background-color-opaque: rgba(255, 255, 255, 0.15);
+  --background-color-glow: rgba(37, 42, 100, 0.6);
+  --background-color-contrast: #ffffff;
+  --background-color-error: rgba(227, 52, 47, 0.18);
+  --background-color-success: rgba(80, 250, 123, 0.18);
+  --background-color-warning: rgba(244, 162, 79, 0.18);
+
+  --border-color-primary: #3d9dfe;
+  --border-color-secondary: #ffffff;
+  --border-color-tertiary: #444444;
+  --border-color-warning: #f4a24f;
+  --border-color-error: #aa1e2b;
+  --border-color-opaque: rgba(255, 255, 255, 0.15);
+
+  --box-shadow-focus: 0 0 0 4px rgba(0, 116, 217, 0.4);
+
+  --text-color-primary: #ffffff;
+  --text-color-secondary: #cccccc;
+  --text-color-tertiary: #000000;
+  --text-color-accent: #3d9dfe;
+  --text-color-link: #74a8dc;
+  --text-color-link-hover: #49a4ff;
+  --text-color-contrast: #333333;
+  --text-color-highlighted: #f4a24f;
+  --text-color-danger: #e3342f;
+  --text-color-success: #50fa7b;
+  --text-color-warning: #f4a24f;
+
+  --text-line-height: 1.35;
+
+  --progress-bar-before: #ffffff;
+  --progress-bar-after: #252a64;
+  --progress-bar-highlighted: rgba(61, 157, 254, 0.5);
+  --progress-chapter-marker: var(--text-color-accent);
+}
+
+:root,
+[data-ui-theme='dark'] {
+  --background-gradient-primary: linear-gradient(
+    90deg,
+    rgba(23, 59, 140, 0.81) -3%,
+    var(--background-color-tertiary)
+  );
+
+  --button-primary-bg: var(--border-color-primary);
+  --button-primary-color: var(--text-color-tertiary);
+  --button-primary-bg-hover: var(--text-color-link-hover);
+  --button-secondary-bg: var(--background-color-glow);
+  --button-secondary-color: var(--text-color-primary);
+  --button-secondary-bg-hover: #34397b;
+  --button-success-bg: #15803d;
+  --button-success-color: var(--text-color-primary);
+  --button-success-bg-hover: #1e9c53;
+  --button-warning-bg: #f4a24f;
+  --button-warning-color: var(--text-color-primary);
+  --button-warning-bg-hover: #ffb84d;
+  --button-highlight-bg: #ffd600;
+  --button-highlight-bg-hover: #ffe066;
+  --button-danger-bg: #bd2130;
+  --button-danger-color: var(--text-color-primary);
+  --button-danger-bg-hover: #e3342f;
+  --button-outline-color: var(--border-color-primary);
+  --button-opaque-bg: rgba(30, 128, 227, 0.16);
+  --button-opaque-warning-bg: rgba(244, 162, 79, 0.16);
+  --button-opaque-danger-bg: rgba(196, 55, 69, 0.16);
+  --button-opaque-danger-border: #aa1e2b;
+  --button-enabled-icon-color: var(--text-color-accent);
+}
+
+// Light theme
+[data-ui-theme='light'] {
+  --background-color-primary: #f5f5f7;
+  --background-color-secondary: #ffffff;
+  --background-color-tertiary: #e8e8ed;
+  --background-color-quaternary: #d1d1d6;
+  --background-color-special: #dce4ed;
+  --background-color-opaque: rgba(0, 0, 0, 0.08);
+  --background-color-glow: rgba(200, 205, 230, 0.6);
+  --background-color-contrast: #1d1d1f;
+  --background-color-error: rgba(214, 48, 49, 0.12);
+  --background-color-success: rgba(39, 174, 96, 0.12);
+  --background-color-warning: rgba(230, 126, 34, 0.12);
+
+  --border-color-primary: #0071e3;
+  --border-color-secondary: #1d1d1f;
+  --border-color-tertiary: #c7c7cc;
+  --border-color-warning: #e67e22;
+  --border-color-error: #c0392b;
+  --border-color-opaque: rgba(0, 0, 0, 0.12);
+
+  --box-shadow-focus: 0 0 0 4px rgba(0, 113, 227, 0.3);
+
+  --text-color-primary: #1d1d1f;
+  --text-color-secondary: #515154;
+  --text-color-tertiary: #ffffff;
+  --text-color-accent: #0071e3;
+  --text-color-link: #0066cc;
+  --text-color-link-hover: #0077ed;
+  --text-color-contrast: #f5f5f7;
+  --text-color-highlighted: #e67e22;
+  --text-color-danger: #d63031;
+  --text-color-success: #27ae60;
+  --text-color-warning: #e67e22;
+
+  --text-line-height: 1.35;
+
+  --progress-bar-before: #0071e3;
+  --progress-bar-after: #d1d1d6;
+  --progress-bar-highlighted: rgba(0, 113, 227, 0.4);
+  --progress-chapter-marker: var(--text-color-primary);
+}
+
+[data-ui-theme='light'] {
+  --background-gradient-primary: linear-gradient(
+    90deg,
+    rgba(200, 220, 255, 0.8) -3%,
+    var(--background-color-tertiary)
+  );
+
+  --button-primary-bg: var(--border-color-primary);
+  --button-primary-color: var(--text-color-tertiary);
+  --button-primary-bg-hover: var(--text-color-link-hover);
+  --button-secondary-bg: var(--background-color-glow);
+  --button-secondary-color: var(--text-color-primary);
+  --button-secondary-bg-hover: #c4c9de;
+  --button-success-bg: #27ae60;
+  --button-success-color: var(--text-color-tertiary);
+  --button-success-bg-hover: #2ecc71;
+  --button-warning-bg: #e67e22;
+  --button-warning-color: var(--text-color-tertiary);
+  --button-warning-bg-hover: #f39c12;
+  --button-highlight-bg: #f1c40f;
+  --button-highlight-bg-hover: #f4d03f;
+  --button-danger-bg: #c0392b;
+  --button-danger-color: var(--text-color-tertiary);
+  --button-danger-bg-hover: #e74c3c;
+  --button-outline-color: var(--border-color-primary);
+  --button-opaque-bg: rgba(0, 113, 227, 0.1);
+  --button-opaque-warning-bg: rgba(230, 126, 34, 0.1);
+  --button-opaque-danger-bg: rgba(192, 57, 43, 0.1);
+  --button-opaque-danger-border: #a93226;
+  --button-enabled-icon-color: var(--text-color-accent);
+}
+
+// Dracula theme
+[data-ui-theme='dracula'] {
+  --background-color-primary: #282a36;
+  --background-color-secondary: #1e1f29;
+  --background-color-tertiary: #343746;
+  --background-color-quaternary: #44475a;
+  --background-color-special: #3d4158;
+  --background-color-opaque: rgba(255, 255, 255, 0.1);
+  --background-color-glow: rgba(68, 71, 90, 0.7);
+  --background-color-contrast: #f8f8f2;
+  --background-color-error: rgba(255, 85, 85, 0.18);
+  --background-color-success: rgba(80, 250, 123, 0.18);
+  --background-color-warning: rgba(255, 184, 108, 0.18);
+
+  --border-color-primary: #bd93f9;
+  --border-color-secondary: #f8f8f2;
+  --border-color-tertiary: #6272a4;
+  --border-color-warning: #ffb86c;
+  --border-color-error: #cc4444;
+  --border-color-opaque: rgba(255, 255, 255, 0.15);
+
+  --box-shadow-focus: 0 0 0 4px rgba(189, 147, 249, 0.4);
+
+  --text-color-primary: #f8f8f2;
+  --text-color-secondary: #bfc9db;
+  --text-color-tertiary: #282a36;
+  --text-color-accent: #bd93f9;
+  --text-color-link: #8be9fd;
+  --text-color-link-hover: #a4f4ff;
+  --text-color-contrast: #282a36;
+  --text-color-highlighted: #ffb86c;
+  --text-color-danger: #ff5555;
+  --text-color-success: #50fa7b;
+  --text-color-warning: #ffb86c;
+
+  --text-line-height: 1.35;
+
+  --progress-bar-before: #bd93f9;
+  --progress-bar-after: #44475a;
+  --progress-bar-highlighted: rgba(189, 147, 249, 0.5);
+  --progress-chapter-marker: var(--text-color-highlighted);
+}
+
+[data-ui-theme='dracula'] {
+  --background-gradient-primary: linear-gradient(
+    90deg,
+    rgba(98, 114, 164, 0.6) -3%,
+    var(--background-color-tertiary)
+  );
+
+  --button-primary-bg: var(--border-color-primary);
+  --button-primary-color: var(--text-color-tertiary);
+  --button-primary-bg-hover: #caa8fc;
+  --button-secondary-bg: var(--background-color-glow);
+  --button-secondary-color: var(--text-color-primary);
+  --button-secondary-bg-hover: #565970;
+  --button-success-bg: #50fa7b;
+  --button-success-color: var(--text-color-tertiary);
+  --button-success-bg-hover: #69fb8f;
+  --button-warning-bg: #ffb86c;
+  --button-warning-color: var(--text-color-primary);
+  --button-warning-bg-hover: #ffc98a;
+  --button-highlight-bg: #f1fa8c;
+  --button-highlight-bg-hover: #f5fba8;
+  --button-danger-bg: #ff5555;
+  --button-danger-color: var(--text-color-primary);
+  --button-danger-bg-hover: #ff6e6e;
+  --button-outline-color: var(--border-color-primary);
+  --button-opaque-bg: rgba(189, 147, 249, 0.16);
+  --button-opaque-warning-bg: rgba(255, 184, 108, 0.16);
+  --button-opaque-danger-bg: rgba(255, 85, 85, 0.16);
+  --button-opaque-danger-border: #cc4444;
+  --button-enabled-icon-color: var(--text-color-accent);
+}
+
+// Violet theme (black shell + #7C3AED accent; aligns with BRAND_* violet/black white-labels)
+[data-ui-theme='violet'] {
+  --background-color-primary: #000000;
+  --background-color-secondary: #000000;
+  --background-color-tertiary: #12081c;
+  --background-color-quaternary: #1f1430;
+  --background-color-special: #2a1c3d;
+  --background-color-opaque: rgba(255, 255, 255, 0.1);
+  --background-color-glow: rgba(124, 58, 237, 0.22);
+  --background-color-contrast: #f5f3ff;
+  --background-color-error: rgba(227, 52, 47, 0.18);
+  --background-color-success: rgba(80, 250, 123, 0.18);
+  --background-color-warning: rgba(244, 162, 79, 0.18);
+
+  --border-color-primary: #7c3aed;
+  --border-color-secondary: #f5f3ff;
+  --border-color-tertiary: #3f3a4d;
+  --border-color-warning: #f4a24f;
+  --border-color-error: #aa1e2b;
+  --border-color-opaque: rgba(255, 255, 255, 0.15);
+
+  --box-shadow-focus: 0 0 0 4px rgba(124, 58, 237, 0.45);
+
+  --text-color-primary: #f5f3ff;
+  --text-color-secondary: #c4b8d4;
+  --text-color-tertiary: #f5f3ff;
+  --text-color-accent: #7c3aed;
+  --text-color-link: #a78bfa;
+  --text-color-link-hover: #c4b5fd;
+  --text-color-contrast: #0a0a0f;
+  --text-color-highlighted: #f4a24f;
+  --text-color-danger: #e3342f;
+  --text-color-success: #50fa7b;
+  --text-color-warning: #f4a24f;
+
+  --text-line-height: 1.35;
+
+  --progress-bar-before: #7c3aed;
+  --progress-bar-after: #1f1430;
+  --progress-bar-highlighted: rgba(124, 58, 237, 0.45);
+  --progress-chapter-marker: var(--text-color-accent);
+}
+
+[data-ui-theme='violet'] {
+  --background-gradient-primary: linear-gradient(
+    90deg,
+    rgba(76, 29, 149, 0.45) -3%,
+    var(--background-color-tertiary)
+  );
+
+  --button-primary-bg: var(--border-color-primary);
+  --button-primary-color: var(--text-color-tertiary);
+  --button-primary-bg-hover: #8b5cf6;
+  --button-secondary-bg: var(--background-color-glow);
+  --button-secondary-color: var(--text-color-primary);
+  --button-secondary-bg-hover: #2d1f3d;
+  --button-success-bg: #15803d;
+  --button-success-color: var(--text-color-tertiary);
+  --button-success-bg-hover: #1e9c53;
+  --button-warning-bg: #f4a24f;
+  --button-warning-color: #0a0a0f;
+  --button-warning-bg-hover: #ffb84d;
+  --button-highlight-bg: #ffd600;
+  --button-highlight-bg-hover: #ffe066;
+  --button-danger-bg: #bd2130;
+  --button-danger-color: var(--text-color-primary);
+  --button-danger-bg-hover: #e3342f;
+  --button-outline-color: var(--border-color-primary);
+  --button-opaque-bg: rgba(124, 58, 237, 0.18);
+  --button-opaque-warning-bg: rgba(244, 162, 79, 0.16);
+  --button-opaque-danger-bg: rgba(196, 55, 69, 0.16);
+  --button-opaque-danger-border: #aa1e2b;
+  --button-enabled-icon-color: var(--text-color-accent);
+}

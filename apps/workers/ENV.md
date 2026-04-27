@@ -55,7 +55,7 @@ Add-by-RSS feed parsing (e.g. `mqAddByRSSRunParser`) uses optional HTTP Basic Au
 
 - **`USER_AGENT`** (Required)
   - Non-blank. Must follow format: `BrandName Bot Environment/AppName/Version` and include "Bot" in the first part. Use a deployment-specific value; do not copy another product’s string.
-  - Example: `Example Bot local/Workers/5`
+  - Example: `Example Bot/Workers/5`
   - Used for external API requests and HTTP clients
 
 - **`BRAND_NAME`** (Required)
@@ -151,6 +151,7 @@ These variables are used to build the External Services configuration:
 
 - **`GOOGLE_FIREBASE_ADMIN_JSON_KEY_PATH`** (Conditional) - Path to Firebase admin JSON key file
   - Required if `GOOGLE_FIREBASE_NOTIFICATIONS_ENABLED` is `"true"`
+  - **Kubernetes:** generate the SOPS-encrypted Secret **`podverse-workers-firebase-opaque`** with `infra/k8s/scripts/secret-generators/create_firebase_secret.sh` (local path to the JSON is only for that script). Base **API, workers, and workers CronJob** Deployments mount that Secret at **`/var/secrets/firebase`** with the key **`firebase-key.json`**. In **`workers.env` / `api.env` defaults**, set **`GOOGLE_FIREBASE_ADMIN_JSON_KEY_PATH=/var/secrets/firebase/firebase-key.json`**. The mount is **`optional: true`** so pods can start if the Secret is not applied yet; enable notifications only once the file exists in-cluster.
 
 ## Web Configuration
 
@@ -174,6 +175,7 @@ These variables are used to build the Notifications configuration:
 
 - **`WEBPUSH_VAPID_PRIVATE_KEY`** (Conditional) - WebPush VAPID private key
   - Required if `WEBPUSH_ENABLED` is `"true"`
+  - **Kubernetes:** do not put this in the workers ConfigMap; set it in the SOPS-encrypted Secret **`podverse-workers-webpush-opaque`**, which is mounted on workers and the API. Generate with `infra/k8s/scripts/secret-generators/create_workers_webpush_secret.sh` (`--auto-gen` or interactive “generate”): it creates a VAPID pair, encrypts the private key, and—when this repo has the standard workers/web source env paths—updates `WEBPUSH_VAPID_PUBLIC_KEY` and `NEXT_PUBLIC_WEBPUSH_VAPID_PUBLIC_KEY` in the same copy. Alternatively paste an existing private key from `npx web-push generate-vapid-keys` and set the public keys to match.
 
 - **`WEBPUSH_VAPID_SUBJECT`** (Conditional) - WebPush VAPID subject (usually an email or URL)
   - Required if `WEBPUSH_ENABLED` is `"true"`

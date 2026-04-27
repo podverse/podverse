@@ -186,7 +186,7 @@ At **`$GITOPS_REPO_DIR`**, run `kubectl kustomize` for every application overlay
 
 ```fish
 cd "$GITOPS_REPO_DIR"
-for c in common db keyvaldb mq api management-api workers cron web management-web
+for c in common db keyvaldb mq ops api management-api workers cron web management-web
   kubectl kustomize "apps/$NAMESPACE/$c" --load-restrictor LoadRestrictionsNone >/dev/null
   echo "ok apps/$NAMESPACE/$c"
 end
@@ -220,7 +220,8 @@ Or use the Argo CD UI. Then:
 kubectl -n $NAMESPACE get pods
 kubectl -n $NAMESPACE get svc,ingress
 kubectl -n argocd get applications
-curl -sI https://api.example.com/v1/health
+# API responds on `/` and on `${API_PREFIX}${API_VERSION}/` (default `/api/v2/`) when env matches base api.env
+curl -sI https://api.example.com/api/v2/
 ```
 
 ## GitOps overlay contract
@@ -261,10 +262,10 @@ kubectl -n $NAMESPACE get pods
 kubectl -n $NAMESPACE get svc,ingress
 ```
 
-- Public endpoints respond (replace placeholders):
+- Public endpoints respond (replace `api.example.com`; path follows API env, default below):
 
 ```fish
-curl -sI https://api.example.com/v1/health
+curl -sI https://api.example.com/api/v2/
 ```
 
 ## Related docs

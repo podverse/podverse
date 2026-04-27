@@ -20,7 +20,7 @@ export function SignUpClient() {
       <MainWrapper>
         <MainInnerWrapper>
           <MainInnerContentWrapper>
-            {signupMode === 'contact-only' && contactEmail ? (
+            {signupMode !== 'user_signup_email' && contactEmail ? (
               <AuthContactOnlyMessage contactEmail={contactEmail} />
             ) : (
               <AuthSignUpForm />

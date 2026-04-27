@@ -1,7 +1,12 @@
 import { loggerService } from '@api/factories/loggerService.js';
 
 import type { AccountSignupMode } from '@podverse/helpers';
-import { isValidServerEnv, isValidUUID, SERVER_ENV_VALUES } from '@podverse/helpers';
+import {
+  ACCOUNT_SIGNUP_MODE_VALUES,
+  isValidServerEnv,
+  isValidUUID,
+  SERVER_ENV_VALUES,
+} from '@podverse/helpers';
 import type { ValidationResult, ValidationSummary } from '@podverse/helpers-config';
 import {
   validateConditionalOptional,
@@ -114,7 +119,7 @@ const validateAllEnvironmentVariables = (): ValidationSummary => {
   // If validation fails, we'll still check the env var (validation error will be caught later)
   // This allows us to properly validate conditional requirements based on the actual value
   const signupMode = (process.env.ACCOUNT_SIGNUP_MODE || '') as AccountSignupMode;
-  const isSignupModeEnabled = signupMode === 'sign-up';
+  const usesEmailFlows = signupMode === 'user_signup_email' || signupMode === 'admin_only_email';
 
   // Auth & Security
   results.push(validateJwtSecret());
@@ -180,8 +185,8 @@ const validateAllEnvironmentVariables = (): ValidationSummary => {
   results.push(validateOptional('PREMIUM_MEMBERSHIP_COST_ANNUALLY', 'Premium'));
   results.push(validateOptional('FREE_TRIAL_EXPIRATION', 'Premium'));
 
-  // Mailer (conditionally required when signup mode is 'sign-up')
-  if (isSignupModeEnabled) {
+  // Mailer (conditionally required when signup mode uses email flows)
+  if (usesEmailFlows) {
     results.push(validateRequired('MAILER_HOST', 'Mailer'));
     results.push(validateRequired('MAILER_PORT', 'Mailer'));
     results.push(validateRequired('MAILER_USERNAME', 'Mailer'));
@@ -209,37 +214,36 @@ const validateAllEnvironmentVariables = (): ValidationSummary => {
       results.push(mailerFrom);
     }
   }
-  results.push(validateOptional('MAILER_DISABLED', 'Mailer', 'Use Default (false)'));
 
-  // Email Configuration (conditionally required when signup mode is 'sign-up')
-  if (isSignupModeEnabled) {
-    results.push(validateRequired('EMAIL_BRAND_COLOR', 'Email Config'));
-    results.push(validateRequired('EMAIL_HEADER_IMAGE_URL', 'Email Config'));
-    results.push(validateRequired('LEGAL_NAME', 'Email Config'));
-    results.push(validateRequired('LEGAL_ADDRESS', 'Email Config'));
+  // Email Configuration (conditionally required when signup mode uses email flows)
+  if (usesEmailFlows) {
+    results.push(validateRequired('BRAND_COLOR_PRIMARY', 'Brand'));
+    results.push(validateRequired('BRAND_BANNER_IMAGE_3X1_URL', 'Email Config'));
+    results.push(validateRequired('LEGAL_NAME', 'Legal'));
+    results.push(validateRequired('LEGAL_ADDRESS', 'Legal'));
   } else {
-    const emailBrandColor = validateConditionalOptional('EMAIL_BRAND_COLOR', 'Email Config');
-    if (emailBrandColor) {
-      results.push(emailBrandColor);
+    const brandColor = validateConditionalOptional('BRAND_COLOR_PRIMARY', 'Brand');
+    if (brandColor) {
+      results.push(brandColor);
     }
-    const emailHeaderImageUrl = validateConditionalOptional(
-      'EMAIL_HEADER_IMAGE_URL',
+    const brandBannerImage3x1Url = validateConditionalOptional(
+      'BRAND_BANNER_IMAGE_3X1_URL',
       'Email Config'
     );
-    if (emailHeaderImageUrl) {
-      results.push(emailHeaderImageUrl);
+    if (brandBannerImage3x1Url) {
+      results.push(brandBannerImage3x1Url);
     }
-    const legalName = validateConditionalOptional('LEGAL_NAME', 'Email Config');
+    const legalName = validateConditionalOptional('LEGAL_NAME', 'Legal');
     if (legalName) {
       results.push(legalName);
     }
-    const legalAddress = validateConditionalOptional('LEGAL_ADDRESS', 'Email Config');
+    const legalAddress = validateConditionalOptional('LEGAL_ADDRESS', 'Legal');
     if (legalAddress) {
       results.push(legalAddress);
     }
   }
 
-  // Social Media (optional - used when signup mode is 'sign-up' but not required)
+  // Social Media (optional - used when signup mode uses email flows but not required)
   results.push(validateOptional('SOCIAL_FACEBOOK_IMAGE_URL', 'Social Media'));
   results.push(validateOptional('SOCIAL_FACEBOOK_PAGE_URL', 'Social Media'));
   results.push(validateOptional('SOCIAL_GITHUB_IMAGE_URL', 'Social Media'));
@@ -249,8 +253,8 @@ const validateAllEnvironmentVariables = (): ValidationSummary => {
   results.push(validateOptional('SOCIAL_REDDIT_IMAGE_URL', 'Social Media'));
   results.push(validateOptional('SOCIAL_REDDIT_PAGE_URL', 'Social Media'));
 
-  // Token Expiration (conditionally required when signup mode is 'sign-up')
-  if (isSignupModeEnabled) {
+  // Token Expiration (conditionally required when signup mode uses email flows)
+  if (usesEmailFlows) {
     results.push(validateRequired('VERIFY_EMAIL_TOKEN_EXPIRATION', 'Token Expiration'));
     results.push(
       validateRequired('EMAIL_CHANGE_VERIFICATION_TOKEN_EXPIRATION', 'Token Expiration')
@@ -364,7 +368,7 @@ const USER_AGENT_PATTERN = /^[^/]+\/[^/]+\/[^/]+$/;
 
 /**
  * Validates `USER_AGENT` (required, non-blank; no inference from `BRAND_NAME`).
- * Format: `BrandName Bot Environment/AppName/Version`, e.g. `Example Bot local/API/5`
+ * Format: `BrandName Bot Environment/AppName/Version`, e.g. `Example Bot/API/5`
  */
 const validateUserAgent = (): ValidationResult => {
   const raw = (process.env.USER_AGENT ?? '').trim();
@@ -459,11 +463,11 @@ const validateServerEnv = (): ValidationResult => {
 /**
  * Validates ACCOUNT_SIGNUP_MODE
  * This is a required environment variable with no default value.
- * Valid values are: 'sign-up' or 'contact-only'
+ * Valid values are: 'admin_only_username', 'admin_only_email', 'user_signup_email'
  */
 const validateSignupMode = (): ValidationResult => {
   const signupMode = process.env.ACCOUNT_SIGNUP_MODE || '';
-  const validModes: AccountSignupMode[] = ['sign-up', 'contact-only'];
+  const validModes: AccountSignupMode[] = [...ACCOUNT_SIGNUP_MODE_VALUES];
 
   if (!signupMode) {
     return {
@@ -471,7 +475,7 @@ const validateSignupMode = (): ValidationResult => {
       isSet: false,
       isValid: false,
       isRequired: true,
-      message: `Missing - must be one of: ${validModes.map((m) => `"${m}"`).join(' or ')}`,
+      message: `Missing - must be one of: ${validModes.map((m) => `"${m}"`).join(', ')}`,
       category: 'Premium/Membership',
     };
   }
@@ -482,7 +486,7 @@ const validateSignupMode = (): ValidationResult => {
       isSet: true,
       isValid: false,
       isRequired: true,
-      message: `Invalid value: "${signupMode}" - must be one of: ${validModes.map((m) => `"${m}"`).join(' or ')}`,
+      message: `Invalid value: "${signupMode}" - must be one of: ${validModes.map((m) => `"${m}"`).join(', ')}`,
       category: 'Premium/Membership',
     };
   }
@@ -513,15 +517,15 @@ const displayValidationResults = (summary: ValidationSummary): void => {
     return acc;
   }, {});
 
-  // List of conditionally required variables (required when signup mode is 'sign-up')
+  // List of conditionally required variables (required when signup mode uses email flows)
   const conditionallyRequiredVars = [
     'MAILER_HOST',
     'MAILER_PORT',
     'MAILER_USERNAME',
     'MAILER_PASSWORD',
     'MAILER_FROM',
-    'EMAIL_BRAND_COLOR',
-    'EMAIL_HEADER_IMAGE_URL',
+    'BRAND_COLOR_PRIMARY',
+    'BRAND_BANNER_IMAGE_3X1_URL',
     'LEGAL_NAME',
     'LEGAL_ADDRESS',
     'VERIFY_EMAIL_TOKEN_EXPIRATION',
@@ -539,7 +543,7 @@ const displayValidationResults = (summary: ValidationSummary): void => {
       let requiredText = '';
       if (result.isRequired) {
         if (conditionallyRequiredVars.includes(result.name)) {
-          requiredText = " (required when signup mode is 'sign-up')";
+          requiredText = ' (required when signup mode uses email flows)';
         }
         // No text for always-required vars - lack of parentheses indicates required
       } else {

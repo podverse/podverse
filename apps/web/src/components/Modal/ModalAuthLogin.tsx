@@ -4,8 +4,9 @@ import { useRouter } from 'next/navigation';
 import { useLocale, useTranslations } from 'next-intl';
 import React, { useState } from 'react';
 
-import { ERROR_MESSAGES } from '@podverse/helpers';
+import { ERROR_MESSAGES, getAccountSignupModeCapabilities } from '@podverse/helpers';
 
+import { getConfig } from '../../config';
 import { useModals } from '../../contexts/Modals';
 import { getApiRequestService } from '../../factories/apiRequestService';
 import { handleRateLimitAlert } from '../../utils/rateLimit/rateLimitAlert';
@@ -30,6 +31,17 @@ export const ModalAuthLogin: React.FC = () => {
   const tMisc = useTranslations('misc');
   const router = useRouter();
   const locale = useLocale();
+
+  const config = getConfig();
+  const signupMode = config.public.account.signupMode;
+  const capabilities = getAccountSignupModeCapabilities(signupMode);
+
+  const inputLabel =
+    signupMode === 'admin_only_username'
+      ? tAuthentication('username')
+      : signupMode === 'admin_only_email'
+        ? tAuthentication('email')
+        : tAuthentication('email_or_username');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -83,13 +95,13 @@ export const ModalAuthLogin: React.FC = () => {
     >
       <Form onSubmit={handleSubmit}>
         <TextInput
-          type="email"
+          type="text"
           name="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           autoFocus
-          placeholder={tAuthentication('email')}
-          eyebrow={tAuthentication('email')}
+          placeholder={inputLabel}
+          eyebrow={inputLabel}
         />
         <TextInput
           type="password"
@@ -129,16 +141,20 @@ export const ModalAuthLogin: React.FC = () => {
           </Button>
         </div>
         <div className={styles.links}>
-          <Button
-            type="button"
-            variant="link"
-            onClick={() => handleNavAndClose('/forgot-password')}
-          >
-            {tAuthentication('forgot_password')}
-          </Button>
-          <Button type="button" variant="link" onClick={() => handleNavAndClose('/sign-up')}>
-            {tAuthentication('sign_up')}
-          </Button>
+          {capabilities.canUseEmailVerificationFlows && (
+            <Button
+              type="button"
+              variant="link"
+              onClick={() => handleNavAndClose('/forgot-password')}
+            >
+              {tAuthentication('forgot_password')}
+            </Button>
+          )}
+          {capabilities.canPublicSignup && (
+            <Button type="button" variant="link" onClick={() => handleNavAndClose('/sign-up')}>
+              {tAuthentication('sign_up')}
+            </Button>
+          )}
         </div>
       </Form>
     </Modal>

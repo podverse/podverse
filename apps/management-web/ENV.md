@@ -50,6 +50,15 @@ The sidecar uses the same validation helpers as the rest of the monorepo (`@podv
   - Must be a valid locale from the supported locales list
   - Example: `"en"`
 
+- **`NEXT_PUBLIC_SUPPORTED_THEMES`** (Required)
+  - Must be `"all-available"` or a comma-delimited list of valid themes
+  - Valid themes: `dark`, `light`, `dracula`, `violet` (see `packages/helpers-config` / `SUPPORTED_THEMES`)
+  - Example: `"all-available"` or `"dark,light"`
+
+- **`NEXT_PUBLIC_DEFAULT_THEME`** (Required)
+  - Must be one of the valid themes; must also appear in the effective supported set when `NEXT_PUBLIC_SUPPORTED_THEMES` is not `all-available`
+  - Example: `"dark"`
+
 ## Optional Variables
 
 ### Runtime Config Sidecar (Server-Only)
@@ -66,6 +75,21 @@ The sidecar uses the same validation helpers as the rest of the monorepo (`@podv
 
 - **`NEXT_PUBLIC_BRAND_NAME`** (Optional) - Brand name for the application
 
+### Brand: app + document chrome (optional, white-label)
+
+The installable app manifest is served from **`/manifest.webmanifest`** (`app/manifest.ts`) using runtime config. Manifest `name` and `short_name` are **`NEXT_PUBLIC_BRAND_NAME`** (with a built-in fallback if unset). The variables below override **app icons, theme/background, and head icon** URLs; they are not limited to a single feature. When unset, paths default to `/favicon/`; set **absolute** `https://…` URLs for CDN-hosted assets.
+
+- **`NEXT_PUBLIC_BRAND_APP_ICON_192_URL`** (Optional) - 192×192 maskable icon
+- **`NEXT_PUBLIC_BRAND_APP_ICON_512_URL`** (Optional) - 512×512 maskable icon
+- **`NEXT_PUBLIC_BRAND_THEME_COLOR`** (Optional) - UI / browser chrome tint (CSS color)
+- **`NEXT_PUBLIC_BRAND_BACKGROUND_COLOR`** (Optional) - App shell / launch background. For local [`brand.env`](../../dev/env-overrides/local/brand.env.example), set **`BRAND_BACKGROUND_COLOR`** (legacy: `BRAND_COLOR_BACKGROUND`); `make local_env_setup` writes it to this key in the sidecar.
+- **`NEXT_PUBLIC_BRAND_FAVICON_ICO_URL`** (Optional) - `.ico` favicon URL
+- **`NEXT_PUBLIC_BRAND_FAVICON_SVG_URL`** (Optional) - SVG favicon URL
+- **`NEXT_PUBLIC_BRAND_FAVICON_PNG_96_URL`** (Optional) - 96×96 PNG favicon URL
+- **`NEXT_PUBLIC_BRAND_APPLE_TOUCH_ICON_URL`** (Optional) - Apple touch icon URL
+
+**Local development:** Default path-absolute values are in `dev/env-overrides/local/brand.env` (see `brand.env.example`); after editing, run `make local_env_setup`.
+
 ## Value Rules
 
 These rules describe acceptable values. The sidecar enforces required presence; value validation is best-effort and may also be enforced at runtime in app logic.
@@ -80,6 +104,8 @@ Variables containing `PORT` are validated to ensure they are valid positive numb
 
 - **Locale Validation**: `NEXT_PUBLIC_FEATURES_SUPPORTED_LOCALES` must be `"all-available"` or a comma-delimited list of valid locales
 - **Locale Default**: `NEXT_PUBLIC_FEATURES_DEFAULT_LOCALE` must be a valid locale
+- **Theme Validation**: `NEXT_PUBLIC_SUPPORTED_THEMES` must be `"all-available"` or a comma-delimited list of valid themes (`dark`, `light`, `dracula`, `violet`)
+- **Theme Default**: `NEXT_PUBLIC_DEFAULT_THEME` must be one of the valid themes
 
 ## Validation Output
 

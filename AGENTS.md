@@ -4,7 +4,7 @@ This document provides rules and patterns for AI coding assistants working on th
 
 ### LLM / editor guidance (read early)
 
-Authoritative AI rules and skills: **`.cursor/`**, **`.cursorrules`**. **Machine-generated** mirrors for other tools are under [`.llm/exports/`](.llm/exports/) (updated by CI via branch **`llm`** PR into **`develop`**; gitignored; do not hand-commit; see [`llm-cursor-source`](.cursor/skills/llm-cursor-source/SKILL.md)). If you use a non-Cursor LLM, start from those exports, then the alignment prompt if needed: [docs/development/llm/LLM-EDITOR-ALIGNMENT-PROMPT.md](docs/development/llm/LLM-EDITOR-ALIGNMENT-PROMPT.md). Full policy, **`llm` label**, and `gh` setup: [docs/development/llm/README.md](docs/development/llm/README.md) and [docs/development/llm/GH-EXPORTS-SETUP.md](docs/development/llm/GH-EXPORTS-SETUP.md).
+Authoritative AI rules and skills: **`.cursor/`**, **`.cursorrules`**. **Styles / design tokens** (SCSS, themes): [`.cursor/skills/styles-source-of-truth/SKILL.md`](.cursor/skills/styles-source-of-truth/SKILL.md). **Machine-generated** mirrors for other tools are under [`.llm/exports/`](.llm/exports/) (updated by CI via branch **`llm`** PR into **`develop`**; gitignored; do not hand-commit; see [`llm-cursor-source`](.cursor/skills/llm-cursor-source/SKILL.md)). If you use a non-Cursor LLM, start from those exports, then the alignment prompt if needed: [docs/development/llm/LLM-EDITOR-ALIGNMENT-PROMPT.md](docs/development/llm/LLM-EDITOR-ALIGNMENT-PROMPT.md). Full policy, **`llm` label**, and `gh` setup: [docs/development/llm/README.md](docs/development/llm/README.md) and [docs/development/llm/GH-EXPORTS-SETUP.md](docs/development/llm/GH-EXPORTS-SETUP.md).
 
 ## Quick Reference
 
@@ -102,6 +102,7 @@ In `.env` files:
 - **Empty/unset values**: No value after `=`
 - **Alignment with .env.example**: All `.env` files (including `infra/config/local/*.env`) must match the organization, section comments, and variable order of their authoritative `.env.example`; only values may differ
 - **Web and Management Web**: `apps/web/.env.local` and `apps/management-web/.env.local` contain only `RUNTIME_CONFIG_URL`; the runtime-config sidecar uses `apps/web/sidecar/.env` and `apps/management-web/sidecar/.env` (created by `make local_env_setup`)
+- **K8s `source` env (ConfigMap)**: In `infra/k8s/**/source/*.env`, each comment line that documents env var names may reference **at most one** variable; repeat the line if two vars need the same note
 
 ```bash
 # Correct

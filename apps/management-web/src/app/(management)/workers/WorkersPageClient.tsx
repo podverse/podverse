@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
+import { Disclosure } from '@podverse/ui';
+
 import { Card } from '../../../components/ui/Card/Card';
 import type { CurrentUser } from '../../../lib/requests/auth';
 import { getCurrentUser } from '../../../lib/requests/auth';
@@ -160,6 +162,22 @@ export function WorkersPageClient({ initialUser }: WorkersPageClientProps) {
     return commands.filter((r) => matchesQuery(r, filter));
   }, [commands, filter, matchesQuery]);
 
+  const commandGroups = useMemo(() => {
+    const byCategory = new Map<string, WorkerCommandRow[]>();
+    for (const row of rows) {
+      const list = byCategory.get(row.category) ?? [];
+      list.push(row);
+      byCategory.set(row.category, list);
+    }
+    const categories = Array.from(byCategory.keys()).sort((a, b) =>
+      getCategoryLabel(a).localeCompare(getCategoryLabel(b), undefined, { sensitivity: 'base' })
+    );
+    return categories.map((category) => ({
+      category,
+      rows: byCategory.get(category) ?? [],
+    }));
+  }, [rows, getCategoryLabel]);
+
   const onCopy = useCallback(
     async (line: string) => {
       setCopyError(null);
@@ -186,7 +204,11 @@ export function WorkersPageClient({ initialUser }: WorkersPageClientProps) {
         <h1 className="page-title">{t('title')}</h1>
       </div>
       <main>
-        <p className={styles.intro}>{t('intro')}</p>
+        <p className={styles.intro}>
+          {t.rich('intro', {
+            code: (chunks) => <code>{chunks}</code>,
+          })}
+        </p>
         {copyOk && (
           <p className={styles.countHint} role="status">
             {t('copiedToClipboard')}
@@ -201,7 +223,11 @@ export function WorkersPageClient({ initialUser }: WorkersPageClientProps) {
         {!isSuperuser && (
           <Card variant="bordered">
             <h2>{t('superuserOnly')}</h2>
-            <p className={styles.restrictedText}>{t('superuserOnlyDescription')}</p>
+            <p className={styles.restrictedText}>
+              {t.rich('superuserOnlyDescription', {
+                code: (chunks) => <code>{chunks}</code>,
+              })}
+            </p>
           </Card>
         )}
 
@@ -229,54 +255,58 @@ export function WorkersPageClient({ initialUser }: WorkersPageClientProps) {
                 {t('commandCount', { shown: rows.length, total: commands.length })}
               </span>
             </div>
-            <div className={styles.tableScroll}>
-              <table className={styles.dataTable}>
-                <thead>
-                  <tr>
-                    <th>{t('tableHeaders.command')}</th>
-                    <th>{t('tableHeaders.description')}</th>
-                    <th>{t('tableHeaders.category')}</th>
-                    <th>{t('tableHeaders.risk')}</th>
-                    <th>{tc('actions')}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {rows.map((row) => (
-                    <tr key={row.name}>
-                      <td>
-                        <div className={styles.commandName}>{row.name}</div>
-                        <div>{row.label}</div>
-                      </td>
-                      <td className={styles.desc}>{row.description}</td>
-                      <td>{getCategoryLabel(row.category)}</td>
-                      <td>
-                        <span className={riskClass(row.risk)} title={getRiskLabel(row.risk)}>
-                          {getRiskLabel(row.risk)}
-                        </span>
-                      </td>
-                      <td>
-                        <div className={styles.actions}>
-                          <button
-                            type="button"
-                            className={styles.copyBtn}
-                            onClick={() => {
-                              void onCopy(row.example_cli);
-                            }}
-                          >
-                            {t('copyExample')}
-                          </button>
-                          {row.related_management_path ? (
-                            <Link className={styles.link} href={row.related_management_path}>
-                              {t('openRelatedTool')}
-                            </Link>
-                          ) : null}
-                          <code className={styles.exampleCli}>{row.example_cli}</code>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+            <div className={styles.categoryStack}>
+              {commandGroups.map(({ category, rows: groupRows }) => (
+                <Disclosure key={category} title={getCategoryLabel(category)}>
+                  <div className={styles.tableScrollInDisclosure}>
+                    <table className={styles.dataTable}>
+                      <thead>
+                        <tr>
+                          <th>{t('tableHeaders.command')}</th>
+                          <th>{t('tableHeaders.description')}</th>
+                          <th>{t('tableHeaders.risk')}</th>
+                          <th>{tc('actions')}</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {groupRows.map((row) => (
+                          <tr key={row.name}>
+                            <td>
+                              <div className={styles.commandName}>{row.name}</div>
+                              <div>{row.label}</div>
+                            </td>
+                            <td className={styles.desc}>{row.description}</td>
+                            <td>
+                              <span className={riskClass(row.risk)} title={getRiskLabel(row.risk)}>
+                                {getRiskLabel(row.risk)}
+                              </span>
+                            </td>
+                            <td>
+                              <div className={styles.actions}>
+                                <button
+                                  type="button"
+                                  className={styles.copyBtn}
+                                  onClick={() => {
+                                    void onCopy(row.example_cli);
+                                  }}
+                                >
+                                  {t('copyExample')}
+                                </button>
+                                {row.related_management_path ? (
+                                  <Link className={styles.link} href={row.related_management_path}>
+                                    {t('openRelatedTool')}
+                                  </Link>
+                                ) : null}
+                                <code className={styles.exampleCli}>{row.example_cli}</code>
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </Disclosure>
+              ))}
             </div>
             {rows.length === 0 && <p className={styles.countHint}>{t('noMatchingCommands')}</p>}
           </>

@@ -764,7 +764,7 @@
                   "entity": "localhost"
                 },
                 {
-                  "url": "http://localhost:3111/branding/podverse-brand-white.svg",
+                  "url": "http://localhost:3111/branding/logo-dark.svg",
                   "sessionTargetType": "page",
                   "protocol": "http/1.1",
                   "rendererStartTime": 15.475999999791384,
@@ -6499,7 +6499,7 @@
                   "entity": "localhost"
                 },
                 {
-                  "url": "http://localhost:3111/branding/podverse-brand-white.svg",
+                  "url": "http://localhost:3111/branding/logo-dark.svg",
                   "sessionTargetType": "page",
                   "protocol": "http/1.1",
                   "rendererStartTime": 34.9809999987483,

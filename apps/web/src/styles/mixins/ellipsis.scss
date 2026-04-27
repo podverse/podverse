@@ -1,10 +1,1 @@
-@mixin ellipsisSingleLineParent {
-  min-width: 0;
-}
-
-@mixin ellipsisSingleLineChild {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 100%;
-}
+@forward '../../../../../packages/ui/src/styles/mixins';

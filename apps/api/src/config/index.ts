@@ -13,6 +13,10 @@ type Config = {
   serverEnv: string;
   userAgent: string;
   brandName: string;
+  brand: {
+    bannerImage3x1Url: string;
+    colorPrimary: string;
+  };
   log: {
     level: string;
     dir: string;
@@ -32,14 +36,6 @@ type Config = {
       domain: string;
     };
     allowedCORSOrigins: string[];
-  };
-  email: {
-    styles: {
-      brandColor: string;
-    };
-    header: {
-      imagueUrl: string;
-    };
   };
   emailChangeVerification: {
     tokenExpiration: number;
@@ -107,6 +103,10 @@ export const config: Config = {
   serverEnv: process.env.SERVER_ENV!,
   userAgent: process.env.USER_AGENT!,
   brandName: process.env.BRAND_NAME!,
+  brand: {
+    bannerImage3x1Url: process.env.BRAND_BANNER_IMAGE_3X1_URL!,
+    colorPrimary: process.env.BRAND_COLOR_PRIMARY!,
+  },
   log: {
     level: process.env.LOG_LEVEL!,
     dir: process.env.LOG_DIR ?? '',
@@ -132,14 +132,6 @@ export const config: Config = {
       .API_ALLOWED_CORS_ORIGINS!.split(',')
       .map((origin) => origin.trim()),
   },
-  email: {
-    styles: {
-      brandColor: process.env.EMAIL_BRAND_COLOR!,
-    },
-    header: {
-      imagueUrl: process.env.EMAIL_HEADER_IMAGE_URL!,
-    },
-  },
   emailChangeVerification: {
     tokenExpiration: parseInt(process.env.EMAIL_CHANGE_VERIFICATION_TOKEN_EXPIRATION!, 10),
   },
@@ -148,7 +140,13 @@ export const config: Config = {
     address: process.env.LEGAL_ADDRESS!,
   },
   mailer: {
-    disabled: process.env.MAILER_DISABLED === 'true',
+    disabled:
+      process.env.ACCOUNT_SIGNUP_MODE === 'admin_only_username' ||
+      !process.env.MAILER_HOST ||
+      !process.env.MAILER_PORT ||
+      !process.env.MAILER_USERNAME ||
+      !process.env.MAILER_PASSWORD ||
+      !process.env.MAILER_FROM,
     host: process.env.MAILER_HOST!,
     port: process.env.MAILER_PORT!,
     username: process.env.MAILER_USERNAME!,

@@ -1,0 +1,110 @@
+@use '../../../../../../../../packages/ui/src/styles/variables' as *;
+
+.formGroup {
+  margin-bottom: var(--spacing-lg);
+}
+
+.label {
+  display: block;
+  font-weight: var(--font-weight-bold);
+  color: var(--text-color-secondary);
+  margin-bottom: var(--spacing-md);
+}
+
+.input {
+  width: 100%;
+  max-width: 400px;
+  padding: var(--spacing-md) var(--spacing-lg);
+  border: 1px solid var(--border-color-tertiary);
+  border-radius: var(--border-radius);
+  font-size: var(--font-size-base);
+}
+
+.checkboxLabel {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  font-size: var(--font-size-base);
+  cursor: pointer;
+}
+
+.actions {
+  display: flex;
+  gap: var(--spacing-lg);
+  margin-top: var(--spacing-2xl);
+}
+
+.saveButton {
+  display: inline-block;
+  padding: var(--spacing-md) var(--spacing-lg);
+  background-color: var(--border-color-primary);
+  color: var(--text-color-tertiary);
+  border: none;
+  border-radius: var(--border-radius);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: default;
+  }
+}
+
+.cancelLink {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--spacing-md) var(--spacing-lg);
+  border: 1px solid var(--border-color-tertiary);
+  border-radius: var(--border-radius);
+  font-size: var(--font-size-base);
+  color: var(--text-color-primary);
+  text-decoration: none;
+}
+
+.errorText {
+  font-size: var(--font-size-base);
+  color: var(--text-color-danger);
+  margin-top: var(--spacing-base);
+}
+
+.successText {
+  font-size: var(--font-size-base);
+  color: var(--text-color-success);
+  margin-top: var(--spacing-base);
+}
+
+.backLink {
+  font-size: var(--font-size-base);
+  color: var(--border-color-primary);
+  text-decoration: none;
+  margin-bottom: var(--spacing-lg);
+  display: inline-block;
+}
+
+.loadingText {
+  font-size: var(--font-size-lg);
+  color: var(--text-color-secondary);
+}
+
+.tabContainer {
+  display: flex;
+  gap: var(--spacing-lg);
+  margin-bottom: var(--spacing-2xl);
+  border-bottom: 1px solid var(--border-color-tertiary);
+  padding-bottom: var(--spacing-base);
+}
+
+.tab {
+  padding: var(--spacing-md) var(--spacing-lg);
+  font-size: var(--font-size-base);
+  color: var(--text-color-secondary);
+  text-decoration: none;
+  border-radius: var(--border-radius) var(--border-radius) 0 0;
+  font-weight: var(--font-weight-medium);
+}
+
+.activeTab {
+  color: var(--border-color-primary);
+  border-bottom: 2px solid var(--border-color-primary);
+}

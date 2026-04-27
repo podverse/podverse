@@ -19,6 +19,10 @@ When adding or editing `.env`, `.env.example`, or any `*.env` template in the re
 Scripts that write env content (e.g. `scripts/local-env/setup.sh`) already emit this format;
 templates and examples should match so that copied or generated files are consistent.
 
+## K8s ConfigMap `source/*.env` (infra)
+
+Templates that become ConfigMap data under `infra/k8s/**/source/*.env` (and GitOps copies) follow the same **value** rules as above. For **comments** that document where a value comes from: use **at most one environment variable name per `#` line**. Do not list several variable names in one line (e.g. comma-separated). If two variables share the same note, repeat the full comment on a second line.
+
 ## References
 
 - [.cursor/rules/env-file-formatting.mdc](../../.cursor/rules/env-file-formatting.mdc) — cursor rule (globs and examples)

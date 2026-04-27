@@ -1,4 +1,1 @@
-:root {
-  --list-item-button-size: 2.25rem;
-  --large-item-size: 3rem;
-}
+@forward '../../../../../packages/ui/src/styles/variables';

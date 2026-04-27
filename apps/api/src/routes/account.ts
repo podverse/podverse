@@ -13,7 +13,22 @@ import { AccountUPDeviceController } from '@api/controllers/account/accountUPDev
 import { AccountWebPushDeviceController } from '@api/controllers/account/accountWebPushDevice.js';
 import { rateLimitAuthEndpoint, rateLimitEndpoint } from '@api/lib/rateLimiter.js';
 import { asyncHandler } from '@api/middleware/asyncHandler.js';
+import type { NextFunction, Request, Response } from 'express';
 import { Router } from 'express';
+
+import { getAccountSignupModeCapabilities } from '@podverse/helpers';
+
+const requireEmailFlows = (_req: Request, res: Response, next: NextFunction): void => {
+  const mode = config.premium.signupMode;
+  const capabilities = getAccountSignupModeCapabilities(mode);
+  if (!capabilities.canUseEmailVerificationFlows) {
+    res
+      .status(403)
+      .json({ message: 'Email verification flows are not available in the current mode' });
+    return;
+  }
+  next();
+};
 
 const router = Router();
 
@@ -33,33 +48,44 @@ router.post(
 router.put('/', asyncHandler(AccountController.update));
 router.post(
   '/send-verification-email',
+  requireEmailFlows,
   rateLimitEndpoint({ windowMs: 10 * 60 * 1000, max: 4 }),
   asyncHandler(AccountController.sendVerificationEmail)
 );
 router.post(
   '/verify-email',
+  requireEmailFlows,
   rateLimitEndpoint({ windowMs: 10 * 60 * 1000, max: 10 }),
   asyncHandler(AccountController.verifyEmail)
 );
 router.post(
   '/send-change-email-address-email',
+  requireEmailFlows,
   rateLimitEndpoint({ windowMs: 10 * 60 * 1000, max: 4 }),
   asyncHandler(AccountController.sendEmailChangeVerificationEmail)
 );
 router.post(
   '/verify-email-change',
+  requireEmailFlows,
   rateLimitEndpoint({ windowMs: 10 * 60 * 1000, max: 10 }),
   asyncHandler(AccountController.verifyEmailChange)
 );
 router.post(
   '/send-reset-password-email',
+  requireEmailFlows,
   rateLimitEndpoint({ windowMs: 10 * 60 * 1000, max: 4 }),
   asyncHandler(AccountController.sendResetPasswordEmail)
 );
 router.post(
   '/reset-password',
+  requireEmailFlows,
   rateLimitEndpoint({ windowMs: 10 * 60 * 1000, max: 4 }),
   asyncHandler(AccountController.resetPassword)
+);
+router.post(
+  '/set-password',
+  rateLimitEndpoint({ windowMs: 10 * 60 * 1000, max: 4 }),
+  asyncHandler(AccountController.setPassword)
 );
 router.delete('/delete', asyncHandler(AccountController.delete));
 router.get(

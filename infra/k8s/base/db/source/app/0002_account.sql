@@ -9,16 +9,22 @@ CREATE TABLE account (
     id SERIAL PRIMARY KEY,
     id_text nano_id_v2 UNIQUE NOT NULL,
     verified BOOLEAN DEFAULT FALSE,
-    sharable_status_id INTEGER NOT NULL REFERENCES sharable_status(id)
+    sharable_status_id INTEGER NOT NULL REFERENCES sharable_status(id),
+    created_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
 
 CREATE INDEX idx_account_sharable_status_id ON account(sharable_status_id);
+CREATE INDEX idx_account_created_at ON account(created_at DESC);
 
 CREATE TABLE account_credentials (
     id SERIAL PRIMARY KEY,
     account_id integer NOT NULL REFERENCES account(id) ON DELETE CASCADE UNIQUE,
-    email varchar_email UNIQUE NOT NULL,
-    password varchar_password NOT NULL
+    email varchar_email UNIQUE,
+    username VARCHAR(32) UNIQUE CHECK (LENGTH(username) >= 3),
+    password varchar_password NOT NULL,
+    CONSTRAINT chk_account_credentials_email_or_username CHECK (
+        email IS NOT NULL OR username IS NOT NULL
+    )
 );
 
 CREATE INDEX idx_account_credentials_account_id ON account_credentials(account_id);
@@ -59,6 +65,15 @@ CREATE TABLE account_email_change_verification (
 );
 
 CREATE INDEX idx_account_email_change_verification_id ON account_email_change_verification(account_id);
+
+CREATE TABLE account_set_password (
+    id SERIAL PRIMARY KEY,
+    account_id integer NOT NULL REFERENCES account(id) ON DELETE CASCADE UNIQUE,
+    set_password_token varchar_guid,
+    set_password_token_expires_at TIMESTAMP
+);
+
+CREATE INDEX idx_account_set_password_account_id ON account_set_password(account_id);
 
 CREATE TABLE account_membership (
     id SERIAL PRIMARY KEY,

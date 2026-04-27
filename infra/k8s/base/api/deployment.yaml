@@ -51,11 +51,16 @@ spec:
                 name: podverse-api.podcastindex.org-opaque
             - secretRef:
                 name: podverse-workers-add-by-rss-opaque
+            - secretRef:
+                name: podverse-workers-webpush-opaque
           volumeMounts:
             - name: logs-volume
               mountPath: /logs
             - name: logs-volume
               mountPath: /opt/logs
+            - name: firebase-key
+              mountPath: /var/secrets/firebase
+              readOnly: true
           readinessProbe:
             httpGet:
               path: /
@@ -71,3 +76,7 @@ spec:
       volumes:
         - name: logs-volume
           emptyDir: {}
+        - name: firebase-key
+          secret:
+            secretName: podverse-workers-firebase-opaque
+            optional: true

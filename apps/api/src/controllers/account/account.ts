@@ -29,6 +29,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 import {
   ERROR_MESSAGES,
+  getAccountSignupModeCapabilities,
   getSharableStatusIdsForProfileType,
   SharableStatusEnum,
 } from '@podverse/helpers';
@@ -47,6 +48,7 @@ import {
   AccountMetaboostService,
   AccountResetPasswordService,
   AccountService,
+  AccountSetPasswordService,
   AccountVerificationService,
   StatsAggregatedAccountService,
 } from '@podverse/orm';
@@ -88,6 +90,7 @@ export class AccountController {
   private static accountEmailChangeVerificationService =
     new AccountEmailChangeVerificationService();
   private static accountResetPasswordService = new AccountResetPasswordService();
+  private static accountSetPasswordService = new AccountSetPasswordService();
   private static accountVerificationService = new AccountVerificationService();
   private static accountFollowingAccountService = new AccountFollowingAccountService();
   private static statsAggregatedAccountService = new StatsAggregatedAccountService();
@@ -500,6 +503,13 @@ export class AccountController {
   }
 
   static async create(req: Request, res: Response): Promise<void> {
+    const mode = config.premium.signupMode;
+    const capabilities = getAccountSignupModeCapabilities(mode);
+    if (!capabilities.canPublicSignup) {
+      res.status(403).json({ message: 'Public signup is not available' });
+      return;
+    }
+
     const bodySchema = Joi.object({
       email: Joi.string().email().required(),
       password: Joi.string().min(8).required(),
@@ -827,6 +837,63 @@ export class AccountController {
     );
   }
 
+  static async setPassword(req: Request, res: Response): Promise<void> {
+    try {
+      const { token, password, email } = req.body as {
+        token?: string;
+        password?: string;
+        email?: string;
+      };
+
+      if (!token || !password) {
+        res.status(400).json({ message: 'Token and password are required' });
+        return;
+      }
+
+      const setPasswordRecord = await AccountController.accountSetPasswordService.getByToken(token);
+      if (!setPasswordRecord) {
+        res.status(400).json({ message: 'Invalid or expired token' });
+        return;
+      }
+
+      if (new Date() > new Date(setPasswordRecord.set_password_token_expires_at)) {
+        res.status(400).json({ message: 'Token has expired' });
+        return;
+      }
+
+      const account = setPasswordRecord.account;
+      if (!account) {
+        res.status(400).json({ message: 'Account not found' });
+        return;
+      }
+
+      const mode = config.premium.signupMode;
+      const capabilities = getAccountSignupModeCapabilities(mode);
+
+      if (capabilities.requiresEmailAtInviteCompletion && !email) {
+        res
+          .status(400)
+          .json({ message: 'Email is required to complete account setup in this mode' });
+        return;
+      }
+
+      await AccountController.accountService.resetPassword(account.id, password);
+
+      if (email && account.account_credentials?.email === null) {
+        const accountCredentialsService = new AccountCredentialsService();
+        await accountCredentialsService.update(account, { email });
+      }
+
+      await AccountController.accountService.verifyEmail(account.id);
+
+      await AccountController.accountSetPasswordService.deleteByAccountId(account.id);
+
+      res.json({ message: 'Password set successfully' });
+    } catch (error) {
+      handleGenericErrorResponse(res, error);
+    }
+  }
+
   /**
    * Removes private information from an account object to prevent data leakage in public endpoints.
    * This includes removing password and email from account_credentials, and account_membership_status.
@@ -836,7 +903,7 @@ export class AccountController {
    */
   private static removePrivateInformation<
     T extends {
-      account_credentials?: { password?: string; email?: string };
+      account_credentials?: { password?: string; email?: string | null };
       account_membership_status?: unknown;
     },
   >(account: T): T {

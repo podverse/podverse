@@ -26,7 +26,7 @@ These variables are **always required** regardless of configuration:
 
 - **`USER_AGENT`** (Required)
   - Non-blank. Must follow format: `BrandName Bot Environment/AppName/Version` and include "Bot" in the first part. Set an app-specific value for your deployment; do not copy another product’s string.
-  - Example: `Example Bot local/API/5`
+  - Example: `Example Bot/API/5`
   - Used for external API requests
 
 - **`BRAND_NAME`** (Required)
@@ -86,39 +86,45 @@ These variables are **always required** regardless of configuration:
 
 ### Premium/Membership
 
-- **`ACCOUNT_SIGNUP_MODE`** (Required) - Must be either `'sign-up'` or `'contact-only'` (no default value)
+- **`ACCOUNT_SIGNUP_MODE`** (Required) - Must be `'admin_only_username'`, `'admin_only_email'`, or `'user_signup_email'` (no default value)
   - Must be explicitly set - no default value is assumed
-  - When set to `'sign-up'`: Enables user registration and requires additional email/mailer configuration
-  - When set to `'contact-only'`: Disables user registration, email/mailer config becomes optional
+  - When set to `'user_signup_email'`: Enables public user registration with email and requires additional email/mailer configuration
+  - When set to `'admin_only_email'`: Accounts created by management admin only, requires email
+  - When set to `'admin_only_username'`: Accounts created by management admin only, username-only (no email required)
 
 ## Conditionally Required Variables
 
-These variables are **required only when `ACCOUNT_SIGNUP_MODE` is set to `'sign-up'`**. When `ACCOUNT_SIGNUP_MODE` is `'contact-only'`, these variables are optional.
+These variables are **required only when `ACCOUNT_SIGNUP_MODE` is set to `'user_signup_email'`**. When `ACCOUNT_SIGNUP_MODE` is `'admin_only_email'` or `'admin_only_username'`, these variables are optional.
 
 ### Mailer
 
-- **`MAILER_DISABLED`** (Optional) - Disable mailer (default: `false`)
-- **`MAILER_SERVICE`** (Optional) - Email service name (e.g. for nodemailer); optional when using SMTP host/port
-- **`MAILER_HOST`** (Required when signup mode is 'sign-up') - SMTP server hostname
-- **`MAILER_PORT`** (Required when signup mode is 'sign-up') - SMTP server port (must be a valid number)
-- **`MAILER_USERNAME`** (Required when signup mode is 'sign-up') - SMTP username. On Kubernetes, set in the `podverse-api-opaque` Secret (`create_api_secret.sh`), not the ConfigMap.
-- **`MAILER_PASSWORD`** (Required when signup mode is 'sign-up') - SMTP password. On Kubernetes, set in the `podverse-api-opaque` Secret, not the ConfigMap.
-- **`MAILER_FROM`** (Required when signup mode is 'sign-up') - Email sender address
+The mailer is automatically disabled when `ACCOUNT_SIGNUP_MODE` is not `'user_signup_email'`, or when any required mailer env var (`MAILER_HOST`, `MAILER_PORT`, `MAILER_USERNAME`, `MAILER_PASSWORD`, `MAILER_FROM`) is not set. No explicit `MAILER_DISABLED` flag is needed.
+
+- **`MAILER_HOST`** (Required when signup mode is 'user_signup_email') - SMTP server hostname
+- **`MAILER_PORT`** (Required when signup mode is 'user_signup_email') - SMTP server port (must be a valid number)
+- **`MAILER_USERNAME`** (Required when signup mode is 'user_signup_email') - SMTP username. On Kubernetes, set in the `podverse-api-opaque` Secret (`create_api_secret.sh`), not the ConfigMap.
+- **`MAILER_PASSWORD`** (Required when signup mode is 'user_signup_email') - SMTP password. On Kubernetes, set in the `podverse-api-opaque` Secret, not the ConfigMap.
+- **`MAILER_FROM`** (Required when signup mode is 'user_signup_email') - Email sender address
+
+### Legal entity
+
+- **`LEGAL_NAME`** (Required when signup mode is 'user_signup_email') - Legal or display business name (e.g. Podverse LLC). `config.legal.name` (e.g. HTML email footer, other call sites).
+- **`LEGAL_ADDRESS`** (Required when signup mode is 'user_signup_email') - Legal or mailing address. `config.legal.address`.
+
+For local development, set both in [`legal.env`](../../dev/env-overrides/local/legal.env.example). Run `make local_env_setup` to apply.
 
 ### Email Configuration
 
-- **`EMAIL_BRAND_COLOR`** (Required when signup mode is 'sign-up') - Brand color for email templates (default: #2968B1)
-- **`EMAIL_HEADER_IMAGE_URL`** (Required when signup mode is 'sign-up') - URL for email header image (default: Podverse logo)
-- **`LEGAL_NAME`** (Required when signup mode is 'sign-up') - Legal business name (default: Podverse LLC)
-- **`LEGAL_ADDRESS`** (Required when signup mode is 'sign-up') - Legal business address (default: Chicago, IL, USA)
+- **`BRAND_COLOR_PRIMARY`** (Required when signup mode is 'user_signup_email') - Primary brand accent as a CSS color (e.g. hex). Used for **HTML email** CTAs and other server-side brand styling. For local development, set in [`brand.env`](../../dev/env-overrides/local/brand.env.example). If **`NEXT_PUBLIC_BRAND_THEME_COLOR`** is not set in `brand.env`, `make local_env_setup` copies **`BRAND_COLOR_PRIMARY`** into the web/management-web sidecar as the app UI / browser-chrome tint unless you override.
+- **`BRAND_BANNER_IMAGE_3X1_URL`** (Required when signup mode is 'user_signup_email') - Absolute **`http`/`https` URL** for the 3:1 brand banner image. Today this is used in the API’s HTML **email** template; set it in [`brand.env`](../../dev/env-overrides/local/brand.env.example) for local overrides. The conventional path on the public web app is **`/branding/banner_3x1.png`** (file: `apps/web/public/branding/banner_3x1.png` in the repo). For local email testing, use your dev web origin, e.g. `http://localhost:3000/branding/banner_3x1.png` if the web app serves on that port.
 
-For local setup, these can be customized via `dev/env-overrides/local/email-template.env`; run `make local_env_setup` to apply.
+For local setup, set [legal entity](#legal-entity) in [`legal.env`](../../dev/env-overrides/local/legal.env.example), **`BRAND_COLOR_PRIMARY`** and **`BRAND_BANNER_IMAGE_3X1_URL`** in [`brand.env`](../../dev/env-overrides/local/brand.env.example), then run `make local_env_setup`.
 
 ### Token Expiration
 
-- **`VERIFY_EMAIL_TOKEN_EXPIRATION`** (Required when signup mode is 'sign-up') - Email verification token expiration in seconds (must be a valid number)
-- **`EMAIL_CHANGE_VERIFICATION_TOKEN_EXPIRATION`** (Required when signup mode is 'sign-up') - Email change verification token expiration in seconds (must be a valid number)
-- **`RESET_PASSWORD_TOKEN_EXPIRATION`** (Required when signup mode is 'sign-up') - Password reset token expiration in seconds (must be a valid number)
+- **`VERIFY_EMAIL_TOKEN_EXPIRATION`** (Required when signup mode is 'user_signup_email') - Email verification token expiration in seconds (must be a valid number)
+- **`EMAIL_CHANGE_VERIFICATION_TOKEN_EXPIRATION`** (Required when signup mode is 'user_signup_email') - Email change verification token expiration in seconds (must be a valid number)
+- **`RESET_PASSWORD_TOKEN_EXPIRATION`** (Required when signup mode is 'user_signup_email') - Password reset token expiration in seconds (must be a valid number)
 
 ## Optional Variables
 
@@ -132,7 +138,7 @@ These variables are optional but will still be validated if set:
 
 ### Social Media
 
-These variables are used when signup mode is 'sign-up' but are not required (defaults: Podverse URLs and images for Facebook, GitHub, Twitter; Reddit optional/empty).
+These variables are used when signup mode is 'user_signup_email' but are not required (defaults: Podverse URLs and images for Facebook, GitHub, Twitter; Reddit optional/empty).
 
 - **`SOCIAL_FACEBOOK_PAGE_URL`** (Optional) - Facebook page URL
 - **`SOCIAL_FACEBOOK_IMAGE_URL`** (Optional) - Facebook image URL
@@ -149,6 +155,10 @@ For local setup, these can be customized via `dev/env-overrides/local/socials.en
 
 - **`PAYPAL_CLIENT_ID`** (Optional) - PayPal client ID for payment processing
 - **`PAYPAL_CLIENT_SECRET`** (Optional) - PayPal client secret for payment processing
+
+### WebPush (optional)
+
+When **`WEBPUSH_ENABLED`** is `true`, the API uses **`WEBPUSH_VAPID_PUBLIC_KEY`**, **`WEBPUSH_VAPID_PRIVATE_KEY`**, and **`WEBPUSH_VAPID_SUBJECT`** (see [`apps/workers/ENV.md`](../../apps/workers/ENV.md) for semantics). On **Kubernetes**, do not put **`WEBPUSH_VAPID_PRIVATE_KEY`** in the API ConfigMap: use the same Secret as workers, **`podverse-workers-webpush-opaque`**, which is mounted on the API deployment via `envFrom` (see `infra/k8s/base/api/deployment.yaml`).
 
 ### MetaBoost Standard Endpoint (mbrss-v1)
 
@@ -201,7 +211,7 @@ During startup, the validation displays:
 - A categorized list of all environment variables
 - Status indicator (✓ for valid, ✗ for invalid)
 - Whether the variable is required or optional
-- Conditional requirements (e.g., "required when signup mode is 'sign-up'")
+- Conditional requirements (e.g., "required when signup mode is 'user_signup_email'")
 - A message indicating the validation result
 - A summary with totals and counts
 

@@ -45,7 +45,7 @@ export const WEB_APP_ENV = {
   NEXT_PUBLIC_DEFAULT_THEME: 'dark',
 
   // Account
-  NEXT_PUBLIC_ACCOUNT_SIGNUP_MODE: 'sign-up',
+  NEXT_PUBLIC_ACCOUNT_SIGNUP_MODE: 'user_signup_email',
 
   // Contact & Social
   NEXT_PUBLIC_CONTACT_EMAIL: 'contact@podverse.fm',
@@ -59,7 +59,7 @@ export const WEB_APP_ENV = {
   NEXT_PUBLIC_SERVER_ENV: 'local',
 
   // Proxy
-  NEXT_PUBLIC_PROXY_USER_AGENT: 'Example Bot local/Bundle-Analyzer/1',
+  NEXT_PUBLIC_PROXY_USER_AGENT: 'Example Bot/Bundle-Analyzer/1',
 
   // Web Push (optional, can be empty)
   NEXT_PUBLIC_WEBPUSH_VAPID_PUBLIC_KEY: '',
