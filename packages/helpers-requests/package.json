@@ -42,7 +42,7 @@
   "dependencies": {
     "@podverse/helpers": "*",
     "axios": "^1.13.6",
-    "ipaddr.js": "^1.9.1"
+    "ipaddr.js": "^2.3.0"
   },
   "type": "module",
   "devDependencies": {
