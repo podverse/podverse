@@ -85,8 +85,8 @@ compute_sha256() {
   exit 1
 }
 
-validate_directory "$REPO_ROOT/infra/k8s/base/db/source/app" "app"
-validate_directory "$REPO_ROOT/infra/k8s/base/db/source/management" "management"
+validate_directory "$REPO_ROOT/infra/k8s/ops/source/app" "app"
+validate_directory "$REPO_ROOT/infra/k8s/ops/source/management" "management"
 
 validate_ops_bundle_sync() {
   local ops_kustomization="$REPO_ROOT/infra/k8s/base/ops/kustomization.yaml"
@@ -99,20 +99,20 @@ validate_ops_bundle_sync() {
 
   kustomization_content="$(<"$ops_kustomization")"
 
-  mapfile -t app_files < <(printf '%s\n' "$REPO_ROOT/infra/k8s/base/db/source/app"/*.sql | sort)
+  mapfile -t app_files < <(printf '%s\n' "$REPO_ROOT/infra/k8s/ops/source/app"/*.sql | sort)
   for app_file_path in "${app_files[@]}"; do
     app_file_name="$(basename "$app_file_path")"
-    expected_entry="- ../../../../infra/k8s/base/db/source/app/$app_file_name"
+    expected_entry="- ../../../../infra/k8s/ops/source/app/$app_file_name"
     if [[ "$kustomization_content" != *"$expected_entry"* ]]; then
       echo "Missing app migration in ops kustomization: $app_file_name"
       missing=1
     fi
   done
 
-  mapfile -t management_files < <(printf '%s\n' "$REPO_ROOT/infra/k8s/base/db/source/management"/*.sql | sort)
+  mapfile -t management_files < <(printf '%s\n' "$REPO_ROOT/infra/k8s/ops/source/management"/*.sql | sort)
   for management_file_path in "${management_files[@]}"; do
     management_file_name="$(basename "$management_file_path")"
-    expected_entry="- ../../../../infra/k8s/base/db/source/management/$management_file_name"
+    expected_entry="- ../../../../infra/k8s/ops/source/management/$management_file_name"
     if [[ "$kustomization_content" != *"$expected_entry"* ]]; then
       echo "Missing management migration in ops kustomization: $management_file_name"
       missing=1
@@ -173,8 +173,8 @@ if [[ "$CHECK_DB" == true ]]; then
     echo "✓ $database DB checksum validation passed"
   }
 
-  validate_db_checksums "app" "${DB_APP_ADMIN_USER}" "${DB_APP_ADMIN_PASSWORD}" "${DB_APP_NAME:-podverse_app}" "$REPO_ROOT/infra/k8s/base/db/source/app"
-  validate_db_checksums "management" "${DB_MANAGEMENT_ADMIN_USER}" "${DB_MANAGEMENT_ADMIN_PASSWORD}" "${DB_MANAGEMENT_NAME:-podverse_management}" "$REPO_ROOT/infra/k8s/base/db/source/management"
+  validate_db_checksums "app" "${DB_APP_ADMIN_USER}" "${DB_APP_ADMIN_PASSWORD}" "${DB_APP_NAME:-podverse_app}" "$REPO_ROOT/infra/k8s/ops/source/app"
+  validate_db_checksums "management" "${DB_MANAGEMENT_ADMIN_USER}" "${DB_MANAGEMENT_ADMIN_PASSWORD}" "${DB_MANAGEMENT_NAME:-podverse_management}" "$REPO_ROOT/infra/k8s/ops/source/management"
 fi
 
 echo "Linear migration validation passed."

@@ -40,8 +40,10 @@ jobs:
         with:
           node-version-file: .nvmrc
 
-      - name: Sync smoke check
-        run: node scripts/llm/export-from-cursor.mjs sync
+      - name: Exports in sync (llm:exports:check)
+        env:
+          CI: true
+        run: node scripts/llm/export-from-cursor.mjs check
 
   publish_llm_pr:
     if: github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && github.ref == 'refs/heads/develop' && !contains(github.event.head_commit.message, '[bot]'))
@@ -66,9 +68,12 @@ jobs:
       - name: Generate exports
         run: node scripts/llm/export-from-cursor.mjs sync
 
-      # peter-evans/create-pull-request respects .gitignore; machine output is ignored locally — match llm:exports:check
-      - name: Stage export tree (include gitignored generated paths)
-        run: git add -A -f -- .llm/exports
+      - name: Stage export tree
+        # peter-evans/create-pull-request respects .gitignore; machine output is ignored locally
+        # — match the llm:exports:check (git add -A -f) behavior for ignored paths
+        run: |
+          set -e
+          git add -A -f -- .llm/exports
 
       - name: Create or update llm PR
         id: cpr
@@ -77,15 +82,14 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           branch: llm
           base: develop
-          add-paths: |
-            .llm/exports
+          add-paths: .llm/exports
           commit-message: "chore(llm): sync .llm/exports from .cursor"
           title: "chore(llm): sync .llm/exports from .cursor"
           body: |
             Automated LLM export sync from `.cursor` + `.cursorrules`.
 
             - Source of truth remains `.cursor/**` and `.cursorrules`
-            - Generated mirrors under `.llm/exports/**`
+            - Generated: `.llm/exports/**` (including ignored paths, staged on the workflow runner for the PR)
           labels: |
             llm
           delete-branch: false

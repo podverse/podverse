@@ -1,0 +1,15 @@
+---
+description: Generated DB bootstrap 0003 and linear ops migrations — do not hand-edit 0003
+globs:
+  - "infra/k8s/ops/source/**"
+  - "infra/k8s/base/db/source/bootstrap/**"
+  - "scripts/database/generate-linear-baseline.sh"
+  - "scripts/database/verify-linear-baseline.sh"
+alwaysApply: false
+---
+
+# Linear baseline `0003_linear_baseline.sql`
+
+- **Do not edit** `infra/k8s/base/db/source/bootstrap/0003_linear_baseline.sql` by hand. It is produced by `scripts/database/generate-linear-baseline.sh` from `infra/k8s/ops/source` migrations, after bootstrap `0001` and `0002` shell steps, using synthetic credentials in `scripts/database/db.generate-baseline.env`.
+- After changing a SQL file under `infra/k8s/ops/source/`, run `bash scripts/database/generate-linear-baseline.sh` and commit the updated `0003_` file, or let the "Linear SQL baseline" workflow on `develop` push it after your merge. Pull requests that touch relevant paths run `verify-linear-baseline` and must pass.
+- Individual `NNNN_*.sql` migration files remain the **source of truth**; 0003 is a generated snapshot for `docker-entrypoint-initdb` and for CI drift checks.

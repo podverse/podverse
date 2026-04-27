@@ -11,9 +11,9 @@ Use this skill whenever you add or change files under `scripts/llm/` (import/exp
 
 **Policy and source of truth** live in the **llm-cursor-source** skill. **Per-target output** (what each adapter produces) is documented in [docs/development/llm/EXPORT-TARGETS.md](../../../docs/development/llm/EXPORT-TARGETS.md). **Podverse and Metaboost** share the same pipeline shape; keep the mirrored scripts aligned when behavior should match.
 
-Allowlisted **export target** ids: `github-copilot`, `opencode` (see `allowed-targets.mjs`); each opt-in target has a marker under `.llm/exports/<id>/`. The `github-copilot` tree is the single mirror for Copilot in VS Code and typical `.github/` mapping (no separate `vscode` target).
+Allowlisted **export target** ids: `github-copilot`, `opencode` (see `allowed-targets.mjs`); each opt-in target has a marker under `.llm/exports/<id>/`. The `github-copilot` tree is the single portable mirror (no separate `vscode` target).
 
-The **`llm-exports-sync`** Action runs `node scripts/llm/export-from-cursor.mjs sync` (incremental). The **`llm-exports-full`** Action runs `sync --full` (wipe per target, then regen; removes orphans). Local: `npm run llm:exports:sync` / `llm:exports:sync:full` (no root `npm install` in CI for these).
+**CI:** the **`llm-exports-sync`** and **`llm-exports-full-sync`** GitHub Actions run `node scripts/llm/export-from-cursor.mjs sync` (with `--full` for full) on the runner. **Local** `sync` and `check` that write to disk are **disabled** unless `CI` is set (e.g. GitHub Actions) or you set `LLM_EXPORT_ALLOW_LOCAL=1` for pipeline debugging and tests of `scripts/llm/`. Set that env when you need to run `npm run llm:exports:sync` or `llm:exports:sync:full` outside CI.
 
 ## Console and CLI output
 

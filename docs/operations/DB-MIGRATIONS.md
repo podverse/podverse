@@ -2,18 +2,17 @@
 
 Podverse uses forward-only SQL migrations with one canonical source tree:
 
-- app migrations: `infra/k8s/base/db/source/app`
-- management migrations: `infra/k8s/base/db/source/management`
-- bootstrap-only scripts (DB/users/grants): `infra/k8s/base/db/source/bootstrap`
+- app migrations: `infra/k8s/ops/source/app`
+- management migrations: `infra/k8s/ops/source/management`
+- bootstrap and generated init SQL: `infra/k8s/base/db/source/bootstrap` (see [LINEAR-MIGRATIONS.md](LINEAR-MIGRATIONS.md) for `0003_linear_baseline.sql`)
 
 ## First-run contract (brand-new DB)
 
-1. Bring up Postgres and bootstrap scripts only.
+1. Bring up Postgres and `docker-entrypoint-initdb` order: `0001_` (app users) and `0002_` (management DB and users) and generated `0003_linear_baseline.sql` (full schema; see [LINEAR-MIGRATIONS.md](LINEAR-MIGRATIONS.md)).
 2. Wait for DB readiness.
-3. Run app migration job/script.
-4. Run management migration job/script.
-5. Create or update the management superuser.
-6. Verify all steps succeed before app workload rollout.
+3. If `0003` is present and matches the repo, migration jobs should be no-ops (checksums in `linear_migration_history`); otherwise run app and management migration jobs.
+4. Create or update the management superuser.
+5. Verify all steps succeed before app workload rollout.
 
 There is no existing-DB baseline onboarding flow in this model.
 
@@ -21,8 +20,8 @@ There is no existing-DB baseline onboarding flow in this model.
 
 Add a new `NNNN_description.sql` file to the correct source directory.
 
-- app: `infra/k8s/base/db/source/app/NNNN_description.sql`
-- management: `infra/k8s/base/db/source/management/NNNN_description.sql`
+- app: `infra/k8s/ops/source/app/NNNN_description.sql`
+- management: `infra/k8s/ops/source/management/NNNN_description.sql`
 
 Rules:
 

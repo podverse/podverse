@@ -1,6 +1,11 @@
 # --- Pre-push validation and Docker image build. ---
 
-.PHONY: validate validate_docker
+.PHONY: validate validate_docker verify_linear_baseline
+
+# Compare generated DB bootstrap 0003 with the committed file (requires Docker).
+# See scripts/database/verify-linear-baseline.sh and docs/operations/LINEAR-MIGRATIONS.md
+verify_linear_baseline:
+	@bash scripts/database/verify-linear-baseline.sh
 
 # Run all checks that the CI will run before merging to alpha.
 validate:

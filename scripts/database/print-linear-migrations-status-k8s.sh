@@ -44,14 +44,14 @@ if [[ "$MIGRATION_DATABASE" != "app" && "$MIGRATION_DATABASE" != "management" ]]
 fi
 
 if [[ "$MIGRATION_DATABASE" == "app" ]]; then
-  MIGRATIONS_DIR="$REPO_ROOT/infra/k8s/base/db/source/app"
+  MIGRATIONS_DIR="$REPO_ROOT/infra/k8s/ops/source/app"
   DB_HOST="${DB_HOST:-${PODVERSE_DB_SERVICE_HOST:-}}"
   DB_PORT="${DB_PORT:-${PODVERSE_DB_SERVICE_PORT:-5432}}"
   DB_USER="${DB_USER:-${DB_APP_READ_WRITE_USER:-}}"
   DB_PASSWORD="${DB_PASSWORD:-${DB_APP_READ_WRITE_PASSWORD:-}}"
   DB_NAME="${DB_NAME:-${DB_APP_NAME:-}}"
 else
-  MIGRATIONS_DIR="$REPO_ROOT/infra/k8s/base/db/source/management"
+  MIGRATIONS_DIR="$REPO_ROOT/infra/k8s/ops/source/management"
   DB_HOST="${DB_HOST:-${PODVERSE_DB_SERVICE_HOST:-}}"
   DB_PORT="${DB_PORT:-${PODVERSE_DB_SERVICE_PORT:-5432}}"
   DB_USER="${DB_USER:-${DB_MANAGEMENT_READ_WRITE_USER:-}}"

@@ -1,7 +1,7 @@
 /**
  * Deterministic export from .cursor + .cursorrules to .llm/exports/<target-id>/.
  * Usage: node scripts/llm/export-from-cursor.mjs [sync|check] [--full]
- *   sync  — write exports (default)
+ *   sync  — write exports (default) when CI or LLM_EXPORT_ALLOW_LOCAL=1; otherwise no-op
  *   check — in CI, sync then exit 1 if .llm/exports (after git add -f) differs from HEAD; otherwise no-op
  */
 import { execSync } from 'node:child_process';
@@ -17,6 +17,21 @@ import { resolveActiveVendorIds } from './vendor-config.mjs';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const repoRoot = path.resolve(__dirname, '../..');
+
+function isCi() {
+  return process.env.CI === 'true' || process.env.CI === '1';
+}
+
+/**
+ * Local runs do not write unless explicitly allowed (pipeline / scripts/llm development only).
+ * GitHub Actions and other environments that set CI run ungated.
+ */
+function mayWriteExports() {
+  if (isCi()) {
+    return true;
+  }
+  return process.env.LLM_EXPORT_ALLOW_LOCAL === '1';
+}
 
 function discoverRegisteredTargets() {
   const exportsRoot = path.join(repoRoot, '.llm', 'exports');
@@ -73,6 +88,11 @@ function main() {
   const args = argv.filter((a) => a !== '--full');
   const cmd = args[0] || 'sync';
 
+  if (cmd !== 'sync' && cmd !== 'check') {
+    console.error('Usage: node scripts/llm/export-from-cursor.mjs [sync|check] [--full]');
+    process.exit(1);
+  }
+
   const discovered = discoverRegisteredTargets();
   if (discovered.length > MAX_EXPORT_TARGETS) {
     throw new Error(
@@ -80,36 +100,37 @@ function main() {
     );
   }
 
-  if (discovered.length === 0) {
-    console.warn('No registered export targets under .llm/exports/ (add <id>/.gitkeep).');
-  } else {
+  if (discovered.length > 0) {
     const activeVendorIds = resolveActiveVendorIds(repoRoot);
     console.warn(
       `llm-exports: targets ${discovered.join(', ')} | vendors ${activeVendorIds.join(', ')}`
     );
-    runAdapters(discovered, { full });
-  }
 
-  if (cmd === 'check') {
-    const ci = process.env.CI === 'true' || process.env.CI === '1';
-    if (!ci) {
+    if (cmd === 'check' && !isCi()) {
       console.warn(
-        'llm-exports: check skipped (CI not set). In CI this diffs .llm/exports after sync; published exports use branch llm and a PR to develop (see llm-exports-sync workflow).'
+        'llm-exports: check skipped (CI not set). In CI this diffs .llm/exports after sync; see llm-exports-sync workflow.'
+      );
+    } else if (!mayWriteExports()) {
+      console.warn(
+        'llm-exports: export writes are disabled outside CI. Set LLM_EXPORT_ALLOW_LOCAL=1 to run sync locally (scripts/llm/ development only). See docs/development/llm/README.md.'
       );
     } else {
-      execSync('git add -A -f -- .llm/exports', { cwd: repoRoot, stdio: 'inherit' });
-      try {
-        execSync('git diff --quiet --exit-code HEAD', { cwd: repoRoot, stdio: 'pipe' });
-      } catch {
-        console.error(
-          'llm:exports:check: .llm/exports (including ignored paths) does not match the current commit. Merge or rebase the latest llm automation PR, or re-run on a clean tree; see docs/development/llm/.'
-        );
-        process.exit(1);
-      }
+      runAdapters(discovered, { full });
     }
-  } else if (cmd !== 'sync') {
-    console.error('Usage: node scripts/llm/export-from-cursor.mjs [sync|check] [--full]');
-    process.exit(1);
+  } else {
+    console.warn('No registered export targets under .llm/exports/ (add <id>/.gitkeep).');
+  }
+
+  if (cmd === 'check' && isCi() && mayWriteExports() && discovered.length > 0) {
+    execSync('git add -A -f -- .llm/exports', { cwd: repoRoot, stdio: 'inherit' });
+    try {
+      execSync('git diff --quiet --exit-code HEAD', { cwd: repoRoot, stdio: 'pipe' });
+    } catch {
+      console.error(
+        'llm:exports:check: .llm/exports (including ignored paths) does not match the current commit. Merge or rebase the latest llm automation PR, or re-run on a clean tree; see docs/development/llm/.'
+      );
+      process.exit(1);
+    }
   }
 }
 
