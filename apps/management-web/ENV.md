@@ -50,6 +50,15 @@ The sidecar uses the same validation helpers as the rest of the monorepo (`@podv
   - Must be a valid locale from the supported locales list
   - Example: `"en"`
 
+- **`NEXT_PUBLIC_SUPPORTED_THEMES`** (Required)
+  - Must be `"all-available"` or a comma-delimited list of valid themes
+  - Valid themes: `dark`, `light`, `dracula`, `violet` (see `packages/helpers-config` / `SUPPORTED_THEMES`)
+  - Example: `"all-available"` or `"dark,light"`
+
+- **`NEXT_PUBLIC_DEFAULT_THEME`** (Required)
+  - Must be one of the valid themes; must also appear in the effective supported set when `NEXT_PUBLIC_SUPPORTED_THEMES` is not `all-available`
+  - Example: `"dark"`
+
 ## Optional Variables
 
 ### Runtime Config Sidecar (Server-Only)
@@ -95,6 +104,8 @@ Variables containing `PORT` are validated to ensure they are valid positive numb
 
 - **Locale Validation**: `NEXT_PUBLIC_FEATURES_SUPPORTED_LOCALES` must be `"all-available"` or a comma-delimited list of valid locales
 - **Locale Default**: `NEXT_PUBLIC_FEATURES_DEFAULT_LOCALE` must be a valid locale
+- **Theme Validation**: `NEXT_PUBLIC_SUPPORTED_THEMES` must be `"all-available"` or a comma-delimited list of valid themes (`dark`, `light`, `dracula`, `violet`)
+- **Theme Default**: `NEXT_PUBLIC_DEFAULT_THEME` must be one of the valid themes
 
 ## Validation Output
 

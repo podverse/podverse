@@ -5,11 +5,13 @@ import { URL } from 'node:url';
 import type { ValidationResult, ValidationSummary } from '@podverse/helpers-config';
 import {
   displayValidationResults,
+  validateDefaultTheme,
   validateLocale,
   validateOptional,
   validatePositiveNumber,
   validateRequired,
   validateSupportedLocalesList,
+  validateSupportedThemesList,
   validateWebProtocol,
 } from '@podverse/helpers-config';
 
@@ -19,6 +21,8 @@ const requiredKeys = [
   'NEXT_PUBLIC_API_PREFIX',
   'NEXT_PUBLIC_API_PROTOCOL',
   'NEXT_PUBLIC_API_VERSION',
+  'NEXT_PUBLIC_DEFAULT_THEME',
+  'NEXT_PUBLIC_SUPPORTED_THEMES',
   'NEXT_PUBLIC_FEATURES_DEFAULT_LOCALE',
   'NEXT_PUBLIC_FEATURES_SUPPORTED_LOCALES',
   'NEXT_PUBLIC_SSR_API_HOST',
@@ -87,6 +91,12 @@ function validateOne(key: string, isRequired: boolean): ValidationResult {
   if (key === 'NEXT_PUBLIC_FEATURES_DEFAULT_LOCALE') {
     return validateLocale(key, category, true);
   }
+  if (key === 'NEXT_PUBLIC_SUPPORTED_THEMES') {
+    return validateSupportedThemesList(key, category);
+  }
+  if (key === 'NEXT_PUBLIC_DEFAULT_THEME') {
+    return validateDefaultTheme(key, category);
+  }
   if (key === 'NEXT_PUBLIC_API_PORT') {
     return validatePositiveNumber(key, category, false);
   }
@@ -124,6 +134,8 @@ function getCategory(key: string): string {
     NEXT_PUBLIC_SSR_API_PROTOCOL: 'API',
     NEXT_PUBLIC_FEATURES_DEFAULT_LOCALE: 'Features',
     NEXT_PUBLIC_FEATURES_SUPPORTED_LOCALES: 'Features',
+    NEXT_PUBLIC_DEFAULT_THEME: 'Themes',
+    NEXT_PUBLIC_SUPPORTED_THEMES: 'Themes',
   };
   return map[key] ?? 'Config';
 }

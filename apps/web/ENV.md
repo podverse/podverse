@@ -76,11 +76,11 @@ These variables are used for client-side API requests:
 
 - **`NEXT_PUBLIC_SUPPORTED_THEMES`** (Required)
   - Must be `"all-available"` or a comma-delimited list of valid themes
-  - Valid themes: `dark`, `light`, `dracula`
+  - Valid themes: `dark`, `light`, `dracula`, `violet`
   - Example: `"all-available"` or `"dark,light"`
 
 - **`NEXT_PUBLIC_DEFAULT_THEME`** (Required)
-  - Must be one of the valid themes: `dark`, `light`, or `dracula`
+  - Must be one of the valid themes: `dark`, `light`, `dracula`, or `violet`
   - Example: `"dark"`
 
 ## Optional Variables

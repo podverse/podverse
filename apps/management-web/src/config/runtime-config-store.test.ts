@@ -52,6 +52,8 @@ describe('management-web runtime-config store', () => {
         NEXT_PUBLIC_BRAND_FAVICON_SVG_URL: undefined,
         NEXT_PUBLIC_BRAND_NAME: 'Podverse Management',
         NEXT_PUBLIC_BRAND_THEME_COLOR: undefined,
+        NEXT_PUBLIC_DEFAULT_THEME: 'dark',
+        NEXT_PUBLIC_SUPPORTED_THEMES: 'all-available',
         NEXT_PUBLIC_FEATURES_DEFAULT_LOCALE: 'en-US',
         NEXT_PUBLIC_FEATURES_SUPPORTED_LOCALES: 'all-available',
         NEXT_PUBLIC_SSR_API_HOST: 'podverse_local_management_api',

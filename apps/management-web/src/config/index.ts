@@ -31,6 +31,10 @@ const buildConfig = () => {
           default: env.NEXT_PUBLIC_FEATURES_DEFAULT_LOCALE!,
         },
       },
+      theme: {
+        default: env.NEXT_PUBLIC_DEFAULT_THEME!,
+        valid: env.NEXT_PUBLIC_SUPPORTED_THEMES!,
+      },
     },
   };
 };
