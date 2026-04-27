@@ -1,7 +1,7 @@
 ---
 name: podverse-k8s-patterns
 description: Common patterns for Kubernetes manifests in infra/k8s. Use when editing or adding K8s manifests, changing deployment config, adding env vars to ConfigMaps, or working with ArgoCD/Kustomize/SOPS.
-version: 1.0.0
+version: 1.0.1
 ---
 
 # Podverse K8s Development Patterns
@@ -73,6 +73,10 @@ The deployment uses ArgoCD's **App of Apps** pattern:
 ```
 alpha-application.yaml → alpha/apps/*.yaml → alpha/<component>/kustomization.yaml → base/<component>/*.yaml
 ```
+
+### Argo CD `Application` YAML filename `ops.yaml` (editors / GitOps repos)
+
+Do **not** use the **exact** basename **`ops.yaml`** or **`ops.yml`** for a manifest that is an Argo CD `Application`. The public JSON [Schema Store](https://www.schemastore.org/) fileMatch list reserves those names for a different "Ops configuration" spec, so the YAML language server may show bogus validation (e.g. only certain keys like `actions`, `revision` are "valid"). Use a disambiguating name (e.g. `ops.application.yaml`, `application-ops.yaml`) in any GitOps repository. See the **argocd-yaml-schema-ops-filename** skill in the k.podcastdj.com GitOps repo (`.cursor/skills/argocd-yaml-schema-ops-filename/`) for the same rule.
 
 ## Kustomize Usage
 
