@@ -253,7 +253,8 @@
       "options": {
         "dark": "Σκοτεινό",
         "light": "Φωτεινό",
-        "dracula": "Dracula"
+        "dracula": "Dracula",
+        "violet": "Βιολέ"
       }
     },
     "language": {

@@ -1,6 +1,6 @@
-export type UITheme = 'dark' | 'light' | 'dracula';
+export type UITheme = 'dark' | 'light' | 'dracula' | 'violet';
 
-const ALL_THEMES: UITheme[] = ['dark', 'light', 'dracula'];
+const ALL_THEMES: UITheme[] = ['dark', 'light', 'dracula', 'violet'];
 
 const DEFAULT_THEME: UITheme = 'dark';
 

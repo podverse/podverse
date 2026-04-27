@@ -8,6 +8,7 @@ export const getBrandLogoSrc = (uiTheme: UITheme) => {
       return brand.logoLight;
     case 'dark':
     case 'dracula':
+    case 'violet':
     default:
       return brand.logoDark;
   }

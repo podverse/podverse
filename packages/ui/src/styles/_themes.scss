@@ -228,3 +228,78 @@
   --button-opaque-danger-border: #cc4444;
   --button-enabled-icon-color: var(--text-color-accent);
 }
+
+// Violet theme (black shell + #7C3AED accent; aligns with BRAND_* violet/black white-labels)
+[data-ui-theme='violet'] {
+  --background-color-primary: #000000;
+  --background-color-secondary: #000000;
+  --background-color-tertiary: #12081c;
+  --background-color-quaternary: #1f1430;
+  --background-color-special: #2a1c3d;
+  --background-color-opaque: rgba(255, 255, 255, 0.1);
+  --background-color-glow: rgba(124, 58, 237, 0.22);
+  --background-color-contrast: #f5f3ff;
+  --background-color-error: rgba(227, 52, 47, 0.18);
+  --background-color-success: rgba(80, 250, 123, 0.18);
+  --background-color-warning: rgba(244, 162, 79, 0.18);
+
+  --border-color-primary: #7c3aed;
+  --border-color-secondary: #f5f3ff;
+  --border-color-tertiary: #3f3a4d;
+  --border-color-warning: #f4a24f;
+  --border-color-error: #aa1e2b;
+  --border-color-opaque: rgba(255, 255, 255, 0.15);
+
+  --box-shadow-focus: 0 0 0 4px rgba(124, 58, 237, 0.45);
+
+  --text-color-primary: #f5f3ff;
+  --text-color-secondary: #c4b8d4;
+  --text-color-tertiary: #f5f3ff;
+  --text-color-accent: #7c3aed;
+  --text-color-link: #a78bfa;
+  --text-color-link-hover: #c4b5fd;
+  --text-color-contrast: #0a0a0f;
+  --text-color-highlighted: #f4a24f;
+  --text-color-danger: #e3342f;
+  --text-color-success: #50fa7b;
+  --text-color-warning: #f4a24f;
+
+  --text-line-height: 1.35;
+
+  --progress-bar-before: #7c3aed;
+  --progress-bar-after: #1f1430;
+  --progress-bar-highlighted: rgba(124, 58, 237, 0.45);
+  --progress-chapter-marker: var(--text-color-accent);
+}
+
+[data-ui-theme='violet'] {
+  --background-gradient-primary: linear-gradient(
+    90deg,
+    rgba(76, 29, 149, 0.45) -3%,
+    var(--background-color-tertiary)
+  );
+
+  --button-primary-bg: var(--border-color-primary);
+  --button-primary-color: var(--text-color-tertiary);
+  --button-primary-bg-hover: #8b5cf6;
+  --button-secondary-bg: var(--background-color-glow);
+  --button-secondary-color: var(--text-color-primary);
+  --button-secondary-bg-hover: #2d1f3d;
+  --button-success-bg: #15803d;
+  --button-success-color: var(--text-color-tertiary);
+  --button-success-bg-hover: #1e9c53;
+  --button-warning-bg: #f4a24f;
+  --button-warning-color: #0a0a0f;
+  --button-warning-bg-hover: #ffb84d;
+  --button-highlight-bg: #ffd600;
+  --button-highlight-bg-hover: #ffe066;
+  --button-danger-bg: #bd2130;
+  --button-danger-color: var(--text-color-primary);
+  --button-danger-bg-hover: #e3342f;
+  --button-outline-color: var(--border-color-primary);
+  --button-opaque-bg: rgba(124, 58, 237, 0.18);
+  --button-opaque-warning-bg: rgba(244, 162, 79, 0.16);
+  --button-opaque-danger-bg: rgba(196, 55, 69, 0.16);
+  --button-opaque-danger-border: #aa1e2b;
+  --button-enabled-icon-color: var(--text-color-accent);
+}

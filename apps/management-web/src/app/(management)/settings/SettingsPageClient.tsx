@@ -21,7 +21,13 @@ export type SettingsPageClientProps = {
 };
 
 function labelForTheme(
-  t: (key: 'theme.options.dark' | 'theme.options.light' | 'theme.options.dracula') => string,
+  t: (
+    key:
+      | 'theme.options.dark'
+      | 'theme.options.light'
+      | 'theme.options.dracula'
+      | 'theme.options.violet'
+  ) => string,
   theme: UITheme
 ): string {
   switch (theme) {
@@ -31,6 +37,8 @@ function labelForTheme(
       return t('theme.options.light');
     case 'dracula':
       return t('theme.options.dracula');
+    case 'violet':
+      return t('theme.options.violet');
     default:
       return theme;
   }

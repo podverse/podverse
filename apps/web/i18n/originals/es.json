@@ -636,7 +636,8 @@
       "theme": "Tema",
       "light": "☀️ Claro",
       "dark": "🌙 Oscuro",
-      "dracula": "🧛 Dracula"
+      "dracula": "🧛 Dracula",
+      "violet": "💜 Violeta"
     },
     "feed": {
       "check_feed_for_updates": "Buscar Actualizaciones en la Fuente",

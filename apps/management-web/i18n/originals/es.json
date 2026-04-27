@@ -253,7 +253,8 @@
       "options": {
         "dark": "Oscuro",
         "light": "Claro",
-        "dracula": "Drácula"
+        "dracula": "Drácula",
+        "violet": "Violeta"
       }
     },
     "language": {

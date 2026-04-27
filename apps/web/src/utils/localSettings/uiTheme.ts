@@ -1,8 +1,8 @@
 import { getConfig } from '../../config';
 
-export type UITheme = 'dark' | 'light' | 'dracula';
+export type UITheme = 'dark' | 'light' | 'dracula' | 'violet';
 
-const ALL_POSSIBLE_THEMES: UITheme[] = ['dark', 'light', 'dracula'];
+const ALL_POSSIBLE_THEMES: UITheme[] = ['dark', 'light', 'dracula', 'violet'];
 
 /**
  * Get the list of valid themes from config, or all themes if config is blank
