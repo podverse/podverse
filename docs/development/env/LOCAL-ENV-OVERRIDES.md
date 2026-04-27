@@ -172,22 +172,23 @@ sourced, then specific variables are written into app and infra env files. Main 
 Workers, Web) and management apps (Management API, Management Web, Management DB) receive
 different subsets.
 
-| Override file            | Apps / env files that receive its values                                                                                                                               |
-| ------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| add-by-rss.env           | API + Workers (ADD_BY_RSS_CREDENTIALS_ENCRYPTION_KEY)                                                                                                                  |
-| app.env                  | API + Workers + Management API (LOG_DIR); API (ACCOUNT_SIGNUP_MODE); Web (NEXT_PUBLIC_ACCOUNT_SIGNUP_MODE from ACCOUNT_SIGNUP_MODE).                                   |
-| brand.env                | api/web = BRAND_NAME; mgmt api/mgmt web = MANAGEMENT_BRAND_NAME. Do not set NEXT_PUBLIC_BRAND_NAME in overrides.                                                       |
-| email-template.env       | API only                                                                                                                                                               |
-| lightning.env            | Web only (Lightning LNAddress / node app-value vars)                                                                                                                   |
-| mailer.env               | API (MAILER_SERVICE, MAILER_HOST, MAILER_PORT, MAILER_USERNAME, MAILER_PASSWORD, MAILER_FROM)                                                                          |
-| metaboost.env            | Web (`NEXT_PUBLIC_APP_VALUE_METABOOST_STANDARD`, `NEXT_PUBLIC_APP_VALUE_METABOOST_NODE`); API (`METABOOST_SIGNING_KEY_PEM`, `METABOOST_APP_ASSERTION_ISS`)             |
-| locale.env               | Web + Management Web (app, infra, sidecars): NEXT*PUBLIC_FEATURES*\* from DEFAULT_LOCALE, SUPPORTED_LOCALES. Single source; do not set locale in other override files. |
-| management-superuser.env | Local DB env (`infra/config/local/db.env`) for management superuser bootstrap                                                                                          |
-| notifications.env        | Workers; Web gets NEXT_PUBLIC_WEBPUSH_VAPID_PUBLIC_KEY                                                                                                                 |
-| paypal.env               | API (PAYPAL_CLIENT_ID, PAYPAL_CLIENT_SECRET)                                                                                                                           |
-| podcast-index.env        | API + Workers (PODCAST_INDEX_AUTH_KEY, PODCAST_INDEX_SECRET_KEY; not auto-generated—only from this override).                                                          |
-| socials.env              | API (email template social links); Web (contact + social)                                                                                                              |
-| storage.env              | Workers only                                                                                                                                                           |
+| Override file            | Apps / env files that receive its values                                                                                                                                                                                           |
+| ------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| add-by-rss.env           | API + Workers (ADD_BY_RSS_CREDENTIALS_ENCRYPTION_KEY)                                                                                                                                                                              |
+| app.env                  | API + Workers + Management API (LOG_DIR); API (ACCOUNT_SIGNUP_MODE); Web (NEXT_PUBLIC_ACCOUNT_SIGNUP_MODE from ACCOUNT_SIGNUP_MODE).                                                                                               |
+| brand.env                | api/web = BRAND_NAME; mgmt api/mgmt web = MANAGEMENT_BRAND_NAME. Do not set NEXT_PUBLIC_BRAND_NAME in overrides.                                                                                                                   |
+| email-template.env       | API only                                                                                                                                                                                                                           |
+| lightning.env            | Web only (Lightning LNAddress / node app-value vars)                                                                                                                                                                               |
+| mailer.env               | API (MAILER_SERVICE, MAILER_HOST, MAILER_PORT, MAILER_USERNAME, MAILER_PASSWORD, MAILER_FROM)                                                                                                                                      |
+| metaboost.env            | Web (`NEXT_PUBLIC_APP_VALUE_METABOOST_STANDARD`, `NEXT_PUBLIC_APP_VALUE_METABOOST_NODE`); API (`METABOOST_SIGNING_KEY_PEM`, `METABOOST_APP_ASSERTION_ISS`)                                                                         |
+| locale.env               | Web + Management Web (app, infra, sidecars): NEXT*PUBLIC_FEATURES*\* from DEFAULT_LOCALE, SUPPORTED_LOCALES. Single source; do not set locale in other override files.                                                             |
+| management-superuser.env | Local DB env (`infra/config/local/db.env`) for management superuser bootstrap                                                                                                                                                      |
+| notifications.env        | Workers; Web gets NEXT_PUBLIC_WEBPUSH_VAPID_PUBLIC_KEY                                                                                                                                                                             |
+| paypal.env               | API (PAYPAL_CLIENT_ID, PAYPAL_CLIENT_SECRET)                                                                                                                                                                                       |
+| podcast-index.env        | API + Workers (PODCAST_INDEX_AUTH_KEY, PODCAST_INDEX_SECRET_KEY; not auto-generated—only from this override).                                                                                                                      |
+| pwa-favicon.env          | Web + Management Web (sidecar: manifest icons/theme + head favicon URLs: `NEXT_PUBLIC_PWA_ICON_*`, `NEXT_PUBLIC_PWA_THEME_COLOR`, `NEXT_PUBLIC_PWA_BACKGROUND_COLOR`, `NEXT_PUBLIC_FAVICON_*`, `NEXT_PUBLIC_APPLE_TOUCH_ICON_URL`) |
+| socials.env              | API (email template social links); Web (contact + social)                                                                                                                                                                          |
+| storage.env              | Workers only                                                                                                                                                                                                                       |
 
 Management API and Management Web do not receive mailer, PayPal, email-template, socials,
 storage, notifications, podcast-index, or lightning overrides; those apps do not use those vars.
@@ -196,8 +197,8 @@ storage, notifications, podcast-index, or lightning overrides; those apps do not
 
 `make local_env_setup` writes only `RUNTIME_CONFIG_URL` into `apps/web/.env.local` and
 `apps/management-web/.env.local` (used by the Next.js app when you run `npm run dev:web` or
-`npm run dev:management-web`). All other web/management-web runtime values (brand, locale,
-VAPID, etc.) are written to both infra sidecar env files
+`npm run dev:management-web`). All other web/management-web runtime values (brand, locale, PWA/favicon, VAPID, etc.) are
+written to both infra sidecar env files
 (`infra/config/local/web-sidecar.env`, `infra/config/local/management-web-sidecar.env`) and
 app sidecar `.env` files (`apps/web/sidecar/.env`, `apps/management-web/sidecar/.env`). App-level
 env files (including sidecar `.env`) use **localhost** only and are for `npm run dev`; files under

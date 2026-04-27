@@ -422,6 +422,11 @@ if [ -n "${BRAND_LOGO_LIGHT:-}" ]; then
 	done
 fi
 
+# From pwa-favicon.env (manifest icon/theme + head favicons; path-absolute = public/favicon/; names from BRAND)
+for v in NEXT_PUBLIC_PWA_ICON_192_URL NEXT_PUBLIC_PWA_ICON_512_URL NEXT_PUBLIC_PWA_THEME_COLOR NEXT_PUBLIC_PWA_BACKGROUND_COLOR NEXT_PUBLIC_FAVICON_ICO_URL NEXT_PUBLIC_FAVICON_SVG_URL NEXT_PUBLIC_FAVICON_PNG_96_URL NEXT_PUBLIC_APPLE_TOUCH_ICON_URL; do
+	apply_override "$v" "${WEB_ENV_FILES_APP_AND_SIDECAR[@]}" "${MANAGEMENT_WEB_ENV_FILES_APP_AND_SIDECAR[@]}"
+done
+
 # From locale.env: one place for DEFAULT_LOCALE and SUPPORTED_LOCALES; setup applies to web and management-web (NEXT_PUBLIC_FEATURES_*).
 if [ -n "${DEFAULT_LOCALE:-}" ]; then
 	for file in "${WEB_ENV_FILES_APP_AND_SIDECAR[@]}" "${MANAGEMENT_WEB_ENV_FILES_APP_AND_SIDECAR[@]}"; do

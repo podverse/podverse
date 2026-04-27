@@ -7,7 +7,6 @@ import { AppWrapper } from '../components/App/AppWrapper';
 import AuthSessionChecker from '../components/Auth/AuthSessionChecker';
 import FavIcons from '../components/Head/FavIcons';
 import FontPreloads from '../components/Head/FontPreloads';
-import Manifest from '../components/Head/Manifest';
 import RuntimeConfigScript from '../components/Head/RuntimeConfigScript';
 import { LazyLoadedComponents } from '../components/LazyLoadedComponents/LazyLoadedComponents';
 import { MediaPlayerController } from '../components/MediaPlayer/Controller/MediaPlayerController';
@@ -82,7 +81,6 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <title>{config.public.brand.name}</title>
         <FontPreloads />
         <FavIcons />
-        <Manifest />
       </head>
       <body>
         {ssrShouldLogout && <AuthSessionChecker ssrShouldLogout={ssrShouldLogout} />}

@@ -66,6 +66,22 @@ The sidecar uses the same validation helpers as the rest of the monorepo (`@podv
 
 - **`NEXT_PUBLIC_BRAND_NAME`** (Optional) - Brand name for the application
 
+### PWA and browser icons (optional, white-label)
+
+The app serves the PWA manifest from **`/manifest.webmanifest`** (Next.js `app/manifest.ts`) using runtime config. The manifest `name` and `short_name` are **`NEXT_PUBLIC_BRAND_NAME`** (with a built-in fallback if unset). The variables below only override **icons, theme, and head favicon** URLs. When they are unset, icon URLs default to `/favicon/` in the image; set **absolute** `https://…` URLs to use your own assets without a custom build.
+
+- **`NEXT_PUBLIC_PWA_ICON_192_URL`** (Optional) - 192×192 maskable icon URL for the manifest
+- **`NEXT_PUBLIC_PWA_ICON_512_URL`** (Optional) - 512×512 maskable icon URL for the manifest
+- **`NEXT_PUBLIC_PWA_THEME_COLOR`** (Optional) - Theme color (CSS color / hex)
+- **`NEXT_PUBLIC_PWA_BACKGROUND_COLOR`** (Optional) - Background color for the web app manifest
+
+- **`NEXT_PUBLIC_FAVICON_ICO_URL`** (Optional) - `.ico` favicon URL
+- **`NEXT_PUBLIC_FAVICON_SVG_URL`** (Optional) - SVG favicon URL
+- **`NEXT_PUBLIC_FAVICON_PNG_96_URL`** (Optional) - 96×96 PNG favicon URL
+- **`NEXT_PUBLIC_APPLE_TOUCH_ICON_URL`** (Optional) - Apple touch icon URL
+
+**Local development:** Default path-absolute values for the variables above are applied from `dev/env-overrides/local/pwa-favicon.env` (see `pwa-favicon.env.example`); after editing, run `make local_env_setup`.
+
 ## Value Rules
 
 These rules describe acceptable values. The sidecar enforces required presence; value validation is best-effort and may also be enforced at runtime in app logic.

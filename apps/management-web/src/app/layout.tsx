@@ -7,7 +7,6 @@ import Providers from '../providers/Providers';
 import { getLocale } from 'next-intl/server';
 import RuntimeConfigScript from '../components/Head/RuntimeConfigScript';
 import FavIcons from '../components/Head/FavIcons';
-import Manifest from '../components/Head/Manifest';
 import { getConfig } from '../config';
 import { getRuntimeConfig, setRuntimeConfig } from '../config/runtime-config-store';
 import { fetchManagementWebRuntimeConfigFromSidecar } from '../config/runtime-config.server';
@@ -40,7 +39,6 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <title>{brandName}</title>
         <FavIcons />
-        <Manifest />
       </head>
       <body>
         <Providers locale={locale} messages={messages}>

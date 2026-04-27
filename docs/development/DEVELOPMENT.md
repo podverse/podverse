@@ -8,6 +8,10 @@ Use this page as a quick map for development documentation.
 - [IDE-SETUP.md](./IDE-SETUP.md)
 - [CHANGELOGS](./CHANGELOGS/)
 
+## White-label / rebranding
+
+- [REBRANDING-CDN.md](./REBRANDING-CDN.md) — CDN-hosted icons, manifest, and `NEXT_PUBLIC_*` env map
+
 ## Topic folders
 
 - [k8s](./k8s/)

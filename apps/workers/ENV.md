@@ -55,7 +55,7 @@ Add-by-RSS feed parsing (e.g. `mqAddByRSSRunParser`) uses optional HTTP Basic Au
 
 - **`USER_AGENT`** (Required)
   - Non-blank. Must follow format: `BrandName Bot Environment/AppName/Version` and include "Bot" in the first part. Use a deployment-specific value; do not copy another product’s string.
-  - Example: `Example Bot local/Workers/5`
+  - Example: `Example Bot/Workers/5`
   - Used for external API requests and HTTP clients
 
 - **`BRAND_NAME`** (Required)

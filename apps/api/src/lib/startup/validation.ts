@@ -368,7 +368,7 @@ const USER_AGENT_PATTERN = /^[^/]+\/[^/]+\/[^/]+$/;
 
 /**
  * Validates `USER_AGENT` (required, non-blank; no inference from `BRAND_NAME`).
- * Format: `BrandName Bot Environment/AppName/Version`, e.g. `Example Bot local/API/5`
+ * Format: `BrandName Bot Environment/AppName/Version`, e.g. `Example Bot/API/5`
  */
 const validateUserAgent = (): ValidationResult => {
   const raw = (process.env.USER_AGENT ?? '').trim();

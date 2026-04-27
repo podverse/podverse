@@ -26,7 +26,7 @@ These variables are **always required** regardless of configuration:
 
 - **`USER_AGENT`** (Required)
   - Non-blank. Must follow format: `BrandName Bot Environment/AppName/Version` and include "Bot" in the first part. Set an app-specific value for your deployment; do not copy another product’s string.
-  - Example: `Example Bot local/API/5`
+  - Example: `Example Bot/API/5`
   - Used for external API requests
 
 - **`BRAND_NAME`** (Required)

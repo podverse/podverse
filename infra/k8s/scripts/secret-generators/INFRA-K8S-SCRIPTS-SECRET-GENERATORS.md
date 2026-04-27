@@ -24,6 +24,15 @@ This runs the following with `--auto-gen`:
 - `create_mq_secret.sh`
 - `create_workers_add_by_rss_secret.sh`
 
+## Always-present keys (may be empty)
+
+Generated **API** and **add-by-RSS workers** encrypted Secrets keep a stable key set so `sops edit` always shows the same knobs, even when values are blank until you set them.
+
+- **`create_api_secret.sh` → `podverse-*-api-opaque.enc.yaml`**: includes `METABOOST_SIGNING_KEY_PEM` and `METABOOST_APP_ASSERTION_ISS` (optional at runtime; auto-gen leaves them empty). Set both or neither when enabling AppAssertion minting.
+- **`create_workers_add_by_rss_secret.sh` → `podverse-*-workers-add-by-rss-opaque.enc.yaml`**: always includes `ADD_BY_RSS_CREDENTIALS_ENCRYPTION_KEY`. Interactive mode allows an empty placeholder; the API still requires a valid 64-hex key before a healthy start if that env is required by your config.
+
+**Existing** `*.enc.yaml` files from before these keys existed: add the missing keys with empty values in `sops` (or decrypt → edit `stringData` / `data` → re-encrypt) instead of re-running a generator from scratch if you need to preserve other material.
+
 ## Secrets that require external inputs
 
 These **do not** support `--auto-gen` and are **not** in the bulk runner. Run manually when credentials are available:

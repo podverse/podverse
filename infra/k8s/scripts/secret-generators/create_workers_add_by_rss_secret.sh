@@ -58,12 +58,9 @@ if [ "$AUTO_GEN" = true ]; then
 	echo "  ADD_BY_RSS_CREDENTIALS_ENCRYPTION_KEY: [generated]"
 else
 	echo "--- ADD BY RSS ---"
-	read -r -s -p "Enter ADD_BY_RSS_CREDENTIALS_ENCRYPTION_KEY: " ADD_BY_RSS_CREDENTIALS_ENCRYPTION_KEY
+	echo "Enter ADD_BY_RSS_CREDENTIALS_ENCRYPTION_KEY (64 hex chars), or press Enter for an empty placeholder (edit via sops before apply if the API must start)."
+	read -r -s -p "Key: " ADD_BY_RSS_CREDENTIALS_ENCRYPTION_KEY
 	echo ""
-	if [ -z "$ADD_BY_RSS_CREDENTIALS_ENCRYPTION_KEY" ]; then
-		echo "Error: ADD_BY_RSS_CREDENTIALS_ENCRYPTION_KEY required."
-		exit 1
-	fi
 fi
 
 # --- GENERATION ---

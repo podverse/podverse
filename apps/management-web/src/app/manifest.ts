@@ -1,0 +1,42 @@
+import type { MetadataRoute } from 'next';
+
+import { getRuntimeConfig } from '../config/runtime-config-store';
+
+const opt = (v: string | undefined): string | undefined =>
+  v === undefined || v.trim() === '' ? undefined : v.trim();
+
+/**
+ * Web app manifest (PWA). `name` and `short_name` follow `NEXT_PUBLIC_BRAND_NAME`; icon/theme
+ * URLs default under /favicon/* when unset.
+ */
+export default function manifest(): MetadataRoute.Manifest {
+  const { env } = getRuntimeConfig();
+  const name = opt(env.NEXT_PUBLIC_BRAND_NAME) ?? 'Podverse Management';
+  const shortName = name;
+  const icon192 = opt(env.NEXT_PUBLIC_PWA_ICON_192_URL) ?? '/favicon/web-app-manifest-192x192.png';
+  const icon512 = opt(env.NEXT_PUBLIC_PWA_ICON_512_URL) ?? '/favicon/web-app-manifest-512x512.png';
+  const theme = opt(env.NEXT_PUBLIC_PWA_THEME_COLOR) ?? '#ffffff';
+  const background = opt(env.NEXT_PUBLIC_PWA_BACKGROUND_COLOR) ?? '#ffffff';
+
+  return {
+    name,
+    short_name: shortName,
+    icons: [
+      {
+        src: icon192,
+        sizes: '192x192',
+        type: 'image/png',
+        purpose: 'maskable',
+      },
+      {
+        src: icon512,
+        sizes: '512x512',
+        type: 'image/png',
+        purpose: 'maskable',
+      },
+    ],
+    theme_color: theme,
+    background_color: background,
+    display: 'standalone',
+  };
+}

@@ -102,6 +102,7 @@ In `.env` files:
 - **Empty/unset values**: No value after `=`
 - **Alignment with .env.example**: All `.env` files (including `infra/config/local/*.env`) must match the organization, section comments, and variable order of their authoritative `.env.example`; only values may differ
 - **Web and Management Web**: `apps/web/.env.local` and `apps/management-web/.env.local` contain only `RUNTIME_CONFIG_URL`; the runtime-config sidecar uses `apps/web/sidecar/.env` and `apps/management-web/sidecar/.env` (created by `make local_env_setup`)
+- **K8s `source` env (ConfigMap)**: In `infra/k8s/**/source/*.env`, each comment line that documents env var names may reference **at most one** variable; repeat the line if two vars need the same note
 
 ```bash
 # Correct
