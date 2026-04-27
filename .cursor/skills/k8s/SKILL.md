@@ -1,7 +1,7 @@
 ---
 name: podverse-k8s-patterns
 description: Common patterns for Kubernetes manifests in infra/k8s. Use when editing or adding K8s manifests, changing deployment config, adding env vars to ConfigMaps, or working with ArgoCD/Kustomize/SOPS.
-version: 1.0.1
+version: 1.0.3
 ---
 
 # Podverse K8s Development Patterns
@@ -74,9 +74,9 @@ The deployment uses ArgoCD's **App of Apps** pattern:
 alpha-application.yaml → alpha/apps/*.yaml → alpha/<component>/kustomization.yaml → base/<component>/*.yaml
 ```
 
-### Argo CD `Application` YAML filename `ops.yaml` (editors / GitOps repos)
+### Argo CD `Application` YAML named `ops.yaml` (editors / GitOps repos)
 
-Do **not** use the **exact** basename **`ops.yaml`** or **`ops.yml`** for a manifest that is an Argo CD `Application`. The public JSON [Schema Store](https://www.schemastore.org/) fileMatch list reserves those names for a different "Ops configuration" spec, so the YAML language server may show bogus validation (e.g. only certain keys like `actions`, `revision` are "valid"). Use a disambiguating name (e.g. `ops.application.yaml`, `application-ops.yaml`) in any GitOps repository. See the **argocd-yaml-schema-ops-filename** skill in the k.podcastdj.com GitOps repo (`.cursor/skills/argocd-yaml-schema-ops-filename/`) for the same rule.
+The [JSON Schema Store](https://www.schemastore.org/) maps **`ops.yaml` / `ops.yml`** to an unrelated "Ops configuration" spec, so editors can mis-validate a real Argo CD `Application`. **Podverse** uses a **line 1** `# yaml-language-server: $schema=...` modeline in [`infra/k8s/alpha/apps/ops.yaml`](../../../infra/k8s/alpha/apps/ops.yaml). A matching GitOps checkout (e.g. k.podcastdj.com) should add the same **first-line modeline** on `argocd/.../ops.yaml` and may also commit `.vscode/settings.json` for backup. **Prefer the modeline**; rename or user `yaml.schemas` if needed. For the operator GitOps repo, see the **argocd-yaml-schema-ops-filename** skill (`.cursor/skills/` there).
 
 ## Kustomize Usage
 
