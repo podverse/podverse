@@ -1,6 +1,8 @@
 // The root styles must be imported first to ensure the correct order of styles
 import '../styles/index.scss';
 
+import { cookies } from 'next/headers';
+
 import Providers from '../providers/Providers';
 import { getLocale } from 'next-intl/server';
 import RuntimeConfigScript from '../components/Head/RuntimeConfigScript';
@@ -9,6 +11,7 @@ import Manifest from '../components/Head/Manifest';
 import { getConfig } from '../config';
 import { getRuntimeConfig, setRuntimeConfig } from '../config/runtime-config-store';
 import { fetchManagementWebRuntimeConfigFromSidecar } from '../config/runtime-config.server';
+import { toUITheme, UI_THEME_COOKIE } from '../utils/uiTheme';
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   let runtimeConfig = getRuntimeConfig();
@@ -26,8 +29,11 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const locale = await getLocale();
   const messages = (await import(`../../i18n/originals/${locale}.json`)).default;
 
+  const cookieStore = await cookies();
+  const ssrUITheme = toUITheme(cookieStore.get(UI_THEME_COOKIE)?.value);
+
   return (
-    <html lang={locale}>
+    <html lang={locale} data-ui-theme={ssrUITheme}>
       <head>
         <RuntimeConfigScript runtimeConfig={runtimeConfig} />
         <meta charSet="utf-8" />

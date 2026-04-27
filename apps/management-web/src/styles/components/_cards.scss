@@ -1,17 +1,17 @@
-@use '../theme/variables' as theme;
+@use '../../../../../packages/ui/src/styles/variables' as *;
 
 .card {
-  background-color: theme.$color-background;
-  border-radius: theme.$border-radius-md;
-  box-shadow: theme.$shadow-card;
+  background-color: var(--background-color-secondary);
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow-card);
 }
 
 .card-padding {
-  padding: theme.$spacing-xl;
+  padding: var(--spacing-4xl);
 }
 
 .card-bordered {
-  border: theme.$border-width solid theme.$color-border;
-  border-radius: theme.$border-radius-md;
-  background-color: theme.$color-background-card;
+  border: 1px solid var(--border-color-tertiary);
+  border-radius: var(--border-radius);
+  background-color: var(--background-color-tertiary);
 }

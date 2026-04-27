@@ -45,7 +45,8 @@
     "content": "Content",
     "settings": "Settings",
     "userMenu": "Account menu",
-    "userRole": "Role: {role}"
+    "userRole": "Role: {role}",
+    "mySettings": "My Settings"
   },
   "dashboard": {
     "title": "Dashboard",
@@ -233,6 +234,30 @@
       "normal": "Normal / batch",
       "long_running": "Long-running consumer",
       "dev_only": "Dev only"
+    }
+  },
+  "language": {
+    "language": "Language",
+    "languages": {
+      "en-US": "English",
+      "es": "Spanish",
+      "fr": "French",
+      "el-GR": "Greek"
+    }
+  },
+  "settings": {
+    "title": "Settings",
+    "subtitle": "Choose your language and theme",
+    "theme": {
+      "label": "Theme",
+      "options": {
+        "dark": "Dark",
+        "light": "Light",
+        "dracula": "Dracula"
+      }
+    },
+    "language": {
+      "label": "Language"
     }
   }
 }

@@ -1,36 +1,36 @@
-@use '../../../styles/theme/variables' as theme;
+@use '../../../../../../packages/ui/src/styles/variables' as *;
 
 .headerActions {
   display: flex;
   align-items: center;
-  gap: theme.$spacing-md;
+  gap: var(--spacing-lg);
 }
 
 .breadcrumbLink {
-  font-size: theme.$font-size-base;
-  color: theme.$color-primary;
+  font-size: var(--font-size-base);
+  color: var(--border-color-primary);
   text-decoration: none;
 }
 
 .createButton {
   display: inline-block;
-  padding: theme.$spacing-xs theme.$spacing-md;
-  background-color: theme.$color-primary;
-  color: #fff;
+  padding: var(--spacing-md) var(--spacing-lg);
+  background-color: var(--border-color-primary);
+  color: var(--text-color-tertiary);
   text-decoration: none;
-  border-radius: theme.$border-radius-sm;
-  font-size: theme.$font-size-base;
-  font-weight: theme.$font-weight-medium;
+  border-radius: var(--border-radius);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-medium);
 }
 
 .loadingText {
-  font-size: theme.$font-size-lg;
-  color: theme.$color-text-secondary;
+  font-size: var(--font-size-lg);
+  color: var(--text-color-secondary);
 }
 
 .errorText {
-  font-size: theme.$font-size-lg;
-  color: theme.$color-error;
+  font-size: var(--font-size-lg);
+  color: var(--text-color-danger);
 }
 
 .tableWrapper {
@@ -40,34 +40,34 @@
 .table {
   width: 100%;
   border-collapse: collapse;
-  font-size: theme.$font-size-base;
+  font-size: var(--font-size-base);
 
   th,
   td {
-    padding: theme.$spacing-sm theme.$spacing-md;
+    padding: var(--spacing-base) var(--spacing-lg);
     text-align: left;
-    border-bottom: theme.$border-width solid theme.$color-border;
+    border-bottom: 1px solid var(--border-color-tertiary);
   }
 
   th {
-    font-weight: theme.$font-weight-semibold;
-    color: theme.$color-text-secondary;
+    font-weight: var(--font-weight-bold);
+    color: var(--text-color-secondary);
     white-space: nowrap;
   }
 }
 
 .superuser {
-  font-weight: theme.$font-weight-semibold;
-  color: theme.$color-primary;
+  font-weight: var(--font-weight-bold);
+  color: var(--border-color-primary);
 }
 
 .admin {
-  color: theme.$color-text-primary;
+  color: var(--text-color-primary);
 }
 
 .editLink {
-  font-size: theme.$font-size-base;
-  color: theme.$color-primary;
+  font-size: var(--font-size-base);
+  color: var(--border-color-primary);
   text-decoration: none;
-  font-weight: theme.$font-weight-medium;
+  font-weight: var(--font-weight-medium);
 }

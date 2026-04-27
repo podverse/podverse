@@ -1,78 +1,78 @@
-@use '../../../styles/theme/variables' as theme;
+@use '../../../../../../packages/ui/src/styles/variables' as *;
 
 .headerActions {
   display: flex;
   align-items: center;
-  gap: theme.$spacing-md;
+  gap: var(--spacing-lg);
 }
 
 .createButton {
   display: inline-block;
-  padding: theme.$spacing-xs theme.$spacing-md;
-  background-color: theme.$color-primary;
-  color: theme.$color-on-primary;
+  padding: var(--spacing-md) var(--spacing-lg);
+  background-color: var(--border-color-primary);
+  color: var(--text-color-tertiary);
   text-decoration: none;
-  border-radius: theme.$border-radius-sm;
-  font-size: theme.$font-size-base;
-  font-weight: theme.$font-weight-medium;
+  border-radius: var(--border-radius);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-medium);
 }
 
 .loadingText {
-  font-size: theme.$font-size-lg;
-  color: theme.$color-text-secondary;
+  font-size: var(--font-size-lg);
+  color: var(--text-color-secondary);
 }
 
 .errorText {
-  font-size: theme.$font-size-lg;
-  color: theme.$color-error;
+  font-size: var(--font-size-lg);
+  color: var(--text-color-danger);
 }
 
 .emptyText {
-  font-size: theme.$font-size-lg;
-  color: theme.$color-text-secondary;
-  padding: theme.$spacing-lg 0;
+  font-size: var(--font-size-lg);
+  color: var(--text-color-secondary);
+  padding: var(--spacing-2xl) 0;
 }
 
 .editLink {
-  font-size: theme.$font-size-base;
-  color: theme.$color-primary;
+  font-size: var(--font-size-base);
+  color: var(--border-color-primary);
   text-decoration: none;
-  font-weight: theme.$font-weight-medium;
-  margin-right: theme.$spacing-md;
+  font-weight: var(--font-weight-medium);
+  margin-right: var(--spacing-lg);
 }
 
 .deleteButton {
-  font-size: theme.$font-size-base;
-  color: theme.$color-error;
+  font-size: var(--font-size-base);
+  color: var(--text-color-danger);
   background: none;
   border: none;
   cursor: pointer;
-  font-weight: theme.$font-weight-medium;
+  font-weight: var(--font-weight-medium);
   padding: 0;
 }
 
 .searchInput {
-  padding: theme.$spacing-xs theme.$spacing-md;
-  border: theme.$border-width solid theme.$color-border;
-  border-radius: theme.$border-radius-sm;
-  font-size: theme.$font-size-base;
+  padding: var(--spacing-md) var(--spacing-lg);
+  border: 1px solid var(--border-color-tertiary);
+  border-radius: var(--border-radius);
+  font-size: var(--font-size-base);
   width: 250px;
-  margin-bottom: theme.$spacing-md;
+  margin-bottom: var(--spacing-lg);
 }
 
 .verifiedBadge {
   font-size: 0.8rem;
   padding: 0.15rem 0.4rem;
-  border-radius: theme.$border-radius-sm;
-  font-weight: theme.$font-weight-medium;
+  border-radius: var(--border-radius);
+  font-weight: var(--font-weight-medium);
 }
 
 .verifiedYes {
-  background-color: theme.$color-success-bg;
-  color: theme.$color-success;
+  background-color: var(--background-color-success);
+  color: var(--text-color-success);
 }
 
 .verifiedNo {
-  background-color: theme.$color-warning-bg;
-  color: theme.$color-warning;
+  background-color: var(--background-color-warning);
+  color: var(--text-color-warning);
 }

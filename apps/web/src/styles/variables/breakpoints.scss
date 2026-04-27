@@ -1,17 +1,1 @@
-$breakpoint-xs-min: 0px;
-$breakpoint-xs-max: 575px;
-
-$breakpoint-sm-min: 576px;
-$breakpoint-sm-max: 767px;
-
-$breakpoint-md-min: 768px;
-$breakpoint-md-max: 991px;
-
-$breakpoint-lg-min: 992px;
-$breakpoint-lg-max: 1199px;
-
-$breakpoint-xl-min: 1200px;
-$breakpoint-xl-max: 1399px;
-
-$breakpoint-xxl-min: 1400px;
-$breakpoint-xxl-max: 1599px;
+@forward '../../../../../packages/ui/src/styles/breakpoints';

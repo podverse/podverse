@@ -1,53 +1,49 @@
-@use '../../../../styles/theme/variables' as theme;
+@use '../../../../../../../packages/ui/src/styles/variables' as *;
 
 .header {
-  margin-bottom: theme.$spacing-lg;
+  margin-bottom: var(--spacing-2xl);
 }
 
 .bread {
-  margin: theme.$spacing-xs 0 0 0;
-  color: theme.$color-text-secondary;
-  font-size: theme.$font-size-xs;
+  margin: var(--spacing-md) 0 0 0;
+  color: var(--text-color-secondary);
+  font-size: var(--font-size-xs);
 }
 
 .breadLink {
-  color: theme.$color-primary;
+  color: var(--border-color-primary);
   text-decoration: none;
 }
 
 .h2 {
   margin-top: 0;
-  margin-bottom: theme.$spacing-sm;
-  font-size: theme.$font-size-lg;
+  margin-bottom: var(--spacing-base);
+  font-size: var(--font-size-lg);
 }
 
-// Subheadings inside the single “this feed” card: context vs. form
 .h3 {
-  margin: 0 0 theme.$spacing-sm 0;
-  font-size: theme.$font-size-base;
-  font-weight: theme.$font-weight-semibold;
-  color: theme.$color-text-primary;
+  margin: 0 0 var(--spacing-base) 0;
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-bold);
+  color: var(--text-color-primary);
 }
 
-// First subsection (“On record”) under the main card title
 .h2 + .h3 {
-  margin-top: theme.$spacing-sm;
+  margin-top: var(--spacing-base);
 }
 
 .section {
-  margin-bottom: theme.$spacing-lg;
+  margin-bottom: var(--spacing-2xl);
 }
 
-// Two real rows, three columns: label row and control row stay aligned; no flex cross-axis drift.
 .lookupGrid {
   display: grid;
   grid-template-columns: minmax(9rem, 1fr) minmax(6rem, 1fr) auto;
-  row-gap: theme.$spacing-xs;
-  column-gap: theme.$spacing-md;
+  row-gap: var(--spacing-md);
+  column-gap: var(--spacing-lg);
   width: 100%;
   align-items: start;
 
-  // Fill columns 1–2; keep column 3 shrink-wrapped to the button
   & > *:nth-child(4),
   & > *:nth-child(5) {
     width: 100%;
@@ -55,12 +51,11 @@
   }
 }
 
-// Invisible label slot: match FormLabel metrics (FormLabel.module) so the grid rows line up.
 .lookupActionLabel {
   display: block;
-  margin: 0 0 theme.$spacing-xs 0;
-  font-size: theme.$font-size-xs;
-  font-weight: theme.$font-weight-medium;
+  margin: 0 0 var(--spacing-md) 0;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
   line-height: 1.3;
   visibility: hidden;
   user-select: none;
@@ -71,24 +66,23 @@
 .dl {
   display: grid;
   grid-template-columns: minmax(10rem, 1fr) 2fr;
-  gap: theme.$spacing-xs theme.$spacing-md;
-  margin: 0 0 theme.$spacing-sm 0;
+  gap: var(--spacing-md) var(--spacing-lg);
+  margin: 0 0 var(--spacing-base) 0;
 }
 
 .dbLink {
   margin: 0 0 0 0;
 }
 
-// Groups “on record” and “set new” in one card: separator before the form block
 .feedUpdateForm {
-  margin-top: theme.$spacing-md;
-  padding-top: theme.$spacing-md;
-  border-top: 1px solid theme.$color-border-light;
+  margin-top: var(--spacing-lg);
+  padding-top: var(--spacing-lg);
+  border-top: 1px solid var(--border-color-opaque);
 }
 
 .dl dt {
-  color: theme.$color-text-secondary;
-  font-size: theme.$font-size-xs;
+  color: var(--text-color-secondary);
+  font-size: var(--font-size-xs);
   margin: 0;
 }
 
@@ -97,27 +91,26 @@
 }
 
 .muted {
-  font-size: theme.$font-size-xs;
-  color: theme.$color-text-primary;
+  font-size: var(--font-size-xs);
+  color: var(--text-color-primary);
   word-break: break-all;
 }
 
 .inlinelink {
-  color: theme.$color-primary;
+  color: var(--border-color-primary);
 }
 
 .select {
   min-width: 10rem;
   max-width: 100%;
-  padding: theme.$spacing-sm;
-  font-size: theme.$font-size-base;
-  border: theme.$border-width solid theme.$color-border;
-  border-radius: theme.$border-radius-sm;
-  background-color: theme.$color-background;
+  padding: var(--spacing-base);
+  font-size: var(--font-size-base);
+  border: 1px solid var(--border-color-tertiary);
+  border-radius: var(--border-radius);
+  background-color: var(--background-color-secondary);
   box-sizing: border-box;
 }
 
-// Same box model and height as FormInput in this row (Button gets width/height in inlineControlButton).
 .inlineControl {
   box-sizing: border-box;
   min-height: 2.75rem;
@@ -126,7 +119,7 @@
 
 .inlineControlButton {
   @extend .inlineControl;
-  width: auto !important; // override Button (width: 100%) so the column is auto / button-sized
+  width: auto !important;
   min-width: 7rem;
 }
 
@@ -134,8 +127,8 @@
   display: block;
   width: 100%;
   box-sizing: border-box;
-  padding: theme.$spacing-sm;
-  font-size: theme.$font-size-base;
+  padding: var(--spacing-base);
+  font-size: var(--font-size-base);
   min-height: 6rem;
 }
 
@@ -144,28 +137,28 @@
 }
 
 .readonlyHint {
-  margin: theme.$spacing-md 0 0 0;
-  color: theme.$color-text-secondary;
-  font-size: theme.$font-size-xs;
+  margin: var(--spacing-lg) 0 0 0;
+  color: var(--text-color-secondary);
+  font-size: var(--font-size-xs);
 }
 
 .hintSmall {
-  margin: theme.$spacing-sm 0 0 0;
-  color: theme.$color-text-secondary;
-  font-size: theme.$font-size-xs;
+  margin: var(--spacing-base) 0 0 0;
+  color: var(--text-color-secondary);
+  font-size: var(--font-size-xs);
 }
 
 .confirm {
-  border: 1px solid theme.$color-border;
-  border-radius: theme.$border-radius-md;
-  padding: theme.$spacing-md;
-  margin: theme.$spacing-md 0;
-  background: theme.$color-background-light;
+  border: 1px solid var(--border-color-tertiary);
+  border-radius: var(--border-radius);
+  padding: var(--spacing-lg);
+  margin: var(--spacing-lg) 0;
+  background: var(--background-color-tertiary);
 }
 
 .confirmRow {
   display: flex;
   flex-wrap: wrap;
-  gap: theme.$spacing-sm;
-  margin-top: theme.$spacing-sm;
+  gap: var(--spacing-base);
+  margin-top: var(--spacing-base);
 }

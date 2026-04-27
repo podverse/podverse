@@ -1,8 +1,1 @@
-@mixin editingButtons {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-md);
-  margin-right: var(--spacing-lg);
-  font-size: var(--font-size-lg);
-  cursor: pointer;
-}
+@forward '../../../../../packages/ui/src/styles/mixins';

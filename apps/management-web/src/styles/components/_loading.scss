@@ -1,5 +1,5 @@
-@use '../theme/variables' as theme;
+@use '../../../../../packages/ui/src/styles/variables' as *;
 
 .loading-text {
-  color: theme.$color-text-secondary;
+  color: var(--text-color-secondary);
 }

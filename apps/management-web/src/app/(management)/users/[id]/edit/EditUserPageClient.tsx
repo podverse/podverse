@@ -20,6 +20,7 @@ type Props = {
 
 export function EditUserPageClient({ userId, initialTab }: Props) {
   const t = useTranslations('users');
+  const ta = useTranslations('auth');
   const tc = useTranslations('common');
 
   const [user, setUser] = useState<User | null>(null);
@@ -189,7 +190,7 @@ export function EditUserPageClient({ userId, initialTab }: Props) {
           {passwordError && <p className={styles.errorText}>{passwordError}</p>}
 
           <div className={styles.formGroup}>
-            <label className={styles.label}>{tc('newPassword') || 'New Password'}</label>
+            <label className={styles.label}>{ta('newPassword')}</label>
             <input
               className={styles.input}
               type="password"

@@ -9,7 +9,7 @@
 }
 
 .pageButton {
-  padding: $spacing-xs * 0.7 $spacing-sm;
+  padding: calc(var(--spacing-md) * 0.7) $spacing-sm;
   border: $border-width solid $color-border;
   border-radius: $border-radius-sm;
   background: $color-background;
@@ -38,7 +38,7 @@
   border-color: $color-primary;
 
   &:hover {
-    background: darken($color-primary, 8%);
+    background: var(--button-primary-bg-hover);
   }
 }
 

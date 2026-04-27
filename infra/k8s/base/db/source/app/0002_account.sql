@@ -9,10 +9,12 @@ CREATE TABLE account (
     id SERIAL PRIMARY KEY,
     id_text nano_id_v2 UNIQUE NOT NULL,
     verified BOOLEAN DEFAULT FALSE,
-    sharable_status_id INTEGER NOT NULL REFERENCES sharable_status(id)
+    sharable_status_id INTEGER NOT NULL REFERENCES sharable_status(id),
+    created_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
 
 CREATE INDEX idx_account_sharable_status_id ON account(sharable_status_id);
+CREATE INDEX idx_account_created_at ON account(created_at DESC);
 
 CREATE TABLE account_credentials (
     id SERIAL PRIMARY KEY,

@@ -1,19 +1,20 @@
-@use '../theme/variables' as theme;
+@use '../../../../../packages/ui/src/styles/variables' as *;
 
 .button {
   width: 100%;
-  padding: theme.$spacing-sm;
-  font-size: theme.$font-size-base;
-  font-weight: theme.$font-weight-medium;
-  color: theme.$color-background;
-  background-color: theme.$color-primary;
+  padding: var(--spacing-base);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-medium);
+  color: var(--text-color-tertiary);
+  background-color: var(--border-color-primary);
   border: none;
-  border-radius: theme.$border-radius-sm;
+  border-radius: var(--border-radius);
   cursor: pointer;
-  transition: background-color theme.$transition-default;
+  transition: background-color var(--transition-default);
 
   &:disabled {
-    background-color: theme.$color-disabled;
+    background-color: var(--text-color-secondary);
+    opacity: 0.6;
     cursor: not-allowed;
   }
 

@@ -1,24 +1,24 @@
-@use '../styles/theme/variables' as theme;
+@use '../../../../packages/ui/src/styles/variables' as *;
 
 .loginCard {
   width: 100%;
   max-width: 400px;
-  padding: theme.$spacing-xl;
+  padding: var(--spacing-4xl);
 }
 
 .loginHeader {
-  margin-bottom: theme.$spacing-xl;
+  margin-bottom: var(--spacing-4xl);
   text-align: center;
 }
 
 .loginTitle {
-  font-size: theme.$font-size-xl;
-  font-weight: theme.$font-weight-semibold;
-  margin-bottom: theme.$spacing-xs;
-  color: theme.$color-text-primary;
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+  margin-bottom: var(--spacing-md);
+  color: var(--text-color-primary);
 }
 
 .loginSubtitle {
-  color: theme.$color-text-secondary;
-  font-size: theme.$font-size-xs;
+  color: var(--text-color-secondary);
+  font-size: var(--font-size-xs);
 }

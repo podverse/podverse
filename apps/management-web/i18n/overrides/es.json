@@ -7,22 +7,37 @@
     "loading": "",
     "error": "",
     "save": "",
+    "saveChanges": "",
+    "saving": "",
     "cancel": "",
     "delete": "",
     "edit": "",
     "create": "",
+    "creating": "",
     "search": "",
     "back": "",
     "submit": "",
     "confirm": "",
     "yes": "",
-    "no": ""
+    "no": "",
+    "actions": "",
+    "view": "",
+    "none": "",
+    "new": "",
+    "createNew": "",
+    "readOnly": "",
+    "readOnlyTable": "",
+    "noDataFound": "",
+    "previous": "",
+    "next": ""
   },
   "auth": {
     "login": "",
     "logout": "",
     "email": "",
-    "password": ""
+    "password": "",
+    "newPassword": "",
+    "leaveBlankToKeepCurrent": ""
   },
   "nav": {
     "dashboard": "",
@@ -30,12 +45,219 @@
     "content": "",
     "settings": "",
     "userMenu": "",
-    "userRole": ""
+    "userRole": "",
+    "mySettings": ""
   },
   "dashboard": {
+    "title": "",
+    "welcome": "",
+    "feedFlagStatus": {
+      "title": "",
+      "description": ""
+    },
     "stats": {
       "title": "",
       "description": ""
+    },
+    "database": {
+      "title": "",
+      "description": ""
+    },
+    "admins": {
+      "title": "",
+      "description": ""
+    },
+    "workers": {
+      "title": "",
+      "description": ""
+    },
+    "users": {
+      "title": "",
+      "description": ""
+    }
+  },
+  "admins": {
+    "title": "",
+    "createAdmin": "",
+    "editAdmin": "",
+    "editAdminItem": "",
+    "failedToLoad": "",
+    "failedToCreate": "",
+    "failedToUpdate": "",
+    "createdSuccessfully": "",
+    "updatedSuccessfully": "",
+    "tableHeaders": {
+      "id": "",
+      "email": "",
+      "role": "",
+      "feeds": "",
+      "flagStatuses": "",
+      "statusReasons": "",
+      "admins": "",
+      "stats": "",
+      "actions": ""
+    },
+    "permissions": {
+      "legend": "",
+      "resource": "",
+      "create": "",
+      "read": "",
+      "update": "",
+      "deletePerm": "",
+      "feeds": "",
+      "flagStatuses": "",
+      "statusReasons": "",
+      "admins": "",
+      "stats": ""
+    }
+  },
+  "users": {
+    "title": "",
+    "createUser": "",
+    "failedToCreate": "",
+    "failedToLoad": "",
+    "failedToDelete": "",
+    "failedToUpdate": "",
+    "createdSuccessfully": "",
+    "createdWithLink": "",
+    "updatedSuccessfully": "",
+    "deletedSuccessfully": "",
+    "inviteLinkLabel": "",
+    "copyLink": "",
+    "linkCopied": "",
+    "backToList": "",
+    "usernameOptional": "",
+    "emailOptional": "",
+    "passwordOptional": "",
+    "emailOrUsernameHint": "",
+    "emailOrUsernameRequired": "",
+    "invalidUsername": "",
+    "invalidEmail": "",
+    "passwordMinLength": "",
+    "searchPlaceholder": "",
+    "noResults": "",
+    "noUsers": "",
+    "confirmDelete": "",
+    "userDetail": "",
+    "editUser": "",
+    "verified": "",
+    "unverified": "",
+    "profile": "",
+    "changePassword": "",
+    "passwordChanged": "",
+    "inviteLinks": "",
+    "noActiveInviteLinks": "",
+    "activeInviteLink": "",
+    "expiresAt": "",
+    "revokeLink": "",
+    "generateInviteLink": "",
+    "tableHeaders": {
+      "id": "",
+      "email": "",
+      "username": "",
+      "verified": "",
+      "createdAt": "",
+      "actions": ""
+    }
+  },
+  "database": {
+    "title": "",
+    "failedToLoadTables": "",
+    "failedToLoadMeta": "",
+    "failedToLoadData": "",
+    "failedToCreateRow": "",
+    "failedToUpdateRow": "",
+    "failedToDeleteRow": "",
+    "rowUpdatedSuccessfully": "",
+    "loadingTables": "",
+    "createRowTitle": "",
+    "rowDetailTitle": "",
+    "manageTableData": "",
+    "fieldCount": "",
+    "paginationSummary": "",
+    "paginationSummarySingular": "",
+    "deleteConfirm": "",
+    "tables": {
+      "feed": {
+        "label": "",
+        "labelSingular": "",
+        "description": ""
+      },
+      "feed_flag_status": {
+        "label": "",
+        "labelSingular": "",
+        "description": ""
+      },
+      "feed_flag_status_reason": {
+        "label": "",
+        "labelSingular": "",
+        "description": ""
+      }
+    }
+  },
+  "workers": {
+    "title": "",
+    "backToDashboard": "",
+    "comingSoon": "",
+    "comingSoonDescription": "",
+    "intro": "",
+    "copiedToClipboard": "",
+    "copyFailed": "",
+    "superuserOnly": "",
+    "superuserOnlyDescription": "",
+    "loadingCommands": "",
+    "failedToLoad": "",
+    "searchPlaceholder": "",
+    "commandCount": "",
+    "noMatchingCommands": "",
+    "tableHeaders": {
+      "command": "",
+      "description": "",
+      "category": "",
+      "risk": "",
+      "actions": ""
+    },
+    "copyExample": "",
+    "openRelatedTool": "",
+    "categories": {
+      "archival": "",
+      "on_demand_parser": "",
+      "image": "",
+      "mq": "",
+      "orm": "",
+      "parser": "",
+      "podcast_index": "",
+      "stats": "",
+      "dev": ""
+    },
+    "riskLabels": {
+      "normal": "",
+      "long_running": "",
+      "dev_only": ""
+    }
+  },
+  "language": {
+    "language": "",
+    "languages": {
+      "en-US": "",
+      "es": "",
+      "fr": "",
+      "el-GR": ""
+    }
+  },
+  "settings": {
+    "title": "",
+    "subtitle": "",
+    "theme": {
+      "label": "",
+      "options": {
+        "dark": "",
+        "light": "",
+        "dracula": ""
+      }
+    },
+    "language": {
+      "label": ""
     }
   }
 }

@@ -556,7 +556,13 @@
     "changing_email_address": "Αλλαγή διεύθυνσης email...",
     "change_email_address_email_failed": "Αποτυχία αλλαγής email. Ο σύνδεσμος επιβεβαίωσης μπορεί να έχει λήξει. Παρακαλώ προσπαθήστε ξανά.",
     "change_email_address_email_success": "Η διεύθυνση email άλλαξε με επιτυχία. Μπορείτε τώρα να συνδεθείτε με τη νέα σας διεύθυνση email.",
-    "contact_only_text_before": "Για να δημιουργήσετε έναν λογαριασμό, παρακαλώ επικοινωνήστε με την υποστήριξη στο"
+    "contact_only_text_before": "Για να δημιουργήσετε έναν λογαριασμό, παρακαλώ επικοινωνήστε με την υποστήριξη στο",
+    "username": "Όνομα χρήστη",
+    "email_or_username": "Email ή όνομα χρήστη",
+    "set_password": "Ορισμός Κωδικού Πρόσβασης",
+    "set_password_complete_message": "Ο κωδικός πρόσβασης έχει οριστεί με επιτυχία. Μπορείτε τώρα να συνδεθείτε.",
+    "set_password_email_optional": "Email (προαιρετικό)",
+    "set_password_email_required": "Email"
   },
   "membership": {
     "membership": "Μέλος",

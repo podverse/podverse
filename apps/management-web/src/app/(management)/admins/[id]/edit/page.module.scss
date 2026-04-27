@@ -1,20 +1,20 @@
-@use '../../../../../styles/theme/variables' as theme;
+@use '../../../../../../../../packages/ui/src/styles/variables' as *;
 
 .breadcrumbs {
   display: flex;
   align-items: center;
-  gap: theme.$spacing-xs;
-  font-size: theme.$font-size-base;
-  color: theme.$color-text-secondary;
+  gap: var(--spacing-md);
+  font-size: var(--font-size-base);
+  color: var(--text-color-secondary);
 }
 
 .breadcrumbLink {
-  color: theme.$color-primary;
+  color: var(--border-color-primary);
   text-decoration: none;
 }
 
 .breadcrumbSep {
-  color: theme.$color-text-secondary;
+  color: var(--text-color-secondary);
 }
 
 .form {
@@ -22,33 +22,33 @@
 }
 
 .formGroup {
-  margin-bottom: theme.$spacing-md;
+  margin-bottom: var(--spacing-lg);
 }
 
 .label {
   display: block;
-  font-weight: theme.$font-weight-medium;
-  margin-bottom: theme.$spacing-xs;
+  font-weight: var(--font-weight-medium);
+  margin-bottom: var(--spacing-md);
 }
 
 .input {
   width: 100%;
-  padding: theme.$spacing-sm;
-  border: theme.$border-width solid theme.$color-border;
-  border-radius: theme.$border-radius-sm;
-  font-size: theme.$font-size-base;
+  padding: var(--spacing-base);
+  border: 1px solid var(--border-color-tertiary);
+  border-radius: var(--border-radius);
+  font-size: var(--font-size-base);
 }
 
 .fieldset {
-  border: theme.$border-width solid theme.$color-border;
-  border-radius: theme.$border-radius-sm;
-  padding: theme.$spacing-md;
-  margin-bottom: theme.$spacing-md;
+  border: 1px solid var(--border-color-tertiary);
+  border-radius: var(--border-radius);
+  padding: var(--spacing-lg);
+  margin-bottom: var(--spacing-lg);
 }
 
 .fieldsetLegend {
-  font-weight: theme.$font-weight-semibold;
-  padding: 0 theme.$spacing-xs;
+  font-weight: var(--font-weight-bold);
+  padding: 0 var(--spacing-md);
 }
 
 .permTable {
@@ -57,42 +57,42 @@
 
   th,
   td {
-    padding: theme.$spacing-xs theme.$spacing-sm;
+    padding: var(--spacing-md) var(--spacing-base);
     text-align: center;
-    border-bottom: theme.$border-width solid theme.$color-border-light;
+    border-bottom: 1px solid var(--border-color-opaque);
   }
 
   th:first-child,
   td:first-child {
     text-align: left;
-    font-weight: theme.$font-weight-medium;
+    font-weight: var(--font-weight-medium);
   }
 }
 
 .errorText {
-  color: theme.$color-error;
-  font-size: theme.$font-size-base;
+  color: var(--text-color-danger);
+  font-size: var(--font-size-base);
 }
 
 .successText {
-  color: #2a7a2a;
-  font-size: theme.$font-size-base;
+  color: var(--text-color-success);
+  font-size: var(--font-size-base);
 }
 
 .formActions {
   display: flex;
   align-items: center;
-  gap: theme.$spacing-md;
+  gap: var(--spacing-lg);
 }
 
 .submitButton {
-  padding: theme.$spacing-sm theme.$spacing-lg;
-  background-color: theme.$color-primary;
-  color: #fff;
+  padding: var(--spacing-base) var(--spacing-2xl);
+  background-color: var(--border-color-primary);
+  color: var(--text-color-tertiary);
   border: none;
-  border-radius: theme.$border-radius-sm;
-  font-size: theme.$font-size-base;
-  font-weight: theme.$font-weight-medium;
+  border-radius: var(--border-radius);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-medium);
   cursor: pointer;
 
   &:disabled {
@@ -102,7 +102,7 @@
 }
 
 .cancelLink {
-  font-size: theme.$font-size-base;
-  color: theme.$color-text-secondary;
+  font-size: var(--font-size-base);
+  color: var(--text-color-secondary);
   text-decoration: none;
 }

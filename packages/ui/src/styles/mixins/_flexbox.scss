@@ -1,0 +1,41 @@
+// Flexbox utility mixins for common layout patterns
+
+@mixin flexCenter {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@mixin flexBetween {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+@mixin flexColumn($gap: null) {
+  display: flex;
+  flex-direction: column;
+  @if $gap {
+    gap: $gap;
+  }
+}
+
+@mixin flexRow($gap: null) {
+  display: flex;
+  flex-direction: row;
+  @if $gap {
+    gap: $gap;
+  }
+}
+
+@mixin flexStart {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+@mixin flexEnd {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}

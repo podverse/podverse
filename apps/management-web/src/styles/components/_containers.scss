@@ -1,9 +1,9 @@
-@use '../theme/variables' as theme;
+@use '../../../../../packages/ui/src/styles/variables' as *;
 
 .center-container {
   min-height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: theme.$color-background-light;
+  background-color: var(--background-color-tertiary);
 }

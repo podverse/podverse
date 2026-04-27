@@ -1,5 +1,1 @@
-@mixin headerStyles {
-  background-color: var(--background-color-primary);
-  background-image: var(--background-gradient-primary);
-  padding: var(--header-padding);
-}
+@forward '../../../../../packages/ui/src/styles/mixins';

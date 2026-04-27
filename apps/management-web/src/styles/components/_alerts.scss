@@ -1,15 +1,15 @@
-@use '../theme/variables' as theme;
+@use '../../../../../packages/ui/src/styles/variables' as *;
 
 .alert {
-  margin-bottom: theme.$spacing-md;
-  padding: theme.$spacing-sm;
-  border-radius: theme.$border-radius-sm;
-  font-size: theme.$font-size-xs;
+  margin-bottom: var(--spacing-lg);
+  padding: var(--spacing-base);
+  border-radius: var(--border-radius);
+  font-size: var(--font-size-xs);
 }
 
 .alert-error {
   @extend .alert;
-  background-color: theme.$color-error-bg;
-  border: theme.$border-width solid theme.$color-error-border;
-  color: theme.$color-error;
+  background-color: var(--background-color-error);
+  border: 1px solid var(--border-color-error);
+  color: var(--text-color-danger);
 }

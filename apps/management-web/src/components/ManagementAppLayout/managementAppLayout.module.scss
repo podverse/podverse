@@ -1,8 +1,8 @@
-@use '../../styles/theme/variables' as theme;
+@use '../../../../../packages/ui/src/styles/variables' as *;
 
 .brandLink {
-  font-size: theme.$font-size-lg;
-  font-weight: theme.$font-weight-semibold;
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
   text-decoration: none;
-  color: theme.$color-text-primary;
+  color: var(--text-color-primary);
 }
