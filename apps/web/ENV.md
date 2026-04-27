@@ -146,7 +146,7 @@ The installable app manifest is served from **`/manifest.webmanifest`** (`app/ma
 
 ### Notifications
 
-- **`NEXT_PUBLIC_WEBPUSH_VAPID_PUBLIC_KEY`** (Optional) - WebPush VAPID public key for browser notifications
+- **`NEXT_PUBLIC_WEBPUSH_VAPID_PUBLIC_KEY`** (Optional) - WebPush VAPID **public** key for browser notifications (from `npx web-push generate-vapid-keys`). The **private** key is never set here: on Kubernetes it lives in the workers WebPush Secret `podverse-workers-webpush-opaque` (see workers/API env docs); workers and API load it via `envFrom`.
 
 ### Account
 

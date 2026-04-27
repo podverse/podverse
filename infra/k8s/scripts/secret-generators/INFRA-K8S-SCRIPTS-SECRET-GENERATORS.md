@@ -40,6 +40,7 @@ These **do not** support `--auto-gen` and are **not** in the bulk runner. Run ma
 - `create_api.podcastindex.org_secret.sh` — Podcast Index API keys
 - `create_firebase_secret.sh` — `firebase-key.json` file
 - `create_workers_digital_ocean_secret.sh` — DigitalOcean Spaces access/secret keys
+- `create_workers_webpush_secret.sh` — `WEBPUSH_VAPID_PRIVATE_KEY` (pair with `npx web-push generate-vapid-keys` + public key in ConfigMap / `NEXT_PUBLIC_WEBPUSH_VAPID_PUBLIC_KEY` for web)
 
 ## GitHub Container Registry pull secret (GHCR)
 

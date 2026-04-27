@@ -34,6 +34,7 @@ MANUAL_SCRIPTS=(
 	"create_api.podcastindex.org_secret.sh  (requires Podcast Index API keys)"
 	"create_firebase_secret.sh              (requires firebase-key.json file)"
 	"create_workers_digital_ocean_secret.sh (requires DigitalOcean Spaces access/secret keys)"
+	"create_workers_webpush_secret.sh       (requires VAPID private key from web-push / pair with public in ConfigMap)"
 )
 
 # -------------------------------------------------------------------

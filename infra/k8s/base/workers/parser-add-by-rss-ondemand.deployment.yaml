@@ -73,6 +73,8 @@ spec:
                 name: podverse-workers-add-by-rss-opaque
             - secretRef:
                 name: podverse-api.podcastindex.org-opaque
+            - secretRef:
+                name: podverse-workers-webpush-opaque
           volumeMounts:
             - name: logs-volume
               mountPath: /logs

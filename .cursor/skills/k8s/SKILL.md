@@ -329,13 +329,14 @@ ArgoCD will detect the change and sync automatically.
 
 **Secret generators** live in `infra/k8s/scripts/secret-generators/` (see [INFRA-K8S-SCRIPTS-SECRET-GENERATORS.md](../../infra/k8s/scripts/secret-generators/INFRA-K8S-SCRIPTS-SECRET-GENERATORS.md)):
 
-| Script                      | Purpose                                      |
-| --------------------------- | -------------------------------------------- |
-| `create_db_secret.sh`       | Generate encrypted DB credentials            |
-| `create_api_secret.sh`      | Generate encrypted API secrets (JWT, mailer) |
-| `create_mq_secret.sh`       | Generate encrypted message queue credentials |
-| `create_keyvaldb_secret.sh` | Generate encrypted Valkey/Redis password     |
-| `create_firebase_secret.sh` | Generate encrypted Firebase service account  |
+| Script                             | Purpose                                                          |
+| ---------------------------------- | ---------------------------------------------------------------- |
+| `create_db_secret.sh`              | Generate encrypted DB credentials                                |
+| `create_api_secret.sh`             | Generate encrypted API secrets (JWT, mailer)                     |
+| `create_mq_secret.sh`              | Generate encrypted message queue credentials                     |
+| `create_keyvaldb_secret.sh`        | Generate encrypted Valkey/Redis password                         |
+| `create_firebase_secret.sh`        | Generate encrypted Firebase service account                      |
+| `create_workers_webpush_secret.sh` | `WEBPUSH_VAPID_PRIVATE_KEY` in `podverse-workers-webpush-opaque` |
 
 **Other** scripts (DB/MQ/Valkey connect, image listing) under `infra/k8s/scripts/<topic>/` and `list_images.sh` at `scripts/`:
 

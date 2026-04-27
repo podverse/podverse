@@ -100,7 +100,6 @@ These variables are **required only when `ACCOUNT_SIGNUP_MODE` is set to `'user_
 
 The mailer is automatically disabled when `ACCOUNT_SIGNUP_MODE` is not `'user_signup_email'`, or when any required mailer env var (`MAILER_HOST`, `MAILER_PORT`, `MAILER_USERNAME`, `MAILER_PASSWORD`, `MAILER_FROM`) is not set. No explicit `MAILER_DISABLED` flag is needed.
 
-- **`MAILER_SERVICE`** (Optional) - Email service name (e.g. for nodemailer); optional when using SMTP host/port
 - **`MAILER_HOST`** (Required when signup mode is 'user_signup_email') - SMTP server hostname
 - **`MAILER_PORT`** (Required when signup mode is 'user_signup_email') - SMTP server port (must be a valid number)
 - **`MAILER_USERNAME`** (Required when signup mode is 'user_signup_email') - SMTP username. On Kubernetes, set in the `podverse-api-opaque` Secret (`create_api_secret.sh`), not the ConfigMap.
@@ -156,6 +155,10 @@ For local setup, these can be customized via `dev/env-overrides/local/socials.en
 
 - **`PAYPAL_CLIENT_ID`** (Optional) - PayPal client ID for payment processing
 - **`PAYPAL_CLIENT_SECRET`** (Optional) - PayPal client secret for payment processing
+
+### WebPush (optional)
+
+When **`WEBPUSH_ENABLED`** is `true`, the API uses **`WEBPUSH_VAPID_PUBLIC_KEY`**, **`WEBPUSH_VAPID_PRIVATE_KEY`**, and **`WEBPUSH_VAPID_SUBJECT`** (see [`apps/workers/ENV.md`](../../apps/workers/ENV.md) for semantics). On **Kubernetes**, do not put **`WEBPUSH_VAPID_PRIVATE_KEY`** in the API ConfigMap: use the same Secret as workers, **`podverse-workers-webpush-opaque`**, which is mounted on the API deployment via `envFrom` (see `infra/k8s/base/api/deployment.yaml`).
 
 ### MetaBoost Standard Endpoint (mbrss-v1)
 
