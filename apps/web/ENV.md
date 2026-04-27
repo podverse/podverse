@@ -136,7 +136,7 @@ These variables are used for client-side API requests:
 ### Account
 
 - **`NEXT_PUBLIC_ACCOUNT_SIGNUP_MODE`** (Required) - Account signup mode (no default value)
-  - Valid values: `"sign-up"` or `"contact-only"`
+  - Valid values: `"admin_only_username"`, `"admin_only_email"`, or `"user_signup_email"`
   - Must be explicitly set - no default value is assumed
 
 - **`NEXT_PUBLIC_CONTACT_EMAIL`** (Optional) - Contact email address

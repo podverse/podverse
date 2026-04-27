@@ -1,0 +1,99 @@
+@use '../../../../styles/theme/variables' as theme;
+
+.detailGrid {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: theme.$spacing-sm theme.$spacing-lg;
+  font-size: theme.$font-size-base;
+}
+
+.label {
+  font-weight: theme.$font-weight-semibold;
+  color: theme.$color-text-secondary;
+}
+
+.value {
+  color: theme.$color-text-primary;
+}
+
+.editLink {
+  display: inline-block;
+  padding: theme.$spacing-xs theme.$spacing-md;
+  background-color: theme.$color-primary;
+  color: theme.$color-on-primary;
+  text-decoration: none;
+  border-radius: theme.$border-radius-sm;
+  font-size: theme.$font-size-base;
+  font-weight: theme.$font-weight-medium;
+  margin-top: theme.$spacing-md;
+}
+
+.backLink {
+  font-size: theme.$font-size-base;
+  color: theme.$color-primary;
+  text-decoration: none;
+  margin-bottom: theme.$spacing-md;
+  display: inline-block;
+}
+
+.loadingText {
+  font-size: theme.$font-size-lg;
+  color: theme.$color-text-secondary;
+}
+
+.errorText {
+  font-size: theme.$font-size-lg;
+  color: theme.$color-error;
+}
+
+.verifiedBadge {
+  font-size: 0.8rem;
+  padding: 0.15rem 0.4rem;
+  border-radius: theme.$border-radius-sm;
+  font-weight: theme.$font-weight-medium;
+}
+
+.verifiedYes {
+  background-color: theme.$color-success-bg;
+  color: theme.$color-success;
+}
+
+.verifiedNo {
+  background-color: theme.$color-warning-bg;
+  color: theme.$color-warning;
+}
+
+.actionsRow {
+  margin-top: theme.$spacing-md;
+}
+
+.divider {
+  margin: theme.$spacing-lg 0;
+  border: none;
+  border-top: theme.$border-width solid theme.$color-border;
+}
+
+.inviteSectionTitle {
+  font-size: theme.$font-size-xl;
+  margin-bottom: theme.$spacing-sm;
+}
+
+.inviteUrl {
+  word-break: break-all;
+  margin: theme.$spacing-xs 0;
+}
+
+.inviteExpiry {
+  font-size: theme.$font-size-xs;
+  color: theme.$color-text-secondary;
+}
+
+.inviteActions {
+  display: flex;
+  gap: theme.$spacing-xs;
+  margin-top: theme.$spacing-xs;
+}
+
+.noInviteText {
+  color: theme.$color-text-secondary;
+}

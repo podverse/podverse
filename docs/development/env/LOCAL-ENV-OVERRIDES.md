@@ -126,7 +126,7 @@ You can then `cd` into the new work tree and start working immediately. See
 If you prefer not to use the home directory at all (single clone only):
 
 - Manually copy `dev/env-overrides/local/*.env.example` to `dev/env-overrides/local/*.env` (e.g.
-  `cp private-services.env.example private-services.env`).
+  `cp mailer.env.example mailer.env`).
 - Edit those files in the repo.
 - Run `make local_env_setup`.
 
@@ -174,16 +174,18 @@ different subsets.
 
 | Override file            | Apps / env files that receive its values                                                                                                                               |
 | ------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| add-by-rss.env           | API + Workers (ADD_BY_RSS_CREDENTIALS_ENCRYPTION_KEY)                                                                                                                  |
 | app.env                  | API + Workers + Management API (LOG_DIR); API (ACCOUNT_SIGNUP_MODE); Web (NEXT_PUBLIC_ACCOUNT_SIGNUP_MODE from ACCOUNT_SIGNUP_MODE).                                   |
 | brand.env                | api/web = BRAND_NAME; mgmt api/mgmt web = MANAGEMENT_BRAND_NAME. Do not set NEXT_PUBLIC_BRAND_NAME in overrides.                                                       |
 | email-template.env       | API only                                                                                                                                                               |
 | lightning.env            | Web only (Lightning LNAddress / node app-value vars)                                                                                                                   |
+| mailer.env               | API (MAILER_SERVICE, MAILER_HOST, MAILER_PORT, MAILER_USERNAME, MAILER_PASSWORD, MAILER_FROM)                                                                          |
 | metaboost.env            | Web (`NEXT_PUBLIC_APP_VALUE_METABOOST_STANDARD`, `NEXT_PUBLIC_APP_VALUE_METABOOST_NODE`); API (`METABOOST_SIGNING_KEY_PEM`, `METABOOST_APP_ASSERTION_ISS`)             |
 | locale.env               | Web + Management Web (app, infra, sidecars): NEXT*PUBLIC_FEATURES*\* from DEFAULT_LOCALE, SUPPORTED_LOCALES. Single source; do not set locale in other override files. |
 | management-superuser.env | Local DB env (`infra/config/local/db.env`) for management superuser bootstrap                                                                                          |
 | notifications.env        | Workers; Web gets NEXT_PUBLIC_WEBPUSH_VAPID_PUBLIC_KEY                                                                                                                 |
+| paypal.env               | API (PAYPAL_CLIENT_ID, PAYPAL_CLIENT_SECRET)                                                                                                                           |
 | podcast-index.env        | API + Workers (PODCAST_INDEX_AUTH_KEY, PODCAST_INDEX_SECRET_KEY; not auto-generated—only from this override).                                                          |
-| private-services.env     | API + Workers (ADD_BY_RSS_CREDENTIALS_ENCRYPTION_KEY); API (mailer, PayPal)                                                                                            |
 | socials.env              | API (email template social links); Web (contact + social)                                                                                                              |
 | storage.env              | Workers only                                                                                                                                                           |
 

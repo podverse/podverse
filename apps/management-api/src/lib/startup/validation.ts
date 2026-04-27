@@ -82,6 +82,15 @@ const validateAllEnvironmentVariables = (): ValidationSummary => {
   results.push(validateRequired('WEB_PROTOCOL', 'Web'));
   results.push(validateRequired('WEB_DOMAIN', 'Web'));
 
+  // User Management
+  results.push(
+    validateOptional(
+      'MANAGEMENT_API_SET_PASSWORD_TTL_HOURS',
+      'User Management',
+      'Hours before set-password invite links expire. Default: 168 (7 days)'
+    )
+  );
+
   // General
   results.push(validateRequired('NODE_ENV', 'General'));
   results.push(validateRequired('LOG_LEVEL', 'General'));

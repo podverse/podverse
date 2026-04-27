@@ -45,7 +45,7 @@ export const WEB_APP_ENV = {
   NEXT_PUBLIC_DEFAULT_THEME: 'dark',
 
   // Account
-  NEXT_PUBLIC_ACCOUNT_SIGNUP_MODE: 'sign-up',
+  NEXT_PUBLIC_ACCOUNT_SIGNUP_MODE: 'user_signup_email',
 
   // Contact & Social
   NEXT_PUBLIC_CONTACT_EMAIL: 'contact@podverse.fm',

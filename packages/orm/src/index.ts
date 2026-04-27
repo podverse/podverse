@@ -36,6 +36,7 @@ export * from './entities/account/accountNotificationChannelType.js';
 export * from './entities/account/accountPayPalOrder.js';
 export * from './entities/account/accountProfile.js';
 export * from './entities/account/accountResetPassword.js';
+export * from './entities/account/accountSetPassword.js';
 export * from './entities/account/accountSettings/accountSettings.js';
 export * from './entities/account/accountSettings/accountSettingsLocale.js';
 export * from './entities/account/accountSettings/accountSettingsNotification.js';
@@ -137,6 +138,7 @@ export * from './entities/stats/statsTrackEventPlaylist.js';
 export * from './lib/typeORMTypes.js';
 export * from './lib/nanoid.js';
 export { decryptWithKey, encryptCredentials } from './lib/credentialsEncryption.js';
+export { hashPassword } from './lib/password.js';
 
 export * from './services/category.js';
 
@@ -157,6 +159,7 @@ export * from './services/account/accountNotificationChannelType.js';
 export * from './services/account/accountPayPalOrder.js';
 export * from './services/account/accountProfile.js';
 export * from './services/account/accountResetPassword.js';
+export * from './services/account/accountSetPassword.js';
 export * from './services/account/accountSettings/accountSettingsLocale.js';
 export * from './services/account/accountSettings/accountSettingsNotificationType.js';
 export * from './services/account/accountUPDevice.js';

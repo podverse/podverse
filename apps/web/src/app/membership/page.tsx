@@ -52,7 +52,7 @@ export default async function MembershipPage() {
   const ssrApiRequestService = getSSRApiRequestService();
   const signupMode = config.public.account.signupMode;
   const contactEmail = config.public.account.contactEmail;
-  const isContactOnlyMode = signupMode === 'contact-only';
+  const isContactOnlyMode = signupMode !== 'user_signup_email';
 
   let pricingData: MembershipPricingData | null = null;
   let errorMessage: string | null = null;

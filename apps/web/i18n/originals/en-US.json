@@ -556,7 +556,13 @@
     "changing_email_address": "Changing email address...",
     "change_email_address_email_failed": "Change email failed. The confirmation link may have expired. Please try again.",
     "change_email_address_email_success": "Email address changed successfully. You may now login with your new email address.",
-    "contact_only_text_before": "To create an account, please contact support at"
+    "contact_only_text_before": "To create an account, please contact support at",
+    "username": "Username",
+    "email_or_username": "Email or username",
+    "set_password": "Set Password",
+    "set_password_complete_message": "Your password has been set successfully. You can now login.",
+    "set_password_email_optional": "Email (optional)",
+    "set_password_email_required": "Email"
   },
   "membership": {
     "membership": "Membership",

@@ -1,6 +1,7 @@
 export const DATABASE_CONSTANTS = {
   nano_id_v2: 15,
   varchar_short: 50,
+  varchar_username: 32,
   varchar_normal: 255,
   varchar_long: 2500,
   varchar_longer: 10000,

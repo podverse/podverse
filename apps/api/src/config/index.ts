@@ -148,7 +148,13 @@ export const config: Config = {
     address: process.env.LEGAL_ADDRESS!,
   },
   mailer: {
-    disabled: process.env.MAILER_DISABLED === 'true',
+    disabled:
+      process.env.ACCOUNT_SIGNUP_MODE === 'admin_only_username' ||
+      !process.env.MAILER_HOST ||
+      !process.env.MAILER_PORT ||
+      !process.env.MAILER_USERNAME ||
+      !process.env.MAILER_PASSWORD ||
+      !process.env.MAILER_FROM,
     host: process.env.MAILER_HOST!,
     port: process.env.MAILER_PORT!,
     username: process.env.MAILER_USERNAME!,

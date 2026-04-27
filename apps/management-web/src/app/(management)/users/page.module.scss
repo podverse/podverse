@@ -1,0 +1,78 @@
+@use '../../../styles/theme/variables' as theme;
+
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: theme.$spacing-md;
+}
+
+.createButton {
+  display: inline-block;
+  padding: theme.$spacing-xs theme.$spacing-md;
+  background-color: theme.$color-primary;
+  color: theme.$color-on-primary;
+  text-decoration: none;
+  border-radius: theme.$border-radius-sm;
+  font-size: theme.$font-size-base;
+  font-weight: theme.$font-weight-medium;
+}
+
+.loadingText {
+  font-size: theme.$font-size-lg;
+  color: theme.$color-text-secondary;
+}
+
+.errorText {
+  font-size: theme.$font-size-lg;
+  color: theme.$color-error;
+}
+
+.emptyText {
+  font-size: theme.$font-size-lg;
+  color: theme.$color-text-secondary;
+  padding: theme.$spacing-lg 0;
+}
+
+.editLink {
+  font-size: theme.$font-size-base;
+  color: theme.$color-primary;
+  text-decoration: none;
+  font-weight: theme.$font-weight-medium;
+  margin-right: theme.$spacing-md;
+}
+
+.deleteButton {
+  font-size: theme.$font-size-base;
+  color: theme.$color-error;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-weight: theme.$font-weight-medium;
+  padding: 0;
+}
+
+.searchInput {
+  padding: theme.$spacing-xs theme.$spacing-md;
+  border: theme.$border-width solid theme.$color-border;
+  border-radius: theme.$border-radius-sm;
+  font-size: theme.$font-size-base;
+  width: 250px;
+  margin-bottom: theme.$spacing-md;
+}
+
+.verifiedBadge {
+  font-size: 0.8rem;
+  padding: 0.15rem 0.4rem;
+  border-radius: theme.$border-radius-sm;
+  font-weight: theme.$font-weight-medium;
+}
+
+.verifiedYes {
+  background-color: theme.$color-success-bg;
+  color: theme.$color-success;
+}
+
+.verifiedNo {
+  background-color: theme.$color-warning-bg;
+  color: theme.$color-warning;
+}

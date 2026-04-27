@@ -328,7 +328,7 @@ for file in "$WORKERS_APP_ENV" "$WORKERS_INFRA_ENV"; do
 done
 
 # Manual/private override values (each block from one override file)
-# From private-services.env
+# From add-by-rss.env
 apply_override "ADD_BY_RSS_CREDENTIALS_ENCRYPTION_KEY" "${API_AND_WORKERS_ENV_FILES[@]}"
 
 # From podcast-index.env (API + Workers; override generated placeholders with real keys here)
@@ -340,7 +340,7 @@ done
 apply_override "LOG_DIR" "${API_ENV_FILES[@]}" "${WORKERS_ENV_FILES[@]}" "${MANAGEMENT_API_ENV_FILES[@]}"
 apply_override "ACCOUNT_SIGNUP_MODE" "${API_ENV_FILES[@]}"
 # Sync API's effective ACCOUNT_SIGNUP_MODE to web/sidecar so both use the same .config value (app.env or template default).
-ACCOUNT_SIGNUP_MODE_EFFECTIVE="$(first_non_empty_or_default "contact-only" "$API_APP_ENV:ACCOUNT_SIGNUP_MODE" "$API_INFRA_ENV:ACCOUNT_SIGNUP_MODE")"
+ACCOUNT_SIGNUP_MODE_EFFECTIVE="$(first_non_empty_or_default "admin_only_email" "$API_APP_ENV:ACCOUNT_SIGNUP_MODE" "$API_INFRA_ENV:ACCOUNT_SIGNUP_MODE")"
 for file in "${WEB_ENV_FILES_APP_AND_SIDECAR[@]}"; do
 	upsert_var "$file" "NEXT_PUBLIC_ACCOUNT_SIGNUP_MODE" "$ACCOUNT_SIGNUP_MODE_EFFECTIVE"
 done
@@ -360,7 +360,7 @@ if [ -n "${WEBPUSH_VAPID_PUBLIC_KEY:-}" ]; then
 	done
 fi
 
-# From private-services.env (mailer + PayPal)
+# From mailer.env + paypal.env
 for v in MAILER_SERVICE MAILER_HOST MAILER_PORT MAILER_USERNAME MAILER_PASSWORD MAILER_FROM PAYPAL_CLIENT_ID PAYPAL_CLIENT_SECRET; do
 	apply_override "$v" "${API_ENV_FILES[@]}"
 done
@@ -407,6 +407,18 @@ fi
 if [ -n "${BRAND_DOMAIN:-}" ]; then
 	for file in "${WEB_ENV_FILES_APP_AND_SIDECAR[@]}" "${MANAGEMENT_WEB_ENV_FILES_APP_AND_SIDECAR[@]}"; do
 		upsert_var "$file" "NEXT_PUBLIC_BRAND_DOMAIN" "$BRAND_DOMAIN"
+	done
+fi
+
+# From brand.env: BRAND_LOGO_DARK/LIGHT -> NEXT_PUBLIC_BRAND_LOGO_DARK/LIGHT for web sidecars.
+if [ -n "${BRAND_LOGO_DARK:-}" ]; then
+	for file in "${WEB_ENV_FILES_APP_AND_SIDECAR[@]}"; do
+		upsert_var "$file" "NEXT_PUBLIC_BRAND_LOGO_DARK" "$BRAND_LOGO_DARK"
+	done
+fi
+if [ -n "${BRAND_LOGO_LIGHT:-}" ]; then
+	for file in "${WEB_ENV_FILES_APP_AND_SIDECAR[@]}"; do
+		upsert_var "$file" "NEXT_PUBLIC_BRAND_LOGO_LIGHT" "$BRAND_LOGO_LIGHT"
 	done
 fi
 

@@ -1,15 +1,14 @@
-import { ASSETS } from '../constants/assets';
+import { getConfig } from '../config';
 import type { UITheme } from './localSettings/uiTheme';
 
 export const getBrandLogoSrc = (uiTheme: UITheme) => {
+  const { brand } = getConfig().public;
   switch (uiTheme) {
-    case 'dark':
-      return ASSETS.IMAGES.BRANDING.BRAND.WHITE;
     case 'light':
-      return ASSETS.IMAGES.BRANDING.BRAND.BLACK;
+      return brand.logoLight;
+    case 'dark':
     case 'dracula':
-      return ASSETS.IMAGES.BRANDING.BRAND.WHITE;
     default:
-      return ASSETS.IMAGES.BRANDING.BRAND.WHITE;
+      return brand.logoDark;
   }
 };

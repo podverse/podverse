@@ -1,0 +1,110 @@
+@use '../../../../../styles/theme/variables' as theme;
+
+.formGroup {
+  margin-bottom: theme.$spacing-md;
+}
+
+.label {
+  display: block;
+  font-weight: theme.$font-weight-semibold;
+  color: theme.$color-text-secondary;
+  margin-bottom: theme.$spacing-xs;
+}
+
+.input {
+  width: 100%;
+  max-width: 400px;
+  padding: theme.$spacing-xs theme.$spacing-md;
+  border: theme.$border-width solid theme.$color-border;
+  border-radius: theme.$border-radius-sm;
+  font-size: theme.$font-size-base;
+}
+
+.checkboxLabel {
+  display: flex;
+  align-items: center;
+  gap: theme.$spacing-xs;
+  font-size: theme.$font-size-base;
+  cursor: pointer;
+}
+
+.actions {
+  display: flex;
+  gap: theme.$spacing-md;
+  margin-top: theme.$spacing-lg;
+}
+
+.saveButton {
+  display: inline-block;
+  padding: theme.$spacing-xs theme.$spacing-md;
+  background-color: theme.$color-primary;
+  color: theme.$color-on-primary;
+  border: none;
+  border-radius: theme.$border-radius-sm;
+  font-size: theme.$font-size-base;
+  font-weight: theme.$font-weight-medium;
+  cursor: pointer;
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: default;
+  }
+}
+
+.cancelLink {
+  display: inline-flex;
+  align-items: center;
+  padding: theme.$spacing-xs theme.$spacing-md;
+  border: theme.$border-width solid theme.$color-border;
+  border-radius: theme.$border-radius-sm;
+  font-size: theme.$font-size-base;
+  color: theme.$color-text-primary;
+  text-decoration: none;
+}
+
+.errorText {
+  font-size: theme.$font-size-base;
+  color: theme.$color-error;
+  margin-top: theme.$spacing-sm;
+}
+
+.successText {
+  font-size: theme.$font-size-base;
+  color: theme.$color-success;
+  margin-top: theme.$spacing-sm;
+}
+
+.backLink {
+  font-size: theme.$font-size-base;
+  color: theme.$color-primary;
+  text-decoration: none;
+  margin-bottom: theme.$spacing-md;
+  display: inline-block;
+}
+
+.loadingText {
+  font-size: theme.$font-size-lg;
+  color: theme.$color-text-secondary;
+}
+
+.tabContainer {
+  display: flex;
+  gap: theme.$spacing-md;
+  margin-bottom: theme.$spacing-lg;
+  border-bottom: theme.$border-width solid theme.$color-border;
+  padding-bottom: theme.$spacing-sm;
+}
+
+.tab {
+  padding: theme.$spacing-xs theme.$spacing-md;
+  font-size: theme.$font-size-base;
+  color: theme.$color-text-secondary;
+  text-decoration: none;
+  border-radius: theme.$border-radius-sm theme.$border-radius-sm 0 0;
+  font-weight: theme.$font-weight-medium;
+}
+
+.activeTab {
+  color: theme.$color-primary;
+  border-bottom: 2px solid theme.$color-primary;
+}

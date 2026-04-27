@@ -1,0 +1,24 @@
+@use '../../../styles/variables' as *;
+
+.root {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: $font-size-base;
+
+  th,
+  td {
+    padding: $spacing-sm $spacing-md;
+    text-align: left;
+    border-bottom: $border-width solid $color-border;
+  }
+
+  th {
+    font-weight: $font-weight-semibold;
+    color: $color-text-secondary;
+    white-space: nowrap;
+  }
+}
+
+.scrollContainer {
+  overflow-x: auto;
+}

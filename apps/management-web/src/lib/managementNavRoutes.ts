@@ -1,7 +1,13 @@
 import { canReadFeeds, canReadStats } from './managementPermissions';
 import type { CurrentUser } from './requests/auth';
 
-export type ManagementNavSection = 'feedFlagStatus' | 'stats' | 'database' | 'admins' | 'workers';
+export type ManagementNavSection =
+  | 'feedFlagStatus'
+  | 'stats'
+  | 'database'
+  | 'admins'
+  | 'users'
+  | 'workers';
 
 export type ManagementNavRoute = {
   section: ManagementNavSection;
@@ -21,6 +27,8 @@ const isDatabaseReadable = (user: CurrentUser): boolean =>
       user.permissions.feed_flag_status_reasons_crud >= 2)
   );
 
+const isUsersReadable = (user: CurrentUser): boolean => user.role === 'superuser';
+
 const ROUTES: ManagementNavRoute[] = [
   {
     section: 'feedFlagStatus',
@@ -30,6 +38,7 @@ const ROUTES: ManagementNavRoute[] = [
   { section: 'stats', href: '/stats', visible: (user) => canReadStats(user) },
   { section: 'database', href: '/database', visible: (user) => isDatabaseReadable(user) },
   { section: 'admins', href: '/admins', visible: (user) => isAdminsReadable(user) },
+  { section: 'users', href: '/users', visible: (user) => isUsersReadable(user) },
   { section: 'workers', href: '/workers', visible: () => true },
 ];
 
@@ -42,6 +51,7 @@ export type DashboardI18nTitleKey =
   | 'stats.title'
   | 'database.title'
   | 'admins.title'
+  | 'users.title'
   | 'workers.title';
 
 export type DashboardI18nDescriptionKey =
@@ -49,6 +59,7 @@ export type DashboardI18nDescriptionKey =
   | 'stats.description'
   | 'database.description'
   | 'admins.description'
+  | 'users.description'
   | 'workers.description';
 
 const titleKeys: Record<ManagementNavSection, DashboardI18nTitleKey> = {
@@ -56,6 +67,7 @@ const titleKeys: Record<ManagementNavSection, DashboardI18nTitleKey> = {
   stats: 'stats.title',
   database: 'database.title',
   admins: 'admins.title',
+  users: 'users.title',
   workers: 'workers.title',
 };
 
@@ -64,6 +76,7 @@ const descriptionKeys: Record<ManagementNavSection, DashboardI18nDescriptionKey>
   stats: 'stats.description',
   database: 'database.description',
   admins: 'admins.description',
+  users: 'users.description',
   workers: 'workers.description',
 };
 

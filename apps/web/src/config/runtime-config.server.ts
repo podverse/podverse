@@ -1,8 +1,21 @@
-import { fetchWithTimeout } from '@podverse/helpers-backend';
-
 import type { WebRuntimeConfig } from './runtime-config';
 
 import 'server-only';
+
+async function fetchWithTimeout(
+  url: string,
+  options?: { cache?: RequestCache; timeoutMs?: number }
+): Promise<Response> {
+  const { cache, timeoutMs } = options ?? {};
+  const controller = new AbortController();
+  const timeoutId =
+    timeoutMs && timeoutMs > 0 ? setTimeout(() => controller.abort(), timeoutMs) : undefined;
+  try {
+    return await fetch(url, { cache, signal: controller.signal });
+  } finally {
+    if (timeoutId) clearTimeout(timeoutId);
+  }
+}
 
 const getRuntimeConfigUrl = (): string => {
   const url = process.env.RUNTIME_CONFIG_URL;

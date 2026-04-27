@@ -91,7 +91,7 @@ fi
 read -p "Create branch from [develop]: " BASE_BRANCH
 BASE_BRANCH="${BASE_BRANCH:-develop}"
 
-# 6b. Link env overrides in main repo first so home dir is populated from main's real override files (e.g. private-services.env)
+# 6b. Link env overrides in main repo first so home dir is populated from main's real override files (e.g. mailer.env, add-by-rss.env)
 echo ""
 echo -e "${CYAN}Linking env overrides in main repo (populates shared home overrides)...${NC}"
 make -C "$REPO_ROOT" local_env_link

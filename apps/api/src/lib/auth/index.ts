@@ -48,17 +48,24 @@ passport.use(
       usernameField: 'email',
       passwordField: 'password',
     },
-    async (email, password, done) => {
+    async (identifier, password, done) => {
       try {
         if (!password) {
           return done(null, false, { message: 'Password missing.' });
         }
 
-        const account = await accountService.getByEmail(email, {
-          relations: ['account_credentials'],
-        });
+        let account;
+        if (identifier.includes('@')) {
+          account = await accountService.getByEmail(identifier, {
+            relations: ['account_credentials'],
+          });
+        } else {
+          account = await accountService.getByUsername(identifier, {
+            relations: ['account_credentials'],
+          });
+        }
         if (!account) {
-          return done(null, false, { message: 'Incorrect email.' });
+          return done(null, false, { message: 'Incorrect email or username.' });
         }
 
         const accountCredentials = account.account_credentials;
@@ -160,13 +167,6 @@ export const authenticate = (req: Request, res: Response, next: NextFunction) =>
         }
       }
 
-      const rawEmail =
-        user.account_credentials?.email !== undefined && user.account_credentials?.email !== ''
-          ? user.account_credentials.email
-          : undefined;
-      if (!rawEmail) {
-        return res.status(401).json({ message: 'Unauthorized' });
-      }
       const idText =
         typeof user.id_text === 'string' && user.id_text !== '' ? user.id_text : undefined;
       if (!idText) {

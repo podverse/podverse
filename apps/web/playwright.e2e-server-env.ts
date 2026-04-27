@@ -44,8 +44,7 @@ export function buildE2eWebApiEnvPrefix(): string {
     `KEYVALDB_PORT=6679`,
     `KEYVALDB_PASSWORD=test`,
     `KEYVALDB_CACHE_TTL_SECONDS=300`,
-    // Mailer (disabled for tests)
-    `MAILER_DISABLED=true`,
+    // Mailer (disabled for tests via ACCOUNT_SIGNUP_MODE=admin_only_email)
     `MAILER_HOST=localhost`,
     `MAILER_PORT=1025`,
     `MAILER_USERNAME=test`,
@@ -58,7 +57,7 @@ export function buildE2eWebApiEnvPrefix(): string {
     // Add-by-RSS
     `ADD_BY_RSS_CREDENTIALS_ENCRYPTION_KEY=test-e2e-encryption-key`,
     // Premium / signup
-    `ACCOUNT_SIGNUP_MODE=contact-only`,
+    `ACCOUNT_SIGNUP_MODE=admin_only_email`,
     // Defaults
     `DEFAULT_ACCOUNT_SETTINGS_LOCALE=en`,
   ].join(' ');
@@ -91,7 +90,7 @@ const WEB_E2E_NEXT_PUBLIC_ENV = [
   `NEXT_PUBLIC_SUPPORTED_THEMES=all-available`,
   `NEXT_PUBLIC_DEFAULT_THEME=dark`,
   // Account / Membership
-  `NEXT_PUBLIC_ACCOUNT_SIGNUP_MODE=contact-only`,
+  `NEXT_PUBLIC_ACCOUNT_SIGNUP_MODE=admin_only_email`,
   // Server Environment
   `NEXT_PUBLIC_SERVER_ENV=local`,
   // Proxy Configuration

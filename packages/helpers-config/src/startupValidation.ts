@@ -651,10 +651,10 @@ export function validatePositiveNumber(
 }
 
 /** Allowed values for ACCOUNT_SIGNUP_MODE / NEXT_PUBLIC_ACCOUNT_SIGNUP_MODE */
-const SIGNUP_MODES = ['sign-up', 'contact-only'] as const;
+const SIGNUP_MODES = ['admin_only_username', 'admin_only_email', 'user_signup_email'] as const;
 
 /**
- * Validates signup mode - must be "sign-up" or "contact-only".
+ * Validates signup mode - must be one of the three allowed values.
  */
 export function validateSignupMode(varName: string, category: string): ValidationResult {
   const value = process.env[varName];

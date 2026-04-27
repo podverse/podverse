@@ -48,6 +48,7 @@ type Config = {
     protocol: string;
     domain: string;
   };
+  setUserPasswordTtlHours: number;
 };
 
 export const config: Config = {
@@ -102,4 +103,5 @@ export const config: Config = {
     protocol: process.env.WEB_PROTOCOL!,
     domain: process.env.WEB_DOMAIN!,
   },
+  setUserPasswordTtlHours: parseInt(process.env.MANAGEMENT_API_SET_PASSWORD_TTL_HOURS || '168', 10),
 };

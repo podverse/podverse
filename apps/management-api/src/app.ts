@@ -10,6 +10,7 @@ import { databaseRouter } from '@mgmt-api/routes/database.js';
 import { feedFlagStatusRouter } from '@mgmt-api/routes/feedFlagStatus.js';
 import { statsRouter } from '@mgmt-api/routes/stats.js';
 import { workerCommandsRouter } from '@mgmt-api/routes/workerCommands.js';
+import { usersRouter } from '@mgmt-api/routes/users.js';
 import bodyParser from 'body-parser';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
@@ -54,6 +55,7 @@ app.use(databaseRouter);
 app.use(feedFlagStatusRouter);
 app.use(statsRouter);
 app.use(workerCommandsRouter);
+app.use(usersRouter);
 
 app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
   console.error('API Router Error:', err);

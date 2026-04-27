@@ -3,6 +3,9 @@
 import { useLocale, useTranslations } from 'next-intl';
 import { useState } from 'react';
 
+import { getAccountSignupModeCapabilities } from '@podverse/helpers';
+
+import { getConfig } from '../../../../config';
 import { useAccount } from '../../../../contexts/Account';
 import { getApiRequestService } from '../../../../factories/apiRequestService';
 import { handleRateLimitAlert } from '../../../../utils/rateLimit/rateLimitAlert';
@@ -21,6 +24,10 @@ export function SettingsAccount() {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isChangeEmailModalOpen, setIsChangeEmailModalOpen] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
+
+  const config = getConfig();
+  const signupMode = config.public.account.signupMode;
+  const capabilities = getAccountSignupModeCapabilities(signupMode);
 
   const userEmail = loggedInAccount?.account_credentials?.email || '';
 
@@ -64,22 +71,26 @@ export function SettingsAccount() {
 
   return (
     <>
-      <SettingsSection>
-        <h3>{tSettings('account.change_email')}</h3>
-        <Button
-          type="button"
-          onClick={() => setIsChangeEmailModalOpen(true)}
-          variant="primary"
-          description={tSettings('account.change_email_description')}
-        >
-          {tSettings('account.change_email')}
-        </Button>
-        <ModalChangeEmail
-          isOpen={isChangeEmailModalOpen}
-          onClose={() => setIsChangeEmailModalOpen(false)}
-        />
-      </SettingsSection>
-      <Divider withSpacing />
+      {capabilities.canUseEmailVerificationFlows && (
+        <>
+          <SettingsSection>
+            <h3>{tSettings('account.change_email')}</h3>
+            <Button
+              type="button"
+              onClick={() => setIsChangeEmailModalOpen(true)}
+              variant="primary"
+              description={tSettings('account.change_email_description')}
+            >
+              {tSettings('account.change_email')}
+            </Button>
+            <ModalChangeEmail
+              isOpen={isChangeEmailModalOpen}
+              onClose={() => setIsChangeEmailModalOpen(false)}
+            />
+          </SettingsSection>
+          <Divider withSpacing />
+        </>
+      )}
       <SettingsSection>
         <h3>{tSettings('account.download_my_data')}</h3>
         <Button

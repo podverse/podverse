@@ -45,8 +45,7 @@ const testEnv: Record<string, string> = {
   KEYVALDB_PORT: '6679',
   KEYVALDB_PASSWORD: '',
   KEYVALDB_CACHE_TTL_SECONDS: '300',
-  // Mailer (disabled for tests)
-  MAILER_DISABLED: 'true',
+  // Mailer (disabled for tests via missing MAILER_FROM)
   MAILER_HOST: 'localhost',
   MAILER_PORT: '1025',
   MAILER_USERNAME: 'test',
@@ -82,7 +81,7 @@ const testEnv: Record<string, string> = {
   // Premium / signup
   PREMIUM_COST_MONTHLY: '5',
   PREMIUM_COST_ANNUALLY: '50',
-  ACCOUNT_SIGNUP_MODE: 'admin-only',
+  ACCOUNT_SIGNUP_MODE: 'admin_only_email',
   FREE_TRIAL_EXPIRATION: '30',
   // V4V / Metaboost signing (stubs)
   METABOOST_SIGNING_KEY_PEM: '',

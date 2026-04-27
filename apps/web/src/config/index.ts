@@ -1,5 +1,8 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion -- env vars validated at build time in scripts/validate-env.ts */
 
+import type { AccountSignupMode } from '@podverse/helpers';
+
+import { ASSETS } from '../constants/assets';
 import { getRuntimeConfig } from './runtime-config-store';
 
 /** Optional env value: treat empty string as undefined so "not configured" is consistent. */
@@ -14,6 +17,8 @@ const buildConfig = () => {
       brand: {
         name: env.NEXT_PUBLIC_BRAND_NAME!,
         domain: env.NEXT_PUBLIC_BRAND_DOMAIN!,
+        logoDark: opt(env.NEXT_PUBLIC_BRAND_LOGO_DARK) ?? ASSETS.IMAGES.BRANDING.BRAND.WHITE,
+        logoLight: opt(env.NEXT_PUBLIC_BRAND_LOGO_LIGHT) ?? ASSETS.IMAGES.BRANDING.BRAND.BLACK,
       },
       api: {
         ssr: {
@@ -78,7 +83,7 @@ const buildConfig = () => {
         email: env.NEXT_PUBLIC_CONTACT_EMAIL!,
       },
       account: {
-        signupMode: env.NEXT_PUBLIC_ACCOUNT_SIGNUP_MODE!,
+        signupMode: env.NEXT_PUBLIC_ACCOUNT_SIGNUP_MODE! as AccountSignupMode,
         contactEmail: env.NEXT_PUBLIC_CONTACT_EMAIL!,
       },
       server_env: env.NEXT_PUBLIC_SERVER_ENV!,
