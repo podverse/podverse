@@ -24,6 +24,7 @@ AUTO_GEN_SCRIPTS=(
 	"create_keyvaldb_secret.sh"
 	"create_mq_secret.sh"
 	"create_workers_add_by_rss_secret.sh"
+	"create_workers_webpush_secret.sh"
 )
 
 # -------------------------------------------------------------------
@@ -34,7 +35,6 @@ MANUAL_SCRIPTS=(
 	"create_api.podcastindex.org_secret.sh  (requires Podcast Index API keys)"
 	"create_firebase_secret.sh              (requires firebase-key.json file)"
 	"create_workers_digital_ocean_secret.sh (requires DigitalOcean Spaces access/secret keys)"
-	"create_workers_webpush_secret.sh       (requires VAPID private key from web-push / pair with public in ConfigMap)"
 )
 
 # -------------------------------------------------------------------
@@ -49,6 +49,7 @@ OUTPUT_FILES=(
 	"./secrets/podverse-${ENVIRONMENT}-keyvaldb-opaque.enc.yaml"
 	"./secrets/podverse-${ENVIRONMENT}-mq-opaque.enc.yaml"
 	"./secrets/podverse-${ENVIRONMENT}-workers-add-by-rss-opaque.enc.yaml"
+	"./secrets/podverse-${ENVIRONMENT}-workers-webpush-opaque.enc.yaml"
 )
 
 CREATED_FILES=()

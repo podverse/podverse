@@ -174,7 +174,7 @@ These variables are used to build the Notifications configuration:
 
 - **`WEBPUSH_VAPID_PRIVATE_KEY`** (Conditional) - WebPush VAPID private key
   - Required if `WEBPUSH_ENABLED` is `"true"`
-  - **Kubernetes:** do not put this in the workers ConfigMap; set it in the SOPS-encrypted Secret **`podverse-workers-webpush-opaque`**, which is mounted on workers and the API. Generate the encrypted file with `infra/k8s/scripts/secret-generators/create_workers_webpush_secret.sh` (use the private key from `npx web-push generate-vapid-keys` alongside the public key in your env / `NEXT_PUBLIC_*`).
+  - **Kubernetes:** do not put this in the workers ConfigMap; set it in the SOPS-encrypted Secret **`podverse-workers-webpush-opaque`**, which is mounted on workers and the API. Generate with `infra/k8s/scripts/secret-generators/create_workers_webpush_secret.sh` (`--auto-gen` or interactive “generate”): it creates a VAPID pair, encrypts the private key, and—when this repo has the standard workers/web source env paths—updates `WEBPUSH_VAPID_PUBLIC_KEY` and `NEXT_PUBLIC_WEBPUSH_VAPID_PUBLIC_KEY` in the same copy. Alternatively paste an existing private key from `npx web-push generate-vapid-keys` and set the public keys to match.
 
 - **`WEBPUSH_VAPID_SUBJECT`** (Conditional) - WebPush VAPID subject (usually an email or URL)
   - Required if `WEBPUSH_ENABLED` is `"true"`
