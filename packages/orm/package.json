@@ -1,6 +1,6 @@
 {
   "name": "@podverse/orm",
-  "version": "5.4.16",
+  "version": "5.4.17",
   "description": "TypeORM entities and database utilities for Podverse",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
