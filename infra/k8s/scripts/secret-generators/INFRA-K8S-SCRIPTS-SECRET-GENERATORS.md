@@ -43,7 +43,7 @@ Generated **API** and **add-by-RSS workers** encrypted Secrets keep a stable key
 These **do not** support `--auto-gen` and are **not** in the bulk runner. Run manually when credentials are available:
 
 - `create_api.podcastindex.org_secret.sh` — Podcast Index API keys
-- `create_firebase_secret.sh` — `firebase-key.json` file
+- `create_firebase_secret.sh` — `firebase-key.json` from your machine; produces **Secret `podverse-workers-firebase-opaque`** with a single key `firebase-key.json`. Base `infra/k8s` **API, workers, and workers CronJob** pods mount it read-only at **`/var/secrets/firebase`**, matching **`GOOGLE_FIREBASE_ADMIN_JSON_KEY_PATH=/var/secrets/firebase/firebase-key.json`** in the workers and API `*.env` sources. Apply the encrypted manifest after SOPS, then set **`GOOGLE_FIREBASE_NOTIFICATIONS_ENABLED=true`** when you want FCM/notification features on.
 - `create_workers_digital_ocean_secret.sh` — DigitalOcean Spaces access/secret keys
 
 ## GitHub Container Registry pull secret (GHCR)

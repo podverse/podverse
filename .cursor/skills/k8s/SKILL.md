@@ -335,7 +335,7 @@ ArgoCD will detect the change and sync automatically.
 | `create_api_secret.sh`             | Generate encrypted API secrets (JWT, mailer)                                                                                          |
 | `create_mq_secret.sh`              | Generate encrypted message queue credentials                                                                                          |
 | `create_keyvaldb_secret.sh`        | Generate encrypted Valkey/Redis password                                                                                              |
-| `create_firebase_secret.sh`        | Generate encrypted Firebase service account                                                                                           |
+| `create_firebase_secret.sh`        | `podverse-workers-firebase-opaque`; base mounts it at `/var/secrets/firebase` (optional volume) for API + workers + cron              |
 | `create_workers_webpush_secret.sh` | VAPID private key in `podverse-workers-webpush-opaque`; `--auto-gen` also sets public keys in workers/web source env when paths exist |
 
 **Other** scripts (DB/MQ/Valkey connect, image listing) under `infra/k8s/scripts/<topic>/` and `list_images.sh` at `scripts/`:

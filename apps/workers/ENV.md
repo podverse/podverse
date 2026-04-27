@@ -151,6 +151,7 @@ These variables are used to build the External Services configuration:
 
 - **`GOOGLE_FIREBASE_ADMIN_JSON_KEY_PATH`** (Conditional) - Path to Firebase admin JSON key file
   - Required if `GOOGLE_FIREBASE_NOTIFICATIONS_ENABLED` is `"true"`
+  - **Kubernetes:** generate the SOPS-encrypted Secret **`podverse-workers-firebase-opaque`** with `infra/k8s/scripts/secret-generators/create_firebase_secret.sh` (local path to the JSON is only for that script). Base **API, workers, and workers CronJob** Deployments mount that Secret at **`/var/secrets/firebase`** with the key **`firebase-key.json`**. In **`workers.env` / `api.env` defaults**, set **`GOOGLE_FIREBASE_ADMIN_JSON_KEY_PATH=/var/secrets/firebase/firebase-key.json`**. The mount is **`optional: true`** so pods can start if the Secret is not applied yet; enable notifications only once the file exists in-cluster.
 
 ## Web Configuration
 

@@ -79,6 +79,13 @@ spec:
               mountPath: /logs
             - name: logs-volume
               mountPath: /opt/logs
+            - name: firebase-key
+              mountPath: /var/secrets/firebase
+              readOnly: true
       volumes:
         - name: logs-volume
           emptyDir: {}
+        - name: firebase-key
+          secret:
+            secretName: podverse-workers-firebase-opaque
+            optional: true
