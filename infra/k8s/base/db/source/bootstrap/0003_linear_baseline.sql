@@ -11090,6 +11090,7 @@ ALTER DEFAULT PRIVILEGES FOR ROLE postgres_user_management IN SCHEMA public GRAN
 ALTER DEFAULT PRIVILEGES FOR ROLE postgres_user_management IN SCHEMA public GRANT SELECT ON TABLES TO podverse_management_read;
 ALTER DEFAULT PRIVILEGES FOR ROLE postgres_user_management IN SCHEMA public GRANT SELECT,INSERT,DELETE,UPDATE ON TABLES TO podverse_management_read_write;
 
+TEMP:BROKEN ON PURPOSE
 
 --
 -- PostgreSQL database dump complete
