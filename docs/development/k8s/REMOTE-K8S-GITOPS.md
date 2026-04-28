@@ -2,7 +2,7 @@
 
 Use this guide to deploy Podverse to a remote Kubernetes cluster with Argo CD and a **separate GitOps repository**.
 
-**Working directory:** This guide always assumes you have a local **GitOps repository directory** (for example a checkout of your private GitOps repo) that contains `apps/…`, `argocd/…`, `secrets/…`, and `scripts/…` (with Podverse **secret-generator** scripts under `./scripts/secret-generators/`). All cluster-facing and GitOps steps run **from that directory**, not from a checkout of the Podverse monorepo.
+**Working directory:** This guide always assumes you have a local **GitOps repository directory** (for example a checkout of your private GitOps repo) that contains `apps/…`, `argocd/…`, `secrets/…`, and `scripts/…` (with Podverse **secret-generator** scripts under `./scripts/secret-generators/`). All cluster-facing and GitOps steps run **from that directory**, not from a checkout of the Podverse monorepo. **Do not use Git submodules** in that GitOps repo or in the Podverse monorepo: use **remote Kustomize** `resources` URLs to `https://github.com/podverse/podverse//…?ref=…` and **copy** secret-generator scripts from the monorepo—do not vendor another repository as a nested checkout.
 
 The Podverse monorepo is the **source** for public base manifests (`infra/k8s/base/…`), upstream
 secret-generator **source files** under
