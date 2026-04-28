@@ -23,6 +23,7 @@ These variables are **always required** regardless of configuration:
   - Used for JWT token generation
   - Example: `123e4567-e89b-12d3-a456-426614174000`
   - Generate with: `uuidgen` (macOS/Linux) or use an online UUID generator
+  - On Kubernetes, set in the **`podverse-api-opaque`** Secret (`create_api_secret.sh`).
 
 - **`USER_AGENT`** (Required)
   - Non-blank. Must follow format: `BrandName Bot Environment/AppName/Version` and include "Bot" in the first part. Set an app-specific value for your deployment; do not copy another product’s string.
@@ -102,8 +103,8 @@ The mailer is automatically disabled when `ACCOUNT_SIGNUP_MODE` is not `'user_si
 
 - **`MAILER_HOST`** (Required when signup mode is 'user_signup_email') - SMTP server hostname
 - **`MAILER_PORT`** (Required when signup mode is 'user_signup_email') - SMTP server port (must be a valid number)
-- **`MAILER_USERNAME`** (Required when signup mode is 'user_signup_email') - SMTP username. On Kubernetes, set in the `podverse-api-opaque` Secret (`create_api_secret.sh`), not the ConfigMap.
-- **`MAILER_PASSWORD`** (Required when signup mode is 'user_signup_email') - SMTP password. On Kubernetes, set in the `podverse-api-opaque` Secret, not the ConfigMap.
+- **`MAILER_USERNAME`** (Required when signup mode is 'user_signup_email') - SMTP username. On Kubernetes, set in the `podverse-mailer-opaque` Secret (`create_mailer_secret.sh`), not the ConfigMap.
+- **`MAILER_PASSWORD`** (Required when signup mode is 'user_signup_email') - SMTP password. On Kubernetes, set in the `podverse-mailer-opaque` Secret, not the ConfigMap.
 - **`MAILER_FROM`** (Required when signup mode is 'user_signup_email') - Email sender address
 
 ### Legal entity
@@ -166,7 +167,7 @@ On **Kubernetes**, do not put **`WEBPUSH_VAPID_PRIVATE_KEY`** in the API ConfigM
 
 ### MetaBoost Standard Endpoint (mbrss-v1)
 
-Signing keys for [AppAssertion](https://github.com/podverse/metaboost/blob/main/docs/api/STANDARD-ENDPOINT-APP-SIGNING.md) JWTs minted by `POST /api/v2/metaboost/mbrss-v1/mint-app-assertion`. The public key must be registered in [metaboost-registry](https://github.com/v4v-io/metaboost-registry) for the same `app_id` as **`METABOOST_APP_ASSERTION_ISS`**.
+Signing keys for [AppAssertion](https://github.com/podverse/metaboost/blob/main/docs/api/STANDARD-ENDPOINT-APP-SIGNING.md) JWTs minted by `POST /api/v2/metaboost/mbrss-v1/mint-app-assertion`. The public key must be registered in [metaboost-registry](https://github.com/v4v-io/metaboost-registry) for the same `app_id` as **`METABOOST_APP_ASSERTION_ISS`**. On Kubernetes, set **`METABOOST_SIGNING_KEY_PEM`** and **`METABOOST_APP_ASSERTION_ISS`** in the **`podverse-metaboost-opaque`** Secret (`create_metaboost_secret.sh`).
 
 Clients must send an **authenticated Podverse session** (cookie or `Authorization` bearer JWT); mint returns **401** without a logged-in user. Signing env vars alone are not sufficient. The mint endpoint is rate-limited to **one mint per user per minute** (HTTP **429** when exceeded). **`GET /api/v2/metaboost/mbrss-v1/mint-app-assertion/rate-limit-status`** uses the same limit (peek only; does not consume a slot) and returns JSON including **`allowed`**, **`retryAfterMs`**, and **`timeUntilResetMs`** so clients can show wait time before attempting payment.
 

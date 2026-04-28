@@ -42,6 +42,10 @@ spec:
             - secretRef:
                 name: podverse-api-opaque
             - secretRef:
+                name: podverse-mailer-opaque
+            - secretRef:
+                name: podverse-metaboost-opaque
+            - secretRef:
                 name: podverse-db-opaque
             - secretRef:
                 name: podverse-keyvaldb-opaque

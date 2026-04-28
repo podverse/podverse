@@ -16,7 +16,9 @@ bash ./infra/k8s/scripts/secret-generators/create_all_secrets_auto_gen.sh alpha
 
 This runs the following with `--auto-gen`:
 
-- `create_api_secret.sh`
+- `create_api_secret.sh` ( **`AUTH_JWT_SECRET`** only)
+- `create_mailer_secret.sh` → Secret **`podverse-mailer-opaque`** (`MAILER_USERNAME`, `MAILER_PASSWORD`)
+- `create_metaboost_secret.sh` → Secret **`podverse-metaboost-opaque`** (`METABOOST_SIGNING_KEY_PEM`, `METABOOST_APP_ASSERTION_ISS`)
 - `create_management_api_secret.sh`
 - `create_db_secret.sh`
 - `create_management_db_secret.sh`
@@ -25,11 +27,26 @@ This runs the following with `--auto-gen`:
 - `create_workers_add_by_rss_secret.sh`
 - `create_workers_webpush_secret.sh` (VAPID key pair via `npx` + `web-push`; see below)
 
+The API **`Deployment`** references **`podverse-api-opaque`**, **`podverse-mailer-opaque`**, and **`podverse-metaboost-opaque`** via **`secretRef`** (see `infra/k8s/base/api/deployment.yaml`).
+
+## Mailer and Metaboost secrets (interactive)
+
+After auto-gen, mail and Metaboost keys are empty until you run the matching generator **without** `--auto-gen`:
+
+```bash
+bash ./infra/k8s/scripts/secret-generators/create_mailer_secret.sh alpha
+bash ./infra/k8s/scripts/secret-generators/create_metaboost_secret.sh alpha
+```
+
+GitOps checkout: **`./scripts/secret-generators/<script>.sh`**. **`create_metaboost_secret.sh`** prompts for issuer text and a **filesystem path** to the PEM file.
+
 ## Always-present keys (may be empty)
 
-Generated **API** and **add-by-RSS workers** encrypted Secrets keep a stable key set so `sops edit` always shows the same knobs, even when values are blank until you set them.
+Generated **API-related** and **add-by-RSS workers** encrypted Secrets keep a stable key set so optional fields exist even when blank until you set them.
 
-- **`create_api_secret.sh` → `podverse-*-api-opaque.enc.yaml`**: includes `METABOOST_SIGNING_KEY_PEM` and `METABOOST_APP_ASSERTION_ISS` (optional at runtime; auto-gen leaves them empty). Set both or neither when enabling AppAssertion minting.
+- **`create_api_secret.sh` → `podverse-*-api-opaque.enc.yaml`**: **`AUTH_JWT_SECRET`** only.
+- **`create_mailer_secret.sh` → `podverse-*-mailer-opaque.enc.yaml`**: **`MAILER_USERNAME`** / **`MAILER_PASSWORD`** (optional at runtime; auto-gen leaves empty).
+- **`create_metaboost_secret.sh` → `podverse-*-metaboost-opaque.enc.yaml`**: **`METABOOST_SIGNING_KEY_PEM`** and **`METABOOST_APP_ASSERTION_ISS`** (optional; set both or neither at runtime for App Assertion minting).
 - **`create_workers_add_by_rss_secret.sh` → `podverse-*-workers-add-by-rss-opaque.enc.yaml`**: always includes `ADD_BY_RSS_CREDENTIALS_ENCRYPTION_KEY`. Interactive mode allows an empty placeholder; the API still requires a valid 64-hex key before a healthy start if that env is required by your config.
 - **`create_workers_webpush_secret.sh` → `podverse-*-workers-webpush-opaque.enc.yaml`**: the encrypted Secret contains **only** `WEBPUSH_VAPID_PRIVATE_KEY`. With `--auto-gen` (or interactive: generate a new pair), the script creates a VAPID pair, writes the private key to the SOPS file, and writes the **paired** public key to source env when the repo is laid out for it:
   - monorepo: `infra/k8s/base/workers/source/workers.env` (`WEBPUSH_VAPID_PUBLIC_KEY`) and `infra/k8s/base/web/source/web-sidecar.env` (`NEXT_PUBLIC_WEBPUSH_VAPID_PUBLIC_KEY`)
@@ -37,11 +54,13 @@ Generated **API** and **add-by-RSS workers** encrypted Secrets keep a stable key
   - If those paths are missing, the script still prints the same public key for copy-paste. Re-running generation **rotates** the VAPID pair; keep the SOPS file and the two public env files in a single commit.
 - **`WEBPUSH_VAPID_SUBJECT`** (e.g. `mailto:ops@example.com`): set in `infra/k8s/base/workers/source/workers.env` or `apps/podverse-<env>/workers/source/workers.env` (GitOps), and the same in `infra/k8s/base/api/source/api.env` or `apps/podverse-<env>/api/source/api.env` for the API. Local: `apps/workers/.env` and `apps/api/.env`. See `apps/workers/ENV.md` and `apps/api/ENV.md`.
 
-**Existing** `*.enc.yaml` files from before these keys existed: add the missing keys with empty values in `sops` (or decrypt → edit `stringData` / `data` → re-encrypt) instead of re-running a generator from scratch if you need to preserve other material.
+**Migrating from a single `podverse-*-api-opaque` that mixed JWT + mailer + Metaboost:** generate the two new encrypted files with **`create_mailer_secret.sh`** and **`create_metaboost_secret.sh`**, apply them, then replace **`podverse-*-api-opaque.enc.yaml`** with a **`create_api_secret.sh`** run that contains **only** **`AUTH_JWT_SECRET`** (preserve the existing JWT value when re-running interactively). Remove duplicate keys from the old api-opaque Secret so env vars are not defined twice.
+
+**Existing** `*.enc.yaml` files from before these keys existed: prefer re-running the appropriate **`create_*`** script so values stay under correct **`kubectl`** encoding; only fall back to manual YAML edits if you have no other option.
 
 ## Secrets that require external inputs
 
-These **do not** support `--auto-gen` and are **not** in the bulk runner. `create_all_secrets_auto_gen.sh` lists them (and optional follow-ups) at the end. Run manually when credentials are available:
+These **do not** support `--auto-gen` and are **not** in the bulk runner. `create_all_secrets_auto_gen.sh` lists these—along with mailer and Metaboost for credential follow-up—at the end. Run manually when credentials are available:
 
 - `create_api.podcastindex.org_secret.sh` — Podcast Index API keys
 - `create_firebase_secret.sh` — `firebase-key.json` from your machine; produces **Secret `podverse-workers-firebase-opaque`** with a single key `firebase-key.json`. Base `infra/k8s` **API, workers, and workers CronJob** pods mount it read-only at **`/var/secrets/firebase`**, matching **`GOOGLE_FIREBASE_ADMIN_JSON_KEY_PATH=/var/secrets/firebase/firebase-key.json`** in the workers and API `*.env` sources. Apply the encrypted manifest after SOPS, then set **`GOOGLE_FIREBASE_NOTIFICATIONS_ENABLED=true`** when you want FCM/notification features on.

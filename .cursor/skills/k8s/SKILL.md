@@ -147,12 +147,16 @@ ConfigMaps in `base/<component>/01-configmap.yaml` should mirror the structure o
   # DB_APP_READ_WRITE_USER: ""           # in secrets
   # DB_APP_READ_WRITE_PASSWORD: ""      # in secrets
 
-# In Deployment
+# In Deployment (API loads JWT, mailer, and Metaboost from separate Secrets)
 envFrom:
   - configMapRef:
       name: podverse-api-config
   - secretRef:
       name: podverse-api-opaque
+  - secretRef:
+      name: podverse-mailer-opaque
+  - secretRef:
+      name: podverse-metaboost-opaque
 ```
 
 ### Environment Overrides

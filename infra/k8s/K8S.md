@@ -70,9 +70,11 @@ Before running the scripts, ensure you have the following ready:
 - **Message Queue Credentials** (`create_mq_secret.sh`):
   - An `MQ_PASSWORD` for the admin user.
 
-- **API Secrets** (`create_api_secret.sh`):
-  - `AUTH_JWT_SECRET`: A long random string for signing tokens.
-  - `MAILER_USERNAME` and `MAILER_PASSWORD` (Optional): If using SMTP, set in this Secret, not the ConfigMap.
+- **API JWT** (`create_api_secret.sh` → `podverse-api-opaque`): `AUTH_JWT_SECRET` for signing tokens.
+
+- **Mailer** (`create_mailer_secret.sh` → `podverse-mailer-opaque`): `MAILER_USERNAME` / `MAILER_PASSWORD` (optional SMTP).
+
+- **Metaboost** (`create_metaboost_secret.sh` → `podverse-metaboost-opaque`): `METABOOST_SIGNING_KEY_PEM` / `METABOOST_APP_ASSERTION_ISS` (optional App Assertion).
 
 - **API / management API non-secret auth (ConfigMap env)**: `AUTH_JWT_EXPIRATION` and `AUTH_ALLOW_TOKEN_IN_RESPONSE_BODY` are set in `base/api/source/api.env` and `base/management-api/source/management-api.env` (session length in seconds and whether login may return a token in JSON when the client requests it).
 
@@ -90,6 +92,8 @@ Before running the scripts, ensure you have the following ready:
 bash ./infra/k8s/scripts/secret-generators/create_db_secret.sh
 bash ./infra/k8s/scripts/secret-generators/create_mq_secret.sh
 bash ./infra/k8s/scripts/secret-generators/create_api_secret.sh
+bash ./infra/k8s/scripts/secret-generators/create_mailer_secret.sh
+bash ./infra/k8s/scripts/secret-generators/create_metaboost_secret.sh
 bash ./infra/k8s/scripts/secret-generators/create_workers_add_by_rss_secret.sh
 bash ./infra/k8s/scripts/secret-generators/create_firebase_secret.sh
 ```

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# VERSION: 1
+# VERSION: 3
 # Helper to create the encrypted GitHub Container Registry (ghcr.io) docker-registry Secret.
 
 set -euo pipefail
@@ -19,11 +19,16 @@ while [[ $# -gt 0 ]]; do
 	esac
 done
 
-VERSION="1"
+VERSION="3"
 echo "Running create_github_registry_secret.sh - Version: ${VERSION}"
 
 SECRET_NAME="github-registry-secret"
 REGISTRY="ghcr.io"
+
+echo ""
+echo "GitHub PAT (Classic): GitHub → Settings → Developer settings → Personal access tokens → Tokens (classic) → Generate."
+echo "Minimum scope to pull private ghcr.io images: read:packages. Use the GitHub username that owns this token below."
+echo ""
 
 echo "Please enter your GitHub username:"
 read -r GITHUB_USERNAME
@@ -33,7 +38,7 @@ if [ -z "$GITHUB_USERNAME" ]; then
 	exit 1
 fi
 
-echo "Please enter your GitHub Personal Access Token (PAT):"
+echo "Please enter the Classic PAT (input hidden; needs read:packages for private ghcr.io pulls):"
 read -rs GITHUB_TOKEN
 
 if [ -z "$GITHUB_TOKEN" ]; then
@@ -53,8 +58,9 @@ fi
 
 mkdir -p "$(dirname "$OUTPUT_FILE")"
 
-TMP_FILE="$(mktemp "${TMPDIR:-/tmp}/github-registry-secret.XXXXXX")"
-trap 'rm -f "$TMP_FILE"' EXIT
+TMP_DIR="$(mktemp -d "${TMPDIR:-/tmp}/github-registry-secret-XXXXXX")"
+TMP_FILE="${TMP_DIR}/github-registry-secret.yaml"
+trap 'rm -rf "$TMP_DIR"' EXIT
 
 echo "Generating Docker registry secret manifest..."
 

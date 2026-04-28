@@ -1,11 +1,9 @@
 #!/usr/bin/env bash
-# VERSION: 3
-# Encrypted Secret for API auth only (AUTH_JWT_SECRET).
-# Mailer: create_mailer_secret.sh. Metaboost App Assertion: create_metaboost_secret.sh.
+# VERSION: 1
+# Encrypted Secret for Metaboost App Assertion signing (issuer + PEM).
+# Separate from podverse-api-opaque. Set both keys together when enabling minting.
 
 set -euo pipefail
-
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 AUTO_GEN=false
 OUTPUT_FILE_OVERRIDE=""
@@ -26,7 +24,7 @@ while [[ $# -gt 0 ]]; do
 	esac
 done
 
-echo "Running create_api_secret.sh - Version: 3"
+echo "Running create_metaboost_secret.sh - Version: 1"
 
 if [ "$AUTO_GEN" = true ]; then
 	ENVIRONMENT="${1:-alpha}"
@@ -36,40 +34,44 @@ else
 fi
 ENVIRONMENT="${ENVIRONMENT:-alpha}"
 
-SECRET_NAME="podverse-api-opaque"
+SECRET_NAME="podverse-metaboost-opaque"
 NAMESPACE="podverse-${ENVIRONMENT}"
-OUTPUT_FILE="./secrets/podverse-${ENVIRONMENT}-api-opaque.enc.yaml"
+OUTPUT_FILE="./secrets/podverse-${ENVIRONMENT}-metaboost-opaque.enc.yaml"
 
 if [ -n "$OUTPUT_FILE_OVERRIDE" ]; then
 	OUTPUT_FILE="$OUTPUT_FILE_OVERRIDE"
 fi
 
 if [ "$AUTO_GEN" = true ]; then
-	echo "Auto-generating AUTH_JWT_SECRET..."
-	AUTH_JWT_SECRET=$(uuidgen | tr '[:upper:]' '[:lower:]' | tr -d '\n')
-	echo "  AUTH_JWT_SECRET: [generated]"
-	echo "  Mailer credentials: run ${SCRIPT_DIR}/create_mailer_secret.sh"
-	echo "  Metaboost App Assertion: run ${SCRIPT_DIR}/create_metaboost_secret.sh"
+	METABOOST_APP_ASSERTION_ISS=""
+	METABOOST_SIGNING_KEY_PEM=""
+	echo "  METABOOST_APP_ASSERTION_ISS: [empty—re-run without --auto-gen to set]"
+	echo "  METABOOST_SIGNING_KEY_PEM: [empty—re-run without --auto-gen to set]"
 else
-	echo "--- AUTH_JWT_SECRET ---"
-	read -r -s -p "Enter AUTH_JWT_SECRET (random string): " AUTH_JWT_SECRET
-	echo ""
-	if [ -z "$AUTH_JWT_SECRET" ]; then
-		echo "Error: AUTH_JWT_SECRET is required." >&2
-		exit 1
+	echo "--- Metaboost App Assertion (optional; set both or neither at runtime) ---"
+	read -r -p "Enter METABOOST_APP_ASSERTION_ISS: " METABOOST_APP_ASSERTION_ISS
+	read -r -p "Path to METABOOST_SIGNING_KEY_PEM file (empty if none): " PEM_PATH
+	METABOOST_SIGNING_KEY_PEM=""
+	if [ -n "${PEM_PATH}" ]; then
+		if [ ! -f "${PEM_PATH}" ]; then
+			echo "Error: file not found: ${PEM_PATH}" >&2
+			exit 1
+		fi
+		METABOOST_SIGNING_KEY_PEM="$(cat "${PEM_PATH}")"
 	fi
 fi
 
 mkdir -p "$(dirname "$OUTPUT_FILE")"
 echo "Generating and encrypting secret..."
 
-TMP_YAML_DIR="$(mktemp -d "${TMPDIR:-/tmp}/api-secret-yaml.XXXXXX")"
-TMP_FILE="${TMP_YAML_DIR}/podverse-api-opaque.yaml"
+TMP_YAML_DIR="$(mktemp -d "${TMPDIR:-/tmp}/metaboost-secret-yaml.XXXXXX")"
+TMP_FILE="${TMP_YAML_DIR}/podverse-metaboost-opaque.yaml"
 trap 'rm -rf "$TMP_YAML_DIR"' EXIT
 
 kubectl create secret generic "${SECRET_NAME}" \
 	--namespace "${NAMESPACE}" \
-	--from-literal=AUTH_JWT_SECRET="${AUTH_JWT_SECRET}" \
+	--from-literal=METABOOST_SIGNING_KEY_PEM="${METABOOST_SIGNING_KEY_PEM}" \
+	--from-literal=METABOOST_APP_ASSERTION_ISS="${METABOOST_APP_ASSERTION_ISS}" \
 	--dry-run=client -o yaml >"${TMP_FILE}"
 
 sops --encrypt --encrypted-regex '^(data|stringData)$' \
@@ -83,8 +85,3 @@ echo "SUCCESS: Encrypted secret created at ${OUTPUT_FILE}"
 echo "----------------------------------------------------"
 echo "Verify: sops -d ${OUTPUT_FILE}"
 echo "Apply:  sops -d ${OUTPUT_FILE} | kubectl apply -f -"
-echo ""
-echo "Mailer (MAILER_USERNAME / MAILER_PASSWORD):"
-echo "  bash \"${SCRIPT_DIR}/create_mailer_secret.sh\""
-echo "Metaboost (METABOOST_*):"
-echo "  bash \"${SCRIPT_DIR}/create_metaboost_secret.sh\""

@@ -104,7 +104,6 @@ Use **`./scripts/secret-generators/`** there (kept in sync with [Podverse `infra
 1. **Registry pull secret** (if your overlay uses `imagePullSecrets`; often interactive):
 
    ```fish
-   chmod +x ./scripts/secret-generators/create_github_registry_secret.sh
    ./scripts/secret-generators/create_github_registry_secret.sh
    # Namespace prompt sets the Secret’s target namespace in-cluster; default file is secrets/github-registry-secret.enc.yaml — commit as generated
    ```
@@ -112,24 +111,18 @@ Use **`./scripts/secret-generators/`** there (kept in sync with [Podverse `infra
 2. **Auto-generated opaque secrets** (random values; one invocation):
 
    ```fish
-   chmod +x ./scripts/secret-generators/create_all_secrets_auto_gen.sh
    ./scripts/secret-generators/create_all_secrets_auto_gen.sh $ENV
    ```
 
-   This runs, in order: `create_api_secret.sh`, `create_management_api_secret.sh`, `create_db_secret.sh`, `create_management_db_secret.sh`, `create_keyvaldb_secret.sh`, `create_mq_secret.sh`, `create_workers_add_by_rss_secret.sh` (each with `--auto-gen` as implemented by the generator). Outputs are **`./secrets/podverse-$ENV-*-opaque.enc.yaml`** at the **GitOps** repository root. Commit those files; do not commit cleartext.
+   This runs the generators in dependency order (see [INFRA-K8S-SCRIPTS-SECRET-GENERATORS.md](../../../infra/k8s/scripts/secret-generators/INFRA-K8S-SCRIPTS-SECRET-GENERATORS.md)); each uses **`--auto-gen`**. Outputs are **`./secrets/podverse-$ENV-*-opaque.enc.yaml`** at the **GitOps** repository root. Commit those files; do not commit cleartext. The bulk runner’s end-of-run **NOTE** lists optional follow-ups (for example web-push env).
 
-3. **Manual / external credentials** (run when you have the real keys or files; these do not support the bulk auto-gen pass):
+3. **Additional credential scripts** (run individually when credentials are available):
 
-   ```fish
-   chmod +x \
-     ./scripts/secret-generators/create_api.podcastindex.org_secret.sh \
-     ./scripts/secret-generators/create_firebase_secret.sh \
-     ./scripts/secret-generators/create_workers_digital_ocean_secret.sh
-   ```
-
-   Then run only what you need:
+   Run only what you need:
    - `./scripts/secret-generators/create_api.podcastindex.org_secret.sh`
    - `./scripts/secret-generators/create_firebase_secret.sh`
+   - `./scripts/secret-generators/create_mailer_secret.sh`
+   - `./scripts/secret-generators/create_metaboost_secret.sh`
    - `./scripts/secret-generators/create_workers_digital_ocean_secret.sh`
 
 ### 4. Validate secrets, then apply (cluster)
