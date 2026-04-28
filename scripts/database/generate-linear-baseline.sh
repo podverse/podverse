@@ -3,6 +3,7 @@
 # linear app + management migration chains, then pg_dump of each database.
 # Output: infra/k8s/base/db/source/bootstrap/0003_linear_baseline.sql
 # Do not edit 0003 manually; re-run this script or `make db_regen_linear_baseline` after migration changes.
+# `make db_regen_linear_baseline` also runs generate-linear-migration-history-seed.sh to refresh 0004_seed_linear_migration_history.sql.
 #
 # Requires: docker, a POSIX shell
 #

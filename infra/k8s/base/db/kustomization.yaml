@@ -16,6 +16,7 @@ configMapGenerator:
   - name: podverse-db-init-scripts
     files:
       - 0003_linear_baseline.sql=source/bootstrap/0003_linear_baseline.sql
+      - 0004_seed_linear_migration_history.sql=source/bootstrap/0004_seed_linear_migration_history.sql
 
 generatorOptions:
   disableNameSuffixHash: true

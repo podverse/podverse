@@ -2,12 +2,13 @@
 
 .PHONY: validate validate_docker db_verify_linear_baseline db_regen_linear_baseline
 
-# Regenerate infra/.../0003_linear_baseline.sql from linear migrations (requires Docker).
-# Run after changes under infra/k8s/base/ops/source/database/linear-migrations/; then commit the updated 0003 file.
+# Regenerate infra/.../0003_linear_baseline.sql (Docker) and 0004_seed_linear_migration_history.sql (checksums only).
+# Run after changes under infra/k8s/base/ops/source/database/linear-migrations/; then commit both files.
 db_regen_linear_baseline:
 	@bash scripts/database/generate-linear-baseline.sh
+	@bash scripts/database/generate-linear-migration-history-seed.sh
 
-# Compare generated DB bootstrap 0003 with the committed file (requires Docker).
+# Compare generated DB bootstrap 0003 (Docker) and 0004 checksum seed with committed files.
 # See scripts/database/verify-linear-baseline.sh and docs/operations/LINEAR-MIGRATIONS.md
 db_verify_linear_baseline:
 	@bash scripts/database/verify-linear-baseline.sh
