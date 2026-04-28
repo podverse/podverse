@@ -1,4 +1,4 @@
-# Version: 4
+# Version: 5
 # Child Application: Database
 # This application manages the PostgreSQL StatefulSet and persistent storage.
 
@@ -9,6 +9,15 @@ metadata:
   namespace: argocd
 spec:
   project: podverse
+  # Live StatefulSets include apiVersion/kind on embedded PVC templates; Git often omits them.
+  # Without this, Argo CD stays OutOfSync after sync (API re-injects defaulted fields).
+  ignoreDifferences:
+    - group: apps
+      kind: StatefulSet
+      name: podverse-db
+      jqPathExpressions:
+        - .spec.volumeClaimTemplates[0].apiVersion
+        - .spec.volumeClaimTemplates[0].kind
   source:
     # Points to your git repository
     repoURL: https://github.com/podverse/podverse.git

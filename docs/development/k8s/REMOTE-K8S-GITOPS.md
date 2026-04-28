@@ -240,6 +240,8 @@ Do not confuse:
 - `targetRevision` for the GitOps repo branch (usually `main`)
 - `?ref=` for remote Podverse base manifests (immutable Git tag `X.Y.Z-staging.N`, matching images)
 
+**Database `Application` (PostgreSQL StatefulSet):** The API server may add `apiVersion` and `kind` on each entry under `spec.volumeClaimTemplates` on the live `StatefulSet` while manifests in Git omit those fields. Argo CD then reports **OutOfSync** even after a successful sync. Fix by adding `spec.ignoreDifferences` on the DB child `Application` for `group: apps`, `kind: StatefulSet`, and `jqPathExpressions` such as `.spec.volumeClaimTemplates[0].apiVersion` and `.spec.volumeClaimTemplates[0].kind` (adjust the index if you use more than one claim template). See `infra/k8s/alpha/apps/db.yaml` in the Podverse monorepo for a concrete example.
+
 ## Verification checklist
 
 - Pods are ready:
