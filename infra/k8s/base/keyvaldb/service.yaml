@@ -1,6 +1,5 @@
-# Version: 2
-# Filename: 03-valkey-services.yaml
-# Description: Networking for Valkey DB (Internal) and RedisInsight GUI (External).
+# Version: 3
+# Description: Valkey service. RedisInsight (podverse-keyvaldb-gui) is in base/ops.
 
 apiVersion: v1
 kind: Service
@@ -17,20 +16,3 @@ spec:
     - protocol: TCP
       port: 6379
       targetPort: 6379
-
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: podverse-keyvaldb-gui
-  labels:
-    app: valkey-gui
-spec:
-  # LoadBalancer exposes this on the node's IP (accessible via Tailscale if node is joined)
-  type: LoadBalancer
-  selector:
-    app: valkey-gui
-  ports:
-    - protocol: TCP
-      port: 8001
-      targetPort: 5540

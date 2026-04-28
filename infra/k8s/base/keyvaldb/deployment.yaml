@@ -1,6 +1,6 @@
-# Version: 4
+# Version: 5
 # Filename: deployment.yaml
-# Description: Deployments for Valkey DB and RedisInsight GUI.
+# Description: Valkey DB deployment. RedisInsight GUI is under infra/k8s/base/ops.
 # UPDATE: Using configMapGenerator to mount entrypoint and healthcheck scripts.
 
 apiVersion: apps/v1
@@ -57,32 +57,3 @@ spec:
           configMap:
             name: podverse-keyvaldb-scripts
             defaultMode: 0755
-
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: podverse-keyvaldb-gui
-  labels:
-    app: valkey-gui
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: valkey-gui
-  template:
-    metadata:
-      labels:
-        app: valkey-gui
-    spec:
-      containers:
-        - name: gui
-          # PLACEHOLDER: Kustomize will find this name and append the tag (e.g., :latest)
-          image: redislabs/redisinsight
-          ports:
-            - containerPort: 5540
-          securityContext:
-            runAsUser: 1000
-            runAsGroup: 1000
-            runAsNonRoot: true
-            allowPrivilegeEscalation: false

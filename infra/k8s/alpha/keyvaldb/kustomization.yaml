@@ -1,6 +1,7 @@
-# Version: 3
+# Version: 4
 # Filename: kustomization.yaml
 # Description: Bundles resources and acts as the "Variable" manager for images.
+# RedisInsight (podverse-keyvaldb-gui) is in infra/k8s/alpha/ops.
 
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
@@ -24,20 +25,5 @@ labels:
 # 3. Image Variables
 # Change the 'newTag' here to update versions across all files.
 images:
-  - name: valkey/valkey # The placeholder used in 02-deployments.yaml
-    newTag: "9.0.1" # The actual version to deploy
-  - name: redislabs/redisinsight
-    newTag: "latest"
-
-# Base keyvaldDB GUI `Service` is LoadBalancer; for alpha, use ClusterIP to avoid Argo/LoadBalancer progress hangs.
-patches:
-  - target:
-      kind: Service
-      name: podverse-keyvaldb-gui
-    patch: |-
-      apiVersion: v1
-      kind: Service
-      metadata:
-        name: podverse-keyvaldb-gui
-      spec:
-        type: ClusterIP
+  - name: valkey/valkey
+    newTag: "9.0.1"

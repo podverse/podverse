@@ -1,0 +1,18 @@
+# Version: 1
+# RedisInsight Service. Base uses LoadBalancer; alpha/ops may patch to ClusterIP.
+apiVersion: v1
+kind: Service
+metadata:
+  name: podverse-keyvaldb-gui
+  labels:
+    app: podverse-ops
+    component: keyvaldb-gui
+spec:
+  type: LoadBalancer
+  selector:
+    app: podverse-ops
+    component: keyvaldb-gui
+  ports:
+    - protocol: TCP
+      port: 8001
+      targetPort: 5540
