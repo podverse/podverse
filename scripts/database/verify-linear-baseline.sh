@@ -9,8 +9,8 @@ OUT="$REPO_ROOT/infra/k8s/base/db/source/bootstrap/0003_linear_baseline.sql"
 print_fix_hint() {
   {
     echo "To regenerate 0003 from the repo root:" >&2
-    echo "  make regen_linear_baseline" >&2
-    echo "  make verify_linear_baseline" >&2
+    echo "  make db_regen_linear_baseline" >&2
+    echo "  make db_verify_linear_baseline" >&2
     echo "Or: bash scripts/database/generate-linear-baseline.sh" >&2
   } >&2
   if [[ -n "${GITHUB_STEP_SUMMARY:-}" ]]; then
@@ -20,8 +20,8 @@ print_fix_hint() {
       echo "Regenerate from the repository root, then commit \`0003_linear_baseline.sql\`:"
       echo
       echo '```'
-      echo "make regen_linear_baseline"
-      echo "make verify_linear_baseline"
+      echo "make db_regen_linear_baseline"
+      echo "make db_verify_linear_baseline"
       echo '```'
       echo
       echo "Or: \`bash scripts/database/generate-linear-baseline.sh\`"

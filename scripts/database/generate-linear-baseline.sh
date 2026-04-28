@@ -2,7 +2,7 @@
 # Rebuild a single initdb SQL file from: bootstrap 0001 + 0002, then the full
 # linear app + management migration chains, then pg_dump of each database.
 # Output: infra/k8s/base/db/source/bootstrap/0003_linear_baseline.sql
-# Do not edit 0003 manually; re-run this script or `make regen_linear_baseline` after migration changes.
+# Do not edit 0003 manually; re-run this script or `make db_regen_linear_baseline` after migration changes.
 #
 # Requires: docker, a POSIX shell
 #

@@ -169,8 +169,8 @@ jobs:
                     '',
                     '**Linear baseline 0003:** Regenerate the snapshot locally from the repo root, then commit:',
                     '```',
-                    'make regen_linear_baseline',
-                    'make verify_linear_baseline',
+                    'make db_regen_linear_baseline',
+                    'make db_verify_linear_baseline',
                     '```',
                     'Or: `bash scripts/database/generate-linear-baseline.sh` then re-run verify as above.',
                     ''

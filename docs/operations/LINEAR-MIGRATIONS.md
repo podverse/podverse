@@ -16,7 +16,7 @@ Bootstrap-only DB/user setup scripts live in:
 - After `0001` and `0002` (role and database creation), a **generated** `0003_linear_baseline.sql` is applied in `docker-entrypoint-initdb` order. It is the result of running the full linear app and management migration chains in a throwaway container, then `pg_dump` of each database, combined with `psql` `\connect` lines. It is **not** a hand-edited file.
 - **Regenerate** after any change under `infra/k8s/ops/source/` from the repo root:
 
-  `make regen_linear_baseline` or `bash scripts/database/generate-linear-baseline.sh` (requires Docker; uses synthetic credentials from `scripts/database/db.generate-baseline.env` only). Then `make verify_linear_baseline` and commit the updated `0003_` file.
+  `make db_regen_linear_baseline` or `bash scripts/database/generate-linear-baseline.sh` (requires Docker; uses synthetic credentials from `scripts/database/db.generate-baseline.env` only). Then `make db_verify_linear_baseline` and commit the updated `0003_` file.
 
 - **Do not** edit `0003` manually. There is no bot that auto-commits 0003. A maintainer **`/test` comment** on a pull request runs the same `verify` step; merge only after 0003 matches. The linear `NNNN_*.sql` files remain the **source of truth**; `0003` is a materialized snapshot for first-start init and drift checks.
 
