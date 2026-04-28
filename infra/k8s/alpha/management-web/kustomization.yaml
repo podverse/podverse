@@ -1,4 +1,4 @@
-# Version: 4
+# Version: 5
 # Filename: kustomization.yaml
 # Description: Bundles the Management Web resources and centralizes the image tag.
 

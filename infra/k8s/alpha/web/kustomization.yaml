@@ -1,4 +1,4 @@
-# Version: 4
+# Version: 5
 # Filename: kustomization.yaml
 # Description: Bundles the Web frontend resources and centralizes the web image tag.
 
