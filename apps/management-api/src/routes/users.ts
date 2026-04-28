@@ -28,8 +28,7 @@ function parseIdParam(raw: string | string[] | undefined): number | null {
 }
 
 function getSetPasswordTtlMs(): number {
-  const hours = config.setUserPasswordTtlHours;
-  return hours * 60 * 60 * 1000;
+  return config.setUserPasswordExpiration * 1000;
 }
 
 function userRowToJson(row: Record<string, unknown>) {

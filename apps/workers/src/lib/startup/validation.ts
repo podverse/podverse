@@ -138,7 +138,7 @@ function validateKeyvaldb(): ValidationResult[] {
   results.push(validateRequired('KEYVALDB_HOST', 'KeyValDB'));
   results.push(validateRequired('KEYVALDB_PORT', 'KeyValDB'));
   results.push(validateRequired('KEYVALDB_PASSWORD', 'KeyValDB'));
-  results.push(validateRequired('KEYVALDB_CACHE_TTL_SECONDS', 'KeyValDB'));
+  results.push(validateRequired('KEYVALDB_CACHE_EXPIRATION', 'KeyValDB'));
   return results;
 }
 
@@ -181,7 +181,11 @@ function validateImageShrink(): ValidationResult[] {
     validateOptional('IMAGE_SHRINK_ORPHAN_CLEANUP_MAX_DELETE', 'Image Shrink', 'Use Default (none)')
   );
   results.push(
-    validateOptional('IMAGE_SHRINK_ORPHAN_CLEANUP_MIN_AGE_DAYS', 'Image Shrink', 'Use Default (7)')
+    validateOptional(
+      'IMAGE_SHRINK_ORPHAN_MIN_AGE_EXPIRATION',
+      'Image Shrink',
+      'Use Default (604800)'
+    )
   );
   results.push(
     validateOptional('IMAGE_SHRINK_ORPHAN_CLEANUP_PAGE_SIZE', 'Image Shrink', 'Use Default (500)')

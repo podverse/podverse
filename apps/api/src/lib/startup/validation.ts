@@ -124,7 +124,11 @@ const validateAllEnvironmentVariables = (): ValidationSummary => {
   // Auth & Security
   results.push(validateJwtSecret());
   results.push(
-    validateOptional('AUTH_JWT_EXPIRES_IN', 'Auth & Security', 'Blank uses default (365d)')
+    validateOptional(
+      'AUTH_JWT_EXPIRATION',
+      'Auth & Security',
+      'Blank uses default (31536000 seconds)'
+    )
   );
   results.push(
     validateOptional(
@@ -169,7 +173,7 @@ const validateAllEnvironmentVariables = (): ValidationSummary => {
   results.push(validateRequired('KEYVALDB_HOST', 'KeyValDB'));
   results.push(validateRequired('KEYVALDB_PORT', 'KeyValDB'));
   results.push(validateRequired('KEYVALDB_PASSWORD', 'KeyValDB'));
-  results.push(validateRequired('KEYVALDB_CACHE_TTL_SECONDS', 'KeyValDB'));
+  results.push(validateRequired('KEYVALDB_CACHE_EXPIRATION', 'KeyValDB'));
 
   // Podcast Index
   results.push(validateRequired('PODCAST_INDEX_AUTH_KEY', 'Podcast Index'));

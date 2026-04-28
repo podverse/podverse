@@ -17,7 +17,7 @@
   - `instructions/<rule-stem>.instructions.md` — from each `.mdc` rule; frontmatter remapped to `description` + `applyTo` where applicable.
   - `copilot-instructions.md` — from `.cursorrules` (wrapped in HTML comment headers).
 - **Path rewrites:** After generation, in-tree references to `.cursor/skills/`, `.cursor/rules/…`, and `.cursor/rules/` are rewritten to point at this export’s `skills/` and `instructions/`.
-- **`.cursorignore`:** Not copied into the export. Tools should respect the repository root [`.cursorignore`](../../../.cursorignore) for Cursor-originated ignore rules; those paths are Cursor-centric and are **non-destructive** for other IDEs. For GitHub Copilot, consumers often also map this tree into [`.github/`](../../../.github) per [`.llm/exports/README.md`](../../../.llm/exports/README.md).
+- **`.cursorignore`:** Not copied into the export. Tools should respect the repository root [`.cursorignore`](../../../.cursorignore) for Cursor-originated ignore rules; those paths are Cursor-centric and are **non-destructive** for other IDEs. Some teams map this tree into a local `.github` layout; that is **out of tree** in this repo — the canonical export for CI is under [`.llm/exports/`](../../../.llm/exports/); see [`.llm/exports/README.md`](../../../.llm/exports/README.md).
 
 ---
 
@@ -32,7 +32,7 @@
 
 ## Future IDEs
 
-Add a row here, add `target-id` to `ALLOWED_TARGET_IDS`, a marker under `.llm/exports/<id>/`, `.gitignore` lines for generated paths, and an adapter in `scripts/llm/lib/` wired in `export-from-cursor.mjs`.
+Add a row here, add `target-id` to `ALLOWED_TARGET_IDS`, a marker under `.llm/exports/<id>/`, `.gitignore` lines for generated paths, and an adapter in `scripts/llm/lib/` wired in `export-from-cursor.mjs`. Local `sync` requires `LLM_EXPORT_ALLOW_LOCAL=1` (see [README.md](README.md)); CI and GitHub Actions are ungated.
 
 ---
 

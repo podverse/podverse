@@ -63,8 +63,11 @@ export class ImageShrinkSourceService {
     return this.repositoryReadWrite.save(updated);
   }
 
-  async deleteUnusedSources(pruneAfterDays: number | null): Promise<number> {
-    if (pruneAfterDays !== null && pruneAfterDays < 0) {
+  /**
+   * @param pruneAfterExpiration - Eligible when `last_checked_at` is older than this (or null to skip the time check branch).
+   */
+  async deleteUnusedSources(pruneAfterExpiration: number | null): Promise<number> {
+    if (pruneAfterExpiration !== null && pruneAfterExpiration < 0) {
       return 0;
     }
     const sql = `
@@ -82,12 +85,12 @@ export class ImageShrinkSourceService {
         OR (
           $1 IS NOT NULL
           AND source.last_checked_at IS NOT NULL
-          AND source.last_checked_at < NOW() - ($1 || ' days')::interval
+          AND source.last_checked_at < NOW() - ($1 * interval '1 second')
         )
       )
       RETURNING 1;
     `;
-    const results = await this.repositoryReadWrite.query(sql, [pruneAfterDays]);
+    const results = await this.repositoryReadWrite.query(sql, [pruneAfterExpiration]);
     return Array.isArray(results) ? results.length : 0;
   }
 }

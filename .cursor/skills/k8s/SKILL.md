@@ -287,8 +287,8 @@ labels:
 
 ## Database: linear migrations and bootstrap
 
-- **One source of truth for SQL migrations:** `infra/k8s/base/db/source/app/` and `infra/k8s/base/db/source/management/`. Additive, ordered files (`0001_*.sql`, …); the migration runner applies them in order and records them in `linear_migration_history` (the runner creates that table; do not add a “history table” migration for it).
-- **Bootstrap only in init:** `infra/k8s/base/db/source/bootstrap/` (shell scripts) runs with the DB container; it creates users/roles and related grants, **not** full application schema. Schema comes from the linear chain (often first applied via **ops** migration jobs after the pod is up).
+- **One source of truth for SQL migrations:** `infra/k8s/ops/source/app/` and `infra/k8s/ops/source/management/`. Additive, ordered files (`0001_*.sql`, …); the migration runner applies them in order and records them in `linear_migration_history` (the runner creates that table; do not add a “history table” migration for it).
+- **Bootstrap in init:** `infra/k8s/base/db/source/bootstrap/` — `0001` and `0002` shell scripts create users/roles and the management database; the generated `0003_linear_baseline.sql` (do not hand-edit) materializes the full schema after the linear chain. See `docs/operations/LINEAR-MIGRATIONS.md` and `scripts/database/generate-linear-baseline.sh`. In cluster, **ops** migration jobs also apply the same files from ConfigMaps.
 - **Runners and validation:** From repo root, `bash scripts/database/run-linear-migrations.sh --database app|management` (always pass `--database`); `bash scripts/database/validate-linear-migrations.sh` checks filenames, ordering, and that every SQL file in `source/app` and `source/management` is listed in `infra/k8s/base/ops/kustomization.yaml` (ops bundle must stay in sync with disk).
 - **Kustomize and ops:** When rendering `infra/k8s/base/ops/`, Kustomize may include files under `scripts/`; use a load policy that allows files outside the ops directory, e.g. `kubectl kustomize infra/k8s/base/ops --load-restrictor LoadRestrictionsNone`.
 - **DB credentials naming:** Authoritative admin keys in secrets and env are `DB_APP_ADMIN_USER` / `DB_APP_ADMIN_PASSWORD` and `DB_MANAGEMENT_ADMIN_USER` / `DB_MANAGEMENT_ADMIN_PASSWORD` (plus read/write keys per `infra/config/env-templates/db.env.example`). The official **postgres** image still expects `POSTGRES_USER` / `POSTGRES_PASSWORD` / `POSTGRES_DB` **inside the container** only—map from the `DB_*` keys in StatefulSet or Compose, not the other way around.
@@ -340,12 +340,12 @@ ArgoCD will detect the change and sync automatically.
 
 **Other** scripts (DB/MQ/Valkey connect, image listing) under `infra/k8s/scripts/<topic>/` and `list_images.sh` at `scripts/`:
 
-| Path / script                      | Purpose                                   |
-| ---------------------------------- | ----------------------------------------- |
-| `db/db-connect.sh`                 | Port-forward and connect to PostgreSQL    |
-| `keyvaldb/keyvaldb-gui-connect.sh` | Port-forward to RedisInsight GUI          |
-| `mq/mq-connect.sh`                 | Port-forward to message queue             |
-| `list_images.sh`                   | List image references in use (see script) |
+| Path / script                      | Purpose                                                                                                             |
+| ---------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| `db/db-connect.sh`                 | Port-forward and connect to PostgreSQL                                                                              |
+| `keyvaldb/keyvaldb-gui-connect.sh` | Port-forward to RedisInsight GUI (GUI workload is in the ops app; scale `podverse-keyvaldb-gui` if `replicas` is 0) |
+| `mq/mq-connect.sh`                 | Port-forward to message queue                                                                                       |
+| `list_images.sh`                   | List image references in use (see script)                                                                           |
 
 See [infra/k8s/scripts/README.md](../../infra/k8s/scripts/README.md) for details.
 

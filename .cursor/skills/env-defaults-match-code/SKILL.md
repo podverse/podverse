@@ -12,7 +12,7 @@ When adding or editing environment variables that have fallback defaults in code
 ## Rules
 
 - **Non-empty defaults**: If code has a fallback value, the `.env.example` and K8s `*.env` source files must include that default value -- not an empty string.
-  - Example: `process.env.MANAGEMENT_API_SET_PASSWORD_TTL_HOURS || '168'` means the .env.example should have `MANAGEMENT_API_SET_PASSWORD_TTL_HOURS="168"`.
+  - Example: `readOptionalPositiveExpirationEnv('MANAGEMENT_API_SET_PASSWORD_EXPIRATION', 604800)` with default `604800` means the .env.example should have `MANAGEMENT_API_SET_PASSWORD_EXPIRATION="604800"`.
   - Example: `process.env.DB_SSL_CONNECTION === 'true'` (defaulting to false) means the .env.example should have `DB_SSL_CONNECTION="false"`.
 
 - **Empty is intentional**: Only leave an env var empty (`KEY=`) when the "unset" state IS the intended default (e.g. `LOG_DIR=` means "console-only", `BRAND_LOGO_DARK=` means "use bundled asset").

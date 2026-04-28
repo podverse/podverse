@@ -1,5 +1,10 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion -- env vars validated at startup for running command */
 
+import {
+  readOptionalPositiveExpirationEnv,
+  readRequiredPositiveExpirationEnv,
+} from '@podverse/helpers';
+
 /**
  * Category-scoped config getters. Each getter reads only its env vars.
  * Call only the getters for the command's categories (see getCategoriesForCommand).
@@ -81,7 +86,7 @@ export type ImageShrinkConfig = {
 export type ImageShrinkCleanupConfig = {
   dryRun: boolean;
   maxDelete: number | null;
-  minAgeDays: number;
+  minAgeExpiration: number;
   pageSize: number;
 };
 
@@ -121,7 +126,7 @@ export function getImageShrinkConfig(): ImageShrinkConfig {
   };
 }
 
-const DEFAULT_ORPHAN_CLEANUP_MIN_AGE_DAYS = 7;
+const DEFAULT_ORPHAN_MIN_AGE_EXPIRATION = 7 * 24 * 60 * 60;
 const DEFAULT_ORPHAN_CLEANUP_PAGE_SIZE = 500;
 
 const parseOptionalNumber = (value: string | undefined): number | null => {
@@ -137,9 +142,10 @@ const parseOptionalNumber = (value: string | undefined): number | null => {
 
 export function getImageShrinkCleanupConfig(): ImageShrinkCleanupConfig {
   const maxDelete = parseOptionalNumber(process.env.IMAGE_SHRINK_ORPHAN_CLEANUP_MAX_DELETE);
-  const minAgeDays =
-    parseOptionalNumber(process.env.IMAGE_SHRINK_ORPHAN_CLEANUP_MIN_AGE_DAYS) ??
-    DEFAULT_ORPHAN_CLEANUP_MIN_AGE_DAYS;
+  const minAgeExpiration = readOptionalPositiveExpirationEnv(
+    'IMAGE_SHRINK_ORPHAN_MIN_AGE_EXPIRATION',
+    DEFAULT_ORPHAN_MIN_AGE_EXPIRATION
+  );
   const pageSize =
     parseOptionalNumber(process.env.IMAGE_SHRINK_ORPHAN_CLEANUP_PAGE_SIZE) ??
     DEFAULT_ORPHAN_CLEANUP_PAGE_SIZE;
@@ -147,8 +153,7 @@ export function getImageShrinkCleanupConfig(): ImageShrinkCleanupConfig {
   return {
     dryRun: process.env.IMAGE_SHRINK_ORPHAN_CLEANUP_DRY_RUN !== 'false',
     maxDelete: maxDelete && maxDelete > 0 ? maxDelete : null,
-    minAgeDays:
-      minAgeDays !== null && minAgeDays >= 0 ? minAgeDays : DEFAULT_ORPHAN_CLEANUP_MIN_AGE_DAYS,
+    minAgeExpiration,
     pageSize: pageSize > 0 ? pageSize : DEFAULT_ORPHAN_CLEANUP_PAGE_SIZE,
   };
 }
@@ -157,7 +162,7 @@ export type KeyvaldbConfig = {
   host: string;
   port: number;
   password: string;
-  cacheTTLSeconds: number;
+  cacheExpiration: number;
 };
 
 export function getKeyvaldbConfig(): KeyvaldbConfig {
@@ -165,7 +170,7 @@ export function getKeyvaldbConfig(): KeyvaldbConfig {
     host: process.env.KEYVALDB_HOST!,
     port: Number(process.env.KEYVALDB_PORT!),
     password: process.env.KEYVALDB_PASSWORD!,
-    cacheTTLSeconds: Number(process.env.KEYVALDB_CACHE_TTL_SECONDS!),
+    cacheExpiration: readRequiredPositiveExpirationEnv('KEYVALDB_CACHE_EXPIRATION'),
   };
 }
 

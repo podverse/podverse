@@ -40,7 +40,11 @@ const validateAllEnvironmentVariables = (): ValidationSummary => {
   // Auth & Security
   results.push(validateJwtSecret());
   results.push(
-    validateOptional('AUTH_JWT_EXPIRES_IN', 'Auth & Security', 'Blank uses default (365d)')
+    validateOptional(
+      'AUTH_JWT_EXPIRATION',
+      'Auth & Security',
+      'Blank uses default (31536000 seconds)'
+    )
   );
   results.push(
     validateOptional(
@@ -85,9 +89,9 @@ const validateAllEnvironmentVariables = (): ValidationSummary => {
   // User Management
   results.push(
     validateOptional(
-      'MANAGEMENT_API_SET_PASSWORD_TTL_HOURS',
+      'MANAGEMENT_API_SET_PASSWORD_EXPIRATION',
       'User Management',
-      'Hours before set-password invite links expire. Default: 168 (7 days)'
+      'Blank uses default (604800 seconds)'
     )
   );
 

@@ -1,7 +1,11 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion -- env vars validated at startup in lib/startup/validation.ts */
 
 import type { AccountSignupMode } from '@podverse/helpers';
-import { jwtExpiresInToMilliseconds, ONE_DAY_SECONDS } from '@podverse/helpers';
+import {
+  MS_PER_SECOND,
+  readOptionalPositiveExpirationEnv,
+  readRequiredPositiveExpirationEnv,
+} from '@podverse/helpers';
 
 type SocialConfig = {
   pageUrl: string;
@@ -23,7 +27,8 @@ type Config = {
   };
   auth: {
     jwtSecret: string;
-    jwtExpiresIn: string;
+    /** From AUTH_JWT_EXPIRATION. */
+    jwtExpiration: number;
     sessionCookieMaxAgeMs: number;
     /** When true, login may include JWT in JSON if the client sends includeTokenInResponseBody (non-cookie clients only). */
     allowTokenInResponseBody: boolean;
@@ -72,7 +77,7 @@ type Config = {
     host: string;
     port: number;
     password: string;
-    cacheTTLSeconds: number;
+    cacheExpiration: number;
   };
   resetPassword: {
     tokenExpiration: number;
@@ -98,6 +103,11 @@ type Config = {
   };
 };
 
+const DEFAULT_AUTH_JWT_EXPIRATION = 365 * 24 * 60 * 60;
+const DEFAULT_FREE_TRIAL_EXPIRATION = 31 * 24 * 60 * 60;
+const DEFAULT_VERIFY_AND_EMAIL_CHANGE_TOKEN_EXPIRATION = 31_540_000;
+const DEFAULT_RESET_PASSWORD_TOKEN_EXPIRATION = 86_400;
+
 export const config: Config = {
   nodeEnv: process.env.NODE_ENV!,
   serverEnv: process.env.SERVER_ENV!,
@@ -112,12 +122,14 @@ export const config: Config = {
     dir: process.env.LOG_DIR ?? '',
   },
   auth: (() => {
-    const jwtExpiresIn = (process.env.AUTH_JWT_EXPIRES_IN ?? '365d').trim();
-
+    const jwtExpiration = readOptionalPositiveExpirationEnv(
+      'AUTH_JWT_EXPIRATION',
+      DEFAULT_AUTH_JWT_EXPIRATION
+    );
     return {
       jwtSecret: process.env.AUTH_JWT_SECRET!,
-      jwtExpiresIn,
-      sessionCookieMaxAgeMs: jwtExpiresInToMilliseconds(jwtExpiresIn),
+      jwtExpiration,
+      sessionCookieMaxAgeMs: jwtExpiration * MS_PER_SECOND,
       allowTokenInResponseBody: process.env.AUTH_ALLOW_TOKEN_IN_RESPONSE_BODY === 'true',
     };
   })(),
@@ -133,7 +145,10 @@ export const config: Config = {
       .map((origin) => origin.trim()),
   },
   emailChangeVerification: {
-    tokenExpiration: parseInt(process.env.EMAIL_CHANGE_VERIFICATION_TOKEN_EXPIRATION!, 10),
+    tokenExpiration: readOptionalPositiveExpirationEnv(
+      'EMAIL_CHANGE_VERIFICATION_TOKEN_EXPIRATION',
+      DEFAULT_VERIFY_AND_EMAIL_CHANGE_TOKEN_EXPIRATION
+    ),
   },
   legal: {
     name: process.env.LEGAL_NAME!,
@@ -173,10 +188,13 @@ export const config: Config = {
     host: process.env.KEYVALDB_HOST!,
     port: Number(process.env.KEYVALDB_PORT!),
     password: process.env.KEYVALDB_PASSWORD!,
-    cacheTTLSeconds: Number(process.env.KEYVALDB_CACHE_TTL_SECONDS!),
+    cacheExpiration: readRequiredPositiveExpirationEnv('KEYVALDB_CACHE_EXPIRATION'),
   },
   resetPassword: {
-    tokenExpiration: parseInt(process.env.RESET_PASSWORD_TOKEN_EXPIRATION!, 10),
+    tokenExpiration: readOptionalPositiveExpirationEnv(
+      'RESET_PASSWORD_TOKEN_EXPIRATION',
+      DEFAULT_RESET_PASSWORD_TOKEN_EXPIRATION
+    ),
   },
   social: {
     facebook: {
@@ -197,7 +215,10 @@ export const config: Config = {
     },
   },
   verifyEmail: {
-    tokenExpiration: parseInt(process.env.VERIFY_EMAIL_TOKEN_EXPIRATION!, 10),
+    tokenExpiration: readOptionalPositiveExpirationEnv(
+      'VERIFY_EMAIL_TOKEN_EXPIRATION',
+      DEFAULT_VERIFY_AND_EMAIL_CHANGE_TOKEN_EXPIRATION
+    ),
   },
   web: {
     protocol: process.env.WEB_PROTOCOL!,
@@ -207,6 +228,9 @@ export const config: Config = {
     costMonthly: Number(process.env.PREMIUM_MEMBERSHIP_COST_MONTHLY!),
     costAnnually: Number(process.env.PREMIUM_MEMBERSHIP_COST_ANNUALLY!),
     signupMode: process.env.ACCOUNT_SIGNUP_MODE! as AccountSignupMode,
-    freeTrialExpiration: parseInt(process.env.FREE_TRIAL_EXPIRATION!, 10) * ONE_DAY_SECONDS, // env is in days
+    freeTrialExpiration: readOptionalPositiveExpirationEnv(
+      'FREE_TRIAL_EXPIRATION',
+      DEFAULT_FREE_TRIAL_EXPIRATION
+    ),
   },
 };

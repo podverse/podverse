@@ -1,6 +1,16 @@
 # --- Pre-push validation and Docker image build. ---
 
-.PHONY: validate validate_docker
+.PHONY: validate validate_docker db_verify_linear_baseline db_regen_linear_baseline
+
+# Regenerate infra/.../0003_linear_baseline.sql from linear migrations (requires Docker).
+# Run after changes under infra/k8s/ops/source/; then commit the updated 0003 file.
+db_regen_linear_baseline:
+	@bash scripts/database/generate-linear-baseline.sh
+
+# Compare generated DB bootstrap 0003 with the committed file (requires Docker).
+# See scripts/database/verify-linear-baseline.sh and docs/operations/LINEAR-MIGRATIONS.md
+db_verify_linear_baseline:
+	@bash scripts/database/verify-linear-baseline.sh
 
 # Run all checks that the CI will run before merging to alpha.
 validate:

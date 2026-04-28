@@ -38,9 +38,12 @@ jobs:
       - name: Generate exports (full)
         run: node scripts/llm/export-from-cursor.mjs sync --full
 
-      # peter-evans/create-pull-request respects .gitignore; machine output is ignored locally — match llm:exports:check
-      - name: Stage export tree (include gitignored generated paths)
-        run: git add -A -f -- .llm/exports
+      - name: Stage export tree
+        # peter-evans/create-pull-request respects .gitignore; machine output is ignored locally
+        # — force-add gitignored export paths
+        run: |
+          set -e
+          git add -A -f -- .llm/exports
 
       - name: Create or update llm-full PR
         id: cpr
@@ -49,15 +52,14 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           branch: llm-full
           base: develop
-          add-paths: |
-            .llm/exports
+          add-paths: .llm/exports
           commit-message: "chore(llm): full regen .llm/exports from .cursor"
           title: "chore(llm): full regen .llm/exports from .cursor"
           body: |
             On-demand full LLM export regen from `.cursor` + `.cursorrules`.
 
             - Source of truth remains `.cursor/**` and `.cursorrules`
-            - Generated trees under `.llm/exports/**` were fully regenerated for each export target (orphans removed)
+            - Orphans under per-target `skills/`, `instructions/`, and root `*-instructions.md` are removed for full regen, then the export is regenerated
             - For day-to-day updates use workflow **LLM exports sync** (branch `llm`); use **LLM exports full** for catch-up / after large renames
           labels: |
             llm

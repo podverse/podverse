@@ -4,7 +4,13 @@
  * Valkey test instance on port 6679.
  * All values are hardcoded so test runs are deterministic and not affected by ambient env.
  * Ports 5732/6679 are Podverse test-only; dev uses 5432/6379; Metaboost test uses 5632/6579.
+ *
+ * All `*_EXPIRATION` values are at least one day (86400s) unless a test file overrides
+ * `process.env` to assert expired-token or short-TTL behavior.
  */
+
+/** Minimum seconds for any `*_EXPIRATION` in this default test env (1 day). */
+const MIN_TEST_EXPIRATION = 86400;
 
 const testEnv: Record<string, string> = {
   NODE_ENV: 'test',
@@ -15,7 +21,7 @@ const testEnv: Record<string, string> = {
   USER_AGENT: 'Example Bot test/API/5',
   // Auth
   AUTH_JWT_SECRET: '11111111-1111-4111-8111-111111111111',
-  AUTH_JWT_EXPIRES_IN: '365d',
+  AUTH_JWT_EXPIRATION: String(MIN_TEST_EXPIRATION),
   AUTH_ALLOW_TOKEN_IN_RESPONSE_BODY: 'false',
   // API
   API_PORT: '29999',
@@ -44,7 +50,7 @@ const testEnv: Record<string, string> = {
   KEYVALDB_HOST: '127.0.0.1',
   KEYVALDB_PORT: '6679',
   KEYVALDB_PASSWORD: '',
-  KEYVALDB_CACHE_TTL_SECONDS: '300',
+  KEYVALDB_CACHE_EXPIRATION: String(MIN_TEST_EXPIRATION),
   // Mailer (disabled for tests via missing MAILER_FROM)
   MAILER_HOST: 'localhost',
   MAILER_PORT: '1025',
@@ -54,7 +60,7 @@ const testEnv: Record<string, string> = {
   // Email
   BRAND_COLOR_PRIMARY: '#000000',
   BRAND_BANNER_IMAGE_3X1_URL: '',
-  EMAIL_CHANGE_VERIFICATION_TOKEN_EXPIRATION: '3600',
+  EMAIL_CHANGE_VERIFICATION_TOKEN_EXPIRATION: String(MIN_TEST_EXPIRATION),
   // Legal
   LEGAL_NAME: 'Test Legal',
   LEGAL_ADDRESS: 'Test Address',
@@ -75,14 +81,14 @@ const testEnv: Record<string, string> = {
   SOCIAL_TWITTER_PAGE_URL: '',
   SOCIAL_TWITTER_IMAGE_URL: '',
   // Verify email
-  VERIFY_EMAIL_TOKEN_EXPIRATION: '3600',
+  VERIFY_EMAIL_TOKEN_EXPIRATION: String(MIN_TEST_EXPIRATION),
   // Reset password
-  RESET_PASSWORD_TOKEN_EXPIRATION: '3600',
+  RESET_PASSWORD_TOKEN_EXPIRATION: String(MIN_TEST_EXPIRATION),
   // Premium / signup
   PREMIUM_COST_MONTHLY: '5',
   PREMIUM_COST_ANNUALLY: '50',
   ACCOUNT_SIGNUP_MODE: 'admin_only_email',
-  FREE_TRIAL_EXPIRATION: '30',
+  FREE_TRIAL_EXPIRATION: String(MIN_TEST_EXPIRATION),
   // V4V / Metaboost signing (stubs)
   METABOOST_SIGNING_KEY_PEM: '',
   METABOOST_APP_ASSERTION_ISS: '',

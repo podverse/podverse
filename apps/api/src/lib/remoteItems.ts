@@ -67,7 +67,7 @@ export async function buildRemoteItemsFinalResult(
               await cacheSetJson<PodcastBatchByFeedGuidResponse['feeds'][number]>(
                 key,
                 f,
-                config.keyvaldb.cacheTTLSeconds
+                config.keyvaldb.cacheExpiration
               );
             }
           } catch {
@@ -128,7 +128,7 @@ export async function buildRemoteItemsFinalResult(
           await cacheSetJson<NonNullable<EpisodeByGuidResponse['episode']>>(
             key,
             response.episode,
-            config.keyvaldb.cacheTTLSeconds
+            config.keyvaldb.cacheExpiration
           );
         }
       } catch {

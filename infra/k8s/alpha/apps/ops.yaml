@@ -1,6 +1,6 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/argoproj.io/application_v1alpha1.json
-# Version: 3
-# Application for Ops (Maintenance Jobs)
+# Version: 4
+# Application for Ops (maintenance jobs and optional keyvaldb-gui)
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
@@ -17,6 +17,13 @@ spec:
   destination:
     server: https://kubernetes.default.svc
     namespace: podverse-alpha
+  # keyvaldb-gui defaults to 0 replicas; operators scale to 1 on demand. Do not self-heal away manual scale.
+  ignoreDifferences:
+    - group: apps
+      kind: Deployment
+      name: podverse-keyvaldb-gui
+      jsonPointers:
+        - /spec/replicas
   syncPolicy:
     automated:
       prune: true

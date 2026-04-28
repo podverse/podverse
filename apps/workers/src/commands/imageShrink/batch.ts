@@ -7,7 +7,11 @@ import { getImageStorageService } from '@workers/factories/imageStorageService.j
 import { getLoggerService } from '@workers/factories/loggerService.js';
 import sharp from 'sharp';
 
-import { createThroughputLimiter, sha256Hex } from '@podverse/helpers';
+import {
+  createThroughputLimiter,
+  readOptionalPositiveExpirationEnv,
+  sha256Hex,
+} from '@podverse/helpers';
 import {
   buildConditionalRequestHeaders,
   fetchWithTimeout,
@@ -44,8 +48,8 @@ export type ImageShrinkTarget =
 
 const MAX_IMAGE_BYTES = 10 * 1024 * 1024;
 const FETCH_TIMEOUT_MS = 15000;
-const DEFAULT_RECHECK_TTL_MS = 24 * 60 * 60 * 1000;
-const DEFAULT_SOURCE_PRUNE_DAYS = 30;
+const DEFAULT_IMAGE_SHRINK_RECHECK_EXPIRATION = 24 * 60 * 60;
+const DEFAULT_IMAGE_SHRINK_SOURCE_PRUNE_EXPIRATION = 30 * 24 * 60 * 60;
 
 const createImageKey = (target: ImageShrinkTarget, widthPx: number) => {
   const hash = sha256Hex(target.url);
@@ -103,25 +107,19 @@ const fetchHead = async (
 };
 
 const getRecheckTtlMs = (): number => {
-  const ttlSeconds = process.env.IMAGE_SHRINK_RECHECK_TTL_SECONDS;
-  if (ttlSeconds && ttlSeconds.trim() !== '') {
-    const parsed = Number(ttlSeconds);
-    if (!Number.isNaN(parsed) && parsed > 0) {
-      return parsed * 1000;
-    }
-  }
-  return DEFAULT_RECHECK_TTL_MS;
+  return (
+    readOptionalPositiveExpirationEnv(
+      'IMAGE_SHRINK_RECHECK_EXPIRATION',
+      DEFAULT_IMAGE_SHRINK_RECHECK_EXPIRATION
+    ) * 1000
+  );
 };
 
-const getSourcePruneDays = (): number | null => {
-  const pruneDays = process.env.IMAGE_SHRINK_SOURCE_PRUNE_DAYS;
-  if (pruneDays && pruneDays.trim() !== '') {
-    const parsed = Number(pruneDays);
-    if (!Number.isNaN(parsed) && parsed >= 0) {
-      return parsed;
-    }
-  }
-  return DEFAULT_SOURCE_PRUNE_DAYS;
+const getSourcePruneAfterExpiration = (): number => {
+  return readOptionalPositiveExpirationEnv(
+    'IMAGE_SHRINK_SOURCE_PRUNE_EXPIRATION',
+    DEFAULT_IMAGE_SHRINK_SOURCE_PRUNE_EXPIRATION
+  );
 };
 
 export type ImageShrinkProcessor = {
@@ -159,7 +157,7 @@ export const createImageShrinkProcessor = (): ImageShrinkProcessor => {
   const itemImageService = new ItemImageService();
   const imageShrinkSourceService = new ImageShrinkSourceService();
   const recheckTtlMs = getRecheckTtlMs();
-  const pruneAfterDays = getSourcePruneDays();
+  const pruneAfterExpiration = getSourcePruneAfterExpiration();
 
   const processTarget = async (target: ImageShrinkTarget) => {
     await rateLimiter();
@@ -298,7 +296,7 @@ export const createImageShrinkProcessor = (): ImageShrinkProcessor => {
   };
 
   const pruneSources = async () => {
-    const deletedSources = await imageShrinkSourceService.deleteUnusedSources(pruneAfterDays);
+    const deletedSources = await imageShrinkSourceService.deleteUnusedSources(pruneAfterExpiration);
     if (deletedSources > 0) {
       logger.info(`imageShrinkProcessor: pruned ${deletedSources} unused source rows`);
     }

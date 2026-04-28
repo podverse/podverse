@@ -21,8 +21,8 @@ import styles from '../../styles/app/membership/Membership.module.scss';
 type MembershipPricingData = {
   costMonthly: number;
   costAnnually: number;
-  freeTrialDurationSeconds: number;
-  freeTrialDurationDays: number;
+  freeTrialExpiration: number;
+  freeTrialDays: number;
   annuallySavingsPercent: number;
   monthlyEquivalentAnnually: number;
 };
@@ -260,7 +260,7 @@ function renderIntroText({
   }
 
   if (pricingData) {
-    return t('intro_try_premium', { days: pricingData.freeTrialDurationDays });
+    return t('intro_try_premium', { days: pricingData.freeTrialDays });
   }
 
   return '';

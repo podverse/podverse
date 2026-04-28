@@ -66,6 +66,11 @@ The main API, workers, and management-api all use shared `DB_HOST` and `DB_PORT`
 
 ## Optional Variables
 
+### Auth & user management
+
+- **`AUTH_JWT_EXPIRATION`** (Optional) - JWT session and cookie max-age in seconds (default: 31536000, 365 days)
+- **`MANAGEMENT_API_SET_PASSWORD_EXPIRATION`** (Optional) - Set-password invite link lifetime in seconds (default: 604800, 7 days)
+
 ### General
 
 - **`NODE_ENV`** (Optional) - Node environment (`development`, `production`, etc.)
@@ -76,10 +81,12 @@ The main API, workers, and management-api all use shared `DB_HOST` and `DB_PORT`
 
 ### Numeric Validation
 
-Variables containing `PORT` are automatically validated to ensure they are valid positive numbers:
+Variables whose names end with `_EXPIRATION` or that contain `PORT` are automatically validated to ensure they are valid positive numbers where required:
 
 - `DB_PORT`
 - `API_PORT`
+- `AUTH_JWT_EXPIRATION`
+- `MANAGEMENT_API_SET_PASSWORD_EXPIRATION`
 
 ### Format Validation
 

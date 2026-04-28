@@ -1,0 +1,47 @@
+# Version: 2
+# RedisInsight GUI: optional, on-demand (scale from 0). Shipped in ops, not with keyvaldb.
+# app + component so alpha/ops label transforms do not collapse the Service selector to match Job pods.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: podverse-keyvaldb-gui
+  labels:
+    app: podverse-ops
+    component: keyvaldb-gui
+spec:
+  replicas: 0
+  selector:
+    matchLabels:
+      app: podverse-ops
+      component: keyvaldb-gui
+  template:
+    metadata:
+      labels:
+        app: podverse-ops
+        component: keyvaldb-gui
+    spec:
+      containers:
+        - name: gui
+          # PLACEHOLDER: Kustomize will find this name and append the tag (e.g., :latest)
+          image: redislabs/redisinsight
+          ports:
+            - containerPort: 5540
+          readinessProbe:
+            tcpSocket:
+              port: 5540
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
+          livenessProbe:
+            tcpSocket:
+              port: 5540
+            initialDelaySeconds: 20
+            periodSeconds: 20
+            timeoutSeconds: 3
+            failureThreshold: 3
+          securityContext:
+            runAsUser: 1000
+            runAsGroup: 1000
+            runAsNonRoot: true
+            allowPrivilegeEscalation: false

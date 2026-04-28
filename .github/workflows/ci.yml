@@ -57,6 +57,10 @@ jobs:
         id: db-verify
         run: bash scripts/database/validate-linear-migrations.sh
 
+      - name: Verify linear baseline 0003
+        id: db-baseline-0003
+        run: bash scripts/database/verify-linear-baseline.sh
+
       - name: Setup Node.js
         uses: actions/setup-node@v6
         with:
@@ -102,6 +106,7 @@ jobs:
               '| Check | Status |',
               '|-------|--------|',
               '| Linear migration files valid | ✅ |',
+              '| Linear baseline 0003 (vs generator) | ✅ |',
               '| Dependencies installed | ✅ |',
               '| Build packages | ✅ |',
               '| Lint (type-check, ESLint, Prettier) | ✅ |',
@@ -145,6 +150,7 @@ jobs:
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
           PR_NUMBER: ${{ steps.pr-comment.outputs.pr_number }}
           DB_VERIFY: ${{ steps.db-verify.outcome }}
+          DB_BASELINE_0003: ${{ steps.db-baseline-0003.outcome }}
           INSTALL: ${{ steps.install.outcome }}
           LINT: ${{ steps.lint.outcome }}
           BUILD_PACKAGES: ${{ steps.build-packages.outcome }}
@@ -157,6 +163,20 @@ jobs:
               return '⏭️';
             };
 
+            const extra =
+              process.env.DB_BASELINE_0003 === 'failure'
+                ? [
+                    '',
+                    '**Linear baseline 0003:** Regenerate the snapshot locally from the repo root, then commit:',
+                    '```',
+                    'make db_regen_linear_baseline',
+                    'make db_verify_linear_baseline',
+                    '```',
+                    'Or: `bash scripts/database/generate-linear-baseline.sh` then re-run verify as above.',
+                    ''
+                  ].join('\n')
+                : '';
+
             const body = [
               '## ❌ CI Failed',
               '',
@@ -165,6 +185,7 @@ jobs:
               '| Check | Status |',
               '|-------|--------|',
               `| Linear migration files valid | ${status(process.env.DB_VERIFY)} |`,
+              `| Linear baseline 0003 (vs generator) | ${status(process.env.DB_BASELINE_0003)} |`,
               `| Dependencies installed | ${status(process.env.INSTALL)} |`,
               `| Build packages | ${status(process.env.BUILD_PACKAGES)} |`,
               `| Lint (type-check, ESLint, Prettier) | ${status(process.env.LINT)} |`,
@@ -172,6 +193,7 @@ jobs:
               '',
               'Legend: ✅ Passed | ❌ Failed | ⏭️ Skipped',
               '',
+              extra,
               `[View full run for details](${process.env.RUN_URL})`
             ].join('\n');
 

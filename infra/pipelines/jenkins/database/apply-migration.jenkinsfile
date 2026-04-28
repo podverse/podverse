@@ -95,9 +95,9 @@ pipeline {
 
 def getMigrationPath(database, migrationFile) {
     if (database == 'management') {
-        return "infra/k8s/base/db/source/management/${migrationFile}"
+        return "infra/k8s/ops/source/management/${migrationFile}"
     }
-    return "infra/k8s/base/db/source/app/${migrationFile}"
+    return "infra/k8s/ops/source/app/${migrationFile}"
 }
 
 def getDbHost(environment, database) {

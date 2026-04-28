@@ -1,5 +1,5 @@
 /**
- * Sessions: JWT TTL/cookie max-age use AUTH_JWT_EXPIRES_IN (default `365d`). Login JSON includes `token`
+ * Sessions: JWT TTL/cookie max-age use AUTH_JWT_EXPIRATION (seconds). Login JSON includes `token`
  * only when AUTH_ALLOW_TOKEN_IN_RESPONSE_BODY=true and the client sends includeTokenInResponseBody.
  */
 import type { AuthenticatedAdmin } from '@mgmt-api/@types/express.js';
@@ -166,7 +166,7 @@ export const authenticate = (req: Request, res: Response, next: NextFunction) =>
       }
 
       const token = jwt.sign({ id: user.id, id_text: user.id_text }, config.auth.jwtSecret, {
-        expiresIn: config.auth.jwtExpiresIn,
+        expiresIn: config.auth.jwtExpiration,
       } as SignOptions);
 
       setAuthCookie(res, token);

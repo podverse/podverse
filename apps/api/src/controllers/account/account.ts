@@ -31,6 +31,7 @@ import {
   ERROR_MESSAGES,
   getAccountSignupModeCapabilities,
   getSharableStatusIdsForProfileType,
+  MS_PER_SECOND,
   SharableStatusEnum,
 } from '@podverse/helpers';
 import type { QueryParamsStatsRange } from '@podverse/helpers-requests';
@@ -599,7 +600,9 @@ export class AccountController {
     }
 
     const verificationToken = uuidv4();
-    const verificationTokenExpiresAt = new Date(Date.now() + config.verifyEmail.tokenExpiration);
+    const verificationTokenExpiresAt = new Date(
+      Date.now() + config.verifyEmail.tokenExpiration * MS_PER_SECOND
+    );
 
     await AccountController.accountVerificationService.update(account, {
       verification_token: verificationToken,
@@ -675,7 +678,7 @@ export class AccountController {
 
     const verificationToken = uuidv4();
     const verificationTokenExpiresAt = new Date(
-      Date.now() + config.emailChangeVerification.tokenExpiration
+      Date.now() + config.emailChangeVerification.tokenExpiration * MS_PER_SECOND
     );
 
     await AccountController.accountEmailChangeVerificationService.create(account, {
@@ -741,7 +744,9 @@ export class AccountController {
     }
 
     const resetToken = uuidv4();
-    const resetTokenExpiresAt = new Date(Date.now() + config.resetPassword.tokenExpiration);
+    const resetTokenExpiresAt = new Date(
+      Date.now() + config.resetPassword.tokenExpiration * MS_PER_SECOND
+    );
 
     await AccountController.accountResetPasswordService.update(account, {
       reset_token: resetToken,

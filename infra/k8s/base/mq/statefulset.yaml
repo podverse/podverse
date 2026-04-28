@@ -1,4 +1,4 @@
-# Version: 2
+# Version: 3
 # The StatefulSet for ActiveMQ Artemis.
 # We explicitly set the environment variables for the admin user/password.
 # We verify readiness by checking if the console port is responding.
@@ -34,12 +34,21 @@ spec:
             - secretRef:
                 name: podverse-mq-opaque
 
-          # Basic readiness probe to check if the broker is up
+          # Readiness: management console port is up. Liveness: same (brokers are long-running).
           readinessProbe:
             tcpSocket:
               port: 8161
             initialDelaySeconds: 10
             periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 3
+          livenessProbe:
+            tcpSocket:
+              port: 8161
+            initialDelaySeconds: 20
+            periodSeconds: 20
+            timeoutSeconds: 3
+            failureThreshold: 3
 
           volumeMounts:
             - name: mq-data

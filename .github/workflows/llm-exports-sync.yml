@@ -1,17 +1,11 @@
 # Deterministic sync from .cursor to .llm/exports (see scripts/llm/ and docs/development/llm/).
 # Does not use cloud LLM APIs. Export is plain Node (no root npm install); see package.json llm:exports:sync.
+# PRs to develop are not gated on .llm/exports matching; after merge, this workflow (push to develop) updates branch `llm` and its rolling PR. Use `npm run llm:exports:check` locally if you want to assert a branch is in sync.
 
 name: LLM exports sync
 
 on:
   push:
-    branches: [develop]
-    paths:
-      - ".cursor/**"
-      - ".cursorrules"
-      - ".cursorignore"
-      - "scripts/llm/**"
-  pull_request:
     branches: [develop]
     paths:
       - ".cursor/**"
@@ -25,24 +19,6 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  verify:
-    if: github.event_name == 'pull_request'
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    permissions:
-      contents: read
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Use Node
-        uses: actions/setup-node@v4
-        with:
-          node-version-file: .nvmrc
-
-      - name: Sync smoke check
-        run: node scripts/llm/export-from-cursor.mjs sync
-
   publish_llm_pr:
     if: github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && github.ref == 'refs/heads/develop' && !contains(github.event.head_commit.message, '[bot]'))
     runs-on: ubuntu-latest
@@ -66,9 +42,12 @@ jobs:
       - name: Generate exports
         run: node scripts/llm/export-from-cursor.mjs sync
 
-      # peter-evans/create-pull-request respects .gitignore; machine output is ignored locally — match llm:exports:check
-      - name: Stage export tree (include gitignored generated paths)
-        run: git add -A -f -- .llm/exports
+      - name: Stage export tree
+        # peter-evans/create-pull-request respects .gitignore; machine output is ignored locally
+        # — force-add gitignored export paths (same staging as local `llm:exports:check` would use)
+        run: |
+          set -e
+          git add -A -f -- .llm/exports
 
       - name: Create or update llm PR
         id: cpr
@@ -77,15 +56,14 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           branch: llm
           base: develop
-          add-paths: |
-            .llm/exports
+          add-paths: .llm/exports
           commit-message: "chore(llm): sync .llm/exports from .cursor"
           title: "chore(llm): sync .llm/exports from .cursor"
           body: |
             Automated LLM export sync from `.cursor` + `.cursorrules`.
 
             - Source of truth remains `.cursor/**` and `.cursorrules`
-            - Generated mirrors under `.llm/exports/**`
+            - Generated: `.llm/exports/**` (including ignored paths, staged on the workflow runner for the PR)
           labels: |
             llm
           delete-branch: false

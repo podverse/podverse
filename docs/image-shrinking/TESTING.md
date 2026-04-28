@@ -30,7 +30,7 @@ Ensure the database has some channel and/or item images (from normal RSS parsing
    - `BUCKET_REGION`, `BUCKET_NAME`, `BUCKET_CDN_BASE_URL`
    - `IMAGE_SHRINK_WIDTH_PX`, `IMAGE_SHRINK_BATCH_SIZE`, `IMAGE_SHRINK_CONCURRENCY`, `IMAGE_SHRINK_RPS`
 
-   If `BUCKET_PROVIDER` is set, **all** of the above are required (all-or-nothing). Optional: `IMAGE_SHRINK_RECHECK_TTL_SECONDS`, `IMAGE_SHRINK_SOURCE_PRUNE_DAYS`.
+   If `BUCKET_PROVIDER` is set, **all** of the above are required (all-or-nothing). Optional: `IMAGE_SHRINK_RECHECK_EXPIRATION`, `IMAGE_SHRINK_SOURCE_PRUNE_EXPIRATION`.
 
 4. **Confirm the queue exists**. The consumer expects the queue name defined in `MQ_IMAGE_SHRINK_HINTS_CONFIG` (see `@podverse/helpers`). Ensure ActiveMQ has that queue created (or use default queue creation if your broker creates queues on demand).
 
@@ -132,7 +132,7 @@ npm run image_shrink_cleanup_orphans -w apps/workers
 
 Notes:
 
-- Only `.webp` objects under `images/` older than `IMAGE_SHRINK_ORPHAN_CLEANUP_MIN_AGE_DAYS` are eligible.
+- Only `.webp` objects under `images/` older than `IMAGE_SHRINK_ORPHAN_MIN_AGE_EXPIRATION` (seconds) are eligible.
 - Objects without `lastModified` are skipped.
 - Use `IMAGE_SHRINK_ORPHAN_CLEANUP_MAX_DELETE` to cap deletions per run.
 

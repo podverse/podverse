@@ -23,5 +23,3 @@ labels:
 images:
   - name: valkey/valkey
     newTag: "9.0.1"
-  - name: redislabs/redisinsight
-    newTag: "latest"

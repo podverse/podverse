@@ -62,13 +62,13 @@ if [[ -z "${DB_USER:-}" || -z "${DB_PASSWORD:-}" || -z "${DB_NAME:-}" ]]; then
 fi
 
 if [[ "$DATABASE" == "app" ]]; then
-  MIGRATIONS_DIR="$REPO_ROOT/infra/k8s/base/db/source/app"
+  MIGRATIONS_DIR="$REPO_ROOT/infra/k8s/ops/source/app"
   PSQL_USER="${DB_USER:-${DB_APP_ADMIN_USER:-}}"
   PSQL_PASSWORD="${DB_PASSWORD:-${DB_APP_ADMIN_PASSWORD:-}}"
   PSQL_DB="${DB_NAME:-${DB_APP_NAME:-podverse_app}}"
   LOCK_KEY="951001"
 else
-  MIGRATIONS_DIR="$REPO_ROOT/infra/k8s/base/db/source/management"
+  MIGRATIONS_DIR="$REPO_ROOT/infra/k8s/ops/source/management"
   PSQL_USER="${DB_USER:-${DB_MANAGEMENT_ADMIN_USER:-}}"
   PSQL_PASSWORD="${DB_PASSWORD:-${DB_MANAGEMENT_ADMIN_PASSWORD:-}}"
   PSQL_DB="${DB_NAME:-${DB_MANAGEMENT_NAME:-podverse_management}}"

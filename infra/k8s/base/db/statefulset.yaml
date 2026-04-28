@@ -71,14 +71,37 @@ spec:
             - "-c"
             - "max_parallel_workers=2"
 
+          # Readiness: the server accepts connections for the configured DB. Liveness uses the
+          # same check with looser timing so a long crash-recovery does not restart the pod early.
+          readinessProbe:
+            exec:
+              command:
+                - sh
+                - -c
+                - pg_isready -U "$POSTGRES_USER" -d "$POSTGRES_DB"
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 3
+          livenessProbe:
+            exec:
+              command:
+                - sh
+                - -c
+                - pg_isready -U "$POSTGRES_USER" -d "$POSTGRES_DB"
+            initialDelaySeconds: 60
+            periodSeconds: 20
+            timeoutSeconds: 5
+            failureThreshold: 6
+
           volumeMounts:
             - name: db-data
               mountPath: /var/lib/postgresql
 
-            # Bootstrap scripts only: DB/user creation and grants.
-            # Schema migration chain is applied by ops migration jobs.
+            # Init order: 0001 app users, 0002 management users/DB, 0003 generated
+            # schema snapshot (from ops/source linear chain). Remaining: ops jobs if needed.
             # 1. App DB users
-            - name: init-scripts
+            - name: app-db-init-scripts
               mountPath: /docker-entrypoint-initdb.d/0001_create_app_db_users.sh
               subPath: 0001_create_app_db_users.sh
 
@@ -86,6 +109,11 @@ spec:
             - name: management-init-scripts
               mountPath: /docker-entrypoint-initdb.d/0002_create_management_db_users.sh
               subPath: 0002_create_management_db_users.sh
+
+            # 3. Full schema + linear migration history (generated; do not hand-edit the source file)
+            - name: db-init-scripts
+              mountPath: /docker-entrypoint-initdb.d/0003_linear_baseline.sql
+              subPath: 0003_linear_baseline.sql
 
             - name: run-dir
               mountPath: /var/run/postgresql
@@ -98,12 +126,15 @@ spec:
             runAsNonRoot: true
 
       volumes:
-        - name: init-scripts
+        - name: app-db-init-scripts
           configMap:
-            name: podverse-db-init-scripts
+            name: podverse-app-db-init-scripts
         - name: management-init-scripts
           configMap:
-            name: podverse-management-db-init-scripts
+            name: podverse-management-init-scripts
+        - name: db-init-scripts
+          configMap:
+            name: podverse-db-init-scripts
         - name: run-dir
           emptyDir: {}
 
