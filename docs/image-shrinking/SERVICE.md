@@ -82,7 +82,7 @@ Spaces and applies the following filters before deleting:
 
 - Only objects under the `images/` prefix with a `.webp` suffix.
 - Only objects with a `lastModified` timestamp (missing timestamps are skipped).
-- Only objects older than `IMAGE_SHRINK_ORPHAN_CLEANUP_MIN_AGE_DAYS` (default: `7`).
+- Only objects older than `IMAGE_SHRINK_ORPHAN_MIN_AGE_EXPIRATION` in seconds (default: `604800`, 7 days).
 - `IMAGE_SHRINK_ORPHAN_CLEANUP_MAX_DELETE` can cap deletions per run (default: no cap).
 - `IMAGE_SHRINK_ORPHAN_CLEANUP_PAGE_SIZE` controls list pagination (default: `500`).
 - `IMAGE_SHRINK_ORPHAN_CLEANUP_DRY_RUN` defaults to `true` unless set to `false`.
@@ -96,7 +96,7 @@ The source prune job (`imageShrinkSourcePrune`) deletes **metadata rows** from
 `image_shrink_source` when:
 
 - The URL is **unused** (no `channel_image`/`item_image` row with `is_resized = true` points at it).
-- The last change/check time is older than `IMAGE_SHRINK_SOURCE_PRUNE_DAYS` (default: `30`).
+- The last change/check time is older than `IMAGE_SHRINK_SOURCE_PRUNE_EXPIRATION` in seconds (default: `2592000`, 30 days).
 
 Source pruning does **not** delete CDN objects; it only trims metadata rows.
 
@@ -142,11 +142,11 @@ See `apps/workers/.env.example` for the authoritative template and commented gro
 - `IMAGE_SHRINK_BATCH_SIZE`
 - `IMAGE_SHRINK_CONCURRENCY`
 - `IMAGE_SHRINK_RPS`
-- `IMAGE_SHRINK_RECHECK_TTL_SECONDS` (Optional; see example env file)
-- `IMAGE_SHRINK_SOURCE_PRUNE_DAYS` (Optional; see example env file)
+- `IMAGE_SHRINK_RECHECK_EXPIRATION` (Optional; see example env file)
+- `IMAGE_SHRINK_SOURCE_PRUNE_EXPIRATION` (Optional; see example env file)
 - `IMAGE_SHRINK_ORPHAN_CLEANUP_DRY_RUN` (Optional; default true)
 - `IMAGE_SHRINK_ORPHAN_CLEANUP_MAX_DELETE` (Optional; cap per run)
-- `IMAGE_SHRINK_ORPHAN_CLEANUP_MIN_AGE_DAYS` (Optional; default 7)
+- `IMAGE_SHRINK_ORPHAN_MIN_AGE_EXPIRATION` (Optional; default 604800)
 - `IMAGE_SHRINK_ORPHAN_CLEANUP_PAGE_SIZE` (Optional; default 500)
 
 ## Kubernetes Wiring
@@ -156,7 +156,7 @@ See `apps/workers/.env.example` for the authoritative template and commented gro
 Add non-sensitive values to `infra/k8s/base/workers/configmap.yaml` using the same section structure as `apps/workers/.env.example` (Image Shrink storage; Image Shrink):
 
 - **Image Shrink (storage):** `BUCKET_PROVIDER`, `BUCKET_REGION`, `BUCKET_NAME`, `BUCKET_CDN_BASE_URL`
-- **Image Shrink:** `IMAGE_SHRINK_WIDTH_PX`, `IMAGE_SHRINK_BATCH_SIZE`, `IMAGE_SHRINK_CONCURRENCY`, `IMAGE_SHRINK_RPS`, `IMAGE_SHRINK_RECHECK_TTL_SECONDS` (Optional), `IMAGE_SHRINK_SOURCE_PRUNE_DAYS` (Optional)
+- **Image Shrink:** `IMAGE_SHRINK_WIDTH_PX`, `IMAGE_SHRINK_BATCH_SIZE`, `IMAGE_SHRINK_CONCURRENCY`, `IMAGE_SHRINK_RPS`, `IMAGE_SHRINK_RECHECK_EXPIRATION` (Optional), `IMAGE_SHRINK_SOURCE_PRUNE_EXPIRATION` (Optional)
 
 ### Secret
 

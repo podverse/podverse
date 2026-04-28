@@ -5,8 +5,8 @@ import { CheckoutPageClient } from './CheckoutPageClient';
 type MembershipPricingData = {
   costMonthly: number;
   costAnnually: number;
-  freeTrialDurationSeconds: number;
-  freeTrialDurationDays: number;
+  freeTrialExpiration: number;
+  freeTrialDays: number;
   annuallySavingsPercent: number;
   monthlyEquivalentAnnually: number;
 };

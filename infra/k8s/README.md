@@ -83,7 +83,7 @@ Before running the scripts, ensure you have the following ready:
   - `MAILER_USERNAME` and `MAILER_PASSWORD` (Optional): If using SMTP, set in this Secret, not the ConfigMap.
   - `METABOOST_SIGNING_KEY_PEM` and `METABOOST_APP_ASSERTION_ISS` (Optional): For AppAssertion minting; the generator always includes these keys (may be left empty; set both or neither).
 
-- **API / management API non-secret auth (ConfigMap env)**: `AUTH_JWT_EXPIRES_IN` and `AUTH_ALLOW_TOKEN_IN_RESPONSE_BODY` are set in `base/api/source/api.env` and `base/management-api/source/management-api.env` (session length and whether login may return a token in JSON when the client requests it).
+- **API / management API non-secret auth (ConfigMap env)**: `AUTH_JWT_EXPIRATION` and `AUTH_ALLOW_TOKEN_IN_RESPONSE_BODY` are set in `base/api/source/api.env` and `base/management-api/source/management-api.env` (session length in seconds and whether login may return a token in JSON when the client requests it).
 
 - **Worker (add-by-RSS) keys** (`create_workers_add_by_rss_secret.sh`):
   - `PODCAST_INDEX_AUTH_KEY`: From your PodcastIndex account.

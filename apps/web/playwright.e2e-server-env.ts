@@ -14,7 +14,7 @@ export function buildE2eWebApiEnvPrefix(): string {
     `LOG_DIR=`,
     // Auth
     `AUTH_JWT_SECRET=11111111-1111-4111-8111-111111111111`,
-    `AUTH_JWT_EXPIRES_IN=365d`,
+    `AUTH_JWT_EXPIRATION=31536000`,
     `AUTH_ALLOW_TOKEN_IN_RESPONSE_BODY=false`,
     // API
     `API_PORT=4030`,
@@ -43,7 +43,7 @@ export function buildE2eWebApiEnvPrefix(): string {
     `KEYVALDB_HOST=127.0.0.1`,
     `KEYVALDB_PORT=6679`,
     `KEYVALDB_PASSWORD=test`,
-    `KEYVALDB_CACHE_TTL_SECONDS=300`,
+    `KEYVALDB_CACHE_EXPIRATION=86400`,
     // Mailer (disabled for tests via ACCOUNT_SIGNUP_MODE=admin_only_email)
     `MAILER_HOST=localhost`,
     `MAILER_PORT=1025`,

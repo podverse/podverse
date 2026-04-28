@@ -3,8 +3,8 @@ import type { ApiRequestService } from '../_request.js';
 type MembershipPricingData = {
   costMonthly: number;
   costAnnually: number;
-  freeTrialDurationSeconds: number;
-  freeTrialDurationDays: number;
+  freeTrialExpiration: number;
+  freeTrialDays: number;
   annuallySavingsPercent: number;
   monthlyEquivalentAnnually: number;
 };

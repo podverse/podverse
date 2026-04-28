@@ -12,7 +12,7 @@ import { AccountService, isValidNanoIdV2IdText } from '@podverse/orm';
 import { verifyPassword } from './password.js';
 
 /**
- * Sessions: JWT TTL and cookie max-age come from AUTH_JWT_EXPIRES_IN (default `365d`). Login responses omit
+ * Sessions: JWT TTL and cookie max-age come from AUTH_JWT_EXPIRATION (seconds). Login responses omit
  * `token` unless AUTH_ALLOW_TOKEN_IN_RESPONSE_BODY=true and the client sends includeTokenInResponseBody.
  */
 const isProduction = config.nodeEnv === 'production';
@@ -174,7 +174,7 @@ export const authenticate = (req: Request, res: Response, next: NextFunction) =>
       }
 
       const token = jwt.sign({ id: user.id, id_text: idText }, config.auth.jwtSecret, {
-        expiresIn: config.auth.jwtExpiresIn,
+        expiresIn: config.auth.jwtExpiration,
       } as SignOptions);
 
       setAuthCookie(res, token);

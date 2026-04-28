@@ -76,7 +76,7 @@ These variables are **always required** regardless of configuration:
 - **`KEYVALDB_HOST`** (Required) - Key-value database hostname
 - **`KEYVALDB_PORT`** (Required) - Key-value database port (must be a valid number)
 - **`KEYVALDB_PASSWORD`** (Required) - Key-value database password
-- **`KEYVALDB_CACHE_TTL_SECONDS`** (Required) - Cache TTL in seconds (must be a valid number)
+- **`KEYVALDB_CACHE_EXPIRATION`** (Required) - KeyValDB cache time-to-live in seconds (integer > 0)
 
 ### Podcast Index
 
@@ -122,9 +122,11 @@ For local setup, set [legal entity](#legal-entity) in [`legal.env`](../../dev/en
 
 ### Token Expiration
 
-- **`VERIFY_EMAIL_TOKEN_EXPIRATION`** (Required when signup mode is 'user_signup_email') - Email verification token expiration in seconds (must be a valid number)
-- **`EMAIL_CHANGE_VERIFICATION_TOKEN_EXPIRATION`** (Required when signup mode is 'user_signup_email') - Email change verification token expiration in seconds (must be a valid number)
-- **`RESET_PASSWORD_TOKEN_EXPIRATION`** (Required when signup mode is 'user_signup_email') - Password reset token expiration in seconds (must be a valid number)
+- **`AUTH_JWT_EXPIRATION`** (Optional) - Session JWT and auth cookie max-age, in seconds (default: 31536000). Values ending with `_EXPIRATION` are always integer seconds.
+
+- **`VERIFY_EMAIL_TOKEN_EXPIRATION`** (Required when signup mode is 'user_signup_email') - Email verification token lifetime in seconds (integer > 0)
+- **`EMAIL_CHANGE_VERIFICATION_TOKEN_EXPIRATION`** (Required when signup mode is 'user_signup_email') - Email change verification token lifetime in seconds (integer > 0)
+- **`RESET_PASSWORD_TOKEN_EXPIRATION`** (Required when signup mode is 'user_signup_email') - Password reset token lifetime in seconds (integer > 0)
 
 ## Optional Variables
 
@@ -134,7 +136,7 @@ These variables are optional but will still be validated if set:
 
 - **`PREMIUM_MEMBERSHIP_COST_MONTHLY`** (Optional) - Monthly premium membership cost (default: 3)
 - **`PREMIUM_MEMBERSHIP_COST_ANNUALLY`** (Optional) - Annual premium membership cost (default: 30)
-- **`FREE_TRIAL_EXPIRATION`** (Optional) - Free trial expiration duration in days (default: 31)
+- **`FREE_TRIAL_EXPIRATION`** (Optional) - Free trial length in seconds (default: 2678400, 31×86400)
 
 ### Social Media
 
@@ -186,13 +188,15 @@ Add-by-RSS allows users to follow RSS feeds (podcasts, music) not in the main di
 
 ### Numeric Validation
 
-Variables containing `PORT`, `EXPIRATION`, or `CACHE_TTL` are automatically validated to ensure they are valid positive numbers:
+Variables whose names end with `_EXPIRATION`, or that contain `PORT`, are automatically validated (numeric; `_EXPIRATION` values are positive when required):
 
 - `DB_PORT`
 - `API_PORT`
 - `MESSAGE_QUEUE_PORT`
 - `KEYVALDB_PORT`
-- `KEYVALDB_CACHE_TTL_SECONDS`
+- `KEYVALDB_CACHE_EXPIRATION`
+- `AUTH_JWT_EXPIRATION`
+- `FREE_TRIAL_EXPIRATION`
 - `MAILER_PORT`
 - `VERIFY_EMAIL_TOKEN_EXPIRATION`
 - `EMAIL_CHANGE_VERIFICATION_TOKEN_EXPIRATION`

@@ -193,12 +193,14 @@ describe('external services, feed, medium-value, membership, claim, metaboost, m
         id: number
       ): Promise<{
         id: number;
+        id_text: string;
         account_credentials: { email: string };
         account_membership_status: { membership_expires_at: Date };
       } | null> => {
         if (id === TEST_USER_ID) {
           return {
             id: TEST_USER_ID,
+            id_text: 'es-meta-1',
             account_credentials: { email: TEST_EMAIL },
             account_membership_status: {
               membership_expires_at: new Date(Date.now() + 86400000 * 365),
@@ -208,6 +210,7 @@ describe('external services, feed, medium-value, membership, claim, metaboost, m
         if (id === MINT_OK_USER_ID) {
           return {
             id: MINT_OK_USER_ID,
+            id_text: 'es-meta-mint-ok',
             account_credentials: { email: MINT_OK_EMAIL },
             account_membership_status: {
               membership_expires_at: new Date(Date.now() + 86400000 * 365),
@@ -287,8 +290,8 @@ describe('external services, feed, medium-value, membership, claim, metaboost, m
         expect(res.body.data).toMatchObject({
           costMonthly: 5,
           costAnnually: 50,
-          freeTrialDurationSeconds: 30 * 24 * 60 * 60,
-          freeTrialDurationDays: 30,
+          freeTrialExpiration: 30 * 24 * 60 * 60,
+          freeTrialDays: 30,
         });
       } else {
         expect(res.status).toBe(400);
@@ -301,6 +304,7 @@ describe('external services, feed, medium-value, membership, claim, metaboost, m
     it('POST /claim/:token returns 200 when service succeeds', async () => {
       getAccountMock.mockResolvedValueOnce({
         id: TEST_USER_ID,
+        id_text: 'es-meta-1',
         account_credentials: { email: TEST_EMAIL },
         account_membership_status: { membership_expires_at: new Date(Date.now() + 86400000) },
       });
@@ -313,6 +317,7 @@ describe('external services, feed, medium-value, membership, claim, metaboost, m
       claimTokenMock.mockRejectedValueOnce(new Error('MembershipClaimToken not found'));
       getAccountMock.mockResolvedValueOnce({
         id: TEST_USER_ID,
+        id_text: 'es-meta-1',
         account_credentials: { email: TEST_EMAIL },
         account_membership_status: { membership_expires_at: new Date(Date.now() + 86400000) },
       });
@@ -333,6 +338,7 @@ describe('external services, feed, medium-value, membership, claim, metaboost, m
     it('GET mbrss-v1/mint-app-assertion/rate-limit-status returns 200 when authenticated', async () => {
       getAccountMock.mockResolvedValueOnce({
         id: TEST_USER_ID,
+        id_text: 'es-meta-1',
         account_credentials: { email: TEST_EMAIL },
         account_membership_status: { membership_expires_at: new Date(Date.now() + 86400000) },
       });
@@ -375,6 +381,7 @@ describe('external services, feed, medium-value, membership, claim, metaboost, m
         }
         return {
           id: TEST_USER_ID,
+          id_text: 'es-meta-1',
           account_credentials: { email: TEST_EMAIL },
           account_membership_status: { membership_expires_at: future },
         };

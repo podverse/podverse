@@ -33,14 +33,14 @@ checks whether their CDN URLs are still referenced in `channel_image` or `item_i
 (`is_resized = true`), and deletes any orphaned objects.
 
 The source prune command (`imageShrinkSourcePrune`) deletes unused `image_shrink_source` rows
-based on `IMAGE_SHRINK_SOURCE_PRUNE_DAYS`. It does not delete CDN objects.
+based on `IMAGE_SHRINK_SOURCE_PRUNE_EXPIRATION` (seconds). It does not delete CDN objects.
 
 ### Source Metadata Pruning
 
 The worker periodically deletes **metadata rows** from `image_shrink_source` when:
 
 - There is no resized image referencing the URL in `channel_image` or `item_image`.
-- A prune interval has passed (`IMAGE_SHRINK_SOURCE_PRUNE_DAYS`).
+- A prune interval has passed (`IMAGE_SHRINK_SOURCE_PRUNE_EXPIRATION` in seconds).
 
 This cleanup **does not delete any objects** from DigitalOcean Spaces.
 
@@ -74,7 +74,7 @@ Filters applied before DB checks:
 
 - `.webp` suffix only
 - `lastModified` must exist
-- Age must be >= `IMAGE_SHRINK_ORPHAN_CLEANUP_MIN_AGE_DAYS`
+- Object age in storage must be >= `IMAGE_SHRINK_ORPHAN_MIN_AGE_EXPIRATION` (seconds)
 - Optional `IMAGE_SHRINK_ORPHAN_CLEANUP_MAX_DELETE` cap
 - Optional `IMAGE_SHRINK_ORPHAN_CLEANUP_PAGE_SIZE` pagination
 

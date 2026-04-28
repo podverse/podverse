@@ -4,7 +4,7 @@ import { loggerService } from '@api/factories/loggerService.js';
 import { emailTemplate } from '@api/lib/mailer/emailTemplate.js';
 import { createTransporter } from '@api/lib/mailer/transporter.js';
 
-import { convertSecondsToDaysText } from '@podverse/helpers';
+import { convertExpirationToDaysText } from '@podverse/helpers';
 
 export const sendResetPasswordEmail = async (
   email: string,
@@ -22,7 +22,7 @@ export const sendResetPasswordEmail = async (
   }
 
   const transporter = createTransporter();
-  const daysToExpire = convertSecondsToDaysText(`${config.resetPassword.tokenExpiration}`);
+  const daysToExpire = convertExpirationToDaysText(`${config.resetPassword.tokenExpiration}`);
 
   const emailFields = {
     buttonLink: `${config.web.protocol}://${config.web.domain}${resetPasswordPagePath}${token}`,

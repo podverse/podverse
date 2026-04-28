@@ -51,11 +51,11 @@ export async function cacheGetJson<T>(key: string): Promise<T | null> {
 export async function cacheSetJson<T>(
   key: string,
   value: T,
-  ttlSeconds: number = config.keyvaldb.cacheTTLSeconds
+  expiration: number = config.keyvaldb.cacheExpiration
 ): Promise<void> {
   try {
     const str = JSON.stringify(value);
-    await keyvaldb.set(key, str, 'EX', ttlSeconds);
+    await keyvaldb.set(key, str, 'EX', expiration);
   } catch {
     // swallow
   }

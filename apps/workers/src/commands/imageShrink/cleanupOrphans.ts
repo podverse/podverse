@@ -48,7 +48,7 @@ export const imageShrinkCleanupOrphans = async (_args: CommandLineArgs) => {
   });
   const channelImageService = new ChannelImageService();
   const itemImageService = new ItemImageService();
-  const minAgeMs = cleanupConfig.minAgeDays * 24 * 60 * 60 * 1000;
+  const minAgeMs = cleanupConfig.minAgeExpiration * 1000;
 
   let continuationToken: string | undefined;
   let totalListed = 0;
@@ -65,7 +65,7 @@ export const imageShrinkCleanupOrphans = async (_args: CommandLineArgs) => {
   logger.info('imageShrinkCleanupOrphans: starting scan', {
     dryRun: cleanupConfig.dryRun,
     maxDelete: cleanupConfig.maxDelete ?? 'none',
-    minAgeDays: cleanupConfig.minAgeDays,
+    minAgeExpiration: cleanupConfig.minAgeExpiration,
     pageSize: cleanupConfig.pageSize,
   });
 

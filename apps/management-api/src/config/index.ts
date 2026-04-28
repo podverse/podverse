@@ -1,6 +1,9 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion -- env vars validated at startup in lib/startup/validation.ts */
 
-import { jwtExpiresInToMilliseconds } from '@podverse/helpers';
+import { MS_PER_SECOND, readOptionalPositiveExpirationEnv } from '@podverse/helpers';
+
+const DEFAULT_AUTH_JWT_EXPIRATION = 365 * 24 * 60 * 60;
+const DEFAULT_SET_PASSWORD_EXPIRATION = 168 * 60 * 60;
 
 type Config = {
   nodeEnv: string;
@@ -11,7 +14,7 @@ type Config = {
   };
   auth: {
     jwtSecret: string;
-    jwtExpiresIn: string;
+    jwtExpiration: number;
     sessionCookieMaxAgeMs: number;
     allowTokenInResponseBody: boolean;
   };
@@ -48,7 +51,7 @@ type Config = {
     protocol: string;
     domain: string;
   };
-  setUserPasswordTtlHours: number;
+  setUserPasswordExpiration: number;
 };
 
 export const config: Config = {
@@ -59,12 +62,14 @@ export const config: Config = {
     level: process.env.LOG_LEVEL!,
   },
   auth: (() => {
-    const jwtExpiresIn = (process.env.AUTH_JWT_EXPIRES_IN ?? '365d').trim();
-
+    const jwtExpiration = readOptionalPositiveExpirationEnv(
+      'AUTH_JWT_EXPIRATION',
+      DEFAULT_AUTH_JWT_EXPIRATION
+    );
     return {
       jwtSecret: process.env.AUTH_JWT_SECRET!,
-      jwtExpiresIn,
-      sessionCookieMaxAgeMs: jwtExpiresInToMilliseconds(jwtExpiresIn),
+      jwtExpiration,
+      sessionCookieMaxAgeMs: jwtExpiration * MS_PER_SECOND,
       allowTokenInResponseBody: process.env.AUTH_ALLOW_TOKEN_IN_RESPONSE_BODY === 'true',
     };
   })(),
@@ -103,5 +108,8 @@ export const config: Config = {
     protocol: process.env.WEB_PROTOCOL!,
     domain: process.env.WEB_DOMAIN!,
   },
-  setUserPasswordTtlHours: parseInt(process.env.MANAGEMENT_API_SET_PASSWORD_TTL_HOURS || '168', 10),
+  setUserPasswordExpiration: readOptionalPositiveExpirationEnv(
+    'MANAGEMENT_API_SET_PASSWORD_EXPIRATION',
+    DEFAULT_SET_PASSWORD_EXPIRATION
+  ),
 };

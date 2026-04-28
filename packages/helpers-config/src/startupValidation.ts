@@ -37,10 +37,7 @@ export function validateRequired(varName: string, category: string): ValidationR
     value !== undefined && value !== null && typeof value === 'string' && value.trim() !== '';
 
   // Additional validation for numeric values
-  if (
-    isSet &&
-    (varName.includes('PORT') || varName.includes('EXPIRATION') || varName.includes('CACHE_TTL'))
-  ) {
+  if (isSet && (varName.includes('PORT') || varName.endsWith('_EXPIRATION'))) {
     const numValue = Number(value);
     if (isNaN(numValue) || numValue <= 0) {
       return {
@@ -98,10 +95,7 @@ export function validateOptional(
   const isSet = value !== '';
 
   // Additional validation for numeric values if set
-  if (
-    isSet &&
-    (varName.includes('PORT') || varName.includes('EXPIRATION') || varName.includes('CACHE_TTL'))
-  ) {
+  if (isSet && (varName.includes('PORT') || varName.endsWith('_EXPIRATION'))) {
     const numValue = Number(value);
     if (isNaN(numValue) || numValue <= 0) {
       return {
@@ -179,7 +173,7 @@ export function validateConditionalOptional(
   }
 
   // Additional validation for numeric values if set
-  if (varName.includes('PORT') || varName.includes('EXPIRATION') || varName.includes('CACHE_TTL')) {
+  if (varName.includes('PORT') || varName.endsWith('_EXPIRATION')) {
     const numValue = Number(value);
     if (isNaN(numValue) || numValue <= 0) {
       return {

@@ -60,4 +60,4 @@ sequenceDiagram
 ### Notes
 
 - Checksums are only computed if other headers are inconclusive.
-- `IMAGE_SHRINK_RECHECK_TTL_SECONDS` controls how often unchanged URLs are rechecked.
+- `IMAGE_SHRINK_RECHECK_EXPIRATION` (seconds) controls how often unchanged URLs are rechecked.

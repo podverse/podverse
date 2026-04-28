@@ -3,11 +3,11 @@ import { getLoggerService } from '@workers/factories/loggerService.js';
 import type { Redis } from 'ioredis';
 
 let keyvaldb: Redis | null = null;
-let defaultCacheTTLSeconds: number | null = null;
+let defaultCacheExpiration: number | null = null;
 
 export const initKeyvaldb = (client: Redis, config: KeyvaldbConfig): void => {
   keyvaldb = client;
-  defaultCacheTTLSeconds = config.cacheTTLSeconds;
+  defaultCacheExpiration = config.cacheExpiration;
 
   let connectionErrorLogged = false;
 
@@ -45,10 +45,10 @@ export async function cacheGetJson<T>(key: string): Promise<T | null> {
 export async function cacheSetJson<T>(
   key: string,
   value: T,
-  ttlSeconds: number | null = defaultCacheTTLSeconds
+  expiration: number | null = defaultCacheExpiration
 ): Promise<void> {
   try {
-    const ttl = ttlSeconds ?? 0;
+    const ttl = expiration ?? 0;
     const str = JSON.stringify(value);
     if (ttl > 0) {
       await getKeyvaldb().set(key, str, 'EX', ttl);

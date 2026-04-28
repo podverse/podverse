@@ -12,8 +12,8 @@ export class MembershipController {
         return;
       }
 
-      const freeTrialExpirationSeconds = config.premium.freeTrialExpiration;
-      const freeTrialExpirationDays = Math.floor(freeTrialExpirationSeconds / 86400);
+      const freeTrialExpiration = config.premium.freeTrialExpiration;
+      const freeTrialDays = Math.floor(freeTrialExpiration / 86400);
       const costMonthly = config.premium.costMonthly;
       const costAnnually = config.premium.costAnnually;
       const monthlyEquivalentAnnually = costMonthly * 12;
@@ -24,8 +24,8 @@ export class MembershipController {
       const data = {
         costMonthly,
         costAnnually,
-        freeTrialDurationSeconds: freeTrialExpirationSeconds,
-        freeTrialDurationDays: freeTrialExpirationDays,
+        freeTrialExpiration,
+        freeTrialDays,
         annuallySavingsPercent,
         monthlyEquivalentAnnually,
       };

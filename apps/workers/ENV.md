@@ -111,11 +111,11 @@ Image shrink is optional. If **`BUCKET_PROVIDER`** is empty or unset, image shri
 - **`IMAGE_SHRINK_BATCH_SIZE`** (Required when image shrink enabled) - Max images processed per batch run
 - **`IMAGE_SHRINK_CONCURRENCY`** (Required when image shrink enabled) - Parallel image processing count
 - **`IMAGE_SHRINK_RPS`** (Required when image shrink enabled) - Rate limit for image fetches (requests/second)
-- **`IMAGE_SHRINK_RECHECK_TTL_SECONDS`** (Optional) - Minimum seconds between origin re-checks
-- **`IMAGE_SHRINK_SOURCE_PRUNE_DAYS`** (Optional) - Prune source metadata after N days without resized images
+- **`IMAGE_SHRINK_RECHECK_EXPIRATION`** (Optional) - Minimum seconds between origin re-checks (default: 86400)
+- **`IMAGE_SHRINK_SOURCE_PRUNE_EXPIRATION`** (Optional) - Prune `image_shrink_source` rows when last check is older than this many seconds (default: 2592000, 30 days)
 - **`IMAGE_SHRINK_ORPHAN_CLEANUP_DRY_RUN`** (Optional) - Dry run cleanup (default: `true`)
 - **`IMAGE_SHRINK_ORPHAN_CLEANUP_MAX_DELETE`** (Optional) - Max deletes per run (default: none)
-- **`IMAGE_SHRINK_ORPHAN_CLEANUP_MIN_AGE_DAYS`** (Optional) - Skip objects newer than this age (default: `7`)
+- **`IMAGE_SHRINK_ORPHAN_MIN_AGE_EXPIRATION`** (Optional) - Orphan cleanup skips objects newer than this many seconds (default: 604800, 7 days)
 - **`IMAGE_SHRINK_ORPHAN_CLEANUP_PAGE_SIZE`** (Optional) - List page size (default: `500`)
 
 ## KeyValDB (commands that use Redis)
@@ -123,7 +123,7 @@ Image shrink is optional. If **`BUCKET_PROVIDER`** is empty or unset, image shri
 - **`KEYVALDB_HOST`** (Required) - Redis host
 - **`KEYVALDB_PORT`** (Required) - Redis port
 - **`KEYVALDB_PASSWORD`** (Required) - Redis password
-- **`KEYVALDB_CACHE_TTL_SECONDS`** (Required) - Default TTL for cached entries
+- **`KEYVALDB_CACHE_EXPIRATION`** (Required) - Default cache entry lifetime in seconds (integer > 0)
 
 ## Database (for ORM Module)
 
