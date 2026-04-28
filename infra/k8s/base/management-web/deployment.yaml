@@ -1,4 +1,4 @@
-# Version: 1
+# Version: 2
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -69,6 +69,13 @@ spec:
             successThreshold: 1
             failureThreshold: 3
             timeoutSeconds: 5
+          startupProbe:
+            httpGet:
+              path: /runtime-config
+              port: 3101
+              scheme: HTTP
+            periodSeconds: 2
+            failureThreshold: 60
           readinessProbe:
             httpGet:
               path: /

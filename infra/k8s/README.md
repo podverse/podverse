@@ -3,7 +3,7 @@
 Deployment scripts and Kubernetes manifests for the Podverse ecosystem.
 
 For a domain-agnostic remote-cluster guide that uses a separate GitOps repository, see
-[`docs/development/k8s/REMOTE-K8S-GITOPS.md`](../../docs/development/k8s/REMOTE-K8S-GITOPS.md).
+[`docs/development/k8s/REMOTE-K8S-GITOPS.md`](../../docs/development/k8s/REMOTE-K8S-GITOPS.md) (including **container probe defaults** for `infra/k8s/base` workloads).
 
 ### Local ops bundle validation (monorepo only)
 

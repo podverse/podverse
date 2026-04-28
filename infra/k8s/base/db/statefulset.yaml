@@ -71,6 +71,29 @@ spec:
             - "-c"
             - "max_parallel_workers=2"
 
+          # Readiness: the server accepts connections for the configured DB. Liveness uses the
+          # same check with looser timing so a long crash-recovery does not restart the pod early.
+          readinessProbe:
+            exec:
+              command:
+                - sh
+                - -c
+                - pg_isready -U "$POSTGRES_USER" -d "$POSTGRES_DB"
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 3
+          livenessProbe:
+            exec:
+              command:
+                - sh
+                - -c
+                - pg_isready -U "$POSTGRES_USER" -d "$POSTGRES_DB"
+            initialDelaySeconds: 60
+            periodSeconds: 20
+            timeoutSeconds: 5
+            failureThreshold: 6
+
           volumeMounts:
             - name: db-data
               mountPath: /var/lib/postgresql
