@@ -147,7 +147,7 @@ const run = async () => {
       },
       firebase: {
         notifications_enabled: process.env.GOOGLE_FIREBASE_NOTIFICATIONS_ENABLED === 'true',
-        authJsonPath: process.env.FIREBASE_PATH_TO_AUTH_JSON ?? '',
+        authJsonPath: process.env.GOOGLE_FIREBASE_ADMIN_JSON_KEY_PATH || '',
       },
       podcastIndex: {
         authKey: config.podcastIndex.authKey,
