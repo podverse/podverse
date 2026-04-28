@@ -31,6 +31,10 @@ EMPTY_VALUE=""
 URL_WITH_SPECIAL_CHARS=http://example.com?foo=bar&baz=qux
 ```
 
+## K8s `source/*.env` templates
+
+Files under `infra/k8s/**/source/*.env` (and GitOps copies) follow the value rules above. For comments that name env vars, use **one variable per line** in each `#` comment. Do not combine multiple variable names in a single comment line (e.g. `VAR1, VAR2: …`). If the same note applies to two keys, use two comment lines and duplicate the text.
+
 ## Rationale
 
 - Quotation marks ensure consistent parsing across different tools (dotenv, dotenvx, shell scripts)

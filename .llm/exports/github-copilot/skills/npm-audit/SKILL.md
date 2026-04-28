@@ -139,7 +139,7 @@ podverse@5.4.12
 
 ### Step 5: Document the Rationale
 
-If allowlisting, always document **why** in `docs/development/NPM-AUDIT-ALLOWLIST.md`:
+If allowlisting, always document **why** in `docs/development/security/NPM-AUDIT-ALLOWLIST.md`:
 
 ```markdown
 ### Advisory XXXXX: <vulnerability name>
@@ -161,7 +161,7 @@ If allowlisting, always document **why** in `docs/development/NPM-AUDIT-ALLOWLIS
 Then update `scripts/publish/bump-version.sh`:
 
 ```bash
-# See docs/development/NPM-AUDIT-ALLOWLIST.md for rationale
+# See docs/development/security/NPM-AUDIT-ALLOWLIST.md for rationale
 ALLOWED_AUDIT_IDS="1113977,1116970"
 ```
 
@@ -213,13 +213,13 @@ If you see a nested uuid entry with version < 14, the override didn't work.
 - [ ] Investigation documented: vulnerability chain traced and root cause identified
 - [ ] Attempted a fix: either package upgrade or npm override tested in package-lock.json
 - [ ] Verified no regression: `npm run build:packages && npm run build` succeeds
-- [ ] If allowlisting: documented rationale in `docs/development/NPM-AUDIT-ALLOWLIST.md`
+- [ ] If allowlisting: documented rationale in `docs/development/security/NPM-AUDIT-ALLOWLIST.md`
 - [ ] If allowlisting: updated `scripts/publish/bump-version.sh` with link to docs
 - [ ] If allowlisting: added advisory ID to `/memories/user/npm-audit-overrides.md` for future revisit
 - [ ] LLM history updated with investigation results
 
 ## See Also
 
-- `docs/development/NPM-AUDIT-ALLOWLIST.md` — Current allowlist and rationale
+- `docs/development/security/NPM-AUDIT-ALLOWLIST.md` — Current allowlist and rationale
 - `scripts/publish/bump-version.sh` — Audit gate implementation
 - `.llm/history/active/version-bump-audit-remediation/` — Investigation notes
