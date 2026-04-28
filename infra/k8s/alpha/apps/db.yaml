@@ -1,4 +1,4 @@
-# Version: 3
+# Version: 4
 # Child Application: Database
 # This application manages the PostgreSQL StatefulSet and persistent storage.
 
@@ -27,3 +27,5 @@ spec:
       selfHeal: true
     syncOptions:
       - CreateNamespace=true
+      # Large ConfigMap (linear baseline SQL); client-side apply exceeds metadata.annotations 256KiB cap.
+      - ServerSideApply=true
