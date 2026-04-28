@@ -257,7 +257,7 @@ import { PROXY_RATE_LIMIT, PROXY_SIZE_LIMITS, PROXY_TIMEOUT_MS } from "./constan
 export const config = {
   // ... existing config ...
   proxy: {
-    userAgent: process.env.NEXT_PUBLIC_PROXY_USER_AGENT || 'Podverse Bot Local/Web-API/5',
+    userAgent: process.env.NEXT_PUBLIC_PROXY_USER_AGENT || 'Example Bot local/Web-API/5',
   },
 };
 
@@ -272,12 +272,12 @@ const response = await fetch(url, {
 // ❌ Bad: Direct process.env
 const response = await fetch(url, {
   headers: {
-    'User-Agent': process.env.NEXT_PUBLIC_PROXY_USER_AGENT || 'Podverse Bot Local/Web-API/5',
+    'User-Agent': process.env.NEXT_PUBLIC_PROXY_USER_AGENT || 'Example Bot local/Web-API/5',
   },
 });
 
 // ❌ Bad: Missing NEXT_PUBLIC_ prefix (even for server-only vars in podverse-web)
-userAgent: process.env.PROXY_USER_AGENT || 'Podverse Bot Local/Web-API/5';
+userAgent: process.env.PROXY_USER_AGENT || 'Example Bot local/Web-API/5';
 ```
 
 ### Environment Variable Validation
@@ -290,8 +290,8 @@ userAgent: process.env.PROXY_USER_AGENT || 'Podverse Bot Local/Web-API/5';
   - **Format**: `BrandName Bot Environment/AppName/Version` (3 parts separated by slashes)
   - **Requirements**:
     - Must have exactly 3 parts: `[first part]/[second part]/[third part]`
-    - First part must include "Bot" (e.g., "Podverse Bot Local")
-    - Example: `"Podverse Bot Local/Web-API/5"`
+    - First part must include "Bot" (e.g., "Example Bot local")
+    - Example: `"Example Bot local/Web-API/5"`
   - **Validation**: The script validates both the format pattern and the "Bot" requirement
 
 **Adding a new required variable**:
@@ -369,10 +369,10 @@ When adding a new environment variable:
 ```env
 # User-Agent string sent when proxying external image requests
 # Format: BrandName Bot Environment/AppName/Version
-# Example: Podverse Bot Local/Web-API/5
+# Sample: Example Bot local/Web-API/5
 # Required: Yes (validated before build)
-# Note: The first part must include "Bot" (e.g., "Podverse Bot Local")
-NEXT_PUBLIC_PROXY_USER_AGENT="Podverse Bot Local/Web-API/5"
+# Note: The first part must include "Bot" (e.g., "Example Bot local")
+NEXT_PUBLIC_PROXY_USER_AGENT="Example Bot local/Web-API/5"
 ```
 
 Then `env/local.env` and `env/alpha.env` should have:
@@ -380,10 +380,10 @@ Then `env/local.env` and `env/alpha.env` should have:
 ```env
 # User-Agent string sent when proxying external image requests
 # Format: BrandName Bot Environment/AppName/Version
-# Example: Podverse Bot Local/Web-API/5
+# Sample: Example Bot local/Web-API/5
 # Required: Yes (validated before build)
-# Note: The first part must include "Bot" (e.g., "Podverse Bot Local")
-NEXT_PUBLIC_PROXY_USER_AGENT="Podverse Bot Local/Web-API/5" # (or "Podverse Bot Alpha/Web-API/5" for alpha)
+# Note: The first part must include "Bot" (e.g., "Example Bot local")
+NEXT_PUBLIC_PROXY_USER_AGENT="Example Bot local/Web-API/5" # (or "Example Bot Alpha/Web-API/5" for alpha)
 ```
 
 **Keep comments synchronized**: When updating comments in `.env.example`, update them in all `env/*.env` files as well.
@@ -396,25 +396,25 @@ NEXT_PUBLIC_PROXY_USER_AGENT="Podverse Bot Local/Web-API/5" # (or "Podverse Bot 
 
 **Components**:
 
-- `BrandName Bot Environment` - First part (before first slash), must include "Bot" (e.g., "Podverse Bot Local", "Podverse Bot Alpha")
+- `BrandName Bot Environment` - First part (before first slash), must include "Bot" (e.g., "Example Bot local", "Example Bot Alpha")
 - `AppName` - Application identifier (e.g., "Web-API", "API", "Management-API")
 - `Version` - Version number (e.g., `5`)
 
 **Format Rules**:
 
 - Must have exactly 3 parts separated by forward slashes (`/`)
-- First part must include the word "Bot" (e.g., "Podverse Bot Local", not "Podverse Local")
-- First part can contain spaces (e.g., "Podverse Bot Local")
+- First part must include the word "Bot" (e.g., "Example Bot local", not "Example Local")
+- First part can contain spaces (e.g., "Example Bot local")
 - Second part is the application name (e.g., "Web-API", "API", "Management-API")
 - Third part is the version number (e.g., "5")
 
 **Examples**:
 
-- `"Podverse Bot Local/Web-API/5"` - Local development, Web API (podverse-web)
-- `"Podverse Bot Alpha/Web-API/5"` - Alpha environment, Web API (podverse-web)
-- `"Podverse Bot Local/API/5"` - Local development, API (podverse-api)
-- `"Podverse Bot Local/Management-API/5"` - Local development, Management API (podverse-management-api)
-- `"Podverse Bot/Web-API/5"` - Production, Web API (no environment in first part for prod)
+- `"Example Bot local/Web-API/5"` - Local development, Web API (podverse-web)
+- `"Example Bot Alpha/Web-API/5"` - Alpha environment, Web API (podverse-web)
+- `"Example Bot local/API/5"` - Local development, API (podverse-api)
+- `"Example Bot local/Management-API/5"` - Local development, Management API (podverse-management-api)
+- `"Example Bot/Web-API/5"` - Production, Web API (no environment in first part for prod)
 
 **Validation**:
 

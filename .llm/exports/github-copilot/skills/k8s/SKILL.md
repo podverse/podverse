@@ -1,7 +1,7 @@
 ---
 name: k8s
 description: Common patterns for Kubernetes manifests in infra/k8s. Use when editing or adding K8s manifests, changing deployment config, adding env vars to ConfigMaps, or working with ArgoCD/Kustomize/SOPS.
-version: 1.0.0
+version: 1.0.4
 ---
 
 
@@ -18,6 +18,10 @@ Use this skill when:
 - Adding environment variables to ConfigMaps
 - Working with ArgoCD, Kustomize, or SOPS in this repo
 - Creating new K8s components or services
+
+## GitOps and remote Kustomize
+
+Remote deploys use a **separate GitOps repository** with Kustomize overlays and Argo CD. Reference Podverse with **remote Kustomize** URLs under `infra/k8s/base/…` and **copy** `scripts/secret-generators` from this repo. See [REMOTE-K8S-GITOPS.md](../../../docs/development/k8s/REMOTE-K8S-GITOPS.md).
 
 ## Directory Structure
 
@@ -53,9 +57,12 @@ infra/k8s/
 ├── system/                   # Cluster-wide config
 │   └── traefik-config.yaml
 └── scripts/                  # Helper scripts
-    ├── create_*_secret.sh
-    ├── db-connect.sh
-    └── README.md
+    ├── README.md
+    ├── secret-generators/   # SOPS: create_*_secret.sh, create_all_*.sh
+    ├── db/                 # db-connect.sh
+    ├── mq/                 # mq-connect.sh
+    ├── keyvaldb/            # keyvaldb-gui-connect.sh
+    └── list_images.sh      # list cluster image refs (monorepo root)
 ```
 
 ## Architecture: App of Apps Pattern
@@ -71,6 +78,10 @@ The deployment uses ArgoCD's **App of Apps** pattern:
 ```
 alpha-application.yaml → alpha/apps/*.yaml → alpha/<component>/kustomization.yaml → base/<component>/*.yaml
 ```
+
+### Argo CD `Application` YAML named `ops.yaml` (editors / GitOps repos)
+
+The [JSON Schema Store](https://www.schemastore.org/) maps **`ops.yaml` / `ops.yml`** to an unrelated "Ops configuration" spec, so editors can mis-validate a real Argo CD `Application`. **Podverse** uses a **line 1** `# yaml-language-server: $schema=...` modeline in [`infra/k8s/alpha/apps/ops.yaml`](../../../infra/k8s/alpha/apps/ops.yaml). A matching GitOps checkout (e.g. k.podcastdj.com) should add the same **first-line modeline** on `argocd/.../ops.yaml` and may also commit `.vscode/settings.json` for backup. **Prefer the modeline**; rename or user `yaml.schemas` if needed. For the operator GitOps repo, see the **argocd-yaml-schema-ops-filename** skill (`.llm/exports/github-copilot/skills/` there).
 
 ## Kustomize Usage
 
@@ -125,7 +136,7 @@ ConfigMaps in `base/<component>/01-configmap.yaml` should mirror the structure o
 - **Never** put secrets in ConfigMaps
 - Mark sensitive variables with `# in secrets` comment
 - **Align comments:** When several consecutive lines have `# in secrets` (or `# in secrets (...)`), align the `# in secrets` part vertically (same column) by padding with spaces after the value so the comment starts at the same position
-- Actual secrets go in SOPS-encrypted files under `k8s/secrets/`
+- Actual secrets go in SOPS-encrypted files under repo-root `secrets/`
 - Use `secretRef` in Deployment `envFrom` to load secrets
 
 **Example (aligned `# in secrets` in a sequence):**
@@ -137,12 +148,16 @@ ConfigMaps in `base/<component>/01-configmap.yaml` should mirror the structure o
   # DB_APP_READ_WRITE_USER: ""           # in secrets
   # DB_APP_READ_WRITE_PASSWORD: ""      # in secrets
 
-# In Deployment
+# In Deployment (API loads JWT, mailer, and Metaboost from separate Secrets)
 envFrom:
   - configMapRef:
       name: podverse-api-config
   - secretRef:
       name: podverse-api-opaque
+  - secretRef:
+      name: podverse-mailer-opaque
+  - secretRef:
+      name: podverse-metaboost-opaque
 ```
 
 ### Environment Overrides
@@ -193,24 +208,24 @@ Child applications in `alpha/apps/<component>.yaml` define:
 
 ### Creating Secrets
 
-Use helper scripts in `infra/k8s/scripts/`:
+Use secret generator scripts in `infra/k8s/scripts/secret-generators/`:
 
 ```bash
 # Run from repo root with nix develop
-bash infra/k8s/scripts/create_db_secret.sh
-bash infra/k8s/scripts/create_api_secret.sh
-bash infra/k8s/scripts/create_mq_secret.sh
+bash infra/k8s/scripts/secret-generators/create_db_secret.sh
+bash infra/k8s/scripts/secret-generators/create_api_secret.sh
+bash infra/k8s/scripts/secret-generators/create_mq_secret.sh
 # ... etc
 ```
 
 ### Applying Secrets
 
-Secrets are SOPS-encrypted and stored in `k8s/secrets/podverse-<env>-<component>-opaque.enc.yaml`.
+Secrets are SOPS-encrypted and stored in `secrets/podverse-<env>-<component>-opaque.enc.yaml` (monorepo root).
 
 **Manual apply:**
 
 ```bash
-sops -d k8s/secrets/podverse-alpha-db-opaque.enc.yaml | kubectl apply -f -
+sops -d secrets/podverse-alpha-db-opaque.enc.yaml | kubectl apply -f -
 ```
 
 **ArgoCD:** Consumes encrypted files directly (SOPS plugin configured).
@@ -281,8 +296,8 @@ labels:
 
 ## Database: linear migrations and bootstrap
 
-- **One source of truth for SQL migrations:** `infra/k8s/base/db/source/app/` and `infra/k8s/base/db/source/management/`. Additive, ordered files (`0001_*.sql`, …); the migration runner applies them in order and records them in `linear_migration_history` (the runner creates that table; do not add a “history table” migration for it).
-- **Bootstrap only in init:** `infra/k8s/base/db/source/bootstrap/` (shell scripts) runs with the DB container; it creates users/roles and related grants, **not** full application schema. Schema comes from the linear chain (often first applied via **ops** migration jobs after the pod is up).
+- **One source of truth for SQL migrations:** `infra/k8s/ops/source/app/` and `infra/k8s/ops/source/management/`. Additive, ordered files (`0001_*.sql`, …); the migration runner applies them in order and records them in `linear_migration_history` (the runner creates that table; do not add a “history table” migration for it).
+- **Bootstrap in init:** `infra/k8s/base/db/source/bootstrap/` — `0001` and `0002` shell scripts create users/roles and the management database; the generated `0003_linear_baseline.sql` (do not hand-edit) materializes the full schema after the linear chain. See `docs/operations/LINEAR-MIGRATIONS.md` and `scripts/database/generate-linear-baseline.sh`. In cluster, **ops** migration jobs also apply the same files from ConfigMaps.
 - **Runners and validation:** From repo root, `bash scripts/database/run-linear-migrations.sh --database app|management` (always pass `--database`); `bash scripts/database/validate-linear-migrations.sh` checks filenames, ordering, and that every SQL file in `source/app` and `source/management` is listed in `infra/k8s/base/ops/kustomization.yaml` (ops bundle must stay in sync with disk).
 - **Kustomize and ops:** When rendering `infra/k8s/base/ops/`, Kustomize may include files under `scripts/`; use a load policy that allows files outside the ops directory, e.g. `kubectl kustomize infra/k8s/base/ops --load-restrictor LoadRestrictionsNone`.
 - **DB credentials naming:** Authoritative admin keys in secrets and env are `DB_APP_ADMIN_USER` / `DB_APP_ADMIN_PASSWORD` and `DB_MANAGEMENT_ADMIN_USER` / `DB_MANAGEMENT_ADMIN_PASSWORD` (plus read/write keys per `infra/config/env-templates/db.env.example`). The official **postgres** image still expects `POSTGRES_USER` / `POSTGRES_PASSWORD` / `POSTGRES_DB` **inside the container** only—map from the `DB_*` keys in StatefulSet or Compose, not the other way around.
@@ -305,7 +320,7 @@ labels:
 3. Create `base/<component>/kustomization.yaml` listing resources
 4. Create `alpha/<component>/` overlay with `kustomization.yaml`
 5. Add ArgoCD Application in `alpha/apps/<component>.yaml`
-6. Create secrets script in `infra/k8s/scripts/create_<component>_secret.sh`
+6. Create secrets script in `infra/k8s/scripts/secret-generators/create_<component>_secret.sh`
 
 ### Updating Image Versions
 
@@ -321,18 +336,25 @@ ArgoCD will detect the change and sync automatically.
 
 ## Helper Scripts
 
-Located in `infra/k8s/scripts/`:
+**Secret generators** live in `infra/k8s/scripts/secret-generators/` (see [INFRA-K8S-SCRIPTS-SECRET-GENERATORS.md](../../infra/k8s/scripts/secret-generators/INFRA-K8S-SCRIPTS-SECRET-GENERATORS.md)):
 
-| Script                      | Purpose                                      |
-| --------------------------- | -------------------------------------------- |
-| `create_db_secret.sh`       | Generate encrypted DB credentials            |
-| `create_api_secret.sh`      | Generate encrypted API secrets (JWT, mailer) |
-| `create_mq_secret.sh`       | Generate encrypted message queue credentials |
-| `create_keyvaldb_secret.sh` | Generate encrypted Valkey/Redis password     |
-| `create_firebase_secret.sh` | Generate encrypted Firebase service account  |
-| `db-connect.sh`             | Port-forward and connect to PostgreSQL       |
-| `keyvaldb-gui-connect.sh`   | Port-forward to RedisInsight GUI             |
-| `mq-connect.sh`             | Port-forward to message queue                |
+| Script                             | Purpose                                                                                                                               |
+| ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| `create_db_secret.sh`              | Generate encrypted DB credentials                                                                                                     |
+| `create_api_secret.sh`             | Generate encrypted API secrets (JWT, mailer)                                                                                          |
+| `create_mq_secret.sh`              | Generate encrypted message queue credentials                                                                                          |
+| `create_keyvaldb_secret.sh`        | Generate encrypted Valkey/Redis password                                                                                              |
+| `create_firebase_secret.sh`        | `podverse-workers-firebase-opaque`; base mounts it at `/var/secrets/firebase` (optional volume) for API + workers + cron              |
+| `create_workers_webpush_secret.sh` | VAPID private key in `podverse-workers-webpush-opaque`; `--auto-gen` also sets public keys in workers/web source env when paths exist |
+
+**Other** scripts (DB/MQ/Valkey connect, image listing) under `infra/k8s/scripts/<topic>/` and `list_images.sh` at `scripts/`:
+
+| Path / script                      | Purpose                                                                                                             |
+| ---------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| `db/db-connect.sh`                 | Port-forward and connect to PostgreSQL                                                                              |
+| `keyvaldb/keyvaldb-gui-connect.sh` | Port-forward to RedisInsight GUI (GUI workload is in the ops app; scale `podverse-keyvaldb-gui` if `replicas` is 0) |
+| `mq/mq-connect.sh`                 | Port-forward to message queue                                                                                       |
+| `list_images.sh`                   | List image references in use (see script)                                                                           |
 
 See [infra/k8s/scripts/README.md](../../infra/k8s/scripts/README.md) for details.
 
