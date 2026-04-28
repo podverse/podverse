@@ -4,11 +4,11 @@ Podverse uses forward-only SQL migrations with one canonical source tree:
 
 - app migrations: `infra/k8s/base/ops/source/database/linear-migrations/app`
 - management migrations: `infra/k8s/base/ops/source/database/linear-migrations/management`
-- bootstrap and generated init SQL: `infra/k8s/base/db/source/bootstrap` (see [LINEAR-MIGRATIONS.md](LINEAR-MIGRATIONS.md) for `0003_linear_baseline.sql`)
+- bootstrap and generated init SQL: `infra/k8s/base/db/source/bootstrap` (see [LINEAR-MIGRATIONS.md](LINEAR-MIGRATIONS.md) for `0003_linear_baseline.sql.gz`)
 
 ## First-run contract (brand-new DB)
 
-1. Bring up Postgres and `docker-entrypoint-initdb` order: `0001_` (app users) and `0002_` (management DB and users) and generated `0003_linear_baseline.sql` (full schema; see [LINEAR-MIGRATIONS.md](LINEAR-MIGRATIONS.md)).
+1. Bring up Postgres and `docker-entrypoint-initdb` order: `0001_` (app users) and `0002_` (management DB and users) and generated `0003_linear_baseline.sql.gz` (full schema; see [LINEAR-MIGRATIONS.md](LINEAR-MIGRATIONS.md)).
 2. Wait for DB readiness.
 3. If `0003` is present and matches the repo, migration jobs should be no-ops (checksums in `linear_migration_history`); otherwise run app and management migration jobs.
 4. Create or update the management superuser.

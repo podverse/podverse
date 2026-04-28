@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Generate infra/k8s/base/db/source/bootstrap/0004_seed_linear_migration_history.sql
 #
-# After 0003_linear_baseline.sql materializes schema (including empty linear_migration_history),
+# After 0003_linear_baseline.sql.gz materializes schema (including empty linear_migration_history),
 # this script inserts one row per forward-only migration file with SHA-256 checksums matching
 # infra/k8s/base/ops/source/database/runner/run-linear-migrations.sh — so ops migration jobs skip
 # already-materialized DDL on fresh clusters.

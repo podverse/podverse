@@ -9,11 +9,11 @@ Podverse forward-only SQL migration files are canonical in:
 
 Bootstrap-only DB/user setup scripts live in:
 
-- `infra/k8s/base/db/source/bootstrap` (`0001_*.sh`, `0002_*.sh`, the generated `0003_linear_baseline.sql`, and the generated `0004_seed_linear_migration_history.sql`)
+- `infra/k8s/base/db/source/bootstrap` (`0001_*.sh`, `0002_*.sh`, the generated `0003_linear_baseline.sql.gz`, and the generated `0004_seed_linear_migration_history.sql`)
 
-## Generated init snapshot `0003_linear_baseline.sql`
+## Generated init snapshot `0003_linear_baseline.sql.gz`
 
-- After `0001` and `0002` (role and database creation), a **generated** `0003_linear_baseline.sql` is applied in `docker-entrypoint-initdb` order. It is the result of running the full linear app and management migration chains in a throwaway container, then `pg_dump` of each database, combined with `psql` `\connect` lines. It is **not** a hand-edited file.
+- After `0001` and `0002` (role and database creation), a **generated** `0003_linear_baseline.sql.gz` is applied in `docker-entrypoint-initdb` order (Postgres treats `.sql.gz` like `.sql`). Uncompressed content is the same as running the full linear app and management migration chains in a throwaway container, then `pg_dump` of each database, combined with `psql` `\connect` lines. It is **not** a hand-edited file.
 - **Regenerate** after any change under `infra/k8s/base/ops/source/database/linear-migrations/` from the repo root:
 
   `make db_regen_linear_baseline` (Docker for `0003`, then checksum seed for `0004`; uses synthetic credentials from `scripts/database/db.generate-baseline.env` only). Then `make db_verify_linear_baseline` and commit the updated `0003_` and `0004_` files.

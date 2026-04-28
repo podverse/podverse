@@ -1,13 +1,14 @@
 #!/usr/bin/env bash
 # Rebuild a single initdb SQL file from: bootstrap 0001 + 0002, then the full
 # linear app + management migration chains, then pg_dump of each database.
-# Output: infra/k8s/base/db/source/bootstrap/0003_linear_baseline.sql
+# Default output: infra/k8s/base/db/source/bootstrap/0003_linear_baseline.sql.gz (gzip -n for minimal headers).
+# Pass a path ending in .sql for uncompressed output (debugging).
 # Do not edit 0003 manually; re-run this script or `make db_regen_linear_baseline` after migration changes.
 # `make db_regen_linear_baseline` also runs generate-linear-migration-history-seed.sh to refresh 0004_seed_linear_migration_history.sql.
 #
-# Requires: docker, a POSIX shell
+# Requires: docker, gzip (when writing .gz), a POSIX shell
 #
-# Usage: ./scripts/database/generate-linear-baseline.sh [output.sql]
+# Usage: ./scripts/database/generate-linear-baseline.sh [output.sql.gz | output.sql]
 #        BASELINE_IN_DOCKER=0 ...    # not supported — Docker is required
 
 set -euo pipefail
@@ -24,7 +25,7 @@ export REPO_ROOT
 export DB_HOST="${DB_HOST:-127.0.0.1}"
 export DB_PORT="${DB_PORT:-5432}"
 
-OUT_REL_DEFAULT="infra/k8s/base/db/source/bootstrap/0003_linear_baseline.sql"
+OUT_REL_DEFAULT="infra/k8s/base/db/source/bootstrap/0003_linear_baseline.sql.gz"
 OUT="${1:-$REPO_ROOT/$OUT_REL_DEFAULT}"
 if [[ "$OUT" != /* ]]; then
   OUT="$REPO_ROOT/$OUT"
@@ -38,8 +39,9 @@ fi
 CONTAINER_NAME="podverse-linear-baseline-$$"
 APP_DUMP="$(mktemp)"
 MGT_DUMP="$(mktemp)"
+TMP_COMBINED="$(mktemp)"
 cleanup() {
-  rm -f "$APP_DUMP" "$MGT_DUMP" 2>/dev/null || true
+  rm -f "$APP_DUMP" "$MGT_DUMP" "$TMP_COMBINED" 2>/dev/null || true
   docker rm -f "$CONTAINER_NAME" >/dev/null 2>&1 || true
 }
 trap cleanup EXIT
@@ -101,6 +103,16 @@ done
   printf "%s\n" "\connect $DB_MANAGEMENT_NAME" ""
   cat "$MGT_DUMP"
   printf '\n'
-} > "$OUT"
+} > "$TMP_COMBINED"
+
+if [[ "$OUT" == *.sql ]]; then
+  mv "$TMP_COMBINED" "$OUT"
+else
+  if ! command -v gzip >/dev/null 2>&1; then
+    echo "gzip is required to write compressed baseline (.sql.gz)." >&2
+    exit 1
+  fi
+  gzip -nc < "$TMP_COMBINED" > "$OUT"
+fi
 
 echo "Wrote: $OUT"

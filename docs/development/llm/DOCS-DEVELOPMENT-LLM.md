@@ -14,7 +14,7 @@ This repository’s **authoritative** AI guidance is:
 
 **Spurious `git` changes under `.llm/exports`:** if tracked export files show as modified (for example after an old local sync or tooling), run `npm run llm:exports:restore` to match the last commit, or `git restore .llm/exports` yourself.
 
-The generated files remain **`.gitignore`d**; **`.llm/exports/`** is in **`.cursorignore`**. The workflow stages them with `git add -A -f` on the runner. The pre-commit hook can prompt if you try to add ignored export paths. See [`.llm/exports/README.md`](../../.llm/exports/README.md) and [EXPORT-TARGETS.md](EXPORT-TARGETS.md).
+The generated files remain **`.gitignore`d**; **`.llm/exports/`** is in **`.cursorignore`**. The workflow stages them with `git add -A -f` on the runner. The pre-commit hook can prompt if you try to add ignored export paths. See [`.llm/exports/LLM-EXPORTS.md`](../../.llm/exports/LLM-EXPORTS.md) and [EXPORT-TARGETS.md](EXPORT-TARGETS.md).
 
 ## Who should read this
 

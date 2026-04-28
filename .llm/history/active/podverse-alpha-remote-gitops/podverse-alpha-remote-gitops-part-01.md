@@ -16,7 +16,7 @@ execute
 - .llm/history/active/podverse-alpha-remote-gitops/podverse-alpha-remote-gitops-part-01.md
 - docs/development/k8s/REMOTE-K8S-GITOPS.md
 - docs/operations/ALPHA-DEPLOYMENT.md
-- infra/k8s/README.md
+- infra/k8s/INFRA-K8S.md
 - infra/k8s/K8S.md
 - infra/k8s/alpha-application.yaml
 - infra/k8s/alpha/api/kustomization.yaml
@@ -96,7 +96,7 @@ check the docs/development/ directories in both podverse and metaboost. if docs 
 - docs/development/k8s/ALPHA-NAMESPACE-FULL-TEARDOWN.md
 - docs/development/k8s/REMOTE-K8S-GITOPS.md
 - infra/k8s/K8S.md
-- infra/k8s/README.md
+- infra/k8s/INFRA-K8S.md
 
 ### Session 5 - 2026-04-25
 

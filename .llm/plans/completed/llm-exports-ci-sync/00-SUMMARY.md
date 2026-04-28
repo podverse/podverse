@@ -7,7 +7,7 @@ Deterministic `npm run llm:exports:sync` from `.cursor` + `.cursorrules` into `.
 ## Delivered
 
 - `scripts/llm/*` (export driver, allowlist, Copilot adapter, pre-commit guard)
-- `.llm/exports/README.md`, `github-copilot/.gitkeep`, `.state/.gitkeep`, generated `github-copilot/` tree
+- `.llm/exports/LLM-EXPORTS.md`, `github-copilot/.gitkeep`, `.state/.gitkeep`, generated `github-copilot/` tree
 - `package.json` scripts `llm:exports:sync` / `llm:exports:check`
 - Workflows: `llm-exports-sync.yml` (verify on PR, commit on `develop` push, `workflow_dispatch`); `llm-exports-optional-cloud-llm.yml` (disabled stub)
 - `docs/development/llm/GH-EXPORTS-SETUP.md` and README updates; AGENTS / QUICK-START (Metaboost) callouts
