@@ -16,7 +16,7 @@ This system uses `@next/bundle-analyzer` to analyze the production build of podv
 
 ## Prerequisites
 
-- **Node.js 22.17.0 or higher** (specified in root `.nvmrc`)
+- **Node.js 24** (see root `.nvmrc`)
   - If using nvm: `nvm use` in the monorepo root to switch to the correct version
   - Or ensure your Node.js version matches `.nvmrc`
 - podverse monorepo (this tool runs from within `tools/web-perf/bundle-analyzer/`)

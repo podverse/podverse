@@ -11,7 +11,7 @@ Open source podcast app with Podcasting 2.0 support.
 
 ## Quick Start
 
-**Prerequisites**: [Docker](https://docs.docker.com/get-docker/) and [Node.js 22 LTS](https://github.com/nvm-sh/nvm)
+**Prerequisites**: [Docker](https://docs.docker.com/get-docker/) and [Node.js 24 LTS](https://github.com/nvm-sh/nvm) (see root `.nvmrc`)
 
 ```bash
 # 1. Clone and install

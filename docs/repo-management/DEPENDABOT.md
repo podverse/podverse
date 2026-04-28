@@ -77,9 +77,9 @@ See [GitHub Labels](GITHUB-LABELS.md) for complete label documentation.
 
 ## Node.js Version Policy
 
-### Current LTS: Node.js 22
+### Current LTS: Node.js 24
 
-All Docker images use Node.js 22 LTS, which is in Active LTS until April 2027.
+All Docker `FROM node:…` images use **Node.js 24** (see `node:24-slim` and `node:24-alpine` in app Dockerfiles, `node:24-slim` in K8s CronJobs and make targets). Local dev and CI align with root `.nvmrc` (24).
 
 ### LTS Release Schedule
 
@@ -88,10 +88,10 @@ All Docker images use Node.js 22 LTS, which is in Active LTS until April 2027.
 | 18      | Maintenance | 2022-10-25 | 2025-04-30 |
 | 20      | Active LTS  | 2023-10-24 | 2026-04-30 |
 | 22      | Active LTS  | 2024-10-29 | 2027-04-30 |
-| 24      | Future LTS  | 2025-10-28 | 2028-04-30 |
-| 26      | Future LTS  | 2026-10-27 | 2029-04-30 |
+| 24      | Active LTS  | 2025-10-28 | 2028-04-30 |
+| 26      | Future LTS  | 2026-10-27 | 2029-10-20 |
 
-**Next Update**: Node.js 24 LTS (Expected: October 2025)
+**Next LTS to plan for**: Node.js 26 (expected Active LTS October 2026; confirm on [Node release schedule](https://github.com/nodejs/Release).)
 
 ### Why LTS-Only?
 
