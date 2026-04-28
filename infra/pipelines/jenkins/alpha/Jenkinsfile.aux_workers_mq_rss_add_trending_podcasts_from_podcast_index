@@ -1,0 +1,74 @@
+// Enqueue trending Podcast Index feeds for RSS parsing (same id discovery as dev parse trending).
+pipeline {
+    agent {
+        label 'pv-alpha-aux'
+    }
+
+    options {
+        disableConcurrentBuilds()
+        timestamps()
+    }
+
+    parameters {
+        string(
+            name: 'MAX_FEEDS',
+            defaultValue: '50',
+            description: 'Max trending feeds to request from Podcast Index (default 50, cap 1000).',
+            trim: true
+        )
+        choice(
+            name: 'MQ_QUEUE_NAME',
+            choices: ['rss-normal', 'rss-slow', 'rss-on-demand', 'rss-live', 'add-by-rss-on-demand', 'add-by-rss-background'],
+            description: 'Parser queue to enqueue to (default in worker: rss-normal / normal priority).'
+        )
+        string(
+            name: 'SINCE',
+            defaultValue: '',
+            description: 'Optional Podcast Index trending "since" cursor (positive integer), or leave empty.',
+            trim: true
+        )
+        string(
+            name: 'LANG',
+            defaultValue: '',
+            description: 'Optional language filter for trending (or leave empty).',
+            trim: true
+        )
+        string(
+            name: 'CAT',
+            defaultValue: '',
+            description: 'Optional category filter for trending (or leave empty).',
+            trim: true
+        )
+        booleanParam(
+            name: 'FORCE_PARSE',
+            defaultValue: false,
+            description: 'Pass -f to force parse even if the feed is unchanged.'
+        )
+    }
+
+    stages {
+        stage('Enqueue trending feeds from Podcast Index') {
+            steps {
+                script {
+                    def forceParseFlag = params.FORCE_PARSE ? '-f' : ''
+                    def sinceArg = params.SINCE?.trim() ? "-since \"${params.SINCE}\"" : ''
+                    def langArg = params.LANG?.trim() ? "-lang \"${params.LANG}\"" : ''
+                    def catArg = params.CAT?.trim() ? "-cat \"${params.CAT}\"" : ''
+
+                    dir('/opt/podverse/infra/docker/alpha/workers') {
+                        sh """
+                            set -eux
+                            docker compose -f docker-compose.yml run --rm \
+                                podverse_alpha_workers \
+                                node apps/workers/dist/index.js mqRSSAddTrendingPodcastsFromPodcastIndex \
+                                -q "${params.MQ_QUEUE_NAME}" \
+                                -n "${params.MAX_FEEDS}" \
+                                ${sinceArg} ${langArg} ${catArg} \
+                                ${forceParseFlag}
+                        """
+                    }
+                }
+            }
+        }
+    }
+}

@@ -11,6 +11,8 @@ resources:
   - management-superuser-update.cronjob.yaml
   - keyvaldb-gui.deployment.yaml
   - keyvaldb-gui.service.yaml
+  - ops-mq-rss-add-trending-podcast-index-50.cronjob.yaml
+  - ops-mq-rss-add-trending-podcast-index-1000.cronjob.yaml
 
 # Keep hash suffixes enabled so config content changes produce new names.
 # This prevents stale script/migration data from being reused by job pods.

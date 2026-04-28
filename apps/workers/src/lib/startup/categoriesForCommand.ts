@@ -42,7 +42,10 @@ const BASE_PODCAST_INDEX_COMMANDS = [
 
 const BASE_ORM_PODCAST_INDEX_COMMANDS = ['podcastIndexDeadFeedsFlagAndMerge'] as const;
 
-const BASE_ORM_MQ_PODCAST_INDEX_COMMANDS = ['mqRSSAdd'] as const;
+const BASE_ORM_MQ_PODCAST_INDEX_COMMANDS = [
+  'mqRSSAdd',
+  'mqRSSAddTrendingPodcastsFromPodcastIndex',
+] as const;
 
 const BASE_ORM_MQ_COMMANDS = ['mqRSSRunDlqConsumer', 'mqRSSAddAll'] as const;
 

@@ -26,6 +26,7 @@
     "mq_rss_add": "node ./dist/index.js mqRSSAdd",
     "mq_rss_add_all": "node ./dist/index.js mqRSSAddAll",
     "mq_rss_add_recently_updated_feeds_from_podcast_index": "node ./dist/index.js mqRSSAddRecentlyUpdatedFeedsFromPodcastIndex",
+    "mq_rss_add_trending_podcasts_from_podcast_index": "node ./dist/index.js mqRSSAddTrendingPodcastsFromPodcastIndex",
     "mq_rss_run_live_item_listener": "node ./dist/index.js mqRSSRunLiveItemListener",
     "mq_rss_run_parser": "node ./dist/index.js mqRSSRunParser",
     "mq_add_by_rss_run_parser": "node ./dist/index.js mqAddByRSSRunParser",

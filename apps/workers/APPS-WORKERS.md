@@ -45,21 +45,22 @@ npm run build -w apps/workers
 
 ## Available Commands
 
-| Script                                            | Description                                                 |
-| ------------------------------------------------- | ----------------------------------------------------------- |
-| `npm run archive_all`                             | Archive all feeds                                           |
-| `npm run image_shrink_run_consumer`               | Run image shrink MQ consumer                                |
-| `npm run image_shrink_backfill`                   | Enqueue image shrink backfill                               |
-| `npm run mq_rss_add`                              | Add single feed to message queue                            |
-| `npm run mq_rss_add_all`                          | Add all feeds to message queue                              |
-| `npm run mq_rss_run_parser`                       | Run RSS parser worker                                       |
-| `npm run mq_rss_run_dlq_consumer`                 | Process dead letter queue                                   |
-| `npm run dev_parser_rss_parse_podcasting20_feeds` | Parse fixed Podcasting 2.0 helper feeds to DB               |
-| `npm run parser_rss_parse_feed`                   | Parse single feed by `podcast_index_id` (`-p`)              |
-| `npm run dev_parser_rss_parse_trending_feeds`     | Trending PI feeds → parse/save to DB (default 50, cap 1000) |
-| `npm run podcast_index_trending_podcasts_get`     | Get trending podcasts (list only)                           |
-| `npm run podcast_index_value_update_all`          | Update all value blocks                                     |
-| `npm run stats_update_aggregated`                 | Update aggregated statistics                                |
+| Script                                                    | Description                                                                          |
+| --------------------------------------------------------- | ------------------------------------------------------------------------------------ |
+| `npm run archive_all`                                     | Archive all feeds                                                                    |
+| `npm run image_shrink_run_consumer`                       | Run image shrink MQ consumer                                                         |
+| `npm run image_shrink_backfill`                           | Enqueue image shrink backfill                                                        |
+| `npm run mq_rss_add`                                      | Add single feed to message queue                                                     |
+| `npm run mq_rss_add_all`                                  | Add all feeds to message queue                                                       |
+| `npm run mq_rss_run_parser`                               | Run RSS parser worker                                                                |
+| `npm run mq_rss_run_dlq_consumer`                         | Process dead letter queue                                                            |
+| `npm run mq_rss_add_trending_podcasts_from_podcast_index` | Trending PI feeds → enqueue for parsing (default `-q rss-normal`, `-n` 50, cap 1000) |
+| `npm run dev_parser_rss_parse_podcasting20_feeds`         | Parse fixed Podcasting 2.0 helper feeds to DB                                        |
+| `npm run parser_rss_parse_feed`                           | Parse single feed by `podcast_index_id` (`-p`)                                       |
+| `npm run dev_parser_rss_parse_trending_feeds`             | Trending PI feeds → parse/save to DB (default 50, cap 1000)                          |
+| `npm run podcast_index_trending_podcasts_get`             | Get trending podcasts (list only)                                                    |
+| `npm run podcast_index_value_update_all`                  | Update all value blocks                                                              |
+| `npm run stats_update_aggregated`                         | Update aggregated statistics                                                         |
 
 Run commands from the monorepo root with workspace flag:
 

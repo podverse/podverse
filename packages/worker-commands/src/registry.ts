@@ -93,6 +93,16 @@ const WORKER_COMMAND_DEFS: readonly WorkerCommandDef[] = [
     example_cli: 'npm run mq_rss_add_recently_updated_feeds_from_podcast_index -w apps/workers',
   },
   {
+    name: 'mqRSSAddTrendingPodcastsFromPodcastIndex',
+    label: 'MQ: add trending PI feeds to parse queue',
+    description:
+      'Fetches trending podcast ids from the Podcast Index (same cap as dev parse trending) and enqueues them for parsing.',
+    category: 'mq',
+    risk: 'normal',
+    example_cli:
+      'npm run mq_rss_add_trending_podcasts_from_podcast_index -w apps/workers -- -q rss-normal -n 50',
+  },
+  {
     name: 'mqRSSRunDlqConsumer',
     label: 'MQ: RSS DLQ consumer',
     description: 'Process failed RSS messages from the dead-letter queue.',
