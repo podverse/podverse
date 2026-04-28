@@ -3,7 +3,7 @@
 #
 # Required:
 #   MIGRATION_DATABASE=app|management
-#   DB_HOST/DB_PORT + DB_USER/DB_PASSWORD/DB_NAME
+#   DB_HOST/DB_PORT + DB_USER/DB_PASSWORD/DB_NAME (defaults: DB_*_ADMIN_* from secrets; not read/write)
 #   LINEAR_MIGRATIONS_BASE_DIR (optional; defaults to /opt/infra/k8s/base/ops/source/database/linear-migrations)
 
 set -euo pipefail
@@ -50,14 +50,14 @@ fi
 if [[ "$MIGRATION_DATABASE" == "app" ]]; then
   export DB_HOST="${DB_HOST:-${PODVERSE_DB_SERVICE_HOST:-}}"
   export DB_PORT="${DB_PORT:-${PODVERSE_DB_SERVICE_PORT:-5432}}"
-  export DB_USER="${DB_USER:-${DB_APP_READ_WRITE_USER:-}}"
-  export DB_PASSWORD="${DB_PASSWORD:-${DB_APP_READ_WRITE_PASSWORD:-}}"
+  export DB_USER="${DB_USER:-${DB_APP_ADMIN_USER:-}}"
+  export DB_PASSWORD="${DB_PASSWORD:-${DB_APP_ADMIN_PASSWORD:-}}"
   export DB_NAME="${DB_NAME:-${DB_APP_NAME:-}}"
 else
   export DB_HOST="${DB_HOST:-${PODVERSE_DB_SERVICE_HOST:-}}"
   export DB_PORT="${DB_PORT:-${PODVERSE_DB_SERVICE_PORT:-5432}}"
-  export DB_USER="${DB_USER:-${DB_MANAGEMENT_READ_WRITE_USER:-}}"
-  export DB_PASSWORD="${DB_PASSWORD:-${DB_MANAGEMENT_READ_WRITE_PASSWORD:-}}"
+  export DB_USER="${DB_USER:-${DB_MANAGEMENT_ADMIN_USER:-}}"
+  export DB_PASSWORD="${DB_PASSWORD:-${DB_MANAGEMENT_ADMIN_PASSWORD:-}}"
   export DB_NAME="${DB_NAME:-${DB_MANAGEMENT_NAME:-}}"
 fi
 

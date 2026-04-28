@@ -78,6 +78,10 @@ LINEAR_MIGRATIONS_BASE_DIR="/opt/infra/k8s/base/ops/source/database/linear-migra
 
 When adapting to other clusters/repositories, keep mounts and `LINEAR_MIGRATIONS_*` env values aligned.
 
+**Credentials:** Linear migrations apply DDL (`CREATE TABLE`, etc.). In cluster, `run-linear-migrations-k8s.sh` connects using **`DB_APP_ADMIN_*`** / **`DB_MANAGEMENT_ADMIN_*`** from `podverse-db-opaque` (and management admin from `podverse-management-db-opaque` for the management job)—not app/management read-write users. Override `DB_USER` / `DB_PASSWORD` only if you intentionally need a different migration role.
+
+After merging these manifests, bump the immutable `?ref=` on remote ops bases in GitOps repos (for example `k.podcastdj.com/apps/podverse-alpha/ops/kustomization.yaml`) to a Podverse tag that includes the change.
+
 Trigger one-off jobs from those CronJobs during first deploy and on subsequent schema updates.
 
 Example on-demand triggers:
