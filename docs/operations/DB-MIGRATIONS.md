@@ -64,6 +64,20 @@ Suspended CronJobs are defined in:
 - `infra/k8s/base/ops/management-superuser-create.cronjob.yaml`
 - `infra/k8s/base/ops/management-superuser-update.cronjob.yaml`
 
+Path contract for linear migration jobs:
+
+- `run-linear-migrations-k8s.sh` resolves SQL paths via environment variables, not by walking parent directories.
+- `LINEAR_MIGRATIONS_BASE_DIR` should point to the mounted parent directory containing `app/` and `management/`.
+- `LINEAR_MIGRATIONS_DIR` (optional) overrides the fully resolved directory for the selected database.
+
+Current ops jobs mount SQL at `/opt/infra/k8s/base/ops/source/database/linear-migrations/<database>` and set:
+
+```bash
+LINEAR_MIGRATIONS_BASE_DIR="/opt/infra/k8s/base/ops/source/database/linear-migrations"
+```
+
+When adapting to other clusters/repositories, keep mounts and `LINEAR_MIGRATIONS_*` env values aligned.
+
 Trigger one-off jobs from those CronJobs during first deploy and on subsequent schema updates.
 
 Example on-demand triggers:

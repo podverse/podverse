@@ -38,6 +38,8 @@ spec:
                   value: "podverse-db"
                 - name: DB_PORT
                   value: "5432"
+                - name: LINEAR_MIGRATIONS_BASE_DIR
+                  value: "/opt/infra/k8s/base/ops/source/database/linear-migrations"
                 - name: MIGRATION_BUNDLE_SHA
                   valueFrom:
                     configMapKeyRef:

@@ -9,8 +9,9 @@ set -euo pipefail
 shopt -s nullglob
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-# runner -> database -> source -> ops -> base -> k8s -> infra -> repo root
-REPO_ROOT="$(cd "$SCRIPT_DIR/../../../../../.." && pwd)"
+LINEAR_MIGRATIONS_DIR_OVERRIDE="${LINEAR_MIGRATIONS_DIR:-}"
+LINEAR_MIGRATIONS_BASE_DIR_OVERRIDE="${LINEAR_MIGRATIONS_BASE_DIR:-}"
+DEFAULT_MIGRATIONS_BASE_DIR="$(cd "$SCRIPT_DIR/.." && pwd)/linear-migrations"
 
 DATABASE=""
 DRY_RUN=false
@@ -20,7 +21,13 @@ PSQL_PASSWORD=""
 PSQL_DB=""
 DB_HOST="${DB_HOST:-localhost}"
 DB_PORT="${DB_PORT:-5432}"
-ENV_FILE="$REPO_ROOT/infra/config/local/db.env"
+ENV_FILE="${LINEAR_MIGRATIONS_ENV_FILE:-}"
+if [[ -z "$ENV_FILE" ]] && command -v git >/dev/null 2>&1; then
+  REPO_ROOT_FROM_GIT="$(git -C "$SCRIPT_DIR" rev-parse --show-toplevel 2>/dev/null || true)"
+  if [[ -n "$REPO_ROOT_FROM_GIT" ]]; then
+    ENV_FILE="$REPO_ROOT_FROM_GIT/infra/config/local/db.env"
+  fi
+fi
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -63,17 +70,23 @@ if [[ -z "${DB_USER:-}" || -z "${DB_PASSWORD:-}" || -z "${DB_NAME:-}" ]]; then
 fi
 
 if [[ "$DATABASE" == "app" ]]; then
-  MIGRATIONS_DIR="$REPO_ROOT/infra/k8s/base/ops/source/database/linear-migrations/app"
   PSQL_USER="${DB_USER:-${DB_APP_ADMIN_USER:-}}"
   PSQL_PASSWORD="${DB_PASSWORD:-${DB_APP_ADMIN_PASSWORD:-}}"
   PSQL_DB="${DB_NAME:-${DB_APP_NAME:-podverse_app}}"
   LOCK_KEY="951001"
 else
-  MIGRATIONS_DIR="$REPO_ROOT/infra/k8s/base/ops/source/database/linear-migrations/management"
   PSQL_USER="${DB_USER:-${DB_MANAGEMENT_ADMIN_USER:-}}"
   PSQL_PASSWORD="${DB_PASSWORD:-${DB_MANAGEMENT_ADMIN_PASSWORD:-}}"
   PSQL_DB="${DB_NAME:-${DB_MANAGEMENT_NAME:-podverse_management}}"
   LOCK_KEY="951002"
+fi
+
+if [[ -n "$LINEAR_MIGRATIONS_DIR_OVERRIDE" ]]; then
+  MIGRATIONS_DIR="$LINEAR_MIGRATIONS_DIR_OVERRIDE"
+elif [[ -n "$LINEAR_MIGRATIONS_BASE_DIR_OVERRIDE" ]]; then
+  MIGRATIONS_DIR="$LINEAR_MIGRATIONS_BASE_DIR_OVERRIDE/$DATABASE"
+else
+  MIGRATIONS_DIR="$DEFAULT_MIGRATIONS_BASE_DIR/$DATABASE"
 fi
 
 if [[ -z "$PSQL_USER" || -z "$PSQL_PASSWORD" || -z "$PSQL_DB" ]]; then

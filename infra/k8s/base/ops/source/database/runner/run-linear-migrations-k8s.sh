@@ -4,6 +4,7 @@
 # Required:
 #   MIGRATION_DATABASE=app|management
 #   DB_HOST/DB_PORT + DB_USER/DB_PASSWORD/DB_NAME
+#   LINEAR_MIGRATIONS_BASE_DIR (optional; defaults to /opt/infra/k8s/base/ops/source/database/linear-migrations)
 
 set -euo pipefail
 
@@ -59,6 +60,9 @@ else
   export DB_PASSWORD="${DB_PASSWORD:-${DB_MANAGEMENT_READ_WRITE_PASSWORD:-}}"
   export DB_NAME="${DB_NAME:-${DB_MANAGEMENT_NAME:-}}"
 fi
+
+export LINEAR_MIGRATIONS_BASE_DIR="${LINEAR_MIGRATIONS_BASE_DIR:-/opt/infra/k8s/base/ops/source/database/linear-migrations}"
+export LINEAR_MIGRATIONS_DIR="${LINEAR_MIGRATIONS_DIR:-$LINEAR_MIGRATIONS_BASE_DIR/$MIGRATION_DATABASE}"
 
 if [[ -z "${DB_HOST:-}" || -z "${DB_USER:-}" || -z "${DB_PASSWORD:-}" || -z "${DB_NAME:-}" ]]; then
   echo "Missing required DB connection environment values for K8s migration run."
