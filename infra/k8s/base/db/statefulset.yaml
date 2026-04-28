@@ -99,7 +99,7 @@ spec:
               mountPath: /var/lib/postgresql
 
             # Init order: 0001 app users, 0002 management users/DB, 0003 generated
-            # schema snapshot (from ops/source linear chain). Remaining: ops jobs if needed.
+            # schema snapshot (from base/ops/source/database linear chain). Remaining: ops jobs if needed.
             # 1. App DB users
             - name: app-db-init-scripts
               mountPath: /docker-entrypoint-initdb.d/0001_create_app_db_users.sh

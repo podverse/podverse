@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Fail if 0003_linear_baseline.sql does not match generate-linear-baseline.sh output.
-# Use after editing ops/source/migrations and in CI (e.g. /test on a PR). Requires Docker.
+# Use after editing infra/k8s/base/ops/source/database/linear-migrations and in CI (e.g. /test on a PR). Requires Docker.
 set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"

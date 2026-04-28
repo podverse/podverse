@@ -109,7 +109,7 @@ local_management_superuser_create: infra/config/local/db.env
 	@set -a; . infra/config/local/db.env; set +a; \
 	docker run --rm \
 	  --network podverse_local_network \
-	  -v "$$(pwd)/scripts/management:/opt/scripts/management" \
+	  -v "$$(pwd)/infra/k8s/base/ops/source/database/management-superuser:/opt/scripts/management" \
 	  -w /opt/scripts/management \
 	  -e DB_HOST="podverse_local_db" \
 	  -e DB_PORT="5432" \
@@ -125,7 +125,7 @@ local_management_superuser_update: infra/config/local/db.env
 	@set -a; . infra/config/local/db.env; set +a; \
 	docker run --rm \
 	  --network podverse_local_network \
-	  -v "$$(pwd)/scripts/management:/opt/scripts/management" \
+	  -v "$$(pwd)/infra/k8s/base/ops/source/database/management-superuser:/opt/scripts/management" \
 	  -w /opt/scripts/management \
 	  -e DB_HOST="podverse_local_db" \
 	  -e DB_PORT="5432" \

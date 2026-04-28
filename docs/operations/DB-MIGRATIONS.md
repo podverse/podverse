@@ -2,8 +2,8 @@
 
 Podverse uses forward-only SQL migrations with one canonical source tree:
 
-- app migrations: `infra/k8s/ops/source/app`
-- management migrations: `infra/k8s/ops/source/management`
+- app migrations: `infra/k8s/base/ops/source/database/linear-migrations/app`
+- management migrations: `infra/k8s/base/ops/source/database/linear-migrations/management`
 - bootstrap and generated init SQL: `infra/k8s/base/db/source/bootstrap` (see [LINEAR-MIGRATIONS.md](LINEAR-MIGRATIONS.md) for `0003_linear_baseline.sql`)
 
 ## First-run contract (brand-new DB)
@@ -20,8 +20,8 @@ There is no existing-DB baseline onboarding flow in this model.
 
 Add a new `NNNN_description.sql` file to the correct source directory.
 
-- app: `infra/k8s/ops/source/app/NNNN_description.sql`
-- management: `infra/k8s/ops/source/management/NNNN_description.sql`
+- app: `infra/k8s/base/ops/source/database/linear-migrations/app/NNNN_description.sql`
+- management: `infra/k8s/base/ops/source/database/linear-migrations/management/NNNN_description.sql`
 
 Rules:
 

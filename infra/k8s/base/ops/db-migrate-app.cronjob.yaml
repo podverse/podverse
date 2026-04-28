@@ -48,7 +48,7 @@ spec:
                   mountPath: /opt/scripts/database
                   readOnly: true
                 - name: app-linear-migrations
-                  mountPath: /opt/infra/k8s/ops/source/app
+                  mountPath: /opt/infra/k8s/base/ops/source/database/linear-migrations/app
                   readOnly: true
           volumes:
             - name: migration-scripts

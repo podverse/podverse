@@ -168,7 +168,7 @@ alpha_management_superuser_create: infra/config/alpha/db.env
 	@set -a; . infra/config/alpha/db.env; set +a; \
 	docker run --rm \
 	  --network podverse_alpha_network \
-	  -v "$$(pwd)/scripts/management:/opt/scripts/management" \
+	  -v "$$(pwd)/infra/k8s/base/ops/source/database/management-superuser:/opt/scripts/management" \
 	  -w /opt/scripts/management \
 	  -e DB_HOST="podverse_alpha_db" \
 	  -e DB_PORT="5432" \
@@ -184,7 +184,7 @@ alpha_management_superuser_update: infra/config/alpha/db.env
 	@set -a; . infra/config/alpha/db.env; set +a; \
 	docker run --rm \
 	  --network podverse_alpha_network \
-	  -v "$$(pwd)/scripts/management:/opt/scripts/management" \
+	  -v "$$(pwd)/infra/k8s/base/ops/source/database/management-superuser:/opt/scripts/management" \
 	  -w /opt/scripts/management \
 	  -e DB_HOST="podverse_alpha_db" \
 	  -e DB_PORT="5432" \
