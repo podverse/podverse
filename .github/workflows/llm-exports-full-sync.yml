@@ -40,7 +40,7 @@ jobs:
 
       - name: Stage export tree
         # peter-evans/create-pull-request respects .gitignore; machine output is ignored locally
-        # — match the llm:exports:check (git add -A -f) behavior for ignored paths
+        # — force-add gitignored export paths
         run: |
           set -e
           git add -A -f -- .llm/exports

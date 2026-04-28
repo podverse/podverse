@@ -24,7 +24,7 @@ gh secret set LLM_EXPORTS_API_KEY --repo owner/repo
 
 ## Workflows
 
-- **LLM exports sync** (`llm-exports-sync.yml`) — runs on changes to `.cursor` / `scripts/llm` and via **workflow dispatch**. Incremental `sync` (overwrites; does not remove orphan files under a target). Updates branch `llm` and one rolling PR into `develop`.
+- **LLM exports sync** (`llm-exports-sync.yml`) — runs on **push to `develop`** (paths under `.cursor`, `.cursorrules`, `.cursorignore`, `scripts/llm/`) and via **workflow dispatch**. It does not run a blocking check on open PRs. Incremental `sync` (overwrites; does not remove orphan files under a target). Updates branch `llm` and one rolling PR into `develop`.
 - **LLM exports full** (`llm-exports-full-sync.yml`) — **workflow dispatch only**. Runs `sync --full` to wipe and regenerate each enabled export target (removes stale files). Updates branch `llm-full` and one rolling PR into `develop`. Use for catch-up after renames or when mirrors drift.
 
 List and run workflows:
@@ -39,7 +39,7 @@ gh run list --workflow "LLM exports full" --limit 5
 
 ## Branch protection (optional)
 
-If `develop` uses required checks, add the **LLM exports sync** / **verify** job to the list after the workflow exists on the default branch. **LLM exports full** is dispatch-only and is not a default PR gate. Configure via the GitHub **Settings → Rules → Rulesets** (or **Branches**), or with `gh api` if your org automates policy.
+The workflow no longer includes a per-PR **verify** job for export diffs. If `develop` uses required checks, you can require other jobs; the **publish** step of **LLM exports sync** (after pushes to `develop`) is not a typical PR gate. **LLM exports full** is dispatch-only. Configure via the GitHub **Settings → Rules → Rulesets** (or **Branches**), or with `gh api` if your org automates policy.
 
 ## Related docs
 

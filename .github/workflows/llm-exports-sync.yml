@@ -1,17 +1,11 @@
 # Deterministic sync from .cursor to .llm/exports (see scripts/llm/ and docs/development/llm/).
 # Does not use cloud LLM APIs. Export is plain Node (no root npm install); see package.json llm:exports:sync.
+# PRs to develop are not gated on .llm/exports matching; after merge, this workflow (push to develop) updates branch `llm` and its rolling PR. Use `npm run llm:exports:check` locally if you want to assert a branch is in sync.
 
 name: LLM exports sync
 
 on:
   push:
-    branches: [develop]
-    paths:
-      - ".cursor/**"
-      - ".cursorrules"
-      - ".cursorignore"
-      - "scripts/llm/**"
-  pull_request:
     branches: [develop]
     paths:
       - ".cursor/**"
@@ -25,26 +19,6 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  verify:
-    if: github.event_name == 'pull_request'
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    permissions:
-      contents: read
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Use Node
-        uses: actions/setup-node@v4
-        with:
-          node-version-file: .nvmrc
-
-      - name: Exports in sync (llm:exports:check)
-        env:
-          CI: true
-        run: node scripts/llm/export-from-cursor.mjs check
-
   publish_llm_pr:
     if: github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && github.ref == 'refs/heads/develop' && !contains(github.event.head_commit.message, '[bot]'))
     runs-on: ubuntu-latest
@@ -70,7 +44,7 @@ jobs:
 
       - name: Stage export tree
         # peter-evans/create-pull-request respects .gitignore; machine output is ignored locally
-        # — match the llm:exports:check (git add -A -f) behavior for ignored paths
+        # — force-add gitignored export paths (same staging as local `llm:exports:check` would use)
         run: |
           set -e
           git add -A -f -- .llm/exports

@@ -3,6 +3,7 @@
  * Usage: node scripts/llm/export-from-cursor.mjs [sync|check] [--full]
  *   sync  — write exports (default) when CI or LLM_EXPORT_ALLOW_LOCAL=1; otherwise no-op
  *   check — in CI, sync then exit 1 if .llm/exports (after git add -f) differs from HEAD; otherwise no-op
+ *           (use locally or in ad-hoc scripts; the llm-exports-sync workflow no longer runs check on PRs)
  */
 import { execSync } from 'node:child_process';
 import fs from 'node:fs';
