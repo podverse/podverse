@@ -12,8 +12,7 @@ spec:
   source:
     # This matches the repoURL used in your Root Application
     repoURL: https://github.com/podverse/podverse.git
-    targetRevision: staging
-
+    targetRevision: 5.4.18-staging.4
     # Path to the actual manifests for namespace and ingress
     path: infra/k8s/alpha/common
 

@@ -6,7 +6,7 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
 resources:
-  - https://github.com/podverse/podverse//infra/k8s/base/management-api?ref=staging
+  - https://github.com/podverse/podverse//infra/k8s/base/management-api?ref=5.4.18-staging.4
 
 namespace: podverse-alpha
 
@@ -27,4 +27,4 @@ patches:
 
 images:
   - name: ghcr.io/podverse/podverse/management-api
-    newTag: "staging"
+    newTag: "5.4.18-staging.4"

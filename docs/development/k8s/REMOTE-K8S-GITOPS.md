@@ -18,8 +18,8 @@ This document is intentionally domain-agnostic for open source use:
 ## Scope and model
 
 - Podverse repository:
-  - CI builds and tags images (`staging` branch -> `X.Y.Z-staging.N` + floating `:staging`); GitOps
-    overlays reference those tags
+  - CI builds and tags images (`staging` branch -> immutable `X.Y.Z-staging.N` Git tags + GHCR); GitOps
+    overlays pin the same `X.Y.Z-staging.N` for remote `?ref=` and `images[].newTag`
   - Owns shared base manifests under `infra/k8s/base/`
   - **`infra/k8s/alpha/`** — reference **alpha** environment overlays (per-component
     `kustomization.yaml`, patches, env fragments) and **`infra/k8s/alpha/apps/`** Argo `Application`
@@ -34,9 +34,9 @@ This document is intentionally domain-agnostic for open source use:
 
 ## Defaults
 
-- **Image tags (alpha):** set Podverse app images to `newTag: "staging"` in GitOps overlays.
-- **Remote base refs (alpha):** set Podverse remote bases to `?ref=staging` by default.
-- **Reproducible fallback:** pin all Podverse app images and remote base `?ref=` to the same immutable `X.Y.Z-staging.N` when needed.
+- **Image tags (alpha):** set Podverse app images to `newTag: "X.Y.Z-staging.N"` (same value CI publishes to GHCR).
+- **Remote base refs (alpha):** set Podverse remote bases to `?ref=X.Y.Z-staging.N` (same immutable Git tag).
+- **Bump together:** when you promote a staging release, update both `?ref=` and `newTag` to the new `X.Y.Z-staging.N` (example: `5.4.18-staging.4`).
 
 ## Encrypted secrets (GitOps repository)
 
@@ -222,9 +222,8 @@ curl -sI https://api.example.com/api/v2/
 In your GitOps repo overlays:
 
 - `resources:` remote bases use:
-  - `https://github.com/podverse/podverse//infra/k8s/base/<component>?ref=staging`
-- Podverse app `images[].newTag` use:
-  - `staging` for alpha/preprod drift-forward behavior
+  - `https://github.com/podverse/podverse//infra/k8s/base/<component>?ref=X.Y.Z-staging.N`
+- Podverse app `images[].newTag` use the **same** immutable tag as `?ref=` (not a floating `:staging` tag).
 
 Keep this contract consistent across `api`, `web`, `management-api`, `management-web`, `workers`, and `cron`.
 
@@ -239,7 +238,7 @@ In your GitOps repo Argo `Application` manifests:
 Do not confuse:
 
 - `targetRevision` for the GitOps repo branch (usually `main`)
-- `?ref=` for remote Podverse base manifests (default `staging` in this guide)
+- `?ref=` for remote Podverse base manifests (immutable Git tag `X.Y.Z-staging.N`, matching images)
 
 ## Verification checklist
 
