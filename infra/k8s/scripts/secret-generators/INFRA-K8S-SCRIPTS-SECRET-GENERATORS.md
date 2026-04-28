@@ -31,20 +31,22 @@ Generated **API** and **add-by-RSS workers** encrypted Secrets keep a stable key
 
 - **`create_api_secret.sh` → `podverse-*-api-opaque.enc.yaml`**: includes `METABOOST_SIGNING_KEY_PEM` and `METABOOST_APP_ASSERTION_ISS` (optional at runtime; auto-gen leaves them empty). Set both or neither when enabling AppAssertion minting.
 - **`create_workers_add_by_rss_secret.sh` → `podverse-*-workers-add-by-rss-opaque.enc.yaml`**: always includes `ADD_BY_RSS_CREDENTIALS_ENCRYPTION_KEY`. Interactive mode allows an empty placeholder; the API still requires a valid 64-hex key before a healthy start if that env is required by your config.
-- **`create_workers_webpush_secret.sh` → `podverse-*-workers-webpush-opaque.enc.yaml`**: with `--auto-gen` (or interactive: choose to generate a new pair), generates a VAPID keypair, writes the **private** key to the SOPS-encrypted Secret, and updates the **public** VAPID lines in place when the repo is laid out for it:
+- **`create_workers_webpush_secret.sh` → `podverse-*-workers-webpush-opaque.enc.yaml`**: the encrypted Secret contains **only** `WEBPUSH_VAPID_PRIVATE_KEY`. With `--auto-gen` (or interactive: generate a new pair), the script creates a VAPID pair, writes the private key to the SOPS file, and writes the **paired** public key to source env when the repo is laid out for it:
   - monorepo: `infra/k8s/base/workers/source/workers.env` (`WEBPUSH_VAPID_PUBLIC_KEY`) and `infra/k8s/base/web/source/web-sidecar.env` (`NEXT_PUBLIC_WEBPUSH_VAPID_PUBLIC_KEY`)
   - GitOps repo: `apps/podverse-<env>/workers/...` and `apps/podverse-<env>/web/...` for the same two keys
-  - If those paths are missing, only the secret file is written; you must set public keys in ConfigMap / `NEXT_PUBLIC_*` to match. **`WEBPUSH_VAPID_SUBJECT`** (e.g. `mailto:…`) is never changed by the script. Re-running generation **rotates** the VAPID pair; keep the SOPS file and the two public env files in a single commit.
+  - If those paths are missing, the script still prints the same public key for copy-paste. Re-running generation **rotates** the VAPID pair; keep the SOPS file and the two public env files in a single commit.
+- **`WEBPUSH_VAPID_SUBJECT`** (e.g. `mailto:ops@example.com`): set in `infra/k8s/base/workers/source/workers.env` or `apps/podverse-<env>/workers/source/workers.env` (GitOps), and the same in `infra/k8s/base/api/source/api.env` or `apps/podverse-<env>/api/source/api.env` for the API. Local: `apps/workers/.env` and `apps/api/.env`. See `apps/workers/ENV.md` and `apps/api/ENV.md`.
 
 **Existing** `*.enc.yaml` files from before these keys existed: add the missing keys with empty values in `sops` (or decrypt → edit `stringData` / `data` → re-encrypt) instead of re-running a generator from scratch if you need to preserve other material.
 
 ## Secrets that require external inputs
 
-These **do not** support `--auto-gen` and are **not** in the bulk runner. Run manually when credentials are available:
+These **do not** support `--auto-gen` and are **not** in the bulk runner. `create_all_secrets_auto_gen.sh` lists them (and optional follow-ups) at the end. Run manually when credentials are available:
 
 - `create_api.podcastindex.org_secret.sh` — Podcast Index API keys
 - `create_firebase_secret.sh` — `firebase-key.json` from your machine; produces **Secret `podverse-workers-firebase-opaque`** with a single key `firebase-key.json`. Base `infra/k8s` **API, workers, and workers CronJob** pods mount it read-only at **`/var/secrets/firebase`**, matching **`GOOGLE_FIREBASE_ADMIN_JSON_KEY_PATH=/var/secrets/firebase/firebase-key.json`** in the workers and API `*.env` sources. Apply the encrypted manifest after SOPS, then set **`GOOGLE_FIREBASE_NOTIFICATIONS_ENABLED=true`** when you want FCM/notification features on.
 - `create_workers_digital_ocean_secret.sh` — DigitalOcean Spaces access/secret keys
+- `create_github_registry_secret.sh` — GitHub username + PAT (`read:packages`) for **ghcr.io** image pulls; see the subsection below
 
 ## GitHub Container Registry pull secret (GHCR)
 

@@ -1,10 +1,8 @@
 #!/usr/bin/env bash
-# VERSION: 2
-# SOPS-encrypted `podverse-workers-webpush-opaque` with `WEBPUSH_VAPID_PRIVATE_KEY`.
-# Public VAPID keys belong in workers + web source env (base or apps/podverse-<env>).
-# With --auto-gen (or interactive: generate new pair), uses `npx` + `web-push` to create
-# a VAPID pair and, when the repo has known source paths, updates the public key lines
-# in place. WEBPUSH_VAPID_SUBJECT is never modified here.
+# VERSION: 3
+# SOPS-encrypted `podverse-workers-webpush-opaque` contains only `WEBPUSH_VAPID_PRIVATE_KEY`.
+# The paired public key is written to workers + web source env when paths exist. Configure
+# WEBPUSH_VAPID_SUBJECT in workers and API source env (see apps/workers/ENV.md, apps/api/ENV.md).
 
 set -euo pipefail
 
@@ -70,6 +68,9 @@ open(path, "w", encoding="utf-8").write(out)
 ' "$file" "$name" "$value"
 }
 
+# Set to 1 when WEBPUSH_VAPID_PUBLIC_KEY and NEXT_PUBLIC_* are written into repo env files.
+VAPID_PUBLIC_KEYS_WRITTEN_TO_ENV=0
+
 generate_vapid_pair() {
 	if ! command -v npx >/dev/null 2>&1; then
 		echo "npx is not on PATH. Install Node.js (e.g. nix develop) so the web-push package can be run." >&2
@@ -95,14 +96,15 @@ update_public_env_files() {
 		return 0
 	fi
 	if ! set_public_env_paths "${ENVIRONMENT}"; then
-		echo "No workers/web public env at expected paths. Set WEBPUSH_VAPID_PUBLIC_KEY and NEXT_PUBLIC_WEBPUSH_VAPID_PUBLIC_KEY manually, or re-run from the monorepo or GitOps repository root (see repo README)."
+		echo "No workers/web public env at expected paths. The same public key (pair of the new private key in the Secret) is printed at the end for copy-paste, or re-run from the monorepo or GitOps repository root (see repo README)."
 		return 0
 	fi
-	echo "Updating public VAPID keys in:"
+	echo "Updating paired public VAPID keys in:"
 	echo "  ${WORKERS_ENV_FILE} (WEBPUSH_VAPID_PUBLIC_KEY)"
 	echo "  ${WEB_ENV_FILE} (NEXT_PUBLIC_WEBPUSH_VAPID_PUBLIC_KEY)"
 	update_env_key "${WORKERS_ENV_FILE}" "WEBPUSH_VAPID_PUBLIC_KEY" "${pub}" || return 1
 	update_env_key "${WEB_ENV_FILE}" "NEXT_PUBLIC_WEBPUSH_VAPID_PUBLIC_KEY" "${pub}" || return 1
+	VAPID_PUBLIC_KEYS_WRITTEN_TO_ENV=1
 }
 
 echo "Running create_workers_webpush_secret.sh"
@@ -183,6 +185,17 @@ rm -f "$TMP_FILE"
 
 echo "----------------------------------------------------"
 echo "SUCCESS: Encrypted secret created at ${OUTPUT_FILE}"
+echo "(Only WEBPUSH_VAPID_PRIVATE_KEY is stored in this SOPS file.)"
 echo "----------------------------------------------------"
+if [[ -n "${WEBPUSH_VAPID_PUBLIC_KEY:-}" && "$VAPID_PUBLIC_KEYS_WRITTEN_TO_ENV" = "1" ]]; then
+	echo "Paired public VAPID keys were written to workers + web source env (same keypair as the private key above)."
+elif [[ -n "${WEBPUSH_VAPID_PUBLIC_KEY:-}" ]]; then
+	echo ""
+	echo "Add these lines to your workers and web source env (public only, paired with the private key in the Secret):"
+	echo "  WEBPUSH_VAPID_PUBLIC_KEY=${WEBPUSH_VAPID_PUBLIC_KEY}"
+	echo "  NEXT_PUBLIC_WEBPUSH_VAPID_PUBLIC_KEY=${WEBPUSH_VAPID_PUBLIC_KEY}"
+	echo "Set WEBPUSH_VAPID_SUBJECT in workers and API .env or source env (see apps/workers/ENV.md and apps/api/ENV.md)."
+	echo "  GitOps example: apps/podverse-<env>/{workers,api}/source/*.env"
+fi
 echo "Verify: sops -d ${OUTPUT_FILE}"
 echo "Apply:  sops -d ${OUTPUT_FILE} | kubectl apply -f -"

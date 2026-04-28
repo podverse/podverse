@@ -177,8 +177,11 @@ These variables are used to build the Notifications configuration:
   - Required if `WEBPUSH_ENABLED` is `"true"`
   - **Kubernetes:** do not put this in the workers ConfigMap; set it in the SOPS-encrypted Secret **`podverse-workers-webpush-opaque`**, which is mounted on workers and the API. Generate with `infra/k8s/scripts/secret-generators/create_workers_webpush_secret.sh` (`--auto-gen` or interactive “generate”): it creates a VAPID pair, encrypts the private key, and—when this repo has the standard workers/web source env paths—updates `WEBPUSH_VAPID_PUBLIC_KEY` and `NEXT_PUBLIC_WEBPUSH_VAPID_PUBLIC_KEY` in the same copy. Alternatively paste an existing private key from `npx web-push generate-vapid-keys` and set the public keys to match.
 
-- **`WEBPUSH_VAPID_SUBJECT`** (Conditional) - WebPush VAPID subject (usually an email or URL)
+- **`WEBPUSH_VAPID_SUBJECT`** (Conditional) - WebPush VAPID `mailto:` or `https:` contact URI for the VAPID key pair
   - Required if `WEBPUSH_ENABLED` is `"true"`
+  - **Local dev:** edit `apps/workers/.env` (and keep `WEBPUSH_VAPID_PUBLIC_KEY` / `WEBPUSH_VAPID_PRIVATE_KEY` consistent with your keys; see `apps/workers/.env.example`).
+  - **Kubernetes (monorepo):** set in `infra/k8s/base/workers/source/workers.env` (ConfigMap source for workers). The API uses the same subject and public key for its notifications config: set them in `infra/k8s/base/api/source/api.env` when WebPush is enabled, or in your environment overlay.
+  - **GitOps (separate repo):** set in `apps/podverse-<env>/workers/source/workers.env` and the matching `apps/podverse-<env>/api/source/api.env` for the API, then commit and sync.
 
 ## Parser Configuration
 

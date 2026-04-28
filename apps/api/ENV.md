@@ -160,7 +160,9 @@ For local setup, these can be customized via `dev/env-overrides/local/socials.en
 
 ### WebPush (optional)
 
-When **`WEBPUSH_ENABLED`** is `true`, the API uses **`WEBPUSH_VAPID_PUBLIC_KEY`**, **`WEBPUSH_VAPID_PRIVATE_KEY`**, and **`WEBPUSH_VAPID_SUBJECT`** (see [`apps/workers/ENV.md`](../../apps/workers/ENV.md) for semantics). On **Kubernetes**, do not put **`WEBPUSH_VAPID_PRIVATE_KEY`** in the API ConfigMap: use the same Secret as workers, **`podverse-workers-webpush-opaque`**, which is mounted on the API deployment via `envFrom` (see `infra/k8s/base/api/deployment.yaml`).
+When **`WEBPUSH_ENABLED`** is `true`, the API uses **`WEBPUSH_VAPID_PUBLIC_KEY`**, **`WEBPUSH_VAPID_PRIVATE_KEY`**, and **`WEBPUSH_VAPID_SUBJECT`** (see [`apps/workers/ENV.md`](../../apps/workers/ENV.md) for semantics). Set **`WEBPUSH_VAPID_SUBJECT` and the public key** in **`apps/api/.env`** (local) or the K8s ConfigMap source `infra/k8s/base/api/source/api.env` (or your `apps/.../api/source/api.env` GitOps overlay).
+
+On **Kubernetes**, do not put **`WEBPUSH_VAPID_PRIVATE_KEY`** in the API ConfigMap: use the same Secret as workers, **`podverse-workers-webpush-opaque`**, which is mounted on the API deployment via `envFrom` (see `infra/k8s/base/api/deployment.yaml`).
 
 ### MetaBoost Standard Endpoint (mbrss-v1)
 

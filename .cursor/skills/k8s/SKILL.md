@@ -1,7 +1,7 @@
 ---
 name: podverse-k8s-patterns
 description: Common patterns for Kubernetes manifests in infra/k8s. Use when editing or adding K8s manifests, changing deployment config, adding env vars to ConfigMaps, or working with ArgoCD/Kustomize/SOPS.
-version: 1.0.3
+version: 1.0.4
 ---
 
 # Podverse K8s Development Patterns
@@ -18,9 +18,9 @@ Use this skill when:
 - Working with ArgoCD, Kustomize, or SOPS in this repo
 - Creating new K8s components or services
 
-## GitOps without submodules
+## GitOps and remote Kustomize
 
-Remote deploys use a **separate GitOps repository** with Kustomize overlays and Argo CD. Do **not** use Git submodules there or in the monorepo: reference Podverse with **remote Kustomize** URLs under `infra/k8s/base/…` and **copy** `scripts/secret-generators` from this repo. See [REMOTE-K8S-GITOPS.md](../../../docs/development/k8s/REMOTE-K8S-GITOPS.md).
+Remote deploys use a **separate GitOps repository** with Kustomize overlays and Argo CD. Reference Podverse with **remote Kustomize** URLs under `infra/k8s/base/…` and **copy** `scripts/secret-generators` from this repo. See [REMOTE-K8S-GITOPS.md](../../../docs/development/k8s/REMOTE-K8S-GITOPS.md).
 
 ## Directory Structure
 
