@@ -83,11 +83,14 @@ tools/test-assets/config/ln-recipients.local.json
 
 secrets
 
+# Local uncompressed linear baseline (committed artifact is 0003_linear_baseline.sql.gz)
+infra/k8s/base/db/source/bootstrap/0003_linear_baseline.sql
+
 temp/
 
 .artifacts/
 
-# LLM / editor: see docs/development/llm/README.md. Canonical: .llm/exports/<id>/.gitkeep, allowed-targets.mjs
+# LLM / editor: see docs/development/llm/DOCS-DEVELOPMENT-LLM.md. Canonical: .llm/exports/<id>/.gitkeep, allowed-targets.mjs
 /.llm/local/vendors.json
 # Machine-generated under each target (CI on develop writes with git add -f; do not hand-commit):
 # allowlisted ids — scripts/llm/allowed-targets.mjs (ALLOWED_TARGET_IDS)

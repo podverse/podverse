@@ -43,6 +43,7 @@ spec:
                 name: podverse-api-opaque
             - secretRef:
                 name: podverse-mailer-opaque
+              optional: true
             - secretRef:
                 name: podverse-metaboost-opaque
             - secretRef:
@@ -57,6 +58,7 @@ spec:
                 name: podverse-workers-add-by-rss-opaque
             - secretRef:
                 name: podverse-workers-webpush-opaque
+              optional: true
           volumeMounts:
             - name: logs-volume
               mountPath: /logs

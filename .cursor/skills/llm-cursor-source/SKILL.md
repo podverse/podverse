@@ -14,7 +14,7 @@ Only these paths define shared guidance for this repo:
 - `.cursorrules` (repo root)
 - `.cursorignore` (repo root) — path-level ignores for Cursor and some tooling
 
-Do not commit ad-hoc skill/rule trees under `.github/`. **Machine export trees** under [`.llm/exports/`](../../../.llm/exports/) (per-target, allowlisted; see [EXPORT-TARGETS.md](../../../docs/development/llm/EXPORT-TARGETS.md)) are **not** a default write target for humans or for agents: **llm-exports-sync** and **llm-exports-full-sync** in GitHub Actions are the **canonical** producers; they open/update PRs on branches **`llm`** and **`llm-full`**. `npm run llm:exports:sync` is **gated** outside CI (`LLM_EXPORT_ALLOW_LOCAL=1` is required to write locally, for [scripts/llm/](../../../scripts/llm/) work only). Generated content is **`.gitignore`d**; **`.llm/exports/`** is in **`.cursorignore`** for Cursor. Do not commit or hand-edit generated `skills/`, `instructions/`, or `*-instructions.md` in feature PRs. See [`.llm/exports/README.md`](../../../.llm/exports/README.md) and the **`llm-exports-ci`** rule.
+Do not commit ad-hoc skill/rule trees under `.github/`. **Machine export trees** under [`.llm/exports/`](../../../.llm/exports/) (per-target, allowlisted; see [EXPORT-TARGETS.md](../../../docs/development/llm/EXPORT-TARGETS.md)) are **not** a default write target for humans or for agents: **llm-exports-sync** and **llm-exports-full-sync** in GitHub Actions are the **canonical** producers; they open/update PRs on branches **`llm`** and **`llm-full`**. `npm run llm:exports:sync` is **gated** outside CI (`LLM_EXPORT_ALLOW_LOCAL=1` is required to write locally, for [scripts/llm/](../../../scripts/llm/) work only). Generated content is **`.gitignore`d**; **`.llm/exports/`** is in **`.cursorignore`** for Cursor. Do not commit or hand-edit generated `skills/`, `instructions/`, or `*-instructions.md` in feature PRs. See [`.llm/exports/LLM-EXPORTS.md`](../../../.llm/exports/LLM-EXPORTS.md) and the **`llm-exports-ci`** rule.
 
 ## Other LLM editors
 
@@ -24,7 +24,7 @@ Start from [`.llm/exports/`](../../../.llm/exports/) after pulling the latest **
 
 Overview and policy:
 
-- [docs/development/llm/README.md](../../../docs/development/llm/README.md)
+- [docs/development/llm/DOCS-DEVELOPMENT-LLM.md](../../../docs/development/llm/DOCS-DEVELOPMENT-LLM.md)
 
 ## When .cursor changes
 

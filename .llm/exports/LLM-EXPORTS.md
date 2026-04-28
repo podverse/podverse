@@ -27,7 +27,7 @@ Unknown directory names without an allowlist entry **fail CI**.
 
 ## Using GitHub Copilot–shaped output
 
-**Map** the generated files from `.llm/exports/github-copilot/` into the project’s **`.github/`** as needed for your local Copilot setup; see the naming section above. More context: [docs/development/llm/README.md](../../docs/development/llm/README.md).
+**Map** the generated files from `.llm/exports/github-copilot/` into the project’s **`.github/`** as needed for your local Copilot setup; see the naming section above. More context: [docs/development/llm/DOCS-DEVELOPMENT-LLM.md](../../docs/development/llm/DOCS-DEVELOPMENT-LLM.md).
 
 ## `.state`
 

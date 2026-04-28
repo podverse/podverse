@@ -113,7 +113,7 @@ function main() {
       );
     } else if (!mayWriteExports()) {
       console.warn(
-        'llm-exports: export writes are disabled outside CI. Set LLM_EXPORT_ALLOW_LOCAL=1 to run sync locally (scripts/llm/ development only). See docs/development/llm/README.md.'
+        'llm-exports: export writes are disabled outside CI. Set LLM_EXPORT_ALLOW_LOCAL=1 to run sync locally (scripts/llm/ development only). See docs/development/llm/DOCS-DEVELOPMENT-LLM.md.'
       );
     } else {
       runAdapters(discovered, { full });

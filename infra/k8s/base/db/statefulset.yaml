@@ -12,7 +12,7 @@ spec:
     spec:
       containers:
         - name: postgres
-          image: postgres:latest
+          image: postgres:18.3
           ports:
             - containerPort: 5432
               name: postgres
@@ -112,8 +112,8 @@ spec:
 
             # 3. Full schema + linear_migration_history table (generated; do not hand-edit the source file)
             - name: db-init-scripts
-              mountPath: /docker-entrypoint-initdb.d/0003_linear_baseline.sql
-              subPath: 0003_linear_baseline.sql
+              mountPath: /docker-entrypoint-initdb.d/0003_linear_baseline.sql.gz
+              subPath: 0003_linear_baseline.sql.gz
 
             # 4. Populate linear_migration_history rows so forward-only ops jobs skip DDL already in 0003
             - name: db-init-scripts

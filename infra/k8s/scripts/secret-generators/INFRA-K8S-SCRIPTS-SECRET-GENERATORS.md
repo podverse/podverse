@@ -27,7 +27,7 @@ This runs the following with `--auto-gen`:
 - `create_workers_add_by_rss_secret.sh`
 - `create_workers_webpush_secret.sh` (VAPID key pair via `npx` + `web-push`; see below)
 
-The API **`Deployment`** references **`podverse-api-opaque`**, **`podverse-mailer-opaque`**, and **`podverse-metaboost-opaque`** via **`secretRef`** (see `infra/k8s/base/api/deployment.yaml`).
+The API **`Deployment`** references **`podverse-api-opaque`**, **`podverse-mailer-opaque`**, **`podverse-workers-webpush-opaque`**, and **`podverse-metaboost-opaque`** via **`secretRef`**. **`podverse-mailer-opaque`** and **`podverse-workers-webpush-opaque`** use **`optional: true`** so the API can schedule without those Secrets when mailer and Web Push are not used (see `infra/k8s/base/api/deployment.yaml`).
 
 ## Mailer and Metaboost secrets (interactive)
 

@@ -1,4 +1,4 @@
-# Version: 6
+# Version: 7
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
@@ -15,7 +15,7 @@ configMapGenerator:
       - 0002_create_management_db_users.sh=source/bootstrap/0002_create_management_db_users.sh
   - name: podverse-db-init-scripts
     files:
-      - 0003_linear_baseline.sql=source/bootstrap/0003_linear_baseline.sql
+      - 0003_linear_baseline.sql.gz=source/bootstrap/0003_linear_baseline.sql.gz
       - 0004_seed_linear_migration_history.sql=source/bootstrap/0004_seed_linear_migration_history.sql
 
 generatorOptions:

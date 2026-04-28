@@ -5,7 +5,7 @@ Get the Podverse monorepo running locally in 6 steps.
 ## Prerequisites
 
 - **Docker Desktop** - [Install Docker](https://docs.docker.com/get-docker/)
-- **Node.js 22 LTS** - Install via [nvm](https://github.com/nvm-sh/nvm) (we use LTS versions only)
+- **Node.js 24 LTS** - Install via [nvm](https://github.com/nvm-sh/nvm) (we use LTS versions only; see root `.nvmrc`)
 - **Git**
 
 Verify Docker is running:

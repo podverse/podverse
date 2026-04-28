@@ -1,4 +1,4 @@
-# Version: 4
+# Version: 5
 # Filename: kustomization.yaml
 # Description: Bundles resources and acts as the "Variable" manager for the Database.
 
@@ -24,7 +24,7 @@ labels:
 # 4. Image Variables
 images:
   - name: postgres
-    newTag: "18.1"
+    newTag: "18.3"
 # This patch applies the Tailscale configuration ONLY for this environment
 #patches:
 # Temporarily disabled to verify core DB deployment first

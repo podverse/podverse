@@ -1,10 +1,11 @@
 #!/usr/bin/env bash
-# Fail if 0003_linear_baseline.sql or 0004_seed_linear_migration_history.sql does not match generator output.
+# Fail if 0003_linear_baseline.sql.gz or 0004_seed_linear_migration_history.sql does not match generator output.
+# Compares uncompressed SQL bytes for 0003 (committed gzip vs fresh Docker-generated SQL).
 # Use after editing infra/k8s/base/ops/source/database/linear-migrations and in CI (e.g. /test on a PR). Requires Docker for 0003.
 set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
-OUT="$REPO_ROOT/infra/k8s/base/db/source/bootstrap/0003_linear_baseline.sql"
+OUT="$REPO_ROOT/infra/k8s/base/db/source/bootstrap/0003_linear_baseline.sql.gz"
 SEED="$REPO_ROOT/infra/k8s/base/db/source/bootstrap/0004_seed_linear_migration_history.sql"
 
 print_fix_hint() {
@@ -18,7 +19,7 @@ print_fix_hint() {
     {
       echo "## Linear baseline 0003 out of date"
       echo
-      echo "Regenerate from the repository root, then commit \`0003_linear_baseline.sql\`:"
+      echo "Regenerate from the repository root, then commit \`0003_linear_baseline.sql.gz\`:"
       echo
       echo '```'
       echo "make db_regen_linear_baseline"
@@ -35,17 +36,29 @@ if [[ ! -f "$OUT" ]]; then
   print_fix_hint
   exit 1
 fi
-GEN="$(mktemp)"
-GEN_SEED="$(mktemp)"
-trap 'rm -f "$GEN" "$GEN_SEED"' EXIT
-bash "$REPO_ROOT/scripts/database/generate-linear-baseline.sh" "$GEN"
-if ! cmp -s "$OUT" "$GEN"; then
-  echo "Linear baseline 0003 is out of date (migrations or generator changed)." >&2
-  print_fix_hint
-  diff -u "$OUT" "$GEN" | head -200 >&2 || true
+
+if ! command -v gzip >/dev/null 2>&1; then
+  echo "gzip is required to verify the compressed baseline." >&2
   exit 1
 fi
-echo "OK: 0003_linear_baseline.sql matches generated output."
+
+GEN_BASE="$(mktemp)"
+rm -f "$GEN_BASE"
+GEN="${GEN_BASE}.sql"
+GEN_SEED="$(mktemp)"
+COMMITTED_SQL="$(mktemp)"
+trap 'rm -f "$GEN" "$GEN_SEED" "$COMMITTED_SQL"' EXIT
+
+bash "$REPO_ROOT/scripts/database/generate-linear-baseline.sh" "$GEN"
+gzip -dc "$OUT" >"$COMMITTED_SQL"
+
+if ! cmp -s "$COMMITTED_SQL" "$GEN"; then
+  echo "Linear baseline 0003 is out of date (migrations or generator changed)." >&2
+  print_fix_hint
+  diff -u "$COMMITTED_SQL" "$GEN" | head -200 >&2 || true
+  exit 1
+fi
+echo "OK: 0003_linear_baseline.sql.gz (uncompressed) matches generated output."
 
 if [[ ! -f "$SEED" ]]; then
   echo "Missing migration history seed: $SEED" >&2

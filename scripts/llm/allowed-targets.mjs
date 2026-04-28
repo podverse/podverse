@@ -5,7 +5,7 @@
  *
  * Naming: prefer that each id’s export tree matches that editor’s documented on-disk layout. The
  * `github-copilot` target is an exception — consumer path is the repo `.github/` directory; see
- * `.llm/exports/README.md` (Naming convention).
+ * `.llm/exports/LLM-EXPORTS.md` (Naming convention).
  */
 export const MAX_EXPORT_TARGETS = 10;
 

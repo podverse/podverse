@@ -19,7 +19,7 @@ fi
 forbidden=0
 while IFS= read -r p; do
   [[ -z "$p" ]] && continue
-  if [[ "$p" == .llm/exports/README.md ]]; then
+  if [[ "$p" == .llm/exports/LLM-EXPORTS.md ]]; then
     continue
   fi
   if [[ "$p" == .llm/exports/.state/* || "$p" == .llm/exports/.state/.gitkeep ]]; then
@@ -39,7 +39,7 @@ fi
 cat << 'EOF' >&2
 llm-exports: You are trying to commit paths under .llm/exports that are machine exports (or not allowlisted for manual commit).
 
-Policy: .cursor/ and .cursorrules are the source of truth. The llm-exports-sync workflow runs npm run llm:exports:sync on the runner, updates branch llm, and opens/updates a PR to develop. Do not hand-commit skills/, instructions/, or copilot-instructions.md. See .llm/exports/README.md and docs/development/llm/
+Policy: .cursor/ and .cursorrules are the source of truth. The llm-exports-sync workflow runs npm run llm:exports:sync on the runner, updates branch llm, and opens/updates a PR to develop. Do not hand-commit skills/, instructions/, or copilot-instructions.md. See .llm/exports/LLM-EXPORTS.md and docs/development/llm/
 
 To bypass (rare, emergencies only): ALLOW_DERIVED_EXPORT_EDIT=1 git commit ...
 EOF

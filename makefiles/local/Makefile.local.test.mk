@@ -54,7 +54,7 @@ test_postgres_up:
 			-p 127.0.0.1:$(TEST_DB_PORT):5432 \
 			-e POSTGRES_USER=$(TEST_PG_USER) \
 			-e POSTGRES_PASSWORD=$(TEST_PG_PASSWORD) \
-			postgres:18.1 \
+			postgres:18.3 \
 		|| (echo "If bind failed: Podverse dev uses 5432; test uses $(TEST_DB_PORT). Metaboost test uses 5632. Check docker ps and free the port or set TEST_DB_PORT."; exit 1); \
 		echo "Waiting for Postgres to be ready..."; \
 		for i in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20; do \

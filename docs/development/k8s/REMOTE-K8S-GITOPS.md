@@ -171,7 +171,7 @@ In the Podverse monorepo, [`infra/k8s/alpha/`](../../../infra/k8s/alpha/) per-co
 3. **Ingress and workload hostnames:** use the same hostnames in ingress TLS `host` rules and in workload env (cookie domain, link generation, server-side fetch URLs) for that environment.
 4. **Cluster issuer (cert-manager):** the monorepo’s [`infra/k8s/alpha/common/ingress-hosts-patch.yaml`](../../../infra/k8s/alpha/common/ingress-hosts-patch.yaml) defaults to `letsencrypt-staging`. In the **GitOps** repository, set `cert-manager.io/cluster-issuer` to `letsencrypt-prod` on the alpha ingress when you want production ACME certificates and the cluster has a `ClusterIssuer` with that name.
 
-**References:** [`infra/k8s/README.md`](../../../infra/k8s/README.md), [`infra/k8s/K8S.md`](../../../infra/k8s/K8S.md), [`INFRA-K8S-SCRIPTS-SECRET-GENERATORS.md`](../../../infra/k8s/scripts/secret-generators/INFRA-K8S-SCRIPTS-SECRET-GENERATORS.md). If you use **Boilerplate** to render into a GitOps checkout (`configMapGenerator`, `make alpha_env_render`, etc.), follow [K8S-ENV-RENDER.md](https://github.com/podverse/boilerplate/blob/develop/docs/development/K8S-ENV-RENDER.md).
+**References:** [`infra/k8s/INFRA-K8S.md`](../../../infra/k8s/INFRA-K8S.md), [`infra/k8s/K8S.md`](../../../infra/k8s/K8S.md), [`INFRA-K8S-SCRIPTS-SECRET-GENERATORS.md`](../../../infra/k8s/scripts/secret-generators/INFRA-K8S-SCRIPTS-SECRET-GENERATORS.md). If you use **Boilerplate** to render into a GitOps checkout (`configMapGenerator`, `make alpha_env_render`, etc.), follow [K8S-ENV-RENDER.md](https://github.com/podverse/boilerplate/blob/develop/docs/development/K8S-ENV-RENDER.md).
 
 ### 6. Local kustomize compile (GitOps overlays)
 
@@ -266,7 +266,7 @@ curl -sI https://api.example.com/api/v2/
 
 - [PUBLISH](../../operations/PUBLISH.md)
 - [ALPHA-DEPLOYMENT](../../operations/ALPHA-DEPLOYMENT.md) (CI, tags, local/server alpha; pairs with this guide for remote GitOps)
-- [infra/k8s/README](../../../infra/k8s/README.md)
+- [infra/k8s/README](../../../infra/k8s/INFRA-K8S.md)
 
 ## Documentation guardrails (must pass)
 

@@ -20,7 +20,7 @@
 
 ## Technologies
 
-- Node.js 22, TypeScript (strict), npm workspaces
+- Node.js 24, TypeScript (strict), npm workspaces
 - Next.js 15, Express 5, PostgreSQL, TypeORM
 
 ## App Descriptions
