@@ -55,7 +55,7 @@
     "@podverse/orm": "*",
     "@podverse/parser": "*",
     "@podverse/worker-commands": "*",
-    "amqplib": "^0.10.9",
+    "amqplib": "^1.0.3",
     "axios": "^1.13.6",
     "ioredis": "^5.10.0",
     "pg": "^8.20.0",

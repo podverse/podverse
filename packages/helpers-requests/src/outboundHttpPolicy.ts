@@ -32,26 +32,13 @@ function isIpv6(addr: Address.IPv4 | Address.IPv6): addr is Address.IPv6 {
   return addr.kind() === 'ipv6';
 }
 
+/** Block all non–globally-routable unicast ranges (ipaddr.js v2 adds more named special ranges; allow only unicast). */
 function isBlockedParsedIp(addr: Address.IPv4 | Address.IPv6): boolean {
-  if (isIpv6(addr)) {
-    if (addr.isIPv4MappedAddress()) {
-      return isBlockedParsedIp(addr.toIPv4Address());
-    }
+  if (isIpv6(addr) && addr.isIPv4MappedAddress()) {
+    return isBlockedParsedIp(addr.toIPv4Address());
   }
 
-  const range = addr.range();
-
-  return (
-    range === 'loopback' ||
-    range === 'private' ||
-    range === 'linkLocal' ||
-    range === 'uniqueLocal' ||
-    range === 'carrierGradeNat' ||
-    range === 'broadcast' ||
-    range === 'reserved' ||
-    range === 'unspecified' ||
-    range === 'multicast'
-  );
+  return addr.range() !== 'unicast';
 }
 
 export function assertIpLiteralAllowed(ipString: string): void {
