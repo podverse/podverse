@@ -16,7 +16,7 @@ spec:
         spec:
           containers:
             - name: psql
-              image: postgres
+              image: postgres:18.3
               command:
                 - "sh"
                 - "-c"

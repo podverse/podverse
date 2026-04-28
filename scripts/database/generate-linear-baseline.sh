@@ -52,7 +52,7 @@ docker run -d --name "$CONTAINER_NAME" \
   -e "POSTGRES_USER=$DB_APP_ADMIN_USER" \
   -e "POSTGRES_PASSWORD=$DB_APP_ADMIN_PASSWORD" \
   -e "POSTGRES_DB=$DB_APP_NAME" \
-  postgres:18.1
+  postgres:18.3
 
 for _ in $(seq 1 60); do
   if docker exec "$CONTAINER_NAME" pg_isready -U "$DB_APP_ADMIN_USER" -d "$DB_APP_NAME" -h 127.0.0.1 -p 5432 >/dev/null 2>&1; then
