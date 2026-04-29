@@ -98,8 +98,8 @@ spec:
             - name: db-data
               mountPath: /var/lib/postgresql
 
-            # Init order: 0001 app users, 0002 management users/DB, 0003 generated
-            # schema snapshot, 0004 seed linear_migration_history (checksums) so ops migration jobs skip.
+            # Init order: 0001 app users, 0002 management users/DB, 0003 shell loads per-DB
+            # baselines as each DB owner, 0004 seed linear_migration_history (checksums) so ops migration jobs skip.
             # 1. App DB users
             - name: app-db-init-scripts
               mountPath: /docker-entrypoint-initdb.d/0001_create_app_db_users.sh
@@ -110,10 +110,16 @@ spec:
               mountPath: /docker-entrypoint-initdb.d/0002_create_management_db_users.sh
               subPath: 0002_create_management_db_users.sh
 
-            # 3. Full schema + linear_migration_history table (generated; do not hand-edit the source file)
+            # 3. Apply app then management schema gzips as DB_APP_ADMIN / DB_MANAGEMENT_ADMIN (see 0003_apply_linear_baselines.sh)
             - name: db-init-scripts
-              mountPath: /docker-entrypoint-initdb.d/0003_linear_baseline.sql.gz
-              subPath: 0003_linear_baseline.sql.gz
+              mountPath: /docker-entrypoint-initdb.d/0003_apply_linear_baselines.sh
+              subPath: 0003_apply_linear_baselines.sh
+            - name: db-init-scripts
+              mountPath: /linear-baseline/app.sql.gz
+              subPath: 0003a_app_linear_baseline.sql.gz
+            - name: db-init-scripts
+              mountPath: /linear-baseline/management.sql.gz
+              subPath: 0003b_management_linear_baseline.sql.gz
 
             # 4. Populate linear_migration_history rows so forward-only ops jobs skip DDL already in 0003
             - name: db-init-scripts

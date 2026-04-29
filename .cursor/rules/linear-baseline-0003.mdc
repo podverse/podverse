@@ -1,5 +1,5 @@
 ---
-description: Generated DB bootstrap 0003/0004 and linear ops migrations — do not hand-edit generated bootstrap SQL
+description: Generated DB bootstrap 0003a/0003b/0004 and linear ops migrations — do not hand-edit generated bootstrap SQL
 globs:
   - "infra/k8s/base/ops/source/database/linear-migrations/**"
   - "infra/k8s/base/db/source/bootstrap/**"
@@ -9,9 +9,9 @@ globs:
 alwaysApply: false
 ---
 
-# Linear baseline `0003_linear_baseline.sql.gz` and seed `0004_seed_linear_migration_history.sql`
+# Linear baseline `0003a`/`0003b` and seed `0004_seed_linear_migration_history.sql`
 
-- **Do not edit** `infra/k8s/base/db/source/bootstrap/0003_linear_baseline.sql.gz` by hand. It is produced by `scripts/database/generate-linear-baseline.sh` (or `make db_regen_linear_baseline`) from `infra/k8s/base/ops/source/database/linear-migrations` migrations, after bootstrap `0001` and `0002` shell steps, using synthetic credentials in `scripts/database/db.generate-baseline.env`.
+- **Do not edit** `infra/k8s/base/db/source/bootstrap/0003a_app_linear_baseline.sql.gz` or `0003b_management_linear_baseline.sql.gz` by hand. They are produced by `scripts/database/generate-linear-baseline.sh` (or `make db_regen_linear_baseline`) from `infra/k8s/base/ops/source/database/linear-migrations` migrations, after bootstrap `0001` and `0002` shell steps, using synthetic credentials in `scripts/database/db.generate-baseline.env`. **`0003_apply_linear_baselines.sh`** is maintained by hand and loads those archives as the app vs management DB owner at init.
 - **Do not edit** `infra/k8s/base/db/source/bootstrap/0004_seed_linear_migration_history.sql` by hand. It is produced by `scripts/database/generate-linear-migration-history-seed.sh` (also invoked by `make db_regen_linear_baseline`) and inserts `linear_migration_history` rows with checksums matching `run-linear-migrations.sh`.
-- After changing a SQL file under `infra/k8s/base/ops/source/database/linear-migrations/`, run `make db_regen_linear_baseline`, commit the updated `0003_` and `0004_` files, and have a maintainer run **`/test` on the PR** so GitHub Actions runs `verify-linear-baseline.sh`. There is no automatic commit of generated bootstrap SQL to `develop`.
-- Individual `NNNN_*.sql` migration files remain the **source of truth**; 0003 is a generated snapshot for `docker-entrypoint-initdb` and for CI drift checks; 0004 keeps migration jobs aligned with that snapshot on fresh databases.
+- After changing a SQL file under `infra/k8s/base/ops/source/database/linear-migrations/`, run `make db_regen_linear_baseline`, commit the updated `0003a_`, `0003b_`, and `0004_` files, and have a maintainer run **`/test` on the PR** so GitHub Actions runs `verify-linear-baseline.sh`. There is no automatic commit of generated bootstrap SQL to `develop`.
+- Individual `NNNN_*.sql` migration files remain the **source of truth**; `0003a`/`0003b` are generated snapshots for init and CI drift checks; `0004` keeps migration jobs aligned with that snapshot on fresh databases.

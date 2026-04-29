@@ -9,16 +9,17 @@ Podverse forward-only SQL migration files are canonical in:
 
 Bootstrap-only DB/user setup scripts live in:
 
-- `infra/k8s/base/db/source/bootstrap` (`0001_*.sh`, `0002_*.sh`, the generated `0003_linear_baseline.sql.gz`, and the generated `0004_seed_linear_migration_history.sql`)
+- `infra/k8s/base/db/source/bootstrap` (`0001_*.sh`, `0002_*.sh`, `0003_apply_linear_baselines.sh`, generated `0003a_*` / `0003b_*`, and generated `0004_seed_linear_migration_history.sql`)
 
-## Generated init snapshot `0003_linear_baseline.sql.gz`
+## Generated init snapshots `0003a_app_linear_baseline.sql.gz` and `0003b_management_linear_baseline.sql.gz`
 
-- After `0001` and `0002` (role and database creation), a **generated** `0003_linear_baseline.sql.gz` is applied in `docker-entrypoint-initdb` order (Postgres treats `.sql.gz` like `.sql`). Uncompressed content is the same as running the full linear app and management migration chains in a throwaway container, then `pg_dump` of each database, combined with `psql` `\connect` lines. It is **not** a hand-edited file.
+- After `0001` and `0002` (role and database creation), **`0003_apply_linear_baselines.sh`** runs in `docker-entrypoint-initdb` order. It loads **`0003a_*.sql.gz`** into the app database as **`DB_APP_ADMIN_USER`** and **`0003b_*.sql.gz`** into the management database as **`DB_MANAGEMENT_ADMIN_USER`** (archives are mounted under `/linear-baseline/`, not as raw `.sql.gz` in `docker-entrypoint-initdb.d`, so Postgres does not apply both as the bootstrap superuser).
+- Uncompressed content matches running the full linear app and management migration chains in a throwaway container, then **`pg_dump --schema-only --no-owner`** of each database (two files, no combined `\connect` artifact). These files are **not** hand-edited.
 - **Regenerate** after any change under `infra/k8s/base/ops/source/database/linear-migrations/` from the repo root:
 
-  `make db_regen_linear_baseline` (Docker for `0003`, then checksum seed for `0004`; uses synthetic credentials from `scripts/database/db.generate-baseline.env` only). Then `make db_verify_linear_baseline` and commit the updated `0003_` and `0004_` files.
+  `make db_regen_linear_baseline` (Docker for `0003a`/`0003b`, then checksum seed for `0004`; uses synthetic credentials from `scripts/database/db.generate-baseline.env` only). Then `make db_verify_linear_baseline` and commit the updated `0003a_`, `0003b_`, and `0004_` files.
 
-- **Do not** edit `0003` manually. There is no bot that auto-commits 0003. A maintainer **`/test` comment** on a pull request runs the same `verify` step; merge only after 0003 matches. The linear `NNNN_*.sql` files remain the **source of truth**; `0003` is a materialized snapshot for first-start init and drift checks.
+- **Do not** edit `0003a`/`0003b` manually. A maintainer **`/test` comment** on a pull request runs the same `verify` step; merge only after baselines match. The linear `NNNN_*.sql` files remain the **source of truth**; `0003a`/`0003b` are materialized snapshots for first-start init and drift checks.
 
 ## Migration history metadata
 
@@ -31,12 +32,12 @@ Both app and management schemas include `linear_migration_history` with:
 ## Generated init seed `0004_seed_linear_migration_history.sql`
 
 - After `0003` applies the materialized schema (including empty `linear_migration_history`), **`0004` inserts one row per `NNNN_*.sql` file** with a SHA-256 checksum matching `run-linear-migrations.sh`, so forward-only ops jobs **skip** duplicate DDL on fresh clusters.
-- **Regenerate** when any file under `linear-migrations/app` or `linear-migrations/management` changes: `make db_regen_linear_baseline` (runs `scripts/database/generate-linear-migration-history-seed.sh` after rebuilding `0003`). Commit both generated files; CI verifies them via `verify-linear-baseline.sh`.
+- **Regenerate** when any file under `linear-migrations/app` or `linear-migrations/management` changes: `make db_regen_linear_baseline` (runs `scripts/database/generate-linear-migration-history-seed.sh` after rebuilding `0003a`/`0003b`). Commit generated files; CI verifies them via `verify-linear-baseline.sh`.
 - **Do not** edit `0004` manually.
 
 ## Operating model
 
-- First deploy on a brand-new DB runs init scripts in order (`0001` → `0002` → `0003` → `0004`), then (if needed) migration jobs for app and management; with `0003` + `0004` in place, migration jobs should find all files already applied and **skip** them.
+- First deploy on a brand-new DB runs init scripts in order (`0001` → `0002` → `0003_apply` + archives → `0004`), then (if needed) migration jobs for app and management; with baselines + `0004` in place, migration jobs should find all files already applied and **skip** them.
 - Subsequent deploys rerun the same jobs; already-applied migrations are skipped via checksum-tracked history.
 - **PVCs created before `0004` existed:** `docker-entrypoint-initdb.d` does not re-run on existing data directories. Databases that already have baseline schema but empty or partial `linear_migration_history` need a **one-time** fix (run the current `0004` SQL against each DB with admin credentials, or replace the volume / restore from a dump)—otherwise ops migration jobs may still try to re-apply early migrations.
 - There is no existing-database baseline onboarding flow in this model.

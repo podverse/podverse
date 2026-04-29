@@ -2,7 +2,7 @@
 
 .PHONY: validate validate_docker db_verify_linear_baseline db_regen_linear_baseline
 
-# Regenerate infra/.../0003_linear_baseline.sql.gz (Docker + gzip) and 0004_seed_linear_migration_history.sql (checksums only).
+# Regenerate infra/.../0003a_app + 0003b_management linear baselines (Docker + gzip) and 0004 seed (checksums).
 # Run after changes under infra/k8s/base/ops/source/database/linear-migrations/; then commit both files.
 db_regen_linear_baseline:
 	@bash scripts/database/generate-linear-baseline.sh
