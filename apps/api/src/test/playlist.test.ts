@@ -10,6 +10,7 @@ import {
   getBaseApiUrl,
   startTestApp,
   stopTestApp,
+  TEST_USER_ACCOUNT_ID_TEXT,
   withMutedExpectedErrorLogs,
 } from './helpers/index.js';
 
@@ -148,7 +149,7 @@ const {
   })),
   getAccountMock: vi.fn(async () => ({
     id: TEST_USER_ID,
-    id_text: 'playlist-test-user',
+    id_text: TEST_USER_ACCOUNT_ID_TEXT,
     verified: true,
     account_credentials: { email: TEST_EMAIL },
     account_membership_status: {
@@ -317,6 +318,7 @@ describe('playlist routes', () => {
     it('returns 403 when membership is expired', async () => {
       getAccountMock.mockResolvedValueOnce({
         id: TEST_USER_ID,
+        id_text: TEST_USER_ACCOUNT_ID_TEXT,
         account_credentials: { email: TEST_EMAIL },
         account_membership_status: { membership_expires_at: new Date(0) },
       });
@@ -375,6 +377,7 @@ describe('playlist routes', () => {
     it('returns 403 when membership is expired', async () => {
       getAccountMock.mockResolvedValueOnce({
         id: TEST_USER_ID,
+        id_text: TEST_USER_ACCOUNT_ID_TEXT,
         account_credentials: { email: TEST_EMAIL },
         account_membership_status: { membership_expires_at: new Date(0) },
       });
@@ -470,7 +473,7 @@ describe('playlist routes', () => {
 
       expect(res.status).toBe(200);
       expect(playlistGetOnePrivateMock).toHaveBeenCalledWith(
-        'playlist-test-user',
+        TEST_USER_ACCOUNT_ID_TEXT,
         PLAYLIST_ID_TEXT
       );
     });
@@ -508,6 +511,7 @@ describe('playlist routes', () => {
     it('GET /private/top returns 200 with auth', async () => {
       getAccountMock.mockResolvedValueOnce({
         id: TEST_USER_ID,
+        id_text: TEST_USER_ACCOUNT_ID_TEXT,
         account_credentials: { email: TEST_EMAIL },
         account_membership_status: {
           membership_expires_at: new Date(Date.now() + 86400000 * 365),
@@ -532,6 +536,7 @@ describe('playlist routes', () => {
     it('GET /private/recent returns 200 with auth', async () => {
       getAccountMock.mockResolvedValueOnce({
         id: TEST_USER_ID,
+        id_text: TEST_USER_ACCOUNT_ID_TEXT,
         account_credentials: { email: TEST_EMAIL },
         account_membership_status: {
           membership_expires_at: new Date(Date.now() + 86400000 * 365),
@@ -553,6 +558,7 @@ describe('playlist routes', () => {
     it('GET /private/likes returns 200 with auth', async () => {
       getAccountMock.mockResolvedValueOnce({
         id: TEST_USER_ID,
+        id_text: TEST_USER_ACCOUNT_ID_TEXT,
         account_credentials: { email: TEST_EMAIL },
         account_membership_status: {
           membership_expires_at: new Date(Date.now() + 86400000 * 365),
@@ -569,6 +575,7 @@ describe('playlist routes', () => {
     it('GET /private/likes?include_resources=0 calls getAllLikesPrivate with false', async () => {
       getAccountMock.mockResolvedValueOnce({
         id: TEST_USER_ID,
+        id_text: TEST_USER_ACCOUNT_ID_TEXT,
         account_credentials: { email: TEST_EMAIL },
         account_membership_status: {
           membership_expires_at: new Date(Date.now() + 86400000 * 365),
@@ -657,6 +664,7 @@ describe('playlist routes', () => {
     it('GET /private/followed/top returns 200 with auth', async () => {
       getAccountMock.mockResolvedValueOnce({
         id: TEST_USER_ID,
+        id_text: TEST_USER_ACCOUNT_ID_TEXT,
         account_credentials: { email: TEST_EMAIL },
         account_membership_status: {
           membership_expires_at: new Date(Date.now() + 86400000 * 365),

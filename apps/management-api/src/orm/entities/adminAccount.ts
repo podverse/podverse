@@ -28,7 +28,7 @@ export class AdminAccount {
   @JoinColumn({ name: 'admin_account_role_id' })
   admin_account_role!: AdminAccountRole;
 
-  @Column()
+  @Column({ type: 'integer' })
   admin_account_role_id!: number;
 
   @CreateDateColumn({ type: 'timestamp', default: () => 'NOW()' })

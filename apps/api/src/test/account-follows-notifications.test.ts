@@ -9,6 +9,7 @@ import {
   getBaseApiUrl,
   startTestApp,
   stopTestApp,
+  TEST_USER_ACCOUNT_ID_TEXT,
   withMutedExpectedErrorLogs,
 } from './helpers/index.js';
 
@@ -58,6 +59,7 @@ const {
   })),
   getAccountMock: vi.fn(async () => ({
     id: TEST_USER_ID,
+    id_text: TEST_USER_ACCOUNT_ID_TEXT,
     account_credentials: { email: TEST_EMAIL },
     account_membership_status: {
       membership_expires_at: new Date(Date.now() + 86400000 * 365),
@@ -515,6 +517,7 @@ describe('account follows and notification routes', () => {
     it('returns 403 when auth is valid but membership is expired', async () => {
       getAccountMock.mockResolvedValueOnce({
         id: TEST_USER_ID,
+        id_text: TEST_USER_ACCOUNT_ID_TEXT,
         account_credentials: { email: TEST_EMAIL },
         account_membership_status: {
           membership_expires_at: new Date(Date.now() - 86400000),
@@ -589,6 +592,7 @@ describe('account follows and notification routes', () => {
     it('returns 200 with subscribed accounts sorted A-Z', async () => {
       getAccountMock.mockResolvedValueOnce({
         id: TEST_USER_ID,
+        id_text: TEST_USER_ACCOUNT_ID_TEXT,
         account_credentials: { email: TEST_EMAIL },
         account_membership_status: {
           membership_expires_at: new Date(Date.now() + 86400000 * 365),
@@ -616,6 +620,7 @@ describe('account follows and notification routes', () => {
     it('returns 200 with recently subscribed accounts', async () => {
       getAccountMock.mockResolvedValueOnce({
         id: TEST_USER_ID,
+        id_text: TEST_USER_ACCOUNT_ID_TEXT,
         account_credentials: { email: TEST_EMAIL },
         account_membership_status: {
           membership_expires_at: new Date(Date.now() + 86400000 * 365),

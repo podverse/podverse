@@ -211,12 +211,10 @@ const verifyTokenAndMembership = (
     config.auth.jwtSecret,
     async (err: jwt.VerifyErrors | null, decoded: unknown): Promise<void> => {
       if (err) {
-        console.error('[verifyTokenAndMembership] JWT verification error:', err);
         res.status(401).json({ message: 'Unauthorized' });
         return;
       }
       if (!decoded) {
-        console.error('[verifyTokenAndMembership] No decoded JWT payload');
         res.status(401).json({ message: 'Unauthorized' });
         return;
       }

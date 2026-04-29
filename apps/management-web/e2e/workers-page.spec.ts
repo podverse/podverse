@@ -6,6 +6,8 @@ import { expect, test } from '@playwright/test';
  */
 test.describe('Management-web workers page', () => {
   test('signed-in superuser sees worker command catalog', async ({ page }) => {
+    test.setTimeout(30_000);
+
     await page.goto('/');
 
     await page.locator('#email').fill('e2e-superadmin@example.com');
@@ -18,6 +20,11 @@ test.describe('Management-web workers page', () => {
 
     const title = page.getByRole('heading', { name: 'Workers', level: 1 });
     await expect(title).toBeVisible();
+
+    // Commands load async and sit inside collapsible <details>; expand the MQ category (en-US label).
+    const mqCategorySummary = page.locator('summary').filter({ hasText: /^Message queue$/ });
+    await expect(mqCategorySummary).toBeVisible({ timeout: 15_000 });
+    await mqCategorySummary.click();
 
     const mqRss = page.getByText('mqRSSAdd', { exact: true });
     await expect(mqRss.first()).toBeVisible();

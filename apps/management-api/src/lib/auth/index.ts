@@ -195,14 +195,12 @@ const verifyToken = (req: Request, res: Response, next: NextFunction, token: str
     config.auth.jwtSecret,
     async (err: jwt.VerifyErrors | null, decoded: unknown) => {
       if (err) {
-        console.error('[verifyToken] JWT verification error:', err);
         if (!res.headersSent) {
           res.status(401).json({ message: 'Unauthorized' });
         }
         return;
       }
       if (!decoded) {
-        console.error('[verifyToken] No decoded JWT payload');
         if (!res.headersSent) {
           res.status(401).json({ message: 'Unauthorized' });
         }

@@ -4,7 +4,13 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vites
 
 import type { ORMContext } from '@podverse/orm';
 
-import { authHeaders, getBaseApiUrl, startTestApp, stopTestApp } from './helpers/index.js';
+import {
+  authHeaders,
+  getBaseApiUrl,
+  startTestApp,
+  stopTestApp,
+  TEST_USER_ACCOUNT_ID_TEXT,
+} from './helpers/index.js';
 
 const TEST_EMAIL = 'queue-test@example.com';
 const TEST_USER_ID = 1;
@@ -96,6 +102,7 @@ const {
   qrRemoveSbMock: vi.fn(async () => {}),
   getAccountMock: vi.fn(async () => ({
     id: TEST_USER_ID,
+    id_text: TEST_USER_ACCOUNT_ID_TEXT,
     account_credentials: { email: TEST_EMAIL },
     account_membership_status: {
       membership_expires_at: new Date(Date.now() + 86400000 * 365),
@@ -190,12 +197,18 @@ describe('queue routes', () => {
     await stopTestApp(server, ormContext);
   });
 
+  /** Clears mockResolvedValueOnce queues and restores the hoisted default AccountService#get impl. */
+  beforeEach(() => {
+    getAccountMock.mockReset();
+  });
+
   const auth = () => authHeaders(TEST_USER_ID);
 
   describe('read endpoints', () => {
     it('GET /all-for-account/private returns 200', async () => {
       getAccountMock.mockResolvedValueOnce({
         id: TEST_USER_ID,
+        id_text: TEST_USER_ACCOUNT_ID_TEXT,
         account_credentials: { email: TEST_EMAIL },
         account_membership_status: {
           membership_expires_at: new Date(Date.now() + 86400000 * 365),
@@ -214,6 +227,7 @@ describe('queue routes', () => {
     it('GET /resources/all-by-account-abridged returns 200', async () => {
       getAccountMock.mockResolvedValueOnce({
         id: TEST_USER_ID,
+        id_text: TEST_USER_ACCOUNT_ID_TEXT,
         account_credentials: { email: TEST_EMAIL },
         account_membership_status: {
           membership_expires_at: new Date(Date.now() + 86400000 * 365),
@@ -241,6 +255,7 @@ describe('queue routes', () => {
       it('GET /:id/resources/now-playing returns 200', async () => {
         getAccountMock.mockResolvedValueOnce({
           id: TEST_USER_ID,
+          id_text: TEST_USER_ACCOUNT_ID_TEXT,
           account_credentials: { email: TEST_EMAIL },
           account_membership_status: {
             membership_expires_at: new Date(Date.now() + 86400000 * 365),
@@ -260,6 +275,7 @@ describe('queue routes', () => {
       it('GET /:id/resources/upcoming-all returns 200', async () => {
         getAccountMock.mockResolvedValueOnce({
           id: TEST_USER_ID,
+          id_text: TEST_USER_ACCOUNT_ID_TEXT,
           account_credentials: { email: TEST_EMAIL },
           account_membership_status: {
             membership_expires_at: new Date(Date.now() + 86400000 * 365),
@@ -279,6 +295,7 @@ describe('queue routes', () => {
       it('GET /:id/resources/history-paginated returns 200 with meta', async () => {
         getAccountMock.mockResolvedValueOnce({
           id: TEST_USER_ID,
+          id_text: TEST_USER_ACCOUNT_ID_TEXT,
           account_credentials: { email: TEST_EMAIL },
           account_membership_status: {
             membership_expires_at: new Date(Date.now() + 86400000 * 365),
@@ -353,14 +370,6 @@ describe('queue routes', () => {
     const url = (suffix: string) => `${queueBase}/${QUEUE_ID_TEXT}/clip/${CLIP_ID_TEXT}${suffix}`;
 
     it('POST now-playing, next, last, between, history and DELETE return expected statuses', async () => {
-      getAccountMock.mockImplementation(async () => ({
-        id: TEST_USER_ID,
-        account_credentials: { email: TEST_EMAIL },
-        account_membership_status: {
-          membership_expires_at: new Date(Date.now() + 86400000 * 365),
-        },
-      }));
-
       let res = await request(app).post(url('/now-playing')).set(auth()).send(nowPlayingBody);
       expect(res.status).toBe(201);
       res = await request(app).post(url('/next')).set(auth());
@@ -378,6 +387,7 @@ describe('queue routes', () => {
     it('returns 403 when not the owner', async () => {
       getAccountMock.mockResolvedValueOnce({
         id: TEST_USER_ID,
+        id_text: TEST_USER_ACCOUNT_ID_TEXT,
         account_credentials: { email: TEST_EMAIL },
         account_membership_status: {
           membership_expires_at: new Date(Date.now() + 86400000 * 365),
@@ -404,14 +414,6 @@ describe('queue routes', () => {
     const url = (suffix: string) => `${queueBase}/${QUEUE_ID_TEXT}/item/${ITEM_ID_TEXT}${suffix}`;
 
     it('POST now-playing, next, last, between, history and DELETE return expected statuses', async () => {
-      getAccountMock.mockImplementation(async () => ({
-        id: TEST_USER_ID,
-        account_credentials: { email: TEST_EMAIL },
-        account_membership_status: {
-          membership_expires_at: new Date(Date.now() + 86400000 * 365),
-        },
-      }));
-
       let res = await request(app).post(url('/now-playing')).set(auth()).send(nowPlayingBody);
       expect(res.status).toBe(201);
       res = await request(app).post(url('/next')).set(auth());
@@ -429,6 +431,7 @@ describe('queue routes', () => {
     it('returns 403 when not the owner (next)', async () => {
       getAccountMock.mockResolvedValueOnce({
         id: TEST_USER_ID,
+        id_text: TEST_USER_ACCOUNT_ID_TEXT,
         account_credentials: { email: TEST_EMAIL },
         account_membership_status: {
           membership_expires_at: new Date(Date.now() + 86400000 * 365),
@@ -455,14 +458,6 @@ describe('queue routes', () => {
     });
 
     it('POST now-playing and other positions return 201; DELETE remove returns 204', async () => {
-      getAccountMock.mockImplementation(async () => ({
-        id: TEST_USER_ID,
-        account_credentials: { email: TEST_EMAIL },
-        account_membership_status: {
-          membership_expires_at: new Date(Date.now() + 86400000 * 365),
-        },
-      }));
-
       let res = await request(app)
         .post(`${queueBase}/${QUEUE_ID_TEXT}/item-add-by-rss/now-playing`)
         .set(auth())
@@ -504,6 +499,7 @@ describe('queue routes', () => {
     it('returns 403 when not the owner (next)', async () => {
       getAccountMock.mockResolvedValueOnce({
         id: TEST_USER_ID,
+        id_text: TEST_USER_ACCOUNT_ID_TEXT,
         account_credentials: { email: TEST_EMAIL },
         account_membership_status: {
           membership_expires_at: new Date(Date.now() + 86400000 * 365),
@@ -535,14 +531,6 @@ describe('queue routes', () => {
     const base = () => `${queueBase}/${QUEUE_ID_TEXT}/item-soundbite/${SOUNDBITE_ID_TEXT}`;
 
     it('POST now-playing, next, last, between, history and DELETE return expected statuses', async () => {
-      getAccountMock.mockImplementation(async () => ({
-        id: TEST_USER_ID,
-        account_credentials: { email: TEST_EMAIL },
-        account_membership_status: {
-          membership_expires_at: new Date(Date.now() + 86400000 * 365),
-        },
-      }));
-
       let res = await request(app).post(`${base()}/now-playing`).set(auth()).send(nowPlayingBody);
       expect(res.status).toBe(201);
       res = await request(app).post(`${base()}/next`).set(auth());
@@ -560,6 +548,7 @@ describe('queue routes', () => {
     it('returns 403 when not the owner (next)', async () => {
       getAccountMock.mockResolvedValueOnce({
         id: TEST_USER_ID,
+        id_text: TEST_USER_ACCOUNT_ID_TEXT,
         account_credentials: { email: TEST_EMAIL },
         account_membership_status: {
           membership_expires_at: new Date(Date.now() + 86400000 * 365),

@@ -255,6 +255,7 @@ describe('account CRUD and email routes', () => {
     it('returns 403 with expired membership', async () => {
       getMock.mockResolvedValueOnce({
         id: TEST_USER_ID,
+        id_text: TEST_USER_ACCOUNT_ID_TEXT,
         account_credentials: { email: TEST_EMAIL },
         account_membership_status: {
           membership_expires_at: new Date(Date.now() - 86400000),
@@ -340,6 +341,7 @@ describe('account CRUD and email routes', () => {
     it('returns 200 with auth + active membership', async () => {
       getMock.mockResolvedValueOnce({
         id: TEST_USER_ID,
+        id_text: TEST_USER_ACCOUNT_ID_TEXT,
         account_credentials: { email: TEST_EMAIL },
         account_membership_status: {
           membership_expires_at: new Date(Date.now() + 86400000 * 365),
@@ -366,6 +368,7 @@ describe('account CRUD and email routes', () => {
     it('returns 403 with expired membership', async () => {
       getMock.mockResolvedValueOnce({
         id: TEST_USER_ID,
+        id_text: TEST_USER_ACCOUNT_ID_TEXT,
         account_credentials: { email: TEST_EMAIL },
         account_membership_status: {
           membership_expires_at: new Date(Date.now() - 86400000),

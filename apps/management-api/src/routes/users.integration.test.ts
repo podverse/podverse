@@ -2,28 +2,117 @@ import { app } from '@mgmt-api/app.js';
 import { config } from '@mgmt-api/config/index.js';
 import jwt from 'jsonwebtoken';
 import request from 'supertest';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
+
+import * as PodverseOrm from '@podverse/orm';
 
 const JWT_SECRET = process.env.AUTH_JWT_SECRET ?? '';
 const usersBase = `${config.api.prefix}${config.api.version}/users`;
 
-const { readQueryMock, readWriteQueryMock, hashPasswordMock, generateRandomIdTextMock } =
-  vi.hoisted(() => ({
+/** Aligns with JWT id_text in superuserAuthHeaders / adminAuthHeaders (same pattern as admins.integration.test.ts). */
+type MockAdmin = {
+  id: number;
+  id_text: string;
+  admin_account_role_id: number;
+  admin_account_role: { role: string };
+  admin_account_credentials: { email: string } | null;
+  permissions: {
+    feedsCrud: number;
+    feedFlagStatusesCrud: number;
+    feedFlagStatusReasonsCrud: number;
+    adminsCrud: number;
+    statsCrud: number;
+  } | null;
+  created_at: Date;
+};
+
+const {
+  readQueryMock,
+  readWriteQueryMock,
+  hashPasswordMock,
+  generateRandomIdTextMock,
+  getWithRoleAndPermissionsMock,
+} = vi.hoisted(() => {
+  const superuserAdmin: MockAdmin = {
+    id: 1,
+    id_text: 'pvMgtSu001',
+    admin_account_role_id: 1,
+    admin_account_role: { role: 'superuser' },
+    admin_account_credentials: { email: 'super@example.com' },
+    permissions: {
+      feedsCrud: 15,
+      feedFlagStatusesCrud: 15,
+      feedFlagStatusReasonsCrud: 15,
+      adminsCrud: 15,
+      statsCrud: 15,
+    },
+    created_at: new Date('2020-01-01T00:00:00.000Z'),
+  };
+
+  const adminNonSuperuser: MockAdmin = {
+    id: 2,
+    id_text: 'pvMgtAd002',
+    admin_account_role_id: 2,
+    admin_account_role: { role: 'admin' },
+    admin_account_credentials: { email: 'reader@example.com' },
+    permissions: {
+      feedsCrud: 0,
+      feedFlagStatusesCrud: 0,
+      feedFlagStatusReasonsCrud: 0,
+      adminsCrud: 2,
+      statsCrud: 0,
+    },
+    created_at: new Date('2020-01-01T00:00:00.000Z'),
+  };
+
+  return {
     readQueryMock: vi.fn(),
     readWriteQueryMock: vi.fn(),
     hashPasswordMock: vi.fn<Promise<string>, [string]>(async (p: string) => `hashed_${p}`),
     generateRandomIdTextMock: vi.fn<string, []>(() => 'abc123XYZ'),
-  }));
+    getWithRoleAndPermissionsMock: vi.fn<Promise<MockAdmin | null>, [number]>(
+      async (id: number) => {
+        if (id === 1) return superuserAdmin;
+        if (id === 2) return adminNonSuperuser;
+        return null;
+      }
+    ),
+  };
+});
 
 vi.mock('@mgmt-api/orm/db/appDb.js', () => ({
   AppDbDataSourceRead: { query: readQueryMock },
   AppDbDataSourceReadWrite: { query: readWriteQueryMock },
 }));
 
-vi.mock('@podverse/orm', () => ({
-  hashPassword: (p: string) => hashPasswordMock(p),
-  generateRandomIdText: () => generateRandomIdTextMock(),
-}));
+vi.mock('@mgmt-api/orm/services/adminAccount.js', () => {
+  class AdminAccountService {
+    async getWithRoleAndPermissions(id: number) {
+      return getWithRoleAndPermissionsMock(id);
+    }
+  }
+  return { AdminAccountService };
+});
+
+vi.mock('@mgmt-api/lib/database/auditLog.js', () => {
+  class AuditLogService {
+    async record() {
+      return;
+    }
+  }
+  return { AuditLogService };
+});
+
+// Spy real @podverse/orm helpers so routes get deterministic stubs without replacing the whole package.
+let hashPasswordSpy: ReturnType<typeof vi.spyOn<typeof PodverseOrm, 'hashPassword'>>;
+let generateRandomIdTextSpy: ReturnType<
+  typeof vi.spyOn<typeof PodverseOrm, 'generateRandomIdText'>
+>;
+
+beforeAll(() => {
+  hashPasswordSpy = vi.spyOn(PodverseOrm, 'hashPassword');
+  generateRandomIdTextSpy = vi.spyOn(PodverseOrm, 'generateRandomIdText');
+});
 
 const superuserAuthHeaders = (): { Authorization: string } => ({
   Authorization: `Bearer ${jwt.sign({ id: 1, id_text: 'pvMgtSu001' }, JWT_SECRET, { expiresIn: '1h' })}`,
@@ -38,7 +127,15 @@ const _unauthenticatedHeaders = (): { Authorization: string } => ({
 });
 
 beforeEach(() => {
-  vi.clearAllMocks();
+  // mockClear does not drain mockResolvedValueOnce queues; reset read mocks so tests don't bleed SQL stubs.
+  readQueryMock.mockReset();
+  readWriteQueryMock.mockReset();
+  hashPasswordMock.mockReset();
+  hashPasswordMock.mockImplementation(async (p: string) => `hashed_${p}`);
+  generateRandomIdTextMock.mockReset();
+  generateRandomIdTextMock.mockImplementation(() => 'abc123XYZ');
+  hashPasswordSpy.mockImplementation((p: string) => hashPasswordMock(p));
+  generateRandomIdTextSpy.mockImplementation(() => generateRandomIdTextMock());
 });
 
 describe('GET /users', () => {

@@ -87,7 +87,7 @@ const testEnv: Record<string, string> = {
   // Premium / signup
   PREMIUM_COST_MONTHLY: '5',
   PREMIUM_COST_ANNUALLY: '50',
-  ACCOUNT_SIGNUP_MODE: 'admin_only_email',
+  ACCOUNT_SIGNUP_MODE: 'user_signup_email',
   FREE_TRIAL_EXPIRATION: String(MIN_TEST_EXPIRATION),
   // V4V / Metaboost signing (stubs)
   METABOOST_SIGNING_KEY_PEM: '',

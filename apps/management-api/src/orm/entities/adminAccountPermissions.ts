@@ -19,7 +19,7 @@ export class AdminAccountPermissions {
   @JoinColumn({ name: 'admin_account_id' })
   admin_account!: AdminAccount;
 
-  @Column()
+  @Column({ type: 'integer' })
   admin_account_id!: number;
 
   @Column({ name: 'feeds_crud', type: 'integer', default: 0 })

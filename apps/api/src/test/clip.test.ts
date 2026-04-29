@@ -4,7 +4,13 @@ import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 
 import type { ORMContext } from '@podverse/orm';
 
-import { authHeaders, getBaseApiUrl, startTestApp, stopTestApp } from './helpers/index.js';
+import {
+  authHeaders,
+  getBaseApiUrl,
+  startTestApp,
+  stopTestApp,
+  TEST_USER_ACCOUNT_ID_TEXT,
+} from './helpers/index.js';
 
 const TEST_EMAIL = 'clip-test@example.com';
 const TEST_USER_ID = 1;
@@ -54,6 +60,7 @@ const {
   itemGetByIdTextMock: vi.fn(async () => ({ id: 1, item_id_text: ITEM_ID_TEXT })),
   getAccountMock: vi.fn(async () => ({
     id: TEST_USER_ID,
+    id_text: TEST_USER_ACCOUNT_ID_TEXT,
     account_credentials: { email: TEST_EMAIL },
     account_membership_status: {
       membership_expires_at: new Date(Date.now() + 86400000 * 365),

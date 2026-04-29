@@ -105,6 +105,7 @@ describe('auth routes', () => {
     it('returns 200 and sets JWT cookie with valid credentials', async () => {
       getByEmailMock.mockResolvedValueOnce({
         id: TEST_USER_ID,
+        id_text: TEST_ACCOUNT_ID_TEXT,
         verified: true,
         account_credentials: { email: TEST_EMAIL, password: 'hashed-password' },
       });

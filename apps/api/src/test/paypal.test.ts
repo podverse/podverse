@@ -9,6 +9,7 @@ import {
   getBaseApiUrl,
   startTestApp,
   stopTestApp,
+  TEST_USER_ACCOUNT_ID_TEXT,
   withMutedExpectedErrorLogs,
 } from './helpers/index.js';
 
@@ -54,6 +55,7 @@ const {
     }
     return {
       id: TEST_USER_ID,
+      id_text: TEST_USER_ACCOUNT_ID_TEXT,
       account_credentials: { email: TEST_EMAIL },
       account_membership_status: {
         membership_expires_at: new Date(Date.now() + 86400000 * 365),
@@ -124,6 +126,7 @@ describe('account PayPal order routes', () => {
       }
       return {
         id: TEST_USER_ID,
+        id_text: TEST_USER_ACCOUNT_ID_TEXT,
         account_credentials: { email: TEST_EMAIL },
         account_membership_status: {
           membership_expires_at: future(),
@@ -151,6 +154,7 @@ describe('account PayPal order routes', () => {
     it('returns 200 with order when the service returns data', async () => {
       getAccountMock.mockResolvedValueOnce({
         id: TEST_USER_ID,
+        id_text: TEST_USER_ACCOUNT_ID_TEXT,
         account_credentials: { email: TEST_EMAIL },
         account_membership_status: { membership_expires_at: future() },
       });
@@ -167,6 +171,7 @@ describe('account PayPal order routes', () => {
     it('returns 404 when the order is missing', async () => {
       getAccountMock.mockResolvedValueOnce({
         id: TEST_USER_ID,
+        id_text: TEST_USER_ACCOUNT_ID_TEXT,
         account_credentials: { email: TEST_EMAIL },
         account_membership_status: { membership_expires_at: future() },
       });
@@ -178,6 +183,7 @@ describe('account PayPal order routes', () => {
     it('returns 500 when the service throws', async () => {
       getAccountMock.mockResolvedValueOnce({
         id: TEST_USER_ID,
+        id_text: TEST_USER_ACCOUNT_ID_TEXT,
         account_credentials: { email: TEST_EMAIL },
         account_membership_status: { membership_expires_at: future() },
       });
@@ -198,6 +204,7 @@ describe('account PayPal order routes', () => {
     it('returns 201 with created order when the service succeeds', async () => {
       getAccountMock.mockResolvedValue({
         id: TEST_USER_ID,
+        id_text: TEST_USER_ACCOUNT_ID_TEXT,
         account_credentials: { email: TEST_EMAIL },
         account_membership_status: { membership_expires_at: future() },
         account_membership: { id: 2 },
@@ -226,6 +233,7 @@ describe('account PayPal order routes', () => {
     it('returns 500 when create throws', async () => {
       getAccountMock.mockResolvedValue({
         id: TEST_USER_ID,
+        id_text: TEST_USER_ACCOUNT_ID_TEXT,
         account_credentials: { email: TEST_EMAIL },
         account_membership_status: { membership_expires_at: future() },
         account_membership: { id: 2 },
@@ -252,6 +260,7 @@ describe('account PayPal order routes', () => {
     it('returns 200 for v2.0 (capture) with valid capture state', async () => {
       getAccountMock.mockResolvedValueOnce({
         id: TEST_USER_ID,
+        id_text: TEST_USER_ACCOUNT_ID_TEXT,
         account_credentials: { email: TEST_EMAIL },
         account_membership_status: { membership_expires_at: future() },
       });
@@ -272,6 +281,7 @@ describe('account PayPal order routes', () => {
     it('returns 200 for v1.0 (payment) with valid order status', async () => {
       getAccountMock.mockResolvedValueOnce({
         id: TEST_USER_ID,
+        id_text: TEST_USER_ACCOUNT_ID_TEXT,
         account_credentials: { email: TEST_EMAIL },
         account_membership_status: { membership_expires_at: future() },
       });
@@ -290,6 +300,7 @@ describe('account PayPal order routes', () => {
     it('returns 500 when capture status is missing', async () => {
       getAccountMock.mockResolvedValueOnce({
         id: TEST_USER_ID,
+        id_text: TEST_USER_ACCOUNT_ID_TEXT,
         account_credentials: { email: TEST_EMAIL },
         account_membership_status: { membership_expires_at: future() },
       });
@@ -314,6 +325,7 @@ describe('account PayPal order routes', () => {
     it('returns 200 twice when completePayPalOrder is mocked idempotently (duplicate notification)', async () => {
       getAccountMock.mockResolvedValue({
         id: TEST_USER_ID,
+        id_text: TEST_USER_ACCOUNT_ID_TEXT,
         account_credentials: { email: TEST_EMAIL },
         account_membership_status: { membership_expires_at: future() },
       } as never);

@@ -5,7 +5,13 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vites
 import { LiveItemStatusEnum } from '@podverse/helpers';
 import type { ORMContext } from '@podverse/orm';
 
-import { authHeaders, getBaseApiUrl, startTestApp, stopTestApp } from './helpers/index.js';
+import {
+  authHeaders,
+  getBaseApiUrl,
+  startTestApp,
+  stopTestApp,
+  TEST_USER_ACCOUNT_ID_TEXT,
+} from './helpers/index.js';
 
 const TEST_EMAIL = 'ccir-test@example.com';
 const TEST_USER_ID = 1;
@@ -192,6 +198,7 @@ const {
     }
     return {
       id: TEST_USER_ID,
+      id_text: TEST_USER_ACCOUNT_ID_TEXT,
       account_credentials: { email: TEST_EMAIL },
       account_membership_status: {
         membership_expires_at: new Date(Date.now() + 86400000 * 365),
@@ -419,6 +426,7 @@ describe('category, channel, item, chapters, soundbites, transcripts, live, podr
     it('GET /channel/subscribed/recent returns 200 when authenticated', async () => {
       getAccountMock.mockResolvedValueOnce({
         id: TEST_USER_ID,
+        id_text: TEST_USER_ACCOUNT_ID_TEXT,
         account_credentials: { email: TEST_EMAIL },
         account_membership_status: {
           membership_expires_at: new Date(Date.now() + 86400000 * 365),
@@ -505,6 +513,7 @@ describe('category, channel, item, chapters, soundbites, transcripts, live, podr
     it('GET /item/subscribed/recent returns 200 when authenticated', async () => {
       getAccountMock.mockResolvedValueOnce({
         id: TEST_USER_ID,
+        id_text: TEST_USER_ACCOUNT_ID_TEXT,
         account_credentials: { email: TEST_EMAIL },
         account_membership_status: {
           membership_expires_at: new Date(Date.now() + 86400000 * 365),
@@ -629,6 +638,7 @@ describe('category, channel, item, chapters, soundbites, transcripts, live, podr
     it('GET /live-item/subscribed/recent returns 200 when authenticated', async () => {
       getAccountMock.mockResolvedValueOnce({
         id: TEST_USER_ID,
+        id_text: TEST_USER_ACCOUNT_ID_TEXT,
         account_credentials: { email: TEST_EMAIL },
         account_membership_status: {
           membership_expires_at: new Date(Date.now() + 86400000 * 365),

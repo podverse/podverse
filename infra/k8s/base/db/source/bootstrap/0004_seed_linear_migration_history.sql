@@ -29,7 +29,7 @@ ON CONFLICT (migration_filename) DO NOTHING;
 
 -- Management database
 INSERT INTO linear_migration_history (migration_filename, migration_checksum) VALUES
-  ('0000_init_helpers.sql', 'a7544b13f69c497c05f0e75f15042a21383efe5592512ff29b17bee0167e0a6b'),
+  ('0000_init_helpers.sql', '721296be6f17506b6d00eae6dcdfe3f3a6ecc768baf11aed6cfbbed115baa040'),
   ('0001_init_admin_accounts.sql', '2fa889c0997c511688a3ef59e95faf8f9ae8c82094663607e3c158bbb2ea2c49'),
   ('0002_admin_account_permissions.sql', '4a4b47174ebd5461806e7cc5283380211de6330ab50d8fe838ddacc622dd8ba8'),
   ('0003_database_audit_log.sql', '11463218c192200aa91ce78003dfda58f730eba9b87e63c2d1bd3ca36a8e90ea')

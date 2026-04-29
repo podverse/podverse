@@ -11,7 +11,7 @@ export class AdminAccountCredentials {
   @JoinColumn({ name: 'admin_account_id' })
   admin_account!: AdminAccount;
 
-  @Column()
+  @Column({ type: 'integer' })
   admin_account_id!: number;
 
   @Column({ type: 'varchar', unique: true, length: 255 })

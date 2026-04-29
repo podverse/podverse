@@ -290,8 +290,8 @@ describe('external services, feed, medium-value, membership, claim, metaboost, m
         expect(res.body.data).toMatchObject({
           costMonthly: 5,
           costAnnually: 50,
-          freeTrialExpiration: 30 * 24 * 60 * 60,
-          freeTrialDays: 30,
+          freeTrialExpiration: 86400,
+          freeTrialDays: 1,
         });
       } else {
         expect(res.status).toBe(400);
