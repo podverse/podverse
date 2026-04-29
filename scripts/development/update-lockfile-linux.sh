@@ -20,11 +20,14 @@ echo "Removing existing package-lock.json before Linux regeneration..."
 rm -f "$REPO_ROOT/package-lock.json"
 
 echo "Regenerating package-lock.json under Linux ($NODE_IMAGE)..."
+# Remove every node_modules tree (root and nested workspaces). Stale nested
+# node_modules can cause npm to emit incomplete lockfile stubs (e.g. missing
+# version on nested devDependencies) that break npm ci on other platforms.
 docker run --rm \
   --platform linux/amd64 \
   -v "$REPO_ROOT:/app" \
   -w /app \
   "$NODE_IMAGE" \
-  sh -c "rm -rf node_modules && npm install --include=optional"
+  sh -c "find . -name node_modules -type d -prune -exec rm -rf '{}' + && npm install --include=optional"
 
 echo "Done. package-lock.json is now Linux-canonical; commit it so CI uses it."

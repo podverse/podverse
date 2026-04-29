@@ -64,11 +64,23 @@ fi
 CURRENT_BRANCH=$(git branch --show-current)
 echo -e "${YELLOW}Bumping version to $VERSION on branch '$CURRENT_BRANCH'...${NC}"
 
+if ! command -v jq &>/dev/null; then
+  echo -e "${RED}Error: jq is required for workspace discovery (npm query .workspace).${NC}"
+  exit 1
+fi
+
+WORKSPACE_JSON=$(npm query .workspace)
+WORKSPACE_COUNT=$(echo "$WORKSPACE_JSON" | jq 'length')
+if [[ "${WORKSPACE_COUNT:-0}" -lt 1 ]]; then
+  echo -e "${RED}Error: npm query .workspace returned no workspaces. Use npm 8.16+ from the repo dev environment.${NC}"
+  exit 1
+fi
+WORKSPACES=$(echo "$WORKSPACE_JSON" | jq -r '.[].location')
+
 # Update root package.json
 npm version "$VERSION" --no-git-tag-version
 
 # Update all workspace packages
-WORKSPACES=$(npm query .workspace | jq -r '.[].location')
 for ws in $WORKSPACES; do
   echo "  Updating $ws..."
   cd "$REPO_ROOT/$ws"
