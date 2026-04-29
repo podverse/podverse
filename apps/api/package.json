@@ -1,6 +1,6 @@
 {
   "name": "@podverse/api",
-  "version": "5.4.19",
+  "version": "5.4.20",
   "type": "module",
   "description": "Data API, database migration scripts, and backend services for Podverse",
   "private": true,

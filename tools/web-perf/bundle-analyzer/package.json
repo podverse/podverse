@@ -1,6 +1,6 @@
 {
   "name": "podverse-bundle-analyzer",
-  "version": "5.4.19",
+  "version": "5.4.20",
   "description": "Bundle size analysis for Podverse web applications",
   "private": true,
   "type": "module",

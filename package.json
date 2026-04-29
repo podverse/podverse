@@ -1,6 +1,6 @@
 {
   "name": "podverse",
-  "version": "5.4.19",
+  "version": "5.4.20",
   "private": true,
   "description": "Podverse monorepo - podcast app infrastructure, modules, and applications",
   "repository": {
