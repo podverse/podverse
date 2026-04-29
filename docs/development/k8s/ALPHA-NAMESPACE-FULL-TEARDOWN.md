@@ -2,7 +2,22 @@
 
 This runbook is for fully tearing down the **podverse-alpha** namespace: every workload, volume claim, and Argo CD `Application` that targets it, on a Kubernetes cluster.
 
-Commands below assume **[fish](https://fishshell.com/)** 3.x (run **`fish`**, or paste into a fish session). It is intentionally command-driven (no helper script required) and focuses on avoiding deletion from the wrong cluster.
+## Scripted teardown (recommended)
+
+From the monorepo root, run the interactive **bash** helper (prompts for context, API server substring, pattern, and namespaces; gates; inventory; Argo `Application` deletes; namespace deletes; optional PV cleanup):
+
+```bash
+./scripts/k8s/alpha-namespace-full-teardown.sh
+```
+
+- **`--dry-run`** — identity gate + inventory only (no deletes).
+- **`-y` / `--yes`** — skip typed confirmations and yes/no prompts (still dangerous; default is interactive).
+
+Prerequisite: **`kubectl`** configured; optionally **`rg`** for faster filtered listings (`grep -F` is used otherwise).
+
+## Manual runbook (fish)
+
+Alternatively, use **[fish](https://fishshell.com/)** 3.x (run **`fish`**, or paste into a fish session). The sections below are intentionally command-driven for operators who prefer manual steps.
 
 ## Scope
 

@@ -195,7 +195,7 @@ export class DatabaseSetup {
 
   private async runLinearMigrations(): Promise<void> {
     const command =
-      'DB_HOST="127.0.0.1" DB_PORT="5111" DB_USER="postgres" DB_PASSWORD="mysecretpw" DB_NAME="postgres" bash scripts/database/run-linear-migrations.sh --database app';
+      'DB_HOST="127.0.0.1" DB_PORT="5111" DB_APP_ADMIN_USER="postgres" DB_APP_ADMIN_PASSWORD="mysecretpw" DB_APP_NAME="postgres" bash scripts/database/run-linear-migrations.sh --database app';
     await execAsync(command, {
       env: { ...process.env },
       maxBuffer: 10 * 1024 * 1024,

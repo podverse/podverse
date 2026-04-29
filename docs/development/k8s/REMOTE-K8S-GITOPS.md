@@ -125,11 +125,27 @@ Use **`./scripts/secret-generators/`** there (kept in sync with [Podverse `infra
    - `./scripts/secret-generators/create_metaboost_secret.sh`
    - `./scripts/secret-generators/create_workers_digital_ocean_secret.sh`
 
+4. **Cloudflare API token for cert-manager DNS01** (optional; when ACME uses Cloudflare-managed zones):
+
+   Create a Cloudflare API token with `Zone - DNS - Edit` and `Zone - Zone - Read`, scoped only to the
+   required zones. Generate the encrypted manifest:
+
+   ```fish
+   ./scripts/secret-generators/create_cloudflare_api_token_secret.sh
+   ```
+
+   Default encrypted file: **`secrets/cloudflare-api-token-secret.enc.yaml`**. Apply it with the
+   optional Cloudflare branches in **§4** (dry-run and apply); the manifest targets namespace
+   `cert-manager` with key `api-token`, not `$NAMESPACE`. Align ingress `ClusterIssuer` and DNS01 wiring
+   with **§5** below.
+
 ### 4. Validate secrets, then apply (cluster)
 
 **`$GITOPS_REPO_DIR`**. **Requires** the encrypted files from **Generate encrypted secrets** and working SOPS decrypt for that repo’s **`.sops.yaml`**.
 
 The GHCR pull secret (from the registry sub-step under **Generate encrypted secrets**) defaults to **`secrets/github-registry-secret.enc.yaml`** at repo root, same layout as the opaque `podverse-$ENV-*.enc.yaml` files. If that file is absent, the `github-registry` branch below is skipped.
+
+The Cloudflare DNS01 secret from **§3 step 4** defaults to **`secrets/cloudflare-api-token-secret.enc.yaml`** at repo root. The decrypted manifest sets **`metadata.namespace: cert-manager`** (do not pass `-n $NAMESPACE`). If that file is absent, the Cloudflare branches below are skipped. **`cert-manager`** must exist before server dry-run / apply (normally created when cert-manager is installed).
 
 **Server dry-run (no mutation):**
 
@@ -142,6 +158,9 @@ end
 if test -f secrets/github-registry-secret.enc.yaml
   sops -d secrets/github-registry-secret.enc.yaml | kubectl apply --dry-run=server -n $NAMESPACE -f -
 end
+if test -f secrets/cloudflare-api-token-secret.enc.yaml
+  sops -d secrets/cloudflare-api-token-secret.enc.yaml | kubectl apply --dry-run=server -f -
+end
 for f in secrets/podverse-$ENV-*.enc.yaml
   test -e "$f"; or continue
   sops -d "$f" | kubectl apply --dry-run=server -n $NAMESPACE -f -
@@ -153,6 +172,9 @@ end
 ```fish
 if test -f secrets/github-registry-secret.enc.yaml
   sops -d secrets/github-registry-secret.enc.yaml | kubectl apply -f -
+end
+if test -f secrets/cloudflare-api-token-secret.enc.yaml
+  sops -d secrets/cloudflare-api-token-secret.enc.yaml | kubectl apply -f -
 end
 for f in secrets/podverse-$ENV-*.enc.yaml
   test -e "$f"; or continue
@@ -170,7 +192,9 @@ In the Podverse monorepo, [`infra/k8s/alpha/`](../../../infra/k8s/alpha/) per-co
 2. **ConfigMap vs Secret:** put non-sensitive values in **ConfigMap** / `configMapGenerator` with `envs:` (small `source/*.env` files merged into base or alpha). Put passwords and API keys in **SOPS Secrets** from the [`create_*` generator reference](../../../infra/k8s/scripts/secret-generators/INFRA-K8S-SCRIPTS-SECRET-GENERATORS.md).
 3. **Ingress and workload hostnames:** use the same hostnames in ingress TLS `host` rules and in workload env (cookie domain, link generation, server-side fetch URLs) for that environment.
 4. **Cluster issuer (cert-manager):** the monorepo’s [`infra/k8s/alpha/common/ingress-hosts-patch.yaml`](../../../infra/k8s/alpha/common/ingress-hosts-patch.yaml) defaults to `letsencrypt-staging`. In the **GitOps** repository, set `cert-manager.io/cluster-issuer` to `letsencrypt-prod` on the alpha ingress when you want production ACME certificates and the cluster has a `ClusterIssuer` with that name.
-5. **Cloudflare DNS01 token secret (when using Cloudflare-managed zones):** create a Cloudflare API token with `Zone - DNS - Edit` and `Zone - Zone - Read`, scoped only to the required zones. Generate the encrypted manifest with your GitOps copy of `create_cloudflare_api_token_secret.sh` (or the upstream script in [`infra/k8s/scripts/secret-generators/`](../../../infra/k8s/scripts/secret-generators/INFRA-K8S-SCRIPTS-SECRET-GENERATORS.md)), then apply it so cert-manager can read Secret `cloudflare-api-token-secret` in namespace `cert-manager` with key `api-token`.
+5. **Cloudflare DNS01 token secret (when using Cloudflare-managed zones):** run the generator and apply
+   the Secret per **§3 step 4** (upstream reference:
+   [`infra/k8s/scripts/secret-generators/create_cloudflare_api_token_secret.sh`](../../../infra/k8s/scripts/secret-generators/create_cloudflare_api_token_secret.sh)).
 
 **References:** [`infra/k8s/INFRA-K8S.md`](../../../infra/k8s/INFRA-K8S.md), [`infra/k8s/K8S.md`](../../../infra/k8s/K8S.md), [`INFRA-K8S-SCRIPTS-SECRET-GENERATORS.md`](../../../infra/k8s/scripts/secret-generators/INFRA-K8S-SCRIPTS-SECRET-GENERATORS.md). If you use **Boilerplate** to render into a GitOps checkout (`configMapGenerator`, `make alpha_env_render`, etc.), follow [K8S-ENV-RENDER.md](https://github.com/podverse/boilerplate/blob/develop/docs/development/K8S-ENV-RENDER.md).
 

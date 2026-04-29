@@ -55,3 +55,24 @@ continue
 - `scripts/database/generate-linear-baseline.sh`, `verify-linear-baseline.sh`, `generate-linear-migration-history-seed.sh` (Podverse, Metaboost)
 - `infra/k8s/base/db/kustomization.yaml`, `statefulset.yaml` / `deployment-postgres.yaml`, Metaboost `stack/workloads.yaml`, `docker-compose.yml`
 - `metaboost/infra/docker/local/INFRA-DOCKER-LOCAL.md`, `metaboost/docs/development/k8s/REMOTE-K8S-POSTGRES-REINIT.md`, `metaboost/infra/k8s/INFRA-K8S.md`, `metaboost/docs/development/repo-management/LINEAR-MIGRATIONS-REFERENCE-ALIGNMENT-CHECKLIST-05A.md`
+
+### Session 3 - 2026-04-29
+
+#### Prompt (Developer)
+
+my understanding is that the app migrations should be handled by the DB_APP_ADMIN_USER and the management migrations should be handled by the DB_MANAGEMENT_ADMIN_USER
+
+is that correctly setup in the code that you see? if it is, how can i debug this? if it isn't, can you make the changes needed to fix it?
+
+#### Key Decisions
+
+- Intended wiring used admin keys, but `${DB_USER:-${DB_*_ADMIN_*}}` let a generic `DB_USER` from merged
+  `envFrom` override admin; fixed `run-linear-migrations-k8s.sh` to export admin-only pairs and
+  `run-linear-migrations.sh` to prefer `DB_*_ADMIN_*` when set before falling back to `DB_USER`.
+- Updated `docs/operations/DB-MIGRATIONS.md` credentials paragraph.
+
+#### Files Created/Modified
+
+- `infra/k8s/base/ops/source/database/runner/run-linear-migrations.sh`
+- `infra/k8s/base/ops/source/database/runner/run-linear-migrations-k8s.sh`
+- `docs/operations/DB-MIGRATIONS.md`
