@@ -1,15 +1,17 @@
 #!/usr/bin/env bash
-# Rebuild a single initdb SQL file from: bootstrap 0001 + 0002, then the full
-# linear app + management migration chains, then pg_dump of each database.
-# Default output: infra/k8s/base/db/source/bootstrap/0003_linear_baseline.sql.gz (gzip -n for minimal headers).
-# Pass a path ending in .sql for uncompressed output (debugging).
-# Do not edit 0003 manually; re-run this script or `make db_regen_linear_baseline` after migration changes.
+# Rebuild generated linear baseline archives from bootstrap 0001 + 0002, then the full
+# linear app + management migration chains, then pg_dump of each database (separate files).
+# Default outputs:
+#   infra/k8s/base/db/source/bootstrap/0003a_app_linear_baseline.sql.gz
+#   infra/k8s/base/db/source/bootstrap/0003b_management_linear_baseline.sql.gz
+# Pass a directory as the first argument to write both files there (for verify-linear-baseline.sh).
+# Pass a path ending in .sql for uncompressed combined debug output (legacy).
+# Do not edit 0003a/0003b manually; re-run this script or `make db_regen_linear_baseline` after migration changes.
 # `make db_regen_linear_baseline` also runs generate-linear-migration-history-seed.sh to refresh 0004_seed_linear_migration_history.sql.
 #
 # Requires: docker, gzip (when writing .gz), a POSIX shell
 #
-# Usage: ./scripts/database/generate-linear-baseline.sh [output.sql.gz | output.sql]
-#        BASELINE_IN_DOCKER=0 ...    # not supported — Docker is required
+# Usage: ./scripts/database/generate-linear-baseline.sh [output_dir | combined.sql]
 
 set -euo pipefail
 
@@ -25,10 +27,25 @@ export REPO_ROOT
 export DB_HOST="${DB_HOST:-127.0.0.1}"
 export DB_PORT="${DB_PORT:-5432}"
 
-OUT_REL_DEFAULT="infra/k8s/base/db/source/bootstrap/0003_linear_baseline.sql.gz"
-OUT="${1:-$REPO_ROOT/$OUT_REL_DEFAULT}"
-if [[ "$OUT" != /* ]]; then
-  OUT="$REPO_ROOT/$OUT"
+DEFAULT_OUT_DIR="$REPO_ROOT/infra/k8s/base/db/source/bootstrap"
+OUT_APP_REL="0003a_app_linear_baseline.sql.gz"
+OUT_MGT_REL="0003b_management_linear_baseline.sql.gz"
+
+FIRST_ARG="${1:-}"
+OUT_DIR="$DEFAULT_OUT_DIR"
+COMBINED_SQL_DEBUG=""
+if [[ -n "$FIRST_ARG" ]]; then
+  if [[ -d "$FIRST_ARG" ]]; then
+    OUT_DIR="$(cd "$FIRST_ARG" && pwd)"
+  elif [[ "$FIRST_ARG" == *.sql ]]; then
+    COMBINED_SQL_DEBUG="$FIRST_ARG"
+    if [[ "$COMBINED_SQL_DEBUG" != /* ]]; then
+      COMBINED_SQL_DEBUG="$REPO_ROOT/$COMBINED_SQL_DEBUG"
+    fi
+  else
+    echo "Usage: $0 [output_directory | path/to/debug.sql]" >&2
+    exit 1
+  fi
 fi
 
 if ! command -v docker >/dev/null 2>&1; then
@@ -39,9 +56,10 @@ fi
 CONTAINER_NAME="podverse-linear-baseline-$$"
 APP_DUMP="$(mktemp)"
 MGT_DUMP="$(mktemp)"
-TMP_COMBINED="$(mktemp)"
+TMP_APP_SQL="$(mktemp)"
+TMP_MGT_SQL="$(mktemp)"
 cleanup() {
-  rm -f "$APP_DUMP" "$MGT_DUMP" "$TMP_COMBINED" 2>/dev/null || true
+  rm -f "$APP_DUMP" "$MGT_DUMP" "$TMP_APP_SQL" "$TMP_MGT_SQL" 2>/dev/null || true
   docker rm -f "$CONTAINER_NAME" >/dev/null 2>&1 || true
 }
 trap cleanup EXIT
@@ -88,7 +106,6 @@ docker exec -e "PGPASSWORD=$DB_APP_ADMIN_PASSWORD" "$CONTAINER_NAME" \
 docker exec -e "PGPASSWORD=$DB_MANAGEMENT_ADMIN_PASSWORD" "$CONTAINER_NAME" \
   pg_dump -h 127.0.0.1 -p 5432 -U "$DB_MANAGEMENT_ADMIN_USER" -d "$DB_MANAGEMENT_NAME" --schema-only --no-owner > "$MGT_DUMP"
 
-# pg_dump 18+ may emit psql \restrict / \unrestrict with random tokens; strip for stable output.
 for f in "$APP_DUMP" "$MGT_DUMP"; do
   if grep -qE '^\\(un)?restrict ' "$f" 2>/dev/null; then
     sed -E '/^\\(un)?restrict /d' "$f" > "${f}.sedtmp" && mv "${f}.sedtmp" "$f"
@@ -97,22 +114,38 @@ done
 
 {
   printf '%s\n' "-- GENERATED FILE (do not edit) — see scripts/database/generate-linear-baseline.sh and docs/operations/LINEAR-MIGRATIONS.md" ""
-  printf "%s\n" "\connect $DB_APP_NAME" ""
+  printf '%s\n' "-- App database schema only (applied as DB_APP_ADMIN_USER via 0003_apply_linear_baselines.sh)." ""
   cat "$APP_DUMP"
   printf '\n'
-  printf "%s\n" "\connect $DB_MANAGEMENT_NAME" ""
+} >"$TMP_APP_SQL"
+
+{
+  printf '%s\n' "-- GENERATED FILE (do not edit) — see scripts/database/generate-linear-baseline.sh and docs/operations/LINEAR-MIGRATIONS.md" ""
+  printf '%s\n' "-- Management database schema only (applied as DB_MANAGEMENT_ADMIN_USER via 0003_apply_linear_baselines.sh)." ""
   cat "$MGT_DUMP"
   printf '\n'
-} > "$TMP_COMBINED"
+} >"$TMP_MGT_SQL"
 
-if [[ "$OUT" == *.sql ]]; then
-  mv "$TMP_COMBINED" "$OUT"
-else
-  if ! command -v gzip >/dev/null 2>&1; then
-    echo "gzip is required to write compressed baseline (.sql.gz)." >&2
-    exit 1
-  fi
-  gzip -nc < "$TMP_COMBINED" > "$OUT"
+if [[ -n "$COMBINED_SQL_DEBUG" ]]; then
+  {
+    printf '%s\n' "-- GENERATED DEBUG (combined)" ""
+    printf "%s\n" "\\connect $DB_APP_NAME" ""
+    cat "$APP_DUMP"
+    printf '\n'
+    printf "%s\n" "\\connect $DB_MANAGEMENT_NAME" ""
+    cat "$MGT_DUMP"
+    printf '\n'
+  } >"$COMBINED_SQL_DEBUG"
+  echo "Wrote debug SQL: $COMBINED_SQL_DEBUG"
 fi
 
-echo "Wrote: $OUT"
+mkdir -p "$OUT_DIR"
+if ! command -v gzip >/dev/null 2>&1; then
+  echo "gzip is required to write compressed baseline (.sql.gz)." >&2
+  exit 1
+fi
+gzip -nc <"$TMP_APP_SQL" >"$OUT_DIR/$OUT_APP_REL"
+gzip -nc <"$TMP_MGT_SQL" >"$OUT_DIR/$OUT_MGT_REL"
+
+echo "Wrote: $OUT_DIR/$OUT_APP_REL"
+echo "Wrote: $OUT_DIR/$OUT_MGT_REL"

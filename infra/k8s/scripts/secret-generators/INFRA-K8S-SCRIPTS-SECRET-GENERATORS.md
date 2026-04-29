@@ -63,6 +63,7 @@ Generated **API-related** and **add-by-RSS workers** encrypted Secrets keep a st
 These **do not** support `--auto-gen` and are **not** in the bulk runner. `create_all_secrets_auto_gen.sh` lists these—along with mailer and Metaboost for credential follow-up—at the end. Run manually when credentials are available:
 
 - `create_api.podcastindex.org_secret.sh` — Podcast Index API keys
+- `create_cloudflare_api_token_secret.sh` — Cloudflare API token for cert-manager DNS01 challenges (`cloudflare-api-token-secret` in `cert-manager` namespace, key `api-token`). Create the token in Cloudflare with `Zone - DNS - Edit` and `Zone - Zone - Read`, scoped only to the required zones.
 - `create_firebase_secret.sh` — `firebase-key.json` from your machine; produces **Secret `podverse-workers-firebase-opaque`** with a single key `firebase-key.json`. Base `infra/k8s` **API, workers, and workers CronJob** pods mount it read-only at **`/var/secrets/firebase`**, matching **`GOOGLE_FIREBASE_ADMIN_JSON_KEY_PATH=/var/secrets/firebase/firebase-key.json`** in the workers and API `*.env` sources. Apply the encrypted manifest after SOPS, then set **`GOOGLE_FIREBASE_NOTIFICATIONS_ENABLED=true`** when you want FCM/notification features on.
 - `create_workers_digital_ocean_secret.sh` — DigitalOcean Spaces access/secret keys
 - `create_github_registry_secret.sh` — GitHub username + PAT (`read:packages`) for **ghcr.io** image pulls; see the subsection below

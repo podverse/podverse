@@ -35,6 +35,7 @@ AUTO_GEN_SCRIPTS=(
 # -------------------------------------------------------------------
 MANUAL_SCRIPTS=(
 	"create_api.podcastindex.org_secret.sh  (requires Podcast Index API keys)"
+	"create_cloudflare_api_token_secret.sh  (requires Cloudflare DNS token; used by cert-manager DNS01)"
 	"create_firebase_secret.sh              (requires firebase-key.json file)"
 	"create_workers_digital_ocean_secret.sh (requires DigitalOcean Spaces access/secret keys)"
 	"create_github_registry_secret.sh        (requires GitHub username + PAT with read:packages for ghcr.io image pulls)"

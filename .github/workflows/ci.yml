@@ -167,7 +167,7 @@ jobs:
               process.env.DB_BASELINE_0003 === 'failure'
                 ? [
                     '',
-                    '**Linear baseline 0003 (`0003_linear_baseline.sql.gz`) / migration seed 0004:** Regenerate from the repo root, then commit:',
+                    '**Linear baseline 0003a/0003b / migration seed 0004:** Regenerate from the repo root, then commit:',
                     '```',
                     'make db_regen_linear_baseline',
                     'make db_verify_linear_baseline',

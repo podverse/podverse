@@ -83,8 +83,9 @@ tools/test-assets/config/ln-recipients.local.json
 
 secrets
 
-# Local uncompressed linear baseline (committed artifact is 0003_linear_baseline.sql.gz)
-infra/k8s/base/db/source/bootstrap/0003_linear_baseline.sql
+# Local uncompressed linear baseline (committed artifacts are 0003a/0003b *.sql.gz)
+infra/k8s/base/db/source/bootstrap/0003a_app_linear_baseline.sql
+infra/k8s/base/db/source/bootstrap/0003b_management_linear_baseline.sql
 
 temp/
 
