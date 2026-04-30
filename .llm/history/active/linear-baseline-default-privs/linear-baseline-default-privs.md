@@ -40,3 +40,20 @@ implement
 
 - `scripts/database/ci-verify-bootstrap-contract.sh`
 - `.llm/history/active/linear-baseline-default-privs/linear-baseline-default-privs.md`
+
+### Session 3 - 2026-04-29
+
+#### Prompt (Developer)
+
+fix
+
+#### Key Decisions
+
+- Hardened `check-no-runtime-create-extension.sh` to avoid false-green in CI when `rg` is missing: use `rg` when available, otherwise fall back to `grep -R -E -i` with the same pattern.
+- Fallback path emits a warning and still fails on matches; it no longer silently passes because a command is unavailable.
+- Verified both paths locally (normal path and fallback with `PATH` excluding `rg`), both passing with no matches.
+
+#### Files Created/Modified
+
+- `scripts/database/check-no-runtime-create-extension.sh`
+- `.llm/history/active/linear-baseline-default-privs/linear-baseline-default-privs.md`
