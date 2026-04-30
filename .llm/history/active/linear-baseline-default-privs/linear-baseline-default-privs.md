@@ -57,3 +57,44 @@ fix
 
 - `scripts/database/check-no-runtime-create-extension.sh`
 - `.llm/history/active/linear-baseline-default-privs/linear-baseline-default-privs.md`
+
+### Session 4 - 2026-04-29
+
+#### Prompt (Developer)
+
+Debug and fix `local_db_init` uuid-ossp verification failure
+
+Implement the plan as specified, it is attached for your reference. Do NOT edit the plan file itself.
+
+To-do's from the plan have already been created. Do not create them again. Mark them as in_progress as you work, starting with the first one. Don't stop until you have completed all the to-dos.
+
+#### Key Decisions
+
+- Added explicit local-only extension setup in `local_db_init` so both app and management DBs run `CREATE EXTENSION IF NOT EXISTS "uuid-ossp"` before contract verification.
+- While validating, found a secondary false failure source: `verify-bootstrap-contract.sh` counted tables via `information_schema.tables`, which can hide tables from the current role; switched to `pg_catalog.pg_tables` for existence checks.
+- Verified end-to-end with `./scripts/nix/with-env make local_db_init` (now passes through final bootstrap contract verification).
+- No docs update needed for this change because behavior remains internal to `local_db_init` and existing user-facing flow is unchanged.
+
+#### Files Created/Modified
+
+- `makefiles/local/Makefile.local.infra.mk`
+- `infra/k8s/base/ops/source/database/runner/verify-bootstrap-contract.sh`
+- `.llm/history/active/linear-baseline-default-privs/linear-baseline-default-privs.md`
+
+### Session 5 - 2026-04-29
+
+#### Prompt (Developer)
+
+do it
+
+#### Key Decisions
+
+- Cleaned up `WARNING: no privileges were granted for "public"` by making schema `USAGE` grants conditional in bootstrap `0001`/`0002` using `has_schema_privilege(...)` checks before issuing `GRANT`.
+- Chose the low-risk/no-behavior-change approach (no revoke/hardening changes), so this removes log noise without changing effective access semantics.
+- Re-ran `./scripts/nix/with-env make local_db_init`; warning lines are gone and final bootstrap verification still passes.
+
+#### Files Created/Modified
+
+- `infra/k8s/base/db/source/bootstrap/0001_create_app_db_users.sh`
+- `infra/k8s/base/db/source/bootstrap/0002_create_management_db_users.sh`
+- `.llm/history/active/linear-baseline-default-privs/linear-baseline-default-privs.md`

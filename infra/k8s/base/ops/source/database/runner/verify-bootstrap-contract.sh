@@ -75,7 +75,7 @@ check_database_contract() {
   assert_equals "${label}: linear_migration_history exists" "$has_history" "t"
 
   local table_count
-  table_count="$(run_query "$role_password" "$role_user" "$db_name" "SELECT count(*) FROM information_schema.tables WHERE table_schema = 'public';")"
+  table_count="$(run_query "$role_password" "$role_user" "$db_name" "SELECT count(*) FROM pg_catalog.pg_tables WHERE schemaname = 'public';")"
   assert_positive_int "${label}: public schema table count" "$table_count"
 
   local rw_select rw_insert rw_update rw_delete ro_select

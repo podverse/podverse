@@ -73,7 +73,17 @@ SQL
 
 # 2b. Management DB as migrator: runtime grants + default privileges for migrator-created objects (mirrors 0001 migrator block).
 psql -v ON_ERROR_STOP=1 --username "$DB_MANAGEMENT_MIGRATOR_USER" --dbname "$DB_MANAGEMENT_NAME" <<SQL
-GRANT USAGE ON SCHEMA public TO ${DB_MANAGEMENT_READ_WRITE_USER}, ${DB_MANAGEMENT_READ_USER};
+DO \$\$
+BEGIN
+    IF NOT has_schema_privilege('${DB_MANAGEMENT_READ_WRITE_USER}', 'public', 'USAGE') THEN
+        EXECUTE format('GRANT USAGE ON SCHEMA public TO %I', '${DB_MANAGEMENT_READ_WRITE_USER}');
+    END IF;
+
+    IF NOT has_schema_privilege('${DB_MANAGEMENT_READ_USER}', 'public', 'USAGE') THEN
+        EXECUTE format('GRANT USAGE ON SCHEMA public TO %I', '${DB_MANAGEMENT_READ_USER}');
+    END IF;
+END
+\$\$;
 
 GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO ${DB_MANAGEMENT_READ_WRITE_USER};
 GRANT SELECT, USAGE, UPDATE ON ALL SEQUENCES IN SCHEMA public TO ${DB_MANAGEMENT_READ_WRITE_USER};
