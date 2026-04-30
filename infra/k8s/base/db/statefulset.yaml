@@ -99,7 +99,7 @@ spec:
               mountPath: /var/lib/postgresql
 
             # Init order: 0001 app users, 0002 management users/DB, 0003 shell loads per-DB
-            # baselines as each DB owner, 0004 seed linear_migration_history (checksums) so ops migration jobs skip.
+            # baselines as each DB owner; baseline archives include deterministic linear_migration_history seeds.
             # 1. App DB users
             - name: app-db-init-scripts
               mountPath: /docker-entrypoint-initdb.d/0001_create_app_db_users.sh
@@ -121,11 +121,6 @@ spec:
             - name: db-init-scripts
               mountPath: /linear-baseline/management.sql.gz
               subPath: 0003b_management_linear_baseline.sql.gz
-
-            # 4. Populate linear_migration_history rows so forward-only ops jobs skip DDL already in 0003
-            - name: db-init-scripts
-              mountPath: /docker-entrypoint-initdb.d/0004_seed_linear_migration_history.sql
-              subPath: 0004_seed_linear_migration_history.sql
 
             - name: run-dir
               mountPath: /var/run/postgresql

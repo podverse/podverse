@@ -82,7 +82,7 @@ When adapting to other clusters/repositories, keep mounts and `LINEAR_MIGRATIONS
 
 **Privileged bootstrap:** `0003_apply_linear_baselines.sh` uses `DB_APP_OWNER_USER` / `DB_MANAGEMENT_OWNER_USER` for extension installation and then applies baseline archives as the migrator roles.
 
-**Fresh PVC / initdb:** Cluster Postgres runs `0003` then **`0004_seed_linear_migration_history.sql`** so `linear_migration_history` lists every migration with the correct checksum before ops jobs run (see [LINEAR-MIGRATIONS.md](LINEAR-MIGRATIONS.md) § generated seed).
+**Fresh PVC / initdb:** Cluster Postgres runs `0003`, and generated `0003a`/`0003b` baselines include deterministic `linear_migration_history` rows so ops jobs start with aligned checksums (see [LINEAR-MIGRATIONS.md](LINEAR-MIGRATIONS.md)).
 
 After merging these manifests, bump the immutable `?ref=` on remote ops bases in GitOps repos (for example `k.podcastdj.com/apps/podverse-alpha/ops/kustomization.yaml`) to a Podverse tag that includes the change.
 

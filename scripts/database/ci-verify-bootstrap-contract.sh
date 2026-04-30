@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # CI bootstrap contract check:
-# - Starts ephemeral Postgres with initdb scripts 0001/0002/0003/0004 and baseline archives
-# - Verifies uuid-ossp and baseline tables for app + management DBs
+# - Starts ephemeral Postgres with initdb scripts 0001/0002/0003 and baseline archives
+# - Verifies uuid-ossp, linear history presence, and critical reference rows
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
@@ -10,7 +10,6 @@ required_files=(
   "$REPO_ROOT/infra/k8s/base/db/source/bootstrap/0001_create_app_db_users.sh"
   "$REPO_ROOT/infra/k8s/base/db/source/bootstrap/0002_create_management_db_users.sh"
   "$REPO_ROOT/infra/k8s/base/db/source/bootstrap/0003_apply_linear_baselines.sh"
-  "$REPO_ROOT/infra/k8s/base/db/source/bootstrap/0004_seed_linear_migration_history.sql"
   "$REPO_ROOT/infra/k8s/base/db/source/bootstrap/0003a_app_linear_baseline.sql.gz"
   "$REPO_ROOT/infra/k8s/base/db/source/bootstrap/0003b_management_linear_baseline.sql.gz"
 )
@@ -72,10 +71,10 @@ docker run -d --name "$CONTAINER_NAME" \
   -e DB_MANAGEMENT_READ_WRITE_PASSWORD="$DB_MANAGEMENT_READ_WRITE_PASSWORD" \
   -e DB_MANAGEMENT_READ_USER="$DB_MANAGEMENT_READ_USER" \
   -e DB_MANAGEMENT_READ_PASSWORD="$DB_MANAGEMENT_READ_PASSWORD" \
+  -v "$REPO_ROOT:/work:ro" \
   -v "$REPO_ROOT/infra/k8s/base/db/source/bootstrap/0001_create_app_db_users.sh:/docker-entrypoint-initdb.d/0001_create_app_db_users.sh:ro" \
   -v "$REPO_ROOT/infra/k8s/base/db/source/bootstrap/0002_create_management_db_users.sh:/docker-entrypoint-initdb.d/0002_create_management_db_users.sh:ro" \
   -v "$REPO_ROOT/infra/k8s/base/db/source/bootstrap/0003_apply_linear_baselines.sh:/docker-entrypoint-initdb.d/0003_apply_linear_baselines.sh:ro" \
-  -v "$REPO_ROOT/infra/k8s/base/db/source/bootstrap/0004_seed_linear_migration_history.sql:/docker-entrypoint-initdb.d/0004_seed_linear_migration_history.sql:ro" \
   -v "$REPO_ROOT/infra/k8s/base/db/source/bootstrap/0003a_app_linear_baseline.sql.gz:/linear-baseline/app.sql.gz:ro" \
   -v "$REPO_ROOT/infra/k8s/base/db/source/bootstrap/0003b_management_linear_baseline.sql.gz:/linear-baseline/management.sql.gz:ro" \
   postgres:18.3 >/dev/null
@@ -119,6 +118,7 @@ app_ext="f"
 mgmt_ext="f"
 app_history="f"
 mgmt_history="f"
+mgmt_roles="f"
 
 # pg_isready only means the server accepts connections. The init scripts may still
 # be running, so wait for the actual bootstrap contract state before asserting.
@@ -127,14 +127,15 @@ for attempt in $(seq 1 120); do
   mgmt_ext="$(check_query_or_false "$DB_MANAGEMENT_OWNER_USER" "$DB_MANAGEMENT_OWNER_PASSWORD" "$DB_MANAGEMENT_NAME" "SELECT EXISTS (SELECT 1 FROM pg_extension WHERE extname='uuid-ossp');")"
   app_history="$(check_query_or_false "$DB_APP_OWNER_USER" "$DB_APP_OWNER_PASSWORD" "$DB_APP_NAME" "SELECT to_regclass('public.linear_migration_history') IS NOT NULL;")"
   mgmt_history="$(check_query_or_false "$DB_MANAGEMENT_OWNER_USER" "$DB_MANAGEMENT_OWNER_PASSWORD" "$DB_MANAGEMENT_NAME" "SELECT to_regclass('public.linear_migration_history') IS NOT NULL;")"
+  mgmt_roles="$(check_query_or_false "$DB_MANAGEMENT_READ_WRITE_USER" "$DB_MANAGEMENT_READ_WRITE_PASSWORD" "$DB_MANAGEMENT_NAME" "SELECT EXISTS (SELECT 1 FROM admin_account_role WHERE id = 1 AND role = 'superuser') AND EXISTS (SELECT 1 FROM admin_account_role WHERE id = 2 AND role = 'admin');")"
 
-  if [[ "$app_ext" == "t" && "$mgmt_ext" == "t" && "$app_history" == "t" && "$mgmt_history" == "t" ]]; then
+  if [[ "$app_ext" == "t" && "$mgmt_ext" == "t" && "$app_history" == "t" && "$mgmt_history" == "t" && "$mgmt_roles" == "t" ]]; then
     break
   fi
 
   if [[ "$attempt" -eq 120 ]]; then
     echo "ERROR: Bootstrap contract failed." >&2
-    echo "app_ext=$app_ext mgmt_ext=$mgmt_ext app_history=$app_history mgmt_history=$mgmt_history" >&2
+    echo "app_ext=$app_ext mgmt_ext=$mgmt_ext app_history=$app_history mgmt_history=$mgmt_history mgmt_roles=$mgmt_roles" >&2
     docker logs "$CONTAINER_NAME" >&2 || true
     exit 1
   fi
@@ -142,9 +143,52 @@ for attempt in $(seq 1 120); do
   sleep 1
 done
 
-if [[ "$app_ext" != "t" || "$mgmt_ext" != "t" || "$app_history" != "t" || "$mgmt_history" != "t" ]]; then
+if [[ "$app_ext" != "t" || "$mgmt_ext" != "t" || "$app_history" != "t" || "$mgmt_history" != "t" || "$mgmt_roles" != "t" ]]; then
   echo "ERROR: Bootstrap contract failed." >&2
-  echo "app_ext=$app_ext mgmt_ext=$mgmt_ext app_history=$app_history mgmt_history=$mgmt_history" >&2
+  echo "app_ext=$app_ext mgmt_ext=$mgmt_ext app_history=$app_history mgmt_history=$mgmt_history mgmt_roles=$mgmt_roles" >&2
+  docker logs "$CONTAINER_NAME" >&2 || true
+  exit 1
+fi
+
+echo "Bootstrap contract checks passed. Replaying migration runner for app and management..."
+docker exec "$CONTAINER_NAME" env \
+  DB_HOST="127.0.0.1" \
+  DB_PORT="5432" \
+  DB_APP_NAME="$DB_APP_NAME" \
+  DB_APP_MIGRATOR_USER="$DB_APP_MIGRATOR_USER" \
+  DB_APP_MIGRATOR_PASSWORD="$DB_APP_MIGRATOR_PASSWORD" \
+  DB_MANAGEMENT_NAME="$DB_MANAGEMENT_NAME" \
+  DB_MANAGEMENT_MIGRATOR_USER="$DB_MANAGEMENT_MIGRATOR_USER" \
+  DB_MANAGEMENT_MIGRATOR_PASSWORD="$DB_MANAGEMENT_MIGRATOR_PASSWORD" \
+  LINEAR_MIGRATIONS_BASE_DIR="/work/infra/k8s/base/ops/source/database/linear-migrations" \
+  bash /work/scripts/database/run-linear-migrations.sh --database app
+docker exec "$CONTAINER_NAME" env \
+  DB_HOST="127.0.0.1" \
+  DB_PORT="5432" \
+  DB_APP_NAME="$DB_APP_NAME" \
+  DB_APP_MIGRATOR_USER="$DB_APP_MIGRATOR_USER" \
+  DB_APP_MIGRATOR_PASSWORD="$DB_APP_MIGRATOR_PASSWORD" \
+  DB_MANAGEMENT_NAME="$DB_MANAGEMENT_NAME" \
+  DB_MANAGEMENT_MIGRATOR_USER="$DB_MANAGEMENT_MIGRATOR_USER" \
+  DB_MANAGEMENT_MIGRATOR_PASSWORD="$DB_MANAGEMENT_MIGRATOR_PASSWORD" \
+  LINEAR_MIGRATIONS_BASE_DIR="/work/infra/k8s/base/ops/source/database/linear-migrations" \
+  bash /work/scripts/database/run-linear-migrations.sh --database management
+
+echo "Migration replay checks passed. Running management superuser-create smoke test..."
+docker run --rm --network "container:$CONTAINER_NAME" \
+  -e DB_HOST="127.0.0.1" \
+  -e DB_PORT="5432" \
+  -e DB_MANAGEMENT_NAME="$DB_MANAGEMENT_NAME" \
+  -e DB_MANAGEMENT_READ_WRITE_USER="$DB_MANAGEMENT_READ_WRITE_USER" \
+  -e DB_MANAGEMENT_READ_WRITE_PASSWORD="$DB_MANAGEMENT_READ_WRITE_PASSWORD" \
+  -v "$REPO_ROOT/infra/k8s/base/ops/source/database/management-superuser:/opt/scripts/management:ro" \
+  node:24-slim \
+  /bin/sh -ceu \
+  'cp -R /opt/scripts/management /tmp/management; cd /tmp/management; npm install --silent; node create-superuser.mjs --random-password'
+
+superuser_count="$(check_query "$DB_MANAGEMENT_READ_WRITE_USER" "$DB_MANAGEMENT_READ_WRITE_PASSWORD" "$DB_MANAGEMENT_NAME" "SELECT count(*) FROM admin_account WHERE admin_account_role_id = 1;")"
+if [[ "$superuser_count" != "1" ]]; then
+  echo "ERROR: Expected exactly one superuser after smoke test, got $superuser_count." >&2
   docker logs "$CONTAINER_NAME" >&2 || true
   exit 1
 fi
