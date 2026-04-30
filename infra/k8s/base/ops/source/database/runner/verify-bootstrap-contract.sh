@@ -4,6 +4,7 @@
 # - uuid-ossp extension exists
 # - linear_migration_history table exists
 # - public schema has tables
+# - critical reference rows exist (management admin_account_role)
 # - read_write/read roles have expected table privileges
 
 set -euo pipefail
@@ -15,12 +16,14 @@ DB_PORT="${DB_PORT:-${PODVERSE_DB_SERVICE_PORT:-5432}}"
 : "${DB_APP_OWNER_PASSWORD:?Missing DB_APP_OWNER_PASSWORD}"
 : "${DB_APP_NAME:?Missing DB_APP_NAME}"
 : "${DB_APP_READ_WRITE_USER:?Missing DB_APP_READ_WRITE_USER}"
+: "${DB_APP_READ_WRITE_PASSWORD:?Missing DB_APP_READ_WRITE_PASSWORD}"
 : "${DB_APP_READ_USER:?Missing DB_APP_READ_USER}"
 
 : "${DB_MANAGEMENT_OWNER_USER:?Missing DB_MANAGEMENT_OWNER_USER}"
 : "${DB_MANAGEMENT_OWNER_PASSWORD:?Missing DB_MANAGEMENT_OWNER_PASSWORD}"
 : "${DB_MANAGEMENT_NAME:?Missing DB_MANAGEMENT_NAME}"
 : "${DB_MANAGEMENT_READ_WRITE_USER:?Missing DB_MANAGEMENT_READ_WRITE_USER}"
+: "${DB_MANAGEMENT_READ_WRITE_PASSWORD:?Missing DB_MANAGEMENT_READ_WRITE_PASSWORD}"
 : "${DB_MANAGEMENT_READ_USER:?Missing DB_MANAGEMENT_READ_USER}"
 
 run_query() {
@@ -61,8 +64,9 @@ check_database_contract() {
   local role_user="$2"
   local db_name="$3"
   local read_write_role="$4"
-  local read_role="$5"
-  local label="$6"
+  local read_write_password="$5"
+  local read_role="$6"
+  local label="$7"
 
   echo "Verifying ${label} database bootstrap contract (${db_name})..."
 
@@ -90,6 +94,14 @@ check_database_contract() {
   assert_equals "${label}: read_write UPDATE" "$rw_update" "t"
   assert_equals "${label}: read_write DELETE" "$rw_delete" "t"
   assert_equals "${label}: read SELECT" "$ro_select" "t"
+
+  if [[ "$label" == "management" ]]; then
+    local has_superuser_role has_admin_role
+    has_superuser_role="$(run_query "$read_write_password" "$read_write_role" "$db_name" "SELECT EXISTS (SELECT 1 FROM admin_account_role WHERE id = 1 AND role = 'superuser');")"
+    has_admin_role="$(run_query "$read_write_password" "$read_write_role" "$db_name" "SELECT EXISTS (SELECT 1 FROM admin_account_role WHERE id = 2 AND role = 'admin');")"
+    assert_equals "${label}: admin_account_role superuser row" "$has_superuser_role" "t"
+    assert_equals "${label}: admin_account_role admin row" "$has_admin_role" "t"
+  fi
 }
 
 check_database_contract \
@@ -97,6 +109,7 @@ check_database_contract \
   "$DB_APP_OWNER_USER" \
   "$DB_APP_NAME" \
   "$DB_APP_READ_WRITE_USER" \
+  "$DB_APP_READ_WRITE_PASSWORD" \
   "$DB_APP_READ_USER" \
   "app"
 
@@ -105,6 +118,7 @@ check_database_contract \
   "$DB_MANAGEMENT_OWNER_USER" \
   "$DB_MANAGEMENT_NAME" \
   "$DB_MANAGEMENT_READ_WRITE_USER" \
+  "$DB_MANAGEMENT_READ_WRITE_PASSWORD" \
   "$DB_MANAGEMENT_READ_USER" \
   "management"
 

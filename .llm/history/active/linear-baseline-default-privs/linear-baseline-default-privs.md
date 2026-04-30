@@ -98,3 +98,58 @@ do it
 - `infra/k8s/base/db/source/bootstrap/0001_create_app_db_users.sh`
 - `infra/k8s/base/db/source/bootstrap/0002_create_management_db_users.sh`
 - `.llm/history/active/linear-baseline-default-privs/linear-baseline-default-privs.md`
+
+### Session 6 - 2026-04-29
+
+#### Prompt (Developer)
+
+Root-Cause Fix Plan: Linear Baseline + Migration History Consistency
+
+Implement the plan as specified, it is attached for your reference. Do NOT edit the plan file itself.
+
+To-do's from the plan have already been created. Do not create them again. Mark them as in_progress as you work, starting with the first one. Don't stop until you have completed all the to-dos.
+
+#### Key Decisions
+
+- Removed bootstrap dependency on `0004_seed_linear_migration_history.sql`; `0003a`/`0003b` now include deterministic `linear_migration_history` inserts directly.
+- Switched baseline generation from schema-only dumps to materialized schema+data dumps while excluding `linear_migration_history` table data and appending checksum rows deterministically from migration files.
+- Added timestamp normalization during baseline generation (with `session_replication_role = replica`) to keep generated archives stable across runs.
+- Strengthened bootstrap verification to assert management role seed invariants (`admin_account_role` ids 1/2) and query them with read_write credentials to avoid ownership-grant assumptions.
+- Updated docs/rules/skills to reflect the new 0003-only bootstrap contract and removed 0004 parity checks from the validate workflow.
+- Verified end-to-end with `./scripts/nix/with-env make db_verify_linear_baseline` and `bash scripts/database/ci-verify-bootstrap-contract.sh`.
+
+#### Files Created/Modified
+
+- `scripts/database/generate-linear-baseline.sh`
+- `scripts/database/verify-linear-baseline.sh`
+- `scripts/database/ci-verify-bootstrap-contract.sh`
+- `makefiles/local/Makefile.local.validate.mk`
+- `infra/k8s/base/db/kustomization.yaml`
+- `infra/k8s/base/db/statefulset.yaml`
+- `infra/k8s/base/ops/source/database/runner/verify-bootstrap-contract.sh`
+- `infra/k8s/base/db/source/bootstrap/0003a_app_linear_baseline.sql.gz`
+- `infra/k8s/base/db/source/bootstrap/0003b_management_linear_baseline.sql.gz`
+- `docs/operations/LINEAR-MIGRATIONS.md`
+- `docs/operations/DB-MIGRATIONS.md`
+- `.cursor/rules/linear-baseline-0003.mdc`
+- `.cursor/skills/k8s/SKILL.md`
+- `AGENTS.md`
+- `.llm/history/active/linear-baseline-default-privs/linear-baseline-default-privs.md`
+
+### Session 7 - 2026-04-29
+
+#### Prompt (Developer)
+
+add them
+
+#### Key Decisions
+
+- Added post-bootstrap migration replay checks in `ci-verify-bootstrap-contract.sh` to execute `run-linear-migrations.sh --database app` and `--database management` against the ephemeral DB container and fail on any mismatch/reapply error.
+- Added an end-to-end management superuser smoke test in CI by running `create-superuser.mjs --random-password` in a `node:24-slim` container sharing the DB container network namespace.
+- Added a strict post-smoke assertion that exactly one `admin_account` row has `admin_account_role_id = 1`.
+- Verified locally with `bash scripts/database/ci-verify-bootstrap-contract.sh` (passed; migration replay showed all `SKIP`, superuser creation succeeded).
+
+#### Files Created/Modified
+
+- `scripts/database/ci-verify-bootstrap-contract.sh`
+- `.llm/history/active/linear-baseline-default-privs/linear-baseline-default-privs.md`
