@@ -56,6 +56,10 @@ local_db_init: infra/config/local/db.env
 	docker exec -i podverse_local_db psql -U "$$DB_APP_OWNER_USER" -d "$${DB_APP_NAME:-podverse_app}" -f /opt/database/seed-scripts/local-dev-account.sql
 	@echo "Applying management linear migrations..."
 	@$(MAKE) local_management_db_init
+	@echo "Verifying DB bootstrap contract (extensions, baseline tables, grants)..."
+	@set -a; . infra/config/local/db.env; set +a; \
+	DB_HOST="localhost" DB_PORT="5432" \
+	bash scripts/database/verify-bootstrap-contract.sh
 	@echo "Next step: make local_management_superuser_create"
 
 local_mq_up: local_network_create infra/config/local/mq.env

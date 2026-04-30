@@ -1,0 +1,53 @@
+# Version: 1
+# Pattern: Suspended CronJob (Manual Trigger Only)
+# Verifies extension/baseline/grant bootstrap contract for app and management databases.
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: ops-db-verify-bootstrap-contract
+spec:
+  schedule: "* * * * *"
+  suspend: true
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      ttlSecondsAfterFinished: 300
+      template:
+        metadata:
+          labels:
+            app: podverse-ops
+          annotations:
+            podverse.fm/migration-job: "bootstrap-contract"
+        spec:
+          restartPolicy: Never
+          containers:
+            - name: verify-bootstrap-contract
+              image: postgres:18.3
+              imagePullPolicy: Always
+              command:
+                - "bash"
+                - "/opt/scripts/database/verify-bootstrap-contract.sh"
+              envFrom:
+                - secretRef:
+                    name: podverse-db-opaque
+                - secretRef:
+                    name: podverse-management-db-opaque
+              env:
+                - name: DB_HOST
+                  value: "podverse-db"
+                - name: DB_PORT
+                  value: "5432"
+                - name: MIGRATION_BUNDLE_SHA
+                  valueFrom:
+                    configMapKeyRef:
+                      name: podverse-ops-migration-scripts
+                      key: MIGRATION_BUNDLE_SHA
+              volumeMounts:
+                - name: migration-scripts
+                  mountPath: /opt/scripts/database
+                  readOnly: true
+          volumes:
+            - name: migration-scripts
+              configMap:
+                name: podverse-ops-migration-scripts
+                defaultMode: 0555

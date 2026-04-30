@@ -61,6 +61,14 @@ jobs:
         id: db-baseline-0003
         run: bash scripts/database/verify-linear-baseline.sh
 
+      - name: Verify bootstrap init contract in ephemeral Postgres
+        id: db-bootstrap-contract
+        run: bash scripts/database/ci-verify-bootstrap-contract.sh
+
+      - name: Enforce no runtime CREATE EXTENSION
+        id: db-runtime-extension-guard
+        run: bash scripts/database/check-no-runtime-create-extension.sh
+
       - name: Setup Node.js
         uses: actions/setup-node@v6
         with:
@@ -107,6 +115,8 @@ jobs:
               '|-------|--------|',
               '| Linear migration files valid | ✅ |',
               '| Linear baseline 0003 (vs generator) | ✅ |',
+              '| Bootstrap init contract (0001/0002/0003/0004) | ✅ |',
+              '| Runtime CREATE EXTENSION guard | ✅ |',
               '| Dependencies installed | ✅ |',
               '| Build packages | ✅ |',
               '| Lint (type-check, ESLint, Prettier) | ✅ |',
@@ -151,6 +161,8 @@ jobs:
           PR_NUMBER: ${{ steps.pr-comment.outputs.pr_number }}
           DB_VERIFY: ${{ steps.db-verify.outcome }}
           DB_BASELINE_0003: ${{ steps.db-baseline-0003.outcome }}
+          DB_BOOTSTRAP_CONTRACT: ${{ steps.db-bootstrap-contract.outcome }}
+          DB_RUNTIME_EXTENSION_GUARD: ${{ steps.db-runtime-extension-guard.outcome }}
           INSTALL: ${{ steps.install.outcome }}
           LINT: ${{ steps.lint.outcome }}
           BUILD_PACKAGES: ${{ steps.build-packages.outcome }}
@@ -186,6 +198,8 @@ jobs:
               '|-------|--------|',
               `| Linear migration files valid | ${status(process.env.DB_VERIFY)} |`,
               `| Linear baseline 0003 (vs generator) | ${status(process.env.DB_BASELINE_0003)} |`,
+              `| Bootstrap init contract (0001/0002/0003/0004) | ${status(process.env.DB_BOOTSTRAP_CONTRACT)} |`,
+              `| Runtime CREATE EXTENSION guard | ${status(process.env.DB_RUNTIME_EXTENSION_GUARD)} |`,
               `| Dependencies installed | ${status(process.env.INSTALL)} |`,
               `| Build packages | ${status(process.env.BUILD_PACKAGES)} |`,
               `| Lint (type-check, ESLint, Prettier) | ${status(process.env.LINT)} |`,

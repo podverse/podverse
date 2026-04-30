@@ -3,6 +3,7 @@ kind: Kustomization
 
 resources:
   - db-drop-everything.cronjob.yaml
+  - db-verify-bootstrap-contract.cronjob.yaml
   - db-verify-account.cronjob.yaml
   - db-verify-all-account.cronjob.yaml
   - db-migrate-app.cronjob.yaml
@@ -23,6 +24,7 @@ configMapGenerator:
     files:
       - source/database/runner/run-linear-migrations.sh
       - source/database/runner/run-linear-migrations-k8s.sh
+      - source/database/runner/verify-bootstrap-contract.sh
   - name: podverse-ops-app-linear-migrations
     files:
       - source/database/linear-migrations/app/0000_init_helpers.sql

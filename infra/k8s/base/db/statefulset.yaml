@@ -110,7 +110,8 @@ spec:
               mountPath: /docker-entrypoint-initdb.d/0002_create_management_db_users.sh
               subPath: 0002_create_management_db_users.sh
 
-            # 3. Apply app then management schema gzips as DB_APP_ADMIN / DB_MANAGEMENT_ADMIN (see 0003_apply_linear_baselines.sh)
+            # 3. Apply app then management schema gzips as migrator roles; extensions are created by owner roles
+            # in 0003_apply_linear_baselines.sh.
             - name: db-init-scripts
               mountPath: /docker-entrypoint-initdb.d/0003_apply_linear_baselines.sh
               subPath: 0003_apply_linear_baselines.sh

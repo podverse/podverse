@@ -116,7 +116,18 @@ Use **`./scripts/secret-generators/`** there (kept in sync with [Podverse `infra
 
    This runs the generators in dependency order (see [INFRA-K8S-SCRIPTS-SECRET-GENERATORS.md](../../../infra/k8s/scripts/secret-generators/INFRA-K8S-SCRIPTS-SECRET-GENERATORS.md)); each uses **`--auto-gen`**. Outputs are **`./secrets/podverse-$ENV-*-opaque.enc.yaml`** at the **GitOps** repository root. Commit those files; do not commit cleartext. The bulk runner’s end-of-run **NOTE** lists optional follow-ups (for example web-push env).
 
-3. **Additional credential scripts** (run individually when credentials are available):
+3. **Pre-sync contract checks (required):**
+
+   ```fish
+   ./scripts/secret-generators/check_db_secret_contract.sh $ENV
+   ./scripts/check_podverse_alpha_version_contract.sh
+   ```
+
+   These checks must pass before Argo sync:
+   - DB secrets include `OWNER`, `MIGRATOR`, `READ_WRITE`, and `READ` keys for both app and management DB.
+   - All Podverse alpha `?ref=` values are identical and all Podverse app `images[].newTag` values match that same release string.
+
+4. **Additional credential scripts** (run individually when credentials are available):
 
    Run only what you need:
    - `./scripts/secret-generators/create_api.podcastindex.org_secret.sh`
@@ -125,7 +136,7 @@ Use **`./scripts/secret-generators/`** there (kept in sync with [Podverse `infra
    - `./scripts/secret-generators/create_metaboost_secret.sh`
    - `./scripts/secret-generators/create_workers_digital_ocean_secret.sh`
 
-4. **Cloudflare API token for cert-manager DNS01** (optional; when ACME uses Cloudflare-managed zones):
+5. **Cloudflare API token for cert-manager DNS01** (optional; when ACME uses Cloudflare-managed zones):
 
    Create a Cloudflare API token with `Zone - DNS - Edit` and `Zone - Zone - Read`, scoped only to the
    required zones. Generate the encrypted manifest:
@@ -240,6 +251,38 @@ kubectl -n $NAMESPACE get svc,ingress
 kubectl -n argocd get applications
 # API responds on `/` and on `${API_PREFIX}${API_VERSION}/` (default `/api/v2/`) when env matches base api.env
 curl -sI https://api.example.com/api/v2/
+```
+
+### 9. Post-sync DB bootstrap verification (required)
+
+Use the suspended ops CronJob template added in the Podverse base to verify extension/baseline/grant contracts after DB sync:
+
+```fish
+kubectl -n $NAMESPACE create job --from=cronjob/ops-db-verify-bootstrap-contract ops-db-verify-bootstrap-contract-manual
+kubectl -n $NAMESPACE logs -f job/ops-db-verify-bootstrap-contract-manual
+```
+
+Expected result includes: `Bootstrap contract verification passed for app and management databases.`
+
+If it fails, do **not** proceed to app rollouts until the DB bootstrap contract is green.
+
+### 10. Deterministic recovery for partial initdb persistence
+
+If DB init scripts partially ran (for example `0003` failed once, PVC kept partial data, and later restarts skipped init scripts), use this exact recovery sequence:
+
+1. Scale down Podverse workloads that depend on DB (`api`, `management-api`, `workers`, `cron`, `web`, `management-web`).
+2. Delete the DB StatefulSet pod and PVC for the target namespace.
+3. Re-sync `db` app so Postgres initializes from a clean volume and re-runs `0001`/`0002`/`0003`/`0004`.
+4. Run **post-sync DB bootstrap verification** (section above) and confirm success.
+5. Re-sync / scale up app workloads only after verification passes.
+
+Example commands (adjust names if your overlays differ):
+
+```fish
+kubectl -n $NAMESPACE scale deploy/podverse-api deploy/podverse-management-api deploy/podverse-workers deploy/podverse-web deploy/podverse-management-web --replicas=0
+kubectl -n $NAMESPACE delete cronjob podverse-cron
+kubectl -n $NAMESPACE delete pod podverse-db-0
+kubectl -n $NAMESPACE delete pvc db-data-podverse-db-0
 ```
 
 ## GitOps overlay contract
