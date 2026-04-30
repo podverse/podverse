@@ -23,3 +23,20 @@ To-do's from the plan have already been created. Do not create them again. Mark 
 - `infra/k8s/base/db/source/bootstrap/0003a_app_linear_baseline.sql.gz`
 - `infra/k8s/base/db/source/bootstrap/0003b_management_linear_baseline.sql.gz`
 - `.llm/history/active/linear-baseline-default-privs/linear-baseline-default-privs.md`
+
+### Session 2 - 2026-04-29
+
+#### Prompt (Developer)
+
+implement
+
+#### Key Decisions
+
+- `ci-verify-bootstrap-contract.sh` now treats `pg_isready` as transport readiness only and polls bootstrap contract predicates until they become true (bounded timeout), eliminating the initdb race in CI.
+- Added `check_query_or_false` so transient "DB not ready yet" query failures during init do not abort the script under `set -e`; they retry as `f`.
+- Verified locally with `bash scripts/database/ci-verify-bootstrap-contract.sh` (passed).
+
+#### Files Created/Modified
+
+- `scripts/database/ci-verify-bootstrap-contract.sh`
+- `.llm/history/active/linear-baseline-default-privs/linear-baseline-default-privs.md`
