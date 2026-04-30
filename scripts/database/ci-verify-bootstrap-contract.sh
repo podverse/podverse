@@ -100,10 +100,47 @@ check_query() {
   docker exec "$CONTAINER_NAME" env PGPASSWORD="$pass" psql -v ON_ERROR_STOP=1 -U "$user" -d "$db" -tAc "$sql"
 }
 
-app_ext="$(check_query "$DB_APP_OWNER_USER" "$DB_APP_OWNER_PASSWORD" "$DB_APP_NAME" "SELECT EXISTS (SELECT 1 FROM pg_extension WHERE extname='uuid-ossp');")"
-mgmt_ext="$(check_query "$DB_MANAGEMENT_OWNER_USER" "$DB_MANAGEMENT_OWNER_PASSWORD" "$DB_MANAGEMENT_NAME" "SELECT EXISTS (SELECT 1 FROM pg_extension WHERE extname='uuid-ossp');")"
-app_history="$(check_query "$DB_APP_OWNER_USER" "$DB_APP_OWNER_PASSWORD" "$DB_APP_NAME" "SELECT to_regclass('public.linear_migration_history') IS NOT NULL;")"
-mgmt_history="$(check_query "$DB_MANAGEMENT_OWNER_USER" "$DB_MANAGEMENT_OWNER_PASSWORD" "$DB_MANAGEMENT_NAME" "SELECT to_regclass('public.linear_migration_history') IS NOT NULL;")"
+check_query_or_false() {
+  local user="$1"
+  local pass="$2"
+  local db="$3"
+  local sql="$4"
+  local value
+
+  if value="$(check_query "$user" "$pass" "$db" "$sql" 2>/dev/null)"; then
+    echo "$value"
+    return 0
+  fi
+
+  echo "f"
+}
+
+app_ext="f"
+mgmt_ext="f"
+app_history="f"
+mgmt_history="f"
+
+# pg_isready only means the server accepts connections. The init scripts may still
+# be running, so wait for the actual bootstrap contract state before asserting.
+for attempt in $(seq 1 120); do
+  app_ext="$(check_query_or_false "$DB_APP_OWNER_USER" "$DB_APP_OWNER_PASSWORD" "$DB_APP_NAME" "SELECT EXISTS (SELECT 1 FROM pg_extension WHERE extname='uuid-ossp');")"
+  mgmt_ext="$(check_query_or_false "$DB_MANAGEMENT_OWNER_USER" "$DB_MANAGEMENT_OWNER_PASSWORD" "$DB_MANAGEMENT_NAME" "SELECT EXISTS (SELECT 1 FROM pg_extension WHERE extname='uuid-ossp');")"
+  app_history="$(check_query_or_false "$DB_APP_OWNER_USER" "$DB_APP_OWNER_PASSWORD" "$DB_APP_NAME" "SELECT to_regclass('public.linear_migration_history') IS NOT NULL;")"
+  mgmt_history="$(check_query_or_false "$DB_MANAGEMENT_OWNER_USER" "$DB_MANAGEMENT_OWNER_PASSWORD" "$DB_MANAGEMENT_NAME" "SELECT to_regclass('public.linear_migration_history') IS NOT NULL;")"
+
+  if [[ "$app_ext" == "t" && "$mgmt_ext" == "t" && "$app_history" == "t" && "$mgmt_history" == "t" ]]; then
+    break
+  fi
+
+  if [[ "$attempt" -eq 120 ]]; then
+    echo "ERROR: Bootstrap contract failed." >&2
+    echo "app_ext=$app_ext mgmt_ext=$mgmt_ext app_history=$app_history mgmt_history=$mgmt_history" >&2
+    docker logs "$CONTAINER_NAME" >&2 || true
+    exit 1
+  fi
+
+  sleep 1
+done
 
 if [[ "$app_ext" != "t" || "$mgmt_ext" != "t" || "$app_history" != "t" || "$mgmt_history" != "t" ]]; then
   echo "ERROR: Bootstrap contract failed." >&2

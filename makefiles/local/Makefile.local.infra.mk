@@ -56,6 +56,10 @@ local_db_init: infra/config/local/db.env
 	docker exec -i podverse_local_db psql -U "$$DB_APP_OWNER_USER" -d "$${DB_APP_NAME:-podverse_app}" -f /opt/database/seed-scripts/local-dev-account.sql
 	@echo "Applying management linear migrations..."
 	@$(MAKE) local_management_db_init
+	@echo "Ensuring uuid-ossp extension exists in app and management DBs..."
+	@set -a; . infra/config/local/db.env; set +a; \
+	docker exec -i podverse_local_db psql -U "$$DB_APP_OWNER_USER" -d "$${DB_APP_NAME:-podverse_app}" -c 'CREATE EXTENSION IF NOT EXISTS "uuid-ossp";'; \
+	docker exec -i podverse_local_db psql -U "$$DB_MANAGEMENT_OWNER_USER" -d "$${DB_MANAGEMENT_NAME:-podverse_management}" -c 'CREATE EXTENSION IF NOT EXISTS "uuid-ossp";'
 	@echo "Verifying DB bootstrap contract (extensions, baseline tables, grants)..."
 	@set -a; . infra/config/local/db.env; set +a; \
 	DB_HOST="localhost" DB_PORT="5432" \
