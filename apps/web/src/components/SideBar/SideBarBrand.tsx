@@ -22,6 +22,7 @@ const SideBarBrand: React.FC = () => {
         width={144}
         height={25}
         skipProxy
+        priority
       />
     </Link>
   );
