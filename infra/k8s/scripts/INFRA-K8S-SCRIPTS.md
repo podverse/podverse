@@ -58,8 +58,8 @@ bash ./infra/k8s/scripts/db/db-connect.sh alpha 5433
 1. **Checks dependencies**: Verifies kubectl, sops, and psql are installed
 2. **Extracts credentials**: Decrypts the secret file and extracts:
    - `DB_APP_NAME`
-   - `DB_APP_ADMIN_USER`
-   - `DB_APP_ADMIN_PASSWORD`
+   - `DB_APP_OWNER_USER`
+   - `DB_APP_OWNER_PASSWORD`
 3. **Port-forward**: Creates a tunnel from localhost to the database service
 4. **Connects**: Launches psql with the credentials
 5. **Cleanup**: Automatically stops the port-forward when you exit

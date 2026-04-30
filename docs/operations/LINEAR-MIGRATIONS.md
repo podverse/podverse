@@ -13,7 +13,7 @@ Bootstrap-only DB/user setup scripts live in:
 
 ## Generated init snapshots `0003a_app_linear_baseline.sql.gz` and `0003b_management_linear_baseline.sql.gz`
 
-- After `0001` and `0002` (role and database creation), **`0003_apply_linear_baselines.sh`** runs in `docker-entrypoint-initdb` order. It loads **`0003a_*.sql.gz`** into the app database as **`DB_APP_ADMIN_USER`** and **`0003b_*.sql.gz`** into the management database as **`DB_MANAGEMENT_ADMIN_USER`** (archives are mounted under `/linear-baseline/`, not as raw `.sql.gz` in `docker-entrypoint-initdb.d`, so Postgres does not apply both as the bootstrap superuser).
+- After `0001` and `0002` (role and database creation), **`0003_apply_linear_baselines.sh`** runs in `docker-entrypoint-initdb` order. It installs required extensions as **`DB_APP_OWNER_USER`** (app DB) and **`DB_MANAGEMENT_OWNER_USER`** (management DB), then loads **`0003a_*.sql.gz`** into the app database as **`DB_APP_MIGRATOR_USER`** and **`0003b_*.sql.gz`** into the management database as **`DB_MANAGEMENT_MIGRATOR_USER`** (archives are mounted under `/linear-baseline/`, not as raw `.sql.gz` in `docker-entrypoint-initdb.d`, so Postgres does not apply both as the bootstrap superuser).
 - Uncompressed content matches running the full linear app and management migration chains in a throwaway container, then **`pg_dump --schema-only --no-owner`** of each database (two files, no combined `\connect` artifact). These files are **not** hand-edited.
 - **Regenerate** after any change under `infra/k8s/base/ops/source/database/linear-migrations/` from the repo root:
 
@@ -39,5 +39,4 @@ Both app and management schemas include `linear_migration_history` with:
 
 - First deploy on a brand-new DB runs init scripts in order (`0001` → `0002` → `0003_apply` + archives → `0004`), then (if needed) migration jobs for app and management; with baselines + `0004` in place, migration jobs should find all files already applied and **skip** them.
 - Subsequent deploys rerun the same jobs; already-applied migrations are skipped via checksum-tracked history.
-- **PVCs created before `0004` existed:** `docker-entrypoint-initdb.d` does not re-run on existing data directories. Databases that already have baseline schema but empty or partial `linear_migration_history` need a **one-time** fix (run the current `0004` SQL against each DB with admin credentials, or replace the volume / restore from a dump)—otherwise ops migration jobs may still try to re-apply early migrations.
 - There is no existing-database baseline onboarding flow in this model.

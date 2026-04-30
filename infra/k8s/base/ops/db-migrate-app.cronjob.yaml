@@ -38,6 +38,16 @@ spec:
                   value: "podverse-db"
                 - name: DB_PORT
                   value: "5432"
+                - name: DB_APP_MIGRATOR_USER
+                  valueFrom:
+                    secretKeyRef:
+                      name: podverse-db-opaque
+                      key: DB_APP_MIGRATOR_USER
+                - name: DB_APP_MIGRATOR_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: podverse-db-opaque
+                      key: DB_APP_MIGRATOR_PASSWORD
                 - name: LINEAR_MIGRATIONS_BASE_DIR
                   value: "/opt/infra/k8s/base/ops/source/database/linear-migrations"
                 - name: MIGRATION_BUNDLE_SHA

@@ -21,7 +21,7 @@ spec:
                 - "sh"
                 - "-c"
                 - >-
-                  psql -h "$PODVERSE_DB_SERVICE_HOST" -p "$PODVERSE_DB_SERVICE_PORT" -U "$DB_APP_ADMIN_USER" -d "$DB_APP_NAME" -c
+                  psql -h "$PODVERSE_DB_SERVICE_HOST" -p "$PODVERSE_DB_SERVICE_PORT" -U "$DB_APP_OWNER_USER" -d "$DB_APP_NAME" -c
                   "DROP SCHEMA public CASCADE; CREATE SCHEMA public;"
 
               envFrom:
@@ -34,6 +34,6 @@ spec:
                   valueFrom:
                     secretKeyRef:
                       name: podverse-db-opaque
-                      key: DB_APP_ADMIN_PASSWORD
+                      key: DB_APP_OWNER_PASSWORD
 
           restartPolicy: Never

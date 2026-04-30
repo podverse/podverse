@@ -61,25 +61,30 @@ fi
 # ------------------------------------------------------------------
 # INPUTS
 # ------------------------------------------------------------------
-DEFAULT_DB="podverse_management"
-DEFAULT_USER="postgres_user_management"
-DEFAULT_READ_USER="podverse_management_read"
+DEFAULT_MANAGEMENT_DB="podverse_management"
+DEFAULT_MANAGEMENT_OWNER_USER="podverse_management_owner"
+DEFAULT_MIGRATOR_USER="podverse_management_migrator"
 DEFAULT_READ_WRITE_USER="podverse_management_read_write"
+DEFAULT_READ_USER="podverse_management_read"
 
 if [ "$AUTO_GEN" = true ]; then
   echo "Auto-generating secrets..."
-  DB_MANAGEMENT_NAME="$DEFAULT_DB"
-  DB_MANAGEMENT_ADMIN_USER="$DEFAULT_USER"
-  DB_MANAGEMENT_READ_USER="$DEFAULT_READ_USER"
+  DB_MANAGEMENT_NAME="$DEFAULT_MANAGEMENT_DB"
+  DB_MANAGEMENT_OWNER_USER="$DEFAULT_MANAGEMENT_OWNER_USER"
+  DB_MANAGEMENT_MIGRATOR_USER="$DEFAULT_MIGRATOR_USER"
   DB_MANAGEMENT_READ_WRITE_USER="$DEFAULT_READ_WRITE_USER"
-  DB_MANAGEMENT_ADMIN_PASSWORD=$(generate_password)
-  DB_MANAGEMENT_READ_PASSWORD=$(generate_password)
+  DB_MANAGEMENT_READ_USER="$DEFAULT_READ_USER"
+  DB_MANAGEMENT_OWNER_PASSWORD=$(generate_password)
+  DB_MANAGEMENT_MIGRATOR_PASSWORD=$(generate_password)
   DB_MANAGEMENT_READ_WRITE_PASSWORD=$(generate_password)
+  DB_MANAGEMENT_READ_PASSWORD=$(generate_password)
   echo "  DB_MANAGEMENT_NAME: $DB_MANAGEMENT_NAME"
-  echo "  DB_MANAGEMENT_ADMIN_USER: $DB_MANAGEMENT_ADMIN_USER"
-  echo "  DB_MANAGEMENT_ADMIN_PASSWORD: [generated]"
-  echo "  DB_MANAGEMENT_READ_PASSWORD: [generated]"
+  echo "  DB_MANAGEMENT_OWNER_USER: $DB_MANAGEMENT_OWNER_USER"
+  echo "  DB_MANAGEMENT_MIGRATOR_USER: $DB_MANAGEMENT_MIGRATOR_USER"
+  echo "  DB_MANAGEMENT_OWNER_PASSWORD: [generated]"
+  echo "  DB_MANAGEMENT_MIGRATOR_PASSWORD: [generated]"
   echo "  DB_MANAGEMENT_READ_WRITE_PASSWORD: [generated]"
+  echo "  DB_MANAGEMENT_READ_PASSWORD: [generated]"
 else
   echo "You are generating the Management DB credentials."
   echo "Press Enter to use the default value."
@@ -87,27 +92,45 @@ else
 
   echo ""
   echo "--- DBNAME INPUTS ---"
-  read -r -p "DB_MANAGEMENT_NAME [${DEFAULT_DB}]: " INPUT_DB
-  DB_MANAGEMENT_NAME="${INPUT_DB:-$DEFAULT_DB}"
+  read -r -p "DB_MANAGEMENT_NAME [${DEFAULT_MANAGEMENT_DB}]: " INPUT_DB
+  DB_MANAGEMENT_NAME="${INPUT_DB:-$DEFAULT_MANAGEMENT_DB}"
   echo ""
   echo "--- USERNAME INPUTS ---"
   echo "--- ADMIN USER ---"
-  read -r -p "DB_MANAGEMENT_ADMIN_USER [${DEFAULT_USER}]: " INPUT_USER
-  DB_MANAGEMENT_ADMIN_USER="${INPUT_USER:-$DEFAULT_USER}"
+  read -r -p "DB_MANAGEMENT_OWNER_USER [${DEFAULT_MANAGEMENT_OWNER_USER}]: " INPUT_USER
+  DB_MANAGEMENT_OWNER_USER="${INPUT_USER:-$DEFAULT_MANAGEMENT_OWNER_USER}"
   echo ""
-  echo "--- READ-ONLY USER ---"
-  read -r -p "DB_MANAGEMENT_READ_USER [${DEFAULT_READ_USER}]: " INPUT_READ_USER
-  DB_MANAGEMENT_READ_USER="${INPUT_READ_USER:-$DEFAULT_READ_USER}"
+  echo "--- MIGRATOR USER ---"
+  read -r -p "DB_MANAGEMENT_MIGRATOR_USER [${DEFAULT_MIGRATOR_USER}]: " INPUT_MIGRATOR_USER
+  DB_MANAGEMENT_MIGRATOR_USER="${INPUT_MIGRATOR_USER:-$DEFAULT_MIGRATOR_USER}"
   echo ""
   echo "--- READ-WRITE USER ---"
   read -r -p "DB_MANAGEMENT_READ_WRITE_USER [${DEFAULT_READ_WRITE_USER}]: " INPUT_READ_WRITE_USER
   DB_MANAGEMENT_READ_WRITE_USER="${INPUT_READ_WRITE_USER:-$DEFAULT_READ_WRITE_USER}"
+  echo ""
+  echo "--- READ-ONLY USER ---"
+  read -r -p "DB_MANAGEMENT_READ_USER [${DEFAULT_READ_USER}]: " INPUT_READ_USER
+  DB_MANAGEMENT_READ_USER="${INPUT_READ_USER:-$DEFAULT_READ_USER}"
 
   echo ""
   echo "--- SENSITIVE INPUTS ---"
-  read -r -s -p "Enter DB_MANAGEMENT_ADMIN_PASSWORD (Admin): " DB_MANAGEMENT_ADMIN_PASSWORD
+  read -r -s -p "Enter DB_MANAGEMENT_OWNER_PASSWORD (Owner): " DB_MANAGEMENT_OWNER_PASSWORD
   echo ""
-  if [ -z "$DB_MANAGEMENT_ADMIN_PASSWORD" ]; then
+  if [ -z "$DB_MANAGEMENT_OWNER_PASSWORD" ]; then
+    echo "Error: Password required."
+    exit 1
+  fi
+
+  read -r -s -p "Enter DB_MANAGEMENT_MIGRATOR_PASSWORD (Migrator User): " DB_MANAGEMENT_MIGRATOR_PASSWORD
+  echo ""
+  if [ -z "$DB_MANAGEMENT_MIGRATOR_PASSWORD" ]; then
+    echo "Error: Password required."
+    exit 1
+  fi
+
+  read -r -s -p "Enter DB_MANAGEMENT_READ_WRITE_PASSWORD (Read-Write User): " DB_MANAGEMENT_READ_WRITE_PASSWORD
+  echo ""
+  if [ -z "$DB_MANAGEMENT_READ_WRITE_PASSWORD" ]; then
     echo "Error: Password required."
     exit 1
   fi
@@ -115,13 +138,6 @@ else
   read -r -s -p "Enter DB_MANAGEMENT_READ_PASSWORD (Read-only User): " DB_MANAGEMENT_READ_PASSWORD
   echo ""
   if [ -z "$DB_MANAGEMENT_READ_PASSWORD" ]; then
-    echo "Error: Password required."
-    exit 1
-  fi
-
-  read -r -s -p "Enter DB_MANAGEMENT_READ_WRITE_PASSWORD (App User): " DB_MANAGEMENT_READ_WRITE_PASSWORD
-  echo ""
-  if [ -z "$DB_MANAGEMENT_READ_WRITE_PASSWORD" ]; then
     echo "Error: Password required."
     exit 1
   fi
@@ -143,12 +159,14 @@ mv "$TMP_FILE_BASE" "$TMP_FILE"
 kubectl create secret generic "${SECRET_NAME}" \
   --namespace "${NAMESPACE}" \
   --from-literal=DB_MANAGEMENT_NAME="${DB_MANAGEMENT_NAME}" \
-  --from-literal=DB_MANAGEMENT_ADMIN_USER="${DB_MANAGEMENT_ADMIN_USER}" \
-  --from-literal=DB_MANAGEMENT_ADMIN_PASSWORD="${DB_MANAGEMENT_ADMIN_PASSWORD}" \
-  --from-literal=DB_MANAGEMENT_READ_USER="${DB_MANAGEMENT_READ_USER}" \
-  --from-literal=DB_MANAGEMENT_READ_PASSWORD="${DB_MANAGEMENT_READ_PASSWORD}" \
+  --from-literal=DB_MANAGEMENT_OWNER_USER="${DB_MANAGEMENT_OWNER_USER}" \
+  --from-literal=DB_MANAGEMENT_OWNER_PASSWORD="${DB_MANAGEMENT_OWNER_PASSWORD}" \
+  --from-literal=DB_MANAGEMENT_MIGRATOR_USER="${DB_MANAGEMENT_MIGRATOR_USER}" \
+  --from-literal=DB_MANAGEMENT_MIGRATOR_PASSWORD="${DB_MANAGEMENT_MIGRATOR_PASSWORD}" \
   --from-literal=DB_MANAGEMENT_READ_WRITE_USER="${DB_MANAGEMENT_READ_WRITE_USER}" \
   --from-literal=DB_MANAGEMENT_READ_WRITE_PASSWORD="${DB_MANAGEMENT_READ_WRITE_PASSWORD}" \
+  --from-literal=DB_MANAGEMENT_READ_USER="${DB_MANAGEMENT_READ_USER}" \
+  --from-literal=DB_MANAGEMENT_READ_PASSWORD="${DB_MANAGEMENT_READ_PASSWORD}" \
   --dry-run=client -o yaml >"$TMP_FILE"
 
 sops --config .sops.yaml --encrypt --encrypted-regex '^(data|stringData)$' \

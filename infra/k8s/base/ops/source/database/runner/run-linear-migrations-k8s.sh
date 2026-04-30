@@ -3,8 +3,8 @@
 #
 # Required:
 #   MIGRATION_DATABASE=app|management
-#   App: DB_HOST, DB_PORT, DB_APP_ADMIN_USER, DB_APP_ADMIN_PASSWORD, DB_APP_NAME
-#   Management: DB_HOST, DB_PORT, DB_MANAGEMENT_ADMIN_USER, DB_MANAGEMENT_ADMIN_PASSWORD, DB_MANAGEMENT_NAME
+#   App: DB_HOST, DB_PORT, DB_APP_MIGRATOR_USER, DB_APP_MIGRATOR_PASSWORD, DB_APP_NAME
+#   Management: DB_HOST, DB_PORT, DB_MANAGEMENT_MIGRATOR_USER, DB_MANAGEMENT_MIGRATOR_PASSWORD, DB_MANAGEMENT_NAME
 #   LINEAR_MIGRATIONS_BASE_DIR (optional; defaults to /opt/infra/k8s/base/ops/source/database/linear-migrations)
 
 set -euo pipefail
@@ -60,13 +60,13 @@ export LINEAR_MIGRATIONS_BASE_DIR="${LINEAR_MIGRATIONS_BASE_DIR:-/opt/infra/k8s/
 export LINEAR_MIGRATIONS_DIR="${LINEAR_MIGRATIONS_DIR:-$LINEAR_MIGRATIONS_BASE_DIR/$MIGRATION_DATABASE}"
 
 if [[ "$MIGRATION_DATABASE" == "app" ]]; then
-  if [[ -z "${DB_HOST:-}" || -z "${DB_PORT:-}" || -z "${DB_APP_ADMIN_USER:-}" || -z "${DB_APP_ADMIN_PASSWORD:-}" || -z "${DB_APP_NAME:-}" ]]; then
-    echo "Missing required env for K8s app migration: DB_HOST, DB_PORT, DB_APP_ADMIN_USER, DB_APP_ADMIN_PASSWORD, DB_APP_NAME."
+  if [[ -z "${DB_HOST:-}" || -z "${DB_PORT:-}" || -z "${DB_APP_MIGRATOR_USER:-}" || -z "${DB_APP_MIGRATOR_PASSWORD:-}" || -z "${DB_APP_NAME:-}" ]]; then
+    echo "Missing required env for K8s app migration: DB_HOST, DB_PORT, DB_APP_MIGRATOR_USER, DB_APP_MIGRATOR_PASSWORD, DB_APP_NAME."
     exit 1
   fi
 else
-  if [[ -z "${DB_HOST:-}" || -z "${DB_PORT:-}" || -z "${DB_MANAGEMENT_ADMIN_USER:-}" || -z "${DB_MANAGEMENT_ADMIN_PASSWORD:-}" || -z "${DB_MANAGEMENT_NAME:-}" ]]; then
-    echo "Missing required env for K8s management migration: DB_HOST, DB_PORT, DB_MANAGEMENT_ADMIN_USER, DB_MANAGEMENT_ADMIN_PASSWORD, DB_MANAGEMENT_NAME."
+  if [[ -z "${DB_HOST:-}" || -z "${DB_PORT:-}" || -z "${DB_MANAGEMENT_MIGRATOR_USER:-}" || -z "${DB_MANAGEMENT_MIGRATOR_PASSWORD:-}" || -z "${DB_MANAGEMENT_NAME:-}" ]]; then
+    echo "Missing required env for K8s management migration: DB_HOST, DB_PORT, DB_MANAGEMENT_MIGRATOR_USER, DB_MANAGEMENT_MIGRATOR_PASSWORD, DB_MANAGEMENT_NAME."
     exit 1
   fi
 fi

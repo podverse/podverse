@@ -186,7 +186,7 @@ export class DatabaseSetup {
   }
 
   private async runPsqlCommand(sql: string): Promise<void> {
-    const command = `docker exec -i ${this.containerName} psql -U postgres -d postgres -v ON_ERROR_STOP=1 -c "${sql}"`;
+    const command = `docker exec -i ${this.containerName} psql -U podverse_app_owner -d podverse_app -v ON_ERROR_STOP=1 -c "${sql}"`;
     await execAsync(command, {
       env: { ...process.env },
       maxBuffer: 10 * 1024 * 1024,
@@ -195,7 +195,7 @@ export class DatabaseSetup {
 
   private async runLinearMigrations(): Promise<void> {
     const command =
-      'DB_HOST="127.0.0.1" DB_PORT="5111" DB_APP_ADMIN_USER="postgres" DB_APP_ADMIN_PASSWORD="mysecretpw" DB_APP_NAME="postgres" bash scripts/database/run-linear-migrations.sh --database app';
+      'DB_HOST="127.0.0.1" DB_PORT="5111" DB_APP_OWNER_USER="podverse_app_owner" DB_APP_OWNER_PASSWORD="mysecretpw" DB_APP_NAME="podverse_app" bash scripts/database/run-linear-migrations.sh --database app';
     await execAsync(command, {
       env: { ...process.env },
       maxBuffer: 10 * 1024 * 1024,

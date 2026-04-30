@@ -93,7 +93,7 @@ Run `npx playwright install` before your first Lighthouse run; it is required fo
 
       ```bash
       docker compose -f tools/web-perf/lighthouse/docker/docker-compose.yml up -d
-      DB_HOST=127.0.0.1 DB_PORT=5111 DB_APP_ADMIN_USER=postgres DB_APP_ADMIN_PASSWORD=mysecretpw DB_APP_NAME=postgres \
+      DB_HOST=127.0.0.1 DB_PORT=5111 DB_APP_OWNER_USER=podverse_app_owner DB_APP_OWNER_PASSWORD=mysecretpw DB_APP_NAME=podverse_app \
         bash scripts/database/run-linear-migrations.sh --database app
       # Then load .env.api and run: npm run generate_and_parse -w podverse-test-assets
       # (or let Lighthouse do the reset + populate when you run npm run lighthouse)
@@ -320,7 +320,7 @@ to keep the tool aligned with infra changes.
 
   ```bash
   docker compose -f tools/web-perf/lighthouse/docker/docker-compose.yml up -d
-  DB_HOST=127.0.0.1 DB_PORT=5111 DB_APP_ADMIN_USER=postgres DB_APP_ADMIN_PASSWORD=mysecretpw DB_APP_NAME=postgres \
+  DB_HOST=127.0.0.1 DB_PORT=5111 DB_APP_OWNER_USER=podverse_app_owner DB_APP_OWNER_PASSWORD=mysecretpw DB_APP_NAME=podverse_app \
     bash scripts/database/run-linear-migrations.sh --database app
   # Load .env.api, then: npm run generate_and_parse -w podverse-test-assets
   ```

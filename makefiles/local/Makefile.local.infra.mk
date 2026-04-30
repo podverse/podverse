@@ -33,27 +33,27 @@ local_db_down:
 local_db_reset:
 	@echo "Dropping and recreating public schema..."
 	@set -a; . infra/config/local/db.env; set +a; \
-	docker exec -i podverse_local_db psql -U "$$DB_APP_ADMIN_USER" -d "$${DB_APP_NAME:-podverse_app}" -c "DROP SCHEMA public CASCADE; CREATE SCHEMA public; GRANT ALL ON SCHEMA public TO \"$$DB_APP_ADMIN_USER\"; GRANT ALL ON SCHEMA public TO public;"
+	docker exec -i podverse_local_db psql -U "$$DB_APP_OWNER_USER" -d "$${DB_APP_NAME:-podverse_app}" -c "DROP SCHEMA public CASCADE; CREATE SCHEMA public; GRANT ALL ON SCHEMA public TO \"$$DB_APP_OWNER_USER\"; GRANT ALL ON SCHEMA public TO public;"
 
 local_db_init: infra/config/local/db.env
 	@echo "Waiting for database to be ready..."
 	@set -a; . infra/config/local/db.env; set +a; \
 	for i in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30; do \
-		if docker exec podverse_local_db pg_isready -U "$$DB_APP_ADMIN_USER" > /dev/null 2>&1; then break; fi; \
+		if docker exec podverse_local_db pg_isready -U "$$DB_APP_OWNER_USER" > /dev/null 2>&1; then break; fi; \
 		echo "  Database not ready, waiting... ($$i/30)"; \
 		if [ "$$i" -eq 30 ]; then echo "Database did not become ready in time."; exit 1; fi; \
 		sleep 2; \
 	done
 	@echo "Applying app linear migrations..."
 	@set -a; . infra/config/local/db.env; set +a; \
-	DB_HOST="localhost" DB_PORT="5432" DB_NAME="$${DB_APP_NAME:-podverse_app}" DB_USER="$$DB_APP_ADMIN_USER" DB_PASSWORD="$$DB_APP_ADMIN_PASSWORD" \
+	DB_HOST="localhost" DB_PORT="5432" DB_NAME="$${DB_APP_NAME:-podverse_app}" DB_USER="$$DB_APP_OWNER_USER" DB_PASSWORD="$$DB_APP_OWNER_PASSWORD" \
 	bash scripts/database/run-linear-migrations.sh --database app
 	@echo "Syncing app read roles and grants (bootstrap 0001)..."
 	@set -a; . infra/config/local/db.env; set +a; \
 	bash scripts/database/run-postgres-bootstrap-in-container.sh podverse_local_db infra/config/local/db.env 1
 	@echo "Seeding local dev account..."
 	@set -a; . infra/config/local/db.env; set +a; \
-	docker exec -i podverse_local_db psql -U "$$DB_APP_ADMIN_USER" -d "$${DB_APP_NAME:-podverse_app}" -f /opt/database/seed-scripts/local-dev-account.sql
+	docker exec -i podverse_local_db psql -U "$$DB_APP_OWNER_USER" -d "$${DB_APP_NAME:-podverse_app}" -f /opt/database/seed-scripts/local-dev-account.sql
 	@echo "Applying management linear migrations..."
 	@$(MAKE) local_management_db_init
 	@echo "Next step: make local_management_superuser_create"
@@ -84,7 +84,7 @@ local_workers_down:
 local_management_db_reset:
 	@echo "Dropping and recreating public schema..."
 	@set -a; . infra/config/local/db.env; set +a; \
-	docker exec -i podverse_local_db psql -U "$$DB_MANAGEMENT_ADMIN_USER" -d "$${DB_MANAGEMENT_NAME:-podverse_management}" -c "DROP SCHEMA public CASCADE; CREATE SCHEMA public; GRANT ALL ON SCHEMA public TO \"$$DB_MANAGEMENT_ADMIN_USER\"; GRANT ALL ON SCHEMA public TO public;"
+	docker exec -i podverse_local_db psql -U "$$DB_MANAGEMENT_OWNER_USER" -d "$${DB_MANAGEMENT_NAME:-podverse_management}" -c "DROP SCHEMA public CASCADE; CREATE SCHEMA public; GRANT ALL ON SCHEMA public TO \"$$DB_MANAGEMENT_OWNER_USER\"; GRANT ALL ON SCHEMA public TO public;"
 
 local_management_db_init: infra/config/local/db.env
 	@echo "Syncing management DB roles and passwords (bootstrap 0002)..."
@@ -93,14 +93,14 @@ local_management_db_init: infra/config/local/db.env
 	@echo "Waiting for management database to be ready..."
 	@set -a; . infra/config/local/db.env; set +a; \
 	for i in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30; do \
-		if docker exec podverse_local_db pg_isready -U "$$DB_APP_ADMIN_USER" > /dev/null 2>&1; then break; fi; \
+		if docker exec podverse_local_db pg_isready -U "$$DB_APP_OWNER_USER" > /dev/null 2>&1; then break; fi; \
 		echo "  Management database not ready, waiting... ($$i/30)"; \
 		if [ "$$i" -eq 30 ]; then echo "Management database did not become ready in time."; exit 1; fi; \
 		sleep 2; \
 	done
 	@echo "Applying management linear migrations..."
 	@set -a; . infra/config/local/db.env; set +a; \
-	DB_HOST="localhost" DB_PORT="5432" DB_NAME="$${DB_MANAGEMENT_NAME:-podverse_management}" DB_USER="$$DB_MANAGEMENT_ADMIN_USER" DB_PASSWORD="$$DB_MANAGEMENT_ADMIN_PASSWORD" \
+	DB_HOST="localhost" DB_PORT="5432" DB_NAME="$${DB_MANAGEMENT_NAME:-podverse_management}" DB_USER="$$DB_MANAGEMENT_OWNER_USER" DB_PASSWORD="$$DB_MANAGEMENT_OWNER_PASSWORD" \
 	bash scripts/database/run-linear-migrations.sh --database management
 	@echo "Next step: make local_management_superuser_create"
 

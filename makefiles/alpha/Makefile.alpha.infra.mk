@@ -26,18 +26,18 @@ alpha_db_down:
 alpha_db_reset:
 	@echo "Dropping and recreating public schema..."
 	@set -a; . infra/config/alpha/db.env; set +a; \
-	docker exec -i podverse_alpha_db psql -U "$$DB_APP_ADMIN_USER" -d "$${DB_APP_NAME:-podverse_app}" -c "DROP SCHEMA public CASCADE; CREATE SCHEMA public; GRANT ALL ON SCHEMA public TO \"$$DB_APP_ADMIN_USER\"; GRANT ALL ON SCHEMA public TO public;"
+	docker exec -i podverse_alpha_db psql -U "$$DB_APP_OWNER_USER" -d "$${DB_APP_NAME:-podverse_app}" -c "DROP SCHEMA public CASCADE; CREATE SCHEMA public; GRANT ALL ON SCHEMA public TO \"$$DB_APP_OWNER_USER\"; GRANT ALL ON SCHEMA public TO public;"
 
 alpha_db_init: infra/config/alpha/db.env
 	@echo "Waiting for database to be ready..."
 	@set -a; . infra/config/alpha/db.env; set +a; \
-	until docker exec podverse_alpha_db pg_isready -U "$$DB_APP_ADMIN_USER" > /dev/null 2>&1; do \
+	until docker exec podverse_alpha_db pg_isready -U "$$DB_APP_OWNER_USER" > /dev/null 2>&1; do \
 		echo "  Database not ready, waiting..."; \
 		sleep 2; \
 	done
 	@echo "Applying app linear migrations..."
 	@set -a; . infra/config/alpha/db.env; set +a; \
-	DB_HOST="localhost" DB_PORT="5432" DB_NAME="$${DB_APP_NAME:-podverse_app}" DB_USER="$$DB_APP_ADMIN_USER" DB_PASSWORD="$$DB_APP_ADMIN_PASSWORD" \
+	DB_HOST="localhost" DB_PORT="5432" DB_NAME="$${DB_APP_NAME:-podverse_app}" DB_USER="$$DB_APP_OWNER_USER" DB_PASSWORD="$$DB_APP_OWNER_PASSWORD" \
 	bash scripts/database/run-linear-migrations.sh --database app
 	@echo "Syncing app read roles and grants (bootstrap 0001)..."
 	@set -a; . infra/config/alpha/db.env; set +a; \
@@ -145,7 +145,7 @@ alpha_management_db_down:
 alpha_management_db_reset:
 	@echo "Dropping and recreating public schema..."
 	@set -a; . infra/config/alpha/db.env; set +a; \
-	docker exec -i podverse_alpha_db psql -U "$$DB_MANAGEMENT_ADMIN_USER" -d "$${DB_MANAGEMENT_NAME:-podverse_management}" -c "DROP SCHEMA public CASCADE; CREATE SCHEMA public; GRANT ALL ON SCHEMA public TO \"$$DB_MANAGEMENT_ADMIN_USER\"; GRANT ALL ON SCHEMA public TO public;"
+	docker exec -i podverse_alpha_db psql -U "$$DB_MANAGEMENT_OWNER_USER" -d "$${DB_MANAGEMENT_NAME:-podverse_management}" -c "DROP SCHEMA public CASCADE; CREATE SCHEMA public; GRANT ALL ON SCHEMA public TO \"$$DB_MANAGEMENT_OWNER_USER\"; GRANT ALL ON SCHEMA public TO public;"
 
 alpha_management_db_init: infra/config/alpha/db.env
 	@echo "Syncing management DB roles and passwords (bootstrap 0002)..."
@@ -153,13 +153,13 @@ alpha_management_db_init: infra/config/alpha/db.env
 	bash scripts/database/run-postgres-bootstrap-in-container.sh podverse_alpha_db infra/config/alpha/db.env 2
 	@echo "Waiting for management database to be ready..."
 	@set -a; . infra/config/alpha/db.env; set +a; \
-	until docker exec podverse_alpha_db pg_isready -U "$$DB_APP_ADMIN_USER" > /dev/null 2>&1; do \
+	until docker exec podverse_alpha_db pg_isready -U "$$DB_APP_OWNER_USER" > /dev/null 2>&1; do \
 		echo "  Management database not ready, waiting..."; \
 		sleep 2; \
 	done
 	@echo "Applying management linear migrations..."
 	@set -a; . infra/config/alpha/db.env; set +a; \
-	DB_HOST="localhost" DB_PORT="5432" DB_NAME="$${DB_MANAGEMENT_NAME:-podverse_management}" DB_USER="$$DB_MANAGEMENT_ADMIN_USER" DB_PASSWORD="$$DB_MANAGEMENT_ADMIN_PASSWORD" \
+	DB_HOST="localhost" DB_PORT="5432" DB_NAME="$${DB_MANAGEMENT_NAME:-podverse_management}" DB_USER="$$DB_MANAGEMENT_OWNER_USER" DB_PASSWORD="$$DB_MANAGEMENT_OWNER_PASSWORD" \
 	bash scripts/database/run-linear-migrations.sh --database management
 	@echo "Next step: make alpha_management_superuser_create"
 

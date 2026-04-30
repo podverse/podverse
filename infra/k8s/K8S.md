@@ -62,10 +62,18 @@ We use SOPS to encrypt secrets. Run the helper scripts in `infra/k8s/scripts/sec
 Before running the scripts, ensure you have the following ready:
 
 - **Database Credentials** (`create_db_secret.sh`):
-  - You will need to invent 3 passwords:
-    - `DB_APP_ADMIN_PASSWORD` (app database admin role, for bootstrap)
-    - `DB_APP_READ_PASSWORD` (read-only app DB user)
+  - You will need to invent 4 passwords:
+    - `DB_APP_OWNER_PASSWORD` (app database owner role, for bootstrap)
+    - `DB_APP_MIGRATOR_PASSWORD` (app database migrator role, for linear migrations)
     - `DB_APP_READ_WRITE_PASSWORD` (read/write app DB user)
+    - `DB_APP_READ_PASSWORD` (read-only app DB user)
+
+- **Management DB Credentials** (`create_management_db_secret.sh`):
+  - You will need to invent 4 passwords:
+    - `DB_MANAGEMENT_OWNER_PASSWORD` (management database owner role, for bootstrap)
+    - `DB_MANAGEMENT_MIGRATOR_PASSWORD` (management database migrator role, for linear migrations)
+    - `DB_MANAGEMENT_READ_WRITE_PASSWORD` (read/write management DB user)
+    - `DB_MANAGEMENT_READ_PASSWORD` (read-only management DB user)
 
 - **Message Queue Credentials** (`create_mq_secret.sh`):
   - An `MQ_PASSWORD` for the admin user.
@@ -90,6 +98,7 @@ Before running the scripts, ensure you have the following ready:
 ```bash
 # Run each script and follow the prompts
 bash ./infra/k8s/scripts/secret-generators/create_db_secret.sh
+bash ./infra/k8s/scripts/secret-generators/create_management_db_secret.sh
 bash ./infra/k8s/scripts/secret-generators/create_mq_secret.sh
 bash ./infra/k8s/scripts/secret-generators/create_api_secret.sh
 bash ./infra/k8s/scripts/secret-generators/create_mailer_secret.sh

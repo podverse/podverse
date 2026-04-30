@@ -155,14 +155,16 @@ function getDbConfig() {
   const user =
     process.env.DB_USER ||
     process.env.DB_MANAGEMENT_READ_WRITE_USER ||
-    process.env.DB_MANAGEMENT_ADMIN_USER ||
-    process.env.DB_APP_ADMIN_USER ||
+    process.env.DB_MANAGEMENT_OWNER_USER ||
+    process.env.DB_MANAGEMENT_MIGRATOR_USER ||
+    process.env.DB_APP_OWNER_USER ||
     '';
   const password =
     process.env.DB_PASSWORD ||
     process.env.DB_MANAGEMENT_READ_WRITE_PASSWORD ||
-    process.env.DB_MANAGEMENT_ADMIN_PASSWORD ||
-    process.env.DB_APP_ADMIN_PASSWORD ||
+    process.env.DB_MANAGEMENT_OWNER_PASSWORD ||
+    process.env.DB_MANAGEMENT_MIGRATOR_PASSWORD ||
+    process.env.DB_APP_OWNER_PASSWORD ||
     '';
 
   if (!user || !password) {

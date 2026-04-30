@@ -69,13 +69,13 @@ docker rm -f "$CONTAINER_NAME" >/dev/null 2>&1 || true
 # shellcheck disable=SC2016
 docker run -d --name "$CONTAINER_NAME" \
   -v "$REPO_ROOT:/work" \
-  -e "POSTGRES_USER=$DB_APP_ADMIN_USER" \
-  -e "POSTGRES_PASSWORD=$DB_APP_ADMIN_PASSWORD" \
+  -e "POSTGRES_USER=$DB_APP_OWNER_USER" \
+  -e "POSTGRES_PASSWORD=$DB_APP_OWNER_PASSWORD" \
   -e "POSTGRES_DB=$DB_APP_NAME" \
   postgres:18.3
 
 for _ in $(seq 1 60); do
-  if docker exec "$CONTAINER_NAME" pg_isready -U "$DB_APP_ADMIN_USER" -d "$DB_APP_NAME" -h 127.0.0.1 -p 5432 >/dev/null 2>&1; then
+  if docker exec "$CONTAINER_NAME" pg_isready -U "$DB_APP_OWNER_USER" -d "$DB_APP_NAME" -h 127.0.0.1 -p 5432 >/dev/null 2>&1; then
     break
   fi
   sleep 0.5
@@ -99,12 +99,12 @@ bash /work/scripts/database/run-linear-migrations.sh --database management
 INNER
 
 # shellcheck disable=SC2016,SC2029
-docker exec -e "PGPASSWORD=$DB_APP_ADMIN_PASSWORD" "$CONTAINER_NAME" \
-  pg_dump -h 127.0.0.1 -p 5432 -U "$DB_APP_ADMIN_USER" -d "$DB_APP_NAME" --schema-only --no-owner > "$APP_DUMP"
+docker exec -e "PGPASSWORD=$DB_APP_MIGRATOR_PASSWORD" "$CONTAINER_NAME" \
+  pg_dump -h 127.0.0.1 -p 5432 -U "$DB_APP_MIGRATOR_USER" -d "$DB_APP_NAME" --schema-only --no-owner > "$APP_DUMP"
 
 # shellcheck disable=SC2016,SC2029
-docker exec -e "PGPASSWORD=$DB_MANAGEMENT_ADMIN_PASSWORD" "$CONTAINER_NAME" \
-  pg_dump -h 127.0.0.1 -p 5432 -U "$DB_MANAGEMENT_ADMIN_USER" -d "$DB_MANAGEMENT_NAME" --schema-only --no-owner > "$MGT_DUMP"
+docker exec -e "PGPASSWORD=$DB_MANAGEMENT_MIGRATOR_PASSWORD" "$CONTAINER_NAME" \
+  pg_dump -h 127.0.0.1 -p 5432 -U "$DB_MANAGEMENT_MIGRATOR_USER" -d "$DB_MANAGEMENT_NAME" --schema-only --no-owner > "$MGT_DUMP"
 
 for f in "$APP_DUMP" "$MGT_DUMP"; do
   if grep -qE '^\\(un)?restrict ' "$f" 2>/dev/null; then
@@ -114,14 +114,14 @@ done
 
 {
   printf '%s\n' "-- GENERATED FILE (do not edit) — see scripts/database/generate-linear-baseline.sh and docs/operations/LINEAR-MIGRATIONS.md" ""
-  printf '%s\n' "-- App database schema only (applied as DB_APP_ADMIN_USER via 0003_apply_linear_baselines.sh)." ""
+  printf '%s\n' "-- App database schema only (applied as DB_APP_MIGRATOR_USER via 0003_apply_linear_baselines.sh)." ""
   cat "$APP_DUMP"
   printf '\n'
 } >"$TMP_APP_SQL"
 
 {
   printf '%s\n' "-- GENERATED FILE (do not edit) — see scripts/database/generate-linear-baseline.sh and docs/operations/LINEAR-MIGRATIONS.md" ""
-  printf '%s\n' "-- Management database schema only (applied as DB_MANAGEMENT_ADMIN_USER via 0003_apply_linear_baselines.sh)." ""
+  printf '%s\n' "-- Management database schema only (applied as DB_MANAGEMENT_MIGRATOR_USER via 0003_apply_linear_baselines.sh)." ""
   cat "$MGT_DUMP"
   printf '\n'
 } >"$TMP_MGT_SQL"

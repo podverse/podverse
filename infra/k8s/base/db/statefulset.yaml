@@ -31,12 +31,12 @@ spec:
               valueFrom:
                 secretKeyRef:
                   name: podverse-db-opaque
-                  key: DB_APP_ADMIN_USER
+                  key: DB_APP_OWNER_USER
             - name: POSTGRES_PASSWORD
               valueFrom:
                 secretKeyRef:
                   name: podverse-db-opaque
-                  key: DB_APP_ADMIN_PASSWORD
+                  key: DB_APP_OWNER_PASSWORD
           args:
             - "-c"
             - "max_connections=100"

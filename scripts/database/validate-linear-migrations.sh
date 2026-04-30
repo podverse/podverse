@@ -173,8 +173,8 @@ if [[ "$CHECK_DB" == true ]]; then
     echo "✓ $database DB checksum validation passed"
   }
 
-  validate_db_checksums "app" "${DB_APP_ADMIN_USER}" "${DB_APP_ADMIN_PASSWORD}" "${DB_APP_NAME:-podverse_app}" "$REPO_ROOT/infra/k8s/base/ops/source/database/linear-migrations/app"
-  validate_db_checksums "management" "${DB_MANAGEMENT_ADMIN_USER}" "${DB_MANAGEMENT_ADMIN_PASSWORD}" "${DB_MANAGEMENT_NAME:-podverse_management}" "$REPO_ROOT/infra/k8s/base/ops/source/database/linear-migrations/management"
+  validate_db_checksums "app" "${DB_APP_MIGRATOR_USER}" "${DB_APP_MIGRATOR_PASSWORD}" "${DB_APP_NAME:-podverse_app}" "$REPO_ROOT/infra/k8s/base/ops/source/database/linear-migrations/app"
+  validate_db_checksums "management" "${DB_MANAGEMENT_MIGRATOR_USER}" "${DB_MANAGEMENT_MIGRATOR_PASSWORD}" "${DB_MANAGEMENT_NAME:-podverse_management}" "$REPO_ROOT/infra/k8s/base/ops/source/database/linear-migrations/management"
 fi
 
 echo "Linear migration validation passed."

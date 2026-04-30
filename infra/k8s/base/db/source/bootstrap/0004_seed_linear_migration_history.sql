@@ -5,7 +5,7 @@
 
 -- App database
 INSERT INTO linear_migration_history (migration_filename, migration_checksum) VALUES
-  ('0000_init_helpers.sql', 'd7fe425c8cb72b36fa7324f4d97496145c0ee69f2756792d0fc85e773036e80c'),
+  ('0000_init_helpers.sql', '0190dcea5501d0fbd29594d3bfb27ff3ad88043ed00e98f4860e8e91359436d5'),
   ('0001_init_podcasting_20_database.sql', '03f93166aac91b1cb11b84fc8cf331fbc97899d01373a61cf0d878493e78c0b0'),
   ('0002_account.sql', '121520493633102c0872ec2083acaf4aaf1b2ee8c7e2e46b3fdb058d0becc711'),
   ('0003_clip.sql', 'dc5b641eda345402a976939a4056b3676c21895069fba3ed4c2d1cd3812cdb72'),
@@ -29,7 +29,7 @@ ON CONFLICT (migration_filename) DO NOTHING;
 
 -- Management database
 INSERT INTO linear_migration_history (migration_filename, migration_checksum) VALUES
-  ('0000_init_helpers.sql', '721296be6f17506b6d00eae6dcdfe3f3a6ecc768baf11aed6cfbbed115baa040'),
+  ('0000_init_helpers.sql', 'a063b654376ad4fe8ed72b25639d9484fbbb7d18d4945efbbd17d8e9f4e20e59'),
   ('0001_init_admin_accounts.sql', '2fa889c0997c511688a3ef59e95faf8f9ae8c82094663607e3c158bbb2ea2c49'),
   ('0002_admin_account_permissions.sql', '4a4b47174ebd5461806e7cc5283380211de6330ab50d8fe838ddacc622dd8ba8'),
   ('0003_database_audit_log.sql', '11463218c192200aa91ce78003dfda58f730eba9b87e63c2d1bd3ca36a8e90ea')

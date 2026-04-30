@@ -78,7 +78,9 @@ LINEAR_MIGRATIONS_BASE_DIR="/opt/infra/k8s/base/ops/source/database/linear-migra
 
 When adapting to other clusters/repositories, keep mounts and `LINEAR_MIGRATIONS_*` env values aligned.
 
-**Credentials:** Linear migrations apply DDL (`CREATE TABLE`, etc.). **`run-linear-migrations.sh`** requires: for **`--database app`**, `DB_APP_ADMIN_USER`, `DB_APP_ADMIN_PASSWORD`, `DB_APP_NAME`, `DB_HOST`, and `DB_PORT`; for **`--database management`**, `DB_MANAGEMENT_ADMIN_USER`, `DB_MANAGEMENT_ADMIN_PASSWORD`, `DB_MANAGEMENT_NAME`, `DB_HOST`, and `DB_PORT`. If any required value is missing, the script may **`source`** `infra/config/local/db.env` when that file exists. **`run-linear-migrations-k8s.sh`** runs the same runner and expects the same variable names from cluster Secrets and env.
+**Credentials:** Forward migration jobs run with dedicated migrator roles. **`run-linear-migrations.sh`** requires: for **`--database app`**, `DB_APP_MIGRATOR_USER`, `DB_APP_MIGRATOR_PASSWORD`, `DB_APP_NAME`, `DB_HOST`, and `DB_PORT`; for **`--database management`**, `DB_MANAGEMENT_MIGRATOR_USER`, `DB_MANAGEMENT_MIGRATOR_PASSWORD`, `DB_MANAGEMENT_NAME`, `DB_HOST`, and `DB_PORT`. If required values are missing, the script may **`source`** `infra/config/local/db.env` when that file exists. **`run-linear-migrations-k8s.sh`** runs the same runner and expects the same variable names from cluster Secrets and env.
+
+**Privileged bootstrap:** `0003_apply_linear_baselines.sh` uses `DB_APP_OWNER_USER` / `DB_MANAGEMENT_OWNER_USER` for extension installation and then applies baseline archives as the migrator roles.
 
 **Fresh PVC / initdb:** Cluster Postgres runs `0003` then **`0004_seed_linear_migration_history.sql`** so `linear_migration_history` lists every migration with the correct checksum before ops jobs run (see [LINEAR-MIGRATIONS.md](LINEAR-MIGRATIONS.md) § generated seed).
 

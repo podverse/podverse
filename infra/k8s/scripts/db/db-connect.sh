@@ -55,17 +55,17 @@ fi
 
 # Decrypt and extract credentials
 DB_APP_NAME=$(sops -d "$SECRET_FILE" | grep -A 100 "^data:" | grep "DB_APP_NAME:" | awk '{print $2}' | base64 -d)
-DB_APP_ADMIN_USER=$(sops -d "$SECRET_FILE" | grep -A 100 "^data:" | grep "DB_APP_ADMIN_USER:" | awk '{print $2}' | base64 -d)
-DB_APP_ADMIN_PASSWORD=$(sops -d "$SECRET_FILE" | grep -A 100 "^data:" | grep "DB_APP_ADMIN_PASSWORD:" | awk '{print $2}' | base64 -d)
+DB_APP_OWNER_USER=$(sops -d "$SECRET_FILE" | grep -A 100 "^data:" | grep "DB_APP_OWNER_USER:" | awk '{print $2}' | base64 -d)
+DB_APP_OWNER_PASSWORD=$(sops -d "$SECRET_FILE" | grep -A 100 "^data:" | grep "DB_APP_OWNER_PASSWORD:" | awk '{print $2}' | base64 -d)
 
-if [ -z "$DB_APP_NAME" ] || [ -z "$DB_APP_ADMIN_USER" ] || [ -z "$DB_APP_ADMIN_PASSWORD" ]; then
+if [ -z "$DB_APP_NAME" ] || [ -z "$DB_APP_OWNER_USER" ] || [ -z "$DB_APP_OWNER_PASSWORD" ]; then
     echo -e "${RED}Error: Failed to extract credentials from secret${NC}"
     exit 1
 fi
 
 echo -e "${GREEN}✓ Credentials extracted${NC}"
 echo -e "  Database: ${DB_APP_NAME}"
-echo -e "  User: ${DB_APP_ADMIN_USER}"
+echo -e "  User: ${DB_APP_OWNER_USER}"
 
 # ------------------------------------------------------------------
 # START PORT FORWARD
@@ -114,6 +114,6 @@ echo -e "${GREEN}Connecting to database...${NC}"
 echo -e "${YELLOW}(Press Ctrl+D or type \q to exit)${NC}\n"
 
 # Connect using psql
-PGPASSWORD="$DB_APP_ADMIN_PASSWORD" psql -h localhost -p ${LOCAL_PORT} -U "${DB_APP_ADMIN_USER}" -d "${DB_APP_NAME}"
+PGPASSWORD="$DB_APP_OWNER_PASSWORD" psql -h localhost -p ${LOCAL_PORT} -U "${DB_APP_OWNER_USER}" -d "${DB_APP_NAME}"
 
 # Cleanup will run automatically on exit

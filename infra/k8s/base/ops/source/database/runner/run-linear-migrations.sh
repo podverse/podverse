@@ -62,27 +62,27 @@ if [[ "$DATABASE" != "app" && "$DATABASE" != "management" ]]; then
   exit 1
 fi
 
-# App: DB_APP_ADMIN_USER, DB_APP_ADMIN_PASSWORD, DB_APP_NAME. Management: DB_MANAGEMENT_ADMIN_* and DB_MANAGEMENT_NAME.
+# App: DB_APP_MIGRATOR_USER, DB_APP_MIGRATOR_PASSWORD, DB_APP_NAME. Management: DB_MANAGEMENT_MIGRATOR_* and DB_MANAGEMENT_NAME.
 if [[ "$DATABASE" == "app" ]]; then
-  if [[ -z "${DB_APP_ADMIN_USER:-}" || -z "${DB_APP_ADMIN_PASSWORD:-}" || -z "${DB_APP_NAME:-}" ]]; then
+  if [[ -z "${DB_APP_MIGRATOR_USER:-}" || -z "${DB_APP_MIGRATOR_PASSWORD:-}" || -z "${DB_APP_NAME:-}" ]]; then
     if [[ -f "$ENV_FILE" ]]; then
       # shellcheck disable=SC1090
       source "$ENV_FILE"
     fi
   fi
-  PSQL_USER="${DB_APP_ADMIN_USER:-}"
-  PSQL_PASSWORD="${DB_APP_ADMIN_PASSWORD:-}"
+  PSQL_USER="${DB_APP_MIGRATOR_USER:-}"
+  PSQL_PASSWORD="${DB_APP_MIGRATOR_PASSWORD:-}"
   PSQL_DB="${DB_APP_NAME:-podverse_app}"
   LOCK_KEY="951001"
 else
-  if [[ -z "${DB_MANAGEMENT_ADMIN_USER:-}" || -z "${DB_MANAGEMENT_ADMIN_PASSWORD:-}" || -z "${DB_MANAGEMENT_NAME:-}" ]]; then
+  if [[ -z "${DB_MANAGEMENT_MIGRATOR_USER:-}" || -z "${DB_MANAGEMENT_MIGRATOR_PASSWORD:-}" || -z "${DB_MANAGEMENT_NAME:-}" ]]; then
     if [[ -f "$ENV_FILE" ]]; then
       # shellcheck disable=SC1090
       source "$ENV_FILE"
     fi
   fi
-  PSQL_USER="${DB_MANAGEMENT_ADMIN_USER:-}"
-  PSQL_PASSWORD="${DB_MANAGEMENT_ADMIN_PASSWORD:-}"
+  PSQL_USER="${DB_MANAGEMENT_MIGRATOR_USER:-}"
+  PSQL_PASSWORD="${DB_MANAGEMENT_MIGRATOR_PASSWORD:-}"
   PSQL_DB="${DB_MANAGEMENT_NAME:-podverse_management}"
   LOCK_KEY="951002"
 fi
@@ -97,9 +97,9 @@ fi
 
 if [[ -z "$PSQL_USER" || -z "$PSQL_PASSWORD" || -z "$PSQL_DB" ]]; then
   if [[ "$DATABASE" == "app" ]]; then
-    echo "Missing DB credentials for --database app. Required: DB_APP_ADMIN_USER, DB_APP_ADMIN_PASSWORD, DB_APP_NAME (and DB_HOST/DB_PORT). Optional: source via infra/config/local/db.env."
+    echo "Missing DB credentials for --database app. Required: DB_APP_MIGRATOR_USER, DB_APP_MIGRATOR_PASSWORD, DB_APP_NAME (and DB_HOST/DB_PORT). Optional: source via infra/config/local/db.env."
   else
-    echo "Missing DB credentials for --database management. Required: DB_MANAGEMENT_ADMIN_USER, DB_MANAGEMENT_ADMIN_PASSWORD, DB_MANAGEMENT_NAME (and DB_HOST/DB_PORT). Optional: source via infra/config/local/db.env."
+    echo "Missing DB credentials for --database management. Required: DB_MANAGEMENT_MIGRATOR_USER, DB_MANAGEMENT_MIGRATOR_PASSWORD, DB_MANAGEMENT_NAME (and DB_HOST/DB_PORT). Optional: source via infra/config/local/db.env."
   fi
   exit 1
 fi

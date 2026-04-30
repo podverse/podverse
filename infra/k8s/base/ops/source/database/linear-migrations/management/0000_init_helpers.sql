@@ -1,9 +1,5 @@
 -- 0000 migration
 
--- Extensions
-
-CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
-
 -- Helpers (matching main database patterns)
 
 -- In the previous version of the app, short_id was 7-14 characters long.

@@ -6,7 +6,7 @@
       "Host": "podverse_local_db",
       "Port": 5432,
       "MaintenanceDB": "podverse_app",
-      "Username": "postgres_user_app",
+      "Username": "podverse_app_owner",
       "PassFile": "/var/lib/pgadmin/.pgpass",
       "SSLMode": "prefer"
     },
@@ -16,7 +16,7 @@
       "Host": "podverse_local_db",
       "Port": 5432,
       "MaintenanceDB": "podverse_management",
-      "Username": "postgres_user_management",
+      "Username": "podverse_management_owner",
       "PassFile": "/var/lib/pgadmin/.pgpass",
       "SSLMode": "prefer"
     }
