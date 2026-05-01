@@ -19,7 +19,7 @@ export function buildE2eWebApiEnvPrefix(): string {
     // API
     `API_PORT=4030`,
     `API_PREFIX=/api`,
-    `API_VERSION=/v1`,
+    `API_VERSION=/v2`,
     `COOKIE_DOMAIN=localhost`,
     `API_ALLOWED_CORS_ORIGINS=http://localhost:4032`,
     // Database (test stack: port 5732)
@@ -78,7 +78,7 @@ const WEB_E2E_NEXT_PUBLIC_ENV = [
   `NEXT_PUBLIC_API_HOST=localhost`,
   `NEXT_PUBLIC_API_PORT=4030`,
   `NEXT_PUBLIC_API_PREFIX=/api`,
-  `NEXT_PUBLIC_API_VERSION=/v1`,
+  `NEXT_PUBLIC_API_VERSION=/v2`,
   // Web Configuration
   `NEXT_PUBLIC_WEB_PROTOCOL=http`,
   `NEXT_PUBLIC_WEB_DOMAIN=localhost:4032`,

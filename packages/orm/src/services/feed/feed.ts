@@ -3,6 +3,7 @@ import { Feed } from '@orm/entities/feed/feed.js';
 import { FeedFlagStatusStatusEnum } from '@orm/entities/feed/feedFlagStatus.js';
 import type { FeedFlagStatusReasonEnum } from '@orm/entities/feed/feedFlagStatusReason.js';
 import { applyProperties } from '@orm/lib/applyProperties.js';
+import { isPostgresUniqueViolation } from '@orm/lib/postgresUniqueViolation.js';
 
 import { computeParsingStaleBefore, deriveHttpsAndHttpUrlsFromInput } from './feed.helpers.js';
 import { FeedFlagStatusReasonService, FeedFlagStatusService } from './feedFlagStatus.js';
@@ -126,7 +127,25 @@ export class FeedService {
       return feed;
     }
 
-    return this.create({ url, podcast_index_id });
+    try {
+      return await this.create({ url, podcast_index_id });
+    } catch (error) {
+      if (!isPostgresUniqueViolation(error)) {
+        throw error;
+      }
+
+      const existingByPodcastIndexId = await this.getByPodcastIndexId(podcast_index_id);
+      if (existingByPodcastIndexId) {
+        return existingByPodcastIndexId;
+      }
+
+      const existingByUrl = await this.getByUrl({ url });
+      if (existingByUrl) {
+        return existingByUrl;
+      }
+
+      throw error;
+    }
   }
 
   async create({ url, podcast_index_id }: FeedCreateDto): Promise<Feed> {

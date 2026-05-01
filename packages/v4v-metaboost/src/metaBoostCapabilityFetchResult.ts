@@ -2,14 +2,14 @@
 export type MetaBoostCapabilityFetchResult = {
   messageCharLimit: number;
   termsOfServiceUrl: string;
+  /** Public messages endpoint URL when bucket exposes one. */
+  publicMessagesUrl: string | null;
   /** Present when optional `sender_guid` query was a valid UUID and the bucket blocks that sender. */
   senderBlocked: boolean;
   /** Server message when blocked; otherwise null. */
   senderBlockMessage: string | null;
-  /** Bucket-preferred threshold compare currency from capability context when provided. */
+  /** Bucket-preferred currency from capability context when provided (threshold snapshots / conversion). */
   preferredCurrency: string | null;
-  /** Bucket threshold minimum in integer minor units when provided. */
-  minimumMessageAmountMinor: number | null;
   /** Public bucket conversion (ratio) endpoint URL when provided. */
   conversionEndpointUrl: string | null;
 };

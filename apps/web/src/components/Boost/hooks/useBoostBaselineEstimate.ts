@@ -83,7 +83,6 @@ export const useBoostBaselineEstimate = ({
           sourceAmountUnit: normalizedAmountUnit,
           context: {
             preferredCurrency: normalizedPreferredCurrency,
-            minimumMessageAmountMinor: null,
             conversionEndpointUrl,
           },
         });

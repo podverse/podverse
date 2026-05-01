@@ -45,8 +45,6 @@ type BoostFormFieldsProps = {
   mbrssV1CapabilityFailed: boolean;
   /** When set, recipient blocks this Podverse sender from MetaBoost messages (preflight GET). */
   mbrssV1SenderBlockedPreflightMessage?: string | null;
-  thresholdNameMessageBlocked?: boolean;
-  thresholdMessageNotice?: string | null;
   thresholdPreferredCurrency?: string | null;
   thresholdConversionEndpointUrl?: string | null;
   sourceCurrencyCode?: string | null;
@@ -162,8 +160,6 @@ export const BoostFormFields = ({
   mbrssV1MessageLoading,
   mbrssV1CapabilityFailed,
   mbrssV1SenderBlockedPreflightMessage = null,
-  thresholdNameMessageBlocked = false,
-  thresholdMessageNotice = null,
   thresholdPreferredCurrency = null,
   thresholdConversionEndpointUrl = null,
   sourceCurrencyCode = null,
@@ -177,11 +173,7 @@ export const BoostFormFields = ({
 }: BoostFormFieldsProps) => {
   const denominationTypeKey = denominationTypeKeyOverride ?? selectedValueKey;
   const nameMessageFieldsDisabled =
-    isSubmitting ||
-    hasStatusUpdates ||
-    !isLoggedIn ||
-    mbrssV1MessageFieldBlocked ||
-    thresholdNameMessageBlocked;
+    isSubmitting || hasStatusUpdates || !isLoggedIn || mbrssV1MessageFieldBlocked;
   const boostCurrencyFormatMetadata =
     metaBoost !== null && sourceCurrencyCode !== null
       ? getBoostCurrencyInputFormatMetadata(sourceCurrencyCode)
@@ -392,11 +384,6 @@ export const BoostFormFields = ({
           {mbrssV1CapabilityFailed && (
             <p className={styles.mbrssV1CapabilityError} role="status">
               {tValue('boost_messages.mbrssV1_capability_unavailable')}
-            </p>
-          )}
-          {thresholdMessageNotice !== null && thresholdMessageNotice !== '' && (
-            <p className={styles.mbrssV1CapabilityError} role="status">
-              {thresholdMessageNotice}
             </p>
           )}
           <TextInput

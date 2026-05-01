@@ -18,7 +18,7 @@ describe('summarizeUpstreamHttpErrorForLog', () => {
         },
       },
       config: {
-        url: 'https://api.example.com/v1/feeds/bytag?token=should-not-appear',
+        url: 'https://api.example.com/v2/feeds/bytag?token=should-not-appear',
         method: 'GET',
       },
     };
@@ -29,7 +29,7 @@ describe('summarizeUpstreamHttpErrorForLog', () => {
     expect(summary.correlationId).toBe('req-abc');
     expect(summary.method).toBe('GET');
     expect(summary.endpointHost).toBe('api.example.com');
-    expect(summary.endpointPath).toBe('/v1/feeds/bytag');
+    expect(summary.endpointPath).toBe('/v2/feeds/bytag');
     expect(summary.message).toBe('Request failed with status code 502');
     expect(summary.code).toBe('ERR_BAD_RESPONSE');
 

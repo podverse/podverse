@@ -1,11 +1,11 @@
-import type { MetaBoost, PublicBoostMessagesPage } from '@podverse/v4v-metaboost';
+import type { PublicBoostMessagesPage } from '@podverse/v4v-metaboost';
 import { fetchMbrssV1PublicMessages, fetchMbV1PublicMessages } from '@podverse/v4v-metaboost';
 
 import type { BoostMessagesPageFetcher } from './types';
 
 type MbrssV1MessagesSource = {
   type: 'mbrss-v1';
-  metaBoost: MetaBoost;
+  publicMessagesUrl: string;
   scope:
     | { type: 'bucket' }
     | { type: 'channel'; podcastGuid: string }
@@ -18,7 +18,7 @@ type MbrssV1MessagesSource = {
 
 type MbV1MessagesSource = {
   type: 'mb-v1';
-  metaBoost: MetaBoost;
+  publicMessagesUrl: string;
 };
 
 export type BoostMessagesSource = MbrssV1MessagesSource | MbV1MessagesSource;
@@ -49,7 +49,7 @@ export const createBoostMessagesPageFetcher = (
     const requestedLimit = limit > 0 ? limit : defaultLimit;
     if (source.type === 'mb-v1') {
       return normalizeMessagesPage(
-        await fetchMbV1PublicMessages(source.metaBoost.node, {
+        await fetchMbV1PublicMessages(source.publicMessagesUrl, {
           page,
           limit: requestedLimit,
         })
@@ -57,7 +57,7 @@ export const createBoostMessagesPageFetcher = (
     }
     const apiScope = toMbrssApiScope(source.scope);
     return normalizeMessagesPage(
-      await fetchMbrssV1PublicMessages(source.metaBoost.node, apiScope, {
+      await fetchMbrssV1PublicMessages(source.publicMessagesUrl, apiScope, {
         page,
         limit: requestedLimit,
       })

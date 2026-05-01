@@ -1,4 +1,7 @@
 import type { Feed } from '@orm/entities/feed/feed.js';
+import type { FeedFlagStatusStatusEnum } from '@orm/entities/feed/feedFlagStatus.js';
+import type { FeedFlagStatusReasonEnum } from '@orm/entities/feed/feedFlagStatusReason.js';
+import { QueryFailedError } from 'typeorm';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const findOneMock = vi.fn();
@@ -43,10 +46,82 @@ vi.mock('@orm/entities/feed/feedFlagStatusReason.js', () => ({
 }));
 
 vi.mock('@orm/lib/applyProperties.js', () => ({
-  applyProperties: (obj: unknown, dto: unknown) => Object.assign(obj, dto),
+  applyProperties: (obj: unknown, dto: unknown) => Object.assign(obj as object, dto as object),
 }));
 
 import { FeedService } from './feed.js';
+
+describe('FeedService.getOrCreate', () => {
+  beforeEach(() => {
+    findOneMock.mockReset();
+    saveMock.mockReset();
+  });
+
+  it('returns existing feed when unique podcast_index_id race occurs', async () => {
+    const existingFeed = {
+      id: 11,
+      url: 'https://example.com/feed',
+      podcast_index_id: 5778820,
+    };
+    const duplicateDriverError = Object.assign(new Error('duplicate key'), { code: '23505' });
+    const uniqueViolation = new QueryFailedError('INSERT', [], duplicateDriverError);
+
+    findOneMock
+      .mockResolvedValueOnce(null)
+      .mockResolvedValueOnce({ id: 1 })
+      .mockResolvedValueOnce(existingFeed);
+    saveMock.mockRejectedValueOnce(uniqueViolation);
+
+    const service = new FeedService();
+    const result = await service.getOrCreate({
+      url: 'https://example.com/feed',
+      podcast_index_id: 5778820,
+    });
+
+    expect(result).toBe(existingFeed);
+    expect(saveMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not write when unique race refetch finds different url', async () => {
+    const existingFeed = {
+      id: 11,
+      url: 'https://canonical.example.com/feed',
+      podcast_index_id: 5778820,
+    };
+    const duplicateDriverError = Object.assign(new Error('duplicate key'), { code: '23505' });
+    const uniqueViolation = new QueryFailedError('INSERT', [], duplicateDriverError);
+
+    findOneMock
+      .mockResolvedValueOnce(null)
+      .mockResolvedValueOnce({ id: 1 })
+      .mockResolvedValueOnce(existingFeed);
+    saveMock.mockRejectedValueOnce(uniqueViolation);
+
+    const service = new FeedService();
+    const result = await service.getOrCreate({
+      url: 'https://new.example.com/feed',
+      podcast_index_id: 5778820,
+    });
+
+    expect(result).toBe(existingFeed);
+    expect(saveMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('rethrows non-unique errors from create path', async () => {
+    const createError = new Error('db unavailable');
+
+    findOneMock.mockResolvedValueOnce(null).mockResolvedValueOnce({ id: 1 });
+    saveMock.mockRejectedValueOnce(createError);
+
+    const service = new FeedService();
+    await expect(
+      service.getOrCreate({
+        url: 'https://example.com/feed',
+        podcast_index_id: 5778820,
+      })
+    ).rejects.toThrow('db unavailable');
+  });
+});
 
 describe('FeedService.updateFlagStatus', () => {
   beforeEach(() => {
@@ -67,7 +142,7 @@ describe('FeedService.updateFlagStatus', () => {
     saveMock.mockImplementation((feed: unknown) => feed);
 
     const service = new FeedService();
-    const result = await service.updateFlagStatus(mockFeed as Partial<Feed> as Feed, 3);
+    const result = await service.updateFlagStatus(mockFeed as unknown as Feed, 3);
 
     expect(result.feed_flag_status).toBe(mockStatus);
     expect(result.feed_flag_status_reason).toBeNull();
@@ -89,7 +164,7 @@ describe('FeedService.updateFlagStatus', () => {
     saveMock.mockImplementation((feed: unknown) => feed);
 
     const service = new FeedService();
-    const result = await service.updateFlagStatus(mockFeed as Partial<Feed> as Feed, 6, {
+    const result = await service.updateFlagStatus(mockFeed as unknown as Feed, 6, {
       feed_flag_status_reason_id: 1,
       feed_flag_status_reason_note: 'DMCA takedown notice received',
     });
@@ -113,7 +188,7 @@ describe('FeedService.updateFlagStatus', () => {
     saveMock.mockImplementation((feed: unknown) => feed);
 
     const service = new FeedService();
-    const result = await service.updateFlagStatus(mockFeed as Partial<Feed> as Feed, 1);
+    const result = await service.updateFlagStatus(mockFeed as unknown as Feed, 1);
 
     expect(result.feed_flag_status).toBe(mockStatus);
     expect(result.feed_flag_status_reason).toBeNull();
@@ -126,9 +201,9 @@ describe('FeedService.updateFlagStatus', () => {
     findOneMock.mockResolvedValue(null);
 
     const service = new FeedService();
-    await expect(service.updateFlagStatus(mockFeed as Partial<Feed> as Feed, 999)).rejects.toThrow(
-      'FeedService.updateFlagStatus: feed status 999 not found'
-    );
+    await expect(
+      service.updateFlagStatus(mockFeed as unknown as Feed, 999 as FeedFlagStatusStatusEnum)
+    ).rejects.toThrow('FeedService.updateFlagStatus: feed status 999 not found');
   });
 
   it('throws when reason id is not found', async () => {
@@ -139,8 +214,8 @@ describe('FeedService.updateFlagStatus', () => {
 
     const service = new FeedService();
     await expect(
-      service.updateFlagStatus(mockFeed as Partial<Feed> as Feed, 3, {
-        feed_flag_status_reason_id: 999,
+      service.updateFlagStatus(mockFeed as unknown as Feed, 3, {
+        feed_flag_status_reason_id: 999 as FeedFlagStatusReasonEnum,
       })
     ).rejects.toThrow('FeedService.updateFlagStatus: reason 999 not found');
   });

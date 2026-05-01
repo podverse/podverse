@@ -312,18 +312,9 @@
       "metaboost_post_failed_modal_title": "Το μήνυμα δεν έγινε αποδεκτό",
       "metaboost_post_failed_modal_primary": "Κλείσιμο",
       "metaboost_post_failed_fallback": "Αυτός ο διακομιστής δεν μπόρεσε να καταγράψει το μήνυμα.",
-      "threshold_notice": "Το ελάχιστο ποσό ενίσχυσης που απαιτεί αυτός ο δημιουργός είναι {minimumAmountDisplay}.",
       "currency_minor_units": {
         "satoshis": "{count, plural, one {sat} other {sats}}"
       },
-      "threshold_below_minimum_modal_title": "Ποσό κάτω από το ελάχιστο για μήνυμα",
-      "threshold_below_minimum_modal_body": "Αυτό το ποσό είναι τώρα κάτω από το ελάχιστο που απαιτείται για να συμπεριληφθεί μήνυμα. Θέλετε να στείλετε αυτό το boost χωρίς μήνυμα;",
-      "threshold_send_without_message": "Αποστολή χωρίς μήνυμα",
-      "threshold_missing_metadata": "Δεν είναι δυνατή η επαλήθευση του ορίου μηνύματος boost επειδή λείπουν απαιτούμενα μεταδεδομένα νομίσματος.",
-      "threshold_amount_unit_missing": "Δεν είναι δυνατή η επαλήθευση του ορίου μηνύματος boost επειδή λείπουν μεταδεδομένα μονάδας ποσού.",
-      "threshold_amount_unit_invalid": "Δεν είναι δυνατή η επαλήθευση του ορίου μηνύματος boost επειδή τα μεταδεδομένα μονάδας ποσού δεν είναι έγκυρα.",
-      "threshold_conversion_unavailable": "Η μετατροπή του ορίου μηνύματος boost δεν είναι προσωρινά διαθέσιμη.",
-      "threshold_conversion_unavailable_guidance": "Δοκιμάστε ξανά σε λίγο, ή συνεχίστε με μεγαλύτερο ποσό για να συμπεριλάβετε μήνυμα.",
       "baseline_estimate_tooltip_text": "Αυτή η εκτίμηση μετατροπής χρησιμοποιεί πρόσφατα δεδομένα συναλλαγματικής και μπορεί να διαφέρει κατά τον διακανονισμό της πληρωμής. Επαληθεύστε τη συναλλαγματική ισοτιμία ανεξάρτητα.",
       "amount_input_invalid_number": "Εισαγάγετε έγκυρο ποσό.",
       "amount_input_too_many_decimals": "Αυτό το ποσό επιτρέπει έως {decimals} δεκαδικά για {currency}.",

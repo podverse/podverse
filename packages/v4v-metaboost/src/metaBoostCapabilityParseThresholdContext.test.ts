@@ -6,38 +6,33 @@ describe('parseCapabilityThresholdContextFields', () => {
   it('returns null values when threshold fields are absent', () => {
     expect(parseCapabilityThresholdContextFields({})).toEqual({
       preferredCurrency: null,
-      minimumMessageAmountMinor: null,
       conversionEndpointUrl: null,
     });
   });
 
-  it('parses threshold fields when provided', () => {
+  it('parses preferred currency and conversion endpoint when provided', () => {
     expect(
       parseCapabilityThresholdContextFields({
         preferred_currency: 'USD',
-        minimum_message_amount_minor: 200,
         conversion_endpoint_url:
           'https://example.com/v1/standard/mb-v1/messages/public/a/conversion',
       })
     ).toEqual({
       preferredCurrency: 'USD',
-      minimumMessageAmountMinor: 200,
       conversionEndpointUrl: 'https://example.com/v1/standard/mb-v1/messages/public/a/conversion',
     });
   });
 
-  it('rejects invalid minimum_message_amount_minor values', () => {
-    expect(() =>
+  it('ignores legacy minimum_message_amount_minor (not part of capability contract)', () => {
+    expect(
       parseCapabilityThresholdContextFields({
+        preferred_currency: 'EUR',
         minimum_message_amount_minor: -1,
       })
-    ).toThrow('minimum_message_amount_minor');
-
-    expect(() =>
-      parseCapabilityThresholdContextFields({
-        minimum_message_amount_minor: 1.5,
-      })
-    ).toThrow('minimum_message_amount_minor');
+    ).toEqual({
+      preferredCurrency: 'EUR',
+      conversionEndpointUrl: null,
+    });
   });
 
   it('rejects invalid conversion_endpoint_url values', () => {

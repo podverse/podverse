@@ -72,7 +72,7 @@ function validateUserAgentEffective(): ValidationResult {
     };
   }
   const firstPart = raw.split('/')[0];
-  if (firstPart && !firstPart.includes('Bot')) {
+  if (firstPart && !firstPart.toLowerCase().includes('bot')) {
     return {
       name: 'USER_AGENT',
       isSet: true,

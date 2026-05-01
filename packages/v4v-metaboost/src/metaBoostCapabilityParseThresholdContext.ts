@@ -3,7 +3,6 @@ import { parseHttpOrHttpsUrl } from '@podverse/helpers-validation';
 
 export type MetaBoostCapabilityThresholdContext = {
   preferredCurrency: string | null;
-  minimumMessageAmountMinor: number | null;
   conversionEndpointUrl: string | null;
 };
 
@@ -19,16 +18,6 @@ const parseOptionalNonEmptyString = (value: unknown, fieldName: string): string 
     throw new Error(`${fieldName} must be a non-empty string when provided`);
   }
   return parsed;
-};
-
-const parseOptionalNonNegativeInteger = (value: unknown, fieldName: string): number | null => {
-  if (value === undefined || value === null) {
-    return null;
-  }
-  if (typeof value !== 'number' || !Number.isInteger(value) || value < 0) {
-    throw new Error(`${fieldName} must be a non-negative integer when provided`);
-  }
-  return value;
 };
 
 const parseOptionalHttpUrl = (value: unknown, fieldName: string): string | null => {
@@ -55,10 +44,6 @@ export const parseCapabilityThresholdContextFields = (
     preferredCurrency: parseOptionalNonEmptyString(
       getOwnPropertyValue(data, 'preferred_currency'),
       'preferred_currency'
-    ),
-    minimumMessageAmountMinor: parseOptionalNonNegativeInteger(
-      getOwnPropertyValue(data, 'minimum_message_amount_minor'),
-      'minimum_message_amount_minor'
     ),
     conversionEndpointUrl: parseOptionalHttpUrl(
       getOwnPropertyValue(data, 'conversion_endpoint_url'),

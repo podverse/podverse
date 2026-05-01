@@ -66,13 +66,13 @@ npm run build:prod -w apps/management-api
 
 ### Authentication
 
-- `POST /api/v1/auth/login` - Admin login
-- `POST /api/v1/auth/logout` - Admin logout
-- `GET /api/v1/auth/me` - Get current admin user
+- `POST /api/v2/auth/login` - Admin login
+- `POST /api/v2/auth/logout` - Admin logout
+- `GET /api/v2/auth/me` - Get current admin user
 
 ### Admin Account
 
-- `GET /api/v1/admin-account/:id` - Get admin account by ID
+- `GET /api/v2/admin-account/:id` - Get admin account by ID
 
 ## Database
 

@@ -1,7 +1,5 @@
 import { getOwnPropertyValue, isObjectLike } from '@podverse/helpers';
-
-import { normalizeMetaboostMbrssV1IngestNodeUrl } from './mbrssV1IngestUrl.js';
-import { normalizeMetaboostMbV1IngestNodeUrl } from './mbV1IngestUrl.js';
+import { parseHttpOrHttpsUrl } from '@podverse/helpers-validation';
 
 export type PublicSourceBucketSummary = {
   id: string;
@@ -194,18 +192,22 @@ const appendPaginationQuery = (url: URL, query?: PublicMessagesPageQuery): URL =
   return url;
 };
 
-const extractBucketShortIdFromBoostPath = (pathname: string, expectedPrefix: string): string => {
-  const normalizedPath = pathname.endsWith('/') ? pathname.slice(0, -1) : pathname;
-  const prefixWithSlash = `${expectedPrefix}/`;
-  if (!normalizedPath.includes(prefixWithSlash)) {
-    throw new Error(`MetaBoost node URL must include ${prefixWithSlash}`);
+const toPublicMessagesUrl = (publicMessagesUrl: string): URL => {
+  const trimmed = publicMessagesUrl.trim();
+  if (trimmed === '') {
+    throw new Error('public messages URL is empty');
   }
-  const [, suffix = ''] = normalizedPath.split(prefixWithSlash);
-  const bucketShortId = suffix.split('/')[0];
-  if (bucketShortId === undefined || bucketShortId === '') {
-    throw new Error('MetaBoost node URL is missing bucket short id');
+  const parsed = parseHttpOrHttpsUrl(trimmed);
+  if (parsed === null) {
+    throw new Error('public messages URL is invalid');
   }
-  return bucketShortId;
+  return parsed;
+};
+
+const appendPathSegment = (url: URL, segment: string): URL => {
+  const normalizedPath = url.pathname.endsWith('/') ? url.pathname.slice(0, -1) : url.pathname;
+  url.pathname = `${normalizedPath}/${encodeURIComponent(segment)}`;
+  return url;
 };
 
 const fetchPublicMessages = async (url: URL): Promise<PublicBoostMessagesPage> => {
@@ -226,40 +228,26 @@ const fetchPublicMessages = async (url: URL): Promise<PublicBoostMessagesPage> =
 };
 
 export const fetchMbV1PublicMessages = async (
-  metaBoostNodeUrl: string,
+  publicMessagesUrl: string,
   query?: PublicMessagesPageQuery
 ): Promise<PublicBoostMessagesPage> => {
-  const normalizedNode = normalizeMetaboostMbV1IngestNodeUrl(metaBoostNodeUrl);
-  const parsedNode = new URL(normalizedNode);
-  const bucketShortId = extractBucketShortIdFromBoostPath(
-    parsedNode.pathname,
-    '/v1/standard/mb-v1/boost'
-  );
-  parsedNode.pathname = `/v1/standard/mb-v1/messages/public/${encodeURIComponent(bucketShortId)}`;
-  const requestUrl = appendPaginationQuery(parsedNode, query);
+  const requestUrl = appendPaginationQuery(toPublicMessagesUrl(publicMessagesUrl), query);
   return fetchPublicMessages(requestUrl);
 };
 
 export const fetchMbrssV1PublicMessages = async (
-  metaBoostNodeUrl: string,
+  publicMessagesUrl: string,
   scope: MbrssV1PublicMessagesScope,
   query?: PublicMessagesPageQuery
 ): Promise<PublicBoostMessagesPage> => {
-  const normalizedNode = normalizeMetaboostMbrssV1IngestNodeUrl(metaBoostNodeUrl);
-  const parsedNode = new URL(normalizedNode);
-  const bucketShortId = extractBucketShortIdFromBoostPath(
-    parsedNode.pathname,
-    '/v1/standard/mbrss-v1/boost'
-  );
-  let publicPath = `/v1/standard/mbrss-v1/messages/public/${encodeURIComponent(bucketShortId)}`;
-
+  const requestUrl = toPublicMessagesUrl(publicMessagesUrl);
   if (scope.type === 'channel') {
-    publicPath = `${publicPath}/channel/${encodeURIComponent(scope.podcastGuid)}`;
+    appendPathSegment(requestUrl, 'channel');
+    appendPathSegment(requestUrl, scope.podcastGuid);
   } else if (scope.type === 'item') {
-    publicPath = `${publicPath}/item/${encodeURIComponent(scope.itemGuid)}`;
+    appendPathSegment(requestUrl, 'item');
+    appendPathSegment(requestUrl, scope.itemGuid);
   }
-
-  parsedNode.pathname = publicPath;
-  const requestUrl = appendPaginationQuery(parsedNode, query);
+  appendPaginationQuery(requestUrl, query);
   return fetchPublicMessages(requestUrl);
 };

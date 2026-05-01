@@ -16,10 +16,10 @@ describe('parseMbrssV1BoostCapabilityResponse', () => {
     expect(parseMbrssV1BoostCapabilityResponse(validPayload)).toEqual({
       messageCharLimit: 500,
       termsOfServiceUrl: 'https://example.com/terms',
+      publicMessagesUrl: null,
       senderBlocked: false,
       senderBlockMessage: null,
       preferredCurrency: null,
-      minimumMessageAmountMinor: null,
       conversionEndpointUrl: null,
     });
   });
@@ -34,10 +34,10 @@ describe('parseMbrssV1BoostCapabilityResponse', () => {
     ).toEqual({
       messageCharLimit: 500,
       termsOfServiceUrl: 'https://example.com/terms',
+      publicMessagesUrl: null,
       senderBlocked: true,
       senderBlockMessage: 'Blocked by recipient',
       preferredCurrency: null,
-      minimumMessageAmountMinor: null,
       conversionEndpointUrl: null,
     });
   });
@@ -51,10 +51,10 @@ describe('parseMbrssV1BoostCapabilityResponse', () => {
     ).toEqual({
       messageCharLimit: 499,
       termsOfServiceUrl: 'https://example.com/terms',
+      publicMessagesUrl: null,
       senderBlocked: false,
       senderBlockMessage: null,
       preferredCurrency: null,
-      minimumMessageAmountMinor: null,
       conversionEndpointUrl: null,
     });
   });
@@ -64,17 +64,16 @@ describe('parseMbrssV1BoostCapabilityResponse', () => {
       parseMbrssV1BoostCapabilityResponse({
         ...validPayload,
         preferred_currency: 'USD',
-        minimum_message_amount_minor: 100,
         conversion_endpoint_url:
           'https://example.com/v1/standard/mbrss-v1/messages/public/bucket/conversion',
       })
     ).toEqual({
       messageCharLimit: 500,
       termsOfServiceUrl: 'https://example.com/terms',
+      publicMessagesUrl: null,
       senderBlocked: false,
       senderBlockMessage: null,
       preferredCurrency: 'USD',
-      minimumMessageAmountMinor: 100,
       conversionEndpointUrl:
         'https://example.com/v1/standard/mbrss-v1/messages/public/bucket/conversion',
     });
@@ -87,6 +86,23 @@ describe('parseMbrssV1BoostCapabilityResponse', () => {
         schema: 'other',
       })
     ).toThrow('mbrss-v1');
+  });
+
+  it('parses public_messages_url when provided', () => {
+    expect(
+      parseMbrssV1BoostCapabilityResponse({
+        ...validPayload,
+        public_messages_url: 'https://api.example.com/v1/standard/mbrss-v1/messages/public/abc',
+      })
+    ).toEqual({
+      messageCharLimit: 500,
+      termsOfServiceUrl: 'https://example.com/terms',
+      publicMessagesUrl: 'https://api.example.com/v1/standard/mbrss-v1/messages/public/abc',
+      senderBlocked: false,
+      senderBlockMessage: null,
+      preferredCurrency: null,
+      conversionEndpointUrl: null,
+    });
   });
 
   it('rejects invalid limit', () => {
@@ -108,6 +124,15 @@ describe('parseMbrssV1BoostCapabilityResponse', () => {
         terms_of_service_url: 'not-a-url',
       })
     ).toThrow();
+  });
+
+  it('rejects invalid public_messages_url', () => {
+    expect(() =>
+      parseMbrssV1BoostCapabilityResponse({
+        ...validPayload,
+        public_messages_url: 'not-a-url',
+      })
+    ).toThrow('public_messages_url');
   });
 
   it('rejects non-boolean sender_blocked when present', () => {
@@ -137,20 +162,17 @@ describe('fetchMbrssV1BoostCapability', () => {
       'https://api.example.com/v1/s/mbrss-v1/boost/abc/'
     );
 
-    expect(fetchMock).toHaveBeenCalledWith(
-      'https://api.example.com/v1/standard/mbrss-v1/boost/abc/',
-      {
-        method: 'GET',
-        headers: { Accept: 'application/json' },
-      }
-    );
+    expect(fetchMock).toHaveBeenCalledWith('https://api.example.com/v1/s/mbrss-v1/boost/abc/', {
+      method: 'GET',
+      headers: { Accept: 'application/json' },
+    });
     expect(result).toEqual({
       messageCharLimit: 1200,
       termsOfServiceUrl: 'https://example.com/tos',
+      publicMessagesUrl: null,
       senderBlocked: false,
       senderBlockMessage: null,
       preferredCurrency: null,
-      minimumMessageAmountMinor: null,
       conversionEndpointUrl: null,
     });
 

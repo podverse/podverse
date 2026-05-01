@@ -312,18 +312,9 @@
       "metaboost_post_failed_modal_title": "Mensaje no aceptado",
       "metaboost_post_failed_modal_primary": "Cerrar",
       "metaboost_post_failed_fallback": "Este servidor no pudo registrar el mensaje.",
-      "threshold_notice": "El importe mínimo de boost requerido por este creador es {minimumAmountDisplay}.",
       "currency_minor_units": {
         "satoshis": "{count, plural, one {sat} other {sats}}"
       },
-      "threshold_below_minimum_modal_title": "Cantidad por debajo del mínimo para mensaje",
-      "threshold_below_minimum_modal_body": "Esta cantidad está por debajo del mínimo necesario para incluir un mensaje. ¿Quieres enviar este boost sin mensaje?",
-      "threshold_send_without_message": "Enviar sin mensaje",
-      "threshold_missing_metadata": "No se puede verificar el umbral del mensaje de refuerzo porque faltan metadatos de moneda requeridos.",
-      "threshold_amount_unit_missing": "No se puede verificar el umbral del mensaje de refuerzo porque faltan metadatos de unidad de cantidad.",
-      "threshold_amount_unit_invalid": "No se puede verificar el umbral del mensaje de refuerzo porque los metadatos de unidad de cantidad no son válidos.",
-      "threshold_conversion_unavailable": "La conversión del umbral del mensaje de refuerzo no está disponible temporalmente.",
-      "threshold_conversion_unavailable_guidance": "Inténtalo de nuevo en un momento, o continúa con una cantidad mayor para incluir un mensaje.",
       "baseline_estimate_tooltip_text": "Esta estimación de conversión usa datos recientes de tipo de cambio y puede diferir cuando se liquide el pago. Verifica el tipo de cambio de forma independiente.",
       "amount_input_invalid_number": "Ingresa una cantidad válida.",
       "amount_input_too_many_decimals": "Esta cantidad permite hasta {decimals} decimales para {currency}.",

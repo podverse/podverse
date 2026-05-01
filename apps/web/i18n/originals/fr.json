@@ -312,18 +312,9 @@
       "metaboost_post_failed_modal_title": "Message refusé",
       "metaboost_post_failed_modal_primary": "Fermer",
       "metaboost_post_failed_fallback": "Ce serveur n'a pas pu enregistrer le message.",
-      "threshold_notice": "Le montant minimum de boost exigé par ce créateur est de {minimumAmountDisplay}.",
       "currency_minor_units": {
         "satoshis": "{count, plural, one {sat} other {sats}}"
       },
-      "threshold_below_minimum_modal_title": "Montant inférieur au minimum pour message",
-      "threshold_below_minimum_modal_body": "Ce montant est maintenant inférieur au minimum requis pour inclure un message. Voulez-vous envoyer ce boost sans message ?",
-      "threshold_send_without_message": "Envoyer sans message",
-      "threshold_missing_metadata": "Le seuil des messages boost ne peut pas être vérifié, car des métadonnées de devise requises sont manquantes.",
-      "threshold_amount_unit_missing": "Le seuil des messages boost ne peut pas être vérifié, car les métadonnées d'unité de montant sont manquantes.",
-      "threshold_amount_unit_invalid": "Le seuil des messages boost ne peut pas être vérifié, car les métadonnées d'unité de montant sont invalides.",
-      "threshold_conversion_unavailable": "La conversion du seuil des messages boost est temporairement indisponible.",
-      "threshold_conversion_unavailable_guidance": "Réessayez dans un instant, ou continuez avec un montant plus élevé pour inclure un message.",
       "baseline_estimate_tooltip_text": "Cette estimation de conversion utilise des données de cours récents et peut différer lors du règlement du paiement. Veuillez vérifier le taux de conversion vous-même.",
       "amount_input_invalid_number": "Saisissez un montant valide.",
       "amount_input_too_many_decimals": "Ce montant autorise jusqu'à {decimals} décimales pour {currency}.",

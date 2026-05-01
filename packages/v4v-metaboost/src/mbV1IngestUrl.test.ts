@@ -6,14 +6,19 @@ import {
 } from './mbV1IngestUrl.js';
 
 describe('normalizeMetaboostMbV1IngestNodeUrl', () => {
-  it('rewrites legacy /v1/s/ to /v1/standard/ for mb-v1 paths', () => {
+  it('accepts mb-v1 boost URLs without rewriting path prefix', () => {
     expect(
       normalizeMetaboostMbV1IngestNodeUrl('https://api.example.com/v1/s/mb-v1/boost/abc/')
-    ).toBe('https://api.example.com/v1/standard/mb-v1/boost/abc/');
+    ).toBe('https://api.example.com/v1/s/mb-v1/boost/abc/');
   });
 
   it('keeps already-standard mb-v1 URLs unchanged', () => {
     const url = 'https://api.example.com/v1/standard/mb-v1/boost/abc/';
+    expect(normalizeMetaboostMbV1IngestNodeUrl(url)).toBe(url);
+  });
+
+  it('accepts mb-v1 URLs under non-v1 API path segments', () => {
+    const url = 'https://api.example.com/v2/standard/mb-v1/boost/abc/';
     expect(normalizeMetaboostMbV1IngestNodeUrl(url)).toBe(url);
   });
 
@@ -29,6 +34,9 @@ describe('isMetaboostMbV1IngestNodeUrl', () => {
     expect(
       isMetaboostMbV1IngestNodeUrl('https://api.example.com/v1/standard/mb-v1/boost/abc/')
     ).toBe(true);
+    expect(isMetaboostMbV1IngestNodeUrl('https://api.example.com/v1/s/mb-v1/boost/abc/')).toBe(
+      true
+    );
   });
 
   it('returns false for non-mb-v1 ingest URLs', () => {

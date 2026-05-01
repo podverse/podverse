@@ -5,7 +5,6 @@ import {
 
 export type BoostThresholdConversionContext = {
   preferredCurrency: string | null;
-  minimumMessageAmountMinor: number | null;
   conversionEndpointUrl: string | null;
 };
 

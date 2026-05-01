@@ -17,6 +17,7 @@ export type MbV1BoostCapabilityApiResponse = {
   schema: string;
   message_char_limit: number;
   terms_of_service_url: string;
+  public_messages_url?: string;
 };
 
 export const parseMbV1BoostCapabilityResponse = (data: unknown): MetaBoostCapabilityFetchResult => {
@@ -26,6 +27,7 @@ export const parseMbV1BoostCapabilityResponse = (data: unknown): MetaBoostCapabi
   const schema = getOwnPropertyValue(data, 'schema');
   const limitRaw = getOwnPropertyValue(data, 'message_char_limit');
   const termsRaw = getOwnPropertyValue(data, 'terms_of_service_url');
+  const publicMessagesUrlRaw = getOwnPropertyValue(data, 'public_messages_url');
   if (schema !== META_BOOST_SCHEMA_MB_V1) {
     throw new Error('mb-v1 capability schema is not mb-v1');
   }
@@ -42,13 +44,24 @@ export const parseMbV1BoostCapabilityResponse = (data: unknown): MetaBoostCapabi
   }
   const blocked = parseSenderBlockedCapabilityFields(data);
   const thresholdContext = parseCapabilityThresholdContextFields(data);
+  let publicMessagesUrl: string | null = null;
+  if (publicMessagesUrlRaw !== undefined && publicMessagesUrlRaw !== null) {
+    if (
+      typeof publicMessagesUrlRaw !== 'string' ||
+      publicMessagesUrlRaw.trim() === '' ||
+      !isValidTermsOfServiceHttpUrl(publicMessagesUrlRaw.trim())
+    ) {
+      throw new Error('mb-v1 capability public_messages_url is invalid');
+    }
+    publicMessagesUrl = publicMessagesUrlRaw.trim();
+  }
   return {
     messageCharLimit: Math.floor(limitRaw),
     termsOfServiceUrl: termsRaw.trim(),
+    publicMessagesUrl,
     senderBlocked: blocked.senderBlocked,
     senderBlockMessage: blocked.senderBlockMessage,
     preferredCurrency: thresholdContext.preferredCurrency,
-    minimumMessageAmountMinor: thresholdContext.minimumMessageAmountMinor,
     conversionEndpointUrl: thresholdContext.conversionEndpointUrl,
   };
 };

@@ -75,7 +75,7 @@ spec:
               mountPath: /opt/logs
           readinessProbe:
             httpGet:
-              path: /api/v1/
+              path: /api/v2/
               port: 3100
               scheme: HTTP
             initialDelaySeconds: 10
@@ -85,7 +85,7 @@ spec:
             timeoutSeconds: 5
           livenessProbe:
             httpGet:
-              path: /api/v1/
+              path: /api/v2/
               port: 3100
               scheme: HTTP
             initialDelaySeconds: 20

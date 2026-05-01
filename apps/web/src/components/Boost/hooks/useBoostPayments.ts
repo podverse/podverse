@@ -39,7 +39,7 @@ import {
 } from '../payments/mbrssV1/mbrssV1RequestMetadata';
 import { postMbV1BoostMessage } from '../payments/mbV1/mbV1RequestMetadata';
 import type { PaymentRecipient, RecipientStatus } from '../types.js';
-import { convertBoostThresholdAmount } from './boostThresholdConversion';
+import { shouldAttemptMetaBoostStandardPost } from './metaBoostStandardPostAttempt.js';
 
 type Translator = (key: string, values?: Record<string, string | number>) => string;
 
@@ -78,12 +78,6 @@ type UseBoostPaymentsParams = {
   mbrssV1HttpMessagingEnabled: boolean;
   /** From `GET /auth/me` only; required to complete mbrss-v1 ingest (with sender_guid). */
   mbrssV1SenderGuid: string | null;
-  sourceAmountMinor: number;
-  sourceCurrency: string | null;
-  sourceAmountUnit: string | null;
-  thresholdPreferredCurrency: string | null;
-  thresholdMinimumMessageAmountMinor: number | null;
-  thresholdConversionEndpointUrl: string | null;
   /** When false, `submitBoost` is a no-op (no WebLN / Lightning). */
   isLoggedIn: boolean;
 };
@@ -108,12 +102,6 @@ export const useBoostPayments = ({
   onBoostSuccess,
   mbrssV1HttpMessagingEnabled,
   mbrssV1SenderGuid,
-  sourceAmountMinor,
-  sourceCurrency,
-  sourceAmountUnit,
-  thresholdPreferredCurrency,
-  thresholdMinimumMessageAmountMinor,
-  thresholdConversionEndpointUrl,
   isLoggedIn,
 }: UseBoostPaymentsParams) => {
   const { setModalBoostMessageError, setModalBoostMintRateLimit } = useModals();
@@ -154,7 +142,6 @@ export const useBoostPayments = ({
     effectiveMessage: string,
     allowBlipFallback: boolean,
     shouldPostMetaboostStandard: boolean,
-    omitBlipMetadataInKeysend: boolean,
     useMbV1Post: boolean
   ) => {
     try {
@@ -240,8 +227,7 @@ export const useBoostPayments = ({
             updateRecipientStatus(recipient.id, 'paying');
             setLocalRecipientStatus(recipient.id, 'paying');
             const amountMsat = Math.max(0, Math.round(recipient.final_amount * 1000));
-            const shouldIncludeBlip =
-              !omitBlipMetadataInKeysend && (desc !== null || allowBlipFallback);
+            const shouldIncludeBlip = desc !== null || allowBlipFallback;
             const effectiveBlipMessage = allowBlipFallback ? '' : effectiveMessage;
             const effectiveSenderName = allowBlipFallback ? '' : yourName.trim();
             const blipMessage = buildBlipMessage(desc, allowBlipFallback, effectiveBlipMessage);
@@ -396,9 +382,13 @@ export const useBoostPayments = ({
             } else {
               const responseCode = getErrorResponseBodyCode(error);
               const responseMessage = getErrorResponseBodyMessage(error);
-              const message =
+              const trimmedMessage =
                 typeof responseMessage === 'string' && responseMessage.trim() !== ''
                   ? responseMessage.trim()
+                  : null;
+              const message =
+                trimmedMessage !== null
+                  ? trimmedMessage
                   : responseCode === METABOOST_OWNER_TERMS_NOT_ACCEPTED_CURRENT_CODE
                     ? tValue('boost_messages.owner_terms_not_accepted_post_fallback')
                     : tValue('boost_messages.metaboost_post_failed_fallback');
@@ -434,10 +424,6 @@ export const useBoostPayments = ({
     }
     const { shouldUseMbrssV1, shouldUseMbV1, allowBlipFallback } =
       resolveBoostExecutionStrategy(metaBoost);
-    const normalizedSourceCurrency = sourceCurrency?.trim() ?? '';
-    const normalizedSourceAmountUnit = sourceAmountUnit?.trim() ?? '';
-    const normalizedThresholdPreferredCurrency = thresholdPreferredCurrency?.trim() ?? '';
-    const normalizedThresholdConversionEndpointUrl = thresholdConversionEndpointUrl?.trim() ?? '';
 
     if ((shouldUseMbrssV1 || shouldUseMbV1) && metaBoost !== null) {
       if (mbrssV1HttpMessagingEnabled && mbrssV1SenderGuid !== null && mbrssV1SenderGuid !== '') {
@@ -464,46 +450,15 @@ export const useBoostPayments = ({
           return;
         }
       }
-      const thresholdAmountMinor = thresholdMinimumMessageAmountMinor ?? 0;
-      let shouldPostMetaboostStandard = mbrssV1HttpMessagingEnabled;
-      if (
-        shouldPostMetaboostStandard &&
-        thresholdAmountMinor > 0 &&
-        normalizedSourceCurrency !== '' &&
-        normalizedSourceAmountUnit !== '' &&
-        normalizedThresholdPreferredCurrency !== ''
-      ) {
-        const conversionResult = await convertBoostThresholdAmount({
-          sourceCurrency: normalizedSourceCurrency,
-          sourceAmountMinor: Math.max(0, Math.round(sourceAmountMinor)),
-          sourceAmountUnit: normalizedSourceAmountUnit,
-          context: {
-            preferredCurrency: normalizedThresholdPreferredCurrency,
-            minimumMessageAmountMinor: thresholdAmountMinor,
-            conversionEndpointUrl:
-              normalizedThresholdConversionEndpointUrl === ''
-                ? null
-                : normalizedThresholdConversionEndpointUrl,
-          },
-        });
-
-        if (conversionResult.ok && conversionResult.target.amountMinor < thresholdAmountMinor) {
-          shouldPostMetaboostStandard = false;
-        }
-      }
-      const desc = getMbrssV1PaymentDesc(effectiveMessage, config.public.brand.name);
-      await sendPayments(
-        desc,
-        effectiveMessage,
-        false,
-        shouldPostMetaboostStandard,
-        true,
-        shouldUseMbV1
+      const shouldPostMetaboostStandard = shouldAttemptMetaBoostStandardPost(
+        mbrssV1HttpMessagingEnabled
       );
+      const desc = getMbrssV1PaymentDesc(effectiveMessage, config.public.brand.name);
+      await sendPayments(desc, effectiveMessage, false, shouldPostMetaboostStandard, shouldUseMbV1);
       return;
     }
 
-    await sendPayments(null, effectiveMessage, allowBlipFallback, false, false, false);
+    await sendPayments(null, effectiveMessage, allowBlipFallback, false, false);
   };
 
   const handleSubmitBoost = async () => {

@@ -312,18 +312,9 @@
       "metaboost_post_failed_modal_title": "",
       "metaboost_post_failed_modal_primary": "",
       "metaboost_post_failed_fallback": "",
-      "threshold_notice": "",
       "currency_minor_units": {
         "satoshis": ""
       },
-      "threshold_below_minimum_modal_title": "",
-      "threshold_below_minimum_modal_body": "",
-      "threshold_send_without_message": "",
-      "threshold_missing_metadata": "",
-      "threshold_amount_unit_missing": "",
-      "threshold_amount_unit_invalid": "",
-      "threshold_conversion_unavailable": "",
-      "threshold_conversion_unavailable_guidance": "",
       "baseline_estimate_tooltip_text": "",
       "amount_input_invalid_number": "",
       "amount_input_too_many_decimals": "",

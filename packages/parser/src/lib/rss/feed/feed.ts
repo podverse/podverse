@@ -36,10 +36,6 @@ export const handleGetRSSFeed = async (url: string, podcast_index_id: number): P
 
     if (!feed) {
       feed = await feedService.getByPodcastIndexId(podcast_index_id);
-      if (feed) {
-        feed.url = url;
-        await feedService.update(feed.id, { url });
-      }
     }
 
     if (!feed) {

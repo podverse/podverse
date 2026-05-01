@@ -3,10 +3,10 @@ import { describe, expect, it } from 'vitest';
 import { normalizeMetaboostMbrssV1IngestNodeUrl } from './mbrssV1IngestUrl.js';
 
 describe('normalizeMetaboostMbrssV1IngestNodeUrl', () => {
-  it('rewrites legacy /v1/s/ to /v1/standard/', () => {
+  it('trims whitespace and returns canonical URL string without rewriting pathname', () => {
     expect(
-      normalizeMetaboostMbrssV1IngestNodeUrl('https://api.example.com/v1/s/mbrss-v1/boost/abc/')
-    ).toBe('https://api.example.com/v1/standard/mbrss-v1/boost/abc/');
+      normalizeMetaboostMbrssV1IngestNodeUrl('  https://api.example.com/v1/s/mbrss-v1/boost/abc/  ')
+    ).toBe('https://api.example.com/v1/s/mbrss-v1/boost/abc/');
   });
 
   it('leaves already-standard URLs unchanged', () => {

@@ -6,7 +6,7 @@ const findMock = vi.fn();
 vi.mock('@orm/db/index.js', () => ({
   AppDataSourceRead: {
     getRepository: (_entity: unknown) => {
-      if (_entity?.name === 'FeedFlagStatusReason') {
+      if ((_entity as { name?: string } | undefined)?.name === 'FeedFlagStatusReason') {
         return { findOne: findOneMock, find: findMock };
       }
       return { findOne: findOneMock };

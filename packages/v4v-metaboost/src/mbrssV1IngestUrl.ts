@@ -1,7 +1,6 @@
 /**
- * Metaboost Standard Endpoint uses `/v1/standard/*`. Legacy ingest URLs may still advertise
- * `/v1/s/*`; normalize so clients POST to the canonical path (see Metaboost
- * STANDARD-ENDPOINT docs).
+ * Trims whitespace and validates `metaBoostNodeUrl` as an absolute URL.
+ * Does not rewrite path segments; callers supply the API path they intend to use.
  */
 export const normalizeMetaboostMbrssV1IngestNodeUrl = (metaBoostNodeUrl: string): string => {
   const trimmed = metaBoostNodeUrl.trim();
@@ -10,9 +9,6 @@ export const normalizeMetaboostMbrssV1IngestNodeUrl = (metaBoostNodeUrl: string)
   }
   try {
     const u = new URL(trimmed);
-    if (u.pathname.includes('/v1/s/')) {
-      u.pathname = u.pathname.replace('/v1/s/', '/v1/standard/');
-    }
     return u.toString();
   } catch {
     throw new Error('MetaBoost node URL is invalid');

@@ -18,10 +18,10 @@ export type UseMbrssV1BoostCapabilityResult = {
   status: MbrssV1BoostCapabilityStatus;
   messageCharLimit: number | null;
   termsOfServiceUrl: string | null;
+  publicMessagesUrl: string | null;
   senderBlocked: boolean;
   senderBlockMessage: string | null;
   preferredCurrency: string | null;
-  minimumMessageAmountMinor: number | null;
   conversionEndpointUrl: string | null;
 };
 
@@ -56,10 +56,10 @@ export const useMbrssV1BoostCapability = (
   });
   const [messageCharLimit, setMessageCharLimit] = useState<number | null>(null);
   const [termsOfServiceUrl, setTermsOfServiceUrl] = useState<string | null>(null);
+  const [publicMessagesUrl, setPublicMessagesUrl] = useState<string | null>(null);
   const [senderBlocked, setSenderBlocked] = useState(false);
   const [senderBlockMessage, setSenderBlockMessage] = useState<string | null>(null);
   const [preferredCurrency, setPreferredCurrency] = useState<string | null>(null);
-  const [minimumMessageAmountMinor, setMinimumMessageAmountMinor] = useState<number | null>(null);
   const [conversionEndpointUrl, setConversionEndpointUrl] = useState<string | null>(null);
 
   useEffect(() => {
@@ -67,10 +67,10 @@ export const useMbrssV1BoostCapability = (
       setStatus('idle');
       setMessageCharLimit(null);
       setTermsOfServiceUrl(null);
+      setPublicMessagesUrl(null);
       setSenderBlocked(false);
       setSenderBlockMessage(null);
       setPreferredCurrency(null);
-      setMinimumMessageAmountMinor(null);
       setConversionEndpointUrl(null);
       return;
     }
@@ -79,10 +79,10 @@ export const useMbrssV1BoostCapability = (
       setStatus('idle');
       setMessageCharLimit(null);
       setTermsOfServiceUrl(null);
+      setPublicMessagesUrl(null);
       setSenderBlocked(false);
       setSenderBlockMessage(null);
       setPreferredCurrency(null);
-      setMinimumMessageAmountMinor(null);
       setConversionEndpointUrl(null);
       return;
     }
@@ -91,10 +91,10 @@ export const useMbrssV1BoostCapability = (
     setStatus('loading');
     setMessageCharLimit(null);
     setTermsOfServiceUrl(null);
+    setPublicMessagesUrl(null);
     setSenderBlocked(false);
     setSenderBlockMessage(null);
     setPreferredCurrency(null);
-    setMinimumMessageAmountMinor(null);
     setConversionEndpointUrl(null);
 
     void (async () => {
@@ -112,10 +112,10 @@ export const useMbrssV1BoostCapability = (
         }
         setMessageCharLimit(result.messageCharLimit);
         setTermsOfServiceUrl(result.termsOfServiceUrl);
+        setPublicMessagesUrl(result.publicMessagesUrl);
         setSenderBlocked(result.senderBlocked);
         setSenderBlockMessage(result.senderBlockMessage);
         setPreferredCurrency(result.preferredCurrency);
-        setMinimumMessageAmountMinor(result.minimumMessageAmountMinor);
         setConversionEndpointUrl(result.conversionEndpointUrl);
         setStatus('success');
       } catch {
@@ -124,10 +124,10 @@ export const useMbrssV1BoostCapability = (
         }
         setMessageCharLimit(null);
         setTermsOfServiceUrl(null);
+        setPublicMessagesUrl(null);
         setSenderBlocked(false);
         setSenderBlockMessage(null);
         setPreferredCurrency(null);
-        setMinimumMessageAmountMinor(null);
         setConversionEndpointUrl(null);
         setStatus('error');
       }
@@ -142,10 +142,10 @@ export const useMbrssV1BoostCapability = (
     status,
     messageCharLimit,
     termsOfServiceUrl,
+    publicMessagesUrl,
     senderBlocked,
     senderBlockMessage,
     preferredCurrency,
-    minimumMessageAmountMinor,
     conversionEndpointUrl,
   };
 };

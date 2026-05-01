@@ -169,6 +169,10 @@ export const parseRSSFeedAndSaveToDatabase = async (
       throw new FeedIsParsingError(feed.id);
     }
 
+    if (feed.url !== url) {
+      feed = await feedService.update(feed.id, { url });
+    }
+
     parsedFeed = await handleRequestRSSFeed(feed);
     feed = await handleParsedFeed(parsedFeed, feed, options);
 
@@ -253,6 +257,7 @@ export const parseRSSFeedAndSaveToDatabase = async (
     await feedLogService.update(feed, { last_finished_parse_time: new Date() });
   } catch (error) {
     if (error instanceof FeedIsParsingError) {
+      // Lock loser must be a pure no-op: no parse writes, no feed-log writes, no on-demand event row.
       loggerService.warn(`Feed ${feed?.id} is already parsing.`);
       // return so the is_parsing flag is not reset
       return { remoteItemsToParse: [], imageHints };
@@ -288,7 +293,7 @@ export const parseRSSFeedAndSaveToDatabase = async (
       await feedService.update(feed.id, feedUpdateDto);
     }
 
-    if (onDemandParserEvent) {
+    if (parsingLockAcquired && onDemandParserEvent) {
       const { accountId, remoteParentPodcastIndexId, type } = onDemandParserEvent;
       if (accountId && type) {
         const accountService = new AccountService();

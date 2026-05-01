@@ -16,7 +16,7 @@ The management database console provides a policy-driven, metadata-driven interf
 
 ## Architecture
 
-- **Backend**: `apps/management-api` exposes generic REST endpoints under `/api/v1/database/` that read/write the app database (`podverse_app`)
+- **Backend**: `apps/management-api` exposes generic REST endpoints under `/api/v2/database/` that read/write the app database (`podverse_app`)
 - **Frontend**: `apps/management-web` renders dynamic table browsers and forms based on metadata from the API
 - **Policy**: `apps/management-api/src/lib/database/tablePolicy.ts` defines the allowlist, field rules, and query bounds
 - **Audit**: All write operations emit records to the `database_audit_log` table in the management database

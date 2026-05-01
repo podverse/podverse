@@ -1,17 +1,12 @@
 'use client';
 
-import { useLocale, useTranslations } from 'next-intl';
+import { useTranslations } from 'next-intl';
 import type { ReactNode } from 'react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 
 import type { DTOChannel, DTOItem } from '@podverse/helpers';
 import { isLnaddressRecipient } from '@podverse/v4v-btc-ln';
-import {
-  formatMinorAmountDisplay,
-  getBoostCurrencyInputFormatMetadata,
-  type MetaBoost,
-  type PublicBucketConversionSnapshotErrorCode,
-} from '@podverse/v4v-metaboost';
+import type { MetaBoost } from '@podverse/v4v-metaboost';
 
 import { useAccount } from '../../contexts/Account';
 import { useConfig } from '../../contexts/Config';
@@ -29,7 +24,6 @@ import type { BoostPaymentScope } from './boostPaymentScope';
 import { BoostRecipientInfo } from './BoostRecipientInfo';
 import { BoostRecipientStatusList } from './BoostRecipientStatusList';
 import { DonateSuccessConfetti } from './DonateSuccessConfetti';
-import { convertBoostThresholdAmount } from './hooks/boostThresholdConversion';
 import { useBoostAppRecipients } from './hooks/useBoostAppRecipients';
 import { useBoostPayments } from './hooks/useBoostPayments';
 import { useBoostRecipients } from './hooks/useBoostRecipients';
@@ -114,7 +108,6 @@ export const BoostFormBase: React.FC<BoostFormBaseProps> = ({
   const tValue = useTranslations('value');
   const tMisc = useTranslations('misc');
   const tDonate = useTranslations('donate');
-  const locale = useLocale();
   const hasSuccessOverride =
     successPrimaryButtonLabel !== undefined && successPrimaryButtonOnClick !== undefined;
   const [totalAmountToCreator, setTotalAmountToCreator] = useState<number>(() => {
@@ -269,33 +262,11 @@ export const BoostFormBase: React.FC<BoostFormBaseProps> = ({
     senderBlocked: mbrssV1SenderBlocked,
     senderBlockMessage: mbrssV1SenderBlockMessage,
     preferredCurrency: mbrssV1PreferredCurrency,
-    minimumMessageAmountMinor: mbrssV1MinimumMessageAmountMinor,
     conversionEndpointUrl: mbrssV1ConversionEndpointUrl,
   } = useMbrssV1BoostCapability(metaBoost, {
     fetchEnabled: metaBoost !== null && loggedInAccount !== null,
     senderGuid: loggedInAccount?.sender_guid ?? null,
   });
-  const [thresholdNameMessageBlocked, setThresholdNameMessageBlocked] = useState(false);
-  const [thresholdNotice, setThresholdNotice] = useState<string | null>(null);
-
-  const getThresholdConversionErrorNotice = (
-    code: PublicBucketConversionSnapshotErrorCode | 'missing_metadata'
-  ): string => {
-    if (code === 'missing_metadata') {
-      return tValue('boost_messages.threshold_missing_metadata');
-    }
-    if (code === 'missing_amount_unit') {
-      return tValue('boost_messages.threshold_amount_unit_missing');
-    }
-    if (code === 'invalid_amount_unit') {
-      return tValue('boost_messages.threshold_amount_unit_invalid');
-    }
-    if (code === 'request_failed') {
-      return tValue('boost_messages.threshold_conversion_unavailable');
-    }
-    return tValue('boost_messages.threshold_conversion_unavailable_guidance');
-  };
-
   const messageMaxLength = useMemo((): number | undefined => {
     if (metaBoost === null) {
       return BLIP0010_BTC_LN_BOOST_MESSAGE_CHAR_LIMIT;
@@ -325,12 +296,6 @@ export const BoostFormBase: React.FC<BoostFormBaseProps> = ({
   const selectedValueType =
     selectedItemValue?.type ?? selectedChannelValue?.type ?? appRecipientType ?? selectedValueKey;
   const sourceAmountCurrencyCode = resolveSourceCurrencyFromValueType(selectedValueType);
-  const sourceAmountMetadata =
-    metaBoost !== null && sourceAmountCurrencyCode !== null
-      ? getBoostCurrencyInputFormatMetadata(sourceAmountCurrencyCode)
-      : null;
-  const sourceAmountCurrency = sourceAmountMetadata?.currency ?? null;
-  const sourceAmountUnit = sourceAmountMetadata?.canonicalAmountUnit ?? null;
 
   useEffect(() => {
     if (typeof messageMaxLength !== 'number') {
@@ -342,7 +307,6 @@ export const BoostFormBase: React.FC<BoostFormBaseProps> = ({
   }, [messageMaxLength]);
 
   const effectiveTotal = boostPaymentScope === 'app_only' ? totalAmountToApp : totalAmountToCreator;
-  const normalizedBoostAmountMinor = Math.max(0, Math.round(effectiveTotal));
 
   const { handleSubmitBoost } = useBoostPayments({
     channel,
@@ -364,117 +328,8 @@ export const BoostFormBase: React.FC<BoostFormBaseProps> = ({
     },
     mbrssV1HttpMessagingEnabled,
     mbrssV1SenderGuid: loggedInAccount?.sender_guid ?? null,
-    sourceAmountMinor: normalizedBoostAmountMinor,
-    sourceCurrency: sourceAmountCurrency,
-    sourceAmountUnit,
-    thresholdPreferredCurrency: mbrssV1PreferredCurrency,
-    thresholdMinimumMessageAmountMinor: mbrssV1MinimumMessageAmountMinor,
-    thresholdConversionEndpointUrl: mbrssV1ConversionEndpointUrl,
     isLoggedIn: loggedInAccount !== null,
   });
-
-  useEffect(() => {
-    let cancelled = false;
-    setThresholdNameMessageBlocked(false);
-    setThresholdNotice(null);
-
-    const evaluateThreshold = async (): Promise<void> => {
-      if (metaBoost === null || mbrssV1CapabilityStatus !== 'success') {
-        return;
-      }
-      const thresholdAmountMinor = mbrssV1MinimumMessageAmountMinor ?? 0;
-      if (thresholdAmountMinor <= 0) {
-        return;
-      }
-      const preferredCurrency = mbrssV1PreferredCurrency?.trim().toUpperCase() ?? null;
-      if (preferredCurrency === null || preferredCurrency === '') {
-        if (cancelled) {
-          return;
-        }
-        setThresholdNameMessageBlocked(true);
-        setThresholdNotice(getThresholdConversionErrorNotice('missing_metadata'));
-        return;
-      }
-      if (mbrssV1ConversionEndpointUrl === null || mbrssV1ConversionEndpointUrl.trim() === '') {
-        if (cancelled) {
-          return;
-        }
-        setThresholdNameMessageBlocked(true);
-        setThresholdNotice(getThresholdConversionErrorNotice('missing_metadata'));
-        return;
-      }
-      if (sourceAmountCurrency === null || sourceAmountUnit === null) {
-        if (cancelled) {
-          return;
-        }
-        setThresholdNameMessageBlocked(true);
-        setThresholdNotice(getThresholdConversionErrorNotice('missing_metadata'));
-        return;
-      }
-
-      const conversionResult = await convertBoostThresholdAmount({
-        sourceCurrency: sourceAmountCurrency,
-        sourceAmountMinor: normalizedBoostAmountMinor,
-        sourceAmountUnit: sourceAmountUnit,
-        context: {
-          preferredCurrency,
-          minimumMessageAmountMinor: thresholdAmountMinor,
-          conversionEndpointUrl: mbrssV1ConversionEndpointUrl,
-        },
-      });
-
-      if (cancelled) {
-        return;
-      }
-      if (!conversionResult.ok) {
-        setThresholdNameMessageBlocked(true);
-        setThresholdNotice(getThresholdConversionErrorNotice(conversionResult.code));
-        return;
-      }
-
-      const convertedAmountMinor = conversionResult.target.amountMinor;
-      const belowThreshold = convertedAmountMinor < thresholdAmountMinor;
-      const minimumAmountDisplay = formatMinorAmountDisplay({
-        amountMinor: thresholdAmountMinor,
-        currency: preferredCurrency,
-        locale,
-        resolveAmountUnitLabel: ({ canonicalAmountUnit, amountMinor }) =>
-          tValue(`boost_messages.currency_minor_units.${canonicalAmountUnit}`, {
-            count: amountMinor,
-          }),
-      });
-      if (minimumAmountDisplay === null) {
-        setThresholdNameMessageBlocked(true);
-        setThresholdNotice(tValue('boost_messages.threshold_missing_metadata'));
-        return;
-      }
-
-      setThresholdNameMessageBlocked(belowThreshold);
-      setThresholdNotice(
-        belowThreshold
-          ? tValue('boost_messages.threshold_notice', {
-              minimumAmountDisplay,
-            })
-          : null
-      );
-    };
-
-    void evaluateThreshold();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [
-    mbrssV1CapabilityStatus,
-    mbrssV1ConversionEndpointUrl,
-    mbrssV1MinimumMessageAmountMinor,
-    mbrssV1PreferredCurrency,
-    metaBoost,
-    normalizedBoostAmountMinor,
-    sourceAmountCurrency,
-    sourceAmountUnit,
-    locale,
-  ]);
 
   const totalAmountZeroOrLess = effectiveTotal <= 0;
   const hasResults = recipientStatuses.length > 0 && !isSubmitting;
@@ -538,8 +393,6 @@ export const BoostFormBase: React.FC<BoostFormBaseProps> = ({
               mbrssV1MessageLoading={mbrssV1MessageLoading}
               mbrssV1CapabilityFailed={mbrssV1CapabilityFailed}
               mbrssV1SenderBlockedPreflightMessage={mbrssV1SenderBlockedPreflightMessage}
-              thresholdNameMessageBlocked={thresholdNameMessageBlocked}
-              thresholdMessageNotice={thresholdNotice}
               thresholdPreferredCurrency={mbrssV1PreferredCurrency}
               thresholdConversionEndpointUrl={mbrssV1ConversionEndpointUrl}
               sourceCurrencyCode={sourceAmountCurrencyCode}

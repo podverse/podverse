@@ -5,6 +5,7 @@ import { useMemo, useState } from 'react';
 import { FaCommentDollar } from 'react-icons/fa6';
 
 import { BoostAppDonateForm } from '../../components/Boost/BoostAppDonateForm';
+import { useMbrssV1BoostCapability } from '../../components/Boost/hooks/useMbrssV1BoostCapability';
 import { BoostMessagesSection } from '../../components/Boost/messages/BoostMessagesSection';
 import { createBoostMessagesPageFetcher } from '../../components/Boost/messages/fetchPublicBoostMessages';
 import { Divider } from '../../components/Divider/Divider';
@@ -24,15 +25,22 @@ export default function DonatePage() {
   const tDonate = useTranslations('donate');
 
   const appValueMetaBoost = useMemo(() => getAppValueMetaBoost(config), [config]);
+  const { status: capabilityStatus, publicMessagesUrl } =
+    useMbrssV1BoostCapability(appValueMetaBoost);
   const donateMessagesPageFetcher = useMemo(() => {
-    if (appValueMetaBoost === null || appValueMetaBoost.standard !== 'mb-v1') {
+    if (
+      appValueMetaBoost === null ||
+      appValueMetaBoost.standard !== 'mb-v1' ||
+      capabilityStatus !== 'success' ||
+      publicMessagesUrl === null
+    ) {
       return null;
     }
     return createBoostMessagesPageFetcher({
       type: 'mb-v1',
-      metaBoost: appValueMetaBoost,
+      publicMessagesUrl,
     });
-  }, [appValueMetaBoost]);
+  }, [appValueMetaBoost, capabilityStatus, publicMessagesUrl]);
 
   return (
     <>

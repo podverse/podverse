@@ -764,7 +764,7 @@ export function validateProxyUserAgent(varName: string, category: string): Valid
   }
 
   const firstPart = trimmed.split('/')[0];
-  if (firstPart && !firstPart.includes('Bot')) {
+  if (firstPart && !firstPart.toLowerCase().includes('bot')) {
     return {
       name: varName,
       isSet: true,

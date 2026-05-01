@@ -6,6 +6,7 @@ import type { DTOChannel } from '@podverse/helpers';
 
 import { useModals } from '../../../contexts/Modals';
 import { getBoostEligibilityForContent } from '../../../utils/value/boostEligibility';
+import { useMbrssV1BoostCapability } from '../hooks/useMbrssV1BoostCapability';
 import { createMbrssBoostBreadcrumbLinkResolver } from './createMbrssBoostBreadcrumbLinkResolver';
 import { createBoostMessagesPageFetcher } from './fetchPublicBoostMessages';
 import type { BoostBreadcrumbLinkResolver, BoostMessagesPageFetcher } from './types';
@@ -54,12 +55,21 @@ export const useBoostMessagesView = ({
       }),
     [channel, itemGuid]
   );
+  const mbrssMetaBoost = resolvedMetaBoost?.standard === 'mbrss-v1' ? resolvedMetaBoost : null;
+  const { status: capabilityStatus, publicMessagesUrl } = useMbrssV1BoostCapability(
+    mbrssMetaBoost,
+    {
+      fetchEnabled: ssrCanShowBoosts,
+    }
+  );
 
   const boostsPageFetcher = useMemo(() => {
     if (
       !ssrCanShowBoosts ||
       resolvedMetaBoost?.standard !== 'mbrss-v1' ||
-      mbrssMessagesScope === null
+      mbrssMessagesScope === null ||
+      capabilityStatus !== 'success' ||
+      publicMessagesUrl === null
     ) {
       return null;
     }
@@ -72,14 +82,14 @@ export const useBoostMessagesView = ({
       if (scopeType === 'channel') {
         return createBoostMessagesPageFetcher({
           type: 'mbrss-v1',
-          metaBoost: resolvedMetaBoost,
+          publicMessagesUrl,
           scope: { type: 'channel', podcastGuid: mbrssMessagesScope.podcastGuid },
         });
       }
 
       return createBoostMessagesPageFetcher({
         type: 'mbrss-v1',
-        metaBoost: resolvedMetaBoost,
+        publicMessagesUrl,
         scope: { type: scopeType, podcastGuid: mbrssMessagesScope.podcastGuid },
       });
     }
@@ -91,17 +101,24 @@ export const useBoostMessagesView = ({
     if (scopeType === 'item') {
       return createBoostMessagesPageFetcher({
         type: 'mbrss-v1',
-        metaBoost: resolvedMetaBoost,
+        publicMessagesUrl,
         scope: { type: 'item', itemGuid: mbrssMessagesScope.itemGuid },
       });
     }
 
     return createBoostMessagesPageFetcher({
       type: 'mbrss-v1',
-      metaBoost: resolvedMetaBoost,
+      publicMessagesUrl,
       scope: { type: scopeType, itemGuid: mbrssMessagesScope.itemGuid },
     });
-  }, [mbrssMessagesScope, resolvedMetaBoost, scopeType, ssrCanShowBoosts]);
+  }, [
+    capabilityStatus,
+    mbrssMessagesScope,
+    publicMessagesUrl,
+    resolvedMetaBoost,
+    scopeType,
+    ssrCanShowBoosts,
+  ]);
 
   const breadcrumbLinkResolver = useMemo(() => {
     if (channelIdText === null || channelIdText === '') {
