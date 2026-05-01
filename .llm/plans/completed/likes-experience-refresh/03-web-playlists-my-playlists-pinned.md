@@ -14,6 +14,10 @@
 
 ## Definition of done (03)
 
-- [ ] My Playlists data path uses one list fetch (no extra pin fetch).
-- [ ] Default-likes row order in UI matches server-provided order.
-- [ ] No client reorder logic added unless explicitly documented and justified.
+- [x] My Playlists data path uses one list fetch (no extra pin fetch).
+- [x] Default-likes row order in UI matches server-provided order.
+- [x] No client reorder logic added unless explicitly documented and justified.
+
+## Completion
+
+- Status: completed

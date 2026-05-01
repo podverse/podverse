@@ -43,4 +43,8 @@ Do **not** leave `toggle` a silent no-op for logged-out when the user can see a 
 - **Show** like affordance (see checklist + Option A / B). **On use:** login modal; **no** `POST` membership; **no** `reqPlaylistToggleLike` until session exists.
 - [04](./04-web-full-player-vts-heart.md) VTS heart, when live: same rule.
 
-**DoD (02):** [ ] all checklist rows/headers + VTS use Option A or B; [ ] no `likeRow` omitted only because of `!loggedInAccount` where the episode is likeable. **Tests:** see [06](./06-tests-e2e-and-verification.md) minimum / stretch.
+**DoD (02):** [x] all checklist rows/headers + VTS use Option A or B; [x] no `likeRow` omitted only because of `!loggedInAccount` where the episode is likeable. **Tests:** see [06](./06-tests-e2e-and-verification.md) minimum / stretch.
+
+## Completion
+
+- Status: completed

@@ -42,6 +42,11 @@ Refresh likes UX: More menu + batch membership (core and Add-by-RSS), private pl
 
 See each `0X-` file and its checkboxes, plus [00-EXECUTION-ORDER.md](./00-EXECUTION-ORDER.md).
 
+## Completion
+
+- Status: completed
+- Phases 01 through 08 completed in order and validated with targeted checks.
+
 ## Verification (monorepo)
 
 From **repo root**; `./scripts/nix/with-env` for `node`/`npm` per [AGENTS.md](../../../../AGENTS.md). Postgres and Valkey for many integration tests — see AGENTS and `make test_deps`.

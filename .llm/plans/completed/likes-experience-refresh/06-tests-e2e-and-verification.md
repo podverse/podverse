@@ -5,11 +5,16 @@
 Non-optional items the implementer or reviewer confirms:
 
 - **API ([playlist.test.ts](../../../apps/api/src/test/playlist.test.ts)):**  
-  - [ ] `GET /playlist/private/likes?include_resources=0` still asserts the service is called in the **omit resources** path (or equivalent, if test layout changes).  
-  - [ ] `PATCH` request body in tests **does not** include `medium` and still matches **200** success path with mocks.  
+  - [x] `GET /playlist/private/likes?include_resources=0` still asserts the service is called in the **omit resources** path (or equivalent, if test layout changes).  
+  - [x] `PATCH` request body in tests **does not** include `medium` and still matches **200** success path with mocks.  
 - **Typecheck + lint (scoped):** per phase in [COPY-PASTA](./COPY-PASTA.md).  
 - **Screenshot / report:** if UI changed, follow [end-with-targeted-make-report-verify](../../../../.cursor/rules/end-with-targeted-make-report-verify.mdc) and repo Makefile (run from monorepo root, `./scripts/nix/with-env` for tools).
 - **Handoff to advanced E2E:** after 06 baseline passes, continue with [07](./07-e2e-media-player-test-foundation.md) and [08](./08-e2e-likes-and-player-overlay-matrix.md) for final media-player hierarchy + likes/auth screenshot coverage.
+
+## Completion
+
+- Status: completed
+- Baseline gate satisfied; 07 and 08 completed with scoped report specs.
 
 ## Stretch (optional / product QA)
 

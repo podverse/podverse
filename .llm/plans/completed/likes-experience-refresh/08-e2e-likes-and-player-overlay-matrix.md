@@ -56,11 +56,15 @@ Use concise top-level `describe`, verbose test titles and step labels per e2e re
 
 ## Deliverables (08)
 
-- [ ] Two spec files (likes/auth + overlay hierarchy)
-- [ ] Coverage for VTS / toc:false / chapter / none + tie-break in full and mini contexts
-- [ ] Logged-out like behavior coverage with explicit “no API before login” check
-- [ ] Scoped screenshot HTML reports for each spec
+- [x] Two spec files (likes/auth + overlay hierarchy)
+- [x] Coverage for VTS / toc:false / chapter / none + tie-break in full and mini contexts
+- [x] Logged-out like behavior coverage with explicit “no API before login” check
+- [x] Scoped screenshot HTML reports for each spec
 
 ## Exit criteria
 
 - Running the two scoped make commands above produces passing tests and screenshot-rich reports that clearly demonstrate hierarchy and like auth behavior.
+
+## Completion
+
+- Status: completed

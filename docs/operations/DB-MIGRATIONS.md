@@ -84,7 +84,7 @@ When adapting to other clusters/repositories, keep mounts and `LINEAR_MIGRATIONS
 
 **Fresh PVC / initdb:** Cluster Postgres runs `0003`, and generated `0003a`/`0003b` baselines include deterministic `linear_migration_history` rows so ops jobs start with aligned checksums (see [LINEAR-MIGRATIONS.md](LINEAR-MIGRATIONS.md)).
 
-After merging these manifests, bump the immutable `?ref=` on remote ops bases in GitOps repos (for example `k.podcastdj.com/apps/podverse-alpha/ops/kustomization.yaml`) to a Podverse tag that includes the change.
+After merging these manifests, bump the immutable `?ref=` on remote ops bases in your GitOps repository (for example `apps/<environment>/ops/kustomization.yaml` there) to a Podverse tag that includes the change.
 
 Trigger one-off jobs from those CronJobs during first deploy and on subsequent schema updates.
 

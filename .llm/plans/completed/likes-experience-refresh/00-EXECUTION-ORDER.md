@@ -36,3 +36,8 @@ For **one prompt per phase** to paste into an agent. Each prompt references the 
 ## After all phases
 
 - [Plan completion / archive](../../../../.cursor/skills/plan-completion/SKILL.md): move the whole `likes-experience-refresh/` directory to `.llm/plans/completed/` **only** when [06 minimum](./06-tests-e2e-and-verification.md#minimum-must-have-before-phase-06-done) is complete and any 04 blocker/deferral is explicitly accepted.
+
+## Completion
+
+- Status: completed
+- Sequential execution satisfied: 01 -> 02 -> 03 -> 04 -> 05 -> 06 -> 07 -> 08.

@@ -190,6 +190,10 @@ These variables are used to build the Parser configuration:
 - **`PARSER_ADD_REMOTE_ITEMS_TO_MQ`** (Optional) - Add remote items to message queue (default: `false`)
   - Set to `"true"` to enable
 
+- **`PARSER_SPAM_FEED_ITEM_THRESHOLD_DEFAULT`** (Optional) - Parsed item/live-item count at or above which a feed is auto-flagged `Spam` for non-`SpamPermitted` statuses (default: `10000`). Must be a positive integer when set.
+
+- **`PARSER_SPAM_FEED_ITEM_THRESHOLD_SPAM_PERMITTED`** (Optional) - Same check for feeds in `SpamPermitted` (default: `100000`). Must be a positive integer when set.
+
 ## Module configuration validation
 
 Startup validation runs **per command** before config or modules load. The validator in

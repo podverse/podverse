@@ -23,6 +23,7 @@ vi.mock('@orm/entities/feed/feedFlagStatus.js', () => ({
     PendingArchive: 4,
     Archived: 5,
     Takedown: 6,
+    SpamPermitted: 7,
   },
 }));
 
@@ -42,13 +43,15 @@ vi.mock('@orm/entities/feed/feedFlagStatusReason.js', () => ({
 import {
   checkIfFeedFlagStatusShouldParse,
   checkIfSpamFeed,
+  DEFAULT_SPAM_FEED_ITEM_THRESHOLDS,
   FeedFlagStatusReasonService,
 } from './feedFlagStatus.js';
 
 describe('checkIfFeedFlagStatusShouldParse', () => {
-  it('allows Active and AlwaysParse statuses', () => {
+  it('allows Active, AlwaysParse, and SpamPermitted statuses', () => {
     expect(checkIfFeedFlagStatusShouldParse(1)).toBe(true);
     expect(checkIfFeedFlagStatusShouldParse(2)).toBe(true);
+    expect(checkIfFeedFlagStatusShouldParse(7)).toBe(true);
   });
 
   it('blocks non-allowed statuses', () => {
@@ -60,19 +63,32 @@ describe('checkIfFeedFlagStatusShouldParse', () => {
 });
 
 describe('checkIfSpamFeed', () => {
-  it('marks feeds as spam when item counts hit or exceed the threshold', () => {
-    expect(checkIfSpamFeed({ items: new Array(10_000), podcastLiveItems: [] })).toBe(true);
-    expect(checkIfSpamFeed({ items: new Array(9_999), podcastLiveItems: [] })).toBe(false);
+  const t = DEFAULT_SPAM_FEED_ITEM_THRESHOLDS;
+
+  it('uses default threshold for normal parse-eligible statuses', () => {
+    expect(checkIfSpamFeed({ items: new Array(10_000), podcastLiveItems: [] }, 1, t)).toBe(true);
+    expect(checkIfSpamFeed({ items: new Array(9_999), podcastLiveItems: [] }, 1, t)).toBe(false);
   });
 
-  it('marks feeds as spam when live-item counts hit or exceed the threshold', () => {
-    expect(checkIfSpamFeed({ items: [], podcastLiveItems: new Array(10_000) })).toBe(true);
-    expect(checkIfSpamFeed({ items: [], podcastLiveItems: new Array(9_999) })).toBe(false);
+  it('uses spam-permitted threshold for SpamPermitted status', () => {
+    expect(checkIfSpamFeed({ items: new Array(100_000), podcastLiveItems: [] }, 7, t)).toBe(true);
+    expect(checkIfSpamFeed({ items: new Array(99_999), podcastLiveItems: [] }, 7, t)).toBe(false);
+    expect(checkIfSpamFeed({ items: [], podcastLiveItems: new Array(100_000) }, 7, t)).toBe(true);
+    expect(checkIfSpamFeed({ items: [], podcastLiveItems: new Array(99_999) }, 7, t)).toBe(false);
+  });
+
+  it('respects custom thresholds', () => {
+    expect(
+      checkIfSpamFeed({ items: new Array(5), podcastLiveItems: [] }, 1, {
+        defaultLimit: 5,
+        spamPermittedLimit: 100_000,
+      })
+    ).toBe(true);
   });
 
   it('returns false for undefined or missing arrays', () => {
-    expect(checkIfSpamFeed(undefined)).toBe(false);
-    expect(checkIfSpamFeed({})).toBe(false);
+    expect(checkIfSpamFeed(undefined, 1, t)).toBe(false);
+    expect(checkIfSpamFeed({}, 1, t)).toBe(false);
   });
 });
 

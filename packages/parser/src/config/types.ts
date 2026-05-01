@@ -24,6 +24,8 @@ export type PodcastIndexConfig = {
 
 export type ParserSettingsConfig = {
   addRemoteItemsToMQ: boolean;
+  spamFeedItemThresholdDefault: number;
+  spamFeedItemThresholdSpamPermitted: number;
 };
 
 export type DefaultsConfig = {

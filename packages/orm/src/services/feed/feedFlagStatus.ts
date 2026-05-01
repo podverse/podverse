@@ -5,16 +5,35 @@ import { FeedFlagStatusReason } from '@orm/entities/feed/feedFlagStatusReason.js
 export const checkIfFeedFlagStatusShouldParse = (status: FeedFlagStatusStatusEnum) => {
   if (
     status === FeedFlagStatusStatusEnum.Active ||
-    status === FeedFlagStatusStatusEnum.AlwaysParse
+    status === FeedFlagStatusStatusEnum.AlwaysParse ||
+    status === FeedFlagStatusStatusEnum.SpamPermitted
   ) {
     return true;
   }
   return false;
 };
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const checkIfSpamFeed = (parsedFeed: any) => {
-  const spamLimit = 10000;
+export type SpamFeedItemThresholds = {
+  defaultLimit: number;
+  spamPermittedLimit: number;
+};
+
+/** Defaults match worker env `PARSER_SPAM_FEED_ITEM_THRESHOLD_*` when unset. */
+export const DEFAULT_SPAM_FEED_ITEM_THRESHOLDS: SpamFeedItemThresholds = {
+  defaultLimit: 10_000,
+  spamPermittedLimit: 100_000,
+};
+
+export const checkIfSpamFeed = (
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- partytime parsed feed shape
+  parsedFeed: any,
+  status: FeedFlagStatusStatusEnum,
+  thresholds: SpamFeedItemThresholds
+) => {
+  const spamLimit =
+    status === FeedFlagStatusStatusEnum.SpamPermitted
+      ? thresholds.spamPermittedLimit
+      : thresholds.defaultLimit;
   return (
     parsedFeed?.items?.length >= spamLimit || parsedFeed?.podcastLiveItems?.length >= spamLimit
   );

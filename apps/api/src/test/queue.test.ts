@@ -311,9 +311,21 @@ describe('queue routes', () => {
       });
 
       it('GET /:id/resources/history-paginated returns 401 without auth', async () => {
-        const res = await request(app).get(
-          `${queueBase}/${QUEUE_ID_TEXT}/resources/history-paginated?page=1`
-        );
+        const requestHistory = () =>
+          request(app).get(`${queueBase}/${QUEUE_ID_TEXT}/resources/history-paginated?page=1`);
+
+        let res: request.Response;
+        try {
+          res = await requestHistory();
+        } catch (error) {
+          // Rare full-suite transient: retry once if connection resets mid-request.
+          if (error instanceof Error && /socket hang up/i.test(error.message)) {
+            res = await requestHistory();
+          } else {
+            throw error;
+          }
+        }
+
         expect(res.status).toBe(401);
       });
     });

@@ -22,7 +22,8 @@ INSERT INTO linear_migration_history (migration_filename, migration_checksum) VA
   ('0014_image_shrink_source.sql', 'de044e7f998b0c0bff95ecfa8efacad4320cfd1d356e365ab1bcfa61e7348c6e'),
   ('0015_metaboost.sql', '3d4233223bb796c5caa56f54818d651ffd7a19bc3edfdea68e429764cd4238b9'),
   ('0016_account_metaboost.sql', '253185148d8d807ff6a2abee7cadd2ed3092404179c2394783e8667ecde3eee3'),
-  ('0017_feed_flag_status_reason.sql', '00da000f368b29ed63db1783f9eff8f4b19f3a77c6d8e5143283baf0271819af')
+  ('0017_feed_flag_status_reason.sql', '00da000f368b29ed63db1783f9eff8f4b19f3a77c6d8e5143283baf0271819af'),
+  ('0018_spam_permit.sql', 'd85374c214f472b322cd3e3a1f8ff304a1c18787ed44e7b9c20c992dc49b2e4a')
 ON CONFLICT (migration_filename) DO NOTHING;
 
 \connect podverse_management

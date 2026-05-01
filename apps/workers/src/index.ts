@@ -68,7 +68,7 @@ const run = async () => {
     validateParserConfig,
     assertConfigValid,
   } = await import('@podverse/helpers-config');
-  const { createORMContext } = await import('@podverse/orm');
+  const { createORMContext, DEFAULT_SPAM_FEED_ITEM_THRESHOLDS } = await import('@podverse/orm');
   const { createFirebaseContext } = await import('@podverse/external-services-firebase');
   const { PodcastIndexService } = await import('@podverse/external-services-podcast-index');
   const { createNotificationsContext } = await import('@podverse/notifications');
@@ -234,39 +234,16 @@ const run = async () => {
       }
 
       if (categories.has(CATEGORY_PARSER)) {
+        const { buildWorkersParserConfig } =
+          await import('./lib/parser/buildWorkersParserConfig.js');
         const podcastIndexConfig = categories.has(CATEGORY_PODCAST_INDEX)
           ? getPodcastIndexConfig()
           : undefined;
-        const parserConfig = {
-          userAgent: baseConfig.userAgent,
-          log: {
-            level: baseConfig.log.level,
-            dir: baseConfig.log.dir,
-            timer: baseConfig.log.timer,
-          },
-          firebase: {
-            notifications_enabled: process.env.GOOGLE_FIREBASE_NOTIFICATIONS_ENABLED === 'true',
-            authJsonPath: process.env.GOOGLE_FIREBASE_ADMIN_JSON_KEY_PATH,
-          },
-          podcastIndex: podcastIndexConfig
-            ? {
-                authKey: podcastIndexConfig.authKey,
-                baseUrl: podcastIndexConfig.baseUrl,
-                secretKey: podcastIndexConfig.secretKey,
-                rateLimitDelay: podcastIndexConfig.rateLimitDelay ?? 0,
-              }
-            : undefined,
-          parser: {
-            addRemoteItemsToMQ: process.env.PARSER_ADD_REMOTE_ITEMS_TO_MQ === 'true',
-          },
-          defaults: {
-            account: {
-              settings: {
-                locale: process.env.DEFAULT_ACCOUNT_SETTINGS_LOCALE,
-              },
-            },
-          },
-        };
+        const parserConfig = buildWorkersParserConfig({
+          baseConfig,
+          podcastIndexConfig,
+          spamThresholdDefaults: DEFAULT_SPAM_FEED_ITEM_THRESHOLDS,
+        });
         assertConfigValid(validateParserConfig(parserConfig), 'podverse-parser');
         createParserContext({
           config: parserConfig,

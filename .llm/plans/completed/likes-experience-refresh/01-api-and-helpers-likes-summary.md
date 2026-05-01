@@ -25,6 +25,10 @@ Keep these aligned with the repo; if behavior changes, update **this file** and 
 
 ## Definition of done (01)
 
-- [ ] `include_resources=0` behavior and test stay green  
-- [ ] `PATCH` contract in docs and controller matches **no medium** for updates  
-- [ ] No remaining references in this file to “PATCH medium only for default-likes” as the sole rule (global rule is **no** `medium` on update)
+- [x] `include_resources=0` behavior and test stay green  
+- [x] `PATCH` contract in docs and controller matches **no medium** for updates  
+- [x] No remaining references in this file to “PATCH medium only for default-likes” as the sole rule (global rule is **no** `medium` on update)
+
+## Completion
+
+- Status: completed

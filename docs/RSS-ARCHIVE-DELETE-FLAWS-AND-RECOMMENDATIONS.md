@@ -13,6 +13,11 @@ separate remediation work. It is based on implemented behavior in source, not in
 
 For baseline lifecycle behavior, see `docs/RSS-ARCHIVE-DELETE-LIFECYCLE.md`.
 
+### Lifecycle follow-up (implemented)
+
+- **Archived items without clip/playlists**: each `archiveAll` runs `deleteArchivedItemsWithoutClipOrPlaylist()` so `Archived` rows are hard-deleted once users remove the last `Clip` and `playlist_resource` ties (see lifecycle doc step 4).
+- **Spam feed items**: `processSpamFeeds()` targets only **Spam** feeds that still have `Active` / `PendingArchive` items and applies the same `processItems` clip/playlist retention; the feed stays **Spam** (lifecycle doc step 2).
+
 ## Confirmed Gaps
 
 ### 1) Queue linkage is not an explicit archiver retention guard
@@ -71,7 +76,7 @@ Sources:
 Observed behavior:
 
 - TODO for re-checking archived items that no longer have dependencies.
-- TODO for spam-item handling.
+- Spam feeds with leftover `Active` / `PendingArchive` items: addressed by `processSpamFeeds()` (same `processItems` rules as pending-archive feed handling; feed remains `Spam`).
 
 Source:
 

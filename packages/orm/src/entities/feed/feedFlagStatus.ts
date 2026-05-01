@@ -9,6 +9,7 @@ export enum FeedFlagStatusStatusEnum {
   PendingArchive = 4,
   Archived = 5,
   Takedown = 6,
+  SpamPermitted = 7,
 }
 
 @Entity('feed_flag_status')

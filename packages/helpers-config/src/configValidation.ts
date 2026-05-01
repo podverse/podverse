@@ -261,6 +261,8 @@ export type ParserConfig = {
   };
   parser?: {
     addRemoteItemsToMQ: boolean;
+    spamFeedItemThresholdDefault: number;
+    spamFeedItemThresholdSpamPermitted: number;
   };
   defaults: {
     account: {
@@ -295,6 +297,37 @@ export function validateParserConfig(config: ParserConfig): ConfigValidationResu
         createError(
           'firebase.authJsonPath',
           'Firebase auth JSON path is required when Firebase is enabled'
+        )
+      );
+    }
+  }
+
+  if (config.parser !== undefined) {
+    const spamDefault = config.parser.spamFeedItemThresholdDefault;
+    const spamPermitted = config.parser.spamFeedItemThresholdSpamPermitted;
+    if (
+      typeof spamDefault !== 'number' ||
+      !Number.isFinite(spamDefault) ||
+      !Number.isInteger(spamDefault) ||
+      spamDefault < 1
+    ) {
+      errors.push(
+        createError(
+          'parser.spamFeedItemThresholdDefault',
+          'Must be a finite integer greater than or equal to 1'
+        )
+      );
+    }
+    if (
+      typeof spamPermitted !== 'number' ||
+      !Number.isFinite(spamPermitted) ||
+      !Number.isInteger(spamPermitted) ||
+      spamPermitted < 1
+    ) {
+      errors.push(
+        createError(
+          'parser.spamFeedItemThresholdSpamPermitted',
+          'Must be a finite integer greater than or equal to 1'
         )
       );
     }

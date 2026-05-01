@@ -4,11 +4,13 @@ import { useTranslations } from 'next-intl';
 
 import { IMAGES } from '../../../constants/images';
 import { useMediaPlayer } from '../../../contexts/MediaPlayer';
+import { useMediaPlayerCurrentTime } from '../../../contexts/MediaPlayerCurrentTime';
 import {
   buildMediaPlayerArtworkImageCandidates,
   getMediaPlayerArtworkSources,
   shouldUseChapterArtwork,
 } from '../../../utils/mediaPlayer/mediaPlayerArtwork';
+import { getMediaPlayerInfoResolution } from '../../../utils/mediaPlayer/mediaPlayerInfoResolution';
 import { ImageNonReact } from '../../Image/ImageNonReact';
 
 import styles from '../../../styles/components/MediaPlayer/Desktop/MediaPlayerInfoDesktop.module.scss';
@@ -19,28 +21,28 @@ export const MediaPlayerInfoDesktop: React.FC = () => {
     mpItem,
     mpAddByRSS,
     mpItemChapter,
+    mpItemChapters,
     mpClip,
     mpItemSoundbite,
     setPlayerModalIsOpen,
   } = useMediaPlayer();
+  const { mpCurrentTime } = useMediaPlayerCurrentTime();
   const tMediaPlayer = useTranslations('media_player');
   const tMisc = useTranslations('misc');
 
   const hasContent = !!mpChannel || !!mpAddByRSS;
-  const title = hasContent
-    ? (typeof mpAddByRSS?.resourceData?.title === 'string'
-        ? mpAddByRSS.resourceData.title
-        : null) ||
-      mpItem?.title ||
-      tMisc('untitled')
-    : '';
-  const subtitle = hasContent
-    ? (typeof mpAddByRSS?.resourceData?.channel_title === 'string'
-        ? mpAddByRSS.resourceData.channel_title
-        : null) ||
-      mpChannel?.title ||
-      tMisc('untitled')
-    : '';
+  const infoResolution = getMediaPlayerInfoResolution({
+    mpChannel,
+    mpItem,
+    mpAddByRSS,
+    mpClip,
+    mpItemSoundbite,
+    mpItemChapter,
+    mpItemChapters,
+    currentTimeSeconds: mpCurrentTime,
+  });
+  const title = hasContent ? (infoResolution.itemTitle ?? tMisc('untitled')) : '';
+  const subtitle = hasContent ? (infoResolution.channelTitle ?? tMisc('untitled')) : '';
 
   const { channelImages, itemImages } = getMediaPlayerArtworkSources({
     mpChannel,

@@ -197,6 +197,16 @@ function validateImageShrink(): ValidationResult[] {
 function validateParser(): ValidationResult[] {
   const results: ValidationResult[] = [];
   results.push(validateOptional('PARSER_ADD_REMOTE_ITEMS_TO_MQ', 'Parser', 'Use Default (false)'));
+  results.push(
+    validateOptional('PARSER_SPAM_FEED_ITEM_THRESHOLD_DEFAULT', 'Parser', 'Use Default (10000)')
+  );
+  results.push(
+    validateOptional(
+      'PARSER_SPAM_FEED_ITEM_THRESHOLD_SPAM_PERMITTED',
+      'Parser',
+      'Use Default (100000)'
+    )
+  );
   return results;
 }
 

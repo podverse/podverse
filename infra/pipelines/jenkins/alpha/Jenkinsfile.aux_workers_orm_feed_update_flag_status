@@ -19,14 +19,15 @@ pipeline {
 
         choice(
             name: 'FEED_FLAG_STATUS_ID', 
-            choices: ['1', '2', '3', '4', '5', '6'], 
+            choices: ['1', '2', '3', '4', '5', '6', '7'], 
             description: '''The feed flag status id you want to change the feed to.
 Active = 1
 AlwaysParse = 2
 Spam = 3
 PendingArchive = 4
 Archived = 5
-Takedown = 6'''
+Takedown = 6
+SpamPermitted = 7'''
         )
     }
 

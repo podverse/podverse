@@ -67,10 +67,14 @@ Keep helper names descriptive and sentence-style test steps per e2e readability 
 
 ## Deliverables (07)
 
-- [ ] Deterministic media-player scenario seed strategy documented and implemented (script(s) + README notes if needed)
-- [ ] Reusable E2E helper modules for player actions/assertions
-- [ ] One smoke-style validation spec that confirms helper flow can start player, seek, and read info sections without flake
+- [x] Deterministic media-player scenario seed strategy documented and implemented (script(s) + README notes if needed)
+- [x] Reusable E2E helper modules for player actions/assertions
+- [x] One smoke-style validation spec that confirms helper flow can start player, seek, and read info sections without flake
 
 ## Exit criteria
 
 - A developer can run one scoped spec locally with `make e2e_test_web_report_spec ...` and get stable screenshot-rich output for at least one player scenario.
+
+## Completion
+
+- Status: completed

@@ -18,4 +18,8 @@
 
 ## Definition of done (05)
 
-- [ ] Edit screen never offers a way to **change** medium; API cannot persist a medium change on update
+- [x] Edit screen never offers a way to **change** medium; API cannot persist a medium change on update
+
+## Completion
+
+- Status: completed

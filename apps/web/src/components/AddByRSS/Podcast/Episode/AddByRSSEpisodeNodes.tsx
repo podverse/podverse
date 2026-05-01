@@ -120,7 +120,7 @@ const AddByRSSEpisodeItemsListView: React.FC<AddByRSSEpisodeItemsRowsProps> = ({
                 currentIndex: idx,
                 sortOrder,
               }}
-              likeRow={itemIdText ? buildListLikeRow(hashId, { isLiked, toggle }) : undefined}
+              likeRow={buildListLikeRow(hashId, { isLiked, toggle })}
             />
             {idx < items.length - 1 && <Divider />}
           </React.Fragment>

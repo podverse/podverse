@@ -80,7 +80,7 @@ alpha-application.yaml → alpha/apps/*.yaml → alpha/<component>/kustomization
 
 ### Argo CD `Application` YAML named `ops.yaml` (editors / GitOps repos)
 
-The [JSON Schema Store](https://www.schemastore.org/) maps **`ops.yaml` / `ops.yml`** to an unrelated "Ops configuration" spec, so editors can mis-validate a real Argo CD `Application`. **Podverse** uses a **line 1** `# yaml-language-server: $schema=...` modeline in [`infra/k8s/alpha/apps/ops.yaml`](../../../infra/k8s/alpha/apps/ops.yaml). A matching GitOps checkout (e.g. k.podcastdj.com) should add the same **first-line modeline** on `argocd/.../ops.yaml` and may also commit `.vscode/settings.json` for backup. **Prefer the modeline**; rename or user `yaml.schemas` if needed. For the operator GitOps repo, see the **argocd-yaml-schema-ops-filename** skill (`.cursor/skills/` there).
+The [JSON Schema Store](https://www.schemastore.org/) maps **`ops.yaml` / `ops.yml`** to an unrelated "Ops configuration" spec, so editors can mis-validate a real Argo CD `Application`. **Podverse** uses a **line 1** `# yaml-language-server: $schema=...` modeline in [`infra/k8s/alpha/apps/ops.yaml`](../../../infra/k8s/alpha/apps/ops.yaml). Your separate GitOps repository checkout should add the same **first-line modeline** on `argocd/.../ops.yaml` and may also commit `.vscode/settings.json` for backup. **Prefer the modeline**; rename or user `yaml.schemas` if needed. For the operator GitOps repo, see the **argocd-yaml-schema-ops-filename** skill (`.cursor/skills/` there).
 
 ## Kustomize Usage
 

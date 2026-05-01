@@ -56,3 +56,8 @@ When deciding **what to display** (and, where applicable, **where “info” nav
 ## Tests / verification (see also [06](./06-tests-e2e-and-verification.md))
 
 - If unit tests are added for media title resolution, cover: VTS+feed match, `toc: false` over overlapping non-`toc: false`, generic chapters, and **first-position** tie-break when two chapters overlap with no other rule.
+
+## Completion
+
+- Status: completed
+- Note: shared full/mini resolution landed; VTS + chapter precedence verified by targeted tests and E2E harness scenarios.

@@ -1,4 +1,5 @@
 import { config } from '@parser/config/index.js';
+import { getParserConfig } from '@parser/context.js';
 import { loggerService } from '@parser/factories/loggerService.js';
 import { timerManager } from '@parser/factories/timerManager.js';
 // import { handleNewItemsNotifications, handleNewLiveItemsNotifications } from '@parser/lib/notifications.js';
@@ -33,6 +34,7 @@ import {
   ChannelService,
   checkIfFeedFlagStatusShouldParse,
   checkIfSpamFeed,
+  DEFAULT_SPAM_FEED_ITEM_THRESHOLDS,
   FeedFlagStatusStatusEnum,
   FeedLogService,
   FeedService,
@@ -176,7 +178,15 @@ export const parseRSSFeedAndSaveToDatabase = async (
     parsedFeed = await handleRequestRSSFeed(feed);
     feed = await handleParsedFeed(parsedFeed, feed, options);
 
-    if (checkIfSpamFeed(parsedFeed)) {
+    const parserRuntimeSettings = getParserConfig().parser;
+    const spamThresholds = parserRuntimeSettings
+      ? {
+          defaultLimit: parserRuntimeSettings.spamFeedItemThresholdDefault,
+          spamPermittedLimit: parserRuntimeSettings.spamFeedItemThresholdSpamPermitted,
+        }
+      : DEFAULT_SPAM_FEED_ITEM_THRESHOLDS;
+
+    if (checkIfSpamFeed(parsedFeed, feed.feed_flag_status.id, spamThresholds)) {
       await feedService.updateFlagStatus(feed, FeedFlagStatusStatusEnum.Spam);
       throw new Error(
         `parseRSSFeedAndSaveToDatabase: feed is spam ${feed.id} ${feed.podcast_index_id} ${feed.url}`
