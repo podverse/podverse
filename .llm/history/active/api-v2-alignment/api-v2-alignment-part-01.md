@@ -5,6 +5,23 @@
 **Context:** Podverse HTTP API uses `/v2`; Metaboost HTTP API and MetaBoost Standard URLs stay on `/v1`.
 Cross-repo GitOps env aligned accordingly.
 
+### Session 9 - 2026-04-30
+
+#### Prompt (Developer)
+
+@/Users/mitcheldowney/.cursor/projects/Users-mitcheldowney-repos-pv-podverse-ansible/terminals/14.txt:849-1245 debug
+
+#### Key Decisions
+
+- Inlined `shouldPostMetaboostStandard = mbrssV1HttpMessagingEnabled` in `useBoostPayments` and removed `metaBoostStandardPostAttempt` module + test after Turbopack production build failed to resolve `./metaBoostStandardPostAttempt.js` to the TypeScript source.
+
+#### Files Created/Modified
+
+- `apps/web/src/components/Boost/hooks/useBoostPayments.ts`
+- `apps/web/src/components/Boost/hooks/metaBoostStandardPostAttempt.ts` (removed)
+- `apps/web/src/components/Boost/hooks/metaBoostStandardPostAttempt.test.ts` (removed)
+- `.llm/history/active/api-v2-alignment/api-v2-alignment-part-01.md`
+
 ### Session 8 - 2026-04-30
 
 #### Prompt (Developer)

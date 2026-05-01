@@ -38,3 +38,20 @@ To-do's from the plan have already been created. Do not create them again. Mark 
 - apps/web/i18n/overrides/es.json
 - apps/web/i18n/overrides/fr.json
 - apps/web/i18n/overrides/el-GR.json
+
+### Session 2 - 2026-04-30
+
+#### Prompt (Developer)
+
+@/Users/mitcheldowney/.cursor/projects/Users-mitcheldowney-repos-pv-podverse-ansible/terminals/14.txt:849-1245 debug
+
+#### Key Decisions
+
+- `next build` (Turbopack) could not resolve `./metaBoostStandardPostAttempt.js` to the sibling `.ts` source; `shouldAttemptMetaBoostStandardPost` was only `mbrssV1HttpMessagingEnabled`, so inlined that boolean and removed the helper module + its trivial unit test.
+
+#### Files Modified
+
+- apps/web/src/components/Boost/hooks/useBoostPayments.ts
+- apps/web/src/components/Boost/hooks/metaBoostStandardPostAttempt.ts (removed)
+- apps/web/src/components/Boost/hooks/metaBoostStandardPostAttempt.test.ts (removed)
+- .llm/history/active/remove-minimum-boost-amount-list-filter/remove-minimum-boost-amount-list-filter-part-01.md

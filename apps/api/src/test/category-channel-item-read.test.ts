@@ -358,8 +358,10 @@ describe('category, channel, item, chapters, soundbites, transcripts, live, podr
         return {
           id: 1,
           id_text: id,
-          item_chapters_feed: { id: 1 },
-          item_chapters_feed_log: { last_finished_parse_time: new Date() },
+          item_chapters_feed: {
+            id: 1,
+            item_chapters_feed_log: { last_finished_parse_time: new Date() },
+          },
         };
       }
       return { id: 1, id_text: 'it-ok', item: {} };
@@ -626,10 +628,19 @@ describe('category, channel, item, chapters, soundbites, transcripts, live, podr
     });
 
     it('GET /live-item/channel/:id returns 404 when channel is not parsed-ready', async () => {
-      channelGetByIdOrIdTextMock.mockResolvedValueOnce({
-        id: 1,
-        id_text: 'ch-placeholder',
-        channel_about: null,
+      channelGetByIdOrIdTextMock.mockImplementationOnce(async (channelId: string) => {
+        if (channelId === 'ch-placeholder') {
+          return {
+            id: 1,
+            id_text: 'ch-placeholder',
+            channel_about: null,
+          };
+        }
+        return {
+          id: 1,
+          id_text: 'ch-1',
+          channel_about: { episode_count: 3, last_pub_date: new Date() },
+        };
       });
       const res = await request(app).get(`${liveItemBase}/channel/ch-placeholder`);
       expect(res.status).toBe(404);

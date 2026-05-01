@@ -39,7 +39,6 @@ import {
 } from '../payments/mbrssV1/mbrssV1RequestMetadata';
 import { postMbV1BoostMessage } from '../payments/mbV1/mbV1RequestMetadata';
 import type { PaymentRecipient, RecipientStatus } from '../types.js';
-import { shouldAttemptMetaBoostStandardPost } from './metaBoostStandardPostAttempt.js';
 
 type Translator = (key: string, values?: Record<string, string | number>) => string;
 
@@ -450,9 +449,7 @@ export const useBoostPayments = ({
           return;
         }
       }
-      const shouldPostMetaboostStandard = shouldAttemptMetaBoostStandardPost(
-        mbrssV1HttpMessagingEnabled
-      );
+      const shouldPostMetaboostStandard = mbrssV1HttpMessagingEnabled;
       const desc = getMbrssV1PaymentDesc(effectiveMessage, config.public.brand.name);
       await sendPayments(desc, effectiveMessage, false, shouldPostMetaboostStandard, shouldUseMbV1);
       return;

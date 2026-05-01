@@ -100,8 +100,9 @@ test_db_init: test_postgres_up
 	@docker exec $(TEST_PG_CONTAINER) psql -U $(TEST_PG_USER) -d postgres -c "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = '$(TEST_DB_NAME)' AND pid <> pg_backend_pid();" 2>/dev/null || true
 	@docker exec $(TEST_PG_CONTAINER) psql -U $(TEST_PG_USER) -d postgres -c "DROP DATABASE IF EXISTS $(TEST_DB_NAME);"
 	@docker exec $(TEST_PG_CONTAINER) psql -U $(TEST_PG_USER) -d postgres -c "CREATE DATABASE $(TEST_DB_NAME);"
-	@DB_HOST="127.0.0.1" DB_PORT="$(TEST_DB_PORT)" DB_USER="$(TEST_PG_USER)" DB_PASSWORD="$(TEST_PG_PASSWORD)" DB_NAME="$(TEST_DB_NAME)" \
-	bash scripts/database/run-linear-migrations.sh --database app
+	@DB_HOST="127.0.0.1" DB_PORT="$(TEST_DB_PORT)" \
+		DB_APP_MIGRATOR_USER="$(TEST_PG_USER)" DB_APP_MIGRATOR_PASSWORD="$(TEST_PG_PASSWORD)" DB_APP_NAME="$(TEST_DB_NAME)" \
+		bash scripts/database/run-linear-migrations.sh --database app
 	@docker exec $(TEST_PG_CONTAINER) psql -U $(TEST_PG_USER) -d postgres -c "DO \$$$$ BEGIN IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = '$(TEST_APP_READ_USER)') THEN CREATE USER $(TEST_APP_READ_USER) WITH PASSWORD '$(TEST_APP_READ_PASSWORD)'; END IF; IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = '$(TEST_APP_READ_WRITE_USER)') THEN CREATE USER $(TEST_APP_READ_WRITE_USER) WITH PASSWORD '$(TEST_APP_READ_WRITE_PASSWORD)'; END IF; END \$$$$;"
 	@docker exec $(TEST_PG_CONTAINER) psql -U $(TEST_PG_USER) -d $(TEST_DB_NAME) -c " \
 		GRANT CONNECT ON DATABASE $(TEST_DB_NAME) TO $(TEST_APP_READ_USER), $(TEST_APP_READ_WRITE_USER); \
@@ -123,8 +124,9 @@ test_db_init_management: test_db_init
 	@docker exec $(TEST_PG_CONTAINER) psql -U $(TEST_PG_USER) -d postgres -c "DROP DATABASE IF EXISTS $(TEST_MANAGEMENT_DB_NAME);"
 	@docker exec $(TEST_PG_CONTAINER) psql -U $(TEST_PG_USER) -d postgres -c "CREATE DATABASE $(TEST_MANAGEMENT_DB_NAME);"
 	@docker exec $(TEST_PG_CONTAINER) psql -U $(TEST_PG_USER) -d postgres -c "DO \$$$$ BEGIN IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = '$(TEST_MGMT_READ_USER)') THEN CREATE USER $(TEST_MGMT_READ_USER) WITH PASSWORD '$(TEST_MGMT_READ_PASSWORD)'; END IF; IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = '$(TEST_MGMT_READ_WRITE_USER)') THEN CREATE USER $(TEST_MGMT_READ_WRITE_USER) WITH PASSWORD '$(TEST_MGMT_READ_WRITE_PASSWORD)'; END IF; END \$$$$;"
-	@DB_HOST="127.0.0.1" DB_PORT="$(TEST_DB_PORT)" DB_USER="$(TEST_PG_USER)" DB_PASSWORD="$(TEST_PG_PASSWORD)" DB_NAME="$(TEST_MANAGEMENT_DB_NAME)" \
-	bash scripts/database/run-linear-migrations.sh --database management
+	@DB_HOST="127.0.0.1" DB_PORT="$(TEST_DB_PORT)" \
+		DB_MANAGEMENT_MIGRATOR_USER="$(TEST_PG_USER)" DB_MANAGEMENT_MIGRATOR_PASSWORD="$(TEST_PG_PASSWORD)" DB_MANAGEMENT_NAME="$(TEST_MANAGEMENT_DB_NAME)" \
+		bash scripts/database/run-linear-migrations.sh --database management
 	@docker exec $(TEST_PG_CONTAINER) psql -U $(TEST_PG_USER) -d $(TEST_MANAGEMENT_DB_NAME) -c " \
 		GRANT CONNECT ON DATABASE $(TEST_MANAGEMENT_DB_NAME) TO $(TEST_MGMT_READ_USER), $(TEST_MGMT_READ_WRITE_USER); \
 		GRANT USAGE ON SCHEMA public TO $(TEST_MGMT_READ_USER), $(TEST_MGMT_READ_WRITE_USER); \
@@ -159,8 +161,8 @@ help_test:
 	@echo "This will:"
 	@echo "  1. Start Postgres on port $(TEST_DB_PORT) (if not already running)."
 	@echo "  2. Start Valkey on port $(TEST_VALKEY_PORT) (if not already running)."
-	@echo "  3. Drop and recreate $(TEST_DB_NAME), then run linear migrations (--database app)."
-	@echo "  4. Drop and recreate $(TEST_MANAGEMENT_DB_NAME), then run linear migrations (--database management)."
+	@echo "  3. Drop and recreate $(TEST_DB_NAME), then run linear migrations (--database app) as $(TEST_PG_USER) (not infra/config/local/db.env)."
+	@echo "  4. Drop and recreate $(TEST_MANAGEMENT_DB_NAME), then run linear migrations (--database management) as $(TEST_PG_USER)."
 	@echo ""
 	@echo "Forward-only migration checks: scripts/database/validate-linear-migrations.sh"
 	@echo "Forward-only migration apply:  scripts/database/run-linear-migrations.sh --database app|management"
