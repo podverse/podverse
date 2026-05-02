@@ -50,10 +50,10 @@ const requestOutboundInternal = async <T>(
       },
       maxContentLength: DEFAULT_OUTBOUND_MAX_RESPONSE_BYTES,
       maxBodyLength: DEFAULT_OUTBOUND_MAX_RESPONSE_BYTES,
-      beforeRedirect: (redirectOptions, responseDetails) => {
+      beforeRedirect: (redirectOptions, responseDetails, requestDetails) => {
         validateOutboundRedirectLocation(redirectOptions);
         if (typeof userBeforeRedirect === 'function') {
-          userBeforeRedirect(redirectOptions, responseDetails);
+          userBeforeRedirect(redirectOptions, responseDetails, requestDetails);
         }
       },
       signal: controller.signal,
