@@ -1,6 +1,6 @@
 {
   "name": "@podverse/management-api",
-  "version": "5.4.20",
+  "version": "5.4.21",
   "type": "module",
   "description": "Management API for Podverse administration",
   "private": true,
