@@ -3,17 +3,17 @@ kind: Kustomization
 
 resources:
   - db-drop-everything.cronjob.yaml
-  - db-verify-bootstrap-contract.cronjob.yaml
-  - db-verify-account.cronjob.yaml
-  - db-verify-all-account.cronjob.yaml
   - db-migrate-app.cronjob.yaml
   - db-migrate-management.cronjob.yaml
-  - management-superuser-create.cronjob.yaml
-  - management-superuser-update.cronjob.yaml
+  - db-verify-account.cronjob.yaml
+  - db-verify-all-account.cronjob.yaml
+  - db-verify-bootstrap-contract.cronjob.yaml
   - keyvaldb-gui.deployment.yaml
   - keyvaldb-gui.service.yaml
-  - ops-mq-rss-add-trending-podcast-index-50.cronjob.yaml
-  - ops-mq-rss-add-trending-podcast-index-1000.cronjob.yaml
+  - management-superuser-create.cronjob.yaml
+  - management-superuser-update.cronjob.yaml
+  - mq-rss-add-trending-podcast-index-50.cronjob.yaml
+  - mq-rss-add-trending-podcast-index-1000.cronjob.yaml
 
 # Keep hash suffixes enabled so config content changes produce new names.
 # This prevents stale script/migration data from being reused by job pods.

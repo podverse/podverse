@@ -1,9 +1,9 @@
-# Manual only: suspended CronJob. Create a one-off job from it to enqueue 50 trending PI feeds to rss-normal.
-# kubectl create job --from=cronjob/ops-mq-rss-add-trending-podcast-index-50 ops-mq-rss-add-trending-pi-50-$(date +%s) -n <ns>
+# Manual only: suspended CronJob. Create a one-off job from it to enqueue 1000 trending PI feeds to rss-normal.
+# kubectl create job --from=cronjob/mq-rss-add-trending-podcast-index-1000 mq-rss-add-trending-pi-1000-$(date +%s) -n <ns>
 apiVersion: batch/v1
 kind: CronJob
 metadata:
-  name: ops-mq-rss-add-trending-podcast-index-50
+  name: mq-rss-add-trending-podcast-index-1000
 spec:
   schedule: "* * * * *"
   suspend: true
@@ -27,7 +27,7 @@ spec:
                 - "-q"
                 - "rss-normal"
                 - "-n"
-                - "50"
+                - "1000"
               securityContext:
                 runAsUser: 1000
                 runAsGroup: 1000
