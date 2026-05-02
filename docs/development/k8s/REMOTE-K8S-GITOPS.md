@@ -47,6 +47,7 @@ Typical order of operations:
 - Ensure the target **namespace** exists or will be created before you apply Secrets into it.
 - If your manifests reference `imagePullSecrets`, create the **container registry pull** secret your overlay expects (default encrypted file: **`secrets/github-registry-secret.enc.yaml`** at repo root when using the Podverse generator).
 - Generate or author **opaque and integration** secrets using **your GitOps repository’s** documented scripts, templates, and root `.sops.yaml`. Commit **encrypted** manifests only; do not commit cleartext credentials.
+- If Argo CD must clone a **private GitHub** GitOps repository over HTTPS, use **`create_argocd_github_repo_secret.sh`** from the GitOps repo root (see [`INFRA-K8S-SCRIPTS-SECRET-GENERATORS.md`](../../../infra/k8s/scripts/secret-generators/INFRA-K8S-SCRIPTS-SECRET-GENERATORS.md)); the same file may be vendored elsewhere for discoverability. Prefer the script’s derived **`<slug>-repo-creds`** / **`./secrets/<slug>-argoc-repo.enc.yaml`** convention so every GitOps URL follows one pattern; repository Secrets always belong in the **`argocd`** namespace.
 
 Secret generator scripts and a **full ordered runbook** (below) are maintained in this document; your GitOps repository still owns hostnames, private URLs, and any repo-specific one-offs.
 

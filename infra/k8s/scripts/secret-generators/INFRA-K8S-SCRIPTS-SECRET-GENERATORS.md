@@ -82,3 +82,17 @@ bash ./infra/k8s/scripts/secret-generators/create_github_registry_secret.sh
 GitOps repositories usually **copy** these scripts; default output paths already match repo-root **`./secrets/…`**.
 
 If you still have an older layout at **`secrets/<namespace>/github-registry-secret.enc.yaml`**, either move it to **`secrets/github-registry-secret.enc.yaml`** or keep using **`--output-file`** with the previous path until you migrate.
+
+## Argo CD GitHub repository credentials (private clone)
+
+For Argo CD to clone **private GitHub** GitOps repos over HTTPS, register a repository `Secret` in the **`argocd`** namespace (label **`argocd.argoproj.io/secret-type: repository`**). **`create_argocd_github_repo_secret.sh`** interactively builds that manifest and SOPS-encrypts it under **`./secrets/`**. Run from your **GitOps repository root** (next to **`.sops.yaml`**). Not part of **`create_all_secrets_auto_gen.sh`**.
+
+**Naming:** accept script defaults for consistency across repos: Kubernetes Secret **`<slug>-repo-creds`**, file **`./secrets/<slug>-argoc-repo.enc.yaml`**, where **`<slug>`** is derived from the `github.com/org/repo` path (same idea for every private GitOps URL). Legacy fixed names (e.g. `github-repo-creds`) can be retired after you apply the new Secret and confirm sync; see your GitOps repo’s `scripts/README.md` if maintained there.
+
+```bash
+bash ./infra/k8s/scripts/secret-generators/create_argocd_github_repo_secret.sh
+# GitOps checkout:
+bash ./scripts/secret-generators/create_argocd_github_repo_secret.sh
+```
+
+The same script may be copied into other application or GitOps repositories for discoverability (forks are not required to use Podverse-only paths).
