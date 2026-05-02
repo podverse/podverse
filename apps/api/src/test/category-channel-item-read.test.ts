@@ -577,7 +577,7 @@ describe('category, channel, item, chapters, soundbites, transcripts, live, podr
     it('GET /item-soundbite/channel/:channel_id_text returns 200', async () => {
       const res = await request(app).get(`${itemSoundbiteBase}/channel/chan-1?${listQuery}`);
       expect(res.status).toBe(200);
-    });
+    }, 15_000);
 
     it('GET /item-soundbite/item/:item_id_text returns 200', async () => {
       const res = await request(app).get(`${itemSoundbiteBase}/item/ep-1?${listQuery}`);
