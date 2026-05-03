@@ -30,7 +30,7 @@ spec:
             - -c
             - until nc -z podverse-keyvaldb 6379; do echo waiting for podverse-keyvaldb; sleep 2; done; echo podverse-keyvaldb ready
         - name: wait-app-migrations
-          image: postgres:18-alpine
+          image: postgres:18.3
           envFrom:
             - configMapRef:
                 name: podverse-api-config

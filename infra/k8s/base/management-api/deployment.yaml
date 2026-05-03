@@ -36,7 +36,7 @@ spec:
             - -c
             - until nc -z podverse-db 5432; do echo waiting for podverse-db; sleep 2; done; echo podverse-db ready
         - name: wait-management-migrations
-          image: postgres:18-alpine
+          image: postgres:18.3
           envFrom:
             - configMapRef:
                 name: podverse-management-api-config
