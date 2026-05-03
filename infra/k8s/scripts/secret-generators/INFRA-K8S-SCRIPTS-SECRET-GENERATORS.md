@@ -64,9 +64,16 @@ These **do not** support `--auto-gen` and are **not** in the bulk runner. `creat
 
 - `create_api.podcastindex.org_secret.sh` — Podcast Index API keys
 - `create_cloudflare_api_token_secret.sh` — Cloudflare API token for cert-manager DNS01 challenges (`cloudflare-api-token-secret` in `cert-manager` namespace, key `api-token`). Create the token in Cloudflare with `Zone - DNS - Edit` and `Zone - Zone - Read`, scoped only to the required zones.
+- `create_cloudflared_tunnel_secret.sh` — Cloudflare **Tunnel** token for **cloudflared** (`cloudflared-tunnel-secret` in **`external-infra`** namespace, key **`tunnel-token`**). Token from Zero Trust → **Networks** → **Tunnels** → your tunnel → copy token. Optional **`--output-file`** for a non-default path (default **`./secrets/cloudflared-tunnel-secret.enc.yaml`**).
 - `create_firebase_secret.sh` — `firebase-key.json` from your machine; produces **Secret `podverse-workers-firebase-opaque`** with a single key `firebase-key.json`. Base `infra/k8s` **API, workers, and workers CronJob** pods mount it read-only at **`/var/secrets/firebase`**, matching **`GOOGLE_FIREBASE_ADMIN_JSON_KEY_PATH=/var/secrets/firebase/firebase-key.json`** in the workers and API `*.env` sources. Apply the encrypted manifest after SOPS, then set **`GOOGLE_FIREBASE_NOTIFICATIONS_ENABLED=true`** when you want FCM/notification features on.
 - `create_workers_digital_ocean_secret.sh` — DigitalOcean Spaces access/secret keys
 - `create_github_registry_secret.sh` — GitHub username + PAT (`read:packages`) for **ghcr.io** image pulls; see the subsection below
+
+### Cloudflare Tunnel (cloudflared)
+
+```bash
+bash ./infra/k8s/scripts/secret-generators/create_cloudflared_tunnel_secret.sh
+```
 
 ## GitHub Container Registry pull secret (GHCR)
 
