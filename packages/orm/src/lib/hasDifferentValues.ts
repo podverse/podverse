@@ -1,19 +1,6 @@
 import { loggerService } from '@orm/factories/loggerService.js';
 
-function isDebugMode(): boolean {
-  try {
-    // prefer explicit config on loggerService if available
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const anyLogger: any = loggerService as any;
-    const cfgLevel = anyLogger?.config?.log?.level ?? anyLogger?.level;
-    if (typeof cfgLevel === 'string') {
-      return cfgLevel === 'debug';
-    }
-  } catch {
-    // ignore and fallthrough to env checks
-  }
-  return process.env.LOG_LEVEL === 'debug';
-}
+import { isLogLevelDebug } from '@podverse/helpers';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function isNumeric(value: any): boolean {
@@ -51,7 +38,7 @@ function hasDifferentValuesNoLogs<T>(entity: T, dto: Partial<T>): boolean {
 }
 
 export function hasDifferentValues<T>(entity: T, dto: Partial<T>): boolean {
-  if (!isDebugMode()) {
+  if (!isLogLevelDebug(process.env.LOG_LEVEL)) {
     return hasDifferentValuesNoLogs(entity, dto);
   }
 

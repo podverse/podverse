@@ -16,6 +16,44 @@ spec:
       annotations:
         backup.velero.io/backup-volumes-excludes: "logs-volume"
     spec:
+      initContainers:
+        - name: wait-postgres
+          image: busybox:1.36
+          command:
+            - sh
+            - -c
+            - until nc -z podverse-db 5432; do echo waiting for podverse-db; sleep 2; done; echo podverse-db ready
+        - name: wait-keyvaldb
+          image: busybox:1.36
+          command:
+            - sh
+            - -c
+            - until nc -z podverse-keyvaldb 6379; do echo waiting for podverse-keyvaldb; sleep 2; done; echo podverse-keyvaldb ready
+        - name: wait-app-migrations
+          image: postgres:18-alpine
+          envFrom:
+            - configMapRef:
+                name: podverse-api-config
+            - secretRef:
+                name: podverse-db-opaque
+          env:
+            - name: DB_HOST
+              value: podverse-db
+            - name: DB_PORT
+              value: "5432"
+          command:
+            - sh
+            - -c
+            - |
+              until PGPASSWORD="$DB_APP_READ_PASSWORD" psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_APP_READ_USER" -d "$DB_APP_NAME" -tAc "SELECT to_regclass('public.linear_migration_history') IS NOT NULL" | tr -d '[:space:]' | grep -qx "t"; do
+                echo waiting for linear_migration_history table
+                sleep 2
+              done
+              until PGPASSWORD="$DB_APP_READ_PASSWORD" psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_APP_READ_USER" -d "$DB_APP_NAME" -tAc "SELECT EXISTS (SELECT 1 FROM linear_migration_history WHERE migration_filename = '$API_EXPECTED_MIGRATION_FILENAME')" | tr -d '[:space:]' | grep -qx "t"; do
+                echo waiting for app migration $API_EXPECTED_MIGRATION_FILENAME
+                sleep 2
+              done
+              echo app migrations ready
       containers:
         - name: api
           image: ghcr.io/podverse/podverse/api
@@ -69,7 +107,7 @@ spec:
               readOnly: true
           readinessProbe:
             httpGet:
-              path: /
+              path: /api/v2/health/ready
               port: 3000
               scheme: HTTP
             initialDelaySeconds: 15
@@ -79,7 +117,7 @@ spec:
             timeoutSeconds: 5
           livenessProbe:
             httpGet:
-              path: /
+              path: /api/v2/health
               port: 3000
               scheme: HTTP
             initialDelaySeconds: 30

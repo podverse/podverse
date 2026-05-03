@@ -13,6 +13,11 @@ let serverInstance: import('http').Server | null = null;
 const run = async () => {
   await loadEnv();
 
+  const { loggerService } = await import('./factories/loggerService.js');
+  const { validateStartupRequirements } = await import('./lib/startup/validation.js');
+
+  validateStartupRequirements();
+
   const {
     validateORMConfig,
     validateNotificationsConfig,
@@ -25,11 +30,10 @@ const run = async () => {
   const { createFirebaseContext } = await import('@podverse/external-services-firebase');
   const { createNotificationsContext } = await import('@podverse/notifications');
   const { createParserContext } = await import('@podverse/parser');
-  const { loggerService } = await import('./factories/loggerService.js');
   const { activeMQArtemisService } = await import('./factories/activeMQArtemisService.js');
-  const { testKeyvaldbConnection, keyvaldb } = await import('./lib/keyvaldb/keyvaldb.js');
+  const { keyvaldb } = await import('./lib/keyvaldb/keyvaldb.js');
+  const { waitForKeyvalPingReady } = await import('./lib/keyvaldb/waitForKeyvalPingReady.js');
   const { config } = await import('./config/index.js');
-  const { validateStartupRequirements } = await import('./lib/startup/validation.js');
 
   const shutdown = async (signal?: string) => {
     try {
@@ -54,7 +58,6 @@ const run = async () => {
         loggerService.error('Error closing DB connections during shutdown', err as Error);
       }
       try {
-        // Check if connection is still open before trying to quit
         if (keyvaldb.status === 'ready' || keyvaldb.status === 'connecting') {
           await keyvaldb.quit();
           loggerService.info('KeyValDB connection closed');
@@ -75,9 +78,6 @@ const run = async () => {
   process.on('SIGTERM', () => void shutdown('SIGTERM'));
 
   try {
-    // Validate podverse-api environment variables first
-    validateStartupRequirements();
-
     // Build module configs from app config
     /* eslint-disable @typescript-eslint/no-non-null-assertion -- env vars validated at startup */
     const ormConfig = {
@@ -190,13 +190,14 @@ const run = async () => {
     await ormContext.dataSourceReadWrite.initialize();
     loggerService.info('Connected to the database');
 
-    // Test KeyValDB connection (non-critical, for caching)
-    const keyvaldbConnected = await testKeyvaldbConnection();
-    if (keyvaldbConnected) {
-      loggerService.info('Connected to KeyValDB');
-    } else {
-      loggerService.warn('Warning: Unable to connect to KeyValDB, caching will be unavailable');
+    loggerService.info(
+      'KEYVALDB_* is configured; waiting for KeyValDB before accepting traffic...'
+    );
+    const keyvalReady = await waitForKeyvalPingReady();
+    if (!keyvalReady) {
+      throw new Error('FATAL: KeyValDB is unreachable at startup (KEYVALDB_* configured).');
     }
+    loggerService.info('Connected to KeyValDB');
 
     const { startApp } = await import('./app.js');
     const server = await startApp();

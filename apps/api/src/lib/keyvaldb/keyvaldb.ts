@@ -2,20 +2,21 @@ import { config } from '@api/config/index.js';
 import { loggerService } from '@api/factories/loggerService.js';
 import { Redis } from 'ioredis';
 
+import { isLogLevelDebug } from '@podverse/helpers';
+
+/** Between reconnect attempts after KeyVal drops mid-flight (~1/min; avoids noisy rapid retries). */
+const RECONNECT_DELAY_MS = 60_000;
+
 const keyvaldb = new Redis({
   host: config.keyvaldb.host,
   port: config.keyvaldb.port,
   password: config.keyvaldb.password,
-  retryStrategy: (times: number) => {
-    // Stop retrying after 3 attempts to prevent endless reconnection loops
-    if (times > 3) {
-      return null; // Return null to stop retrying
-    }
-    // Exponential backoff: 200ms, 400ms, 800ms
-    return Math.min(times * 200, 3000);
+  retryStrategy: () => {
+    // Never return null — keep reconnecting at a steady, low frequency.
+    return RECONNECT_DELAY_MS;
   },
-  maxRetriesPerRequest: 1, // Limit retries per request
-  enableOfflineQueue: false, // Don't queue commands when disconnected
+  maxRetriesPerRequest: 1,
+  enableOfflineQueue: false,
 });
 
 // Track if we've already logged the connection error to avoid spam
@@ -23,15 +24,12 @@ let connectionErrorLogged = false;
 
 // Handle connection errors to prevent unhandled error events
 keyvaldb.on('error', (err: Error) => {
-  // Only log the error once to avoid spam
   if (!connectionErrorLogged) {
     connectionErrorLogged = true;
-    // Log at debug level since we already warn about connection failure on startup
     loggerService.debug(`KeyValDB connection error: ${err.message}`);
   }
 });
 
-// Reset error logged flag on successful connection
 keyvaldb.on('connect', () => {
   connectionErrorLogged = false;
 });
@@ -61,20 +59,26 @@ export async function cacheSetJson<T>(
   }
 }
 
+const PING_TIMEOUT_MS = 5000;
+
 /**
  * Tests the connection to KeyValDB by sending a PING command.
+ * @param logErrorMessage - when true, logs the ping failure reason in debug mode
  * @returns Promise<boolean> - true if connection is available, false otherwise
  */
-export async function testKeyvaldbConnection(): Promise<boolean> {
+export async function testKeyvaldbConnection(logErrorMessage: boolean = true): Promise<boolean> {
   try {
-    // Add timeout to prevent hanging if Redis is unreachable
     const pingPromise = keyvaldb.ping();
     const timeoutPromise = new Promise<never>((_, reject) => {
-      setTimeout(() => reject(new Error('Connection test timeout')), 5000);
+      setTimeout(() => reject(new Error('Connection test timeout')), PING_TIMEOUT_MS);
     });
     await Promise.race([pingPromise, timeoutPromise]);
     return true;
-  } catch {
+  } catch (error) {
+    if (logErrorMessage && isLogLevelDebug(config.log.level)) {
+      const message = error instanceof Error ? error.message : String(error);
+      console.error(`KeyValDB status check failed: ${message}`);
+    }
     return false;
   }
 }

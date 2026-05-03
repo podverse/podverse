@@ -1,3 +1,7 @@
+// reflect-metadata before any import that can load TypeORM entities
+// eslint-disable-next-line simple-import-sort/imports
+import 'reflect-metadata';
+
 import { config } from '@api/config/index.js';
 import { loggerService } from '@api/factories/loggerService.js';
 import { initializePassport } from '@api/lib/auth/index.js';
@@ -9,12 +13,15 @@ import express from 'express';
 
 import { CategoryService } from '@podverse/orm';
 
-import 'reflect-metadata';
-// Route imports are deferred until after ORM initialization (see startApp function)
+import { registerHealthRoutes } from './lib/health/registerHealthRoutes.js';
 
+// Route imports are deferred until after ORM initialization (see startApp).
+
+// --- App instance
 export const app = express();
 const port = parseInt(config.api.port, 10);
 
+// --- Trust proxy (production)
 // TODO: is this safe? Needed? The express-rate-limiter wanted it for the error message below:
 // ValidationError: The 'X-Forwarded-For' header is set but the Express 'trust proxy' setting is false (default).
 // This could indicate a misconfiguration which would prevent express-rate-limit from accurately identifying users.
@@ -23,6 +30,7 @@ if (config.nodeEnv === 'production') {
   app.set('trust proxy', 1);
 }
 
+// --- Global middleware
 app.use(
   cors({
     origin: config.api.allowedCORSOrigins,
@@ -41,6 +49,15 @@ const baseUrl = `${config.api.prefix}${config.api.version}`;
 
 export const startApp = async () => {
   try {
+    // --- Unversioned GET /
+    // Informal dev ping only (not for K8s probes — use versioned /health).
+    app.get('/', (_req: Request, res: Response) => {
+      res.status(200).json({ status: 'ok', message: 'API is online' });
+    });
+
+    // --- Versioned: health (before heavy route modules)
+    registerHealthRoutes(app, baseUrl);
+
     const categoryService = new CategoryService();
     await categoryService.setCategoryCache();
 
@@ -72,14 +89,7 @@ export const startApp = async () => {
     const { profileContentRouter, myProfileContentRouter } =
       await import('./routes/profileContent.js');
 
-    app.get('/', (_req: Request, res: Response) => {
-      res.status(200).json({ status: 'ok', message: 'API is online' });
-    });
-
-    app.get(`${baseUrl}/`, (_req: Request, res: Response) => {
-      res.status(200).json({ status: 'ok', message: 'API is online' });
-    });
-
+    // --- Versioned: meta, then root (same order as Metaboost versioned router)
     app.get(`${baseUrl}/meta`, (_req: Request, res: Response) => {
       res.json({
         version: config.api.version,
@@ -87,6 +97,11 @@ export const startApp = async () => {
       });
     });
 
+    app.get(`${baseUrl}/`, (_req: Request, res: Response) => {
+      res.status(200).json({ status: 'ok', message: 'API is online' });
+    });
+
+    // --- Feature routers
     app.use(accountRouter);
     app.use(accountPayPalOrderRouter);
     app.use(accountSettingsRouter);
@@ -114,6 +129,7 @@ export const startApp = async () => {
     app.use(queueRouter);
     app.use(statsRouter);
 
+    // --- Error handler
     app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
       loggerService.logError('API Router Error', err);
       res.status(500).json({ message: err.message });

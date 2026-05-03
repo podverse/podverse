@@ -1,8 +1,10 @@
 // reflect-metadata before any import that can load TypeORM entities
 // eslint-disable-next-line simple-import-sort/imports
 import 'reflect-metadata';
+
 import { config } from '@mgmt-api/config/index.js';
 import { initializePassport } from '@mgmt-api/lib/auth/index.js';
+import { registerHealthRoutes } from '@mgmt-api/lib/health/registerHealthRoutes.js';
 import { adminAccountRouter } from '@mgmt-api/routes/adminAccount.js';
 import { adminsRouter } from '@mgmt-api/routes/admins.js';
 import { authRouter } from '@mgmt-api/routes/auth.js';
@@ -11,15 +13,18 @@ import { feedFlagStatusRouter } from '@mgmt-api/routes/feedFlagStatus.js';
 import { statsRouter } from '@mgmt-api/routes/stats.js';
 import { workerCommandsRouter } from '@mgmt-api/routes/workerCommands.js';
 import { usersRouter } from '@mgmt-api/routes/users.js';
+import { isLogLevelDebug } from '@podverse/helpers';
 import bodyParser from 'body-parser';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import type { NextFunction, Request, Response } from 'express';
 import express from 'express';
 
+// --- App instance
 export const app = express();
 const port = config.api.port;
 
+// --- Trust proxy (production)
 // TODO: is this safe? Needed? The express-rate-limiter wanted it for the error message below:
 // ValidationError: The 'X-Forwarded-For' header is set but the Express 'trust proxy' setting is false (default).
 // This could indicate a misconfiguration which would prevent express-rate-limit from accurately identifying users.
@@ -28,6 +33,7 @@ if (config.nodeEnv === 'production') {
   app.set('trust proxy', 1);
 }
 
+// --- Global middleware
 app.use(
   cors({
     origin: config.api.allowedCORSOrigins,
@@ -44,10 +50,24 @@ app.use(initializePassport());
 
 const baseUrl = `${config.api.prefix}${config.api.version}`;
 
+// --- Unversioned GET /
+// Informal dev ping only (not for K8s probes — use versioned /health).
+app.get('/', (_req: Request, res: Response) => {
+  res.status(200).json({ status: 'ok', message: 'Management API is online' });
+});
+
+// --- Versioned: meta, health, root (same order as main API / Metaboost versioned router)
+app.get(`${baseUrl}/meta`, (_req: Request, res: Response) => {
+  res.json({ version: config.api.version, status: 'ok' });
+});
+
+registerHealthRoutes(app, baseUrl);
+
 app.get(`${baseUrl}/`, (_req: Request, res: Response) => {
   res.send(`${config.brandName} Management API is running on port ${port}`);
 });
 
+// --- Feature routers
 app.use(authRouter);
 app.use(adminAccountRouter);
 app.use(adminsRouter);
@@ -57,8 +77,11 @@ app.use(statsRouter);
 app.use(workerCommandsRouter);
 app.use(usersRouter);
 
+// --- Error handler
 app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
-  console.error('API Router Error:', err);
+  if (isLogLevelDebug(config.log.level)) {
+    console.error('API Router Error:', err);
+  }
 
   if (!res.headersSent) {
     res.status(500).json({ message: err.message });
@@ -74,7 +97,9 @@ export const startApp = async (): Promise<import('http').Server | undefined> => 
 
     return server;
   } catch (error) {
-    console.error('API Top Level Router Error:', error);
+    if (isLogLevelDebug(config.log.level)) {
+      console.error('API Top Level Router Error:', error);
+    }
     return undefined;
   }
 };

@@ -32,6 +32,7 @@ export * from './lib/item/item.js';
 export * from './lib/item/itemEnclosure.js';
 export * from './lib/liveItem/liveItemEnclosure.js';
 export * from './lib/liveItemStatus.js';
+export * from './lib/logLevel.js';
 export * from './lib/medium.js';
 export * from './lib/mq/mqConstants.js';
 export * from './lib/mq/dedupeWindows.js';

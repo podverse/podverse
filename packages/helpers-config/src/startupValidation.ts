@@ -442,6 +442,54 @@ export function validateOptionalNonEmpty(varName: string, category: string): Val
  * @param defaultValue - Optional default value message if not set (e.g., "Use Default (false)")
  * @returns ValidationResult indicating whether the boolean value is valid
  */
+/**
+ * Optional env boolean using common tokens: true/1/yes vs false/0/no.
+ * Unset or blank → valid (treated as false at runtime).
+ */
+export function validateOptionalBooleanEnvToken(
+  varName: string,
+  category: string,
+  notSetMessage: string = 'Use Default (false)'
+): ValidationResult {
+  const value = process.env[varName];
+  const isSet =
+    value !== undefined && value !== null && typeof value === 'string' && value.trim() !== '';
+
+  if (!isSet) {
+    return {
+      name: varName,
+      isSet: false,
+      isValid: true,
+      isRequired: false,
+      message: notSetMessage,
+      category,
+    };
+  }
+
+  const t = value.trim().toLowerCase();
+  const ok = t === 'true' || t === '1' || t === 'yes' || t === 'false' || t === '0' || t === 'no';
+  if (!ok) {
+    return {
+      name: varName,
+      isSet: true,
+      isValid: false,
+      isRequired: false,
+      message: `Invalid value: "${value}" - use true/false, 1/0, or yes/no`,
+      category,
+    };
+  }
+
+  const on = t === 'true' || t === '1' || t === 'yes';
+  return {
+    name: varName,
+    isSet: true,
+    isValid: true,
+    isRequired: false,
+    message: on ? 'Strict KeyVal checks enabled' : 'Strict KeyVal checks disabled',
+    category,
+  };
+}
+
 export function validateBoolean(
   varName: string,
   category: string,

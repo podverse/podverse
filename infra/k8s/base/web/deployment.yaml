@@ -27,6 +27,21 @@ spec:
       annotations:
         backup.velero.io/backup-volumes-excludes: "nextjs-cache"
     spec:
+      initContainers:
+        - name: wait-api-version-contract
+          image: curlimages/curl:8.13.0
+          envFrom:
+            - configMapRef:
+                name: podverse-web-runtime-config
+          command:
+            - sh
+            - -c
+            - |
+              until curl -fsS "$READINESS_API_BASE_URL$READINESS_API_META_PATH" | grep -F "\"version\":\"$READINESS_API_EXPECTED_VERSION\"" >/dev/null; do
+                echo waiting for API contract $READINESS_API_BASE_URL$READINESS_API_META_PATH version=$READINESS_API_EXPECTED_VERSION
+                sleep 2
+              done
+              echo API version contract ready
       containers:
         - name: web
           image: ghcr.io/podverse/podverse/web-deploy
