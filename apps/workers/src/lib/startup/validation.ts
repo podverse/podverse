@@ -26,6 +26,7 @@
 
 import { KNOWN_COMMANDS } from '@workers/commands/commandNames.js';
 import { hasAnyImageShrinkEnvSet } from '@workers/config/index.js';
+import { validateSpamFeedItemThresholdEnvVar } from '@workers/lib/parser/spamThresholdEnv.js';
 
 import type { ValidationResult, ValidationSummary } from '@podverse/helpers-config';
 import {
@@ -198,10 +199,14 @@ function validateParser(): ValidationResult[] {
   const results: ValidationResult[] = [];
   results.push(validateOptional('PARSER_ADD_REMOTE_ITEMS_TO_MQ', 'Parser', 'Use Default (false)'));
   results.push(
-    validateOptional('PARSER_SPAM_FEED_ITEM_THRESHOLD_DEFAULT', 'Parser', 'Use Default (10000)')
+    validateSpamFeedItemThresholdEnvVar(
+      'PARSER_SPAM_FEED_ITEM_THRESHOLD_DEFAULT',
+      'Parser',
+      'Use Default (10000)'
+    )
   );
   results.push(
-    validateOptional(
+    validateSpamFeedItemThresholdEnvVar(
       'PARSER_SPAM_FEED_ITEM_THRESHOLD_SPAM_PERMITTED',
       'Parser',
       'Use Default (100000)'
@@ -314,8 +319,11 @@ export const validateStartupRequirements = (commandName: string): void => {
   const summary = buildValidationSummary(results);
   displayValidationResults(summary);
 
-  if (summary.requiredMissing > 0) {
-    const errorMessage = `FATAL: ${summary.requiredMissing} required environment variable(s) are missing or invalid. Please check the validation output above for details.`;
+  if (summary.failed > 0) {
+    const errorMessage =
+      summary.requiredMissing > 0
+        ? `FATAL: ${summary.requiredMissing} required environment variable(s) are missing or invalid. Please check the validation output above for details.`
+        : `FATAL: ${summary.failed} environment variable(s) failed validation. Please check the validation output above for details.`;
     console.error(errorMessage);
     throw new Error(errorMessage);
   }

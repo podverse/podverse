@@ -212,11 +212,34 @@ describe('management-api auth routes', () => {
   });
 
   describe('GET / (health check)', () => {
+    it('returns 200 JSON on unversioned root for informal status', async () => {
+      const res = await request(app).get('/');
+
+      expect(res.status).toBe(200);
+      expect(res.body).toEqual({ status: 'ok', message: 'Management API is online' });
+    });
+
     it('returns 200 with status message', async () => {
       const baseUrl = `${config.api.prefix}${config.api.version}`;
       const res = await request(app).get(`${baseUrl}/`);
 
       expect(res.status).toBe(200);
+    });
+
+    it('returns 200 on /health', async () => {
+      const baseUrl = `${config.api.prefix}${config.api.version}`;
+      const res = await request(app).get(`${baseUrl}/health`);
+
+      expect(res.status).toBe(200);
+      expect(res.body).toEqual({ status: 'ok', message: 'The server is running.' });
+    });
+
+    it('returns 503 on /health/ready when data sources are not initialized', async () => {
+      const baseUrl = `${config.api.prefix}${config.api.version}`;
+      const res = await request(app).get(`${baseUrl}/health/ready`);
+
+      expect(res.status).toBe(503);
+      expect(res.body).toMatchObject({ status: 'unavailable' });
     });
   });
 });

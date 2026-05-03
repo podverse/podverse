@@ -28,6 +28,38 @@ spec:
         app: podverse-management-api
         environment: base
     spec:
+      initContainers:
+        - name: wait-postgres
+          image: busybox:1.36
+          command:
+            - sh
+            - -c
+            - until nc -z podverse-db 5432; do echo waiting for podverse-db; sleep 2; done; echo podverse-db ready
+        - name: wait-management-migrations
+          image: postgres:18-alpine
+          envFrom:
+            - configMapRef:
+                name: podverse-management-api-config
+            - secretRef:
+                name: podverse-management-db-opaque
+          env:
+            - name: DB_HOST
+              value: podverse-db
+            - name: DB_PORT
+              value: "5432"
+          command:
+            - sh
+            - -c
+            - |
+              until PGPASSWORD="$DB_MANAGEMENT_READ_PASSWORD" psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_MANAGEMENT_READ_USER" -d "$DB_MANAGEMENT_NAME" -tAc "SELECT to_regclass('public.linear_migration_history') IS NOT NULL" | tr -d '[:space:]' | grep -qx "t"; do
+                echo waiting for management linear_migration_history table
+                sleep 2
+              done
+              until PGPASSWORD="$DB_MANAGEMENT_READ_PASSWORD" psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_MANAGEMENT_READ_USER" -d "$DB_MANAGEMENT_NAME" -tAc "SELECT EXISTS (SELECT 1 FROM linear_migration_history WHERE migration_filename = '$MANAGEMENT_API_EXPECTED_MIGRATION_FILENAME')" | tr -d '[:space:]' | grep -qx "t"; do
+                echo waiting for management migration $MANAGEMENT_API_EXPECTED_MIGRATION_FILENAME
+                sleep 2
+              done
+              echo management migrations ready
       containers:
         - name: management-api
           image: ghcr.io/podverse/podverse/management-api
@@ -75,7 +107,7 @@ spec:
               mountPath: /opt/logs
           readinessProbe:
             httpGet:
-              path: /api/v2/
+              path: /api/v2/health/ready
               port: 3100
               scheme: HTTP
             initialDelaySeconds: 10
@@ -85,7 +117,7 @@ spec:
             timeoutSeconds: 5
           livenessProbe:
             httpGet:
-              path: /api/v2/
+              path: /api/v2/health
               port: 3100
               scheme: HTTP
             initialDelaySeconds: 20

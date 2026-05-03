@@ -1,26 +1,14 @@
 import type { ParserConfig } from '@podverse/helpers-config';
 
 import type { BaseConfig, PodcastIndexConfig } from '../../config/index.js';
+import { parseSpamFeedItemThresholdEnv } from './spamThresholdEnv.js';
 
 export type SpamFeedItemThresholdDefaults = {
   defaultLimit: number;
   spamPermittedLimit: number;
 };
 
-export function parseSpamFeedItemThresholdEnv(
-  name: string,
-  raw: string | undefined,
-  defaultVal: number
-): number {
-  if (raw === undefined || raw.trim() === '') {
-    return defaultVal;
-  }
-  const n = Number.parseInt(raw.trim(), 10);
-  if (!Number.isFinite(n) || n < 1) {
-    throw new Error(`FATAL: ${name} must be a positive integer`);
-  }
-  return n;
-}
+export { parseSpamFeedItemThresholdEnv } from './spamThresholdEnv.js';
 
 export type BuildWorkersParserConfigParams = {
   baseConfig: BaseConfig;

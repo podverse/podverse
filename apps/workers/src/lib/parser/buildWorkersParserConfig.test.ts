@@ -15,6 +15,7 @@ describe('parseSpamFeedItemThresholdEnv', () => {
   it('parses a positive integer', () => {
     expect(parseSpamFeedItemThresholdEnv('VAR', '10000', 1)).toBe(10000);
     expect(parseSpamFeedItemThresholdEnv('VAR', '  7  ', 1)).toBe(7);
+    expect(parseSpamFeedItemThresholdEnv('VAR', '"10000"', 1)).toBe(10000);
   });
 
   it('throws when value is not a positive integer', () => {

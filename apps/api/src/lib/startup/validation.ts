@@ -95,10 +95,12 @@ export const validateStartupRequirements = (): void => {
   const summary = validateAllEnvironmentVariables();
   displayValidationResults(summary);
 
-  if (summary.requiredMissing > 0) {
-    const errorMessage = `FATAL: ${summary.requiredMissing} required environment variable(s) are missing or invalid. Please check the validation output above for details.`;
+  if (summary.failed > 0) {
+    const errorMessage =
+      summary.requiredMissing > 0
+        ? `FATAL: ${summary.requiredMissing} required environment variable(s) are missing or invalid. Please check the validation output above for details.`
+        : `FATAL: ${summary.failed} environment variable(s) failed validation. Please check the validation output above for details.`;
     loggerService.error(errorMessage);
-    // Throw error - stack trace will be suppressed in index.ts for validation errors
     throw new Error(errorMessage);
   }
 
