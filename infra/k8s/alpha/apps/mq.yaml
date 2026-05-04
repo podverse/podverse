@@ -12,7 +12,7 @@ spec:
   source:
     # Points to your git repository
     repoURL: https://github.com/podverse/podverse.git
-    targetRevision: 5.4.18-staging.4
+    targetRevision: X.X.X-staging.N
     # Path to the message queue manifests (StatefulSet, Service, Provisioning Job)
     path: infra/k8s/alpha/mq
 

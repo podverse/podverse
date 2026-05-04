@@ -93,6 +93,7 @@ export const startApp = async () => {
     app.get(`${baseUrl}/meta`, (_req: Request, res: Response) => {
       res.json({
         version: config.api.version,
+        release: config.api.release,
         status: 'ok',
       });
     });

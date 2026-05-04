@@ -32,11 +32,21 @@ This document is intentionally domain-agnostic for open source use:
   - Owns Argo `Application` manifests (`argocd/podverse-alpha/`)
   - Owns environment hostnames, ingress rules, TLS issuer selection, and encrypted secrets
 
+### Ownership boundary (portable Argo model)
+
+- Keep **live** Argo CD `Application` manifests in the GitOps repository for each environment.
+- Keep **portable source artifacts** in Podverse:
+  - Argo application-set examples (copy/paste starter files)
+  - Sync-wave ordering contract and rationale
+  - Reusable validation scripts that GitOps CI can call
+- Do **not** apply Podverse `infra/k8s/alpha/apps/*` directly as your environment source of truth unless
+  your team intentionally runs GitOps from this monorepo.
+
 ## Defaults
 
 - **Image tags (alpha):** set Podverse app images to `newTag: "X.Y.Z-staging.N"` (same value CI publishes to GHCR).
 - **Remote base refs (alpha):** set Podverse remote bases to `?ref=X.Y.Z-staging.N` (same immutable Git tag).
-- **Bump together:** when you promote a staging release, update both `?ref=` and `newTag` to the new `X.Y.Z-staging.N` (example: `5.4.18-staging.4`).
+- **Bump together:** when you promote a staging release, update both `?ref=` and `newTag` to the new `X.Y.Z-staging.N` (example: `X.X.X-staging.N`).
 
 ## Encrypted secrets (GitOps repository)
 
@@ -243,6 +253,8 @@ for a in common db keyvaldb mq ops api management-api workers cron web managemen
   printf 'argocd app sync %s-%s\n' $NAMESPACE $a
 end
 ```
+
+Canonical wave contract reference: [ARGOCD-SYNC-WAVE-CONTRACT.md](ARGOCD-SYNC-WAVE-CONTRACT.md).
 
 Or use the Argo CD UI. Then:
 

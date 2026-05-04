@@ -27,6 +27,7 @@ const testEnv: Record<string, string> = {
   API_PORT: '29999',
   API_PREFIX: '/api',
   API_VERSION: '/v2',
+  API_RELEASE: 'test-release',
   COOKIE_DOMAIN: 'localhost',
   API_ALLOWED_CORS_ORIGINS: 'http://localhost:3000',
   // Database (test stack: port 5732)
