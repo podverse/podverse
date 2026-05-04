@@ -35,7 +35,7 @@
   },
   "dependencies": {
     "@podverse/helpers": "*",
-    "joi": "^18.0.1"
+    "joi": "^18.2.1"
   },
   "type": "module"
 }
