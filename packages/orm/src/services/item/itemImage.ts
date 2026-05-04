@@ -3,7 +3,9 @@ import { ItemImage } from '@orm/entities/item/itemImage.js';
 import { filterDtosByHighestWidth } from '@orm/lib/filterImageDtosByHighestWidth.js';
 import { BaseManyService } from '@orm/services/base/baseManyService.js';
 import type { EntityManager } from 'typeorm';
-import { In } from 'typeorm';
+import { In, Like } from 'typeorm';
+
+import { sha256Hex } from '@podverse/helpers';
 
 type ItemImageDto = {
   url: string;
@@ -85,6 +87,50 @@ export class ItemImageService extends BaseManyService<ItemImage, 'item'> {
       },
       order: { id: 'ASC' },
       take: limit,
+    });
+  }
+
+  /**
+   * Finds a resized CDN row for a given origin image URL hash (same key prefix as image shrink).
+   */
+  /**
+   * All resized CDN rows whose storage key matches this origin URL (any item).
+   */
+  async findResizedRowsByOriginImageUrl(params: {
+    cdnBaseUrl: string;
+    sourceUrl: string;
+    widthPx: number;
+  }): Promise<ItemImage[]> {
+    const base = params.cdnBaseUrl.replace(/\/+$/, '');
+    const urlHash = sha256Hex(params.sourceUrl);
+    const likePattern = `${base}/images/item/%/${urlHash}-w${params.widthPx}%`;
+    return this.repositoryRead.find({
+      where: {
+        is_resized: true,
+        url: Like(likePattern),
+      },
+      relations: {
+        item: true,
+      },
+    });
+  }
+
+  async findResizedByShrinkKeyPrefix(
+    item: Item,
+    params: { cdnBaseUrl: string; sourceUrl: string; widthPx: number }
+  ): Promise<ItemImage | null> {
+    const base = params.cdnBaseUrl.replace(/\/+$/, '');
+    const urlHash = sha256Hex(params.sourceUrl);
+    const prefix = `${base}/images/item/${item.id}/${urlHash}-w${params.widthPx}`;
+    return this.repositoryRead.findOne({
+      where: {
+        item: { id: item.id },
+        is_resized: true,
+        url: Like(`${prefix}%`),
+      },
+      relations: {
+        item: true,
+      },
     });
   }
 

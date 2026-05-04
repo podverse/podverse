@@ -42,6 +42,9 @@ export class Feed {
   @Column({ type: 'int', default: 0 })
   parsing_priority!: number;
 
+  @Column({ type: 'int', nullable: true })
+  spam_item_limit_override!: number | null;
+
   @Column({ type: 'varchar', length: DATABASE_CONSTANTS.varchar_md5, nullable: true })
   last_parsed_file_hash!: string | null;
 

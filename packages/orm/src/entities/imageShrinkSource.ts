@@ -51,6 +51,9 @@ export class ImageShrinkSource {
   @Column({ name: 'last_changed_at', type: 'timestamp', nullable: true })
   lastChangedAt?: Date | null;
 
+  @Column({ name: 'last_deep_checked_at', type: 'timestamp', nullable: true })
+  lastDeepCheckedAt?: Date | null;
+
   @CreateDateColumn({ name: 'created_at', type: 'timestamp' })
   createdAt!: Date;
 

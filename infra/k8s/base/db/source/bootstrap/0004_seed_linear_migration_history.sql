@@ -23,7 +23,9 @@ INSERT INTO linear_migration_history (migration_filename, migration_checksum) VA
   ('0015_metaboost.sql', '3d4233223bb796c5caa56f54818d651ffd7a19bc3edfdea68e429764cd4238b9'),
   ('0016_account_metaboost.sql', '253185148d8d807ff6a2abee7cadd2ed3092404179c2394783e8667ecde3eee3'),
   ('0017_feed_flag_status_reason.sql', '00da000f368b29ed63db1783f9eff8f4b19f3a77c6d8e5143283baf0271819af'),
-  ('0018_spam_permit.sql', 'd85374c214f472b322cd3e3a1f8ff304a1c18787ed44e7b9c20c992dc49b2e4a')
+  ('0018_spam_permit.sql', 'd85374c214f472b322cd3e3a1f8ff304a1c18787ed44e7b9c20c992dc49b2e4a'),
+  ('0019_feed_spam_item_limit_override.sql', 'd83d9e96d931e2015bf77ca972d6dd550bf884194466024fb5f0faadf52980a5'),
+  ('0020_image_shrink_last_deep_checked_at.sql', '31a5b3af1e8c3132eb6705e2f90ef1c24251a3e898170603dd9bbd6800add966')
 ON CONFLICT (migration_filename) DO NOTHING;
 
 \connect podverse_management

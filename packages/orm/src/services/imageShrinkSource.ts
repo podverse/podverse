@@ -31,14 +31,33 @@ export class ImageShrinkSourceService {
   }
 
   async updateCheckTime(url: string): Promise<void> {
-    await this.upsert(url, {}, false, null);
+    await this.upsert(url, {}, false, null, {});
+  }
+
+  /**
+   * When `intervalSeconds` is <= 0, deep recheck is disabled (only shallow conditional fetches).
+   * When a row exists and `last_deep_checked_at` is null, the next run uses the deep path once.
+   */
+  async shouldDeepRecheck(url: string, intervalSeconds: number): Promise<boolean> {
+    if (intervalSeconds <= 0) {
+      return false;
+    }
+    const existing = await this.getByUrl(url);
+    if (!existing) {
+      return false;
+    }
+    if (existing.lastDeepCheckedAt === null || existing.lastDeepCheckedAt === undefined) {
+      return true;
+    }
+    return Date.now() - existing.lastDeepCheckedAt.getTime() >= intervalSeconds * 1000;
   }
 
   async upsert(
     url: string,
     headers: ImageShrinkSourceHeaders,
     changed: boolean,
-    checksumSha256?: string | null
+    checksumSha256?: string | null,
+    options: { markDeepCheckComplete?: boolean } = {}
   ): Promise<ImageShrinkSource> {
     const existing = await this.getByUrl(url);
     const now = new Date();
@@ -59,6 +78,9 @@ export class ImageShrinkSourceService {
     updated.lastCheckedAt = now;
     if (changed) {
       updated.lastChangedAt = now;
+    }
+    if (options.markDeepCheckComplete === true) {
+      updated.lastDeepCheckedAt = now;
     }
     return this.repositoryReadWrite.save(updated);
   }

@@ -14,7 +14,8 @@ different implementation and wiring it in the worker; batch logic and the interf
 Key points:
 
 - Resizing runs via the `imageShrinkRunConsumer` MQ consumer.
-- Parser emits MQ hints so the consumer prioritizes recently updated images.
+- Parser emits MQ hints so the consumer revisits origin URLs on each parse; the consumer also
+  resolves already-resized rows when `image_shrink_source` has metadata for that URL.
 - A periodic backfill cron enqueues unresized images for full coverage.
 - A periodic orphan cleanup deletes unreferenced WebP objects from storage.
 - Resized images are stored in `channel_image` and `item_image` with `is_resized = true`.
@@ -42,8 +43,13 @@ Further reading:
 Each resized image uses a deterministic key for easy lookup and deletion:
 
 ```
-images/{entity_type}/{entity_id}/{sha256(url)}-w{width}.webp
+images/{entity_type}/{entity_id}/{sha256(url)}-w{width}-c{sha256_prefix16}.webp
 ```
+
+The `c{sha256_prefix16}` segment is the first 16 hex characters of the SHA-256 digest of the
+**origin** image bytes. When the origin changes at the same URL, a new object key is written and the
+DB row is updated; the previous CDN object becomes an orphan and is removed by the orphan cleanup
+job after `IMAGE_SHRINK_ORPHAN_MIN_AGE_EXPIRATION`.
 
 Output is WebP for smaller file size at similar quality. WebP is well supported in current browsers and on Android and iOS 14+. On iOS 13 and earlier, the system Photos app may not display saved WebP images correctly when the user saves an image to their device.
 
@@ -112,14 +118,15 @@ The consumer ignores hints older than 24 hours.
 
 ## Change Detection
 
-The consumer tracks origin metadata per URL to avoid re-downloading unchanged images:
+The consumer tracks origin metadata per URL in `image_shrink_source` (keyed by URL):
 
-- `ETag` and `Last-Modified` headers are stored and compared on future runs.
-- If headers are missing, `Content-Length` and optional SHA-256 checksums are used.
-- A per-URL re-check TTL limits how often unchanged URLs are re-checked unless a hint arrives.
-- Backfill runs can be scheduled more frequently to speed up full coverage if needed.
-
-Origin metadata is stored in the `image_shrink_source` table (keyed by URL).
+- `ETag` / `Last-Modified` on conditional `HEAD` when deep recheck is not due.
+- Unconditional `GET` plus SHA-256 of bytes on a deep recheck cadence
+  (`IMAGE_SHRINK_DEEP_RECHECK_EXPIRATION`, default 7 days) or after the first stored row is created.
+- After any `GET` that returns bytes, the processor compares SHA-256 to the stored checksum before
+  skipping work.
+- A per-URL re-check TTL (`IMAGE_SHRINK_RECHECK_EXPIRATION`) limits non-hint polling; MQ hints
+  bypass that TTL.
 
 ## Required Environment Variables
 
@@ -143,6 +150,7 @@ See `apps/workers/.env.example` for the authoritative template and commented gro
 - `IMAGE_SHRINK_CONCURRENCY`
 - `IMAGE_SHRINK_RPS`
 - `IMAGE_SHRINK_RECHECK_EXPIRATION` (Optional; see example env file)
+- `IMAGE_SHRINK_DEEP_RECHECK_EXPIRATION` (Optional; see example env file)
 - `IMAGE_SHRINK_SOURCE_PRUNE_EXPIRATION` (Optional; see example env file)
 - `IMAGE_SHRINK_ORPHAN_CLEANUP_DRY_RUN` (Optional; default true)
 - `IMAGE_SHRINK_ORPHAN_CLEANUP_MAX_DELETE` (Optional; cap per run)
@@ -156,7 +164,7 @@ See `apps/workers/.env.example` for the authoritative template and commented gro
 Add non-sensitive values to `infra/k8s/base/workers/configmap.yaml` using the same section structure as `apps/workers/.env.example` (Image Shrink storage; Image Shrink):
 
 - **Image Shrink (storage):** `BUCKET_PROVIDER`, `BUCKET_REGION`, `BUCKET_NAME`, `BUCKET_CDN_BASE_URL`
-- **Image Shrink:** `IMAGE_SHRINK_WIDTH_PX`, `IMAGE_SHRINK_BATCH_SIZE`, `IMAGE_SHRINK_CONCURRENCY`, `IMAGE_SHRINK_RPS`, `IMAGE_SHRINK_RECHECK_EXPIRATION` (Optional), `IMAGE_SHRINK_SOURCE_PRUNE_EXPIRATION` (Optional)
+- **Image Shrink:** `IMAGE_SHRINK_WIDTH_PX`, `IMAGE_SHRINK_BATCH_SIZE`, `IMAGE_SHRINK_CONCURRENCY`, `IMAGE_SHRINK_RPS`, `IMAGE_SHRINK_RECHECK_EXPIRATION` (Optional), `IMAGE_SHRINK_DEEP_RECHECK_EXPIRATION` (Optional), `IMAGE_SHRINK_SOURCE_PRUNE_EXPIRATION` (Optional)
 
 ### Secret
 

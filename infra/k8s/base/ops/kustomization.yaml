@@ -46,6 +46,8 @@ configMapGenerator:
       - source/database/linear-migrations/app/0016_account_metaboost.sql
       - source/database/linear-migrations/app/0017_feed_flag_status_reason.sql
       - source/database/linear-migrations/app/0018_spam_permit.sql
+      - source/database/linear-migrations/app/0019_feed_spam_item_limit_override.sql
+      - source/database/linear-migrations/app/0020_image_shrink_last_deep_checked_at.sql
   - name: podverse-ops-management-linear-migrations
     files:
       - source/database/linear-migrations/management/0000_init_helpers.sql

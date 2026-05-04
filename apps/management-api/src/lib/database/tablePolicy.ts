@@ -72,6 +72,7 @@ export const TABLE_POLICIES: TablePolicyDefinition[] = [
       { name: 'feed_flag_status_id', type: 'integer', nullable: false, updatable: true },
       { name: 'feed_flag_status_reason_id', type: 'integer', nullable: true, updatable: true },
       { name: 'feed_flag_status_reason_note', type: 'text', nullable: true, updatable: true },
+      { name: 'spam_item_limit_override', type: 'integer', nullable: true, updatable: true },
       { name: 'last_parsed_file_hash', type: 'text', nullable: true, updatable: false },
       { name: 'is_parsing', type: 'timestamp', nullable: true, updatable: false },
       { name: 'parsing_priority', type: 'integer', nullable: false, updatable: true },

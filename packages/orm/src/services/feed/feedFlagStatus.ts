@@ -35,8 +35,24 @@ export const checkIfSpamFeed = (
       ? thresholds.spamPermittedLimit
       : thresholds.defaultLimit;
   return (
-    parsedFeed?.items?.length >= spamLimit || parsedFeed?.podcastLiveItems?.length >= spamLimit
+    parsedFeed?.items?.length >= spamLimit ||
+    parsedFeed?.podcastLiveItems?.length >= spamLimit ||
+    parsedFeed?.podcastRemoteItems?.length >= spamLimit
   );
+};
+
+export const resolveSpamFeedItemThresholds = (
+  thresholds: SpamFeedItemThresholds,
+  spamItemLimitOverride: number | null
+): SpamFeedItemThresholds => {
+  if (spamItemLimitOverride === null) {
+    return thresholds;
+  }
+
+  return {
+    defaultLimit: spamItemLimitOverride,
+    spamPermittedLimit: spamItemLimitOverride,
+  };
 };
 
 export class FeedFlagStatusService {
