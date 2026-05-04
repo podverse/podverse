@@ -48,6 +48,12 @@ This document is intentionally domain-agnostic for open source use:
 - **Remote base refs (alpha):** set Podverse remote bases to `?ref=X.Y.Z-staging.N` (same immutable Git tag).
 - **Bump together:** when you promote a staging release, update both `?ref=` and `newTag` to the new `X.Y.Z-staging.N` (example: `X.X.X-staging.N`).
 
+## Health readiness semantics (management-api vs Metaboost)
+
+- **Main API:** Readiness (`…/health/ready`) checks database and KeyValDB reachability (see [`apps/api/src/lib/health/registerHealthRoutes.ts`](../../../apps/api/src/lib/health/registerHealthRoutes.ts)).
+- **Management API:** Readiness checks **management database and app database only**—no KeyValDB probe (see [`apps/management-api/src/lib/health/registerHealthRoutes.ts`](../../../apps/management-api/src/lib/health/registerHealthRoutes.ts)). Base manifests wait for Postgres and management migrations; there is **no** KeyVal wait init on management-api.
+- **Metaboost:** Management-api readiness there also requires **Valkey** unless the app is configured to skip that check; base manifests include a Valkey TCP wait init before migrations. When copying mental models or runbooks between products, do not assume identical management-api readiness semantics.
+
 ## Encrypted secrets (GitOps repository)
 
 Workload secrets, registry pull secrets, and other cluster credentials live **only** in your GitOps repository (commonly under `secrets/`; exact paths and filenames depend on how that repo is organized).
