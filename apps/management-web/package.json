@@ -1,6 +1,6 @@
 {
   "name": "@podverse/management-web",
-  "version": "5.4.22",
+  "version": "5.4.25",
   "description": "Administrative management interface for Podverse",
   "private": true,
   "scripts": {
