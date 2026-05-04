@@ -1,4 +1,4 @@
-# Version: 2
+# Version: 3
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -89,6 +89,7 @@ spec:
               path: /runtime-config
               port: 3101
               scheme: HTTP
+            initialDelaySeconds: 5
             periodSeconds: 2
             failureThreshold: 60
           readinessProbe:
