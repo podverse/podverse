@@ -9,7 +9,6 @@ import {
   ACCOUNT_SIGNUP_MODE_ADMIN_ONLY_EMAIL,
   ACCOUNT_SIGNUP_MODE_USER_SIGNUP_EMAIL,
   AccountMembershipEnum,
-  AccountTrustTierEnum,
   getAccountSignupModeCapabilities,
   SharableStatusEnum,
 } from '@podverse/helpers';
@@ -41,7 +40,6 @@ function userRowToJson(row: Record<string, unknown>) {
     username: row.username ?? null,
     sharable_status_id: row.sharable_status_id,
     created_at: row.created_at,
-    account_trust_tier_id: row.account_trust_tier_id ?? AccountTrustTierEnum.Untrusted,
     account_membership_id: row.account_membership_id ?? AccountMembershipEnum.Trial,
     membership_expires_at: row.membership_expires_at ?? null,
     allow_directory_add_by_rss: row.allow_directory_add_by_rss ?? null,
@@ -89,7 +87,7 @@ router.get(`${baseUrl}/users`, ensureAuthenticated, requireSuperuser, async (req
     const rows = await AppDbDataSourceRead.query(
       `SELECT a.id, a.id_text, a.verified, a.sharable_status_id, a.created_at,
               ac.email, ac.username,
-              ams.account_membership_id, ams.membership_expires_at, ams.account_trust_tier_id,
+              ams.account_membership_id, ams.membership_expires_at,
               ams.allow_directory_add_by_rss, ams.max_add_by_rss_feeds,
               ams.max_manual_refreshes_per_hour, ams.track_stats, ams.allow_notifications
        FROM account a
@@ -126,7 +124,7 @@ router.get(
       const rows = await AppDbDataSourceRead.query(
         `SELECT a.id, a.id_text, a.verified, a.sharable_status_id, a.created_at,
                 ac.email, ac.username,
-                ams.account_membership_id, ams.membership_expires_at, ams.account_trust_tier_id,
+                ams.account_membership_id, ams.membership_expires_at,
                 ams.allow_directory_add_by_rss, ams.max_add_by_rss_feeds,
                 ams.max_manual_refreshes_per_hour, ams.track_stats, ams.allow_notifications
          FROM account a
@@ -157,7 +155,6 @@ router.post(`${baseUrl}/users`, ensureAuthenticated, requireSuperuser, async (re
       password,
       account_membership_id,
       membership_expires_at,
-      account_trust_tier_id,
       allow_directory_add_by_rss,
       max_add_by_rss_feeds,
       max_manual_refreshes_per_hour,
@@ -167,7 +164,6 @@ router.post(`${baseUrl}/users`, ensureAuthenticated, requireSuperuser, async (re
       username?: string;
       email?: string;
       password?: string;
-      account_trust_tier_id?: number;
       account_membership_id?: number;
       membership_expires_at?: string | null;
       allow_directory_add_by_rss?: boolean | null;
@@ -229,15 +225,6 @@ router.post(`${baseUrl}/users`, ensureAuthenticated, requireSuperuser, async (re
         res.status(400).json({ message: 'Invalid membership_expires_at' });
         return;
       }
-    }
-
-    if (
-      account_trust_tier_id !== undefined &&
-      account_trust_tier_id !== AccountTrustTierEnum.Untrusted &&
-      account_trust_tier_id !== AccountTrustTierEnum.Trusted
-    ) {
-      res.status(400).json({ message: 'Invalid account_trust_tier_id' });
-      return;
     }
 
     const locale = process.env.DEFAULT_ACCOUNT_SETTINGS_LOCALE || 'en-US';
@@ -304,27 +291,20 @@ router.post(`${baseUrl}/users`, ensureAuthenticated, requireSuperuser, async (re
             );
             return date;
           })();
-    const trustTierId =
-      account_trust_tier_id ??
-      (membershipId === AccountMembershipEnum.Premium
-        ? AccountTrustTierEnum.Trusted
-        : AccountTrustTierEnum.Untrusted);
     await AppDbDataSourceReadWrite.query(
       `INSERT INTO account_membership_status (
         account_id,
         account_membership_id,
-        account_trust_tier_id,
         membership_expires_at,
         allow_directory_add_by_rss,
         max_add_by_rss_feeds,
         max_manual_refreshes_per_hour,
         track_stats,
         allow_notifications
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
       [
         accountId,
         membershipId,
-        trustTierId,
         membershipExpiresAt,
         allow_directory_add_by_rss ?? null,
         max_add_by_rss_feeds ?? null,
@@ -393,7 +373,6 @@ router.patch(
         verified,
         account_membership_id,
         membership_expires_at,
-        account_trust_tier_id,
         allow_directory_add_by_rss,
         max_add_by_rss_feeds,
         max_manual_refreshes_per_hour,
@@ -403,7 +382,6 @@ router.patch(
         email?: string;
         username?: string;
         verified?: boolean;
-        account_trust_tier_id?: number;
         account_membership_id?: number;
         membership_expires_at?: string | null;
         allow_directory_add_by_rss?: boolean | null;
@@ -440,23 +418,6 @@ router.patch(
           res.status(400).json({ message: 'Invalid membership_expires_at' });
           return;
         }
-      }
-
-      const resolvedTrustTierId =
-        account_trust_tier_id ??
-        (account_membership_id === AccountMembershipEnum.Premium
-          ? AccountTrustTierEnum.Trusted
-          : account_membership_id === AccountMembershipEnum.Trial
-            ? AccountTrustTierEnum.Untrusted
-            : undefined);
-
-      if (
-        resolvedTrustTierId !== undefined &&
-        resolvedTrustTierId !== AccountTrustTierEnum.Untrusted &&
-        resolvedTrustTierId !== AccountTrustTierEnum.Trusted
-      ) {
-        res.status(400).json({ message: 'Invalid account_trust_tier_id' });
-        return;
       }
 
       if (
@@ -504,7 +465,6 @@ router.patch(
       if (
         account_membership_id !== undefined ||
         membership_expires_at !== undefined ||
-        account_trust_tier_id !== undefined ||
         allow_directory_add_by_rss !== undefined ||
         max_add_by_rss_feeds !== undefined ||
         max_manual_refreshes_per_hour !== undefined ||
@@ -523,10 +483,6 @@ router.patch(
             membership_expires_at === null ? null : new Date(membership_expires_at)
           );
           membershipSets.push(`membership_expires_at = $${membershipParams.length}`);
-        }
-        if (resolvedTrustTierId !== undefined) {
-          membershipParams.push(resolvedTrustTierId);
-          membershipSets.push(`account_trust_tier_id = $${membershipParams.length}`);
         }
         if (allow_directory_add_by_rss !== undefined) {
           membershipParams.push(allow_directory_add_by_rss);
@@ -587,7 +543,7 @@ router.patch(
       const rows = await AppDbDataSourceRead.query(
         `SELECT a.id, a.id_text, a.verified, a.sharable_status_id, a.created_at,
                 ac.email, ac.username,
-                ams.account_membership_id, ams.membership_expires_at, ams.account_trust_tier_id,
+                ams.account_membership_id, ams.membership_expires_at,
                 ams.allow_directory_add_by_rss, ams.max_add_by_rss_feeds,
                 ams.max_manual_refreshes_per_hour, ams.track_stats, ams.allow_notifications
          FROM account a

@@ -17,7 +17,6 @@ import { In, IsNull, Not } from 'typeorm';
 import {
   AccountMembershipEnum,
   AccountNotificationTypeEnum,
-  AccountTrustTierEnum,
   ERROR_MESSAGES,
   getSharableStatusIdsForProfileType,
   SharableStatusEnum,
@@ -223,7 +222,6 @@ export class AccountService {
     membership_expires_at.setMonth(membership_expires_at.getMonth() + 3);
     await accountMembershipStatusService.update(account, {
       account_membership_id: AccountMembershipEnum.Trial,
-      account_trust_tier_id: AccountTrustTierEnum.Untrusted,
       membership_expires_at,
     });
 

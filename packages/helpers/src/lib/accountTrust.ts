@@ -1,7 +1,4 @@
-export enum AccountTrustTierEnum {
-  Untrusted = 1,
-  Trusted = 2,
-}
+import { AccountMembershipEnum } from './accountMembership.js';
 
 export type AccountEntitlementCapability =
   | 'allowDirectoryAddByRSS'
@@ -55,10 +52,10 @@ export const DEFAULT_TRUSTED_ACCOUNT_ENTITLEMENTS: AccountTrustEntitlements = {
   allowNotifications: true,
 };
 
-export const getDefaultEntitlementsForTrustTier = (
-  trustTier: AccountTrustTierEnum
+export const getDefaultEntitlementsForMembershipTier = (
+  membershipId: AccountMembershipEnum
 ): AccountTrustEntitlements => {
-  if (trustTier === AccountTrustTierEnum.Trusted) {
+  if (membershipId === AccountMembershipEnum.Premium) {
     return DEFAULT_TRUSTED_ACCOUNT_ENTITLEMENTS;
   }
 
@@ -66,11 +63,11 @@ export const getDefaultEntitlementsForTrustTier = (
 };
 
 export const resolveAccountEntitlements = (
-  trustTier: AccountTrustTierEnum,
+  membershipId: AccountMembershipEnum,
   overrides: AccountTrustOverrides | null | undefined,
   tierDefaults?: AccountTrustEntitlements
 ): AccountTrustEntitlements => {
-  const defaults = tierDefaults ?? getDefaultEntitlementsForTrustTier(trustTier);
+  const defaults = tierDefaults ?? getDefaultEntitlementsForMembershipTier(membershipId);
 
   return {
     allowDirectoryAddByRSS:

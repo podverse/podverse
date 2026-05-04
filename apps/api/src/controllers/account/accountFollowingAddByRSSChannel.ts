@@ -122,13 +122,13 @@ class AccountFollowingAddByRSSChannelController {
                   account.id
                 );
               if (!alreadySaved && existingCount >= entitlements.maxAddByRSSFeeds) {
-                const trustedLimitRaw = process.env.TRUST_TRUSTED_MAX_ADD_BY_RSS_FEEDS;
-                const trustedLimitParsed = trustedLimitRaw
-                  ? Number.parseInt(trustedLimitRaw, 10)
+                const premiumLimitRaw = process.env.MEMBERSHIP_PREMIUM_MAX_ADD_BY_RSS_FEEDS;
+                const premiumLimitParsed = premiumLimitRaw
+                  ? Number.parseInt(premiumLimitRaw, 10)
                   : 100;
-                const trustedLimit = Number.isFinite(trustedLimitParsed) ? trustedLimitParsed : 100;
+                const premiumLimit = Number.isFinite(premiumLimitParsed) ? premiumLimitParsed : 100;
                 res.status(403).json({
-                  message: `Your account can only save up to ${entitlements.maxAddByRSSFeeds} Add by RSS feeds. Renew your membership to raise this limit to ${trustedLimit}.`,
+                  message: `Your account can only save up to ${entitlements.maxAddByRSSFeeds} Add by RSS feeds. Renew your membership to raise this limit to ${premiumLimit}.`,
                   code: 'add_by_rss_feed_limit_reached',
                   i18nKey: 'membership.add_by_rss_feed_limit_reached',
                   renewPath: '/membership/renew',

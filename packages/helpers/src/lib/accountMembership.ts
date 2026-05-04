@@ -3,14 +3,6 @@ export enum AccountMembershipEnum {
   Premium = 2,
 }
 
-/**
- * Legacy compatibility: Trial maps to untrusted, Premium maps to trusted (formerly "basic" tier id 2).
- */
-export enum AccountMembershipTrustTierLegacyMap {
-  Trial = 1,
-  Premium = 2,
-}
-
 type MembershipStatusLike =
   | {
       membership_expires_at?: Date | string | null;

@@ -248,6 +248,7 @@ const verifyTokenAndMembership = (
       const relations = ['account_credentials'];
       if (!options.skipMembershipStatus) {
         relations.push('account_membership_status');
+        relations.push('account_membership_status.account_membership');
       }
       const account = await accountService.get(payload.id, { relations });
       if (!account) {

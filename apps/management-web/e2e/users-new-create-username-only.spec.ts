@@ -55,7 +55,6 @@ test.describe('Management-web create user (username-only)', () => {
       username: 'e2e_username_only',
       account_membership_id: 1,
       membership_expires_at: null,
-      account_trust_tier_id: 1,
       allow_directory_add_by_rss: null,
       max_add_by_rss_feeds: null,
       max_manual_refreshes_per_hour: null,
@@ -64,7 +63,7 @@ test.describe('Management-web create user (username-only)', () => {
     });
   });
 
-  test('the Create User form shows membership status, trust tier, and advanced overrides toggle', async ({
+  test('the Create User form shows membership status and advanced overrides toggle', async ({
     page,
   }) => {
     test.setTimeout(45_000);
@@ -80,7 +79,6 @@ test.describe('Management-web create user (username-only)', () => {
     await expect(page.getByRole('heading', { name: 'Create User', level: 1 })).toBeVisible();
     await expect(page.getByText('Membership Status', { exact: true })).toBeVisible();
     await expect(page.getByLabel('Membership Status')).toBeVisible();
-    await expect(page.getByLabel('Trust Tier')).toBeVisible();
     await expect(
       page.getByRole('checkbox', { name: 'Configure advanced feature overrides' })
     ).toBeVisible();

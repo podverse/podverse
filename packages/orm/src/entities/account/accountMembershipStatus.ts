@@ -16,9 +16,6 @@ export class AccountMembershipStatus {
   @JoinColumn({ name: 'account_membership_id' })
   account_membership!: Relation<AccountMembership>;
 
-  @Column({ type: 'integer', default: 1 })
-  account_trust_tier_id!: number;
-
   @Column({ type: 'timestamp', nullable: true })
   membership_expires_at?: Date | null;
 

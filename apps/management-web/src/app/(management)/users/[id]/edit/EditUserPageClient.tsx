@@ -35,7 +35,6 @@ export function EditUserPageClient({ userId, initialTab }: Props) {
   const [verified, setVerified] = useState(false);
   const [membershipId, setMembershipId] = useState(1);
   const [membershipExpiresAt, setMembershipExpiresAt] = useState('');
-  const [trustTierId, setTrustTierId] = useState(1);
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [allowDirectoryAddByRSS, setAllowDirectoryAddByRSS] = useState<boolean | null>(null);
   const [maxAddByRSSFeeds, setMaxAddByRSSFeeds] = useState<string>('');
@@ -66,7 +65,6 @@ export function EditUserPageClient({ userId, initialTab }: Props) {
               ? ''
               : String(result.user.membership_expires_at).slice(0, 16)
           );
-          setTrustTierId(result.user.account_trust_tier_id ?? 1);
           setAllowDirectoryAddByRSS(result.user.allow_directory_add_by_rss ?? null);
           setMaxAddByRSSFeeds(
             result.user.max_add_by_rss_feeds !== null
@@ -105,7 +103,6 @@ export function EditUserPageClient({ userId, initialTab }: Props) {
         verified,
         account_membership_id: membershipId,
         membership_expires_at: membershipExpiresAt.trim() === '' ? null : membershipExpiresAt,
-        account_trust_tier_id: trustTierId,
         allow_directory_add_by_rss: allowDirectoryAddByRSS,
         max_add_by_rss_feeds:
           maxAddByRSSFeeds.trim() === '' ? null : Number.parseInt(maxAddByRSSFeeds, 10),
@@ -222,9 +219,7 @@ export function EditUserPageClient({ userId, initialTab }: Props) {
               className={styles.input}
               value={membershipId}
               onChange={(e) => {
-                const nextMembershipId = Number(e.target.value);
-                setMembershipId(nextMembershipId);
-                setTrustTierId(nextMembershipId === 2 ? 2 : 1);
+                setMembershipId(Number(e.target.value));
               }}
             >
               <option value={1}>{t('membershipForm.trial')}</option>
@@ -244,17 +239,6 @@ export function EditUserPageClient({ userId, initialTab }: Props) {
               value={membershipExpiresAt}
               onChange={(e) => setMembershipExpiresAt(e.target.value)}
             />
-          </div>
-          <div className={styles.formGroup}>
-            <label className={styles.label}>{t('membershipForm.trustTier')}</label>
-            <select
-              className={styles.input}
-              value={trustTierId}
-              onChange={(e) => setTrustTierId(Number(e.target.value))}
-            >
-              <option value={1}>{t('membershipForm.untrusted')}</option>
-              <option value={2}>{t('membershipForm.trusted')}</option>
-            </select>
           </div>
           <div className={styles.formGroup}>
             <label className={styles.checkboxLabel}>

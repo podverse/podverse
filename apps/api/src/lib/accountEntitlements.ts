@@ -1,9 +1,9 @@
 import {
   ACCOUNT_ENTITLEMENT_CAPABILITY,
   type AccountEntitlementCapability,
+  AccountMembershipEnum,
   type AccountTrustEntitlements,
   type AccountTrustOverrides,
-  AccountTrustTierEnum,
   resolveAccountEntitlements,
 } from '@podverse/helpers';
 import type { AccountMembershipStatus } from '@podverse/orm';
@@ -11,7 +11,7 @@ import type { AccountMembershipStatus } from '@podverse/orm';
 /** Trust-tier fields used to resolve entitlements (matches ORM `AccountMembershipStatus` columns). */
 export type MembershipStatusForEntitlements = Pick<
   AccountMembershipStatus,
-  | 'account_trust_tier_id'
+  | 'account_membership'
   | 'allow_directory_add_by_rss'
   | 'max_add_by_rss_feeds'
   | 'max_manual_refreshes_per_hour'
@@ -42,39 +42,42 @@ const parsePositiveIntegerEnv = (name: string, fallback: number): number => {
   return parsed;
 };
 
-const getTierDefaults = (trustTier: AccountTrustTierEnum): AccountTrustEntitlements => {
-  if (trustTier === AccountTrustTierEnum.Trusted) {
+const getMembershipDefaults = (membershipId: AccountMembershipEnum): AccountTrustEntitlements => {
+  if (membershipId === AccountMembershipEnum.Premium) {
     return {
-      allowDirectoryAddByRSS: parseBooleanEnv('TRUST_TRUSTED_ALLOW_DIRECTORY_ADD_BY_RSS', true),
-      maxAddByRSSFeeds: parsePositiveIntegerEnv('TRUST_TRUSTED_MAX_ADD_BY_RSS_FEEDS', 100),
+      allowDirectoryAddByRSS: parseBooleanEnv(
+        'MEMBERSHIP_PREMIUM_ALLOW_DIRECTORY_ADD_BY_RSS',
+        true
+      ),
+      maxAddByRSSFeeds: parsePositiveIntegerEnv('MEMBERSHIP_PREMIUM_MAX_ADD_BY_RSS_FEEDS', 100),
       maxManualRefreshesPerHour: parsePositiveIntegerEnv(
-        'TRUST_TRUSTED_MAX_MANUAL_REFRESHES_PER_HOUR',
+        'MEMBERSHIP_PREMIUM_MAX_MANUAL_REFRESHES_PER_HOUR',
         20
       ),
-      trackStats: parseBooleanEnv('TRUST_TRUSTED_TRACK_STATS', true),
-      allowNotifications: parseBooleanEnv('TRUST_TRUSTED_ALLOW_NOTIFICATIONS', true),
+      trackStats: parseBooleanEnv('MEMBERSHIP_PREMIUM_TRACK_STATS', true),
+      allowNotifications: parseBooleanEnv('MEMBERSHIP_PREMIUM_ALLOW_NOTIFICATIONS', true),
     };
   }
 
   return {
-    allowDirectoryAddByRSS: parseBooleanEnv('TRUST_UNTRUSTED_ALLOW_DIRECTORY_ADD_BY_RSS', false),
-    maxAddByRSSFeeds: parsePositiveIntegerEnv('TRUST_UNTRUSTED_MAX_ADD_BY_RSS_FEEDS', 10),
+    allowDirectoryAddByRSS: parseBooleanEnv('MEMBERSHIP_TRIAL_ALLOW_DIRECTORY_ADD_BY_RSS', false),
+    maxAddByRSSFeeds: parsePositiveIntegerEnv('MEMBERSHIP_TRIAL_MAX_ADD_BY_RSS_FEEDS', 10),
     maxManualRefreshesPerHour: parsePositiveIntegerEnv(
-      'TRUST_UNTRUSTED_MAX_MANUAL_REFRESHES_PER_HOUR',
+      'MEMBERSHIP_TRIAL_MAX_MANUAL_REFRESHES_PER_HOUR',
       5
     ),
-    trackStats: parseBooleanEnv('TRUST_UNTRUSTED_TRACK_STATS', false),
-    allowNotifications: parseBooleanEnv('TRUST_UNTRUSTED_ALLOW_NOTIFICATIONS', false),
+    trackStats: parseBooleanEnv('MEMBERSHIP_TRIAL_TRACK_STATS', false),
+    allowNotifications: parseBooleanEnv('MEMBERSHIP_TRIAL_ALLOW_NOTIFICATIONS', false),
   };
 };
 
 export const getAccountEntitlements = (
   membershipStatus: MembershipStatusForEntitlements
 ): AccountTrustEntitlements => {
-  const trustTier =
-    membershipStatus.account_trust_tier_id === AccountTrustTierEnum.Trusted
-      ? AccountTrustTierEnum.Trusted
-      : AccountTrustTierEnum.Untrusted;
+  const membershipId =
+    membershipStatus.account_membership?.id === AccountMembershipEnum.Premium
+      ? AccountMembershipEnum.Premium
+      : AccountMembershipEnum.Trial;
 
   const overrides: AccountTrustOverrides = {
     allow_directory_add_by_rss: membershipStatus.allow_directory_add_by_rss,
@@ -84,7 +87,7 @@ export const getAccountEntitlements = (
     allow_notifications: membershipStatus.allow_notifications,
   };
 
-  return resolveAccountEntitlements(trustTier, overrides, getTierDefaults(trustTier));
+  return resolveAccountEntitlements(membershipId, overrides, getMembershipDefaults(membershipId));
 };
 
 export const accountHasCapability = (

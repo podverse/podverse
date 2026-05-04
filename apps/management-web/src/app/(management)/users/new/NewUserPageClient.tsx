@@ -25,7 +25,6 @@ export function NewUserPageClient() {
   const [copied, setCopied] = useState(false);
   const [membershipId, setMembershipId] = useState(1);
   const [membershipExpiresAt, setMembershipExpiresAt] = useState('');
-  const [trustTierId, setTrustTierId] = useState(1);
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [allowDirectoryAddByRSS, setAllowDirectoryAddByRSS] = useState<boolean | null>(null);
   const [maxAddByRSSFeeds, setMaxAddByRSSFeeds] = useState<string>('');
@@ -94,7 +93,6 @@ export function NewUserPageClient() {
         ...(trimmedPassword ? { password: trimmedPassword } : {}),
         account_membership_id: membershipId,
         membership_expires_at: membershipExpiresAt.trim() === '' ? null : membershipExpiresAt,
-        account_trust_tier_id: trustTierId,
         allow_directory_add_by_rss: allowDirectoryAddByRSS,
         max_add_by_rss_feeds:
           maxAddByRSSFeeds.trim() === '' ? null : Number.parseInt(maxAddByRSSFeeds, 10),
@@ -238,9 +236,7 @@ export function NewUserPageClient() {
               className={styles.input}
               value={membershipId}
               onChange={(e) => {
-                const nextMembershipId = Number(e.target.value);
-                setMembershipId(nextMembershipId);
-                setTrustTierId(nextMembershipId === 2 ? 2 : 1);
+                setMembershipId(Number(e.target.value));
               }}
             >
               <option value={1}>{t('membershipForm.trial')}</option>
@@ -263,20 +259,6 @@ export function NewUserPageClient() {
               value={membershipExpiresAt}
               onChange={(e) => setMembershipExpiresAt(e.target.value)}
             />
-          </div>
-          <div className={styles.formGroup}>
-            <label className={styles.label} htmlFor="trust-tier-id">
-              {t('membershipForm.trustTier')}
-            </label>
-            <select
-              id="trust-tier-id"
-              className={styles.input}
-              value={trustTierId}
-              onChange={(e) => setTrustTierId(Number(e.target.value))}
-            >
-              <option value={1}>{t('membershipForm.untrusted')}</option>
-              <option value={2}>{t('membershipForm.trusted')}</option>
-            </select>
           </div>
           <div className={styles.formGroup}>
             <label className={styles.checkboxLabel}>

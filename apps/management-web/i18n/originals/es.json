@@ -236,7 +236,7 @@
       "manualRefreshPerHour": "Sobreescritura del límite de actualización manual por hora",
       "trackStats": "Sobreescritura de seguimiento de estadísticas",
       "allowNotifications": "Sobreescritura de permitir notificaciones",
-      "useTrustTierDefault": "Usar valor predeterminado del nivel de confianza",
+      "useTrustTierDefault": "Usar valor predeterminado del nivel de membresía",
       "allow": "Permitir",
       "block": "Bloquear",
       "trackStatsOn": "Rastrear estadísticas",

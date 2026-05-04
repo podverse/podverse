@@ -236,7 +236,7 @@
       "manualRefreshPerHour": "Manual refresh/hour limit override",
       "trackStats": "Track stats override",
       "allowNotifications": "Allow notifications override",
-      "useTrustTierDefault": "Use trust-tier default",
+      "useTrustTierDefault": "Use membership-tier default",
       "allow": "Allow",
       "block": "Block",
       "trackStatsOn": "Track stats",

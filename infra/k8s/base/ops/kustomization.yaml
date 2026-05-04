@@ -50,6 +50,7 @@ configMapGenerator:
       - source/database/linear-migrations/app/0020_image_shrink_last_deep_checked_at.sql
       - source/database/linear-migrations/app/0021_account_trust_and_entitlement_overrides.sql
       - source/database/linear-migrations/app/0022_account_membership_tier_trial_premium.sql
+      - source/database/linear-migrations/app/0023_remove_account_trust_tier.sql
   - name: podverse-ops-management-linear-migrations
     files:
       - source/database/linear-migrations/management/0000_init_helpers.sql

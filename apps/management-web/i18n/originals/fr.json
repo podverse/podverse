@@ -236,7 +236,7 @@
       "manualRefreshPerHour": "Remplacement de la limite de rafraîchissement manuel par heure",
       "trackStats": "Remplacement de suivi des statistiques",
       "allowNotifications": "Remplacement d'autorisation des notifications",
-      "useTrustTierDefault": "Utiliser le niveau de confiance par défaut",
+      "useTrustTierDefault": "Utiliser le niveau d’abonnement par défaut",
       "allow": "Autoriser",
       "block": "Bloquer",
       "trackStatsOn": "Suivre les statistiques",

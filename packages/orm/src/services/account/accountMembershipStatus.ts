@@ -3,14 +3,13 @@ import { AccountMembershipStatus } from '@orm/entities/account/accountMembership
 import { BaseOneService } from '@orm/services/base/baseOneService.js';
 import type { EntityManager } from 'typeorm';
 
-import { AccountMembershipEnum, AccountTrustTierEnum } from '@podverse/helpers';
+import type { AccountMembershipEnum } from '@podverse/helpers';
 
 import { AccountMembershipService } from './accountMembership.js';
 
 export type AccountMembershipStatusDto = {
   account_membership_id: AccountMembershipEnum;
   membership_expires_at: Date | null;
-  account_trust_tier_id?: AccountTrustTierEnum;
   allow_directory_add_by_rss?: boolean | null;
   max_add_by_rss_feeds?: number | null;
   max_manual_refreshes_per_hour?: number | null;
@@ -39,14 +38,8 @@ export class AccountMembershipStatusService extends BaseOneService<
     const previousMembershipId = account.account_membership_status?.account_membership?.id;
     const membershipChanged =
       previousMembershipId !== undefined && previousMembershipId !== dto.account_membership_id;
-    const defaultTrustTierId =
-      dto.account_membership_id === AccountMembershipEnum.Premium
-        ? AccountTrustTierEnum.Trusted
-        : AccountTrustTierEnum.Untrusted;
-
     const finalDto = {
       account_membership: accountMembershipStatus,
-      account_trust_tier_id: dto.account_trust_tier_id ?? defaultTrustTierId,
       membership_expires_at: dto.membership_expires_at,
       allow_directory_add_by_rss:
         dto.allow_directory_add_by_rss !== undefined
