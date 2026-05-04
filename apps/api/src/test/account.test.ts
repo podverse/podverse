@@ -37,6 +37,8 @@ const {
   sendVerificationEmailMock,
   sendResetPasswordEmailMock,
   sendEmailChangeVerificationEmailMock,
+  setPasswordGetByTokenMock,
+  setPasswordDeleteByAccountIdMock,
 } = vi.hoisted(() => ({
   createMock: vi.fn(async () => ({})),
   getByEmailMock: vi.fn(async () => ({
@@ -70,6 +72,8 @@ const {
   sendVerificationEmailMock: vi.fn(async () => {}),
   sendResetPasswordEmailMock: vi.fn(async () => {}),
   sendEmailChangeVerificationEmailMock: vi.fn(async () => {}),
+  setPasswordGetByTokenMock: vi.fn(async () => null),
+  setPasswordDeleteByAccountIdMock: vi.fn(async () => {}),
 }));
 
 vi.mock('@podverse/orm', async (importOriginal) => {
@@ -114,6 +118,11 @@ vi.mock('@podverse/orm', async (importOriginal) => {
     exportUserData = exportUserDataMock;
   }
 
+  class MockAccountSetPasswordService {
+    getByToken = setPasswordGetByTokenMock;
+    deleteByAccountId = setPasswordDeleteByAccountIdMock;
+  }
+
   return {
     ...actual,
     CategoryService: MockCategoryService,
@@ -123,6 +132,7 @@ vi.mock('@podverse/orm', async (importOriginal) => {
     AccountEmailChangeVerificationService: MockAccountEmailChangeVerificationService,
     AccountCredentialsService: MockAccountCredentialsService,
     AccountDataExportService: MockAccountDataExportService,
+    AccountSetPasswordService: MockAccountSetPasswordService,
   };
 });
 
@@ -466,6 +476,86 @@ describe('account CRUD and email routes', () => {
         .send({ token: 'some-token', password: 'short' });
 
       expect(res.status).toBe(400);
+    });
+  });
+
+  describe('POST /account/set-password', () => {
+    const futureExpiresAt = new Date(Date.now() + 60 * 60 * 1000);
+
+    it('returns 200 for a username-only account when no email is provided', async () => {
+      setPasswordGetByTokenMock.mockResolvedValueOnce({
+        set_password_token_expires_at: futureExpiresAt,
+        account: {
+          id: TEST_USER_ID,
+          account_credentials: { email: null, username: 'username-only-user' },
+        },
+      });
+      resetPasswordMock.mockResolvedValueOnce({});
+      verifyEmailMock.mockResolvedValueOnce({});
+      setPasswordDeleteByAccountIdMock.mockResolvedValueOnce({});
+
+      const res = await request(app)
+        .post(`${accountBase}/set-password`)
+        .send({ token: 'valid-set-password-token', password: 'new-password-123' });
+
+      expect(res.status).toBe(200);
+      expect(res.body.message).toBe('Password set successfully');
+      expect(resetPasswordMock).toHaveBeenCalledWith(TEST_USER_ID, 'new-password-123');
+      expect(credentialsUpdateMock).not.toHaveBeenCalled();
+    });
+
+    it('returns 200 and saves email for an email-less account when email is provided', async () => {
+      setPasswordGetByTokenMock.mockResolvedValueOnce({
+        set_password_token_expires_at: futureExpiresAt,
+        account: {
+          id: TEST_USER_ID,
+          account_credentials: { email: null, username: 'username-only-user' },
+        },
+      });
+      resetPasswordMock.mockResolvedValueOnce({});
+      credentialsUpdateMock.mockResolvedValueOnce({});
+      verifyEmailMock.mockResolvedValueOnce({});
+      setPasswordDeleteByAccountIdMock.mockResolvedValueOnce({});
+
+      const res = await request(app).post(`${accountBase}/set-password`).send({
+        token: 'valid-set-password-token',
+        password: 'new-password-123',
+        email: 'new@example.com',
+      });
+
+      expect(res.status).toBe(200);
+      expect(credentialsUpdateMock).toHaveBeenCalledWith(
+        expect.objectContaining({ id: TEST_USER_ID }),
+        { email: 'new@example.com' }
+      );
+    });
+
+    it('returns 400 when token is invalid', async () => {
+      setPasswordGetByTokenMock.mockResolvedValueOnce(null);
+
+      const res = await request(app)
+        .post(`${accountBase}/set-password`)
+        .send({ token: 'bad-token', password: 'new-password-123' });
+
+      expect(res.status).toBe(400);
+      expect(res.body.message).toBe('Invalid or expired token');
+    });
+
+    it('returns 400 when token has expired', async () => {
+      setPasswordGetByTokenMock.mockResolvedValueOnce({
+        set_password_token_expires_at: new Date(Date.now() - 1000),
+        account: {
+          id: TEST_USER_ID,
+          account_credentials: { email: null, username: 'username-only-user' },
+        },
+      });
+
+      const res = await request(app)
+        .post(`${accountBase}/set-password`)
+        .send({ token: 'expired-token', password: 'new-password-123' });
+
+      expect(res.status).toBe(400);
+      expect(res.body.message).toBe('Token has expired');
     });
   });
 

@@ -19,26 +19,36 @@ const TEST_PASSWORD = 'test-password-123';
 const TEST_USER_ID = 1;
 const JWT_SECRET = process.env.AUTH_JWT_SECRET ?? '';
 
-const { getByEmailMock, getMock, verifyPasswordMock, getSenderGuidByAccountIdMock } = vi.hoisted(
-  () => ({
-    getByEmailMock: vi.fn(async () => ({
-      id: TEST_USER_ID,
-      id_text: TEST_ACCOUNT_ID_TEXT,
-      verified: true,
-      account_credentials: { email: TEST_EMAIL, password: 'hashed-password' },
-    })),
-    getMock: vi.fn(async () => ({
-      id: TEST_USER_ID,
-      id_text: TEST_ACCOUNT_ID_TEXT,
-      account_credentials: { email: TEST_EMAIL },
-      account_membership_status: {
-        membership_expires_at: new Date(Date.now() + 86400000 * 365),
-      },
-    })),
-    verifyPasswordMock: vi.fn(async () => true),
-    getSenderGuidByAccountIdMock: vi.fn(async () => null),
-  })
-);
+const {
+  getByEmailMock,
+  getByUsernameMock,
+  getMock,
+  verifyPasswordMock,
+  getSenderGuidByAccountIdMock,
+} = vi.hoisted(() => ({
+  getByEmailMock: vi.fn(async () => ({
+    id: TEST_USER_ID,
+    id_text: TEST_ACCOUNT_ID_TEXT,
+    verified: true,
+    account_credentials: { email: TEST_EMAIL, password: 'hashed-password' },
+  })),
+  getByUsernameMock: vi.fn(async () => ({
+    id: TEST_USER_ID,
+    id_text: TEST_ACCOUNT_ID_TEXT,
+    verified: true,
+    account_credentials: { username: 'auth-test-username', password: 'hashed-password' },
+  })),
+  getMock: vi.fn(async () => ({
+    id: TEST_USER_ID,
+    id_text: TEST_ACCOUNT_ID_TEXT,
+    account_credentials: { email: TEST_EMAIL },
+    account_membership_status: {
+      membership_expires_at: new Date(Date.now() + 86400000 * 365),
+    },
+  })),
+  verifyPasswordMock: vi.fn(async () => true),
+  getSenderGuidByAccountIdMock: vi.fn(async () => null),
+}));
 
 vi.mock('@podverse/orm', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@podverse/orm')>();
@@ -50,6 +60,10 @@ vi.mock('@podverse/orm', async (importOriginal) => {
   class MockAccountService {
     async getByEmail(email: string, _config?: { relations?: string[] }): Promise<unknown> {
       return getByEmailMock(email);
+    }
+
+    async getByUsername(username: string, _config?: { relations?: string[] }): Promise<unknown> {
+      return getByUsernameMock(username);
     }
 
     async get(
@@ -102,7 +116,7 @@ describe('auth routes', () => {
   });
 
   describe('POST /auth/login', () => {
-    it('returns 200 and sets JWT cookie with valid credentials', async () => {
+    it('returns 200 and sets JWT cookie with valid credentials (email-only account, login with email)', async () => {
       getByEmailMock.mockResolvedValueOnce({
         id: TEST_USER_ID,
         id_text: TEST_ACCOUNT_ID_TEXT,
@@ -121,6 +135,80 @@ describe('auth routes', () => {
       const cookieHeader = res.headers['set-cookie'] as string[];
       const hasJwtCookie = cookieHeader.some((c) => c.startsWith('jwt='));
       expect(hasJwtCookie).toBe(true);
+      expect(getByEmailMock).toHaveBeenCalled();
+    });
+
+    it('returns 200 when logging in with username (username-only account)', async () => {
+      const username = 'auth-test-username-only';
+      getByUsernameMock.mockResolvedValueOnce({
+        id: TEST_USER_ID,
+        id_text: TEST_ACCOUNT_ID_TEXT,
+        verified: true,
+        account_credentials: { username, email: null, password: 'hashed-password' },
+      });
+      verifyPasswordMock.mockResolvedValueOnce(true);
+
+      const res = await request(app)
+        .post(`${authBase}/login`)
+        .send({ email: username, password: TEST_PASSWORD });
+
+      expect(res.status).toBe(200);
+      expect(res.body.message).toBe('Authenticated successfully');
+      expect(getByUsernameMock).toHaveBeenCalledWith(username, expect.any(Object));
+    });
+
+    it('returns 200 when logging in by username for an account with both email and username', async () => {
+      const bothUsername = 'auth-test-both';
+      getByUsernameMock.mockResolvedValueOnce({
+        id: TEST_USER_ID,
+        id_text: TEST_ACCOUNT_ID_TEXT,
+        verified: true,
+        account_credentials: {
+          username: bothUsername,
+          email: TEST_EMAIL,
+          password: 'hashed-password',
+        },
+      });
+      verifyPasswordMock.mockResolvedValueOnce(true);
+
+      const res = await request(app)
+        .post(`${authBase}/login`)
+        .send({ email: bothUsername, password: TEST_PASSWORD });
+
+      expect(res.status).toBe(200);
+      expect(getByUsernameMock).toHaveBeenCalledWith(bothUsername, expect.any(Object));
+    });
+
+    it('returns 200 when logging in by email for an account with both email and username', async () => {
+      getByEmailMock.mockResolvedValueOnce({
+        id: TEST_USER_ID,
+        id_text: TEST_ACCOUNT_ID_TEXT,
+        verified: true,
+        account_credentials: {
+          username: 'auth-test-both',
+          email: TEST_EMAIL,
+          password: 'hashed-password',
+        },
+      });
+      verifyPasswordMock.mockResolvedValueOnce(true);
+
+      const res = await request(app)
+        .post(`${authBase}/login`)
+        .send({ email: TEST_EMAIL, password: TEST_PASSWORD });
+
+      expect(res.status).toBe(200);
+      expect(getByEmailMock).toHaveBeenCalledWith(TEST_EMAIL, expect.any(Object));
+    });
+
+    it('returns 401 when username is not found', async () => {
+      getByUsernameMock.mockResolvedValueOnce(null);
+
+      const res = await request(app)
+        .post(`${authBase}/login`)
+        .send({ email: 'nonexistent-username', password: TEST_PASSWORD });
+
+      expect(res.status).toBe(401);
+      expect(res.body.message).toBe('Unauthorized');
     });
 
     it('returns 401 when email is not found', async () => {

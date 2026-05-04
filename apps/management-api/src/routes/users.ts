@@ -159,13 +159,6 @@ router.post(`${baseUrl}/users`, ensureAuthenticated, requireSuperuser, async (re
       return;
     }
 
-    if (capabilities.requiresEmailAtInviteCompletion && !email && !password) {
-      res.status(400).json({
-        message: 'Email is required when creating a user without a password in this mode',
-      });
-      return;
-    }
-
     if (username && !validateUsername(username)) {
       res
         .status(400)

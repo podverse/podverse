@@ -4,7 +4,6 @@ import { useRouter } from 'next/navigation';
 import { useLocale, useTranslations } from 'next-intl';
 import React, { useEffect, useState } from 'react';
 
-import { getAccountSignupModeCapabilities } from '@podverse/helpers';
 import {
   getPassword2ErrorKey,
   getPasswordErrorKey,
@@ -19,7 +18,6 @@ import { MainHeader } from '../../components/Main/MainHeader';
 import { MainInnerContentWrapper } from '../../components/Main/MainInnerContentWrapper';
 import { MainInnerWrapper } from '../../components/Main/MainInnerWrapper';
 import { MainWrapper } from '../../components/Main/MainWrapper';
-import { getConfig } from '../../config';
 import { getApiRequestService } from '../../factories/apiRequestService';
 import { handleRateLimitAlert } from '../../utils/rateLimit/rateLimitAlert';
 
@@ -43,10 +41,6 @@ export function SetPasswordPageClient({ token }: SetPasswordPageClientProps) {
   const tMisc = useTranslations('misc');
   const router = useRouter();
   const locale = useLocale();
-
-  const config = getConfig();
-  const signupMode = config.public.account.signupMode;
-  const capabilities = getAccountSignupModeCapabilities(signupMode);
 
   useEffect(() => {
     if (!token) {
@@ -135,16 +129,13 @@ export function SetPasswordPageClient({ token }: SetPasswordPageClientProps) {
     !getPasswordErrorKey(password1) &&
     !getPassword2ErrorKey(password1, password2) &&
     !!password1 &&
-    !!password2 &&
-    (!capabilities.requiresEmailAtInviteCompletion || !!email.trim());
+    !!password2;
 
   if (!token) {
     return null;
   }
 
-  const emailLabel = capabilities.requiresEmailAtInviteCompletion
-    ? tAuthentication('set_password_email_required')
-    : tAuthentication('set_password_email_optional');
+  const emailLabel = tAuthentication('set_password_email_optional');
 
   return (
     <>
