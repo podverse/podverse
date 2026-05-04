@@ -37,6 +37,7 @@ type Config = {
     port: string;
     prefix: string;
     version: string;
+    release: string;
     cookie: {
       domain: string;
     };
@@ -137,6 +138,7 @@ export const config: Config = {
     port: process.env.API_PORT!,
     prefix: process.env.API_PREFIX!,
     version: process.env.API_VERSION!,
+    release: process.env.API_RELEASE!,
     cookie: {
       domain: process.env.COOKIE_DOMAIN!,
     },

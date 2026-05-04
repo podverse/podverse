@@ -1,23 +1,19 @@
-# Version: 1
-# Child Application: Management API
-# This application manages the admin management API.
-
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: podverse-alpha-management-api
+  name: podverse-alpha-common
   namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "-3"
 spec:
-  project: podverse
+  project: <argocd-project>
   source:
-    repoURL: https://github.com/podverse/podverse.git
-    targetRevision: X.X.X-staging.N
-    path: infra/k8s/alpha/management-api
-
+    repoURL: <gitops-repo-url>
+    targetRevision: <gitops-branch>
+    path: apps/podverse-alpha/common
   destination:
     server: https://kubernetes.default.svc
     namespace: podverse-alpha
-
   syncPolicy:
     automated:
       prune: true

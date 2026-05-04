@@ -22,6 +22,7 @@ type Config = {
     port: number;
     prefix: string;
     version: string;
+    release: string;
     cookie: {
       domain: string;
     };
@@ -77,6 +78,7 @@ export const config: Config = {
     port: parseInt(process.env.API_PORT!, 10),
     prefix: process.env.API_PREFIX!,
     version: process.env.API_VERSION!,
+    release: process.env.API_RELEASE!,
     cookie: {
       domain: process.env.COOKIE_DOMAIN!,
     },

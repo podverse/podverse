@@ -156,6 +156,7 @@ const validateAllEnvironmentVariables = (): ValidationSummary => {
   results.push(validateRequired('API_PORT', 'API'));
   results.push(validateRequired('API_PREFIX', 'API'));
   results.push(validateRequired('API_VERSION', 'API'));
+  results.push(validateRequired('API_RELEASE', 'API'));
   results.push(validateRequired('COOKIE_DOMAIN', 'API'));
   results.push(validateRequired('API_ALLOWED_CORS_ORIGINS', 'API'));
 

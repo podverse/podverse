@@ -37,11 +37,11 @@ spec:
             - sh
             - -c
             - |
-              until curl -fsS "$READINESS_API_BASE_URL$READINESS_API_META_PATH" | grep -F "\"version\":\"$READINESS_API_EXPECTED_VERSION\"" >/dev/null; do
-                echo waiting for API contract $READINESS_API_BASE_URL$READINESS_API_META_PATH version=$READINESS_API_EXPECTED_VERSION
+              until curl -fsS "$READINESS_API_BASE_URL$READINESS_API_META_PATH" | grep -F "\"version\":\"$READINESS_API_EXPECTED_VERSION\"" | grep -F "\"release\":\"$READINESS_API_EXPECTED_RELEASE\"" >/dev/null; do
+                echo waiting for API contract $READINESS_API_BASE_URL$READINESS_API_META_PATH version=$READINESS_API_EXPECTED_VERSION release=$READINESS_API_EXPECTED_RELEASE
                 sleep 2
               done
-              echo API version contract ready
+              echo API version/release contract ready
       containers:
         - name: web
           image: ghcr.io/podverse/podverse/web-deploy

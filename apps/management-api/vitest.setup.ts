@@ -8,6 +8,7 @@ process.env.AUTH_JWT_SECRET = '11111111-1111-4111-8111-111111111111';
 process.env.API_PORT = '19999';
 process.env.API_PREFIX = '/api';
 process.env.API_VERSION = '/v2';
+process.env.API_RELEASE = 'test-release';
 process.env.COOKIE_DOMAIN = 'localhost';
 process.env.API_ALLOWED_CORS_ORIGINS = 'http://localhost:3000';
 process.env.WEB_PROTOCOL = 'http';

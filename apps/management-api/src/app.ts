@@ -58,7 +58,7 @@ app.get('/', (_req: Request, res: Response) => {
 
 // --- Versioned: meta, health, root (same order as main API / Metaboost versioned router)
 app.get(`${baseUrl}/meta`, (_req: Request, res: Response) => {
-  res.json({ version: config.api.version, status: 'ok' });
+  res.json({ version: config.api.version, release: config.api.release, status: 'ok' });
 });
 
 registerHealthRoutes(app, baseUrl);
