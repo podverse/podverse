@@ -59,3 +59,24 @@ do it
 
 - `.llm/history/active/trust-tier-hard-break/trust-tier-hard-break-part-01.md`
 - `infra/k8s/base/db/source/bootstrap/0003a_app_linear_baseline.sql.gz`
+
+### Session 3 - 2026-05-04
+
+#### Prompt (Developer)
+
+# Root cause recap
+
+Implement the plan as specified, it is attached for your reference. Do NOT edit the plan file itself.
+
+To-do's from the plan have already been created. Do not create them again. Mark them as in_progress as you work, starting with the first one. Don't stop until you have completed all the to-dos.
+
+#### Key Decisions
+
+- Removed stale `AccountMembershipTrustTierLegacyMap` re-export from `packages/helpers/src/index.ts` (symbol no longer exists in `accountMembership.ts`).
+- Regenerated `@podverse/helpers` `dist/` via `npm run build:packages` so `resolveAccountEntitlements` is typed with `AccountMembershipEnum` instead of stale `AccountTrustTierEnum` in `accountTrust.d.ts`, fixing api TS2345.
+- Confirmed `npm run lint:fix` passes (type-check, eslint, prettier).
+
+#### Files Modified
+
+- `.llm/history/active/trust-tier-hard-break/trust-tier-hard-break-part-01.md`
+- `packages/helpers/src/index.ts`

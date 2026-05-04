@@ -6,7 +6,6 @@ export * from './lib/i18n/index.js';
 export * from './lib/constants/index.js';
 export {
   AccountMembershipEnum,
-  AccountMembershipTrustTierLegacyMap,
   hasValidMembership,
   isMembershipExpiredAt,
 } from './lib/accountMembership.js';
