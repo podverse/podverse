@@ -48,3 +48,23 @@ To-do's from the plan have already been created. Do not create them again. Mark 
 
 - `.llm/history/active/username-only-user-creation/username-only-user-creation-part-01.md`
 - `apps/management-web/e2e/users-new-create-username-only.spec.ts` - Playwright spec verifying the management-web Create User form succeeds with username only and shows the invite link panel
+
+### Session 2 - 2026-05-03
+
+#### Prompt (Developer)
+
+@/Users/mitcheldowney/.cursor/projects/Users-mitcheldowney-repos-pv-podverse-ansible/terminals/14.txt:894-895 debug
+
+#### Key Decisions
+
+- **POST /auth/login rate limit:** `max` was 5/min (IP-based). The auth integration suite issues more than five sequential login requests before the 429 test, so later cases returned **429** instead of **401/403**. Use `max: 100` when `config.nodeEnv === 'test'`, keep `5` in production. Extended the 429 test loop to 120 attempts so the limit is still hit under the higher test cap.
+- **auth.test ORM mock:** Forward the optional `relations` config from `MockAccountService.getByEmail` / `getByUsername` into the spies so `expect.any(Object)` matches Passport’s real calls.
+- **account.test set-password:** `credentialsUpdateMock` was not cleared between tests, so `not.toHaveBeenCalled()` failed after other tests invoked the mock. Added `beforeEach` → `credentialsUpdateMock.mockClear()` in the set-password describe.
+- **health-ready.test:** Real `CategoryService.setCategoryCache()` hit the DB (missing `category` table in some stacks). Added a `vi.mock('@podverse/orm')` that only replaces `CategoryService` with a no-op, matching other API integration tests.
+
+#### Files Modified
+
+- `apps/api/src/routes/auth.ts` - test vs production login rate `max`
+- `apps/api/src/test/auth.test.ts` - mock forwards second arg; 429 test loop length
+- `apps/api/src/test/account.test.ts` - `beforeEach` mockClear for set-password
+- `apps/api/src/test/health-ready.test.ts` - `CategoryService` test double

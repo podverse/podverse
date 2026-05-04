@@ -10,6 +10,8 @@ const MANAGEMENT_API_ENV = [
   `NODE_ENV=test`,
   `SERVER_ENV=local`,
   `BRAND_NAME=PodverseTest`,
+  // Quoted: value contains spaces; unquoted breaks the webServer shell command
+  `USER_AGENT="Example Bot test/API/5"`,
   `LOG_LEVEL=error`,
   // Auth
   `AUTH_JWT_SECRET=11111111-1111-4111-8111-111111111111`,
@@ -19,6 +21,7 @@ const MANAGEMENT_API_ENV = [
   `API_PORT=4130`,
   `API_PREFIX=/api`,
   `API_VERSION=/v2`,
+  `API_RELEASE=test-release`,
   `COOKIE_DOMAIN=localhost`,
   `API_ALLOWED_CORS_ORIGINS=http://localhost:4132`,
   // Database (test stack: port 5732)

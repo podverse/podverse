@@ -1,6 +1,6 @@
 import type { Server } from 'http';
 import request from 'supertest';
-import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
+import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { ORMContext } from '@podverse/orm';
 
@@ -481,6 +481,10 @@ describe('account CRUD and email routes', () => {
 
   describe('POST /account/set-password', () => {
     const futureExpiresAt = new Date(Date.now() + 60 * 60 * 1000);
+
+    beforeEach(() => {
+      credentialsUpdateMock.mockClear();
+    });
 
     it('returns 200 for a username-only account when no email is provided', async () => {
       setPasswordGetByTokenMock.mockResolvedValueOnce({

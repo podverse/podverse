@@ -58,12 +58,12 @@ vi.mock('@podverse/orm', async (importOriginal) => {
   }
 
   class MockAccountService {
-    async getByEmail(email: string, _config?: { relations?: string[] }): Promise<unknown> {
-      return getByEmailMock(email);
+    async getByEmail(email: string, config?: { relations?: string[] }): Promise<unknown> {
+      return getByEmailMock(email, config);
     }
 
-    async getByUsername(username: string, _config?: { relations?: string[] }): Promise<unknown> {
-      return getByUsernameMock(username);
+    async getByUsername(username: string, config?: { relations?: string[] }): Promise<unknown> {
+      return getByUsernameMock(username, config);
     }
 
     async get(
@@ -269,7 +269,8 @@ describe('auth routes', () => {
       // In full-suite runs this file can execute alongside other auth tests that
       // also hit /auth/login. Assert that we hit 429 within a bounded number of
       // attempts instead of relying on an exact request index.
-      for (let i = 0; i < 8; i++) {
+      // Test env uses a higher login max (see routes/auth.ts); burn until limited.
+      for (let i = 0; i < 120; i++) {
         const res = await request(app)
           .post(`${authBase}/login`)
           .send({ email: `ratelimit-${i}@example.com`, password: TEST_PASSWORD });

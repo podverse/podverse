@@ -38,7 +38,10 @@ test.describe('Management-web feed operations', () => {
       });
     });
 
-    await page.route('**/feed-operations/flag-status', async (route) => {
+    // POST goes to management-api `/api/v2/feed-operations/flag-status`. Do not use
+    // `**/feed-operations/flag-status` — it matches the Next.js page document GET and
+    // replaces HTML with JSON, so the h1 never appears.
+    await page.route('**/api/v2/feed-operations/flag-status', async (route) => {
       const body = (route.request().postDataJSON() ?? {}) as Record<string, unknown>;
       applyBodies.push(body);
       await route.fulfill({
@@ -62,10 +65,10 @@ test.describe('Management-web feed operations', () => {
     await page.getByLabel('Value').fill('55');
     await page.getByRole('button', { name: 'Look up' }).click();
 
-    await expect(page.getByText('Spam item limit override')).toBeVisible();
     const spamOverrideInput = page.getByRole('spinbutton', {
       name: 'Spam item limit override (optional)',
     });
+    await expect(spamOverrideInput).toBeVisible();
     await expect(spamOverrideInput).toHaveValue('777');
     await spamOverrideInput.fill('12345');
     await page.getByRole('button', { name: 'Apply change' }).click();

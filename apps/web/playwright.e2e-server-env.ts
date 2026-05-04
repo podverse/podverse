@@ -10,6 +10,8 @@ export function buildE2eWebApiEnvPrefix(): string {
     `NODE_ENV=test`,
     `SERVER_ENV=local`,
     `BRAND_NAME=PodverseTest`,
+    // Quoted: value contains spaces; unquoted breaks sh -c "… Bot …" (command not found: Bot)
+    `USER_AGENT="Example Bot test/API/5"`,
     `LOG_LEVEL=error`,
     `LOG_DIR=`,
     // Auth
@@ -20,6 +22,7 @@ export function buildE2eWebApiEnvPrefix(): string {
     `API_PORT=4030`,
     `API_PREFIX=/api`,
     `API_VERSION=/v2`,
+    `API_RELEASE=test-release`,
     `COOKIE_DOMAIN=localhost`,
     `API_ALLOWED_CORS_ORIGINS=http://localhost:4032`,
     // Database (test stack: port 5732)
