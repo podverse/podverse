@@ -44,6 +44,8 @@ spec:
                 - secretRef:
                     name: podverse-workers-webpush-opaque
                     optional: true
+                - secretRef:
+                    name: podverse-workers-digital-ocean-opaque
               volumeMounts:
                 - name: logs-volume
                   mountPath: /logs
