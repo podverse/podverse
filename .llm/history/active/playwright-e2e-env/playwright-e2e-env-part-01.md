@@ -30,3 +30,8 @@ Context: Playwright webServer failed to start apps/api and management-api during
 #### Files Modified (follow-up)
 
 - `apps/management-web/e2e/feed-operations-flag-status.spec.ts` — API-only route pattern
+
+#### Follow-up 2
+
+- **Strict locator:** `getByText('Spam item limit override')` matched both `<dt>` and the label substring; removed redundant assertion.
+- **Spam override input:** `getByRole('spinbutton', { name: '…' })` failed when label/input were not associated; use `input[name="spam-item-limit-override"]`.

@@ -65,9 +65,8 @@ test.describe('Management-web feed operations', () => {
     await page.getByLabel('Value').fill('55');
     await page.getByRole('button', { name: 'Look up' }).click();
 
-    const spamOverrideInput = page.getByRole('spinbutton', {
-      name: 'Spam item limit override (optional)',
-    });
+    // FormLabel may not wire htmlFor to FormInput; prefer stable name attribute over spinbutton role.
+    const spamOverrideInput = page.locator('input[name="spam-item-limit-override"]');
     await expect(spamOverrideInput).toBeVisible();
     await expect(spamOverrideInput).toHaveValue('777');
     await spamOverrideInput.fill('12345');
