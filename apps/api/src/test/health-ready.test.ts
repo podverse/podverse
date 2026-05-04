@@ -1,11 +1,24 @@
 import type { Server } from 'http';
 import request from 'supertest';
-import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 
 import type { ORMContext } from '@podverse/orm';
 
 import { config } from '../config/index.js';
 import { startTestApp, stopTestApp } from './helpers/index.js';
+
+vi.mock('@podverse/orm', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@podverse/orm')>();
+
+  class MockCategoryService {
+    async setCategoryCache(): Promise<void> {}
+  }
+
+  return {
+    ...actual,
+    CategoryService: MockCategoryService,
+  };
+});
 
 const apiBase = `${config.api.prefix}${config.api.version}`;
 

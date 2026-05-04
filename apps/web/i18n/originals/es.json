@@ -594,7 +594,18 @@
     "membership_link_text": "Ir a la Página de Membresía",
     "free_trial": "prueba gratuita",
     "premium_membership": "membresía Premium",
-    "free_trial_not_allowed": "Esta función solo está disponible para cuentas premium y no está disponible para pruebas gratuitas"
+    "free_trial_not_allowed": "Esta función solo está disponible para cuentas premium y no está disponible para pruebas gratuitas",
+    "renew_membership": "Renovar Membresía",
+    "membership_expired": "Tu membresía ha expirado. Renueva para usar esta función.",
+    "feature_not_available_for_account_type": "Tu cuenta no tiene acceso a esta función en este momento.",
+    "manual_refresh_hourly_limit_reached": "Has alcanzado tu límite de actualización manual por esta hora.",
+    "add_by_rss_feed_limit_reached": "Has alcanzado tu límite de Agregar por RSS.",
+    "trial_limitations_title": "Limitaciones del periodo de prueba",
+    "trial_limitations_directory_add_by_rss": "Agregar feeds al directorio público desde la búsqueda está bloqueado para el estado de Prueba.",
+    "trial_limitations_add_by_rss_feed_limit": "El tamaño de la biblioteca de Agregar por RSS utiliza un límite inferior en Prueba que en Premium.",
+    "trial_limitations_manual_refresh_limit": "Las acciones de actualización manual utilizan límites horarios más restrictivos mientras estás en Prueba.",
+    "trial_limitations_stats_tracking": "El seguimiento de estadísticas se reduce para el estado de Prueba por defecto.",
+    "trial_limitations_notifications": "Las funciones de notificación pueden ser reducidas para el estado de Prueba y expiran con la membresía."
   },
   "about": {
     "title": "Acerca de",

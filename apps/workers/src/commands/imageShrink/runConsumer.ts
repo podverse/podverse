@@ -1,12 +1,16 @@
 import { createImageShrinkProcessor } from '@workers/commands/imageShrink/batch.js';
 import type { CommandLineArgs } from '@workers/commands/index.js';
-import { isImageShrinkEnabled } from '@workers/config/index.js';
+import {
+  getImageShrinkConfig,
+  getImageShrinkStorageConfig,
+  isImageShrinkEnabled,
+} from '@workers/config/index.js';
 import { getActiveMQArtemisService } from '@workers/factories/activeMQArtemisService.js';
 import { getLoggerService } from '@workers/factories/loggerService.js';
 
 import { isObjectLike, MQ_IMAGE_SHRINK_HINTS_CONFIG, sleep } from '@podverse/helpers';
 import { createActiveMQShutdown } from '@podverse/mq';
-import { ChannelImageService, ItemImageService } from '@podverse/orm';
+import { ChannelImageService, ImageShrinkSourceService, ItemImageService } from '@podverse/orm';
 
 type ImageShrinkHintMessage = {
   url: string;
@@ -41,6 +45,9 @@ export const imageShrinkRunConsumer = async (_args: CommandLineArgs) => {
   const processor = createImageShrinkProcessor();
   const channelImageService = new ChannelImageService();
   const itemImageService = new ItemImageService();
+  const imageShrinkSourceService = new ImageShrinkSourceService();
+  const imageShrinkConfig = getImageShrinkConfig();
+  const imageShrinkStorageConfig = getImageShrinkStorageConfig();
   const activeMQArtemisService = getActiveMQArtemisService();
   await activeMQArtemisService.initialize();
 
@@ -69,12 +76,14 @@ export const imageShrinkRunConsumer = async (_args: CommandLineArgs) => {
         }
 
         if (parsed.entityType === 'channel') {
+          const processedChannelIds = new Set<number>();
           const channelImages = await channelImageService.getByUrls([parsed.url], false);
           for (const image of channelImages) {
             const channelId = image.channel?.id;
             if (!channelId) {
               continue;
             }
+            processedChannelIds.add(channelId);
             await processor.processTarget({
               entityType: 'channel',
               entityId: channelId,
@@ -82,19 +91,63 @@ export const imageShrinkRunConsumer = async (_args: CommandLineArgs) => {
               hinted: true,
             });
           }
+          const sourceMeta = await imageShrinkSourceService.getByUrl(parsed.url);
+          if (sourceMeta) {
+            const resizedMatches = await channelImageService.findResizedRowsByOriginImageUrl({
+              cdnBaseUrl: imageShrinkStorageConfig.cdnBaseUrl,
+              sourceUrl: parsed.url,
+              widthPx: imageShrinkConfig.widthPx,
+            });
+            for (const image of resizedMatches) {
+              const channelId = image.channel?.id;
+              if (!channelId || processedChannelIds.has(channelId)) {
+                continue;
+              }
+              processedChannelIds.add(channelId);
+              await processor.processTarget({
+                entityType: 'channel',
+                entityId: channelId,
+                url: parsed.url,
+                hinted: true,
+              });
+            }
+          }
         } else {
+          const processedItemIds = new Set<number>();
           const itemImages = await itemImageService.getByUrls([parsed.url], false);
           for (const image of itemImages) {
             const itemId = image.item?.id;
             if (!itemId) {
               continue;
             }
+            processedItemIds.add(itemId);
             await processor.processTarget({
               entityType: 'item',
               entityId: itemId,
               url: image.url,
               hinted: true,
             });
+          }
+          const sourceMeta = await imageShrinkSourceService.getByUrl(parsed.url);
+          if (sourceMeta) {
+            const resizedMatches = await itemImageService.findResizedRowsByOriginImageUrl({
+              cdnBaseUrl: imageShrinkStorageConfig.cdnBaseUrl,
+              sourceUrl: parsed.url,
+              widthPx: imageShrinkConfig.widthPx,
+            });
+            for (const image of resizedMatches) {
+              const itemId = image.item?.id;
+              if (!itemId || processedItemIds.has(itemId)) {
+                continue;
+              }
+              processedItemIds.add(itemId);
+              await processor.processTarget({
+                entityType: 'item',
+                entityId: itemId,
+                url: parsed.url,
+                hinted: true,
+              });
+            }
           }
         }
 

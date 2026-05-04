@@ -9,6 +9,7 @@ import {
   ACCOUNT_SIGNUP_MODE_ADMIN_ONLY_EMAIL,
   ACCOUNT_SIGNUP_MODE_USER_SIGNUP_EMAIL,
   AccountMembershipEnum,
+  AccountTrustTierEnum,
   getAccountSignupModeCapabilities,
   SharableStatusEnum,
 } from '@podverse/helpers';
@@ -40,6 +41,14 @@ function userRowToJson(row: Record<string, unknown>) {
     username: row.username ?? null,
     sharable_status_id: row.sharable_status_id,
     created_at: row.created_at,
+    account_trust_tier_id: row.account_trust_tier_id ?? AccountTrustTierEnum.Untrusted,
+    account_membership_id: row.account_membership_id ?? AccountMembershipEnum.Trial,
+    membership_expires_at: row.membership_expires_at ?? null,
+    allow_directory_add_by_rss: row.allow_directory_add_by_rss ?? null,
+    max_add_by_rss_feeds: row.max_add_by_rss_feeds ?? null,
+    max_manual_refreshes_per_hour: row.max_manual_refreshes_per_hour ?? null,
+    track_stats: row.track_stats ?? null,
+    allow_notifications: row.allow_notifications ?? null,
   };
 }
 
@@ -70,6 +79,7 @@ router.get(`${baseUrl}/users`, ensureAuthenticated, requireSuperuser, async (req
     const countResult = await AppDbDataSourceRead.query(
       `SELECT COUNT(*)::int AS total FROM account a
        LEFT JOIN account_credentials ac ON ac.account_id = a.id
+       LEFT JOIN account_membership_status ams ON ams.account_id = a.id
        ${whereClause}`,
       params
     );
@@ -78,9 +88,13 @@ router.get(`${baseUrl}/users`, ensureAuthenticated, requireSuperuser, async (req
 
     const rows = await AppDbDataSourceRead.query(
       `SELECT a.id, a.id_text, a.verified, a.sharable_status_id, a.created_at,
-              ac.email, ac.username
+              ac.email, ac.username,
+              ams.account_membership_id, ams.membership_expires_at, ams.account_trust_tier_id,
+              ams.allow_directory_add_by_rss, ams.max_add_by_rss_feeds,
+              ams.max_manual_refreshes_per_hour, ams.track_stats, ams.allow_notifications
        FROM account a
        LEFT JOIN account_credentials ac ON ac.account_id = a.id
+       LEFT JOIN account_membership_status ams ON ams.account_id = a.id
        ${whereClause}
        ORDER BY a.id ASC
        LIMIT $${params.length + 1} OFFSET $${params.length + 2}`,
@@ -111,9 +125,13 @@ router.get(
 
       const rows = await AppDbDataSourceRead.query(
         `SELECT a.id, a.id_text, a.verified, a.sharable_status_id, a.created_at,
-                ac.email, ac.username
+                ac.email, ac.username,
+                ams.account_membership_id, ams.membership_expires_at, ams.account_trust_tier_id,
+                ams.allow_directory_add_by_rss, ams.max_add_by_rss_feeds,
+                ams.max_manual_refreshes_per_hour, ams.track_stats, ams.allow_notifications
          FROM account a
          LEFT JOIN account_credentials ac ON ac.account_id = a.id
+         LEFT JOIN account_membership_status ams ON ams.account_id = a.id
          WHERE a.id = $1`,
         [id]
       );
@@ -133,10 +151,30 @@ router.get(
 // Create user
 router.post(`${baseUrl}/users`, ensureAuthenticated, requireSuperuser, async (req, res, next) => {
   try {
-    const { username, email, password } = req.body as {
+    const {
+      username,
+      email,
+      password,
+      account_membership_id,
+      membership_expires_at,
+      account_trust_tier_id,
+      allow_directory_add_by_rss,
+      max_add_by_rss_feeds,
+      max_manual_refreshes_per_hour,
+      track_stats,
+      allow_notifications,
+    } = req.body as {
       username?: string;
       email?: string;
       password?: string;
+      account_trust_tier_id?: number;
+      account_membership_id?: number;
+      membership_expires_at?: string | null;
+      allow_directory_add_by_rss?: boolean | null;
+      max_add_by_rss_feeds?: number | null;
+      max_manual_refreshes_per_hour?: number | null;
+      track_stats?: boolean | null;
+      allow_notifications?: boolean | null;
     };
 
     const mode = process.env.ACCOUNT_SIGNUP_MODE;
@@ -159,13 +197,6 @@ router.post(`${baseUrl}/users`, ensureAuthenticated, requireSuperuser, async (re
       return;
     }
 
-    if (capabilities.requiresEmailAtInviteCompletion && !email && !password) {
-      res.status(400).json({
-        message: 'Email is required when creating a user without a password in this mode',
-      });
-      return;
-    }
-
     if (username && !validateUsername(username)) {
       res
         .status(400)
@@ -180,6 +211,32 @@ router.post(`${baseUrl}/users`, ensureAuthenticated, requireSuperuser, async (re
 
     if (password && !validatePassword(password)) {
       res.status(400).json({ message: 'Invalid password (min 8 chars)' });
+      return;
+    }
+
+    if (
+      account_membership_id !== undefined &&
+      account_membership_id !== AccountMembershipEnum.Trial &&
+      account_membership_id !== AccountMembershipEnum.Premium
+    ) {
+      res.status(400).json({ message: 'Invalid account_membership_id' });
+      return;
+    }
+
+    if (membership_expires_at !== undefined && membership_expires_at !== null) {
+      const parsedMembershipExpiresAt = new Date(membership_expires_at);
+      if (Number.isNaN(parsedMembershipExpiresAt.getTime())) {
+        res.status(400).json({ message: 'Invalid membership_expires_at' });
+        return;
+      }
+    }
+
+    if (
+      account_trust_tier_id !== undefined &&
+      account_trust_tier_id !== AccountTrustTierEnum.Untrusted &&
+      account_trust_tier_id !== AccountTrustTierEnum.Trusted
+    ) {
+      res.status(400).json({ message: 'Invalid account_trust_tier_id' });
       return;
     }
 
@@ -236,11 +293,45 @@ router.post(`${baseUrl}/users`, ensureAuthenticated, requireSuperuser, async (re
     );
 
     // 5. Insert into account_membership_status (trial, expires in 3 months)
-    const membershipExpiresAt = new Date();
-    membershipExpiresAt.setMonth(membershipExpiresAt.getMonth() + 3);
+    const membershipId = account_membership_id ?? AccountMembershipEnum.Trial;
+    const membershipExpiresAt =
+      membership_expires_at !== undefined && membership_expires_at !== null
+        ? new Date(membership_expires_at)
+        : (() => {
+            const date = new Date();
+            date.setMonth(
+              date.getMonth() + (membershipId === AccountMembershipEnum.Premium ? 12 : 3)
+            );
+            return date;
+          })();
+    const trustTierId =
+      account_trust_tier_id ??
+      (membershipId === AccountMembershipEnum.Premium
+        ? AccountTrustTierEnum.Trusted
+        : AccountTrustTierEnum.Untrusted);
     await AppDbDataSourceReadWrite.query(
-      `INSERT INTO account_membership_status (account_id, account_membership_id, membership_expires_at) VALUES ($1, $2, $3)`,
-      [accountId, AccountMembershipEnum.Trial, membershipExpiresAt]
+      `INSERT INTO account_membership_status (
+        account_id,
+        account_membership_id,
+        account_trust_tier_id,
+        membership_expires_at,
+        allow_directory_add_by_rss,
+        max_add_by_rss_feeds,
+        max_manual_refreshes_per_hour,
+        track_stats,
+        allow_notifications
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+      [
+        accountId,
+        membershipId,
+        trustTierId,
+        membershipExpiresAt,
+        allow_directory_add_by_rss ?? null,
+        max_add_by_rss_feeds ?? null,
+        max_manual_refreshes_per_hour ?? null,
+        track_stats ?? null,
+        allow_notifications ?? null,
+      ]
     );
 
     // 6. Insert into account_metaboost
@@ -296,10 +387,30 @@ router.patch(
         return;
       }
 
-      const { email, username, verified } = req.body as {
+      const {
+        email,
+        username,
+        verified,
+        account_membership_id,
+        membership_expires_at,
+        account_trust_tier_id,
+        allow_directory_add_by_rss,
+        max_add_by_rss_feeds,
+        max_manual_refreshes_per_hour,
+        track_stats,
+        allow_notifications,
+      } = req.body as {
         email?: string;
         username?: string;
         verified?: boolean;
+        account_trust_tier_id?: number;
+        account_membership_id?: number;
+        membership_expires_at?: string | null;
+        allow_directory_add_by_rss?: boolean | null;
+        max_add_by_rss_feeds?: number | null;
+        max_manual_refreshes_per_hour?: number | null;
+        track_stats?: boolean | null;
+        allow_notifications?: boolean | null;
       };
 
       if (email !== undefined && !validateEmail(email)) {
@@ -311,6 +422,60 @@ router.patch(
         res
           .status(400)
           .json({ message: 'Invalid username (3-32 chars, alphanumeric, underscore, dash)' });
+        return;
+      }
+
+      if (
+        account_membership_id !== undefined &&
+        account_membership_id !== AccountMembershipEnum.Trial &&
+        account_membership_id !== AccountMembershipEnum.Premium
+      ) {
+        res.status(400).json({ message: 'Invalid account_membership_id' });
+        return;
+      }
+
+      if (membership_expires_at !== undefined && membership_expires_at !== null) {
+        const parsedMembershipExpiresAt = new Date(membership_expires_at);
+        if (Number.isNaN(parsedMembershipExpiresAt.getTime())) {
+          res.status(400).json({ message: 'Invalid membership_expires_at' });
+          return;
+        }
+      }
+
+      const resolvedTrustTierId =
+        account_trust_tier_id ??
+        (account_membership_id === AccountMembershipEnum.Premium
+          ? AccountTrustTierEnum.Trusted
+          : account_membership_id === AccountMembershipEnum.Trial
+            ? AccountTrustTierEnum.Untrusted
+            : undefined);
+
+      if (
+        resolvedTrustTierId !== undefined &&
+        resolvedTrustTierId !== AccountTrustTierEnum.Untrusted &&
+        resolvedTrustTierId !== AccountTrustTierEnum.Trusted
+      ) {
+        res.status(400).json({ message: 'Invalid account_trust_tier_id' });
+        return;
+      }
+
+      if (
+        max_add_by_rss_feeds !== undefined &&
+        max_add_by_rss_feeds !== null &&
+        (!Number.isInteger(max_add_by_rss_feeds) || max_add_by_rss_feeds < 0)
+      ) {
+        res.status(400).json({ message: 'max_add_by_rss_feeds must be a non-negative integer' });
+        return;
+      }
+
+      if (
+        max_manual_refreshes_per_hour !== undefined &&
+        max_manual_refreshes_per_hour !== null &&
+        (!Number.isInteger(max_manual_refreshes_per_hour) || max_manual_refreshes_per_hour < 0)
+      ) {
+        res
+          .status(400)
+          .json({ message: 'max_manual_refreshes_per_hour must be a non-negative integer' });
         return;
       }
 
@@ -334,6 +499,61 @@ router.patch(
           res.status(409).json({ message: 'Email or username already in use' });
           return;
         }
+      }
+
+      if (
+        account_membership_id !== undefined ||
+        membership_expires_at !== undefined ||
+        account_trust_tier_id !== undefined ||
+        allow_directory_add_by_rss !== undefined ||
+        max_add_by_rss_feeds !== undefined ||
+        max_manual_refreshes_per_hour !== undefined ||
+        track_stats !== undefined ||
+        allow_notifications !== undefined
+      ) {
+        const membershipSets: string[] = [];
+        const membershipParams: unknown[] = [];
+
+        if (account_membership_id !== undefined) {
+          membershipParams.push(account_membership_id);
+          membershipSets.push(`account_membership_id = $${membershipParams.length}`);
+        }
+        if (membership_expires_at !== undefined) {
+          membershipParams.push(
+            membership_expires_at === null ? null : new Date(membership_expires_at)
+          );
+          membershipSets.push(`membership_expires_at = $${membershipParams.length}`);
+        }
+        if (resolvedTrustTierId !== undefined) {
+          membershipParams.push(resolvedTrustTierId);
+          membershipSets.push(`account_trust_tier_id = $${membershipParams.length}`);
+        }
+        if (allow_directory_add_by_rss !== undefined) {
+          membershipParams.push(allow_directory_add_by_rss);
+          membershipSets.push(`allow_directory_add_by_rss = $${membershipParams.length}`);
+        }
+        if (max_add_by_rss_feeds !== undefined) {
+          membershipParams.push(max_add_by_rss_feeds);
+          membershipSets.push(`max_add_by_rss_feeds = $${membershipParams.length}`);
+        }
+        if (max_manual_refreshes_per_hour !== undefined) {
+          membershipParams.push(max_manual_refreshes_per_hour);
+          membershipSets.push(`max_manual_refreshes_per_hour = $${membershipParams.length}`);
+        }
+        if (track_stats !== undefined) {
+          membershipParams.push(track_stats);
+          membershipSets.push(`track_stats = $${membershipParams.length}`);
+        }
+        if (allow_notifications !== undefined) {
+          membershipParams.push(allow_notifications);
+          membershipSets.push(`allow_notifications = $${membershipParams.length}`);
+        }
+
+        membershipParams.push(id);
+        await AppDbDataSourceReadWrite.query(
+          `UPDATE account_membership_status SET ${membershipSets.join(', ')} WHERE account_id = $${membershipParams.length}`,
+          membershipParams
+        );
       }
 
       // Update account table
@@ -366,9 +586,13 @@ router.patch(
       // Fetch updated user
       const rows = await AppDbDataSourceRead.query(
         `SELECT a.id, a.id_text, a.verified, a.sharable_status_id, a.created_at,
-                ac.email, ac.username
+                ac.email, ac.username,
+                ams.account_membership_id, ams.membership_expires_at, ams.account_trust_tier_id,
+                ams.allow_directory_add_by_rss, ams.max_add_by_rss_feeds,
+                ams.max_manual_refreshes_per_hour, ams.track_stats, ams.allow_notifications
          FROM account a
          LEFT JOIN account_credentials ac ON ac.account_id = a.id
+         LEFT JOIN account_membership_status ams ON ams.account_id = a.id
          WHERE a.id = $1`,
         [id]
       );

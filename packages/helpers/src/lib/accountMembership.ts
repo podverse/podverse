@@ -1,6 +1,14 @@
 export enum AccountMembershipEnum {
   Trial = 1,
-  Basic = 2,
+  Premium = 2,
+}
+
+/**
+ * Legacy compatibility: Trial maps to untrusted, Premium maps to trusted (formerly "basic" tier id 2).
+ */
+export enum AccountMembershipTrustTierLegacyMap {
+  Trial = 1,
+  Premium = 2,
 }
 
 type MembershipStatusLike =
@@ -31,4 +39,18 @@ export function hasValidMembership(membershipStatus: MembershipStatusLike): bool
       : membershipStatus.membership_expires_at;
 
   return expirationDate >= new Date();
+}
+
+type MembershipExpiresAtInput = Date | string | null | undefined;
+
+/**
+ * True when `membership_expires_at` is set and strictly before the current instant.
+ * Null/undefined means "no expiry timestamp" (not treated as expired).
+ */
+export function isMembershipExpiredAt(membershipExpiresAt: MembershipExpiresAtInput): boolean {
+  if (membershipExpiresAt === null || membershipExpiresAt === undefined) {
+    return false;
+  }
+
+  return !hasValidMembership({ membership_expires_at: membershipExpiresAt });
 }

@@ -4,6 +4,7 @@ export type FeedFlagLookupRow = {
   id: number;
   url: string;
   podcast_index_id: number;
+  spam_item_limit_override: number | null;
   feed_flag_status_id: number;
   feed_flag_status_key: string;
   feed_flag_status_reason_id: number | null;
@@ -17,6 +18,7 @@ const LOOKUP_BASE_SELECT = `
     f.id,
     f.url,
     f.podcast_index_id,
+    f.spam_item_limit_override,
     f.feed_flag_status_id,
     ffs.status AS feed_flag_status_key,
     f.feed_flag_status_reason_id,
@@ -102,7 +104,7 @@ export async function getFeedRowSnapshotById(
   feedId: number
 ): Promise<Record<string, unknown> | null> {
   const rows = (await AppDbDataSourceRead.query(
-    `SELECT f.id, f.url, f.podcast_index_id, f.feed_flag_status_id, f.feed_flag_status_reason_id, f.feed_flag_status_reason_note
+    `SELECT f.id, f.url, f.podcast_index_id, f.spam_item_limit_override, f.feed_flag_status_id, f.feed_flag_status_reason_id, f.feed_flag_status_reason_note
      FROM feed f WHERE f.id = $1`,
     [feedId]
   )) as Record<string, unknown>[];
@@ -113,14 +115,22 @@ export async function updateFeedFlagStatusInDb(
   feedId: number,
   feedFlagStatusId: number,
   feedFlagStatusReasonId: number | null,
-  feedFlagStatusReasonNote: string | null
+  feedFlagStatusReasonNote: string | null,
+  spamItemLimitOverride: number | null
 ): Promise<void> {
   await AppDbDataSourceReadWrite.query(
     `UPDATE feed
      SET feed_flag_status_id = $1,
          feed_flag_status_reason_id = $2,
-         feed_flag_status_reason_note = $3
-     WHERE id = $4`,
-    [feedFlagStatusId, feedFlagStatusReasonId, feedFlagStatusReasonNote, feedId]
+         feed_flag_status_reason_note = $3,
+         spam_item_limit_override = $4
+     WHERE id = $5`,
+    [
+      feedFlagStatusId,
+      feedFlagStatusReasonId,
+      feedFlagStatusReasonNote,
+      spamItemLimitOverride,
+      feedId,
+    ]
   );
 }

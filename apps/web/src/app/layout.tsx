@@ -5,6 +5,7 @@ import { generateQueueResourceAbridgedIndex } from '@podverse/helpers';
 
 import { AppWrapper } from '../components/App/AppWrapper';
 import AuthSessionChecker from '../components/Auth/AuthSessionChecker';
+import { MembershipExpiredBanner } from '../components/Banner/MembershipExpiredBanner';
 import FavIcons from '../components/Head/FavIcons';
 import FontPreloads from '../components/Head/FontPreloads';
 import RuntimeConfigScript from '../components/Head/RuntimeConfigScript';
@@ -99,6 +100,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                 <SideBar />
                 <PageWrapper>
                   <NavBar />
+                  <MembershipExpiredBanner />
                   {children}
                 </PageWrapper>
               </AppWrapper>

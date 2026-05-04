@@ -11,6 +11,12 @@
   margin-bottom: var(--spacing-md);
 }
 
+.hintText {
+  color: var(--text-color-secondary);
+  font-size: var(--font-size-sm);
+  margin-top: var(--spacing-sm);
+}
+
 .input {
   width: 100%;
   max-width: 400px;

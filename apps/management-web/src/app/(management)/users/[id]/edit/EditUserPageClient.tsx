@@ -33,6 +33,15 @@ export function EditUserPageClient({ userId, initialTab }: Props) {
   const [email, setEmail] = useState('');
   const [username, setUsername] = useState('');
   const [verified, setVerified] = useState(false);
+  const [membershipId, setMembershipId] = useState(1);
+  const [membershipExpiresAt, setMembershipExpiresAt] = useState('');
+  const [trustTierId, setTrustTierId] = useState(1);
+  const [showAdvanced, setShowAdvanced] = useState(false);
+  const [allowDirectoryAddByRSS, setAllowDirectoryAddByRSS] = useState<boolean | null>(null);
+  const [maxAddByRSSFeeds, setMaxAddByRSSFeeds] = useState<string>('');
+  const [maxManualRefreshesPerHour, setMaxManualRefreshesPerHour] = useState<string>('');
+  const [trackStats, setTrackStats] = useState<boolean | null>(null);
+  const [allowNotifications, setAllowNotifications] = useState<boolean | null>(null);
 
   // Password fields
   const [newPassword, setNewPassword] = useState('');
@@ -51,6 +60,26 @@ export function EditUserPageClient({ userId, initialTab }: Props) {
           setEmail(result.user.email ?? '');
           setUsername(result.user.username ?? '');
           setVerified(result.user.verified);
+          setMembershipId(result.user.account_membership_id ?? 1);
+          setMembershipExpiresAt(
+            result.user.membership_expires_at === null
+              ? ''
+              : String(result.user.membership_expires_at).slice(0, 16)
+          );
+          setTrustTierId(result.user.account_trust_tier_id ?? 1);
+          setAllowDirectoryAddByRSS(result.user.allow_directory_add_by_rss ?? null);
+          setMaxAddByRSSFeeds(
+            result.user.max_add_by_rss_feeds !== null
+              ? String(result.user.max_add_by_rss_feeds)
+              : ''
+          );
+          setMaxManualRefreshesPerHour(
+            result.user.max_manual_refreshes_per_hour !== null
+              ? String(result.user.max_manual_refreshes_per_hour)
+              : ''
+          );
+          setTrackStats(result.user.track_stats ?? null);
+          setAllowNotifications(result.user.allow_notifications ?? null);
         }
       } catch {
         if (!cancelled) setError(t('failedToLoad'));
@@ -74,6 +103,18 @@ export function EditUserPageClient({ userId, initialTab }: Props) {
         email: email || undefined,
         username: username || undefined,
         verified,
+        account_membership_id: membershipId,
+        membership_expires_at: membershipExpiresAt.trim() === '' ? null : membershipExpiresAt,
+        account_trust_tier_id: trustTierId,
+        allow_directory_add_by_rss: allowDirectoryAddByRSS,
+        max_add_by_rss_feeds:
+          maxAddByRSSFeeds.trim() === '' ? null : Number.parseInt(maxAddByRSSFeeds, 10),
+        max_manual_refreshes_per_hour:
+          maxManualRefreshesPerHour.trim() === ''
+            ? null
+            : Number.parseInt(maxManualRefreshesPerHour, 10),
+        track_stats: trackStats,
+        allow_notifications: allowNotifications,
       });
       setUser(result.user);
       setSuccess(t('updatedSuccessfully'));
@@ -95,7 +136,7 @@ export function EditUserPageClient({ userId, initialTab }: Props) {
       return;
     }
     if (newPassword !== confirmPassword) {
-      setPasswordError('Passwords do not match.');
+      setPasswordError(t('passwordsDoNotMatch'));
       return;
     }
 
@@ -175,6 +216,140 @@ export function EditUserPageClient({ userId, initialTab }: Props) {
               {t('verified')}
             </label>
           </div>
+          <div className={styles.formGroup}>
+            <label className={styles.label}>{t('membershipForm.membershipStatus')}</label>
+            <select
+              className={styles.input}
+              value={membershipId}
+              onChange={(e) => {
+                const nextMembershipId = Number(e.target.value);
+                setMembershipId(nextMembershipId);
+                setTrustTierId(nextMembershipId === 2 ? 2 : 1);
+              }}
+            >
+              <option value={1}>{t('membershipForm.trial')}</option>
+              <option value={2}>{t('membershipForm.premium')}</option>
+            </select>
+            <p className={styles.hintText}>
+              {membershipId === 1
+                ? t('membershipForm.hintTrialEdit')
+                : t('membershipForm.hintPremiumEdit')}
+            </p>
+          </div>
+          <div className={styles.formGroup}>
+            <label className={styles.label}>{t('membershipForm.membershipExpiresAt')}</label>
+            <input
+              className={styles.input}
+              type="datetime-local"
+              value={membershipExpiresAt}
+              onChange={(e) => setMembershipExpiresAt(e.target.value)}
+            />
+          </div>
+          <div className={styles.formGroup}>
+            <label className={styles.label}>{t('membershipForm.trustTier')}</label>
+            <select
+              className={styles.input}
+              value={trustTierId}
+              onChange={(e) => setTrustTierId(Number(e.target.value))}
+            >
+              <option value={1}>{t('membershipForm.untrusted')}</option>
+              <option value={2}>{t('membershipForm.trusted')}</option>
+            </select>
+          </div>
+          <div className={styles.formGroup}>
+            <label className={styles.checkboxLabel}>
+              <input
+                type="checkbox"
+                checked={showAdvanced}
+                onChange={(e) => setShowAdvanced(e.target.checked)}
+              />
+              {t('membershipForm.configureAdvancedOverrides')}
+            </label>
+          </div>
+          {showAdvanced && (
+            <>
+              <div className={styles.formGroup}>
+                <label className={styles.label}>
+                  {t('advancedOverrides.allowDirectoryAddByRss')}
+                </label>
+                <select
+                  className={styles.input}
+                  value={
+                    allowDirectoryAddByRSS === null ? '' : allowDirectoryAddByRSS ? 'true' : 'false'
+                  }
+                  onChange={(e) => {
+                    if (e.target.value === '') {
+                      setAllowDirectoryAddByRSS(null);
+                    } else {
+                      setAllowDirectoryAddByRSS(e.target.value === 'true');
+                    }
+                  }}
+                >
+                  <option value="">{t('advancedOverrides.useTrustTierDefault')}</option>
+                  <option value="true">{t('advancedOverrides.allow')}</option>
+                  <option value="false">{t('advancedOverrides.block')}</option>
+                </select>
+              </div>
+              <div className={styles.formGroup}>
+                <label className={styles.label}>{t('advancedOverrides.addByRssFeedLimit')}</label>
+                <input
+                  className={styles.input}
+                  type="number"
+                  min={0}
+                  value={maxAddByRSSFeeds}
+                  onChange={(e) => setMaxAddByRSSFeeds(e.target.value)}
+                />
+              </div>
+              <div className={styles.formGroup}>
+                <label className={styles.label}>
+                  {t('advancedOverrides.manualRefreshPerHour')}
+                </label>
+                <input
+                  className={styles.input}
+                  type="number"
+                  min={0}
+                  value={maxManualRefreshesPerHour}
+                  onChange={(e) => setMaxManualRefreshesPerHour(e.target.value)}
+                />
+              </div>
+              <div className={styles.formGroup}>
+                <label className={styles.label}>{t('advancedOverrides.trackStats')}</label>
+                <select
+                  className={styles.input}
+                  value={trackStats === null ? '' : trackStats ? 'true' : 'false'}
+                  onChange={(e) => {
+                    if (e.target.value === '') {
+                      setTrackStats(null);
+                    } else {
+                      setTrackStats(e.target.value === 'true');
+                    }
+                  }}
+                >
+                  <option value="">{t('advancedOverrides.useTrustTierDefault')}</option>
+                  <option value="true">{t('advancedOverrides.trackStatsOn')}</option>
+                  <option value="false">{t('advancedOverrides.trackStatsOff')}</option>
+                </select>
+              </div>
+              <div className={styles.formGroup}>
+                <label className={styles.label}>{t('advancedOverrides.allowNotifications')}</label>
+                <select
+                  className={styles.input}
+                  value={allowNotifications === null ? '' : allowNotifications ? 'true' : 'false'}
+                  onChange={(e) => {
+                    if (e.target.value === '') {
+                      setAllowNotifications(null);
+                    } else {
+                      setAllowNotifications(e.target.value === 'true');
+                    }
+                  }}
+                >
+                  <option value="">{t('advancedOverrides.useTrustTierDefault')}</option>
+                  <option value="true">{t('advancedOverrides.allowNotificationsOn')}</option>
+                  <option value="false">{t('advancedOverrides.allowNotificationsOff')}</option>
+                </select>
+              </div>
+            </>
+          )}
 
           <div className={styles.actions}>
             <button className={styles.saveButton} type="submit" disabled={saving}>
@@ -201,7 +376,7 @@ export function EditUserPageClient({ userId, initialTab }: Props) {
           </div>
 
           <div className={styles.formGroup}>
-            <label className={styles.label}>Confirm Password</label>
+            <label className={styles.label}>{ta('confirmPassword')}</label>
             <input
               className={styles.input}
               type="password"

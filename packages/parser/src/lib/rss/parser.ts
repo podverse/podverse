@@ -39,6 +39,7 @@ import {
   FeedLogService,
   FeedService,
   OnDemandParserEventService,
+  resolveSpamFeedItemThresholds,
 } from '@podverse/orm';
 import { compatChannelImageDtos, compatItemImageDtos } from '@podverse/parser-mapping';
 
@@ -185,8 +186,12 @@ export const parseRSSFeedAndSaveToDatabase = async (
           spamPermittedLimit: parserRuntimeSettings.spamFeedItemThresholdSpamPermitted,
         }
       : DEFAULT_SPAM_FEED_ITEM_THRESHOLDS;
+    const effectiveSpamThresholds = resolveSpamFeedItemThresholds(
+      spamThresholds,
+      feed.spam_item_limit_override
+    );
 
-    if (checkIfSpamFeed(parsedFeed, feed.feed_flag_status.id, spamThresholds)) {
+    if (checkIfSpamFeed(parsedFeed, feed.feed_flag_status.id, effectiveSpamThresholds)) {
       await feedService.updateFlagStatus(feed, FeedFlagStatusStatusEnum.Spam);
       throw new Error(
         `parseRSSFeedAndSaveToDatabase: feed is spam ${feed.id} ${feed.podcast_index_id} ${feed.url}`

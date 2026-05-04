@@ -1,5 +1,6 @@
 'use client';
 
+import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import React from 'react';
 
@@ -12,17 +13,28 @@ export const ModalLoginRequired: React.FC = () => {
   const tAuthentication = useTranslations('authentication');
   const header = tInstructions('login_required');
   const { modalLoginRequired, setModalLoginRequired, setModalAuthLogin } = useModals();
+  const router = useRouter();
 
   const clearModalLoginRequired = () => {
     setModalLoginRequired({
       title: null,
       message: null,
+      actionLabel: null,
+      actionHref: null,
     });
   };
 
   const showLoginOnClick = () => {
     clearModalLoginRequired();
     setModalAuthLogin({ isOpen: true });
+  };
+
+  const handleActionOnClick = () => {
+    const actionHref = modalLoginRequired.actionHref;
+    clearModalLoginRequired();
+    if (actionHref) {
+      router.push(actionHref);
+    }
   };
 
   return (
@@ -35,8 +47,8 @@ export const ModalLoginRequired: React.FC = () => {
     >
       <CallToActionMessage
         message={modalLoginRequired.message || ''}
-        buttonLabel={tAuthentication('login')}
-        onButtonClick={showLoginOnClick}
+        buttonLabel={modalLoginRequired.actionLabel ?? tAuthentication('login')}
+        onButtonClick={modalLoginRequired.actionHref ? handleActionOnClick : showLoginOnClick}
       />
     </Modal>
   );

@@ -1,4 +1,9 @@
 import {
+  buildShrinkImageKey,
+  bytesMatchStoredChecksum,
+  trustHeadUnchanged,
+} from '@workers/commands/imageShrink/changeDetection.js';
+import {
   getImageShrinkConfig,
   getImageShrinkStorageConfig,
   isImageShrinkEnabled,
@@ -18,6 +23,7 @@ import {
   getHttpCacheMetadata,
   sanitizeHttpCacheMetadata,
 } from '@podverse/helpers-backend';
+import type { ChannelImage, ItemImage } from '@podverse/orm';
 import {
   Channel,
   ChannelImageService,
@@ -50,11 +56,7 @@ const MAX_IMAGE_BYTES = 10 * 1024 * 1024;
 const FETCH_TIMEOUT_MS = 15000;
 const DEFAULT_IMAGE_SHRINK_RECHECK_EXPIRATION = 24 * 60 * 60;
 const DEFAULT_IMAGE_SHRINK_SOURCE_PRUNE_EXPIRATION = 30 * 24 * 60 * 60;
-
-const createImageKey = (target: ImageShrinkTarget, widthPx: number) => {
-  const hash = sha256Hex(target.url);
-  return `images/${target.entityType}/${target.entityId}/${hash}-w${widthPx}.webp`;
-};
+const DEFAULT_IMAGE_SHRINK_DEEP_RECHECK_EXPIRATION = 7 * 24 * 60 * 60;
 
 type FetchImageResult = {
   status: number;
@@ -115,6 +117,13 @@ const getRecheckTtlMs = (): number => {
   );
 };
 
+const getDeepRecheckIntervalSec = (): number => {
+  return readOptionalPositiveExpirationEnv(
+    'IMAGE_SHRINK_DEEP_RECHECK_EXPIRATION',
+    DEFAULT_IMAGE_SHRINK_DEEP_RECHECK_EXPIRATION
+  );
+};
+
 const getSourcePruneAfterExpiration = (): number => {
   return readOptionalPositiveExpirationEnv(
     'IMAGE_SHRINK_SOURCE_PRUNE_EXPIRATION',
@@ -127,6 +136,10 @@ export type ImageShrinkProcessor = {
   pruneSources: () => Promise<void>;
   concurrency: number;
 };
+
+type PersistedImage =
+  | { entityType: 'channel'; row: ChannelImage; parent: Channel }
+  | { entityType: 'item'; row: ItemImage; parent: Item };
 
 export const createImageShrinkProcessor = (): ImageShrinkProcessor => {
   const logger = getLoggerService();
@@ -157,7 +170,60 @@ export const createImageShrinkProcessor = (): ImageShrinkProcessor => {
   const itemImageService = new ItemImageService();
   const imageShrinkSourceService = new ImageShrinkSourceService();
   const recheckTtlMs = getRecheckTtlMs();
+  const deepRecheckIntervalSec = getDeepRecheckIntervalSec();
   const pruneAfterExpiration = getSourcePruneAfterExpiration();
+
+  const loadPersistedImage = async (target: ImageShrinkTarget): Promise<PersistedImage | null> => {
+    if (target.entityType === 'channel') {
+      const parent = new Channel();
+      parent.id = target.entityId;
+      const nonResized = await channelImageService._get(parent, { url: target.url });
+      if (nonResized && nonResized.is_resized === false) {
+        return { entityType: 'channel', row: nonResized, parent };
+      }
+      const resized = await channelImageService.findResizedByShrinkKeyPrefix(parent, {
+        cdnBaseUrl: storageConfig.cdnBaseUrl,
+        sourceUrl: target.url,
+        widthPx: imageShrinkConfig.widthPx,
+      });
+      if (resized) {
+        return { entityType: 'channel', row: resized, parent };
+      }
+      return null;
+    }
+    const parent = new Item();
+    parent.id = target.entityId;
+    const nonResized = await itemImageService._get(parent, { url: target.url });
+    if (nonResized && nonResized.is_resized === false) {
+      return { entityType: 'item', row: nonResized, parent };
+    }
+    const resized = await itemImageService.findResizedByShrinkKeyPrefix(parent, {
+      cdnBaseUrl: storageConfig.cdnBaseUrl,
+      sourceUrl: target.url,
+      widthPx: imageShrinkConfig.widthPx,
+    });
+    if (resized) {
+      return { entityType: 'item', row: resized, parent };
+    }
+    return null;
+  };
+
+  const saveResizedRow = async (
+    persisted: PersistedImage,
+    newCdnUrl: string,
+    resizedWidth: number
+  ): Promise<void> => {
+    const dto = {
+      url: newCdnUrl,
+      image_width_size: resizedWidth,
+      is_resized: true,
+    };
+    if (persisted.entityType === 'channel') {
+      await channelImageService._update(persisted.parent, [], dto, undefined, persisted.row);
+    } else {
+      await itemImageService._update(persisted.parent, [], dto, undefined, persisted.row);
+    }
+  };
 
   const processTarget = async (target: ImageShrinkTarget) => {
     await rateLimiter();
@@ -169,11 +235,101 @@ export const createImageShrinkProcessor = (): ImageShrinkProcessor => {
       }
     }
 
-    const key = createImageKey(target, imageShrinkConfig.widthPx);
-    const cdnUrl = imageStorageService.getPublicUrl({
-      cdnBaseUrl: storageConfig.cdnBaseUrl,
-      key,
-    });
+    const persisted = await loadPersistedImage(target);
+    if (!persisted) {
+      logger.warn('imageShrinkProcessor: no image row for target', {
+        entityType: target.entityType,
+        entityId: target.entityId,
+        url: target.url,
+      });
+      return;
+    }
+
+    const deepDue = await imageShrinkSourceService.shouldDeepRecheck(
+      target.url,
+      deepRecheckIntervalSec
+    );
+    const urlHash = sha256Hex(target.url);
+
+    const finishAfterBytes = async (params: {
+      originalBuffer: Uint8Array;
+      responseMeta: ReturnType<typeof getHttpCacheMetadata>;
+      markDeepCheckComplete: boolean;
+    }): Promise<void> => {
+      const { originalBuffer, responseMeta, markDeepCheckComplete } = params;
+      const checksum = sha256Hex(originalBuffer);
+      const sourceSnapshot = source ?? undefined;
+      const unchanged = bytesMatchStoredChecksum(sourceSnapshot ?? null, originalBuffer, sha256Hex);
+
+      if (unchanged) {
+        await imageShrinkSourceService.upsert(
+          target.url,
+          sanitizeHttpCacheMetadata(responseMeta),
+          false,
+          checksum,
+          { markDeepCheckComplete }
+        );
+        return;
+      }
+
+      const key = buildShrinkImageKey({
+        entityType: target.entityType,
+        entityId: target.entityId,
+        widthPx: imageShrinkConfig.widthPx,
+        contentChecksumSha256Hex: checksum,
+        urlHash,
+      });
+      const cdnUrl = imageStorageService.getPublicUrl({
+        cdnBaseUrl: storageConfig.cdnBaseUrl,
+        key,
+      });
+
+      const resizedImage = sharp(originalBuffer).resize({
+        width: imageShrinkConfig.widthPx,
+        withoutEnlargement: true,
+      });
+      const { data: resizedBuffer, info: resizedInfo } = await resizedImage
+        .webp({ quality: 80 })
+        .toBuffer({ resolveWithObject: true });
+      const resizedWidth = resizedInfo.width ?? imageShrinkConfig.widthPx;
+
+      await imageStorageService.uploadResizedImage({
+        bucket: storageConfig.bucket,
+        key,
+        body: resizedBuffer,
+        contentType: 'image/webp',
+        cacheControl: 'public, max-age=31536000, immutable',
+      });
+
+      await imageShrinkSourceService.upsert(
+        target.url,
+        sanitizeHttpCacheMetadata(responseMeta),
+        true,
+        checksum,
+        { markDeepCheckComplete }
+      );
+
+      await saveResizedRow(persisted, cdnUrl, resizedWidth);
+    };
+
+    if (deepDue) {
+      const responseResult = await fetchImageResult(target.url, {});
+      if (responseResult.status === 304) {
+        await imageShrinkSourceService.updateCheckTime(target.url);
+        return;
+      }
+      if (!responseResult.buffer) {
+        throw new Error(`Missing image buffer for ${target.url}`);
+      }
+      const responseMeta = getHttpCacheMetadata(responseResult.headers);
+      await finishAfterBytes({
+        originalBuffer: responseResult.buffer,
+        responseMeta,
+        markDeepCheckComplete: true,
+      });
+      return;
+    }
+
     const conditionalHeaders = buildConditionalRequestHeaders(source ?? undefined);
     const headResponse = await fetchHead(target.url, conditionalHeaders);
     if (headResponse && headResponse.status === 304) {
@@ -185,25 +341,15 @@ export const createImageShrinkProcessor = (): ImageShrinkProcessor => {
       const headMeta = getHttpCacheMetadata(headResponse.headers);
       const hasComparableMeta =
         !!headMeta.etag || !!headMeta.lastModified || headMeta.contentLength !== null;
-      if (hasComparableMeta) {
-        const sameEtag = source?.etag && headMeta.etag && source.etag === headMeta.etag;
-        const sameLastModified =
-          source?.lastModified &&
-          headMeta.lastModified &&
-          source.lastModified === headMeta.lastModified;
-        const sameLength =
-          source?.contentLength !== null &&
-          source?.contentLength !== undefined &&
-          headMeta.contentLength !== null &&
-          source.contentLength === headMeta.contentLength;
-        if (sameEtag || sameLastModified || sameLength) {
-          await imageShrinkSourceService.upsert(
-            target.url,
-            sanitizeHttpCacheMetadata(headMeta),
-            false
-          );
-          return;
-        }
+      if (hasComparableMeta && trustHeadUnchanged(source ?? null, headMeta)) {
+        await imageShrinkSourceService.upsert(
+          target.url,
+          sanitizeHttpCacheMetadata(headMeta),
+          false,
+          undefined,
+          {}
+        );
+        return;
       }
     }
 
@@ -215,84 +361,12 @@ export const createImageShrinkProcessor = (): ImageShrinkProcessor => {
     if (!responseResult.buffer) {
       throw new Error(`Missing image buffer for ${target.url}`);
     }
-    const originalBuffer = responseResult.buffer;
     const responseMeta = getHttpCacheMetadata(responseResult.headers);
-    let changed = true;
-    let checksum: string | null = null;
-
-    if (source) {
-      if (responseMeta.etag && source.etag && responseMeta.etag === source.etag) {
-        changed = false;
-      } else if (
-        responseMeta.lastModified &&
-        source.lastModified &&
-        responseMeta.lastModified === source.lastModified
-      ) {
-        changed = false;
-      } else if (
-        responseMeta.contentLength !== null &&
-        source.contentLength !== null &&
-        responseMeta.contentLength === source.contentLength
-      ) {
-        checksum = sha256Hex(originalBuffer);
-        if (source.checksumSha256 && checksum === source.checksumSha256) {
-          changed = false;
-        }
-      }
-    }
-
-    if (!changed) {
-      await imageShrinkSourceService.upsert(
-        target.url,
-        sanitizeHttpCacheMetadata(responseMeta),
-        false,
-        checksum
-      );
-      return;
-    }
-
-    const resizedImage = sharp(originalBuffer).resize({
-      width: imageShrinkConfig.widthPx,
-      withoutEnlargement: true,
+    await finishAfterBytes({
+      originalBuffer: responseResult.buffer,
+      responseMeta,
+      markDeepCheckComplete: true,
     });
-    const { data: resizedBuffer, info: resizedInfo } = await resizedImage
-      .webp({ quality: 80 })
-      .toBuffer({ resolveWithObject: true });
-    const resizedWidth = resizedInfo.width ?? imageShrinkConfig.widthPx;
-
-    await imageStorageService.uploadResizedImage({
-      bucket: storageConfig.bucket,
-      key,
-      body: resizedBuffer,
-      contentType: 'image/webp',
-      cacheControl: 'public, max-age=31536000, immutable',
-    });
-
-    checksum = checksum ?? sha256Hex(originalBuffer);
-    await imageShrinkSourceService.upsert(
-      target.url,
-      sanitizeHttpCacheMetadata(responseMeta),
-      true,
-      checksum
-    );
-
-    if (target.entityType === 'channel') {
-      const parentChannel = new Channel();
-      parentChannel.id = target.entityId;
-      await channelImageService.update(parentChannel, {
-        url: cdnUrl,
-        image_width_size: resizedWidth,
-        is_resized: true,
-      });
-    } else {
-      const parentItem = new Item();
-      parentItem.id = target.entityId;
-      await itemImageService.update(parentItem, {
-        url: cdnUrl,
-        image_width_size: resizedWidth,
-        is_resized: true,
-      });
-    }
   };
 
   const pruneSources = async () => {

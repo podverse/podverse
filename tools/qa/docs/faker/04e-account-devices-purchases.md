@@ -236,7 +236,7 @@ export class AccountPurchasesGenerator {
     membershipStatus: { account_membership_id: number; membership_expires_at: Date | null }
   ): GeneratedAccountAppStorePurchase | null {
     // Only for basic members, 30% chance
-    if (membershipStatus.account_membership_id !== AccountMembershipEnum.Basic) return null;
+    if (membershipStatus.account_membership_id !== AccountMembershipEnum.Premium) return null;
     if (!faker.datatype.boolean({ probability: 0.3 })) return null;
 
     const purchaseDate = faker.date.past({ years: 1 });
@@ -257,7 +257,7 @@ export class AccountPurchasesGenerator {
     membershipStatus: { account_membership_id: number; membership_expires_at: Date | null }
   ): GeneratedAccountGooglePlayPurchase | null {
     // Only for basic members, 30% chance
-    if (membershipStatus.account_membership_id !== AccountMembershipEnum.Basic) return null;
+    if (membershipStatus.account_membership_id !== AccountMembershipEnum.Premium) return null;
     if (!faker.datatype.boolean({ probability: 0.3 })) return null;
 
     return {
@@ -276,7 +276,7 @@ export class AccountPurchasesGenerator {
     membershipStatus: { account_membership_id: number }
   ): GeneratedAccountPayPalOrder | null {
     // Only for basic members, 30% chance
-    if (membershipStatus.account_membership_id !== AccountMembershipEnum.Basic) return null;
+    if (membershipStatus.account_membership_id !== AccountMembershipEnum.Premium) return null;
     if (!faker.datatype.boolean({ probability: 0.3 })) return null;
 
     const createdAt = faker.date.past({ years: 1 });

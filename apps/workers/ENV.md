@@ -112,6 +112,7 @@ Image shrink is optional. If **`BUCKET_PROVIDER`** is empty or unset, image shri
 - **`IMAGE_SHRINK_CONCURRENCY`** (Required when image shrink enabled) - Parallel image processing count
 - **`IMAGE_SHRINK_RPS`** (Required when image shrink enabled) - Rate limit for image fetches (requests/second)
 - **`IMAGE_SHRINK_RECHECK_EXPIRATION`** (Optional) - Minimum seconds between origin re-checks (default: 86400)
+- **`IMAGE_SHRINK_DEEP_RECHECK_EXPIRATION`** (Optional) - Minimum seconds between unconditional origin `GET` + SHA-256 verification runs (default: 604800, 7 days)
 - **`IMAGE_SHRINK_SOURCE_PRUNE_EXPIRATION`** (Optional) - Prune `image_shrink_source` rows when last check is older than this many seconds (default: 2592000, 30 days)
 - **`IMAGE_SHRINK_ORPHAN_CLEANUP_DRY_RUN`** (Optional) - Dry run cleanup (default: `true`)
 - **`IMAGE_SHRINK_ORPHAN_CLEANUP_MAX_DELETE`** (Optional) - Max deletes per run (default: none)

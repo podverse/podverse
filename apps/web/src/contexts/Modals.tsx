@@ -22,6 +22,8 @@ type ModalBasic = {
 type ModalMessage = {
   title: string | null;
   message: string | null;
+  actionLabel?: string | null;
+  actionHref?: string | null;
 };
 
 type ModalClip = {
@@ -159,6 +161,8 @@ const defaultModalShare = {
 const defaultModalLoginRequired = {
   title: null,
   message: null,
+  actionLabel: null,
+  actionHref: null,
 };
 
 const defaultModalBoostMessageError = {

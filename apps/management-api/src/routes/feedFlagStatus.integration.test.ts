@@ -113,6 +113,7 @@ const sampleFeed = {
   id: 9,
   url: 'https://example.com/feed.xml',
   podcast_index_id: 55,
+  spam_item_limit_override: null,
   feed_flag_status_id: 1,
   feed_flag_status_key: 'active',
   feed_flag_status_reason_id: null,
@@ -167,8 +168,13 @@ vi.mock('@mgmt-api/lib/feed/feedFlagStatusAppDb.js', () => ({
   assertFlagStatusReasonIdExists: (id: number) => assertRe(id),
   FEED_FLAG_STATUS_TAKEDOWN_ID: 6,
   getFeedRowSnapshotById: (id: number) => getSnap(id),
-  updateFeedFlagStatusInDb: (a: number, b: number, c: number | null, d: string | null) =>
-    updateDb(a, b, c, d),
+  updateFeedFlagStatusInDb: (
+    a: number,
+    b: number,
+    c: number | null,
+    d: string | null,
+    e: number | null
+  ) => updateDb(a, b, c, d, e),
 }));
 
 vi.mock('@mgmt-api/lib/database/auditLog.js', () => {
@@ -215,6 +221,7 @@ describe('feed-operations routes', () => {
             id: 9,
             url: 'https://example.com/feed.xml',
             podcast_index_id: 55,
+            spam_item_limit_override: null,
             feed_flag_status_id: 1,
             feed_flag_status_reason_id: null,
             feed_flag_status_reason_note: null,
@@ -264,6 +271,7 @@ describe('feed-operations routes', () => {
         id: 9,
         url: 'u',
         podcast_index_id: 1,
+        spam_item_limit_override: null,
         feed_flag_status_id: 1,
         feed_flag_status_reason_id: null,
         feed_flag_status_reason_note: null,
@@ -272,6 +280,7 @@ describe('feed-operations routes', () => {
         id: 9,
         url: 'u',
         podcast_index_id: 1,
+        spam_item_limit_override: 12000,
         feed_flag_status_id: 3,
         feed_flag_status_reason_id: 1,
         feed_flag_status_reason_note: 'note',
@@ -281,9 +290,11 @@ describe('feed-operations routes', () => {
       feed_flag_status_id: 3,
       feed_flag_status_reason_id: 1,
       feed_flag_status_reason_note: 'note',
+      spam_item_limit_override: 12000,
     });
     expect(res.status).toBe(200);
     expect(audit).toHaveBeenCalled();
+    expect(updateDb).toHaveBeenCalledWith(9, 3, 1, 'note', 12000);
   });
 
   it('POST /flag-status requires reason for takedown', async () => {
@@ -300,6 +311,7 @@ describe('feed-operations routes', () => {
       id: 9,
       url: 'u',
       podcast_index_id: 1,
+      spam_item_limit_override: null,
       feed_flag_status_id: 1,
       feed_flag_status_reason_id: null,
       feed_flag_status_reason_note: null,
@@ -317,6 +329,7 @@ describe('feed-operations routes', () => {
         id: 9,
         url: 'u',
         podcast_index_id: 1,
+        spam_item_limit_override: null,
         feed_flag_status_id: 1,
         feed_flag_status_reason_id: null,
         feed_flag_status_reason_note: null,
@@ -325,6 +338,7 @@ describe('feed-operations routes', () => {
         id: 9,
         url: 'u',
         podcast_index_id: 1,
+        spam_item_limit_override: null,
         feed_flag_status_id: 2,
         feed_flag_status_reason_id: null,
         feed_flag_status_reason_note: null,

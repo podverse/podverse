@@ -34,13 +34,13 @@ flowchart TD
 Resized images are stored deterministically using a URL hash:
 
 ```
-images/{entityType}/{entityId}/{sha256(url)}-w{width}.webp
+images/{entityType}/{entityId}/{sha256(url)}-w{width}-c{sha256_prefix16}.webp
 ```
 
 Example:
 
 ```
-images/item/10/5ae702a12c0ed2d27f3bb4797040aa9bbe0638174d28785-w300.webp
+images/item/10/5ae702a12c0ed2d27f3bb4797040aa9bbe0638174d28785-w300-c1a2b3c4d5e6f7a8.webp
 ```
 
 ### What Triggers Shrinking

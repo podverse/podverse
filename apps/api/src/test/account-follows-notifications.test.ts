@@ -533,7 +533,8 @@ describe('account follows and notification routes', () => {
       );
 
       expect(res.status).toBe(403);
-      expect(res.body.message).toBe('Membership expired');
+      expect(res.body.message).toBe('Your membership has expired. Renew to use this feature.');
+      expect(res.body.code).toBe('membership_expired');
     });
   });
 

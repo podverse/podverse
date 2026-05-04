@@ -7,7 +7,7 @@ import type { Request, Response } from 'express';
 import Joi from 'joi';
 
 import type { OnDemandParserEventType } from '@podverse/helpers';
-import { getDedupeTTLSeconds, MQ_QUEUES } from '@podverse/helpers';
+import { ACCOUNT_ENTITLEMENT_CAPABILITY, getDedupeTTLSeconds, MQ_QUEUES } from '@podverse/helpers';
 import { mqRSSAdd } from '@podverse/mq';
 
 import { handleGenericErrorResponse } from '../helpers/error.js';
@@ -17,6 +17,11 @@ export const buildRSSOnDemandDedupeKey = (
   type: OnDemandParserEventType,
   feedUrl: string
 ): string => `rss:on-demand:dedupe:${accountId}:${type}:${encodeURIComponent(feedUrl)}`;
+
+const buildRSSOnDemandHourlyKey = (accountId: number, type: OnDemandParserEventType): string => {
+  const bucket = Math.floor(Date.now() / (60 * 60 * 1000));
+  return `rss:on-demand:hourly:${accountId}:${type}:${bucket}`;
+};
 
 export class MQController {
   static rssOnDemandMiddleware = rateLimitAuthEndpoint({
@@ -49,6 +54,26 @@ export class MQController {
                   mqConstantMessageOptions.dedupeCacheTimeMS
                 );
                 const accountId = getAuthenticatedUser(req).id;
+                const entitlements = getAuthenticatedUser(req).entitlements;
+
+                if (type === 'refresh' && entitlements) {
+                  const hourlyRefreshLimit = entitlements.maxManualRefreshesPerHour;
+                  const hourlyKey = buildRSSOnDemandHourlyKey(accountId, type);
+                  const hourlyEntry = await cacheGetJson<{ count: number }>(hourlyKey);
+                  const hourlyCount = hourlyEntry?.count ?? 0;
+
+                  if (hourlyCount >= hourlyRefreshLimit) {
+                    res.status(403).json({
+                      message: `You can refresh feeds up to ${hourlyRefreshLimit} time(s) per hour with your current account.`,
+                      code: 'manual_refresh_hourly_limit_reached',
+                      i18nKey: 'membership.manual_refresh_hourly_limit_reached',
+                      renewPath: '/membership/renew',
+                    });
+                    return;
+                  }
+
+                  await cacheSetJson(hourlyKey, { count: hourlyCount + 1 }, 3600);
+                }
 
                 if (dedupeTTLSeconds) {
                   const dedupeKey = buildRSSOnDemandDedupeKey(accountId, type, finalDto.url);
@@ -92,7 +117,13 @@ export class MQController {
             });
           });
         },
-        { skipMembershipStatus: false, noFreeTrial: true }
+        {
+          skipMembershipStatus: false,
+          requiredCapability:
+            type === 'add'
+              ? ACCOUNT_ENTITLEMENT_CAPABILITY.allowDirectoryAddByRSS
+              : ACCOUNT_ENTITLEMENT_CAPABILITY.maxManualRefreshesPerHour,
+        }
       );
     };
   }

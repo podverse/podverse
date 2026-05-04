@@ -36,12 +36,7 @@ export const ModalAuthLogin: React.FC = () => {
   const signupMode = config.public.account.signupMode;
   const capabilities = getAccountSignupModeCapabilities(signupMode);
 
-  const inputLabel =
-    signupMode === 'admin_only_username'
-      ? tAuthentication('username')
-      : signupMode === 'admin_only_email'
-        ? tAuthentication('email')
-        : tAuthentication('email_or_username');
+  const inputLabel = tAuthentication('email_or_username');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

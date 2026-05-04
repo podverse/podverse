@@ -86,6 +86,7 @@ class AccountFollowingAddByRSSChannelController {
 
         validateBodyObject(bodySchema, req, res, async () => {
           const account = getAuthenticatedUser(req);
+          const entitlements = account.entitlements;
           const body = req.body as {
             feed_url: string;
             title?: string | null;
@@ -110,6 +111,32 @@ class AccountFollowingAddByRSSChannelController {
           };
 
           try {
+            if (entitlements) {
+              const alreadySaved =
+                await AccountFollowingAddByRSSChannelController.accountFollowingAddByRSSChannelService.hasFollowedAddByRSSChannel(
+                  account.id,
+                  dto.feed_url
+                );
+              const existingCount =
+                await AccountFollowingAddByRSSChannelController.accountFollowingAddByRSSChannelService.getFollowedAddByRSSChannelCount(
+                  account.id
+                );
+              if (!alreadySaved && existingCount >= entitlements.maxAddByRSSFeeds) {
+                const trustedLimitRaw = process.env.TRUST_TRUSTED_MAX_ADD_BY_RSS_FEEDS;
+                const trustedLimitParsed = trustedLimitRaw
+                  ? Number.parseInt(trustedLimitRaw, 10)
+                  : 100;
+                const trustedLimit = Number.isFinite(trustedLimitParsed) ? trustedLimitParsed : 100;
+                res.status(403).json({
+                  message: `Your account can only save up to ${entitlements.maxAddByRSSFeeds} Add by RSS feeds. Renew your membership to raise this limit to ${trustedLimit}.`,
+                  code: 'add_by_rss_feed_limit_reached',
+                  i18nKey: 'membership.add_by_rss_feed_limit_reached',
+                  renewPath: '/membership/renew',
+                });
+                return;
+              }
+            }
+
             await AccountFollowingAddByRSSChannelController.accountFollowingAddByRSSChannelService.addOrUpdateRSSChannel(
               account.id,
               dto

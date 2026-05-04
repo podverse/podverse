@@ -44,7 +44,7 @@ export class AccountMembershipStatusGenerator {
       // Special account configuration
       membershipId =
         account.specialConfig.membershipType === 'basic'
-          ? AccountMembershipEnum.Basic
+          ? AccountMembershipEnum.Premium
           : AccountMembershipEnum.Trial;
 
       if (account.specialConfig.isExpired) {
@@ -60,7 +60,7 @@ export class AccountMembershipStatusGenerator {
       // Random account
       membershipId = faker.helpers.weightedArrayElement([
         { value: AccountMembershipEnum.Trial, weight: 7 },
-        { value: AccountMembershipEnum.Basic, weight: 3 },
+        { value: AccountMembershipEnum.Premium, weight: 3 },
       ]);
 
       // 80% have future expiry, 20% expired
@@ -68,7 +68,7 @@ export class AccountMembershipStatusGenerator {
       expiresAt = isActive ? faker.date.future({ years: 1 }) : faker.date.past({ years: 1 });
 
       autoRenew =
-        isActive && membershipId === AccountMembershipEnum.Basic
+        isActive && membershipId === AccountMembershipEnum.Premium
           ? faker.datatype.boolean({ probability: 0.7 })
           : false;
     }

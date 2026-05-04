@@ -4,7 +4,13 @@ export * from './lib/auth.js';
 export * from './lib/error/index.js';
 export * from './lib/i18n/index.js';
 export * from './lib/constants/index.js';
-export * from './lib/accountMembership.js';
+export {
+  AccountMembershipEnum,
+  AccountMembershipTrustTierLegacyMap,
+  hasValidMembership,
+  isMembershipExpiredAt,
+} from './lib/accountMembership.js';
+export * from './lib/accountTrust.js';
 export * from './lib/accountSignupMode.js';
 export * from './lib/accountNotificationType.js';
 export * from './lib/array.js';

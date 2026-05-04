@@ -875,7 +875,13 @@ export class AccountController {
       const mode = config.premium.signupMode;
       const capabilities = getAccountSignupModeCapabilities(mode);
 
-      if (capabilities.requiresEmailAtInviteCompletion && !email) {
+      const accountHasIdentifier =
+        (account.account_credentials?.email !== null &&
+          account.account_credentials?.email !== undefined) ||
+        (account.account_credentials?.username !== null &&
+          account.account_credentials?.username !== undefined);
+
+      if (capabilities.requiresEmailAtInviteCompletion && !email && !accountHasIdentifier) {
         res
           .status(400)
           .json({ message: 'Email is required to complete account setup in this mode' });

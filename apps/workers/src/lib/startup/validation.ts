@@ -176,6 +176,9 @@ function validateImageShrink(): ValidationResult[] {
   results.push(validateRequired('IMAGE_SHRINK_CONCURRENCY', 'Image Shrink'));
   results.push(validateRequired('IMAGE_SHRINK_RPS', 'Image Shrink'));
   results.push(
+    validateOptional('IMAGE_SHRINK_DEEP_RECHECK_EXPIRATION', 'Image Shrink', 'Use Default (604800)')
+  );
+  results.push(
     validateOptional('IMAGE_SHRINK_ORPHAN_CLEANUP_DRY_RUN', 'Image Shrink', 'Use Default (true)')
   );
   results.push(

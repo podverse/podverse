@@ -4,7 +4,10 @@ import { validateBodyObject } from '@api/lib/validation/index.js';
 import type { Request, Response } from 'express';
 import Joi from 'joi';
 
-import { ACCOUNT_NOTIFICATION_TYPE_VALUES } from '@podverse/helpers';
+import {
+  ACCOUNT_ENTITLEMENT_CAPABILITY,
+  ACCOUNT_NOTIFICATION_TYPE_VALUES,
+} from '@podverse/helpers';
 import { AccountSettingsNotificationTypeService } from '@podverse/orm';
 
 export class AccountSettingsNotificationTypeController {
@@ -31,7 +34,10 @@ export class AccountSettingsNotificationTypeController {
             handleGenericErrorResponse(res, error);
           }
         },
-        { skipMembershipStatus: false }
+        {
+          skipMembershipStatus: false,
+          requiredCapability: ACCOUNT_ENTITLEMENT_CAPABILITY.allowNotifications,
+        }
       );
     });
   }

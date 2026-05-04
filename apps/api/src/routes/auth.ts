@@ -9,7 +9,14 @@ const router = Router();
 
 router.use(`${config.api.prefix}${config.api.version}/auth`, router);
 
-router.post('/login', rateLimitEndpoint({ windowMs: 60 * 1000, max: 5 }), authenticate);
+/** Integration tests issue many sequential POST /login calls; production stays strict. */
+const loginRateLimitMax = config.nodeEnv === 'test' ? 100 : 5;
+
+router.post(
+  '/login',
+  rateLimitEndpoint({ windowMs: 60 * 1000, max: loginRateLimitMax }),
+  authenticate
+);
 router.post('/logout', logout);
 
 router.get('/me', asyncHandler(AccountController.getLoggedInAccount));

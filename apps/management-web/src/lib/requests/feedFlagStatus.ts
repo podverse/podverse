@@ -4,6 +4,7 @@ export type FeedFlagLookup = {
   id: number;
   url: string;
   podcast_index_id: number;
+  spam_item_limit_override: number | null;
   feed_flag_status_id: number;
   feed_flag_status_key: string;
   feed_flag_status_reason_id: number | null;
@@ -27,6 +28,7 @@ export type ApplyFlagStatusBody = {
   feed_flag_status_id: number;
   feed_flag_status_reason_id: number | null;
   feed_flag_status_reason_note: string | null;
+  spam_item_limit_override: number | null;
 };
 
 export type ApplyFlagStatusResponse = {
@@ -73,6 +75,7 @@ export async function applyFeedFlagStatus(
       feed_flag_status_id: body.feed_flag_status_id,
       feed_flag_status_reason_id: body.feed_flag_status_reason_id,
       feed_flag_status_reason_note: body.feed_flag_status_reason_note,
+      spam_item_limit_override: body.spam_item_limit_override,
     },
   });
 }

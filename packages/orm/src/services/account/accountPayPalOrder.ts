@@ -4,7 +4,7 @@ import { AccountMembershipStatusService } from '@orm/services/account/accountMem
 import { BaseManyService } from '@orm/services/base/baseManyService.js';
 import type { FindOneOptions } from 'typeorm';
 
-import { AccountMembershipEnum } from '@podverse/helpers';
+import { AccountMembershipEnum, AccountTrustTierEnum } from '@podverse/helpers';
 
 export class AccountPayPalOrderService extends BaseManyService<AccountPayPalOrder, 'account'> {
   private accountService: AccountService;
@@ -75,7 +75,8 @@ export class AccountPayPalOrderService extends BaseManyService<AccountPayPalOrde
     const successState = isV2 ? 'completed' : 'approved';
     if (state === successState) {
       await this.accountMembershipStatusService.update(accountPayPalOrder.account, {
-        account_membership_id: AccountMembershipEnum.Basic,
+        account_membership_id: AccountMembershipEnum.Premium,
+        account_trust_tier_id: AccountTrustTierEnum.Trusted,
         membership_expires_at: newExpirationDate,
       });
     } else {

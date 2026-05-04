@@ -45,6 +45,7 @@ import {
   checkIfSpamFeed,
   DEFAULT_SPAM_FEED_ITEM_THRESHOLDS,
   FeedFlagStatusReasonService,
+  resolveSpamFeedItemThresholds,
 } from './feedFlagStatus.js';
 
 describe('checkIfFeedFlagStatusShouldParse', () => {
@@ -77,6 +78,40 @@ describe('checkIfSpamFeed', () => {
     expect(checkIfSpamFeed({ items: [], podcastLiveItems: new Array(99_999) }, 7, t)).toBe(false);
   });
 
+  it('uses default threshold for channel-level podcastRemoteItems', () => {
+    expect(
+      checkIfSpamFeed(
+        { items: [], podcastLiveItems: [], podcastRemoteItems: new Array(10_000) },
+        1,
+        t
+      )
+    ).toBe(true);
+    expect(
+      checkIfSpamFeed(
+        { items: [], podcastLiveItems: [], podcastRemoteItems: new Array(9_999) },
+        1,
+        t
+      )
+    ).toBe(false);
+  });
+
+  it('uses spam-permitted threshold for podcastRemoteItems', () => {
+    expect(
+      checkIfSpamFeed(
+        { items: [], podcastLiveItems: [], podcastRemoteItems: new Array(100_000) },
+        7,
+        t
+      )
+    ).toBe(true);
+    expect(
+      checkIfSpamFeed(
+        { items: [], podcastLiveItems: [], podcastRemoteItems: new Array(99_999) },
+        7,
+        t
+      )
+    ).toBe(false);
+  });
+
   it('respects custom thresholds', () => {
     expect(
       checkIfSpamFeed({ items: new Array(5), podcastLiveItems: [] }, 1, {
@@ -89,6 +124,34 @@ describe('checkIfSpamFeed', () => {
   it('returns false for undefined or missing arrays', () => {
     expect(checkIfSpamFeed(undefined, 1, t)).toBe(false);
     expect(checkIfSpamFeed({}, 1, t)).toBe(false);
+    expect(
+      checkIfSpamFeed({ items: [], podcastLiveItems: [], podcastRemoteItems: undefined }, 1, t)
+    ).toBe(false);
+  });
+});
+
+describe('resolveSpamFeedItemThresholds', () => {
+  it('returns original thresholds when override is null', () => {
+    const thresholds = {
+      defaultLimit: 11_000,
+      spamPermittedLimit: 99_000,
+    };
+    expect(resolveSpamFeedItemThresholds(thresholds, null)).toEqual(thresholds);
+  });
+
+  it('uses override for both thresholds when override exists', () => {
+    expect(
+      resolveSpamFeedItemThresholds(
+        {
+          defaultLimit: 10_000,
+          spamPermittedLimit: 100_000,
+        },
+        12_345
+      )
+    ).toEqual({
+      defaultLimit: 12_345,
+      spamPermittedLimit: 12_345,
+    });
   });
 });
 

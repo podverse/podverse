@@ -4,6 +4,7 @@ import { validateBodyObject } from '@api/lib/validation/index.js';
 import type { Request, Response } from 'express';
 import Joi from 'joi';
 
+import { ACCOUNT_ENTITLEMENT_CAPABILITY } from '@podverse/helpers';
 import { StatsTrackEventAccountService } from '@podverse/orm';
 
 export class StatsTrackEventAccountController {
@@ -33,7 +34,7 @@ export class StatsTrackEventAccountController {
           }
         });
       },
-      { skipMembershipStatus: false, noFreeTrial: true }
+      { skipMembershipStatus: false, requiredCapability: ACCOUNT_ENTITLEMENT_CAPABILITY.trackStats }
     );
   }
 }

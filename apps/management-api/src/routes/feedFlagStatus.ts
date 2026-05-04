@@ -36,6 +36,7 @@ const applyBodySchema = Joi.object({
   feed_flag_status_id: Joi.number().integer().positive().required(),
   feed_flag_status_reason_id: Joi.number().integer().positive().allow(null).optional(),
   feed_flag_status_reason_note: Joi.string().max(REASON_NOTE_MAX).allow(null, '').optional(),
+  spam_item_limit_override: Joi.number().integer().positive().allow(null).optional(),
 }).required();
 
 // --- Routes ---
@@ -153,6 +154,8 @@ router.post(
         noteRaw === undefined || noteRaw === null || noteRaw === ''
           ? null
           : String(noteRaw).trim() || null;
+      const spamItemLimitOverride =
+        value.spam_item_limit_override === undefined ? null : value.spam_item_limit_override;
 
       const statusId = value.feed_flag_status_id as number;
 
@@ -177,7 +180,13 @@ router.post(
         return;
       }
 
-      await updateFeedFlagStatusInDb(value.feed_id, statusId, reasonId, note);
+      await updateFeedFlagStatusInDb(
+        value.feed_id,
+        statusId,
+        reasonId,
+        note,
+        spamItemLimitOverride
+      );
 
       const after = await getFeedRowSnapshotById(value.feed_id);
       if (!after) {

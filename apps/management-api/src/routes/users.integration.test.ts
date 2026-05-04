@@ -2,7 +2,7 @@ import { app } from '@mgmt-api/app.js';
 import { config } from '@mgmt-api/config/index.js';
 import jwt from 'jsonwebtoken';
 import request from 'supertest';
-import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import * as PodverseOrm from '@podverse/orm';
 
@@ -419,5 +419,102 @@ describe('Authz: non-superuser cannot access user endpoints', () => {
   it('rejects delete for non-superuser', async () => {
     const res = await request(app).delete(`${usersBase}/1`).set(adminAuthHeaders());
     expect(res.status).toBe(403);
+  });
+});
+
+describe('POST /users', () => {
+  const ORIGINAL_SIGNUP_MODE = process.env.ACCOUNT_SIGNUP_MODE;
+
+  beforeEach(() => {
+    process.env.ACCOUNT_SIGNUP_MODE = 'admin_only_email';
+  });
+
+  afterEach(() => {
+    if (ORIGINAL_SIGNUP_MODE === undefined) {
+      delete process.env.ACCOUNT_SIGNUP_MODE;
+    } else {
+      process.env.ACCOUNT_SIGNUP_MODE = ORIGINAL_SIGNUP_MODE;
+    }
+  });
+
+  // Mocks the full insert sequence: existence check (read), then 8 inserts
+  // (account, credentials, profile, settings, settings_locale, settings_notification,
+  // membership_status, metaboost). When no password is provided and the mode allows
+  // invite links, a 9th insert (account_set_password upsert) is also issued.
+  const mockCreateUserSqlSequence = (opts: { withSetPassword: boolean }) => {
+    readQueryMock.mockResolvedValueOnce([]); // existence check returns empty
+    readWriteQueryMock.mockResolvedValueOnce([{ id: 42 }]); // account insert returns id
+    readWriteQueryMock.mockResolvedValueOnce(undefined); // credentials
+    readWriteQueryMock.mockResolvedValueOnce(undefined); // profile
+    readWriteQueryMock.mockResolvedValueOnce([{ id: 100 }]); // settings returns id
+    readWriteQueryMock.mockResolvedValueOnce(undefined); // settings_locale
+    readWriteQueryMock.mockResolvedValueOnce(undefined); // settings_notification
+    readWriteQueryMock.mockResolvedValueOnce(undefined); // membership_status
+    readWriteQueryMock.mockResolvedValueOnce(undefined); // metaboost
+    if (opts.withSetPassword) {
+      readWriteQueryMock.mockResolvedValueOnce(undefined); // set_password upsert
+    }
+  };
+
+  it('returns 401 without authentication', async () => {
+    const res = await request(app).post(usersBase).send({ username: 'foo' });
+    expect(res.status).toBe(401);
+  });
+
+  it('returns 403 for non-superuser', async () => {
+    const res = await request(app)
+      .post(usersBase)
+      .set(adminAuthHeaders())
+      .send({ username: 'foo' });
+    expect(res.status).toBe(403);
+  });
+
+  it('returns 400 when neither username nor email provided', async () => {
+    const res = await request(app)
+      .post(usersBase)
+      .set(superuserAuthHeaders())
+      .send({ password: 'password123' });
+    expect(res.status).toBe(400);
+    expect(res.body.message).toBe('At least one of username or email is required');
+  });
+
+  it('creates a username-only user without password in admin_only_email mode and returns set_password_url', async () => {
+    mockCreateUserSqlSequence({ withSetPassword: true });
+
+    const res = await request(app)
+      .post(usersBase)
+      .set(superuserAuthHeaders())
+      .send({ username: 'username_only' });
+
+    expect(res.status).toBe(201);
+    expect(res.body.message).toBe('User created. Invite link generated.');
+    expect(typeof res.body.set_password_url).toBe('string');
+    expect(res.body.set_password_url).toContain('/set-password?token=');
+  });
+
+  it('creates an email-only user without password in admin_only_email mode and returns set_password_url', async () => {
+    mockCreateUserSqlSequence({ withSetPassword: true });
+
+    const res = await request(app)
+      .post(usersBase)
+      .set(superuserAuthHeaders())
+      .send({ email: 'email_only@example.com' });
+
+    expect(res.status).toBe(201);
+    expect(typeof res.body.set_password_url).toBe('string');
+  });
+
+  it('creates a user with both username and email plus password and skips invite link', async () => {
+    mockCreateUserSqlSequence({ withSetPassword: false });
+
+    const res = await request(app).post(usersBase).set(superuserAuthHeaders()).send({
+      username: 'both_user',
+      email: 'both@example.com',
+      password: 'password123',
+    });
+
+    expect(res.status).toBe(201);
+    expect(res.body.message).toBe('User created successfully');
+    expect(res.body.set_password_url).toBeUndefined();
   });
 });

@@ -9,7 +9,10 @@ import type { Request, Response } from 'express';
 import Joi from 'joi';
 
 import type { AccountNotificationTypeEnum } from '@podverse/helpers';
-import { ACCOUNT_NOTIFICATION_TYPE_VALUES } from '@podverse/helpers';
+import {
+  ACCOUNT_ENTITLEMENT_CAPABILITY,
+  ACCOUNT_NOTIFICATION_TYPE_VALUES,
+} from '@podverse/helpers';
 import { AccountNotificationChannelTypeService } from '@podverse/orm';
 
 import { handleGenericErrorResponse } from '../helpers/error.js';
@@ -49,7 +52,10 @@ class AccountNotificationChannelTypeController {
           }
         });
       },
-      { skipMembershipStatus: false }
+      {
+        skipMembershipStatus: false,
+        requiredCapability: ACCOUNT_ENTITLEMENT_CAPABILITY.allowNotifications,
+      }
     );
   }
 
