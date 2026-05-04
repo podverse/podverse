@@ -18,7 +18,12 @@ import { validateBodyObject, validateParamsObject } from '@api/lib/validation/in
 import type { Request, Response } from 'express';
 import Joi from 'joi';
 
-import { getDedupeTTLSeconds, getRecordValue, MQ_QUEUES } from '@podverse/helpers';
+import {
+  ACCOUNT_ENTITLEMENT_CAPABILITY,
+  getDedupeTTLSeconds,
+  getRecordValue,
+  MQ_QUEUES,
+} from '@podverse/helpers';
 import { mqAddByRSSAdd } from '@podverse/mq';
 import { AccountFollowingAddByRSSChannelService } from '@podverse/orm';
 
@@ -111,7 +116,10 @@ class AccountAddByRSSParseController {
           });
         });
       },
-      { skipMembershipStatus: false, noFreeTrial: true }
+      {
+        skipMembershipStatus: false,
+        requiredCapability: ACCOUNT_ENTITLEMENT_CAPABILITY.maxAddByRSSFeeds,
+      }
     );
   }
 
@@ -194,7 +202,10 @@ class AccountAddByRSSParseController {
           });
         });
       },
-      { skipMembershipStatus: false, noFreeTrial: true }
+      {
+        skipMembershipStatus: false,
+        requiredCapability: ACCOUNT_ENTITLEMENT_CAPABILITY.maxAddByRSSFeeds,
+      }
     );
   }
 
@@ -225,7 +236,10 @@ class AccountAddByRSSParseController {
           }
         );
       },
-      { skipMembershipStatus: false, noFreeTrial: true }
+      {
+        skipMembershipStatus: false,
+        requiredCapability: ACCOUNT_ENTITLEMENT_CAPABILITY.maxAddByRSSFeeds,
+      }
     );
   }
 }

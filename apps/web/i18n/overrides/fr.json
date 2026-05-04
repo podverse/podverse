@@ -594,7 +594,18 @@
     "membership_link_text": "",
     "free_trial": "",
     "premium_membership": "",
-    "free_trial_not_allowed": ""
+    "free_trial_not_allowed": "",
+    "renew_membership": "",
+    "membership_expired": "",
+    "feature_not_available_for_account_type": "",
+    "manual_refresh_hourly_limit_reached": "",
+    "add_by_rss_feed_limit_reached": "",
+    "trial_limitations_title": "",
+    "trial_limitations_directory_add_by_rss": "",
+    "trial_limitations_add_by_rss_feed_limit": "",
+    "trial_limitations_manual_refresh_limit": "",
+    "trial_limitations_stats_tracking": "",
+    "trial_limitations_notifications": ""
   },
   "about": {
     "title": "",

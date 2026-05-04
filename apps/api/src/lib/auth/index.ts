@@ -6,9 +6,15 @@ import type { VerifiedCallback } from 'passport-jwt';
 import { ExtractJwt, Strategy as JwtStrategy } from 'passport-jwt';
 import { Strategy as LocalStrategy } from 'passport-local';
 
-import { AccountMembershipEnum, AuthCookieName, ERROR_MESSAGES } from '@podverse/helpers';
+import {
+  type AccountEntitlementCapability,
+  AuthCookieName,
+  ERROR_MESSAGES,
+  hasValidMembership,
+} from '@podverse/helpers';
 import { AccountService, isValidNanoIdV2IdText } from '@podverse/orm';
 
+import { accountHasCapability, getAccountEntitlements } from '../accountEntitlements.js';
 import { verifyPassword } from './password.js';
 
 /**
@@ -16,6 +22,7 @@ import { verifyPassword } from './password.js';
  * `token` unless AUTH_ALLOW_TOKEN_IN_RESPONSE_BODY=true and the client sends includeTokenInResponseBody.
  */
 const isProduction = config.nodeEnv === 'production';
+const MEMBERSHIP_EXPIRED_I18N_KEY = 'membership.membership_expired';
 
 const setAuthCookie = (res: Response, token: string) => {
   const maxAge = config.auth.sessionCookieMaxAgeMs;
@@ -199,7 +206,7 @@ const verifyTokenAndMembership = (
   res: Response,
   next: NextFunction,
   token: string,
-  options: { skipMembershipStatus: boolean; noFreeTrial?: boolean }
+  options: { skipMembershipStatus: boolean; requiredCapability?: AccountEntitlementCapability }
 ): void => {
   interface DecodedToken {
     id: number;
@@ -240,11 +247,7 @@ const verifyTokenAndMembership = (
 
       const relations = ['account_credentials'];
       if (!options.skipMembershipStatus) {
-        relations.push(
-          ...(options.noFreeTrial
-            ? ['account_membership_status', 'account_membership_status.account_membership']
-            : ['account_membership_status'])
-        );
+        relations.push('account_membership_status');
       }
       const account = await accountService.get(payload.id, { relations });
       if (!account) {
@@ -270,29 +273,34 @@ const verifyTokenAndMembership = (
       if (!options.skipMembershipStatus) {
         const membershipStatus = account.account_membership_status;
 
-        if (
-          !membershipStatus ||
-          !membershipStatus.membership_expires_at ||
-          new Date(membershipStatus.membership_expires_at) < new Date()
-        ) {
+        if (!hasValidMembership(membershipStatus)) {
           console.warn(
             '[verifyTokenAndMembership] Membership expired or missing for user id:',
             req.user.id
           );
-          res.status(403).json({ message: 'Membership expired' });
+          res.status(403).json({
+            message: 'Your membership has expired. Renew to use this feature.',
+            code: 'membership_expired',
+            i18nKey: MEMBERSHIP_EXPIRED_I18N_KEY,
+            renewPath: '/membership/renew',
+          });
           return;
         }
 
-        if (options.noFreeTrial && config.serverEnv === 'prod') {
-          const accountMembership = membershipStatus.account_membership;
-          if (accountMembership && accountMembership.id === AccountMembershipEnum.Trial) {
-            res.status(403).json({
-              message:
-                'This feature is only available to premium accounts and is not available to free trials',
-              i18nKey: 'membership.free_trial_not_allowed',
-            });
-            return;
-          }
+        const entitlements = getAccountEntitlements(membershipStatus);
+        req.user.entitlements = entitlements;
+
+        if (
+          options.requiredCapability &&
+          !accountHasCapability(entitlements, options.requiredCapability)
+        ) {
+          res.status(403).json({
+            message: 'Your account does not currently have access to this feature.',
+            code: 'feature_not_available_for_account_type',
+            i18nKey: 'membership.feature_not_available_for_account_type',
+            renewPath: '/membership/renew',
+          });
+          return;
         }
       }
 
@@ -305,7 +313,7 @@ export const ensureAuthenticated = (
   req: Request,
   res: Response,
   next: NextFunction,
-  options: { skipMembershipStatus: boolean; noFreeTrial?: boolean }
+  options: { skipMembershipStatus: boolean; requiredCapability?: AccountEntitlementCapability }
 ): void => {
   const token = req.cookies[AuthCookieName] || req.headers.authorization?.split(' ')[1];
   if (!token) {
@@ -319,7 +327,7 @@ export const optionalEnsureAuthenticated = (
   req: Request,
   res: Response,
   next: NextFunction,
-  options: { skipMembershipStatus: boolean; noFreeTrial?: boolean }
+  options: { skipMembershipStatus: boolean; requiredCapability?: AccountEntitlementCapability }
 ): void => {
   const token = req.cookies[AuthCookieName] || req.headers.authorization?.split(' ')[1];
 

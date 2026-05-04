@@ -37,6 +37,7 @@
     "email": "Correo electrónico",
     "password": "Contraseña",
     "newPassword": "Nueva contraseña",
+    "confirmPassword": "Confirmar contraseña",
     "leaveBlankToKeepCurrent": "Deje en blanco para mantener la actual"
   },
   "nav": {
@@ -214,6 +215,35 @@
     "expiresAt": "Expira: {date}",
     "revokeLink": "Revocar Enlace",
     "generateInviteLink": "Generar Enlace de Invitación",
+    "passwordsDoNotMatch": "Las contraseñas no coinciden.",
+    "membershipForm": {
+      "membershipStatus": "Estado de membresía",
+      "trial": "Prueba",
+      "premium": "Premium",
+      "hintTrialEdit": "La prueba mantiene a los usuarios no confiables por defecto y aplica límites más estrictos por defecto.",
+      "hintPremiumEdit": "Premium mantiene a los usuarios confiables por defecto y aplica un acceso más amplio por defecto.",
+      "hintTrialNew": "La prueba inicia a los usuarios en el nivel no confiable con límites por defecto más estrictos.",
+      "hintPremiumNew": "Premium inicia a los usuarios en el nivel confiable con un acceso por defecto más amplio.",
+      "membershipExpiresAt": "La membresía expira el",
+      "trustTier": "Nivel de confianza",
+      "untrusted": "No confiable",
+      "trusted": "Confiable",
+      "configureAdvancedOverrides": "Configurar sobreescrituras avanzadas"
+    },
+    "advancedOverrides": {
+      "allowDirectoryAddByRss": "Permitir sobreescritura de agregar directorio por RSS",
+      "addByRssFeedLimit": "Sobreescritura del límite de agregar por feed RSS",
+      "manualRefreshPerHour": "Sobreescritura del límite de actualización manual por hora",
+      "trackStats": "Sobreescritura de seguimiento de estadísticas",
+      "allowNotifications": "Sobreescritura de permitir notificaciones",
+      "useTrustTierDefault": "Usar valor predeterminado del nivel de confianza",
+      "allow": "Permitir",
+      "block": "Bloquear",
+      "trackStatsOn": "Rastrear estadísticas",
+      "trackStatsOff": "No rastrear estadísticas",
+      "allowNotificationsOn": "Permitir notificaciones",
+      "allowNotificationsOff": "Bloquear notificaciones"
+    },
     "tableHeaders": {
       "id": "ID",
       "email": "Correo Electrónico",

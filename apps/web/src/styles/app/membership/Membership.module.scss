@@ -101,3 +101,14 @@
   font-weight: var(--font-weight-light);
   margin-bottom: var(--spacing-2xl);
 }
+
+.trialLimitationsSection {
+  margin-bottom: var(--spacing-4xl);
+}
+
+.trialLimitationsList {
+  display: grid;
+  gap: var(--spacing-base);
+  margin: var(--spacing-none);
+  padding-left: var(--spacing-2xl);
+}

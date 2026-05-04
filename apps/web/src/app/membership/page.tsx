@@ -2,7 +2,11 @@ import { getTranslations } from 'next-intl/server';
 import React from 'react';
 
 import type { DTOAccount } from '@podverse/helpers';
-import { AccountMembershipEnum, calculateTimeRemaining } from '@podverse/helpers';
+import {
+  AccountMembershipEnum,
+  calculateTimeRemaining,
+  isMembershipExpiredAt,
+} from '@podverse/helpers';
 
 import { FeatureComparison } from '../../components/FeatureComparison/FeatureComparison';
 import { MainHeader } from '../../components/Main/MainHeader';
@@ -33,11 +37,11 @@ type RenderIntroTextParams = {
   contactEmail?: string;
   ssrLoggedInAccount: DTOAccount | null;
   isMembershipExpired: boolean;
-  isFreeTrial: boolean;
+  isTrialStatus: boolean;
   minutesLeft: number | null;
   hoursLeft: number | null;
   daysLeft: number | null;
-  isPaidPremium: boolean;
+  isPremiumStatus: boolean;
   membershipExpiresAt: Date | string | null | undefined;
   pricingData: MembershipPricingData | null;
   contactLinkClassName: string;
@@ -78,14 +82,15 @@ export default async function MembershipPage() {
   const membershipId =
     accountMembershipStatus?.account_membership_id ??
     (accountMembershipStatus as MembershipStatusWithPopulated)?.account_membership?.id;
-  const isFreeTrial = membershipId === AccountMembershipEnum.Trial;
-  const isPaidPremium = membershipId === AccountMembershipEnum.Basic;
+  const isTrialStatus = membershipId === AccountMembershipEnum.Trial;
+  const isPremiumStatus = membershipId === AccountMembershipEnum.Premium;
   const membershipExpiresAt = accountMembershipStatus?.membership_expires_at;
 
   // Check if membership has expired
-  const isMembershipExpired = membershipExpiresAt
-    ? new Date(membershipExpiresAt).getTime() < new Date().getTime()
-    : false;
+  const isMembershipExpired =
+    membershipExpiresAt !== null &&
+    membershipExpiresAt !== undefined &&
+    isMembershipExpiredAt(membershipExpiresAt);
 
   // Calculate time left in membership if active
   const { daysLeft, hoursLeft, minutesLeft } =
@@ -114,11 +119,11 @@ export default async function MembershipPage() {
                   contactEmail,
                   ssrLoggedInAccount,
                   isMembershipExpired,
-                  isFreeTrial,
+                  isTrialStatus,
                   minutesLeft,
                   hoursLeft,
                   daysLeft,
-                  isPaidPremium,
+                  isPremiumStatus,
                   membershipExpiresAt,
                   pricingData,
                   contactLinkClassName: styles.contactLink ?? '',
@@ -156,11 +161,22 @@ export default async function MembershipPage() {
               <MembershipCTA
                 ssrLoggedInAccount={!!ssrLoggedInAccount}
                 isMembershipExpired={isMembershipExpired}
-                isFreeTrial={isFreeTrial}
-                isPaidPremium={isPaidPremium}
+                isFreeTrial={isTrialStatus}
+                isPaidPremium={isPremiumStatus}
                 membershipExpiresAt={membershipExpiresAt}
               />
             )}
+
+            <section className={styles.trialLimitationsSection}>
+              <h2 className={styles.comparisonTitle}>{t('trial_limitations_title')}</h2>
+              <ul className={styles.trialLimitationsList}>
+                <li>{t('trial_limitations_directory_add_by_rss')}</li>
+                <li>{t('trial_limitations_add_by_rss_feed_limit')}</li>
+                <li>{t('trial_limitations_manual_refresh_limit')}</li>
+                <li>{t('trial_limitations_stats_tracking')}</li>
+                <li>{t('trial_limitations_notifications')}</li>
+              </ul>
+            </section>
 
             <section>
               <h2 className={styles.comparisonTitle}>{t('features')}</h2>
@@ -179,11 +195,11 @@ function renderIntroText({
   contactEmail,
   ssrLoggedInAccount,
   isMembershipExpired,
-  isFreeTrial,
+  isTrialStatus,
   minutesLeft,
   hoursLeft,
   daysLeft,
-  isPaidPremium,
+  isPremiumStatus,
   membershipExpiresAt,
   pricingData,
   contactLinkClassName,
@@ -206,15 +222,15 @@ function renderIntroText({
   if (isMembershipExpired) {
     return (
       <>
-        {isFreeTrial ? t('trial_expired_text_line1') : t('membership_expired_text_line1')}
+        {isTrialStatus ? t('trial_expired_text_line1') : t('membership_expired_text_line1')}
         <br />
-        {isFreeTrial ? t('trial_expired_text_line2') : t('membership_expired_text_line2')}
+        {isTrialStatus ? t('trial_expired_text_line2') : t('membership_expired_text_line2')}
       </>
     );
   }
 
   if (minutesLeft !== null) {
-    if (isFreeTrial) {
+    if (isTrialStatus) {
       const key =
         minutesLeft === 1 ? 'intro_trial_minutes_left_one' : 'intro_trial_minutes_left_other';
       return t(key, { minutes: minutesLeft });
@@ -228,7 +244,7 @@ function renderIntroText({
   }
 
   if (hoursLeft !== null) {
-    if (isFreeTrial) {
+    if (isTrialStatus) {
       const key = hoursLeft === 1 ? 'intro_trial_hours_left_one' : 'intro_trial_hours_left_other';
       return t(key, { hours: hoursLeft });
     } else {
@@ -239,7 +255,7 @@ function renderIntroText({
   }
 
   if (daysLeft !== null) {
-    if (isFreeTrial) {
+    if (isTrialStatus) {
       const key = daysLeft === 1 ? 'intro_trial_days_left_one' : 'intro_trial_days_left_other';
       return t(key, { days: daysLeft });
     } else {
@@ -249,11 +265,11 @@ function renderIntroText({
     }
   }
 
-  if (isFreeTrial) {
+  if (isTrialStatus) {
     return t('cta_upgrade_text');
   }
 
-  if (isPaidPremium && membershipExpiresAt) {
+  if (isPremiumStatus && membershipExpiresAt) {
     return t('your_membership_expires_on', {
       date: new Date(membershipExpiresAt).toLocaleDateString(),
     });

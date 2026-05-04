@@ -3,13 +3,19 @@ import { AccountMembershipStatus } from '@orm/entities/account/accountMembership
 import { BaseOneService } from '@orm/services/base/baseOneService.js';
 import type { EntityManager } from 'typeorm';
 
-import type { AccountMembershipEnum } from '@podverse/helpers';
+import { AccountMembershipEnum, AccountTrustTierEnum } from '@podverse/helpers';
 
 import { AccountMembershipService } from './accountMembership.js';
 
 export type AccountMembershipStatusDto = {
   account_membership_id: AccountMembershipEnum;
-  membership_expires_at: Date;
+  membership_expires_at: Date | null;
+  account_trust_tier_id?: AccountTrustTierEnum;
+  allow_directory_add_by_rss?: boolean | null;
+  max_add_by_rss_feeds?: number | null;
+  max_manual_refreshes_per_hour?: number | null;
+  track_stats?: boolean | null;
+  allow_notifications?: boolean | null;
 };
 
 export class AccountMembershipStatusService extends BaseOneService<
@@ -30,9 +36,48 @@ export class AccountMembershipStatusService extends BaseOneService<
       throw new Error('AccountMembershipStatus not found');
     }
 
+    const previousMembershipId = account.account_membership_status?.account_membership?.id;
+    const membershipChanged =
+      previousMembershipId !== undefined && previousMembershipId !== dto.account_membership_id;
+    const defaultTrustTierId =
+      dto.account_membership_id === AccountMembershipEnum.Premium
+        ? AccountTrustTierEnum.Trusted
+        : AccountTrustTierEnum.Untrusted;
+
     const finalDto = {
       account_membership: accountMembershipStatus,
+      account_trust_tier_id: dto.account_trust_tier_id ?? defaultTrustTierId,
       membership_expires_at: dto.membership_expires_at,
+      allow_directory_add_by_rss:
+        dto.allow_directory_add_by_rss !== undefined
+          ? dto.allow_directory_add_by_rss
+          : membershipChanged
+            ? null
+            : (account.account_membership_status?.allow_directory_add_by_rss ?? null),
+      max_add_by_rss_feeds:
+        dto.max_add_by_rss_feeds !== undefined
+          ? dto.max_add_by_rss_feeds
+          : membershipChanged
+            ? null
+            : (account.account_membership_status?.max_add_by_rss_feeds ?? null),
+      max_manual_refreshes_per_hour:
+        dto.max_manual_refreshes_per_hour !== undefined
+          ? dto.max_manual_refreshes_per_hour
+          : membershipChanged
+            ? null
+            : (account.account_membership_status?.max_manual_refreshes_per_hour ?? null),
+      track_stats:
+        dto.track_stats !== undefined
+          ? dto.track_stats
+          : membershipChanged
+            ? null
+            : (account.account_membership_status?.track_stats ?? null),
+      allow_notifications:
+        dto.allow_notifications !== undefined
+          ? dto.allow_notifications
+          : membershipChanged
+            ? null
+            : (account.account_membership_status?.allow_notifications ?? null),
     };
 
     return super._update(account, finalDto);

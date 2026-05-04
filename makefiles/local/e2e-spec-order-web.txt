@@ -1,1 +1,2 @@
 apps/web/e2e/smoke.spec.ts
+apps/web/e2e/membership-page-trial-limitations.spec.ts

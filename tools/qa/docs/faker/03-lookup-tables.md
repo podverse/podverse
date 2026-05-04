@@ -70,14 +70,14 @@ import { AccountMembershipEnum } from '@podverse/helpers';
 
 // Usage in generators
 const membershipId = AccountMembershipEnum.Trial; // 1
-const membershipId = AccountMembershipEnum.Basic; // 2
+const membershipId = AccountMembershipEnum.Premium; // 2
 
 // For special accounts mapping
 const SPECIAL_ACCOUNT_MEMBERSHIP_MAP = {
-  'basic-valid@example.com': AccountMembershipEnum.Basic,
+  'basic-valid@example.com': AccountMembershipEnum.Premium,
   'trial-valid@example.com': AccountMembershipEnum.Trial,
   'trial-expired@example.com': AccountMembershipEnum.Trial,
-  'basic-expired@example.com': AccountMembershipEnum.Basic,
+  'basic-expired@example.com': AccountMembershipEnum.Premium,
 };
 ```
 
@@ -472,9 +472,9 @@ export const LookupTables = {
   // Account Membership
   accountMembership: {
     TRIAL: AccountMembershipEnum.Trial,
-    BASIC: AccountMembershipEnum.Basic,
+    BASIC: AccountMembershipEnum.Premium,
     getRandom: () =>
-      faker.helpers.arrayElement([AccountMembershipEnum.Trial, AccountMembershipEnum.Basic]),
+      faker.helpers.arrayElement([AccountMembershipEnum.Trial, AccountMembershipEnum.Premium]),
   },
 
   // Feed Flag Status

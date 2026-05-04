@@ -7,7 +7,7 @@ export class AccountMembership {
   id!: number;
 
   @Column({ type: 'text', unique: true })
-  tier!: 'trial' | 'basic';
+  tier!: 'trial' | 'premium';
 
   @OneToMany(
     () => AccountMembershipStatus,

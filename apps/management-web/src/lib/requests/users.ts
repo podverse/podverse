@@ -4,6 +4,14 @@ export type CreateUserParams = {
   username?: string;
   email?: string;
   password?: string;
+  account_membership_id?: number;
+  membership_expires_at?: string | null;
+  account_trust_tier_id?: number;
+  allow_directory_add_by_rss?: boolean | null;
+  max_add_by_rss_feeds?: number | null;
+  max_manual_refreshes_per_hour?: number | null;
+  track_stats?: boolean | null;
+  allow_notifications?: boolean | null;
 };
 
 export type CreateUserResponse = {
@@ -19,6 +27,14 @@ export type User = {
   username: string | null;
   sharable_status_id: number;
   created_at: string;
+  account_membership_id: number;
+  membership_expires_at: string | null;
+  account_trust_tier_id: number;
+  allow_directory_add_by_rss: boolean | null;
+  max_add_by_rss_feeds: number | null;
+  max_manual_refreshes_per_hour: number | null;
+  track_stats: boolean | null;
+  allow_notifications: boolean | null;
 };
 
 export type ListUsersResponse = {
@@ -35,6 +51,14 @@ export type UpdateUserParams = {
   email?: string;
   username?: string;
   verified?: boolean;
+  account_membership_id?: number;
+  membership_expires_at?: string | null;
+  account_trust_tier_id?: number;
+  allow_directory_add_by_rss?: boolean | null;
+  max_add_by_rss_feeds?: number | null;
+  max_manual_refreshes_per_hour?: number | null;
+  track_stats?: boolean | null;
+  allow_notifications?: boolean | null;
 };
 
 export async function createUser(

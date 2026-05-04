@@ -8,6 +8,7 @@ import {
 import type { Request, Response } from 'express';
 import Joi from 'joi';
 
+import { ACCOUNT_ENTITLEMENT_CAPABILITY } from '@podverse/helpers';
 import { AccountNotificationChannelService } from '@podverse/orm';
 
 import { handleGenericErrorResponse } from '../helpers/error.js';
@@ -83,7 +84,10 @@ class AccountNotificationChannelController {
           }
         });
       },
-      { skipMembershipStatus: false }
+      {
+        skipMembershipStatus: false,
+        requiredCapability: ACCOUNT_ENTITLEMENT_CAPABILITY.allowNotifications,
+      }
     );
   }
 

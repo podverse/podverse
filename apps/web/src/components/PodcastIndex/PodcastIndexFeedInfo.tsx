@@ -99,11 +99,18 @@ export const PodcastIndexFeedInfo: React.FC<PodcastIndexFeedInfoProps> = ({ podc
       } catch (error: unknown) {
         const rateLimitErrorHandled = await handleRateLimitAlert(error, locale, tMisc);
         if (!rateLimitErrorHandled) {
-          type ErrorWithResponse = { response?: { status?: number; data?: { i18nKey?: string } } };
+          type ErrorWithResponse = {
+            response?: {
+              status?: number;
+              data?: { i18nKey?: string; message?: string; renewPath?: string };
+            };
+          };
           const errorWithResponse = error as ErrorWithResponse;
           const errorStatus = errorWithResponse?.response?.status;
           const errorData = errorWithResponse?.response?.data;
           const i18nKey = errorData?.i18nKey;
+          const renewPath = errorData?.renewPath;
+          const apiMessage = errorData?.message;
 
           if (errorStatus === 403 && i18nKey) {
             // Extract namespace and key from i18nKey (e.g., "membership.free_trial_not_allowed")
@@ -111,7 +118,9 @@ export const PodcastIndexFeedInfo: React.FC<PodcastIndexFeedInfoProps> = ({ podc
             if (namespace === 'membership' && key) {
               setModalLoginRequired({
                 title: null,
-                message: tMembership(key),
+                message: apiMessage || tMembership(key),
+                actionLabel: renewPath ? tMembership('renew_membership') : null,
+                actionHref: renewPath ?? null,
               });
             } else {
               console.error(error);

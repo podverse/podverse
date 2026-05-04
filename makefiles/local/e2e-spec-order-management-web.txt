@@ -1,1 +1,5 @@
 apps/management-web/e2e/smoke.spec.ts
+apps/management-web/e2e/feed-operations-flag-status.spec.ts
+apps/management-web/e2e/workers-page.spec.ts
+apps/management-web/e2e/settings-page.spec.ts
+apps/management-web/e2e/users-new-create-username-only.spec.ts

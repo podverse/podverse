@@ -594,7 +594,18 @@
     "membership_link_text": "Aller à la page d'abonnement",
     "free_trial": "essai gratuit",
     "premium_membership": "abonnement Premium",
-    "free_trial_not_allowed": "Cette fonctionnalité est uniquement disponible pour les comptes premium et n'est pas disponible pour les essais gratuits"
+    "free_trial_not_allowed": "Cette fonctionnalité est uniquement disponible pour les comptes premium et n'est pas disponible pour les essais gratuits",
+    "renew_membership": "Renouveler l'adhésion",
+    "membership_expired": "Votre adhésion a expiré. Renouvelez pour utiliser cette fonctionnalité.",
+    "feature_not_available_for_account_type": "Votre compte n'a actuellement pas accès à cette fonctionnalité.",
+    "manual_refresh_hourly_limit_reached": "Vous avez atteint votre limite de rafraîchissement manuel pour cette heure.",
+    "add_by_rss_feed_limit_reached": "Vous avez atteint votre limite d'ajout par flux RSS.",
+    "trial_limitations_title": "Limitations de l'essai",
+    "trial_limitations_directory_add_by_rss": "L'ajout de flux au répertoire public à partir de la recherche est bloqué pour le statut d'essai.",
+    "trial_limitations_add_by_rss_feed_limit": "La taille de la bibliothèque d'ajout par RSS utilise une limite d'essai inférieure à celle de Premium.",
+    "trial_limitations_manual_refresh_limit": "Les actions de rafraîchissement manuel utilisent des limites horaires plus strictes pendant l'essai.",
+    "trial_limitations_stats_tracking": "Le suivi des statistiques est réduit par défaut pour le statut d'essai.",
+    "trial_limitations_notifications": "Les fonctionnalités de notification peuvent être réduites pour le statut d'essai et expirer avec l'adhésion."
   },
   "about": {
     "title": "À propos",

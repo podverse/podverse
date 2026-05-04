@@ -37,6 +37,7 @@
     "email": "Email",
     "password": "Mot de passe",
     "newPassword": "Nouveau mot de passe",
+    "confirmPassword": "Confirmer le mot de passe",
     "leaveBlankToKeepCurrent": "Laissez vide pour garder l'actuel"
   },
   "nav": {
@@ -214,6 +215,35 @@
     "expiresAt": "Expire : {date}",
     "revokeLink": "Révoquer le lien",
     "generateInviteLink": "Générer un lien d'invitation",
+    "passwordsDoNotMatch": "Les mots de passe ne correspondent pas.",
+    "membershipForm": {
+      "membershipStatus": "Statut d'adhésion",
+      "trial": "Essai",
+      "premium": "Premium",
+      "hintTrialEdit": "L'essai garde les utilisateurs non fiables par défaut et applique des limites par défaut plus strictes.",
+      "hintPremiumEdit": "Le premium garde les utilisateurs fiables par défaut et applique un accès par défaut plus large.",
+      "hintTrialNew": "L'essai commence les utilisateurs dans la catégorie non fiable avec des limites par défaut plus strictes.",
+      "hintPremiumNew": "Le premium commence les utilisateurs dans la catégorie fiable avec un accès par défaut plus large.",
+      "membershipExpiresAt": "L'adhésion expire le",
+      "trustTier": "Niveau de confiance",
+      "untrusted": "Non fiable",
+      "trusted": "Fiable",
+      "configureAdvancedOverrides": "Configurer les remplacements avancés"
+    },
+    "advancedOverrides": {
+      "allowDirectoryAddByRss": "Autoriser l'ajout au répertoire par remplacement RSS",
+      "addByRssFeedLimit": "Remplacement de la limite d'ajout par flux RSS",
+      "manualRefreshPerHour": "Remplacement de la limite de rafraîchissement manuel par heure",
+      "trackStats": "Remplacement de suivi des statistiques",
+      "allowNotifications": "Remplacement d'autorisation des notifications",
+      "useTrustTierDefault": "Utiliser le niveau de confiance par défaut",
+      "allow": "Autoriser",
+      "block": "Bloquer",
+      "trackStatsOn": "Suivre les statistiques",
+      "trackStatsOff": "Ne pas suivre les statistiques",
+      "allowNotificationsOn": "Autoriser les notifications",
+      "allowNotificationsOff": "Bloquer les notifications"
+    },
     "tableHeaders": {
       "id": "ID",
       "email": "Email",

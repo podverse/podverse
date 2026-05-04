@@ -51,6 +51,38 @@ test.describe('Management-web create user (username-only)', () => {
       'https://example.com/set-password?token=test-token-abc'
     );
 
-    expect(sentBodies[0]).toEqual({ username: 'e2e_username_only' });
+    expect(sentBodies[0]).toEqual({
+      username: 'e2e_username_only',
+      account_membership_id: 1,
+      membership_expires_at: null,
+      account_trust_tier_id: 1,
+      allow_directory_add_by_rss: null,
+      max_add_by_rss_feeds: null,
+      max_manual_refreshes_per_hour: null,
+      track_stats: null,
+      allow_notifications: null,
+    });
+  });
+
+  test('the Create User form shows membership status, trust tier, and advanced overrides toggle', async ({
+    page,
+  }) => {
+    test.setTimeout(45_000);
+
+    await page.goto('/');
+    await page.locator('#email').fill('e2e-superadmin@example.com');
+    await page.locator('#password').fill('Test!1Aa');
+    await page.getByRole('button', { name: 'Sign In' }).click();
+    await page.waitForURL('**/dashboard');
+
+    await page.goto('/users/new');
+
+    await expect(page.getByRole('heading', { name: 'Create User', level: 1 })).toBeVisible();
+    await expect(page.getByText('Membership Status', { exact: true })).toBeVisible();
+    await expect(page.getByLabel('Membership Status')).toBeVisible();
+    await expect(page.getByLabel('Trust Tier')).toBeVisible();
+    await expect(
+      page.getByRole('checkbox', { name: 'Configure advanced feature overrides' })
+    ).toBeVisible();
   });
 });

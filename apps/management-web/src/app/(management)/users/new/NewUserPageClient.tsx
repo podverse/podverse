@@ -23,6 +23,15 @@ export function NewUserPageClient() {
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [inviteLink, setInviteLink] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const [membershipId, setMembershipId] = useState(1);
+  const [membershipExpiresAt, setMembershipExpiresAt] = useState('');
+  const [trustTierId, setTrustTierId] = useState(1);
+  const [showAdvanced, setShowAdvanced] = useState(false);
+  const [allowDirectoryAddByRSS, setAllowDirectoryAddByRSS] = useState<boolean | null>(null);
+  const [maxAddByRSSFeeds, setMaxAddByRSSFeeds] = useState<string>('');
+  const [maxManualRefreshesPerHour, setMaxManualRefreshesPerHour] = useState<string>('');
+  const [trackStats, setTrackStats] = useState<boolean | null>(null);
+  const [allowNotifications, setAllowNotifications] = useState<boolean | null>(null);
 
   const t = useTranslations('users');
   const tc = useTranslations('common');
@@ -83,6 +92,18 @@ export function NewUserPageClient() {
         ...(trimmedUsername ? { username: trimmedUsername } : {}),
         ...(trimmedEmail ? { email: trimmedEmail } : {}),
         ...(trimmedPassword ? { password: trimmedPassword } : {}),
+        account_membership_id: membershipId,
+        membership_expires_at: membershipExpiresAt.trim() === '' ? null : membershipExpiresAt,
+        account_trust_tier_id: trustTierId,
+        allow_directory_add_by_rss: allowDirectoryAddByRSS,
+        max_add_by_rss_feeds:
+          maxAddByRSSFeeds.trim() === '' ? null : Number.parseInt(maxAddByRSSFeeds, 10),
+        max_manual_refreshes_per_hour:
+          maxManualRefreshesPerHour.trim() === ''
+            ? null
+            : Number.parseInt(maxManualRefreshesPerHour, 10),
+        track_stats: trackStats,
+        allow_notifications: allowNotifications,
       });
 
       if (result.set_password_url) {
@@ -208,6 +229,160 @@ export function NewUserPageClient() {
               autoComplete="new-password"
             />
           </div>
+          <div className={styles.formGroup}>
+            <label className={styles.label} htmlFor="membership-id">
+              {t('membershipForm.membershipStatus')}
+            </label>
+            <select
+              id="membership-id"
+              className={styles.input}
+              value={membershipId}
+              onChange={(e) => {
+                const nextMembershipId = Number(e.target.value);
+                setMembershipId(nextMembershipId);
+                setTrustTierId(nextMembershipId === 2 ? 2 : 1);
+              }}
+            >
+              <option value={1}>{t('membershipForm.trial')}</option>
+              <option value={2}>{t('membershipForm.premium')}</option>
+            </select>
+            <p className={styles.hintText}>
+              {membershipId === 1
+                ? t('membershipForm.hintTrialNew')
+                : t('membershipForm.hintPremiumNew')}
+            </p>
+          </div>
+          <div className={styles.formGroup}>
+            <label className={styles.label} htmlFor="membership-expires-at">
+              {t('membershipForm.membershipExpiresAt')}
+            </label>
+            <input
+              id="membership-expires-at"
+              type="datetime-local"
+              className={styles.input}
+              value={membershipExpiresAt}
+              onChange={(e) => setMembershipExpiresAt(e.target.value)}
+            />
+          </div>
+          <div className={styles.formGroup}>
+            <label className={styles.label} htmlFor="trust-tier-id">
+              {t('membershipForm.trustTier')}
+            </label>
+            <select
+              id="trust-tier-id"
+              className={styles.input}
+              value={trustTierId}
+              onChange={(e) => setTrustTierId(Number(e.target.value))}
+            >
+              <option value={1}>{t('membershipForm.untrusted')}</option>
+              <option value={2}>{t('membershipForm.trusted')}</option>
+            </select>
+          </div>
+          <div className={styles.formGroup}>
+            <label className={styles.checkboxLabel}>
+              <input
+                type="checkbox"
+                checked={showAdvanced}
+                onChange={(e) => setShowAdvanced(e.target.checked)}
+              />
+              {t('membershipForm.configureAdvancedOverrides')}
+            </label>
+          </div>
+          {showAdvanced && (
+            <>
+              <div className={styles.formGroup}>
+                <label className={styles.label} htmlFor="allow-directory-add">
+                  {t('advancedOverrides.allowDirectoryAddByRss')}
+                </label>
+                <select
+                  id="allow-directory-add"
+                  className={styles.input}
+                  value={
+                    allowDirectoryAddByRSS === null ? '' : allowDirectoryAddByRSS ? 'true' : 'false'
+                  }
+                  onChange={(e) => {
+                    if (e.target.value === '') {
+                      setAllowDirectoryAddByRSS(null);
+                    } else {
+                      setAllowDirectoryAddByRSS(e.target.value === 'true');
+                    }
+                  }}
+                >
+                  <option value="">{t('advancedOverrides.useTrustTierDefault')}</option>
+                  <option value="true">{t('advancedOverrides.allow')}</option>
+                  <option value="false">{t('advancedOverrides.block')}</option>
+                </select>
+              </div>
+              <div className={styles.formGroup}>
+                <label className={styles.label} htmlFor="max-add-by-rss-feeds">
+                  {t('advancedOverrides.addByRssFeedLimit')}
+                </label>
+                <input
+                  id="max-add-by-rss-feeds"
+                  type="number"
+                  min={0}
+                  className={styles.input}
+                  value={maxAddByRSSFeeds}
+                  onChange={(e) => setMaxAddByRSSFeeds(e.target.value)}
+                />
+              </div>
+              <div className={styles.formGroup}>
+                <label className={styles.label} htmlFor="max-manual-refreshes">
+                  {t('advancedOverrides.manualRefreshPerHour')}
+                </label>
+                <input
+                  id="max-manual-refreshes"
+                  type="number"
+                  min={0}
+                  className={styles.input}
+                  value={maxManualRefreshesPerHour}
+                  onChange={(e) => setMaxManualRefreshesPerHour(e.target.value)}
+                />
+              </div>
+              <div className={styles.formGroup}>
+                <label className={styles.label} htmlFor="track-stats">
+                  {t('advancedOverrides.trackStats')}
+                </label>
+                <select
+                  id="track-stats"
+                  className={styles.input}
+                  value={trackStats === null ? '' : trackStats ? 'true' : 'false'}
+                  onChange={(e) => {
+                    if (e.target.value === '') {
+                      setTrackStats(null);
+                    } else {
+                      setTrackStats(e.target.value === 'true');
+                    }
+                  }}
+                >
+                  <option value="">{t('advancedOverrides.useTrustTierDefault')}</option>
+                  <option value="true">{t('advancedOverrides.trackStatsOn')}</option>
+                  <option value="false">{t('advancedOverrides.trackStatsOff')}</option>
+                </select>
+              </div>
+              <div className={styles.formGroup}>
+                <label className={styles.label} htmlFor="allow-notifications">
+                  {t('advancedOverrides.allowNotifications')}
+                </label>
+                <select
+                  id="allow-notifications"
+                  className={styles.input}
+                  value={allowNotifications === null ? '' : allowNotifications ? 'true' : 'false'}
+                  onChange={(e) => {
+                    if (e.target.value === '') {
+                      setAllowNotifications(null);
+                    } else {
+                      setAllowNotifications(e.target.value === 'true');
+                    }
+                  }}
+                >
+                  <option value="">{t('advancedOverrides.useTrustTierDefault')}</option>
+                  <option value="true">{t('advancedOverrides.allowNotificationsOn')}</option>
+                  <option value="false">{t('advancedOverrides.allowNotificationsOff')}</option>
+                </select>
+              </div>
+            </>
+          )}
           {error && <p className={styles.errorText}>{error}</p>}
           {successMessage && <p className={styles.successText}>{successMessage}</p>}
           <div className={styles.formActions}>

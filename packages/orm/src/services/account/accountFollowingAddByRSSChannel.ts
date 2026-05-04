@@ -61,6 +61,29 @@ export class AccountFollowingAddByRSSChannelService extends BaseManyService<
     });
   }
 
+  async getFollowedAddByRSSChannelCount(account_id: number): Promise<number> {
+    const account = await this.accountService.get(account_id);
+    if (!account) {
+      throw new Error('Account not found.');
+    }
+
+    return this.repositoryRead.count({
+      where: {
+        account_id: account.id,
+      },
+    });
+  }
+
+  async hasFollowedAddByRSSChannel(account_id: number, feed_url: string): Promise<boolean> {
+    const account = await this.accountService.get(account_id);
+    if (!account) {
+      throw new Error('Account not found.');
+    }
+
+    const existing = await this._get(account, { feed_url });
+    return !!existing;
+  }
+
   async getCredentialsForFeed(
     account_id: number,
     feed_url: string

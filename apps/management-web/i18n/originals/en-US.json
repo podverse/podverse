@@ -37,6 +37,7 @@
     "email": "Email",
     "password": "Password",
     "newPassword": "New Password",
+    "confirmPassword": "Confirm Password",
     "leaveBlankToKeepCurrent": "Leave blank to keep current"
   },
   "nav": {
@@ -214,6 +215,35 @@
     "expiresAt": "Expires: {date}",
     "revokeLink": "Revoke Link",
     "generateInviteLink": "Generate Invite Link",
+    "passwordsDoNotMatch": "Passwords do not match.",
+    "membershipForm": {
+      "membershipStatus": "Membership Status",
+      "trial": "Trial",
+      "premium": "Premium",
+      "hintTrialEdit": "Trial keeps users untrusted by default and applies tighter default limits.",
+      "hintPremiumEdit": "Premium keeps users trusted by default and applies broader default access.",
+      "hintTrialNew": "Trial starts users in the untrusted tier with tighter default limits.",
+      "hintPremiumNew": "Premium starts users in the trusted tier with broader default access.",
+      "membershipExpiresAt": "Membership Expires At",
+      "trustTier": "Trust Tier",
+      "untrusted": "Untrusted",
+      "trusted": "Trusted",
+      "configureAdvancedOverrides": "Configure advanced feature overrides"
+    },
+    "advancedOverrides": {
+      "allowDirectoryAddByRss": "Allow directory Add by RSS override",
+      "addByRssFeedLimit": "Add by RSS feed limit override",
+      "manualRefreshPerHour": "Manual refresh/hour limit override",
+      "trackStats": "Track stats override",
+      "allowNotifications": "Allow notifications override",
+      "useTrustTierDefault": "Use trust-tier default",
+      "allow": "Allow",
+      "block": "Block",
+      "trackStatsOn": "Track stats",
+      "trackStatsOff": "Do not track stats",
+      "allowNotificationsOn": "Allow notifications",
+      "allowNotificationsOff": "Block notifications"
+    },
     "tableHeaders": {
       "id": "ID",
       "email": "Email",

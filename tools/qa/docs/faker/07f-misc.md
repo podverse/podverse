@@ -38,7 +38,7 @@ export class MembershipClaimTokenGenerator {
         months_to_add: faker.helpers.arrayElement([1, 3, 6, 12]),
         account_membership_id: faker.helpers.arrayElement([
           AccountMembershipEnum.Trial,
-          AccountMembershipEnum.Basic,
+          AccountMembershipEnum.Premium,
         ]),
       });
     }

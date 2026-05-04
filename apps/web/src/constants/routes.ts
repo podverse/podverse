@@ -23,6 +23,7 @@ export const ROUTES = {
   EPISODES: '/episodes',
   HISTORY: '/history',
   MEMBERSHIP: '/membership',
+  MEMBERSHIP_RENEW: '/membership/renew',
   MOBILE_APP: '/mobile-app',
   MUSIC_LIVESTREAM: '/music/livestream',
   MUSIC_LIVESTREAMS: '/music/livestreams',

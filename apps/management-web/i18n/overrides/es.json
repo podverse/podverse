@@ -37,6 +37,7 @@
     "email": "",
     "password": "",
     "newPassword": "",
+    "confirmPassword": "",
     "leaveBlankToKeepCurrent": ""
   },
   "nav": {
@@ -214,6 +215,35 @@
     "expiresAt": "",
     "revokeLink": "",
     "generateInviteLink": "",
+    "passwordsDoNotMatch": "",
+    "membershipForm": {
+      "membershipStatus": "",
+      "trial": "",
+      "premium": "",
+      "hintTrialEdit": "",
+      "hintPremiumEdit": "",
+      "hintTrialNew": "",
+      "hintPremiumNew": "",
+      "membershipExpiresAt": "",
+      "trustTier": "",
+      "untrusted": "",
+      "trusted": "",
+      "configureAdvancedOverrides": ""
+    },
+    "advancedOverrides": {
+      "allowDirectoryAddByRss": "",
+      "addByRssFeedLimit": "",
+      "manualRefreshPerHour": "",
+      "trackStats": "",
+      "allowNotifications": "",
+      "useTrustTierDefault": "",
+      "allow": "",
+      "block": "",
+      "trackStatsOn": "",
+      "trackStatsOff": "",
+      "allowNotificationsOn": "",
+      "allowNotificationsOff": ""
+    },
     "tableHeaders": {
       "id": "",
       "email": "",
