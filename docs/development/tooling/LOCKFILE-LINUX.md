@@ -22,6 +22,25 @@ the resulting `package-lock.json` into the repo. Forcing Linux x64 keeps optiona
 dependency resolution aligned with GitHub Actions runners. Commit the updated lockfile so CI
 and Docker builds use it.
 
+## Troubleshooting
+
+### `Bus error` during `node postinstall.js` (e.g. under `@swc/core`)
+
+This often happens on **Apple Silicon** when the script uses **`linux/amd64`**: the
+container runs under emulation, and some native optional dependencies crash during
+postinstall (exit code **135**).
+
+**Fix (keep CI’s amd64 optional deps):** In **Docker Desktop → Settings → General**,
+enable **Use Rosetta for x86/amd64 emulation on Apple Silicon**, then re-run
+`update-lockfile-linux.sh`.
+
+**Alternative:** Use a **native** Linux container (no QEMU) and override the platform
+(verify `npm ci` on GitHub Actions still succeeds for your change):
+
+```bash
+LOCKFILE_DOCKER_PLATFORM=linux/arm64 ./scripts/development/update-lockfile-linux.sh
+```
+
 ## See also
 
 - [AGENTS.md](../../AGENTS.md) – Lock file and workspace dependencies (includes this rule)
