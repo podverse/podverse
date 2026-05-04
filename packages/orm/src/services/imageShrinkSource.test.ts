@@ -82,7 +82,11 @@ describe('ImageShrinkSourceService.upsert', () => {
     });
 
     expect(saveMock).toHaveBeenCalledTimes(1);
-    const saved = saveMock.mock.calls[0][0] as { lastDeepCheckedAt?: Date | null };
+    const firstCall = saveMock.mock.calls[0];
+    if (firstCall === undefined) {
+      throw new Error('expected saveMock to have been called');
+    }
+    const saved = firstCall[0] as { lastDeepCheckedAt?: Date | null };
     expect(saved.lastDeepCheckedAt).toBeInstanceOf(Date);
   });
 
@@ -93,7 +97,11 @@ describe('ImageShrinkSourceService.upsert', () => {
 
     await svc.upsert('https://example.com/a.png', { etag: '"x"' }, false, 'deadbeef', {});
 
-    const saved = saveMock.mock.calls[0][0] as { lastDeepCheckedAt?: Date | null };
+    const firstCall = saveMock.mock.calls[0];
+    if (firstCall === undefined) {
+      throw new Error('expected saveMock to have been called');
+    }
+    const saved = firstCall[0] as { lastDeepCheckedAt?: Date | null };
     expect(saved.lastDeepCheckedAt).toBeUndefined();
   });
 });

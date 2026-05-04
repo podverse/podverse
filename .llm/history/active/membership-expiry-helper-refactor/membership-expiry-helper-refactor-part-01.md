@@ -57,3 +57,21 @@ For the code present, we get this error: `Duplicate enum member value 2.` Fix it
 - tools/qa/docs/faker/04c-account-membership.md
 - tools/qa/docs/faker/04e-account-devices-purchases.md
 - tools/qa/docs/faker/07f-misc.md
+
+## Session 4 - 2026-05-04
+
+#### Prompt (Developer)
+
+debug (terminal lint:fix type-check failures: orm imageShrinkSource.test.ts, api accountFollowingAddByRSSChannel + auth getAccountEntitlements)
+
+#### Key Decisions
+
+- **ORM test:** narrowed `saveMock.mock.calls[0]` with an explicit `undefined` guard (no non-null `!`) to satisfy TS2532 and ESLint `no-non-null-assertion`.
+- **API entitlements:** `getAccountEntitlements` now takes `Pick<AccountMembershipStatus, ...>` as `MembershipStatusForEntitlements` so `AccountMembershipStatus` is accepted.
+- **AccountFollowingAddByRSSChannelService:** `packages/orm/dist` was stale; `npm run build -w @podverse/orm` regenerated `.d.ts` with `hasFollowedAddByRSSChannel` / `getFollowedAddByRSSChannelCount`.
+
+#### Files Modified
+
+- apps/api/src/lib/accountEntitlements.ts
+- packages/orm/src/services/imageShrinkSource.test.ts
+- packages/orm/dist/ (rebuilt)

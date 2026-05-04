@@ -6,15 +6,18 @@ import {
   AccountTrustTierEnum,
   resolveAccountEntitlements,
 } from '@podverse/helpers';
+import type { AccountMembershipStatus } from '@podverse/orm';
 
-type MembershipStatusLike = {
-  account_trust_tier_id?: number | null;
-  allow_directory_add_by_rss?: boolean | null;
-  max_add_by_rss_feeds?: number | null;
-  max_manual_refreshes_per_hour?: number | null;
-  track_stats?: boolean | null;
-  allow_notifications?: boolean | null;
-};
+/** Trust-tier fields used to resolve entitlements (matches ORM `AccountMembershipStatus` columns). */
+export type MembershipStatusForEntitlements = Pick<
+  AccountMembershipStatus,
+  | 'account_trust_tier_id'
+  | 'allow_directory_add_by_rss'
+  | 'max_add_by_rss_feeds'
+  | 'max_manual_refreshes_per_hour'
+  | 'track_stats'
+  | 'allow_notifications'
+>;
 
 const parseBooleanEnv = (name: string, fallback: boolean): boolean => {
   const raw = process.env[name];
@@ -66,7 +69,7 @@ const getTierDefaults = (trustTier: AccountTrustTierEnum): AccountTrustEntitleme
 };
 
 export const getAccountEntitlements = (
-  membershipStatus: MembershipStatusLike
+  membershipStatus: MembershipStatusForEntitlements
 ): AccountTrustEntitlements => {
   const trustTier =
     membershipStatus.account_trust_tier_id === AccountTrustTierEnum.Trusted
