@@ -31,15 +31,30 @@ export const Image: React.FC<ImageProps> = ({
   const [imageError, setImageError] = useState(false);
 
   if (!src || imageError) {
+    const isFluidGridSlot = width === IMAGES.LIST.GRID.SIZE && height === IMAGES.LIST.GRID.SIZE;
+    const placeholderWidth = Math.round((width * 2) / 2.5);
+    const placeholderHeight = Math.round((height * 2) / 2.5);
     return (
-      <NextImage
-        src={IMAGES.SRC.PLACEHOLDER}
-        alt={alt}
-        width={width}
-        height={height}
-        className={classNames(styles.imagePlaceholder, className)}
-        priority={priority}
-      />
+      <div
+        className={classNames(
+          styles.placeholderOuter,
+          isFluidGridSlot && styles.placeholderOuterFluid,
+          className
+        )}
+        style={isFluidGridSlot ? undefined : { width, height }}
+      >
+        <NextImage
+          src={IMAGES.SRC.PLACEHOLDER}
+          alt={alt}
+          width={placeholderWidth}
+          height={placeholderHeight}
+          className={classNames(
+            styles.imagePlaceholder,
+            isFluidGridSlot && styles.imagePlaceholderFluid
+          )}
+          priority={priority}
+        />
+      </div>
     );
   }
 
