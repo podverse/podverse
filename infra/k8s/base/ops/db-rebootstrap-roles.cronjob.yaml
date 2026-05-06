@@ -1,8 +1,9 @@
-# Version: 1
+# Version: 2
 # Pattern: Suspended CronJob (Manual Trigger Only)
-# Re-applies schema-level GRANTs from db bootstrap (0001/0002) after ops-db-drop-everything or
-# DROP SCHEMA public CASCADE, so migrator roles can run ops-db-migrate-app / ops-db-migrate-management.
-# Does not CREATE ROLE or CREATE DATABASE — use StatefulSet re-init for that.
+# Re-runs full StatefulSet bootstrap logic from `0001_create_app_db_users.sh` +
+# `0002_create_management_db_users.sh` over TCP (script: rebootstrap-full-bootstrap.sh).
+# Run after ops-db-drop-everything or DROP SCHEMA public CASCADE so migrator roles and grants match init.
+# Does not apply 0003 linear baselines — migrate jobs remain the forward path.
 apiVersion: batch/v1
 kind: CronJob
 metadata:
@@ -28,81 +29,7 @@ spec:
               imagePullPolicy: Always
               command:
                 - bash
-                - -c
-                - |
-                  set -euo pipefail
-                  export PGHOST="${DB_HOST:-podverse-db}"
-                  export PGPORT="${DB_PORT:-5432}"
-
-                  echo "Re-bootstrap GRANTs: app DB ${DB_APP_NAME} (owner + migrator blocks)"
-
-                  export PGPASSWORD="${DB_APP_OWNER_PASSWORD}"
-                  psql -v ON_ERROR_STOP=1 -U "${DB_APP_OWNER_USER}" -d "${DB_APP_NAME}" <<SQL
-                  GRANT CONNECT ON DATABASE ${DB_APP_NAME} TO ${DB_APP_MIGRATOR_USER}, ${DB_APP_READ_WRITE_USER}, ${DB_APP_READ_USER};
-                  GRANT USAGE, CREATE ON SCHEMA public TO ${DB_APP_MIGRATOR_USER};
-                  SQL
-
-                  export PGPASSWORD="${DB_APP_MIGRATOR_PASSWORD}"
-                  psql -v ON_ERROR_STOP=1 -U "${DB_APP_MIGRATOR_USER}" -d "${DB_APP_NAME}" <<SQL
-                  DO \$\$
-                  BEGIN
-                      IF NOT has_schema_privilege('${DB_APP_READ_WRITE_USER}', 'public', 'USAGE') THEN
-                          EXECUTE format('GRANT USAGE ON SCHEMA public TO %I', '${DB_APP_READ_WRITE_USER}');
-                      END IF;
-
-                      IF NOT has_schema_privilege('${DB_APP_READ_USER}', 'public', 'USAGE') THEN
-                          EXECUTE format('GRANT USAGE ON SCHEMA public TO %I', '${DB_APP_READ_USER}');
-                      END IF;
-                  END
-                  \$\$;
-
-                  GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO ${DB_APP_READ_WRITE_USER};
-                  GRANT SELECT, USAGE, UPDATE ON ALL SEQUENCES IN SCHEMA public TO ${DB_APP_READ_WRITE_USER};
-
-                  GRANT SELECT ON ALL TABLES IN SCHEMA public TO ${DB_APP_READ_USER};
-                  GRANT SELECT ON ALL SEQUENCES IN SCHEMA public TO ${DB_APP_READ_USER};
-
-                  ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO ${DB_APP_READ_WRITE_USER};
-                  ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT, USAGE, UPDATE ON SEQUENCES TO ${DB_APP_READ_WRITE_USER};
-                  ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT ON TABLES TO ${DB_APP_READ_USER};
-                  ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT ON SEQUENCES TO ${DB_APP_READ_USER};
-                  SQL
-
-                  echo "Re-bootstrap GRANTs: management DB ${DB_MANAGEMENT_NAME} (owner + migrator blocks)"
-
-                  export PGPASSWORD="${DB_MANAGEMENT_OWNER_PASSWORD}"
-                  psql -v ON_ERROR_STOP=1 -U "${DB_MANAGEMENT_OWNER_USER}" -d "${DB_MANAGEMENT_NAME}" <<SQL
-                  GRANT CONNECT ON DATABASE ${DB_MANAGEMENT_NAME} TO ${DB_MANAGEMENT_MIGRATOR_USER}, ${DB_MANAGEMENT_READ_WRITE_USER}, ${DB_MANAGEMENT_READ_USER};
-                  GRANT USAGE, CREATE ON SCHEMA public TO ${DB_MANAGEMENT_MIGRATOR_USER};
-                  SQL
-
-                  export PGPASSWORD="${DB_MANAGEMENT_MIGRATOR_PASSWORD}"
-                  psql -v ON_ERROR_STOP=1 -U "${DB_MANAGEMENT_MIGRATOR_USER}" -d "${DB_MANAGEMENT_NAME}" <<SQL
-                  DO \$\$
-                  BEGIN
-                      IF NOT has_schema_privilege('${DB_MANAGEMENT_READ_WRITE_USER}', 'public', 'USAGE') THEN
-                          EXECUTE format('GRANT USAGE ON SCHEMA public TO %I', '${DB_MANAGEMENT_READ_WRITE_USER}');
-                      END IF;
-
-                      IF NOT has_schema_privilege('${DB_MANAGEMENT_READ_USER}', 'public', 'USAGE') THEN
-                          EXECUTE format('GRANT USAGE ON SCHEMA public TO %I', '${DB_MANAGEMENT_READ_USER}');
-                      END IF;
-                  END
-                  \$\$;
-
-                  GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO ${DB_MANAGEMENT_READ_WRITE_USER};
-                  GRANT SELECT, USAGE, UPDATE ON ALL SEQUENCES IN SCHEMA public TO ${DB_MANAGEMENT_READ_WRITE_USER};
-
-                  GRANT SELECT ON ALL TABLES IN SCHEMA public TO ${DB_MANAGEMENT_READ_USER};
-                  GRANT SELECT ON ALL SEQUENCES IN SCHEMA public TO ${DB_MANAGEMENT_READ_USER};
-
-                  ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO ${DB_MANAGEMENT_READ_WRITE_USER};
-                  ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT, USAGE, UPDATE ON SEQUENCES TO ${DB_MANAGEMENT_READ_WRITE_USER};
-                  ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT ON TABLES TO ${DB_MANAGEMENT_READ_USER};
-                  ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT ON SEQUENCES TO ${DB_MANAGEMENT_READ_USER};
-                  SQL
-
-                  echo "ops-db-rebootstrap-roles: completed successfully."
+                - /opt/scripts/database/rebootstrap-full-bootstrap.sh
               envFrom:
                 - secretRef:
                     name: podverse-db-opaque
@@ -113,3 +40,12 @@ spec:
                   value: "podverse-db"
                 - name: DB_PORT
                   value: "5432"
+              volumeMounts:
+                - name: migration-scripts
+                  mountPath: /opt/scripts/database
+                  readOnly: true
+          volumes:
+            - name: migration-scripts
+              configMap:
+                name: podverse-ops-migration-scripts
+                defaultMode: 0555

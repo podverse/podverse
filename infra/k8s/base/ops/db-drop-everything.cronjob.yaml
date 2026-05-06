@@ -1,6 +1,6 @@
-# Version: 3
+# Version: 4
 # Pattern: Suspended CronJob (Manual Trigger Only)
-# DANGER: Drops the database schema. Only runs when explicitly triggered.
+# DANGER: Drops public schema on both app and management logical databases. Only runs when explicitly triggered.
 apiVersion: batch/v1
 kind: CronJob
 metadata:
@@ -18,22 +18,29 @@ spec:
             - name: psql
               image: postgres:18.3
               command:
-                - "sh"
-                - "-c"
-                - >-
-                  psql -h "$PODVERSE_DB_SERVICE_HOST" -p "$PODVERSE_DB_SERVICE_PORT" -U "$DB_APP_OWNER_USER" -d "$DB_APP_NAME" -c
-                  "DROP SCHEMA public CASCADE; CREATE SCHEMA public;"
+                - bash
+                - -c
+                - |
+                  set -euo pipefail
+                  export PGHOST="${DB_HOST:-podverse-db}"
+                  export PGPORT="${DB_PORT:-5432}"
+                  export PGPASSWORD="${DB_APP_OWNER_PASSWORD}"
+                  psql -v ON_ERROR_STOP=1 -U "${DB_APP_OWNER_USER}" -d "${DB_APP_NAME}" \
+                    -c 'DROP SCHEMA public CASCADE; CREATE SCHEMA public;'
+                  export PGPASSWORD="${DB_MANAGEMENT_OWNER_PASSWORD}"
+                  psql -v ON_ERROR_STOP=1 -U "${DB_MANAGEMENT_OWNER_USER}" -d "${DB_MANAGEMENT_NAME}" \
+                    -c 'DROP SCHEMA public CASCADE; CREATE SCHEMA public;'
 
               envFrom:
                 - secretRef:
                     name: podverse-db-opaque
+                - secretRef:
+                    name: podverse-management-db-opaque
 
-              # CRITICAL FIX: Map the secret key to PGPASSWORD for psql
               env:
-                - name: PGPASSWORD
-                  valueFrom:
-                    secretKeyRef:
-                      name: podverse-db-opaque
-                      key: DB_APP_OWNER_PASSWORD
+                - name: DB_HOST
+                  value: "podverse-db"
+                - name: DB_PORT
+                  value: "5432"
 
           restartPolicy: Never

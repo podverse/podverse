@@ -26,6 +26,7 @@ configMapGenerator:
       - source/database/runner/run-linear-migrations.sh
       - source/database/runner/run-linear-migrations-k8s.sh
       - source/database/runner/verify-bootstrap-contract.sh
+      - source/database/runner/rebootstrap-full-bootstrap.sh
   - name: podverse-ops-app-linear-migrations
     files:
       - source/database/linear-migrations/app/0000_init_helpers.sql
