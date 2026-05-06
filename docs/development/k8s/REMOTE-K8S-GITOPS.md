@@ -151,7 +151,7 @@ Use **`./scripts/secret-generators/`** there (kept in sync with [Podverse `infra
    - `./scripts/secret-generators/create_firebase_secret.sh`
    - `./scripts/secret-generators/create_mailer_secret.sh`
    - `./scripts/secret-generators/create_metaboost_secret.sh`
-   - `./scripts/secret-generators/create_workers_digital_ocean_secret.sh`
+   - `./scripts/secret-generators/create_workers_storage_bucket_secret.sh`
 
 5. **Cloudflare API token for cert-manager DNS01** (optional; when ACME uses Cloudflare-managed zones):
 

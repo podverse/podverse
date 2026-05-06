@@ -1,10 +1,23 @@
 #!/usr/bin/env bash
-# VERSION: 1
-# Helper to create the encrypted Workers S3-compatible storage bucket secret.
+# VERSION: 3
+# Generic S3-compatible object storage credentials for image-shrink workloads.
+# All providers use the same Secret keys; non-secret bucket env stays in the workers ConfigMap.
 
 set -euo pipefail
 
 echo "Running create_workers_storage_bucket_secret.sh"
+echo ""
+echo "=== Object storage (S3-compatible API) ==="
+echo "This script encrypts ONLY the credential pair required in Kubernetes:"
+echo "  - BUCKET_ACCESS_KEY"
+echo "  - BUCKET_SECRET_KEY"
+echo "Secret name: podverse-workers-storage-bucket-opaque"
+echo ""
+echo "Set non-secret bucket env in the workers ConfigMap (every provider):"
+echo "  BUCKET_PROVIDER, BUCKET_REGION, BUCKET_NAME, BUCKET_CDN_BASE_URL,"
+echo "  BUCKET_ENDPOINT (required for garage and s3-compatible), BUCKET_FORCE_PATH_STYLE, ..."
+echo "See: docs/image-shrinking/BUCKET-PROVIDERS.md"
+echo ""
 
 # ENVIRONMENT INPUT
 read -r -p "Enter environment [alpha]: " ENVIRONMENT
