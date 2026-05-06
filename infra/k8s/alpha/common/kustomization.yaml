@@ -6,8 +6,8 @@ kind: Kustomization
 
 resources:
   - namespace.yaml
-  - https://github.com/podverse/podverse//infra/k8s/base/common?ref=X.X.X-staging.N
-  - https://github.com/podverse/podverse//infra/k8s/base/product-membership?ref=X.X.X-staging.N
+  - https://github.com/podverse/podverse//infra/k8s/base/common?ref=X.Y.Z-staging.N
+  - https://github.com/podverse/podverse//infra/k8s/base/product-membership?ref=X.Y.Z-staging.N
 
 patches:
   - path: ingress-hosts-patch.yaml

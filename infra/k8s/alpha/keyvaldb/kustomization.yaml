@@ -7,7 +7,7 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
 resources:
-  - https://github.com/podverse/podverse//infra/k8s/base/keyvaldb?ref=X.X.X-staging.N
+  - https://github.com/podverse/podverse//infra/k8s/base/keyvaldb?ref=X.Y.Z-staging.N
   # Note: We will uncomment the secret line below once you run the generation script
   # - secrets/podverse-keyvaldb-secret.enc.yaml
 

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # getLatestStagingTag.sh
-# Determines the latest docker image tag matching x.x.x-staging.N (staging branch / staging line in CI).
+# Determines the latest docker image tag matching X.Y.Z-staging.N (staging branch / staging line in CI).
 
 set -euo pipefail
 

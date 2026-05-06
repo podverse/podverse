@@ -46,7 +46,7 @@ This document is intentionally domain-agnostic for open source use:
 
 - **Image tags (alpha):** set Podverse app images to `newTag: "X.Y.Z-staging.N"` (same value CI publishes to GHCR).
 - **Remote base refs (alpha):** set Podverse remote bases to `?ref=X.Y.Z-staging.N` (same immutable Git tag).
-- **Bump together:** when you promote a staging release, update both `?ref=` and `newTag` to the new `X.Y.Z-staging.N` (example: `X.X.X-staging.N`).
+- **Bump together:** when you promote a staging release, update both `?ref=` and `newTag` to the new `X.Y.Z-staging.N` (example: `X.Y.Z-staging.N`).
 
 ## Health readiness semantics (management-api vs Metaboost)
 

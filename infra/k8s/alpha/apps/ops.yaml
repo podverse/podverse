@@ -12,7 +12,7 @@ spec:
   project: podverse
   source:
     repoURL: https://github.com/podverse/podverse.git
-    targetRevision: X.X.X-staging.N
+    targetRevision: X.Y.Z-staging.N
 
     path: infra/k8s/alpha/ops
   destination:

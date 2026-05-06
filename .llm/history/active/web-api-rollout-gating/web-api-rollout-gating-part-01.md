@@ -55,11 +55,11 @@ you stalled. continue
 
 across all example files and base env files use this as an example version
 
-X.X.X-staging.N
+X.Y.Z-staging.N
 
 #### Key Decisions
 
-- Standardized placeholder release strings in app `.env.example` and `infra/k8s/base/**/source/*.env` to literal `X.X.X-staging.N` (quoted in `.env.example`, unquoted in K8s ConfigMap sources).
+- Standardized placeholder release strings in app `.env.example` and `infra/k8s/base/**/source/*.env` to literal `X.Y.Z-staging.N` (quoted in `.env.example`, unquoted in K8s ConfigMap sources).
 - Left GitOps alpha overlays and monorepo alpha pins unchanged so immutable Git refs and CI version-contract checks stay valid.
 
 #### Files Modified

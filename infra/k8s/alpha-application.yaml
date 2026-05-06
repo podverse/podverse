@@ -14,7 +14,7 @@ spec:
   project: podverse
   source:
     repoURL: https://github.com/podverse/podverse.git
-    targetRevision: X.X.X-staging.N
+    targetRevision: X.Y.Z-staging.N
     # This path points to where the "Child" App manifests are stored
     path: infra/k8s/alpha/apps
 
