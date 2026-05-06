@@ -69,12 +69,33 @@ if [ "$DEVELOP_COMMIT" != "$ORIGIN_DEVELOP_COMMIT" ]; then
 fi
 
 echo -e "${YELLOW}Running security audit on develop (moderate and above; low permitted)...${NC}"
-npm ci
+echo -e "${YELLOW}Using Linux Docker so npm ci matches CI (linux-canonical lockfile / optional natives).${NC}"
 
-if ! "$SCRIPT_DIR/../lib/check-audit-gate.sh" "" "promote to staging"; then
-  echo -e "${RED}Error: npm audit found disallowed moderate or higher vulnerabilities in develop. Fix them before syncing to staging.${NC}"
+if ! command -v docker &>/dev/null; then
+  echo -e "${RED}Error: Docker is required for this step. Install Docker and retry.${NC}"
   exit 1
 fi
+
+NODE_IMAGE="${SYNC_STAGING_NODE_IMAGE:-node:24}"
+DOCKER_PLATFORM="${LOCKFILE_DOCKER_PLATFORM:-linux/amd64}"
+
+if [[ "$(uname -s)" == "Darwin" && "$(uname -m)" == "arm64" && "$DOCKER_PLATFORM" == "linux/amd64" ]]; then
+  echo -e "${YELLOW}Note: emulated linux/amd64 on Apple Silicon can be slow or fail during optional native installs.${NC}"
+  echo -e "${YELLOW}      If needed: LOCKFILE_DOCKER_PLATFORM=linux/arm64 (see docs/development/tooling/LOCKFILE-LINUX.md).${NC}"
+  echo ""
+fi
+
+if ! docker run --rm \
+  --platform "$DOCKER_PLATFORM" \
+  -v "$REPO_ROOT:/app" \
+  -w /app \
+  "$NODE_IMAGE" \
+  bash -c 'npm ci --include=optional && bash scripts/lib/check-audit-gate.sh "" "promote to staging"'; then
+  echo -e "${RED}Error: npm ci or npm audit gate failed in Docker. Fix issues before syncing to staging.${NC}"
+  exit 1
+fi
+
+echo -e "${YELLOW}Note: node_modules now matches Linux optional deps from Docker. For local macOS dev, reinstall deps (e.g. rm -rf node_modules && npm install).${NC}"
 echo ""
 
 echo -e "${YELLOW}Updating local staging to match origin/staging...${NC}"
