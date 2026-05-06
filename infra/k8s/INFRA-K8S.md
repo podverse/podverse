@@ -198,7 +198,7 @@ kubectl apply -f infra/k8s/alpha-application.yaml
 Use Kustomize to render overlays locally, matching what ArgoCD applies. Because bases live outside the overlay folders, include the relaxed load restrictor flag.
 
 - Keep `base/<component>/kustomization.yaml` self-contained: do not import sibling directories with `../`.
-- Compose shared cross-component resources (for example `base/product-membership`) explicitly in environment overlays (`alpha/api`, `alpha/management-api`, or your GitOps equivalents).
+- Compose shared cross-component resources (for example `base/product-membership`) in the **common** overlay (`alpha/common`, or your GitOps `common` equivalent) so one sync path owns namespace-wide ConfigMaps; workload overlays reference them only via Deployments.
 
 ```bash
 kustomize build --load-restrictor LoadRestrictionsNone infra/k8s/alpha/workers/

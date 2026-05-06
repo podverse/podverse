@@ -1,7 +1,7 @@
 ---
 name: podverse-k8s-patterns
 description: Common patterns for Kubernetes manifests in infra/k8s. Use when editing or adding K8s manifests, changing deployment config, adding env vars to ConfigMaps, or working with ArgoCD/Kustomize/SOPS.
-version: 1.0.4
+version: 1.0.5
 ---
 
 # Podverse K8s Development Patterns
@@ -119,6 +119,10 @@ kustomize build --load-restrictor LoadRestrictionsNone infra/k8s/alpha/api/ | ku
 - Override ConfigMap values with `configMapGenerator` (behavior: merge)
 - Set image tags in `images:` section
 - Apply patches (e.g., `deployment-link-patch.yaml`)
+- **`base/product-membership`:** list it under **`alpha/common`** (namespace + ingress + shared
+  ConfigMaps) so one Argo app emits `podverse-product-membership-config`; `alpha/api` and
+  `alpha/management-api` only reference that name in Deployments (same pattern for external GitOps
+  `common` overlays).
 
 ## ConfigMap Conventions
 

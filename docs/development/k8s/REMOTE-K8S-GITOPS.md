@@ -311,13 +311,14 @@ In your GitOps repo overlays:
 - `resources:` remote bases use:
   - `https://github.com/podverse/podverse//infra/k8s/base/<component>?ref=X.Y.Z-staging.N`
 - Keep each Podverse leaf base self-contained (no sibling `../` imports).
-- For API and management-api overlays, include `base/product-membership` explicitly alongside `base/api` or `base/management-api`:
+- Include `base/product-membership` in the **common** overlay (same repo path pattern), not duplicated under api and management-api, so one Argo Application owns `podverse-product-membership-config`:
   - `https://github.com/podverse/podverse//infra/k8s/base/product-membership?ref=X.Y.Z-staging.N`
 - Podverse app `images[].newTag` use the **same** immutable tag as `?ref=` (not a floating `:staging` tag).
 
-Keep this contract consistent across `api`, `web`, `management-api`, `management-web`, `workers`, and `cron`.
+Keep this contract consistent across `common`, `api`, `web`, `management-api`, `management-web`,
+`workers`, and `cron`.
 
-Migration note: if your GitOps repo previously relied on product-membership being pulled transitively from `base/api` or `base/management-api`, add the explicit `base/product-membership` resource in the same change that bumps your `?ref=` tag.
+Migration note: if `base/product-membership` is still listed under both api and management-api, remove those entries and add a single `base/product-membership` resource under your **common** overlay in the same change that bumps your `?ref=` tag (avoids two Argo apps owning the same ConfigMap).
 
 ## Argo CD source contract
 
