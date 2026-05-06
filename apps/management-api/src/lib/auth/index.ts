@@ -42,6 +42,22 @@ const setAuthCookie = (res: Response, token: string) => {
 
 const adminAccountService = new AdminAccountService();
 
+/** Prefer Bearer over cookie so programmatic clients/tests are not overridden by a stale browser cookie. */
+function getAuthTokenFromRequest(req: Request): string | undefined {
+  const authorization = req.headers.authorization;
+  if (typeof authorization === 'string' && authorization.length > 0) {
+    const bearerMatch = /^Bearer\s+(\S+)/i.exec(authorization);
+    if (bearerMatch?.[1] !== undefined && bearerMatch[1].length > 0) {
+      return bearerMatch[1];
+    }
+  }
+  const cookieToken = req.cookies[ADMIN_AUTH_COOKIE_NAME];
+  if (typeof cookieToken === 'string' && cookieToken.length > 0) {
+    return cookieToken;
+  }
+  return undefined;
+}
+
 function mapAdminToAuthenticatedUser(admin: AdminAccount): AuthenticatedAdmin | null {
   if (!admin.admin_account_role) {
     return null;
@@ -55,10 +71,10 @@ function mapAdminToAuthenticatedUser(admin: AdminAccount): AuthenticatedAdmin | 
     permissions: admin.permissions
       ? {
           feeds_crud: admin.permissions.feedsCrud,
-          feed_flag_statuses_crud: admin.permissions.feedFlagStatusesCrud,
-          feed_flag_status_reasons_crud: admin.permissions.feedFlagStatusReasonsCrud,
+          feed_takedown_reasons_crud: admin.permissions.feedTakedownReasonsCrud,
           admins_crud: admin.permissions.adminsCrud,
           stats_crud: admin.permissions.statsCrud,
+          billing_prices_crud: admin.permissions.billingPricesCrud,
         }
       : null,
   };
@@ -264,7 +280,7 @@ const verifyToken = (req: Request, res: Response, next: NextFunction, token: str
 };
 
 export const ensureAuthenticated = (req: Request, res: Response, next: NextFunction): void => {
-  const token = req.cookies[ADMIN_AUTH_COOKIE_NAME] || req.headers.authorization?.split(' ')[1];
+  const token = getAuthTokenFromRequest(req);
   if (!token) {
     if (!res.headersSent) {
       res.status(401).json({ message: 'Unauthorized' });

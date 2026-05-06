@@ -13,10 +13,10 @@ import {
   QUERY_PARAMS_CHANNEL_MUSIC_ALBUM_TYPE_VALUES,
   QUERY_PARAMS_STATS_RANGE_VALUES,
 } from '@podverse/helpers-requests';
+import { Tabs } from '@podverse/ui';
 
 import { CommonDetailListHeader } from '../../../components/Common/List/CommonDetailListHeader';
 import Dropdown from '../../../components/Dropdown/Dropdown';
-import { Tabs } from '../../../components/Tabs/Tabs';
 import { useAccount } from '../../../contexts/Account';
 import { useAlbumPageContext } from './AlbumPageContext';
 import { getAlbumPageDropdownConfig } from './AlbumPageDropdownConfig';

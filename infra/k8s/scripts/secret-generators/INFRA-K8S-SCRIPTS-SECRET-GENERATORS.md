@@ -66,7 +66,8 @@ These **do not** support `--auto-gen` and are **not** in the bulk runner. `creat
 - `create_cloudflare_api_token_secret.sh` — Cloudflare API token for cert-manager DNS01 challenges (`cloudflare-api-token-secret` in `cert-manager` namespace, key `api-token`). Create the token in Cloudflare with `Zone - DNS - Edit` and `Zone - Zone - Read`, scoped only to the required zones.
 - `create_cloudflared_tunnel_secret.sh` — Cloudflare **Tunnel** token for **cloudflared** (`cloudflared-tunnel-secret` in **`external-infra`** namespace, key **`tunnel-token`**). Token from Zero Trust → **Networks** → **Tunnels** → your tunnel → copy token. Optional **`--output-file`** for a non-default path (default **`./secrets/cloudflared-tunnel-secret.enc.yaml`**).
 - `create_firebase_secret.sh` — `firebase-key.json` from your machine; produces **Secret `podverse-workers-firebase-opaque`** with a single key `firebase-key.json`. Base `infra/k8s` **API, workers, and workers CronJob** pods mount it read-only at **`/var/secrets/firebase`**, matching **`GOOGLE_FIREBASE_ADMIN_JSON_KEY_PATH=/var/secrets/firebase/firebase-key.json`** in the workers and API `*.env` sources. Apply the encrypted manifest after SOPS, then set **`GOOGLE_FIREBASE_NOTIFICATIONS_ENABLED=true`** when you want FCM/notification features on.
-- `create_workers_digital_ocean_secret.sh` — DigitalOcean Spaces access/secret keys
+- `create_workers_storage_bucket_secret.sh` — S3-compatible bucket access/secret keys (`BUCKET_ACCESS_KEY`, `BUCKET_SECRET_KEY`; provider configured via ConfigMap — see `docs/image-shrinking/BUCKET-PROVIDERS.md`)
+- `create_workers_garage_secret.sh` — Garage S3 access/secret keys (`BUCKET_ACCESS_KEY`, `BUCKET_SECRET_KEY`; Secret **`podverse-workers-garage-opaque`**)
 - `create_github_registry_secret.sh` — GitHub username + PAT (`read:packages`) for **ghcr.io** image pulls; see the subsection below
 
 ### Cloudflare Tunnel (cloudflared)
@@ -94,7 +95,7 @@ If you still have an older layout at **`secrets/<namespace>/github-registry-secr
 
 For Argo CD to clone **private GitHub** GitOps repos over HTTPS, register a repository `Secret` in the **`argocd`** namespace (label **`argocd.argoproj.io/secret-type: repository`**). **`create_argocd_github_repo_secret.sh`** interactively builds that manifest and SOPS-encrypts it under **`./secrets/`**. Run from your **GitOps repository root** (next to **`.sops.yaml`**). Not part of **`create_all_secrets_auto_gen.sh`**.
 
-**Naming:** accept script defaults for consistency across repos: Kubernetes Secret **`<slug>-repo-creds`**, file **`./secrets/<slug>-argoc-repo.enc.yaml`**, where **`<slug>`** is derived from the `github.com/org/repo` path (same idea for every private GitOps URL). Legacy fixed names (e.g. `github-repo-creds`) can be retired after you apply the new Secret and confirm sync; see your GitOps repo’s `scripts/README.md` if maintained there.
+**Naming:** accept script defaults for consistency across repos: Kubernetes Secret **`<slug>-repo-creds`**, file **`./secrets/<slug>-argoc-repo.enc.yaml`**, where **`<slug>`** is derived from the `github.com/org/repo` path (same idea for every private GitOps URL). Older fixed names (e.g. `github-repo-creds`) can be retired after you apply the new Secret and confirm sync; see your GitOps repo’s `scripts/README.md` if maintained there.
 
 ```bash
 bash ./infra/k8s/scripts/secret-generators/create_argocd_github_repo_secret.sh

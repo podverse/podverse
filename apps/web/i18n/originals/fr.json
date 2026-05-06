@@ -52,7 +52,13 @@
     "add_feed": {
       "add_feed": "Ajouter un flux",
       "add_feed_explanation": "Ce flux n'est pas dans notre annuaire. Si vous souhaitez l'ajouter, appuyez sur le bouton \"Ajouter un flux\".",
-      "rss_link": "Lien RSS"
+      "rss_link": "Lien RSS",
+      "blocked_feed_banner": "Ce flux ne peut pas être ajouté pour le moment dans Podverse ({reason}). Si vous pensez qu'il s'agit d'une erreur, veuillez contacter",
+      "blocked_reason_spam_detected": "des restrictions liées à la détection de spam",
+      "blocked_reason_oversized_detected": "des limites de taille du flux",
+      "blocked_reason_takedown_active": "une demande de retrait de contenu",
+      "blocked_reason_manual_block": "des restrictions décidées par l'opérateur",
+      "blocked_reason_unknown": "des restrictions applicables à ce flux"
     },
     "add_by_rss": {
       "label": "Ajouter par RSS",

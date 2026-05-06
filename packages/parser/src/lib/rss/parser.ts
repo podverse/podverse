@@ -1,5 +1,5 @@
 import { config } from '@parser/config/index.js';
-import { getParserConfig } from '@parser/context.js';
+import { getParserConfig, getPodcastIndexService } from '@parser/context.js';
 import { loggerService } from '@parser/factories/loggerService.js';
 import { timerManager } from '@parser/factories/timerManager.js';
 // import { handleNewItemsNotifications, handleNewLiveItemsNotifications } from '@parser/lib/notifications.js';
@@ -25,6 +25,7 @@ import {
   ON_DEMAND_ADD_PARSER_LIMIT,
   ON_DEMAND_REFRESH_PARSER_LIMIT,
   OnDemandParserEventType,
+  resolveParserMaxFeedBodyBytes,
   sleep,
 } from '@podverse/helpers';
 import { getStatusCodeFromError } from '@podverse/helpers-requests';
@@ -32,14 +33,17 @@ import {
   AccountService,
   ChannelSeasonService,
   ChannelService,
-  checkIfFeedFlagStatusShouldParse,
   checkIfSpamFeed,
   DEFAULT_SPAM_FEED_ITEM_THRESHOLDS,
-  FeedFlagStatusStatusEnum,
+  FeedConditionSourceEnum,
+  FeedConditionTypeKeyEnum,
+  FeedLifecycleStateKeyEnum,
   FeedLogService,
+  FeedPolicyService,
   FeedService,
   OnDemandParserEventService,
   resolveSpamFeedItemThresholds,
+  shouldAttemptFeedParseFromLifecycleAndPolicy,
 } from '@podverse/orm';
 import { compatChannelImageDtos, compatItemImageDtos } from '@podverse/parser-mapping';
 
@@ -57,12 +61,20 @@ import { createParsedItemStableKeySet } from './itemStableKey.js';
   RSS feeds without podcast_index_id (Add By RSS feeds) will NOT be saved to the database.
 */
 
-export const getAndParseRSSFeed = async (url: string) => {
-  const response = await _request(url);
+export const getAndParseRSSFeed = async (url: string, maxFeedBodyBytes: number) => {
+  const response = await _request(url, {
+    maxResponseBytes: maxFeedBodyBytes,
+  });
   const data = response.data as string;
-  const parsedFeed = parseFeed(data, { allowMissingGuid: true });
+  const bodyBytes = Buffer.byteLength(data, 'utf8');
+  const parsedFeed = parseFeed(data, { allowMissingGuid: true, maxFeedBodyBytes });
 
   if (!parsedFeed) {
+    if (bodyBytes > maxFeedBodyBytes) {
+      throw new Error(
+        `getAndParseRSSFeed: response body exceeds max (${bodyBytes} > ${maxFeedBodyBytes}) for ${url}`
+      );
+    }
     throw new Error(`getAndParseRSSFeed: parsedFeed not found for ${url}`);
   }
 
@@ -103,6 +115,19 @@ async function handleRateLimitRequestDelay(url: string) {
   }
 }
 
+function isMaxResponseSizeError(error: unknown): boolean {
+  if (!(error instanceof Error)) {
+    return false;
+  }
+
+  const message = error.message.toLowerCase();
+  return (
+    message.includes('maxcontentlength') ||
+    message.includes('maxbodylength') ||
+    message.includes('response body exceeds max')
+  );
+}
+
 export const parseRSSFeedAndSaveToDatabase = async (
   url: string,
   podcast_index_id: number,
@@ -137,6 +162,8 @@ export const parseRSSFeedAndSaveToDatabase = async (
   }
 
   const feedService = new FeedService();
+  const feedPolicyService = new FeedPolicyService();
+  const channelService = new ChannelService();
   let feed = null;
   let channel = null;
   let parsingLockAcquired = false;
@@ -160,10 +187,37 @@ export const parseRSSFeedAndSaveToDatabase = async (
       `parseRSSFeedAndSaveToDatabase url: ${url} podcast_index_id: ${podcast_index_id}`
     );
     feed = await handleGetRSSFeed(url, podcast_index_id);
+    channel = await channelService.getOrCreateByFeed(feed);
+    if (channel && !channel.title) {
+      try {
+        const podcastIndexService = getPodcastIndexService();
+        const podcastIndexById = await podcastIndexService.podcastGetById(podcast_index_id);
+        const piTitle = podcastIndexById?.feed?.title;
+        if (typeof piTitle === 'string' && piTitle.trim()) {
+          channel = await channelService.update(channel.id, {
+            title: piTitle.trim(),
+            sortable_title: piTitle.trim(),
+            medium_id: channel.medium_id,
+          });
+        }
+      } catch {
+        // Best-effort PI metadata enrichment for minimally persisted channels.
+      }
+    }
 
-    if (!checkIfFeedFlagStatusShouldParse(feed.feed_flag_status.id)) {
+    const currentFeedPolicy = await feedPolicyService.recomputePolicy(feed.id);
+    const lifecycleKey =
+      feed.feed_lifecycle_state?.feed_lifecycle_state_type?.state_key ??
+      FeedLifecycleStateKeyEnum.Active;
+
+    if (
+      !shouldAttemptFeedParseFromLifecycleAndPolicy({
+        lifecycleStateKey: lifecycleKey,
+        feedPolicy: currentFeedPolicy,
+      })
+    ) {
       throw new Error(
-        `parseRSSFeedAndSaveToDatabase: feed_flag_status.status is not Active or AlwaysAllow for ${feed.id} ${feed.podcast_index_id} ${feed.url}`
+        `parseRSSFeedAndSaveToDatabase: feed lifecycle/policy blocks parse for ${feed.id} ${feed.podcast_index_id} ${feed.url}`
       );
     }
 
@@ -176,7 +230,19 @@ export const parseRSSFeedAndSaveToDatabase = async (
       feed = await feedService.update(feed.id, { url });
     }
 
-    parsedFeed = await handleRequestRSSFeed(feed);
+    const defaultMaxFeedBodyBytes = resolveParserMaxFeedBodyBytes(
+      process.env.PARSER_MAX_FEED_BODY_BYTES
+    );
+    const maxFeedBodyBytes = feed.max_response_body_bytes_override ?? defaultMaxFeedBodyBytes;
+
+    parsedFeed = await handleRequestRSSFeed(feed, maxFeedBodyBytes);
+    await feedPolicyService.setCondition({
+      feedId: feed.id,
+      conditionKey: FeedConditionTypeKeyEnum.OversizedDetected,
+      isActive: false,
+      source: FeedConditionSourceEnum.Auto,
+      note: null,
+    });
     feed = await handleParsedFeed(parsedFeed, feed, options);
 
     const parserRuntimeSettings = getParserConfig().parser;
@@ -191,14 +257,32 @@ export const parseRSSFeedAndSaveToDatabase = async (
       feed.spam_item_limit_override
     );
 
-    if (checkIfSpamFeed(parsedFeed, feed.feed_flag_status.id, effectiveSpamThresholds)) {
-      await feedService.updateFlagStatus(feed, FeedFlagStatusStatusEnum.Spam);
+    const activeConditionKeysBeforeSpamCheck = await feedPolicyService.getActiveConditionKeys(
+      feed.id
+    );
+
+    if (checkIfSpamFeed(parsedFeed, activeConditionKeysBeforeSpamCheck, effectiveSpamThresholds)) {
+      await feedPolicyService.setCondition({
+        feedId: feed.id,
+        conditionKey: FeedConditionTypeKeyEnum.SpamDetected,
+        isActive: true,
+        source: FeedConditionSourceEnum.Auto,
+        note: 'Parser detected item/live-item count above configured spam threshold',
+      });
+      await feedService.refreshFeedPolicy(feed.id);
       throw new Error(
         `parseRSSFeedAndSaveToDatabase: feed is spam ${feed.id} ${feed.podcast_index_id} ${feed.url}`
       );
     }
+    await feedPolicyService.setCondition({
+      feedId: feed.id,
+      conditionKey: FeedConditionTypeKeyEnum.SpamDetected,
+      isActive: false,
+      source: FeedConditionSourceEnum.Auto,
+      note: null,
+    });
+    await feedService.refreshFeedPolicy(feed.id);
 
-    const channelService = new ChannelService();
     channel = await channelService.getOrCreateByFeed(feed);
 
     await handleParsedChannelSeasons(parsedFeed, channel);
@@ -271,6 +355,17 @@ export const parseRSSFeedAndSaveToDatabase = async (
     const feedLogService = new FeedLogService();
     await feedLogService.update(feed, { last_finished_parse_time: new Date() });
   } catch (error) {
+    if (feed?.id && isMaxResponseSizeError(error)) {
+      await feedPolicyService.setCondition({
+        feedId: feed.id,
+        conditionKey: FeedConditionTypeKeyEnum.OversizedDetected,
+        isActive: true,
+        source: FeedConditionSourceEnum.Auto,
+        note: 'Outbound response exceeded configured max response bytes',
+      });
+      await feedService.refreshFeedPolicy(feed.id);
+    }
+
     if (error instanceof FeedIsParsingError) {
       // Lock loser must be a pure no-op: no parse writes, no feed-log writes, no on-demand event row.
       loggerService.warn(`Feed ${feed?.id} is already parsing.`);

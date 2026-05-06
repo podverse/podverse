@@ -1,6 +1,17 @@
 /**
- * Monorepo convention: env vars that end with `_EXPIRATION` are non-negative integer values.
+ * Monorepo convention: names ending in `_EXPIRATION` (env keys and exported JS constants) denote a
+ * duration in **seconds**. Do not suffix symbols with `_SECONDS`; the `_EXPIRATION` suffix carries the unit.
  */
+
+/**
+ * Fallback when `MEMBERSHIP_FREE_TRIAL_EXPIRATION` is unset — **31 days** expressed as seconds (same numeric value as
+ * main API `config.premium.freeTrialExpiration`).
+ */
+export const DEFAULT_FREE_TRIAL_EXPIRATION = 31 * 24 * 60 * 60;
+export const DEFAULT_AUTH_JWT_EXPIRATION = 365 * 24 * 60 * 60;
+export const DEFAULT_VERIFY_AND_EMAIL_CHANGE_TOKEN_EXPIRATION = 31_540_000;
+export const DEFAULT_RESET_PASSWORD_TOKEN_EXPIRATION = 86_400;
+export const DEFAULT_SET_PASSWORD_EXPIRATION = 168 * 60 * 60;
 
 /**
  * Parse a single env value. Returns `null` if undefined, null, or empty/whitespace after trim.

@@ -6,10 +6,10 @@ export type AuthenticatedAdmin = {
   role: string;
   permissions: {
     feeds_crud: number;
-    feed_flag_statuses_crud: number;
-    feed_flag_status_reasons_crud: number;
+    feed_takedown_reasons_crud: number;
     admins_crud: number;
     stats_crud: number;
+    billing_prices_crud?: number;
   } | null;
 };
 

@@ -4,6 +4,7 @@
 export type WorkerCommandRisk = 'normal' | 'long_running' | 'dev_only';
 
 export type WorkerCommandCategory =
+  | 'billing'
   | 'archival'
   | 'on_demand_parser'
   | 'image'

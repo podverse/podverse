@@ -19,12 +19,20 @@ vi.mock('axios', () => ({
 }));
 
 describe('requestForOutbound', () => {
+  const originalParserMaxFeedBodyBytes = process.env.PARSER_MAX_FEED_BODY_BYTES;
+
   beforeEach(() => {
     vi.mocked(axios.request).mockClear();
+    delete process.env.PARSER_MAX_FEED_BODY_BYTES;
   });
 
   afterEach(() => {
     vi.mocked(axios.request).mockClear();
+    if (originalParserMaxFeedBodyBytes === undefined) {
+      delete process.env.PARSER_MAX_FEED_BODY_BYTES;
+    } else {
+      process.env.PARSER_MAX_FEED_BODY_BYTES = originalParserMaxFeedBodyBytes;
+    }
   });
 
   it('does not call axios when URL fails SSRF validation', async () => {
@@ -43,5 +51,27 @@ describe('requestForOutbound', () => {
       maxBodyLength: DEFAULT_OUTBOUND_MAX_RESPONSE_BYTES,
     });
     expect(typeof cfg?.beforeRedirect).toBe('function');
+  });
+
+  it('uses PARSER_MAX_FEED_BODY_BYTES when set', async () => {
+    process.env.PARSER_MAX_FEED_BODY_BYTES = '12345';
+    await requestForOutbound('http://1.1.1.1/feed.xml');
+
+    const cfg = vi.mocked(axios.request).mock.calls[0]?.[0];
+    expect(cfg).toMatchObject({
+      maxContentLength: 12345,
+      maxBodyLength: 12345,
+    });
+  });
+
+  it('uses per-request maxResponseBytes when set', async () => {
+    process.env.PARSER_MAX_FEED_BODY_BYTES = '12345';
+    await requestForOutbound('http://1.1.1.1/feed.xml', { maxResponseBytes: 7777 });
+
+    const cfg = vi.mocked(axios.request).mock.calls[0]?.[0];
+    expect(cfg).toMatchObject({
+      maxContentLength: 7777,
+      maxBodyLength: 7777,
+    });
   });
 });

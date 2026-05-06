@@ -2,7 +2,8 @@
 # Shared npm audit gate with allowlist support
 # Centralizes audit validation logic across release scripts to maintain consistency
 # Usage: scripts/lib/check-audit-gate.sh <allowed-ids> [context-name]
-# Example: scripts/lib/check-audit-gate.sh "1113977,1116970" "promote to alpha"
+# Example: scripts/lib/check-audit-gate.sh "" "promote to alpha"
+# Example with allowlist: scripts/lib/check-audit-gate.sh "1113977" "promote to alpha"
 # 
 # If no allowed-ids provided or empty string, no advisories are allowlisted (strict mode).
 # Exit code 0 = audit passed, 1 = audit failed

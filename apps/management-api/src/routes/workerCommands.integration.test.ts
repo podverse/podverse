@@ -100,13 +100,9 @@ describe('management-api GET /worker-commands', () => {
             risk: 'normal',
             related_management_path: null,
           }),
-          expect.objectContaining({
-            name: 'ormFeedUpdateFlagStatus',
-            related_management_path: '/feed-operations/flag-status',
-          }),
         ]),
       })
     );
-    expect(res.body.commands.length).toBeGreaterThanOrEqual(20);
+    expect(res.body.commands.length).toBeGreaterThanOrEqual(19);
   });
 });

@@ -2,6 +2,10 @@
 
 import type { AccountSignupMode } from '@podverse/helpers';
 import {
+  DEFAULT_AUTH_JWT_EXPIRATION,
+  DEFAULT_FREE_TRIAL_EXPIRATION,
+  DEFAULT_RESET_PASSWORD_TOKEN_EXPIRATION,
+  DEFAULT_VERIFY_AND_EMAIL_CHANGE_TOKEN_EXPIRATION,
   MS_PER_SECOND,
   readOptionalPositiveExpirationEnv,
   readRequiredPositiveExpirationEnv,
@@ -103,11 +107,6 @@ type Config = {
     freeTrialExpiration: number;
   };
 };
-
-const DEFAULT_AUTH_JWT_EXPIRATION = 365 * 24 * 60 * 60;
-const DEFAULT_FREE_TRIAL_EXPIRATION = 31 * 24 * 60 * 60;
-const DEFAULT_VERIFY_AND_EMAIL_CHANGE_TOKEN_EXPIRATION = 31_540_000;
-const DEFAULT_RESET_PASSWORD_TOKEN_EXPIRATION = 86_400;
 
 export const config: Config = {
   nodeEnv: process.env.NODE_ENV!,
@@ -227,11 +226,11 @@ export const config: Config = {
     domain: process.env.WEB_DOMAIN!,
   },
   premium: {
-    costMonthly: Number(process.env.PREMIUM_MEMBERSHIP_COST_MONTHLY!),
-    costAnnually: Number(process.env.PREMIUM_MEMBERSHIP_COST_ANNUALLY!),
+    costMonthly: Number(process.env.MEMBERSHIP_PREMIUM_COST_MONTHLY!),
+    costAnnually: Number(process.env.MEMBERSHIP_PREMIUM_COST_ANNUALLY!),
     signupMode: process.env.ACCOUNT_SIGNUP_MODE! as AccountSignupMode,
     freeTrialExpiration: readOptionalPositiveExpirationEnv(
-      'FREE_TRIAL_EXPIRATION',
+      'MEMBERSHIP_FREE_TRIAL_EXPIRATION',
       DEFAULT_FREE_TRIAL_EXPIRATION
     ),
   },

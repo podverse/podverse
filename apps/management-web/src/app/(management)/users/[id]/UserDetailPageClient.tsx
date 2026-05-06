@@ -5,6 +5,22 @@ import { useTranslations } from 'next-intl';
 import { useCallback, useEffect, useState } from 'react';
 
 import {
+  ActionLink,
+  Alert,
+  Button,
+  CopyToClipboardButton,
+  DescriptionList,
+  DescriptionListRow,
+  Divider,
+  FormHintText,
+  LoadingText,
+  ManagementPageShell,
+  PageHeaderActions,
+  SectionHeading,
+  StatusBadge,
+} from '@podverse/ui';
+
+import {
   deleteUser,
   generateInviteLink,
   getInviteLink,
@@ -13,8 +29,6 @@ import {
   revokeInviteLink,
   type User,
 } from '../../../../lib/requests/users';
-
-import styles from './page.module.scss';
 
 type Props = {
   userId: number;
@@ -28,7 +42,6 @@ export function UserDetailPageClient({ userId }: Props) {
   const [inviteLink, setInviteLink] = useState<InviteLink | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [copied, setCopied] = useState(false);
 
   const loadInviteLink = useCallback(async () => {
     try {
@@ -74,7 +87,6 @@ export function UserDetailPageClient({ userId }: Props) {
     try {
       const result = await generateInviteLink(userId);
       setInviteLink(result.invite_link);
-      setCopied(false);
     } catch {
       setError(t('failedToUpdate'));
     }
@@ -84,110 +96,85 @@ export function UserDetailPageClient({ userId }: Props) {
     try {
       await revokeInviteLink(userId);
       setInviteLink(null);
-      setCopied(false);
     } catch {
       setError(t('failedToUpdate'));
     }
   };
 
-  const handleCopyLink = () => {
-    if (!inviteLink?.url) return;
-    void navigator.clipboard.writeText(inviteLink.url);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
-
-  if (loading) return <p className={styles.loadingText}>{tc('loading')}</p>;
-  if (error) return <p className={styles.errorText}>{error}</p>;
-  if (!user) return <p className={styles.errorText}>{t('failedToLoad')}</p>;
+  if (loading) return <LoadingText>{tc('loading')}</LoadingText>;
+  if (error) return <Alert>{error}</Alert>;
+  if (!user) return <Alert>{t('failedToLoad')}</Alert>;
 
   return (
-    <div className="container">
-      <Link href="/users" className={styles.backLink}>
+    <ManagementPageShell title={t('userDetail')}>
+      <ActionLink href="/users" variant="inline" LinkComponent={Link}>
         &larr; {t('backToList')}
-      </Link>
-      <div className="page-header">
-        <h1 className="page-title">{t('userDetail')}</h1>
-      </div>
-      <main>
-        <div className={styles.detailGrid}>
-          <span className={styles.label}>ID</span>
-          <span className={styles.value}>{user.id_text}</span>
+      </ActionLink>
 
-          <span className={styles.label}>{t('tableHeaders.email')}</span>
-          <span className={styles.value}>{user.email ?? '-'}</span>
-
-          <span className={styles.label}>{t('tableHeaders.username')}</span>
-          <span className={styles.value}>{user.username ?? '-'}</span>
-
-          <span className={styles.label}>{t('tableHeaders.verified')}</span>
-          <span className={styles.value}>
-            <span
-              className={`${styles.verifiedBadge} ${user.verified ? styles.verifiedYes : styles.verifiedNo}`}
-            >
+      <DescriptionList variant="rows">
+        <DescriptionListRow detail={user.id_text} term="ID" />
+        <DescriptionListRow detail={user.email ?? '-'} term={t('tableHeaders.email')} />
+        <DescriptionListRow detail={user.username ?? '-'} term={t('tableHeaders.username')} />
+        <DescriptionListRow
+          detail={
+            <StatusBadge variant={user.verified ? 'success' : 'warning'}>
               {user.verified ? tc('yes') : tc('no')}
-            </span>
-          </span>
+            </StatusBadge>
+          }
+          term={t('tableHeaders.verified')}
+        />
+        <DescriptionListRow
+          detail={user.created_at ? new Date(user.created_at).toLocaleString() : '-'}
+          term={t('tableHeaders.createdAt')}
+        />
+      </DescriptionList>
 
-          <span className={styles.label}>{t('tableHeaders.createdAt')}</span>
-          <span className={styles.value}>
-            {user.created_at ? new Date(user.created_at).toLocaleString() : '-'}
-          </span>
+      <PageHeaderActions>
+        <ActionLink href={`/users/${userId}/edit`} variant="primary" LinkComponent={Link}>
+          {tc('edit')}
+        </ActionLink>
+        <Button onClick={() => void handleDelete()} type="button" variant="danger">
+          {tc('delete')}
+        </Button>
+      </PageHeaderActions>
+
+      <Divider />
+
+      <SectionHeading level={2}>{t('inviteLinks')}</SectionHeading>
+      {inviteLink ? (
+        <div>
+          <p>
+            <strong>{t('activeInviteLink')}</strong>
+          </p>
+          <p style={{ wordBreak: 'break-all', margin: 'var(--spacing-md) 0' }}>
+            <a href={inviteLink.url} target="_blank" rel="noopener noreferrer">
+              {inviteLink.url}
+            </a>
+          </p>
+          <FormHintText variant="block">
+            {t('expiresAt', {
+              date: new Date(inviteLink.expires_at).toLocaleString(),
+            })}
+          </FormHintText>
+          <PageHeaderActions>
+            <CopyToClipboardButton
+              textToCopy={inviteLink.url}
+              idleLabel={t('copyLink')}
+              copiedLabel={t('linkCopied')}
+            />
+            <Button onClick={() => void handleRevokeLink()} type="button" variant="link">
+              {t('revokeLink')}
+            </Button>
+          </PageHeaderActions>
         </div>
-
-        <div className={styles.actionsRow}>
-          <Link href={`/users/${userId}/edit`} className={styles.editLink}>
-            {tc('edit')}
-          </Link>
-          <button className={styles.editLink} onClick={() => void handleDelete()} type="button">
-            {tc('delete')}
-          </button>
+      ) : (
+        <div>
+          <FormHintText variant="block">{t('noActiveInviteLinks')}</FormHintText>
+          <Button onClick={() => void handleGenerateLink()} type="button" variant="link">
+            {t('generateInviteLink')}
+          </Button>
         </div>
-
-        <hr className={styles.divider} />
-
-        <h2>{t('inviteLinks')}</h2>
-        {inviteLink ? (
-          <div>
-            <p>
-              <strong>{t('activeInviteLink')}</strong>
-            </p>
-            <p className={styles.inviteUrl}>
-              <a href={inviteLink.url} target="_blank" rel="noopener noreferrer">
-                {inviteLink.url}
-              </a>
-            </p>
-            <p className={styles.inviteExpiry}>
-              {t('expiresAt', {
-                date: new Date(inviteLink.expires_at).toLocaleString(),
-              })}
-            </p>
-            <div className={styles.inviteActions}>
-              <button className={styles.editLink} onClick={handleCopyLink} type="button">
-                {copied ? t('linkCopied') : t('copyLink')}
-              </button>
-              <button
-                className={styles.editLink}
-                onClick={() => void handleRevokeLink()}
-                type="button"
-              >
-                {t('revokeLink')}
-              </button>
-            </div>
-          </div>
-        ) : (
-          <div>
-            <p className={styles.noInviteText}>{t('noActiveInviteLinks')}</p>
-            <button
-              className={styles.editLink}
-              onClick={() => void handleGenerateLink()}
-              type="button"
-            >
-              {t('generateInviteLink')}
-            </button>
-          </div>
-        )}
-      </main>
-    </div>
+      )}
+    </ManagementPageShell>
   );
 }

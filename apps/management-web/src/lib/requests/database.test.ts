@@ -73,10 +73,10 @@ describe('database request helpers', () => {
   it('createTableRow calls /database/:table with POST', async () => {
     apiRequestMock.mockResolvedValue({ id: 5 });
 
-    await createTableRow('feed_flag_status_reason', { reason: 'spam' });
+    await createTableRow('feed_takedown_reason', { reason: 'spam' });
 
     expect(apiRequestMock).toHaveBeenCalledWith({
-      path: '/database/feed_flag_status_reason',
+      path: '/database/feed_takedown_reason',
       method: 'POST',
       data: { reason: 'spam' },
     });
@@ -85,10 +85,10 @@ describe('database request helpers', () => {
   it('updateTableRow calls /database/:table/:id with PATCH', async () => {
     apiRequestMock.mockResolvedValue({ id: 1, reason: 'updated' });
 
-    await updateTableRow('feed_flag_status_reason', 1, { reason: 'updated' });
+    await updateTableRow('feed_takedown_reason', 1, { reason: 'updated' });
 
     expect(apiRequestMock).toHaveBeenCalledWith({
-      path: '/database/feed_flag_status_reason/1',
+      path: '/database/feed_takedown_reason/1',
       method: 'PATCH',
       data: { reason: 'updated' },
     });
@@ -97,10 +97,10 @@ describe('database request helpers', () => {
   it('deleteTableRow calls /database/:table/:id with DELETE', async () => {
     apiRequestMock.mockResolvedValue(undefined);
 
-    await deleteTableRow('feed_flag_status_reason', 7);
+    await deleteTableRow('feed_takedown_reason', 7);
 
     expect(apiRequestMock).toHaveBeenCalledWith({
-      path: '/database/feed_flag_status_reason/7',
+      path: '/database/feed_takedown_reason/7',
       method: 'DELETE',
     });
   });

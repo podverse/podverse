@@ -1,5 +1,4 @@
 import { Clip } from '@orm/entities/clip.js';
-import { FeedFlagStatusStatusEnum } from '@orm/entities/feed/feedFlagStatus.js';
 import { AccountService } from '@orm/services/account/account.js';
 import { BaseManyService } from '@orm/services/base/baseManyService.js';
 import type { EntityManager, FindManyOptions, FindOneOptions } from 'typeorm';
@@ -121,10 +120,9 @@ export class ClipService extends BaseManyService<Clip, 'account'> {
         item: {
           channel: {
             feed: {
-              feed_flag_status: In([
-                FeedFlagStatusStatusEnum.Active,
-                FeedFlagStatusStatusEnum.AlwaysParse,
-              ]),
+              feed_policy: {
+                public_visible: true,
+              },
             },
             ...(medium_ids ? { medium_id: In(medium_ids) } : {}),
             ...(category_id ? { channel_categories: { category_id: Equal(category_id) } } : {}),
@@ -146,10 +144,9 @@ export class ClipService extends BaseManyService<Clip, 'account'> {
           channel: {
             id: In(channel_ids),
             feed: {
-              feed_flag_status: In([
-                FeedFlagStatusStatusEnum.Active,
-                FeedFlagStatusStatusEnum.AlwaysParse,
-              ]),
+              feed_policy: {
+                public_visible: true,
+              },
             },
           },
         },
@@ -168,10 +165,9 @@ export class ClipService extends BaseManyService<Clip, 'account'> {
         item: {
           channel: {
             feed: {
-              feed_flag_status: In([
-                FeedFlagStatusStatusEnum.Active,
-                FeedFlagStatusStatusEnum.AlwaysParse,
-              ]),
+              feed_policy: {
+                public_visible: true,
+              },
             },
             id_text: channel_id_text,
           },
@@ -192,10 +188,9 @@ export class ClipService extends BaseManyService<Clip, 'account'> {
           id_text: item_id_text,
           channel: {
             feed: {
-              feed_flag_status: In([
-                FeedFlagStatusStatusEnum.Active,
-                FeedFlagStatusStatusEnum.AlwaysParse,
-              ]),
+              feed_policy: {
+                public_visible: true,
+              },
             },
           },
         },
@@ -225,10 +220,9 @@ export class ClipService extends BaseManyService<Clip, 'account'> {
         item: {
           channel: {
             feed: {
-              feed_flag_status: In([
-                FeedFlagStatusStatusEnum.Active,
-                FeedFlagStatusStatusEnum.AlwaysParse,
-              ]),
+              feed_policy: {
+                public_visible: true,
+              },
             },
           },
         },
@@ -250,10 +244,9 @@ export class ClipService extends BaseManyService<Clip, 'account'> {
         item: {
           channel: {
             feed: {
-              feed_flag_status: In([
-                FeedFlagStatusStatusEnum.Active,
-                FeedFlagStatusStatusEnum.AlwaysParse,
-              ]),
+              feed_policy: {
+                public_visible: true,
+              },
             },
           },
         },

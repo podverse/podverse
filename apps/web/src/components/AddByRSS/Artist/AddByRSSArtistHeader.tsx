@@ -6,6 +6,7 @@ import React, { useState } from 'react';
 import { FaCircleDollarToSlot, FaCommentDollar, FaGlobe, FaRss } from 'react-icons/fa6';
 
 import { buildAddByRssBoostChannel } from '@podverse/parser-mapping';
+import { Button } from '@podverse/ui';
 
 import { IMAGES } from '../../../constants/images';
 import { useAccount } from '../../../contexts/Account';
@@ -16,7 +17,6 @@ import {
 } from '../../../utils/addByRSS/actions';
 import type { AddByRSSFeedRecord } from '../../../utils/addByRSS/types';
 import { getBoostEligibilityForContent } from '../../../utils/value/boostEligibility';
-import { Button } from '../../Button/Button';
 import { CommonArtistHeader } from '../../Common/Artist/CommonArtistHeader';
 import { CommonArtistHeaderViewDesktop } from '../../Common/Artist/CommonArtistHeaderViewDesktop';
 import { CommonArtistHeaderViewTablet } from '../../Common/Artist/CommonArtistHeaderViewTablet';

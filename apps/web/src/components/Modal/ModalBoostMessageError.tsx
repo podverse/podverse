@@ -3,8 +3,9 @@
 import { useTranslations } from 'next-intl';
 import React from 'react';
 
+import { Button } from '@podverse/ui';
+
 import { useModals } from '../../contexts/Modals';
-import { Button } from '../Button/Button';
 import { Modal, MODAL_CONTENT_MAX_WIDTH } from './Modal';
 
 import styles from '../../styles/components/Modal/ModalBoostMessageError.module.scss';

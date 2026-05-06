@@ -1,3 +1,4 @@
+import { redirect } from 'next/navigation';
 import { z } from 'zod';
 
 import type { DTOItem } from '@podverse/helpers';
@@ -42,6 +43,9 @@ export default async function AlbumPage({ params, searchParams }: AlbumPageProps
     await parseSearchParams(queryParams);
 
   const ssrChannel = await ssrApiRequestService.reqChannelGetByIdOrIdText(channel_id);
+  if (ssrChannel?.feed?.podcast_index_id && ssrChannel.feed.feed_policy?.public_visible === false) {
+    redirect(`/podcast-index/feed/${ssrChannel.feed.podcast_index_id}`);
+  }
 
   const ssrItemsWithLiveItem = await ssrApiRequestService.reqLiveItemGetManyByChannel(
     ssrChannel.id_text

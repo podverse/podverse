@@ -22,10 +22,10 @@ const mockSuperuserAdmin = {
     id: 1,
     admin_account_id: 1,
     feedsCrud: 15,
-    feedFlagStatusesCrud: 15,
-    feedFlagStatusReasonsCrud: 15,
+    feedTakedownReasonsCrud: 15,
     adminsCrud: 15,
     statsCrud: 15,
+    billingPricesCrud: 15,
     created_at: new Date('2020-01-01T00:00:00.000Z'),
     updated_at: new Date('2020-01-01T00:00:00.000Z'),
   },
@@ -171,11 +171,20 @@ describe('management-api auth routes', () => {
         role: 'superuser',
         permissions: {
           feeds_crud: 15,
-          feed_flag_statuses_crud: 15,
-          feed_flag_status_reasons_crud: 15,
+          feed_takedown_reasons_crud: 15,
           admins_crud: 15,
         },
       });
+    });
+
+    it('prefers Authorization Bearer over a stale pv_mgmt_auth cookie', async () => {
+      const res = await request(app)
+        .get(`${authBase}/me`)
+        .set('Cookie', [`${ADMIN_AUTH_COOKIE_NAME}=not.a.valid.jwt`])
+        .set(adminAuthHeaders(1));
+
+      expect(res.status).toBe(200);
+      expect(res.body.id_text).toBe('pvMgtAu001');
     });
 
     it('returns 401 without auth', async () => {

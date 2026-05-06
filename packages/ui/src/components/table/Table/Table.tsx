@@ -1,3 +1,6 @@
+import classNames from 'classnames';
+import type { HTMLAttributes, ReactNode, TdHTMLAttributes } from 'react';
+
 import styles from './Table.module.scss';
 
 type TableProps = {
@@ -17,20 +20,42 @@ function Body({ children }: { children: React.ReactNode }) {
   return <tbody>{children}</tbody>;
 }
 
-function Row({ children }: { children: React.ReactNode }) {
-  return <tr>{children}</tr>;
-}
+type RowProps = Omit<HTMLAttributes<HTMLTableRowElement>, 'children'> & {
+  children: ReactNode;
+  selected?: boolean;
+};
 
-function HeaderCell({ children }: { children: React.ReactNode }) {
+function Row({ children, className, onClick, selected = false, ...rest }: RowProps) {
   return (
-    <th scope="col" className={styles.headerCell}>
+    <tr
+      className={classNames(
+        styles.row,
+        onClick !== undefined ? styles.clickable : null,
+        selected ? styles.selected : null,
+        className
+      )}
+      onClick={onClick}
+      {...rest}
+    >
       {children}
-    </th>
+    </tr>
   );
 }
 
-function Cell({ children }: { children: React.ReactNode }) {
-  return <td>{children}</td>;
+function HeaderCell({ children }: { children: React.ReactNode }) {
+  return <th scope="col">{children}</th>;
+}
+
+type CellProps = Omit<TdHTMLAttributes<HTMLTableCellElement>, 'children'> & {
+  children?: ReactNode;
+};
+
+function Cell({ children, className, ...rest }: CellProps) {
+  return (
+    <td className={classNames(styles.cell, className)} {...rest}>
+      {children}
+    </td>
+  );
 }
 
 function ScrollContainer({ children }: { children: React.ReactNode }) {
@@ -46,4 +71,4 @@ export const Table = Object.assign(TableComponent, {
   ScrollContainer,
 });
 
-export type { TableProps };
+export type { CellProps, RowProps, TableProps };

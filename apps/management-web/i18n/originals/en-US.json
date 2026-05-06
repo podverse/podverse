@@ -16,6 +16,7 @@
     "creating": "Creating...",
     "search": "Search",
     "back": "Back",
+    "breadcrumbNav": "Breadcrumb",
     "submit": "Submit",
     "confirm": "Confirm",
     "yes": "Yes",
@@ -38,7 +39,13 @@
     "password": "Password",
     "newPassword": "New Password",
     "confirmPassword": "Confirm Password",
-    "leaveBlankToKeepCurrent": "Leave blank to keep current"
+    "leaveBlankToKeepCurrent": "Leave blank to keep current",
+    "defaultBrandName": "Management",
+    "invalidCredentialsDefault": "Invalid username or password",
+    "signIn": "Sign In",
+    "signInSubtitle": "Please sign in to continue",
+    "signingIn": "Signing in...",
+    "usernameOrEmail": "Username / Email"
   },
   "nav": {
     "dashboard": "Dashboard",
@@ -64,6 +71,10 @@
       "title": "Database",
       "description": "Browse and manage feed data, statuses, and reasons"
     },
+    "products": {
+      "title": "Products",
+      "description": "Product areas including membership configuration"
+    },
     "admins": {
       "title": "Admins",
       "description": "Manage admin accounts and permissions"
@@ -77,9 +88,88 @@
       "description": "Create and manage app user accounts"
     }
   },
+  "statsPage": {
+    "title": "Stats",
+    "breadcrumbDashboard": "Dashboard",
+    "failedToLoad": "Failed to load stats.",
+    "clear": "Clear",
+    "views": "Views",
+    "loadingDetail": "Loading detail...",
+    "close": "Close",
+    "idValue": "ID {id}",
+    "searchPlaceholder": "Search {entity} by title...",
+    "topChartHeading": "Top 10 {entity} ({range})",
+    "noStatsDataForRange": "No stats data available for this range.",
+    "paginationSummary": "{total} results - Page {page} of {totalPages}",
+    "paginationSummarySingular": "{total} result - Page {page} of {totalPages}",
+    "entityTypes": {
+      "channel": "Channels",
+      "item": "Items",
+      "clip": "Clips",
+      "playlist": "Playlists",
+      "account": "Accounts"
+    },
+    "ranges": {
+      "day": "1 day",
+      "day7": "7 day",
+      "day30": "30 day",
+      "year1": "1 year",
+      "allTime": "All-time"
+    },
+    "table": {
+      "title": "Title",
+      "rangeViews": "{range} views"
+    },
+    "detail": {
+      "dayToday": "Today",
+      "dayN": "Day {count}",
+      "weekCurrent": "This week",
+      "weekN": "Week {count}",
+      "monthCurrent": "This month",
+      "dailyBreakdown": "Daily breakdown",
+      "weeklyBreakdown": "Weekly breakdown"
+    }
+  },
+  "products": {
+    "pageTitle": "Products",
+    "welcomeLine": "Choose a product area.",
+    "membershipsCardTitle": "Memberships",
+    "membershipsCardDescription": "View resolved membership values (environment bootstrap and database).",
+    "breadcrumbDashboard": "Dashboard"
+  },
+  "productMemberships": {
+    "pageTitle": "Memberships",
+    "pageSubtitle": "Effective limits and pricing-related fields for new users and admin surfaces.",
+    "breadcrumbDashboard": "Dashboard",
+    "breadcrumbProducts": "Products",
+    "loadError": "Could not load membership product settings.",
+    "editableTrialHeading": "Free trial duration",
+    "saveSuccess": "Trial duration updated successfully.",
+    "saveError": "Could not update trial duration.",
+    "fieldLabels": {
+      "freeTrialExpirationSeconds": "Free trial duration (seconds)",
+      "premiumMembershipCostMonthly": "Premium monthly cost",
+      "premiumMembershipCostAnnually": "Premium annual cost",
+      "trialMaxAddByRSSFeeds": "Trial max Add-by-RSS feeds",
+      "trialMaxManualRefreshesPerHour": "Trial max manual refreshes per hour",
+      "premiumMaxAddByRSSFeeds": "Premium max Add-by-RSS feeds",
+      "premiumMaxManualRefreshesPerHour": "Premium max manual refreshes per hour"
+    },
+    "pricingTable": {
+      "heading": "Active pricing rows",
+      "cadence": "Cadence",
+      "amountCents": "Amount (cents)",
+      "currency": "Currency",
+      "effectiveFrom": "Effective from",
+      "source": "Source"
+    },
+    "validation": {
+      "invalidFreeTrialSeconds": "Free trial duration must be a positive whole number."
+    }
+  },
   "feedFlagStatus": {
     "pageTitle": "Set feed status",
-    "pageSubtitle": "Find a feed by Podcast Index ID (default), internal feed id, or URL. Set moderation status, optional reason, and note. This is separate from the database table browser.",
+    "pageSubtitle": "Find a feed by Podcast Index ID (default), internal feed id, or URL. Update lifecycle state, active conditions, limits, and notes. This is separate from the database table browser.",
     "breadcrumbParent": "Feed operations",
     "breadcrumbCurrent": "Flag status",
     "sectionFindAria": "Search",
@@ -94,7 +184,7 @@
     "placeholderNumber": "e.g. 12345",
     "lookupLoading": "Looking up…",
     "lookupButton": "Look up",
-    "optionsLoadError": "Could not load status and reason options.",
+    "optionsLoadError": "Could not load feed operations options.",
     "lookupErrorEnterUrl": "Enter a feed URL",
     "lookupErrorPositiveNumber": "Enter a positive number",
     "lookupErrorGeneric": "Feed not found or request failed",
@@ -105,39 +195,47 @@
     "dtUrl": "URL",
     "dtInternalFeedId": "Internal feed id",
     "dtPodcastIndexId": "Podcast Index ID",
-    "dtStatus": "Status",
-    "statusDisplay": "{status} (id: {id})",
+    "dtLifecycle": "Lifecycle state",
+    "lifecycleDisplay": "{state}",
+    "dtActiveConditions": "Active conditions",
+    "dtEffectivePolicy": "Effective policy",
+    "effectivePolicyDisplay": "parse: {parse}, public: {public}, add: {add}, block: {reason}",
+    "boolYes": "yes",
+    "boolNo": "no",
     "dtSpamOverride": "Spam item limit override",
+    "dtMaxResponseBytesOverride": "Max response bytes override",
     "emptyValue": "—",
-    "dtReason": "Reason",
-    "dtReasonNote": "Reason note",
+    "dtLifecycleReason": "Lifecycle reason key",
+    "dtUpdatedSource": "Last lifecycle update source",
     "openInDatabase": "Open this row in Database (read-only for feed)",
-    "newStatusHeading": "New status and reason",
-    "labelNewStatusRequired": "New status *",
-    "selectStatusPlaceholder": "Select status",
-    "selectOptionStatus": "{label} (id: {id})",
-    "labelReason": "Reason",
-    "labelReasonTakedownRequired": "Reason *",
-    "labelReasonOptional": "Reason (optional)",
-    "reasonNone": "(none)",
-    "selectOptionReason": "{label} (id: {id})",
-    "labelNote": "Note (optional)",
-    "notePlaceholder": "Additional context (stored on the feed record)",
+    "newValuesHeading": "Update lifecycle, conditions, and limits",
+    "labelLifecycleRequired": "Lifecycle state *",
+    "selectLifecyclePlaceholder": "Select lifecycle state",
+    "selectOptionLifecycle": "{state}",
+    "labelActiveConditions": "Active condition keys",
+    "labelTakedownReasonOptional": "Takedown reason (optional)",
+    "takedownReasonPlaceholder": "Select a predefined reason…",
+    "labelTransitionNote": "Transition note (optional)",
+    "transitionNotePlaceholder": "Operator context stored on the lifecycle row",
+    "labelConditionNote": "Condition note (optional)",
+    "conditionNotePlaceholder": "Optional note applied to takedown_active when lifecycle is takedown",
     "labelSpamOverride": "Spam item limit override (optional)",
     "spamOverridePlaceholder": "Leave blank to use global status-based limits",
     "spamOverrideHint": "Precedence: feed override wins. If blank, SpamPermitted uses the higher global limit and other parse-eligible statuses use the default global limit.",
+    "labelMaxResponseBytesOverride": "Max response bytes override (optional)",
+    "maxResponseBytesOverridePlaceholder": "Use global default when empty",
     "applySuccess": "Feed status was updated",
-    "applyErrorSelectStatus": "Select a new status",
-    "applyErrorTakedownReason": "A predefined reason is required for takedown",
-    "applyErrorInvalidReason": "Invalid reason",
+    "applyErrorSelectLifecycle": "Select a lifecycle state",
+    "applyErrorTakedownDoc": "Takedown requires a predefined reason and/or a transition note",
     "applyErrorSpamOverride": "Spam item limit override must be a positive integer",
+    "applyErrorMaxResponseBytesOverride": "Max response bytes override must be a positive integer",
     "applyErrorGeneric": "Request failed. Check permissions and try again",
-    "confirmDialogAria": "Confirm status change",
-    "confirmDialogBody": "Apply this status to the feed? This is recorded in the audit log.",
+    "confirmDialogAria": "Confirm feed operations change",
+    "confirmDialogBody": "Apply these feed operations? This is recorded in the audit log.",
     "confirmApplying": "Applying…",
     "applyButton": "Apply change",
     "continueToConfirm": "Continue to confirmation",
-    "confirmHint": "Spam and takedown use a second confirmation step.",
+    "confirmHint": "Spam-like conditions and takedown use a second confirmation step.",
     "readonlyHint": "Your account can look up feeds but not change status. Ask a superuser for <feedsCode>feeds</feedsCode> update access."
   },
   "admins": {
@@ -155,8 +253,7 @@
       "email": "Email",
       "role": "Role",
       "feeds": "Feeds",
-      "flagStatuses": "Flag Statuses",
-      "statusReasons": "Status Reasons",
+      "takedownReasons": "Takedown reasons",
       "admins": "Admins",
       "stats": "Stats",
       "actions": "Actions"
@@ -169,8 +266,7 @@
       "update": "Update",
       "deletePerm": "Delete",
       "feeds": "Feeds",
-      "flagStatuses": "Flag Statuses",
-      "statusReasons": "Status Reasons",
+      "takedownReasons": "Takedown reasons",
       "admins": "Admins",
       "stats": "Stats"
     }
@@ -193,6 +289,7 @@
     "usernameOptional": "Username (optional)",
     "emailOptional": "Email (optional)",
     "passwordOptional": "Password (optional)",
+    "passwordInviteHint": "If you leave this blank, you will receive an invitation link you can send so they can set their password.",
     "emailOrUsernameHint": "At least one of username or email is required.",
     "emailOrUsernameRequired": "At least one of username or email is required.",
     "invalidUsername": "Username must be 3-32 characters, letters, numbers, underscores, and dashes only.",
@@ -225,15 +322,27 @@
       "hintTrialNew": "Trial starts users in the untrusted tier with tighter default limits.",
       "hintPremiumNew": "Premium starts users in the trusted tier with broader default access.",
       "membershipExpiresAt": "Membership Expires At",
+      "premiumBillingCadence": "Premium billing period",
+      "billingMonthly": "Monthly",
+      "billingAnnual": "Annual",
+      "premiumBillingCadenceHint": "Default expiry uses one month ahead for monthly, or one year ahead for annual (aligned with subscription cadence).",
       "trustTier": "Trust Tier",
       "untrusted": "Untrusted",
       "trusted": "Trusted",
       "configureAdvancedOverrides": "Configure advanced feature overrides"
     },
     "advancedOverrides": {
+      "on": "On",
+      "off": "Off",
       "allowDirectoryAddByRss": "Allow directory Add by RSS override",
+      "allowDirectoryAddByRssHelp": "Whether the user may add feeds from the podcast directory. Trial default: {trialDefault}. Premium default: {premiumDefault}.",
       "addByRssFeedLimit": "Add by RSS feed limit override",
+      "addByRssFeedLimitHelp": "Maximum Add by RSS feeds for this account. Trial tier default: {trialDefault}. Premium tier default: {premiumDefault}. Selected tier default for overrides: {selectedDefault}.",
       "manualRefreshPerHour": "Manual refresh/hour limit override",
+      "manualRefreshPerHourHelp": "Maximum manual refreshes per hour. Trial tier default: {trialDefault}. Premium tier default: {premiumDefault}. Selected tier default for overrides: {selectedDefault}.",
+      "placeholderTierDefault": "Tier default: {count}",
+      "trackStatsHelp": "Whether listening statistics are recorded. Trial default: {trialDefault}. Premium default: {premiumDefault}.",
+      "allowNotificationsHelp": "Whether push/email notifications are allowed. Trial default: {trialDefault}. Premium default: {premiumDefault}.",
       "trackStats": "Track stats override",
       "allowNotifications": "Allow notifications override",
       "useTrustTierDefault": "Use membership-tier default",
@@ -276,15 +385,10 @@
         "labelSingular": "Feed",
         "description": "RSS feed URLs and parsing status"
       },
-      "feed_flag_status": {
-        "label": "Feed Flag Statuses",
-        "labelSingular": "Feed Flag Status",
-        "description": "Feed status values (active, spam, archived, takedown, etc.)"
-      },
-      "feed_flag_status_reason": {
-        "label": "Feed Flag Status Reasons",
-        "labelSingular": "Feed Flag Status Reason",
-        "description": "Predefined reasons for feed status changes"
+      "feed_takedown_reason": {
+        "label": "Takedown reasons",
+        "labelSingular": "Takedown reason",
+        "description": "Predefined reasons shown when a feed is in takedown"
       }
     }
   },

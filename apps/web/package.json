@@ -31,6 +31,7 @@
     "@podverse/helpers-requests": "*",
     "@podverse/helpers-validation": "*",
     "@podverse/parser-mapping": "*",
+    "@podverse/ui": "*",
     "@podverse/v4v-btc-ln": "*",
     "@podverse/v4v-helpers": "*",
     "@podverse/v4v-metaboost": "*",

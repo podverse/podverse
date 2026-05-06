@@ -3,8 +3,8 @@
 import React from 'react';
 
 import type { DTOAccount } from '@podverse/helpers';
+import { Divider } from '@podverse/ui';
 
-import { Divider } from '../../Divider/Divider';
 import { ListProfileRow } from './ListProfileRow';
 
 import styles from '../../../styles/components/Common/List/ListNodes.module.scss';

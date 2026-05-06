@@ -124,6 +124,7 @@ export async function GET(req: NextRequest) {
     // Return response with rate limit headers
     return new Response(Buffer.from(combined), {
       headers: {
+        'Cache-Control': `public, max-age=${config.proxy.responseCacheMaxAgeSeconds}, s-maxage=${config.proxy.responseCacheMaxAgeSeconds}`,
         'Content-Type': contentType,
         'X-RateLimit-Limit': '1000',
         'X-RateLimit-Remaining': rateLimitResult.remaining.toString(),

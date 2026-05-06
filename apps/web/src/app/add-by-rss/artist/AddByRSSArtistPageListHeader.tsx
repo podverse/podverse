@@ -3,8 +3,9 @@
 import { useTranslations } from 'next-intl';
 import React from 'react';
 
+import { Tabs } from '@podverse/ui';
+
 import { CommonDetailListHeader } from '../../../components/Common/List/CommonDetailListHeader';
-import { Tabs } from '../../../components/Tabs/Tabs';
 
 export type AddByRSSArtistPageTabKey = 'albums' | 'tracks' | 'boosts' | 'about';
 

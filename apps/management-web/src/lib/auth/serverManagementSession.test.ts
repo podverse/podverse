@@ -38,8 +38,7 @@ describe('getManagementSessionUser', () => {
       role: 'superuser',
       permissions: {
         feeds_crud: 15,
-        feed_flag_statuses_crud: 15,
-        feed_flag_status_reasons_crud: 15,
+        feed_takedown_reasons_crud: 15,
         admins_crud: 15,
         stats_crud: 15,
       },

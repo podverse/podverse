@@ -5,9 +5,9 @@ import { useTranslations } from 'next-intl';
 import React from 'react';
 
 import type { DTOAccount } from '@podverse/helpers';
+import { Button } from '@podverse/ui';
 
 import { ROUTES } from '../../../constants/routes';
-import { Button } from '../../Button/Button';
 import { ProfileHeader } from './ProfileHeader';
 
 import styles from '../../../styles/components/Media/Profile/MyProfileHeader.module.scss';

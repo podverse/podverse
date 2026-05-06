@@ -6,8 +6,10 @@ This document gives detailed steps to test the image shrinking service locally o
 
 - **Database**: PostgreSQL with the Podverse schema applied (including `image_shrink_source`, `channel_image`, `item_image` with `is_resized` and image URL columns).
 - **Message queue**: ActiveMQ Artemis (or compatible) with the `image-shrinking-hints` queue created and reachable.
-- **Image CDN**: Storage and credentials for the image shrink pipeline. Currently the only documented implementation is Digital Ocean Spaces.
-  - **Implementation option**: [Digital Ocean Spaces Setup](DIGITAL-OCEAN-SETUP.md) — create a Space, get keys and CDN URL, set env vars.
+- **Image CDN**: S3-compatible storage and credentials for the image shrink pipeline (DigitalOcean
+  Spaces, Garage, AWS S3, Backblaze B2, etc.).
+  - **Setup**: [Bucket providers](BUCKET-PROVIDERS.md) — choose `BUCKET_PROVIDER`, keys, region,
+    bucket, CDN base URL, and any endpoint overrides.
 
 Ensure the database has some channel and/or item images (from normal RSS parsing or fixtures) so the backfill can find unresized images to enqueue.
 
@@ -158,16 +160,16 @@ If you only run the backfill without the parser, the backfill will still enqueue
 
 ## 9. Troubleshooting
 
-| Symptom                                       | What to check                                                                                                                                                   |
-| --------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| "Image shrink is disabled"                    | At least one image shrink env var must be set; if any is set, all required vars must be set. See `apps/workers/ENV.md`.                                         |
-| "ImageStorageService not initialized"         | The consumer requires image shrink to be enabled and the storage implementation to be wired at startup (e.g. Digital Ocean credentials and IMAGE*CDN*\\\* set). |
-| Backfill reports "no unresized images found"  | Database has no `channel_image` / `item_image` rows with `is_resized = false`, or they have no valid `url`. Ingest some feeds or add test data.                 |
-| Consumer fails on upload                      | Check DO credentials, bucket name, region, and CDN URL. Confirm the Space allows public read if you want CDN URLs to be viewable in a browser.                  |
-| Queue not receiving / consumer not processing | Confirm MQ host, port, credentials, and that the queue name matches what the app uses. Check broker logs and that the backfill actually sent messages.          |
+| Symptom                                       | What to check                                                                                                                                                              |
+| --------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| "Image shrink is disabled"                    | At least one image shrink env var must be set; if any is set, all required vars must be set. See `apps/workers/ENV.md`.                                                    |
+| "ImageStorageService not initialized"         | The consumer requires image shrink to be enabled and the storage implementation to be wired at startup (bucket credentials + required `BUCKET_*` / `IMAGE_SHRINK_*` vars). |
+| Backfill reports "no unresized images found"  | Database has no `channel_image` / `item_image` rows with `is_resized = false`, or they have no valid `url`. Ingest some feeds or add test data.                            |
+| Consumer fails on upload                      | Check access keys, bucket name, region, endpoint overrides, and CDN URL. Confirm objects are publicly readable if you want CDN URLs to work in a browser.                  |
+| Queue not receiving / consumer not processing | Confirm MQ host, port, credentials, and that the queue name matches what the app uses. Check broker logs and that the backfill actually sent messages.                     |
 
 ## References
 
 - [Service](SERVICE.md) — architecture, flow, env vars, K8s
-- [Digital Ocean Spaces Setup](DIGITAL-OCEAN-SETUP.md) — implementation option for image CDN (currently the only one)
+- [Bucket providers](BUCKET-PROVIDERS.md) — S3-compatible backends and env vars
 - [apps/workers/ENV.md](../../apps/workers/ENV.md) — all worker env vars and categories

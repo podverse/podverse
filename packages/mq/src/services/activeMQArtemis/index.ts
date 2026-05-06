@@ -32,6 +32,8 @@ type SendMessageParams = {
   message: Message;
   priority: 'normal' | 'slow';
   dedupeCacheTimeMS: number | null;
+  /** When set (0–9), used as the AMQP message priority instead of mapping `priority`. */
+  amqpPriority?: number;
 };
 
 export interface ActiveMQArtemisServiceParams {
@@ -332,7 +334,7 @@ export class ActiveMQArtemisService {
   }
 
   async sendMessage(params: SendMessageParams): Promise<void> {
-    const { queueName, message, priority, dedupeCacheTimeMS } = params;
+    const { queueName, message, priority, dedupeCacheTimeMS, amqpPriority } = params;
     try {
       const sender = await this.ensureSender(queueName);
       const bodyString = JSON.stringify(message);
@@ -346,7 +348,12 @@ export class ActiveMQArtemisService {
           duplicateId,
         });
       }
-      const priorityValue = !priority || priority === 'normal' ? 5 : 1;
+      let priorityValue: number;
+      if (amqpPriority !== undefined && Number.isFinite(amqpPriority)) {
+        priorityValue = Math.min(9, Math.max(0, Math.floor(amqpPriority)));
+      } else {
+        priorityValue = !priority || priority === 'normal' ? 5 : 1;
+      }
       await new Promise<void>((resolve, reject) => {
         const delivery = sender.send({
           body: bodyString,

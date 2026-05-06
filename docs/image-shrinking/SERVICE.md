@@ -7,9 +7,9 @@ image CDN. It runs as a long-running MQ consumer plus a periodic backfill cron j
 blocks RSS parsing.
 
 Storage is abstracted via a provider-agnostic interface (`ImageStorageService`); the worker
-injects the implementation at bootstrap. **Digital Ocean Spaces is the current implementation.**
-The pipeline can be switched to another image CDN (e.g. AWS S3, Cloudflare R2) by providing a
-different implementation and wiring it in the worker; batch logic and the interface stay unchanged.
+injects an **S3-compatible** implementation at bootstrap (`BUCKET_PROVIDER`). Supported backends
+include DigitalOcean Spaces, AWS S3, Backblaze B2, Garage, and other S3-compatible endpoints.
+See [Bucket providers](BUCKET-PROVIDERS.md) for setup.
 
 Key points:
 
@@ -37,6 +37,20 @@ Further reading:
 4. Periodic backfill enqueues any remaining unresized images.
 5. Worker downloads, resizes to `IMAGE_SHRINK_WIDTH_PX`, and uploads to image CDN.
 6. Worker writes `is_resized = true` rows pointing at CDN URLs.
+
+## Origin size, decode errors, and logs
+
+- **Max download size:** Optional `IMAGE_SHRINK_MAX_SOURCE_BYTES` (default **20971520**, 20 MiB). Larger
+  responses are rejected using `Content-Length` when present, or after the body exceeds the cap.
+- **Decode:** Sharp runs with `failOn: 'none'` for best-effort handling of marginal JPEG/PNG/WebP
+  inputs; truly corrupt origins may still fail (for example libvips JPEG errors).
+- **Processor logs:** On failure, workers emit `imageShrinkProcessor: failed to process target` with
+  `entityType`, `entityId`, `url`, `urlHash`, `hinted`, `maxSourceBytes`, `errorName`, `errorMessage`,
+  and (when a full GET completed first) `originResponseStatus`, `originContentLength`, `originEtag`,
+  `originLastModified`, `originContentType`.
+- **MQ consumer logs:** On hint handling failure, `imageShrinkRunConsumer: error processing hint (mq
+message context)` includes `hintUrl`, `hintEntityType`, and `hintCreatedAt` before the stack trace
+  line from `logError`.
 
 ## CDN Key Format
 
@@ -83,8 +97,8 @@ npm run image_shrink_source_prune -w apps/workers
 
 ### Orphan Cleanup Criteria
 
-The orphan cleanup job (`imageShrinkCleanupOrphans`) lists objects directly from DigitalOcean
-Spaces and applies the following filters before deleting:
+The orphan cleanup job (`imageShrinkCleanupOrphans`) lists objects directly from the configured
+bucket (S3-compatible API) and applies the following filters before deleting:
 
 - Only objects under the `images/` prefix with a `.webp` suffix.
 - Only objects with a `lastModified` timestamp (missing timestamps are skipped).
@@ -114,6 +128,10 @@ Hints are published to the `image-shrinking-hints` queue with the following fiel
 - `entityType` (`channel` or `item`)
 - `hintCreatedAt`
 
+Channel-level hints use **AMQP message priority 9**; item-level hints use **priority 4**, so channel
+artwork is shrunk ahead of episode images when the broker delivers by message priority (configure the
+`image-shrinking-hints` queue as a prioritized queue in Artemis if ordering is not already applied).
+
 The consumer ignores hints older than 24 hours.
 
 ## Change Detection
@@ -136,12 +154,16 @@ See `apps/workers/.env.example` for the authoritative template and commented gro
 
 ### Image Shrink (storage)
 
-- `BUCKET_PROVIDER` (digitalocean)
+- `BUCKET_PROVIDER` (`digitalocean` | `aws-s3` | `backblaze-b2` | `garage` | `s3-compatible`)
 - `BUCKET_ACCESS_KEY`
 - `BUCKET_SECRET_KEY`
 - `BUCKET_REGION`
 - `BUCKET_NAME`
 - `BUCKET_CDN_BASE_URL`
+- `BUCKET_ENDPOINT` (required for `garage` and `s3-compatible`; optional otherwise — see [Bucket providers](BUCKET-PROVIDERS.md))
+- `BUCKET_FORCE_PATH_STYLE` (optional; default is provider-specific)
+
+Provider-specific setup: [Bucket providers](BUCKET-PROVIDERS.md).
 
 ### Image Shrink
 
@@ -163,15 +185,15 @@ See `apps/workers/.env.example` for the authoritative template and commented gro
 
 Add non-sensitive values to `infra/k8s/base/workers/configmap.yaml` using the same section structure as `apps/workers/.env.example` (Image Shrink storage; Image Shrink):
 
-- **Image Shrink (storage):** `BUCKET_PROVIDER`, `BUCKET_REGION`, `BUCKET_NAME`, `BUCKET_CDN_BASE_URL`
+- **Image Shrink (storage):** `BUCKET_PROVIDER`, `BUCKET_REGION`, `BUCKET_NAME`, `BUCKET_CDN_BASE_URL`, `BUCKET_ENDPOINT` (when required), `BUCKET_FORCE_PATH_STYLE`
 - **Image Shrink:** `IMAGE_SHRINK_WIDTH_PX`, `IMAGE_SHRINK_BATCH_SIZE`, `IMAGE_SHRINK_CONCURRENCY`, `IMAGE_SHRINK_RPS`, `IMAGE_SHRINK_RECHECK_EXPIRATION` (Optional), `IMAGE_SHRINK_DEEP_RECHECK_EXPIRATION` (Optional), `IMAGE_SHRINK_SOURCE_PRUNE_EXPIRATION` (Optional)
 
 ### Secret
 
-Use `infra/k8s/scripts/secret-generators/create_workers_digital_ocean_secret.sh` to create:
+Use `infra/k8s/scripts/secret-generators/create_workers_storage_bucket_secret.sh` to create:
 
 ```
-podverse-${ENV}-workers-digital-ocean-opaque.enc.yaml
+podverse-${ENV}-workers-storage-bucket-opaque.enc.yaml
 ```
 
 The secret stores `BUCKET_ACCESS_KEY` and `BUCKET_SECRET_KEY`.
@@ -179,12 +201,12 @@ The secret stores `BUCKET_ACCESS_KEY` and `BUCKET_SECRET_KEY`.
 ### Consumer Deployment
 
 Add the worker deployment in `infra/k8s/base/workers/image-shrink-consumer.deployment.yaml` and
-ensure the DigitalOcean secret is included in `envFrom`.
+ensure the storage bucket secret is included in `envFrom`.
 
 ### Cron Job
 
 `infra/k8s/base/cron/worker-image-shrink-backfill.cronjob.yaml` runs the backfill on a schedule.
-Add the secret to the `envFrom` list so the workers pod can access the Spaces credentials.
+Add the secret to the `envFrom` list so the workers pod can access the bucket credentials.
 
 `infra/k8s/base/cron/worker-image-shrink-orphan-cleanup.cronjob.yaml` runs the orphan cleanup on a weekly schedule. It uses the same env/secret wiring as the backfill job.
 

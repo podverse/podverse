@@ -2,11 +2,40 @@
 
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
+import type { PremiumBillingCadence, ResolvedProductMembership } from '@podverse/helpers';
+import { AccountMembershipEnum } from '@podverse/helpers';
+import {
+  ActionLink,
+  Alert,
+  Breadcrumbs,
+  Button,
+  CheckboxField,
+  CopyToClipboardButton,
+  fieldPrimitiveClasses,
+  FormContainer,
+  FormGroup,
+  FormHintText,
+  FormMaxWidth,
+  FormPrimaryActions,
+  Input,
+  Label,
+  LoadingText,
+  ManagementPageShell,
+  Select,
+} from '@podverse/ui';
+
+import {
+  computeDefaultExpiryInput,
+  fallbackProductMembershipFromEnv,
+  resolvedTierEntitlements,
+  STORAGE_CADENCE_KEY,
+  STORAGE_EXPIRY_KEY,
+  tierLimitPlaceholders,
+} from '../../../../lib/createUserFormDefaults';
+import { getResolvedProductMembership } from '../../../../lib/requests/productMembership';
 import { createUser } from '../../../../lib/requests/users';
-
-import styles from './page.module.scss';
 
 const USERNAME_REGEX = /^[a-zA-Z0-9_-]+$/;
 
@@ -22,8 +51,8 @@ export function NewUserPageClient() {
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [inviteLink, setInviteLink] = useState<string | null>(null);
-  const [copied, setCopied] = useState(false);
-  const [membershipId, setMembershipId] = useState(1);
+  const [membershipId, setMembershipId] = useState(AccountMembershipEnum.Trial);
+  const [premiumCadence, setPremiumCadence] = useState<PremiumBillingCadence>('annual');
   const [membershipExpiresAt, setMembershipExpiresAt] = useState('');
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [allowDirectoryAddByRSS, setAllowDirectoryAddByRSS] = useState<boolean | null>(null);
@@ -31,20 +60,93 @@ export function NewUserPageClient() {
   const [maxManualRefreshesPerHour, setMaxManualRefreshesPerHour] = useState<string>('');
   const [trackStats, setTrackStats] = useState<boolean | null>(null);
   const [allowNotifications, setAllowNotifications] = useState<boolean | null>(null);
+  const [resolvedProductMembership, setResolvedProductMembership] =
+    useState<ResolvedProductMembership | null>(null);
+  const [hydrated, setHydrated] = useState(false);
+  const skipTierCadenceEffect = useRef(true);
 
   const t = useTranslations('users');
   const tc = useTranslations('common');
 
-  const handleCopy = async () => {
-    if (!inviteLink) return;
-    try {
-      await navigator.clipboard.writeText(inviteLink);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    } catch {
-      // fallback: select the input
+  useEffect(() => {
+    let cancelled = false;
+    void (async () => {
+      try {
+        const res = await getResolvedProductMembership();
+        if (!cancelled) {
+          setResolvedProductMembership(res.data);
+        }
+      } catch {
+        if (!cancelled) {
+          setResolvedProductMembership(fallbackProductMembershipFromEnv());
+        }
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!resolvedProductMembership) {
+      return;
     }
-  };
+    const cadRaw = window.localStorage.getItem(STORAGE_CADENCE_KEY);
+    const cad: PremiumBillingCadence = cadRaw === 'monthly' ? 'monthly' : 'annual';
+    setPremiumCadence(cad);
+    const savedExp = window.localStorage.getItem(STORAGE_EXPIRY_KEY);
+    if (savedExp !== null && savedExp.includes('T')) {
+      setMembershipExpiresAt(savedExp);
+    } else {
+      setMembershipExpiresAt(
+        computeDefaultExpiryInput({
+          membershipId: AccountMembershipEnum.Trial,
+          premiumCadence: cad,
+          trialExpirationSeconds: resolvedProductMembership.freeTrialExpirationSeconds,
+        })
+      );
+    }
+    setHydrated(true);
+  }, [resolvedProductMembership]);
+
+  useEffect(() => {
+    if (!hydrated || !resolvedProductMembership) {
+      return;
+    }
+    if (skipTierCadenceEffect.current) {
+      skipTierCadenceEffect.current = false;
+      return;
+    }
+    setMembershipExpiresAt(
+      computeDefaultExpiryInput({
+        membershipId,
+        premiumCadence,
+        trialExpirationSeconds: resolvedProductMembership.freeTrialExpirationSeconds,
+      })
+    );
+  }, [membershipId, premiumCadence, hydrated, resolvedProductMembership]);
+
+  useEffect(() => {
+    if (!hydrated || membershipExpiresAt.trim() === '') {
+      return;
+    }
+    window.localStorage.setItem(STORAGE_EXPIRY_KEY, membershipExpiresAt);
+  }, [membershipExpiresAt, hydrated]);
+
+  useEffect(() => {
+    if (!hydrated) {
+      return;
+    }
+    window.localStorage.setItem(STORAGE_CADENCE_KEY, premiumCadence);
+  }, [premiumCadence, hydrated]);
+
+  const trialEnt = resolvedTierEntitlements(AccountMembershipEnum.Trial);
+  const premiumEnt = resolvedTierEntitlements(AccountMembershipEnum.Premium);
+  const selectedEnt = resolvedTierEntitlements(membershipId);
+
+  const { rss: rssPlaceholder, refresh: refreshPlaceholder } = resolvedProductMembership
+    ? tierLimitPlaceholders(resolvedProductMembership, membershipId)
+    : { rss: 0, refresh: 0 };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -93,6 +195,9 @@ export function NewUserPageClient() {
         ...(trimmedPassword ? { password: trimmedPassword } : {}),
         account_membership_id: membershipId,
         membership_expires_at: membershipExpiresAt.trim() === '' ? null : membershipExpiresAt,
+        ...(membershipId === AccountMembershipEnum.Premium
+          ? { premium_billing_cadence: premiumCadence }
+          : {}),
         allow_directory_add_by_rss: allowDirectoryAddByRSS,
         max_add_by_rss_feeds:
           maxAddByRSSFeeds.trim() === '' ? null : Number.parseInt(maxAddByRSSFeeds, 10),
@@ -125,258 +230,311 @@ export function NewUserPageClient() {
     }
   };
 
+  const createUserBreadcrumbs = (
+    <Breadcrumbs
+      LinkComponent={Link}
+      navAriaLabel={tc('breadcrumbNav')}
+      items={[{ href: '/users', label: t('title') }, { label: tc('new') }]}
+    />
+  );
+
+  if (!resolvedProductMembership) {
+    return (
+      <ManagementPageShell headerChildren={createUserBreadcrumbs} title={t('createUser')}>
+        <LoadingText>{tc('loading')}</LoadingText>
+      </ManagementPageShell>
+    );
+  }
+
   if (inviteLink !== null) {
     return (
-      <div className="container">
-        <div className="page-header">
-          <h1 className="page-title">{t('createUser')}</h1>
-          <div className={styles.breadcrumbs}>
-            <Link href="/users" className={styles.breadcrumbLink}>
-              {t('title')}
-            </Link>
-            <span className={styles.breadcrumbSep}>/</span>
-            <span>{tc('new')}</span>
-          </div>
-        </div>
-        <main>
-          <div className={styles.form}>
-            <p className={styles.successText}>{t('createdWithLink')}</p>
-            <div className={styles.formGroup}>
-              <label className={styles.label} htmlFor="invite-link">
-                {t('inviteLinkLabel')}
-              </label>
-              <div className={styles.inviteLinkRow}>
-                <input
-                  id="invite-link"
-                  type="text"
-                  className={styles.input}
-                  value={inviteLink}
-                  readOnly
-                />
-                <button
-                  type="button"
-                  className={styles.copyButton}
-                  onClick={() => void handleCopy()}
-                >
-                  {copied ? t('linkCopied') : t('copyLink')}
-                </button>
-              </div>
+      <ManagementPageShell headerChildren={createUserBreadcrumbs} title={t('createUser')}>
+        <FormMaxWidth>
+          <Alert variant="success">{t('createdWithLink')}</Alert>
+          <FormGroup>
+            <Label htmlFor="invite-link">{t('inviteLinkLabel')}</Label>
+            <div
+              style={{
+                display: 'flex',
+                gap: 'var(--spacing-base)',
+                alignItems: 'center',
+              }}
+            >
+              <Input
+                id="invite-link"
+                readOnly
+                type="text"
+                className={fieldPrimitiveClasses.input}
+                style={{ flex: 1, minWidth: 0 }}
+                value={inviteLink}
+              />
+              <CopyToClipboardButton
+                textToCopy={inviteLink}
+                idleLabel={t('copyLink')}
+                copiedLabel={t('linkCopied')}
+              />
             </div>
-            <div className={styles.formActions}>
-              <Link href="/users" className={styles.cancelLink}>
-                {t('backToList')}
-              </Link>
-            </div>
-          </div>
-        </main>
-      </div>
+          </FormGroup>
+          <FormPrimaryActions>
+            <ActionLink href="/users" variant="subtle" LinkComponent={Link}>
+              {t('backToList')}
+            </ActionLink>
+          </FormPrimaryActions>
+        </FormMaxWidth>
+      </ManagementPageShell>
     );
   }
 
   return (
-    <div className="container">
-      <div className="page-header">
-        <h1 className="page-title">{t('createUser')}</h1>
-        <div className={styles.breadcrumbs}>
-          <Link href="/users" className={styles.breadcrumbLink}>
-            {t('title')}
-          </Link>
-          <span className={styles.breadcrumbSep}>/</span>
-          <span>{tc('new')}</span>
-        </div>
-      </div>
-      <main>
-        <form onSubmit={(e) => void handleSubmit(e)} className={styles.form}>
-          <div className={styles.formGroup}>
-            <label className={styles.label} htmlFor="username">
-              {t('usernameOptional')}
-            </label>
-            <input
-              id="username"
-              type="text"
-              className={styles.input}
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              autoComplete="off"
-            />
-          </div>
-          <div className={styles.formGroup}>
-            <label className={styles.label} htmlFor="email">
-              {t('emailOptional')}
-            </label>
-            <input
-              id="email"
-              type="email"
-              className={styles.input}
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              autoComplete="off"
-            />
-          </div>
-          <p className={styles.hintText}>{t('emailOrUsernameHint')}</p>
-          <div className={styles.formGroup}>
-            <label className={styles.label} htmlFor="password">
-              {t('passwordOptional')}
-            </label>
-            <input
-              id="password"
-              type="password"
-              className={styles.input}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              autoComplete="new-password"
-            />
-          </div>
-          <div className={styles.formGroup}>
-            <label className={styles.label} htmlFor="membership-id">
-              {t('membershipForm.membershipStatus')}
-            </label>
-            <select
-              id="membership-id"
-              className={styles.input}
-              value={membershipId}
+    <ManagementPageShell headerChildren={createUserBreadcrumbs} title={t('createUser')}>
+      <FormContainer onSubmit={(e) => void handleSubmit(e)}>
+        <FormGroup>
+          <Label htmlFor="username">{t('usernameOptional')}</Label>
+          <Input
+            id="username"
+            autoComplete="off"
+            className={fieldPrimitiveClasses.input}
+            type="text"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+          />
+        </FormGroup>
+        <FormGroup>
+          <Label htmlFor="email">{t('emailOptional')}</Label>
+          <Input
+            id="email"
+            autoComplete="off"
+            className={fieldPrimitiveClasses.input}
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
+        </FormGroup>
+        <FormHintText variant="block">{t('emailOrUsernameHint')}</FormHintText>
+        <FormGroup>
+          <Label htmlFor="password">{t('passwordOptional')}</Label>
+          <Input
+            id="password"
+            autoComplete="new-password"
+            className={fieldPrimitiveClasses.input}
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
+          <FormHintText>{t('passwordInviteHint')}</FormHintText>
+        </FormGroup>
+        <FormGroup>
+          <Label htmlFor="membership-id">{t('membershipForm.membershipStatus')}</Label>
+          <Select
+            id="membership-id"
+            className={fieldPrimitiveClasses.select}
+            value={String(membershipId)}
+            onChange={(e) => {
+              const v = Number.parseInt(e.target.value, 10);
+              if (v === AccountMembershipEnum.Trial || v === AccountMembershipEnum.Premium) {
+                setMembershipId(v);
+              }
+            }}
+          >
+            <option value={String(AccountMembershipEnum.Trial)}>{t('membershipForm.trial')}</option>
+            <option value={String(AccountMembershipEnum.Premium)}>
+              {t('membershipForm.premium')}
+            </option>
+          </Select>
+          <FormHintText>
+            {membershipId === AccountMembershipEnum.Trial
+              ? t('membershipForm.hintTrialNew')
+              : t('membershipForm.hintPremiumNew')}
+          </FormHintText>
+        </FormGroup>
+        {membershipId === AccountMembershipEnum.Premium && (
+          <FormGroup>
+            <Label htmlFor="premium-cadence">{t('membershipForm.premiumBillingCadence')}</Label>
+            <Select
+              id="premium-cadence"
+              className={fieldPrimitiveClasses.select}
+              value={premiumCadence}
               onChange={(e) => {
-                setMembershipId(Number(e.target.value));
+                setPremiumCadence(e.target.value === 'monthly' ? 'monthly' : 'annual');
               }}
             >
-              <option value={1}>{t('membershipForm.trial')}</option>
-              <option value={2}>{t('membershipForm.premium')}</option>
-            </select>
-            <p className={styles.hintText}>
-              {membershipId === 1
-                ? t('membershipForm.hintTrialNew')
-                : t('membershipForm.hintPremiumNew')}
-            </p>
-          </div>
-          <div className={styles.formGroup}>
-            <label className={styles.label} htmlFor="membership-expires-at">
-              {t('membershipForm.membershipExpiresAt')}
-            </label>
-            <input
-              id="membership-expires-at"
-              type="datetime-local"
-              className={styles.input}
-              value={membershipExpiresAt}
-              onChange={(e) => setMembershipExpiresAt(e.target.value)}
-            />
-          </div>
-          <div className={styles.formGroup}>
-            <label className={styles.checkboxLabel}>
-              <input
-                type="checkbox"
-                checked={showAdvanced}
-                onChange={(e) => setShowAdvanced(e.target.checked)}
-              />
-              {t('membershipForm.configureAdvancedOverrides')}
-            </label>
-          </div>
-          {showAdvanced && (
-            <>
-              <div className={styles.formGroup}>
-                <label className={styles.label} htmlFor="allow-directory-add">
-                  {t('advancedOverrides.allowDirectoryAddByRss')}
-                </label>
-                <select
-                  id="allow-directory-add"
-                  className={styles.input}
-                  value={
-                    allowDirectoryAddByRSS === null ? '' : allowDirectoryAddByRSS ? 'true' : 'false'
+              <option value="monthly">{t('membershipForm.billingMonthly')}</option>
+              <option value="annual">{t('membershipForm.billingAnnual')}</option>
+            </Select>
+            <FormHintText>{t('membershipForm.premiumBillingCadenceHint')}</FormHintText>
+          </FormGroup>
+        )}
+        <FormGroup>
+          <Label htmlFor="membership-expires-at">{t('membershipForm.membershipExpiresAt')}</Label>
+          <Input
+            id="membership-expires-at"
+            className={fieldPrimitiveClasses.input}
+            type="datetime-local"
+            value={membershipExpiresAt}
+            onChange={(e) => setMembershipExpiresAt(e.target.value)}
+          />
+        </FormGroup>
+        <FormGroup>
+          <CheckboxField
+            label={t('membershipForm.configureAdvancedOverrides')}
+            checked={showAdvanced}
+            onChange={setShowAdvanced}
+          />
+        </FormGroup>
+        {showAdvanced && (
+          <>
+            <FormGroup>
+              <Label htmlFor="allow-directory-add">
+                {t('advancedOverrides.allowDirectoryAddByRss')}
+              </Label>
+              <Select
+                id="allow-directory-add"
+                className={fieldPrimitiveClasses.select}
+                value={
+                  allowDirectoryAddByRSS === null ? '' : allowDirectoryAddByRSS ? 'true' : 'false'
+                }
+                onChange={(e) => {
+                  if (e.target.value === '') {
+                    setAllowDirectoryAddByRSS(null);
+                  } else {
+                    setAllowDirectoryAddByRSS(e.target.value === 'true');
                   }
-                  onChange={(e) => {
-                    if (e.target.value === '') {
-                      setAllowDirectoryAddByRSS(null);
-                    } else {
-                      setAllowDirectoryAddByRSS(e.target.value === 'true');
-                    }
-                  }}
-                >
-                  <option value="">{t('advancedOverrides.useTrustTierDefault')}</option>
-                  <option value="true">{t('advancedOverrides.allow')}</option>
-                  <option value="false">{t('advancedOverrides.block')}</option>
-                </select>
-              </div>
-              <div className={styles.formGroup}>
-                <label className={styles.label} htmlFor="max-add-by-rss-feeds">
-                  {t('advancedOverrides.addByRssFeedLimit')}
-                </label>
-                <input
-                  id="max-add-by-rss-feeds"
-                  type="number"
-                  min={0}
-                  className={styles.input}
-                  value={maxAddByRSSFeeds}
-                  onChange={(e) => setMaxAddByRSSFeeds(e.target.value)}
-                />
-              </div>
-              <div className={styles.formGroup}>
-                <label className={styles.label} htmlFor="max-manual-refreshes">
-                  {t('advancedOverrides.manualRefreshPerHour')}
-                </label>
-                <input
-                  id="max-manual-refreshes"
-                  type="number"
-                  min={0}
-                  className={styles.input}
-                  value={maxManualRefreshesPerHour}
-                  onChange={(e) => setMaxManualRefreshesPerHour(e.target.value)}
-                />
-              </div>
-              <div className={styles.formGroup}>
-                <label className={styles.label} htmlFor="track-stats">
-                  {t('advancedOverrides.trackStats')}
-                </label>
-                <select
-                  id="track-stats"
-                  className={styles.input}
-                  value={trackStats === null ? '' : trackStats ? 'true' : 'false'}
-                  onChange={(e) => {
-                    if (e.target.value === '') {
-                      setTrackStats(null);
-                    } else {
-                      setTrackStats(e.target.value === 'true');
-                    }
-                  }}
-                >
-                  <option value="">{t('advancedOverrides.useTrustTierDefault')}</option>
-                  <option value="true">{t('advancedOverrides.trackStatsOn')}</option>
-                  <option value="false">{t('advancedOverrides.trackStatsOff')}</option>
-                </select>
-              </div>
-              <div className={styles.formGroup}>
-                <label className={styles.label} htmlFor="allow-notifications">
-                  {t('advancedOverrides.allowNotifications')}
-                </label>
-                <select
-                  id="allow-notifications"
-                  className={styles.input}
-                  value={allowNotifications === null ? '' : allowNotifications ? 'true' : 'false'}
-                  onChange={(e) => {
-                    if (e.target.value === '') {
-                      setAllowNotifications(null);
-                    } else {
-                      setAllowNotifications(e.target.value === 'true');
-                    }
-                  }}
-                >
-                  <option value="">{t('advancedOverrides.useTrustTierDefault')}</option>
-                  <option value="true">{t('advancedOverrides.allowNotificationsOn')}</option>
-                  <option value="false">{t('advancedOverrides.allowNotificationsOff')}</option>
-                </select>
-              </div>
-            </>
-          )}
-          {error && <p className={styles.errorText}>{error}</p>}
-          {successMessage && <p className={styles.successText}>{successMessage}</p>}
-          <div className={styles.formActions}>
-            <button type="submit" className={styles.submitButton} disabled={loading}>
-              {loading ? tc('creating') : t('createUser')}
-            </button>
-            <Link href="/users" className={styles.cancelLink}>
-              {tc('cancel')}
-            </Link>
-          </div>
-        </form>
-      </main>
-    </div>
+                }}
+              >
+                <option value="">{t('advancedOverrides.useTrustTierDefault')}</option>
+                <option value="true">{t('advancedOverrides.allow')}</option>
+                <option value="false">{t('advancedOverrides.block')}</option>
+              </Select>
+              <FormHintText>
+                {t('advancedOverrides.allowDirectoryAddByRssHelp', {
+                  trialDefault: trialEnt.allowDirectoryAddByRSS
+                    ? t('advancedOverrides.on')
+                    : t('advancedOverrides.off'),
+                  premiumDefault: premiumEnt.allowDirectoryAddByRSS
+                    ? t('advancedOverrides.on')
+                    : t('advancedOverrides.off'),
+                })}
+              </FormHintText>
+            </FormGroup>
+            <FormGroup>
+              <Label htmlFor="max-add-by-rss-feeds">
+                {t('advancedOverrides.addByRssFeedLimit')}
+              </Label>
+              <Input
+                id="max-add-by-rss-feeds"
+                className={fieldPrimitiveClasses.input}
+                min={0}
+                type="number"
+                value={maxAddByRSSFeeds}
+                onChange={(e) => setMaxAddByRSSFeeds(e.target.value)}
+                placeholder={t('advancedOverrides.placeholderTierDefault', {
+                  count: rssPlaceholder,
+                })}
+              />
+              <FormHintText>
+                {t('advancedOverrides.addByRssFeedLimitHelp', {
+                  trialDefault: trialEnt.maxAddByRSSFeeds,
+                  premiumDefault: premiumEnt.maxAddByRSSFeeds,
+                  selectedDefault: selectedEnt.maxAddByRSSFeeds,
+                })}
+              </FormHintText>
+            </FormGroup>
+            <FormGroup>
+              <Label htmlFor="max-manual-refreshes">
+                {t('advancedOverrides.manualRefreshPerHour')}
+              </Label>
+              <Input
+                id="max-manual-refreshes"
+                className={fieldPrimitiveClasses.input}
+                min={0}
+                type="number"
+                value={maxManualRefreshesPerHour}
+                onChange={(e) => setMaxManualRefreshesPerHour(e.target.value)}
+                placeholder={t('advancedOverrides.placeholderTierDefault', {
+                  count: refreshPlaceholder,
+                })}
+              />
+              <FormHintText>
+                {t('advancedOverrides.manualRefreshPerHourHelp', {
+                  trialDefault: trialEnt.maxManualRefreshesPerHour,
+                  premiumDefault: premiumEnt.maxManualRefreshesPerHour,
+                  selectedDefault: selectedEnt.maxManualRefreshesPerHour,
+                })}
+              </FormHintText>
+            </FormGroup>
+            <FormGroup>
+              <Label htmlFor="track-stats">{t('advancedOverrides.trackStats')}</Label>
+              <Select
+                id="track-stats"
+                className={fieldPrimitiveClasses.select}
+                value={trackStats === null ? '' : trackStats ? 'true' : 'false'}
+                onChange={(e) => {
+                  if (e.target.value === '') {
+                    setTrackStats(null);
+                  } else {
+                    setTrackStats(e.target.value === 'true');
+                  }
+                }}
+              >
+                <option value="">{t('advancedOverrides.useTrustTierDefault')}</option>
+                <option value="true">{t('advancedOverrides.trackStatsOn')}</option>
+                <option value="false">{t('advancedOverrides.trackStatsOff')}</option>
+              </Select>
+              <FormHintText>
+                {t('advancedOverrides.trackStatsHelp', {
+                  trialDefault: trialEnt.trackStats
+                    ? t('advancedOverrides.on')
+                    : t('advancedOverrides.off'),
+                  premiumDefault: premiumEnt.trackStats
+                    ? t('advancedOverrides.on')
+                    : t('advancedOverrides.off'),
+                })}
+              </FormHintText>
+            </FormGroup>
+            <FormGroup>
+              <Label htmlFor="allow-notifications">
+                {t('advancedOverrides.allowNotifications')}
+              </Label>
+              <Select
+                id="allow-notifications"
+                className={fieldPrimitiveClasses.select}
+                value={allowNotifications === null ? '' : allowNotifications ? 'true' : 'false'}
+                onChange={(e) => {
+                  if (e.target.value === '') {
+                    setAllowNotifications(null);
+                  } else {
+                    setAllowNotifications(e.target.value === 'true');
+                  }
+                }}
+              >
+                <option value="">{t('advancedOverrides.useTrustTierDefault')}</option>
+                <option value="true">{t('advancedOverrides.allowNotificationsOn')}</option>
+                <option value="false">{t('advancedOverrides.allowNotificationsOff')}</option>
+              </Select>
+              <FormHintText>
+                {t('advancedOverrides.allowNotificationsHelp', {
+                  trialDefault: trialEnt.allowNotifications
+                    ? t('advancedOverrides.on')
+                    : t('advancedOverrides.off'),
+                  premiumDefault: premiumEnt.allowNotifications
+                    ? t('advancedOverrides.on')
+                    : t('advancedOverrides.off'),
+                })}
+              </FormHintText>
+            </FormGroup>
+          </>
+        )}
+        {error && <Alert>{error}</Alert>}
+        {successMessage && <Alert variant="success">{successMessage}</Alert>}
+        <FormPrimaryActions>
+          <ActionLink href="/users" variant="subtle" LinkComponent={Link}>
+            {tc('cancel')}
+          </ActionLink>
+          <Button type="submit" disabled={loading}>
+            {loading ? tc('creating') : t('createUser')}
+          </Button>
+        </FormPrimaryActions>
+      </FormContainer>
+    </ManagementPageShell>
   );
 }

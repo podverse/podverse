@@ -17,23 +17,17 @@ Use this skill when:
 
 ## ⚠️ CRITICAL: Allowlist Consistency Across All Release Scripts
 
-**When you add an advisory ID to the allowlist, you must update it in ONLY ONE place:**
+Advisory IDs are passed as the **first argument** to `scripts/lib/check-audit-gate.sh`. An empty string
+means **strict** mode (no advisories allowed).
 
-**`scripts/lib/check-audit-gate.sh`** — the shared audit gate utility used by all release scripts.
-
-This shared utility is called by:
+**Keep all call sites in sync** when adding or removing IDs:
 
 - `scripts/publish/bump-version.sh`
-- `scripts/publish/sync-develop-to-staging.sh` (passes allowlist as argument)
-- `scripts/publish/sync-staging-to-main.sh` (passes allowlist as argument; RTM: fast-forward `main` from `staging` only)
+- `scripts/publish/sync-develop-to-staging.sh`
+- `scripts/publish/sync-staging-to-main.sh`
 
-When you update the allowlist:
-
-1. **Do NOT** manually update each script individually
-2. **Do** edit the `ALLOWED_AUDIT_IDS` variable in the script that calls the utility (e.g., bump-version.sh uses `"1113977,1116970"` as the argument)
-3. All sync scripts receive the same allowlist from their hardcoded argument to the shared utility
-
-**If you see allowlist values in multiple sync scripts:** That's the correct pattern. Each script passes its repo's allowlist to the shared utility. They will update atomically if the shared utility changes.
+Document rationale in `docs/development/security/NPM-AUDIT-ALLOWLIST.md` whenever the allowlist is
+non-empty.
 
 ## Investigation Process
 
@@ -157,23 +151,17 @@ If allowlisting, always document **why** in `docs/development/security/NPM-AUDIT
 - When pkg3 releases Y+1.0.0 that drops the vulnerable dep
 ```
 
-Then update `scripts/publish/bump-version.sh`:
+Then pass the same comma-separated IDs from **each** publish script that invokes `check-audit-gate.sh`,
+for example:
 
 ```bash
-# See docs/development/security/NPM-AUDIT-ALLOWLIST.md for rationale
-ALLOWED_AUDIT_IDS="1113977,1116970"
+"$SCRIPT_DIR/../lib/check-audit-gate.sh" "1113977" "release"
 ```
 
-### Step 6: Add to Memory for Revisit
+### Step 6: Track revisit criteria
 
-Update `/memories/user/npm-audit-overrides.md` with:
-
-```markdown
-## Tracked Overrides for Removal
-
-- Advisory 1113977 (uuid): Remove when firebase-admin@14.x+ or @google-cloud/storage@8.x+ upgrades teeny-request
-- Advisory 1116970 (@tootallnate/once): Same dependency chain; will resolve when 1113977 resolves
-```
+Note upstream upgrades or override removals in `docs/development/security/NPM-AUDIT-ALLOWLIST.md` so the
+allowlist can shrink again later.
 
 ## Common Patterns
 
@@ -213,12 +201,12 @@ If you see a nested uuid entry with version < 14, the override didn't work.
 - [ ] Attempted a fix: either package upgrade or npm override tested in package-lock.json
 - [ ] Verified no regression: `npm run build:packages && npm run build` succeeds
 - [ ] If allowlisting: documented rationale in `docs/development/security/NPM-AUDIT-ALLOWLIST.md`
-- [ ] If allowlisting: updated `scripts/publish/bump-version.sh` with link to docs
-- [ ] If allowlisting: added advisory ID to `/memories/user/npm-audit-overrides.md` for future revisit
+- [ ] If allowlisting: passed the same advisory IDs to all three publish scripts that call
+      `check-audit-gate.sh`
 - [ ] LLM history updated with investigation results
 
 ## See Also
 
-- `docs/development/security/NPM-AUDIT-ALLOWLIST.md` — Current allowlist and rationale
-- `scripts/publish/bump-version.sh` — Audit gate implementation
-- `.llm/history/active/version-bump-audit-remediation/` — Investigation notes
+- `docs/development/security/NPM-AUDIT-ALLOWLIST.md` — Allowlist policy and history
+- `scripts/lib/check-audit-gate.sh` — Shared moderate+ audit gate
+- `scripts/publish/bump-version.sh` — Release audit invocation

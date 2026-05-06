@@ -6,7 +6,12 @@ import type { Server } from 'http';
 import request from 'supertest';
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { OnDemandParserEventType } from '@podverse/helpers';
+import type { BillingCadence } from '@podverse/helpers';
+import {
+  AccountMembershipEnum,
+  DEFAULT_FREE_TRIAL_EXPIRATION,
+  OnDemandParserEventType,
+} from '@podverse/helpers';
 import type { ORMContext } from '@podverse/orm';
 
 import {
@@ -55,7 +60,15 @@ const {
         id: number;
         id_text: string;
         account_credentials: { email: string };
-        account_membership_status: { membership_expires_at: Date };
+        account_membership_status: {
+          membership_expires_at: Date;
+          account_membership: { id: AccountMembershipEnum; tier: 'trial' | 'premium' };
+          billing_cadence: BillingCadence;
+          auto_renew_mode: 'off' | 'on';
+          next_renewal_attempt_at: Date | null;
+          last_renewal_attempt_at: Date | null;
+          last_renewal_status: 'none' | 'succeeded' | 'failed';
+        };
       } | null> => {
         if (id === uid1) {
           return {
@@ -64,6 +77,12 @@ const {
             account_credentials: { email: 'es-meta-test@example.com' },
             account_membership_status: {
               membership_expires_at: new Date(Date.now() + 86400000 * 365),
+              account_membership: { id: AccountMembershipEnum.Premium, tier: 'premium' },
+              billing_cadence: 'annual',
+              auto_renew_mode: 'on',
+              next_renewal_attempt_at: null,
+              last_renewal_attempt_at: null,
+              last_renewal_status: 'none',
             },
           };
         }
@@ -74,6 +93,12 @@ const {
             account_credentials: { email: 'es-meta-mint-ok@example.com' },
             account_membership_status: {
               membership_expires_at: new Date(Date.now() + 86400000 * 365),
+              account_membership: { id: AccountMembershipEnum.Premium, tier: 'premium' },
+              billing_cadence: 'annual',
+              auto_renew_mode: 'on',
+              next_renewal_attempt_at: null,
+              last_renewal_attempt_at: null,
+              last_renewal_status: 'none',
             },
           };
         }
@@ -151,15 +176,15 @@ describe('external services, feed, medium-value, membership, claim, metaboost, m
   let externalServicesBase: string;
   let feedBase: string;
   let mediumValueBase: string;
-  let membershipBase: string;
+  let productMembershipBase: string;
   let claimBase: string;
   let metaboostBase: string;
   let mqBase: string;
 
   beforeAll(async () => {
     process.env.ACCOUNT_SIGNUP_MODE = 'user_signup_email';
-    process.env.PREMIUM_MEMBERSHIP_COST_MONTHLY = '5';
-    process.env.PREMIUM_MEMBERSHIP_COST_ANNUALLY = '50';
+    process.env.MEMBERSHIP_PREMIUM_COST_MONTHLY = '3';
+    process.env.MEMBERSHIP_PREMIUM_COST_ANNUALLY = '30';
 
     const { privateKey } = generateKeyPairSync('ed25519', {
       publicKeyEncoding: { type: 'spki', format: 'pem' },
@@ -176,7 +201,7 @@ describe('external services, feed, medium-value, membership, claim, metaboost, m
     externalServicesBase = `${b}/external-services`;
     feedBase = `${b}/feed`;
     mediumValueBase = `${b}/medium-value`;
-    membershipBase = `${b}/membership`;
+    productMembershipBase = `${b}/product/membership`;
     claimBase = `${b}/membership-claim-token`;
     metaboostBase = `${b}/metaboost`;
     mqBase = `${b}/mq`;
@@ -195,7 +220,15 @@ describe('external services, feed, medium-value, membership, claim, metaboost, m
         id: number;
         id_text: string;
         account_credentials: { email: string };
-        account_membership_status: { membership_expires_at: Date };
+        account_membership_status: {
+          membership_expires_at: Date;
+          account_membership: { id: AccountMembershipEnum; tier: 'trial' | 'premium' };
+          billing_cadence: BillingCadence;
+          auto_renew_mode: 'off' | 'on';
+          next_renewal_attempt_at: Date | null;
+          last_renewal_attempt_at: Date | null;
+          last_renewal_status: 'none' | 'succeeded' | 'failed';
+        };
       } | null> => {
         if (id === TEST_USER_ID) {
           return {
@@ -204,6 +237,12 @@ describe('external services, feed, medium-value, membership, claim, metaboost, m
             account_credentials: { email: TEST_EMAIL },
             account_membership_status: {
               membership_expires_at: new Date(Date.now() + 86400000 * 365),
+              account_membership: { id: AccountMembershipEnum.Premium, tier: 'premium' },
+              billing_cadence: 'annual',
+              auto_renew_mode: 'on',
+              next_renewal_attempt_at: null,
+              last_renewal_attempt_at: null,
+              last_renewal_status: 'none',
             },
           };
         }
@@ -214,6 +253,12 @@ describe('external services, feed, medium-value, membership, claim, metaboost, m
             account_credentials: { email: MINT_OK_EMAIL },
             account_membership_status: {
               membership_expires_at: new Date(Date.now() + 86400000 * 365),
+              account_membership: { id: AccountMembershipEnum.Premium, tier: 'premium' },
+              billing_cadence: 'annual',
+              auto_renew_mode: 'on',
+              next_renewal_attempt_at: null,
+              last_renewal_attempt_at: null,
+              last_renewal_status: 'none',
             },
           };
         }
@@ -284,19 +329,66 @@ describe('external services, feed, medium-value, membership, claim, metaboost, m
 
   describe('Membership pricing', () => {
     it('GET /pricing returns data when user_signup_email is enabled, 400 when disabled (see MembershipController.getPricing)', async () => {
-      const res = await request(app).get(`${membershipBase}/pricing`);
+      const res = await request(app).get(`${productMembershipBase}/pricing`);
       if (res.status === 200) {
         expect(res.body).toHaveProperty('data');
+        // Reflects active billing_price for premium USD (test DB matches linear migration seed), not MEMBERSHIP_* alone.
         expect(res.body.data).toMatchObject({
-          costMonthly: 5,
-          costAnnually: 50,
-          freeTrialExpiration: 86400,
-          freeTrialDays: 1,
+          costMonthly: 3,
+          costAnnually: 30,
+          freeTrialExpiration: DEFAULT_FREE_TRIAL_EXPIRATION,
+          freeTrialDays: Math.floor(DEFAULT_FREE_TRIAL_EXPIRATION / 86400),
         });
       } else {
         expect(res.status).toBe(400);
         expect(String(res.body.message ?? '')).toMatch(/not enabled/i);
       }
+    });
+  });
+
+  describe('Product membership defaults', () => {
+    it('GET / returns env-derived numbers without authentication', async () => {
+      const res = await request(app).get(productMembershipBase);
+      expect(res.status).toBe(200);
+      expect(res.body).toHaveProperty('data');
+      expect(res.body.data).toMatchObject({
+        freeTrialExpirationSeconds: expect.any(Number),
+        freeTrialDays: expect.any(Number),
+        premiumMembershipCostMonthly: expect.any(Number),
+        premiumMembershipCostAnnually: expect.any(Number),
+        trialMaxAddByRSSFeeds: expect.any(Number),
+        trialMaxManualRefreshesPerHour: expect.any(Number),
+        premiumMaxAddByRSSFeeds: expect.any(Number),
+        premiumMaxManualRefreshesPerHour: expect.any(Number),
+        annuallySavingsPercent: expect.any(Number),
+        monthlyEquivalentAnnually: expect.any(Number),
+      });
+      expect(res.body.data.freeTrialExpirationSeconds).toBeGreaterThan(0);
+    });
+
+    it('GET /billing-read-model returns pricing + renewal visibility for authenticated user', async () => {
+      const res = await request(app)
+        .get(`${productMembershipBase}/billing-read-model`)
+        .set(auth(TEST_USER_ID))
+        .expect(200);
+      expect(res.body).toHaveProperty('data');
+      expect(res.body.data).toMatchObject({
+        tier: expect.any(String),
+        membershipExpiresAt: expect.any(String),
+        cadence: expect.any(String),
+        autoRenewMode: expect.any(String),
+        autoRenewEnabled: expect.any(Boolean),
+        renewal: {
+          nextAttemptAt: null,
+          lastAttemptAt: null,
+          lastStatus: expect.any(String),
+        },
+        pricing: {
+          currencyCode: 'USD',
+          premiumMonthly: expect.any(Number),
+          premiumAnnual: expect.any(Number),
+        },
+      });
     });
   });
 

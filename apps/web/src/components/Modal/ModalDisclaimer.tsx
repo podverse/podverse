@@ -3,10 +3,11 @@
 import { useTranslations } from 'next-intl';
 import React, { useEffect, useState } from 'react';
 
+import { Button } from '@podverse/ui';
+
 import { useConfig } from '../../contexts/Config';
 import { useLocalSettings } from '../../contexts/LocalSettings';
 import { useModals } from '../../contexts/Modals';
-import { Button } from '../Button/Button';
 import { TextCheckboxes } from '../Form/TextCheckboxes';
 import { Modal, MODAL_CONTENT_MAX_WIDTH } from './Modal';
 

@@ -7,6 +7,7 @@ import React from 'react';
 import type { DTOPlaylist, DTOPlaylistResource } from '@podverse/helpers';
 import { MediumEnum } from '@podverse/helpers';
 import { getShuffleHash } from '@podverse/helpers-requests';
+import { Divider } from '@podverse/ui';
 
 import { useAutoQueue } from '../../../contexts/AutoQueue';
 import { getApiRequestService } from '../../../factories/apiRequestService';
@@ -15,7 +16,6 @@ import { usePlayAddByRSS } from '../../../hooks/usePlayAddByRSS';
 import { useSkipInitialEffect } from '../../../hooks/useSkipInitialEffect';
 import { loadAddByRSSIndexItemFromResourceData } from '../../../utils/addByRSS/playFromQueueResource';
 import { scrollMainToTop } from '../../../utils/scroll';
-import { Divider } from '../../Divider/Divider';
 import Pagination from '../../Pagination/Pagination';
 import { ListPlaylistResourceRow } from './ListPlaylistResourceRow';
 

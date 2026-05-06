@@ -11,6 +11,7 @@ import {
   getQueueMediumIdForChannelMediumId,
   MediumEnum,
 } from '@podverse/helpers';
+import { Button } from '@podverse/ui';
 
 import { IMAGES } from '../../../constants/images';
 import { useAccount } from '../../../contexts/Account';
@@ -21,7 +22,6 @@ import { getAddByRSSItemPath } from '../../../utils/addByRSS/itemPath';
 import { loadAddByRSSIndexItemFromResourceData } from '../../../utils/addByRSS/playFromQueueResource';
 import { downloadAddByRSSMediaWithModal } from '../../../utils/downloadModal/downloadAddByRSSMediaWithModal';
 import { downloadAndSaveFile } from '../../../utils/fileDownloader';
-import { Button } from '../../Button/Button';
 import { ImagesPerView } from '../../Image/ImagesPerView';
 import type { MoreButtonMenuItem } from '../../MoreButton/MoreButton';
 import { MoreButton } from '../../MoreButton/MoreButton';

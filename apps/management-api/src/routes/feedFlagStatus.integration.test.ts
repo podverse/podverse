@@ -17,10 +17,10 @@ const superuserWithAllPerms = {
     id: 1,
     admin_account_id: 1,
     feedsCrud: 15,
-    feedFlagStatusesCrud: 15,
-    feedFlagStatusReasonsCrud: 15,
+    feedTakedownReasonsCrud: 15,
     adminsCrud: 15,
     statsCrud: 15,
+    billingPricesCrud: 15,
     created_at: new Date(),
     updated_at: new Date(),
   },
@@ -38,10 +38,10 @@ const adminWithFeedsReadOnly = {
     id: 2,
     admin_account_id: 2,
     feedsCrud: 2,
-    feedFlagStatusesCrud: 2,
-    feedFlagStatusReasonsCrud: 2,
+    feedTakedownReasonsCrud: 2,
     adminsCrud: 0,
     statsCrud: 0,
+    billingPricesCrud: 0,
     created_at: new Date(),
     updated_at: new Date(),
   },
@@ -59,10 +59,10 @@ const adminWithFeedsReadUpdate = {
     id: 4,
     admin_account_id: 4,
     feedsCrud: 4 | 2,
-    feedFlagStatusesCrud: 0,
-    feedFlagStatusReasonsCrud: 0,
+    feedTakedownReasonsCrud: 0,
     adminsCrud: 0,
     statsCrud: 0,
+    billingPricesCrud: 0,
     created_at: new Date(),
     updated_at: new Date(),
   },
@@ -80,10 +80,10 @@ const adminWithNoFeedPerms = {
     id: 3,
     admin_account_id: 3,
     feedsCrud: 0,
-    feedFlagStatusesCrud: 0,
-    feedFlagStatusReasonsCrud: 0,
+    feedTakedownReasonsCrud: 0,
     adminsCrud: 0,
     statsCrud: 0,
+    billingPricesCrud: 0,
     created_at: new Date(),
     updated_at: new Date(),
   },
@@ -114,11 +114,16 @@ const sampleFeed = {
   url: 'https://example.com/feed.xml',
   podcast_index_id: 55,
   spam_item_limit_override: null,
-  feed_flag_status_id: 1,
-  feed_flag_status_key: 'active',
-  feed_flag_status_reason_id: null,
-  feed_flag_status_reason_key: null,
-  feed_flag_status_reason_note: null,
+  max_response_body_bytes_override: null,
+  lifecycle_state_key: 'active',
+  lifecycle_reason: null,
+  updated_source: 'admin',
+  active_condition_keys: [],
+  parse_allowed: true,
+  public_visible: true,
+  add_allowed: true,
+  primary_block_reason: null,
+  policy_overrides: null,
   channel_title: 'Test Show',
 };
 
@@ -126,23 +131,23 @@ const {
   findByPi,
   findById,
   findByUrl,
-  listSt,
-  listRe,
-  assertSt,
-  assertRe,
+  listLs,
+  listCt,
+  listTk,
+  assertTkReason,
   getSnap,
-  updateDb,
+  updatePolicy,
   audit,
 } = vi.hoisted(() => ({
   findByPi: vi.fn(),
   findById: vi.fn(),
   findByUrl: vi.fn(),
-  listSt: vi.fn(async () => [{ id: 1, status: 'active' }]),
-  listRe: vi.fn(async () => [{ id: 1, reason: 'copyright' }]),
-  assertSt: vi.fn(async (id: number) => id >= 1 && id <= 6),
-  assertRe: vi.fn(async (id: number) => id >= 1 && id <= 7),
+  listLs: vi.fn(async () => [{ state_key: 'active' }]),
+  listCt: vi.fn(async () => [{ condition_key: 'spam_detected' }]),
+  listTk: vi.fn(async () => [{ reason: 'copyright' }]),
+  assertTkReason: vi.fn(async () => true),
   getSnap: vi.fn(),
-  updateDb: vi.fn(),
+  updatePolicy: vi.fn(),
   audit: vi.fn(),
 }));
 
@@ -162,19 +167,16 @@ vi.mock('@mgmt-api/lib/feed/feedFlagStatusAppDb.js', () => ({
   findFeedByPodcastIndexId: (id: number) => findByPi(id),
   findFeedByInternalId: (id: number) => findById(id),
   findFeedByUrl: (u: string) => findByUrl(u),
-  listFeedFlagStatusOptions: () => listSt(),
-  listFeedFlagStatusReasonOptions: () => listRe(),
-  assertFlagStatusIdExists: (id: number) => assertSt(id),
-  assertFlagStatusReasonIdExists: (id: number) => assertRe(id),
-  FEED_FLAG_STATUS_TAKEDOWN_ID: 6,
-  getFeedRowSnapshotById: (id: number) => getSnap(id),
-  updateFeedFlagStatusInDb: (
-    a: number,
-    b: number,
-    c: number | null,
-    d: string | null,
-    e: number | null
-  ) => updateDb(a, b, c, d, e),
+  listLifecycleStateOptions: () => listLs(),
+  listConditionTypeOptions: () => listCt(),
+  listTakedownReasonOptions: () => listTk(),
+  assertTakedownReasonExists: (s: string) => assertTkReason(s),
+  getFeedAuditSnapshotById: (id: number) => getSnap(id),
+  updateFeedOperationsPolicyState: (
+    feedId: number,
+    adminId: number,
+    params: Record<string, unknown>
+  ) => updatePolicy(feedId, adminId, params),
 }));
 
 vi.mock('@mgmt-api/lib/database/auditLog.js', () => {
@@ -207,34 +209,31 @@ describe('feed-operations routes', () => {
     findByPi.mockReset();
     findById.mockReset();
     findByUrl.mockReset();
-    listSt.mockClear();
-    listRe.mockClear();
-    assertSt.mockReset();
-    assertRe.mockReset();
+    listLs.mockClear();
+    listCt.mockClear();
+    listTk.mockClear();
+    assertTkReason.mockReset();
     getSnap.mockReset();
-    updateDb.mockReset();
+    updatePolicy.mockReset();
     audit.mockReset();
     findByPi.mockImplementation(async (id: number) => (id === 55 ? sampleFeed : null));
     getSnap.mockImplementation(async (id: number) =>
       id === 9
         ? {
             id: 9,
-            url: 'https://example.com/feed.xml',
-            podcast_index_id: 55,
-            spam_item_limit_override: null,
-            feed_flag_status_id: 1,
-            feed_flag_status_reason_id: null,
-            feed_flag_status_reason_note: null,
+            lifecycle_state_key: 'active',
+            active_condition_keys: [],
           }
         : null
     );
   });
 
-  it('GET /options returns statuses and reasons for superuser', async () => {
+  it('GET /options returns lifecycle, condition, and takedown reason options for superuser', async () => {
     const res = await request(app).get(`${opBase}/options`).set(adminAuthHeaders(1));
     expect(res.status).toBe(200);
-    expect(res.body.feed_flag_statuses).toEqual([{ id: 1, status: 'active' }]);
-    expect(res.body.feed_flag_status_reasons).toEqual([{ id: 1, reason: 'copyright' }]);
+    expect(res.body.lifecycle_states).toEqual([{ state_key: 'active' }]);
+    expect(res.body.condition_types).toEqual([{ condition_key: 'spam_detected' }]);
+    expect(res.body.takedown_reasons).toEqual([{ reason: 'copyright' }]);
   });
 
   it('GET /options returns 403 for user without feed read', async () => {
@@ -249,6 +248,7 @@ describe('feed-operations routes', () => {
       .set(adminAuthHeaders(1));
     expect(res.status).toBe(200);
     expect(res.body.feed.podcast_index_id).toBe(55);
+    expect(res.body.feed.lifecycle_state_key).toBe('active');
   });
 
   it('GET /lookup with no param returns 400', async () => {
@@ -265,88 +265,178 @@ describe('feed-operations routes', () => {
     expect(res.status).toBe(404);
   });
 
-  it('POST /flag-status returns 200 and audits', async () => {
-    getSnap
-      .mockResolvedValueOnce({
-        id: 9,
-        url: 'u',
-        podcast_index_id: 1,
-        spam_item_limit_override: null,
-        feed_flag_status_id: 1,
-        feed_flag_status_reason_id: null,
-        feed_flag_status_reason_note: null,
-      })
-      .mockResolvedValueOnce({
-        id: 9,
-        url: 'u',
-        podcast_index_id: 1,
-        spam_item_limit_override: 12000,
-        feed_flag_status_id: 3,
-        feed_flag_status_reason_id: 1,
-        feed_flag_status_reason_note: 'note',
-      });
-    const res = await request(app).post(`${opBase}/flag-status`).set(adminAuthHeaders(1)).send({
-      feed_id: 9,
-      feed_flag_status_id: 3,
-      feed_flag_status_reason_id: 1,
-      feed_flag_status_reason_note: 'note',
-      spam_item_limit_override: 12000,
+  it('POST /update-policy-state returns 200 and audits', async () => {
+    getSnap.mockResolvedValueOnce({ id: 9, lifecycle_state_key: 'active' }).mockResolvedValueOnce({
+      id: 9,
+      lifecycle_state_key: 'active',
+      active_condition_keys: ['spam_detected'],
     });
+    findById.mockResolvedValueOnce({
+      ...sampleFeed,
+      active_condition_keys: ['spam_detected'],
+    });
+    const res = await request(app)
+      .post(`${opBase}/update-policy-state`)
+      .set(adminAuthHeaders(1))
+      .send({
+        feed_id: 9,
+        active_condition_keys: ['spam_detected'],
+        spam_item_limit_override: 12000,
+      });
     expect(res.status).toBe(200);
     expect(audit).toHaveBeenCalled();
-    expect(updateDb).toHaveBeenCalledWith(9, 3, 1, 'note', 12000);
+    expect(updatePolicy).toHaveBeenCalledWith(
+      9,
+      1,
+      expect.objectContaining({
+        activeConditionKeys: ['spam_detected'],
+        spamItemLimitOverride: 12000,
+      })
+    );
   });
 
-  it('POST /flag-status requires reason for takedown', async () => {
+  it('POST /update-policy-state requires documentation for takedown', async () => {
     const res = await request(app)
-      .post(`${opBase}/flag-status`)
+      .post(`${opBase}/update-policy-state`)
       .set(adminAuthHeaders(1))
-      .send({ feed_id: 9, feed_flag_status_id: 6, feed_flag_status_reason_id: null });
+      .send({ feed_id: 9, lifecycle_state_key: 'takedown' });
     expect(res.status).toBe(400);
     expect(res.body.message).toMatch(/takedown/i);
   });
 
-  it('POST /flag-status returns 403 without update permission', async () => {
-    getSnap.mockResolvedValue({
-      id: 9,
-      url: 'u',
-      podcast_index_id: 1,
-      spam_item_limit_override: null,
-      feed_flag_status_id: 1,
-      feed_flag_status_reason_id: null,
-      feed_flag_status_reason_note: null,
-    });
+  it('POST /update-policy-state returns 403 without update permission', async () => {
+    getSnap.mockResolvedValue({ id: 9, lifecycle_state_key: 'active' });
     const res = await request(app)
-      .post(`${opBase}/flag-status`)
+      .post(`${opBase}/update-policy-state`)
       .set(adminAuthHeaders(2))
-      .send({ feed_id: 9, feed_flag_status_id: 2 });
+      .send({ feed_id: 9, lifecycle_state_key: 'pending_archive' });
     expect(res.status).toBe(403);
   });
 
-  it('POST /flag-status works for read+update permission', async () => {
+  it('POST /update-policy-state works for read+update permission', async () => {
     getSnap
-      .mockResolvedValueOnce({
-        id: 9,
-        url: 'u',
-        podcast_index_id: 1,
-        spam_item_limit_override: null,
-        feed_flag_status_id: 1,
-        feed_flag_status_reason_id: null,
-        feed_flag_status_reason_note: null,
-      })
-      .mockResolvedValueOnce({
-        id: 9,
-        url: 'u',
-        podcast_index_id: 1,
-        spam_item_limit_override: null,
-        feed_flag_status_id: 2,
-        feed_flag_status_reason_id: null,
-        feed_flag_status_reason_note: null,
-      });
+      .mockResolvedValueOnce({ id: 9, lifecycle_state_key: 'active' })
+      .mockResolvedValueOnce({ id: 9, lifecycle_state_key: 'pending_archive' });
+    findById.mockResolvedValueOnce({
+      ...sampleFeed,
+      lifecycle_state_key: 'pending_archive',
+    });
     const res = await request(app)
-      .post(`${opBase}/flag-status`)
+      .post(`${opBase}/update-policy-state`)
       .set(adminAuthHeaders(4))
-      .send({ feed_id: 9, feed_flag_status_id: 2 });
+      .send({ feed_id: 9, lifecycle_state_key: 'pending_archive' });
     expect(res.status).toBe(200);
+  });
+
+  it('POST /update-policy-state rejects unknown lifecycle_state_key (400)', async () => {
+    const res = await request(app)
+      .post(`${opBase}/update-policy-state`)
+      .set(adminAuthHeaders(1))
+      .send({ feed_id: 9, lifecycle_state_key: 'not_a_valid_lifecycle' });
+    expect(res.status).toBe(400);
+  });
+
+  it('POST /update-policy-state rejects unknown active_condition_keys entry (400) — parity 07b #12', async () => {
+    const res = await request(app)
+      .post(`${opBase}/update-policy-state`)
+      .set(adminAuthHeaders(1))
+      .send({
+        feed_id: 9,
+        active_condition_keys: ['not_a_valid_condition'],
+      });
+    expect(res.status).toBe(400);
+  });
+
+  it('POST /update-policy-state returns 400 on disallowed lifecycle transition — parity 07b #11', async () => {
+    getSnap.mockResolvedValue({ id: 9, lifecycle_state_key: 'archived' });
+    updatePolicy.mockRejectedValueOnce(
+      new Error('Disallowed lifecycle transition: archived -> active')
+    );
+    const res = await request(app)
+      .post(`${opBase}/update-policy-state`)
+      .set(adminAuthHeaders(1))
+      .send({ feed_id: 9, lifecycle_state_key: 'active' });
+    expect(res.status).toBe(400);
+    expect(String(res.body.message)).toMatch(/Disallowed lifecycle transition/);
+  });
+
+  it('POST /update-policy-state response.body.feed includes frozen lookup contract keys', async () => {
+    getSnap.mockResolvedValue({ id: 9, lifecycle_state_key: 'active' });
+    findById.mockResolvedValue({ ...sampleFeed });
+    const res = await request(app)
+      .post(`${opBase}/update-policy-state`)
+      .set(adminAuthHeaders(1))
+      .send({ feed_id: 9, spam_item_limit_override: 9000 });
+    expect(res.status).toBe(200);
+    const f = res.body.feed as Record<string, unknown>;
+    const requiredKeys = [
+      'id',
+      'url',
+      'podcast_index_id',
+      'spam_item_limit_override',
+      'max_response_body_bytes_override',
+      'lifecycle_state_key',
+      'lifecycle_reason',
+      'updated_source',
+      'active_condition_keys',
+      'parse_allowed',
+      'public_visible',
+      'add_allowed',
+      'primary_block_reason',
+      'policy_overrides',
+      'channel_title',
+    ];
+    for (const k of requiredKeys) {
+      expect(f).toHaveProperty(k);
+    }
+    expect(typeof f.id).toBe('number');
+    expect(typeof f.url).toBe('string');
+    expect(Array.isArray(f.active_condition_keys)).toBe(true);
+    expect(typeof f.parse_allowed).toBe('boolean');
+    expect(typeof f.public_visible).toBe('boolean');
+    expect(typeof f.add_allowed).toBe('boolean');
+  });
+
+  it('POST /update-policy-state passes takedown_transitional to update service', async () => {
+    getSnap.mockResolvedValue({ id: 9, lifecycle_state_key: 'active' });
+    findById.mockResolvedValue({ ...sampleFeed });
+    assertTkReason.mockResolvedValue(true);
+    const res = await request(app)
+      .post(`${opBase}/update-policy-state`)
+      .set(adminAuthHeaders(1))
+      .send({
+        feed_id: 9,
+        lifecycle_state_key: 'takedown',
+        lifecycle_reason_key: 'copyright',
+        takedown_transitional: true,
+      });
+    expect(res.status).toBe(200);
+    expect(updatePolicy).toHaveBeenCalledWith(
+      9,
+      1,
+      expect.objectContaining({
+        lifecycleStateKey: 'takedown',
+        takedownTransitional: true,
+      })
+    );
+  });
+
+  it('Audit record includes admin id and request id when present', async () => {
+    getSnap.mockResolvedValue({ id: 9 });
+    findById.mockResolvedValue({ ...sampleFeed });
+    const res = await request(app)
+      .post(`${opBase}/update-policy-state`)
+      .set(adminAuthHeaders(1))
+      .set('X-Request-Id', 'req-feed-ops-1')
+      .send({ feed_id: 9, spam_item_limit_override: 8000 });
+    expect(res.status).toBe(200);
+    expect(audit).toHaveBeenCalledWith(
+      expect.objectContaining({
+        adminAccountId: 1,
+        requestId: 'req-feed-ops-1',
+        beforeSnapshot: expect.any(Object),
+        afterSnapshot: expect.any(Object),
+      })
+    );
   });
 });

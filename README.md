@@ -92,7 +92,7 @@ make local_build_all          # Build all images
 make local_test_docker_builds # Build and verify images
 ```
 
-For local infrastructure browsing, pgAdmin is available at `http://localhost:5051` after `make local_setup` or `make local_infra_up`.
+For local infrastructure browsing, pgAdmin is available at `http://localhost:3050` after `make local_setup` or `make local_infra_up`.
 
 **Note**: The web apps (`web` and `management-web`) build once and read `NEXT_PUBLIC_*` values from a runtime-config sidecar:
 

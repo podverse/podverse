@@ -97,6 +97,8 @@ spec:
             - secretRef:
                 name: podverse-workers-webpush-opaque
                 optional: true
+            - configMapRef:
+                name: podverse-product-membership-config
           volumeMounts:
             - name: logs-volume
               mountPath: /logs

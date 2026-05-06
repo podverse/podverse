@@ -6,6 +6,24 @@ import { useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
 
 import {
+  ActionLink,
+  Alert,
+  Breadcrumbs,
+  Button,
+  DescriptionList,
+  DescriptionListRow,
+  FormContainer,
+  FormGroup,
+  FormPrimaryActions,
+  FormStack,
+  Input,
+  Label,
+  ManagementPageShell,
+  PageHeaderActions,
+  StatusBadge,
+} from '@podverse/ui';
+
+import {
   deleteTableRow,
   getTableMeta,
   type TableFieldMeta,
@@ -13,12 +31,9 @@ import {
   updateTableRow,
 } from '../../../../../lib/requests/database';
 
-import styles from '../../page.module.scss';
-
 const TABLE_SINGULAR_LABEL_KEYS: Record<string, string> = {
   feed: 'tables.feed.labelSingular',
-  feed_flag_status: 'tables.feed_flag_status.labelSingular',
-  feed_flag_status_reason: 'tables.feed_flag_status_reason.labelSingular',
+  feed_takedown_reason: 'tables.feed_takedown_reason.labelSingular',
 };
 
 export type RowDetailPageClientProps = {
@@ -147,90 +162,87 @@ export function RowDetailPageClient({ tableName, rowId, initialRow }: RowDetailP
     : tableName;
 
   return (
-    <div className="container">
-      <div className="page-header">
-        <h1 className="page-title">
-          {t('rowDetailTitle', { table: tableSingularLabel, id: rowId })}
-        </h1>
-        <div className={styles.breadcrumbs}>
-          <Link href="/database" className={styles.breadcrumbLink}>
-            {t('title')}
-          </Link>
-          <span className={styles.breadcrumbSep}>/</span>
-          <Link href={`/database/${tableName}`} className={styles.breadcrumbLink}>
-            {tableName}
-          </Link>
-          <span className={styles.breadcrumbSep}>/</span>
-          <span>#{rowId}</span>
-        </div>
-      </div>
-      <main>
-        {error && <p className={styles.errorText}>{error}</p>}
-        {success && <p className={styles.successText}>{t('rowUpdatedSuccessfully')}</p>}
+    <ManagementPageShell
+      title={t('rowDetailTitle', { table: tableSingularLabel, id: rowId })}
+      headerChildren={
+        <Breadcrumbs
+          LinkComponent={Link}
+          navAriaLabel={tc('breadcrumbNav')}
+          items={[
+            { href: '/database', label: t('title') },
+            { href: `/database/${tableName}`, label: tableName },
+            { label: `#${rowId}` },
+          ]}
+        />
+      }
+    >
+      <FormStack>
+        {error && <Alert>{error}</Alert>}
+        {success && <Alert variant="success">{t('rowUpdatedSuccessfully')}</Alert>}
 
         {!editing ? (
           <>
-            <table className={styles.dataTable}>
-              <tbody>
-                {displayFields.map((field: TableFieldMeta) => (
-                  <tr key={field.name}>
-                    <th style={{ width: '200px' }}>{field.name}</th>
-                    <td>{formatDate(row[field.name])}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-            <div className={styles.formActions} style={{ marginTop: '1rem' }}>
+            <DescriptionList variant="rows">
+              {displayFields.map((field: TableFieldMeta) => (
+                <DescriptionListRow
+                  key={field.name}
+                  detail={formatDate(row[field.name])}
+                  term={field.name}
+                />
+              ))}
+            </DescriptionList>
+            <PageHeaderActions>
               {!meta?.readOnly && updatableFields.length > 0 && (
-                <button onClick={startEditing} className={styles.submitButton} disabled={loading}>
+                <Button onClick={startEditing} disabled={loading}>
                   {tc('edit')}
-                </button>
+                </Button>
               )}
               {!meta?.readOnly && (
-                <button onClick={handleDelete} className={styles.deleteButton} disabled={loading}>
+                <Button
+                  onClick={() => {
+                    void handleDelete();
+                  }}
+                  variant="danger"
+                  disabled={loading}
+                >
                   {tc('delete')}
-                </button>
+                </Button>
               )}
-              {meta?.readOnly && (
-                <span className={`${styles.tableCardBadge} ${styles.readOnlyBadge}`}>
-                  {tc('readOnlyTable')}
-                </span>
-              )}
-              <Link href={`/database/${tableName}`} className={styles.cancelLink}>
+              {meta?.readOnly && <StatusBadge variant="warning">{tc('readOnlyTable')}</StatusBadge>}
+              <ActionLink href={`/database/${tableName}`} variant="subtle" LinkComponent={Link}>
                 {tc('back')}
-              </Link>
-            </div>
+              </ActionLink>
+            </PageHeaderActions>
           </>
         ) : (
-          <form onSubmit={handleUpdate} className={styles.form}>
+          <FormContainer onSubmit={(e) => void handleUpdate(e)}>
             {updatableFields.map((field: TableFieldMeta) => (
-              <div key={field.name} className={styles.formGroup}>
-                <label className={styles.label} htmlFor={`edit-${field.name}`}>
+              <FormGroup key={field.name}>
+                <Label htmlFor={`edit-${field.name}`}>
                   {field.name}
-                  {!field.nullable && <span style={{ color: '#c33' }}> *</span>}
-                </label>
-                <input
+                  {!field.nullable ? <span aria-hidden="true"> *</span> : null}
+                </Label>
+                <Input
                   id={`edit-${field.name}`}
                   type="text"
-                  className={styles.input}
                   value={String(formData[field.name] ?? '')}
                   onChange={(e) => handleFieldChange(field.name, e.target.value)}
                   required={!field.nullable}
                   placeholder={field.type}
                 />
-              </div>
+              </FormGroup>
             ))}
-            <div className={styles.formActions}>
-              <button type="submit" className={styles.submitButton} disabled={loading}>
-                {loading ? tc('saving') : tc('saveChanges')}
-              </button>
-              <button type="button" onClick={cancelEditing} className={styles.cancelLink}>
+            <FormPrimaryActions>
+              <Button type="button" onClick={cancelEditing} variant="link">
                 {tc('cancel')}
-              </button>
-            </div>
-          </form>
+              </Button>
+              <Button type="submit" disabled={loading}>
+                {loading ? tc('saving') : tc('saveChanges')}
+              </Button>
+            </FormPrimaryActions>
+          </FormContainer>
         )}
-      </main>
-    </div>
+      </FormStack>
+    </ManagementPageShell>
   );
 }

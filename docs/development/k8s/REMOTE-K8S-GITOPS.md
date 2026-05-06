@@ -310,9 +310,14 @@ In your GitOps repo overlays:
 
 - `resources:` remote bases use:
   - `https://github.com/podverse/podverse//infra/k8s/base/<component>?ref=X.Y.Z-staging.N`
+- Keep each Podverse leaf base self-contained (no sibling `../` imports).
+- For API and management-api overlays, include `base/product-membership` explicitly alongside `base/api` or `base/management-api`:
+  - `https://github.com/podverse/podverse//infra/k8s/base/product-membership?ref=X.Y.Z-staging.N`
 - Podverse app `images[].newTag` use the **same** immutable tag as `?ref=` (not a floating `:staging` tag).
 
 Keep this contract consistent across `api`, `web`, `management-api`, `management-web`, `workers`, and `cron`.
+
+Migration note: if your GitOps repo previously relied on product-membership being pulled transitively from `base/api` or `base/management-api`, add the explicit `base/product-membership` resource in the same change that bumps your `?ref=` tag.
 
 ## Argo CD source contract
 

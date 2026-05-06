@@ -3,7 +3,8 @@
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 
-import { Button } from '../../components/Button/Button';
+import { Button } from '@podverse/ui';
+
 import { Checkbox } from '../../components/Form/Checkbox';
 import { RadioButton } from '../../components/Form/RadioButton';
 import { MainHeader } from '../../components/Main/MainHeader';

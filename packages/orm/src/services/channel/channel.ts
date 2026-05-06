@@ -1,7 +1,6 @@
 import { AppDataSourceRead, AppDataSourceReadWrite } from '@orm/db/index.js';
 import { Channel } from '@orm/entities/channel/channel.js';
 import { Feed } from '@orm/entities/feed/feed.js';
-import { FeedFlagStatusStatusEnum } from '@orm/entities/feed/feedFlagStatus.js';
 import { applyProperties } from '@orm/lib/applyProperties.js';
 import type { FindManyOptions, FindOptionsRelations, FindOptionsWhere, Repository } from 'typeorm';
 import { Equal, In, IsNull, Not } from 'typeorm';
@@ -227,7 +226,11 @@ export class ChannelService {
       // can't use Feed service here because of circular dependency
       const feed = await this.feedRepositoryRead.findOne({
         where: { id: Equal(channel.feed_id) },
-        relations: { feed_log: true },
+        relations: {
+          feed_log: true,
+          feed_policy: true,
+          feed_lifecycle_state: { feed_lifecycle_state_type: true },
+        },
       });
       if (feed) {
         channel.feed = feed;
@@ -293,10 +296,9 @@ export class ChannelService {
           id: Not(IsNull()),
         },
         feed: {
-          feed_flag_status: In([
-            FeedFlagStatusStatusEnum.Active,
-            FeedFlagStatusStatusEnum.AlwaysParse,
-          ]),
+          feed_policy: {
+            public_visible: true,
+          },
         },
         ...(medium_ids ? { medium_id: In(medium_ids) } : {}),
         ...(category_id ? { channel_categories: { category_id: Equal(category_id) } } : {}),
@@ -312,10 +314,9 @@ export class ChannelService {
           id: Not(IsNull()),
         },
         feed: {
-          feed_flag_status: In([
-            FeedFlagStatusStatusEnum.Active,
-            FeedFlagStatusStatusEnum.AlwaysParse,
-          ]),
+          feed_policy: {
+            public_visible: true,
+          },
         },
       },
       ...config,

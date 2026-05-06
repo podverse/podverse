@@ -3,10 +3,10 @@
 import React, { useMemo } from 'react';
 
 import type { DTOChannel, DTOItem } from '@podverse/helpers';
+import { Divider } from '@podverse/ui';
 
 import { useLikesItemBatch } from '../../../../hooks/useLikesItemBatch';
 import { buildListLikeRow } from '../../../../utils/likes/buildListLikeRow';
-import { Divider } from '../../../Divider/Divider';
 import type { ViewSelectedOption } from '../../../ViewSelector/ViewSelector';
 import { ListLiveItemRow } from '../../LiveItem/ListLiveItemRow';
 import { ListEpisodeGridNode } from './ListEpisodeGridNode';

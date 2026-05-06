@@ -17,10 +17,10 @@ const superuserWithAllPerms = {
     id: 1,
     admin_account_id: 1,
     feedsCrud: 15,
-    feedFlagStatusesCrud: 15,
-    feedFlagStatusReasonsCrud: 15,
+    feedTakedownReasonsCrud: 15,
     adminsCrud: 15,
     statsCrud: 15,
+    billingPricesCrud: 15,
     created_at: new Date(),
     updated_at: new Date(),
   },
@@ -38,10 +38,10 @@ const adminWithStatsRead = {
     id: 2,
     admin_account_id: 2,
     feedsCrud: 0,
-    feedFlagStatusesCrud: 0,
-    feedFlagStatusReasonsCrud: 0,
+    feedTakedownReasonsCrud: 0,
     adminsCrud: 0,
     statsCrud: 2,
+    billingPricesCrud: 0,
     created_at: new Date(),
     updated_at: new Date(),
   },
@@ -59,10 +59,10 @@ const adminWithNoPerms = {
     id: 3,
     admin_account_id: 3,
     feedsCrud: 0,
-    feedFlagStatusesCrud: 0,
-    feedFlagStatusReasonsCrud: 0,
+    feedTakedownReasonsCrud: 0,
     adminsCrud: 0,
     statsCrud: 0,
+    billingPricesCrud: 0,
     created_at: new Date(),
     updated_at: new Date(),
   },
@@ -70,15 +70,21 @@ const adminWithNoPerms = {
   updated_at: new Date('2020-01-01T00:00:00.000Z'),
 };
 
-const { getWithRoleAndPermissionsMock, queryMock } = vi.hoisted(() => ({
-  getWithRoleAndPermissionsMock: vi.fn(async (id: number) => {
-    if (id === 1) return superuserWithAllPerms;
-    if (id === 2) return adminWithStatsRead;
-    if (id === 3) return adminWithNoPerms;
-    return null;
-  }),
-  queryMock: vi.fn(async () => []),
-}));
+const { getWithRoleAndPermissionsMock, queryMock, readWriteQueryMock, readWriteTransactionMock } =
+  vi.hoisted(() => ({
+    getWithRoleAndPermissionsMock: vi.fn(async (id: number) => {
+      if (id === 1) return superuserWithAllPerms;
+      if (id === 2) return adminWithStatsRead;
+      if (id === 3) return adminWithNoPerms;
+      return null;
+    }),
+    queryMock: vi.fn(async () => []),
+    readWriteQueryMock: vi.fn(async () => []),
+    readWriteTransactionMock: vi.fn(
+      async (fn: (manager: { query: typeof queryMock }) => Promise<unknown>) =>
+        fn({ query: readWriteQueryMock })
+    ),
+  }));
 
 vi.mock('@mgmt-api/orm/services/adminAccount.js', () => ({
   AdminAccountService: vi.fn(() => ({
@@ -89,6 +95,10 @@ vi.mock('@mgmt-api/orm/services/adminAccount.js', () => ({
 vi.mock('@mgmt-api/orm/db/appDb.js', () => ({
   AppDbDataSourceRead: {
     query: queryMock,
+  },
+  AppDbDataSourceReadWrite: {
+    query: readWriteQueryMock,
+    transaction: readWriteTransactionMock,
   },
 }));
 

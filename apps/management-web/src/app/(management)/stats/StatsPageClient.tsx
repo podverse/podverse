@@ -1,10 +1,30 @@
 'use client';
 
 import Link from 'next/link';
-import { useCallback, useEffect, useState } from 'react';
+import { useTranslations } from 'next-intl';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import type { StatsBarChartDatum } from '@podverse/ui';
-import { StatsBarChart } from '@podverse/ui';
+import {
+  Alert,
+  Breadcrumbs,
+  Button,
+  ButtonTabs,
+  Card,
+  FlexBetween,
+  Input,
+  LoadingText,
+  ManagementPageShell,
+  Pagination,
+  PaginationSummaryLine,
+  SectionBlock,
+  SectionHeading,
+  StatsBarChart,
+  StatSummaryGrid,
+  Table,
+  TableEmptyCell,
+  ToolbarCluster,
+} from '@podverse/ui';
 
 import { type CurrentUser, getCurrentUser } from '../../../lib/requests/auth';
 import {
@@ -16,23 +36,41 @@ import {
   type StatsRow,
 } from '../../../lib/requests/stats';
 
-import styles from './page.module.scss';
+function entityTypeLabel(t: (key: string) => string, et: EntityType): string {
+  if (et === 'channel') {
+    return t('entityTypes.channel');
+  }
+  if (et === 'item') {
+    return t('entityTypes.item');
+  }
+  if (et === 'clip') {
+    return t('entityTypes.clip');
+  }
+  if (et === 'playlist') {
+    return t('entityTypes.playlist');
+  }
+  return t('entityTypes.account');
+}
 
-const ENTITY_TYPES: { key: EntityType; label: string }[] = [
-  { key: 'channel', label: 'Channels' },
-  { key: 'item', label: 'Items' },
-  { key: 'clip', label: 'Clips' },
-  { key: 'playlist', label: 'Playlists' },
-  { key: 'account', label: 'Accounts' },
-];
+function rangeLabel(t: (key: string) => string, r: StatsRange): string {
+  if (r === 'day') {
+    return t('ranges.day');
+  }
+  if (r === '7day') {
+    return t('ranges.day7');
+  }
+  if (r === '30day') {
+    return t('ranges.day30');
+  }
+  if (r === '1year') {
+    return t('ranges.year1');
+  }
+  return t('ranges.allTime');
+}
 
-const RANGES: { key: StatsRange; label: string }[] = [
-  { key: 'day', label: '1 day' },
-  { key: '7day', label: '7 day' },
-  { key: '30day', label: '30 day' },
-  { key: '1year', label: '1 year' },
-  { key: 'all-time', label: 'All-time' },
-];
+const ENTITY_TYPES: EntityType[] = ['channel', 'item', 'clip', 'playlist', 'account'];
+
+const RANGES: StatsRange[] = ['day', '7day', '30day', '1year', 'all-time'];
 
 type DetailData = {
   id: number;
@@ -47,6 +85,8 @@ export type StatsPageClientProps = {
 };
 
 export function StatsPageClient({ initialUser }: StatsPageClientProps) {
+  const tc = useTranslations('common');
+  const ts = useTranslations('statsPage');
   const [user, setUser] = useState<CurrentUser>(initialUser);
   const [entityType, setEntityType] = useState<EntityType>('channel');
   const [range, setRange] = useState<StatsRange>('all-time');
@@ -91,30 +131,30 @@ export function StatsPageClient({ initialUser }: StatsPageClientProps) {
       setRows(result.rows);
       setTotal(result.total);
     } catch {
-      setError('Failed to load stats.');
+      setError(ts('failedToLoad'));
     } finally {
       setLoading(false);
     }
-  }, [entityType, range, page, isSearching, searchQuery]);
+  }, [entityType, isSearching, page, range, searchQuery, ts]);
 
   useEffect(() => {
     void fetchData();
   }, [fetchData]);
 
-  const handleEntityTypeChange = (newType: EntityType) => {
+  const handleEntityTypeChange = useCallback((newType: EntityType) => {
     setEntityType(newType);
     setPage(1);
     setDetail(null);
     setSearchQuery('');
     setIsSearching(false);
-  };
+  }, []);
 
-  const handleRangeChange = (newRange: StatsRange) => {
+  const handleRangeChange = useCallback((newRange: StatsRange) => {
     setRange(newRange);
     setPage(1);
-  };
+  }, []);
 
-  const handleSearch = () => {
+  const handleSearch = useCallback(() => {
     const trimmed = searchQuery.trim();
     if (trimmed.length === 0) {
       setIsSearching(false);
@@ -123,41 +163,41 @@ export function StatsPageClient({ initialUser }: StatsPageClientProps) {
     }
     setIsSearching(true);
     setPage(1);
-  };
+  }, [searchQuery]);
 
-  const handleClearSearch = () => {
+  const handleClearSearch = useCallback(() => {
     setSearchQuery('');
     setIsSearching(false);
     setPage(1);
-  };
+  }, []);
 
   const handleRowClick = async (row: StatsRow) => {
     setDetailLoading(true);
     try {
       const data = await reqStatsDetail(entityType, row.id);
       const dayBuckets: StatsBarChartDatum[] = [
-        { label: 'Today', value: data.day_current_count },
-        { label: 'Day 1', value: data.day_1_count },
-        { label: 'Day 2', value: data.day_2_count },
-        { label: 'Day 3', value: data.day_3_count },
-        { label: 'Day 4', value: data.day_4_count },
-        { label: 'Day 5', value: data.day_5_count },
-        { label: 'Day 6', value: data.day_6_count },
-        { label: 'Day 7', value: data.day_7_count },
-        { label: 'Day 8', value: data.day_8_count },
+        { label: ts('detail.dayToday'), value: data.day_current_count },
+        { label: ts('detail.dayN', { count: 1 }), value: data.day_1_count },
+        { label: ts('detail.dayN', { count: 2 }), value: data.day_2_count },
+        { label: ts('detail.dayN', { count: 3 }), value: data.day_3_count },
+        { label: ts('detail.dayN', { count: 4 }), value: data.day_4_count },
+        { label: ts('detail.dayN', { count: 5 }), value: data.day_5_count },
+        { label: ts('detail.dayN', { count: 6 }), value: data.day_6_count },
+        { label: ts('detail.dayN', { count: 7 }), value: data.day_7_count },
+        { label: ts('detail.dayN', { count: 8 }), value: data.day_8_count },
       ];
       const weekBuckets: StatsBarChartDatum[] = [
-        { label: 'This week', value: data.week_current_count },
-        { label: 'Week 1', value: data.week_1_count },
-        { label: 'Week 2', value: data.week_2_count },
-        { label: 'Week 3', value: data.week_3_count },
-        { label: 'Week 4', value: data.week_4_count },
+        { label: ts('detail.weekCurrent'), value: data.week_current_count },
+        { label: ts('detail.weekN', { count: 1 }), value: data.week_1_count },
+        { label: ts('detail.weekN', { count: 2 }), value: data.week_2_count },
+        { label: ts('detail.weekN', { count: 3 }), value: data.week_3_count },
+        { label: ts('detail.weekN', { count: 4 }), value: data.week_4_count },
       ];
       const overview = [
-        { label: 'Today', value: data.day_current_count },
-        { label: 'This week', value: data.week_current_count },
-        { label: 'This month', value: data.month_current_count },
-        { label: 'All-time', value: data.all_time_count },
+        { label: ts('detail.dayToday'), value: data.day_current_count },
+        { label: ts('detail.weekCurrent'), value: data.week_current_count },
+        { label: ts('detail.monthCurrent'), value: data.month_current_count },
+        { label: ts('ranges.allTime'), value: data.all_time_count },
       ];
       setDetail({ id: data.id, title: data.title, dayBuckets, weekBuckets, overview });
     } catch {
@@ -167,63 +207,94 @@ export function StatsPageClient({ initialUser }: StatsPageClientProps) {
     }
   };
 
+  const entityButtonTabs = useMemo(
+    () =>
+      ENTITY_TYPES.map((et) => ({
+        key: et,
+        label:
+          et === 'channel'
+            ? ts('entityTypes.channel')
+            : et === 'item'
+              ? ts('entityTypes.item')
+              : et === 'clip'
+                ? ts('entityTypes.clip')
+                : et === 'playlist'
+                  ? ts('entityTypes.playlist')
+                  : ts('entityTypes.account'),
+        onClick: () => {
+          handleEntityTypeChange(et);
+        },
+      })),
+    [handleEntityTypeChange, ts]
+  );
+
+  const rangeButtonTabs = useMemo(
+    () =>
+      RANGES.map((r) => ({
+        key: r,
+        label:
+          r === 'day'
+            ? ts('ranges.day')
+            : r === '7day'
+              ? ts('ranges.day7')
+              : r === '30day'
+                ? ts('ranges.day30')
+                : r === '1year'
+                  ? ts('ranges.year1')
+                  : ts('ranges.allTime'),
+        onClick: () => {
+          handleRangeChange(r);
+        },
+      })),
+    [handleRangeChange, ts]
+  );
+
   const totalPages = Math.ceil(total / pageSize);
 
   const chartData: StatsBarChartDatum[] = rows.slice(0, 10).map((row) => ({
-    label: truncateTitle(row.title ?? `ID ${row.id}`, 20),
+    label: truncateTitle(row.title ?? ts('idValue', { id: row.id }), 20),
     value: row.range_count,
   }));
 
-  const rangeLabel = RANGES.find((r) => r.key === range)?.label ?? range;
+  const selectedEntityLabel = entityTypeLabel(ts, entityType);
+  const rangeLabelResolved = rangeLabel(ts, range);
+
+  const detailSummaryItems = useMemo(() => {
+    if (!detail) {
+      return [];
+    }
+    return detail.overview.map((stat) => ({
+      label: stat.label,
+      value: stat.value.toLocaleString(),
+    }));
+  }, [detail]);
 
   if (!user) {
     return null;
   }
 
   return (
-    <div className="container">
-      <div className="page-header">
-        <h1 className="page-title">Stats</h1>
-        <div className={styles.breadcrumbs}>
-          <Link href="/dashboard" className={styles.breadcrumbLink}>
-            Dashboard
-          </Link>
-          <span className={styles.breadcrumbSep}>/</span>
-          <span>Stats</span>
-        </div>
-      </div>
+    <ManagementPageShell
+      title={ts('title')}
+      headerChildren={
+        <Breadcrumbs
+          LinkComponent={Link}
+          marginBottom="lg"
+          navAriaLabel={tc('breadcrumbNav')}
+          items={[{ href: '/dashboard', label: ts('breadcrumbDashboard') }, { label: ts('title') }]}
+        />
+      }
+    >
+      <SectionBlock>
+        <ButtonTabs buttonTabs={entityButtonTabs} selectedKey={entityType} />
+      </SectionBlock>
 
-      <main>
-        {/* Entity type tabs */}
-        <div className={styles.tabs}>
-          {ENTITY_TYPES.map((et) => (
-            <button
-              key={et.key}
-              className={`${styles.tab} ${entityType === et.key ? styles.tabActive : ''}`}
-              onClick={() => handleEntityTypeChange(et.key)}
-            >
-              {et.label}
-            </button>
-          ))}
-        </div>
-
-        {/* Range toggle + search */}
-        <div className={styles.toolbar}>
-          <div className={styles.rangeToggle}>
-            {RANGES.map((r) => (
-              <button
-                key={r.key}
-                className={`${styles.rangeButton} ${range === r.key ? styles.rangeButtonActive : ''}`}
-                onClick={() => handleRangeChange(r.key)}
-              >
-                {r.label}
-              </button>
-            ))}
-          </div>
-          <input
-            className={styles.searchInput}
+      <ToolbarCluster>
+        <ButtonTabs buttonTabs={rangeButtonTabs} selectedKey={range} />
+        <div style={{ flex: '1 1 200px', minWidth: '200px' }}>
+          <Input
             type="text"
-            placeholder={`Search ${ENTITY_TYPES.find((et) => et.key === entityType)?.label ?? ''} by title...`}
+            placeholder={ts('searchPlaceholder', { entity: selectedEntityLabel })}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             onKeyDown={(e) => {
@@ -231,125 +302,108 @@ export function StatsPageClient({ initialUser }: StatsPageClientProps) {
                 handleSearch();
               }
             }}
+            style={{ width: '100%' }}
           />
-          <button className={styles.rangeButton} onClick={handleSearch}>
-            Search
-          </button>
-          {isSearching && (
-            <button className={styles.rangeButton} onClick={handleClearSearch}>
-              Clear
-            </button>
+        </div>
+        <Button type="button" variant="mini" onClick={handleSearch}>
+          {tc('search')}
+        </Button>
+        {isSearching && (
+          <Button type="button" variant="mini" onClick={handleClearSearch}>
+            {ts('clear')}
+          </Button>
+        )}
+      </ToolbarCluster>
+
+      <SectionBlock>
+        <SectionHeading level={3}>
+          {ts('topChartHeading', { entity: selectedEntityLabel, range: rangeLabelResolved })}
+        </SectionHeading>
+        <StatsBarChart
+          data={chartData}
+          loading={loading}
+          emptyMessage={error ?? ts('noStatsDataForRange')}
+          valueLabel={ts('views')}
+        />
+      </SectionBlock>
+
+      {loading && <LoadingText>{tc('loading')}</LoadingText>}
+      {error && !loading && <Alert>{error}</Alert>}
+      {!loading && !error && (
+        <>
+          <Table.ScrollContainer>
+            <Table>
+              <Table.Head>
+                <Table.Row>
+                  <Table.HeaderCell>#</Table.HeaderCell>
+                  <Table.HeaderCell>{ts('table.title')}</Table.HeaderCell>
+                  <Table.HeaderCell>
+                    {ts('table.rangeViews', { range: rangeLabelResolved })}
+                  </Table.HeaderCell>
+                  <Table.HeaderCell>{ts('ranges.allTime')}</Table.HeaderCell>
+                </Table.Row>
+              </Table.Head>
+              <Table.Body>
+                {rows.length === 0 && (
+                  <Table.Row>
+                    <TableEmptyCell colSpan={4}>{tc('noDataFound')}</TableEmptyCell>
+                  </Table.Row>
+                )}
+                {rows.map((row, idx) => (
+                  <Table.Row
+                    key={row.id}
+                    selected={detail?.id === row.id}
+                    onClick={() => void handleRowClick(row)}
+                  >
+                    <Table.Cell>{(page - 1) * pageSize + idx + 1}</Table.Cell>
+                    <Table.Cell>{row.title ?? ts('idValue', { id: row.id })}</Table.Cell>
+                    <Table.Cell>{row.range_count.toLocaleString()}</Table.Cell>
+                    <Table.Cell>{row.all_time_count.toLocaleString()}</Table.Cell>
+                  </Table.Row>
+                ))}
+              </Table.Body>
+            </Table>
+          </Table.ScrollContainer>
+
+          {totalPages > 1 && (
+            <>
+              <PaginationSummaryLine>
+                {total === 1
+                  ? ts('paginationSummarySingular', { total, page, totalPages })
+                  : ts('paginationSummary', { total, page, totalPages })}
+              </PaginationSummaryLine>
+              <Pagination currentPage={page} totalPages={totalPages} onPageChange={setPage} />
+            </>
           )}
+        </>
+      )}
+
+      {detailLoading && <LoadingText>{ts('loadingDetail')}</LoadingText>}
+      {detail && !detailLoading && (
+        <div style={{ marginTop: 'var(--spacing-2xl)' }}>
+          <Card variant="bordered">
+            <FlexBetween>
+              <SectionHeading level={3}>
+                {detail.title ?? ts('idValue', { id: detail.id })}
+              </SectionHeading>
+              <Button type="button" variant="mini" onClick={() => setDetail(null)}>
+                {ts('close')}
+              </Button>
+            </FlexBetween>
+
+            <StatSummaryGrid items={detailSummaryItems} />
+
+            <SectionHeading level={4}>{ts('detail.dailyBreakdown')}</SectionHeading>
+            <StatsBarChart data={detail.dayBuckets} valueLabel={ts('views')} />
+
+            <SectionHeading level={4} spacedTop>
+              {ts('detail.weeklyBreakdown')}
+            </SectionHeading>
+            <StatsBarChart data={detail.weekBuckets} valueLabel={ts('views')} />
+          </Card>
         </div>
-
-        {/* Chart */}
-        <div className={styles.chartSection}>
-          <h3 style={{ marginBottom: '0.5rem' }}>
-            Top 10 {ENTITY_TYPES.find((et) => et.key === entityType)?.label ?? ''} ({rangeLabel})
-          </h3>
-          <StatsBarChart
-            data={chartData}
-            loading={loading}
-            emptyMessage={error ?? 'No stats data available for this range.'}
-            valueLabel="Views"
-          />
-        </div>
-
-        {/* Table */}
-        {loading && <div className={styles.loadingText}>Loading...</div>}
-        {error && !loading && <div className={styles.errorText}>{error}</div>}
-        {!loading && !error && (
-          <>
-            <div className={styles.tableWrapper}>
-              <table className={styles.statsTable}>
-                <thead>
-                  <tr>
-                    <th>#</th>
-                    <th>Title</th>
-                    <th>{rangeLabel} views</th>
-                    <th>All-time</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {rows.length === 0 && (
-                    <tr>
-                      <td colSpan={4} style={{ textAlign: 'center', padding: '2rem' }}>
-                        No data found.
-                      </td>
-                    </tr>
-                  )}
-                  {rows.map((row, idx) => (
-                    <tr
-                      key={row.id}
-                      className={`${styles.rowClickable} ${detail?.id === row.id ? styles.rowSelected : ''}`}
-                      onClick={() => void handleRowClick(row)}
-                    >
-                      <td>{(page - 1) * pageSize + idx + 1}</td>
-                      <td>{row.title ?? `ID ${row.id}`}</td>
-                      <td>{row.range_count.toLocaleString()}</td>
-                      <td>{row.all_time_count.toLocaleString()}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-
-            {/* Pagination */}
-            {totalPages > 1 && (
-              <div className={styles.pagination}>
-                <span>
-                  {total} result{total !== 1 ? 's' : ''} - Page {page} of {totalPages}
-                </span>
-                <div className={styles.paginationButtons}>
-                  <button
-                    className={styles.paginationButton}
-                    disabled={page <= 1}
-                    onClick={() => setPage((p) => Math.max(1, p - 1))}
-                  >
-                    Previous
-                  </button>
-                  <button
-                    className={styles.paginationButton}
-                    disabled={page >= totalPages}
-                    onClick={() => setPage((p) => p + 1)}
-                  >
-                    Next
-                  </button>
-                </div>
-              </div>
-            )}
-          </>
-        )}
-
-        {/* Detail panel */}
-        {detailLoading && <div className={styles.loadingText}>Loading detail...</div>}
-        {detail && !detailLoading && (
-          <div className={styles.detailPanel}>
-            <div className={styles.detailHeader}>
-              <h3 className={styles.detailTitle}>{detail.title ?? `ID ${detail.id}`}</h3>
-              <button className={styles.detailClose} onClick={() => setDetail(null)}>
-                Close
-              </button>
-            </div>
-
-            <div className={styles.detailStats}>
-              {detail.overview.map((stat) => (
-                <div key={stat.label} className={styles.detailStat}>
-                  <span className={styles.detailStatLabel}>{stat.label}</span>
-                  <span className={styles.detailStatValue}>{stat.value.toLocaleString()}</span>
-                </div>
-              ))}
-            </div>
-
-            <h4 style={{ marginBottom: '0.5rem' }}>Daily breakdown</h4>
-            <StatsBarChart data={detail.dayBuckets} valueLabel="Views" />
-
-            <h4 style={{ marginTop: '1rem', marginBottom: '0.5rem' }}>Weekly breakdown</h4>
-            <StatsBarChart data={detail.weekBuckets} valueLabel="Views" />
-          </div>
-        )}
-      </main>
-    </div>
+      )}
+    </ManagementPageShell>
   );
 }
 

@@ -1,0 +1,14 @@
+# Management Web: Prefer Shared UI
+
+When editing files under `apps/management-web/src/**/*.tsx`:
+
+- Prefer importing generic UI primitives from `@podverse/ui` before adding page-specific wrappers.
+- If a generic pattern is missing, add it to `packages/ui/src/components/**` and export from `packages/ui/src/index.ts`.
+- Avoid creating one-line app-local re-export files for `@podverse/ui` components.
+- Keep app-local components in `apps/management-web/src/components/**` for shell/product-specific behavior only.
+
+Common candidates to share:
+
+- Form controls and action rows (`FormGroup`, `Input`, `Label`, `Select`, `FormPrimaryActions`)
+- Table and pagination wrappers (`Table`, `Pagination`)
+- Status and state messaging (`StatusBadge`, `LoadingText`, `Alert`)

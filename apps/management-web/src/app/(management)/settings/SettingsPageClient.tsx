@@ -4,17 +4,20 @@ import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
 
+import {
+  Card,
+  fieldPrimitiveClasses,
+  FormGroup,
+  FormStack,
+  Label,
+  ManagementPageShell,
+} from '@podverse/ui';
+
 import { ManagementLocaleSelector } from '../../../components/ManagementLocaleSelector/ManagementLocaleSelector';
 import { ManagementThemeSwitcher } from '../../../components/ManagementThemeSwitcher/ManagementThemeSwitcher';
-import { Card } from '../../../components/ui/Card/Card';
-import { FormGroup } from '../../../components/ui/Form/FormGroup';
-import { FormLabel } from '../../../components/ui/Form/FormLabel';
 import type { CurrentUser } from '../../../lib/requests/auth';
 import { getCurrentUser } from '../../../lib/requests/auth';
 import type { UITheme } from '../../../utils/uiTheme';
-
-import formInputStyles from '../../../components/ui/Form/FormInput.module.scss';
-import pageStyles from './page.module.scss';
 
 export type SettingsPageClientProps = {
   initialUser: CurrentUser;
@@ -82,35 +85,29 @@ export function SettingsPageClient({ initialUser }: SettingsPageClientProps) {
   }
 
   return (
-    <div className="container">
-      <div className="page-header">
-        <h1 className="page-title">{t('title')}</h1>
-        <p className="page-subtitle">{t('subtitle')}</p>
-      </div>
-      <main>
-        <div className={pageStyles.stack}>
-          <Card variant="bordered">
-            <FormGroup>
-              <FormLabel htmlFor="settings-ui-theme">{t('theme.label')}</FormLabel>
-              <ManagementThemeSwitcher
-                id="settings-ui-theme"
-                className={formInputStyles.formInput}
-                ariaLabel={t('theme.label')}
-                optionLabel={(th) => labelForTheme(t, th)}
-              />
-            </FormGroup>
-          </Card>
-          <Card variant="bordered">
-            <FormGroup>
-              <FormLabel htmlFor="settings-locale">{t('language.label')}</FormLabel>
-              <ManagementLocaleSelector
-                id="settings-locale"
-                className={formInputStyles.formInput}
-              />
-            </FormGroup>
-          </Card>
-        </div>
-      </main>
-    </div>
+    <ManagementPageShell subtitle={t('subtitle')} title={t('title')}>
+      <FormStack>
+        <Card variant="bordered">
+          <FormGroup>
+            <Label htmlFor="settings-ui-theme">{t('theme.label')}</Label>
+            <ManagementThemeSwitcher
+              id="settings-ui-theme"
+              className={fieldPrimitiveClasses.input}
+              ariaLabel={t('theme.label')}
+              optionLabel={(th) => labelForTheme(t, th)}
+            />
+          </FormGroup>
+        </Card>
+        <Card variant="bordered">
+          <FormGroup>
+            <Label htmlFor="settings-locale">{t('language.label')}</Label>
+            <ManagementLocaleSelector
+              id="settings-locale"
+              className={fieldPrimitiveClasses.input}
+            />
+          </FormGroup>
+        </Card>
+      </FormStack>
+    </ManagementPageShell>
   );
 }

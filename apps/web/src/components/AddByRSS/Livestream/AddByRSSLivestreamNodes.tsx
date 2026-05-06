@@ -2,9 +2,10 @@
 
 import React from 'react';
 
+import { Divider } from '@podverse/ui';
+
 import type { AddByRSSListSortOrder } from '../../../contexts/AddByRSSListContext';
 import type { AddByRSSLivestreamIndexItem } from '../../../utils/addByRSS/types';
-import { Divider } from '../../Divider/Divider';
 import type { ViewSelectedOption } from '../../ViewSelector/ViewSelector';
 import { AddByRSSLivestreamGridNode } from './AddByRSSLivestreamGridNode';
 import { AddByRSSLivestreamRow } from './AddByRSSLivestreamRow';

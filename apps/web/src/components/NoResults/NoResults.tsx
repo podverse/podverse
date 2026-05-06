@@ -2,7 +2,7 @@
 
 import React from 'react';
 
-import { InfoWrapper } from '../InfoWrapper/InfoWrapper';
+import { InfoWrapper } from '@podverse/ui';
 
 import styles from '../../styles/components/NoResults/NoResults.module.scss';
 

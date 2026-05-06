@@ -2,7 +2,7 @@
 
 import classNames from 'classnames';
 import NextImage from 'next/image';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 import { IMAGES } from '../../constants/images';
 import { PROXY } from '../../constants/proxy';
@@ -30,16 +30,36 @@ export const Image: React.FC<ImageProps> = ({
 }) => {
   const [imageError, setImageError] = useState(false);
 
+  useEffect(() => {
+    setImageError(false);
+  }, [src, skipProxy]);
+
+  const isFluidGridSlot = width === IMAGES.LIST.GRID.SIZE && height === IMAGES.LIST.GRID.SIZE;
+  const placeholderWidth = Math.round((width * 2) / 2.5);
+  const placeholderHeight = Math.round((height * 2) / 2.5);
+
   if (!src || imageError) {
     return (
-      <NextImage
-        src={IMAGES.SRC.PLACEHOLDER}
-        alt={alt}
-        width={width}
-        height={height}
-        className={classNames(styles.imagePlaceholder, className)}
-        priority={priority}
-      />
+      <div
+        className={classNames(
+          styles.placeholderOuter,
+          isFluidGridSlot && styles.placeholderOuterFluid,
+          className
+        )}
+        style={isFluidGridSlot ? undefined : { width, height }}
+      >
+        <NextImage
+          src={IMAGES.SRC.PLACEHOLDER}
+          alt={alt}
+          width={placeholderWidth}
+          height={placeholderHeight}
+          className={classNames(
+            styles.imagePlaceholder,
+            isFluidGridSlot && styles.imagePlaceholderFluid
+          )}
+          priority={priority}
+        />
+      </div>
     );
   }
 
@@ -51,7 +71,7 @@ export const Image: React.FC<ImageProps> = ({
       alt={alt}
       width={width}
       height={height}
-      className={className}
+      className={classNames(styles.skeletonBg, className)}
       onError={() => setImageError(true)}
       priority={priority}
     />

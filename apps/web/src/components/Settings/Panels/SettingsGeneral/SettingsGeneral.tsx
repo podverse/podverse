@@ -1,6 +1,7 @@
 'use client';
 
-import { Divider } from '../../../Divider/Divider';
+import { Divider } from '@podverse/ui';
+
 import { SettingsLocaleSelector } from './SettingsLocaleSelector';
 import { SettingsThemeSelector } from './SettingsThemeSelector';
 

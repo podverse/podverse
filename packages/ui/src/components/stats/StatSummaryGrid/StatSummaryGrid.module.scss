@@ -1,0 +1,21 @@
+.grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-2xl);
+}
+
+.item {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.label {
+  font-size: var(--font-size-xs);
+  color: var(--text-color-secondary);
+}
+
+.value {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+}

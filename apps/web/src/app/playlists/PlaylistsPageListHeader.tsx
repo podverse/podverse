@@ -13,11 +13,10 @@ import {
   QUERY_PARAMS_STATS_RANGE_VALUES,
   QUERY_PARAMS_SUBSCRIBED_FULL_SORT,
 } from '@podverse/helpers-requests';
+import { ButtonTabs, Tabs } from '@podverse/ui';
 
 import Dropdown from '../../components/Dropdown/Dropdown';
 import { ListHeader } from '../../components/List/ListHeader';
-import { ButtonTabs } from '../../components/Tabs/ButtonTabs';
-import { Tabs } from '../../components/Tabs/Tabs';
 import { usePlaylistsPageContext } from './PlaylistsPageContext';
 import { getPlaylistsPageDropdownConfig } from './PlaylistsPageDropdownConfig';
 

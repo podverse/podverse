@@ -13,6 +13,15 @@ const WORKER_COMMAND_DEFS: readonly WorkerCommandDef[] = [
     example_cli: 'npm run archive_all -w apps/workers',
   },
   {
+    name: 'billingProcessDueRenewals',
+    label: 'Billing: process due renewals',
+    description:
+      'Scan memberships due within 24h and attempt renewals via provider-agnostic adapter boundary.',
+    category: 'billing',
+    risk: 'normal',
+    example_cli: 'npm run billing_process_due_renewals -w apps/workers',
+  },
+  {
     name: 'deleteOutdatedOnDemandParserEvent',
     label: 'Delete outdated on-demand parser events',
     description: 'ORM job: remove outdated on_demand_parser_event rows.',
@@ -133,16 +142,6 @@ const WORKER_COMMAND_DEFS: readonly WorkerCommandDef[] = [
     category: 'mq',
     risk: 'long_running',
     example_cli: 'npm run mq_add_by_rss_run_parser -w apps/workers',
-  },
-  {
-    name: 'ormFeedUpdateFlagStatus',
-    label: 'ORM: update feed flag status',
-    description:
-      'Set feed status (and reason) in the app DB. Prefer the in-app tool when you need a guided flow.',
-    category: 'orm',
-    risk: 'normal',
-    example_cli: 'npm run orm_feed_update_flag_status -w apps/workers',
-    related_management_path: '/feed-operations/flag-status',
   },
   {
     name: 'reencryptAddByRSSCredentials',

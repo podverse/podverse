@@ -30,6 +30,10 @@ When a new latest migration is added:
      They must reference the marker env vars, not hardcoded stale filenames.
 3. Keep overlays/Kustomize wiring intact so updated env values reach Deployments.
 
+## Related skills
+
+- [linear-sql-greenfield-only](../linear-sql-greenfield-only/SKILL.md) — strict ordered-chain SQL (no upgrade-only idempotency clutter).
+
 ## Migration source of truth
 
 Use latest SQL filenames under:

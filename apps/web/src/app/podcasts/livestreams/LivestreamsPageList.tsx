@@ -3,12 +3,12 @@ import { useTranslations } from 'next-intl';
 import React from 'react';
 
 import type { DTOCategory } from '@podverse/helpers';
+import { ButtonTabs } from '@podverse/ui';
 
 import { CoreLivestreams } from '../../../components/Core/Livestream/CoreLivestreams';
 import { HowToStartInfo } from '../../../components/InfoWrapper/HowToStartInfo';
 import LoadingSpinnerOverlay from '../../../components/LoadingSpinner/LoadingSpinnerOverlay';
 import { ModalCategoriesSelect } from '../../../components/Modal/ModalCategoriesSelect';
-import { ButtonTabs } from '../../../components/Tabs/ButtonTabs';
 import { ROUTES } from '../../../constants/routes';
 import { useAccount } from '../../../contexts/Account';
 import { useLocalSettings } from '../../../contexts/LocalSettings';

@@ -2,8 +2,9 @@
 
 import React from 'react';
 
+import { Divider } from '@podverse/ui';
+
 import { IMAGES } from '../../../constants/images';
-import { Divider } from '../../Divider/Divider';
 import { Image } from '../../Image/Image';
 
 import styles from '../../../styles/components/Common/Item/CommonItemHeader.module.scss';

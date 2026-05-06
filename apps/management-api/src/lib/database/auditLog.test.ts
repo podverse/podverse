@@ -28,7 +28,7 @@ describe('AuditLogService', () => {
     await service.record({
       adminAccountId: 1,
       operation: 'create',
-      tableName: 'feed_flag_status_reason',
+      tableName: 'feed_takedown_reason',
       rowId: 5,
       afterSnapshot: { id: 5, reason: 'spam' },
       requestId: 'req-123',
@@ -38,7 +38,7 @@ describe('AuditLogService', () => {
     const saved = savedArgs[0] as Record<string, unknown>;
     expect(saved.admin_account_id).toBe(1);
     expect(saved.operation).toBe('create');
-    expect(saved.table_name).toBe('feed_flag_status_reason');
+    expect(saved.table_name).toBe('feed_takedown_reason');
     expect(saved.row_id).toBe(5);
     expect(saved.request_id).toBe('req-123');
   });
@@ -107,7 +107,7 @@ describe('AuditLogService', () => {
     await service.record({
       adminAccountId: 1,
       operation: 'delete',
-      tableName: 'feed_flag_status_reason',
+      tableName: 'feed_takedown_reason',
       rowId: 3,
       beforeSnapshot: null,
       requestId: null,

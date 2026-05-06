@@ -6,7 +6,7 @@ import { useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
 
 import type { NavCard } from '@podverse/ui';
-import { NavCardGrid } from '@podverse/ui';
+import { ManagementPageShell, NavCardGrid } from '@podverse/ui';
 
 import { canReadFeeds } from '../../lib/managementPermissions';
 import { type CurrentUser, getCurrentUser } from '../../lib/requests/auth';
@@ -59,9 +59,7 @@ export function DashboardPageClient({ initialUser }: DashboardPageClientProps) {
   const isDatabaseReadable =
     user.role === 'superuser' ||
     (user.permissions &&
-      (user.permissions.feeds_crud >= 2 ||
-        user.permissions.feed_flag_statuses_crud >= 2 ||
-        user.permissions.feed_flag_status_reasons_crud >= 2));
+      (user.permissions.feeds_crud >= 2 || user.permissions.feed_takedown_reasons_crud >= 2));
 
   const isFeedFlagStatusToolVisible = canReadFeeds(user);
 
@@ -101,14 +99,8 @@ export function DashboardPageClient({ initialUser }: DashboardPageClientProps) {
   ];
 
   return (
-    <div className="container">
-      <div className="page-header">
-        <h1 className="page-title">{t('title')}</h1>
-        <p className="page-subtitle">{t('welcome')}</p>
-      </div>
-      <main>
-        <NavCardGrid cards={cards} LinkComponent={Link} />
-      </main>
-    </div>
+    <ManagementPageShell subtitle={t('welcome')} title={t('title')}>
+      <NavCardGrid cards={cards} LinkComponent={Link} />
+    </ManagementPageShell>
   );
 }

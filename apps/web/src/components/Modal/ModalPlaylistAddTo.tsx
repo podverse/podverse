@@ -12,6 +12,7 @@ import {
   MediumEnum,
 } from '@podverse/helpers';
 import { getTotalPages } from '@podverse/helpers';
+import { ButtonTabs, FormStack } from '@podverse/ui';
 
 import { MEDIUM } from '../../constants/medium';
 import { ROUTES } from '../../constants/routes';
@@ -21,10 +22,8 @@ import { useModals } from '../../contexts/Modals';
 import { getApiRequestService } from '../../factories/apiRequestService';
 import { useSkipInitialEffect } from '../../hooks/useSkipInitialEffect';
 import { CallToActionMessage } from '../CallToActionMessage/CallToActionMessage';
-import { FormStack } from '../Form/FormStack';
 import { ListPlaylists } from '../List/Playlists/ListPlaylists';
 import { MediaHeaderMini } from '../MediaHeaderMini/MediaHeaderMini';
-import { ButtonTabs } from '../Tabs/ButtonTabs';
 import { showToastPromise } from '../Toast/Toast';
 import { Modal, MODAL_CONTENT_MAX_WIDTH } from './Modal';
 

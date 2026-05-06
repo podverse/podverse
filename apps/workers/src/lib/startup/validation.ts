@@ -25,9 +25,10 @@
  */
 
 import { KNOWN_COMMANDS } from '@workers/commands/commandNames.js';
-import { hasAnyImageShrinkEnvSet } from '@workers/config/index.js';
+import { hasAnyImageShrinkEnvSet, SUPPORTED_BUCKET_PROVIDERS } from '@workers/config/index.js';
 import { validateSpamFeedItemThresholdEnvVar } from '@workers/lib/parser/spamThresholdEnv.js';
 
+import { isBucketProvider } from '@podverse/external-services-object-storage';
 import type { ValidationResult, ValidationSummary } from '@podverse/helpers-config';
 import {
   displayValidationResults,
@@ -103,6 +104,16 @@ function validateBase(): ValidationResult[] {
   );
   results.push(validateOptional('LOG_TIMER', 'Config', 'Use Default (false)'));
   results.push(validateOptional('NODE_ENV', 'General', 'Use Default (development)'));
+  results.push(
+    validateOptional('BILLING_RENEWAL_RETRY_DELAY_MINUTES', 'Billing', 'Use Default (60 minutes)')
+  );
+  results.push(
+    validateOptional(
+      'BILLING_RENEWAL_DRY_RUN_SUCCESS',
+      'Billing',
+      'Use Default (false - adapter_not_configured)'
+    )
+  );
   return results;
 }
 
@@ -143,6 +154,38 @@ function validateKeyvaldb(): ValidationResult[] {
   return results;
 }
 
+function validateBucketForcePathStyle(): ValidationResult {
+  const raw = (process.env.BUCKET_FORCE_PATH_STYLE ?? '').trim();
+  if (raw === '') {
+    return {
+      name: 'BUCKET_FORCE_PATH_STYLE',
+      isSet: false,
+      isValid: true,
+      isRequired: false,
+      message: 'Use Default (provider-specific)',
+      category: 'Image Shrink',
+    };
+  }
+  if (raw === 'true' || raw === 'false') {
+    return {
+      name: 'BUCKET_FORCE_PATH_STYLE',
+      isSet: true,
+      isValid: true,
+      isRequired: false,
+      message: `Set (${raw})`,
+      category: 'Image Shrink',
+    };
+  }
+  return {
+    name: 'BUCKET_FORCE_PATH_STYLE',
+    isSet: true,
+    isValid: false,
+    isRequired: false,
+    message: `Invalid value: "${raw}" (expected true, false, or unset)`,
+    category: 'Image Shrink',
+  };
+}
+
 /** Category: Image Shrink */
 function validateImageShrink(): ValidationResult[] {
   const results: ValidationResult[] = [];
@@ -154,7 +197,8 @@ function validateImageShrink(): ValidationResult[] {
     return results;
   }
 
-  const isBucketProviderValid = bucketProvider === 'digitalocean';
+  const isBucketProviderValid = isBucketProvider(bucketProvider);
+  const providerList = SUPPORTED_BUCKET_PROVIDERS.join(', ');
   results.push({
     name: 'BUCKET_PROVIDER',
     isSet: true,
@@ -162,7 +206,7 @@ function validateImageShrink(): ValidationResult[] {
     isRequired: true,
     message: isBucketProviderValid
       ? 'Set'
-      : `Invalid value: "${bucketProvider}" (expected "digitalocean")`,
+      : `Invalid value: "${bucketProvider}" (expected one of: ${providerList})`,
     category: 'Image Shrink',
   });
 
@@ -171,12 +215,68 @@ function validateImageShrink(): ValidationResult[] {
   results.push(validateRequired('BUCKET_REGION', 'Image Shrink'));
   results.push(validateRequired('BUCKET_NAME', 'Image Shrink'));
   results.push(validateRequired('BUCKET_CDN_BASE_URL', 'Image Shrink'));
+
+  if (isBucketProviderValid) {
+    if (bucketProvider === 'garage' || bucketProvider === 's3-compatible') {
+      results.push(validateRequired('BUCKET_ENDPOINT', 'Image Shrink'));
+    } else {
+      results.push(
+        validateOptional(
+          'BUCKET_ENDPOINT',
+          'Image Shrink',
+          'Optional override for S3 API base URL (see docs/image-shrinking/BUCKET-PROVIDERS.md)'
+        )
+      );
+    }
+    results.push(
+      validateOptionalAbsoluteHttpUrlIfSet('BUCKET_ENDPOINT', 'Image Shrink', 'Skipped')
+    );
+  }
+
+  results.push(validateBucketForcePathStyle());
+
   results.push(validateRequired('IMAGE_SHRINK_WIDTH_PX', 'Image Shrink'));
   results.push(validateRequired('IMAGE_SHRINK_BATCH_SIZE', 'Image Shrink'));
   results.push(validateRequired('IMAGE_SHRINK_CONCURRENCY', 'Image Shrink'));
   results.push(validateRequired('IMAGE_SHRINK_RPS', 'Image Shrink'));
+  {
+    const varName = 'IMAGE_SHRINK_MAX_SOURCE_BYTES';
+    const category = 'Image Shrink';
+    const raw = process.env[varName];
+    if (raw === undefined || raw.trim() === '') {
+      results.push({
+        name: varName,
+        isSet: false,
+        isValid: true,
+        isRequired: false,
+        message: 'Use Default (20971520)',
+        category,
+      });
+    } else {
+      const n = Number(raw);
+      const ok = Number.isInteger(n) && n > 0;
+      results.push({
+        name: varName,
+        isSet: true,
+        isValid: ok,
+        isRequired: false,
+        message: ok ? 'Set' : 'Must be a positive integer',
+        category,
+      });
+    }
+  }
+  results.push(
+    validateOptional('IMAGE_SHRINK_RECHECK_EXPIRATION', 'Image Shrink', 'Use Default (86400)')
+  );
   results.push(
     validateOptional('IMAGE_SHRINK_DEEP_RECHECK_EXPIRATION', 'Image Shrink', 'Use Default (604800)')
+  );
+  results.push(
+    validateOptional(
+      'IMAGE_SHRINK_SOURCE_PRUNE_EXPIRATION',
+      'Image Shrink',
+      'Use Default (2592000)'
+    )
   );
   results.push(
     validateOptional('IMAGE_SHRINK_ORPHAN_CLEANUP_DRY_RUN', 'Image Shrink', 'Use Default (true)')
@@ -214,6 +314,9 @@ function validateParser(): ValidationResult[] {
       'Parser',
       'Use Default (100000)'
     )
+  );
+  results.push(
+    validateOptional('PARSER_MAX_FEED_BODY_BYTES', 'Parser', 'Use Default (20971520 / 20 MiB)')
   );
   return results;
 }

@@ -2,8 +2,9 @@
 
 import React from 'react';
 
+import { Divider } from '@podverse/ui';
+
 import type { AddByRSSFeedRecord } from '../../../utils/addByRSS/types';
-import { Divider } from '../../Divider/Divider';
 import type { ViewSelectedOption } from '../../ViewSelector/ViewSelector';
 import { AddByRSSLivestreamFeedGridNode } from './AddByRSSLivestreamFeedGridNode';
 import { AddByRSSLivestreamFeedRow } from './AddByRSSLivestreamFeedRow';

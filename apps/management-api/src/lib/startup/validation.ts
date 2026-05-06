@@ -95,6 +95,27 @@ const validateAllEnvironmentVariables = (): ValidationSummary => {
       'Blank uses default (604800 seconds)'
     )
   );
+  results.push(
+    validateOptional(
+      'MEMBERSHIP_FREE_TRIAL_EXPIRATION',
+      'Membership',
+      'Blank uses default trial duration (31 days in seconds); when set, integer seconds'
+    )
+  );
+  results.push(
+    validateOptional(
+      'MEMBERSHIP_PREMIUM_COST_MONTHLY',
+      'Membership pricing',
+      'Optional; aligns with main API pricing env'
+    )
+  );
+  results.push(
+    validateOptional(
+      'MEMBERSHIP_PREMIUM_COST_ANNUALLY',
+      'Membership pricing',
+      'Optional; aligns with main API pricing env'
+    )
+  );
 
   // General
   results.push(validateRequired('NODE_ENV', 'General'));

@@ -52,7 +52,13 @@
     "add_feed": {
       "add_feed": "Add Feed",
       "add_feed_explanation": "This feed is not in our directory. If you would like to add it, press the \"Add Feed\" button.",
-      "rss_link": "RSS Link"
+      "rss_link": "RSS Link",
+      "blocked_feed_banner": "This feed cannot currently be added in Podverse ({reason}). If you think this is a mistake, please contact",
+      "blocked_reason_spam_detected": "spam detection restrictions",
+      "blocked_reason_oversized_detected": "feed size limits",
+      "blocked_reason_takedown_active": "a content removal request",
+      "blocked_reason_manual_block": "operator restrictions",
+      "blocked_reason_unknown": "restrictions on this feed"
     },
     "add_by_rss": {
       "label": "Add by RSS",

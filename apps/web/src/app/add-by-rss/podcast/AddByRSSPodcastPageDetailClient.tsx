@@ -12,6 +12,7 @@ import {
 } from '@podverse/helpers';
 import { getStatusCodeFromError } from '@podverse/helpers-requests';
 import { buildAddByRssBoostChannel } from '@podverse/parser-mapping';
+import { Divider } from '@podverse/ui';
 
 import { AddByRSSLivestreamNodes } from '../../../components/AddByRSS/Livestream/AddByRSSLivestreamNodes';
 import { AddByRSSPodcastHeader } from '../../../components/AddByRSS/Podcast/AddByRSSPodcastHeader';
@@ -20,7 +21,6 @@ import { BoostMessagesSection } from '../../../components/Boost/messages/BoostMe
 import { useBoostMessagesView } from '../../../components/Boost/messages/useBoostMessagesView';
 import { CallToActionMessage } from '../../../components/CallToActionMessage/CallToActionMessage';
 import { DescriptionRenderer } from '../../../components/Description/DescriptionRenderer';
-import { Divider } from '../../../components/Divider/Divider';
 import Dropdown from '../../../components/Dropdown/Dropdown';
 import { DetailListWrapper } from '../../../components/List/DetailListWrapper';
 import { MainInnerContentWrapper } from '../../../components/Main/MainInnerContentWrapper';

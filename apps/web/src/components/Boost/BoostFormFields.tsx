@@ -1,6 +1,7 @@
 import { useLocale } from 'next-intl';
 import { useEffect, useId, useRef, useState } from 'react';
 
+import { Button } from '@podverse/ui';
 import type { MetaBoost } from '@podverse/v4v-metaboost';
 import {
   getBoostCurrencyInputFormatMetadata,
@@ -8,7 +9,6 @@ import {
   type ParseMajorUnitToMinorResult,
 } from '@podverse/v4v-metaboost';
 
-import { Button } from '../Button/Button';
 import Form from '../Form/Form';
 import { TextArea } from '../Form/TextArea';
 import { TextInput } from '../Form/TextInput';

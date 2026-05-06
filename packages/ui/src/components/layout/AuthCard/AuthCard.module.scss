@@ -1,0 +1,22 @@
+.authCard {
+  width: 100%;
+  max-width: 400px;
+  padding: var(--spacing-4xl);
+}
+
+.header {
+  margin-bottom: var(--spacing-4xl);
+  text-align: center;
+}
+
+.title {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+  margin-bottom: var(--spacing-md);
+  color: var(--text-color-primary);
+}
+
+.subtitle {
+  color: var(--text-color-secondary);
+  font-size: var(--font-size-xs);
+}

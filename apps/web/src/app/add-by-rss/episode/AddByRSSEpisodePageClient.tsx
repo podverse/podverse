@@ -8,6 +8,7 @@ import React from 'react';
 import type { DTOItemChapter } from '@podverse/helpers';
 import type { TranscriptRow } from '@podverse/helpers';
 import { buildAddByRssBoostChannel } from '@podverse/parser-mapping';
+import { Tabs } from '@podverse/ui';
 
 import { AddByRSSPodcastHeader } from '../../../components/AddByRSS/Podcast/AddByRSSPodcastHeader';
 import { AddByRSSEpisodeDetailHeader } from '../../../components/AddByRSS/Podcast/Episode/AddByRSSEpisodeDetailHeader';
@@ -23,7 +24,6 @@ import { MainInnerWrapper } from '../../../components/Main/MainInnerWrapper';
 import { MainWrapper } from '../../../components/Main/MainWrapper';
 import { NoResults } from '../../../components/NoResults/NoResults';
 import { SideContent } from '../../../components/SideContent/SideContent';
-import { Tabs } from '../../../components/Tabs/Tabs';
 import { EVENTS } from '../../../constants/events';
 import { useAccount } from '../../../contexts/Account';
 import { useMediaPlayer } from '../../../contexts/MediaPlayer';

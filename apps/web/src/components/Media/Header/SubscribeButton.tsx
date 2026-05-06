@@ -4,11 +4,11 @@ import { useTranslations } from 'next-intl';
 import React from 'react';
 
 import type { DTOAccount, DTOChannel, DTOPlaylist } from '@podverse/helpers';
+import { Button } from '@podverse/ui';
 
 import { useAccount } from '../../../contexts/Account';
 import { useModals } from '../../../contexts/Modals';
 import { getApiRequestService } from '../../../factories/apiRequestService';
-import { Button } from '../../Button/Button';
 
 import styles from '../../../styles/components/Common/Media/Header/SubscribeButton.module.scss';
 

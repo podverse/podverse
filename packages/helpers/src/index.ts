@@ -21,6 +21,8 @@ export * from './lib/addByRSS/ids.js';
 export * from './lib/addByRSS/types.js';
 export * from './lib/bitrate.js';
 export * from './lib/boostAction.js';
+export * from './lib/billingEvents.js';
+export * from './lib/billingDomain.js';
 export * from './lib/boolean.js';
 export * from './lib/category.js';
 export * from './lib/comparison/isEqual.js';
@@ -39,14 +41,23 @@ export * from './lib/liveItem/liveItemEnclosure.js';
 export * from './lib/liveItemStatus.js';
 export * from './lib/logLevel.js';
 export * from './lib/medium.js';
+export * from './lib/membershipPeriodPolicy.js';
 export * from './lib/mq/mqConstants.js';
 export * from './lib/mq/dedupeWindows.js';
 export * from './lib/mq/getDedupeTTLSeconds.js';
 export * from './lib/onDemandParserEvent.js';
+export {
+  resolveProductMembershipDefaultsFromEnv,
+  type ProductMembershipDefaultsFromEnv,
+  type ResolvedProductMembership,
+} from './lib/productMembershipDefaultsFromEnv.js';
 export * from './lib/parseEnvExpiration.js';
+export * from './lib/parseEnvNonNegative.js';
 export * from './lib/pagination.js';
 export * from './lib/playlist.js';
 export * from './lib/primitives.js';
+export * from './lib/parserMaxFeedBodyBytes.js';
+export type { PremiumBillingCadence } from './lib/premiumBillingCadence.js';
 export * from './lib/queue/queue.js';
 export * from './lib/queue/queueResourceAbridged.js';
 export * from './lib/remoteItem.js';
@@ -58,6 +69,7 @@ export * from './lib/stringify.js';
 export * from './lib/time.js';
 export * from './lib/timeConstants.js';
 export * from './lib/throughputLimiter.js';
+export * from './lib/truncateForLog.js';
 export * from './lib/safeLinkHref.js';
 export * from './lib/url.js';
 export * from './lib/guards.js';

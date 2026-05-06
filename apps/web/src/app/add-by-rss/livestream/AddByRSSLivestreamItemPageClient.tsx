@@ -5,6 +5,7 @@ import { useTranslations } from 'next-intl';
 import React from 'react';
 
 import { buildAddByRssBoostChannel } from '@podverse/parser-mapping';
+import { Tabs } from '@podverse/ui';
 
 import { AddByRSSArtistHeader } from '../../../components/AddByRSS/Artist/AddByRSSArtistHeader';
 import { AddByRSSAlbumHeader } from '../../../components/AddByRSS/Artist/Album/AddByRSSAlbumHeader';
@@ -21,7 +22,6 @@ import { MainInnerWrapper } from '../../../components/Main/MainInnerWrapper';
 import { MainWrapper } from '../../../components/Main/MainWrapper';
 import { NoResults } from '../../../components/NoResults/NoResults';
 import { SideContent } from '../../../components/SideContent/SideContent';
-import { Tabs } from '../../../components/Tabs/Tabs';
 import { useAccount } from '../../../contexts/Account';
 import {
   getAddByRSSFeedByIdText,

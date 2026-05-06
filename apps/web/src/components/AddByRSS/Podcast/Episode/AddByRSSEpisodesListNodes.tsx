@@ -2,9 +2,10 @@
 
 import React from 'react';
 
+import { Divider } from '@podverse/ui';
+
 import type { AddByRSSListSortOrder } from '../../../../contexts/AddByRSSListContext';
 import type { AddByRSSItemIndexItem } from '../../../../utils/addByRSS/types';
-import { Divider } from '../../../Divider/Divider';
 import type { ViewSelectedOption } from '../../../ViewSelector/ViewSelector';
 import { AddByRSSEpisodeGridCard } from './AddByRSSEpisodeGridCard';
 import { AddByRSSEpisodeRow } from './AddByRSSEpisodeRow';

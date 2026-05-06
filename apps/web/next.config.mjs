@@ -40,7 +40,7 @@ const nextConfig = {
     config.plugins = config.plugins ?? [];
     config.plugins.push(
       new webpack.ContextReplacementPlugin(
-        /date-fns[\/\\]locale/,
+        /date-fns[/\\]locale/,
         new RegExp(`(${[...DATE_FNS_LOCALE_IDS].join('|')})`)
       )
     );
@@ -57,6 +57,7 @@ const nextConfig = {
     return config;
   },
   images: {
+    minimumCacheTTL: 86400,
     remotePatterns: [
       {
         protocol: 'https',

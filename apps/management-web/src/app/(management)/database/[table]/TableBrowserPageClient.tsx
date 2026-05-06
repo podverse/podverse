@@ -4,15 +4,26 @@ import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
 
+import {
+  ActionLink,
+  Alert,
+  Breadcrumbs,
+  Button,
+  FlexBetween,
+  LoadingText,
+  ManagementPageShell,
+  PageHeaderActions,
+  PaginationSummaryLine,
+  StatusBadge,
+  Table,
+} from '@podverse/ui';
+
 import { SORT_ARROW_ASC, SORT_ARROW_DESC } from '../../../../lib/constants/sortIndicators';
 import { getTableMeta, queryTable, type TableMeta } from '../../../../lib/requests/database';
 
-import styles from '../page.module.scss';
-
 const TABLE_LABEL_KEYS: Record<string, string> = {
   feed: 'tables.feed.label',
-  feed_flag_status: 'tables.feed_flag_status.label',
-  feed_flag_status_reason: 'tables.feed_flag_status_reason.label',
+  feed_takedown_reason: 'tables.feed_takedown_reason.label',
 };
 
 export type TableBrowserPageClientProps = {
@@ -78,7 +89,7 @@ export function TableBrowserPageClient({ tableName }: TableBrowserPageClientProp
       } catch (err) {
         if (!cancelled) {
           setError(t('failedToLoadData'));
-          console.error('Error loading data:', err);
+          console.error('Error loading table data:', err);
         }
       } finally {
         if (!cancelled) {
@@ -104,7 +115,7 @@ export function TableBrowserPageClient({ tableName }: TableBrowserPageClientProp
     setPage(1);
   };
 
-  const totalPages = Math.ceil(total / pageSize);
+  const totalPages = Math.max(1, Math.ceil(total / pageSize));
 
   const formatDate = (value: unknown): string => {
     if (value === null || value === undefined) return '-';
@@ -117,103 +128,99 @@ export function TableBrowserPageClient({ tableName }: TableBrowserPageClientProp
   const tableLabel = TABLE_LABEL_KEYS[tableName] ? t(TABLE_LABEL_KEYS[tableName]) : tableName;
   const paginationText =
     total === 1
-      ? t('paginationSummarySingular', { total, page, totalPages: totalPages || 1 })
-      : t('paginationSummary', { total, page, totalPages: totalPages || 1 });
+      ? t('paginationSummarySingular', { total, page, totalPages })
+      : t('paginationSummary', { total, page, totalPages });
 
   return (
-    <div className="container">
-      <div className="page-header">
-        <h1 className="page-title">{tableLabel}</h1>
-        <div className={styles.breadcrumbs}>
-          <Link href="/database" className={styles.breadcrumbLink}>
-            {t('title')}
-          </Link>
-          <span className={styles.breadcrumbSep}>/</span>
-          <span>{tableName}</span>
-        </div>
-      </div>
-      <main>
-        {loading && !meta && <p className={styles.loadingText}>{tc('loading')}</p>}
-        {error && <p className={styles.errorText}>{error}</p>}
-        {meta && (
-          <>
-            <div className={styles.actions}>
-              {!meta.readOnly && (
-                <Link href={`/database/${tableName}/new`} className={styles.actionLink}>
-                  {tc('createNew')}
-                </Link>
-              )}
-              {meta.readOnly && (
-                <span className={`${styles.tableCardBadge} ${styles.readOnlyBadge}`}>
-                  {tc('readOnlyTable')}
-                </span>
-              )}
-            </div>
-            <div className={styles.tableWrapper}>
-              <table className={styles.dataTable}>
-                <thead>
-                  <tr>
-                    {meta.fields.map((field) => (
-                      <th key={field.name} onClick={() => handleSort(field.name)}>
-                        {field.name}
-                        {sortField === field.name
-                          ? sortDir === 'ASC'
-                            ? ` ${SORT_ARROW_ASC}`
-                            : ` ${SORT_ARROW_DESC}`
-                          : ''}
-                      </th>
-                    ))}
-                    <th>{tc('actions')}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {rows.map((row, idx) => (
-                    <tr key={String(row[meta.primaryKeyField] ?? idx)}>
-                      {meta.fields.map((field) => (
-                        <td key={field.name}>{formatDate(row[field.name])}</td>
-                      ))}
-                      <td>
-                        <Link
-                          href={`/database/${tableName}/${row[meta.primaryKeyField]}`}
-                          className={styles.actionLink}
-                        >
-                          {tc('view')}
-                        </Link>
-                      </td>
-                    </tr>
+    <ManagementPageShell
+      title={tableLabel}
+      headerChildren={
+        <Breadcrumbs
+          LinkComponent={Link}
+          navAriaLabel={tc('breadcrumbNav')}
+          items={[{ href: '/database', label: t('title') }, { label: tableName }]}
+        />
+      }
+    >
+      {loading && !meta && <LoadingText>{tc('loading')}</LoadingText>}
+      {error && <Alert>{error}</Alert>}
+      {meta && (
+        <>
+          <PageHeaderActions>
+            {!meta.readOnly && (
+              <ActionLink href={`/database/${tableName}/new`} variant="inline" LinkComponent={Link}>
+                {tc('createNew')}
+              </ActionLink>
+            )}
+            {meta.readOnly && <StatusBadge variant="warning">{tc('readOnlyTable')}</StatusBadge>}
+          </PageHeaderActions>
+          <Table.ScrollContainer>
+            <Table>
+              <Table.Head>
+                <Table.Row>
+                  {meta.fields.map((field) => (
+                    <th key={field.name} scope="col" onClick={() => handleSort(field.name)}>
+                      {field.name}
+                      {sortField === field.name
+                        ? sortDir === 'ASC'
+                          ? ` ${SORT_ARROW_ASC}`
+                          : ` ${SORT_ARROW_DESC}`
+                        : ''}
+                    </th>
                   ))}
-                  {rows.length === 0 && (
-                    <tr>
-                      <td colSpan={meta.fields.length + 1} style={{ textAlign: 'center' }}>
-                        {tc('noDataFound')}
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-            <div className={styles.pagination}>
-              <span>{paginationText}</span>
-              <div className={styles.paginationButtons}>
-                <button
-                  className={styles.paginationButton}
-                  disabled={page <= 1}
-                  onClick={() => setPage((p) => Math.max(1, p - 1))}
-                >
-                  {tc('previous')}
-                </button>
-                <button
-                  className={styles.paginationButton}
-                  disabled={page >= totalPages}
-                  onClick={() => setPage((p) => p + 1)}
-                >
-                  {tc('next')}
-                </button>
-              </div>
-            </div>
-          </>
-        )}
-      </main>
-    </div>
+                  <Table.HeaderCell>{tc('actions')}</Table.HeaderCell>
+                </Table.Row>
+              </Table.Head>
+              <Table.Body>
+                {rows.map((row, idx) => (
+                  <Table.Row key={String(row[meta.primaryKeyField] ?? idx)}>
+                    {meta.fields.map((field) => (
+                      <Table.Cell key={field.name}>{formatDate(row[field.name])}</Table.Cell>
+                    ))}
+                    <Table.Cell>
+                      <ActionLink
+                        href={`/database/${tableName}/${row[meta.primaryKeyField]}`}
+                        variant="inline"
+                        LinkComponent={Link}
+                      >
+                        {tc('view')}
+                      </ActionLink>
+                    </Table.Cell>
+                  </Table.Row>
+                ))}
+                {rows.length === 0 && (
+                  <Table.Row>
+                    <Table.Cell colSpan={meta.fields.length + 1} style={{ textAlign: 'center' }}>
+                      {tc('noDataFound')}
+                    </Table.Cell>
+                  </Table.Row>
+                )}
+              </Table.Body>
+            </Table>
+          </Table.ScrollContainer>
+          <FlexBetween>
+            <PaginationSummaryLine>{paginationText}</PaginationSummaryLine>
+            <PageHeaderActions>
+              <Button
+                disabled={page <= 1}
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                type="button"
+                variant="secondary"
+              >
+                {tc('previous')}
+              </Button>
+              <Button
+                disabled={page >= totalPages || total === 0}
+                onClick={() => setPage((p) => p + 1)}
+                type="button"
+                variant="secondary"
+              >
+                {tc('next')}
+              </Button>
+            </PageHeaderActions>
+          </FlexBetween>
+        </>
+      )}
+    </ManagementPageShell>
   );
 }

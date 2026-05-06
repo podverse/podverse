@@ -83,6 +83,8 @@ spec:
                 name: podverse-management-db-opaque
             - secretRef:
                 name: podverse-db-opaque
+            - configMapRef:
+                name: podverse-product-membership-config
           # Container security hardening
           securityContext:
             readOnlyRootFilesystem: true

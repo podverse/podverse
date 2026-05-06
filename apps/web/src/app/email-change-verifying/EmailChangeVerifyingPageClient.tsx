@@ -3,8 +3,8 @@
 import { useLocale, useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
 
-import { FormErrorMessageText } from '../../components/Form/FormErrorMessageText';
-import { FormInfoMessageText } from '../../components/Form/FormInfoMessageText';
+import { FormErrorMessageText, FormInfoMessageText } from '@podverse/ui';
+
 import LoadingSpinner from '../../components/LoadingSpinner/LoadingSpinner';
 import { MainHeader } from '../../components/Main/MainHeader';
 import { MainInnerContentWrapper } from '../../components/Main/MainInnerContentWrapper';

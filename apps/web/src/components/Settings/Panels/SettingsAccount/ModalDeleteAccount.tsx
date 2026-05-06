@@ -4,10 +4,11 @@ import { useTranslations } from 'next-intl';
 import { useLocale } from 'next-intl';
 import React, { useState } from 'react';
 
+import { Button } from '@podverse/ui';
+
 import { useAccount } from '../../../../contexts/Account';
 import { getApiRequestService } from '../../../../factories/apiRequestService';
 import { handleRateLimitAlert } from '../../../../utils/rateLimit/rateLimitAlert';
-import { Button } from '../../../Button/Button';
 import { TextInput } from '../../../Form/TextInput';
 import { Modal, MODAL_CONTENT_MAX_WIDTH } from '../../../Modal/Modal';
 

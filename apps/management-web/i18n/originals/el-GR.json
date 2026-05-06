@@ -16,6 +16,7 @@
     "creating": "Δημιουργία...",
     "search": "Αναζήτηση",
     "back": "Πίσω",
+    "breadcrumbNav": "Διαδρομή πλοήγησης",
     "submit": "Υποβολή",
     "confirm": "Επιβεβαίωση",
     "yes": "Ναι",
@@ -38,7 +39,13 @@
     "password": "Κωδικός Πρόσβασης",
     "newPassword": "Νέος Κωδικός",
     "confirmPassword": "Επιβεβαίωση Κωδικού",
-    "leaveBlankToKeepCurrent": "Αφήστε κενό για διατήρηση του τρέχοντος"
+    "leaveBlankToKeepCurrent": "Αφήστε κενό για διατήρηση του τρέχοντος",
+    "defaultBrandName": "Management",
+    "invalidCredentialsDefault": "Μη έγκυρο όνομα χρήστη ή κωδικός πρόσβασης",
+    "signIn": "Σύνδεση",
+    "signInSubtitle": "Συνδεθείτε για να συνεχίσετε",
+    "signingIn": "Γίνεται σύνδεση…",
+    "usernameOrEmail": "Όνομα χρήστη / email"
   },
   "nav": {
     "dashboard": "Πίνακας Ελέγχου",
@@ -64,6 +71,10 @@
       "title": "Βάση Δεδομένων",
       "description": "Περιήγηση και διαχείριση δεδομένων τροφοδοσίας, καταστάσεων και λόγων"
     },
+    "products": {
+      "title": "Προϊόντα",
+      "description": "Περιοχές προϊόντων, συμπεριλαμβανομένης ρύθμισης συνδρομών"
+    },
     "admins": {
       "title": "Διαχειριστές",
       "description": "Διαχείριση λογαριασμών και δικαιωμάτων διαχειριστών"
@@ -77,9 +88,88 @@
       "description": "Δημιουργία και διαχείριση λογαριασμών χρηστών εφαρμογής"
     }
   },
+  "statsPage": {
+    "title": "Στατιστικά",
+    "breadcrumbDashboard": "Πίνακας ελέγχου",
+    "failedToLoad": "Αποτυχία φόρτωσης στατιστικών.",
+    "clear": "Καθαρισμός",
+    "views": "Προβολές",
+    "loadingDetail": "Φόρτωση λεπτομερειών...",
+    "close": "Κλείσιμο",
+    "idValue": "ID {id}",
+    "searchPlaceholder": "Αναζήτηση {entity} με βάση τον τίτλο...",
+    "topChartHeading": "Top 10 {entity} ({range})",
+    "noStatsDataForRange": "Δεν υπάρχουν διαθέσιμα στατιστικά για αυτό το εύρος.",
+    "paginationSummary": "{total} αποτελέσματα - Σελίδα {page} από {totalPages}",
+    "paginationSummarySingular": "{total} αποτέλεσμα - Σελίδα {page} από {totalPages}",
+    "entityTypes": {
+      "channel": "Κανάλια",
+      "item": "Στοιχεία",
+      "clip": "Κλιπ",
+      "playlist": "Λίστες",
+      "account": "Λογαριασμοί"
+    },
+    "ranges": {
+      "day": "1 ημέρα",
+      "day7": "7 ημέρες",
+      "day30": "30 ημέρες",
+      "year1": "1 έτος",
+      "allTime": "Συνολικά"
+    },
+    "table": {
+      "title": "Τίτλος",
+      "rangeViews": "{range} προβολές"
+    },
+    "detail": {
+      "dayToday": "Σήμερα",
+      "dayN": "Ημέρα {count}",
+      "weekCurrent": "Αυτή την εβδομάδα",
+      "weekN": "Εβδομάδα {count}",
+      "monthCurrent": "Αυτόν τον μήνα",
+      "dailyBreakdown": "Ημερήσια ανάλυση",
+      "weeklyBreakdown": "Εβδομαδιαία ανάλυση"
+    }
+  },
+  "products": {
+    "pageTitle": "Προϊόντα",
+    "welcomeLine": "Επιλέξτε μια περιοχή προϊόντος.",
+    "membershipsCardTitle": "Συνδρομές",
+    "membershipsCardDescription": "Προβολή επιλυμένων τιμών συνδρομής (περιβάλλον και βάση δεδομένων).",
+    "breadcrumbDashboard": "Πίνακας ελέγχου"
+  },
+  "productMemberships": {
+    "pageTitle": "Συνδρομές",
+    "pageSubtitle": "Αποτελεσματικά όρια και πεδία τιμολόγησης για νέους χρήστες και διαχείριση.",
+    "breadcrumbDashboard": "Πίνακας ελέγχου",
+    "breadcrumbProducts": "Προϊόντα",
+    "loadError": "Δεν ήταν δυνατή η φόρτωση των ρυθμίσεων προϊόντος συνδρομής.",
+    "editableTrialHeading": "Διάρκεια δοκιμαστικής περιόδου",
+    "saveSuccess": "Η διάρκεια δοκιμής ενημερώθηκε επιτυχώς.",
+    "saveError": "Δεν ήταν δυνατή η ενημέρωση της διάρκειας δοκιμής.",
+    "fieldLabels": {
+      "freeTrialExpirationSeconds": "Διάρκεια δοκιμής (δευτερόλεπτα)",
+      "premiumMembershipCostMonthly": "Μηνιαίο κόστος premium",
+      "premiumMembershipCostAnnually": "Ετήσιο κόστος premium",
+      "trialMaxAddByRSSFeeds": "Μέγ. ροές Add-by-RSS σε δοκιμή",
+      "trialMaxManualRefreshesPerHour": "Μέγ. χειροκίνητες ανανεώσεις ανά ώρα (δοκιμή)",
+      "premiumMaxAddByRSSFeeds": "Μέγ. ροές Add-by-RSS premium",
+      "premiumMaxManualRefreshesPerHour": "Μέγ. χειροκίνητες ανανεώσεις ανά ώρα (premium)"
+    },
+    "pricingTable": {
+      "heading": "Ενεργές γραμμές τιμών",
+      "cadence": "Περίοδος χρέωσης",
+      "amountCents": "Ποσό (λέπτα)",
+      "currency": "Νόμισμα",
+      "effectiveFrom": "Ισχύει από",
+      "source": "Πηγή"
+    },
+    "validation": {
+      "invalidFreeTrialSeconds": "Η διάρκεια δοκιμής πρέπει να είναι θετικός ακέραιος αριθμός."
+    }
+  },
   "feedFlagStatus": {
     "pageTitle": "Ορισμός κατάστασης τροφοδοσίας",
-    "pageSubtitle": "Βρείτε μια τροφοδοσία με ID Podcast Index (προεπιλογή), εσωτερικό id τροφοδοσίας ή URL. Ορίστε κατάσταση συντονισμού, προαιρετικό λόγο και σημείωση. Αυτό είναι ξεχωριστό από το πρόγραμμα περιήγησης πινάκων της βάσης.",
+    "pageSubtitle": "Βρείτε μια τροφοδοσία με ID Podcast Index (προεπιλογή), εσωτερικό id τροφοδοσίας ή URL. Ενημερώστε κύκλο ζωής, ενεργές συνθήκες, όρια και σημειώσεις. Αυτό είναι ξεχωριστό από το πρόγραμμα περιήγησης πινάκων της βάσης.",
     "breadcrumbParent": "Λειτουργίες τροφοδοσίας",
     "breadcrumbCurrent": "Κατάσταση σημαίας",
     "sectionFindAria": "Αναζήτηση",
@@ -94,7 +184,7 @@
     "placeholderNumber": "π.χ. 12345",
     "lookupLoading": "Αναζήτηση…",
     "lookupButton": "Αναζήτηση",
-    "optionsLoadError": "Δεν ήταν δυνατή η φόρτωση επιλογών κατάστασης και λόγου.",
+    "optionsLoadError": "Δεν ήταν δυνατή η φόρτωση επιλογών λειτουργιών τροφοδοσίας.",
     "lookupErrorEnterUrl": "Εισαγάγετε URL τροφοδοσίας",
     "lookupErrorPositiveNumber": "Εισαγάγετε θετικό αριθμό",
     "lookupErrorGeneric": "Η τροφοδοσία δεν βρέθηκε ή το αίτημα απέτυχε",
@@ -105,39 +195,47 @@
     "dtUrl": "URL",
     "dtInternalFeedId": "Εσωτερικό id τροφοδοσίας",
     "dtPodcastIndexId": "ID Podcast Index",
-    "dtStatus": "Κατάσταση",
-    "statusDisplay": "{status} (id: {id})",
+    "dtLifecycle": "Κατάσταση κύκλου ζωής",
+    "lifecycleDisplay": "{state}",
+    "dtActiveConditions": "Ενεργές συνθήκες",
+    "dtEffectivePolicy": "Αποτελεσματική πολιτική",
+    "effectivePolicyDisplay": "ανάλυση: {parse}, δημόσιο: {public}, προσθήκη: {add}, μπλοκάρισμα: {reason}",
+    "boolYes": "ναι",
+    "boolNo": "όχι",
     "dtSpamOverride": "Παράκαμψη ορίου στοιχείων spam",
+    "dtMaxResponseBytesOverride": "Παράκαμψη μέγιστων bytes απόκρισης",
     "emptyValue": "—",
-    "dtReason": "Λόγος",
-    "dtReasonNote": "Σημείωση λόγου",
+    "dtLifecycleReason": "Κλειδί λόγου κύκλου ζωής",
+    "dtUpdatedSource": "Τελευταία πηγή ενημέρωσης κύκλου ζωής",
     "openInDatabase": "Άνοιγμα αυτής της γραμμής στη Βάση δεδομένων (μόνο ανάγνωση για την τροφοδοσία)",
-    "newStatusHeading": "Νέα κατάσταση και λόγος",
-    "labelNewStatusRequired": "Νέα κατάσταση *",
-    "selectStatusPlaceholder": "Επιλογή κατάστασης",
-    "selectOptionStatus": "{label} (id: {id})",
-    "labelReason": "Λόγος",
-    "labelReasonTakedownRequired": "Λόγος *",
-    "labelReasonOptional": "Λόγος (προαιρετικό)",
-    "reasonNone": "(κανένα)",
-    "selectOptionReason": "{label} (id: {id})",
-    "labelNote": "Σημείωση (προαιρετικό)",
-    "notePlaceholder": "Επιπλέον πλαίσιο (αποθηκεύεται στην εγγραφή τροφοδοσίας)",
+    "newValuesHeading": "Ενημέρωση κύκλου ζωής, συνθηκών και ορίων",
+    "labelLifecycleRequired": "Κατάσταση κύκλου ζωής *",
+    "selectLifecyclePlaceholder": "Επιλογή κατάστασης κύκλου ζωής",
+    "selectOptionLifecycle": "{state}",
+    "labelActiveConditions": "Ενεργά κλειδιά συνθήκης",
+    "labelTakedownReasonOptional": "Λόγος κατάργησης (προαιρετικό)",
+    "takedownReasonPlaceholder": "Επιλέξτε προκαθορισμένο λόγο…",
+    "labelTransitionNote": "Σημείωση μετάβασης (προαιρετικό)",
+    "transitionNotePlaceholder": "Πλαίσιο χειριστή που αποθηκεύεται στη γραμμή κύκλου ζωής",
+    "labelConditionNote": "Σημείωση συνθήκης (προαιρετικό)",
+    "conditionNotePlaceholder": "Προαιρετική σημείωση για takedown_active όταν ο κύκλος είναι κατάργηση",
     "labelSpamOverride": "Παράκαμψη ορίου στοιχείων spam (προαιρετικό)",
     "spamOverridePlaceholder": "Αφήστε κενό για χρήση καθολικών ορίων ανά κατάσταση",
     "spamOverrideHint": "Προτεραιότητα: νικά η παράκαμψη τροφοδοσίας. Αν είναι κενό, το SpamPermitted χρησιμοποιεί το υψηλότερο καθολικό όριο και άλλες καταστάσεις που κάνουν parse χρησιμοποιούν το προεπιλεγμένο καθολικό όριο.",
+    "labelMaxResponseBytesOverride": "Παράκαμψη μέγιστων bytes απόκρισης (προαιρετικό)",
+    "maxResponseBytesOverridePlaceholder": "Χρήση καθολικής προεπιλογής όταν είναι κενό",
     "applySuccess": "Η κατάσταση της τροφοδοσίας ενημερώθηκε",
-    "applyErrorSelectStatus": "Επιλέξτε νέα κατάσταση",
-    "applyErrorTakedownReason": "Απαιτείται προκαθορισμένος λόγος για την κατάργηση",
-    "applyErrorInvalidReason": "Μη έγκυρος λόγος",
+    "applyErrorSelectLifecycle": "Επιλέξτε κατάσταση κύκλου ζωής",
+    "applyErrorTakedownDoc": "Η κατάργηση απαιτεί προκαθορισμένο λόγο και/ή σημείωση μετάβασης",
     "applyErrorSpamOverride": "Η παράκαμψη ορίου στοιχείων spam πρέπει να είναι θετικός ακέραιος",
+    "applyErrorMaxResponseBytesOverride": "Η παράκαμψη μέγιστων bytes απόκρισης πρέπει να είναι θετικός ακέραιος",
     "applyErrorGeneric": "Το αίτημα απέτυχε. Ελέγξτε τα δικαιώματα και δοκιμάστε ξανά",
-    "confirmDialogAria": "Επιβεβαίωση αλλαγής κατάστασης",
-    "confirmDialogBody": "Εφαρμογή αυτής της κατάστασης στην τροφοδοσία; Καταγράφεται στο αρχείο ελέγχου.",
+    "confirmDialogAria": "Επιβεβαίωση αλλαγής λειτουργιών τροφοδοσίας",
+    "confirmDialogBody": "Εφαρμογή αυτών των λειτουργιών στην τροφοδοσία; Καταγράφεται στο αρχείο ελέγχου.",
     "confirmApplying": "Εφαρμογή…",
     "applyButton": "Εφαρμογή αλλαγής",
     "continueToConfirm": "Συνέχεια στην επιβεβαίωση",
-    "confirmHint": "Το spam και η κατάργηση χρησιμοποιούν δεύτερο βήμα επιβεβαίωσης.",
+    "confirmHint": "Οι συνθήκες τύπου spam και η κατάργηση χρησιμοποιούν δεύτερο βήμα επιβεβαίωσης.",
     "readonlyHint": "Ο λογαριασμός σας μπορεί να αναζητήσει τροφοδοσίες αλλά όχι να αλλάξει την κατάσταση. Ζητήστε από έναν υπερχρήστη πρόσβαση ενημέρωσης <feedsCode>feeds</feedsCode>."
   },
   "admins": {
@@ -155,8 +253,7 @@
       "email": "Email",
       "role": "Ρόλος",
       "feeds": "Τροφοδοσίες",
-      "flagStatuses": "Καταστάσεις Σημαίας",
-      "statusReasons": "Λόγοι Κατάστασης",
+      "takedownReasons": "Λόγοι αποδέσμευσης",
       "admins": "Διαχειριστές",
       "stats": "Στατιστικά",
       "actions": "Ενέργειες"
@@ -169,8 +266,7 @@
       "update": "Ενημέρωση",
       "deletePerm": "Διαγραφή",
       "feeds": "Ροές",
-      "flagStatuses": "Καταστάσεις Σημαιών",
-      "statusReasons": "Λόγοι Κατάστασης",
+      "takedownReasons": "Λόγοι αποδέσμευσης",
       "admins": "Διαχειριστές",
       "stats": "Στατιστικά"
     }
@@ -193,6 +289,7 @@
     "usernameOptional": "Όνομα Χρήστη (προαιρετικό)",
     "emailOptional": "Ηλεκτρονικό Ταχυδρομείο (προαιρετικό)",
     "passwordOptional": "Κωδικός Πρόσβασης (προαιρετικός)",
+    "passwordInviteHint": "Αν το αφήσετε κενό, θα λάβετε σύνδεσμο πρόσκλησης που μπορείτε να στείλετε ώστε να ορίσουν τον κωδικό τους.",
     "emailOrUsernameHint": "Είναι απαραίτητο τουλάχιστον ένα από το όνομα χρήστη ή το email.",
     "emailOrUsernameRequired": "Είναι απαραίτητο τουλάχιστον ένα από το όνομα χρήστη ή το email.",
     "invalidUsername": "Το όνομα χρήστη πρέπει να είναι 3-32 χαρακτήρες, μόνο γράμματα, αριθμοί, κάτω παύλες και παύλες.",
@@ -225,15 +322,27 @@
       "hintTrialNew": "Η δοκιμαστική ξεκινά τους χρήστες στην κατηγορία ανεπίσημων με αυστηρότερους προεπιλεγμένους περιορισμούς.",
       "hintPremiumNew": "Το Premium ξεκινά τους χρήστες στην κατηγορία επίσημων με ευρύτερη προεπιλεγμένη πρόσβαση.",
       "membershipExpiresAt": "Η Συνδρομή Λήγει Στις",
+      "premiumBillingCadence": "Περίοδος χρέωσης Premium",
+      "billingMonthly": "Μηνιαία",
+      "billingAnnual": "Ετήσια",
+      "premiumBillingCadenceHint": "Η προεπιλεγμένη λήξη είναι έναν μήνα μπροστά για μηνιαία, ή ένα έτος μπροστά για ετήσια (ευθυγραμμισμένη με τον κύκλο συνδρομής).",
       "trustTier": "Επίπεδο Εμπιστοσύνης",
       "untrusted": "Ανεπίσημοι",
       "trusted": "Επίσημοι",
       "configureAdvancedOverrides": "Ρύθμιση προηγμένων υπερβάσεων"
     },
     "advancedOverrides": {
+      "on": "Ενεργό",
+      "off": "Ανενεργό",
       "allowDirectoryAddByRss": "Επιτρέψτε την προσθήκη καταλόγου μέσω υπέρβασης RSS",
+      "allowDirectoryAddByRssHelp": "Εάν ο χρήστης μπορεί να προσθέσει ροές από τον κατάλογο podcast. Προεπιλογή δοκιμής: {trialDefault}. Προεπιλογή Premium: {premiumDefault}.",
       "addByRssFeedLimit": "Περιορισμός προσθήκης μέσω υπέρβασης RSS",
+      "addByRssFeedLimitHelp": "Μέγιστος αριθμός ροών Προσθήκη μέσω RSS για αυτόν τον λογαριασμό. Προεπιλογή επιπέδου δοκιμής: {trialDefault}. Προεπιλογή επιπέδου Premium: {premiumDefault}. Προεπιλογή επιλεγμένου επιπέδου για παρακάμψεις: {selectedDefault}.",
       "manualRefreshPerHour": "Περιορισμός χειροκίνητης ανανέωσης/ώρα",
+      "manualRefreshPerHourHelp": "Μέγιστος αριθμός χειροκίνητων ανανεώσεων ανά ώρα. Προεπιλογή επιπέδου δοκιμής: {trialDefault}. Προεπιλογή επιπέδου Premium: {premiumDefault}. Προεπιλογή επιλεγμένου επιπέδου για παρακάμψεις: {selectedDefault}.",
+      "placeholderTierDefault": "Προεπιλογή επιπέδου: {count}",
+      "trackStatsHelp": "Εάν καταγράφονται στατιστικά ακρόασης. Προεπιλογή δοκιμής: {trialDefault}. Προεπιλογή Premium: {premiumDefault}.",
+      "allowNotificationsHelp": "Εάν επιτρέπονται ειδοποιήσεις push/email. Προεπιλογή δοκιμής: {trialDefault}. Προεπιλογή Premium: {premiumDefault}.",
       "trackStats": "Υπέρβαση παρακολούθησης στατιστικών",
       "allowNotifications": "Επιτρέψτε τις ειδοποιήσεις",
       "useTrustTierDefault": "Χρήση προεπιλεγμένου επιπέδου συνδρομής",
@@ -276,15 +385,10 @@
         "labelSingular": "Ροή",
         "description": "Διευθύνσεις URL ροών RSS και κατάσταση ανάλυσης"
       },
-      "feed_flag_status": {
-        "label": "Καταστάσεις Σημαίας Ροής",
-        "labelSingular": "Κατάσταση Σημαίας Ροής",
-        "description": "Τιμές κατάστασης ροής (ενεργό, spam, αρχειοθετημένο, ληστεία, κ.λπ.)"
-      },
-      "feed_flag_status_reason": {
-        "label": "Λόγοι Κατάστασης Σημαίας Ροής",
-        "labelSingular": "Λόγος Κατάστασης Σημαίας Ροής",
-        "description": "Καθορισμένοι λόγοι για αλλαγές κατάστασης ροής"
+      "feed_takedown_reason": {
+        "label": "Λόγοι αποδέσμευσης",
+        "labelSingular": "Λόγος αποδέσμευσης",
+        "description": "Προκαθορισμένοι λόγοι όταν μια ροή είναι σε αποδέσμευση"
       }
     }
   },

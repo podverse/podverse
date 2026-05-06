@@ -2,7 +2,7 @@ import { _requestWithHeaders } from '@parser/lib/_request.js';
 import type { FeedObject } from 'podverse-partytime';
 import { parseFeed } from 'podverse-partytime';
 
-import { DEFAULT_HTTP_TIMEOUT_MS, sleep } from '@podverse/helpers';
+import { DEFAULT_HTTP_TIMEOUT_MS, resolveParserMaxFeedBodyBytes, sleep } from '@podverse/helpers';
 
 import { getRawFeedMd5Hash } from './hash/rawFeed.js';
 
@@ -125,7 +125,10 @@ export const parseRSSFeedForAddByRSS = async (
     };
   }
 
-  const parsedFeed = parseFeed(rawFeed, { allowMissingGuid: true });
+  const parsedFeed = parseFeed(rawFeed, {
+    allowMissingGuid: true,
+    maxFeedBodyBytes: resolveParserMaxFeedBodyBytes(process.env.PARSER_MAX_FEED_BODY_BYTES),
+  });
   if (!parsedFeed) {
     return {
       status: 'failed',

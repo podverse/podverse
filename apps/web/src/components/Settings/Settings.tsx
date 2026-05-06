@@ -4,9 +4,10 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import React from 'react';
 
+import { Tabs } from '@podverse/ui';
+
 import { useAccount } from '../../contexts/Account';
 import { ListHeader } from '../List/ListHeader';
-import { Tabs } from '../Tabs/Tabs';
 import { SettingsAccount } from './Panels/SettingsAccount/SettingsAccount';
 import { SettingsGeneral } from './Panels/SettingsGeneral/SettingsGeneral';
 import { SettingsNotifications } from './Panels/SettingsNotifications/SettingsNotifications';

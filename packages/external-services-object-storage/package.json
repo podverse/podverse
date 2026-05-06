@@ -1,0 +1,31 @@
+{
+  "name": "@podverse/external-services-object-storage",
+  "version": "5.4.25",
+  "description": "S3-compatible object storage integrations for Podverse",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist/**/*"
+  ],
+  "scripts": {
+    "build": "npm run lint && tsc",
+    "build:prod": "tsc",
+    "build:watch": "tsc --build --watch --preserveWatchOutput",
+    "lint": "eslint ./src --max-warnings 0",
+    "lint:fix": "eslint ./src --fix",
+    "test": "vitest run",
+    "clean": "rm -rf dist",
+    "type-check": "tsc --noEmit"
+  },
+  "license": "AGPL-3.0",
+  "publishConfig": {
+    "access": "public"
+  },
+  "dependencies": {
+    "s3mini": "^0.9.1"
+  },
+  "devDependencies": {
+    "vitest": "^3.2.4"
+  },
+  "type": "module"
+}

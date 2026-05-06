@@ -2,27 +2,53 @@
 
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
-import { Alert } from '../../../../components/ui/Alert/Alert';
-import { Button } from '../../../../components/ui/Button/Button';
-import { Card } from '../../../../components/ui/Card/Card';
-import { FormGroup, FormInput, FormLabel } from '../../../../components/ui/Form';
+import {
+  ActionLink,
+  Alert,
+  Breadcrumbs,
+  Button,
+  Card,
+  CheckboxField,
+  CheckboxFieldList,
+  ConfirmPanel,
+  ConfirmPanelActions,
+  DescriptionList,
+  fieldPrimitiveClasses,
+  FormContinuationSection,
+  FormGroup,
+  FormHintText,
+  Input,
+  Label,
+  LoadingText,
+  LookupFieldGrid,
+  lookupFieldGridButtonClass,
+  lookupFieldGridControlClass,
+  lookupFieldGridFormBlockClass,
+  LookupFieldSpacerLabel,
+  ManagementPageShell,
+  MutedBreakableText,
+  PageSection,
+  RestrictedNotice,
+  SectionHeading,
+  Select,
+  TextArea,
+} from '@podverse/ui';
+
 import {
   canUpdateFeeds,
-  FEED_FLAG_TAKEDOWN_ID,
-  statusRequiresConfirm,
+  feedOperationsRequireConfirm,
+  LIFECYCLE_TAKEDOWN_KEY,
 } from '../../../../lib/managementPermissions';
 import type { CurrentUser } from '../../../../lib/requests/auth';
 import {
-  applyFeedFlagStatus,
-  type FeedFlagLookup,
-  type FeedOptionsResponse,
+  applyFeedOperationsPolicyState,
+  type FeedOperationsLookup,
+  type FeedOperationsOptionsResponse,
   getFeedOperationOptions,
   lookupFeed,
 } from '../../../../lib/requests/feedFlagStatus';
-
-import styles from './page.module.scss';
 
 type FlagStatusPageClientProps = {
   user: CurrentUser;
@@ -30,22 +56,37 @@ type FlagStatusPageClientProps = {
 
 type SearchMode = 'podcast_index_id' | 'feed_id' | 'url';
 
+function buildConditionChecked(
+  types: { condition_key: string }[],
+  activeKeys: string[]
+): Record<string, boolean> {
+  const active = new Set(activeKeys);
+  const next: Record<string, boolean> = {};
+  for (const t of types) {
+    next[t.condition_key] = active.has(t.condition_key);
+  }
+  return next;
+}
+
 export function FlagStatusPageClient({ user }: FlagStatusPageClientProps) {
   const t = useTranslations('feedFlagStatus');
   const tc = useTranslations('common');
   const canUpdate = canUpdateFeeds(user);
-  const [options, setOptions] = useState<FeedOptionsResponse | null>(null);
+  const [options, setOptions] = useState<FeedOperationsOptionsResponse | null>(null);
   const [searchMode, setSearchMode] = useState<SearchMode>('podcast_index_id');
   const [searchText, setSearchText] = useState('');
-  const [feed, setFeed] = useState<FeedFlagLookup | null>(null);
+  const [feed, setFeed] = useState<FeedOperationsLookup | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [lookupLoading, setLookupLoading] = useState(false);
   const [optionsError, setOptionsError] = useState<string | null>(null);
   const [optionsLoading, setOptionsLoading] = useState(true);
-  const [statusId, setStatusId] = useState<string>('');
-  const [reasonId, setReasonId] = useState<string>('');
-  const [note, setNote] = useState('');
+  const [lifecycleStateKey, setLifecycleStateKey] = useState('');
+  const [conditionChecked, setConditionChecked] = useState<Record<string, boolean>>({});
+  const [takedownReasonKey, setTakedownReasonKey] = useState('');
+  const [transitionNote, setTransitionNote] = useState('');
+  const [conditionNote, setConditionNote] = useState('');
   const [spamItemLimitOverrideInput, setSpamItemLimitOverrideInput] = useState('');
+  const [maxResponseBodyBytesOverrideInput, setMaxResponseBodyBytesOverrideInput] = useState('');
   const [applyLoading, setApplyLoading] = useState(false);
   const [applyMessage, setApplyMessage] = useState<string | null>(null);
   const [applyError, setApplyError] = useState<string | null>(null);
@@ -75,22 +116,31 @@ export function FlagStatusPageClient({ user }: FlagStatusPageClientProps) {
     };
   }, [t]);
 
-  const setFeedStateFromLookup = useCallback((nextFeed: FeedFlagLookup) => {
-    setFeed(nextFeed);
-    setStatusId(String(nextFeed.feed_flag_status_id));
-    setReasonId(
-      nextFeed.feed_flag_status_reason_id !== null &&
-        nextFeed.feed_flag_status_reason_id !== undefined
-        ? String(nextFeed.feed_flag_status_reason_id)
-        : ''
-    );
-    setNote(nextFeed.feed_flag_status_reason_note ?? '');
-    setSpamItemLimitOverrideInput(
-      nextFeed.spam_item_limit_override !== null && nextFeed.spam_item_limit_override !== undefined
-        ? String(nextFeed.spam_item_limit_override)
-        : ''
-    );
-  }, []);
+  const setFeedStateFromLookup = useCallback(
+    (nextFeed: FeedOperationsLookup, conditionTypes: { condition_key: string }[]) => {
+      setFeed(nextFeed);
+      setLifecycleStateKey(nextFeed.lifecycle_state_key ?? '');
+      setConditionChecked(
+        buildConditionChecked(conditionTypes, nextFeed.active_condition_keys ?? [])
+      );
+      setTakedownReasonKey(nextFeed.lifecycle_reason ?? '');
+      setTransitionNote('');
+      setConditionNote('');
+      setSpamItemLimitOverrideInput(
+        nextFeed.spam_item_limit_override !== null &&
+          nextFeed.spam_item_limit_override !== undefined
+          ? String(nextFeed.spam_item_limit_override)
+          : ''
+      );
+      setMaxResponseBodyBytesOverrideInput(
+        nextFeed.max_response_body_bytes_override !== null &&
+          nextFeed.max_response_body_bytes_override !== undefined
+          ? String(nextFeed.max_response_body_bytes_override)
+          : ''
+      );
+    },
+    []
+  );
 
   const performLookup = useCallback(async () => {
     setLoadError(null);
@@ -99,13 +149,14 @@ export function FlagStatusPageClient({ user }: FlagStatusPageClientProps) {
     setFeed(null);
     setLookupLoading(true);
     try {
+      const conditionTypes = options?.condition_types ?? [];
       if (searchMode === 'url') {
         if (!searchText.trim()) {
           setLoadError(t('lookupErrorEnterUrl'));
           return;
         }
         const { feed: f } = await lookupFeed({ url: searchText.trim() });
-        setFeedStateFromLookup(f);
+        setFeedStateFromLookup(f, conditionTypes);
         return;
       }
       const n = parseInt(searchText.trim(), 10);
@@ -115,11 +166,11 @@ export function FlagStatusPageClient({ user }: FlagStatusPageClientProps) {
       }
       if (searchMode === 'podcast_index_id') {
         const { feed: f } = await lookupFeed({ podcast_index_id: n });
-        setFeedStateFromLookup(f);
+        setFeedStateFromLookup(f, conditionTypes);
         return;
       }
       const { feed: f } = await lookupFeed({ feed_id: n });
-      setFeedStateFromLookup(f);
+      setFeedStateFromLookup(f, conditionTypes);
     } catch (err) {
       const message =
         err && typeof err === 'object' && 'response' in err
@@ -133,31 +184,39 @@ export function FlagStatusPageClient({ user }: FlagStatusPageClientProps) {
     } finally {
       setLookupLoading(false);
     }
-  }, [searchMode, searchText, setFeedStateFromLookup, t]);
+  }, [options?.condition_types, searchMode, searchText, setFeedStateFromLookup, t]);
+
+  const selectedActiveConditionKeys = useMemo(() => {
+    if (!options?.condition_types) {
+      return [];
+    }
+    return options.condition_types
+      .map((c) => c.condition_key)
+      .filter((key) => conditionChecked[key] === true);
+  }, [conditionChecked, options?.condition_types]);
+
+  const needsConfirm = useMemo(() => {
+    return feedOperationsRequireConfirm({
+      lifecycleStateKey,
+      activeConditionKeys: selectedActiveConditionKeys,
+    });
+  }, [lifecycleStateKey, selectedActiveConditionKeys]);
 
   const runApply = useCallback(async () => {
-    if (!feed || !canUpdate) {
+    if (!feed || !canUpdate || !options) {
       return;
     }
-    const st = parseInt(statusId, 10);
-    if (Number.isNaN(st)) {
-      setApplyError(t('applyErrorSelectStatus'));
+    if (!lifecycleStateKey) {
+      setApplyError(t('applyErrorSelectLifecycle'));
       return;
     }
-    if (st === FEED_FLAG_TAKEDOWN_ID && !reasonId) {
-      setApplyError(t('applyErrorTakedownReason'));
-      return;
-    }
-    let rId: number | null;
-    if (reasonId === '') {
-      rId = null;
-    } else {
-      const parsed = parseInt(reasonId, 10);
-      if (Number.isNaN(parsed)) {
-        setApplyError(t('applyErrorInvalidReason'));
+    if (lifecycleStateKey === LIFECYCLE_TAKEDOWN_KEY) {
+      const hasReason = takedownReasonKey.trim().length > 0;
+      const hasTransition = transitionNote.trim().length > 0;
+      if (!hasReason && !hasTransition) {
+        setApplyError(t('applyErrorTakedownDoc'));
         return;
       }
-      rId = parsed;
     }
     const spamOverrideRaw = spamItemLimitOverrideInput.trim();
     let spamItemLimitOverride: number | null = null;
@@ -169,17 +228,34 @@ export function FlagStatusPageClient({ user }: FlagStatusPageClientProps) {
       }
       spamItemLimitOverride = parsedSpamOverride;
     }
+    const maxResponseOverrideRaw = maxResponseBodyBytesOverrideInput.trim();
+    let maxResponseBodyBytesOverride: number | null = null;
+    if (maxResponseOverrideRaw.length > 0) {
+      const parsedMaxResponseOverride = parseInt(maxResponseOverrideRaw, 10);
+      if (Number.isNaN(parsedMaxResponseOverride) || parsedMaxResponseOverride <= 0) {
+        setApplyError(t('applyErrorMaxResponseBytesOverride'));
+        return;
+      }
+      maxResponseBodyBytesOverride = parsedMaxResponseOverride;
+    }
     setApplyLoading(true);
     setApplyError(null);
     setApplyMessage(null);
     try {
-      const noteTrim = note.trim();
-      await applyFeedFlagStatus({
+      const transitionTrim = transitionNote.trim();
+      const conditionTrim = conditionNote.trim();
+      await applyFeedOperationsPolicyState({
         feed_id: feed.id,
-        feed_flag_status_id: st,
-        feed_flag_status_reason_id: rId,
-        feed_flag_status_reason_note: noteTrim.length > 0 ? noteTrim : null,
+        lifecycle_state_key: lifecycleStateKey,
+        active_condition_keys: selectedActiveConditionKeys,
+        lifecycle_reason_key:
+          lifecycleStateKey === LIFECYCLE_TAKEDOWN_KEY && takedownReasonKey.trim().length > 0
+            ? takedownReasonKey.trim()
+            : null,
+        transition_note: transitionTrim.length > 0 ? transitionTrim : null,
+        condition_note: conditionTrim.length > 0 ? conditionTrim : null,
         spam_item_limit_override: spamItemLimitOverride,
+        max_response_body_bytes_override: maxResponseBodyBytesOverride,
       });
       setApplyMessage(t('applySuccess'));
       setConfirmOpen(false);
@@ -187,15 +263,14 @@ export function FlagStatusPageClient({ user }: FlagStatusPageClientProps) {
         prev
           ? {
               ...prev,
-              feed_flag_status_id: st,
-              feed_flag_status_key:
-                options?.feed_flag_statuses.find((s) => s.id === st)?.status ?? String(st),
-              feed_flag_status_reason_id: rId,
-              feed_flag_status_reason_key: rId
-                ? (options?.feed_flag_status_reasons.find((r) => r.id === rId)?.reason ?? null)
-                : null,
-              feed_flag_status_reason_note: noteTrim.length > 0 ? noteTrim : null,
+              lifecycle_state_key: lifecycleStateKey,
+              lifecycle_reason:
+                lifecycleStateKey === LIFECYCLE_TAKEDOWN_KEY && takedownReasonKey.trim().length > 0
+                  ? takedownReasonKey.trim()
+                  : prev.lifecycle_reason,
+              active_condition_keys: selectedActiveConditionKeys,
               spam_item_limit_override: spamItemLimitOverride,
+              max_response_body_bytes_override: maxResponseBodyBytesOverride,
             }
           : null
       );
@@ -208,66 +283,90 @@ export function FlagStatusPageClient({ user }: FlagStatusPageClientProps) {
     } finally {
       setApplyLoading(false);
     }
-  }, [feed, canUpdate, statusId, reasonId, note, options, spamItemLimitOverrideInput, t]);
+  }, [
+    feed,
+    canUpdate,
+    options,
+    lifecycleStateKey,
+    takedownReasonKey,
+    transitionNote,
+    conditionNote,
+    selectedActiveConditionKeys,
+    spamItemLimitOverrideInput,
+    maxResponseBodyBytesOverrideInput,
+    t,
+  ]);
 
   const handleClickApply = useCallback(() => {
     if (!feed || !canUpdate) {
       return;
     }
-    const st = parseInt(statusId, 10);
-    if (Number.isNaN(st)) {
-      setApplyError(t('applyErrorSelectStatus'));
+    if (!lifecycleStateKey) {
+      setApplyError(t('applyErrorSelectLifecycle'));
       return;
     }
-    if (st === FEED_FLAG_TAKEDOWN_ID && !reasonId) {
-      setApplyError(t('applyErrorTakedownReason'));
-      return;
+    if (lifecycleStateKey === LIFECYCLE_TAKEDOWN_KEY) {
+      const hasReason = takedownReasonKey.trim().length > 0;
+      const hasTransition = transitionNote.trim().length > 0;
+      if (!hasReason && !hasTransition) {
+        setApplyError(t('applyErrorTakedownDoc'));
+        return;
+      }
     }
-    if (statusRequiresConfirm(st)) {
+    if (needsConfirm) {
       setConfirmOpen(true);
     } else {
       void runApply();
     }
-  }, [feed, canUpdate, statusId, reasonId, runApply, t]);
+  }, [
+    feed,
+    canUpdate,
+    lifecycleStateKey,
+    takedownReasonKey,
+    transitionNote,
+    needsConfirm,
+    runApply,
+    t,
+  ]);
 
   if (optionsLoading) {
     return (
-      <div className="container">
-        <p>{tc('loading')}</p>
-      </div>
+      <ManagementPageShell title={t('pageTitle')}>
+        <LoadingText>{tc('loading')}</LoadingText>
+      </ManagementPageShell>
     );
   }
 
   return (
-    <div className="container">
-      <header className={styles.header}>
-        <h1 className="page-title">{t('pageTitle')}</h1>
-        <p className="page-subtitle">{t('pageSubtitle')}</p>
-        <p className={styles.bread}>
-          <Link href="/feed-operations/flag-status" className={styles.breadLink}>
-            {t('breadcrumbParent')}
-          </Link>
-          <span aria-hidden> / </span>
-          <span>{t('breadcrumbCurrent')}</span>
-        </p>
-      </header>
-
+    <ManagementPageShell
+      headerChildren={
+        <Breadcrumbs
+          LinkComponent={Link}
+          variant="compact"
+          navAriaLabel={tc('breadcrumbNav')}
+          items={[
+            { href: '/feed-operations/flag-status', label: t('breadcrumbParent') },
+            { label: t('breadcrumbCurrent') },
+          ]}
+        />
+      }
+      subtitle={t('pageSubtitle')}
+      title={t('pageTitle')}
+    >
       {optionsError && <Alert variant="error">{optionsError}</Alert>}
 
-      <section className={styles.section} aria-label={t('sectionFindAria')}>
+      <PageSection aria-label={t('sectionFindAria')}>
         <Card>
-          <h2 className={styles.h2}>{t('findFeedHeading')}</h2>
-          <div className={styles.lookupGrid}>
-            <FormLabel htmlFor="feed-flag-lookup-mode">{t('searchByLabel')}</FormLabel>
-            <FormLabel htmlFor="feed-flag-lookup-value">
+          <SectionHeading level={2}>{t('findFeedHeading')}</SectionHeading>
+          <LookupFieldGrid>
+            <Label htmlFor="feed-flag-lookup-mode">{t('searchByLabel')}</Label>
+            <Label htmlFor="feed-flag-lookup-value">
               {searchMode === 'url' ? t('searchValueLabelUrl') : t('searchValueLabel')}
-            </FormLabel>
-            <div className={styles.lookupActionLabel} aria-hidden>
-              {'\u00A0'}
-            </div>
-            <select
+            </Label>
+            <LookupFieldSpacerLabel aria-hidden>{'\u00A0'}</LookupFieldSpacerLabel>
+            <Select
               id="feed-flag-lookup-mode"
-              className={`${styles.select} ${styles.inlineControl}`}
+              className={`${fieldPrimitiveClasses.select} ${lookupFieldGridControlClass}`}
               value={searchMode}
               onChange={(e) => {
                 const v = e.target.value;
@@ -279,10 +378,10 @@ export function FlagStatusPageClient({ user }: FlagStatusPageClientProps) {
               <option value="podcast_index_id">{t('searchModePodcastIndexId')}</option>
               <option value="feed_id">{t('searchModeFeedId')}</option>
               <option value="url">{t('searchModeUrl')}</option>
-            </select>
-            <FormInput
+            </Select>
+            <Input
               id="feed-flag-lookup-value"
-              className={styles.inlineControl}
+              className={lookupFieldGridControlClass}
               type={searchMode === 'url' ? 'text' : 'number'}
               name="q"
               value={searchText}
@@ -291,7 +390,7 @@ export function FlagStatusPageClient({ user }: FlagStatusPageClientProps) {
               autoComplete="off"
             />
             <Button
-              className={styles.inlineControlButton}
+              className={lookupFieldGridButtonClass}
               disabled={lookupLoading}
               onClick={() => {
                 void performLookup();
@@ -301,17 +400,17 @@ export function FlagStatusPageClient({ user }: FlagStatusPageClientProps) {
             >
               {lookupLoading ? t('lookupLoading') : t('lookupButton')}
             </Button>
-          </div>
+          </LookupFieldGrid>
         </Card>
         {loadError && <Alert variant="error">{loadError}</Alert>}
-      </section>
+      </PageSection>
 
       {feed && (
-        <section className={styles.section} aria-label={t('sectionFeedAria')}>
+        <PageSection aria-label={t('sectionFeedAria')}>
           <Card>
-            <h2 className={styles.h2}>{t('thisFeedHeading')}</h2>
-            <h3 className={styles.h3}>{t('onRecordHeading')}</h3>
-            <dl className={styles.dl}>
+            <SectionHeading level={2}>{t('thisFeedHeading')}</SectionHeading>
+            <SectionHeading level={4}>{t('onRecordHeading')}</SectionHeading>
+            <DescriptionList variant="flat">
               {feed.channel_title && (
                 <>
                   <dt>{t('dtChannelTitle')}</dt>
@@ -319,91 +418,136 @@ export function FlagStatusPageClient({ user }: FlagStatusPageClientProps) {
                 </>
               )}
               <dt>{t('dtUrl')}</dt>
-              <dd className={styles.muted}>{feed.url}</dd>
+              <dd>
+                <MutedBreakableText>{feed.url}</MutedBreakableText>
+              </dd>
               <dt>{t('dtInternalFeedId')}</dt>
               <dd>{feed.id}</dd>
               <dt>{t('dtPodcastIndexId')}</dt>
               <dd>{feed.podcast_index_id}</dd>
-              <dt>{t('dtStatus')}</dt>
+              <dt>{t('dtLifecycle')}</dt>
+              <dd>{t('lifecycleDisplay', { state: feed.lifecycle_state_key })}</dd>
+              <dt>{t('dtActiveConditions')}</dt>
               <dd>
-                {t('statusDisplay', {
-                  status: feed.feed_flag_status_key,
-                  id: feed.feed_flag_status_id,
+                {feed.active_condition_keys?.length
+                  ? feed.active_condition_keys.join(', ')
+                  : t('emptyValue')}
+              </dd>
+              <dt>{t('dtEffectivePolicy')}</dt>
+              <dd>
+                {t('effectivePolicyDisplay', {
+                  parse: feed.parse_allowed ? t('boolYes') : t('boolNo'),
+                  public: feed.public_visible ? t('boolYes') : t('boolNo'),
+                  add: feed.add_allowed ? t('boolYes') : t('boolNo'),
+                  reason: feed.primary_block_reason ?? t('emptyValue'),
                 })}
               </dd>
               <dt>{t('dtSpamOverride')}</dt>
               <dd>{feed.spam_item_limit_override ?? t('emptyValue')}</dd>
-              <dt>{t('dtReason')}</dt>
-              <dd>{feed.feed_flag_status_reason_key ?? t('emptyValue')}</dd>
-              <dt>{t('dtReasonNote')}</dt>
-              <dd className={styles.muted}>
-                {feed.feed_flag_status_reason_note?.length
-                  ? feed.feed_flag_status_reason_note
-                  : t('emptyValue')}
-              </dd>
-            </dl>
-            <p className={styles.dbLink}>
-              <Link className={styles.inlinelink} href={`/database/feed/${String(feed.id)}`}>
+              <dt>{t('dtMaxResponseBytesOverride')}</dt>
+              <dd>{feed.max_response_body_bytes_override ?? t('emptyValue')}</dd>
+              <dt>{t('dtLifecycleReason')}</dt>
+              <dd>{feed.lifecycle_reason ?? t('emptyValue')}</dd>
+              <dt>{t('dtUpdatedSource')}</dt>
+              <dd>{feed.updated_source}</dd>
+            </DescriptionList>
+            <p>
+              <ActionLink
+                href={`/database/feed/${String(feed.id)}`}
+                LinkComponent={Link}
+                variant="inline"
+              >
                 {t('openInDatabase')}
-              </Link>
+              </ActionLink>
             </p>
 
             {canUpdate && options && (
-              <div className={styles.feedUpdateForm}>
-                <h3 className={styles.h3}>{t('newStatusHeading')}</h3>
-                <div className={styles.formBlock}>
+              <FormContinuationSection>
+                <SectionHeading level={4}>{t('newValuesHeading')}</SectionHeading>
+                <div className={lookupFieldGridFormBlockClass}>
                   <FormGroup>
-                    <FormLabel>{t('labelNewStatusRequired')}</FormLabel>
-                    <select
-                      className={styles.select}
-                      value={statusId}
-                      onChange={(e) => setStatusId(e.target.value)}
+                    <Label>{t('labelLifecycleRequired')}</Label>
+                    <Select
+                      className={fieldPrimitiveClasses.select}
+                      value={lifecycleStateKey}
+                      onChange={(e) => setLifecycleStateKey(e.target.value)}
                       required
                     >
                       <option value="" disabled>
-                        {t('selectStatusPlaceholder')}
+                        {t('selectLifecyclePlaceholder')}
                       </option>
-                      {options.feed_flag_statuses.map((s) => (
-                        <option key={s.id} value={String(s.id)}>
-                          {t('selectOptionStatus', { label: s.status, id: s.id })}
+                      {options.lifecycle_states.map((s) => (
+                        <option key={s.state_key} value={s.state_key}>
+                          {t('selectOptionLifecycle', { state: s.state_key })}
                         </option>
                       ))}
-                    </select>
+                    </Select>
                   </FormGroup>
+
                   <FormGroup>
-                    <FormLabel>
-                      {parseInt(statusId, 10) === FEED_FLAG_TAKEDOWN_ID
-                        ? t('labelReasonTakedownRequired')
-                        : t('labelReasonOptional')}
-                    </FormLabel>
-                    <select
-                      className={styles.select}
-                      value={reasonId}
-                      onChange={(e) => setReasonId(e.target.value)}
-                    >
-                      <option value="">{t('reasonNone')}</option>
-                      {options.feed_flag_status_reasons.map((r) => (
-                        <option key={r.id} value={String(r.id)}>
-                          {t('selectOptionReason', { label: r.reason, id: r.id })}
-                        </option>
+                    <Label>{t('labelActiveConditions')}</Label>
+                    <CheckboxFieldList>
+                      {options.condition_types.map((c) => (
+                        <CheckboxField
+                          key={c.condition_key}
+                          label={c.condition_key}
+                          checked={conditionChecked[c.condition_key] === true}
+                          onChange={(checked) => {
+                            setConditionChecked((prev) => ({
+                              ...prev,
+                              [c.condition_key]: checked,
+                            }));
+                          }}
+                        />
                       ))}
-                    </select>
+                    </CheckboxFieldList>
                   </FormGroup>
+
+                  {lifecycleStateKey === LIFECYCLE_TAKEDOWN_KEY && (
+                    <FormGroup>
+                      <Label>{t('labelTakedownReasonOptional')}</Label>
+                      <Select
+                        className={fieldPrimitiveClasses.select}
+                        value={takedownReasonKey}
+                        onChange={(e) => setTakedownReasonKey(e.target.value)}
+                      >
+                        <option value="">{t('takedownReasonPlaceholder')}</option>
+                        {options.takedown_reasons.map((r) => (
+                          <option key={r.reason} value={r.reason}>
+                            {r.reason}
+                          </option>
+                        ))}
+                      </Select>
+                    </FormGroup>
+                  )}
+
                   <FormGroup>
-                    <FormLabel>{t('labelNote')}</FormLabel>
-                    <textarea
-                      className={styles.textarea}
-                      name="note"
-                      value={note}
-                      onChange={(e) => setNote(e.target.value)}
-                      rows={4}
+                    <Label>{t('labelTransitionNote')}</Label>
+                    <TextArea
+                      name="transition-note"
+                      value={transitionNote}
+                      onChange={(e) => setTransitionNote(e.target.value)}
+                      rows={3}
                       maxLength={10000}
-                      placeholder={t('notePlaceholder')}
+                      placeholder={t('transitionNotePlaceholder')}
                     />
                   </FormGroup>
+
                   <FormGroup>
-                    <FormLabel>{t('labelSpamOverride')}</FormLabel>
-                    <FormInput
+                    <Label>{t('labelConditionNote')}</Label>
+                    <TextArea
+                      name="condition-note"
+                      value={conditionNote}
+                      onChange={(e) => setConditionNote(e.target.value)}
+                      rows={3}
+                      maxLength={10000}
+                      placeholder={t('conditionNotePlaceholder')}
+                    />
+                  </FormGroup>
+
+                  <FormGroup>
+                    <Label>{t('labelSpamOverride')}</Label>
+                    <Input
                       type="number"
                       name="spam-item-limit-override"
                       value={spamItemLimitOverrideInput}
@@ -413,38 +557,48 @@ export function FlagStatusPageClient({ user }: FlagStatusPageClientProps) {
                       placeholder={t('spamOverridePlaceholder')}
                     />
                   </FormGroup>
-                  <p className={styles.hintSmall}>{t('spamOverrideHint')}</p>
+                  <FormHintText variant="block">{t('spamOverrideHint')}</FormHintText>
+                  <FormGroup>
+                    <Label>{t('labelMaxResponseBytesOverride')}</Label>
+                    <Input
+                      type="number"
+                      name="max-response-body-bytes-override"
+                      value={maxResponseBodyBytesOverrideInput}
+                      onChange={(e) => setMaxResponseBodyBytesOverrideInput(e.target.value)}
+                      min={1}
+                      step={1}
+                      placeholder={t('maxResponseBytesOverridePlaceholder')}
+                    />
+                  </FormGroup>
                   {applyError && <Alert variant="error">{applyError}</Alert>}
                   {applyMessage && <Alert variant="default">{applyMessage}</Alert>}
 
                   {confirmOpen && (
-                    <div
-                      className={styles.confirm}
-                      role="dialog"
-                      aria-label={t('confirmDialogAria')}
-                    >
-                      <p>{t('confirmDialogBody')}</p>
-                      <div className={styles.confirmRow}>
-                        <Button
-                          type="button"
-                          disabled={applyLoading}
-                          onClick={() => {
-                            void runApply();
-                          }}
-                          variant="primary"
-                        >
-                          {applyLoading ? t('confirmApplying') : tc('confirm')}
-                        </Button>
-                        <Button
-                          type="button"
-                          onClick={() => {
-                            setConfirmOpen(false);
-                          }}
-                          variant="default"
-                        >
-                          {tc('cancel')}
-                        </Button>
-                      </div>
+                    <div role="dialog" aria-label={t('confirmDialogAria')}>
+                      <ConfirmPanel>
+                        <p>{t('confirmDialogBody')}</p>
+                        <ConfirmPanelActions>
+                          <Button
+                            type="button"
+                            onClick={() => {
+                              setConfirmOpen(false);
+                            }}
+                            variant="secondary"
+                          >
+                            {tc('cancel')}
+                          </Button>
+                          <Button
+                            type="button"
+                            disabled={applyLoading}
+                            onClick={() => {
+                              void runApply();
+                            }}
+                            variant="primary"
+                          >
+                            {applyLoading ? t('confirmApplying') : tc('confirm')}
+                          </Button>
+                        </ConfirmPanelActions>
+                      </ConfirmPanel>
                     </div>
                   )}
 
@@ -458,29 +612,31 @@ export function FlagStatusPageClient({ user }: FlagStatusPageClientProps) {
                       >
                         {applyLoading
                           ? t('confirmApplying')
-                          : statusRequiresConfirm(parseInt(statusId, 10) || 0)
+                          : needsConfirm
                             ? t('continueToConfirm')
                             : t('applyButton')}
                       </Button>
-                      {statusRequiresConfirm(parseInt(statusId, 10) || 0) && (
-                        <p className={styles.hintSmall}>{t('confirmHint')}</p>
+                      {needsConfirm && (
+                        <FormHintText variant="block">{t('confirmHint')}</FormHintText>
                       )}
                     </>
                   )}
                 </div>
-              </div>
+              </FormContinuationSection>
             )}
 
             {!canUpdate && (
-              <p className={styles.readonlyHint}>
-                {t.rich('readonlyHint', {
-                  feedsCode: (chunks) => <code>{chunks}</code>,
-                })}
-              </p>
+              <RestrictedNotice>
+                <FormHintText variant="block">
+                  {t.rich('readonlyHint', {
+                    feedsCode: (chunks) => <code>{chunks}</code>,
+                  })}
+                </FormHintText>
+              </RestrictedNotice>
             )}
           </Card>
-        </section>
+        </PageSection>
       )}
-    </div>
+    </ManagementPageShell>
   );
 }

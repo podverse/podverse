@@ -1,0 +1,10 @@
+@use '../../../styles/variables' as *;
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: $spacing-lg;
+  margin-top: $spacing-xl;
+}

@@ -2,9 +2,11 @@
 name: prefer-named-exports
 description: >-
   Prefer named exports in TypeScript/ESM modules; avoid default exports when a named export
-  is sufficient. Use in Podverse and Metaboost when adding or editing modules, barrel files, worker
-  commands, packages, and app code. Framework-required defaults are the exception.
-version: 1.0.0
+  is sufficient. Avoid re-export renaming (export { X as Y }) unless migration or barrel constraints
+  require it—import the canonical name from the source package instead. Use in Podverse and Metaboost
+  when adding or editing modules, barrel files, worker commands, packages, and app code.
+  Framework-required defaults are the exception.
+version: 1.1.0
 ---
 
 # Prefer named exports
@@ -29,6 +31,12 @@ version: 1.0.0
 
 - Use `import { foo } from './bar.js'`, not `import foo from './bar.js'`, for named exports.
 - Re-exporting: `export { foo } from './bar.js'` in barrels instead of re-exporting a default with an alias, when possible.
+
+## Re-export aliases (`export { X as Y }`)
+
+- **Avoid** renaming on re-export (`export { Input as FormInput } from '…'`) unless there is a **hard** need (e.g. two different symbols merged in one barrel, or a deprecated alias during a staged migration with documented end date).
+- Prefer **`export { Input } from '@podverse/ui'`** and import **`Input`** at call sites, or import **`Input`** directly from the package and **omit** the shim file entirely.
+- Renamed re-exports duplicate vocabulary (“FormInput” vs `Input`) and confuse search, review, and onboarding.
 
 ## Related
 

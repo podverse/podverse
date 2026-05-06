@@ -1,0 +1,7 @@
+@use '../../../styles/variables' as *;
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-lg);
+}

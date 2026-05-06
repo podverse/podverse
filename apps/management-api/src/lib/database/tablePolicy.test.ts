@@ -18,24 +18,18 @@ describe('tablePolicy', () => {
       expect(policy).toBeUndefined();
     });
 
-    it('includes feed_flag_status in policies', () => {
-      const policy = getTablePolicy('feed_flag_status');
+    it('includes feed_takedown_reason in policies', () => {
+      const policy = getTablePolicy('feed_takedown_reason');
       expect(policy).toBeDefined();
-      expect(policy?.permissionResource).toBe('feed_flag_statuses');
-    });
-
-    it('includes feed_flag_status_reason in policies', () => {
-      const policy = getTablePolicy('feed_flag_status_reason');
-      expect(policy).toBeDefined();
-      expect(policy?.permissionResource).toBe('feed_flag_status_reasons');
+      expect(policy?.permissionResource).toBe('feed_takedown_reasons');
     });
   });
 
   describe('isTableAllowlisted', () => {
     it('returns true for allowlisted tables', () => {
       expect(isTableAllowlisted('feed')).toBe(true);
-      expect(isTableAllowlisted('feed_flag_status')).toBe(true);
-      expect(isTableAllowlisted('feed_flag_status_reason')).toBe(true);
+      expect(isTableAllowlisted('feed_takedown_reason')).toBe(true);
+      expect(isTableAllowlisted('billing_price')).toBe(true);
     });
 
     it('returns false for non-allowlisted tables', () => {
@@ -51,12 +45,8 @@ describe('tablePolicy', () => {
       expect(isTableReadOnly('feed')).toBe(true);
     });
 
-    it('returns false for feed_flag_status_reason table', () => {
-      expect(isTableReadOnly('feed_flag_status_reason')).toBe(false);
-    });
-
-    it('returns false for feed_flag_status table', () => {
-      expect(isTableReadOnly('feed_flag_status')).toBe(false);
+    it('returns false for feed_takedown_reason table', () => {
+      expect(isTableReadOnly('feed_takedown_reason')).toBe(false);
     });
 
     it('returns true for unknown tables', () => {
@@ -66,21 +56,21 @@ describe('tablePolicy', () => {
 
   describe('query bounds', () => {
     it('all tables have maxFilters set', () => {
-      for (const tableName of ['feed', 'feed_flag_status', 'feed_flag_status_reason']) {
+      for (const tableName of ['feed', 'feed_takedown_reason', 'billing_price']) {
         const policy = getTablePolicy(tableName);
         expect(policy?.maxFilters).toBeGreaterThan(0);
       }
     });
 
     it('all tables have maxSorts set', () => {
-      for (const tableName of ['feed', 'feed_flag_status', 'feed_flag_status_reason']) {
+      for (const tableName of ['feed', 'feed_takedown_reason', 'billing_price']) {
         const policy = getTablePolicy(tableName);
         expect(policy?.maxSorts).toBeGreaterThan(0);
       }
     });
 
     it('all tables have maxInValues set', () => {
-      for (const tableName of ['feed', 'feed_flag_status', 'feed_flag_status_reason']) {
+      for (const tableName of ['feed', 'feed_takedown_reason', 'billing_price']) {
         const policy = getTablePolicy(tableName);
         expect(policy?.maxInValues).toBeGreaterThan(0);
       }
@@ -88,29 +78,25 @@ describe('tablePolicy', () => {
   });
 
   describe('field definitions', () => {
-    it('feed table has reason fields as updatable', () => {
+    it('feed table exposes override fields as updatable where policy allows', () => {
       const policy = getTablePolicy('feed');
       expect(policy).toBeDefined();
 
-      const reasonIdField = policy?.fields.find((f) => f.name === 'feed_flag_status_reason_id');
-      expect(reasonIdField).toBeDefined();
-      expect(reasonIdField?.updatable).toBe(true);
-
-      const reasonNoteField = policy?.fields.find((f) => f.name === 'feed_flag_status_reason_note');
-      expect(reasonNoteField).toBeDefined();
-      expect(reasonNoteField?.updatable).toBe(true);
+      const spamOverride = policy?.fields.find((f) => f.name === 'spam_item_limit_override');
+      expect(spamOverride).toBeDefined();
+      expect(spamOverride?.updatable).toBe(true);
     });
 
-    it('feed_flag_status has status as non-updatable', () => {
-      const policy = getTablePolicy('feed_flag_status');
-      const statusField = policy?.fields.find((f) => f.name === 'status');
-      expect(statusField?.updatable).toBe(false);
-    });
-
-    it('feed_flag_status_reason has reason as updatable', () => {
-      const policy = getTablePolicy('feed_flag_status_reason');
+    it('feed_takedown_reason has reason as updatable', () => {
+      const policy = getTablePolicy('feed_takedown_reason');
       const reasonField = policy?.fields.find((f) => f.name === 'reason');
       expect(reasonField?.updatable).toBe(true);
+    });
+
+    it('billing_price keeps source metadata read-only', () => {
+      const policy = getTablePolicy('billing_price');
+      const sourceField = policy?.fields.find((f) => f.name === 'source');
+      expect(sourceField?.updatable).toBe(false);
     });
   });
 });

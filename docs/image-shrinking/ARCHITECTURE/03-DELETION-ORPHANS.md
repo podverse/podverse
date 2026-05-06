@@ -1,7 +1,7 @@
 ## Deletion and Orphan Behavior
 
 This doc explains what happens when channels/items are deleted and how that affects stored
-image data in the database and in DigitalOcean Spaces.
+image data in the database and in object storage (S3-compatible bucket).
 
 Key code paths:
 
@@ -15,18 +15,17 @@ Key code paths:
 
 1. The channel/item row is deleted.
 2. Related `channel_image` or `item_image` rows are deleted via `onDelete: 'CASCADE'`.
-3. **No immediate storage deletion occurs**. The WebP objects in DigitalOcean Spaces remain
-   until the orphan cleanup job runs.
+3. **No immediate storage deletion occurs**. The WebP objects in the bucket remain until the
+   orphan cleanup job runs.
 
 ### Why Objects Remain in Storage
 
-The storage interface only supports upload + URL generation. There is no delete method, and
-the core shrinking pipeline never calls a storage delete. As a result, deleting DB rows alone
-does not remove objects from the bucket.
+The core shrinking pipeline only uploads during normal processing; it does not delete from
+storage when DB rows disappear. Deleting DB rows alone does not remove objects from the bucket.
 
-The cleanup command is intentionally **provider-specific**: it uses the concrete
-`DigitalOceanService` to list and delete objects. This keeps the main pipeline provider-agnostic
-while still allowing cleanup in the current DigitalOcean Spaces implementation.
+Orphan cleanup uses the same **`ImageStorageService`** implementation as the consumer (`listObjects`,
+`deleteImageByKey`, `getPublicUrl`), injected at bootstrap from **`@podverse/external-services-object-storage`**
+according to **`BUCKET_PROVIDER`**.
 
 The orphan cleanup command (`imageShrinkCleanupOrphans`) lists objects in the bucket,
 checks whether their CDN URLs are still referenced in `channel_image` or `item_image`
@@ -42,7 +41,7 @@ The worker periodically deletes **metadata rows** from `image_shrink_source` whe
 - There is no resized image referencing the URL in `channel_image` or `item_image`.
 - A prune interval has passed (`IMAGE_SHRINK_SOURCE_PRUNE_EXPIRATION` in seconds).
 
-This cleanup **does not delete any objects** from DigitalOcean Spaces.
+This cleanup **does not delete any objects** from object storage.
 
 ### Deletion Flow Diagram
 

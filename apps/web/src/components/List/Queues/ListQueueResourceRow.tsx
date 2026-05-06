@@ -6,11 +6,11 @@ import { FaGripLines } from 'react-icons/fa6';
 
 import type { DTOQueueResource } from '@podverse/helpers';
 import { MediumEnum } from '@podverse/helpers';
+import { Button } from '@podverse/ui';
 
 import { IMAGES } from '../../../constants/images';
 import { useQueues } from '../../../contexts/Queue';
 import { getApiRequestService } from '../../../factories/apiRequestService';
-import { Button } from '../../Button/Button';
 import { ImagesPerView } from '../../Image/ImagesPerView';
 import { MoreButton } from '../../MoreButton/MoreButton';
 import { ReadableDate } from '../../Time/ReadableDate';

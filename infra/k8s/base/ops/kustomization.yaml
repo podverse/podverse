@@ -51,12 +51,21 @@ configMapGenerator:
       - source/database/linear-migrations/app/0021_account_trust_and_entitlement_overrides.sql
       - source/database/linear-migrations/app/0022_account_membership_tier_trial_premium.sql
       - source/database/linear-migrations/app/0023_remove_account_trust_tier.sql
+      - source/database/linear-migrations/app/0024_feed_policy_split.sql
+      - source/database/linear-migrations/app/0025_feed_lifecycle_state_replacement.sql
+      - source/database/linear-migrations/app/0026_feed_status_table_removal_prep.sql
+      - source/database/linear-migrations/app/0027_feed_legacy_flag_drop.sql
+      - source/database/linear-migrations/app/0028_billing_pricing_catalog.sql
+      - source/database/linear-migrations/app/0029_billing_events_and_retry_metadata.sql
+      - source/database/linear-migrations/app/0030_product_membership_settings.sql
   - name: podverse-ops-management-linear-migrations
     files:
       - source/database/linear-migrations/management/0000_init_helpers.sql
       - source/database/linear-migrations/management/0001_init_admin_accounts.sql
       - source/database/linear-migrations/management/0002_admin_account_permissions.sql
       - source/database/linear-migrations/management/0003_database_audit_log.sql
+      - source/database/linear-migrations/management/0004_feed_takedown_reason_permissions.sql
+      - source/database/linear-migrations/management/0005_billing_prices_permissions.sql
   - name: podverse-ops-management-superuser-scripts
     files:
       - source/database/management-superuser/package.json

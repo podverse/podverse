@@ -2,8 +2,9 @@
 
 import React, { useMemo, useRef } from 'react';
 
+import { Button } from '@podverse/ui';
+
 import { useDropdownKeyboardNavigation } from '../../hooks/useDropdownKeyboardNavigation';
-import { Button } from '../Button/Button';
 import { DropdownMenu } from './DropdownMenu';
 
 import styles from '../../styles/components/Dropdown/Dropdown.module.scss';

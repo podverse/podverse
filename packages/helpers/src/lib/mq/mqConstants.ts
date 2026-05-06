@@ -77,6 +77,22 @@ export const MQ_QUEUES: Record<MQQueueNameParamKey, MQQueueConfig> = {
 
 export const MQ_IMAGE_SHRINK_HINTS_QUEUE_NAME: MQQueueName = 'image-shrinking-hints';
 
+/** AMQP message priority (0–9) for channel-level images (RSS channel / podcast artwork). */
+export const MQ_IMAGE_SHRINK_HINT_AMQP_PRIORITY_CHANNEL = 9;
+
+/** AMQP message priority (0–9) for item-level images (episode artwork). Lower than channel. */
+export const MQ_IMAGE_SHRINK_HINT_AMQP_PRIORITY_ITEM = 4;
+
+/**
+ * AMQP priority for image-shrink hint messages so channel artwork is processed before item artwork.
+ * Pair with a broker prioritized queue on `image-shrinking-hints` for ordered delivery.
+ */
+export function mqImageShrinkHintAmqpPriority(entityType: 'channel' | 'item'): number {
+  return entityType === 'channel'
+    ? MQ_IMAGE_SHRINK_HINT_AMQP_PRIORITY_CHANNEL
+    : MQ_IMAGE_SHRINK_HINT_AMQP_PRIORITY_ITEM;
+}
+
 export const MQ_IMAGE_SHRINK_HINTS_CONFIG: MQQueueConfig = {
   queueName: MQ_IMAGE_SHRINK_HINTS_QUEUE_NAME,
   dedupeCacheTimeMS: DEDUPE_WINDOW_IMAGE_SHRINK_HINTS_MS,

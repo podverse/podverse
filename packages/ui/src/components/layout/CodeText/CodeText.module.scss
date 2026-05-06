@@ -1,0 +1,14 @@
+.inline {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: var(--font-size-xs);
+  word-break: break-all;
+}
+
+.block {
+  display: block;
+  margin-top: var(--spacing-md);
+  max-width: 20rem;
+  font-size: var(--font-size-xs);
+  word-break: break-word;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}

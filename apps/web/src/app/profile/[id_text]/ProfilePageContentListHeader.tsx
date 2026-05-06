@@ -3,9 +3,10 @@
 import { useTranslations } from 'next-intl';
 import React from 'react';
 
+import { Tabs } from '@podverse/ui';
+
 import Dropdown from '../../../components/Dropdown/Dropdown';
 import { ListHeader } from '../../../components/List/ListHeader';
-import { Tabs } from '../../../components/Tabs/Tabs';
 import type { ProfilePageContentTab } from './ProfilePageContentContext';
 import { useProfilePageContentContext } from './ProfilePageContentContext';
 

@@ -269,7 +269,9 @@ export class ItemService {
             id: Not(IsNull()),
           },
           feed: {
-            feed_flag_status: In([1, 2]),
+            feed_policy: {
+              public_visible: true,
+            },
           },
           ...(medium_ids ? { medium_id: In(medium_ids) } : {}),
           ...(category_id ? { channel_categories: { category_id: Equal(category_id) } } : {}),

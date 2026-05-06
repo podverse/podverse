@@ -1,9 +1,11 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion -- env vars validated at startup in lib/startup/validation.ts */
 
-import { MS_PER_SECOND, readOptionalPositiveExpirationEnv } from '@podverse/helpers';
-
-const DEFAULT_AUTH_JWT_EXPIRATION = 365 * 24 * 60 * 60;
-const DEFAULT_SET_PASSWORD_EXPIRATION = 168 * 60 * 60;
+import {
+  DEFAULT_AUTH_JWT_EXPIRATION,
+  DEFAULT_SET_PASSWORD_EXPIRATION,
+  MS_PER_SECOND,
+  readOptionalPositiveExpirationEnv,
+} from '@podverse/helpers';
 
 type Config = {
   nodeEnv: string;

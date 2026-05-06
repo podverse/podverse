@@ -12,6 +12,7 @@ import {
   getQueueForMedium,
 } from '@podverse/helpers';
 import { getShuffleHash } from '@podverse/helpers-requests';
+import { Button } from '@podverse/ui';
 
 import { IMAGES } from '../../../../../constants/images';
 import { ROUTES } from '../../../../../constants/routes';
@@ -24,7 +25,6 @@ import { getApiRequestService } from '../../../../../factories/apiRequestService
 import { useMediaPlayerResourceUpdate } from '../../../../../hooks/useMediaPlayerResourceUpdate';
 import { downloadTrackWithModal } from '../../../../../utils/downloadModal/downloadTrackWithModal';
 import { downloadAndSaveFile } from '../../../../../utils/fileDownloader';
-import { Button } from '../../../../Button/Button';
 import { ImagesPerView } from '../../../../Image/ImagesPerView';
 import type { MoreButtonMenuItem } from '../../../../MoreButton/MoreButton';
 import { MoreButton } from '../../../../MoreButton/MoreButton';

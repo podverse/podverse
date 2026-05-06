@@ -195,6 +195,16 @@ export class PodcastService {
 }
 ```
 
+### ORM `varchar` lengths
+
+- **DDL source of truth:** `infra/k8s/base/ops/source/database/linear-migrations/` (explicit `VARCHAR(n)` in SQL).
+- **When to extract a number:** Prefer **domain-named** exports in `packages/orm/src/lib/` (for example
+  `FEED_LIFECYCLE_REASON_KEY_MAX_LENGTH` in [`feedLifecycleLimits.ts`](packages/orm/src/lib/feedLifecycleLimits.ts))
+  when the same semantic limit is used in **multiple** TypeScript places (ORM entities, Joi, DTOs). Import from
+  `@podverse/orm` at app boundaries.
+- **When to keep literals:** One-off column widths used only in a single entity can stay inline in `@Column`.
+- **Avoid** generic shared constants such as `VARCHAR_64` reused across unrelated columns.
+
 ### Logger Pattern
 
 Use the centralized logger from `@podverse/helpers`:

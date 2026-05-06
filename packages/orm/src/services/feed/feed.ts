@@ -1,12 +1,17 @@
 import { AppDataSourceRead, AppDataSourceReadWrite } from '@orm/db/index.js';
 import { Feed } from '@orm/entities/feed/feed.js';
-import { FeedFlagStatusStatusEnum } from '@orm/entities/feed/feedFlagStatus.js';
-import type { FeedFlagStatusReasonEnum } from '@orm/entities/feed/feedFlagStatusReason.js';
+import type { FeedConditionSourceEnum } from '@orm/entities/feed/feedCondition.js';
+import type { FeedConditionTypeKeyEnum } from '@orm/entities/feed/feedConditionType.js';
+import type { FeedPolicy } from '@orm/entities/feed/feedPolicy.js';
 import { applyProperties } from '@orm/lib/applyProperties.js';
 import { isPostgresUniqueViolation } from '@orm/lib/postgresUniqueViolation.js';
 
 import { computeParsingStaleBefore, deriveHttpsAndHttpUrlsFromInput } from './feed.helpers.js';
-import { FeedFlagStatusReasonService, FeedFlagStatusService } from './feedFlagStatus.js';
+import {
+  FeedLifecycleStateService,
+  type SetFeedLifecycleStateParams,
+} from './feedLifecycleState.js';
+import { FeedPolicyService } from './feedPolicy.js';
 
 type FeedCreateDto = {
   url: string;
@@ -21,10 +26,27 @@ type FeedUpdateDto = {
   container_id?: string | null;
 };
 
-type UpdateFlagStatusOptions = {
-  feed_flag_status_reason_id?: FeedFlagStatusReasonEnum;
-  feed_flag_status_reason_note?: string;
+/** Mutations applied inside {@link FeedService.applyFeedModerationChanges}. */
+export type FeedConditionMutation = {
+  conditionKey: FeedConditionTypeKeyEnum;
+  isActive: boolean;
+  source: FeedConditionSourceEnum;
+  note?: string | null;
 };
+
+export type ApplyFeedModerationChangesParams = {
+  conditionMutations?: FeedConditionMutation[];
+  lifecycle?: SetFeedLifecycleStateParams;
+  refreshPolicy?: boolean;
+};
+
+const FEED_RELATIONS = [
+  'channel',
+  'feed_lifecycle_state',
+  'feed_lifecycle_state.feed_lifecycle_state_type',
+  'feed_log',
+  'feed_policy',
+] as const;
 
 export class FeedService {
   private repositoryRead = AppDataSourceRead.getRepository(Feed);
@@ -33,13 +55,13 @@ export class FeedService {
   async get(id: number): Promise<Feed | null> {
     return this.repositoryRead.findOne({
       where: { id },
-      relations: ['channel', 'feed_flag_status', 'feed_log'],
+      relations: [...FEED_RELATIONS],
     });
   }
 
   async getAll(): Promise<Feed[]> {
     return await this.repositoryRead.find({
-      relations: ['channel', 'feed_flag_status', 'feed_log'],
+      relations: [...FEED_RELATIONS],
     });
   }
 
@@ -50,7 +72,7 @@ export class FeedService {
           podcast_guid,
         },
       },
-      relations: ['channel', 'feed_flag_status', 'feed_log'],
+      relations: [...FEED_RELATIONS],
     });
   }
 
@@ -61,7 +83,7 @@ export class FeedService {
       where: {
         url: httpsUrl,
       },
-      relations: ['channel', 'feed_flag_status', 'feed_log'],
+      relations: [...FEED_RELATIONS],
     });
     if (httpsFeed) {
       return httpsFeed;
@@ -71,7 +93,7 @@ export class FeedService {
       where: {
         url: httpUrl,
       },
-      relations: ['channel', 'feed_flag_status', 'feed_log'],
+      relations: [...FEED_RELATIONS],
     });
     if (httpFeed) {
       return httpFeed;
@@ -92,7 +114,7 @@ export class FeedService {
         url,
         podcast_index_id,
       },
-      relations: ['channel', 'feed_flag_status', 'feed_log'],
+      relations: [...FEED_RELATIONS],
     });
   }
 
@@ -101,7 +123,7 @@ export class FeedService {
       where: {
         podcast_index_id,
       },
-      relations: ['channel', 'feed_flag_status', 'feed_log'],
+      relations: [...FEED_RELATIONS],
     });
   }
 
@@ -120,7 +142,7 @@ export class FeedService {
   async getOrCreate({ url, podcast_index_id }: FeedCreateDto): Promise<Feed> {
     const feed = await this.repositoryRead.findOne({
       where: { url },
-      relations: ['channel', 'feed_flag_status', 'feed_log'],
+      relations: [...FEED_RELATIONS],
     });
 
     if (feed) {
@@ -152,17 +174,6 @@ export class FeedService {
     const feed = new Feed();
     feed.url = url;
     feed.podcast_index_id = podcast_index_id;
-
-    const feedFlagStatusService = new FeedFlagStatusService();
-    const feed_flag_status = await feedFlagStatusService.get(FeedFlagStatusStatusEnum.Active);
-    if (!feed_flag_status) {
-      throw new Error(
-        `FeedService.create: feed status ${FeedFlagStatusStatusEnum.Active} not found`
-      );
-    } else {
-      feed.feed_flag_status = feed_flag_status;
-    }
-
     feed.is_parsing = null;
     feed.parsing_priority = 0;
     feed.container_id = '';
@@ -196,35 +207,81 @@ export class FeedService {
     return (result.affected ?? 0) > 0;
   }
 
-  async updateFlagStatus(
-    feed: Feed,
-    feed_flag_status_id: FeedFlagStatusStatusEnum,
-    options?: UpdateFlagStatusOptions
+  /** Transactionally applies condition rows, optional lifecycle update, and policy recompute. */
+  async applyFeedModerationChanges(
+    feedId: number,
+    params: ApplyFeedModerationChangesParams
   ): Promise<Feed> {
-    const feedFlagStatusService = new FeedFlagStatusService();
-    const feed_flag_status = await feedFlagStatusService.get(feed_flag_status_id);
+    await AppDataSourceReadWrite.transaction(async (manager) => {
+      const fp = new FeedPolicyService(manager);
+      const lifecycleSvc = new FeedLifecycleStateService(manager);
 
-    if (!feed_flag_status) {
-      throw new Error(`FeedService.updateFlagStatus: feed status ${feed_flag_status_id} not found`);
-    }
-
-    feed.feed_flag_status = feed_flag_status;
-
-    if (options?.feed_flag_status_reason_id !== undefined) {
-      const reasonService = new FeedFlagStatusReasonService();
-      const reason = await reasonService.get(options.feed_flag_status_reason_id);
-      if (!reason) {
-        throw new Error(
-          `FeedService.updateFlagStatus: reason ${options.feed_flag_status_reason_id} not found`
-        );
+      if (params.conditionMutations) {
+        for (const m of params.conditionMutations) {
+          await fp.setCondition({
+            feedId,
+            conditionKey: m.conditionKey,
+            isActive: m.isActive,
+            source: m.source,
+            note: m.note,
+          });
+        }
       }
-      feed.feed_flag_status_reason = reason;
-    } else {
-      feed.feed_flag_status_reason = null;
+
+      if (params.lifecycle) {
+        await lifecycleSvc.setLifecycleState(feedId, params.lifecycle);
+      }
+
+      if (params.refreshPolicy !== false) {
+        await fp.recomputePolicy(feedId);
+      }
+    });
+
+    const fed = await this.get(feedId);
+    if (!fed) {
+      throw new Error(
+        `FeedService.applyFeedModerationChanges: feed ${feedId} not found after update`
+      );
+    }
+    return fed;
+  }
+
+  async setFeedConditions(
+    feedId: number,
+    mutations: FeedConditionMutation[],
+    options?: { refreshPolicy?: boolean }
+  ): Promise<Feed> {
+    return this.applyFeedModerationChanges(feedId, {
+      conditionMutations: mutations,
+      refreshPolicy: options?.refreshPolicy !== false,
+    });
+  }
+
+  async setFeedLifecycleState(
+    feedId: number,
+    lifecycle: SetFeedLifecycleStateParams,
+    options?: { refreshPolicy?: boolean }
+  ): Promise<Feed> {
+    return this.applyFeedModerationChanges(feedId, {
+      lifecycle,
+      refreshPolicy: options?.refreshPolicy !== false,
+    });
+  }
+
+  /** Recomputes derived policy from current conditions/lifecycle. */
+  async refreshFeedPolicy(feedId: number): Promise<FeedPolicy> {
+    let policy: FeedPolicy | undefined;
+    await AppDataSourceReadWrite.transaction(async (manager) => {
+      const fp = new FeedPolicyService(manager);
+      policy = await fp.recomputePolicy(feedId);
+    });
+
+    if (!policy) {
+      throw new Error(
+        `FeedService.refreshFeedPolicy: policy missing after recompute for feed ${feedId}`
+      );
     }
 
-    feed.feed_flag_status_reason_note = options?.feed_flag_status_reason_note ?? null;
-
-    return this.repositoryReadWrite.save(feed);
+    return policy;
   }
 }

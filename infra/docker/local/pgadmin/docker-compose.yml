@@ -30,7 +30,7 @@ services:
     volumes:
       - ./servers.json:/pgadmin4/servers.json:ro
     ports:
-      - 127.0.0.1:5051:80
+      - 127.0.0.1:3050:80
     networks:
       - podverse_local_network
     restart: unless-stopped

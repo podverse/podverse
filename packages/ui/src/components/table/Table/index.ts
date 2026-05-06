@@ -1,2 +1,2 @@
 export { Table } from './Table';
-export type { TableProps } from './Table';
+export type { CellProps, RowProps, TableProps } from './Table';

@@ -1,5 +1,7 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion -- env vars validated at startup for running command */
 
+import type { BucketProvider } from '@podverse/external-services-object-storage';
+import { BUCKET_PROVIDERS, isBucketProvider } from '@podverse/external-services-object-storage';
 import {
   readOptionalPositiveExpirationEnv,
   readRequiredPositiveExpirationEnv,
@@ -48,17 +50,78 @@ export function getMQConfig(): MQConfig {
   };
 }
 
-export type BucketProviderConfig = {
+/** Allowed `BUCKET_PROVIDER` values for image shrink (single source of truth with validation). */
+export const SUPPORTED_BUCKET_PROVIDERS = BUCKET_PROVIDERS;
+
+export type BucketRuntimeConfig = {
+  provider: BucketProvider;
   accessKey: string;
   secretKey: string;
   region: string;
+  endpoint?: string;
+  forcePathStyle: boolean;
+  /** Empty string means uploads omit `x-amz-acl` (bucket policy / provider behavior). */
+  uploadPublicAcl: string;
 };
 
-export function getBucketProviderConfig(): BucketProviderConfig {
+function parseBucketEndpoint(raw: string | undefined): string | undefined {
+  const trimmed = raw?.trim();
+  if (trimmed === undefined || trimmed === '') {
+    return undefined;
+  }
+  return trimmed;
+}
+
+function defaultForcePathStyle(provider: BucketProvider): boolean {
+  switch (provider) {
+    case 'digitalocean':
+    case 'aws-s3':
+      return false;
+    case 'backblaze-b2':
+    case 'garage':
+    case 's3-compatible':
+      return true;
+  }
+}
+
+function defaultUploadPublicAcl(provider: BucketProvider): string {
+  switch (provider) {
+    case 'digitalocean':
+    case 'aws-s3':
+    case 'backblaze-b2':
+      return 'public-read';
+    case 'garage':
+    case 's3-compatible':
+      return '';
+  }
+}
+
+function resolveForcePathStyle(provider: BucketProvider, raw: string | undefined): boolean {
+  const trimmed = raw?.trim();
+  if (trimmed === undefined || trimmed === '') {
+    return defaultForcePathStyle(provider);
+  }
+  if (trimmed === 'true') {
+    return true;
+  }
+  return false;
+}
+
+/** Reads bucket + S3 client wiring after startup validation (including `BUCKET_PROVIDER`). */
+export function getBucketRuntimeConfig(): BucketRuntimeConfig {
+  const providerRaw = process.env.BUCKET_PROVIDER!.trim();
+  if (!isBucketProvider(providerRaw)) {
+    throw new Error(`Invalid BUCKET_PROVIDER: "${providerRaw}"`);
+  }
+  const provider = providerRaw;
   return {
+    provider,
     accessKey: process.env.BUCKET_ACCESS_KEY!,
     secretKey: process.env.BUCKET_SECRET_KEY!,
     region: process.env.BUCKET_REGION!,
+    endpoint: parseBucketEndpoint(process.env.BUCKET_ENDPOINT),
+    forcePathStyle: resolveForcePathStyle(provider, process.env.BUCKET_FORCE_PATH_STYLE),
+    uploadPublicAcl: defaultUploadPublicAcl(provider),
   };
 }
 
@@ -81,6 +144,7 @@ export type ImageShrinkConfig = {
   batchSize: number;
   concurrency: number;
   rps: number;
+  maxSourceBytes: number;
 };
 
 export type ImageShrinkCleanupConfig = {
@@ -111,23 +175,15 @@ export function hasAnyImageShrinkEnvSet(): boolean {
 }
 
 export function isImageShrinkEnabled(): boolean {
+  const provider = process.env.BUCKET_PROVIDER?.trim();
   return (
-    process.env.BUCKET_PROVIDER?.trim() === 'digitalocean' &&
+    provider !== undefined &&
+    isBucketProvider(provider) &&
     IMAGE_SHRINK_REQUIRED_VARS.every((key) => isEnvVarSet(process.env[key]))
   );
 }
 
-export function getImageShrinkConfig(): ImageShrinkConfig {
-  return {
-    widthPx: Number(process.env.IMAGE_SHRINK_WIDTH_PX!),
-    batchSize: Number(process.env.IMAGE_SHRINK_BATCH_SIZE!),
-    concurrency: Number(process.env.IMAGE_SHRINK_CONCURRENCY!),
-    rps: Number(process.env.IMAGE_SHRINK_RPS!),
-  };
-}
-
-const DEFAULT_ORPHAN_MIN_AGE_EXPIRATION = 7 * 24 * 60 * 60;
-const DEFAULT_ORPHAN_CLEANUP_PAGE_SIZE = 500;
+const DEFAULT_IMAGE_SHRINK_MAX_SOURCE_BYTES = 20 * 1024 * 1024;
 
 const parseOptionalNumber = (value: string | undefined): number | null => {
   if (!value || value.trim() === '') {
@@ -139,6 +195,26 @@ const parseOptionalNumber = (value: string | undefined): number | null => {
   }
   return parsed;
 };
+
+export function getImageShrinkConfig(): ImageShrinkConfig {
+  const maxSourceBytesParsed = parseOptionalNumber(process.env.IMAGE_SHRINK_MAX_SOURCE_BYTES);
+  const maxSourceBytes =
+    maxSourceBytesParsed !== null &&
+    maxSourceBytesParsed > 0 &&
+    Number.isInteger(maxSourceBytesParsed)
+      ? maxSourceBytesParsed
+      : DEFAULT_IMAGE_SHRINK_MAX_SOURCE_BYTES;
+  return {
+    widthPx: Number(process.env.IMAGE_SHRINK_WIDTH_PX!),
+    batchSize: Number(process.env.IMAGE_SHRINK_BATCH_SIZE!),
+    concurrency: Number(process.env.IMAGE_SHRINK_CONCURRENCY!),
+    rps: Number(process.env.IMAGE_SHRINK_RPS!),
+    maxSourceBytes,
+  };
+}
+
+const DEFAULT_ORPHAN_MIN_AGE_EXPIRATION = 7 * 24 * 60 * 60;
+const DEFAULT_ORPHAN_CLEANUP_PAGE_SIZE = 500;
 
 export function getImageShrinkCleanupConfig(): ImageShrinkCleanupConfig {
   const maxDelete = parseOptionalNumber(process.env.IMAGE_SHRINK_ORPHAN_CLEANUP_MAX_DELETE);

@@ -2,6 +2,7 @@ import type { Server } from 'http';
 import request from 'supertest';
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 
+import { AccountMembershipEnum } from '@podverse/helpers';
 import type { ORMContext } from '@podverse/orm';
 
 import {
@@ -39,6 +40,8 @@ const {
   statsAggregatedGetManyMock,
   statsAggregatedGetManyByAccountsAndCountMock,
   followingAccountGetAllWithCountMock,
+  hasFollowedAddByRSSChannelMock,
+  getFollowedAddByRSSChannelCountMock,
 } = vi.hoisted(() => ({
   followAccountMock: vi.fn(async () => {}),
   unfollowAccountMock: vi.fn(async () => {}),
@@ -54,6 +57,7 @@ const {
     account_credentials: { email: TEST_EMAIL },
     account_membership_status: {
       membership_expires_at: new Date(Date.now() + 86400000 * 365),
+      account_membership: { id: AccountMembershipEnum.Premium },
     },
     sharable_status: { id: 1 },
   })),
@@ -63,6 +67,7 @@ const {
     account_credentials: { email: TEST_EMAIL },
     account_membership_status: {
       membership_expires_at: new Date(Date.now() + 86400000 * 365),
+      account_membership: { id: AccountMembershipEnum.Premium },
     },
     sharable_status: { id: 1 },
   })),
@@ -86,6 +91,8 @@ const {
   statsAggregatedGetManyMock: vi.fn(async () => []),
   statsAggregatedGetManyByAccountsAndCountMock: vi.fn(async () => []),
   followingAccountGetAllWithCountMock: vi.fn(async () => ({ results: [], count: 0 })),
+  hasFollowedAddByRSSChannelMock: vi.fn(async () => false),
+  getFollowedAddByRSSChannelCountMock: vi.fn(async () => 0),
 }));
 
 vi.mock('@podverse/orm', async (importOriginal) => {
@@ -124,6 +131,8 @@ vi.mock('@podverse/orm', async (importOriginal) => {
     addOrUpdateRSSChannel = addOrUpdateRSSChannelMock;
     getFollowedAddByRSSChannels = getFollowedAddByRSSChannelsMock;
     removeRSSChannel = removeRSSChannelMock;
+    hasFollowedAddByRSSChannel = hasFollowedAddByRSSChannelMock;
+    getFollowedAddByRSSChannelCount = getFollowedAddByRSSChannelCountMock;
     async getCredentialsForFeed(): Promise<{ username: string; password: string } | null> {
       return null;
     }

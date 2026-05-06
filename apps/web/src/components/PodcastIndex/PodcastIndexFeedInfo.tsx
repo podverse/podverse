@@ -7,6 +7,7 @@ import { FaPlus, FaRss } from 'react-icons/fa6';
 
 import type { PodcastByIdFeed } from '@podverse/helpers';
 import { formatDateAbbrev } from '@podverse/helpers';
+import { Button } from '@podverse/ui';
 
 import { IMAGES } from '../../constants/images';
 import { useAccount } from '../../contexts/Account';
@@ -15,7 +16,6 @@ import { useModals } from '../../contexts/Modals';
 import { getApiRequestService } from '../../factories/apiRequestService';
 import { handleRateLimitAlert } from '../../utils/rateLimit/rateLimitAlert';
 import { redirectToChannelPageByMediumClient } from '../../utils/redirect/redirectToChannelPageByMedium';
-import { Button } from '../Button/Button';
 import { Image } from '../Image/Image';
 
 import styles from '../../styles/components/PodcastIndex/PodcastIndexFeedInfo.module.scss';

@@ -1,0 +1,37 @@
+.actionLink {
+  text-decoration: none;
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-medium);
+}
+
+.actionLink.inline {
+  color: var(--border-color-primary);
+}
+
+.actionLink.inline:hover,
+.actionLink.inline:focus {
+  text-decoration: underline;
+}
+
+.actionLink.subtle {
+  color: var(--text-color-secondary);
+}
+
+.actionLink.subtle:hover,
+.actionLink.subtle:focus {
+  text-decoration: underline;
+}
+
+.actionLink.primary {
+  display: inline-block;
+  padding: var(--spacing-md) var(--spacing-lg);
+  background-color: var(--border-color-primary);
+  color: var(--text-color-tertiary);
+  border-radius: var(--border-radius);
+}
+
+.actionLink.primary:hover,
+.actionLink.primary:focus {
+  text-decoration: none;
+  opacity: 0.95;
+}

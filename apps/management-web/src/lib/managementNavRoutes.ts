@@ -5,6 +5,7 @@ export type ManagementNavSection =
   | 'feedFlagStatus'
   | 'stats'
   | 'database'
+  | 'products'
   | 'admins'
   | 'users'
   | 'workers';
@@ -22,12 +23,12 @@ const isDatabaseReadable = (user: CurrentUser): boolean =>
   user.role === 'superuser' ||
   Boolean(
     user.permissions &&
-    (user.permissions.feeds_crud >= 2 ||
-      user.permissions.feed_flag_statuses_crud >= 2 ||
-      user.permissions.feed_flag_status_reasons_crud >= 2)
+    (user.permissions.feeds_crud >= 2 || user.permissions.feed_takedown_reasons_crud >= 2)
   );
 
 const isUsersReadable = (user: CurrentUser): boolean => user.role === 'superuser';
+
+const isProductsReadable = (user: CurrentUser): boolean => user.role === 'superuser';
 
 const ROUTES: ManagementNavRoute[] = [
   {
@@ -37,6 +38,7 @@ const ROUTES: ManagementNavRoute[] = [
   },
   { section: 'stats', href: '/stats', visible: (user) => canReadStats(user) },
   { section: 'database', href: '/database', visible: (user) => isDatabaseReadable(user) },
+  { section: 'products', href: '/products', visible: (user) => isProductsReadable(user) },
   { section: 'admins', href: '/admins', visible: (user) => isAdminsReadable(user) },
   { section: 'users', href: '/users', visible: (user) => isUsersReadable(user) },
   { section: 'workers', href: '/workers', visible: () => true },
@@ -50,6 +52,7 @@ export type DashboardI18nTitleKey =
   | 'feedFlagStatus.title'
   | 'stats.title'
   | 'database.title'
+  | 'products.title'
   | 'admins.title'
   | 'users.title'
   | 'workers.title';
@@ -58,6 +61,7 @@ export type DashboardI18nDescriptionKey =
   | 'feedFlagStatus.description'
   | 'stats.description'
   | 'database.description'
+  | 'products.description'
   | 'admins.description'
   | 'users.description'
   | 'workers.description';
@@ -66,6 +70,7 @@ const titleKeys: Record<ManagementNavSection, DashboardI18nTitleKey> = {
   feedFlagStatus: 'feedFlagStatus.title',
   stats: 'stats.title',
   database: 'database.title',
+  products: 'products.title',
   admins: 'admins.title',
   users: 'users.title',
   workers: 'workers.title',
@@ -75,6 +80,7 @@ const descriptionKeys: Record<ManagementNavSection, DashboardI18nDescriptionKey>
   feedFlagStatus: 'feedFlagStatus.description',
   stats: 'stats.description',
   database: 'database.description',
+  products: 'products.description',
   admins: 'admins.description',
   users: 'users.description',
   workers: 'workers.description',

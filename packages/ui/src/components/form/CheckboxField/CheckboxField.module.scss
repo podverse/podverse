@@ -1,0 +1,20 @@
+@use '../../../styles/variables' as *;
+
+.label {
+  align-items: center;
+  cursor: pointer;
+  display: flex;
+  gap: $spacing-md;
+  min-width: 0;
+}
+
+.input {
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.labelText {
+  flex: 1 1 auto;
+  font-size: $font-size-base;
+  min-width: 0;
+}

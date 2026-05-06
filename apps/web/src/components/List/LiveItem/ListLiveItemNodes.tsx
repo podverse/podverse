@@ -3,8 +3,8 @@
 import React from 'react';
 
 import type { DTOChannel, DTOItem } from '@podverse/helpers';
+import { Divider } from '@podverse/ui';
 
-import { Divider } from '../../Divider/Divider';
 import type { ViewSelectedOption } from '../../ViewSelector/ViewSelector';
 import { ListLiveItemGridNode } from './ListLiveItemGridNode';
 import { ListLiveItemRow } from './ListLiveItemRow';

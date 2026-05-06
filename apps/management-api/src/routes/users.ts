@@ -9,14 +9,22 @@ import {
   ACCOUNT_SIGNUP_MODE_ADMIN_ONLY_EMAIL,
   ACCOUNT_SIGNUP_MODE_USER_SIGNUP_EMAIL,
   AccountMembershipEnum,
+  type AccountSignupMode,
+  type BillingCadence,
+  extendMembershipPeriodByCadence,
   getAccountSignupModeCapabilities,
+  type PremiumBillingCadence,
   SharableStatusEnum,
 } from '@podverse/helpers';
 import { validateEmail, validatePassword, validateUsername } from '@podverse/helpers-validation';
-import { generateRandomIdText, hashPassword } from '@podverse/orm';
+import { BillingPriceCatalogService, generateRandomIdText, hashPassword } from '@podverse/orm';
 
 const router = express.Router();
 const baseUrl = `${config.api.prefix}${config.api.version}`;
+const billingPriceCatalogService = new BillingPriceCatalogService({
+  dataSourceRead: AppDbDataSourceRead,
+  dataSourceReadWrite: AppDbDataSourceReadWrite,
+});
 
 const DEFAULT_PAGE_LIMIT = 25;
 const MAX_PAGE_LIMIT = 100;
@@ -160,6 +168,7 @@ router.post(`${baseUrl}/users`, ensureAuthenticated, requireSuperuser, async (re
       max_manual_refreshes_per_hour,
       track_stats,
       allow_notifications,
+      premium_billing_cadence,
     } = req.body as {
       username?: string;
       email?: string;
@@ -171,14 +180,12 @@ router.post(`${baseUrl}/users`, ensureAuthenticated, requireSuperuser, async (re
       max_manual_refreshes_per_hour?: number | null;
       track_stats?: boolean | null;
       allow_notifications?: boolean | null;
+      premium_billing_cadence?: PremiumBillingCadence;
     };
 
     const mode = process.env.ACCOUNT_SIGNUP_MODE;
     const capabilities = getAccountSignupModeCapabilities(
-      (mode || ACCOUNT_SIGNUP_MODE_ADMIN_ONLY_EMAIL) as
-        | 'admin_only_username'
-        | 'admin_only_email'
-        | 'user_signup_email'
+      (mode || ACCOUNT_SIGNUP_MODE_ADMIN_ONLY_EMAIL) as AccountSignupMode
     );
 
     if (mode === ACCOUNT_SIGNUP_MODE_USER_SIGNUP_EMAIL) {
@@ -279,17 +286,25 @@ router.post(`${baseUrl}/users`, ensureAuthenticated, requireSuperuser, async (re
       [settingsId]
     );
 
-    // 5. Insert into account_membership_status (trial, expires in 3 months)
+    // 5. Insert into account_membership_status
     const membershipId = account_membership_id ?? AccountMembershipEnum.Trial;
     const membershipExpiresAt =
       membership_expires_at !== undefined && membership_expires_at !== null
         ? new Date(membership_expires_at)
-        : (() => {
-            const date = new Date();
-            date.setMonth(
-              date.getMonth() + (membershipId === AccountMembershipEnum.Premium ? 12 : 3)
-            );
-            return date;
+        : await (async () => {
+            const now = new Date();
+            if (membershipId === AccountMembershipEnum.Premium) {
+              const cadence: BillingCadence =
+                premium_billing_cadence === 'monthly' ? 'monthly' : 'annual';
+              return extendMembershipPeriodByCadence({
+                membershipExpiresAt: null,
+                cadence,
+                now,
+              });
+            }
+            const resolvedMembership =
+              await billingPriceCatalogService.resolveProductMembership(now);
+            return new Date(now.getTime() + resolvedMembership.freeTrialExpirationSeconds * 1000);
           })();
     await AppDbDataSourceReadWrite.query(
       `INSERT INTO account_membership_status (

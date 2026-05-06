@@ -16,6 +16,7 @@
     "creating": "Création...",
     "search": "Rechercher",
     "back": "Retour",
+    "breadcrumbNav": "Fil d'Ariane",
     "submit": "Soumettre",
     "confirm": "Confirmer",
     "yes": "Oui",
@@ -38,7 +39,13 @@
     "password": "Mot de passe",
     "newPassword": "Nouveau mot de passe",
     "confirmPassword": "Confirmer le mot de passe",
-    "leaveBlankToKeepCurrent": "Laissez vide pour garder l'actuel"
+    "leaveBlankToKeepCurrent": "Laissez vide pour garder l'actuel",
+    "defaultBrandName": "Management",
+    "invalidCredentialsDefault": "Identifiant ou mot de passe incorrect",
+    "signIn": "Se connecter",
+    "signInSubtitle": "Connectez-vous pour continuer",
+    "signingIn": "Connexion…",
+    "usernameOrEmail": "Nom d'utilisateur / courriel"
   },
   "nav": {
     "dashboard": "Tableau de bord",
@@ -64,6 +71,10 @@
       "title": "Base de données",
       "description": "Parcourir et gérer les données, états et raisons de contenu"
     },
+    "products": {
+      "title": "Produits",
+      "description": "Domaines produits, y compris la configuration des abonnements"
+    },
     "admins": {
       "title": "Administrateurs",
       "description": "Gérer les comptes et permissions des administrateurs"
@@ -77,9 +88,88 @@
       "description": "Créer et gérer les comptes utilisateurs de l'application"
     }
   },
+  "statsPage": {
+    "title": "Statistiques",
+    "breadcrumbDashboard": "Tableau de bord",
+    "failedToLoad": "Échec du chargement des statistiques.",
+    "clear": "Effacer",
+    "views": "Vues",
+    "loadingDetail": "Chargement du détail...",
+    "close": "Fermer",
+    "idValue": "ID {id}",
+    "searchPlaceholder": "Rechercher {entity} par titre...",
+    "topChartHeading": "Top 10 {entity} ({range})",
+    "noStatsDataForRange": "Aucune statistique disponible pour cette période.",
+    "paginationSummary": "{total} résultats - Page {page} sur {totalPages}",
+    "paginationSummarySingular": "{total} résultat - Page {page} sur {totalPages}",
+    "entityTypes": {
+      "channel": "Chaînes",
+      "item": "Éléments",
+      "clip": "Clips",
+      "playlist": "Playlists",
+      "account": "Comptes"
+    },
+    "ranges": {
+      "day": "1 jour",
+      "day7": "7 jours",
+      "day30": "30 jours",
+      "year1": "1 an",
+      "allTime": "Depuis toujours"
+    },
+    "table": {
+      "title": "Titre",
+      "rangeViews": "{range} vues"
+    },
+    "detail": {
+      "dayToday": "Aujourd'hui",
+      "dayN": "Jour {count}",
+      "weekCurrent": "Cette semaine",
+      "weekN": "Semaine {count}",
+      "monthCurrent": "Ce mois-ci",
+      "dailyBreakdown": "Répartition quotidienne",
+      "weeklyBreakdown": "Répartition hebdomadaire"
+    }
+  },
+  "products": {
+    "pageTitle": "Produits",
+    "welcomeLine": "Choisissez un domaine produit.",
+    "membershipsCardTitle": "Abonnements",
+    "membershipsCardDescription": "Voir les valeurs d’abonnement résolues (environnement et base de données).",
+    "breadcrumbDashboard": "Tableau de bord"
+  },
+  "productMemberships": {
+    "pageTitle": "Abonnements",
+    "pageSubtitle": "Limites effectives et champs tarifaires pour les nouveaux utilisateurs et l’administration.",
+    "breadcrumbDashboard": "Tableau de bord",
+    "breadcrumbProducts": "Produits",
+    "loadError": "Impossible de charger les paramètres du produit d’abonnement.",
+    "editableTrialHeading": "Durée d’essai gratuit",
+    "saveSuccess": "Durée d’essai mise à jour.",
+    "saveError": "Impossible de mettre à jour la durée d’essai.",
+    "fieldLabels": {
+      "freeTrialExpirationSeconds": "Durée d’essai gratuit (secondes)",
+      "premiumMembershipCostMonthly": "Coût mensuel premium",
+      "premiumMembershipCostAnnually": "Coût annuel premium",
+      "trialMaxAddByRSSFeeds": "Max. flux Add-by-RSS en essai",
+      "trialMaxManualRefreshesPerHour": "Max. actualisations manuelles par heure (essai)",
+      "premiumMaxAddByRSSFeeds": "Max. flux Add-by-RSS premium",
+      "premiumMaxManualRefreshesPerHour": "Max. actualisations manuelles par heure (premium)"
+    },
+    "pricingTable": {
+      "heading": "Grilles tarifaires actives",
+      "cadence": "Fréquence",
+      "amountCents": "Montant (centimes)",
+      "currency": "Devise",
+      "effectiveFrom": "En vigueur à partir du",
+      "source": "Source"
+    },
+    "validation": {
+      "invalidFreeTrialSeconds": "La durée d’essai gratuit doit être un entier positif."
+    }
+  },
   "feedFlagStatus": {
     "pageTitle": "Définir l'état du flux",
-    "pageSubtitle": "Trouvez un flux par ID Podcast Index (par défaut), id interne du flux ou URL. Définissez l'état de modération, la raison optionnelle et la note. Ceci est distinct du navigateur de tables de la base de données.",
+    "pageSubtitle": "Trouvez un flux par ID Podcast Index (par défaut), id interne du flux ou URL. Mettez à jour le cycle de vie, les conditions actives, les limites et les notes. Ceci est distinct du navigateur de tables de la base de données.",
     "breadcrumbParent": "Opérations sur les flux",
     "breadcrumbCurrent": "État du drapeau",
     "sectionFindAria": "Recherche",
@@ -94,7 +184,7 @@
     "placeholderNumber": "ex. 12345",
     "lookupLoading": "Recherche…",
     "lookupButton": "Rechercher",
-    "optionsLoadError": "Impossible de charger les options d'état et de raison.",
+    "optionsLoadError": "Impossible de charger les options des opérations sur les flux.",
     "lookupErrorEnterUrl": "Saisissez une URL de flux",
     "lookupErrorPositiveNumber": "Saisissez un nombre positif",
     "lookupErrorGeneric": "Flux introuvable ou échec de la requête",
@@ -105,39 +195,47 @@
     "dtUrl": "URL",
     "dtInternalFeedId": "Id interne du flux",
     "dtPodcastIndexId": "ID Podcast Index",
-    "dtStatus": "État",
-    "statusDisplay": "{status} (id : {id})",
+    "dtLifecycle": "État du cycle de vie",
+    "lifecycleDisplay": "{state}",
+    "dtActiveConditions": "Conditions actives",
+    "dtEffectivePolicy": "Politique effective",
+    "effectivePolicyDisplay": "analyse : {parse}, public : {public}, ajout : {add}, blocage : {reason}",
+    "boolYes": "oui",
+    "boolNo": "non",
     "dtSpamOverride": "Remplacement de la limite d'éléments spam",
+    "dtMaxResponseBytesOverride": "Remplacement du nombre maximal d'octets de réponse",
     "emptyValue": "—",
-    "dtReason": "Raison",
-    "dtReasonNote": "Note sur la raison",
+    "dtLifecycleReason": "Clé de raison du cycle de vie",
+    "dtUpdatedSource": "Dernière source de mise à jour du cycle de vie",
     "openInDatabase": "Ouvrir cette ligne dans Base de données (lecture seule pour le flux)",
-    "newStatusHeading": "Nouvel état et raison",
-    "labelNewStatusRequired": "Nouvel état *",
-    "selectStatusPlaceholder": "Sélectionner un état",
-    "selectOptionStatus": "{label} (id : {id})",
-    "labelReason": "Raison",
-    "labelReasonTakedownRequired": "Raison *",
-    "labelReasonOptional": "Raison (facultatif)",
-    "reasonNone": "(aucune)",
-    "selectOptionReason": "{label} (id : {id})",
-    "labelNote": "Note (facultatif)",
-    "notePlaceholder": "Contexte supplémentaire (stocké sur l'enregistrement du flux)",
+    "newValuesHeading": "Mettre à jour le cycle de vie, les conditions et les limites",
+    "labelLifecycleRequired": "État du cycle de vie *",
+    "selectLifecyclePlaceholder": "Sélectionner un état du cycle de vie",
+    "selectOptionLifecycle": "{state}",
+    "labelActiveConditions": "Clés de condition actives",
+    "labelTakedownReasonOptional": "Raison du retrait (facultatif)",
+    "takedownReasonPlaceholder": "Sélectionnez une raison prédéfinie…",
+    "labelTransitionNote": "Note de transition (facultatif)",
+    "transitionNotePlaceholder": "Contexte opérateur stocké sur la ligne du cycle de vie",
+    "labelConditionNote": "Note de condition (facultatif)",
+    "conditionNotePlaceholder": "Note facultative appliquée à takedown_active lorsque le cycle est retrait",
     "labelSpamOverride": "Remplacement de la limite d'éléments spam (facultatif)",
     "spamOverridePlaceholder": "Laisser vide pour utiliser les limites globales selon l'état",
     "spamOverrideHint": "Priorité : le remplacement du flux l'emporte. Si vide, SpamPermitted utilise la limite globale supérieure et les autres états éligibles au parsing utilisent la limite globale par défaut.",
+    "labelMaxResponseBytesOverride": "Remplacement du nombre maximal d'octets de réponse (facultatif)",
+    "maxResponseBytesOverridePlaceholder": "Utiliser la valeur globale par défaut si vide",
     "applySuccess": "L'état du flux a été mis à jour",
-    "applyErrorSelectStatus": "Sélectionnez un nouvel état",
-    "applyErrorTakedownReason": "Une raison prédéfinie est requise pour le retrait",
-    "applyErrorInvalidReason": "Raison invalide",
+    "applyErrorSelectLifecycle": "Sélectionnez un état du cycle de vie",
+    "applyErrorTakedownDoc": "Le retrait nécessite une raison prédéfinie et/ou une note de transition",
     "applyErrorSpamOverride": "Le remplacement de la limite d'éléments spam doit être un entier positif",
+    "applyErrorMaxResponseBytesOverride": "Le remplacement du nombre maximal d'octets de réponse doit être un entier positif",
     "applyErrorGeneric": "Échec de la requête. Vérifiez les permissions et réessayez",
-    "confirmDialogAria": "Confirmer le changement d'état",
-    "confirmDialogBody": "Appliquer cet état au flux ? Cela est enregistré dans le journal d'audit.",
+    "confirmDialogAria": "Confirmer les opérations sur le flux",
+    "confirmDialogBody": "Appliquer ces opérations au flux ? Cela est enregistré dans le journal d'audit.",
     "confirmApplying": "Application…",
     "applyButton": "Appliquer le changement",
     "continueToConfirm": "Continuer vers la confirmation",
-    "confirmHint": "Spam et retrait utilisent une seconde étape de confirmation.",
+    "confirmHint": "Les conditions de type spam et le retrait utilisent une seconde étape de confirmation.",
     "readonlyHint": "Votre compte peut rechercher des flux mais pas modifier l'état. Demandez à un super-utilisateur l'accès de mise à jour <feedsCode>feeds</feedsCode>."
   },
   "admins": {
@@ -155,8 +253,7 @@
       "email": "Email",
       "role": "Rôle",
       "feeds": "Contenus",
-      "flagStatuses": "État des drapeaux",
-      "statusReasons": "Raisons d'état",
+      "takedownReasons": "Raisons de retrait",
       "admins": "Administrateurs",
       "stats": "Statistiques",
       "actions": "Actions"
@@ -169,8 +266,7 @@
       "update": "Mettre à jour",
       "deletePerm": "Supprimer",
       "feeds": "Flux",
-      "flagStatuses": "Statuts de signalement",
-      "statusReasons": "Raisons de statut",
+      "takedownReasons": "Raisons de retrait",
       "admins": "Admins",
       "stats": "Statistiques"
     }
@@ -193,6 +289,7 @@
     "usernameOptional": "Nom d'utilisateur (facultatif)",
     "emailOptional": "Email (facultatif)",
     "passwordOptional": "Mot de passe (facultatif)",
+    "passwordInviteHint": "Si vous laissez ce champ vide, vous recevrez un lien d'invitation à envoyer pour qu'ils définissent leur mot de passe.",
     "emailOrUsernameHint": "Au moins l'un des noms d'utilisateur ou emails est requis.",
     "emailOrUsernameRequired": "Au moins l'un des noms d'utilisateur ou emails est requis.",
     "invalidUsername": "Le nom d'utilisateur doit contenir entre 3 et 32 caractères, lettres, chiffres, underscores et tirets uniquement.",
@@ -225,15 +322,27 @@
       "hintTrialNew": "L'essai commence les utilisateurs dans la catégorie non fiable avec des limites par défaut plus strictes.",
       "hintPremiumNew": "Le premium commence les utilisateurs dans la catégorie fiable avec un accès par défaut plus large.",
       "membershipExpiresAt": "L'adhésion expire le",
+      "premiumBillingCadence": "Période de facturation Premium",
+      "billingMonthly": "Mensuelle",
+      "billingAnnual": "Annuelle",
+      "premiumBillingCadenceHint": "L'expiration par défaut est dans un mois pour la mensuelle, ou dans un an pour l'annuelle (alignée sur la périodicité de l'abonnement).",
       "trustTier": "Niveau de confiance",
       "untrusted": "Non fiable",
       "trusted": "Fiable",
       "configureAdvancedOverrides": "Configurer les remplacements avancés"
     },
     "advancedOverrides": {
+      "on": "Activé",
+      "off": "Désactivé",
       "allowDirectoryAddByRss": "Autoriser l'ajout au répertoire par remplacement RSS",
+      "allowDirectoryAddByRssHelp": "Si l'utilisateur peut ajouter des flux depuis l'annuaire de podcasts. Valeur par défaut essai : {trialDefault}. Valeur par défaut Premium : {premiumDefault}.",
       "addByRssFeedLimit": "Remplacement de la limite d'ajout par flux RSS",
+      "addByRssFeedLimitHelp": "Nombre maximal de flux Ajouter par RSS pour ce compte. Défaut niveau essai : {trialDefault}. Défaut niveau Premium : {premiumDefault}. Défaut du niveau sélectionné pour les dérogations : {selectedDefault}.",
       "manualRefreshPerHour": "Remplacement de la limite de rafraîchissement manuel par heure",
+      "manualRefreshPerHourHelp": "Nombre maximal de rafraîchissements manuels par heure. Défaut niveau essai : {trialDefault}. Défaut niveau Premium : {premiumDefault}. Défaut du niveau sélectionné pour les dérogations : {selectedDefault}.",
+      "placeholderTierDefault": "Valeur par défaut du niveau : {count}",
+      "trackStatsHelp": "Si les statistiques d'écoute sont enregistrées. Défaut essai : {trialDefault}. Défaut Premium : {premiumDefault}.",
+      "allowNotificationsHelp": "Si les notifications push/e-mail sont autorisées. Défaut essai : {trialDefault}. Défaut Premium : {premiumDefault}.",
       "trackStats": "Remplacement de suivi des statistiques",
       "allowNotifications": "Remplacement d'autorisation des notifications",
       "useTrustTierDefault": "Utiliser le niveau d’abonnement par défaut",
@@ -276,15 +385,10 @@
         "labelSingular": "Flux",
         "description": "URLs des flux RSS et statut d'analyse"
       },
-      "feed_flag_status": {
-        "label": "Statuts des drapeaux de flux",
-        "labelSingular": "Statut du drapeau de flux",
-        "description": "Valeurs du statut du flux (actif, spam, archivé, retrait, etc.)"
-      },
-      "feed_flag_status_reason": {
-        "label": "Raisons des statuts de drapeau de flux",
-        "labelSingular": "Raison du statut de drapeau de flux",
-        "description": "Raisons prédéfinies pour les changements de statut de flux"
+      "feed_takedown_reason": {
+        "label": "Raisons de retrait",
+        "labelSingular": "Raison de retrait",
+        "description": "Raisons prédéfinies lorsqu'un flux est retiré"
       }
     }
   },

@@ -1,0 +1,7 @@
+.formGroup {
+  margin-bottom: var(--spacing-lg);
+
+  &:last-of-type {
+    margin-bottom: var(--spacing-2xl);
+  }
+}

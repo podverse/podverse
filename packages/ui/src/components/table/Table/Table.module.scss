@@ -22,3 +22,24 @@
 .scrollContainer {
   overflow-x: auto;
 }
+
+.row {
+  background-color: transparent;
+}
+
+.clickable {
+  cursor: pointer;
+  transition: background-color var(--transition-default);
+
+  &:hover {
+    background-color: var(--background-color-tertiary);
+  }
+}
+
+.selected {
+  background-color: var(--table-row-selected-bg);
+}
+
+.cell {
+  vertical-align: middle;
+}

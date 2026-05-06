@@ -1,7 +1,7 @@
 import type { AxiosRequestConfig, AxiosResponse } from 'axios';
 import axios from 'axios';
 
-import { DEFAULT_HTTP_TIMEOUT_MS } from '@podverse/helpers';
+import { DEFAULT_HTTP_TIMEOUT_MS, resolveParserMaxFeedBodyBytes } from '@podverse/helpers';
 
 import type { RequestConfig } from './_request.js';
 import {
@@ -10,17 +10,24 @@ import {
 } from './outboundHttpPolicy.js';
 
 /** Max response body size for outbound (RSS/chapters) fetches — guards memory use on hostile endpoints. */
-export const DEFAULT_OUTBOUND_MAX_RESPONSE_BYTES = 20 * 1024 * 1024;
+export const DEFAULT_OUTBOUND_MAX_RESPONSE_BYTES = resolveParserMaxFeedBodyBytes(undefined);
+
+export type OutboundRequestConfig = RequestConfig & {
+  maxResponseBytes?: number;
+};
 
 const requestOutboundInternal = async <T>(
   url: string,
-  requestConfig?: RequestConfig,
+  requestConfig?: OutboundRequestConfig,
   abort?: {
     controller: AbortController;
     timeoutMs: number;
   }
 ): Promise<AxiosResponse<T>> => {
   await validateOutboundFetchUrl(url);
+  const resolvedMaxResponseBytes = resolveParserMaxFeedBodyBytes(
+    process.env.PARSER_MAX_FEED_BODY_BYTES
+  );
 
   const controller = abort?.controller ?? new AbortController();
   const timeoutMs = abort?.timeoutMs ?? DEFAULT_HTTP_TIMEOUT_MS;
@@ -32,6 +39,7 @@ const requestOutboundInternal = async <T>(
   try {
     const {
       userAgent,
+      maxResponseBytes,
       beforeRedirect: userBeforeRedirect,
       signal: _ignoreUserSignal,
       ...rest
@@ -48,8 +56,8 @@ const requestOutboundInternal = async <T>(
         ...(isJSONRequest ? { 'Content-Type': 'application/json' } : {}),
         ...rest.headers,
       },
-      maxContentLength: DEFAULT_OUTBOUND_MAX_RESPONSE_BYTES,
-      maxBodyLength: DEFAULT_OUTBOUND_MAX_RESPONSE_BYTES,
+      maxContentLength: maxResponseBytes ?? resolvedMaxResponseBytes,
+      maxBodyLength: maxResponseBytes ?? resolvedMaxResponseBytes,
       beforeRedirect: (redirectOptions, responseDetails, requestDetails) => {
         validateOutboundRedirectLocation(redirectOptions);
         if (typeof userBeforeRedirect === 'function') {
@@ -68,7 +76,7 @@ const requestOutboundInternal = async <T>(
 /** Outbound-only: SSRF policy, redirect re-validation, response size limit, default timeout when abort is omitted. */
 export const requestForOutbound = async <T>(
   url: string,
-  requestConfig?: RequestConfig,
+  requestConfig?: OutboundRequestConfig,
   abort?: {
     controller: AbortController;
     timeoutMs: number;
@@ -80,7 +88,7 @@ export const requestForOutbound = async <T>(
 
 export const requestWithHeadersForOutbound = async <T>(
   url: string,
-  requestConfig?: RequestConfig,
+  requestConfig?: OutboundRequestConfig,
   abort?: {
     controller: AbortController;
     timeoutMs: number;
@@ -97,7 +105,7 @@ export const requestWithHeadersForOutbound = async <T>(
 /** Same as requestWithUserAgent with outbound guardrails (parser/worker RSS and chapter fetches). */
 export const requestWithUserAgentForOutbound = async <T>(
   url: string,
-  requestConfig: RequestConfig | undefined,
+  requestConfig: OutboundRequestConfig | undefined,
   userAgent: string,
   abort?: {
     controller: AbortController;
@@ -110,7 +118,7 @@ export const requestWithUserAgentForOutbound = async <T>(
 /** Same as requestWithHeadersWithUserAgent with outbound guardrails. */
 export const requestWithHeadersWithUserAgentForOutbound = async <T>(
   url: string,
-  requestConfig: RequestConfig | undefined,
+  requestConfig: OutboundRequestConfig | undefined,
   userAgent: string,
   abort?: {
     controller: AbortController;

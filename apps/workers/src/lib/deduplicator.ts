@@ -2,7 +2,8 @@ import type { Channel } from '@podverse/orm';
 import {
   ChannelService,
   DeduplicatorService as DeduplicatorServiceORM,
-  FeedFlagStatusStatusEnum,
+  FeedLifecycleStateKeyEnum,
+  FeedLifecycleUpdateSourceEnum,
   FeedService,
 } from '@podverse/orm';
 
@@ -30,10 +31,10 @@ export class DeduplicatorService {
 
       if (channelToArchive.feed) {
         const feedService = new FeedService();
-        await feedService.updateFlagStatus(
-          channelToArchive.feed,
-          FeedFlagStatusStatusEnum.PendingArchive
-        );
+        await feedService.setFeedLifecycleState(channelToArchive.feed.id, {
+          toStateKey: FeedLifecycleStateKeyEnum.PendingArchive,
+          source: FeedLifecycleUpdateSourceEnum.System,
+        });
       }
 
       return;

@@ -2,7 +2,8 @@
 
 import { useTranslations } from 'next-intl';
 
-import { ButtonTabs } from '../../../../components/Tabs/ButtonTabs';
+import { ButtonTabs } from '@podverse/ui';
+
 import { usePlaylistEditPageContext } from './PlaylistEditPageContext';
 
 import styles from '../../../../styles/app/playlist/edit/PlaylistEditButtonTabs.module.scss';

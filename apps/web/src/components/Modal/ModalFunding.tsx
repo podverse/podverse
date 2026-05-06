@@ -3,8 +3,9 @@
 import { useTranslations } from 'next-intl';
 import React from 'react';
 
+import { FormStack } from '@podverse/ui';
+
 import { useModals } from '../../contexts/Modals';
-import { FormStack } from '../Form/FormStack';
 import { Link } from '../Link/Link';
 import { Modal, MODAL_CONTENT_MAX_WIDTH } from './Modal';
 

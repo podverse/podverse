@@ -2,6 +2,7 @@ import type { ActiveMQArtemisService } from '@queue/services/activeMQArtemis/ind
 import type { MQImageShrinkHintMessage } from '@queue/types/mq.js';
 
 import type { MQQueueConfigFunctionParams } from '@podverse/helpers';
+import { mqImageShrinkHintAmqpPriority } from '@podverse/helpers';
 
 type MQImageShrinkHintAddOptions = MQQueueConfigFunctionParams;
 
@@ -18,6 +19,7 @@ export const mqImageShrinkHintAdd = async (
       message,
       priority: options.priority,
       dedupeCacheTimeMS: options.dedupeCacheTimeMS,
+      amqpPriority: mqImageShrinkHintAmqpPriority(message.entityType),
     });
   } finally {
     try {

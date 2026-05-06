@@ -95,6 +95,13 @@ Before running the scripts, ensure you have the following ready:
   - `PODCAST_INDEX_AUTH_KEY`: From your PodcastIndex account.
   - `PODCAST_INDEX_SECRET_KEY`: From your PodcastIndex account.
 
+- **Workers storage bucket (S3-compatible)** (`create_workers_storage_bucket_secret.sh` → Secret
+  **`podverse-workers-storage-bucket-opaque`**):
+  - `BUCKET_ACCESS_KEY`, `BUCKET_SECRET_KEY` for your object-storage provider.
+  - Non-secret bucket settings (`BUCKET_PROVIDER`, `BUCKET_REGION`, `BUCKET_ENDPOINT`, …) live in the
+    workers ConfigMap source (`infra/k8s/base/workers/source/workers.env`). See
+    **`docs/image-shrinking/BUCKET-PROVIDERS.md`**.
+
 - **Firebase Config** (`create_firebase_secret.sh`):
   - A valid `firebase-key.json` service account file on your local machine. You will be prompted for its path.
 
@@ -109,8 +116,22 @@ bash ./infra/k8s/scripts/secret-generators/create_api_secret.sh
 bash ./infra/k8s/scripts/secret-generators/create_mailer_secret.sh
 bash ./infra/k8s/scripts/secret-generators/create_metaboost_secret.sh
 bash ./infra/k8s/scripts/secret-generators/create_workers_add_by_rss_secret.sh
+bash ./infra/k8s/scripts/secret-generators/create_workers_storage_bucket_secret.sh
 bash ./infra/k8s/scripts/secret-generators/create_firebase_secret.sh
 ```
+
+### Workers bucket secret rename (from `podverse-workers-digital-ocean-opaque`)
+
+GitOps manifests mount **`podverse-workers-storage-bucket-opaque`** for image-shrink workloads. If you
+still have the old Secret name only:
+
+1. Run **`create_workers_storage_bucket_secret.sh`** (same access/secret key values as before).
+2. Commit the generated **`secrets/podverse-<env>-workers-storage-bucket-opaque.enc.yaml`** and apply
+   (or include it in your existing `sops -d … | kubectl apply` loop).
+3. After pods roll healthy, remove the deprecated Secret, for example:
+   `kubectl -n podverse-alpha delete secret podverse-workers-digital-ocean-opaque`
+
+Push to the Argo CD–tracked branch so the cluster can sync.
 
 **Apply**
 
@@ -144,6 +165,9 @@ kubectl apply -f infra/k8s/alpha-application.yaml
 ## Kustomize
 
 Use Kustomize to render overlays locally, matching what ArgoCD applies. Because bases live outside the overlay folders, include the relaxed load restrictor flag.
+
+- Keep `base/<component>/kustomization.yaml` self-contained: do not import sibling directories with `../`.
+- Compose shared cross-component resources (for example `base/product-membership`) explicitly in environment overlays (`alpha/api`, `alpha/management-api`, or your GitOps equivalents).
 
 ```bash
 kustomize build --load-restrictor LoadRestrictionsNone infra/k8s/alpha/workers/

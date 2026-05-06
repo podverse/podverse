@@ -44,6 +44,8 @@
   --progress-bar-after: #252a64;
   --progress-bar-highlighted: rgba(61, 157, 254, 0.5);
   --progress-chapter-marker: var(--text-color-accent);
+
+  --table-row-selected-bg: rgba(61, 157, 254, 0.18);
 }
 
 :root,
@@ -120,6 +122,8 @@
   --progress-bar-after: #d1d1d6;
   --progress-bar-highlighted: rgba(0, 113, 227, 0.4);
   --progress-chapter-marker: var(--text-color-primary);
+
+  --table-row-selected-bg: rgba(0, 113, 227, 0.12);
 }
 
 [data-ui-theme='light'] {
@@ -195,6 +199,8 @@
   --progress-bar-after: #44475a;
   --progress-bar-highlighted: rgba(189, 147, 249, 0.5);
   --progress-chapter-marker: var(--text-color-highlighted);
+
+  --table-row-selected-bg: rgba(189, 147, 249, 0.22);
 }
 
 [data-ui-theme='dracula'] {
@@ -270,6 +276,8 @@
   --progress-bar-after: #1f1430;
   --progress-bar-highlighted: rgba(124, 58, 237, 0.45);
   --progress-chapter-marker: var(--text-color-accent);
+
+  --table-row-selected-bg: rgba(124, 58, 237, 0.22);
 }
 
 [data-ui-theme='violet'] {
