@@ -3,6 +3,7 @@
 import classNames from 'classnames';
 import React, { useEffect, useState } from 'react';
 
+import { getConfig } from '../../config';
 import { IMAGES } from '../../constants/images';
 import { PROXY } from '../../constants/proxy';
 import LoadingSpinner from '../LoadingSpinner/LoadingSpinner';
@@ -69,11 +70,13 @@ export const ImageNonReact: React.FC<ImageNonReactProps> = ({
   const atEnd = phase === 'exhausted';
   const showHeadphone = atEnd;
   const currentUrl = candidates[index];
+  const imageProxyEnabled = getConfig().public.imageProxy.enabled;
+  const useProxy = imageProxyEnabled && !skipProxy;
   const showAttempt =
     !showHeadphone && currentUrl
-      ? skipProxy
-        ? currentUrl
-        : PROXY.PATH + encodeURIComponent(currentUrl)
+      ? useProxy
+        ? PROXY.PATH + encodeURIComponent(currentUrl)
+        : currentUrl
       : null;
   const showSpinner = !showHeadphone && phase === 'loading' && Boolean(showAttempt);
 

@@ -22,7 +22,7 @@ import type {
   AddByRSSResourceType,
 } from '../../../utils/addByRSS/types';
 import { DescriptionRenderer } from '../../Description/DescriptionRenderer';
-import { Image } from '../../Image/Image';
+import { SkeletonFlashImage } from '../../Image/SkeletonFlashImage';
 import { DetailListWrapper } from '../../List/DetailListWrapper';
 import LoadingSpinnerOverlay from '../../LoadingSpinner/LoadingSpinnerOverlay';
 import { MainHeader } from '../../Main/MainHeader';
@@ -155,7 +155,7 @@ export const AddByRSSDetailClient: React.FC<AddByRSSDetailClientProps> = ({
           <MainInnerContentWrapper>
             {headerNode ?? (
               <section className={styles.feedHeader}>
-                <Image
+                <SkeletonFlashImage
                   candidates={feedImageCandidates}
                   alt={feedTitle || tMedia('podcast.podcast_image')}
                   width={IMAGES.LIST.PODCASTS.SIZE}

@@ -8,7 +8,7 @@ import {
 } from '@podverse/helpers';
 
 import { IMAGES } from '../../constants/images';
-import { Image } from '../Image/Image';
+import { SkeletonFlashImage } from '../Image/SkeletonFlashImage';
 
 import styles from '../../styles/components/MediaHeaderMini/MediaHeaderMini.module.scss';
 
@@ -51,7 +51,7 @@ export const MediaHeaderMini: React.FC<MediaHeaderMiniProps> = ({
 
   return (
     <header className={styles.header}>
-      <Image
+      <SkeletonFlashImage
         className={styles.image}
         candidates={imageCandidates}
         alt={subtitle ? `${title} - ${subtitle}` : title}

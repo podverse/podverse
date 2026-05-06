@@ -27,14 +27,21 @@ The sidecar uses the same validation helpers as the rest of the monorepo (`@podv
 
 ### Proxy Configuration
 
-- **`NEXT_PUBLIC_PROXY_USER_AGENT`** (Required)
+- **`NEXT_PUBLIC_IMAGE_PROXY_ENABLED`** (Optional)
+  - Must be `"true"` or `"false"` if set
+  - Default: **`false`** when unset — artwork URLs load **directly** in the browser (Next/image with remote patterns); the `/api/proxy` route returns **403**
+  - Set to **`true`** to route remote artwork through `/api/proxy` (server fetch with SSRF checks, size limits, configurable User-Agent, and `Cache-Control`)
+
+- **`NEXT_PUBLIC_PROXY_USER_AGENT`** (Conditional)
+  - **Required** when **`NEXT_PUBLIC_IMAGE_PROXY_ENABLED`** is **`true`**
+  - **Optional** when the image proxy is disabled (may be left blank)
   - Format: `BrandName Bot Environment/AppName/Version`
   - Must include "Bot" in the first part (before the first slash)
   - Example: `Example Bot/Web-API/5`
-  - Set a value specific to your deployment. Used when proxying external image requests
+  - Used as the `User-Agent` when the server fetches upstream images for `/api/proxy`
 
 - **`NEXT_PUBLIC_PROXY_RESPONSE_CACHE_MAX_AGE_SECONDS`** (Optional)
-  - Max-age in seconds for `Cache-Control` on `/api/proxy` responses (`public, max-age=…, s-maxage=…`)
+  - Max-age in seconds for `Cache-Control` on `/api/proxy` responses (`public, max-age=…, s-maxage=…`) when the image proxy is enabled
   - Default: `86400` when unset
   - Must be a positive integer if set (same value used for `max-age` and `s-maxage`)
 
@@ -188,7 +195,7 @@ Variables containing `PORT` or `INTERVAL` are validated to ensure they are valid
 
 ### Format Validation
 
-- **User-Agent Format**: `NEXT_PUBLIC_PROXY_USER_AGENT` must follow `BrandName Bot Environment/AppName/Version` and include "Bot" in the first part
+- **User-Agent Format**: When set, `NEXT_PUBLIC_PROXY_USER_AGENT` must follow `BrandName Bot Environment/AppName/Version` and include "Bot" in the first part (required when **`NEXT_PUBLIC_IMAGE_PROXY_ENABLED`** is **`true`**)
 - **Theme Validation**: `NEXT_PUBLIC_SUPPORTED_THEMES` must be `"all-available"` or a comma-delimited list of valid themes (`dark`, `light`, `dracula`, `violet`)
 - **Theme Default**: `NEXT_PUBLIC_DEFAULT_THEME` must be one of the valid themes
 - **Locale Validation**: `NEXT_PUBLIC_FEATURES_SUPPORTED_LOCALES` must be `"all-available"` or a comma-delimited list of valid locales

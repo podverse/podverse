@@ -12,7 +12,7 @@ import { ROUTES } from '../../../constants/routes';
 import { getApiRequestService } from '../../../factories/apiRequestService';
 import { dedupedTrimmedUrlCandidates } from '../../../utils/image/dedupedTrimmedUrlCandidates';
 import { redirectToChannelPageByMediumClient } from '../../../utils/redirect/redirectToChannelPageByMedium';
-import { Image } from '../../Image/Image';
+import { SkeletonFlashImage } from '../../Image/SkeletonFlashImage';
 import { Link } from '../../Link/Link';
 
 import styles from '../../../styles/components/List/SearchResults/ListSearchResultPodcastIndexFeedRow.module.scss';
@@ -50,7 +50,7 @@ const ListSearchResultPodcastIndexFeedRow: React.FC<Props> = ({ searchResultPodc
   return (
     <Link className={styles.link} onClick={handleClick}>
       <div className={styles.listItem}>
-        <Image
+        <SkeletonFlashImage
           candidates={feedImageCandidates}
           alt={searchResultPodcastIndexFeed.title || tMedia('podcast.podcast_image')}
           width={IMAGES.LIST.SEARCH.SIZE}

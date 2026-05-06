@@ -5,7 +5,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 import { resolveImageCandidates } from '@podverse/helpers';
 
-import { Image } from './Image';
+import { SkeletonFlashImage } from './SkeletonFlashImage';
 
 type ImagesPerViewProps = {
   src?: string | undefined | null;
@@ -67,14 +67,14 @@ export const ImagesPerView: React.FC<ImagesPerViewProps> = ({
 
   const images = (
     <>
-      <Image
+      <SkeletonFlashImage
         fallbackControl={fallbackControl}
         alt={alt}
         width={widthDesktop}
         height={heightDesktop}
         className={classNameDesktop}
       />
-      <Image
+      <SkeletonFlashImage
         fallbackControl={fallbackControl}
         alt={alt}
         width={widthMobile}

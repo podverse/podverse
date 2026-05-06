@@ -8,7 +8,7 @@ import { formatDateAbbrev, mergeDTOItemThenChannelImageCandidates } from '@podve
 
 import { IMAGES } from '../../../../constants/images';
 import { ROUTES } from '../../../../constants/routes';
-import { Image } from '../../../Image/Image';
+import { SkeletonFlashImage } from '../../../Image/SkeletonFlashImage';
 import type { EpisodeListGridNodeProps } from './types';
 
 import styles from '../../../../styles/components/Common/List/ListGridNode.module.scss';
@@ -31,7 +31,7 @@ export const CommonEpisodeListGridNode: React.FC<EpisodeListGridNodeProps> = ({
   return (
     <Link href={url} className={styles.link}>
       <div className={styles.gridNode}>
-        <Image
+        <SkeletonFlashImage
           candidates={episodeArtworkCandidates}
           alt={item.title || tMedia('podcast.episode_image')}
           width={IMAGES.LIST.GRID.SIZE}

@@ -6,6 +6,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 
 import { resolveImageCandidates } from '@podverse/helpers';
 
+import { getConfig } from '../../config';
 import { IMAGES } from '../../constants/images';
 import { PROXY } from '../../constants/proxy';
 
@@ -17,7 +18,7 @@ export type ImageFallbackControl = {
   onAttemptFailed: () => void;
 };
 
-interface ImageProps {
+export interface ImageProps {
   src?: string | null;
   /** When set, tried in order on load failure (shrunken first, then native fallbacks). Overrides single `src`. */
   candidates?: string[];
@@ -32,6 +33,12 @@ interface ImageProps {
   className?: string;
   skipProxy?: boolean;
   priority?: boolean;
+  /**
+   * Brief skeleton tint behind the image box until load (see SkeletonFlashImage).
+   * Off by default so transparent branding assets show true transparency.
+   */
+  enableSkeletonFlash?: boolean;
+  onLoad?: () => void;
 }
 
 export const Image: React.FC<ImageProps> = ({
@@ -44,6 +51,8 @@ export const Image: React.FC<ImageProps> = ({
   className,
   skipProxy,
   priority,
+  enableSkeletonFlash = false,
+  onLoad,
 }) => {
   const resolvedChain =
     fallbackControl !== undefined ? fallbackControl.chain : resolveImageCandidates(candidates, src);
@@ -52,6 +61,8 @@ export const Image: React.FC<ImageProps> = ({
 
   const [internalAttemptIndex, setInternalAttemptIndex] = useState(0);
 
+  const [loaded, setLoaded] = useState(false);
+
   useEffect(() => {
     setInternalAttemptIndex(0);
   }, [chainId, skipProxy]);
@@ -59,12 +70,23 @@ export const Image: React.FC<ImageProps> = ({
   const attemptIndex =
     fallbackControl !== undefined ? fallbackControl.attemptIndex : internalAttemptIndex;
 
+  useEffect(() => {
+    setLoaded(false);
+  }, [chainId, attemptIndex]);
+
   const onLoadFailure = () => {
     if (fallbackControl !== undefined) {
       fallbackControl.onAttemptFailed();
     } else {
       setInternalAttemptIndex((i) => i + 1);
     }
+  };
+
+  const handleLoad = () => {
+    if (enableSkeletonFlash) {
+      setLoaded(true);
+    }
+    onLoad?.();
   };
 
   const isFluidGridSlot = width === IMAGES.LIST.GRID.SIZE && height === IMAGES.LIST.GRID.SIZE;
@@ -100,7 +122,11 @@ export const Image: React.FC<ImageProps> = ({
     );
   }
 
-  const finalSrc = skipProxy ? rawSrc : PROXY.PATH + encodeURIComponent(rawSrc);
+  const imageProxyEnabled = getConfig().public.imageProxy.enabled;
+  const useProxy = imageProxyEnabled && !skipProxy;
+  const finalSrc = useProxy ? PROXY.PATH + encodeURIComponent(rawSrc) : rawSrc;
+
+  const skeletonClass = enableSkeletonFlash && !loaded ? styles.skeletonBg : undefined;
 
   return (
     <NextImage
@@ -109,8 +135,9 @@ export const Image: React.FC<ImageProps> = ({
       alt={alt}
       width={width}
       height={height}
-      className={classNames(styles.skeletonBg, className)}
+      className={classNames(skeletonClass, className)}
       onError={onLoadFailure}
+      onLoad={handleLoad}
       priority={priority}
     />
   );

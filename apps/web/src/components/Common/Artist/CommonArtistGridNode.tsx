@@ -6,7 +6,7 @@ import React from 'react';
 
 import { IMAGES } from '../../../constants/images';
 import { listItemImageCandidates } from '../../../utils/image/listItemImageCandidates';
-import { Image } from '../../Image/Image';
+import { SkeletonFlashImage } from '../../Image/SkeletonFlashImage';
 import type { ArtistListItem } from './types';
 
 import styles from '../../../styles/components/Common/List/ListGridNode.module.scss';
@@ -23,7 +23,7 @@ export const CommonArtistListGridNode: React.FC<CommonArtistListGridNodeProps> =
   return (
     <Link href={item.href} className={styles.link}>
       <div className={styles.gridNode}>
-        <Image
+        <SkeletonFlashImage
           candidates={listItemImageCandidates(item)}
           alt={item.title || tMedia('music.artist_image')}
           width={IMAGES.LIST.GRID.SIZE}

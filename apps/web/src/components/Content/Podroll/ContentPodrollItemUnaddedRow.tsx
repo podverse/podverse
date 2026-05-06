@@ -4,7 +4,7 @@ import type { EpisodeByGuidResponse } from '@podverse/helpers';
 
 import { IMAGES } from '../../../constants/images';
 import { WEB } from '../../../constants/web';
-import { Image } from '../../Image/Image';
+import { SkeletonFlashImage } from '../../Image/SkeletonFlashImage';
 import { Link } from '../../Link/Link';
 
 import styles from '../../../styles/components/Content/Podroll/ContentPodrollItemRow.module.scss';
@@ -34,7 +34,7 @@ export const ContentPodrollItemUnaddedRow = ({
         href={`${WEB.origin}/podcast-index/feed/${itemUnadded.feedId}`}
         color="secondary"
       >
-        <Image
+        <SkeletonFlashImage
           className={styles.image}
           candidates={imageCandidates}
           alt={itemUnadded.title || tMedia('image')}

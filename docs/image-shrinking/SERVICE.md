@@ -35,7 +35,7 @@ Further reading:
 2. Parser emits MQ hints (channel + item image URLs) for recently parsed feeds.
 3. `imageShrinkRunConsumer` consumes hints (fresh within 24 hours).
 4. Periodic backfill enqueues any remaining unresized images.
-5. Worker downloads, resizes to `IMAGE_SHRINK_WIDTH_PX`, and uploads to image CDN.
+5. Worker downloads, resizes to the configured width (`IMAGE_SHRINK_WIDTH_PX`, default **400**), encodes WebP at `IMAGE_SHRINK_WEBP_QUALITY` (default **92**), and uploads to image CDN.
 6. Worker writes `is_resized = true` rows pointing at CDN URLs.
 
 ## Origin size, decode errors, and logs
@@ -64,6 +64,8 @@ The `c{sha256_prefix16}` segment is the first 16 hex characters of the SHA-256 d
 **origin** image bytes. When the origin changes at the same URL, a new object key is written and the
 DB row is updated; the previous CDN object becomes an orphan and is removed by the orphan cleanup
 job after `IMAGE_SHRINK_ORPHAN_MIN_AGE_EXPIRATION`.
+
+Changing **`IMAGE_SHRINK_WIDTH_PX`** or **`IMAGE_SHRINK_WEBP_QUALITY`** changes the encoded bytes and therefore the content checksum and object key; existing CDN objects are not updated until origins are reprocessed.
 
 Output is WebP for smaller file size at similar quality. WebP is well supported in current browsers and on Android and iOS 14+. On iOS 13 and earlier, the system Photos app may not display saved WebP images correctly when the user saves an image to their device.
 
@@ -167,7 +169,8 @@ Provider-specific setup: [Bucket providers](BUCKET-PROVIDERS.md).
 
 ### Image Shrink
 
-- `IMAGE_SHRINK_WIDTH_PX`
+- `IMAGE_SHRINK_WIDTH_PX` (Optional; default **400**)
+- `IMAGE_SHRINK_WEBP_QUALITY` (Optional; default **92**; integers **1–100**)
 - `IMAGE_SHRINK_BATCH_SIZE`
 - `IMAGE_SHRINK_CONCURRENCY`
 - `IMAGE_SHRINK_RPS`
@@ -186,7 +189,7 @@ Provider-specific setup: [Bucket providers](BUCKET-PROVIDERS.md).
 Add non-sensitive values to `infra/k8s/base/workers/configmap.yaml` using the same section structure as `apps/workers/.env.example` (Image Shrink storage; Image Shrink):
 
 - **Image Shrink (storage):** `BUCKET_PROVIDER`, `BUCKET_REGION`, `BUCKET_NAME`, `BUCKET_CDN_BASE_URL`, `BUCKET_ENDPOINT` (when required), `BUCKET_FORCE_PATH_STYLE`
-- **Image Shrink:** `IMAGE_SHRINK_WIDTH_PX`, `IMAGE_SHRINK_BATCH_SIZE`, `IMAGE_SHRINK_CONCURRENCY`, `IMAGE_SHRINK_RPS`, `IMAGE_SHRINK_RECHECK_EXPIRATION` (Optional), `IMAGE_SHRINK_DEEP_RECHECK_EXPIRATION` (Optional), `IMAGE_SHRINK_SOURCE_PRUNE_EXPIRATION` (Optional)
+- **Image Shrink:** `IMAGE_SHRINK_WIDTH_PX` (Optional; default 400), `IMAGE_SHRINK_WEBP_QUALITY` (Optional; default 92), `IMAGE_SHRINK_BATCH_SIZE`, `IMAGE_SHRINK_CONCURRENCY`, `IMAGE_SHRINK_RPS`, `IMAGE_SHRINK_RECHECK_EXPIRATION` (Optional), `IMAGE_SHRINK_DEEP_RECHECK_EXPIRATION` (Optional), `IMAGE_SHRINK_SOURCE_PRUNE_EXPIRATION` (Optional)
 
 ### Secret
 

@@ -9,7 +9,7 @@ import { buildDTOChannelImageLoadCandidates } from '@podverse/helpers';
 
 import { IMAGES } from '../../../../constants/images';
 import { ROUTES } from '../../../../constants/routes';
-import { Image } from '../../../Image/Image';
+import { SkeletonFlashImage } from '../../../Image/SkeletonFlashImage';
 
 import styles from '../../../../styles/components/Common/List/Podcasts/ListPodcastRow.module.scss';
 
@@ -30,7 +30,7 @@ export const ListArtistRow: React.FC<Props> = ({ channel }) => {
   return (
     <Link href={url} className={styles.link}>
       <div className={styles.listItem}>
-        <Image
+        <SkeletonFlashImage
           candidates={artistArtworkCandidates}
           alt={channel.title || tMedia('music.artist_image')}
           width={IMAGES.LIST.ARTISTS.SIZE}

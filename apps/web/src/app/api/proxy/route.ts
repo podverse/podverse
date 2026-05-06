@@ -22,6 +22,9 @@ const logProxyFailureDiagnostics = (message: string, details?: Record<string, un
 
 export async function GET(req: NextRequest) {
   const config = getConfig();
+  if (!config.public.imageProxy.enabled) {
+    return new Response('Image proxy is disabled', { status: 403 });
+  }
   // Rate limiting check
   const rateLimitResult = checkRateLimit(req);
   if (!rateLimitResult.allowed) {

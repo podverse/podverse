@@ -66,10 +66,10 @@ describe('buildShrinkImageKey', () => {
     const key = buildShrinkImageKey({
       entityType: 'item',
       entityId: 42,
-      widthPx: 300,
+      widthPx: 400,
       contentChecksumSha256Hex: 'abcdef0123456789',
       urlHash: 'urlhash',
     });
-    expect(key).toBe('images/item/42/urlhash-w300-cabcdef0123456789.webp');
+    expect(key).toBe('images/item/42/urlhash-w400-cabcdef0123456789.webp');
   });
 });

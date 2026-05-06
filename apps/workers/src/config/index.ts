@@ -141,6 +141,7 @@ export function getImageShrinkStorageConfig(): ImageShrinkStorageConfig {
 
 export type ImageShrinkConfig = {
   widthPx: number;
+  webpQuality: number;
   batchSize: number;
   concurrency: number;
   rps: number;
@@ -160,7 +161,6 @@ const IMAGE_SHRINK_REQUIRED_VARS = [
   'BUCKET_REGION',
   'BUCKET_NAME',
   'BUCKET_CDN_BASE_URL',
-  'IMAGE_SHRINK_WIDTH_PX',
   'IMAGE_SHRINK_BATCH_SIZE',
   'IMAGE_SHRINK_CONCURRENCY',
   'IMAGE_SHRINK_RPS',
@@ -184,6 +184,8 @@ export function isImageShrinkEnabled(): boolean {
 }
 
 const DEFAULT_IMAGE_SHRINK_MAX_SOURCE_BYTES = 20 * 1024 * 1024;
+const DEFAULT_IMAGE_SHRINK_WIDTH_PX = 400;
+const DEFAULT_IMAGE_SHRINK_WEBP_QUALITY = 92;
 
 const parseOptionalNumber = (value: string | undefined): number | null => {
   if (!value || value.trim() === '') {
@@ -196,6 +198,28 @@ const parseOptionalNumber = (value: string | undefined): number | null => {
   return parsed;
 };
 
+const resolveImageShrinkWidthPx = (): number => {
+  const parsed = parseOptionalNumber(process.env.IMAGE_SHRINK_WIDTH_PX);
+  if (parsed === null) {
+    return DEFAULT_IMAGE_SHRINK_WIDTH_PX;
+  }
+  if (Number.isInteger(parsed) && parsed > 0) {
+    return parsed;
+  }
+  return Number.NaN;
+};
+
+const resolveImageShrinkWebpQuality = (): number => {
+  const parsed = parseOptionalNumber(process.env.IMAGE_SHRINK_WEBP_QUALITY);
+  if (parsed === null) {
+    return DEFAULT_IMAGE_SHRINK_WEBP_QUALITY;
+  }
+  if (Number.isInteger(parsed) && parsed >= 1 && parsed <= 100) {
+    return parsed;
+  }
+  return Number.NaN;
+};
+
 export function getImageShrinkConfig(): ImageShrinkConfig {
   const maxSourceBytesParsed = parseOptionalNumber(process.env.IMAGE_SHRINK_MAX_SOURCE_BYTES);
   const maxSourceBytes =
@@ -205,7 +229,8 @@ export function getImageShrinkConfig(): ImageShrinkConfig {
       ? maxSourceBytesParsed
       : DEFAULT_IMAGE_SHRINK_MAX_SOURCE_BYTES;
   return {
-    widthPx: Number(process.env.IMAGE_SHRINK_WIDTH_PX!),
+    widthPx: resolveImageShrinkWidthPx(),
+    webpQuality: resolveImageShrinkWebpQuality(),
     batchSize: Number(process.env.IMAGE_SHRINK_BATCH_SIZE!),
     concurrency: Number(process.env.IMAGE_SHRINK_CONCURRENCY!),
     rps: Number(process.env.IMAGE_SHRINK_RPS!),

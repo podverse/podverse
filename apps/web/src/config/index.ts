@@ -87,10 +87,13 @@ const buildConfig = () => {
         contactEmail: env.NEXT_PUBLIC_CONTACT_EMAIL!,
       },
       server_env: env.NEXT_PUBLIC_SERVER_ENV!,
+      imageProxy: {
+        enabled: env.NEXT_PUBLIC_IMAGE_PROXY_ENABLED === 'true',
+      },
     },
     proxy: {
       responseCacheMaxAgeSeconds: Number(env.NEXT_PUBLIC_PROXY_RESPONSE_CACHE_MAX_AGE_SECONDS!),
-      userAgent: env.NEXT_PUBLIC_PROXY_USER_AGENT!,
+      userAgent: env.NEXT_PUBLIC_PROXY_USER_AGENT ?? '',
     },
   };
 };

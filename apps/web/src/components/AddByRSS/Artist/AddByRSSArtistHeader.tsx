@@ -21,7 +21,7 @@ import { getBoostEligibilityForContent } from '../../../utils/value/boostEligibi
 import { CommonArtistHeader } from '../../Common/Artist/CommonArtistHeader';
 import { CommonArtistHeaderViewDesktop } from '../../Common/Artist/CommonArtistHeaderViewDesktop';
 import { CommonArtistHeaderViewTablet } from '../../Common/Artist/CommonArtistHeaderViewTablet';
-import { Image } from '../../Image/Image';
+import { SkeletonFlashImage } from '../../Image/SkeletonFlashImage';
 import { IconButton } from '../../Media/Header/IconButton';
 
 import headerButtonsStyles from '../../../styles/components/Common/Media/Header/HeaderButtons.module.scss';
@@ -170,21 +170,21 @@ export const AddByRSSArtistHeader: React.FC<AddByRSSArtistHeaderProps> = ({ feed
 
   const headerImage = (
     <div className={imageStyles.headerImageWrapper}>
-      <Image
+      <SkeletonFlashImage
         candidates={candidatesMobile}
         alt={title || tMedia('music.artist_image')}
         width={IMAGES.HEADER.MOBILE.SQUARE.SIZE}
         height={IMAGES.HEADER.MOBILE.SQUARE.SIZE}
         className={imageStyles.mobile}
       />
-      <Image
+      <SkeletonFlashImage
         candidates={candidatesTablet}
         alt={title || tMedia('music.artist_image')}
         width={IMAGES.HEADER.TABLET.SQUARE.SIZE}
         height={IMAGES.HEADER.TABLET.SQUARE.SIZE}
         className={imageStyles.tablet}
       />
-      <Image
+      <SkeletonFlashImage
         candidates={candidatesDesktop}
         alt={title || tMedia('music.artist_image')}
         width={IMAGES.HEADER.DESKTOP.SQUARE.SIZE}

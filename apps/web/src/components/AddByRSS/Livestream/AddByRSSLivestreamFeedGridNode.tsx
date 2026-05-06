@@ -13,7 +13,7 @@ import {
 
 import { IMAGES } from '../../../constants/images';
 import type { AddByRSSFeedRecord } from '../../../utils/addByRSS/types';
-import { Image } from '../../Image/Image';
+import { SkeletonFlashImage } from '../../Image/SkeletonFlashImage';
 
 import styles from '../../../styles/components/Common/List/ListGridNode.module.scss';
 
@@ -42,7 +42,7 @@ export const AddByRSSLivestreamFeedGridNode: React.FC<AddByRSSLivestreamFeedGrid
   return (
     <Link href={url} className={styles.link}>
       <div className={styles.gridNode}>
-        <Image
+        <SkeletonFlashImage
           candidates={imageCandidates}
           alt={feedTitle || tMedia('livestream.livestream_image')}
           width={IMAGES.LIST.GRID.SIZE}

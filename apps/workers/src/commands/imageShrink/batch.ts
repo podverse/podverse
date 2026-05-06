@@ -177,8 +177,22 @@ export const createImageShrinkProcessor = (): ImageShrinkProcessor => {
   const storageConfig = getImageShrinkStorageConfig();
   const imageShrinkConfig = getImageShrinkConfig();
 
-  if (Number.isNaN(imageShrinkConfig.widthPx) || imageShrinkConfig.widthPx <= 0) {
-    throw new Error('IMAGE_SHRINK_WIDTH_PX must be a positive number');
+  if (
+    Number.isNaN(imageShrinkConfig.widthPx) ||
+    !Number.isInteger(imageShrinkConfig.widthPx) ||
+    imageShrinkConfig.widthPx <= 0
+  ) {
+    throw new Error('IMAGE_SHRINK_WIDTH_PX must be a positive integer (or unset for default 400)');
+  }
+  if (
+    Number.isNaN(imageShrinkConfig.webpQuality) ||
+    !Number.isInteger(imageShrinkConfig.webpQuality) ||
+    imageShrinkConfig.webpQuality < 1 ||
+    imageShrinkConfig.webpQuality > 100
+  ) {
+    throw new Error(
+      'IMAGE_SHRINK_WEBP_QUALITY must be an integer from 1 to 100 (or unset for default 92)'
+    );
   }
   if (Number.isNaN(imageShrinkConfig.batchSize) || imageShrinkConfig.batchSize <= 0) {
     throw new Error('IMAGE_SHRINK_BATCH_SIZE must be a positive number');
@@ -330,7 +344,7 @@ export const createImageShrinkProcessor = (): ImageShrinkProcessor => {
           withoutEnlargement: true,
         });
         const { data: resizedBuffer, info: resizedInfo } = await resizedImage
-          .webp({ quality: 80 })
+          .webp({ quality: imageShrinkConfig.webpQuality })
           .toBuffer({ resolveWithObject: true });
         const resizedWidth = resizedInfo.width ?? imageShrinkConfig.widthPx;
 

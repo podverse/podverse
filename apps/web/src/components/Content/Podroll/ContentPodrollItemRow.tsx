@@ -5,7 +5,7 @@ import { buildDTOItemImageLoadCandidates } from '@podverse/helpers';
 
 import { IMAGES } from '../../../constants/images';
 import { WEB } from '../../../constants/web';
-import { Image } from '../../Image/Image';
+import { SkeletonFlashImage } from '../../Image/SkeletonFlashImage';
 import { Link } from '../../Link/Link';
 
 import styles from '../../../styles/components/Content/Podroll/ContentPodrollItemRow.module.scss';
@@ -33,7 +33,7 @@ export const ContentPodrollItemRow = ({ item }: ContentPodrollItemRowProps) => {
         href={`${WEB.origin}/episode/${item.id_text}`}
         color="secondary"
       >
-        <Image
+        <SkeletonFlashImage
           className={styles.image}
           candidates={imageCandidates}
           alt={item.title || tMedia('image')}

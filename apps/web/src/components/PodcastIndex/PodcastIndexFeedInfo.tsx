@@ -17,7 +17,7 @@ import { getApiRequestService } from '../../factories/apiRequestService';
 import { dedupedTrimmedUrlCandidates } from '../../utils/image/dedupedTrimmedUrlCandidates';
 import { handleRateLimitAlert } from '../../utils/rateLimit/rateLimitAlert';
 import { redirectToChannelPageByMediumClient } from '../../utils/redirect/redirectToChannelPageByMedium';
-import { Image } from '../Image/Image';
+import { SkeletonFlashImage } from '../Image/SkeletonFlashImage';
 
 import styles from '../../styles/components/PodcastIndex/PodcastIndexFeedInfo.module.scss';
 
@@ -169,7 +169,7 @@ export const PodcastIndexFeedInfo: React.FC<PodcastIndexFeedInfoProps> = ({ podc
         </div>
       </div>
       {feedImageCandidates.length > 0 && (
-        <Image
+        <SkeletonFlashImage
           candidates={feedImageCandidates}
           alt={podcastIndexFeed.title || tMedia('podcast.podcast_image')}
           width={IMAGES.ADD_FEED.SQUARE.SIZE}

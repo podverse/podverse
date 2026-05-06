@@ -10,7 +10,7 @@ import { IMAGES } from '../../../constants/images';
 import { getAddByRSSLivestreamPath } from '../../../utils/addByRSS/itemPath';
 import type { AddByRSSLivestreamIndexItem } from '../../../utils/addByRSS/types';
 import { dedupedTrimmedUrlCandidates } from '../../../utils/image/dedupedTrimmedUrlCandidates';
-import { Image } from '../../Image/Image';
+import { SkeletonFlashImage } from '../../Image/SkeletonFlashImage';
 import { ReadableDate } from '../../Time/ReadableDate';
 import { ReadableTime } from '../../Time/ReadableTime';
 
@@ -35,7 +35,7 @@ export const AddByRSSLivestreamGridNode: React.FC<AddByRSSLivestreamGridNodeProp
   return (
     <Link href={url} className={styles.link}>
       <div className={styles.gridNode}>
-        <Image
+        <SkeletonFlashImage
           candidates={imageCandidates}
           alt={title || tMedia('livestream.livestream_image')}
           width={IMAGES.LIST.GRID.SIZE}
