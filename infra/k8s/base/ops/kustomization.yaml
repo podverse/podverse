@@ -3,6 +3,7 @@ kind: Kustomization
 
 resources:
   - db-drop-everything.cronjob.yaml
+  - db-rebootstrap-roles.cronjob.yaml
   - db-migrate-app.cronjob.yaml
   - db-migrate-management.cronjob.yaml
   - db-verify-account.cronjob.yaml

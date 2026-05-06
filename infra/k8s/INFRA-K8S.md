@@ -133,6 +133,32 @@ still have the old Secret name only:
 
 Push to the Argo CD–tracked branch so the cluster can sync.
 
+### Ops: drop schema, rebootstrap GRANTs, then migrate
+
+[`infra/k8s/base/ops/db-drop-everything.cronjob.yaml`](base/ops/db-drop-everything.cronjob.yaml) runs
+`DROP SCHEMA public CASCADE; CREATE SCHEMA public;` against the app database only (via the app owner).
+That recreates an empty `public` schema **without** the role grants from StatefulSet bootstrap
+([`0001_create_app_db_users.sh`](base/db/source/bootstrap/0001_create_app_db_users.sh)), so
+[`ops-db-migrate-app`](base/ops/db-migrate-app.cronjob.yaml) fails until grants are restored.
+
+Run **`ops-db-rebootstrap-roles`** ([`db-rebootstrap-roles.cronjob.yaml`](base/ops/db-rebootstrap-roles.cronjob.yaml))
+after a drop and **before** migrate jobs: it re-applies the `GRANT` / `ALTER DEFAULT PRIVILEGES`
+blocks from `0001` (app DB) and `0002` (management DB) — idempotent, manual CronJob only (`suspend: true`).
+
+Example (`podverse-alpha` namespace):
+
+```bash
+kubectl -n podverse-alpha create job --from=cronjob/ops-db-drop-everything ops-db-drop-everything-manual
+kubectl -n podverse-alpha create job --from=cronjob/ops-db-rebootstrap-roles ops-db-rebootstrap-roles-manual
+kubectl -n podverse-alpha create job --from=cronjob/ops-db-migrate-app ops-db-migrate-app-manual
+kubectl -n podverse-alpha create job --from=cronjob/ops-db-migrate-management ops-db-migrate-management-manual
+kubectl -n podverse-alpha create job --from=cronjob/ops-db-verify-bootstrap-contract ops-db-verify-bootstrap-contract-manual
+```
+
+If you dropped **`DROP SCHEMA`** on the management database manually, rebootstrap still restores management
+GRANTs. For **`DROP DATABASE`** or a corrupted volume, delete the DB StatefulSet pod + PVC and let
+`docker-entrypoint-initdb.d` run again instead.
+
 **Apply**
 
 ```bash
