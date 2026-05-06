@@ -5,7 +5,10 @@ import { useTranslations } from 'next-intl';
 import React from 'react';
 
 import type { DTOChannel, DTOItem, DTOItemChapter } from '@podverse/helpers';
-import { findDTOChannelImageForList, findDTOItemImageForList } from '@podverse/helpers';
+import {
+  mergeDTOItemThenChannelImageCandidates,
+  prependDistinctImageCandidate,
+} from '@podverse/helpers';
 import { getShuffleHash } from '@podverse/helpers-requests';
 
 import { IMAGES } from '../../../constants/images';
@@ -52,15 +55,14 @@ export const ListItemChapterRow: React.FC<ListItemChapterRowProps> = ({
   const channel_images = channel?.channel_images;
   const item_images = item?.item_images;
 
-  const channel_image = findDTOChannelImageForList(
-    channel_images,
-    IMAGES.LIST.CLIPS.SIZE_FIND_TARGET,
-    'lesser'
-  );
-  const item_image = findDTOItemImageForList(
-    item_images,
-    IMAGES.LIST.CLIPS.SIZE_FIND_TARGET,
-    'lesser'
+  const chapterArtworkCandidates = prependDistinctImageCandidate(
+    item_chapter.img,
+    mergeDTOItemThenChannelImageCandidates(
+      item_images,
+      channel_images,
+      IMAGES.LIST.CLIPS.SIZE_FIND_TARGET,
+      'lesser'
+    )
   );
 
   const tMisc = useTranslations('misc');
@@ -109,7 +111,7 @@ export const ListItemChapterRow: React.FC<ListItemChapterRowProps> = ({
   return (
     <div className={styles.row}>
       <ImagesPerView
-        src={item_chapter?.img || item_image?.url || channel_image?.url}
+        candidates={chapterArtworkCandidates}
         alt={tInfo('chapter.chapter_image')}
         widthDesktop={IMAGES.LIST.ITEM_CHAPTERS.SIZE}
         heightDesktop={IMAGES.LIST.ITEM_CHAPTERS.SIZE}

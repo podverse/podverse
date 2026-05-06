@@ -4,7 +4,11 @@ import Link from 'next/link';
 import { useLocale, useTranslations } from 'next-intl';
 import React from 'react';
 
-import { formatDateAbbrev } from '@podverse/helpers';
+import {
+  appendDistinctImageCandidate,
+  buildDTOItemImageLoadCandidates,
+  formatDateAbbrev,
+} from '@podverse/helpers';
 
 import { IMAGES } from '../../../../constants/images';
 import { getAddByRSSItemPath } from '../../../../utils/addByRSS/itemPath';
@@ -25,7 +29,12 @@ export const AddByRSSEpisodeGridCard: React.FC<AddByRSSEpisodeGridCardProps> = (
   const tMedia = useTranslations('media');
   const locale = useLocale();
   const title = item.bundle.item.title ?? tMedia('podcast.episode_image');
-  const imageUrl = item.bundle.images?.[0]?.url ?? item.channelImageUrl;
+  const itemImageCandidates = buildDTOItemImageLoadCandidates(
+    item.bundle.images,
+    IMAGES.LIST.GRID.SIZE_FIND_TARGET,
+    'lesser'
+  );
+  const imageCandidates = appendDistinctImageCandidate(item.channelImageUrl, itemImageCandidates);
   const lastPubDateRaw = item.bundle.item.pub_date ?? null;
   const lastPubDate =
     typeof lastPubDateRaw === 'string' ? lastPubDateRaw : lastPubDateRaw?.toISOString();
@@ -34,7 +43,7 @@ export const AddByRSSEpisodeGridCard: React.FC<AddByRSSEpisodeGridCardProps> = (
     <Link href={getAddByRSSItemPath(item.idText)} className={styles.link}>
       <div className={styles.gridNode}>
         <Image
-          src={imageUrl}
+          candidates={imageCandidates}
           alt={title}
           width={IMAGES.LIST.GRID.SIZE}
           height={IMAGES.LIST.GRID.SIZE}

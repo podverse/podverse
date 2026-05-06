@@ -4,11 +4,7 @@ import Link from 'next/link';
 import { useLocale, useTranslations } from 'next-intl';
 import React from 'react';
 
-import {
-  findDTOChannelImageBySize,
-  findDTOItemImageBySize,
-  formatDateAbbrev,
-} from '@podverse/helpers';
+import { formatDateAbbrev, mergeDTOItemThenChannelImageCandidates } from '@podverse/helpers';
 
 import { IMAGES } from '../../../../constants/images';
 import { ROUTES } from '../../../../constants/routes';
@@ -23,13 +19,9 @@ export const CommonEpisodeListGridNode: React.FC<EpisodeListGridNodeProps> = ({
   showChannelInfo,
 }) => {
   const url = `${ROUTES.EPISODE}/${item.id_text}`;
-  const channelImage = findDTOChannelImageBySize(
-    channel.channel_images,
-    IMAGES.LIST.EPISODES.DESKTOP.SIZE_FIND_TARGET,
-    'lesser'
-  );
-  const itemImage = findDTOItemImageBySize(
+  const episodeArtworkCandidates = mergeDTOItemThenChannelImageCandidates(
     item.item_images,
+    channel.channel_images,
     IMAGES.LIST.EPISODES.DESKTOP.SIZE_FIND_TARGET,
     'lesser'
   );
@@ -40,7 +32,7 @@ export const CommonEpisodeListGridNode: React.FC<EpisodeListGridNodeProps> = ({
     <Link href={url} className={styles.link}>
       <div className={styles.gridNode}>
         <Image
-          src={itemImage?.url || channelImage?.url}
+          candidates={episodeArtworkCandidates}
           alt={item.title || tMedia('podcast.episode_image')}
           width={IMAGES.LIST.GRID.SIZE}
           height={IMAGES.LIST.GRID.SIZE}

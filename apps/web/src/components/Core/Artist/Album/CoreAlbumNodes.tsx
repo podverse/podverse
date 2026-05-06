@@ -3,7 +3,7 @@
 import React from 'react';
 
 import type { DTOChannel } from '@podverse/helpers';
-import { findDTOChannelImageBySize } from '@podverse/helpers';
+import { buildDTOChannelImageLoadCandidates } from '@podverse/helpers';
 
 import { IMAGES } from '../../../../constants/images';
 import { ROUTES } from '../../../../constants/routes';
@@ -18,7 +18,7 @@ interface Params {
 
 export function CoreAlbumNodes({ channels, viewSelected }: Params): React.ReactNode {
   const items: AlbumListItem[] = channels.map((channel) => {
-    const channelImage = findDTOChannelImageBySize(
+    const imageCandidates = buildDTOChannelImageLoadCandidates(
       channel.channel_images,
       IMAGES.LIST.PODCASTS.SIZE_FIND_TARGET,
       'lesser'
@@ -27,7 +27,7 @@ export function CoreAlbumNodes({ channels, viewSelected }: Params): React.ReactN
     return {
       id: String(channel.id),
       title: channel.title ?? '',
-      imageUrl: channelImage?.url,
+      imageCandidates,
       href: `${ROUTES.ALBUM}/${channel.id_text}`,
       subtitle: channel.channel_about?.author ?? null,
     };

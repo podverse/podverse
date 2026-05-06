@@ -6,10 +6,9 @@ import React from 'react';
 
 import type { DTOChannel, DTOItem, DTOLiveItem } from '@podverse/helpers';
 import {
-  findDTOChannelImageForList,
-  findDTOItemImageForList,
   getQueryParamFromQueueMediumId,
   LiveItemStatusEnum,
+  mergeDTOItemThenChannelImageCandidates,
   stripAndDecodeHtml,
 } from '@podverse/helpers';
 import { getShuffleHash } from '@podverse/helpers-requests';
@@ -47,13 +46,9 @@ export const ListLiveItemRow: React.FC<Props> = ({
     medium === 'av'
       ? `${ROUTES.PODCAST_LIVESTREAM}/${item.id_text}`
       : `${ROUTES.MUSIC_LIVESTREAM}/${item.id_text}`;
-  const channel_image = findDTOChannelImageForList(
-    channel.channel_images,
-    IMAGES.LIST.LIVESTREAMS.DESKTOP.SIZE_FIND_TARGET,
-    'lesser'
-  );
-  const item_image = findDTOItemImageForList(
+  const liveArtworkCandidates = mergeDTOItemThenChannelImageCandidates(
     item.item_images,
+    channel.channel_images,
     IMAGES.LIST.LIVESTREAMS.DESKTOP.SIZE_FIND_TARGET,
     'lesser'
   );
@@ -93,7 +88,7 @@ export const ListLiveItemRow: React.FC<Props> = ({
   return (
     <div className={styles.row}>
       <ImagesPerView
-        src={item_image?.url || channel_image?.url}
+        candidates={liveArtworkCandidates}
         alt={item.title || tMedia('livestream.livestream_image')}
         widthDesktop={IMAGES.LIST.LIVESTREAMS.DESKTOP.SIZE}
         heightDesktop={IMAGES.LIST.LIVESTREAMS.DESKTOP.SIZE}

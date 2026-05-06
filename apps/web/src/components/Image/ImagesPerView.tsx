@@ -1,12 +1,16 @@
 'use client';
 
 import Link from 'next/link';
-import React from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+
+import { resolveImageCandidates } from '@podverse/helpers';
 
 import { Image } from './Image';
 
 type ImagesPerViewProps = {
-  src: string | undefined | null;
+  src?: string | undefined | null;
+  /** Ordered URLs for load fallback (e.g. shrunken then originals). When omitted, `src` is used alone. */
+  candidates?: string[];
   alt: string;
   widthDesktop: number;
   heightDesktop: number;
@@ -20,6 +24,7 @@ type ImagesPerViewProps = {
 
 export const ImagesPerView: React.FC<ImagesPerViewProps> = ({
   src,
+  candidates,
   alt,
   widthDesktop,
   heightDesktop,
@@ -30,17 +35,47 @@ export const ImagesPerView: React.FC<ImagesPerViewProps> = ({
   href,
   onClick,
 }) => {
+  const chain = useMemo(() => resolveImageCandidates(candidates, src), [candidates, src]);
+  const chainId = useMemo(() => JSON.stringify(chain), [chain]);
+
+  const [attemptIndex, setAttemptIndex] = useState(0);
+  const bumpGate = useRef(false);
+
+  useEffect(() => {
+    setAttemptIndex(0);
+  }, [chainId]);
+
+  const onAttemptFailed = useCallback(() => {
+    if (bumpGate.current) {
+      return;
+    }
+    bumpGate.current = true;
+    setAttemptIndex((i) => i + 1);
+    queueMicrotask(() => {
+      bumpGate.current = false;
+    });
+  }, []);
+
+  const fallbackControl = useMemo(
+    () => ({
+      chain,
+      attemptIndex,
+      onAttemptFailed,
+    }),
+    [chain, attemptIndex, onAttemptFailed]
+  );
+
   const images = (
     <>
       <Image
-        src={src}
+        fallbackControl={fallbackControl}
         alt={alt}
         width={widthDesktop}
         height={heightDesktop}
         className={classNameDesktop}
       />
       <Image
-        src={src}
+        fallbackControl={fallbackControl}
         alt={alt}
         width={widthMobile}
         height={heightMobile}

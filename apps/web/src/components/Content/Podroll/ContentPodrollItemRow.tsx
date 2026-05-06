@@ -1,7 +1,7 @@
 import { useTranslations } from 'next-intl';
 
 import type { DTOItem } from '@podverse/helpers';
-import { findDTOItemImageBySize } from '@podverse/helpers';
+import { buildDTOItemImageLoadCandidates } from '@podverse/helpers';
 
 import { IMAGES } from '../../../constants/images';
 import { WEB } from '../../../constants/web';
@@ -20,7 +20,7 @@ export const ContentPodrollItemRow = ({ item }: ContentPodrollItemRowProps) => {
   }
 
   const tMedia = useTranslations('media');
-  const item_image = findDTOItemImageBySize(
+  const imageCandidates = buildDTOItemImageLoadCandidates(
     item.item_images,
     IMAGES.PODROLL.SQUARE.SIZE_FIND_TARGET,
     'greater'
@@ -35,7 +35,7 @@ export const ContentPodrollItemRow = ({ item }: ContentPodrollItemRowProps) => {
       >
         <Image
           className={styles.image}
-          src={item_image?.url}
+          candidates={imageCandidates}
           alt={item.title || tMedia('image')}
           width={IMAGES.PODROLL.SQUARE.SIZE}
           height={IMAGES.PODROLL.SQUARE.SIZE}

@@ -6,11 +6,7 @@ import React from 'react';
 import { FaGripLines } from 'react-icons/fa6';
 
 import type { DTOChannel, DTOItem } from '@podverse/helpers';
-import {
-  findDTOChannelImageForList,
-  findDTOItemImageForList,
-  getQueueForMedium,
-} from '@podverse/helpers';
+import { getQueueForMedium, mergeDTOItemThenChannelImageCandidates } from '@podverse/helpers';
 import { getShuffleHash } from '@podverse/helpers-requests';
 import { Button } from '@podverse/ui';
 
@@ -62,12 +58,12 @@ export const ListTrackRow: React.FC<Props> = ({
   const router = useRouter();
   const url = `${ROUTES.TRACK}/${item.id_text}`;
   const imageSizeTarget = IMAGES.LIST.TRACKS.DESKTOP.SIZE_FIND_TARGET;
-  const channel_image = findDTOChannelImageForList(
+  const trackArtworkCandidates = mergeDTOItemThenChannelImageCandidates(
+    item.item_images,
     channel.channel_images,
     imageSizeTarget,
     'lesser'
   );
-  const item_image = findDTOItemImageForList(item.item_images, imageSizeTarget, 'lesser');
   const tFeatures = useTranslations('features');
   const tMedia = useTranslations('media');
   const tMediaPlayer = useTranslations('media_player');
@@ -285,7 +281,7 @@ export const ListTrackRow: React.FC<Props> = ({
         className={styles.trackClickable}
       >
         <ImagesPerView
-          src={item_image?.url || channel_image?.url}
+          candidates={trackArtworkCandidates}
           alt={item.title || tMedia('music.track_image')}
           widthDesktop={IMAGES.LIST.TRACKS.DESKTOP.SIZE}
           heightDesktop={IMAGES.LIST.TRACKS.DESKTOP.SIZE}

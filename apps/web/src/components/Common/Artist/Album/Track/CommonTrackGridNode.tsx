@@ -5,7 +5,7 @@ import { useTranslations } from 'next-intl';
 import React from 'react';
 
 import type { DTOChannel, DTOItem } from '@podverse/helpers';
-import { findDTOChannelImageBySize, findDTOItemImageBySize } from '@podverse/helpers';
+import { mergeDTOItemThenChannelImageCandidates } from '@podverse/helpers';
 
 import { IMAGES } from '../../../../../constants/images';
 import { ROUTES } from '../../../../../constants/routes';
@@ -25,13 +25,9 @@ export const CommonTrackListGridNode: React.FC<CommonTrackListGridNodeProps> = (
   showChannelInfo,
 }) => {
   const url = `${ROUTES.TRACK}/${item.id_text}`;
-  const channelImage = findDTOChannelImageBySize(
-    channel.channel_images,
-    IMAGES.LIST.EPISODES.DESKTOP.SIZE_FIND_TARGET,
-    'lesser'
-  );
-  const itemImage = findDTOItemImageBySize(
+  const imageCandidates = mergeDTOItemThenChannelImageCandidates(
     item.item_images,
+    channel.channel_images,
     IMAGES.LIST.EPISODES.DESKTOP.SIZE_FIND_TARGET,
     'lesser'
   );
@@ -42,7 +38,7 @@ export const CommonTrackListGridNode: React.FC<CommonTrackListGridNodeProps> = (
     <Link href={url} className={styles.link}>
       <div className={styles.gridNode}>
         <Image
-          src={itemImage?.url || channelImage?.url}
+          candidates={imageCandidates}
           alt={item.title || tMedia('music.track_image')}
           width={IMAGES.LIST.GRID.SIZE}
           height={IMAGES.LIST.GRID.SIZE}

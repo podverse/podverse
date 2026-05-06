@@ -1,7 +1,7 @@
 import { useTranslations } from 'next-intl';
 
 import type { DTOChannel } from '@podverse/helpers';
-import { findDTOChannelImageBySize } from '@podverse/helpers';
+import { buildDTOChannelImageLoadCandidates } from '@podverse/helpers';
 
 import { IMAGES } from '../../../constants/images';
 import { WEB } from '../../../constants/web';
@@ -20,7 +20,7 @@ export const ContentPodrollChannelRow = ({ channel }: ContentPodrollChannelRowPr
   }
 
   const tMedia = useTranslations('media');
-  const channel_image = findDTOChannelImageBySize(
+  const imageCandidates = buildDTOChannelImageLoadCandidates(
     channel.channel_images,
     IMAGES.PODROLL.SQUARE.SIZE_FIND_TARGET,
     'greater'
@@ -35,7 +35,7 @@ export const ContentPodrollChannelRow = ({ channel }: ContentPodrollChannelRowPr
       >
         <Image
           className={styles.image}
-          src={channel_image?.url}
+          candidates={imageCandidates}
           alt={channel.title || tMedia('image')}
           width={IMAGES.PODROLL.SQUARE.SIZE}
           height={IMAGES.PODROLL.SQUARE.SIZE}

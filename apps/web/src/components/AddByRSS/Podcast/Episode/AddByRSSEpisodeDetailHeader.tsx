@@ -7,6 +7,7 @@ import React, { useMemo } from 'react';
 import { getQueueForMedium } from '@podverse/helpers';
 import { buildAddByRSSResourceData, getAddByRSSHashId } from '@podverse/parser-mapping';
 
+import { IMAGES } from '../../../../constants/images';
 import { useAccount } from '../../../../contexts/Account';
 import { useMediaPlayer } from '../../../../contexts/MediaPlayer';
 import { useModals } from '../../../../contexts/Modals';
@@ -18,6 +19,7 @@ import { getAddByRSSItemPath } from '../../../../utils/addByRSS/itemPath';
 import type { AddByRSSItemIndexItem } from '../../../../utils/addByRSS/types';
 import { downloadAddByRSSMediaWithModal } from '../../../../utils/downloadModal/downloadAddByRSSMediaWithModal';
 import { downloadAndSaveFile } from '../../../../utils/fileDownloader';
+import { itemHeaderSquareArtworkCandidates } from '../../../../utils/image/itemHeaderArtworkCandidates';
 import { CommonItemHeader } from '../../../Common/Item/CommonItemHeader';
 import { showToastPromise, showToastPromiseWithLoading } from '../../../Toast/Toast';
 import { AddByRSSItemHeaderPlaySection } from '../../Item/AddByRSSItemHeaderPlaySection';
@@ -58,7 +60,14 @@ export const AddByRSSEpisodeDetailHeader: React.FC<AddByRSSEpisodeDetailHeaderPr
   const { isLiked, toggle } = useLikesAddByRssBatch(addByRssLikeRows);
   const likeHashId = indexItem ? getAddByRSSHashId(indexItem) : '';
 
-  const itemImageUrl = indexItem?.bundle?.images?.[0]?.url ?? null;
+  const imageCandidates =
+    indexItem?.bundle?.images !== undefined && indexItem.bundle.images.length > 0
+      ? itemHeaderSquareArtworkCandidates(
+          indexItem.bundle.images,
+          IMAGES.HEADER.DESKTOP.SQUARE.SIZE_FIND_TARGET,
+          'lesser'
+        )
+      : [];
 
   const titleNode = (
     <Link href={getAddByRSSItemPath(itemIdText)}>
@@ -226,7 +235,7 @@ export const AddByRSSEpisodeDetailHeader: React.FC<AddByRSSEpisodeDetailHeaderPr
           moreButtonMenuItems={moreButtonMenuItems}
         />
       }
-      imageUrl={itemImageUrl}
+      imageCandidates={imageCandidates}
       imageAlt={title || tMedia('podcast.episode_image')}
     />
   );

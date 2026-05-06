@@ -16,6 +16,7 @@ import {
   unfollowAddByRSSChannelAndClear,
 } from '../../../utils/addByRSS/actions';
 import type { AddByRSSFeedRecord } from '../../../utils/addByRSS/types';
+import { addByRSSChannelHeaderTriple } from '../../../utils/image/addByRSSChannelHeaderCandidates';
 import { getBoostEligibilityForContent } from '../../../utils/value/boostEligibility';
 import { CommonPodcastHeader } from '../../Common/Podcast/CommonPodcastHeader';
 import { CommonPodcastHeaderViewDesktop } from '../../Common/Podcast/CommonPodcastHeaderViewDesktop';
@@ -56,7 +57,13 @@ export const AddByRSSPodcastHeader: React.FC<AddByRSSPodcastHeaderProps> = ({ fe
     channel: boostChannel,
     item: null,
   });
-  const imageUrl = feed.imageUrl ?? feed.mappedFeed?.channel?.images?.[0]?.url ?? undefined;
+  const channelImages = feed.mappedFeed?.channel?.images;
+  const {
+    candidatesMobile,
+    candidatesTablet,
+    candidatesDesktop,
+    primaryUrl: imageUrl,
+  } = addByRSSChannelHeaderTriple(channelImages, feed.imageUrl);
   const detailUrl = `/add-by-rss/podcast/${feed.idText}`;
   const isSubscribed = loggedInAccount?.account_following_add_by_rss_channels?.some(
     (following) => following.feed_url === feedUrl
@@ -164,21 +171,21 @@ export const AddByRSSPodcastHeader: React.FC<AddByRSSPodcastHeaderProps> = ({ fe
   const headerImage = (
     <div className={imageStyles.headerImageWrapper}>
       <Image
-        src={imageUrl}
+        candidates={candidatesMobile}
         alt={title || tMedia('podcast.podcast_image')}
         width={IMAGES.HEADER.MOBILE.SQUARE.SIZE}
         height={IMAGES.HEADER.MOBILE.SQUARE.SIZE}
         className={imageStyles.mobile}
       />
       <Image
-        src={imageUrl}
+        candidates={candidatesTablet}
         alt={title || tMedia('podcast.podcast_image')}
         width={IMAGES.HEADER.TABLET.SQUARE.SIZE}
         height={IMAGES.HEADER.TABLET.SQUARE.SIZE}
         className={imageStyles.tablet}
       />
       <Image
-        src={imageUrl}
+        candidates={candidatesDesktop}
         alt={title || tMedia('podcast.podcast_image')}
         width={IMAGES.HEADER.DESKTOP.SQUARE.SIZE}
         height={IMAGES.HEADER.DESKTOP.SQUARE.SIZE}

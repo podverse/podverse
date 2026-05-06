@@ -10,6 +10,7 @@ import { formatDateAbbrev } from '@podverse/helpers';
 import { IMAGES } from '../../../constants/images';
 import { ROUTES } from '../../../constants/routes';
 import { getApiRequestService } from '../../../factories/apiRequestService';
+import { dedupedTrimmedUrlCandidates } from '../../../utils/image/dedupedTrimmedUrlCandidates';
 import { redirectToChannelPageByMediumClient } from '../../../utils/redirect/redirectToChannelPageByMedium';
 import { Image } from '../../Image/Image';
 import { Link } from '../../Link/Link';
@@ -23,7 +24,10 @@ interface Props {
 const ListSearchResultPodcastIndexFeedRow: React.FC<Props> = ({ searchResultPodcastIndexFeed }) => {
   const apiRequestService = getApiRequestService();
   const router = useRouter();
-  const imageUrl = searchResultPodcastIndexFeed.image || searchResultPodcastIndexFeed.artwork;
+  const feedImageCandidates = dedupedTrimmedUrlCandidates([
+    searchResultPodcastIndexFeed.image,
+    searchResultPodcastIndexFeed.artwork,
+  ]);
   const description = searchResultPodcastIndexFeed.description || '';
   const lastPubDate = searchResultPodcastIndexFeed.newestItemPubdate || null;
   const author = searchResultPodcastIndexFeed.author || null;
@@ -47,7 +51,7 @@ const ListSearchResultPodcastIndexFeedRow: React.FC<Props> = ({ searchResultPodc
     <Link className={styles.link} onClick={handleClick}>
       <div className={styles.listItem}>
         <Image
-          src={imageUrl}
+          candidates={feedImageCandidates}
           alt={searchResultPodcastIndexFeed.title || tMedia('podcast.podcast_image')}
           width={IMAGES.LIST.SEARCH.SIZE}
           height={IMAGES.LIST.SEARCH.SIZE}

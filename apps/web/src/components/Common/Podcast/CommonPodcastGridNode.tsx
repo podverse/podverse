@@ -7,6 +7,7 @@ import React from 'react';
 import { formatDateAbbrev } from '@podverse/helpers';
 
 import { IMAGES } from '../../../constants/images';
+import { listItemImageCandidates } from '../../../utils/image/listItemImageCandidates';
 import { Image } from '../../Image/Image';
 import type { PodcastListItem } from './types';
 
@@ -24,7 +25,7 @@ export const CommonPodcastListGridNode: React.FC<CommonPodcastListGridNodeProps>
     <Link href={item.href} className={styles.link}>
       <div className={styles.gridNode}>
         <Image
-          src={item.imageUrl ?? undefined}
+          candidates={listItemImageCandidates(item)}
           alt={item.title || tMedia('podcast.podcast_image')}
           width={IMAGES.LIST.GRID.SIZE}
           height={IMAGES.LIST.GRID.SIZE}

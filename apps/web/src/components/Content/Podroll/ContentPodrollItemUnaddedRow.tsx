@@ -22,6 +22,10 @@ export const ContentPodrollItemUnaddedRow = ({
 
   const tMedia = useTranslations('media');
   const tMisc = useTranslations('misc');
+  const imageCandidates =
+    typeof itemUnadded.image === 'string' && itemUnadded.image.trim() !== ''
+      ? [itemUnadded.image.trim()]
+      : [];
 
   return (
     <div className={styles.row}>
@@ -32,7 +36,7 @@ export const ContentPodrollItemUnaddedRow = ({
       >
         <Image
           className={styles.image}
-          src={itemUnadded.image}
+          candidates={imageCandidates}
           alt={itemUnadded.title || tMedia('image')}
           width={IMAGES.PODROLL.SQUARE.SIZE}
           height={IMAGES.PODROLL.SQUARE.SIZE}

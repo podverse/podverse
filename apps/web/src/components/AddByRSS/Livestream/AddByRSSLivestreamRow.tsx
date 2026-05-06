@@ -19,6 +19,7 @@ import { useMediaPlayer } from '../../../contexts/MediaPlayer';
 import { usePlayAddByRSS } from '../../../hooks/usePlayAddByRSS';
 import { getAddByRSSLivestreamPath } from '../../../utils/addByRSS/itemPath';
 import type { AddByRSSLivestreamIndexItem } from '../../../utils/addByRSS/types';
+import { dedupedTrimmedUrlCandidates } from '../../../utils/image/dedupedTrimmedUrlCandidates';
 import { ImagesPerView } from '../../Image/ImagesPerView';
 import { LiveItemStatus } from '../../LiveItem/LiveItemStatus';
 import { PlayButtonRow } from '../../MediaPlayer/Buttons/PlayButtonRow';
@@ -51,7 +52,7 @@ export const AddByRSSLivestreamRow: React.FC<AddByRSSLivestreamRowProps> = ({
   const description = showChannelInfo
     ? item.channelTitle
     : stripAndDecodeHtml(item.item.description ?? '');
-  const imageUrl = item.item.image ?? item.channelImageUrl ?? undefined;
+  const imageCandidates = dedupedTrimmedUrlCandidates([item.item.image, item.channelImageUrl]);
   const liveStatusId = item.liveItem.live_item_status ?? LiveItemStatusEnum.Pending;
   const startTimeRaw = item.liveItem.start_time;
   const endTimeRaw = item.liveItem.end_time ?? null;
@@ -82,7 +83,7 @@ export const AddByRSSLivestreamRow: React.FC<AddByRSSLivestreamRowProps> = ({
   return (
     <div className={styles.row}>
       <ImagesPerView
-        src={imageUrl}
+        candidates={imageCandidates}
         alt={title || tMedia('livestream.livestream_image')}
         widthDesktop={IMAGES.LIST.LIVESTREAMS.DESKTOP.SIZE}
         heightDesktop={IMAGES.LIST.LIVESTREAMS.DESKTOP.SIZE}

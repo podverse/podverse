@@ -3,7 +3,7 @@
 import React from 'react';
 
 import type { DTOChannel } from '@podverse/helpers';
-import { findDTOChannelImageBySize } from '@podverse/helpers';
+import { buildDTOChannelImageLoadCandidates } from '@podverse/helpers';
 
 import { IMAGES } from '../../../constants/images';
 import { ROUTES } from '../../../constants/routes';
@@ -16,7 +16,7 @@ interface Props {
 
 export const CoreArtistRow: React.FC<Props> = ({ channel }) => {
   const url = `${ROUTES.ARTIST}/${channel.id_text}`;
-  const channelImage = findDTOChannelImageBySize(
+  const imageCandidates = buildDTOChannelImageLoadCandidates(
     channel.channel_images,
     IMAGES.LIST.PODCASTS.SIZE_FIND_TARGET,
     'lesser'
@@ -25,7 +25,7 @@ export const CoreArtistRow: React.FC<Props> = ({ channel }) => {
   const item: ArtistListItem = {
     id: String(channel.id),
     title: channel.title ?? '',
-    imageUrl: channelImage?.url,
+    imageCandidates,
     href: url,
     subtitle: channel.channel_about?.author ?? null,
     showSubtitle: Boolean(channel.channel_about?.last_pub_date),

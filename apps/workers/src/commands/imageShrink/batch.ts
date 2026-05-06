@@ -3,6 +3,7 @@ import {
   bytesMatchStoredChecksum,
   trustHeadUnchanged,
 } from '@workers/commands/imageShrink/changeDetection.js';
+import { existingEntityForResizedSave } from '@workers/commands/imageShrink/existingEntityForResizedSave.js';
 import {
   getImageShrinkConfig,
   getImageShrinkStorageConfig,
@@ -251,9 +252,11 @@ export const createImageShrinkProcessor = (): ImageShrinkProcessor => {
       is_resized: true,
     };
     if (persisted.entityType === 'channel') {
-      await channelImageService._update(persisted.parent, [], dto, undefined, persisted.row);
+      const existingResized = existingEntityForResizedSave(persisted.row);
+      await channelImageService._update(persisted.parent, ['url'], dto, undefined, existingResized);
     } else {
-      await itemImageService._update(persisted.parent, [], dto, undefined, persisted.row);
+      const existingResized = existingEntityForResizedSave(persisted.row);
+      await itemImageService._update(persisted.parent, ['url'], dto, undefined, existingResized);
     }
   };
 

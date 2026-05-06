@@ -4,7 +4,11 @@ import { useRouter } from 'next/navigation';
 import { useLocale, useTranslations } from 'next-intl';
 import React from 'react';
 
-import { formatDateAbbrev } from '@podverse/helpers';
+import {
+  buildDTOChannelImageLoadCandidates,
+  formatDateAbbrev,
+  prependDistinctImageCandidate,
+} from '@podverse/helpers';
 
 import { AddByRSSAlbumPageClient } from '../../../app/add-by-rss/album/AddByRSSAlbumPageClient';
 import { AddByRSSPodcastPageDetailClient } from '../../../app/add-by-rss/podcast/AddByRSSPodcastPageDetailClient';
@@ -109,7 +113,15 @@ export const AddByRSSDetailClient: React.FC<AddByRSSDetailClientProps> = ({
   const mappedFeed = feed.mappedFeed;
   const mappedChannel = mappedFeed?.channel;
   const feedTitle = mappedChannel?.channel?.title ?? feed.title ?? feed.feedUrl;
-  const feedImageUrl = feed.imageUrl ?? mappedChannel?.images?.[0]?.url ?? undefined;
+  const channelImages = mappedChannel?.images;
+  const feedImageCandidates = prependDistinctImageCandidate(
+    feed.imageUrl,
+    buildDTOChannelImageLoadCandidates(
+      channelImages,
+      IMAGES.LIST.PODCASTS.SIZE_FIND_TARGET,
+      'lesser'
+    )
+  );
   const feedDescription = mappedChannel?.description?.value ?? null;
   const items: AddByRSSMappedFeed['items'] = mappedFeed?.items ?? [];
   const itemsLabel = (() => {
@@ -144,7 +156,7 @@ export const AddByRSSDetailClient: React.FC<AddByRSSDetailClientProps> = ({
             {headerNode ?? (
               <section className={styles.feedHeader}>
                 <Image
-                  src={feedImageUrl}
+                  candidates={feedImageCandidates}
                   alt={feedTitle || tMedia('podcast.podcast_image')}
                   width={IMAGES.LIST.PODCASTS.SIZE}
                   height={IMAGES.LIST.PODCASTS.SIZE}

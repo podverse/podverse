@@ -2,7 +2,10 @@ import { useTranslations } from 'next-intl';
 import React from 'react';
 
 import type { DTOChannel, DTOItem, DTOItemSoundbite } from '@podverse/helpers';
-import { findDTOChannelImageBySize, findDTOItemImageBySize } from '@podverse/helpers';
+import {
+  buildDTOChannelImageLoadCandidates,
+  mergeDTOItemThenChannelImageCandidates,
+} from '@podverse/helpers';
 
 import { IMAGES } from '../../constants/images';
 import { Image } from '../Image/Image';
@@ -21,17 +24,16 @@ export const MediaHeaderMini: React.FC<MediaHeaderMiniProps> = ({
   item_soundbite,
 }) => {
   const tMisc = useTranslations('misc');
-  const channel_image = findDTOChannelImageBySize(
-    channel.channel_images,
-    IMAGES.MEDIA_HEADER_MINI.SQUARE.SIZE_FIND_TARGET,
-    'greater'
-  );
-  const item_image = findDTOItemImageBySize(
-    item?.item_images,
-    IMAGES.MEDIA_HEADER_MINI.SQUARE.SIZE_FIND_TARGET,
-    'greater'
-  );
-  const image_url = item_image?.url || channel_image?.url;
+  const target = IMAGES.MEDIA_HEADER_MINI.SQUARE.SIZE_FIND_TARGET;
+  const comparison = 'greater' as const;
+  const imageCandidates = item
+    ? mergeDTOItemThenChannelImageCandidates(
+        item.item_images,
+        channel.channel_images,
+        target,
+        comparison
+      )
+    : buildDTOChannelImageLoadCandidates(channel.channel_images, target, comparison);
 
   let title: string;
   let subtitle: string;
@@ -51,7 +53,7 @@ export const MediaHeaderMini: React.FC<MediaHeaderMiniProps> = ({
     <header className={styles.header}>
       <Image
         className={styles.image}
-        src={image_url}
+        candidates={imageCandidates}
         alt={subtitle ? `${title} - ${subtitle}` : title}
         width={IMAGES.MEDIA_HEADER_MINI.SQUARE.SIZE}
         height={IMAGES.MEDIA_HEADER_MINI.SQUARE.SIZE}

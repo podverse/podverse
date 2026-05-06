@@ -11,6 +11,7 @@ import { Button } from '@podverse/ui';
 import { IMAGES } from '../../../constants/images';
 import { useQueues } from '../../../contexts/Queue';
 import { getApiRequestService } from '../../../factories/apiRequestService';
+import { addByRSSResourceMergedArtworkCandidates } from '../../../utils/image/addByRSSResourceArtworkCandidates';
 import { ImagesPerView } from '../../Image/ImagesPerView';
 import { MoreButton } from '../../MoreButton/MoreButton';
 import { ReadableDate } from '../../Time/ReadableDate';
@@ -51,12 +52,18 @@ export const ListQueueResourceRow: React.FC<Props> = ({
       ? tFeatures('add_by_rss.private_item_placeholder')
       : (resourceData?.title ?? 'Add-by-RSS');
 
-    // Extract image URL (item image takes priority over channel image)
-    const imageUrl = !is_add_by_rss_redacted
-      ? resourceData?.item_images?.[0]?.url ||
-        resourceData?.channel_images?.[0]?.url ||
-        (resourceData?.channel_image_url as string | undefined)
-      : undefined;
+    const mediumId = resourceData?.medium_id as number | undefined;
+    const isMusic = mediumId === MediumEnum.Music;
+
+    const imageCandidates = !is_add_by_rss_redacted
+      ? addByRSSResourceMergedArtworkCandidates(
+          resourceData,
+          isMusic
+            ? IMAGES.LIST.TRACKS.DESKTOP.SIZE_FIND_TARGET
+            : IMAGES.LIST.EPISODES.DESKTOP.SIZE_FIND_TARGET,
+          'lesser'
+        )
+      : [];
 
     // Extract other metadata
     const channelTitle = !is_add_by_rss_redacted
@@ -68,8 +75,6 @@ export const ListQueueResourceRow: React.FC<Props> = ({
     const duration = !is_add_by_rss_redacted
       ? (resourceData?.duration as number | undefined)
       : undefined;
-    const mediumId = resourceData?.medium_id as number | undefined;
-    const isMusic = mediumId === MediumEnum.Music;
 
     const removeFromQueueOnClick = async () => {
       if (!activeQueue?.id_text) return;
@@ -106,7 +111,7 @@ export const ListQueueResourceRow: React.FC<Props> = ({
           )}
           <Button variant="unstyled" className={styles.trackClickable} onClick={onPlayAndRemove}>
             <ImagesPerView
-              src={imageUrl}
+              candidates={imageCandidates}
               alt={addByRSSTitle}
               widthDesktop={IMAGES.LIST.TRACKS.DESKTOP.SIZE}
               heightDesktop={IMAGES.LIST.TRACKS.DESKTOP.SIZE}
@@ -138,7 +143,7 @@ export const ListQueueResourceRow: React.FC<Props> = ({
           </div>
         )}
         <ImagesPerView
-          src={imageUrl}
+          candidates={imageCandidates}
           alt={addByRSSTitle}
           widthDesktop={IMAGES.LIST.EPISODES.DESKTOP.SIZE}
           heightDesktop={IMAGES.LIST.EPISODES.DESKTOP.SIZE}

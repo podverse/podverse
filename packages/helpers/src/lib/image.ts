@@ -1,8 +1,19 @@
 type ItemImagePartial = {
-  image_width_size: number | null;
+  /** Stored payloads may omit width; treat like null in sizing helpers. */
+  image_width_size: number | null | undefined;
   url: string;
   is_resized?: boolean;
 };
+
+function itemImageHasNumericWidth(
+  image: ItemImagePartial
+): image is ItemImagePartial & { image_width_size: number } {
+  return typeof image.image_width_size === 'number';
+}
+
+function itemImageWidthUnset(image: ItemImagePartial): boolean {
+  return image.image_width_size === null || image.image_width_size === undefined;
+}
 
 type Comparison = 'greater' | 'lesser' | null;
 type AllowedExtension = 'png' | 'jpg' | 'gif' | 'jpeg' | 'webp';
@@ -56,6 +67,192 @@ export function findDTOItemImageForList(
     return null;
   }
   return findImageBySizePreferResized(itemImages, size, comparison, allowedExtensions);
+}
+
+function pushDistinctUrl(urls: string[], seen: Set<string>, url: string | null | undefined) {
+  if (url === null || url === undefined || url.trim() === '') {
+    return;
+  }
+  if (seen.has(url)) {
+    return;
+  }
+  seen.add(url);
+  urls.push(url);
+}
+
+/** Non-resized URLs: best {@link findImageBySize} pick first, then remaining by descending numeric width, unset width last. */
+function orderNonResizedUrlsForFallbackChain(
+  nonResized: ItemImagePartial[],
+  size: number | 'largest' | 'smallest',
+  comparison: Comparison,
+  allowedExtensions: AllowedExtension[]
+): string[] {
+  const best = findImageBySize(nonResized, size, comparison, allowedExtensions);
+  const rest = best === null ? nonResized : nonResized.filter((img) => img.url !== best.url);
+  const sortedRest = [...rest].sort((a, b) => {
+    const wa = a.image_width_size;
+    const wb = b.image_width_size;
+    const aUnset = wa === null || wa === undefined;
+    const bUnset = wb === null || wb === undefined;
+    if (aUnset && bUnset) {
+      return a.url.localeCompare(b.url);
+    }
+    if (aUnset) {
+      return 1;
+    }
+    if (bUnset) {
+      return -1;
+    }
+    if (wa !== wb) {
+      return wb - wa;
+    }
+    return a.url.localeCompare(b.url);
+  });
+  const urls: string[] = [];
+  if (best !== null) {
+    urls.push(best.url);
+  }
+  for (const img of sortedRest) {
+    urls.push(img.url);
+  }
+  return urls;
+}
+
+function buildDTOImageLoadCandidates(
+  images: ItemImagePartial[] | null | undefined,
+  size: number | 'largest' | 'smallest',
+  comparison: Comparison,
+  allowedExtensions: AllowedExtension[],
+  findForList: (
+    imgs: ItemImagePartial[] | null | undefined,
+    sz: number | 'largest' | 'smallest',
+    cmp: Comparison,
+    ext: AllowedExtension[]
+  ) => ItemImagePartial | null
+): string[] {
+  if (!images || images.length === 0) {
+    return [];
+  }
+
+  const normalized = images.map((img) => ({
+    ...img,
+    image_width_size: img.image_width_size ?? null,
+  }));
+
+  const seen = new Set<string>();
+  const out: string[] = [];
+
+  const primary = findForList(normalized, size, comparison, allowedExtensions);
+  pushDistinctUrl(out, seen, primary?.url);
+
+  const nonResized = normalized.filter((image) => image.is_resized !== true);
+  if (nonResized.length > 0) {
+    for (const url of orderNonResizedUrlsForFallbackChain(
+      nonResized,
+      size,
+      comparison,
+      allowedExtensions
+    )) {
+      pushDistinctUrl(out, seen, url);
+    }
+  }
+
+  const fullSetBest = findImageBySize(normalized, size, comparison, allowedExtensions);
+  pushDistinctUrl(out, seen, fullSetBest?.url);
+
+  return out;
+}
+
+/** Ordered URLs for client-side load fallback: list preference first, then native-sized, then full-set best. */
+export function buildDTOItemImageLoadCandidates(
+  itemImages: ItemImagePartial[] | null | undefined,
+  size: number | 'largest' | 'smallest',
+  comparison: Comparison = null,
+  allowedExtensions: AllowedExtension[] = ['png', 'jpg', 'webp']
+): string[] {
+  return buildDTOImageLoadCandidates(
+    itemImages,
+    size,
+    comparison,
+    allowedExtensions,
+    findDTOItemImageForList
+  );
+}
+
+/** Same as {@link buildDTOItemImageLoadCandidates} for channel artwork rows. */
+export function buildDTOChannelImageLoadCandidates(
+  channelImages: ItemImagePartial[] | null | undefined,
+  size: number | 'largest' | 'smallest',
+  comparison: Comparison = null,
+  allowedExtensions: AllowedExtension[] = ['png', 'jpg', 'webp']
+): string[] {
+  return buildDTOImageLoadCandidates(
+    channelImages,
+    size,
+    comparison,
+    allowedExtensions,
+    findDTOChannelImageForList
+  );
+}
+
+/**
+ * Item artwork candidates first (episode/track cover), then podcast/channel artwork — deduped in order.
+ * Matches UI that prefers `item_image?.url || channel_image?.url`.
+ */
+export function mergeDTOItemThenChannelImageCandidates(
+  itemImages: ItemImagePartial[] | null | undefined,
+  channelImages: ItemImagePartial[] | null | undefined,
+  size: number | 'largest' | 'smallest',
+  comparison: Comparison = null,
+  allowedExtensions: AllowedExtension[] = ['png', 'jpg', 'webp']
+): string[] {
+  const seen = new Set<string>();
+  const out: string[] = [];
+  for (const url of buildDTOItemImageLoadCandidates(
+    itemImages,
+    size,
+    comparison,
+    allowedExtensions
+  )) {
+    pushDistinctUrl(out, seen, url);
+  }
+  for (const url of buildDTOChannelImageLoadCandidates(
+    channelImages,
+    size,
+    comparison,
+    allowedExtensions
+  )) {
+    pushDistinctUrl(out, seen, url);
+  }
+  return out;
+}
+
+/** Put `prefixUrl` first when present; omit duplicates already in `candidates`. */
+export function prependDistinctImageCandidate(
+  prefixUrl: string | null | undefined,
+  candidates: string[]
+): string[] {
+  const trimmed = prefixUrl?.trim();
+  if (!trimmed) {
+    return candidates;
+  }
+  const rest = candidates.filter((url) => url !== trimmed);
+  return [trimmed, ...rest];
+}
+
+/** Append `suffixUrl` last when present and not already in `candidates`. */
+export function appendDistinctImageCandidate(
+  suffixUrl: string | null | undefined,
+  candidates: string[]
+): string[] {
+  const trimmed = suffixUrl?.trim();
+  if (!trimmed) {
+    return candidates;
+  }
+  if (candidates.includes(trimmed)) {
+    return candidates;
+  }
+  return [...candidates, trimmed];
 }
 
 function findImageBySizePreferResized(
@@ -123,7 +320,7 @@ function findImageBySizeWithTieBreak(
 
   if (size === 'largest') {
     const filtered = itemImages
-      .filter((image) => image.image_width_size !== null && isValidExtension(image.url))
+      .filter((image) => itemImageHasNumericWidth(image) && isValidExtension(image.url))
       .sort(sortDesc);
     if (filtered.length > 0 && filtered[0]) {
       return filtered[0];
@@ -131,7 +328,7 @@ function findImageBySizeWithTieBreak(
   }
   if (size === 'smallest') {
     const filtered = itemImages
-      .filter((image) => image.image_width_size !== null && isValidExtension(image.url))
+      .filter((image) => itemImageHasNumericWidth(image) && isValidExtension(image.url))
       .sort(sortAsc);
     if (filtered.length > 0 && filtered[0]) {
       return filtered[0];
@@ -148,7 +345,7 @@ function findImageBySizeWithTieBreak(
     filteredImages = itemImages
       .filter(
         (image) =>
-          image.image_width_size !== null &&
+          itemImageHasNumericWidth(image) &&
           image.image_width_size >= size &&
           isValidExtension(image.url)
       )
@@ -157,7 +354,7 @@ function findImageBySizeWithTieBreak(
     filteredImages = itemImages
       .filter(
         (image) =>
-          image.image_width_size !== null &&
+          itemImageHasNumericWidth(image) &&
           image.image_width_size <= size &&
           isValidExtension(image.url)
       )
@@ -172,7 +369,7 @@ function findImageBySizeWithTieBreak(
     filteredImages = itemImages
       .filter(
         (image) =>
-          image.image_width_size !== null &&
+          itemImageHasNumericWidth(image) &&
           image.image_width_size < size &&
           isValidExtension(image.url)
       )
@@ -181,7 +378,7 @@ function findImageBySizeWithTieBreak(
     filteredImages = itemImages
       .filter(
         (image) =>
-          image.image_width_size !== null &&
+          itemImageHasNumericWidth(image) &&
           image.image_width_size > size &&
           isValidExtension(image.url)
       )
@@ -193,7 +390,7 @@ function findImageBySizeWithTieBreak(
   }
 
   const nullSizeImage = itemImages.find(
-    (image) => image.image_width_size === null && isValidExtension(image.url)
+    (image) => itemImageWidthUnset(image) && isValidExtension(image.url)
   );
   if (nullSizeImage) {
     return nullSizeImage;
@@ -234,14 +431,14 @@ export function findImageBySize(
 
   if (size === 'largest') {
     const filtered = itemImages
-      .filter((image) => image.image_width_size !== null && isValidExtension(image.url))
+      .filter((image) => itemImageHasNumericWidth(image) && isValidExtension(image.url))
       .sort((a, b) => (b.image_width_size ?? 0) - (a.image_width_size ?? 0));
     if (filtered.length > 0 && filtered[0]) {
       return filtered[0];
     }
 
     const nullSizeImage = itemImages.find(
-      (image) => image.image_width_size === null && isValidExtension(image.url)
+      (image) => itemImageWidthUnset(image) && isValidExtension(image.url)
     );
     if (nullSizeImage) {
       return nullSizeImage;
@@ -253,14 +450,14 @@ export function findImageBySize(
   }
   if (size === 'smallest') {
     const filtered = itemImages
-      .filter((image) => image.image_width_size !== null && isValidExtension(image.url))
+      .filter((image) => itemImageHasNumericWidth(image) && isValidExtension(image.url))
       .sort((a, b) => (a.image_width_size ?? 0) - (b.image_width_size ?? 0));
     if (filtered.length > 0 && filtered[0]) {
       return filtered[0];
     }
 
     const nullSizeImage = itemImages.find(
-      (image) => image.image_width_size === null && isValidExtension(image.url)
+      (image) => itemImageWidthUnset(image) && isValidExtension(image.url)
     );
     if (nullSizeImage) {
       return nullSizeImage;
@@ -277,7 +474,7 @@ export function findImageBySize(
     filteredImages = itemImages
       .filter(
         (image) =>
-          image.image_width_size !== null &&
+          itemImageHasNumericWidth(image) &&
           image.image_width_size >= size &&
           isValidExtension(image.url)
       )
@@ -286,7 +483,7 @@ export function findImageBySize(
     filteredImages = itemImages
       .filter(
         (image) =>
-          image.image_width_size !== null &&
+          itemImageHasNumericWidth(image) &&
           image.image_width_size <= size &&
           isValidExtension(image.url)
       )
@@ -301,7 +498,7 @@ export function findImageBySize(
     filteredImages = itemImages
       .filter(
         (image) =>
-          image.image_width_size !== null &&
+          itemImageHasNumericWidth(image) &&
           image.image_width_size < size &&
           isValidExtension(image.url)
       )
@@ -310,7 +507,7 @@ export function findImageBySize(
     filteredImages = itemImages
       .filter(
         (image) =>
-          image.image_width_size !== null &&
+          itemImageHasNumericWidth(image) &&
           image.image_width_size > size &&
           isValidExtension(image.url)
       )
@@ -322,7 +519,7 @@ export function findImageBySize(
   }
 
   const nullSizeImage = itemImages.find(
-    (image) => image.image_width_size === null && isValidExtension(image.url)
+    (image) => itemImageWidthUnset(image) && isValidExtension(image.url)
   );
   if (nullSizeImage) {
     return nullSizeImage;

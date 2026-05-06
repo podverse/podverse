@@ -6,9 +6,8 @@ import React from 'react';
 import { FaGripLines } from 'react-icons/fa6';
 
 import {
-  findDTOChannelImageBySize,
-  findDTOItemImageBySize,
   getQueueForMedium,
+  mergeDTOItemThenChannelImageCandidates,
   stripAndDecodeHtml,
 } from '@podverse/helpers';
 import { getShuffleHash } from '@podverse/helpers-requests';
@@ -48,13 +47,9 @@ export const CommonEpisodeListRow: React.FC<EpisodeListRowProps> = ({
 }) => {
   const apiRequestService = getApiRequestService();
   const url = `${ROUTES.EPISODE}/${item.id_text}`;
-  const channelImage = findDTOChannelImageBySize(
-    channel.channel_images,
-    IMAGES.LIST.EPISODES.DESKTOP.SIZE_FIND_TARGET,
-    'lesser'
-  );
-  const itemImage = findDTOItemImageBySize(
+  const episodeArtworkCandidates = mergeDTOItemThenChannelImageCandidates(
     item.item_images,
+    channel.channel_images,
     IMAGES.LIST.EPISODES.DESKTOP.SIZE_FIND_TARGET,
     'lesser'
   );
@@ -266,7 +261,7 @@ export const CommonEpisodeListRow: React.FC<EpisodeListRowProps> = ({
         </div>
       )}
       <ImagesPerView
-        src={itemImage?.url || channelImage?.url}
+        candidates={episodeArtworkCandidates}
         alt={item.title || tMedia('podcast.episode_image')}
         widthDesktop={IMAGES.LIST.EPISODES.DESKTOP.SIZE}
         heightDesktop={IMAGES.LIST.EPISODES.DESKTOP.SIZE}

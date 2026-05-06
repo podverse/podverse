@@ -4,10 +4,10 @@ import { useTranslations } from 'next-intl';
 import React from 'react';
 
 import type { DTOChannel, DTOClip, DTOItem } from '@podverse/helpers';
-import { findDTOItemImageBySize } from '@podverse/helpers';
 
 import { IMAGES } from '../../../constants/images';
 import { ROUTES } from '../../../constants/routes';
+import { itemHeaderSquareArtworkCandidates } from '../../../utils/image/itemHeaderArtworkCandidates';
 import { CommonItemHeader } from '../../Common/Item/CommonItemHeader';
 import { Link } from '../../Link/Link';
 import { ClipHeaderPlaySection } from './ClipHeaderPlaySection';
@@ -22,13 +22,11 @@ type ClipHeaderProps = {
 
 export const ClipHeader: React.FC<ClipHeaderProps> = ({ clip, item, channel }) => {
   const tMedia = useTranslations('media');
-  const itemImage =
-    findDTOItemImageBySize(
-      item.item_images,
-      IMAGES.HEADER.DESKTOP.SQUARE.SIZE_FIND_TARGET,
-      'lesser'
-    ) ?? item.item_images?.[0];
-  const itemImageUrl = itemImage?.url ?? null;
+  const imageCandidates = itemHeaderSquareArtworkCandidates(
+    item.item_images,
+    IMAGES.HEADER.DESKTOP.SQUARE.SIZE_FIND_TARGET,
+    'lesser'
+  );
 
   const titleNode = (
     <>
@@ -43,7 +41,7 @@ export const ClipHeader: React.FC<ClipHeaderProps> = ({ clip, item, channel }) =
     <CommonItemHeader
       titleNode={titleNode}
       playSectionNode={<ClipHeaderPlaySection item={item} channel={channel} clip={clip} />}
-      imageUrl={itemImageUrl}
+      imageCandidates={imageCandidates}
       imageAlt={item.title || tMedia('podcast.episode_image')}
     />
   );

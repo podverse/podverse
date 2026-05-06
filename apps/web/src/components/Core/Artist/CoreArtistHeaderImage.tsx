@@ -3,12 +3,8 @@
 import { useTranslations } from 'next-intl';
 
 import type { DTOChannel } from '@podverse/helpers';
-import { findDTOChannelImageBySize } from '@podverse/helpers';
 
-import { IMAGES } from '../../../constants/images';
-import { Image } from '../../Image/Image';
-
-import styles from '../../../styles/components/Common/Media/Podcast/PodcastHeaderImage.module.scss';
+import { CommonChannelHeaderImage } from '../../Common/Media/CommonChannelHeaderImage';
 
 type CoreArtistHeaderImageProps = {
   channel: DTOChannel;
@@ -17,45 +13,10 @@ type CoreArtistHeaderImageProps = {
 export const CoreArtistHeaderImage = ({ channel }: CoreArtistHeaderImageProps) => {
   const tMedia = useTranslations('media');
 
-  const imageMobile = findDTOChannelImageBySize(
-    channel.channel_images,
-    IMAGES.HEADER.MOBILE.SQUARE.SIZE_FIND_TARGET,
-    'greater'
-  );
-  const imageTablet = findDTOChannelImageBySize(
-    channel.channel_images,
-    IMAGES.HEADER.TABLET.SQUARE.SIZE_FIND_TARGET,
-    'greater'
-  );
-  const imageDesktop = findDTOChannelImageBySize(
-    channel.channel_images,
-    IMAGES.HEADER.DESKTOP.SQUARE.SIZE_FIND_TARGET,
-    'greater'
-  );
-
   return (
-    <div className={styles.headerImageWrapper}>
-      <Image
-        src={imageMobile?.url}
-        alt={channel.title || tMedia('music.artist_image')}
-        width={IMAGES.HEADER.MOBILE.SQUARE.SIZE}
-        height={IMAGES.HEADER.MOBILE.SQUARE.SIZE}
-        className={styles.mobile}
-      />
-      <Image
-        src={imageTablet?.url}
-        alt={channel.title || tMedia('music.artist_image')}
-        width={IMAGES.HEADER.TABLET.SQUARE.SIZE}
-        height={IMAGES.HEADER.TABLET.SQUARE.SIZE}
-        className={styles.tablet}
-      />
-      <Image
-        src={imageDesktop?.url}
-        alt={channel.title || tMedia('music.artist_image')}
-        width={IMAGES.HEADER.DESKTOP.SQUARE.SIZE}
-        height={IMAGES.HEADER.DESKTOP.SQUARE.SIZE}
-        className={styles.desktop}
-      />
-    </div>
+    <CommonChannelHeaderImage
+      channel={channel}
+      alt={channel.title || tMedia('music.artist_image')}
+    />
   );
 };

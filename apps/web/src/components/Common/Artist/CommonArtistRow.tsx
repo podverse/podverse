@@ -5,6 +5,7 @@ import { useTranslations } from 'next-intl';
 import React from 'react';
 
 import { IMAGES } from '../../../constants/images';
+import { listItemImageCandidates } from '../../../utils/image/listItemImageCandidates';
 import { Image } from '../../Image/Image';
 import type { ArtistListItem } from './types';
 
@@ -23,7 +24,7 @@ export const CommonArtistListRow: React.FC<CommonArtistListRowProps> = ({ item }
     <Link href={item.href} className={styles.link}>
       <div className={styles.listItem}>
         <Image
-          src={item.imageUrl ?? undefined}
+          candidates={listItemImageCandidates(item)}
           alt={item.title || tMedia('music.artist_image')}
           width={IMAGES.LIST.ARTISTS.SIZE}
           height={IMAGES.LIST.ARTISTS.SIZE}

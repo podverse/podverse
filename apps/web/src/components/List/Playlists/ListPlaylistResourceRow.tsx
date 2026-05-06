@@ -22,6 +22,7 @@ import { getAddByRSSItemPath } from '../../../utils/addByRSS/itemPath';
 import { loadAddByRSSIndexItemFromResourceData } from '../../../utils/addByRSS/playFromQueueResource';
 import { downloadAddByRSSMediaWithModal } from '../../../utils/downloadModal/downloadAddByRSSMediaWithModal';
 import { downloadAndSaveFile } from '../../../utils/fileDownloader';
+import { addByRSSResourceMergedArtworkCandidates } from '../../../utils/image/addByRSSResourceArtworkCandidates';
 import { ImagesPerView } from '../../Image/ImagesPerView';
 import type { MoreButtonMenuItem } from '../../MoreButton/MoreButton';
 import { MoreButton } from '../../MoreButton/MoreButton';
@@ -71,13 +72,19 @@ export const ListPlaylistResourceRow: React.FC<Props> = ({
       ? tFeatures('add_by_rss.private_item_placeholder')
       : (resourceData?.title ?? 'Add-by-RSS');
 
-    const imageUrl = !is_add_by_rss_redacted
-      ? resourceData?.item_images?.[0]?.url ||
-        resourceData?.channel_images?.[0]?.url ||
-        (typeof resourceData?.channel_image_url === 'string'
-          ? resourceData.channel_image_url
-          : undefined)
-      : undefined;
+    const mediumId =
+      typeof resourceData?.medium_id === 'number' ? resourceData.medium_id : undefined;
+    const isMusic = mediumId === MediumEnum.Music;
+
+    const imageCandidates = !is_add_by_rss_redacted
+      ? addByRSSResourceMergedArtworkCandidates(
+          resourceData,
+          isMusic
+            ? IMAGES.LIST.TRACKS.DESKTOP.SIZE_FIND_TARGET
+            : IMAGES.LIST.EPISODES.DESKTOP.SIZE_FIND_TARGET,
+          'lesser'
+        )
+      : [];
     const channelTitle = !is_add_by_rss_redacted
       ? typeof resourceData?.channel_title === 'string'
         ? resourceData.channel_title
@@ -97,9 +104,6 @@ export const ListPlaylistResourceRow: React.FC<Props> = ({
           ? Number.parseFloat(resourceData.duration)
           : undefined
       : undefined;
-    const mediumId =
-      typeof resourceData?.medium_id === 'number' ? resourceData.medium_id : undefined;
-    const isMusic = mediumId === MediumEnum.Music;
 
     const queue =
       loggedInAccount && mediumId !== null && mediumId !== undefined
@@ -259,7 +263,7 @@ export const ListPlaylistResourceRow: React.FC<Props> = ({
           )}
           <Button variant="unstyled" className={styles.trackClickable} onClick={onPlay}>
             <ImagesPerView
-              src={imageUrl}
+              candidates={imageCandidates}
               alt={addByRSSTitle}
               widthDesktop={IMAGES.LIST.TRACKS.DESKTOP.SIZE}
               heightDesktop={IMAGES.LIST.TRACKS.DESKTOP.SIZE}
@@ -290,7 +294,7 @@ export const ListPlaylistResourceRow: React.FC<Props> = ({
           </div>
         )}
         <ImagesPerView
-          src={imageUrl}
+          candidates={imageCandidates}
           alt={addByRSSTitle}
           widthDesktop={IMAGES.LIST.EPISODES.DESKTOP.SIZE}
           heightDesktop={IMAGES.LIST.EPISODES.DESKTOP.SIZE}

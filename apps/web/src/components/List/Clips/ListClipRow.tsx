@@ -6,11 +6,7 @@ import React from 'react';
 import { FaGripLines } from 'react-icons/fa6';
 
 import type { DTOChannel, DTOClip, DTOItem } from '@podverse/helpers';
-import {
-  findDTOChannelImageForList,
-  findDTOItemImageForList,
-  getQueueForMedium,
-} from '@podverse/helpers';
+import { getQueueForMedium, mergeDTOItemThenChannelImageCandidates } from '@podverse/helpers';
 import { getShuffleHash } from '@podverse/helpers-requests';
 
 import { IMAGES } from '../../../constants/images';
@@ -71,13 +67,9 @@ export const ListClipRow: React.FC<Props> = ({
   const channel_images = channel?.channel_images;
   const item_images = item?.item_images;
 
-  const channel_image = findDTOChannelImageForList(
-    channel_images,
-    IMAGES.LIST.CLIPS.SIZE_FIND_TARGET,
-    'lesser'
-  );
-  const item_image = findDTOItemImageForList(
+  const clipArtworkCandidates = mergeDTOItemThenChannelImageCandidates(
     item_images,
+    channel_images,
     IMAGES.LIST.CLIPS.SIZE_FIND_TARGET,
     'lesser'
   );
@@ -297,7 +289,7 @@ export const ListClipRow: React.FC<Props> = ({
         </div>
       )}
       <ImagesPerView
-        src={item_image?.url || channel_image?.url}
+        candidates={clipArtworkCandidates}
         alt={itemTitle || tMedia('podcast.episode_image')}
         widthDesktop={IMAGES.LIST.CLIPS.SIZE}
         heightDesktop={IMAGES.LIST.CLIPS.SIZE}

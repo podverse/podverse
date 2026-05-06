@@ -5,7 +5,7 @@ import { useTranslations } from 'next-intl';
 import React from 'react';
 
 import type { DTOChannel } from '@podverse/helpers';
-import { findDTOChannelImageForList } from '@podverse/helpers';
+import { buildDTOChannelImageLoadCandidates } from '@podverse/helpers';
 
 import { IMAGES } from '../../../../constants/images';
 import { ROUTES } from '../../../../constants/routes';
@@ -19,7 +19,7 @@ interface Props {
 
 export const ListAlbumGridNode: React.FC<Props> = ({ channel }) => {
   const url = `${ROUTES.ALBUM}/${channel.id_text}`;
-  const channel_image = findDTOChannelImageForList(
+  const albumArtworkCandidates = buildDTOChannelImageLoadCandidates(
     channel.channel_images,
     IMAGES.LIST.PODCASTS.SIZE_FIND_TARGET,
     'lesser'
@@ -31,7 +31,7 @@ export const ListAlbumGridNode: React.FC<Props> = ({ channel }) => {
     <Link href={url} className={styles.link}>
       <div className={styles.gridNode}>
         <Image
-          src={channel_image?.url}
+          candidates={albumArtworkCandidates}
           alt={channel.title || tMedia('music.album_image')}
           width={IMAGES.LIST.GRID.SIZE}
           height={IMAGES.LIST.GRID.SIZE}

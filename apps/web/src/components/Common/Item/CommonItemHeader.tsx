@@ -13,14 +13,14 @@ import headerStyles from '../../../styles/components/Common/Media/Podcast/Episod
 type CommonItemHeaderProps = {
   titleNode: React.ReactNode;
   playSectionNode: React.ReactNode;
-  imageUrl?: string | null;
+  imageCandidates?: string[];
   imageAlt?: string;
 };
 
 export const CommonItemHeader: React.FC<CommonItemHeaderProps> = ({
   titleNode,
   playSectionNode,
-  imageUrl,
+  imageCandidates = [],
   imageAlt = '',
 }) => {
   const content = (
@@ -30,24 +30,27 @@ export const CommonItemHeader: React.FC<CommonItemHeaderProps> = ({
     </>
   );
 
-  const imageNode = imageUrl ? (
-    <div className={styles.imageWrapper}>
-      <Image
-        src={imageUrl}
-        alt={imageAlt}
-        width={IMAGES.HEADER.MOBILE.SQUARE.SIZE}
-        height={IMAGES.HEADER.MOBILE.SQUARE.SIZE}
-        className={styles.imageMobile}
-      />
-      <Image
-        src={imageUrl}
-        alt={imageAlt}
-        width={IMAGES.HEADER.DESKTOP.SQUARE.SIZE}
-        height={IMAGES.HEADER.DESKTOP.SQUARE.SIZE}
-        className={styles.imageDesktop}
-      />
-    </div>
-  ) : null;
+  const resolvedCandidates = imageCandidates;
+
+  const imageNode =
+    resolvedCandidates.length > 0 ? (
+      <div className={styles.imageWrapper}>
+        <Image
+          candidates={resolvedCandidates}
+          alt={imageAlt}
+          width={IMAGES.HEADER.MOBILE.SQUARE.SIZE}
+          height={IMAGES.HEADER.MOBILE.SQUARE.SIZE}
+          className={styles.imageMobile}
+        />
+        <Image
+          candidates={resolvedCandidates}
+          alt={imageAlt}
+          width={IMAGES.HEADER.DESKTOP.SQUARE.SIZE}
+          height={IMAGES.HEADER.DESKTOP.SQUARE.SIZE}
+          className={styles.imageDesktop}
+        />
+      </div>
+    ) : null;
 
   return (
     <header>

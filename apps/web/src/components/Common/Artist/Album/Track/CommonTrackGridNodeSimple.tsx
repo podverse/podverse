@@ -13,6 +13,7 @@ type CommonTrackGridNodeSimpleProps = {
   title: string;
   subtitle?: string | null;
   imageUrl?: string | null;
+  imageCandidates?: string[];
 };
 
 export const CommonTrackGridNodeSimple: React.FC<CommonTrackGridNodeSimpleProps> = ({
@@ -20,12 +21,20 @@ export const CommonTrackGridNodeSimple: React.FC<CommonTrackGridNodeSimpleProps>
   title,
   subtitle,
   imageUrl,
+  imageCandidates,
 }) => {
+  const resolvedCandidates =
+    imageCandidates !== undefined
+      ? imageCandidates
+      : imageUrl !== null && imageUrl !== undefined && imageUrl.trim() !== ''
+        ? [imageUrl.trim()]
+        : [];
+
   return (
     <Link href={href} className={styles.link}>
       <div className={styles.gridNode}>
         <Image
-          src={imageUrl ?? undefined}
+          candidates={resolvedCandidates}
           alt={title}
           width={IMAGES.LIST.GRID.SIZE}
           height={IMAGES.LIST.GRID.SIZE}

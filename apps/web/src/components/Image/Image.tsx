@@ -2,15 +2,30 @@
 
 import classNames from 'classnames';
 import NextImage from 'next/image';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
+
+import { resolveImageCandidates } from '@podverse/helpers';
 
 import { IMAGES } from '../../constants/images';
 import { PROXY } from '../../constants/proxy';
 
 import styles from '../../styles/components/Image/Image.module.scss';
 
+export type ImageFallbackControl = {
+  chain: string[];
+  attemptIndex: number;
+  onAttemptFailed: () => void;
+};
+
 interface ImageProps {
   src?: string | null;
+  /** When set, tried in order on load failure (shrunken first, then native fallbacks). Overrides single `src`. */
+  candidates?: string[];
+  /**
+   * Paired desktop/mobile artwork: shared chain + index so both viewports stay aligned.
+   * When set, `src` / `candidates` are ignored.
+   */
+  fallbackControl?: ImageFallbackControl;
   alt: string;
   width: number;
   height: number;
@@ -21,6 +36,8 @@ interface ImageProps {
 
 export const Image: React.FC<ImageProps> = ({
   src,
+  candidates,
+  fallbackControl,
   alt,
   width,
   height,
@@ -28,17 +45,37 @@ export const Image: React.FC<ImageProps> = ({
   skipProxy,
   priority,
 }) => {
-  const [imageError, setImageError] = useState(false);
+  const resolvedChain =
+    fallbackControl !== undefined ? fallbackControl.chain : resolveImageCandidates(candidates, src);
+
+  const chainId = useMemo(() => JSON.stringify(resolvedChain), [resolvedChain]);
+
+  const [internalAttemptIndex, setInternalAttemptIndex] = useState(0);
 
   useEffect(() => {
-    setImageError(false);
-  }, [src, skipProxy]);
+    setInternalAttemptIndex(0);
+  }, [chainId, skipProxy]);
+
+  const attemptIndex =
+    fallbackControl !== undefined ? fallbackControl.attemptIndex : internalAttemptIndex;
+
+  const onLoadFailure = () => {
+    if (fallbackControl !== undefined) {
+      fallbackControl.onAttemptFailed();
+    } else {
+      setInternalAttemptIndex((i) => i + 1);
+    }
+  };
 
   const isFluidGridSlot = width === IMAGES.LIST.GRID.SIZE && height === IMAGES.LIST.GRID.SIZE;
   const placeholderWidth = Math.round((width * 2) / 2.5);
   const placeholderHeight = Math.round((height * 2) / 2.5);
 
-  if (!src || imageError) {
+  const rawSrc = resolvedChain[attemptIndex];
+  const showPlaceholder =
+    resolvedChain.length === 0 || attemptIndex >= resolvedChain.length || rawSrc === undefined;
+
+  if (showPlaceholder) {
     return (
       <div
         className={classNames(
@@ -63,16 +100,17 @@ export const Image: React.FC<ImageProps> = ({
     );
   }
 
-  const finalSrc = skipProxy ? src : PROXY.PATH + encodeURIComponent(src);
+  const finalSrc = skipProxy ? rawSrc : PROXY.PATH + encodeURIComponent(rawSrc);
 
   return (
     <NextImage
+      key={`${chainId}-${attemptIndex}`}
       src={finalSrc}
       alt={alt}
       width={width}
       height={height}
       className={classNames(styles.skeletonBg, className)}
-      onError={() => setImageError(true)}
+      onError={onLoadFailure}
       priority={priority}
     />
   );

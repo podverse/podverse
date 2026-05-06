@@ -4,7 +4,12 @@ import Link from 'next/link';
 import { useLocale, useTranslations } from 'next-intl';
 import React from 'react';
 
-import { formatDateAbbrev, getQueryParamFromQueueMediumId } from '@podverse/helpers';
+import {
+  buildDTOChannelImageLoadCandidates,
+  formatDateAbbrev,
+  getQueryParamFromQueueMediumId,
+  prependDistinctImageCandidate,
+} from '@podverse/helpers';
 
 import { IMAGES } from '../../../constants/images';
 import type { AddByRSSFeedRecord } from '../../../utils/addByRSS/types';
@@ -22,7 +27,11 @@ export const AddByRSSLivestreamFeedGridNode: React.FC<AddByRSSLivestreamFeedGrid
   const tMedia = useTranslations('media');
   const locale = useLocale();
   const feedTitle = feed.mappedFeed?.channel?.channel?.title ?? feed.title ?? feed.feedUrl;
-  const feedImageUrl = feed.imageUrl ?? feed.mappedFeed?.channel?.images?.[0]?.url ?? undefined;
+  const channelImages = feed.mappedFeed?.channel?.images;
+  const imageCandidates = prependDistinctImageCandidate(
+    feed.imageUrl,
+    buildDTOChannelImageLoadCandidates(channelImages, IMAGES.LIST.GRID.SIZE_FIND_TARGET, 'lesser')
+  );
   const lastPubDate = feed.mappedFeed?.channel?.about?.last_pub_date ?? null;
   const mediumParam = getQueryParamFromQueueMediumId(
     feed.mappedFeed?.channel?.channel?.medium_id ?? null
@@ -34,7 +43,7 @@ export const AddByRSSLivestreamFeedGridNode: React.FC<AddByRSSLivestreamFeedGrid
     <Link href={url} className={styles.link}>
       <div className={styles.gridNode}>
         <Image
-          src={feedImageUrl}
+          candidates={imageCandidates}
           alt={feedTitle || tMedia('livestream.livestream_image')}
           width={IMAGES.LIST.GRID.SIZE}
           height={IMAGES.LIST.GRID.SIZE}

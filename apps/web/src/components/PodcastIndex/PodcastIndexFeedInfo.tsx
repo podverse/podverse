@@ -14,6 +14,7 @@ import { useAccount } from '../../contexts/Account';
 import { useConfig } from '../../contexts/Config';
 import { useModals } from '../../contexts/Modals';
 import { getApiRequestService } from '../../factories/apiRequestService';
+import { dedupedTrimmedUrlCandidates } from '../../utils/image/dedupedTrimmedUrlCandidates';
 import { handleRateLimitAlert } from '../../utils/rateLimit/rateLimitAlert';
 import { redirectToChannelPageByMediumClient } from '../../utils/redirect/redirectToChannelPageByMedium';
 import { Image } from '../Image/Image';
@@ -33,7 +34,10 @@ export const PodcastIndexFeedInfo: React.FC<PodcastIndexFeedInfoProps> = ({ podc
   const tInstructions = useTranslations('instructions');
   const tMembership = useTranslations('membership');
   const [isLoading, setIsLoading] = useState(false);
-  const imageUrl = podcastIndexFeed.image || podcastIndexFeed.artwork || null;
+  const feedImageCandidates = dedupedTrimmedUrlCandidates([
+    podcastIndexFeed.image,
+    podcastIndexFeed.artwork,
+  ]);
   const description = podcastIndexFeed.description || '';
   const lastUpdateTime = podcastIndexFeed.lastUpdateTime || null;
   const author = podcastIndexFeed.author || null;
@@ -164,9 +168,9 @@ export const PodcastIndexFeedInfo: React.FC<PodcastIndexFeedInfoProps> = ({ podc
           </a>
         </div>
       </div>
-      {imageUrl && (
+      {feedImageCandidates.length > 0 && (
         <Image
-          src={imageUrl}
+          candidates={feedImageCandidates}
           alt={podcastIndexFeed.title || tMedia('podcast.podcast_image')}
           width={IMAGES.ADD_FEED.SQUARE.SIZE}
           height={IMAGES.ADD_FEED.SQUARE.SIZE}

@@ -4,7 +4,11 @@ import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import React from 'react';
 
-import { getQueueForMedium } from '@podverse/helpers';
+import {
+  appendDistinctImageCandidate,
+  buildDTOItemImageLoadCandidates,
+  getQueueForMedium,
+} from '@podverse/helpers';
 import { stripAndDecodeHtml } from '@podverse/helpers';
 import { buildAddByRSSResourceData, getAddByRSSHashId } from '@podverse/parser-mapping';
 
@@ -69,7 +73,12 @@ export const AddByRSSEpisodeRow: React.FC<AddByRSSEpisodeRowProps> = ({
   const description = bundle.description?.value
     ? stripAndDecodeHtml(bundle.description.value)
     : channelTitle;
-  const imageUrl = bundle.images?.[0]?.url ?? channelImageUrl;
+  const itemImageCandidates = buildDTOItemImageLoadCandidates(
+    bundle.images,
+    IMAGES.LIST.EPISODES.DESKTOP.SIZE_FIND_TARGET,
+    'lesser'
+  );
+  const imageCandidates = appendDistinctImageCandidate(channelImageUrl, itemImageCandidates);
   const url = getAddByRSSItemPath(itemIdText);
 
   const queue =
@@ -226,7 +235,7 @@ export const AddByRSSEpisodeRow: React.FC<AddByRSSEpisodeRowProps> = ({
   return (
     <div className={styles.row}>
       <ImagesPerView
-        src={imageUrl}
+        candidates={imageCandidates}
         alt={title || tMedia('podcast.episode_image')}
         widthDesktop={IMAGES.LIST.EPISODES.DESKTOP.SIZE}
         heightDesktop={IMAGES.LIST.EPISODES.DESKTOP.SIZE}
