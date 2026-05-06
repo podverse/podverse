@@ -55,10 +55,10 @@ function mapAdminToAuthenticatedUser(admin: AdminAccount): AuthenticatedAdmin | 
     permissions: admin.permissions
       ? {
           feeds_crud: admin.permissions.feedsCrud,
-          feed_flag_statuses_crud: admin.permissions.feedFlagStatusesCrud,
-          feed_flag_status_reasons_crud: admin.permissions.feedFlagStatusReasonsCrud,
+          feed_takedown_reasons_crud: admin.permissions.feedTakedownReasonsCrud,
           admins_crud: admin.permissions.adminsCrud,
           stats_crud: admin.permissions.statsCrud,
+          billing_prices_crud: admin.permissions.billingPricesCrud,
         }
       : null,
   };

@@ -7,9 +7,9 @@ image CDN. It runs as a long-running MQ consumer plus a periodic backfill cron j
 blocks RSS parsing.
 
 Storage is abstracted via a provider-agnostic interface (`ImageStorageService`); the worker
-injects the implementation at bootstrap. **Digital Ocean Spaces is the current implementation.**
-The pipeline can be switched to another image CDN (e.g. AWS S3, Cloudflare R2) by providing a
-different implementation and wiring it in the worker; batch logic and the interface stay unchanged.
+injects an **S3-compatible** implementation at bootstrap (`BUCKET_PROVIDER`). Supported backends
+include DigitalOcean Spaces, AWS S3, Backblaze B2, Garage, and other S3-compatible endpoints.
+See [Bucket providers](BUCKET-PROVIDERS.md) for setup.
 
 Key points:
 
@@ -83,8 +83,8 @@ npm run image_shrink_source_prune -w apps/workers
 
 ### Orphan Cleanup Criteria
 
-The orphan cleanup job (`imageShrinkCleanupOrphans`) lists objects directly from DigitalOcean
-Spaces and applies the following filters before deleting:
+The orphan cleanup job (`imageShrinkCleanupOrphans`) lists objects directly from the configured
+bucket (S3-compatible API) and applies the following filters before deleting:
 
 - Only objects under the `images/` prefix with a `.webp` suffix.
 - Only objects with a `lastModified` timestamp (missing timestamps are skipped).
@@ -136,12 +136,17 @@ See `apps/workers/.env.example` for the authoritative template and commented gro
 
 ### Image Shrink (storage)
 
-- `BUCKET_PROVIDER` (digitalocean)
+- `BUCKET_PROVIDER` (`digitalocean` | `aws-s3` | `backblaze-b2` | `garage` | `s3-compatible`)
 - `BUCKET_ACCESS_KEY`
 - `BUCKET_SECRET_KEY`
 - `BUCKET_REGION`
 - `BUCKET_NAME`
 - `BUCKET_CDN_BASE_URL`
+- `BUCKET_ENDPOINT` (required for `garage` and `s3-compatible`; optional otherwise — see [Bucket providers](BUCKET-PROVIDERS.md))
+- `BUCKET_FORCE_PATH_STYLE` (optional; default is provider-specific)
+- `BUCKET_UPLOAD_PUBLIC_ACL` (optional; empty string omits `x-amz-acl` on upload)
+
+Provider-specific setup: [Bucket providers](BUCKET-PROVIDERS.md).
 
 ### Image Shrink
 
@@ -163,15 +168,15 @@ See `apps/workers/.env.example` for the authoritative template and commented gro
 
 Add non-sensitive values to `infra/k8s/base/workers/configmap.yaml` using the same section structure as `apps/workers/.env.example` (Image Shrink storage; Image Shrink):
 
-- **Image Shrink (storage):** `BUCKET_PROVIDER`, `BUCKET_REGION`, `BUCKET_NAME`, `BUCKET_CDN_BASE_URL`
+- **Image Shrink (storage):** `BUCKET_PROVIDER`, `BUCKET_REGION`, `BUCKET_NAME`, `BUCKET_CDN_BASE_URL`, `BUCKET_ENDPOINT` (when required), `BUCKET_FORCE_PATH_STYLE`, `BUCKET_UPLOAD_PUBLIC_ACL`
 - **Image Shrink:** `IMAGE_SHRINK_WIDTH_PX`, `IMAGE_SHRINK_BATCH_SIZE`, `IMAGE_SHRINK_CONCURRENCY`, `IMAGE_SHRINK_RPS`, `IMAGE_SHRINK_RECHECK_EXPIRATION` (Optional), `IMAGE_SHRINK_DEEP_RECHECK_EXPIRATION` (Optional), `IMAGE_SHRINK_SOURCE_PRUNE_EXPIRATION` (Optional)
 
 ### Secret
 
-Use `infra/k8s/scripts/secret-generators/create_workers_digital_ocean_secret.sh` to create:
+Use `infra/k8s/scripts/secret-generators/create_workers_storage_bucket_secret.sh` to create:
 
 ```
-podverse-${ENV}-workers-digital-ocean-opaque.enc.yaml
+podverse-${ENV}-workers-storage-bucket-opaque.enc.yaml
 ```
 
 The secret stores `BUCKET_ACCESS_KEY` and `BUCKET_SECRET_KEY`.
@@ -179,12 +184,12 @@ The secret stores `BUCKET_ACCESS_KEY` and `BUCKET_SECRET_KEY`.
 ### Consumer Deployment
 
 Add the worker deployment in `infra/k8s/base/workers/image-shrink-consumer.deployment.yaml` and
-ensure the DigitalOcean secret is included in `envFrom`.
+ensure the storage bucket secret is included in `envFrom`.
 
 ### Cron Job
 
 `infra/k8s/base/cron/worker-image-shrink-backfill.cronjob.yaml` runs the backfill on a schedule.
-Add the secret to the `envFrom` list so the workers pod can access the Spaces credentials.
+Add the secret to the `envFrom` list so the workers pod can access the bucket credentials.
 
 `infra/k8s/base/cron/worker-image-shrink-orphan-cleanup.cronjob.yaml` runs the orphan cleanup on a weekly schedule. It uses the same env/secret wiring as the backfill job.
 

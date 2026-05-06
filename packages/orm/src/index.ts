@@ -71,9 +71,16 @@ export * from './entities/channel/channelMetaBoost.js';
 export * from './entities/channel/channelValueRecipient.js';
 
 export * from './entities/feed/feed.js';
-export * from './entities/feed/feedFlagStatus.js';
-export * from './entities/feed/feedFlagStatusReason.js';
+export * from './entities/feed/feedCondition.js';
+export * from './entities/feed/feedConditionType.js';
+export * from './entities/feed/feedTakedownReason.js';
+export * from './entities/feed/feedLifecycleEvent.js';
+export * from './entities/feed/feedLifecycleState.js';
+export * from './entities/feed/feedLifecycleStateType.js';
+export * from './entities/feed/feedLifecycleUpdateSource.js';
 export * from './entities/feed/feedLog.js';
+export * from './entities/feed/feedPolicy.js';
+export * from './entities/feed/feedPolicyOverride.js';
 
 export * from './entities/item/item.js';
 export * from './entities/item/itemAbout.js';
@@ -117,10 +124,15 @@ export * from './entities/queue/queue.js';
 export * from './entities/queue/queueResource.js';
 
 export * from './entities/category.js';
+export * from './entities/billingPrice.js';
+export * from './entities/billingPriceChangeAudit.js';
+export * from './entities/billingDomainEvent.js';
+export * from './entities/billingProduct.js';
 export * from './entities/clip.js';
 export * from './entities/medium.js';
 export * from './entities/imageShrinkSource.js';
 export * from './entities/membershipClaimToken.js';
+export * from './entities/productMembershipSettings.js';
 export * from './entities/sharableStatus.js';
 
 export * from './entities/stats/statsAggregatedAccount.js';
@@ -137,10 +149,20 @@ export * from './entities/stats/statsTrackEventPlaylist.js';
 
 export * from './lib/typeORMTypes.js';
 export * from './lib/nanoid.js';
+export * from './lib/billingLimits.js';
+export * from './lib/feedLifecycleLimits.js';
+export * from './lib/feedTableLimits.js';
+export * from './lib/feedLifecycleState.js';
+export * from './lib/feedLifecycleTransitionValidation.js';
+export * from './lib/feedSpamThresholds.js';
 export { decryptWithKey, encryptCredentials } from './lib/credentialsEncryption.js';
 export { hashPassword } from './lib/password.js';
 
 export * from './services/category.js';
+export * from './services/billingPriceCatalog.js';
+export * from './services/billingDomainEventLog.js';
+export * from './services/billingMembershipExtension.js';
+export * from './services/billingRenewalOrchestrator.js';
 
 export * from './services/account/account.js';
 export * from './services/account/accountCredentials.js';
@@ -197,8 +219,10 @@ export * from './services/deduplicator.js';
 export * from './services/imageShrinkSource.js';
 
 export * from './services/feed/feed.js';
-export * from './services/feed/feedFlagStatus.js';
+export * from './services/feed/feedTakedownReason.js';
+export * from './services/feed/feedLifecycleState.js';
 export * from './services/feed/feedLog.js';
+export * from './services/feed/feedPolicy.js';
 
 export * from './services/item/item.js';
 export * from './services/item/itemAbout.js';

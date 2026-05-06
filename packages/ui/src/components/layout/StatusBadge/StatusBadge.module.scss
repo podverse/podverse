@@ -1,0 +1,35 @@
+@use '../../../styles/variables' as *;
+
+.badge {
+  display: inline-block;
+  font-size: var(--font-size-xs);
+  padding: var(--spacing-md) var(--spacing-base);
+  border-radius: var(--border-radius);
+  font-weight: var(--font-weight-medium);
+  border: 1px solid transparent;
+  white-space: nowrap;
+}
+
+.neutral {
+  background-color: var(--background-color-tertiary);
+  color: var(--text-color-secondary);
+  border-color: var(--border-color-tertiary);
+}
+
+.success {
+  background-color: var(--background-color-success);
+  color: var(--text-color-success);
+  border-color: var(--border-color-success);
+}
+
+.warning {
+  background-color: var(--background-color-warning);
+  color: var(--text-color-warning);
+  border-color: var(--border-color-warning);
+}
+
+.danger {
+  background-color: var(--background-color-danger);
+  color: var(--text-color-danger);
+  border-color: var(--border-color-danger);
+}

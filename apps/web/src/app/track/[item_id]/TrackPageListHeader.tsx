@@ -5,10 +5,9 @@ import React from 'react';
 
 import type { QueryParamsItemMusicType } from '@podverse/helpers-requests';
 import { QUERY_PARAMS_ITEM_MUSIC_TYPE_VALUES } from '@podverse/helpers-requests';
+import { Button, Tabs } from '@podverse/ui';
 
-import { Button } from '../../../components/Button/Button';
 import { CommonDetailListHeader } from '../../../components/Common/List/CommonDetailListHeader';
-import { Tabs } from '../../../components/Tabs/Tabs';
 import { useTrackPageContext } from './TrackPageContext';
 
 type TrackPageListHeaderProps = {

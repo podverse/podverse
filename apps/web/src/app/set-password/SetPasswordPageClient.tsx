@@ -9,10 +9,9 @@ import {
   getPasswordErrorKey,
   getPasswordRequirementsInfoKey,
 } from '@podverse/helpers-validation/client';
+import { Button, FormInfoMessageText } from '@podverse/ui';
 
-import { Button } from '../../components/Button/Button';
 import Form from '../../components/Form/Form';
-import { FormInfoMessageText } from '../../components/Form/FormInfoMessageText';
 import { TextInput } from '../../components/Form/TextInput';
 import { MainHeader } from '../../components/Main/MainHeader';
 import { MainInnerContentWrapper } from '../../components/Main/MainInnerContentWrapper';

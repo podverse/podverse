@@ -2,7 +2,8 @@
 
 import { useTranslations } from 'next-intl';
 
-import { Divider } from '../../components/Divider/Divider';
+import { Divider } from '@podverse/ui';
+
 import { Link } from '../../components/Link/Link';
 import { MainHeader } from '../../components/Main/MainHeader';
 import { MainInnerContentWrapper } from '../../components/Main/MainInnerContentWrapper';

@@ -99,14 +99,17 @@ These variables are required only for commands that include the Podcast Index ca
 
 ## Image Shrink
 
-Image shrink is optional. If **`BUCKET_PROVIDER`** is empty or unset, image shrink is disabled and these variables are not used. If **`BUCKET_PROVIDER`** is set (current supported value: `digitalocean`), image shrink is enabled and **all** of the variables listed below are required for commands that use image shrink (`imageShrinkRunConsumer`, `imageShrinkBackfill`).
+Image shrink is optional. If **`BUCKET_PROVIDER`** is empty or unset, image shrink is disabled and these variables are not used. If **`BUCKET_PROVIDER`** is set to a supported value (`digitalocean`, `aws-s3`, `backblaze-b2`, `garage`, `s3-compatible`), image shrink is enabled and **all** of the variables listed below are required for commands that use image shrink (`imageShrinkRunConsumer`, `imageShrinkBackfill`, `imageShrinkCleanupOrphans`, …). See **`docs/image-shrinking/BUCKET-PROVIDERS.md`** for provider-specific setup.
 
-- **`BUCKET_PROVIDER`** (Required when image shrink enabled) - Bucket provider (`digitalocean`)
-- **`BUCKET_ACCESS_KEY`** (Required when image shrink enabled) - Bucket access key (DigitalOcean Spaces access key; not the API Personal Access Token)
-- **`BUCKET_SECRET_KEY`** (Required when image shrink enabled) - Bucket secret key (DigitalOcean Spaces secret key; not the API Personal Access Token)
-- **`BUCKET_REGION`** (Required when image shrink enabled) - CDN region/location (e.g. `nyc3` for DO, `us-east-1` for AWS)
-- **`BUCKET_NAME`** (Required when image shrink enabled) - Image CDN bucket name (storage)
-- **`BUCKET_CDN_BASE_URL`** (Required when image shrink enabled) - Public CDN base URL for the bucket (storage)
+- **`BUCKET_PROVIDER`** (Required when image shrink enabled) - S3-compatible backend selector
+- **`BUCKET_ACCESS_KEY`** (Required when image shrink enabled) - Bucket access key (provider-specific; not necessarily an API “personal access token”)
+- **`BUCKET_SECRET_KEY`** (Required when image shrink enabled) - Bucket secret key
+- **`BUCKET_REGION`** (Required when image shrink enabled) - Provider region (e.g. `nyc3`, `us-east-1`, `us-west-004`)
+- **`BUCKET_NAME`** (Required when image shrink enabled) - Bucket name
+- **`BUCKET_CDN_BASE_URL`** (Required when image shrink enabled) - Public URL prefix for resized images (no trailing slash)
+- **`BUCKET_ENDPOINT`** (Required for `garage` and `s3-compatible`; optional otherwise) - S3 API base URL
+- **`BUCKET_FORCE_PATH_STYLE`** (Optional) - `true`, `false`, or unset for provider default path-style vs virtual-hosted addressing
+- **`BUCKET_UPLOAD_PUBLIC_ACL`** (Optional) - Override `x-amz-acl` on upload; empty string omits the header
 - **`IMAGE_SHRINK_WIDTH_PX`** (Required when image shrink enabled) - Target width in pixels for resized images
 - **`IMAGE_SHRINK_BATCH_SIZE`** (Required when image shrink enabled) - Max images processed per batch run
 - **`IMAGE_SHRINK_CONCURRENCY`** (Required when image shrink enabled) - Parallel image processing count
@@ -194,6 +197,8 @@ These variables are used to build the Parser configuration:
 - **`PARSER_SPAM_FEED_ITEM_THRESHOLD_DEFAULT`** (Optional) - Parsed item/live-item count at or above which a feed is auto-flagged `Spam` for non-`SpamPermitted` statuses (default: `10000`). Must be a positive integer when set.
 
 - **`PARSER_SPAM_FEED_ITEM_THRESHOLD_SPAM_PERMITTED`** (Optional) - Same check for feeds in `SpamPermitted` (default: `100000`). Must be a positive integer when set.
+
+- **`PARSER_MAX_FEED_BODY_BYTES`** (Optional) - Shared max RSS/XML response bytes used by outbound fetch + partytime parser limit. Default: `20971520` (20 MiB). Must be an integer between `1000` and `50000000` when set.
 
 ## Module configuration validation
 

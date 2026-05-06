@@ -1,4 +1,4 @@
-import { buildRuntimeConfigScript } from '@podverse/helpers-browser';
+import { RuntimeConfigScript as SharedRuntimeConfigScript } from '@podverse/ui';
 
 import type { WebRuntimeConfig } from '../../config/runtime-config';
 
@@ -7,6 +7,10 @@ export default function RuntimeConfigScript({
 }: {
   runtimeConfig: WebRuntimeConfig;
 }) {
-  const script = buildRuntimeConfigScript(runtimeConfig, '__PODVERSE_RUNTIME_CONFIG__');
-  return <script dangerouslySetInnerHTML={{ __html: script }} />;
+  return (
+    <SharedRuntimeConfigScript
+      runtimeConfig={runtimeConfig}
+      globalThisProperty="__PODVERSE_RUNTIME_CONFIG__"
+    />
+  );
 }

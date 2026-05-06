@@ -74,7 +74,7 @@ const run = async () => {
   const { createNotificationsContext } = await import('@podverse/notifications');
   const { createParserContext } = await import('@podverse/parser');
   const { LoggerService } = await import('@podverse/helpers-backend');
-  const { DigitalOceanService } = await import('@podverse/external-services-digital-ocean');
+  const { ObjectStorageService } = await import('@podverse/external-services-object-storage');
   const { default: commands } = await import('@workers/commands/index.js');
   const { parseArgs } = await import('@workers/commands/parseArgs.js');
   const {
@@ -84,7 +84,7 @@ const run = async () => {
     getExternalServicesConfig,
     getNotificationsConfig,
     getKeyvaldbConfig,
-    getBucketProviderConfig,
+    getBucketRuntimeConfig,
     isImageShrinkEnabled,
   } = await import('./config/index.js');
   const { setLoggerService, getLoggerService } = await import('./factories/loggerService.js');
@@ -187,12 +187,16 @@ const run = async () => {
 
       if (categories.has(CATEGORY_IMAGE_SHRINK)) {
         if (isImageShrinkEnabled()) {
-          const bucketProviderConfig = getBucketProviderConfig();
+          const bucketRuntime = getBucketRuntimeConfig();
           setImageStorageService(
-            new DigitalOceanService({
-              accessKey: bucketProviderConfig.accessKey,
-              secretKey: bucketProviderConfig.secretKey,
-              region: bucketProviderConfig.region,
+            new ObjectStorageService({
+              accessKey: bucketRuntime.accessKey,
+              secretKey: bucketRuntime.secretKey,
+              region: bucketRuntime.region,
+              provider: bucketRuntime.provider,
+              endpoint: bucketRuntime.endpoint,
+              forcePathStyle: bucketRuntime.forcePathStyle,
+              uploadPublicAcl: bucketRuntime.uploadPublicAcl,
             })
           );
         }

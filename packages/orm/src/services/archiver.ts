@@ -1,16 +1,26 @@
 import { AppDataSourceRead, AppDataSourceReadWrite } from '@orm/db/index.js';
 import { Clip } from '@orm/entities/clip.js';
 import { Feed } from '@orm/entities/feed/feed.js';
-import { FeedFlagStatusStatusEnum } from '@orm/entities/feed/feedFlagStatus.js';
+import { FeedConditionTypeKeyEnum } from '@orm/entities/feed/feedConditionType.js';
+import { FeedLifecycleStateKeyEnum } from '@orm/entities/feed/feedLifecycleStateType.js';
+import { FeedLifecycleUpdateSourceEnum } from '@orm/entities/feed/feedLifecycleUpdateSource.js';
 import { Item } from '@orm/entities/item/item.js';
 import type { ItemFlagStatus } from '@orm/entities/item/itemFlagStatus.js';
 import { ItemFlagStatusStatusEnum } from '@orm/entities/item/itemFlagStatus.js';
 import { PlaylistResource } from '@orm/entities/playlist/playlistResource.js';
 
+import { FeedService } from './feed/feed.js';
 import { ItemFlagStatusService } from './item/itemFlagStatus.js';
 import { pruneNonActiveItemBackedQueueResourceRows } from './queue/queueResourceActiveItemFilter.js';
 
 const ARCHIVED_ITEM_ORPHAN_DELETE_BATCH_SIZE = 1000;
+
+const FEED_RELATIONS_PENDING_OR_SPAM = [
+  'feed_lifecycle_state',
+  'feed_lifecycle_state.feed_lifecycle_state_type',
+  'channel',
+  'channel.items',
+] as const;
 
 export class ArchiverService {
   private itemRepositoryRead = AppDataSourceRead.getRepository(Item);
@@ -113,30 +123,40 @@ export class ArchiverService {
         {
           channel: {
             feed: {
-              feed_flag_status: {
-                id: FeedFlagStatusStatusEnum.PendingArchive,
+              feed_lifecycle_state: {
+                feed_lifecycle_state_type: {
+                  state_key: FeedLifecycleStateKeyEnum.PendingArchive,
+                },
               },
             },
           },
         },
       ],
-      relations: ['channel', 'channel.feed', 'item_flag_status', 'channel.feed.feed_flag_status'],
+      relations: [
+        'channel',
+        'channel.feed',
+        'channel.feed.feed_lifecycle_state',
+        'channel.feed.feed_lifecycle_state.feed_lifecycle_state_type',
+        'item_flag_status',
+      ],
     });
   }
 
   async getFeedsPendingArchive(): Promise<Feed[]> {
     return this.feedRepositoryRead.find({
       where: {
-        feed_flag_status: {
-          id: FeedFlagStatusStatusEnum.PendingArchive,
+        feed_lifecycle_state: {
+          feed_lifecycle_state_type: {
+            state_key: FeedLifecycleStateKeyEnum.PendingArchive,
+          },
         },
       },
-      relations: ['channel', 'channel.items', 'feed_flag_status'],
+      relations: [...FEED_RELATIONS_PENDING_OR_SPAM],
     });
   }
 
   /**
-   * Spam feeds that still have `Active` or `PendingArchive` items (cleanup work for `processSpamFeeds`).
+   * Spam feeds: lifecycle **`active`**, **`spam_detected`** active, **`spam_permitted`** inactive.
    * Feeds with only `Archived` items are omitted so `archiveAll` does not scan them every run.
    */
   async getSpamFeedsWithActiveOrPendingItems(): Promise<Feed[]> {
@@ -144,10 +164,26 @@ export class ArchiverService {
       .createQueryBuilder('feed')
       .distinct(true)
       .innerJoinAndSelect('feed.channel', 'channel')
+      .innerJoin('feed.feed_lifecycle_state', 'fls')
+      .innerJoin('fls.feed_lifecycle_state_type', 'flst')
       .innerJoin('channel.items', 'item')
-      .where('feed.feed_flag_status_id = :spamStatusId', {
-        spamStatusId: FeedFlagStatusStatusEnum.Spam,
-      })
+      .where('flst.state_key = :activeKey', { activeKey: FeedLifecycleStateKeyEnum.Active })
+      .andWhere(
+        `EXISTS (
+          SELECT 1 FROM feed_condition fc
+          INNER JOIN feed_condition_type fct ON fct.id = fc.feed_condition_type_id
+          WHERE fc.feed_id = feed.id AND fc.is_active = true AND fct.condition_key = :spamDetected
+        )`,
+        { spamDetected: FeedConditionTypeKeyEnum.SpamDetected }
+      )
+      .andWhere(
+        `NOT EXISTS (
+          SELECT 1 FROM feed_condition fc2
+          INNER JOIN feed_condition_type fct2 ON fct2.id = fc2.feed_condition_type_id
+          WHERE fc2.feed_id = feed.id AND fc2.is_active = true AND fct2.condition_key = :spamPermitted
+        )`,
+        { spamPermitted: FeedConditionTypeKeyEnum.SpamPermitted }
+      )
       .andWhere('item.item_flag_status_id IN (:...cleanupItemStatusIds)', {
         cleanupItemStatusIds: [
           ItemFlagStatusStatusEnum.Active,
@@ -211,6 +247,7 @@ export class ArchiverService {
     const feeds = await this.getFeedsPendingArchive();
     const itemFlagStatusService = new ItemFlagStatusService();
     const archivedStatus = await itemFlagStatusService.get(ItemFlagStatusStatusEnum.Archived);
+    const feedService = new FeedService();
 
     if (!archivedStatus) {
       throw new Error('Archived item_flag_status not found');
@@ -239,14 +276,17 @@ export class ArchiverService {
         await this.processItems(activeOrPendingItems, archivedStatus);
       }
 
-      feed.feed_flag_status = { ...feed.feed_flag_status, id: FeedFlagStatusStatusEnum.Archived };
-      feed.last_parsed_file_hash = null;
-      await this.feedRepositoryReadWrite.save(feed);
+      await feedService.setFeedLifecycleState(feed.id, {
+        toStateKey: FeedLifecycleStateKeyEnum.Archived,
+        source: FeedLifecycleUpdateSourceEnum.Archiver,
+      });
+      await feedService.update(feed.id, { last_parsed_file_hash: null });
     }
   }
 
   /**
-   * Applies the same clip/playlist retention as pending-archive feed processing, but keeps `feed_flag_status` Spam.
+   * Applies the same clip/playlist retention as pending-archive feed processing; feed lifecycle stays
+   * **`active`** with spam conditions (does not move the feed to **`archived`**).
    */
   async processSpamFeeds(): Promise<void> {
     const feeds = await this.getSpamFeedsWithActiveOrPendingItems();
@@ -297,11 +337,13 @@ export class ArchiverService {
   async getFeedsWithTakedownStatus(): Promise<Feed[]> {
     return this.feedRepositoryRead.find({
       where: {
-        feed_flag_status: {
-          id: FeedFlagStatusStatusEnum.Takedown,
+        feed_lifecycle_state: {
+          feed_lifecycle_state_type: {
+            state_key: FeedLifecycleStateKeyEnum.Takedown,
+          },
         },
       },
-      relations: ['channel', 'channel.items', 'feed_flag_status'],
+      relations: [...FEED_RELATIONS_PENDING_OR_SPAM],
     });
   }
 

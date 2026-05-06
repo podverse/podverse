@@ -24,8 +24,8 @@ export type ConfigCategory =
   | typeof CATEGORY_IMAGE_SHRINK;
 
 const BASE_ORM_COMMANDS = [
+  'billingProcessDueRenewals',
   'archiveAll',
-  'ormFeedUpdateFlagStatus',
   'reencryptAddByRSSCredentials',
   'statsUpdateAggregated',
   'statsUpdateAggregatedRolling',

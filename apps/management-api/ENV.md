@@ -77,6 +77,10 @@ The main API, workers, and management-api all use shared `DB_HOST` and `DB_PORT`
 - **`LOG_LEVEL`** (Optional) - Logging level (`error`, `warn`, `info`, `debug`, `verbose`, `silly`, `silent`)
 - **`LOG_DIR`** (Optional) - Log directory for file logging. **No default.** Leave empty for console-only; when set in Docker with a log volume, use the container path (e.g. `/opt/logs`). See [logs/LOGS.md](../../logs/LOGS.md).
 
+### Product / membership marketing defaults
+
+Optional **`MEMBERSHIP_*`** keys (trial length, premium USD prices, RSS/refresh caps) match [apps/api/ENV.md](../../apps/api/ENV.md) and bootstrap `product_membership_settings` in the app database. When that row exists, **`free_trial_expiration_seconds`** (and related merged fields from the pricing catalog path) take precedence for resolution APIs; env still validates at startup and seeds empty databases.
+
 ## Validation Rules
 
 ### Numeric Validation

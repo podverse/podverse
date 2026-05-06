@@ -4,14 +4,14 @@ import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
 
-import { getDatabaseTables, type TableMeta } from '../../../lib/requests/database';
+import type { NavCard } from '@podverse/ui';
+import { Alert, LoadingText, ManagementPageShell, NavCardGrid } from '@podverse/ui';
 
-import styles from './page.module.scss';
+import { getDatabaseTables, type TableMeta } from '../../../lib/requests/database';
 
 const TABLE_DESCRIPTION_KEYS: Record<string, string> = {
   feed: 'tables.feed.description',
-  feed_flag_status: 'tables.feed_flag_status.description',
-  feed_flag_status_reason: 'tables.feed_flag_status_reason.description',
+  feed_takedown_reason: 'tables.feed_takedown_reason.description',
 };
 
 export function DatabaseIndexPageClient() {
@@ -54,41 +54,25 @@ export function DatabaseIndexPageClient() {
     return key ? t(key) : t('manageTableData');
   };
 
+  const cards: NavCard[] = tables.map((table) => {
+    const metaParts: string[] = [];
+    if (table.readOnly) {
+      metaParts.push(tc('readOnly'));
+    }
+    metaParts.push(t('fieldCount', { count: table.fields.length }));
+    metaParts.push(getTableDescription(table.tableName));
+    return {
+      href: `/database/${table.tableName}`,
+      title: table.tableName,
+      description: metaParts.join(' · '),
+    };
+  });
+
   return (
-    <div className="container">
-      <div className="page-header">
-        <h1 className="page-title">{t('title')}</h1>
-      </div>
-      <main>
-        {loading && <p className={styles.loadingText}>{t('loadingTables')}</p>}
-        {error && <p className={styles.errorText}>{error}</p>}
-        {!loading && !error && (
-          <div className={styles.tableList}>
-            {tables.map((table) => (
-              <Link
-                key={table.tableName}
-                href={`/database/${table.tableName}`}
-                className={styles.tableCard}
-              >
-                <div className={styles.tableCardHeader}>
-                  <h2 className={styles.tableCardTitle}>{table.tableName}</h2>
-                  <div className={styles.tableCardBadges}>
-                    {table.readOnly && (
-                      <span className={`${styles.tableCardBadge} ${styles.readOnlyBadge}`}>
-                        {tc('readOnly')}
-                      </span>
-                    )}
-                    <span className={styles.tableCardBadge}>
-                      {t('fieldCount', { count: table.fields.length })}
-                    </span>
-                  </div>
-                </div>
-                <p className={styles.tableCardDesc}>{getTableDescription(table.tableName)}</p>
-              </Link>
-            ))}
-          </div>
-        )}
-      </main>
-    </div>
+    <ManagementPageShell title={t('title')}>
+      {loading && <LoadingText>{t('loadingTables')}</LoadingText>}
+      {error && <Alert>{error}</Alert>}
+      {!loading && !error && <NavCardGrid cards={cards} LinkComponent={Link} />}
+    </ManagementPageShell>
   );
 }

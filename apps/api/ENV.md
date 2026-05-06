@@ -135,9 +135,9 @@ These variables are optional but will still be validated if set:
 
 ### Premium/Membership
 
-- **`PREMIUM_MEMBERSHIP_COST_MONTHLY`** (Optional) - Monthly premium membership cost (default: 3)
-- **`PREMIUM_MEMBERSHIP_COST_ANNUALLY`** (Optional) - Annual premium membership cost (default: 30)
-- **`FREE_TRIAL_EXPIRATION`** (Optional) - Free trial length in seconds (default: 2678400, 31×86400)
+- **`MEMBERSHIP_PREMIUM_COST_MONTHLY`** (Optional) - Monthly premium membership cost (default: 3)
+- **`MEMBERSHIP_PREMIUM_COST_ANNUALLY`** (Optional) - Annual premium membership cost (default: 30)
+- **`MEMBERSHIP_FREE_TRIAL_EXPIRATION`** (Optional) - Free trial length in seconds (default: 2678400, 31×86400). **Bootstrap / fallback:** after linear migration `0030_product_membership_settings.sql` applies, the canonical trial length for new signups and resolved membership APIs is `product_membership_settings.free_trial_expiration_seconds` in the app database (seeded from env when missing). Env remains required for startup validation and seeds fresh installs; changing env alone does not override an existing DB row until you update the row (management Products → Memberships) or adjust env and re-seed.
 
 ### Social Media
 
@@ -199,7 +199,7 @@ Variables whose names end with `_EXPIRATION`, or that contain `PORT`, are automa
 - `KEYVALDB_PORT`
 - `KEYVALDB_CACHE_EXPIRATION`
 - `AUTH_JWT_EXPIRATION`
-- `FREE_TRIAL_EXPIRATION`
+- `MEMBERSHIP_FREE_TRIAL_EXPIRATION`
 - `MAILER_PORT`
 - `VERIFY_EMAIL_TOKEN_EXPIRATION`
 - `EMAIL_CHANGE_VERIFICATION_TOKEN_EXPIRATION`

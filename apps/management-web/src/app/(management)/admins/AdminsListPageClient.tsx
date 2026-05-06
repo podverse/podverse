@@ -4,10 +4,18 @@ import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
 
+import {
+  ActionLink,
+  Alert,
+  LoadingText,
+  ManagementPageShell,
+  PageHeaderActions,
+  StatusBadge,
+  Table,
+} from '@podverse/ui';
+
 import { type AdminAccount, listAdmins } from '../../../lib/requests/admins';
 import { type CurrentUser } from '../../../lib/requests/auth';
-
-import styles from './page.module.scss';
 
 const CRUD_LABELS: Record<number, string> = {
   0: 'None',
@@ -76,67 +84,68 @@ export function AdminsListPageClient({ initialUser }: AdminsListPageClientProps)
   }, [t]);
 
   return (
-    <div className="container">
-      <div className="page-header">
-        <h1 className="page-title">{t('title')}</h1>
-        <div className={styles.headerActions}>
+    <ManagementPageShell
+      title={t('title')}
+      headerChildren={
+        <PageHeaderActions>
           {canCreate && (
-            <Link href="/admins/new" className={styles.createButton}>
+            <ActionLink href="/admins/new" variant="primary" LinkComponent={Link}>
               {t('createAdmin')}
-            </Link>
+            </ActionLink>
           )}
-        </div>
-      </div>
-      <main>
-        {loading && <p className={styles.loadingText}>{tc('loading')}</p>}
-        {error && <p className={styles.errorText}>{error}</p>}
-        {!loading && !error && (
-          <div className={styles.tableWrapper}>
-            <table className={styles.table}>
-              <thead>
-                <tr>
-                  <th>{t('tableHeaders.id')}</th>
-                  <th>{t('tableHeaders.email')}</th>
-                  <th>{t('tableHeaders.role')}</th>
-                  <th>{t('tableHeaders.feeds')}</th>
-                  <th>{t('tableHeaders.flagStatuses')}</th>
-                  <th>{t('tableHeaders.statusReasons')}</th>
-                  <th>{t('tableHeaders.admins')}</th>
-                  <th>{t('tableHeaders.stats')}</th>
-                  <th>{tc('actions')}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {admins.map((admin) => (
-                  <tr key={admin.id}>
-                    <td>{admin.id_text}</td>
-                    <td>{admin.email ?? '-'}</td>
-                    <td>
-                      <span
-                        className={admin.role === 'superuser' ? styles.superuser : styles.admin}
+        </PageHeaderActions>
+      }
+    >
+      {loading && <LoadingText>{tc('loading')}</LoadingText>}
+      {error && <Alert>{error}</Alert>}
+      {!loading && !error && (
+        <Table.ScrollContainer>
+          <Table>
+            <Table.Head>
+              <Table.Row>
+                <Table.HeaderCell>{t('tableHeaders.id')}</Table.HeaderCell>
+                <Table.HeaderCell>{t('tableHeaders.email')}</Table.HeaderCell>
+                <Table.HeaderCell>{t('tableHeaders.role')}</Table.HeaderCell>
+                <Table.HeaderCell>{t('tableHeaders.feeds')}</Table.HeaderCell>
+                <Table.HeaderCell>{t('tableHeaders.takedownReasons')}</Table.HeaderCell>
+                <Table.HeaderCell>{t('tableHeaders.admins')}</Table.HeaderCell>
+                <Table.HeaderCell>{t('tableHeaders.stats')}</Table.HeaderCell>
+                <Table.HeaderCell>{tc('actions')}</Table.HeaderCell>
+              </Table.Row>
+            </Table.Head>
+            <Table.Body>
+              {admins.map((admin) => (
+                <Table.Row key={admin.id}>
+                  <Table.Cell>{admin.id_text}</Table.Cell>
+                  <Table.Cell>{admin.email ?? '-'}</Table.Cell>
+                  <Table.Cell>
+                    <StatusBadge variant={admin.role === 'superuser' ? 'success' : 'neutral'}>
+                      {admin.role}
+                    </StatusBadge>
+                  </Table.Cell>
+                  <Table.Cell>{crudLabel(admin.permissions?.feeds_crud ?? 0)}</Table.Cell>
+                  <Table.Cell>
+                    {crudLabel(admin.permissions?.feed_takedown_reasons_crud ?? 0)}
+                  </Table.Cell>
+                  <Table.Cell>{crudLabel(admin.permissions?.admins_crud ?? 0)}</Table.Cell>
+                  <Table.Cell>{crudLabel(admin.permissions?.stats_crud ?? 0)}</Table.Cell>
+                  <Table.Cell>
+                    {admin.role !== 'superuser' && isSuperuser && (
+                      <ActionLink
+                        href={`/admins/${admin.id}/edit`}
+                        variant="inline"
+                        LinkComponent={Link}
                       >
-                        {admin.role}
-                      </span>
-                    </td>
-                    <td>{crudLabel(admin.permissions?.feeds_crud ?? 0)}</td>
-                    <td>{crudLabel(admin.permissions?.feed_flag_statuses_crud ?? 0)}</td>
-                    <td>{crudLabel(admin.permissions?.feed_flag_status_reasons_crud ?? 0)}</td>
-                    <td>{crudLabel(admin.permissions?.admins_crud ?? 0)}</td>
-                    <td>{crudLabel(admin.permissions?.stats_crud ?? 0)}</td>
-                    <td>
-                      {admin.role !== 'superuser' && isSuperuser && (
-                        <Link href={`/admins/${admin.id}/edit`} className={styles.editLink}>
-                          {tc('edit')}
-                        </Link>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </main>
-    </div>
+                        {tc('edit')}
+                      </ActionLink>
+                    )}
+                  </Table.Cell>
+                </Table.Row>
+              ))}
+            </Table.Body>
+          </Table>
+        </Table.ScrollContainer>
+      )}
+    </ManagementPageShell>
   );
 }

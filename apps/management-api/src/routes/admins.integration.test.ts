@@ -15,8 +15,7 @@ type MockAdmin = {
   admin_account_credentials: { email: string } | null;
   permissions: {
     feedsCrud: number;
-    feedFlagStatusesCrud: number;
-    feedFlagStatusReasonsCrud: number;
+    feedTakedownReasonsCrud: number;
     adminsCrud: number;
     statsCrud: number;
   } | null;
@@ -31,10 +30,10 @@ const superuserAdmin: MockAdmin = {
   admin_account_credentials: { email: 'super@example.com' },
   permissions: {
     feedsCrud: 15,
-    feedFlagStatusesCrud: 15,
-    feedFlagStatusReasonsCrud: 15,
+    feedTakedownReasonsCrud: 15,
     adminsCrud: 15,
     statsCrud: 15,
+    billingPricesCrud: 15,
   },
   created_at: new Date('2020-01-01T00:00:00.000Z'),
 };
@@ -47,10 +46,10 @@ const adminWithAdminsRead: MockAdmin = {
   admin_account_credentials: { email: 'reader@example.com' },
   permissions: {
     feedsCrud: 0,
-    feedFlagStatusesCrud: 0,
-    feedFlagStatusReasonsCrud: 0,
+    feedTakedownReasonsCrud: 0,
     adminsCrud: 2,
     statsCrud: 0,
+    billingPricesCrud: 0,
   },
   created_at: new Date('2020-01-01T00:00:00.000Z'),
 };
@@ -63,10 +62,10 @@ const adminWithNoPermissions: MockAdmin = {
   admin_account_credentials: { email: 'noperms@example.com' },
   permissions: {
     feedsCrud: 0,
-    feedFlagStatusesCrud: 0,
-    feedFlagStatusReasonsCrud: 0,
+    feedTakedownReasonsCrud: 0,
     adminsCrud: 0,
     statsCrud: 0,
+    billingPricesCrud: 0,
   },
   created_at: new Date('2020-01-01T00:00:00.000Z'),
 };
@@ -205,10 +204,10 @@ describe('management-api admins routes', () => {
         admin_account_credentials: { email: 'new@example.com' },
         permissions: {
           feedsCrud: 2,
-          feedFlagStatusesCrud: 0,
-          feedFlagStatusReasonsCrud: 0,
+          feedTakedownReasonsCrud: 0,
           adminsCrud: 0,
           statsCrud: 0,
+          billingPricesCrud: 0,
         },
         created_at: new Date('2024-01-01T00:00:00.000Z'),
       });
@@ -252,10 +251,10 @@ describe('management-api admins routes', () => {
         admin_account_credentials: { email: 'reader@example.com' },
         permissions: {
           feedsCrud: 15,
-          feedFlagStatusesCrud: 0,
-          feedFlagStatusReasonsCrud: 0,
+          feedTakedownReasonsCrud: 0,
           adminsCrud: 2,
           statsCrud: 0,
+          billingPricesCrud: 0,
         },
         created_at: new Date('2020-01-01T00:00:00.000Z'),
       });

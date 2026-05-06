@@ -4,13 +4,12 @@ import { useLocale, useTranslations } from 'next-intl';
 import { useState } from 'react';
 
 import { getAccountSignupModeCapabilities } from '@podverse/helpers';
+import { Button, Divider } from '@podverse/ui';
 
 import { getConfig } from '../../../../config';
 import { useAccount } from '../../../../contexts/Account';
 import { getApiRequestService } from '../../../../factories/apiRequestService';
 import { handleRateLimitAlert } from '../../../../utils/rateLimit/rateLimitAlert';
-import { Button } from '../../../Button/Button';
-import { Divider } from '../../../Divider/Divider';
 import { dismissToast, showToast, showToastLoading } from '../../../Toast/Toast';
 import { SettingsSection } from '../../SettingsSection';
 import { ModalChangeEmail } from './ModalChangeEmail';

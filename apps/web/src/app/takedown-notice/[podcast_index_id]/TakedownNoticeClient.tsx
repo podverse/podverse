@@ -10,6 +10,10 @@ import { MainInnerContentWrapper } from '../../../components/Main/MainInnerConte
 import { MainInnerWrapper } from '../../../components/Main/MainInnerWrapper';
 import { MainWrapper } from '../../../components/Main/MainWrapper';
 import { SideContent } from '../../../components/SideContent/SideContent';
+import {
+  resolveLegalNoticeTranslationKeys,
+  shouldRedirectFromTakedownNoticePage,
+} from '../../../lib/feed/takedownNoticeFromFeed';
 
 import styles from './TakedownNoticeClient.module.scss';
 
@@ -21,33 +25,29 @@ export function TakedownNoticeClient({ ssrFeed }: TakedownNoticeClientProps) {
   const tLegal = useTranslations('legal');
   const router = useRouter();
 
-  const status = ssrFeed?.feed_flag_status?.id;
+  const shouldRedirect = useMemo(() => shouldRedirectFromTakedownNoticePage(ssrFeed), [ssrFeed]);
 
   const { policyKey, explanationKey } = useMemo(() => {
-    switch (status) {
-      case 3: // Spam
-        return { policyKey: 'spam_policy', explanationKey: 'spam_policy_explanation' };
-      case 4: // PendingArchive
-      case 5: // Archived
-        return { policyKey: 'archive_policy', explanationKey: 'archive_policy_explanation' };
-      case 6: // Takedown
-        return { policyKey: 'takedown_policy', explanationKey: 'takedown_policy_explanation' };
-      default:
-        return { policyKey: 'takedown_policy', explanationKey: 'takedown_policy_explanation' }; // Fallback
+    if (!ssrFeed) {
+      return {
+        policyKey: 'takedown_policy' as const,
+        explanationKey: 'takedown_policy_explanation' as const,
+      };
     }
-  }, [status]);
+    return resolveLegalNoticeTranslationKeys(ssrFeed);
+  }, [ssrFeed]);
 
   useEffect(() => {
-    if (!ssrFeed || status === 1 || status === 2) {
+    if (!ssrFeed || shouldRedirect) {
       if (ssrFeed?.podcast_index_id) {
         router.replace(`/podcast-index/feed/${ssrFeed.podcast_index_id}`);
       } else {
         router.replace('/');
       }
     }
-  }, [ssrFeed, status, router]);
+  }, [ssrFeed, shouldRedirect, router]);
 
-  if (!ssrFeed || status === 1 || status === 2) {
+  if (!ssrFeed || shouldRedirect) {
     return null;
   }
 

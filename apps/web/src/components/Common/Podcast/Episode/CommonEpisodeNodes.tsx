@@ -3,8 +3,8 @@
 import React from 'react';
 
 import type { DTOChannel, DTOItem } from '@podverse/helpers';
+import { Divider } from '@podverse/ui';
 
-import { Divider } from '../../../Divider/Divider';
 import { ListLiveItemRow } from '../../../List/LiveItem/ListLiveItemRow';
 import { CommonEpisodeListGridNode } from './CommonEpisodeGridNode';
 import { CommonEpisodeListRow } from './CommonEpisodeRow';

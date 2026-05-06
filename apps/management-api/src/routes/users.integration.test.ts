@@ -18,8 +18,7 @@ type MockAdmin = {
   admin_account_credentials: { email: string } | null;
   permissions: {
     feedsCrud: number;
-    feedFlagStatusesCrud: number;
-    feedFlagStatusReasonsCrud: number;
+    feedTakedownReasonsCrud: number;
     adminsCrud: number;
     statsCrud: number;
   } | null;
@@ -31,6 +30,7 @@ const {
   readWriteQueryMock,
   hashPasswordMock,
   generateRandomIdTextMock,
+  resolveProductMembershipMock,
   getWithRoleAndPermissionsMock,
 } = vi.hoisted(() => {
   const superuserAdmin: MockAdmin = {
@@ -41,10 +41,10 @@ const {
     admin_account_credentials: { email: 'super@example.com' },
     permissions: {
       feedsCrud: 15,
-      feedFlagStatusesCrud: 15,
-      feedFlagStatusReasonsCrud: 15,
+      feedTakedownReasonsCrud: 15,
       adminsCrud: 15,
       statsCrud: 15,
+      billingPricesCrud: 15,
     },
     created_at: new Date('2020-01-01T00:00:00.000Z'),
   };
@@ -57,10 +57,10 @@ const {
     admin_account_credentials: { email: 'reader@example.com' },
     permissions: {
       feedsCrud: 0,
-      feedFlagStatusesCrud: 0,
-      feedFlagStatusReasonsCrud: 0,
+      feedTakedownReasonsCrud: 0,
       adminsCrud: 2,
       statsCrud: 0,
+      billingPricesCrud: 0,
     },
     created_at: new Date('2020-01-01T00:00:00.000Z'),
   };
@@ -70,6 +70,15 @@ const {
     readWriteQueryMock: vi.fn(),
     hashPasswordMock: vi.fn<Promise<string>, [string]>(async (p: string) => `hashed_${p}`),
     generateRandomIdTextMock: vi.fn<string, []>(() => 'abc123XYZ'),
+    resolveProductMembershipMock: vi.fn(async () => ({
+      freeTrialExpirationSeconds: 86400,
+      premiumMembershipCostMonthly: 3,
+      premiumMembershipCostAnnually: 30,
+      trialMaxAddByRSSFeeds: 10,
+      trialMaxManualRefreshesPerHour: 5,
+      premiumMaxAddByRSSFeeds: 100,
+      premiumMaxManualRefreshesPerHour: 20,
+    })),
     getWithRoleAndPermissionsMock: vi.fn<Promise<MockAdmin | null>, [number]>(
       async (id: number) => {
         if (id === 1) return superuserAdmin;
@@ -134,8 +143,22 @@ beforeEach(() => {
   hashPasswordMock.mockImplementation(async (p: string) => `hashed_${p}`);
   generateRandomIdTextMock.mockReset();
   generateRandomIdTextMock.mockImplementation(() => 'abc123XYZ');
+  resolveProductMembershipMock.mockReset();
+  resolveProductMembershipMock.mockImplementation(async () => ({
+    freeTrialExpirationSeconds: 86400,
+    premiumMembershipCostMonthly: 3,
+    premiumMembershipCostAnnually: 30,
+    trialMaxAddByRSSFeeds: 10,
+    trialMaxManualRefreshesPerHour: 5,
+    premiumMaxAddByRSSFeeds: 100,
+    premiumMaxManualRefreshesPerHour: 20,
+  }));
   hashPasswordSpy.mockImplementation((p: string) => hashPasswordMock(p));
   generateRandomIdTextSpy.mockImplementation(() => generateRandomIdTextMock());
+  vi.spyOn(
+    PodverseOrm.BillingPriceCatalogService.prototype,
+    'resolveProductMembership'
+  ).mockImplementation(() => resolveProductMembershipMock());
 });
 
 describe('GET /users', () => {
@@ -516,5 +539,35 @@ describe('POST /users', () => {
     expect(res.status).toBe(201);
     expect(res.body.message).toBe('User created successfully');
     expect(res.body.set_password_url).toBeUndefined();
+  });
+
+  it('uses product membership defaults trial duration when membership_expires_at is omitted', async () => {
+    resolveProductMembershipMock.mockResolvedValueOnce({
+      freeTrialExpirationSeconds: 120,
+      premiumMembershipCostMonthly: 3,
+      premiumMembershipCostAnnually: 30,
+      trialMaxAddByRSSFeeds: 10,
+      trialMaxManualRefreshesPerHour: 5,
+      premiumMaxAddByRSSFeeds: 100,
+      premiumMaxManualRefreshesPerHour: 20,
+    });
+    mockCreateUserSqlSequence({ withSetPassword: true });
+    const before = Date.now();
+
+    const res = await request(app)
+      .post(usersBase)
+      .set(superuserAuthHeaders())
+      .send({ username: 'trial_defaults_user' });
+    const after = Date.now();
+
+    expect(res.status).toBe(201);
+    const membershipInsertCall = readWriteQueryMock.mock.calls[6];
+    expect(membershipInsertCall).toBeDefined();
+    const membershipParams = membershipInsertCall?.[1] as unknown[];
+    const membershipExpiresAt = membershipParams[2];
+    expect(membershipExpiresAt).toBeInstanceOf(Date);
+    const expiresMs = (membershipExpiresAt as Date).getTime();
+    expect(expiresMs).toBeGreaterThanOrEqual(before + 120_000 - 2_000);
+    expect(expiresMs).toBeLessThanOrEqual(after + 120_000 + 2_000);
   });
 });

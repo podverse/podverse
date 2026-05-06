@@ -23,6 +23,10 @@ import { AccountSettingsNotificationType } from '@orm/entities/account/accountSe
 import { AccountUPDevice } from '@orm/entities/account/accountUPDevice.js';
 import { AccountVerification } from '@orm/entities/account/accountVerification.js';
 import { AccountWebPushDevice } from '@orm/entities/account/accountWebPushDevice.js';
+import { BillingDomainEvent } from '@orm/entities/billingDomainEvent.js';
+import { BillingPrice } from '@orm/entities/billingPrice.js';
+import { BillingPriceChangeAudit } from '@orm/entities/billingPriceChangeAudit.js';
+import { BillingProduct } from '@orm/entities/billingProduct.js';
 import { Category } from '@orm/entities/category.js';
 import { Channel } from '@orm/entities/channel/channel.js';
 import { ChannelAbout } from '@orm/entities/channel/channelAbout.js';
@@ -50,9 +54,15 @@ import { ChannelValue } from '@orm/entities/channel/channelValue.js';
 import { ChannelValueRecipient } from '@orm/entities/channel/channelValueRecipient.js';
 import { Clip } from '@orm/entities/clip.js';
 import { Feed } from '@orm/entities/feed/feed.js';
-import { FeedFlagStatus } from '@orm/entities/feed/feedFlagStatus.js';
-import { FeedFlagStatusReason } from '@orm/entities/feed/feedFlagStatusReason.js';
+import { FeedCondition } from '@orm/entities/feed/feedCondition.js';
+import { FeedConditionType } from '@orm/entities/feed/feedConditionType.js';
+import { FeedLifecycleEvent } from '@orm/entities/feed/feedLifecycleEvent.js';
+import { FeedLifecycleState } from '@orm/entities/feed/feedLifecycleState.js';
+import { FeedLifecycleStateType } from '@orm/entities/feed/feedLifecycleStateType.js';
 import { FeedLog } from '@orm/entities/feed/feedLog.js';
+import { FeedPolicy } from '@orm/entities/feed/feedPolicy.js';
+import { FeedPolicyOverride } from '@orm/entities/feed/feedPolicyOverride.js';
+import { FeedTakedownReason } from '@orm/entities/feed/feedTakedownReason.js';
 import { Item } from '@orm/entities/item/item.js';
 import { ItemAbout } from '@orm/entities/item/itemAbout.js';
 import { ItemChapter } from '@orm/entities/item/itemChapter.js';
@@ -91,6 +101,7 @@ import { MembershipClaimToken } from '@orm/entities/membershipClaimToken.js';
 import { OnDemandParserEvent } from '@orm/entities/onDemandParserEvent.js';
 import { Playlist } from '@orm/entities/playlist/playlist.js';
 import { PlaylistResource } from '@orm/entities/playlist/playlistResource.js';
+import { ProductMembershipSettings } from '@orm/entities/productMembershipSettings.js';
 import { Queue } from '@orm/entities/queue/queue.js';
 import { QueueResource } from '@orm/entities/queue/queueResource.js';
 import { SharableStatus } from '@orm/entities/sharableStatus.js';
@@ -134,6 +145,10 @@ export const entities = [
   AccountUPDevice,
   AccountWebPushDevice,
   AccountVerification,
+  BillingPrice,
+  BillingPriceChangeAudit,
+  BillingDomainEvent,
+  BillingProduct,
   Category,
   Channel,
   ChannelAbout,
@@ -161,9 +176,15 @@ export const entities = [
   ChannelValueRecipient,
   Clip,
   Feed,
-  FeedFlagStatus,
-  FeedFlagStatusReason,
+  FeedCondition,
+  FeedConditionType,
+  FeedLifecycleEvent,
+  FeedLifecycleState,
+  FeedLifecycleStateType,
+  FeedTakedownReason,
   FeedLog,
+  FeedPolicy,
+  FeedPolicyOverride,
   ImageShrinkSource,
   Item,
   ItemAbout,
@@ -203,6 +224,7 @@ export const entities = [
   OnDemandParserEvent,
   Playlist,
   PlaylistResource,
+  ProductMembershipSettings,
   Queue,
   QueueResource,
   SharableStatus,

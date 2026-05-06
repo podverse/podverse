@@ -25,17 +25,17 @@ export class AdminAccountPermissions {
   @Column({ name: 'feeds_crud', type: 'integer', default: 0 })
   feedsCrud!: number;
 
-  @Column({ name: 'feed_flag_statuses_crud', type: 'integer', default: 0 })
-  feedFlagStatusesCrud!: number;
-
-  @Column({ name: 'feed_flag_status_reasons_crud', type: 'integer', default: 0 })
-  feedFlagStatusReasonsCrud!: number;
+  @Column({ name: 'feed_takedown_reasons_crud', type: 'integer', default: 0 })
+  feedTakedownReasonsCrud!: number;
 
   @Column({ name: 'admins_crud', type: 'integer', default: 0 })
   adminsCrud!: number;
 
   @Column({ name: 'stats_crud', type: 'integer', default: 0 })
   statsCrud!: number;
+
+  @Column({ name: 'billing_prices_crud', type: 'integer', default: 0 })
+  billingPricesCrud!: number;
 
   @CreateDateColumn({ type: 'timestamp', default: () => 'NOW()' })
   created_at!: Date;

@@ -1,0 +1,13 @@
+.card {
+  background-color: var(--background-color-secondary);
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow-card);
+  padding: var(--spacing-2xl);
+}
+
+.cardBordered {
+  border: 1px solid var(--border-color-tertiary);
+  border-radius: var(--border-radius);
+  background-color: var(--background-color-tertiary);
+  padding: var(--spacing-2xl);
+}

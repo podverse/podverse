@@ -5,14 +5,29 @@ import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
-import { Disclosure } from '@podverse/ui';
+import type { StatusBadgeVariant } from '@podverse/ui';
+import {
+  ActionLink,
+  Alert,
+  CodeText,
+  CopyToClipboardButton,
+  Disclosure,
+  fieldPrimitiveClasses,
+  FormGroup,
+  FormHintText,
+  Input,
+  Label,
+  LeadParagraph,
+  LoadingText,
+  ManagementPageShell,
+  RestrictedNotice,
+  StatusBadge,
+  Table,
+} from '@podverse/ui';
 
-import { Card } from '../../../components/ui/Card/Card';
 import type { CurrentUser } from '../../../lib/requests/auth';
 import { getCurrentUser } from '../../../lib/requests/auth';
 import { listWorkerCommands, type WorkerCommandRow } from '../../../lib/requests/workerCommands';
-
-import styles from './page.module.scss';
 
 const CATEGORY_KEY: Record<string, string> = {
   archival: 'categories.archival',
@@ -36,14 +51,14 @@ type WorkersPageClientProps = {
   initialUser: CurrentUser;
 };
 
-function riskClass(risk: WorkerCommandRow['risk']): string {
+function riskVariant(risk: WorkerCommandRow['risk']): StatusBadgeVariant {
   if (risk === 'long_running') {
-    return styles.badgeLong ?? styles.badgeNormal ?? '';
+    return 'warning';
   }
   if (risk === 'dev_only') {
-    return styles.badgeDev ?? styles.badgeNormal ?? '';
+    return 'danger';
   }
-  return styles.badgeNormal ?? '';
+  return 'neutral';
 }
 
 export function WorkersPageClient({ initialUser }: WorkersPageClientProps) {
@@ -52,8 +67,6 @@ export function WorkersPageClient({ initialUser }: WorkersPageClientProps) {
   const [loadError, setLoadError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [filter, setFilter] = useState('');
-  const [copyError, setCopyError] = useState<string | null>(null);
-  const [copyOk, setCopyOk] = useState(false);
   const router = useRouter();
   const t = useTranslations('workers');
   const tc = useTranslations('common');
@@ -178,140 +191,112 @@ export function WorkersPageClient({ initialUser }: WorkersPageClientProps) {
     }));
   }, [rows, getCategoryLabel]);
 
-  const onCopy = useCallback(
-    async (line: string) => {
-      setCopyError(null);
-      setCopyOk(false);
-      try {
-        await navigator.clipboard.writeText(line);
-        setCopyOk(true);
-        setTimeout(() => {
-          setCopyOk(false);
-        }, 2000);
-      } catch {
-        setCopyError(t('copyFailed'));
-        setTimeout(() => {
-          setCopyError(null);
-        }, 4000);
-      }
-    },
-    [t]
-  );
-
   return (
-    <div className="container">
-      <div className="page-header">
-        <h1 className="page-title">{t('title')}</h1>
-      </div>
-      <main>
-        <p className={styles.intro}>
-          {t.rich('intro', {
-            code: (chunks) => <code>{chunks}</code>,
-          })}
-        </p>
-        {copyOk && (
-          <p className={styles.countHint} role="status">
-            {t('copiedToClipboard')}
+    <ManagementPageShell title={t('title')}>
+      <LeadParagraph>
+        {t.rich('intro', {
+          code: (chunks) => <code>{chunks}</code>,
+        })}
+      </LeadParagraph>
+      {!isSuperuser && (
+        <RestrictedNotice title={t('superuserOnly')}>
+          <p>
+            {t.rich('superuserOnlyDescription', {
+              code: (chunks) => <code>{chunks}</code>,
+            })}
           </p>
-        )}
-        {copyError && (
-          <p className={styles.errorText} role="alert">
-            {copyError}
-          </p>
-        )}
+        </RestrictedNotice>
+      )}
 
-        {!isSuperuser && (
-          <Card variant="bordered">
-            <h2>{t('superuserOnly')}</h2>
-            <p className={styles.restrictedText}>
-              {t.rich('superuserOnlyDescription', {
-                code: (chunks) => <code>{chunks}</code>,
-              })}
-            </p>
-          </Card>
-        )}
+      {isSuperuser && loading && <LoadingText>{t('loadingCommands')}</LoadingText>}
+      {isSuperuser && !loading && loadError && <Alert>{loadError}</Alert>}
 
-        {isSuperuser && loading && <p className={styles.loadingText}>{t('loadingCommands')}</p>}
-        {isSuperuser && !loading && loadError && <p className={styles.errorText}>{loadError}</p>}
-
-        {isSuperuser && !loading && !loadError && commands && (
-          <>
-            <div className={styles.filterRow}>
-              <span className={styles.filterLabel} id="worker-filter-label">
-                {tc('search')}
-              </span>
-              <input
-                className={styles.filterInput}
-                type="search"
-                value={filter}
-                onChange={(e) => {
-                  setFilter(e.target.value);
-                }}
-                placeholder={t('searchPlaceholder')}
-                autoComplete="off"
-                aria-labelledby="worker-filter-label"
-              />
-              <span className={styles.countHint}>
-                {t('commandCount', { shown: rows.length, total: commands.length })}
-              </span>
-            </div>
-            <div className={styles.categoryStack}>
-              {commandGroups.map(({ category, rows: groupRows }) => (
-                <Disclosure key={category} title={getCategoryLabel(category)}>
-                  <div className={styles.tableScrollInDisclosure}>
-                    <table className={styles.dataTable}>
-                      <thead>
-                        <tr>
-                          <th>{t('tableHeaders.command')}</th>
-                          <th>{t('tableHeaders.description')}</th>
-                          <th>{t('tableHeaders.risk')}</th>
-                          <th>{tc('actions')}</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {groupRows.map((row) => (
-                          <tr key={row.name}>
-                            <td>
-                              <div className={styles.commandName}>{row.name}</div>
-                              <div>{row.label}</div>
-                            </td>
-                            <td className={styles.desc}>{row.description}</td>
-                            <td>
-                              <span className={riskClass(row.risk)} title={getRiskLabel(row.risk)}>
-                                {getRiskLabel(row.risk)}
-                              </span>
-                            </td>
-                            <td>
-                              <div className={styles.actions}>
-                                <button
-                                  type="button"
-                                  className={styles.copyBtn}
-                                  onClick={() => {
-                                    void onCopy(row.example_cli);
-                                  }}
+      {isSuperuser && !loading && !loadError && commands && (
+        <>
+          <FormGroup>
+            <Label htmlFor="worker-command-filter">{tc('search')}</Label>
+            <Input
+              id="worker-command-filter"
+              type="search"
+              value={filter}
+              onChange={(e) => {
+                setFilter(e.target.value);
+              }}
+              placeholder={t('searchPlaceholder')}
+              autoComplete="off"
+              className={fieldPrimitiveClasses.input}
+              style={{ maxWidth: '32rem' }}
+            />
+            <FormHintText variant="block">
+              {t('commandCount', { shown: rows.length, total: commands.length })}
+            </FormHintText>
+          </FormGroup>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-lg)' }}>
+            {commandGroups.map(({ category, rows: groupRows }) => (
+              <Disclosure key={category} title={getCategoryLabel(category)}>
+                <Table.ScrollContainer>
+                  <Table>
+                    <Table.Head>
+                      <Table.Row>
+                        <Table.HeaderCell>{t('tableHeaders.command')}</Table.HeaderCell>
+                        <Table.HeaderCell>{t('tableHeaders.description')}</Table.HeaderCell>
+                        <Table.HeaderCell>{t('tableHeaders.risk')}</Table.HeaderCell>
+                        <Table.HeaderCell>{tc('actions')}</Table.HeaderCell>
+                      </Table.Row>
+                    </Table.Head>
+                    <Table.Body>
+                      {groupRows.map((row) => (
+                        <Table.Row key={row.name}>
+                          <Table.Cell>
+                            <CodeText>{row.name}</CodeText>
+                            <div>{row.label}</div>
+                          </Table.Cell>
+                          <Table.Cell>{row.description}</Table.Cell>
+                          <Table.Cell>
+                            <StatusBadge variant={riskVariant(row.risk)}>
+                              {getRiskLabel(row.risk)}
+                            </StatusBadge>
+                          </Table.Cell>
+                          <Table.Cell>
+                            <div
+                              style={{
+                                display: 'flex',
+                                flexDirection: 'column',
+                                gap: 'var(--spacing-md)',
+                                alignItems: 'flex-start',
+                              }}
+                            >
+                              <CopyToClipboardButton
+                                textToCopy={row.example_cli}
+                                idleLabel={t('copyExample')}
+                                copiedLabel={t('copiedToClipboard')}
+                                errorLabel={t('copyFailed')}
+                              />
+                              {row.related_management_path ? (
+                                <ActionLink
+                                  href={row.related_management_path}
+                                  LinkComponent={Link}
+                                  variant="inline"
                                 >
-                                  {t('copyExample')}
-                                </button>
-                                {row.related_management_path ? (
-                                  <Link className={styles.link} href={row.related_management_path}>
-                                    {t('openRelatedTool')}
-                                  </Link>
-                                ) : null}
-                                <code className={styles.exampleCli}>{row.example_cli}</code>
-                              </div>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </Disclosure>
-              ))}
-            </div>
-            {rows.length === 0 && <p className={styles.countHint}>{t('noMatchingCommands')}</p>}
-          </>
-        )}
-      </main>
-    </div>
+                                  {t('openRelatedTool')}
+                                </ActionLink>
+                              ) : null}
+                              <CodeText variant="block">{row.example_cli}</CodeText>
+                            </div>
+                          </Table.Cell>
+                        </Table.Row>
+                      ))}
+                    </Table.Body>
+                  </Table>
+                </Table.ScrollContainer>
+              </Disclosure>
+            ))}
+          </div>
+          {rows.length === 0 && (
+            <FormHintText variant="block">{t('noMatchingCommands')}</FormHintText>
+          )}
+        </>
+      )}
+    </ManagementPageShell>
   );
 }

@@ -1,21 +1,28 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import type { FormEvent } from 'react';
 import { useEffect, useState } from 'react';
 
-import { Alert } from '../components/ui/Alert/Alert';
-import { Button } from '../components/ui/Button/Button';
-import { Card } from '../components/ui/Card/Card';
-import { CenterContainer } from '../components/ui/CenterContainer/CenterContainer';
-import { FormGroup, FormInput, FormLabel } from '../components/ui/Form';
-import { LoadingText } from '../components/ui/LoadingText/LoadingText';
+import {
+  Alert,
+  AuthCard,
+  AuthCardHeader,
+  Button,
+  CenterContainer,
+  FormGroup,
+  Input,
+  Label,
+  LoadingText,
+} from '@podverse/ui';
+
 import { getConfig } from '../config';
 import { getCurrentUser, login } from '../lib/requests/auth';
 
-import styles from './page.module.scss';
-
 export default function HomePage() {
+  const t = useTranslations('auth');
+  const tc = useTranslations('common');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -51,7 +58,7 @@ export default function HomePage() {
       router.push('/dashboard');
     } catch (err: unknown) {
       // Handle axios errors - they may have response.data.message
-      let errorMessage = 'Invalid username or password';
+      let errorMessage = t('invalidCredentialsDefault');
       if (err && typeof err === 'object' && 'response' in err) {
         const axiosError = err as { response?: { data?: { message?: string } } };
         if (axiosError.response?.data?.message) {
@@ -71,25 +78,25 @@ export default function HomePage() {
   if (checkingAuth) {
     return (
       <CenterContainer>
-        <LoadingText>Loading...</LoadingText>
+        <LoadingText>{tc('loading')}</LoadingText>
       </CenterContainer>
     );
   }
 
   return (
     <CenterContainer>
-      <Card className={styles.loginCard}>
-        <div className={styles.loginHeader}>
-          <h1 className={styles.loginTitle}>{getConfig().public.brand.name ?? 'Management'}</h1>
-          <p className={styles.loginSubtitle}>Please sign in to continue</p>
-        </div>
+      <AuthCard>
+        <AuthCardHeader
+          title={getConfig().public.brand.name ?? t('defaultBrandName')}
+          subtitle={t('signInSubtitle')}
+        />
 
         <form onSubmit={handleSubmit}>
           {error && <Alert variant="error">{error}</Alert>}
 
           <FormGroup>
-            <FormLabel htmlFor="email">Username / Email</FormLabel>
-            <FormInput
+            <Label htmlFor="email">{t('usernameOrEmail')}</Label>
+            <Input
               id="email"
               type="text"
               value={email}
@@ -100,8 +107,8 @@ export default function HomePage() {
           </FormGroup>
 
           <FormGroup>
-            <FormLabel htmlFor="password">Password</FormLabel>
-            <FormInput
+            <Label htmlFor="password">{t('password')}</Label>
+            <Input
               id="password"
               type="password"
               value={password}
@@ -111,11 +118,11 @@ export default function HomePage() {
             />
           </FormGroup>
 
-          <Button type="submit" disabled={loading}>
-            {loading ? 'Signing in...' : 'Sign In'}
+          <Button block type="submit" disabled={loading}>
+            {loading ? t('signingIn') : t('signIn')}
           </Button>
         </form>
-      </Card>
+      </AuthCard>
     </CenterContainer>
   );
 }

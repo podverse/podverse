@@ -6,18 +6,28 @@ import { useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
 
 import {
+  ActionLink,
+  Alert,
+  Breadcrumbs,
+  Button,
+  FormContainer,
+  FormGroup,
+  FormPrimaryActions,
+  Input,
+  Label,
+  ManagementPageShell,
+} from '@podverse/ui';
+
+import {
   createTableRow,
   getTableMeta,
   type TableFieldMeta,
   type TableMeta,
 } from '../../../../../lib/requests/database';
 
-import styles from '../../page.module.scss';
-
 const TABLE_SINGULAR_LABEL_KEYS: Record<string, string> = {
   feed: 'tables.feed.labelSingular',
-  feed_flag_status: 'tables.feed_flag_status.labelSingular',
-  feed_flag_status_reason: 'tables.feed_flag_status_reason.labelSingular',
+  feed_takedown_reason: 'tables.feed_takedown_reason.labelSingular',
 };
 
 export type CreateRowPageClientProps = {
@@ -97,53 +107,49 @@ export function CreateRowPageClient({ tableName }: CreateRowPageClientProps) {
     : tableName;
 
   return (
-    <div className="container">
-      <div className="page-header">
-        <h1 className="page-title">{t('createRowTitle', { table: tableSingularLabel })}</h1>
-        <div className={styles.breadcrumbs}>
-          <Link href="/database" className={styles.breadcrumbLink}>
-            {t('title')}
-          </Link>
-          <span className={styles.breadcrumbSep}>/</span>
-          <Link href={`/database/${tableName}`} className={styles.breadcrumbLink}>
-            {tableName}
-          </Link>
-          <span className={styles.breadcrumbSep}>/</span>
-          <span>{tc('new')}</span>
-        </div>
-      </div>
-      <main>
-        {meta && (
-          <form onSubmit={handleSubmit} className={styles.form}>
-            {settableFields.map((field: TableFieldMeta) => (
-              <div key={field.name} className={styles.formGroup}>
-                <label className={styles.label} htmlFor={field.name}>
-                  {field.name}
-                  {!field.nullable && <span style={{ color: '#c33' }}> *</span>}
-                </label>
-                <input
-                  id={field.name}
-                  type="text"
-                  className={styles.input}
-                  value={String(formData[field.name] ?? '')}
-                  onChange={(e) => handleFieldChange(field.name, e.target.value)}
-                  required={!field.nullable}
-                  placeholder={field.type}
-                />
-              </div>
-            ))}
-            {error && <p className={styles.errorText}>{error}</p>}
-            <div className={styles.formActions}>
-              <button type="submit" className={styles.submitButton} disabled={loading}>
-                {loading ? tc('creating') : tc('create')}
-              </button>
-              <Link href={`/database/${tableName}`} className={styles.cancelLink}>
-                {tc('cancel')}
-              </Link>
-            </div>
-          </form>
-        )}
-      </main>
-    </div>
+    <ManagementPageShell
+      title={t('createRowTitle', { table: tableSingularLabel })}
+      headerChildren={
+        <Breadcrumbs
+          LinkComponent={Link}
+          navAriaLabel={tc('breadcrumbNav')}
+          items={[
+            { href: '/database', label: t('title') },
+            { href: `/database/${tableName}`, label: tableName },
+            { label: tc('new') },
+          ]}
+        />
+      }
+    >
+      {meta && (
+        <FormContainer onSubmit={(e) => void handleSubmit(e)}>
+          {settableFields.map((field: TableFieldMeta) => (
+            <FormGroup key={field.name}>
+              <Label htmlFor={field.name}>
+                {field.name}
+                {!field.nullable ? <span aria-hidden="true"> *</span> : null}
+              </Label>
+              <Input
+                id={field.name}
+                type="text"
+                value={String(formData[field.name] ?? '')}
+                onChange={(e) => handleFieldChange(field.name, e.target.value)}
+                required={!field.nullable}
+                placeholder={field.type}
+              />
+            </FormGroup>
+          ))}
+          {error && <Alert>{error}</Alert>}
+          <FormPrimaryActions>
+            <ActionLink href={`/database/${tableName}`} variant="subtle" LinkComponent={Link}>
+              {tc('cancel')}
+            </ActionLink>
+            <Button type="submit" disabled={loading}>
+              {loading ? tc('creating') : tc('create')}
+            </Button>
+          </FormPrimaryActions>
+        </FormContainer>
+      )}
+    </ManagementPageShell>
   );
 }

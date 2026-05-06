@@ -23,6 +23,7 @@ import {
 } from '@podverse/helpers';
 import { validateEmail, validatePassword, validateUsername } from '@podverse/helpers-validation';
 
+import { BillingPriceCatalogService } from '../billingPriceCatalog.js';
 import { AccountCredentialsService } from './accountCredentials.js';
 import { AccountMembershipStatusService } from './accountMembershipStatus.js';
 import { AccountProfileService } from './accountProfile.js';
@@ -217,9 +218,14 @@ export class AccountService {
       password: saltedPassword,
     });
 
+    const billingPriceCatalogService = new BillingPriceCatalogService();
+    const resolvedMembership = await billingPriceCatalogService.resolveProductMembership();
+    const now = new Date();
+
     const accountMembershipStatusService = new AccountMembershipStatusService();
-    const membership_expires_at = new Date();
-    membership_expires_at.setMonth(membership_expires_at.getMonth() + 3);
+    const membership_expires_at = new Date(
+      now.getTime() + resolvedMembership.freeTrialExpirationSeconds * 1000
+    );
     await accountMembershipStatusService.update(account, {
       account_membership_id: AccountMembershipEnum.Trial,
       membership_expires_at,

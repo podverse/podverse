@@ -4,6 +4,7 @@ import React, { useMemo } from 'react';
 
 import { MediumEnum } from '@podverse/helpers';
 import { getAddByRSSHashId, getItemMediumIdFromBundle } from '@podverse/parser-mapping';
+import { Divider } from '@podverse/ui';
 
 import type { AddByRSSListSortOrder } from '../../../../contexts/AddByRSSListContext';
 import { useLikesAddByRssBatch } from '../../../../hooks/useLikesAddByRssBatch';
@@ -13,7 +14,6 @@ import type {
   AddByRSSMappedFeed,
 } from '../../../../utils/addByRSS/types';
 import { buildListLikeRow } from '../../../../utils/likes/buildListLikeRow';
-import { Divider } from '../../../Divider/Divider';
 import type { ViewSelectedOption } from '../../../ViewSelector/ViewSelector';
 import { AddByRSSEpisodeGridNode } from './AddByRSSEpisodeGridNode';
 import { AddByRSSEpisodeRow } from './AddByRSSEpisodeRow';

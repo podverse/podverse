@@ -2,7 +2,7 @@
 
 import React, { useLayoutEffect, useRef, useState } from 'react';
 
-import { Tooltip } from '../../Tooltip/Tooltip';
+import { Tooltip } from '@podverse/ui';
 
 const TOOLTIP_GAP_ABOVE_BAR = 8;
 const VIEWPORT_PADDING = 8;

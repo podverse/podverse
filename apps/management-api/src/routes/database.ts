@@ -425,14 +425,14 @@ function getCrudForResource(
   switch (resource) {
     case 'feeds':
       return permissions.feeds_crud;
-    case 'feed_flag_statuses':
-      return permissions.feed_flag_statuses_crud;
-    case 'feed_flag_status_reasons':
-      return permissions.feed_flag_status_reasons_crud;
+    case 'feed_takedown_reasons':
+      return permissions.feed_takedown_reasons_crud;
     case 'admins':
       return permissions.admins_crud;
     case 'stats':
       return permissions.stats_crud;
+    case 'billing_prices':
+      return permissions.billing_prices_crud ?? 0;
   }
 }
 

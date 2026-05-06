@@ -1,4 +1,5 @@
 import type { AxiosRequestConfig } from '@podverse/helpers-requests';
+import type { OutboundRequestConfig } from '@podverse/helpers-requests/outbound-requests';
 import {
   requestWithHeadersWithUserAgentForOutbound,
   requestWithUserAgentForOutbound,
@@ -8,7 +9,7 @@ import { config } from '../config/index.js';
 
 export const _request = async <T>(
   url: string,
-  requestConfig?: AxiosRequestConfig,
+  requestConfig?: AxiosRequestConfig & OutboundRequestConfig,
   abort?: {
     controller: AbortController;
     timeoutMs: number;
@@ -19,7 +20,7 @@ export const _request = async <T>(
 
 export const _requestWithHeaders = async <T>(
   url: string,
-  requestConfig?: AxiosRequestConfig,
+  requestConfig?: AxiosRequestConfig & OutboundRequestConfig,
   abort?: {
     controller: AbortController;
     timeoutMs: number;

@@ -36,10 +36,17 @@ export function canReadStats(user: CurrentUser): boolean {
   );
 }
 
-/** Matches management-api `FEED_FLAG_STATUS_TAKEDOWN_ID`. */
-export const FEED_FLAG_TAKEDOWN_ID = 6;
-export const FEED_FLAG_SPAM_ID = 3;
+/** Matches feed lifecycle `takedown` from management feed-operations API. */
+export const LIFECYCLE_TAKEDOWN_KEY = 'takedown';
 
-export function statusRequiresConfirm(statusId: number): boolean {
-  return statusId === FEED_FLAG_SPAM_ID || statusId === FEED_FLAG_TAKEDOWN_ID;
+export function feedOperationsRequireConfirm(params: {
+  lifecycleStateKey: string;
+  activeConditionKeys: string[];
+}): boolean {
+  if (params.lifecycleStateKey === LIFECYCLE_TAKEDOWN_KEY) {
+    return true;
+  }
+  const keys = params.activeConditionKeys;
+  const spamLike = keys.includes('spam_detected') && !keys.includes('spam_permitted');
+  return spamLike;
 }

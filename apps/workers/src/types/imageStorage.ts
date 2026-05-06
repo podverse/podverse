@@ -1,24 +1,34 @@
 /**
  * Provider-agnostic contract for image CDN storage used by the image shrink pipeline.
  * Implementations upload by key and expose public URLs as (cdnBaseUrl + key).
- * Allows swapping Digital Ocean Spaces for another provider (e.g. AWS S3, Cloudflare R2)
- * by supplying a different implementation at bootstrap.
+ * Swappable via bootstrap when `BUCKET_PROVIDER` selects an S3-compatible backend.
  */
 
-export type ImageStorageUploadParams = {
-  bucket: string;
-  key: string;
-  body: Uint8Array;
-  contentType: string;
-  cacheControl?: string;
-};
+import type {
+  ObjectStorageDeleteParams,
+  ObjectStorageListObjectsParams,
+  ObjectStorageListObjectsResult,
+  ObjectStorageObjectExistsParams,
+  ObjectStoragePublicUrlParams,
+  ObjectStorageUploadParams,
+} from '@podverse/external-services-object-storage';
 
-export type ImageStoragePublicUrlParams = {
-  cdnBaseUrl: string;
-  key: string;
-};
+export type ImageStorageUploadParams = ObjectStorageUploadParams;
+
+export type ImageStoragePublicUrlParams = ObjectStoragePublicUrlParams;
+
+export type ImageStorageListObjectsParams = ObjectStorageListObjectsParams;
+
+export type ImageStorageListObjectsResult = ObjectStorageListObjectsResult;
+
+export type ImageStorageDeleteParams = ObjectStorageDeleteParams;
+
+export type ImageStorageObjectExistsParams = ObjectStorageObjectExistsParams;
 
 export type ImageStorageService = {
   uploadResizedImage(params: ImageStorageUploadParams): Promise<void>;
   getPublicUrl(params: ImageStoragePublicUrlParams): string;
+  listObjects(params: ImageStorageListObjectsParams): Promise<ImageStorageListObjectsResult>;
+  deleteImageByKey(params: ImageStorageDeleteParams): Promise<void>;
+  objectExists(params: ImageStorageObjectExistsParams): Promise<boolean>;
 };

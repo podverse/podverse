@@ -6,7 +6,6 @@ import type { Feed } from '@podverse/orm';
 import { FeedLogService, FeedService } from '@podverse/orm';
 
 import { getParserConfig } from '../../../context.js';
-import { _request } from '../../_request.js';
 import { FeedIsParsingError, FeedNoChangesSinceLastParsedError } from '../errors.js';
 import { getParsedFeedMd5Hash } from '../hash/parsedFeed.js';
 import { getAndParseRSSFeed } from '../parser.js';
@@ -20,10 +19,6 @@ export const handleGetRSSFeed = async (url: string, podcast_index_id: number): P
   if (getParserConfig().testAssetsMode) {
     feed = await feedService.getByPodcastIndexId(podcast_index_id);
     if (!feed) {
-      const response = await _request(url, { method: 'HEAD' });
-      if (!response || response.status < 200 || response.status >= 300) {
-        throw new Error(`HEAD request failed for ${url} with status ${response?.status}`);
-      }
       const maxId = await feedService.getMaxPodcastIndexId();
       const newPodcastIndexId = maxId === null ? 1 : maxId + 1;
       feed = await feedService.getOrCreate({ url, podcast_index_id: newPodcastIndexId });
@@ -39,10 +34,6 @@ export const handleGetRSSFeed = async (url: string, podcast_index_id: number): P
     }
 
     if (!feed) {
-      const response = await _request(url, { method: 'HEAD' });
-      if (!response || response.status < 200 || response.status >= 300) {
-        throw new Error(`HEAD request failed for ${url} with status ${response?.status}`);
-      }
       feed = await feedService.getOrCreate({ url, podcast_index_id });
     }
   }
@@ -56,13 +47,16 @@ export const handleGetRSSFeed = async (url: string, podcast_index_id: number): P
   return feed;
 };
 
-export const handleRequestRSSFeed = async (feed: Feed): Promise<FeedObject> => {
+export const handleRequestRSSFeed = async (
+  feed: Feed,
+  maxFeedBodyBytes: number
+): Promise<FeedObject> => {
   timerManager.start('handleRequestRSSFeed');
   const feedLogService = new FeedLogService();
   let parsedFeed: FeedObject | null;
 
   try {
-    parsedFeed = await getAndParseRSSFeed(feed.url);
+    parsedFeed = await getAndParseRSSFeed(feed.url, maxFeedBodyBytes);
     await feedLogService.update(feed, {
       last_http_status: 200,
       last_good_http_status_time: new Date(),

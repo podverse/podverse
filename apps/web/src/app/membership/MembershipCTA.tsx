@@ -3,7 +3,8 @@
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 
-import { Button } from '../../components/Button/Button';
+import { Button } from '@podverse/ui';
+
 import { ROUTES } from '../../constants/routes';
 
 import styles from '../../styles/app/membership/Membership.module.scss';

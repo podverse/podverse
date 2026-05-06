@@ -4,8 +4,7 @@ import { useTranslations } from 'next-intl';
 import React, { useEffect, useRef, useState } from 'react';
 import { FaInfoCircle } from 'react-icons/fa';
 
-import { Button } from '../Button/Button';
-import { Tooltip } from '../Tooltip/Tooltip';
+import { Button, Tooltip } from '@podverse/ui';
 
 import styles from '../../styles/components/PopoverIcon/PopoverIcon.module.scss';
 

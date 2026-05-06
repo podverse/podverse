@@ -8,10 +8,10 @@ import type { FindOneOptions, Repository } from 'typeorm';
 
 type CrudPermissions = {
   feeds_crud?: number;
-  feed_flag_statuses_crud?: number;
-  feed_flag_status_reasons_crud?: number;
+  feed_takedown_reasons_crud?: number;
   admins_crud?: number;
   stats_crud?: number;
+  billing_prices_crud?: number;
 };
 
 type CreateAdminAccountDto = {
@@ -121,10 +121,10 @@ export class AdminAccountService {
     const permissions = this.permissionsRepositoryReadWrite.create({
       admin_account_id: savedAccount.id,
       feedsCrud: dto.permissions?.feeds_crud ?? 0,
-      feedFlagStatusesCrud: dto.permissions?.feed_flag_statuses_crud ?? 0,
-      feedFlagStatusReasonsCrud: dto.permissions?.feed_flag_status_reasons_crud ?? 0,
+      feedTakedownReasonsCrud: dto.permissions?.feed_takedown_reasons_crud ?? 0,
       adminsCrud: dto.permissions?.admins_crud ?? 0,
       statsCrud: dto.permissions?.stats_crud ?? 0,
+      billingPricesCrud: dto.permissions?.billing_prices_crud ?? 0,
     });
     await this.permissionsRepositoryReadWrite.save(permissions);
 
@@ -170,12 +170,9 @@ export class AdminAccountService {
         if (dto.permissions.feeds_crud !== undefined) {
           adminAccount.permissions.feedsCrud = dto.permissions.feeds_crud;
         }
-        if (dto.permissions.feed_flag_statuses_crud !== undefined) {
-          adminAccount.permissions.feedFlagStatusesCrud = dto.permissions.feed_flag_statuses_crud;
-        }
-        if (dto.permissions.feed_flag_status_reasons_crud !== undefined) {
-          adminAccount.permissions.feedFlagStatusReasonsCrud =
-            dto.permissions.feed_flag_status_reasons_crud;
+        if (dto.permissions.feed_takedown_reasons_crud !== undefined) {
+          adminAccount.permissions.feedTakedownReasonsCrud =
+            dto.permissions.feed_takedown_reasons_crud;
         }
         if (dto.permissions.admins_crud !== undefined) {
           adminAccount.permissions.adminsCrud = dto.permissions.admins_crud;
@@ -183,15 +180,18 @@ export class AdminAccountService {
         if (dto.permissions.stats_crud !== undefined) {
           adminAccount.permissions.statsCrud = dto.permissions.stats_crud;
         }
+        if (dto.permissions.billing_prices_crud !== undefined) {
+          adminAccount.permissions.billingPricesCrud = dto.permissions.billing_prices_crud;
+        }
         await this.permissionsRepositoryReadWrite.save(adminAccount.permissions);
       } else {
         const permissions = this.permissionsRepositoryReadWrite.create({
           admin_account_id: id,
           feedsCrud: dto.permissions.feeds_crud ?? 0,
-          feedFlagStatusesCrud: dto.permissions.feed_flag_statuses_crud ?? 0,
-          feedFlagStatusReasonsCrud: dto.permissions.feed_flag_status_reasons_crud ?? 0,
+          feedTakedownReasonsCrud: dto.permissions.feed_takedown_reasons_crud ?? 0,
           adminsCrud: dto.permissions.admins_crud ?? 0,
           statsCrud: dto.permissions.stats_crud ?? 0,
+          billingPricesCrud: dto.permissions.billing_prices_crud ?? 0,
         });
         await this.permissionsRepositoryReadWrite.save(permissions);
       }

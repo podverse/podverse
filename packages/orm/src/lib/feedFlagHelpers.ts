@@ -1,4 +1,3 @@
-import { FeedFlagStatusStatusEnum } from '@orm/entities/feed/feedFlagStatus.js';
 import { Equal, In, IsNull, Not } from 'typeorm';
 
 import type { QueryParamsMedium } from '@podverse/helpers';
@@ -21,10 +20,9 @@ export function getActiveFeedWhere({ channel_ids, mediumType, category_id }: Act
         id: Not(IsNull()),
       },
       feed: {
-        feed_flag_status: In([
-          FeedFlagStatusStatusEnum.Active,
-          FeedFlagStatusStatusEnum.AlwaysParse,
-        ]),
+        feed_policy: {
+          public_visible: true,
+        },
       },
     },
   };

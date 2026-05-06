@@ -1,5 +1,7 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion -- env vars validated at startup for running command */
 
+import type { BucketProvider } from '@podverse/external-services-object-storage';
+import { BUCKET_PROVIDERS, isBucketProvider } from '@podverse/external-services-object-storage';
 import {
   readOptionalPositiveExpirationEnv,
   readRequiredPositiveExpirationEnv,
@@ -48,17 +50,85 @@ export function getMQConfig(): MQConfig {
   };
 }
 
-export type BucketProviderConfig = {
+/** Allowed `BUCKET_PROVIDER` values for image shrink (single source of truth with validation). */
+export const SUPPORTED_BUCKET_PROVIDERS = BUCKET_PROVIDERS;
+
+export type BucketRuntimeConfig = {
+  provider: BucketProvider;
   accessKey: string;
   secretKey: string;
   region: string;
+  endpoint?: string;
+  forcePathStyle: boolean;
+  /** Empty string means uploads omit `x-amz-acl` (bucket policy / provider behavior). */
+  uploadPublicAcl: string;
 };
 
-export function getBucketProviderConfig(): BucketProviderConfig {
+function parseBucketEndpoint(raw: string | undefined): string | undefined {
+  const trimmed = raw?.trim();
+  if (trimmed === undefined || trimmed === '') {
+    return undefined;
+  }
+  return trimmed;
+}
+
+function defaultForcePathStyle(provider: BucketProvider): boolean {
+  switch (provider) {
+    case 'digitalocean':
+    case 'aws-s3':
+      return false;
+    case 'backblaze-b2':
+    case 'garage':
+    case 's3-compatible':
+      return true;
+  }
+}
+
+function defaultUploadPublicAcl(provider: BucketProvider): string {
+  switch (provider) {
+    case 'digitalocean':
+    case 'aws-s3':
+    case 'backblaze-b2':
+      return 'public-read';
+    case 'garage':
+    case 's3-compatible':
+      return '';
+  }
+}
+
+function resolveForcePathStyle(provider: BucketProvider, raw: string | undefined): boolean {
+  const trimmed = raw?.trim();
+  if (trimmed === undefined || trimmed === '') {
+    return defaultForcePathStyle(provider);
+  }
+  if (trimmed === 'true') {
+    return true;
+  }
+  return false;
+}
+
+function resolveUploadPublicAcl(provider: BucketProvider, raw: string | undefined): string {
+  if (raw === undefined) {
+    return defaultUploadPublicAcl(provider);
+  }
+  return raw.trim();
+}
+
+/** Reads bucket + S3 client wiring after startup validation (including `BUCKET_PROVIDER`). */
+export function getBucketRuntimeConfig(): BucketRuntimeConfig {
+  const providerRaw = process.env.BUCKET_PROVIDER!.trim();
+  if (!isBucketProvider(providerRaw)) {
+    throw new Error(`Invalid BUCKET_PROVIDER: "${providerRaw}"`);
+  }
+  const provider = providerRaw;
   return {
+    provider,
     accessKey: process.env.BUCKET_ACCESS_KEY!,
     secretKey: process.env.BUCKET_SECRET_KEY!,
     region: process.env.BUCKET_REGION!,
+    endpoint: parseBucketEndpoint(process.env.BUCKET_ENDPOINT),
+    forcePathStyle: resolveForcePathStyle(provider, process.env.BUCKET_FORCE_PATH_STYLE),
+    uploadPublicAcl: resolveUploadPublicAcl(provider, process.env.BUCKET_UPLOAD_PUBLIC_ACL),
   };
 }
 
@@ -111,8 +181,10 @@ export function hasAnyImageShrinkEnvSet(): boolean {
 }
 
 export function isImageShrinkEnabled(): boolean {
+  const provider = process.env.BUCKET_PROVIDER?.trim();
   return (
-    process.env.BUCKET_PROVIDER?.trim() === 'digitalocean' &&
+    provider !== undefined &&
+    isBucketProvider(provider) &&
     IMAGE_SHRINK_REQUIRED_VARS.every((key) => isEnvVarSet(process.env[key]))
   );
 }

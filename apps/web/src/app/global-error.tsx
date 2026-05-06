@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 
-import { Button } from '../components/Button/Button';
+import { Button } from '@podverse/ui';
 
 import styles from '../styles/components/ErrorBoundary/ErrorBoundary.module.scss';
 

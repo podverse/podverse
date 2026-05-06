@@ -5,9 +5,9 @@ import React from 'react';
 
 import type { QueryParamsChannelMusicArtistType } from '@podverse/helpers-requests';
 import { QUERY_PARAMS_CHANNEL_MUSIC_ARTIST_TYPE_VALUES } from '@podverse/helpers-requests';
+import { Tabs } from '@podverse/ui';
 
 import { CommonDetailListHeader } from '../../../components/Common/List/CommonDetailListHeader';
-import { Tabs } from '../../../components/Tabs/Tabs';
 import { useAccount } from '../../../contexts/Account';
 import { useArtistPageContext } from './ArtistPageContext';
 

@@ -4,7 +4,7 @@ import { useTranslations } from 'next-intl';
 import type { ErrorInfo, ReactNode } from 'react';
 import React, { Component } from 'react';
 
-import { Button } from '../Button/Button';
+import { Button } from '@podverse/ui';
 
 import styles from '../../styles/components/ErrorBoundary/ErrorBoundary.module.scss';
 

@@ -5,9 +5,9 @@ import React from 'react';
 
 import type { QueryParamsLiveItemType } from '@podverse/helpers-requests';
 import { QUERY_PARAMS_LIVE_ITEM_TYPE_VALUES } from '@podverse/helpers-requests';
+import { Tabs } from '@podverse/ui';
 
 import { CommonDetailListHeader } from '../../../../components/Common/List/CommonDetailListHeader';
-import { Tabs } from '../../../../components/Tabs/Tabs';
 import { useLivestreamPageContext } from './LivestreamPageContext';
 
 type LivestreamPageListHeaderProps = {

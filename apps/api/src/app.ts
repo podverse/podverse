@@ -73,7 +73,7 @@ export const startApp = async () => {
     const { liveItemRouter } = await import('./routes/liveItem.js');
     const { mediumRouter } = await import('@api/routes/medium.js');
     const { membershipClaimTokenRouter } = await import('@api/routes/membershipClaimToken.js');
-    const { membershipRouter } = await import('@api/routes/membership.js');
+    const { productRouter } = await import('@api/routes/product/index.js');
     const { metaboostRouter } = await import('@api/routes/metaboost.js');
     const { accountPayPalOrderRouter } = await import('@api/routes/paypal.js');
     const { playlistRouter } = await import('@api/routes/playlist.js');
@@ -120,7 +120,7 @@ export const startApp = async () => {
     app.use(mediumRouter);
     app.use(metaboostRouter);
     app.use(membershipClaimTokenRouter);
-    app.use(membershipRouter);
+    app.use(productRouter);
     app.use(mqRouter);
     app.use(playlistRouter);
     app.use(podrollRouter);

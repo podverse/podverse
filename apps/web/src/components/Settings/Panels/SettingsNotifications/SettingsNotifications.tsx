@@ -4,9 +4,8 @@ import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 
 import { validateHttpsUrl } from '@podverse/helpers-validation/client';
+import { Button, Divider } from '@podverse/ui';
 
-import { Button } from '../../../../components/Button/Button';
-import { Divider } from '../../../../components/Divider/Divider';
 import {
   InlineForm,
   InlineFormButtons,

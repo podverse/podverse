@@ -3,7 +3,8 @@
 import { useTranslations } from 'next-intl';
 import React, { useState } from 'react';
 
-import { Button } from '../../components/Button/Button';
+import { Button } from '@podverse/ui';
+
 import { ErrorBoundary } from '../../components/ErrorBoundary/ErrorBoundary';
 
 import styles from '../../styles/app/test-error-boundaries/TestErrorBoundaries.module.scss';

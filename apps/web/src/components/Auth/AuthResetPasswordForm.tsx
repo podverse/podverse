@@ -9,12 +9,11 @@ import {
   getPasswordErrorKey,
   getPasswordRequirementsInfoKey,
 } from '@podverse/helpers-validation/client';
+import { Button, FormInfoMessageText } from '@podverse/ui';
 
 import { getApiRequestService } from '../../factories/apiRequestService';
 import { handleRateLimitAlert } from '../../utils/rateLimit/rateLimitAlert';
-import { Button } from '../Button/Button';
 import Form from '../Form/Form';
-import { FormInfoMessageText } from '../Form/FormInfoMessageText';
 import { TextInput } from '../Form/TextInput';
 
 import styles from '../../styles/components/Auth/AuthResetPasswordForm.module.scss';

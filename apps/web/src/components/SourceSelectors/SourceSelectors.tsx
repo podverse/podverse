@@ -3,11 +3,11 @@ import { Fragment } from 'react';
 
 import type { LabeledItemEnclosure } from '@podverse/helpers';
 import { getDownloadFilenameFromSource } from '@podverse/helpers';
+import { Divider } from '@podverse/ui';
 
 import { useMediaPlayer } from '../../contexts/MediaPlayer';
 import { useModals } from '../../contexts/Modals';
 import { downloadAndSaveFile } from '../../utils/fileDownloader';
-import { Divider } from '../Divider/Divider';
 import { showToast, showToastPromiseWithLoading } from '../Toast/Toast';
 import { SourceSelectorRow } from './SourceSelectorRow';
 

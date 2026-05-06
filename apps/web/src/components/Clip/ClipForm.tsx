@@ -5,6 +5,7 @@ import { useTranslations } from 'next-intl';
 
 import type { DTOChannel, DTOItem } from '@podverse/helpers';
 import { hhmmssToSecondsNumber } from '@podverse/helpers';
+import { Button, Divider } from '@podverse/ui';
 
 import { EVENTS } from '../../constants/events';
 import { SHARABLE_STATUS } from '../../constants/sharableStatus';
@@ -12,9 +13,7 @@ import { useAccount } from '../../contexts/Account';
 import { useMediaPlayer } from '../../contexts/MediaPlayer';
 import { useModals } from '../../contexts/Modals';
 import { getApiRequestService } from '../../factories/apiRequestService';
-import { Button } from '../Button/Button';
 import { CallToActionMessage } from '../CallToActionMessage/CallToActionMessage';
-import { Divider } from '../Divider/Divider';
 import Form from '../Form/Form';
 import { FormDropdown } from '../Form/FormDropdown';
 import { TextInput } from '../Form/TextInput';

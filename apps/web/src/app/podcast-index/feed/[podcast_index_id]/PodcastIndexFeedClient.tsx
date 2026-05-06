@@ -1,25 +1,63 @@
 'use client';
 
-import type { PodcastByIdFeed } from '@podverse/helpers';
+import { useTranslations } from 'next-intl';
+
+import type { FeedPolicyPrimaryBlockReasonForUi, PodcastByIdFeed } from '@podverse/helpers';
 
 import { MainInnerContentWrapper } from '../../../../components/Main/MainInnerContentWrapper';
 import { MainInnerWrapper } from '../../../../components/Main/MainInnerWrapper';
 import { MainWrapper } from '../../../../components/Main/MainWrapper';
 import { PodcastIndexFeedInfo } from '../../../../components/PodcastIndex/PodcastIndexFeedInfo';
 import { SideContent } from '../../../../components/SideContent/SideContent';
+import { getContactEmail } from '../../../../constants/contact';
 import { PodcastIndexFeedHeader } from './PodcastIndexFeedHeader';
 
 type PodcastIndexFeedClientProps = {
   ssrFeed: PodcastByIdFeed;
+  blockedReasonForUi: FeedPolicyPrimaryBlockReasonForUi | null;
 };
 
-export function PodcastIndexFeedClient({ ssrFeed }: PodcastIndexFeedClientProps) {
+function blockedReasonMessageKey(reason: FeedPolicyPrimaryBlockReasonForUi): string {
+  switch (reason) {
+    case 'spam_detected':
+      return 'blocked_reason_spam_detected';
+    case 'oversized_detected':
+      return 'blocked_reason_oversized_detected';
+    case 'takedown_active':
+      return 'blocked_reason_takedown_active';
+    case 'manual_block':
+      return 'blocked_reason_manual_block';
+    case 'unknown':
+      return 'blocked_reason_unknown';
+    default: {
+      const _exhaustive: never = reason;
+      return _exhaustive;
+    }
+  }
+}
+
+export function PodcastIndexFeedClient({
+  ssrFeed,
+  blockedReasonForUi,
+}: PodcastIndexFeedClientProps) {
+  const t = useTranslations('features.add_feed');
+  const contactEmail = getContactEmail();
+  const showBlockedBanner = blockedReasonForUi !== null;
+
   return (
     <MainWrapper>
       <PodcastIndexFeedHeader />
       <MainInnerWrapper>
         <SideContent />
         <MainInnerContentWrapper>
+          {showBlockedBanner ? (
+            <p>
+              {t('blocked_feed_banner', {
+                reason: t(blockedReasonMessageKey(blockedReasonForUi)),
+              })}{' '}
+              <a href={`mailto:${contactEmail}`}>{contactEmail}</a>.
+            </p>
+          ) : null}
           <PodcastIndexFeedInfo podcastIndexFeed={ssrFeed} />
         </MainInnerContentWrapper>
       </MainInnerWrapper>

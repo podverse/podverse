@@ -1,8 +1,28 @@
 'use client';
 
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+
+import { toDatetimeLocalInputValue } from '@podverse/helpers';
+import {
+  ActionLink,
+  Alert,
+  Button,
+  CheckboxField,
+  fieldPrimitiveClasses,
+  FormContainer,
+  FormGroup,
+  FormHintText,
+  FormPrimaryActions,
+  Input,
+  Label,
+  LoadingText,
+  ManagementPageShell,
+  Select,
+  Tabs,
+} from '@podverse/ui';
 
 import {
   changeUserPassword,
@@ -11,14 +31,13 @@ import {
   type User,
 } from '../../../../../lib/requests/users';
 
-import styles from './page.module.scss';
-
 type Props = {
   userId: number;
   initialTab?: string;
 };
 
 export function EditUserPageClient({ userId, initialTab }: Props) {
+  const router = useRouter();
   const t = useTranslations('users');
   const ta = useTranslations('auth');
   const tc = useTranslations('common');
@@ -29,7 +48,6 @@ export function EditUserPageClient({ userId, initialTab }: Props) {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
-  // Profile fields
   const [email, setEmail] = useState('');
   const [username, setUsername] = useState('');
   const [verified, setVerified] = useState(false);
@@ -42,12 +60,33 @@ export function EditUserPageClient({ userId, initialTab }: Props) {
   const [trackStats, setTrackStats] = useState<boolean | null>(null);
   const [allowNotifications, setAllowNotifications] = useState<boolean | null>(null);
 
-  // Password fields
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [passwordError, setPasswordError] = useState<string | null>(null);
 
   const activeTab = initialTab === 'password' ? 'password' : 'profile';
+
+  const tabData = useMemo(
+    () => [
+      {
+        key: 'profile',
+        label: t('profile'),
+        zIndex: 2,
+        onClick: () => {
+          router.push(`/users/${userId}/edit?tab=profile`);
+        },
+      },
+      {
+        key: 'password',
+        label: t('changePassword'),
+        zIndex: 1,
+        onClick: () => {
+          router.push(`/users/${userId}/edit?tab=password`);
+        },
+      },
+    ],
+    [router, t, userId]
+  );
 
   useEffect(() => {
     let cancelled = false;
@@ -63,7 +102,7 @@ export function EditUserPageClient({ userId, initialTab }: Props) {
           setMembershipExpiresAt(
             result.user.membership_expires_at === null
               ? ''
-              : String(result.user.membership_expires_at).slice(0, 16)
+              : toDatetimeLocalInputValue(result.user.membership_expires_at)
           );
           setAllowDirectoryAddByRSS(result.user.allow_directory_add_by_rss ?? null);
           setMaxAddByRSSFeeds(
@@ -150,114 +189,96 @@ export function EditUserPageClient({ userId, initialTab }: Props) {
     }
   };
 
-  if (loading) return <p className={styles.loadingText}>{tc('loading')}</p>;
-  if (error && !user) return <p className={styles.errorText}>{error}</p>;
+  if (loading) return <LoadingText>{tc('loading')}</LoadingText>;
+  if (error && !user) return <Alert>{error}</Alert>;
   if (!user) return null;
 
   return (
-    <div className="container">
-      <Link href={`/users/${userId}`} className={styles.backLink}>
+    <ManagementPageShell title={t('editUser')}>
+      <ActionLink href={`/users/${userId}`} variant="inline" LinkComponent={Link}>
         &larr; {t('userDetail')}
-      </Link>
-      <div className="page-header">
-        <h1 className="page-title">{t('editUser')}</h1>
-      </div>
+      </ActionLink>
 
-      <div className={styles.tabContainer}>
-        <Link
-          href={`/users/${userId}/edit?tab=profile`}
-          className={`${styles.tab}${activeTab === 'profile' ? ` ${styles.activeTab}` : ''}`}
-        >
-          {t('profile')}
-        </Link>
-        <Link
-          href={`/users/${userId}/edit?tab=password`}
-          className={`${styles.tab}${activeTab === 'password' ? ` ${styles.activeTab}` : ''}`}
-        >
-          {t('changePassword')}
-        </Link>
-      </div>
+      <Tabs selectedKey={activeTab} tabData={tabData} />
 
-      {error && <p className={styles.errorText}>{error}</p>}
-      {success && <p className={styles.successText}>{success}</p>}
+      {error && <Alert>{error}</Alert>}
+      {success && <Alert variant="success">{success}</Alert>}
 
       {activeTab === 'profile' ? (
-        <form onSubmit={(e) => void handleProfileSubmit(e)}>
-          <div className={styles.formGroup}>
-            <label className={styles.label}>{t('tableHeaders.email')}</label>
-            <input
-              className={styles.input}
+        <FormContainer onSubmit={(e) => void handleProfileSubmit(e)}>
+          <FormGroup>
+            <Label htmlFor="edit-user-email">{t('tableHeaders.email')}</Label>
+            <Input
+              id="edit-user-email"
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
             />
-          </div>
+          </FormGroup>
 
-          <div className={styles.formGroup}>
-            <label className={styles.label}>{t('tableHeaders.username')}</label>
-            <input
-              className={styles.input}
+          <FormGroup>
+            <Label htmlFor="edit-user-username">{t('tableHeaders.username')}</Label>
+            <Input
+              id="edit-user-username"
               type="text"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
             />
-          </div>
+          </FormGroup>
 
-          <div className={styles.formGroup}>
-            <label className={styles.checkboxLabel}>
-              <input
-                type="checkbox"
-                checked={verified}
-                onChange={(e) => setVerified(e.target.checked)}
-              />
-              {t('verified')}
-            </label>
-          </div>
-          <div className={styles.formGroup}>
-            <label className={styles.label}>{t('membershipForm.membershipStatus')}</label>
-            <select
-              className={styles.input}
-              value={membershipId}
-              onChange={(e) => {
-                setMembershipId(Number(e.target.value));
-              }}
+          <FormGroup>
+            <CheckboxField
+              checked={verified}
+              label={t('verified')}
+              onChange={(checked) => setVerified(checked)}
+            />
+          </FormGroup>
+
+          <FormGroup>
+            <Label htmlFor="edit-user-membership">{t('membershipForm.membershipStatus')}</Label>
+            <Select
+              id="edit-user-membership"
+              className={fieldPrimitiveClasses.select}
+              value={String(membershipId)}
+              onChange={(e) => setMembershipId(Number(e.target.value))}
             >
               <option value={1}>{t('membershipForm.trial')}</option>
               <option value={2}>{t('membershipForm.premium')}</option>
-            </select>
-            <p className={styles.hintText}>
+            </Select>
+            <FormHintText>
               {membershipId === 1
                 ? t('membershipForm.hintTrialEdit')
                 : t('membershipForm.hintPremiumEdit')}
-            </p>
-          </div>
-          <div className={styles.formGroup}>
-            <label className={styles.label}>{t('membershipForm.membershipExpiresAt')}</label>
-            <input
-              className={styles.input}
+            </FormHintText>
+          </FormGroup>
+
+          <FormGroup>
+            <Label htmlFor="edit-user-expires">{t('membershipForm.membershipExpiresAt')}</Label>
+            <Input
+              id="edit-user-expires"
               type="datetime-local"
               value={membershipExpiresAt}
               onChange={(e) => setMembershipExpiresAt(e.target.value)}
             />
-          </div>
-          <div className={styles.formGroup}>
-            <label className={styles.checkboxLabel}>
-              <input
-                type="checkbox"
-                checked={showAdvanced}
-                onChange={(e) => setShowAdvanced(e.target.checked)}
-              />
-              {t('membershipForm.configureAdvancedOverrides')}
-            </label>
-          </div>
+          </FormGroup>
+
+          <FormGroup>
+            <CheckboxField
+              checked={showAdvanced}
+              label={t('membershipForm.configureAdvancedOverrides')}
+              onChange={(checked) => setShowAdvanced(checked)}
+            />
+          </FormGroup>
+
           {showAdvanced && (
             <>
-              <div className={styles.formGroup}>
-                <label className={styles.label}>
+              <FormGroup>
+                <Label htmlFor="edit-user-add-by-rss">
                   {t('advancedOverrides.allowDirectoryAddByRss')}
-                </label>
-                <select
-                  className={styles.input}
+                </Label>
+                <Select
+                  id="edit-user-add-by-rss"
+                  className={fieldPrimitiveClasses.select}
                   value={
                     allowDirectoryAddByRSS === null ? '' : allowDirectoryAddByRSS ? 'true' : 'false'
                   }
@@ -272,34 +293,37 @@ export function EditUserPageClient({ userId, initialTab }: Props) {
                   <option value="">{t('advancedOverrides.useTrustTierDefault')}</option>
                   <option value="true">{t('advancedOverrides.allow')}</option>
                   <option value="false">{t('advancedOverrides.block')}</option>
-                </select>
-              </div>
-              <div className={styles.formGroup}>
-                <label className={styles.label}>{t('advancedOverrides.addByRssFeedLimit')}</label>
-                <input
-                  className={styles.input}
+                </Select>
+              </FormGroup>
+              <FormGroup>
+                <Label htmlFor="edit-user-rss-limit">
+                  {t('advancedOverrides.addByRssFeedLimit')}
+                </Label>
+                <Input
+                  id="edit-user-rss-limit"
                   type="number"
                   min={0}
                   value={maxAddByRSSFeeds}
                   onChange={(e) => setMaxAddByRSSFeeds(e.target.value)}
                 />
-              </div>
-              <div className={styles.formGroup}>
-                <label className={styles.label}>
+              </FormGroup>
+              <FormGroup>
+                <Label htmlFor="edit-user-refresh-limit">
                   {t('advancedOverrides.manualRefreshPerHour')}
-                </label>
-                <input
-                  className={styles.input}
+                </Label>
+                <Input
+                  id="edit-user-refresh-limit"
                   type="number"
                   min={0}
                   value={maxManualRefreshesPerHour}
                   onChange={(e) => setMaxManualRefreshesPerHour(e.target.value)}
                 />
-              </div>
-              <div className={styles.formGroup}>
-                <label className={styles.label}>{t('advancedOverrides.trackStats')}</label>
-                <select
-                  className={styles.input}
+              </FormGroup>
+              <FormGroup>
+                <Label htmlFor="edit-user-track-stats">{t('advancedOverrides.trackStats')}</Label>
+                <Select
+                  id="edit-user-track-stats"
+                  className={fieldPrimitiveClasses.select}
                   value={trackStats === null ? '' : trackStats ? 'true' : 'false'}
                   onChange={(e) => {
                     if (e.target.value === '') {
@@ -312,12 +336,15 @@ export function EditUserPageClient({ userId, initialTab }: Props) {
                   <option value="">{t('advancedOverrides.useTrustTierDefault')}</option>
                   <option value="true">{t('advancedOverrides.trackStatsOn')}</option>
                   <option value="false">{t('advancedOverrides.trackStatsOff')}</option>
-                </select>
-              </div>
-              <div className={styles.formGroup}>
-                <label className={styles.label}>{t('advancedOverrides.allowNotifications')}</label>
-                <select
-                  className={styles.input}
+                </Select>
+              </FormGroup>
+              <FormGroup>
+                <Label htmlFor="edit-user-notifications">
+                  {t('advancedOverrides.allowNotifications')}
+                </Label>
+                <Select
+                  id="edit-user-notifications"
+                  className={fieldPrimitiveClasses.select}
                   value={allowNotifications === null ? '' : allowNotifications ? 'true' : 'false'}
                   onChange={(e) => {
                     if (e.target.value === '') {
@@ -330,53 +357,56 @@ export function EditUserPageClient({ userId, initialTab }: Props) {
                   <option value="">{t('advancedOverrides.useTrustTierDefault')}</option>
                   <option value="true">{t('advancedOverrides.allowNotificationsOn')}</option>
                   <option value="false">{t('advancedOverrides.allowNotificationsOff')}</option>
-                </select>
-              </div>
+                </Select>
+              </FormGroup>
             </>
           )}
 
-          <div className={styles.actions}>
-            <button className={styles.saveButton} type="submit" disabled={saving}>
-              {saving ? tc('saving') : tc('saveChanges')}
-            </button>
-            <Link href={`/users/${userId}`} className={styles.cancelLink}>
+          <FormPrimaryActions>
+            <ActionLink href={`/users/${userId}`} variant="subtle" LinkComponent={Link}>
               {tc('cancel')}
-            </Link>
-          </div>
-        </form>
+            </ActionLink>
+            <Button type="submit" disabled={saving}>
+              {saving ? tc('saving') : tc('saveChanges')}
+            </Button>
+          </FormPrimaryActions>
+        </FormContainer>
       ) : (
-        <form onSubmit={(e) => void handlePasswordSubmit(e)}>
-          {passwordError && <p className={styles.errorText}>{passwordError}</p>}
+        <FormContainer onSubmit={(e) => void handlePasswordSubmit(e)}>
+          {passwordError && <Alert>{passwordError}</Alert>}
 
-          <div className={styles.formGroup}>
-            <label className={styles.label}>{ta('newPassword')}</label>
-            <input
-              className={styles.input}
+          <FormGroup>
+            <Label htmlFor="edit-user-new-password">{ta('newPassword')}</Label>
+            <Input
+              autoComplete="new-password"
+              id="edit-user-new-password"
               type="password"
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
-              autoComplete="new-password"
             />
-          </div>
+          </FormGroup>
 
-          <div className={styles.formGroup}>
-            <label className={styles.label}>{ta('confirmPassword')}</label>
-            <input
-              className={styles.input}
+          <FormGroup>
+            <Label htmlFor="edit-user-confirm-password">{ta('confirmPassword')}</Label>
+            <Input
+              autoComplete="new-password"
+              id="edit-user-confirm-password"
               type="password"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
-              autoComplete="new-password"
             />
-          </div>
+          </FormGroup>
 
-          <div className={styles.actions}>
-            <button className={styles.saveButton} type="submit" disabled={saving}>
+          <FormPrimaryActions>
+            <ActionLink href={`/users/${userId}`} variant="subtle" LinkComponent={Link}>
+              {tc('cancel')}
+            </ActionLink>
+            <Button type="submit" disabled={saving}>
               {saving ? tc('saving') : tc('saveChanges')}
-            </button>
-          </div>
-        </form>
+            </Button>
+          </FormPrimaryActions>
+        </FormContainer>
       )}
-    </div>
+    </ManagementPageShell>
   );
 }

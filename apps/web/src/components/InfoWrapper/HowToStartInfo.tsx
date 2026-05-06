@@ -1,9 +1,10 @@
 import { useTranslations } from 'next-intl';
 
+import { InfoWrapper } from '@podverse/ui';
+
 import { ROUTES } from '../../constants/routes';
 import { useAccount } from '../../contexts/Account';
 import { Link } from '../Link/Link';
-import { InfoWrapper } from './InfoWrapper';
 
 type HowToStartInfoProps = {
   rows: unknown[];

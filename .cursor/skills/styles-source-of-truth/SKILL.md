@@ -38,6 +38,7 @@ If `@use '@podverse/ui/styles/...'` does not resolve in a given app (e.g. some N
 ## Rules
 
 - Do NOT add new tokens to `apps/web/src/styles/...` or `apps/management-web/src/styles/...` except **forwarder shims** in `apps/web` (one-line `@forward` to `packages/ui`). Add tokens in `packages/ui/src/styles/_variables.scss` (and `_themes.scss` if theme-dependent), and they become available to both apps.
+- If page/module styles repeat across multiple pages (forms, table wrappers, badges, header action rows), prefer a reusable React component in `@podverse/ui` rather than adding more duplicated SCSS blocks.
 - Theme-dependent values (any color, any gradient, button states) MUST be defined in all three theme blocks (`dark` / `light` / `dracula`) in `packages/ui/src/styles/_themes.scss`.
 - Non-theme values (spacing, font-size, border-radius, breakpoints, etc.) live in `:root` inside `_variables.scss`.
 - The default theme (when no `data-ui-theme` is set) is `dark`. Both `:root` and `[data-ui-theme='dark']` declare the same dark palette in `_themes.scss`.

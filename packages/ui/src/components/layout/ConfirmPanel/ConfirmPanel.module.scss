@@ -1,0 +1,14 @@
+.root {
+  margin: var(--spacing-lg) 0;
+  padding: var(--spacing-lg);
+  border: 1px solid var(--border-color-tertiary);
+  border-radius: var(--border-radius);
+  background-color: var(--background-color-tertiary);
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-base);
+  margin-top: var(--spacing-base);
+}

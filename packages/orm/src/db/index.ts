@@ -1,11 +1,11 @@
 import { getDataSourceRead, getDataSourceReadWrite } from '@orm/context.js';
-import type { DataSource, EntityTarget, ObjectLiteral, Repository } from 'typeorm';
+import type { DataSource, EntityManager, EntityTarget, ObjectLiteral, Repository } from 'typeorm';
 
 // Re-export entities
 export { entities } from './entities.js';
 
-// Type for the DataSource proxy
-type DataSourceProxy = {
+// Types for the DataSource proxies
+type DataSourceReadProxy = {
   readonly isInitialized: boolean;
   getRepository<Entity extends ObjectLiteral>(target: EntityTarget<Entity>): Repository<Entity>;
   initialize(): Promise<DataSource>;
@@ -14,9 +14,13 @@ type DataSourceProxy = {
   readonly manager: DataSource['manager'];
 };
 
+type DataSourceReadWriteProxy = DataSourceReadProxy & {
+  transaction<T>(runInTransaction: (entityManager: EntityManager) => Promise<T>): Promise<T>;
+};
+
 // Proxy objects that delegate to the context's DataSources
 // This allows existing code using AppDataSourceRead.getRepository() to work
-export const AppDataSourceRead: DataSourceProxy = {
+export const AppDataSourceRead: DataSourceReadProxy = {
   get isInitialized() {
     return getDataSourceRead().isInitialized;
   },
@@ -37,7 +41,7 @@ export const AppDataSourceRead: DataSourceProxy = {
   },
 };
 
-export const AppDataSourceReadWrite: DataSourceProxy = {
+export const AppDataSourceReadWrite: DataSourceReadWriteProxy = {
   get isInitialized() {
     return getDataSourceReadWrite().isInitialized;
   },
@@ -55,6 +59,9 @@ export const AppDataSourceReadWrite: DataSourceProxy = {
   },
   get manager() {
     return getDataSourceReadWrite().manager;
+  },
+  transaction<T>(runInTransaction: (entityManager: EntityManager) => Promise<T>): Promise<T> {
+    return getDataSourceReadWrite().transaction(runInTransaction);
   },
 };
 

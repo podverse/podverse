@@ -52,7 +52,13 @@
     "add_feed": {
       "add_feed": "Προσθήκη Ροής",
       "add_feed_explanation": "Αυτή η ροή δεν είναι στον κατάλογό μας. Αν θέλετε να την προσθέσετε, πατήστε το κουμπί \"Προσθήκη Ροής\".",
-      "rss_link": "Σύνδεσμος RSS"
+      "rss_link": "Σύνδεσμος RSS",
+      "blocked_feed_banner": "Αυτή η ροή δεν μπορεί προς το παρόν να προστεθεί στο Podverse ({reason}). Αν πιστεύετε ότι πρόκειται για λάθος, επικοινωνήστε με",
+      "blocked_reason_spam_detected": "περιορισμούς ανίχνευσης ανεπιθύμητης αλληλογραφίας",
+      "blocked_reason_oversized_detected": "όρια μεγέθους ροής",
+      "blocked_reason_takedown_active": "αίτημα κατάργησης περιεχομένου",
+      "blocked_reason_manual_block": "περιορισμούς από τον διαχειριστή",
+      "blocked_reason_unknown": "περιορισμούς που ισχύουν για αυτή τη ροή"
     },
     "add_by_rss": {
       "label": "Προσθήκη μέσω RSS",

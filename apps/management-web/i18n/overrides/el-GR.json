@@ -16,6 +16,7 @@
     "creating": "",
     "search": "",
     "back": "",
+    "breadcrumbNav": "",
     "submit": "",
     "confirm": "",
     "yes": "",
@@ -38,7 +39,13 @@
     "password": "",
     "newPassword": "",
     "confirmPassword": "",
-    "leaveBlankToKeepCurrent": ""
+    "leaveBlankToKeepCurrent": "",
+    "defaultBrandName": "",
+    "invalidCredentialsDefault": "",
+    "signIn": "",
+    "signInSubtitle": "",
+    "signingIn": "",
+    "usernameOrEmail": ""
   },
   "nav": {
     "dashboard": "",
@@ -64,6 +71,10 @@
       "title": "",
       "description": ""
     },
+    "products": {
+      "title": "",
+      "description": ""
+    },
     "admins": {
       "title": "",
       "description": ""
@@ -75,6 +86,85 @@
     "users": {
       "title": "",
       "description": ""
+    }
+  },
+  "statsPage": {
+    "title": "",
+    "breadcrumbDashboard": "",
+    "failedToLoad": "",
+    "clear": "",
+    "views": "",
+    "loadingDetail": "",
+    "close": "",
+    "idValue": "",
+    "searchPlaceholder": "",
+    "topChartHeading": "",
+    "noStatsDataForRange": "",
+    "paginationSummary": "",
+    "paginationSummarySingular": "",
+    "entityTypes": {
+      "channel": "",
+      "item": "",
+      "clip": "",
+      "playlist": "",
+      "account": ""
+    },
+    "ranges": {
+      "day": "",
+      "day7": "",
+      "day30": "",
+      "year1": "",
+      "allTime": ""
+    },
+    "table": {
+      "title": "",
+      "rangeViews": ""
+    },
+    "detail": {
+      "dayToday": "",
+      "dayN": "",
+      "weekCurrent": "",
+      "weekN": "",
+      "monthCurrent": "",
+      "dailyBreakdown": "",
+      "weeklyBreakdown": ""
+    }
+  },
+  "products": {
+    "pageTitle": "",
+    "welcomeLine": "",
+    "membershipsCardTitle": "",
+    "membershipsCardDescription": "",
+    "breadcrumbDashboard": ""
+  },
+  "productMemberships": {
+    "pageTitle": "",
+    "pageSubtitle": "",
+    "breadcrumbDashboard": "",
+    "breadcrumbProducts": "",
+    "loadError": "",
+    "editableTrialHeading": "",
+    "saveSuccess": "",
+    "saveError": "",
+    "fieldLabels": {
+      "freeTrialExpirationSeconds": "",
+      "premiumMembershipCostMonthly": "",
+      "premiumMembershipCostAnnually": "",
+      "trialMaxAddByRSSFeeds": "",
+      "trialMaxManualRefreshesPerHour": "",
+      "premiumMaxAddByRSSFeeds": "",
+      "premiumMaxManualRefreshesPerHour": ""
+    },
+    "pricingTable": {
+      "heading": "",
+      "cadence": "",
+      "amountCents": "",
+      "currency": "",
+      "effectiveFrom": "",
+      "source": ""
+    },
+    "validation": {
+      "invalidFreeTrialSeconds": ""
     }
   },
   "feedFlagStatus": {
@@ -105,32 +195,40 @@
     "dtUrl": "",
     "dtInternalFeedId": "",
     "dtPodcastIndexId": "",
-    "dtStatus": "",
-    "statusDisplay": "",
+    "dtLifecycle": "",
+    "lifecycleDisplay": "",
+    "dtActiveConditions": "",
+    "dtEffectivePolicy": "",
+    "effectivePolicyDisplay": "",
+    "boolYes": "",
+    "boolNo": "",
     "dtSpamOverride": "",
+    "dtMaxResponseBytesOverride": "",
     "emptyValue": "",
-    "dtReason": "",
-    "dtReasonNote": "",
+    "dtLifecycleReason": "",
+    "dtUpdatedSource": "",
     "openInDatabase": "",
-    "newStatusHeading": "",
-    "labelNewStatusRequired": "",
-    "selectStatusPlaceholder": "",
-    "selectOptionStatus": "",
-    "labelReason": "",
-    "labelReasonTakedownRequired": "",
-    "labelReasonOptional": "",
-    "reasonNone": "",
-    "selectOptionReason": "",
-    "labelNote": "",
-    "notePlaceholder": "",
+    "newValuesHeading": "",
+    "labelLifecycleRequired": "",
+    "selectLifecyclePlaceholder": "",
+    "selectOptionLifecycle": "",
+    "labelActiveConditions": "",
+    "labelTakedownReasonOptional": "",
+    "takedownReasonPlaceholder": "",
+    "labelTransitionNote": "",
+    "transitionNotePlaceholder": "",
+    "labelConditionNote": "",
+    "conditionNotePlaceholder": "",
     "labelSpamOverride": "",
     "spamOverridePlaceholder": "",
     "spamOverrideHint": "",
+    "labelMaxResponseBytesOverride": "",
+    "maxResponseBytesOverridePlaceholder": "",
     "applySuccess": "",
-    "applyErrorSelectStatus": "",
-    "applyErrorTakedownReason": "",
-    "applyErrorInvalidReason": "",
+    "applyErrorSelectLifecycle": "",
+    "applyErrorTakedownDoc": "",
     "applyErrorSpamOverride": "",
+    "applyErrorMaxResponseBytesOverride": "",
     "applyErrorGeneric": "",
     "confirmDialogAria": "",
     "confirmDialogBody": "",
@@ -155,8 +253,7 @@
       "email": "",
       "role": "",
       "feeds": "",
-      "flagStatuses": "",
-      "statusReasons": "",
+      "takedownReasons": "",
       "admins": "",
       "stats": "",
       "actions": ""
@@ -169,8 +266,7 @@
       "update": "",
       "deletePerm": "",
       "feeds": "",
-      "flagStatuses": "",
-      "statusReasons": "",
+      "takedownReasons": "",
       "admins": "",
       "stats": ""
     }
@@ -193,6 +289,7 @@
     "usernameOptional": "",
     "emailOptional": "",
     "passwordOptional": "",
+    "passwordInviteHint": "",
     "emailOrUsernameHint": "",
     "emailOrUsernameRequired": "",
     "invalidUsername": "",
@@ -225,15 +322,27 @@
       "hintTrialNew": "",
       "hintPremiumNew": "",
       "membershipExpiresAt": "",
+      "premiumBillingCadence": "",
+      "billingMonthly": "",
+      "billingAnnual": "",
+      "premiumBillingCadenceHint": "",
       "trustTier": "",
       "untrusted": "",
       "trusted": "",
       "configureAdvancedOverrides": ""
     },
     "advancedOverrides": {
+      "on": "",
+      "off": "",
       "allowDirectoryAddByRss": "",
+      "allowDirectoryAddByRssHelp": "",
       "addByRssFeedLimit": "",
+      "addByRssFeedLimitHelp": "",
       "manualRefreshPerHour": "",
+      "manualRefreshPerHourHelp": "",
+      "placeholderTierDefault": "",
+      "trackStatsHelp": "",
+      "allowNotificationsHelp": "",
       "trackStats": "",
       "allowNotifications": "",
       "useTrustTierDefault": "",
@@ -276,12 +385,7 @@
         "labelSingular": "",
         "description": ""
       },
-      "feed_flag_status": {
-        "label": "",
-        "labelSingular": "",
-        "description": ""
-      },
-      "feed_flag_status_reason": {
+      "feed_takedown_reason": {
         "label": "",
         "labelSingular": "",
         "description": ""

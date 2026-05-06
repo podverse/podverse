@@ -5,14 +5,26 @@ import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 
-import { type AdminAccount, updateAdmin } from '../../../../../lib/requests/admins';
+import {
+  ActionLink,
+  Alert,
+  Breadcrumbs,
+  Button,
+  Fieldset,
+  FormContainer,
+  FormGroup,
+  FormPrimaryActions,
+  Input,
+  Label,
+  ManagementPageShell,
+  Table,
+} from '@podverse/ui';
 
-import styles from './page.module.scss';
+import { type AdminAccount, updateAdmin } from '../../../../../lib/requests/admins';
 
 const RESOURCE_KEYS = [
   'feeds_crud',
-  'feed_flag_statuses_crud',
-  'feed_flag_status_reasons_crud',
+  'feed_takedown_reasons_crud',
   'admins_crud',
   'stats_crud',
 ] as const;
@@ -26,16 +38,14 @@ const CRUD_BITS = [
 
 type PermissionState = {
   feeds_crud: number;
-  feed_flag_statuses_crud: number;
-  feed_flag_status_reasons_crud: number;
+  feed_takedown_reasons_crud: number;
   admins_crud: number;
   stats_crud: number;
 };
 
 const RESOURCE_LABEL_KEYS: Record<(typeof RESOURCE_KEYS)[number], string> = {
   feeds_crud: 'feeds',
-  feed_flag_statuses_crud: 'flagStatuses',
-  feed_flag_status_reasons_crud: 'statusReasons',
+  feed_takedown_reasons_crud: 'takedownReasons',
   admins_crud: 'admins',
   stats_crud: 'stats',
 };
@@ -43,8 +53,7 @@ const RESOURCE_LABEL_KEYS: Record<(typeof RESOURCE_KEYS)[number], string> = {
 function permissionsFromAdmin(admin: AdminAccount): PermissionState {
   return {
     feeds_crud: admin.permissions?.feeds_crud ?? 0,
-    feed_flag_statuses_crud: admin.permissions?.feed_flag_statuses_crud ?? 0,
-    feed_flag_status_reasons_crud: admin.permissions?.feed_flag_status_reasons_crud ?? 0,
+    feed_takedown_reasons_crud: admin.permissions?.feed_takedown_reasons_crud ?? 0,
     admins_crud: admin.permissions?.admins_crud ?? 0,
     stats_crud: admin.permissions?.stats_crud ?? 0,
   };
@@ -114,87 +123,82 @@ export function EditAdminPageClient({ admin }: EditAdminPageClientProps) {
   };
 
   return (
-    <div className="container">
-      <div className="page-header">
-        <h1 className="page-title">{t('editAdmin')}</h1>
-        <div className={styles.breadcrumbs}>
-          <Link href="/admins" className={styles.breadcrumbLink}>
-            {t('title')}
-          </Link>
-          <span className={styles.breadcrumbSep}>/</span>
-          <span>{t('editAdminItem', { email: admin.email ?? admin.id_text })}</span>
-        </div>
-      </div>
-      <main>
-        <form onSubmit={handleSubmit} className={styles.form}>
-          <div className={styles.formGroup}>
-            <label className={styles.label} htmlFor="email">
-              {ta('email')}
-            </label>
-            <input
-              id="email"
-              type="email"
-              className={styles.input}
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-            />
-          </div>
-          <div className={styles.formGroup}>
-            <label className={styles.label} htmlFor="password">
-              {ta('newPassword')}
-            </label>
-            <input
-              id="password"
-              type="password"
-              className={styles.input}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder={ta('leaveBlankToKeepCurrent')}
-              minLength={8}
-            />
-          </div>
-          <fieldset className={styles.fieldset}>
-            <legend className={styles.fieldsetLegend}>{tp('legend')}</legend>
-            <table className={styles.permTable}>
-              <thead>
-                <tr>
-                  <th>{tp('resource')}</th>
+    <ManagementPageShell
+      title={t('editAdmin')}
+      headerChildren={
+        <Breadcrumbs
+          LinkComponent={Link}
+          navAriaLabel={tc('breadcrumbNav')}
+          items={[
+            { href: '/admins', label: t('title') },
+            { label: t('editAdminItem', { email: admin.email ?? admin.id_text }) },
+          ]}
+        />
+      }
+    >
+      <FormContainer onSubmit={(e) => void handleSubmit(e)}>
+        <FormGroup>
+          <Label htmlFor="email">{ta('email')}</Label>
+          <Input
+            id="email"
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+          />
+        </FormGroup>
+        <FormGroup>
+          <Label htmlFor="password">{ta('newPassword')}</Label>
+          <Input
+            id="password"
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder={ta('leaveBlankToKeepCurrent')}
+            minLength={8}
+          />
+        </FormGroup>
+        <Fieldset legend={tp('legend')}>
+          <Table.ScrollContainer>
+            <Table>
+              <Table.Head>
+                <Table.Row>
+                  <Table.HeaderCell>{tp('resource')}</Table.HeaderCell>
                   {CRUD_BITS.map((check) => (
-                    <th key={check.bit}>{tp(check.labelKey)}</th>
+                    <Table.HeaderCell key={check.bit}>{tp(check.labelKey)}</Table.HeaderCell>
                   ))}
-                </tr>
-              </thead>
-              <tbody>
+                </Table.Row>
+              </Table.Head>
+              <Table.Body>
                 {RESOURCE_KEYS.map((key) => (
-                  <tr key={key}>
-                    <td>{tp(RESOURCE_LABEL_KEYS[key])}</td>
+                  <Table.Row key={key}>
+                    <Table.Cell>{tp(RESOURCE_LABEL_KEYS[key])}</Table.Cell>
                     {CRUD_BITS.map((check) => (
-                      <td key={check.bit}>
+                      <Table.Cell key={check.bit}>
                         <input
                           type="checkbox"
                           checked={(permissions[key] & check.bit) !== 0}
                           onChange={() => toggleCrudBit(key, check.bit)}
                         />
-                      </td>
+                      </Table.Cell>
                     ))}
-                  </tr>
+                  </Table.Row>
                 ))}
-              </tbody>
-            </table>
-          </fieldset>
-          {error && <p className={styles.errorText}>{error}</p>}
-          {success && <p className={styles.successText}>{t('updatedSuccessfully')}</p>}
-          <div className={styles.formActions}>
-            <button type="submit" className={styles.submitButton} disabled={loading}>
-              {loading ? tc('saving') : tc('saveChanges')}
-            </button>
-            <Link href="/admins" className={styles.cancelLink}>
-              {tc('cancel')}
-            </Link>
-          </div>
-        </form>
-      </main>
-    </div>
+              </Table.Body>
+            </Table>
+          </Table.ScrollContainer>
+        </Fieldset>
+        {error && <Alert>{error}</Alert>}
+        {success && <Alert variant="success">{t('updatedSuccessfully')}</Alert>}
+        <FormPrimaryActions>
+          <ActionLink href="/admins" variant="subtle" LinkComponent={Link}>
+            {tc('cancel')}
+          </ActionLink>
+          <Button type="submit" disabled={loading}>
+            {loading ? tc('saving') : tc('saveChanges')}
+          </Button>
+        </FormPrimaryActions>
+      </FormContainer>
+    </ManagementPageShell>
   );
 }

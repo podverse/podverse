@@ -7,6 +7,8 @@ const {
   feedReadFindMock,
   feedSaveMock,
   feedQueryMock,
+  feedServiceSetLifecycleMock,
+  feedServiceUpdateMock,
   itemDeleteMock,
   itemFlagStatusGetMock,
   itemQueryMock,
@@ -35,6 +37,8 @@ const {
     feedReadFindMock: vi.fn(),
     feedSaveMock: vi.fn(),
     feedQueryMock: vi.fn(),
+    feedServiceSetLifecycleMock: vi.fn(() => Promise.resolve()),
+    feedServiceUpdateMock: vi.fn(() => Promise.resolve()),
     itemDeleteMock: vi.fn(),
     itemFlagStatusGetMock: vi.fn(),
     itemQueryMock: vi.fn(),
@@ -90,17 +94,6 @@ vi.mock('@orm/entities/playlist/playlistResource.js', () => ({
   PlaylistResource: PlaylistResourceEntity,
 }));
 
-vi.mock('@orm/entities/feed/feedFlagStatus.js', () => ({
-  FeedFlagStatusStatusEnum: {
-    Active: 1,
-    AlwaysParse: 2,
-    Spam: 3,
-    PendingArchive: 4,
-    Archived: 5,
-    Takedown: 6,
-  },
-}));
-
 vi.mock('@orm/entities/item/itemFlagStatus.js', () => ({
   ItemFlagStatusStatusEnum: {
     Active: 1,
@@ -120,7 +113,14 @@ vi.mock('./queue/queueResourceActiveItemFilter.js', () => ({
   pruneNonActiveItemBackedQueueResourceRows: pruneQueueResourcesMock,
 }));
 
-import { FeedFlagStatusStatusEnum } from '@orm/entities/feed/feedFlagStatus.js';
+vi.mock('./feed/feed.js', () => ({
+  FeedService: class FeedService {
+    setFeedLifecycleState = feedServiceSetLifecycleMock;
+    update = feedServiceUpdateMock;
+  },
+}));
+
+import { FeedLifecycleStateKeyEnum } from '@orm/entities/feed/feedLifecycleStateType.js';
 import { ItemFlagStatusStatusEnum } from '@orm/entities/item/itemFlagStatus.js';
 
 import { ArchiverService } from './archiver.js';
@@ -133,6 +133,8 @@ describe('ArchiverService takedown hard-delete handling', () => {
     feedReadFindMock.mockReset();
     feedSaveMock.mockReset();
     feedQueryMock.mockReset();
+    feedServiceSetLifecycleMock.mockReset();
+    feedServiceUpdateMock.mockReset();
     itemDeleteMock.mockReset();
     itemFlagStatusGetMock.mockReset();
     itemQueryMock.mockReset();
@@ -150,8 +152,19 @@ describe('ArchiverService takedown hard-delete handling', () => {
 
     expect(feedReadFindMock).toHaveBeenCalledTimes(1);
     expect(feedReadFindMock).toHaveBeenCalledWith({
-      where: { feed_flag_status: { id: FeedFlagStatusStatusEnum.Takedown } },
-      relations: ['channel', 'channel.items', 'feed_flag_status'],
+      where: {
+        feed_lifecycle_state: {
+          feed_lifecycle_state_type: {
+            state_key: FeedLifecycleStateKeyEnum.Takedown,
+          },
+        },
+      },
+      relations: [
+        'feed_lifecycle_state',
+        'feed_lifecycle_state.feed_lifecycle_state_type',
+        'channel',
+        'channel.items',
+      ],
     });
   });
 
@@ -205,6 +218,8 @@ describe('ArchiverService deleteArchivedItemsWithoutClipOrPlaylist', () => {
     feedReadFindMock.mockReset();
     feedSaveMock.mockReset();
     feedQueryMock.mockReset();
+    feedServiceSetLifecycleMock.mockReset();
+    feedServiceUpdateMock.mockReset();
     itemDeleteMock.mockReset();
     itemFlagStatusGetMock.mockReset();
     itemQueryMock.mockReset();
@@ -272,6 +287,8 @@ describe('ArchiverService spam feed item cleanup', () => {
     feedReadFindMock.mockReset();
     feedSaveMock.mockReset();
     feedQueryMock.mockReset();
+    feedServiceSetLifecycleMock.mockReset();
+    feedServiceUpdateMock.mockReset();
     itemDeleteMock.mockReset();
     itemFlagStatusGetMock.mockReset();
     itemFlagStatusGetMock.mockResolvedValue({ id: ItemFlagStatusStatusEnum.Archived });

@@ -4,11 +4,11 @@ import { useLocale, useTranslations } from 'next-intl';
 import React, { useEffect, useMemo, useState } from 'react';
 
 import { DATABASE_CONSTANTS, SharableStatusEnum } from '@podverse/helpers';
+import { Button } from '@podverse/ui';
 
 import { SHARABLE_STATUS } from '../../../../constants/sharableStatus';
 import { useAccount } from '../../../../contexts/Account';
 import { getApiRequestService } from '../../../../factories/apiRequestService';
-import { Button } from '../../../Button/Button';
 import Form from '../../../Form/Form';
 import { FormDropdown } from '../../../Form/FormDropdown';
 import { TextArea } from '../../../Form/TextArea';

@@ -3,8 +3,9 @@
 import { useTranslations } from 'next-intl';
 import React from 'react';
 
+import { ButtonTabs } from '@podverse/ui';
+
 import { ListHeader } from '../../components/List/ListHeader';
-import { ButtonTabs } from '../../components/Tabs/ButtonTabs';
 import { useQueuesPageContext } from './QueuesPageContext';
 
 export const QueuesPageListHeader: React.FC = () => {

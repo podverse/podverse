@@ -18,10 +18,10 @@ const createAdminSchema = Joi.object({
   password: Joi.string().min(8).required(),
   permissions: Joi.object({
     feeds_crud: crudSchema,
-    feed_flag_statuses_crud: crudSchema,
-    feed_flag_status_reasons_crud: crudSchema,
+    feed_takedown_reasons_crud: crudSchema,
     admins_crud: crudSchema,
     stats_crud: crudSchema,
+    billing_prices_crud: crudSchema,
   }).optional(),
 }).required();
 
@@ -30,10 +30,10 @@ const updateAdminSchema = Joi.object({
   password: Joi.string().min(8),
   permissions: Joi.object({
     feeds_crud: crudSchema,
-    feed_flag_statuses_crud: crudSchema,
-    feed_flag_status_reasons_crud: crudSchema,
+    feed_takedown_reasons_crud: crudSchema,
     admins_crud: crudSchema,
     stats_crud: crudSchema,
+    billing_prices_crud: crudSchema,
   }),
 })
   .min(1)
@@ -47,10 +47,10 @@ function adminAccountToJson(admin: {
   admin_account_credentials?: { email: string } | null;
   permissions?: {
     feedsCrud: number;
-    feedFlagStatusesCrud: number;
-    feedFlagStatusReasonsCrud: number;
+    feedTakedownReasonsCrud: number;
     adminsCrud: number;
     statsCrud: number;
+    billingPricesCrud: number;
   } | null;
   created_at: Date;
 }) {
@@ -62,10 +62,10 @@ function adminAccountToJson(admin: {
     permissions: admin.permissions
       ? {
           feeds_crud: admin.permissions.feedsCrud,
-          feed_flag_statuses_crud: admin.permissions.feedFlagStatusesCrud,
-          feed_flag_status_reasons_crud: admin.permissions.feedFlagStatusReasonsCrud,
+          feed_takedown_reasons_crud: admin.permissions.feedTakedownReasonsCrud,
           admins_crud: admin.permissions.adminsCrud,
           stats_crud: admin.permissions.statsCrud,
+          billing_prices_crud: admin.permissions.billingPricesCrud,
         }
       : null,
     created_at: admin.created_at,

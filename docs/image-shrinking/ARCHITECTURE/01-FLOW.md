@@ -22,7 +22,7 @@ flowchart TD
   consumer -->|processTarget| resize[createImageShrinkProcessor]
 
   resize -->|fetch + resize| webp[WebP output]
-  resize -->|uploadResizedImage| storage["DigitalOcean Spaces"]
+  resize -->|uploadResizedImage| storage["S3-compatible bucket"]
   resize -->|update url + is_resized| dbResized[DB: channel_image/item_image]
 
   storage -->|cdnBaseUrl + key| cdnUrl[CDN URL]

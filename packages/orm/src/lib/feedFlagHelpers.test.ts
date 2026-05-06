@@ -3,6 +3,17 @@ import { describe, expect, it } from 'vitest';
 import { getActiveFeedWhere } from './feedFlagHelpers.js';
 
 describe('getActiveFeedWhere', () => {
+  it('filters public visibility using feed_policy only', () => {
+    const where = getActiveFeedWhere({
+      channel_ids: null,
+      mediumType: null,
+      category_id: null,
+    });
+
+    expect(where.channel.feed.feed_policy.public_visible).toBe(true);
+    expect('feed_flag_status' in where.channel.feed).toBe(false);
+  });
+
   it('always requires parsed-ready channels through channel_about relation', () => {
     const where = getActiveFeedWhere({
       channel_ids: null,

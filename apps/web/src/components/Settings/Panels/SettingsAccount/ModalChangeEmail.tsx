@@ -5,11 +5,10 @@ import { useLocale } from 'next-intl';
 import React, { useState } from 'react';
 
 import { getEmailErrorKey } from '@podverse/helpers-validation/client';
+import { Button, FormInfoMessageText } from '@podverse/ui';
 
 import { getApiRequestService } from '../../../../factories/apiRequestService';
 import { handleRateLimitAlert } from '../../../../utils/rateLimit/rateLimitAlert';
-import { Button } from '../../../Button/Button';
-import { FormInfoMessageText } from '../../../Form/FormInfoMessageText';
 import { TextInput } from '../../../Form/TextInput';
 import { Modal, MODAL_CONTENT_MAX_WIDTH } from '../../../Modal/Modal';
 

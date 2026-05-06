@@ -5,15 +5,13 @@ import { useLocale, useTranslations } from 'next-intl';
 import React, { useState } from 'react';
 
 import { ERROR_MESSAGES, getAccountSignupModeCapabilities } from '@podverse/helpers';
+import { Button, FormErrorMessageText, FormInfoMessageText } from '@podverse/ui';
 
 import { getConfig } from '../../config';
 import { useModals } from '../../contexts/Modals';
 import { getApiRequestService } from '../../factories/apiRequestService';
 import { handleRateLimitAlert } from '../../utils/rateLimit/rateLimitAlert';
-import { Button } from '../Button/Button';
 import Form from '../Form/Form';
-import { FormErrorMessageText } from '../Form/FormErrorMessageText';
-import { FormInfoMessageText } from '../Form/FormInfoMessageText';
 import { TextInput } from '../Form/TextInput';
 import { Modal, MODAL_CONTENT_MAX_WIDTH } from './Modal';
 

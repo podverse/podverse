@@ -1,5 +1,4 @@
 import { AccountFollowingChannel } from '@orm/entities/account/accountFollowingChannel.js';
-import { FeedFlagStatusStatusEnum } from '@orm/entities/feed/feedFlagStatus.js';
 import { AccountService } from '@orm/services/account/account.js';
 import { BaseManyService } from '@orm/services/base/baseManyService.js';
 import type { EntityManager, FindManyOptions } from 'typeorm';
@@ -74,10 +73,9 @@ export class AccountFollowingChannelService extends BaseManyService<
           id: Not(IsNull()),
         },
         feed: {
-          feed_flag_status: In([
-            FeedFlagStatusStatusEnum.Active,
-            FeedFlagStatusStatusEnum.AlwaysParse,
-          ]),
+          feed_policy: {
+            public_visible: true,
+          },
         },
         ...(medium_ids ? { medium_id: In(medium_ids) } : {}),
       },
@@ -143,10 +141,9 @@ export class AccountFollowingChannelService extends BaseManyService<
           id: Not(IsNull()),
         },
         feed: {
-          feed_flag_status: In([
-            FeedFlagStatusStatusEnum.Active,
-            FeedFlagStatusStatusEnum.AlwaysParse,
-          ]),
+          feed_policy: {
+            public_visible: true,
+          },
         },
         ...(medium_ids ? { medium_id: In(medium_ids) } : {}),
       },

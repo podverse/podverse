@@ -5,10 +5,10 @@ import React, { useRef, useState } from 'react';
 
 import { MediumEnum } from '@podverse/helpers';
 import { copyToClipboard } from '@podverse/helpers-browser';
+import { FormStack } from '@podverse/ui';
 
 import { WEB } from '../../constants/web';
 import { useModals } from '../../contexts/Modals';
-import { FormStack } from '../Form/FormStack';
 import { TextInput } from '../Form/TextInput';
 import { Modal, MODAL_CONTENT_MAX_WIDTH } from './Modal';
 

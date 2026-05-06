@@ -59,8 +59,9 @@ export * from './channel/channelValue.js';
 export * from './channel/channelValueRecipient.js';
 
 export * from './feed/feed.js';
-export * from './feed/feedFlagStatus.js';
 export * from './feed/feedLog.js';
+export * from './feed/feedPolicy.js';
+export * from './feed/feedPolicyReason.js';
 
 export * from './item/item.js';
 export * from './item/itemAbout.js';

@@ -5,11 +5,11 @@ import React from 'react';
 import { FaHeart, FaRegHeart } from 'react-icons/fa6';
 
 import type { DTOItem } from '@podverse/helpers';
+import { Button } from '@podverse/ui';
 
 import { useAccount } from '../../../contexts/Account';
 import { useModals } from '../../../contexts/Modals';
 import { useLikesItemBatch } from '../../../hooks/useLikesItemBatch';
-import { Button } from '../../Button/Button';
 
 import styles from '../../../styles/components/MediaPlayer/Modal/MediaPlayerVtsOverrideLikeButton.module.scss';
 

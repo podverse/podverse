@@ -34,8 +34,8 @@ import {
 
 /**
  * Image shrink storage contract: upload by key, public URL = cdnBaseUrl + key.
- * Implementations are injected at bootstrap (e.g. Digital Ocean Spaces); the pipeline
- * does not depend on a specific provider.
+ * Implementations are injected at bootstrap (S3-compatible storage); the pipeline does not
+ * depend on a specific vendor.
  */
 
 export type ImageShrinkTarget =

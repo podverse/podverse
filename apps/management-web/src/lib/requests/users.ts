@@ -1,3 +1,5 @@
+import type { PremiumBillingCadence } from '@podverse/helpers';
+
 import { ManagementApiRequestService } from './apiRequestService';
 
 export type CreateUserParams = {
@@ -6,6 +8,7 @@ export type CreateUserParams = {
   password?: string;
   account_membership_id?: number;
   membership_expires_at?: string | null;
+  premium_billing_cadence?: PremiumBillingCadence;
   allow_directory_add_by_rss?: boolean | null;
   max_add_by_rss_feeds?: number | null;
   max_manual_refreshes_per_hour?: number | null;

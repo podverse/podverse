@@ -17,10 +17,10 @@ const superuserWithAllPerms = {
     id: 1,
     admin_account_id: 1,
     feedsCrud: 15,
-    feedFlagStatusesCrud: 15,
-    feedFlagStatusReasonsCrud: 15,
+    feedTakedownReasonsCrud: 15,
     adminsCrud: 15,
     statsCrud: 15,
+    billingPricesCrud: 15,
     created_at: new Date(),
     updated_at: new Date(),
   },
@@ -38,10 +38,10 @@ const adminWithFeedsRead = {
     id: 2,
     admin_account_id: 2,
     feedsCrud: 2,
-    feedFlagStatusesCrud: 2,
-    feedFlagStatusReasonsCrud: 2,
+    feedTakedownReasonsCrud: 2,
     adminsCrud: 0,
     statsCrud: 0,
+    billingPricesCrud: 0,
     created_at: new Date(),
     updated_at: new Date(),
   },
@@ -59,10 +59,10 @@ const adminWithNoPerms = {
     id: 3,
     admin_account_id: 3,
     feedsCrud: 0,
-    feedFlagStatusesCrud: 0,
-    feedFlagStatusReasonsCrud: 0,
+    feedTakedownReasonsCrud: 0,
     adminsCrud: 0,
     statsCrud: 0,
+    billingPricesCrud: 0,
     created_at: new Date(),
     updated_at: new Date(),
   },
@@ -173,11 +173,10 @@ describe('management-api database routes', () => {
       const res = await request(app).get(`${dbBase}/tables`).set(adminAuthHeaders(1));
 
       expect(res.status).toBe(200);
-      expect(res.body.tables).toHaveLength(8);
+      expect(res.body.tables).toHaveLength(11);
       const names = res.body.tables.map((t: { tableName: string }) => t.tableName);
       expect(names).toContain('feed');
-      expect(names).toContain('feed_flag_status');
-      expect(names).toContain('feed_flag_status_reason');
+      expect(names).toContain('feed_takedown_reason');
       expect(names).toContain('stats_aggregated_channel');
       expect(names).toContain('stats_aggregated_item');
       expect(names).toContain('stats_aggregated_clip');
@@ -202,11 +201,11 @@ describe('management-api database routes', () => {
   describe('GET /database/:table/meta', () => {
     it('returns metadata for allowlisted table', async () => {
       const res = await request(app)
-        .get(`${dbBase}/feed_flag_status_reason/meta`)
+        .get(`${dbBase}/feed_takedown_reason/meta`)
         .set(adminAuthHeaders(1));
 
       expect(res.status).toBe(200);
-      expect(res.body.tableName).toBe('feed_flag_status_reason');
+      expect(res.body.tableName).toBe('feed_takedown_reason');
       expect(res.body.fields).toBeInstanceOf(Array);
     });
 
@@ -218,9 +217,9 @@ describe('management-api database routes', () => {
   });
 
   describe('POST /database/:table/query', () => {
-    it('returns 200 for superuser querying feed_flag_status', async () => {
+    it('returns 200 for superuser querying feed_takedown_reason', async () => {
       const res = await request(app)
-        .post(`${dbBase}/feed_flag_status/query`)
+        .post(`${dbBase}/feed_takedown_reason/query`)
         .set(adminAuthHeaders(1))
         .send({ page: 1, pageSize: 25 });
 
@@ -259,7 +258,9 @@ describe('management-api database routes', () => {
 
   describe('GET /database/:table/:id', () => {
     it('returns row for superuser', async () => {
-      const res = await request(app).get(`${dbBase}/feed_flag_status/1`).set(adminAuthHeaders(1));
+      const res = await request(app)
+        .get(`${dbBase}/feed_takedown_reason/1`)
+        .set(adminAuthHeaders(1));
 
       expect(res.status).toBe(200);
     });
@@ -278,9 +279,9 @@ describe('management-api database routes', () => {
   });
 
   describe('POST /database/:table (create)', () => {
-    it('returns 201 for superuser creating in feed_flag_status_reason', async () => {
+    it('returns 201 for superuser creating in feed_takedown_reason', async () => {
       const res = await request(app)
-        .post(`${dbBase}/feed_flag_status_reason`)
+        .post(`${dbBase}/feed_takedown_reason`)
         .set(adminAuthHeaders(1))
         .send({ reason: 'test_reason' });
 
@@ -289,7 +290,7 @@ describe('management-api database routes', () => {
         expect.objectContaining({
           adminAccountId: 1,
           operation: 'create',
-          tableName: 'feed_flag_status_reason',
+          tableName: 'feed_takedown_reason',
           rowId: 1,
         })
       );
@@ -297,7 +298,7 @@ describe('management-api database routes', () => {
 
     it('returns 403 for admin without create permission', async () => {
       const res = await request(app)
-        .post(`${dbBase}/feed_flag_status_reason`)
+        .post(`${dbBase}/feed_takedown_reason`)
         .set(adminAuthHeaders(2))
         .send({ reason: 'test_reason' });
 
@@ -327,9 +328,9 @@ describe('management-api database routes', () => {
   });
 
   describe('PATCH /database/:table/:id (update)', () => {
-    it('returns 200 for superuser updating feed_flag_status_reason', async () => {
+    it('returns 200 for superuser updating feed_takedown_reason', async () => {
       const res = await request(app)
-        .patch(`${dbBase}/feed_flag_status_reason/1`)
+        .patch(`${dbBase}/feed_takedown_reason/1`)
         .set(adminAuthHeaders(1))
         .send({ reason: 'Updated reason' });
 
@@ -338,7 +339,7 @@ describe('management-api database routes', () => {
         expect.objectContaining({
           adminAccountId: 1,
           operation: 'update',
-          tableName: 'feed_flag_status_reason',
+          tableName: 'feed_takedown_reason',
           rowId: 1,
         })
       );
@@ -346,7 +347,7 @@ describe('management-api database routes', () => {
 
     it('returns 403 for admin without update permission', async () => {
       const res = await request(app)
-        .patch(`${dbBase}/feed_flag_status_reason/1`)
+        .patch(`${dbBase}/feed_takedown_reason/1`)
         .set(adminAuthHeaders(2))
         .send({ reason: 'Test' });
 
@@ -358,7 +359,7 @@ describe('management-api database routes', () => {
       const res = await request(app)
         .patch(`${dbBase}/feed/1`)
         .set(adminAuthHeaders(1))
-        .send({ feed_flag_status_reason_note: 'Test' });
+        .send({ spam_item_limit_override: 10 });
 
       expect(res.status).toBe(403);
       expect(res.body.message).toContain('read-only');
@@ -367,9 +368,9 @@ describe('management-api database routes', () => {
   });
 
   describe('DELETE /database/:table/:id', () => {
-    it('returns 200 for superuser deleting from feed_flag_status_reason', async () => {
+    it('returns 200 for superuser deleting from feed_takedown_reason', async () => {
       const res = await request(app)
-        .delete(`${dbBase}/feed_flag_status_reason/7`)
+        .delete(`${dbBase}/feed_takedown_reason/7`)
         .set(adminAuthHeaders(1));
 
       expect(res.status).toBe(200);
@@ -377,7 +378,7 @@ describe('management-api database routes', () => {
         expect.objectContaining({
           adminAccountId: 1,
           operation: 'delete',
-          tableName: 'feed_flag_status_reason',
+          tableName: 'feed_takedown_reason',
           rowId: 7,
         })
       );
@@ -385,7 +386,7 @@ describe('management-api database routes', () => {
 
     it('returns 403 for admin without delete permission', async () => {
       const res = await request(app)
-        .delete(`${dbBase}/feed_flag_status_reason/7`)
+        .delete(`${dbBase}/feed_takedown_reason/7`)
         .set(adminAuthHeaders(2));
 
       expect(res.status).toBe(403);
@@ -410,7 +411,7 @@ describe('management-api database routes', () => {
   describe('Audit logging', () => {
     it('includes request id from x-request-id header on create', async () => {
       const res = await request(app)
-        .post(`${dbBase}/feed_flag_status_reason`)
+        .post(`${dbBase}/feed_takedown_reason`)
         .set({ ...adminAuthHeaders(1), 'x-request-id': 'req-test-123' })
         .send({ reason: 'audit_test' });
 
@@ -424,7 +425,7 @@ describe('management-api database routes', () => {
 
     it('captures before and after snapshots on update', async () => {
       const res = await request(app)
-        .patch(`${dbBase}/feed_flag_status_reason/5`)
+        .patch(`${dbBase}/feed_takedown_reason/5`)
         .set(adminAuthHeaders(1))
         .send({ reason: 'changed' });
 
@@ -439,7 +440,7 @@ describe('management-api database routes', () => {
 
     it('captures before snapshot on delete', async () => {
       const res = await request(app)
-        .delete(`${dbBase}/feed_flag_status_reason/9`)
+        .delete(`${dbBase}/feed_takedown_reason/9`)
         .set(adminAuthHeaders(1));
 
       expect(res.status).toBe(200);
@@ -457,7 +458,7 @@ describe('management-api database routes', () => {
       queryTableMock.mockRejectedValueOnce(new Error('SELECT * FROM secret_table'));
 
       const res = await request(app)
-        .post(`${dbBase}/feed_flag_status/query`)
+        .post(`${dbBase}/feed_takedown_reason/query`)
         .set(adminAuthHeaders(1))
         .send({});
 
@@ -471,7 +472,7 @@ describe('management-api database routes', () => {
       createRowMock.mockRejectedValueOnce(new Error('connection refused: pg://admin:pass@db'));
 
       const res = await request(app)
-        .post(`${dbBase}/feed_flag_status_reason`)
+        .post(`${dbBase}/feed_takedown_reason`)
         .set(adminAuthHeaders(1))
         .send({ reason: 'test' });
 
@@ -491,7 +492,7 @@ describe('management-api database routes', () => {
       }));
 
       const res = await request(app)
-        .post(`${dbBase}/feed_flag_status/query`)
+        .post(`${dbBase}/feed_takedown_reason/query`)
         .set(adminAuthHeaders(1))
         .send({ filters });
 
@@ -506,7 +507,7 @@ describe('management-api database routes', () => {
       }));
 
       const res = await request(app)
-        .post(`${dbBase}/feed_flag_status/query`)
+        .post(`${dbBase}/feed_takedown_reason/query`)
         .set(adminAuthHeaders(1))
         .send({ sorts });
 
@@ -524,7 +525,7 @@ describe('management-api database routes', () => {
       ];
 
       const res = await request(app)
-        .post(`${dbBase}/feed_flag_status/query`)
+        .post(`${dbBase}/feed_takedown_reason/query`)
         .set(adminAuthHeaders(1))
         .send({ filters });
 
@@ -535,14 +536,14 @@ describe('management-api database routes', () => {
     it('rejects LIKE filter value longer than 100 characters', async () => {
       const filters = [
         {
-          field: 'status',
+          field: 'reason',
           operator: 'like',
           value: 'a'.repeat(101),
         },
       ];
 
       const res = await request(app)
-        .post(`${dbBase}/feed_flag_status/query`)
+        .post(`${dbBase}/feed_takedown_reason/query`)
         .set(adminAuthHeaders(1))
         .send({ filters });
 
@@ -552,7 +553,7 @@ describe('management-api database routes', () => {
 
     it('rejects pageSize above 100', async () => {
       const res = await request(app)
-        .post(`${dbBase}/feed_flag_status/query`)
+        .post(`${dbBase}/feed_takedown_reason/query`)
         .set(adminAuthHeaders(1))
         .send({ pageSize: 200 });
 
@@ -561,7 +562,7 @@ describe('management-api database routes', () => {
 
     it('rejects negative page number', async () => {
       const res = await request(app)
-        .post(`${dbBase}/feed_flag_status/query`)
+        .post(`${dbBase}/feed_takedown_reason/query`)
         .set(adminAuthHeaders(1))
         .send({ page: -1 });
 
@@ -572,7 +573,7 @@ describe('management-api database routes', () => {
   describe('Mutation validation', () => {
     it('rejects create with empty body', async () => {
       const res = await request(app)
-        .post(`${dbBase}/feed_flag_status_reason`)
+        .post(`${dbBase}/feed_takedown_reason`)
         .set(adminAuthHeaders(1))
         .send({});
 
@@ -586,7 +587,7 @@ describe('management-api database routes', () => {
       }
 
       const res = await request(app)
-        .post(`${dbBase}/feed_flag_status_reason`)
+        .post(`${dbBase}/feed_takedown_reason`)
         .set(adminAuthHeaders(1))
         .send(data);
 
@@ -595,7 +596,7 @@ describe('management-api database routes', () => {
 
     it('rejects update with invalid id parameter', async () => {
       const res = await request(app)
-        .patch(`${dbBase}/feed_flag_status_reason/not-a-number`)
+        .patch(`${dbBase}/feed_takedown_reason/not-a-number`)
         .set(adminAuthHeaders(1))
         .send({ reason: 'test' });
 
@@ -604,7 +605,7 @@ describe('management-api database routes', () => {
 
     it('rejects delete with invalid id parameter', async () => {
       const res = await request(app)
-        .delete(`${dbBase}/feed_flag_status_reason/not-a-number`)
+        .delete(`${dbBase}/feed_takedown_reason/not-a-number`)
         .set(adminAuthHeaders(1));
 
       expect(res.status).toBe(400);

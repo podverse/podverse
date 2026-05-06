@@ -2,8 +2,9 @@ import classNames from 'classnames';
 import type { AriaAttributes } from 'react';
 import React, { useRef } from 'react';
 
+import { Button } from '@podverse/ui';
+
 import { cssClass } from '../../utils/cssModule';
-import { Button } from '../Button/Button';
 import { TextInputNumberIncrement } from './TextInputNumberIncrements';
 
 import styles from '../../styles/components/Form/TextInput.module.scss';

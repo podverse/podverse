@@ -1,0 +1,35 @@
+.marginBottomLg {
+  margin-bottom: var(--spacing-lg);
+}
+
+.track {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  font-size: var(--font-size-base);
+  color: var(--text-color-secondary);
+}
+
+.link {
+  color: var(--border-color-primary);
+  text-decoration: none;
+}
+
+.separator {
+  color: var(--text-color-secondary);
+}
+
+.current {
+  color: inherit;
+}
+
+.compactTrack {
+  margin: var(--spacing-md) 0 0 0;
+  color: var(--text-color-secondary);
+  font-size: var(--font-size-xs);
+}
+
+.compactLink {
+  color: var(--border-color-primary);
+  text-decoration: none;
+}

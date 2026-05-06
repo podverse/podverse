@@ -1,0 +1,53 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: worker-billing-renewals
+spec:
+  schedule: "*/30 * * * *"
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          annotations:
+            backup.velero.io/backup-volumes-excludes: "logs-volume"
+        spec:
+          containers:
+            - name: worker
+              image: ghcr.io/podverse/podverse/workers
+              command:
+                - "node"
+                - "apps/workers/dist/index.js"
+                - "billingProcessDueRenewals"
+              securityContext:
+                runAsUser: 1000
+                runAsGroup: 1000
+                runAsNonRoot: true
+                readOnlyRootFilesystem: true
+                allowPrivilegeEscalation: false
+              resources:
+                requests:
+                  memory: "512Mi"
+                  cpu: "100m"
+                limits:
+                  memory: "1Gi"
+                  cpu: "500m"
+              envFrom:
+                - configMapRef:
+                    name: podverse-workers-config
+                - secretRef:
+                    name: podverse-db-opaque
+                - secretRef:
+                    name: podverse-mq-opaque
+                - secretRef:
+                    name: podverse-workers-webpush-opaque
+                    optional: true
+              volumeMounts:
+                - name: logs-volume
+                  mountPath: /logs
+                - name: logs-volume
+                  mountPath: /opt/logs
+          volumes:
+            - name: logs-volume
+              emptyDir: {}
+          restartPolicy: OnFailure

@@ -1,3 +1,4 @@
+import { redirect } from 'next/navigation';
 import { z } from 'zod';
 
 import type { DTOClip, DTOItem, DTOItemSoundbite } from '@podverse/helpers';
@@ -42,6 +43,9 @@ export default async function PodcastPage({ params, searchParams }: PodcastPageP
     await parseSearchParams(queryParams);
 
   const ssrChannel = await ssrApiRequestService.reqChannelGetByIdOrIdText(channel_id);
+  if (ssrChannel?.feed?.podcast_index_id && ssrChannel.feed.feed_policy?.public_visible === false) {
+    redirect(`/podcast-index/feed/${ssrChannel.feed.podcast_index_id}`);
+  }
 
   let ssrItems: DTOItem[] = [];
   let ssrClips: DTOClip[] = [];

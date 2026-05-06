@@ -188,9 +188,9 @@ const validateAllEnvironmentVariables = (): ValidationSummary => {
 
   // Premium/Membership
   // Note: validateSignupMode() is called earlier to determine conditional requirements
-  results.push(validateOptional('PREMIUM_MEMBERSHIP_COST_MONTHLY', 'Premium'));
-  results.push(validateOptional('PREMIUM_MEMBERSHIP_COST_ANNUALLY', 'Premium'));
-  results.push(validateOptional('FREE_TRIAL_EXPIRATION', 'Premium'));
+  results.push(validateOptional('MEMBERSHIP_PREMIUM_COST_MONTHLY', 'Premium'));
+  results.push(validateOptional('MEMBERSHIP_PREMIUM_COST_ANNUALLY', 'Premium'));
+  results.push(validateOptional('MEMBERSHIP_FREE_TRIAL_EXPIRATION', 'Premium'));
 
   // Mailer (conditionally required when signup mode uses email flows)
   if (usesEmailFlows) {

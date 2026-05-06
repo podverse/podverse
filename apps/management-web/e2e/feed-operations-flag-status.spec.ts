@@ -11,8 +11,9 @@ test.describe('Management-web feed operations', () => {
         status: 200,
         contentType: 'application/json',
         body: JSON.stringify({
-          feed_flag_statuses: [{ id: 1, status: 'active' }],
-          feed_flag_status_reasons: [{ id: 1, reason: 'spam' }],
+          lifecycle_states: [{ state_key: 'active' }],
+          condition_types: [{ condition_key: 'spam_detected' }],
+          takedown_reasons: [{ reason: 'spam' }],
         }),
       });
     });
@@ -27,21 +28,24 @@ test.describe('Management-web feed operations', () => {
             url: 'https://example.com/feed.xml',
             podcast_index_id: 55,
             spam_item_limit_override: 777,
-            feed_flag_status_id: 1,
-            feed_flag_status_key: 'active',
-            feed_flag_status_reason_id: null,
-            feed_flag_status_reason_key: null,
-            feed_flag_status_reason_note: null,
+            max_response_body_bytes_override: null,
+            lifecycle_state_key: 'active',
+            lifecycle_reason: null,
+            updated_source: 'system',
+            active_condition_keys: [],
+            parse_allowed: true,
+            public_visible: true,
+            add_allowed: true,
+            primary_block_reason: null,
+            policy_overrides: null,
             channel_title: 'Test Show',
           },
         }),
       });
     });
 
-    // POST goes to management-api `/api/v2/feed-operations/flag-status`. Do not use
-    // `**/feed-operations/flag-status` — it matches the Next.js page document GET and
-    // replaces HTML with JSON, so the h1 never appears.
-    await page.route('**/api/v2/feed-operations/flag-status', async (route) => {
+    // POST goes to management-api `/api/v2/feed-operations/update-policy-state`. Route only the API path.
+    await page.route('**/api/v2/feed-operations/update-policy-state', async (route) => {
       const body = (route.request().postDataJSON() ?? {}) as Record<string, unknown>;
       applyBodies.push(body);
       await route.fulfill({
@@ -65,7 +69,7 @@ test.describe('Management-web feed operations', () => {
     await page.getByLabel('Value').fill('55');
     await page.getByRole('button', { name: 'Look up' }).click();
 
-    // FormLabel may not wire htmlFor to FormInput; prefer stable name attribute over spinbutton role.
+    // FormLabel may not wire htmlFor to Input; prefer stable name attribute over spinbutton role.
     const spamOverrideInput = page.locator('input[name="spam-item-limit-override"]');
     await expect(spamOverrideInput).toBeVisible();
     await expect(spamOverrideInput).toHaveValue('777');
@@ -76,6 +80,8 @@ test.describe('Management-web feed operations', () => {
     expect(applyBodies[0]).toEqual(
       expect.objectContaining({
         feed_id: 9,
+        lifecycle_state_key: 'active',
+        active_condition_keys: [],
         spam_item_limit_override: 12345,
       })
     );
@@ -87,6 +93,8 @@ test.describe('Management-web feed operations', () => {
     expect(applyBodies[1]).toEqual(
       expect.objectContaining({
         feed_id: 9,
+        lifecycle_state_key: 'active',
+        active_condition_keys: [],
         spam_item_limit_override: null,
       })
     );

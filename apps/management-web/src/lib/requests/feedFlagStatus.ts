@@ -1,43 +1,60 @@
 import { ManagementApiRequestService } from './apiRequestService';
 
-export type FeedFlagLookup = {
+export type FeedOperationsLookup = {
   id: number;
   url: string;
   podcast_index_id: number;
   spam_item_limit_override: number | null;
-  feed_flag_status_id: number;
-  feed_flag_status_key: string;
-  feed_flag_status_reason_id: number | null;
-  feed_flag_status_reason_key: string | null;
-  feed_flag_status_reason_note: string | null;
+  max_response_body_bytes_override: number | null;
+  lifecycle_state_key: string;
+  lifecycle_reason: string | null;
+  updated_source: string;
+  active_condition_keys: string[];
+  parse_allowed: boolean;
+  public_visible: boolean;
+  add_allowed: boolean;
+  primary_block_reason: string | null;
+  policy_overrides: {
+    parse_allowed_override: boolean | null;
+    public_visible_override: boolean | null;
+    add_allowed_override: boolean | null;
+  } | null;
   channel_title: string | null;
 };
 
-export type FeedFlagStatusOption = { id: number; status: string };
-export type FeedFlagStatusReasonOption = { id: number; reason: string };
-
-export type FeedOptionsResponse = {
-  feed_flag_statuses: FeedFlagStatusOption[];
-  feed_flag_status_reasons: FeedFlagStatusReasonOption[];
+export type FeedOperationsOptionsResponse = {
+  lifecycle_states: { state_key: string }[];
+  condition_types: { condition_key: string }[];
+  takedown_reasons: { reason: string }[];
 };
 
-export type LookupResponse = { feed: FeedFlagLookup };
+export type LookupResponse = { feed: FeedOperationsLookup };
 
-export type ApplyFlagStatusBody = {
+export type ApplyFeedOperationsPolicyStateBody = {
   feed_id: number;
-  feed_flag_status_id: number;
-  feed_flag_status_reason_id: number | null;
-  feed_flag_status_reason_note: string | null;
-  spam_item_limit_override: number | null;
+  lifecycle_state_key?: string;
+  active_condition_keys?: string[];
+  lifecycle_reason_key?: string | null;
+  condition_note?: string | null;
+  transition_note?: string | null;
+  spam_item_limit_override?: number | null;
+  max_response_body_bytes_override?: number | null;
+  policy_overrides?: {
+    parse_allowed_override?: boolean | null;
+    public_visible_override?: boolean | null;
+    add_allowed_override?: boolean | null;
+  } | null;
+  /** When true, allows takedown without activating `takedown_active` (transitional). */
+  takedown_transitional?: boolean;
 };
 
-export type ApplyFlagStatusResponse = {
-  feed: Record<string, unknown>;
+export type ApplyFeedOperationsPolicyStateResponse = {
+  feed: FeedOperationsLookup;
 };
 
-export async function getFeedOperationOptions(): Promise<FeedOptionsResponse> {
+export async function getFeedOperationOptions(): Promise<FeedOperationsOptionsResponse> {
   const service = new ManagementApiRequestService();
-  return service.apiRequest<FeedOptionsResponse>({
+  return service.apiRequest<FeedOperationsOptionsResponse>({
     path: '/feed-operations/options',
     method: 'GET',
   });
@@ -63,19 +80,13 @@ export async function lookupFeed(params: {
   });
 }
 
-export async function applyFeedFlagStatus(
-  body: ApplyFlagStatusBody
-): Promise<ApplyFlagStatusResponse> {
+export async function applyFeedOperationsPolicyState(
+  body: ApplyFeedOperationsPolicyStateBody
+): Promise<ApplyFeedOperationsPolicyStateResponse> {
   const service = new ManagementApiRequestService();
-  return service.apiRequest<ApplyFlagStatusResponse>({
-    path: '/feed-operations/flag-status',
+  return service.apiRequest<ApplyFeedOperationsPolicyStateResponse>({
+    path: '/feed-operations/update-policy-state',
     method: 'POST',
-    data: {
-      feed_id: body.feed_id,
-      feed_flag_status_id: body.feed_flag_status_id,
-      feed_flag_status_reason_id: body.feed_flag_status_reason_id,
-      feed_flag_status_reason_note: body.feed_flag_status_reason_note,
-      spam_item_limit_override: body.spam_item_limit_override,
-    },
+    data: body,
   });
 }

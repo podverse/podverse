@@ -2,18 +2,21 @@ import { AccountPayPalOrder } from '@orm/entities/account/accountPayPalOrder.js'
 import { AccountService } from '@orm/services/account/account.js';
 import { AccountMembershipStatusService } from '@orm/services/account/accountMembershipStatus.js';
 import { BaseManyService } from '@orm/services/base/baseManyService.js';
+import { BillingRenewalOrchestratorService } from '@orm/services/billingRenewalOrchestrator.js';
 import type { FindOneOptions } from 'typeorm';
 
-import { AccountMembershipEnum } from '@podverse/helpers';
+import { AccountMembershipEnum, extendMembershipPeriodByCadence } from '@podverse/helpers';
 
 export class AccountPayPalOrderService extends BaseManyService<AccountPayPalOrder, 'account'> {
   private accountService: AccountService;
   private accountMembershipStatusService: AccountMembershipStatusService;
+  private billingRenewalOrchestratorService: BillingRenewalOrchestratorService;
 
   constructor() {
     super(AccountPayPalOrder, 'account');
     this.accountService = new AccountService();
     this.accountMembershipStatusService = new AccountMembershipStatusService();
+    this.billingRenewalOrchestratorService = new BillingRenewalOrchestratorService();
   }
 
   async get(
@@ -61,22 +64,23 @@ export class AccountPayPalOrderService extends BaseManyService<AccountPayPalOrde
 
     const accountMembershipStatus = accountPayPalOrder.account.account_membership_status;
 
-    const currentDate = new Date();
-    const newExpirationDate =
-      accountMembershipStatus?.membership_expires_at &&
-      accountMembershipStatus.membership_expires_at > currentDate
-        ? new Date(
-            accountMembershipStatus.membership_expires_at.setFullYear(
-              accountMembershipStatus.membership_expires_at.getFullYear() + 1
-            )
-          )
-        : new Date(currentDate.setFullYear(currentDate.getFullYear() + 1));
+    const newExpirationDate = extendMembershipPeriodByCadence({
+      membershipExpiresAt: accountMembershipStatus?.membership_expires_at,
+      cadence: 'annual',
+    });
 
     const successState = isV2 ? 'completed' : 'approved';
     if (state === successState) {
+      await this.billingRenewalOrchestratorService.handlePaymentSettled({
+        accountId: accountPayPalOrder.account.id,
+        cadence: 'annual',
+        idempotencyKey: `paypal:${payment_id}`,
+        provider: 'paypal',
+      });
       await this.accountMembershipStatusService.update(accountPayPalOrder.account, {
         account_membership_id: AccountMembershipEnum.Premium,
         membership_expires_at: newExpirationDate,
+        billing_cadence: 'annual',
       });
     } else {
       throw new Error('PayPal Order not approved.');

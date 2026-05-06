@@ -131,17 +131,33 @@ vi.mock('@podverse/orm', () => ({
   ChannelService: class ChannelService {
     getOrCreateByFeed = vi.fn();
   },
-  checkIfFeedFlagStatusShouldParse: vi.fn(() => true),
   checkIfSpamFeed: vi.fn(() => false),
-  FeedFlagStatusStatusEnum: {
-    Spam: 3,
+  FeedConditionSourceEnum: {
+    Auto: 'auto',
   },
+  FeedConditionTypeKeyEnum: {
+    OversizedDetected: 'oversized_detected',
+    SpamDetected: 'spam_detected',
+  },
+  FeedLifecycleStateKeyEnum: {
+    Active: 'active',
+    PendingArchive: 'pending_archive',
+    Archived: 'archived',
+    Takedown: 'takedown',
+  },
+  FeedPolicyService: class FeedPolicyService {
+    recomputePolicy = vi.fn(() => Promise.resolve({ parse_allowed: true }));
+    getActiveConditionKeys = vi.fn(() => Promise.resolve([]));
+    setCondition = vi.fn();
+  },
+  shouldAttemptFeedParseFromLifecycleAndPolicy: vi.fn(() => true),
   FeedLogService: class FeedLogService {
     get = vi.fn();
     update = feedLogUpdateMock;
   },
   FeedService: class FeedService {
     tryStartParsing = feedServiceTryStartParsingMock;
+    refreshFeedPolicy = vi.fn(() => Promise.resolve({ parse_allowed: true }));
     update = feedServiceUpdateMock;
   },
   OnDemandParserEventService: class OnDemandParserEventService {
@@ -161,7 +177,10 @@ describe('parseRSSFeedAndSaveToDatabase lock loser no-op', () => {
       id: 101,
       url: 'https://canonical.example.com/feed',
       podcast_index_id: 5778820,
-      feed_flag_status: { id: 1 },
+      max_response_body_bytes_override: null,
+      feed_lifecycle_state: {
+        feed_lifecycle_state_type: { state_key: 'active' },
+      },
     });
     feedServiceTryStartParsingMock.mockResolvedValue(false);
     onDemandGetCountMock.mockResolvedValue(0);

@@ -2,7 +2,8 @@
 
 import React from 'react';
 
-import { Divider } from '../../Divider/Divider';
+import { Divider } from '@podverse/ui';
+
 import type { ViewSelectedOption } from '../../ViewSelector/ViewSelector';
 import { CommonArtistListGridNode } from './CommonArtistGridNode';
 import { CommonArtistListRow } from './CommonArtistRow';

@@ -1,8 +1,9 @@
 import { useTranslations } from 'next-intl';
 import React from 'react';
 
-import type { ButtonVariant } from '../Button/Button';
-import { Button } from '../Button/Button';
+import type { ButtonVariant } from '@podverse/ui';
+import { Button } from '@podverse/ui';
+
 import { SettingsSection } from './SettingsSection';
 
 type RSSFeedSettingsSectionProps = {

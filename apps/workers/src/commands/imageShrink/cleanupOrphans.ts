@@ -1,13 +1,12 @@
 import type { CommandLineArgs } from '@workers/commands/index.js';
 import {
-  getBucketProviderConfig,
   getImageShrinkCleanupConfig,
   getImageShrinkStorageConfig,
   isImageShrinkEnabled,
 } from '@workers/config/index.js';
+import { getImageStorageService } from '@workers/factories/imageStorageService.js';
 import { getLoggerService } from '@workers/factories/loggerService.js';
 
-import { DigitalOceanService } from '@podverse/external-services-digital-ocean';
 import { ChannelImageService, ItemImageService } from '@podverse/orm';
 
 type CandidateObject = {
@@ -40,12 +39,7 @@ export const imageShrinkCleanupOrphans = async (_args: CommandLineArgs) => {
 
   const cleanupConfig = getImageShrinkCleanupConfig();
   const storageConfig = getImageShrinkStorageConfig();
-  const bucketProviderConfig = getBucketProviderConfig();
-  const digitalOceanService = new DigitalOceanService({
-    accessKey: bucketProviderConfig.accessKey,
-    secretKey: bucketProviderConfig.secretKey,
-    region: bucketProviderConfig.region,
-  });
+  const imageStorage = getImageStorageService();
   const channelImageService = new ChannelImageService();
   const itemImageService = new ItemImageService();
   const minAgeMs = cleanupConfig.minAgeExpiration * 1000;
@@ -70,7 +64,7 @@ export const imageShrinkCleanupOrphans = async (_args: CommandLineArgs) => {
   });
 
   do {
-    const listResult = await digitalOceanService.listObjects({
+    const listResult = await imageStorage.listObjects({
       bucket: storageConfig.bucket,
       prefix: IMAGE_KEY_PREFIX,
       continuationToken,
@@ -98,7 +92,7 @@ export const imageShrinkCleanupOrphans = async (_args: CommandLineArgs) => {
       candidates.push({
         key: object.key,
         lastModified: object.lastModified,
-        url: digitalOceanService.getPublicUrl({
+        url: imageStorage.getPublicUrl({
           cdnBaseUrl: storageConfig.cdnBaseUrl,
           key: object.key,
         }),
@@ -154,7 +148,7 @@ export const imageShrinkCleanupOrphans = async (_args: CommandLineArgs) => {
         wouldDelete += 1;
         continue;
       }
-      await digitalOceanService.deleteImageByKey({
+      await imageStorage.deleteImageByKey({
         bucket: storageConfig.bucket,
         key: orphan.key,
       });

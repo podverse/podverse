@@ -3,12 +3,12 @@
 import React from 'react';
 
 import { MediumEnum } from '@podverse/helpers';
+import { Divider } from '@podverse/ui';
 
 import type {
   AddByRSSItemIndexItem,
   AddByRSSMappedFeed,
 } from '../../../../../utils/addByRSS/types';
-import { Divider } from '../../../../Divider/Divider';
 import type { ViewSelectedOption } from '../../../../ViewSelector/ViewSelector';
 import { AddByRSSTrackGridCard } from './AddByRSSTrackGridCard';
 import { AddByRSSTrackRow } from './AddByRSSTrackRow';

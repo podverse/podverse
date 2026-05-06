@@ -6,7 +6,7 @@ import { useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
 
 import type { NavCard } from '@podverse/ui';
-import { NavCardGrid } from '@podverse/ui';
+import { ManagementPageShell, NavCardGrid } from '@podverse/ui';
 
 import { getConfig } from '../../../config';
 import {
@@ -65,16 +65,11 @@ export function DashboardPageClient({ initialUser }: DashboardPageClientProps) {
   }));
 
   return (
-    <div className="container">
-      <div className="page-header">
-        <h1 className="page-title">Dashboard</h1>
-        <p className="page-subtitle">
-          {t('welcome', { brandName: getConfig().public.brand.name ?? 'Management' })}
-        </p>
-      </div>
-      <main>
-        <NavCardGrid cards={cards} LinkComponent={Link} />
-      </main>
-    </div>
+    <ManagementPageShell
+      subtitle={t('welcome', { brandName: getConfig().public.brand.name ?? 'Management' })}
+      title={t('title')}
+    >
+      <NavCardGrid cards={cards} LinkComponent={Link} />
+    </ManagementPageShell>
   );
 }

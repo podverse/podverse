@@ -1,0 +1,36 @@
+.h2 {
+  margin: 0 0 var(--spacing-base);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+}
+
+.h2Tight {
+  margin-top: 0;
+  margin-bottom: var(--spacing-base);
+}
+
+.h3 {
+  margin: 0 0 var(--spacing-md);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+}
+
+.h3SpacedTop {
+  margin-top: var(--spacing-base);
+}
+
+.h4 {
+  margin: 0 0 var(--spacing-md);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-bold);
+  color: var(--text-color-primary);
+}
+
+.h4Spaced {
+  margin-top: var(--spacing-xl);
+  margin-bottom: var(--spacing-md);
+}
+
+.sectionSpaced {
+  margin-bottom: var(--spacing-2xl);
+}

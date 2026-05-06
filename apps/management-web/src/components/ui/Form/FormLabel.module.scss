@@ -1,9 +1,0 @@
-@use '../../../../../../packages/ui/src/styles/variables' as *;
-
-.formLabel {
-  display: block;
-  margin-bottom: var(--spacing-md);
-  font-size: var(--font-size-xs);
-  font-weight: var(--font-weight-medium);
-  color: var(--text-color-primary);
-}

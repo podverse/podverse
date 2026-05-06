@@ -52,7 +52,13 @@
     "add_feed": {
       "add_feed": "",
       "add_feed_explanation": "",
-      "rss_link": ""
+      "rss_link": "",
+      "blocked_feed_banner": "",
+      "blocked_reason_spam_detected": "",
+      "blocked_reason_oversized_detected": "",
+      "blocked_reason_takedown_active": "",
+      "blocked_reason_manual_block": "",
+      "blocked_reason_unknown": ""
     },
     "add_by_rss": {
       "label": "",

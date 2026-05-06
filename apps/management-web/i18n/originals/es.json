@@ -16,6 +16,7 @@
     "creating": "Creando...",
     "search": "Buscar",
     "back": "Atrás",
+    "breadcrumbNav": "Ruta de navegación",
     "submit": "Enviar",
     "confirm": "Confirmar",
     "yes": "Sí",
@@ -38,7 +39,13 @@
     "password": "Contraseña",
     "newPassword": "Nueva contraseña",
     "confirmPassword": "Confirmar contraseña",
-    "leaveBlankToKeepCurrent": "Deje en blanco para mantener la actual"
+    "leaveBlankToKeepCurrent": "Deje en blanco para mantener la actual",
+    "defaultBrandName": "Management",
+    "invalidCredentialsDefault": "Usuario o contraseña no válidos",
+    "signIn": "Iniciar sesión",
+    "signInSubtitle": "Inicie sesión para continuar",
+    "signingIn": "Iniciando sesión...",
+    "usernameOrEmail": "Usuario / correo electrónico"
   },
   "nav": {
     "dashboard": "Tablero",
@@ -64,6 +71,10 @@
       "title": "Base de datos",
       "description": "Navegar y gestionar datos del feed, estados y motivos"
     },
+    "products": {
+      "title": "Productos",
+      "description": "Áreas de producto, incluida la configuración de membresía"
+    },
     "admins": {
       "title": "Administradores",
       "description": "Gestionar cuentas y permisos de administradores"
@@ -77,9 +88,88 @@
       "description": "Crear y gestionar cuentas de usuario de la aplicación"
     }
   },
+  "statsPage": {
+    "title": "Estadísticas",
+    "breadcrumbDashboard": "Panel",
+    "failedToLoad": "No se pudieron cargar las estadísticas.",
+    "clear": "Limpiar",
+    "views": "Vistas",
+    "loadingDetail": "Cargando detalle...",
+    "close": "Cerrar",
+    "idValue": "ID {id}",
+    "searchPlaceholder": "Buscar {entity} por título...",
+    "topChartHeading": "Top 10 {entity} ({range})",
+    "noStatsDataForRange": "No hay datos de estadísticas disponibles para este rango.",
+    "paginationSummary": "{total} resultados - Página {page} de {totalPages}",
+    "paginationSummarySingular": "{total} resultado - Página {page} de {totalPages}",
+    "entityTypes": {
+      "channel": "Canales",
+      "item": "Elementos",
+      "clip": "Clips",
+      "playlist": "Listas",
+      "account": "Cuentas"
+    },
+    "ranges": {
+      "day": "1 día",
+      "day7": "7 días",
+      "day30": "30 días",
+      "year1": "1 año",
+      "allTime": "Todo el tiempo"
+    },
+    "table": {
+      "title": "Título",
+      "rangeViews": "{range} vistas"
+    },
+    "detail": {
+      "dayToday": "Hoy",
+      "dayN": "Día {count}",
+      "weekCurrent": "Esta semana",
+      "weekN": "Semana {count}",
+      "monthCurrent": "Este mes",
+      "dailyBreakdown": "Desglose diario",
+      "weeklyBreakdown": "Desglose semanal"
+    }
+  },
+  "products": {
+    "pageTitle": "Productos",
+    "welcomeLine": "Elija un área de producto.",
+    "membershipsCardTitle": "Membresías",
+    "membershipsCardDescription": "Ver valores de membresía resueltos (entorno y base de datos).",
+    "breadcrumbDashboard": "Panel"
+  },
+  "productMemberships": {
+    "pageTitle": "Membresías",
+    "pageSubtitle": "Límites efectivos y campos de precios para nuevos usuarios y administración.",
+    "breadcrumbDashboard": "Panel",
+    "breadcrumbProducts": "Productos",
+    "loadError": "No se pudo cargar la configuración del producto de membresía.",
+    "editableTrialHeading": "Duración de la prueba gratuita",
+    "saveSuccess": "Duración de la prueba actualizada correctamente.",
+    "saveError": "No se pudo actualizar la duración de la prueba.",
+    "fieldLabels": {
+      "freeTrialExpirationSeconds": "Duración de la prueba gratuita (segundos)",
+      "premiumMembershipCostMonthly": "Coste mensual premium",
+      "premiumMembershipCostAnnually": "Coste anual premium",
+      "trialMaxAddByRSSFeeds": "Máx. feeds Add-by-RSS en prueba",
+      "trialMaxManualRefreshesPerHour": "Máx. actualizaciones manuales por hora (prueba)",
+      "premiumMaxAddByRSSFeeds": "Máx. feeds Add-by-RSS premium",
+      "premiumMaxManualRefreshesPerHour": "Máx. actualizaciones manuales por hora (premium)"
+    },
+    "pricingTable": {
+      "heading": "Filas de precios activos",
+      "cadence": "Periodicidad",
+      "amountCents": "Importe (céntimos)",
+      "currency": "Moneda",
+      "effectiveFrom": "Vigente desde",
+      "source": "Origen"
+    },
+    "validation": {
+      "invalidFreeTrialSeconds": "La duración de la prueba gratuita debe ser un entero positivo."
+    }
+  },
   "feedFlagStatus": {
     "pageTitle": "Establecer estado del feed",
-    "pageSubtitle": "Busque un feed por ID de Podcast Index (predeterminado), id interno del feed o URL. Establezca el estado de moderación, motivo opcional y nota. Esto es independiente del navegador de tablas de la base de datos.",
+    "pageSubtitle": "Busque un feed por ID de Podcast Index (predeterminado), id interno del feed o URL. Actualice el ciclo de vida, condiciones activas, límites y notas. Esto es independiente del navegador de tablas de la base de datos.",
     "breadcrumbParent": "Operaciones de feed",
     "breadcrumbCurrent": "Estado de la bandera",
     "sectionFindAria": "Buscar",
@@ -94,7 +184,7 @@
     "placeholderNumber": "p. ej. 12345",
     "lookupLoading": "Buscando…",
     "lookupButton": "Buscar",
-    "optionsLoadError": "No se pudieron cargar las opciones de estado y motivo.",
+    "optionsLoadError": "No se pudieron cargar las opciones de operaciones del feed.",
     "lookupErrorEnterUrl": "Introduzca una URL de feed",
     "lookupErrorPositiveNumber": "Introduzca un número positivo",
     "lookupErrorGeneric": "Feed no encontrado o la solicitud falló",
@@ -105,39 +195,47 @@
     "dtUrl": "URL",
     "dtInternalFeedId": "Id interno del feed",
     "dtPodcastIndexId": "ID de Podcast Index",
-    "dtStatus": "Estado",
-    "statusDisplay": "{status} (id: {id})",
+    "dtLifecycle": "Estado del ciclo de vida",
+    "lifecycleDisplay": "{state}",
+    "dtActiveConditions": "Condiciones activas",
+    "dtEffectivePolicy": "Política efectiva",
+    "effectivePolicyDisplay": "análisis: {parse}, público: {public}, alta: {add}, bloqueo: {reason}",
+    "boolYes": "sí",
+    "boolNo": "no",
     "dtSpamOverride": "Anulación del límite de elementos spam",
+    "dtMaxResponseBytesOverride": "Anulación máxima de bytes de respuesta",
     "emptyValue": "—",
-    "dtReason": "Motivo",
-    "dtReasonNote": "Nota del motivo",
+    "dtLifecycleReason": "Clave de motivo del ciclo de vida",
+    "dtUpdatedSource": "Última fuente de actualización del ciclo de vida",
     "openInDatabase": "Abrir esta fila en Base de datos (solo lectura para el feed)",
-    "newStatusHeading": "Nuevo estado y motivo",
-    "labelNewStatusRequired": "Nuevo estado *",
-    "selectStatusPlaceholder": "Seleccionar estado",
-    "selectOptionStatus": "{label} (id: {id})",
-    "labelReason": "Motivo",
-    "labelReasonTakedownRequired": "Motivo *",
-    "labelReasonOptional": "Motivo (opcional)",
-    "reasonNone": "(ninguno)",
-    "selectOptionReason": "{label} (id: {id})",
-    "labelNote": "Nota (opcional)",
-    "notePlaceholder": "Contexto adicional (se guarda en el registro del feed)",
+    "newValuesHeading": "Actualizar ciclo de vida, condiciones y límites",
+    "labelLifecycleRequired": "Estado del ciclo de vida *",
+    "selectLifecyclePlaceholder": "Seleccionar estado del ciclo de vida",
+    "selectOptionLifecycle": "{state}",
+    "labelActiveConditions": "Claves de condición activas",
+    "labelTakedownReasonOptional": "Motivo de eliminación (opcional)",
+    "takedownReasonPlaceholder": "Seleccione un motivo predefinido…",
+    "labelTransitionNote": "Nota de transición (opcional)",
+    "transitionNotePlaceholder": "Contexto del operador guardado en la fila del ciclo de vida",
+    "labelConditionNote": "Nota de condición (opcional)",
+    "conditionNotePlaceholder": "Nota opcional aplicada a takedown_active cuando el ciclo es eliminación",
     "labelSpamOverride": "Anulación del límite de elementos spam (opcional)",
     "spamOverridePlaceholder": "Dejar en blanco para usar límites globales según el estado",
     "spamOverrideHint": "Precedencia: gana la anulación del feed. Si está en blanco, SpamPermitted usa el límite global más alto y otros estados elegibles para análisis usan el límite global predeterminado.",
+    "labelMaxResponseBytesOverride": "Anulación máxima de bytes de respuesta (opcional)",
+    "maxResponseBytesOverridePlaceholder": "Usar valor global predeterminado cuando esté vacío",
     "applySuccess": "El estado del feed se actualizó",
-    "applyErrorSelectStatus": "Seleccione un nuevo estado",
-    "applyErrorTakedownReason": "Se requiere un motivo predefinido para la eliminación",
-    "applyErrorInvalidReason": "Motivo no válido",
+    "applyErrorSelectLifecycle": "Seleccione un estado del ciclo de vida",
+    "applyErrorTakedownDoc": "La eliminación requiere un motivo predefinido y/o una nota de transición",
     "applyErrorSpamOverride": "La anulación del límite de elementos spam debe ser un entero positivo",
+    "applyErrorMaxResponseBytesOverride": "La anulación máxima de bytes de respuesta debe ser un entero positivo",
     "applyErrorGeneric": "La solicitud falló. Compruebe los permisos e inténtelo de nuevo",
-    "confirmDialogAria": "Confirmar cambio de estado",
-    "confirmDialogBody": "¿Aplicar este estado al feed? Quedará registrado en el registro de auditoría.",
+    "confirmDialogAria": "Confirmar cambio de operaciones del feed",
+    "confirmDialogBody": "¿Aplicar estas operaciones del feed? Quedará registrado en el registro de auditoría.",
     "confirmApplying": "Aplicando…",
     "applyButton": "Aplicar cambio",
     "continueToConfirm": "Continuar a la confirmación",
-    "confirmHint": "Spam y eliminación usan un segundo paso de confirmación.",
+    "confirmHint": "Condiciones tipo spam y eliminación usan un segundo paso de confirmación.",
     "readonlyHint": "Su cuenta puede buscar feeds pero no cambiar el estado. Pida a un superusuario acceso de actualización de <feedsCode>feeds</feedsCode>."
   },
   "admins": {
@@ -155,8 +253,7 @@
       "email": "Correo electrónico",
       "role": "Rol",
       "feeds": "Feeds",
-      "flagStatuses": "Estados de la bandera",
-      "statusReasons": "Motivos de estado",
+      "takedownReasons": "Motivos de retirada",
       "admins": "Administradores",
       "stats": "Estadísticas",
       "actions": "Acciones"
@@ -169,8 +266,7 @@
       "update": "Actualizar",
       "deletePerm": "Eliminar",
       "feeds": "Fuentes",
-      "flagStatuses": "Marcar Estados",
-      "statusReasons": "Razones de Estado",
+      "takedownReasons": "Motivos de retirada",
       "admins": "Administradores",
       "stats": "Estadísticas"
     }
@@ -193,6 +289,7 @@
     "usernameOptional": "Nombre de usuario (opcional)",
     "emailOptional": "Correo electrónico (opcional)",
     "passwordOptional": "Contraseña (opcional)",
+    "passwordInviteHint": "Si dejas esto en blanco, recibirás un enlace de invitación que puedes enviar para que establezcan su contraseña.",
     "emailOrUsernameHint": "Se requiere al menos uno de nombre de usuario o correo electrónico.",
     "emailOrUsernameRequired": "Se requiere al menos uno de nombre de usuario o correo electrónico.",
     "invalidUsername": "El nombre de usuario debe tener entre 3 y 32 caracteres, solo letras, números, guiones bajos y guiones.",
@@ -225,15 +322,27 @@
       "hintTrialNew": "La prueba inicia a los usuarios en el nivel no confiable con límites por defecto más estrictos.",
       "hintPremiumNew": "Premium inicia a los usuarios en el nivel confiable con un acceso por defecto más amplio.",
       "membershipExpiresAt": "La membresía expira el",
+      "premiumBillingCadence": "Periodo de facturación Premium",
+      "billingMonthly": "Mensual",
+      "billingAnnual": "Anual",
+      "premiumBillingCadenceHint": "La caducidad por defecto es un mes adelante para mensual, o un año adelante para anual (alineado con la periodicidad de la suscripción).",
       "trustTier": "Nivel de confianza",
       "untrusted": "No confiable",
       "trusted": "Confiable",
       "configureAdvancedOverrides": "Configurar sobreescrituras avanzadas"
     },
     "advancedOverrides": {
+      "on": "Activado",
+      "off": "Desactivado",
       "allowDirectoryAddByRss": "Permitir sobreescritura de agregar directorio por RSS",
+      "allowDirectoryAddByRssHelp": "Si el usuario puede añadir fuentes desde el directorio de podcasts. Valor por defecto en prueba: {trialDefault}. Valor por defecto en Premium: {premiumDefault}.",
       "addByRssFeedLimit": "Sobreescritura del límite de agregar por feed RSS",
+      "addByRssFeedLimitHelp": "Máximo de fuentes Añadir por RSS para esta cuenta. Valor por defecto del nivel prueba: {trialDefault}. Valor por defecto del nivel Premium: {premiumDefault}. Valor por defecto del nivel seleccionado para anulaciones: {selectedDefault}.",
       "manualRefreshPerHour": "Sobreescritura del límite de actualización manual por hora",
+      "manualRefreshPerHourHelp": "Máximo de actualizaciones manuales por hora. Valor por defecto del nivel prueba: {trialDefault}. Valor por defecto del nivel Premium: {premiumDefault}. Valor por defecto del nivel seleccionado para anulaciones: {selectedDefault}.",
+      "placeholderTierDefault": "Valor por defecto del nivel: {count}",
+      "trackStatsHelp": "Si se registran las estadísticas de escucha. Valor por defecto en prueba: {trialDefault}. Valor por defecto en Premium: {premiumDefault}.",
+      "allowNotificationsHelp": "Si se permiten notificaciones push o por correo. Valor por defecto en prueba: {trialDefault}. Valor por defecto en Premium: {premiumDefault}.",
       "trackStats": "Sobreescritura de seguimiento de estadísticas",
       "allowNotifications": "Sobreescritura de permitir notificaciones",
       "useTrustTierDefault": "Usar valor predeterminado del nivel de membresía",
@@ -276,15 +385,10 @@
         "labelSingular": "Feed",
         "description": "URLs de feeds RSS y estado de análisis"
       },
-      "feed_flag_status": {
-        "label": "Estados de bandera de feed",
-        "labelSingular": "Estado de bandera de feed",
-        "description": "Valores de estado del feed (activo, spam, archivado, retirada, etc.)"
-      },
-      "feed_flag_status_reason": {
-        "label": "Razones de estado de bandera de feed",
-        "labelSingular": "Razón de estado de bandera de feed",
-        "description": "Razones predefinidas para cambios de estado del feed"
+      "feed_takedown_reason": {
+        "label": "Motivos de retirada",
+        "labelSingular": "Motivo de retirada",
+        "description": "Motivos predefinidos cuando un feed está retirado"
       }
     }
   },

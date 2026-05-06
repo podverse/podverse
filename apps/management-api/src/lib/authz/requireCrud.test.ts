@@ -78,9 +78,10 @@ describe('requireCrud', () => {
       role: 'admin',
       permissions: {
         feeds_crud: 0,
-        feed_flag_statuses_crud: 0,
-        feed_flag_status_reasons_crud: 0,
+        feed_takedown_reasons_crud: 0,
         admins_crud: 2, // read only
+        stats_crud: 0,
+        billing_prices_crud: 0,
       },
     }) as Request;
     const { res } = createMockRes();
@@ -101,9 +102,10 @@ describe('requireCrud', () => {
       role: 'admin',
       permissions: {
         feeds_crud: 0,
-        feed_flag_statuses_crud: 0,
-        feed_flag_status_reasons_crud: 0,
+        feed_takedown_reasons_crud: 0,
         admins_crud: 2, // read only
+        stats_crud: 0,
+        billing_prices_crud: 0,
       },
     }) as Request;
     const { res } = createMockRes();
@@ -124,9 +126,33 @@ describe('requireCrud', () => {
       role: 'admin',
       permissions: {
         feeds_crud: 2, // read
-        feed_flag_statuses_crud: 0,
-        feed_flag_status_reasons_crud: 0,
+        feed_takedown_reasons_crud: 0,
         admins_crud: 0,
+        stats_crud: 0,
+        billing_prices_crud: 0,
+      },
+    }) as Request;
+    const { res } = createMockRes();
+    const next = createMockNext();
+
+    middleware(req, res as Response, next);
+
+    expect(next).toHaveBeenCalled();
+  });
+
+  it('checks billing price CRUD resource column', () => {
+    const middleware = requireCrud('billing_prices', 'update');
+    const req = createMockReq({
+      id: 2,
+      id_text: 'admin',
+      admin_account_role_id: 2,
+      role: 'admin',
+      permissions: {
+        feeds_crud: 0,
+        feed_takedown_reasons_crud: 0,
+        admins_crud: 0,
+        stats_crud: 0,
+        billing_prices_crud: 4,
       },
     }) as Request;
     const { res } = createMockRes();

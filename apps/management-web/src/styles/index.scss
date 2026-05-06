@@ -22,27 +22,3 @@ body {
 #root {
   min-height: 100vh;
 }
-
-// Basic utility classes (used across many management pages)
-.container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: var(--spacing-lg);
-}
-
-.page-header {
-  margin-bottom: var(--spacing-4xl);
-  padding-bottom: var(--spacing-lg);
-  border-bottom: 1px solid var(--border-color-opaque);
-}
-
-.page-title {
-  font-size: var(--font-size-2xl);
-  font-weight: var(--font-weight-bold);
-  margin-bottom: var(--spacing-md);
-}
-
-.page-subtitle {
-  color: var(--text-color-secondary);
-  font-size: var(--font-size-base);
-}

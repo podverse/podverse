@@ -7,6 +7,7 @@ import React from 'react';
 
 import type { TranscriptRow } from '@podverse/helpers';
 import { buildAddByRssBoostChannel } from '@podverse/parser-mapping';
+import { Tabs } from '@podverse/ui';
 
 import { AddByRSSAlbumHeader } from '../../../components/AddByRSS/Artist/Album/AddByRSSAlbumHeader';
 import { AddByRSSTrackDetailHeader } from '../../../components/AddByRSS/Artist/Album/Track/AddByRSSTrackDetailHeader';
@@ -21,7 +22,6 @@ import { MainInnerWrapper } from '../../../components/Main/MainInnerWrapper';
 import { MainWrapper } from '../../../components/Main/MainWrapper';
 import { NoResults } from '../../../components/NoResults/NoResults';
 import { SideContent } from '../../../components/SideContent/SideContent';
-import { Tabs } from '../../../components/Tabs/Tabs';
 import { useAccount } from '../../../contexts/Account';
 import { getApiRequestService } from '../../../factories/apiRequestService';
 import {
