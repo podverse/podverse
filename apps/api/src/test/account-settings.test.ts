@@ -2,6 +2,7 @@ import type { Server } from 'http';
 import request from 'supertest';
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 
+import { AccountMembershipEnum } from '@podverse/helpers';
 import type { ORMContext } from '@podverse/orm';
 
 import {
@@ -49,6 +50,7 @@ vi.mock('@podverse/orm', async (importOriginal) => {
         account_credentials: { email: TEST_EMAIL },
         account_membership_status: {
           membership_expires_at: new Date(Date.now() + 86400000 * 365),
+          account_membership: { id: AccountMembershipEnum.Premium },
         },
       };
     }

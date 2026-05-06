@@ -108,11 +108,11 @@ test.describe('Management-web products hub', () => {
     await expect(
       page.getByRole('heading', { name: 'Active pricing rows', level: 2 })
     ).toBeVisible();
-    await expect(page.getByText('monthly')).toBeVisible();
-    await expect(page.getByText('annual')).toBeVisible();
+    await expect(page.getByRole('cell', { name: 'monthly', exact: true })).toBeVisible();
+    await expect(page.getByRole('cell', { name: 'annual', exact: true })).toBeVisible();
     await page.locator('#free-trial-expiration-seconds-input').fill('172800');
     await page.getByRole('button', { name: 'Save Changes' }).click();
-    await expect(page.getByText('Membership defaults updated successfully.')).toBeVisible();
+    await expect(page.getByText('Trial duration updated successfully.')).toBeVisible();
     await expect(page.getByText('172800')).toBeVisible();
     expect(patchRequested).toBe(true);
   });

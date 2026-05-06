@@ -1,3 +1,5 @@
+import { AccountMembershipEnum } from '@podverse/helpers';
+
 import { TEST_USER_ACCOUNT_ID_TEXT } from './testAccountIds.js';
 
 const DEFAULT_INTEGRATION_TEST_EMAIL = 'stats-track-test@example.com';
@@ -6,7 +8,10 @@ export type AuthIntegrationAccountGetResult = {
   id: number;
   id_text: string;
   account_credentials: { email: string };
-  account_membership_status: { membership_expires_at: Date };
+  account_membership_status: {
+    membership_expires_at: Date;
+    account_membership: { id: AccountMembershipEnum };
+  };
 };
 
 /**
@@ -28,6 +33,7 @@ export function createDefaultAccountGet(
       account_credentials: { email },
       account_membership_status: {
         membership_expires_at: new Date(Date.now() + 86400000 * 365),
+        account_membership: { id: AccountMembershipEnum.Premium },
       },
     };
   };

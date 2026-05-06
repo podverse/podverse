@@ -1,5 +1,6 @@
 import { app } from '@mgmt-api/app.js';
 import { config } from '@mgmt-api/config/index.js';
+import { TABLE_POLICIES } from '@mgmt-api/lib/database/tablePolicy.js';
 import jwt from 'jsonwebtoken';
 import request from 'supertest';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -173,7 +174,7 @@ describe('management-api database routes', () => {
       const res = await request(app).get(`${dbBase}/tables`).set(adminAuthHeaders(1));
 
       expect(res.status).toBe(200);
-      expect(res.body.tables).toHaveLength(11);
+      expect(res.body.tables).toHaveLength(TABLE_POLICIES.length);
       const names = res.body.tables.map((t: { tableName: string }) => t.tableName);
       expect(names).toContain('feed');
       expect(names).toContain('feed_takedown_reason');

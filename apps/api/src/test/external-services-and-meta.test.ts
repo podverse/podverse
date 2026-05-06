@@ -7,7 +7,7 @@ import request from 'supertest';
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { BillingCadence } from '@podverse/helpers';
-import { OnDemandParserEventType } from '@podverse/helpers';
+import { AccountMembershipEnum, OnDemandParserEventType } from '@podverse/helpers';
 import type { ORMContext } from '@podverse/orm';
 
 import {
@@ -58,7 +58,7 @@ const {
         account_credentials: { email: string };
         account_membership_status: {
           membership_expires_at: Date;
-          account_membership: { tier: string };
+          account_membership: { id: AccountMembershipEnum; tier: 'trial' | 'premium' };
           billing_cadence: BillingCadence;
           auto_renew_mode: 'off' | 'on';
           next_renewal_attempt_at: Date | null;
@@ -73,7 +73,7 @@ const {
             account_credentials: { email: 'es-meta-test@example.com' },
             account_membership_status: {
               membership_expires_at: new Date(Date.now() + 86400000 * 365),
-              account_membership: { tier: 'premium' },
+              account_membership: { id: AccountMembershipEnum.Premium, tier: 'premium' },
               billing_cadence: 'annual',
               auto_renew_mode: 'on',
               next_renewal_attempt_at: null,
@@ -89,7 +89,7 @@ const {
             account_credentials: { email: 'es-meta-mint-ok@example.com' },
             account_membership_status: {
               membership_expires_at: new Date(Date.now() + 86400000 * 365),
-              account_membership: { tier: 'premium' },
+              account_membership: { id: AccountMembershipEnum.Premium, tier: 'premium' },
               billing_cadence: 'annual',
               auto_renew_mode: 'on',
               next_renewal_attempt_at: null,
@@ -216,7 +216,15 @@ describe('external services, feed, medium-value, membership, claim, metaboost, m
         id: number;
         id_text: string;
         account_credentials: { email: string };
-        account_membership_status: { membership_expires_at: Date };
+        account_membership_status: {
+          membership_expires_at: Date;
+          account_membership: { id: AccountMembershipEnum; tier: 'trial' | 'premium' };
+          billing_cadence: BillingCadence;
+          auto_renew_mode: 'off' | 'on';
+          next_renewal_attempt_at: Date | null;
+          last_renewal_attempt_at: Date | null;
+          last_renewal_status: 'none' | 'succeeded' | 'failed';
+        };
       } | null> => {
         if (id === TEST_USER_ID) {
           return {
@@ -225,6 +233,12 @@ describe('external services, feed, medium-value, membership, claim, metaboost, m
             account_credentials: { email: TEST_EMAIL },
             account_membership_status: {
               membership_expires_at: new Date(Date.now() + 86400000 * 365),
+              account_membership: { id: AccountMembershipEnum.Premium, tier: 'premium' },
+              billing_cadence: 'annual',
+              auto_renew_mode: 'on',
+              next_renewal_attempt_at: null,
+              last_renewal_attempt_at: null,
+              last_renewal_status: 'none',
             },
           };
         }
@@ -235,6 +249,12 @@ describe('external services, feed, medium-value, membership, claim, metaboost, m
             account_credentials: { email: MINT_OK_EMAIL },
             account_membership_status: {
               membership_expires_at: new Date(Date.now() + 86400000 * 365),
+              account_membership: { id: AccountMembershipEnum.Premium, tier: 'premium' },
+              billing_cadence: 'annual',
+              auto_renew_mode: 'on',
+              next_renewal_attempt_at: null,
+              last_renewal_attempt_at: null,
+              last_renewal_status: 'none',
             },
           };
         }
