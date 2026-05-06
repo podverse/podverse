@@ -1,6 +1,6 @@
 {
   "name": "podverse-lighthouse",
-  "version": "5.4.25",
+  "version": "5.4.26",
   "description": "Lighthouse performance testing for podverse-web",
   "private": true,
   "type": "module",
