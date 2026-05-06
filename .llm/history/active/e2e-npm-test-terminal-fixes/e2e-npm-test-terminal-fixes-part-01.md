@@ -23,3 +23,20 @@
 - `apps/api/src/test/external-services-and-meta.test.ts`
 - `apps/management-web/e2e/products-hub.spec.ts`
 - `.llm/history/active/e2e-npm-test-terminal-fixes/e2e-npm-test-terminal-fixes-part-01.md`
+
+---
+
+### Session 2 - 2026-05-05
+
+#### Prompt (Developer)
+
+@/Users/mitcheldowney/.cursor/projects/Users-mitcheldowney-repos-pv-podverse-ansible/terminals/10.txt:7-425 debug. identify if this is an actual implementation error or just an invalid test that needs to be fixed, then fix it.
+
+#### Key Decisions
+
+- **Membership pricing GET /pricing assertion:** Not an implementation bug. `MembershipController.getPricing` uses `BillingPriceCatalogService.resolveProductMembership()`, whose trial length follows **`DEFAULT_FREE_TRIAL_EXPIRATION`** (31 days / 2_678_400 seconds). The test still expected the old 1-day trial (86_400 / 1 day). Updated expectations to derive **`freeTrialExpiration`** and **`freeTrialDays`** from `DEFAULT_FREE_TRIAL_EXPIRATION` in `@podverse/helpers` so the test tracks the canonical default.
+
+#### Files Created/Modified
+
+- `apps/api/src/test/external-services-and-meta.test.ts`
+- `.llm/history/active/e2e-npm-test-terminal-fixes/e2e-npm-test-terminal-fixes-part-01.md`

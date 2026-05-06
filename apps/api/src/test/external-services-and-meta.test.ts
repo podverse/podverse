@@ -7,7 +7,11 @@ import request from 'supertest';
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { BillingCadence } from '@podverse/helpers';
-import { AccountMembershipEnum, OnDemandParserEventType } from '@podverse/helpers';
+import {
+  AccountMembershipEnum,
+  DEFAULT_FREE_TRIAL_EXPIRATION,
+  OnDemandParserEventType,
+} from '@podverse/helpers';
 import type { ORMContext } from '@podverse/orm';
 
 import {
@@ -331,8 +335,8 @@ describe('external services, feed, medium-value, membership, claim, metaboost, m
         expect(res.body.data).toMatchObject({
           costMonthly: 5,
           costAnnually: 50,
-          freeTrialExpiration: 86400,
-          freeTrialDays: 1,
+          freeTrialExpiration: DEFAULT_FREE_TRIAL_EXPIRATION,
+          freeTrialDays: Math.floor(DEFAULT_FREE_TRIAL_EXPIRATION / 86400),
         });
       } else {
         expect(res.status).toBe(400);
