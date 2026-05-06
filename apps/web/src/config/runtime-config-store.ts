@@ -1,9 +1,8 @@
 /* eslint-disable no-console */
-import {
-  type WebRuntimeConfig,
-  type WebRuntimeConfigEnvKey,
-  webRuntimeConfigEnvKeys,
-} from './runtime-config';
+import type { WebRuntimeConfig, WebRuntimeConfigEnvKey } from './runtime-config';
+import { webRuntimeConfigEnvKeys } from './runtime-config';
+
+const DEFAULT_PROXY_RESPONSE_CACHE_MAX_AGE_SECONDS = 86400;
 
 declare global {
   var __PODVERSE_RUNTIME_CONFIG__: WebRuntimeConfig | undefined;
@@ -34,23 +33,32 @@ function buildRuntimeConfigFromProcessEnv(): WebRuntimeConfig {
   return { env };
 }
 
+function applyWebRuntimeEnvDefaults(env: WebRuntimeConfig['env']): WebRuntimeConfig['env'] {
+  const raw = env.NEXT_PUBLIC_PROXY_RESPONSE_CACHE_MAX_AGE_SECONDS;
+  const resolved =
+    raw !== undefined && raw !== '' ? raw : String(DEFAULT_PROXY_RESPONSE_CACHE_MAX_AGE_SECONDS);
+  return { ...env, NEXT_PUBLIC_PROXY_RESPONSE_CACHE_MAX_AGE_SECONDS: resolved };
+}
+
 let hasLoggedFallback = false;
 
 export const getRuntimeConfig = (): WebRuntimeConfig => {
   const runtimeConfig = globalThis.__PODVERSE_RUNTIME_CONFIG__;
-  if (!runtimeConfig) {
-    // Build/prerender or worker without instrumentation: fall back to process.env.
-    // In dev, request handlers may run in a different process than instrumentation,
-    // so globalThis is not shared and fallback is expected.
-    if (process.env.NODE_ENV !== 'production' && !hasLoggedFallback) {
-      hasLoggedFallback = true;
-      console.log(
-        '[runtime-config] Using process.env (sidecar config not set in this process; normal in dev if handlers run in a separate worker).'
-      );
-    }
-    return buildRuntimeConfigFromProcessEnv();
-  }
-  return runtimeConfig;
+  const baseEnv = runtimeConfig
+    ? runtimeConfig.env
+    : (() => {
+        // Build/prerender or worker without instrumentation: fall back to process.env.
+        // In dev, request handlers may run in a different process than instrumentation,
+        // so globalThis is not shared and fallback is expected.
+        if (process.env.NODE_ENV !== 'production' && !hasLoggedFallback) {
+          hasLoggedFallback = true;
+          console.log(
+            '[runtime-config] Using process.env (sidecar config not set in this process; normal in dev if handlers run in a separate worker).'
+          );
+        }
+        return buildRuntimeConfigFromProcessEnv().env;
+      })();
+  return { env: applyWebRuntimeEnvDefaults(baseEnv) };
 };
 
 export {};

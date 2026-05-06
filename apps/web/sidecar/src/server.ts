@@ -18,6 +18,9 @@ import {
   validateWebProtocol,
 } from '@podverse/helpers-config';
 
+/** Keep in sync with `DEFAULT_PROXY_RESPONSE_CACHE_MAX_AGE_SECONDS` in apps/web/src/config/runtime-config-store.ts */
+const DEFAULT_PROXY_RESPONSE_CACHE_MAX_AGE_SECONDS = 86400;
+
 // Keep key lists in sync with apps/web/src/config/runtime-config.ts.
 const requiredKeys = [
   'NEXT_PUBLIC_ACCOUNT_SIGNUP_MODE',
@@ -59,6 +62,7 @@ const optionalKeys = [
   'NEXT_PUBLIC_BRAND_THEME_COLOR',
   'NEXT_PUBLIC_CONTACT_EMAIL',
   'NEXT_PUBLIC_POLLING_INTERVAL_MS',
+  'NEXT_PUBLIC_PROXY_RESPONSE_CACHE_MAX_AGE_SECONDS',
   'NEXT_PUBLIC_SERVER_ENV',
   'NEXT_PUBLIC_SOCIAL_ACTIVITY_PUB',
   'NEXT_PUBLIC_SOCIAL_DISCORD',
@@ -124,6 +128,20 @@ function validateOne(key: string, isRequired: boolean): ValidationResult {
   if (key === 'NEXT_PUBLIC_PROXY_USER_AGENT') {
     return validateProxyUserAgent(key, category);
   }
+  if (key === 'NEXT_PUBLIC_PROXY_RESPONSE_CACHE_MAX_AGE_SECONDS') {
+    const value = process.env[key] ?? '';
+    if (value.trim() === '') {
+      return {
+        name: key,
+        isSet: false,
+        isValid: true,
+        isRequired: false,
+        message: `Use Default (${DEFAULT_PROXY_RESPONSE_CACHE_MAX_AGE_SECONDS} seconds)`,
+        category: 'Proxy',
+      };
+    }
+    return validatePositiveNumber(key, 'Proxy', false, 1);
+  }
   if (key === 'NEXT_PUBLIC_FEATURES_SUPPORTED_LOCALES') {
     return validateSupportedLocalesList(key, category);
   }
@@ -160,6 +178,7 @@ function getCategory(key: string): string {
     NEXT_PUBLIC_DEFAULT_THEME: 'Themes',
     NEXT_PUBLIC_FEATURES_DEFAULT_LOCALE: 'Features',
     NEXT_PUBLIC_FEATURES_SUPPORTED_LOCALES: 'Features',
+    NEXT_PUBLIC_PROXY_RESPONSE_CACHE_MAX_AGE_SECONDS: 'Proxy',
     NEXT_PUBLIC_PROXY_USER_AGENT: 'Proxy',
     NEXT_PUBLIC_BRAND_APPLE_TOUCH_ICON_URL: 'Brand',
     NEXT_PUBLIC_BRAND_APP_ICON_192_URL: 'Brand',

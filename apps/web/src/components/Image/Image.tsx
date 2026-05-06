@@ -2,7 +2,7 @@
 
 import classNames from 'classnames';
 import NextImage from 'next/image';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 import { IMAGES } from '../../constants/images';
 import { PROXY } from '../../constants/proxy';
@@ -30,10 +30,15 @@ export const Image: React.FC<ImageProps> = ({
 }) => {
   const [imageError, setImageError] = useState(false);
 
+  useEffect(() => {
+    setImageError(false);
+  }, [src, skipProxy]);
+
+  const isFluidGridSlot = width === IMAGES.LIST.GRID.SIZE && height === IMAGES.LIST.GRID.SIZE;
+  const placeholderWidth = Math.round((width * 2) / 2.5);
+  const placeholderHeight = Math.round((height * 2) / 2.5);
+
   if (!src || imageError) {
-    const isFluidGridSlot = width === IMAGES.LIST.GRID.SIZE && height === IMAGES.LIST.GRID.SIZE;
-    const placeholderWidth = Math.round((width * 2) / 2.5);
-    const placeholderHeight = Math.round((height * 2) / 2.5);
     return (
       <div
         className={classNames(
@@ -66,7 +71,7 @@ export const Image: React.FC<ImageProps> = ({
       alt={alt}
       width={width}
       height={height}
-      className={className}
+      className={classNames(styles.skeletonBg, className)}
       onError={() => setImageError(true)}
       priority={priority}
     />

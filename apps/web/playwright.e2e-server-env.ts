@@ -97,6 +97,7 @@ const WEB_E2E_NEXT_PUBLIC_ENV = [
   // Server Environment
   `NEXT_PUBLIC_SERVER_ENV=local`,
   // Proxy Configuration
+  `NEXT_PUBLIC_PROXY_RESPONSE_CACHE_MAX_AGE_SECONDS="86400"`,
   `NEXT_PUBLIC_PROXY_USER_AGENT="ExampleE2E Bot local/Web-API/5"`,
 ].join(' ');
 

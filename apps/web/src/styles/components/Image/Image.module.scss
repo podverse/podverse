@@ -31,3 +31,8 @@
   object-fit: contain;
   width: calc(200% / 2.5) !important;
 }
+
+// Subtle slot fill while remote artwork loads (cached images paint over immediately).
+.skeletonBg {
+  background-color: var(--border-color-opaque);
+}

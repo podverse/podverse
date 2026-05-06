@@ -33,6 +33,11 @@ The sidecar uses the same validation helpers as the rest of the monorepo (`@podv
   - Example: `Example Bot/Web-API/5`
   - Set a value specific to your deployment. Used when proxying external image requests
 
+- **`NEXT_PUBLIC_PROXY_RESPONSE_CACHE_MAX_AGE_SECONDS`** (Optional)
+  - Max-age in seconds for `Cache-Control` on `/api/proxy` responses (`public, max-age=…, s-maxage=…`)
+  - Default: `86400` when unset
+  - Must be a positive integer if set (same value used for `max-age` and `s-maxage`)
+
 ### API Configuration (SSR)
 
 These variables are used for server-side rendering API requests:

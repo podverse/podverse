@@ -59,6 +59,7 @@ export const imageShrinkRunConsumer = async (_args: CommandLineArgs) => {
   await activeMQArtemisService.consumeMessages(
     MQ_IMAGE_SHRINK_HINTS_CONFIG.queueName,
     async (context, receiver) => {
+      let lastHint: ImageShrinkHintMessage | undefined;
       try {
         const body = context.message?.body;
         const bodyStr = typeof body === 'string' ? body : '';
@@ -68,6 +69,8 @@ export const imageShrinkRunConsumer = async (_args: CommandLineArgs) => {
           context.delivery?.accept();
           return;
         }
+
+        lastHint = parsed;
 
         const hintTime = Date.parse(parsed.hintCreatedAt);
         if (Number.isNaN(hintTime) || hintTime < Date.now() - HINT_FRESHNESS_MS) {
@@ -154,6 +157,13 @@ export const imageShrinkRunConsumer = async (_args: CommandLineArgs) => {
         context.delivery?.accept();
       } catch (error) {
         const err = error instanceof Error ? error : new Error('Unknown image shrink error');
+        if (lastHint !== undefined) {
+          logger.error('imageShrinkRunConsumer: error processing hint (mq message context)', {
+            hintUrl: lastHint.url,
+            hintEntityType: lastHint.entityType,
+            hintCreatedAt: lastHint.hintCreatedAt,
+          });
+        }
         logger.logError('imageShrinkRunConsumer: error processing hint', err);
         context.delivery?.reject();
       } finally {

@@ -107,13 +107,6 @@ function resolveForcePathStyle(provider: BucketProvider, raw: string | undefined
   return false;
 }
 
-function resolveUploadPublicAcl(provider: BucketProvider, raw: string | undefined): string {
-  if (raw === undefined) {
-    return defaultUploadPublicAcl(provider);
-  }
-  return raw.trim();
-}
-
 /** Reads bucket + S3 client wiring after startup validation (including `BUCKET_PROVIDER`). */
 export function getBucketRuntimeConfig(): BucketRuntimeConfig {
   const providerRaw = process.env.BUCKET_PROVIDER!.trim();
@@ -128,7 +121,7 @@ export function getBucketRuntimeConfig(): BucketRuntimeConfig {
     region: process.env.BUCKET_REGION!,
     endpoint: parseBucketEndpoint(process.env.BUCKET_ENDPOINT),
     forcePathStyle: resolveForcePathStyle(provider, process.env.BUCKET_FORCE_PATH_STYLE),
-    uploadPublicAcl: resolveUploadPublicAcl(provider, process.env.BUCKET_UPLOAD_PUBLIC_ACL),
+    uploadPublicAcl: defaultUploadPublicAcl(provider),
   };
 }
 
@@ -151,6 +144,7 @@ export type ImageShrinkConfig = {
   batchSize: number;
   concurrency: number;
   rps: number;
+  maxSourceBytes: number;
 };
 
 export type ImageShrinkCleanupConfig = {
@@ -189,17 +183,7 @@ export function isImageShrinkEnabled(): boolean {
   );
 }
 
-export function getImageShrinkConfig(): ImageShrinkConfig {
-  return {
-    widthPx: Number(process.env.IMAGE_SHRINK_WIDTH_PX!),
-    batchSize: Number(process.env.IMAGE_SHRINK_BATCH_SIZE!),
-    concurrency: Number(process.env.IMAGE_SHRINK_CONCURRENCY!),
-    rps: Number(process.env.IMAGE_SHRINK_RPS!),
-  };
-}
-
-const DEFAULT_ORPHAN_MIN_AGE_EXPIRATION = 7 * 24 * 60 * 60;
-const DEFAULT_ORPHAN_CLEANUP_PAGE_SIZE = 500;
+const DEFAULT_IMAGE_SHRINK_MAX_SOURCE_BYTES = 20 * 1024 * 1024;
 
 const parseOptionalNumber = (value: string | undefined): number | null => {
   if (!value || value.trim() === '') {
@@ -211,6 +195,26 @@ const parseOptionalNumber = (value: string | undefined): number | null => {
   }
   return parsed;
 };
+
+export function getImageShrinkConfig(): ImageShrinkConfig {
+  const maxSourceBytesParsed = parseOptionalNumber(process.env.IMAGE_SHRINK_MAX_SOURCE_BYTES);
+  const maxSourceBytes =
+    maxSourceBytesParsed !== null &&
+    maxSourceBytesParsed > 0 &&
+    Number.isInteger(maxSourceBytesParsed)
+      ? maxSourceBytesParsed
+      : DEFAULT_IMAGE_SHRINK_MAX_SOURCE_BYTES;
+  return {
+    widthPx: Number(process.env.IMAGE_SHRINK_WIDTH_PX!),
+    batchSize: Number(process.env.IMAGE_SHRINK_BATCH_SIZE!),
+    concurrency: Number(process.env.IMAGE_SHRINK_CONCURRENCY!),
+    rps: Number(process.env.IMAGE_SHRINK_RPS!),
+    maxSourceBytes,
+  };
+}
+
+const DEFAULT_ORPHAN_MIN_AGE_EXPIRATION = 7 * 24 * 60 * 60;
+const DEFAULT_ORPHAN_CLEANUP_PAGE_SIZE = 500;
 
 export function getImageShrinkCleanupConfig(): ImageShrinkCleanupConfig {
   const maxDelete = parseOptionalNumber(process.env.IMAGE_SHRINK_ORPHAN_CLEANUP_MAX_DELETE);

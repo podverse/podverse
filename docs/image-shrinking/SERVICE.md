@@ -38,6 +38,20 @@ Further reading:
 5. Worker downloads, resizes to `IMAGE_SHRINK_WIDTH_PX`, and uploads to image CDN.
 6. Worker writes `is_resized = true` rows pointing at CDN URLs.
 
+## Origin size, decode errors, and logs
+
+- **Max download size:** Optional `IMAGE_SHRINK_MAX_SOURCE_BYTES` (default **20971520**, 20 MiB). Larger
+  responses are rejected using `Content-Length` when present, or after the body exceeds the cap.
+- **Decode:** Sharp runs with `failOn: 'none'` for best-effort handling of marginal JPEG/PNG/WebP
+  inputs; truly corrupt origins may still fail (for example libvips JPEG errors).
+- **Processor logs:** On failure, workers emit `imageShrinkProcessor: failed to process target` with
+  `entityType`, `entityId`, `url`, `urlHash`, `hinted`, `maxSourceBytes`, `errorName`, `errorMessage`,
+  and (when a full GET completed first) `originResponseStatus`, `originContentLength`, `originEtag`,
+  `originLastModified`, `originContentType`.
+- **MQ consumer logs:** On hint handling failure, `imageShrinkRunConsumer: error processing hint (mq
+message context)` includes `hintUrl`, `hintEntityType`, and `hintCreatedAt` before the stack trace
+  line from `logError`.
+
 ## CDN Key Format
 
 Each resized image uses a deterministic key for easy lookup and deletion:
@@ -114,6 +128,10 @@ Hints are published to the `image-shrinking-hints` queue with the following fiel
 - `entityType` (`channel` or `item`)
 - `hintCreatedAt`
 
+Channel-level hints use **AMQP message priority 9**; item-level hints use **priority 4**, so channel
+artwork is shrunk ahead of episode images when the broker delivers by message priority (configure the
+`image-shrinking-hints` queue as a prioritized queue in Artemis if ordering is not already applied).
+
 The consumer ignores hints older than 24 hours.
 
 ## Change Detection
@@ -144,7 +162,6 @@ See `apps/workers/.env.example` for the authoritative template and commented gro
 - `BUCKET_CDN_BASE_URL`
 - `BUCKET_ENDPOINT` (required for `garage` and `s3-compatible`; optional otherwise — see [Bucket providers](BUCKET-PROVIDERS.md))
 - `BUCKET_FORCE_PATH_STYLE` (optional; default is provider-specific)
-- `BUCKET_UPLOAD_PUBLIC_ACL` (optional; empty string omits `x-amz-acl` on upload)
 
 Provider-specific setup: [Bucket providers](BUCKET-PROVIDERS.md).
 
@@ -168,7 +185,7 @@ Provider-specific setup: [Bucket providers](BUCKET-PROVIDERS.md).
 
 Add non-sensitive values to `infra/k8s/base/workers/configmap.yaml` using the same section structure as `apps/workers/.env.example` (Image Shrink storage; Image Shrink):
 
-- **Image Shrink (storage):** `BUCKET_PROVIDER`, `BUCKET_REGION`, `BUCKET_NAME`, `BUCKET_CDN_BASE_URL`, `BUCKET_ENDPOINT` (when required), `BUCKET_FORCE_PATH_STYLE`, `BUCKET_UPLOAD_PUBLIC_ACL`
+- **Image Shrink (storage):** `BUCKET_PROVIDER`, `BUCKET_REGION`, `BUCKET_NAME`, `BUCKET_CDN_BASE_URL`, `BUCKET_ENDPOINT` (when required), `BUCKET_FORCE_PATH_STYLE`
 - **Image Shrink:** `IMAGE_SHRINK_WIDTH_PX`, `IMAGE_SHRINK_BATCH_SIZE`, `IMAGE_SHRINK_CONCURRENCY`, `IMAGE_SHRINK_RPS`, `IMAGE_SHRINK_RECHECK_EXPIRATION` (Optional), `IMAGE_SHRINK_DEEP_RECHECK_EXPIRATION` (Optional), `IMAGE_SHRINK_SOURCE_PRUNE_EXPIRATION` (Optional)
 
 ### Secret

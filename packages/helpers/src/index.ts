@@ -69,6 +69,7 @@ export * from './lib/stringify.js';
 export * from './lib/time.js';
 export * from './lib/timeConstants.js';
 export * from './lib/throughputLimiter.js';
+export * from './lib/truncateForLog.js';
 export * from './lib/safeLinkHref.js';
 export * from './lib/url.js';
 export * from './lib/guards.js';

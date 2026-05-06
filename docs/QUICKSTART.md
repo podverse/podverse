@@ -60,7 +60,7 @@ when you run with npm (e.g. `npm run dev:web`), use the app `.env`/`.env.local` 
 - Starts PostgreSQL databases (main + management)
 - Starts ActiveMQ Artemis message queue
 - Starts Valkey (Redis-compatible) cache
-- Starts pgAdmin (database browser) at `http://localhost:5051`
+- Starts pgAdmin (database browser) at `http://localhost:3050`
 - Initializes database schemas and users
 
 **Note**: Only run `local_setup` once for initial setup. To restart services later, use `make local_infra_up`. If you ran `local_env_setup` and `local_infra_up` separately (e.g. after the [prepare → link → setup](development/LOCAL-ENV-OVERRIDES.md) flow), run `make local_db_init` before starting apps so the Postgres roles (`podverse_app_read`, `podverse_app_read_write`, `podverse_management_read`, `podverse_management_read_write`) exist.
@@ -116,7 +116,7 @@ This account is pre-verified with a trial membership (expires in 1 year).
 | API           | http://localhost:3000/api/v2/meta     | JSON response with version info                                                |
 | Web           | http://localhost:3002                 | Podverse homepage loads                                                        |
 | Database      | `docker ps \| grep podverse_local_db` | Container running                                                              |
-| pgAdmin       | http://localhost:5051                 | Two servers: Local Main (podverse_app), Local Management (podverse_management) |
+| pgAdmin       | http://localhost:3050                 | Two servers: Local Main (podverse_app), Local Management (podverse_management) |
 | Message Queue | http://localhost:8161                 | Artemis console (user/mysecretpw)                                              |
 | Cache         | http://localhost:8001                 | RedisInsight GUI                                                               |
 

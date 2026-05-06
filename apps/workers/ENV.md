@@ -109,11 +109,11 @@ Image shrink is optional. If **`BUCKET_PROVIDER`** is empty or unset, image shri
 - **`BUCKET_CDN_BASE_URL`** (Required when image shrink enabled) - Public URL prefix for resized images (no trailing slash)
 - **`BUCKET_ENDPOINT`** (Required for `garage` and `s3-compatible`; optional otherwise) - S3 API base URL
 - **`BUCKET_FORCE_PATH_STYLE`** (Optional) - `true`, `false`, or unset for provider default path-style vs virtual-hosted addressing
-- **`BUCKET_UPLOAD_PUBLIC_ACL`** (Optional) - Override `x-amz-acl` on upload; empty string omits the header
 - **`IMAGE_SHRINK_WIDTH_PX`** (Required when image shrink enabled) - Target width in pixels for resized images
 - **`IMAGE_SHRINK_BATCH_SIZE`** (Required when image shrink enabled) - Max images processed per batch run
 - **`IMAGE_SHRINK_CONCURRENCY`** (Required when image shrink enabled) - Parallel image processing count
 - **`IMAGE_SHRINK_RPS`** (Required when image shrink enabled) - Rate limit for image fetches (requests/second)
+- **`IMAGE_SHRINK_MAX_SOURCE_BYTES`** (Optional) - Max origin image download size in bytes (default: 20971520 / 20 MiB; must be a positive integer if set)
 - **`IMAGE_SHRINK_RECHECK_EXPIRATION`** (Optional) - Minimum seconds between origin re-checks (default: 86400)
 - **`IMAGE_SHRINK_DEEP_RECHECK_EXPIRATION`** (Optional) - Minimum seconds between unconditional origin `GET` + SHA-256 verification runs (default: 604800, 7 days)
 - **`IMAGE_SHRINK_SOURCE_PRUNE_EXPIRATION`** (Optional) - Prune `image_shrink_source` rows when last check is older than this many seconds (default: 2592000, 30 days)

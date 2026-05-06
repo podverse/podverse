@@ -21,11 +21,10 @@ Full env templates: **`apps/workers/.env.example`**. Kubernetes: workers ConfigM
 
 ## Provider-sensitive variables
 
-| Variable                   | When to set                                                                                                                          |
-| -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
-| `BUCKET_ENDPOINT`          | **Required** for `garage` and `s3-compatible`. Optional override for other providers (S3 API URL).                                   |
-| `BUCKET_FORCE_PATH_STYLE`  | `true` / `false` or unset. Unset = provider default (path-style for Garage/B2/s3-compatible).                                        |
-| `BUCKET_UPLOAD_PUBLIC_ACL` | Unset = provider default (`public-read` for DO/AWS/B2; omit header for Garage/s3-compatible). Empty string = never send `x-amz-acl`. |
+| Variable                  | When to set                                                                                        |
+| ------------------------- | -------------------------------------------------------------------------------------------------- |
+| `BUCKET_ENDPOINT`         | **Required** for `garage` and `s3-compatible`. Optional override for other providers (S3 API URL). |
+| `BUCKET_FORCE_PATH_STYLE` | `true` / `false` or unset. Unset = provider default (path-style for Garage/B2/s3-compatible).      |
 
 ## DigitalOcean Spaces
 
@@ -37,7 +36,8 @@ Full env templates: **`apps/workers/.env.example`**. Kubernetes: workers ConfigM
    - `BUCKET_CDN_BASE_URL` — CDN endpoint, e.g. `https://<space>.<region>.cdn.digitaloceanspaces.com`
    - Optional: `BUCKET_ENDPOINT=https://<region>.digitaloceanspaces.com` if you need a non-default regional endpoint.
 
-Virtual-hosted URLs are built automatically; uploads use `x-amz-acl: public-read` unless overridden.
+Virtual-hosted URLs are built automatically; resized uploads send `x-amz-acl: public-read`
+(provider-defined).
 
 ## AWS S3
 
@@ -49,8 +49,8 @@ Virtual-hosted URLs are built automatically; uploads use `x-amz-acl: public-read
    - `BUCKET_CDN_BASE_URL` — CloudFront distribution URL, static website endpoint, or
      `https://<bucket>.s3.<region>.amazonaws.com` if the bucket is public-read.
 
-Default ACL header: `public-read` (omit with `BUCKET_UPLOAD_PUBLIC_ACL=` if you rely on bucket
-policy only).
+Resized uploads send `x-amz-acl: public-read` (provider-defined). You can still use bucket policies
+for `GetObject` as needed.
 
 ## Backblaze B2 (S3-compatible API)
 
@@ -79,8 +79,8 @@ Garage exposes an **S3 API**. Typical setups use **path-style** URLs against you
    - `BUCKET_NAME` — bucket id in Garage
    - `BUCKET_CDN_BASE_URL` — URL users hit in the browser (reverse proxy / CDN in front of Garage)
 
-Default: **no** `x-amz-acl` on upload (`BUCKET_UPLOAD_PUBLIC_ACL` empty). Make objects publicly
-readable via Garage bucket policy / web gateway.
+The **garage** provider omits `x-amz-acl` on upload. Make objects publicly readable via Garage
+bucket policy / web gateway.
 
 If you terminate TLS with a hostname and map **`bucket.hostname`** for reads, you can set
 `BUCKET_FORCE_PATH_STYLE=false` and **`BUCKET_ENDPOINT`** to that hostname base so virtual-hosted
@@ -98,7 +98,8 @@ style URLs are constructed (advanced).
    - `BUCKET_CDN_BASE_URL` — public URL users use (Workers, CDN, or presigned-only workflows may use
      a different pattern — align with how you serve images)
 
-For **Cloudflare R2**, set `BUCKET_UPLOAD_PUBLIC_ACL=` (empty) — R2 rejects `x-amz-acl` by default.
+For **Cloudflare R2**, use `BUCKET_PROVIDER=s3-compatible` — the worker omits `x-amz-acl` (R2
+rejects that header). Configure public reads in the R2 dashboard or bucket rules.
 
 Tune **`BUCKET_FORCE_PATH_STYLE`** per provider (MinIO often path-style; some proxies use
 virtual-hosted).
@@ -110,6 +111,56 @@ After configuring the worker, run backfill / consumer and confirm:
 - Objects appear under the `images/` prefix in storage.
 - `channel_image` / `item_image` rows show `is_resized = true` and URLs starting with
   **`BUCKET_CDN_BASE_URL`**.
+
+## Troubleshooting: `AccessDenied` (Spaces / S3-compatible)
+
+**Upload ACL (workers):** For `digitalocean`, `aws-s3`, and `backblaze-b2`, resized uploads always
+send `x-amz-acl: public-read`. For `garage` and `s3-compatible`, the worker omits `x-amz-acl` —
+configure public reads with the provider (bucket policy, R2 rules, etc.).
+
+### Bucket root URL returns `AccessDenied`
+
+Opening the **origin** hostname without an object key (for example
+`https://<space>.<region>.digitaloceanspaces.com`) performs a **bucket list** for anonymous users.
+If **File listing** is **Restricted** in the DigitalOcean control panel, that response is
+**expected**. It does **not** by itself mean individual objects are private.
+
+### CDN or object URL returns `403` / `AccessDenied`
+
+**CDN enabled** does not make objects public. Anonymous `GET` still needs **public-read** on each
+object (via `x-amz-acl` on upload) or a **bucket policy** that allows `s3:GetObject` for the
+relevant prefix.
+
+Verify from any machine (no DO login):
+
+```bash
+curl -sI "https://<space>.<region>.cdn.digitaloceanspaces.com/images/item/101/<object-key>.webp"
+```
+
+- **`HTTP/2 200`** (or `200`) with an image `content-type` → object is publicly readable.
+- **`403`** with `content-type: application/xml` → object is still **private**; fix ACL or policy,
+  not file listing.
+
+**DigitalOcean UI:** **Files** → select the object → **More** → set **Public read** (wording may
+vary), or attach a **bucket policy** that allows `GetObject` for `Principal: "*"` on a prefix such
+as `images/*`.
+
+Example policy (tight prefix; replace `<bucket>` with your Space name):
+
+```json
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "PublicReadImages",
+      "Effect": "Allow",
+      "Principal": "*",
+      "Action": ["s3:GetObject"],
+      "Resource": ["arn:aws:s3:::<bucket>/images/*"]
+    }
+  ]
+}
+```
 
 ## References
 

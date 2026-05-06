@@ -235,18 +235,36 @@ function validateImageShrink(): ValidationResult[] {
 
   results.push(validateBucketForcePathStyle());
 
-  results.push(
-    validateOptional(
-      'BUCKET_UPLOAD_PUBLIC_ACL',
-      'Image Shrink',
-      'Use Default (provider-specific); empty string omits x-amz-acl'
-    )
-  );
-
   results.push(validateRequired('IMAGE_SHRINK_WIDTH_PX', 'Image Shrink'));
   results.push(validateRequired('IMAGE_SHRINK_BATCH_SIZE', 'Image Shrink'));
   results.push(validateRequired('IMAGE_SHRINK_CONCURRENCY', 'Image Shrink'));
   results.push(validateRequired('IMAGE_SHRINK_RPS', 'Image Shrink'));
+  {
+    const varName = 'IMAGE_SHRINK_MAX_SOURCE_BYTES';
+    const category = 'Image Shrink';
+    const raw = process.env[varName];
+    if (raw === undefined || raw.trim() === '') {
+      results.push({
+        name: varName,
+        isSet: false,
+        isValid: true,
+        isRequired: false,
+        message: 'Use Default (20971520)',
+        category,
+      });
+    } else {
+      const n = Number(raw);
+      const ok = Number.isInteger(n) && n > 0;
+      results.push({
+        name: varName,
+        isSet: true,
+        isValid: ok,
+        isRequired: false,
+        message: ok ? 'Set' : 'Must be a positive integer',
+        category,
+      });
+    }
+  }
   results.push(
     validateOptional('IMAGE_SHRINK_RECHECK_EXPIRATION', 'Image Shrink', 'Use Default (86400)')
   );

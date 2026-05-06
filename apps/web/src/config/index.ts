@@ -89,6 +89,7 @@ const buildConfig = () => {
       server_env: env.NEXT_PUBLIC_SERVER_ENV!,
     },
     proxy: {
+      responseCacheMaxAgeSeconds: Number(env.NEXT_PUBLIC_PROXY_RESPONSE_CACHE_MAX_AGE_SECONDS!),
       userAgent: env.NEXT_PUBLIC_PROXY_USER_AGENT!,
     },
   };
