@@ -508,6 +508,20 @@ describe('playlist routes', () => {
   });
 
   describe('GET /private/* list endpoints', () => {
+    beforeEach(() => {
+      getAccountMock.mockReset();
+      getAccountMock.mockImplementation(async () => ({
+        id: TEST_USER_ID,
+        id_text: TEST_USER_ACCOUNT_ID_TEXT,
+        verified: true,
+        account_credentials: { email: TEST_EMAIL },
+        account_membership_status: {
+          membership_expires_at: new Date(Date.now() + 86400000 * 365),
+        },
+        sharable_status: { id: 1 },
+      }));
+    });
+
     it('GET /private/top returns 200 with auth', async () => {
       getAccountMock.mockResolvedValueOnce({
         id: TEST_USER_ID,
