@@ -34,8 +34,11 @@ jobs:
           node-version: "24"
           cache: "npm"
 
+      - name: Pin npm version
+        run: npm install -g npm@11.13.0
+
       - name: Install dependencies
-        run: npm ci --include=optional
+        run: npm ci
 
       - name: Security audit
         run: npm audit --omit=dev --audit-level=moderate

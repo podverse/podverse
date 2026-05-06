@@ -24,3 +24,22 @@ To-do's from the plan have already been created. Do not create them again. Mark 
 
 - `package-lock.json`
 - `.llm/history/active/fix-ebadplatform-npm-ci/fix-ebadplatform-npm-ci-part-01.md`
+
+### Session 2 - 2026-05-06
+
+#### Prompt (Developer)
+
+fix it for both podverse and metaboost
+
+#### Key Decisions
+
+- Keep Linux lockfile-generation scripts (`update-lockfile-linux.sh`) on `npm install --include=optional`.
+- Change CI/publish install steps from `npm ci --include=optional` to plain `npm ci` to avoid `EBADPLATFORM` on platform-scoped optional binaries.
+- Update the staging sync audit script to use plain `npm ci` in its Dockerized preflight check.
+
+#### Files Created/Modified
+
+- `.github/workflows/ci.yml`
+- `.github/workflows/publish-staging.yml`
+- `scripts/publish/sync-develop-to-staging.sh`
+- `.llm/history/active/fix-ebadplatform-npm-ci/fix-ebadplatform-npm-ci-part-01.md`
