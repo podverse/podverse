@@ -5,7 +5,7 @@
 -- Row-level CASE: active/always_parse/spam/spam_permitted -> active; pending_archive ->
 -- pending_archive; archived -> archived; takedown -> takedown.
 
-CREATE TABLE IF NOT EXISTS feed_lifecycle_state_type (
+CREATE TABLE feed_lifecycle_state_type (
   id SERIAL PRIMARY KEY,
   state_key VARCHAR(64) UNIQUE NOT NULL,
   created_at server_time_with_default,
@@ -21,10 +21,9 @@ INSERT INTO feed_lifecycle_state_type (state_key) VALUES
   ('active'),
   ('pending_archive'),
   ('archived'),
-  ('takedown')
-ON CONFLICT (state_key) DO NOTHING;
+  ('takedown');
 
-CREATE TABLE IF NOT EXISTS feed_lifecycle_state (
+CREATE TABLE feed_lifecycle_state (
   id SERIAL PRIMARY KEY,
   feed_id INTEGER NOT NULL UNIQUE REFERENCES feed(id) ON DELETE CASCADE,
   feed_lifecycle_state_type_id INTEGER NOT NULL REFERENCES feed_lifecycle_state_type(id),
@@ -41,14 +40,14 @@ BEFORE UPDATE ON feed_lifecycle_state
 FOR EACH ROW
 EXECUTE FUNCTION set_updated_at_field();
 
-CREATE INDEX IF NOT EXISTS idx_feed_lifecycle_state_type_id
+CREATE INDEX idx_feed_lifecycle_state_type_id
   ON feed_lifecycle_state(feed_lifecycle_state_type_id);
 
-CREATE INDEX IF NOT EXISTS idx_feed_condition_feed_id_active
+CREATE INDEX idx_feed_condition_feed_id_active
   ON feed_condition(feed_id)
   WHERE is_active = TRUE;
 
-CREATE TABLE IF NOT EXISTS feed_lifecycle_event (
+CREATE TABLE feed_lifecycle_event (
   id SERIAL PRIMARY KEY,
   feed_id INTEGER NOT NULL REFERENCES feed(id) ON DELETE CASCADE,
   from_lifecycle_state_type_id INTEGER REFERENCES feed_lifecycle_state_type(id),
@@ -59,8 +58,8 @@ CREATE TABLE IF NOT EXISTS feed_lifecycle_event (
   created_at server_time_with_default
 );
 
-CREATE INDEX IF NOT EXISTS idx_feed_lifecycle_event_feed_id ON feed_lifecycle_event(feed_id);
-CREATE INDEX IF NOT EXISTS idx_feed_lifecycle_event_created_at ON feed_lifecycle_event(created_at);
+CREATE INDEX idx_feed_lifecycle_event_feed_id ON feed_lifecycle_event(feed_id);
+CREATE INDEX idx_feed_lifecycle_event_created_at ON feed_lifecycle_event(created_at);
 
 INSERT INTO feed_lifecycle_state (
   feed_id,
@@ -91,13 +90,7 @@ CROSS JOIN feed_lifecycle_state_type flst_td
 WHERE flst_ac.state_key = 'active'
   AND flst_pa.state_key = 'pending_archive'
   AND flst_ar.state_key = 'archived'
-  AND flst_td.state_key = 'takedown'
-ON CONFLICT (feed_id) DO UPDATE SET
-  feed_lifecycle_state_type_id = EXCLUDED.feed_lifecycle_state_type_id,
-  reason_key = EXCLUDED.reason_key,
-  note = EXCLUDED.note,
-  updated_by_source = EXCLUDED.updated_by_source,
-  updated_at = NOW();
+  AND flst_td.state_key = 'takedown';
 
 CREATE OR REPLACE FUNCTION feed_after_insert_lifecycle()
 RETURNS TRIGGER AS $$
@@ -129,14 +122,11 @@ BEGIN
     reason_text,
     NEW.feed_flag_status_reason_note,
     'system'
-  )
-  ON CONFLICT (feed_id) DO NOTHING;
+  );
 
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
-
-DROP TRIGGER IF EXISTS feed_after_insert_set_lifecycle ON feed;
 
 CREATE TRIGGER feed_after_insert_set_lifecycle
 AFTER INSERT ON feed

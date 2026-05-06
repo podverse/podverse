@@ -22,7 +22,7 @@ SELECT setval(
   COALESCE((SELECT MAX(id) FROM feed_takedown_reason), 1)
 );
 
-DROP TRIGGER IF EXISTS feed_after_insert_set_lifecycle ON feed;
+DROP TRIGGER feed_after_insert_set_lifecycle ON feed;
 
 CREATE OR REPLACE FUNCTION feed_after_insert_lifecycle()
 RETURNS TRIGGER AS $$
@@ -40,8 +40,7 @@ BEGIN
     NULL,
     NULL,
     'system'
-  )
-  ON CONFLICT (feed_id) DO NOTHING;
+  );
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
@@ -51,15 +50,15 @@ AFTER INSERT ON feed
 FOR EACH ROW
 EXECUTE FUNCTION feed_after_insert_lifecycle();
 
-ALTER TABLE feed DROP CONSTRAINT IF EXISTS feed_feed_flag_status_id_fkey;
-ALTER TABLE feed DROP CONSTRAINT IF EXISTS feed_feed_flag_status_reason_id_fkey;
+ALTER TABLE feed DROP CONSTRAINT feed_feed_flag_status_id_fkey;
+ALTER TABLE feed DROP CONSTRAINT feed_feed_flag_status_reason_id_fkey;
 
-DROP INDEX IF EXISTS idx_feed_feed_flag_status_id;
-DROP INDEX IF EXISTS idx_feed_feed_flag_status_reason_id;
+DROP INDEX idx_feed_feed_flag_status_id;
+DROP INDEX idx_feed_feed_flag_status_reason_id;
 
-ALTER TABLE feed DROP COLUMN IF EXISTS feed_flag_status_id;
-ALTER TABLE feed DROP COLUMN IF EXISTS feed_flag_status_reason_id;
-ALTER TABLE feed DROP COLUMN IF EXISTS feed_flag_status_reason_note;
+ALTER TABLE feed DROP COLUMN feed_flag_status_id;
+ALTER TABLE feed DROP COLUMN feed_flag_status_reason_id;
+ALTER TABLE feed DROP COLUMN feed_flag_status_reason_note;
 
-DROP TABLE IF EXISTS feed_flag_status CASCADE;
-DROP TABLE IF EXISTS feed_flag_status_reason CASCADE;
+DROP TABLE feed_flag_status CASCADE;
+DROP TABLE feed_flag_status_reason CASCADE;

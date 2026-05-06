@@ -1,0 +1,110 @@
+// Canonical Podverse design tokens (CSS custom properties on :root).
+// Loaded from global styles only — do not @use this file from *.module.scss
+// (CSS Modules require pure/local selectors; see _variables.scss for Sass mirrors).
+
+:root {
+  // border-radius
+  --border-radius: 0.625rem;
+  --border-radius-round: 100rem;
+
+  // element sizes
+  --navbar-desktop-height: 62px;
+  --header-desktop-height: 80px;
+  --header-mobile-height: 114px;
+  --main-wrapper-desktop-height: calc(
+    100vh - var(--navbar-desktop-height) - var(--header-desktop-height)
+  );
+  --main-wrapper-mobile-height: calc(
+    100vh - var(--navbar-desktop-height) - var(--header-mobile-height)
+  );
+  --navbar-mobile-height: 48px;
+  --sidebar-desktop-width: 12rem;
+  --sidebar-mobile-width: 16rem;
+  --button-border-size: 1.5px;
+  --media-player-height: 100px;
+  --media-player-height-mobile: 90px;
+  --media-player-height-top-section: 28px;
+  --media-player-height-top-section-negative: -28px;
+  --form-max-width: 560px;
+  --form-max-width-md: 640px;
+
+  // font-size
+  --font-size-3xs: 0.5rem;
+  --font-size-2xs: 0.625rem;
+  --font-size-xs: 0.75rem;
+  --font-size-sm: 0.875rem;
+  --font-size-base: 1rem;
+  --font-size-md: 1.125rem;
+  --font-size-lg: 1.25rem;
+  --font-size-xl: 1.5rem;
+  --font-size-2xl: 2rem;
+  --font-size-3xl: 2.5rem;
+
+  // font-weight
+  --font-weight-light: 300;
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-bold: 700;
+
+  // image sizes
+  --image-size-xs: 1.25rem;
+  --image-size-sm: 2.5rem;
+  --image-size-md: 5rem;
+  --image-size-lg: 10rem;
+  --image-size-xl: 20rem;
+
+  // list-item sizes
+  --list-item-button-size: 2.25rem;
+  --large-item-size: 3rem;
+
+  // spacing scale
+  --spacing-none: 0;
+  --spacing-xs: 0.125rem;
+  --spacing-sm: 0.25rem;
+  --spacing-md: 0.5rem;
+  --spacing-base: 0.75rem;
+  --spacing-lg: 1rem;
+  --spacing-xl: 1.25rem;
+  --spacing-2xl: 1.5rem;
+  --spacing-3xl: 1.75rem;
+  --spacing-4xl: 2rem;
+
+  // semantic spacing
+  --spacing-section-y: 1.5rem 0;
+  --spacing-section-bottom: 1.5rem;
+  --spacing-section-top: 1.5rem;
+  --spacing-form-input: 0.5rem 1rem;
+  --spacing-form-input-vertical: 0.25rem 0;
+  --spacing-form-input-inner: 0.25rem 0 0.25rem 0;
+  --spacing-form-label-bottom: 2px;
+  --spacing-form-label-bottom-rem: 0.125rem;
+  --spacing-button-default: 0 1rem;
+  --spacing-button-small: 0 0.75rem;
+  --spacing-button-medium: 0 1rem;
+  --spacing-button-large: 0 16px;
+  --spacing-modal-content: 1.5rem;
+  --spacing-modal-padding: 1.5rem 1.5rem 2rem 1.5rem;
+  --spacing-container: 1rem 1.25rem;
+  --spacing-container-y: 1rem 0;
+  --spacing-container-top: 1rem;
+  --spacing-card-padding: 1rem 0.5rem;
+  --spacing-card-padding-full: 1rem;
+  --spacing-gap-base: 0.5rem;
+  --spacing-gap-sm: 0.25rem;
+  --spacing-gap-lg: 1rem;
+  --spacing-gap-xl: 1.25rem;
+  --spacing-gap-2xl: 1.5rem;
+  --spacing-gap-3xl: 1.75rem;
+  --spacing-gap-4xl: 2rem;
+  --spacing-modal-side: 100px;
+
+  // legacy aliases (kept for byte-equivalence with apps/web)
+  --header-padding: var(--spacing-container);
+  --form-gap: var(--spacing-3xl);
+
+  // shadow + transition (used by management-web)
+  --shadow-card: 0 2px 8px rgba(0, 0, 0, 0.1);
+  // modal panels over dimmed backdrops — theme border + lift (uses --border-color-opaque from themes)
+  --shadow-modal: 0 0 0 1px var(--border-color-opaque), 0 24px 56px rgba(0, 0, 0, 0.5);
+  --transition-default: 0.2s;
+}

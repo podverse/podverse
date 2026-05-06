@@ -12,6 +12,7 @@
       "default": "./src/index.ts"
     },
     "./styles/variables": "./src/styles/_variables.scss",
+    "./styles/variables-root": "./src/styles/_variables-root.scss",
     "./styles/breakpoints": "./src/styles/_breakpoints.scss",
     "./styles/mixins": "./src/styles/_mixins.scss",
     "./styles/themes": "./src/styles/_themes.scss",

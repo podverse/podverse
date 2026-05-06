@@ -71,7 +71,7 @@ fi
 echo -e "${YELLOW}Running security audit on develop (moderate and above; low permitted)...${NC}"
 npm ci
 
-if ! "$SCRIPT_DIR/../lib/check-audit-gate.sh" "1113977,1116970" "promote to staging"; then
+if ! "$SCRIPT_DIR/../lib/check-audit-gate.sh" "" "promote to staging"; then
   echo -e "${RED}Error: npm audit found disallowed moderate or higher vulnerabilities in develop. Fix them before syncing to staging.${NC}"
   exit 1
 fi

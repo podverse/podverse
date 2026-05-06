@@ -1,8 +1,7 @@
 -- 0022: hard-break membership tier naming to trial/premium.
 -- Canonical values are now `trial` and `premium`.
 
-ALTER TABLE account_membership
-DROP CONSTRAINT IF EXISTS account_membership_tier_check;
+ALTER TABLE account_membership DROP CONSTRAINT account_membership_tier_check;
 
 UPDATE account_membership
 SET tier = 'premium'

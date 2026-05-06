@@ -30,29 +30,15 @@
     "tools/*/*"
   ],
   "overrides": {
+    "ip-address": "10.2.0",
     "postcss@8.4.31": "8.5.10",
     "glob": "^13.0.1",
     "uuid": "14.0.0",
-    "@tootallnate/once": "3.0.1",
     "@google-cloud/storage": {
-      "teeny-request": "10.1.2",
-      "uuid": "14.0.0"
-    },
-    "google-gax": {
-      "uuid": "14.0.0"
-    },
-    "gaxios": {
-      "uuid": "14.0.0"
-    },
-    "typeorm": {
-      "uuid": "14.0.0"
-    },
-    "firebase-admin": {
-      "uuid": "14.0.0"
+      "teeny-request": "10.1.2"
     },
     "teeny-request": {
-      "http-proxy-agent": "7.0.2",
-      "uuid": "14.0.0"
+      "http-proxy-agent": "7.0.2"
     }
   },
   "devDependencies": {

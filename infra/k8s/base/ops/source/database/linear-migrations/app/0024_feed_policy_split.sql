@@ -2,10 +2,7 @@
 -- Split feed moderation state into conditions + effective policy.
 
 ALTER TABLE feed
-ADD COLUMN IF NOT EXISTS max_response_body_bytes_override integer NULL;
-
-ALTER TABLE feed
-DROP CONSTRAINT IF EXISTS feed_max_response_body_bytes_override_positive_check;
+ADD COLUMN max_response_body_bytes_override integer NULL;
 
 ALTER TABLE feed
 ADD CONSTRAINT feed_max_response_body_bytes_override_positive_check
@@ -13,7 +10,7 @@ CHECK (
   max_response_body_bytes_override IS NULL OR max_response_body_bytes_override > 0
 );
 
-CREATE TABLE IF NOT EXISTS feed_condition_type (
+CREATE TABLE feed_condition_type (
   id SERIAL PRIMARY KEY,
   condition_key VARCHAR(64) UNIQUE NOT NULL,
   created_at server_time_with_default,
@@ -25,7 +22,7 @@ BEFORE UPDATE ON feed_condition_type
 FOR EACH ROW
 EXECUTE FUNCTION set_updated_at_field();
 
-CREATE TABLE IF NOT EXISTS feed_condition (
+CREATE TABLE feed_condition (
   id SERIAL PRIMARY KEY,
   feed_id INTEGER NOT NULL REFERENCES feed(id) ON DELETE CASCADE,
   feed_condition_type_id INTEGER NOT NULL REFERENCES feed_condition_type(id) ON DELETE CASCADE,
@@ -37,16 +34,16 @@ CREATE TABLE IF NOT EXISTS feed_condition (
   UNIQUE(feed_id, feed_condition_type_id)
 );
 
-CREATE INDEX IF NOT EXISTS idx_feed_condition_feed_id ON feed_condition(feed_id);
-CREATE INDEX IF NOT EXISTS idx_feed_condition_type_id ON feed_condition(feed_condition_type_id);
-CREATE INDEX IF NOT EXISTS idx_feed_condition_is_active ON feed_condition(is_active);
+CREATE INDEX idx_feed_condition_feed_id ON feed_condition(feed_id);
+CREATE INDEX idx_feed_condition_type_id ON feed_condition(feed_condition_type_id);
+CREATE INDEX idx_feed_condition_is_active ON feed_condition(is_active);
 
 CREATE TRIGGER set_updated_at_feed_condition
 BEFORE UPDATE ON feed_condition
 FOR EACH ROW
 EXECUTE FUNCTION set_updated_at_field();
 
-CREATE TABLE IF NOT EXISTS feed_policy (
+CREATE TABLE feed_policy (
   id SERIAL PRIMARY KEY,
   feed_id INTEGER NOT NULL UNIQUE REFERENCES feed(id) ON DELETE CASCADE,
   parse_allowed BOOLEAN NOT NULL DEFAULT TRUE,
@@ -63,7 +60,7 @@ BEFORE UPDATE ON feed_policy
 FOR EACH ROW
 EXECUTE FUNCTION set_updated_at_field();
 
-CREATE TABLE IF NOT EXISTS feed_policy_override (
+CREATE TABLE feed_policy_override (
   id SERIAL PRIMARY KEY,
   feed_id INTEGER NOT NULL UNIQUE REFERENCES feed(id) ON DELETE CASCADE,
   parse_allowed_override BOOLEAN,
@@ -85,8 +82,7 @@ INSERT INTO feed_condition_type (condition_key) VALUES
   ('oversized_detected'),
   ('takedown_active'),
   ('manual_block'),
-  ('parse_failure_transient')
-ON CONFLICT (condition_key) DO NOTHING;
+  ('parse_failure_transient');
 
 INSERT INTO feed_condition (feed_id, feed_condition_type_id, is_active, source, note)
 SELECT
@@ -97,9 +93,7 @@ SELECT
   'Backfilled from feed_flag_status spam'
 FROM feed f
 JOIN feed_condition_type fct ON fct.condition_key = 'spam_detected'
-WHERE f.feed_flag_status_id IN (3, 7)
-ON CONFLICT (feed_id, feed_condition_type_id)
-DO UPDATE SET is_active = EXCLUDED.is_active, source = EXCLUDED.source, note = EXCLUDED.note;
+WHERE f.feed_flag_status_id IN (3, 7);
 
 INSERT INTO feed_condition (feed_id, feed_condition_type_id, is_active, source, note)
 SELECT
@@ -110,9 +104,7 @@ SELECT
   'Backfilled from feed_flag_status takedown'
 FROM feed f
 JOIN feed_condition_type fct ON fct.condition_key = 'takedown_active'
-WHERE f.feed_flag_status_id = 6
-ON CONFLICT (feed_id, feed_condition_type_id)
-DO UPDATE SET is_active = EXCLUDED.is_active, source = EXCLUDED.source, note = EXCLUDED.note;
+WHERE f.feed_flag_status_id = 6;
 
 INSERT INTO feed_policy (
   feed_id,
@@ -142,11 +134,4 @@ SELECT
     ELSE NULL
   END AS primary_block_reason,
   NOW() AS last_policy_refresh_at
-FROM feed f
-ON CONFLICT (feed_id)
-DO UPDATE SET
-  parse_allowed = EXCLUDED.parse_allowed,
-  public_visible = EXCLUDED.public_visible,
-  add_allowed = EXCLUDED.add_allowed,
-  primary_block_reason = EXCLUDED.primary_block_reason,
-  last_policy_refresh_at = EXCLUDED.last_policy_refresh_at;
+FROM feed f;

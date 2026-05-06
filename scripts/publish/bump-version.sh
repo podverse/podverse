@@ -17,11 +17,9 @@ cd "$REPO_ROOT"
 
 echo -e "${YELLOW}Running security audit (moderate and above; low permitted)...${NC}"
 
-# Call shared audit gate utility
-# Keep allowlist as narrow as possible. These advisories are currently transitive-only
-# via upstream dependency chains and have no safe non-breaking upgrade path yet.
-# See docs/development/security/NPM-AUDIT-ALLOWLIST.md for detailed rationale and when to revisit.
-if ! "$SCRIPT_DIR/../lib/check-audit-gate.sh" "1113977,1116970" "release"; then
+# Call shared audit gate utility (moderate+; no advisory ID allowlist — strict).
+# See docs/development/security/NPM-AUDIT-ALLOWLIST.md when an allowlist is needed again.
+if ! "$SCRIPT_DIR/../lib/check-audit-gate.sh" "" "release"; then
   echo -e "${RED}Error: npm audit found disallowed moderate or higher vulnerabilities. Fix them before bumping version.${NC}"
   exit 1
 fi

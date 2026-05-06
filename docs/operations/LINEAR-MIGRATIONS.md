@@ -34,6 +34,10 @@ Both app and management schemas include `linear_migration_history` with:
 - `0003a`/`0003b` now carry deterministic `linear_migration_history` rows directly, so fresh init has checksums aligned with `run-linear-migrations.sh` without a separate `0004` step.
 - Regeneration remains `make db_regen_linear_baseline`; CI parity remains `make db_verify_linear_baseline`.
 
+## Greenfield-only migration SQL
+
+Author each `NNNN_*.sql` as an **ordered forward chain**: assume every earlier file in the same database chain has already run. Avoid `CREATE … IF NOT EXISTS`, `DROP … IF EXISTS`, seed `ON CONFLICT`, and `WHERE NOT EXISTS` inserts unless a predecessor migration genuinely leaves the object or row presence ambiguous. Catalog-probing `DO $$ …` upgrade branches should not replace clear DDL in prior files. Cursor guidance: `.cursor/skills/linear-sql-greenfield-only/SKILL.md`.
+
 ## Operating model
 
 - First deploy on a brand-new DB runs init scripts in order (`0001` → `0002` → `0003_apply` + archives), then (if needed) migration jobs for app and management; with baselines in place, migration jobs should find all files already applied and **skip** them.

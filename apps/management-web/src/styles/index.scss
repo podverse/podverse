@@ -1,6 +1,7 @@
 // Root styles for management-web. Tokens, themes, mixins, and font-faces all
 // come from @podverse/ui so management-web stays in sync with apps/web.
 @use '../../../../packages/ui/src/styles/font-faces';
+@use '../../../../packages/ui/src/styles/variables-root';
 @use '../../../../packages/ui/src/styles/variables' as *;
 @use '../../../../packages/ui/src/styles/themes';
 

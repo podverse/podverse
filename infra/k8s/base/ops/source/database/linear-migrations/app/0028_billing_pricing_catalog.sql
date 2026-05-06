@@ -65,10 +65,7 @@ CREATE TABLE billing_price_change_audit (
 );
 
 INSERT INTO billing_product (product_code, name, is_active)
-SELECT 'membership_premium', 'Premium Membership', TRUE
-WHERE NOT EXISTS (
-  SELECT 1 FROM billing_product WHERE product_code = 'membership_premium'
-);
+VALUES ('membership_premium', 'Premium Membership', TRUE);
 
 INSERT INTO billing_price (
   billing_product_id,
@@ -79,17 +76,9 @@ INSERT INTO billing_price (
   effective_to,
   source
 )
-SELECT bp.id, 'USD', 'monthly', 300, NOW(), NULL, 'seed'
+SELECT bp.id, 'USD', 'monthly', 300, TIMESTAMP '2000-01-01 00:00:00', NULL, 'seed'
 FROM billing_product bp
-WHERE bp.product_code = 'membership_premium'
-  AND NOT EXISTS (
-    SELECT 1
-    FROM billing_price p
-    WHERE p.billing_product_id = bp.id
-      AND p.currency_code = 'USD'
-      AND p.billing_cadence = 'monthly'
-      AND p.effective_to IS NULL
-  );
+WHERE bp.product_code = 'membership_premium';
 
 INSERT INTO billing_price (
   billing_product_id,
@@ -100,17 +89,9 @@ INSERT INTO billing_price (
   effective_to,
   source
 )
-SELECT bp.id, 'USD', 'annual', 3000, NOW(), NULL, 'seed'
+SELECT bp.id, 'USD', 'annual', 3000, TIMESTAMP '2000-01-01 00:00:00', NULL, 'seed'
 FROM billing_product bp
-WHERE bp.product_code = 'membership_premium'
-  AND NOT EXISTS (
-    SELECT 1
-    FROM billing_price p
-    WHERE p.billing_product_id = bp.id
-      AND p.currency_code = 'USD'
-      AND p.billing_cadence = 'annual'
-      AND p.effective_to IS NULL
-  );
+WHERE bp.product_code = 'membership_premium';
 
 ALTER TABLE account_membership_status
 ADD COLUMN billing_cadence TEXT CHECK (billing_cadence IN ('monthly', 'annual')),
