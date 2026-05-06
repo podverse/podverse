@@ -1,6 +1,6 @@
 {
   "name": "@podverse/helpers-backend",
-  "version": "5.4.26",
+  "version": "5.4.27",
   "description": "Backend utilities for Podverse applications",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

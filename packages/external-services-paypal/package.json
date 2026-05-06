@@ -1,6 +1,6 @@
 {
   "name": "@podverse/external-services-paypal",
-  "version": "5.4.26",
+  "version": "5.4.27",
   "description": "PayPal integration for Podverse",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
