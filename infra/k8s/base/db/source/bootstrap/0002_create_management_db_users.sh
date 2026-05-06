@@ -69,6 +69,8 @@ psql -v ON_ERROR_STOP=1 --username "$DB_APP_OWNER_USER" --dbname "$DB_APP_NAME" 
 psql -v ON_ERROR_STOP=1 --username "$DB_MANAGEMENT_OWNER_USER" --dbname "$DB_MANAGEMENT_NAME" <<SQL
 GRANT CONNECT ON DATABASE ${DB_MANAGEMENT_NAME} TO ${DB_MANAGEMENT_MIGRATOR_USER}, ${DB_MANAGEMENT_READ_WRITE_USER}, ${DB_MANAGEMENT_READ_USER};
 GRANT USAGE, CREATE ON SCHEMA public TO ${DB_MANAGEMENT_MIGRATOR_USER};
+-- Same rationale as 0001 app owner block (public recreated without PUBLIC USAGE; OWNER must grant).
+GRANT USAGE ON SCHEMA public TO ${DB_MANAGEMENT_READ_WRITE_USER}, ${DB_MANAGEMENT_READ_USER};
 SQL
 
 # 2b. Management DB as migrator: runtime grants + default privileges for migrator-created objects (mirrors 0001 migrator block).

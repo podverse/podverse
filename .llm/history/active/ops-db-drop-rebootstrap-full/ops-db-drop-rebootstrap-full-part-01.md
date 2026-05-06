@@ -23,11 +23,37 @@ To-do's from the plan have already been created. Do not create them again. Mark 
 - Extended `ops-db-drop-everything` to both secrets + two `psql` DROP/CREATE `public` calls; Version 4.
 - Replaced inline GRANT-only bash in `ops-db-rebootstrap-roles` with `bash /opt/scripts/database/rebootstrap-full-bootstrap.sh`; Version 2; added migration-scripts volume mount.
 
-#### Files Created/Modified
+#### Files Modified
 
 - `infra/k8s/base/ops/source/database/runner/rebootstrap-full-bootstrap.sh`
 - `infra/k8s/base/ops/kustomization.yaml`
 - `infra/k8s/base/ops/db-rebootstrap-roles.cronjob.yaml`
 - `infra/k8s/base/ops/db-drop-everything.cronjob.yaml`
 - `infra/k8s/INFRA-K8S.md`
+- `.llm/history/active/ops-db-drop-rebootstrap-full/ops-db-drop-rebootstrap-full-part-01.md`
+
+---
+
+### Session 2 - 2026-05-06
+
+#### Prompt (Developer)
+
+Durable fix: OWNER grants `USAGE ON SCHEMA public` to read users
+
+Implement the plan as specified, it is attached for your reference. Do NOT edit the plan file itself.
+
+To-do's from the plan have already been created. Do not create them again. Mark them as in_progress as you work, starting with the first one. Don't stop until you have completed all the to-dos.
+
+#### Key Decisions
+
+- After `DROP SCHEMA public CASCADE; CREATE SCHEMA public;`, OWNER must `GRANT USAGE ON SCHEMA public` to
+  read and read_write users; MIGRATOR cannot grant USAGE without `WITH GRANT OPTION` on the schema.
+- Mirrored the same `GRANT USAGE` in `0001`, `0002` (management owner block), and
+  `rebootstrap-full-bootstrap.sh` Phase A (app) and Phase C (management).
+
+#### Files Modified
+
+- `infra/k8s/base/db/source/bootstrap/0001_create_app_db_users.sh`
+- `infra/k8s/base/db/source/bootstrap/0002_create_management_db_users.sh`
+- `infra/k8s/base/ops/source/database/runner/rebootstrap-full-bootstrap.sh`
 - `.llm/history/active/ops-db-drop-rebootstrap-full/ops-db-drop-rebootstrap-full-part-01.md`
