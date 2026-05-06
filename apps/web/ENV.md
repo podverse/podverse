@@ -93,6 +93,7 @@ These variables are used for client-side API requests:
 ### Runtime Config Sidecar (Server-Only)
 
 - **`ALLOW_LOCALHOST_PROXY`** (Optional) - If set, must be `"true"` or `"false"`
+- **`LOG_LEVEL`** (Optional) - Winston-style log level for the **Next.js server** process (`error`, `warn`, `info`, `verbose`, `debug`, …), consistent with `apps/api` and `@podverse/helpers` (`isEnvLogLevelDebug`). When set to **`debug`**, the `/api/proxy` route logs failure diagnostics (truncated URLs) to the server console; at other levels the proxy stays silent for failures. Does not affect the browser Network panel. Set this where the web server reads env (e.g. `apps/web/.env.local` or deployment config), not only in the sidecar file.
 
 ### API Configuration (SSR)
 

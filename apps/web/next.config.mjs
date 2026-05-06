@@ -12,6 +12,12 @@ const withBundleAnalyzer = withBundleAnalyzerInit({
 });
 
 const nextConfig = {
+  logging: {
+    incomingRequests: {
+      /** Avoid dev-terminal spam from Next/Image + `/api/proxy` when upstream artwork fails (403/404). */
+      ignore: [/^\/api\/proxy/],
+    },
+  },
   async redirects() {
     return [
       {

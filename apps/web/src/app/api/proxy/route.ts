@@ -1,11 +1,24 @@
 import type { NextRequest } from 'next/server';
 
+import { isEnvLogLevelDebug, truncateForLog } from '@podverse/helpers';
 import { fetchWithTimeout } from '@podverse/helpers-backend';
 
 import { getConfig } from '../../../config';
 import { PROXY } from '../../../utils/proxy/constants';
 import { checkRateLimit } from '../../../utils/proxy/rateLimiter';
 import { validateProxyUrl } from '../../../utils/proxy/urlValidator';
+
+/** Only when `LOG_LEVEL=debug` on the Next server (same convention as apps/api; see `isEnvLogLevelDebug` in helpers). */
+const logProxyFailureDiagnostics = (message: string, details?: Record<string, unknown>): void => {
+  if (!isEnvLogLevelDebug()) {
+    return;
+  }
+  if (details !== undefined) {
+    console.warn(`[api/proxy] ${message}`, details);
+  } else {
+    console.warn(`[api/proxy] ${message}`);
+  }
+};
 
 export async function GET(req: NextRequest) {
   const config = getConfig();
@@ -28,12 +41,17 @@ export async function GET(req: NextRequest) {
   const url = searchParams.get('url');
 
   if (!url) {
+    logProxyFailureDiagnostics('missing url parameter');
     return new Response('Missing url parameter', { status: 400 });
   }
 
   // Validate URL and check for SSRF vulnerabilities
   const urlValidation = validateProxyUrl(url);
   if (!urlValidation.isValid) {
+    logProxyFailureDiagnostics('invalid URL', {
+      url: truncateForLog(url, 512),
+      error: urlValidation.error,
+    });
     return new Response(`Invalid URL: ${urlValidation.error}`, { status: 400 });
   }
 
@@ -46,12 +64,17 @@ export async function GET(req: NextRequest) {
     });
 
     if (!response.ok) {
+      logProxyFailureDiagnostics('upstream fetch not ok', {
+        url: truncateForLog(url, 512),
+        status: response.status,
+      });
       return new Response('Image fetch failed', { status: response.status });
     }
 
     // Validate Content-Type
     const contentType = response.headers.get('content-type');
     if (!contentType) {
+      logProxyFailureDiagnostics('missing Content-Type', { url: truncateForLog(url, 512) });
       return new Response('Missing Content-Type header', { status: 400 });
     }
 
@@ -59,6 +82,9 @@ export async function GET(req: NextRequest) {
     const contentTypeParts = contentType.toLowerCase().split(';');
     const contentTypeLower = contentTypeParts[0];
     if (!contentTypeLower) {
+      logProxyFailureDiagnostics('invalid Content-Type header shape', {
+        url: truncateForLog(url, 512),
+      });
       return new Response('Invalid Content-Type header', { status: 400 });
     }
     const isAllowedType = PROXY.ALLOWED_CONTENT_TYPES.some((allowedType) => {
@@ -71,12 +97,17 @@ export async function GET(req: NextRequest) {
     });
 
     if (!isAllowedType) {
+      logProxyFailureDiagnostics('content-type not allowed', {
+        url: truncateForLog(url, 512),
+        contentType,
+      });
       return new Response(`Content-Type not allowed: ${contentType}`, { status: 403 });
     }
 
     // Stream response with size checking
     const reader = response.body?.getReader();
     if (!reader) {
+      logProxyFailureDiagnostics('no response body', { url: truncateForLog(url, 512) });
       return new Response('No response body', { status: 500 });
     }
 
@@ -97,6 +128,10 @@ export async function GET(req: NextRequest) {
           // Check size limit
           if (totalSize > PROXY.SIZE_LIMITS.MAX_RESPONSE_SIZE_BYTES) {
             reader.cancel();
+            logProxyFailureDiagnostics('response too large', {
+              url: truncateForLog(url, 512),
+              maxBytes: PROXY.SIZE_LIMITS.MAX_RESPONSE_SIZE_BYTES,
+            });
             return new Response('Response too large', {
               status: 413,
               headers: {
@@ -133,8 +168,15 @@ export async function GET(req: NextRequest) {
     });
   } catch (error) {
     if (error instanceof Error && error.name === 'AbortError') {
+      logProxyFailureDiagnostics('request timeout', { url: truncateForLog(url, 512) });
       return new Response('Request timeout', { status: 504 });
     }
+    const err = error instanceof Error ? error : new Error(String(error));
+    logProxyFailureDiagnostics('fetch error', {
+      url: truncateForLog(url, 512),
+      errorName: err.name,
+      errorMessage: truncateForLog(err.message, 512),
+    });
     return new Response('Image fetch failed', { status: 500 });
   }
 }

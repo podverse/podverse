@@ -7,10 +7,11 @@
  */
 
 import { config } from 'dotenv';
-import { resolve } from 'path';
 import { existsSync } from 'fs';
+import { resolve } from 'path';
+
 import type { ValidationResult, ValidationSummary } from '@podverse/helpers-config';
-import { validateRequired } from '@podverse/helpers-config';
+import { validateOptional, validateRequired } from '@podverse/helpers-config';
 
 // Load .env file based on NODE_ENV
 // Next.js loads .env files automatically, but this script runs standalone via ts-node
@@ -65,6 +66,9 @@ const validateAllEnvironmentVariables = (): ValidationSummary => {
 
   // Optional proxy override for local dev
   results.push(validateOptionalBoolean('ALLOW_LOCALHOST_PROXY', 'Proxy Configuration'));
+
+  // Winston-style level (same as apps/api); when `debug`, /api/proxy may log failure diagnostics
+  results.push(validateOptional('LOG_LEVEL', 'General', 'Blank'));
 
   // Calculate summary
   const total = results.length;

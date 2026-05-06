@@ -9,8 +9,8 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vites
 import type { BillingCadence } from '@podverse/helpers';
 import {
   AccountMembershipEnum,
-  DEFAULT_FREE_TRIAL_EXPIRATION,
   OnDemandParserEventType,
+  resolveProductMembershipDefaultsFromEnv,
 } from '@podverse/helpers';
 import type { ORMContext } from '@podverse/orm';
 
@@ -332,12 +332,14 @@ describe('external services, feed, medium-value, membership, claim, metaboost, m
       const res = await request(app).get(`${productMembershipBase}/pricing`);
       if (res.status === 200) {
         expect(res.body).toHaveProperty('data');
-        // Reflects active billing_price for premium USD (test DB matches linear migration seed), not MEMBERSHIP_* alone.
+        // Monthly/annual amounts come from seeded billing_price rows; trial length matches MEMBERSHIP_FREE_TRIAL_EXPIRATION
+        // (see apps/api/src/test/setup.ts) via product_membership_settings bootstrap — same values as resolveProductMembershipDefaultsFromEnv().
+        const trialSeconds = resolveProductMembershipDefaultsFromEnv().freeTrialExpirationSeconds;
         expect(res.body.data).toMatchObject({
           costMonthly: 3,
           costAnnually: 30,
-          freeTrialExpiration: DEFAULT_FREE_TRIAL_EXPIRATION,
-          freeTrialDays: Math.floor(DEFAULT_FREE_TRIAL_EXPIRATION / 86400),
+          freeTrialExpiration: trialSeconds,
+          freeTrialDays: Math.floor(trialSeconds / 86400),
         });
       } else {
         expect(res.status).toBe(400);
