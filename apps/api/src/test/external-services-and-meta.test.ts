@@ -183,8 +183,8 @@ describe('external services, feed, medium-value, membership, claim, metaboost, m
 
   beforeAll(async () => {
     process.env.ACCOUNT_SIGNUP_MODE = 'user_signup_email';
-    process.env.MEMBERSHIP_PREMIUM_COST_MONTHLY = '5';
-    process.env.MEMBERSHIP_PREMIUM_COST_ANNUALLY = '50';
+    process.env.MEMBERSHIP_PREMIUM_COST_MONTHLY = '3';
+    process.env.MEMBERSHIP_PREMIUM_COST_ANNUALLY = '30';
 
     const { privateKey } = generateKeyPairSync('ed25519', {
       publicKeyEncoding: { type: 'spki', format: 'pem' },
@@ -332,9 +332,10 @@ describe('external services, feed, medium-value, membership, claim, metaboost, m
       const res = await request(app).get(`${productMembershipBase}/pricing`);
       if (res.status === 200) {
         expect(res.body).toHaveProperty('data');
+        // Reflects active billing_price for premium USD (test DB matches linear migration seed), not MEMBERSHIP_* alone.
         expect(res.body.data).toMatchObject({
-          costMonthly: 5,
-          costAnnually: 50,
+          costMonthly: 3,
+          costAnnually: 30,
           freeTrialExpiration: DEFAULT_FREE_TRIAL_EXPIRATION,
           freeTrialDays: Math.floor(DEFAULT_FREE_TRIAL_EXPIRATION / 86400),
         });
