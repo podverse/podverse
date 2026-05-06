@@ -177,6 +177,16 @@ describe('management-api auth routes', () => {
       });
     });
 
+    it('prefers Authorization Bearer over a stale pv_mgmt_auth cookie', async () => {
+      const res = await request(app)
+        .get(`${authBase}/me`)
+        .set('Cookie', [`${ADMIN_AUTH_COOKIE_NAME}=not.a.valid.jwt`])
+        .set(adminAuthHeaders(1));
+
+      expect(res.status).toBe(200);
+      expect(res.body.id_text).toBe('pvMgtAu001');
+    });
+
     it('returns 401 without auth', async () => {
       const res = await request(app).get(`${authBase}/me`);
 
