@@ -1,7 +1,13 @@
 import { type CrudOp, hasCrud } from '@mgmt-api/lib/crud.js';
 import type { NextFunction, Request, Response } from 'express';
 
-type PermissionResource = 'feeds' | 'feed_takedown_reasons' | 'admins' | 'stats' | 'billing_prices';
+type PermissionResource =
+  | 'feeds'
+  | 'feed_takedown_reasons'
+  | 'admins'
+  | 'stats'
+  | 'billing_prices'
+  | 'bucket';
 
 function getCrudForResource(
   permissions: NonNullable<Express.User['permissions']>,
@@ -18,6 +24,8 @@ function getCrudForResource(
       return permissions.stats_crud;
     case 'billing_prices':
       return permissions.billing_prices_crud ?? 0;
+    case 'bucket':
+      return permissions.bucket_crud ?? 0;
   }
 }
 

@@ -355,9 +355,9 @@ for file in "${WEB_ENV_FILES_APP_AND_SIDECAR[@]}"; do
 	upsert_var "$file" "NEXT_PUBLIC_ACCOUNT_SIGNUP_MODE" "$ACCOUNT_SIGNUP_MODE_EFFECTIVE"
 done
 
-# From storage.env
+# From storage.env (workers image shrink + management-api object storage browser share the same bucket contract)
 for v in BUCKET_PROVIDER BUCKET_ACCESS_KEY BUCKET_SECRET_KEY BUCKET_REGION BUCKET_NAME BUCKET_CDN_BASE_URL BUCKET_ENDPOINT BUCKET_FORCE_PATH_STYLE; do
-	apply_override "$v" "${WORKERS_ENV_FILES[@]}"
+	apply_override "$v" "${WORKERS_ENV_FILES[@]}" "${MANAGEMENT_API_ENV_FILES[@]}"
 done
 
 # From notifications.env (VAPID keys filled manually by dev; not auto-generated)

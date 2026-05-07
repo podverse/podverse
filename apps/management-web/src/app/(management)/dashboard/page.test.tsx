@@ -6,13 +6,29 @@ vi.mock('next/navigation', () => ({
   }),
 }));
 
-vi.mock('../../../lib/auth/serverManagementSession.js', () => ({
-  getManagementSessionUser: vi.fn(),
+vi.mock('../../../lib/auth/serverManagementSession.js', async (importOriginal) => {
+  const actual =
+    await importOriginal<typeof import('../../../lib/auth/serverManagementSession.js')>();
+  return {
+    ...actual,
+    getManagementSessionUser: vi.fn(),
+  };
+});
+
+vi.mock('next/headers', () => ({
+  cookies: vi.fn(async () => ({
+    get: (name: string) => (name === 'pv_mgmt_auth' ? { value: 'test-token' } : undefined),
+  })),
+}));
+
+vi.mock('../../../lib/server/bucketStorageDashboard.js', () => ({
+  fetchBucketStorageEnabledForDashboard: vi.fn(),
 }));
 
 import { redirect } from 'next/navigation';
 
 import { getManagementSessionUser } from '../../../lib/auth/serverManagementSession.js';
+import { fetchBucketStorageEnabledForDashboard } from '../../../lib/server/bucketStorageDashboard.js';
 import DashboardPage from './page.js';
 
 const mockUser = {
@@ -41,10 +57,14 @@ describe('DashboardPage (server)', () => {
 
   it('renders the dashboard client when the session is valid', async () => {
     vi.mocked(getManagementSessionUser).mockResolvedValue(mockUser);
+    vi.mocked(fetchBucketStorageEnabledForDashboard).mockResolvedValue(false);
 
     const tree = await DashboardPage();
 
     expect(tree).not.toBeNull();
-    expect((tree as { props?: { initialUser?: unknown } }).props?.initialUser).toEqual(mockUser);
+    const props = (tree as { props?: { initialUser?: unknown; bucketStorageEnabled?: boolean } })
+      .props;
+    expect(props?.initialUser).toEqual(mockUser);
+    expect(props?.bucketStorageEnabled).toBe(false);
   });
 });

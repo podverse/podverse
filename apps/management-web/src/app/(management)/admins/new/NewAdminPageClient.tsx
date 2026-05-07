@@ -9,6 +9,7 @@ import {
   Alert,
   Breadcrumbs,
   Button,
+  Checkbox,
   Fieldset,
   FormContainer,
   FormGroup,
@@ -26,6 +27,7 @@ const RESOURCE_KEYS = [
   'feed_takedown_reasons_crud',
   'admins_crud',
   'stats_crud',
+  'bucket_crud',
 ] as const;
 
 const CRUD_BITS = [
@@ -40,6 +42,7 @@ type PermissionState = {
   feed_takedown_reasons_crud: number;
   admins_crud: number;
   stats_crud: number;
+  bucket_crud: number;
 };
 
 const RESOURCE_LABEL_KEYS: Record<(typeof RESOURCE_KEYS)[number], string> = {
@@ -47,6 +50,7 @@ const RESOURCE_LABEL_KEYS: Record<(typeof RESOURCE_KEYS)[number], string> = {
   feed_takedown_reasons_crud: 'takedownReasons',
   admins_crud: 'admins',
   stats_crud: 'stats',
+  bucket_crud: 'bucket',
 };
 
 export function NewAdminPageClient() {
@@ -57,6 +61,7 @@ export function NewAdminPageClient() {
     feed_takedown_reasons_crud: 0,
     admins_crud: 0,
     stats_crud: 0,
+    bucket_crud: 0,
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -89,6 +94,7 @@ export function NewAdminPageClient() {
         feed_takedown_reasons_crud: 0,
         admins_crud: 0,
         stats_crud: 0,
+        bucket_crud: 0,
       });
     } catch (err) {
       const raw =
@@ -152,10 +158,12 @@ export function NewAdminPageClient() {
                     <Table.Cell>{tp(RESOURCE_LABEL_KEYS[key])}</Table.Cell>
                     {CRUD_BITS.map((check) => (
                       <Table.Cell key={check.bit}>
-                        <input
-                          type="checkbox"
+                        <Checkbox
+                          aria-label={`${tp(RESOURCE_LABEL_KEYS[key])}, ${tp(check.labelKey)}`}
                           checked={(permissions[key] & check.bit) !== 0}
-                          onChange={() => toggleCrudBit(key, check.bit)}
+                          onChange={() => {
+                            toggleCrudBit(key, check.bit);
+                          }}
                         />
                       </Table.Cell>
                     ))}

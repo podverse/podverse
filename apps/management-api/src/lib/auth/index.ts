@@ -75,6 +75,7 @@ function mapAdminToAuthenticatedUser(admin: AdminAccount): AuthenticatedAdmin | 
           admins_crud: admin.permissions.adminsCrud,
           stats_crud: admin.permissions.statsCrud,
           billing_prices_crud: admin.permissions.billingPricesCrud,
+          bucket_crud: admin.permissions.bucketCrud,
         }
       : null,
   };

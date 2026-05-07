@@ -1,5 +1,5 @@
 import classNames from 'classnames';
-import type { HTMLAttributes, ReactNode, TdHTMLAttributes } from 'react';
+import type { HTMLAttributes, ReactNode, TdHTMLAttributes, ThHTMLAttributes } from 'react';
 
 import styles from './Table.module.scss';
 
@@ -46,6 +46,18 @@ function HeaderCell({ children }: { children: React.ReactNode }) {
   return <th scope="col">{children}</th>;
 }
 
+type SelectHeaderCellProps = Omit<ThHTMLAttributes<HTMLTableCellElement>, 'scope'> & {
+  children?: ReactNode;
+};
+
+function SelectHeaderCell({ children, className, ...rest }: SelectHeaderCellProps) {
+  return (
+    <th className={classNames(styles.selectCell, className)} scope="col" {...rest}>
+      {children}
+    </th>
+  );
+}
+
 type CellProps = Omit<TdHTMLAttributes<HTMLTableCellElement>, 'children'> & {
   children?: ReactNode;
 };
@@ -58,6 +70,30 @@ function Cell({ children, className, ...rest }: CellProps) {
   );
 }
 
+type SelectCellProps = Omit<TdHTMLAttributes<HTMLTableCellElement>, 'children'> & {
+  children?: ReactNode;
+};
+
+function SelectCell({ children, className, ...rest }: SelectCellProps) {
+  return (
+    <td className={classNames(styles.cell, styles.selectCell, className)} {...rest}>
+      {children}
+    </td>
+  );
+}
+
+type RowActionsProps = HTMLAttributes<HTMLDivElement> & {
+  children: ReactNode;
+};
+
+function RowActions({ children, className, ...rest }: RowActionsProps) {
+  return (
+    <div className={classNames(styles.rowActions, className)} {...rest}>
+      {children}
+    </div>
+  );
+}
+
 function ScrollContainer({ children }: { children: React.ReactNode }) {
   return <div className={styles.scrollContainer}>{children}</div>;
 }
@@ -67,8 +103,18 @@ export const Table = Object.assign(TableComponent, {
   Body,
   Row,
   HeaderCell,
+  SelectHeaderCell,
   Cell,
+  SelectCell,
+  RowActions,
   ScrollContainer,
 });
 
-export type { CellProps, RowProps, TableProps };
+export type {
+  CellProps,
+  RowProps,
+  RowActionsProps,
+  SelectCellProps,
+  SelectHeaderCellProps,
+  TableProps,
+};

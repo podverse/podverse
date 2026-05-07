@@ -19,6 +19,7 @@
   },
   "license": "AGPL-3.0",
   "dependencies": {
+    "@podverse/external-services-object-storage": "*",
     "@podverse/helpers": "*",
     "@podverse/helpers-backend": "*",
     "@podverse/helpers-config": "*",

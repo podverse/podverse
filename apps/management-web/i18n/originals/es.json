@@ -86,6 +86,57 @@
     "users": {
       "title": "Usuarios",
       "description": "Crear y gestionar cuentas de usuario de la aplicación"
+    },
+    "storage": {
+      "title": "Almacenamiento de objetos",
+      "description": "Examinar, descargar y eliminar objetos del depósito configurado"
+    }
+  },
+  "storage": {
+    "title": "Almacenamiento de objetos",
+    "subtitle": "Listar objetos del depósito configurado",
+    "detailTitle": "Detalles del objeto",
+    "detailSubtitle": "Metadatos y descarga",
+    "loading": "Cargando…",
+    "empty": "No hay objetos que coincidan con este prefijo.",
+    "prefixFilter": "Filtro de prefijo",
+    "prefixPlaceholder": "Filtrar por prefijo de clave",
+    "featureDisabled": "El almacenamiento en depósito está desactivado o no está disponible.",
+    "listLoadError": "No se pudieron cargar los objetos.",
+    "detailLoadError": "No se pudieron cargar los metadatos del objeto.",
+    "notFound": "No se encontró el objeto.",
+    "deleteError": "Error al eliminar.",
+    "bulkDeleteError": "Error en la eliminación masiva.",
+    "table": {
+      "key": "Clave",
+      "size": "Tamaño",
+      "lastModified": "Última modificación",
+      "actions": "Acciones"
+    },
+    "view": "Ver",
+    "delete": "Eliminar",
+    "bulkDelete": "Eliminación masiva",
+    "selectedCount": "{count, plural, one {# objeto seleccionado} other {# objetos seleccionados}}",
+    "bulkConfirmAria": "Confirmar eliminación masiva",
+    "bulkConfirmBody": "¿Eliminar {count, plural, one {# objeto} other {# objetos}}? Esta acción no se puede deshacer.",
+    "deleteConfirmAria": "Confirmar eliminación",
+    "deleteConfirmBody": "¿Eliminar «{key}»? Esta acción no se puede deshacer.",
+    "deleting": "Eliminando…",
+    "selectAllAria": "Seleccionar todos los objetos de esta página",
+    "selectRowAria": "Seleccionar objeto {key}",
+    "download": "Descargar",
+    "backToList": "Volver a la lista de objetos",
+    "paginationPrev": "« Anterior",
+    "paginationNext": "Siguiente »",
+    "paginationPage": "Página {page}",
+    "detail": {
+      "fields": {
+        "key": "Clave",
+        "contentType": "Tipo de contenido",
+        "contentLength": "Tamaño",
+        "lastModified": "Última modificación",
+        "etag": "ETag"
+      }
     }
   },
   "statsPage": {
@@ -256,6 +307,7 @@
       "takedownReasons": "Motivos de retirada",
       "admins": "Administradores",
       "stats": "Estadísticas",
+      "bucket": "Bucket",
       "actions": "Acciones"
     },
     "permissions": {
@@ -268,7 +320,8 @@
       "feeds": "Fuentes",
       "takedownReasons": "Motivos de retirada",
       "admins": "Administradores",
-      "stats": "Estadísticas"
+      "stats": "Estadísticas",
+      "bucket": "Almacenamiento de objetos"
     }
   },
   "users": {

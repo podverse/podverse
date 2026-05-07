@@ -8,6 +8,8 @@ export { Button } from './components/button/Button/Button';
 export type { ButtonVariant } from './components/button/Button/Button';
 export { CopyToClipboardButton } from './components/button/CopyToClipboardButton/CopyToClipboardButton';
 export type { CopyToClipboardButtonProps } from './components/button/CopyToClipboardButton/CopyToClipboardButton';
+export { CursorPagination } from './components/navigation/CursorPagination';
+export type { CursorPaginationProps } from './components/navigation/CursorPagination';
 export {
   DescriptionList,
   DescriptionListRow,
@@ -51,6 +53,12 @@ export { NavCardGrid } from './components/navigation/NavCardGrid';
 export type { NavCard, NavCardGridProps } from './components/navigation/NavCardGrid';
 export { Pagination } from './components/navigation/Pagination';
 export type { PaginationProps } from './components/navigation/Pagination';
+export { useCursorPagination } from './hooks/useCursorPagination';
+export type {
+  CursorPageResult,
+  UseCursorPaginationParams,
+  UseCursorPaginationReturn,
+} from './hooks/useCursorPagination';
 export { Tab } from './components/navigation/Tab/Tab';
 export type { TabProps } from './components/navigation/Tab/Tab';
 export { Tabs } from './components/navigation/Tabs/Tabs';
@@ -67,6 +75,8 @@ export { StatsBarChart } from './components/stats/StatsBarChart';
 export type { StatsBarChartProps, StatsBarChartDatum } from './components/stats/StatsBarChart';
 export { StatSummaryGrid } from './components/stats/StatSummaryGrid';
 export type { StatSummaryGridProps, StatSummaryItem } from './components/stats/StatSummaryGrid';
+export { Checkbox } from './components/form/Checkbox';
+export type { CheckboxProps } from './components/form/Checkbox';
 export { CheckboxField } from './components/form/CheckboxField/CheckboxField';
 export type { CheckboxFieldProps } from './components/form/CheckboxField/CheckboxField';
 export { CheckboxFieldList } from './components/form/CheckboxFieldList/CheckboxFieldList';
@@ -102,7 +112,14 @@ export type { FormErrorMessageTextProps } from './components/form/FormErrorMessa
 export { Tooltip } from './components/overlays/Tooltip/Tooltip';
 export type { TooltipProps } from './components/overlays/Tooltip/Tooltip';
 export { Table } from './components/table/Table';
-export type { CellProps, RowProps, TableProps } from './components/table/Table';
+export type {
+  CellProps,
+  RowActionsProps,
+  RowProps,
+  SelectCellProps,
+  SelectHeaderCellProps,
+  TableProps,
+} from './components/table/Table';
 export { TableEmptyCell } from './components/table/TableEmptyCell';
 export type { TableEmptyCellProps } from './components/table/TableEmptyCell';
 export { CodeText } from './components/layout/CodeText';
@@ -111,6 +128,8 @@ export { ConfirmPanel, ConfirmPanelActions } from './components/layout/ConfirmPa
 export type { ConfirmPanelActionsProps, ConfirmPanelProps } from './components/layout/ConfirmPanel';
 export { EmptyStateText } from './components/layout/EmptyStateText';
 export type { EmptyStateTextProps } from './components/layout/EmptyStateText';
+export { EllipsisText } from './components/layout/EllipsisText';
+export type { EllipsisTextProps } from './components/layout/EllipsisText';
 export { FlexBetween } from './components/layout/FlexBetween';
 export type { FlexBetweenProps } from './components/layout/FlexBetween';
 export { FormContinuationSection } from './components/layout/FormContinuationSection';
@@ -141,5 +160,7 @@ export { PaginationSummaryLine } from './components/layout/PaginationSummaryLine
 export type { PaginationSummaryLineProps } from './components/layout/PaginationSummaryLine';
 export { SectionBlock, SectionHeading } from './components/layout/SectionHeading';
 export type { SectionBlockProps, SectionHeadingProps } from './components/layout/SectionHeading';
+export { StickyBulkActionBar } from './components/layout/StickyBulkActionBar';
+export type { StickyBulkActionBarProps } from './components/layout/StickyBulkActionBar';
 export { ToolbarCluster } from './components/layout/ToolbarCluster';
 export type { ToolbarClusterProps } from './components/layout/ToolbarCluster';

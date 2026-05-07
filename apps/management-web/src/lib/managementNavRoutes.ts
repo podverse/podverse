@@ -1,4 +1,4 @@
-import { canReadFeeds, canReadStats } from './managementPermissions';
+import { canReadFeeds, canReadStats, canReadStorage } from './managementPermissions';
 import type { CurrentUser } from './requests/auth';
 
 export type ManagementNavSection =
@@ -8,12 +8,21 @@ export type ManagementNavSection =
   | 'products'
   | 'admins'
   | 'users'
-  | 'workers';
+  | 'workers'
+  | 'storage';
+
+export type ManagementAppNavContext = {
+  bucketStorageEnabled: boolean;
+};
 
 export type ManagementNavRoute = {
   section: ManagementNavSection;
   href: string;
-  visible: (user: CurrentUser) => boolean;
+  visible: (user: CurrentUser, ctx: ManagementAppNavContext) => boolean;
+};
+
+const defaultNavContext: ManagementAppNavContext = {
+  bucketStorageEnabled: false,
 };
 
 const isAdminsReadable = (user: CurrentUser): boolean =>
@@ -42,10 +51,18 @@ const ROUTES: ManagementNavRoute[] = [
   { section: 'admins', href: '/admins', visible: (user) => isAdminsReadable(user) },
   { section: 'users', href: '/users', visible: (user) => isUsersReadable(user) },
   { section: 'workers', href: '/workers', visible: () => true },
+  {
+    section: 'storage',
+    href: '/storage',
+    visible: (user, ctx) => canReadStorage(user) && ctx.bucketStorageEnabled,
+  },
 ];
 
-export function getManagementAppRoutesForUser(user: CurrentUser): ManagementNavRoute[] {
-  return ROUTES.filter((r) => r.visible(user));
+export function getManagementAppRoutesForUser(
+  user: CurrentUser,
+  ctx: ManagementAppNavContext = defaultNavContext
+): ManagementNavRoute[] {
+  return ROUTES.filter((r) => r.visible(user, ctx));
 }
 
 export type DashboardI18nTitleKey =
@@ -55,7 +72,8 @@ export type DashboardI18nTitleKey =
   | 'products.title'
   | 'admins.title'
   | 'users.title'
-  | 'workers.title';
+  | 'workers.title'
+  | 'storage.title';
 
 export type DashboardI18nDescriptionKey =
   | 'feedFlagStatus.description'
@@ -64,7 +82,8 @@ export type DashboardI18nDescriptionKey =
   | 'products.description'
   | 'admins.description'
   | 'users.description'
-  | 'workers.description';
+  | 'workers.description'
+  | 'storage.description';
 
 const titleKeys: Record<ManagementNavSection, DashboardI18nTitleKey> = {
   feedFlagStatus: 'feedFlagStatus.title',
@@ -74,6 +93,7 @@ const titleKeys: Record<ManagementNavSection, DashboardI18nTitleKey> = {
   admins: 'admins.title',
   users: 'users.title',
   workers: 'workers.title',
+  storage: 'storage.title',
 };
 
 const descriptionKeys: Record<ManagementNavSection, DashboardI18nDescriptionKey> = {
@@ -84,6 +104,7 @@ const descriptionKeys: Record<ManagementNavSection, DashboardI18nDescriptionKey>
   admins: 'admins.description',
   users: 'users.description',
   workers: 'workers.description',
+  storage: 'storage.description',
 };
 
 export function dashboardI18nTitleKey(section: ManagementNavSection): DashboardI18nTitleKey {

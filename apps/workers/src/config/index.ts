@@ -1,7 +1,15 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion -- env vars validated at startup for running command */
 
-import type { BucketProvider } from '@podverse/external-services-object-storage';
-import { BUCKET_PROVIDERS, isBucketProvider } from '@podverse/external-services-object-storage';
+import type {
+  BucketRuntimeConfig,
+  BucketStorageConfig,
+} from '@podverse/external-services-object-storage';
+import {
+  hasAnyBucketProviderEnvSet,
+  isBucketStorageEnabled,
+  readBucketRuntimeConfig,
+  readBucketStorageConfig,
+} from '@podverse/external-services-object-storage';
 import {
   readOptionalPositiveExpirationEnv,
   readRequiredPositiveExpirationEnv,
@@ -51,92 +59,25 @@ export function getMQConfig(): MQConfig {
 }
 
 /** Allowed `BUCKET_PROVIDER` values for image shrink (single source of truth with validation). */
-export const SUPPORTED_BUCKET_PROVIDERS = BUCKET_PROVIDERS;
+export {
+  BUCKET_PROVIDERS,
+  isBucketProvider,
+  SUPPORTED_BUCKET_PROVIDERS,
+} from '@podverse/external-services-object-storage';
 
-export type BucketRuntimeConfig = {
-  provider: BucketProvider;
-  accessKey: string;
-  secretKey: string;
-  region: string;
-  endpoint?: string;
-  forcePathStyle: boolean;
-  /** Empty string means uploads omit `x-amz-acl` (bucket policy / provider behavior). */
-  uploadPublicAcl: string;
-};
-
-function parseBucketEndpoint(raw: string | undefined): string | undefined {
-  const trimmed = raw?.trim();
-  if (trimmed === undefined || trimmed === '') {
-    return undefined;
-  }
-  return trimmed;
-}
-
-function defaultForcePathStyle(provider: BucketProvider): boolean {
-  switch (provider) {
-    case 'digitalocean':
-    case 'aws-s3':
-      return false;
-    case 'backblaze-b2':
-    case 'garage':
-    case 's3-compatible':
-      return true;
-  }
-}
-
-function defaultUploadPublicAcl(provider: BucketProvider): string {
-  switch (provider) {
-    case 'digitalocean':
-    case 'aws-s3':
-    case 'backblaze-b2':
-      return 'public-read';
-    case 'garage':
-    case 's3-compatible':
-      return '';
-  }
-}
-
-function resolveForcePathStyle(provider: BucketProvider, raw: string | undefined): boolean {
-  const trimmed = raw?.trim();
-  if (trimmed === undefined || trimmed === '') {
-    return defaultForcePathStyle(provider);
-  }
-  if (trimmed === 'true') {
-    return true;
-  }
-  return false;
-}
+export type { BucketRuntimeConfig };
 
 /** Reads bucket + S3 client wiring after startup validation (including `BUCKET_PROVIDER`). */
 export function getBucketRuntimeConfig(): BucketRuntimeConfig {
-  const providerRaw = process.env.BUCKET_PROVIDER!.trim();
-  if (!isBucketProvider(providerRaw)) {
-    throw new Error(`Invalid BUCKET_PROVIDER: "${providerRaw}"`);
-  }
-  const provider = providerRaw;
-  return {
-    provider,
-    accessKey: process.env.BUCKET_ACCESS_KEY!,
-    secretKey: process.env.BUCKET_SECRET_KEY!,
-    region: process.env.BUCKET_REGION!,
-    endpoint: parseBucketEndpoint(process.env.BUCKET_ENDPOINT),
-    forcePathStyle: resolveForcePathStyle(provider, process.env.BUCKET_FORCE_PATH_STYLE),
-    uploadPublicAcl: defaultUploadPublicAcl(provider),
-  };
+  return readBucketRuntimeConfig();
 }
 
 /** Provider-agnostic config for image shrink storage (bucket + CDN base URL). */
-export type ImageShrinkStorageConfig = {
-  bucket: string;
-  cdnBaseUrl: string;
-};
+export type ImageShrinkStorageConfig = BucketStorageConfig;
 
 /** Returns storage config from provider-agnostic env (BUCKET_NAME, BUCKET_CDN_BASE_URL). */
 export function getImageShrinkStorageConfig(): ImageShrinkStorageConfig {
-  return {
-    bucket: process.env.BUCKET_NAME!,
-    cdnBaseUrl: process.env.BUCKET_CDN_BASE_URL!,
-  };
+  return readBucketStorageConfig();
 }
 
 export type ImageShrinkConfig = {
@@ -155,12 +96,7 @@ export type ImageShrinkCleanupConfig = {
   pageSize: number;
 };
 
-const IMAGE_SHRINK_REQUIRED_VARS = [
-  'BUCKET_ACCESS_KEY',
-  'BUCKET_SECRET_KEY',
-  'BUCKET_REGION',
-  'BUCKET_NAME',
-  'BUCKET_CDN_BASE_URL',
+const IMAGE_SHRINK_EXTRA_REQUIRED_VARS = [
   'IMAGE_SHRINK_BATCH_SIZE',
   'IMAGE_SHRINK_CONCURRENCY',
   'IMAGE_SHRINK_RPS',
@@ -171,15 +107,13 @@ const isEnvVarSet = (value: string | undefined): boolean => {
 };
 
 export function hasAnyImageShrinkEnvSet(): boolean {
-  return isEnvVarSet(process.env.BUCKET_PROVIDER);
+  return hasAnyBucketProviderEnvSet();
 }
 
 export function isImageShrinkEnabled(): boolean {
-  const provider = process.env.BUCKET_PROVIDER?.trim();
   return (
-    provider !== undefined &&
-    isBucketProvider(provider) &&
-    IMAGE_SHRINK_REQUIRED_VARS.every((key) => isEnvVarSet(process.env[key]))
+    isBucketStorageEnabled() &&
+    IMAGE_SHRINK_EXTRA_REQUIRED_VARS.every((key) => isEnvVarSet(process.env[key]))
   );
 }
 

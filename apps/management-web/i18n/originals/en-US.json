@@ -86,6 +86,57 @@
     "users": {
       "title": "Users",
       "description": "Create and manage app user accounts"
+    },
+    "storage": {
+      "title": "Object storage",
+      "description": "Browse, download, and delete objects in the configured bucket"
+    }
+  },
+  "storage": {
+    "title": "Object storage",
+    "subtitle": "List objects in the configured bucket",
+    "detailTitle": "Object details",
+    "detailSubtitle": "Metadata and download",
+    "loading": "Loading…",
+    "empty": "No objects match this prefix.",
+    "prefixFilter": "Prefix filter",
+    "prefixPlaceholder": "Filter by key prefix",
+    "featureDisabled": "Bucket storage is disabled or unavailable.",
+    "listLoadError": "Failed to load objects.",
+    "detailLoadError": "Failed to load object metadata.",
+    "notFound": "Object was not found.",
+    "deleteError": "Delete failed.",
+    "bulkDeleteError": "Bulk delete failed.",
+    "table": {
+      "key": "Key",
+      "size": "Size",
+      "lastModified": "Last modified",
+      "actions": "Actions"
+    },
+    "view": "View",
+    "delete": "Delete",
+    "bulkDelete": "Bulk delete",
+    "selectedCount": "{count, plural, one {# object selected} other {# objects selected}}",
+    "bulkConfirmAria": "Confirm bulk delete",
+    "bulkConfirmBody": "Delete {count, plural, one {# object} other {# objects}}? This cannot be undone.",
+    "deleteConfirmAria": "Confirm delete",
+    "deleteConfirmBody": "Delete “{key}”? This cannot be undone.",
+    "deleting": "Deleting…",
+    "selectAllAria": "Select all objects on this page",
+    "selectRowAria": "Select object {key}",
+    "download": "Download",
+    "backToList": "Back to object list",
+    "paginationPrev": "« Previous",
+    "paginationNext": "Next »",
+    "paginationPage": "Page {page}",
+    "detail": {
+      "fields": {
+        "key": "Key",
+        "contentType": "Content type",
+        "contentLength": "Size",
+        "lastModified": "Last modified",
+        "etag": "ETag"
+      }
     }
   },
   "statsPage": {
@@ -256,6 +307,7 @@
       "takedownReasons": "Takedown reasons",
       "admins": "Admins",
       "stats": "Stats",
+      "bucket": "Bucket",
       "actions": "Actions"
     },
     "permissions": {
@@ -268,7 +320,8 @@
       "feeds": "Feeds",
       "takedownReasons": "Takedown reasons",
       "admins": "Admins",
-      "stats": "Stats"
+      "stats": "Stats",
+      "bucket": "Object storage"
     }
   },
   "users": {

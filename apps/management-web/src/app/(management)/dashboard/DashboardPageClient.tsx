@@ -9,6 +9,7 @@ import type { NavCard } from '@podverse/ui';
 import { ManagementPageShell, NavCardGrid } from '@podverse/ui';
 
 import { getConfig } from '../../../config';
+import type { ManagementAppNavContext } from '../../../lib/managementNavRoutes';
 import {
   dashboardI18nDescriptionKey,
   dashboardI18nTitleKey,
@@ -19,9 +20,13 @@ import { type CurrentUser, getCurrentUser } from '../../../lib/requests/auth';
 export type DashboardPageClientProps = {
   /** Validated on the server before render; client re-check is fallback UX only. */
   initialUser: CurrentUser;
+  bucketStorageEnabled: boolean;
 };
 
-export function DashboardPageClient({ initialUser }: DashboardPageClientProps) {
+export function DashboardPageClient({
+  initialUser,
+  bucketStorageEnabled,
+}: DashboardPageClientProps) {
   const [user, setUser] = useState<CurrentUser>(initialUser);
   const router = useRouter();
   const t = useTranslations('dashboard');
@@ -58,7 +63,9 @@ export function DashboardPageClient({ initialUser }: DashboardPageClientProps) {
     return null;
   }
 
-  const cards: NavCard[] = getManagementAppRoutesForUser(user).map((r) => ({
+  const navContext: ManagementAppNavContext = { bucketStorageEnabled };
+
+  const cards: NavCard[] = getManagementAppRoutesForUser(user, navContext).map((r) => ({
     href: r.href,
     title: t(dashboardI18nTitleKey(r.section)),
     description: t(dashboardI18nDescriptionKey(r.section)),

@@ -2,6 +2,7 @@ import type { CurrentUser } from './requests/auth';
 
 const CRUD_READ = 2;
 const CRUD_UPDATE = 4;
+const CRUD_DELETE = 8;
 
 export function canReadFeeds(user: CurrentUser): boolean {
   if (user.role === 'superuser') {
@@ -34,6 +35,22 @@ export function canReadStats(user: CurrentUser): boolean {
     user.permissions !== undefined &&
     (user.permissions.stats_crud & CRUD_READ) !== 0
   );
+}
+
+export function canReadStorage(user: CurrentUser): boolean {
+  if (user.role === 'superuser') {
+    return true;
+  }
+  const crud = user.permissions?.bucket_crud ?? 0;
+  return user.permissions !== null && user.permissions !== undefined && (crud & CRUD_READ) !== 0;
+}
+
+export function canDeleteStorage(user: CurrentUser): boolean {
+  if (user.role === 'superuser') {
+    return true;
+  }
+  const crud = user.permissions?.bucket_crud ?? 0;
+  return user.permissions !== null && user.permissions !== undefined && (crud & CRUD_DELETE) !== 0;
 }
 
 /** Matches feed lifecycle `takedown` from management feed-operations API. */

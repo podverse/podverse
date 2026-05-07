@@ -26,6 +26,7 @@ const mockSuperuserAdmin = {
     adminsCrud: 15,
     statsCrud: 15,
     billingPricesCrud: 15,
+    bucketCrud: 15,
     created_at: new Date('2020-01-01T00:00:00.000Z'),
     updated_at: new Date('2020-01-01T00:00:00.000Z'),
   },

@@ -12,6 +12,7 @@ import { databaseRouter } from '@mgmt-api/routes/database.js';
 import { feedFlagStatusRouter } from '@mgmt-api/routes/feedFlagStatus.js';
 import { productRouter } from '@mgmt-api/routes/product/index.js';
 import { statsRouter } from '@mgmt-api/routes/stats.js';
+import { storageRouter } from '@mgmt-api/routes/storage.js';
 import { workerCommandsRouter } from '@mgmt-api/routes/workerCommands.js';
 import { usersRouter } from '@mgmt-api/routes/users.js';
 import { isLogLevelDebug } from '@podverse/helpers';
@@ -76,6 +77,7 @@ app.use(databaseRouter);
 app.use(feedFlagStatusRouter);
 app.use(productRouter);
 app.use(statsRouter);
+app.use(storageRouter);
 app.use(workerCommandsRouter);
 app.use(usersRouter);
 

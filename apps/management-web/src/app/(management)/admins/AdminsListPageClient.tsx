@@ -110,6 +110,7 @@ export function AdminsListPageClient({ initialUser }: AdminsListPageClientProps)
                 <Table.HeaderCell>{t('tableHeaders.takedownReasons')}</Table.HeaderCell>
                 <Table.HeaderCell>{t('tableHeaders.admins')}</Table.HeaderCell>
                 <Table.HeaderCell>{t('tableHeaders.stats')}</Table.HeaderCell>
+                <Table.HeaderCell>{t('tableHeaders.bucket')}</Table.HeaderCell>
                 <Table.HeaderCell>{tc('actions')}</Table.HeaderCell>
               </Table.Row>
             </Table.Head>
@@ -129,6 +130,7 @@ export function AdminsListPageClient({ initialUser }: AdminsListPageClientProps)
                   </Table.Cell>
                   <Table.Cell>{crudLabel(admin.permissions?.admins_crud ?? 0)}</Table.Cell>
                   <Table.Cell>{crudLabel(admin.permissions?.stats_crud ?? 0)}</Table.Cell>
+                  <Table.Cell>{crudLabel(admin.permissions?.bucket_crud ?? 0)}</Table.Cell>
                   <Table.Cell>
                     {admin.role !== 'superuser' && isSuperuser && (
                       <ActionLink

@@ -81,6 +81,12 @@ The main API, workers, and management-api all use shared `DB_HOST` and `DB_PORT`
 
 Optional **`MEMBERSHIP_*`** keys (trial length, premium USD prices, RSS/refresh caps) match [apps/api/ENV.md](../../apps/api/ENV.md) and bootstrap `product_membership_settings` in the app database. When that row exists, **`free_trial_expiration_seconds`** (and related merged fields from the pricing catalog path) take precedence for resolution APIs; env still validates at startup and seeds empty databases.
 
+### Object storage (optional)
+
+When **`BUCKET_PROVIDER`** is unset, the management storage browser stays **disabled** (`GET /v2/storage` returns `{ enabled: false }`; other storage routes respond **404**).
+
+When **`BUCKET_PROVIDER`** is set, startup validates the same **`BUCKET_*`** contract as workers (including **`BUCKET_CDN_BASE_URL`**). See [apps/workers/ENV.md](../../apps/workers/ENV.md) and [docs/image-shrinking/BUCKET-PROVIDERS.md](../../docs/image-shrinking/BUCKET-PROVIDERS.md).
+
 ## Validation Rules
 
 ### Numeric Validation

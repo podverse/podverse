@@ -86,6 +86,57 @@
     "users": {
       "title": "",
       "description": ""
+    },
+    "storage": {
+      "title": "",
+      "description": ""
+    }
+  },
+  "storage": {
+    "title": "",
+    "subtitle": "",
+    "detailTitle": "",
+    "detailSubtitle": "",
+    "loading": "",
+    "empty": "",
+    "prefixFilter": "",
+    "prefixPlaceholder": "",
+    "featureDisabled": "",
+    "listLoadError": "",
+    "detailLoadError": "",
+    "notFound": "",
+    "deleteError": "",
+    "bulkDeleteError": "",
+    "table": {
+      "key": "",
+      "size": "",
+      "lastModified": "",
+      "actions": ""
+    },
+    "view": "",
+    "delete": "",
+    "bulkDelete": "",
+    "selectedCount": "",
+    "bulkConfirmAria": "",
+    "bulkConfirmBody": "",
+    "deleteConfirmAria": "",
+    "deleteConfirmBody": "",
+    "deleting": "",
+    "selectAllAria": "",
+    "selectRowAria": "",
+    "download": "",
+    "backToList": "",
+    "paginationPrev": "",
+    "paginationNext": "",
+    "paginationPage": "",
+    "detail": {
+      "fields": {
+        "key": "",
+        "contentType": "",
+        "contentLength": "",
+        "lastModified": "",
+        "etag": ""
+      }
     }
   },
   "statsPage": {
@@ -256,6 +307,7 @@
       "takedownReasons": "",
       "admins": "",
       "stats": "",
+      "bucket": "",
       "actions": ""
     },
     "permissions": {
@@ -268,7 +320,8 @@
       "feeds": "",
       "takedownReasons": "",
       "admins": "",
-      "stats": ""
+      "stats": "",
+      "bucket": ""
     }
   },
   "users": {

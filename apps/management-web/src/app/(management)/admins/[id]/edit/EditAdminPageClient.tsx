@@ -10,6 +10,7 @@ import {
   Alert,
   Breadcrumbs,
   Button,
+  Checkbox,
   Fieldset,
   FormContainer,
   FormGroup,
@@ -27,6 +28,7 @@ const RESOURCE_KEYS = [
   'feed_takedown_reasons_crud',
   'admins_crud',
   'stats_crud',
+  'bucket_crud',
 ] as const;
 
 const CRUD_BITS = [
@@ -41,6 +43,7 @@ type PermissionState = {
   feed_takedown_reasons_crud: number;
   admins_crud: number;
   stats_crud: number;
+  bucket_crud: number;
 };
 
 const RESOURCE_LABEL_KEYS: Record<(typeof RESOURCE_KEYS)[number], string> = {
@@ -48,6 +51,7 @@ const RESOURCE_LABEL_KEYS: Record<(typeof RESOURCE_KEYS)[number], string> = {
   feed_takedown_reasons_crud: 'takedownReasons',
   admins_crud: 'admins',
   stats_crud: 'stats',
+  bucket_crud: 'bucket',
 };
 
 function permissionsFromAdmin(admin: AdminAccount): PermissionState {
@@ -56,6 +60,7 @@ function permissionsFromAdmin(admin: AdminAccount): PermissionState {
     feed_takedown_reasons_crud: admin.permissions?.feed_takedown_reasons_crud ?? 0,
     admins_crud: admin.permissions?.admins_crud ?? 0,
     stats_crud: admin.permissions?.stats_crud ?? 0,
+    bucket_crud: admin.permissions?.bucket_crud ?? 0,
   };
 }
 
@@ -175,10 +180,12 @@ export function EditAdminPageClient({ admin }: EditAdminPageClientProps) {
                     <Table.Cell>{tp(RESOURCE_LABEL_KEYS[key])}</Table.Cell>
                     {CRUD_BITS.map((check) => (
                       <Table.Cell key={check.bit}>
-                        <input
-                          type="checkbox"
+                        <Checkbox
+                          aria-label={`${tp(RESOURCE_LABEL_KEYS[key])}, ${tp(check.labelKey)}`}
                           checked={(permissions[key] & check.bit) !== 0}
-                          onChange={() => toggleCrudBit(key, check.bit)}
+                          onChange={() => {
+                            toggleCrudBit(key, check.bit);
+                          }}
                         />
                       </Table.Cell>
                     ))}

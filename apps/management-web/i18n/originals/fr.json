@@ -86,6 +86,57 @@
     "users": {
       "title": "Utilisateurs",
       "description": "Créer et gérer les comptes utilisateurs de l'application"
+    },
+    "storage": {
+      "title": "Stockage d'objets",
+      "description": "Parcourir, télécharger et supprimer des objets dans le compartiment configuré"
+    }
+  },
+  "storage": {
+    "title": "Stockage d'objets",
+    "subtitle": "Lister les objets du compartiment configuré",
+    "detailTitle": "Détails de l'objet",
+    "detailSubtitle": "Métadonnées et téléchargement",
+    "loading": "Chargement…",
+    "empty": "Aucun objet ne correspond à ce préfixe.",
+    "prefixFilter": "Filtre de préfixe",
+    "prefixPlaceholder": "Filtrer par préfixe de clé",
+    "featureDisabled": "Le stockage compartimenté est désactivé ou indisponible.",
+    "listLoadError": "Échec du chargement des objets.",
+    "detailLoadError": "Échec du chargement des métadonnées de l'objet.",
+    "notFound": "Objet introuvable.",
+    "deleteError": "Échec de la suppression.",
+    "bulkDeleteError": "Échec de la suppression groupée.",
+    "table": {
+      "key": "Clé",
+      "size": "Taille",
+      "lastModified": "Dernière modification",
+      "actions": "Actions"
+    },
+    "view": "Voir",
+    "delete": "Supprimer",
+    "bulkDelete": "Suppression groupée",
+    "selectedCount": "{count, plural, one {# objet sélectionné} other {# objets sélectionnés}}",
+    "bulkConfirmAria": "Confirmer la suppression groupée",
+    "bulkConfirmBody": "Supprimer {count, plural, one {# objet} other {# objets}} ? Cette action est irréversible.",
+    "deleteConfirmAria": "Confirmer la suppression",
+    "deleteConfirmBody": "Supprimer « {key} » ? Cette action est irréversible.",
+    "deleting": "Suppression…",
+    "selectAllAria": "Sélectionner tous les objets de cette page",
+    "selectRowAria": "Sélectionner l'objet {key}",
+    "download": "Télécharger",
+    "backToList": "Retour à la liste des objets",
+    "paginationPrev": "« Précédent",
+    "paginationNext": "Suivant »",
+    "paginationPage": "Page {page}",
+    "detail": {
+      "fields": {
+        "key": "Clé",
+        "contentType": "Type de contenu",
+        "contentLength": "Taille",
+        "lastModified": "Dernière modification",
+        "etag": "ETag"
+      }
     }
   },
   "statsPage": {
@@ -256,6 +307,7 @@
       "takedownReasons": "Raisons de retrait",
       "admins": "Administrateurs",
       "stats": "Statistiques",
+      "bucket": "Bucket",
       "actions": "Actions"
     },
     "permissions": {
@@ -268,7 +320,8 @@
       "feeds": "Flux",
       "takedownReasons": "Raisons de retrait",
       "admins": "Admins",
-      "stats": "Statistiques"
+      "stats": "Statistiques",
+      "bucket": "Stockage d'objets"
     }
   },
   "users": {

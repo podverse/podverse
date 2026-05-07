@@ -7,6 +7,7 @@
  *
  * Schema: admin_account (id SERIAL, id_text, admin_account_role_id FK)
  *         admin_account_credentials (id SERIAL, admin_account_id FK, email, password)
+ *         admin_account_permissions (optional; role superuser bypasses CRUD checks)
  *         admin_account_role rows seeded by migration: 1=superuser, 2=admin
  */
 
@@ -35,30 +36,53 @@ async function main() {
   await client.connect();
   console.log(`Connected to ${DB_NAME} on ${DB_HOST}:${DB_PORT}`);
 
-  // Truncate tables used by E2E tests (order matters for FK constraints)
-  // No RESTART IDENTITY — the read_write user doesn't own sequences.
-  await client.query(`TRUNCATE TABLE "admin_account_credentials" CASCADE`);
-  await client.query(`TRUNCATE TABLE "admin_account" CASCADE`);
+  await client.query('TRUNCATE TABLE "admin_account" CASCADE');
 
-  // Insert a superadmin: admin_account row + admin_account_credentials row
-  const idText = crypto.randomBytes(8).toString('hex').slice(0, 15);
-
-  const accountResult = await client.query(
+  const idTextSuper = crypto.randomBytes(8).toString('hex').slice(0, 15);
+  const superResult = await client.query(
     `INSERT INTO "admin_account" (id_text, admin_account_role_id)
      VALUES ($1, 1)
      RETURNING id`,
-    [idText]
+    [idTextSuper]
   );
-
-  const accountId = accountResult.rows[0].id;
+  const superId = superResult.rows[0].id;
 
   await client.query(
     `INSERT INTO "admin_account_credentials" (admin_account_id, email, password)
      VALUES ($1, $2, $3)`,
-    [accountId, 'e2e-superadmin@example.com', passwordHash]
+    [superId, 'e2e-superadmin@example.com', passwordHash]
   );
 
-  console.log(`Seeded 1 admin user: e2e-superadmin@example.com`);
+  const idTextNoBucket = crypto.randomBytes(8).toString('hex').slice(0, 15);
+  const noBucketResult = await client.query(
+    `INSERT INTO "admin_account" (id_text, admin_account_role_id)
+     VALUES ($1, 2)
+     RETURNING id`,
+    [idTextNoBucket]
+  );
+  const noBucketId = noBucketResult.rows[0].id;
+
+  await client.query(
+    `INSERT INTO "admin_account_credentials" (admin_account_id, email, password)
+     VALUES ($1, $2, $3)`,
+    [noBucketId, 'e2e-nobucket@example.com', passwordHash]
+  );
+
+  await client.query(
+    `INSERT INTO "admin_account_permissions" (
+       admin_account_id,
+       feeds_crud,
+       feed_takedown_reasons_crud,
+       admins_crud,
+       stats_crud,
+       billing_prices_crud,
+       bucket_crud
+     ) VALUES ($1, 2, 0, 0, 0, 0, 0)`,
+    [noBucketId]
+  );
+
+  console.log(`Seeded superuser: e2e-superadmin@example.com`);
+  console.log(`Seeded admin (no bucket read): e2e-nobucket@example.com`);
   await client.end();
   console.log('Management-web E2E seed complete.');
 }
